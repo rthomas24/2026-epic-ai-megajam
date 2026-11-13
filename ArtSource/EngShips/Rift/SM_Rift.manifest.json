@@ -1,0 +1,139 @@
+{
+  "asset": "SM_Rift",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Rift\\SM_Rift.fbx",
+  "tris": 42371,
+  "size_cm": [
+    500.0,
+    417.4,
+    226.0
+  ],
+  "pivot": "root object origin (SM_Rift~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Rift.001"
+  ],
+  "material_params": [
+    {
+      "name": "M_Rift.001",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_Rift_00"
+  ],
+  "collision_source": "auto convex hulls",
+  "sockets": [
+    "SOCKET_Cockpit",
+    "SOCKET_Engine",
+    "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_Muzzle_0",
+    "SOCKET_Muzzle_1",
+    "SOCKET_Portal",
+    "SOCKET_WingTip_L",
+    "SOCKET_WingTip_R"
+  ],
+  "welded_verts": 40173,
+  "nanite_recommended": true,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": true,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "ue_cm": [
+        252,
+        -37,
+        -60
+      ]
+    },
+    {
+      "name": "Muzzle_1",
+      "ue_cm": [
+        252,
+        37,
+        -60
+      ]
+    },
+    {
+      "name": "Engine",
+      "ue_cm": [
+        -252,
+        0,
+        -34
+      ]
+    },
+    {
+      "name": "Engine_0",
+      "ue_cm": [
+        -252,
+        -64,
+        -34
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "ue_cm": [
+        -252,
+        64,
+        -34
+      ]
+    },
+    {
+      "name": "Portal",
+      "ue_cm": [
+        -170,
+        0,
+        55
+      ]
+    },
+    {
+      "name": "Cockpit",
+      "ue_cm": [
+        60,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "WingTip_L",
+      "ue_cm": [
+        238,
+        -176,
+        -109
+      ]
+    },
+    {
+      "name": "WingTip_R",
+      "ue_cm": [
+        238,
+        176,
+        -109
+      ]
+    }
+  ],
+  "source": "ArtSource/EngAI/Ships/Rift/mesh_r1",
+  "texture_dir": "ArtSource/EngAI/Ships/Rift/mesh_r1",
+  "heat_mask": "ArtSource/EngAI/Ships/Rift/heatmask_r1/T_Rift_HeatMask.png",
+  "max_texture_size": 2048
+}

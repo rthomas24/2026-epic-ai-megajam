@@ -1,0 +1,111 @@
+{
+  "asset": "SM_NullInterceptor",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullInterceptor\\SM_NullInterceptor.fbx",
+  "tris": 8948,
+  "size_cm": [
+    660.0,
+    535.3,
+    248.0
+  ],
+  "pivot": "root object origin (SM_NullInterceptor~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_NullInterceptor"
+  ],
+  "material_params": [
+    {
+      "name": "M_NullInterceptor",
+      "textured": false,
+      "base_color": [
+        0.03,
+        0.03,
+        0.035
+      ],
+      "metallic": 0.8,
+      "roughness": 0.45,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_NullInterceptor_00"
+  ],
+  "collision_source": "auto convex hulls",
+  "sockets": [
+    "SOCKET_Engine_0",
+    "SOCKET_Muzzle_0",
+    "SOCKET_Muzzle_1",
+    "SOCKET_Muzzle_2",
+    "SOCKET_Muzzle_3"
+  ],
+  "welded_verts": 7252,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "ue_cm": [
+        220,
+        -56,
+        -43
+      ]
+    },
+    {
+      "name": "Muzzle_1",
+      "ue_cm": [
+        220,
+        56,
+        -43
+      ]
+    },
+    {
+      "name": "Muzzle_2",
+      "ue_cm": [
+        178,
+        -124,
+        -43
+      ]
+    },
+    {
+      "name": "Muzzle_3",
+      "ue_cm": [
+        142,
+        124,
+        -43
+      ]
+    },
+    {
+      "name": "Engine_0",
+      "ue_cm": [
+        -308,
+        0,
+        26
+      ]
+    }
+  ],
+  "source": "ArtSource/EngAI/Ships/NullFleet/Interceptor/mesh_r1",
+  "texture_dir": "ArtSource/EngAI/Ships/NullFleet/Interceptor/mesh_r1",
+  "heat_mask": null,
+  "max_texture_size": 1024
+}
