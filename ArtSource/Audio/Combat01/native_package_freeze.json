@@ -1,0 +1,94 @@
+{
+  "stage": "Exact tested native packages copied into owned audio feature worktree; publication and Shipping pending",
+  "source_host": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration",
+  "count": 17,
+  "total_bytes": 669897,
+  "packages": [
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/MSS_Hull.uasset",
+      "sha256": "c4bf9e6432207ed27fae6ad5fe0b55a1031581c8fdfc0748dad60595c3220b83",
+      "bytes": 148116
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/MSS_NeedleCannon.uasset",
+      "sha256": "1d00e0b927dd183002bf116e10eaf036989f18ce3ffb700070370206ace4ee88",
+      "bytes": 148204
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/MSS_Shield.uasset",
+      "sha256": "efae935c7b9ef00edf32806d2964d3c2284adefa084a7f04b8f79f655c478752",
+      "bytes": 148138
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Mix/ATT_Combat01_Medium.uasset",
+      "sha256": "d654b0f26c829efe5683e88d74d4d3373cd530b6567b9fcb9c2c40ce4edb305a",
+      "bytes": 1728
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Mix/SCON_Combat01_Impact.uasset",
+      "sha256": "133a1723e7a7d2cb901ee3ca5e2a200c4b9d51218065b4b30fd9ea28d1744f94",
+      "bytes": 1770
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Mix/SCON_Combat01_Weapon.uasset",
+      "sha256": "f5737d3b01f14eddecd471fc4224f896461dfe0750583012a264f41c253b84c5",
+      "bytes": 1770
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Mix/SC_Combat01_SFX.uasset",
+      "sha256": "b541874ed629f4bf41c3d72debf98426bf116f530ffde7bb63439c5d02fb52c0",
+      "bytes": 1122
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_Hull_01.uasset",
+      "sha256": "75c6d98243ceefdab3539c879afdb09c167b7d58ed264cd8551545253f05ce0b",
+      "bytes": 26734
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_Hull_02.uasset",
+      "sha256": "1364d151f165c799f2f452023864997dda67cdc9ff8edfa17e16f766f8a5c2db",
+      "bytes": 27151
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_Hull_03.uasset",
+      "sha256": "84d93256f5ce77d85d95034f0507fd6317af7278a90020dfc6eb28aa8022d3b9",
+      "bytes": 27170
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_01.uasset",
+      "sha256": "93f228741579178c75fecd5107abd2738fbdf04bd76cd64dabcf695669b21f06",
+      "bytes": 22508
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_02.uasset",
+      "sha256": "4359b72556f39de5c5f1693a56f4344fbdb191f045970237cbe7dca1cc717eed",
+      "bytes": 22447
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_03.uasset",
+      "sha256": "a9b3f8e6019dc40440367655e8a23446cc7067ec0b3722c1db9e0a70cfcc089e",
+      "bytes": 22451
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_Shield_01.uasset",
+      "sha256": "b450410712dd40e4d5106bf50a34d6e95aa3b80444c4b5a3368d7193d4c74201",
+      "bytes": 22541
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_Shield_02.uasset",
+      "sha256": "2ae917fc3713b43d5cc8e36cb337ff6547c4e58b9b095f693cda67978f998955",
+      "bytes": 23367
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_Shield_03.uasset",
+      "sha256": "f348bf0f7f997089d214c0e681824f771c77e3ccda58eed0f4c09793edd56d04",
+      "bytes": 22652
+    },
+    {
+      "path": "Content/TriadDrift/Presentation/DA_NeedleCannons_FX.uasset",
+      "sha256": "1c2413527616882104afc798170d096970654338676bfa238b45dc2fbd181729",
+      "bytes": 2028
+    }
+  ],
+  "menu_unchanged": true
+}

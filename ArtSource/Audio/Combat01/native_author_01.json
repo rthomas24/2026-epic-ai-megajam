@@ -1,0 +1,28 @@
+{
+  "pid": 5904,
+  "exit_code": 0,
+  "reason": "completed",
+  "failure": "AssertionError('Missing required toolset editor_toolset.toolsets.python_scripting.PythonScriptingTools')",
+  "minimum_free_gib": 1.7051124572753906,
+  "duration_s": 79.66570350000256,
+  "protected_count": 1106,
+  "protected_unchanged": true,
+  "changed_protected": [],
+  "new_content": {},
+  "unexpected_content": [],
+  "stage": "Native author NOT submitted; startup slow-task gate returned before mutation. Corrected Author02 queued through Lead.",
+  "engine_errors": 0,
+  "engine_warnings": 1,
+  "editor_clean_exit": true,
+  "structured_engine_result_present": true,
+  "evidence_directory": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Saved\\AudioMusic\\Combat01\\Author01",
+  "startup_reply": {
+    "content": [
+      "Not run: the Unreal Editor is running a slow task, which blocks editor tools. This call made no changes. The task must finish before this call can run, so wait for it to finish, then retry. Retrying while it runs returns this message again."
+    ],
+    "isError": true
+  },
+  "git_commit_at_attempt": "8be74bdb1b674c2d778df5f0a730b3b46451f21f",
+  "new_native_assets": 0,
+  "gameplay_auditioned": false
+}
