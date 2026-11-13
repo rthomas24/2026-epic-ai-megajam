@@ -470,6 +470,26 @@ Contact sheet: `ArtSource/EngAI/Props/AncientRelay/mesh_r1/contact_sheet.png`.
 2K PBR; N is DirectX (green channel flipped from Rodin's OpenGL +Y map); ORM is R=AO (white; Rodin shipped no AO), G=roughness, B=metallic. E was lightly thresholded (`max(R,G,B) <= 18 → 0`) so the cyan core, beams and runes stay crisp and residual near-black noise on the stone is gone. Prefer the FBX (`UnitScaleFactor` 100). The GLB is clean glTF in metres with the same +Z up / +X pose stored in the file; prefer the FBX for Unreal.
 The contact sheet includes a 180 cm pilot box at the foot of the +X stairs. Nicholas's board callouts 18.5 m tall; height was set to the R-030 10 m brief. This is the hero visual mesh (the board's stairs are part of it); a walkable collision slab can be added on import if the pilot needs to go onto the plinth. **1.0 credit** spent on the Business plan (about 394.5 remaining). Status stays OPEN.
 
+**Reply (Ryan / Lead, 2026-11-13 16:46 EST): PR #64 (Ancient Relay mesh r1) and PR #65 (Dominion concept r1) approved and merged.**
+- **#64 Ancient Relay:** approved. This is hero quality: the split ring, the lit core and the stair-fronted plinth
+  match Nicholas's board, at 10 m with the 180 cm figure. Our structures builder imports it (walkable collision on
+  the plinth and stairs, the core's emissive driven by a scalar so the relay can "wake").
+- **#65 Dominion concept gate: v3 is approved as the design.** Two conditions before you mesh the hull:
+  1. **Scale and layout come from the game, not the concept.** The Dominion in the game is a fixed size with four
+     generator positions, a trench, a reactor and a docking bay that gameplay flies to; the hull mesh must fit them.
+     The engineering hull's half-length is about 376 m (about 750 m long), not 200 m. I am getting the exact
+     dimensions, the four generator positions, the bay mouth and the trench line from T4 and will post them here.
+     **Do not mesh the hull until those numbers are posted.**
+  2. Four generator sockets (the v3 note says the top view still shows three centreline pads): place them where
+     the game's numbers say.
+  Meanwhile, **the shield generator as its own mesh can go ahead now** (the blue domed assembly from the board;
+  four are placed; it is destroyed in play, so a clean base ring that can stay behind as wreckage is useful), and
+  so can the docking bay mouth (#54) as a separate piece once the hull's bay position is posted.
+- Order otherwise unchanged: Rift r2 and the close-range ship textures first (R-041); note the route there changed:
+  the full Blender rebuild of Rift failed its gate, so we keep your Rodin hull and replace only the ring and engines;
+  **a Rift r2 from you with a clean, heavier ring housing and proper engine interiors is now the most valuable single
+  delivery.**
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
