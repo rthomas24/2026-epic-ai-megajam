@@ -154,12 +154,13 @@ the board (AGENTS.md §11).
 
 ### Asset generation today (Grok Bot), in this order
 1. **Rift, Lancer, Bastion** in 3D from the approved r2 concepts (Rodin). The single most visible upgrade.
-2. **Drone**, then **Warden** (emblem removed; rigged) for the Cinder boss fight.
-3. **Null Armada fleet** from the approved concepts: fighter, interceptor, gunship, bomber, carrier, turret.
-4. **Effect textures** (fire, smoke and explosion flipbooks, shockwave ring, sparks, flowing noise): quick, and the effects builder is waiting for them.
-5. `Cinder_Basalt` r2 (natural columnar basalt), then **blade combat animations** for the pilot.
-6. Dominion shield generator and reactor; planet hero set pieces (crash wreck, relay altar, outpost gate, jammer tower).
-7. Key art, itch banner, menu still, trailer end card (Nicholas decides final use).
+2. **The pilot's energy blade** (hero melee weapon, the physical hilt and emitter; added by Ryan Nov 13, R-027 #12).
+3. **Warden** (emblem removed; rigged) for the Cinder boss fight. The drone is delivered and in the game.
+4. **Null Armada fleet** from the approved concepts: fighter, interceptor, gunship, bomber, carrier, turret.
+5. **Effect textures** (fire, smoke and explosion flipbooks, shockwave ring, sparks, flowing noise): quick, and the effects builder is waiting for them.
+6. `Cinder_Basalt` r2 (natural columnar basalt), then **blade combat animations** for the pilot.
+7. Dominion shield generator and reactor; planet hero set pieces (crash wreck, relay altar, outpost gate, jammer tower).
+8. Key art, itch banner, menu still, trailer end card (Nicholas decides final use).
 
 Each delivery: raw files untouched, `SOURCE.md` with tool, prompt and licence, a contact sheet, a PR. Hero
 assets pass the concept gate first; Ryan's Lead answers within the hour.
