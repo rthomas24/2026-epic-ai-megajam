@@ -184,3 +184,37 @@ HUD's style), the navigation pulse on the HUD (T2), the Dominion's light row pul
 builder), the lines as transmissions `S2_*` (T3). **Built once, with the opening, after the art is in** (same gate as
 §11); T3 adds it to the shot plan now.
 
+## 13. Gameplay Sequence 01: the tutorial battle (Nicholas's proposal, received Nov 13)
+Original: `Story/Triad_Drift_Gameplay_Sequence_01_Tutorial_Battle.docx`. It sits between the opening cinematic (§11)
+and *Aftermath* (§12): **one uninterrupted first mission, about 6-10 minutes**, no cinematic in between. The player
+takes control as a drone group turns hostile: Triad was ordered to investigate, not fight, so it begins as an
+emergency escape and becomes a short combat lesson.
+
+| Phase | Player learns | Ends when | Call (draft) / HUD prompt |
+|---|---|---|---|
+| 01 Break formation | Steer, pitch / yaw, throttle or boost; evade a readable first volley | A safe corridor is reached / the opening attack is survived | COMMAND: "Pilot, incoming fire! Evade now!" / EVASIVE MANEUVERS |
+| 02 Return fire | Acquire a marked drone, fire, read the target indicator and damage feedback | The required drones are destroyed | KATO: "Keep moving. I'm marking a hostile." / TARGET AND FIRE |
+| 03 Fight as Triad | Switching ships; each ship's ability in a staged situation | Each available ability is shown, or its substitute | MOSS: "We've still got three ships. Use them." / SQUAD SYSTEMS |
+| 04 Heavy contact | Everything under pressure; the squad as a team | The larger craft is driven off or disabled | WREN: "That one's bigger. Focus it together!" / DISABLE HEAVY CONTACT |
+| 05 Withdraw | Flying to a marked escape vector under pursuit | The escape boundary is crossed; **the drones deliberately stop at the perimeter** | COMMAND: "Triad, disengage. Fall back to the marked corridor." / BREAK CONTACT, then KATO: "They're breaking off." → *Aftermath* |
+
+**Rules from the proposal:** entry straight from the cinematic with no fade, reload or training room; most Dominion
+craft keep heading for the planets and only a small defensive group attacks (never the whole fleet chasing the squad);
+the drone that hesitated in the opening is not an immediate target; nobody labels the enemy; one action taught at a
+time with large markers and hints for the real input device; checkpoints at the opening of the engagement, the heavy
+contact and the retreat, with the cinematic never replayed after a death; no hard lock on an ability prompt (a timed
+hint, a substitute objective or a reset); the "Don't-" audio is not repeated.
+
+**How it maps to the game today (engineering's answer, posted in issue #29):**
+- Flight, targeting, switching (`1` / `2` / `3` or the pad's D-pad), the three ships with AI wingmen (solo; no co-op),
+  the onboarding hints (fly, fire, switch, power, one at a time, ticked off, a second chance on a miss) and scene
+  checkpoints with "CUT!" retakes all exist. Waves 1-2 hold the content: wave 1's fighters are phases 01-02, wave 2's
+  gunship is the heavy contact.
+- **New work:** phase 01 as an evade-first beat; staged situations for each ship's power (phase 03); the withdrawal:
+  a marked corridor, pursuers that stop at a boundary, the trigger for *Aftermath*; three checkpoints inside the one
+  mission; most of the fleet streaming past toward Verdance in the background. Owners: T4 (encounter), T3 (hints,
+  director, checkpoints as scenes), T2 (prompts in the HUD), T1 (escape vector).
+- **Open with Nicholas:** phase 03 names Cloak, EMP Pulse and Gravity Well, which the game awards on the planets;
+  today the tutorial would teach the signature powers (portal blaster, afterburner ram, missile swarm and dome).
+- The Verdance transition is the hyperdrive jump, then the planetary descent (ENG-38).
+
