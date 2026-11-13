@@ -1,6 +1,6 @@
 # Triad Drift active claims
 
-Claim handling follows AGENTS.md Â§6.5 and Â§6.9. No binary work is authorized by
+Claim handling follows AGENTS.md §6.5 and §6.9. No binary work is authorized by
 an unpublished claim. The Lead preserves all other active claims when updating this file.
 
 The root file on shared `main` is authoritative. Before assigning work or editing
