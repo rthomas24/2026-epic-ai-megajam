@@ -278,7 +278,9 @@ void ATDFirstPersonCharacter::ApplyBladeVisuals()
 	{
 		if (UStaticMesh* ArtMesh = FX->BladeMesh.LoadSynchronous())
 		{
-			// Nick's first-person blade replaces the placeholder (authored at final scale).
+			// Nick's first-person blade replaces the placeholder (authored at final scale, pivot in the hand).
+			BladePlaceholder->AttachToComponent(BladeGrip, FAttachmentTransformRules::KeepRelativeTransform);
+			BladePlaceholder->SetRelativeRotation(FRotator::ZeroRotator);
 			BladePlaceholder->SetStaticMesh(ArtMesh);
 			BladePlaceholder->SetRelativeLocation(FVector::ZeroVector); // authored with its pivot in the hand
 			BladePlaceholder->SetRelativeScale3D(FVector::OneVector);
@@ -288,7 +290,28 @@ void ATDFirstPersonCharacter::ApplyBladeVisuals()
 		}
 	}
 	bBladeMeshFromArt = false;
-	UTDStatics::TintPlaceholder(BladePlaceholder, FX ? FX->BladeColor : FLinearColor(0.1f, 0.65f, 1.f), 1.4f);
+	const FLinearColor Color = FX ? FX->BladeColor : FLinearColor(0.1f, 0.65f, 1.f);
+	// Engineering's blade (Gameplay/Props/Blade): the sculpted hilt in the grip and the two-layer beam out of its
+	// emitter, 70 cm, the same pair the body holds in third person. The engine cubes only if the art is missing.
+	UStaticMesh* HiltArt = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeHilt.SM_TD_BladeHilt"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UStaticMesh* BeamArt = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeBeam.SM_TD_BladeBeam"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+	if (HiltArt && BeamArt)
+	{
+		BladeHilt->SetStaticMesh(HiltArt);
+		BladeHilt->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator(90.f, 0.f, 0.f)); // the hilt's +X up the grip's +Z
+		BladeHilt->SetRelativeScale3D(FVector::OneVector);
+		BladePlaceholder->SetStaticMesh(BeamArt);
+		const bool bEmitter = HiltArt->FindSocket(TEXT("BladeEmitter")) != nullptr;
+		BladePlaceholder->AttachToComponent(BladeHilt, FAttachmentTransformRules::SnapToTargetNotIncludingScale, bEmitter ? FName(TEXT("BladeEmitter")) : NAME_None);
+		BladePlaceholder->SetRelativeLocationAndRotation(bEmitter ? FVector::ZeroVector : FVector(19.3f, 0.f, 0.f), FRotator::ZeroRotator);
+		BladePlaceholder->SetRelativeScale3D(FVector(0.7f, 1.f, 1.f));
+		if (UMaterialInstanceDynamic* MID = BladePlaceholder->CreateDynamicMaterialInstance(0))
+		{
+			MID->SetVectorParameterValue(TEXT("BladeColor"), Color);
+		}
+		return;
+	}
+	UTDStatics::TintPlaceholder(BladePlaceholder, Color, 1.4f);
 	UTDStatics::TintPlaceholder(BladeHilt, FLinearColor(0.25f, 0.27f, 0.32f), 0.15f); // metal, never pure black
 }
 
