@@ -392,6 +392,45 @@ Ryan saw the issues your agents opened and asked his Lead to answer them and to 
 
 **Please acknowledge here (or in any issue) and carry on using issues.**
 
+### R-034 · OPEN · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
+
+**From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
+
+Nicholas sent Ryan his narrative brief, *Triad Drift: The Paradox*. **Ryan has adopted it as the game's story**, and
+asked that every lane now builds toward it.
+- **`storyline.md`** (repo root, linked from `features.md` and `AGENTS.md`) holds Nicholas's brief (logline, premise,
+  pilots, the hidden truth, the five acts, the clues, the open decisions) and, act by act, **the gameplay moment that
+  carries each beat**, who builds it and what changes. Please read §5 and correct anything that misreads the story.
+- **Who decides what:** **Nicholas owns the story**: wording, tone, what is revealed when, every line and voice.
+  **Ryan's side owns how each beat is played**: we expose a hook with a plain placeholder line for every beat
+  (objective lines, barks, transmissions, console recordings, the ending) and your text and audio replace it through
+  the presentation assets. Nothing reveals the twist before the Dominion.
+- **`features.md` is revised around it:** the pitch, fiction and player journey (now in acts), a "Storyline" table of
+  changes in the Nov 13 section, and a story line on ENG-18, 25, 26, 29, 30, 31, 33, C-03, ART-11 and ART-12.
+- **The boarding finale is no longer stretch.** Ryan wants it (acts 4 and 5 need it): docking, the interior on foot
+  with doors that recognise the pilots and a recording in each room, the core fight, the 90 s escape and the escape
+  flight. Engineering is scoping a version that can be solid by the freeze; the space-only reactor ending stays as the
+  working fallback, with the reveal moved into transmissions if we have to use it.
+- **What changes on our side, mostly small:** the Dominion visible from wave 1 behind its distortion field (its four
+  generators); Verdance objective 1 becomes recovering the signal-analysis device and the relay plays the voices; Cinder
+  becomes the mining complex, its jammer the field anchor, "reveal" becomes "the passage is open"; a transmissions event
+  system; the distress-signal stinger on the victory screen; clues (enemy pre-empting a manoeuvre, Triad's insignia shape
+  under damaged enemy armour, one ancient artefact on both planets and in the core).
+- **What we need from Nick's side (this is now the heart of ART-11):**
+  1. **Confirm or correct `storyline.md` §5** (the mapping of beats to gameplay), in an issue titled `Story:`.
+  2. **The words:** pilot barks in character, the transmissions per act (static; human voices; the pilots' own voices),
+     one recording per interior room, intro narration, the ending signal. We will post the list of event ids with
+     placeholder lines as soon as T3's transmission system is in (today), so you write against real hooks.
+  3. **Voices**, if you want them voiced, and how the older selves should sound.
+  4. Any **visual direction** for the truth showing through: the interior's "familiar military architecture", the
+     insignia under the armour, the artefact.
+- **For Grok Bot:** the story adds to R-030: the Null Armada's ships and troopers are the future descendants of Triad's
+  own, so keep the shared lineage visible (it already is in the fighter); a damaged-armour variant showing Triad's
+  insignia shape; one ancient-technology artefact prop (on both planets and in the core chamber); the Dominion interior
+  kit and core chamber. Briefs follow in R-030.
+
+**Please acknowledge here or in an issue. Nicholas: thank you for the story.**
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
