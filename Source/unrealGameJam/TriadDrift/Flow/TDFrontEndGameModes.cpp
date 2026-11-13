@@ -70,6 +70,32 @@ ATDMenuGameMode::ATDMenuGameMode()
 {
 	DefaultPawnClass = nullptr;
 	HUDClass = ATDFrontEndHUD::StaticClass();
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bTickEvenWhenPaused = true;
+}
+
+void ATDMenuGameMode::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	KeepMenuFocus();
+}
+
+void ATDMenuGameMode::KeepMenuFocus()
+{
+	const TSharedPtr<SWidget> Button = FocusButton.Pin();
+	if (!Placeholder.IsValid() || !Button.IsValid() || !FSlateApplication::IsInitialized())
+	{
+		return;
+	}
+	FSlateApplication& App = FSlateApplication::Get();
+	for (TSharedPtr<SWidget> W = App.GetUserFocusedWidget(0); W.IsValid(); W = W->GetParentWidget())
+	{
+		if (W == Placeholder)
+		{
+			return; // already on one of the menu's buttons (the d-pad moves between them)
+		}
+	}
+	App.SetAllUserFocus(Button, EFocusCause::SetDirectly);
 }
 
 void ATDMenuGameMode::StartPlay()
@@ -253,10 +279,8 @@ void ATDMenuGameMode::ShowPlaceholder()
 			Box
 		];
 	GEngine->GameViewport->AddViewportWidgetContent(Placeholder.ToSharedRef(), 10);
-	if (FirstButton.IsValid() && FSlateApplication::IsInitialized())
-	{
-		FSlateApplication::Get().SetAllUserFocus(FirstButton, EFocusCause::SetDirectly);
-	}
+	FocusButton = FirstButton;
+	KeepMenuFocus();
 }
 
 void ATDMenuGameMode::PostLogin(APlayerController* NewPlayer)
