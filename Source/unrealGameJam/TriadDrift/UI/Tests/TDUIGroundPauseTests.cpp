@@ -6,6 +6,7 @@
 
 #include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/HUD.h"
 #include "HAL/IConsoleManager.h"
 #include "InputCoreTypes.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
@@ -108,6 +109,30 @@ bool FTDUIGroundHUDByMode::RunTest(const FString& Parameters)
 	PC->Possess(Walker);
 	Host->Evaluate();
 	TestNotNull(TEXT("back on foot: the ground HUD again"), Host->GetGroundHUD());
+
+	// 5. A cinematic (T3's intro) hides every HUD at once, blocks the pause screen, and restores exactly.
+	AHUD* DevHUD = W.Spawn<AHUD>();
+	PC->MyHUD = DevHUD;
+	DevHUD->bShowHUD = true;
+	Host->HandlePauseChanged(true);
+	TestNotNull(TEXT("before: pause screen up"), Host->GetPauseScreen());
+	UTDUIHostSubsystem::SetCinematicHiddenIn(W.GetWorld(), true);
+	TestNull(TEXT("cinematic: ground HUD hidden at once"), Host->GetGroundHUD());
+	TestNull(TEXT("cinematic: pause screen removed"), Host->GetPauseScreen());
+	TestFalse(TEXT("cinematic: fallback debug HUD stops drawing"), DevHUD->bShowHUD);
+	Host->Evaluate();
+	Host->HandlePauseChanged(true);
+	TestNull(TEXT("cinematic: stays hidden through re-evaluation"), Host->GetGroundHUD());
+	TestNull(TEXT("cinematic: the pause screen can't open"), Host->GetPauseScreen());
+	Host->HandlePauseChanged(false);
+	UTDUIHostSubsystem::SetCinematicHiddenIn(W.GetWorld(), false);
+	TestNotNull(TEXT("cinematic over: ground HUD back"), Host->GetGroundHUD());
+	TestTrue(TEXT("cinematic over: debug HUD drawing restored"), DevHUD->bShowHUD);
+	// Restores exactly: a HUD that was already off stays off.
+	DevHUD->bShowHUD = false;
+	Host->SetCinematicHidden(true);
+	Host->SetCinematicHidden(false);
+	TestFalse(TEXT("restores exactly: an already-hidden debug HUD stays hidden"), DevHUD->bShowHUD);
 	return true;
 }
 

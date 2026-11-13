@@ -9,6 +9,7 @@
 #include "Engine/LocalPlayer.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/HUD.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "UObject/StructOnScope.h"
@@ -120,7 +121,7 @@ bool UTDUIHostSubsystem::WantsSpaceHUD(APlayerController*& OutController, UObjec
 	APlayerController* PC = FindLocalController();
 	// On foot (planets, the Dominion interior) the pawn is the first-person character: the widget has
 	// no on-foot half yet, so the dev HUD stays there.
-	if (!Squad || !PC || !Cast<ATDShip>(PC->GetPawn()))
+	if (bCinematicHidden || !Squad || !PC || !Cast<ATDShip>(PC->GetPawn()))
 	{
 		return false;
 	}
@@ -227,6 +228,41 @@ void UTDUIHostSubsystem::Hide()
 	UpdateDevHUDSuppression();
 }
 
+void UTDUIHostSubsystem::SetCinematicHidden(bool bHidden)
+{
+	if (bCinematicHidden == bHidden)
+	{
+		return;
+	}
+	bCinematicHidden = bHidden;
+	APlayerController* PC = FindLocalController();
+	if (bHidden)
+	{
+		HidePause();
+		if (AHUD* HUD = PC ? PC->GetHUD() : nullptr)
+		{
+			CinematicHUD = HUD;
+			bCinematicHUDWasShown = HUD->bShowHUD;
+			HUD->bShowHUD = false;
+		}
+	}
+	else if (AHUD* HUD = CinematicHUD.Get())
+	{
+		HUD->bShowHUD = bCinematicHUDWasShown;
+		CinematicHUD.Reset();
+	}
+	UE_LOG(LogTDUIHost, Log, TEXT("All HUDs %s for a cinematic."), bHidden ? TEXT("hidden") : TEXT("restored"));
+	Evaluate();
+}
+
+void UTDUIHostSubsystem::SetCinematicHiddenIn(const UObject* WorldContext, bool bHidden)
+{
+	if (UTDUIHostSubsystem* Host = Get(WorldContext))
+	{
+		Host->SetCinematicHidden(bHidden);
+	}
+}
+
 void UTDUIHostSubsystem::UpdateDevHUDSuppression()
 {
 	SetDevHUDSuppressed(Widget != nullptr || GroundWidget != nullptr || PauseWidget != nullptr);
@@ -236,7 +272,7 @@ void UTDUIHostSubsystem::UpdateDevHUDSuppression()
 
 bool UTDUIHostSubsystem::WantsGroundHUD(APlayerController* PC) const
 {
-	if (!PC || !UTDUIHostSettings::IsNativeGroundHUDEnabled())
+	if (bCinematicHidden || !PC || !UTDUIHostSettings::IsNativeGroundHUDEnabled())
 	{
 		return false;
 	}
@@ -324,7 +360,7 @@ void UTDUIHostSubsystem::BindPause(APlayerController* PC)
 
 void UTDUIHostSubsystem::HandlePauseChanged(bool bPaused)
 {
-	if (bPaused && UTDUIHostSettings::IsNativePauseScreenEnabled())
+	if (bPaused && !bCinematicHidden && UTDUIHostSettings::IsNativePauseScreenEnabled())
 	{
 		ShowPause(PauseBoundTo.Get() ? PauseBoundTo.Get() : FindLocalController());
 	}

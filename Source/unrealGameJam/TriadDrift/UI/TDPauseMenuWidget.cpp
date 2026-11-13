@@ -137,12 +137,12 @@ bool UTDPauseMenuWidget::HandleKey(const FKey& Key)
 		MoveSelection(1);
 		return true;
 	}
-	if (Key == EKeys::Enter || Key == EKeys::SpaceBar || Key == EKeys::Virtual_Accept || Key == EKeys::Gamepad_FaceButton_Bottom)
+	if (Key == EKeys::Enter || Key == EKeys::SpaceBar || Key == EKeys::Virtual_Gamepad_Accept.GetVirtualKey() || Key == EKeys::Gamepad_FaceButton_Bottom)
 	{
 		Activate();
 		return true;
 	}
-	if (Key == EKeys::BackSpace || Key == EKeys::Gamepad_FaceButton_Right || Key == EKeys::Virtual_Back)
+	if (Key == EKeys::BackSpace || Key == EKeys::Gamepad_FaceButton_Right || Key == EKeys::Virtual_Gamepad_Back.GetVirtualKey())
 	{
 		Back();
 		return true;

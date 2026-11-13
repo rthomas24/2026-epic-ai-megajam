@@ -128,6 +128,21 @@ public:
 	/** UTDUIStyle::PauseWidgetClass when set and loadable, else UTDPauseMenuWidget. */
 	static UClass* ResolvePauseWidgetClass();
 
+	/**
+	 * Hides every HUD while a cinematic plays (T3's intro, ENG-33): true at the start, false at the end. Takes effect at
+	 * once: Nick's space HUD, the on-foot HUD and the pause screen are removed (and the pause screen can't open while
+	 * hidden), and the fallback debug HUD stops drawing (the local player's AHUD::bShowHUD, restored to exactly what it
+	 * was). The HUDs come back by themselves on false.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI")
+	void SetCinematicHidden(bool bHidden);
+
+	/** SetCinematicHidden on WorldContext's world (no-op without a game world). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static void SetCinematicHiddenIn(const UObject* WorldContext, bool bHidden);
+
+	bool IsCinematicHidden() const { return bCinematicHidden; }
+
 	/** The controller's OnPauseChanged: opens or closes the pause screen. */
 	UFUNCTION()
 	void HandlePauseChanged(bool bPaused);
@@ -164,4 +179,8 @@ private:
 	float TimeUntilCheck = 0.f;
 	bool bClassWarningLogged = false;
 	bool bDevHUDSuppressed = false;
+	bool bCinematicHidden = false;
+	/** The local AHUD's bShowHUD before the cinematic (restored exactly). */
+	TWeakObjectPtr<class AHUD> CinematicHUD;
+	bool bCinematicHUDWasShown = true;
 };
