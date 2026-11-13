@@ -1,6 +1,7 @@
 // Triad Drift - Powers (Teammate 2). Lancer: Afterburner Ram.
 
 #include "TriadDrift/Powers/TDRamPower.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -18,6 +19,35 @@
 
 namespace
 {
+	/**
+	 * Distance from the segment From-To to Actor's colliding box in its own (oriented) frame, 0 inside. Two closest-point
+	 * passes (both convex). The oriented box hugs a rotated carrier; its world AABB's corners reached past mounted parts.
+	 */
+	float TDRamDistanceSegmentToBounds(const AActor* Actor, const FVector& From, const FVector& To)
+	{
+		FBox Local = Actor->CalculateComponentsBoundingBoxInLocalSpace(false, false);
+		if (!Local.IsValid || Local.GetExtent().IsNearlyZero())
+		{
+			// No colliding bounds (a hull-mounted part such as a turret): its visible box, so the part is reached before
+			// the hull it sits on stops the dash.
+			Local = Actor->CalculateComponentsBoundingBoxInLocalSpace(true, false);
+		}
+		if (!Local.IsValid || Local.GetExtent().IsNearlyZero())
+		{
+			// Nothing drawn either: a 50 cm ball, as TDRamBoundsRadius.
+			return FMath::Max(0.f, FMath::PointDistToSegment(Actor->GetActorLocation(), From, To) - 50.f);
+		}
+		const FTransform& X = Actor->GetActorTransform();
+		const FVector A = X.InverseTransformPosition(From);
+		const FVector B = X.InverseTransformPosition(To);
+		FVector OnSeg = FMath::ClosestPointOnSegment(Local.GetCenter(), A, B);
+		for (int32 Pass = 0; Pass < 2; ++Pass)
+		{
+			OnSeg = FMath::ClosestPointOnSegment(Local.GetClosestPointTo(OnSeg), A, B);
+		}
+		return FVector::Dist(X.TransformPosition(OnSeg), X.TransformPosition(Local.GetClosestPointTo(OnSeg)));
+	}
+
 	float TDRamBoundsRadius(const AActor* Actor, FVector& OutCenter)
 	{
 		FVector Extent;
@@ -248,9 +278,11 @@ void UTDRamPower::SweepHits(const FVector& From, const FVector& To)
 			{
 				continue;
 			}
+			// Inside the old bounding sphere AND within reach of the hull's own oriented box: passing a long hull's short
+			// side no longer "touches" its long axis (second review), and nothing is reached earlier than before.
 			FVector Center;
 			const float Radius = TDRamBoundsRadius(Hostile, Center);
-			if (FMath::PointDistToSegment(Center, From, To) <= Reach + Radius)
+			if (FMath::PointDistToSegment(Center, From, To) <= Reach + Radius && TDRamDistanceSegmentToBounds(Hostile, From, To) <= Reach)
 			{
 				Touched.Add({ Hostile, (float)(FVector::DotProduct(Center - From, Seg) / SegLenSq) });
 			}
@@ -294,7 +326,10 @@ void UTDRamPower::HitActor(AActor* Victim, const FVector& Direction)
 
 	const UTDHealthComponent* Health = UTDStatics::GetHealth(Victim);
 	const bool bWasAlive = !Health || Health->IsAlive();
-	UTDStatics::ApplyTDDamage(Victim, RamDamage, ETDDamageKind::Ram, Owner, Owner, Victim->GetActorLocation(), Direction, false);
+	// Switch Strike's +25% applies to powers too (second review minor).
+	const ATDSquadManager* Squad = ATDSquadManager::Get(this);
+	const float Strike = Squad ? Squad->GetDamageMultiplier(Owner) : 1.f;
+	UTDStatics::ApplyTDDamage(Victim, RamDamage * Strike, ETDDamageKind::Ram, Owner, Owner, Victim->GetActorLocation(), Direction, false);
 	// RamKill money shot: UTDDirectorSubsystem derives it from the Ram damage kind on OnActorKilled.
 	if (bWasAlive && Health && Health->IsDead())
 	{
@@ -307,9 +342,10 @@ void UTDRamPower::HitActor(AActor* Victim, const FVector& Direction)
 	if (IsBig(Victim))
 	{
 		// Stop at first contact, not wherever the frame ended (we may be inside the hull by now).
-		FVector OwnerCenter, VictimCenter;
-		const float Reach = TDRamBoundsRadius(Owner, OwnerCenter) + TDRamBoundsRadius(Victim, VictimCenter);
-		const float Back = FMath::Max(0.f, Reach - (float)FVector::Dist(Owner->GetActorLocation(), VictimCenter));
+		FVector OwnerCenter;
+		const float OwnerRadius = TDRamBoundsRadius(Owner, OwnerCenter);
+		const FVector Here = Owner->GetActorLocation();
+		const float Back = FMath::Max(0.f, OwnerRadius - TDRamDistanceSegmentToBounds(Victim, Here, Here)); // to the hull's box
 		if (Back > 0.f)
 		{
 			Owner->SetActorLocation(Owner->GetActorLocation() - Direction * Back);
@@ -349,7 +385,7 @@ void UTDRamPower::StopDash(const FVector& Where, AActor* Stopper)
 	bStoppedByImpact = true;
 	AActor* Owner = GetOwner();
 	// The shockwave spares whatever stopped us: it already took the full 300.
-	UTDStatics::ApplyTDRadialDamage(this, Where, ShockwaveRadius, ShockwaveDamage, ETDDamageKind::Explosive, GetOwnerTeam(), Owner, Owner, false, Stopper);
+	UTDStatics::ApplyTDRadialDamage(this, Where, ShockwaveRadius, ShockwaveDamage * (ATDSquadManager::Get(this) ? ATDSquadManager::Get(this)->GetDamageMultiplier(Owner) : 1.f), ETDDamageKind::Explosive, GetOwnerTeam(), Owner, Owner, false, Stopper);
 	EndPower(false);
 }
 
@@ -391,7 +427,17 @@ void UTDRamPower::OnEnd(bool bInterrupted)
 	}
 	bOwnsOverride = false;
 	bDashStarted = false;
-	// Stay safe while the speed bleeds off (head-on hits at 45 000 cm/s are lethal).
+	// Stay safe while the speed bleeds off (head-on hits at 45 000 cm/s are lethal) - unless the player switched away:
+	// the AI-flown ship gets no grace.
+	if (bEndingForControlLoss)
+	{
+		PostDashGrace = 0.f;
+		if (UTDHealthComponent* Health = UTDStatics::GetHealth(GetOwner()))
+		{
+			Health->ClearTimedInvulnerability();
+		}
+		return;
+	}
 	PostDashGrace = MaxPostDashInvulnerableSeconds;
 	RefreshInvulnerability(0.2f);
 }

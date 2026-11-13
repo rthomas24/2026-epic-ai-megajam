@@ -59,6 +59,8 @@ public:
 	virtual void SetPhase(ETDGamePhase NewPhase) override;
 	virtual void ReportWaveCleared(int32 WaveNumber) override;
 	virtual void CompleteObjective(FName ObjectiveId, ETDAbilityId Reward, ETDShipId ForShip) override;
+	/** How many objective-complete stings have played (one per objective, never on a repeat): tests. */
+	int32 GetObjectiveCompleteSounds() const { return ObjectiveCompleteSounds; }
 	virtual void SetDominionState(bool bRevealed, bool bDefensesDown) override;
 	virtual void ReportPlayerDefeated() override;
 	virtual void AddStat(FName StatName, int32 Amount) override;
@@ -81,6 +83,11 @@ public:
 	 */
 	bool ConsumeIntroPending();
 	bool IsIntroPending() const { return bIntroPending; }
+	/** This run was resumed with Continue (onboarding's control lessons stay off). A New Game clears it. */
+	bool IsRunFromContinue() const { return bRunFromContinue; }
+#if WITH_DEV_AUTOMATION_TESTS
+	void SetRunFromContinueForTests(bool b) { bRunFromContinue = b; }
+#endif
 
 	/** Loads the save slot and travels to the saved destination. False if nothing valid or travel fails. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
@@ -249,6 +256,7 @@ private:
 	void BindEventBus();
 	/** ENG-33: New Game plays the intro once (transient, never saved). */
 	bool bIntroPending = false;
+	bool bRunFromContinue = false;
 	bool TickRunTimer(float DeltaSeconds);
 	void ExecuteRetake();
 	void BeginLoad(const FString& PackageName);
@@ -280,6 +288,7 @@ private:
 	void SyncMarkers(bool bClearAll);
 	float ObjectiveCheckLeft = 0.f;
 	float VictoryTravelLeft = -1.f; // >= 0: travel to the victory screen when it runs out
+	int32 VictoryTravelAttempts = 0;
 	float ObjectiveForceLeft = -1.f; // >= 0: force a re-broadcast when it runs out (a HUD made on BeginPlay misses the first)
 
 	FName CurrentSceneId;
@@ -306,4 +315,6 @@ private:
 	FDelegateHandle PostLoadMapHandle;
 
 	TSharedPtr<FTDDebugMenu> DebugMenu;
+private:
+	int32 ObjectiveCompleteSounds = 0;
 };

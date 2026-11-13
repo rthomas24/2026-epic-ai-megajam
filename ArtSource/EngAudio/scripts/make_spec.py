@@ -33,7 +33,13 @@ CREATE = {"TDWeaponFX": ["DA_PhasePulseLasers_FX", "DA_SplitterBolt_FX", "DA_Nee
                          "DA_Enemy_SalvoMissile_FX", "DA_Enemy_PlasmaMines_FX", "DA_Enemy_PointDefense_FX"],
           "TDAbilityFX": ["DA_Ability_Cloak_FX", "DA_Ability_EMPPulse_FX", "DA_Ability_GravityWell_FX"],
           "TDTravelFX": ["DA_Travel_FX"], "TDBladeFX": ["DA_Blade_FX"], "TDUIStyle": ["DA_UI_Style"]}
-SOFT_SOUND_FIELDS = ("EngineLoop", "CombatMusic", "IntroMusic")   # plain TSoftObjectPtr<USoundBase>, not an FTDFXCue
+SOFT_SOUND_FIELDS = ("EngineLoop", "CombatMusic", "IntroMusic", "MenuMusic", "AmbienceSpace", "AmbienceVerdance", "AmbienceCinder")
+# UTDUIStyle slots added to Core after the recipes were written (c82d03e): sound name -> DA_UI_Style field.
+# This table, not the "NOT wired" remarks in the recipe notes, says what is wired.
+UI_STYLE_SLOTS = {"UI_Move": "UIMove", "UI_Confirm": "UIConfirm", "UI_Back": "UIBack", "UI_PauseIn": "PauseIn", "UI_PauseOut": "PauseOut",
+                  "Cine_Slate": "SlateClap", "Cine_Cut": "CutSting", "Cine_SlowMoIn": "SlowMoIn", "Cine_SlowMoOut": "SlowMoOut",
+                  "Objective_Complete": "ObjectiveComplete", "Ambience_Space": "AmbienceSpace", "Ambience_Verdance": "AmbienceVerdance",
+                  "Ambience_Cinder": "AmbienceCinder"}   # plain TSoftObjectPtr<USoundBase>, not an FTDFXCue
 
 
 def class_path(name):
@@ -76,7 +82,7 @@ def main():
             props["volume"] = round(10 ** (asset["volume_db"] / 20.0), 4)
             props["bLooping"] = bool(asset["looping"])
             wave_props[asset["path"]] = props
-    imports = [{"file": wave["file"], "path": wave["path"], "properties": wave_props.get(wave["path"])} for wave in manifest["waves"]]
+    imports = [{"file": "../" + wave["file"], "path": wave["path"], "properties": wave_props.get(wave["path"])} for wave in manifest["waves"]]
     oneshots = []
     for asset in manifest["assets"]:
         if asset["kind"] == "metasound":
@@ -99,9 +105,11 @@ def main():
 
     slots = []
     for asset in manifest["assets"]:
-        for slot in asset["slots"]:
+        for slot in asset["slots"] + (["DA_UI_Style." + UI_STYLE_SLOTS[asset["name"]]] if asset["name"] in UI_STYLE_SLOTS else []):
             data_asset, field = slot.split(".")
             slots.append({"asset": data_asset, "field": field, "soft": field in SOFT_SOUND_FIELDS, "sound": asset["path"]})
+    # Nick's existing menu theme, referenced read-only (Lead's decision, Nov 13): the menu is silent without a DA_UI_Style
+    slots.append({"asset": "DA_UI_Style", "field": "MenuMusic", "soft": True, "sound": "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01"})
     wire = {"folder": FX_FOLDER, "create": CREATE, "slots": slots,
             # DA_Blade_FX did not exist: gameplay then used this colour. A new asset would default to white, so keep the look.
             "keep": [{"asset": "DA_Blade_FX", "field": "BladeColor", "color": [0.1, 0.65, 1.0, 1.0]}]}

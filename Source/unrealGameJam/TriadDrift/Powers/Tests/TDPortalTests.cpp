@@ -1,6 +1,7 @@
 // Triad Drift - Powers (Teammate 2). ENG-09 portal blaster + Blink. Run: .\Tools\td-test.ps1 -Filter TriadDrift.Powers
 
 #include "Misc/AutomationTest.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -446,6 +447,8 @@ bool FTDPortalDynamicGeometry::RunTest(const FString& Parameters)
 		ATDDominion* D = W.Spawn<ATDDominion>(FVector(40000.f, 0.f, 0.f));
 		D->WarpInSeconds = 0.f;
 		D->WarpIn();
+		// Order-dependent (found by T1): the first load of the art hull compiles in the background in the editor and has no
+		// collision until it finishes; FTDTestWorld::Tick now finishes pending mesh builds, as the editor's frame loop does.
 		W.Tick(PowerFrameStep());
 		AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
 		UTDPortalBlasterPower* Power = AddPower<UTDPortalBlasterPower>(Rift);
@@ -453,6 +456,7 @@ bool FTDPortalDynamicGeometry::RunTest(const FString& Parameters)
 		Power->HandleInputPressed();
 		ATDPortal* P = Power->GetPortals().Num() ? Power->GetPortals()[0].Get() : nullptr;
 		TestTrue(TEXT("portal placed"), P != nullptr);
+		AddInfo(FString::Printf(TEXT("portal at x = %.0f, hull face at x = %.0f"), P ? P->GetActorLocation().X : -1.f, 40000.f - D->HullExtent.X));
 		TestTrue(TEXT("portal is in front of the hull, not inside it"), P && P->GetActorLocation().X < 40000.f - D->HullExtent.X);
 	}
 	// A dynamic blocker dropped on B's exit: no transit, the ship flies on.
@@ -497,5 +501,42 @@ bool FTDPortalDynamicGeometry::RunTest(const FString& Parameters)
 }
 
 } // namespace TDPowerTest
+
+// Rift's portals: the swirling magenta membrane (T4's M_TD_PortalMembrane) inside the bright rim, not a flat disc; Nick's
+// PortalIdle VFX still replaces it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPortalMembraneLook, "TriadDrift.Powers.Portal.MembranePlaceholder", TD_TEST_FLAGS)
+bool FTDPortalMembraneLook::RunTest(const FString& Parameters)
+{
+	using namespace TDPowerTest;
+	FTDTestWorld W;
+	AActor* Rift = nullptr;
+	UTDPortalBlasterPower* Power = PortalTestOpenPair(W, Rift);
+	if (!TestEqual(TEXT("two portals"), Power->GetPortals().Num(), 2))
+	{
+		return false;
+	}
+	for (const TWeakObjectPtr<ATDPortal>& Weak : Power->GetPortals())
+	{
+		const ATDPortal* Portal = Weak.Get();
+		const UStaticMeshComponent* Membrane = Portal ? Portal->GetMembrane() : nullptr;
+		if (!Membrane)
+		{
+			AddInfo(TEXT("M_TD_PortalMembrane not in this checkout: rim and inner rings only"));
+			continue;
+		}
+		const UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(Membrane->GetMaterial(0));
+		TestNotNull(TEXT("membrane material instance"), MID);
+		if (MID)
+		{
+			FLinearColor Tint;
+			MID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Tint")), Tint);
+			TestTrue(FString::Printf(TEXT("membrane tinted Rift magenta (%s)"), *Tint.ToString()), Tint.Equals(UTDStatics::ShipColor(ETDShipId::Rift), 0.01f));
+		}
+		TestTrue(TEXT("membrane faces along the portal's forward"), FMath::Abs(FVector::DotProduct(Membrane->GetUpVector(), Portal->GetActorForwardVector())) > 0.9f);
+		TestTrue(TEXT("membrane fills the rim"), Membrane->GetComponentScale().X * 100.f >= Portal->GetRadius() * 1.8f);
+		TestEqual(TEXT("no collision on the membrane"), Membrane->GetCollisionEnabled(), ECollisionEnabled::NoCollision);
+	}
+	return true;
+}
 
 #endif // WITH_DEV_AUTOMATION_TESTS

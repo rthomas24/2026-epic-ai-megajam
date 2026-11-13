@@ -30,22 +30,40 @@ FTDTerrainStyle FTDTerrainStyle::ForPlanet(ETDDestination Planet)
 		S.Seed = 7331;
 		S.HillHeight = 12000.f;
 		S.HillScale = 160000.f;
-		S.MountainHeight = 110000.f;
-		S.MountainScale = 240000.f;
-		S.Sharpness = 0.9f;
+		S.MountainHeight = 125000.f;
+		S.MountainScale = 260000.f;
+		S.Sharpness = 0.95f;
 		S.CalderaAmount = 0.6f;
 		S.RiverDepth = 9000.f;
 		S.Warp = 90000.f;
+		S.GullyAmount = 0.2f;
+		// The volcano: north-east of the course, tallest thing on the planet, glowing crater.
+		S.HeroCentre = FVector2D(560000.f, -420000.f);
+		S.HeroRadius = 330000.f;
+		S.HeroHeight = 250000.f;
+		S.bVolcano = true;
+		S.RiftBearing = 60.f; S.MesaBearing = 150.f; S.BasinBearing = 230.f; S.PlateauBearing = 320.f;
+		S.SeaLevel = -12000.f;
+		S.bLavaSea = true;
+		S.HorizonRise = 320000.f;
 	}
 	else
 	{
 		S.Seed = 4242;
 		S.HillHeight = 22000.f;
 		S.HillScale = 240000.f;
-		S.MountainHeight = 90000.f;
-		S.MountainScale = 320000.f;
-		S.Sharpness = 0.35f;
+		S.MountainHeight = 115000.f;
+		S.MountainScale = 340000.f;
+		S.Sharpness = 0.6f;
 		S.Warp = 140000.f;
+		S.GullyAmount = 0.16f;
+		// The massif: a great ridged mountain east of the course.
+		S.HeroCentre = FVector2D(620000.f, 300000.f);
+		S.HeroRadius = 380000.f;
+		S.HeroHeight = 250000.f;
+		S.RiftBearing = 110.f; S.MesaBearing = 200.f; S.BasinBearing = 290.f; S.PlateauBearing = 20.f;
+		S.SeaLevel = -14000.f;
+		S.HorizonRise = 300000.f;
 	}
 	return S;
 }
@@ -119,8 +137,51 @@ float FTDTerrainField::RawHeight(float X, float Y) const
 	float H = Hills * Style.HillHeight + Mount * RangeMask * Style.MountainHeight;
 	// A ring of foothills rising from the basin edge: the course sits in a valley with peaks all round.
 	const float DX = FMath::Max(0.f, FMath::Abs(X) - Style.BasinHalfExtent.X), DY = FMath::Max(0.f, FMath::Abs(Y) - Style.BasinHalfExtent.Y);
-	const float Ring = FMath::SmoothStep(Style.BasinBlend * 0.5f, Style.BasinBlend * 2.2f, FMath::Sqrt(DX * DX + DY * DY));
+	const float Ring = FMath::SmoothStep(Style.BasinBlend * 0.2f, Style.BasinBlend * 1.6f, FMath::Sqrt(DX * DX + DY * DY));
 	H += Ring * Style.MountainHeight * 0.5f * (0.45f + 0.55f * Mount);
+	// Gullies: a second, finer ridged octave carved into the ranges, so silhouettes break up.
+	if (Style.GullyAmount > 0.f)
+	{
+		const float G = Ridged(WX / (Style.MountainScale * 0.22f), WY / (Style.MountainScale * 0.22f), 3, S + 91, 1.f);
+		H += (G - 0.45f) * Style.GullyAmount * Style.MountainHeight * RangeMask * FMath::Clamp(Mount * 1.5f, 0.f, 1.f);
+	}
+
+	// Named regions (each fades out toward the course basin and across its sector edges).
+	{
+		const float Rift = RegionWeight(X, Y, Style.RiftBearing);
+		if (Rift > 0.f)
+		{
+			// A meandering canyon: carve along the zero contour of a slow noise.
+			const float RN = Fbm(WX / 180000.f, WY / 180000.f, 3, S + 101);
+			const float Canyon = FMath::Exp(-FMath::Square(RN * 6.f));
+			H -= Rift * Canyon * Style.RiftDepth;
+		}
+		const float Mesa = RegionWeight(X, Y, Style.MesaBearing);
+		if (Mesa > 0.f)
+		{
+			// Terraces: flat tops and steep risers.
+			const float Steps = H / Style.MesaStep;
+			const float Base = FMath::FloorToFloat(Steps);
+			const float Frac = Steps - Base;
+			const float Terraced = (Base + FMath::SmoothStep(0.75f, 0.95f, Frac)) * Style.MesaStep;
+			H = FMath::Lerp(H, Terraced, Mesa);
+		}
+		const float Sea = RegionWeight(X, Y, Style.BasinBearing);
+		if (Sea > 0.f)
+		{
+			// A broad depression under the sea level, shores rising out of it.
+			const float D = FVector2D::Distance(FVector2D(X, Y), SeaCentre()) / FMath::Max(1.f, SeaRadius());
+			const float Bowl = FMath::Clamp(1.f - D, 0.f, 1.f);
+			H = FMath::Lerp(H, FMath::Min(H, Style.SeaLevel - Style.BasinDepth * Bowl + (1.f - Bowl) * H * 0.4f), Sea * FMath::SmoothStep(0.f, 0.35f, Bowl));
+		}
+		const float Plateau = RegionWeight(X, Y, Style.PlateauBearing);
+		if (Plateau > 0.f)
+		{
+			// Raised flat country with escarpment edges and a little roll on top.
+			const float Top = Style.PlateauHeight + Hills * Style.HillHeight * 0.4f;
+			H = FMath::Lerp(H, FMath::Max(H * 0.35f, Top), FMath::SmoothStep(0.25f, 0.55f, Plateau));
+		}
+	}
 
 	if (Style.CalderaAmount > 0.f)
 	{
@@ -142,11 +203,67 @@ float FTDTerrainField::RawHeight(float X, float Y) const
 		H -= River * Style.RiverDepth * (0.4f + 0.6f * (1.f - RangeMask));
 	}
 
+	// The hero peak.
+	{
+		const float D = FVector2D::Distance(FVector2D(X, Y), Style.HeroCentre) / FMath::Max(1.f, Style.HeroRadius);
+		if (D < 1.f)
+		{
+			if (Style.bVolcano)
+			{
+				// A cone (steepening toward the top) with a crater bowl.
+				const float Cone = FMath::Pow(1.f - D, 1.6f);
+				float V = Cone * Style.HeroHeight * (0.92f + 0.08f * Mount);
+				// The crater: the cone stops at the rim height and a bowl sinks inside it.
+				const float CraterD = FVector2D::Distance(FVector2D(X, Y), Style.HeroCentre) / FMath::Max(1.f, Style.CraterRadius);
+				if (CraterD < 1.f)
+				{
+					const float RimH = FMath::Pow(1.f - Style.CraterRadius / FMath::Max(1.f, Style.HeroRadius), 1.6f) * Style.HeroHeight;
+					V = RimH - Style.CraterDepth * (1.f - CraterD * CraterD);
+					H = V;	// the bowl is carved, whatever stood there
+				}
+				else
+				{
+					H = FMath::Max(H, V);
+				}
+			}
+			else
+			{
+				// A great ridged massif: a broad dome shaped by the ranges' own ridges.
+				const float Dome = FMath::Square(FMath::Cos(D * HALF_PI));
+				H = FMath::Max(H, Dome * Style.HeroHeight * (0.55f + 0.45f * Mount) + H * 0.3f);
+			}
+		}
+	}
+
 	// Beyond the walkable core, the ground rises into ranges that close the horizon.
 	const float Edge = FMath::Max(FMath::Abs(X), FMath::Abs(Y));
 	const float Rise = FMath::Clamp((Edge - Style.CoreHalfSize) / FMath::Max(1.f, Style.FarHalfSize - Style.CoreHalfSize), 0.f, 1.f);
-	H += TDTerrainFieldImpl::SmootherStep(Rise) * Style.HorizonRise * (0.6f + 0.4f * Mount);
+	if (Rise > 0.f)
+	{
+		// A layered skyline: a nearer band of ranges, then a taller, jagged far wall.
+		const float Near = FMath::SmoothStep(0.f, 0.35f, Rise) * (0.5f + 0.5f * Mount);
+		const float FarWall = FMath::SmoothStep(0.4f, 0.9f, Rise) * (0.45f + 0.55f * Ridged(WX / 900000.f, WY / 900000.f, 4, S + 111, Style.Sharpness));
+		H += (Near * 0.45f + FarWall) * Style.HorizonRise;
+	}
 	return H;
+}
+
+float FTDTerrainField::RegionWeight(float X, float Y, float Bearing) const
+{
+	const float Deg = FMath::RadiansToDegrees(FMath::Atan2(Y, X));
+	const float Diff = FMath::Abs(FMath::FindDeltaAngleDegrees(Deg, Bearing));
+	const float Sector = 1.f - FMath::SmoothStep(45.f - Style.RegionBlendDeg * 0.5f, 45.f + Style.RegionBlendDeg * 0.5f, Diff);
+	// Regions start beyond the foothill ring around the course.
+	const float R = (float)FVector2D(X, Y).Size();
+	const float Edge = (float)Style.BasinHalfExtent.X;
+	const float Out = FMath::SmoothStep(Edge + Style.BasinBlend * 0.8f, Edge + Style.BasinBlend * 1.8f, R);
+	return Sector * Out;
+}
+
+FVector2D FTDTerrainField::SeaCentre() const
+{
+	const float A = FMath::DegreesToRadians(Style.BasinBearing);
+	return FVector2D(FMath::Cos(A), FMath::Sin(A)) * Style.CoreHalfSize * 0.72f;
 }
 
 float FTDTerrainField::Height(float X, float Y) const

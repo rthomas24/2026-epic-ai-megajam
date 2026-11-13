@@ -42,11 +42,48 @@ void UTDPauseMenuWidget::NativeConstruct()
 	Super::NativeConstruct();
 	Selected = 0;
 	bConfirming = false;
+	DifficultyLine = ReadDifficultyInPlay(); // fresh each opening: it may have changed through SETTINGS
 	if (APlayerController* PC = GetOwningPlayer())
 	{
 		SetUserFocus(PC);
 		SetKeyboardFocus();
 	}
+}
+
+FString UTDPauseMenuWidget::ReadDifficultyInPlay()
+{
+	// T1's static UFUNCTION GetDifficultyInPlay() -> ETDDifficulty, by name so this file builds before it lands.
+	UFunction* Get = UTDSettingsSubsystem::StaticClass()->FindFunctionByName(TEXT("GetDifficultyInPlay"));
+	const FProperty* Ret = Get ? Get->GetReturnProperty() : nullptr;
+	if (!Ret)
+	{
+		return FString();
+	}
+	TArray<uint8> Params;
+	Params.SetNumZeroed(FMath::Max<int32>(Get->ParmsSize, 8));
+	UTDSettingsSubsystem::StaticClass()->GetDefaultObject()->ProcessEvent(Get, Params.GetData());
+	int64 Value = 0;
+	const UEnum* Enum = nullptr;
+	if (const FEnumProperty* EnumProp = CastField<FEnumProperty>(Ret))
+	{
+		Value = EnumProp->GetUnderlyingProperty()->GetSignedIntPropertyValue(EnumProp->ContainerPtrToValuePtr<void>(Params.GetData()));
+		Enum = EnumProp->GetEnum();
+	}
+	else if (const FByteProperty* ByteProp = CastField<FByteProperty>(Ret))
+	{
+		Value = ByteProp->GetPropertyValue_InContainer(Params.GetData());
+		Enum = ByteProp->Enum;
+	}
+	if (!Enum)
+	{
+		return FString();
+	}
+	FString Name = Enum->GetDisplayNameTextByValue(Value).ToString();
+	if (Name.IsEmpty())
+	{
+		Name = Enum->GetNameStringByValue(Value);
+	}
+	return Name.ToUpper();
 }
 
 FString UTDPauseMenuWidget::ItemLabel(ETDPauseItem Item)
@@ -78,14 +115,74 @@ FBox2D UTDPauseMenuWidget::ConfirmRect(int32 Choice)
 
 // ------------------------------------------------------------------------------------------ navigation
 
+bool UTDPauseMenuWidget::PlayUISound(const TCHAR* Which)
+{
+	++UISoundRequests.FindOrAdd(Which);
+	// T1's static UFUNCTION PlayUISound(WorldContext, ETDUISound), by name so this builds before it reaches main.
+	UFunction* Play = UTDSettingsSubsystem::StaticClass()->FindFunctionByName(TEXT("PlayUISound"));
+	if (!Play)
+	{
+		return false;
+	}
+	TArray<uint8> Params;
+	Params.SetNumZeroed(FMath::Max<int32>(Play->ParmsSize, 16));
+	bool bSoundSet = false;
+	for (TFieldIterator<FProperty> It(Play); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+	{
+		if (It->HasAnyPropertyFlags(CPF_ReturnParm))
+		{
+			continue;
+		}
+		void* Value = It->ContainerPtrToValuePtr<void>(Params.GetData());
+		if (const FObjectPropertyBase* Obj = CastField<FObjectPropertyBase>(*It))
+		{
+			Obj->SetObjectPropertyValue(Value, this);
+		}
+		else if (const FEnumProperty* EnumProp = CastField<FEnumProperty>(*It))
+		{
+			const int64 V = EnumProp->GetEnum()->GetValueByNameString(Which);
+			if (V != INDEX_NONE)
+			{
+				EnumProp->GetUnderlyingProperty()->SetIntPropertyValue(Value, V);
+				bSoundSet = true;
+			}
+		}
+		else if (const FByteProperty* ByteProp = CastField<FByteProperty>(*It); ByteProp && ByteProp->Enum)
+		{
+			const int64 V = ByteProp->Enum->GetValueByNameString(Which);
+			if (V != INDEX_NONE)
+			{
+				ByteProp->SetPropertyValue(Value, static_cast<uint8>(V));
+				bSoundSet = true;
+			}
+		}
+	}
+	if (!bSoundSet)
+	{
+		return false; // the enum has no such entry: stay silent rather than play the wrong sound
+	}
+	UTDSettingsSubsystem::StaticClass()->GetDefaultObject()->ProcessEvent(Play, Params.GetData());
+	return true;
+}
+
 void UTDPauseMenuWidget::MoveSelection(int32 Delta)
 {
 	if (bConfirming)
 	{
+		const int32 Before = ConfirmChoice;
 		ConfirmChoice = (ConfirmChoice + (Delta != 0 ? 1 : 0)) % 2;
+		if (ConfirmChoice != Before)
+		{
+			PlayUISound(TEXT("Move"));
+		}
 		return;
 	}
+	const int32 Before = Selected;
 	Selected = (Selected + Delta % ItemCount + ItemCount) % ItemCount;
+	if (Selected != Before)
+	{
+		PlayUISound(TEXT("Move"));
+	}
 }
 
 void UTDPauseMenuWidget::Back()
@@ -93,13 +190,15 @@ void UTDPauseMenuWidget::Back()
 	if (bConfirming)
 	{
 		bConfirming = false;
+		PlayUISound(TEXT("Back"));
 		return;
 	}
-	Execute(ETDPauseItem::Resume);
+	Execute(ETDPauseItem::Resume); // closing unpauses: PauseOut plays from the controller
 }
 
 void UTDPauseMenuWidget::Activate()
 {
+	PlayUISound(TEXT("Confirm"));
 	const ETDPauseItem Item = static_cast<ETDPauseItem>(Selected);
 	if (bConfirming)
 	{
@@ -193,7 +292,12 @@ FReply UTDPauseMenuWidget::NativeOnMouseMove(const FGeometry& InGeometry, const 
 	const int32 Hit = HitTest(InGeometry, InMouseEvent.GetScreenSpacePosition(), bConfirm);
 	if (Hit != INDEX_NONE)
 	{
-		(bConfirm ? ConfirmChoice : Selected) = Hit;
+		int32& Row = bConfirm ? ConfirmChoice : Selected;
+		if (Row != Hit)
+		{
+			Row = Hit;
+			PlayUISound(TEXT("Move")); // only when the highlight actually moves, not on every mouse event
+		}
 	}
 	return Super::NativeOnMouseMove(InGeometry, InMouseEvent);
 }
@@ -298,6 +402,12 @@ int32 UTDPauseMenuWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 
 	P.Glass(PanelX, PanelY, PanelW, PanelH, Accent, true);
 	P.Label(RowX, PanelY + 22, TEXT("SCENE ON HOLD"), 11, Accent, 150);
+	if (!DifficultyLine.IsEmpty())
+	{
+		// The difficulty in play, on the same line, right side (T1, at the Lead's request).
+		P.Label(RowX + RowW - 190, PanelY + 22, TEXT("DIFFICULTY"), 11, Dim, 120);
+		P.Label(RowX + RowW - 82, PanelY + 22, DifficultyLine, 11, Ink, 120);
+	}
 	P.Title(RowX, PanelY + 46, TEXT("PAUSED"), 40, Ink);
 	P.Line({ RowX, PanelY + 112 }, { RowX + RowW, PanelY + 112 }, Accent.CopyWithNewOpacity(.2f));
 

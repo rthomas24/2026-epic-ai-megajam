@@ -1,6 +1,7 @@
 // Triad Drift - Director (Teammate 3). C-03 #2 "Director cam money shots".
 
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Director/TDDirectorSounds.h"
 #include "TriadDrift/Director/TDDirectorCamera.h"
 #include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -69,6 +70,12 @@ void UTDDirectorSubsystem::Tick(float DeltaTime)
 		{
 			CutPresentation->Tick(Now);
 		}
+	}
+	// ENG-35: and out, when the beat ends (or is cancelled).
+	if (bSlowMoSounding && !IsShotActive())
+	{
+		bSlowMoSounding = false;
+		FTDDirectorSounds::Play(GetWorld(), ETDDirectorSound::SlowMoOut);
 	}
 	if (!CameraRig)
 	{
@@ -196,6 +203,7 @@ bool UTDDirectorSubsystem::ReportHighlight(ETDHighlightKind Kind, AActor* Subjec
 
 	const double Now = RealNow();
 	const bool bBypass = Importance >= Tuning.CooldownBypassImportance;
+	const bool bShotWasActive = IsShotActive();
 	if (IsShotActive())
 	{
 		// A running shot is replaced by something clearly bigger (generator kill during a ram kill),
@@ -244,6 +252,12 @@ bool UTDDirectorSubsystem::ReportHighlight(ETDHighlightKind Kind, AActor* Subjec
 	{
 		Feel->RequestSlowMo(Shot.DurationSeconds, Shot.Dilation);
 	}
+	// ENG-35: the slow-motion whoosh in (once per beat: a shot replacing a running one keeps the slow motion going).
+	if (!bShotWasActive)
+	{
+		FTDDirectorSounds::Play(World, ETDDirectorSound::SlowMoIn);
+	}
+	bSlowMoSounding = true;
 	if (CutPresentation)
 	{
 		CutPresentation->HandleShotStarted(Shot.DurationSeconds + 0.2f); // thin bars for the shot (+ return)

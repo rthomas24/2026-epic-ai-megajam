@@ -1,6 +1,9 @@
 // Triad Drift - Powers (Teammate 2). Rift: Portal Blaster + Blink fallback.
 
 #include "TriadDrift/Powers/TDPortalBlasterPower.h"
+#include "Engine/StaticMesh.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "UObject/ConstructorHelpers.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Combat/TDProjectile.h"
@@ -63,6 +66,11 @@ ATDPortal::ATDPortal()
 	PrimaryActorTick.TickGroup = TG_PostPhysics;
 	SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("Root")));
 	SetCanBeDamaged(false);
+	// Engineering membrane until Nick's PortalIdle VFX lands (hard references: always cooked).
+	static ConstructorHelpers::FObjectFinderOptional<UMaterialInterface> Membrane(TEXT("/Game/TriadDrift/Gameplay/Materials/M_TD_PortalMembrane.M_TD_PortalMembrane"));
+	MembraneMaterial = Membrane.Get();
+	static ConstructorHelpers::FObjectFinderOptional<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+	DiscMesh = Cylinder.Get();
 }
 
 bool ATDPortal::HasClearance(const UWorld* World, const FVector& Location, float ClearanceRadius)
@@ -120,10 +128,35 @@ void ATDPortal::Init(AActor* InInstigator, float InRadius, const FTDPortalTransi
 		// sees what they are flying into (playtest 3: a solid disc hid the reticle and everything behind it).
 		const FLinearColor Magenta = UTDStatics::ShipColor(ETDShipId::Rift);
 		PlaceholderDisc = nullptr;
+		// The swirling membrane (T4's portal-gate material, translucent: the reticle and what's behind stay visible).
+		if (MembraneMaterial && DiscMesh)
+		{
+			PlaceholderDisc = NewObject<UStaticMeshComponent>(this, TEXT("PortalMembrane"));
+			PlaceholderDisc->SetStaticMesh(DiscMesh);
+			PlaceholderDisc->SetupAttachment(GetRootComponent());
+			PlaceholderDisc->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			PlaceholderDisc->SetGenerateOverlapEvents(false);
+			PlaceholderDisc->SetCastShadow(false);
+			PlaceholderDisc->SetCanEverAffectNavigation(false);
+			PlaceholderDisc->SetRelativeRotation(FRotator(90.f, 0.f, 0.f)); // cylinder axis along X: the disc faces forward
+			PlaceholderDisc->SetRelativeScale3D(FVector(Radius * 1.9f / 100.f, Radius * 1.9f / 100.f, 0.02f));
+			PlaceholderDisc->RegisterComponent();
+			if (UMaterialInstanceDynamic* MID = PlaceholderDisc->CreateDynamicMaterialInstance(0, MembraneMaterial))
+			{
+				MID->SetVectorParameterValue(TEXT("Tint"), Magenta);
+				MID->SetScalarParameterValue(TEXT("Brightness"), MembraneBrightness);
+				MID->SetScalarParameterValue(TEXT("SwirlSpeed"), MembraneSwirlSpeed);
+			}
+		}
+		// The bright rim; the thin inner "iris" rings only when there is no membrane.
 		struct FRingSpec { float RadiusScale; float Thickness; float Glow; };
 		const FRingSpec Rings[] = { { 1.f, 70.f, 10.f }, { 0.93f, 25.f, 5.f }, { 0.62f, 12.f, 2.f }, { 0.32f, 10.f, 1.5f } };
 		for (const FRingSpec& R : Rings)
 		{
+			if (PlaceholderDisc && R.RadiusScale < 0.9f)
+			{
+				continue;
+			}
 			if (USceneComponent* Ring = FTDPowerPresentation::AddRingLattice(this, nullptr, Radius * R.RadiusScale, 1, 24, R.Thickness, Magenta, R.Glow))
 			{
 				Ring->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
@@ -384,10 +417,25 @@ void UTDPortalBlasterPower::HandleInputPressed()
 {
 	if (IsPowerActive() && !IsUsingBlink())
 	{
+		// Portal B obeys CanActivate's owner rules too: a dead or AI-flown Rift places nothing (second review, ENG-09).
+		const UTDHealthComponent* Health = UTDStatics::GetHealth(GetOwner());
+		if ((Health && !Health->IsAlive()) || (bRequirePlayerControl && !IsOwnerPlayerControlled()))
+		{
+			return;
+		}
 		if (PlacePortal())
 		{
-			// Firing the blaster again is using the power: Cloak and other listeners see it.
+			// Firing the blaster again is using the power: Cloak and other listeners see it, and so does the bus
+			// (Switch Strike's window, barks, stats; second review minor).
 			OnPowerActivated.Broadcast(this);
+			ETDShipId Ship;
+			if (GetOwnerShipId(Ship))
+			{
+				if (UTDEventBus* Bus = UTDEventBus::Get(this))
+				{
+					Bus->BroadcastPowerUsed(Ship, PowerName);
+				}
+			}
 		}
 		return;
 	}

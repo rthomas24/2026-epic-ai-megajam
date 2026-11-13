@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TDUIHostSubsystem.generated.h"
 
 class UUserWidget;
@@ -23,7 +24,8 @@ enum class ETDHUDSurface : uint8
 	Altitude,		// atmosphere flight (GetAltitude)
 	Subtitles,		// bark subtitles
 	Pause,			// the PAUSED line / menu
-	BoundaryWarning		// edge-of-zone text (GetBoundaryWarningText)
+	BoundaryWarning,	// edge-of-zone text (GetBoundaryWarningText)
+	CombatStates		// the Switch Strike window and a focus-fire order (GetSwitchStrike01, GetFocusRemaining01)
 };
 
 /**
@@ -143,6 +145,21 @@ public:
 
 	bool IsCinematicHidden() const { return bCinematicHidden; }
 
+	/**
+	 * The event bus's OnHitConfirmed: plays DA_UI_Style's KillConfirm (a kill) or HitConfirm (a hit) as a 2D sound, no
+	 * overrides (the asset's class, volume and concurrency apply). Silent when the slot is unset.
+	 */
+	UFUNCTION()
+	void HandleHitConfirmed(AActor* Target, bool bKill);
+
+	/** Tests: use this style instead of DA_UI_Style. */
+	UPROPERTY(Transient)
+	TObjectPtr<class UTDUIStyle> StyleOverride;
+
+	/** Combat feedback sounds played so far (tests, diagnostics). */
+	int32 GetHitSoundsPlayed() const { return HitSoundsPlayed; }
+	int32 GetKillSoundsPlayed() const { return KillSoundsPlayed; }
+
 	/** The controller's OnPauseChanged: opens or closes the pause screen. */
 	UFUNCTION()
 	void HandlePauseChanged(bool bPaused);
@@ -159,6 +176,7 @@ private:
 	void ShowGround(APlayerController* PC);
 	void HideGround();
 	void BindPause(APlayerController* PC);
+	void BindHitSounds(bool bBind);
 	void ShowPause(APlayerController* PC);
 	void HidePause();
 
@@ -173,9 +191,14 @@ private:
 
 	TWeakObjectPtr<APlayerController> GroundOwner;
 	TWeakObjectPtr<APlayerController> PauseBoundTo;
+	TWeakObjectPtr<class UTDEventBus> HitBus;
+	int32 HitSoundsPlayed = 0;
+	int32 KillSoundsPlayed = 0;
 
 	TWeakObjectPtr<APlayerController> Owner;
 	TWeakObjectPtr<UObject> DataSource;
+	/** The choice the live widget was made for (a change of TD.UI.SpaceHUD replaces it). */
+	ETDSpaceHUDChoice ShownChoice = ETDSpaceHUDChoice::Unset;
 	float TimeUntilCheck = 0.f;
 	bool bClassWarningLogged = false;
 	bool bDevHUDSuppressed = false;

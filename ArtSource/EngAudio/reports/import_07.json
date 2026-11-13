@@ -1,0 +1,17 @@
+{
+ "ok": [
+  "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull.MSS_Impact_Hull",
+  "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Taken.MSS_Impact_Hull_Taken",
+  "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Far.MSS_Impact_Hull_Far",
+  "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield.MSS_Impact_Shield",
+  "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Taken.MSS_Impact_Shield_Taken",
+  "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Far.MSS_Impact_Shield_Far",
+  "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_World.MSS_Impact_World",
+  "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Detonation_Rocket.MSS_Detonation_Rocket",
+  "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Detonation_Flak.MSS_Detonation_Flak",
+  "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected.MSS_Deflected",
+  "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small.MSS_Explosion_Small",
+  "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium.MSS_Explosion_Medium"
+ ],
+ "errors": []
+}

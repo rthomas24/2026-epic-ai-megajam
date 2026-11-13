@@ -84,6 +84,11 @@ namespace TDObjectiveTextImpl
 		}
 		// Wave phases (and Intro).
 		const ATDWaveDirector* Director = ATDWaveDirector::Get(World);
+		if (Director && Director->IsAwaitingCombatZone())
+		{
+			Out = Line(TEXT("Return_CombatZone"), 0, LOCTEXT("ReturnToZone", "RETURN TO THE COMBAT ZONE"));
+			return true;
+		}
 		const FTDWaveInfo Info = Director ? Director->GetWaveInfo() : FTDWaveInfo();
 		if (Info.bWaveActive && Info.WaveNumber > 0)
 		{
@@ -176,6 +181,14 @@ void FTDObjectiveText::ComputeMarkers(UWorld* World, const FTDProgress& Progress
 			}
 		}
 		return;
+	}
+	if (Destination == ETDDestination::Galaxy)
+	{
+		if (const ATDWaveDirector* Director = ATDWaveDirector::Get(World); Director && Director->GetCombatZoneMarker())
+		{
+			Out.Add(Director->GetCombatZoneMarker()); // "RETURN TO THE COMBAT ZONE"
+			return;
+		}
 	}
 	if (Destination == ETDDestination::Galaxy && Progress.Phase == ETDGamePhase::DominionAssault)
 	{

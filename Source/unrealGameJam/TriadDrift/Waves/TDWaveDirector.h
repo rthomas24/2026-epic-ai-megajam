@@ -86,6 +86,18 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Waves")
 	FTDWaveInfo GetWaveInfo() const;
 
+	/**
+	 * Second review MAJOR B (ENG-14/16/17): waves 3-5 are fought in the combat zone, not at a planet's orbit return
+	 * point. StartFromProgress holds such a wave (Idle) until the player's ship is inside the layout's CombatZoneRadius;
+	 * the flow shows "RETURN TO THE COMBAT ZONE" with a marker on GetCombatZoneMarker() meanwhile.
+	 */
+	bool IsAwaitingCombatZone() const { return bAwaitingCombatZone; }
+	AActor* GetCombatZoneMarker() const { return bAwaitingCombatZone ? CombatZoneMarker.Get() : nullptr; }
+	/** A wave is warping in or being fought (the planet orbit gates close meanwhile). */
+	bool IsWaveRunning() const { return State == ETDWaveState::WarpingIn || State == ETDWaveState::Active; }
+	/** True when there is no layout or no player ship to check (sandboxes and tests never wait). */
+	bool IsPlayerInCombatZone() const;
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Waves")
 	ETDWaveState GetState() const { return State; }
 
@@ -273,6 +285,13 @@ protected:
 	float StateRemaining = 0.f;
 	int32 CurrentWave = INDEX_NONE;
 	float LockSyncTimer = 0.f;
+	// MAJOR B: a wave 3-5 held until the player is back in the combat zone.
+	bool bAwaitingCombatZone = false;
+	float CombatZoneCheckTimer = 0.f;
+	UPROPERTY(Transient) TObjectPtr<AActor> CombatZoneMarker;
+	void AwaitCombatZone(int32 Index);
+	void StopAwaitingCombatZone();
+	bool WaveNeedsCombatZone(int32 Index) const;
 	bool bCutPending = false;
 	bool bOpeningGrace = false;
 	bool bOpeningFloor = false;

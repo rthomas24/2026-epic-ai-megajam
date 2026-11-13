@@ -229,7 +229,9 @@ void ATDDebugHUD::DrawSupplementText(bool bPrompt, bool bHyperdriveBlock, bool b
 			Centred(Prompt, 0.665f, 1.5f, FLinearColor::White);
 		}
 	}
-	// Short-lived combat states no HUD shows yet: the Switch Strike window and a focus order.
+	// Short-lived combat states: the Switch Strike window and a focus order. Skipped when a real HUD claims them
+	// (ETDHUDSurface::CombatStates; the engineering flight HUD draws them at the reticle, T2, Lead's OK Nov 13).
+	if (!(IsRealHUDActive(GetWorld()) && UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(this, ETDHUDSurface::CombatStates)))
 	{
 		FString State;
 		const float Strike = Data->GetSwitchStrike01();

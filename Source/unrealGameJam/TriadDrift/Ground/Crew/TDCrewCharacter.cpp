@@ -24,6 +24,8 @@
 #include "Animation/AnimSequenceBase.h"
 #include "Materials/MaterialInterface.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
+#include "TriadDrift/Ground/TDGroundAudio.h"
+#include "Components/AudioComponent.h"
 #include "AnimationRuntime.h"
 
 // The crew set (Gameplay/Characters/Crew/Anims, retargeted onto SKEL_NullCrew with ACL, Nov 13): what a crew look with a
@@ -180,6 +182,8 @@ ATDCrewCharacter::ATDCrewCharacter(const FObjectInitializer& ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	GetCapsuleComponent()->InitCapsuleSize(40.f, 90.f);
+	RifleShotSound = TDGroundAudio::Default(TEXT("Crew/MSS_Crew_RifleShot"));
+	DroneHumSound = TDGroundAudio::Default(TEXT("Crew/SW_Drone_Hum_01"));
 
 	Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
 	Body->SetupAttachment(GetCapsuleComponent());
@@ -281,6 +285,10 @@ void ATDCrewCharacter::BeginPlay()
 	Health->OnDamaged.AddUniqueDynamic(this, &ATDCrewCharacter::HandleDamaged);
 	Health->OnDeath.AddUniqueDynamic(this, &ATDCrewCharacter::HandleDeath);
 	Health->DamageFilter.BindUObject(this, &ATDCrewCharacter::FilterDamage);
+	if (Spec.Type == ETDCrewType::Drone)
+	{
+		DroneHum = TDGroundAudio::PlayAttached(DroneHumSound, GetRootComponent(), SoundEvents, TEXT("DroneHum"));
+	}
 }
 
 void ATDCrewCharacter::FellOutOfWorld(const UDamageType& DmgType)
@@ -391,24 +399,25 @@ FVector ATDCrewCharacter::GetMuzzleLocation(const FVector& AimDirection) const
 {
 	// The computed chest-front point: always valid, always toward the aim.
 	const FVector Chest = GetActorLocation() + FVector(0.f, 0.f, Spec.CapsuleHalfHeight * 0.4f) + AimDirection * (Spec.CapsuleRadius + 35.f);
-	const USkeletalMeshComponent* Look = GetMesh();
-	if (!Look || !Look->IsVisible() || !Look->GetSkeletalMeshAsset())
-	{
-		return Chest;
-	}
-	// The art's Muzzle socket (else the weapon hand) is only a START POSITION: the shot's direction is always aimed
-	// from it to the target (AimAt). A hand posed beside or behind the body would send bolts past the player, so a
-	// point that isn't in front of the body toward the aim falls back to the chest-front point.
+	// The art's Muzzle socket (skeletal look, else the weapon hand; or a static-mesh look's Muzzle, the Rodin drone) is
+	// only a START POSITION: the shot's direction is always aimed from it to the target (AimAt). A point that isn't
+	// in front of the body toward the aim falls back to the chest-front point.
 	static const FName MuzzleSocket(TEXT("Muzzle"));
 	static const FName Hand(TEXT("hand_r"));
+	const USkeletalMeshComponent* Look = GetMesh();
+	const bool bSkeletal = Look && Look->IsVisible() && Look->GetSkeletalMeshAsset();
 	FVector Point;
-	if (Look->DoesSocketExist(MuzzleSocket))
+	if (bSkeletal && Look->DoesSocketExist(MuzzleSocket))
 	{
 		Point = Look->GetSocketLocation(MuzzleSocket);
 	}
-	else if (Look->GetBoneIndex(Hand) != INDEX_NONE)
+	else if (bSkeletal && Look->GetBoneIndex(Hand) != INDEX_NONE)
 	{
 		Point = Look->GetBoneLocation(Hand);
+	}
+	else if (!bSkeletal && Body && Body->IsVisible() && Body->DoesSocketExist(MuzzleSocket))
+	{
+		Point = Body->GetSocketLocation(MuzzleSocket);
 	}
 	else
 	{
@@ -801,6 +810,11 @@ void ATDCrewCharacter::FireBolt(const FVector& Direction, float Damage, float Sp
 	P.bInheritShooterVelocity = false;
 	const FVector Muzzle = GetMuzzleLocation(Direction);
 	ATDProjectile::Launch(World, P, FTransform(Direction.Rotation(), Muzzle), this, ETDTeam::Enemy, nullptr, FVector::ZeroVector, 1.f, false);
+	if (World->GetTimeSeconds() - LastShotSoundTime > 0.05) // a shotgun's pellets or a fan of bolts is one shot
+	{
+		LastShotSoundTime = World->GetTimeSeconds();
+		TDGroundAudio::Play(this, RifleShotSound, Muzzle, false, SoundEvents, TEXT("RifleShot"));
+	}
 }
 
 void ATDCrewCharacter::DoShotgun()
@@ -991,6 +1005,15 @@ void ATDCrewCharacter::BreakGuard(AActor* Source)
 void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamageInfo& KillingBlow)
 {
 	CancelAttack();
+	if (Spec.Type == ETDCrewType::Drone)
+	{
+		SoundEvents.Add(TEXT("DroneHumStop"));
+		if (DroneHum)
+		{
+			DroneHum->FadeOut(0.3f, 0.f);
+			DroneHum = nullptr;
+		}
+	}
 	if (UTDCrewTokenSubsystem* Tokens = UTDCrewTokenSubsystem::Get(this))
 	{
 		Tokens->Release(this);

@@ -23,7 +23,7 @@ def main():
     by_sound = {}
     for wave in manifest["waves"]:
         sound = os.path.basename(wave["file"])[4:-7]
-        by_sound.setdefault((sound, wave["cat"]), []).append(wave["file"])
+        by_sound.setdefault((sound, wave["cat"]), []).append(os.path.join(ROOT, wave["file"]))
     lines, rows, failures, size = [], [], 0, 0
     lines.append("%-34s %-8s %6s %2s %7s %6s %6s %6s %6s %6s  %s" % ("file", "cat", "dur s", "ch", "LUFS", "TP", "lead", "tail", "seam", "ends", "result"))
     for (sound, cat), files in sorted(by_sound.items(), key=lambda kv: (kv[0][1], kv[0][0])):

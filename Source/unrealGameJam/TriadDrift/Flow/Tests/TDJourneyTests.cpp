@@ -27,6 +27,7 @@
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/World/TDPortalGate.h"
 #include "GameFramework/PlayerController.h"
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
 
@@ -85,8 +86,10 @@ bool FTDJourneyGalaxyStages::RunTest(const FString& Parameters)
 
 	TestTrue(TEXT("Waves3to4"), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::Waves3to4));
 	G.W.Tick();
-	const float FromOrbit = G.DistToPoint(TDReturnPoints::VerdanceOrbit); // right away: the squad flies on at cruise
-	TestTrue(FString::Printf(TEXT("squad starts at Verdance orbit (%.0f cm)"), FromOrbit), FromOrbit >= 0.f && FromOrbit < 5000.f);
+	// MAJOR B: a staged wave is fought in the combat zone (the real return from Verdance lands at its orbit and waits; see
+	// Waves3to5WaitForTheCombatZone).
+	TestTrue(TEXT("staged wave 3 starts in the combat zone"), Director->IsPlayerInCombatZone());
+	TestEqual(TEXT("the progress still returns at Verdance orbit"), G.GI->GetProgressRef().ReturnPoint, TDReturnPoints::VerdanceOrbit);
 	G.W.Advance(6.f, 1.f / 30.f);
 	TestEqual(TEXT("phase waves 3-4"), G.GI->GetProgressRef().Phase, ETDGamePhase::Waves3to4);
 	TestEqual(TEXT("Verdance rewards on the right ships"), G.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::GravityWell), ETDShipId::Bastion);
@@ -595,6 +598,108 @@ bool FTDJourneyIntroDefers::RunTest(const FString& Parameters)
 	GM->EnterLevelForTests();
 	TestFalse(TEXT("no second intro"), Intro->IsPlaying());
 	TestTrue(TEXT("waves armed straight away"), GM->IsFirstWaveTimerArmed());
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+namespace TDJourneyTest
+{
+	static ATDPortalGate* FindGate(UWorld* World, const TCHAR* Id)
+	{
+		for (TActorIterator<ATDPortalGate> It(World); It; ++It)
+		{
+			if (It->GateId == FName(Id))
+			{
+				return *It;
+			}
+		}
+		return nullptr;
+	}
+}
+
+/**
+ * Second review MAJOR B (ENG-14/16/17): waves 3-5 are fought in the combat zone. Back from Verdance at its orbit point,
+ * wave 3 waits ("RETURN TO THE COMBAT ZONE" + a marker) until the active ship is inside CombatZoneRadius, then starts;
+ * the planet orbit gates are closed while it runs and open again around it. Waves 1-2 never wait.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDJourneyWavesWaitForZone, "TriadDrift.Flow.Journey.Waves3to5WaitForTheCombatZone", TD_TEST_FLAGS)
+bool FTDJourneyWavesWaitForZone::RunTest(const FString& Parameters)
+{
+	TDJourneyTest::FGalaxy G;
+	UWorld* World = G.W.GetWorld();
+	ATDWaveDirector* Director = ATDWaveDirector::Get(World);
+	ATDGalaxyLayout* Layout = ATDGalaxyLayout::Get(World);
+	ATDSquadManager* Squad = ATDSquadManager::Get(World);
+	if (!TestNotNull(TEXT("director"), Director) || !TestNotNull(TEXT("layout"), Layout) || !TestNotNull(TEXT("squad"), Squad))
+	{
+		return false;
+	}
+	ATDPortalGate* OrbitGate = TDJourneyTest::FindGate(World, TEXT("Gate_Verdance_Orbit"));
+	ATDPortalGate* ZoneGate = TDJourneyTest::FindGate(World, TEXT("Gate_Verdance_Zone"));
+	if (!TestNotNull(TEXT("Verdance orbit gate"), OrbitGate) || !TestNotNull(TEXT("its combat-zone end"), ZoneGate))
+	{
+		return false;
+	}
+
+	// Back from Verdance: the progress is waves 3-4, the squad at the Verdance orbit return point.
+	TestTrue(TEXT("stage waves 3-4"), G.Stage(ETDJourneyStage::Waves3to4, 2.f));
+	Director->StopAndClear();
+	FTransform Orbit;
+	if (!TestTrue(TEXT("orbit return point"), Layout->FindReturnPoint(TDReturnPoints::VerdanceOrbit, Orbit)))
+	{
+		return false;
+	}
+	Squad->SpawnSquad(Orbit);
+	G.W.Tick();
+	TestFalse(TEXT("the orbit point is outside the combat zone"), Director->IsPlayerInCombatZone());
+	Director->StartFromProgress();
+	G.W.Advance(1.f, 1.f / 30.f);
+	TestTrue(TEXT("wave 3 waits"), Director->IsAwaitingCombatZone());
+	TestFalse(TEXT("no wave running at the orbit point"), Director->IsWaveRunning());
+	FTDObjectiveLine Line;
+	TestTrue(TEXT("objective computed"), FTDObjectiveText::Compute(World, G.GI->GetProgressRef(), ETDDestination::Galaxy, Line));
+	TestEqual(TEXT("RETURN TO THE COMBAT ZONE"), Line.Id, FName(TEXT("Return_CombatZone")));
+	TArray<AActor*> Markers;
+	FTDObjectiveText::ComputeMarkers(World, G.GI->GetProgressRef(), ETDDestination::Galaxy, Markers);
+	AActor* Marker = Director->GetCombatZoneMarker();
+	TestTrue(TEXT("the HUD marker is the combat zone"), Marker && Markers.Num() == 1 && Markers[0] == Marker);
+	const FVector Centre = Layout->GetActorTransform().TransformPosition(Layout->GetLayout().CombatZoneCenter);
+	TestTrue(TEXT("the marker sits at the zone's centre"), Marker && FVector::Dist(Marker->GetActorLocation(), Centre) < 1.f);
+	Layout->UpdateGatePhases();
+	TestTrue(TEXT("the orbit gate is open while waiting (the way back)"), OrbitGate->bActive);
+	ATDPortalGate* Flank = TDJourneyTest::FindGate(World, TEXT("Gate_Flank_West"));
+	const bool bFlankBefore = Flank && Flank->bActive;
+	TestNotNull(TEXT("flank gate"), Flank);
+
+	// Into the zone: the wave starts within half a second; the planet gates close.
+	ATDShip* Ship = Squad->GetActiveShip();
+	if (!TestNotNull(TEXT("active ship"), Ship))
+	{
+		return false;
+	}
+	Ship->SetActorLocation(Centre + FVector(0.f, 0.f, 3000.f));
+	G.W.Advance(0.5f, 1.f / 30.f);
+	TestFalse(TEXT("no longer waiting"), Director->IsAwaitingCombatZone());
+	TestTrue(TEXT("wave 3 running in the zone"), Director->IsWaveRunning() && Director->GetWaveInfo().WaveNumber == 3);
+	TestFalse(TEXT("marker gone"), IsValid(Marker));
+	TestFalse(TEXT("Verdance orbit gate closed during the wave"), OrbitGate->bActive);
+	TestFalse(TEXT("its combat-zone end closed too"), ZoneGate->bActive);
+	TestTrue(TEXT("the flank pair is untouched by the wave"), Flank && Flank->bActive == bFlankBefore);
+
+	// Cleared: the gates open again.
+	Director->StopAndClear();
+	Layout->UpdateGatePhases();
+	TestTrue(TEXT("orbit gate open again after the wave"), OrbitGate->bActive);
+
+	// Waves 1-2 never wait, wherever the squad is.
+	TestTrue(TEXT("stage waves 1-2"), G.Stage(ETDJourneyStage::Waves1to2, 1.f));
+	Director->StopAndClear();
+	Squad->SpawnSquad(Orbit);
+	G.W.Tick();
+	Director->StartFromProgress();
+	G.W.Tick();
+	TestFalse(TEXT("wave 1 does not wait"), Director->IsAwaitingCombatZone());
+	TestTrue(TEXT("wave 1 runs at once"), Director->IsWaveRunning() && Director->GetWaveInfo().WaveNumber == 1);
 	return true;
 }
 

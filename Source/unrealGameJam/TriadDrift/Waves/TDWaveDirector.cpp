@@ -1,5 +1,6 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
 
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
@@ -282,6 +283,10 @@ void ATDWaveDirector::SetState(ETDWaveState NewState, float Duration)
 	{
 		State = NewState;
 		OnStateChanged.Broadcast(NewState);
+		if (ATDGalaxyLayout* Layout = ATDGalaxyLayout::Get(this))
+		{
+			Layout->UpdateGatePhases(); // the planet orbit gates close the moment a wave starts (MAJOR B)
+		}
 	}
 }
 
@@ -330,7 +335,71 @@ void ATDWaveDirector::StartFromProgress()
 		SetState(ETDWaveState::Idle);	// e.g. on a planet, or waiting for the flow to change phase
 		return;
 	}
+	if (WaveNeedsCombatZone(Next) && !IsPlayerInCombatZone())
+	{
+		AwaitCombatZone(Next);
+		return;
+	}
 	StartWave(Next);
+}
+
+bool ATDWaveDirector::WaveNeedsCombatZone(int32 Index) const
+{
+	return Waves.IsValidIndex(Index) && (Waves[Index].Phase == ETDGamePhase::Waves3to4 || Waves[Index].Phase == ETDGamePhase::Wave5);
+}
+
+bool ATDWaveDirector::IsPlayerInCombatZone() const
+{
+	const ATDGalaxyLayout* Layout = ATDGalaxyLayout::Get(this);
+	const AActor* Player = SpawnAnchorOverride ? SpawnAnchorOverride.Get() : UGameplayStatics::GetPlayerPawn(this, 0);
+	if (!Layout || !Player)
+	{
+		return true;
+	}
+	const FTDGalaxyLayoutData& L = Layout->GetLayout();
+	const FVector Centre = Layout->GetActorTransform().TransformPosition(L.CombatZoneCenter);
+	return FVector::DistSquared(Player->GetActorLocation(), Centre) <= FMath::Square(L.CombatZoneRadius);
+}
+
+void ATDWaveDirector::AwaitCombatZone(int32 Index)
+{
+	SetState(ETDWaveState::Idle);
+	SetWaveHyperdriveLock(false);
+	if (!bAwaitingCombatZone)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Waves: wave %d waits for the squad to return to the combat zone"), Index + 1);
+	}
+	bAwaitingCombatZone = true;
+	CombatZoneCheckTimer = 0.25f;
+	if (!CombatZoneMarker)
+	{
+		if (const ATDGalaxyLayout* Layout = ATDGalaxyLayout::Get(this))
+		{
+			// An invisible point for the HUD's direction marker (the flow tags it, as it does planets and generators).
+			FActorSpawnParameters Params;
+			Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			Params.ObjectFlags |= RF_Transient;
+			const FVector Centre = Layout->GetActorTransform().TransformPosition(Layout->GetLayout().CombatZoneCenter);
+			if (AActor* Marker = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform(Centre), Params))
+			{
+				USceneComponent* Root = NewObject<USceneComponent>(Marker, TEXT("Root"));
+				Marker->SetRootComponent(Root);
+				Root->RegisterComponent();
+				Marker->SetActorLocation(Centre);
+				CombatZoneMarker = Marker;
+			}
+		}
+	}
+}
+
+void ATDWaveDirector::StopAwaitingCombatZone()
+{
+	bAwaitingCombatZone = false;
+	if (CombatZoneMarker)
+	{
+		CombatZoneMarker->Destroy();
+		CombatZoneMarker = nullptr;
+	}
 }
 
 void ATDWaveDirector::StartWave(int32 Index)
@@ -341,6 +410,7 @@ void ATDWaveDirector::StartWave(int32 Index)
 		UE_LOG(LogTriadDrift, Warning, TEXT("ATDWaveDirector::StartWave: index %d out of range (0..%d)"), Index, Waves.Num() - 1);
 		return;
 	}
+	StopAwaitingCombatZone();
 	ClearEnemies();
 	if (CurrentWave != Index)
 	{
@@ -1016,6 +1086,7 @@ void ATDWaveDirector::SetWaveHyperdriveLock(bool bLocked)
 
 void ATDWaveDirector::StopAndClear()
 {
+	StopAwaitingCombatZone();
 	SetWaveHyperdriveLock(false);
 	ClearEnemies();
 	// Leftover enemy mines and shots go too (T2's pool).
@@ -1035,6 +1106,22 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 	if (bOpeningGrace)
 	{
 		TickOpeningGrace(DeltaSeconds);
+	}
+
+	// MAJOR B: a held wave starts once the player is back in the combat zone (re-checked from progress, so a phase
+	// change meanwhile is honoured).
+	if (bAwaitingCombatZone && State == ETDWaveState::Idle)
+	{
+		CombatZoneCheckTimer -= DeltaSeconds;
+		if (CombatZoneCheckTimer <= 0.f)
+		{
+			CombatZoneCheckTimer = 0.25f;
+			if (IsPlayerInCombatZone())
+			{
+				StopAwaitingCombatZone();
+				StartFromProgress();
+			}
+		}
 	}
 
 	// The wave lock follows the state: re-asserted a few times a second while a wave runs, so a retake or

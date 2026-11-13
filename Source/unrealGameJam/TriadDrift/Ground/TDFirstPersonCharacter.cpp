@@ -34,6 +34,7 @@
 #include "Camera/PlayerCameraManager.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Ground/Camera/TDThirdPersonCameraComponent.h"
+#include "TriadDrift/Ground/TDGroundAudio.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
@@ -86,6 +87,13 @@ ATDFirstPersonCharacter::ATDFirstPersonCharacter(const FObjectInitializer& Objec
 
 	Blade = CreateDefaultSubobject<UTDEnergyBladeComponent>(TEXT("Blade"));
 
+	StepSoilSound = TDGroundAudio::Default(TEXT("Foot/MSS_Foot_Step_Soil"));
+	StepRockSound = TDGroundAudio::Default(TEXT("Foot/MSS_Foot_Step_Rock"));
+	DashSound = TDGroundAudio::Default(TEXT("Foot/MSS_Foot_Dash"));
+	JumpSound = TDGroundAudio::Default(TEXT("Foot/MSS_Foot_Jump"));
+	LandSound = TDGroundAudio::Default(TEXT("Foot/MSS_Foot_Land"));
+	HurtSound = TDGroundAudio::Default(TEXT("Foot/MSS_Player_Hurt"));
+
 	// ENG-32: T3's chase rig on the capsule, and the blade the body holds whenever the whole pilot is on screen.
 	ThirdPersonRig = CreateDefaultSubobject<UTDThirdPersonCameraComponent>(TEXT("ThirdPersonCamera"));
 	ThirdPersonRig->SetupAttachment(GetCapsuleComponent());
@@ -137,6 +145,19 @@ void ATDFirstPersonCharacter::BeginPlay()
 	Blade->OnRetractChanged.AddUObject(this, &ATDFirstPersonCharacter::HandleBladeRetract);
 
 	ThirdPersonRig->SetFirstPersonCamera(Camera);
+	// Almost no motion blur on foot (the Rodin drone smeared under the planet volume's 0.2): both views.
+	for (UCameraComponent* View : { Camera.Get(), ThirdPersonRig->GetThirdPersonCamera() })
+	{
+		if (View)
+		{
+			View->PostProcessSettings.bOverride_MotionBlurAmount = true;
+			View->PostProcessSettings.MotionBlurAmount = OnFootMotionBlur;
+		}
+	}
+	if (const UWorld* World = GetWorld())
+	{
+		bRockyGround = bRockyGround || World->GetMapName().Contains(TEXT("Cinder"));
+	}
 	if (UTDSettingsSubsystem* Options = UTDSettingsSubsystem::GetTDSettings(this))
 	{
 		// The saved choice applies at start-up and after every level travel (a new pilot each level).
@@ -278,7 +299,9 @@ void ATDFirstPersonCharacter::ApplyBladeVisuals()
 	{
 		if (UStaticMesh* ArtMesh = FX->BladeMesh.LoadSynchronous())
 		{
-			// Nick's first-person blade replaces the placeholder (authored at final scale).
+			// Nick's first-person blade replaces the placeholder (authored at final scale, pivot in the hand).
+			BladePlaceholder->AttachToComponent(BladeGrip, FAttachmentTransformRules::KeepRelativeTransform);
+			BladePlaceholder->SetRelativeRotation(FRotator::ZeroRotator);
 			BladePlaceholder->SetStaticMesh(ArtMesh);
 			BladePlaceholder->SetRelativeLocation(FVector::ZeroVector); // authored with its pivot in the hand
 			BladePlaceholder->SetRelativeScale3D(FVector::OneVector);
@@ -288,7 +311,28 @@ void ATDFirstPersonCharacter::ApplyBladeVisuals()
 		}
 	}
 	bBladeMeshFromArt = false;
-	UTDStatics::TintPlaceholder(BladePlaceholder, FX ? FX->BladeColor : FLinearColor(0.1f, 0.65f, 1.f), 1.4f);
+	const FLinearColor Color = FX ? FX->BladeColor : FLinearColor(0.1f, 0.65f, 1.f);
+	// Engineering's blade (Gameplay/Props/Blade): the sculpted hilt in the grip and the two-layer beam out of its
+	// emitter, 70 cm, the same pair the body holds in third person. The engine cubes only if the art is missing.
+	UStaticMesh* HiltArt = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeHilt.SM_TD_BladeHilt"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UStaticMesh* BeamArt = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeBeam.SM_TD_BladeBeam"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+	if (HiltArt && BeamArt)
+	{
+		BladeHilt->SetStaticMesh(HiltArt);
+		BladeHilt->SetRelativeLocationAndRotation(FVector::ZeroVector, FRotator(90.f, 0.f, 0.f)); // the hilt's +X up the grip's +Z
+		BladeHilt->SetRelativeScale3D(FVector::OneVector);
+		BladePlaceholder->SetStaticMesh(BeamArt);
+		const bool bEmitter = HiltArt->FindSocket(TEXT("BladeEmitter")) != nullptr;
+		BladePlaceholder->AttachToComponent(BladeHilt, FAttachmentTransformRules::SnapToTargetNotIncludingScale, bEmitter ? FName(TEXT("BladeEmitter")) : NAME_None);
+		BladePlaceholder->SetRelativeLocationAndRotation(bEmitter ? FVector::ZeroVector : FVector(19.3f, 0.f, 0.f), FRotator::ZeroRotator);
+		BladePlaceholder->SetRelativeScale3D(FVector(0.7f, 1.f, 1.f));
+		if (UMaterialInstanceDynamic* MID = BladePlaceholder->CreateDynamicMaterialInstance(0))
+		{
+			MID->SetVectorParameterValue(TEXT("BladeColor"), Color);
+		}
+		return;
+	}
+	UTDStatics::TintPlaceholder(BladePlaceholder, Color, 1.4f);
 	UTDStatics::TintPlaceholder(BladeHilt, FLinearColor(0.25f, 0.27f, 0.32f), 0.15f); // metal, never pure black
 }
 
@@ -582,6 +626,28 @@ void ATDFirstPersonCharacter::PlayBodyAction(FName Anim, float Rate, bool bUpper
 	}
 }
 
+void ATDFirstPersonCharacter::PlayFootSound(const TSoftObjectPtr<USoundBase>& Sound, FName Event, bool b2D)
+{
+	const FVector Feet = GetActorLocation() - FVector(0.f, 0.f, GetSimpleCollisionHalfHeight());
+	TDGroundAudio::Play(this, Sound, Feet, b2D, SoundEvents, Event);
+}
+
+void ATDFirstPersonCharacter::UpdateFootsteps(float DeltaSeconds)
+{
+	const UCharacterMovementComponent* Move = GetCharacterMovement();
+	if (!Move || !Move->IsMovingOnGround() || bSliding || bDashing || bMantling)
+	{
+		return;
+	}
+	StepDistance += (float)GetVelocity().Size2D() * DeltaSeconds;
+	const float Stride = bSprinting ? SprintStepStride : StepStride;
+	if (StepDistance >= Stride)
+	{
+		StepDistance = FMath::Fmod(StepDistance, Stride);
+		PlayFootSound(bRockyGround ? StepRockSound : StepSoilSound, bRockyGround ? FName(TEXT("StepRock")) : FName(TEXT("StepSoil")));
+	}
+}
+
 void ATDFirstPersonCharacter::UpdateCloseCombat(float DeltaSeconds)
 {
 	if (!ThirdPersonRig)
@@ -740,6 +806,7 @@ bool ATDFirstPersonCharacter::TryJump()
 	{
 		LaunchCharacter(FVector(0.f, 0.f, Tuning.JumpZ), false, true);
 		JumpsUsed = 1;
+		PlayFootSound(JumpSound, TEXT("Jump"));
 		return true;
 	}
 	if (JumpsUsed < 2)
@@ -747,6 +814,7 @@ bool ATDFirstPersonCharacter::TryJump()
 		// Falling off a ledge without jumping still allows exactly one air jump.
 		LaunchCharacter(FVector(0.f, 0.f, Tuning.DoubleJumpZ), false, true);
 		JumpsUsed = 2;
+		PlayFootSound(JumpSound, TEXT("Jump"));
 		return true;
 	}
 	return false;
@@ -781,6 +849,7 @@ bool ATDFirstPersonCharacter::TryDash()
 	StartForcedMove(Dir * (Tuning.DashDistance / Duration), Duration, Tuning.DashExitSpeed);
 	bDashing = true;
 	Health->SetInvulnerableFor(Tuning.DashIFrames);
+	PlayFootSound(DashSound, TEXT("Dash"));
 	return true;
 }
 
@@ -1042,6 +1111,11 @@ void ATDFirstPersonCharacter::PingObjective()
 void ATDFirstPersonCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
 {
 	UE_LOG(LogTriadDrift, Verbose, TEXT("Pilot hit: %.0f %s from %s, hull %.0f"), HullDamage, *UEnum::GetValueAsString(Info.Kind), *GetNameSafe(Info.Causer), InHealth ? InHealth->GetHull() : 0.f);
+	if (HullDamage > 0.f && GetWorld() && GetWorld()->GetTimeSeconds() - LastHurtSoundTime > 0.25)
+	{
+		LastHurtSoundTime = GetWorld()->GetTimeSeconds(); // a burst of bolts is one grunt, not five
+		PlayFootSound(HurtSound, TEXT("Hurt"), true);
+	}
 	if (HullDamage > 0.f && InHealth && InHealth->IsAlive() && Blade && !Blade->IsAttacking())
 	{
 		// A flinch the camera can read in third person: front or back by where the hit came from.
@@ -1098,6 +1172,8 @@ void ATDFirstPersonCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
 	JumpsUsed = 0;
+	StepDistance = 0.f; // the landing is the step
+	PlayFootSound(LandSound, TEXT("Land"));
 	if (Blade)
 	{
 		Blade->NotifyOwnerLanded();
@@ -1312,6 +1388,10 @@ void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 	UpdateBodyActions();
 	UpdateHandBlade(DeltaSeconds);
 	UpdateCloseCombat(DeltaSeconds);
+	if (!IsDead())
+	{
+		UpdateFootsteps(DeltaSeconds);
+	}
 
 	// Mirror state for animation and HUD.
 	BladeState = GetBladeState();

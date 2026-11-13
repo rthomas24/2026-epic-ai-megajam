@@ -15,10 +15,14 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/UI/TDGroundHUDWidget.h"
 #include "TriadDrift/UI/TDPauseMenuWidget.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "Sound/SoundWave.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDEventBus.h"
 
 namespace TDUIGroundPauseTests
 {
@@ -148,6 +152,9 @@ bool FTDUIPauseNavigation::RunTest(const FString& Parameters)
 	}
 	Menu->bExecuteActions = false;
 	TestEqual(TEXT("opens on RESUME"), Menu->GetSelected(), 0);
+	// The difficulty in play (T1's API, read by reflection): a name when it is in this build, else no line.
+	const bool bDifficultyApi = UTDSettingsSubsystem::StaticClass()->FindFunctionByName(TEXT("GetDifficultyInPlay")) != nullptr;
+	TestEqual(TEXT("difficulty line iff the API is in the build"), !UTDPauseMenuWidget::ReadDifficultyInPlay().IsEmpty(), bDifficultyApi);
 	TestTrue(TEXT("S moves down"), Menu->HandleKey(EKeys::S));
 	TestEqual(TEXT("SETTINGS"), Menu->GetSelected(), 1);
 	Menu->HandleKey(EKeys::Gamepad_DPad_Down);
@@ -189,6 +196,14 @@ bool FTDUIPauseNavigation::RunTest(const FString& Parameters)
 	Menu->HandleKey(EKeys::Gamepad_FaceButton_Right);
 	TestEqual(TEXT("B resumes"), Menu->LastAction, FString(TEXT("resume")));
 	TestFalse(TEXT("Escape not consumed (the pause toggle closes the menu)"), Menu->HandleKey(EKeys::Escape));
+
+	// UI sounds (T1's PlayUISound): Move per highlight change (rows and the confirm buttons), Confirm per choice, Back
+	// only when a prompt is cancelled (closing by resuming plays PauseOut from the controller instead).
+	TestEqual(TEXT("UI sound: Move per highlight change"), Menu->GetUISoundRequests(TEXT("Move")), 9);
+	TestEqual(TEXT("UI sound: Confirm per choice"), Menu->GetUISoundRequests(TEXT("Confirm")), 8);
+	TestEqual(TEXT("UI sound: Back for the cancelled prompt only"), Menu->GetUISoundRequests(TEXT("Back")), 1);
+	const bool bSoundApi = UTDSettingsSubsystem::StaticClass()->FindFunctionByName(TEXT("PlayUISound")) != nullptr;
+	TestEqual(TEXT("PlayUISound reaches T1's API iff it is in this build"), Menu->PlayUISound(TEXT("Move")), bSoundApi);
 	return true;
 }
 
@@ -227,6 +242,48 @@ bool FTDUIPauseScreenFollowsPause::RunTest(const FString& Parameters)
 	Pause.Set(0);
 	Host->HandlePauseChanged(true);
 	TestNull(TEXT("TD.UI.PauseScreen 0: no screen (the dev HUD line)"), Host->GetPauseScreen());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDUIHitConfirmSounds, "TriadDrift.UI.HitConfirmSounds", TD_TEST_FLAGS)
+bool FTDUIHitConfirmSounds::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass());
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("host"), Host) || !TestNotNull(TEXT("bus"), Bus))
+	{
+		return false;
+	}
+	Host->bAddToViewport = false;
+	UTDUIStyle* Style = NewObject<UTDUIStyle>();
+	Host->StyleOverride = Style;
+	Host->Evaluate(); // binds OnHitConfirmed
+
+	// Unset slots: silent.
+	Bus->BroadcastHitConfirmed(nullptr, false);
+	Bus->BroadcastHitConfirmed(nullptr, true);
+	TestEqual(TEXT("unset: no hit sound"), Host->GetHitSoundsPlayed(), 0);
+	TestEqual(TEXT("unset: no kill sound"), Host->GetKillSoundsPlayed(), 0);
+
+	// Set: a hit plays HitConfirm, a kill plays KillConfirm (never both).
+	USoundWave* Hit = NewObject<USoundWave>(Style);
+	USoundWave* Kill = NewObject<USoundWave>(Style);
+	Style->HitConfirm.Sound = Hit;
+	Style->KillConfirm.Sound = Kill;
+	Bus->BroadcastHitConfirmed(nullptr, false);
+	Bus->BroadcastHitConfirmed(nullptr, false);
+	Bus->BroadcastHitConfirmed(nullptr, true);
+	TestEqual(TEXT("two hits: two hit sounds"), Host->GetHitSoundsPlayed(), 2);
+	TestEqual(TEXT("one kill: one kill sound"), Host->GetKillSoundsPlayed(), 1);
+
+	// Only the kill slot set: hits stay silent, kills still sound.
+	Style->HitConfirm.Sound = nullptr;
+	Bus->BroadcastHitConfirmed(nullptr, false);
+	Bus->BroadcastHitConfirmed(nullptr, true);
+	TestEqual(TEXT("hit slot unset: still two"), Host->GetHitSoundsPlayed(), 2);
+	TestEqual(TEXT("kill slot set: two kills"), Host->GetKillSoundsPlayed(), 2);
 	return true;
 }
 

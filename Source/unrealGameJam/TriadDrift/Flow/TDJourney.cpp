@@ -173,7 +173,10 @@ void FTDJourney::ApplyGalaxyInPlace(UWorld* World, ETDJourneyStage Stage)
 		FTransform Where;
 		const ATDGalaxyLayout* Layout = ATDGalaxyLayout::Get(World);
 		const FName Point = ReturnPointOf(Stage);
-		if (Layout && !FindStageStart(World, Point, Where))
+		// A staged wave 3-5 is fought where waves are fought: the combat zone. (MAJOR B holds a wave until the squad is
+		// there; the real return from a planet still lands at its orbit point, from the progress' ReturnPoint.)
+		const bool bWaveStage = Stage == ETDJourneyStage::Waves3to4 || Stage == ETDJourneyStage::Wave5;
+		if (Layout && (bWaveStage || !FindStageStart(World, Point, Where)))
 		{
 			Where = Layout->GetPlayerStart();
 		}

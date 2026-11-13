@@ -162,9 +162,11 @@ bool FTDBladeHeldPose::RunTest(const FString& Parameters)
 	TestTrue(FString::Printf(TEXT("blade inside the view at rest (%.1f deg)"), MaxAngle), MaxAngle < Cam->FieldOfView * 0.5f + 5.f);
 	const FVector BladeY = Cam->GetComponentTransform().InverseTransformPosition(P->GetBladeMesh()->GetComponentLocation());
 	TestTrue(TEXT("held to the right"), BladeY.Y > 0.f);
-	// It must look thin: the projected width is well under the length.
+	// It must look thin: the longest side well over 15x either of the others (whichever axis the mesh runs along).
 	const FVector Extent = P->GetBladeMesh()->GetStaticMesh()->GetBoundingBox().GetExtent() * P->GetBladeMesh()->GetComponentScale();
-	TestTrue(TEXT("thin blade"), Extent.Z > 15.f * FMath::Max(Extent.X, Extent.Y));
+	TArray<double> Sides = { Extent.X, Extent.Y, Extent.Z };
+	Sides.Sort();
+	TestTrue(*FString::Printf(TEXT("thin blade (%s)"), *Extent.ToCompactString()), Sides[2] > 15.0 * Sides[1]);
 
 	// A light swing visibly sweeps the grip across the view (right to left), then it comes back to rest.
 	const FVector Rest = P->GetBladeGrip()->GetRelativeLocation();

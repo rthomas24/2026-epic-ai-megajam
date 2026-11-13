@@ -1486,6 +1486,13 @@ bool UTDIntroDirector::Skip()
 	}
 	bSkipped = true;
 	UE_LOG(LogTriadDrift, Log, TEXT("Intro: skipped at %.1f s"), Elapsed);
+	// The score is cut to the picture: a skip fades it out over a second (watched, it plays to its own end, which
+	// lines up with the hand-off: docs/eng/intro-beats.md).
+	if (Music)
+	{
+		Music->FadeOut(1.f, 0.f);
+		Music = nullptr;
+	}
 	Finish();
 	return true;
 }

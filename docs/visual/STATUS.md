@@ -1,6 +1,9 @@
+# Active presentation production, Nov 13
+Nicholas resumed the features.md presentation assignments. Current owners and next tasks are recorded in CLAIMS.md. The previous stop checkpoint preserves earlier work.
+
 # Visual production and acceptance status
 
-Nick-side checkpoint updated 2026-11-13 02:24 EST; verified branch/evidence stages are named below. Engineering-owned facts remain tied to their cited reports, not a new Lead certification. This is an acceptance ledger, not a dispatch. Current [CLAIMS.md](../../CLAIMS.md) controls owners, exact paths, pauses and resource grants.
+Nick-side checkpoint updated 2026-11-13 after resumed production/R028 review; verified branch/evidence stages are named below. Engineering-owned facts remain tied to their cited reports, not a new Lead certification. This is an acceptance ledger, not a dispatch. Current [CLAIMS.md](../../CLAIMS.md) controls owners, exact paths, pauses and resource grants.
 
 [features.md](../../features.md) controls scope, including ENG-32 Settings/third-person and ENG-33 intro. [AGENTS.md](../../AGENTS.md) controls coordination; [AAA.md](../../AAA.md) controls quality. No scope is cut by this cleanup. The earlier ledger and checkpoint history are [archived verbatim](archive/2026-11-13-cdea6df/STATUS.md).
 
@@ -32,3 +35,16 @@ Nick-side checkpoint updated 2026-11-13 02:24 EST; verified branch/evidence stag
 - Live task timing and resource leases belong in CLAIMS. Post decisions/evidence on MESSAGEBOARD and carry durable decisions into the owning document.
 - The November 12 integration exception expired November 13 at 00:00 Eastern. It does not authorize automatic merges now. Current explicit approvals and AGENTS apply.
 - Preserve historical evidence in the archive and DEVLOG. Never discard dirty worktrees or release another owner's reservations to simplify a ledger.
+
+## Resumed production checkpoint
+[Lead review](Lead-Resume-Review-2026-11-13.md), R028/N033 and CLAIMS supersede historical overnight timing above. PID2124 RAM-aborted: saved18 plus Crimson11 preserved, Cybernetic zero files, no project transfer. Read-only Crimson recovery next, then separately cleared single-source imports. Audio PR12 engineering no-objection/cook/package diagnostics received; Nick listening open. Hero current-game contract source-only. UI P1 mixed design/live9754f24 received, not Main/default; development paused for Nick review. Ryan reports full route agent-played/about630 tests/about800MB zip; fresh post-ENG34-37 package/human playthrough open. No new Main asset merge/confirmed import-arrival notification.
+
+Recovery update: Crimson private fresh reload6562 PASS PID4992/OS0/7.05s,29 preserved. No game-project transfer. Current priorities and ownership follow updated features/R028 and N034: Audio P1, Hero P2, read-only UI P3; Ryan owns models/terrain/effects/flight HUD. Prior source/native checkpoints above are preserved historical evidence, not competing assignments. Audio readonly saved-Wave proof is next; actual current-Core binding/playback remains open.
+
+Audio P1 milestone: fresh CombatMusic reload PID2956/OS0/13.797s/minfree3.817GiB PASS;1124 files unchanged/no new content.139.2s looping stereo48k/existing Music class verified. Exact Wave feature publication underway; current-Core binding/actual playback/Nick listening/Shipping still open. Native slot released, no active grants.
+
+Audio verified Wave feature publication f5d9cf9d pushed/LFSuploaded: exact native1110b703, four-file scoped commit/clean worktree, reload evidence published. Ryan notified on MESSAGEBOARD N029/N034 arrival explicitly FEATURE-ONLY; Main binding/actual battle/playback/listening/Shipping remain open.
+
+Nebula private import PASS PID8548/OS0/errors[],1SM1M3T; prior29 preserved, total34. Not a project transfer/native branch publication/visual acceptance. Native slot released. MESSAGEBOARD N035 gives Ryan exact feature and private asset locations, with stage boundaries; current integration gates remain open.
+
+GothicStoneArchWall private import PASS PID16364/OS0, six packages/9763tri/UV1;34 unchanged, private total40, no project transfer. Nine older imports remain including held Cybernetic, selected36 unstarted. Slot released; N035 path addendum published.
