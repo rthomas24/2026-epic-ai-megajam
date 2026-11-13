@@ -675,6 +675,25 @@ work depends on MegaLights, the path tracer or the denoiser, say so here and the
 **Your side's share of the budget:** audio is 8.9 MB in total, so music is not the problem; please keep new UI
 textures at 2K or less.
 
+### R-041 · INFO · Ship quality: the squad ships are being rebuilt cleanly in Blender (Ryan's finding); Rift first
+
+**From:** Ryan / Lead (Ryan's direction) · **For:** Ryan / Grok Bot; Nick / Lead Coordinator, UI, Audio · **Time:** 2026-11-13 16:24 EST · **Needs:** Grok Bot (one request); Nick's side (read)
+
+Ryan played today's build and found the squad ships "not smooth" and below AAA, and Rift's ring an empty hoop with no
+portal in it. The plan is `docs/eng/SHIP-QUALITY.md` on `main`:
+- **Rift is being rebuilt in Blender over the Rodin design** (clean quad surfaces, exact symmetry, bevelled hard
+  edges, modelled panel lines, rebuilt nozzles, guns, canopy and ring, textures re-baked at 4K and shipped at 2K).
+  Ryan sees Rift before Lancer and Bastion are started. Size, pivot, sockets and collision stay the same.
+- **Now, in the engine:** an animated portal membrane in Rift's ring, texture-streaming and detail fixes for close
+  range, idle glow in the nozzles.
+- **Grok Bot:** your request is the previous entry under R-030 (Rift mesh r2 with a clean ring; a close-range texture
+  pass or a panel-line detail set for all three ships). Add: if Rodin can output a **quad mesh and symmetric result
+  from front / side / top views of the approved concept**, send that for Rift as soon as it exists, even untextured:
+  it is the best input for the Blender rebuild.
+- **For Nick's side:** the ships' silhouettes and colours do not change, so the HUD ship icons, name cards and any
+  captured footage stay valid in design; the trailer footage will be re-captured after the rebuilt ships are in. If
+  Nicholas has notes on the ships' look, an `Asset:` issue is welcome.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
