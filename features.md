@@ -23,6 +23,7 @@ editing the same files.
   ends in space when the squad destroys the exposed reactor from outside (ENG-18).
 - **Added Nov 12 (Ryan), core:** a Settings page and an on-foot first / third-person camera choice (ENG-32).
 - **Added Nov 12 (Ryan), core:** a high-quality cinematic intro of space, the squad, worlds and the Armada (ENG-33).
+- **Added Nov 13 (Ryan), core:** both planets become large explorable worlds with procedural terrain and mountains (ENG-34), and engineering supplies a fallback sound set so the game is never silent (ENG-35).
 - **Protect above all:** the three-ship switching mechanic and satisfying combat.
 - **C++ first;** use Blueprints when they are clearly faster or necessary.
 - Keep a playable build at all times, coordinate shared-file edits before starting, verify licences
@@ -783,6 +784,44 @@ Triad Drift's version is **bright and saturated**, not grimdark (AGENTS.md secti
 **Done when:** New Game plays the intro from the menu into wave 1 with a seamless hand-off; skip works by keyboard,
 mouse and pad; Continue and retakes never play it; captures of every shot are reviewed against `AAA.md` by an
 independent reviewer; tests cover play-once, skip, hand-off and that waves start only after it.
+
+#### ENG-34 · Planet worlds: large procedural terrain (CORE, added Nov 13 by Ryan) · `🟨`
+Ryan, Nov 13: "building out these worlds ... procedural generation, like mountains ... make it look big, not just
+one little section on the map ... a massive, massive map that you should be able to explore."
+- **What:** each planet (Verdance, Cinder) is a large generated world around the existing objective course, not a flat
+  slab: mountain ranges, valleys, ridges, mesas and basins from layered noise (ridged for mountains), seeded per planet
+  so the world is the same every run. Target extent: at least 16 x 16 km walkable and flyable, with distant ranges
+  beyond it that close the horizon.
+- **The course stays playable:** the objective sites, landing pad and the routes between them sit in terrain that is
+  flattened and blended around them (a basin / plateau), at the same positions and heights gameplay uses today; no
+  existing objective, encounter or test moves. Outside it the player can walk and fly anywhere.
+- **Built at runtime, in code:** chunked terrain meshes with level of detail by distance, collision near the player
+  and the ships, no map edits (the maps are shared). Nick's tagged environment replaces it when present.
+- **Looks:** a terrain material that blends by slope and height (Verdance: moss and soil lowlands, rock faces, glowing
+  ridgelines; Cinder: basalt plains, lava rivers in the valleys, ash and crystal on the heights), the planets' fog and
+  sky, and biome scatter from the existing kits (trees, ferns, mushrooms, rocks, crystals, basalt columns) by height,
+  slope and noise masks, instanced, never on the course's paths.
+- **Flight:** atmosphere flight (ENG-20) flies over and between the mountains; arrival and take-off stay as they are;
+  the landing assist still finds the pad.
+- **Performance:** inside the ENG-28 budget on the target machine; generation is incremental (no hitch above 4 ms a
+  frame) and the first view is ready before the arrival camera shows it.
+- **Acceptance:** from the pad the player sees mountains in every direction; a 2-minute walk or flight in any direction
+  finds new terrain, not an edge; every existing planet test and both objective chains still pass; captures from the
+  air and on foot on both planets.
+- Owner: T4 (world generation, terrain meshes, scatter), T5 (course fitting and on-foot checks), T1 (flight over
+  terrain), Lead (terrain material and art).
+
+#### ENG-35 · Engineering fallback sound set (CORE, added Nov 13 by Ryan's Lead under Ryan's instruction) · `🟨`
+Audio is a judged category and Nick's audio lane is stopped with only the menu theme and one cannon sound made. Until
+Nick's sounds exist, engineering supplies an original, cohesive fallback set, announced on the board (R-024):
+- every weapon, power and ability; hits, shield breaks and explosions; engines, boost, drift and hyperdrive; the switch
+  cut, the slate and "CUT!"; UI moves and confirms; on foot: footsteps, blade swings, hits, deflects, crew shots;
+  ambience for space and each planet; a combat music bed if none exists.
+- Original sounds made with synthesis and processing (the `ue-game-audio` skill), levelled to its mix standard, each
+  with attenuation, class and concurrency; logged in `CREDITS.md`.
+- Wired only through the existing cue slots, in engineering folders, as fallbacks: a sound of Nick's in the same slot
+  always wins, and nothing of his is overwritten. An agent reaches "technically verified"; a person approves by ear.
+- Owner: Lead (builder sub-agents) for the sounds, each lane's owner for any missing cue slot.
 
 ### STRETCH: boarding finale
 
