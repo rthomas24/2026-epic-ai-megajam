@@ -149,7 +149,7 @@ bool FTDIntroShotList::RunTest(const FString& Parameters)
 	}
 	TestTrue(TEXT("1: 35 mm, from black"), Nebula->FocalFrom == 35.f && Nebula->FadeIn >= 2.f);
 	TestTrue(TEXT("2: long lens 85-135"), Eclipse->FocalFrom >= 85.f && Eclipse->FocalTo <= 135.f && Eclipse->FocalTo > Eclipse->FocalFrom);
-	TestTrue(TEXT("3: 24 mm, shallow, handheld"), Squad->FocalFrom == 24.f && Squad->FStop <= 2.8f && Squad->Handheld > 0.f && Squad->Duration == 8.f);
+	TestTrue(TEXT("3: 35 mm, shallow, steady (issue #49: no handheld, no swings)"), Squad->FocalFrom == 35.f && Squad->FStop <= 2.8f && Squad->Handheld == 0.f && Squad->Duration == 8.f);
 	TestTrue(TEXT("4: 50 mm"), Belt->FocalFrom == 50.f);
 	TestTrue(TEXT("5: 35 mm"), Gate->FocalFrom == 35.f);
 	TestTrue(TEXT("6: 135 mm far, then 24 mm close"), Far->FocalFrom == 135.f && Close->FocalFrom == 24.f);
@@ -160,18 +160,30 @@ bool FTDIntroShotList::RunTest(const FString& Parameters)
 	F.Intro->DebugJumpToShot(2);
 	F.W.Tick(1.f / 30.f);
 	const UCameraComponent* Cam = F.Intro->GetShotCamera()->GetCameraComponent();
-	TestNearlyEqual(TEXT("24 mm field of view"), Cam->FieldOfView, 54.8f, 0.5f);
+	TestNearlyEqual(TEXT("35 mm field of view"), Cam->FieldOfView, 39.1f, 0.5f);
 	TestTrue(TEXT("depth of field set"), Cam->PostProcessSettings.bOverride_DepthOfFieldFstop && Cam->PostProcessSettings.DepthOfFieldFstop <= 2.8f);
 	TestTrue(TEXT("motion blur, bloom, flare, grain"), Cam->PostProcessSettings.MotionBlurAmount > 0.f && Cam->PostProcessSettings.BloomIntensity > 0.f
 		&& Cam->PostProcessSettings.LensFlareIntensity > 0.f && Cam->PostProcessSettings.FilmGrainIntensity > 0.f);
 	TestEqual(TEXT("2.39 bars"), F.Intro->GetOverlay().Bars, 1.f);
 
-	// The squad passes close, a card per pilot.
+	// Issue #49: one steady frame per ship, a card each; inside a frame the lens barely turns (no whip-pans), and the
+	// only big changes of view are the two cuts.
 	TSet<FString> Cards;
 	float Closest = 1.0e9f;
+	float MaxTurnInFrame = 0.f;
+	int32 Cuts = 0;
+	FVector LastFwd = F.Intro->GetShotCamera()->GetActorForwardVector();
+	int32 LastSeg = UTDIntroDirector::SquadSegment(F.Intro->GetElapsed() - 12.f, 8.f);
 	for (float T = 0.f; T < 7.9f; T += 1.f / 30.f)
 	{
 		F.W.Tick(1.f / 30.f);
+		const FVector Fwd = F.Intro->GetShotCamera()->GetActorForwardVector();
+		const float Turn = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(Fwd, LastFwd), -1.f, 1.f)));
+		const int32 Seg = UTDIntroDirector::SquadSegment(F.Intro->GetElapsed() - 12.f, 8.f);
+		if (Seg != LastSeg) { ++Cuts; }
+		else { MaxTurnInFrame = FMath::Max(MaxTurnInFrame, Turn); }
+		LastSeg = Seg;
+		LastFwd = Fwd;
 		if (F.Intro->GetOverlay().NameCardAlpha > 0.5f)
 		{
 			Cards.Add(F.Intro->GetOverlay().NameCard.ToString());
@@ -182,7 +194,9 @@ bool FTDIntroShotList::RunTest(const FString& Parameters)
 		}
 	}
 	TestEqual(TEXT("three pilot name cards"), Cards.Num(), 3);
-	TestTrue(FString::Printf(TEXT("passes close, never through the lens (%.0f cm)"), Closest), Closest > 400.f && Closest < 2000.f);
+	TestTrue(FString::Printf(TEXT("close and large, never through the lens (%.0f cm)"), Closest), Closest > 400.f && Closest < 9000.f);
+	TestTrue(FString::Printf(TEXT("steady: at most %.2f deg per frame inside a shot"), MaxTurnInFrame), MaxTurnInFrame < 1.0f);
+	TestEqual(TEXT("two cuts: three shots"), Cuts, 2);
 
 	// The title at the end.
 	F.Intro->DebugJumpToShot(Shots.Num() - 1);
@@ -369,19 +383,22 @@ bool FTDIntroCardFits::RunTest(const FString& Parameters)
 			const FTDShipSpec Spec = UTDShipLibrary::GetShipSpec(Id);
 			const FText Name = Spec.PilotName;
 			// The fourth: a deliberately long trait line (Nicholas may lengthen them through DA_Story_Transmissions).
-			const FText Role = i < 3 ? UTDStorySubsystem::PilotTrait(Id)
+			const FText Role = FText::FromString((Spec.ShipName.ToString() + TEXT("  ·  ") + Spec.RoleName.ToString()).ToUpper());
+			const FText Trait = i < 3 ? UTDStorySubsystem::PilotTrait(Id)
 				: FText::FromString(TEXT("INTERCEPTOR  ·  FASTEST IN THE WING  ·  PRECISE  ·  RESTLESS  ·  ALWAYS RECORDING"));
-			const FTDIntroCardLayout L = UTDIntroDirector::LayoutNameCard(Size, Name, Role, Measure);
-			const FString At = FString::Printf(TEXT("%.0fx%.0f %s"), Size.X, Size.Y, *Role.ToString().Left(24));
+			const FTDIntroCardLayout L = UTDIntroDirector::LayoutNameCard(Size, Name, Role, Trait, Measure);
+			const FString At = FString::Printf(TEXT("%.0fx%.0f %s"), Size.X, Size.Y, *Trait.ToString().Left(24));
 			const FBox2D Safe(FVector2D(Size.X * 0.03f, L.Picture.Min.Y), FVector2D(Size.X * 0.97f, L.Picture.Max.Y));
-			for (const FBox2D* B : { &L.Name, &L.Role, &L.Bar })
+			for (const FBox2D* B : { &L.Name, &L.Role, &L.Trait, &L.Insignia, &L.Bar })
 			{
 				TestTrue(At + TEXT(": inside the picture and the safe frame"), Safe.IsInside(B->Min) && Safe.IsInside(B->Max));
 				TestFalse(At + TEXT(": clear of the subtitle band"), B->Intersect(L.SubtitleBand));
 				TestTrue(At + TEXT(": a gap of at least 8 px above the subtitle backing"), L.SubtitleBand.Min.Y - B->Max.Y >= 8.f);
 				TestFalse(At + TEXT(": clear of HOLD TO SKIP"), B->Intersect(L.Skip));
 			}
-			TestTrue(At + TEXT(": the bar is beside the text, never across it"), L.Bar.Max.X < L.Name.Min.X && L.Bar.Max.X < L.Role.Min.X);
+			TestTrue(At + TEXT(": the accent is beside the text, never across it"), L.Bar.Max.X < L.Name.Min.X && L.Bar.Max.X < L.Role.Min.X && L.Bar.Max.X < L.Trait.Min.X);
+			TestTrue(At + TEXT(": the insignia left of the accent"), L.Insignia.Max.X < L.Bar.Min.X);
+			TestTrue(At + TEXT(": name, role, trait from the top"), L.Role.Max.Y <= L.Trait.Min.Y + 0.5f);
 			TestTrue(At + TEXT(": the name sits above its trait line"), L.Name.Max.Y <= L.Role.Min.Y + 0.5f);
 			TestTrue(At + TEXT(": readable sizes"), L.NameFontSize >= 12 && L.RoleFontSize >= 8);
 		}

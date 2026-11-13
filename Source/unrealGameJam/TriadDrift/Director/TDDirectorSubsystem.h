@@ -193,6 +193,19 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Director")
 	bool IsShotActive() const;
 
+	/**
+	 * T1's atmosphere entry and exit as a Director's Cut shot (no slow motion, no card): the director's own camera, placed
+	 * every frame at Ship * CameraFromShipLocal(Alpha 0..1 over Seconds), blended in over 0.3 s (real time). While it
+	 * runs the flown ship takes no damage (a23), T2's HUD hold hides combat presentation, and no money shot starts. A
+	 * running money shot is ended first. EndAtmosphereShot(bCut) cuts back to the pawn; it also ends
+	 * itself at Seconds + 1 s, on travel, or when the ship goes. False when the director camera is off or no player.
+	 */
+	static bool RequestAtmosphereShot(const UObject* WorldContext, class ATDShip* Ship, bool bExit, float Seconds,
+		TFunction<FTransform(float Alpha01)> CameraFromShipLocal);
+	static void EndAtmosphereShot(const UObject* WorldContext, bool bCut = true);
+	static bool IsAtmosphereShotActive(const UObject* WorldContext);
+	class ACameraActor* GetAtmosphereCamera() const { return AtmosphereCamera; }
+
 	/** True while the camera is away from the player and the flown ship is held safe (a23). */
 	bool IsProtectingPlayer() const { return bProtectingPlayer; }
 
@@ -297,6 +310,19 @@ private:
 	bool bSlowMoSounding = false; // ENG-35: SlowMoIn played, SlowMoOut owed
 	double ShotEndRealTime = -1000.0;
 	void UpdatePlayerProtection();
+	void UpdateAtmosphereShot(double Now);
+	struct FAtmosphereShot
+	{
+		bool bActive = false;
+		bool bExit = false;
+		TWeakObjectPtr<class ATDShip> Ship;
+		TFunction<FTransform(float)> Place;
+		double Start = 0.0;
+		float Seconds = 1.f;
+		FTransform From; // the chase camera's pose at the cut in
+	};
+	FAtmosphereShot Atmosphere;
+	UPROPERTY(Transient) TObjectPtr<class ACameraActor> AtmosphereCamera;
 	bool bProtectingPlayer = false;
 	float LastProtectedHealth = -1.f; // shield + hull of the flown ship, to log any hit that still lands
 	double GlobalCooldownEndRealTime = -1000.0;

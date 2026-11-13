@@ -46,6 +46,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Menu Backdrop") float TakeThatSeconds = 10.f;
 	/** The caption held on screen under the signal's three lines (A5_DistressSignal's text). */
 	FText GetStingerCaption() const;
+	/** The menu is back: the held caption fades out over 1 s. */
+	void FadeStingerCaption() { if (CaptionFadeStart <= 0.0) { CaptionFadeStart = FPlatformTime::Seconds(); } }
+	double CaptionFadeStart = 0.0;
 	int32 GetFireCount() const { return Fires; }
 
 	/** Tag on any actor of the menu map that is Nick's own menu scene: the backdrop stays off. */

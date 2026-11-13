@@ -269,6 +269,10 @@ void ATDMenuGameMode::ReturnToMenu()
 	}
 	bReturnPending = false;
 	bShowingVictory = false;
+	for (TActorIterator<ATDMenuBackdrop> It(GetWorld()); It; ++It)
+	{
+		It->FadeStingerCaption(); // the menu comes up clean
+	}
 	// Re-resolve, as at start-up: Nick's main-menu widget comes back after the victory screen (N-033), or the
 	// code-built menu when none is assigned.
 	ShowMenuUI();
