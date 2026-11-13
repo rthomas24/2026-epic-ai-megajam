@@ -587,13 +587,22 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 			Trail->SetUsingAbsoluteScale(true);
 			Trail->RegisterComponent();
 			Trail->SetWorldTransform(FTransform::Identity);
-			UTDStatics::TintPlaceholder(Trail, UTDStatics::ShipColor(Ship->GetShipId()), Tuning.TrailGlow);
+			TrailMID = UTDStatics::TintPlaceholder(Trail, UTDStatics::ShipColor(Ship->GetShipId()), Tuning.TrailGlow);
+			TrailMIDGlow = Tuning.TrailGlow;
 		}
 		Trail->ClearInstances();
 		TrailTransforms.SetNum(N * Engines);
 		for (FTransform& T : TrailTransforms) { T = FTransform(FQuat::Identity, Ship->GetActorLocation(), FVector(0.01f)); }
 		Trail->AddInstances(TrailTransforms, false, true);
 		TrailHistory.Reset();
+	}
+
+	// The flown ship's short flame burns dimmer than a wingman's streak (it sits right under the camera).
+	const float WantGlow = (Ship->IsPlayerFlown() && !Ship->IsCockpitView()) ? Tuning.PlayerFlameGlow : Tuning.TrailGlow;
+	if (TrailMID && !FMath::IsNearlyEqual(WantGlow, TrailMIDGlow))
+	{
+		TrailMID->SetVectorParameterValue(TEXT("Color"), UTDStatics::ShipColor(Ship->GetShipId()) * WantGlow);
+		TrailMIDGlow = WantGlow;
 	}
 
 	// Path samples per engine: [0] follows the nozzle every frame; a new sample is pushed every TrailSampleSeconds.
@@ -608,7 +617,8 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 	// A teleport (portal, hyperdrive drop-out, respawn) never draws a streak across space.
 	const float MaxStep = FMath::Max(5000.f, (float)Move->Velocity.Size() * Tuning.TrailSampleSeconds * 3.f);
 	// Several engines: thinner ribbons, so a five-engine Bastion doesn't drag a wall of light.
-	const float Thick = Tuning.TrailThickness * (Ship->IsBoosting() ? 1.4f : 1.f) * (Engines > 1 ? 0.65f : 1.f);
+	const float Thick = (Ship->IsPlayerFlown() && !Ship->IsCockpitView() ? Tuning.PlayerFlameThickness : Tuning.TrailThickness)
+		* (Ship->IsBoosting() ? 1.25f : 1.f) * (Engines > 1 ? 0.75f : 1.f);
 	// Near the camera a ribbon would smear across the view (the chase camera sits right above the player's own
 	// trail): segments shrink to nothing as they come within DustCameraClear of the eye, as the dust does.
 	const APlayerController* ViewPC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
@@ -649,7 +659,9 @@ void UTDFlightFeedbackComponent::UpdateTrail(float DeltaTime)
 				D = A - B;
 				Len = Keep;
 			}
-			const float Taper = bOwnChase ? FMath::Clamp(1.f - Length / FMath::Max(Cap, 1.f), 0.f, 1.f) : 1.f - (float)i / (float)N;
+			// Quadratic taper: thin quickly, then a long hairline tail that reads as fading out.
+			const float Lin = bOwnChase ? FMath::Clamp(1.f - Length / FMath::Max(Cap, 1.f), 0.f, 1.f) : 1.f - (float)i / (float)N;
+			const float Taper = Lin * Lin;
 			const float Near = bHaveEye ? FMath::Clamp(FVector::Dist((A + B) * 0.5f, Eye) / Clear - 0.25f, 0.f, 1.f) : 1.f;
 			const float T = FMath::Max(0.01f, Thick * Taper * Near / 100.f);
 			const FQuat Q = Len > KINDA_SMALL_NUMBER ? FRotationMatrix::MakeFromX(D / Len).ToQuat() : Ship->GetActorQuat();
