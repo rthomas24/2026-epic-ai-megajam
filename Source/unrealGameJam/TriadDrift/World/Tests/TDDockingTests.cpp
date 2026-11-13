@@ -16,6 +16,7 @@
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 
 namespace TDDockingTest
 {
@@ -160,6 +161,22 @@ bool FTDDockingRetake::RunTest(const FString&)
 	TestFalse(TEXT("controls back"), Ship && Ship->IsFlightParked());
 	TestEqual(TEXT("no travel"), Bay->GetTravelRequests(), 0);
 	TestEqual(TEXT("still the boarding state"), (int32)D->GetState(), (int32)ETDDominionState::DockingOpen);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDominionStoryBeats, "TriadDrift.World.Dominion.GeneratorsFireTheirTransmissions", TD_TEST_FLAGS)
+bool FTDDominionStoryBeats::RunTest(const FString&)
+{
+	// T3's story beats: A4_GeneratorDown1..4 by count down as the generators fall.
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	ATDDominion* D = TDDockingTest::DefensesDown(W, ETDBoardingMode::ForceOff);
+	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(D);
+	if (!TestNotNull(TEXT("story subsystem"), Story)) { return false; }
+	for (int32 i = 1; i <= 4; ++i)
+	{
+		const FName Id(*FString::Printf(TEXT("A4_GeneratorDown%d"), i));
+		TestTrue(*FString::Printf(TEXT("%s played"), *Id.ToString()), Story->HasPlayed(Id));
+	}
 	return true;
 }
 

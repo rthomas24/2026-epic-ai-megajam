@@ -2,6 +2,7 @@
 
 > **Working title:** Triad Drift · **Jam:** 2026 Epic AI MegaJam · **Engine:** UE 5.9 (MegaJam Preview), project `unrealGameJam`
 > **Theme:** **DIRECTOR'S CUT** (how the game expresses it: C-03)
+> **Story:** **The Paradox** (Nicholas's narrative, adopted by Ryan Nov 13): [`storyline.md`](storyline.md). Every feature below serves it.
 > **Hard deadline:** Nov 15, 2026, **8:59 PM EST / 5:59 PM PST**. Late entries are disqualified.
 > **Feature freeze:** Nov 15, 12:00 PM EST. After that, only fixes, polish, packaging and submission.
 
@@ -18,14 +19,18 @@ editing the same files.
   - **both landable planets** with their on-foot objectives
   - the Dominion space-assault finale
   - full presentation (art, VFX, UI, audio) and packaging
-- **STRETCH (optional; only once core is solid):** the **boarding finale**: docking, the Dominion
-  interior on foot, the reactor-core fight, the escape run and the escape flight. Without it, the war
-  ends in space when the squad destroys the exposed reactor from outside (ENG-18).
+- **The boarding finale is WANTED (Ryan, Nov 13; it was stretch):** docking, the Dominion interior on foot, the
+  reactor-core fight, the escape run and the escape flight (ENG-29, 30, 31), in a scoped version that can be solid
+  by the freeze. It carries acts 4 and 5 of the story. **Fallback, always kept working:** the space-only ending,
+  where the squad destroys the exposed reactor from outside (ENG-18, `td.Finale.Boarding 0`).
+- **Added Nov 13 (Ryan), core: the storyline.** Nicholas's narrative *The Paradox* is the game's story
+  ([`storyline.md`](storyline.md)): objective names, dialogue, set pieces, clues and the ending all follow it.
 - **Added Nov 12 (Ryan), core:** a Settings page and an on-foot first / third-person camera choice (ENG-32).
 - **Added Nov 12 (Ryan), core:** a high-quality cinematic intro of space, the squad, worlds and the Armada (ENG-33).
 - **Added Nov 13 (Ryan), core:** both planets become large explorable worlds with procedural terrain and mountains (ENG-34), and engineering supplies a fallback sound set so the game is never silent (ENG-35).
 - **Added Nov 13 (Ryan), core:** the HUD is redesigned: modern, sleek, small, and clear to a beginner (ENG-36).
 - **Added Nov 13 (Ryan), core:** AAA projectiles, engine flames and particle effects across the whole game (ENG-37).
+- **Added Nov 13 (Ryan), core:** flying from space down into a planet is seamless and AAA, in the spirit of No Man's Sky: orbit the globe, enter the atmosphere anywhere, a visible burn-in, the world coming into focus (ENG-38).
 - **Protect above all:** the three-ship switching mechanic and satisfying combat.
 - **C++ first;** use Blueprints when they are clearly faster or necessary.
 - Keep a playable build at all times, coordinate shared-file edits before starting, verify licences
@@ -39,7 +44,7 @@ tests, independent review closed, played by an agent in the running game; **wait
 `✅ done` (all of that, and a human has played it and is happy) · `🐞 has bugs`
 
 **Where the game stands and who does what today: [Nov 13 realignment](#nov-13-realignment-status-and-plan).**
-Animation plan and ledger: [`animations.md`](animations.md). Item by item with tests, reviews and open findings: `docs/eng/STATUS.md` (engineering) and
+Story: [`storyline.md`](storyline.md). Gameplay dialogue: [`dialogs.md`](dialogs.md). Animation plan and ledger: [`animations.md`](animations.md). Item by item with tests, reviews and open findings: `docs/eng/STATUS.md` (engineering) and
 `docs/visual/STATUS.md` (presentation). Live ownership: `CLAIMS.md`.
 
 ### Contents
@@ -87,11 +92,13 @@ through the engine's MCP server. **No human has played it yet; that is the large
 | HUD | ENG-36 (+ ART-09) | 🟨 | New flight HUD: first pass matches the design, second pass today, then it becomes the default. Nick's HUD stays selectable |
 | Effects | ENG-37 (+ ART-07) | 🟨 | 21 Niagara systems, round 2 scored 3 of 5; tracers and explosions are being wired today, engines / shields / muzzle flashes need another round |
 | Ship, enemy, Dominion, crew, prop art | ART-03, 04, 06, 08 as engineering fallbacks | 🟨 | Everything has a model in the game (score about 3 of 5). Real hero ships, the fleet, Warden and drone are being generated from approved concepts (Grok Bot) |
-| Sky, lighting, look | ART-05, 13 | 🟨 | Engineering's 8K sky is in; Nick's Hero sky is parked; no lighting or grading pass per level |
+| Sky, lighting, look (**Ryan's since Nov 13**) | ART-05, 13 | 🟨 | Engineering's 8K sky is in; no lighting or grading pass per level yet: an environment builder starts on it now |
 | Menus, reward screen, credits, loading | ART-09 | 🟨 | Engineering fallbacks work; styling is plain. Nick's menu is on a branch |
 | Barks, voice | ART-11 | ⬜ | Text barks only |
 | Submission (video, page, dev log, credits) | ART-14, ENG-28 | 🟨 | 58 s trailer pipeline exists (silent cut, old HUD); page not started; `CREDITS.md` and `DEVLOG.md` are current |
-| Boarding finale | ENG-29-31, ART-15, 16 | ⬜ STRETCH | Not started. Decision: **not before the polish list is done.** |
+| Planetary descent (space to surface, anywhere on the globe) | ENG-38 (+ ENG-20, ENG-34) | 🟨 | Added Nov 13. Today: a level change behind a short entry. Research in progress; stage 1 next |
+| Boarding finale | ENG-29-31, ART-15, 16 | 🟨 WANTED (Ryan, Nov 13) | Scoped plans in from T4 (docking, escape flight, about 14 h) and T5 (interior, core, escape run); the space-only ending stays as the fallback |
+| Story (The Paradox) | `storyline.md`; ENG-18, 25, 26, 29-31, 33; ART-11, 12 | 🟨 | Adopted Nov 13. Hooks and renames on Ryan's side; words, voice and the final say on story with Nicholas |
 
 Judges' categories, our own honest read today: gameplay 3.5, fun 3 (unproven without a human), theme 4,
 ambition 4, level design and progression 3, visuals 3, audio 2. **Today and tomorrow go to visuals, audio and
@@ -103,7 +110,7 @@ feel, in that order of weakness.**
 |---|---|---|---|
 | **Engineering** | Ryan's Lead + teammates T1-T5 + builder sub-agents (Claude Code) | All gameplay code; integration to `main`; the takeovers Ryan ordered while Nick's side was stopped: planet worlds (ENG-34), fallback sounds (ENG-35), flight HUD (ENG-36), effects (ENG-37); cleaning up, importing and wiring every generated asset | `Source/`, `Config/`, `Content/TriadDrift/Gameplay/**`, `ArtSource/Eng*/**` |
 | **Asset generation** | Grok Bot (Ryan's agent; fal, Hyper3D Rodin, PBRgen) | Concepts and raw 3D, textures, animations and key art from the ranked list in R-027. Sources only; never Unreal assets, code or maps | `ArtSource/EngAI/**`, `grok/assets-*` branches, merged by Ryan's Lead |
-| **Presentation** | Nick's Lead + agents (Codex) | Direction and sign-off on everything seen and heard; music and the final mix; lighting and look per level; menus and the Director's Cut presentation; voice; the submission page and video | `Content/TriadDrift/{Art, Environment, VFX, UI, Audio, Cinematics, Presentation}/`, `Plugins/TriadDriftHUD/`, `ArtSource/` (not `Eng*`) |
+| **Presentation** | Nick's Lead + agents (Codex) | Direction and sign-off on everything seen and heard; music and the final mix; menus and the Director's Cut presentation; voice; the submission page and video | `Content/TriadDrift/{Art, Environment, VFX, UI, Audio, Cinematics, Presentation}/`, `Plugins/TriadDriftHUD/`, `ArtSource/` (not `Eng*`) |
 
 How the lanes meet, unchanged: gameplay reads `DA_*_Visuals` / `DA_*_FX` / `DA_UI_Style`. An asset of Nick's
 at the Presentation name always wins over an engineering fallback with no code change, so nothing engineering
@@ -111,7 +118,8 @@ or Grok Bot makes blocks or overwrites Nick's work, and Nicholas can take any ta
 
 ### Who owns what now (Nov 13, decided by Ryan)
 Ryan's rule: **anything Claude or Grok Bot is making is under Ryan's name; anything Ryan's side is not making is
-under Nick's name.** The items were moved in this file to match: `ART-03, 04, 06, 07, 08` now sit in Ryan's
+under Nick's name.** **Update, Nov 13 afternoon (Ryan): the categories Environment, VFX and Asset Management are taken
+over completely by Ryan's side** (Claude and Grok Bot): Nick's agents do no work in them. The items were moved in this file to match: `ART-03, 04, 06, 07, 08` now sit in Ryan's
 section (§5, "Art and assets made on Ryan's side"), with their IDs unchanged so older references still work.
 Nicholas keeps art direction and final sign-off on everything, and anything he makes at the Presentation name
 still replaces ours with no code change.
@@ -128,17 +136,70 @@ still replaces ours with no code change.
 | Sound effects | ENG-35 | 🟦 **Ryan** | Claude audio builder | T1-T5 |
 | Space dressing, 8K sky stand-in, intro, capture pipeline for the video | ENG-17, ENG-33 | 🟦 **Ryan** | Claude | T3, T4 |
 | **Animation**, all of it (plan and ledger: `animations.md`): characters, mechanical parts, in-engine motion | ART-08 | 🟦 **Ryan** | Grok Bot (raw clips, rigged models); Lead's animation builder (retarget, clean, cut, blueprints) | T5 (which move plays when, hit and deflect timing) |
-| Art direction, style guide, sign-off | ART-01, ART-02 | 🟩 **Nick** | Nicholas | - |
-| Space sky (Hero), galaxy look | ART-05 | 🟩 **Nick** | Nick's Environment agent | Nick |
-| Lighting, fog, grade, post-process on every level, including the two planets | ART-13 | 🟩 **Nick** | Nick's Environment agent | Nick |
+| **Asset management**: the inventory of every asset, sourcing, licences, intake of supplied models | ART-02 | 🟦 **Ryan** | Lead (ledger `docs/eng/ASSETS.md`, `CREDITS.md`), Grok Bot (generation) | Lead's asset builders |
+| Art direction notes and style guide | ART-01 | 🟩 **Nick** | Nicholas | - |
+| **Environment**: space sky, nebulae, galaxy dressing and look | ART-05 | 🟦 **Ryan** | Lead's environment builder; Grok Bot (panoramas, textures) | T4 (galaxy), Lead's builders |
+| **Environment**: lighting, fog, sky, atmosphere, grade and post-process on every level (galaxy, both planets, the Dominion interior, the menu), and the descent's atmosphere (ENG-38) | ART-13 | 🟦 **Ryan** | Lead's environment builder; Grok Bot (cloud and sky textures) | T4, T5 (their levels) |
 | Menus, reward, victory, credits, loading screens; fonts, icons, colours | ART-09 | 🟩 **Nick** | Nick's UI agent | Nick |
 | Music and the final mix; approval of every sound by ear | ART-10 | 🟩 **Nick** | Nick's Audio agent | Nick |
 | Voice and barks | ART-11 | 🟩 **Nick** | Nick's Audio agent | Nick |
 | Director's Cut presentation design (slate, CUT, name card, letterbox) | ART-12 | 🟩 **Nick** | Nick's UI agent | Nick |
 | Itch page, video edit, screenshots, dev log | ART-14 | 🟩 **Nick** | Nick's Lead | Nick + Ryan's Lead |
 
-If Nick's side does not pick up one of its rows by Nov 14 noon, Ryan's Lead takes it as a fallback and says so on
-the board (AGENTS.md §11).
+**What remains Nick's:** UI and menus (ART-09), audio, music and the mix (ART-10), voice and the words of the story
+(ART-11), the Director's Cut presentation design (ART-12), the submission page and video (ART-14), and art direction
+notes (ART-01). If Nick's side does not pick up one of those rows by Nov 14 noon, Ryan's Lead takes it as a fallback
+and says so on the board (AGENTS.md §11).
+
+### Storyline (adopted Nov 13): see [storyline.md](storyline.md)
+Ryan adopted Nicholas's narrative, **The Paradox**: the silent mothership and its machines are the squad's own future,
+come back for the Origin Core. `storyline.md` holds the story and, act by act, the gameplay moment that carries each
+beat. **Nicholas owns the story, its words and voices; Ryan's side owns how each beat is played** and exposes a hook
+with a plain placeholder line for every beat. Nothing reveals the twist before the Dominion. What changes in the game:
+
+| Change | Act | Owner | Size |
+|---|---|---|---|
+| The Dominion is visible from wave 1, unreachable behind a distortion field (its four generators); "reveal" becomes "the passage is open" | 1, 3, 4 | T4 (+ effects builder for the field) | small |
+| Intro text and shots follow the premise: the silent ship, machines searching worlds, Triad deployed | opening | T3 (hooks), Nicholas (words, voice) | small |
+| Verdance: objective 1 recovers the **signal-analysis device** from the wrecked research site; objective 2 wakes the relay and plays the **voices** | 2 | T5 (names, hook), builders / Grok Bot (dressing), Nicholas (audio) | small |
+| Cinder: the outpost is the **mining complex**, the jammer is the excavation's **field anchor**; clearing them yields the stabilising crystals and opens the passage; the Warden guards the dig | 3 | T5, T4, builders / Grok Bot | small |
+| Transmissions: a small event system (id, speaker, placeholder line) fired at story beats; echo-voice lines from Cinder on | 2-5 | T3 (system, with T5 / T4 triggers), Nicholas (lines, voice) | medium |
+| **Boarding finale**: docking, interior with consoles that recognise the pilots and a recording per room, core fight, escape run and flight | 4, 5 | T4 (docking, escape flight), T5 (interior, core, escape run), builders (interior kit), Grok Bot (Warden) | large |
+| Ending stinger: the distress signal with the squad's own identifiers on the victory screen | 5 | T3 / T5 (hook), Nicholas (text, audio) | small |
+| **Opening cinematic redone to the *First Contact* brief** (2:20) and waves 1-2 shaped as its tutorial battle (evasion, weapons, switching, a larger craft, the withdrawal boundary, the Verdance distress call); the finale's command-deck payoff reusing the same "Don't-" audio | opening, 1, 4 | T3 (+ T4, T1, effects builder), Nicholas (lines, voice, score) | large; **queued until the models and effects are in, done once** |
+| Clues: enemy pre-empting a manoeuvre now and then; Triad's insignia shape under damaged enemy armour; one ancient-technology artefact on both planets and in the core | 1-4 | T4 (AI), Grok Bot / builders (assets) | small each |
+| Pilot characters per the story (Wren bold, Kato analytical, Moss steady) in every bark and name card | all | T3 (hooks), Nicholas (lines) | small |
+
+### Environment, VFX and Asset Management: taken over by Ryan's side (Nov 13, afternoon)
+Ryan: these categories are taken over completely by Claude and Grok Bot; none of that work is Nick's any more.
+- **Environment** (ART-05, ART-06, ART-13, with ENG-34 and ENG-38): space sky and galaxy dressing; both planets'
+  terrain, materials, scatter and set pieces; lighting, fog, atmosphere, grade and post-process on every level; the
+  Dominion interior's look. Owner: the Lead with an **environment builder**, T4 and T5 for their levels, Grok Bot for
+  panoramas, cloud and surface textures.
+- **VFX** (ART-07, ART-16, ENG-37): every Niagara effect, camera-shake class and post-process material. Owner: the
+  Lead's **effects builder**, with T1 / T2 / T4 / T5 hooks and Grok Bot's flipbooks.
+- **Asset Management** (ART-02): one ledger of every asset, its source, licence and state (`docs/eng/ASSETS.md`),
+  `CREDITS.md`, `docs/eng/ART-HISTORY.md`; choosing what to import from Nick's supplied-model intake (N-041, N-042);
+  briefs and approvals for Grok Bot. Owner: the Lead with an **asset builder**.
+- **Nick's side now:** UI and menus, audio, music and the mix, voice and the words of the story, the Director's Cut
+  presentation design, the submission, and art direction notes. His agents stop work in the three categories at a safe
+  checkpoint and publish what they have as reference; nothing of theirs is deleted.
+
+### Planetary descent (added Nov 13, Ryan): ENG-38
+Ryan wants the flight from space into a world to be a centrepiece: orbit the globe, enter the atmosphere anywhere, a
+visible burn-in on the ship, cloud deck, and the world coming into focus, with no loading screen, "almost like No
+Man's Sky". Spec in ENG-38; research and the recommended architecture in `docs/eng/planet-descent-research.md`.
+Everyone has a part: T1 flight and entry, T4 the globe and the focus-in, T5 the hidden load, T2 the HUD, T3 the
+camera, the effects and audio builders, Grok Bot for cloud, plasma and planet-surface assets, Nick for the
+atmosphere's look. It is built in three stages; stage 1 (the entry sequence at full quality) comes first.
+
+### Gameplay dialogue (added Nov 13): see [dialogs.md](dialogs.md)
+Every short line the pilots and Command say during play (targets, hits, powers, switching, travel, landing, on foot,
+the Dominion, banter) has a row in **`dialogs.md`**: id, when it fires, who speaks, priority, and working lines for
+Wren, Kato and Moss in character. About 75 ids, 22 of which the game fires today. T3 owns the bark system (lines loaded
+from a table generated from that file, rotation, a Flavour priority, the banter queue); each row's owner adds its
+trigger. The wording is a working draft from Ryan's side: **Nicholas owns the final lines and voices** (ART-11) and
+his `DT_Barks` rows replace ours by id.
 
 ### Animation (Ryan's lane, added Nov 13): see [animations.md](animations.md)
 Every animation in the game has a row in **`animations.md`**: who makes it, by which route, where it lives and its
@@ -180,14 +241,15 @@ are most valuable where **an ear, an eye and taste** decide, and where nobody el
 | Priority | Work | Item | Why it is yours |
 |---|---|---|---|
 | 1 | **Music and the mix.** Combat music that swells with the waves (`MusicIntensity01` is live in `UTDAudioStateSubsystem`), planet themes for Verdance and Cinder, Dominion assault, victory sting; merge the menu loop (PR #11) and the Lancer cues (PR #12); then the final mix by ear across music, effects and voice | ART-10 | Audio is our lowest score, and only Nicholas can approve sound by ear. Engineering's 200 sounds are stand-ins: keep, replace or re-level any of them through `DA_UI_Style` and the `DA_*_FX` Sound fields (yours win) |
-| 2 | **Lighting, sky and look per level.** Finish the Hero sky in the real galaxy map; sun, fog, exposure and colour grade for Verdance and Cinder now that they are large mountain worlds; a post-process look for space combat | ART-05, ART-13 | Biggest visual gain for the least risk, and it needs art direction, not code. Tag your sky `TD.Presentation.Sky` and the placeholder steps aside |
+| - | ~~Lighting, sky and look per level~~ | ART-05, ART-13 | **Moved to Ryan's side on Nov 13 (afternoon).** Nick's agents do not work on environment, VFX or asset management; Nicholas may still send art notes |
 | 3 | **Menus and the Director's Cut presentation.** Main menu, pause, Settings styling, ability reward screen, victory and credits, loading screens; slate card, "CUT!", pilot name card and letterbox as a designed set; fonts, icons and colour tokens that the new flight HUD then adopts | ART-09, ART-12 | Your menu branch (`1a8d942`) and HUD design language already exist. The flight HUD itself is ENG-36 by Ryan's instruction; review it and send notes |
 | 4 | **Voice and barks.** Pilot barks for Wren, Kato and Moss, a mission-control line per scene, intro narration | ART-11 | Hooks exist (`OnBarkRequested`, intro narration slot in `UTDUIStyle`); nothing uses them |
 | 5 | **Submission.** The itch page, screenshots, the 30-60 s gameplay video (engineering's capture pipeline `Tools/td-trailer.ps1` can supply footage), the dev log for Glass Box, "Tools used" | ART-14 | Has a hard deadline and nobody has started it |
 | 6 | **Art review, by eye.** Look at every engineering fallback and every Grok Bot delivery in the running game and say approve / restyle / replace on the board | ART-01 | Nicholas keeps sign-off; an hour of notes steers three lanes |
 
-Suggested to **leave parked** (already covered, to save your 16 GB machine): player ships, enemy ships,
-Dominion, crew, props, terrain, Niagara natives and the M04 flight HUD. Say on the board if you want any of
+**Not Nick's any more (Ryan, Nov 13): everything in Environment, VFX and Asset Management**: ships, enemies,
+Dominion, crew, props, terrain, sky, lighting and post-process, Niagara effects, asset intake and inventory. Also
+parked: the M04 flight HUD. Say on the board if you want any of
 them back and engineering stops that fallback the same hour.
 
 ### The AAA polish list (both days, in priority order)
@@ -204,10 +266,10 @@ Each line names the owner; a line is done when it is seen (or heard) in the runn
 **Look (visuals)**
 7. Real hero ships and fleet in the game with clean sockets and engine exhausts (Grok Bot → builders → T1, T4).
 8. Explosions, engines and shields at the level of the ships (effects builder).
-9. Planets: mountains with rock, peaks and lava; scatter; a sky and light that sell the scale (T4, builders, Nick).
+9. Planets: mountains with rock, peaks and lava; scatter; a sky and light that sell the scale (T4, environment builder).
 10. Dominion finale: generators, reactor and a breakup worth a trailer shot (T4, effects builder, Grok Bot).
 11. One consistent UI style from menu to HUD to victory (T2, Nick).
-12. Lighting and grade per level (Nick; engineering fallback if untouched by Nov 14 noon).
+12. Lighting and grade per level (Lead's environment builder; Ryan's since Nov 13).
 
 **Sound (audio)**
 13. Every action has a sound and none is harsh or repetitive: an ear pass on the fallbacks (Ryan / Nicholas).
@@ -225,39 +287,45 @@ Each line names the owner; a line is done when it is seen (or heard) in the runn
 
 ## 0. The game
 
-A fast, bright, arcade space-combat game. You lead a wing of three ships (**Rift**, **Lancer** and
-**Bastion**) and switch between them at any moment, while the two ships you aren't flying fight on
-their own. You land on two worlds and complete objectives on foot to unlock new ship abilities, then
-break the enemy mothership's defenses. As a stretch goal, you board it with an **energy blade** to
-destroy its core.
+A fast, bright, arcade space-combat game with a story: **The Paradox** ([`storyline.md`](storyline.md)). You lead
+**Triad**, a three-pilot reconnaissance unit, in three ships (**Rift**, **Lancer** and **Bastion**), switching between
+them at any moment while the two you aren't flying fight on their own. A silent mothership, the **Dominion**, has
+appeared; its machines are searching the system's planets. You follow their trail across two worlds, completing
+objectives on foot that earn each ship a new ability and a way through the Dominion's distortion field, then break the
+field, **board the ship with an energy blade**, learn what it is, destroy its reactor and escape.
 
-### Fiction (working names: rename freely, but update this file)
-- **The squad:** three pilots, one per ship. **Wren** flies **Rift** (playful, sly). **Kato** flies
-  **Lancer** (cocky, fast-talking). **Moss** flies **Bastion** (calm, protective veteran). The player
-  is the **wing lead**, who can take any cockpit.
-- **The enemy:** the **Null Armada**, angular red-and-black ships with hollow white "eye" lights. Its
-  mothership is the **Dominion**.
+### Fiction (the story is Nicholas's; full text in `storyline.md`)
+- **The squad, Triad:** **Wren** flies **Rift** (bold, instinctive; earns Cloak). **Kato** flies **Lancer**
+  (analytical, cautious; earns EMP Pulse). **Moss** flies **Bastion** (steady, good-humoured; earns Gravity Well). The
+  player is the wing lead and can take any cockpit.
+- **The enemy:** the **Null Armada**, the authorities' name for the angular red-and-black craft and automated ground
+  units that emerge from the **Dominion**. They do not answer hails and they search rather than occupy.
+  **The truth (never stated before the Dominion):** they are the squad's own future, come back for the **Origin Core**.
 - **The worlds:**
-  - **Verdance:** a bioluminescent jungle with giant flora, waterfalls and a ringed moon.
-  - **Cinder:** black volcanic rock, glowing magma and huge cyan/amber crystal spires.
+  - **Verdance:** a bioluminescent jungle with giant flora, waterfalls and a ringed moon; an abandoned research site
+    holds the **signal-analysis device** and a relay full of voices that should not be there.
+  - **Cinder:** black volcanic rock, glowing magma and huge cyan / amber crystal spires; a **mining complex** where the
+    machines dig for the crystals that stabilise a passage through the field.
 
-### Player journey
+### Player journey (acts of the story)
 
 ```
-Main Menu ─► Intro (squad briefing, Armada arrives)
-  └─► GALAXY · Waves 1–2: learn flight, shooting, switching, each signature power
-        └─► Verdance: hyperdrive → atmospheric entry → fly down → land                (CORE)
-              ├─► Obj 1 "Recover the Wreck Core" → unlock GRAVITY WELL (Bastion)
-              └─► Obj 2 "Wake the Ancient Relay"  → unlock CLOAK (Rift) → take off
-  └─► GALAXY · Waves 3–4 (gunships, bombers; portal gates matter)
-        └─► Cinder: land                                                              (CORE)
-              ├─► Obj 3 "Clear the Armada Outpost" → unlock EMP PULSE (Lancer)
-              └─► Obj 4 "Destroy the Signal Jammer" → REVEALS THE DOMINION → take off
-  └─► GALAXY · Wave 5 "Dominion's Guard" (carriers) → Dominion warps in (cinematic)
-        └─► Destroy 4 shield generators + turrets → reactor exposed
-              ├─► CORE ENDING: destroy the exposed reactor from space → breakup cinematic → Victory
-              └─► STRETCH ENDING: dock → interior on foot (energy blade) → core fight → escape run
-                                  → escape flight → breakup cinematic → Victory
+Main Menu ─► Intro: the silent Dominion appears, machines descend on worlds, Triad is deployed
+  └─► ACT 1 · FIRST CONTACT · Galaxy, waves 1–2: learn flight, shooting, switching, each signature power.
+        The Dominion hangs in the distance behind its distortion field: it cannot be approached.
+        └─► ACT 2 · VERDANCE, THE VOICES: hyperdrive → atmospheric entry → fly down → land
+              ├─► Obj 1 "Recover the Signal-Analysis Device" (the wrecked research site) → unlock GRAVITY WELL (Bastion)
+              └─► Obj 2 "Wake the Relay": human voices under the enemy's signal        → unlock CLOAK (Rift) → take off
+  └─► Galaxy · waves 3–4 (gunships, bombers; portal gates matter; the enemy starts to anticipate you)
+        └─► ACT 3 · CINDER, THE PATTERN: land at the mining complex
+              ├─► Obj 3 "Stop the Excavation" (clear the complex)  → unlock EMP PULSE (Lancer) + the stabilising crystals
+              └─► Obj 4 "Destroy the Field Anchor" → THE PASSAGE THROUGH THE FIELD IS OPEN → take off
+  └─► Galaxy · wave 5 "Dominion's Guard" (carriers) → approach the Dominion
+        └─► ACT 4 · THE DOMINION, THE TRUTH: destroy the 4 field generators + turrets
+              ├─► dock → interior on foot (energy blade): doors that know you, a recording in every room, the Warden
+              └─► ACT 5 · THE CHOICE: core fight → 90 s escape run → escape flight → breakup → Victory
+                    └─► the distress signal, carrying your own identifiers, from decades ahead
+              (fallback ending, kept working: destroy the exposed reactor from space → breakup → Victory → the signal)
 ```
 Target length: 20–30 minutes.
 
@@ -270,7 +338,7 @@ Target length: 20–30 minutes.
 | **AI assistant** | Claude Code | OpenAI Codex |
 | **Mission** | Own the playable game systems, engineering integration and technical reliability, so the game stays fun, responsive and shippable | Own the visual identity, presentation quality and player-facing feel, compatible with the gameplay foundation and the 4-day window |
 | **Owns** | Flight and controls; three-ship switching and wingman AI; weapons, damage, shields, enemy AI, waves, targeting, balance, signature and unlockable power *mechanics*; objectives, encounter pacing, hyperdrive and level transitions, mission flow, win/lose and restart; first-person gameplay on the planets (character, blade combat, crew AI, objectives); C++ architecture and interfaces; profiling, testing, packaging, critical bugs | Visual direction; ships, enemies, Dominion and prop *visuals*; space and planet environments, lighting, atmosphere, materials; all VFX (Niagara); HUD, UI/UX, menus, onboarding, ship-switch feedback, targeting clarity; all audio and music; character and ship animation polish; cinematics and the Director's Cut presentation; performance-minded art; trailer and store page |
-| **Feature IDs** | `ENG-xx`, and since Nov 13 `ART-03, 04, 06, 07, 08` | `ART-01, 02, 05, 09, 10, 11, 12, 13, 14` (stretch: 15, 16) |
+| **Feature IDs** | `ENG-xx`, and since Nov 13 `ART-02, 03, 04, 05, 06, 07, 08, 13, 15, 16` (all of Environment, VFX and Asset Management) | `ART-01, 09, 10, 11, 12, 14` |
 
 **A third lane since Nov 13: Grok Bot (Ryan's asset-generation agent).** It makes concepts, raw 3D models,
 textures, animations and key art with fal, Hyper3D Rodin and PBRgen, as source files only, in
@@ -289,8 +357,8 @@ HUD). These are fallbacks: an asset of Nick's at the Presentation name replaces 
 - **Nick** doesn't independently change gameplay architecture, flight, AI, damage, progression or
   ship-switching logic. He coordinates interface needs with Ryan before modifying shared C++ classes,
   levels, assets or config.
-- **Ryan** doesn't overwrite Nick's visual direction, art assets, Niagara systems, UI styling,
-  lighting or audio without coordination. He provides stable gameplay hooks and data for the
+- **Ryan** doesn't overwrite Nick's UI styling, audio or story words without coordination. (Environment, VFX and
+  asset management moved to Ryan's side on Nov 13.) He provides stable gameplay hooks and data for the
   presentation work.
 
 ---
@@ -310,15 +378,15 @@ Content/TriadDrift/
 │                                         (DA_*_Stats, DT_Waves), input (IMC_*, IA_*), game modes
 ├── Maps/                          🔀 SHARED via World Partition One File Per Actor:
 │                                         Ryan creates maps + places gameplay actors (spawns, triggers, objectives);
-│                                         Nick places art, lighting, VFX, audio volumes. World Settings: claim first
+│                                         Ryan's side also places art, lighting and VFX since Nov 13; Nick places UI and audio. World Settings: claim first
 ├── Presentation/                  🟩 NICK: the presentation data-asset INSTANCES (DA_*_Visuals, DA_*_FX)
 │                                         that Ryan's code reads (§3.5)
 ├── Art/                           🟩 NICK: Ships/ Enemies/ Dominion/ Props/ Weapons/ Characters/ (meshes,
 │                                         materials, textures, skeletons, AnimBPs), Materials/ (masters
 │                                         M_TD_Flat / M_TD_Textured), Pipelines/ (import pipeline asset)
-├── Environment/                   🟩 NICK: skybox, nebulae, planet visuals, asteroid/crystal sets, terrain
+├── Environment/                   🟦 RYAN since Nov 13 (was Nick): skybox, nebulae, planet visuals, asteroid/crystal sets, terrain
 │                                         materials, foliage, lighting & post-process presets
-├── VFX/                           🟩 NICK: all Niagara systems, camera-shake classes, post-process materials
+├── VFX/                           🟦 RYAN since Nov 13 (was Nick): all Niagara systems, camera-shake classes, post-process materials
 ├── UI/                            🟩 NICK: all widgets (WBP_*), fonts, icons, DT_Tips
 ├── Audio/                         🟩 NICK: SFX, MetaSounds, music, sound classes/mixes, VO, DT_Barks
 ├── Cinematics/                    🟩 NICK: Level Sequences, director-cam rigs, slate cards
@@ -327,6 +395,12 @@ ArtSource/                         🟩 NICK: Blender sources, AI originals, exp
     <Category>/<Asset>/{brief.md, refs/, source/, <Asset>_vNN.blend, review/, export/}
 Template Content (Characters, FirstPerson, LevelPrototyping, Variant_*, Weapons): reference. Claim before editing.
 ```
+
+**Environment, VFX and Asset Management are Ryan's since Nov 13 (afternoon).** `Content/TriadDrift/{Environment, VFX}/`,
+`ArtSource/{Environment, VFX, Assets, Space, Characters, Weapons}/` and the supplied-model intake branches are now under
+Ryan's ownership: his side may use, import or replace anything there. Files Nick's agents made stay in history and are
+listed in `docs/eng/ART-HISTORY.md` before any is replaced. Nick's folders are now: `Content/TriadDrift/{UI, Audio,
+Cinematics}/`, `Plugins/TriadDriftHUD/`, `ArtSource/{UI, Audio}/`, `Story/`, and his entries under `Presentation/`.
 
 **Engineering's own art folders (fallbacks, Nov 12-13):**
 - `Content/TriadDrift/Gameplay/{Characters, Props, Materials, Vegetation, Audio, VFX}/**`: models, materials,
@@ -437,6 +511,7 @@ Multicast delegates on the owning actors, re-broadcast by `UTDGameInstance` for 
 - [x] Push. **`Core/` is now frozen.**
 
 ### C-03 · Theme: "Director's Cut" · both · `🟢` 🎬
+**Story:** scenes and takes are the paradox in the player's hands: a future trying to redo one event, a player retaking a scene. From Cinder onward a take number may glitch or echo (`storyline.md` §7).
 Theme fit is a judging category, so it must be **visible in gameplay**, not just the title.
 
 **Decision (Nov 12): we build #1, #2 and #3.** All three are core. They're cheap,
@@ -745,9 +820,10 @@ through a gate unchanged: only Rift's own portals return enemy missiles.
   the Dominion approach.
 - **Gameplay actors:** `ATDPlanetAtmosphere` triggers, spawn zones, portal gates and return points
   (`Verdance_Orbit`, `Cinder_Orbit`, `Dominion_Hangar_Exit` for the stretch).
-- **Shared map:** Nick dresses the same map with art, lighting and VFX (One File Per Actor).
+- **Shared map:** dressing, lighting and VFX on the same map are Ryan's side's too since Nov 13 (One File Per Actor).
 
 #### ENG-18 · Dominion assault & space finale (CORE) · `🟢`
+**Story (acts 1, 4):** the Dominion is visible from wave 1 behind its **distortion field**; the four shield generators are that field. With boarding on, defences down opens the docking bay (ENG-29) instead of exposing the reactor to space; `td.Finale.Boarding 0` keeps the space reactor ending. Transmissions break through as each generator falls.
 - **Arrival:** when `bDominionRevealed` is set after wave 5, the Dominion warps in (Nick's reveal
   sequence plays).
 - **Assault:**
@@ -845,6 +921,7 @@ interrupted by damage). Fires `OnObjectiveUpdated` and calls `CompleteObjective`
 Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its doors.
 
 #### ENG-25 · Verdance: gameplay layout & objectives (CORE) · `🟨`
+**Story (act 2, The Voices):** objective 1 is **"Recover the Signal-Analysis Device"** from the wrecked research site (same gameplay as the wreck core); objective 2 **"Wake the Relay"** ends with the recordings: static, then human voices under the enemy's signal. Rewards unchanged. Names, markers and prompts follow `storyline.md` §5 and §8.
 - **Level:** a compact level (about 1 km²) with the landing pad and a descent start point. Nick
   dresses the look.
 - **Obj 1, Wreck Core** (→ Gravity Well):
@@ -861,6 +938,7 @@ Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its do
   the world is completed with an error in the log, so a content mistake never traps the player.
 
 #### ENG-26 · Cinder: gameplay layout, hazards & objectives (CORE) · `🟨`
+**Story (act 3, The Pattern):** the outpost is the **mining complex** (objective 3 "Stop the Excavation", which also yields the stabilising crystals); the jammer is the dig's **field anchor** (objective 4 "Destroy the Field Anchor"): destroying it opens the passage through the distortion field instead of "revealing" the Dominion. Transmissions begin to echo the pilots' own voices. One door at the dig opens to the pilot's ID.
 - **Hazards:** magma (heavy damage + respawn at the last safe spot), timed geysers, crystals that
   shatter when slashed.
 - **Obj 3, Outpost** (→ EMP): breach the gate (2 conduits), 3 escalating areas, the Warden, then
@@ -937,6 +1015,8 @@ third person with readable attacks and blocks, the camera never clips through th
 restart, and tests cover the toggle, persistence, camera collision, facing rule and the space-only exclusion.
 
 #### ENG-33 · Cinematic intro (CORE, added Nov 12 by Ryan) · `🟢`
+**Redo queued (Ryan, Nov 13): the opening is rebuilt to Nicholas's *First Contact* brief** (about 2:20: missing patrol, Triad arrives, the impossible vessel, the first launch with the drone that goes blue and holds fire, the cut-off "Don't-", then straight into the tutorial battle; `storyline.md` §11, `docs/story/First-Contact-Cinematic-Brief.md`). **Done once, after the art it shows is on `main`** (Rodin player ships, the fleet with a space drone, the Dominion with opening hangars, round-4 effects, the new HUD). Until then T3 prepares the shot plan, the dialogue hooks and the drone beat only. Today's 49 s intro stays in the game meanwhile.
+**Story (opening):** the intro shows the premise: the silent Dominion, machines descending on worlds, Triad deployed to identify it and report back. No hint of the truth. Text and narration are Nicholas's through the existing slots.
 Ryan, Nov 12 (late): the intro should be "really high definition cinematic views of space and the spacecraft going
 by and worlds". **Reference for the cinematic language only** (pacing, scale, framing, grade), not its content, world
 or style, which belong to another IP: the *Warhammer 40,000: Darktide* intro cutscene
@@ -993,7 +1073,7 @@ one little section on the map ... a massive, massive map that you should be able
   ridgelines; Cinder: basalt plains, lava rivers in the valleys, ash and crystal on the heights), the planets' fog and
   sky, and biome scatter from the existing kits (trees, ferns, mushrooms, rocks, crystals, basalt columns) by height,
   slope and noise masks, instanced, never on the course's paths.
-- **Flight:** atmosphere flight (ENG-20) flies over and between the mountains; arrival and take-off stay as they are;
+- **Flight:** atmosphere flight (ENG-20) flies over and between the mountains; arrival and take-off are replaced by the planetary descent (ENG-38);
   the landing assist still finds the pad.
   - (T1, Nov 13) The flight zone grows to the terrain's whole collision core plus 500 m (the edge warning starts at the
     8 km edge) with its ceiling 400 m above the highest ground in it, so the whole world is flyable without a boundary
@@ -1075,10 +1155,80 @@ coming out and there's movement ... a bunch of particles, and everything that ma
 - Owner: Lead (effects builder sub-agents), T2 (combat cues and placeholders), T1 (engines and trails), T4 (enemy,
   Dominion and world cues), T5 (on-foot cues).
 
+#### ENG-38 · Planetary descent: fly from space into a world, anywhere on the globe (CORE, added Nov 13 by Ryan) · `🟨`
+**Ryan, Nov 13:** flying down into a world must be "super realistic, super high quality, AAA quality, make it almost
+look like No Man's Sky": a transition "where you hit the atmosphere and then your ship gets some type of animation
+showing you're piercing the atmosphere", "the world comes into focus as you get closer and closer", "extremely
+detailed", and "you should be able to enter a world from anywhere, flying around that globe of a planet".
+Research and the recommended design: `docs/eng/planet-descent-research.md` (No Man's Sky, Elite Dangerous, Unreal
+techniques, our current code path; in progress Nov 13). This item replaces the old arrival of ENG-20; the landing rule
+and the on-foot hand-over of ENG-20 stay.
+
+- **Architecture decided (Lead, Nov 13, from the research report): "A+".** Keep the separate planet maps and hide the
+  level load inside the brightest second of the plasma phase: a white-hot cover on the viewport and the roar loop
+  both survive the level change, replacing today's 0.6 s fade to black and the `L_Transition` loading screen. The
+  player arrives **where and on the heading they hit the atmosphere** (one mapping from a point on the globe to a
+  point over the flat terrain, with the landing zone as its pole; the same mapping bakes the globe's surface from the
+  terrain field and gives the take-off return point). On the planet side an Elite-style **forced glide** (about
+  3,000 m down to 900 m, 15-20 s) carries the ship through a cloud deck while fog, terrain detail and scatter
+  resolve by altitude. Streaming the terrain into the galaxy map, and a true sphere, were rejected for the jam (30-45
+  and 100+ engineer-hours). Today's code: a 2.5 s entry, a fade to black, a loading map, then a hard cut to a fixed
+  spot 600 m behind the pad; the entry point and heading are thrown away.
+- **Risks to settle in the first hour of stage 1:** the real load time (the white hold reads as a freeze past about
+  6 s; log it first), and whether the viewport cover and the sound really persist across the level change (fallback:
+  a white camera fade on both sides).
+- **Cut order if time runs short:** airbrake / heat-shield animation, volumetric clouds (use a card cloud deck),
+  landing anywhere, the polished take-off, the baked globe texture. Never cut: the white cover replacing the loading
+  screen, and arrival from the entry point.
+- **What the player does, with no loading screen at any point:**
+  1. **Approach and orbit.** The planet is a real globe in the galaxy; the player can fly around it, low over the
+     cloud tops, and choose where to go in. The globe shows the same world as the ground: the same continents,
+     mountain ranges, seas or lava, and the landing zone as a faint beacon.
+  2. **Atmosphere interface.** First wisps and a horizon glow; the HUD shows altitude, speed and an entry cue; the
+     hyperdrive and boost cut out; sound thins to a rising roar.
+  3. **Burning in.** The ship visibly pierces the atmosphere: a plasma sheath that grows from the nose (white core to
+     the ship's colour to orange), heat glow on the leading edges, streaks past the canopy, a shock cone, heavy
+     shake that eases as the air thickens, control authority reduced but never removed. Wingmen burn in alongside.
+  4. **Through the clouds.** A cloud deck swallows the ship; this is where the planet's level is brought in, hidden.
+  5. **The world comes into focus.** Break through the cloud base to the whole landscape: horizon curvature
+     flattening, aerial haze thinning, mountain ranges resolving first, then rivers of lava or water, forests and
+     rock fields, then set pieces and the landing zone, continuously, with no pop the eye can catch.
+  6. **Low flight and landing.** Fly anywhere over the terrain (ENG-34); land at the pad (ENG-20 rule) or, as a later
+     stage, on any flat ground.
+  7. **Take-off is the same in reverse**: climb, clouds, thin air, stars, the globe behind you.
+- **Enter anywhere.** Where the player crosses the atmosphere on the globe decides where they arrive over the
+  terrain and on what heading: the same latitude and longitude, the same sun angle. The landing zone is always
+  findable (objective waypoint and beacon) from wherever they come in.
+- **Quality bar:** indistinguishable from continuous at normal play (no black frame, no freeze over 100 ms, no
+  visible swap of globe for ground); the ship effect reads from the chase camera and in a still; at least 60 fps at
+  1080p through the whole descent on the target machine; works for all three ships and with a gamepad; a retake or
+  Continue during the descent restarts it cleanly.
+- **Stages:** **stage 1 (tonight, about 11 engineer-hours):** the white cover that survives the load, no black fade
+  and no loading map for planet entry and exit, arrival point and heading from the entry, the terrain's first view
+  built around the arrival, the roar persisting, a timing log, a switch back to the old arrival. **Stage 2
+  (tomorrow midday, about 22 engineer + 12 builder hours):** the glide, the cloud deck, plasma / streak / heat
+  effects, sound layers, altimeter and hull-heat HUD, the globe texture baked from the terrain with the landing
+  beacon, map preload while orbiting, a mirrored take-off, the terrain bent down with distance so the horizon falls
+  away like a sphere's. **Stretch:** land anywhere, volumetric clouds, airbrake animation, bigger globes.
+- **Owners:** T1 (flight: orbit and entry flight model, control authority, camera with T3, the hand-over), T4
+  (terrain: the globe-from-orbit view baked from the terrain field, focus-in LOD and fog schedule, arrival placement),
+  T5 (flow: bringing the planet level in without a loading screen, arrival state, retake and Continue), T2 (HUD:
+  altimeter, hull heat, entry cue), T3 (director: entry camera beats, a money shot on cloud break), Lead effects
+  builder (plasma sheath, heat glow, streaks, shock cone, cloud layer, wisps), Lead audio builder (entry roar,
+  burn-through, wind, boom), **Grok Bot** (cloud and plasma textures and flipbooks, planet surface maps, ship
+  heat-glow masks, any deployable part such as airbrakes or heat shields with its animation), **Nick** (the
+  audio of the entry, if he takes it; the atmosphere's look from orbit to ground moved to Ryan's side with ART-13 on
+  Nov 13: the Lead's environment builder owns it).
+- **Tests:** arrival position and heading as a function of the entry point (unit); no hitch over 100 ms across the
+  hidden load (measured in a rendered run); descent completes for each ship at 30 / 60 / 120 fps; retake and Continue
+  mid-descent; take-off reverses it. **Only a person can judge** whether it feels like piercing an atmosphere.
+
 ### Art and assets made on Ryan's side (moved from Nick's section, Nov 13)
 
 Ryan's rule (Nov 13): what Claude or Grok Bot makes is under Ryan's name. These five items keep their `ART-xx`
-IDs and their original spec text; the first line of each says who makes it now. Nicholas keeps direction and
+IDs and their original spec text; the first line of each says who makes it now. **Since the afternoon of Nov 13 this
+covers all of Environment, VFX and Asset Management** (ART-02, 03, 04, 05, 06, 07, 08, 13): Ryan took those three
+categories over completely. Nicholas keeps direction and
 sign-off, and an asset of his at the Presentation name replaces ours.
 
 #### ART-03 · Ship visuals: Rift, Lancer, Bastion · `🟨`
@@ -1139,13 +1289,40 @@ sign-off, and an asset of his at the Presentation name replaces ours.
 - **Crew models and animations:** idle, locomotion, telegraphed attacks, hit-reacts, stagger,
   deaths, ragdoll-ready; Fab or Mixamo retargets, credited. A visor glow shows alert state.
 
-### STRETCH: boarding finale
+#### ART-02 · Visual asset inventory & sourcing plan · `🟨`
+**🟦 Ryan since Nov 13 (asset management moved to Ryan's side).** The inventory of every asset, where it comes from, its licence and its state is kept by Ryan's Lead: `docs/eng/ASSETS.md` (ledger), `CREDITS.md`, `docs/eng/ART-HISTORY.md`. Sourcing is Grok Bot (generation) and engineering builders (code-built, imports). Nick's supplied-model intake (N-041, N-042) is a library Ryan's side selects from.
+- **The list:** every asset the game needs (ships, enemies, Dominion pieces, props, environment sets,
+  characters, VFX, UI and audio), each with its route: AI image-to-3D (Rodin first: credits expire
+  Nov 20, and using it enters the prize pool), Fab or other licensed library, code-built Blender, or
+  the template.
+- **Status and credits:** track each asset's status here or in `ArtSource/inventory.md`, and log
+  licences in `CREDITS.md`.
 
-#### ENG-29 · Docking & boarding transition · `⬜` STRETCH
+#### ART-05 · Space environment & galaxy dressing · `🟨`
+**🟦 Ryan since Nov 13 (environment moved to Ryan's side).** The space sky, nebulae, galaxy dressing, lighting and post-process of `L_Galaxy` are built by engineering builders with Grok Bot's panoramas and textures, under the Lead. Today: the 8K sky and code-placed dressing are in the game. Nick's Hero sky work is a reference we may adopt, not a dependency.
+- **Space assets:**
+  - `BP_GalaxySkybox`: layered nebula, stars, sun with lens flare.
+  - `BP_PlanetVisual`: rings, atmosphere rim, Verdance and Cinder variants.
+  - Nebula volumes, a speed-dust field, asteroid-field kits (`procedural_rocks.py`), station ruins.
+- **Galaxy map:** dress `L_Galaxy` on your own actors (One File Per Actor): lighting, post-process
+  and scale cues.
+
+#### ART-13 · Lighting, post-process & performance-minded art · `🟨`
+**🟦 Ryan since Nov 13 (environment moved to Ryan's side).** Lighting, fog, sky, atmosphere, colour grade and post-process on every level (galaxy, Verdance, Cinder, the Dominion interior, the menu) are built by engineering under the Lead, including the atmosphere's look for the planetary descent (ENG-38). Performance budgets stay as written.
+- Lumen and Nanite settings per level, scalability presets wired to Settings, Niagara budgets,
+  foliage culling.
+- Hold the art budgets in `art-direction.md` and keep VFX and environment complexity within a steady
+  60 fps on mid hardware. Profile with Ryan before the freeze.
+
+### Boarding finale (WANTED since Nov 13, Ryan; story acts 4 and 5; was stretch)
+
+#### ENG-29 · Docking & boarding transition · `🟨` WANTED (Nov 13)
+**Story (act 4):** the squad breaks through the field and boards. Plan (T4, Nov 13): docking bay opens when the defences are down, an approach cone with a tractor assist that never fully locks before the mouth, one travel into the interior, wingmen hold outside.
 `ATDDockingBay` approach cone with a tractor-beam assist that reduces control, then
 `TravelTo(DominionInterior)`; the hangar landing hands off to first person (§8).
 
-#### ENG-30 · Dominion interior encounters & core fight · `⬜` STRETCH
+#### ENG-30 · Dominion interior encounters & core fight · `🟨` WANTED (Nov 13)
+**Story (act 4, The Truth):** familiar military architecture, doors and consoles keyed to the pilots' identities, and an interactable console with a recording of their older selves in each room (hook with a placeholder line; Nicholas's words and voices). The core fight is the choice of act 5.
 - **Interior:** 6 sections (hangar, a deflect-lesson corridor, barracks, a vertical shaft with
   sweeper hazards, a security checkpoint, then the Warden) leading to the core chamber.
 - **Core fight, phase 1:** 4 conduits at 150 HP each; the core fires deflectable orbs.
@@ -1153,7 +1330,8 @@ sign-off, and an asset of his at the Presentation name replaces ours.
   6 s.
 - **Core fight, phase 3:** at 25% health, everything speeds up.
 
-#### ENG-31 · Escape run & escape flight · `⬜` STRETCH
+#### ENG-31 · Escape run & escape flight · `🟨` WANTED (Nov 13)
+**Story (act 5, The Choice):** the escape plays with time visibly failing (echoes, repeats); after the breakup the victory screen receives the distress signal with the squad's own identifiers.
 - **Escape run:** a 90 s run back to the hangar on a changed route.
 - **Escape flight:** a 60 s flight out through the falling debris, then the breakup sequence and
   victory. Failing either restarts it as the next take.
@@ -1165,25 +1343,25 @@ sign-off, and an asset of his at the Presentation name replaces ours.
 **Nov 13: read [the realignment](#presentation-today-nicks-agents-proposed-by-ryan) first.** It lists what
 engineering and Grok Bot now cover as fallbacks and proposes today's priorities for Nick's agents: music and
 the mix, lighting and look, menus and the Director's Cut presentation, voice, the submission, and art review.
-**Ownership changed Nov 13 (Ryan):** ART-03, 04, 06, 07 and 08 moved to Ryan's section (§5); what remains below is Nick's: ART-01, 02, 05, 09, 10, 11, 12, 13, 14 (and the stretch items).
+**Ownership changed Nov 13 (Ryan):** ART-03, 04, 06, 07 and 08 moved to Ryan's section (§5); and on the afternoon of Nov 13 Ryan took over **Environment, VFX and Asset Management** completely, so ART-02, 05 and 13 moved too. What remains below is Nick's: **ART-01, 09, 10, 11, 12, 14** (UI and menus, audio and music, voice and story words, Director's Cut presentation design, submission, art direction notes).
 
 | Item | State Nov 13 | Owner now / stand-in from Ryan's side | For Nick's agents today |
 |---|---|---|---|
 | ART-01 direction | 🟨 palettes and colour code in use | - | Review and sign-off notes (priority 6) |
-| ART-02 inventory | 🟨 intake lists published | Grok Bot's ranked list (R-027) | Keep as the record |
+| ART-02 inventory, asset management | 🟨 | **🟦 Ryan** (moved to §5, Nov 13 afternoon): Lead's ledger, Grok Bot | None; stop intake work |
 | ART-03 ships | 🟨 Lancer source parked | **🟦 Ryan** (moved to §5): Grok Bot + builders | Review only |
 | ART-04 enemies, Dominion | 🟨 | **🟦 Ryan** (moved to §5): Grok Bot + builders | Review only |
-| ART-05 space | 🟨 Hero sky parked | Engineering 8K sky and space dressing | **Priority 2:** Hero sky into the real galaxy |
-| ART-06 planets | 🟨 | **🟦 Ryan** (moved to §5): terrain, materials, props, trees | Review; the planets' light, fog, sky and grade are yours under ART-13 |
+| ART-05 space environment | 🟨 | **🟦 Ryan** (moved to §5, Nov 13 afternoon) | None; stop Hero sky work at a safe checkpoint and publish it as a reference |
+| ART-06 planets | 🟨 | **🟦 Ryan** (moved to §5): terrain, materials, props, trees | Review only (lighting moved to Ryan with ART-13) |
 | ART-07 VFX | 🟨 source only | **🟦 Ryan** (moved to §5): ENG-37 | Review only; offer per-cue studies |
 | ART-08 ground visuals | 🟨 Sentinel pilot in game | **🟦 Ryan** (moved to §5): crew, animations | Review only |
 | ART-09 HUD and menus | 🟨 M03 HUD on `main`, menu on a branch | ENG-36 flight HUD, fallback menus | **Priority 3:** menus, reward, victory, loading, fonts and tokens |
 | ART-10 audio and music | 🟨 menu theme on `main`, PR #11, PR #12, one combat track | ENG-35, 200 stand-in sounds | **Priority 1:** music, mix, ear approval |
 | ART-11 barks, voice | ⬜ | Text barks | **Priority 4** |
 | ART-12 cinematics, Director's Cut look | 🟨 | Fallback slate, CUT, name card, letterbox; ENG-33 intro | **Priority 3:** design them as a set |
-| ART-13 lighting, post, performance art | ⬜ | Placeholder sky rig per planet | **Priority 2** |
+| ART-13 lighting, post-process | 🟨 | **🟦 Ryan** (moved to §5, Nov 13 afternoon) | None |
 | ART-14 submission | ⬜ | Trailer capture pipeline, `CREDITS.md`, `DEVLOG.md` | **Priority 5** |
-| ART-15, 16 boarding | ⬜ STRETCH | - | Not now |
+| ART-15, 16 boarding | 🟨 WANTED (Ryan, Nov 13) | Engineering builders make the interior kit as a fallback; effects builder for the collapse | Lighting and alarm states of the interior; the recordings' voices (ART-11) |
 
 **Start here (role brief, Day 1 focus):** establish the art direction and the visual asset inventory,
 make the ships readable, and do a minimal combat presentation pass alongside Ryan's playable
@@ -1205,22 +1383,6 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
   the **Director's Cut visual language** (cuts, letterbox, slate cards, grade; C-03).
 - **Reference board:** inspiration only; no copying of existing IP.
 - **Gate:** both humans agree on the style before mass production.
-
-#### ART-02 · Visual asset inventory & sourcing plan · `⬜`
-- **The list:** every asset the game needs (ships, enemies, Dominion pieces, props, environment sets,
-  characters, VFX, UI and audio), each with its route: AI image-to-3D (Rodin first: credits expire
-  Nov 20, and using it enters the prize pool), Fab or other licensed library, code-built Blender, or
-  the template.
-- **Status and credits:** track each asset's status here or in `ArtSource/inventory.md`, and log
-  licences in `CREDITS.md`.
-
-#### ART-05 · Space environment & galaxy dressing · `⬜`
-- **Space assets:**
-  - `BP_GalaxySkybox`: layered nebula, stars, sun with lens flare.
-  - `BP_PlanetVisual`: rings, atmosphere rim, Verdance and Cinder variants.
-  - Nebula volumes, a speed-dust field, asteroid-field kits (`procedural_rocks.py`), station ruins.
-- **Galaxy map:** dress `L_Galaxy` on your own actors (One File Per Actor): lighting, post-process
-  and scale cues.
 
 #### ART-09 · HUD & UI/UX · `⬜`
 - **`WBP_SpaceHUD`** (via `ITDHUDData`):
@@ -1261,6 +1423,7 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
 - **Sources:** licensed only (e.g. the WeLoveIndies jam pack: non-commercial), logged in CREDITS.md.
 
 #### ART-11 · Narrative presentation: barks, VO, intro · `⬜`
+**Story (Nov 13):** this item is now the voice of *The Paradox*: pilot barks in character (Wren bold, Kato analytical, Moss steady), the transmissions (static, then human voices, then the pilots' own voices), the recordings inside the Dominion, intro narration and the ending distress signal. Engineering fires the events with placeholder lines; your text and audio replace them (`storyline.md` §5, §10).
 - `DT_Barks` (about 80–120 lines: Wren, Kato, Moss and the Armada) played on
   `OnBarkRequested` through a priority queue, with radio-filtered VO (AI-voiced, credited) and
   subtitles.
@@ -1269,6 +1432,7 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
   narration voice, music, the grade and optionally its own Level Sequence (`UTDUIStyle::IntroSequence`).
 
 #### ART-12 · Cinematics & the Director's Cut presentation · `⬜`
+**Story (Nov 13):** slate, "CUT!" and name cards can lean into the paradox (a take number that glitches from Cinder onward; `storyline.md` §7).
 - **Sequences:** the Dominion reveal, the reactor breakup and victory hero shot, landing and
   take-off shots, the planet descent breakthrough.
 - **Theme hooks (C-03 #1–#3):**
@@ -1276,12 +1440,6 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
   - director-cam rigs, framing and grade for the slow-motion highlight moments
   - scene slate cards and the "CUT!" restart
 - **Trailer capture:** Movie Render Queue shots for ART-14.
-
-#### ART-13 · Lighting, post-process & performance-minded art · `⬜`
-- Lumen and Nanite settings per level, scalability presets wired to Settings, Niagara budgets,
-  foliage culling.
-- Hold the art budgets in `art-direction.md` and keep VFX and environment complexity within a steady
-  60 fps on mid hardware. Profile with Ryan before the freeze.
 
 #### ART-14 · Submission presentation · `⬜`
 - **Gameplay video (30–60 s):** gameplay in the first 5 seconds. Dogfight → switch "cut" → portal
@@ -1318,7 +1476,7 @@ VFX, and the squad's launch from the hangar.
 | 9 | Board ship | Allowed at any time (the player may fly around the planet); the board point is marked as the objective, and the way back to space opens, only once the planet's objectives are done | Enter sequence |
 | 10 | Take-off and exit | Lift-off, ceiling → `TravelTo(Galaxy, "<Planet>_Orbit")` | Take-off shot, plasma burst |
 
-## 8. Boarding: full sequence (STRETCH)
+## 8. Boarding: full sequence (WANTED since Nov 13; story acts 4 and 5)
 
 | # | Step | 🟦 Ryan | 🟩 Nick |
 |---|---|---|---|
@@ -1337,7 +1495,7 @@ VFX, and the squad's launch from the hangar.
 |---|---|---|---|
 | I-1 | Presentation hooks | Data-asset classes, spawn-at-event code, exposed animation state | Data-asset instances + VFX, SFX, meshes and animations |
 | I-2 | HUD and menus | `ITDHUDData`, `ITDGameFlow`, events | All widgets |
-| I-3 | Maps | Maps, gameplay actors, collision, spawns | Dressing, lighting, post-process, audio volumes (One File Per Actor) |
+| I-3 | Maps | Maps, gameplay actors, collision, spawns, and since Nov 13 dressing, lighting and post-process | Audio volumes |
 | I-4 | Waves → music and barks | `OnWaveStarted` / `OnWaveCleared`, `OnBarkRequested` | Music director, bark queue, VO |
 | I-5 | Abilities | Unlock logic + `OnAbilityUnlocked` | Reward screen, ability VFX and SFX |
 | I-6 | Travel and landing | Travel, atmosphere flight, auto-land | Loading screen, entry, landing and take-off presentation |
@@ -1368,13 +1526,13 @@ C-01 Project ─► C-02 Contracts (+ presentation hooks) ─┬─► 🟦 ENG-
                                                            ART-09 HUD (against the fake HUD data) · ART-05 Space environment
                                                            ART-06 Planets · ART-08 Ground visuals · ART-11 Barks
                                                            ART-12 Director's Cut presentation · ART-13 Performance art
-C-03 Theme decision ─► ENG event hooks + ART-12        STRETCH (after core is solid): ENG-29–31 + ART-15–16
+C-03 Theme decision ─► ENG event hooks + ART-12        Boarding (wanted Nov 13): ENG-29–31 + ART-15–16
 ```
 
 **Order from here (Nov 13):** the tree above is built except the planets' new worlds. What unblocks what now:
 ```
 Grok Bot concepts (approved) ─► raw 3D ─► builders clean up + import ─► T1 / T4 / T5 sockets, exhausts, rigs ─► in game
-T4 terrain shape ─► terrain materials + PBR sets ─► scatter ─► T5 course fit ─► planets replayed ─► Nick lighting
+T4 terrain shape ─► terrain materials + PBR sets ─► scatter ─► T5 course fit ─► planets replayed ─► environment builder lighting
 Effects builder (tracers, explosions ─► engines, shields ─► powers) ─► T2 hit feel ─► T3 money shots + video
 T2 HUD second pass ─► default HUD ─► Nick's fonts / tokens ─► on-foot HUD
 Fallback sounds on main ─► ear pass (Ryan / Nicholas) ─► Nick's music + mix

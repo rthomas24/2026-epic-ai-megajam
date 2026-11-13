@@ -11,6 +11,8 @@
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Story/TDStoryTypes.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/UI/TDUIPaint.h"
 
@@ -246,8 +248,16 @@ void UTDFlightHUDWidget::NativeDestruct()
 	if (UTDEventBus* Bus = BoundBus.Get())
 	{
 		Bus->OnHitConfirmed.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
+		Bus->OnTakeStarted.RemoveDynamic(this, &UTDFlightHUDWidget::HandleTakeStarted);
+		Bus->OnSceneCut.RemoveDynamic(this, &UTDFlightHUDWidget::HandleSceneCut);
+		Bus->OnBarkRequested.RemoveDynamic(this, &UTDFlightHUDWidget::HandleBarkRequested);
 	}
 	BoundBus.Reset();
+	if (UTDStorySubsystem* Story = BoundStory.Get())
+	{
+		Story->bDrawnExternally = false; // the HUD went away: T3's fallback overlay draws transmissions again
+	}
+	BoundStory.Reset();
 	Super::NativeDestruct();
 }
 
@@ -279,12 +289,139 @@ void UTDFlightHUDWidget::BindBus()
 	if (UTDEventBus* Old = BoundBus.Get())
 	{
 		Old->OnHitConfirmed.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
+		Old->OnTakeStarted.RemoveDynamic(this, &UTDFlightHUDWidget::HandleTakeStarted);
+		Old->OnSceneCut.RemoveDynamic(this, &UTDFlightHUDWidget::HandleSceneCut);
+		Old->OnBarkRequested.RemoveDynamic(this, &UTDFlightHUDWidget::HandleBarkRequested);
 	}
 	BoundBus = Bus;
 	if (Bus)
 	{
 		Bus->OnHitConfirmed.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
+		Bus->OnTakeStarted.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleTakeStarted);
+		Bus->OnSceneCut.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleSceneCut);
+		Bus->OnBarkRequested.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleBarkRequested);
 	}
+}
+
+FString UTDFlightHUDWidget::BarkText(FName BarkId)
+{
+	FString Id = BarkId.ToString();
+	Id.RemoveFromStart(TEXT("Bark_"));
+	Id.RemoveFromStart(TEXT("Squad"));
+	FString Out;
+	for (int32 I = 0; I < Id.Len(); ++I)
+	{
+		const TCHAR Ch = Id[I];
+		if (Ch == TEXT('_'))
+		{
+			Out += TEXT(' ');
+			continue;
+		}
+		if (I > 0 && FChar::IsUpper(Ch) && !Out.EndsWith(TEXT(" ")))
+		{
+			Out += TEXT(' ');
+		}
+		Out += FChar::ToLower(Ch);
+	}
+	return Out.TrimStartAndEnd();
+}
+
+void UTDFlightHUDWidget::ShowTransmission(FName Speaker, const FText& Line, ETransmissionStyle Style, float Seconds)
+{
+	View.Subtitle.Speaker = Speaker.IsNone() ? FString() : Speaker.ToString().ToUpper();
+	View.Subtitle.Text = Line.ToString();
+	View.Subtitle.Style = Style;
+	View.Subtitle.Age = 0.f;
+	View.Subtitle.Seconds = FMath::Max(.5f, Seconds);
+	View.Subtitle.bStory = Style != ETransmissionStyle::Clean;
+	View.Subtitle.TagColor = Style == ETransmissionStyle::Echo ? FTDFlightHUDTokens::Shield() : FTDFlightHUDTokens::Dim();
+}
+
+void UTDFlightHUDWidget::HandleBarkRequested(FName BarkId, FName Speaker)
+{
+	// A transmission also fires OnBarkRequested with its own id: T3's subsystem draws that one (no double line). And a story
+	// transmission on screen outranks a squad bark (it is the line the player must not miss).
+	FTDTransmission Entry;
+	if (UTDStorySubsystem::FindEntry(BarkId, Entry) || (!View.Subtitle.Text.IsEmpty() && View.Subtitle.bStory))
+	{
+		return;
+	}
+	ShowTransmission(Speaker, FText::FromString(BarkText(BarkId)), ETransmissionStyle::Clean, BarkSeconds);
+	const FString& Who = View.Subtitle.Speaker;
+	View.Subtitle.TagColor = Who == TEXT("WREN") ? FTDFlightHUDTokens::Rift() : Who == TEXT("KATO") ? FTDFlightHUDTokens::Lancer()
+		: Who == TEXT("MOSS") ? FTDFlightHUDTokens::Bastion() : FTDFlightHUDTokens::Dim();
+}
+
+void UTDFlightHUDWidget::SampleStory()
+{
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
+	if (!Story)
+	{
+		return;
+	}
+	Story->bDrawnExternally = true; // T3's fallback overlay steps aside while this HUD draws the line
+	BoundStory = Story;
+	const FTDTransmissionView T = Story->GetCurrentTransmission();
+	if (!T.bActive)
+	{
+		return;
+	}
+	const ETransmissionStyle Style = T.Style == ETDTransmissionStyle::Static ? ETransmissionStyle::Static
+		: T.Style == ETDTransmissionStyle::Echo ? ETransmissionStyle::Echo : ETransmissionStyle::Clean;
+	FSubtitle& Sub = View.Subtitle;
+	const FString Text = T.Text.ToString();
+	if (!Sub.bStory || Sub.Text != Text)
+	{
+		Sub.Speaker = T.SpeakerTag.ToString().ToUpper();
+		Sub.Text = Text;
+		Sub.Style = Style;
+	}
+	Sub.bStory = true;
+	Sub.TagColor = T.Color;
+	// Drive the fade from the subsystem's own clock (one line at a time, never overlapping).
+	const float Remaining01 = FMath::Max(1.f - T.Progress01, .01f);
+	Sub.Seconds = FMath::Max(.5f, T.TimeLeft / Remaining01);
+	Sub.Age = Sub.Seconds * T.Progress01;
+}
+
+void UTDFlightHUDWidget::HandleTakeStarted(FName SceneId, int32 TakeNumber)
+{
+	CutLeft = 0.f; // the take starts: the slate card is up, the HUD sits at 40% behind it
+	SlateLeft = SlateSeconds;
+}
+
+void UTDFlightHUDWidget::HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds)
+{
+	CutLeft = FMath::Max(.1f, DelaySeconds); // "CUT!": every HUD element off until the next take starts
+	SlateLeft = 0.f;
+}
+
+void UTDFlightHUDWidget::SampleDirector(float Dt)
+{
+	if (!View.Subtitle.Text.IsEmpty())
+	{
+		View.Subtitle.Age += Dt;
+		if (View.Subtitle.Age >= View.Subtitle.Seconds)
+		{
+			View.Subtitle = FSubtitle();
+		}
+	}
+	CutLeft = FMath::Max(0.f, CutLeft - Dt);
+	SlateLeft = FMath::Max(0.f, SlateLeft - Dt);
+	const UWorld* World = GetWorld();
+	const UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this);
+	const bool bMoney = ForceMoneyShot >= 0 ? ForceMoneyShot > 0 : (Feel && Feel->IsSlowMoActive());
+	View.bPaused = ForcePaused >= 0 ? ForcePaused > 0 : (World && World->IsPaused());
+	View.bInCut = CutLeft > 0.f;
+	View.bInSlate = !View.bInCut && SlateLeft > 0.f;
+	// Money shot eases in and out over 150 ms (spec: "returns over 150 ms when time dilation ends"). Real time: the
+	// slow-mo itself scales world delta, so ease on the undilated step.
+	const float RealDt = World && World->GetWorldSettings() ? Dt / FMath::Max(World->GetWorldSettings()->GetEffectiveTimeDilation(), .01f) : Dt;
+	View.MoneyShot = FMath::FInterpConstantTo(View.MoneyShot, bMoney ? 1.f : 0.f, RealDt, 1.f / MoneyShotEaseSeconds);
+	const float Target = View.bInCut ? 0.f : View.bInSlate ? SlateOpacity : View.bPaused ? PauseOpacity : 1.f;
+	// Off at once on a cut; everything else eases (the fade back in after CUT is the 250 ms the spec asks for).
+	View.HUDOpacity = View.bInCut ? 0.f : FMath::FInterpConstantTo(View.HUDOpacity, Target, RealDt, 1.f / CutFadeInSeconds);
+	SetRenderOpacity(View.HUDOpacity);
 }
 
 void UTDFlightHUDWidget::HandleHitConfirmed(AActor* Target, bool bKill)
@@ -697,6 +834,8 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 	}
 	BindController();
 	BindBus();
+	SampleDirector(Dt);
+	SampleStory();
 	SampleCombat(*Data, Flown, Dt);
 	ArcAwake = FMath::Max(0.f, ArcAwake - Dt);
 	View.ArcOpacity = (View.Hull < .999f || View.Shield < .999f || ArcAwake > 0.f) ? 1.f : ArcRestOpacity;
@@ -778,7 +917,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	Rec(TEXT("reticle"), C.X - 16.f, C.Y - 16.f, 32.f, 32.f);
 
 	// ---- reticle: 2 px dot, four 8 px ticks starting 8 px out
-	const FLinearColor Ink = T::Neutral().CopyWithNewOpacity(.9f);
+	const FLinearColor Ink = T::Neutral().CopyWithNewOpacity(FMath::Lerp(.9f, .4f, View.MoneyShot)); // 40% in a money shot
 	P.Box(C.X - 1, C.Y - 1, 2, 2, Ink);
 	for (const FVector2D D : { FVector2D(1, 0), FVector2D(-1, 0), FVector2D(0, 1), FVector2D(0, -1) })
 	{
@@ -802,6 +941,13 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		Pair(HullRadius, View.Hull, T::Hull(View.Hull), 5.f);
 		Pair(ShieldRadius, View.Shield, T::Shield(), 3.f);
 		Rec(TEXT("arcs"), C.X - ShieldRadius - 2.f, C.Y - 40.f, 2.f * ShieldRadius + 4.f, 80.f);
+	}
+
+	// ---- money shot (director slow-mo): everything but the reticle and the hull / shield arcs gets out of the shot
+	if (View.MoneyShot >= .5f)
+	{
+		LastCoverage01 = Area / (1920.f * 1080.f);
+		return Base + 4;
 	}
 
 	// ---- signature power pip: ship-colour ring + glyph when ready, grey ring refilling clockwise when cooling
@@ -1149,6 +1295,77 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Outline(L.X - 7.f, L.Y - 4.f, 14.f, 10.f, 2.f, 1.5f, LaneC);
 		}
 		P.Words(CenterX + (View.Lane == ELane::HyperdriveBlocked ? 10.f : 0.f), 845.f, View.LaneText, 17, LaneC, "Bold", .5f, 50);
+	}
+
+	// ---- subtitles / story transmissions: centred under the lower lane, speaker tag in the pilot's colour, 2 lines max
+	if (!View.Subtitle.Text.IsEmpty())
+	{
+		const FSubtitle& Sub = View.Subtitle;
+		const FString& Who = Sub.Speaker;
+		const FLinearColor Tag = Sub.TagColor;
+		// Fade in 0.15 s, out over the last 0.3 s.
+		const float Fade = FMath::Min(FMath::Clamp(Sub.Age / .15f, 0.f, 1.f), FMath::Clamp((Sub.Seconds - Sub.Age) / .3f, 0.f, 1.f));
+		// Static: the line flickers and jitters like a bad channel; Echo: a faint late copy trails it.
+		const bool bStatic = Sub.Style == ETransmissionStyle::Static;
+		const bool bEcho = Sub.Style == ETransmissionStyle::Echo;
+		const float Flicker = bStatic ? .65f + .35f * FMath::Abs(FMath::Sin(Now * 37.f) * FMath::Cos(Now * 23.f)) : 1.f;
+		const float Jitter = bStatic ? FMath::Sin(Now * 61.f) * 2.f : 0.f;
+		// Two lines at most: split at the space nearest the middle when the line is long (78 chars fit at 22 px).
+		FString Line1 = Sub.Text, Line2;
+		const float FullW = P.Measure(Sub.Text, P.Font("Medium", 22, 10));
+		if ((FullW > SubtitleMaxWidth - 160.f) || (FullW <= 0.f && Sub.Text.Len() > 64))
+		{
+			int32 Split = INDEX_NONE;
+			for (int32 D = 0; D < Sub.Text.Len() / 2 && Split == INDEX_NONE; ++D)
+			{
+				for (const int32 I : { Sub.Text.Len() / 2 + D, Sub.Text.Len() / 2 - D })
+				{
+					if (Sub.Text.IsValidIndex(I) && Sub.Text[I] == TEXT(' '))
+					{
+						Split = I;
+						break;
+					}
+				}
+			}
+			if (Split != INDEX_NONE)
+			{
+				Line1 = Sub.Text.Left(Split);
+				Line2 = Sub.Text.Mid(Split + 1);
+			}
+		}
+		const float H = Line2.IsEmpty() ? 38.f : 64.f;
+		const float X = CenterX - SubtitleMaxWidth * .5f;
+		P.Plate(X, SubtitleY, SubtitleMaxWidth, H, 8.f, T::Plate().CopyWithNewOpacity(.6f * Fade));
+		Rec(TEXT("subtitle"), X, SubtitleY, SubtitleMaxWidth, H);
+		Area += SubtitleMaxWidth * H;
+		if (bStatic)
+		{
+			for (int32 S = 0; S < 3; ++S) // scan lines drifting through the plate
+			{
+				const float Y = SubtitleY + FMath::Fmod(Now * 40.f + S * 21.f, H);
+				P.Box(X + 6.f, Y, SubtitleMaxWidth - 12.f, 1.f, T::Neutral().CopyWithNewOpacity(.08f * Fade));
+			}
+		}
+		const float TextX = X + 22.f + Jitter;
+		if (!Who.IsEmpty())
+		{
+			P.Words(TextX, SubtitleY + 8.f, Who, 16, Tag.CopyWithNewOpacity(Fade * Flicker), "Bold", 0.f, 80);
+		}
+		const float BodyX = TextX + (Who.IsEmpty() ? 0.f : 120.f);
+		const FLinearColor Body = T::Neutral().CopyWithNewOpacity(Fade * Flicker);
+		if (bEcho)
+		{
+			P.Words(BodyX + 4.f, SubtitleY + 9.f, Line1, 22, T::Shield().CopyWithNewOpacity(.28f * Fade), "Medium", 0.f, 10);
+		}
+		P.Words(BodyX, SubtitleY + 6.f, Line1, 22, Body, "Medium", 0.f, 10);
+		if (!Line2.IsEmpty())
+		{
+			if (bEcho)
+			{
+				P.Words(BodyX + 4.f, SubtitleY + 35.f, Line2, 22, T::Shield().CopyWithNewOpacity(.28f * Fade), "Medium", 0.f, 10);
+			}
+			P.Words(BodyX, SubtitleY + 32.f, Line2, 22, Body, "Medium", 0.f, 10);
+		}
 	}
 
 	// ---- squad strip, bottom-left of the safe frame, order 1 2 3

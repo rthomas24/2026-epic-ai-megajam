@@ -125,3 +125,7 @@ Nicholas Tosti supplied his original AI-generated composition **Ethereal Pulse (
 ### Retargeted template animations (animation lane) - November 13, 2026
 
 116 clips under `Content/TriadDrift/Gameplay/Characters/{Crew,Pilot}/Anims/` (`A_Crew_*`, `A_Pilot_*`): Epic Games template mannequin animations shipped with the Unreal Engine First Person / Shooter template (`/Game/Characters/Mannequins/Anims`), retargeted onto `SKEL_NullCrew` and `SKEL_Pilot` with Unreal's IK Retargeter and re-timed by Claude Code (Ryan's side). Epic content under the Unreal Engine EULA; no third-party or AI-generated motion. Audit, scripts and review sheets: `ArtSource/EngAnim/`. The pilot rig is Nicholas's Sentinel Armor sample.
+
+### Dominion interior kit (boarding finale) - November 13, 2026
+
+`SM_DI_*` (22 meshes), `T_DI_Atlas_*`, `MI_DI_*`, `M_DI_Shield` in `Content/TriadDrift/Gameplay/Props/DominionInterior/`: original, code-built in Blender 5.2 (bmesh + a numpy procedural atlas) by Claude Code for Ryan T; no third-party assets. Sources, scripts and review sheets: `ArtSource/EngProps/DominionInterior/`.
