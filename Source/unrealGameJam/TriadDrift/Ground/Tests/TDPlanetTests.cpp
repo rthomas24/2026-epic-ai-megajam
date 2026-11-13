@@ -402,7 +402,7 @@ bool FTDVerdanceEndToEnd::RunTest(const FString& Parameters)
 	TDCourseTest::FRun R(V, *this);
 	if (!R.Land()) { return false; }
 	R.Tick(0.6f);
-	TestTrue(*FString::Printf(TEXT("idle line offers both ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE SURVEY STATION")) && R.Line().Contains(TEXT("THE RELAY")));
+	TestTrue(*FString::Printf(TEXT("idle line offers both ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE RESEARCH SITE")) && R.Line().Contains(TEXT("THE RELAY")));
 	TestEqual(TEXT("both trailheads marked"), V.GI->GetFlowMarkers().Num(), 2);
 
 	ATDObjective* Relay = R.Course->FindObjective(TEXT("Obj_Relay"));
@@ -432,7 +432,7 @@ bool FTDVerdanceEndToEnd::RunTest(const FString& Parameters)
 	TestTrue(TEXT("relay done"), Relay->IsComplete());
 	TestEqual(TEXT("Cloak on Rift"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::Cloak), ETDShipId::Rift);
 	R.Tick(0.5f);
-	TestTrue(*FString::Printf(TEXT("then the wreck is offered ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE SURVEY STATION")));
+	TestTrue(*FString::Printf(TEXT("then the wreck is offered ('%s')"), *R.Line()), R.Line().Contains(TEXT("THE RESEARCH SITE")));
 
 	// The survey archive (storyline.md section 18): station fight, terminal, a 75 s transfer under three waves, the package.
 	if (!R.StartAt(TEXT("Obj_WreckCore"))) { return false; }
@@ -493,7 +493,7 @@ bool FTDCinderEndToEnd::RunTest(const FString& Parameters)
 	TestEqual(TEXT("charges set -> run"), R.Step(Jammer), 2);
 	TArray<ATDCollapseRun*> Runs = R.Props<ATDCollapseRun>(Jammer, 2);
 	TestTrue(TEXT("the tower is coming down"), Runs.Num() == 1 && Runs[0]->IsRunning());
-	TestTrue(*FString::Printf(TEXT("countdown on the line ('%s')"), *R.Line()), R.Line().Contains(TEXT("GET CLEAR")));
+	TestTrue(*FString::Printf(TEXT("countdown on the line ('%s')"), *R.Line()), R.Line().Contains(TEXT("RETURN TO EXTRACTION")));
 	R.TeleportTo(R.Props<ATDStepTrigger>(Jammer, 2)[0], 60.f);
 	TestTrue(TEXT("jammer done"), Jammer->IsComplete());
 

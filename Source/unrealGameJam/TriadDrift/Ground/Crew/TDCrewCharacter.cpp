@@ -9,6 +9,8 @@
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "EngineUtils.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -332,6 +334,36 @@ void ATDCrewCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		Health->DamageFilter.Unbind();
 	}
 	Super::EndPlay(EndPlayReason);
+}
+
+bool ATDCrewCharacter::GetActiveBoss(const UObject* WorldContextObject, float& OutHull01, int32& OutPhase, FText& OutName)
+{
+	OutHull01 = 0.f;
+	OutPhase = 0;
+	OutName = FText::GetEmpty();
+	UWorld* World = WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
+	const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+	const FVector From = PC && PC->GetPawn() ? PC->GetPawn()->GetActorLocation() : FVector::ZeroVector;
+	const ATDCrewCharacter* Best = nullptr;
+	double BestDist = TNumericLimits<double>::Max();
+	for (TActorIterator<ATDCrewCharacter> It(World); World && It; ++It)
+	{
+		if (It->CrewType != ETDCrewType::Warden || It->IsDead())
+		{
+			continue;
+		}
+		const double D = FVector::DistSquared(It->GetActorLocation(), From);
+		if (D < BestDist) { BestDist = D; Best = *It; }
+	}
+	const UTDHealthComponent* H = Best ? UTDStatics::GetHealth(Best) : nullptr;
+	if (!H)
+	{
+		return false;
+	}
+	OutHull01 = H->GetHull01();
+	OutPhase = Best->BossPhase;
+	OutName = NSLOCTEXT("TDCrew", "WardenName", "WARDEN");
+	return true;
 }
 
 bool ATDCrewCharacter::IsDead() const

@@ -518,10 +518,8 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 4) { Beat(TEXT("G3_Disruption")); }
 	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 5) { Beat(TEXT("G3_DataSecured")); }
 	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 6) { Beat(TEXT("G3_Command_Extraction")); }
-	// Cinder: the enemy's transmissions echo the squad, one pilot at a time (act 3).
-	else if (Id == TEXT("Obj_Outpost") && StepIndex == 0) { Beat(TEXT("A3_EchoWren")); }
-	else if (Id == TEXT("Obj_Outpost") && StepIndex == 3) { Beat(TEXT("A3_EchoKato")); }
-	else if (Id == TEXT("Obj_Jammer") && StepIndex == 0) { Beat(TEXT("A3_EchoMoss")); }
+	// Cinder: no echo on the route (story alignment a5 / a7, Nicholas): the only echo is at the survey terminal (T3's
+	// Cinematic 05).
 	// The Dominion (acts 4 and 5).
 	else if (Id == Corridor && StepIndex == 0) { Beat(TEXT("A4_DoorsKnowUs")); } // the first door opens to the pilot's ID
 	else if (Id == Core && StepIndex == 0) { Beat(TEXT("A5_Choice")); }
