@@ -39,3 +39,5 @@ Nick-side checkpoint updated 2026-11-13 after resumed production/R028 review; ve
 Recovery update: Crimson private fresh reload6562 PASS PID4992/OS0/7.05s,29 preserved. No game-project transfer. Current priorities and ownership follow updated features/R028 and N034: Audio P1, Hero P2, read-only UI P3; Ryan owns models/terrain/effects/flight HUD. Prior source/native checkpoints above are preserved historical evidence, not competing assignments. Audio readonly saved-Wave proof is next; actual current-Core binding/playback remains open.
 
 Audio P1 milestone: fresh CombatMusic reload PID2956/OS0/13.797s/minfree3.817GiB PASS;1124 files unchanged/no new content.139.2s looping stereo48k/existing Music class verified. Exact Wave feature publication underway; current-Core binding/actual playback/Nick listening/Shipping still open. Native slot released, no active grants.
+
+Audio verified Wave feature publication f5d9cf9d pushed/LFSuploaded: exact native1110b703, four-file scoped commit/clean worktree, reload evidence published. Ryan notified on MESSAGEBOARD N029/N034 arrival explicitly FEATURE-ONLY; Main binding/actual battle/playback/listening/Shipping remain open.
