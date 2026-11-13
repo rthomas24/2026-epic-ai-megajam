@@ -3,7 +3,7 @@
 **Adopted by Ryan on Nov 13, 2026.** The story is **Nicholas's** ("Triad Drift: The Paradox, narrative concept
 brief"); this file is that brief, plus how each beat is played in the game we have. **Every feature, objective name,
 line of dialogue, set piece and asset now serves this story.** `features.md` says what to build; this file says what it
-means. Contains ending spoilers: it is for the team, not for the store page.
+means. The short lines said during play are in [`dialogs.md`](dialogs.md). Contains ending spoilers: it is for the team, not for the store page.
 
 Who decides what: **Nicholas owns the story** (wording, tone, what is revealed when, every line and voice). **Ryan's
 side owns how it is played** (which gameplay moment carries each beat, the hooks, the timing). A change to the story

@@ -139,6 +139,7 @@ open) · `done` (on `main`, tests pass, review closed).
 
 | Item | Owner | State | Started (EST) | Finished / on `main` | Shared paths touched |
 |---|---|---|---|---|---|
+| **Gameplay dialogue** (`dialogs.md`): bark table generated from the file, line rotation, Flavour priority, banter; new triggers per row | T3 (system), T1, T2, T4, T5 (their triggers) | queued behind the story transmissions | Nov 13 13:28 | - | `/dialogs.md` |
 | **Opening cinematic redo** to Nicholas's *First Contact* brief (`storyline.md` §11), 2:20, and the tutorial battle shape | T3 (+ T4, T1, effects builder) | queued: starts when the Rodin ships, fleet, Dominion hangars, round-4 effects and new HUD are on `main`; prep (shot plan, dialogue hooks) now | | | none |
 | **Storyline adopted** (`storyline.md`, R-034): renames and hooks per act; transmissions event system; Dominion visible from wave 1; ending stinger | Lead (docs), T3 (transmissions, intro, stinger), T4 (Dominion presence, clues), T5 (planet objectives, consoles) | in progress | Nov 13 13:19 | - | `/storyline.md`, `/features.md`, `/AGENTS.md` |
 | **Boarding finale** (ENG-29, 30, 31; wanted by Ryan Nov 13): docking and escape flight (T4), interior, core fight, escape run (T5), interior kit (builder), new map `L_Dominion_Interior` (Lead creates) | T4, T5, Lead builders | queued (plans in; go pending the cost review with Ryan) | Nov 13 13:19 | - | **will claim `Content/TriadDrift/Maps/L_Dominion_Interior` here before it is created**; `Core/TDTypes.h` (one progress flag) |
