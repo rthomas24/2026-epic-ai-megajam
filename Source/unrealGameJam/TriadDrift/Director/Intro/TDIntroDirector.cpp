@@ -1209,14 +1209,13 @@ float UTDIntroDirector::DominionRadius()
 	return 31000.f; // the placeholder hull: 600 x 160 x 100 m
 }
 
-void UTDIntroDirector::SpawnDominionStandIn(const FTransform& At)
+AActor* UTDIntroDirector::SpawnDominionVisual(UWorld* World, const FTransform& At)
 {
-	UWorld* World = GetWorld();
 	const UTDDominionVisuals* V = UTDStatics::LoadPresentation<UTDDominionVisuals>(TEXT("DA_Dominion_Visuals"));
 	UStaticMesh* Hull = V ? V->HullMesh.LoadSynchronous() : nullptr;
 	if (!World || !Hull)
 	{
-		return;
+		return nullptr;
 	}
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -1224,7 +1223,7 @@ void UTDIntroDirector::SpawnDominionStandIn(const FTransform& At)
 	AActor* Ship = World->SpawnActor<AActor>(AActor::StaticClass(), At, Params);
 	if (!Ship)
 	{
-		return;
+		return nullptr;
 	}
 	USceneComponent* Root = NewObject<USceneComponent>(Ship, TEXT("Root"));
 	Ship->SetRootComponent(Root);
@@ -1252,7 +1251,12 @@ void UTDIntroDirector::SpawnDominionStandIn(const FTransform& At)
 	UStaticMesh* Trench = V->TrenchMesh.LoadSynchronous();
 	Piece(TEXT("TrenchL"), Trench, FVector(E.X * 0.1f, -2500.f, E.Z + 1500.f), FVector::OneVector);
 	Piece(TEXT("TrenchR"), Trench, FVector(E.X * 0.1f, 2500.f, E.Z + 1500.f), FVector(1.f, -1.f, 1.f));
-	DominionStandIn = Ship;
+	return Ship;
+}
+
+void UTDIntroDirector::SpawnDominionStandIn(const FTransform& At)
+{
+	DominionStandIn = SpawnDominionVisual(GetWorld(), At);
 }
 
 void UTDIntroDirector::SetKeyLight(const FVector& At, float Radius, float Intensity)

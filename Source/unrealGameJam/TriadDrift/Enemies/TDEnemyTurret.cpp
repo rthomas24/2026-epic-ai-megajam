@@ -56,6 +56,7 @@ void ATDEnemyTurret::Init(const FTDEnemyAttackSpec& InGuns, float Hull)
 		Weapons->EquipWeapon(ETDWeaponSlot::Primary, Guns.WeaponId);
 	}
 	bInitialized = true;
+	if (HasActorBegunPlay()) { ApplyLook(); }	// owners set Visuals, then Init, after the spawn's BeginPlay
 }
 
 void ATDEnemyTurret::SetDamageMultiplier(float Multiplier)
@@ -74,19 +75,26 @@ void ATDEnemyTurret::BeginPlay()
 	{
 		Health->OnDeath.AddUniqueDynamic(this, &ATDEnemyTurret::HandleDeath);
 	}
+	ApplyLook();
+}
+
+void ATDEnemyTurret::ApplyLook()
+{
+	// Art from Visuals (set by the owner before Init), else the dark-red placeholder cylinder. Idempotent.
 	if (Visuals && !Visuals->TurretMesh.IsNull())
 	{
 		if (UStaticMesh* Art = Visuals->TurretMesh.LoadSynchronous())
 		{
-			Mesh->SetStaticMesh(Art);
-			Mesh->SetRelativeScale3D(FVector::OneVector);
-			Mesh->EmptyOverrideMaterials();
+			if (Mesh->GetStaticMesh() != Art)
+			{
+				Mesh->SetStaticMesh(Art);
+				Mesh->SetRelativeScale3D(FVector::OneVector);
+				Mesh->EmptyOverrideMaterials();
+			}
+			return;
 		}
 	}
-	else
-	{
-		UTDStatics::TintPlaceholder(Mesh, FLinearColor(0.55f, 0.06f, 0.04f), 0.f);
-	}
+	UTDStatics::TintPlaceholder(Mesh, FLinearColor(0.55f, 0.06f, 0.04f), 0.f);
 }
 
 void ATDEnemyTurret::EndPlay(const EEndPlayReason::Type EndPlayReason)

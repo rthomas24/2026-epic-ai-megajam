@@ -237,6 +237,8 @@ bool UTDDirectorSubsystem::ReportHighlight(ETDHighlightKind Kind, AActor* Subjec
 	GlobalCooldownEndRealTime = ShotEndRealTime + Tuning.GlobalCooldownSeconds;
 	KindCooldownEnd.Add(Kind, Now + Tuning.SameKindCooldownSeconds);
 	++ShotCount;
+	UE_LOG(LogTriadDrift, Log, TEXT("Director shot %d: %s on %s (importance %.2f, %.1f s at %.2fx)"), ShotCount,
+		*UEnum::GetValueAsString(Kind), *GetNameSafe(Subject), Importance, Shot.DurationSeconds, Shot.Dilation);
 
 	if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(World))
 	{

@@ -6,6 +6,7 @@
 //   TD.Spawn <Id> [count] [distance]                                live, piloted enemies ahead of the player
 
 #include "TriadDrift/World/TDGalaxyLayout.h"
+#include "TimerManager.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "Materials/MaterialInterface.h"
 #include "Engine/StaticMesh.h"
@@ -211,6 +212,11 @@ namespace TDWorldDebug
 						if (!P || !P->IsVisible() || A->IsHidden()) { continue; }
 						const UStaticMeshComponent* SM = Cast<UStaticMeshComponent>(P);
 						const UMaterialInterface* M = P->GetNumMaterials() > 0 ? P->GetMaterial(0) : nullptr;
+						for (int32 Slot = 1; Slot < P->GetNumMaterials(); ++Slot)
+						{
+							const UMaterialInterface* SM2 = P->GetMaterial(Slot);
+							UE_LOG(LogTriadDrift, Display, TEXT("TD.World.DominionParts:   %s.%s slot %d mat %s"), *A->GetName(), *P->GetName(), Slot, SM2 ? *SM2->GetName() : TEXT("-"));
+						}
 						UE_LOG(LogTriadDrift, Display, TEXT("TD.World.DominionParts: %s.%s mesh %s mat %s size %s m, %.0f m from player%s"),
 							*A->GetName(), *P->GetName(), SM && SM->GetStaticMesh() ? *SM->GetStaticMesh()->GetName() : TEXT("-"),
 							M ? *M->GetName() : TEXT("-"), *(P->Bounds.BoxExtent * 0.02f).ToCompactString(),
@@ -237,6 +243,22 @@ namespace TDWorldDebug
 			if (!Best) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.World.KillNearest: no live enemy in range")); return; }
 			UE_LOG(LogTriadDrift, Display, TEXT("TD.World.KillNearest: %s at %.0f m"), *Best->GetName(), BestD / 100.f);
 			UTDStatics::ApplyTDDamage(Best, 1000000.f, ETDDamageKind::Explosive, Pawn, Pawn);
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdHold(TEXT("TD.World.Hold"), TEXT("Hold the player's ship at a speed for the camera (trailer shots): <seconds|0 to release> [speed m/s = 0]."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDSpacecraft* Craft = Cast<ATDSpacecraft>(UGameplayStatics::GetPlayerPawn(World, 0));
+			if (!Craft) { return; }
+			static const FName HoldOwner(TEXT("TD.World.Hold"));
+			const float Secs = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 10.f;
+			if (Secs <= 0.f) { Craft->ClearSpeedOverrideFor(HoldOwner); UE_LOG(LogTriadDrift, Display, TEXT("TD.World.Hold: released")); return; }
+			const float Speed = Args.Num() > 1 ? FCString::Atof(*Args[1]) * 100.f : 0.f;
+			Craft->SetSpeedOverrideFor(HoldOwner, Speed, 1.f, 50000.f);
+			TWeakObjectPtr<ATDSpacecraft> Weak(Craft);
+			FTimerHandle H;
+			World->GetTimerManager().SetTimer(H, [Weak]() { if (Weak.IsValid()) { Weak->ClearSpeedOverrideFor(HoldOwner); } }, Secs, false);
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.World.Hold: %.0f m/s for %.1f s"), Speed / 100.f, Secs);
 		}));
 
 	FAutoConsoleCommandWithWorldAndArgs CmdDressing(TEXT("TD.World.Dressing"), TEXT("Space dressing (landmarks, lane rocks, ruin art) on or off: <0|1>."),

@@ -1,0 +1,251 @@
+{
+ "oneshots": [
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_03",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_04"
+   ],
+   "volume_db": -12.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ]
+   }
+  },
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Taken",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_03",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_04"
+   ],
+   "volume_db": -9.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ]
+   }
+  },
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Far",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_03",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Hull_04"
+   ],
+   "volume_db": -10.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Far",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ]
+   }
+  },
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_03",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_04"
+   ],
+   "volume_db": -13.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ]
+   }
+  },
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Taken",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_03",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_04"
+   ],
+   "volume_db": -11.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ]
+   }
+  },
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Far",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_03",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_Shield_04"
+   ],
+   "volume_db": -11.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Far",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ]
+   }
+  },
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_World",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_World_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_World_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Impact_World_03"
+   ],
+   "volume_db": -14.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ]
+   }
+  },
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Detonation_Rocket",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Rocket_01",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Rocket_02",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Rocket_03"
+   ],
+   "volume_db": -8.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Explosion"
+    ]
+   }
+  },
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Detonation_Flak",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Flak_01",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Flak_02",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Detonation_Flak_03"
+   ],
+   "volume_db": -8.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Explosion"
+    ]
+   }
+  },
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Deflected",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Deflected_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Deflected_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Deflected_03"
+   ],
+   "volume_db": -10.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ]
+   }
+  },
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_01",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_02",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_03",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Small_04"
+   ],
+   "volume_db": -7.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Explosion"
+    ]
+   }
+  },
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Medium",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Medium_01",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Medium_02",
+    "/Game/TriadDrift/Gameplay/Audio/Explosions/SW_Explosion_Medium_03"
+   ],
+   "volume_db": -5.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Explosion"
+    ]
+   }
+  }
+ ]
+}
