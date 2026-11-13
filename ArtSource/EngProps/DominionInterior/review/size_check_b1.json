@@ -1,0 +1,772 @@
+[
+ {
+  "asset": "SM_DI_Corridor_Straight",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   620.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   640.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    -20
+   ],
+   [
+    200,
+    200,
+    620
+   ]
+  ],
+  "check": "PASS",
+  "tris": 48,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 4,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Corridor_Corner",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   620.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   640.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    -20
+   ],
+   [
+    200,
+    200,
+    620
+   ]
+  ],
+  "check": "PASS",
+  "tris": 54,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 4,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Corridor_T",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   620.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   640.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    -20
+   ],
+   [
+    200,
+    200,
+    620
+   ]
+  ],
+  "check": "PASS",
+  "tris": 40,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 3,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Doorway",
+  "min_cm": [
+   -29.5,
+   -200.0,
+   0.0
+  ],
+  "max_cm": [
+   29.5,
+   200.0,
+   600.0
+  ],
+  "size_cm": [
+   59.0,
+   400.0,
+   600.0
+  ],
+  "expected": [
+   [
+    -30,
+    -200,
+    0
+   ],
+   [
+    30,
+    200,
+    600
+   ]
+  ],
+  "check": "FAIL",
+  "tris": 40,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 3,
+  "uv_notes": [
+   "uv outside gunmetal: 1.075 0.000",
+   "uv outside gunmetal: 1.075 0.250",
+   "uv outside kick: 1.075 0.000",
+   "uv outside kick: 1.075 1.000"
+  ]
+ },
+ {
+  "asset": "SM_DI_Door",
+  "min_cm": [
+   -15.0,
+   -150.0,
+   0.0
+  ],
+  "max_cm": [
+   15.0,
+   150.0,
+   400.0
+  ],
+  "size_cm": [
+   30.0,
+   300.0,
+   400.0
+  ],
+  "expected": [
+   [
+    -15,
+    -150,
+    0
+   ],
+   [
+    15,
+    150,
+    400
+   ]
+  ],
+  "check": "PASS",
+  "tris": 24,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 1,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Room_Wall",
+  "min_cm": [
+   -30.0,
+   -200.0,
+   0.0
+  ],
+  "max_cm": [
+   30.0,
+   200.0,
+   600.0
+  ],
+  "size_cm": [
+   60.0,
+   400.0,
+   600.0
+  ],
+  "expected": [
+   [
+    -30,
+    -200,
+    0
+   ],
+   [
+    30,
+    200,
+    600
+   ]
+  ],
+  "check": "PASS",
+  "tris": 26,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 1,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Room_Floor",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   0.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   20.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    -20
+   ],
+   [
+    200,
+    200,
+    0
+   ]
+  ],
+  "check": "PASS",
+  "tris": 18,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 1,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Room_Ceiling",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   600.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   620.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   20.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    600
+   ],
+   [
+    200,
+    200,
+    620
+   ]
+  ],
+  "check": "PASS",
+  "tris": 12,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 1,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Cover_Low",
+  "min_cm": [
+   -30.0,
+   -100.0,
+   0.0
+  ],
+  "max_cm": [
+   30.0,
+   100.0,
+   110.0
+  ],
+  "size_cm": [
+   60.0,
+   200.0,
+   110.0
+  ],
+  "expected": [
+   [
+    -30,
+    -100,
+    0
+   ],
+   [
+    30,
+    100,
+    110
+   ]
+  ],
+  "check": "PASS",
+  "tris": 28,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 1,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Hangar_Pad",
+  "min_cm": [
+   -600.0,
+   -600.0,
+   -40.0
+  ],
+  "max_cm": [
+   600.0,
+   600.0,
+   0.0
+  ],
+  "size_cm": [
+   1200.0,
+   1200.0,
+   40.0
+  ],
+  "expected": [
+   [
+    -600,
+    -600,
+    -40
+   ],
+   [
+    600,
+    600,
+    0
+   ]
+  ],
+  "check": "PASS",
+  "tris": 58,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 1,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Core",
+  "min_cm": [
+   -400.0,
+   -400.0,
+   0.0
+  ],
+  "max_cm": [
+   400.0,
+   400.0,
+   1200.0
+  ],
+  "size_cm": [
+   800.0,
+   800.0,
+   1200.0
+  ],
+  "expected": [
+   [
+    -400,
+    -400,
+    0
+   ],
+   [
+    400,
+    400,
+    1200
+   ]
+  ],
+  "check": "PASS",
+  "tris": 948,
+  "materials": [
+   "M_DI_Atlas",
+   "M_DI_CoreGlow"
+  ],
+  "collision_hulls": 2,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Core_Ring_A",
+  "min_cm": [
+   -495.5,
+   -495.5,
+   -30.0
+  ],
+  "max_cm": [
+   503.5,
+   495.5,
+   30.0
+  ],
+  "size_cm": [
+   999.0,
+   991.0,
+   60.0
+  ],
+  "expected": "measured (pivot at the ring centre)",
+  "check": "PASS",
+  "tris": 804,
+  "materials": [
+   "M_DI_Atlas",
+   "M_DI_GlowRed"
+  ],
+  "collision_hulls": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Core_Ring_B",
+  "min_cm": [
+   -574.5,
+   -566.5,
+   -24.0
+  ],
+  "max_cm": [
+   574.5,
+   566.5,
+   24.0
+  ],
+  "size_cm": [
+   1149.0,
+   1133.0,
+   48.0
+  ],
+  "expected": "measured (pivot at the ring centre)",
+  "check": "PASS",
+  "tris": 792,
+  "materials": [
+   "M_DI_Atlas",
+   "M_DI_GlowRed"
+  ],
+  "collision_hulls": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Core_Shield",
+  "min_cm": [
+   -640.0,
+   -640.0,
+   0.0
+  ],
+  "max_cm": [
+   640.0,
+   640.0,
+   1380.0
+  ],
+  "size_cm": [
+   1280.0,
+   1280.0,
+   1380.0
+  ],
+  "expected": [
+   [
+    -640,
+    -640,
+    0
+   ],
+   [
+    640,
+    640,
+    1380
+   ]
+  ],
+  "check": "PASS",
+  "tris": 108,
+  "materials": [
+   "M_DI_Shield"
+  ],
+  "collision_hulls": 1,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Conduit",
+  "min_cm": [
+   -60.0,
+   -60.0,
+   0.0
+  ],
+  "max_cm": [
+   60.0,
+   60.0,
+   300.0
+  ],
+  "size_cm": [
+   120.0,
+   120.0,
+   300.0
+  ],
+  "expected": [
+   [
+    -60,
+    -60,
+    0
+   ],
+   [
+    60,
+    60,
+    300
+   ]
+  ],
+  "check": "PASS",
+  "tris": 104,
+  "materials": [
+   "M_DI_Atlas",
+   "M_DI_Cell"
+  ],
+  "collision_hulls": 1,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Walkway_Ring",
+  "min_cm": [
+   -200.0,
+   -150.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   150.0,
+   110.0
+  ],
+  "size_cm": [
+   400.0,
+   300.0,
+   130.0
+  ],
+  "expected": [
+   [
+    -200,
+    -150,
+    -20
+   ],
+   [
+    200,
+    150,
+    110
+   ]
+  ],
+  "check": "PASS",
+  "tris": 46,
+  "materials": [
+   "M_DI_Atlas",
+   "M_DI_GlowRed"
+  ],
+  "collision_hulls": 2,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Debris_A",
+  "min_cm": [
+   -75.0,
+   -61.57,
+   0.0
+  ],
+  "max_cm": [
+   75.0,
+   61.57,
+   52.669
+  ],
+  "size_cm": [
+   150.0,
+   123.14,
+   52.67
+  ],
+  "expected": "largest dimension 150, resting on Z = 0",
+  "check": "PASS",
+  "tris": 60,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 1,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Debris_B",
+  "min_cm": [
+   -75.0,
+   -72.557,
+   -0.0
+  ],
+  "max_cm": [
+   75.0,
+   72.557,
+   96.857
+  ],
+  "size_cm": [
+   150.0,
+   145.11,
+   96.86
+  ],
+  "expected": "largest dimension 150, resting on Z = 0",
+  "check": "PASS",
+  "tris": 56,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 1,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Debris_C",
+  "min_cm": [
+   -57.469,
+   -75.0,
+   0.0
+  ],
+  "max_cm": [
+   57.469,
+   75.0,
+   133.601
+  ],
+  "size_cm": [
+   114.94,
+   150.0,
+   133.6
+  ],
+  "expected": "largest dimension 150, resting on Z = 0",
+  "check": "PASS",
+  "tris": 48,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 1,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Console",
+  "min_cm": [
+   -30.0,
+   -60.0,
+   0.0
+  ],
+  "max_cm": [
+   30.0,
+   60.0,
+   130.0
+  ],
+  "size_cm": [
+   60.0,
+   120.0,
+   130.0
+  ],
+  "expected": [
+   [
+    -30,
+    -60,
+    0
+   ],
+   [
+    30,
+    60,
+    130
+   ]
+  ],
+  "check": "PASS",
+  "tris": 44,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 1,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Shaft",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   0.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   1200.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   1200.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    0
+   ],
+   [
+    200,
+    200,
+    1200
+   ]
+  ],
+  "check": "PASS",
+  "tris": 128,
+  "materials": [
+   "M_DI_Atlas",
+   "M_DI_GlowWhite"
+  ],
+  "collision_hulls": 4,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Bulkhead_Rib",
+  "min_cm": [
+   -7.0,
+   -12.0,
+   0.0
+  ],
+  "max_cm": [
+   7.0,
+   12.0,
+   600.0
+  ],
+  "size_cm": [
+   14.0,
+   24.0,
+   600.0
+  ],
+  "expected": [
+   [
+    -7,
+    -12,
+    0
+   ],
+   [
+    7,
+    12,
+    600
+   ]
+  ],
+  "check": "PASS",
+  "tris": 18,
+  "materials": [
+   "M_DI_Atlas"
+  ],
+  "collision_hulls": 1,
+  "uv_notes": []
+ }
+]
