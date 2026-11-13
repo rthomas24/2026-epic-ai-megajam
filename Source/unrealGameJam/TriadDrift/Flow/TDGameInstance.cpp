@@ -1,6 +1,8 @@
 // Triad Drift - game instance (ENG-19, C-03 #3). Owner: Teammate 5.
 
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "Sound/SoundBase.h"
+#include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDDebugMenu.h"
@@ -349,7 +351,24 @@ void UTDGameInstance::TickFlow(float RealDeltaSeconds)
 		VictoryTravelLeft -= RealDeltaSeconds;
 		if (VictoryTravelLeft < 0.f)
 		{
-			TravelTo(ETDDestination::Victory, NAME_None);
+			// Second review: never stuck after the win. Retry twice, half a second apart, then fall back to the menu.
+			if (!TravelTo(ETDDestination::Victory, NAME_None))
+			{
+				++VictoryTravelAttempts;
+				if (VictoryTravelAttempts < 3)
+				{
+					UE_LOG(LogTriadDrift, Warning, TEXT("Victory travel failed (attempt %d); retrying"), VictoryTravelAttempts);
+					VictoryTravelLeft = 0.5f;
+				}
+				else if (!TravelTo(ETDDestination::MainMenu, NAME_None))
+				{
+					UE_LOG(LogTriadDrift, Error, TEXT("Victory travel failed %d times and the menu fallback failed too"), VictoryTravelAttempts);
+				}
+				else
+				{
+					UE_LOG(LogTriadDrift, Warning, TEXT("Victory travel failed %d times; fell back to the main menu"), VictoryTravelAttempts);
+				}
+			}
 		}
 	}
 
@@ -452,6 +471,7 @@ void UTDGameInstance::SetPhase(ETDGamePhase NewPhase)
 		if (!IsMenuDestination(CurrentDestination))
 		{
 			VictoryTravelLeft = UTDFlowSettings::Get()->VictoryHoldSeconds; // then the victory screen
+			VictoryTravelAttempts = 0;
 		}
 	}
 	SetRunTimerPaused(NewPhase == ETDGamePhase::Victory || IsMenuDestination(CurrentDestination));
@@ -469,7 +489,9 @@ const FName UTDGameInstance::DominionScene(TEXT("Dominion"));
 
 void UTDGameInstance::BeginDominionSceneIfAssault()
 {
-	if (Progress.Phase != ETDGamePhase::DominionAssault || CurrentDestination != ETDDestination::Galaxy || CurrentSceneId == DominionScene)
+	// Gate on what was ANNOUNCED this session, not on CurrentSceneId: a Continue restores CurrentSceneId = Dominion from
+	// the save, and the assault then opened with no slate (second review).
+	if (Progress.Phase != ETDGamePhase::DominionAssault || CurrentDestination != ETDDestination::Galaxy || LastAnnouncedScene == DominionScene)
 	{
 		return;
 	}
@@ -520,6 +542,17 @@ void UTDGameInstance::CompleteObjective(FName ObjectiveId, ETDAbilityId Reward, 
 	if (!bAlreadyDone && Reward != ETDAbilityId::None)
 	{
 		UnlockAbility(Reward, ForShip);
+	}
+	if (!bAlreadyDone)
+	{
+		// ENG-35: the director's "objective complete" sting (2D, a UI sound; silent when the style has none).
+		++ObjectiveCompleteSounds;
+		const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+		USoundBase* Sting = Style && !Style->ObjectiveComplete.Sound.IsNull() ? Style->ObjectiveComplete.Sound.LoadSynchronous() : nullptr;
+		if (Sting && GetWorld())
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), Sting, 1.f, 1.f, 0.f, nullptr, nullptr, /*bIsUISound*/ true);
+		}
 	}
 	EndScene();
 	bRunCommitted = true;
@@ -572,6 +605,10 @@ void UTDGameInstance::ReportPlayerDefeated()
 
 void UTDGameInstance::RestartSceneNow()
 {
+	if (IsTravelPending())
+	{
+		return; // leaving the level: a restart now would restore and respawn into a world about to unload (second review)
+	}
 	RetakeScene = CurrentSceneId;
 	ExecuteRetake();
 }

@@ -1,5 +1,6 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDGalaxyLayout.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
 
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
@@ -921,12 +922,17 @@ void ATDGalaxyLayout::UpdateGatePhases()
 {
 	ITDGameFlow* Flow = UTDStatics::GetGameFlow(this);
 	const ETDGamePhase Phase = Flow ? Flow->GetProgress().Phase : ETDGamePhase::Waves1to2;
+	// Second review MAJOR B: no leaving a fight through a planet gate the enemies can't follow (the flank pair stays).
+	const ATDWaveDirector* WaveDirector = ATDWaveDirector::Get(this);
+	const bool bWaveRunning = WaveDirector && WaveDirector->IsWaveRunning();
 	for (int32 i = 0; i < GateActors.Num(); ++i)
 	{
 		ATDPortalGate* G = GateActors[i];
 		if (!G || !Layout.Gates.IsValidIndex(GatePairIndex[i])) { continue; }
 		const TArray<ETDGamePhase>& Open = Layout.Gates[GatePairIndex[i]].OpenPhases;
-		const bool bShouldOpen = Open.Num() == 0 || Open.Contains(Phase);
+		const FString PairId = Layout.Gates[GatePairIndex[i]].IdA.ToString();
+		const bool bPlanetGate = PairId.Contains(TEXT("Verdance")) || PairId.Contains(TEXT("Cinder"));
+		const bool bShouldOpen = (Open.Num() == 0 || Open.Contains(Phase)) && !(bPlanetGate && bWaveRunning);
 		if (G->bActive != bShouldOpen)
 		{
 			G->SetGateActive(bShouldOpen);

@@ -345,13 +345,13 @@
    "slots": ["DA_Rift_Visuals.CollisionScrape", "DA_Lancer_Visuals.CollisionScrape", "DA_Bastion_Visuals.CollisionScrape"]},
 
   {"name": "Alarm_LowHull", "group": "Ship", "cat": "loop", "kind": "loop", "dur": 2.0,
-   "note": "Low-hull warning: two soft notes every half second over a quiet bed. NOT wired: ATDShip never plays LowHullLoop (and would have to gate and stop it).",
+   "note": "Low-hull warning: two soft notes every half second over a quiet bed. 2D, SFX class (stops when the game pauses). Wired once gameplay starts and stops LowHullLoop.",
    "layers": [
     {"type": "pulse", "f0": 880, "every": 1.0, "len": 0.14, "wave": "sine", "fm_ratio": 2.0, "fm_index": 0.6, "gain": 1.0},
     {"type": "pulse", "f0": 659.3, "every": 1.0, "len": 0.14, "offset": 0.2, "wave": "sine", "fm_ratio": 2.0, "fm_index": 0.6, "gain": 0.9},
     {"type": "pnoise", "lo": 80, "hi": 500, "tilt": -1.0, "gain": 0.06}],
    "post": {"lp": 6000},
-   "ue": {"att": null, "con": null, "cls": "UI", "db": -12}, "slots": []},
+   "ue": {"att": null, "con": null, "cls": "SFX", "db": -12}, "slots": ["DA_Rift_Visuals.LowHullLoop", "DA_Lancer_Visuals.LowHullLoop", "DA_Bastion_Visuals.LowHullLoop"]},
   {"name": "Shield_Break", "group": "Ship", "cat": "sfx", "takes": 1,
    "note": "A shield failing: a glassy FM fall and crackle.",
    "layers": [

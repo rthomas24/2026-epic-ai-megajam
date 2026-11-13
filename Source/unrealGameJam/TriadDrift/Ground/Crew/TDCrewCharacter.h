@@ -139,6 +139,13 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void FellOutOfWorld(const UDamageType& DmgType) override;
 
+	// ---- sound (ENG-35): the bolt's muzzle sound (one per volley) and the drone's hum (looped, stopped on death).
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> RifleShotSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> DroneHumSound;
+	/** The last sound events (RifleShot, DroneHum, DroneHumStop): tests and debugging. */
+	const TArray<FName>& GetSoundEvents() const { return SoundEvents; }
+	class UAudioComponent* GetDroneHum() const { return DroneHum; }
+
 	/** The encounter that owns this member (summons are adopted into it). */
 	TWeakObjectPtr<class ATDEncounterVolume> OwningEncounter;
 
@@ -146,6 +153,9 @@ public:
 	bool HasGroundAhead(const FVector& Direction, float Reach) const;
 
 protected:
+	TArray<FName> SoundEvents;
+	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> DroneHum;
+	double LastShotSoundTime = -10.0;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 

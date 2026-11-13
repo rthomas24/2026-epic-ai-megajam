@@ -48,6 +48,7 @@
 #include "TriadDrift/Squad/TDWingmanAIController.h"
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDDominionReactor.h"
+#include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
 #include "TriadDrift/Director/Menu/TDMenuBackdrop.h"
@@ -264,7 +265,14 @@ namespace TDDirectorDebug
 			if (H && H->IsAlive() && !H->IsInvulnerable())
 			{
 				UTDStatics::ApplyTDDamage(*It, 100000000.f, ETDDamageKind::Explosive, Player, Player);
-				UE_LOG(LogTriadDrift, Display, TEXT("TD.Director.ReactorKill: reactor destroyed"));
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Director.ReactorKill: reactor phase destroyed (%s)"), H->IsAlive() ? TEXT("next phase opens shortly") : TEXT("the reactor is dead"));
+				return;
+			}
+			const ATDDominion* Dom = ATDDominion::Get(World);
+			if (H && H->IsAlive() && Dom && Dom->GetState() == ETDDominionState::ReactorExposed)
+			{
+				// Between phases (a short invulnerable beat): the generators are irrelevant now, so don't touch them.
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Director.ReactorKill: reactor between phases; run again in a second"));
 				return;
 			}
 		}

@@ -64,6 +64,7 @@ void FTDSettingsPageModel::Move(int32 Direction)
 {
 	const int32 N = NumRows();
 	Selected = ((Selected + Direction) % N + N) % N;
+	UTDSettingsSubsystem::PlayUISound(Settings.Get(), ETDUISound::Move);
 }
 
 void FTDSettingsPageModel::AdjustRow(ETDSettingsRow Row, int32 Direction)
@@ -73,6 +74,7 @@ void FTDSettingsPageModel::AdjustRow(ETDSettingsRow Row, int32 Direction)
 	{
 		return;
 	}
+	UTDSettingsSubsystem::PlayUISound(S, ETDUISound::Confirm);
 	const FTDPlayerSettings& P = S->GetSettings();
 	const float D = Direction > 0 ? 1.f : -1.f;
 	switch (Row)
@@ -113,7 +115,7 @@ bool FTDSettingsPageModel::Activate()
 	UTDSettingsSubsystem* S = Settings.Get();
 	switch (GetSelectedRow())
 	{
-	case ETDSettingsRow::Reset: if (S) { S->ResetToDefaults(); } return false;
+	case ETDSettingsRow::Reset: if (S) { S->ResetToDefaults(); UTDSettingsSubsystem::PlayUISound(S, ETDUISound::Confirm); } return false;
 	case ETDSettingsRow::Back: return true;
 	default: Adjust(+1); return false;
 	}
@@ -437,6 +439,10 @@ void UTDSettingsSubsystem::CloseSettingsPage(const UObject* WorldContextObject)
 {
 	if (UTDSettingsSubsystem* S = GetTDSettings(WorldContextObject))
 	{
+		if (IsSettingsPageOpen(WorldContextObject))
+		{
+			PlayUISound(WorldContextObject, ETDUISound::Back);
+		}
 		S->ClosePageInternal(WorldContextObject ? WorldContextObject->GetWorld() : nullptr);
 	}
 }

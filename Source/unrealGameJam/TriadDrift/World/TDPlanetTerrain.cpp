@@ -8,6 +8,10 @@
 #include "HAL/PlatformTime.h"
 #include "Materials/MaterialInterface.h"
 #include "Async/Async.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
+#include "UObject/ConstructorHelpers.h"
 #include "Misc/ScopeExit.h"
 #include "Async/ParallelFor.h"
 
@@ -24,6 +28,18 @@ ATDPlanetTerrain::ATDPlanetTerrain()
 	FarMesh->SetupAttachment(Root);
 	FarMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	FarMesh->SetCastShadow(false);
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+	for (TObjectPtr<UStaticMeshComponent>* Slot : { &Sea, &CraterGlow })
+	{
+		UStaticMeshComponent* C = CreateDefaultSubobject<UStaticMeshComponent>(Slot == &Sea ? TEXT("Sea") : TEXT("CraterGlow"));
+		C->SetupAttachment(Root);
+		C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		C->SetCastShadow(false);
+		C->SetVisibility(false);
+		if (Cylinder.Succeeded()) { C->SetStaticMesh(Cylinder.Object); }
+		*Slot = C;
+	}
 }
 
 ATDPlanetTerrain* ATDPlanetTerrain::SpawnForPlanet(UWorld* World, ETDDestination Planet, const FTransform& Origin, UMaterialInterface* Material)
@@ -75,6 +91,24 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 	for (UProceduralMeshComponent* M : ChunkMeshes) { M->bUseAsyncCooking = false; }
 	for (FChunkData& D : Coarse) { ApplyChunk(D); }
 	for (UProceduralMeshComponent* M : ChunkMeshes) { M->bUseAsyncCooking = true; }
+
+	// The region sea and the volcano's crater glow (placeholder looks until the terrain art covers them).
+	{
+		const FVector2D SC = Field->SeaCentre();
+		const float SR = Field->SeaRadius();
+		Sea->SetRelativeLocation(FVector(SC.X, SC.Y, S.SeaLevel));
+		Sea->SetRelativeScale3D(FVector(SR * 2.f / 100.f, SR * 2.f / 100.f, 0.02f));
+		Sea->SetVisibility(true);
+		UTDStatics::TintPlaceholder(Sea, S.bLavaSea ? FLinearColor(1.f, 0.35f, 0.06f) : FLinearColor(0.05f, 0.25f, 0.3f), S.bLavaSea ? 4.f : 0.6f);
+		if (S.bVolcano)
+		{
+			const float FloorZ = Field->Height(S.HeroCentre.X, S.HeroCentre.Y) + 800.f;
+			CraterGlow->SetRelativeLocation(FVector(S.HeroCentre.X, S.HeroCentre.Y, FloorZ));
+			CraterGlow->SetRelativeScale3D(FVector(S.CraterRadius * 1.5f / 100.f, S.CraterRadius * 1.5f / 100.f, 0.05f));
+			CraterGlow->SetVisibility(true);
+			UTDStatics::TintPlaceholder(CraterGlow, FLinearColor(1.f, 0.45f, 0.08f), 10.f);
+		}
+	}
 
 	// Far ring: one coarse grid from the core edge to the far edge (a hole in the middle), no collision.
 	{

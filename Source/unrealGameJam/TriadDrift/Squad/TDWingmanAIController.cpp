@@ -7,6 +7,8 @@
 #include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Core/TDStatics.h"
 #include "Engine/World.h"
 #include "CollisionQueryParams.h"
 #include "HAL/IConsoleManager.h"
@@ -585,6 +587,13 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 		}
 	}
 
+	// Second review MAJOR A (ENG-12): a cloaked wingman holds fire. Any shot ends a cloak, and the cloak keeps running on
+	// its timer after a switch (features.md), so an AI-flown Rift must not break it the moment an enemy is in range.
+	if (const UTDHealthComponent* OwnHealth = UTDStatics::GetHealth(Ship); OwnHealth && !OwnHealth->bTargetable)
+	{
+		bClearShot = false;
+		SecondaryReleaseTime = 0.0;
+	}
 	const bool bPrimary = bClearShot && !TDSquad::IsOverheated(Ship, ETDWeaponSlot::Primary);
 
 	bool bSecondary = false;

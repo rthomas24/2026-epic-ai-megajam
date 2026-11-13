@@ -59,6 +59,8 @@ public:
 	virtual void SetPhase(ETDGamePhase NewPhase) override;
 	virtual void ReportWaveCleared(int32 WaveNumber) override;
 	virtual void CompleteObjective(FName ObjectiveId, ETDAbilityId Reward, ETDShipId ForShip) override;
+	/** How many objective-complete stings have played (one per objective, never on a repeat): tests. */
+	int32 GetObjectiveCompleteSounds() const { return ObjectiveCompleteSounds; }
 	virtual void SetDominionState(bool bRevealed, bool bDefensesDown) override;
 	virtual void ReportPlayerDefeated() override;
 	virtual void AddStat(FName StatName, int32 Amount) override;
@@ -280,6 +282,7 @@ private:
 	void SyncMarkers(bool bClearAll);
 	float ObjectiveCheckLeft = 0.f;
 	float VictoryTravelLeft = -1.f; // >= 0: travel to the victory screen when it runs out
+	int32 VictoryTravelAttempts = 0;
 	float ObjectiveForceLeft = -1.f; // >= 0: force a re-broadcast when it runs out (a HUD made on BeginPlay misses the first)
 
 	FName CurrentSceneId;
@@ -306,4 +309,6 @@ private:
 	FDelegateHandle PostLoadMapHandle;
 
 	TSharedPtr<FTDDebugMenu> DebugMenu;
+private:
+	int32 ObjectiveCompleteSounds = 0;
 };

@@ -579,7 +579,9 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 	const bool bLeavingDowned = !IsShipAlive(OldId);
 
 	// Switch Strike ends on the next switch (no chaining); this switch may arm a fresh one.
-	const bool bArmSwitchStrike = (Now() - LastPowerTime) <= SwitchStrikeWindow;
+	// Second review minor: the power-to-switch window runs in REAL time, like the switch cooldown (slow motion must not
+	// stretch it).
+	const bool bArmSwitchStrike = (RealNow() - LastPowerTime) <= SwitchStrikeWindow;
 	EndSwitchStrike();
 
 	// 0) The ship we're leaving: release the player's held power/trigger inputs first (m15), so a
@@ -766,7 +768,7 @@ void ATDSquadManager::HandleWaveStarted(int32 WaveNumber, float Intensity01)
 void ATDSquadManager::NotifyPowerUsed(ETDShipId Ship)
 {
 	// Only the player's ship uses powers, but record any use: the window is about the player's timing.
-	LastPowerTime = Now();
+	LastPowerTime = RealNow();
 }
 
 void ATDSquadManager::HandlePowerUsed(ETDShipId Ship, FName PowerName)

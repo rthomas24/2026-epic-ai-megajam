@@ -24,6 +24,8 @@
 #include "Animation/AnimSequenceBase.h"
 #include "Materials/MaterialInterface.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
+#include "TriadDrift/Ground/TDGroundAudio.h"
+#include "Components/AudioComponent.h"
 #include "AnimationRuntime.h"
 
 // The crew set (Gameplay/Characters/Crew/Anims, retargeted onto SKEL_NullCrew with ACL, Nov 13): what a crew look with a
@@ -180,6 +182,8 @@ ATDCrewCharacter::ATDCrewCharacter(const FObjectInitializer& ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 	GetCapsuleComponent()->InitCapsuleSize(40.f, 90.f);
+	RifleShotSound = TDGroundAudio::Default(TEXT("Crew/MSS_Crew_RifleShot"));
+	DroneHumSound = TDGroundAudio::Default(TEXT("Crew/SW_Drone_Hum_01"));
 
 	Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
 	Body->SetupAttachment(GetCapsuleComponent());
@@ -281,6 +285,10 @@ void ATDCrewCharacter::BeginPlay()
 	Health->OnDamaged.AddUniqueDynamic(this, &ATDCrewCharacter::HandleDamaged);
 	Health->OnDeath.AddUniqueDynamic(this, &ATDCrewCharacter::HandleDeath);
 	Health->DamageFilter.BindUObject(this, &ATDCrewCharacter::FilterDamage);
+	if (Spec.Type == ETDCrewType::Drone)
+	{
+		DroneHum = TDGroundAudio::PlayAttached(DroneHumSound, GetRootComponent(), SoundEvents, TEXT("DroneHum"));
+	}
 }
 
 void ATDCrewCharacter::FellOutOfWorld(const UDamageType& DmgType)
@@ -801,6 +809,11 @@ void ATDCrewCharacter::FireBolt(const FVector& Direction, float Damage, float Sp
 	P.bInheritShooterVelocity = false;
 	const FVector Muzzle = GetMuzzleLocation(Direction);
 	ATDProjectile::Launch(World, P, FTransform(Direction.Rotation(), Muzzle), this, ETDTeam::Enemy, nullptr, FVector::ZeroVector, 1.f, false);
+	if (World->GetTimeSeconds() - LastShotSoundTime > 0.05) // a shotgun's pellets or a fan of bolts is one shot
+	{
+		LastShotSoundTime = World->GetTimeSeconds();
+		TDGroundAudio::Play(this, RifleShotSound, Muzzle, false, SoundEvents, TEXT("RifleShot"));
+	}
 }
 
 void ATDCrewCharacter::DoShotgun()
@@ -991,6 +1004,15 @@ void ATDCrewCharacter::BreakGuard(AActor* Source)
 void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamageInfo& KillingBlow)
 {
 	CancelAttack();
+	if (Spec.Type == ETDCrewType::Drone)
+	{
+		SoundEvents.Add(TEXT("DroneHumStop"));
+		if (DroneHum)
+		{
+			DroneHum->FadeOut(0.3f, 0.f);
+			DroneHum = nullptr;
+		}
+	}
 	if (UTDCrewTokenSubsystem* Tokens = UTDCrewTokenSubsystem::Get(this))
 	{
 		Tokens->Release(this);

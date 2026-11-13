@@ -1,6 +1,7 @@
 // Triad Drift - Powers (Teammate 2). Lancer: Afterburner Ram.
 
 #include "TriadDrift/Powers/TDRamPower.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -325,7 +326,10 @@ void UTDRamPower::HitActor(AActor* Victim, const FVector& Direction)
 
 	const UTDHealthComponent* Health = UTDStatics::GetHealth(Victim);
 	const bool bWasAlive = !Health || Health->IsAlive();
-	UTDStatics::ApplyTDDamage(Victim, RamDamage, ETDDamageKind::Ram, Owner, Owner, Victim->GetActorLocation(), Direction, false);
+	// Switch Strike's +25% applies to powers too (second review minor).
+	const ATDSquadManager* Squad = ATDSquadManager::Get(this);
+	const float Strike = Squad ? Squad->GetDamageMultiplier(Owner) : 1.f;
+	UTDStatics::ApplyTDDamage(Victim, RamDamage * Strike, ETDDamageKind::Ram, Owner, Owner, Victim->GetActorLocation(), Direction, false);
 	// RamKill money shot: UTDDirectorSubsystem derives it from the Ram damage kind on OnActorKilled.
 	if (bWasAlive && Health && Health->IsDead())
 	{
@@ -381,7 +385,7 @@ void UTDRamPower::StopDash(const FVector& Where, AActor* Stopper)
 	bStoppedByImpact = true;
 	AActor* Owner = GetOwner();
 	// The shockwave spares whatever stopped us: it already took the full 300.
-	UTDStatics::ApplyTDRadialDamage(this, Where, ShockwaveRadius, ShockwaveDamage, ETDDamageKind::Explosive, GetOwnerTeam(), Owner, Owner, false, Stopper);
+	UTDStatics::ApplyTDRadialDamage(this, Where, ShockwaveRadius, ShockwaveDamage * (ATDSquadManager::Get(this) ? ATDSquadManager::Get(this)->GetDamageMultiplier(Owner) : 1.f), ETDDamageKind::Explosive, GetOwnerTeam(), Owner, Owner, false, Stopper);
 	EndPower(false);
 }
 

@@ -70,6 +70,17 @@ public:
 	void SetMusicForTests(USoundBase* InMusic) { MusicOverride = InMusic; bUseOverride = true; }
 	/** Tests: force the fight signal (otherwise the audio state, phase and encounter volumes decide). */
 	void SetCombatOverrideForTests(TOptional<bool> bInCombat) { CombatOverride = bInCombat; }
+	/**
+	 * Ambience bed (ENG-35): the map's own loop under the music (space on the galaxy, Verdance / Cinder on the
+	 * planet maps), 2D, faded in over AmbienceFadeSeconds and out on travel, victory and the menu.
+	 */
+	static FName AmbienceSlotForMap(const FString& MapName);
+	float GetAmbienceEnvelope() const { return AmbienceEnvelope; }
+	UAudioComponent* GetAmbienceComponent() const { return AmbienceAudio; }
+	USoundBase* GetAmbienceBed() const { return AmbienceBed; }
+	/** Tests: the bed instead of the style slot (null = no bed). */
+	void SetAmbienceForTests(USoundBase* InBed) { AmbienceOverride = InBed; bUseAmbienceOverride = true; }
+
 	/** Tests: as if a level travel (any destination, the menu included) had been requested. */
 	void SetTravellingForTests() { bTravelling = true; }
 
@@ -77,6 +88,7 @@ public:
 	static constexpr float HoldSeconds = 6.f;
 	static constexpr float FadeOutSeconds = 4.f;
 	static constexpr float StopSeconds = 1.f;
+	static constexpr float AmbienceFadeSeconds = 2.f;
 
 private:
 	USoundBase* ResolveMusic() const;
@@ -90,6 +102,14 @@ private:
 	UFUNCTION() void OnTakeStarted(FName SceneId, int32 TakeNumber);
 
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> Audio;
+	UPROPERTY(Transient) TObjectPtr<UAudioComponent> AmbienceAudio;
+	UPROPERTY(Transient) TObjectPtr<USoundBase> AmbienceOverride;
+	UPROPERTY(Transient) TObjectPtr<USoundBase> AmbienceBed;
+	bool bUseAmbienceOverride = false;
+	float AmbienceEnvelope = 0.f;
+	float AmbienceRetry = 0.f;
+	USoundBase* ResolveAmbience() const;
+	void TickAmbience(float Dt, bool bStop);
 	UPROPERTY(Transient) TObjectPtr<USoundBase> MusicOverride;
 	bool bUseOverride = false;
 	TOptional<bool> CombatOverride;

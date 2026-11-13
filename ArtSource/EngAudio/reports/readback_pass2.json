@@ -1,0 +1,161 @@
+{
+ "slots": {
+  "DA_UI_Style.UIMove": "SW_UI_Move_01",
+  "DA_UI_Style.UIConfirm": "SW_UI_Confirm_01",
+  "DA_UI_Style.UIBack": "SW_UI_Back_01",
+  "DA_UI_Style.PauseIn": "SW_UI_PauseIn_01",
+  "DA_UI_Style.PauseOut": "SW_UI_PauseOut_01",
+  "DA_UI_Style.SlateClap": "SW_Cine_Slate_01",
+  "DA_UI_Style.CutSting": "SW_Cine_Cut_01",
+  "DA_UI_Style.SlowMoIn": "SW_Cine_SlowMoIn_01",
+  "DA_UI_Style.SlowMoOut": "SW_Cine_SlowMoOut_01",
+  "DA_UI_Style.ObjectiveComplete": "SW_Objective_Complete_01",
+  "DA_UI_Style.HitConfirm": "SW_UI_HitConfirm_01",
+  "DA_UI_Style.KillConfirm": "SW_UI_KillConfirm_01",
+  "DA_UI_Style.AmbienceSpace": "SW_Ambience_Space_01",
+  "DA_UI_Style.AmbienceVerdance": "SW_Ambience_Verdance_01",
+  "DA_UI_Style.AmbienceCinder": "SW_Ambience_Cinder_01",
+  "DA_UI_Style.CombatMusic": "SW_Music_Combat_01",
+  "DA_UI_Style.IntroMusic": "SW_Music_Intro_01",
+  "DA_UI_Style.MenuMusic": "MUS_Menu_EtherialPulse_01",
+  "DA_Rift_Visuals.LowHullLoop": "SW_Alarm_LowHull_01",
+  "DA_Lancer_Visuals.LowHullLoop": "SW_Alarm_LowHull_01",
+  "DA_Bastion_Visuals.LowHullLoop": "SW_Alarm_LowHull_01"
+ },
+ "sounds": {
+  "SW_UI_Move_01": {
+   "class": "SC_TDE_UI",
+   "ui_sound": true,
+   "attenuation": null,
+   "looping": false,
+   "volume": 0.05
+  },
+  "SW_UI_Confirm_01": {
+   "class": "SC_TDE_UI",
+   "ui_sound": true,
+   "attenuation": null,
+   "looping": false,
+   "volume": 0.159
+  },
+  "SW_UI_Back_01": {
+   "class": "SC_TDE_UI",
+   "ui_sound": true,
+   "attenuation": null,
+   "looping": false,
+   "volume": 0.126
+  },
+  "SW_UI_PauseIn_01": {
+   "class": "SC_TDE_UI",
+   "ui_sound": true,
+   "attenuation": null,
+   "looping": false,
+   "volume": 0.159
+  },
+  "SW_UI_PauseOut_01": {
+   "class": "SC_TDE_UI",
+   "ui_sound": true,
+   "attenuation": null,
+   "looping": false,
+   "volume": 0.159
+  },
+  "SW_Cine_Slate_01": {
+   "class": "SC_TDE_Cine",
+   "ui_sound": true,
+   "attenuation": null,
+   "looping": false,
+   "volume": 0.355
+  },
+  "SW_Cine_Cut_01": {
+   "class": "SC_TDE_Cine",
+   "ui_sound": true,
+   "attenuation": null,
+   "looping": false,
+   "volume": 0.447
+  },
+  "SW_Cine_SlowMoIn_01": {
+   "class": "SC_TDE_Cine",
+   "ui_sound": true,
+   "attenuation": null,
+   "looping": false,
+   "volume": 0.316
+  },
+  "SW_Cine_SlowMoOut_01": {
+   "class": "SC_TDE_Cine",
+   "ui_sound": true,
+   "attenuation": null,
+   "looping": false,
+   "volume": 0.251
+  },
+  "SW_Objective_Complete_01": {
+   "class": "SC_TDE_UI",
+   "ui_sound": true,
+   "attenuation": null,
+   "looping": false,
+   "volume": 0.355
+  },
+  "SW_UI_HitConfirm_01": {
+   "class": "SC_TDE_UI",
+   "ui_sound": true,
+   "attenuation": null,
+   "looping": false,
+   "volume": 0.199
+  },
+  "SW_UI_KillConfirm_01": {
+   "class": "SC_TDE_UI",
+   "ui_sound": true,
+   "attenuation": null,
+   "looping": false,
+   "volume": 0.282
+  },
+  "SW_Ambience_Space_01": {
+   "class": "SC_TDE_Ambience",
+   "ui_sound": false,
+   "attenuation": null,
+   "looping": true,
+   "volume": 0.063
+  },
+  "SW_Ambience_Verdance_01": {
+   "class": "SC_TDE_Ambience",
+   "ui_sound": false,
+   "attenuation": null,
+   "looping": true,
+   "volume": 0.063
+  },
+  "SW_Ambience_Cinder_01": {
+   "class": "SC_TDE_Ambience",
+   "ui_sound": false,
+   "attenuation": null,
+   "looping": true,
+   "volume": 0.063
+  },
+  "SW_Music_Combat_01": {
+   "class": "SC_MenuTheme_Music",
+   "ui_sound": false,
+   "attenuation": null,
+   "looping": true,
+   "volume": 0.355
+  },
+  "SW_Music_Intro_01": {
+   "class": "SC_MenuTheme_Music",
+   "ui_sound": false,
+   "attenuation": null,
+   "looping": false,
+   "volume": 0.355
+  },
+  "MUS_Menu_EtherialPulse_01": {
+   "class": "SC_MenuTheme_Music",
+   "ui_sound": false,
+   "attenuation": null,
+   "looping": false,
+   "volume": 1.0
+  },
+  "SW_Alarm_LowHull_01": {
+   "class": "SC_TDE_SFX",
+   "ui_sound": false,
+   "attenuation": null,
+   "looping": true,
+   "volume": 0.251
+  }
+ },
+ "errors": []
+}

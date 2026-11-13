@@ -33,7 +33,11 @@ float TDFlightSim::LegalTopSpeed(const FTDFlightState& S, const FTDFlightTuning&
 {
 	if (C.bAtmosphere)
 	{
-		return T.CruiseSpeed * C.AtmosphereSpeedCapFraction;
+		// ENG-34 (Lead, Nov 13): boost works in atmosphere too, under the same 60% rule (of boost speed while boosting),
+		// so the large planet worlds can be crossed; cruise and the landing rule are unchanged.
+		const float BoostGrace = (S.bDrifting ? S.DriftTime : 0.f) + 0.25f;
+		const bool bBoostLegal = S.bBoosting || S.TimeSinceBoost <= BoostGrace;
+		return (bBoostLegal ? FMath::Max(T.CruiseSpeed, T.BoostSpeed) : T.CruiseSpeed) * C.AtmosphereSpeedCapFraction;
 	}
 	float Top = FMath::Max(T.CruiseSpeed, C.ThrottleTopSpeed);
 	// Boost speed is legal while the meter is in use, or was in use right up to the current drift.
@@ -68,7 +72,7 @@ float TDFlightSim::ComputeTargetSpeed(const FTDFlightState& State, const FTDFlig
 	}
 	if (Context.bAtmosphere)
 	{
-		const float Cap = Tuning.CruiseSpeed * Context.AtmosphereSpeedCapFraction;
+		const float Cap = (State.bBoosting ? FMath::Max(Tuning.CruiseSpeed, Tuning.BoostSpeed) : Tuning.CruiseSpeed) * Context.AtmosphereSpeedCapFraction;
 		Target = FMath::Min(Target, Cap);
 	}
 	return Target;
@@ -105,7 +109,7 @@ void TDFlightSim::Step(FTDFlightState& S, const FTDFlightInput& In, const FTDFli
 	{
 		S.bBoostLockout = false; // released: an empty meter may start again once it refills
 	}
-	const bool bWantBoost = In.bBoost && !S.bDrifting && !C.bSpeedOverride && !C.bAtmosphere;
+	const bool bWantBoost = In.bBoost && !S.bDrifting && !C.bSpeedOverride;
 	const bool bCanBoost = !S.bBoostLockout && S.Boost01 > 0.f && (S.bBoosting || S.Boost01 >= T.BoostMinToStart);
 	S.bBoosting = bWantBoost && bCanBoost;
 	if (S.bBoosting)

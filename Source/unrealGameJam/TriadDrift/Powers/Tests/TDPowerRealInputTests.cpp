@@ -22,6 +22,7 @@
 #include "TriadDrift/Powers/TDRamPower.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Squad/TDWingmanAIController.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 
 namespace TDPowerRealInputTest
@@ -86,6 +87,19 @@ namespace TDPowerRealInputTest
 			for (const ATDProjectile* P : S->GetLiveProjectiles())
 			{
 				N += (P && P->IsActive() && P->IsMissile() && P->GetShooter() == Shooter) ? 1 : 0;
+			}
+		}
+		return N;
+	}
+
+	int32 LiveShotsOf(UWorld* World, const AActor* Shooter)
+	{
+		int32 N = 0;
+		if (UTDProjectileSubsystem* S = UTDProjectileSubsystem::Get(World))
+		{
+			for (const ATDProjectile* P : S->GetLiveProjectiles())
+			{
+				N += (P && P->IsActive() && P->GetShooter() == Shooter) ? 1 : 0;
 			}
 		}
 		return N;
@@ -272,6 +286,64 @@ bool FTDPowerRealInputSwitchMidRamPortal::RunTest(const FString& Parameters)
 				TestTrue(TEXT("a full pair keeps running after the switch") + Tag, Portal && Portal->IsPowerActive() && Portal->GetPortals().Num() == 2);
 			}
 		}
+	}
+	return true;
+}
+
+/**
+ * Second review MAJOR A: cloak Rift, switch to Lancer WITH a hostile in range. The AI-flown Rift engages but holds fire,
+ * so the cloak runs out on its timer (features.md), not on the wingman's first shot; then Rift fights again.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPowerRealInputCloakSurvivesSwitchInAFight, "TriadDrift.Powers.RealInput.CloakSurvivesASwitchWithEnemiesInRange", TD_TEST_FLAGS)
+bool FTDPowerRealInputCloakSurvivesSwitchInAFight::RunTest(const FString& Parameters)
+{
+	for (const float Step : { 1.f / 30.f, 1.f / 60.f, 1.f / 120.f })
+	{
+		const FString Fps = FString::Printf(TEXT(" @ %.0f fps"), 1.f / Step);
+		TDPowerRealInputTest::FSquad S(Step);
+		// A tough hostile ahead, inside every wingman's engage range.
+		AActor* Enemy = S.W.Spawn<AActor>(FVector(6000.f, 0.f, 0.f));
+		USceneComponent* Root = NewObject<USceneComponent>(Enemy, TEXT("Root"));
+		Enemy->SetRootComponent(Root);
+		Root->RegisterComponent();
+		Enemy->SetActorLocation(FVector(6000.f, 0.f, 0.f));
+		UTDHealthComponent* EnemyHealth = NewObject<UTDHealthComponent>(Enemy, TEXT("Health"));
+		EnemyHealth->MaxHull = 1000000.f;
+		EnemyHealth->MaxShield = 0.f;
+		EnemyHealth->DefaultTeam = ETDTeam::Enemy;
+		EnemyHealth->RegisterComponent();
+
+		ATDShip* Rift = S.Fly(ETDShipId::Rift);
+		S.Press(Rift, ETDPowerInput::Ability);
+		UTDCloakPower* Cloak = S.Power<UTDCloakPower>(Rift, ETDPowerInput::Ability);
+		if (!TestTrue(TEXT("cloaked before the switch") + Fps, Cloak && Cloak->IsCloaked()))
+		{
+			continue;
+		}
+		const float CloakedAt = S.W.GetWorld()->GetTimeSeconds();
+		S.Fly(ETDShipId::Lancer);
+		const ATDWingmanAIController* RiftAI = Cast<ATDWingmanAIController>(Rift->GetController());
+		bool bEngaged = false;
+		bool bFiredWhileCloaked = false;
+		while (Cloak->IsCloaked() && S.W.GetWorld()->GetTimeSeconds() - CloakedAt < 10.f)
+		{
+			S.W.Tick(Step);
+			bEngaged |= RiftAI && RiftAI->GetWingmanState() == ETDWingmanState::Engage && RiftAI->GetCurrentTarget() == Enemy;
+			bFiredWhileCloaked |= Cloak->IsCloaked() && TDPowerRealInputTest::LiveShotsOf(S.W.GetWorld(), Rift) > 0;
+		}
+		const float Lasted = S.W.GetWorld()->GetTimeSeconds() - CloakedAt;
+		TestTrue(TEXT("the AI-flown Rift engaged the hostile (the test is a real fight)") + Fps, bEngaged);
+		TestFalse(TEXT("no Rift shot while cloaked") + Fps, bFiredWhileCloaked);
+		TestTrue(FString::Printf(TEXT("the cloak ran its timer (%.2f s of %.1f)"), Lasted, Cloak->ActiveSeconds) + Fps,
+			Lasted >= Cloak->ActiveSeconds - 0.25f);
+		// Visible again: the wingman fights.
+		bool bFiredAfter = false;
+		for (float T = 0.f; T < 5.f && !bFiredAfter; T += Step)
+		{
+			S.W.Tick(Step);
+			bFiredAfter = TDPowerRealInputTest::LiveShotsOf(S.W.GetWorld(), Rift) > 0;
+		}
+		TestTrue(TEXT("Rift fires again once the cloak is over") + Fps, bFiredAfter);
 	}
 	return true;
 }

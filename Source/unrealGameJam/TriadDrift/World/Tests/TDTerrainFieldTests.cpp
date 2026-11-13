@@ -57,7 +57,8 @@ bool FTDTerrainMountains::RunTest(const FString&)
 		{
 			const FVector2D Dir(FMath::Cos(FMath::DegreesToRadians(Deg)), FMath::Sin(FMath::DegreesToRadians(Deg)));
 			float Peak = -1e9f;
-			for (float R = 0.f; R <= F.GetStyle().CoreHalfSize; R += 5000.f) { Peak = FMath::Max(Peak, F.Height(Dir.X * R, Dir.Y * R)); }
+			// Out to just past the core: a sea bearing meets its far shore and the skyline there.
+			for (float R = 0.f; R <= F.GetStyle().CoreHalfSize * 1.3f; R += 5000.f) { Peak = FMath::Max(Peak, F.Height(Dir.X * R, Dir.Y * R)); }
 			TestTrue(*FString::Printf(TEXT("planet %d bearing %d: relief %.0f m"), (int32)P, Deg, Peak / 100.f), Peak >= 30000.f);
 		}
 		// The horizon closes: the far ring stands higher than the core edge on average.
@@ -119,40 +120,60 @@ bool FTDTerrainActor::RunTest(const FString&)
 		FHitResult Hit;
 		FCollisionQueryParams Q(TEXT("TDTerrainTest"), /*bTraceComplex*/ true);
 		const bool bHit = W.GetWorld()->LineTraceSingleByChannel(Hit, Far + FVector(0, 0, 400000.f), Far - FVector(0, 0, 400000.f), ECC_WorldStatic, Q);
-		{
-			FHitResult VHit;
-			const bool bV = W.GetWorld()->LineTraceSingleByChannel(VHit, Far + FVector(0, 0, 400000.f), Far - FVector(0, 0, 400000.f), ECC_Visibility, Q);
-			UPrimitiveComponent* Root = Cast<UPrimitiveComponent>(T->GetRootComponent());
-			FString Sweep;
-			for (const float K : { 0.05f, 0.1f, 0.2f, 0.3f, 0.5f, 0.7f, 1.f })
-			{
-				const FVector SP = Origin + FVector(600000.f, 300000.f, 0.f) * K;
-				FHitResult H2;
-				const bool b2 = W.GetWorld()->LineTraceSingleByChannel(H2, SP + FVector(0, 0, 400000.f), SP - FVector(0, 0, 400000.f), ECC_WorldStatic, Q);
-				Sweep += FString::Printf(TEXT(" %.2f:%d(z %.0f vs %.0f)"), K, b2, H2.ImpactPoint.Z, T->GetHeightAt(SP));
-			}
-			AddInfo(TEXT("diag3:") + Sweep);
-			FString Row;
-			for (int32 Cx = -8; Cx < 8; ++Cx)
-			{
-				const FVector RP = Origin + FVector((Cx + 0.5f) * 100000.f, 50000.f, 0.f);
-				FHitResult H3;
-				const bool b3 = W.GetWorld()->LineTraceSingleByChannel(H3, RP + FVector(0, 0, 400000.f), RP - FVector(0, 0, 400000.f), ECC_WorldStatic, Q);
-				Row += FString::Printf(TEXT(" %d:%d/L%d"), Cx, b3, T->GetChunkLod(FIntPoint(Cx, 0)));
-			}
-			AddInfo(TEXT("diag4:") + Row);
-			FHitResult OHit;
-			const bool bO = W.GetWorld()->LineTraceSingleByChannel(OHit, Origin + FVector(0, 0, 100000.f), Origin - FVector(0, 0, 100000.f), ECC_WorldStatic, Q);
-			const UBodySetup* BS = Root ? Root->GetBodySetup() : nullptr;
-			AddInfo(FString::Printf(TEXT("diag2: origin hit %d (%s), body valid %d, trimeshes %d, cooked %d"), bO, *GetNameSafe(OHit.GetActor()),
-				Root && Root->GetBodyInstance() && Root->GetBodyInstance()->IsValidBodyInstance() ? 1 : 0,
-				BS ? BS->TriMeshGeometries.Num() : -1, BS && BS->bCreatedPhysicsMeshes ? 1 : 0));
-			AddInfo(FString::Printf(TEXT("diag: static hit %d (%s), vis hit %d (%s), collision enabled %d, body %d, registered %d, objtype %d"),
-				bHit, *GetNameSafe(Hit.GetActor()), bV, *GetNameSafe(VHit.GetActor()), Root ? (int32)Root->GetCollisionEnabled() : -1,
-				Root && Root->GetBodySetup() ? 1 : 0, Root && Root->IsRegistered() ? 1 : 0, Root ? (int32)Root->GetCollisionObjectType() : -1));
-		}
 		TestTrue(TEXT("terrain collision under a mountain point"), bHit && Hit.GetActor() == T);
 		if (bHit) { TestTrue(*FString::Printf(TEXT("collision at the field height (%.0f vs %.0f cm)"), Hit.ImpactPoint.Z, Expected), FMath::Abs(Hit.ImpactPoint.Z - Expected) < 2500.f); }
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTerrainHeroAndRegions, "TriadDrift.World.Terrain.HeroPeakAndNamedRegions", TD_TEST_FLAGS)
+bool FTDTerrainHeroAndRegions::RunTest(const FString&)
+{
+	for (const ETDDestination P : { ETDDestination::Verdance, ETDDestination::Cinder })
+	{
+		const FTDTerrainField F(FTDTerrainStyle::ForPlanet(P));
+		const FTDTerrainStyle& S = F.GetStyle();
+		// The hero summit stands 1.2-2.5 km tall and is the highest point of the walkable core.
+		float HeroTop = -1e9f;
+		for (float DX = -S.HeroRadius * 0.4f; DX <= S.HeroRadius * 0.4f; DX += S.HeroRadius * 0.05f)
+		{
+			for (float DY = -S.HeroRadius * 0.4f; DY <= S.HeroRadius * 0.4f; DY += S.HeroRadius * 0.05f) { HeroTop = FMath::Max(HeroTop, F.Height(S.HeroCentre.X + DX, S.HeroCentre.Y + DY)); }
+		}
+		TestTrue(*FString::Printf(TEXT("planet %d hero peak %.0f m"), (int32)P, HeroTop / 100.f), HeroTop >= 120000.f && HeroTop <= 260000.f);
+		float CoreTop = -1e9f;
+		for (float X = -S.CoreHalfSize; X <= S.CoreHalfSize; X += 20000.f)
+		{
+			for (float Y = -S.CoreHalfSize; Y <= S.CoreHalfSize; Y += 20000.f)
+			{
+				if (FVector2D::Distance(FVector2D(X, Y), S.HeroCentre) > S.HeroRadius) { CoreTop = FMath::Max(CoreTop, F.Height(X, Y)); }
+			}
+		}
+		TestTrue(*FString::Printf(TEXT("planet %d: the hero (%.0f m) is the tallest in the core (next %.0f m)"), (int32)P, HeroTop / 100.f, CoreTop / 100.f), HeroTop > CoreTop);
+		// Visible from the course: nothing between the pad and the hero's foot rises into the line to its summit.
+		bool bClear = true;
+		const FVector Eye(0.f, 0.f, 200.f), Top(S.HeroCentre.X, S.HeroCentre.Y, HeroTop);
+		const float Foot = FMath::Max(0.1f, 1.f - S.HeroRadius / FMath::Max(1.f, (float)S.HeroCentre.Size()));
+		for (float T = 0.05f; T < Foot; T += 0.01f)
+		{
+			const FVector Q = FMath::Lerp(Eye, Top, T);
+			bClear &= F.Height(Q.X, Q.Y) < Q.Z;
+		}
+		TestTrue(*FString::Printf(TEXT("planet %d: the hero peak is visible from the pad"), (int32)P), bClear);
+		if (S.bVolcano)
+		{
+			const float Rim = F.Height(S.HeroCentre.X + S.CraterRadius * 1.3f, S.HeroCentre.Y);
+			const float Floor = F.Height(S.HeroCentre.X, S.HeroCentre.Y);
+			const float Ring = F.Height(S.HeroCentre.X + S.CraterRadius * 0.95f, S.HeroCentre.Y);
+			TestTrue(*FString::Printf(TEXT("the volcano has a crater (floor %.0f m, rim %.0f m, outside %.0f m)"), Floor / 100.f, Ring / 100.f, Rim / 100.f), Floor < Ring - 5000.f);
+		}
+		// Named regions: each sector is weighted out in the world and absent in the course basin.
+		for (const float B : { S.RiftBearing, S.MesaBearing, S.BasinBearing, S.PlateauBearing })
+		{
+			const FVector2D Dir(FMath::Cos(FMath::DegreesToRadians(B)), FMath::Sin(FMath::DegreesToRadians(B)));
+			TestTrue(*FString::Printf(TEXT("planet %d region at %.0f deg exists"), (int32)P, B), F.RegionWeight(Dir.X * 650000.f, Dir.Y * 650000.f, B) > 0.9f);
+			TestEqual(TEXT("no region inside the course basin"), F.RegionWeight(Dir.X * 100000.f, Dir.Y * 100000.f, B), 0.f);
+		}
+		TestTrue(TEXT("the sea basin dips below the sea level"), F.Height(F.SeaCentre().X, F.SeaCentre().Y) < S.SeaLevel);
 	}
 	return true;
 }

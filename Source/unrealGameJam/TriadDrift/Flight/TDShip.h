@@ -78,6 +78,11 @@ struct UNREALGAMEJAM_API FTDChaseCameraTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
 	float DriftMinSpeedFraction = 1.f;
 
+	/** While drifting (at any speed) the chase camera holds the distance it had when the drift began: a drift sheds
+	 *  speed, the lagged camera would close in and the ship would sink into the HUD band. 0 = off, 1 = full hold. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
+	float DriftHoldDistance = 1.f;
+
 	/** Max distance the location lag may trail the ship (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (ClampMin = "0"))
 	float LagMaxDistance = 1000.f;
@@ -152,6 +157,13 @@ public:
 	 * "BoostLoop", "DriftLoop", "DriftRelease", "CollisionScrape"). Requests happen whenever a visuals
 	 * asset is assigned, even if the slot is empty (then nothing plays). For tests and debugging.
 	 */
+	/**
+	 * Low-hull alarm (ENG-35): UTDShipVisuals::LowHullLoop runs on the ship the PLAYER flies while its hull is below
+	 * this fraction; it stops above it (+ 0.02), on death and when the player switches away. Wingmen never sound it.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Ship", meta = (ClampMin = "0", ClampMax = "1"))
+	float LowHullAlarmFraction = 0.35f;
+
 	int32 GetCueRequestCount(FName Slot) const { const int32* N = CueRequests.Find(Slot); return N ? *N : 0; }
 
 	/** True while a looping cue slot ("EngineTrail", "EngineLoop", "BoostLoop", "DriftLoop") is running on this ship. */
@@ -178,6 +190,22 @@ public:
 
 	/** Every exhaust: the art's Engine_0..Engine_3 sockets when it has them, else the single exhaust above. */
 	void GetEngineExhaustLocations(TArray<FVector>& Out) const;
+
+	/**
+	 * ENG-37: every engine nozzle the exhaust effect attaches to: the hull's "Engine" and "Engine_0".."Engine_7" /
+	 * "Engine_1".."Engine_8" sockets that exist, in that order; else the single engine attach (visual part, socket or
+	 * placeholder glow). One EngineTrail effect runs per nozzle; the sound runs once, on the first.
+	 */
+	void GetEngineNozzles(TArray<TPair<USceneComponent*, FName>>& Out) const;
+
+	/** What the exhaust effects are fed each frame as Niagara user parameters "Throttle" (0..1) and "Boost" (0/1). */
+	float GetExhaustThrottle01() const { return ExhaustThrottle01; }
+	bool GetExhaustBoost() const { return bExhaustBoost; }
+	/** Exhaust effect components running now (0 without art or with no EngineTrail VFX). */
+	int32 GetExhaustEffectCount() const;
+
+	/** Sets a Niagara user float only when the system exposes it (a system without the parameter is left alone). */
+	static bool SetExhaustParamIfExposed(UNiagaraComponent* FX, FName Param, float Value);
 
 	/** Engines are lit (alive, not parked or hidden, not landed with engines off). */
 	bool AreEnginesRunning() const { return ShouldEnginesRun(); }
@@ -260,6 +288,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Camera")
 	float GetCameraRoll() const { return CameraRoll; }
 
+	/** Extra arm length the drift distance hold adds right now (cm). */
+	float GetDriftHoldExtra() const { return DriftHoldExtra; }
+
 	/** How far the drift camera blend is in (0 none .. 1 full DriftYawFollow), before easing. */
 	float GetDriftCameraBlend() const { return DriftCamBlend; }
 
@@ -291,6 +322,8 @@ protected:
 	UFUNCTION() void HandleDriftStarted();
 	UFUNCTION() void HandleDriftEnded(bool bBurst);
 	UFUNCTION() void HandleFlightImpactCue(const FTDFlightImpact& Impact);
+	UFUNCTION() void HandleShieldBrokenCue(UTDHealthComponent* BrokenHealth, const FTDDamageInfo& Info);
+	void UpdateLowHullAlarm();
 
 	/** Where engine cues attach: a part named "Engine", else the primary mesh's "Engine" socket, else the hull. */
 	USceneComponent* GetEngineAttach(FName& OutSocket) const;
@@ -318,7 +351,12 @@ protected:
 
 	TMap<FName, int32> CueRequests;
 	TWeakObjectPtr<UNiagaraComponent> EngineTrailFX, BoostLoopFX, DriftLoopFX;
-	TWeakObjectPtr<UAudioComponent> EngineTrailAudio, BoostLoopAudio, DriftLoopAudio;
+	TArray<TWeakObjectPtr<UNiagaraComponent>> ExtraExhaustFX; // nozzles 2..N (VFX only)
+	float ExhaustThrottle01 = 0.f;
+	bool bExhaustBoost = false;
+	void UpdateExhaustParams();
+	TWeakObjectPtr<UAudioComponent> EngineTrailAudio, BoostLoopAudio, DriftLoopAudio, LowHullAudio;
+	TWeakObjectPtr<UNiagaraComponent> LowHullFX;
 
 	/** Tears down parts, restores placeholders, then builds Mesh / Parts from Visuals. */
 	void RebuildVisuals();
@@ -374,5 +412,9 @@ private:
 	FQuat ChaseTargetQuat = FQuat::Identity;
 	float CameraRoll = 0.f;
 	float DriftCamBlend = 0.f;
+	float DriftHoldBlend = 0.f;
+	float DriftHoldStartDist = 0.f;
+	float DriftHoldExtra = 0.f;
+	bool bDriftHoldWasDrifting = false;
 	FVector2D LookAhead = FVector2D::ZeroVector;
 };

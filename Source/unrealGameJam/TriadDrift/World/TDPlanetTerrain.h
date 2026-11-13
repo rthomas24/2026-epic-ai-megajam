@@ -94,6 +94,19 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Terrain")
 	TObjectPtr<UProceduralMeshComponent> FarMesh;
 
+	/** The region sea: water on Verdance, glowing lava on Cinder (placeholder look; a flat disc at the sea level). */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Terrain")
+	TObjectPtr<UStaticMeshComponent> Sea;
+
+	/** The volcano's glowing crater floor (Cinder). */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Terrain")
+	TObjectPtr<UStaticMeshComponent> CraterGlow;
+
+public:
+	UStaticMeshComponent* GetSea() const { return Sea; }
+	UStaticMeshComponent* GetCraterGlow() const { return CraterGlow; }
+protected:
+
 	TSharedPtr<const FTDTerrainField, ESPMode::ThreadSafe> Field;
 	TArray<FChunk> Chunks;
 	TArray<int32> Pending;

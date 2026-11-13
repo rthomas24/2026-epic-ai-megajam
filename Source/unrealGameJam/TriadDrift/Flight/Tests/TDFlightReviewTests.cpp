@@ -601,6 +601,56 @@ bool FTDReviewDriftCamera::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewDriftHold, "TriadDrift.Flight.Camera.DriftHoldsTheCameraDistance", TD_TEST_FLAGS)
+bool FTDReviewDriftHold::RunTest(const FString& Parameters)
+{
+	// A drift sheds speed and swings the nose across the slide: without the hold the lagged camera closed in from
+	// ~18 m to ~12 m and the ship sank into the HUD band. With DriftHoldDistance it keeps the distance it began with.
+	auto MinDistanceInDrift = [this](float Hold, float& OutStart, float& OutMin, float& OutAfter)
+	{
+		FTDTestWorld W;
+		ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
+		if (!Ship) { return; }
+		Ship->SetPlayerControlled(true);
+		FTDChaseCameraTuning CT = Ship->GetCameraTuning();
+		const FStructProperty* Prop = CastField<FStructProperty>(ATDShip::StaticClass()->FindPropertyByName(TEXT("CameraTuning")));
+		if (Prop) { Prop->ContainerPtrToValuePtr<FTDChaseCameraTuning>(Ship)->DriftHoldDistance = Hold; }
+		W.Tick();
+		FTDFlightInput In;
+		In.Throttle = 1.f;
+		In.bBoost = true;
+		Ship->SetFlightInput(In);
+		W.Advance(2.f);
+		auto Dist = [Ship]() { return (float)FVector::Dist(Ship->GetChaseCamera()->GetComponentLocation(), Ship->GetActorLocation()); };
+		OutStart = Dist();
+		In.bBoost = false;
+		In.bDrift = true;
+		In.Aim = FVector2D(1.f, 0.f);
+		Ship->SetFlightInput(In);
+		OutMin = OutStart;
+		const float Dt = 1.f / 60.f;
+		for (float T = 0.f; T < 2.5f; T += Dt)
+		{
+			if (T > 0.6f) { In.Aim = FVector2D::ZeroVector; Ship->SetFlightInput(In); }
+			W.Tick(Dt);
+			OutMin = FMath::Min(OutMin, Dist());
+		}
+		In.bDrift = false;
+		Ship->SetFlightInput(In);
+		W.Advance(1.f);
+		OutAfter = Ship->GetDriftHoldExtra();
+	};
+	float S0 = 0.f, M0 = 0.f, A0 = 0.f, S1 = 0.f, M1 = 0.f, A1 = 0.f;
+	MinDistanceInDrift(0.f, S0, M0, A0);
+	MinDistanceInDrift(1.f, S1, M1, A1);
+	AddInfo(FString::Printf(TEXT("no hold: start %.0f min %.0f | hold: start %.0f min %.0f | extra after release %.0f"), S0, M0, S1, M1, A1));
+	TestTrue(TEXT("without the hold the camera closes in (the case being fixed)"), M0 < S0 * 0.92f);
+	TestTrue(FString::Printf(TEXT("with the hold the camera keeps >= 95%% of its distance (%.0f of %.0f)"), M1, S1), M1 >= S1 * 0.95f);
+	TestTrue(TEXT("the hold is closer to the start than no hold"), M1 > M0 + 100.f);
+	TestTrue(FString::Printf(TEXT("released: the extra arm length is gone (%.0f)"), A1), A1 < 5.f);
+	return true;
+}
+
 // --------------------------------------------------------------------------------------------- input
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReviewInputRouting, "TriadDrift.Flight.Input.InjectedActionsAndPowerRouting", TD_TEST_FLAGS)
@@ -1047,9 +1097,11 @@ bool FTDReviewTerrainAhead::RunTest(const FString& Parameters)
 	const FCase Cases[] = { { TEXT("30 deg slope"), 30.f }, { TEXT("cliff"), 90.f } };
 	for (const FCase& C : Cases)
 	{
+		// ENG-34: boost works in atmosphere now (60% of boost speed), so the faster approach must still clear them.
+		for (const bool bBoost : { false, true })
 		for (const float Fps : { 30.f, 60.f, 120.f })
 		{
-			const FString Tag = FString::Printf(TEXT("%s @%.0f fps: "), C.Name, Fps);
+			const FString Tag = FString::Printf(TEXT("%s%s @%.0f fps: "), C.Name, bBoost ? TEXT(" boosting") : TEXT(""), Fps);
 			FTDTestWorld W;
 			AActor* Ground = TDReviewTest::SpawnWall(W, FVector(0.f, 0.f, -200.f));
 			Cast<UBoxComponent>(Ground->GetRootComponent())->SetBoxExtent(FVector(400000.f, 400000.f, 200.f));
@@ -1068,10 +1120,17 @@ bool FTDReviewTerrainAhead::RunTest(const FString& Parameters)
 			Counter->Bind(Move);
 			FTDFlightInput In;
 			In.Throttle = 1.f;
+			In.bBoost = bBoost;
+			float MaxSpeed = 0.f;
 			for (int32 i = 0; i < FMath::RoundToInt(Fps * 10.f); ++i)
 			{
 				Ship->SetFlightInput(In);
 				W.Tick(1.f / Fps);
+				MaxSpeed = FMath::Max(MaxSpeed, (float)Ship->GetVelocity().Size());
+			}
+			if (bBoost)
+			{
+				TestTrue(*(Tag + FString::Printf(TEXT("really boosting (max %.0f cm/s)"), MaxSpeed)), MaxSpeed > Ship->GetShipMovement()->GetFlightTuning().CruiseSpeed * 0.75f);
 			}
 			TestEqual(*(Tag + TEXT("no contact with the terrain")), Counter->Impacts, 0);
 			TestTrue(*(Tag + FString::Printf(TEXT("still flying (%.0f cm/s)"), Ship->GetVelocity().Size())), Ship->GetVelocity().Size() > 1000.f);
