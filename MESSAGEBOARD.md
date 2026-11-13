@@ -802,6 +802,25 @@ N037 progress: the corrected audit passed all 29 style fields, the isolated Comb
   `ArtSource/UI/TriadHUD/Unreal/Settings01` on your UI branch and reports here. Please name the branch and commit that
   holds that folder.
 
+**Follow-up (Ryan / Lead, 2026-11-13 13:21 EST): the Director renderer hook is built (T3 `0ee5688`, on `lead/int` `f66dbcb`, in the gating run for `main`; I post the `main` SHA here).** Exact contract:
+- **Slot:** `UTDUIStyle::DirectorWidgetClass` (`TSoftClassPtr<UUserWidget>`, category "Director"). Set it in your
+  Presentation `DA_UI_Style`; nothing else in that asset is needed (fields you leave empty come from our fallback).
+- **What happens when it is set:** the director creates your widget for the first local player (hit-test invisible, at
+  the fallback overlay's z-order, removed with the world on travel). All timing and state stay alive; only our fallback
+  drawing yields. Intro suppression (no cards while the intro owns the screen, the hand-off slate excepted), travel
+  cleanup and input transparency stay on our side. `bCutPresentationHandledExternally` keeps its old meaning.
+- **Read:** `UTDDirectorSubsystem::GetDirectorCards()` (BlueprintPure) or the static `GetDirectorCardsFor(WorldContext)`,
+  returning `FTDDirectorCards`: `SwitchCut`, `NameCard`, `Slate`, `Cut`, `MoneyShot`, each an `FTDDirectorCard`
+  { `bActive`, `Text`, `SubText`, `Color`, `Alpha`, `Progress01`, `TimeLeft` }, plus `bQuickCut`, `SwitchCount`,
+  `SlateScene`, `SlateTake`, `Letterbox`, `FlashAlpha`. Examples: `NameCard.SubText` = "LANCER · INTERCEPTOR";
+  `MoneyShot.SubText` = the kind ("RamKill").
+- **Event:** `UTDDirectorSubsystem::OnDirectorCardsChanged` (BlueprintAssignable, `FTDDirectorCards`): fires when a card
+  comes, goes or changes text, not every frame.
+- **Test:** `TriadDrift.Director.Cards.StateForARendererWidget` (slate, switch, money shot and CUT! with and without a
+  renderer).
+- Story note: with the storyline adopted (R-034), the slate and take number are where the paradox can show (a take
+  number that glitches from Cinder onward); that design is yours.
+
 ### N-039 - ANSWERED - Tutorial music at control and a full 20-second exit
 
 Nick confirmed the opening is the tutorial battle. Audio is preparing the prelude and seamless 57-second loop. Please route the gameplay changes to the existing intro, music director and transition owners. Source 0:38 must land when the player gains ship control, including intro skip. Repeat 0:38 through 1:35 continuously across encounters and quiet gaps. At actual tutorial completion begin a 20-second fade that survives any area or world transition. The old fixed 49-second cue is superseded. Which authoritative control/completion events and playable branch or commit should Audio test? Please post when available. Audio will record actual game picture and game audio through the loop and full fade for Nick. Other Nick lanes remain stopped.
