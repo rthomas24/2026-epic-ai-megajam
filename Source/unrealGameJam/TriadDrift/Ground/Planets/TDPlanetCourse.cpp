@@ -695,7 +695,12 @@ void ATDPlanetCourse::BuildVerdance()
 	// The wreck: a broken hull nose-down in the ground, glowing breaks, debris to fight around.
 	// Collidable pieces turn in yaw only (a tilted box left an overhang the pilot got wedged under in playtest);
 	// the broken, tilted look comes from the non-colliding glow pieces.
-	Block(EShape::Cube, WreckSite + FVector(-600.f, 900.f, 350.f), FVector(2600.f, 900.f, 700.f), WreckMetal, 0.f, FRotator(0.f, 25.f, 0.f), true, TEXT("SM_Verd_Wreck_Hull"));
+	// The hull's collision hugs the art (Lead, Nov 13: the round-2 dropship's flanks sit 0.8-1.4 m inside a 9 m box
+	// at chest height, invisible walls): 7.5 m wide, the art kept at its true 26 x 9 x 7 m on the same base.
+	if (UStaticMeshComponent* Hull = Block(EShape::Cube, WreckSite + FVector(-600.f, 900.f, 350.f), FVector(2600.f, 750.f, 700.f), WreckMetal, 0.f, FRotator(0.f, 25.f, 0.f), true))
+	{
+		TDPropArt::Dress(Hull, ArtFor(TEXT("SM_Verd_Wreck_Hull")), false);
+	}
 	Block(EShape::Cube, WreckSite + FVector(-700.f, 900.f, 780.f), FVector(1800.f, 700.f, 160.f), WreckMetal, 0.f, FRotator(-12.f, 25.f, 8.f), false, TEXT("SM_Verd_Wreck_Wing"));
 	Block(EShape::Cylinder, WreckSite + FVector(900.f, -700.f, 350.f), FVector(700.f, 700.f, 700.f), WreckMetal, 0.f, FRotator(0.f, -30.f, 0.f), true, TEXT("SM_Verd_Wreck_Engine"));
 	Block(EShape::Cylinder, WreckSite + FVector(1100.f, -900.f, 700.f), FVector(500.f, 500.f, 900.f), WreckMetal, 0.f, FRotator(70.f, -30.f, 0.f), false, TEXT("SM_Verd_Wreck_Engine"));
@@ -799,6 +804,7 @@ void ATDPlanetCourse::BuildVerdance()
 	StepEncounters.Add({ Relay, 1, Drones });
 
 	ATDInteractableActor* RelayCore = SpawnProp<ATDInteractableActor>(Plateau + FVector(0.f, 0.f, PlateauTop + 75.f)); // 150 tall (scaled below), standing on the plateau
+	RelayCore->ConsoleMesh = TDPropArt::Default(TEXT("SM_Verd_RelayAltar")); // 200 x 200 x 150, the scale below
 	RelayCore->Prompt = LOCTEXT("RelayPrompt", "Awaken the relay");
 	RelayCore->HoldTime = 1.5f;
 	RelayCore->LinkedObjective = Relay;
@@ -1017,7 +1023,9 @@ void ATDPlanetCourse::BuildCinder()
 	FTDRetakeMercyTier Mercy5; Mercy5.FromTake = 5; Mercy5.HealthScale = 0.5f; Mercy5.MaxSummons = 0;
 	Arena->MercyTiers = { Mercy3, Mercy5 };
 
-	ATDInteractableActor* Prototype = SpawnProp<ATDInteractableActor>(FVector(XEnd - 700.f, Y0, 60.f));
+	// Screen toward the way the pilot comes in (the kit console's screen faces its +X).
+	ATDInteractableActor* Prototype = SpawnProp<ATDInteractableActor>(FVector(XEnd - 700.f, Y0, 70.f), FRotator(0.f, 180.f, 0.f));
+	Prototype->ConsoleMesh = TDPropArt::Default(TEXT("SM_Cind_PrototypeConsole")); // 160 x 160 x 140, the scale below
 	Prototype->Prompt = LOCTEXT("ClaimEmp", "Claim the EMP prototype");
 	Prototype->HoldTime = 1.5f;
 	Prototype->LinkedObjective = Outpost;

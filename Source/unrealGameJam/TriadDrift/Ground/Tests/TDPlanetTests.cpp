@@ -1086,7 +1086,8 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 				if (N->LinkedObjective != Relay || N->LinkedStep != 1 || N->WasUsed()) { continue; }
 				const FVector Dir = (N->GetActorLocation() - FVector(9200.f, -8200.f, 0.f)).GetSafeNormal2D();
 				P.RunTo(FVector(9200.f, -8200.f, 0.f) + Dir * 450.f, 80.f, 10.f, false);
-				P.JumpTo(N->GetActorLocation(), true, false, 0.6f);                   // onto the stub (+180)
+				// Onto the stub's rim in front of the console (+180), as a player does: not onto the 60 cm console itself.
+				P.JumpTo(N->GetActorLocation() - Dir * 105.f, true, false, 0.6f);
 				P.LookAt(N->GetActorLocation());
 				P.Tap(EKeys::E);
 				P.Tick(0.3f);
