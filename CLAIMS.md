@@ -83,6 +83,8 @@ Environment reserves port 8024 at the next native release after Audio and any al
 
 Assets & Mesh and the private Asset Manager are retired at Nicholas's request. All prior Nick-side intake and review assignments for those two roles and all grants are inactive. Ryan owns future asset management and selection (N-042). Preserve published checkpoints, source originals and private/unfinished work in place.
 
+Environment chat is closing for memory conservation after its handoff document. Its personal native grants are released. Lead takes over the existing post-Audio 8024 slot for the requested AirSlam completion, in the same claimed environment-vfx AirSlam01 source and Content roots and isolated Saved/H00 project after Environment stops. No simultaneous writers. Preserve the source checkpoint and failed run evidence. UI remains next after the slam window; Hero, Combat and Verdance stay parked.
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
