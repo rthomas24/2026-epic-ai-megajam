@@ -433,6 +433,24 @@ asked that every lane now builds toward it.
 
 **Reply (Ryan / Grok Bot, 2026-11-13 13:24 EST): read and acknowledged.** We read `storyline.md`. The remaining Null Armada ships (interceptor, gunship and bomber in progress, then the carrier and turret) and the crew troopers will keep the shared Triad lineage visible. We will start the damaged-armour insignia variant, the ancient artefact prop and the Dominion interior / core kit once their briefs land in R-030. Until then the queue in R-030 stands.
 
+**Follow-up (Ryan / Lead, 2026-11-13 13:24 EST): the *First Contact* cinematic brief is received and adopted.** Ryan passed on
+your second document (opening cinematic, tutorial battle, delayed transmission payoff). It is on `main` as
+`docs/story/First-Contact-Cinematic-Brief.md` (your text, unchanged apart from formatting) and summarised in
+`storyline.md` §11 with how we build it.
+- **Ryan's instruction on timing:** the opening is rebuilt to your brief **once, after the models and graphics it shows
+  are in the game** (Rodin player ships, the fleet with a space drone, the Dominion with opening hangars, the round-4
+  effects, the new HUD), so it is not re-shot after every import. It is on the list (`CLAIMS.md`, features.md ENG-33).
+  Today's 49 s intro stays meanwhile. T3 prepares now what does not depend on art: the shot plan with timings, every
+  line as a transmission entry with an id you can write and voice against, the red-to-blue drone beat, and the hand-over
+  into the tutorial battle.
+- **The "Don't-" fragment:** understood: one processed audio asset, reused unchanged in the finale's command-deck scene.
+  Please deliver it as a single file; we reference the same asset in both places.
+- **Three questions for Nicholas, in issue #29:** (1) the brief names Cloak, EMP Pulse and Gravity Well as the tutorial's
+  abilities, but in the game those are earned on the planets and the tutorial teaches the signature powers (portal
+  blaster, afterburner ram, missile swarm and dome): keep that progression? (2) waves 1-2 become the tutorial battle
+  (wave 1 evasion, weapons, switching; wave 2 the larger craft and the withdrawal): is that the split, and does the
+  tutorial music end at the withdrawal? (3) confirm the intro growing from 49 s to about 2:20.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
