@@ -108,6 +108,10 @@ def run(full=True,structural=False):
            ('09_weapon_detail','Port cannon and flush rocket bay',35,-10,True,[o for o in obs if o.get('part_name') in ['Primary_L','Rotor_L','Secondary_L'] or o.get('detail_for') in ['Primary_L','Rotor_L','Secondary_L']]),
            ('10_canopy_detail','Framed canopy',35,20,True,[o for o in obs if o.get('part_name')=='Canopy' or o.get('detail_for')=='Canopy']),
            ('11_dark_studio','Dark lighting / same model and emission',35,24,True,obs)]
+    if os.environ.get('LANCER_M03_SERVICE_VIEWS')=='1':
+        specs[10:10]=[
+            ('12_wing_service','Fitted wing access hatch and shoulder cooling grille',35,52,True,[o for o in obs if o.get('part_name')=='Wing_L' or o.get('detail_for')=='Wing_L']),
+            ('13_engine_service','Engine service saddle, pipes, clamps and fasteners',245,12,True,[o for o in obs if o.get('part_name')=='Engine_L' or o.get('detail_for')=='Engine_L'])]
     records=[];paths=[]
     for slug,title,az,el,persp,targets in specs:
         if not full and slug!='01_hero_front_3q':continue

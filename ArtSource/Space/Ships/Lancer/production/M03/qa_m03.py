@@ -71,7 +71,23 @@ def run():
                 native_imported=False,presentation_approved=False,gameplay_validated=False,elapsed_seconds=time.perf_counter()-started)
     report['legacy_manifest_unchanged']=hashlib.sha256((ROOT/'attachments.json').read_bytes()).hexdigest()==hashlib.sha256((P/'refs/legacy_attachments.json').read_bytes()).hexdigest()
     intent_path=os.environ.get('LANCER_M03_MATERIAL_INTENT')
-    if intent_path:
+    detail02_path=os.environ.get('LANCER_M03_DETAIL02_INTENT')
+    if detail02_path:
+        intent=json.loads(Path(detail02_path).read_text())
+        new_names={'SM_LancerM03_Service_'+p for p in ['Wing_L','Wing_R','Engine_L','Engine_R']}
+        assignment_ok=(intent['rule_id']=='detail02_service_armor_v1' and hashlib.sha256(Path(intent['source']).read_bytes()).hexdigest()==intent['source_sha256'] and len(intent['before'])==20 and set(names)==set(intent['before'])|new_names)
+        wear_parts={'Detail_Hull','Detail_Wing_L','Detail_Wing_R','Detail_Engine_L','Detail_Engine_R'}
+        for ob in obs:
+            actual=[ob.data.materials[f.material_index].name for f in ob.data.polygons]
+            if ob.name in intent['before']:
+                expected_roles=['M_LancerM03_Graphite' if old=='M_LancerM03_Titanium' and ob['part_name'] in wear_parts else old for old in intent['before'][ob.name]]
+            else:
+                expected_roles=intent['new_roles'][ob.name]
+                assignment_ok &= ob.get('detail_for') in ['Wing_L','Wing_R','Engine_L','Engine_R'] and set(actual)<={'M_LancerM03_'+r for r in ['Graphite','Gunmetal','Titanium','Composite']}
+            assignment_ok &= len(actual)==len(expected_roles) and actual==expected_roles
+        report['material_assignment_pass']=bool(assignment_ok)
+        report['material_assignment_mode']='Detail02 fixed selective painted-chamfer remap on prior detail only; new service-part role arrays checked; approved base role assignments unchanged'
+    elif intent_path:
         intent=json.loads(Path(intent_path).read_text())
         assignment_ok=intent['rule_id']=='armor_paint_v1' and hashlib.sha256(Path(intent['source']).read_bytes()).hexdigest()==intent['source_sha256'] and set(intent['before'])==set(names)
         for ob in obs:
@@ -88,7 +104,7 @@ def run():
         report['material_assignment_pass']=len(mc)==8 and all(c['passed'] and c['before_role_face_counts']==c['after_role_face_counts'] for c in mc)
     roles={o.get('part_name'):{o.data.materials[f.material_index].name for f in o.data.polygons} for o in obs}
     expected={'Canopy':{'Canopy','Graphite'},'Engine_L':{'Blue','Composite','Titanium','Gunmetal'},'Rotor_L':{'Blue','Titanium','Gunmetal'}}
-    if intent_path:expected['Engine_L']={'Blue','Composite','Titanium','Graphite'}
+    if intent_path or detail02_path:expected['Engine_L']={'Blue','Composite','Titanium','Graphite'}
     report['material_assignment_pass'] &= all({'M_LancerM03_'+v for v in values}<=roles[part] for part,values in expected.items())
     report['technical_pass']=all(report[k] for k in ['material_assignment_pass','geometry_pass','contact_pass','attachment_pass','ray_pass','unit_positive_scale','panel_tint_present','emissive_area_pass','material_parameters_pass','legacy_manifest_unchanged']) and len(faces)<=60000
     write('validation_summary.json',report)
