@@ -76,6 +76,8 @@ struct UNREALGAMEJAM_API FTDFlightContext
 	/** Box play space instead of the sphere (atmosphere zones: soft walls + ceiling). */
 	bool bBoxBoundary = false;
 	FBox BoundaryBox = FBox(ForceInit);
+	/** Box zones: the walls' warning band (cm); <= 0 uses FTDFlightTuning::BoundaryWarnDistance. The ceiling keeps the tuning's. */
+	float BoxWallWarnDistance = -1.f;
 
 	/** Atmosphere flight (ENG-20): gravity, capped speed, no boost. */
 	bool bAtmosphere = false;

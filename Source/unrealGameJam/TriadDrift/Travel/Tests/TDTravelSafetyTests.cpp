@@ -1210,28 +1210,34 @@ bool FTDTravelZoneFitsTerrain::RunTest(const FString& Parameters)
 	const float Core = Terrain->GetField()->GetStyle().CoreHalfSize;
 	AddInfo(FString::Printf(TEXT("zone %.1f x %.1f km, z %.0f..%.0f m (was %.1f km, ceiling %.0f m)"), After.GetSize().X / 1e5f, After.GetSize().Y / 1e5f,
 		After.Min.Z / 100.f, After.Max.Z / 100.f, Before.GetSize().X / 1e5f, Before.Max.Z / 100.f));
-	TestTrue(TEXT("covers the whole 16 km core plus the extension"), After.Max.X >= Core + Zone->TerrainEdgeExtension - 1.f && After.Min.Y <= -(Core + Zone->TerrainEdgeExtension) + 1.f);
+	// Ryan's one dressed zone (Nov 13): exactly +-5 km around the pad, inside the 8 km collision core.
+	TestTrue(TEXT("the dressed zone: +-5 km around the pad"), FMath::IsNearlyEqual(After.Max.X, Zone->DressedHalfSize, 1.f) && FMath::IsNearlyEqual(After.Min.Y, -Zone->DressedHalfSize, 1.f) && Zone->DressedHalfSize < Core);
+	TestTrue(TEXT("ceiling at least 1.6 km over the pad"), After.Max.Z >= Zone->DressedCeilingAbovePad - 1.f);
 	TestTrue(TEXT("the floor is unchanged"), FMath::IsNearlyEqual(After.Min.Z, Before.Min.Z, 1.f));
 	// No ground inside the zone reaches the ceiling (sampled finer than the fit).
 	float MaxGround = -1e9f;
+	FVector MaxAt = FVector::ZeroVector;
 	for (int32 iy = -60; iy <= 60; ++iy)
 	{
 		for (int32 ix = -60; ix <= 60; ++ix)
 		{
 			const FVector P(After.Max.X * ix / 60.f, After.Max.Y * iy / 60.f, 0.f);
-			MaxGround = FMath::Max(MaxGround, Terrain->GetHeightAt(P));
+			const float G = Terrain->GetHeightAt(P);
+			if (G > MaxGround) { MaxGround = G; MaxAt = P; }
 		}
 	}
-	TestTrue(FString::Printf(TEXT("ceiling %.0f m clears the highest ground %.0f m by 200 m+"), After.Max.Z / 100.f, MaxGround / 100.f), After.Max.Z >= MaxGround + 20000.f);
+	AddInfo(FString::Printf(TEXT("highest ground %.0f m at (%.2f, %.2f) km; box X %.2f..%.2f Y %.2f..%.2f km"), MaxGround / 100.f, MaxAt.X / 1e5f, MaxAt.Y / 1e5f, After.Min.X / 1e5f, After.Max.X / 1e5f, After.Min.Y / 1e5f, After.Max.Y / 1e5f));
+	// 150 m: the fit samples every ~50 m and adds 400 m; a needle of ground narrower than the grid can eat into that.
+	TestTrue(FString::Printf(TEXT("ceiling %.0f m clears the highest ground %.0f m by 150 m+"), After.Max.Z / 100.f, MaxGround / 100.f), After.Max.Z >= MaxGround + 15000.f);
 	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelNoBoundaryInTheWorld, "TriadDrift.Travel.Safety.NoBoundaryAnywhereInTheWorld", TD_TEST_FLAGS)
 bool FTDTravelNoBoundaryInTheWorld::RunTest(const FString& Parameters)
 {
-	// Lead (T4's captures, Nov 13): "BOUNDARY" showed at 300 m altitude ~1 km from the pad. The whole 16 km world is
-	// flyable: no boundary state anywhere inside +-8 km at any altitude below the ceiling, at boost speed; the
-	// turn-back only past the world's edge. Beyond the collision core the ship stays above the generated ground.
+	// Lead (T4's captures, Nov 13): "BOUNDARY" showed at 300 m altitude ~1 km from the pad. Since Ryan's one dressed
+	// zone (Nov 13): no boundary state anywhere within 4 km of the pad below the ceiling, at boost speed; the warning
+	// from 4 km, the turn-back past 5 km (a banked turn), always above the ground.
 	FTDTestWorld W;
 	ATDAtmosphereFlightZone* Zone = W.Spawn<ATDAtmosphereFlightZone>(FVector(0.f, 0.f, 59500.f));
 	if (!TestNotNull(TEXT("zone"), Zone)) { return false; }
@@ -1248,9 +1254,10 @@ bool FTDTravelNoBoundaryInTheWorld::RunTest(const FString& Parameters)
 	UTDShipMovementComponent* Move = Ship->GetShipMovement();
 	struct FSpot { float XKm, YKm; float AboveGroundM; bool bExpectEdge; };
 	const FSpot Spots[] = {
-		{ 1.f, 0.f, 300.f, false }, { 0.f, -4.f, 300.f, false }, { 7.9f, 0.f, 300.f, false }, { -7.9f, 7.9f, 300.f, false },
-		{ 0.f, 7.9f, 120.f, false }, { 4.5f, 4.5f, -1.f, false }, // -1: 600 m under the ceiling (the ceiling itself warns)
-		{ 8.3f, 0.f, 300.f, true }, { 0.f, -8.3f, 120.f, true } };
+		{ 1.f, 0.f, 300.f, false }, { 0.f, -3.8f, 300.f, false }, { -2.6f, 2.6f, 300.f, false },
+		{ 0.f, 3.8f, 120.f, false }, { 2.4f, 2.4f, -1.f, false }, // -1: 600 m under the ceiling (the ceiling itself warns)
+		{ 0.f, 4.5f, 300.f, true }, // the warning band (4 to 5 km)
+		{ 5.3f, 0.f, 300.f, true }, { 0.f, -5.3f, 120.f, true } };
 	for (const FSpot& S : Spots)
 	{
 		const FVector XY(S.XKm * 100000.f, S.YKm * 100000.f, 0.f);
@@ -1272,13 +1279,22 @@ bool FTDTravelNoBoundaryInTheWorld::RunTest(const FString& Parameters)
 		}
 		if (S.bExpectEdge)
 		{
-			TestTrue(*(Tag + TEXT("past the world's edge: the turn-back")), bEdge);
+			TestTrue(*(Tag + TEXT("past 4 km: the edge warning or the turn-back")), bEdge);
 			TestTrue(*(Tag + TEXT("... and never inside the (collision-less) far ground")), Ship->GetActorLocation().Z >= Terrain->GetHeightAt(Ship->GetActorLocation()));
 		}
 		else
 		{
 			TestFalse(*(Tag + TEXT("no boundary warning")), bEdge);
 		}
+	}
+	// The turn-back banks into the turn (heading out at 45 degrees past 5 km): it reads as a banked turn, not a wall.
+	{
+		const FVector XY(560000.f, 0.f, 0.f);
+		Ship->TeleportSpacecraft(FVector(XY.X, XY.Y, Terrain->GetHeightAt(XY) + 30000.f), FRotator(0.f, 45.f, 0.f), false);
+		float MaxRoll = 0.f;
+		for (int32 i = 0; i < 60; ++i) { Ship->SetFlightInput(In); W.Tick(); MaxRoll = FMath::Max(MaxRoll, (float)FMath::Abs(Ship->GetActorRotation().Roll)); }
+		AddInfo(FString::Printf(TEXT("turn-back bank up to %.1f deg"), MaxRoll));
+		TestTrue(TEXT("the turn-back banks (5 to 30 deg)"), MaxRoll > 5.f && MaxRoll <= 30.f);
 	}
 	return true;
 }

@@ -12,6 +12,7 @@
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -396,7 +397,26 @@ void ATDAtmosphereFlightZone::ApplyToShip(ATDShip* Ship, bool bExitOpen)
 			Hyper->CancelSpool();
 		}
 	}
-	Move->SetBoxBoundary(Box);
+	Move->SetBoxBoundary(Box, bFittedToTerrain && bDressedZone ? DressedWallWarnDistance : -1.f);
+	// The edge in words: a wingman calls the turn when the player first reaches the warning band.
+	if (Ship->IsPlayerFlown())
+	{
+		const bool bNear = Move->GetBoundaryState() != ETDBoundaryState::Inside;
+		const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+		if (bNear && !bWasNearEdge && Now - LastEdgeBarkTime >= EdgeBarkInterval)
+		{
+			LastEdgeBarkTime = Now;
+			for (TActorIterator<ATDSquadManager> It(GetWorld()); It; ++It)
+			{
+				for (const ETDShipId Id : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+				{
+					if (Id != It->GetActiveShipId()) { It->RequestSquadBark(TEXT("Bark_Boundary"), Id, ETDBarkPriority::Critical); break; }
+				}
+				break;
+			}
+		}
+		bWasNearEdge = bNear;
+	}
 	if (ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(Ship->GetController()))
 	{
 		PC->SetFlightContext(ETDFlightContext::Atmosphere);
@@ -413,11 +433,11 @@ void ATDAtmosphereFlightZone::FitToTerrain(const ATDPlanetTerrain* Terrain)
 	}
 	TerrainCoreHalf = Field->GetStyle().CoreHalfSize;
 	FittedTerrain = Terrain;
-	const float Half = FMath::Max(10000.f, TerrainCoreHalf + TerrainEdgeExtension);
+	const float Half = bDressedZone ? DressedHalfSize : FMath::Max(10000.f, TerrainCoreHalf + TerrainEdgeExtension);
 	const FVector O = Terrain->GetActorLocation();
-	// Highest ground in the zone (a coarse grid: ~200 m spacing; the clearance covers what falls between samples).
+	// Highest ground in the zone (a grid of about 50 m, at most 240 x 240; the clearance covers what falls between).
 	float MaxZ = O.Z;
-	constexpr int32 N = 80;
+	const int32 N = FMath::Clamp(FMath::CeilToInt(2.f * Half / 5000.f), 80, 240);
 	for (int32 iy = 0; iy <= N; ++iy)
 	{
 		for (int32 ix = 0; ix <= N; ++ix)
@@ -431,11 +451,21 @@ void ATDAtmosphereFlightZone::FitToTerrain(const ATDPlanetTerrain* Terrain)
 	{
 		ExitAltitudeAboveGround = Box.Max.Z - Box.Min.Z; // the take-off climb stays as it was before the terrain
 	}
-	Box.Min.X = FMath::Min(Box.Min.X, O.X - Half);
-	Box.Min.Y = FMath::Min(Box.Min.Y, O.Y - Half);
-	Box.Max.X = FMath::Max(Box.Max.X, O.X + Half);
-	Box.Max.Y = FMath::Max(Box.Max.Y, O.Y + Half);
-	Box.Max.Z = FMath::Max(Box.Max.Z, MaxZ + TerrainCeilingClearance);
+	if (bDressedZone)
+	{
+		// One dressed zone: exactly DressedHalfSize around the pad, a low ceiling that still clears the ground in it.
+		Box.Min.X = O.X - Half; Box.Max.X = O.X + Half;
+		Box.Min.Y = O.Y - Half; Box.Max.Y = O.Y + Half;
+		Box.Max.Z = FMath::Max(O.Z + DressedCeilingAbovePad, MaxZ + TerrainCeilingClearance);
+	}
+	else
+	{
+		Box.Min.X = FMath::Min(Box.Min.X, O.X - Half);
+		Box.Min.Y = FMath::Min(Box.Min.Y, O.Y - Half);
+		Box.Max.X = FMath::Max(Box.Max.X, O.X + Half);
+		Box.Max.Y = FMath::Max(Box.Max.Y, O.Y + Half);
+		Box.Max.Z = FMath::Max(Box.Max.Z, MaxZ + TerrainCeilingClearance);
+	}
 	SetActorLocation(Box.GetCenter());
 	SetZoneExtent(Box.GetExtent());
 	bFittedToTerrain = true;
@@ -473,7 +503,7 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 		TerrainPoll = 1.f;
 		for (TActorIterator<ATDPlanetTerrain> It(GetWorld()); It; ++It)
 		{
-			FitToTerrain(*It);
+			if (It->GetChunkCount() > 0) { FitToTerrain(*It); } // its field is final once it has built (it waits for the course)
 			break;
 		}
 	}
