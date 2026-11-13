@@ -30,6 +30,7 @@
 #include "Animation/AnimMontage.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInterface.h"
@@ -301,6 +302,46 @@ namespace TDGroundDebug
 	}
 	static FAutoConsoleCommandWithWorldAndArgs CmdNear(TEXT("TD.Ground.Near"), TEXT("TD.Ground.Near X Y Z [Radius]: list rendered primitives near a point."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Near));
+	// TD.Ground.CourseBounds: everything the course placed (its own shapes and every spawned actor), in world space and
+	// in the course's (pad's) local frame, with the overall box: what procedural terrain must keep flat (ENG-34, T4).
+	static void CourseBounds(const TArray<FString>& Args, UWorld* World)
+	{
+		for (TActorIterator<ATDPlanetCourse> It(World); It; ++It)
+		{
+			const FTransform Xf = It->GetActorTransform();
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Course %s at %s yaw %.1f"), *It->GetName(), *Xf.GetLocation().ToCompactString(), Xf.Rotator().Yaw);
+			FBox All(ForceInit);
+			auto Report = [&](const AActor* A, const UPrimitiveComponent* P)
+			{
+				const FBox B = P->Bounds.GetBox();
+				if (B.GetSize().GetMax() > 30000.f) { return; } // the ground slab
+				All += B;
+				const FVector L = Xf.InverseTransformPosition(B.GetCenter());
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.CourseItem %s.%s %s world=%s size=%s local=%s zmin=%.0f zmax=%.0f collide=%d"), *A->GetName(), *P->GetName(),
+					*A->GetClass()->GetName(), *B.GetCenter().ToCompactString(), *B.GetSize().ToCompactString(), *L.ToCompactString(), (float)B.Min.Z, (float)B.Max.Z,
+					P->GetCollisionEnabled() != ECollisionEnabled::NoCollision);
+			};
+			TArray<UPrimitiveComponent*> Own;
+			It->GetComponents(Own);
+			for (const UPrimitiveComponent* P : Own) { if (P && P->IsRegistered()) { Report(*It, P); } }
+			for (const TObjectPtr<AActor>& A : It->GetSpawned())
+			{
+				if (!A) { continue; }
+				TArray<UPrimitiveComponent*> Prims;
+				A->GetComponents(Prims);
+				FBox ActorBox(ForceInit);
+				for (const UPrimitiveComponent* P : Prims) { if (P && P->IsRegistered() && P->Bounds.GetBox().GetSize().GetMax() < 30000.f) { ActorBox += P->Bounds.GetBox(); } }
+				if (!ActorBox.IsValid) { UE_LOG(LogTriadDrift, Display, TEXT("TD.CourseItem %s %s at %s (no shape)"), *A->GetName(), *A->GetClass()->GetName(), *A->GetActorLocation().ToCompactString()); continue; }
+				All += ActorBox;
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.CourseItem %s %s world=%s size=%s local=%s zmin=%.0f zmax=%.0f"), *A->GetName(), *A->GetClass()->GetName(),
+					*ActorBox.GetCenter().ToCompactString(), *ActorBox.GetSize().ToCompactString(), *Xf.InverseTransformPosition(ActorBox.GetCenter()).ToCompactString(),
+					(float)ActorBox.Min.Z, (float)ActorBox.Max.Z);
+			}
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.CourseAll world min=%s max=%s size=%s"), *All.Min.ToCompactString(), *All.Max.ToCompactString(), *All.GetSize().ToCompactString());
+		}
+	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdCourseBounds(TEXT("TD.Ground.CourseBounds"), TEXT("Log every course shape and spawned actor with bounds (world and course-local)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&CourseBounds));
 	static FAutoConsoleCommandWithWorldAndArgs CmdArt(TEXT("TD.Ground.Art"), TEXT("Log every kit-dressed shape: art vs collision box (tops, bottoms, centres)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Art));
 	static FAutoConsoleCommandWithWorldAndArgs CmdThird(TEXT("TD.Ground.ThirdPerson"), TEXT("TD.Ground.ThirdPerson [0|1]: switch the on-foot camera (not saved)."),

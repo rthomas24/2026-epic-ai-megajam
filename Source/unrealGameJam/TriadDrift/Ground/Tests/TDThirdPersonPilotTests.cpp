@@ -385,4 +385,44 @@ bool FTDTPPilotPausedSwitch::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Lead, Nov 13 (third-person playthrough: a pilot on the wreck console was out of every melee crewman's reach): a pilot
+// dropped onto a console - the small 60 x 60 x 120 one or the 200 x 200 x 150 altar - is on the ground within ~1 s.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDConsoleNotStandable, "TriadDrift.Ground.NobodyStandsOnAConsole", TD_TEST_FLAGS)
+bool FTDConsoleNotStandable::RunTest(const FString& Parameters)
+{
+	TDThirdPersonPilotTest::FScene T(false);
+	if (!TestTrue(TEXT("scene"), T.Ok())) { return false; }
+	struct FCase { const TCHAR* Name; FVector Scale; };
+	for (const FCase& Case : { FCase{ TEXT("console"), FVector(0.6f, 0.6f, 1.2f) }, FCase{ TEXT("altar"), FVector(2.f, 2.f, 1.5f) } })
+	{
+		ATDInteractableActor* Console = T.W.Spawn<ATDInteractableActor>(FVector(600.f, 0.f, Case.Scale.Z * 50.f));
+		if (!TestNotNull(Case.Name, Console)) { return false; }
+		Console->SetActorScale3D(Case.Scale);
+		T.W.Tick(1.f / 60.f);
+		const float Top = (float)Console->Mesh->Bounds.GetBox().Max.Z;
+		const float Half = (float)Console->Mesh->Bounds.GetBox().GetExtent().X;
+		// Beside it, run at it and double jump onto it, as a player would.
+		T.P->SetActorLocation(FVector(600.f - Half - 60.f, 0.f, 95.f), false, nullptr, ETeleportType::TeleportPhysics);
+		T.PC->SetControlRotation(FRotator::ZeroRotator);
+		T.W.Advance(0.3f);
+		T.P->SetMoveInput(FVector2D(0.f, 1.f));
+		T.P->TryJump();
+		T.W.Advance(0.3f);
+		T.P->TryJump();
+		float Highest = -1e9f;
+		for (int32 i = 0; i < 72; ++i) // 1.2 s
+		{
+			T.W.Tick(1.f / 60.f);
+			Highest = FMath::Max(Highest, (float)(T.P->GetActorLocation().Z - T.P->GetSimpleCollisionHalfHeight()));
+		}
+		T.P->SetMoveInput(FVector2D::ZeroVector);
+		const float Feet = (float)(T.P->GetActorLocation().Z - T.P->GetSimpleCollisionHalfHeight());
+		TestTrue(*FString::Printf(TEXT("%s: the jump got high enough to try (feet reached %.0f cm, top %.0f)"), Case.Name, Highest, Top), Highest > Top - 40.f || Top > 140.f);
+		TestTrue(*FString::Printf(TEXT("%s: not on the %.0f cm top - on the ground (feet at %.0f cm)"), Case.Name, Top, Feet), Feet < 20.f);
+		Console->Destroy();
+		T.W.Tick(1.f / 60.f);
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
