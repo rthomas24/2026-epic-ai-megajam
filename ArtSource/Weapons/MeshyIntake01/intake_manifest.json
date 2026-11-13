@@ -1,0 +1,321 @@
+{
+  "agent": "Assets & Mesh Agent",
+  "task": "Five-weapon Unreal import handoff",
+  "authority": "Nick directly requested weapons imported into project; manager confirms these five excluded from its queue",
+  "state": "VERIFIED FEATURE-BRANCH PROJECT CONTENT; NOT MAIN/GAMEPLAY/LOOK ACCEPTANCE",
+  "proposed_paths_not_yet_claimed": false,
+  "claim_published_commit": "11f403292de2d366f7e0fcc7157a73026bd5f9ac",
+  "proposed_source_root": "ArtSource/Weapons/MeshyIntake01/",
+  "proposed_native_root": "Content/TriadDrift/Art/Weapons/MeshyIntake01/",
+  "assets": [
+    {
+      "name": "NeonPulseRifle",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Neon_Pulse_Rifle_1113032013_texture.glb",
+      "sha256": "23c75a02551dce605320891b436ab12fe61cd513a7909d20b958f230025ff80d",
+      "bytes": 17973048,
+      "mtime_ns": 1794540014757033300,
+      "triangles": 195919,
+      "dimensions_gltf_m": [
+        1.8994399905204773,
+        0.5724030435085297,
+        0.16268151998519897
+      ],
+      "materials": 1,
+      "image_count": 4,
+      "has_emissive_map": true,
+      "skinned": false,
+      "animated": false,
+      "proposed_destination": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/NeonPulseRifle",
+      "proposed_mesh_name": "SM_WPN_NeonPulseRifle",
+      "imported": true,
+      "status": "Project Content copied and clean clone reload verified; feature branch; look/gameplay not accepted",
+      "staged": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\source\\Meshy_AI_Neon_Pulse_Rifle_1113032013_texture.glb",
+      "extracted_textures": [
+        {
+          "role": "BC",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\NeonPulseRifle\\T_WPN_NeonPulseRifle_BC.jpg",
+          "sha256": "1397a9755b9c5f831a1e55023e90e8e4218cf5ff405c32d718d848ff12e68890",
+          "bytes": 4568623,
+          "srgb": true,
+          "channels": null,
+          "normal_convention": null
+        },
+        {
+          "role": "MR",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\NeonPulseRifle\\T_WPN_NeonPulseRifle_MR.jpg",
+          "sha256": "2073dda6ac5cd53c7f55c5a27ebff8d2c128c1062642ac71270c0302ff878fe3",
+          "bytes": 2361222,
+          "srgb": false,
+          "channels": "G=roughness,B=metallic",
+          "normal_convention": null
+        },
+        {
+          "role": "N",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\NeonPulseRifle\\T_WPN_NeonPulseRifle_N.jpg",
+          "sha256": "cfc9d1c1b675c37a9df26932cedf996ac83e1342d65198935c61e5594639be9d",
+          "bytes": 3954688,
+          "srgb": false,
+          "channels": null,
+          "normal_convention": "glTF OpenGL; no manual flip before direct GLB import"
+        },
+        {
+          "role": "E",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\NeonPulseRifle\\T_WPN_NeonPulseRifle_E.jpg",
+          "sha256": "7d192d2846dccfda249e05d681dd3c90c56021e1f14096735909c7304afc8440",
+          "bytes": 937311,
+          "srgb": true,
+          "channels": null,
+          "normal_convention": null
+        }
+      ],
+      "project_content_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\Content\\TriadDrift\\Art\\Weapons\\MeshyIntake01\\NeonPulseRifle",
+      "project_clone_technical_pass": true
+    },
+    {
+      "name": "RuststeelAssaultRifle",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture.glb",
+      "sha256": "1e4f1753ef5d822b93349648278fbeeb0f5ca50ce65e86b51a231d13aab4507f",
+      "bytes": 39140948,
+      "mtime_ns": 1794539916887747900,
+      "triangles": 201907,
+      "dimensions_gltf_m": [
+        1.8993470072746277,
+        0.7742091119289398,
+        0.22658903151750565
+      ],
+      "materials": 1,
+      "image_count": 3,
+      "has_emissive_map": false,
+      "skinned": false,
+      "animated": false,
+      "proposed_destination": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle",
+      "proposed_mesh_name": "SM_WPN_RuststeelAssaultRifle",
+      "imported": true,
+      "status": "Project Content copied and clean clone reload verified; feature branch; look/gameplay not accepted",
+      "staged": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\source\\Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture.glb",
+      "extracted_textures": [
+        {
+          "role": "BC",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\RuststeelAssaultRifle\\T_WPN_RuststeelAssaultRifle_BC.jpg",
+          "sha256": "f054b08d7596bf6d773a8c5ebfedb77681af704bcd116a973e8ae0841eeec922",
+          "bytes": 14782956,
+          "srgb": true,
+          "channels": null,
+          "normal_convention": null
+        },
+        {
+          "role": "MR",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\RuststeelAssaultRifle\\T_WPN_RuststeelAssaultRifle_MR.jpg",
+          "sha256": "ee1df44a571566e3ffd97224443373b2963510371fbc84bd793adbdae359f327",
+          "bytes": 2010701,
+          "srgb": false,
+          "channels": "G=roughness,B=metallic",
+          "normal_convention": null
+        },
+        {
+          "role": "N",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\RuststeelAssaultRifle\\T_WPN_RuststeelAssaultRifle_N.jpg",
+          "sha256": "808ffe654a21cf281c0db25dbb2d955248f0d180655650cfbf71a22a44f4c406",
+          "bytes": 15932021,
+          "srgb": false,
+          "channels": null,
+          "normal_convention": "glTF OpenGL; no manual flip before direct GLB import"
+        }
+      ],
+      "project_content_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\Content\\TriadDrift\\Art\\Weapons\\MeshyIntake01\\RuststeelAssaultRifle",
+      "project_clone_technical_pass": true
+    },
+    {
+      "name": "CrimsonRiftSniper",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_Crimson_Rift_Sniper_1113001105_texture.glb",
+      "sha256": "d9b631889a28e76e4b0ac158f89b959874c62951a2623211cc8aaea4dbc1fdec",
+      "bytes": 49352376,
+      "mtime_ns": 1794539851828703100,
+      "triangles": 388364,
+      "dimensions_gltf_m": [
+        1.899459958076477,
+        0.7575120031833649,
+        0.17968299984931946
+      ],
+      "materials": 1,
+      "image_count": 4,
+      "has_emissive_map": true,
+      "skinned": false,
+      "animated": false,
+      "proposed_destination": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper",
+      "proposed_mesh_name": "SM_WPN_CrimsonRiftSniper",
+      "imported": true,
+      "status": "Project Content copied and clean clone reload verified; feature branch; look/gameplay not accepted",
+      "staged": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\source\\Meshy_AI_Crimson_Rift_Sniper_1113001105_texture.glb",
+      "extracted_textures": [
+        {
+          "role": "BC",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\CrimsonRiftSniper\\T_WPN_CrimsonRiftSniper_BC.jpg",
+          "sha256": "cfd2b8de30c5520f7bcddb27cae1d82cdb79aaeeed2581c82d329589839bdf3d",
+          "bytes": 17304024,
+          "srgb": true,
+          "channels": null,
+          "normal_convention": null
+        },
+        {
+          "role": "MR",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\CrimsonRiftSniper\\T_WPN_CrimsonRiftSniper_MR.jpg",
+          "sha256": "1e643c4bec6d15508e78e128c93a6c95d2a5acfbbbb19ad50e9b0589be5e7285",
+          "bytes": 2759085,
+          "srgb": false,
+          "channels": "G=roughness,B=metallic",
+          "normal_convention": null
+        },
+        {
+          "role": "N",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\CrimsonRiftSniper\\T_WPN_CrimsonRiftSniper_N.jpg",
+          "sha256": "b6229a4157a2c291fecc1f9e2a266ef0f4fe06528330d6406299bf0820e08de6",
+          "bytes": 16953621,
+          "srgb": false,
+          "channels": null,
+          "normal_convention": "glTF OpenGL; no manual flip before direct GLB import"
+        },
+        {
+          "role": "E",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\CrimsonRiftSniper\\T_WPN_CrimsonRiftSniper_E.jpg",
+          "sha256": "4ee929aa068cde6897ec1923d531bd74691dc2d6530e415735a63c4153dd2ef8",
+          "bytes": 538776,
+          "srgb": true,
+          "channels": null,
+          "normal_convention": null
+        }
+      ],
+      "project_content_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\Content\\TriadDrift\\Art\\Weapons\\MeshyIntake01\\CrimsonRiftSniper",
+      "project_clone_technical_pass": true
+    },
+    {
+      "name": "PlasmaRifle",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_plasma_rifle_1113031714_texture.glb",
+      "sha256": "32d74f36782cc102ee41f4283fababf3ef0a516dd038f7810a7c5c0cb44bb6ff",
+      "bytes": 27251844,
+      "mtime_ns": 1794539835960743200,
+      "triangles": 544893,
+      "dimensions_gltf_m": [
+        1.8994389772415161,
+        0.6170540452003479,
+        0.18215801566839218
+      ],
+      "materials": 1,
+      "image_count": 3,
+      "has_emissive_map": false,
+      "skinned": false,
+      "animated": false,
+      "proposed_destination": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle",
+      "proposed_mesh_name": "SM_WPN_PlasmaRifle",
+      "imported": true,
+      "status": "Project Content copied and clean clone reload verified; feature branch; look/gameplay not accepted",
+      "staged": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\source\\Meshy_AI_plasma_rifle_1113031714_texture.glb",
+      "extracted_textures": [
+        {
+          "role": "BC",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\PlasmaRifle\\T_WPN_PlasmaRifle_BC.jpg",
+          "sha256": "043b9b38fed3ceb74e8371a5efd90121d53586b3a9eba4748cfafd38bea5abcf",
+          "bytes": 4106717,
+          "srgb": true,
+          "channels": null,
+          "normal_convention": null
+        },
+        {
+          "role": "MR",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\PlasmaRifle\\T_WPN_PlasmaRifle_MR.jpg",
+          "sha256": "edff30fd949cc3a2aa327be6ac44fb5c2ec3f17649a52fd89c449f4daf892472",
+          "bytes": 2319968,
+          "srgb": false,
+          "channels": "G=roughness,B=metallic",
+          "normal_convention": null
+        },
+        {
+          "role": "N",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\PlasmaRifle\\T_WPN_PlasmaRifle_N.jpg",
+          "sha256": "ba0bafbba0be894d0c05e0782a585154ef20d9c1fe88a3244bbdef777da5613c",
+          "bytes": 3756942,
+          "srgb": false,
+          "channels": null,
+          "normal_convention": "glTF OpenGL; no manual flip before direct GLB import"
+        }
+      ],
+      "project_content_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\Content\\TriadDrift\\Art\\Weapons\\MeshyIntake01\\PlasmaRifle",
+      "project_clone_technical_pass": true
+    },
+    {
+      "name": "UnlabelledRifle01",
+      "original": "C:\\Users\\nicho\\Downloads\\Meshy_AI_make_it_3d_rote_to__1113032038_texture.glb",
+      "sha256": "3d368ccbfbf17c81dbcfe5848d755ea2f8a98fe2b7d0c025add5141604520ed6",
+      "bytes": 53066912,
+      "mtime_ns": 1794540041940643700,
+      "triangles": 879930,
+      "dimensions_gltf_m": [
+        1.9043140411376953,
+        0.7129800021648407,
+        0.1823970004916191
+      ],
+      "materials": 1,
+      "image_count": 3,
+      "has_emissive_map": false,
+      "skinned": false,
+      "animated": false,
+      "proposed_destination": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/UnlabelledRifle01",
+      "proposed_mesh_name": "SM_WPN_UnlabelledRifle01",
+      "imported": true,
+      "status": "Project Content copied and clean clone reload verified; feature branch; look/gameplay not accepted",
+      "staged": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\source\\Meshy_AI_make_it_3d_rote_to__1113032038_texture.glb",
+      "extracted_textures": [
+        {
+          "role": "BC",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\UnlabelledRifle01\\T_WPN_UnlabelledRifle01_BC.jpg",
+          "sha256": "fe7088d427e56ad5e45e984f34676e8c5f783779fbd60e13ed4879c7bfd4c898",
+          "bytes": 14116479,
+          "srgb": true,
+          "channels": null,
+          "normal_convention": null
+        },
+        {
+          "role": "MR",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\UnlabelledRifle01\\T_WPN_UnlabelledRifle01_MR.jpg",
+          "sha256": "39808086da3f28cd6d21d301a337ac237e27238204613a0c26ba9068ed081c07",
+          "bytes": 2808803,
+          "srgb": false,
+          "channels": "G=roughness,B=metallic",
+          "normal_convention": null
+        },
+        {
+          "role": "N",
+          "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\textures\\UnlabelledRifle01\\T_WPN_UnlabelledRifle01_N.jpg",
+          "sha256": "d4c9cabf35ca1fc67046af21acf84ce3e124539f860fa61cf41b184d44c3f6a2",
+          "bytes": 10059187,
+          "srgb": false,
+          "channels": null,
+          "normal_convention": "glTF OpenGL; no manual flip before direct GLB import"
+        }
+      ],
+      "project_content_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\Content\\TriadDrift\\Art\\Weapons\\MeshyIntake01\\UnlabelledRifle01",
+      "project_clone_technical_pass": true
+    }
+  ],
+  "preserved_originals": true,
+  "other_manager_host_read_only": "C:/Users/nicho/AppData/Local/TriadDriftAssetPilot/Pilot_20261112_2233/",
+  "pilot_assets_excluded": [
+    "CrimsonTempest",
+    "SentinelArmor"
+  ],
+  "no_gameplay_binding": true,
+  "no_main_merge_authority": true,
+  "claimed_source_root": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01",
+  "claimed_native_root": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\Content\\TriadDrift\\Art\\Weapons\\MeshyIntake01",
+  "branch": "nick/assets-weapons-intake",
+  "base_commit": "11f403292de2d366f7e0fcc7157a73026bd5f9ac",
+  "expected_static_meshes": 5,
+  "expected_texture_assets": 17,
+  "expected_min_materials": 5,
+  "project_clone_report": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\evidence\\project_clone_report.json",
+  "native_packages": 27,
+  "static_meshes": 5,
+  "materials": 5,
+  "textures": 17,
+  "triangle_total": 2211013
+}

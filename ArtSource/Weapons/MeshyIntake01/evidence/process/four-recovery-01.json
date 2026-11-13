@@ -1,0 +1,13 @@
+﻿{
+    "phase":  "four-recovery",
+    "pid":  14444,
+    "exit_code":  0,
+    "started_utc":  "2026-11-13T05:16:26.7119976Z",
+    "elapsed_seconds":  6.8408408,
+    "peak_working_set_mib":  1864.35546875,
+    "minimum_free_gib":  2.5156440734863281,
+    "abort":  "none",
+    "monitor_error":  null,
+    "cpu_affinity":  3,
+    "fresh_slot_grant_required":  true
+}

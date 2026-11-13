@@ -1,0 +1,13 @@
+﻿{
+    "phase":  "all-reload",
+    "pid":  27896,
+    "exit_code":  0,
+    "started_utc":  "2026-11-13T05:24:16.0593141Z",
+    "elapsed_seconds":  6.9727811,
+    "peak_working_set_mib":  2006.9453125,
+    "minimum_free_gib":  3.2604598999023438,
+    "abort":  "none",
+    "monitor_error":  null,
+    "cpu_affinity":  3,
+    "fresh_slot_grant_required":  true
+}

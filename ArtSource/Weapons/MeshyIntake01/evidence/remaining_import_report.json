@@ -1,0 +1,375 @@
+{
+  "engine": "5.9.0-60351404+++UE5+Release-5.9",
+  "stage": "Technical weapon intake, no visual/gameplay acceptance",
+  "passed": false,
+  "imports": [
+    {
+      "name": "RuststeelAssaultRifle",
+      "destination": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle",
+      "mesh": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/SM_WPN_RuststeelAssaultRifle.SM_WPN_RuststeelAssaultRifle",
+      "triangles": 201907,
+      "vertices": 125446,
+      "uv_channels": 1,
+      "dimensions_cm": [
+        189.93470001220703,
+        22.658903121948242,
+        77.42091369628906
+      ],
+      "materials": [
+        {
+          "path": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_material_0.Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_material_0",
+          "class_name": "Material",
+          "texture_references": [
+            "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_2.Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_2",
+            "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_0.Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_0",
+            "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_1.Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_1"
+          ],
+          "inputs": {
+            "MP_BASE_COLOR": "MaterialExpressionMaterialFunctionCall",
+            "MP_METALLIC": "MaterialExpressionMaterialFunctionCall",
+            "MP_ROUGHNESS": "MaterialExpressionMaterialFunctionCall",
+            "MP_NORMAL": "MaterialExpressionMaterialFunctionCall"
+          }
+        }
+      ],
+      "textures": [
+        {
+          "path": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_0.Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_0",
+          "size": [
+            4096,
+            4096
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "path": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_1.Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_1",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "path": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_2.Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_2",
+          "size": [
+            4096,
+            4096
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        }
+      ],
+      "dependencies": {
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_material_0": [
+          "/Script/InterchangeEngine",
+          "/InterchangeAssets/gltf/MaterialBodies/MF_Default_Body",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_BaseColor",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Emissive",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_IOR",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Iridescence",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_MetallicRoughness",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Normals",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Occlusion",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_RotateNormals_TS",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_RotateV2",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_ScaleNormal",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Specular",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_SpecularAnisotropy",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_TransformUVs",
+          "/InterchangeAssets/gltf/Textures/T_Anisotropy_Direction_Linear",
+          "/InterchangeAssets/gltf/Textures/T_Generic_N",
+          "/InterchangeAssets/gltf/Textures/T_White_Linear",
+          "/InterchangeAssets/gltf/Textures/T_White_srgb",
+          "/Engine/Functions/Engine_MaterialFunctions02/Utility/MakeFloat3",
+          "/Engine/Functions/Engine_MaterialFunctions02/Math/Transform3x3Matrix",
+          "/Engine/Functions/Engine_MaterialFunctions02/Utility/BreakOutFloat3Components",
+          "/InterchangeAssets/Functions/MF_IridescenceNoLUT",
+          "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_0",
+          "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_1",
+          "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_2"
+        ],
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_0": [
+          "/Script/InterchangeEngine"
+        ],
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_1": [
+          "/Script/InterchangeEngine"
+        ],
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_2": [
+          "/Script/InterchangeEngine"
+        ],
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/SM_WPN_RuststeelAssaultRifle": [
+          "/Script/NavigationSystem",
+          "/Script/InterchangeEngine",
+          "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_material_0"
+        ]
+      },
+      "simple_collision_shapes": 1,
+      "nanite_enabled": false,
+      "asset_paths": [
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_material_0.Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_material_0",
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_0.Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_0",
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_1.Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_1",
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_2.Meshy_AI_Ruststeel_Assault_Rif_1113031834_texture_texture_2",
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/RuststeelAssaultRifle/SM_WPN_RuststeelAssaultRifle.SM_WPN_RuststeelAssaultRifle"
+      ],
+      "technical_pass": true,
+      "visual_approved": false,
+      "gameplay_bound": false,
+      "limits": "Source-scale intake only; forward/pivot/grip/muzzle calibration and polygon budgets remain pending. No optimization or final collision/gameplay approval.",
+      "seconds": 2.688000000001921
+    },
+    {
+      "name": "CrimsonRiftSniper",
+      "destination": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper",
+      "mesh": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/SM_WPN_CrimsonRiftSniper.SM_WPN_CrimsonRiftSniper",
+      "triangles": 388364,
+      "vertices": 222936,
+      "uv_channels": 1,
+      "dimensions_cm": [
+        189.9459991455078,
+        17.968299865722656,
+        75.7511978149414
+      ],
+      "materials": [
+        {
+          "path": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_material_0.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_material_0",
+          "class_name": "Material",
+          "texture_references": [
+            "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_2.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_2",
+            "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_3.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_3",
+            "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_0.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_0",
+            "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_1.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_1"
+          ],
+          "inputs": {
+            "MP_BASE_COLOR": "MaterialExpressionMaterialFunctionCall",
+            "MP_METALLIC": "MaterialExpressionMaterialFunctionCall",
+            "MP_ROUGHNESS": "MaterialExpressionMaterialFunctionCall",
+            "MP_NORMAL": "MaterialExpressionMaterialFunctionCall",
+            "MP_EMISSIVE_COLOR": "MaterialExpressionMaterialFunctionCall"
+          }
+        }
+      ],
+      "textures": [
+        {
+          "path": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_0.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_0",
+          "size": [
+            4096,
+            4096
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "path": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_1.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_1",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "path": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_2.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_2",
+          "size": [
+            4096,
+            4096
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        },
+        {
+          "path": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_3.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_3",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        }
+      ],
+      "dependencies": {
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_material_0": [
+          "/Script/InterchangeEngine",
+          "/InterchangeAssets/gltf/MaterialBodies/MF_Default_Body",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_BaseColor",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Emissive",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_IOR",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Iridescence",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_MetallicRoughness",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Normals",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Occlusion",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_RotateNormals_TS",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_RotateV2",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_ScaleNormal",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Specular",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_SpecularAnisotropy",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_TransformUVs",
+          "/InterchangeAssets/gltf/Textures/T_Anisotropy_Direction_Linear",
+          "/InterchangeAssets/gltf/Textures/T_Generic_N",
+          "/InterchangeAssets/gltf/Textures/T_White_Linear",
+          "/InterchangeAssets/gltf/Textures/T_White_srgb",
+          "/Engine/Functions/Engine_MaterialFunctions02/Utility/MakeFloat3",
+          "/Engine/Functions/Engine_MaterialFunctions02/Math/Transform3x3Matrix",
+          "/Engine/Functions/Engine_MaterialFunctions02/Utility/BreakOutFloat3Components",
+          "/InterchangeAssets/Functions/MF_IridescenceNoLUT",
+          "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_0",
+          "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_1",
+          "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_2",
+          "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_3"
+        ],
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_0": [
+          "/Script/InterchangeEngine"
+        ],
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_1": [
+          "/Script/InterchangeEngine"
+        ],
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_2": [
+          "/Script/InterchangeEngine"
+        ],
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_3": [
+          "/Script/InterchangeEngine"
+        ],
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/SM_WPN_CrimsonRiftSniper": [
+          "/Script/NavigationSystem",
+          "/Script/InterchangeEngine",
+          "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_material_0"
+        ]
+      },
+      "simple_collision_shapes": 1,
+      "nanite_enabled": false,
+      "asset_paths": [
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_material_0.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_material_0",
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_0.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_0",
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_1.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_1",
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_2.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_2",
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_3.Meshy_AI_Crimson_Rift_Sniper_1113001105_texture_texture_3",
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/CrimsonRiftSniper/SM_WPN_CrimsonRiftSniper.SM_WPN_CrimsonRiftSniper"
+      ],
+      "technical_pass": true,
+      "visual_approved": false,
+      "gameplay_bound": false,
+      "limits": "Source-scale intake only; forward/pivot/grip/muzzle calibration and polygon budgets remain pending. No optimization or final collision/gameplay approval.",
+      "seconds": 4.203000000001339
+    },
+    {
+      "name": "PlasmaRifle",
+      "destination": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle",
+      "mesh": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/SM_WPN_PlasmaRifle.SM_WPN_PlasmaRifle",
+      "triangles": 544893,
+      "vertices": 330854,
+      "uv_channels": 1,
+      "dimensions_cm": [
+        189.94390106201172,
+        18.21580219268799,
+        61.70540428161621
+      ],
+      "materials": [
+        {
+          "path": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_material_0.Meshy_AI_plasma_rifle_1113031714_texture_material_0",
+          "class_name": "Material",
+          "texture_references": [
+            "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_2.Meshy_AI_plasma_rifle_1113031714_texture_texture_2",
+            "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_0.Meshy_AI_plasma_rifle_1113031714_texture_texture_0",
+            "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_1.Meshy_AI_plasma_rifle_1113031714_texture_texture_1"
+          ],
+          "inputs": {
+            "MP_BASE_COLOR": "MaterialExpressionMaterialFunctionCall",
+            "MP_METALLIC": "MaterialExpressionMaterialFunctionCall",
+            "MP_ROUGHNESS": "MaterialExpressionMaterialFunctionCall",
+            "MP_NORMAL": "MaterialExpressionMaterialFunctionCall"
+          }
+        }
+      ],
+      "textures": [
+        {
+          "path": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_0.Meshy_AI_plasma_rifle_1113031714_texture_texture_0",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": true,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "path": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_1.Meshy_AI_plasma_rifle_1113031714_texture_texture_1",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_DEFAULT: 0>"
+        },
+        {
+          "path": "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_2.Meshy_AI_plasma_rifle_1113031714_texture_texture_2",
+          "size": [
+            2048,
+            2048
+          ],
+          "srgb": false,
+          "compression": "<TextureCompressionSettings.TC_NORMALMAP: 1>"
+        }
+      ],
+      "dependencies": {
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_material_0": [
+          "/Script/InterchangeEngine",
+          "/InterchangeAssets/gltf/MaterialBodies/MF_Default_Body",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_BaseColor",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Emissive",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_IOR",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Iridescence",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_MetallicRoughness",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Normals",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Occlusion",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_RotateNormals_TS",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_RotateV2",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_ScaleNormal",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_Specular",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_SpecularAnisotropy",
+          "/InterchangeAssets/gltf/MaterialFunctions/MF_TransformUVs",
+          "/InterchangeAssets/gltf/Textures/T_Anisotropy_Direction_Linear",
+          "/InterchangeAssets/gltf/Textures/T_Generic_N",
+          "/InterchangeAssets/gltf/Textures/T_White_Linear",
+          "/InterchangeAssets/gltf/Textures/T_White_srgb",
+          "/Engine/Functions/Engine_MaterialFunctions02/Utility/MakeFloat3",
+          "/Engine/Functions/Engine_MaterialFunctions02/Math/Transform3x3Matrix",
+          "/Engine/Functions/Engine_MaterialFunctions02/Utility/BreakOutFloat3Components",
+          "/InterchangeAssets/Functions/MF_IridescenceNoLUT",
+          "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_0",
+          "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_1",
+          "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_2"
+        ],
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_0": [
+          "/Script/InterchangeEngine"
+        ],
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_1": [
+          "/Script/InterchangeEngine"
+        ],
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_2": [
+          "/Script/InterchangeEngine"
+        ],
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/SM_WPN_PlasmaRifle": [
+          "/Script/NavigationSystem",
+          "/Script/InterchangeEngine",
+          "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_material_0"
+        ]
+      },
+      "simple_collision_shapes": 1,
+      "nanite_enabled": false,
+      "asset_paths": [
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_material_0.Meshy_AI_plasma_rifle_1113031714_texture_material_0",
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_0.Meshy_AI_plasma_rifle_1113031714_texture_texture_0",
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_1.Meshy_AI_plasma_rifle_1113031714_texture_texture_1",
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/Meshy_AI_plasma_rifle_1113031714_texture_texture_2.Meshy_AI_plasma_rifle_1113031714_texture_texture_2",
+        "/Game/TriadDrift/Art/Weapons/MeshyIntake01/PlasmaRifle/SM_WPN_PlasmaRifle.SM_WPN_PlasmaRifle"
+      ],
+      "technical_pass": true,
+      "visual_approved": false,
+      "gameplay_bound": false,
+      "limits": "Source-scale intake only; forward/pivot/grip/muzzle calibration and polygon budgets remain pending. No optimization or final collision/gameplay approval.",
+      "seconds": 5.375
+    }
+  ],
+  "errors": []
+}

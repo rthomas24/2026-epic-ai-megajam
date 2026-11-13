@@ -1,0 +1,38 @@
+{
+  "state": "Preserved first import failure; NOT project availability",
+  "source_hashes_unchanged": true,
+  "commandlet_reported_code": -1,
+  "os_exit_code_not_captured": true,
+  "packages": [
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\Saved\\WeaponIntake01\\Host\\Content\\TriadDrift\\Art\\Weapons\\MeshyIntake01\\NeonPulseRifle\\Meshy_AI_Neon_Pulse_Rifle_1113032013_texture_material_0.uasset",
+      "bytes": 64299,
+      "sha256": "ad72c126c42cb375cce6a98eadb34a5f5f753e1345d8cf3b4fc250d4d987090d"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\Saved\\WeaponIntake01\\Host\\Content\\TriadDrift\\Art\\Weapons\\MeshyIntake01\\NeonPulseRifle\\Meshy_AI_Neon_Pulse_Rifle_1113032013_texture_texture_0.uasset",
+      "bytes": 8413017,
+      "sha256": "0d8b4b68f8669b98ee6860edf35261186e048bc450f5b3e526215e4b35d51c4b"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\Saved\\WeaponIntake01\\Host\\Content\\TriadDrift\\Art\\Weapons\\MeshyIntake01\\NeonPulseRifle\\Meshy_AI_Neon_Pulse_Rifle_1113032013_texture_texture_1.uasset",
+      "bytes": 5845684,
+      "sha256": "14f43152dcab52ae5f2307936fd9347dd8821fcec73c08cb54c8e9c420d430ad"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\Saved\\WeaponIntake01\\Host\\Content\\TriadDrift\\Art\\Weapons\\MeshyIntake01\\NeonPulseRifle\\Meshy_AI_Neon_Pulse_Rifle_1113032013_texture_texture_2.uasset",
+      "bytes": 8493418,
+      "sha256": "233036f331e699267d7700e28dc154e1d88e290dc0eb8c48394aadf5394189e5"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\Saved\\WeaponIntake01\\Host\\Content\\TriadDrift\\Art\\Weapons\\MeshyIntake01\\NeonPulseRifle\\Meshy_AI_Neon_Pulse_Rifle_1113032013_texture_texture_3.uasset",
+      "bytes": 2100337,
+      "sha256": "248c1f2351089967dfca0b43a4bd6aeaec2de9d4569d988640bbff6adf8d3ab5"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\Saved\\WeaponIntake01\\Host\\Content\\TriadDrift\\Art\\Weapons\\MeshyIntake01\\NeonPulseRifle\\SM_WPN_NeonPulseRifle.uasset",
+      "bytes": 6264556,
+      "sha256": "2da4f6797eccc0b23cc3a1a2593b305ca0852ba086898c68eb0d9bcd009bf8bb"
+    }
+  ]
+}

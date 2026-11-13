@@ -1,0 +1,129 @@
+{
+  "final_project_clone_pass": true,
+  "main_integrated": false,
+  "gameplay_bound": false,
+  "rendered_look_approved": false,
+  "originals_sha_and_mtime_unchanged": true,
+  "processes": [
+    {
+      "phase": "all-reload",
+      "pid": 27896,
+      "exit_code": 0,
+      "started_utc": "2026-11-13T05:24:16.0593141Z",
+      "elapsed_seconds": 6.9727811,
+      "peak_working_set_mib": 2006.9453125,
+      "minimum_free_gib": 3.2604598999023438,
+      "abort": "none",
+      "monitor_error": null,
+      "cpu_affinity": 3,
+      "fresh_slot_grant_required": true
+    },
+    {
+      "phase": "final",
+      "pid": 21256,
+      "exit_code": 0,
+      "started_utc": "2026-11-13T05:20:36.7891943Z",
+      "elapsed_seconds": 14.757287199999999,
+      "peak_working_set_mib": 2660.984375,
+      "minimum_free_gib": 2.383026123046875,
+      "abort": "none",
+      "monitor_error": null,
+      "cpu_affinity": 3,
+      "fresh_slot_grant_required": true
+    },
+    {
+      "phase": "four-recovery",
+      "pid": 14444,
+      "exit_code": 0,
+      "started_utc": "2026-11-13T05:16:26.7119976Z",
+      "elapsed_seconds": 6.8408408,
+      "peak_working_set_mib": 1864.35546875,
+      "minimum_free_gib": 2.515644073486328,
+      "abort": "none",
+      "monitor_error": null,
+      "cpu_affinity": 3,
+      "fresh_slot_grant_required": true
+    },
+    {
+      "phase": "import",
+      "pid": 32684,
+      "exit_code": null,
+      "started_utc": "2026-11-13T04:44:04.0936996Z",
+      "elapsed_seconds": 11.1405104,
+      "peak_working_set_mib": 1929.703125,
+      "minimum_free_gib": 1.914794921875,
+      "abort": "none",
+      "cpu_affinity": 3,
+      "fresh_slot_grant_required": true
+    },
+    {
+      "phase": "neon-recovery",
+      "pid": 10872,
+      "exit_code": -1,
+      "started_utc": "2026-11-13T04:52:42.0419776Z",
+      "elapsed_seconds": 5.7359558999999996,
+      "peak_working_set_mib": 1639.3515625,
+      "minimum_free_gib": 4.1428375244140625,
+      "abort": "none",
+      "cpu_affinity": 3,
+      "fresh_slot_grant_required": true
+    },
+    {
+      "phase": "neon-recovery02",
+      "pid": 29460,
+      "exit_code": 0,
+      "started_utc": "2026-11-13T04:57:57.1995773Z",
+      "elapsed_seconds": 6.7066493,
+      "peak_working_set_mib": 1675.85546875,
+      "minimum_free_gib": 3.3126144409179688,
+      "abort": "none",
+      "cpu_affinity": 3,
+      "fresh_slot_grant_required": true
+    },
+    {
+      "phase": "project-clone",
+      "pid": 10972,
+      "exit_code": 3,
+      "started_utc": "2026-11-13T05:30:08.4434828Z",
+      "elapsed_seconds": 3.9451557999999998,
+      "peak_working_set_mib": 768.55859375,
+      "minimum_free_gib": 4.5121917724609375,
+      "abort": "none",
+      "monitor_error": null,
+      "cpu_affinity": 3,
+      "fresh_slot_grant_required": true
+    },
+    {
+      "phase": "project-clone02",
+      "pid": 14600,
+      "exit_code": 0,
+      "started_utc": "2026-11-13T05:32:49.3339721Z",
+      "elapsed_seconds": 22.7407954,
+      "peak_working_set_mib": 2582.75390625,
+      "minimum_free_gib": 2.487079620361328,
+      "abort": "none",
+      "monitor_error": null,
+      "cpu_affinity": 3,
+      "fresh_slot_grant_required": true
+    }
+  ],
+  "historical_failures": [
+    {
+      "phase": "initial-import",
+      "status": "First Neon save succeeded; dependency query failed; native OS code unknown in initial metrics"
+    },
+    {
+      "phase": "neon-recovery01",
+      "status": "Read-only API argument mismatch; OS-1"
+    },
+    {
+      "phase": "remaining-01",
+      "status": "Watchdog Int32 overflow, ownedPID18176 stopped, OS exit not captured; three imports saved and later fresh four-recovery passed"
+    },
+    {
+      "phase": "project-clone01",
+      "status": "OS3 startup before Python: private DDC path longer than119chars; 27packages unchanged; clone02 short86char cache passed"
+    }
+  ],
+  "future_transfer_short_ddc_fix": "AST checked only; not rerun over existing files"
+}

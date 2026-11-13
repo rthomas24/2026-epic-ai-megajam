@@ -1,0 +1,12 @@
+﻿{
+    "phase":  "neon-recovery",
+    "pid":  10872,
+    "exit_code":  -1,
+    "started_utc":  "2026-11-13T04:52:42.0419776Z",
+    "elapsed_seconds":  5.7359558999999996,
+    "peak_working_set_mib":  1639.3515625,
+    "minimum_free_gib":  4.1428375244140625,
+    "abort":  "none",
+    "cpu_affinity":  3,
+    "fresh_slot_grant_required":  true
+}

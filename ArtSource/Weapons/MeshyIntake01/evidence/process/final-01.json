@@ -1,0 +1,13 @@
+﻿{
+    "phase":  "final",
+    "pid":  21256,
+    "exit_code":  0,
+    "started_utc":  "2026-11-13T05:20:36.7891943Z",
+    "elapsed_seconds":  14.757287199999999,
+    "peak_working_set_mib":  2660.984375,
+    "minimum_free_gib":  2.383026123046875,
+    "abort":  "none",
+    "monitor_error":  null,
+    "cpu_affinity":  3,
+    "fresh_slot_grant_required":  true
+}

@@ -1,0 +1,8 @@
+{
+  "int64_peak_test_bytes": 5368709120,
+  "injected_monitor_exception_caught": true,
+  "owned_fake_child_pid": 19400,
+  "owned_fake_child_terminated": true,
+  "actual_child_exit_code": -1,
+  "no_engine_launched": true
+}

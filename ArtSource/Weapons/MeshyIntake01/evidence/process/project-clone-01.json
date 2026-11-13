@@ -1,0 +1,13 @@
+﻿{
+    "phase":  "project-clone",
+    "pid":  10972,
+    "exit_code":  3,
+    "started_utc":  "2026-11-13T05:30:08.4434828Z",
+    "elapsed_seconds":  3.9451557999999998,
+    "peak_working_set_mib":  768.55859375,
+    "minimum_free_gib":  4.5121917724609375,
+    "abort":  "none",
+    "monitor_error":  null,
+    "cpu_affinity":  3,
+    "fresh_slot_grant_required":  true
+}

@@ -1,0 +1,12 @@
+﻿{
+    "phase":  "import",
+    "pid":  32684,
+    "exit_code":  null,
+    "started_utc":  "2026-11-13T04:44:04.0936996Z",
+    "elapsed_seconds":  11.1405104,
+    "peak_working_set_mib":  1929.703125,
+    "minimum_free_gib":  1.914794921875,
+    "abort":  "none",
+    "cpu_affinity":  3,
+    "fresh_slot_grant_required":  true
+}

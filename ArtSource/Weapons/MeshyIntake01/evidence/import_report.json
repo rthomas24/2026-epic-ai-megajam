@@ -1,0 +1,9 @@
+{
+  "engine": "5.9.0-60351404+++UE5+Release-5.9",
+  "stage": "Technical weapon intake, no visual/gameplay acceptance",
+  "passed": false,
+  "imports": [],
+  "errors": [
+    "Traceback (most recent call last):\n  File \"C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/assets-weapons-intake/ArtSource/Weapons/MeshyIntake01/scripts/import_weapons.py\", line 23, in <module>\n    result=inspect(row);result['seconds']=time.monotonic()-start;report['imports'].append(result);write('import_report.json',report)\n           ^^^^^^^^^^^^\n  File \"C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\assets-weapons-intake\\ArtSource\\Weapons\\MeshyIntake01\\scripts\\weapon_common.py\", line 52, in inspect\n    package=obj.get_path_name().split('.')[0];deps=[str(d) for d in registry.get_dependencies(package,opts)]\n                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTypeError: 'NoneType' object is not iterable\n"
+  ]
+}
