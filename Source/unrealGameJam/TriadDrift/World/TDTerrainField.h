@@ -33,6 +33,32 @@ struct UNREALGAMEJAM_API FTDTerrainStyle
 	float FarHalfSize = 4000000.f;
 	float HorizonRise = 160000.f;
 
+	/** Second ridged octave for erosion-like gullies on the ranges (fraction of MountainHeight). */
+	float GullyAmount = 0.15f;
+
+	/** The hero peak: one clearly tallest summit, visible from the course (centre, radius, height, all cm).
+	 *  bVolcano = a cone with a crater (CraterRadius / CraterDepth) instead of a ridged massif. */
+	FVector2D HeroCentre = FVector2D(650000.f, 250000.f);
+	float HeroRadius = 300000.f;
+	float HeroHeight = 250000.f;
+	bool bVolcano = false;
+	float CraterRadius = 45000.f;
+	float CraterDepth = 30000.f;
+
+	/** Named regions by bearing from the course (degrees, 0 = +X): each blends in over RegionBlendDeg. */
+	float RiftBearing = 90.f;		// a deep meandering canyon
+	float MesaBearing = 0.f;		// terraced flat-topped mesas
+	float BasinBearing = 270.f;	// a lake (Verdance) / lava sea (Cinder) in a broad depression
+	float PlateauBearing = 180.f;	// a high flat plateau with escarpment edges
+	float RegionBlendDeg = 30.f;
+	float RiftDepth = 50000.f;
+	float MesaStep = 22000.f;
+	float BasinDepth = 40000.f;
+	float PlateauHeight = 70000.f;
+	/** The lake / lava-sea surface (cm) and whether it glows (lava). */
+	float SeaLevel = -15000.f;
+	bool bLavaSea = false;
+
 	static FTDTerrainStyle ForPlanet(ETDDestination Planet);
 };
 
@@ -63,7 +89,14 @@ public:
 	float BasinWeight(float X, float Y) const;
 
 	/** Highest terrain the style can produce (normalisation). */
-	float MaxHeight() const { return Style.HillHeight + Style.MountainHeight + Style.HorizonRise; }
+	float MaxHeight() const { return FMath::Max(Style.HeroHeight, Style.HillHeight + Style.MountainHeight * 1.5f) + Style.HorizonRise * 1.45f; }
+
+	/** 0..1 weight of a named region at a point (bearing sectors around the course, 0 inside the basin). */
+	float RegionWeight(float X, float Y, float Bearing) const;
+
+	/** The sea's footprint centre and radius (the actor puts a water / lava surface there). */
+	FVector2D SeaCentre() const;
+	float SeaRadius() const { return Style.CoreHalfSize * 0.45f; }
 
 	/** Seeded value noise in -1..1 (smooth, 2D). */
 	static float Noise2D(float X, float Y, int32 Seed);

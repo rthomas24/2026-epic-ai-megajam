@@ -232,9 +232,14 @@ void ATDPlaceholderSky::TrySpawnTerrain()
 	for (TActorIterator<ATDPlanetCourse> It(GetWorld()); It && !Course; ++It) { Course = *It; }
 	if (!Course) { return; }
 	const bool bVerdance = AppliedStyle == ETDPlaceholderSkyStyle::Verdance;
-	const FSoftObjectPath Path(bVerdance ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Verdance.MI_Ground_Verdance")
-		: TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Cinder.MI_Ground_Cinder"));
-	UMaterialInterface* M = FPackageName::DoesPackageExist(Path.GetLongPackageName()) ? Cast<UMaterialInterface>(Path.TryLoad()) : nullptr;
+	// The Lead's slope/height terrain material when it exists (reads the terrain's vertex channels), else the ground MI.
+	UMaterialInterface* M = nullptr;
+	for (const TCHAR* P : { bVerdance ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Terrain_Verdance.MI_Terrain_Verdance") : TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Terrain_Cinder.MI_Terrain_Cinder"),
+		bVerdance ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Verdance.MI_Ground_Verdance") : TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Cinder.MI_Ground_Cinder") })
+	{
+		const FSoftObjectPath Path(P);
+		if (!M && FPackageName::DoesPackageExist(Path.GetLongPackageName())) { M = Cast<UMaterialInterface>(Path.TryLoad()); }
+	}
 	Terrain = ATDPlanetTerrain::SpawnForPlanet(GetWorld(), bVerdance ? ETDDestination::Verdance : ETDDestination::Cinder, Course->GetActorTransform(), M);
 	if (Terrain && FarGround)
 	{
