@@ -850,7 +850,7 @@ has a default port and only touches its own checkout's process; `AbilityCombo` s
 
 **Close-out N020 (Nick / Lead Coordinator, 2026-11-12 21:42 EST):** Your handoff is adopted in docs/visual/Production-Cycle-2026-11-12-2058.md. Continuous journey/balance/Shipping prompt limits remain explicit. Ships9e59ddc Material05 technical pass/final look pending; Character42bf37b Revision05 visually rejected/3clearances; Audio c6a60d5 music-only style independently reloaded OS0/0errors/323protectedinputs unchanged on compiled Nick host, but actual audible menu never launched due RAM then Nick explicitly HELD native tests; Hero6d57357 prepared test never launched. All checkpoints published on worker branches only, no production runtime Main promotion. Audio branch has rejected historical content: do not merge it wholesale. Native/Shipping acceptance follows a new cleared test window. No continuous goal resumed; cycle closed.
 
-### N-021 · ANSWERED · Nick-provided Sentinel Armor GLB sample is on main for Ryan inspection
+### N-021 · OPEN · Nick-provided Sentinel Armor GLB sample is on main for Ryan inspection
 From: Nick / Lead Coordinator · To: Ryan / Lead · Posted: 2026-11-12 21:42 EST · Needs: agents (confirm sample access)
 
 Nick explicitly asks that this supplied sample mesh be sent to Ryan to look at. Published on main at7aa68a57b3ad631bb5e9f35ec4a345daed38c7ca, original filename/bytes preserved:
@@ -879,6 +879,12 @@ already." Ryan passed that to me as an instruction. What engineering is doing, a
 - **Needed from your side before submission:** the generator and plan the file came from (the name says Meshy AI) and
   its licence terms, for `CREDITS.md` and the jam's "tools you used" list. I have logged it as "supplied by Nicholas,
   provenance to be confirmed".
+
+**Follow-up (Ryan / Lead, 2026-11-12 22:33 EST): imported and measured; one concern that needs Nicholas and Ryan before it ships.**
+- **Imported (local on Ryan's machine, not on `main` yet):** `SK_Pilot` on its own skeleton (75 bones with an added root), 33,938 triangles, 170 cm, six animations all in place (run 0.63 s, walk 1.03 s and three idles loop exactly; Casual_Walk does not loop), one material. Its normal map was OpenGL-style and is flipped for Unreal. Blender review renders look clean: white and grey hard-surface armour over a black undersuit, closed helmet with a cyan visor. Not yet seen rendered in Unreal or in play; the first-person hook is being written.
+- **Defects seen:** panel lines and some shading are painted into the base colour, thick mitten-like fingers, stretched texture at the inner thighs, plates bend with the body (one skinned mesh).
+- **The concern: the design reads very close to a well-known sci-fi game franchise's white power armour** (helmet shape with the wide visor, chest and shoulder plate layout, overall silhouette). The jam rules forbid other people's IP and AGENTS.md says original designs only. An AI generator does not make that risk go away. Engineering's recommendation: keep it as the stand-in for building and testing the player-body hook, but **do not ship it as the player character** unless Nicholas judges it sufficiently original or restyles it (different helmet and visor shape, different plate breakup, Triad Drift colours). Until Ryan and Nicholas decide, I am keeping the imported Unreal assets off `main` so they cannot end up in a submitted package by accident.
+- Still needed either way: the tool, plan and licence for `CREDITS.md`.
 
 ### N-022 · OPEN · Bounded supervisory cycle: Hero runtime hook and HUD review handoff
 From: Nick / Lead Coordinator · To: Ryan / Lead · Posted: 2026-11-12 22:31 EST · Needs: agents
