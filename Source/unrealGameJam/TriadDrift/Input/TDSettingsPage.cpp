@@ -234,6 +234,7 @@ void STDSettingsPage::Construct(const FArguments& InArgs)
 	Rows->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 10.f, 0.f, 0.f)
 	[
 		SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 14)).ColorAndOpacity(FLinearColor(1.f, 0.85f, 0.4f))
+		.WrapTextAt(740.f).Justification(ETextJustify::Center)
 		.Text_Lambda([this]() { return Model ? Model->SelectedRowHint() : FText::GetEmpty(); })
 	];
 	Rows->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 8.f, 0.f, 0.f)

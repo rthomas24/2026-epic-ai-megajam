@@ -320,6 +320,10 @@ bool FTDSettingsDifficulty::RunTest(const FString& Parameters)
 	UTDDifficultySettings::SetCurrent(ETDDifficulty::Ace);
 	TestTrue(TEXT("Continue (apply the save)"), Saved && GI->ApplySave(*Saved));
 	TestEqual(TEXT("Continue restores the run's difficulty"), GI->GetDifficulty(), ETDDifficulty::Story);
+	S->ApplyAll([&]() { FTDPlayerSettings P = S->GetSettings(); P.Difficulty = ETDDifficulty::Ace; return P; }());
+	UTDDifficultySettings::SetCurrent(ETDDifficulty::Story); // a Continue'd Story run is in play...
+	GI->StartNewRun();
+	TestEqual(TEXT("... New Game from it still starts on the player's choice"), GI->GetDifficulty(), ETDDifficulty::Ace);
 
 	// Enemies that arrive afterwards use the new scaling; one already in the fight keeps its strength.
 	S->SetDifficulty(ETDDifficulty::Standard);
