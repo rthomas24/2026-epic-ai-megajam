@@ -300,7 +300,7 @@ return float4(c*Intensity, saturate(a*PC.a));''', {}),
 
     # Distortion field shell (on a sphere mesh): bright shimmering rim, flowing interference bands, faint body.
     'M_TD_VFX_Field': ('additive', True, 3.0, 5.0, (0.01, 0.035), (-0.02, 0.05), 0.25, '''
-float rim = pow(Fres, 2.6);
+float rim = pow(Fres, 2.6)*smoothstep(1.0, 0.88, Fres);   // fades at the very silhouette: hides the sphere mesh's polygon outline
 float n = N.r*0.55 + N.g*0.45;
 float bands = pow(abs(sin(UV.y*70.0 + n*9.0)), 6.0);
 float cells = pow(n, 3.0);

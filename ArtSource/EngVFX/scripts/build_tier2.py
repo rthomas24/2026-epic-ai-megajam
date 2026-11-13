@@ -36,10 +36,13 @@ def looping(e, life):
 
 
 def flat_ring(name, size, life, k=1.0, growth='0.1 + pow(Particles.NormalizedAge, 0.5)*0.9', mat='M_TD_VFX_Shock', power=1.3):
-    """A ring lying on the system's local XY plane (normal +Z): ground slams. size = final diameter in cm."""
+    """A ring lying on the system's local XY plane (normal +Z): ground slams. size = final diameter in cm.
+    The disc mesh's normal is +X; the mesh renderer's Velocity facing turns +X along the particle's velocity, which is a
+    token 1 cm/s straight up. (InitialMeshOrientation with a rotation vector left the ring standing upright.)"""
     e = mesh_flash(name, 'SM_TD_VFX_Disc', mat, '1.0, %s, %s' % (size / 100.0, size / 100.0), life, k, growth='float3(1,1,1)*(%s)' % growth, power=power)
-    e['add'] = [(PS, 'Spawn/Orientation/V3/InitialMeshOrientation')] + e.get('add', [])
-    e['set'] += [(PS, 'InitialMeshOrientation', 'Use Rotation Vector', True), (PS, 'InitialMeshOrientation', 'Rotation', (0.0, 0.25, 0.0))]
+    e['set'] = [x for x in e['set'] if x[1] != 'AddVelocity'] + [(PS, 'AddVelocity', 'Velocity Mode', E('In Cone')), (PS, 'AddVelocity', 'Cone Axis', (0.0, 0.0, 1.0)),
+                                                                 (PS, 'AddVelocity', 'Cone Angle', 0.0), (PS, 'AddVelocity', 'Velocity Speed', 1.0)]
+    e['rend']['FacingMode'] = 'Velocity'
     return e
 
 
@@ -58,17 +61,17 @@ WHITE4 = (1.0, 1.0, 1.0, 1.0)
 # Slot: UTDDominionVisuals.ShieldIdle (looping, attached at the Dominion's centre). Authored as a 1 km radius shell at
 # Scale 1: set the cue's VFXScale to (field radius in km). Cheap: two sphere meshes, one sprite, about 14 arc sprites.
 S2('NS_TD_Dominion_Field', U(FIELD), [
-    shell('Shell', 100000, 0.55, pulse='float3(1,1,1)*(1.0 + 0.012*sin(Engine.Time*1.7))'),
-    shell('Inner', 97000, 0.22, pulse='float3(1,1,1)*(1.0 + 0.015*sin(Engine.Time*1.1 + 2.0))'),
+    shell('Shell', 100000, 0.45, pulse='float3(1,1,1)*(1.0 + 0.012*sin(Engine.Time*1.7))'),
+    shell('Inner', 97000, 0.15, pulse='float3(1,1,1)*(1.0 + 0.015*sin(Engine.Time*1.1 + 2.0))'),
     single('Halo', 'M_TD_VFX_Glow', 330000, 0.10, 3.1),
-    arcs('Arcs', 26.0, (30000, 60000), 100000, life=(0.25, 0.6), k=1.1)])
+    arcs('Arcs', 26.0, (20000, 42000), 100000, life=(0.25, 0.6), k=0.9)])
 # Slot: UTDDominionVisuals.ShieldCollapse (one shot at the centre when the last generator dies). 1 km radius at Scale 1.
 S2('NS_TD_Dominion_FieldCollapse', U(FIELD), [
-    shell_flash('Flare', 100000, 0.5, 'float3(1,1,1)*(1.0 + 0.06*Particles.NormalizedAge)', k=2.6, power=0.6),
+    shell_flash('Flare', 100000, 0.5, 'float3(1,1,1)*(1.0 + 0.06*Particles.NormalizedAge)', k=1.5, power=0.6),
     shell_flash('Implode', 100000, 1.3, 'float3(1,1,1)*(1.0 - 0.92*pow(Particles.NormalizedAge, 1.6))', k=1.6, power=0.4, delay=0.35),
     flash('Wave', 'M_TD_VFX_Ring', 520000, 1.6, 0.9, growth='0.08 + pow(Particles.NormalizedAge, 0.6)*0.92', power=1.5, delay=1.5),
     flash('Flash', 'M_TD_VFX_Glow', 300000, 0.5, 0.8, growth='0.4 + Particles.NormalizedAge*0.8', power=1.5, delay=1.5),
-    arcs('Arcs', 0, (40000, 80000), 90000, life=(0.3, 1.2), k=1.6, burst=60, dur=1.6, local=False),
+    arcs('Arcs', 0, (14000, 30000), 95000, life=(0.3, 1.2), k=0.9, burst=40, dur=1.6, local=False),   # seen in play: bigger arcs whited out the screen near a generator
     shed('Shards', 'M_TD_VFX_Spark', 0, (0.8, 1.8), (500, 1100), (20000, 90000), k=1.6, radius=95000.0, drag=0.8, stretch=22, burst=140, dur=2.0, power=1.2)])
 # Slot: none yet (code hook wanted: T3's transmissions, the escape sequence, a hit of "static"). A one-shot, camera-facing
 # tear of chromatic bars, 0.3 s; spawn it attached in front of the camera (authored 12 m wide) or at a world point.
@@ -173,7 +176,7 @@ S2('NS_TD_Crew_BoltImpact', U(ENEMY), [
     spin(shed('Smoke', 'M_TD_VFX_Smoke', 0, (0.5, 0.9), (16, 30), (10, 50), radius=3.0, drag=1.5, rgb=(0.3, 0.27, 0.27), alpha=0.5, cone=((1.0, 0.0, 0.0), 60.0),
               burst=3, dur=1.0, power=0.8, growth='0.8 + Particles.NormalizedAge*1.3', sort=True))])
 # Slot: the drone's thrusters (sockets Engine_0 / Engine_1), attached, blowing along -X. Engine flame at 1/8 size.
-S2('NS_TD_Drone_Thruster', U((1.0, 0.10, 0.015, 1.0), 0.13, Throttle=0.7, Boost=0.0), engine(kk=0.7)[:5])
+S2('NS_TD_Drone_Thruster', U((1.0, 0.10, 0.015, 1.0), 0.13, Throttle=0.7, Boost=0.0), engine(kk=0.7)[:6])   # [:5] (persistent emitters only) built clean but never activated: a system needs one spawning emitter
 
 # ============================================================================================= reactor core (UTDReactorCoreFX, T5)
 # Orb: looping at the core's centre; 3 m radius.

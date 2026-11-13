@@ -127,3 +127,12 @@ What changed and why, for whoever continues:
   the engine sphere), `M_TD_VFX_FlipArc` (Grok's electric arc), `M_TD_VFX_Glitch`, `M_TD_VFX_Swirl`.
 - **Game captures**: `TD.Dev.KillCentral <Id>` kills what is in front of the camera (set `TD.Dev.CaptureOnDeath 0` to keep
   the player's camera); frame rate from the log's frame counter between two `TD.World.DominionStatus` lines.
+- **Later in round 5**: a system whose emitters reference sub-objects of the engine's template system builds but does
+  NOT save (and `save_loaded_asset` failed silently; `tdvfx` now logs `SAVE FAILED`). `scripts/make_trail_emitters.py`
+  copies the two emitters into `/Game/TriadDrift/Gameplay/VFX/Emitters/NE_TD_Leaders` / `NE_TD_Followers` with
+  `AssetTools.duplicate_asset`; the builder's `leaders` / `followers` bases use those.
+- A system made only of persistent (`single`) emitters compiles and never activates: it needs one spawning emitter.
+- A big system can report "not active" in `check_active.py` right after the editor starts (still compiling): run it twice.
+- The distortion field is wired (`ShieldIdle` / `ShieldCollapse`, VFXScale 0.46 = 460 m radius). From inside it overlays
+  the sky with a faint violet marbling; lower the `Shell` / `Inner` brightness in `build_tier2.py` if that is too much.
+- Sheets: `review/tier1_r5_*` (real `-game` captures), `review/tier2_r5_*` (Play-In-Editor rows, except `_field_wired_game`).

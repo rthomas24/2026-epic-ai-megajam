@@ -11,7 +11,9 @@ PLAN = globals().get('PLAN') or {
     'NullFleet/DA_Enemy_Gunship_Visuals': {'engine_trail': ('NS_TD_Engine_Enemy', 2.0)},
     'NullFleet/DA_Enemy_Bomber_Visuals': {'engine_trail': ('NS_TD_Engine_Enemy', 1.5)},
     'NullFleet/DA_Enemy_Carrier_Visuals': {'engine_trail': ('NS_TD_Engine_Enemy', 5.0), 'explosion': (None, 2.5)},
-    'Dominion/DA_Dominion_Visuals': {'hull_section_explosion': 'NS_TD_Explosion_HullSection', 'breakup_final_blast': 'NS_TD_Explosion_FinalBlast'},
+    'Dominion/DA_Dominion_Visuals': {'hull_section_explosion': 'NS_TD_Explosion_HullSection', 'breakup_final_blast': 'NS_TD_Explosion_FinalBlast',
+                                     # the distortion field: authored 1 km radius, the hull mesh's half length is 376 m
+                                     'shield_idle': ('NS_TD_Dominion_Field', 0.46), 'shield_collapse': ('NS_TD_Dominion_FieldCollapse', 0.46)},
 }
 
 
