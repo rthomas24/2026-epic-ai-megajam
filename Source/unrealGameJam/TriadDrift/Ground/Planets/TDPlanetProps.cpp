@@ -16,6 +16,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "EngineUtils.h"
+#include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 
 #define LOCTEXT_NAMESPACE "TDPlanetProps"
 
@@ -817,6 +818,161 @@ void ATDCollapseRun::ResetProp()
 		}
 	}
 	Debris.Reset();
+}
+
+
+// ================================================================================================
+// Archive transfer (Verdance objective 1, reduced form)
+// ================================================================================================
+
+FTDOnSurveyTerminalActivated ATDArchiveTransfer::OnAnyTerminalActivated;
+
+ATDArchiveTransfer::ATDArchiveTransfer()
+{
+	PrimaryActorTick.bCanEverTick = true;
+	RunningText = LOCTEXT("TransferRun", "PROTECT THE DATA TRANSFER · {0}%");
+	PausedText = LOCTEXT("TransferPaused", "TRANSFER PAUSED · CLEAR THE TERMINAL · {0}%");
+	WaveAt = { 0.f, 0.25f, 0.5f };
+}
+
+void ATDArchiveTransfer::BeginPlay()
+{
+	Super::BeginPlay();
+	Fired.Init(false, Waves.Num());
+	if (LinkedObjective)
+	{
+		LinkedObjective->OnStepStarted.AddUniqueDynamic(this, &ATDArchiveTransfer::HandleStepStarted);
+	}
+}
+
+bool ATDArchiveTransfer::GetArchiveTransfer(const UObject* WorldContextObject, float& OutProgress01, bool& bOutPaused, FText& OutLabel)
+{
+	OutProgress01 = 0.f;
+	bOutPaused = false;
+	OutLabel = FText::GetEmpty();
+	UWorld* World = WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
+	for (TActorIterator<ATDArchiveTransfer> It(World); World && It; ++It)
+	{
+		if (It->IsRunning())
+		{
+			OutProgress01 = It->Progress;
+			bOutPaused = It->bPaused;
+			OutLabel = It->Label;
+			return true;
+		}
+	}
+	return false;
+}
+
+bool ATDArchiveTransfer::IsHostileAtTerminal() const
+{
+	const FVector At = GetActorLocation();
+	for (TActorIterator<ATDCrewCharacter> It(GetWorld()); It; ++It)
+	{
+		if (!It->IsDead() && FVector::Dist2D(It->GetActorLocation(), At) < PauseRadius)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void ATDArchiveTransfer::HandleStepStarted(ATDObjective* Objective, int32 StepIndex)
+{
+	if (StepIndex == LinkedStep - 1)
+	{
+		bRunning = true;
+		Progress = 0.f;
+		OnTransferStarted.Broadcast();
+		OnAnyTerminalActivated.Broadcast(this);
+		UpdateLine(true);
+	}
+	else if (StepIndex == LinkedStep)
+	{
+		bRunning = true;
+		Progress = FMath::Max(Progress, 0.5f); // the midpoint checkpoint: a retake picks up here
+		for (int32 i = 0; i < Fired.Num(); ++i)
+		{
+			Fired[i] = Fired[i] && WaveAt.IsValidIndex(i) && WaveAt[i] < 0.5f; // the midpoint wave drops again on a retake
+		}
+		UpdateLine(true);
+	}
+}
+
+void ATDArchiveTransfer::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	if (!bRunning || !LinkedObjective)
+	{
+		return;
+	}
+	const int32 Step = LinkedObjective->GetCurrentStepIndex();
+	if (Step != LinkedStep - 1 && Step != LinkedStep)
+	{
+		bRunning = false; // finished, or the scene was cut
+		return;
+	}
+	for (int32 i = 0; i < Waves.Num(); ++i)
+	{
+		if (!Fired[i] && WaveAt.IsValidIndex(i) && Progress >= WaveAt[i] && Waves[i])
+		{
+			Fired[i] = true;
+			Waves[i]->Activate();
+		}
+	}
+	const bool bWasPaused = bPaused;
+	bPaused = IsHostileAtTerminal();
+	if (bPaused != bWasPaused)
+	{
+		OnTransferPaused.Broadcast(bPaused);
+	}
+	if (!bPaused)
+	{
+		const float Cap = Step == LinkedStep - 1 ? 0.5f : 1.f;
+		Progress = FMath::Min(Cap, Progress + DeltaSeconds / FMath::Max(Seconds, 1.f));
+	}
+	UpdateLine(false);
+	if (Step == LinkedStep - 1 && Progress >= 0.5f)
+	{
+		LinkedObjective->CompleteStep(Step); // the midpoint: the next step is the checkpoint
+	}
+	else if (Step == LinkedStep && Progress >= 1.f)
+	{
+		bRunning = false;
+		OnTransferCompleted.Broadcast();
+		LinkedObjective->CompleteStep(Step);
+	}
+}
+
+void ATDArchiveTransfer::UpdateLine(bool bForce)
+{
+	const int32 Percent = FMath::FloorToInt(Progress * 100.f);
+	if (!bForce && Percent == ShownPercent && bPaused == bShownPaused)
+	{
+		return;
+	}
+	ShownPercent = Percent;
+	bShownPaused = bPaused;
+	Label = FText::Format(bPaused ? PausedText : RunningText, Percent);
+	const int32 Step = LinkedObjective ? LinkedObjective->GetCurrentStepIndex() : INDEX_NONE;
+	if (Step == LinkedStep - 1 || Step == LinkedStep)
+	{
+		LinkedObjective->UpdateStepText(Label);
+	}
+}
+
+void ATDArchiveTransfer::ResetProp()
+{
+	// A retake: from the midpoint once it was reached (the checkpoint is the second half), else from zero.
+	const bool bPastMid = LinkedObjective && LinkedObjective->GetCheckpointStep() >= LinkedStep;
+	Progress = bPastMid ? 0.5f : 0.f;
+	bRunning = false;
+	bPaused = false;
+	ShownPercent = -1;
+	for (int32 i = 0; i < Fired.Num(); ++i)
+	{
+		Fired[i] = WaveAt.IsValidIndex(i) && WaveAt[i] < Progress;
+	}
 }
 
 #undef LOCTEXT_NAMESPACE
