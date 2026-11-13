@@ -288,6 +288,9 @@ public:
 	/** Deterministic per-world spawn-order seed for this pilot's random draws (aim error, AI choices). */
 	int32 GetSpawnSeed();
 
+	/** Added to every spawn seed (0 = default). Balance distribution runs vary it to sample many fights. */
+	static int32& SpawnSeedSalt();
+
 	/** Fix this pilot's random draws to Seed (tests: N seeded passes of the same scenario). */
 	void SetSpawnSeed(int32 Seed);
 
