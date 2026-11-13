@@ -1,0 +1,129 @@
+{
+  "asset": "SM_NullHauler",
+  "fbx_relative": "SM_NullHauler.fbx",
+  "glb_relative": "SM_NullHauler.glb",
+  "tris": 26497,
+  "size_cm": [
+    4000.0,
+    1939.9,
+    876.3
+  ],
+  "size_cm_authored": [
+    4000.0,
+    1940.0,
+    875.6
+  ],
+  "pivot": "bounding-box centre at (0, 0, 0)",
+  "forward": "+X",
+  "up": "+Z",
+  "materials": [
+    "M_NullHauler"
+  ],
+  "textures": [
+    "T_NullHauler_BC.png",
+    "T_NullHauler_N.png",
+    "T_NullHauler_ORM.png",
+    "T_NullHauler_E.png"
+  ],
+  "texture_size": 2048,
+  "collision": [
+    "UCX_SM_NullHauler_00",
+    "UCX_SM_NullHauler_01",
+    "UCX_SM_NullHauler_02",
+    "UCX_SM_NullHauler_03",
+    "UCX_SM_NullHauler_04"
+  ],
+  "collision_source": "authored simple boxes (core hull, nose, stern, starboard wing, port wing). ATDArmadaConvoy currently uses NoCollision.",
+  "sockets": [
+    "SOCKET_Thruster_0",
+    "SOCKET_Thruster_1",
+    "SOCKET_Thruster_2",
+    "SOCKET_Thruster_3",
+    "SOCKET_SensorDome_0",
+    "SOCKET_SensorDome_1"
+  ],
+  "ue_sockets": [
+    {
+      "name": "SOCKET_Thruster_0",
+      "role": "starboard-upper nozzle exit",
+      "ue_cm": [
+        -1982.83,
+        241.14,
+        86.28
+      ],
+      "local_x": "exhaust = world -X"
+    },
+    {
+      "name": "SOCKET_Thruster_1",
+      "role": "port-upper nozzle exit",
+      "ue_cm": [
+        -1986.1,
+        -218.85,
+        104.45
+      ],
+      "local_x": "exhaust = world -X"
+    },
+    {
+      "name": "SOCKET_Thruster_2",
+      "role": "starboard-lower nozzle exit",
+      "ue_cm": [
+        -1977.72,
+        240.83,
+        -170.99
+      ],
+      "local_x": "exhaust = world -X"
+    },
+    {
+      "name": "SOCKET_Thruster_3",
+      "role": "port-lower nozzle exit",
+      "ue_cm": [
+        -1979.01,
+        -206.6,
+        -169.83
+      ],
+      "local_x": "exhaust = world -X"
+    },
+    {
+      "name": "SOCKET_SensorDome_0",
+      "role": "fore dorsal dome apex",
+      "ue_cm": [
+        920.68,
+        -11.02,
+        406.59
+      ]
+    },
+    {
+      "name": "SOCKET_SensorDome_1",
+      "role": "aft dorsal dome apex",
+      "ue_cm": [
+        -1100.68,
+        -13.91,
+        438.5
+      ]
+    }
+  ],
+  "welded_verts": 0,
+  "nanite_recommended": true,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": true,
+    "collision": "use UCX_ from file (optional \u2014 convoy gameplay is NoCollision)",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX \u2014 do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    }
+  },
+  "warnings": [
+    "Rodin mesh includes ventral spherical bulges under the nose and aft block that are not called out on Nicholas's four-view board.",
+    "ATDArmadaConvoy scanner ring is spawned in C++ and is intentionally not baked into this mesh.",
+    "Authored E map (Rodin shipped no emissive): white cockpit slits + #FF5A1E thruster interiors only."
+  ],
+  "errors": [],
+  "role": "null_hauler",
+  "issue": 51
+}
