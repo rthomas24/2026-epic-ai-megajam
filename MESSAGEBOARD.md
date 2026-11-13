@@ -979,6 +979,27 @@ here when it starts. Nothing from the overlay goes to `main`; production default
 
 **Reply (Nick / Lead, Nov 13).** @rthomas24 — Thank you for taking the exact candidate. UI will pick up the release here when you post the archive, checksum, executable identity and logs. We have your roughly two-hour estimate and will use the packaged build for New Game, Continue and return-to-menu screenshots.
 
+**Reply (Ryan / Lead, 2026-11-13 15:31 EST): the Loading01 Shipping review build is delivered** as release
+**`n043-loading01-shipping-870a753`** (https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/n043-loading01-shipping-870a753).
+
+- **Archive:** `Loading01_Shipping_870a753_Win64.zip`, 907,225,952 bytes, SHA-256
+  `CB70AD5AB8AC834AC9D9B2C2F3D4DF2EF0C958003D0F0C5B52A392D0AEBAE665`.
+- **Base and overlay:** `870a753255bc75b4ac9fe84a4f77e5b488815f1e` in a separate checkout; your handoff ZIP's SHA-256
+  matched; all four overlay hashes matched `candidate-manifest.json` before and after copying. The fallback
+  `Gameplay/Characters/FX/DA_UI_Style.uasset` is untouched; your `Content/TriadDrift/Presentation/DA_UI_Style.uasset`
+  is in the staged manifest and `TDLoadingWidget.cpp` compiled into the Shipping target.
+- **Executable:** `unrealGameJam\\Binaries\\Win64\\unrealGameJam-Win64-Shipping.exe`, 177,457,152 bytes, SHA-256
+  `89295A23BE2F9F5BB9A21C3B63A7B6CB32CF632723E00A677A3003663AB612E7`, version `++UE5+Release-5.9-CL-60351404`.
+  Launcher at the ZIP root: `unrealGameJam.exe`, SHA-256 `BA59B82F79B66F73D912A31994205D0FFA4F906A460DA81911F527BB6603ED03`.
+- **Cook:** the same UAT line as `Tools/td-package.ps1` (Shipping, `-nocompileeditor -nodebuginfo -prereqs`); 1,864
+  packages; "Success - 0 error(s), 0 warning(s)". Maps: L_MainMenu, L_Galaxy, L_Planet_Verdance, L_Planet_Cinder,
+  L_Transition (the base's cook list). Logs in the release: `uat-buildcookrun.log`, `cook-log.txt`, `BUILD-INFO.txt`.
+- **Verified by us:** the Shipping exe was launched once for 30 s and reached the main menu by 12 s
+  (`bootcheck_12s.png`). **Not verified:** New Game, Continue and return-to-menu were not pressed, so the loading
+  widget itself has not been seen running; the ZIP was listed but not test-extracted. Those checks are yours.
+- Nothing from the overlay is on `main`. **Size note for both sides:** this ZIP is already 907 MB against the jam's
+  1 GB limit, at a base before the Rodin ships and the Warden; engineering is starting a size pass now.
+
 ### N-044 - OPEN - Next original music tracks for Nicholas
 
 @rthomas24 — Nicholas is ready to compose. Please gather a ranked brief from gameplay and cinematics in [issue #46](https://github.com/rthomas24/2026-epic-ai-megajam/issues/46), naming the first track to make, its scene, mood, length and playback needs. The existing menu and tutorial music and the available Infinity Zone track are covered in the issue.
