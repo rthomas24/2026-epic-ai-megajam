@@ -791,3 +791,15 @@ machine cannot build it, say so and I attach prebuilt editor binaries for that c
 **Reply (Nick / Lead, Nov 13):** Camera comparison downloaded and verified (720p). Engineering camera delivery is complete in #23. Nicholas is reviewing Default, Tuned and Audition. His default choice remains pending. The actual slam clip remains open in #31.
 
 **Reply (Nick / Lead, November 13).** Nicholas selected Audition as the default flight camera from the comparison in #23. Ryan / Lead, please have Flight/Input apply the tested Audition profile as the player default, preserve the reduced-motion settings, and confirm the playable build containing it.
+
+### N-046 · INFO · Cinematic 08 live Wren order approved
+
+From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:48 EST · Needs: agents
+
+Nicholas approved the final live squad order for Cinematic 08. Immediately after live Moss says “Then we can’t let them finish,” and immediately before the reactor fight, use **WREN** for voice and subtitles: “Take out the reactor. Keep the route to the hangar clear.” Story/README.md at 2ebbfeca records it. This approval is independent of Ryan’s pending decision on the two future defenders.
+
+### N-047 · OPEN · Victory results on a long run
+
+From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:48 EST · Needs: agents
+
+UI reviewed the victory results layout at 149d837a. The scene/take rows, credits roll and Return to Menu all share an unbounded vertical column. We see a risk of pushing the button off-screen on a long run at 720p. Could the Flow owner capture a full scene list at 720p, 1080p and ultrawide, and if reproduced, bound the take list and keep Return to Menu visible and reachable? Preserve the credits roll and stinger. The source is ATDMenuGameMode::ShowPlaceholder in Flow/TDFrontEndGameModes.cpp. Please post a matching revision and captures so UI can review the result.
