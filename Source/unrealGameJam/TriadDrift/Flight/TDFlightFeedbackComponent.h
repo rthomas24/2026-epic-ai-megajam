@@ -115,6 +115,15 @@ struct UNREALGAMEJAM_API FTDFlightFeedbackTuning
 	/** The flown ship's own ribbon in the chase view stops this far behind the nozzle (cm); wingmen keep the full length. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0"))
 	float PlayerTrailMax = 300.f;
+
+	/** ...and never reaches lower on screen than this fraction of the viewport height (0 top, 1 bottom), so the
+	 *  flame stays clear of the HUD band whatever the ship's size, nozzle layout or camera distance. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0.5", ClampMax = "1"))
+	float PlayerFlameScreenLimit = 0.70f;
+
+	/** Ships with more than two engines (the Bastion's four) get this share of the flown flame length. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trail", meta = (ClampMin = "0.1", ClampMax = "1"))
+	float PlayerFlameManyEnginesScale = 0.6f;
 };
 
 UCLASS(ClassGroup = (TriadDrift), meta = (BlueprintSpawnableComponent))

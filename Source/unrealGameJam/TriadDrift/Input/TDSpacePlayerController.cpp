@@ -1,6 +1,7 @@
 // Triad Drift - space player controller and runtime Enhanced Input setup (ENG-02). Owner: Teammate 1.
 
 #include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "InputKeyEventArgs.h"
 #include "TriadDrift/Input/TDHintComponent.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -882,6 +883,35 @@ void ATDSpacePlayerController::OnThrottle(const FInputActionValue& Value)
 void ATDSpacePlayerController::OnThrottleReleased(const FInputActionValue&)
 {
 	ThrottleAxis = 0.f;
+}
+
+bool ATDSpacePlayerController::InputKey(const FInputKeyEventArgs& Params)
+{
+	// On foot there's no stick-aim action to tell the devices apart, so the raw keys do it: any pad button, or a pad
+	// axis past the stick deadzone, means "using gamepad"; any key or mouse button press, or a real mouse move,
+	// means mouse and keyboard. On-foot prompts read IsUsingGamepad() to switch their wording. In flight the
+	// stick/mouse aim hysteresis above stays in charge.
+	if (GetPawn() != nullptr && GetSpacecraft() == nullptr)
+	{
+		const FKey& K = Params.Key;
+		if (K.IsGamepadKey())
+		{
+			if (K.IsAxis1D() || K.IsAxis2D() ? FMath::Abs(Params.AmountDepressed) > StickDeadzone : Params.Event == IE_Pressed)
+			{
+				bUsingGamepad = true;
+			}
+		}
+		else if (!K.IsTouch())
+		{
+			const bool bMouseMove = K == EKeys::MouseX || K == EKeys::MouseY;
+			if (bMouseMove ? FMath::Abs(Params.AmountDepressed) >= MouseTakeOverThreshold
+				: (!K.IsAxis1D() && !K.IsAxis2D() && Params.Event == IE_Pressed))
+			{
+				bUsingGamepad = false;
+			}
+		}
+	}
+	return Super::InputKey(Params);
 }
 
 void ATDSpacePlayerController::OnMouseAim(const FInputActionValue& Value)
