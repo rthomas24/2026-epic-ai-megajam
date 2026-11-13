@@ -883,6 +883,7 @@ void ATDFirstPersonCharacter::BuildInput()
 	C->MapKey(IA_Dash, EKeys::Q);
 	C->MapKey(IA_Dash, EKeys::Gamepad_FaceButton_Right);
 	C->MapKey(IA_Crouch, EKeys::LeftControl);
+	C->MapKey(IA_Crouch, EKeys::Gamepad_RightThumbstick); // right-stick click (T1's audit: crouch had no pad binding)
 	C->MapKey(IA_Attack, EKeys::LeftMouseButton);
 	C->MapKey(IA_Attack, EKeys::Gamepad_RightTrigger);
 	C->MapKey(IA_Block, EKeys::RightMouseButton);

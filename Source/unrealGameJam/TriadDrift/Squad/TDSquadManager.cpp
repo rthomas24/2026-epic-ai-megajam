@@ -1184,6 +1184,8 @@ TArray<FTDShipHUD> ATDSquadManager::GetSquadHUD() const
 		Card.SecondaryAmmo = Ship ? TDSquad::GetAmmo(Ship, ETDWeaponSlot::Secondary) : 0;
 		// N-004: only the ability the ship has EARNED, readiness 0 while locked.
 		TDSquad::GetEarnedAbility(Ship, Card.Ability, Card.AbilityCooldown01);
+		// The dodge pip is the player's: wingmen read ready.
+		Card.Dodge01 = (Id == ActiveShipId && Ship) ? TDSquad::GetDodgeReady01(Ship) : 1.f;
 		if (Ship)
 		{
 			TDSquad::GetPowerCooldowns(Ship, Card.PowerCooldown01, Card.Power2Cooldown01);

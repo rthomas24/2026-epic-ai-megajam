@@ -727,6 +727,11 @@ bool FTDSquadHyperdriveFollow::RunTest(const FString& Parameters)
 		F.W.Advance(3.f, Step);
 		// The ride in the slot goes through T1's TeleportSpacecraft (its watchdog sees no silent move).
 		TestTrue(TEXT("jump follow uses TeleportSpacecraft") + Fps, F.Events->Teleports.FindRef(F.Ship(ETDShipId::Lancer)) > LancerTeleportsBefore);
+		for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+		{
+			TestEqual(TEXT("T1's watchdog: no silent move on the wing's jump follow ") + UEnum::GetValueAsString(Id) + Fps,
+				F.Ship(Id)->GetShipMovement()->GetSilentMoveCount(), 0);
+		}
 		TestTrue(TEXT("jumping") + Fps, Hyper && Hyper->IsJumping() && Leader->GetShipMovement()->GetSpeed() > 60000.f);
 		for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
 		{
@@ -2654,10 +2659,15 @@ bool FTDSquadDodgeOnHUD::RunTest(const FString& Parameters)
 	FSquadFixture F;
 	F.W.Advance(1.f);
 	ATDShip* Rift = F.Ship(ETDShipId::Rift);
-	TestEqual(TEXT("ready before any dodge"), TDSquad::GetDodgeReady01(Rift), 1.f);
+	auto Card = [&](ETDShipId Id) { return F.Squad->GetSquadHUD()[static_cast<int32>(Id)]; };
+	TestEqual(TEXT("ready before any dodge"), Card(ETDShipId::Rift).Dodge01, 1.f);
 	TestTrue(TEXT("dodge"), Rift->GetShipMovement()->RequestDodge(1.f));
 	F.W.Tick();
-	TestTrue(TEXT("spent right after"), TDSquad::GetDodgeReady01(Rift) < 0.2f);
+	TestTrue(TEXT("the player's card: spent right after"), Card(ETDShipId::Rift).Dodge01 < 0.2f);
+	TestEqual(TEXT("wingmen read ready"), Card(ETDShipId::Lancer).Dodge01, 1.f);
+	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	TestEqual(TEXT("the new ship's own pip (it hasn't dodged)"), Card(ETDShipId::Lancer).Dodge01, 1.f);
+	TestEqual(TEXT("Rift as a wingman reads ready"), Card(ETDShipId::Rift).Dodge01, 1.f);
 	F.W.Advance(5.f);
 	TestEqual(TEXT("ready again"), TDSquad::GetDodgeReady01(Rift), 1.f);
 	return true;

@@ -71,6 +71,8 @@ public:
 	/** Mouse virtual-joystick position, -1..1 on each axis (HUD draws the reticle from this). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Input")
 	FVector2D GetVirtualStick() const { return VirtualStick; }
+	float GetMouseSensitivity() const { return MouseSensitivity; }
+	bool IsMousePitchInverted() const { return bInvertMousePitch; }
 
 	/** The aim the ship is currently steering with (-1..1), after deadzone, from mouse or gamepad. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Input")
@@ -153,6 +155,10 @@ public:
 	/** The game is paused because the player paused it (not a loading or engine pause). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Pause")
 	bool IsGamePausedByPlayer() const { return bPausedByPlayer; }
+
+	/** The galaxy map key (M / Select) and OnGalaxyMapInput. Off until the galaxy map screen exists. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "TriadDrift|Input")
+	bool bGalaxyMapEnabled = false;
 
 	/** Two presses of A / D (or two flicks of the left stick) within this window dodge to that side (s). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input")
@@ -333,6 +339,8 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_SquadCommand;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Land;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Pause;
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_CameraToggleHold;
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_TargetCycleTap;
 	/** Dodge: LeftAlt (dedicated) and a double-tap of A / D or a double flick of the left stick. */
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Dodge;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_DodgeTap;
