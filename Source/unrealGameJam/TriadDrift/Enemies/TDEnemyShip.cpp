@@ -854,12 +854,12 @@ void ATDEnemyShip::SpawnCarrierParts()
 	{
 		ATDCarrierBay* Bay = World->SpawnActor<ATDCarrierBay>(ATDCarrierBay::StaticClass(), FTransform::Identity, Params);
 		if (!Bay) { continue; }
+		Bay->Visuals = Visuals;	// before Init, which applies the bay art
 		const FVector Dir = BayDirs[i % UE_ARRAY_COUNT(BayDirs)].RotateAngleAxis(25.f * (i / 3), FVector::UpVector);
 		MountPart(Bay, Dir, Bay->GetHalfExtent(), 0.f);
 		const float FirstDelay = Spec.Heavy.Interval * 0.5f + i * 2.f;
 		Bay->Init(this, Spec.BayHull, Spec.Heavy.Count, Spec.Heavy.Interval, Spec.Heavy.TelegraphSeconds, FirstDelay);
 		Bay->MaxLaunches = Spec.MaxLaunchesPerBay;
-		Bay->Visuals = Visuals;
 		Bays.Add(Bay);
 	}
 
@@ -868,11 +868,11 @@ void ATDEnemyShip::SpawnCarrierParts()
 	{
 		ATDEnemyTurret* Turret = World->SpawnActor<ATDEnemyTurret>(ATDEnemyTurret::StaticClass(), FTransform::Identity, Params);
 		if (!Turret) { continue; }
+		Turret->Visuals = Visuals;	// before Init, which applies the turret art
 		const float Angle = (PI * 0.5f) * i + PI * 0.25f;
 		MountPart(Turret, FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.6f), 120.f, 0.f);
 		Turret->Init(Spec.TurretGuns, Spec.TurretHull);
 		Turret->SetDamageMultiplier(DifficultyDamage);
-		Turret->Visuals = Visuals;
 		Turrets.Add(Turret);
 	}
 }

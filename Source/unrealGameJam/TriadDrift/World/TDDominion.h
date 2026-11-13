@@ -322,6 +322,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")
 	TObjectPtr<USceneComponent> HangarPoint;
 
+	/** Placeholder breakup while Nick's BreakupSequence has no VFX: explosion chain, final blast, hull gone. */
+	void TickPlaceholderBreakup(float DeltaSeconds);
+	bool bPlaceholderBreakup = false;
+	bool bBreakupFinalBlast = false;
+	float BreakupBoomTimer = 0.f;
+	int32 BreakupBooms = 0;
+
+public:
+	int32 GetBreakupBoomCount() const { return BreakupBooms; }
+	bool HasBreakupFinalBlast() const { return bBreakupFinalBlast; }
+protected:
+
 	bool bShowcase = false;
 	bool bShowcasePrevHidden = true;
 	bool bShowcasePrevCollision = false;
