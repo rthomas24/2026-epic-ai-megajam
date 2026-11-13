@@ -13,6 +13,8 @@
 #include "Layout/WidgetPath.h"
 #include "Rendering/DrawElements.h"
 #include "Widgets/SWindow.h"
+#include "UObject/StrongObjectPtr.h"
+#include "UObject/UObjectGlobals.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDBarkLines.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
@@ -65,11 +67,14 @@ namespace TDFlightHUDTests
 		FTDTestWorld W;
 		ATDFlightHUDTestSource* Src = nullptr;
 		UTDFlightHUDWidget* HUD = nullptr;
+		/** Nothing else references a test-made widget (no viewport, no host): without this a GC mid-test frees it. */
+		TStrongObjectPtr<UTDFlightHUDWidget> Keep;
 		FTDFlightHUDFixture()
 		{
 			Src = W.Spawn<ATDFlightHUDTestSource>();
 			Src->SetSquad(ETDShipId::Lancer);
 			HUD = CreateWidget<UTDFlightHUDWidget>(W.GetWorld(), UTDFlightHUDWidget::StaticClass());
+			Keep.Reset(HUD);
 			HUD->ForceGamepad = 0;
 			HUD->SetDataSource(Src);
 		}
@@ -553,7 +558,14 @@ bool FTDFlightHUDHintCard::RunTest(const FString& Parameters)
 	Hints->UseMemoryOnlyForTests();
 	Hints->TimeoutSeconds = 2.f;
 	W.Advance(.5f);
-	UTDFlightHUDWidget* HUD = CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass());
+	// Held strongly: the gating run crashed here (Lead, lead/int 8492cf3) when a GC during the 12 s hint wait freed the
+	// unreferenced widget and Sample() ran on freed memory. The shipping host holds its widget in a UPROPERTY.
+	const TStrongObjectPtr<UTDFlightHUDWidget> Keep(CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass()));
+	UTDFlightHUDWidget* HUD = Keep.Get();
+	if (!TestNotNull(TEXT("widget"), HUD))
+	{
+		return false;
+	}
 	HUD->ForceGamepad = 0;
 	HUD->SetDataSource(Squad);
 	if (UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld()))
@@ -583,6 +595,63 @@ bool FTDFlightHUDHintCard::RunTest(const FString& Parameters)
 	W.Tick();
 	HUD->Sample(.016f);
 	TestTrue(TEXT("fired: the card ticks off"), HUD->GetView().bHintDone);
+	return true;
+}
+
+// The Lead's gating crash (lead/int 8492cf3, Sample() on freed memory): a GC between Sample() calls. The shipping holder
+// (UTDUIHostSubsystem's UPROPERTY) keeps the flight HUD alive and it samples and paints on; a test-held strong pointer
+// keeps it too; a widget nothing references IS collected (what the old raw pointer in HintCardStep raced).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDSurvivesGC, "TriadDrift.UI.FlightHUD.SurvivesGarbageCollection", TD_TEST_FLAGS)
+bool FTDFlightHUDSurvivesGC::RunTest(const FString& Parameters)
+{
+	FTDFlightScopedCVar Space(TEXT("TD.UI.SpaceHUD"), 2);
+	FTDFlightScopedCVar Native(TEXT("TD.UI.NativeHUD"), -1);
+	FTDTestWorld W;
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("squad"), Squad) || !TestNotNull(TEXT("controller"), PC) || !TestNotNull(TEXT("host"), Host))
+	{
+		return false;
+	}
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(0.f, 0.f, 20000.f)));
+	Host->bAddToViewport = false;
+	W.Advance(.2f);
+	Host->Evaluate();
+	const TWeakObjectPtr<UTDFlightHUDWidget> HostHUD = Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD());
+	if (!TestTrue(TEXT("the host shows the engineering flight HUD"), HostHUD.IsValid()))
+	{
+		return false;
+	}
+	const TStrongObjectPtr<UTDFlightHUDWidget> Held(CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass()));
+	const TWeakObjectPtr<UTDFlightHUDWidget> Loose = CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass());
+	Held->SetDataSource(Squad);
+	for (int32 Round = 0; Round < 3; ++Round)
+	{
+		HostHUD->Sample(.016f);
+		Held->Sample(.016f);
+		CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS, true);
+		W.Advance(.1f);
+	}
+	TestTrue(TEXT("host's widget survives GC"), HostHUD.IsValid() && Host->GetSpaceHUD() == HostHUD.Get());
+	TestTrue(TEXT("a strongly held test widget survives GC"), Held.IsValid());
+	TestFalse(TEXT("an unreferenced widget is collected (the old test's raw pointer would now dangle)"), Loose.IsValid());
+	if (HostHUD.IsValid())
+	{
+		HostHUD->Sample(.016f);
+		TestEqual(TEXT("after GC: the host's HUD still reads the squad (3 chips)"), HostHUD->GetView().Chips.Num(), 3);
+		TSharedRef<SWidget> Slate = HostHUD->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+		TestTrue(TEXT("after GC: it paints"), HostHUD->LastBoxes.Num() > 0);
+	}
+	Held->Sample(.016f);
+	TestEqual(TEXT("after GC: the held widget samples"), Held->GetView().Chips.Num(), 3);
 	return true;
 }
 

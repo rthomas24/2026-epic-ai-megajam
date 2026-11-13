@@ -11,6 +11,9 @@
 #include "NiagaraComponent.h"
 #include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "Engine/World.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 
 ATDShieldDome::ATDShieldDome()
 {
@@ -205,6 +208,22 @@ void ATDShieldDome::ReceiveProjectile(ATDProjectile* P, const FVector& ShellPoin
 	if (!Intercepts(P))
 	{
 		return;
+	}
+	// dialogs.md Bark_Dome_Saved: "Told you I had you." the first time this dome stops a shot while a wingman shelters in it.
+	if (!bSaidSaved)
+	{
+		if (const ATDSquadManager* Squad = ATDSquadManager::Get(this))
+		{
+			for (int32 I = 0; I < 3 && !bSaidSaved; ++I)
+			{
+				const ATDShip* Ship = Squad->GetShip(static_cast<ETDShipId>(I));
+				if (Ship && !FTDCombatBarks::IsPlayerFlown(Ship) && Squad->IsShipAlive(Ship->GetShipId()) && Covers(Ship->GetActorLocation()))
+				{
+					bSaidSaved = true;
+					FTDCombatBarks::Say(this, ETDShipId::Bastion, TDBarkIdsT2::DomeSaved, ETDBarkPriority::Normal);
+				}
+			}
+		}
 	}
 	if (P->IsMissile() && P->GetSpec().bHoming)
 	{

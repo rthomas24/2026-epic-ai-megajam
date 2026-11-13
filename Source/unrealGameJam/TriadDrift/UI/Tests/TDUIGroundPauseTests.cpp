@@ -23,6 +23,10 @@
 #include "Sound/SoundWave.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDEventBus.h"
+#include "Input/HittestGrid.h"
+#include "Rendering/DrawElements.h"
+#include "Widgets/SWindow.h"
+#include "UObject/StrongObjectPtr.h"
 
 namespace TDUIGroundPauseTests
 {
@@ -140,12 +144,59 @@ bool FTDUIGroundHUDByMode::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Verdance's archive transfer meter (T5's ATDArchiveTransfer): none without a transfer; shown with its progress while
+// one runs; paused is flagged; painted as one plate under the objective panel, inside the frame.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDUIGroundTransferMeter, "TriadDrift.UI.GroundHUD.ArchiveTransferMeter", TD_TEST_FLAGS)
+bool FTDUIGroundTransferMeter::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDFirstPersonCharacter* Walker = W.Spawn<ATDFirstPersonCharacter>(FVector(0.f, 0.f, 95.f));
+	APlayerController* PC = W.SpawnLocalPlayerController(Walker, ATDSpacePlayerController::StaticClass());
+	const TStrongObjectPtr<UTDGroundHUDWidget> Keep(PC ? CreateWidget<UTDGroundHUDWidget>(PC, UTDGroundHUDWidget::StaticClass()) : nullptr); // no GC mid-test
+	UTDGroundHUDWidget* HUD = Keep.Get();
+	if (!TestNotNull(TEXT("ground HUD"), HUD))
+	{
+		return false;
+	}
+	HUD->Sample(.1f);
+	TestFalse(TEXT("no transfer in this world: no meter"), HUD->GetView().bTransfer);
+
+	HUD->ForceTransfer01 = .63f;
+	HUD->Sample(.1f);
+	TestTrue(TEXT("running: meter shown"), HUD->GetView().bTransfer);
+	TestTrue(TEXT("running: progress read"), FMath::IsNearlyEqual(HUD->GetView().Transfer01, .63f, .001f));
+	TestFalse(TEXT("running: not paused"), HUD->GetView().bTransferPaused);
+	HUD->bForceTransferPaused = true;
+	HUD->Sample(.1f);
+	TestTrue(TEXT("crewman at the terminal: paused"), HUD->GetView().bTransferPaused);
+
+	TSharedRef<SWidget> Slate = HUD->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	FSlateWindowElementList List(Window);
+	FHittestGrid Grid;
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	const TPair<FName, FBox2D>* Box = HUD->LastBoxes.FindByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("transfer"); });
+	if (TestNotNull(TEXT("meter painted"), Box))
+	{
+		TestTrue(TEXT("centred"), FMath::IsNearlyEqual(Box->Value.GetCenter().X, 960.f, 1.f));
+		TestTrue(TEXT("under the objective panel (ends at y 145)"), Box->Value.Min.Y >= 145.f && Box->Value.Max.Y < 300.f);
+	}
+
+	HUD->ForceTransfer01 = -1.f;
+	HUD->Sample(.1f);
+	TestFalse(TEXT("transfer over: meter gone"), HUD->GetView().bTransfer);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDUIPauseNavigation, "TriadDrift.UI.Pause.KeyboardAndPadNavigation", TD_TEST_FLAGS)
 bool FTDUIPauseNavigation::RunTest(const FString& Parameters)
 {
 	FTDTestWorld W;
 	APlayerController* PC = W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass());
-	UTDPauseMenuWidget* Menu = PC ? CreateWidget<UTDPauseMenuWidget>(PC, UTDPauseMenuWidget::StaticClass()) : nullptr;
+	const TStrongObjectPtr<UTDPauseMenuWidget> Keep(PC ? CreateWidget<UTDPauseMenuWidget>(PC, UTDPauseMenuWidget::StaticClass()) : nullptr); // no GC mid-test
+	UTDPauseMenuWidget* Menu = Keep.Get();
 	if (!TestNotNull(TEXT("pause menu"), Menu))
 	{
 		return false;

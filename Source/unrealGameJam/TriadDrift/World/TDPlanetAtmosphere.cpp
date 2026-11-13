@@ -19,6 +19,17 @@
 #include "Components/DirectionalLightComponent.h"
 #include "EngineUtils.h"
 #include "UObject/ConstructorHelpers.h"
+#include "TriadDrift/World/TDGlobeBake.h"
+#include "Engine/Texture2D.h"
+#include "Async/Async.h"
+#include "HAL/IConsoleManager.h"
+
+static TAutoConsoleVariable<int32> CVarTDPlanetGlobeBake(
+	TEXT("td.PlanetGlobeBake"), 1,
+	TEXT("ENG-38: 1 = the planet globes in space show their baked terrain (the same world as the ground, a beacon at the landing site, no spin); 0 = the art look. Read at level start."));
+static TAutoConsoleVariable<int32> CVarTDPlanetGlobeMarks(
+	TEXT("td.PlanetGlobeMarks"), 0,
+	TEXT("Dev: paint calibration meridians into the globe bake (lon 0 magenta, lon 90 yellow, equator white). Read at level start."));
 
 ATDPlanetAtmosphere::ATDPlanetAtmosphere()
 {
@@ -165,6 +176,102 @@ void ATDPlanetAtmosphere::BeginPlay()
 		Travel->RegisterGravityWell(GetWellId(), GetActorLocation(), AtmosphereRadius * GravityWellRadiusScale, this);
 	}
 	SyncWithProgress();
+	StartGlobeBake();
+}
+
+FQuat ATDPlanetAtmosphere::GetGlobeQuat() const
+{
+	return bGlobeFacing ? GlobeQuat : GetActorQuat();
+}
+
+void ATDPlanetAtmosphere::StartGlobeBake()
+{
+	if (bGlobeBaked || bGlobeBaking || !bArtLook || CVarTDPlanetGlobeBake.GetValueOnGameThread() == 0
+		|| (Destination != ETDDestination::Verdance && Destination != ETDDestination::Cinder))
+	{
+		return;
+	}
+	bGlobeBaking = true;
+	// The landing zone faces the combat zone (where the squad comes from); the surface and the descent mapping share
+	// this frame from now on, before the bake lands, so an entry is always mapped the way it will look.
+	{
+		const FVector ToFace = (GlobeFacePoint - GetPlanetCenter()).GetSafeNormal();
+		if (!ToFace.IsNearlyZero())
+		{
+			GlobeQuat = FRotationMatrix::MakeFromZX(ToFace, FVector::UpVector).ToQuat();
+			bGlobeFacing = true;
+			SpinPivot->SetWorldRotation(GlobeQuat * FQuat(FRotator(0.f, GlobeYawOffsetDeg, 0.f)));
+		}
+	}
+	const int32 W = FMath::Clamp(GlobeBakeWidth, 64, 4096);
+	const int32 H = W / 2;
+	const ETDDestination Planet = Destination;
+	const bool bMirror = bGlobeMirrorU;
+	const bool bMarks = CVarTDPlanetGlobeMarks.GetValueOnGameThread() != 0;
+	TWeakObjectPtr<ATDPlanetAtmosphere> Weak(this);
+	Async(EAsyncExecution::ThreadPool, [Weak, Planet, W, H, bMirror, bMarks]()
+	{
+		TArray<FColor> Base, Emissive;
+		FTDGlobeBake::Bake(Planet, W, H, Base, Emissive, bMarks);
+		if (bMirror)
+		{
+			for (int32 j = 0; j < H; ++j)
+			{
+				for (int32 i = 0; i < W / 2; ++i)
+				{
+					Swap(Base[j * W + i], Base[j * W + W - 1 - i]);
+					Swap(Emissive[j * W + i], Emissive[j * W + W - 1 - i]);
+				}
+			}
+		}
+		AsyncTask(ENamedThreads::GameThread, [Weak, W, H, Base = MoveTemp(Base), Emissive = MoveTemp(Emissive)]() mutable
+		{
+			if (ATDPlanetAtmosphere* Self = Weak.Get())
+			{
+				Self->ApplyGlobeBake(MoveTemp(Base), MoveTemp(Emissive), W, H);
+			}
+		});
+	});
+}
+
+namespace
+{
+	UTexture2D* TDPlanetAtmosphere_MakeTexture(UObject* Outer, const TArray<FColor>& Pixels, int32 W, int32 H)
+	{
+		UTexture2D* T = UTexture2D::CreateTransient(W, H, PF_B8G8R8A8);
+		if (!T) { return nullptr; }
+		T->SRGB = true;
+		T->AddressX = TA_Wrap;
+		T->AddressY = TA_Clamp;
+		void* Data = T->GetPlatformData()->Mips[0].BulkData.Lock(LOCK_READ_WRITE);
+		FMemory::Memcpy(Data, Pixels.GetData(), Pixels.Num() * sizeof(FColor));
+		T->GetPlatformData()->Mips[0].BulkData.Unlock();
+		T->UpdateResource();
+		return T;
+	}
+}
+
+void ATDPlanetAtmosphere::ApplyGlobeBake(TArray<FColor>&& Base, TArray<FColor>&& Emissive, int32 W, int32 H)
+{
+	bGlobeBaking = false;
+	if (!SurfaceLook || !SurfaceLook->GetStaticMesh() || Base.Num() != W * H)
+	{
+		return;
+	}
+	GlobeBase = TDPlanetAtmosphere_MakeTexture(this, Base, W, H);
+	GlobeEmissive = TDPlanetAtmosphere_MakeTexture(this, Emissive, W, H);
+	UMaterialInstanceDynamic* MID = Cast<UMaterialInstanceDynamic>(SurfaceLook->GetMaterial(0));
+	if (!MID) { MID = SurfaceLook->CreateAndSetMaterialInstanceDynamic(0); }
+	if (!MID || !GlobeBase)
+	{
+		return;
+	}
+	MID->SetTextureParameterValue(TEXT("BaseColorTex"), GlobeBase);
+	if (GlobeEmissive) { MID->SetTextureParameterValue(TEXT("EmissiveTex"), GlobeEmissive); }
+	bGlobeBaked = true;
+	// The landing site stays put: no spin, the surface lined up with the globe frame (the descent mapping).
+	if (!bGlobeFacing) { SpinPivot->SetRelativeRotation(FRotator(0.f, GlobeYawOffsetDeg, 0.f)); }
+	UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetAtmosphere: %s globe baked (%d x %d) from its terrain"), *GetWellId().ToString(), W, H);
 }
 
 FName ATDPlanetAtmosphere::GetWellId() const
@@ -291,7 +398,7 @@ void ATDPlanetAtmosphere::Tick(float DeltaSeconds)
 		SunSyncTimer = 2.f;
 		bSunSynced = SyncSunDirection();
 	}
-	if (bArtLook && Look.SpinDegPerSecond != 0.f)
+	if (bArtLook && Look.SpinDegPerSecond != 0.f && !bGlobeBaked)
 	{
 		SpinPivot->AddRelativeRotation(FRotator(0.f, Look.SpinDegPerSecond * DeltaSeconds, 0.f));
 		RingPivot->AddLocalRotation(FRotator(0.f, Look.SpinDegPerSecond * 0.5f * DeltaSeconds, 0.f));

@@ -90,6 +90,8 @@ private:
 
 	bool bPlaceholderBuilt = false;
 	bool bCoveredByArt = false;
+	/** Bark_Dome_Saved said for this dome. */
+	bool bSaidSaved = false;
 public:
 	/** The spawning power has art for this moment: build no placeholder lattice. */
 	void SetCoveredByArt(bool bCovered) { bCoveredByArt = bCovered; }

@@ -113,7 +113,7 @@ FTDGlobePoint FTDPlanetEntry::GlobeFromWorld(const ATDPlanetAtmosphere* Planet, 
 		OutGlobeVelocity = WorldVelocity;
 		return FTDGlobePoint();
 	}
-	const FQuat Q = Planet->GetActorQuat();
+	const FQuat Q = Planet->GetGlobeQuat();
 	OutGlobeVelocity = Q.UnrotateVector(WorldVelocity);
 	return FTDGlobePoint::FromUnit(Q.UnrotateVector(WorldPoint - Planet->GetPlanetCenter()));
 }
@@ -125,7 +125,7 @@ FVector FTDPlanetEntry::WorldFromGlobe(const ATDPlanetAtmosphere* Planet, const 
 		OutWorldDir = GlobeDir;
 		return P.ToUnit();
 	}
-	const FQuat Q = Planet->GetActorQuat();
+	const FQuat Q = Planet->GetGlobeQuat();
 	OutWorldDir = Q.RotateVector(GlobeDir).GetSafeNormal();
 	return Planet->GetPlanetCenter() + Q.RotateVector(P.ToUnit()) * Planet->GetAtmosphereRadius();
 }

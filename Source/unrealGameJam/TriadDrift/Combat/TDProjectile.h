@@ -247,6 +247,12 @@ private:
 	TWeakObjectPtr<AActor> Shooter;
 	TWeakObjectPtr<AActor> OriginalShooter;
 	TWeakObjectPtr<AActor> HomingTarget;
+	/** Bark_MissileIncoming asked for this launch (once per missile, whatever it re-targets to). */
+	bool bWarnedFlown = false;
+	/** A hostile missile now homes on the ship the player flies: a wingman calls it (dialogs.md, Critical). */
+	void NoteHomingOnFlown();
+	/** A player shot into a gunship's raised frontal shield (dialogs.md Bark_TargetShielded, see the .cpp). */
+	void NoteShieldedHit(AActor* Victim) const;
 	/** Actor the shards of a split should not hit again. */
 	TWeakObjectPtr<AActor> IgnoreActor;
 };

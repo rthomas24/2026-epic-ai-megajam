@@ -31,7 +31,7 @@ struct FTDGlobePoint
  */
 struct UNREALGAMEJAM_API FTDPlanetEntry
 {
-	static constexpr float MaxArrivalRadius = 700000.f;	// 7 km
+	static constexpr float MaxArrivalRadius = 600000.f;	// 6 km: T1's flight zone warns from ~7 km (one number, agreed with T1)
 	static constexpr float SpreadDeg = 60.f;
 
 	/**
@@ -48,8 +48,8 @@ struct UNREALGAMEJAM_API FTDPlanetEntry
 	static FTDGlobePoint GlobeFromDeparture(const FTransform& CourseLocalDeparture, FVector& OutGlobeDir, float ClimbDeg = 30.f);
 
 	/**
-	 * Galaxy side (T1's entry and take-off). The globe frame is the planet actor's transform: the landing zone pole is
-	 * its +Z, longitude 0 its +X. WorldPoint / WorldVelocity at the atmosphere -> the globe point and the
+	 * Galaxy side (T1's entry and take-off). The globe frame is ATDPlanetAtmosphere::GetGlobeQuat(): the landing zone
+	 * pole is its +Z (with the globe bake on, facing the combat zone), longitude 0 its +X. WorldPoint / WorldVelocity at the atmosphere -> the globe point and the
 	 * globe-local velocity.
 	 */
 	static FTDGlobePoint GlobeFromWorld(const class ATDPlanetAtmosphere* Planet, const FVector& WorldPoint, const FVector& WorldVelocity, FVector& OutGlobeVelocity);

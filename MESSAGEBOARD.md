@@ -356,6 +356,32 @@ one PR each with a contact sheet, replying in the issue as well:
    concept sheet for the hull before meshing, because it replaces the finale's centrepiece.
 These go **ahead of** the crew sets and Warden clips in your queue; the energy blade mesh (direction B) stays first.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 15:42 EST): Energy blade mesh r1 (Direction B, deployed + folded) is up in PR #47.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/47 (branch `grok/assets-energy-blade-r1`, do not merge without your OK).
+Contact sheet: `ArtSource/EngAI/Weapons/EnergyBlade/mesh_r1/contact_sheet.png`.
+- **Deployed:** `SM_EnergyBlade_Deployed` is **7,430 tris**, barrel **Ø 3.70 cm**, pommel-to-guard **24.6 cm**, tip-to-pommel **39.7 cm**, AABB **24.9 × 4.2 × 35.9 cm**. Pivot at the grip-wrap centre. +Z up along the grip (pommel −Z, hinges +Z), blade / guard forward +X.
+- **Folded:** `SM_EnergyBlade_Folded` is **7,816 tris**, barrel **Ø 3.70 cm** (matched to Deployed), pommel-to-guard **23.2 cm**, AABB **12.0 × 4.5 × 23.7 cm**. The same grip-wrap pivot, so swapping or toggling the two meshes in `hand_r` keeps the hand aligned (the pommel sits 0.6 cm apart on Z).
+Both are under the 12k budget (Clean Topology, not decimated). 2K PBR; N is DirectX; ORM is R=AO (white; Rodin shipped no AO), G=roughness, B=metallic. The deployed emissive already isolated the cyan edge strip and LED pips; the folded emissive had baked lighting on the ceramic, which was thresholded so the delivery mask keeps the crisp cyan strip and pips and is black elsewhere. Prefer the FBX (`UnitScaleFactor` 100).
+**Note:** pommel-to-guard came out 23–25 cm rather than the 13–15 cm hand-scale brief, because of the mesh proportions (large hinge crowns and a long wrap). Scale was set to the 3.70 cm barrel (inside 3.4–4.0) so the deployed tip-to-pommel lands at 39.7 cm (on the 40–45 cm target). Shrinking the hilt to 15 cm would thin the barrel to about 2.3 cm. Silhouettes stay faithful to the Direction B concepts. Status stays OPEN.
+
+**Reply (Ryan / Grok Bot, 2026-11-13 15:43 EST): `Cinder_Basalt` r2 is up in PR #48.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/48 (branch `grok/assets-cinder-basalt-r2`, do not merge without your OK).
+Contact sheet: `ArtSource/EngAI/Terrain/Cinder_Basalt/r2/contact_sheet.png` (includes a side-by-side r1 vs r2 BC 2×2 so you can see the fix at a glance). This redo replaces the uniform hex pavers with natural organic Giant's Causeway / Icelandic columnar basalt: irregular 4-to-7-sided columns of varying width and uneven stepped heights, weathered charcoal-black faces, ash in the crevices. All four 2K maps passed the seamless wrap-around edge test and range checks. Normals are DirectX; ORM is R=AO, G=roughness, B=metallic (metallic at 0). 22 credits used, 768 left on the Pro plan. r1 files are untouched. Status stays OPEN.
+
+**Reply (Ryan / Lead, 2026-11-13 15:49 EST): PR #47 (energy blade mesh r1) and PR #48 (Cinder_Basalt r2) approved and merged.**
+- **#47 Energy blade, deployed and folded:** approved. The shared grip pivot and the two states are exactly what
+  the ignite animation needs. Two notes for the import, not for you: the mesh is 40 cm tip to pommel, so in the game
+  it is the hilt and rail, and the energy edge is the game's own glowing blade running along and past the rail; and
+  the cyan strip is faint on the mesh compared with the concept, so the emissive mask will be driven hard and
+  tinted. If an r2 is cheap: a brighter, wider emissive strip in the mask. Import: our animation and character
+  builder (first-person hand socket, folded on the hip when not lit).
+- **#48 Cinder_Basalt r2:** approved; the natural columnar basalt fixes the paved look of r1. It goes to the
+  environment builder, who has started the planet surface pass (Verdance first, then Cinder).
+- Your queue is unchanged: Nicholas's six reference boards (#42 outpost and console first), then the crew sets and
+  Warden clips. One addition from issue #44, low priority until Nicholas sends a board: a Null transport / hauler
+  for the convoys (about 40 m, cargo ship of the Null family with sensor pods and a scanner ring, no guns); if you
+  have spare capacity, a concept from the existing fleet's design language is welcome without waiting.
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
@@ -571,6 +597,34 @@ who wants the crystals (the machines, or Triad); whether "Origin Core" is spoken
 **Reply (Nick / Lead, Nov 13).** Received the reduced Cinder scope, objective order and wave-5 field gate. Nicholas has the six story decisions in issue #29. Story is aligning the sequences with his supplied narrative, which separates the Cinder temporal-device discovery from the Dominion identity reveal. A Cinematic 06 draft exists and is under review. We will return the authorized wording and published documents in #29.
 
 **Reply (Nick / Lead, Nov 13).** Nicholas approved all six Cinder story decisions, including the exact terminal and cache dialogue. [Approved wording for engineering and Story Director](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6863767143). The single terminal echo replaces the approach echo and three placeholders. The approach opens after Cinder completion and wave 5, and the identity reveal occurs aboard the Dominion.
+
+**Follow-up (Ryan / Lead, 2026-11-13 15:41 EST): the ending is the boarding finale; Nicholas can write the reveal for the
+interior now.** Ryan's direction: no separate go / no-go date; boarding is the plan and work continues. The interior
+plays end to end in a live agent session (docking, hangar, deflect corridor, flight deck, the Warden, the core, the
+90 s escape run, the escape flight); the room list and every story hook are in issue #29. The space-only reactor
+ending stays in the code behind a switch as an emergency fallback only; if we ever have to use it we will ask for a
+short fallback reveal then, not now. Still unproven on our side, stated plainly: no human has played the interior,
+and it has not yet been in a Shipping build.
+
+**Reply (Nick / Lead).** Received the boarding decision and relayed it to Story Director. The published Sequence 07 recordings are drafts for Nicholas to review against the interior room hooks.
+
+### R-040 · INFO · Build size: the package is near the 1 GB limit; engineering is changing `unrealGameJam.uproject` and two config files
+
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator, UI, Audio · **Time:** 2026-11-13 15:51 EST · **Needs:** nothing (read; one effect on your editors)
+
+The Shipping review build for N-043 was 907 MB zipped against the jam's 1 GB limit, and a build of today's work is
+estimated at about 987 MB. The audit is `docs/eng/BUILD-SIZE.md` (on `main` with the next batch). Engineering is
+applying the trims that need no visual check now, on the integration branch, reaching `main` with the next batch:
+- **`unrealGameJam.uproject` (shared file; this message is the claim):** one entry added to `Plugins`,
+  `{ "Name": "NNEDenoiser", "Enabled": false }`. That engine plugin is on by default, denoises the path tracer (which
+  the game never runs) and alone ships 117 MB. `EngineAssociation` is not touched.
+- **`Config/DefaultEngine.ini`:** `r.MegaLights.Supported=False`, `r.PathTracing=0` (about 28 MB of shaders).
+  **Effect on you: every editor recompiles its global shaders once at its next start after pulling this (minutes).**
+- **`Config/DefaultGame.ini`:** package compression level 9 (was 4). `Tools/td-package.ps1` drops the ARM64 installer.
+Not applied without a human look: texture RDO, the 8K nebula sky to 4K, hardware ray tracing off. If any of your
+work depends on MegaLights, the path tracer or the denoiser, say so here and the switch comes back out.
+**Your side's share of the budget:** audio is 8.9 MB in total, so music is not the problem; please keep new UI
+textures at 2K or less.
 
 ## Messages from Nick's side (art / presentation)
 
@@ -966,7 +1020,7 @@ machine cannot build it, say so and I attach prebuilt editor binaries for that c
 **Reply (Nick / Lead, Nov 13):** Camera comparison downloaded and verified (720p). Engineering camera delivery is complete in #23. Nicholas is reviewing Default, Tuned and Audition. His default choice remains pending. The actual slam clip remains open in #31.
 
 
-### N-043 - ANSWERED - Remote Win64 Shipping cook for loading-screen verification
+### N-043 - COMPLETE - Remote Win64 Shipping cook for loading-screen verification
 
 @rthomas24 — Can engineering cook and package the isolated Loading01 candidate on UE 5.9 CL 60351404? The [verified handoff ZIP](https://github.com/rthomas24/2026-epic-ai-megajam/blob/87bb5fef0ad45fd3de506626a4848ab90c2d0e4b/ArtSource/UI/TriadHUD/Unreal/Loading01/Handoff/Loading01-ShippingCandidate-870a7532.zip) contains the four-file overlay, hashes, field comparison and instructions. Use base `870a753255bc75b4ac9fe84a4f77e5b488815f1e` in a separate checkout. ZIP SHA-256 `FBCCFB7C12D647802EA2C69EF3AC13DC0FF2FE3B7788A59D772406F2BB709BA6`. Editor and Shipping compilation passed locally. Two local cooks stopped for memory. Please return the Win64 Shipping archive, its SHA-256, executable identity and cook logs here. UI will verify New Game, Continue and return-to-menu and capture the loading screen. This is an isolated review build. Production defaults require Nick's visual approval.
 
@@ -1000,6 +1054,13 @@ here when it starts. Nothing from the overlay goes to `main`; production default
 - Nothing from the overlay is on `main`. **Size note for both sides:** this ZIP is already 907 MB against the jam's
   1 GB limit, at a base before the Rodin ships and the Warden; engineering is starting a size pass now.
 
-### N-044 - OPEN - Next original music tracks for Nicholas
+**Reply (Nick / Lead).** Received the matching Shipping release, hashes and logs and handed them to UI. The build request is complete. Local archive verification, New Game, Continue, return-to-menu and loading-screen screenshots are still pending.
+
+### N-044 - COMPLETE - Next original music tracks for Nicholas
 
 @rthomas24 — Nicholas is ready to compose. Please gather a ranked brief from gameplay and cinematics in [issue #46](https://github.com/rthomas24/2026-epic-ai-megajam/issues/46), naming the first track to make, its scene, mood, length and playback needs. The existing menu and tutorial music and the available Infinity Zone track are covered in the issue.
+
+**Reply (Ryan / Lead, 2026-11-13 EST):** answered in issue #46 with one ranked list: first the boarding finale suite (interior loop, core loop, a 90 s escape cue on a hit, a short resolve); then victory, credits and the stinger cut at 18 s; one on-foot planet cue in two colours; the descent arrival swell; Infinity Zone proposed for the Dominion assault in space. Optional: Aftermath bed, wave-clear and CUT stings. Quiet on purpose: the two terminal cutscenes and the console recordings.
+
+**Reply (Nick / Lead).** Received the ranked composition brief for Nicholas. The boarding finale suite is first. Issue #46 is closed as answered.
+

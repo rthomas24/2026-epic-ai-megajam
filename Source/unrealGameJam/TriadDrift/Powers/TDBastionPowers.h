@@ -45,6 +45,7 @@ public:
 
 protected:
 	virtual bool OnActivate() override;
+	virtual FName GetActivateBark(uint8& OutPriority) const override { OutPriority = static_cast<uint8>(ETDBarkPriority::Normal); return TDBarkIdsT2::SwarmFire; }
 
 private:
 	UTDTargetingComponent* GetTargeting() const;
@@ -71,6 +72,7 @@ public:
 
 protected:
 	virtual bool OnActivate() override;
+	virtual FName GetActivateBark(uint8& OutPriority) const override { OutPriority = static_cast<uint8>(ETDBarkPriority::Normal); return TDBarkIdsT2::DomeUp; }
 	virtual void OnEnd(bool bInterrupted) override;
 	virtual USceneComponent* GetActiveCueRoot() const override;
 

@@ -564,6 +564,8 @@ ATDPortal* UTDPortalBlasterPower::PlacePortal()
 		{
 			bWindowRestarted = true;
 			ActiveElapsed = 0.f;
+			// dialogs.md Bark_Portal_Open: "Door's open." once per pair (recycling a portal doesn't repeat it).
+			FTDCombatBarks::SayAsPilot(Owner, TDBarkIdsT2::PortalOpen, ETDBarkPriority::Normal);
 		}
 	}
 	return Portal;

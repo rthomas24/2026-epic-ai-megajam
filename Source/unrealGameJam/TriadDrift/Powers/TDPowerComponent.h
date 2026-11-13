@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
 #include "TDPowerComponent.generated.h"
 
 class UTDPowerComponent;
@@ -133,6 +134,15 @@ public:
 	/** Which ability this power is (None for signature powers): picks DA_Ability_<Id>_FX. */
 	virtual ETDAbilityId GetAbilityId() const { return ETDAbilityId::None; }
 
+	/**
+	 * dialogs.md: the pilot's line when the player starts this power (None = no line). Said once per activation, by the
+	 * flown pilot, through the squad's bark limiter (FTDCombatBarks). Priority is uint8 ETDBarkPriority.
+	 */
+	virtual FName GetActivateBark(uint8& OutPriority) const { return NAME_None; }
+
+	/** Bark_PowerNotReady for a press on cooldown: once per cooldown (tests read it). */
+	bool HasSaidNotReady() const { return bSaidNotReady; }
+
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Power")
 	FTDOnPowerActivated OnPowerActivated;
 
@@ -178,4 +188,7 @@ protected:
 	bool bWasPlayerControlled = false;
 	float ActiveElapsed = 0.f;
 	float CooldownRemaining = 0.f;
+	/** Barks: Bark_PowerNotReady said this cooldown; Bark_PowerReady alternates (dialogs.md: 1 in 2). */
+	bool bSaidNotReady = false;
+	int32 ReadyCount = 0;
 };

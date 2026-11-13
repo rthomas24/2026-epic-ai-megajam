@@ -44,6 +44,18 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Ability")
 	void RefreshFromProgress();
 
+	/**
+	 * The player pressed the ability input on this ship with nothing earned: Bark_AbilityLocked by the flown pilot, once,
+	 * then again only after LockedBarkRearmSeconds of real time (a player mashing E hears it once).
+	 */
+	void NoteLockedPress();
+
+	/** Bark_AbilityLocked lines asked for so far (tests). */
+	int32 GetLockedBarks() const { return LockedBarks; }
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Ability", meta = (Units = "s"))
+	float LockedBarkRearmSeconds = 12.f;
+
 	/** Which power class implements each ability. Defaults set in the constructor. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Ability")
 	TMap<ETDAbilityId, TSubclassOf<UTDPowerComponent>> AbilityClasses;
@@ -62,4 +74,6 @@ private:
 	TObjectPtr<UTDPowerComponent> Power;
 
 	ETDAbilityId Ability = ETDAbilityId::None;
+	double LastLockedBark = -1e9;
+	int32 LockedBarks = 0;
 };

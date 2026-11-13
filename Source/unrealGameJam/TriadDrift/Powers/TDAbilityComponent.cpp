@@ -7,6 +7,7 @@
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
 
 UTDAbilityComponent::UTDAbilityComponent()
 {
@@ -14,6 +15,23 @@ UTDAbilityComponent::UTDAbilityComponent()
 	AbilityClasses.Add(ETDAbilityId::GravityWell, UTDGravityWellPower::StaticClass());
 	AbilityClasses.Add(ETDAbilityId::Cloak, UTDCloakPower::StaticClass());
 	AbilityClasses.Add(ETDAbilityId::EMPPulse, UTDEMPPower::StaticClass());
+}
+
+void UTDAbilityComponent::NoteLockedPress()
+{
+	if (HasAbility() || !FTDCombatBarks::IsPlayerFlown(GetOwner()))
+	{
+		return;
+	}
+	const UWorld* World = GetWorld();
+	const double Now = World ? World->GetRealTimeSeconds() : FPlatformTime::Seconds();
+	if (Now - LastLockedBark < LockedBarkRearmSeconds)
+	{
+		return;
+	}
+	LastLockedBark = Now;
+	++LockedBarks;
+	FTDCombatBarks::SayAsPilot(GetOwner(), TDBarkIdsT2::AbilityLocked, ETDBarkPriority::Normal);
 }
 
 float UTDAbilityComponent::GetReadiness01() const

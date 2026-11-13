@@ -133,6 +133,29 @@ namespace TDGroundDebug
 		return Best;
 	}
 
+	// TD.Ground.Crew: every living crewman, its type, hull and distance (live fights: does a hit land on the Warden?).
+	static void Crew(const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = LocalPC(World);
+		const APawn* P = PC ? PC->GetPawn() : nullptr;
+		const FVector From = P ? P->GetActorLocation() : FVector::ZeroVector;
+		const UEnum* Types = StaticEnum<ETDCrewType>();
+		FString Out;
+		int32 N = 0;
+		for (TActorIterator<ATDCrewCharacter> It(World); It; ++It)
+		{
+			const UTDHealthComponent* H = UTDStatics::GetHealth(*It);
+			if (!H || !H->IsAlive())
+			{
+				continue;
+			}
+			Out += FString::Printf(TEXT(" %s:%.0f/%.0f@%.0fcm"), Types ? *Types->GetNameStringByValue((int64)It->CrewType) : TEXT("?"),
+				H->GetHull(), H->GetHull() / FMath::Max(H->GetHull01(), 0.001f), FVector::Dist(It->GetActorLocation(), From));
+			++N;
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.Crew %d:%s"), N, *Out);
+	}
+
 	static void Where(const TArray<FString>& Args, UWorld* World)
 	{
 		APlayerController* PC = LocalPC(World);
@@ -300,6 +323,8 @@ namespace TDGroundDebug
 			}
 		}
 	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdCrew(TEXT("TD.Ground.Crew"), TEXT("TD.Ground.Crew: living crew, type, hull and distance."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Crew));
 	static FAutoConsoleCommandWithWorldAndArgs CmdNear(TEXT("TD.Ground.Near"), TEXT("TD.Ground.Near X Y Z [Radius]: list rendered primitives near a point."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Near));
 	// TD.Ground.CourseBounds: everything the course placed (its own shapes and every spawned actor), in world space and

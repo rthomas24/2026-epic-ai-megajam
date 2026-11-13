@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Combat/TDCombatCueLog.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
 #include "GameFramework/MovementComponent.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -497,6 +498,25 @@ void UTDWeaponComponent::BeginShot(ETDWeaponSlot Slot, float SubFrameAge)
 	if (Spec->Resource == ETDWeaponResource::Ammo)
 	{
 		S.Ammo = FMath::Max(0, S.Ammo - 1);
+		// dialogs.md Bark_AmmoLow / Bark_AmmoOut: the shot that takes the rack to 25% / empty, flown pilot only. Each is
+		// asked once, then re-armed only when the rack is back above half (a regen trickle fired off stays quiet).
+		if (S.Ammo * 2 > Spec->MaxAmmo)
+		{
+			S.bSaidAmmoLow = S.bSaidAmmoOut = false;
+		}
+		else if (FTDCombatBarks::IsPlayerFlown(GetOwner()))
+		{
+			if (S.Ammo == 0 && !S.bSaidAmmoOut)
+			{
+				S.bSaidAmmoOut = S.bSaidAmmoLow = true;
+				FTDCombatBarks::SayAsPilot(GetOwner(), TDBarkIdsT2::AmmoOut, ETDBarkPriority::High);
+			}
+			else if (S.Ammo > 0 && S.Ammo <= FMath::FloorToInt(Spec->MaxAmmo * .25f) && !S.bSaidAmmoLow)
+			{
+				S.bSaidAmmoLow = true;
+				FTDCombatBarks::SayAsPilot(GetOwner(), TDBarkIdsT2::AmmoLow, ETDBarkPriority::Normal);
+			}
+		}
 	}
 	S.TimeSinceShot = SubFrameAge;
 	++S.ShotsFired;
@@ -547,6 +567,8 @@ void UTDWeaponComponent::AddHeat(ETDWeaponSlot Slot, float Amount)
 		S.ChargeHeld = 0.f;
 		S.bChargeReady = false;
 		OnOverheatChanged.Broadcast(Slot, true);
+		// dialogs.md Bark_WeaponHot: once per overheat (this branch runs only on the edge into lockout).
+		FTDCombatBarks::SayAsPilot(GetOwner(), TDBarkIdsT2::WeaponHot, ETDBarkPriority::Normal);
 		if (UTDWeaponFX* FX = GetFX(Slot))
 		{
 			if (AActor* Owner = GetOwner())
