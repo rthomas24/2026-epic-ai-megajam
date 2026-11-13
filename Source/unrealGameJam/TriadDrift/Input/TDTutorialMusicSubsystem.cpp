@@ -100,9 +100,19 @@ void UTDTutorialMusicSubsystem::SetSingleVoiceForTests(USoundBase* Music, float 
 	TestSkipFade = SkipFade;
 }
 
+#if !UE_BUILD_SHIPPING
+static FString GTDTutorialMusicOverride; // TD.Tutorial.Music <asset path>: dev / recording checks without editing DA_UI_Style
+#endif
+
 USoundBase* UTDTutorialMusicSubsystem::SingleSound() const
 {
 	if (bTestSounds) { return bTestSingle ? TestSingle.Get() : nullptr; }
+#if !UE_BUILD_SHIPPING
+	if (!GTDTutorialMusicOverride.IsEmpty())
+	{
+		if (USoundBase* Override = LoadObject<USoundBase>(nullptr, *GTDTutorialMusicOverride)) { return Override; }
+	}
+#endif
 	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
 	return Style && !Style->TutorialMusic.IsNull() ? Style->TutorialMusic.LoadSynchronous() : nullptr;
 }
@@ -182,6 +192,7 @@ void UTDTutorialMusicSubsystem::HandleIntroFinished(bool bPlayed, bool bSkipped)
 		LoopStartClock = Clock;
 	}
 	State = ETDTutorialMusicState::Loop;
+	UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: control at clock %.4f s"), Clock);
 	UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: loop at control (%s)"), !bPlayed ? TEXT("no intro") : bSkipped ? TEXT("intro skipped") : TEXT("intro watched"));
 }
 
@@ -321,7 +332,7 @@ void UTDTutorialMusicSubsystem::StartSingle(float SourceTime, float FadeIn, UWor
 	const float Seek = Cast<USoundWave>(Sound) ? SourceTime : 0.f;
 	if (FadeIn > 0.f) { Voice->FadeIn(FadeIn, 1.f, Seek); }
 	else { Voice->Play(Seek); }
-	UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: one voice in at source %.3f s (fade-in %.2f s)"), SourceTime, FadeIn);
+	UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: one voice in at source %.3f s (fade-in %.2f s) at clock %.4f s"), SourceTime, FadeIn, Clock);
 }
 
 void UTDTutorialMusicSubsystem::StopVoice()
@@ -348,8 +359,38 @@ int32 UTDTutorialMusicSubsystem::GetLiveVoiceCount() const
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 
+#include "AudioMixerBlueprintLibrary.h"
+
 namespace TDTutorialMusicDebug
 {
+	static FAutoConsoleCommandWithWorldAndArgs GMusic(TEXT("TD.Tutorial.Music"),
+		TEXT("Dev: use this asset as UTDUIStyle::TutorialMusic for the session (empty = the style's). TD.Tutorial.Music /Game/Path/Asset.Asset"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld*)
+		{
+			GTDTutorialMusicOverride = Args.Num() ? Args[0] : FString();
+			const bool bOk = GTDTutorialMusicOverride.IsEmpty() || LoadObject<USoundBase>(nullptr, *GTDTutorialMusicOverride) != nullptr;
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Tutorial.Music: %s (%s)"), GTDTutorialMusicOverride.IsEmpty() ? TEXT("the style's") : *GTDTutorialMusicOverride, bOk ? TEXT("loaded") : TEXT("NOT FOUND"));
+		}));
+
+	// Records the real output (the main submix) to Saved/BouncedWavFiles/<name>.wav; logs the tutorial clock at the start
+	// so a recording position can be matched to logged events (control, entries).
+	static FAutoConsoleCommandWithWorldAndArgs GRecord(TEXT("TD.Audio.Record"),
+		TEXT("Dev: TD.Audio.Record start [seconds] | stop <name>: record the game's audio output to Saved/BouncedWavFiles/<name>.wav"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const UTDTutorialMusicSubsystem* T = UTDTutorialMusicSubsystem::Get(World);
+			if (Args.Num() && Args[0].Equals(TEXT("start"), ESearchCase::IgnoreCase))
+			{
+				UAudioMixerBlueprintLibrary::StartRecordingOutput(World, Args.Num() > 1 ? FCString::Atof(*Args[1]) : 120.f);
+				UE_LOG(LogTriadDrift, Log, TEXT("TD.Audio.Record: started at tutorial clock %.4f s"), T ? T->GetClock() : -1.f);
+			}
+			else if (Args.Num() > 1 && Args[0].Equals(TEXT("stop"), ESearchCase::IgnoreCase))
+			{
+				UAudioMixerBlueprintLibrary::StopRecordingOutput(World, EAudioRecordingExportType::WavFile, Args[1], FString());
+				UE_LOG(LogTriadDrift, Log, TEXT("TD.Audio.Record: stopped at tutorial clock %.4f s -> Saved/BouncedWavFiles/%s.wav"), T ? T->GetClock() : -1.f, *Args[1]);
+			}
+		}));
+
 	// Audio recording (N-039): a New Game straight into the intro from any map, as the menu's NEW GAME does.
 	static FAutoConsoleCommandWithWorldAndArgs GNewGame(TEXT("TD.Tutorial.NewGame"),
 		TEXT("Start a New Game into the intro (as the menu's NEW GAME): arms the tutorial music."),
