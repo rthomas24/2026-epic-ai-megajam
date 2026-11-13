@@ -14,6 +14,7 @@
 #include "Rendering/DrawElements.h"
 #include "Widgets/SWindow.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Squad/TDBarkLines.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Story/TDStoryTypes.h"
 #include "TriadDrift/Input/TDHintComponent.h"
@@ -785,7 +786,13 @@ bool FTDFlightHUDSubtitles::RunTest(const FString& Parameters)
 	Bus->OnBarkRequested.Broadcast(TEXT("Bark_SquadEngageHighLeft"), TEXT("Kato"));
 	F.HUD->Sample(.016f);
 	TestEqual(TEXT("bark: speaker"), F.V().Subtitle.Speaker, FString(TEXT("KATO")));
-	TestEqual(TEXT("bark: line"), F.V().Subtitle.Text, FString(TEXT("engage high left")));
+	{
+		// The real dialogs.md line (T3's FTDBarkLines returns the same line to every caller for 3 s), or no subtitle at all.
+		FText Real;
+		const bool bHasLine = FTDBarkLines::PickLine(F.W.GetWorld(), TEXT("Bark_SquadEngageHighLeft"), TEXT("Kato"), Real);
+		AddInfo(FString::Printf(TEXT("dialogs.md line: %s"), bHasLine ? *Real.ToString() : TEXT("(none)")));
+		TestEqual(TEXT("bark: the real line, not text made from the id"), F.V().Subtitle.Text, bHasLine ? Real.ToString() : FString());
+	}
 	F.HUD->ShowTransmission(TEXT("Unknown"), FText::FromString(TEXT("You have done this before. You will do it again, and you will not remember.")),
 		UTDFlightHUDWidget::ETransmissionStyle::Static, 4.f);
 	F.HUD->Sample(.016f);
@@ -809,6 +816,18 @@ bool FTDFlightHUDSubtitles::RunTest(const FString& Parameters)
 	}
 	F.HUD->Sample(4.f);
 	TestTrue(TEXT("expired after its seconds"), F.V().Subtitle.Text.IsEmpty());
+	// A short line gets a plate that fits it, centred (live capture: "Down he goes." sat alone in the full 880 px slot).
+	F.HUD->ShowTransmission(TEXT("Moss"), FText::FromString(TEXT("Down he goes.")), UTDFlightHUDWidget::ETransmissionStyle::Clean, 2.5f);
+	F.HUD->Sample(.5f);
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	Box = F.HUD->LastBoxes.FindByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("subtitle"); });
+	if (TestNotNull(TEXT("short subtitle drawn"), Box))
+	{
+		TestTrue(TEXT("short line: plate narrower than the slot"), Box->Value.GetSize().X < 600.f);
+		TestTrue(TEXT("short line: plate centred"), FMath::IsNearlyEqual(Box->Value.GetCenter().X, 960.f, 1.f));
+	}
 	TestTrue(TEXT("claims the Subtitles surface"), GetDefault<UTDFlightHUDWidget>()->bCoversSubtitles);
 	return true;
 }

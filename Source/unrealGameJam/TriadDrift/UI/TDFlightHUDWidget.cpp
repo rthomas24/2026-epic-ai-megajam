@@ -11,6 +11,7 @@
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Squad/TDBarkLines.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Story/TDStoryTypes.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
@@ -216,6 +217,13 @@ static TAutoConsoleVariable<int32> CVarTDUIForceGlyphs(
 	TEXT("Engineering space HUD glyphs (dev, captures): -1 = follow the controller's device detection, 0 = keyboard, 1 = gamepad."),
 	ECVF_Default);
 
+static TAutoConsoleVariable<int32> CVarTDUILogBarks(
+	TEXT("TD.UI.LogBarks"), 0,
+	TEXT("1: the engineering space HUD logs each bark request and what it did with it (shown / no line / story)."),
+	ECVF_Default);
+
+DEFINE_LOG_CATEGORY_STATIC(LogTDFlightHUD, Log, All);
+
 bool UTDFlightHUDWidget::IsUsingGamepad() const
 {
 	if (ForceGamepad >= 0)
@@ -343,12 +351,24 @@ void UTDFlightHUDWidget::HandleBarkRequested(FName BarkId, FName Speaker)
 {
 	// A transmission also fires OnBarkRequested with its own id: T3's subsystem draws that one (no double line). And a story
 	// transmission on screen outranks a squad bark (it is the line the player must not miss).
+	const bool bLog = CVarTDUILogBarks.GetValueOnGameThread() != 0;
 	FTDTransmission Entry;
 	if (UTDStorySubsystem::FindEntry(BarkId, Entry) || (!View.Subtitle.Text.IsEmpty() && View.Subtitle.bStory))
 	{
+		UE_CLOG(bLog, LogTDFlightHUD, Display, TEXT("TD UI bark %s by %s: skipped (story transmission)"), *BarkId.ToString(), *Speaker.ToString());
 		return;
 	}
-	ShowTransmission(Speaker, FText::FromString(BarkText(BarkId)), ETransmissionStyle::Clean, BarkSeconds);
+	// The real line from dialogs.md (T3's FTDBarkLines: Nicholas's DT_Barks wins row by row; the same line every caller
+	// sees for 3 s, so this HUD and the dev HUD agree). No line, no subtitle: no more text made up from the id.
+	FText Line;
+	if (!FTDBarkLines::PickLine(this, BarkId, Speaker, Line) || Line.IsEmpty())
+	{
+		UE_CLOG(bLog, LogTDFlightHUD, Display, TEXT("TD UI bark %s by %s: no line"), *BarkId.ToString(), *Speaker.ToString());
+		return;
+	}
+	UE_CLOG(bLog, LogTDFlightHUD, Display, TEXT("TD UI bark %s by %s: shown \"%s\" (%s, in viewport %d)"), *BarkId.ToString(), *Speaker.ToString(),
+		*Line.ToString(), *GetName(), IsInViewport() ? 1 : 0);
+	ShowTransmission(Speaker, Line, ETransmissionStyle::Clean, BarkSeconds);
 	const FString& Who = View.Subtitle.Speaker;
 	View.Subtitle.TagColor = Who == TEXT("WREN") ? FTDFlightHUDTokens::Rift() : Who == TEXT("KATO") ? FTDFlightHUDTokens::Lancer()
 		: Who == TEXT("MOSS") ? FTDFlightHUDTokens::Bastion() : FTDFlightHUDTokens::Dim();
@@ -1392,16 +1412,21 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			}
 		}
 		const float H = Line2.IsEmpty() ? 38.f : 64.f;
-		const float X = CenterX - SubtitleMaxWidth * .5f;
-		P.Plate(X, SubtitleY, SubtitleMaxWidth, H, 8.f, T::Plate().CopyWithNewOpacity(.6f * Fade));
-		Rec(TEXT("subtitle"), X, SubtitleY, SubtitleMaxWidth, H);
-		Area += SubtitleMaxWidth * H;
+		// After the tag's own width ("UNKNOWN SIGNAL" ran into the line at a fixed 120 px, live capture).
+		const float TagW = Who.IsEmpty() ? 0.f : FMath::Max(P.Measure(Who, P.Font("Bold", 16, 80)), Who.Len() * 11.5f) + 20.f;
+		// The plate fits the line (a short bark sat alone in an 880 px plate, live capture), centred, never wider than the slot.
+		auto LineW = [&P](const FString& S) { return S.IsEmpty() ? 0.f : FMath::Max(P.Measure(S, P.Font("Medium", 22, 10)), S.Len() * 10.5f); };
+		const float PlateW = FMath::Clamp(44.f + TagW + FMath::Max(LineW(Line1), LineW(Line2)), 240.f, SubtitleMaxWidth);
+		const float X = CenterX - PlateW * .5f;
+		P.Plate(X, SubtitleY, PlateW, H, 8.f, T::Plate().CopyWithNewOpacity(.6f * Fade));
+		Rec(TEXT("subtitle"), X, SubtitleY, PlateW, H);
+		Area += PlateW * H;
 		if (bStatic)
 		{
 			for (int32 S = 0; S < 3; ++S) // scan lines drifting through the plate
 			{
 				const float Y = SubtitleY + FMath::Fmod(Now * 40.f + S * 21.f, H);
-				P.Box(X + 6.f, Y, SubtitleMaxWidth - 12.f, 1.f, T::Neutral().CopyWithNewOpacity(.08f * Fade));
+				P.Box(X + 6.f, Y, PlateW - 12.f, 1.f, T::Neutral().CopyWithNewOpacity(.08f * Fade));
 			}
 		}
 		const float TextX = X + 22.f + Jitter;
@@ -1409,8 +1434,6 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		{
 			P.Words(TextX, SubtitleY + 8.f, Who, 16, Tag.CopyWithNewOpacity(Fade * Flicker), "Bold", 0.f, 80);
 		}
-		// After the tag's own width ("UNKNOWN SIGNAL" ran into the line at a fixed 120 px, live capture).
-		const float TagW = Who.IsEmpty() ? 0.f : FMath::Max(P.Measure(Who, P.Font("Bold", 16, 80)), Who.Len() * 11.5f) + 20.f;
 		const float BodyX = TextX + TagW;
 		const FLinearColor Body = T::Neutral().CopyWithNewOpacity(Fade * Flicker);
 		if (bEcho)

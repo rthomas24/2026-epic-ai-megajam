@@ -66,7 +66,7 @@ int32 UTDTacticalDisplayWidget::NativePaint(const FPaintArgs& Args, const FGeome
 	const FVector2D Size = Box.GetSize();
 
 	// Panel: the HUD's plate, a faint grid, a thin frame.
-	P.Box(Box.Min.X, Box.Min.Y, Size.X, Size.Y, T::Plate().CopyWithNewOpacity(.82f));
+	P.Box(Box.Min.X, Box.Min.Y, Size.X, Size.Y, T::Plate().CopyWithNewOpacity(.93f)); // .82 let the sun and Verdance's rings read through the contacts (live capture)
 	for (float X = Box.Min.X + 40.f; X < Box.Max.X; X += 40.f)
 	{
 		P.Line({ X, Box.Min.Y + 34.f }, { X, Box.Max.Y - 8.f }, T::Dim().CopyWithNewOpacity(.07f), 1.f);
