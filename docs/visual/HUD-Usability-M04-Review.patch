@@ -1,0 +1,344 @@
+From 5a1382d39d2da5c564f6a2d53e65d58d66987025 Mon Sep 17 00:00:00 2001
+From: nicholastosti-tech
+ <252805685+nicholastosti-tech@users.noreply.github.com>
+Date: Thu, 12 Nov 2026 22:06:15 -0500
+Subject: [PATCH] ui: clarify kill confirmation targeting and ship recovery
+
+---
+ ArtSource/UI/TriadHUD/Unreal/AGENTS.md        | 15 ++++-
+ .../TriadDriftHUD/Private/TDHUDLayout.h       | 37 +++++++++++
+ .../TriadDriftHUD/Private/TDHUDTests.cpp      | 64 +++++++++++++++++++
+ .../Private/TDSpaceHUDWidget.cpp              | 54 ++++++++++++----
+ .../TriadDriftHUD/Public/TDSpaceHUDWidget.h   |  7 +-
+ 5 files changed, 161 insertions(+), 16 deletions(-)
+ create mode 100644 Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDHUDLayout.h
+
+diff --git a/ArtSource/UI/TriadHUD/Unreal/AGENTS.md b/ArtSource/UI/TriadHUD/Unreal/AGENTS.md
+index 09f459e..197dde7 100644
+--- a/ArtSource/UI/TriadHUD/Unreal/AGENTS.md
++++ b/ArtSource/UI/TriadHUD/Unreal/AGENTS.md
+@@ -3,7 +3,8 @@
+ Owner: Nicholas Tosti. Dedicated chat identity: **UI/UX & HUD Agent**.
+ Role: native space-combat HUD, UI readability and presentation integration.
+ Active worktree: `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/hud-lancer-polish`.
+-Active branch: `nick/hud-lancer-polish`. Work here only; never commit, push or merge to main.
++Active branch: `nick/hud-usability-20261112` (Lead prepared from15ae7cb).
++Work here only; never commit, push or merge to main. Historical nick/hud-lancer-polish is preserved.
+ The original hud-native worktree / PR4 is frozen at 2f55512. Its staged legacy
+ CLAIMS.md remains untouched there; this new worktree has no legacy claim edit.
+ 
+@@ -25,6 +26,18 @@ Nick's MESSAGEBOARD.md replies under AGENTS.md 6.10. Route engineering questions
+ through Lead. Never overwrite the current shared table from this old branch.
+ Preserve/exclude the staged legacy root CLAIMS.md edit from implementation commits.
+ The existing nick/hud branch is a read-only reference containing the browser study.
++
++Current Nov12 reassignment: exclusively UI/UX/HUD. Stop all character/mesh work;
++characters-lancer clean42bf37b and every existing asset stay preserved. No Blender
++jobs. Direct Nick task is three high-impact, realistic in-game UI improvements,
++with measurable implementation rather than planning-only work. Lead published
++renewed claims for the three roots below; no Source/Config/maps or DA_UI_Style
++edits (Audio owns its MenuMusic-only change). Current bounded pass: one-second
++kill confirmation independent of ordinary hits, target text avoiding reticle/
++combat banners/panels, and truthful downed recovery/control-transfer feedback.
++Source/owned tests are authorized; builds/tests/captures require fresh Lead heavy
++clearance. Lead alone handles synchronization and publication. No indefinite goal.
++Older milestone instructions below describe their historical scopes and evidence.
+ No shared maps, Ryan-owned code, interfaces, config or project settings may change.
+ Writable implementation paths: Plugins/TriadDriftHUD/, Content/TriadDrift/UI/TriadHUD/,
+ ArtSource/UI/TriadHUD/Unreal/. No secondary menus before HUD verification.
+diff --git a/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDHUDLayout.h b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDHUDLayout.h
+new file mode 100644
+index 0000000..dfa96ab
+--- /dev/null
++++ b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDHUDLayout.h
+@@ -0,0 +1,37 @@
++#pragma once
++
++#include "CoreMinimal.h"
++
++namespace TDHUD
++{
++// Design-space bounds. Projected targeting geometry stays on the actual target;
++// only its text/health stack moves to a clear neighbouring location.
++inline bool TargetInfoIsClear(const FVector2D& P,bool bMessageVisible,bool bKillVisible)
++{
++    const FVector2D Size(196,100);
++    if(!FMath::IsFinite(P.X) || !FMath::IsFinite(P.Y) || P.X<110 || P.Y<190 || P.X+Size.X>1810 || P.Y+Size.Y>750) return false;
++    auto Overlaps=[&](double X,double Y,double W,double H)
++    { return P.X<X+W && P.X+Size.X>X && P.Y<Y+H && P.Y+Size.Y>Y; };
++    if(Overlaps(900,480,120,120) || Overlaps(66,724,268,238) || Overlaps(1560,696,294,304)) return false;
++    if(bMessageVisible && Overlaps(704,640,512,43)) return false;
++    if(bKillVisible && Overlaps(760,584,400,44)) return false;
++    return true;
++}
++
++inline FVector2D TargetInfoAnchor(const FVector2D& Target,bool bMessageVisible,bool bKillVisible)
++{
++    const FVector2D Candidates[]={Target+FVector2D(92,-50),Target+FVector2D(-288,-50),Target+FVector2D(-98,-186),Target+FVector2D(-98,92)};
++    for(const FVector2D& Candidate:Candidates)
++        if(TargetInfoIsClear(Candidate,bMessageVisible,bKillVisible)) return Candidate;
++    // A fixed clear lane handles extreme/invalid projections without drawing over
++    // the aim point, combat alerts, cards or objective panel.
++    return FVector2D(1230,210);
++}
++
++inline FString RecoveryLabel(float Seconds)
++{
++    if(!FMath::IsFinite(Seconds) || Seconds<=0) return TEXT("AWAITING RECOVERY");
++    if(Seconds>3600) return TEXT("RECOVERY IN >1 HOUR");
++    return FString::Printf(TEXT("RECOVERY IN %d s"),FMath::CeilToInt(Seconds));
++}
++}
+diff --git a/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDHUDTests.cpp b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDHUDTests.cpp
+index 4e1ee73..b029f77 100644
+--- a/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDHUDTests.cpp
++++ b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDHUDTests.cpp
+@@ -1,6 +1,8 @@
+ #include "Misc/AutomationTest.h"
+ #include "TDSpaceHUDWidget.h"
++#include "TDHUDLayout.h"
+ #include "UObject/UnrealType.h"
++#include <limits>
+ 
+ #if WITH_DEV_AUTOMATION_TESTS
+ #include "Engine/Engine.h"
+@@ -273,4 +275,66 @@ bool FTDHUDInteractionTest::RunTest(const FString& Parameters)
+     TestTrue(TEXT("preview never leaks landing guidance"),HUD->InteractPrompt.IsEmpty());
+     return true;
+ }
++IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDHUDCombatFeedbackTest,"TriadDrift.UI.CombatConfirmationLifecycle",EAutomationTestFlags::EditorContext|EAutomationTestFlags::ProductFilter)
++bool FTDHUDCombatFeedbackTest::RunTest(const FString& Parameters)
++{
++    UTDSpaceHUDWidget* HUD=NewObject<UTDSpaceHUDWidget>();
++    HUD->ConfirmHit(true);
++    TestEqual(TEXT("kill confirmation starts at one second"),HUD->KillConfirmLeft,1.f);
++    for(int32 I=0;I<6;++I) HUD->TickCombatFeedback(.1f);
++    TestTrue(TEXT("kill remains visible after the old brief hit marker expires"),HUD->KillConfirmLeft>.39f && HUD->HitLeft==0);
++    const float Remaining=HUD->KillConfirmLeft;
++    HUD->ConfirmHit(false);
++    TestEqual(TEXT("an ordinary hit cannot replace or shorten kill confirmation"),HUD->KillConfirmLeft,Remaining);
++    for(int32 I=0;I<5;++I) HUD->TickCombatFeedback(.1f);
++    TestEqual(TEXT("kill confirmation expires independently"),HUD->KillConfirmLeft,0.f);
++    HUD->ConfirmHit(true); HUD->SetDataSource(nullptr);
++    TestEqual(TEXT("provider removal clears old combat feedback"),HUD->KillConfirmLeft,0.f);
++    HUD->ConfirmHit(true); HUD->SetPreviewMode(true);
++    TestEqual(TEXT("preview reset clears old combat feedback"),HUD->KillConfirmLeft,0.f);
++    return true;
++}
++
++IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDHUDTargetLayoutTest,"TriadDrift.UI.TargetInfoSafeLayout",EAutomationTestFlags::EditorContext|EAutomationTestFlags::ProductFilter)
++bool FTDHUDTargetLayoutTest::RunTest(const FString& Parameters)
++{
++    // Target positions cover the centre, warning band, panel corners and edges.
++    for(int32 X=120;X<=1800;X+=120) for(int32 Y=190;Y<=750;Y+=40)
++        for(bool Message:{false,true}) for(bool Kill:{false,true})
++        {
++            const FVector2D Anchor=TDHUD::TargetInfoAnchor(FVector2D(X,Y),Message,Kill);
++            const FBox2D Bounds(Anchor,Anchor+FVector2D(196,100));
++            if(!TestTrue(TEXT("target text stays above cards and inside the desktop playfield"),Bounds.Min.X>=110 && Bounds.Min.Y>=190 && Bounds.Max.X<=1810 && Bounds.Max.Y<=750)) return false;
++            TestFalse(TEXT("target metadata does not cover the aim point"),Bounds.Intersect(FBox2D(FVector2D(901,481),FVector2D(1019,599))));
++            if(Message) TestFalse(TEXT("target text does not cover missile/boundary feedback"),Bounds.Intersect(FBox2D(FVector2D(705,641),FVector2D(1215,682))));
++            if(Kill) TestFalse(TEXT("target text does not cover kill confirmation"),Bounds.Intersect(FBox2D(FVector2D(761,585),FVector2D(1159,627))));
++            TestFalse(TEXT("target text does not overlap weapon/ability panel"),Bounds.Intersect(FBox2D(FVector2D(1561,697),FVector2D(1853,999))));
++        }
++    TestFalse(TEXT("nonfinite text positions are never accepted"),TDHUD::TargetInfoIsClear(FVector2D(std::numeric_limits<double>::quiet_NaN(),400),true,true));
++    TestTrue(TEXT("invalid projections use the clear fallback lane"),TDHUD::TargetInfoIsClear(TDHUD::TargetInfoAnchor(FVector2D(std::numeric_limits<double>::quiet_NaN(),400),true,true),true,true));
++    return true;
++}
++
++IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDHUDRecoveryTest,"TriadDrift.UI.RecoveryAndControlTransfer",EAutomationTestFlags::EditorContext|EAutomationTestFlags::ProductFilter)
++bool FTDHUDRecoveryTest::RunTest(const FString& Parameters)
++{
++    TestEqual(TEXT("zero is not a promised immediate respawn"),TDHUD::RecoveryLabel(0),FString(TEXT("AWAITING RECOVERY")));
++    TestEqual(TEXT("subsecond recovery never reads zero seconds"),TDHUD::RecoveryLabel(.02f),FString(TEXT("RECOVERY IN 1 s")));
++    TestEqual(TEXT("partial countdown rounds up"),TDHUD::RecoveryLabel(8.1f),FString(TEXT("RECOVERY IN 9 s")));
++    TestEqual(TEXT("invalid countdown is safely pending"),TDHUD::RecoveryLabel(std::numeric_limits<float>::quiet_NaN()),FString(TEXT("AWAITING RECOVERY")));
++    UTDSpaceHUDWidget* HUD=NewObject<UTDSpaceHUDWidget>();
++    TArray<FTDUIShip> Input; Input.SetNum(3);
++    for(auto& Ship:Input) Ship.bAvailable=Ship.bAlive=true;
++    Input[1].bActive=true; HUD->ApplySquadSnapshot(Input);
++    Input[1].bActive=false; Input[1].bAlive=false; HUD->ApplySquadSnapshot(Input);
++    TestEqual(TEXT("ship loss can precede the new control snapshot"),HUD->PendingDownedShip,1);
++    Input[2].bActive=true; HUD->ApplySquadSnapshot(Input);
++    TestTrue(TEXT("control transfer explains the observed ship loss"),HUD->bDownedControlTransfer);
++    TestTrue(TEXT("transfer cue stays readable for at least one second"),HUD->SwitchLeft>=1.f);
++    Input[2].bActive=false; Input[0].bActive=true; HUD->ApplySquadSnapshot(Input);
++    TestFalse(TEXT("later manual switching has the normal cut cue"),HUD->bDownedControlTransfer);
++    HUD->SetDataSource(nullptr); Input[0].bActive=false; Input[2].bActive=true; HUD->ApplySquadSnapshot(Input);
++    TestFalse(TEXT("provider replacement never replays an old ship-loss cue"),HUD->bDownedControlTransfer);
++    return true;
++}
+ #endif
+diff --git a/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDSpaceHUDWidget.cpp b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDSpaceHUDWidget.cpp
+index d08d14f..f989c5d 100644
+--- a/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDSpaceHUDWidget.cpp
++++ b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDSpaceHUDWidget.cpp
+@@ -1,4 +1,5 @@
+ #include "TDSpaceHUDWidget.h"
++#include "TDHUDLayout.h"
+ #include "Engine/GameInstance.h"
+ #include "Components/ActorComponent.h"
+ #include "GameFramework/PlayerController.h"
+@@ -320,7 +321,7 @@ struct FPainter
+         if(!S.bAlive)
+         {
+             Text(X+18,Y+81,TEXT("SHIP DOWN"),20,Style.Hostile,true);
+-            Text(X+18,Y+115,FString::Printf(TEXT("RESPAWN  %.1f s"),S.RespawnSeconds),14,Style.Ink);
++            Text(X+18,Y+115,RecoveryLabel(S.RespawnSeconds),14,Style.Ink);
+             return;
+         }
+         const FLinearColor HealthColor=S.Hull<.25f?Style.Hostile:Style.Ink;
+@@ -395,7 +396,8 @@ void UTDSpaceHUDWidget::BindEvents(bool bBind)
+ void UTDSpaceHUDWidget::SetDataSource(UObject* Source)
+ {
+     bPreview=false; DataSource.Reset(); Target.Reset(); Locked.Reset(); Objectives.Reset();
+-    ObjectivePrompt=FText::GetEmpty(); InteractPrompt=FText::GetEmpty(); Warning=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=0;
++    ObjectivePrompt=FText::GetEmpty(); InteractPrompt=FText::GetEmpty(); Warning=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=KillConfirmLeft=0;
++    bDownedControlTransfer=false; PendingDownedShip=INDEX_NONE;
+     UClass* Contract=FindObject<UClass>(nullptr,TEXT("/Script/unrealGameJam.TDHUDData"));
+     if(IsValid(Source) && Contract && Source->GetClass()->ImplementsInterface(Contract)) DataSource=Source;
+     RefreshData();
+@@ -481,7 +483,18 @@ void UTDSpaceHUDWidget::ApplySquadSnapshot(const TArray<FTDUIShip>& Snapshot)
+         if(Ships.IsValidIndex(I) && Ships[I].bAvailable && Ships[I].Power<.999f && S.Power>=.999f)
+         { ReadyPrompt=FText::FromString(FString::Printf(TEXT("%s / %s READY"),TDHUD::Names[I],TDHUD::Powers[I])); ReadyLeft=2; ReadyShip=I; }
+     }
+-    if(NewActive!=ActiveIndex && NewActive!=INDEX_NONE) SwitchLeft=Style.SwitchSeconds;
++    if(Ships.IsValidIndex(ActiveIndex) && Next.IsValidIndex(ActiveIndex)
++        && Ships[ActiveIndex].bAvailable && Ships[ActiveIndex].bAlive
++        && Next[ActiveIndex].bAvailable && !Next[ActiveIndex].bAlive)
++        PendingDownedShip=ActiveIndex;
++    if(Next.IsValidIndex(PendingDownedShip) && (!Next[PendingDownedShip].bAvailable || Next[PendingDownedShip].bAlive))
++        PendingDownedShip=INDEX_NONE;
++    if(NewActive!=ActiveIndex && NewActive!=INDEX_NONE)
++    {
++        bDownedControlTransfer=PendingDownedShip!=INDEX_NONE && PendingDownedShip!=NewActive;
++        PendingDownedShip=INDEX_NONE;
++        SwitchLeft=bDownedControlTransfer?FMath::Max(1.f,Style.SwitchSeconds):Style.SwitchSeconds;
++    }
+     if(Style.bLancerVisualBenchmark && NewActive==1 && ActiveIndex==1 && Ships.IsValidIndex(1))
+     {
+         if(Next[1].Power<.05f && Ships[1].Power>.5f) ActivationLeft=.32f;
+@@ -491,14 +504,24 @@ void UTDSpaceHUDWidget::ApplySquadSnapshot(const TArray<FTDUIShip>& Snapshot)
+     if(Display.Num()!=3) Display=Ships;
+ }
+ void UTDSpaceHUDWidget::ShowWarning(FText Message) { Warning=Message; WarningLeft=WarningSeconds; }
+-void UTDSpaceHUDWidget::ConfirmHit(bool bKill) { bKillConfirmed=bKill; HitLeft=bKill?.65f:.24f; }
++void UTDSpaceHUDWidget::ConfirmHit(bool bKill)
++{
++    bKillConfirmed=bKill; HitLeft=.24f;
++    if(bKill) KillConfirmLeft=1.f;
++}
++void UTDSpaceHUDWidget::TickCombatFeedback(float DeltaSeconds)
++{
++    const float Dt=FMath::Clamp(DeltaSeconds,0.f,.1f);
++    HitLeft=FMath::Max(0.f,HitLeft-Dt); KillConfirmLeft=FMath::Max(0.f,KillConfirmLeft-Dt);
++}
+ void UTDSpaceHUDWidget::SetObjectivePrompt(FText Message) { ObjectivePrompt=Message; }
+ void UTDSpaceHUDWidget::HandleHit(AActor* Actor,bool bKill) { if(!bPreview) ConfirmHit(bKill); }
+ void UTDSpaceHUDWidget::HandleObjective(FName Id,int32 Step,FText Text) { if(!bPreview) SetObjectivePrompt(Text); }
+ void UTDSpaceHUDWidget::SetPreviewMode(bool bEnabled)
+ {
+     bPreview=bEnabled;
+-    Warning=FText::GetEmpty(); ObjectivePrompt=FText::GetEmpty(); InteractPrompt=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=0;
++    Warning=FText::GetEmpty(); ObjectivePrompt=FText::GetEmpty(); InteractPrompt=FText::GetEmpty(); WarningLeft=HitLeft=ReadyLeft=KillConfirmLeft=0;
++    bDownedControlTransfer=false; PendingDownedShip=INDEX_NONE;
+     AcquisitionLeft=ActivationLeft=DamageLeft=0;
+     if(!bEnabled) { RefreshData(); return; }
+     DataSource.Reset(); Target.Reset(); Locked.Reset(); Objectives.Reset(); Hostiles.Reset(); bHasTargetHealth=bHasGameplayLead=false; IncomingMissiles=0;
+@@ -535,7 +558,8 @@ void UTDSpaceHUDWidget::PreviewPower()
+ void UTDSpaceHUDWidget::NativeTick(const FGeometry& G,float Dt)
+ {
+     Super::NativeTick(G,Dt); Dt=FMath::Clamp(Dt,0.f,.1f); Elapsed+=Dt;
+-    SwitchLeft=FMath::Max(0.f,SwitchLeft-Dt); HitLeft=FMath::Max(0.f,HitLeft-Dt); WarningLeft=FMath::Max(0.f,WarningLeft-Dt); ReadyLeft=FMath::Max(0.f,ReadyLeft-Dt);
++    SwitchLeft=FMath::Max(0.f,SwitchLeft-Dt); WarningLeft=FMath::Max(0.f,WarningLeft-Dt); ReadyLeft=FMath::Max(0.f,ReadyLeft-Dt);
++    TickCombatFeedback(Dt);
+     AcquisitionLeft=FMath::Max(0.f,AcquisitionLeft-Dt); ActivationLeft=FMath::Max(0.f,ActivationLeft-Dt); DamageLeft=FMath::Max(0.f,DamageLeft-Dt);
+     if(Target!=VisualTarget || bPreview!=bVisualPreviewTarget)
+     { VisualTarget=Target; bVisualPreviewTarget=bPreview; AcquisitionLeft=.18f; }
+@@ -651,13 +675,14 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
+             }
+             P.Line(TargetPos+FVector2D(-48,-56),TargetPos+FVector2D(48,-56),Style.Hostile.CopyWithNewOpacity(.25f));
+         }
+-        P.Text(TargetPos.X-48,TargetPos.Y-(Refined?101:76),bPreview?TEXT("NULL / INTERCEPTOR"):TEXT("HOSTILE TARGET"),12,Style.Hostile,true);
++        const FVector2D Info=TDHUD::TargetInfoAnchor(TargetPos,bOutOfBounds || IncomingMissiles>0 || WarningLeft>0 || ReadyLeft>0,KillConfirmLeft>0);
++        P.Text(Info.X,Info.Y,bPreview?TEXT("NULL / INTERCEPTOR"):TEXT("HOSTILE TARGET"),13,Style.Hostile,true);
+         if(bPreview || bHasTargetHealth)
+-        { P.Meter(TargetPos.X-48,TargetPos.Y+(Refined?84:62),96,bPreview?.68f:TargetHull,Style.Hostile,3); P.Meter(TargetPos.X-48,TargetPos.Y+(Refined?90:68),96,bPreview?.25f:TargetShield,Style.Lancer,2); }
++        { P.Meter(Info.X,Info.Y+25,160,bPreview?.68f:TargetHull,Style.Hostile,4); P.Meter(Info.X,Info.Y+33,160,bPreview?.25f:TargetShield,Style.Lancer,3); }
+         if(Target.IsValid())
+         {
+             const double Distance=GetOwningPlayer()->GetPawn()?FVector::Dist(Target->GetActorLocation(),GetOwningPlayer()->GetPawn()->GetActorLocation())*.01:0;
+-            P.Text(TargetPos.X-48,TargetPos.Y+(Refined?96:72),FString::Printf(TEXT("%.0f m"),Distance),12,Dim);
++            P.Text(Info.X,Info.Y+44,FString::Printf(TEXT("%.0f m"),Distance),13,Dim);
+         }
+         FVector2D Lead=FVector2D::ZeroVector;
+         bool bLead=bPreview;
+@@ -672,7 +697,7 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
+             { FVector2D UI; bLead=UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(GetOwningPlayer(),Eye+Aim,UI,true); Lead=(UI-P.Origin)/P.Scale; }
+         }
+         if(bLead) { P.Arc(Lead,8,1,Accent,1.5f); P.Line(Lead+FVector2D(13,0),TargetPos,Dim,.6f); }
+-        if(bPreview || Locked.Contains(Target)) { P.Arc(TargetPos,58,.88f,Style.Hostile,1,0); P.Text(TargetPos.X-29,TargetPos.Y+(Refined?115:91),TEXT("LOCKED"),11,Style.Hostile,true); }
++        if(bPreview || Locked.Contains(Target)) { P.Arc(TargetPos,58,.88f,Style.Hostile,1,0); P.Text(Info.X,Info.Y+66,TEXT("LOCKED"),13,Style.Hostile,true); }
+     }
+     else if(Target.IsValid())
+     {
+@@ -776,8 +801,8 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
+     {
+         const FLinearColor C=bKillConfirmed?Style.Bastion:Ink;
+         for(int32 X:{-1,1}) for(int32 Y:{-1,1}) P.Line(Center+FVector2D(X*14,Y*14),Center+FVector2D(X*21,Y*21),C,2);
+-        if(bKillConfirmed) P.CenteredText(Center.X,591,TEXT("TARGET ELIMINATED"),15,C,true);
+     }
++    if(KillConfirmLeft>0) P.CenteredText(Center.X,590,TEXT("TARGET ELIMINATED"),21,Style.Bastion,true);
+     if(bOutOfBounds || IncomingMissiles>0 || WarningLeft>0)
+     {
+         if(Refined) P.Glass(704,640,512,42,Style.Hostile);
+@@ -788,9 +813,10 @@ int32 UTDSpaceHUDWidget::NativePaint(const FPaintArgs& A,const FGeometry& G,cons
+     else if(ReadyLeft>0) P.Text(729,651,ReadyPrompt.ToString(),15,Style.ShipColor(ReadyShip),true);
+     if(SwitchLeft>0 && Active)
+     {
+-        const float Offset=Style.bReducedMotion?0:18*FMath::Square(SwitchLeft/FMath::Max(.05f,Style.SwitchSeconds));
+-        P.Box(66+Offset,169,4,42,Accent); P.Text(83+Offset,169,FString::Printf(TEXT("CUT TO / %s"),TDHUD::Names[ActiveIndex]),18,Ink,true);
+-        P.Text(83+Offset,196,TDHUD::Pilots[ActiveIndex],11,Accent);
++        const float Offset=Style.bReducedMotion?0:18*FMath::Square(FMath::Clamp(SwitchLeft/FMath::Max(.05f,Style.SwitchSeconds),0.f,1.f));
++        P.Box(66+Offset,169,4,42,Accent);
++        P.Text(83+Offset,169,FString::Printf(TEXT("%s / %s"),bDownedControlTransfer?TEXT("CONTROL TRANSFER"):TEXT("CUT TO"),TDHUD::Names[ActiveIndex]),18,Ink,true);
++        P.Text(83+Offset,196,bDownedControlTransfer?TEXT("SHIP DOWN / CONTROL TRANSFERRED"):TDHUD::Pilots[ActiveIndex],11,Accent);
+     }
+     const FString Hint=bPreview?(bGamepadGlyphs?TEXT("PREVIEW / [LB / RB] SWITCH   [B] DAMAGE   [X] SIGNATURE   [Y] KILL"):TEXT("PREVIEW / [1 / 2 / 3] SWITCH SHIP   [Q] SIGNATURE")):(bGamepadGlyphs?GamepadHint.ToString():KeyboardHint.ToString());
+     P.Text(66,1031,Hint,12,Dim);
+diff --git a/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDSpaceHUDWidget.h b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDSpaceHUDWidget.h
+index f8093ed..f4fd2b7 100644
+--- a/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDSpaceHUDWidget.h
++++ b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDSpaceHUDWidget.h
+@@ -113,6 +113,8 @@ protected:
+ private:
+     friend class FTDHUDObjectiveTextTest;
+     friend class FTDHUDInteractionTest;
++    friend class FTDHUDCombatFeedbackTest;
++    friend class FTDHUDRecoveryTest;
+     UPROPERTY(Transient) TArray<FTDUIShip> Ships;
+     UPROPERTY(Transient) TArray<FTDUIShip> Display;
+     TWeakObjectPtr<UObject> DataSource;
+@@ -122,7 +124,7 @@ private:
+     TArray<TWeakObjectPtr<AActor>> Objectives;
+     FTimerHandle SampleTimer;
+     TSharedPtr<IInputProcessor> InputObserver;
+-    float Elapsed = 0, SwitchLeft = 0, HitLeft = 0, WarningLeft = 0;
++    float Elapsed = 0, SwitchLeft = 0, HitLeft = 0, WarningLeft = 0, KillConfirmLeft = 0;
+     float Speed01 = 0, Hyperdrive01 = 0;
+     float TargetHull = 0, TargetShield = 0, ReadyLeft = 0;
+     float AcquisitionLeft = 0, ActivationLeft = 0, DamageLeft = 0;
+@@ -137,7 +139,10 @@ private:
+     TArray<TWeakObjectPtr<AActor>> Hostiles;
+     int32 Wave = 0, Enemies = 0, ActiveIndex = INDEX_NONE, ReadyShip = 0;
+     bool bPreview = false, bKillConfirmed = false, bOutOfBounds = false;
++    bool bDownedControlTransfer = false;
++    int32 PendingDownedShip = INDEX_NONE;
+     FText Warning, ObjectivePrompt, InteractPrompt;
++    void TickCombatFeedback(float DeltaSeconds);
+     void BindEvents(bool bBind);
+     UFUNCTION() void HandleHit(AActor* Actor, bool bKill);
+     UFUNCTION() void HandleObjective(FName Id, int32 Step, FText Text);
+-- 
+2.56.0.windows.4
+
