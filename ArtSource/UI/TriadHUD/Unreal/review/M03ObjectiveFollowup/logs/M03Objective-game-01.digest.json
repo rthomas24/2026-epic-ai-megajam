@@ -1,0 +1,621 @@
+{
+ "log": "Saved\\Logs\\M03Objective-game-01.log",
+ "new_only": false,
+ "errors": [],
+ "warnings": [
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'DynamicAssetDataColumnBaseWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1607,
+   "count": 5,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'ItemAttributeWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1601,
+   "count": 2,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogModelContextProtocol",
+   "message": "Data transmitted via this plugin to your connected LLM service is Licensed Technology under the UE EULA. You are responsible for ensuring your LLM provider does not use it as training input. See Section 6(e) of the UE EULA for full terms.",
+   "first_line": 1542,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'ActorLayersWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1595,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'AlertWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1596,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'AlertHeaderWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1597,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'UObjectLabelWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1598,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'FolderCompatibilityWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1599,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'DiskSizeWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1600,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'AssetDataItemTypeWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1603,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'AssetDataLabelWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1604,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'AssetDataVirtualPathWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1605,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'AssetNameWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1606,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'StaticMeshTrianglesWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1612,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'OutlinerUnsavedWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1613,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'OutlinerUnsavedHeaderConstructor' as purpose '0' isn't registered.",
+   "first_line": 1614,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'SocketWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1615,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'TypeInfoWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1616,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogEditorDataStorageUI",
+   "message": "Unable to register widget factory 'VisibilityWidgetConstructor' as purpose '0' isn't registered.",
+   "first_line": 1617,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogLinker",
+   "message": "[AssetLog] C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\hud-lancer-polish\\Content\\TriadDrift\\Maps\\L_Galaxy_HLODLayer_Merged.uasset: VerifyImport: Failed to find script package for import object 'Package /Script/WorldPartitionHLODUtilities'",
+   "first_line": 1627,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogLinker",
+   "message": "Unable to load HLODBuilderMeshMergeSettings_1 with outer HLODLayer /Game/TriadDrift/Maps/L_Galaxy_HLODLayer_Merged.L_Galaxy_HLODLayer_Merged because its class (HLODBuilderMeshMergeSettings) does not exist",
+   "first_line": 1628,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogLinker",
+   "message": "Unable to load HLODBuilderInstancingSettings_0 with outer HLODLayer /Game/TriadDrift/Maps/L_Galaxy_HLODLayer_Instanced.L_Galaxy_HLODLayer_Instanced because its class (HLODBuilderInstancingSettings) does not exist",
+   "first_line": 1629,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogMaterial",
+   "message": "Material /Engine/EngineMaterials/EmissiveMeshMaterial.EmissiveMeshMaterial missing usage flag InstancedStaticMeshes! Default Material will be used in game.",
+   "first_line": 1661,
+   "count": 1,
+   "source": null
+  },
+  {
+   "level": "warning",
+   "category": "LogMaterial",
+   "message": "The material will recompile every editor launch until resaved.",
+   "first_line": 1662,
+   "count": 1,
+   "source": null
+  }
+ ],
+ "flood": [
+  [
+   "LogModelContextProtocol",
+   790
+  ],
+  [
+   "LogModuleManager",
+   482
+  ],
+  [
+   "LogConfig",
+   360
+  ],
+  [
+   "LogPluginManager",
+   292
+  ],
+  [
+   "RHIResources",
+   106
+  ],
+  [
+   "LogInit",
+   77
+  ],
+  [
+   "LogD3D12RHI",
+   65
+  ],
+  [
+   "LogTriadDrift",
+   58
+  ],
+  [
+   "LogPython",
+   51
+  ],
+  [
+   "LogSlate",
+   48
+  ],
+  [
+   "LogTDUIHost",
+   46
+  ],
+  [
+   "LogCsvProfiler",
+   42
+  ],
+  [
+   "LogWorldPartition",
+   42
+  ],
+  [
+   "LogDevObjectVersion",
+   37
+  ],
+  [
+   "LogToolsetRegistry",
+   23
+  ],
+  [
+   "LogEditorDataStorageUI",
+   23
+  ],
+  [
+   "LogWorld",
+   22
+  ],
+  [
+   "LogWindows",
+   21
+  ],
+  [
+   "LogEditorDataStorage",
+   17
+  ],
+  [
+   "LogLoad",
+   16
+  ],
+  [
+   "LogAssetRegistry",
+   14
+  ],
+  [
+   "LogRHI",
+   13
+  ],
+  [
+   "LogCheatManager",
+   13
+  ],
+  [
+   "LogZenServiceInstance",
+   12
+  ],
+  [
+   "LogGlobalStatus",
+   10
+  ],
+  [
+   "LogShaderCompilers",
+   9
+  ],
+  [
+   "LogChaosDD",
+   8
+  ],
+  [
+   "LogStreaming",
+   7
+  ],
+  [
+   "LogDeviceProfileManager",
+   7
+  ],
+  [
+   "LogMemory",
+   7
+  ],
+  [
+   "LogDerivedDataCache",
+   7
+  ],
+  [
+   "LogNNERuntimeORT",
+   7
+  ],
+  [
+   "LogTargetPlatformManager",
+   6
+  ],
+  [
+   "LogTextureFormatManager",
+   6
+  ],
+  [
+   "LogUObjectHash",
+   6
+  ],
+  [
+   "LogNiagaraDebugger",
+   6
+  ],
+  [
+   "LogCore",
+   5
+  ],
+  [
+   "LogTextureFormatOodle",
+   5
+  ],
+  [
+   "LogWindowsTextInputMethodSystem",
+   5
+  ],
+  [
+   "LogTemp",
+   5
+  ],
+  [
+   "LogNet",
+   5
+  ],
+  [
+   "LogRenderer",
+   5
+  ],
+  [
+   "SourceControl",
+   4
+  ],
+  [
+   "LogMeshReduction",
+   4
+  ],
+  [
+   "LogHttpServerModule",
+   4
+  ],
+  [
+   "LogExit",
+   4
+  ],
+  [
+   "LogTrace",
+   3
+  ],
+  [
+   "LogAnalytics",
+   3
+  ],
+  [
+   "LogEOSShared",
+   3
+  ],
+  [
+   "LogTextLocalizationManager",
+   3
+  ],
+  [
+   "LogGenericApplication",
+   3
+  ],
+  [
+   "LogTextureEncodingSettings",
+   3
+  ],
+  [
+   "LogNiagaraDebuggerClient",
+   3
+  ],
+  [
+   "LogFileCache",
+   3
+  ],
+  [
+   "LogLinker",
+   3
+  ],
+  [
+   "LogStats",
+   2
+  ],
+  [
+   "LogAudio",
+   2
+  ],
+  [
+   "RenderDocPlugin",
+   2
+  ],
+  [
+   "LogNFORDenoise",
+   2
+  ],
+  [
+   "LogOnline",
+   2
+  ],
+  [
+   "LogObj",
+   2
+  ],
+  [
+   "LogNvidiaAftermath",
+   2
+  ],
+  [
+   "LogRendererCore",
+   2
+  ],
+  [
+   "LogXGEController",
+   2
+  ],
+  [
+   "LogVirtualization",
+   2
+  ],
+  [
+   "LogMoviePlayer",
+   2
+  ],
+  [
+   "LogCollectionManager",
+   2
+  ],
+  [
+   "LogMetaSound",
+   2
+  ],
+  [
+   "LogAudioCaptureCore",
+   2
+  ],
+  [
+   "LogUObjectArray",
+   2
+  ],
+  [
+   "LogEngine",
+   2
+  ],
+  [
+   "LogHttpListener",
+   2
+  ],
+  [
+   "LogDebugDraw",
+   2
+  ],
+  [
+   "LogRun",
+   2
+  ],
+  [
+   "LogMaterial",
+   2
+  ],
+  [
+   "LogGameMode",
+   2
+  ],
+  [
+   "LogStaticMesh",
+   2
+  ],
+  [
+   "LogProfilingDebugging",
+   1
+  ],
+  [
+   "LogICUInternationalization",
+   1
+  ],
+  [
+   "PixWinPlugin",
+   1
+  ],
+  [
+   "LogStudioTelemetry",
+   1
+  ],
+  [
+   "LogAsyncCompilation",
+   1
+  ],
+  [
+   "LogHAL",
+   1
+  ],
+  [
+   "LogSpline",
+   1
+  ],
+  [
+   "LogWindowsTouchpad",
+   1
+  ],
+  [
+   "LogInputDeviceRegistry",
+   1
+  ],
+  [
+   "LogVRS",
+   1
+  ],
+  [
+   "LogTextureFormatASTC",
+   1
+  ],
+  [
+   "LogAudioDebug",
+   1
+  ],
+  [
+   "LogPackageLocalizationCache",
+   1
+  ],
+  [
+   "LogMeshMerging",
+   1
+  ],
+  [
+   "LogMutable",
+   1
+  ],
+  [
+   "LogAndroidPermission",
+   1
+  ],
+  [
+   "LogNetVersion",
+   1
+  ],
+  [
+   "LogUIActionRouter",
+   1
+  ],
+  [
+   "LogNiagaraEditor",
+   1
+  ],
+  [
+   "LogEnhancedInput",
+   1
+  ],
+  [
+   "LogViewport",
+   1
+  ],
+  [
+   "LogContentStreaming",
+   1
+  ],
+  [
+   "LogRuntimeTelemetry",
+   1
+  ]
+ ],
+ "markers": [
+  [
+   1554,
+   "UE_RUN CONFIG {\"build\": \"Development\", \"command_line\": \"/Game/TriadDrift/Maps/L_Galaxy -NoLiveCoding -nosound -nosplash -unattended -nopause -ModelContextProtocolPort=8023 -ModelContextProtocolStar..."
+  ],
+  [
+   2916,
+   "UE_RUN DONE 0 t=479635"
+  ]
+ ],
+ "exits": [
+  [
+   2863,
+   "Engine exit requested (reason: Win RequestExit)"
+  ],
+  [
+   2864,
+   "Engine exit requested (reason: EngineExit() was called; note: exit was already requested)"
+  ]
+ ]
+}

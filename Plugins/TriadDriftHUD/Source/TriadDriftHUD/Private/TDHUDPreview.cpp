@@ -26,7 +26,64 @@ void ATDHUDPreviewController::BeginPlay()
     Widget->AddToViewport(); Widget->SetPreviewMode(true);
     SetInputMode(FInputModeGameOnly());
     bShowMouseCursor=false;
-    if(FParse::Param(FCommandLine::Get(),TEXT("TDHUDReadabilityCapture")))
+    Widget->Style.bLancerVisualBenchmark=FParse::Param(FCommandLine::Get(),TEXT("TDHUDLancerBenchmark"));
+    if(FParse::Param(FCommandLine::Get(),TEXT("TDHUDLancerCapture")))
+    {
+        ConsoleCommand(TEXT("t.MaxFPS 60"));
+        const FString Directory=FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("HUDLancerM03"));
+        IFileManager::Get().MakeDirectory(*Directory,true);
+        auto At=[this](float Seconds,TFunction<void()> Action)
+        { FTimerHandle Handle; GetWorldTimerManager().SetTimer(Handle,FTimerDelegate::CreateWeakLambda(this,[Action=MoveTemp(Action)](){Action();}),Seconds,false); };
+        auto Fixture=[this](bool Refined)
+        {
+            Widget->Style.bLancerVisualBenchmark=Refined; Widget->Style.bReducedMotion=false;
+            Widget->SetPreviewMode(true);
+            auto Snapshot=Widget->GetSnapshot(); for(auto& Ship:Snapshot) Ship.Power=1;
+            Widget->ApplySquadSnapshot(Snapshot); Widget->bGamepadGlyphs=false;
+        };
+        auto Shot=[this,Directory](const TCHAR* Name)
+        { FScreenshotRequest::RequestScreenshot(FPaths::Combine(Directory,Name),true,false); };
+        auto Press=[this](const FKey& Key)
+        {
+            const bool Handled=InputKey(FInputKeyEventArgs::CreateSimulated(Key,IE_Pressed,1.f));
+            const auto& Squad=Widget->GetSnapshot();
+            int32 Active=INDEX_NONE; for(int32 I=0;I<Squad.Num();++I) if(Squad[I].bActive) Active=I;
+            bool Passed=Handled;
+            if(Key==EKeys::One) Passed&=Active==0 && !Widget->IsLancerBenchmarkActive();
+            if(Key==EKeys::Two) Passed&=Active==1 && Widget->IsLancerBenchmarkActive();
+            if(Key==EKeys::Three) Passed&=Active==2 && !Widget->IsLancerBenchmarkActive();
+            if(Key==EKeys::Q || Key==EKeys::Gamepad_FaceButton_Left) Passed&=Squad.IsValidIndex(Active) && Squad[Active].Power==0;
+            if(Key==EKeys::H) Passed&=Squad.IsValidIndex(Active) && Squad[Active].Hull==.22f && Squad[Active].Shield==.12f;
+            if(Key==EKeys::F6) Passed&=Widget->Style.bReducedMotion;
+            if(Passed) { UE_LOG(LogTemp,Display,TEXT("TDHUD_LANCER_INPUT PASS %s active=%d refined=%d"),*Key.ToString(),Active,Widget->IsLancerBenchmarkActive()); }
+            else { UE_LOG(LogTemp,Error,TEXT("TDHUD_LANCER_INPUT FAILED %s active=%d"),*Key.ToString(),Active); }
+        };
+        At(1,[Fixture](){Fixture(false);});
+        At(2,[this](){Widget->ResetBenchmarkPaintMetrics();});
+        At(4,[this,Shot](){UE_LOG(LogTemp,Display,TEXT("TDHUD_LANCER_PAINT BEFORE %s"),*Widget->GetBenchmarkPaintMetrics());Shot(TEXT("01-before-lancer-1080p.png"));});
+        At(5,[Fixture](){Fixture(true);});
+        At(6,[this](){Widget->ResetBenchmarkPaintMetrics();});
+        At(8,[this,Shot](){UE_LOG(LogTemp,Display,TEXT("TDHUD_LANCER_PAINT AFTER %s"),*Widget->GetBenchmarkPaintMetrics());Shot(TEXT("02-after-lancer-1080p.png"));});
+        At(9,[Press](){Press(EKeys::One);});
+        At(10,[Shot](){Shot(TEXT("03-rift-unchanged-1080p.png"));});
+        At(11,[Press](){Press(EKeys::Three);});
+        At(12,[Shot](){Shot(TEXT("04-bastion-unchanged-1080p.png"));});
+        At(13,[Press](){Press(EKeys::Two); Press(EKeys::Q); Press(EKeys::H); Press(EKeys::K);});
+        At(13.12f,[Shot](){Shot(TEXT("05-lancer-activation-damage-1080p.png"));});
+        At(13.4f,[this](){ConsoleCommand(TEXT("r.SetRes 1280x720w"));});
+        At(14.4f,[this](){Widget->ConfirmHit(true);});
+        At(14.6f,[Shot](){Shot(TEXT("06-lancer-cooldown-720p.png"));});
+        At(15.5f,[Press](){Press(EKeys::F6);});
+        At(16,[this](){ConsoleCommand(TEXT("r.SetRes 2560x1080w"));});
+        At(17,[Shot](){Shot(TEXT("07-lancer-reduced-motion-ultrawide.png"));});
+        At(21,[this,Shot](){const auto& S=Widget->GetSnapshot(); if(S.IsValidIndex(1) && S[1].Power>=.999f) {UE_LOG(LogTemp,Display,TEXT("TDHUD_LANCER_READY PASS"));} else {UE_LOG(LogTemp,Error,TEXT("TDHUD_LANCER_READY FAILED"));} Shot(TEXT("08-lancer-ready-ultrawide.png"));});
+        At(22,[Press](){Press(EKeys::Gamepad_FaceButton_Left);});
+        At(23,[Shot](){Shot(TEXT("09-lancer-gamepad-cooldown-ultrawide.png"));});
+        At(24,[this](){Widget->SetPreviewMode(false);});
+        At(25,[Shot](){Shot(TEXT("10-telemetry-unavailable.png"));});
+        At(26,[this](){ConsoleCommand(TEXT("quit"));});
+    }
+    else if(FParse::Param(FCommandLine::Get(),TEXT("TDHUDReadabilityCapture")))
     {
         const FString Directory=FPaths::Combine(FPaths::ProjectSavedDir(),TEXT("HUDReadabilityM02"));
         IFileManager::Get().MakeDirectory(*Directory,true);

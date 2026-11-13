@@ -1,0 +1,75 @@
+[2026.11.12-20.40.54:516][133]LogTDUIHost: Space HUD shown (WBP_SpaceHUD_C) for TDSpacePlayerController_0.
+[2026.11.12-20.40.55:015][163]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.40.55:015][163]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=4
+[2026.11.12-20.40.55:015][163]LogTDUIHost: Display: TD.UI.Status: card 0 active=1 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.40.55:015][163]LogTDUIHost: Display: TD.UI.Status: card 1 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.40.55:015][163]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.40.56:213][229]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.40.56:213][229]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=8
+[2026.11.12-20.40.56:213][229]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.40.56:213][229]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.40.56:213][229]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.40.57:339][292]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.40.57:339][292]LogTDUIHost: Display: TD.UI.Status: target=TDEnemyShip_8 onscreen=1 at (814, 606), locked=0, markers=10
+[2026.11.12-20.40.57:339][292]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.40.57:339][292]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.40.57:339][292]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.40.58:379][349]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.40.58:379][349]LogTDUIHost: Display: TD.UI.Status: target=TDEnemyShip_8 onscreen=0 at (0, 0), locked=0, markers=8
+[2026.11.12-20.40.58:379][349]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.40.58:379][349]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.40.58:379][349]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.40.59:336][403]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.40.59:336][403]LogTDUIHost: Display: TD.UI.Status: target=TDEnemyShip_8 onscreen=0 at (0, 0), locked=0, markers=3
+[2026.11.12-20.40.59:336][403]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.40.59:336][403]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=0 hull=1.00 power=0.07 ability=0.00
+[2026.11.12-20.40.59:336][403]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.41.00:351][460]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.41.00:351][460]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.12-20.41.00:351][460]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.41.00:351][460]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=1 hull=1.00 power=0.21 ability=0.03
+[2026.11.12-20.41.00:351][460]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.41.01:147][504]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.41.01:148][504]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.12-20.41.01:148][504]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.41.01:148][504]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=1 hull=1.00 power=0.33 ability=0.09
+[2026.11.12-20.41.01:148][504]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.41.02:310][570]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.41.02:310][570]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.12-20.41.02:310][570]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.41.02:310][570]LogTDUIHost: Display: TD.UI.Status: card 1 active=0 alive=1 unlocked=1 hull=1.00 power=0.49 ability=0.16
+[2026.11.12-20.41.02:310][570]LogTDUIHost: Display: TD.UI.Status: card 2 active=1 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.41.03:301][626]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.41.03:301][626]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.12-20.41.03:301][626]LogTDUIHost: Display: TD.UI.Status: card 0 active=1 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.41.03:301][626]LogTDUIHost: Display: TD.UI.Status: card 1 active=0 alive=1 unlocked=1 hull=1.00 power=0.63 ability=0.23
+[2026.11.12-20.41.03:301][626]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.41.04:901][714]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.41.04:901][714]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.12-20.41.04:901][714]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.41.04:901][714]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=1 hull=1.00 power=0.86 ability=0.35
+[2026.11.12-20.41.04:901][714]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.41.05:768][757]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.41.05:768][757]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.12-20.41.05:768][757]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.41.05:768][757]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=1 hull=1.00 power=0.99 ability=0.41
+[2026.11.12-20.41.05:768][757]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=0 hull=1.00 power=1.00 ability=0.00
+[2026.11.12-20.41.09:238][955]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.41.09:238][955]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=24
+[2026.11.12-20.41.09:238][955]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=1 hull=1.00 power=1.00 ability=1.00
+[2026.11.12-20.41.09:238][955]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=1 hull=1.00 power=1.00 ability=1.00
+[2026.11.12-20.41.09:238][955]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=1 hull=1.00 power=1.00 ability=1.00
+[2026.11.12-20.41.09:952][993]LogTDUIHost: Display: TD.UI.Status: enabled=0 shown=0 class=- source=-
+[2026.11.12-20.41.10:415][ 17]LogTDUIHost: Space HUD shown (WBP_SpaceHUD_C) for TDSpacePlayerController_0.
+[2026.11.12-20.41.10:653][ 31]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.41.10:653][ 31]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=8
+[2026.11.12-20.41.10:653][ 31]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=1 hull=1.00 power=1.00 ability=1.00
+[2026.11.12-20.41.10:653][ 31]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=1 hull=1.00 power=1.00 ability=1.00
+[2026.11.12-20.41.10:653][ 31]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=1 hull=1.00 power=1.00 ability=1.00
+[2026.11.12-20.41.12:956][153]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=0 class=- source=-
+[2026.11.12-20.41.15:213][262]LogTDUIHost: Space HUD shown (WBP_SpaceHUD_C) for TDSpacePlayerController_0.
+[2026.11.12-20.41.16:234][316]LogTDUIHost: Display: TD.UI.Status: enabled=1 shown=1 class=WBP_SpaceHUD_C source=TDSquadManager_0
+[2026.11.12-20.41.16:234][316]LogTDUIHost: Display: TD.UI.Status: target=none onscreen=0 at (0, 0), locked=0, markers=0
+[2026.11.12-20.41.16:234][316]LogTDUIHost: Display: TD.UI.Status: card 0 active=0 alive=1 unlocked=1 hull=1.00 power=1.00 ability=1.00
+[2026.11.12-20.41.16:234][316]LogTDUIHost: Display: TD.UI.Status: card 1 active=1 alive=1 unlocked=1 hull=1.00 power=1.00 ability=1.00
+[2026.11.12-20.41.16:234][316]LogTDUIHost: Display: TD.UI.Status: card 2 active=0 alive=1 unlocked=1 hull=1.00 power=1.00 ability=1.00
