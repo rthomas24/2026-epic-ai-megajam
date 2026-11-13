@@ -36,12 +36,26 @@ bool FTDTerrainBasin::RunTest(const FString&)
 	{
 		const FTDTerrainField F(FTDTerrainStyle::ForPlanet(P));
 		const FVector2D E = F.GetStyle().BasinHalfExtent;
+		const FVector2D BC = F.GetStyle().BasinCentre;
 		float MaxInside = -1e9f;
 		for (float X = -E.X; X <= E.X; X += E.X / 20.f)
 		{
-			for (float Y = -E.Y; Y <= E.Y; Y += E.Y / 20.f) { MaxInside = FMath::Max(MaxInside, F.Height(X, Y)); }
+			for (float Y = -E.Y; Y <= E.Y; Y += E.Y / 20.f) { MaxInside = FMath::Max(MaxInside, F.Height(BC.X + X, BC.Y + Y)); }
 		}
 		TestTrue(*FString::Printf(TEXT("planet %d: the course basin sits under the course slab (max %.0f cm)"), (int32)P, MaxInside), MaxInside <= 0.f);
+		// Around the slab the ground never drops below its top (no raised-table edge): a ring 0-3 km beyond the basin.
+		float MinRing = 1e9f;
+		for (int32 Deg = 0; Deg < 360; Deg += 10)
+		{
+			const FVector2D Dir(FMath::Cos(FMath::DegreesToRadians(Deg)), FMath::Sin(FMath::DegreesToRadians(Deg)));
+			// Along each bearing, from the slab edge out to 2.5 km beyond the basin box (measured from its nearest point).
+			for (float R = 0.f; R < 250000.f; R += 20000.f)
+			{
+				const FVector2D Q = BC + FVector2D(FMath::Clamp(Dir.X * 1e7f, -(float)E.X, (float)E.X), FMath::Clamp(Dir.Y * 1e7f, -(float)E.Y, (float)E.Y)) + Dir * R;
+				MinRing = FMath::Min(MinRing, F.Height(Q.X, Q.Y));
+			}
+		}
+		TestTrue(*FString::Printf(TEXT("planet %d: no drop below the slab top around it (min %.0f cm)"), (int32)P, MinRing), MinRing >= F.GetStyle().BasinFloor - 1.f);
 	}
 	return true;
 }
@@ -153,12 +167,18 @@ bool FTDTerrainHeroAndRegions::RunTest(const FString&)
 		bool bClear = true;
 		const FVector Eye(0.f, 0.f, 200.f), Top(S.HeroCentre.X, S.HeroCentre.Y, HeroTop);
 		const float Foot = FMath::Max(0.1f, 1.f - S.HeroRadius / FMath::Max(1.f, (float)S.HeroCentre.Size()));
+		FString Where;
 		for (float T = 0.05f; T < Foot; T += 0.01f)
 		{
 			const FVector Q = FMath::Lerp(Eye, Top, T);
+			if (F.Height(Q.X, Q.Y) >= Q.Z && Where.IsEmpty())
+			{
+				Where = FString::Printf(TEXT("blocked at %.0f m out (ground %.0f m, line %.0f m, top %.0f m at %s)"), FVector2D(Q.X, Q.Y).Size() / 100.f,
+					F.Height(Q.X, Q.Y) / 100.f, Q.Z / 100.f, HeroTop / 100.f, *FVector2D(Top.X, Top.Y).ToString());
+			}
 			bClear &= F.Height(Q.X, Q.Y) < Q.Z;
 		}
-		TestTrue(*FString::Printf(TEXT("planet %d: the hero peak is visible from the pad"), (int32)P), bClear);
+		TestTrue(*FString::Printf(TEXT("planet %d: the hero peak is visible from the pad %s"), (int32)P, *Where), bClear);
 		if (S.bVolcano)
 		{
 			const float Rim = F.Height(S.HeroCentre.X + S.CraterRadius * 1.3f, S.HeroCentre.Y);
@@ -174,6 +194,52 @@ bool FTDTerrainHeroAndRegions::RunTest(const FString&)
 			TestEqual(TEXT("no region inside the course basin"), F.RegionWeight(Dir.X * 100000.f, Dir.Y * 100000.f, B), 0.f);
 		}
 		TestTrue(TEXT("the sea basin dips below the sea level"), F.Height(F.SeaCentre().X, F.SeaCentre().Y) < S.SeaLevel);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTerrainMaterialData, "TriadDrift.World.Terrain.MaterialDataMatchesTheTerrain", TD_TEST_FLAGS)
+bool FTDTerrainMaterialData::RunTest(const FString&)
+{
+	for (const ETDDestination P : { ETDDestination::Verdance, ETDDestination::Cinder })
+	{
+		const FTDTerrainField F(FTDTerrainStyle::ForPlanet(P));
+		TestTrue(*FString::Printf(TEXT("planet %d relief %.0f m"), (int32)P, F.ReliefMeters()), F.ReliefMeters() > 2000.f && F.ReliefMeters() < 4000.f);
+	}
+	// Cinder: the lava mask is 0.5 on a river's centre line and falls / rises away from it, where the valleys are carved.
+	const FTDTerrainField C(FTDTerrainStyle::ForPlanet(ETDDestination::Cinder));
+	int32 Agree = 0, N = 0;
+	for (float X = 450000.f; X < 780000.f; X += 3000.f)
+	{
+		const float Y = 120000.f;
+		const float RN = C.RiverNoise(X, Y);
+		if (FMath::Abs(RN) < 0.02f)
+		{
+			++N;
+			Agree += FMath::Abs(C.Sample(X, Y).BroadMask - FMath::Clamp(0.5f + RN * 4.5f, 0.f, 1.f)) < 0.01f ? 1 : 0;
+		}
+	}
+	TestEqual(TEXT("Cinder's broad mask is the river noise (lava follows the beds)"), Agree, N);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTerrainApproach, "TriadDrift.World.Terrain.ArrivalCorridorStaysClear", TD_TEST_FLAGS)
+bool FTDTerrainApproach::RunTest(const FString&)
+{
+	for (const ETDDestination P : { ETDDestination::Verdance, ETDDestination::Cinder })
+	{
+		const FTDTerrainField F(FTDTerrainStyle::ForPlanet(P));
+		// T5's travel rig: the squad starts 600 m behind the pad, 300 m up, and descends straight to it.
+		int32 Blocked = 0;
+		for (float T = 0.f; T <= 1.f; T += 0.01f)
+		{
+			const FVector Q = FMath::Lerp(FVector(-60000.f, 0.f, 30000.f), FVector(0.f, 0.f, 500.f), T);
+			for (const float Side : { -2200.f, 0.f, 2200.f })	// the wingmen fly beside the leader
+			{
+				if (Q.Z > 3000.f) { Blocked += F.Height(Q.X, Q.Y + Side) > Q.Z - 1500.f ? 1 : 0; }	// the last 30 m is the pad
+			}
+		}
+		TestEqual(*FString::Printf(TEXT("planet %d: the arrival descent clears the terrain by 15 m"), (int32)P), Blocked, 0);
 	}
 	return true;
 }

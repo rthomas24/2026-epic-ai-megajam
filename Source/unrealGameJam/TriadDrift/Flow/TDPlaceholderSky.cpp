@@ -240,7 +240,7 @@ void ATDPlaceholderSky::TrySpawnTerrain()
 		const FSoftObjectPath Path(P);
 		if (!M && FPackageName::DoesPackageExist(Path.GetLongPackageName())) { M = Cast<UMaterialInterface>(Path.TryLoad()); }
 	}
-	Terrain = ATDPlanetTerrain::SpawnForPlanet(GetWorld(), bVerdance ? ETDDestination::Verdance : ETDDestination::Cinder, Course->GetActorTransform(), M);
+	Terrain = ATDPlanetTerrain::SpawnForPlanet(GetWorld(), bVerdance ? ETDDestination::Verdance : ETDDestination::Cinder, Course->GetActorTransform(), nullptr);	// it picks MI_Terrain_* / MI_Ground_*
 	if (Terrain && FarGround)
 	{
 		FarGround->DestroyComponent();	// the terrain carries the ground to the horizon now

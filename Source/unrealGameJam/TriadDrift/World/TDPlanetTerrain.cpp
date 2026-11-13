@@ -8,6 +8,7 @@
 #include "HAL/PlatformTime.h"
 #include "Materials/MaterialInterface.h"
 #include "Async/Async.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
@@ -48,14 +49,36 @@ ATDPlanetTerrain* ATDPlanetTerrain::SpawnForPlanet(UWorld* World, ETDDestination
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	ATDPlanetTerrain* T = World->SpawnActor<ATDPlanetTerrain>(ATDPlanetTerrain::StaticClass(), FTransform(FRotator::ZeroRotator, Origin.GetLocation()), Params);
-	if (T) { T->Setup(Planet, Material); }
+	if (!T) { return nullptr; }
+	if (!Material)
+	{
+		// The Lead's slope / height terrain material (Gameplay/Props is always cooked), else the plain ground.
+		const bool bV = Planet != ETDDestination::Cinder;
+		for (const TCHAR* P : { bV ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Terrain_Verdance.MI_Terrain_Verdance") : TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Terrain_Cinder.MI_Terrain_Cinder"),
+			bV ? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Verdance.MI_Ground_Verdance") : TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_Ground_Cinder.MI_Ground_Cinder") })
+		{
+			const TSoftObjectPtr<UMaterialInterface> Soft{ FSoftObjectPath(P) };
+			if (!Material && FPackageName::DoesPackageExist(Soft.ToSoftObjectPath().GetLongPackageName())) { Material = Soft.LoadSynchronous(); }
+		}
+	}
+	T->Setup(Planet, Material);
+	return T;
 	return T;
 }
 
 void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material)
 {
 	Field = MakeShared<const FTDTerrainField, ESPMode::ThreadSafe>(FTDTerrainStyle::ForPlanet(Planet));
+	// One dynamic instance per terrain: the material's height bands use this planet's real relief.
 	TerrainMaterial = Material;
+	if (Material)
+	{
+		if (UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Material, this))
+		{
+			MID->SetScalarParameterValue(TEXT("HeightRangeM"), Field->ReliefMeters());
+			TerrainMaterial = MID;
+		}
+	}
 	const FTDTerrainStyle& S = Field->GetStyle();
 	const int32 Half = FMath::CeilToInt(S.CoreHalfSize / ChunkSize);
 	Chunks.Reset();

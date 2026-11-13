@@ -28,7 +28,8 @@ public:
 
 	static const FName TerrainTag;	// "TD.Engineering.Terrain"
 
-	/** Spawns the terrain for a planet at Origin (the course origin); builds the whole coarse world at once. */
+	/** Spawns the terrain for a planet at Origin (the course origin); builds the whole coarse world at once. Material null =
+	 *  MI_Terrain_<Planet> when it exists, else MI_Ground_<Planet>. */
 	static ATDPlanetTerrain* SpawnForPlanet(UWorld* World, ETDDestination Planet, const FTransform& Origin, UMaterialInterface* Material);
 
 	/** Core chunk size (cm) and quads per chunk per LOD (0 near .. 2 far). */
@@ -43,6 +44,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "TriadDrift|Terrain") float BudgetMs = 3.f;
 
 	const FTDTerrainField* GetField() const { return Field.Get(); }
+	/** The terrain's material (a MID with this planet's HeightRangeM): T5's course slab uses it so the two read as one ground. */
+	UMaterialInterface* GetTerrainMaterial() const { return TerrainMaterial; }
 	/** Terrain height under a world point (world z). */
 	float GetHeightAt(const FVector& WorldPoint) const;
 	int32 GetChunkCount() const { return Chunks.Num(); }
