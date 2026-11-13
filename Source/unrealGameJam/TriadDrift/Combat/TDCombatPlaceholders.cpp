@@ -12,6 +12,9 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
 #include "UObject/ConstructorHelpers.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
+#include "Engine/World.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -256,7 +259,16 @@ void ATDCombatFlash::Apply(float Alpha)
 		// Swells from 60% to 120% of its radius in the first 30%, then collapses as the glow falls off. The glow material
 		// is opaque unlit, so a fading colour reads darker, not clearer: a shell that kept its size turned into a dark
 		// disc near the camera (T3's death playtest). Collapsing, the dim end is small.
-		const float Size = Alpha < 0.3f ? Radius * (0.6f + 2.f * Alpha) : FMath::Max(Radius * 1.2f * FMath::Square(1.f - (Alpha - 0.3f) / 0.7f), 1.f);
+		float Size = Alpha < 0.3f ? Radius * (0.6f + 2.f * Alpha) : FMath::Max(Radius * 1.2f * FMath::Square(1.f - (Alpha - 0.3f) / 0.7f), 1.f);
+		// Never fills the frame: at most MaxRadiusPerCameraDistance of its distance to the camera (the Lead's frame-10
+		// white-out; T3's death shell peaks at 0.24, under the cap).
+		const UWorld* World = GetWorld();
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		if (PC && PC->PlayerCameraManager)
+		{
+			const float Distance = FVector::Dist(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation());
+			Size = FMath::Min(Size, FMath::Max(Distance * MaxRadiusPerCameraDistance, 1.f));
+		}
 		SetActorScale3D(FVector(Size / 50.f)); // the engine sphere is 100 cm across
 	}
 	if (MID)

@@ -114,15 +114,50 @@ public:
 	/** When false the widget is created but never added to the viewport (headless tests). */
 	bool bAddToViewport = true;
 
+	// ---- on foot and pause (engineering widgets in the space HUD's style; Nick restyles through UTDUIStyle)
+
+	/** The on-foot HUD while the local player walks (null in space, menus and with TD.UI.GroundHUD 0). */
+	UUserWidget* GetGroundHUD() const { return GroundWidget; }
+
+	/** The pause screen while the player has paused (null otherwise). */
+	UUserWidget* GetPauseScreen() const { return PauseWidget; }
+
+	/** UTDUIStyle::GroundHUDWidgetClass when set and loadable, else UTDGroundHUDWidget. */
+	static UClass* ResolveGroundWidgetClass();
+
+	/** UTDUIStyle::PauseWidgetClass when set and loadable, else UTDPauseMenuWidget. */
+	static UClass* ResolvePauseWidgetClass();
+
+	/** The controller's OnPauseChanged: opens or closes the pause screen. */
+	UFUNCTION()
+	void HandlePauseChanged(bool bPaused);
+
 private:
 	APlayerController* FindLocalController() const;
 	bool WantsSpaceHUD(APlayerController*& OutController, UObject*& OutSource) const;
 	void ShowFor(APlayerController* Controller, UObject* Source);
 	void Hide();
 	void SetDevHUDSuppressed(bool bSuppressed);
+	/** Dev HUD in supplement mode while any engineering-hosted HUD (space or ground) is up. */
+	void UpdateDevHUDSuppression();
+	bool WantsGroundHUD(APlayerController* PC) const;
+	void ShowGround(APlayerController* PC);
+	void HideGround();
+	void BindPause(APlayerController* PC);
+	void ShowPause(APlayerController* PC);
+	void HidePause();
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> Widget;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UUserWidget> GroundWidget;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UUserWidget> PauseWidget;
+
+	TWeakObjectPtr<APlayerController> GroundOwner;
+	TWeakObjectPtr<APlayerController> PauseBoundTo;
 
 	TWeakObjectPtr<APlayerController> Owner;
 	TWeakObjectPtr<UObject> DataSource;
