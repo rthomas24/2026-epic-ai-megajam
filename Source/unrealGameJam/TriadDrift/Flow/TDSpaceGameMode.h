@@ -94,6 +94,11 @@ protected:
 	void SpawnSquadManager();
 	void SpawnWaveDirector();
 	void StartWaves();
+	/** After StartPlay hands the squad over: the intro on New Game, the phase, NotifyLevelEntered, the first waves. */
+	void EnterLevel();
+	/** ENG-33: Intro -> Waves1to2 and the first-wave timer (after the intro, or at once without it). */
+	void BeginFirstWaves();
+	void ArmFirstWaveTimer();
 	void PossessActiveShip(APlayerController* PC);
 	/** Install cheats, give every player the squad's active ship, destroy stray login pawns. */
 	void HandOverPlayers();
@@ -125,6 +130,12 @@ protected:
 	TObjectPtr<UMaterialInterface> StarGlowMaterial;
 
 	FTimerHandle FirstWaveTimer;
+public:
+	/** Tests: enter the level again (what StartPlay does after the squad is handed over: intro or first waves). */
+	void EnterLevelForTests() { EnterLevel(); }
+	/** Tests: the first-wave timer is armed. */
+	bool IsFirstWaveTimerArmed() const { return GetWorldTimerManager().IsTimerActive(FirstWaveTimer); }
+protected:
 	FTimerHandle StarWatchTimer;
 	FDelegateHandle SceneRestartHandle;
 };

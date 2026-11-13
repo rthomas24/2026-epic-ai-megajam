@@ -111,6 +111,8 @@ public:
 	}
 
 	bool IsPlaying() const { return bPlaying; }
+	/** Tests: let Play run in a test world with no game viewport (other systems' tests that go through Play). */
+	void SetAllowWithoutViewportForTests(bool bAllow) { bAllowWithoutViewportAlways = bAllow; }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Intro", meta = (WorldContext = "WorldContext"))
 	static bool IsIntroPlaying(const UObject* WorldContext);
@@ -202,6 +204,7 @@ private:
 
 	bool bPlaying = false;
 	bool bAllowWithoutViewport = false;
+	bool bAllowWithoutViewportAlways = false;
 	bool bHandingOff = false;
 	bool bSkipped = false;
 	bool bSkipHeld = false;

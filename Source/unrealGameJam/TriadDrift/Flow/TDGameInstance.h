@@ -75,6 +75,13 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flow")
 	bool HasContinue() const;
 
+	/**
+	 * ENG-33: true from New Game until the galaxy's first StartPlay takes it (it plays the cinematic intro once).
+	 * Continue, a loaded save and a reset clear it; retakes never set it. Returns the flag and clears it.
+	 */
+	bool ConsumeIntroPending();
+	bool IsIntroPending() const { return bIntroPending; }
+
 	/** Loads the save slot and travels to the saved destination. False if nothing valid or travel fails. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
 	bool ContinueRun();
@@ -239,6 +246,8 @@ private:
 
 	void ResetRunState();
 	void BindEventBus();
+	/** ENG-33: New Game plays the intro once (transient, never saved). */
+	bool bIntroPending = false;
 	bool TickRunTimer(float DeltaSeconds);
 	void ExecuteRetake();
 	void BeginLoad(const FString& PackageName);

@@ -28,6 +28,7 @@
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "GameFramework/PlayerController.h"
+#include "TriadDrift/Director/Intro/TDIntroDirector.h"
 
 namespace TDJourneyTest
 {
@@ -534,6 +535,56 @@ bool FTDJourneyFinaleEndToEnd::RunTest(const FString& Parameters)
 		TestEqual(*(At + TEXT("victory")), G.GI->GetProgressRef().Phase, ETDGamePhase::Victory);
 		TestFalse(*(At + TEXT("no Continue into a won fight")), G.GI->HasContinue());
 	}
+	return true;
+}
+
+// ------------------------------------------------------------------------------------------------
+// ENG-33 (T3 for T5): New Game plays the intro once; the first waves wait for its OnFinished and then start
+// exactly as without it. A second entry (a retake, Continue) never plays it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDJourneyIntroDefers, "TriadDrift.Flow.NewGameIntroDefersFirstWave", TD_TEST_FLAGS)
+bool FTDJourneyIntroDefers::RunTest(const FString& Parameters)
+{
+	TDJourneyTest::FGalaxy G;
+	ATDSpaceGameMode* GM = G.W.GetWorld()->GetAuthGameMode<ATDSpaceGameMode>();
+	UTDIntroDirector* Intro = UTDIntroDirector::Get(G.W.GetWorld());
+	if (!TestNotNull(TEXT("GI"), G.GI) || !TestNotNull(TEXT("space mode"), GM) || !TestNotNull(TEXT("intro"), Intro))
+	{
+		return false;
+	}
+	struct FAllow
+	{
+		UTDIntroDirector* I;
+		~FAllow() { I->SetAllowWithoutViewportForTests(false); }
+	} Allow{ Intro };
+	Intro->SetAllowWithoutViewportForTests(true); // the test world has no game viewport
+
+	// Continue / a loaded run never carries the intro.
+	G.GI->StartNewRun();
+	TestTrue(TEXT("New Game: the intro is pending"), G.GI->IsIntroPending());
+	G.GI->ContinueRun(); // no valid save here: it fails, but the intro is cleared first
+	TestFalse(TEXT("Continue clears it"), G.GI->IsIntroPending());
+
+	// New Game, then the galaxy's StartPlay.
+	G.GI->StartNewRun();
+	GM->GetWorldTimerManager().ClearAllTimersForObject(GM);
+	GM->EnterLevelForTests();
+	TestTrue(TEXT("the intro plays"), Intro->IsPlaying());
+	TestFalse(TEXT("consumed"), G.GI->IsIntroPending());
+	TestEqual(TEXT("still Intro while it plays"), G.GI->GetProgressRef().Phase, ETDGamePhase::Intro);
+	TestFalse(TEXT("no first-wave timer while it plays"), GM->IsFirstWaveTimerArmed());
+	G.W.Advance(6.f, 1.f / 30.f);
+	TestTrue(TEXT("6 s in: still no waves"), G.GI->GetProgressRef().Phase == ETDGamePhase::Intro && !GM->IsFirstWaveTimerArmed());
+
+	// Skipped (or watched to the end): the same phase change and timer as a run without an intro.
+	TestTrue(TEXT("skip"), Intro->Skip());
+	TestEqual(TEXT("Waves1to2 after OnFinished"), G.GI->GetProgressRef().Phase, ETDGamePhase::Waves1to2);
+	TestTrue(TEXT("first-wave timer armed after OnFinished"), GM->IsFirstWaveTimerArmed());
+
+	// A second entry (a retake reloading the level, or Continue) never plays it again.
+	GM->GetWorldTimerManager().ClearAllTimersForObject(GM);
+	GM->EnterLevelForTests();
+	TestFalse(TEXT("no second intro"), Intro->IsPlaying());
+	TestTrue(TEXT("waves armed straight away"), GM->IsFirstWaveTimerArmed());
 	return true;
 }
 

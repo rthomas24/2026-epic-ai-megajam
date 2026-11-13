@@ -339,7 +339,7 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 		return false;
 	}
 	const bool bHasViewport = GEngine && GEngine->GameViewport && GEngine->GameViewport->GetWorld() == World;
-	if (!bHasViewport && !bAllowWithoutViewport)
+	if (!bHasViewport && !bAllowWithoutViewport && !bAllowWithoutViewportAlways)
 	{
 		return false; // headless runs and dedicated tests: nothing to watch
 	}

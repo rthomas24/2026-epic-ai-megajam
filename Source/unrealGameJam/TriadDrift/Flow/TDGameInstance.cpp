@@ -690,12 +690,21 @@ void UTDGameInstance::ResetRunState()
 	RetakeTimeLeft = -1.f;
 	RetakeScene = NAME_None;
 	bRunTimerPaused = false;
+	bIntroPending = false;
 }
 
 void UTDGameInstance::StartNewRun()
 {
 	ResetRunState();
 	bRunCommitted = true;
+	bIntroPending = true; // ENG-33: the galaxy plays the intro once, then the first waves
+}
+
+bool UTDGameInstance::ConsumeIntroPending()
+{
+	const bool bWas = bIntroPending;
+	bIntroPending = false;
+	return bWas;
 }
 
 bool UTDGameInstance::IsPristine() const
@@ -718,6 +727,7 @@ bool UTDGameInstance::HasContinue() const
 
 bool UTDGameInstance::ContinueRun()
 {
+	bIntroPending = false; // Continue never plays the intro
 	UTDSaveGame* Save = nullptr;
 	if (!ReadSaveSlot(Save) || (Save && Save->Checkpoint.Progress.Phase == ETDGamePhase::Victory) || !ApplySave(*Save))
 	{
@@ -959,6 +969,7 @@ bool UTDGameInstance::ApplySave(const UTDSaveGame& Save)
 	{
 		return false;
 	}
+	bIntroPending = false; // a loaded run never replays the intro
 	RetakeTimeLeft = -1.f;
 	RetakeScene = NAME_None;
 	LastCheckpoint = Save.Checkpoint;

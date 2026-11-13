@@ -29,6 +29,7 @@
 #include "Camera/PlayerCameraManager.h"
 #include "EngineUtils.h"
 #include "TimerManager.h"
+#include "TriadDrift/Director/Intro/TDIntroDirector.h"
 
 namespace TDSandbox
 {
@@ -127,13 +128,28 @@ void ATDSpaceGameMode::StartPlay()
 	// Local players logged in before StartPlay: hand them the active ship, clear any login pawn.
 	HandOverPlayers();
 
+	EnterLevel();
+}
+
+void ATDSpaceGameMode::EnterLevel()
+{
+	// ENG-33: New Game plays the cinematic intro once. The run stays in Intro, and the first waves wait for it.
+	// When it does not play (Continue, a retake, td.Intro 0, headless) everything below runs exactly as before.
+	bool bIntroPlaying = false;
+	if (UTDGameInstance* GI = UTDGameInstance::Get(this); GI && GI->ConsumeIntroPending() && GI->GetProgress().Phase == ETDGamePhase::Intro)
+	{
+		UTDIntroDirector* Intro = UTDIntroDirector::Get(this);
+		bIntroPlaying = Intro && Intro->Play(FSimpleDelegate::CreateWeakLambda(this, [this]() { BeginFirstWaves(); }));
+	}
+
 	if (UTDGameInstance* GI = UTDGameInstance::Get(this))
 	{
-		if (GI->GetProgress().Phase == ETDGamePhase::Intro)
+		if (!bIntroPlaying && GI->GetProgress().Phase == ETDGamePhase::Intro)
 		{
 			GI->SetPhase(ETDGamePhase::Waves1to2);
 		}
 		GI->NotifyLevelEntered(Destination);
+		GI->OnSceneRestart.Remove(SceneRestartHandle);
 		SceneRestartHandle = GI->OnSceneRestart.AddUObject(this, &ATDSpaceGameMode::HandleSceneRestart);
 	}
 	else
@@ -141,6 +157,24 @@ void ATDSpaceGameMode::StartPlay()
 		UE_LOG(LogTriadDrift, Warning, TEXT("Sandbox: GameInstanceClass is not UTDGameInstance; progress, checkpoints and takes are off."));
 	}
 
+	if (!bIntroPlaying)
+	{
+		ArmFirstWaveTimer();
+	}
+}
+
+void ATDSpaceGameMode::BeginFirstWaves()
+{
+	// The intro's OnFinished (watched or skipped): the same phase change and timer as a run without it.
+	if (UTDGameInstance* GI = UTDGameInstance::Get(this); GI && GI->GetProgress().Phase == ETDGamePhase::Intro)
+	{
+		GI->SetPhase(ETDGamePhase::Waves1to2);
+	}
+	ArmFirstWaveTimer();
+}
+
+void ATDSpaceGameMode::ArmFirstWaveTimer()
+{
 	GetWorldTimerManager().SetTimer(FirstWaveTimer, this, &ATDSpaceGameMode::StartWaves, FMath::Max(0.01f, FirstWaveDelaySeconds), false);
 }
 
