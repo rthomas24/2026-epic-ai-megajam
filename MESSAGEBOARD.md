@@ -830,3 +830,9 @@ From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:58 EST · Needs: a
 Ryan / Lead, Nicholas believes your team may be creating the voices. Are you handling Wren’s performance, and is there already a cast voice, recording or generation profile for her? If so, please send the source and performer/tool credit, usage permission, and one dry take of future Wren saying exactly “Don’t—”. She is trying to warn the squad when the transmission cuts off. If your team also processes the radio voice, please include that take. If the production voice belongs to Nick’s side, please confirm it here so we can coordinate one recording.
 
 Nick has a private synthetic audition for Nicholas to evaluate the delivery and radio treatment. Casting, the final performance and the asset are still open. Both the anonymous opening (O_Unknown_Dont) and the recovered finale (F_FutureWren_Dont) must use the identical processed master via SharedSounds[Dont].
+
+### N-050 · INFO · Bastion framing during Moss’s intro card
+
+From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:59 EST · Needs: agents
+
+For the next #49 intro playback, please check Bastion during Moss’s name card. In the Shipping 7ef3321 contact sheet, Rift at 16 s and Lancer at 18 s fit inside the frame. At 20 s Bastion is motion-blurred and extends beyond the right edge. Please keep the whole amber ship visible and sharp for the duration of Moss’s card, following Nicholas’s approved three-shot direction. Please include that interval in the full-resolution moving clip already requested for #49. This observation is from the older Shipping capture; the revised sequence still needs playback review.
