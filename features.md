@@ -144,8 +144,11 @@ Template Content (Characters, FirstPerson, LevelPrototyping, Variant_*, Weapons)
 
 **Rules**
 - Never edit the other person's folders. Ask through your humans, or add a line to §11.
-- `Source/.../Core/` is frozen after C-02. Changes need a claim, both humans' OK, and a commit of
-  their own. **Add new things; never rename or remove existing enums, fields or interface functions.**
+- `Source/.../Core/` is frozen after C-02. **Add new things; never rename or remove existing enums, fields or
+  interface functions.** Who approves what (Nov 12, AGENTS.md §1 "Delegation"): an *addition* to Core is an
+  engineering decision, made by Ryan's Lead under Ryan's delegation and announced on `MESSAGEBOARD.md`; a
+  *rename or removal* of anything presentation reads needs both sides' agreement on the board first. Art,
+  visual and audio direction and final quality sign-off are always Nicholas's.
 - Maps: claim the **World Settings** and any shared persistent actors before editing them. With One
   File Per Actor, two people can edit different actors in the same level safely.
 - Collision channels (C-01): `Ship`, `Projectile`, `Character`, `Interactable`, `Portal`.
@@ -235,9 +238,9 @@ Multicast delegates on the owning actors, re-broadcast by `UTDGameInstance` for 
 - [ ] Create `CLAIMS.md`, `CREDITS.md` and `DEVLOG.md`, then push.
 
 ### C-02 · Contracts · 🟦 Ryan writes, 🟩 Nick reviews §3.5 · `✅`
-- [ ] Write everything in §3 as C++ (`Core/`) and compile. Create empty presentation data-asset classes and placeholder instances.
-- [ ] Nick checks that the presentation slots cover what he needs for ships, weapons, enemies, travel, blade and UI.
-- [ ] Push. **`Core/` is now frozen.**
+- [x] Write everything in §3 as C++ (`Core/`) and compile. Create the presentation data-asset classes. (No placeholder instances: every slot is optional and null-safe, and Nick's side creates the instances.)
+- [x] Nick checks that the presentation slots cover what he needs for ships, weapons, enemies, travel, blade and UI. (Done over `MESSAGEBOARD.md` R-003 to R-005 and N-001; further slots are added on request.)
+- [x] Push. **`Core/` is now frozen.**
 
 ### C-03 · Theme: "Director's Cut" · both · `⬜` 🎬
 Theme fit is a judging category, so it must be **visible in gameplay**, not just the title.
@@ -370,7 +373,8 @@ shooting backwards feels great.
 
 **(Nov 12, as built)** Stats are `FTDShipSpec` in `UTDShipLibrary` (C++), overridable per ship on
 `ATDSquadManager` (`ShipSpecOverrides`); no `BP_Ship_*` children or `DA_ShipStats_*` assets are needed.
-Each ship's look comes from its `DA_Ship_*_Visuals` (Nick, ART-03).
+Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lancer_Visuals`,
+`DA_Bastion_Visuals`; Nick, ART-03; exact names in `docs/visual/Presentation-Asset-Paths.md`).
 
 #### ENG-05 · Ship weapons · `🟨`
 | Weapon | Ship | Type | Damage | Rate | Speed | Range | Resource | Notes |
@@ -755,7 +759,8 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
 
 - Models via route A (concept → Rodin → cleanup) or the kits, passing the AAA rubric (the
   `blender-game-asset` skill). Sockets: muzzles, engines, cockpit camera.
-- Delivered as `DA_Ship_*_Visuals` (§3.5), with animations driven by the exposed state. **Readable as
+- Delivered as `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lancer_Visuals`, `DA_Bastion_Visuals`; exact
+  names in `docs/visual/Presentation-Asset-Paths.md`, a differently named asset is silently ignored) (§3.5), with animations driven by the exposed state. **Readable as
   black silhouettes at 64 px.**
 
 #### ART-04 · Enemy & Dominion visuals · `⬜`

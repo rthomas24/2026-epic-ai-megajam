@@ -34,7 +34,15 @@ $project = Get-TDProjectFile $ProjectRoot
 $root = Split-Path -Parent $project
 if ($Port -le 0) {
     $leaf = Split-Path -Leaf $root
-    $Port = switch -Regex ($leaf) { '^int$' { 8010 } '^t([1-5])$' { 8010 + [int]$Matches[1] } default { 8019 } }
+    $Port = switch -Regex ($leaf) { '^int$' { 8010 } '^t([1-5])$' { 8010 + [int]$Matches[1] } default { 0 } }
+    if ($Port -le 0) {
+        Write-Output "MCP SESSION NOT STARTED: this checkout ('$leaf') has no assigned port. Pass -Port (Ryan's side 8011-8019 and 21000-29000, Nick's side 8020-8029, never 8000)."
+        exit 2
+    }
+}
+if ($Port -eq 8000) {
+    Write-Output "MCP SESSION NOT STARTED: port 8000 belongs to the human's editor."
+    exit 2
 }
 
 function Get-TDMcpProcess {
@@ -42,16 +50,31 @@ function Get-TDMcpProcess {
         Where-Object { $_.CommandLine -match "ModelContextProtocolPort=$Port(\s|$)" }
 }
 
+# Only a process started from THIS checkout's project file is ours to stop or to reuse. A session on the
+# same port that belongs to another checkout (another agent's editor) is reported and never touched.
+function Test-TDOwnProcess($Process) {
+    return $Process.CommandLine -and $Process.CommandLine.ToLowerInvariant().Contains($project.ToLowerInvariant())
+}
+
 if ($Stop) {
-    $found = @(Get-TDMcpProcess)
+    $all = @(Get-TDMcpProcess)
+    $found = @($all | Where-Object { Test-TDOwnProcess $_ })
     foreach ($p in $found) { Stop-Process -Id $p.ProcessId -Force }
     Write-Output ("MCP SESSION STOPPED: {0} process(es) on port {1}" -f $found.Count, $Port)
+    if ($all.Count -gt $found.Count) {
+        Write-Output ("LEFT ALONE: {0} process(es) on port {1} that belong to another checkout" -f ($all.Count - $found.Count), $Port)
+    }
     exit 0
 }
 
-if (@(Get-TDMcpProcess).Count -gt 0) {
-    Write-Output "MCP SESSION ALREADY RUNNING on port $Port (stop it with -Stop)"
-    exit 0
+$running = @(Get-TDMcpProcess)
+if ($running.Count -gt 0) {
+    if (@($running | Where-Object { Test-TDOwnProcess $_ }).Count -gt 0) {
+        Write-Output "MCP SESSION ALREADY RUNNING on port $Port (stop it with -Stop)"
+        exit 0
+    }
+    Write-Output "MCP SESSION NOT STARTED: port $Port is in use by another checkout's editor. Pick another port."
+    exit 2
 }
 
 $engine = Get-TDEngineRoot $project

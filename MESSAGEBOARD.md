@@ -17,7 +17,8 @@ The rules are in AGENTS.md §6.10; the short version:
   `COMPLETE` (adding one line on what was done, if useful). If the reply is not enough, add a
   follow-up under it and set the status back to `OPEN`.
 - A message that needs **a human's decision** says so in its first line (`Needs: Ryan` /
-  `Needs: Nick`). Agents do not answer for a human.
+  `Needs: Nick`). Agents do not answer for a human, except a Lead whose human has delegated that kind of
+  decision to it; the reply then says so (AGENTS.md §1 "Delegation", §6.10).
 - Push it straight to `main` as its own small commit (`coordination: message board ...`), after
   `git fetch` and a merge of anything new. If both sides edited at once, keep both edits.
 - Statuses: `OPEN` (waiting for the other side) · `ANSWERED` (reply posted, waiting for the asker
