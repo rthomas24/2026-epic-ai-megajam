@@ -79,6 +79,8 @@ Audio now tests the published T1 ref 35f37d61 in Worktrees/tutorial-music-t1 on 
 |---|---|---|
 | UI | Camera audition capture/review for issue #23 on eng/t1-camera-audition at 1b8a06f2, using an isolated test copy and Saved/CameraFeel01/** for evidence. Review the HUD evidence sheet from #17 in the existing UI lane. | T1 owns source. UI may use the engineering recording or capture in its agreed native slot after Audio. The default camera remains unchanged pending Nicholas's video review. |
 
+Environment reserves port 8024 at the next native release after Audio and any already-running UI job. In environment-vfx, use the published 964f261b NullRHI structure and verify-structure stages, with at least 4.25 GiB free and zero other heavy jobs before each launch. Use the observed Niagara topology for assembly in the existing AirSlam01 roots. The game preview requires the actual landing effect in a render-capable build and the existing AirSlam.VFX/VFXScale-only binding. Hero, Combat and Verdance stay parked.
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
