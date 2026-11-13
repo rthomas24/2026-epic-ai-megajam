@@ -49,7 +49,9 @@ struct UNREALGAMEJAM_API FTDCombatPlaceholders
 	 */
 	static FTDStreakLook ComputeOnFootStreak(const FTDProjectileSpec& Spec);
 	static constexpr float MinOnFootStreakPixels = 5.f;
-	static constexpr float OnFootGlow = 3.f;
+	/** Live on Cinder, glow 3 tonemapped to (255, 231, 225), a pale pink-white dot; the lit floor is about 0.18. 1.2 stays
+	 *  saturated red-orange and still stands well clear of the ground. */
+	static constexpr float OnFootGlow = 1.2f;
 	static constexpr float OnFootMaxGrowth = 3.f;
 	static float OnFootDistanceGrowth(const FTDStreakLook& Look, float DistanceToCamera);
 	/** On-foot impact spark radius: 3x the bolt's thickness, 15-30 cm (space impacts are 140-200 cm). */

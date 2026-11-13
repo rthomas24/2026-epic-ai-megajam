@@ -282,7 +282,8 @@ void ATDProjectile::UpdatePlaceholderLook()
 				// Hot core: the team colour pushed towards white and brighter than the trail.
 				// Stays in squad / enemy colour (playtest: 0.45 white read as a white ball); incoming enemy fire burns hotter.
 				const float HeadGlow = bOnFootLook ? 1.f : Team == ETDTeam::Enemy ? 1.3f : 0.8f;
-				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, 0.15f) * (GlowMaterial ? GlowScale * HeadGlow : 1.f);
+				// On foot the head stays pure team colour: any white tips red-orange to pink at first-person range.
+				const FLinearColor Hot = FMath::Lerp(Color, FLinearColor::White, bOnFootLook ? 0.f : 0.15f) * (GlowMaterial ? GlowScale * HeadGlow : 1.f);
 				HeadMID->SetVectorParameterValue(TEXT("Color"), Hot);
 				HeadMID->SetVectorParameterValue(TEXT("EmissiveColor"), Hot);
 			}
