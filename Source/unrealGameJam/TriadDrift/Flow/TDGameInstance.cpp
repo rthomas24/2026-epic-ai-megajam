@@ -622,6 +622,7 @@ void UTDGameInstance::ExecuteRetake()
 
 	// Takes, stats and run time are the record of the run: they survive the restore.
 	const TMap<FName, int32> KeptTakes = Progress.Takes;
+	const TSet<FName> KeptTransmissions = Progress.StoryTransmissions; // a retake never replays a story line
 	const FTDRunStats KeptStats = Progress.Stats;
 	const float KeptRunTime = Progress.RunTimeSeconds;
 
@@ -630,6 +631,7 @@ void UTDGameInstance::ExecuteRetake()
 		Progress = LastCheckpoint.Progress;
 	}
 	Progress.Takes = KeptTakes;
+	Progress.StoryTransmissions = KeptTransmissions;
 	Progress.Stats = KeptStats;
 	Progress.RunTimeSeconds = KeptRunTime;
 
@@ -714,6 +716,21 @@ void UTDGameInstance::SaveCheckpoint()
 // ------------------------------------------------------------------------------------------------
 // Run lifecycle
 // ------------------------------------------------------------------------------------------------
+
+void UTDGameInstance::MarkTransmissionPlayed(FName Id)
+{
+	Progress.StoryTransmissions.Add(Id);
+	if (LastCheckpoint.bValid)
+	{
+		LastCheckpoint.Progress.StoryTransmissions.Add(Id); // saved with the next slot write; Continue loads the checkpoint
+	}
+}
+
+void UTDGameInstance::ForgetPlayedTransmissions()
+{
+	Progress.StoryTransmissions.Reset();
+	LastCheckpoint.Progress.StoryTransmissions.Reset();
+}
 
 void UTDGameInstance::ResetRunState()
 {
