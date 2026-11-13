@@ -22,6 +22,7 @@
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/UI/TDGroundHUDWidget.h"
+#include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDPauseMenuWidget.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -117,7 +118,7 @@ bool UTDUIHostSubsystem::WantsSpaceHUD(APlayerController*& OutController, UObjec
 {
 	OutController = nullptr;
 	OutSource = nullptr;
-	if (!UTDUIHostSettings::IsNativeSpaceHUDEnabled())
+	if (UTDUIHostSettings::GetSpaceHUDChoice() == ETDSpaceHUDChoice::Dev)
 	{
 		return false;
 	}
@@ -165,7 +166,7 @@ void UTDUIHostSubsystem::Evaluate()
 		Hide();
 		return;
 	}
-	if (Widget && Owner.Get() == PC)
+	if (Widget && Owner.Get() == PC && ShownChoice == UTDUIHostSettings::GetSpaceHUDChoice())
 	{
 		if (DataSource.Get() != Source)
 		{
@@ -182,7 +183,8 @@ void UTDUIHostSubsystem::Evaluate()
 
 void UTDUIHostSubsystem::ShowFor(APlayerController* Controller, UObject* Source)
 {
-	UClass* Class = ResolveWidgetClass();
+	const ETDSpaceHUDChoice Choice = UTDUIHostSettings::GetSpaceHUDChoice();
+	UClass* Class = Choice == ETDSpaceHUDChoice::Engineering ? UTDFlightHUDWidget::StaticClass() : ResolveWidgetClass();
 	if (!Class)
 	{
 		if (!bClassWarningLogged)
@@ -210,6 +212,7 @@ void UTDUIHostSubsystem::ShowFor(APlayerController* Controller, UObject* Source)
 	Widget = NewWidget;
 	Owner = Controller;
 	DataSource = Source;
+	ShownChoice = Choice;
 	const UWorld* World = GetWorld();
 	if (bAddToViewport && World && World->GetGameViewport())
 	{
@@ -603,7 +606,8 @@ namespace TDUIHost
 		// Without the native HUD (dev HUD on), read the squad manager directly.
 		UObject* Source = Host->GetDataSource() ? Host->GetDataSource() : static_cast<UObject*>(ATDSquadManager::Get(World));
 		APlayerController* ViewPC = HUD && HUD->GetOwningPlayer() ? HUD->GetOwningPlayer() : World->GetFirstPlayerController();
-		UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: enabled=%d shown=%d class=%s source=%s"),
+		UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: choice=%s enabled=%d shown=%d class=%s source=%s"),
+			*StaticEnum<ETDSpaceHUDChoice>()->GetNameStringByValue(static_cast<int64>(UTDUIHostSettings::GetSpaceHUDChoice())),
 			UTDUIHostSettings::IsNativeSpaceHUDEnabled() ? 1 : 0, HUD ? 1 : 0,
 			HUD ? *HUD->GetClass()->GetName() : TEXT("-"), Source ? *Source->GetName() : TEXT("-"));
 		if (const ITDHUDData* Data = Cast<ITDHUDData>(Source))

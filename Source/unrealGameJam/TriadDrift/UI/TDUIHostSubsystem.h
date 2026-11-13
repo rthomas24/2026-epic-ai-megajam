@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TDUIHostSubsystem.generated.h"
 
 class UUserWidget;
@@ -195,6 +196,8 @@ private:
 
 	TWeakObjectPtr<APlayerController> Owner;
 	TWeakObjectPtr<UObject> DataSource;
+	/** The choice the live widget was made for (a change of TD.UI.SpaceHUD replaces it). */
+	ETDSpaceHUDChoice ShownChoice = ETDSpaceHUDChoice::Unset;
 	float TimeUntilCheck = 0.f;
 	bool bClassWarningLogged = false;
 	bool bDevHUDSuppressed = false;
