@@ -84,6 +84,9 @@ void FTDSettingsPageModel::AdjustRow(ETDSettingsRow Row, int32 Direction)
 	case ETDSettingsRow::GamepadDeadzone: S->SetGamepadDeadzone(TDSettingsPage::Step(P.GamepadDeadzone, 0.05f * D, 0.f, 0.5f)); break;
 	case ETDSettingsRow::InvertGamepadY: S->SetInvertGamepadY(!P.bInvertGamepadY); break;
 	case ETDSettingsRow::Hints: S->SetHintsEnabled(!P.bHintsEnabled); break;
+	case ETDSettingsRow::Difficulty:
+		S->SetDifficulty((ETDDifficulty)FMath::Clamp((int32)UTDSettingsSubsystem::GetDifficultyInPlay() + (Direction > 0 ? 1 : -1), 0, (int32)ETDDifficulty::Ace));
+		break;
 	case ETDSettingsRow::MasterVolume: S->SetMasterVolume(TDSettingsPage::Step(P.MasterVolume, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::MusicVolume: S->SetMusicVolume(TDSettingsPage::Step(P.MusicVolume, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::EffectsVolume: S->SetEffectsVolume(TDSettingsPage::Step(P.EffectsVolume, 0.1f * D, 0.f, 1.f)); break;
@@ -161,6 +164,7 @@ FText FTDSettingsPageModel::RowLabel(ETDSettingsRow Row)
 	case ETDSettingsRow::GamepadDeadzone: return LOCTEXT("PadDead", "Gamepad dead zone");
 	case ETDSettingsRow::InvertGamepadY: return LOCTEXT("InvertPad", "Invert gamepad Y");
 	case ETDSettingsRow::Hints: return LOCTEXT("Hints", "Control hints");
+	case ETDSettingsRow::Difficulty: return LOCTEXT("Difficulty", "Difficulty");
 	case ETDSettingsRow::MasterVolume: return LOCTEXT("Master", "Master volume");
 	case ETDSettingsRow::MusicVolume: return LOCTEXT("Music", "Music volume");
 	case ETDSettingsRow::EffectsVolume: return LOCTEXT("Effects", "Effects volume");
@@ -170,6 +174,12 @@ FText FTDSettingsPageModel::RowLabel(ETDSettingsRow Row)
 	case ETDSettingsRow::Back: return LOCTEXT("Back", "Back");
 	default: return FText::GetEmpty();
 	}
+}
+
+FText FTDSettingsPageModel::SelectedRowHint() const
+{
+	return GetSelectedRow() == ETDSettingsRow::Difficulty
+		? UTDSettingsSubsystem::DifficultyDescription(UTDSettingsSubsystem::GetDifficultyInPlay()) : FText::GetEmpty();
 }
 
 FText FTDSettingsPageModel::RowValue(ETDSettingsRow Row) const
@@ -190,6 +200,7 @@ FText FTDSettingsPageModel::RowValue(ETDSettingsRow Row) const
 	case ETDSettingsRow::GamepadDeadzone: return TDSettingsPage::Percent(P.GamepadDeadzone);
 	case ETDSettingsRow::InvertGamepadY: return TDSettingsPage::OnOff(P.bInvertGamepadY);
 	case ETDSettingsRow::Hints: return TDSettingsPage::OnOff(P.bHintsEnabled);
+	case ETDSettingsRow::Difficulty: return UTDSettingsSubsystem::DifficultyName(UTDSettingsSubsystem::GetDifficultyInPlay()); // the run's, after a Continue
 	case ETDSettingsRow::MasterVolume: return TDSettingsPage::Percent(P.MasterVolume);
 	case ETDSettingsRow::MusicVolume: return TDSettingsPage::Percent(P.MusicVolume);
 	case ETDSettingsRow::EffectsVolume: return TDSettingsPage::Percent(P.EffectsVolume);
@@ -219,7 +230,13 @@ void STDSettingsPage::Construct(const FArguments& InArgs)
 	{
 		Rows->AddSlot().AutoHeight().Padding(0.f, 2.f)[ MakeRow((ETDSettingsRow)i) ];
 	}
-	Rows->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 16.f, 0.f, 0.f)
+	// What the selected row does, when it needs saying (difficulty: what each preset changes, and when it applies).
+	Rows->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 10.f, 0.f, 0.f)
+	[
+		SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("Regular", 14)).ColorAndOpacity(FLinearColor(1.f, 0.85f, 0.4f))
+		.Text_Lambda([this]() { return Model ? Model->SelectedRowHint() : FText::GetEmpty(); })
+	];
+	Rows->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 8.f, 0.f, 0.f)
 	[
 		SNew(STextBlock)
 			.Text(LOCTEXT("Help", "UP / DOWN  SELECT     LEFT / RIGHT  CHANGE     ENTER / A  SELECT     ESC / B  BACK"))

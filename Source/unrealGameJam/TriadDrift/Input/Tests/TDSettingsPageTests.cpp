@@ -7,6 +7,11 @@
 
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
+#include "TriadDrift/Enemies/TDEnemyLibrary.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
+#include "TriadDrift/Flow/TDSaveGame.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Input/TDSettingsPage.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Input/Tests/TDInputTestHelpers.h"
@@ -69,6 +74,8 @@ bool FTDSettingsPageKeys::RunTest(const FString& Parameters)
 	UTDSettingsSubsystem* S = TDSettingsPageTest::Fresh(W);
 	if (!TestNotNull(TEXT("settings"), S)) { return false; }
 	ON_SCOPE_EXIT { UGameplayStatics::DeleteGameInSlot(TDSettingsPageTest::Slot, 0); };
+	const ETDDifficulty WasDifficulty = UTDDifficultySettings::GetCurrent();
+	ON_SCOPE_EXIT { UTDDifficultySettings::SetCurrent(WasDifficulty); };
 	FTDSettingsPageModel M(S);
 	M.Resolutions = { FIntPoint::ZeroValue, FIntPoint(1280, 720), FIntPoint(1920, 1080) };
 
@@ -246,6 +253,91 @@ bool FTDSettingsAbovePause::RunTest(const FString& Parameters)
 	const int32 PauseLayer = UTDUIHostSettings::Get()->ZOrder + 100;
 	TestTrue(FString::Printf(TEXT("settings page layer %d is above the pause screen's %d"), UTDSettingsSubsystem::PageZOrder, PauseLayer),
 		UTDSettingsSubsystem::PageZOrder > PauseLayer);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSettingsDifficulty, "TriadDrift.Input.SettingsPage.DifficultyRowDrivesTheRunAndNewGame", TD_TEST_FLAGS)
+bool FTDSettingsDifficulty::RunTest(const FString& Parameters)
+{
+	using EKR = FTDSettingsPageModel::EKeyResult;
+	const ETDDifficulty WasDifficulty = UTDDifficultySettings::GetCurrent();
+	static const TCHAR* RunSlot = TEXT("TD_Run_DifficultyTest");
+	ON_SCOPE_EXIT
+	{
+		UTDDifficultySettings::SetCurrent(WasDifficulty);
+		UGameplayStatics::DeleteGameInSlot(TDSettingsPageTest::Slot, 0);
+		UGameplayStatics::DeleteGameInSlot(RunSlot, 0);
+	};
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDSettingsSubsystem* S = TDSettingsPageTest::Fresh(W);
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	if (!TestNotNull(TEXT("settings"), S) || !TestNotNull(TEXT("game instance"), GI)) { return false; }
+	UGameplayStatics::DeleteGameInSlot(RunSlot, 0);
+	GI->SetSaveSlotOverride(RunSlot);
+	UTDDifficultySettings::SetCurrent(ETDDifficulty::Standard);
+
+	// The row: label, value, a description of what the preset changes and when, pad and keyboard both step it.
+	FTDSettingsPageModel M(S);
+	M.Select((int32)ETDSettingsRow::Difficulty);
+	TestTrue(TEXT("row label"), FTDSettingsPageModel::RowLabel(ETDSettingsRow::Difficulty).ToString().Contains(TEXT("Difficulty")));
+	TestEqual(TEXT("shows the difficulty in play"), M.RowValue(ETDSettingsRow::Difficulty).ToString(), FString(TEXT("Standard")));
+	const FString Hint = M.SelectedRowHint().ToString();
+	AddInfo(Hint);
+	TestTrue(TEXT("hint says what it changes and when"), Hint.Contains(TEXT("toughness")) && Hint.Contains(TEXT("new enemies")));
+	M.Select((int32)ETDSettingsRow::Hints);
+	TestTrue(TEXT("other rows have no hint"), M.SelectedRowHint().IsEmpty());
+	M.Select((int32)ETDSettingsRow::Difficulty);
+	TestEqual(TEXT("pad stick left handled"), M.HandleKey(EKeys::Gamepad_LeftStick_Left), EKR::Handled);
+	TestEqual(TEXT("left -> Story: the game instance has it"), GI->GetDifficulty(), ETDDifficulty::Story);
+	TestEqual(TEXT("... and the saved preference"), S->GetSettings().Difficulty, ETDDifficulty::Story);
+	M.HandleKey(EKeys::Left);
+	TestEqual(TEXT("clamped at Story (no wrap into Ace)"), GI->GetDifficulty(), ETDDifficulty::Story);
+	M.HandleKey(EKeys::Right);
+	M.HandleKey(EKeys::Right);
+	TestEqual(TEXT("right twice -> Ace"), GI->GetDifficulty(), ETDDifficulty::Ace);
+	TestTrue(TEXT("Ace description differs"), M.SelectedRowHint().ToString() != Hint);
+
+	// The preference survives a restart of the options (the player's settings slot).
+	UTDDifficultySettings::SetCurrent(ETDDifficulty::Standard);
+	S->ReloadForTests();
+	TestEqual(TEXT("preference saved in the settings slot"), S->GetSettings().Difficulty, ETDDifficulty::Ace);
+	S->ApplyPreferredDifficulty();
+	TestEqual(TEXT("start-up applies it"), GI->GetDifficulty(), ETDDifficulty::Ace);
+
+	// New Game keeps the player's choice.
+	GI->StartNewRun();
+	TestEqual(TEXT("New Game starts on the chosen difficulty"), GI->GetDifficulty(), ETDDifficulty::Ace);
+
+	// Saved with the run: a Continue restores it even if the preference changed since.
+	GI->NotifyLevelEntered(ETDDestination::Verdance); // a gameplay checkpoint to save
+	GI->GetMutableProgress().WavesCleared = 1;
+	GI->SaveCheckpoint();
+	TestTrue(TEXT("write run slot"), GI->WriteSaveSlot(true));
+	S->SetDifficulty(ETDDifficulty::Story); // also rewrites the committed run's slot (game instance)
+	UTDSaveGame* Saved = nullptr;
+	TestTrue(TEXT("read run slot"), GI->ReadSaveSlot(Saved));
+	TestEqual(TEXT("changing it mid-run is saved with the run"), Saved ? Saved->Difficulty : ETDDifficulty::Standard, ETDDifficulty::Story);
+	UTDDifficultySettings::SetCurrent(ETDDifficulty::Ace);
+	TestTrue(TEXT("Continue (apply the save)"), Saved && GI->ApplySave(*Saved));
+	TestEqual(TEXT("Continue restores the run's difficulty"), GI->GetDifficulty(), ETDDifficulty::Story);
+
+	// Enemies that arrive afterwards use the new scaling; one already in the fight keeps its strength.
+	S->SetDifficulty(ETDDifficulty::Standard);
+	ATDEnemyShip* Before = W.Spawn<ATDEnemyShip>(FVector(0.f, 0.f, 50000.f));
+	Before->InitFromSpec(TDEnemyIds::ShardFighter);
+	const float StandardHull = Before->GetSpec().Hull;
+	S->SetDifficulty(ETDDifficulty::Ace);
+	ATDEnemyShip* After = W.Spawn<ATDEnemyShip>(FVector(0.f, 5000.f, 50000.f));
+	After->InitFromSpec(TDEnemyIds::ShardFighter);
+	const float AceScale = UTDDifficultySettings::GetScaleFor(ETDDifficulty::Ace).EnemyHull;
+	TestEqual(TEXT("a fighter spawned after the change is Ace-tough"), After->GetSpec().Hull, StandardHull * AceScale, 0.01f);
+	TestEqual(TEXT("the fighter already flying keeps its hull"), Before->GetSpec().Hull, StandardHull, 0.01f);
+	TestEqual(TEXT("wave packs scale too"), UTDDifficultySettings::ScaleCount(8, UTDDifficultySettings::GetScale().WaveSize),
+		UTDDifficultySettings::ScaleCount(8, UTDDifficultySettings::GetScaleFor(ETDDifficulty::Ace).WaveSize));
+
+	// Reset to defaults puts it back to Standard.
+	S->ResetToDefaults();
+	TestEqual(TEXT("reset: Standard"), GI->GetDifficulty(), ETDDifficulty::Standard);
 	return true;
 }
 
