@@ -13,7 +13,7 @@ $heavy=@(Get-CimInstance Win32_Process | Where-Object {$_.Name -match '(?i)^(ble
 if($free -lt 4.25 -or $heavy.Count){throw "Resource guard: free=$free GiB; heavy=$($heavy.Count)"}
 New-Item -ItemType Directory -Path $jobRoot | Out-Null
 $env:TD_I02_ATTEMPT=$Attempt
-$arguments=@(('"'+$project+'"'),'-run=pythonscript',('-script="'+(Join-Path $PSScriptRoot 'verify_project.py')+'"'),'-unattended','-nop4','-nosplash','-nosound','-NullRHI','-NoShaderCompile','-DDC=Intake02',('-abslog="'+(Join-Path $jobRoot 'engine.log')+'"'))
+$arguments=@(('"'+$project+'"'),'-run=pythonscript',('-script="'+(Join-Path $PSScriptRoot 'verify_project.py')+'"'),'-unattended','-nop4','-nosplash','-nosound','-NullRHI','-NoShaderCompile','-NoLiveCoding','-ModelContextProtocolPort=8026','-DDC=Intake02',('-abslog="'+(Join-Path $jobRoot 'engine.log')+'"'))
 $watch=[Diagnostics.Stopwatch]::StartNew();$started=[DateTime]::UtcNow
 [long]$peak=0;$minimum=$free;$abort=$null;$lowSince=$null;$monitorError=$null
 $proc=Start-Process -FilePath 'C:/Program Files/Epic Games/UE_5.9/Engine/Binaries/Win64/UnrealEditor-Cmd.exe' -ArgumentList $arguments -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $jobRoot 'stdout.log') -RedirectStandardError (Join-Path $jobRoot 'stderr.log')
