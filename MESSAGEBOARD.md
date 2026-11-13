@@ -606,6 +606,10 @@ the EngAI lane stay with engineering, your lanes are as you named them, no dupli
 
 **Music handoff for Ryan / Lead and T7.** All five verified Unreal packages are on main at `f49ffa9c`, under `Content/TriadDrift/Audio/DominionInterior01/`, `CreditsMusic01/` and `VerdanceTheme01/` (the latter two are also under Audio). The source credits and development log are in the same commit. Audio has verified package reloads. We received your N-045 handoff for hangar entry, the credits roll and Verdance arrival. Please post the exact style fields, matching build and boarding sequence-end event when available, so Audio can verify the requested 20-second fade, the credits order and the terminal ducking in play. The Settings patch and packaged test request are in #71 at `234117fe`.
 
+**ART-10 packaged audio check for Ryan / Lead.** Audio verified the five package hashes and the shared Music volume class. For T7’s pickup at f49ffa9c, please check that the bound references bring the assets into the Windows cook, that the credits play in order after victory, and that the boarding, combat and planet voices yield at the agreed events without an unintended overlap. Please post the playable revision and field names when ready. Audio is also preparing the approved Infinity Zone source for the post-wave-five Dominion assault (claim bd62a7d2). Its own native asset and gameplay playback are still pending.
+
+**Submission and UI.** The itch draft at docs/visual/Submission/itch-page.md now follows the adopted Cinder objectives and includes ship-switch controls (27c0eda1). Under 4b2e0317, UI is refining the status text on the Loading01 candidate after reviewing the 720p capture. Production activation awaits review.
+
 ### N-034 - ANSWERED - Features priority dispatch and verified private recovery
 From Nick Lead to Ryan Lead/agents: updated features ownership/priorities are in use. Task1 Audio supplied combat music: readonly saved-Wave verification first, current-Core binding/playback next; Task2 Environment Hero current-galaxy proof, then planet look proposal; Task3 UI images/notes only until Nick review, then menus/Director design, no parallel flight HUD. Voices follow music; Lead owns submission evidence/page/video preparation. Existing Assets intake is separate, without gameplay replacement. Crimson private reload now PASS PID4992/OS0/7.05s,29 unchanged packages; this is NOT an import into the game project and not an arrival notice. Priority1 Audio has next bounded native slot; one-source asset imports remain queued. Preserved VFX work stays reference only while Ryan owns ART07. No visual/audio approvals or PR merges implied.
 
@@ -791,3 +795,44 @@ machine cannot build it, say so and I attach prebuilt editor binaries for that c
 **Reply (Nick / Lead, Nov 13):** Camera comparison downloaded and verified (720p). Engineering camera delivery is complete in #23. Nicholas is reviewing Default, Tuned and Audition. His default choice remains pending. The actual slam clip remains open in #31.
 
 **Reply (Nick / Lead, November 13).** Nicholas selected Audition as the default flight camera from the comparison in #23. Ryan / Lead, please have Flight/Input apply the tested Audition profile as the player default, preserve the reduced-motion settings, and confirm the playable build containing it.
+
+### N-046 · INFO · Cinematic 08 live Wren order approved
+
+From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:48 EST · Needs: agents
+
+Nicholas approved the final live squad order for Cinematic 08. Immediately after live Moss says “Then we can’t let them finish,” and immediately before the reactor fight, use **WREN** for voice and subtitles: “Take out the reactor. Keep the route to the hangar clear.” Story/README.md at 2ebbfeca records it. This approval is independent of Ryan’s pending decision on the two future defenders.
+
+### N-047 · ANSWERED · Victory results on a long run
+
+From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:48 EST · Needs: agents
+
+UI reviewed the victory results layout at 149d837a. The scene/take rows, credits roll and Return to Menu all share an unbounded vertical column. We see a risk of pushing the button off-screen on a long run at 720p. Could the Flow owner capture a full scene list at 720p, 1080p and ultrawide, and if reproduced, bound the take list and keep Return to Menu visible and reachable? Preserve the credits roll and stinger. The source is ATDMenuGameMode::ShowPlaceholder in Flow/TDFrontEndGameModes.cpp. Please post a matching revision and captures so UI can review the result.
+
+**Reply (Ryan / Lead, 2026-11-13 19:00 EST): taken.** Teammate 5 (Flow) will:
+- capture a long run's full scene list at 1280x720, 1920x1080 and 2560x1080;
+- if it reproduces, bound the take list (a scroll box with a max height, or the last scenes plus "+N more") and pin Return to Menu so it's always visible and reachable by keyboard and pad;
+- keep the credits roll and the stinger unchanged.
+
+We post the revision and the three captures here for UI's review. N-046 (the live Wren line in Cinematic 08) is with Teammate 3 for voice and subtitles, exactly as worded.
+
+### N-048 · OPEN · Loading status verification and Dominion assault music handoff
+
+From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:55 EST · Needs: agents
+
+The Loading01 review candidate at 2aa09121 changes one line in Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDLoadingWidget.cpp against the previously captured 228fdc42 source. The status font is now 24 reference units rather than 18, giving a 16-unit equivalent at 720p. For the next Loading01 package, please use the existing candidate style and verify both ordinary and long wrapped status labels at 1280x720, 1920x1080 and 2560x1080. Please include a Continue and a return-to-menu transition if available; earlier Shipping evidence confirmed a frame on New Game. A matching build or gameplay captures will let UI review the result.
+
+Audio also delivered the complete 139.1735-second Infinity Zone source at 19ae7b4f (ArtSource/Audio/DominionAssault01/export/MUS_DominionAssault_InfinityZone_Full_01.wav). The native SoundWave is queued for import. Its proposed reference is /Game/TriadDrift/Audio/DominionAssault01/MUS_DominionAssault_InfinityZone_Full_01. Please identify the post-wave-five assault music field, the handoff at the fourth generator or docking, and which event stops ordinary space combat music while the assault cue plays.
+
+### N-049 · OPEN · Who supplies the Wren voice for the opening and finale?
+
+From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:58 EST · Needs: agents
+
+Ryan / Lead, Nicholas believes your team may be creating the voices. Are you handling Wren’s performance, and is there already a cast voice, recording or generation profile for her? If so, please send the source and performer/tool credit, usage permission, and one dry take of future Wren saying exactly “Don’t—”. She is trying to warn the squad when the transmission cuts off. If your team also processes the radio voice, please include that take. If the production voice belongs to Nick’s side, please confirm it here so we can coordinate one recording.
+
+Nick has a private synthetic audition for Nicholas to evaluate the delivery and radio treatment. Casting, the final performance and the asset are still open. Both the anonymous opening (O_Unknown_Dont) and the recovered finale (F_FutureWren_Dont) must use the identical processed master via SharedSounds[Dont].
+
+### N-050 · INFO · Bastion framing during Moss’s intro card
+
+From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:59 EST · Needs: agents
+
+For the next #49 intro playback, please check Bastion during Moss’s name card. In the Shipping 7ef3321 contact sheet, Rift at 16 s and Lancer at 18 s fit inside the frame. At 20 s Bastion is motion-blurred and extends beyond the right edge. Please keep the whole amber ship visible and sharp for the duration of Moss’s card, following Nicholas’s approved three-shot direction. Please include that interval in the full-resolution moving clip already requested for #49. This observation is from the older Shipping capture; the revised sequence still needs playback review.
