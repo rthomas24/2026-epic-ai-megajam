@@ -232,6 +232,10 @@ public:
 	/** Viewport layer of the overlay: just under the real HUD while it is up, else 900. */
 	static int32 OverlayZOrder(bool bRealHUDActive);
 
+	/** True when the hosted space HUD draws its own pilot card: Nick's (N-007), or any widget whose bCoversNameCard is
+	 *  true. Engineering's flight HUD (the default since ENG-36) doesn't, so the fallback card shows under it. */
+	static bool IsNameCardClaimedByHUD(const UWorld* World);
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Cut")
 	FTDCutPresentationTuning Tuning;
 

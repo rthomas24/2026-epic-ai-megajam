@@ -83,6 +83,11 @@ public:
 	 */
 	bool ConsumeIntroPending();
 	bool IsIntroPending() const { return bIntroPending; }
+
+	/** Story transmissions (T3): played once per run, kept across retakes and in the checkpoint a Continue loads. */
+	bool HasPlayedTransmission(FName Id) const { return Progress.StoryTransmissions.Contains(Id); }
+	void MarkTransmissionPlayed(FName Id);
+	void ForgetPlayedTransmissions();
 	/** This run was resumed with Continue (onboarding's control lessons stay off). A New Game clears it. */
 	bool IsRunFromContinue() const { return bRunFromContinue; }
 #if WITH_DEV_AUTOMATION_TESTS
