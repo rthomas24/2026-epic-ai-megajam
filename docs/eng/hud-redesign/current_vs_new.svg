@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+<title>Triad Drift HUD - current footprint vs new</title>
+<rect x="0" y="0" width="1920" height="1080" rx="0" fill="#060914" stroke="none" stroke-width="1" opacity="1"/>
+<text x="60" y="180" font-size="22" fill="#E8EEF7" text-anchor="start" font-weight="700" opacity="1" letter-spacing="0.5">CURRENT HUD (capture audit5/12_pool, 1920x1080)</text>
+<rect x="60" y="200" width="880" height="495" rx="0" fill="#0B1022" stroke="#2A3046" stroke-width="1" opacity="1"/>
+<path d="M500,492 l12,32 l32,10 l-34,6 l-10,12 l-10,-12 l-34,-6 l32,-10 Z" stroke="#8A94A6" stroke-width="1.5" fill="#151B2C" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="90.70833333333333" y="232.08333333333331" width="120.54166666666666" height="23.833333333333332" rx="0" fill="#FF4A3D" stroke="#FF4A3D" stroke-width="1" opacity="0.35"/>
+<rect x="393.2083333333333" y="229.79166666666666" width="213.125" height="29.791666666666664" rx="0" fill="#FF4A3D" stroke="#FF4A3D" stroke-width="1" opacity="0.35"/>
+<rect x="765.8333333333333" y="233.0" width="87.08333333333333" height="25.666666666666664" rx="0" fill="#FF4A3D" stroke="#FF4A3D" stroke-width="1" opacity="0.35"/>
+<rect x="99.875" y="540.0833333333333" width="104.5" height="88.45833333333333" rx="0" fill="#FF4A3D" stroke="#FF4A3D" stroke-width="1" opacity="0.35"/>
+<rect x="242.41666666666666" y="556.5833333333333" width="506.0" height="101.75" rx="0" fill="#FF4A3D" stroke="#FF4A3D" stroke-width="1" opacity="0.35"/>
+<rect x="430.3333333333333" y="549.25" width="139.33333333333331" height="8.25" rx="0" fill="#FF4A3D" stroke="#FF4A3D" stroke-width="1" opacity="0.35"/>
+<rect x="775.0" y="523.125" width="134.75" height="135.20833333333331" rx="0" fill="#FF4A3D" stroke="#FF4A3D" stroke-width="1" opacity="0.35"/>
+<rect x="89.79166666666666" y="672.0833333333333" width="187.91666666666666" height="9.166666666666666" rx="0" fill="#FF4A3D" stroke="#FF4A3D" stroke-width="1" opacity="0.35"/>
+<rect x="488.54166666666663" y="436.04166666666663" width="22.916666666666664" height="22.916666666666664" rx="0" fill="#FF4A3D" stroke="#FF4A3D" stroke-width="1" opacity="0.35"/>
+<text x="60" y="730" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Title block</text>
+<text x="620" y="730" font-size="16" fill="#8A94A6" text-anchor="end" font-weight="500" opacity="1" letter-spacing="0">263 x 52</text>
+<text x="760" y="730" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">0.66%</text>
+<text x="60" y="754" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Objective</text>
+<text x="620" y="754" font-size="16" fill="#8A94A6" text-anchor="end" font-weight="500" opacity="1" letter-spacing="0">465 x 65</text>
+<text x="760" y="754" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">1.46%</text>
+<text x="60" y="778" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Wave</text>
+<text x="620" y="778" font-size="16" fill="#8A94A6" text-anchor="end" font-weight="500" opacity="1" letter-spacing="0">190 x 56</text>
+<text x="760" y="778" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">0.51%</text>
+<text x="60" y="802" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Flight telemetry</text>
+<text x="620" y="802" font-size="16" fill="#8A94A6" text-anchor="end" font-weight="500" opacity="1" letter-spacing="0">228 x 193</text>
+<text x="760" y="802" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">2.12%</text>
+<text x="60" y="826" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Three squad cards</text>
+<text x="620" y="826" font-size="16" fill="#8A94A6" text-anchor="end" font-weight="500" opacity="1" letter-spacing="0">1104 x 222</text>
+<text x="760" y="826" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">11.82%</text>
+<text x="60" y="850" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Hyperdrive text</text>
+<text x="620" y="850" font-size="16" fill="#8A94A6" text-anchor="end" font-weight="500" opacity="1" letter-spacing="0">304 x 18</text>
+<text x="760" y="850" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">0.26%</text>
+<text x="60" y="874" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Heat / ammo / signature block</text>
+<text x="620" y="874" font-size="16" fill="#8A94A6" text-anchor="end" font-weight="500" opacity="1" letter-spacing="0">294 x 295</text>
+<text x="760" y="874" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">4.18%</text>
+<text x="60" y="898" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Key legend</text>
+<text x="620" y="898" font-size="16" fill="#8A94A6" text-anchor="end" font-weight="500" opacity="1" letter-spacing="0">410 x 20</text>
+<text x="760" y="898" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">0.40%</text>
+<text x="60" y="922" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Reticle</text>
+<text x="620" y="922" font-size="16" fill="#8A94A6" text-anchor="end" font-weight="500" opacity="1" letter-spacing="0">50 x 50</text>
+<text x="760" y="922" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">0.12%</text>
+<rect x="60" y="934" width="700" height="1" rx="0" fill="#8A94A6" stroke="none" stroke-width="1" opacity="1"/>
+<text x="60" y="968" font-size="20" fill="#FF4A3D" text-anchor="start" font-weight="800" opacity="1" letter-spacing="0">TOTAL (bounding boxes / 2,073,600 px)</text>
+<text x="760" y="968" font-size="24" fill="#FF4A3D" text-anchor="end" font-weight="800" opacity="1" letter-spacing="0">21.53%</text>
+<text x="60" y="998" font-size="15" fill="#8A94A6" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Bottom band y 705-1050 across the safe width is blocked: 1767 x 345 = 29.40% of the screen</text>
+<text x="980" y="180" font-size="22" fill="#E8EEF7" text-anchor="start" font-weight="700" opacity="1" letter-spacing="0.5">NEW HUD (space combat, steady)</text>
+<rect x="980" y="200" width="880" height="495" rx="0" fill="#0B1022" stroke="#2A3046" stroke-width="1" opacity="1"/>
+<path d="M1420,492 l12,32 l32,10 l-34,6 l-10,12 l-10,-12 l-34,-6 l32,-10 Z" stroke="#8A94A6" stroke-width="1.5" fill="#151B2C" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="1383.3333333333333" y="429.16666666666663" width="102.66666666666666" height="53.166666666666664" rx="0" fill="#7FE3A1" stroke="#7FE3A1" stroke-width="1" opacity="0.35"/>
+<rect x="1024.0" y="650.0833333333333" width="165.0" height="20.166666666666664" rx="0" fill="#7FE3A1" stroke="#7FE3A1" stroke-width="1" opacity="0.35"/>
+<rect x="1310.0" y="224.75" width="220.0" height="12.833333333333332" rx="0" fill="#7FE3A1" stroke="#7FE3A1" stroke-width="1" opacity="0.35"/>
+<rect x="1504.3333333333333" y="375.0833333333333" width="33.0" height="47.666666666666664" rx="0" fill="#7FE3A1" stroke="#7FE3A1" stroke-width="1" opacity="0.35"/>
+<text x="980" y="730" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Reticle cluster</text>
+<text x="1540" y="730" font-size="16" fill="#8A94A6" text-anchor="end" font-weight="500" opacity="1" letter-spacing="0">224 x 116</text>
+<text x="1680" y="730" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">1.25%</text>
+<text x="980" y="754" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Squad strip</text>
+<text x="1540" y="754" font-size="16" fill="#8A94A6" text-anchor="end" font-weight="500" opacity="1" letter-spacing="0">360 x 44</text>
+<text x="1680" y="754" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">0.76%</text>
+<text x="980" y="778" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Objective line</text>
+<text x="1540" y="778" font-size="16" fill="#8A94A6" text-anchor="end" font-weight="500" opacity="1" letter-spacing="0">480 x 28</text>
+<text x="1680" y="778" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">0.65%</text>
+<text x="980" y="802" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Target bracket</text>
+<text x="1540" y="802" font-size="16" fill="#8A94A6" text-anchor="end" font-weight="500" opacity="1" letter-spacing="0">72 x 104</text>
+<text x="1680" y="802" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">0.36%</text>
+<text x="980" y="826" font-size="16" fill="#E8EEF7" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">8 hostile ticks, 4 edge arrows, lead, 2 wing arrows</text>
+<text x="1680" y="826" font-size="16" fill="#E8EEF7" text-anchor="end" font-weight="600" opacity="1" letter-spacing="0">0.20%</text>
+<rect x="980" y="838" width="700" height="1" rx="0" fill="#8A94A6" stroke="none" stroke-width="1" opacity="1"/>
+<text x="980" y="872" font-size="20" fill="#7FE3A1" text-anchor="start" font-weight="800" opacity="1" letter-spacing="0">TOTAL (bounding boxes / 2,073,600 px)</text>
+<text x="1680" y="872" font-size="24" fill="#7FE3A1" text-anchor="end" font-weight="800" opacity="1" letter-spacing="0">3.23%</text>
+<text x="60" y="80" font-size="34" fill="#E8EEF7" text-anchor="start" font-weight="800" opacity="1" letter-spacing="1">ENG-36 HUD REDESIGN: FOOTPRINT BEFORE / AFTER</text>
+<text x="60" y="120" font-size="18" fill="#8A94A6" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Budget: 8% in steady flight. Current 21.53% (band 29.4%)  ->  new 3.23% in combat, 2.74% between waves, 4.65% in the alert state.</text>
+<text x="60" y="150" font-size="18" fill="#8A94A6" text-anchor="start" font-weight="500" opacity="1" letter-spacing="0">Centre and lower middle are empty in the new layout: the ship and the fight are never behind a panel.</text>
+</svg>
