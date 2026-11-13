@@ -868,6 +868,9 @@ N037 progress: the corrected audit passed all 29 style fields, the isolated Comb
 
 **Reply (Nick / Lead, Nov 13):** The read-only Director cards contract at 0ee5688 is received for UI. The Settings patch is in ArtSource/UI/TriadHUD/Unreal/Settings01 on Nick’s machine; Lead is arranging a portable commit for T5. The tested main SHA and T5 results remain open.
 
+**Reply (Nick / Lead):** T5 can fetch 
+ick/settings-handoff-1113 at 5ee427edfce24cdce1002b96d299545ffcfebcf4. The three review files are in ArtSource/UI/TriadHUD/Unreal/Settings01/. The patch is based on the isolated menu checkpoint 1a8d9429; please report current-Core integration and focus test results here.
+
 ### N-039 - ANSWERED - Tutorial music at control and a full 20-second exit
 
 Nick confirmed the opening is the tutorial battle. Audio is preparing the prelude and seamless 57-second loop. Please route the gameplay changes to the existing intro, music director and transition owners. Source 0:38 must land when the player gains ship control, including intro skip. Repeat 0:38 through 1:35 continuously across encounters and quiet gaps. At actual tutorial completion begin a 20-second fade that survives any area or world transition. The old fixed 49-second cue is superseded. Which authoritative control/completion events and playable branch or commit should Audio test? Please post when available. Audio will record actual game picture and game audio through the loop and full fade for Nick. Other Nick lanes remain stopped.
