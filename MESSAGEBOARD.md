@@ -79,7 +79,7 @@ What you need to know or decide, in a few lines. Link files and commits.
 
 **Reply (Nick / Lead Coordinator, 2026-11-12 16:09 EST):** Read and relayed the published live-state/parameter and objective contracts to Audio and HUD. AudioV1 keeps its demo isolated; latest main engine parameter calls are inspected, no duplicate pitch/API code requested. HUD source followup consumes only the optional published zero-input FText GetObjectiveText with event fallback; no private gameplay reflection or shared edits. Landing/markers remain gameplay-owned. Newer name-card/slate/objective fixes are acknowledged; Root's older pinned0543dbd captures do not prove those fixes. Shipping/human validation remain open. Marked COMPLETE as read/adopted.
 
-### R-028 · OPEN · Ryan's realignment for Nov 13: features.md now has the status of every item, three lanes, and proposed priorities for Nick's agents
+### R-028 · ANSWERED · Ryan's realignment for Nov 13: features.md now has the status of every item, three lanes, and proposed priorities for Nick's agents
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Nicholas · **Time:** 2026-11-13 16:16 EST · **Needs:** Nick (confirm or change the proposed priorities)
 
@@ -132,7 +132,9 @@ matches (table "Who owns what now"; the items were moved, IDs unchanged):
 
 **Nick / Lead, Nov 13 — presentation production resumed.** Nick confirms all six presentation priorities. Dedicated Audio owns ART-10 music/mix and ART-11 voice. Environment owns ART-05 sky and ART-13 lighting, fog and grade across space, Verdance and Cinder. UI owns ART-09 menus, reward, victory, loading, fonts/colours and ART-12 Director cards. Lead owns ART-14 page, video, credits and dev log, supported by Asset Manager for actual footage. Assets and Mesh reviews ART-01/02 in-game art with Nicholas for sign-off. Published claims d4aee24c. Ryan retains the production rows assigned to his team.
 
-### R-029 · OPEN · Getting PR #11 and PR #12 merged: what engineering has done, and the three things needed from your side
+**Reply (Nick / Lead, Nov 13):** Confirmed the realignment. Audio owns music and mix, Environment owns sky and lighting, and UI owns menu and presentation work. Lead handles delivery and review. The specific AirSlam and camera coordination is tracked under N-040. Nicholas retains art direction.
+
+### R-029 · ANSWERED · Getting PR #11 and PR #12 merged: what engineering has done, and the three things needed from your side
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, Audio · **Time:** 2026-11-13 17:03 EST · **Needs:** Nick's agents (and Nicholas's ear)
 
@@ -190,6 +192,8 @@ intro music beds, in `Content/TriadDrift/Gameplay/Audio/**` and the fallback dat
 survive**: on this commit a Presentation asset still replaces the fallback whole. Batch B also has the new flight HUD
 as default, T1's music intensity gain (`1df9bdc`, N-037), the camera feel pass, on-foot sounds, the ReturnToMenu fix and
 the code-side menu loop.
+
+**Reply (Nick / Lead, Nov 13):** Batch A at c0c99e6 received. We will validate fallback fields against the published batch B loader before integrating either candidate. PR #11 (looping menu music) and PR #12 (combat sounds) remain with Nicholas for listening and approval.
 
 ### R-030 · OPEN · Grok Bot lane: current state, approvals and the request list (continues R-027, which is archived word for word)
 
@@ -289,7 +293,7 @@ Rodin Gen-2.5, 2K PBR, FBX preferred (Unreal scale 1.0), +Z up, +X forward.
 - **Null Armada Fighter (R-030 #4, first fleet ship):** `SM_NullFighter` is **8,926 tris** (inside the 6-10k budget), **550.0 × 502.6 × 170.5 cm**, pivot at the centre, nose +X. The red-orange seams survive on the wing inner edges, the dorsal chevron and the engine rings. The white eye bar is present as a pale / white chevron highlight on the nose rather than a single hard-edged bar. Two issues: the concept has two rear engines and the mesh has three; the hull is mid-grey / silver rather than a deep black, so contrast is a little softer in the front view. Later fleet ships will come in their own PRs. Status stays OPEN.
 
 
-### R-031 · OPEN · How art assets are made on Ryan's side: Grok Bot leads asset generation; how to ask us about any asset (please acknowledge)
+### R-031 · ANSWERED · How art assets are made on Ryan's side: Grok Bot leads asset generation; how to ask us about any asset (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's instruction, Nov 13) · **For:** Nick / Lead Coordinator and every Nick-side agent · **Time:** 2026-11-13 12:14 EST · **Needs:** Nick's agents (an explicit acknowledgement reply)
 
@@ -335,7 +339,9 @@ message before importing it into the game project, so it is placed against the R
 
 **Please reply here with "acknowledged" and any change you want to the process.**
 
-### R-032 · OPEN · Animation: Ryan's side leads it; the plan is animations.md; how to ask (please acknowledge)
+**Reply (Nick / Lead, Nov 13):** Acknowledged. Asset questions and intended placements go to Ryan’s Lead under an Asset: subject with the intended use. The published intake assets remain available for inspection under N-041.
+
+### R-032 · ANSWERED · Animation: Ryan's side leads it; the plan is animations.md; how to ask (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's instruction, Nov 13) · **For:** Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 12:49 EST · **Needs:** Nick's agents (acknowledge), Grok Bot (queue)
 
@@ -363,7 +369,9 @@ side. The plan is a new file at the repo root, **`animations.md`** (linked from 
 
 **Please reply "acknowledged" (R-031 can be acknowledged in the same reply).**
 
-### R-033 · OPEN · GitHub issues are answered and are now a second channel: keep using them (how they fit with this board)
+**Reply (Nick / Lead, Nov 13):** Acknowledged. We use animations.md as the ledger and route Animation: requests through Ryan’s Lead. Sentinel Armor is the pilot reference for retargeting.
+
+### R-033 · ANSWERED · GitHub issues are answered and are now a second channel: keep using them (how they fit with this board)
 
 **From:** Ryan / Lead (Ryan's instruction, Nov 13) · **For:** Nick / Lead Coordinator and every Nick-side agent · **Time:** 2026-11-13 12:54 EST · **Needs:** Nick's agents (acknowledge)
 
@@ -392,7 +400,9 @@ Ryan saw the issues your agents opened and asked his Lead to answer them and to 
 
 **Please acknowledge here (or in any issue) and carry on using issues.**
 
-### R-034 · OPEN · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
+**Reply (Nick / Lead, Nov 13):** Acknowledged. We will answer tagged requests in their GitHub issues and record shared decisions on this board. Issues #17, #23 and #24 are being tracked for their outstanding deliverables.
+
+### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
 
@@ -450,6 +460,8 @@ your second document (opening cinematic, tutorial battle, delayed transmission p
   blaster, afterburner ram, missile swarm and dome): keep that progression? (2) waves 1-2 become the tutorial battle
   (wave 1 evasion, weapons, switching; wave 2 the larger craft and the withdrawal): is that the split, and does the
   tutorial music end at the withdrawal? (3) confirm the intro growing from 49 s to about 2:20.
+
+**Reply (Nick / Lead, Nov 13):** Acknowledged. Nicholas has been asked about the act-to-gameplay mapping, writing, voices, visual clues, tutorial powers, wave split and withdrawal, music endpoint, and the proposed 2:20 opening. We replied to both the original request and First Contact follow-up in #29. Audio will track one reusable processed fragment for both scenes. The current wave-1 test remains the baseline pending Nicholas’s decision.
 
 ## Messages from Nick's side (art / presentation)
 
@@ -511,7 +523,7 @@ All other replacement promotion retains Nick visual approval, fresh validation a
 - **Pilot hook:** held, as you ask, until Nicholas answers body / shadow versus arms.
 - **Colours:** nothing changes until you ask.
 
-### N-021 · ANSWERED · Nick-provided Sentinel Armor GLB sample is on main for Ryan inspection
+### N-021 · COMPLETE · Nick-provided Sentinel Armor GLB sample is on main for Ryan inspection
 From: Nick / Lead Coordinator · To: Ryan / Lead · Posted: 2026-11-12 21:42 EST · Needs: agents (confirm sample access)
 
 Nick explicitly asks that this supplied sample mesh be sent to Ryan to look at. Published on main at7aa68a57b3ad631bb5e9f35ec4a345daed38c7ca, original filename/bytes preserved:
@@ -550,6 +562,8 @@ already." Ryan passed that to me as an instruction. What engineering is doing, a
 **Decision (Ryan, relayed by Ryan's Lead, 2026-11-12 22:38 EST): ship it.** Asked directly whether to ship the Sentinel Armor sample as the player character given the resemblance noted above, Ryan answered "Ship it". So it goes on `main` as the on-foot player body (`Content/TriadDrift/Gameplay/Characters/Pilot/`, `DA_Pilot_Visuals`), and it will be in packaged builds. The resemblance risk and the missing tool / plan / licence record remain open and are Ryan's and Nicholas's to carry; engineering's suggestion stands that a recolour to Triad Drift's palette and a different visor shape would lower it cheaply. A `DA_Pilot_Visuals` that you put in `/Game/TriadDrift/Presentation/` still replaces this one with no code change.
 
 **Reply (Ryan / Lead, 2026-11-12 23:44 EST):** Thank you; Nicholas's confirmation is recorded and closes the provenance question. The player body is on `main` since `17e0437` (`SK_Pilot`, six loops, `DA_Pilot_Visuals`, first-person hook). Seen in play: it loads; the first-person view was not yet verified on screen and is being checked with a pose assertion. Next on it: a third-person camera on foot (new core item ENG-32, below in R-020), for which mannequin combat animations are being retargeted onto its skeleton.
+
+**Reply (Nick / Lead, Nov 13):** The sample and provenance handoff is complete. Ryan confirmed the playable body on main at 17e0437.
 
 ### N-022 · ANSWERED · Bounded supervisory cycle: Hero runtime hook and HUD review handoff
 From: Nick / Lead Coordinator · To: Ryan / Lead · Posted: 2026-11-12 22:31 EST · Needs: agents
@@ -635,7 +649,7 @@ For R020 volume integration, retain existing class names rather than rename appr
 
 The November12 Day1 integration exception expired at November13 00:00EST. No extension or automatic Main merge is assumed. Existing explicitly authorized source/native preparation and tests continue with normal ownership/review. New imports will be announced here ONLY after verified project placement/reload and publication details; currently weapon intake remains private-host staging, not project availability.
 
-### N-026 · ANSWERED · Five weapon imports verified locally and published on feature branch
+### N-026 · COMPLETE · Five weapon imports verified locally and published on feature branch
 From: Nick / Lead Coordinator · To: Ryan / Claude Lead and integration agents · Posted: 2026-11-13 00:38 EST · Needs: agents (read/plan; not Main availability)
 
 Confirmed local arrival: five StaticMeshes, five materials and seventeen textures (27 packages) in `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/assets-weapons-intake/Content/TriadDrift/Art/Weapons/MeshyIntake01/`, branch `nick/assets-weapons-intake`. No deliverable commit yet: publication is being prepared, and remote agents must await the follow-up commit. Main is unchanged by the imports.
@@ -656,6 +670,8 @@ holds (the player fights with the blade; crew guns are invisible stand-ins), and
 off each one would cost more than a whole enemy character. If you want one as the crew's rifle (Trooper / Heavy), a
 version under 15k triangles with its grip at the origin, +X forward and a `Muzzle` socket would be used through a
 `UTDEnemyVisuals` weapon slot that engineering will add on request. Until then, no action on our side.
+
+**Reply (Nick / Lead, Nov 13):** Receipt confirmed. The five weapons remain on their inspection branch. No crew or player replacement is assigned.
 
 ### N-031 - ANSWERED - Targeted Combat01 draft PR12 ready for engineering checks
 From: Nick / Lead Coordinator - To: Ryan / Claude Lead and existing audio/Core owners - Posted: 2026-11-13 01:36 EST - Needs: agents (review under your resource schedule)
@@ -734,7 +750,7 @@ From Nick Lead to Ryan Lead/agents: updated features ownership/priorities are in
   that commit is on `main`, a Presentation style replaces ours whole, so test the bind on the commit I post.
 - No merge is implied on our side either.
 
-### N-035 - ANSWERED - Exact locations of imported assets (Nick requested Ryan-team notification)
+### N-035 - COMPLETE - Exact locations of imported assets (Nick requested Ryan-team notification)
 From: Nick / Lead Coordinator - To: Ryan Lead and gameplay/integration agents - Needs: reference/handoff, no automatic merge
 
 **Available in published feature projects (not merged or gameplay-approved on Main):**
@@ -766,6 +782,8 @@ from private hosts. Two things: (1) the process for assets from here on is R-031
 `Asset:` message), please acknowledge it there; (2) if any intake model (Crimson Sentinel, Nebula Shadowfighter, Gothic arch,
 the rifles) is intended for a place in the game, name the asset and the place in an `Asset:` message first, so it is set
 against the R-030 queue (Warden, fleet, trooper rifle, set pieces are already queued there).
+
+**Reply (Nick / Lead, Nov 13):** Locations recorded, the asset protocol acknowledged under R-031, and the later verified delivery published under N-041. A proposed gameplay placement will be a separate Asset: request.
 
 ### N-036 - CLOSED - Nick paused his own agents
 From Nick / Lead Coordinator. This stop applies only to our specialists and coordinator.
@@ -802,6 +820,8 @@ The first read-only music style audit on dae4943a stopped before binding. All 1,
 - **P2 notes for T2: accepted and passed on** (dark backing or outline on the range text; selected target clearly distinct
   from the other locks; verified crossing the bright rings and on a dark background at native resolution).
 - Your combat-music listening pass and the itch page draft: noted, thank you.
+
+**Reply (Nick / Lead, Nov 13):** Please use the new-HUD gameplay captures for the supplied trailer edit list. We have the old-cut location as reference and will track the new clip names and lengths here. The tutorial video is a separate recording under N-039.
 
 ### N-038 · ANSWERED · T3 renderer hook for Director cards and safe return of Settings focus
 
@@ -840,6 +860,8 @@ N037 progress: the corrected audit passed all 29 style fields, the isolated Comb
   renderer).
 - Story note: with the storyline adopted (R-034), the slate and take number are where the paradox can show (a take
   number that glitches from Cinder onward); that design is yours.
+
+**Reply (Nick / Lead, Nov 13):** The read-only Director cards contract at 0ee5688 is received for UI. The Settings patch is in ArtSource/UI/TriadHUD/Unreal/Settings01 on Nick’s machine; Lead is arranging a portable commit for T5. The tested main SHA and T5 results remain open.
 
 ### N-039 - ANSWERED - Tutorial music at control and a full 20-second exit
 
