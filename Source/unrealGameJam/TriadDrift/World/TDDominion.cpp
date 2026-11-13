@@ -1,6 +1,8 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDDominion.h"
 
+#include "Misc/PackageName.h"
+#include "Components/InstancedStaticMeshComponent.h"
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
@@ -69,6 +71,21 @@ ATDDominion::ATDDominion()
 
 	// Placeholder hull: one long slab, a bridge tower and two trench walls (engine cubes are 100 cm).
 	HullMesh = TDDominion_MakePart(this, Root, TEXT("Hull"), CubeMesh, true);
+	{
+		static ConstructorHelpers::FObjectFinder<UStaticMesh> DetailSphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+		auto MakeDetail = [this](const TCHAR* Name, UStaticMesh* Mesh)
+		{
+			UInstancedStaticMeshComponent* D = CreateDefaultSubobject<UInstancedStaticMeshComponent>(Name);
+			D->SetupAttachment(Root);
+			D->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			D->SetGenerateOverlapEvents(false);
+			D->SetCastShadow(false);
+			D->SetStaticMesh(Mesh);
+			return D;
+		};
+		HullSeams = MakeDetail(TEXT("HullSeams"), CubeMesh);
+		HullEyes = MakeDetail(TEXT("HullEyes"), DetailSphere.Succeeded() ? DetailSphere.Object : nullptr);
+	}
 	BridgeMesh = TDDominion_MakePart(this, Root, TEXT("Bridge"), CubeMesh, true);
 	TrenchWallLeft = TDDominion_MakePart(this, Root, TEXT("TrenchWallL"), CubeMesh, true);
 	TrenchWallRight = TDDominion_MakePart(this, Root, TEXT("TrenchWallR"), CubeMesh, true);
@@ -148,6 +165,45 @@ void ATDDominion::OnConstruction(const FTransform& Transform)
 	LayoutParts();	// a placed Dominion shows its real shape in the editor
 }
 
+void ATDDominion::BuildHullDetail(bool bShow)
+{
+	if (!HullSeams || !HullEyes) { return; }
+	HullSeams->ClearInstances();
+	HullEyes->ClearInstances();
+	HullSeams->SetVisibility(bShow);
+	HullEyes->SetVisibility(bShow);
+	if (!bShow) { return; }
+	const FVector E = HullExtent;
+	const float Line = 60.f;	// seam thickness (cm)
+	// Long seams down both flanks at two heights, and across the top every 6000 cm: a panel grid.
+	for (const float Side : { -1.f, 1.f })
+	{
+		for (const float Zf : { -0.35f, 0.35f })
+		{
+			HullSeams->AddInstance(FTransform(FRotator::ZeroRotator, FVector(0.f, Side * (E.Y + Line * 0.5f), E.Z * Zf),
+				FVector(E.X * 2.f, Line, Line) / 100.f));
+		}
+	}
+	for (float X = -E.X + 3000.f; X < E.X; X += 6000.f)
+	{
+		HullSeams->AddInstance(FTransform(FRotator::ZeroRotator, FVector(X, 0.f, E.Z + Line * 0.5f), FVector(Line, E.Y * 2.f, Line) / 100.f));
+		for (const float Side : { -1.f, 1.f })
+		{
+			HullSeams->AddInstance(FTransform(FRotator::ZeroRotator, FVector(X, Side * (E.Y + Line * 0.5f), 0.f), FVector(Line, Line, E.Z * 2.f) / 100.f));
+		}
+	}
+	// White eye lights along both flanks, a row just under the top edge.
+	for (float X = -E.X + 2500.f; X < E.X; X += 5000.f)
+	{
+		for (const float Side : { -1.f, 1.f })
+		{
+			HullEyes->AddInstance(FTransform(FRotator::ZeroRotator, FVector(X, Side * (E.Y + 150.f), E.Z * 0.6f), FVector(3.f)));
+		}
+	}
+	UTDStatics::TintPlaceholder(HullSeams, FLinearColor(1.f, 0.3f, 0.05f), 4.f);
+	UTDStatics::TintPlaceholder(HullEyes, FLinearColor::White, 12.f);
+}
+
 void ATDDominion::LayoutParts()
 {
 	// Lay the placeholder out from HullExtent so tuning the size keeps everything consistent.
@@ -169,8 +225,13 @@ void ATDDominion::LayoutParts()
 	}
 	HangarPoint->SetRelativeLocation(FVector(E.X + 3000.f, 0.f, -E.Z * 0.4f));
 
-	// Black armour with red trim, glowing shield emitters (Null Armada colour code).
-	UTDStatics::TintPlaceholder(HullMesh, FLinearColor(0.05f, 0.04f, 0.045f), 0.f);
+	// Dark armour #1a1b1e (linear ~0.010/0.011/0.013) with red-orange seams and white eye lights; the builder's panel
+	// material replaces the flat tint when it exists.
+	UMaterialInterface* Panel = (!HullMaterial.IsNull() && FPackageName::DoesPackageExist(HullMaterial.ToSoftObjectPath().GetLongPackageName()))
+		? HullMaterial.LoadSynchronous() : nullptr;
+	if (Panel) { HullMesh->SetMaterial(0, Panel); }
+	else { UTDStatics::TintPlaceholder(HullMesh, FLinearColor(0.0103f, 0.0109f, 0.0129f), 0.f); }
+	BuildHullDetail(true);
 	UTDStatics::TintPlaceholder(BridgeMesh, FLinearColor(0.35f, 0.04f, 0.03f), 0.f);
 	UTDStatics::TintPlaceholder(TrenchWallLeft, FLinearColor(0.12f, 0.03f, 0.03f), 0.f);
 	UTDStatics::TintPlaceholder(TrenchWallRight, FLinearColor(0.12f, 0.03f, 0.03f), 0.f);
@@ -185,6 +246,7 @@ void ATDDominion::LayoutParts()
 			HullMesh->SetStaticMesh(Custom);
 			HullMesh->SetRelativeScale3D(FVector::OneVector);
 			BridgeMesh->SetVisibility(false);
+			BuildHullDetail(false);	// the hull mesh brings its own detail
 		}
 	}
 

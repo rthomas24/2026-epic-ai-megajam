@@ -127,6 +127,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
 	float HyperdriveLockRadius = 60000.f;
 
+	/** Hull material until a hull mesh exists (dark panelled armour). Default: the builder's panel material; missing =
+	 *  the placeholder tint (#1a1b1e) with seam lines and eye lights built in code. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Presentation")
+	TSoftObjectPtr<UMaterialInterface> HullMaterial = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/Dominion/MI_TD_DominionPanel.MI_TD_DominionPanel")));
+
 	/** The flow's scene for the whole assault (UTDGameInstance::DominionScene); its retakes reset the fight. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion")
 	FName DominionSceneId = TEXT("Dominion");
@@ -268,6 +273,15 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")
 	TObjectPtr<UStaticMeshComponent> HullMesh;
+
+	/** Placeholder hull detail: red-orange seam lines and white eye lights (hidden under a hull mesh). */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")
+	TObjectPtr<class UInstancedStaticMeshComponent> HullSeams;
+
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")
+	TObjectPtr<class UInstancedStaticMeshComponent> HullEyes;
+
+	void BuildHullDetail(bool bShow);
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")
 	TObjectPtr<UStaticMeshComponent> BridgeMesh;
