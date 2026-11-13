@@ -30,7 +30,9 @@ bool FTDStoryTable::RunTest(const FString& Parameters)
 		TEXT("O_Wren_BigShip"), TEXT("O_Kato_NoSignature"), TEXT("O_Moss_Message"), TEXT("O_Kato_Handshake"), TEXT("O_Wren_WhyNotFiring"),
 		TEXT("O_Kato_Contacts"), TEXT("O_Command_Disengage"), TEXT("O_Unknown_Dont"), TEXT("O_Wren_Break"), TEXT("O_Command_Evade"),
 		TEXT("F_FutureKato_Signatures"), TEXT("F_FutureMoss_Where"), TEXT("F_FutureWren_Channel"), TEXT("F_FutureKato_Interference"),
-		TEXT("F_FutureWren_Dont"), TEXT("Intro_N0"), TEXT("Intro_N4") };
+		TEXT("F_FutureWren_Dont"), TEXT("Intro_N0"), TEXT("Intro_N4"),
+		TEXT("S2_Moss_Accounted"), TEXT("S2_Kato_NotPursuing"), TEXT("S2_Command_Orders"), TEXT("S2_Kato_Recorders"),
+		TEXT("TB_Kato_Marking"), TEXT("TB_Command_FallBack"), TEXT("TB_Kato_BreakingOff") };
 	for (const TCHAR* Id : Required)
 	{
 		FTDTransmission E;
@@ -50,6 +52,14 @@ bool FTDStoryTable::RunTest(const FString& Parameters)
 			E.Speaker == ETDSpeaker::FutureWren || E.Speaker == ETDSpeaker::FutureKato || E.Speaker == ETDSpeaker::FutureMoss);
 		TestFalse(FString::Printf(TEXT("%s: never says 'future' or 'time' before act 4"), *Id), Line.Contains(TEXT("future")) || Line.Contains(TEXT(" time")));
 		TestFalse(FString::Printf(TEXT("%s: never says 'us' as the enemy before act 4"), *Id), Line.Contains(TEXT("it's us")));
+	}
+	// Aftermath: the "Don't-" fragment is never used here (kept for the finale).
+	for (const FTDTransmission& E : UTDStorySubsystem::GetAllEntries())
+	{
+		if (E.Id.ToString().StartsWith(TEXT("S2_")))
+		{
+			TestTrue(FString::Printf(TEXT("%s: no shared 'Dont' sound in Aftermath"), *E.Id.ToString()), E.SharedSound.IsNone());
+		}
 	}
 	// The First Contact brief: the two "Don't-" lines are ONE sound.
 	FTDTransmission Open, Fin;
