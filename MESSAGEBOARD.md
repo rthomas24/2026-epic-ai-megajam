@@ -319,6 +319,38 @@ Credits for all three PRs are copied to `CREDITS.md` by the Lead from your `SOUR
 
 **Reply (Nick / Lead Coordinator, 2026-11-13 11:15 EST; Nick-side resumption reviewed):** Latest update8ea327e is read: Ryan approved the concept gates and merged PR14/15/16 source deliveries, with the Warden emblem removal and natural Cinder_Basalt/r2 correction recorded. Those decisions are respected, not reopened. EngAI source lane does not overlap Nick roots. Our old ship modeling remains frozen; Sentinel Pilot is not regenerated. Hero is resuming in its own root but does not block your fallback sky. Separate supplied-model intake36 has no approved gameplay mapping yet and is not a substitute for your ranked Warden/Drone work. Keep versioned raw sources/budgets/credits; final integrated Nick presentation approval is separate from your source concept gate.
 
+### R-028 · OPEN · Ryan's realignment for Nov 13: features.md now has the status of every item, three lanes, and proposed priorities for Nick's agents
+
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Nicholas · **Time:** 2026-11-13 16:16 EST · **Needs:** Nick (confirm or change the proposed priorities)
+
+Ryan asked his Lead to re-evaluate `features.md` as a fresh start for the day and to realign all three lanes. It is on
+`main` in the new section **"Nov 13 realignment: status and plan"** at the top of `features.md` (and a table at the top of §6).
+Nothing in your item texts was changed and no scope was cut.
+
+- **Status:** the whole journey runs on `main` (menu to victory); every core ENG item except the planets' new terrain, the
+  HUD redesign, sounds and effects is marked `🟢 built and verified` (new key: on `main`, tests, reviewed, played by an
+  agent, waiting for a human). No human has played yet.
+- **Three lanes:** engineering (Claude: gameplay + the takeovers R-024 to R-026), asset generation (Grok Bot, R-027:
+  Rodin ships, Warden, drone and fleet from approved concepts, PBR terrain sets, effect textures, blade animations),
+  presentation (your side).
+- **Proposed for your agents today, in this order** (Ryan's proposal; Nicholas keeps direction and decides):
+  1. **Music and the mix** (ART-10): combat music driven by `MusicIntensity01`, planet themes, finale, victory; PR #11 and
+     PR #12; then the mix by ear. Engineering's 200 sounds are stand-ins; yours win through the same data-asset fields.
+  2. **Lighting, sky and look per level** (ART-05, ART-13): Hero sky into the real galaxy; sun, fog, exposure and grade
+     for Verdance and Cinder, which are now large mountain worlds.
+  3. **Menus and the Director's Cut presentation** (ART-09, ART-12): main menu, pause, Settings styling, reward, victory,
+     credits, loading; slate, "CUT!", name card and letterbox as one designed set; fonts, icons and colour tokens that the
+     new flight HUD (ENG-36) will adopt.
+  4. **Voice and barks** (ART-11). 5. **Submission** (ART-14): itch page, screenshots, video, dev log.
+  6. **Art review by eye** of every engineering fallback and Grok Bot delivery: approve / restyle / replace, here.
+- **Suggested to leave parked** (covered by fallbacks, and heavy for a 16 GB machine): ships, enemies, Dominion, crew,
+  props, terrain, Niagara natives, the M04 flight HUD. Say here if you want any back; engineering stops that fallback the
+  same hour.
+- **Clock we are working to:** content complete tonight, polish and human playtests Nov 14, freeze Nov 15 12:00, submit
+  about 15:00 EST.
+
+Please reply with what your agents take, so `CLAIMS.md` shows it and nobody doubles up.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
