@@ -113,13 +113,28 @@ namespace TDIntro
 		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 		Params.ObjectFlags |= RF_Transient;
 		AStaticMeshActor* Dart = World->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), At, Params);
-		UStaticMesh* Cone = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cone.Cone"));
-		if (!Dart || !Cone)
+		if (!Dart)
 		{
-			return Dart;
+			return nullptr;
 		}
 		UStaticMeshComponent* Mesh = Dart->GetStaticMeshComponent();
 		Mesh->SetMobility(EComponentMobility::Movable);
+		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		// The Null Armada's own fighters (engineering's fleet meshes, nose +X) until T4's showcase hook lands.
+		static int32 Variant = 0;
+		const TCHAR* Fleet = (Variant++ % 3 == 2)
+			? TEXT("/Game/TriadDrift/Gameplay/Characters/NullFleet/SM_Null_Interceptor.SM_Null_Interceptor")
+			: TEXT("/Game/TriadDrift/Gameplay/Characters/NullFleet/SM_Null_Fighter.SM_Null_Fighter");
+		if (UStaticMesh* Ship = LoadObject<UStaticMesh>(nullptr, Fleet))
+		{
+			Mesh->SetStaticMesh(Ship);
+			return Dart;
+		}
+		UStaticMesh* Cone = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cone.Cone"));
+		if (!Cone)
+		{
+			return Dart;
+		}
 		Mesh->SetStaticMesh(Cone);
 		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		Mesh->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f)); // the cone's tip (+Z) along the actor's +X
@@ -660,14 +675,14 @@ void UTDIntroDirector::BuildShots()
 		FTDIntroShot S;
 		S.Id = TEXT("ThreatFar");
 		S.Duration = 5.5f;
-		S.CamFrom = Dom + DomFwd * (DomR * 7.f) + DomSide * (DomR * 1.6f) + Up * (DomR * 0.25f);
+		S.CamFrom = Dom + DomFwd * (DomR * 4.5f) + DomSide * (DomR * 1.2f) + Up * (DomR * 0.2f);
 		S.CamTo = S.CamFrom - DomFwd * (DomR * 0.35f);
 		S.LookFrom = Dom + DomSide * (DomR * 0.9f);
 		S.LookTo = Dom - DomSide * (DomR * 0.5f);
 		S.FocalFrom = 135.f;
 		S.FocalTo = 135.f;
 		S.FStop = 16.f;
-		S.FocusDistance = DomR * 7.f;
+		S.FocusDistance = DomR * 4.5f;
 		S.FadeIn = 0.8f;
 		S.FadeOut = 0.f;
 		S.Narration = 4;
@@ -695,10 +710,10 @@ void UTDIntroDirector::BuildShots()
 		FTDIntroShot S;
 		S.Id = TEXT("Title");
 		S.Duration = 6.f;
-		S.CamFrom = S0 - F0 * 2600.f + Up * 700.f + R0 * 300.f;
-		S.CamTo = S0 - F0 * 1900.f + Up * 480.f;
-		S.LookFrom = S0 + F0 * 3000.f;
-		S.LookTo = S0 + F0 * 3000.f;
+		S.CamFrom = S0 - F0 * 2600.f + Up * 420.f + R0 * 300.f;
+		S.CamTo = S0 - F0 * 1900.f + Up * 260.f;
+		S.LookFrom = S0 + F0 * 2500.f - Up * 150.f;
+		S.LookTo = S0 + F0 * 2500.f;
 		S.FocalFrom = 35.f;
 		S.FocalTo = 28.f;
 		S.FStop = 4.f;
@@ -838,11 +853,7 @@ void UTDIntroDirector::DebugSetTime(float T, bool bFreeze)
 	BeginShot(Index);
 	if (Shots[Index].Id == TEXT("ThreatClose"))
 	{
-		bFleetSpawned = true;
-		for (int32 k = 0; k < 10; ++k)
-		{
-			Showcase.Add(nullptr); // the far wave is out of frame by now: the close wave spawns after it
-		}
+		bFleetSpawned = true; // the far wave is out of frame by now
 	}
 	const float Step = 1.f / 30.f;
 	LastDt = Step;
@@ -982,19 +993,18 @@ void UTDIntroDirector::UpdateShot(float T)
 			bFleetSpawned = true;
 			SpawnShowcase();
 		}
-		if (S.Id == TEXT("ThreatClose") && Showcase.Num() < 16 && T > 0.15f && Showcase.Num() >= 10)
+		if (S.Id == TEXT("ThreatClose") && CloseSpawned < 6 && T > 0.15f + CloseSpawned * 0.45f)
 		{
-			// The close wave: out of the dark ahead of the lens, past it.
+			// The close wave: one at a time out of a warp flash ahead of the lens, screaming past it.
 			const FVector Fwd = (S.LookFrom - S.CamFrom).GetSafeNormal();
 			const FVector Side = FVector::CrossProduct(FVector::UpVector, Fwd).GetSafeNormal();
-			for (int32 k = 0; k < 6; ++k)
+			const int32 k = CloseSpawned++;
+			const FVector At = Camera->GetActorLocation() + Fwd * 9000.f + Side * ((k % 2 ? 1.f : -1.f) * (650.f + (k % 3) * 300.f)) + FVector::UpVector * ((k % 3) - 1) * 320.f;
+			TDIntro::WarpFlash(World, At, 2600.f);
+			if (AActor* F = TDIntro::SpawnFighter(World, FTransform((-Fwd).Rotation(), At)))
 			{
-				const FVector At = S.CamFrom + Fwd * (7000.f + k * 1800.f) + Side * ((k % 2 ? 1.f : -1.f) * (500.f + k * 260.f)) + FVector::UpVector * ((k % 3) - 1) * 380.f;
-				TDIntro::WarpFlash(World, At, 2600.f);
-				if (AActor* F = TDIntro::SpawnFighter(World, FTransform((-Fwd).Rotation(), At)))
-				{
-					Showcase.Add(F);
-				}
+				F->Tags.Add(TEXT("TDIntroClose"));
+				Showcase.Add(F);
 			}
 		}
 		// A red-orange key on the fleet, from the lens side, so the ships read against black.
@@ -1027,7 +1037,7 @@ void UTDIntroDirector::UpdateShot(float T)
 		{
 			if (AActor* F = Showcase[k])
 			{
-				const float Speed = k < 10 ? 9000.f : 8500.f;
+				const float Speed = F->Tags.Contains(TEXT("TDIntroClose")) ? 4200.f : 6000.f;
 				F->AddActorWorldOffset(F->GetActorForwardVector() * Speed * Dt);
 			}
 		}
@@ -1045,12 +1055,13 @@ void UTDIntroDirector::SpawnShowcase()
 	const FTDIntroShot& S = Shots[ShotIndex];
 	const FVector Toward = (S.CamFrom - S.LookFrom).GetSafeNormal();
 	const FVector Side = FVector::CrossProduct(FVector::UpVector, Toward).GetSafeNormal();
-	const FVector Base = FMath::Lerp(S.LookFrom, S.LookTo, 0.35f) + Toward * 70000.f;
+	// Well in front of the Dominion, a third of the way to the lens: big enough to read at 135 mm.
+	const FVector Base = FMath::Lerp(S.LookFrom, S.LookTo, 0.35f) + Toward * (FVector::Dist(S.CamFrom, S.LookFrom) * 0.35f);
 	for (int32 k = 0; k < 10; ++k)
 	{
 		const FVector At = Base + Side * ((k - 4.5f) * 4200.f) + FVector::UpVector * FMath::Sin(k * 1.7f) * 3500.f + Toward * (k % 3) * 3000.f;
 		TDIntro::WarpFlash(World, At, 12000.f);
-		if (AActor* F = TDIntro::SpawnFighter(World, FTransform(Toward.Rotation(), At, FVector(4.f))))
+		if (AActor* F = TDIntro::SpawnFighter(World, FTransform(Toward.Rotation(), At, FVector(2.5f))))
 		{
 			Showcase.Add(F);
 		}
@@ -1067,6 +1078,7 @@ void UTDIntroDirector::ClearShowcase()
 		}
 	}
 	Showcase.Reset();
+	CloseSpawned = 0;
 	if (KeyLight)
 	{
 		KeyLight->Destroy();

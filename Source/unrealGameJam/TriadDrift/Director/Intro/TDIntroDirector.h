@@ -221,4 +221,6 @@ private:
 	bool bGateFlared = false;
 	bool bDominionShown = false;
 	bool bDebugFrozen = false;
+	/** Shot 6b: close fighters spawned so far (one every 0.45 s). */
+	int32 CloseSpawned = 0;
 };
