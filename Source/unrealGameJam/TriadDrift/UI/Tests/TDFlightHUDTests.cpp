@@ -717,6 +717,18 @@ bool FTDFlightHUDDirector::RunTest(const FString& Parameters)
 	TestTrue(TEXT("CUT: off at once"), F.V().bInCut && F.V().HUDOpacity == 0.f);
 	F.HUD->Sample(1.f);
 	TestEqual(TEXT("still off during the cut delay"), F.V().HUDOpacity, 0.f);
+	{
+		// Painted, not only the number: the live CUT capture showed the HUD still drawn (render opacity doesn't reach
+		// custom-painted elements). A CUT paint draws nothing.
+		TSharedRef<SWidget> CutSlate = F.HUD->TakeWidget();
+		TSharedRef<SWindow> CutWindow = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList CutList(CutWindow);
+		FHittestGrid CutGrid;
+		CutSlate->SlatePrepass(1.f);
+		CutSlate->Paint(FPaintArgs(nullptr, CutGrid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f),
+			FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()), FSlateRect(0, 0, 1920, 1080), CutList, 0, FWidgetStyle(), true);
+		TestEqual(TEXT("CUT: nothing painted"), F.HUD->LastBoxes.Num(), 0);
+	}
 	F.HUD->HandleTakeStarted(TEXT("Wave2"), 2);
 	F.HUD->Sample(.05f);
 	F.HUD->Sample(.3f);

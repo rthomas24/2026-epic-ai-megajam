@@ -39,6 +39,10 @@ struct FTDUIPainter
 	int32 Layer;
 	float Scale = 1.f;
 	FVector2D Origin = FVector2D::ZeroVector;
+	/** Whole-HUD opacity, applied to every element drawn (a HUD fading out for a CUT or behind a slate). Render opacity
+	 *  does not reach elements painted in NativePaint, so it is multiplied in here. */
+	float Alpha = 1.f;
+	FLinearColor Faded(FLinearColor C) const { C.A *= Alpha; return C; }
 
 	FTDUIPainter(const FGeometry& InG, FSlateWindowElementList& InList, int32 InLayer, FVector2D Design = FVector2D(1920, 1080))
 		: G(InG), List(InList), Layer(InLayer)
@@ -54,13 +58,13 @@ struct FTDUIPainter
 
 	void Box(float X, float Y, float W, float H, FLinearColor C) const
 	{
-		FSlateDrawElement::MakeBox(List, Layer, Geo({ X, Y }, { W, H }), FCoreStyle::Get().GetBrush("WhiteBrush"), ESlateDrawEffect::None, C);
+		FSlateDrawElement::MakeBox(List, Layer, Geo({ X, Y }, { W, H }), FCoreStyle::Get().GetBrush("WhiteBrush"), ESlateDrawEffect::None, Faded(C));
 	}
 	void Gradient(float X, float Y, float W, float H, FLinearColor A, FLinearColor B, bool bVertical = true) const
 	{
 		TArray<FSlateGradientStop> Stops;
-		Stops.Emplace(FVector2f(0, 0), A);
-		Stops.Emplace(FVector2f(W * Scale, H * Scale), B);
+		Stops.Emplace(FVector2f(0, 0), Faded(A));
+		Stops.Emplace(FVector2f(W * Scale, H * Scale), Faded(B));
 		FSlateDrawElement::MakeGradient(List, Layer, Geo({ X, Y }, { W, H }), MoveTemp(Stops), bVertical ? Orient_Horizontal : Orient_Vertical);
 	}
 	void Frame(float X, float Y, float W, float H, FLinearColor C, float Opacity = 1) const
@@ -72,7 +76,7 @@ struct FTDUIPainter
 		{
 			Points.Add(Q * Scale + Origin);
 		}
-		FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, C.CopyWithNewOpacity(Opacity), true, Scale);
+		FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Faded(C.CopyWithNewOpacity(Opacity)), true, Scale);
 	}
 	/** The space HUD's glass panel: edge halo, dark gradient, top sheen, double cut-corner frame, corner ticks. */
 	void Glass(float X, float Y, float W, float H, FLinearColor C, bool bEmphasis = false) const
@@ -99,17 +103,17 @@ struct FTDUIPainter
 	}
 	void Text(float X, float Y, const FString& S, int32 Size, FLinearColor C, bool bBold = false) const
 	{
-		FSlateDrawElement::MakeText(List, Layer + 1, Geo({ X, Y }, { 1, 1 }), S, MakeFont(bBold ? "Bold" : "Regular", Size, Scale), ESlateDrawEffect::None, C);
+		FSlateDrawElement::MakeText(List, Layer + 1, Geo({ X, Y }, { 1, 1 }), S, MakeFont(bBold ? "Bold" : "Regular", Size, Scale), ESlateDrawEffect::None, Faded(C));
 	}
 	/** Small tracked caps ("OBJECTIVE"). */
 	void Label(float X, float Y, const FString& S, int32 Size, FLinearColor C, int32 Tracking = 70) const
 	{
-		FSlateDrawElement::MakeText(List, Layer + 1, Geo({ X, Y }, { 1, 1 }), S, MakeFont("Medium", Size, Scale, Tracking), ESlateDrawEffect::None, C);
+		FSlateDrawElement::MakeText(List, Layer + 1, Geo({ X, Y }, { 1, 1 }), S, MakeFont("Medium", Size, Scale, Tracking), ESlateDrawEffect::None, Faded(C));
 	}
 	/** Condensed bold headline (the objective line, power names). */
 	void Title(float X, float Y, const FString& S, int32 Size, FLinearColor C) const
 	{
-		FSlateDrawElement::MakeText(List, Layer + 1, Geo({ X, Y }, { 1, 1 }), S, MakeFont("BoldCondensed", Size, Scale, 25), ESlateDrawEffect::None, C);
+		FSlateDrawElement::MakeText(List, Layer + 1, Geo({ X, Y }, { 1, 1 }), S, MakeFont("BoldCondensed", Size, Scale, 25), ESlateDrawEffect::None, Faded(C));
 	}
 	/** Width of S in design units (0 when Slate can't measure, e.g. headless). */
 	float Measure(const FString& S, const FSlateFontInfo& DesignFont) const
@@ -140,7 +144,7 @@ struct FTDUIPainter
 		TArray<FVector2D> Points;
 		Points.Add(A * Scale + Origin);
 		Points.Add(B * Scale + Origin);
-		FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, C, true, Width * Scale);
+		FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Faded(C), true, Width * Scale);
 	}
 	void Arc(FVector2D C, float R, float Fraction, FLinearColor Color, float Width = 2, float Start = -PI * .5f) const
 	{
@@ -152,7 +156,7 @@ struct FTDUIPainter
 			const float T = Start + 2 * PI * Fraction * I / Count;
 			Points.Add((C + FVector2D(FMath::Cos(T), FMath::Sin(T)) * R) * Scale + Origin);
 		}
-		FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Color, true, Width * Scale);
+		FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Faded(Color), true, Width * Scale);
 	}
 	/** The space HUD's refined meter: dark track, gradient fill, ink lip and end cap, ten dark segments when 7+ tall. */
 	void Meter(float X, float Y, float W, float Value, FLinearColor Color, float Height = 4) const
@@ -201,7 +205,7 @@ struct FTDUIPainter
 		{
 			Points.Add((FVector2D(X, Y) + Q) * Scale + Origin);
 		}
-		FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, C, true, 1.8f * Scale);
+		FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Faded(C), true, 1.8f * Scale);
 	}
 	void ShieldIcon(float X, float Y, FLinearColor C) const
 	{
@@ -210,7 +214,7 @@ struct FTDUIPainter
 		{
 			Points.Add((FVector2D(X, Y) + Q) * Scale + Origin);
 		}
-		FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, C, true, 1.8f * Scale);
+		FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Faded(C), true, 1.8f * Scale);
 	}
 	/** The space HUD's reticle: two arc halves, ink ticks and a centre dot. */
 	void Reticle(FVector2D Center, FLinearColor Accent) const
