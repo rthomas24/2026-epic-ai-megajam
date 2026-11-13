@@ -126,6 +126,7 @@ open) · `done` (on `main`, tests pass, review closed).
 
 | Item | Owner | State | Started (EST) | Finished / on `main` | Shared paths touched |
 |---|---|---|---|---|---|
+| **Animation lane** (plan and ledger `animations.md`; R-032): audit of every pilot and crew move, then the pilot blade set, body mechanics, crew sets, Warden, interactions, mechanical parts | Lead + animation builder sub-agents, Grok Bot (clips), T5 (timing) | in progress | Nov 13 12:49 | - | `/animations.md`, `/AGENTS.md` (one protocol line); `ArtSource/EngAnim/**`, `Gameplay/Characters/*/Anims/**` |
 | **Integration batch A** (ENG-35 sounds wired, T1 / T2 / T3 / T5 morning batches, terrain M2, terrain materials, Grok sources): full suite gate, then push | Lead | in progress | Nov 13 11:40 | - | `Config/DefaultGame.ini` (already on `main`) |
 | **Integration batch B** (new flight HUD as default + onboarding card, atmosphere boost + 17 km planet zone + exhaust hook, on-foot sounds + menu loop + ReturnToMenu fix, planet slab fit, Rodin drone, Presentation-wins-field-by-field loader R-029) | Lead | queued (on `lead/int` `51c2a43`) | Nov 13 12:20 | - | `Config/DefaultGame.ini` (default HUD line) |
 | T1 now: music intensity gain for Nick's Audio (N-037). Next: camera feel pass (speed FOV, boost kick, shake, scaled by Settings), gamepad pass on every screen, exhaust check with the real effects | T1 | in progress | Nov 13 12:15 | - | none |

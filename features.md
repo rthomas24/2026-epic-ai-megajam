@@ -39,7 +39,7 @@ tests, independent review closed, played by an agent in the running game; **wait
 `✅ done` (all of that, and a human has played it and is happy) · `🐞 has bugs`
 
 **Where the game stands and who does what today: [Nov 13 realignment](#nov-13-realignment-status-and-plan).**
-Item by item with tests, reviews and open findings: `docs/eng/STATUS.md` (engineering) and
+Animation plan and ledger: [`animations.md`](animations.md). Item by item with tests, reviews and open findings: `docs/eng/STATUS.md` (engineering) and
 `docs/visual/STATUS.md` (presentation). Live ownership: `CLAIMS.md`.
 
 ### Contents
@@ -127,7 +127,7 @@ still replaces ours with no code change.
 | Flight HUD | ENG-36 | 🟦 **Ryan** | Claude (T2) | T2 |
 | Sound effects | ENG-35 | 🟦 **Ryan** | Claude audio builder | T1-T5 |
 | Space dressing, 8K sky stand-in, intro, capture pipeline for the video | ENG-17, ENG-33 | 🟦 **Ryan** | Claude | T3, T4 |
-| **Animation** for characters: pilot blade combat, Warden, crew; retarget, clean-up, animation blueprints | ART-08 | 🟦 **Ryan** | Grok Bot (raw clips, rigged models); Lead's animation builder (retarget, clean, cut, blueprints) | T5 (which move plays when, hit and deflect timing) |
+| **Animation**, all of it (plan and ledger: `animations.md`): characters, mechanical parts, in-engine motion | ART-08 | 🟦 **Ryan** | Grok Bot (raw clips, rigged models); Lead's animation builder (retarget, clean, cut, blueprints) | T5 (which move plays when, hit and deflect timing) |
 | Art direction, style guide, sign-off | ART-01, ART-02 | 🟩 **Nick** | Nicholas | - |
 | Space sky (Hero), galaxy look | ART-05 | 🟩 **Nick** | Nick's Environment agent | Nick |
 | Lighting, fog, grade, post-process on every level, including the two planets | ART-13 | 🟩 **Nick** | Nick's Environment agent | Nick |
@@ -139,6 +139,13 @@ still replaces ours with no code change.
 
 If Nick's side does not pick up one of its rows by Nov 14 noon, Ryan's Lead takes it as a fallback and says so on
 the board (AGENTS.md §11).
+
+### Animation (Ryan's lane, added Nov 13): see [animations.md](animations.md)
+Every animation in the game has a row in **`animations.md`**: who makes it, by which route, where it lives and its
+state. Ryan's Lead leads it. Three routes: generated or library motion through Grok Bot and third-party tools, authored
+in Blender, or built in-engine (animation blueprints, blend spaces, Control Rig, code). Order of work: audit what
+exists, the pilot's blade set, pilot body mechanics (strafing, foot IK on the new slopes), crew sets, the Warden,
+interactions, mechanical parts. Nick's agents ask or send notes with an `Animation:` message on the board.
 
 ### Engineering today (Claude side)
 
