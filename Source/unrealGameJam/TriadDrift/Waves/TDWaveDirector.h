@@ -31,6 +31,26 @@ enum class ETDWaveState : uint8
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDWarpInSignature, FVector, Location, FName, EnemyId);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDWaveStateSignature, ETDWaveState, NewState);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDEnemySpawnedSignature, AActor*, Enemy);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTDTutorialSignature);
+
+/** The tutorial battle's ending (storyline 13 phase 05). */
+UENUM(BlueprintType)
+enum class ETDTutorialPhase : uint8
+{
+	Battle,		// fighting (phases 01-04)
+	Withdrawal,	// Command ordered the pull-back: escape boundary and marker up, pursuers stop at the perimeter
+	Escaped		// the flown ship crossed the boundary: the tutorial is complete
+};
+
+/** Whether the tutorial wave ends with the withdrawal (Auto = real levels only, so simulations and other lanes'
+ *  test worlds keep clearing wave 2 by kills). */
+UENUM(BlueprintType)
+enum class ETDTutorialMode : uint8
+{
+	Auto,
+	ForceOn,
+	ForceOff
+};
 
 /** Spawns one enemy. Return null to skip. Tests install stand-ins through SetSpawnFactory. */
 using FTDEnemySpawnFactory = TFunction<AActor*(UWorld* World, FName EnemyId, const FTransform& Transform)>;
@@ -233,6 +253,48 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Waves")
 	FTDEnemySpawnedSignature OnEnemySpawned;
 
+	// --- Tutorial withdrawal (storyline 13 phase 05; Nicholas's decision) ------------------------------------
+
+	/** Command orders the withdrawal: the escape boundary and its marker appear (T1, T2, T3 hang on this). */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Tutorial")
+	FTDTutorialSignature OnTutorialWithdrawalOrdered;
+
+	/** The flown ship crossed the escape boundary: the tutorial is complete (T1's music fade, T3's Aftermath). Once. */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Tutorial")
+	FTDTutorialSignature OnTutorialEscaped;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial")
+	ETDTutorialMode TutorialMode = ETDTutorialMode::Auto;
+
+	/** The escape boundary sits this far (cm) from the battle centre, on the bearing to Verdance. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float EscapeBoundaryDistance = 250000.f;
+
+	/** Pursuers stop this far (cm) short of the boundary and hold there. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float PursuerStopMargin = 20000.f;
+
+	/** Heavy contact engaged: this long (s) after it arrives, if it took damage or the flown ship came within range. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float HeavyEngagedSeconds = 40.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float HeavyEngageRange = 150000.f;
+
+	/** ...or at this fraction of its hull. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0", ClampMax = "1"))
+	float HeavyHullTrigger = 0.5f;
+
+	ETDTutorialPhase GetTutorialPhase() const { return TutorialPhase; }
+	/** The boundary plane (a point on it and its outward normal). False before the withdrawal. */
+	bool GetEscapeBoundary(FVector& OutPoint, FVector& OutNormal) const;
+	/** The corridor marker (tags TD.Objective.Marker and TD.Tutorial.Escape) while the withdrawal is on. */
+	AActor* GetEscapeMarker() const { return EscapeMarker.Get(); }
+	AActor* GetHeavyContact() const { return HeavyContact.Get(); }
+	bool IsTutorialWithdrawalWave() const;
+	/** Pursuers holding at the perimeter right now (tests). */
+	int32 GetHoldingPursuers() const { return HeldPursuers.Num(); }
+
 	virtual void Tick(float DeltaSeconds) override;
 
 protected:
@@ -301,6 +363,19 @@ protected:
 	float OpeningGraceLeft = 0.f;
 	int32 OpeningGraceShotBaseline = 0;
 	void TickOpeningGrace(float DeltaSeconds);
+	void TickTutorial(float DeltaSeconds);
+	void BeginWithdrawal();
+	void CompleteEscape();
+	void ResetTutorial();
+	ETDTutorialPhase TutorialPhase = ETDTutorialPhase::Battle;
+	TWeakObjectPtr<AActor> HeavyContact;
+	bool bHeavySeen = false;
+	bool bHeavyEngaged = false;
+	float HeavyTime = 0.f;
+	FVector EscapePoint = FVector::ZeroVector;
+	FVector EscapeNormal = FVector::ForwardVector;
+	TWeakObjectPtr<AActor> EscapeMarker;
+	TSet<TWeakObjectPtr<AActor>> HeldPursuers;
 	void EndOpeningGrace();
 	int32 PlayerShotsFired() const;
 	UFUNCTION()

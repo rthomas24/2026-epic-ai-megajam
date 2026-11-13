@@ -2,6 +2,9 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
+#include "TriadDrift/World/TDPlanetAtmosphere.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "GameFramework/Controller.h"
 
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
@@ -118,6 +121,9 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		W.Groups.Add(TDWaveDir_Group(HookInterceptor, 1, 1, ETDSpawnZone::Behind, 8.f));
 		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 5, ETDSpawnZone::AnyFlank, 12.f));
 		W.Groups.Add(TDWaveDir_Group(ShardFighter, 1, 5, ETDSpawnZone::AnyFlank, 24.f));
+		// Storyline 13 phase 04: the heavy contact ("That one's bigger. Focus it together!"), then the withdrawal.
+		W.Groups.Add(TDWaveDir_Group(WallGunship, 1, 1, ETDSpawnZone::Behind, 20.f));
+		W.bTutorialWithdrawal = true;
 		W.bRevealsMarker = true;
 		W.MarkerRevealed = ETDDestination::Verdance;
 		Out.Add(W);
@@ -435,6 +441,7 @@ void ATDWaveDirector::BeginWave(int32 Index)
 {
 	const FTDWaveDef& Wave = Waves[Index];
 	CurrentWave = Index;
+	ResetTutorial();	// a new wave or a retake starts the tutorial ending over
 	// The tutorial opening: wave 1 only (a retake of wave 1 gets it again).
 	bOpeningGrace = Index == 0 && OpeningGraceSeconds > 0.f;
 	bOpeningFloor = bOpeningGrace;
@@ -845,6 +852,14 @@ void ATDWaveDirector::SpawnGroup(const FPendingGroup& P)
 				--EnemiesTotal;	// keep the HUD honest if a spawn fails
 				continue;
 			}
+			// The tutorial's heavy contact: the gunship of the withdrawal wave (by the group's id, so stand-ins count).
+			if (G.EnemyId == TDEnemyIds::WallGunship && !bHeavySeen && IsTutorialWithdrawalWave())
+			{
+				HeavyContact = Enemy;
+				bHeavySeen = true;
+				HeavyTime = 0.f;
+				UTDStorySubsystem::Fire(this, TEXT("TB_Wren_Bigger"));
+			}
 
 			if (ITDWaveEnemy* WaveEnemy = Cast<ITDWaveEnemy>(Enemy))
 			{
@@ -884,6 +899,7 @@ void ATDWaveDirector::RegisterEnemy(AActor* Enemy)
 	}
 	Living.Add(Enemy);
 	++EnemiesTotal;
+
 	Enemy->OnDestroyed.AddUniqueDynamic(this, &ATDWaveDirector::HandleEnemyDestroyed);
 	if (UTDHealthComponent* H = UTDStatics::GetHealth(Enemy))
 	{
@@ -949,6 +965,12 @@ void ATDWaveDirector::CheckWaveCleared()
 	// FinishWave's side effects).
 	if (Living.Num() == 0 && !bCutPending)
 	{
+		if (IsTutorialWithdrawalWave() && TutorialPhase != ETDTutorialPhase::Escaped)
+		{
+			// Every enemy down is not the end of the tutorial (Nicholas): Command orders the withdrawal instead.
+			if (TutorialPhase == ETDTutorialPhase::Battle) { BeginWithdrawal(); }
+			return;
+		}
 		FinishWave();
 	}
 }
@@ -1117,9 +1139,168 @@ void ATDWaveDirector::StopAndClear()
 
 // --------------------------------------------------------------------------------------------- tick
 
+bool ATDWaveDirector::IsTutorialWithdrawalWave() const
+{
+	if (!Waves.IsValidIndex(CurrentWave) || !Waves[CurrentWave].bTutorialWithdrawal || TutorialMode == ETDTutorialMode::ForceOff)
+	{
+		return false;
+	}
+	if (TutorialMode == ETDTutorialMode::ForceOn)
+	{
+		return true;
+	}
+	// Real levels only: test worlds and simulations keep clearing this wave by kills.
+	const UWorld* World = GetWorld();
+	return World && !World->GetOutermost()->GetName().StartsWith(TEXT("/Temp/"));
+}
+
+bool ATDWaveDirector::GetEscapeBoundary(FVector& OutPoint, FVector& OutNormal) const
+{
+	OutPoint = EscapePoint;
+	OutNormal = EscapeNormal;
+	return TutorialPhase != ETDTutorialPhase::Battle;
+}
+
+void ATDWaveDirector::ResetTutorial()
+{
+	for (const TWeakObjectPtr<AActor>& W : HeldPursuers)
+	{
+		if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(W.Get()))
+		{
+			Craft->SetFlightParked(false);
+			if (AController* C = Craft->GetController()) { C->SetActorTickEnabled(true); }
+		}
+	}
+	HeldPursuers.Reset();
+	if (AActor* M = EscapeMarker.Get()) { M->Destroy(); }
+	EscapeMarker.Reset();
+	TutorialPhase = ETDTutorialPhase::Battle;
+	HeavyContact.Reset();
+	bHeavySeen = false;
+	bHeavyEngaged = false;
+	HeavyTime = 0.f;
+}
+
+void ATDWaveDirector::BeginWithdrawal()
+{
+	if (TutorialPhase != ETDTutorialPhase::Battle)
+	{
+		return;
+	}
+	TutorialPhase = ETDTutorialPhase::Withdrawal;
+	// The boundary: EscapeBoundaryDistance from the battle centre (the galaxy's combat zone, else where the flown ship
+	// is), on the bearing to Verdance - the way the fleet is heading and the story goes next.
+	const AActor* Anchor = GetSpawnAnchor();
+	FVector Centre = Anchor ? Anchor->GetActorLocation() : GetActorLocation();
+	FVector Toward = FVector::ForwardVector;
+	if (const ATDGalaxyLayout* Layout = ATDGalaxyLayout::Get(this))
+	{
+		Centre = Layout->GetActorTransform().TransformPosition(Layout->Layout.CombatZoneCenter);
+		for (const ATDPlanetAtmosphere* P : Layout->GetPlanets())
+		{
+			if (P && P->GetDestination() == ETDDestination::Verdance) { Toward = (P->GetPlanetCenter() - Centre).GetSafeNormal(); }
+		}
+	}
+	EscapeNormal = Toward.IsNearlyZero() ? FVector::ForwardVector : Toward;
+	EscapePoint = Centre + EscapeNormal * EscapeBoundaryDistance;
+	// The corridor marker: T2's HUD draws an objective waypoint on TD.Objective.Marker.
+	FActorSpawnParameters P;
+	P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	if (AActor* M = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform(EscapeNormal.Rotation(), EscapePoint), P))
+	{
+		USceneComponent* Root = NewObject<USceneComponent>(M, TEXT("Root"));
+		M->SetRootComponent(Root);
+		Root->RegisterComponent();
+		M->SetActorLocationAndRotation(EscapePoint, EscapeNormal.Rotation());
+		M->Tags.Add(TDTags::ObjectiveMarker);
+		M->Tags.Add(TEXT("TD.Tutorial.Escape"));
+		EscapeMarker = M;
+	}
+	UTDStorySubsystem::Fire(this, TEXT("TB_Command_FallBack"));
+	OnTutorialWithdrawalOrdered.Broadcast();
+	UE_LOG(LogTriadDrift, Log, TEXT("TD.Waves: tutorial withdrawal ordered - escape boundary %.0f m out toward Verdance"), EscapeBoundaryDistance / 100.f);
+}
+
+void ATDWaveDirector::CompleteEscape()
+{
+	if (TutorialPhase == ETDTutorialPhase::Escaped)
+	{
+		return;
+	}
+	TutorialPhase = ETDTutorialPhase::Escaped;
+	if (AActor* M = EscapeMarker.Get()) { M->Destroy(); }
+	EscapeMarker.Reset();
+	HeldPursuers.Reset();
+	UTDStorySubsystem::Fire(this, TEXT("TB_Kato_BreakingOff"));
+	UTDStorySubsystem::Fire(this, TEXT("TB_Escaped"));
+	OnTutorialEscaped.Broadcast();
+	UE_LOG(LogTriadDrift, Log, TEXT("TD.Waves: tutorial complete - the flown ship crossed the escape boundary"));
+	// What remains stands down (the gunship may still be alive), then the wave clears the normal way.
+	Pending.Reset();
+	ClearEnemies();
+	FinishWave();
+}
+
+void ATDWaveDirector::TickTutorial(float DeltaSeconds)
+{
+	const AActor* Flown = GetSpawnAnchor();
+	if (TutorialPhase == ETDTutorialPhase::Battle)
+	{
+		// Phase 04 -> 05: the heavy contact engaged long enough, worn down to half, or destroyed.
+		AActor* Heavy = HeavyContact.Get();
+		if (!bHeavySeen)
+		{
+			return;
+		}
+		const UTDHealthComponent* H = Heavy ? UTDStatics::GetHealth(Heavy) : nullptr;
+		const bool bDown = !Heavy || !H || H->IsDead();
+		if (!bDown)
+		{
+			HeavyTime += DeltaSeconds;
+			bHeavyEngaged |= H->GetHull01() < 0.999f || (Flown && FVector::Dist(Flown->GetActorLocation(), Heavy->GetActorLocation()) <= HeavyEngageRange);
+		}
+		if (bDown || H->GetHull01() <= HeavyHullTrigger || (bHeavyEngaged && HeavyTime >= HeavyEngagedSeconds))
+		{
+			BeginWithdrawal();
+		}
+		return;
+	}
+	if (TutorialPhase != ETDTutorialPhase::Withdrawal)
+	{
+		return;
+	}
+	// Pursuers chase to the perimeter and stop there, deliberately: parked, guns off, facing the squad.
+	for (const TWeakObjectPtr<AActor>& Weak : Living)
+	{
+		AActor* A = Weak.Get();
+		if (!A || HeldPursuers.Contains(A)) { continue; }
+		if (FVector::DotProduct(A->GetActorLocation() - EscapePoint, EscapeNormal) > -PursuerStopMargin)
+		{
+			HeldPursuers.Add(A);
+			if (ATDEnemyShip* Ship = Cast<ATDEnemyShip>(A))
+			{
+				Ship->SetGunsFiring(false, nullptr);
+				if (AController* C = Ship->GetController()) { C->SetActorTickEnabled(false); }
+				Ship->SetFlightParked(true);
+				if (Flown) { Ship->SetActorRotation((Flown->GetActorLocation() - Ship->GetActorLocation()).Rotation()); }
+			}
+		}
+	}
+	// The flown ship crossing completes the tutorial (wingmen follow; the player owns the moment).
+	if (Flown && FVector::DotProduct(Flown->GetActorLocation() - EscapePoint, EscapeNormal) > 0.f)
+	{
+		CompleteEscape();
+	}
+}
+
 void ATDWaveDirector::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if ((State == ETDWaveState::WarpingIn || State == ETDWaveState::Active) && IsTutorialWithdrawalWave())
+	{
+		TickTutorial(DeltaSeconds);
+	}
 
 	if (bOpeningGrace)
 	{
