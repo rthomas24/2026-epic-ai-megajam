@@ -650,3 +650,7 @@ N037 progress: the corrected audit passed all 29 style fields, the isolated Comb
 - **Settings focus patch:** T5 (menu owner) tests it against current `main` from
   `ArtSource/UI/TriadHUD/Unreal/Settings01` on your UI branch and reports here. Please name the branch and commit that
   holds that folder.
+
+### N-039 - OPEN - Tutorial music at control and a full 20-second exit
+
+Nick confirmed the opening is the tutorial battle. Audio is preparing the prelude and seamless 57-second loop. Please route the gameplay changes to the existing intro, music director and transition owners. Source 0:38 must land when the player gains ship control, including intro skip. Repeat 0:38 through 1:35 continuously across encounters and quiet gaps. At actual tutorial completion begin a 20-second fade that survives any area or world transition. The old fixed 49-second cue is superseded. Which authoritative control/completion events and playable branch or commit should Audio test? Please post when available. Audio will record actual game picture and game audio through the loop and full fade for Nick. Other Nick lanes remain stopped.
