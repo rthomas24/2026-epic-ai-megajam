@@ -70,8 +70,8 @@ public:
 	void SetSoundsForTests(USoundBase* Prelude, USoundBase* Loop, float PreludeSeconds, float FadeSeconds);
 
 private:
-	void HandleIntroStarted(UTDIntroDirector* Intro);
-	void HandleIntroFinished(UTDIntroDirector* Intro, bool bSkipped);
+	/** T3's UTDIntroDirector::OnIntroFinished (bound per world): the control frame, also with no intro. */
+	UFUNCTION() void HandleIntroFinished(bool bPlayed, bool bSkipped);
 	UFUNCTION() void HandleWaveCleared(int32 WaveNumber);
 	void StartVoice(USoundBase* Sound, float StartSeconds, UWorld* World);
 	void StopVoice();
@@ -101,6 +101,4 @@ private:
 	float Volume = 1.f;
 	int32 VoicesStarted = 0;
 	bool bPreludeStarted = false;
-	FDelegateHandle IntroStartedHandle;
-	FDelegateHandle IntroFinishedHandle;
 };

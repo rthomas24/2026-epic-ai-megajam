@@ -111,7 +111,8 @@ bool FTDTutorialLoopAndFade::RunTest(const FString& Parameters)
 		FRun R;
 		if (!TestTrue(*(Tag + TEXT("set up")), R.Init(false))) { return false; }
 		// No intro: the loop starts on the run's first playable frame (the run leaves the Intro phase).
-		R.GI->SetPhase(ETDGamePhase::Waves1to2);
+		R.Run(0.2f, Dt); // binds this world's intro event
+		R.Intro->NotifyRunStartedWithoutIntro(); // the galaxy entered without the intro: the control frame
 		R.Run(0.2f, Dt);
 		TestEqual(*(Tag + TEXT("no intro: loop at control")), R.T->GetState(), ETDTutorialMusicState::Loop);
 		const int32 Voices = R.T->GetVoicesStarted();
@@ -162,11 +163,17 @@ bool FTDTutorialContinue::RunTest(const FString& Parameters)
 	R.GI->SetPhase(ETDGamePhase::Waves1to2);
 	R.Run(1.f, 1.f / 60.f);
 	TestEqual(TEXT("continue: no tutorial music"), R.T->GetState(), ETDTutorialMusicState::Off);
-	// The menu stops a running tutorial.
+	// New Game arms it from the menu (live bug, Nov 13: the menu world stopped it before the travel): armed survives.
 	R.GI->StartNewRun();
-	R.Run(0.2f, 1.f / 60.f);
 	R.T->Step(R.W.GetWorld(), 1.f / 60.f, /*bMenuMap*/ true);
-	TestEqual(TEXT("menu: stopped"), R.T->GetState(), ETDTutorialMusicState::Off);
+	TestEqual(TEXT("armed on the menu: kept for the galaxy"), R.T->GetState(), ETDTutorialMusicState::Armed);
+	// A started tutorial stops on a quit to the menu.
+	R.Run(0.2f, 1.f / 60.f);
+	R.Intro->NotifyRunStartedWithoutIntro();
+	R.Run(0.2f, 1.f / 60.f);
+	TestEqual(TEXT("playing"), R.T->GetState(), ETDTutorialMusicState::Loop);
+	R.T->Step(R.W.GetWorld(), 1.f / 60.f, /*bMenuMap*/ true);
+	TestEqual(TEXT("quit to menu: stopped"), R.T->GetState(), ETDTutorialMusicState::Off);
 	return true;
 }
 

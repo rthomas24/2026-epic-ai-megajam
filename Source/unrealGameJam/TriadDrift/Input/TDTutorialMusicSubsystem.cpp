@@ -17,14 +17,10 @@
 void UTDTutorialMusicSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-	IntroStartedHandle = UTDIntroDirector::OnAnyIntroStarted.AddUObject(this, &UTDTutorialMusicSubsystem::HandleIntroStarted);
-	IntroFinishedHandle = UTDIntroDirector::OnAnyIntroFinished.AddUObject(this, &UTDTutorialMusicSubsystem::HandleIntroFinished);
 }
 
 void UTDTutorialMusicSubsystem::Deinitialize()
 {
-	UTDIntroDirector::OnAnyIntroStarted.Remove(IntroStartedHandle);
-	UTDIntroDirector::OnAnyIntroFinished.Remove(IntroFinishedHandle);
 	StopVoice();
 	Super::Deinitialize();
 }
@@ -97,30 +93,18 @@ float UTDTutorialMusicSubsystem::FadeSeconds() const
 	return Style ? Style->TutorialFadeOutSeconds : 20.f;
 }
 
-void UTDTutorialMusicSubsystem::HandleIntroStarted(UTDIntroDirector* InIntro)
+void UTDTutorialMusicSubsystem::HandleIntroFinished(bool bPlayed, bool bSkipped)
 {
-	if (State == ETDTutorialMusicState::Armed && InIntro && InIntro->GetWorld() && InIntro->GetWorld()->GetGameInstance() == GetGameInstance())
-	{
-		Intro = InIntro;
-	}
-}
-
-void UTDTutorialMusicSubsystem::HandleIntroFinished(UTDIntroDirector* InIntro, bool bSkipped)
-{
-	if (!InIntro || !InIntro->GetWorld() || InIntro->GetWorld()->GetGameInstance() != GetGameInstance())
-	{
-		return;
-	}
 	if (State != ETDTutorialMusicState::Armed && State != ETDTutorialMusicState::Prelude)
 	{
 		return;
 	}
 	// The control frame: the loop's first beat. A prelude still playing (a skip) is cut.
 	ControlClock = Clock;
-	StartVoice(LoopSound(), 0.f, InIntro->GetWorld());
+	StartVoice(LoopSound(), 0.f, BoundWorld.Get());
 	LoopStartClock = Clock;
 	State = ETDTutorialMusicState::Loop;
-	UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: loop at control (%s intro)"), bSkipped ? TEXT("skipped") : TEXT("watched"));
+	UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: loop at control (%s)"), !bPlayed ? TEXT("no intro") : bSkipped ? TEXT("intro skipped") : TEXT("intro watched"));
 }
 
 void UTDTutorialMusicSubsystem::HandleWaveCleared(int32 WaveNumber)
@@ -147,7 +131,11 @@ void UTDTutorialMusicSubsystem::Step(UWorld* World, float Dt, bool bMenuMap)
 	Clock += Dt;
 	if (bMenuMap)
 	{
-		Stop(TEXT("menu"));
+		// New Game arms it from the menu: only a tutorial that has started stops there (quit to menu).
+		if (State != ETDTutorialMusicState::Armed)
+		{
+			Stop(TEXT("menu"));
+		}
 		return;
 	}
 	// Listen to this world's waves (the voice outlives worlds; the binding follows the current one).
@@ -161,50 +149,30 @@ void UTDTutorialMusicSubsystem::Step(UWorld* World, float Dt, bool bMenuMap)
 		{
 			Bus->OnWaveCleared.AddUniqueDynamic(this, &UTDTutorialMusicSubsystem::HandleWaveCleared);
 		}
+		if (UTDIntroDirector* Here = UTDIntroDirector::Get(World))
+		{
+			Here->OnIntroFinished.AddUniqueDynamic(this, &UTDTutorialMusicSubsystem::HandleIntroFinished);
+		}
 		BoundWorld = World;
 	}
 
-	if (State == ETDTutorialMusicState::Armed || State == ETDTutorialMusicState::Prelude)
+	if (State == ETDTutorialMusicState::Armed)
 	{
-		UTDIntroDirector* Director = Intro.Get();
-		if (!Director)
+		// The prelude ends on the control frame: it starts at (intro length - prelude length), 11.0 s into the 49 s
+		// intro for a 38 s prelude, joining at the right offset if that point fell between two frames.
+		UTDIntroDirector* Director = UTDIntroDirector::Get(World);
+		const float Len = PreludeSeconds();
+		if (Director && Director->IsPlaying() && !Director->WasSkipped() && Len > 0.f && !bPreludeStarted)
 		{
-			UTDIntroDirector* Here = UTDIntroDirector::Get(World);
-			Director = Here && Here->IsPlaying() ? Here : nullptr;
-			Intro = Director;
-		}
-		if (Director && Director->IsPlaying())
-		{
-			// The prelude ends on the control frame: it starts at (intro length - prelude length), joining at the
-			// right offset if that point fell between two frames (or before the intro began).
-			const float Len = PreludeSeconds();
-			// Control returns after the shots AND the hand-off blend (48 + 1 = 49 s today): the prelude starts that
-			// long before it (11.0 s into the intro for a 38 s prelude).
-			const float StartAt = Director->GetTotalDuration() + UTDIntroDirector::HandOffSeconds - Len;
-			if (!bPreludeStarted && Len > 0.f && !Director->WasSkipped() && Director->GetElapsed() >= StartAt)
+			const float StartAt = Director->GetIntroLength() - Len;
+			if (Director->GetIntroTime() >= StartAt)
 			{
 				bPreludeStarted = true;
-				PreludeStartOffset = FMath::Max(0.f, Director->GetElapsed() - StartAt);
-				PreludeIntroTime = Director->GetElapsed();
+				PreludeStartOffset = FMath::Max(0.f, Director->GetIntroTime() - StartAt);
+				PreludeIntroTime = Director->GetIntroTime();
 				PreludeStartClock = Clock;
 				StartVoice(PreludeSound(), PreludeStartOffset, World);
 				State = ETDTutorialMusicState::Prelude;
-			}
-		}
-		else if (State == ETDTutorialMusicState::Armed && !Director)
-		{
-			// A New Game with no intro (td.Intro 0, headless): the control frame is the run's first playable frame.
-			// Wait for the galaxy's level entry (the run leaves the Intro phase there).
-			if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(World))
-			{
-				if (Flow->GetProgress().Phase != ETDGamePhase::Intro)
-				{
-					ControlClock = Clock;
-					StartVoice(LoopSound(), 0.f, World);
-					LoopStartClock = Clock;
-					State = ETDTutorialMusicState::Loop;
-					UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: loop at control (no intro)"));
-				}
 			}
 		}
 	}
@@ -261,3 +229,34 @@ int32 UTDTutorialMusicSubsystem::GetLiveVoiceCount() const
 	// No audio device (tests, -nosound): the logical voice.
 	return (State == ETDTutorialMusicState::Prelude || State == ETDTutorialMusicState::Loop || State == ETDTutorialMusicState::FadingOut) ? 1 : 0;
 }
+
+#if !UE_BUILD_SHIPPING
+#include "HAL/IConsoleManager.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
+
+namespace TDTutorialMusicDebug
+{
+	// Audio recording (N-039): a New Game straight into the intro from any map, as the menu's NEW GAME does.
+	static FAutoConsoleCommandWithWorldAndArgs GNewGame(TEXT("TD.Tutorial.NewGame"),
+		TEXT("Start a New Game into the intro (as the menu's NEW GAME): arms the tutorial music."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
+		{
+			UTDGameInstance* GI = UTDGameInstance::Get(World);
+			if (!GI) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.Tutorial.NewGame: no Triad Drift game instance")); return; }
+			GI->StartNewRun();
+			const bool bOk = GI->TravelTo(ETDDestination::Galaxy, NAME_None);
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Tutorial.NewGame: %s"), bOk ? TEXT("travelling to the galaxy, intro next") : TEXT("travel refused"));
+		}));
+
+	static FAutoConsoleCommandWithWorldAndArgs GStatus(TEXT("TD.Tutorial.Status"),
+		TEXT("Log the tutorial music: state, prelude / control / loop times, fade volume, voices."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
+		{
+			const UTDTutorialMusicSubsystem* T = UTDTutorialMusicSubsystem::Get(World);
+			if (!T) { UE_LOG(LogTriadDrift, Log, TEXT("TD.Tutorial.Status: no subsystem")); return; }
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Tutorial.Status: %s clock %.2f | prelude at intro %.2f s (clock %.2f, offset %.2f) | control %.2f loop %.2f | volume %.2f | voices started %d live %d"),
+				*UEnum::GetValueAsString(T->GetState()), T->GetClock(), T->GetPreludeIntroTime(), T->GetPreludeStartClock(), T->GetPreludeStartOffset(),
+				T->GetControlClock(), T->GetLoopStartClock(), T->GetFadeVolume(), T->GetVoicesStarted(), T->GetLiveVoiceCount());
+		}));
+}
+#endif
