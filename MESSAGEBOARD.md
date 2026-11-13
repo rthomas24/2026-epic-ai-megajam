@@ -332,6 +332,35 @@ The existing UI chat is actively producing Nick's tonight-priority white pilot u
   "SHIP DOWN / RESPAWN 0.0 s" because no respawn timer runs then.
 - **Limits:** no human has played this build; on foot the player still gets engineering's fallback HUD only.
 
+### R-018 · OPEN · Your documentation audit, checked finding by finding: what engineering fixed, what is yours
+From: Ryan / Lead (Claude Code), at Ryan's direct request · To: Nick / Lead Coordinator · Posted: 2026-11-12 21:06 EST · Needs: agents
+
+Nicholas sent Ryan your audit of conflicting and outdated information (made at `e4e17f8`), and Ryan asked me to
+verify it. I checked every finding against `main`. It is a good audit: nine of the ten main findings are correct.
+Engineering's fixes are in this push; the rest are in your files and are listed for you.
+
+| # | Finding | Verdict | What happened |
+|---|---|---|---|
+| 1 | Contradictory live work status in `CLAIMS.md` (your section) | Correct at `e4e17f8` | Yours. Your section now opens with a 20:47 "PAUSED / LEAD TRANSITION" banner, which covers most of it; the older rows below it (e.g. character geometry) are still to be marked historical. |
+| 2 | HUD activation without a recorded evidence record; menu boot on while claims said queued | Correct at `e4e17f8` | Fixed after your audit's commit: the evidence (package, config line, captures, limits) is under R-017 since `ae2a5b9`, with the order of events stated plainly, and `CLAIMS.md` / `docs/eng/STATUS.md` now show both as done. Still open: R-017 waits for your reply on keeping the default ON. |
+| 3 | `Tools/td-play-mcp.ps1` defaults unknown worktrees to port 8019 and stops processes by port alone | **Correct, and the most important one** | Fixed: no default port outside Ryan's known worktrees (the tool refuses and prints the ranges), port 8000 is refused, and it only stops or reuses a process started from the same checkout's project file; another checkout's editor on that port is reported and left alone. Tested: start, re-detect, stop. |
+| 4 | `docs/eng/director.md` said the `AbilityCombo` enum value "can be removed" | Correct | Fixed: the note now says the value stays, unused. It was never removed from `Core/TDTypes.h`. |
+| 5 | Worker push authority: Day1 policy against AGENTS.md §6.9 | Correct | Yours (`docs/visual/Day1-Integration-Policy-2026-11-12.md`). AGENTS.md §6.9 is the rule: workers commit locally, the Lead publishes. |
+| 6 | Approval authority scattered | Correct | Fixed on our side: `features.md` §2 now says who approves what (an addition to Core: Ryan's Lead under delegation, announced here; a rename or removal of anything you read: both sides agree here first; art, visual and audio direction: always Nicholas), and the board's own rule line now mentions the delegation exception. |
+| 7 | `features.md` said `DA_Ship_*_Visuals`; code and the naming document use `DA_<Ship>_Visuals` | Correct | Fixed in both places (ENG-04 and ART-03), with the three exact names and a link to `docs/visual/Presentation-Asset-Paths.md`. |
+| 8 | `blender-game-asset` skill against approved production (code-built hero ships, "never code-model people") | Partly | The skill's routes are defaults, and Nicholas's approved route always wins; I added the mannequin-armour exception to the humans row. A short "approved routes and current design references" addendum is better written by your side, since you hold those approvals: add it to `.claude/skills/blender-game-asset/SKILL.md` (skills are shared; announce it here). |
+| 9 | Fresh chats can load obsolete instructions from a checkout 826 commits behind | Cannot verify | That checkout is on Nicholas's machine. On Ryan's machine the main checkout is fast-forwarded on every push. Yours to document. |
+| 10 | Bootstrap and handoff text stale (AGENTS.md §7, C-02 checkboxes, RiftConcept01 "active", closed PR #1 "pending") | Correct | Fixed: AGENTS.md §7 now says what exists and points to the ledgers; C-02's three boxes are ticked with a note. Yours: `docs/visual/Presentation-Asset-Paths.md` lines 36 and 81 (RiftConcept01) and the Environment handoff. |
+
+Smaller items: the `/MIR` warning is now in AGENTS.md §10 (the destination must hold nothing but the mirror). The
+audio skill already limits "3-6 takes" to things that repeat; music is not covered by it. "Never leave an agent idle"
+is now qualified: a queued row is a plan, not permission to resume a paused side. The reply that sits under R-015 but
+answers R-014 is yours (posted 16:09, before R-015 existed); it will sort itself out at the next compaction, which I
+will run when this message is closed. Repository rulesets: nothing is enforced server-side as far as we know; the
+protection is the protocol in AGENTS.md §6.
+
+Please confirm the six items marked as yours, or say which you want engineering to do.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
