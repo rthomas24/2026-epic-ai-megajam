@@ -42,9 +42,12 @@ Restore a whole snapshot in a separate checkout: `git worktree add ../old art/mo
 
 | Asset | Version | Commit | Path |
 |---|---|---|---|
-| Null Armada fleet | engine glow pass (current) | `7b6305c` | `Content/TriadDrift/Gameplay/Characters/NullFleet`, `ArtSource/EngShips/NullFleet` |
+| Null Armada fighter and gunship | Hyper3D Rodin meshes from Grok Bot (current; not committed yet when this row was written: the Lead's commit of `Content/TriadDrift/Gameplay/Ships`) | Lead's commit | `Content/TriadDrift/Gameplay/Ships/{NullFighter,NullGunship}`, `ArtSource/EngShips/{Rodin,NullFighter,NullGunship}`. The old meshes `SM_Null_Fighter` / `SM_Null_Gunship` are still in `Content/TriadDrift/Gameplay/Characters/NullFleet`, only the `Mesh` and `MaterialOverrides` fields of `DA_Enemy_{Fighter,Gunship}_Visuals` changed (old data assets: `f77d40a`). Switch back: `TD_RODIN_REVERT=NullFighter,NullGunship` + `ArtSource/EngShips/Rodin/scripts/ue_import_rodin_ships.py`, or re-run `ue_import_null_fleet.py` |
+| Null Armada interceptor, bomber, carrier | same engineering meshes, now drawn with their own `MI_Null_*` (the visuals name it in `MaterialOverrides`); before, the placeholder's flat orange glow material stayed on the hull | Lead's commit | Switch back: `TD_RODIN_REVERT=OldFleet` + the same script (old data assets: `f77d40a`) |
+| Null Armada fleet | engine glow pass (still current for the interceptor, bomber, carrier, bay and turret) | `7b6305c` | `Content/TriadDrift/Gameplay/Characters/NullFleet`, `ArtSource/EngShips/NullFleet` |
 | | first version | `b603476` | same |
-| Squad ships (Rift, Lancer, Bastion) | r7 colour blocking (current) | `3270de4` | `Content/TriadDrift/Gameplay/Characters/Squad`, `ArtSource/EngShips/Squad` |
+| Squad ships (Rift, Lancer, Bastion) | Hyper3D Rodin meshes from Grok Bot (current; not committed yet when this row was written) | Lead's commit | `Content/TriadDrift/Gameplay/Ships/{Rift,Lancer,Bastion}`, `ArtSource/EngShips/{Rodin,Rift,Lancer,Bastion}`. The old meshes `SM_Squad_*` are still in `Content/TriadDrift/Gameplay/Characters/Squad`; only the `Mesh` and `MaterialOverrides` fields of `DA_{Rift,Lancer,Bastion}_Visuals` changed (old data assets: `f77d40a`). Switch back: `TD_RODIN_REVERT=Rift,Lancer,Bastion` + `ArtSource/EngShips/Rodin/scripts/ue_import_rodin_ships.py`, or re-run `ue_import_squad.py` |
+| | r7 colour blocking (code-built engineering ships) | `3270de4` | `Content/TriadDrift/Gameplay/Characters/Squad`, `ArtSource/EngShips/Squad` |
 | | r6, mostly white hulls | `b96f8bd` (+ `86256b2` socket fix) | same |
 | Dominion exterior | glow strengths for the running game (current) | `3a6c3ff` (+ Trim `bf5394b`) | `Content/TriadDrift/Gameplay/Props/Dominion`, `ArtSource/EngShips/Dominion` |
 | | r9 glow pass | `688c979` | same |
@@ -66,6 +69,8 @@ Restore a whole snapshot in a separate checkout: `git worktree add ../old art/mo
 | Planet ground | anti-tiling (current) | `44d790a` | same |
 | Crew (trooper, grunt, heavy) | centimetre rig on `SKEL_NullCrew` (current) | `5dc659f` | `Content/TriadDrift/Gameplay/Characters/{NullTrooper,NullGrunt,NullHeavy,Crew}` |
 | | mannequin-skeleton versions | `17e0437` and earlier | same |
+| Pilot blade clips (light 1-3, heavy, dash, hit react front / back) | Grok Bot HY-Motion set, retargeted (current on `lead/int`; not committed at hand-over) | Lead's commit | `Content/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_{Light1,Light2,Light3,Heavy,Dash,HitReact_Front,HitReact_Back}`; sources `A_Pilot_Blade_*`; scripts `ArtSource/EngAnim/PilotBlade` |
+| | template-mannequin boxing and rifle versions (the re-timed `*_v2` copies are kept too) | `1050b21` and earlier | same folder, as `A_Pilot_{Light1,Light2,Light3,Heavy,Dash,HitReact_Front,HitReact_Back}_v1`; to go back, copy `_v1` over the name |
 
 Earlier versions of anything: `git log --oneline -- <path>`. Local review renders and capture sets that are not in
 git (`Saved/TDShots/**`, `Saved/*/` builder scratch) are kept on Ryan's machine and are not cleaned up.
