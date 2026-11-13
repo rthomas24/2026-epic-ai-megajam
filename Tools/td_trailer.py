@@ -146,7 +146,7 @@ def card(path, lines, seconds):
     draws, y = [], -sum(int(sz * 1.25) for _, sz in lines) // 2
     for text, size in lines:
         draws.append("drawtext=fontfile='%s':text='%s':fontcolor=white:fontsize=%d:x=(w-text_w)/2:y=(h/2)+(%d):alpha='min(1,t/0.4)*min(1,(%g-t)/0.4)'"
-                     % (FONT, text.replace("'", "").replace("\:", "\:"), size, y, seconds))
+                     % (FONT, text.replace("'", "").replace(":", r"\:"), size, y, seconds))
         y += int(size * 1.25)
     bars = ["drawbox=x=(iw/2)-330+%d:y=(ih/2)+(%d):w=200:h=8:color=%s:t=fill" % (k * 230, y + 18, c)
             for k, c in enumerate(["0xFF33CC", "0x19E6FF", "0xFFA619"])]
