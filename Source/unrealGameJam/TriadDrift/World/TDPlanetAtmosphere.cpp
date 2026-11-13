@@ -205,6 +205,8 @@ void ATDPlanetAtmosphere::SetOpen(bool bInOpen)
 	if (!bOpen)
 	{
 		bEntered = false;
+		bRearmOnExit = false;
+		EntryInFlight.Reset();
 		PendingTravel = -1.f;
 	}
 	OnOpenChanged.Broadcast(this, bOpen);
@@ -253,7 +255,7 @@ void ATDPlanetAtmosphere::HandleOverlap(UPrimitiveComponent* /*OverlappedComp*/,
 void ATDPlanetAtmosphere::TryEnter(ATDSpacecraft* Ship)
 {
 	// Only the ship the player is flying takes the squad down.
-	if (!Ship || !bOpen || bEntered || !Ship->IsPlayerControlled())
+	if (!Ship || !bOpen || bEntered || bRearmOnExit || !Ship->IsPlayerControlled())
 	{
 		return;
 	}
@@ -267,6 +269,7 @@ void ATDPlanetAtmosphere::TryEnter(ATDSpacecraft* Ship)
 		{
 			if (Entry->BeginEntry(Destination, ReturnPoint, GetActorLocation(), PlanetRadius))	// radius: the dive stops above the surface
 			{
+				EntryInFlight = Entry;
 				return;
 			}
 		}
@@ -302,8 +305,26 @@ void ATDPlanetAtmosphere::Tick(float DeltaSeconds)
 		SyncWithProgress();
 	}
 
+	// An entry that ended without travelling (aborted by a scene restart or death, or the travel failed) hands the
+	// ship back: the planet must accept it again, or it stays un-enterable for the rest of the session. Re-arm once
+	// the ship has left the atmosphere, so a ship left inside doesn't re-dive in a loop.
+	if (bEntered && EntryInFlight.IsValid() && !EntryInFlight->IsEntering())
+	{
+		bEntered = false;
+		bRearmOnExit = true;
+		EntryInFlight.Reset();
+	}
+	if (bRearmOnExit)
+	{
+		const APawn* Player = UGameplayStatics::GetPlayerPawn(this, 0);
+		if (!Player || FVector::DistSquared(Player->GetActorLocation(), GetActorLocation()) > FMath::Square(AtmosphereRadius))
+		{
+			bRearmOnExit = false;
+		}
+	}
+
 	// Fallback to overlap events: the player's ship inside the atmosphere radius enters it.
-	if (bOpen && !bEntered)
+	if (bOpen && !bEntered && !bRearmOnExit)
 	{
 		if (ATDSpacecraft* Player = Cast<ATDSpacecraft>(UGameplayStatics::GetPlayerPawn(this, 0)))
 		{
