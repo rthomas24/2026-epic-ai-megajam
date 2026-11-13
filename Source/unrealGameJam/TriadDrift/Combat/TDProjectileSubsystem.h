@@ -58,6 +58,11 @@ public:
 	 */
 	int32 PlayPlaceholderExplosion(const FVector& Location, float Radius, const FLinearColor& Color, int32 DebrisCount = 8);
 
+	/** The explosion shell's colour scale (x the flash glow 14 = about 3.5): stays saturated instead of a white disc. */
+	static constexpr float ExplosionShellDim = 0.25f;
+	/** Debris streaks: a little under full glow so they read as hot fragments, not white sparks. */
+	static constexpr float ExplosionDebrisDim = 0.6f;
+
 	/** Flashes playing right now (tests). */
 	int32 GetPlayingFlashCount() const;
 

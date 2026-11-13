@@ -495,7 +495,8 @@ bool UTDEMPPower::OnActivate()
 	}
 	if (!FX || !FTDPowerPresentation::HasArt(FX->Activate))
 	{
-		ATDPlaceholderFlash::SpawnRingFlash(GetWorld(), Center, Radius, UTDStatics::ShipColor(ETDShipId::Lancer), 0.4f);
+		// Ship-aligned and growing out of the ship: the ring across the nose faces the chase camera.
+		ATDPlaceholderFlash::SpawnRingFlash(GetWorld(), Center, Radius, UTDStatics::ShipColor(ETDShipId::Lancer), 0.45f, Owner->GetActorRotation(), 0.08f);
 	}
 	return true;
 }

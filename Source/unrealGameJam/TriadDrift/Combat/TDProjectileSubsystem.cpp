@@ -169,9 +169,11 @@ int32 UTDProjectileSubsystem::PlayPlaceholderExplosion(const FVector& Location, 
 {
 	int32 Used = 0;
 	const float R = FMath::Max(Radius, 100.f);
-	// Hot core, then the slower glow shell in the team colour.
-	Used += PlayPlaceholderFlash(Location, R * 0.45f, FMath::Lerp(Color, FLinearColor::White, 0.3f), 0.25f) ? 1 : 0; // 0.6 white bloomed to a white ball (live)
-	Used += PlayPlaceholderFlash(Location, R, FMath::Lerp(Color, FLinearColor::White, 0.15f), 0.6f) ? 1 : 0;
+	// A small white-hot core, then the slower shell in pure team colour at a low glow. Live in a wave-5 furball the old
+	// shell (15% white at glow 14) blew out to big flat pink-white discs over the player's ship: against black space any
+	// saturated colour at glow 14 tonemaps to white. The shell now stays enemy red-orange / squad colour.
+	Used += PlayPlaceholderFlash(Location, R * 0.3f, FMath::Lerp(Color, FLinearColor::White, 0.45f), 0.22f) ? 1 : 0;
+	Used += PlayPlaceholderFlash(Location, R, Color * ExplosionShellDim, 0.6f) ? 1 : 0;
 	// Debris streaks, evenly spread on a jittered sphere so they read from any camera angle.
 	const int32 Count = FMath::Clamp(DebrisCount, 0, 16);
 	for (int32 I = 0; I < Count; ++I)
@@ -197,7 +199,7 @@ int32 UTDProjectileSubsystem::PlayPlaceholderExplosion(const FVector& Location, 
 		}
 		if (Flash)
 		{
-			Flash->PlayDebris(Location + Dir * R * 0.3f, Velocity, R * 0.6f, FMath::Clamp(R * 0.06f, 20.f, 90.f), Color, FMath::FRandRange(0.5f, 0.8f));
+			Flash->PlayDebris(Location + Dir * R * 0.3f, Velocity, R * 0.6f, FMath::Clamp(R * 0.06f, 20.f, 90.f), Color * ExplosionDebrisDim, FMath::FRandRange(0.5f, 0.8f));
 			++Used;
 		}
 	}

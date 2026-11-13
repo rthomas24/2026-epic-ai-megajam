@@ -353,6 +353,27 @@ bool FTDCombatPlaceholderExplosion::RunTest(const FString& Parameters)
 	const FVector Here(5000.f, 0.f, 0.f);
 	const int32 Used = Projectiles->PlayPlaceholderExplosion(Here, 600.f, FLinearColor::Red, 8);
 	TestEqual(TEXT("core + shell + 8 debris"), Used, 10);
+	{
+		// The shell (the biggest flash) stays saturated team colour at a low glow; the core is the small white-hot part.
+		float ShellR = 0.f, CoreR = TNumericLimits<float>::Max();
+		FLinearColor Shell = FLinearColor::Black, Core = FLinearColor::Black;
+		for (TActorIterator<ATDCombatFlash> It(W.GetWorld()); It; ++It)
+		{
+			const UMaterialInstanceDynamic* FMID = It->IsPlaying() ? Cast<UMaterialInstanceDynamic>(It->FindComponentByClass<UStaticMeshComponent>()->GetMaterial(0)) : nullptr;
+			if (!FMID || It->GetActorRotation() != FRotator::ZeroRotator)
+			{
+				continue; // debris streaks are rotated along their flight
+			}
+			FLinearColor C;
+			FMID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), C);
+			const float Size = It->GetActorScale3D().X;
+			if (Size > ShellR) { ShellR = Size; Shell = C; }
+			if (Size < CoreR) { CoreR = Size; Core = C; }
+		}
+		TestTrue(FString::Printf(TEXT("shell glow %.1f stays low (<= 4)"), Shell.R), Shell.R > 0.f && Shell.R <= 4.f);
+		TestTrue(FString::Printf(TEXT("shell stays saturated red (G %.2f, B %.2f)"), Shell.G, Shell.B), Shell.G <= 0.05f && Shell.B <= 0.05f);
+		TestTrue(TEXT("core whiter than the shell"), Core.G > Shell.G && CoreR < ShellR);
+	}
 	W.Advance(0.3f);
 	const int32 Playing = Projectiles->GetPlayingFlashCount();
 	const int32 Inside = Projectiles->CountPlayingFlashesNear(Here, 350.f);
@@ -661,6 +682,55 @@ bool FTDCombatPlaceholderSquadTracers::RunTest(const FString& Parameters)
 	ATDProjectile* E = ATDProjectile::Spawn(W.GetWorld(), Enemy, FTransform(FVector(0.f, 0.f, 1000.f)), nullptr, ETDTeam::Enemy);
 	TestTrue(TEXT("enemy shot: no tracer tip"), E && !E->HasTracerTip());
 	TestTrue(TEXT("enemy shot: its own streak length"), E && FMath::IsNearlyEqual(E->GetStreakLook().Length, FTDCombatPlaceholders::ComputeStreak(Enemy).Length, 1.f));
+	return true;
+}
+
+// An enemy bolt flying past the camera: its head never balloons near the camera (live: a pale ball over the player's
+// ship in a wave-5 furball) and stays pure Armada colour.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderIncomingNearCamera, "TriadDrift.Combat.Placeholder.IncomingHeadNeverBalloons", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderIncomingNearCamera::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnLocalPlayerController();
+	if (!TestNotNull(TEXT("camera"), PC ? PC->PlayerCameraManager.Get() : nullptr))
+	{
+		return false;
+	}
+	W.Tick();
+	const FVector Camera = PC->PlayerCameraManager->GetCameraLocation();
+	FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyHeavyBolt).Projectile;
+	Spec.FX = nullptr;
+	Spec.Range = 100000.f;
+	// Fired from 60 m ahead, passing 3 m beside the camera.
+	const FVector From = Camera + FVector(6000.f, 300.f, 0.f);
+	const FVector Dir = (Camera + FVector(-2000.f, 300.f, 0.f) - From).GetSafeNormal();
+	ATDProjectile* P = ATDProjectile::Launch(W.GetWorld(), Spec, FTransform(Dir.Rotation(), From), nullptr, ETDTeam::Enemy, nullptr, FVector::ZeroVector, 1.f, false);
+	if (!TestNotNull(TEXT("bolt"), P))
+	{
+		return false;
+	}
+	float WorstRatio = 0.f, Closest = TNumericLimits<float>::Max();
+	for (int32 Frame = 0; Frame < 120 && P->IsActive(); ++Frame)
+	{
+		W.Tick(1.f / 120.f);
+		const float Dist = FVector::Dist(P->GetActorLocation(), Camera);
+		if (P->GetPlaceholderHead()->IsVisible() && Dist > 1.f)
+		{
+			WorstRatio = FMath::Max(WorstRatio, P->GetPlaceholderHead()->GetRelativeScale3D().X * 100.f / Dist);
+			Closest = FMath::Min(Closest, Dist);
+		}
+	}
+	TestTrue(FString::Printf(TEXT("bolt came close (%.0f cm)"), Closest), Closest < 1500.f);
+	TestTrue(FString::Printf(TEXT("head never wider than %.3f x camera distance (worst %.3f)"), FTDCombatPlaceholders::MaxHeadPerCameraDistance, WorstRatio),
+		WorstRatio <= FTDCombatPlaceholders::MaxHeadPerCameraDistance + 0.002f);
+	const UMaterialInstanceDynamic* HeadMID = Cast<UMaterialInstanceDynamic>(P->GetPlaceholderHead()->GetMaterial(0));
+	FLinearColor Head = FLinearColor::Black;
+	if (HeadMID)
+	{
+		HeadMID->GetVectorParameterValue(FHashedMaterialParameterInfo(TEXT("Color")), Head);
+	}
+	const FLinearColor Want = P->GetPlaceholderLookColor();
+	TestTrue(FString::Printf(TEXT("enemy head in pure Armada colour (%s)"), *Head.ToString()), Head.R > 0.f && FMath::IsNearlyEqual(Head.G / Head.R, Want.G / Want.R, 0.02f));
 	return true;
 }
 
