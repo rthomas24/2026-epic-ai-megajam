@@ -189,6 +189,55 @@ Other controller behaviour:
 - **Disabling:** `SetSpaceInputEnabled(false)` releases held buttons and pushes a neutral cruise input once, then leaves the ship's input alone for cutscenes and autopilots.
 - **Ship switches:** held fire buttons carry across. The triggers are released on the old ship and re-pressed on the new one. The W top-speed bonus is cleared from the old ship.
 
+## Feedback with no art (`UTDFlightFeedbackComponent` on `ATDShip`)
+
+Nick's cue slots (`UTDShipVisuals`, `UTDTravelFX`) may stay empty, and flight must still read and feel good without them. So for
+the player's ship, every flight and travel moment has a cheap placeholder that steps aside by itself when art is assigned:
+- **Camera placeholder** (a kick: roll / pitch / FOV punch with a fast attack and an ease-out, plus procedural sine shake; no
+  camera-shake asset). It only plays while the cue's `Shake` is empty.
+- **Glow placeholder** (short bursts of the Core placeholder glow in the squad colour on the hull). It only shows while the
+  cue's `VFX` is empty.
+- `TD.Flight.Placeholders 0` turns both off. `Tuning.CameraScale` scales every kick.
+
+The audit below says what the player saw and felt with empty cues before this change (main 46422f9), and what they get now.
+Captures are in `Saved/TDShots/feedback/` (live game on port 8011, Nov 12).
+
+| Moment (cue slot) | Before, with empty cues | Placeholder now | Capture |
+|---|---|---|---|
+| Dodge (`Dodge`) | the hull jumps sideways; nothing else | thruster burst in squad colour on the side **away** from the move, white core; camera rolls 6° into the move, FOV +4, small shake (0.45 s) | `03_dodge_burst`, `04_dodge_left` |
+| Boost start (`BoostStart`, `BoostLoop`) | FOV eases 90 → 110 with speed; the placeholder engine glow stretches (placeholder hull only) | FOV punch +6 and shake; twin flares beside the engine (kept off the crosshair); the dust streaks lengthen | `02_boost_dust` |
+| Drift (`DriftLoop`) / release (`DriftRelease`) | the ship slides; nothing on release | 0.12° rumble while drifting; on an earned burst, twin flares, FOV +5, a dip | `06_drift_release` |
+| Brake (no slot) | FOV eases back with speed | retro flares at the nose, view dips 1.5° and FOV −3 | `05_brake` |
+| Hyperdrive spool (`HyperdriveSpool`) | nothing but the HUD charge bar | the view tightens (FOV −7) and shakes harder as the charge builds | `07_spool` |
+| Jump (`HyperdriveTunnel`) | FOV at max (speed) | FOV +12 punch, held +10 in the tunnel; side flares; dust becomes a streaking tunnel | `08_jump` |
+| Drop-out (`HyperdriveDropOut`) | a cut to the new spot | FOV −8 snap, 1.2° shake, a flash | (log: `HyperdriveDropOut=1`) |
+| Portal gate / Rift portal transit (`PortalTransit`) | a camera snap only | FOV +12, roll flick, shake, a violet flash. It fires only when the ship left from inside a gate's or portal's bounds, never for arrivals, squad placement, retakes or dev teleports | test `Feedback.PortalTransitKickOnlyFromAPortal` (no live transit captured, see Known gaps) |
+| Atmosphere entry (`AtmosphericEntry`) | nothing until the map loads | heat shake and FOV swell on a bell over the entry, an orange re-entry glow on the nose | `10_entry` shows the entry haze only; the glow flashes fired (log `AtmosphereEntry=9`) but none was in frame at capture |
+| Landing touchdown (`LandingDust`) | the ship settles | 2° dip, shake, a flat dust disc under the hull | `11_touchdown` |
+| Take-off (`TakeOff`) | the ship rises | lift shake, FOV +3, a flat squad-colour thrust disc under the hull | `12_takeoff` |
+
+**Sense of speed (near-field dust).** Cruise read as slow because the stars are effectively at infinity: there was no
+parallax. Now 120 small glow motes sit still in the world inside a 90 m box that travels 25 m ahead of the ship and wraps
+them around. Each mote is drawn as a streak along the velocity, `speed × 0.02 s` long (max 22 m). Thickness ramps in from
+15 m/s to 200 m/s, and motes within 12 m of the camera shrink away, so none smears across the view. Only the player's flown
+ship draws dust, and none when landed. `TD.Flight.SpeedDust 0/1` toggles it.
+- **Frame cost, measured live (Nov 12):**
+  - Game thread: about 0.006–0.012 ms per frame for the whole component (`TD.Flight.Feedback`), against 0.005 ms with dust off.
+  - Frame time: no measurable difference, averaged over six alternating samples (dust on 4.6 ms, off 4.8 ms).
+  - Render: one instanced draw of 120 cubes. Instances update incrementally; the first version re-created the render state
+    every frame and cost about 3 ms of frame time, which is why `bMarkRenderStateDirty` is false.
+
+Readout: `TD.Flight.Feedback` logs the tick cost, the frame time, the motes shown, the active bursts, the current camera kick
+and how many times each placeholder fired.
+
+| Test | Proves |
+|---|---|
+| `Feedback.DodgeBurstAndKickWithNoArt` | empty Dodge cue: a burst glows, the camera rolls into the move (and the other way for a left dodge), FOV punch, all gone after 0.8 s |
+| `Feedback.ArtReplacesThePlaceholder` | a cue with VFX gets no glow; a cue with a Shake gets no placeholder kick (in the ship, too) |
+| `Feedback.BoostBrakeHyperdriveRead` | boost start and brake fire once with a FOV punch / dip; the spool tightens the view; the jump kicks |
+| `Feedback.PortalTransitKickOnlyFromAPortal` | a placement away from portals gives no kick; a transit out of a gate does |
+| `Feedback.SpeedDustOnlyForThePlayerAtSpeed` | 120 motes for the flown ship, none for wingmen or when not flown; tick under 0.3 ms |
+
 ## How to try it
 
 Tests:
@@ -227,6 +276,9 @@ To capture screenshots:
 | `Input.InjectedActionsAndPowerRouting` | actions injected through `UEnhancedPlayerInput` reach the ship; stick shaping; LT brake threshold; W bonus; device-switch hysteresis; Q tap/hold against real power components; E ability; disabled input leaves scripted input alone; Pause works while paused |
 
 ## Known gaps
+- **No-art feedback:** a live gate transit wasn't captured (`TD.World.Goto Gate` followed by flying forward didn't cross the
+  gate within 8 s). The kick is covered by a test. The placeholders are "technically verified" only; Nicholas decides whether
+  they stay as they are until art lands.
 - **Needs a hand check:**
   - Shift+Tab, since headless tests have no key state for `IsInputKeyDown`.
   - The overall feel (mouse sensitivity, camera, drift and boost numbers). The tests prove the numbers, not the fun.
