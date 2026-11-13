@@ -236,3 +236,27 @@ By hand in the sandbox:
 - **The look-ahead only checks straight along the nose.** A jump steered at 10% around a large body is caught by the per-frame look-ahead, not by a full path prediction.
 - **Real level travel firing exactly once is only partly tested.** Headless tests can't perform a real `TravelTo`; the guard is tested with the flow's pending flags.
 - **The full planet round trip** (descent, landing, hand-off, re-board, take-off, return) still waits on T5's ground mode.
+
+## ENG-34: flight over the generated planet worlds (T1, Nov 13)
+- **Boost in atmosphere** (Lead's decision): capped at 60% of boost speed while boosting.
+  - The Rift tops out at about 66 m/s instead of 36 m/s.
+  - Cruise, the landing rule and the arrival are unchanged.
+  - Live: coming in on a boost toward the pad, the landing assist latches at about 60 m/s and lands on the pad (Verdance and Cinder).
+- **The flight zone fits T4's terrain:** `ATDAtmosphereFlightZone` finds the `ATDPlanetTerrain` within a second and grows (never shrinks).
+  - Horizontally it covers the whole collision core plus `TerrainEdgeExtension` (500 m): 17 x 17 km, so the edge warning (500 m inside the box) only starts at the 8 km edge of the world.
+  - Beyond the collision core (T4's far ring is visual only) the zone keeps ships at least 15 m above the generated ground, read from the terrain field.
+  - The boundary *text* on planets comes from `UTDShipMovementComponent::GetBoundaryWarningText` ("EDGE OF THE FLIGHT AREA" / "LEAVING THE FLIGHT AREA - TURN BACK"). The HUD plugin (`TDSpaceHUDWidget.cpp`) still hard-codes "BOUNDARY / RETURN TO COMBAT" instead of calling it; reported to the Lead.
+  - Test: `Travel.Safety.NoBoundaryAnywhereInTheWorld`. At 1, 4 and 7.9 km out, at 120-300 m and 600 m under the ceiling, boosting: no boundary. At 8.3 km: the turn-back, never inside the far ground.
+  - Its ceiling sits `TerrainCeilingClearance` (400 m) above the highest ground in that area.
+  - Verdance: ground up to 1365 m, ceiling 1765 m above the pad.
+  - Before this, the old ±2.5 km box showed "BOUNDARY / RETURN TO COMBAT" over every mountain.
+  - Cost: a higher ceiling also means a longer climb out to leave the planet.
+- **Live, both planets:** 1080p offscreen; five boosted low runs into the ranges per planet, plus the pad.
+  - The ground floor and terrain-ahead pull-up kept the ship 3-25 m off the slopes, with no impact.
+  - The chase camera was never behind a hillside: a visibility trace from ship to camera, `camblocked` in `TD.Flight.Cam`, read 0 on every sample.
+  - The ship never sat in the HUD band.
+- **Tests:**
+  - `Travel.Atmosphere.SpeedCapAndGravity`: cruise cap; boost at 60% of boost speed and draining the meter; back to cruise on release.
+  - `Flight.Review.AtmosphereClimbsSlopesAndCliffs` now also runs boosting: no contact with a 30° slope or a 150 m cliff at 30/60/120 fps.
+- **Dev:** `TD.Flight.Cam goto X Y [Z above ground] [yaw]` (metres) puts the player's ship anywhere for terrain checks.
+- **Not done yet:** re-check after T4's milestone 2 (2.5 km hero peaks, canyon, mesas, sea and lava).
