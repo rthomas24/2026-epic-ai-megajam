@@ -32,6 +32,10 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "AudioDevice.h"
+#include "Sound/SoundWave.h"
+#include "Components/AudioComponent.h"
 #include "TriadDrift/Flow/TDPlaceholderSky.h"
 #include "Components/DirectionalLightComponent.h"
 #include "Components/PostProcessComponent.h"
@@ -1250,6 +1254,54 @@ bool FTDFlowMenuJourney::RunTest(const FString& Parameters)
 		TestFalse(TEXT("no Continue into a won run"), Menu->CanContinue());
 		Menu->ReturnToMenu();
 		TestFalse(TEXT("then the menu"), Menu->IsShowingVictory());
+	}
+	return true;
+}
+
+
+// ------------------------------------------------------------------------------------------------
+// N-015: the menu music comes from DA_UI_Style.MenuMusic (2D, UI sound), fades as New Game travels, and
+// nothing is created when the style has none.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowMenuMusic, "TriadDrift.Flow.MenuMusicFromTheStyleFadesOnNewGame", TDFlowTest::TestFlags)
+bool FTDFlowMenuMusic::RunTest(const FString& Parameters)
+{
+	const FSoftObjectProperty* Prop = CastField<FSoftObjectProperty>(UTDUIStyle::StaticClass()->FindPropertyByName(TEXT("MenuMusic")));
+	if (!TestNotNull(TEXT("UTDUIStyle.MenuMusic exists (Core)"), Prop)) { return false; }
+	// Any engine sound stands in for Nick's theme (never referenced by path: only through the style).
+	USoundBase* TestSound = LoadObject<USoundBase>(nullptr, TEXT("/Engine/EngineSounds/WhiteNoise.WhiteNoise"));
+	if (!TestSound) { TestSound = NewObject<USoundWave>(GetTransientPackage()); }
+	for (const bool bWithMusic : { true, false })
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		UTDUIStyle* Style = NewObject<UTDUIStyle>(GetTransientPackage());
+		*Prop->ContainerPtrToValuePtr<FSoftObjectPtr>(Style) = FSoftObjectPtr(bWithMusic ? TestSound : nullptr);
+		ATDMenuGameMode* Menu = W.GetWorld()->SpawnActorDeferred<ATDMenuGameMode>(ATDMenuGameMode::StaticClass(), FTransform::Identity);
+		Menu->StyleOverride = Style;
+		Menu->FinishSpawning(FTransform::Identity);
+		Menu->StartPlay();
+		if (!bWithMusic)
+		{
+			TestNull(TEXT("no music asset: nothing created"), Menu->GetMusic());
+			continue;
+		}
+		UAudioComponent* M = Menu->GetMusic();
+		if (!TestNotNull(TEXT("music component created"), M)) { return false; }
+		TestTrue(TEXT("the style's sound"), M->Sound == TestSound);
+		TestTrue(TEXT("2D UI sound"), M->bIsUISound && !M->bAllowSpatialization);
+		TestTrue(TEXT("started"), Menu->WasMusicStarted());
+		if (GEngine && GEngine->GetMainAudioDevice())
+		{
+			TestTrue(TEXT("playing (audio device present)"), M->IsPlaying());
+		}
+		else
+		{
+			AddInfo(TEXT("no audio device in this run (-nosound): playback itself is checked in the running game"));
+		}
+		GI->OpenLevelOverride = [](const FString&) {};
+		TestTrue(TEXT("New Game"), Menu->NewGame());
+		TestTrue(TEXT("the music fades as the travel starts"), Menu->IsMusicFadingOut());
+		GI->OpenLevelOverride = nullptr;
 	}
 	return true;
 }
