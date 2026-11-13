@@ -1,0 +1,36 @@
+{
+ "asset": "SK_NullGrunt",
+ "skeleton": "/Game/Characters/Mannequins/Meshes/SK_Mannequin",
+ "physics_asset": "/Game/Characters/Mannequins/Rigs/PA_Mannequin",
+ "tris": 42584,
+ "verts": 22946,
+ "bones_in_fbx": 89,
+ "size_cm": [
+  112.7,
+  46.9,
+  187.4
+ ],
+ "material_slots": [
+  "M_NullGrunt"
+ ],
+ "textures": [
+  "T_NullGrunt_BC.png",
+  "T_NullGrunt_N.png",
+  "T_NullGrunt_ORM.png",
+  "T_NullGrunt_E.png"
+ ],
+ "emission_strength_blender": 3.0,
+ "normal_map": "DirectX (no green flip in Unreal)",
+ "sockets": [
+  {
+   "name": "Muzzle",
+   "bone": "hand_r",
+   "how": "SOCKET_ empty under the bone in the FBX"
+  },
+  {
+   "name": "HeadGlow",
+   "bone": "head",
+   "how": "SOCKET_ empty under the bone in the FBX"
+  }
+ ]
+}

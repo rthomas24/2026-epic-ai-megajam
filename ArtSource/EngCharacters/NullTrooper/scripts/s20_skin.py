@@ -5,6 +5,7 @@ from mathutils import Vector, kdtree
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 argv = sys.argv[sys.argv.index("--") + 1:]
 OUT = argv[argv.index("--out") + 1]
+NAME = argv[argv.index("--name") + 1] if "--name" in argv else "SK_NullTrooper"
 arm = bpy.data.objects["root"]
 hi = bpy.data.objects["FIT_BodyHi"]
 bone_names = [b.name for b in arm.data.bones]
@@ -70,7 +71,7 @@ for o in parts: o.select_set(True)
 bpy.context.view_layer.objects.active = bodyo
 with bpy.context.temp_override(active_object=bodyo, selected_objects=parts, selected_editable_objects=parts):
     bpy.ops.object.join()
-sk = bodyo; sk.name = "SK_NullTrooper"; sk.data.name = "SK_NullTrooper"
+sk = bodyo; sk.name = NAME; sk.data.name = NAME
 # drop unused groups, make sure every vertex is weighted, normalise
 used = set()
 for v in sk.data.vertices:

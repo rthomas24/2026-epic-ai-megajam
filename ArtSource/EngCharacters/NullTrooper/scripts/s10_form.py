@@ -11,6 +11,17 @@ from nt_lib import V, pw, lerp
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 OUT = argv[argv.index("--out") + 1] if "--out" in argv else "NullTrooper_v01.blend"
 ONLY = argv[argv.index("--only") + 1].split(",") if "--only" in argv else None
+VARIANT = argv[argv.index("--variant") + 1] if "--variant" in argv else "trooper"
+# what each enemy type carries (same body, same skeleton)
+F = dict(pack=True, pack_scale=1.0, lames=("A", "B", "C"), pauldron_scale=1.0, thigh_outer=True, thigh_back=True, shin_low=True, calf=True,
+         shin_off=0.0, thigh_off=0.0, fins=0.15, crest=False, ovals="both", wrist_band=False, scapula=True, flank=True, upperarm=True, hip=True,
+         hoses=True, pouches=(42, 72, 112, 142), gorget=False, chest2=False, shield=False, shin_stripes=True)
+if VARIANT == "grunt":      # melee, fast, fragile: less armour, more undersuit, short fins, glowing right wrist band
+    F.update(pack=False, lames=("A",), thigh_outer=False, thigh_back=False, shin_low=False, calf=False, shin_off=-0.008, fins=0.08, ovals="none",
+             wrist_band=True, scapula=False, flank=False, upperarm=False, hip=False, hoses=False, pouches=(42, 142), shin_stripes=False)
+elif VARIANT == "heavy":    # shielded, slow, tough: bigger pauldrons, gorget, second chest plate, left forearm shield, crest instead of fins
+    F.update(pack_scale=1.25, lames=("A", "B", "C", "D"), pauldron_scale=1.3, shin_off=0.008, thigh_off=0.008, fins=0.0, crest=True, ovals="right",
+             gorget=True, chest2=True, shield=True)
 
 arm = bpy.data.objects["root"]
 manny = bpy.data.objects["Manny_Body"]
@@ -25,6 +36,14 @@ def want(tag):
 
 def fin(ob, mirrored=False):
     return L.finish(ob, mirrored)
+
+
+def fin_side(ob, keep):
+    """Build a left-side part, keep only the 'L' or the mirrored 'R' copy."""
+    obs = L.finish(ob, True)
+    drop = obs[0] if keep == "R" else obs[1]
+    L.PARTS.remove(drop); bpy.data.objects.remove(drop)
+    return obs[1] if keep == "R" else obs[0]
 
 
 # ------------------------------------------------------------------ undersuit (the Manny body itself)
@@ -73,6 +92,9 @@ def build_body():
     dg = bpy.context.evaluated_depsgraph_get()
     new = bpy.data.meshes.new_from_object(ob.evaluated_get(dg), preserve_all_data_layers=True, depsgraph=dg)
     ob.modifiers.clear(); ob.data = new; new.name = "NT_Body"; bpy.data.meshes.remove(me)
+    while new.uv_layers: new.uv_layers.remove(new.uv_layers[0])
+    new.uv_layers.new(name="UVMap")
+    L.smart_unwrap(ob)
     ob["nt_bone"] = "keep"
     ob["nt_bevel"] = json.dumps([0, 'ANGLE', 30, 2])
     L.PARTS.append(ob)
@@ -97,9 +119,9 @@ def torso_point(th, z, bvh=None, lift=0.0):
 def build_torso():
     reg = L.R_TORSO_ARMS
     # --- breastplate (layer 1)
-    chest = L.shell("NT_Chest", T(-66, 66, [(0, 1.30), (0.2, 1.262), (0.5, 1.235), (0.8, 1.262), (1, 1.30)],
+    chest = L.shell("NT_Chest", cross=True, sample=T(-66, 66, [(0, 1.30), (0.2, 1.262), (0.5, 1.235), (0.8, 1.262), (1, 1.30)],
                                   [(0, 1.40), (0.16, 1.475), (0.36, 1.492), (0.5, 1.452), (0.64, 1.492), (0.84, 1.475), (1, 1.40)]),
-                    26, 12, body, reg, offset=0.016, smooth=5, bone={"spine_05": 1.0}, bevel=0.004,
+                    ns=26, nt=12, body=body, region=reg, offset=0.016, smooth=5, bone={"spine_05": 1.0}, bevel=0.004,
                     grooves=[('s', 0.5, 0.012, 0.004, (0.0, 0.5)), ('t', 0.34, 0.03, 0.004)], edge_drop=0.006)
     fin(chest)
     cb = L.obj_bvh(chest)
@@ -110,23 +132,40 @@ def build_torso():
                   grooves=[('t', 0.42, 0.035, 0.0035), ('s', 0.86, 0.0120, 0.001, None, 'stripe')], edge_drop=0.004)
     fin(pec, True)
     # --- sternum housing + hexagonal core
-    p, d = torso_point(0, 1.395, cb)
+    p, d = torso_point(0, 1.385, cb)
     hexo = lambda r: [(r * math.cos(math.radians(a)), r * math.sin(math.radians(a))) for a in range(0, 360, 60)]
-    fin(L.prism("NT_CoreHousing", [(-0.07, 0.06), (0.07, 0.06), (0.086, 0.0), (0.05, -0.076), (-0.05, -0.076), (-0.086, 0.0)],
-                p - d * 0.03, LEFT, UP, d, 0.05, taper=0.84, bone={"spine_05": 1.0}, bevel=0.005))
-    fin(L.prism("NT_CoreBezel", hexo(0.056), p + d * 0.014, LEFT, UP, d, 0.014, taper=0.9, bone={"spine_05": 1.0}, bevel=0.003, mat="armor2"))
-    fin(L.prism("NT_Core", hexo(0.045), p + d * 0.024, LEFT, UP, d, 0.012, taper=0.92, cap_mat="emis",
-                inset=(0.01, 0.005), bone={"spine_05": 1.0}, bevel=0.0025))
-    # --- ribbed hoses in U-loops: core housing -> ports on the lower ribs
-    for sgn in (1, -1):
-        for k in range(2):
-            pc, dc = torso_point(sgn * (46 + 10 * k), 1.318 - 0.034 * k, cb)
-            start = p + LEFT * sgn * (0.03 + 0.026 * k) + UP * -0.058 + d * 0.006
-            sag, ds = torso_point(sgn * (17 + 9 * k), 1.262 - 0.022 * k, cb, lift=0.034)
-            path = [start + UP * 0.03, start, start + UP * -0.03 + d * 0.016, sag, pc + dc * 0.04 + UP * -0.022, pc + dc * 0.014, pc - dc * 0.006]
-            fin(L.tube("NT_Hose_%s%d" % ("L" if sgn > 0 else "R", k), path, 0.0125, segs=7, ribs=10, rib_depth=0.003, bone={"spine_05": 1.0}))
-            fin(L.lathe("NT_HosePort_%s%d" % ("L" if sgn > 0 else "R", k), pc - dc * 0.012, dc,
-                        [(0.0, 0.025), (0.02, 0.025), (0.027, 0.019), (0.027, 0.0)], segs=8, bone={"spine_05": 1.0}))
+    fin(L.prism("NT_CoreHousing", [(-0.082, 0.074), (0.082, 0.074), (0.1, 0.0), (0.06, -0.088), (-0.06, -0.088), (-0.1, 0.0)],
+                p - d * 0.03, LEFT, UP, d, 0.052, taper=0.86, bone={"spine_05": 1.0}, bevel=0.006, mat="armor2"))
+    fin(L.prism("NT_CoreBezel", hexo(0.074), p + d * 0.016, LEFT, UP, d, 0.014, taper=0.92, bone={"spine_05": 1.0}, bevel=0.003))
+    fin(L.prism("NT_Core", hexo(0.064), p + d * 0.03, LEFT, UP, d, 0.012, taper=0.94, cap_mat="emiscore",
+                inset=(0.01, 0.006), bone={"spine_05": 1.0}, bevel=0.0025, mat="armor2"))
+    # --- hoses: one dark ribbed U-loop per side, housing lower corner -> port on the side of the ribcage, on the surface
+    hr = 0.013
+    tb = body.bvh(L.R_TORSO_ARMS)
+
+    def on_torso(th, z, lift):
+        dd = FRONT * math.cos(math.radians(th)) + LEFT * math.sin(math.radians(th))
+        o = V(0, -0.02, z)
+        r = L.raycast_r(tb, o, dd, 0.24)
+        rc = L.raycast_r(cb, o, dd)
+        r = max((r or 0.0) + 0.02, rc or 0.0)
+        if r < 0.06: r = 0.15
+        return o + dd * (r + lift), dd
+    if F["hoses"]:
+        for sgn in (1, -1):
+            th0, th1, z0, z1 = 17, 60, 1.288, 1.282
+            path = [p + LEFT * sgn * 0.05 + UP * -0.07 - d * 0.012]
+            for q in range(7):
+                f_ = q / 6.0
+                pt, dd = on_torso(sgn * (th0 + (th1 - th0) * f_), z0 + (z1 - z0) * f_ - 0.06 * math.sin(math.pi * f_) ** 0.8, hr + 0.002)
+                path.append(pt)
+            pe, de = on_torso(sgn * th1, z1, 0.0)
+            path.append(pe - de * 0.01)
+            sfx = "L" if sgn > 0 else "R"
+            fin(L.tube("NT_Hose_%s0" % sfx, path, hr, segs=7, ribs=14, rib_depth=0.003, bone={"spine_05": 0.5, "spine_04": 0.5},
+                       mat="rubber", groove_mat="emisline", groove_every=3))
+            fin(L.lathe("NT_HosePort_%s0" % sfx, pe - de * 0.01, de, [(0.0, 0.024), (0.026, 0.024), (0.034, 0.018), (0.034, 0.0)], segs=10,
+                        bone={"spine_04": 1.0}, mat="armor2"))
     # --- shoulder straps (over the trapezius), one per side
     sa, sb = V(0.0, 0.01, 1.385), V(1.0, 0.01, 1.385)
     strap = L.shell("NT_Strap_L", L.sweep(sa, sb, FRONT, UP, [(0, -18), (1, -18)], [(0, 196), (1, 196)], 0.055, 0.118),
@@ -134,15 +173,16 @@ def build_torso():
                     grooves=[('t', 0.3, 0.02, 0.004), ('t', 0.7, 0.02, 0.004)])
     fin(strap, True)
     # --- collar ring at the base of the neck
-    col = L.shell("NT_Collar", T(0, 360, const_s(1.485), [(0, 1.535), (0.25, 1.54), (0.5, 1.56), (0.75, 1.54), (1, 1.535)]),
+    col = L.shell("NT_Collar", T(0, 360, const_s(1.485), [(0, 1.515), (0.25, 1.535), (0.5, 1.56), (0.75, 1.535), (1, 1.515)]),
                   24, 3, body, L.R_TORSO, offset=0.014, smooth=2, wrap=True, bone={"spine_05": 0.5, "neck_01": 0.5}, bevel=0.003)
     fin(col)
-    # --- flank (rib) plates, 2 lames per side
-    for k, (z0, z1, off) in enumerate(((1.215, 1.305, 0.013), (1.135, 1.225, 0.011))):
-        fl = L.shell("NT_Flank%d_L" % k, T([(0, 34 - 6 * k), (1, 40 - 6 * k)], [(0, 118), (1, 112)], [(0, z0 + 0.02), (1, z0)], [(0, z1 - 0.012), (0.3, z1), (1, z1 + 0.01)]),
-                     10, 5, body, L.R_TORSO_ARMS, far=0.24, offset=off + 0.002, smooth=3, bone={"spine_04": 1.0} if k == 0 else {"spine_03": 1.0}, bevel=0.0035,
-                     grooves=[('t', 0.5, 0.05, 0.003)])
-        fin(fl, True)
+    if F["flank"]:
+        # --- flank (rib) plates, 2 lames per side
+        for k, (z0, z1, off) in enumerate(((1.215, 1.305, 0.013), (1.135, 1.225, 0.011))):
+            fl = L.shell("NT_Flank%d_L" % k, T([(0, 34 - 6 * k), (1, 40 - 6 * k)], [(0, 118), (1, 112)], [(0, z0 + 0.02), (1, z0)], [(0, z1 - 0.012), (0.3, z1), (1, z1 + 0.01)]),
+                         10, 5, body, L.R_TORSO_ARMS, far=0.24, offset=off + 0.002, smooth=3, bone={"spine_04": 1.0} if k == 0 else {"spine_03": 1.0}, bevel=0.0035,
+                         grooves=[('t', 0.5, 0.05, 0.003)])
+            fin(fl, True)
     # --- abdominal segments
     for k, (z0, z1, bn, hw, off) in enumerate(((1.212, 1.278, "spine_04", 37, 0.024), (1.162, 1.226, "spine_03", 35, 0.02),
                                                (1.112, 1.176, "spine_03", 33, 0.016), (1.056, 1.126, "spine_02", 31, 0.012))):
@@ -152,38 +192,42 @@ def build_torso():
                      grooves=[('s', 0.5, 0.03, 0.003), ('s', 0.2, 0.03, 0.0025), ('s', 0.8, 0.03, 0.0025)])
         fin(ab)
     # --- back: upper back plate, shoulder-blade plates, lumbar segments
-    bk = L.shell("NT_Back", T(180 - 62, 180 + 62, [(0, 1.30), (0.25, 1.255), (0.5, 1.24), (0.75, 1.255), (1, 1.30)],
+    bk = L.shell("NT_Back", cross=True, sample=T(180 - 62, 180 + 62, [(0, 1.30), (0.25, 1.255), (0.5, 1.24), (0.75, 1.255), (1, 1.30)],
                                [(0, 1.41), (0.2, 1.475), (0.5, 1.50), (0.8, 1.475), (1, 1.41)]),
-                 22, 10, body, reg, offset=0.014, smooth=5, bone={"spine_05": 1.0}, bevel=0.004,
+                 ns=22, nt=10, body=body, region=reg, offset=0.014, smooth=5, bone={"spine_05": 1.0}, bevel=0.004,
                  grooves=[('t', 0.4, 0.03, 0.004)], edge_drop=0.005)
     fin(bk)
-    sb_ = L.shell("NT_Scapula_L", T([(0, 180 - 16), (1, 180 - 22)], [(0, 180 - 52), (0.5, 180 - 64), (1, 180 - 50)],
-                                    [(0, 1.30), (0.5, 1.285), (1, 1.33)], [(0, 1.45), (0.5, 1.47), (1, 1.44)]),
-                  9, 8, body, reg, offset=0.03, smooth=5, bone={"spine_05": 1.0}, bevel=0.004,
-                  grooves=[('t', 0.5, 0.035, 0.0035), ('s', 0.85, 0.0120, 0.001, None, 'stripe')], edge_drop=0.004)
-    fin(sb_, True)
+    if F["scapula"]:
+        sb_ = L.shell("NT_Scapula_L", T([(0, 180 - 12), (1, 180 - 15)], [(0, 180 - 52), (0.5, 180 - 64), (1, 180 - 50)],
+                                        [(0, 1.30), (0.5, 1.285), (1, 1.33)], [(0, 1.45), (0.5, 1.47), (1, 1.44)]),
+                      9, 8, body, reg, offset=0.03, smooth=5, bone={"spine_05": 1.0}, bevel=0.004,
+                      grooves=[('t', 0.5, 0.035, 0.0035), ('s', 0.85, 0.0120, 0.001, None, 'stripe')], edge_drop=0.004)
+        fin(sb_, True)
     for k, (z0, z1, bn) in enumerate(((1.165, 1.235, "spine_03"), (1.095, 1.16, "spine_02"), (1.045, 1.09, "spine_01"))):
         lb = L.shell("NT_Lumbar%d" % k, T(180 - 30 + 2 * k, 180 + 30 - 2 * k, [(0, z0 + 0.01), (0.5, z0), (1, z0 + 0.01)], [(0, z1 + 0.01), (0.5, z1), (1, z1 + 0.01)]),
                      8, 3, body, L.R_TORSO, offset=0.014, smooth=3, bone={bn: 1.0}, bevel=0.0035, grooves=[('s', 0.5, 0.04, 0.003)])
         fin(lb)
     # --- backpack
-    yb = 0.13
-    pk = {"spine_05": 0.6, "spine_04": 0.4}
-    pack = L.hull("NT_Pack", [(0.088, yb, 1.50), (0.094, yb, 1.37), (0.06, yb, 1.185), (0.0, yb, 1.165),
-                              (0.06, 0.245, 1.487), (0.068, 0.262, 1.385), (0.044, 0.236, 1.212), (0.0, 0.228, 1.19),
-                              (0.0, 0.243, 1.512), (0.036, 0.272, 1.41), (0.03, 0.26, 1.29)],
-                  mirror_x=True, bone=pk, bevel=0.006, angle=14)
-    fin(pack)
-    pb = L.obj_bvh(pack)
-    ps, pn = L.surf(pb, V(0, 0.1, 1.36), BACK)
-    slot_o = [(-0.02, -0.09), (0.02, -0.09), (0.03, -0.076), (0.03, 0.076), (0.02, 0.09), (-0.02, 0.09), (-0.03, 0.076), (-0.03, -0.076)]
-    fin(L.prism("NT_PackSlot", slot_o, V(0, ps.y - 0.02, 1.352), V(-1, 0, 0), UP, BACK, 0.028, taper=0.94, cap_mat="emis",
-                inset=(0.016, 0.011), bone=pk, bevel=0.003))
-    for sgn in (1, -1):
-        fin(L.hull("NT_PackRail_%s" % ("L" if sgn > 0 else "R"), [(sgn * x_, y_, z_) for x_, y_, z_ in
-                   ((0.07, 0.14, 1.47), (0.098, 0.14, 1.47), (0.07, 0.215, 1.46), (0.098, 0.2, 1.455),
-                    (0.062, 0.14, 1.25), (0.092, 0.14, 1.25), (0.058, 0.205, 1.262), (0.086, 0.19, 1.262))],
-                   bone=pk, bevel=0.004, angle=14, mat="armor2"))
+    if F["pack"]:
+        yb = 0.14
+        pk = {"spine_05": 0.6, "spine_04": 0.4}
+        bs, bd_ = torso_point(180, 1.36, body.bvh(L.R_TORSO))
+        y1 = bs.y + 0.014 + 0.08 * F["pack_scale"] ** 2          # 8 cm proud of the back plate (trooper)
+        pack = L.hull("NT_Pack", [(x_ * F["pack_scale"], y_, 1.345 + (z_ - 1.345) * min(1.08, F["pack_scale"])) for x_, y_, z_ in [(0.082, yb, 1.488), (0.09, yb, 1.37), (0.062, yb, 1.20), (0.0, yb, 1.185),
+                                  (0.05, y1 - 0.03, 1.478), (0.064, y1, 1.42), (0.064, y1, 1.30), (0.04, y1 - 0.03, 1.215), (0.0, y1 - 0.034, 1.2),
+                                  (0.0, y1 - 0.03, 1.494), (0.0, y1 + 0.004, 1.36)]],
+                      mirror_x=True, bone=pk, bevel=0.01, angle=14)
+        fin(pack)
+        pb = L.obj_bvh(pack)
+        ps, pn = L.surf(pb, V(0, 0.1, 1.36), BACK)
+        slot_o = [(-0.022, -0.105), (0.022, -0.105), (0.031, -0.092), (0.031, 0.092), (0.022, 0.105), (-0.022, 0.105), (-0.031, 0.092), (-0.031, -0.092)]
+        fin(L.prism("NT_PackSlot", slot_o, V(0, ps.y - 0.02, 1.352), V(-1, 0, 0), UP, BACK, 0.026, taper=0.95, cap_mat="emis",
+                    inset=(0.016, 0.01), bone=pk, bevel=0.003))
+        for sx_, z_ in ((0.05, 1.445), (-0.05, 1.445), (0.048, 1.262), (-0.048, 1.262)):
+            hp_, hn_ = L.surf(pb, V(sx_, 0.1, z_), BACK)
+            if hp_:
+                fin(L.lathe("NT_PackLight%d" % int((sx_ > 0) * 2 + (z_ > 1.3)), hp_ - BACK * 0.004, BACK,
+                            [(0, 0.011), (0.007, 0.011), (0.008, 0.0075), (0.0065, 0.0068), (0.0065, 0)], segs=10, ring_mats={3: "emis"}, bone=pk))
     # --- belt, buckle, pouches
     belt = L.shell("NT_Belt", T(0, 360, const_s(0.992), const_s(1.046)), 32, 2, body, L.R_TORSO, offset=0.015, smooth=3, wrap=True,
                    bone={"pelvis": 1.0}, bevel=0.003, mat="armor2")
@@ -196,24 +240,25 @@ def build_torso():
         r = L.raycast_r(bb, o, d)
         ex = UP.cross(d)
         return L.box(name, o + d * (r - sink), ex, UP, d, w, h, dep + sink, bone={"pelvis": 1.0}, **kw)
-    fin(belt_box("NT_Buckle", 0, 0.085, 0.062, 0.016, bevel=0.004))
-    fin(belt_box("NT_BuckleCore", 0, 0.036, 0.03, 0.022, bevel=0.003, mat="armor2"))
+    fin(belt_box("NT_Buckle", 0, 0.118, 0.072, 0.022, bevel=0.005))
+    fin(belt_box("NT_BuckleCore", 0, 0.05, 0.036, 0.03, bevel=0.004, mat="armor2"))
     fin(belt_box("NT_BeltBackPlate", 180, 0.075, 0.06, 0.016, bevel=0.004))
     fin(belt_box("NT_BeltBackCore", 180, 0.03, 0.03, 0.021, bevel=0.003, mat="armor2"))
-    for th in (40, 68, 114, 142):
+    for th in F["pouches"]:
         for sgn in (1, -1):
             nm = "NT_Pouch%d_%s" % (th, "L" if sgn > 0 else "R")
-            fin(belt_box(nm, sgn * th, 0.056, 0.074, 0.034, zc=1.012, bevel=0.005, mat="armor2"))
-            fin(belt_box(nm + "_Flap", sgn * th, 0.06, 0.034, 0.039, zc=1.036, bevel=0.004, mat="armor2"))
+            fin(belt_box(nm, sgn * th, 0.07, 0.078, 0.048, zc=1.01, bevel=0.006, mat="armor2"))
+            fin(belt_box(nm + "_Flap", sgn * th, 0.074, 0.034, 0.053, zc=1.036, bevel=0.004, mat="armor2"))
     # --- pelvis: codpiece, hip plates, rear plate
     cod = L.shell("NT_Cod", T([(0, -26), (1, -5)], [(0, 26), (1, 5)], const_s(0.992), [(0, 0.90), (0.5, 0.842), (1, 0.90)]),
                   8, 6, body, L.R_TORSO + ("thigh",), offset=0.014, smooth=3, bone={"pelvis": 1.0}, bevel=0.004,
                   grooves=[('s', 0.5, 0.04, 0.003)])
     fin(cod)
-    hip = L.shell("NT_Hip_L", T([(0, 46), (1, 62)], [(0, 128), (1, 112)], const_s(0.992), [(0, 0.93), (0.5, 0.885), (1, 0.93)]),
-                  8, 4, body, L.R_TORSO + ("thigh",), offset=0.02, smooth=3, bone={"pelvis": 1.0}, bevel=0.004,
-                  grooves=[('t', 0.5, 0.06, 0.003)])
-    fin(hip, True)
+    if F["hip"]:
+        hip = L.shell("NT_Hip_L", T([(0, 46), (1, 62)], [(0, 128), (1, 112)], const_s(0.992), [(0, 0.93), (0.5, 0.885), (1, 0.93)]),
+                      8, 4, body, L.R_TORSO + ("thigh",), offset=0.02, smooth=3, bone={"pelvis": 1.0}, bevel=0.004,
+                      grooves=[('t', 0.5, 0.06, 0.003)])
+        fin(hip, True)
     rear = L.shell("NT_Rear", T([(0, 180 - 34), (1, 180 - 14)], [(0, 180 + 34), (1, 180 + 14)], const_s(0.992), [(0, 0.93), (0.5, 0.895), (1, 0.93)]),
                    8, 4, body, L.R_TORSO + ("thigh",), offset=0.013, smooth=3, bone={"pelvis": 1.0}, bevel=0.004,
                    grooves=[('s', 0.5, 0.05, 0.003)])
@@ -229,23 +274,26 @@ def build_leg():
     hipj, knee, ank = B("thigh_l"), B("calf_l"), B("foot_l")
     reg = L.R_HIP_L
     S = lambda th0, th1, u0, u1: L.sweep(hipj, knee, FRONT, LEFT, th0, th1, u0, u1)
-    th = L.shell("NT_ThighFront_L", S([(0, -62), (1, -40)], [(0, 120), (1, 100)],
-                                      [(0, 0.30), (0.3, 0.17), (0.62, 0.10), (1, 0.06)], [(0, 0.74), (0.34, 0.86), (0.7, 0.82), (1, 0.72)]),
-                 16, 12, body, reg, offset=0.016, smooth=5, bone={"thigh_l": 1.0}, bevel=0.004, edge_drop=0.005,
+    th = L.shell("NT_ThighFront_L", cross=True, sample=S([(0, -34), (1, -38)], [(0, 120), (1, 100)],
+                                      [(0, 0.34), (0.3, 0.17), (0.62, 0.10), (1, 0.06)], [(0, 0.74), (0.34, 0.86), (0.7, 0.82), (1, 0.72)]),
+                 ns=16, nt=12, body=body, region=reg, offset=0.016 + F["thigh_off"], smooth=5, bone={"thigh_l": 1.0}, bevel=0.004, edge_drop=0.005,
                  bulge=lambda s, t: 0.009 * max(0.0, 1 - abs(s - 0.8) / 0.09),
-                 grooves=[('s', 0.36, 0.02, 0.0035), ('t', 0.62, 0.025, 0.0035, (0.36, 1.0)),
-                          ('s', 0.08, 0.0072, 0.0008, (0.1, 0.9), 'stripe'), ('t', 0.9, 0.0072, 0.0008, (0.1, 0.6), 'stripe')])
+                 grooves=[('s', 0.36, 0.02, 0.0035), ('t', 0.62, 0.025, 0.0035, (0.36, 0.93)),
+                          ('s', 0.07, 0.013, 0.0008, (0.07, 0.93), 'stripe'), ('s', 0.93, 0.013, 0.0008, (0.07, 0.93), 'stripe'),
+                          ('t', 0.07, 0.012, 0.0008, (0.07, 0.93), 'stripe'), ('t', 0.93, 0.012, 0.0008, (0.07, 0.93), 'stripe')])
     fin(th, True)
-    tho = L.shell("NT_ThighOuter_L", S([(0, 48), (1, 60)], [(0, 132), (1, 118)], [(0, 0.16), (0.5, 0.10), (1, 0.14)],
-                                       [(0, 0.5), (0.5, 0.64), (1, 0.52)]),
-                  8, 8, body, reg, offset=0.034, smooth=5, bone={"thigh_l": 1.0}, bevel=0.004, edge_drop=0.004,
-                  grooves=[('t', 0.3, 0.03, 0.0035), ('s', 0.5, 0.0120, 0.0008, (0.36, 0.9), 'stripe')])
-    fin(tho, True)
-    thb = L.shell("NT_ThighBack_L", S([(0, 128), (1, 124)], [(0, 236), (1, 240)], [(0, 0.26), (0.5, 0.33), (1, 0.4)],
-                                      [(0, 0.78), (0.5, 0.86), (1, 0.78)]),
-                  10, 8, body, L.R_HIP_L, offset=0.013, smooth=4, bone={"thigh_l": 1.0}, bevel=0.0035, edge_drop=0.004,
-                  grooves=[('t', 0.5, 0.03, 0.003), ('s', 0.12, 0.0080, 0.0008, (0.1, 0.9), 'stripe')])
-    fin(thb, True)
+    if F["thigh_outer"]:
+        tho = L.shell("NT_ThighOuter_L", S([(0, 48), (1, 60)], [(0, 132), (1, 118)], [(0, 0.16), (0.5, 0.10), (1, 0.14)],
+                                           [(0, 0.5), (0.5, 0.64), (1, 0.52)]),
+                      8, 8, body, reg, offset=0.024 + F["thigh_off"], smooth=5, bone={"thigh_l": 1.0}, bevel=0.004, edge_drop=0.004,
+                      grooves=[('t', 0.3, 0.03, 0.0035), ('s', 0.5, 0.0120, 0.0008, (0.36, 0.9), 'stripe')])
+        fin(tho, True)
+    if F["thigh_back"]:
+        thb = L.shell("NT_ThighBack_L", S([(0, 128), (1, 124)], [(0, 236), (1, 240)], [(0, 0.26), (0.5, 0.33), (1, 0.4)],
+                                          [(0, 0.78), (0.5, 0.86), (1, 0.78)]),
+                      10, 8, body, L.R_HIP_L, offset=0.013, smooth=4, bone={"thigh_l": 1.0}, bevel=0.0035, edge_drop=0.004,
+                      grooves=[('t', 0.5, 0.03, 0.003), ('s', 0.12, 0.0080, 0.0008, (0.1, 0.9), 'stripe')])
+        fin(thb, True)
     # knee guard: angular, on the shin
     kc = knee + V(0, 0.012, -0.012)
     kshape = L.planes([((0, -1, 0.08), 0.13), ((0, -0.8, 0.6), 0.122), ((0, -0.8, -0.6), 0.118),
@@ -256,22 +304,25 @@ def build_leg():
                  grooves=[('s', 0.5, 0.03, 0.003, (0.0, 0.3)), ('t', 0.3, 0.03, 0.003)])
     fin(kn, True)
     C = lambda th0, th1, u0, u1: L.sweep(knee, ank, FRONT, LEFT, th0, th1, u0, u1)
-    flare = lambda s, t: 0.02 * max(0.0, 1 - t / 0.3) ** 2 + 0.008 * max(0.0, (t - 0.8) / 0.2) + 0.012 * max(0.0, 1 - abs(s - 0.5) / 0.28)
-    sh = L.shell("NT_Shin_L", C(-100, 100, [(0, 0.2), (0.25, 0.15), (0.5, 0.20), (0.75, 0.15), (1, 0.2)],
+    flare = lambda s, t: 0.02 * max(0.0, 1 - t / 0.1) + 0.008 * max(0.0, 1 - abs(s - 0.5) / 0.28)
+    sh = L.shell("NT_Shin_L", cross=True, sample=C(-100, 100, [(0, 0.2), (0.25, 0.15), (0.5, 0.20), (0.75, 0.15), (1, 0.2)],
                                 [(0, 0.80), (0.5, 0.93), (1, 0.80)]),
-                 16, 12, body, L.R_LEG_L, offset=0.024, smooth=5, bulge=flare, bone={"calf_l": 1.0}, bevel=0.004, edge_drop=0.004,
-                 grooves=[('s', 0.26, 0.018, 0.0035), ('s', 0.74, 0.018, 0.0035), ('t', 0.34, 0.025, 0.0035, (0.26, 0.74)),
-                          ('s', 0.5, 0.0056, 0.0008, (0.4, 0.92), 'stripe')])
+                 ns=16, nt=12, body=body, region=L.R_LEG_L, offset=lambda s, t: 0.024 + F["shin_off"] - 0.013 * t, smooth=5, bulge=flare, bone={"calf_l": 1.0}, bevel=0.004, edge_drop=0.004,
+                 grooves=[('s', 0.26, 0.018, 0.0035, (0.06, 0.94)), ('s', 0.74, 0.018, 0.0035, (0.06, 0.94)), ('t', 0.34, 0.025, 0.0035, (0.26, 0.74)),
+                          ('s', 0.06, 0.014, 0.0008, (0.06, 0.94), 'stripe'), ('s', 0.94, 0.014, 0.0008, (0.06, 0.94), 'stripe'),
+                          ('t', 0.06, 0.012, 0.0008, (0.06, 0.94), 'stripe'), ('t', 0.94, 0.012, 0.0008, (0.06, 0.94), 'stripe')])
     fin(sh, True)
-    sh2 = L.shell("NT_ShinLow_L", C([(0, -50), (1, -42)], [(0, 50), (1, 42)], [(0, 0.56), (0.5, 0.46), (1, 0.56)], [(0, 0.86), (0.5, 0.97), (1, 0.86)]),
-                  8, 7, body, L.R_LEG_L, offset=0.044, smooth=5, bone={"calf_l": 1.0}, bevel=0.004, edge_drop=0.004,
-                  bulge=lambda s, t: 0.012 * max(0.0, 1 - abs(s - 0.5) / 0.4),
-                  grooves=[('t', 0.5, 0.04, 0.0035)])
-    fin(sh2, True)
-    cf = L.shell("NT_Calf_L", C(96, 264, [(0, 0.14), (0.5, 0.10), (1, 0.14)], [(0, 0.80), (0.5, 0.72), (1, 0.80)]),
-                 12, 10, body, L.R_LEG_L, offset=0.018, smooth=4, bone={"calf_l": 1.0}, bevel=0.0035, edge_drop=0.004,
-                 grooves=[('t', 0.45, 0.025, 0.003), ('s', 0.5, 0.0080, 0.0008, (0.5, 0.95), 'stripe')])
-    fin(cf, True)
+    if F["shin_low"]:
+        sh2 = L.shell("NT_ShinLow_L", C([(0, -50), (1, -42)], [(0, 50), (1, 42)], [(0, 0.56), (0.5, 0.46), (1, 0.56)], [(0, 0.86), (0.5, 0.97), (1, 0.86)]),
+                      8, 7, body, L.R_LEG_L, offset=0.024, smooth=5, bone={"calf_l": 1.0}, bevel=0.004, edge_drop=0.004,
+                      bulge=lambda s, t: 0.008 * max(0.0, 1 - abs(s - 0.5) / 0.4),
+                      grooves=[('t', 0.5, 0.04, 0.0035)])
+        fin(sh2, True)
+    if F["calf"]:
+        cf = L.shell("NT_Calf_L", C(96, 264, [(0, 0.14), (0.5, 0.10), (1, 0.14)], [(0, 0.80), (0.5, 0.72), (1, 0.80)]),
+                     12, 10, body, L.R_LEG_L, offset=lambda s, t: 0.016 - 0.006 * t, smooth=4, bone={"calf_l": 1.0}, bevel=0.0035, edge_drop=0.004,
+                     grooves=[('t', 0.45, 0.025, 0.003), ('s', 0.5, 0.0080, 0.0008, (0.5, 0.95), 'stripe')])
+        fin(cf, True)
     # round joint bolts (knee, ankle), outer and inner
     for nm, c, r, bn in (("Knee", knee + V(0, 0.012, -0.004), 0.027, "calf_l"), ("Ankle", ank + V(0, 0.012, 0.012), 0.022, "foot_l")):
         for side, sg in (("Out", 1),):
@@ -310,8 +361,8 @@ def build_boot():
                     taper=1.03, bone=bone, bevel=0.003, mat="armor2"), True)
     # upper: vamp (toe -> ankle) and shaft
     zb = 0.043
-    vamp = [dict(y=Lb - 0.004, w=0.07, h=0.03, z=zb + 0.012, n=2.6), dict(y=Lb - 0.02, w=0.11, h=0.06, z=zb + 0.024, n=2.8),
-            dict(y=Lb - 0.06, w=0.127, h=0.08, z=zb + 0.032, n=3.0), dict(y=Lb - 0.11, w=0.13, h=0.09, z=zb + 0.038, n=3.0),
+    vamp = [dict(y=Lb - 0.004, w=0.07, h=0.024, z=zb + 0.012, n=2.6), dict(y=Lb - 0.02, w=0.11, h=0.045, z=zb + 0.018, n=2.8),
+            dict(y=Lb - 0.06, w=0.127, h=0.06, z=zb + 0.024, n=3.0), dict(y=Lb - 0.11, w=0.13, h=0.072, z=zb + 0.03, n=3.0),
             dict(y=0.16, w=0.124, h=0.11, z=zb + 0.048, n=2.8), dict(y=0.115, w=0.108, h=0.14, z=zb + 0.065, n=2.6),
             dict(y=0.06, w=0.104, h=0.15, z=zb + 0.07, n=2.6), dict(y=0.012, w=0.098, h=0.13, z=zb + 0.06, n=2.6),
             dict(y=-0.004, w=0.07, h=0.09, z=zb + 0.045, n=2.4)]
@@ -320,17 +371,17 @@ def build_boot():
              dict(y=0.215, w=0.12, h=0.136, z=0.05), dict(y=0.225, w=0.112, h=0.128, z=0.05)]
     fin(L.loft("NT_BootShaft_L", shaft, o, side, UP, f, ring=16, bone=bone, mat="armor2"), True)
     # armoured toe cap, heel counter, straps, buckle, heel light
-    toe = [dict(y=Lb + 0.001, w=0.076, h=0.034, z=zb + 0.013, n=2.6), dict(y=Lb - 0.02, w=0.118, h=0.066, z=zb + 0.026, n=2.8),
-           dict(y=Lb - 0.06, w=0.135, h=0.087, z=zb + 0.034, n=3.0), dict(y=Lb - 0.098, w=0.138, h=0.096, z=zb + 0.038, n=3.0)]
+    toe = [dict(y=Lb + 0.001, w=0.076, h=0.027, z=zb + 0.011, n=2.6), dict(y=Lb - 0.02, w=0.118, h=0.05, z=zb + 0.02, n=2.8),
+           dict(y=Lb - 0.06, w=0.135, h=0.066, z=zb + 0.026, n=3.0), dict(y=Lb - 0.098, w=0.138, h=0.078, z=zb + 0.031, n=3.0)]
     fin(L.loft("NT_BootToe_L", toe[::-1], o, side, f, UP, ring=16, bone=bone, bevel=0.003, angle=40), True)
     fin(L.hull("NT_BootHeel_L", [o + side * sx * 0.058 + f * yy + UP * zz for sx in (-1, 1) for yy, zz in
                                  ((-0.016, 0.04), (0.06, 0.04), (-0.018, 0.105), (0.05, 0.125), (-0.008, 0.14))] +
                [o + side * sx * 0.04 + f * -0.024 + UP * zz for sx in (-1, 1) for zz in (0.045, 0.1)],
                bone=bone, bevel=0.004, angle=18), True)
     fin(L.box("NT_BootHeelLight_L", o - f * 0.02 + UP * 0.072, side, UP, -f, 0.05, 0.014, 0.008, bone=bone, bevel=0.002, mat="emis"), True)
-    strap1 = [dict(y=0.148, w=0.136, h=0.118, z=zb + 0.05, n=2.8), dict(y=0.186, w=0.14, h=0.106, z=zb + 0.045, n=2.8)]
+    strap1 = [dict(y=0.142, w=0.146, h=0.122, z=zb + 0.05, n=2.8), dict(y=0.186, w=0.15, h=0.104, z=zb + 0.043, n=2.8)]
     fin(L.loft("NT_BootStrapA_L", strap1, o, side, f, UP, ring=16, bone=bone, bevel=0.003, angle=40), True)
-    strap2 = [dict(y=0.118, w=0.118, h=0.146, z=0.056), dict(y=0.152, w=0.12, h=0.146, z=0.054)]
+    strap2 = [dict(y=0.112, w=0.128, h=0.156, z=0.056), dict(y=0.154, w=0.13, h=0.156, z=0.054)]
     fin(L.loft("NT_BootStrapB_L", strap2, o, side, UP, f, ring=16, bone=bone, bevel=0.003, angle=40), True)
     fin(L.box("NT_BootBuckleA_L", o + side * 0.06 + f * 0.167 + UP * 0.09, f, UP, side, 0.034, 0.034, 0.012, bone=bone, bevel=0.003), True)
     fin(L.box("NT_BootBuckleB_L", o + side * 0.056 + f * 0.062 + UP * 0.135, f, UP, side, 0.036, 0.03, 0.012, bone=bone, bevel=0.003), True)
@@ -345,35 +396,38 @@ def build_arm():
     out_u = V(0.82, 0, 0.57)
     reg = L.R_ARM_L
     # pauldron: three layered lames
-    pc = sh + V(0.032, 0.004, 0.0)
+    pc = sh + V(0.022, 0.004, -0.034)
     PH = lambda ph0, ph1, la0, la1: L.sphere(pc, FRONT, UP, ph0, ph1, la0, la1)
     # FRONT x UP = (-1,0,0): positive phi turns toward the neck; negative phi goes outward and down the arm.
-    lam = [("A", -60, 40, 0.176, 0.160, 0.138, {"clavicle_l": 0.75, "upperarm_l": 0.25}, 62),
-           ("B", -94, -50, 0.158, 0.146, 0.13, {"clavicle_l": 0.3, "upperarm_l": 0.7}, 56),
-           ("C", -120, -84, 0.136, 0.13, 0.126, {"upperarm_l": 1.0}, 50)]
+    lam = [("A", -72, 48, 0.142, 0.132, 0.126, {"clavicle_l": 0.4, "upperarm_l": 0.6}, 64),
+           ("B", -108, -52, 0.128, 0.12, 0.118, {"clavicle_l": 0.2, "upperarm_l": 0.8}, 58),
+           ("C", -140, -92, 0.114, 0.108, 0.11, {"upperarm_l": 1.0}, 52),
+           ("D", -162, -122, 0.102, 0.098, 0.102, {"upperarm_l": 1.0}, 48)]
+    PSC = F["pauldron_scale"]
+    lam = [(n_, a_, b_, rx_ * PSC, ry_ * PSC, rz_ * (1 + (PSC - 1) * 0.6), bn_, lw_) for n_, a_, b_, rx_, ry_, rz_, bn_, lw_ in lam if n_ in F["lames"]]
     for nm, p0, p1, rx, ry, rz, bn, lw in lam:
-        shp = L.planes([((0.22, 0, 1), rz * 0.8), ((1, 0, 0.1), rx * 0.82), ((0, -1, 0.12), ry * 0.86), ((0, 1, 0.12), ry * 0.86),
-                        ((0.75, 0, 0.75), rx * 0.86)], p=10, base=L.ellipsoid(pc, rx, ry * 1.04, rz))
-        pd = L.shell("NT_Pauldron%s_L" % nm, segs=2, sample=PH(p0, p1, -lw, lw),
-                     ns=10, nt=7, body=body, region=L.R_SHOULDER_L, shape=shp, smooth=2, clear=0.012, bone=bn, bevel=0.005, inner=True, thick=0.02, maxskirt=0.024,
-                     grooves=[('t', 0.5, 0.035, 0.003)] if nm == "A" else [('s', 0.5, 0.03, 0.003)], far=0.5)
+        shp = L.ellipsoid(pc, rx, ry, rz)
+        pd = L.shell("NT_Pauldron%s_L" % nm, segs=2, sample=PH([(0, p0 + 10), (0.5, p0), (1, p0 + 10)], [(0, p1 - 6), (0.5, p1), (1, p1 - 6)], -lw, lw),
+                     ns=10, nt=7, body=body, region=L.R_SHOULDER_L, shape=shp, smooth=2, clear=0.01, bone=bn, bevel=0.005, inner=True, thick=0.016, maxskirt=0.018,
+                     grooves=[('t', 0.5, 0.035, 0.003)] if nm == "A" else [('s', 0.5, 0.03, 0.003)], far=0.5, cross=(nm == "A"))
         fin(pd, True)
         if nm in ("A", "B"):
             pbv = L.obj_bvh(pd)
-            studs = ((-44, -30), (-44, 30), (-8, 38)) if nm == "A" else ((-80, 0),)
+            studs = ((-46, -28), (-46, 28)) if nm == "A" else ((-84, 0),)
             for q, (ph, la) in enumerate(studs):
                 smp = L.sphere(pc, FRONT, UP, ph, ph, la, la)
                 _, dd = smp(0, 0)
                 hp, hn = L.surf(pbv, pc, dd)
                 if hp:
-                    fin(L.lathe("NT_Stud%s%d_L" % (nm, q), hp - dd * 0.004, dd, [(0, 0.017), (0.008, 0.017), (0.01, 0.012), (0.0085, 0.011), (0.0085, 0)],
-                                segs=8, ring_mats={3: "emis"}, bone=bn, bevel=0.0), True)
+                    fin(L.lathe("NT_Stud%s%d_L" % (nm, q), hp - dd * 0.004, dd, [(0, 0.019), (0.008, 0.019), (0.01, 0.0135), (0.0085, 0.0125), (0.0085, 0)],
+                                segs=12, ring_mats={3: "emis"}, bone=bn, bevel=0.0), True)
     # upper-arm plate
     U = lambda th0, th1, u0, u1: L.sweep(sh, el, FRONT, out_u, th0, th1, u0, u1)
-    up = L.shell("NT_UpperArm_L", U([(0, 8), (1, 18)], [(0, 172), (1, 160)], [(0, 0.5), (0.5, 0.42), (1, 0.5)], [(0, 0.86), (0.5, 0.95), (1, 0.86)]),
-                 12, 8, body, reg, offset=0.015, smooth=4, bone={"upperarm_l": 1.0}, bevel=0.0035, edge_drop=0.004,
-                 grooves=[('t', 0.55, 0.03, 0.003), ('s', 0.5, 0.0080, 0.0008, (0.0, 0.5), 'stripe')])
-    fin(up, True)
+    if F["upperarm"]:
+        up = L.shell("NT_UpperArm_L", U([(0, 8), (1, 18)], [(0, 172), (1, 160)], [(0, 0.5), (0.5, 0.42), (1, 0.5)], [(0, 0.86), (0.5, 0.95), (1, 0.86)]),
+                     12, 8, body, reg, offset=0.015, smooth=4, bone={"upperarm_l": 1.0}, bevel=0.0035, edge_drop=0.004,
+                     grooves=[('t', 0.55, 0.03, 0.003), ('s', 0.5, 0.0080, 0.0008, (0.0, 0.5), 'stripe')])
+        fin(up, True)
     # elbow guard
     ec = el + V(0, 0.01, 0)
     ed = (BACK * 0.9 + out_u * 0.25 - ua * 0.1 + fa * -0.25).normalized()
@@ -385,22 +439,29 @@ def build_arm():
     # bracer: base ring, outer housing with the long emissive panel, wrist cuff
     out_f = V(1, 0, 0.3)
     top_f = V(0, -0.35, 1.0)
-    F = lambda th0, th1, u0, u1: L.sweep(el, wr, top_f, out_f, th0, th1, u0, u1)
-    flare = lambda s, t: 0.008 * max(0.0, 1 - t / 0.2) ** 2 + 0.004 * max(0.0, (t - 0.85) / 0.15)
-    br = L.shell("NT_Bracer_L", F(0, 360, [(0, 0.16), (0.25, 0.10), (0.5, 0.16), (0.75, 0.22), (1, 0.16)], const_s(0.9)),
-                 16, 5, body, reg, offset=0.028, smooth=4, wrap=True, bulge=flare, bone={"lowerarm_l": 1.0}, bevel=0.004,
-                 grooves=[('t', 0.3, 0.02, 0.003), ('t', 0.8, 0.02, 0.003)])
+    F_ = lambda th0, th1, u0, u1: L.sweep(el, wr, top_f, out_f, th0, th1, u0, u1)
+    flare = lambda s, t: 0.006 * max(0.0, 1 - t / 0.2) ** 2
+    br = L.shell("NT_Bracer_L", F_(0, 360, [(0, 0.16), (0.25, 0.10), (0.5, 0.16), (0.75, 0.22), (1, 0.16)], const_s(0.95)),
+                 16, 5, body, reg, offset=lambda s, t: 0.019 - 0.009 * t, smooth=4, wrap=True, bulge=flare, bone={"lowerarm_l": 1.0}, bevel=0.004,
+                 grooves=[('t', 0.3, 0.02, 0.003), ('t', 0.85, 0.02, 0.003)])
     fin(br, True)
-    hs = L.shell("NT_BracerPanel_L", F([(0, 32), (0.12, 26), (0.88, 26), (1, 34)], [(0, 148), (0.12, 154), (0.88, 154), (1, 146)],
-                                       [(0, 0.16), (0.5, 0.10), (1, 0.16)], [(0, 0.86), (0.5, 0.92), (1, 0.86)]),
-                 10, 8, body, reg, offset=0.052, smooth=5, bone={"lowerarm_l": 1.0}, bevel=0.004,
-                 emis=[(0.345, 0.655, 0.16, 0.84)],
-                 grooves=[('s', 0.33, 0.022, 0.004, (0.13, 0.87)), ('s', 0.67, 0.022, 0.004, (0.13, 0.87)),
-                          ('t', 0.14, 0.02, 0.004, (0.33, 0.67)), ('t', 0.86, 0.02, 0.004, (0.33, 0.67))])
-    fin(hs, True)
-    cu = L.shell("NT_WristCuff_L", F(0, 360, const_s(0.86), const_s(1.0)), 16, 3, body, reg, offset=lambda s, t: 0.036 - 0.012 * t, smooth=3,
-                 wrap=True, bone={"lowerarm_l": 1.0}, bevel=0.0035, mat="armor2")
-    fin(cu, True)
+    # long oval emissive panel (about 22 x 6 cm) on the outer face, hex grid only here
+    oval = []
+    for q in range(14):
+        tc = (q + 0.5) / 14.0
+        hw = 0.5 * 0.4 * math.sqrt(max(0.0, 1 - ((tc - 0.5) / 0.47) ** 2)) if abs(tc - 0.5) < 0.47 else 0.0
+        if hw > 0.05: oval.append((0.5 - hw, 0.5 + hw, q / 14.0, (q + 1) / 14.0))
+    if F["ovals"] != "none":
+        hs = L.shell("NT_BracerPanel_L", F_([(0, 36), (0.15, 28), (0.85, 30), (1, 40)], [(0, 144), (0.15, 152), (0.85, 150), (1, 140)],
+                                            [(0, 0.1), (0.5, 0.05), (1, 0.1)], [(0, 0.93), (0.5, 0.985), (1, 0.93)]),
+                     12, 14, body, reg, offset=lambda s, t: 0.031 - 0.012 * t, smooth=5, bone={"lowerarm_l": 1.0}, bevel=0.004,
+                     emis=oval, emis_key="emishex")
+        if F["ovals"] == "both": fin(hs, True)
+        else: fin_side(hs, "R")
+    if F["wrist_band"]:       # the Grunt's baton-arm cue: a bright band round the RIGHT wrist
+        wb = L.shell("NT_WristBand_L", F_(0, 360, const_s(0.74), const_s(0.93)), 14, 3, body, reg, offset=lambda s, t: 0.024 - 0.006 * t, smooth=3,
+                     wrap=True, bone={"lowerarm_l": 1.0}, bevel=0.003, emis=[(0.0, 1.0, 0.34, 0.67)])
+        fin_side(wb, "R")
     # gauntlet: back-of-hand plate, knuckle guard, finger lames
     idx, pnk, mid = B("index_01_l"), B("pinky_01_l"), B("middle_01_l")
     dors = (idx - wr).cross(pnk - wr).normalized()
@@ -438,105 +499,134 @@ def build_helmet():
     hb = {"head": 1.0}
     hc = V(0, -0.02, 1.712)
     RX, RY, RZ = 0.122, 0.146, 0.150
-    dome_e = L.ellipsoid(hc, RX, RY, RZ)
-    # liner (closes the helmet, hides the hollow neck)
-    lin = L.lathe("NT_HelmLiner", hc + V(0, 0, -0.014), UP, [(-0.128 * math.cos(math.radians(a)), 0.1 * math.sin(math.radians(a))) for a in range(0, 181, 15)],
-                  segs=14, bone=hb, mat="suit")
-    for v in lin.data.vertices: v.co.y = hc.y + 0.004 + (v.co.y - hc.y) * 1.14
+    # ONE smooth helmet form: cranium ellipsoid above, longer below, cut by cheek / jaw planes that converge on the chin
+    def base(o, d):
+        rz = RZ if d.z >= 0 else 0.215
+        return 1.0 / math.sqrt((d.x / RX) ** 2 + (d.y / RY) ** 2 + (d.z / rz) ** 2)
+    H = L.planes([((0.76, -0.64, 0.1), 0.108), ((-0.76, -0.64, 0.1), 0.108),
+                  ((0.56, -0.7, -0.44), 0.118), ((-0.56, -0.7, -0.44), 0.118),
+                  ((0, -0.3, -0.95), 0.176)], p=9, base=base)
+    # small dark liner deep inside (only closes the neck opening)
+    lin = L.lathe("NT_HelmLiner", hc + V(0, 0.004, -0.03), UP, [(-0.1 * math.cos(math.radians(a)), 0.082 * math.sin(math.radians(a))) for a in range(0, 181, 20)],
+                  segs=10, bone=hb, mat="suit")
     fin(lin)
     # sphere(): pole = X, zero = front, positive phi turns DOWN (up is negative phi)
     Sd = lambda ph0, ph1, la0, la1: L.sphere(hc, LEFT, FRONT, ph0, ph1, la0, la1)
-    brow = [(0, -8), (0.2, -17), (0.36, -13), (0.5, -3), (0.64, -13), (0.8, -17), (1, -8)]
-    dome = L.shell("NT_HelmDome", Sd([(0, -236), (0.5, -240), (1, -236)], brow, -82, 82),
-                   20, 20, shape=dome_e, thick=0.014, bone=hb, bevel=0.004,
-                   grooves=[('t', 0.3, 0.012, 0.003)])
-    fin(dome)
-    # brow ledge: overhangs the visor recess, dips to a point at the centre
-    ledge = L.shell("NT_HelmBrow", Sd([(s_, v_ - 15) for s_, v_ in brow], [(s_, v_ + 3) for s_, v_ in brow], -70, 70), 16, 2,
-                    shape=L.ellipsoid(hc, RX + 0.013, RY + 0.017, RZ + 0.008), thick=0.02, bone=hb, bevel=0.004)
-    fin(ledge)
-    # central ridge, front to back
-    ridge = L.shell("NT_HelmRidge", Sd(-232, -2, [(0, -4), (0.5, -5), (1, -5.5)], [(0, 4), (0.5, 5), (1, 5.5)]), 2, 20,
-                    shape=L.ellipsoid(hc, RX + 0.008, RY + 0.02, RZ + 0.007), thick=0.016, bone=hb, bevel=0.004)
+    brow = [(0, -4), (0.14, -20), (0.3, -17), (0.5, 1), (0.7, -17), (0.86, -20), (1, -4)]   # V-shaped brow line
+    crown = L.shell("NT_HelmDome", Sd([(0, -238), (0.5, -246), (1, -238)], brow, -84, 84),
+                    22, 22, shape=lambda o, d: H(o, d) + 0.007, thick=0.012, bone=hb, bevel=0.004,
+                    grooves=[('t', 0.34, 0.01, 0.0025)])
+    fin(crown)
+    ridge = L.shell("NT_HelmRidge", Sd(-236, -1, [(0, -3.5), (0.5, -4.5), (1, -5)], [(0, 3.5), (0.5, 4.5), (1, 5)]), 2, 20,
+                    shape=lambda o, d: H(o, d) + 0.013, thick=0.012, bone=hb, bevel=0.003)
     fin(ridge)
-    # faceplate: rounded-polyhedron prow narrowing to a pointed chin, with a recessed visor band
-    fc = hc + V(0, 0.0, -0.024)
-    prow = L.planes([((0.74, -0.67, 0.12), 0.106), ((-0.74, -0.67, 0.12), 0.106),
-                     ((0.5, -0.74, -0.45), 0.121), ((-0.5, -0.74, -0.45), 0.121),
-                     ((0, -0.9, 0.44), 0.136), ((0, -0.35, -0.94), 0.16)], p=9,
-                    base=L.ellipsoid(fc, 0.126, 0.167, 0.22))
-    Sf = lambda ph0, ph1, la0, la1: L.sphere(fc, LEFT, FRONT, ph0, ph1, la0, la1)
-
-    def recess(s, t):
-        a = abs(s - 0.5)
-        band = max(0.0, 1 - abs(t - 0.2) / 0.13)
-        side = min(1.0, max(0.0, (a - 0.035) / 0.03)) * min(1.0, max(0.0, (0.43 - a) / 0.05))
-        return 0.0
-    face = L.shell("NT_HelmFace", Sf([(0, -10), (0.5, -26), (1, -10)], [(0, 44), (0.3, 58), (0.5, 82), (0.7, 58), (1, 44)],
-                                     [(0, -86), (0.4, -84), (0.7, -56), (1, -13)], [(0, 86), (0.4, 84), (0.7, 56), (1, 13)]),
-                   22, 16, shape=prow, bulge=recess, thick=0.02, bone=hb, bevel=0.004)
+    # face: continues the same form under the crown (no gap), down to the pointed chin
+    face = L.shell("NT_HelmFace", Sd([(0, -26), (0.5, -30), (1, -26)], [(0, 40), (0.25, 60), (0.5, 84), (0.75, 60), (1, 40)],
+                                     [(0, -88), (0.45, -88), (0.75, -72), (1, -30)], [(0, 88), (0.45, 88), (0.75, 72), (1, 30)]),
+                   22, 16, shape=H, thick=0.02, bone=hb, bevel=0.004, mat="armor2")
     fin(face)
-    # nose guard down the centre, mouth plate under it
-    blade = L.shell("NT_HelmBlade", Sf(-26, 40, [(0, -4.5), (0.35, -8), (1, -5)], [(0, 4.5), (0.35, 8), (1, 5)]), 2, 8,
-                    shape=lambda o, d: prow(o, d) + 0.009, thick=0.014, bone=hb, bevel=0.003)
+    # nose guard down the centre
+    blade = L.shell("NT_HelmBlade", Sd(-2, 58, [(0, -5), (0.3, -7.5), (1, -4)], [(0, 5), (0.3, 7.5), (1, 4)]), 2, 8,
+                    shape=lambda o, d: H(o, d) + 0.008, thick=0.012, bone=hb, bevel=0.003)
     fin(blade)
-    mouth = L.shell("NT_HelmMouth", Sf(36, [(0, 60), (0.5, 76), (1, 60)], [(0, -19), (1, -7)], [(0, 19), (1, 7)]), 6, 3,
-                    shape=lambda o, d: prow(o, d) + 0.006, thick=0.012, bone=hb, bevel=0.003, mat="armor2",
-                    grooves=[('t', 0.4, 0.06, 0.002), ('t', 0.7, 0.06, 0.002)])
-    fin(mouth)
-    # eye sockets: dark slanted panel in the recess, three round lenses in a tight triangle
-    eye = L.shell("NT_HelmEye_L", Sf([(0, -7), (1, -19)], [(0, 13), (1, 5)], [(0, 9), (1, 11)], [(0, 50), (1, 44)]), 5, 3,
-                  shape=lambda o, d: prow(o, d) + 0.0035, thick=0.008, bone=hb, bevel=0.002, mat="armor2")
+    # eye panels: angular trapezoids (about 6 x 3.5 cm) glowing at mid strength, three brighter lenses inside
+    eye = L.shell("NT_HelmEye_L", Sd([(0, 3), (1, -13)], [(0, 17), (1, 3)], [(0, 9), (1, 10.5)], [(0, 38), (1, 35)]), 4, 3,
+                  shape=lambda o, d: H(o, d) + 0.0025, thick=0.008, bone=hb, bevel=0.002, mat="emisdim")
     fin(eye, True)
-    for q, (ph, la, r) in enumerate(((-2, 19, 0.0095), (-9, 33, 0.012), (4.5, 31, 0.009))):
-        _, dd = Sf(ph, ph, la, la)(0, 0)
-        rr = prow(fc, dd) + 0.0035
-        fin(L.lathe("NT_EyeLight%d_L" % q, fc + dd * (rr - 0.003), dd, [(0, r + 0.004), (0.0075, r + 0.004), (0.0075, r), (0.0045, r - 0.001), (0.0045, 0)],
-                    segs=10, ring_mats={3: "emis"}, bone=hb, mat="armor"), True)
-    # cheek plates tapering to the chin
-    jaw = L.shell("NT_HelmJaw_L", Sf([(0, 15), (1, 6)], [(0, 54), (1, 72)], [(0, 31), (0.5, 21), (1, 9)], [(0, 86), (0.5, 64), (1, 30)]), 7, 6,
-                  shape=lambda o, d: prow(o, d) + 0.01, thick=0.016, bone=hb, bevel=0.004,
-                  grooves=[('t', 0.5, 0.05, 0.003), ('s', 0.16, 0.0200, 0.0008, None, 'stripe')])
+    for q, (ph, la, r) in enumerate(((8, 15.5, 0.0062), (0, 24, 0.0082), (1, 33, 0.006))):
+        _, dd = Sd(ph, ph, la, la)(0, 0)
+        rr = H(hc, dd) + 0.0025
+        fin(L.lathe("NT_EyeLight%d_L" % q, hc + dd * (rr - 0.002), dd, [(0, r + 0.0028), (0.0055, r + 0.0028), (0.0055, r), (0.0035, r - 0.0008), (0.0035, 0)],
+                    segs=16, ring_mats={3: "emis"}, bone=hb, mat="armor"), True)
+    # cheek plates converging on the narrow jaw
+    jaw = L.shell("NT_HelmJaw_L", Sd([(0, 24), (1, 20)], [(0, 60), (1, 80)], [(0, 34), (0.5, 22), (1, 7)], [(0, 88), (0.5, 70), (1, 26)]), 8, 7,
+                  shape=lambda o, d: H(o, d) + 0.009, thick=0.014, bone=hb, bevel=0.004,
+                  grooves=[('t', 0.5, 0.05, 0.003), ('s', 0.12, 0.022, 0.0008, None, 'stripe')])
     fin(jaw, True)
-    # nape guard, rear light slit in a frame
-    nape = L.shell("NT_HelmNape", Sd(-226, -198, [(0, -66), (1, -54)], [(0, 66), (1, 54)]), 12, 2,
-                   shape=L.ellipsoid(hc, RX + 0.008, RY + 0.009, RZ + 0.008), thick=0.016, bone=hb, bevel=0.0035, mat="armor2")
-    fin(nape)
-    fin(L.shell("NT_HelmRearFrame", Sd(-182, -163, -36, 36), 8, 2, shape=L.ellipsoid(hc, RX + 0.004, RY + 0.005, RZ + 0.004), thick=0.01,
+    # pointed chin, 3 to 4 cm below the jaw line
+    fin(L.hull("NT_HelmChin", [(0.026, -0.098, 1.602), (0.02, -0.066, 1.596), (0.0, -0.114, 1.604), (0.0, -0.094, 1.54), (0.0, -0.072, 1.55),
+                               (0.012, -0.1, 1.565)], mirror_x=True, bone=hb, bevel=0.003, angle=16))
+    # rear light slit in a frame
+    fin(L.shell("NT_HelmRearFrame", Sd(-184, -164, -36, 36), 8, 2, shape=lambda o, d: H(o, d) + 0.011, thick=0.01,
                 bone=hb, bevel=0.002, mat="armor2"))
-    fin(L.shell("NT_HelmRearLight", Sd(-176, -169, -30, 30), 8, 1, shape=L.ellipsoid(hc, RX + 0.006, RY + 0.007, RZ + 0.006), thick=0.01,
+    fin(L.shell("NT_HelmRearLight", Sd(-177, -171, -30, 30), 8, 1, shape=lambda o, d: H(o, d) + 0.013, thick=0.01,
                 bone=hb, bevel=0.0015, mat="emis"))
     # ear discs with a raised glowing ring
-    ec = V(RX - 0.014, -0.014, 1.688)
-    fin(L.lathe("NT_Ear_L", ec, LEFT, [(0, 0.06), (0.02, 0.06), (0.027, 0.054), (0.027, 0.047), (0.033, 0.045), (0.033, 0.035), (0.027, 0.033),
-                                        (0.027, 0.02), (0.032, 0.018), (0.032, 0)], segs=18, ring_mats={4: "emis"}, bone=hb, bevel=0.0), True)
-    # antenna fins: thin blades from just behind the ear discs, swept back about 30 degrees from vertical
-    pts = []
-    for (y, z, th) in ((0.016, 1.70, 1.0), (0.05, 1.688, 1.0), (0.078, 1.80, 0.7), (0.099, 1.792, 0.7), (0.154, 1.898, 0.25), (0.161, 1.889, 0.25)):
-        cx = RX + 0.014 + (z - 1.7) * 0.05
-        pts += [(cx - 0.0055 * th, y, z), (cx + 0.0055 * th, y, z)]
-    fin(L.hull("NT_Fin_L", pts, bone=hb, bevel=0.0015, angle=20), True)
-    # neck seal: three rings
-    for k, (z0, z1, off, bn) in enumerate(((1.532, 1.556, 0.014, {"neck_01": 1.0}), (1.558, 1.582, 0.012, {"neck_01": 0.5, "neck_02": 0.5}),
-                                           (1.584, 1.612, 0.010, {"neck_02": 1.0}))):
+    ec = V(RX - 0.016, -0.014, 1.688)
+    fin(L.lathe("NT_Ear_L", ec, LEFT, [(0, 0.06), (0.022, 0.06), (0.029, 0.054), (0.029, 0.047), (0.035, 0.045), (0.035, 0.034), (0.029, 0.032),
+                                        (0.029, 0.02), (0.034, 0.018), (0.034, 0)], segs=20, ring_mats={4: "emis"}, bone=hb, bevel=0.0), True)
+    # antenna fins: blades rooted at the top of the ear disc, 15 cm long, 4.5 cm wide at the root, 8 mm thick, swept back 38 degrees
+    if F["fins"] > 0:
+        sw = math.radians(38)
+        ax = V(0, math.sin(sw), math.cos(sw)); pr = V(0, math.cos(sw), -math.sin(sw))
+        root = V(RX + 0.012, -0.004, 1.735)
+        kf = F["fins"] / 0.15
+        prof = ((-0.012, 0.0225, 0.007), (0.02 * kf, 0.022, 0.007), (0.085 * kf, 0.014, 0.007), (0.14 * kf, 0.006, 0.005), (0.152 * kf, 0.002, 0.003))
+        pts = []
+        for (along, half, th) in prof:
+            for sg in (-1, 1):
+                c = root + ax * along + pr * (half * sg) + V(along * 0.08, 0, 0)
+                pts += [(c.x - th, c.y, c.z), (c.x + th, c.y, c.z)]
+        fin(L.hull("NT_Fin_L", pts, bone=hb, bevel=0.0015, angle=20), True)
+        pts = []                                   # 3 mm emissive strip along the trailing edge
+        for (along, half, th) in prof[1:]:
+            c = root + ax * along + pr * half + V(along * 0.08, 0, 0)
+            for off in (-0.0015, 0.0035):
+                q = c + pr * off
+                pts += [(q.x - th - 0.0012, q.y, q.z), (q.x + th + 0.0012, q.y, q.z)]
+        fin(L.hull("NT_FinEdge_L", pts, bone=hb, bevel=0.0, mat="emis"), True)
+    if F["crest"]:      # the Heavy: no fins, a 3 cm central crest
+        fin(L.shell("NT_HelmCrest", Sd(-200, -12, [(0, -2.2), (0.5, -3.2), (1, -3.0)], [(0, 2.2), (0.5, 3.2), (1, 3.0)]), 2, 18,
+                    shape=lambda o, d: H(o, d) + 0.034, bulge=lambda s, t: -0.03 * max(0.0, abs(t - 0.5) * 2 - 0.55) / 0.45,
+                    thick=0.034, bone=hb, bevel=0.004,
+                    grooves=[('s', 0.5, 0.2, 0.0008, (0.08, 0.92), 'stripe')]))
+    # neck seal: four stacked rings up into the helmet
+    for k, (z0, z1, rr, bn) in enumerate(((1.522, 1.55, 0.078, {"neck_01": 1.0}), (1.552, 1.578, 0.073, {"neck_01": 0.6, "neck_02": 0.4}),
+                                          (1.58, 1.606, 0.069, {"neck_02": 1.0}), (1.608, 1.64, 0.066, {"neck_02": 0.4, "head": 0.6}))):
         fin(L.shell("NT_Neck%d" % k, L.sweep(V(0, 0.004, 0), V(0, 0.004, 1), FRONT, LEFT, 0, 360, const_s(z0), const_s(z1)), 14, 1,
-                    shape=(lambda rr: (lambda o, d: rr * (1.0 + 0.12 * abs(d.y))))(0.06 + off), thick=0.02, wrap=True, bone=bn, bevel=0.003, mat="armor2"))
+                    shape=(lambda r_: (lambda o, d: r_ * (1.0 + 0.12 * abs(d.y))))(rr), thick=0.02, wrap=True, bone=bn, bevel=0.003, mat="armor2"))
 
 
-# ------------------------------------------------------------------ undersuit segment bands (raised ribs where the suit shows)
+# ------------------------------------------------------------------ Heavy only: gorget, second chest plate, left forearm shield
+def build_heavy():
+    reg = L.R_TORSO_ARMS
+    if F["gorget"]:     # raised neck guard reaching ear height, open at the front
+        g = L.shell("NT_Gorget", T(58, 302, const_s(1.465), [(0, 1.60), (0.2, 1.68), (0.5, 1.70), (0.8, 1.68), (1, 1.60)]), 20, 4,
+                    shape=lambda o, d: 0.165 + 0.02 * abs(d.x), bulge=lambda s, t: 0.02 * t, thick=0.014, inner=True, bone={"spine_05": 1.0}, bevel=0.004,
+                    grooves=[('t', 0.5, 0.05, 0.003)])
+        fin(g)
+    if F["chest2"]:     # second layered chest plate over the pectorals
+        c2 = L.shell("NT_ChestOver_L", T([(0, 27), (1, 22)], [(0, 60), (0.5, 68), (1, 52)], [(0, 1.31), (0.5, 1.30), (1, 1.35)], [(0, 1.44), (0.5, 1.47), (1, 1.45)]),
+                     10, 7, body, reg, offset=0.054, smooth=5, bone={"spine_05": 1.0}, bevel=0.005, edge_drop=0.005, cross=True,
+                     grooves=[('s', 0.9, 0.03, 0.0008, None, 'stripe')])
+        fin(c2, True)
+    if F["shield"]:     # LEFT forearm shield: tall hexagonal plate about 45 x 30 cm, emissive rim
+        el, wr = B("lowerarm_l"), B("hand_l")
+        ax = (wr - el).normalized()
+        nrm = (V(1, 0, 0.3) * 0.72 + FRONT * 0.66)
+        nrm = (nrm - ax * nrm.dot(ax)).normalized()
+        wide = ax.cross(nrm).normalized()
+        rr = L.raycast_r(body.bvh(L.R_ARM_L), el + (wr - el) * 0.5, nrm, 0.3) or 0.05
+        c = el + (wr - el) * 0.52 + nrm * (rr + 0.034)
+        hexa = lambda a_, b_, m_: [(-a_ + m_, 0.0), (-a_ * 0.62, b_ - m_), (a_ * 0.62, b_ - m_), (a_ - m_, 0.0), (a_ * 0.62, -b_ + m_), (-a_ * 0.62, -b_ + m_)]
+        bn = {"lowerarm_l": 1.0}
+        fin(L.prism("NT_ShieldRim", hexa(0.225, 0.15, 0.0), c, ax, wide, nrm, 0.016, bone=bn, bevel=0.003, mat="emis"))
+        fin(L.prism("NT_ShieldFace", hexa(0.225, 0.15, 0.014), c - nrm * 0.004, ax, wide, nrm, 0.026, taper=0.97, bone=bn, bevel=0.004))
+        fin(L.prism("NT_ShieldBoss", hexa(0.1, 0.07, 0.0), c + nrm * 0.018, ax, wide, nrm, 0.014, taper=0.85, bone=bn, bevel=0.004, mat="armor2"))
+        fin(L.prism("NT_ShieldMount", [(-0.07, -0.03), (0.07, -0.03), (0.07, 0.03), (-0.07, 0.03)], c - nrm * 0.05, ax, wide, nrm, 0.05, bone=bn, bevel=0.004, mat="armor2"))
+
+
+# ------------------------------------------------------------------ undersuit segment bands (raised ribs at the joints only)
 def build_bands():
     n = 0
     for z0 in (1.062, 1.102, 1.142, 1.182, 1.222):
         fin(L.shell("NT_Band_T%d" % n, T(0, 360, const_s(z0), const_s(z0 + 0.03)), 20, 1, body, L.R_TORSO_ARMS, far=0.24, offset=0.003, smooth=1,
                     wrap=True, bone="transfer", bevel=0.0, mat="suit", sink=0.003)); n += 1
-    sh, el = B("upperarm_l"), B("lowerarm_l")
-    for k, u0 in enumerate((0.34, 0.5, 0.66, 0.82)):
-        fin(L.shell("NT_Band_A%d_L" % k, L.sweep(sh, el, FRONT, V(0.82, 0, 0.57), 0, 360, const_s(u0), const_s(u0 + 0.11)), 12, 1, body, L.R_ARM_L,
+    sh, el, wr = B("upperarm_l"), B("lowerarm_l"), B("hand_l")
+    for k, u0 in enumerate((0.74, 0.86)):
+        fin(L.shell("NT_Band_A%d_L" % k, L.sweep(sh, el, FRONT, V(0.82, 0, 0.57), 0, 360, const_s(u0), const_s(u0 + 0.09)), 12, 1, body, L.R_ARM_L,
                     offset=0.003, smooth=1, wrap=True, bone="transfer", bevel=0.0, mat="suit", sink=0.003), True)
     hipj, knee, ank = B("thigh_l"), B("calf_l"), B("foot_l")
-    for k, u0 in enumerate((0.2, 0.33, 0.46, 0.59, 0.72)):
-        fin(L.shell("NT_Band_L%d_L" % k, L.sweep(hipj, knee, FRONT, LEFT, -175, -15, const_s(u0), const_s(u0 + 0.095)), 8, 1, body, L.R_LEG_L,
-                    offset=0.003, smooth=1, bone="transfer", bevel=0.0, mat="suit", sink=0.003), True)
     fin(L.shell("NT_Band_K0_L", L.sweep(hipj, knee, FRONT, LEFT, 0, 360, const_s(0.87), const_s(0.955)), 12, 1, body, L.R_LEG_L,
                 offset=0.003, smooth=1, wrap=True, bone="transfer", bevel=0.0, mat="suit", sink=0.003), True)
     fin(L.shell("NT_Band_K1_L", L.sweep(knee, ank, FRONT, LEFT, 0, 360, const_s(0.02), const_s(0.1)), 12, 1, body, L.R_LEG_L,
@@ -553,6 +643,7 @@ if want("boot"): build_boot()
 if want("arm"): build_arm()
 if want("helmet"): build_helmet()
 if want("bands"): build_bands()
+if VARIANT == "heavy": build_heavy()
 manny.hide_render = True; manny.hide_viewport = True
 manny.hide_set(True) if manny.name in bpy.context.view_layer.objects else None
 tris = 0
