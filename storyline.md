@@ -674,3 +674,280 @@ target for the whole game, and the rule that nothing reveals the twist before th
 generators do to the field; where "the signal data" comes from now (the relay?); which echo lines are used (his
 single Kato echo, our three placeholder `A3_Echo*` lines, or both); where the EMP comes from if not the crystals;
 who wants the crystals (the machines, or Triad); whether "Origin Core" is spoken on Cinder.
+
+## 23. Cinematic 06: *The Path to Dominion* (Nicholas's proposal, received Nov 13, commit `cc8c31d`)
+Original: `Story/Triad_Drift_Cinematic_Sequence_06_The_Path_to_Dominion.docx`. Status in the document: "narrative
+production proposal, not a report of implemented systems". It sits between Gameplay 05 (§21) and Gameplay 06 (§24).
+**When:** Gameplay 05 completes crystal recovery, field-anchor shutdown and extraction.
+**Length and form (the document's own words):** "two or three transmissions over take-off within the existing
+transition. Expanded shot timings below are story reference, not a separate 75-95 second scene." It reuses the
+departure flight, cockpit or HUD details, the tactical overlay and the distant Dominion, and ends before the player
+fights the final guard wave.
+**Its job:** give the squad a reason to **board**. Triad leaves Cinder with the signal-analysis device, the human voice
+recordings, the stabilising crystals and the Origin Core lead. Kato finds an approach through the outer interference,
+but four generators still protect the ship behind a **separate defensive shield**. Command authorises "a controlled
+assault to gain access and learn why its machines seek the Origin Core". "The squad has a reason to board; it has not
+decided to destroy the reactor."
+
+| Time (story reference) | On screen | Lines (drafts) |
+|---|---|---|
+| 0:00-0:20 | **Evidence aboard.** Triad rises from Cinder; the excavation recedes. An overlay confirms the survey archive and crystal package are secured; the field-anchor signal is gone. A **pending** approach marker points toward the Dominion: the field stays closed until Cinder is complete and wave 5 is cleared | MOSS: "Samples aboard. I'm ready for somewhere with fewer volcanoes." KATO: "The anchor is down. The approach is prepared. We still have to clear the guard line." |
+| 0:20-0:45 | **A way closer.** Kato aligns the Verdance signal analysis with the Cinder crystal response. The plot separates the approach corridor from **four marked sources** around the mothership. No installation scene or equipment puzzle: "the recovered material is represented as mission readiness" | KATO: "The crystals can stabilise the approach. Four generators are still sustaining its defensive shield." WREN: "Then we take down the generators and find a way inside." |
+| 0:45-1:05 | **The reason to enter.** Command receives the Origin Core lead, the matched scan patterns and the preserved recordings. The echo is not replayed at full clarity. The display shows machines still searching on both worlds while Triad's approach vector resolves | COMMAND: "They're collecting parts of the Origin Core. We need to know why. Disable the outer defences and secure access. Keep your channels recording." WREN: "Understood. We find out what they intend to do with it." |
+| 1:05-1:25 | **The guard line.** The squad leaves Cinder's orbit. Carriers and escorts form the last guard line; the Dominion is in the background throughout ("a closer approach to a known threat, not its first appearance"). A defensive targeting sweep crosses the squad's route | MOSS: "They've put a whole fleet across our route." WREN: "Stay together. Clear the guard line, then the generators." |
+
+**Hand-off:** the last camera matches the active cockpit; input returns with the objective **"Break the Dominion
+guard."** Gameplay 06 begins "outside immediate unavoidable fire". The guard wave, the generators and the docking all
+stay playable.
+
+**Rules from the proposal:**
+- The Cinder anchor "prepares the approach route; it does not open passage by itself. Cinder completion plus wave 5
+  clearance opens the approach distortion field." The crystals stabilise the crossing, using the Verdance relay's signal
+  analysis. "The Dominion's separate shield still requires four generator kills before docking."
+- The intercepted voice stays unresolved. The squad may recognise repeated technical wording, "but nobody identifies a
+  future self or decodes the opening warning". Any navigation pulse is brief and unexplained. The clear identity
+  evidence and the full warning payoff are saved for the Dominion interior on the boarding route.
+- The intent is to discover the Origin Core's purpose and stop the searches. **"Command does not order the ship
+  destroyed here."** The reactor decision needs what is learned aboard; "this scene must not pre-empt it".
+- Carried forward: the device and recordings, the crystals, the Origin Core lead, every earned ship ability. The scene
+  grants no guard-wave victory, generator kill or docking. Skipping applies the same briefing state and starts
+  Gameplay 06 at its entry checkpoint once. A retry in Gameplay 06 restores its combat checkpoint and never replays
+  this departure; the active ship is kept "where the established game flow permits it". No co-op, no crafting step, no
+  manual crystal fitting.
+- If the team uses the space-only finale, "the later reveal must move to the assault transmissions under the
+  established fallback plan; that change is coordinated before production".
+- Needs: departure flight, the squad ships, "four readable generator markers on a tactical graphic", the Dominion
+  exterior, guard-wave staging, radio hooks. "Final timing, camera positions and the distinction between corridor and
+  hull-field feedback need Ryan's Lead to confirm." Nicholas owns the final dialogue and the reveal timing.
+
+**How it maps to the game today:**
+- **Exists:** the Cinder take-off and return to orbit (ENG-20, ENG-38); transmissions by id, once per run, saved, so a
+  retake never replays them (T3); wave 5 "Dominion's Guard" with 2 carriers, escorts and bombers, fought after Cinder
+  (ENG-14); the Dominion visible behind its field from wave 1 (ENG-18). §22 already planned "two or three
+  transmissions over the take-off" for this slot, which is exactly what the document asks for.
+- **Does not match:** `A3_PassageOpen` (Control: "The anchor is down. There's a passage through the field. Go.") says
+  the opposite of this scene: here the anchor only prepares the approach and passage is still blocked. §5 act 4, §8 and
+  ENG-18 say "the four shield generators **are** the distortion field"; here the field (the outer interference) and the
+  shield (four generators) are two different things. There is no tactical graphic with four generator markers. Eight
+  draft lines are more than "two or three transmissions".
+- **New work if adopted (*our reading*):** five or six of the eight lines as transmissions, in two groups: at take-off
+  (Moss, Kato, Kato, Wren, Command, Wren) and as wave 5 forms up (Moss, Wren) (T3; suggested ids `C6_*`: *our
+  suggestion*); the "pending approach" marker toward the Dominion, which is the corridor marker §22 already gives T2;
+  the four generator markers shown on the HUD when the assault starts, in place of a new tactical graphic (T2 / T4); the
+  objective line "Break the Dominion guard" on wave 5 (T2 / T4); Nicholas for every line and voice.
+- **Owners:** T3 the transmissions and where they fire; T2 the pending marker and objective line; T4 wave 5 staging
+  (start out of unavoidable fire, Dominion in view); T1 the take-off, nothing new; T5 the extraction that triggers it.
+
+**Open questions:**
+1. Which of the eight lines are the "two or three transmissions"? All eight run about 35-40 s of speech (*our
+   estimate*). Nicholas chooses; our default is the six-plus-two split above.
+2. Kato says "The anchor is down. The approach is prepared..." here and "The anchor is down. The approach is prepared;
+   passage is still blocked." at the anchor (§21), less than two minutes apart. Keep both, or drop one (Nicholas)?
+3. "The distinction between corridor and hull-field feedback": the document asks Ryan's Lead to confirm how the player
+   sees the difference between the approach field opening and the shield falling. Today both are one effect family
+   (T4 / effects builder to say what is cheap).
+4. The speaker is "COMMAND"; the built Cinder and act 4 placeholders use Control. Still not answered (§19 question 5).
+
+## 24. Gameplay Sequence 06: *The Dominion Assault* (Nicholas's proposal, received Nov 13, commit `cc8c31d`)
+Original: `Story/Triad_Drift_Gameplay_Sequence_06_The_Dominion_Assault.docx`. Status in the document: "This boarding
+proposal does not change the selected finale mode. Implementation and playtesting remain separate." It begins when
+Cinematic 06 (§23) returns flight control before the guard line and ends, on the intended boarding route, when the
+four generators are down and the player completes the docking approach, which triggers the boarding transition.
+**Suggested length: a "working pacing target" of 5-7 minutes, including wave 5, "subject to balance and the full
+campaign budget".**
+**Player goal:** clear the final guard wave, destroy the four generators sustaining the Dominion's separate defensive
+shield, and reach the docking bay. "Triad knows the enemy seeks the Origin Core, a suspected temporal device. Boarding
+reveals who commands the search and why; the reactor choice comes later."
+
+| Step | Player objective | Gate / feedback | Beat / draft line |
+|---|---|---|---|
+| 1 Break the Dominion guard | Plays "the existing fifth wave, Dominion's Guard, with carriers and their escorts"; carrier launches and dangerous attacks readable; the mothership visible as the destination | The wave director confirms the required threats are cleared; "do not add a second copy of wave 5 after this phase" (**save** the guard-wave completion) | Resistance at a distance. WREN: "Clear the carriers. We need that approach." |
+| 2 Reach the assault area | Flies to the Dominion: "After Cinder completion and wave 5 clearance, the approach distortion field opens." Established travel tools allowed; the hyperdrive is restricted "only where the existing gravity-well rules require it" | The four live generator targets are revealed when the assault becomes active, "with clear confirmation that the docking bay is still protected" | KATO: "Four generators. I'm marking the live targets." |
+| 3 Destroy the four generators | Attacks the marked generators while evading telegraphed hull turrets and fighter pressure; any target order; switching between Rift, Lancer and Bastion | A persistent count from 0/4 to 4/4; destroyed targets removed; distinct feedback after each kill. "Use existing damage and vulnerability rules; no new key or timed shield puzzle is required" | Deliberate attack runs around a vast structure; each kill changes the pressure and the shield's look. MOSS: "Those turrets are charging. Keep moving." KATO: "Generator down. Their shield is weakening." |
+| 4 Enter the docking approach | After 4/4: the docking marker and the opened bay; flies to the approach cone and commits "through the existing docking interaction" | "Tractor assistance should preserve readable control until commitment. Wingmen hold outside under the boarding plan; solo progress never waits for three ships to occupy the bay." On commitment: unavoidable attack pressure suppressed, the transfer state saved, the boarding transition entered once | COMMAND: "Dominion shield collapsed. Docking approach marked." WREN: "Keep that bay covered. We need a way back out." |
+
+(The document lists the six radio lines without placing them in a step; put in steps by us.)
+
+Objective text given: **"Break the Dominion guard"** (from §23). The document names no objective text for steps 2-4;
+it asks for a count "0/4 to 4/4" and a docking marker.
+
+**Rules from the proposal:**
+- **Powers and freedom:** Rift's portals and cloak for repositioning, Lancer's speed and EMP "against supported
+  threats", Bastion's shields and heavy weapons for sustained runs. Ship order is free; ordinary weapons can finish
+  the assault; no simultaneous squad manoeuvre is required. "EMP disabling generators and ram damaging hull fixtures
+  require engineering confirmation; neither interaction is a completion gate."
+- **Director's camera:** "An optional Director camera beat must return control before a new hazard can hit, and must
+  not hide the next objective."
+- **Clues and the reveal boundary:** "As generators fall, short transmissions become less distorted: familiar call
+  signs, phrasing or a partial authentication tone, with no identified speaker. A brief friendly-status flicker
+  reinforces the mystery. The Origin Core lead is known; keep identity confirmation, older-pilot recordings and the
+  opening-warning replay for the interior."
+- **What the generators are:** "The generators protect the ship; their destruction is an access decision. Do not
+  present them as the Origin Core, start the reactor countdown or trigger victory. The squad has not yet heard the
+  evidence that makes the later reactor choice meaningful."
+- **Checkpoints:** save the guard-wave completion before the assault; "destroyed generators stay destroyed after a
+  squad wipe, the count and markers agree with that state, and retries return to a safe approach appropriate to the
+  remaining objectives"; earned abilities persist; Cinematic 06 does not replay.
+- **Docking:** requires 4/4. "The next cinematic opens on bay entry or hangar landing, then hands off to on-foot
+  exploration. Its title and script remain to be documented."
+- **Fallback:** "If boarding is unavailable, the established fallback exposes the space reactor. Coordinate the reveal
+  through assault transmissions and document the reactor sequence separately."
+- Ryan's Lead confirms target interactions, fighter limits, save behaviour and boarding readiness. Nicholas finalises
+  the combat lines and the next scene.
+
+**How it maps to the game today:**
+- **Exists, and is close:** wave 5 "Dominion's Guard" (ENG-14); its clear sets `bDominionRevealed`, which is what the
+  Dominion's distortion field reads to open (`TDWaveDirector.cpp`, `TDDominion.cpp`); the hyperdrive locked only inside
+  the Dominion's gravity well (ENG-18); 4 shield generators of 800 HP guarded by turrets, 10 hull turrets with
+  telegraphed charge shots, fighters that keep launching; each kill hides a shield section, plays a cue, fires the
+  generator money shot and one transmission (`A4_GeneratorDown1-4`); destroyed generators stay destroyed after a wipe
+  and the squad restarts on the approach (ENG-18, Nov 12); with boarding on, defences down opens the docking bay
+  instead of exposing the reactor; the docking plan (ENG-29): an approach cone, a tractor assist that never fully locks
+  before the mouth, one travel into the interior, wingmen hold outside. Steps 1-4 are today's finale in order.
+- **Does not match:**
+  - The four `A4_GeneratorDown*` lines and `Bark_Dom_FieldDown` (`dialogs.md`) call what falls "the field" ("The field
+    is gone", "The field is down. The bay is open."). In the documents the **field** opened before the assault; what
+    the generators hold up is the **shield**.
+  - The story test treats every `A4_` id as after the reveal. On the boarding route the assault is still **before**
+    it: nothing said during the generators may identify the enemy (§25, and the test note in the actions list).
+  - The code comment on the far Dominion says "unreachable, until Cinder's anchor falls"; the code opens it on wave
+    5's clear. Whether wave 5 can ever be cleared before Cinder is finished was **not checked** by us; the rule needs
+    both.
+  - A persistent "0/4" count: ENG-18's ledger row still lists "HUD wave block during the assault" as an open finding;
+    we did not check what the HUD shows today.
+  - Nothing today plays "less distorted" hostile transmissions or a friendly-status flicker during the assault.
+  - With boarding off (`td.Finale.Boarding 0`) the generators' fall **does** expose the reactor and lead to victory,
+    which this document forbids on the boarding route and leaves to a separate fallback document.
+- **New work if adopted (*our reading*):** objective line "Break the Dominion guard" on wave 5, then a generator count
+  and a docking line (T2 / T4); "shield" wording in the four generator lines, the all-down line and the barks (T3, T4;
+  Nicholas's lines); the six radio lines as transmissions (suggested ids `G6_*`: *our suggestion*); two or three
+  hostile fragments that clear up as generators fall, speaker Unknown, never a Future speaker (T3 hook, Nicholas's
+  words and audio); a half-second friendly-status flicker on one hostile marker (T2, small, optional); confirm the
+  money shot hands control back before a turret volley and does not cover the next marker (T3); attack pressure off
+  from docking commitment to the transition (T4); answer the EMP and ram questions from what is built (T4).
+- **Owners:** T4 wave 5, the field rule, generators, turrets, docking and saves; T2 objective lines, the count, the
+  markers, the flicker; T3 transmissions, the director's beat and the hand-over to the boarding scene; T1 travel to
+  the assault area (hyperdrive, gates), nothing new; T5 the hangar hand-off that receives the player.
+
+**Open questions:**
+1. The length: 5-7 minutes including wave 5. Today's wave 5 plus four 800 HP generators has not been timed (T4 to
+   time it; Ryan for the budget: see the scope list).
+2. Does EMP Pulse do anything to a generator or its turrets, and does the afterburner ram damage hull fixtures? The
+   document asks engineering to confirm and makes neither a gate (T4 answers from the code).
+3. The "less distorted" transmissions: how many, and whose words (Nicholas)? Each is a step toward the twist; they
+   must stay Unknown-speaker and pass the story test. The "partial authentication tone" is the three-pulse motif,
+   which still has no written definition (§15 question 3).
+4. The friendly-status flicker: on what (a hostile marker, a generator, a wingman's tag)? *Our suggestion:* one hostile
+   marker, once, after the second generator.
+5. The boarding cinematic and the interior are "next to document". Until then the hangar, the recordings
+   (`A4_Recording_*`), `A4_DoorsKnowUs` and the command-deck payoff (`F_*`) run on our placeholders (T5, T3).
+6. If the space-only fallback is used, who writes the reveal as assault transmissions, and by when must the mode be
+   chosen (Ryan decides the mode; Nicholas writes)? §5's fallback paragraph is the only description today.
+7. Objective text for steps 2-4 is not given. *Our placeholders:* "Destroy the shield generators 0 / 4", "Dock with
+   the Dominion" (Nicholas may reword).
+
+## 25. The alignment pass of Nov 13 (`cc8c31d`): what changed in the earlier documents
+Nicholas revised ten of the Word documents against his unchanged Paradox narrative and "the six approved Cinder
+decisions" (issue #29), added the two documents of §23-24 and rewrote `Story/README.md`. The Paradox narrative itself
+is unchanged. The README now says: the reduced scopes of §18 and §22 "continue to govern delivery"; the budgets
+"remain Verdance 8-10 minutes and Cinder 6-8 minutes from atmosphere to take-off"; "Cinematic 04 and Cinematic 06 use
+transmissions over existing take-off transitions; their expanded shot outlines are story references"; "No
+heat-shielding quest, new heat meter or co-op is added"; and "The documented primary route boards the Dominion; using
+the existing space-only fallback requires the coordinated alternative reveal and finale delivery." Sections 11-21
+above record the documents as first received; **where this section differs, this section is the current text.**
+
+### 25.1 Per document, the changes that matter to engineering
+
+| Document (section) | What changed | Effect on the build |
+|---|---|---|
+| Cinematic 01, *First Contact* (§11) | One line: the tutorial introduces "the starting powers: Rift's portal blaster, Lancer's afterburner ram, and Bastion's missile swarm and shield dome. Cloak, EMP Pulse and Gravity Well are earned later on the planets" | Answers §11 question 1: the game's progression is kept. Nothing to build |
+| Gameplay 01, *Tutorial Battle* (§13) | The same correction in phase 03 and in the "confirm before implementation" list ("which starting powers are ready for tutorial demonstrations") | Phase 03 teaches the signature powers, as built. The list still mentions "solo/co-op handling" |
+| Cinematic 02, *Aftermath* (§12) | The next objective now says: "Recover the outpost's signal-analysis device and survey archive. Its recorded human voice fragments become the Verdance clue; the analysis later combines with Cinder's stabilising crystals to enable the Dominion approach." Status line: "the device's precise presentation" is undecided | The signal-analysis device of §5 act 2 is back. No change to the `S2_*` lines |
+| Gameplay 02, *Verdance Arrival* (§14) | Length 10-15 min → "3-4 minutes within the 8-10 minute Verdance chapter". Goal: recover the outpost's **signal-analysis device**. Phase 4 ends: "Recover signal-analysis device; connect it to the survey console." Objective text: **"Recover the signal-analysis device."** "Device recovery completes the first Verdance objective and awards Bastion's Gravity Well through the established reward system. Connect the device to the survey console to trigger Cinematic 03." The station is "an open-sided survey station re-dressed from the research site; a walk-in facility is not required" | Matches the built objective name ("Recover the Signal-Analysis Device") and reward. **New order:** Gravity Well is awarded at the pick-up, **before** Cinematic 03 and before the transfer defence. The phase table still has "scan one convoy" and "disable or bypass perimeter defenses" (not reduced) |
+| Cinematic 03, *Beneath the Surface* (§15) | Trigger: "player connects the recovered signal-analysis device to the research-site relay and survey terminal". Length 90-120 s → "40-60 seconds of voice over the survey station". Timings now 0:00-0:12, 0:12-0:30, 0:30-0:45, 0:45-1:00. New in beat 2: Kato "resolves the device's signal patterns and fragmented human recordings"; one fragment says **"Maintain the sequence,"** too distorted to identify. KATO's line is now: "Those are human voices. Buried in their signal. And this shape beneath the station is artificial." Beat 4: the archive "links Cinder coordinates to shipments of rare stabilising crystals" | The voices of §5 act 2 now play **in this scene, at the station's relay**. `A2_Voices` gets the fragment "Maintain the sequence"; Kato's old line ("These aren't mineral readings...") is replaced. The drone's three pulses are unchanged |
+| Gameplay 03, *Facility Defense* (§16) | Length 7-12 min → "a 60-90 second transfer with three fixed waves and a short extraction". Goal: "protect the recovered signal-analysis device while the station relay copies its voice recordings, geological records and Cinder coordinates". Phase 4: "Confirm the relay copy; collect the signal-analysis device and archive, then reach the landing area." **"Completing the relay copy awards Rift's Cloak through the existing Verdance reward system."** KATO: "Device and recordings secured. I've got the Cinder coordinates. Let's move." Cinematic 04 triggers only after "the relay reward is recorded" | **The transfer defence is now the relay objective and gives Cloak** (§18 put the transfer on objective 1 with Gravity Well, and kept the relay as a separate objective). "Time to go." is gone. The phase table still has the "tougher machine or jamming unit", the midpoint checkpoint and "solo or co-op" (not reduced) |
+| Cinematic 04, *Verdance Departure* (§17) | Delivery: "transmissions over the existing take-off; the expanded shot timings below are story reference". MOSS: "All that for a recorder full of voices. None of them answering." WREN: "They wanted that device and its records. We need to know why." KATO's last line: "I don't know. Cinder's mining complex has matching readings. They're extracting stabilising crystals there." COMMAND: "Proceed to Cinder. Investigate the mining complex and recover the stabilising crystals. Compare them with the signal-analysis records. Maintain reconnaissance priority." The shielding component is removed: "The crystals serve the distortion-field route, not a separate heat-protection quest" | Shielding is gone even as words (§18 had "words only"). The survey station is at the mining complex. Four line changes for the `C4_*` transmissions |
+| Gameplay 04, *Cinder Approach* (§19) | Length → "6-8 minutes from atmosphere to take-off. Descent and route to the station take about 1.5-2 minutes. Waves 3-4 remain between the planets and provide the approach interception; no extra travel battle is added." Phase 2: "no scan action is added"; "no route-marking action is added". **"No echo plays on this route; the single Kato echo occurs at the survey terminal in Cinematic 05."** Abilities: "Retain Bastion's Gravity Well from device recovery and Rift's Cloak from the station relay objective" | Agrees with §22 except one thing: §22's "one echo of a Kato line" on the route is **removed**; the only echo is at the terminal |
+| Cinematic 05, *The Pattern* (§20) | Length 90-110 s → "40-50 seconds". Re-cut to four beats: 0:00-0:15 the match **and the echo** (three lines in order); 0:15-0:30 **the Origin Core lead** (new); 0:30-0:35 both sides need the crystals (new, no line); 0:35-0:50 the guarded excavation. Removed: WREN "And the survey records gave them the coordinates.", KATO "These crystals hold a stable response...", MOSS "Was that you?", KATO "No. Could be our channel feeding back...". New: UNKNOWN "Same construction."; KATO "Could be feedback. Keep the recording."; KATO "The records call it the Origin Core. These look like components—or keys—to a temporal device."; KATO "The anchor is blocking the approach. We need the samples, then we shut it down." Kept: MOSS "So we take a sample and get out?", WREN "First we find out what's guarding it.", COMMAND "Recover the samples and preserve the survey data. Confirm a passage before approaching the Dominion.", WREN "We've got our route. Triad, move." Rule changed from "does not ... discuss time travel" to: "The squad suspects a temporal device, but cannot identify the speaker or infer that the enemy comes from its own future" | The scene now carries the approved hint (see the story-test note). Nine lines in 50 s is tight. The anchor "is blocking the approach" (before: "interfering with the route out") |
+| Gameplay 05, *Cinder Excavation* (§21) | Length → "2-2.5 minutes for excavation and cache recovery, then 1.5-2 minutes for anchor shutdown and extraction". Step 2: "one cache interaction recovers the crystal samples and a compatible EMP prototype... Save both rewards together. No installation objective or on-foot EMP use is required." Step 3: "the HUD marks a prepared approach, with passage still pending". Step 4: "Use the existing run from the collapsing anchor tower as the extraction pressure... No added pursuit wave is required." KATO: "Samples secured. EMP prototype recovered. Lancer's pulse is online." KATO: "The anchor is down. The approach is prepared; passage is still blocked." The recognising console is kept ("may") | Matches §22's reduced form. The HUD marker at shutdown is a **pending** approach marker, not an open corridor. Two line changes |
+
+Objective text now in the documents, in play order: "Recover the signal-analysis device" → "Protect the data
+transfer" → "Investigate the mining complex" → "Access the survey records" → "Secure the excavation" → "Recover the
+stabilising crystals" → "Disable the field anchor" → "Return to extraction" → "Break the Dominion guard".
+
+### 25.2 The open questions of §18 and §22, answered
+
+The approved terminal and cache dialogue, quoted from `Story/README.md` ("Approved Cinder decisions"; Nicholas approved
+"all six decisions in issue 29"; the fixed sequence is "terminal → excavation and crystal cache → field anchor →
+extraction"):
+
+- **One echo at the terminal:** "Kato says “Different worlds. Same construction. They knew where to dig.” Immediately
+  afterward, the heavily processed Unknown voice says “Same construction.” Kato replies “Could be feedback. Keep the
+  recording.” This replaces the approach-route echo and all three engineering `A3_Echo*` placeholders."
+- **Origin Core named before excavation:** "at the terminal, Kato says “The records call it the Origin Core. These
+  look like components—or keys—to a temporal device.” This knowledge does not disclose the future-self identity."
+- **EMP source (the cache):** "the cache after the Warden contains crystals and a compatible EMP prototype, recovered
+  through the same interaction. Kato says “Samples secured. EMP prototype recovered. Lancer’s pulse is online.” No
+  installation objective or on-foot EMP is required; the crystals serve the field crossing."
+
+The field-opening rules, quoted from the same file:
+
+- "**Field and shield:** crystals stabilise passage through the approach distortion field; disabling Cinder's anchor
+  prepares the route. Passage stays pending until Cinder is complete and wave 5 is cleared. The Dominion has a
+  separate defensive shield sustained by four generators; all four must be destroyed before docking."
+- (dependency table, Gameplay 06) "Cinder complete plus wave 5 cleared opens the approach distortion field. Four
+  generator kills then drop the separate Dominion shield and permit docking; interior evidence reveals the future-self
+  identity later."
+
+This is Ryan's rule of §22 ("the distortion field opens when Cinder is finished and wave 5 is cleared"), word for
+word in substance. What is new is the **name split**: the *approach distortion field* (opens on that rule) and the
+Dominion's *separate defensive shield* (the four generators).
+
+| # | Question (where asked) | Answer now | State |
+|---|---|---|---|
+| 18-1 | Objective 1 takes the new fiction (intact station, survey archive, buried structure)? | Objective 1 is "Recover the signal-analysis device" at the silent outpost (the device is back; the archive and the buried structure are what the station's relay and terminal then show). "Device recovery completes the first Verdance objective and awards Bastion's Gravity Well" | **Answered** |
+| 18-2 | What the relay (objective 2) means now | README: "At the research-site relay, Kato resolves and preserves their signal patterns and recordings with the survey archive; that recovered analysis is the signal data used on Cinder." The relay is the **station's relay**; its objective is the archive transfer (Gameplay 03) and "Completing the relay copy awards Rift's Cloak" | **Answered in the story; not in the build:** the built objective 2 is a separate climb to an ancient relay with resonance nodes, and §18 put the transfer on objective 1. See the actions list |
+| 18-3 | What opens the distortion field on Cinder now that the survey station replaces the mining complex | The station does not replace the complex (§22's correction stands; Cinematic 04 now says "Cinder's mining complex"). The field: the rule quoted above | **Answered** |
+| 18-4 | A replacement for Kato's "Time to go." | "Device and recordings secured. I've got the Cinder coordinates. Let's move." | **Answered** |
+| 22-1 | One sentence each for what the crystals, the anchor and the four generators do to the field | Crystals "stabilise passage through the approach distortion field"; "disabling Cinder's anchor prepares the route"; the generators sustain "a separate defensive shield... all four must be destroyed before docking" | **Answered** |
+| 22-2 | Where "the signal data" comes from now (the relay?) | Yes: the device "contains intercepted traffic and fragmented human voices"; resolved at the research-site relay; "that recovered analysis is the signal data used on Cinder" | **Answered** |
+| 22-3 | Which echo lines: his single Kato echo, our three `A3_Echo*`, or both | His single echo, at the terminal only: "This replaces the approach-route echo and all three engineering `A3_Echo*` placeholders" | **Answered** |
+| 22-4 | Where the EMP comes from if not the crystals | "a compatible EMP prototype" in the cache with the crystals, one interaction. README: "the narrative does not claim that crystals manufacture EMP technology" | **Answered** |
+| 22-5 | Who wants the crystals (the machines, or Triad) | "**Both sides want crystals:** the machines collect them as part of Origin Core recovery, with their equipment's precise use unspecified; Triad needs them to cross the approach field and reach the Dominion. Excavation yields crystals and exposes ancient technology." | **Answered** |
+| 22-6 | Whether "Origin Core" is spoken on Cinder | Yes, at the terminal, before the excavation, with the words "a temporal device". README: "Cinder supplies the name Origin Core and a suspected temporal purpose; its maker, exact function, intended use and connection to a catastrophe remain unknown. Only aboard the Dominion does Triad identify its commanders as its future selves." | **Answered** |
+
+Earlier open questions that this pass also settles: §11-1 and §13 (tutorial powers: the signature powers); §14-6 (the
+device and the voices stay, with the survey terminal beside them); §14-7, §15-2, §16-1, §17-4, §19-2, §20-1, §21-5
+(lengths: the reduced ones); §16-3 (rewards: Gravity Well at the device, Cloak at the relay copy); §16-4 ("Let's
+move."); §17-1 and §19-1 (waves 3-4 stay between the planets and are the interception); §17-2 and §17-3 (mining
+complex kept; shielding removed); §19-3 (the terminal comes first and the order is fixed); §19-4 and §20-2 (one echo,
+of "Same construction.", at the terminal); §20-3, §20-4, §20-5, §21-1, §21-3 (as in the table); §21-2 (wave 5 follows
+Cinder and Cinematic 06 leads into it); §21-4 (Kato's line is kept, reworded); §21-6 (Cinematic 06 is written: §23);
+§21-7 (the run from the collapsing tower is the pursuit, "No added pursuit wave is required").
+
+**Still unanswered:**
+1. COMMAND or Control as the one name for the voice of authority (§19-5). Every document says COMMAND; the built
+   act 1-4 placeholders mostly say Control.
+2. "Dominion drones / machines" in the documents against "Null Armada" as the squad's word (§8).
+3. One written definition of the three-pulse rhythm, shared by the opening, Cinematic 03 and the finale (§15-3).
+4. The outpost's name, the ground enemy types, optional interactables (§14-1, 3, 5); the documents still list them as
+   open. Which crew types play "drones" and "a tougher machine or jamming unit" (§16-2).
+5. "Carry forward visible minor battle damage if possible" is still in Gameplay 03 (§16-5); ours: skipped.
+6. How the Verdance voices sound beyond the one fragment "Maintain the sequence" (`A2_Voices` placeholder text).
+7. Everything aboard the Dominion: the README lists as next "the boarding cinematic and interior gameplay, including
+   the future-Triad identity evidence and the opening-warning payoff", and says "Later reactor motivation, the future
+   catastrophe, the Core's exact mechanism and the causal paradox remain intentionally unresolved".
+8. The space-only fallback's reveal and reactor sequence ("document the reactor sequence separately").
+
+### 25.3 What this changes in sections 1-10 (to edit when this is appended; *our list*)
+- §5 act 3, "destroying it gives the passage through the distortion field" and "'the passage is open' replaces 'the
+  Dominion is revealed'": the anchor prepares the approach; passage opens on Cinder complete plus wave 5 cleared.
+- §5 act 4, "The four shield generators **are** the distortion field", and §8, "The distortion field: ... (in play: its
+  four field generators)": the field and the shield are separate.
+- §5 act 3, "enemy transmissions begin to echo the pilots' own voices ... the squad's own call signs and phrases": one
+  echo, Kato's, at the terminal.
+- §8, "Before act 4 nobody on the squad says 'future', 'time' or 'us'": one approved exception, Kato's "a temporal
+  device" at the Cinder terminal; the identity stays hidden until the Dominion **interior**, which is later than "act
+  4" as the story test reads it.
+- §6, clue row "Transmission fragments using the squad's own terminology | Verdance relay, Cinder, the assault": now
+  Cinematic 03 (voices), the Cinder terminal (the echo), and the generators falling (Gameplay 06).
