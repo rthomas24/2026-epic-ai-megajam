@@ -1,0 +1,12 @@
+{
+  "protected_changed": [],
+  "pass": true,
+  "duration_s": 28.8439181,
+  "failure": null,
+  "passed_ui_tests": 15,
+  "head": "dae4943af133bd21407f2d9c07a2ee575f31eb55",
+  "os_exit_code": 0,
+  "phase": "tests",
+  "guard_free_gib": 6.857475280761719,
+  "min_free_gib": 3.358917236328125
+}

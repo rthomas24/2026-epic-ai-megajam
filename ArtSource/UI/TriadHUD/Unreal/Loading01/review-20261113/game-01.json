@@ -1,0 +1,12 @@
+{
+  "head": "dae4943af133bd21407f2d9c07a2ee575f31eb55",
+  "pass": true,
+  "protected_changed": [],
+  "min_free_gib": 2.9181442260742188,
+  "passed_ui_tests": 0,
+  "duration_s": 29.590498,
+  "failure": null,
+  "os_exit_code": 0,
+  "guard_free_gib": 6.467094421386719,
+  "phase": "game"
+}

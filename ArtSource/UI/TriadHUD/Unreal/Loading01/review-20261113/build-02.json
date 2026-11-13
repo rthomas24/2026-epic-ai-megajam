@@ -1,0 +1,12 @@
+{
+  "protected_changed": [],
+  "head": "dae4943af133bd21407f2d9c07a2ee575f31eb55",
+  "guard_free_gib": 6.8068695068359375,
+  "os_exit_code": 0,
+  "duration_s": 10.6134203,
+  "pass": true,
+  "phase": "build",
+  "min_free_gib": 5.768901824951172,
+  "passed_ui_tests": 0,
+  "failure": null
+}

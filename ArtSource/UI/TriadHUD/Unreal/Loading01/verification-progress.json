@@ -1,0 +1,19 @@
+{
+  "native_game_exit": 0,
+  "base": "dae4943af133bd21407f2d9c07a2ee575f31eb55",
+  "shipping_verified": false,
+  "production_defaults_changed": false,
+  "travel_lifecycle_verified": false,
+  "tests_passed": 15,
+  "stage": "technically verified candidate; manual approval pending",
+  "game_min_free_gib": 2.9181442260742188,
+  "capture_resolutions": [
+    "1280x720",
+    "1920x1080",
+    "2560x1080"
+  ],
+  "build_pass": true,
+  "tests_seconds": 28.8439181,
+  "build_seconds": 10.6134203,
+  "review": "review-20261113/review.html"
+}

@@ -1,0 +1,24 @@
+{
+  "stage": "Technically verified on DAE native game host; visual approval and production integration pending",
+  "branch": "nick/hud-usability-20261112",
+  "head": "1a8d942907ab39928a68e791a810bd1c6219434a",
+  "native_class": "/Script/TriadDriftHUD.TDLoadingWidget",
+  "shared_activation_changed": false,
+  "files": [
+    {
+      "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDLoadingWidget.h",
+      "bytes": 780,
+      "sha256": "eddbcf37d87b81fa5bb2fefed2a1adef7357fe0d0f15993901d78960ac5cc769"
+    },
+    {
+      "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDLoadingWidget.cpp",
+      "bytes": 3160,
+      "sha256": "53a2bc55ca7dcdd6ac858d69e8face100fba635a7fe04d37a63657e53102bd20"
+    },
+    {
+      "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDLoadingWidgetTests.cpp",
+      "bytes": 1920,
+      "sha256": "02e0b7bd18e58d17e62810e55991880e8f367fc589a2df24946f08cb1fefa1d5"
+    }
+  ]
+}

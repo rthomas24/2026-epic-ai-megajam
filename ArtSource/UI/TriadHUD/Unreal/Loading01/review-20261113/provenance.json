@@ -1,0 +1,24 @@
+{
+  "images": [
+    {
+      "file": "01-loading-1080p.png",
+      "sha256": "EBBEBF1A72F380CC6A960D68BE796871F0A24C3B24D4EABD102C4C5808F5BCB7"
+    },
+    {
+      "file": "02-loading-720p.png",
+      "sha256": "7C25CB03CDAB704072728DF05304285BFC7D6371DCD8617AA034A3F6683431EE"
+    },
+    {
+      "file": "03-loading-ultrawide.png",
+      "sha256": "89B1CDFC99AAFB67ECE70A5BB0AF69437E34711E9418FA63E71183471335FC56"
+    }
+  ],
+  "capture_complete": true,
+  "defaults_changed": false,
+  "full_travel_verified": false,
+  "branch": "nick/ui-loading-validation-dae",
+  "cleanup_helper_error": "AttributeError close() after images and quit; corrected helper without rerunning",
+  "shipping_verified": false,
+  "native_exit": 0,
+  "base": "dae4943af133bd21407f2d9c07a2ee575f31eb55"
+}
