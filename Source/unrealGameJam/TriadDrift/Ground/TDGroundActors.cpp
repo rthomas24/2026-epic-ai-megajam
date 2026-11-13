@@ -501,6 +501,13 @@ void ATDEncounterVolume::Activate()
 	}
 	bActivated = true;
 	bCleared = false;
+	++Take;
+	const FTDRetakeMercyTier* Mercy = GetActiveMercy();
+	if (Mercy)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("Director's mercy: %s take %d eases the fight (health %.0f%%, summons %d)"), *GetName(), Take,
+			Mercy->HealthScale * 100.f, Mercy->MaxSummons);
+	}
 	if (UTDCrewCoverSubsystem* Cover = UTDCrewCoverSubsystem::Get(this))
 	{
 		for (AActor* Block : CoverActors)
@@ -542,6 +549,10 @@ void ATDEncounterVolume::Activate()
 			Crew->CrewType = CrewMix.Num() > 0 ? CrewMix[i % CrewMix.Num()] : ETDCrewType::Grunt;
 		}
 		Member->FinishSpawning(Xf);
+		if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member); Crew && Mercy)
+		{
+			Crew->ApplyMercy(Mercy->HealthScale, Mercy->MaxSummons);
+		}
 		// The fight starts now: everyone already knows where the player is.
 		if (ATDCrewAIController* AI = Cast<ATDCrewAIController>(Cast<APawn>(Member) ? Cast<APawn>(Member)->GetController() : nullptr))
 		{
@@ -551,6 +562,19 @@ void ATDEncounterVolume::Activate()
 
 	}
 	CheckCleared(); // nothing spawned (bad class) still opens the way rather than soft-locking
+}
+
+const FTDRetakeMercyTier* ATDEncounterVolume::GetActiveMercy() const
+{
+	const FTDRetakeMercyTier* Best = nullptr;
+	for (const FTDRetakeMercyTier& T : MercyTiers)
+	{
+		if (Take >= T.FromTake && (!Best || T.FromTake > Best->FromTake))
+		{
+			Best = &T;
+		}
+	}
+	return Best;
 }
 
 int32 ATDEncounterVolume::GetAliveCount() const

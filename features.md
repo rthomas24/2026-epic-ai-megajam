@@ -670,7 +670,9 @@ Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its do
   attack, then run as the tower collapses.
 
 - **(Nov 12)** The blade breaks blade-breakable props (crystals, gate conduits), not only enemies. The magma
-  hurts at its surface only. A checkpoint precedes the Warden. Engineering-made props dress both planets
+  hurts at its surface only. A checkpoint precedes the Warden. **Director's mercy:** a fight the player keeps losing eases one
+  notch at a time (Cinder Warden: from take 3, 75% health and one summon; from take 5, 50% and none); a player who
+  wins first time never sees it. Any on-foot fight can opt in (`ATDEncounterVolume::MercyTiers`). Engineering-made props dress both planets
   (`Content/TriadDrift/Gameplay/Props`, trees in `Gameplay/Vegetation`) until Nick's art replaces them.
 
 #### ENG-27 · Balance & tuning · `🟨`

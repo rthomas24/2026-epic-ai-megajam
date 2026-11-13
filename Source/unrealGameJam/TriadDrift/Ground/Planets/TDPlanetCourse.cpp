@@ -937,6 +937,11 @@ void ATDPlanetCourse::BuildCinder()
 	ATDEncounterVolume* Barracks = RoomFight(XBarracks, XCommand, 2, { ETDCrewType::Heavy, ETDCrewType::Grunt, ETDCrewType::Grunt }, DoorC);
 	ATDEncounterVolume* Command = RoomFight(XCommand, XArena, 3, { ETDCrewType::Trooper, ETDCrewType::Drone, ETDCrewType::Trooper }, DoorD);
 	ATDEncounterVolume* Arena = RoomFight(XArena, XEnd, 4, { ETDCrewType::Warden }, nullptr);
+	// Director's mercy (machine playtests lost the Warden up to 9 takes running with him nearly dead): from take 3
+	// he starts at 75% and summons once, from take 5 at 50% and never summons.
+	FTDRetakeMercyTier Mercy3; Mercy3.FromTake = 3; Mercy3.HealthScale = 0.75f; Mercy3.MaxSummons = 1;
+	FTDRetakeMercyTier Mercy5; Mercy5.FromTake = 5; Mercy5.HealthScale = 0.5f; Mercy5.MaxSummons = 0;
+	Arena->MercyTiers = { Mercy3, Mercy5 };
 
 	ATDInteractableActor* Prototype = SpawnProp<ATDInteractableActor>(FVector(XEnd - 700.f, Y0, 80.f));
 	Prototype->Prompt = LOCTEXT("ClaimEmp", "Claim the EMP prototype");

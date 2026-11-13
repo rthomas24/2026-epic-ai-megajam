@@ -136,6 +136,10 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	bool IsInAtmosphere() const { return Context.bAtmosphere; }
+
+	/** Multiplier on turn and roll rates right now: 1 with no speed override, else the override's (the ram's 0.4). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	float GetActiveSteeringScale() const { return Context.bSpeedOverride ? FMath::Max(0.f, Context.OverrideSteeringScale) : 1.f; }
 	/** Plain top speed right now: cruise in space, cruise x the atmosphere cap fraction in atmosphere. */
 	float GetCruiseCapSpeed() const { return Context.bAtmosphere ? Tuning.CruiseSpeed * Context.AtmosphereSpeedCapFraction : Tuning.CruiseSpeed; }
 

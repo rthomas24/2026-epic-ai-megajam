@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\production\M03\detail01.py", line 94, in <module>
+    if __name__=='__main__':run()
+                            ~~~^^
+  File "C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\ships-lancer-m03\ArtSource\Space\Ships\Lancer\production\M03\detail01.py", line 92, in run
+    if not passed:raise RuntimeError('Detail01 gate failed; work source and diagnostics retained')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: Detail01 gate failed; work source and diagnostics retained
+
+Error: script failed, file: 'production/M03/detail01.py', exiting.

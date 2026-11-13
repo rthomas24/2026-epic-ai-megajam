@@ -1209,6 +1209,8 @@ bool FTDFlowMenuJourney::RunTest(const FString& Parameters)
 		GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationMenu"));
 		GI->DeleteSave();
 		ON_SCOPE_EXIT { GI->DeleteSave(); GI->SetSaveSlotOverride(FString()); };
+		TestTrue(TEXT("no in-game HUD on the menu (the dev HUD only replaces a stock AHUD)"), Menu->HUDClass == ATDFrontEndHUD::StaticClass()
+			&& GetDefault<ATDTransitionGameMode>()->HUDClass == ATDFrontEndHUD::StaticClass());
 		TestFalse(TEXT("the menu, not the victory screen"), Menu->IsShowingVictory());
 		TestFalse(TEXT("no Continue without a save"), Menu->CanContinue());
 		TestFalse(TEXT("Continue refused"), Menu->ContinueGame());

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "GameFramework/HUD.h"
 #include "TDFrontEndGameModes.generated.h"
 
 class UTDUIStyle;
@@ -18,6 +19,13 @@ struct UNREALGAMEJAM_API FTDFrontEndWidgets
 	static UTDUIStyle* LoadDefaultStyle();
 
 	static UClass* Resolve(UClass* Override, const UTDUIStyle* Style, EKind Kind);
+};
+
+/** The front-end maps draw no in-game HUD (the dev HUD only replaces the stock AHUD, so this keeps it off the menu). */
+UCLASS(NotBlueprintable)
+class UNREALGAMEJAM_API ATDFrontEndHUD : public AHUD
+{
+	GENERATED_BODY()
 };
 
 /**
@@ -40,6 +48,7 @@ public:
 	virtual void StartPlay() override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void Tick(float DeltaSeconds) override;
 
 	// The menu's actions (Nick's widget calls these too).
 
@@ -85,7 +94,10 @@ private:
 	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> Music;
 	void ShowPlaceholder();
 	void HidePlaceholder();
+	/** Keyboard / pad focus is kept inside the placeholder (the viewport takes it back after the first frames). */
+	void KeepMenuFocus();
 	TSharedPtr<class SWidget> Placeholder;
+	TWeakPtr<class SWidget> FocusButton;
 	bool bShowingVictory = false;
 	bool bMusicStarted = false;
 	bool bPlaceholderWanted = false;

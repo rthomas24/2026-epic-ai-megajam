@@ -74,6 +74,11 @@ public:
 	/** Summoned grunts still alive (Warden). */
 	int32 GetAliveSummons() const;
 
+	/** Director's mercy (ATDEncounterVolume::MercyTiers): health scaled now, summons capped for this life (-1 = no cap). */
+	void ApplyMercy(float HealthScale, int32 MaxSummons);
+	/** Summons this member may still cast (-1 = no cap). */
+	int32 GetSummonsLeft() const { return SummonsLeft; }
+
 	/** Is WorldLocation inside the frontal shield arc? */
 	bool IsInShieldArc(const FVector& WorldLocation) const;
 
@@ -153,6 +158,7 @@ private:
 	float ChargeTimeLeft = 0.f;
 	FVector ChargeVelocity = FVector::ZeroVector;
 	int32 BossPhase = 1;
+	int32 SummonsLeft = -1;
 	bool bSpecApplied = false;
 	TMap<ETDCrewAttack, float> Cooldowns;
 	TArray<TWeakObjectPtr<ATDCrewCharacter>> Summons;

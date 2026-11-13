@@ -150,6 +150,28 @@ Gaps:
 
 Status: the agreement is recorded, but the arrival and hand-off code on T5's side isn't built yet. It comes with ENG-25/26, once T1's ENG-20 is on main.
 
+## Director's mercy (retakes of one fight, C-03 #3)
+
+The rule: **a fight the player keeps losing eases, one notch at a time, and only for them.**
+- **Takes:** every `ATDEncounterVolume` counts its own takes. Take 1 is the first time it starts, and each
+  retake that resets and restarts it adds one. Deaths elsewhere don't count.
+- **Tiers:** `MercyTiers` lists the steps (`FTDRetakeMercyTier`: `FromTake`, `HealthScale`, `MaxSummons`).
+  From `FromTake` on, the highest tier reached applies to every member the room spawns: health is scaled,
+  and a boss may summon at most `MaxSummons` times that take (-1 = no limit, 0 = never).
+- **Logging:** each eased start logs `Director's mercy: <room> take N eases the fight (health x%, summons n)`.
+- **Opt-in:** a room with no tiers is the same fight every take. Any on-foot fight can opt in.
+- **Where it's used today:** only the Cinder Warden arena. Take 3 onward: 75% health and one summon. Take 5
+  onward: 50% health and no summons. This came from the machine-played tests, which lost up to 9 takes in a
+  row with the Warden nearly dead.
+- Nobody who wins first time ever sees it. There is no on-screen notice (a slate tag could be added by
+  presentation later).
+
+| Test | What it proves |
+|---|---|
+| `Ground.Retake.DirectorsMercyEasesByTake` | Takes 1 to 5 on a room with tiers next to a plain room. It checks the health per take for every member, that the plain room never eases, and that the take-3 summon allowance is spent after one summon. |
+| `Ground.Course.WardenEasesOnRetakes` | The real Cinder arena through real CUT retakes. Takes 1 and 2 are the full Warden. Takes 3 and 4 are at 75% with one summon. Take 5 is at 50% with none, and a summon is refused. |
+| `Ground.Played.Cinder` | The machine-played run asserts only the outcome (outpost cleared, Warden down). Mercy is what keeps a losing streak from running out its tries. |
+
 ## Known gaps
 - **Input:** real key injection can't run headless. The harness's PlayerController has no local player, so the tests
   possess the character with an AIController and drive the same public move API that the input handlers call.
