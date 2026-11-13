@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "GameFramework/HUD.h"
 #include "TDFrontEndGameModes.generated.h"
 
 class UTDUIStyle;
@@ -18,6 +19,13 @@ struct UNREALGAMEJAM_API FTDFrontEndWidgets
 	static UTDUIStyle* LoadDefaultStyle();
 
 	static UClass* Resolve(UClass* Override, const UTDUIStyle* Style, EKind Kind);
+};
+
+/** The front-end maps draw no in-game HUD (the dev HUD only replaces the stock AHUD, so this keeps it off the menu). */
+UCLASS(NotBlueprintable)
+class UNREALGAMEJAM_API ATDFrontEndHUD : public AHUD
+{
+	GENERATED_BODY()
 };
 
 /**

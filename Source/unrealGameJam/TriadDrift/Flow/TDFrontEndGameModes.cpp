@@ -20,6 +20,8 @@
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Styling/CoreStyle.h"
+#include "Framework/Application/SlateApplication.h"
+#include "HAL/IConsoleManager.h"
 
 UTDUIStyle* FTDFrontEndWidgets::LoadDefaultStyle()
 {
@@ -67,6 +69,7 @@ namespace TDFrontEnd
 ATDMenuGameMode::ATDMenuGameMode()
 {
 	DefaultPawnClass = nullptr;
+	HUDClass = ATDFrontEndHUD::StaticClass();
 }
 
 void ATDMenuGameMode::StartPlay()
@@ -189,16 +192,23 @@ void ATDMenuGameMode::ShowPlaceholder()
 		return; // headless (tests): the actions above are the menu
 	}
 	TWeakObjectPtr<ATDMenuGameMode> Weak(this);
-	auto Button = [Weak](const FString& Label, TFunction<void(ATDMenuGameMode*)> Action, bool bEnabled) -> TSharedRef<SWidget>
+	TSharedPtr<SButton> FirstButton; // keyboard / gamepad focus starts here (Enter or pad A presses it)
+	auto Button = [Weak, &FirstButton](const FString& Label, TFunction<void(ATDMenuGameMode*)> Action, bool bEnabled) -> TSharedRef<SWidget>
 	{
-		return SNew(SBox).WidthOverride(320.f).Padding(FMargin(0.f, 6.f))
+		TSharedPtr<SButton> Made;
+		TSharedRef<SWidget> Out = SNew(SBox).WidthOverride(320.f).Padding(FMargin(0.f, 6.f))
 			[
-				SNew(SButton).IsEnabled(bEnabled).HAlign(HAlign_Center)
+				SAssignNew(Made, SButton).IsEnabled(bEnabled).HAlign(HAlign_Center)
 				.OnClicked_Lambda([Weak, Action]() { if (ATDMenuGameMode* M = Weak.Get()) { Action(M); } return FReply::Handled(); })
 				[
 					SNew(STextBlock).Text(FText::FromString(Label)).Font(FCoreStyle::GetDefaultFontStyle("Bold", 20))
 				]
 			];
+		if (bEnabled && !FirstButton.IsValid())
+		{
+			FirstButton = Made;
+		}
+		return Out;
 	};
 	TSharedRef<SVerticalBox> Box = SNew(SVerticalBox);
 	const UTDGameInstance* GI = UTDGameInstance::Get(this);
@@ -243,6 +253,10 @@ void ATDMenuGameMode::ShowPlaceholder()
 			Box
 		];
 	GEngine->GameViewport->AddViewportWidgetContent(Placeholder.ToSharedRef(), 10);
+	if (FirstButton.IsValid() && FSlateApplication::IsInitialized())
+	{
+		FSlateApplication::Get().SetAllUserFocus(FirstButton, EFocusCause::SetDirectly);
+	}
 }
 
 void ATDMenuGameMode::PostLogin(APlayerController* NewPlayer)
@@ -254,6 +268,7 @@ void ATDMenuGameMode::PostLogin(APlayerController* NewPlayer)
 ATDTransitionGameMode::ATDTransitionGameMode()
 {
 	DefaultPawnClass = nullptr;
+	HUDClass = ATDFrontEndHUD::StaticClass();
 }
 
 void ATDTransitionGameMode::StartPlay()
@@ -261,3 +276,28 @@ void ATDTransitionGameMode::StartPlay()
 	Super::StartPlay();
 	TDFrontEnd::ShowWidget(GetWorld(), FTDFrontEndWidgets::Resolve(LoadingWidgetClass.Get(), LoadingWidgetClass ? nullptr : FTDFrontEndWidgets::LoadDefaultStyle(), FTDFrontEndWidgets::EKind::Loading), false);
 }
+
+#if !UE_BUILD_SHIPPING
+// Dev: a real Slate key press (down and up) as a keyboard or pad would send it - drives the menus over MCP.
+//   TD.UI.Key Enter | Down | Up | Gamepad_FaceButton_Bottom
+static FAutoConsoleCommandWithWorldAndArgs GTDUISlateKey(TEXT("TD.UI.Key"), TEXT("TD.UI.Key <Key>: press a key through Slate (menus)."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld*)
+	{
+		if (Args.Num() < 1 || !FSlateApplication::IsInitialized())
+		{
+			return;
+		}
+		const FKey Key(*Args[0]);
+		if (!Key.IsValid())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("TD.UI.Key: unknown key %s"), *Args[0]);
+			return;
+		}
+		FSlateApplication& App = FSlateApplication::Get();
+		const FKeyEvent Event(Key, App.GetModifierKeys(), 0, false, 0, 0);
+		App.ProcessKeyDownEvent(Event);
+		App.ProcessKeyUpEvent(Event);
+		const TSharedPtr<SWidget> Focus = App.GetUserFocusedWidget(0);
+		UE_LOG(LogTemp, Log, TEXT("TD.UI.Key %s (focus now %s)"), *Key.ToString(), Focus.IsValid() ? *Focus->GetTypeAsString() : TEXT("none"));
+	}));
+#endif
