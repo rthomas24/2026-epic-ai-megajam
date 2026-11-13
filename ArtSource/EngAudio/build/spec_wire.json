@@ -1201,6 +1201,12 @@
    "field": "Explosion",
    "soft": false,
    "sound": "/Game/TriadDrift/Gameplay/Audio/Crew/MSS_Crew_Melee"
+  },
+  {
+   "asset": "DA_UI_Style",
+   "field": "MenuMusic",
+   "soft": true,
+   "sound": "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01"
   }
  ],
  "keep": [
