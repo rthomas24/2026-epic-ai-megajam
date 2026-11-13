@@ -73,6 +73,8 @@ UI alone may transfer its three Loading01 plugin sources (including Private/TDLo
 
 Current intake decision: all 36 originals are published at aa53ff9c for Ryan to select and import. All further Nick-side Intake03 imports, including pending Aurora and the two large GLBs, are parked. Preserve private 198 packages and all failed/partial evidence. UI owns isolated Worktrees/ui-loading-validation-dae at dae4943a, branch nick/ui-loading-validation-dae. Lead provisions matching binaries/build caches. UI may overlay the three previously claimed Loading01 source files and the developer-only module fixture and capture into Saved/Loading01/**. Only the HUD module is to be built there; leave the source host and f7 validation checkout untouched. Retain previous resource guards, yield to ready tutorial playback.
 
+Audio now tests the published T1 ref 35f37d61 in Worktrees/tutorial-music-t1 on nick/tutorial-music-t1. Audio owns its guarded one-at-a-time build, saved capture evidence and three tutorial fields in Content/TriadDrift/Presentation/DA_UI_Style.uasset. Retain the verified non-tutorial baseline 6cfe3e6c, full CombatMusic and menu dependencies. No gameplay source edits. Port 8025 with -NoLiveCoding. UI queues after the Audio session.
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
