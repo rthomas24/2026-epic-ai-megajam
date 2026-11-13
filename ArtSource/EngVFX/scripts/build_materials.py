@@ -423,6 +423,22 @@ ramp = lerp(ramp, PC.rgb*float3(1.0, 0.42, 0.20), saturate(v*1.7 - 0.55));
 float core = pow(f, 5.0)*saturate(1 - v*1.4);
 float3 c = ramp*soft*turb*fadeTail*0.62 + float3(1,1,1)*core*0.22;
 return float4(c*fadeIn*Intensity, PC.a);""", {}),
+
+    # round 8: the hull-repair pickup's icon: a crisp plus with a white-hot rim and a soft halo (camera-facing sprite).
+    'M_TD_VFX_Plus': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
+float2 q = abs(p);
+float d = min(max(q.x - 0.17, q.y - 0.66), max(q.y - 0.17, q.x - 0.66));   // < 0 inside the plus
+float body = 1.0 - smoothstep(-0.015, 0.015, d);
+float rim = (1.0 - smoothstep(0.0, 0.045, abs(d + 0.035)))*body;
+float inner = saturate(-d/0.17);
+float halo = pow(saturate(1.0 - max(d, 0.0)/0.34), 3.0)*m;
+float3 c = PC.rgb*(body*(0.55 + 0.45*inner) + halo*0.55) + lerp(PC.rgb, float3(1,1,1), 0.75)*rim*0.9;
+return float4(c*Intensity, PC.a);""", {}),
+
+    # round 8: a soft dark disc drawn under a pickup (translucent, sorted first), so its colour holds over the bright
+    # magenta nebula instead of adding up to white.
+    'M_TD_VFX_Backdrop': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
+return float4(0.0, 0.0, 0.0, saturate(pow(m, 1.4)*Dark*PC.a));""", {'Dark': 0.75}),
 }
 
 

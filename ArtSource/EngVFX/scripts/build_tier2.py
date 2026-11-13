@@ -365,10 +365,74 @@ def entry_sheath():   # replaces the round 6 version: the same fire, larger and 
 
 S2('NS_TD_Entry_BowShock', U(ENTRY, 1.0, Intensity=1.0), entry_bow())
 S2('NS_TD_Entry_PlasmaSheath', U(ENTRY, 1.0, Intensity=1.0), entry_sheath())
-S2('NS_TD_Entry', U(ENTRY, 1.0, Intensity=1.0), entry_cone()[:1] + entry_cone()[2:] + entry_bow() + entry_sheath() + entry_streaks()[:2] + entry_debris())
+
+
+# ---- round 8: the entry for T1's Director's Cut shot (Lead, Nov 13). A director camera about 25 m ahead of the ship, 18 m
+# to the side and 6 m below, looking back at it in three-quarter front profile, the planet's dark limb behind; then a cut
+# to the chase camera inside the white cover. From there the round 7 entry buried the ship: the flame cap (5 m long,
+# 3.4 m wide round the nose) and the 19 m halo covered the hull from every side. Now:
+#   - the bow shock reads side-on as one clean standing arc off the nose (the second, squashed layer is dimmer);
+#   - the hull stays visible and is LIT by the burn: an orange point light over the back, a white-blue one at the shock;
+#     no fire is born on the hull's sides (only a small hot cap ahead of the nose);
+#   - plasma leaves the belly, the tail and the wing tips in long streamers (world-space ribbons, 2 s = ~70 m of wake);
+#   - embers and debris cross the whole frame (born in a wide volume ahead of the ship, not only round it).
+def plight(name, radius, rgb, k, off=None):
+    """A persistent point light (particle light renderer), faded with the entry strength."""
+    e = ramped(single(name, 'M_TD_VFX_Glow', 1, 1.0, None, offset=off))
+    e['rclass'] = '/Script/Niagara.NiagaraLightRendererProperties'
+    e['rend'] = {'RadiusScale': radius / 100.0, 'bAlphaScalesBrightness': True, 'bAffectsTranslucency': False}
+    e.pop('mat', None)
+    return tint(e, rgb, k)
+
+
+def dc_bow():
+    grow_ = 'float3(0.80 + 0.20*%s, (0.55 + 0.45*%s)*%s, (0.55 + 0.45*%s)*%s)*%s'
+    wake = []
+    for nm, y, z, w in (('Wake', 0, 0, 90), ('WakeL', -330, 0, 52), ('WakeR', 330, 0, 52), ('WakeU', 0, -110, 70)):
+        e = trail(nm, w, 2.0, 1.0, rate=80.0, taper=0.45, power=1.1)
+        e['set'] = [x for x in e['set'] if x[2] != 'Ribbon Width'] + [(PS, INIT, 'Ribbon Width', X('%s*%s*%s' % (w, SCL, RAMP)))]
+        wake.append(offset(e, -150 if y == 0 and z == 0 else -40, y, z))
+    return [ramped(mesh_single('Bow', 'SM_TD_VFX_BowArc', 'M_TD_VFX_BowArc', '1.0, 1.0, 1.0', 1.1, None,
+                               live_scale=grow_ % (RAMP, RAMP, '1.0', RAMP, '1.0', EFLK % 53.1))),
+            ramped(mesh_single('Bow2', 'SM_TD_VFX_BowArc', 'M_TD_VFX_BowArc', '1.12, 1.0, 1.0', 0.32, None,
+                               live_scale=grow_ % (RAMP, RAMP, '1.30', RAMP, '0.62', EFLK % 87.7))),
+            tint(ramped(single('Shock', 'M_TD_VFX_Glow', 420, 1.0, 97.3, offset=(430, 0, 0))), (0.70, 0.88, 1.0), 1.2)] + wake
+
+
+def dc_sheath():
+    grow_ = 'float3(0.75 + 0.25*%s, 0.80 + 0.20*%s, 0.80 + 0.20*%s)*%s'
+    return [ramped(mesh_single('Cap', 'SM_TD_VFX_Flame', 'M_TD_VFX_Sheath', '2.4, 1.5, 1.5', 1.2, None, offset=(170, 0, 0),
+                               live_scale=grow_ % (RAMP, RAMP, RAMP, EFLK % 87.7))),
+            ramped(single('Nose', 'M_TD_VFX_Glow', 200, 0.8, 71.3, offset=(330, 0, 0))),
+            plight('HullLight', 1400, (1.0, 0.45, 0.16), 9.0, off=(-60, 0, 260)),
+            plight('ShockLight', 900, (0.65, 0.85, 1.0), 7.0, off=(520, 0, 0)),
+            # fire only behind the tail, under the belly and off the wing tips, streaming away
+            offset(spin(shed('Flames', 'M_TD_VFX_Fireball', 0, (0.45, 0.90), (170, 320), (2400, 5400), radius=140.0, drag=0.5, curl=2000.0, local=True, rgb=(1.0, 0.60, 0.34),
+                             cone=((-1.0, 0.0, 0.0), 9.0), growth='0.6 + Particles.NormalizedAge*1.9', rate_expr='110.0*' + RAMP)), -330),
+            offset(spin(shed('Belly', 'M_TD_VFX_Fireball', 0, (0.35, 0.70), (110, 210), (2400, 5000), radius=120.0, drag=0.5, curl=1600.0, local=True, rgb=(1.0, 0.60, 0.34),
+                             cone=((-1.0, 0.0, 0.0), 6.0), growth='0.6 + Particles.NormalizedAge*1.6', rate_expr='70.0*' + RAMP)), -60, 0, -150),
+            offset(spin(shed('TipL', 'M_TD_VFX_Fireball', 0, (0.30, 0.60), (70, 150), (2400, 4800), radius=60.0, drag=0.5, curl=1400.0, local=True, rgb=(1.0, 0.60, 0.34),
+                             cone=((-1.0, 0.0, 0.0), 5.0), growth='0.6 + Particles.NormalizedAge*1.7', rate_expr='45.0*' + RAMP)), -120, -340, 0),
+            offset(spin(shed('TipR', 'M_TD_VFX_Fireball', 0, (0.30, 0.60), (70, 150), (2400, 4800), radius=60.0, drag=0.5, curl=1400.0, local=True, rgb=(1.0, 0.60, 0.34),
+                             cone=((-1.0, 0.0, 0.0), 5.0), growth='0.6 + Particles.NormalizedAge*1.7', rate_expr='45.0*' + RAMP)), -120, 340, 0)]
+
+
+def dc_debris():
+    near = entry_debris()
+    # across the frame: embers and ash born in a wide volume ahead of the ship, streaking back past it (and past the
+    # director camera 25 m ahead)
+    return near + [
+        offset(shed('FarEmbers', 'M_TD_VFX_Spark', 0, (0.30, 0.55), (8, 16), (9000, 16000), k=1.6, radius=2600.0, drag=0.0, local=True, stretch=14,
+                    cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='90.0*' + RAMP, fade_in=6.0), 2600),
+        offset(shed('FarAsh', 'M_TD_VFX_Smoke', 0, (0.30, 0.55), (14, 30), (8000, 14000), radius=2600.0, drag=0.0, local=True, stretch=6, rgb=(0.05, 0.04, 0.04), alpha=0.85,
+                    cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='50.0*' + RAMP, power=0.6, fade_in=6.0), 2600)]
+
+
+S2('NS_TD_Entry', U(ENTRY, 1.0, Intensity=1.0), entry_cone()[:1] + entry_cone()[2:] + dc_bow() + dc_sheath() + entry_streaks()[:2] + dc_debris())
 _RAMP_IN = RAMP
 RAMP = '(User.Intensity*saturate(1.0 - Emitter.Age/3.0))'
-S2('NS_TD_Exit', U(ENTRY, 1.0, Intensity=1.0), entry_bow() + entry_sheath()[1:] + entry_streaks()[:2] + entry_debris())
+# Exit: the same burn, thinning out over 3 s on its own or driven down by User.Intensity (T1: AtmosphericExit).
+S2('NS_TD_Exit', U(ENTRY, 1.0, Intensity=1.0), dc_bow() + dc_sheath()[1:] + entry_streaks()[:2] + dc_debris())
 RAMP = _RAMP_IN
 
 # ============================================================================================= Rift's dorsal ring (round 7)
@@ -394,16 +458,23 @@ S2('NS_TD_Rift_RingIdle', U(RIFT, 1.0, Power=0.5, Radius=44.0), [
               rate_expr='(2.0 + 12.0*User.Power)'))])
 
 # ============================================================================================= pickups (round 8, for T2)
-# Four looping idles and a collect burst each, built to a 1 m core, Z up. Colours stay clear of the squad's magenta / cyan /
-# amber and the enemy's red / orange; each has its own silhouette so it reads without colour:
-#   Hull (green)        a cross          Shield (white-blue)   a hexagon ripple in a bubble
-#   Power (violet)      an upright crystal with a swirl        Overcharge (gold-white)  a spiked star throwing sparks
-# Slots: whatever T2 names them (a looped attached cue per pickup type and a one-shot cue at the pickup on collect).
-PK_HULL = (0.22, 1.0, 0.36, 1.0)
-PK_SHIELD = (0.72, 0.90, 1.0, 1.0)
+# Four looping idles and a collect burst each, Z up, sized to T2's 3.4 m pickup (ATDPickup::Size). Colours are T2's
+# (ATDPickup::ColorOf), clear of the squad's magenta / cyan / amber and the enemy's red / orange; each has its own
+# silhouette so it reads without colour:
+#   Hull (green)  a crisp plus           Shield (white-blue)  a hexagon ripple in a rim, bright core
+#   Power (violet) an upright crystal in a swirl              Overcharge (gold-white)  a spiked star throwing sparks
+# Round 8b, seen in play (PIE, Waves1to2): at 1 m core sizes the idles were dots at 45 m and gone at 200 m. Every sprite
+# now also grows with the distance to the camera (PKD: 1x inside 40 m, up to 4x at 160 m and beyond), like the tracers,
+# so a pickup stays a readable beacon at 200 m and is its real size when the player is about to take it.
+# Slots wanted (T2): a looped cue attached to the pickup actor per type, and a one-shot cue at the pickup on collect.
+PK_HULL = (0.25, 1.0, 0.35, 1.0)
+PK_SHIELD = (0.42, 0.70, 1.0, 1.0)
 PK_POWER = (0.55, 0.22, 1.0, 1.0)
-PK_OVER = (1.0, 0.86, 0.50, 1.0)
+PK_OVER = (1.0, 0.92, 0.62, 1.0)
 PULSE = '(0.85 + 0.15*sin(Engine.Time*%s))'
+PKD = 'clamp(Engine.Owner.LODDistance/4000.0, 1.0, 4.0)'
+_SCL_STD = SCL
+SCL = '(User.Scale*Engine.Owner.Scale.x*%s)' % PKD   # the idles only; restored below
 
 
 def upright(e):
@@ -414,9 +485,37 @@ def upright(e):
     return e
 
 
-def pk_common(halo=230):
-    return [single('Halo', 'M_TD_VFX_Glow', '(%s*%s)' % (halo, PULSE % 2.6), 0.32, None),
-            shed('Motes', 'M_TD_VFX_Glow', 14.0, (0.8, 1.6), (2.5, 6.0), (10, 60), k=1.2, radius=70.0, drag=0.5, curl=120.0, local=True, power=1.2, fade_in=4.0)]
+def pk_common(halo=420):
+    back = single('Back', 'M_TD_VFX_Backdrop', 380, 1.0, None)   # seen in play: over the nebula green / blue / violet added up to white
+    back['rend']['SortOrderHint'] = -10
+    return [back, single('Halo', 'M_TD_VFX_Glow', '(%s*%s)' % (halo, PULSE % 2.6), 0.45, None),
+            shed('Motes', 'M_TD_VFX_Glow', 14.0, (0.8, 1.6), (4.0, 9.0), (10, 60), k=1.2, radius=120.0, drag=0.5, curl=120.0, local=True, power=1.2, fade_in=4.0)]
+
+
+# Hull repair: a green plus (camera-facing, so it reads from every side), a hot centre, sparks rising.
+S2('NS_TD_Pickup_Hull', U(PK_HULL), pk_common() + [
+    single('Plus', 'M_TD_VFX_Plus', '(300*%s)' % (PULSE % 3.1), 1.3, None),
+    single('Core', 'M_TD_VFX_Glow', 70, 1.2, 23.7),
+    shed('Rise', 'M_TD_VFX_Spark', 10.0, (0.6, 1.1), (3.0, 6.0), (60, 150), k=1.4, radius=90.0, drag=0.0, local=True, stretch=7, cone=((0.0, 0.0, 1.0), 6.0), power=1.0, fade_in=5.0)])
+# Shield cell: a hexagon ripple that keeps spreading inside a rim, a bright core.
+S2('NS_TD_Pickup_Shield', U(PK_SHIELD), pk_common(400) + [
+    looping(single('Hex', 'M_TD_VFX_Hex', 270, 1.3, None), 1.3),
+    tint(single('Rim', 'M_TD_VFX_Ring', 320, 1.0, None), (0.20, 0.50, 1.0), 1.0),   # the ring material's white rim washed the first build white
+    tint(single('Core', 'M_TD_VFX_Glow', 110, 1.0, 19.3), (0.30, 0.60, 1.0), 1.1),
+    shed('Glints', 'M_TD_VFX_Glow', 10.0, (0.3, 0.6), (5.0, 11.0), (0, 10), k=1.4, radius=110.0, drag=0.0, local=True, power=1.0, fade_in=4.0)])   # first build (a sphere shell and a Shock rim) never activated
+# Power cell: an upright violet crystal (the bolt spindle stood on end) inside a turning swirl, small arcs.
+S2('NS_TD_Pickup_Power', U(PK_POWER), pk_common(400) + [
+    upright(mesh_single('Crystal', 'SM_TD_VFX_Bolt', 'M_TD_VFX_Bolt', '3.2, 1.2, 1.2', 3.0, 41.3)),
+    tint(looping(single('Swirl', 'M_TD_VFX_Swirl', 320, 1.0, None), 2.2), (0.45, 0.12, 1.0), 1.0),
+    single('Core', 'M_TD_VFX_Glow', 90, 1.0, 41.3),
+    arcs('Arcs', 6.0, (70, 140), 60, life=(0.08, 0.2), k=1.2)])
+# Overcharge: a spiked gold-white star that throws sparks outward all the time.
+S2('NS_TD_Pickup_Overcharge', U(PK_OVER), pk_common(440) + [
+    looping(single('Star', 'M_TD_VFX_Flare', '(330*%s)' % (PULSE % 6.3), 1.0, None), 0.5),
+    looping(single('Star2', 'M_TD_VFX_Flare', 210, 1.3, None), 0.33),
+    single('Core', 'M_TD_VFX_Glow', 100, 1.6, 67.1),
+    shed('Sparks', 'M_TD_VFX_Spark', 34.0, (0.25, 0.5), (3.0, 6.5), (200, 520), k=1.6, radius=20.0, drag=1.0, local=True, stretch=11, power=1.0)])
+SCL = _SCL_STD
 
 
 def pk_collect(extra=()):
@@ -427,37 +526,16 @@ def pk_collect(extra=()):
             shed('Motes', 'M_TD_VFX_Glow', 0, (0.5, 1.1), (4, 10), (80, 520), k=1.2, radius=40.0, drag=1.8, curl=500.0, burst=22, dur=1.2, power=1.6)] + list(extra)
 
 
-# Hull repair: a green cross (two bars facing the camera), a hot centre, motes rising.
-S2('NS_TD_Pickup_Hull', U(PK_HULL), pk_common() + [
-    single('BarH', 'M_TD_VFX_Glow', ('(118*%s)' % (PULSE % 3.1), 40), 1.5, None),
-    single('BarV', 'M_TD_VFX_Glow', (40, '(118*%s)' % (PULSE % 3.1)), 1.5, None),
-    single('Core', 'M_TD_VFX_Glow', 46, 1.6, 23.7),
-    shed('Rise', 'M_TD_VFX_Spark', 10.0, (0.6, 1.1), (2.0, 4.0), (60, 150), k=1.4, radius=45.0, drag=0.0, local=True, stretch=7, cone=((0.0, 0.0, 1.0), 6.0), power=1.0, fade_in=5.0)])
+# Collect bursts (a one-shot at the pickup, short: flash, ring, sparks, the type's own shape thrown out).
 S2('NS_TD_Pickup_Hull_Collect', U(PK_HULL), pk_collect([
     flash('BarH', 'M_TD_VFX_Glow', 1, 0.28, 1.6, growth='float2(4.2, 0.9)*(0.4 + Particles.NormalizedAge*0.9)*60.0', power=1.0),
     flash('BarV', 'M_TD_VFX_Glow', 1, 0.28, 1.6, growth='float2(0.9, 4.2)*(0.4 + Particles.NormalizedAge*0.9)*60.0', power=1.0)]))
-# Shield cell: a hexagon ripple that keeps spreading inside a faint bubble, with a thin rim.
-S2('NS_TD_Pickup_Shield', U(PK_SHIELD), pk_common(210) + [
-    looping(single('Hex', 'M_TD_VFX_Hex', 128, 0.9, None), 1.3),
-    single('Rim', 'M_TD_VFX_Ring', 150, 0.6, None),
-    shed('Glints', 'M_TD_VFX_Glow', 10.0, (0.3, 0.6), (3.0, 7.0), (0, 10), k=1.4, radius=56.0, drag=0.0, local=True, power=1.0, fade_in=4.0)])   # first build (a sphere shell and a Shock rim) never activated
 S2('NS_TD_Pickup_Shield_Collect', U(PK_SHIELD), pk_collect([
     flash('Hex', 'M_TD_VFX_Hex', 420, 0.35, 1.2, growth='0.35 + Particles.NormalizedAge*0.65', power=0.8),
     shell_flash('Bubble', 60, 0.35, 'float3(1,1,1)*(1.0 + 2.2*pow(Particles.NormalizedAge, 0.6))', k=0.9, power=1.2)]))
-# Power cell: an upright violet crystal (the bolt spindle stood on end) inside a turning swirl, small arcs.
-S2('NS_TD_Pickup_Power', U(PK_POWER), pk_common(210) + [
-    upright(mesh_single('Crystal', 'SM_TD_VFX_Bolt', 'M_TD_VFX_Bolt', '1.5, 0.55, 0.55', 3.0, 41.3)),
-    looping(single('Swirl', 'M_TD_VFX_Swirl', 150, 0.5, None), 2.2),
-    arcs('Arcs', 5.0, (40, 80), 30, life=(0.08, 0.2), k=1.2)])
 S2('NS_TD_Pickup_Power_Collect', U(PK_POWER), pk_collect([
     arcs('Arcs', 0, (70, 150), 50, life=(0.1, 0.3), k=1.0, burst=10, dur=0.5, local=False),
     spin(flash('Swirl', 'M_TD_VFX_Swirl', 460, 0.4, 1.0, growth='0.3 + Particles.NormalizedAge*0.7', power=0.8))]))
-# Overcharge: a spiked gold-white star that throws sparks outward all the time.
-S2('NS_TD_Pickup_Overcharge', U(PK_OVER), pk_common(250) + [
-    looping(single('Star', 'M_TD_VFX_Flare', '(190*%s)' % (PULSE % 6.3), 1.0, None), 0.5),
-    looping(single('Star2', 'M_TD_VFX_Flare', 120, 1.3, None), 0.33),
-    single('Core', 'M_TD_VFX_Glow', 60, 1.8, 67.1),
-    shed('Sparks', 'M_TD_VFX_Spark', 34.0, (0.25, 0.5), (2.0, 4.5), (160, 420), k=1.6, radius=12.0, drag=1.0, local=True, stretch=11, power=1.0)])
 S2('NS_TD_Pickup_Overcharge_Collect', U(PK_OVER), pk_collect([
     flash('Star', 'M_TD_VFX_Flare', 620, 0.16, 1.5, growth='0.4 + Particles.NormalizedAge*0.8'),
     shed('Burst', 'M_TD_VFX_Spark', 0, (0.25, 0.6), (3.0, 6.5), (1200, 3600), k=1.9, radius=10.0, drag=2.2, stretch=16, burst=40, dur=0.7)]))
