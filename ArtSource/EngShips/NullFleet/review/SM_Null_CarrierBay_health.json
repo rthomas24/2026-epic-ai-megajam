@@ -1,0 +1,176 @@
+{
+  "asset": "SM_Null_CarrierBay",
+  "tag": "r3",
+  "checks": {
+    "tris": 4772,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 21,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 1,
+    "size_cm": [
+      648.5,
+      356.4,
+      465.2
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [],
+    "com_shift_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "centre_of_mass_m": [
+      -0.004,
+      0.055,
+      0.008
+    ],
+    "edge_area_share": 0.1448,
+    "uv_unwrap": {
+      "margin": 0.006,
+      "faces_detached_for_overlap": 2
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.3819,
+      "overlap_pixels": 21,
+      "overlap_share_of_covered": 5.2e-05,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Null_CarrierBay",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_CarrierBay\\T_Null_CarrierBay_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_CarrierBay\\T_Null_CarrierBay_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_CarrierBay\\T_Null_CarrierBay_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_CarrierBay\\T_Null_CarrierBay_E.png"
+      },
+      "size": 1024,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Null_CarrierBay_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 14.61
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.6198
+    },
+    "build_seconds": 42.0
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.1182,
+        0.1182,
+        0.1291
+      ],
+      "min": 0.0,
+      "max": 0.3765
+    },
+    "N": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.5003,
+        0.4994,
+        0.9999
+      ],
+      "min": 0.3333,
+      "max": 1.0,
+      "std_rg": [
+        0.0126,
+        0.0125
+      ]
+    },
+    "ORM": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.4888,
+        0.3353,
+        0.4533
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.514
+      ],
+      "metallic_mean": 0.454
+    },
+    "E": {
+      "size": [
+        1024,
+        1024
+      ],
+      "mean_rgb": [
+        0.1119,
+        0.0289,
+        0.0121
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0787,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Null_CarrierBay",
+      "message": "40 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 34,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.01311
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_CarrierBay_r3_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_CarrierBay_r3_clay_sheet.png",
+    "ortho_cm_per_px": 1.6213,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 4772,
+    "size_cm": [
+      356.4,
+      648.5,
+      465.2
+    ],
+    "collision": [
+      "UCX_SM_Null_CarrierBay_00"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Null_CarrierBay"
+    ],
+    "textures": [
+      "T_Null_CarrierBay_BC.png",
+      "T_Null_CarrierBay_E.png",
+      "T_Null_CarrierBay_N.png",
+      "T_Null_CarrierBay_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "asset": "SM_Null_Fighter",
+  "tag": "r4",
+  "checks": {
+    "tris": 7258,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 24,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 3,
+    "size_cm": [
+      471.8,
+      522.9,
+      164.0
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [],
+    "centre_of_mass_m_before": [
+      0.0,
+      0.027,
+      0.06
+    ],
+    "com_shift_m": [
+      0.0,
+      -0.13469207286834717,
+      0.1601601541042328
+    ],
+    "pivot": "bbox_centre",
+    "edge_area_share": 0.0159,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 2
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.4185,
+      "overlap_pixels": 24,
+      "overlap_share_of_covered": 5.5e-05,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Null_Fighter",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Fighter\\T_Null_Fighter_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Fighter\\T_Null_Fighter_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Fighter\\T_Null_Fighter_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Fighter\\T_Null_Fighter_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Null_Fighter_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 36.73
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.7247
+    },
+    "build_seconds": 61.2
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0701,
+        0.067,
+        0.0747
+      ],
+      "min": 0.0,
+      "max": 0.3765
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5001,
+        0.4999,
+        0.9988
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0094,
+        0.0147
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.3577,
+        0.3312,
+        0.3381
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.518
+      ],
+      "metallic_mean": 0.339
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.1319,
+        0.0457,
+        0.0265
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0905,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Null_Fighter",
+      "message": "139 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 55,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.01085
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Fighter_r4_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Fighter_r4_clay_sheet.png",
+    "ortho_cm_per_px": 1.3073,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 7258,
+    "size_cm": [
+      522.9,
+      471.8,
+      164.0
+    ],
+    "collision": [
+      "UCX_SM_Null_Fighter_00",
+      "UCX_SM_Null_Fighter_01",
+      "UCX_SM_Null_Fighter_02"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Null_Fighter"
+    ],
+    "textures": [
+      "T_Null_Fighter_BC.png",
+      "T_Null_Fighter_E.png",
+      "T_Null_Fighter_N.png",
+      "T_Null_Fighter_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

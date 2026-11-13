@@ -1,0 +1,188 @@
+{
+  "asset": "SM_Null_Carrier",
+  "tag": "r4",
+  "checks": {
+    "tris": 33546,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 12,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 4,
+    "size_cm": [
+      3964.8,
+      4489.2,
+      2506.3
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [
+      [
+        "part_0081",
+        0.149
+      ],
+      [
+        "part_0089",
+        0.148
+      ]
+    ],
+    "com_shift_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "centre_of_mass_m": [
+      0.002,
+      0.354,
+      1.626
+    ],
+    "edge_area_share": 0.0819,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 27
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.326,
+      "overlap_pixels": 12,
+      "overlap_share_of_covered": 3.5e-05,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Null_Carrier",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Carrier\\T_Null_Carrier_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Carrier\\T_Null_Carrier_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Carrier\\T_Null_Carrier_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Carrier\\T_Null_Carrier_E.png"
+      },
+      "size": 4096,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Null_Carrier_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 279.76
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.7762
+    },
+    "build_seconds": 362.3
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        4096,
+        4096
+      ],
+      "mean_rgb": [
+        0.0698,
+        0.0672,
+        0.072
+      ],
+      "min": 0.0,
+      "max": 0.4
+    },
+    "N": {
+      "size": [
+        4096,
+        4096
+      ],
+      "mean_rgb": [
+        0.5,
+        0.4999,
+        1.0
+      ],
+      "min": 0.0706,
+      "max": 1.0,
+      "std_rg": [
+        0.0122,
+        0.0122
+      ]
+    },
+    "ORM": {
+      "size": [
+        4096,
+        4096
+      ],
+      "mean_rgb": [
+        0.3019,
+        0.2991,
+        0.3184
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.69
+      ],
+      "metallic_mean": 0.307
+    },
+    "E": {
+      "size": [
+        4096,
+        4096
+      ],
+      "mean_rgb": [
+        0.1068,
+        0.0298,
+        0.0123
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0417,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Null_Carrier",
+      "message": "285 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 215,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.09739
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Carrier_r4_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Carrier_r4_clay_sheet.png",
+    "ortho_cm_per_px": 11.223,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 33546,
+    "size_cm": [
+      4489.2,
+      3964.8,
+      2506.3
+    ],
+    "collision": [
+      "UCX_SM_Null_Carrier_00",
+      "UCX_SM_Null_Carrier_01",
+      "UCX_SM_Null_Carrier_02",
+      "UCX_SM_Null_Carrier_03"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Null_Carrier"
+    ],
+    "textures": [
+      "T_Null_Carrier_BC.png",
+      "T_Null_Carrier_E.png",
+      "T_Null_Carrier_N.png",
+      "T_Null_Carrier_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

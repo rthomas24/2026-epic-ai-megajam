@@ -1,0 +1,96 @@
+{
+  "asset": "SM_Null_Turret",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Turret\\SM_Null_Turret.fbx",
+  "tris": 2184,
+  "size_cm": [
+    220.8,
+    146.0,
+    101.9
+  ],
+  "pivot": "root object origin (SM_Null_Turret~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Null_Turret"
+  ],
+  "material_params": [
+    {
+      "name": "M_Null_Turret",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_Null_Turret_BC.png",
+    "T_Null_Turret_E.png",
+    "T_Null_Turret_N.png",
+    "T_Null_Turret_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_Null_Turret_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [
+    "SOCKET_Muzzle_0",
+    "SOCKET_Muzzle_1"
+  ],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "fbx_relative": "SM_Null_Turret.fbx",
+  "texture_size": 1024,
+  "emission_strength": 2.0,
+  "nanite": true,
+  "role": "carrier_turret",
+  "ue_cylinder_cm": [
+    150,
+    100
+  ],
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "blender_m": [
+        0.22,
+        -1.47,
+        0.1
+      ],
+      "ue_cm": [
+        147.0,
+        -22.0,
+        10.0
+      ]
+    },
+    {
+      "name": "Muzzle_1",
+      "blender_m": [
+        -0.22,
+        -1.47,
+        0.1
+      ],
+      "ue_cm": [
+        147.0,
+        22.0,
+        10.0
+      ]
+    }
+  ]
+}

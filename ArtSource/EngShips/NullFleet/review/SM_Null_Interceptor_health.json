@@ -1,0 +1,179 @@
+{
+  "asset": "SM_Null_Interceptor",
+  "tag": "r5",
+  "checks": {
+    "tris": 6922,
+    "tris_in_budget": true,
+    "material_slots": 1,
+    "no_floating_parts": true,
+    "uv_inside_0_1": true,
+    "uv_overlap_pixels": 65,
+    "asset_report_errors": 0,
+    "asset_report_warnings": 0,
+    "collision_hulls": 3,
+    "size_cm": [
+      443.2,
+      637.9,
+      205.6
+    ],
+    "export_status": "ok"
+  },
+  "info": {
+    "snapped_floating_groups": [],
+    "centre_of_mass_m_before": [
+      0.177,
+      0.029,
+      -0.03
+    ],
+    "com_shift_m": [
+      0.0,
+      -0.009296536445617676,
+      -0.1691438853740692
+    ],
+    "pivot": "bbox_centre",
+    "edge_area_share": 0.0225,
+    "uv_unwrap": {
+      "margin": 0.0035,
+      "faces_detached_for_overlap": 13
+    },
+    "uv": {
+      "inside_0_1": true,
+      "coverage": 0.3904,
+      "overlap_pixels": 65,
+      "overlap_share_of_covered": 0.000159,
+      "raster": 1024
+    },
+    "bake": {
+      "status": "ok",
+      "asset": "Null_Interceptor",
+      "files": {
+        "BC": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Interceptor\\T_Null_Interceptor_BC.png",
+        "N": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Interceptor\\T_Null_Interceptor_N.png",
+        "ORM": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Interceptor\\T_Null_Interceptor_ORM.png",
+        "E": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Interceptor\\T_Null_Interceptor_E.png"
+      },
+      "size": 2048,
+      "normal_convention": "DirectX (green flipped)",
+      "emission_strength": 2.0,
+      "preview_material": "M_Null_Interceptor_Baked",
+      "notes": [],
+      "warnings": [],
+      "seconds": 92.95
+    },
+    "cavity": {
+      "status": "ok",
+      "share_tinted": 0.6715
+    },
+    "build_seconds": 321.6
+  },
+  "textures": {
+    "BC": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.0711,
+        0.0693,
+        0.0773
+      ],
+      "min": 0.0,
+      "max": 0.4
+    },
+    "N": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.5001,
+        0.4996,
+        0.9993
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "std_rg": [
+        0.0122,
+        0.0168
+      ]
+    },
+    "ORM": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.4103,
+        0.3306,
+        0.3423
+      ],
+      "min": 0.0,
+      "max": 1.0,
+      "roughness_p5_p95": [
+        0.0,
+        0.604
+      ],
+      "metallic_mean": 0.342
+    },
+    "E": {
+      "size": [
+        2048,
+        2048
+      ],
+      "mean_rgb": [
+        0.1026,
+        0.0334,
+        0.0176
+      ],
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+  "emissive_surface_share": 0.0691,
+  "asset_report_issues": [
+    {
+      "severity": "info",
+      "object": "SM_Null_Interceptor",
+      "message": "143 n-gons; fine if planar, they get triangulated on export"
+    }
+  ],
+  "assembly": {
+    "ok": true,
+    "islands": 62,
+    "groups": 1,
+    "floating": [],
+    "tolerance_m": 0.01205
+  },
+  "review": {
+    "review": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Interceptor_r5_review.png",
+    "clay": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\review\\SM_Null_Interceptor_r5_clay_sheet.png",
+    "ortho_cm_per_px": 1.5946,
+    "warnings": []
+  },
+  "export": {
+    "status": "ok",
+    "tris": 6922,
+    "size_cm": [
+      637.9,
+      443.2,
+      205.6
+    ],
+    "collision": [
+      "UCX_SM_Null_Interceptor_00",
+      "UCX_SM_Null_Interceptor_01",
+      "UCX_SM_Null_Interceptor_02"
+    ],
+    "collision_source": "authored",
+    "materials": [
+      "M_Null_Interceptor"
+    ],
+    "textures": [
+      "T_Null_Interceptor_BC.png",
+      "T_Null_Interceptor_E.png",
+      "T_Null_Interceptor_N.png",
+      "T_Null_Interceptor_ORM.png"
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

@@ -1,0 +1,201 @@
+{
+  "asset": "SM_Null_Gunship",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFleet\\SM_Null_Gunship\\SM_Null_Gunship.fbx",
+  "tris": 17458,
+  "size_cm": [
+    1447.3,
+    1708.6,
+    677.4
+  ],
+  "pivot": "root object origin (SM_Null_Gunship~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Null_Gunship"
+  ],
+  "material_params": [
+    {
+      "name": "M_Null_Gunship",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [
+    "T_Null_Gunship_BC.png",
+    "T_Null_Gunship_E.png",
+    "T_Null_Gunship_N.png",
+    "T_Null_Gunship_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_Null_Gunship_00",
+    "UCX_SM_Null_Gunship_01"
+  ],
+  "collision_source": "authored",
+  "sockets": [
+    "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_Engine_2",
+    "SOCKET_Engine_3",
+    "SOCKET_Muzzle_0",
+    "SOCKET_Muzzle_1",
+    "SOCKET_Muzzle_2",
+    "SOCKET_Muzzle_3"
+  ],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "fbx_relative": "SM_Null_Gunship.fbx",
+  "texture_size": 2048,
+  "emission_strength": 2.0,
+  "nanite": true,
+  "role": "gunship",
+  "ue_radius_cm": 700,
+  "eyes_m": [
+    [
+      0.72,
+      -6.31,
+      0.05
+    ],
+    [
+      2.05,
+      -5.613,
+      0.05
+    ],
+    [
+      -0.72,
+      -6.31,
+      0.05
+    ],
+    [
+      -2.05,
+      -5.613,
+      0.05
+    ]
+  ],
+  "frontal_shield": "the chevron wall is the shield plate; its glowing seams can be driven by EmissiveStrength while the shield is up",
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "blender_m": [
+        7.3008,
+        -5.7817,
+        0.2686
+      ],
+      "ue_cm": [
+        578.2,
+        -730.1,
+        26.9
+      ]
+    },
+    {
+      "name": "Muzzle_1",
+      "blender_m": [
+        7.3008,
+        -5.7817,
+        -0.3314
+      ],
+      "ue_cm": [
+        578.2,
+        -730.1,
+        -33.1
+      ]
+    },
+    {
+      "name": "Muzzle_2",
+      "blender_m": [
+        -7.2992,
+        -5.7817,
+        0.2686
+      ],
+      "ue_cm": [
+        578.2,
+        729.9,
+        26.9
+      ]
+    },
+    {
+      "name": "Muzzle_3",
+      "blender_m": [
+        -7.2992,
+        -5.7817,
+        -0.3314
+      ],
+      "ue_cm": [
+        578.2,
+        729.9,
+        -33.1
+      ]
+    },
+    {
+      "name": "Engine_0",
+      "blender_m": [
+        1.3508,
+        8.5183,
+        -0.2814
+      ],
+      "ue_cm": [
+        -851.8,
+        -135.1,
+        -28.1
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "blender_m": [
+        3.7008,
+        8.5183,
+        -0.2814
+      ],
+      "ue_cm": [
+        -851.8,
+        -370.1,
+        -28.1
+      ]
+    },
+    {
+      "name": "Engine_2",
+      "blender_m": [
+        -1.3492,
+        8.5183,
+        -0.2814
+      ],
+      "ue_cm": [
+        -851.8,
+        134.9,
+        -28.1
+      ]
+    },
+    {
+      "name": "Engine_3",
+      "blender_m": [
+        -3.6992,
+        8.5183,
+        -0.2814
+      ],
+      "ue_cm": [
+        -851.8,
+        369.9,
+        -28.1
+      ]
+    }
+  ]
+}
