@@ -282,3 +282,5 @@ Both planets are technically verified and not yet played. Nothing is validated b
 - **Lesson:** headless renders and per-asset review sheets scored every asset 3-3.5/5, but the worst problems only appear when everything is combined under the game's real lighting, bloom and camera. Capture the running game after every art batch, not just the asset sheets.
 
 Nov 13, presentation team. The 139.2-second combat track reopened with its loop and Music class intact. Main has no DA_UI_Style package, and the director reads combat state but does not consume MusicIntensity01 for gain. We staged the verified Wave from f5d9cf9d and the existing PR11 style in a clean copy at dae4943a, requested the gain hookup in N037 and started the local editor build. Battle playback and listening approval are pending.
+
+Nov 13, music integration. Added the five previously reloaded Unreal packages for Dominion boarding, the two credits tracks and Verdance. Their bytes match the published Audio checkpoint 52f84e54. The music class is present on main. T7 owns the gameplay events listed in N-045. Hearing the tracks in a matching playable build remains pending.
