@@ -2,7 +2,7 @@
 
 Ryan, Nov 13: "we need lots and lots of animations for all the movements, and everything needs to be AAA quality."
 This file is the single place for **every animation in the game**: who makes it, how, where it lives, and its state.
-`features.md` says what the game needs; this file says how each movement gets there. Keep it current: a row changes
+`features.md` says what the game needs and `storyline.md` what it means; this file says how each movement gets there. Keep it current: a row changes
 when the work changes.
 
 ## 1. Who leads

@@ -20,12 +20,16 @@ agent commit to this same repo at the same time.**
   - **Core:** everything except the boarding finale. That includes flight, three-ship switching,
     wingmen, combat, enemy waves, hyperdrive and portals, **all powers and unlockable abilities**,
     **both landable planets**, the Dominion space-assault finale, full presentation and packaging.
-  - **Stretch:** the **boarding finale** (Dominion interior on foot).
+  - **Wanted since Nov 13 (Ryan; was stretch):** the **boarding finale** (Dominion interior on foot), scoped to
+    what can be solid by the freeze; the space-only reactor ending stays as the working fallback.
   - **Protect** the three-ship switching mechanic and satisfying combat above everything.
   - **Feature freeze:** Nov 15, 12:00 PM EST.
 - **[features.md](features.md) is the source of truth** for what to build and who builds it: every
   feature, the role split, folder ownership and the contracts between gameplay and presentation.
   Read it before you start work.
+- **[storyline.md](storyline.md) is the story** (*The Paradox*, Nicholas's narrative, adopted by Ryan Nov 13): the
+  premise, the hidden truth, and act by act the gameplay moment that carries each beat. Every objective name, line,
+  set piece and asset serves it. Read it before naming or writing anything the player sees.
 - **[animations.md](animations.md) is the animation plan and ledger** (Ryan's lane, Nov 13): every movement in the
   game, who makes it, by which route (Grok Bot and third-party motion, Blender, or in-engine), and its state.
 - **[AAA.md](AAA.md) is the quality standard** every human and agent works to: build, verify, refine,
@@ -100,7 +104,7 @@ blade to end the war.
 - **Finale, the Dominion mothership:**
   - **Core:** break its 4 shield generators, then destroy the exposed reactor from space, which plays
     the breakup sequence and victory.
-  - **Stretch:** dock through a tractor beam instead, fight through the interior on foot, destroy the
+  - **Wanted since Nov 13 (was stretch):** dock through a tractor beam instead, fight through the interior on foot, destroy the
     reactor core in a 3-phase fight, then a 90-second escape run, an escape flight and victory.
 - **Player journey:** main menu → intro → waves 1–2 → Verdance → waves 3–4 → Cinder → wave 5 → Dominion
   assault → reactor (or boarding, if built) → victory. Aim for 20–30 minutes.
@@ -609,6 +613,10 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   gameplay validation that needs one. Headless is not the same as light: save work and checkpoints first, check free
   RAM and what heavy processes are already running, and on a 16 GB machine run one heavy job at a time, bounded and
   watched. This does not replace the real windowed playtests below.
+- **Story** (Ryan, Nov 13, R-034): the game follows `storyline.md`. Nicholas owns the story, its words and voices;
+  Ryan's side owns how each beat is played and exposes a hook with a placeholder line for every beat (objective
+  lines, barks, transmissions, console recordings, the ending). Nothing reveals the twist before the Dominion.
+  Questions and changes: an issue or board message titled **`Story:`**.
 - **GitHub issues** (Ryan, Nov 13, R-033): a second channel beside `MESSAGEBOARD.md`. Either side opens an issue for a
   request, question, review or bug that needs an answer or work from the other side: one topic per issue, tag the other
   human's account (`@rthomas24`, `@nicholastosti-tech`), name the owner if known, start the title with `Asset:` or
