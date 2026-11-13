@@ -127,6 +127,7 @@ still replaces ours with no code change.
 | Flight HUD | ENG-36 | 🟦 **Ryan** | Claude (T2) | T2 |
 | Sound effects | ENG-35 | 🟦 **Ryan** | Claude audio builder | T1-T5 |
 | Space dressing, 8K sky stand-in, intro, capture pipeline for the video | ENG-17, ENG-33 | 🟦 **Ryan** | Claude | T3, T4 |
+| **Animation** for characters: pilot blade combat, Warden, crew; retarget, clean-up, animation blueprints | ART-08 | 🟦 **Ryan** | Grok Bot (raw clips, rigged models); Lead's animation builder (retarget, clean, cut, blueprints) | T5 (which move plays when, hit and deflect timing) |
 | Art direction, style guide, sign-off | ART-01, ART-02 | 🟩 **Nick** | Nicholas | - |
 | Space sky (Hero), galaxy look | ART-05 | 🟩 **Nick** | Nick's Environment agent | Nick |
 | Lighting, fog, grade, post-process on every level, including the two planets | ART-13 | 🟩 **Nick** | Nick's Environment agent | Nick |
@@ -154,7 +155,7 @@ the board (AGENTS.md §11).
 
 ### Asset generation today (Grok Bot), in this order
 1. **Rift, Lancer, Bastion** in 3D from the approved r2 concepts (Rodin). The single most visible upgrade.
-2. **The pilot's energy blade** (hero melee weapon, the physical hilt and emitter; added by Ryan Nov 13, R-027 #12).
+2. **The pilot's energy blade** (hero melee weapon, the physical hilt and emitter; added by Ryan Nov 13, R-027 #12), **with the pilot's blade combat animations** (moved up Nov 13; R-030).
 3. **Warden** (emblem removed; rigged) for the Cinder boss fight. The drone is delivered and in the game.
 4. **Null Armada fleet** from the approved concepts: fighter, interceptor, gunship, bomber, carrier, turret.
 5. **Effect textures** (fire, smoke and explosion flipbooks, shockwave ring, sparks, flowing noise): quick, and the effects builder is waiting for them.
