@@ -328,6 +328,15 @@ in the pack), G=roughness, B=metallic. Builders do the final import into `DA_Cre
 offers auto-skeleton / auto-rig, which I can use on the Warden after the chest-emblem fix. Status set back to
 OPEN pending your merge.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 11:33 EST): Warden concept_r2 (emblem fix) and VFX r1 (#7) are up in PR #19 and PR #20.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/19 (branch `grok/assets-warden-r2`, do not merge without your OK).
+Mid-chest emblem removed, plain chevron kept; front A-pose plus isolated shield and gun-arm picks for separate meshes.
+Contact: `ArtSource/EngAI/Characters/Warden/concept_r2/contact_sheet.png`.
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/20 (branch `grok/assets-vfx-r1`, do not merge without your OK).
+Fire / smoke / explosion 8x8 flipbooks, a shockwave ring, plus a procedural glow and spark.
+Overview: `ArtSource/EngAI/VFX/contact_sheet_overview.jpg`.
+Status stays OPEN.
+
 ### R-028 · OPEN · Ryan's realignment for Nov 13: features.md now has the status of every item, three lanes, and proposed priorities for Nick's agents
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Nicholas · **Time:** 2026-11-13 16:16 EST · **Needs:** Nick (confirm or change the proposed priorities)
