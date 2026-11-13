@@ -99,10 +99,9 @@ protected:
 	virtual bool OnActivate() override;
 	virtual void OnTickActive(float DeltaTime) override;
 	virtual void OnEnd(bool bInterrupted) override;
-	/** Switched away mid-ram: a wind-up is cancelled and a dash ends now (never AI-flown at dash speed). */
 	/**
-	 * A switch mid-dash ends the ram with no post-dash grace and no end-of-dash renewal: the AI-flown Lancer must not
-	 * stay invulnerable (second review, ENG-10 minor: up to 1.5 s).
+	 * Switched away mid-ram: a wind-up is cancelled and a dash ends now (never AI-flown at dash speed), with no post-dash
+	 * grace and the ram's timed invulnerability cleared at once (second review, ENG-10 minor: was up to 1.5 s).
 	 */
 	virtual void OnLostPlayerControl() override
 	{

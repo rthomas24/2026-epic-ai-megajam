@@ -101,6 +101,15 @@ namespace TDRamPartTest
 			W.Tick(Step);
 			bHit = Ram->GetHitThisDash().ContainsByPredicate([Part](const TWeakObjectPtr<AActor>& A) { return A.Get() == Part; });
 		}
+		{
+			FString Hits;
+			for (const TWeakObjectPtr<AActor>& A : Ram->GetHitThisDash())
+			{
+				Hits += A.IsValid() ? A->GetName() + TEXT(" ") : TEXT("? ");
+			}
+			Test.AddInfo(Label + FString::Printf(TEXT(": hit this dash [%s], Lancer ended %.0f cm from the part"), *Hits,
+				FVector::Dist(Lancer->GetActorLocation(), Part->GetActorLocation())));
+		}
 		Test.TestTrue(Label + TEXT(": the ram hit the part"), bHit);
 		Test.TestTrue(Label + FString::Printf(TEXT(": the part's hull dropped (%.0f -> %.0f)"), HullBefore, PartHealth ? PartHealth->GetHull() : 0.f),
 			PartHealth && PartHealth->GetHull() < HullBefore);

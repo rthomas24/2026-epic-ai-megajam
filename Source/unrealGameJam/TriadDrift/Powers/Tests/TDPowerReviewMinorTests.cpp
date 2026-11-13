@@ -89,9 +89,10 @@ bool FTDReview2RamSwitch::RunTest(const FString& Parameters)
 		UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, false);
 		TestFalse(TEXT("ram over on the next tick") + Tag, Ram->IsPowerActive());
 		TestEqual(TEXT("no post-dash grace on the next tick") + Tag, Ram->GetPostDashGrace(), 0.f);
-		S.W.Advance(0.25f, Step); // at most the last in-dash renewal (0.2 s) remains; see the Core ask in the report
 		const UTDHealthComponent* Health = UTDStatics::GetHealth(Lancer);
-		TestFalse(TEXT("not invulnerable 0.25 s after the switch") + Tag, Health && Health->IsInvulnerable());
+		TestFalse(TEXT("not invulnerable on the next tick (ClearTimedInvulnerability)") + Tag, Health && Health->IsInvulnerable());
+		S.W.Advance(0.5f, Step);
+		TestFalse(TEXT("still not invulnerable 0.5 s later") + Tag, Health && Health->IsInvulnerable());
 	}
 	return true;
 }

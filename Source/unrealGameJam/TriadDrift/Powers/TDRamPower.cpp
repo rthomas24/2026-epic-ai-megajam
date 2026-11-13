@@ -18,22 +18,33 @@
 
 namespace
 {
-	/** Distance from the segment From-To to Actor's bounds box (0 inside). Two closest-point passes (both convex). */
+	/**
+	 * Distance from the segment From-To to Actor's colliding box in its own (oriented) frame, 0 inside. Two closest-point
+	 * passes (both convex). The oriented box hugs a rotated carrier; its world AABB's corners reached past mounted parts.
+	 */
 	float TDRamDistanceSegmentToBounds(const AActor* Actor, const FVector& From, const FVector& To)
 	{
-		FVector Origin, Extent;
-		Actor->GetActorBounds(true, Origin, Extent, false);
-		if (Extent.IsNearlyZero())
+		FBox Local = Actor->CalculateComponentsBoundingBoxInLocalSpace(false, false);
+		if (!Local.IsValid || Local.GetExtent().IsNearlyZero())
 		{
-			return FMath::PointDistToSegment(Actor->GetActorLocation(), From, To);
+			// No colliding bounds (a hull-mounted part such as a turret): its visible box, so the part is reached before
+			// the hull it sits on stops the dash.
+			Local = Actor->CalculateComponentsBoundingBoxInLocalSpace(true, false);
 		}
-		const FBox Box(Origin - Extent, Origin + Extent);
-		FVector OnSeg = FMath::ClosestPointOnSegment(Origin, From, To);
+		if (!Local.IsValid || Local.GetExtent().IsNearlyZero())
+		{
+			// Nothing drawn either: a 50 cm ball, as TDRamBoundsRadius.
+			return FMath::Max(0.f, FMath::PointDistToSegment(Actor->GetActorLocation(), From, To) - 50.f);
+		}
+		const FTransform& X = Actor->GetActorTransform();
+		const FVector A = X.InverseTransformPosition(From);
+		const FVector B = X.InverseTransformPosition(To);
+		FVector OnSeg = FMath::ClosestPointOnSegment(Local.GetCenter(), A, B);
 		for (int32 Pass = 0; Pass < 2; ++Pass)
 		{
-			OnSeg = FMath::ClosestPointOnSegment(Box.GetClosestPointTo(OnSeg), From, To);
+			OnSeg = FMath::ClosestPointOnSegment(Local.GetClosestPointTo(OnSeg), A, B);
 		}
-		return FMath::Sqrt(Box.ComputeSquaredDistanceToPoint(OnSeg));
+		return FVector::Dist(X.TransformPosition(OnSeg), X.TransformPosition(Local.GetClosestPointTo(OnSeg)));
 	}
 
 	float TDRamBoundsRadius(const AActor* Actor, FVector& OutCenter)
@@ -266,10 +277,11 @@ void UTDRamPower::SweepHits(const FVector& From, const FVector& To)
 			{
 				continue;
 			}
-			// Distance to the hull's box: passing a carrier's short side no longer "touches" its long axis (second review).
-			FVector Center, Unused;
-			Hostile->GetActorBounds(true, Center, Unused, false);
-			if (TDRamDistanceSegmentToBounds(Hostile, From, To) <= Reach)
+			// Inside the old bounding sphere AND within reach of the hull's own oriented box: passing a long hull's short
+			// side no longer "touches" its long axis (second review), and nothing is reached earlier than before.
+			FVector Center;
+			const float Radius = TDRamBoundsRadius(Hostile, Center);
+			if (FMath::PointDistToSegment(Center, From, To) <= Reach + Radius && TDRamDistanceSegmentToBounds(Hostile, From, To) <= Reach)
 			{
 				Touched.Add({ Hostile, (float)(FVector::DotProduct(Center - From, Seg) / SegLenSq) });
 			}
@@ -416,6 +428,10 @@ void UTDRamPower::OnEnd(bool bInterrupted)
 	if (bEndingForControlLoss)
 	{
 		PostDashGrace = 0.f;
+		if (UTDHealthComponent* Health = UTDStatics::GetHealth(GetOwner()))
+		{
+			Health->ClearTimedInvulnerability();
+		}
 		return;
 	}
 	PostDashGrace = MaxPostDashInvulnerableSeconds;
