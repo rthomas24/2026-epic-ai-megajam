@@ -49,3 +49,25 @@ The three squad ships are raw image-to-3D output (Hyper3D Rodin Gen-2.5) importe
 2. Now: option A on **Rift** (ship polish builder), with Grok Bot's Rift r2 used if it arrives in time.
 3. After Ryan's look at Rift: Lancer, then Bastion; then the enemy fleet only if time remains (the fleet reads well
    at combat distance today).
+
+## Result of the Rift pilot (Nov 13, about 17:00 EST): option A failed its gate; the route is now a hybrid
+The clean Blender rebuild of Rift was stopped at the secondary-forms gate. Side by side with the Rodin original it
+read as a toy ("a plastic shuttle with pink stickers", the fresh-eyes reviewer): the rebuild won on edges, shading
+and technical health (4 against 2, 4 against 1) and lost on proportion, detail and style (2, 1 and 2 against 4, 3
+and 3). Sheets: `ArtSource/EngShips/RiftHero/review/03_rebuild_v03_BEFORE_AFTER_{clay,material}.png`. Option A is
+cancelled for all three ships.
+
+**What the pilot showed.** Rendered in Blender with its own 2K textures, the Rodin original looks good: crisp panel
+lines, clean colour. In the game the same ship looks blotchy at 8 m. So most of Ryan's finding is **our Unreal
+import, material and lighting**, plus three real geometry faults: the empty, ragged ring, the engine block with a
+hollow centre nozzle, and 11,122 disconnected islands.
+
+**The route now (hybrid):**
+1. Ship builder: make the in-game ship match the Blender render (texture streaming and settings, normal and ORM
+   handling, the SelfLight and BaseTint values that flatten contrast, lighting on parked ships, exposure), for all
+   three squad ships; the animated portal in Rift's ring.
+2. Ship polish builder: keep the Rodin fuselage, canopy, wings and guns (welded and cleaned, same UVs); replace the
+   ring, the engines and back plate, and the fins if it helps, with designed hard-surface parts; clean the kept
+   textures (flat clean white and magenta, calmer roughness, softened normals on the wings). Exported for import.
+3. Lancer and Bastion get the same treatment only after Ryan has seen Rift.
+
