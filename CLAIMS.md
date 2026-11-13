@@ -49,7 +49,7 @@ The following reservations remain in force; archival does not release them. Ask 
 
 ### Shared boundaries and execution
 
-Current resource checkpoint: weapon clone02 PID14600 exited0 and its slot is released. No specialist currently holds a native launch grant. Audio, UI, VFX and the separate14-asset manager remain queued for their own reviewed scope/resource grants. No DA_UI_Style widget-field handoff has been granted; Audio retains MenuMusic-only ownership until serialized reassignment.
+Current resource checkpoint: weapon clone02 PID14600 exited0 and its slot is released. Audio exclusively holds ONE reviewed CombatMusic Import03 attempt (READY03 d6e77efb..., entry5e62796f...), fresh >=4GiB/no heavy/port8025,240s ownPID and sustained <1.5GiB10s cleanup guard. Other native work, including remaining14 assets/UI/VFX, waits for actual terminal release and a fresh grant. No DA_UI_Style widget-field handoff has been granted; Audio retains MenuMusic-only ownership until serialized reassignment.
 
 - Nick does not independently edit Ryan-owned Source, Config, Gameplay content, shared maps/actors, engine association or interfaces. Shared changes and engineering asset exceptions use the current board agreements and their exact claims.
 - Shared presentation binaries and DA_UI_Style fields have one writer at a time. Audio owns the stated sound/music fields until Lead publishes a serialized handoff; UI and Environment do not edit that binary concurrently.
