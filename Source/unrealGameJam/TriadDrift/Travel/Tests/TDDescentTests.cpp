@@ -16,6 +16,10 @@
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "Components/StaticMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/Material.h"
@@ -156,17 +160,10 @@ bool FTDT1DescentArrival::RunTest(const FString& Parameters)
 		D->RecordEntryGlobe(ETDDestination::Verdance, P, C.Vel);
 		FTransform Xf;
 		if (!TestTrue(TEXT("arrival from the record"), D->GetArrival(W.GetWorld(), ETDDestination::Verdance, Pad, Xf))) { return false; }
-		FTransform ExpectLocal = FTDPlanetEntry::ArrivalFromGlobe(ETDDestination::Verdance, P, C.Vel, UTDDescentSubsystem::ArrivalAltitudeCm);
-		const FVector2D EXY(ExpectLocal.GetLocation());
-		if (EXY.Size() > UTDDescentSubsystem::MaxArrivalRadiusCm)
-		{
-			const FVector2D In = EXY.GetSafeNormal() * UTDDescentSubsystem::MaxArrivalRadiusCm;
-			ExpectLocal.SetLocation(FVector(In.X, In.Y, ExpectLocal.GetLocation().Z));
-		}
-		const FTransform Expect = ExpectLocal * Pad;
+		const FTransform Expect = FTDPlanetEntry::ArrivalFromGlobe(ETDDestination::Verdance, P, C.Vel, UTDDescentSubsystem::ArrivalAltitudeCm) * Pad;
 		TestTrue(*FString::Printf(TEXT("lon %.0f: position = T4's mapping through the pad"), C.Lon), Xf.GetLocation().Equals(Expect.GetLocation(), 1.f));
 		TestEqual(*FString::Printf(TEXT("lon %.0f: heading = T4's mapping"), C.Lon), (float)Xf.Rotator().Yaw, (float)Expect.Rotator().Yaw, 0.1f);
-		TestTrue(*FString::Printf(TEXT("lon %.0f: within 6 km of the pad (clear of the edge warning)"), C.Lon), FVector2D(Pad.InverseTransformPosition(Xf.GetLocation())).Size() <= UTDDescentSubsystem::MaxArrivalRadiusCm + 1.f);
+		TestTrue(*FString::Printf(TEXT("lon %.0f: within 6 km of the pad (clear of the edge warning)"), C.Lon), FVector2D(Pad.InverseTransformPosition(Xf.GetLocation())).Size() <= FTDPlanetEntry::MaxArrivalRadius + 1.f);
 		// A retake in the same visit: the same arrival; a later visit with no new entry: the fixed start.
 		FTransform Again;
 		TestTrue(TEXT("retake: same world, same arrival"), D->GetArrival(W.GetWorld(), ETDDestination::Verdance, Pad, Again) && Again.Equals(Xf));
@@ -297,6 +294,62 @@ bool FTDT1DescentHeat::RunTest(const FString& Parameters)
 	D->Tick(1.f / 60.f);
 	D->ClearHeat();
 	TestEqual(TEXT("abort: cold now"), HeatOf(Wingman), 0.f, 0.001f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1DescentSquadCarry, "TriadDrift.Travel.Descent.FlownShipAndHullsCarriedThroughTravel", TD_TEST_FLAGS)
+bool FTDT1DescentSquadCarry::RunTest(const FString& Parameters)
+{
+	// Bastion flies the squad into the planet with Rift at 50 % (shield 30 %), Lancer downed, Bastion at 80 %.
+	FTDSquadCarry Carry;
+	Carry.Active = ETDShipId::Bastion;
+	Carry.Hull01 = { { ETDShipId::Rift, 0.5f }, { ETDShipId::Lancer, 0.f }, { ETDShipId::Bastion, 0.8f } };
+	Carry.Shield01 = { { ETDShipId::Rift, 0.3f }, { ETDShipId::Lancer, 0.f } }; // Bastion's shield missing: arrives full
+	auto Hull = [](ATDSquadManager* Sq, ETDShipId Id) { ATDShip* S = Sq->GetShip(Id); return S && S->GetHealth() ? S->GetHealth()->GetHull01() : -1.f; };
+	auto Shield = [](ATDSquadManager* Sq, ETDShipId Id) { ATDShip* S = Sq->GetShip(Id); return S && S->GetHealth() ? S->GetHealth()->GetShield01() : -1.f; };
+
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDDescentSubsystem* D = UTDDescentSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("descent"), D)) { return false; }
+	D->RecordSquadForTests(Carry);
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	APlayerController* PC = W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass());
+	if (!TestNotNull(TEXT("squad"), Squad) || !TestNotNull(TEXT("pc"), PC)) { return false; }
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FVector(0.f, 0.f, 20000.f)));
+	const float RiftShieldAtSpawn = Shield(Squad, ETDShipId::Rift); // before any regeneration tick
+	W.Advance(0.2f);
+	TestEqual(TEXT("arrives flying the ship that went in"), Squad->GetActiveShipId(), ETDShipId::Bastion);
+	TestTrue(TEXT("the player controls it"), PC->GetPawn() == Squad->GetShip(ETDShipId::Bastion));
+	const FTDSquadSlot* Active = Squad->GetSlots().FindByPredicate([](const FTDSquadSlot& S) { return S.ShipId == ETDShipId::Bastion; });
+	TestTrue(TEXT("the active slot is alive (T3)"), Active && Active->State == ETDSquadSlotState::Alive);
+	const UTDDirectorSubsystem* Dir = W.GetWorld()->GetSubsystem<UTDDirectorSubsystem>();
+	TestFalse(TEXT("no director shot or switch cut on arrival (T3)"), Dir && Dir->IsShotActive());
+	TestEqual(TEXT("Rift hull carried"), Hull(Squad, ETDShipId::Rift), 0.5f, 0.01f);
+	TestEqual(TEXT("Rift shield carried"), RiftShieldAtSpawn, 0.3f, 0.01f);
+	TestEqual(TEXT("downed Lancer arrives alive at 25 %"), Hull(Squad, ETDShipId::Lancer), 0.25f, 0.01f);
+	TestEqual(TEXT("Bastion hull carried"), Hull(Squad, ETDShipId::Bastion), 0.8f, 0.01f);
+	TestEqual(TEXT("a shield missing from the record arrives full"), Shield(Squad, ETDShipId::Bastion), 1.f, 0.01f);
+
+	// A retake in the same visit: still Bastion, hulls full as before.
+	Squad->SpawnSquad(FTransform(FVector(0.f, 0.f, 20000.f)));
+	W.Advance(0.2f);
+	TestEqual(TEXT("retake: same ship"), Squad->GetActiveShipId(), ETDShipId::Bastion);
+	TestEqual(TEXT("retake: full hull"), Hull(Squad, ETDShipId::Rift), 1.f, 0.01f);
+
+	// The next map with no new record: as before (and the record is gone).
+	{
+		FTDTestWorld Next;
+		FTDSquadCarry Out; bool bFirst = false;
+		TestFalse(TEXT("a later map without a new record gets nothing"), D->ConsumeSquadCarry(Next.GetWorld(), Out, bFirst));
+	}
+
+	// Recording from a live squad writes the progress's LastShip (saves and Continue carry the flown ship; T5).
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	Squad->RequestSwitchTo(ETDShipId::Lancer);
+	W.Advance(0.5f);
+	D->RecordSquad(W.GetWorld());
+	TestEqual(TEXT("recorded: the flown ship"), GI ? GI->GetProgressRef().LastShip : ETDShipId::Rift, Squad->GetActiveShipId());
 	return true;
 }
 
