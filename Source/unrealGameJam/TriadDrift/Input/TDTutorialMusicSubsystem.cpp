@@ -180,6 +180,12 @@ void UTDTutorialMusicSubsystem::HandleIntroFinished(bool bPlayed, bool bSkipped)
 		}
 		// Watched: the one voice reaches the downbeat on this frame by itself; nothing is touched here.
 		LoopStartClock = Clock;
+		if (bWatchedThrough && EnterClock >= 0.f)
+		{
+			// The voice runs on the audio (wall) clock; the intro on its own. Positive = the downbeat came before control.
+			UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: drift at control %+.0f ms (voice at source %.3f s, downbeat %.3f s)"),
+				1000.f * (GetSourceTimeAtControl() - PreludeSeconds()), GetSourceTimeAtControl(), PreludeSeconds());
+		}
 	}
 	else
 	{
