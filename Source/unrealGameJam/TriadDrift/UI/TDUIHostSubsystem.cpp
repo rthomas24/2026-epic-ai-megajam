@@ -25,6 +25,7 @@
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDTacticalDisplayWidget.h"
 #include "TriadDrift/UI/TDScanMonitorWidget.h"
+#include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "Components/MeshComponent.h"
 #include "Engine/Texture2D.h"
 #include "EngineUtils.h"
@@ -1003,6 +1004,21 @@ namespace TDUIHost
 				return;
 			}
 			UTDUIHostSubsystem::ShowScanMonitor(World, FCString::Atoi(*Args[0]), Args.Num() > 1 ? FCString::Atof(*Args[1]) : 0.f);
+		}));
+
+	FAutoConsoleCommandWithWorld CmdTDUIGroundStatus(TEXT("TD.UI.GroundStatus"),
+		TEXT("TD.UI.GroundStatus: log the on-foot HUD's boss and transfer state next to a direct GetActiveBoss call."),
+		FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World)
+		{
+			const UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(World);
+			const UTDGroundHUDWidget* Ground = Host ? Cast<UTDGroundHUDWidget>(Host->GetGroundHUD()) : nullptr;
+			float Hull = -1.f;
+			int32 Phase = -1;
+			FText Name;
+			const bool bBoss = ATDCrewCharacter::GetActiveBoss(World, Hull, Phase, Name);
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.GroundStatus: widget %s boss=%d hull=%.2f phase=%d ghost=%.2f | direct boss=%d hull=%.2f phase=%d"),
+				*GetNameSafe(Ground), Ground && Ground->GetView().bBoss ? 1 : 0, Ground ? Ground->GetView().Boss01 : -1.f,
+				Ground ? Ground->GetView().BossPhase : -1, Ground ? Ground->GetBossGhost01() : -1.f, bBoss ? 1 : 0, Hull, Phase);
 		}));
 
 	FAutoConsoleCommandWithWorldAndArgs CmdTDUIScanTexture(TEXT("TD.UI.ScanTexture"),
