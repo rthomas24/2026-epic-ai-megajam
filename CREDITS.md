@@ -98,3 +98,14 @@ Nick supplied Meshy_AI_Sentinel_Armor_Turnaround_20261113_animated_ue5_mannequin
 ### Planet terrain materials (ENG-34) - November 13, 2026
 
 `M_TD_Terrain`, `MI_Terrain_Verdance`, `MI_Terrain_Cinder` and textures `T_Terrain_Rock_M/N`, `T_Terrain_Detail_M/N` in `Content/TriadDrift/Gameplay/Props/Planets/`. Made during the jam by Ryan's side with Claude Code: textures generated procedurally with numpy (`ArtSource/EngProps/Planets/scripts/build_terrain_textures.py`), material graph built by Unreal editor Python (`ue_terrain_material.py`, `ue_terrain_build.py`). No third-party or downloaded assets; reuses the project's own `T_Ground_*` textures. Licence: original work.
+
+### AI-generated concept art and terrain textures (Grok Bot, R-027) - November 13, 2026
+
+Made during the jam by Grok Bot (Ryan's asset-generation agent) on Ryan's own paid accounts; every folder under `ArtSource/EngAI/**` has a `SOURCE.md` with the tool, endpoint, date, verbatim prompts, seeds and the licence text checked that day.
+
+| Asset | Tool | Licence / plan | Added by |
+|---|---|---|---|
+| Concept turnarounds: Rift, Lancer, Bastion (r1, r2), Warden, Drone, Null Armada fleet (fighter, interceptor, gunship, bomber, carrier, turret) in `ArtSource/EngAI/{Ships,Characters}/**` (PRs #14, #15). Concepts only, used as image-to-3D inputs; not shipped in the game | fal.ai: OpenAI GPT Image 2 / 2.6 Edit, Google Nano Banana 2.1 Edit | fal model pages mark both "Commercial use"; pay-as-you-go credits incl. the Epic AI MegaJam fal coupon. Original designs, no logos or existing IP | Ryan / Grok Bot |
+| Nine 2K seamless PBR terrain sets (Verdance moss, soil, cliff rock, peak lichen-frost; Cinder basalt, ash, obsidian, lava crust, cliff rock) in `ArtSource/EngAI/Terrain/**` (PR #16) | PBRgen (start texture: Nano Banana 2) | PBRgen Pro plan through the Epic AI MegaJam promo; commercial use included with a paid plan | Ryan / Grok Bot |
+
+Tools used (add to the submission's "Tools you used"): fal.ai, PBRgen, Hyper3D Rodin (planned for the 3D generation of the approved concepts).
