@@ -46,6 +46,18 @@ namespace TDDominionArtTest
 		}
 		return FString();
 	}
+
+	/** Samples a straight flight line every 10 m; returns "" when open, else the first block. */
+	FString FirstBlock(const TArray<UPrimitiveComponent*>& Prims, const FVector& From, const FVector& To, float Radius)
+	{
+		const float Len = FVector::Dist(From, To);
+		for (float S = 0.f; S <= Len; S += 1000.f)
+		{
+			const FString Hit = Inside(Prims, FMath::Lerp(From, To, Len > 0.f ? S / Len : 0.f), Radius);
+			if (!Hit.IsEmpty()) { return FString::Printf(TEXT("%s at %.0f m"), *Hit, S / 100.f); }
+		}
+		return FString();
+	}
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDominionArtCollision, "TriadDrift.World.Dominion.ArtCollisionTrapsNothing", TD_TEST_FLAGS)
@@ -70,6 +82,12 @@ bool FTDDominionArtCollision::RunTest(const FString&)
 	const float ShipRadius = 300.f;	// a squad ship (220 cm) with a margin
 	const FString Hangar = Inside(Prims, D->GetHangarLocation(), ShipRadius);
 	TestTrue(*FString::Printf(TEXT("launched fighters appear outside the hull (inside %s)"), *Hangar), Hangar.IsEmpty());
+	{
+		// Launched fighters leave the hangar bow-first: the first 100 m are open.
+		const FVector H = D->GetHangarLocation();
+		const FString Exit = FirstBlock(Prims, H, H + D->GetActorForwardVector() * 10000.f, ShipRadius);
+		TestTrue(*FString::Printf(TEXT("hangar exit open for 100 m (first block: %s)"), *Exit), Exit.IsEmpty());
+	}
 
 	TestEqual(TEXT("four generators built"), D->GetGenerators().Num(), 4);
 	TestTrue(TEXT("turrets built"), D->GetTurrets().Num() > 0);
@@ -79,6 +97,12 @@ bool FTDDominionArtCollision::RunTest(const FString&)
 	{
 		const FString In = Inside(Prims, G->GetActorLocation(), 200.f);
 		TestTrue(*FString::Printf(TEXT("%s is not buried (inside %s)"), *G->GetName(), *In), In.IsEmpty());
+		// An attack run comes in from outside: the 300 m line from open space straight to the generator is open.
+		FVector Out = G->GetActorLocation() - D->GetActorLocation();
+		Out.Z = 0.f;
+		const FVector Far = G->GetActorLocation() + Out.GetSafeNormal() * 30000.f;
+		const FString Run = FirstBlock(Prims, Far, G->GetActorLocation(), ShipRadius);
+		TestTrue(*FString::Printf(TEXT("%s attack run open (first block: %s)"), *G->GetName(), *Run), Run.IsEmpty());
 	}
 	for (ATDEnemyTurret* T : D->GetTurrets())
 	{
@@ -107,6 +131,12 @@ bool FTDDominionArtCollision::RunTest(const FString&)
 			}
 		}
 		TestEqual(*FString::Printf(TEXT("trench run open for 250 m behind the reactor (first block: %s)"), *FirstHit), Blocked, 0);
+		// ...and past the reactor to the trench's bow end (the walls run to 0.8 x HullExtent.X).
+		const FVector LocalR = D->GetActorTransform().InverseTransformPosition(R->GetActorLocation());
+		const FVector Past = R->GetActorLocation() + D->GetActorForwardVector() * 3000.f;
+		const FVector BowEnd = D->GetActorTransform().TransformPosition(FVector(D->HullExtent.X * 0.8f, 0.f, LocalR.Z));
+		const FString Ahead = FirstBlock(Prims, Past, BowEnd, ShipRadius);
+		TestTrue(*FString::Printf(TEXT("trench open from the reactor to the bow end (first block: %s)"), *Ahead), Ahead.IsEmpty());
 	}
 	return true;
 }
