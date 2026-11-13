@@ -94,5 +94,7 @@ private:
 	float NextFire = 0.f;
 	int32 Fires = 0;
 	bool bStingerPlayed = false;
+	double StingerStart = 0.0;
+	TSharedPtr<class SWidget> StingerBlack;
 	FRandomStream FireRng;
 };
