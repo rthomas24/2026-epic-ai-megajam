@@ -2,6 +2,7 @@
 
 > **Working title:** Triad Drift · **Jam:** 2026 Epic AI MegaJam · **Engine:** UE 5.9 (MegaJam Preview), project `unrealGameJam`
 > **Theme:** **DIRECTOR'S CUT** (how the game expresses it: C-03)
+> **Story:** **The Paradox** (Nicholas's narrative, adopted by Ryan Nov 13): [`storyline.md`](storyline.md). Every feature below serves it.
 > **Hard deadline:** Nov 15, 2026, **8:59 PM EST / 5:59 PM PST**. Late entries are disqualified.
 > **Feature freeze:** Nov 15, 12:00 PM EST. After that, only fixes, polish, packaging and submission.
 
@@ -18,9 +19,12 @@ editing the same files.
   - **both landable planets** with their on-foot objectives
   - the Dominion space-assault finale
   - full presentation (art, VFX, UI, audio) and packaging
-- **STRETCH (optional; only once core is solid):** the **boarding finale**: docking, the Dominion
-  interior on foot, the reactor-core fight, the escape run and the escape flight. Without it, the war
-  ends in space when the squad destroys the exposed reactor from outside (ENG-18).
+- **The boarding finale is WANTED (Ryan, Nov 13; it was stretch):** docking, the Dominion interior on foot, the
+  reactor-core fight, the escape run and the escape flight (ENG-29, 30, 31), in a scoped version that can be solid
+  by the freeze. It carries acts 4 and 5 of the story. **Fallback, always kept working:** the space-only ending,
+  where the squad destroys the exposed reactor from outside (ENG-18, `td.Finale.Boarding 0`).
+- **Added Nov 13 (Ryan), core: the storyline.** Nicholas's narrative *The Paradox* is the game's story
+  ([`storyline.md`](storyline.md)): objective names, dialogue, set pieces, clues and the ending all follow it.
 - **Added Nov 12 (Ryan), core:** a Settings page and an on-foot first / third-person camera choice (ENG-32).
 - **Added Nov 12 (Ryan), core:** a high-quality cinematic intro of space, the squad, worlds and the Armada (ENG-33).
 - **Added Nov 13 (Ryan), core:** both planets become large explorable worlds with procedural terrain and mountains (ENG-34), and engineering supplies a fallback sound set so the game is never silent (ENG-35).
@@ -39,7 +43,7 @@ tests, independent review closed, played by an agent in the running game; **wait
 `✅ done` (all of that, and a human has played it and is happy) · `🐞 has bugs`
 
 **Where the game stands and who does what today: [Nov 13 realignment](#nov-13-realignment-status-and-plan).**
-Item by item with tests, reviews and open findings: `docs/eng/STATUS.md` (engineering) and
+Story: [`storyline.md`](storyline.md). Gameplay dialogue: [`dialogs.md`](dialogs.md). Animation plan and ledger: [`animations.md`](animations.md). Item by item with tests, reviews and open findings: `docs/eng/STATUS.md` (engineering) and
 `docs/visual/STATUS.md` (presentation). Live ownership: `CLAIMS.md`.
 
 ### Contents
@@ -91,7 +95,8 @@ through the engine's MCP server. **No human has played it yet; that is the large
 | Menus, reward screen, credits, loading | ART-09 | 🟨 | Engineering fallbacks work; styling is plain. Nick's menu is on a branch |
 | Barks, voice | ART-11 | ⬜ | Text barks only |
 | Submission (video, page, dev log, credits) | ART-14, ENG-28 | 🟨 | 58 s trailer pipeline exists (silent cut, old HUD); page not started; `CREDITS.md` and `DEVLOG.md` are current |
-| Boarding finale | ENG-29-31, ART-15, 16 | ⬜ STRETCH | Not started. Decision: **not before the polish list is done.** |
+| Boarding finale | ENG-29-31, ART-15, 16 | 🟨 WANTED (Ryan, Nov 13) | Scoped plans in from T4 (docking, escape flight, about 14 h) and T5 (interior, core, escape run); the space-only ending stays as the fallback |
+| Story (The Paradox) | `storyline.md`; ENG-18, 25, 26, 29-31, 33; ART-11, 12 | 🟨 | Adopted Nov 13. Hooks and renames on Ryan's side; words, voice and the final say on story with Nicholas |
 
 Judges' categories, our own honest read today: gameplay 3.5, fun 3 (unproven without a human), theme 4,
 ambition 4, level design and progression 3, visuals 3, audio 2. **Today and tomorrow go to visuals, audio and
@@ -127,6 +132,7 @@ still replaces ours with no code change.
 | Flight HUD | ENG-36 | 🟦 **Ryan** | Claude (T2) | T2 |
 | Sound effects | ENG-35 | 🟦 **Ryan** | Claude audio builder | T1-T5 |
 | Space dressing, 8K sky stand-in, intro, capture pipeline for the video | ENG-17, ENG-33 | 🟦 **Ryan** | Claude | T3, T4 |
+| **Animation**, all of it (plan and ledger: `animations.md`): characters, mechanical parts, in-engine motion | ART-08 | 🟦 **Ryan** | Grok Bot (raw clips, rigged models); Lead's animation builder (retarget, clean, cut, blueprints) | T5 (which move plays when, hit and deflect timing) |
 | Art direction, style guide, sign-off | ART-01, ART-02 | 🟩 **Nick** | Nicholas | - |
 | Space sky (Hero), galaxy look | ART-05 | 🟩 **Nick** | Nick's Environment agent | Nick |
 | Lighting, fog, grade, post-process on every level, including the two planets | ART-13 | 🟩 **Nick** | Nick's Environment agent | Nick |
@@ -138,6 +144,40 @@ still replaces ours with no code change.
 
 If Nick's side does not pick up one of its rows by Nov 14 noon, Ryan's Lead takes it as a fallback and says so on
 the board (AGENTS.md §11).
+
+### Storyline (adopted Nov 13): see [storyline.md](storyline.md)
+Ryan adopted Nicholas's narrative, **The Paradox**: the silent mothership and its machines are the squad's own future,
+come back for the Origin Core. `storyline.md` holds the story and, act by act, the gameplay moment that carries each
+beat. **Nicholas owns the story, its words and voices; Ryan's side owns how each beat is played** and exposes a hook
+with a plain placeholder line for every beat. Nothing reveals the twist before the Dominion. What changes in the game:
+
+| Change | Act | Owner | Size |
+|---|---|---|---|
+| The Dominion is visible from wave 1, unreachable behind a distortion field (its four generators); "reveal" becomes "the passage is open" | 1, 3, 4 | T4 (+ effects builder for the field) | small |
+| Intro text and shots follow the premise: the silent ship, machines searching worlds, Triad deployed | opening | T3 (hooks), Nicholas (words, voice) | small |
+| Verdance: objective 1 recovers the **signal-analysis device** from the wrecked research site; objective 2 wakes the relay and plays the **voices** | 2 | T5 (names, hook), builders / Grok Bot (dressing), Nicholas (audio) | small |
+| Cinder: the outpost is the **mining complex**, the jammer is the excavation's **field anchor**; clearing them yields the stabilising crystals and opens the passage; the Warden guards the dig | 3 | T5, T4, builders / Grok Bot | small |
+| Transmissions: a small event system (id, speaker, placeholder line) fired at story beats; echo-voice lines from Cinder on | 2-5 | T3 (system, with T5 / T4 triggers), Nicholas (lines, voice) | medium |
+| **Boarding finale**: docking, interior with consoles that recognise the pilots and a recording per room, core fight, escape run and flight | 4, 5 | T4 (docking, escape flight), T5 (interior, core, escape run), builders (interior kit), Grok Bot (Warden) | large |
+| Ending stinger: the distress signal with the squad's own identifiers on the victory screen | 5 | T3 / T5 (hook), Nicholas (text, audio) | small |
+| **Opening cinematic redone to the *First Contact* brief** (2:20) and waves 1-2 shaped as its tutorial battle (evasion, weapons, switching, a larger craft, the withdrawal boundary, the Verdance distress call); the finale's command-deck payoff reusing the same "Don't-" audio | opening, 1, 4 | T3 (+ T4, T1, effects builder), Nicholas (lines, voice, score) | large; **queued until the models and effects are in, done once** |
+| Clues: enemy pre-empting a manoeuvre now and then; Triad's insignia shape under damaged enemy armour; one ancient-technology artefact on both planets and in the core | 1-4 | T4 (AI), Grok Bot / builders (assets) | small each |
+| Pilot characters per the story (Wren bold, Kato analytical, Moss steady) in every bark and name card | all | T3 (hooks), Nicholas (lines) | small |
+
+### Gameplay dialogue (added Nov 13): see [dialogs.md](dialogs.md)
+Every short line the pilots and Command say during play (targets, hits, powers, switching, travel, landing, on foot,
+the Dominion, banter) has a row in **`dialogs.md`**: id, when it fires, who speaks, priority, and working lines for
+Wren, Kato and Moss in character. About 75 ids, 22 of which the game fires today. T3 owns the bark system (lines loaded
+from a table generated from that file, rotation, a Flavour priority, the banter queue); each row's owner adds its
+trigger. The wording is a working draft from Ryan's side: **Nicholas owns the final lines and voices** (ART-11) and
+his `DT_Barks` rows replace ours by id.
+
+### Animation (Ryan's lane, added Nov 13): see [animations.md](animations.md)
+Every animation in the game has a row in **`animations.md`**: who makes it, by which route, where it lives and its
+state. Ryan's Lead leads it. Three routes: generated or library motion through Grok Bot and third-party tools, authored
+in Blender, or built in-engine (animation blueprints, blend spaces, Control Rig, code). Order of work: audit what
+exists, the pilot's blade set, pilot body mechanics (strafing, foot IK on the new slopes), crew sets, the Warden,
+interactions, mechanical parts. Nick's agents ask or send notes with an `Animation:` message on the board.
 
 ### Engineering today (Claude side)
 
@@ -154,12 +194,13 @@ the board (AGENTS.md §11).
 
 ### Asset generation today (Grok Bot), in this order
 1. **Rift, Lancer, Bastion** in 3D from the approved r2 concepts (Rodin). The single most visible upgrade.
-2. **Drone**, then **Warden** (emblem removed; rigged) for the Cinder boss fight.
-3. **Null Armada fleet** from the approved concepts: fighter, interceptor, gunship, bomber, carrier, turret.
-4. **Effect textures** (fire, smoke and explosion flipbooks, shockwave ring, sparks, flowing noise): quick, and the effects builder is waiting for them.
-5. `Cinder_Basalt` r2 (natural columnar basalt), then **blade combat animations** for the pilot.
-6. Dominion shield generator and reactor; planet hero set pieces (crash wreck, relay altar, outpost gate, jammer tower).
-7. Key art, itch banner, menu still, trailer end card (Nicholas decides final use).
+2. **The pilot's energy blade** (hero melee weapon, the physical hilt and emitter; added by Ryan Nov 13, R-027 #12), **with the pilot's blade combat animations** (moved up Nov 13; R-030).
+3. **Warden** (emblem removed; rigged) for the Cinder boss fight. The drone is delivered and in the game.
+4. **Null Armada fleet** from the approved concepts: fighter, interceptor, gunship, bomber, carrier, turret.
+5. **Effect textures** (fire, smoke and explosion flipbooks, shockwave ring, sparks, flowing noise): quick, and the effects builder is waiting for them.
+6. `Cinder_Basalt` r2 (natural columnar basalt), then **blade combat animations** for the pilot.
+7. Dominion shield generator and reactor; planet hero set pieces (crash wreck, relay altar, outpost gate, jammer tower).
+8. Key art, itch banner, menu still, trailer end card (Nicholas decides final use).
 
 Each delivery: raw files untouched, `SOURCE.md` with tool, prompt and licence, a contact sheet, a PR. Hero
 assets pass the concept gate first; Ryan's Lead answers within the hour.
@@ -216,39 +257,45 @@ Each line names the owner; a line is done when it is seen (or heard) in the runn
 
 ## 0. The game
 
-A fast, bright, arcade space-combat game. You lead a wing of three ships (**Rift**, **Lancer** and
-**Bastion**) and switch between them at any moment, while the two ships you aren't flying fight on
-their own. You land on two worlds and complete objectives on foot to unlock new ship abilities, then
-break the enemy mothership's defenses. As a stretch goal, you board it with an **energy blade** to
-destroy its core.
+A fast, bright, arcade space-combat game with a story: **The Paradox** ([`storyline.md`](storyline.md)). You lead
+**Triad**, a three-pilot reconnaissance unit, in three ships (**Rift**, **Lancer** and **Bastion**), switching between
+them at any moment while the two you aren't flying fight on their own. A silent mothership, the **Dominion**, has
+appeared; its machines are searching the system's planets. You follow their trail across two worlds, completing
+objectives on foot that earn each ship a new ability and a way through the Dominion's distortion field, then break the
+field, **board the ship with an energy blade**, learn what it is, destroy its reactor and escape.
 
-### Fiction (working names: rename freely, but update this file)
-- **The squad:** three pilots, one per ship. **Wren** flies **Rift** (playful, sly). **Kato** flies
-  **Lancer** (cocky, fast-talking). **Moss** flies **Bastion** (calm, protective veteran). The player
-  is the **wing lead**, who can take any cockpit.
-- **The enemy:** the **Null Armada**, angular red-and-black ships with hollow white "eye" lights. Its
-  mothership is the **Dominion**.
+### Fiction (the story is Nicholas's; full text in `storyline.md`)
+- **The squad, Triad:** **Wren** flies **Rift** (bold, instinctive; earns Cloak). **Kato** flies **Lancer**
+  (analytical, cautious; earns EMP Pulse). **Moss** flies **Bastion** (steady, good-humoured; earns Gravity Well). The
+  player is the wing lead and can take any cockpit.
+- **The enemy:** the **Null Armada**, the authorities' name for the angular red-and-black craft and automated ground
+  units that emerge from the **Dominion**. They do not answer hails and they search rather than occupy.
+  **The truth (never stated before the Dominion):** they are the squad's own future, come back for the **Origin Core**.
 - **The worlds:**
-  - **Verdance:** a bioluminescent jungle with giant flora, waterfalls and a ringed moon.
-  - **Cinder:** black volcanic rock, glowing magma and huge cyan/amber crystal spires.
+  - **Verdance:** a bioluminescent jungle with giant flora, waterfalls and a ringed moon; an abandoned research site
+    holds the **signal-analysis device** and a relay full of voices that should not be there.
+  - **Cinder:** black volcanic rock, glowing magma and huge cyan / amber crystal spires; a **mining complex** where the
+    machines dig for the crystals that stabilise a passage through the field.
 
-### Player journey
+### Player journey (acts of the story)
 
 ```
-Main Menu ─► Intro (squad briefing, Armada arrives)
-  └─► GALAXY · Waves 1–2: learn flight, shooting, switching, each signature power
-        └─► Verdance: hyperdrive → atmospheric entry → fly down → land                (CORE)
-              ├─► Obj 1 "Recover the Wreck Core" → unlock GRAVITY WELL (Bastion)
-              └─► Obj 2 "Wake the Ancient Relay"  → unlock CLOAK (Rift) → take off
-  └─► GALAXY · Waves 3–4 (gunships, bombers; portal gates matter)
-        └─► Cinder: land                                                              (CORE)
-              ├─► Obj 3 "Clear the Armada Outpost" → unlock EMP PULSE (Lancer)
-              └─► Obj 4 "Destroy the Signal Jammer" → REVEALS THE DOMINION → take off
-  └─► GALAXY · Wave 5 "Dominion's Guard" (carriers) → Dominion warps in (cinematic)
-        └─► Destroy 4 shield generators + turrets → reactor exposed
-              ├─► CORE ENDING: destroy the exposed reactor from space → breakup cinematic → Victory
-              └─► STRETCH ENDING: dock → interior on foot (energy blade) → core fight → escape run
-                                  → escape flight → breakup cinematic → Victory
+Main Menu ─► Intro: the silent Dominion appears, machines descend on worlds, Triad is deployed
+  └─► ACT 1 · FIRST CONTACT · Galaxy, waves 1–2: learn flight, shooting, switching, each signature power.
+        The Dominion hangs in the distance behind its distortion field: it cannot be approached.
+        └─► ACT 2 · VERDANCE, THE VOICES: hyperdrive → atmospheric entry → fly down → land
+              ├─► Obj 1 "Recover the Signal-Analysis Device" (the wrecked research site) → unlock GRAVITY WELL (Bastion)
+              └─► Obj 2 "Wake the Relay": human voices under the enemy's signal        → unlock CLOAK (Rift) → take off
+  └─► Galaxy · waves 3–4 (gunships, bombers; portal gates matter; the enemy starts to anticipate you)
+        └─► ACT 3 · CINDER, THE PATTERN: land at the mining complex
+              ├─► Obj 3 "Stop the Excavation" (clear the complex)  → unlock EMP PULSE (Lancer) + the stabilising crystals
+              └─► Obj 4 "Destroy the Field Anchor" → THE PASSAGE THROUGH THE FIELD IS OPEN → take off
+  └─► Galaxy · wave 5 "Dominion's Guard" (carriers) → approach the Dominion
+        └─► ACT 4 · THE DOMINION, THE TRUTH: destroy the 4 field generators + turrets
+              ├─► dock → interior on foot (energy blade): doors that know you, a recording in every room, the Warden
+              └─► ACT 5 · THE CHOICE: core fight → 90 s escape run → escape flight → breakup → Victory
+                    └─► the distress signal, carrying your own identifiers, from decades ahead
+              (fallback ending, kept working: destroy the exposed reactor from space → breakup → Victory → the signal)
 ```
 Target length: 20–30 minutes.
 
@@ -428,6 +475,7 @@ Multicast delegates on the owning actors, re-broadcast by `UTDGameInstance` for 
 - [x] Push. **`Core/` is now frozen.**
 
 ### C-03 · Theme: "Director's Cut" · both · `🟢` 🎬
+**Story:** scenes and takes are the paradox in the player's hands: a future trying to redo one event, a player retaking a scene. From Cinder onward a take number may glitch or echo (`storyline.md` §7).
 Theme fit is a judging category, so it must be **visible in gameplay**, not just the title.
 
 **Decision (Nov 12): we build #1, #2 and #3.** All three are core. They're cheap,
@@ -739,6 +787,7 @@ through a gate unchanged: only Rift's own portals return enemy missiles.
 - **Shared map:** Nick dresses the same map with art, lighting and VFX (One File Per Actor).
 
 #### ENG-18 · Dominion assault & space finale (CORE) · `🟢`
+**Story (acts 1, 4):** the Dominion is visible from wave 1 behind its **distortion field**; the four shield generators are that field. With boarding on, defences down opens the docking bay (ENG-29) instead of exposing the reactor to space; `td.Finale.Boarding 0` keeps the space reactor ending. Transmissions break through as each generator falls.
 - **Arrival:** when `bDominionRevealed` is set after wave 5, the Dominion warps in (Nick's reveal
   sequence plays).
 - **Assault:**
@@ -835,6 +884,7 @@ interrupted by damage). Fires `OnObjectiveUpdated` and calls `CompleteObjective`
 Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its doors.
 
 #### ENG-25 · Verdance: gameplay layout & objectives (CORE) · `🟨`
+**Story (act 2, The Voices):** objective 1 is **"Recover the Signal-Analysis Device"** from the wrecked research site (same gameplay as the wreck core); objective 2 **"Wake the Relay"** ends with the recordings: static, then human voices under the enemy's signal. Rewards unchanged. Names, markers and prompts follow `storyline.md` §5 and §8.
 - **Level:** a compact level (about 1 km²) with the landing pad and a descent start point. Nick
   dresses the look.
 - **Obj 1, Wreck Core** (→ Gravity Well):
@@ -851,6 +901,7 @@ Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its do
   the world is completed with an error in the log, so a content mistake never traps the player.
 
 #### ENG-26 · Cinder: gameplay layout, hazards & objectives (CORE) · `🟨`
+**Story (act 3, The Pattern):** the outpost is the **mining complex** (objective 3 "Stop the Excavation", which also yields the stabilising crystals); the jammer is the dig's **field anchor** (objective 4 "Destroy the Field Anchor"): destroying it opens the passage through the distortion field instead of "revealing" the Dominion. Transmissions begin to echo the pilots' own voices. One door at the dig opens to the pilot's ID.
 - **Hazards:** magma (heavy damage + respawn at the last safe spot), timed geysers, crystals that
   shatter when slashed.
 - **Obj 3, Outpost** (→ EMP): breach the gate (2 conduits), 3 escalating areas, the Warden, then
@@ -927,6 +978,8 @@ third person with readable attacks and blocks, the camera never clips through th
 restart, and tests cover the toggle, persistence, camera collision, facing rule and the space-only exclusion.
 
 #### ENG-33 · Cinematic intro (CORE, added Nov 12 by Ryan) · `🟢`
+**Redo queued (Ryan, Nov 13): the opening is rebuilt to Nicholas's *First Contact* brief** (about 2:20: missing patrol, Triad arrives, the impossible vessel, the first launch with the drone that goes blue and holds fire, the cut-off "Don't-", then straight into the tutorial battle; `storyline.md` §11, `docs/story/First-Contact-Cinematic-Brief.md`). **Done once, after the art it shows is on `main`** (Rodin player ships, the fleet with a space drone, the Dominion with opening hangars, round-4 effects, the new HUD). Until then T3 prepares the shot plan, the dialogue hooks and the drone beat only. Today's 49 s intro stays in the game meanwhile.
+**Story (opening):** the intro shows the premise: the silent Dominion, machines descending on worlds, Triad deployed to identify it and report back. No hint of the truth. Text and narration are Nicholas's through the existing slots.
 Ryan, Nov 12 (late): the intro should be "really high definition cinematic views of space and the spacecraft going
 by and worlds". **Reference for the cinematic language only** (pacing, scale, framing, grade), not its content, world
 or style, which belong to another IP: the *Warhammer 40,000: Darktide* intro cutscene
@@ -1124,13 +1177,15 @@ sign-off, and an asset of his at the Presentation name replaces ours.
 - **Crew models and animations:** idle, locomotion, telegraphed attacks, hit-reacts, stagger,
   deaths, ragdoll-ready; Fab or Mixamo retargets, credited. A visor glow shows alert state.
 
-### STRETCH: boarding finale
+### Boarding finale (WANTED since Nov 13, Ryan; story acts 4 and 5; was stretch)
 
-#### ENG-29 · Docking & boarding transition · `⬜` STRETCH
+#### ENG-29 · Docking & boarding transition · `🟨` WANTED (Nov 13)
+**Story (act 4):** the squad breaks through the field and boards. Plan (T4, Nov 13): docking bay opens when the defences are down, an approach cone with a tractor assist that never fully locks before the mouth, one travel into the interior, wingmen hold outside.
 `ATDDockingBay` approach cone with a tractor-beam assist that reduces control, then
 `TravelTo(DominionInterior)`; the hangar landing hands off to first person (§8).
 
-#### ENG-30 · Dominion interior encounters & core fight · `⬜` STRETCH
+#### ENG-30 · Dominion interior encounters & core fight · `🟨` WANTED (Nov 13)
+**Story (act 4, The Truth):** familiar military architecture, doors and consoles keyed to the pilots' identities, and an interactable console with a recording of their older selves in each room (hook with a placeholder line; Nicholas's words and voices). The core fight is the choice of act 5.
 - **Interior:** 6 sections (hangar, a deflect-lesson corridor, barracks, a vertical shaft with
   sweeper hazards, a security checkpoint, then the Warden) leading to the core chamber.
 - **Core fight, phase 1:** 4 conduits at 150 HP each; the core fires deflectable orbs.
@@ -1138,7 +1193,8 @@ sign-off, and an asset of his at the Presentation name replaces ours.
   6 s.
 - **Core fight, phase 3:** at 25% health, everything speeds up.
 
-#### ENG-31 · Escape run & escape flight · `⬜` STRETCH
+#### ENG-31 · Escape run & escape flight · `🟨` WANTED (Nov 13)
+**Story (act 5, The Choice):** the escape plays with time visibly failing (echoes, repeats); after the breakup the victory screen receives the distress signal with the squad's own identifiers.
 - **Escape run:** a 90 s run back to the hangar on a changed route.
 - **Escape flight:** a 60 s flight out through the falling debris, then the breakup sequence and
   victory. Failing either restarts it as the next take.
@@ -1168,7 +1224,7 @@ the mix, lighting and look, menus and the Director's Cut presentation, voice, th
 | ART-12 cinematics, Director's Cut look | 🟨 | Fallback slate, CUT, name card, letterbox; ENG-33 intro | **Priority 3:** design them as a set |
 | ART-13 lighting, post, performance art | ⬜ | Placeholder sky rig per planet | **Priority 2** |
 | ART-14 submission | ⬜ | Trailer capture pipeline, `CREDITS.md`, `DEVLOG.md` | **Priority 5** |
-| ART-15, 16 boarding | ⬜ STRETCH | - | Not now |
+| ART-15, 16 boarding | 🟨 WANTED (Ryan, Nov 13) | Engineering builders make the interior kit as a fallback; effects builder for the collapse | Lighting and alarm states of the interior; the recordings' voices (ART-11) |
 
 **Start here (role brief, Day 1 focus):** establish the art direction and the visual asset inventory,
 make the ships readable, and do a minimal combat presentation pass alongside Ryan's playable
@@ -1246,6 +1302,7 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
 - **Sources:** licensed only (e.g. the WeLoveIndies jam pack: non-commercial), logged in CREDITS.md.
 
 #### ART-11 · Narrative presentation: barks, VO, intro · `⬜`
+**Story (Nov 13):** this item is now the voice of *The Paradox*: pilot barks in character (Wren bold, Kato analytical, Moss steady), the transmissions (static, then human voices, then the pilots' own voices), the recordings inside the Dominion, intro narration and the ending distress signal. Engineering fires the events with placeholder lines; your text and audio replace them (`storyline.md` §5, §10).
 - `DT_Barks` (about 80–120 lines: Wren, Kato, Moss and the Armada) played on
   `OnBarkRequested` through a priority queue, with radio-filtered VO (AI-voiced, credited) and
   subtitles.
@@ -1254,6 +1311,7 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
   narration voice, music, the grade and optionally its own Level Sequence (`UTDUIStyle::IntroSequence`).
 
 #### ART-12 · Cinematics & the Director's Cut presentation · `⬜`
+**Story (Nov 13):** slate, "CUT!" and name cards can lean into the paradox (a take number that glitches from Cinder onward; `storyline.md` §7).
 - **Sequences:** the Dominion reveal, the reactor breakup and victory hero shot, landing and
   take-off shots, the planet descent breakthrough.
 - **Theme hooks (C-03 #1–#3):**
@@ -1303,7 +1361,7 @@ VFX, and the squad's launch from the hangar.
 | 9 | Board ship | Allowed at any time (the player may fly around the planet); the board point is marked as the objective, and the way back to space opens, only once the planet's objectives are done | Enter sequence |
 | 10 | Take-off and exit | Lift-off, ceiling → `TravelTo(Galaxy, "<Planet>_Orbit")` | Take-off shot, plasma burst |
 
-## 8. Boarding: full sequence (STRETCH)
+## 8. Boarding: full sequence (WANTED since Nov 13; story acts 4 and 5)
 
 | # | Step | 🟦 Ryan | 🟩 Nick |
 |---|---|---|---|
@@ -1353,7 +1411,7 @@ C-01 Project ─► C-02 Contracts (+ presentation hooks) ─┬─► 🟦 ENG-
                                                            ART-09 HUD (against the fake HUD data) · ART-05 Space environment
                                                            ART-06 Planets · ART-08 Ground visuals · ART-11 Barks
                                                            ART-12 Director's Cut presentation · ART-13 Performance art
-C-03 Theme decision ─► ENG event hooks + ART-12        STRETCH (after core is solid): ENG-29–31 + ART-15–16
+C-03 Theme decision ─► ENG event hooks + ART-12        Boarding (wanted Nov 13): ENG-29–31 + ART-15–16
 ```
 
 **Order from here (Nov 13):** the tree above is built except the planets' new worlds. What unblocks what now:
