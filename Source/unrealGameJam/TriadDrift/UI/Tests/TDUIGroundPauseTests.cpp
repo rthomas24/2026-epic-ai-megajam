@@ -196,6 +196,14 @@ bool FTDUIPauseNavigation::RunTest(const FString& Parameters)
 	Menu->HandleKey(EKeys::Gamepad_FaceButton_Right);
 	TestEqual(TEXT("B resumes"), Menu->LastAction, FString(TEXT("resume")));
 	TestFalse(TEXT("Escape not consumed (the pause toggle closes the menu)"), Menu->HandleKey(EKeys::Escape));
+
+	// UI sounds (T1's PlayUISound): Move per highlight change (rows and the confirm buttons), Confirm per choice, Back
+	// only when a prompt is cancelled (closing by resuming plays PauseOut from the controller instead).
+	TestEqual(TEXT("UI sound: Move per highlight change"), Menu->GetUISoundRequests(TEXT("Move")), 9);
+	TestEqual(TEXT("UI sound: Confirm per choice"), Menu->GetUISoundRequests(TEXT("Confirm")), 8);
+	TestEqual(TEXT("UI sound: Back for the cancelled prompt only"), Menu->GetUISoundRequests(TEXT("Back")), 1);
+	const bool bSoundApi = UTDSettingsSubsystem::StaticClass()->FindFunctionByName(TEXT("PlayUISound")) != nullptr;
+	TestEqual(TEXT("PlayUISound reaches T1's API iff it is in this build"), Menu->PlayUISound(TEXT("Move")), bSoundApi);
 	return true;
 }
 
