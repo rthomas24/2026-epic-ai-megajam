@@ -81,8 +81,6 @@ public:
 	/** Arrival height above the ground under it. 1,000 m: under the 1.2 km take-off exit height and near the fitted
 	 *  zone ceiling (highest ground + 400 m) until stage 2's glide owns the altitude. */
 	static constexpr float ArrivalAltitudeCm = 100000.f;
-	/** Arrivals stay within 6 km of the pad, inside the zone's edge-warning band (T4's ring reaches 7 km). */
-	static constexpr float MaxArrivalRadiusCm = 600000.f;
 	/** Arrivals sit at least this far under the fitted zone ceiling (its warning band is 500 m). */
 	static constexpr float CeilingClearanceCm = 65000.f;
 
