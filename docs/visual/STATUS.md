@@ -49,7 +49,7 @@ presentation/readability, measured cost, integration and subjective approval.
 | ART-15 Interior | Stretch backlog; production unassigned | Only after core is solid; no active claim/task |
 | ART-16 Escape cinematics | Stretch backlog; production unassigned | Only after core is solid; no active claim/task |
 
-## Immediate production sequence — active scoped goal, November12 19:04EST
+## Immediate production sequence — active scoped goal, November12 19:00EST
 
 The recovery stop is superseded by Nick's explicit NEW continuous-coordination goal. Preserve the historical recovery handoff; do not restart old campaigns. Blue Lancer is at StructuralA02 review; white player M01 is active in its isolated claim, starting with the verified mannequin reference. Lead coordinates HUD PR8 current-main/package acceptance and Ryan-owned menu hook through N015. HeroM02 waits Nick appearance review. No shared gameplay/config/maps edits or unapproved asset promotion; one fresh resource grant per heavy job. Bastion, green Rift and enemy variants remain secondary, gated queues.
 
