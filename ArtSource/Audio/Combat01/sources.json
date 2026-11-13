@@ -1,0 +1,121 @@
+{
+  "source_records": [
+    {
+      "pack": "AK-47 with animations",
+      "publisher": "A.D",
+      "asset": "AK-47_Fire_4",
+      "listing": "https://www.fab.com/listings/b22749a4-1e5d-4dc7-bcb9-473a00eb7d06",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\Untitled7d3b12f5addbV1\\data\\Content\\AK-47\\Sound\\AK-47\\Wavs\\AK-47_Fire_4.uasset",
+      "original_package_sha256": "5cb05d601f2aee78c4d86142ef052adcdee670c596bb4841f790776f3d99c628",
+      "preview": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\LibraryOriginals01\\AK-47_Fire_4.wav",
+      "preview_sha256": "743e3f7c4cfc3253011360dcf273c524f669974c81201b1a4fa6c03349b1a351",
+      "extraction": "embedded RIFF",
+      "restoration": "none; RIFF byte-identical",
+      "processing": "NONE: original decoded samples, original rate/channels/depth/length",
+      "source_credit": "Dennis / dennish18 on Pixabay; official pack credits fire4\u20139, content146189",
+      "licensing": "Pack officially free and present in local Epic entitlement catalog. Pixabay content terms: incorporated projects; no standalone redistribution. No raw media Git publication. Field recording provenance not asserted.",
+      "sample_rate": 48000,
+      "bits": 16,
+      "channels": 2,
+      "duration": 0.6041875
+    },
+    {
+      "pack": "AK-47 with animations",
+      "publisher": "A.D",
+      "asset": "AK-47_Fire_5",
+      "listing": "https://www.fab.com/listings/b22749a4-1e5d-4dc7-bcb9-473a00eb7d06",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\Untitled7d3b12f5addbV1\\data\\Content\\AK-47\\Sound\\AK-47\\Wavs\\AK-47_Fire_5.uasset",
+      "original_package_sha256": "e4de216f41faeaa90c3ba14cdb90ed2129604f90ff637831c995c70567e83ed7",
+      "preview": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\LibraryOriginals01\\AK-47_Fire_5.wav",
+      "preview_sha256": "338cb5792b009d7840bf684214820d1db5523537c7751bcc1dfca16c87c26290",
+      "extraction": "embedded RIFF",
+      "restoration": "none; RIFF byte-identical",
+      "processing": "NONE: original decoded samples, original rate/channels/depth/length",
+      "source_credit": "Dennis / dennish18 on Pixabay; official pack credits fire4\u20139, content146189",
+      "licensing": "Pack officially free and present in local Epic entitlement catalog. Pixabay content terms: incorporated projects; no standalone redistribution. No raw media Git publication. Field recording provenance not asserted.",
+      "sample_rate": 48000,
+      "bits": 16,
+      "channels": 2,
+      "duration": 0.44077083333333333
+    },
+    {
+      "pack": "AK-47 with animations",
+      "publisher": "A.D",
+      "asset": "AK-47_Fire_6",
+      "listing": "https://www.fab.com/listings/b22749a4-1e5d-4dc7-bcb9-473a00eb7d06",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\Untitled7d3b12f5addbV1\\data\\Content\\AK-47\\Sound\\AK-47\\Wavs\\AK-47_Fire_6.uasset",
+      "original_package_sha256": "caaea3cf784b45d6f61c72e7de85a55be4552bdbce7e8c416f14ff7a4c6b52eb",
+      "preview": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\LibraryOriginals01\\AK-47_Fire_6.wav",
+      "preview_sha256": "382cbbabb17ac6f4a19dd64b680d1d594d41445f43debfc07cfaa7d863a17253",
+      "extraction": "embedded RIFF",
+      "restoration": "none; RIFF byte-identical",
+      "processing": "NONE: original decoded samples, original rate/channels/depth/length",
+      "source_credit": "Dennis / dennish18 on Pixabay; official pack credits fire4\u20139, content146189",
+      "licensing": "Pack officially free and present in local Epic entitlement catalog. Pixabay content terms: incorporated projects; no standalone redistribution. No raw media Git publication. Field recording provenance not asserted.",
+      "sample_rate": 48000,
+      "bits": 16,
+      "channels": 2,
+      "duration": 0.321875
+    },
+    {
+      "event": "Hull",
+      "pack": "50 Free Game Sounds Pack",
+      "listing": "https://www.fab.com/listings/b8cc7270-5e0c-4ef7-a277-6a1d4b69358d",
+      "original_asset": "Hit_Generic_2-1",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\50FreeSo92fbc86158f1V1\\data\\Content\\Free_Sounds_Pack\\wav\\Hit_Generic_2-1.uasset",
+      "source_sha256": "75690a88d707c1b6fccfa38ceb25c26aebd873092075d09be3433d4ab6a51257",
+      "extraction": "embedded RIFF",
+      "restoration": "none; RIFF byte-identical"
+    },
+    {
+      "event": "Shield",
+      "pack": "50 Free Game Sounds Pack",
+      "listing": "https://www.fab.com/listings/b8cc7270-5e0c-4ef7-a277-6a1d4b69358d",
+      "original_asset": "Shield_Metal_Impact_1-3",
+      "original_path": "C:\\ProgramData\\Epic\\EpicGamesLauncher\\VaultCache\\50FreeSo92fbc86158f1V1\\data\\Content\\Free_Sounds_Pack\\wav\\Shield_Metal_Impact_1-3.uasset",
+      "source_sha256": "77bc4da4e2fe24bb7bc745cb4585b59a068d1c622d9daf2c2b8a702aa5e5eeec",
+      "extraction": "embedded RIFF",
+      "restoration": "none; RIFF byte-identical"
+    }
+  ],
+  "source_audio_git": false,
+  "native_publication": "Private team game assets only, subject to Lead license review; no standalone source redistribution",
+  "prepared": [
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\prepared\\NeedleCannonShort\\SFX_NeedleCannon_01.wav",
+      "sha256": "dee11c8dac6f84958b8e8f2122c1c372c8b75bc598a34e1c8c7b8ebc6d35f58a"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\prepared\\NeedleCannonShort\\SFX_NeedleCannon_02.wav",
+      "sha256": "49b4b1312d0e483083976a4b72d2ccb864b864dfa120971621fce1dce9dfb134"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\prepared\\NeedleCannonShort\\SFX_NeedleCannon_03.wav",
+      "sha256": "76e242c001604f395b5e27b1fdcb63650e6896837ed500b94fc37246001f24b4"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\export\\Hull\\SFX_Combat_HullImpact_01.wav",
+      "sha256": "d3416d2d486b5cf97fd9733cec0d539c37e3e5554e8c0830af501eb818bb1a4b"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\export\\Hull\\SFX_Combat_HullImpact_02.wav",
+      "sha256": "05bb77a2fae07566b215ee65599eb07bbbf2b83b0035db6eecde10cb65ccbf0c"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\export\\Hull\\SFX_Combat_HullImpact_03.wav",
+      "sha256": "7cc4046db355fdf5d6522cef09c18ada0c704e8e3d097bbe12594c5e6314972c"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\export\\Shield\\SFX_Combat_ShieldImpact_01.wav",
+      "sha256": "6dcb75716f93f577562d7176d3736ab482758aab92f8e64f881804185393718f"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\export\\Shield\\SFX_Combat_ShieldImpact_02.wav",
+      "sha256": "a00829a630b2723208dd937d40c6f74062bb80cb2ce02281fbf19d7a1747545f"
+    },
+    {
+      "path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\export\\Shield\\SFX_Combat_ShieldImpact_03.wav",
+      "sha256": "da63e05614f7c18b82ee58947fc41cdac855fdd0cd703e6a9c438cbe13380ca6"
+    }
+  ]
+}

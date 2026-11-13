@@ -1,0 +1,34 @@
+{
+ "category": null,
+ "mix": true,
+ "files": [
+  {
+   "file": "Saved\\AudioMusic\\PrototypeV1\\Combat01\\stress_20hz.wav",
+   "codec": "pcm_f32le",
+   "sample_rate": 48000,
+   "channels": 1,
+   "bits": 32,
+   "duration": 5.0,
+   "loudness_lufs": -17.1,
+   "loudness_kind": "integrated",
+   "integrated_lufs": -17.1,
+   "ungated_lufs": -17.85,
+   "lra_lu": 1.5,
+   "true_peak_dbtp": -2.2,
+   "sample_peak_dbfs": -2.298663,
+   "rms_dbfs": -17.592507,
+   "lead_silence_s": 0.0,
+   "tail_silence_s": 0.733,
+   "dc_offset": -8.9e-05,
+   "flat_factor": 0.0,
+   "peak_count": 24,
+   "clipped": false,
+   "silent": false,
+   "seam_jump_db": null,
+   "seam_level_db": null,
+   "fails": []
+  }
+ ],
+ "group_fails": [],
+ "failures": 0
+}

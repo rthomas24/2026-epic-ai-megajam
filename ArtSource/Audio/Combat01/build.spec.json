@@ -1,0 +1,178 @@
+{
+  "mix": [
+    {
+      "type": "SoundClass",
+      "path": "/Game/TriadDrift/Audio/Combat01/Mix/SC_Combat01_SFX",
+      "properties": {
+        "properties.volume": 1.0
+      }
+    },
+    {
+      "type": "SoundAttenuation",
+      "path": "/Game/TriadDrift/Audio/Combat01/Mix/ATT_Combat01_Medium",
+      "properties": {
+        "attenuation.bAttenuate": true,
+        "attenuation.bSpatialize": true,
+        "attenuation.attenuationShapeExtents": {
+          "x": 3000,
+          "y": 0,
+          "z": 0
+        },
+        "attenuation.falloffDistance": 57000,
+        "attenuation.nonSpatializedRadiusStart": 2500,
+        "attenuation.bAttenuateWithLPF": true,
+        "attenuation.lPFRadiusMin": 3000,
+        "attenuation.lPFRadiusMax": 60000,
+        "attenuation.lPFFrequencyAtMin": 20000,
+        "attenuation.lPFFrequencyAtMax": 2500
+      }
+    },
+    {
+      "type": "SoundConcurrency",
+      "path": "/Game/TriadDrift/Audio/Combat01/Mix/SCON_Combat01_Weapon",
+      "properties": {
+        "concurrency.maxCount": 6,
+        "concurrency.resolutionRule": "StopQuietest",
+        "concurrency.retriggerTime": 0.03,
+        "concurrency.voiceStealReleaseTime": 0.03
+      }
+    },
+    {
+      "type": "SoundConcurrency",
+      "path": "/Game/TriadDrift/Audio/Combat01/Mix/SCON_Combat01_Impact",
+      "properties": {
+        "concurrency.maxCount": 8,
+        "concurrency.resolutionRule": "StopQuietest",
+        "concurrency.retriggerTime": 0.02,
+        "concurrency.voiceStealReleaseTime": 0.03
+      }
+    }
+  ],
+  "import": [
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\prepared\\NeedleCannonShort\\SFX_NeedleCannon_01.wav",
+      "path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_01",
+      "properties": {
+        "bLooping": false
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\prepared\\NeedleCannonShort\\SFX_NeedleCannon_02.wav",
+      "path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_02",
+      "properties": {
+        "bLooping": false
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\prepared\\NeedleCannonShort\\SFX_NeedleCannon_03.wav",
+      "path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_03",
+      "properties": {
+        "bLooping": false
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\export\\Hull\\SFX_Combat_HullImpact_01.wav",
+      "path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_Hull_01",
+      "properties": {
+        "bLooping": false
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\export\\Hull\\SFX_Combat_HullImpact_02.wav",
+      "path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_Hull_02",
+      "properties": {
+        "bLooping": false
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\export\\Hull\\SFX_Combat_HullImpact_03.wav",
+      "path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_Hull_03",
+      "properties": {
+        "bLooping": false
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\export\\Shield\\SFX_Combat_ShieldImpact_01.wav",
+      "path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_Shield_01",
+      "properties": {
+        "bLooping": false
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\export\\Shield\\SFX_Combat_ShieldImpact_02.wav",
+      "path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_Shield_02",
+      "properties": {
+        "bLooping": false
+      }
+    },
+    {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\export\\Shield\\SFX_Combat_ShieldImpact_03.wav",
+      "path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_Shield_03",
+      "properties": {
+        "bLooping": false
+      }
+    }
+  ],
+  "oneshots": [
+    {
+      "path": "/Game/TriadDrift/Audio/Combat01/MSS_NeedleCannon",
+      "format": "Mono",
+      "sounds": [
+        "/Game/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_01",
+        "/Game/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_02",
+        "/Game/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_03"
+      ],
+      "volume_db": -8,
+      "volume_spread_db": 1.5,
+      "pitch_semitones": 0,
+      "pitch_spread": 0.7,
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/Combat01/Mix/SC_Combat01_SFX",
+        "attenuationSettings": "/Game/TriadDrift/Audio/Combat01/Mix/ATT_Combat01_Medium",
+        "concurrencySet": [
+          "/Game/TriadDrift/Audio/Combat01/Mix/SCON_Combat01_Weapon"
+        ]
+      }
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/Combat01/MSS_Hull",
+      "format": "Mono",
+      "sounds": [
+        "/Game/TriadDrift/Audio/Combat01/Waves/SW_Hull_01",
+        "/Game/TriadDrift/Audio/Combat01/Waves/SW_Hull_02",
+        "/Game/TriadDrift/Audio/Combat01/Waves/SW_Hull_03"
+      ],
+      "volume_db": -14,
+      "volume_spread_db": 1.5,
+      "pitch_semitones": 0,
+      "pitch_spread": 0.7,
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/Combat01/Mix/SC_Combat01_SFX",
+        "attenuationSettings": "/Game/TriadDrift/Audio/Combat01/Mix/ATT_Combat01_Medium",
+        "concurrencySet": [
+          "/Game/TriadDrift/Audio/Combat01/Mix/SCON_Combat01_Impact"
+        ]
+      }
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/Combat01/MSS_Shield",
+      "format": "Mono",
+      "sounds": [
+        "/Game/TriadDrift/Audio/Combat01/Waves/SW_Shield_01",
+        "/Game/TriadDrift/Audio/Combat01/Waves/SW_Shield_02",
+        "/Game/TriadDrift/Audio/Combat01/Waves/SW_Shield_03"
+      ],
+      "volume_db": -16,
+      "volume_spread_db": 1.5,
+      "pitch_semitones": 0,
+      "pitch_spread": 0.7,
+      "sound": {
+        "soundClassObject": "/Game/TriadDrift/Audio/Combat01/Mix/SC_Combat01_SFX",
+        "attenuationSettings": "/Game/TriadDrift/Audio/Combat01/Mix/ATT_Combat01_Medium",
+        "concurrencySet": [
+          "/Game/TriadDrift/Audio/Combat01/Mix/SCON_Combat01_Impact"
+        ]
+      }
+    }
+  ]
+}

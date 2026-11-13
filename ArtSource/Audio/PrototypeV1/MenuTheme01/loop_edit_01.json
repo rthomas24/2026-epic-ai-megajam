@@ -1,0 +1,43 @@
+{
+  "loop_edit": {
+    "wave": "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01.MUS_Menu_EtherialPulse_01",
+    "looping": true,
+    "duration_s": 107.0,
+    "before_package_sha256": "6253253fe891d364d0180bacada62b70cb723a08ecfe3f20909406c40adb1042",
+    "after_package_sha256": "c5354faa6c9776deaa1df8d51f7da3e03f1688f534aa6ffe205a1e867096b8f8",
+    "backup": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Saved\\AudioMusic\\MenuTheme01\\Loop01\\original_nonlooping.uasset",
+    "other_native_inputs_unchanged": true,
+    "source_audio_processing": "NONE; same107s source/tail fade",
+    "stage": "Loop flag edited; actual wrap and travel tests pending",
+    "approval": "Nick heard initial menu playback and said it sounds really good; requested restart at beginning after107s"
+  },
+  "engine": {
+    "exit_code": 0,
+    "reason": "ok",
+    "pid": 31764,
+    "duration_s": 19.3,
+    "log": {
+      "errors": 0,
+      "warnings": 0,
+      "errors_by_category": {},
+      "warnings_by_category": {},
+      "first_errors": []
+    },
+    "suppressed_dialogs": []
+  },
+  "guard": {
+    "pid": 31764,
+    "exit_code": 0,
+    "reason": "completed",
+    "minimum_free_gib": 3.101367950439453,
+    "protected_count": 325,
+    "protected_unchanged": true,
+    "changed_existing_content": [
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Content\\TriadDrift\\Audio\\MenuTheme01\\MUS_Menu_EtherialPulse_01.uasset"
+    ],
+    "new_content": []
+  },
+  "source_wav_sha256": "a1ca5d252040e93cc1e720853275cb901ad6f6e3c626fe53a068692287ed2ff4",
+  "stage": "Loop flag saved only; fresh reload/audible wrap/travel remain UNVERIFIED",
+  "evidence_root": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Saved\\AudioMusic\\MenuTheme01\\Loop01"
+}

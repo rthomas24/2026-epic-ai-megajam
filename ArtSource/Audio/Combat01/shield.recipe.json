@@ -1,0 +1,19 @@
+{
+  "name": "SFX_Combat_ShieldImpact",
+  "category": "sfx",
+  "takes": 3,
+  "seed": 2702,
+  "layers": [
+    {
+      "role": "existing licensed impact",
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\prepared\\Shield\\SFX_Combat_ShieldImpact_01.wav",
+      "vary": {
+        "pitch_semitones": 0.25,
+        "gain_db": 0.25
+      }
+    }
+  ],
+  "master": {
+    "fade_out_ms": 30
+  }
+}

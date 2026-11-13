@@ -1,0 +1,6 @@
+{
+  "case": "80shots20Hz plus80alternatinghull/shield impacts,allruntimegainvariationsat+1.5dB,noattenuation,noconcurrencytrimming",
+  "sample_peak_dbfs": -2.2986624801462017,
+  "clipped_samples": 0,
+  "limitation": "Offline prepared-source overlap only; not game mixer/pitch/othergameaudio/performance proof"
+}

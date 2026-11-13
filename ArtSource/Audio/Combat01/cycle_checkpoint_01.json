@@ -1,0 +1,115 @@
+{
+  "cycle_start_eastern": "2026-11-12T21:48:23-05:00",
+  "checkpoint_utc": "2026-11-13T03:20:59.936730+00:00",
+  "native_menu": {
+    "loop_edit": {
+      "wave": "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01.MUS_Menu_EtherialPulse_01",
+      "looping": true,
+      "duration_s": 107.0,
+      "before_package_sha256": "6253253fe891d364d0180bacada62b70cb723a08ecfe3f20909406c40adb1042",
+      "after_package_sha256": "c5354faa6c9776deaa1df8d51f7da3e03f1688f534aa6ffe205a1e867096b8f8",
+      "backup": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Saved\\AudioMusic\\MenuTheme01\\Loop01\\original_nonlooping.uasset",
+      "other_native_inputs_unchanged": true,
+      "source_audio_processing": "NONE; same107s source/tail fade",
+      "stage": "Loop flag edited; actual wrap and travel tests pending",
+      "approval": "Nick heard initial menu playback and said it sounds really good; requested restart at beginning after107s"
+    },
+    "initial_menu_listening": "Nick: I just heard the main menu theme play. It sounds really good.",
+    "approval_scope": "Initial track approved; loop explicitly requested/saved, fresh reload and audible wrap still unverified",
+    "audible02_engine": {
+      "exit_code": 0,
+      "reason": "ok",
+      "duration_s": 185.5,
+      "log": {
+        "errors": 1,
+        "warnings": 27,
+        "errors_by_category": {
+          "LogModelContextProtocol": 1
+        },
+        "warnings_by_category": {
+          "LogModelContextProtocol": 1,
+          "LogEditorDataStorageUI": 23,
+          "LogLinker": 3
+        },
+        "first_errors": [
+          "LogModelContextProtocol: Unknown tool: ConsoleToolset.ConsoleToolset.RunConsoleCommand"
+        ]
+      }
+    },
+    "audible02_guard": {
+      "pid": 7336,
+      "exit_code": 0,
+      "reason": "completed",
+      "minimum_free_gib": 2.040111541748047,
+      "protected_unchanged": true,
+      "content_unchanged": true,
+      "original_saves_unchanged": true,
+      "duration_wall_s": 188.331989899998
+    },
+    "runtime_observation": "One exact menu-wave voice observed/captured atworld93.6 and103.27s. Walltime112/122 labels are notpost107proof. ActualdeviceHeadphones(XboxController),48kHz stereo. Backgroundfocusmute recognized; nexttest permittedruntimeau.DisableAppVolume1. One correctedMCPdispatch error disclosed."
+  },
+  "combat_source": {
+    "prepared_waves": 9,
+    "families": [
+      "NeedleCannon",
+      "Hull",
+      "Shield"
+    ],
+    "qa_failures": {
+      "NeedleCannon": 0,
+      "Hull": 0,
+      "Shield": 0
+    },
+    "stress_final": {
+      "file": "Saved\\AudioMusic\\PrototypeV1\\Combat01\\stress_20hz_final.wav",
+      "codec": "pcm_f32le",
+      "sample_rate": 48000,
+      "channels": 1,
+      "bits": 32,
+      "duration": 5.0,
+      "loudness_lufs": -19.1,
+      "loudness_kind": "integrated",
+      "integrated_lufs": -19.1,
+      "ungated_lufs": -19.85,
+      "lra_lu": 1.5,
+      "true_peak_dbtp": -4.2,
+      "sample_peak_dbfs": -4.298663,
+      "rms_dbfs": -19.592507,
+      "lead_silence_s": 0.0,
+      "tail_silence_s": 0.733,
+      "dc_offset": -7e-05,
+      "flat_factor": 0.0,
+      "peak_count": 24,
+      "clipped": false,
+      "silent": false,
+      "seam_jump_db": null,
+      "seam_level_db": null,
+      "fails": []
+    },
+    "native_imported": false,
+    "gameplay_bound": false,
+    "gameplay_verified": false
+  },
+  "remaining": [
+    "Freshloopreload andactual107swrap",
+    "Menu travel/reentry andvolumecontrols",
+    "Combat native author/bind/real firing andhits",
+    "Shipengines/remainingfullgamecoverage",
+    "Ryan Shipping andNickloop/combatlistening"
+  ],
+  "blocker": "Nativequeue heldasrequested; RAM~2.4GiB. Noautolaunch/retry.",
+  "metrics": {
+    "weekly_remaining_percent": 49,
+    "weekly_reset_eastern": "2026-11-15T19:51:26-05:00",
+    "model": null,
+    "reasoning_effort": null,
+    "source": "OfficialCodexaccountusagetool; model/effort unavailable; noresetcreditorpaidaction applied"
+  },
+  "git": {
+    "branch": "nick/audio-prototype-v1",
+    "published_checkpoint": "c6a60d5046923bb7b59719172657aa610ef82cf4",
+    "current_new_source": "Combat01/** andtwoMenuTheme01loop scripts, awaitingLeadprecommit",
+    "new_loop_wave_scope": "Leadtesthostonly; branch/Main publicationpending"
+  },
+  "evidence_root": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\Saved\\AudioMusic\\MenuTheme01"
+}

@@ -1,0 +1,19 @@
+{
+  "name": "SFX_Combat_HullImpact",
+  "category": "sfx",
+  "takes": 3,
+  "seed": 2701,
+  "layers": [
+    {
+      "role": "existing licensed impact",
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\prepared\\Hull\\SFX_Combat_HullImpact_01.wav",
+      "vary": {
+        "pitch_semitones": 0.25,
+        "gain_db": 0.25
+      }
+    }
+  ],
+  "master": {
+    "fade_out_ms": 30
+  }
+}
