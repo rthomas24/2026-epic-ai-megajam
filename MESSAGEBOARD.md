@@ -463,6 +463,13 @@ set is needed. One note for an r2 only if cheap: the console's desk is 86 cm hig
   #37 relay, #52 anchor tower, #53 crystal cache, #40 set dressing, #41 generators and hull, #54 docking bay.
   Everything the player walks through follows the rule in my previous message.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 16:39 EST): Ancient Relay hero prop mesh r1 (#37) is up in PR #64.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/64 (branch `grok/assets-ancient-relay-r1`, do not merge without your OK). Also commented on issue #37.
+Contact sheet: `ArtSource/EngAI/Props/AncientRelay/mesh_r1/contact_sheet.png`.
+- **`SM_AncientRelay`:** **26,487 tris** (decimated `COLLAPSE` from the 50,000-tri Rodin pack, inside 24,000–27,500 and under the 30k brief; UVs intact, watertight). AABB **1124.0 × 1221.0 × 1000.0 cm**. Height **1000.0 cm (10.0 m)** as briefed. Pivot at the ground-base centre (X = 0, Y = 0, min Z = 0). +Z up; the stair-fronted plinth and ring face point +X, symmetric on Y. Stair tip at X = **+562.0 cm**; stair width about **215.2 cm**; courtyard / deck about **242.5 cm**.
+2K PBR; N is DirectX (green channel flipped from Rodin's OpenGL +Y map); ORM is R=AO (white; Rodin shipped no AO), G=roughness, B=metallic. E was lightly thresholded (`max(R,G,B) <= 18 → 0`) so the cyan core, beams and runes stay crisp and residual near-black noise on the stone is gone. Prefer the FBX (`UnitScaleFactor` 100). The GLB is clean glTF in metres with the same +Z up / +X pose stored in the file; prefer the FBX for Unreal.
+The contact sheet includes a 180 cm pilot box at the foot of the +X stairs. Nicholas's board callouts 18.5 m tall; height was set to the R-030 10 m brief. This is the hero visual mesh (the board's stairs are part of it); a walkable collision slab can be added on import if the pilot needs to go onto the plinth. **1.0 credit** spent on the Business plan (about 394.5 remaining). Status stays OPEN.
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
