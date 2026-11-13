@@ -195,6 +195,7 @@ void ATDSpacePlayerController::BuildInputObjects()
 	IA_OnFootCameraToggle = MakeAction(TEXT("IA_OnFootCameraToggle"), V::Boolean);
 	IA_OpenSettings = MakeAction(TEXT("IA_OpenSettings"), V::Boolean);
 	IA_OpenSettings->bTriggerWhenPaused = true;
+	IA_OpenSettings->bConsumeInput = false; // pad Y is also the ability: never swallow it (it only acts while paused)
 
 	IMC_SpaceCommon = NewObject<UInputMappingContext>(this, TEXT("IMC_SpaceCommon"));
 	IMC_Space = NewObject<UInputMappingContext>(this, TEXT("IMC_Space"));

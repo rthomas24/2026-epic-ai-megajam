@@ -91,9 +91,18 @@ void UTDSettingsSubsystem::Load()
 		return;
 	}
 	const UTDSettingsSave* SaveObj = Cast<UTDSettingsSave>(UGameplayStatics::LoadGameFromSlot(SlotName, 0));
-	if (SaveObj && SaveObj->Version == UTDSettingsSave::CurrentVersion)
+	if (!SaveObj)
 	{
-		Settings = TDSettings::Clamped(SaveObj->Settings);
+		return;
+	}
+	// Options are saved field by field (tagged properties): a slot from another version keeps every field both
+	// versions share, new fields take their defaults, and everything is clamped to today's ranges. Never drop a
+	// player's options because the layout grew.
+	Settings = TDSettings::Clamped(SaveObj->Settings);
+	if (SaveObj->Version != UTDSettingsSave::CurrentVersion)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD settings: migrated options from save version %d to %d"), SaveObj->Version, UTDSettingsSave::CurrentVersion);
+		Save();
 	}
 }
 

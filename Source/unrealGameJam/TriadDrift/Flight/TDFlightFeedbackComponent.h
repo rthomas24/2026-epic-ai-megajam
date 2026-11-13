@@ -227,6 +227,7 @@ private:
 	TArray<FVector> TrailNozzles;
 	UPROPERTY(Transient) TObjectPtr<class UMaterialInstanceDynamic> TrailMID;
 	float TrailMIDGlow = -1.f;
+	bool bTrailTranslucent = false; // M_TD_TrailGlow present: per-segment fade through instance custom data
 	TArray<FTransform> TrailTransforms;
 	float TrailClock = 0.f;
 	float TrailLength = 0.f;
