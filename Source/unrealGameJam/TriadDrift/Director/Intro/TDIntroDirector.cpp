@@ -33,6 +33,7 @@
 #include "Styling/CoreStyle.h"
 #include "Widgets/SLeafWidget.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDTypes.h"
@@ -45,6 +46,10 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDPortalGate.h"
+#include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Enemies/TDEnemyLibrary.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
 
 #define LOCTEXT_NAMESPACE "TDIntro"
 
@@ -87,13 +92,8 @@ namespace TDIntro
 		return FMath::Min(In, Out);
 	}
 
-	// ---- T4's showcase hooks (World / Waves). Until they land on main: visual-only stand-ins here. ----
-	// Switch TD_INTRO_T4_HOOKS to 1 once ATDDominion::SetShowcase, ATDWaveDirector::SpawnShowcaseShip /
-	// PlayShowcaseWarpIn and ATDPortalGate::PlayTransitFlare are on main.
-#ifndef TD_INTRO_T4_HOOKS
-#define TD_INTRO_T4_HOOKS 0
-#endif
-
+	// ---- T4's showcase hooks (World / Waves): the real ships, the real Dominion, the real cues. Each falls back to a
+	// visual-only stand-in here if its hook has nothing to give (an unknown id, the Dominion mid-assault). ----
 	static void Flash(UWorld* World, const FVector& Where, float Radius, const FLinearColor& Color, float Seconds)
 	{
 		if (UTDProjectileSubsystem* P = World ? UTDProjectileSubsystem::Get(World) : nullptr)
@@ -102,7 +102,21 @@ namespace TDIntro
 		}
 	}
 
+	static AActor* SpawnFighterStandIn(UWorld* World, const FTransform& At);
+
 	static AActor* SpawnFighter(UWorld* World, const FTransform& At)
+	{
+		static int32 Variant = 0;
+		const FName Id = (Variant++ % 3 == 2) ? TDEnemyIds::HookInterceptor : TDEnemyIds::ShardFighter;
+		if (AActor* Ship = ATDWaveDirector::SpawnShowcaseShip(World, Id, At))
+		{
+			Ship->SetActorScale3D(At.GetScale3D());
+			return Ship;
+		}
+		return SpawnFighterStandIn(World, At);
+	}
+
+	static AActor* SpawnFighterStandIn(UWorld* World, const FTransform& At)
 	{
 		if (!World)
 		{
@@ -150,18 +164,32 @@ namespace TDIntro
 
 	static void WarpFlash(UWorld* World, const FVector& Where, float Size)
 	{
+		// Nick's EnemyWarpIn cue through T4's hook once it has visual art. Until then T4's placeholder marker is a
+		// gameplay readability ring (big, long-lived, camera-facing) that would veil the Dominion in a 135 mm shot:
+		// a brief red flash reads better on film.
+		const UTDTravelFX* FX = UTDStatics::LoadPresentation<UTDTravelFX>(TEXT("DA_Travel_FX"));
+		if (FX && FTDCombatPlaceholders::HasVisualArt(FX->EnemyWarpIn))
+		{
+			ATDWaveDirector::PlayShowcaseWarpIn(World, Where, Size);
+			return;
+		}
 		Flash(World, Where, Size, FLinearColor(1.f, 0.12f, 0.05f), 0.3f);
 	}
 
 	static void GateFlare(AActor* Gate, const FVector& Where)
 	{
+		if (ATDPortalGate* Portal = Cast<ATDPortalGate>(Gate))
+		{
+			Portal->PlayTransitFlare(Where);
+			return;
+		}
 		Flash(Gate ? Gate->GetWorld() : nullptr, Where, 2600.f, FLinearColor(0.5f, 0.9f, 1.f), 0.6f);
 	}
 
 	static bool ShowDominion(UWorld* World, bool bShow, const FTransform* Override)
 	{
-		(void)World; (void)bShow; (void)Override;
-	return false; // T4's ATDDominion::SetShowcase; until then shot 6 is the fleet against the stars
+		ATDDominion* Dominion = World ? ATDDominion::Get(World) : nullptr;
+		return Dominion && Dominion->SetShowcase(bShow, Override); // false: the stand-in from DA_Dominion_Visuals
 	}
 
 	// ---- The overlay: bars, black, subtitles, title, name cards, the skip hint ----
