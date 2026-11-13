@@ -14,12 +14,12 @@ It reads TD.UI.Status (works with either HUD) every loop and:
 It prints START / END status (hull, shield, alive enemies, hits) and how many dodges it made. Read deaths from
 the log: "TDSQUAD switch <from> -> <to> cause=...".
 
-Known limit: steering uses TD.Power.Turn, which is coarse and can be pulled back by the player controller;
-a target behind the ship can stay behind. It's a lower bound on a human, not a model of one.
+Steering uses TD.Input.TurnToward (real mouse input onto a world bearing from TD.UI.Status' wyaw / wpitch),
+re-issued every loop. It's still a lower bound on a human, not a model of one.
 """
 import argparse, json, os, re, subprocess, sys, time
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+ROOT = os.environ.get("TD_ROOT") or os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 WORLD = {"refPath": "/Game/TriadDrift/Maps/L_Galaxy.L_Galaxy"}
 
 
@@ -69,9 +69,13 @@ def main():
         m = re.search(r"viewport=(\d+)x(\d+)", txt)
         if m:
             st.update(w=int(m.group(1)), h=int(m.group(2)))
-        m = re.search(r"nearest=(\S+) dist=(\d+) onscreen=(\d) at \((-?\d+), (-?\d+)\) yaw=(-?[\d.]+) pitch=(-?[\d.]+)", txt)
+        m = re.search(r"nearest=(\S+) dist=(\d+) onscreen=(\d) at \((-?\d+), (-?\d+)\) yaw=(-?[\d.]+) pitch=(-?[\d.]+) wyaw=(-?[\d.]+) wpitch=(-?[\d.]+)", txt)
         if m:
-            st.update(near=m.group(1), ndist=float(m.group(2)), nyaw=float(m.group(6)), npitch=float(m.group(7)))
+            st.update(near=m.group(1), ndist=float(m.group(2)), nyaw=float(m.group(6)), npitch=float(m.group(7)),
+                      nwyaw=float(m.group(8)), nwpitch=float(m.group(9)))
+        m = re.search(r"target wyaw=(-?[\d.]+) wpitch=(-?[\d.]+) dist=(\d+)", txt)
+        if m:
+            st.update(twyaw=float(m.group(1)), twpitch=float(m.group(2)))
         m = re.search(r"hits=(\d+) newest=(-?[\d.]+)s", txt)
         if m:
             st.update(hits=int(m.group(1)), age=float(m.group(2)))
@@ -106,14 +110,15 @@ def main():
             dodges += 1
             if len(shots) < 4:
                 shots.append(shot("hit_%02d" % n))
-        # 2. Aim and fire.
-        if st.get("on") and st.get("w"):
-            yaw = (st["x"] - st["w"] / 2) / (st["w"] / 2) * 45.0
-            pitch = -(st["y"] - st["h"] / 2) / (st["h"] / 2) * 28.0
-            console("TD.Power.Turn %.1f %.1f" % (yaw * 0.8, pitch * 0.8))
-            console("TD.Input.Key LeftMouseButton 0.9")
-        elif "nyaw" in st:
-            console("TD.Power.Turn %.1f %.1f" % (max(-60, min(60, st["nyaw"])), max(-40, min(40, st["npitch"]))))
+        # 2. Aim (real mouse steering onto a world bearing, T1's TD.Input.TurnToward) and fire.
+        if "twyaw" in st:
+            console("TD.Input.TurnToward %.1f %.1f 1.2" % (st["twyaw"], st["twpitch"]))
+            # Fire on the bearing: the target's screen projection can read off-screen during the chase-camera lag.
+            aligned = st.get("near") == st.get("target") and abs(st.get("nyaw", 99)) < 20 and abs(st.get("npitch", 99)) < 15
+            if st.get("on") or aligned:
+                console("TD.Input.Key LeftMouseButton 0.9")
+        elif "nwyaw" in st:
+            console("TD.Input.TurnToward %.1f %.1f 1.2" % (st["nwyaw"], st["nwpitch"]))
             if abs(st["nyaw"]) < 20 and abs(st["npitch"]) < 15:
                 console("TD.Input.Key LeftMouseButton 0.9")
         elif n % 2 == 0:
