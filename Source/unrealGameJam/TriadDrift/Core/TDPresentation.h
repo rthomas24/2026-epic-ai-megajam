@@ -490,6 +490,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue DescentRoar;
 
+	// ENG-38 entry / exit set (the effects builder's systems; every one has a User.Intensity 0..1 float that T1's
+	// descent curve drives each frame; ship-local, +X = nose). All optional.
+	/** Attached loop on each squad ship's root during the climb out (the mirror of AtmosphericEntry). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue AtmosphericExit;
+	/** One shot at the ship as it leaves the atmosphere (ship rotation). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue ExitBreakaway;
+	/** One shot at the ship when it crosses the cloud deck, either direction. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue CloudPunch;
+	/** Attached loop while under the cloud deck, planet side. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue CloudWisps;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue LandingDust;
 

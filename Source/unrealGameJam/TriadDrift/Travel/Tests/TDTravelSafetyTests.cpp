@@ -1325,7 +1325,10 @@ bool FTDTravelExitAltitude::RunTest(const FString& Parameters)
 	Ship->TeleportSpacecraft(FVector(XY.X, XY.Y, Ground + OldCeilingAboveFloor + Zone->ExitHeightAboveCeiling + 1000.f), FRotator(80.f, 0.f, 0.f), false);
 	W.Tick();
 	W.Tick();
-	TestTrue(TEXT("past the old height above the ground: the exit fires (no climb to the peak ceiling)"), Zone->IsExitTriggered());
+	TestTrue(TEXT("past the old height above the ground: the climb out starts (no climb to the peak ceiling)"), Zone->IsClimbingOut());
+	TestFalse(TEXT("... the travel waits for the climb (ENG-38)"), Zone->IsExitTriggered());
+	W.Advance(Zone->ExitClimbSeconds + 0.2f);
+	TestTrue(TEXT("after the climb out: the exit fires"), Zone->IsExitTriggered());
 	return true;
 }
 
