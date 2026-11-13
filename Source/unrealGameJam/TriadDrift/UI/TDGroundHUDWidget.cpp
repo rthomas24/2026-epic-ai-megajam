@@ -243,13 +243,14 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 			const float Angle = FMath::Atan2(Local.Y, Local.X); // 0 = ahead, +right
 			const FVector2D Dir(FMath::Sin(Angle), -FMath::Cos(Angle));
 			const FVector2D Side(-Dir.Y, Dir.X);
-			const FVector2D Tip = Center + Dir * 150.f;
+			// Live at 1080p the first size (18 x 32) read but was easy to miss mid-fight: 1.4x, thicker.
+			const FVector2D Tip = Center + Dir * 165.f;
 			const float A = FMath::Clamp(1.f - Hit.Age / HitSeconds, 0.f, 1.f);
-			const FLinearColor C = Hostile.CopyWithNewOpacity(.9f * A);
-			P.Line(Tip, Tip - Dir * 18 + Side * 16, C, 3);
-			P.Line(Tip, Tip - Dir * 18 - Side * 16, C, 3);
-			P.Line(Tip - Dir * 9, Tip - Dir * 27 + Side * 12, C.CopyWithNewOpacity(.45f * A), 1.5f);
-			P.Line(Tip - Dir * 9, Tip - Dir * 27 - Side * 12, C.CopyWithNewOpacity(.45f * A), 1.5f);
+			const FLinearColor C = Hostile.CopyWithNewOpacity(.95f * A);
+			P.Line(Tip, Tip - Dir * 26 + Side * 23, C, 4);
+			P.Line(Tip, Tip - Dir * 26 - Side * 23, C, 4);
+			P.Line(Tip - Dir * 13, Tip - Dir * 38 + Side * 17, C.CopyWithNewOpacity(.5f * A), 2);
+			P.Line(Tip - Dir * 13, Tip - Dir * 38 - Side * 17, C.CopyWithNewOpacity(.5f * A), 2);
 		}
 	}
 

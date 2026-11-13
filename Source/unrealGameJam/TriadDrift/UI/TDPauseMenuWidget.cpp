@@ -19,8 +19,8 @@ DEFINE_LOG_CATEGORY_STATIC(LogTDPauseMenu, Log, All);
 
 namespace TDPauseMenu
 {
-	const float PanelX = 700.f, PanelY = 268.f, PanelW = 520.f, PanelH = 520.f;
-	const float RowX = 732.f, RowW = 456.f, RowH = 58.f, RowTop = 404.f, RowStep = 70.f;
+	const float PanelX = 700.f, PanelY = 290.f, PanelW = 520.f, PanelH = 470.f;
+	const float RowX = 732.f, RowW = 456.f, RowH = 58.f, RowTop = 426.f, RowStep = 70.f;
 }
 
 bool UTDPauseMenuWidget::Initialize()
