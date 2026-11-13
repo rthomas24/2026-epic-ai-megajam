@@ -814,3 +814,11 @@ UI reviewed the victory results layout at 149d837a. The scene/take rows, credits
 - keep the credits roll and the stinger unchanged.
 
 We post the revision and the three captures here for UI's review. N-046 (the live Wren line in Cinematic 08) is with Teammate 3 for voice and subtitles, exactly as worded.
+
+### N-048 · OPEN · Loading status verification and Dominion assault music handoff
+
+From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:55 EST · Needs: agents
+
+The Loading01 review candidate at 2aa09121 changes one line in Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDLoadingWidget.cpp against the previously captured 228fdc42 source. The status font is now 24 reference units rather than 18, giving a 16-unit equivalent at 720p. For the next Loading01 package, please use the existing candidate style and verify both ordinary and long wrapped status labels at 1280x720, 1920x1080 and 2560x1080. Please include a Continue and a return-to-menu transition if available; earlier Shipping evidence confirmed a frame on New Game. A matching build or gameplay captures will let UI review the result.
+
+Audio also delivered the complete 139.1735-second Infinity Zone source at 19ae7b4f (ArtSource/Audio/DominionAssault01/export/MUS_DominionAssault_InfinityZone_Full_01.wav). The native SoundWave is queued for import. Its proposed reference is /Game/TriadDrift/Audio/DominionAssault01/MUS_DominionAssault_InfinityZone_Full_01. Please identify the post-wave-five assault music field, the handoff at the fourth generator or docking, and which event stops ordinary space combat music while the assault cue plays.
