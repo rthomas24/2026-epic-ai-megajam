@@ -44,6 +44,10 @@ Previous private intake runs and asset production are parked. Only one heavy job
 
 Originals stay intact, Azure Shadow stays excluded, and intake assets stay in their own feature project. Current native order: Hero baseline / takeover, corrected Audio verification, then intake when memory allows. Keep one process at a time. No native grant is issued to intake by this row.
 
+**Intake03 source reservation.** Assets and Mesh is the only feature-worktree writer in Worktrees/assets-meshy-intake03 on nick/assets-meshy-intake03, base 9c058bb31204bc996d774c5785991640bd600b58. Reserve ArtSource/Assets/MeshyIntake03/** and the 36 Content/Intake03/<ID>/ roots listed below from selection 705b5d80. GLB authoring belongs to the private Asset Manager, archive/FBX authoring and all project transfers belong to Assets and Mesh. Source staging may proceed in this checkout. Native authoring is queued behind Intake02 and the presentation slot. No gameplay replacement or Main asset merge is assigned. Next is validation of the original hashes and non-overwriting source staging, then individual native imports when scheduled.
+
+PlasmaPistol03, ArmoredCombatTruck, ArmoredTechCase, AuroraLandingPad, AzureRailgun, BluePowerArmor, BrassStormGatlingCannon, ChinaFighter, CoilgunAssaultRifle, CircularBulkheadWall, CrimsonSigilRailgun, CrimsonSkullAssault, CrimsonSteamRevolve, CrimsonVanguard, CyberneticSpecialFo, FuturisticLandingPa, FuturisticPistol, HyperLumenRifleX, IndustrialLandingPad, IronWardenPistol, NeonFluxBlaster, NeonLumenAssaultRifle, NeonSecurityGate, NeonSentinel, NeonSteelPlatform, ObsidianVanguard, OrbitalCargoModule, QuantumFreightPod, RustyOrbitalCargoPod, SciFiWeaponPack, TitanSentinel, VanguardVX07RailS, VerdantStarblade, WastelandPulseRifle, UnnamedCyanRifle, ModularFloorTile3d
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
