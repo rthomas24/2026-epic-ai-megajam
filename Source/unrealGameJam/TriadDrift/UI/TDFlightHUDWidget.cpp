@@ -51,7 +51,7 @@ namespace TDFlightHUD
 
 		void Plate(float X, float Y, float W, float H, float Radius, FLinearColor C) const
 		{
-			FSlateDrawElement::MakeBox(List, Layer, Geo({ X, Y }, { W, H }), RoundedBrush(Radius * Scale, 0.f), ESlateDrawEffect::None, C);
+			FSlateDrawElement::MakeBox(List, Layer, Geo({ X, Y }, { W, H }), RoundedBrush(Radius * Scale, 0.f), ESlateDrawEffect::None, Faded(C));
 		}
 		/** A rounded-rectangle outline as a polyline (the rounded brush with a transparent fill still filled, live). */
 		void Outline(float X, float Y, float W, float H, float Radius, float Width, FLinearColor C) const
@@ -70,7 +70,7 @@ namespace TDFlightHUD
 			}
 			const FVector2D First = Points[0]; // a copy: adding an element of the array to itself asserts
 			Points.Add(First);
-			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, C, true, Width * Scale);
+			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Faded(C), true, Width * Scale);
 		}
 		FSlateFontInfo Font(const ANSICHAR* Face, int32 Size, int32 Tracking = 0) const
 		{
@@ -84,7 +84,9 @@ namespace TDFlightHUD
 		{
 			const FSlateFontInfo F = Font(Face, Size, Tracking);
 			const float W = Align > 0.f ? Measure(S, Font(Face, Size, Tracking)) : 0.f;
-			FSlateDrawElement::MakeText(List, Layer + 2, Geo({ X - W * Align, Y }, { 1, 1 }), S, F, ESlateDrawEffect::None, C);
+			FSlateFontInfo Shown = F;
+			Shown.OutlineSettings.OutlineColor.A *= Alpha; // the dark outline fades with the HUD too
+			FSlateDrawElement::MakeText(List, Layer + 2, Geo({ X - W * Align, Y }, { 1, 1 }), S, Shown, ESlateDrawEffect::None, Faded(C));
 		}
 		/** The one backing style for text over a bright sky (N-037, Lead): #0A0F1C at this opacity, tight around the text. */
 		static constexpr float BackingOpacity = .62f;
@@ -107,7 +109,7 @@ namespace TDFlightHUD
 			{
 				Points.Add((At + Q * Size) * Scale + Origin);
 			}
-			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, C, true, Width * Scale);
+			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Faded(C), true, Width * Scale);
 		}
 		/** An arc from angle A0 sweeping Sweep radians (screen angles: 0 = right, +PI/2 = down). */
 		void ArcSpan(FVector2D C, float R, float A0, float Sweep, FLinearColor Color, float Width) const
@@ -139,7 +141,7 @@ namespace TDFlightHUD
 					const float A = PI / 6.f + I * PI / 3.f;
 					Hex.Add((C + FVector2D(FMath::Cos(A), FMath::Sin(A)) * H) * Scale + Origin);
 				}
-				FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Hex, ESlateDrawEffect::None, Color, true, 2.2f * Scale);
+				FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Hex, ESlateDrawEffect::None, Faded(Color), true, 2.2f * Scale);
 			}
 		}
 		/** An arrowhead pointing along Angle (screen radians). Filled = solid wedge (stacked strokes), else an outline. */
@@ -164,7 +166,7 @@ namespace TDFlightHUD
 			{
 				Points.Add(Q * Scale + Origin);
 			}
-			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Color, true, 2.f * Scale);
+			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Faded(Color), true, 2.f * Scale);
 		}
 		/** A ready / cooling ring pip with a glyph (signature, ability, second power). */
 		void Pip(const FVector2D& At, float Radius, float Value, bool bReady, FLinearColor Accent, const FString& Glyph, int32 GlyphSize) const
@@ -421,7 +423,7 @@ void UTDFlightHUDWidget::SampleDirector(float Dt)
 	const float Target = View.bInCut ? 0.f : View.bInSlate ? SlateOpacity : View.bPaused ? PauseOpacity : 1.f;
 	// Off at once on a cut; everything else eases (the fade back in after CUT is the 250 ms the spec asks for).
 	View.HUDOpacity = View.bInCut ? 0.f : FMath::FInterpConstantTo(View.HUDOpacity, Target, RealDt, 1.f / CutFadeInSeconds);
-	SetRenderOpacity(View.HUDOpacity);
+	// Applied in NativePaint through the painter's Alpha (render opacity does not reach custom-painted elements).
 }
 
 void UTDFlightHUDWidget::HandleHitConfirmed(AActor* Target, bool bKill)
@@ -907,7 +909,14 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		return Base;
 	}
-	const FPaint P(AllottedGeometry, OutDrawElements, Base + 1);
+	FPaint P(AllottedGeometry, OutDrawElements, Base + 1);
+	P.Alpha = View.HUDOpacity; // CUT (0), slate (0.4), pause (0.3), the 0.25 s fade back in: every element follows
+	if (P.Alpha <= .001f)
+	{
+		LastBoxes.Reset();
+		LastCoverage01 = 0.f;
+		return Base; // a CUT: nothing at all on screen
+	}
 	const FVector2D C(CenterX, CenterY);
 	float Area = 224.f * 116.f; // the reticle cluster's box (spec 3.1); the rest is added as it is drawn
 	const FLinearColor Accent = T::Ship(View.Flown);
@@ -981,7 +990,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		// Over the whole widget, not the centred 16:9 design frame: at 3440x1440 the frame-space version showed as two
 		// vertical bands about 170 px in from the sides (review M6). Band widths scale with the screen height.
-		const FLinearColor Edge = T::Danger().CopyWithNewOpacity(.10f * (.6f + .4f * FMath::Sin(Now * 2.f * PI)));
+		const FLinearColor Edge = T::Danger().CopyWithNewOpacity(.10f * (.6f + .4f * FMath::Sin(Now * 2.f * PI)) * P.Alpha);
 		const FLinearColor Clear = T::Danger().CopyWithNewOpacity(0.f);
 		const FVector2D Full = AllottedGeometry.GetLocalSize();
 		const float Band = Full.Y * .2f;
@@ -1351,7 +1360,9 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		{
 			P.Words(TextX, SubtitleY + 8.f, Who, 16, Tag.CopyWithNewOpacity(Fade * Flicker), "Bold", 0.f, 80);
 		}
-		const float BodyX = TextX + (Who.IsEmpty() ? 0.f : 120.f);
+		// After the tag's own width ("UNKNOWN SIGNAL" ran into the line at a fixed 120 px, live capture).
+		const float TagW = Who.IsEmpty() ? 0.f : FMath::Max(P.Measure(Who, P.Font("Bold", 16, 80)), Who.Len() * 11.5f) + 20.f;
+		const float BodyX = TextX + TagW;
 		const FLinearColor Body = T::Neutral().CopyWithNewOpacity(Fade * Flicker);
 		if (bEcho)
 		{
