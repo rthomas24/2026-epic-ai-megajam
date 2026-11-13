@@ -204,6 +204,68 @@ void ATDDominion::BuildHullDetail(bool bShow)
 	UTDStatics::TintPlaceholder(HullEyes, FLinearColor::White, 12.f);
 }
 
+bool ATDDominion::SetShowcase(bool bShow, const FTransform* Override)
+{
+	if (!bShow)
+	{
+		if (!bShowcase) { return true; }
+		for (const TPair<TWeakObjectPtr<UPrimitiveComponent>, bool>& P : ShowcaseComponentVisibility)
+		{
+			if (P.Key.IsValid()) { P.Key->SetVisibility(P.Value); }
+		}
+		for (const TPair<TWeakObjectPtr<AActor>, bool>& P : ShowcaseActorHidden)
+		{
+			if (P.Key.IsValid()) { P.Key->SetActorHiddenInGame(P.Value); }
+		}
+		ShowcaseComponentVisibility.Reset();
+		ShowcaseActorHidden.Reset();
+		bShowcase = false;
+		SetActorTransform(ShowcasePrevTransform, false, nullptr, ETeleportType::TeleportPhysics);
+		SetActorHiddenInGame(bShowcasePrevHidden);
+		SetActorEnableCollision(bShowcasePrevCollision);
+		return true;
+	}
+	if (State != ETDDominionState::Hidden && State != ETDDominionState::Finished)
+	{
+		return false;	// the assault owns the ship
+	}
+	if (!bShowcase)
+	{
+		bShowcase = true;
+		ShowcasePrevTransform = GetActorTransform();
+		bShowcasePrevHidden = IsHidden();
+		bShowcasePrevCollision = GetActorEnableCollision();
+		// Only the silhouette: everything else on the actor and every attached part actor goes dark.
+		const TSet<const UPrimitiveComponent*> Keep = { HullMesh.Get(), BridgeMesh.Get(), TrenchWallLeft.Get(), TrenchWallRight.Get(), HullSeams.Get(), HullEyes.Get() };
+		TInlineComponentArray<UPrimitiveComponent*> Prims(this);
+		for (UPrimitiveComponent* P : Prims)
+		{
+			if (P && !Keep.Contains(P))
+			{
+				ShowcaseComponentVisibility.Emplace(P, P->GetVisibleFlag());
+				P->SetVisibility(false);
+			}
+		}
+		TArray<AActor*> Attached;
+		GetAttachedActors(Attached, true, true);
+		for (AActor* A : Attached)
+		{
+			if (A)
+			{
+				ShowcaseActorHidden.Emplace(A, A->IsHidden());
+				A->SetActorHiddenInGame(true);
+			}
+		}
+	}
+	if (Override)
+	{
+		SetActorTransform(*Override, false, nullptr, ETeleportType::TeleportPhysics);
+	}
+	SetActorEnableCollision(false);
+	SetActorHiddenInGame(false);
+	return true;
+}
+
 FVector ATDDominion::GetHangarLocation() const
 {
 	return HangarPoint ? HangarPoint->GetComponentLocation() : GetActorLocation();
@@ -311,6 +373,10 @@ void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ATDDominion::SetState(ETDDominionState NewState)
 {
+	if (bShowcase && NewState != State)
+	{
+		SetShowcase(false);	// the real Dominion takes over (reveal, retake, victory)
+	}
 	StateTime = 0.f;
 	if (State != NewState)
 	{
