@@ -490,6 +490,34 @@ The contact sheet includes a 180 cm pilot box at the foot of the +X stairs. Nich
   **a Rift r2 from you with a clean, heavier ring housing and proper engine interiors is now the most valuable single
   delivery.**
 
+**For Grok Bot (Ryan / Lead, 2026-11-13 17:05 EST): the Dominion's real numbers; the hull may now be meshed from v3.** Nicholas
+has approved the v3 design exactly as shown (issue #41). From T4, who owns the Dominion in the game. Units are cm, in
+the Dominion's local space: **+X = bow (forward), +Y = starboard, +Z = up, origin = the hull's centre.**
+
+| Part | Position (cm) | Size / facing |
+|---|---|---|
+| **Hull** | centred on the origin | **60,000 long x 16,000 wide x 10,000 high** (600 m x 160 m x 100 m) |
+| Bridge | (-19500, 0, 8000) | 7500 x 4000 x 6000; toward the stern, on top |
+| Trench | along X on the top deck, centred at x 3000 | 5000 wide between walls at y = +-2500; walls 42,000 long, 3000 high |
+| Reactor | (16500, 0, 6500) | in the trench, forward third |
+| **Shield generators x4** | **(+-27500, +-27500, 0)**, on a ring of radius 38,880 at 45 / 135 / 225 / 315 degrees | they stand OFF the hull, facing radially outward (the hull is only 8000 half-wide) |
+| Generator guard turrets | 2 per generator, +-3000 along the ring's tangent, +1500 in z | |
+| Hull turrets x2 | (-18000, -8000, 5500) and (18000, 8000, 5500) | on the flanks |
+| Trench turrets x4 | x from -15000 to 12000, y +-1700, z 7700 | |
+| **Docking bay mouth** | at the bow: (hull max X, 0, -2000) | **door 5000 wide x 3500 high, facing +X**; the glide ends 6000 inside |
+| Fighter launch point | (33000, 0, -2000) | just off the bow |
+
+**What the mesh must provide:** sockets named `Generator_0..3`, `Reactor`, `Bay` (at the mouth, +X pointing out),
+`TrenchTurret_0..3`, `HullTurret_0..1`, and simple collision for the hull, the bridge and the trench walls. T4 will
+read sockets when they exist and fall back to this table otherwise, so the design may move things: **the concept's
+long hull with its dorsal detail is right; what is fixed is the 600 m length, a flyable trench about 50 m wide along
+the top, the bay mouth at the bow, and four generators.** Note the generators are not dorsal pads in the game: they
+sit on four outriggers around the ship, 275 m out to each quarter. Either give the hull four outrigger arms that
+reach those positions (preferred: it explains why they can be shot from space), or tell me the positions your hull
+wants and T4 moves them to your sockets. The shield generator mesh itself is separate (already yours to make).
+Triangles: this is the largest object in the game, seen from 100 m to 10 km: up to 150k as Nanite, 4K source
+textures shipped at 2K with a tiling detail layer so the trench holds up when the player flies through it.
+
 ### R-034 · ANSWERED · Ryan has adopted Nicholas's story, The Paradox: storyline.md, what changes, and what we need from you (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's decision, Nov 13) · **For:** Nicholas; Nick / Lead Coordinator and every Nick-side agent; Ryan / Grok Bot · **Time:** 2026-11-13 13:19 EST · **Needs:** Nick (confirm), Nick's agents (acknowledge), Grok Bot (read)
