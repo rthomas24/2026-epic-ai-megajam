@@ -1,0 +1,66 @@
+{
+  "asset": "SM_Wreck",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Outpost\\Wreck\\export\\SM_Wreck.fbx",
+  "tris": 27104,
+  "size_cm": [
+    3200.0,
+    1672.6,
+    1211.7
+  ],
+  "pivot": "root object origin (SM_Wreck~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Wreck"
+  ],
+  "material_params": [
+    {
+      "name": "M_Wreck",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_Wreck_00",
+    "UCX_SM_Wreck_01",
+    "UCX_SM_Wreck_02",
+    "UCX_SM_Wreck_03",
+    "UCX_SM_Wreck_04",
+    "UCX_SM_Wreck_05",
+    "UCX_SM_Wreck_06",
+    "UCX_SM_Wreck_07",
+    "UCX_SM_Wreck_08",
+    "UCX_SM_Wreck_09",
+    "UCX_SM_Wreck_10",
+    "UCX_SM_Wreck_11"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 19,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}

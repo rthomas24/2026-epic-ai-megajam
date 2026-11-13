@@ -1,0 +1,64 @@
+{
+  "site": "Outpost_Site",
+  "about": "Survey outpost = cabin + console. Unreal cm, site-relative; the site pivot is the cabin pivot: on the ground under the centre of the deck. +X is the front (open bay, ramp). Verdance and Cinder differ by material instance only.",
+  "ready_made_actor": {
+    "Verdance": "/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_Verdance",
+    "Cinder": "/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_Cinder"
+  },
+  "pieces": [
+    {
+      "name": "Cabin",
+      "mesh": "/Game/TriadDrift/Gameplay/Props/Outpost/SM_Outpost_Cabin",
+      "location_cm": [0.0, 0.0, 0.0],
+      "rotation_deg": [0.0, 0.0, 0.0],
+      "scale": 1.0,
+      "materials": {
+        "Verdance": "/Game/TriadDrift/Gameplay/Props/Outpost/MI_Outpost_Cabin_Verdance",
+        "Cinder": "/Game/TriadDrift/Gameplay/Props/Outpost/MI_Outpost_Cabin_Cinder"
+      },
+      "bounds_cm": {"min": [-400.0, -385.2, -150.0], "max": [625.9, 385.2, 674.0]},
+      "note": "Everything below Z = 0 is piles under the seven feet and the ramp toe (hidden on flat ground)."
+    },
+    {
+      "name": "Console",
+      "mesh": "/Game/TriadDrift/Gameplay/Props/Outpost/SM_Outpost_Console",
+      "location_cm": [-19.0, 81.5, 153.0],
+      "rotation_deg": [0.0, 0.0, 0.0],
+      "scale": 1.0,
+      "materials": {
+        "Verdance": "/Game/TriadDrift/Gameplay/Props/Outpost/MI_Outpost_Console_Verdance",
+        "Cinder": "/Game/TriadDrift/Gameplay/Props/Outpost/MI_Outpost_Console_Cinder"
+      },
+      "bounds_cm": {"min": [-43.5, -130.0, 0.0], "max": [43.5, 130.0, 150.0]},
+      "separate_actor": true,
+      "note": "Pivot bottom-centre, screens face +X. Stands on the bay floor against the back wall, centred between the bay walls. Material slot 0: scalar ScreenPower (default 1.6) is the screens' brightness."
+    }
+  ],
+  "console_interact": {
+    "stand_at_site_cm": [76.0, 81.5, 153.0],
+    "stand_at_console_local_cm": [95.0, 0.0, 0.0],
+    "pilot_faces_yaw_deg": 180.0,
+    "screen_centre_site_cm": [10.0, 60.0, 270.0],
+    "note": "The pilot stands 51 cm in front of the desk edge, feet on the bay floor, looking along -X."
+  },
+  "walk_path_site_cm": [
+    {"at": [660.0, 70.6, 0.0], "what": "ground in front of the ramp toe (ramp toe is at X = 626)"},
+    {"at": [241.0, 70.6, 141.0], "what": "top of the ramp (slope 19.2 deg, 385 cm run, 141 cm rise)"},
+    {"at": [170.0, 78.0, 140.0], "what": "deck in front of the bay (13 cm step up to the bay floor at X = 112)"},
+    {"at": [76.0, 81.5, 153.0], "what": "console interact point"}
+  ],
+  "walkability_cm": {
+    "deck_top_z": 140.0,
+    "deck_extent": {"x": [-400.0, 228.0], "y": [-385.0, 385.0]},
+    "bay_floor_z": 153.0,
+    "bay": {"x": [-66.0, 112.0], "y": [-76.0, 239.0], "clear_width": 315.0, "clear_height": 246.0, "lintel_clear_height": 254.0, "depth": 178.0},
+    "ramp": {"x": [219.3, 625.9], "y": [-4.1, 143.7], "width": 147.8, "clear_between_rails": 126.8, "slope_deg": 19.15, "slope_deg_as_delivered": 38.0},
+    "clear_in_front_of_console": {"on_bay_floor": 87.5, "to_deck_edge": 203.5, "note": "console front at X = 24.5; bay floor ends X = 112 (13 cm step down to the deck); deck edge X = 228"},
+    "awning_underside_z": [421.0, 462.0]
+  },
+  "placement_rules": [
+    "Put the site pivot ON the ground; do not sink it (the deck is 140 cm up on 118 cm legs). The piles cover a drop of up to 150 cm under any foot.",
+    "Keep 3 m of flat ground in front of the ramp toe (site X 626 to 930, Y -5 to 145).",
+    "Yaw the whole site freely; never scale it (door and ramp clearances are sized for the 180 cm pilot)."
+  ]
+}

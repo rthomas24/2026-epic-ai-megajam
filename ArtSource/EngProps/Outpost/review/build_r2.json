@@ -1,0 +1,146 @@
+{
+ "tag": "r2",
+ "source_islands": 177,
+ "ramp_verts": 330,
+ "pad_verts": 53,
+ "dark_uv": [
+  0.158,
+  0.0084
+ ],
+ "ramp_bbox_before_cm": [
+  [
+   219.3,
+   -143.7,
+   0.0
+  ],
+  [
+   400.0,
+   4.1,
+   170.8
+  ]
+ ],
+ "ramp_bbox_after_cm": [
+  [
+   219.3,
+   -143.7,
+   0.0
+  ],
+  [
+   625.9,
+   4.1,
+   170.8
+  ]
+ ],
+ "glow_uv": [
+  0.71875,
+  0.05078
+ ],
+ "glow_block_uv": 0.0234375,
+ "beacon_cm": [
+  32.0,
+  268.6,
+  665.0
+ ],
+ "piles": [
+  [
+   -397,
+   -382,
+   -370,
+   -355
+  ],
+  [
+   -78,
+   -382,
+   -51,
+   -355
+  ],
+  [
+   198,
+   -382,
+   225,
+   -355
+  ],
+  [
+   198,
+   -9,
+   225,
+   16
+  ],
+  [
+   -397,
+   -9,
+   -370,
+   16
+  ],
+  [
+   -397,
+   355,
+   -370,
+   382
+  ],
+  [
+   -78,
+   355,
+   -51,
+   382
+  ]
+ ],
+ "ramp_slope_deg": 19.15,
+ "ramp_slope_deg_source": 38.0,
+ "ramp": {
+  "hinge_x": 219.3,
+  "slope_starts_x": 241.1,
+  "tip_x": 625.9,
+  "width_cm": 147.8,
+  "clear_between_rails_cm": 126.8,
+  "y_range_blender": [
+   -143.7,
+   4.1
+  ]
+ },
+ "export_SM_Outpost_Cabin": {
+  "status": "ok",
+  "tris": 8219,
+  "size_cm": [
+   1025.9,
+   770.4,
+   824.0
+  ],
+  "collision": [
+   "UCX_SM_Outpost_Cabin_00",
+   "UCX_SM_Outpost_Cabin_01",
+   "UCX_SM_Outpost_Cabin_02",
+   "UCX_SM_Outpost_Cabin_03",
+   "UCX_SM_Outpost_Cabin_04",
+   "UCX_SM_Outpost_Cabin_05",
+   "UCX_SM_Outpost_Cabin_06",
+   "UCX_SM_Outpost_Cabin_07",
+   "UCX_SM_Outpost_Cabin_08",
+   "UCX_SM_Outpost_Cabin_09",
+   "UCX_SM_Outpost_Cabin_10"
+  ],
+  "sockets": [],
+  "welded_verts": 6360,
+  "warnings": [],
+  "errors": []
+ },
+ "export_SM_Outpost_Console": {
+  "status": "ok",
+  "tris": 6628,
+  "size_cm": [
+   87.0,
+   260.0,
+   150.0
+  ],
+  "collision": [
+   "UCX_SM_Outpost_Console_00",
+   "UCX_SM_Outpost_Console_01"
+  ],
+  "sockets": [
+   "SOCKET_Interact"
+  ],
+  "welded_verts": 2481,
+  "warnings": [],
+  "errors": []
+ }
+}
