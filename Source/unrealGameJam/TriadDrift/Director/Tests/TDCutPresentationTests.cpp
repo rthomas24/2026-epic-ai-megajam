@@ -8,6 +8,7 @@
 
 #include "GameFramework/PlayerController.h"
 #include "Misc/ScopeExit.h"
+#include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -231,6 +232,23 @@ bool FTDCutPresCutAndSlate::RunTest(const FString& Parameters)
 	TestEqual(TEXT("CamelCase objective"), UTDCutPresentation::MakeSlateText(TEXT("Obj_WreckCore"), 2, 4, TEXT("Verdance")).ToString(), FString(TEXT("SCENE 4 · VERDANCE · WRECK CORE · TAKE 2")));
 	TestEqual(TEXT("the finale"), UTDCutPresentation::MakeSlateText(TEXT("Dominion"), 1, 9).ToString(), FString(TEXT("SCENE 9 · DOMINION · TAKE 1")));
 	TestEqual(TEXT("no number known"), UTDCutPresentation::MakeSlateText(TEXT("Wave3"), 2).ToString(), FString(TEXT("WAVE 3 · TAKE 2")));
+	// The story name wins over the id (T5's renames: ids unchanged, titles new).
+	TestEqual(TEXT("objective title"), UTDCutPresentation::MakeSlateText(TEXT("Obj_WreckCore"), 2, 4, TEXT("Verdance"),
+		FText::FromString(TEXT("The Research Site"))).ToString(), FString(TEXT("SCENE 4 · VERDANCE · THE RESEARCH SITE · TAKE 2")));
+	TestEqual(TEXT("title without a number"), UTDCutPresentation::MakeSlateText(TEXT("Obj_Jammer"), 1, 0, FString(),
+		FText::FromString(TEXT("The Field Anchor"))).ToString(), FString(TEXT("THE FIELD ANCHOR · TAKE 1")));
+	{
+		FTDTestWorld TW;
+		ATDObjective* Obj = TW.Spawn<ATDObjective>(FVector::ZeroVector);
+		if (TestNotNull(TEXT("objective"), Obj))
+		{
+			Obj->ObjectiveId = TEXT("Obj_Outpost");
+			Obj->Title = FText::FromString(TEXT("The Mining Complex"));
+			TestEqual(TEXT("the slate finds the objective's title"), UTDCutPresentation::FindSceneTitle(TW.GetWorld(), TEXT("Obj_Outpost")).ToString(),
+				FString(TEXT("The Mining Complex")));
+			TestTrue(TEXT("a wave has no title: the id is used"), UTDCutPresentation::FindSceneTitle(TW.GetWorld(), TEXT("Wave3")).IsEmpty());
+		}
+	}
 	FFixture F;
 	F.Bus()->BroadcastSceneCut(TEXT("Wave3"), 2, 1.5f);
 	F.W.Advance(0.2f);

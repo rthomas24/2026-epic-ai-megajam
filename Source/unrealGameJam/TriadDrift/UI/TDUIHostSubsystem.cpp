@@ -23,6 +23,7 @@
 #include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/UI/TDGroundHUDWidget.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
+#include "TriadDrift/UI/TDTacticalDisplayWidget.h"
 #include "TriadDrift/UI/TDPauseMenuWidget.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -72,6 +73,11 @@ void UTDUIHostSubsystem::Deinitialize()
 	Hide();
 	HideGround();
 	HidePause();
+	if (TacticalWidget)
+	{
+		TacticalWidget->RemoveFromParent();
+		TacticalWidget = nullptr;
+	}
 	BindPause(nullptr);
 	BindHitSounds(false);
 	SetDevHUDSuppressed(false);
@@ -86,6 +92,11 @@ TStatId UTDUIHostSubsystem::GetStatId() const
 void UTDUIHostSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (const UTDTacticalDisplayWidget* Display = Cast<UTDTacticalDisplayWidget>(TacticalWidget); Display && Display->IsFinished())
+	{
+		TacticalWidget->RemoveFromParent();
+		TacticalWidget = nullptr;
+	}
 	TimeUntilCheck -= DeltaTime;
 	if (TimeUntilCheck > 0.f)
 	{
@@ -262,6 +273,59 @@ void UTDUIHostSubsystem::SetCinematicHidden(bool bHidden)
 	}
 	UE_LOG(LogTDUIHost, Log, TEXT("All HUDs %s for a cinematic."), bHidden ? TEXT("hidden") : TEXT("restored"));
 	Evaluate();
+}
+
+bool UTDUIHostSubsystem::ShowTacticalDisplay(const UObject* WorldContext, float Seconds)
+{
+	UTDUIHostSubsystem* Host = Get(WorldContext);
+	APlayerController* PC = Host ? Host->FindLocalController() : nullptr;
+	if (!PC)
+	{
+		return false;
+	}
+	UTDTacticalDisplayWidget* Display = Cast<UTDTacticalDisplayWidget>(Host->TacticalWidget);
+	if (!Display)
+	{
+		Display = CreateWidget<UTDTacticalDisplayWidget>(PC, UTDTacticalDisplayWidget::StaticClass());
+		if (!Display)
+		{
+			return false;
+		}
+		Host->TacticalWidget = Display;
+		const UWorld* World = Host->GetWorld();
+		if (Host->bAddToViewport && World && World->GetGameViewport())
+		{
+			Display->AddToViewport(UTDUIHostSettings::Get()->ZOrder + 50); // over the HUD and a cinematic, under menus
+		}
+	}
+	Display->Play(Seconds);
+	return true;
+}
+
+bool UTDUIHostSubsystem::ShowNavigationPulse(const UObject* WorldContext, FVector From, FVector To, float Seconds)
+{
+	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	UTDFlightHUDWidget* Flight = Host ? Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD()) : nullptr;
+	if (!Flight)
+	{
+		return false;
+	}
+	Flight->ShowNavigationPulse(From, To, Seconds);
+	return true;
+}
+
+bool UTDUIHostSubsystem::ShowTransmission(const UObject* WorldContext, FName Speaker, FText Line, uint8 Style, float Seconds)
+{
+	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	UTDFlightHUDWidget* Flight = Host ? Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD()) : nullptr;
+	if (!Flight)
+	{
+		return false;
+	}
+	const UTDFlightHUDWidget::ETransmissionStyle S = Style == 1 ? UTDFlightHUDWidget::ETransmissionStyle::Static
+		: Style == 2 ? UTDFlightHUDWidget::ETransmissionStyle::Echo : UTDFlightHUDWidget::ETransmissionStyle::Clean;
+	Flight->ShowTransmission(Speaker, Line, S, Seconds);
+	return true;
 }
 
 void UTDUIHostSubsystem::SetCinematicHiddenIn(const UObject* WorldContext, bool bHidden)
@@ -632,6 +696,9 @@ namespace TDUIHost
 			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: flight HUD coverage=%.2f%% marks=%d wings=%d hits=%d lane=%d hull=%.2f shield=%.2f gamepad=%d waypoints=%d card=%d step=%d/%d"),
 				Flight->GetCoverage01() * 100.f, V.Marks.Num(), V.Wings.Num(), V.Hits.Num(), static_cast<int32>(V.Lane), V.Hull, V.Shield, V.bUsingGamepad ? 1 : 0,
 				V.Waypoints.Num(), V.bHintCard ? 1 : 0, V.HintStep, V.HintCount);
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: flight HUD %s inviewport=%d opacity=%.2f subtitle=\"%s\" age=%.2f/%.2f story=%d"),
+				*Flight->GetName(), Flight->IsInViewport() ? 1 : 0, V.HUDOpacity, *V.Subtitle.Text, V.Subtitle.Age, V.Subtitle.Seconds,
+				V.Subtitle.bStory ? 1 : 0);
 			if (const ITDHUDData* Src = Cast<ITDHUDData>(Flight->GetDataSource()))
 			{
 				for (const AActor* Marker : Src->GetObjectiveMarkers())
@@ -788,6 +855,39 @@ namespace TDUIHost
 	FAutoConsoleCommandWithWorldAndArgs CmdTDUIDevHurt(TEXT("TD.UI.DevHurt"),
 		TEXT("TD.UI.DevHurt <amount> [fromYawDeg]: damage the player's ship from a side (dev, HUD captures)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&DevHurt));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUITactical(TEXT("TD.UI.Tactical"),
+		TEXT("TD.UI.Tactical [seconds=20]: show the Aftermath tactical display (dev, captures)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			UTDUIHostSubsystem::ShowTacticalDisplay(World, Args.Num() > 0 ? FCString::Atof(*Args[0]) : 20.f);
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUIBark(TEXT("TD.UI.Bark"),
+		TEXT("TD.UI.Bark <BarkId> <Speaker>: broadcast a bark request on the event bus, as the squad does (dev, captures)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (UTDEventBus* Bus = Args.Num() >= 2 ? UTDEventBus::Get(World) : nullptr)
+			{
+				Bus->BroadcastBarkRequested(FName(*Args[0]), FName(*Args[1]));
+			}
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUINavPulse(TEXT("TD.UI.NavPulse"),
+		TEXT("TD.UI.NavPulse [seconds=1.5]: the Aftermath navigation pulse, a corridor from 1 km to 9 km ahead and to the right (dev)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+			const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+			if (!Pawn)
+			{
+				return;
+			}
+			const FVector Fwd = Pawn->GetActorForwardVector(), Right = Pawn->GetActorRightVector();
+			const FVector From = Pawn->GetActorLocation() + Fwd * 100000.f - Pawn->GetActorUpVector() * 8000.f;
+			const FVector To = Pawn->GetActorLocation() + Fwd * 900000.f + Right * 250000.f;
+			UTDUIHostSubsystem::ShowNavigationPulse(World, From, To, Args.Num() > 0 ? FCString::Atof(*Args[0]) : 1.5f);
+		}));
 
 	FAutoConsoleCommandWithWorld CmdTDUIStatus(TEXT("TD.UI.Status"),
 		TEXT("TD.UI.Status: log the space HUD host state, its data source's current target and the widget's decoded squad cards."),

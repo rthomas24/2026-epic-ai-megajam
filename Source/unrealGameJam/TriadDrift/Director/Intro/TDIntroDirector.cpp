@@ -1,6 +1,8 @@
 // Triad Drift - ENG-33 the cinematic intro. Owner: Teammate 3.
 
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Input/TDTutorialMusicSubsystem.h"
 
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
@@ -142,12 +144,30 @@ namespace TDIntro
 		UStaticMeshComponent* Mesh = Dart->GetStaticMeshComponent();
 		Mesh->SetMobility(EComponentMobility::Movable);
 		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		// The Null Armada's own fighters (engineering's fleet meshes, nose +X) until T4's showcase hook lands.
+		// The Null Armada's own fighters, exactly as the game shows them: mesh and materials from the enemy visuals assets
+		// (DA_Enemy_Fighter_Visuals / DA_Enemy_Interceptor_Visuals, Presentation over engineering), so the intro never drifts
+		// from the fleet and the meshes are cooked through the visuals. Every third ship is an interceptor.
 		static int32 Variant = 0;
-		const TCHAR* Fleet = (Variant++ % 3 == 2)
-			? TEXT("/Game/TriadDrift/Gameplay/Characters/NullFleet/SM_Null_Interceptor.SM_Null_Interceptor")
-			: TEXT("/Game/TriadDrift/Gameplay/Characters/NullFleet/SM_Null_Fighter.SM_Null_Fighter");
-		if (UStaticMesh* Ship = LoadObject<UStaticMesh>(nullptr, Fleet))
+		const bool bInterceptor = (Variant++ % 3 == 2);
+		if (const UTDEnemyVisuals* V = UTDStatics::LoadPresentation<UTDEnemyVisuals>(bInterceptor ? TEXT("DA_Enemy_Interceptor_Visuals") : TEXT("DA_Enemy_Fighter_Visuals")))
+		{
+			if (UStaticMesh* Ship = V->Mesh.LoadSynchronous())
+			{
+				Mesh->SetStaticMesh(Ship);
+				for (int32 i = 0; i < V->MaterialOverrides.Num(); ++i)
+				{
+					if (UMaterialInterface* M = V->MaterialOverrides[i].LoadSynchronous())
+					{
+						Mesh->SetMaterial(i, M);
+					}
+				}
+				return Dart;
+			}
+		}
+		// No visuals asset: the Rodin fleet by path (Lead, Nov 13).
+		if (UStaticMesh* Ship = LoadObject<UStaticMesh>(nullptr, bInterceptor
+			? TEXT("/Game/TriadDrift/Gameplay/Ships/NullInterceptor/SM_NullInterceptor.SM_NullInterceptor")
+			: TEXT("/Game/TriadDrift/Gameplay/Ships/NullFighter/SM_NullFighter.SM_NullFighter"), nullptr, LOAD_Quiet | LOAD_NoWarn))
 		{
 			Mesh->SetStaticMesh(Ship);
 			return Dart;
@@ -451,9 +471,17 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 
 	HoldSquad(true);
 	BuildShots();
+	// The narration's words come from the story table (Intro_N0..N4, storyline.md: the premise); these are fallbacks.
+	Narration.Reset();
+	for (int32 i = 0; i < NarrationLines().Num(); ++i)
+	{
+		Narration.Add(UTDStorySubsystem::GetText(FName(*FString::Printf(TEXT("Intro_N%d"), i)), NarrationLines()[i]));
+	}
 
-	// Music (presentation slot; the asset carries its own class and volume).
-	if (const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
+	// Music (presentation slot; the asset carries its own class and volume). T1, issue #24: not while the tutorial
+	// music (prelude / loop) owns a New Game's opening; IntroMusic stays for runs without it.
+	bIntroMusicSuppressed = !UTDTutorialMusicSubsystem::ShouldIntroPlayIntroMusic(this);
+	if (const UTDUIStyle* Style = bIntroMusicSuppressed ? nullptr : UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
 	{
 		if (USoundBase* Sound = Style->IntroMusic.LoadSynchronous())
 		{
@@ -1366,9 +1394,9 @@ void UTDIntroDirector::UpdateOverlay(float T)
 	Overlay.Black = Black;
 
 	// Narration.
-	if (S.Narration >= 0 && NarrationLines().IsValidIndex(S.Narration))
+	if (S.Narration >= 0 && Narration.IsValidIndex(S.Narration))
 	{
-		Overlay.Subtitle = NarrationLines()[S.Narration];
+		Overlay.Subtitle = Narration[S.Narration];
 		const float Start = S.Id == TEXT("Nebula") ? 0.8f : 0.4f;
 		Overlay.SubtitleAlpha = TDIntro::Span(T, Start, S.Duration - 0.35f, 0.5f, 0.45f);
 		if (LastNarrationVoice != S.Narration && T >= Start)
@@ -1396,7 +1424,8 @@ void UTDIntroDirector::UpdateOverlay(float T)
 				const ETDShipId Id = static_cast<ETDShipId>(i);
 				const FTDShipSpec Spec = Squad ? Squad->GetSpec(Id) : UTDShipLibrary::GetShipSpec(Id);
 				Overlay.NameCard = FText::Format(LOCTEXT("PilotCard", "{0}"), Spec.PilotName);
-				Overlay.NameCardRole = FText::Format(LOCTEXT("PilotRole", "{0}  ·  {1}"), Spec.ShipName, Spec.RoleName);
+				const FText Trait = UTDStorySubsystem::PilotTrait(Id);
+				Overlay.NameCardRole = Trait.IsEmpty() ? FText::Format(LOCTEXT("PilotRole", "{0}  ·  {1}"), Spec.ShipName, Spec.RoleName) : Trait;
 				Overlay.NameCardColor = UTDShipLibrary::GetSquadColor(Spec);
 				Overlay.NameCardAlpha = Alpha;
 			}
@@ -1522,8 +1551,13 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		return;
 	}
 	UWorld* World = GetWorld();
+	// The intro runs on wall time (the music plays on the audio clock and lands its downbeat on control): the world's
+	// undilated, unclamped frame time, so a hitch skips intro frames instead of stretching the intro. DeltaTime is
+	// dilated and clamped by the world (MaxUndilatedFrameTime), so it is only the fallback.
 	const float Dilation = (World && World->GetWorldSettings()) ? FMath::Max(World->GetWorldSettings()->GetEffectiveTimeDilation(), 0.01f) : 1.f;
-	const float Dt = FMath::Min(DeltaTime / Dilation, 0.1f);
+	const float RealDt = FMath::Max(0.f, World ? World->DeltaRealTimeSeconds : DeltaTime / Dilation);
+	// Smoothing (camera look, handheld, skip hold) keeps a bounded step: a 2 s frame must not overshoot a blend.
+	const float Dt = FMath::Min(RealDt, 0.1f);
 	LastDt = Dt;
 	UpdateSkip(Dt);
 	if (!bPlaying)
@@ -1532,7 +1566,7 @@ void UTDIntroDirector::Tick(float DeltaTime)
 	}
 	if (bHandingOff)
 	{
-		HandOffElapsed += Dt;
+		HandOffElapsed += RealDt;
 		Overlay.Black = 0.f;
 		Overlay.SubtitleAlpha = 0.f;
 		Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
@@ -1548,7 +1582,7 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		UpdateShot(Elapsed - ShotStart); // hold the frame (captures)
 		return;
 	}
-	Elapsed += Dt;
+	Elapsed += RealDt;
 	if (bSequenceMode)
 	{
 		// Presentation's own Level Sequence: it owns the camera cuts; the hand-off follows its last frame.
@@ -1579,11 +1613,27 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		}
 		return;
 	}
+	// A long frame may cross several shots: each is closed at its own last frame and the next begun, in order, so no
+	// shot's events are lost or fired out of order; past the last shot the hand-off keeps the surplus time.
 	while (Shots.IsValidIndex(ShotIndex) && Elapsed >= ShotStart + Shots[ShotIndex].Duration)
 	{
+		if (RealDt > 0.1f)
+		{
+			UpdateShot(Shots[ShotIndex].Duration);
+		}
 		if (ShotIndex + 1 >= Shots.Num())
 		{
+			const float Surplus = Elapsed - (ShotStart + Shots[ShotIndex].Duration);
 			BeginHandOff();
+			HandOffElapsed = FMath::Max(0.f, Surplus);
+			Elapsed = GetTotalDuration();
+			Overlay.Black = 0.f;
+			Overlay.SubtitleAlpha = 0.f;
+			Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
+			if (bPlaying && HandOffElapsed >= HandOffSeconds)
+			{
+				Finish(); // once: Finish ends play, and a later Tick returns at !bPlaying
+			}
 			return;
 		}
 		BeginShot(ShotIndex + 1);

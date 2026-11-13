@@ -27,6 +27,7 @@ namespace TDJourneyImpl
 
 const FName FTDJourney::DominionApproach(TEXT("Dominion_Approach"));
 const FName FTDJourney::DominionTrench(TEXT("Dominion_Trench"));
+const FName FTDJourney::InteriorHangar(TEXT("Hangar"));
 
 bool FTDJourney::FindStageStart(UWorld* World, FName ReturnPoint, FTransform& Out)
 {
@@ -94,6 +95,20 @@ FTDProgress FTDJourney::MakeProgress(ETDJourneyStage Stage, const FTDProgress& K
 		P.Phase = ETDGamePhase::DominionAssault; P.WavesCleared = 5; P.bDominionRevealed = true; P.bDominionDefensesDown = true;
 		TDJourneyImpl::AddVerdance(P); TDJourneyImpl::AddCinder(P);
 		break;
+	case ETDJourneyStage::DominionDocking:
+		P.Phase = ETDGamePhase::DominionAssault; P.WavesCleared = 5; P.bDominionRevealed = true; P.bDominionDefensesDown = true;
+		TDJourneyImpl::AddVerdance(P); TDJourneyImpl::AddCinder(P);
+		break;
+	case ETDJourneyStage::DominionInterior:
+		P.Phase = ETDGamePhase::DominionInterior; P.WavesCleared = 5; P.bDominionRevealed = true; P.bDominionDefensesDown = true;
+		P.bDominionBoarded = true;
+		TDJourneyImpl::AddVerdance(P); TDJourneyImpl::AddCinder(P);
+		break;
+	case ETDJourneyStage::EscapeFlight:
+		P.Phase = ETDGamePhase::Escape; P.WavesCleared = 5; P.bDominionRevealed = true; P.bDominionDefensesDown = true;
+		P.bDominionBoarded = true; P.bReactorDestroyed = true;
+		TDJourneyImpl::AddVerdance(P); TDJourneyImpl::AddCinder(P);
+		break;
 	case ETDJourneyStage::Victory:
 		P.Phase = ETDGamePhase::Victory; P.WavesCleared = 5; P.bDominionRevealed = true; P.bDominionDefensesDown = true;
 		TDJourneyImpl::AddVerdance(P); TDJourneyImpl::AddCinder(P);
@@ -110,6 +125,7 @@ ETDDestination FTDJourney::DestinationOf(ETDJourneyStage Stage)
 	case ETDJourneyStage::VerdanceOnFoot: return ETDDestination::Verdance;
 	case ETDJourneyStage::CinderArrival:
 	case ETDJourneyStage::CinderOnFoot: return ETDDestination::Cinder;
+	case ETDJourneyStage::DominionInterior: return ETDDestination::DominionInterior;
 	default: return ETDDestination::Galaxy;
 	}
 }
@@ -122,7 +138,10 @@ FName FTDJourney::ReturnPointOf(ETDJourneyStage Stage)
 	case ETDJourneyStage::CinderOnFoot: return TEXT("Cinder_Pad");
 	case ETDJourneyStage::Waves3to4: return TDReturnPoints::VerdanceOrbit;
 	case ETDJourneyStage::Wave5: return TDReturnPoints::CinderOrbit;
-	case ETDJourneyStage::DominionAssault: return DominionApproach;
+	case ETDJourneyStage::DominionAssault:
+	case ETDJourneyStage::DominionDocking: return DominionApproach;
+	case ETDJourneyStage::DominionInterior: return InteriorHangar;
+	case ETDJourneyStage::EscapeFlight: return TDReturnPoints::DominionHangarExit;
 	case ETDJourneyStage::ReactorExposed:
 	case ETDJourneyStage::Victory: return DominionTrench;
 	default: return NAME_None;
@@ -149,7 +168,8 @@ bool FTDJourney::Go(UWorld* World, ETDJourneyStage Stage, int32 Wave)
 		Bus->BroadcastPhaseChanged(GI->GetProgressRef().Phase);
 	}
 
-	if (Dest == ETDDestination::Galaxy && GI->GetCurrentDestination() == ETDDestination::Galaxy)
+	// The escape flight needs a fresh galaxy (T4: the Dominion switches to EscapeFlight only from Hidden).
+	if (Dest == ETDDestination::Galaxy && GI->GetCurrentDestination() == ETDDestination::Galaxy && Stage != ETDJourneyStage::EscapeFlight)
 	{
 		ApplyGalaxyInPlace(World, Stage);
 		GI->SaveCheckpoint();
@@ -168,7 +188,7 @@ void FTDJourney::ApplyGalaxyInPlace(UWorld* World, ETDJourneyStage Stage)
 	if (ATDDominion* Dominion = ATDDominion::Get(World))
 	{
 		Dominion->SyncWithProgress(); // warps in (assault) or straight to the reactor (defenses down)
-		if (Stage == ETDJourneyStage::ReactorExposed || Stage == ETDJourneyStage::Victory)
+		if (Stage == ETDJourneyStage::ReactorExposed || Stage == ETDJourneyStage::DominionDocking || Stage == ETDJourneyStage::Victory)
 		{
 			if (Dominion->GetState() == ETDDominionState::ShieldsUp || Dominion->GetState() == ETDDominionState::WarpingIn)
 			{

@@ -11,6 +11,9 @@
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Squad/TDBarkLines.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Story/TDStoryTypes.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/UI/TDUIPaint.h"
 
@@ -49,7 +52,7 @@ namespace TDFlightHUD
 
 		void Plate(float X, float Y, float W, float H, float Radius, FLinearColor C) const
 		{
-			FSlateDrawElement::MakeBox(List, Layer, Geo({ X, Y }, { W, H }), RoundedBrush(Radius * Scale, 0.f), ESlateDrawEffect::None, C);
+			FSlateDrawElement::MakeBox(List, Layer, Geo({ X, Y }, { W, H }), RoundedBrush(Radius * Scale, 0.f), ESlateDrawEffect::None, Faded(C));
 		}
 		/** A rounded-rectangle outline as a polyline (the rounded brush with a transparent fill still filled, live). */
 		void Outline(float X, float Y, float W, float H, float Radius, float Width, FLinearColor C) const
@@ -68,7 +71,7 @@ namespace TDFlightHUD
 			}
 			const FVector2D First = Points[0]; // a copy: adding an element of the array to itself asserts
 			Points.Add(First);
-			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, C, true, Width * Scale);
+			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Faded(C), true, Width * Scale);
 		}
 		FSlateFontInfo Font(const ANSICHAR* Face, int32 Size, int32 Tracking = 0) const
 		{
@@ -82,7 +85,9 @@ namespace TDFlightHUD
 		{
 			const FSlateFontInfo F = Font(Face, Size, Tracking);
 			const float W = Align > 0.f ? Measure(S, Font(Face, Size, Tracking)) : 0.f;
-			FSlateDrawElement::MakeText(List, Layer + 2, Geo({ X - W * Align, Y }, { 1, 1 }), S, F, ESlateDrawEffect::None, C);
+			FSlateFontInfo Shown = F;
+			Shown.OutlineSettings.OutlineColor.A *= Alpha; // the dark outline fades with the HUD too
+			FSlateDrawElement::MakeText(List, Layer + 2, Geo({ X - W * Align, Y }, { 1, 1 }), S, Shown, ESlateDrawEffect::None, Faded(C));
 		}
 		/** The one backing style for text over a bright sky (N-037, Lead): #0A0F1C at this opacity, tight around the text. */
 		static constexpr float BackingOpacity = .62f;
@@ -105,7 +110,7 @@ namespace TDFlightHUD
 			{
 				Points.Add((At + Q * Size) * Scale + Origin);
 			}
-			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, C, true, Width * Scale);
+			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Faded(C), true, Width * Scale);
 		}
 		/** An arc from angle A0 sweeping Sweep radians (screen angles: 0 = right, +PI/2 = down). */
 		void ArcSpan(FVector2D C, float R, float A0, float Sweep, FLinearColor Color, float Width) const
@@ -137,7 +142,7 @@ namespace TDFlightHUD
 					const float A = PI / 6.f + I * PI / 3.f;
 					Hex.Add((C + FVector2D(FMath::Cos(A), FMath::Sin(A)) * H) * Scale + Origin);
 				}
-				FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Hex, ESlateDrawEffect::None, Color, true, 2.2f * Scale);
+				FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Hex, ESlateDrawEffect::None, Faded(Color), true, 2.2f * Scale);
 			}
 		}
 		/** An arrowhead pointing along Angle (screen radians). Filled = solid wedge (stacked strokes), else an outline. */
@@ -162,7 +167,7 @@ namespace TDFlightHUD
 			{
 				Points.Add(Q * Scale + Origin);
 			}
-			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Color, true, 2.f * Scale);
+			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Faded(Color), true, 2.f * Scale);
 		}
 		/** A ready / cooling ring pip with a glyph (signature, ability, second power). */
 		void Pip(const FVector2D& At, float Radius, float Value, bool bReady, FLinearColor Accent, const FString& Glyph, int32 GlyphSize) const
@@ -212,6 +217,13 @@ static TAutoConsoleVariable<int32> CVarTDUIForceGlyphs(
 	TEXT("Engineering space HUD glyphs (dev, captures): -1 = follow the controller's device detection, 0 = keyboard, 1 = gamepad."),
 	ECVF_Default);
 
+static TAutoConsoleVariable<int32> CVarTDUILogBarks(
+	TEXT("TD.UI.LogBarks"), 0,
+	TEXT("1: the engineering space HUD logs each bark request and what it did with it (shown / no line / story)."),
+	ECVF_Default);
+
+DEFINE_LOG_CATEGORY_STATIC(LogTDFlightHUD, Log, All);
+
 bool UTDFlightHUDWidget::IsUsingGamepad() const
 {
 	if (ForceGamepad >= 0)
@@ -246,8 +258,16 @@ void UTDFlightHUDWidget::NativeDestruct()
 	if (UTDEventBus* Bus = BoundBus.Get())
 	{
 		Bus->OnHitConfirmed.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
+		Bus->OnTakeStarted.RemoveDynamic(this, &UTDFlightHUDWidget::HandleTakeStarted);
+		Bus->OnSceneCut.RemoveDynamic(this, &UTDFlightHUDWidget::HandleSceneCut);
+		Bus->OnBarkRequested.RemoveDynamic(this, &UTDFlightHUDWidget::HandleBarkRequested);
 	}
 	BoundBus.Reset();
+	if (UTDStorySubsystem* Story = BoundStory.Get())
+	{
+		Story->bDrawnExternally = false; // the HUD went away: T3's fallback overlay draws transmissions again
+	}
+	BoundStory.Reset();
 	Super::NativeDestruct();
 }
 
@@ -279,12 +299,159 @@ void UTDFlightHUDWidget::BindBus()
 	if (UTDEventBus* Old = BoundBus.Get())
 	{
 		Old->OnHitConfirmed.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
+		Old->OnTakeStarted.RemoveDynamic(this, &UTDFlightHUDWidget::HandleTakeStarted);
+		Old->OnSceneCut.RemoveDynamic(this, &UTDFlightHUDWidget::HandleSceneCut);
+		Old->OnBarkRequested.RemoveDynamic(this, &UTDFlightHUDWidget::HandleBarkRequested);
 	}
 	BoundBus = Bus;
 	if (Bus)
 	{
 		Bus->OnHitConfirmed.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleHitConfirmed);
+		Bus->OnTakeStarted.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleTakeStarted);
+		Bus->OnSceneCut.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleSceneCut);
+		Bus->OnBarkRequested.AddUniqueDynamic(this, &UTDFlightHUDWidget::HandleBarkRequested);
 	}
+}
+
+FString UTDFlightHUDWidget::BarkText(FName BarkId)
+{
+	FString Id = BarkId.ToString();
+	Id.RemoveFromStart(TEXT("Bark_"));
+	Id.RemoveFromStart(TEXT("Squad"));
+	FString Out;
+	for (int32 I = 0; I < Id.Len(); ++I)
+	{
+		const TCHAR Ch = Id[I];
+		if (Ch == TEXT('_'))
+		{
+			Out += TEXT(' ');
+			continue;
+		}
+		if (I > 0 && FChar::IsUpper(Ch) && !Out.EndsWith(TEXT(" ")))
+		{
+			Out += TEXT(' ');
+		}
+		Out += FChar::ToLower(Ch);
+	}
+	return Out.TrimStartAndEnd();
+}
+
+void UTDFlightHUDWidget::ShowTransmission(FName Speaker, const FText& Line, ETransmissionStyle Style, float Seconds)
+{
+	View.Subtitle.Speaker = Speaker.IsNone() ? FString() : Speaker.ToString().ToUpper();
+	View.Subtitle.Text = Line.ToString();
+	View.Subtitle.Style = Style;
+	View.Subtitle.Age = 0.f;
+	View.Subtitle.Seconds = FMath::Max(.5f, Seconds);
+	View.Subtitle.bStory = Style != ETransmissionStyle::Clean;
+	View.Subtitle.TagColor = Style == ETransmissionStyle::Echo ? FTDFlightHUDTokens::Shield() : FTDFlightHUDTokens::Dim();
+}
+
+void UTDFlightHUDWidget::HandleBarkRequested(FName BarkId, FName Speaker)
+{
+	// A transmission also fires OnBarkRequested with its own id: T3's subsystem draws that one (no double line). And a story
+	// transmission on screen outranks a squad bark (it is the line the player must not miss).
+	const bool bLog = CVarTDUILogBarks.GetValueOnGameThread() != 0;
+	FTDTransmission Entry;
+	if (UTDStorySubsystem::FindEntry(BarkId, Entry) || (!View.Subtitle.Text.IsEmpty() && View.Subtitle.bStory))
+	{
+		UE_CLOG(bLog, LogTDFlightHUD, Display, TEXT("TD UI bark %s by %s: skipped (story transmission)"), *BarkId.ToString(), *Speaker.ToString());
+		return;
+	}
+	// The real line from dialogs.md (T3's FTDBarkLines: Nicholas's DT_Barks wins row by row; the same line every caller
+	// sees for 3 s, so this HUD and the dev HUD agree). No line, no subtitle: no more text made up from the id.
+	FText Line;
+	if (!FTDBarkLines::PickLine(this, BarkId, Speaker, Line) || Line.IsEmpty())
+	{
+		UE_CLOG(bLog, LogTDFlightHUD, Display, TEXT("TD UI bark %s by %s: no line"), *BarkId.ToString(), *Speaker.ToString());
+		return;
+	}
+	UE_CLOG(bLog, LogTDFlightHUD, Display, TEXT("TD UI bark %s by %s: shown \"%s\" (%s, in viewport %d)"), *BarkId.ToString(), *Speaker.ToString(),
+		*Line.ToString(), *GetName(), IsInViewport() ? 1 : 0);
+	ShowTransmission(Speaker, Line, ETransmissionStyle::Clean, BarkSeconds);
+	const FString& Who = View.Subtitle.Speaker;
+	View.Subtitle.TagColor = Who == TEXT("WREN") ? FTDFlightHUDTokens::Rift() : Who == TEXT("KATO") ? FTDFlightHUDTokens::Lancer()
+		: Who == TEXT("MOSS") ? FTDFlightHUDTokens::Bastion() : FTDFlightHUDTokens::Dim();
+}
+
+void UTDFlightHUDWidget::SampleStory()
+{
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
+	if (!Story)
+	{
+		return;
+	}
+	Story->bDrawnExternally = true; // T3's fallback overlay steps aside while this HUD draws the line
+	BoundStory = Story;
+	const FTDTransmissionView T = Story->GetCurrentTransmission();
+	if (!T.bActive)
+	{
+		return;
+	}
+	const ETransmissionStyle Style = T.Style == ETDTransmissionStyle::Static ? ETransmissionStyle::Static
+		: T.Style == ETDTransmissionStyle::Echo ? ETransmissionStyle::Echo : ETransmissionStyle::Clean;
+	FSubtitle& Sub = View.Subtitle;
+	const FString Text = T.Text.ToString();
+	if (!Sub.bStory || Sub.Text != Text)
+	{
+		Sub.Speaker = T.SpeakerTag.ToString().ToUpper();
+		Sub.Text = Text;
+		Sub.Style = Style;
+	}
+	Sub.bStory = true;
+	Sub.TagColor = T.Color;
+	// Drive the fade from the subsystem's own clock (one line at a time, never overlapping).
+	const float Remaining01 = FMath::Max(1.f - T.Progress01, .01f);
+	Sub.Seconds = FMath::Max(.5f, T.TimeLeft / Remaining01);
+	Sub.Age = Sub.Seconds * T.Progress01;
+}
+
+void UTDFlightHUDWidget::ShowNavigationPulse(const FVector& From, const FVector& To, float Seconds)
+{
+	NavWorldFrom = From;
+	NavWorldTo = To;
+	NavSeconds = FMath::Max(.3f, Seconds);
+	NavLeft = NavSeconds;
+}
+
+void UTDFlightHUDWidget::HandleTakeStarted(FName SceneId, int32 TakeNumber)
+{
+	CutLeft = 0.f; // the take starts: the slate card is up, the HUD sits at 40% behind it
+	SlateLeft = SlateSeconds;
+}
+
+void UTDFlightHUDWidget::HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds)
+{
+	CutLeft = FMath::Max(.1f, DelaySeconds); // "CUT!": every HUD element off until the next take starts
+	SlateLeft = 0.f;
+}
+
+void UTDFlightHUDWidget::SampleDirector(float Dt)
+{
+	if (!View.Subtitle.Text.IsEmpty())
+	{
+		View.Subtitle.Age += Dt;
+		if (View.Subtitle.Age >= View.Subtitle.Seconds)
+		{
+			View.Subtitle = FSubtitle();
+		}
+	}
+	CutLeft = FMath::Max(0.f, CutLeft - Dt);
+	SlateLeft = FMath::Max(0.f, SlateLeft - Dt);
+	const UWorld* World = GetWorld();
+	const UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this);
+	const bool bMoney = ForceMoneyShot >= 0 ? ForceMoneyShot > 0 : (Feel && Feel->IsSlowMoActive());
+	View.bPaused = ForcePaused >= 0 ? ForcePaused > 0 : (World && World->IsPaused());
+	View.bInCut = CutLeft > 0.f;
+	View.bInSlate = !View.bInCut && SlateLeft > 0.f;
+	// Money shot eases in and out over 150 ms (spec: "returns over 150 ms when time dilation ends"). Real time: the
+	// slow-mo itself scales world delta, so ease on the undilated step.
+	const float RealDt = World && World->GetWorldSettings() ? Dt / FMath::Max(World->GetWorldSettings()->GetEffectiveTimeDilation(), .01f) : Dt;
+	View.MoneyShot = FMath::FInterpConstantTo(View.MoneyShot, bMoney ? 1.f : 0.f, RealDt, 1.f / MoneyShotEaseSeconds);
+	const float Target = View.bInCut ? 0.f : View.bInSlate ? SlateOpacity : View.bPaused ? PauseOpacity : 1.f;
+	// Off at once on a cut; everything else eases (the fade back in after CUT is the 250 ms the spec asks for).
+	View.HUDOpacity = View.bInCut ? 0.f : FMath::FInterpConstantTo(View.HUDOpacity, Target, RealDt, 1.f / CutFadeInSeconds);
+	// Applied in NativePaint through the painter's Alpha (render opacity does not reach custom-painted elements).
 }
 
 void UTDFlightHUDWidget::HandleHitConfirmed(AActor* Target, bool bKill)
@@ -499,6 +666,19 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		Wp.Health = Health && Health->IsAlive() ? Health->GetHull01() : -1.f;
 	}
 
+	// Navigation pulse: project the corridor; off screen or no view, a generic corridor from under the ship toward the
+	// screen's right third (it only has to read as a sensor flicker).
+	NavLeft = FMath::Max(0.f, NavLeft - Dt);
+	View.NavPulse = NavLeft > 0.f && NavSeconds > 0.f ? 1.f - NavLeft / NavSeconds : 0.f;
+	if (View.NavPulse > 0.f)
+	{
+		FVector2D A, B, DirA, DirB;
+		const bool bA = Project(NavWorldFrom, A, DirA);
+		const bool bB = Project(NavWorldTo, B, DirB);
+		View.NavFrom = bA ? A : FVector2D(CenterX, 760.f);
+		View.NavTo = bB ? B : OnSafeFrame(bA ? DirB : FVector2D(.8f, -.35f));
+	}
+
 	// Lead indicator (only with a current target).
 	FVector LeadWorld;
 	FVector2D LeadDir;
@@ -590,7 +770,8 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		View.Lane = ELane::HyperdriveBlocked;
 		View.LaneText = Blocked.ToUpper();
 	}
-	else if (!Hint.IsEmpty() || View.bHintCard)
+	else if ((!Hint.IsEmpty() || View.bHintCard) && !(View.Subtitle.bStory && !View.Subtitle.Text.IsEmpty()))
+	// (a story transmission on air holds the tutorial card back: the two crowded each other, Lead's note on #17's sheet)
 	{
 		View.Lane = ELane::Hint;
 		View.LaneText = Hint.ToUpper();
@@ -697,6 +878,8 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 	}
 	BindController();
 	BindBus();
+	SampleDirector(Dt);
+	SampleStory();
 	SampleCombat(*Data, Flown, Dt);
 	ArcAwake = FMath::Max(0.f, ArcAwake - Dt);
 	View.ArcOpacity = (View.Hull < .999f || View.Shield < .999f || ArcAwake > 0.f) ? 1.f : ArcRestOpacity;
@@ -768,7 +951,14 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		return Base;
 	}
-	const FPaint P(AllottedGeometry, OutDrawElements, Base + 1);
+	FPaint P(AllottedGeometry, OutDrawElements, Base + 1);
+	P.Alpha = View.HUDOpacity; // CUT (0), slate (0.4), pause (0.3), the 0.25 s fade back in: every element follows
+	if (P.Alpha <= .001f)
+	{
+		LastBoxes.Reset();
+		LastCoverage01 = 0.f;
+		return Base; // a CUT: nothing at all on screen
+	}
 	const FVector2D C(CenterX, CenterY);
 	float Area = 224.f * 116.f; // the reticle cluster's box (spec 3.1); the rest is added as it is drawn
 	const FLinearColor Accent = T::Ship(View.Flown);
@@ -778,7 +968,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	Rec(TEXT("reticle"), C.X - 16.f, C.Y - 16.f, 32.f, 32.f);
 
 	// ---- reticle: 2 px dot, four 8 px ticks starting 8 px out
-	const FLinearColor Ink = T::Neutral().CopyWithNewOpacity(.9f);
+	const FLinearColor Ink = T::Neutral().CopyWithNewOpacity(FMath::Lerp(.9f, .4f, View.MoneyShot)); // 40% in a money shot
 	P.Box(C.X - 1, C.Y - 1, 2, 2, Ink);
 	for (const FVector2D D : { FVector2D(1, 0), FVector2D(-1, 0), FVector2D(0, 1), FVector2D(0, -1) })
 	{
@@ -802,6 +992,13 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		Pair(HullRadius, View.Hull, T::Hull(View.Hull), 5.f);
 		Pair(ShieldRadius, View.Shield, T::Shield(), 3.f);
 		Rec(TEXT("arcs"), C.X - ShieldRadius - 2.f, C.Y - 40.f, 2.f * ShieldRadius + 4.f, 80.f);
+	}
+
+	// ---- money shot (director slow-mo): everything but the reticle and the hull / shield arcs gets out of the shot
+	if (View.MoneyShot >= .5f)
+	{
+		LastCoverage01 = Area / (1920.f * 1080.f);
+		return Base + 4;
 	}
 
 	// ---- signature power pip: ship-colour ring + glyph when ready, grey ring refilling clockwise when cooling
@@ -835,7 +1032,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		// Over the whole widget, not the centred 16:9 design frame: at 3440x1440 the frame-space version showed as two
 		// vertical bands about 170 px in from the sides (review M6). Band widths scale with the screen height.
-		const FLinearColor Edge = T::Danger().CopyWithNewOpacity(.10f * (.6f + .4f * FMath::Sin(Now * 2.f * PI)));
+		const FLinearColor Edge = T::Danger().CopyWithNewOpacity(.10f * (.6f + .4f * FMath::Sin(Now * 2.f * PI)) * P.Alpha);
 		const FLinearColor Clear = T::Danger().CopyWithNewOpacity(0.f);
 		const FVector2D Full = AllottedGeometry.GetLocalSize();
 		const float Band = Full.Y * .2f;
@@ -913,6 +1110,33 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Line(Tick + FVector2D(0, -10), Tick + FVector2D(6, -14), T::Warning(), 2.f);
 		}
 	}
+	// ---- Aftermath navigation pulse: a faint corridor that flickers in and clears in 1.5 s, like sensor noise
+	if (View.NavPulse > 0.f)
+	{
+		const float T01 = View.NavPulse;
+		// Up fast (0.15 of the time), hold, then gone; with a high-frequency flicker so it reads as interference.
+		const float Env = FMath::Min(FMath::Clamp(T01 / .1f, 0.f, 1.f), FMath::Clamp((1.f - T01) / .35f, 0.f, 1.f));
+		const float Flicker = .55f + .45f * FMath::Abs(FMath::Sin(Now * 53.f) * FMath::Sin(Now * 31.f));
+		const FLinearColor Edge = T::Shield().CopyWithNewOpacity(.32f * Env * Flicker);
+		const FVector2D A = View.NavFrom, B = View.NavTo;
+		const FVector2D Along = (B - A).GetSafeNormal();
+		const FVector2D Side(-Along.Y, Along.X);
+		const float Jit = FMath::Sin(Now * 71.f) * 1.5f;
+		for (int32 S = 0; S < 24; S += 2) // two dashed rails, narrowing toward the far end
+		{
+			const float P0 = S / 24.f, P1 = (S + 1) / 24.f;
+			for (const float Sgn : { -1.f, 1.f })
+			{
+				const float W0 = FMath::Lerp(26.f, 8.f, P0) * Sgn + Jit, W1 = FMath::Lerp(26.f, 8.f, P1) * Sgn + Jit;
+				P.Line(FMath::Lerp(A, B, P0) + Side * W0, FMath::Lerp(A, B, P1) + Side * W1, Edge, 1.5f);
+			}
+		}
+		// A bright blip running down the corridor once.
+		const FVector2D Blip = FMath::Lerp(A, B, FMath::Clamp(T01 * 1.4f, 0.f, 1.f));
+		P.Box(Blip.X - 2.f, Blip.Y - 2.f, 4.f, 4.f, T::Neutral().CopyWithNewOpacity(.6f * Env));
+		Rec(TEXT("navpulse"), FMath::Min(A.X, B.X), FMath::Min(A.Y, B.Y), FMath::Abs(B.X - A.X), FMath::Abs(B.Y - A.Y));
+	}
+
 	// ---- objective waypoints: a white diamond + range on screen (health bar on a generator), an edge diamond off screen
 	auto Range = [](float Metres) { return Metres >= 1000.f ? FString::Printf(TEXT("%.1f km"), Metres / 1000.f) : FString::Printf(TEXT("%.0f m"), Metres); };
 	for (const FWaypoint& Wp : View.Waypoints)
@@ -1149,6 +1373,82 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Outline(L.X - 7.f, L.Y - 4.f, 14.f, 10.f, 2.f, 1.5f, LaneC);
 		}
 		P.Words(CenterX + (View.Lane == ELane::HyperdriveBlocked ? 10.f : 0.f), 845.f, View.LaneText, 17, LaneC, "Bold", .5f, 50);
+	}
+
+	// ---- subtitles / story transmissions: centred under the lower lane, speaker tag in the pilot's colour, 2 lines max
+	if (!View.Subtitle.Text.IsEmpty())
+	{
+		const FSubtitle& Sub = View.Subtitle;
+		const FString& Who = Sub.Speaker;
+		const FLinearColor Tag = Sub.TagColor;
+		// Fade in 0.15 s, out over the last 0.3 s.
+		const float Fade = FMath::Min(FMath::Clamp(Sub.Age / .15f, 0.f, 1.f), FMath::Clamp((Sub.Seconds - Sub.Age) / .3f, 0.f, 1.f));
+		// Static: the line flickers and jitters like a bad channel; Echo: a faint late copy trails it.
+		const bool bStatic = Sub.Style == ETransmissionStyle::Static;
+		const bool bEcho = Sub.Style == ETransmissionStyle::Echo;
+		const float Flicker = bStatic ? .65f + .35f * FMath::Abs(FMath::Sin(Now * 37.f) * FMath::Cos(Now * 23.f)) : 1.f;
+		const float Jitter = bStatic ? FMath::Sin(Now * 61.f) * 2.f : 0.f;
+		// Two lines at most: split at the space nearest the middle when the line is long (78 chars fit at 22 px).
+		FString Line1 = Sub.Text, Line2;
+		const float FullW = P.Measure(Sub.Text, P.Font("Medium", 22, 10));
+		if ((FullW > SubtitleMaxWidth - 160.f) || (FullW <= 0.f && Sub.Text.Len() > 64))
+		{
+			int32 Split = INDEX_NONE;
+			for (int32 D = 0; D < Sub.Text.Len() / 2 && Split == INDEX_NONE; ++D)
+			{
+				for (const int32 I : { Sub.Text.Len() / 2 + D, Sub.Text.Len() / 2 - D })
+				{
+					if (Sub.Text.IsValidIndex(I) && Sub.Text[I] == TEXT(' '))
+					{
+						Split = I;
+						break;
+					}
+				}
+			}
+			if (Split != INDEX_NONE)
+			{
+				Line1 = Sub.Text.Left(Split);
+				Line2 = Sub.Text.Mid(Split + 1);
+			}
+		}
+		const float H = Line2.IsEmpty() ? 38.f : 64.f;
+		// After the tag's own width ("UNKNOWN SIGNAL" ran into the line at a fixed 120 px, live capture).
+		const float TagW = Who.IsEmpty() ? 0.f : FMath::Max(P.Measure(Who, P.Font("Bold", 16, 80)), Who.Len() * 11.5f) + 20.f;
+		// The plate fits the line (a short bark sat alone in an 880 px plate, live capture), centred, never wider than the slot.
+		auto LineW = [&P](const FString& S) { return S.IsEmpty() ? 0.f : FMath::Max(P.Measure(S, P.Font("Medium", 22, 10)), S.Len() * 10.5f); };
+		const float PlateW = FMath::Clamp(44.f + TagW + FMath::Max(LineW(Line1), LineW(Line2)), 240.f, SubtitleMaxWidth);
+		const float X = CenterX - PlateW * .5f;
+		P.Plate(X, SubtitleY, PlateW, H, 8.f, T::Plate().CopyWithNewOpacity(.6f * Fade));
+		Rec(TEXT("subtitle"), X, SubtitleY, PlateW, H);
+		Area += PlateW * H;
+		if (bStatic)
+		{
+			for (int32 S = 0; S < 3; ++S) // scan lines drifting through the plate
+			{
+				const float Y = SubtitleY + FMath::Fmod(Now * 40.f + S * 21.f, H);
+				P.Box(X + 6.f, Y, PlateW - 12.f, 1.f, T::Neutral().CopyWithNewOpacity(.08f * Fade));
+			}
+		}
+		const float TextX = X + 22.f + Jitter;
+		if (!Who.IsEmpty())
+		{
+			P.Words(TextX, SubtitleY + 8.f, Who, 16, Tag.CopyWithNewOpacity(Fade * Flicker), "Bold", 0.f, 80);
+		}
+		const float BodyX = TextX + TagW;
+		const FLinearColor Body = T::Neutral().CopyWithNewOpacity(Fade * Flicker);
+		if (bEcho)
+		{
+			P.Words(BodyX + 4.f, SubtitleY + 9.f, Line1, 22, T::Shield().CopyWithNewOpacity(.28f * Fade), "Medium", 0.f, 10);
+		}
+		P.Words(BodyX, SubtitleY + 6.f, Line1, 22, Body, "Medium", 0.f, 10);
+		if (!Line2.IsEmpty())
+		{
+			if (bEcho)
+			{
+				P.Words(BodyX + 4.f, SubtitleY + 35.f, Line2, 22, T::Shield().CopyWithNewOpacity(.28f * Fade), "Medium", 0.f, 10);
+			}
+			P.Words(BodyX, SubtitleY + 32.f, Line2, 22, Body, "Medium", 0.f, 10);
+		}
 	}
 
 	// ---- squad strip, bottom-left of the safe frame, order 1 2 3

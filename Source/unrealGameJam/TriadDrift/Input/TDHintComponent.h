@@ -158,6 +158,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Hints", meta = (ClampMin = "0"))
 	float DoneBeatSeconds = 0.5f; // T2's card: a 0.4 s tick, then the fade
 
+	/** Longest a waiting hint is held back by story transmissions (lines queued back to back), in seconds; then it
+	 *  shows anyway. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Hints", meta = (ClampMin = "0"))
+	float MaxStoryHoldSeconds = 8.f;
+
 	/** Seconds of steering (aim input over 25%) that complete the Fly hint. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Hints", meta = (ClampMin = "0"))
 	float FlySecondsToComplete = 1.f;
@@ -190,6 +195,7 @@ private:
 	ETDHint Current = ETDHint::None;
 	float CurrentAge = 0.f;
 	float Gap = 0.f;
+	float StoryHeldSeconds = 0.f; // how long story lines have held the waiting hint (capped by MaxStoryHoldSeconds)
 	float FlySeconds = 0.f;
 	ETDAbilityId LastAbility = ETDAbilityId::None;
 	bool bEnabled = true;

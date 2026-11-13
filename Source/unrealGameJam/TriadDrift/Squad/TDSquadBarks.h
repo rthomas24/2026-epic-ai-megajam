@@ -46,7 +46,9 @@ enum class ETDBarkPriority : uint8
 {
 	Normal,
 	High,
-	Critical
+	Critical,
+	/** Banter and colour (dialogs.md §2): only after FlavourQuietSeconds with no line, never stacked. */
+	Flavour
 };
 
 USTRUCT(BlueprintType)
@@ -65,6 +67,10 @@ struct UNREALGAMEJAM_API FTDBarkTuning
 	/** ...of this many real seconds (also caps high-priority lines). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Barks", meta = (Units = "s"))
 	float WindowSeconds = 10.f;
+
+	/** A Flavour line needs this many real seconds of radio silence first. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Barks", meta = (Units = "s"))
+	float FlavourQuietSeconds = 8.f;
 
 	/** Cooldown per bark id when not listed in CooldownById. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Barks", meta = (Units = "s"))

@@ -27,6 +27,9 @@
 #include "EnhancedPlayerInput.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Core/TDPresentation.h"
+#include "UObject/UObjectIterator.h"
+#include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "NiagaraComponent.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
@@ -2282,7 +2285,7 @@ bool FTDSquadPromptOrder::RunTest(const FString& Parameters)
 	TestTrue(TEXT("no hint yet: empty"), Squad->GetInteractPrompt().IsEmpty());
 
 	UTDEventBus::Get(W.GetWorld())->BroadcastWaveStarted(1, 0.2f);
-	for (float T = 0.f; T < 4.f && Hints->GetCurrentHint() == ETDHint::None; T += 1.f / 60.f)
+	for (float T = 0.f; T < 12.f && Hints->GetCurrentHint() == ETDHint::None; T += 1.f / 60.f) // after the wave 1 hail
 	{
 		W.Tick();
 	}
@@ -3010,21 +3013,71 @@ bool FTDSquadBarksUnderHeavyLosses::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadDeathPlaceholder, "TriadDrift.Squad.Death.PlaceholderExplosionAndTrail", TD_TEST_FLAGS)
 bool FTDSquadDeathPlaceholder::RunTest(const FString& Parameters)
 {
-	// Death readability (Lead): with no explosion art, the tumble leaves a trail of squad-colour puffs
-	// and ends in T2's placeholder explosion sized to the ship.
-	FSquadFixture F;
-	F.W.Advance(0.5f);
-	UTDProjectileSubsystem* P = UTDProjectileSubsystem::Get(F.Ship(ETDShipId::Lancer));
-	if (!TestNotNull(TEXT("projectile subsystem"), P)) { return false; }
-	const int32 Before = P->GetPlayingFlashCount();
-	F.Kill(ETDShipId::Lancer);
-	F.W.Advance(0.3f);
-	TestTrue(TEXT("trail puffs while tumbling"), P->GetPlayingFlashCount() > Before);
-	F.W.Advance(0.35f);
-	TestTrue(TEXT("down after the tumble"), !F.Squad->IsShipAlive(ETDShipId::Lancer));
-	TestTrue(TEXT("the explosion is playing"), P->GetPlayingFlashCount() > Before);
-	F.W.Advance(1.5f);
-	TestEqual(TEXT("all gone after about 0.8 s (pooled)"), P->GetPlayingFlashCount(), Before);
+	// Death readability (Lead). Two paths:
+	// 1. No explosion art on the ship's visuals: the tumble leaves a trail of squad-colour puffs and ends in T2's
+	//    placeholder explosion sized to the ship.
+	// 2. Explosion art (the effects builder's cues on DA_*_Visuals): the death requests that cue and no placeholder plays.
+	{
+		FSquadFixture F;
+		F.W.Advance(0.5f);
+		ATDShip* Lancer = F.Ship(ETDShipId::Lancer);
+		UTDProjectileSubsystem* P = UTDProjectileSubsystem::Get(Lancer);
+		if (!TestNotNull(TEXT("projectile subsystem"), P) || !TestNotNull(TEXT("Lancer"), Lancer)) { return false; }
+		UTDShipVisuals* NoArt = Lancer->GetShipVisuals()
+			? DuplicateObject<UTDShipVisuals>(Lancer->GetShipVisuals(), GetTransientPackage())
+			: NewObject<UTDShipVisuals>(GetTransientPackage());
+		NoArt->Explosion = FTDFXCue();
+		Lancer->SetShipVisuals(NoArt);
+		const int32 Before = P->GetPlayingFlashCount();
+		F.Kill(ETDShipId::Lancer);
+		F.W.Advance(0.3f);
+		TestTrue(TEXT("no art: trail puffs while tumbling"), P->GetPlayingFlashCount() > Before);
+		F.W.Advance(0.35f);
+		TestTrue(TEXT("down after the tumble"), !F.Squad->IsShipAlive(ETDShipId::Lancer));
+		TestTrue(TEXT("no art: the placeholder explosion is playing"), P->GetPlayingFlashCount() > Before);
+		F.W.Advance(1.5f);
+		TestEqual(TEXT("all gone after about 0.8 s (pooled)"), P->GetPlayingFlashCount(), Before);
+	}
+	{
+		FSquadFixture F;
+		F.W.Advance(0.5f);
+		ATDShip* Bastion = F.Ship(ETDShipId::Bastion);
+		UTDProjectileSubsystem* P = UTDProjectileSubsystem::Get(Bastion);
+		const UTDShipVisuals* V = Bastion ? Bastion->GetShipVisuals() : nullptr;
+		if (!P || !V || !FTDCombatPlaceholders::HasVisualArt(V->Explosion))
+		{
+			AddInfo(TEXT("the squad visuals carry no explosion art on this branch: the art path is not checked here"));
+			return true;
+		}
+		auto CountNiagara = [&F]()
+		{
+			int32 N = 0;
+			for (TObjectIterator<UNiagaraComponent> It; It; ++It)
+			{
+				N += (It->GetWorld() == F.W.GetWorld() && IsValid(*It)) ? 1 : 0;
+			}
+			return N;
+		};
+		const int32 FlashesBefore = P->GetPlayingFlashCount();
+		const int32 NiagaraBefore = CountNiagara();
+		F.Kill(ETDShipId::Bastion);
+		int32 MaxFlashes = FlashesBefore;
+		int32 MaxNiagara = NiagaraBefore;
+		for (int32 i = 0; i < 30; ++i)
+		{
+			F.W.Tick(1.f / 30.f);
+			MaxFlashes = FMath::Max(MaxFlashes, P->GetPlayingFlashCount());
+			MaxNiagara = FMath::Max(MaxNiagara, CountNiagara()); // a one-shot explosion may finish and go before the end
+		}
+		TestTrue(TEXT("down"), !F.Squad->IsShipAlive(ETDShipId::Bastion));
+		TestEqual(TEXT("with art: no placeholder trail or explosion"), MaxFlashes, FlashesBefore);
+		// Headless runs (-nullrhi) spawn no Niagara components, so the cue itself is not observable here: the art path is
+		// pinned by "has explosion art" + "no placeholder"; the explosion is seen in live captures.
+		if (MaxNiagara > NiagaraBefore)
+		{
+			AddInfo(TEXT("with art: the explosion cue spawned a Niagara component"));
+		}
+	}
 	return true;
 }
 

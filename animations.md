@@ -2,7 +2,7 @@
 
 Ryan, Nov 13: "we need lots and lots of animations for all the movements, and everything needs to be AAA quality."
 This file is the single place for **every animation in the game**: who makes it, how, where it lives, and its state.
-`features.md` says what the game needs; this file says how each movement gets there. Keep it current: a row changes
+`features.md` says what the game needs and `storyline.md` what it means; this file says how each movement gets there. Keep it current: a row changes
 when the work changes.
 
 ## 1. Who leads
@@ -25,6 +25,16 @@ Nick's agents are **not asked to build animations**. To ask about one, send a no
 | **A. Generated or library motion** (Grok Bot; third-party sites) | Full-body humanoid motion: combat combos, locomotion sets, hit reacts, deaths, boss moves | Grok Bot generates or sources clips on a standard humanoid (UE5 Manny-compatible where possible) with a recorded licence, FBX at 30 fps, one clip per file. A builder retargets with the existing retargeters | Fast and natural. Needs clean-up; timing rarely matches gameplay; must be licensed and logged in `CREDITS.md` |
 | **B. Authored in Blender** (animation builder, `blender-*` skills) | Mechanical and prop animation (the blade unfolding, doors, turrets, the drone's shell, landing gear, generator petals), short bespoke character moves, fixing or re-timing route A clips | Keyframed on the asset's own rig by script, exported as FBX with the `blender-unreal-export` skill | Exact control and exact lengths. Slow for long organic motion |
 | **C. In-engine, procedural** (animation builder + the owning teammate) | Everything that should react to gameplay: aim offsets, additive hit reacts, lean and bank, foot IK on slopes, look-at, recoil, hover bob, idle breathing, blade trail timing, ship banking and death tumble, camera animation | Animation blueprints, blend spaces, Control Rig, additive layers, curves and code | Always matches gameplay, no clips to manage. Cannot invent a whole combat move |
+
+**Approved library source (Ryan, Nov 13): Epic's Game Animation Sample Project.** "If we need super realistic
+animations for easy access, we can use Epic Games' Animation Sample Project." It is Epic's free sample (Fab / the Epic
+launcher): several hundred motion-captured clips on the UE5 mannequin, made for motion matching. Use it as a route A
+source for **body movement**: idles, starts, stops, pivots, turn in place, strafes and backpedals at walk / run /
+sprint, jumps, hard and soft landings, traversal (vault, mantle, climb). It has no blade combat, so combat moves still
+come from Grok Bot or Blender. Rules: retarget with our existing retargeters (`RTG_Manny_to_Pilot`,
+`RTG_Manny_to_NullCrew`); import only the clips we use (the package is near its size limit); confirm the licence shown
+on its Fab page before first use and log it in `CREDITS.md` and the submission's third-party asset list (jam rule).
+It replaces the template mannequin set wherever the audit scored a move low for foot sliding or weight.
 
 Most finished moves use two routes: a clip (A or B) for the body, plus C on top so it reacts.
 
@@ -70,15 +80,15 @@ State values: `none`, `placeholder` (works, not good enough), `source in`, `in g
 |---|---|---|---|---|
 | Idle (3 variants), walk, casual walk, run | `A_Pilot_Idle02/3/6`, `Walk`, `CasualWalk`, `Run` | in game | A (from the Sentinel sample) | Audit; add start / stop and turn-in-place; blend space by speed and direction (strafe, backpedal) |
 | Jump start, fall loop, land | `A_Pilot_JumpStart`, `FallLoop`, `Land` | in game | A | Audit; hard-landing variant |
-| Dash | `A_Pilot_Dash` | in game | A | Audit against the dash distance and time in code |
-| Blade light 1, 2, 3 (combo) | `A_Pilot_Light1/2/3` | in game | A | Audit first; replace with Grok Bot's one-handed blade set if it scores under 4 |
-| Blade heavy lunge | `A_Pilot_Heavy` | in game | A | Same |
-| Air slam | none (uses the heavy) | none | A, then C | Grok Bot clip |
-| Block hold, deflect flick, perfect-deflect flourish | `A_Pilot_Block` only | placeholder | A + C | Flick and flourish needed; block as an upper-body layer so the pilot can walk |
-| Hit react front / back (+ additive) | `A_Pilot_HitReact_*`, `*_Add` | in game | A | Audit |
-| Death front / back | `A_Pilot_Death_Front/Back` | in game | A | Audit; ragdoll blend on impact |
+| Dash | `A_Pilot_Dash` = Grok Bot's dash (frames 2-20, in place); the old leap is kept as `A_Pilot_Dash_v1` | in game (captured Nov 13) | A | T5: the same clip plays for the 0.7 s slide at x0.8 (a sprint pose, not a slide): a slide clip and slot are still missing |
+| Blade light 1, 2, 3 (combo) | `A_Pilot_Light1/2/3` = Grok Bot's one-handed slashes, trimmed so the hand peaks 0.10 / 0.13 / 0.13 s after the press at the code's rates; Light 3 is the Grok chop on Light 1's legs (the full chop ducks out of the close-combat camera). The boxing clips are kept as `_v1` | in game (captured Nov 13) | A | T5: damage is still applied on the press (0.00 s) and the blade arrives 0.10-0.13 s later; a queued next swing cuts the follow-through at 0.28 s. Then the stage 6 review |
+| Blade heavy lunge | `A_Pilot_Heavy` = Grok Bot's thrust from frame 17 (thrust 0.14 s into the 0.2 s lunge at x1.4); `A_Pilot_Blade_HeavyWindup` (0.57 s) made, not wired; the old clip is kept as `A_Pilot_Heavy_v1` | in game (captured Nov 13) | A | T5: play `A_Pilot_Blade_HeavyWindup` at about x1.6 during the 0.35 s hold (no slot today: the press fires a light swing first) |
+| Air slam | the code plays `A_Pilot_Light3` x1.2; Grok Bot's r1 clip is rejected (a 4.8 m jump with the arms overhead, not a blade slam; kept unwired as `A_Pilot_Blade_AirSlam`) | none | A, then C | Grok Bot r2; T5: slots for a fall pose and a landing hit (`A_Pilot_AirSlam_Fall` / `_Land` exist as stand-ins) |
+| Block hold, deflect flick, perfect-deflect flourish | `A_Pilot_Block` kept (in game its upright blade reads better from behind than Grok Bot's high guard, `A_Pilot_Blade_BlockHold`, unwired). `A_Pilot_Blade_DeflectFlick` (0.97 s, flick at 0.13 s) and `A_Pilot_Blade_Flourish` (1.97 s, peak 0.43 s) are retargeted, **not wired: no code slot** | source in (flick, flourish) | A + C | T5: an upper-body one-shot `A_Pilot_Blade_DeflectFlick` on each deflect and `A_Pilot_Blade_Flourish` on a perfect deflect (its first 0.6 s fits the slow-motion beat; the rest turns the body: cut it) |
+| Hit react front / back (+ additive) | `A_Pilot_HitReact_Front/_Back` = Grok Bot's reacts at 55 % amplitude, full pose: the flinch plays for the first time (the old additive clips were refused; kept as `_v1`). Full-strength `A_Pilot_Blade_HitFront/_HitBack` unwired | in game: front captured Nov 13, back not captured | A | T5: one flinch per hull hit restarts on every bolt of a burst: rate-limit it; guard-broken uses the same clip. The `*_Add` clips still name the old paths as their base pose: rebuild or drop them |
+| Death front / back | ragdoll in code; `A_Pilot_Death_*` unused. Grok Bot's `A_Pilot_Blade_Death1` (onto the back, 2.47 s) and `_Death2` (side crumple) are retargeted, **not wired: no code slot**; the lying body rests about 15-30 cm above the floor in both (in-place bake) | source in | A | T5: play a death clip for 0.5-1 s, then ragdoll; builder: drop the lying pose to the ground first |
 | Unarmed alternates | `A_Pilot_Alt_LeftHook`, `Alt_SpinKick` | in game, unused | A | Decide: use as a guard-break shove, or drop |
-| Blade ignite / retract, blade idle (lit) | none | none | B + C | Short hand flourish; the blade mesh's own unfold (route B) once the Grok Bot blade arrives |
+| Blade ignite / retract, blade idle (lit) | `A_Pilot_Blade_Idle` (Grok Bot's mid-guard loop, 2.97 s, loop closed) retargeted, **not wired**: the only idle slot is `DA_Pilot_Visuals.Idle`, used everywhere on foot, and a guard stance with the blade off looks wrong while exploring | source in | B + C | T5: a combat-idle slot (enemy within `CloseCombatRange`, or blade lit) for `A_Pilot_Blade_Idle`; ignite / retract still to make |
 | Interact (console, relay, core pickup), board ship, exit ship | none (cut to camera) | none | A or B | 1-2 s each; needed for the planet objectives to read |
 | Aim / look offset, foot IK on terrain slopes, lean into a run, breathing | none | none | C | The terrain is now mountains: foot IK matters |
 | First-person arms: swing set, block, deflect | code-posed blade | placeholder | B + C | Arms-only versions matched to the third-person timing |
@@ -91,13 +101,14 @@ State values: `none`, `placeholder` (works, not good enough), `source in`, `in g
 | Heavy: idle, slow walk, shield up, shield bash, shielded hit, guard-break stagger, death | template set | placeholder | A | Shield set; the stagger must read (it opens the heavy to damage) |
 | Deflected-bolt hit (their own shot returned) | generic hit react | placeholder | C | A bigger additive hit |
 | Drone: hover bob, strafe tilt, eye track, fire recoil, death tumble | code hover, physics death | placeholder | C (+ B for shell parts) | Tilt into movement, eye look-at, thruster flicker |
-| **Warden (boss)**: idle, walk, ground slam, heavy weapon fire, summon, shield block, stagger, phase-change roar, death | none (no model yet) | none | A (Grok Bot, with the rigged model) + C | Concept approved; the slam and summon telegraphs must be readable 1 s ahead |
+| **Warden (boss)**: idle, walk, ground slam, heavy weapon fire, summon, shield block, stagger, phase-change roar, death | `SK_Warden` (Grok Bot's Rodin model, 260 cm) on `SKEL_Warden`, which lists `SKEL_NullCrew` as compatible, so it plays the crew's clips as they are: rifle idle / walk / jog, `MM_ChargedAttack` for the slam and the summon, `MM_Rifle_Fire` for the fan, `MM_HitReact_Front_Lgt_01`, `MM_Death_*`. Shield rigid on the chest, gun arm rigid on the right forearm | placeholder (in game, captured Nov 13) | A + C | Its own set: shield idle and walk (then the shield goes back to the hand), slam, fire from the gun arm, summon, stagger, roar. Rodin's 7 library clips (`ArtSource/EngAI/Characters/Warden/mesh_r1/A_Warden_*.fbx`) are not used: they are on the Rodin skeleton, and the game reads crew clips by name. T5: the Warden's capsule (70 / 130) is commented out by a stray `//` in `TDCrewTypes.cpp`, so hits land on a 40 / 90 capsule inside a 260 cm body |
 
 ### 5.3 Ships and space (no skeletons; code, curves and effects)
 | Movement | Now | State | Route | Owner / next |
 |---|---|---|---|---|
 | Player ships: bank, pitch, drift lean, boost surge, dodge roll | flight model + camera | in game | C | T1: compare the three ships' feel; add control-surface / thruster motion if the Rodin ships have movable parts |
 | Ship switch, hyperdrive wind-up and jump, portal entry | camera and effects | in game | C | T1 / T3 with the effects builder |
+| **Atmospheric entry (ENG-38)**: ship attitude into the burn (nose-up angle of attack), buffet, control-surface or airbrake deployment, heat-shield plates if the Rodin ships have them; wingmen burning in alongside | level change behind a short entry | none | B + C | T1 (+ Grok Bot for deployable parts, effects builder for the plasma) |
 | Landing and take-off: gear, settle, lift | scripted path | placeholder | B + C | Landing gear and a settle bounce once the Rodin ships are in |
 | Wingmen formation motion | wingman AI | in game | C | T3 |
 | Enemy ships: attack runs, evasive rolls, death tumble, carrier bay doors, turret tracking | AI + physics | in game | C (+ B for doors) | T4: death tumble variety; turret barrels recoil |

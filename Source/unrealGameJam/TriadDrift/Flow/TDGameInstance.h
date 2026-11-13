@@ -117,6 +117,8 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flow")
 	bool IsTravelPending() const { return TravelStage != ETravelStage::None; }
+	/** T1, ENG-38: the pending travel goes under the white cover (no fade to black, no L_Transition). */
+	bool IsCoveredTravel() const { return IsTravelPending() && bCoveredTravel; }
 
 	/** May this run write the save slot yet? (see the class comment) */
 	bool IsRunCommitted() const { return bRunCommitted; }
@@ -309,6 +311,7 @@ private:
 	FName RetakeScene;
 	ETravelStage TravelStage = ETravelStage::None;
 	float TravelStageTimeLeft = 0.f;
+	bool bCoveredTravel = false; // T1, ENG-38: galaxy <-> planet under the white cover, no L_Transition
 	float TravelElapsed = 0.f;
 	ETDDestination PendingDestination = ETDDestination::MainMenu;
 	FString PendingPackage;

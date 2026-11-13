@@ -79,6 +79,7 @@ for _tn, _rel in GROK.items():
 FLIP = {'M_TD_VFX_FlipExplosion': ('T_TD_VFX_Grok_Explosion_8x8', 8, 8, 'Age*62.0', False),
         'M_TD_VFX_FlipSmoke': ('T_TD_VFX_Grok_Smoke_8x8', 8, 8, 'frac(Age*0.45 + Rnd)*64.0', True),
         'M_TD_VFX_FlipRing': ('T_TD_VFX_Grok_ShockwaveRing', 1, 1, '0.0', False),
+        'M_TD_VFX_FlipArc': ('T_TD_VFX_Grok_ElectricArc_8x8', 8, 8, 'frac(Age*1.5 + Rnd)*64.0', True),
         'M_TD_VFX_FlipShield': ('T_TD_VFX_Grok_ShieldHexRipple_8x8', 8, 8, 'Age*62.0', False),
         'M_TD_VFX_FlipDebris': ('T_TD_VFX_Grok_DebrisChunks_4x4', 4, 4, 'floor(Rnd*15.99)', False, 'clamp(UV, 0.07, 0.93)'),
         # the side-view plasma streak read along the bolt's length (V of the mesh): its head-to-tail brightness profile
@@ -279,6 +280,66 @@ return float4(c*PC.rgb*Intensity, a*PC.a);''', {}),
 float4 t = FA;
 float3 c = t.rgb*t.a*lerp(float3(1,1,1), PC.rgb, 0.65)*1.6;
 return float4(c*smoothstep(1.0, 0.9, r)*Intensity, PC.a);''', {}),
+    # ------------------------------------------------------------------ round 5
+    # Dark body under a tracer (SM_TD_VFX_Bolt, a little fatter than the bolt): the shot reads on a bright nebula too.
+    'M_TD_VFX_BoltShadow': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, '''
+float f = saturate(1-Fres);
+return float4(0.0, 0.0, 0.0, saturate(pow(f, 1.3)*Dark*PC.a));''', {'Dark': 0.55}),
+
+    # Smoke whose eroding edge is lit orange by the fire inside while the puff is young (rim light), then cools to grey.
+    'M_TD_VFX_SmokeRim': ('translucent', True, 0.5, 0.8, (0.015, 0.03), (-0.02, 0.05), 0.14, PRE + '''
+float n = N.r*0.6 + N.a*0.4;
+float body = m*1.3 + (n-0.5)*0.9;
+float thr = lerp(0.10, 0.80, Age);
+float a = smoothstep(thr, thr+0.40, body)*smoothstep(0, 0.32, m);
+float edge = saturate(1.0 - (body-thr)*2.0);
+float young = pow(saturate(1-Age*1.25), 1.5);
+float shade = 0.30 + 0.70*N.r;
+float3 c = PC.rgb*shade + float3(1.0,0.40,0.08)*pow(edge, 2.0)*young*2.4 + float3(1.0,0.75,0.4)*pow(n, 3.0)*young*young*1.5;
+return float4(c*Intensity, saturate(a*PC.a));''', {}),
+
+    # Distortion field shell (on a sphere mesh): bright shimmering rim, flowing interference bands, faint body.
+    'M_TD_VFX_Field': ('additive', True, 3.0, 5.0, (0.01, 0.035), (-0.02, 0.05), 0.25, '''
+float rim = pow(Fres, 2.6)*smoothstep(1.0, 0.88, Fres);   // fades at the very silhouette: hides the sphere mesh's polygon outline
+float n = N.r*0.55 + N.g*0.45;
+float bands = pow(abs(sin(UV.y*70.0 + n*9.0)), 6.0);
+float cells = pow(n, 3.0);
+float a = rim*(0.55 + 1.6*cells + 0.7*bands) + (cells*0.35 + bands*0.10)*(0.25 + Fres);
+float3 c = PC.rgb*a + lerp(PC.rgb, float3(1,1,1), 0.8)*pow(rim, 3.0)*0.7;
+return float4(c*Intensity, PC.a);''', {}),
+
+    # Grok Bot's electric-arc flipbook (8x8 loop), tinted: EMP ring, field arcs, conduit breaks.
+    'M_TD_VFX_FlipArc': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''
+float4 t = lerp(FA, FB, frac({FP}));
+float l = dot(t.rgb, float3(0.33,0.33,0.33))*t.a;
+float3 c = PC.rgb*l*2.2 + float3(1,1,1)*pow(l, 2.5)*1.2;
+return float4(c*smoothstep(1.0, 0.85, r)*Intensity, PC.a);''', {}),
+
+    # Transmission / temporal glitch: rows of a quad torn sideways with a red / cyan fringe; a new pattern 14 times per life.
+    'M_TD_VFX_Glitch': ('additive', False, 1, 1, (0, 0), (0, 0), 0, '''
+float step_t = floor(Age*14.0) + Rnd*17.0;
+float row = floor(UV.y*Rows);
+float h = frac(sin(row*91.7 + step_t*37.3)*43758.5);
+float h2 = frac(sin(row*13.1 + step_t*7.7)*24634.6);
+float on = step(0.58, h);
+float x = UV.x + (h2-0.5)*0.6;
+float w = 0.10 + 0.30*h;
+float br = smoothstep(0.5-w-0.02, 0.5-w, x-0.025)*smoothstep(0.5+w+0.02, 0.5+w, x-0.025);
+float bg = smoothstep(0.5-w-0.02, 0.5-w, x)*smoothstep(0.5+w+0.02, 0.5+w, x);
+float bb = smoothstep(0.5-w-0.02, 0.5-w, x+0.025)*smoothstep(0.5+w+0.02, 0.5+w, x+0.025);
+float scan = 0.65 + 0.35*step(0.5, frac(UV.y*Rows*3.0));
+float fy = smoothstep(0.0, 0.08, UV.y)*smoothstep(1.0, 0.92, UV.y);
+float3 c = float3(br, bg, bb)*on*scan*fy*(0.25 + 0.75*h2);
+return float4(c*PC.rgb*Intensity, PC.a);''', {'Rows': 26.0}),
+
+    # Spiral arms turning once per particle life (looping particle): gravity well, portal face.
+    'M_TD_VFX_Swirl': ('additive', True, 1.2, 2.0, (0.03, 0.02), (-0.02, 0.04), 0.15, PRE + '''
+float ang = atan2(p.y, p.x);
+float arms = pow(0.5 + 0.5*sin(ang*Arms + 7.0/(r+0.22) + Age*6.2831853), 3.0);
+float a = arms*smoothstep(1.0, 0.55, r)*smoothstep(0.03, 0.30, r)*(0.45 + 1.1*N.g);
+float core = pow(saturate(1-r*2.2), 2.0);
+float3 c = PC.rgb*a + lerp(PC.rgb, float3(1,1,1), 0.7)*pow(a, 2.5)*0.8 + PC.rgb*core*Core;
+return float4(c*Intensity, PC.a);''', {'Arms': 3.0, 'Core': 0.6}),
 }
 
 

@@ -9,6 +9,7 @@
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Waves/TDWaveTypes.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
@@ -313,6 +314,13 @@ bool UTDHintComponent::IsSuppressed() const
 	{
 		if (Hyper->GetState() != ETDHyperdriveState::Idle) { return true; }
 	}
+	// A story transmission on air owns the lower lane (T2's HUD holds the card back): the hint waits, its clock stopped.
+	// Never forever: after MaxStoryHoldSeconds of lines on air, the waiting hint shows under them.
+	if (const UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
+		Story && Story->GetCurrentTransmission().bActive && StoryHeldSeconds < MaxStoryHoldSeconds)
+	{
+		return true;
+	}
 	return false;
 }
 
@@ -339,6 +347,18 @@ void UTDHintComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		}
 	}
 
+	// The story's hold is counted while a hint is waiting through one run of lines (queued back to back, with their
+	// short gaps); it starts again once the story is quiet or nothing waits.
+	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
+	const bool bStoryBusy = Story && (Story->GetCurrentTransmission().bActive || Story->GetQueueLength() > 0);
+	if (!bStoryBusy || (Current == ETDHint::None && Queue.Num() == 0))
+	{
+		StoryHeldSeconds = 0.f;
+	}
+	else if (Story->GetCurrentTransmission().bActive)
+	{
+		StoryHeldSeconds += DeltaTime;
+	}
 	if (IsSuppressed())
 	{
 		return; // the clock stops: a hint never runs out behind a landing prompt or a pause

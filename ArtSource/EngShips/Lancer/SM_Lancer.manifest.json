@@ -1,0 +1,148 @@
+{
+  "asset": "SM_Lancer",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Lancer\\SM_Lancer.fbx",
+  "tris": 49718,
+  "size_cm": [
+    524.0,
+    269.5,
+    149.9
+  ],
+  "pivot": "root object origin (SM_Lancer~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Lancer.001"
+  ],
+  "material_params": [
+    {
+      "name": "M_Lancer.001",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_Lancer_00"
+  ],
+  "collision_source": "auto convex hulls",
+  "sockets": [
+    "SOCKET_Cockpit",
+    "SOCKET_Engine",
+    "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_Engine_2",
+    "SOCKET_Muzzle_0",
+    "SOCKET_Muzzle_1",
+    "SOCKET_Ram",
+    "SOCKET_WingTip_L",
+    "SOCKET_WingTip_R"
+  ],
+  "welded_verts": 47669,
+  "nanite_recommended": true,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": true,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "ue_cm": [
+        152,
+        -45,
+        -59
+      ]
+    },
+    {
+      "name": "Muzzle_1",
+      "ue_cm": [
+        108,
+        45,
+        -55
+      ]
+    },
+    {
+      "name": "Engine",
+      "ue_cm": [
+        -264,
+        0,
+        -35
+      ]
+    },
+    {
+      "name": "Engine_0",
+      "ue_cm": [
+        -264,
+        0,
+        -35
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "ue_cm": [
+        -209,
+        -55,
+        -38
+      ]
+    },
+    {
+      "name": "Engine_2",
+      "ue_cm": [
+        -209,
+        55,
+        -38
+      ]
+    },
+    {
+      "name": "Ram",
+      "ue_cm": [
+        262,
+        0,
+        -58
+      ]
+    },
+    {
+      "name": "Cockpit",
+      "ue_cm": [
+        25,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "WingTip_L",
+      "ue_cm": [
+        -188,
+        -132,
+        -50
+      ]
+    },
+    {
+      "name": "WingTip_R",
+      "ue_cm": [
+        -188,
+        132,
+        -50
+      ]
+    }
+  ],
+  "source": "ArtSource/EngAI/Ships/Lancer/mesh_r1",
+  "texture_dir": "ArtSource/EngAI/Ships/Lancer/mesh_r1",
+  "heat_mask": "ArtSource/EngAI/Ships/Lancer/heatmask_r1/T_Lancer_HeatMask.png",
+  "max_texture_size": 2048
+}

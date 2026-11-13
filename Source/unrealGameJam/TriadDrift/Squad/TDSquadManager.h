@@ -500,6 +500,22 @@ protected:
 	bool bWingmenPassive = false;
 	bool bBetweenWaves = false;
 	FTDBarkLimiter BarkLimiter;
+
+	// Banter (dialogs.md §9): the exchange in progress, and the ones already heard.
+	struct FTDBanterStep
+	{
+		FName Id;
+		FName Speaker;
+		double At = 0.0;
+	};
+	TArray<FTDBanterStep> BanterSteps;
+	TSet<int32> BantersPlayed;
+	bool StartBanter();
+	void TickBanter();
+public:
+	/** Tests and tools: the banter steps still to come. */
+	int32 GetPendingBanterSteps() const { return BanterSteps.Num(); }
+private:
 	FText LastRefusalText;
 	double LastLockRefusalRealTime = -1000.0;
 	mutable TDSquad::FWaveDirectorCache WaveDirectorCache;

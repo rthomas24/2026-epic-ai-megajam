@@ -1,6 +1,9 @@
 // Triad Drift - atmosphere entry and atmosphere flight zone (ENG-20). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/Travel/TDDescentSubsystem.h"
+#include "Sound/SoundBase.h"
+#include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/World/TDTerrainField.h"
 #include "EngineUtils.h"
@@ -141,13 +144,38 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 	{
 		Health->SetInvulnerable(true); // committed: nothing should kill the ship during the white-out
 	}
+	// ENG-38: on the covered route the roar is a 2D voice that persists across the load (UTDTravelFX::DescentRoar, else
+	// the entry cue's own sound), so the ship's attached copy of the sound is left out.
+	UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this);
+	const UTDGameInstance* GI = GetWorld() ? Cast<UTDGameInstance>(GetWorld()->GetGameInstance()) : nullptr;
+	bCoveredEntry = Descent && UTDDescentSubsystem::IsCoveredRoute(GI ? GI->GetCurrentDestination() : ETDDestination::Galaxy, Destination);
 	if (TravelFX)
 	{
+		FTDFXCue Cue = TravelFX->AtmosphericEntry;
+		if (bCoveredEntry)
+		{
+			USoundBase* RoarSound = !TravelFX->DescentRoar.Sound.IsNull() ? TravelFX->DescentRoar.Sound.LoadSynchronous() : Cue.Sound.LoadSynchronous();
+			Descent->StartRoar(RoarSound);
+			Cue.Sound.Reset();
+		}
 		UAudioComponent* Audio = nullptr;
-		EntryFX = UTDStatics::PlayCueAttachedLoop(TravelFX->AtmosphericEntry, Craft->GetRootComponent(), NAME_None, Audio);
+		EntryFX = UTDStatics::PlayCueAttachedLoop(Cue, Craft->GetRootComponent(), NAME_None, Audio);
 		EntryAudio = Audio;
 	}
+	if (Descent)
+	{
+		// Arrival from the entry point: the nearest planet globe is the one being entered.
+		const ATDPlanetAtmosphere* Atmo = nullptr;
+		float Best = TNumericLimits<float>::Max();
+		for (TActorIterator<ATDPlanetAtmosphere> It(GetWorld()); It; ++It)
+		{
+			const float D = FVector::DistSquared(It->GetActorLocation(), PlanetCenter);
+			if (D < Best) { Best = D; Atmo = *It; }
+		}
+		Descent->RecordEntry(Destination, Atmo, Craft->GetActorLocation(), Craft->GetVelocity());
+	}
 	OnEntryStarted.Broadcast(this);
+	if (UTDDescentSubsystem* Timing = UTDDescentSubsystem::Get(this)) { Timing->BeginTiming(TEXT("atmosphere entry")); } // ENG-38 timing log
 	if (EntrySeconds <= 0.f)
 	{
 		FinishEntry();
@@ -162,6 +190,7 @@ void UTDAtmosphereEntryComponent::FinishEntry()
 	OnEntryCompleted.Broadcast(this);
 
 	bool bTravelled = false;
+	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->Mark(TEXT("entry done, travel request")); }
 	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
 		bTravelled = Travel->RequestLevelTravel(Destination, ReturnPoint); // once per level, never over a retake
@@ -187,6 +216,12 @@ void UTDAtmosphereEntryComponent::StopEntryCue()
 void UTDAtmosphereEntryComponent::RestoreFlight()
 {
 	StopEntryCue(); // aborted or travel failed: the roar and plasma must stop
+	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->ClearHeat(); }
+	if (bCoveredEntry)
+	{
+		if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->AbortCover(TEXT("entry handed back")); }
+		bCoveredEntry = false;
+	}
 	if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner()))
 	{
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
@@ -237,6 +272,23 @@ void UTDAtmosphereEntryComponent::TickComponent(float DeltaTime, ELevelTick Tick
 	if (EntryState == ETDAtmosphereEntryState::Entering)
 	{
 		EntryTime += DeltaTime;
+		if (EntrySeconds > 0.f)
+		{
+			// Hull heat (M_TD_Ship HeatGlow): eases in over the dive, full at the end (with the cover).
+			if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this))
+			{
+				const float T = FMath::Clamp(EntryTime / EntrySeconds, 0.f, 1.f);
+				Descent->SetEntryHeat(T * T * (3.f - 2.f * T));
+			}
+		}
+		if (bCoveredEntry && EntrySeconds > 0.f)
+		{
+			// The plasma ramps to full white over the last CoverRampInSeconds of the dive.
+			if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this))
+			{
+				Descent->SetEntryCover(FMath::Clamp((EntryTime - (EntrySeconds - CoverRampInSeconds)) / CoverRampInSeconds, 0.f, 1.f));
+			}
+		}
 		if (EntryTime >= EntrySeconds)
 		{
 			FinishEntry();

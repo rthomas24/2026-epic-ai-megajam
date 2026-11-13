@@ -13,12 +13,18 @@
 #include "Layout/WidgetPath.h"
 #include "Rendering/DrawElements.h"
 #include "Widgets/SWindow.h"
+#include "UObject/StrongObjectPtr.h"
+#include "UObject/UObjectGlobals.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Squad/TDBarkLines.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Story/TDStoryTypes.h"
 #include "TriadDrift/Input/TDHintComponent.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
+#include "TriadDrift/UI/TDTacticalDisplayWidget.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/UI/Tests/TDFlightHUDTestSource.h"
@@ -61,11 +67,14 @@ namespace TDFlightHUDTests
 		FTDTestWorld W;
 		ATDFlightHUDTestSource* Src = nullptr;
 		UTDFlightHUDWidget* HUD = nullptr;
+		/** Nothing else references a test-made widget (no viewport, no host): without this a GC mid-test frees it. */
+		TStrongObjectPtr<UTDFlightHUDWidget> Keep;
 		FTDFlightHUDFixture()
 		{
 			Src = W.Spawn<ATDFlightHUDTestSource>();
 			Src->SetSquad(ETDShipId::Lancer);
 			HUD = CreateWidget<UTDFlightHUDWidget>(W.GetWorld(), UTDFlightHUDWidget::StaticClass());
+			Keep.Reset(HUD);
 			HUD->ForceGamepad = 0;
 			HUD->SetDataSource(Src);
 		}
@@ -549,7 +558,14 @@ bool FTDFlightHUDHintCard::RunTest(const FString& Parameters)
 	Hints->UseMemoryOnlyForTests();
 	Hints->TimeoutSeconds = 2.f;
 	W.Advance(.5f);
-	UTDFlightHUDWidget* HUD = CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass());
+	// Held strongly: the gating run crashed here (Lead, lead/int 8492cf3) when a GC during the 12 s hint wait freed the
+	// unreferenced widget and Sample() ran on freed memory. The shipping host holds its widget in a UPROPERTY.
+	const TStrongObjectPtr<UTDFlightHUDWidget> Keep(CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass()));
+	UTDFlightHUDWidget* HUD = Keep.Get();
+	if (!TestNotNull(TEXT("widget"), HUD))
+	{
+		return false;
+	}
 	HUD->ForceGamepad = 0;
 	HUD->SetDataSource(Squad);
 	if (UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld()))
@@ -558,7 +574,7 @@ bool FTDFlightHUDHintCard::RunTest(const FString& Parameters)
 	}
 	auto WaitFor = [&](ETDHint Hint)
 	{
-		for (float T = 0.f; T < 5.f && !(Hints->GetCurrentHint() == Hint && Hints->GetCurrentHintState() == ETDHintState::Showing); T += 1.f / 60.f)
+		for (float T = 0.f; T < 12.f && !(Hints->GetCurrentHint() == Hint && Hints->GetCurrentHintState() == ETDHintState::Showing); T += 1.f / 60.f) // T3: the wave 1 hail holds the first hint
 		{
 			W.Tick();
 		}
@@ -579,6 +595,63 @@ bool FTDFlightHUDHintCard::RunTest(const FString& Parameters)
 	W.Tick();
 	HUD->Sample(.016f);
 	TestTrue(TEXT("fired: the card ticks off"), HUD->GetView().bHintDone);
+	return true;
+}
+
+// The Lead's gating crash (lead/int 8492cf3, Sample() on freed memory): a GC between Sample() calls. The shipping holder
+// (UTDUIHostSubsystem's UPROPERTY) keeps the flight HUD alive and it samples and paints on; a test-held strong pointer
+// keeps it too; a widget nothing references IS collected (what the old raw pointer in HintCardStep raced).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDSurvivesGC, "TriadDrift.UI.FlightHUD.SurvivesGarbageCollection", TD_TEST_FLAGS)
+bool FTDFlightHUDSurvivesGC::RunTest(const FString& Parameters)
+{
+	FTDFlightScopedCVar Space(TEXT("TD.UI.SpaceHUD"), 2);
+	FTDFlightScopedCVar Native(TEXT("TD.UI.NativeHUD"), -1);
+	FTDTestWorld W;
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("squad"), Squad) || !TestNotNull(TEXT("controller"), PC) || !TestNotNull(TEXT("host"), Host))
+	{
+		return false;
+	}
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(0.f, 0.f, 20000.f)));
+	Host->bAddToViewport = false;
+	W.Advance(.2f);
+	Host->Evaluate();
+	const TWeakObjectPtr<UTDFlightHUDWidget> HostHUD = Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD());
+	if (!TestTrue(TEXT("the host shows the engineering flight HUD"), HostHUD.IsValid()))
+	{
+		return false;
+	}
+	const TStrongObjectPtr<UTDFlightHUDWidget> Held(CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass()));
+	const TWeakObjectPtr<UTDFlightHUDWidget> Loose = CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass());
+	Held->SetDataSource(Squad);
+	for (int32 Round = 0; Round < 3; ++Round)
+	{
+		HostHUD->Sample(.016f);
+		Held->Sample(.016f);
+		CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS, true);
+		W.Advance(.1f);
+	}
+	TestTrue(TEXT("host's widget survives GC"), HostHUD.IsValid() && Host->GetSpaceHUD() == HostHUD.Get());
+	TestTrue(TEXT("a strongly held test widget survives GC"), Held.IsValid());
+	TestFalse(TEXT("an unreferenced widget is collected (the old test's raw pointer would now dangle)"), Loose.IsValid());
+	if (HostHUD.IsValid())
+	{
+		HostHUD->Sample(.016f);
+		TestEqual(TEXT("after GC: the host's HUD still reads the squad (3 chips)"), HostHUD->GetView().Chips.Num(), 3);
+		TSharedRef<SWidget> Slate = HostHUD->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+		TestTrue(TEXT("after GC: it paints"), HostHUD->LastBoxes.Num() > 0);
+	}
+	Held->Sample(.016f);
+	TestEqual(TEXT("after GC: the held widget samples"), Held->GetView().Chips.Num(), 3);
 	return true;
 }
 
@@ -699,6 +772,273 @@ bool FTDFlightHUDLayouts::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Director's Cut moments: CUT turns the HUD off, the slate holds it at 40%, it fades back in over 0.25 s; pause dims it
+// to 30%; a money shot leaves only the reticle and the arcs.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDDirector, "TriadDrift.UI.FlightHUD.P3.DirectorMoments", TD_TEST_FLAGS)
+bool FTDFlightHUDDirector::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->ForceMoneyShot = 0;
+	F.HUD->ForcePaused = 0;
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("normal: full opacity"), F.V().HUDOpacity, 1.f);
+
+	F.HUD->HandleSceneCut(TEXT("Wave2"), 2, 2.f);
+	F.HUD->Sample(.016f);
+	TestTrue(TEXT("CUT: off at once"), F.V().bInCut && F.V().HUDOpacity == 0.f);
+	F.HUD->Sample(1.f);
+	TestEqual(TEXT("still off during the cut delay"), F.V().HUDOpacity, 0.f);
+	{
+		// Painted, not only the number: the live CUT capture showed the HUD still drawn (render opacity doesn't reach
+		// custom-painted elements). A CUT paint draws nothing.
+		TSharedRef<SWidget> CutSlate = F.HUD->TakeWidget();
+		TSharedRef<SWindow> CutWindow = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList CutList(CutWindow);
+		FHittestGrid CutGrid;
+		CutSlate->SlatePrepass(1.f);
+		CutSlate->Paint(FPaintArgs(nullptr, CutGrid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f),
+			FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()), FSlateRect(0, 0, 1920, 1080), CutList, 0, FWidgetStyle(), true);
+		TestEqual(TEXT("CUT: nothing painted"), F.HUD->LastBoxes.Num(), 0);
+	}
+	F.HUD->HandleTakeStarted(TEXT("Wave2"), 2);
+	F.HUD->Sample(.05f);
+	F.HUD->Sample(.3f);
+	TestTrue(TEXT("take starts: slate, HUD at 40%"), F.V().bInSlate && FMath::IsNearlyEqual(F.V().HUDOpacity, UTDFlightHUDWidget::SlateOpacity, .01f));
+	F.HUD->Sample(UTDFlightHUDWidget::SlateSeconds - .35f - .01f); // just before the slate ends (0.35 s already sampled)
+	TestTrue(TEXT("still behind the slate"), F.V().bInSlate);
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("slate over: fading back in"), !F.V().bInSlate && F.V().HUDOpacity > UTDFlightHUDWidget::SlateOpacity && F.V().HUDOpacity < 1.f);
+	F.HUD->Sample(UTDFlightHUDWidget::CutFadeInSeconds);
+	TestEqual(TEXT("back to full after the 0.25 s fade"), F.V().HUDOpacity, 1.f);
+
+	F.HUD->ForcePaused = 1;
+	F.HUD->Sample(.5f);
+	TestTrue(TEXT("paused: dimmed to 30%"), F.V().bPaused && FMath::IsNearlyEqual(F.V().HUDOpacity, UTDFlightHUDWidget::PauseOpacity, .01f));
+	F.HUD->ForcePaused = 0;
+	F.HUD->Sample(.5f);
+
+	F.HUD->ForceMoneyShot = 1;
+	F.HUD->Sample(.05f);
+	TestTrue(TEXT("money shot: easing in"), F.V().MoneyShot > 0.f && F.V().MoneyShot < 1.f);
+	F.HUD->Sample(UTDFlightHUDWidget::MoneyShotEaseSeconds);
+	TestEqual(TEXT("money shot: in"), F.V().MoneyShot, 1.f);
+	TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	FSlateWindowElementList List(Window);
+	FHittestGrid Grid;
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	TestTrue(TEXT("money shot: reticle kept"), F.HUD->LastBoxes.ContainsByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("reticle"); }));
+	TestTrue(TEXT("money shot: arcs kept"), F.HUD->LastBoxes.ContainsByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("arcs"); }));
+	TestFalse(TEXT("money shot: strip, objective and pip hidden"), F.HUD->LastBoxes.ContainsByPredicate([](const TPair<FName, FBox2D>& B)
+		{ return B.Key == TEXT("chip") || B.Key == TEXT("objective") || B.Key == TEXT("pip"); }));
+	F.HUD->ForceMoneyShot = 0;
+	F.HUD->Sample(UTDFlightHUDWidget::MoneyShotEaseSeconds + .01f);
+	TestEqual(TEXT("money shot over: back within 150 ms"), F.V().MoneyShot, 0.f);
+	return true;
+}
+
+// Subtitles and story transmissions: barks show as subtitles; a transmission keeps its speaker and style, splits to two
+// lines when long, is not replaced by a bark, and expires; the widget claims the Subtitles surface.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDSubtitles, "TriadDrift.UI.FlightHUD.P3.SubtitlesAndTransmissions", TD_TEST_FLAGS)
+bool FTDFlightHUDSubtitles::RunTest(const FString& Parameters)
+{
+	TestEqual(TEXT("bark text"), UTDFlightHUDWidget::BarkText(TEXT("Bark_SquadEngageHighLeft")), FString(TEXT("engage high left")));
+	FTDFlightHUDFixture F;
+	F.HUD->Sample(.016f); // binds the bus
+	UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
+	if (!TestNotNull(TEXT("bus"), Bus))
+	{
+		return false;
+	}
+	Bus->OnBarkRequested.Broadcast(TEXT("Bark_SquadEngageHighLeft"), TEXT("Kato"));
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("bark: speaker"), F.V().Subtitle.Speaker, FString(TEXT("KATO")));
+	{
+		// The real dialogs.md line (T3's FTDBarkLines returns the same line to every caller for 3 s), or no subtitle at all.
+		FText Real;
+		const bool bHasLine = FTDBarkLines::PickLine(F.W.GetWorld(), TEXT("Bark_SquadEngageHighLeft"), TEXT("Kato"), Real);
+		AddInfo(FString::Printf(TEXT("dialogs.md line: %s"), bHasLine ? *Real.ToString() : TEXT("(none)")));
+		TestEqual(TEXT("bark: the real line, not text made from the id"), F.V().Subtitle.Text, bHasLine ? Real.ToString() : FString());
+	}
+	F.HUD->ShowTransmission(TEXT("Unknown"), FText::FromString(TEXT("You have done this before. You will do it again, and you will not remember.")),
+		UTDFlightHUDWidget::ETransmissionStyle::Static, 4.f);
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("transmission: static style"), F.V().Subtitle.Style, UTDFlightHUDWidget::ETransmissionStyle::Static);
+	Bus->OnBarkRequested.Broadcast(TEXT("Bark_SquadEngageHighLeft"), TEXT("Moss"));
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("a bark does not replace a story transmission"), F.V().Subtitle.Speaker, FString(TEXT("UNKNOWN")));
+	// Painted: the slot is drawn, inside the safe frame.
+	TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	FSlateWindowElementList List(Window);
+	FHittestGrid Grid;
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	const TPair<FName, FBox2D>* Box = F.HUD->LastBoxes.FindByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("subtitle"); });
+	if (TestNotNull(TEXT("subtitle slot drawn"), Box))
+	{
+		TestTrue(TEXT("two lines (long transmission)"), Box->Value.GetSize().Y > 50.f);
+		TestTrue(TEXT("inside the safe frame"), Box->Value.Max.Y <= 1080.f - UTDFlightHUDWidget::SafeY);
+	}
+	F.HUD->Sample(4.f);
+	TestTrue(TEXT("expired after its seconds"), F.V().Subtitle.Text.IsEmpty());
+	// A short line gets a plate that fits it, centred (live capture: "Down he goes." sat alone in the full 880 px slot).
+	F.HUD->ShowTransmission(TEXT("Moss"), FText::FromString(TEXT("Down he goes.")), UTDFlightHUDWidget::ETransmissionStyle::Clean, 2.5f);
+	F.HUD->Sample(.5f);
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	Box = F.HUD->LastBoxes.FindByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("subtitle"); });
+	if (TestNotNull(TEXT("short subtitle drawn"), Box))
+	{
+		TestTrue(TEXT("short line: plate narrower than the slot"), Box->Value.GetSize().X < 600.f);
+		TestTrue(TEXT("short line: plate centred"), FMath::IsNearlyEqual(Box->Value.GetCenter().X, 960.f, 1.f));
+	}
+	TestTrue(TEXT("claims the Subtitles surface"), GetDefault<UTDFlightHUDWidget>()->bCoversSubtitles);
+	return true;
+}
+
+// T3's real story subsystem drives the slot: its first transmission shows with its speaker tag and colour, its own
+// OnBarkRequested echo is not shown twice, and its fallback overlay steps aside (bDrawnExternally).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDStory, "TriadDrift.UI.FlightHUD.P3.StoryTransmissionsFromT3", TD_TEST_FLAGS)
+bool FTDFlightHUDStory::RunTest(const FString& Parameters)
+{
+	const TArray<FTDTransmission> Entries = UTDStorySubsystem::GetAllEntries();
+	if (!TestTrue(TEXT("the story has transmissions"), Entries.Num() > 0))
+	{
+		return false;
+	}
+	FTDFlightHUDFixture F;
+	F.HUD->Sample(.016f);
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(F.W.GetWorld());
+	if (!TestNotNull(TEXT("story subsystem"), Story))
+	{
+		return false;
+	}
+	TestTrue(TEXT("this HUD draws transmissions: T3's fallback steps aside"), Story->bDrawnExternally);
+	const FTDTransmission& First = Entries[0];
+	TestTrue(TEXT("fired"), Story->FireTransmission(First.Id));
+	for (int32 I = 0; I < 30 && !Story->GetCurrentTransmission().bActive; ++I)
+	{
+		F.W.Tick(1.f / 30.f);
+	}
+	const FTDTransmissionView Now = Story->GetCurrentTransmission();
+	if (!TestTrue(TEXT("on air"), Now.bActive))
+	{
+		return false;
+	}
+	F.HUD->Sample(.016f);
+	TestTrue(TEXT("shown as a story line"), F.V().Subtitle.bStory);
+	TestEqual(TEXT("its text"), F.V().Subtitle.Text, Now.Text.ToString());
+	TestEqual(TEXT("its speaker tag"), F.V().Subtitle.Speaker, Now.SpeakerTag.ToString().ToUpper());
+	TestTrue(TEXT("its speaker colour"), F.V().Subtitle.TagColor.Equals(Now.Color));
+	// Its OnBarkRequested echo (id = the transmission id) is ignored; an ordinary bark doesn't replace the story line.
+	F.HUD->HandleBarkRequested(First.Id, TEXT("Kato"));
+	F.HUD->HandleBarkRequested(TEXT("Bark_SquadEngageHighLeft"), TEXT("Kato"));
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("still the story line"), F.V().Subtitle.Text, Now.Text.ToString());
+	return true;
+}
+
+// Aftermath tactical display (storyline.md 12): disciplined lanes (evenly spaced, all moving), fades in / holds / out,
+// paints; the host shows it even during a cinematic and removes it when done.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTacticalDisplay, "TriadDrift.UI.Aftermath.TacticalDisplay", TD_TEST_FLAGS)
+bool FTDTacticalDisplay::RunTest(const FString& Parameters)
+{
+	// Evenly spaced on a lane, and moving forward with time.
+	const float A0 = UTDTacticalDisplayWidget::LaneProgress(0, 0, 0.f), A1 = UTDTacticalDisplayWidget::LaneProgress(0, 1, 0.f);
+	TestEqual(TEXT("contacts evenly spaced"), A1 - A0, 1.f / UTDTacticalDisplayWidget::ContactsPerLane, .001f);
+	TestTrue(TEXT("contacts move toward Verdance"), UTDTacticalDisplayWidget::LaneProgress(0, 0, 1.f) > A0);
+
+	FTDTestWorld W;
+	APlayerController* PC = W.SpawnLocalPlayerController();
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("host"), Host))
+	{
+		return false;
+	}
+	Host->bAddToViewport = false;
+	Host->SetCinematicHidden(true); // the Aftermath plays as a cinematic
+	TestTrue(TEXT("shown"), UTDUIHostSubsystem::ShowTacticalDisplay(W.GetWorld(), 20.f));
+	UTDTacticalDisplayWidget* Display = Cast<UTDTacticalDisplayWidget>(Host->GetTacticalDisplay());
+	if (!TestNotNull(TEXT("display widget"), Display))
+	{
+		return false;
+	}
+	TestEqual(TEXT("fades in from 0"), Display->GetVisibility01(), 0.f);
+	Display->Advance(1.f);
+	TestEqual(TEXT("full while it plays"), Display->GetVisibility01(), 1.f);
+	TSharedRef<SWidget> Slate = Display->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	FSlateWindowElementList List(Window);
+	FHittestGrid Grid;
+	Slate->SlatePrepass(1.f);
+	const int32 Layer = Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f),
+		FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()), FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	TestTrue(TEXT("painted"), Layer > 0);
+	Display->Advance(19.5f);
+	TestTrue(TEXT("fading out at the end"), Display->GetVisibility01() < 1.f);
+	Display->Advance(1.f);
+	TestTrue(TEXT("finished"), Display->IsFinished());
+	Host->Tick(.016f);
+	TestNull(TEXT("the host removed it"), Host->GetTacticalDisplay());
+	Host->SetCinematicHidden(false);
+	return true;
+}
+
+// Aftermath navigation pulse: on for 1.5 s, drawn as a corridor, then clear; a story line holds the tutorial card back.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDNavPulse, "TriadDrift.UI.Aftermath.NavigationPulse", TD_TEST_FLAGS)
+bool FTDNavPulse::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("no pulse"), F.V().NavPulse, 0.f);
+	F.HUD->ShowNavigationPulse(FVector(10000.f, 0.f, 0.f), FVector(900000.f, 300000.f, 0.f));
+	F.HUD->Sample(.3f);
+	TestTrue(TEXT("pulsing"), F.V().NavPulse > 0.f && F.V().NavPulse < 1.f);
+	TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+	TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+	FSlateWindowElementList List(Window);
+	FHittestGrid Grid;
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	TestTrue(TEXT("corridor drawn"), F.HUD->LastBoxes.ContainsByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("navpulse"); }));
+	F.HUD->Sample(UTDFlightHUDWidget::NavPulseSeconds);
+	TestEqual(TEXT("cleared after 1.5 s"), F.V().NavPulse, 0.f);
+
+	// A story transmission on air holds the tutorial card back (Lead's note: they crowded each other).
+	F.HUD->ShowTransmission(TEXT("Unknown"), FText::FromString(TEXT("...hold the line...")), UTDFlightHUDWidget::ETransmissionStyle::Static, 3.f);
+	F.HUD->Sample(.016f);
+	TestNotEqual(TEXT("no hint card under a story line"), F.V().Lane, UTDFlightHUDWidget::ELane::Hint);
+	return true;
+}
+
+// The real event bus drives it (not only the handlers called directly).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDDirectorBus, "TriadDrift.UI.FlightHUD.P3.DirectorMomentsFromTheBus", TD_TEST_FLAGS)
+bool FTDFlightHUDDirectorBus::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	F.HUD->ForceMoneyShot = 0;
+	F.HUD->ForcePaused = 0;
+	F.HUD->Sample(.016f); // binds the bus
+	UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
+	if (!TestNotNull(TEXT("bus"), Bus))
+	{
+		return false;
+	}
+	Bus->OnSceneCut.Broadcast(TEXT("Wave1"), 2, 1.f);
+	F.HUD->Sample(.016f);
+	TestTrue(TEXT("bus CUT: off"), F.V().bInCut);
+	Bus->OnTakeStarted.Broadcast(TEXT("Wave1"), 2);
+	F.HUD->Sample(.5f);
+	TestTrue(TEXT("bus take: slate"), F.V().bInSlate);
+	return true;
+}
+
 // Hit feel at the reticle: a hit tick, a kill X that a later hit never cuts short, both timing out.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDHitMarks, "TriadDrift.UI.FlightHUD.HitAndKillMarkers", TD_TEST_FLAGS)
 bool FTDFlightHUDHitMarks::RunTest(const FString& Parameters)
@@ -767,7 +1107,7 @@ bool FTDFlightHUDCovers::RunTest(const FString& Parameters)
 		const FBoolProperty* Claim = FindFProperty<FBoolProperty>(UTDFlightHUDWidget::StaticClass(), UTDUIHostSubsystem::GetCoverPropertyName(Surface));
 		TestTrue(FString::Printf(TEXT("claims %s"), *UTDUIHostSubsystem::GetCoverPropertyName(Surface).ToString()), Claim && Claim->GetPropertyValue_InContainer(CDO));
 	}
-	for (const ETDHUDSurface Surface : { ETDHUDSurface::Subtitles, ETDHUDSurface::Pause })
+	for (const ETDHUDSurface Surface : { ETDHUDSurface::Pause })
 	{
 		TestNull(FString::Printf(TEXT("leaves %s"), *UTDUIHostSubsystem::GetCoverPropertyName(Surface).ToString()),
 			FindFProperty<FBoolProperty>(UTDFlightHUDWidget::StaticClass(), UTDUIHostSubsystem::GetCoverPropertyName(Surface)));

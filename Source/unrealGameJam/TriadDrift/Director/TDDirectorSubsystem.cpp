@@ -7,6 +7,8 @@
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "HAL/IConsoleManager.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -85,6 +87,7 @@ void UTDDirectorSubsystem::Tick(float DeltaTime)
 		bSlowMoSounding = false;
 		FTDDirectorSounds::Play(GetWorld(), ETDDirectorSound::SlowMoOut);
 	}
+	UpdatePlayerProtection();
 	if (!CameraRig)
 	{
 		return;
@@ -96,6 +99,39 @@ void UTDDirectorSubsystem::Tick(float DeltaTime)
 		CameraRig->Cancel(bSceneCutPending ? ETDDirectorCameraCancel::SceneCut : ETDDirectorCameraCancel::Travel);
 	}
 	CameraRig->Tick(Now, RealDelta);
+}
+
+namespace TDDirectorProtect
+{
+	static TAutoConsoleVariable<int32> CVarProtect(TEXT("td.Director.ProtectPlayer"), 1,
+		TEXT("1: the flown ship takes no damage while the director's camera is away, and for ReturnGraceSeconds after (AAA a23). 0: off (to measure)."));
+}
+
+void UTDDirectorSubsystem::UpdatePlayerProtection()
+{
+	// The camera is away for a shot (cut, hold, blend back), never for the death cam (the player is already dead).
+	const bool bAway = CameraRig && CameraRig->IsActive() && !CameraRig->IsDeathCam();
+	const ATDSquadManager* Squad = ATDSquadManager::Get(this);
+	UTDHealthComponent* Health = Squad ? UTDStatics::GetHealth(Squad->GetActiveShip()) : nullptr;
+	if (!bAway || !Health)
+	{
+		bProtectingPlayer = false;
+		LastProtectedHealth = -1.f;
+		return;
+	}
+	const float Now = Health->GetShield() + Health->GetHull();
+	if (LastProtectedHealth >= 0.f && Now < LastProtectedHealth - 0.01f)
+	{
+		UE_LOG(LogTriadDrift, Warning, TEXT("Director: the player's ship took %.1f damage while the camera was away (shot %d, %s)"),
+			LastProtectedHealth - Now, ShotCount, *UEnum::GetValueAsString(CurrentShot.Kind));
+	}
+	LastProtectedHealth = Now;
+	if (TDDirectorProtect::CVarProtect.GetValueOnGameThread() != 0)
+	{
+		// Refreshed every frame while away; once the camera is back it runs out over ReturnGraceSeconds of game time.
+		Health->SetInvulnerableFor(Tuning.ReturnGraceSeconds);
+		bProtectingPlayer = true;
+	}
 }
 
 void UTDDirectorSubsystem::OnWorldBeginPlay(UWorld& InWorld)

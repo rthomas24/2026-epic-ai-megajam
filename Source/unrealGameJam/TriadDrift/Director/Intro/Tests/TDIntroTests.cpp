@@ -273,6 +273,67 @@ bool FTDIntroControlFrame::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroWallClock, "TriadDrift.Director.Intro.RunsOnWallTimeThroughHitches", TD_TEST_FLAGS)
+bool FTDIntroWallClock::RunTest(const FString& Parameters)
+{
+	// The music runs on the audio (wall) clock: intro time must equal summed real frame time, hitches included, or the
+	// downbeat lands before control (#24). A 2 s load hitch skips frames; it never stretches the intro or skips its end.
+	TDIntroTest::FIntroWorld F;
+	if (!TestTrue(TEXT("squad and player"), F.Init()))
+	{
+		return false;
+	}
+	UTDIntroTestListener* L = NewObject<UTDIntroTestListener>();
+	L->AddToRoot();
+	L->Intro = F.Intro;
+	F.Intro->OnIntroFinished.AddDynamic(L, &UTDIntroTestListener::OnFinished);
+	if (!TestTrue(TEXT("plays"), F.Play()))
+	{
+		L->RemoveFromRoot();
+		return false;
+	}
+	const float Length = F.Intro->GetIntroLength();
+	const float Frames[] = { 1.f / 60.f, 1.f / 30.f, 0.25f, 2.f, 1.f / 144.f, 0.7f, 0.05f, 1.f / 30.f, 3.5f, 0.12f };
+	float Sum = 0.f;
+	float MaxErr = 0.f;
+	int32 LastShot = -1;
+	bool bInOrder = true;
+	int32 i = 0;
+	while (F.Intro->IsPlaying() && Sum < Length + 5.f)
+	{
+		const float Dt = Frames[i++ % UE_ARRAY_COUNT(Frames)];
+		F.W.Tick(Dt);
+		Sum += Dt;
+		if (F.Intro->IsPlaying())
+		{
+			MaxErr = FMath::Max(MaxErr, FMath::Abs(F.Intro->GetIntroTime() - Sum));
+			const int32 Shot = F.Intro->GetShotIndex();
+			bInOrder = bInOrder && Shot >= LastShot;
+			LastShot = Shot;
+		}
+	}
+	TestTrue(FString::Printf(TEXT("intro time tracks summed real time (max error %.4f s)"), MaxErr), MaxErr <= 0.001f);
+	TestTrue(TEXT("shots only move forward"), bInOrder);
+	TestEqual(TEXT("OnIntroFinished fired exactly once"), L->Count, 1);
+	TestTrue(TEXT("watched, not skipped"), L->bLastPlayed && !L->bLastSkipped);
+	TestEqual(TEXT("the run finish delegate once"), F.Finished, 1);
+	TestTrue(FString::Printf(TEXT("finished on the first frame past the length (%.2f of %.2f s)"), Sum, Length), Sum >= Length && Sum < Length + 3.5f + 0.001f);
+	F.Run(1.f);
+	TestEqual(TEXT("still exactly once"), L->Count, 1);
+
+	// One frame longer than the whole intro: the end handler still runs, once.
+	if (TestTrue(TEXT("plays again"), F.Play()))
+	{
+		F.W.Tick(Length + 2.f);
+		TestEqual(TEXT("a single huge frame finishes it once"), L->Count, 2);
+		TestFalse(TEXT("and it let go"), F.Intro->IsPlaying());
+		F.Run(0.5f);
+		TestEqual(TEXT("no second event"), L->Count, 2);
+	}
+	L->RemoveFromRoot();
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroSkip, "TriadDrift.Director.Intro.HoldToSkipByKeyMouseOrPad", TD_TEST_FLAGS)
 bool FTDIntroSkip::RunTest(const FString& Parameters)
 {

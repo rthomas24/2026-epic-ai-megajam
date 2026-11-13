@@ -7,6 +7,7 @@
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/UI/TDUIHostSettings.h"
 #include "Components/AudioComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
@@ -55,6 +56,10 @@ namespace TDStory
 			E(TEXT("Intro_N2"), S::Control, LOCTEXT("Intro_N2", "Triad is deployed. Wren. Kato. Moss.")),
 			E(TEXT("Intro_N3"), S::Control, LOCTEXT("Intro_N3", "Identify the ship. Learn what it wants. Report back.")),
 			E(TEXT("Intro_N4"), S::Control, LOCTEXT("Intro_N4", "And out of the dark... the Null Armada.")),
+			// Pilot traits (storyline.md §3): the second line of the pilot name cards (intro and switch). Not fired.
+			E(TEXT("Trait_Wren"), S::Wren, LOCTEXT("Trait_Wren", "TRICKSTER  ·  BOLD  ·  INSTINCTIVE")),
+			E(TEXT("Trait_Kato"), S::Kato, LOCTEXT("Trait_Kato", "INTERCEPTOR  ·  ANALYTICAL  ·  CAUTIOUS")),
+			E(TEXT("Trait_Moss"), S::Moss, LOCTEXT("Trait_Moss", "HEAVY  ·  STEADY  ·  GOOD-HUMOURED")),
 			// First Contact (docs/story/First-Contact-Cinematic-Brief.md): the opening, ~2:20, re-shot once the art is in.
 			// Draft lines from the brief; Nicholas's words replace them.
 			E(TEXT("O_PatrolSeven"), S::PatrolSeven, LOCTEXT("O_PatrolSeven", "Command, we have an unidentified structure on the outer perimeter. It's not on any chart. Wait, something's coming out of-"), St::Static),
@@ -72,6 +77,28 @@ namespace TDStory
 			E(TEXT("O_Unknown_Dont"), S::Unknown, LOCTEXT("O_Unknown_Dont", "Don't-"), St::Static, TEXT("Dont")),
 			E(TEXT("O_Wren_Break"), S::Wren, LOCTEXT("O_Wren_Break", "Triad, break formation!")),
 			E(TEXT("O_Command_Evade"), S::Command, LOCTEXT("O_Command_Evade", "Pilot, incoming fire! Evade now!")),
+			// Gameplay Sequence 01, the tutorial battle (storyline.md §13): the calls per phase. Drafts.
+			E(TEXT("TB_Kato_Marking"), S::Kato, LOCTEXT("TB_Kato_Marking", "Keep moving. I'm marking a hostile.")),
+			E(TEXT("TB_Moss_ThreeShips"), S::Moss, LOCTEXT("TB_Moss_ThreeShips", "We've still got three ships. Use them.")),
+			E(TEXT("TB_Wren_Bigger"), S::Wren, LOCTEXT("TB_Wren_Bigger", "That one's bigger. Focus it together!")),
+			E(TEXT("TB_Command_FallBack"), S::Command, LOCTEXT("TB_Command_FallBack", "Triad, disengage. Fall back to the marked corridor.")),
+			E(TEXT("TB_Kato_BreakingOff"), S::Kato, LOCTEXT("TB_Kato_BreakingOff", "They're breaking off.")),
+			// Sequence 02, Aftermath (Story/Triad_Drift_Sequence_02_Aftermath.docx, storyline.md §12). Drafts. No "Don't-" here.
+			E(TEXT("S2_Moss_Accounted"), S::Moss, LOCTEXT("S2_Moss_Accounted", "All three ships accounted for. I'm calling that a win.")),
+			E(TEXT("S2_Wren_WelcomeParty"), S::Wren, LOCTEXT("S2_Wren_WelcomeParty", "If that was a welcome party, I don't want to meet the host.")),
+			E(TEXT("S2_Kato_NotPursuing"), S::Kato, LOCTEXT("S2_Kato_NotPursuing", "Hold on. They're not pursuing us.")),
+			E(TEXT("S2_Kato_Vectors"), S::Kato, LOCTEXT("S2_Kato_Vectors", "Look at their vectors. Most of those craft never joined the fight.")),
+			E(TEXT("S2_Wren_WhatDoing"), S::Wren, LOCTEXT("S2_Wren_WhatDoing", "Then what are they doing?")),
+			E(TEXT("S2_Kato_Planetside"), S::Kato, LOCTEXT("S2_Kato_Planetside", "Heading planetside. Every group. Same destination.")),
+			E(TEXT("S2_Moss_InTheWay"), S::Moss, LOCTEXT("S2_Moss_InTheWay", "So we got in the way of something.")),
+			E(TEXT("S2_Command_Report"), S::Command, LOCTEXT("S2_Command_Report", "Triad, report. We lost your telemetry when you approached the unidentified vessel."), St::Static),
+			E(TEXT("S2_Wren_Hostile"), S::Wren, LOCTEXT("S2_Wren_Hostile", "Confirmed hostile. Automated fighters, heavy numbers. We're intact, barely.")),
+			E(TEXT("S2_Kato_Coordinated"), S::Kato, LOCTEXT("S2_Kato_Coordinated", "They've launched a coordinated operation toward Verdance. This wasn't a defensive scramble.")),
+			E(TEXT("S2_Command_Outpost"), S::Command, LOCTEXT("S2_Command_Outpost", "We've received an emergency report from a research outpost there. Unidentified machines landed near a restricted survey zone. The outpost has gone dark.")),
+			E(TEXT("S2_Moss_FindOut"), S::Moss, LOCTEXT("S2_Moss_FindOut", "And you want us to find out why.")),
+			E(TEXT("S2_Command_Orders"), S::Command, LOCTEXT("S2_Command_Orders", "Affirmative. Avoid direct engagement with the mothership. Reach Verdance, locate the outpost, and recover its survey data. We need to know what they're looking for.")),
+			E(TEXT("S2_Wren_FormUp"), S::Wren, LOCTEXT("S2_Wren_FormUp", "Triad, form up. Verdance it is.")),
+			E(TEXT("S2_Kato_Recorders"), S::Kato, LOCTEXT("S2_Kato_Recorders", "And keep your recorders running. Nothing about this adds up.")),
 			// Act 1: First Contact, the Watcher (waves 1-2).
 			E(TEXT("A1_HailNoAnswer"), S::Kato, LOCTEXT("A1_HailNoAnswer", "Hailing on every band. Nothing. It isn't even listening.")),
 			E(TEXT("A1_TheySearch"), S::Moss, LOCTEXT("A1_TheySearch", "They're not holding ground. They scan, they sweep, they move on.")),
@@ -79,19 +106,94 @@ namespace TDStory
 			E(TEXT("A1_TrailToVerdance"), S::Control, LOCTEXT("A1_TrailToVerdance", "Their landers are converging on Verdance. Follow the trail.")),
 			// Act 2: Verdance, the Voices.
 			E(TEXT("A2_DeviceFound"), S::Kato, LOCTEXT("A2_DeviceFound", "A signal-analysis device. Someone here was listening to them.")),
-			E(TEXT("A2_Voices"), S::Unknown, LOCTEXT("A2_Voices", "...hold the line... vector two... [static] ...is anyone receiving..."), St::Static),
+			E(TEXT("A2_Voices"), S::Unknown, LOCTEXT("A2_Voices", "...[static] ...maintain the sequence... [static]..."), St::Static),
 			E(TEXT("A2_TrailToCinder"), S::Moss, LOCTEXT("A2_TrailToCinder", "Human voices, under their signal. The data points to Cinder.")),
+			// Gameplay 02, Verdance Arrival (storyline.md §14, reduced form §18). Drafts.
+			E(TEXT("A2_ConvoyScanned"), S::Kato, LOCTEXT("A2_ConvoyScanned", "Scanner assemblies. Extraction rigs. No troops. They're surveying.")),
+			E(TEXT("A2_TransponderSighted"), S::Moss, LOCTEXT("A2_TransponderSighted", "There's a transponder down there. It keeps flickering.")),
+			E(TEXT("G2_Wren_Geology"), S::Wren, LOCTEXT("G2_Wren_Geology", "That's a lot of machines for a geology expedition.")),
+			E(TEXT("G2_Command_Archive"), S::Command, LOCTEXT("G2_Command_Archive", "The outpost went dark twelve hours ago. Find its survey archive. Do not destroy the facility.")),
+			E(TEXT("G2_Kato_OneLine"), S::Kato, LOCTEXT("G2_Kato_OneLine", "They're concentrating their scans along one underground line. That's not random.")),
+			E(TEXT("G2_Moss_LightsOn"), S::Moss, LOCTEXT("G2_Moss_LightsOn", "Lights are on. Doors are open. Nobody's answering. I don't like this.")),
+			// Cinematic 03, Beneath the Surface (§15; 40-60 s, voice over the room). The three pulses are sound and light, not a line.
+			E(TEXT("C3_Moss_NoBodies"), S::Moss, LOCTEXT("C3_Moss_NoBodies", "No bodies. No signs of a fight. Where did everybody go?")),
+			E(TEXT("C3_Wren_Survey"), S::Wren, LOCTEXT("C3_Wren_Survey", "Kato, see if the survey station can tell us anything.")),
+			E(TEXT("C3_Kato_Artificial"), S::Kato, LOCTEXT("C3_Kato_Artificial", "Those are human voices. Buried in their signal. And this shape beneath the station is artificial.")),
+			E(TEXT("C3_Wren_NotThePlanet"), S::Wren, LOCTEXT("C3_Wren_NotThePlanet", "So they didn't come here to take the planet.")),
+			E(TEXT("C3_Kato_Beneath"), S::Kato, LOCTEXT("C3_Kato_Beneath", "They're looking for something beneath it.")),
+			E(TEXT("C3_Wren_Answered"), S::Wren, LOCTEXT("C3_Wren_Answered", "Did we just answer that thing?")),
+			E(TEXT("C3_Kato_DidntSend"), S::Kato, LOCTEXT("C3_Kato_DidntSend", "I didn't send anything.")),
+			E(TEXT("C3_Kato_CinderMatch"), S::Kato, LOCTEXT("C3_Kato_CinderMatch", "There's another match. Cinder. I'm copying the data-")),
+			E(TEXT("C3_Moss_Company"), S::Moss, LOCTEXT("C3_Moss_Company", "Company incoming. A lot of it.")),
+			E(TEXT("C3_Wren_HoldThem"), S::Wren, LOCTEXT("C3_Wren_HoldThem", "Keep that transfer running. We'll hold them off.")),
+			// Gameplay 03, Facility Defense (§16; reduced: a 60-90 s transfer, three waves, the carry-back).
+			// T5 fires these three from the transfer (start, the Heavy's wave, done).
+			E(TEXT("G3_TransferStart"), S::Kato, LOCTEXT("G3_TransferStart", "Transfer's moving. If they destroy this station, we lose everything.")),
+			E(TEXT("G3_Disruption"), S::Kato, LOCTEXT("G3_Disruption", "Something heavy is coming in. The transfer's stalling.")),
+			E(TEXT("G3_DataSecured"), S::Kato, LOCTEXT("G3_DataSecured", "Device and recordings secured. I've got the Cinder coordinates. Let's move.")),
+			E(TEXT("G3_Moss_NobodyNear"), S::Moss, LOCTEXT("G3_Moss_NobodyNear", "Then nobody gets near the station.")),
+			E(TEXT("G3_Wren_LeftApproach"), S::Wren, LOCTEXT("G3_Wren_LeftApproach", "Left approach! Keep them off Kato.")),
+			E(TEXT("G3_Kato_AlmostThere"), S::Kato, LOCTEXT("G3_Kato_AlmostThere", "Archive almost complete. Keep them off the station.")),
+			E(TEXT("G3_Command_Extraction"), S::Command, LOCTEXT("G3_Command_Extraction", "Triad, extraction corridor is open. Return with the archive intact.")),
+			// Cinematic 04, Verdance Departure (§17, §25: transmissions over the take-off; no shielding).
+			E(TEXT("C4_Moss_Trouble"), S::Moss, LOCTEXT("C4_Moss_Trouble", "All that for a recorder full of voices. None of them answering.")),
+			E(TEXT("C4_Wren_Badly"), S::Wren, LOCTEXT("C4_Wren_Badly", "They wanted that device and its records. We need to know why.")),
+			E(TEXT("C4_Kato_SameSignature"), S::Kato, LOCTEXT("C4_Kato_SameSignature", "They weren't searching at random. These two sites have the same geometric signature.")),
+			E(TEXT("C4_Wren_WhatConnects"), S::Wren, LOCTEXT("C4_Wren_WhatConnects", "Verdance and Cinder. What connects them?")),
+			E(TEXT("C4_Kato_SurveyStation"), S::Kato, LOCTEXT("C4_Kato_SurveyStation", "I don't know. Cinder's mining complex has matching readings. They're extracting stabilising crystals there.")),
+			E(TEXT("C4_Command_Proceed"), S::Command, LOCTEXT("C4_Command_Proceed", "Proceed to Cinder. Investigate the mining complex and recover the stabilising crystals. Compare them with the signal-analysis records. Maintain reconnaissance priority.")),
+			E(TEXT("C4_Moss_Volcanoes"), S::Moss, LOCTEXT("C4_Moss_Volcanoes", "Volcanoes. Great. I was getting tired of the jungle.")),
+			E(TEXT("C4_Wren_SetCourse"), S::Wren, LOCTEXT("C4_Wren_SetCourse", "Triad, set course for Cinder.")),
 			// Act 3: Cinder, the Pattern.
-			E(TEXT("A3_CrystalsFound"), S::Kato, LOCTEXT("A3_CrystalsFound", "These crystals stabilise the field. They were digging a way through it.")),
-			E(TEXT("A3_EchoWren"), S::Unknown, LOCTEXT("A3_EchoWren", "...I see an opening. I'm taking it..."), St::Echo),
-			E(TEXT("A3_EchoKato"), S::Unknown, LOCTEXT("A3_EchoKato", "...understand it before we commit..."), St::Echo),
-			E(TEXT("A3_EchoMoss"), S::Unknown, LOCTEXT("A3_EchoMoss", "...stay together. We're not done yet..."), St::Echo),
-			E(TEXT("A3_PassageOpen"), S::Control, LOCTEXT("A3_PassageOpen", "The anchor is down. There's a passage through the field. Go.")),
-			// Act 4: the Dominion, the Truth (the reveal may begin here).
-			E(TEXT("A4_GeneratorDown1"), S::Control, LOCTEXT("A4_GeneratorDown1", "Generator one is down. The field is flickering.")),
-			E(TEXT("A4_GeneratorDown2"), S::Kato, LOCTEXT("A4_GeneratorDown2", "Two down. The field is losing shape.")),
+			E(TEXT("A3_CrystalsFound"), S::Kato, LOCTEXT("A3_CrystalsFound", "Samples secured. EMP prototype recovered. Lancer's pulse is online.")),
+			E(TEXT("A3_PassageOpen"), S::Kato, LOCTEXT("A3_PassageOpen", "The anchor is down. The approach is prepared; passage is still blocked.")),
+			// Gameplay 04, Cinder Approach (§19, §25). Waves 3-4 are the interception; the transports ignore the squad.
+			E(TEXT("G4_Command_FollowCoordinates"), S::Command, LOCTEXT("G4_Command_FollowCoordinates", "Follow the survey coordinates. Identify the excavation before you engage.")),
+			E(TEXT("G4_Kato_Transports"), S::Kato, LOCTEXT("G4_Kato_Transports", "Those transports are all heading for the same site.")),
+			E(TEXT("G4_Moss_NotShooting"), S::Moss, LOCTEXT("G4_Moss_NotShooting", "They're not even shooting back. They've got somewhere to be.")),
+			E(TEXT("G4_Kato_Cargo"), S::Kato, LOCTEXT("G4_Kato_Cargo", "Heavy cargo. Excavation gear, all of it.")),
+			E(TEXT("G4_Wren_StartThere"), S::Wren, LOCTEXT("G4_Wren_StartThere", "Then that's where we start. Keep the landing route clear.")),
+			E(TEXT("G4_Moss_SolidGround"), S::Moss, LOCTEXT("G4_Moss_SolidGround", "Solid ground. Preferably the kind that stays solid.")),
+			E(TEXT("G4_Kato_TerminalAhead"), S::Kato, LOCTEXT("G4_Kato_TerminalAhead", "That pattern again. Get me to the survey terminal.")),
+			// Cinematic 05, The Pattern (§20, §25: 40-50 s at the terminal). The ONE echo; lines approved by Nicholas.
+			E(TEXT("C5_Kato_SameConstruction"), S::Kato, LOCTEXT("C5_Kato_SameConstruction", "Different worlds. Same construction. They knew where to dig.")),
+			E(TEXT("C5_Unknown_SameConstruction"), S::Unknown, LOCTEXT("C5_Unknown_SameConstruction", "Same construction."), St::Echo),
+			E(TEXT("C5_Kato_Feedback"), S::Kato, LOCTEXT("C5_Kato_Feedback", "Could be feedback. Keep the recording.")),
+			E(TEXT("C5_Kato_OriginCore"), S::Kato, LOCTEXT("C5_Kato_OriginCore", "The records call it the Origin Core. These look like components—or keys—to a temporal device.")),
+			E(TEXT("C5_Moss_Sample"), S::Moss, LOCTEXT("C5_Moss_Sample", "So we take a sample and get out?")),
+			E(TEXT("C5_Wren_Guarding"), S::Wren, LOCTEXT("C5_Wren_Guarding", "First we find out what's guarding it.")),
+			E(TEXT("C5_Kato_Anchor"), S::Kato, LOCTEXT("C5_Kato_Anchor", "The anchor is blocking the approach. We need the samples, then we shut it down.")),
+			E(TEXT("C5_Command_Recover"), S::Command, LOCTEXT("C5_Command_Recover", "Recover the samples and preserve the survey data. Confirm a passage before approaching the Dominion.")),
+			E(TEXT("C5_Wren_Route"), S::Wren, LOCTEXT("C5_Wren_Route", "We've got our route. Triad, move.")),
+			// Gameplay 05, Cinder Excavation (§21, §25). The cache line is A3_CrystalsFound, the anchor line A3_PassageOpen.
+			E(TEXT("G5_Wren_ClearRoute"), S::Wren, LOCTEXT("G5_Wren_ClearRoute", "Clear the route to the cache. Watch the rig.")),
+			E(TEXT("G5_Moss_Guardian"), S::Moss, LOCTEXT("G5_Moss_Guardian", "That one's staying with the crystals.")),
+			E(TEXT("G5_Command_AnchorMarked"), S::Command, LOCTEXT("G5_Command_AnchorMarked", "Field anchor marked. Shut it down and confirm your exit.")),
+			E(TEXT("G5_Wren_BackToShips"), S::Wren, LOCTEXT("G5_Wren_BackToShips", "Keep the samples intact. Back to the ships.")),
+			// Cinematic 06, The Path to Dominion (§23): transmissions only, six over the Cinder take-off, two as wave 5 forms.
+			E(TEXT("C6_Moss_SamplesAboard"), S::Moss, LOCTEXT("C6_Moss_SamplesAboard", "Samples aboard. I'm ready for somewhere with fewer volcanoes.")),
+			E(TEXT("C6_Kato_GuardLine"), S::Kato, LOCTEXT("C6_Kato_GuardLine", "The anchor is down. The approach is prepared. We still have to clear the guard line.")),
+			E(TEXT("C6_Kato_FourGenerators"), S::Kato, LOCTEXT("C6_Kato_FourGenerators", "The crystals can stabilise the approach. Four generators are still sustaining its defensive shield.")),
+			E(TEXT("C6_Wren_FindAWayInside"), S::Wren, LOCTEXT("C6_Wren_FindAWayInside", "Then we take down the generators and find a way inside.")),
+			E(TEXT("C6_Command_FindOutWhy"), S::Command, LOCTEXT("C6_Command_FindOutWhy", "They're collecting parts of the Origin Core. We need to know why. Disable the outer defences and secure access. Keep your channels recording.")),
+			E(TEXT("C6_Wren_Understood"), S::Wren, LOCTEXT("C6_Wren_Understood", "Understood. We find out what they intend to do with it.")),
+			E(TEXT("C6_Moss_WholeFleet"), S::Moss, LOCTEXT("C6_Moss_WholeFleet", "They've put a whole fleet across our route.")),
+			E(TEXT("C6_Wren_StayTogether"), S::Wren, LOCTEXT("C6_Wren_StayTogether", "Stay together. Clear the guard line, then the generators.")),
+			// Gameplay 06, The Dominion Assault (§24). An access mission: nothing here orders the ship or reactor destroyed.
+			E(TEXT("G6_Wren_ClearCarriers"), S::Wren, LOCTEXT("G6_Wren_ClearCarriers", "Clear the carriers. We need that approach.")),
+			E(TEXT("G6_Kato_MarkingTargets"), S::Kato, LOCTEXT("G6_Kato_MarkingTargets", "Four generators. I'm marking the live targets.")),
+			E(TEXT("G6_Moss_TurretsCharging"), S::Moss, LOCTEXT("G6_Moss_TurretsCharging", "Those turrets are charging. Keep moving.")),
+			E(TEXT("G6_Kato_ShieldWeakening"), S::Kato, LOCTEXT("G6_Kato_ShieldWeakening", "Generator down. Their shield is weakening.")),
+			E(TEXT("G6_Command_ShieldCollapsed"), S::Command, LOCTEXT("G6_Command_ShieldCollapsed", "Dominion shield collapsed. Docking approach marked.")),
+			E(TEXT("G6_Wren_CoverTheBay"), S::Wren, LOCTEXT("G6_Wren_CoverTheBay", "Keep that bay covered. We need a way back out.")),
+			// Clue fragments as generators fall: less distorted each time, no identified speaker (placeholders for Nicholas).
+			E(TEXT("G6_Clue1"), S::Unknown, LOCTEXT("G6_Clue1", "...[static] ...hold formation... [static] ...vector two..."), St::Static),
+			E(TEXT("G6_Clue2"), S::Unknown, LOCTEXT("G6_Clue2", "...Triad... authentication pending... hold formation..."), St::Echo),
+			// Act 4: the Dominion. The assault is still before the reveal (only the interior reveals: §25).
+			E(TEXT("A4_GeneratorDown1"), S::Control, LOCTEXT("A4_GeneratorDown1", "Generator one is down. Their shield is flickering.")),
+			E(TEXT("A4_GeneratorDown2"), S::Kato, LOCTEXT("A4_GeneratorDown2", "Two down. The shield is losing shape.")),
 			E(TEXT("A4_GeneratorDown3"), S::Wren, LOCTEXT("A4_GeneratorDown3", "Three! One more and it's open.")),
-			E(TEXT("A4_GeneratorDown4"), S::Moss, LOCTEXT("A4_GeneratorDown4", "That's the last one. The field is gone.")),
+			E(TEXT("A4_GeneratorDown4"), S::Moss, LOCTEXT("A4_GeneratorDown4", "That's the last one. The shield is gone.")),
 			E(TEXT("A4_DoorsKnowUs"), S::Wren, LOCTEXT("A4_DoorsKnowUs", "The door opened for my ID. Why does it know my ID?")),
 			E(TEXT("A4_Recording_Hangar"), S::FutureWren, LOCTEXT("A4_Recording_Hangar", "If you're hearing this, you came anyway. Of course you did."), St::Echo),
 			E(TEXT("A4_Recording_Corridor"), S::FutureKato, LOCTEXT("A4_Recording_Corridor", "We ran every number a thousand times. This is the only way."), St::Echo),
@@ -177,8 +279,10 @@ namespace TDStory
 			const FVector2D TagSize = Measure(TagText, TagFont);
 			const FVector2D LineSize = Measure(V.Text, LineFont);
 			const float W = TagSize.X + LineSize.X;
-			// Centred at 62% height: above the pilot name card (70%), the boost bar (73%) and the tutorial card (77-84%).
-			FVector2D Pos(Size.X * 0.5f - W * 0.5f, Size.Y * 0.62f - LineSize.Y * 0.5f);
+			// T2's subtitle spot, under its lower lane (83%, y 900 at 1080p); Nick's HUD fills the bottom with panels, so
+			// under his the line goes just below his objective block at the top.
+			const bool bNickHUD = UTDUIHostSettings::GetSpaceHUDChoice() == ETDSpaceHUDChoice::Nick;
+			FVector2D Pos(Size.X * 0.5f - W * 0.5f, Size.Y * (bNickHUD ? 0.17f : 0.83f) - LineSize.Y * 0.5f);
 			float A = V.Alpha;
 			if (V.Style == ETDTransmissionStyle::Static)
 			{
@@ -286,6 +390,40 @@ FText UTDStorySubsystem::GetText(FName Id, const FText& Fallback)
 {
 	FTDTransmission E;
 	return (FindEntry(Id, E) && !E.Text.IsEmpty()) ? E.Text : Fallback;
+}
+
+FText UTDStorySubsystem::PilotTrait(ETDShipId Ship)
+{
+	switch (Ship)
+	{
+	case ETDShipId::Rift: return GetText(TEXT("Trait_Wren"), FText::GetEmpty());
+	case ETDShipId::Lancer: return GetText(TEXT("Trait_Kato"), FText::GetEmpty());
+	default: return GetText(TEXT("Trait_Moss"), FText::GetEmpty());
+	}
+}
+
+void UTDStorySubsystem::OnWorldBeginPlay(UWorld& InWorld)
+{
+	Super::OnWorldBeginPlay(InWorld);
+	if (UTDEventBus* Bus = UTDEventBus::Get(&InWorld))
+	{
+		Bus->OnWaveStarted.AddUniqueDynamic(this, &UTDStorySubsystem::HandleWaveStarted);
+		Bus->OnWaveCleared.AddUniqueDynamic(this, &UTDStorySubsystem::HandleWaveCleared);
+	}
+}
+
+void UTDStorySubsystem::HandleWaveStarted(int32 WaveNumber, float /*Intensity01*/)
+{
+	// Act 1, First Contact: the hail nobody answers; the field around the ship (storyline.md §5).
+	// (A1_FieldUnreachable is T4's: fired when the player first approaches the distortion field.)
+	if (WaveNumber == 1) { FireTransmission(TEXT("A1_HailNoAnswer")); }
+}
+
+void UTDStorySubsystem::HandleWaveCleared(int32 WaveNumber)
+{
+	// They search, they don't hold ground; then the trail to Verdance.
+	if (WaveNumber == 1) { FireTransmission(TEXT("A1_TheySearch")); }
+	else if (WaveNumber == 2) { FireTransmission(TEXT("A1_TrailToVerdance")); }
 }
 
 FText UTDStorySubsystem::SpeakerTag(ETDSpeaker Speaker)
@@ -511,6 +649,11 @@ void UTDStorySubsystem::RemoveOverlay()
 
 void UTDStorySubsystem::Deinitialize()
 {
+	if (UTDEventBus* Bus = UTDEventBus::Get(this))
+	{
+		Bus->OnWaveStarted.RemoveDynamic(this, &UTDStorySubsystem::HandleWaveStarted);
+		Bus->OnWaveCleared.RemoveDynamic(this, &UTDStorySubsystem::HandleWaveCleared);
+	}
 	RemoveOverlay();
 	Super::Deinitialize();
 }

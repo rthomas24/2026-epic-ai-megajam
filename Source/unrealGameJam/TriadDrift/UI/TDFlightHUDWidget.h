@@ -69,6 +69,23 @@ public:
 		FVector2D Size = FVector2D::ZeroVector;
 	};
 
+	/** How a transmission line is drawn (the story's voices: squad clean, "Unknown" through static, "Older" as an echo). */
+	enum class ETransmissionStyle : uint8 { Clean, Static, Echo };
+
+	/** One subtitle / transmission line in the slot under the lower lane. */
+	struct FSubtitle
+	{
+		FString Speaker;
+		FString Text;
+		ETransmissionStyle Style = ETransmissionStyle::Clean;
+		float Age = 0.f;
+		float Seconds = 0.f;
+		/** The speaker tag's colour (T3's UTDStorySubsystem::SpeakerColor for story lines; the pilot's colour for barks). */
+		FLinearColor TagColor = FLinearColor(.54f, .58f, .65f);
+		/** A story transmission (from T3's subsystem), not a squad bark. */
+		bool bStory = false;
+	};
+
 	/** P2: one hostile or missile as drawn: a bracket / tick on screen, an edge chevron off screen. */
 	struct FMark
 	{
@@ -136,6 +153,20 @@ public:
 	/** Snapshot of what the widget draws. Updated every tick from the data source. */
 	struct FView
 	{
+		/** Navigation pulse: 0..1 through it (0 = none), and the corridor's ends in the design frame. */
+		float NavPulse = 0.f;
+		FVector2D NavFrom = FVector2D::ZeroVector;
+		FVector2D NavTo = FVector2D::ZeroVector;
+		/** The line in the subtitle slot (a bark or a story transmission); empty Text = nothing shown. */
+		FSubtitle Subtitle;
+		// ---- Director's Cut moments
+		/** The whole HUD's opacity: 0 during a CUT, 0.4 behind a slate, 0.3 paused, fading back in over 0.25 s. */
+		float HUDOpacity = 1.f;
+		/** 0..1 into a money shot (director slow-mo): everything but the reticle (40%) and the arcs hides. */
+		float MoneyShot = 0.f;
+		bool bInCut = false;
+		bool bInSlate = false;
+		bool bPaused = false;
 		// ---- P2
 		TArray<FMark> Marks;
 		TArray<FWaypoint> Waypoints;
@@ -248,6 +279,39 @@ public:
 	UFUNCTION()
 	void HandleHitConfirmed(AActor* Target, bool bKill);
 
+	// ---- Aftermath navigation pulse (storyline.md section 12): the HUD briefly marks the drones' corridor, then clears.
+	/** A faint corridor From -> To (world) for Seconds; it must read as sensor noise (nobody comments on it). */
+	void ShowNavigationPulse(const FVector& From, const FVector& To, float Seconds = 1.5f);
+	static constexpr float NavPulseSeconds = 1.5f;
+
+	// ---- subtitles and story transmissions (T3's transmission system calls UTDUIHostSubsystem::ShowTransmission)
+	/** Shows Line in the subtitle slot for Seconds: speaker tag in the pilot's colour, style per voice. */
+	void ShowTransmission(FName Speaker, const FText& Line, ETransmissionStyle Style, float Seconds);
+	/** The event bus's OnBarkRequested: the squad's barks as subtitles (a readable line from the bark id). */
+	UFUNCTION()
+	void HandleBarkRequested(FName BarkId, FName Speaker);
+	/** "Bark_SquadEngageHighLeft" -> "engage high left" (until barks carry their dialogs.md text). */
+	static FString BarkText(FName BarkId);
+	static constexpr float BarkSeconds = 2.5f;
+	static constexpr float SubtitleY = 900.f;
+	static constexpr float SubtitleMaxWidth = 880.f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversSubtitles = true;
+
+	// ---- Director's Cut moments (spec section 4; the theme is a judging category, the HUD gets out of the way)
+	UFUNCTION()
+	void HandleTakeStarted(FName SceneId, int32 TakeNumber);
+	UFUNCTION()
+	void HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds);
+	/** Tests: force the money-shot / paused state (-1 = read the feel subsystem / world). */
+	int32 ForceMoneyShot = -1;
+	int32 ForcePaused = -1;
+	static constexpr float SlateSeconds = 1.5f;
+	static constexpr float SlateOpacity = .4f;
+	static constexpr float PauseOpacity = .3f;
+	static constexpr float CutFadeInSeconds = .25f;
+	static constexpr float MoneyShotEaseSeconds = .15f;
+
 	static constexpr float HitMarkSeconds = .15f;
 	static constexpr float KillMarkSeconds = .35f;
 	static constexpr float KillAtTargetSeconds = .6f;
@@ -339,6 +403,16 @@ private:
 	float BlockedLeft = 0.f;
 	float HintDoneAge = 0.f;
 	float StrikePulseLeft = 0.f;
+	float CutLeft = 0.f;
+	float NavLeft = 0.f;
+	float NavSeconds = 0.f;
+	FVector NavWorldFrom = FVector::ZeroVector;
+	FVector NavWorldTo = FVector::ZeroVector;
+	float SlateLeft = 0.f;
+	void SampleDirector(float Dt);
+	/** T3's story transmissions (UTDStorySubsystem): the current line drives the subtitle slot. */
+	void SampleStory();
+	TWeakObjectPtr<class UTDStorySubsystem> BoundStory;
 	float HitLeft = 0.f;
 	float KillLeft = 0.f;
 	float KillAtLeft = 0.f;

@@ -305,8 +305,10 @@ void ATDDebugHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
-// A bark id such as "Bark_SquadEngageHighLeft" becomes "KATO: engage high left": readable enough to
-// judge when and how often the wing speaks, before any voice exists.
+bool (*ATDDebugHUD::BarkLineResolver)(const UObject*, FName, FName, FString&) = nullptr;
+
+// "KATO: Contact high left. Engaging." from the bark table (dialogs.md, Squad's FTDBarkLines). A bark without a line
+// (a story transmission's id, or an id with no row yet) shows nothing: never the raw id.
 void ATDDebugHUD::HandleBarkRequested(FName BarkId, FName Speaker)
 {
 	const UWorld* World = GetWorld();
@@ -314,23 +316,12 @@ void ATDDebugHUD::HandleBarkRequested(FName BarkId, FName Speaker)
 	{
 		return;
 	}
-	FString Text = BarkId.ToString();
-	Text.RemoveFromStart(TEXT("Bark_"));
-	Text.RemoveFromStart(TEXT("Squad"));
-	FString Spaced;
-	for (int32 i = 0; i < Text.Len(); ++i)
+	FString Line;
+	if (!BarkLineResolver || !BarkLineResolver(this, BarkId, Speaker, Line) || Line.IsEmpty())
 	{
-		if (i > 0 && FChar::IsUpper(Text[i]) && !FChar::IsUpper(Text[i - 1]))
-		{
-			Spaced += TEXT(" ");
-		}
-		Spaced.AppendChar(FChar::ToLower(Text[i]));
+		return;
 	}
-	if (Spaced.RemoveFromStart(TEXT("engage ")))
-	{
-		Spaced = TEXT("engaging, ") + Spaced;
-	}
-	BarkLine = FString::Printf(TEXT("%s: %s"), *Speaker.ToString().ToUpper(), *Spaced);
+	BarkLine = FString::Printf(TEXT("%s: %s"), *Speaker.ToString().ToUpper(), *Line);
 	BarkUntil = World->GetRealTimeSeconds() + 2.5;
 }
 

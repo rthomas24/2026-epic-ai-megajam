@@ -2,6 +2,10 @@
 
 #include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Director/TDDirectorSounds.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "EngineUtils.h"
+#include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "Fonts/FontMeasure.h"
@@ -101,11 +105,16 @@ namespace TDCutPresentationPrivate
 			{
 				FLinearColor C = S.NameCardColor;
 				C.A = S.NameCardAlpha;
-				// T2's flight HUD spec: the switch card sits centred in the lower third (~y 760 of 1080), above its lower lane
-				// (the tutorial card, 830+) and the boost bar (792).
-				const float Y = Size.Y * 0.70f;
-				Text(S.NameCardText, 30, FVector2D(Size.X * 0.5f, Y - 8.f), FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), true);
-				Box(FVector2D(Size.X * 0.5f - 90.f, Y + 18.f), FVector2D(180.f, 5.f), C); // squad-colour underline
+				// Left of the ship at reticle height: clear of T2's ship zone (790-1130 x 612-800 at 1080p), the tutorial card
+				// (830+) and the squad strip (Lead, after a capture with each ship: the Bastion is the widest).
+				const FVector2D At = UTDCutPresentation::NameCardCentre(Size);
+				const float Y = At.Y;
+				Text(S.NameCardText, 30, FVector2D(At.X, Y - 8.f), FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), true);
+				Box(FVector2D(At.X - 90.f, Y + 18.f), FVector2D(180.f, 5.f), C); // squad-colour underline
+				if (!S.NameCardSubText.IsEmpty())
+				{
+					Text(S.NameCardSubText, 16, FVector2D(At.X, Y + 40.f), C, true); // "HEAVY · STEADY · GOOD-HUMOURED"
+				}
 			}
 			// Slate, top centre under the bar.
 			if (S.SlateAlpha > 0.f)
@@ -211,6 +220,11 @@ void UTDCutPresentation::EnsureViewportWidget()
 	GEngine->GameViewport->AddViewportWidgetContent(Widget.ToSharedRef(), WidgetZOrder);
 }
 
+FVector2D UTDCutPresentation::NameCardCentre(const FVector2D& Size)
+{
+	return FVector2D(Size.X * 0.245f, Size.Y * 0.48f);
+}
+
 bool UTDCutPresentation::IsNameCardClaimedByHUD(const UWorld* World)
 {
 	const UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(World);
@@ -299,8 +313,37 @@ FBox2D UTDCutPresentation::SlateRect(const FVector2D& Size, float Letterbox, flo
 	return FBox2D(C - Half, C + Half);
 }
 
-FText UTDCutPresentation::MakeSlateText(FName SceneId, int32 TakeNumber, int32 SceneNumber, const FString& Place)
+FText UTDCutPresentation::FindSceneTitle(const UWorld* World, FName SceneId)
 {
+	if (!World || SceneId.IsNone())
+	{
+		return FText::GetEmpty();
+	}
+	for (TActorIterator<ATDObjective> It(const_cast<UWorld*>(World)); It; ++It)
+	{
+		if (It->ObjectiveId == SceneId && !It->Title.IsEmpty())
+		{
+			return It->Title;
+		}
+	}
+	return FText::GetEmpty();
+}
+
+FText UTDCutPresentation::MakeSlateText(FName SceneId, int32 TakeNumber, int32 SceneNumber, const FString& Place, const FText& SceneTitle)
+{
+	if (!SceneTitle.IsEmpty())
+	{
+		// The story name (T5's objective titles, storyline.md): "SCENE 4 · VERDANCE · THE RESEARCH SITE · TAKE 2".
+		FString Title = SceneTitle.ToString().ToUpper();
+		if (!Place.IsEmpty() && !Title.StartsWith(Place.ToUpper()))
+		{
+			Title = Place.ToUpper() + TEXT(" · ") + Title;
+		}
+		const FText Take = FText::AsNumber(FMath::Max(1, TakeNumber));
+		return SceneNumber > 0
+			? FText::Format(LOCTEXT("SlateNumberedTitle", "SCENE {0} · {1} · TAKE {2}"), FText::AsNumber(SceneNumber), FText::FromString(Title), Take)
+			: FText::Format(LOCTEXT("SlateTitle", "{0} · TAKE {1}"), FText::FromString(Title), Take);
+	}
 	FString Id = SceneId.ToString();
 	Id.RemoveFromStart(TEXT("Obj_")); // planet objectives: "Obj_Outpost" -> "OUTPOST"
 	FString Pretty;
@@ -345,7 +388,9 @@ void UTDCutPresentation::HandleSwitchCut(const FTDSwitchCut& Cut)
 	NameCard = Cut.bSwitchStrike
 		? FText::Format(NSLOCTEXT("TDDirector", "StrikeCard", "{0}  ·  STRIKE +25%"), Cut.NameCardText) : Cut.NameCardText;
 	NameColor = Cut.SquadColor;
-	NameCardSub = FText::Format(NSLOCTEXT("TDDirector", "PilotSub", "{0}  ·  {1}"), Cut.ShipName, Cut.RoleName);
+	const FText Trait = Cut.NewShipActor ? UTDStorySubsystem::PilotTrait(Cut.NewShipActor->GetShipId()) : FText::GetEmpty();
+	// The card says "MOSS · BASTION"; the line under it is the role and traits, never the ship again (Lead).
+	NameCardSub = Trait.IsEmpty() ? FText::Format(NSLOCTEXT("TDDirector", "PilotSub", "{0}"), Cut.RoleName) : Trait;
 	++SwitchCount;
 	State.FlashAlpha = FlashFramesLeft > 0 ? 1.f : 0.f; // visible on the very next paint
 }
@@ -401,7 +446,7 @@ void UTDCutPresentation::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 		const ETDDestination Where = GI->GetCurrentDestination();
 		Place = Where == ETDDestination::Verdance ? TEXT("Verdance") : (Where == ETDDestination::Cinder ? TEXT("Cinder") : FString());
 	}
-	Slate = MakeSlateText(SceneId, TakeNumber, SceneNumber, Place);
+	Slate = MakeSlateText(SceneId, TakeNumber, SceneNumber, Place, FindSceneTitle(OwnerWorld.Get(), SceneId));
 	SlateScene = SceneId;
 	SlateTake = TakeNumber;
 }
@@ -505,6 +550,7 @@ void UTDCutPresentation::Tick(double RealNow)
 	if (CardA > 0.f && !IsNameCardClaimedByHUD(OwnerWorld.Get()))
 	{
 		S.NameCardText = NameCard;
+		S.NameCardSubText = NameCardSub;
 		S.NameCardColor = NameColor;
 		S.NameCardAlpha = CardA;
 	}

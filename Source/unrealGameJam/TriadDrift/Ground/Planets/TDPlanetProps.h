@@ -332,6 +332,8 @@ public:
 	/** Debris lands at random points inside this box (relative to the actor). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FVector DebrisExtent = FVector(4000.f, 1500.f, 0.f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TObjectPtr<AActor> Tower;
+	/** The objective line while it runs; {0} = whole seconds left. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FText RunText;
 
 	bool IsRunning() const { return TimeLeft >= 0.f; }
 	float GetTimeLeft() const { return TimeLeft; }
@@ -350,4 +352,68 @@ private:
 	int32 LastShownSecond = -1;
 	FVector TowerHome = FVector::ZeroVector;
 	TArray<TWeakObjectPtr<AActor>> Debris;
+};
+
+// ================================================================================================
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FTDOnArchiveTransfer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnArchiveTransferPaused, bool, bPaused);
+DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnSurveyTerminalActivated, AActor*);
+
+/**
+ * Verdance objective 1, reduced form (storyline.md sections 16 and 18, Ryan Nov 13): the survey archive transfer. It
+ * runs over two objective steps (LinkedStep - 1 = the first half, LinkedStep = the second half, a checkpoint at the
+ * midpoint), Seconds in all, and pauses while any living crewman stands within PauseRadius of the terminal (no new
+ * enemy AI; nothing damages the terminal). Three fixed waves drop in at WaveAt (fractions of the transfer); the third
+ * brings the Heavy. T2 shows the meter through GetArchiveTransfer; T3 hangs Cinematic 03 on OnAnyTerminalActivated.
+ */
+UCLASS()
+class UNREALGAMEJAM_API ATDArchiveTransfer : public ATDPlanetProp
+{
+	GENERATED_BODY()
+
+public:
+	ATDArchiveTransfer();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s")) float Seconds = 75.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "cm")) float PauseRadius = 500.f;
+	/** The waves and the transfer fraction each drops in at (same order). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TArray<TObjectPtr<ATDEncounterVolume>> Waves;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TArray<float> WaveAt;
+	/** The objective line; {0} = the whole percent. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FText RunningText;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FText PausedText;
+
+	UPROPERTY(BlueprintAssignable, Category = "Planet") FTDOnArchiveTransfer OnTransferStarted;
+	UPROPERTY(BlueprintAssignable, Category = "Planet") FTDOnArchiveTransferPaused OnTransferPaused;
+	UPROPERTY(BlueprintAssignable, Category = "Planet") FTDOnArchiveTransfer OnTransferCompleted;
+	/** The survey terminal was activated (the transfer's first half starts): Cinematic 03's hook (T3). */
+	static FTDOnSurveyTerminalActivated OnAnyTerminalActivated;
+
+	/** T2's meter: false when no transfer is running in this world. Label = the objective line shown. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Planet", meta = (WorldContext = "WorldContextObject"))
+	static bool GetArchiveTransfer(const UObject* WorldContextObject, float& OutProgress01, bool& bOutPaused, FText& OutLabel);
+
+	float GetProgress01() const { return Progress; }
+	bool IsPaused() const { return bPaused; }
+	bool IsRunning() const { return bRunning; }
+	/** A crewman within PauseRadius of the terminal (2D), alive. */
+	bool IsHostileAtTerminal() const;
+
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void ResetProp() override;
+	virtual void ApplyCompleted() override { Progress = 1.f; bRunning = false; }
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	UFUNCTION() void HandleStepStarted(ATDObjective* Objective, int32 StepIndex);
+	void UpdateLine(bool bForce);
+	float Progress = 0.f;
+	bool bPaused = false;
+	bool bRunning = false;
+	int32 ShownPercent = -1;
+	bool bShownPaused = false;
+	TArray<bool> Fired;
+	FText Label;
 };

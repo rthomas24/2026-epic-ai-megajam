@@ -1,7 +1,10 @@
 // Triad Drift - Combat (Teammate 2). Swept, pooled projectile.
 
 #include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Combat/TDCombatCueLog.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/PlayerController.h"
@@ -158,6 +161,8 @@ void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& 
 	Shooter = InInstigator;
 	OriginalShooter = InInstigator;
 	HomingTarget = InHomingTarget;
+	bWarnedFlown = false;
+	NoteHomingOnFlown();
 	IgnoreActor = nullptr;
 	SetInstigator(Cast<APawn>(InInstigator));
 	DamageMultiplier = FMath::Max(InDamageMultiplier, 0.f);
@@ -409,7 +414,7 @@ void ATDProjectile::Deflect(AActor* NewInstigator, FVector NewDirection, ETDTeam
 
 	if (Spec.FX)
 	{
-		UTDStatics::PlayCue(this, Spec.FX->Deflected, GetActorLocation(), Dir.Rotation());
+		FTDCombatCueLog::Play(this, Spec.FX->Deflected, ETDCombatCueKind::Deflected, Spec.FX, GetActorLocation(), Dir.Rotation());
 	}
 	UpdatePlaceholderLook(); // re-tint in the deflector's colour
 }
@@ -422,7 +427,7 @@ void ATDProjectile::Kill(bool bExplodeFX)
 	}
 	if (bExplodeFX && Spec.FX)
 	{
-		UTDStatics::PlayCue(this, Spec.FX->Detonation, GetActorLocation(), GetActorRotation());
+		FTDCombatCueLog::Play(this, Spec.FX->Detonation, ETDCombatCueKind::Detonation, Spec.FX, GetActorLocation(), GetActorRotation());
 	}
 	if (bExplodeFX)
 	{
@@ -448,7 +453,7 @@ void ATDProjectile::Detonate()
 	}
 	if (Spec.FX)
 	{
-		UTDStatics::PlayCue(this, Spec.FX->Detonation, Here, GetActorRotation());
+		FTDCombatCueLog::Play(this, Spec.FX->Detonation, ETDCombatCueKind::Detonation, Spec.FX, Here, GetActorRotation());
 	}
 	PlayPlaceholderImpact(Here, Spec.FX && FTDCombatPlaceholders::HasVisualArt(Spec.FX->Detonation));
 	OnDetonated.Broadcast(this, nullptr);
@@ -462,6 +467,63 @@ void ATDProjectile::SetHomingTarget(AActor* NewTarget)
 	if (NewTarget)
 	{
 		Spec.bHoming = true;
+	}
+	NoteHomingOnFlown();
+}
+
+void ATDProjectile::NoteHomingOnFlown()
+{
+	if (bWarnedFlown || !Spec.bIsMissile || !Spec.bHoming || !UTDStatics::AreTeamsHostile(Team, ETDTeam::Player))
+	{
+		return;
+	}
+	const AActor* Target = HomingTarget.Get();
+	if (Target && FTDCombatBarks::IsPlayerFlown(Target))
+	{
+		bWarnedFlown = true;
+		FTDCombatBarks::SayAsWingman(this, TDBarkIdsT2::MissileIncoming, ETDBarkPriority::Critical);
+	}
+}
+
+void ATDProjectile::NoteShieldedHit(AActor* Victim) const
+{
+	// dialogs.md Bark_TargetShielded: the player keeps shooting into a gunship's raised frontal shield. Three blocked hits
+	// on the same ship within 2 s ask once; that ship can't ask again until its shield has gone down (or 20 s pass).
+	const ATDEnemyShip* Enemy = Cast<ATDEnemyShip>(Victim);
+	if (!Enemy || !Enemy->HasFrontalShield() || !FTDCombatBarks::IsPlayerFlown(Shooter.Get()))
+	{
+		return;
+	}
+	struct FState { TWeakObjectPtr<const AActor> Ship; int32 Hits = 0; double Last = -1e9; double Said = -1e9; };
+	static FState S;
+	const UWorld* World = GetWorld();
+	const double Now = World ? World->GetTimeSeconds() : 0.0;
+	if (!Enemy->IsFrontalShieldUp())
+	{
+		if (S.Ship == Enemy)
+		{
+			S = FState(); // broken: the next raised shield may be called again
+		}
+		return;
+	}
+	const FVector Into = Velocity.GetSafeNormal();
+	const float Cos = FMath::Cos(FMath::DegreesToRadians(Enemy->GetSpec().FrontalShieldHalfAngleDeg));
+	if (FVector::DotProduct(Enemy->GetActorForwardVector(), -Into) < Cos)
+	{
+		return; // from the side or behind: the shield doesn't block it
+	}
+	if (S.Ship != Enemy || Now - S.Last > 2.0)
+	{
+		const double Said = S.Ship == Enemy ? S.Said : -1e9;
+		S = FState();
+		S.Ship = Enemy;
+		S.Said = Said;
+	}
+	S.Last = Now;
+	if (++S.Hits == 3 && Now - S.Said > 20.0)
+	{
+		S.Said = Now;
+		FTDCombatBarks::SayAsWingman(this, TDBarkIdsT2::TargetShielded, ETDBarkPriority::Normal, static_cast<int32>(ETDShipId::Lancer));
 	}
 }
 
@@ -903,6 +965,7 @@ void ATDProjectile::AcquireHomingTarget()
 		}
 	}
 	HomingTarget = Best;
+	NoteHomingOnFlown();
 }
 
 bool ATDProjectile::SweepPath(const FVector& Start, const FVector& End, FHitResult& OutHit) const
@@ -963,13 +1026,14 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 	if (Spec.FX)
 	{
 		const FTDFXCue& Cue = !VictimHealth ? Spec.FX->ImpactWorld : (VictimHealth->IsShieldUp() ? Spec.FX->ImpactShield : Spec.FX->ImpactHull);
-		UTDStatics::PlayCue(this, Cue, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
+		FTDCombatCueLog::Play(this, Cue, !VictimHealth ? ETDCombatCueKind::ImpactWorld : (VictimHealth->IsShieldUp() ? ETDCombatCueKind::ImpactShield : ETDCombatCueKind::ImpactHull), Spec.FX, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
 		bImpactArt = FTDCombatPlaceholders::HasVisualArt(Cue) || (Spec.SplashRadius > 0.f && FTDCombatPlaceholders::HasVisualArt(Spec.FX->Detonation));
 	}
 	PlayPlaceholderImpact(Hit.ImpactPoint, bImpactArt, VictimHealth, Hit.ImpactNormal);
 
 	if (Victim && CanDamage(Victim))
 	{
+		NoteShieldedHit(Victim); // before the damage: the shield's state as the shot arrived
 		DealDamage(Victim, Spec.Damage, Hit.ImpactPoint, Dir);
 		ApplyKnockback(Victim);
 	}
@@ -983,7 +1047,7 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 	}
 	if (Spec.SplashRadius > 0.f && Spec.FX)
 	{
-		UTDStatics::PlayCue(this, Spec.FX->Detonation, Here, Dir.Rotation());
+		FTDCombatCueLog::Play(this, Spec.FX->Detonation, ETDCombatCueKind::Detonation, Spec.FX, Here, Dir.Rotation());
 	}
 	OnDetonated.Broadcast(this, Victim);
 	Deactivate();

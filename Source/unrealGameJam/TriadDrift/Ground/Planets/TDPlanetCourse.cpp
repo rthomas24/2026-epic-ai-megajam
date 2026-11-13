@@ -3,6 +3,11 @@
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "Components/MeshComponent.h"
 #include "TimerManager.h"
+#include "Engine/PostProcessVolume.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
+#include "Components/PointLightComponent.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
@@ -135,6 +140,10 @@ void ATDPlanetCourse::BeginPlay()
 	if (PlanetId == TEXT("Cinder"))
 	{
 		BuildCinder();
+	}
+	else if (IsInterior())
+	{
+		BuildInterior();
 	}
 	else
 	{
@@ -511,6 +520,17 @@ void ATDPlanetCourse::Checkpoint(ATDObjective* Obj, int32 Step, const FVector& A
 
 void ATDPlanetCourse::AddTrailhead(ATDObjective* Obj, const FVector& At, const FLinearColor& Color, const FText& Name)
 {
+	if (IsInterior())
+	{
+		// Inside the Dominion the doors show the way: the trailhead is only its marker (no totem on the deck).
+		AActor* Spot = Marker(At + FVector(0.f, 0.f, 300.f));
+		FTDTrailhead T;
+		T.Objective = Obj;
+		T.Marker = Spot;
+		T.Name = Name;
+		Trailheads.Add(T);
+		return;
+	}
 	// A glowing totem: a dark plinth, a tall light column and a floating crown.
 	UStaticMeshComponent* Plinth = Platform(At, 40.f, FVector(500.f, 500.f, 40.f), FLinearColor(0.05f, 0.05f, 0.06f));
 	UStaticMeshComponent* Column = Block(EShape::Cylinder, At + FVector(0.f, 0.f, 260.f), FVector(22.f, 22.f, 440.f), Color, 2.f, FRotator::ZeroRotator, false); // thin: readable without filling the view up close
@@ -571,6 +591,13 @@ bool ATDPlanetCourse::StartObjectiveAt(FName ObjectiveId)
 	{
 		return false; // one scene at a time
 	}
+	for (const FTDTrailhead& T : Trailheads)
+	{
+		if (T.Objective == O && T.After && !T.After->IsComplete())
+		{
+			return false; // an ordered course (the interior): the rooms come one after the other
+		}
+	}
 	O->StartObjective();
 	return O->IsActive();
 }
@@ -585,7 +612,7 @@ bool ATDPlanetCourse::GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) c
 	TArray<FText> Names;
 	for (const FTDTrailhead& T : Trailheads)
 	{
-		if (T.Objective && !T.Objective->IsComplete())
+		if (T.Objective && !T.Objective->IsComplete() && (!T.After || T.After->IsComplete()))
 		{
 			Names.Add(T.Name);
 			if (T.Marker)
@@ -607,6 +634,14 @@ bool ATDPlanetCourse::GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) c
 void ATDPlanetCourse::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	InteriorTime += DeltaSeconds;
+	for (const FCoreRing& R : CoreRings) // the reactor's rings turn (and rock a little, under 20 degrees: inside the shield)
+	{
+		if (UStaticMeshComponent* Ring = R.Ring.Get())
+		{
+			Ring->SetRelativeRotation(FRotator(R.Tilt * FMath::Sin(InteriorTime * 0.35f), InteriorTime * R.YawSpeed, R.Tilt * 0.5f * FMath::Cos(InteriorTime * 0.27f)));
+		}
+	}
 	const APlayerController* PC = GetWorld()->GetFirstPlayerController();
 	const ATDFirstPersonCharacter* P = PC ? Cast<ATDFirstPersonCharacter>(PC->GetPawn()) : nullptr;
 	if (!P || P->IsDead() || IsAnyObjectiveRunning())
@@ -619,7 +654,7 @@ void ATDPlanetCourse::Tick(float DeltaSeconds)
 	}
 	for (const FTDTrailhead& T : Trailheads)
 	{
-		if (T.Objective && T.Marker && !T.Objective->IsComplete()
+		if (T.Objective && T.Marker && !T.Objective->IsComplete() && (!T.After || T.After->IsComplete())
 			&& FVector::Dist2D(T.Marker->GetActorLocation(), P->GetActorLocation()) < TrailheadRadius)
 		{
 			StartObjectiveAt(T.Objective->ObjectiveId);
@@ -630,6 +665,7 @@ void ATDPlanetCourse::Tick(float DeltaSeconds)
 
 void ATDPlanetCourse::HandleStepStarted(ATDObjective* Objective, int32 StepIndex)
 {
+	FireStepBeats(Objective, StepIndex);
 	for (const FTDStepEncounter& S : StepEncounters)
 	{
 		if (S.Objective == Objective && S.Step == StepIndex && S.Encounter && !S.Encounter->IsActive() && !S.Encounter->IsCleared())
@@ -648,6 +684,16 @@ void ATDPlanetCourse::HandleStepStarted(ATDObjective* Objective, int32 StepIndex
 
 void ATDPlanetCourse::HandleObjectiveCompleted(ATDObjective* Objective)
 {
+	for (const FTDStepDoor& D : CompletionDoors)
+	{
+		if (D.Objective == Objective && D.Door) { D.Door->Open(); }
+	}
+	FireCompletionBeats(Objective);
+	if (IsInterior())
+	{
+		HandleInteriorObjectiveCompleted(Objective);
+		return;
+	}
 	// The relay wakes: a pulse ring grows over the plateau (the reward screen is Nick's).
 	if (Objective && Objective->ObjectiveId == TEXT("Obj_Relay"))
 	{
@@ -673,6 +719,10 @@ void ATDPlanetCourse::MarkCompletedFromProgress()
 			for (const FTDStepDoor& D : StepDoors)
 			{
 				if (D.Objective == O && D.Door) { D.Door->Open(); } // the breached gate stays breached
+			}
+			for (const FTDStepDoor& D : CompletionDoors)
+			{
+				if (D.Objective == O && D.Door) { D.Door->Open(); }
 			}
 		}
 	}
@@ -705,8 +755,8 @@ void ATDPlanetCourse::BuildVerdance()
 	const FVector WreckHead(2600.f, 2600.f, 0.f);
 	const FVector Ambush(6200.f, 4600.f, 0.f);
 	const FVector WreckSite(11500.f, 7200.f, 0.f);
-	ATDObjective* Wreck = MakeObjective(TEXT("Obj_WreckCore"), LOCTEXT("WreckTitle", "Recover the Signal-Analysis Device"), ETDAbilityId::GravityWell, ETDShipId::Bastion, 4);
-	AddTrailhead(Wreck, WreckHead, Cyan, LOCTEXT("TheWreck", "THE RESEARCH SITE"));
+	ATDObjective* Wreck = MakeObjective(TEXT("Obj_WreckCore"), LOCTEXT("WreckTitle", "Recover the Survey Archive"), ETDAbilityId::GravityWell, ETDShipId::Bastion, 7);
+	AddTrailhead(Wreck, WreckHead, Cyan, LOCTEXT("TheWreck", "THE SURVEY STATION"));
 	Route({ FVector(900.f, 900.f, 0.f), WreckHead, Ambush, FVector(9300.f, 6300.f, 0.f), WreckSite }, Cyan);
 
 	// Ambush: fallen logs for cover, two troopers and two grunts waiting in the glow.
@@ -722,22 +772,20 @@ void ATDPlanetCourse::BuildVerdance()
 	FTDRetakeMercyTier AmbushMercy5; AmbushMercy5.FromTake = 5; AmbushMercy5.DropCrew = 2;
 	AmbushFight->MercyTiers = { AmbushMercy3, AmbushMercy5 };
 
-	// The wreck: a broken hull nose-down in the ground, glowing breaks, debris to fight around.
-	// Collidable pieces turn in yaw only (a tilted box left an overhang the pilot got wedged under in playtest);
-	// the broken, tilted look comes from the non-colliding glow pieces.
-	// The hull's collision hugs the art (Lead, Nov 13: the round-2 dropship's flanks sit 0.8-1.4 m inside a 9 m box
-	// at chest height, invisible walls): 7.5 m wide, the art kept at its true 26 x 9 x 7 m on the same base.
-	if (UStaticMeshComponent* Hull = Block(EShape::Cube, WreckSite + FVector(-600.f, 900.f, 350.f), FVector(2600.f, 750.f, 700.f), WreckMetal, 0.f, FRotator(0.f, 25.f, 0.f), true))
+	// The survey station (storyline.md section 18, reduced form): one open-sided station, intact and lit, nobody home. A
+	// roofed deck on four posts with two low equipment walls, the survey terminal in the middle and a dormant drone in a
+	// corner (Cinematic 03 wakes it). Placeholders by name until the builder's pieces land (SM_Verd_Station_*).
+	const FLinearColor StationMetal(0.32f, 0.36f, 0.4f);
+	Platform(FVector(WreckSite.X, WreckSite.Y, 0.f), 30.f, FVector(1600.f, 1600.f, 30.f), StationMetal, 0.f, TEXT("SM_Verd_Station_Deck"));
+	for (const FVector2D& C : { FVector2D(-700.f, -700.f), FVector2D(700.f, -700.f), FVector2D(-700.f, 700.f), FVector2D(700.f, 700.f) })
 	{
-		TDPropArt::Dress(Hull, ArtFor(TEXT("SM_Verd_Wreck_Hull")), false);
+		Block(EShape::Cube, WreckSite + FVector(C.X, C.Y, 260.f), FVector(60.f, 60.f, 460.f), StationMetal, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_Station_Post"));
 	}
-	Block(EShape::Cube, WreckSite + FVector(-700.f, 900.f, 780.f), FVector(1800.f, 700.f, 160.f), WreckMetal, 0.f, FRotator(-12.f, 25.f, 8.f), false, TEXT("SM_Verd_Wreck_Wing"));
-	Block(EShape::Cylinder, WreckSite + FVector(900.f, -700.f, 350.f), FVector(700.f, 700.f, 700.f), WreckMetal, 0.f, FRotator(0.f, -30.f, 0.f), true, TEXT("SM_Verd_Wreck_Engine"));
-	Block(EShape::Cylinder, WreckSite + FVector(1100.f, -900.f, 700.f), FVector(500.f, 500.f, 900.f), WreckMetal, 0.f, FRotator(70.f, -30.f, 0.f), false, TEXT("SM_Verd_Wreck_Engine"));
-	Block(EShape::Cube, WreckSite + FVector(-900.f, -500.f, 120.f), FVector(600.f, 160.f, 240.f), WreckMetal, 0.f, FRotator(0.f, 70.f, 0.f), true, TEXT("SM_Verd_Wreck_Wing"));
-	Block(EShape::Cube, WreckSite + FVector(500.f, 800.f, 110.f), FVector(500.f, 160.f, 220.f), WreckMetal, 0.f, FRotator(0.f, -20.f, 0.f), true, TEXT("SM_Verd_Wreck_Fin"));
-	Block(EShape::Sphere, WreckSite + FVector(-500.f, 700.f, 500.f), FVector(500.f, 260.f, 200.f), Ember, 3.f, FRotator(0.f, 25.f, 0.f), false);
-	Block(EShape::Sphere, WreckSite + FVector(1100.f, -850.f, 300.f), FVector(300.f), Ember, 3.f, FRotator::ZeroRotator, false);
+	Block(EShape::Cube, WreckSite + FVector(0.f, 0.f, 520.f), FVector(1700.f, 1700.f, 40.f), StationMetal, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_Station_Roof"));
+	Block(EShape::Cube, WreckSite + FVector(0.f, -760.f, 90.f), FVector(900.f, 60.f, 120.f), StationMetal, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_Station_Rack"));
+	Block(EShape::Cube, WreckSite + FVector(-760.f, 200.f, 90.f), FVector(60.f, 700.f, 120.f), StationMetal, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_Station_Rack"));
+	Block(EShape::Cube, WreckSite + FVector(0.f, 0.f, 505.f), FVector(1200.f, 60.f, 8.f), Cyan, 3.f, FRotator::ZeroRotator, false); // the station's work light
+	DormantDrone = Block(EShape::Sphere, WreckSite + FVector(550.f, 550.f, 110.f), FVector(120.f, 120.f, 90.f), StationMetal, 0.f, FRotator(0.f, -135.f, 0.f), false, TEXT("SM_Verd_Station_DormantDrone"));
 
 	ATDStepTrigger* Beacon = SpawnProp<ATDStepTrigger>(FVector(9300.f, 6300.f, 0.f));
 	Beacon->LinkedObjective = Wreck;
@@ -754,29 +802,58 @@ void ATDPlanetCourse::BuildVerdance()
 	FTDRetakeMercyTier SiteMercy5; SiteMercy5.FromTake = 5; SiteMercy5.DropCrew = 2;
 	SiteFight->MercyTiers = { SiteMercy3, SiteMercy5 };
 
-	// Two waves drop in on the extraction (spawned high: they fall in).
-	ATDEncounterVolume* WaveA = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 1100.f); // (machine playtest: 3+3 during a 4 s hold killed the pilot 20 times)
-	ATDEncounterVolume* WaveB = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Trooper, ETDCrewType::Drone }, false, 1300.f);
-	ATDExtractionSite* Core = SpawnProp<ATDExtractionSite>(WreckSite + FVector(0.f, 0.f, 60.f));
+	// The survey terminal: a tap starts the archive transfer (and Cinematic 03, T3's hook).
+	ATDInteractableActor* Terminal = SpawnProp<ATDInteractableActor>(WreckSite + FVector(-250.f, 0.f, 30.f), FRotator(0.f, 180.f, 0.f));
+	Terminal->Prompt = LOCTEXT("SurveyTerminal", "Activate the survey terminal");
+	Terminal->HoldTime = 0.f;
+	Terminal->LinkedObjective = Wreck;
+	Terminal->LinkedStep = 2;
+	Terminal->ConsoleMesh = TDPropArt::Default(TEXT("SM_Verd_Station_Terminal"));
+	TDCourseImpl::FinishProp(Terminal);
+	Terminal->SetActorScale3D(FVector(1.f, 1.4f, 1.3f));
+	UTDStatics::TintPlaceholder(Terminal->Mesh, FLinearColor(0.1f, 0.8f, 1.f), 1.5f);
+
+	// The transfer (60-90 s, here 75): three fixed waves dropping in around the station, the third with the Heavy (the
+	// disruption); it pauses while a crewman stands at the terminal. Spawned high: they fall in.
+	ATDEncounterVolume* Wave1 = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 1300.f);
+	ATDEncounterVolume* Wave2 = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Trooper, ETDCrewType::Drone }, false, 1400.f);
+	ATDEncounterVolume* Wave3 = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Heavy, ETDCrewType::Grunt }, false, 1400.f);
+	FTDRetakeMercyTier TransferMercy3; TransferMercy3.FromTake = 3; TransferMercy3.DropCrew = 1;
+	Wave3->MercyTiers = { TransferMercy3 };
+	ATDArchiveTransfer* Transfer = SpawnProp<ATDArchiveTransfer>(WreckSite + FVector(-250.f, 0.f, 0.f));
+	Transfer->LinkedObjective = Wreck;
+	Transfer->LinkedStep = 4; // steps 3 (first half) and 4 (second half, the midpoint checkpoint)
+	Transfer->Waves = { Wave1, Wave2, Wave3 };
+	Transfer->WaveAt = { 0.f, 0.25f, 0.5f };
+	TDCourseImpl::FinishProp(Transfer);
+	ArchiveTransfer = Transfer;
+
+	// The data package: take it from the terminal (a short hold) and get it back to the ship; two grunts give chase.
+	ATDEncounterVolume* Pursuit = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 1300.f);
+	ATDExtractionSite* Core = SpawnProp<ATDExtractionSite>(WreckSite + FVector(-250.f, 350.f, 60.f));
 	Core->LinkedObjective = Wreck;
-	Core->LinkedStep = 2;
-	Core->WaveA = WaveA;
-	Core->WaveB = WaveB;
+	Core->LinkedStep = 5;
+	Core->HoldTime = 1.5f;
+	Core->Prompt = LOCTEXT("TakePackage", "Take the data package");
+	Core->WaveA = Pursuit;
+	Core->WaveB = nullptr;
 	TDCourseImpl::FinishProp(Core);
 
 	ATDStepTrigger* Ship = SpawnProp<ATDStepTrigger>(FVector(300.f, 0.f, 0.f));
 	Ship->LinkedObjective = Wreck;
-	Ship->LinkedStep = 3;
+	Ship->LinkedStep = 6;
 	Ship->bRequireCarrying = true;
 	TDCourseImpl::FinishProp(Ship);
 	Ship->Box->SetBoxExtent(FVector(1400.f, 1400.f, 400.f));
 
-	Checkpoint(Wreck, 1, FVector(8300.f, 5800.f, 0.f), 30.f); // dying in the site fight: back at its edge, not at the pad (outside its box)
-	Checkpoint(Wreck, 2, WreckSite + FVector(-900.f, -300.f, 0.f), 15.f); // dying in the extraction: back at the wreck
+	Checkpoint(Wreck, 1, FVector(8300.f, 5800.f, 0.f), 30.f); // dying in the station fight: back at its edge, not at the pad
+	Checkpoint(Wreck, 4, WreckSite + FVector(-900.f, -300.f, 0.f), 15.f); // the transfer's midpoint
+	Checkpoint(Wreck, 5, WreckSite + FVector(-900.f, -300.f, 0.f), 15.f); // the package: back at the station
 	FinishObjective(Wreck,
-		{ LOCTEXT("W0", "FOLLOW THE BEACON TO THE RESEARCH SITE"), LOCTEXT("W1", "CLEAR THE RESEARCH SITE"),
-		  LOCTEXT("W2", "RECOVER THE DEVICE · HOLD [E]"), LOCTEXT("W3", "CARRY THE DEVICE TO YOUR SHIP") },
-		{ Beacon, SiteFight, Core, Ship });
+		{ LOCTEXT("W0", "FOLLOW THE BEACON TO THE SURVEY STATION"), LOCTEXT("W1", "CLEAR THE STATION"),
+		  LOCTEXT("W2", "ACTIVATE THE SURVEY TERMINAL · [E]"), LOCTEXT("W3", "PROTECT THE DATA TRANSFER"), LOCTEXT("W4", "PROTECT THE DATA TRANSFER"),
+		  LOCTEXT("W5", "TAKE THE DATA PACKAGE · HOLD [E]"), LOCTEXT("W6", "GET THE DATA BACK TO YOUR SHIP") },
+		{ Beacon, SiteFight, Terminal, Transfer, Transfer, Core, Ship });
 
 	// ---- Obj 2: the ancient relay (-> Cloak on Rift). South-east, up a ruined climb. ----
 	const FVector RelayHead(2600.f, -2600.f, 0.f);
@@ -983,9 +1060,9 @@ void ATDPlanetCourse::BuildCinder()
 		if (D)
 		{
 			D->OpenHeight = 650.f;
-			TDCourseImpl::FinishProp(D);
-			D->Mesh->SetRelativeScale3D(FVector(0.3f, 6.2f, 6.f));
+			D->Mesh->SetRelativeScale3D(FVector(0.3f, 6.2f, 6.f)); // before BeginPlay: it records the closed spot
 			D->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 300.f));
+			TDCourseImpl::FinishProp(D);
 			UTDStatics::TintPlaceholder(D->Mesh, TDCourseColors::ArmadaRed, 0.4f);
 		}
 		return D;
@@ -1229,5 +1306,7 @@ void ATDPlanetCourse::BuildCinder()
 		ScatterFlora(120, 16000.f, 0xC1DE26);
 	}
 }
+
+#include "TriadDrift/Ground/Interior/TDDominionInteriorCourse.inl"
 
 #undef LOCTEXT_NAMESPACE
