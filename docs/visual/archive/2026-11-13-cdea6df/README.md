@@ -20,3 +20,6 @@ Additional original preserved during the same cleanup:
 | Archived file | Original source |
 |---|---|
 | [blender-game-asset-SKILL.md](blender-game-asset-SKILL.md) | [.claude/skills/blender-game-asset/SKILL.md at cdea6df](https://github.com/rthomas24/2026-epic-ai-megajam/blob/cdea6df27b6b4884c8712fe5f06d8bec96aa9234/.claude/skills/blender-game-asset/SKILL.md) |
+
+
+UI instruction originals: `UI-Unreal-AGENTS.md` preserves Main at cdea6df; `UI-Unreal-AGENTS-1a8d942.md` preserves the specialist Git instruction snapshot. Both are historical references, not current dispatches.
