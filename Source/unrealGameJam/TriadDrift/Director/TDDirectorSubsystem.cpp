@@ -301,7 +301,15 @@ void UTDDirectorSubsystem::BuildCameraHint(FTDDirectorShot& Shot)
 	}
 	bCameraSideFlip = !bCameraSideFlip; // alternate sides shot to shot
 
-	const float Dist = FMath::Lerp(Tuning.CameraDistanceMin, Tuning.CameraDistanceMax, Shot.Importance01);
+	float Dist = FMath::Lerp(Tuning.CameraDistanceMin, Tuning.CameraDistanceMax, Shot.Importance01);
+	// Big subjects (a carrier, a generator on the Dominion's hull) need the camera further out, or the
+	// frame is a wall of hull (live carrier-kill capture): at least SubjectFramingRadii x its radius.
+	if (Subject)
+	{
+		FVector Origin, Extent;
+		Subject->GetActorBounds(/*bOnlyColliding*/ true, Origin, Extent);
+		Dist = FMath::Max(Dist, Extent.Size() * Tuning.SubjectFramingRadii);
+	}
 	// Side-on, a little ahead and above: the action crosses the frame toward the lens.
 	Shot.SuggestedCameraLocation = Focus + Side * Dist * 0.85f + Travel * Dist * 0.3f + FVector::UpVector * Dist * 0.3f;
 	Shot.SuggestedCameraRotation = (Focus - Shot.SuggestedCameraLocation).Rotation();

@@ -146,6 +146,10 @@ struct UNREALGAMEJAM_API FTDDirectorTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Director", meta = (Units = "cm"))
 	float CameraDistanceMax = 7000.f;
 
+	/** The shot camera is at least this many subject bounds-radii from the focus (big subjects fit). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Director|Camera", meta = (ClampMin = "1"))
+	float SubjectFramingRadii = 3.f;
+
 	FTDDirectorTuning();
 };
 
