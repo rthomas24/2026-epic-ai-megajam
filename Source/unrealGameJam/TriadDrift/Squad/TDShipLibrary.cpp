@@ -49,7 +49,7 @@ namespace TDShipLibraryPrivate
 		S.PilotName = LOCTEXT("LancerPilot", "KATO");
 		S.RoleName = LOCTEXT("LancerRole", "Interceptor");
 		S.MaxHull = 70.f;
-		S.MaxShield = 80.f;
+		S.MaxShield = 96.f;	// x1.2 (T4 sweep, Lead-approved Nov 13): wave-5 downs 5.2 -> 3.5, near Bastion; hull stays fragile
 		S.CruiseSpeed = 7500.f;
 		S.BoostSpeed = 15000.f;
 		S.TurnRateDeg = 100.f;
