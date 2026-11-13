@@ -1,5 +1,5 @@
-# STOPPED - Nick's latest instruction, November13
-All agents instructed to safe-stop; all production queues/grants revoked. No automatic goal or task resumption. Preserve unfinished work and wait. See MESSAGEBOARD N036/CLAIMS and [stop checkpoint](Lead-Stop-Checkpoint-2026-11-13.md). Historical task assignments below are not active dispatch.
+# Active presentation production, Nov 13
+Nicholas resumed the features.md presentation assignments. Current owners and next tasks are recorded in CLAIMS.md. The previous stop checkpoint preserves earlier work.
 
 # Visual production and acceptance status
 

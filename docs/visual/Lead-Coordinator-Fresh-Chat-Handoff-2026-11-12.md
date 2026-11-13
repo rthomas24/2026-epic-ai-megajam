@@ -1,5 +1,5 @@
-# Latest instruction: STOP AND WAIT
-Nick ordered all agents/goals stopped after safe checkpoint on November13. Read [stop checkpoint](Lead-Stop-Checkpoint-2026-11-13.md), current CLAIMS and MESSAGEBOARD N036 before anything below. No prior resumption/goal/task/native grant remains authorization. Preserve all unfinished work and wait for Nick.
+# Active presentation production, Nov 13
+Nicholas resumed the features.md presentation assignments. Current owners and next tasks are recorded in CLAIMS.md. The previous stop checkpoint preserves earlier work.
 
 # Lead Coordinator fresh-chat handoff: historical checkpoint
 

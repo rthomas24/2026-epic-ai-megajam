@@ -20,8 +20,20 @@ AGENTS.md lifecycle conditions; branch publication alone does not release it.
 
 Maintainer: Nick's Lead Coordinator. This section is the single live ownership view; [superseded Nick checkpoints](docs/coordination/archive/CLAIMS-Nick-2026-11-13-d1672ec.md) are preserved verbatim and authorize no work. The latest direct human instruction and this published scope control dispatch; a reserved path, historical goal or expired resource lease is not permission to start. Acceptance evidence belongs in [visual STATUS](docs/visual/STATUS.md); questions/decisions belong in [MESSAGEBOARD](MESSAGEBOARD.md).
 
-### STOPPED by Nick - November13 latest instruction
-All Nick agents and Lead production are STOPPED after safe checkpoint. All queued tasks/native grants/resource tokens are REVOKED; previous RESUMED rows below preserve ownership/history only and authorize no work. No goal is active in Lead or the responding specialists. Do not resume goals, imports, audits, screenshots, source preparation, host work or production without Nick's further instruction. Preserve all dirty/private/published work. N036 applies only to Nick's agents and processes.
+### Active presentation assignments, Nov 13
+
+Nicholas has restarted his presentation team under the Nov 13 realignment. These rows supersede the historical assignments below. Each next item starts under a refreshed claim. Nicholas approves appearance and sound.
+
+| Owner and state | Current work and writable paths | Next |
+|---|---|---|
+| Audio, in progress | ART-10. In audio-prototype-v1 prepare PR11/12 listening and verify the director contract. Lead provisions a private current-main host nick/presentation-runtime-1113 in Worktrees/presentation-runtime-1113. Audio alone may bind Content/TriadDrift/Presentation/DA_UI_Style.uasset there after build, using the existing PR11 candidate and the verified CombatMusic01 Wave. | Real combat transition and intensity proof, planet/finale/victory themes, final mix and ART-11 barks. |
+| Environment, in progress | ART-05/13. Prepare Hero sky real-Galaxy comparison under existing HeroM02 roots in environment-vfx. Lead reserves the runtime host first for the build and Audio, then Hero. | Verdance and Cinder fog, sky, exposure and colour, then combat grade. |
+| UI, in progress | ART-09/12. Work in own HUD plugin/menu sources in hud-lancer-polish. Prepare menu/Settings and Director cards for review. Audio holds the shared style asset. | Reward, victory, credits and loading. |
+| Assets and Mesh, in progress | ART-01/02 review. Read-only review of live engineering/Grok images. Write findings in own Saved/ArtReview only; Lead posts findings and credits. | Verify highest-impact finding at gameplay distance in the current host. |
+| Asset Manager, in progress | ART-14 evidence selection. Inventory actual gameplay captures and footage, select candidates with tested commit, sequence and credit evidence in own private Evidence/Submission. | Supply missing-shot list for the 30–60 second gameplay edit. |
+| Lead, in progress | ART-14 and integration. Own docs/visual/Submission/**, CREDITS.md, DEVLOG.md, docs/visual/STATUS.md and current host build. Coordinate itch copy/video, review evidence and publish approvals. | Deliver first playable music candidate for Nicholas, then Hero. |
+
+Previous private intake runs and asset production are parked. Only one heavy job may run. Lead owns the first native slot for current-main host preparation/build. Runtime sessions use -NoLiveCoding and Nick ports 8020-8029.
 
 ### Current lanes
 
@@ -52,7 +64,7 @@ The following reservations remain in force; archival does not release them. Ask 
 
 ### Shared boundaries and execution
 
-Current resource checkpoint: STOPPED by Nick. No native processes observed; all grants revoked/no next holder. Gothic PASS/private40 preserved; remaining9+selected36 incomplete, no project transfer. Audio featuref5d9cf9d preserved, current-Core binding incomplete. Hero/UI private work preserved. Await Nick; no automatic resumption.
+Current resource checkpoint: Lead owns the current-main runtime host build. Audio follows when the host is ready. Other agents work with available source and captures.
 
 - Nick does not independently edit Ryan-owned Source, Config, Gameplay content, shared maps/actors, engine association or interfaces. Shared changes and engineering asset exceptions use the current board agreements and their exact claims.
 - Shared presentation binaries and DA_UI_Style fields have one writer at a time. Audio owns the stated sound/music fields until Lead publishes a serialized handoff; UI and Environment do not edit that binary concurrently.
