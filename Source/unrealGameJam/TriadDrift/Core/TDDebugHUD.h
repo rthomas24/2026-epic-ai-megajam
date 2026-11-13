@@ -39,6 +39,8 @@ private:
 	void HandleBarkRequested(FName BarkId, FName Speaker);
 	void DrawCrosshair();
 	void DrawFlight();
+	void DrawFull();
+	void DrawSupplementText(bool bPrompt, bool bHyperdriveBlock, bool bAltitude);
 	void DrawLine2D(const FVector2D& A, const FVector2D& B, const FLinearColor& Color, float Thickness = 1.f);
 	void DrawBracket(const FVector2D& Center, float HalfSize, const FLinearColor& Color);
 	AActor* FindHUDDataActor();

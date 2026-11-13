@@ -321,4 +321,28 @@ bool FTDCombatPlaceholderPerSite::RunTest(const FString& Parameters)
 	return true;
 }
 
+/** Placeholder explosion (deaths, rockets, missiles, mines): a core, a shell and debris streaks that fly outward. */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPlaceholderExplosion, "TriadDrift.Combat.Placeholder.ExplosionHasCoreShellAndDebris", TD_TEST_FLAGS)
+bool FTDCombatPlaceholderExplosion::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(W.GetWorld());
+	const FVector Here(5000.f, 0.f, 0.f);
+	const int32 Used = Projectiles->PlayPlaceholderExplosion(Here, 600.f, FLinearColor::Red, 8);
+	TestEqual(TEXT("core + shell + 8 debris"), Used, 10);
+	W.Advance(0.3f);
+	const int32 Playing = Projectiles->GetPlayingFlashCount();
+	const int32 Inside = Projectiles->CountPlayingFlashesNear(Here, 350.f);
+	AddInfo(FString::Printf(TEXT("after 0.3 s: %d playing, %d within 350 cm"), Playing, Inside));
+	TestTrue(TEXT("debris has flown outward"), Playing >= 8 && Playing - Inside >= 6);
+	W.Advance(1.f);
+	TestEqual(TEXT("all gone within a second"), Projectiles->GetPlayingFlashCount(), 0);
+
+	// A rocket hitting a wall explodes (more than one flash at the wall), a laser only flashes.
+	const TStrongObjectPtr<UTDWeaponFX> NoArt(NewObject<UTDWeaponFX>());
+	const auto Rocket = TDCombatPlaceholderTest::FireAndCountBySite(TDWeaponIds::SpikeRockets, NoArt.Get(), 1.f / 60.f);
+	TestTrue(FString::Printf(TEXT("rocket impact explodes (%d flashes at the wall)"), Rocket.Impact), Rocket.Impact >= 3);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

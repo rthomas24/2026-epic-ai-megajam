@@ -209,6 +209,41 @@ void UTDUIHostSubsystem::SetDevHUDSuppressed(bool bSuppressed)
 
 // ------------------------------------------------------------------------------------------ reflection
 
+FName UTDUIHostSubsystem::GetCoverPropertyName(ETDHUDSurface Surface)
+{
+	const UEnum* Enum = StaticEnum<ETDHUDSurface>();
+	return FName(*(TEXT("bCovers") + Enum->GetNameStringByValue(static_cast<int64>(Surface))));
+}
+
+namespace TDUIHost
+{
+	/** Dev override per surface: -1 = read the widget, 0 = not covered, 1 = covered. */
+	TMap<ETDHUDSurface, int32>& CoverOverrides()
+	{
+		static TMap<ETDHUDSurface, int32> Map;
+		return Map;
+	}
+}
+
+bool UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(const UObject* WorldContext, ETDHUDSurface Surface)
+{
+	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	const UUserWidget* HUD = Host ? Host->GetSpaceHUD() : nullptr;
+	if (!HUD)
+	{
+		return false; // native HUD not up: the fallback HUD draws everything
+	}
+	if (const int32* Forced = TDUIHost::CoverOverrides().Find(Surface))
+	{
+		if (*Forced >= 0)
+		{
+			return *Forced > 0;
+		}
+	}
+	const FBoolProperty* Claim = FindFProperty<FBoolProperty>(HUD->GetClass(), GetCoverPropertyName(Surface));
+	return Claim && Claim->GetPropertyValue_InContainer(HUD);
+}
+
 UClass* UTDUIHostSubsystem::FindNativeWidgetClass()
 {
 	return FindObject<UClass>(nullptr, TDUIHost::NativeWidgetClassPath);
@@ -326,6 +361,12 @@ namespace TDUIHost
 				ViewPC->GetViewportSize(ViewW, ViewH);
 			}
 			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: viewport=%dx%d"), ViewW, ViewH);
+			if (Target && ViewPC && ViewPC->GetPawn())
+			{
+				const FVector ToTarget = Target->GetActorLocation() - ViewPC->GetPawn()->GetActorLocation();
+				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: target wyaw=%.1f wpitch=%.1f dist=%.0f"),
+					FMath::RadiansToDegrees(FMath::Atan2(ToTarget.Y, ToTarget.X)), FMath::RadiansToDegrees(FMath::Atan2(ToTarget.Z, ToTarget.Size2D())), ToTarget.Size());
+			}
 			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: target=%s onscreen=%d at (%.0f, %.0f), locked=%d, markers=%d"),
 				Target ? *Target->GetName() : TEXT("none"), bOnScreen ? 1 : 0, Screen.X, Screen.Y,
 				Data->GetLockedTargets().Num(), Data->GetTargetMarkers().Num());
@@ -342,9 +383,13 @@ namespace TDUIHost
 				FVector ViewLoc; FRotator ViewRot;
 				if (ViewPC) { ViewPC->GetPlayerViewPoint(ViewLoc, ViewRot); }
 				const FVector Local = ViewRot.UnrotateVector(Hostile->GetActorLocation() - ViewLoc);
-				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: nearest=%s dist=%.0f onscreen=%d at (%.0f, %.0f) yaw=%.1f pitch=%.1f"),
+				// World bearing from the player's ship (for TD.Input.TurnToward <YawDeg> <PitchDeg>).
+				const APawn* Ship = ViewPC ? ViewPC->GetPawn() : nullptr;
+				const FVector ToHostile = Hostile->GetActorLocation() - (Ship ? Ship->GetActorLocation() : ViewLoc);
+				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: nearest=%s dist=%.0f onscreen=%d at (%.0f, %.0f) yaw=%.1f pitch=%.1f wyaw=%.1f wpitch=%.1f"),
 					*Hostile->GetName(), M.Distance, bOn ? 1 : 0, At.X, At.Y,
-					FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X)), FMath::RadiansToDegrees(FMath::Atan2(Local.Z, Local.Size2D())));
+					FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X)), FMath::RadiansToDegrees(FMath::Atan2(Local.Z, Local.Size2D())),
+					FMath::RadiansToDegrees(FMath::Atan2(ToHostile.Y, ToHostile.X)), FMath::RadiansToDegrees(FMath::Atan2(ToHostile.Z, ToHostile.Size2D())));
 				break;
 			}
 			const FTDWaveInfo Wave = Data->GetWaveInfo();
@@ -374,6 +419,23 @@ namespace TDUIHost
 			}
 		}
 	}
+
+	void SetCoverOverride(const TArray<FString>& Args)
+	{
+		const UEnum* Enum = StaticEnum<ETDHUDSurface>();
+		const int64 Value = Args.Num() > 0 ? Enum->GetValueByNameString(Args[0]) : INDEX_NONE;
+		if (Value == INDEX_NONE || Args.Num() < 2)
+		{
+			UE_LOG(LogTDUIHost, Warning, TEXT("TD.UI.Covers <DamageIndicators|SquadMarkers|InteractPrompt|HyperdriveBlockText|Altitude|Subtitles|Pause|BoundaryWarning> <-1|0|1>"));
+			return;
+		}
+		CoverOverrides().Add(static_cast<ETDHUDSurface>(Value), FCString::Atoi(*Args[1]));
+		UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Covers: %s = %s"), *Args[0], *Args[1]);
+	}
+
+	FAutoConsoleCommand CmdTDUICovers(TEXT("TD.UI.Covers"),
+		TEXT("TD.UI.Covers <Surface> <-1|0|1>: dev override of which HUD surfaces the native space HUD covers (-1 = ask the widget)."),
+		FConsoleCommandWithArgsDelegate::CreateStatic(&SetCoverOverride));
 
 	FAutoConsoleCommandWithWorld CmdTDUIStatus(TEXT("TD.UI.Status"),
 		TEXT("TD.UI.Status: log the space HUD host state, its data source's current target and the widget's decoded squad cards."),

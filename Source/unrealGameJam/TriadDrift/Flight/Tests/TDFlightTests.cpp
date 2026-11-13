@@ -544,15 +544,20 @@ bool FTDFlightInputMap::RunTest(const FString& Parameters)
 		{ TEXT("IA_SwitchPrev"), EKeys::Gamepad_DPad_Left },
 		{ TEXT("IA_Switch1"), EKeys::One }, { TEXT("IA_Switch2"), EKeys::Two }, { TEXT("IA_Switch3"), EKeys::Three },
 		{ TEXT("IA_SwitchRadial"), EKeys::Gamepad_DPad_Up },
-		{ TEXT("IA_TargetCycle"), EKeys::T }, { TEXT("IA_TargetCycle"), EKeys::MiddleMouseButton }, { TEXT("IA_TargetCycle"), EKeys::Gamepad_RightThumbstick },
+		{ TEXT("IA_TargetCycle"), EKeys::T }, { TEXT("IA_TargetCycle"), EKeys::MiddleMouseButton },
+		{ TEXT("IA_TargetCycleTap"), EKeys::Gamepad_RightThumbstick }, // R3 tap (Lead, Nov 12)
+		{ TEXT("IA_CameraToggle"), EKeys::V }, { TEXT("IA_CameraToggleHold"), EKeys::Gamepad_RightThumbstick }, // R3 hold
+		{ TEXT("IA_Dodge"), EKeys::LeftAlt }, { TEXT("IA_DodgeTap"), EKeys::D }, { TEXT("IA_DodgeTap"), EKeys::A }, { TEXT("IA_DodgeTap"), EKeys::Gamepad_LeftX },
 		{ TEXT("IA_Pause"), EKeys::Escape }, { TEXT("IA_Pause"), EKeys::Gamepad_Special_Right },
-		{ TEXT("IA_GalaxyMap"), EKeys::M }, { TEXT("IA_GalaxyMap"), EKeys::Gamepad_Special_Left },
 	};
 	for (const FExpect& E : CommonExpect)
 	{
 		const UInputAction* Action = A(E.Action);
 		TestTrue(FString::Printf(TEXT("%s on %s"), E.Action, *E.Key.ToString()), Action && Has(Common, Action, E.Key));
 	}
+	// Galaxy map hidden until its screen exists (bGalaxyMapEnabled, Lead Nov 12).
+	TestFalse(TEXT("galaxy map not bound to M"), Has(Common, A(TEXT("IA_GalaxyMap")), EKeys::M));
+	TestFalse(TEXT("galaxy map not bound to Select"), Has(Common, A(TEXT("IA_GalaxyMap")), EKeys::Gamepad_Special_Left));
 
 	TestTrue(TEXT("IMC_Space: Hyperdrive on H"), Has(Space, A(TEXT("IA_Hyperdrive")), EKeys::H));
 	TestTrue(TEXT("IMC_Space: Hyperdrive on D-pad down"), Has(Space, A(TEXT("IA_Hyperdrive")), EKeys::Gamepad_DPad_Down));

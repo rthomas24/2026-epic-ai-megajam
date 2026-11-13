@@ -128,4 +128,43 @@ bool FTDPauseFoot::RunTest(const FString& Parameters)
 	return true;
 }
 
+
+bool TDInputDebug_TurnTowardStep(APlayerController* PC, const FRotator& Target);
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInputTurnToward, "TriadDrift.Input.Agent.TurnTowardSteersThroughRealInput", TD_TEST_FLAGS)
+bool FTDInputTurnToward::RunTest(const FString& Parameters)
+{
+	// Agent pilots (T2 / T4) need to bring a target behind them onto the nose with the same input a player uses.
+	struct FCase { float Yaw; float Pitch; };
+	const FCase Cases[] = { { 90.f, 0.f }, { 180.f, 0.f }, { -60.f, 35.f } };
+	for (const FCase& C : Cases)
+	{
+		const FString Tag = FString::Printf(TEXT("bearing yaw %.0f pitch %.0f: "), C.Yaw, C.Pitch);
+		FTDTestWorld W;
+		ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 1500.f));
+		ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+		if (!TestNotNull(*(Tag + TEXT("controller")), PC)) { return false; }
+		Ship->SetPlayerControlled(true);
+		W.Tick();
+		const FRotator Target(C.Pitch, C.Yaw, 0.f);
+		bool bOn = false;
+		bool bUsedTheStick = false;
+		int32 Frames = 0;
+		for (; Frames < 60 * 6 && !bOn; ++Frames)
+		{
+			bOn = TDInputDebug_TurnTowardStep(PC, Target);
+			W.Tick();
+			bUsedTheStick |= !PC->GetCurrentFlightInput().Aim.IsNearlyZero();
+		}
+		TestTrue(*(Tag + FString::Printf(TEXT("nose on the bearing (%.1f s)"), Frames / 60.f)), bOn);
+		TestTrue(*(Tag + TEXT("through the player's aim input (virtual stick), not a rotation set")), bUsedTheStick);
+		const float Err = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(Ship->GetActorForwardVector(), Target.Vector()), -1.f, 1.f)));
+		TestTrue(*(Tag + FString::Printf(TEXT("within 3 deg (%.1f)"), Err)), Err < 3.f);
+		W.Advance(1.f);
+		const float Drift = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(Ship->GetActorForwardVector(), Target.Vector()), -1.f, 1.f)));
+		TestTrue(*(Tag + FString::Printf(TEXT("stays on it after letting go (%.1f deg)"), Drift)), Drift < 8.f);
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
