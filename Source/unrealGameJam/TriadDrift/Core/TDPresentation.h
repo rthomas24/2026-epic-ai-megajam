@@ -297,9 +297,13 @@ public:
 	FTDFXCue DeathTumble;
 
 	// ---- on-foot crew (all optional)
-	/** Animation Blueprint class for SkeletalMesh. */
+	/** Animation Blueprint class for SkeletalMesh. Empty: gameplay falls back to the template mannequin set. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew")
 	TSoftClassPtr<UAnimInstance> AnimBPClass;
+
+	/** Yaw of SkeletalMesh inside the capsule. UE5 mannequin-skeleton meshes face +Y, so -90 makes them face forward. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew")
+	float SkeletalMeshYaw = -90.f;
 
 	/** Played when the enemy is staggered (parry, guard break, heavy hit). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Crew")

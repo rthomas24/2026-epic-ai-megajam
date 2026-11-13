@@ -690,6 +690,47 @@ bool FTDCourseCheckpointRefill::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Journey run 2 stall: the pilot stood against the wreck core during the site fight and the grunts circled at
+// 1.0-1.3 m for 15 minutes without a swing. An idle pilot there must be attacked (and the crew must stay killable).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseCoreStall, "TriadDrift.Ground.Course.CrewAttackAPilotStandingAtTheWreckCore", TD_TEST_FLAGS)
+bool FTDCourseCoreStall::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDObjective* Wreck = R.Course->FindObjective(TEXT("Obj_WreckCore"));
+	if (!R.StartAt(TEXT("Obj_WreckCore"))) { return false; }
+	R.TeleportTo(R.Props<ATDStepTrigger>(Wreck, 0)[0], 60.f);
+	ATDEncounterVolume* Site = R.StepFight(Wreck, 1);
+	if (!TestEqual(TEXT("site fight step"), R.Step(Wreck), 1) || !TestNotNull(TEXT("site fight"), Site)) { return false; }
+	R.FP->SetActorLocation(FVector(11379.f, 7218.f, R.FP->GetActorLocation().Z), false, nullptr, ETeleportType::TeleportPhysics);
+	R.FP->GetHealth()->SetInvulnerable(false);
+	R.FP->GetHealth()->SetInvulnerableFor(0.f);
+	float HullMin = 1.f;
+	int32 Swings = 0;
+	TMap<FString, FString> States;
+	for (int32 i = 0; i < 60 * 12 && !R.FP->IsDead(); ++i)
+	{
+		V.W.Tick(1.f / 60.f);
+		V.GI->TickFlow(1.f / 60.f);
+		HullMin = FMath::Min(HullMin, R.FP->GetHealth()->GetHull01());
+		for (const TWeakObjectPtr<AActor>& M : Site->GetSpawned())
+		{
+			if (const ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get()))
+			{
+				Swings += C->IsTelegraphing() ? 1 : 0;
+				States.Add(C->GetName(), FString::Printf(TEXT("%s at %.0f cm, attacking %d, staggered %d, grace %.1f"), *UEnum::GetValueAsString(C->CrewType),
+					FVector::Dist2D(C->GetActorLocation(), R.FP->GetActorLocation()), C->IsAttacking(), C->IsStaggered(), C->GetOpeningGraceLeft()));
+			}
+		}
+	}
+	FString Report;
+	for (const TPair<FString, FString>& S : States) { Report += S.Value + TEXT("; "); }
+	AddInfo(Report);
+	TestTrue(*FString::Printf(TEXT("the crew attack an idle pilot at the core within 12 s (lowest hull %.2f, wind-up frames %d)"), HullMin, Swings), HullMin < 0.99f || R.FP->IsDead());
+	return true;
+}
+
 // Director's mercy on the real Cinder Warden room through real retakes (CUT! -> checkpoint at the arena door):
 // take 1 and 2 the full Warden, take 3 at 75% with one summon, take 5 at 50% with none.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseWardenMercy, "TriadDrift.Ground.Course.WardenEasesOnRetakes", TD_TEST_FLAGS)
