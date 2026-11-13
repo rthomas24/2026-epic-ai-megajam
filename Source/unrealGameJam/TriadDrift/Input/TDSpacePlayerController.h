@@ -31,6 +31,8 @@ enum class ETDPowerInput : uint8
 	Ability
 };
 
+class UTDHintComponent;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnWeaponInput, ETDWeaponSlot, Slot, bool, bHeld);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnPowerInput, ETDPowerInput, Power);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnHoldInput, bool, bHeld);
@@ -151,6 +153,10 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Pause")
 	bool TogglePlayerPause() { return SetPlayerPaused(!bPausedByPlayer); }
+
+	/** First-minute control hints (Input/TDHintComponent.h). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Hints")
+	UTDHintComponent* GetHints() const { return Hints; }
 
 	/** The game is paused because the player paused it (not a loading or engine pause). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Pause")
@@ -367,10 +373,15 @@ private:
 	void ReleaseHeldPowers();
 
 	friend struct FTDSpaceControllerTestAccess;
+	friend struct FTDHintTestAccess;
 	double RadialPressTime = -1.0;
 	double LandPressTime = -1.0;
 	bool bLandFired = false;
 	bool bRadialOpen = false;
 	bool bFirePrimaryHeld = false;
 	bool bFireSecondaryHeld = false;
+
+private:
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Hints")
+	TObjectPtr<UTDHintComponent> Hints;
 };
