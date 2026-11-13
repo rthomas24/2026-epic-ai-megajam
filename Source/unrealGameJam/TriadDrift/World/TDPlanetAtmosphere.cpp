@@ -56,7 +56,18 @@ void ATDPlanetAtmosphere::Configure(ETDDestination InDestination, FName InReturn
 	Color = InColor;
 	Atmosphere->SetSphereRadius(AtmosphereRadius);
 	PlanetMesh->SetRelativeScale3D(FVector(PlanetRadius * 2.f / 100.f));
-	UTDStatics::TintPlaceholder(PlanetMesh, Color, 0.f);
+	if (!PlanetArtMesh.IsNull())
+	{
+		if (UStaticMesh* Art = PlanetArtMesh.LoadSynchronous())
+		{
+			PlanetMesh->SetStaticMesh(Art);	// same scale: the art is normalised to the 100 cm sphere it replaces
+			PlanetMesh->EmptyOverrideMaterials();
+		}
+	}
+	else
+	{
+		UTDStatics::TintPlaceholder(PlanetMesh, Color, 0.f);
+	}
 }
 
 void ATDPlanetAtmosphere::BeginPlay()
