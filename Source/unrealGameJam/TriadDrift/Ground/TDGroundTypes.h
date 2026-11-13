@@ -43,6 +43,10 @@ struct FTDRetakeMercyTier
 	/** How many times a boss may summon in this take (-1 = no limit, 0 = never). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mercy")
 	int32 MaxSummons = -1;
+
+	/** Members left out of this take, from the end of the mix (at least one always fights). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mercy", meta = (ClampMin = "0"))
+	int32 DropCrew = 0;
 };
 
 /** First-person movement numbers (features.md ENG-21). */

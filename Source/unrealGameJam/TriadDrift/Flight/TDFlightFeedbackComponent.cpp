@@ -10,12 +10,17 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/World/TDPortalGate.h"
+#include "TriadDrift/Powers/TDPortalBlasterPower.h"
+#include "EngineUtils.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Engine/StaticMesh.h"
 #include "HAL/IConsoleManager.h"
 #include "HAL/PlatformTime.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 
 namespace TDFlightFeedback
 {
@@ -208,7 +213,8 @@ void UTDFlightFeedbackComponent::HandleDriftReleased(bool bBurst)
 	const FTDFXCue* Cue = Visuals ? &Visuals->DriftRelease : nullptr;
 	if (WantsVisualPlaceholder(Cue))
 	{
-		SpawnBurst(FVector(-300.f, 0.f, 0.f), FVector(2.6f, 0.9f, 0.9f), UTDStatics::ShipColor(Ship->GetShipId()), Tuning.BurstSeconds);
+		SpawnBurst(FVector(-280.f, 110.f, 0.f), FVector(2.2f, 0.4f, 0.4f), UTDStatics::ShipColor(Ship->GetShipId()), Tuning.BurstSeconds);
+		SpawnBurst(FVector(-280.f, -110.f, 0.f), FVector(2.2f, 0.4f, 0.4f), UTDStatics::ShipColor(Ship->GetShipId()), Tuning.BurstSeconds);
 	}
 	if (WantsCameraPlaceholder(Cue))
 	{
@@ -226,11 +232,28 @@ void UTDFlightFeedbackComponent::HandleTeleported(ATDSpacecraft* Spacecraft, FVe
 	}
 	const UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive();
 	const UTDLandingComponent* Landing = Ship->GetLanding();
-	if ((Hyper && Hyper->GetState() != ETDHyperdriveState::Idle) || (Landing && Landing->IsBusy()))
+	const UTDAtmosphereEntryComponent* Entry = Ship->GetAtmosphereEntry();
+	if ((Hyper && Hyper->GetState() != ETDHyperdriveState::Idle) || (Landing && Landing->IsBusy()) || (Entry && Entry->IsEntering()))
 	{
-		return; // hyperdrive drop-out and landing snaps have their own moments
+		return; // hyperdrive drop-out, landing snaps and planet entry have their own moments
 	}
-	// A portal or gate transit (the only other instant moves while flying).
+	// Only a real transit: the ship left from inside a portal gate or one of Rift's portals. Squad placement,
+	// arrival on a new map, retakes and dev teleports are cuts of their own and get no kick.
+	bool bFromPortal = false;
+	for (TActorIterator<AActor> It(GetWorld()); It && !bFromPortal; ++It)
+	{
+		if (!It->IsA<ATDPortalGate>() && !It->IsA<ATDPortal>())
+		{
+			continue;
+		}
+		FVector Origin, Extent;
+		It->GetActorBounds(true, Origin, Extent);
+		bFromPortal = FBox(Origin - Extent, Origin + Extent).ExpandBy(2500.f).IsInsideOrOn(FromLocation);
+	}
+	if (!bFromPortal)
+	{
+		return;
+	}
 	const UTDTravelFX* FX = UTDTravelSubsystem::GetDefaultTravelFX(this);
 	const FTDFXCue* Cue = FX ? &FX->PortalTransit : nullptr;
 	if (WantsVisualPlaceholder(Cue))
@@ -264,7 +287,8 @@ void UTDFlightFeedbackComponent::PollMoments(float DeltaTime)
 		const FTDFXCue* Cue = Visuals ? &Visuals->BoostStart : nullptr;
 		if (WantsVisualPlaceholder(Cue))
 		{
-			SpawnBurst(FVector(-330.f, 0.f, 0.f), FVector(3.2f, 1.1f, 1.1f), Color, 0.4f);
+			SpawnBurst(FVector(-300.f, 110.f, 0.f), FVector(2.6f, 0.45f, 0.45f), Color, 0.4f); // twin flares beside the engine:
+			SpawnBurst(FVector(-300.f, -110.f, 0.f), FVector(2.6f, 0.45f, 0.45f), Color, 0.4f); // never over the crosshair
 		}
 		if (WantsCameraPlaceholder(Cue))
 		{
@@ -280,8 +304,8 @@ void UTDFlightFeedbackComponent::PollMoments(float DeltaTime)
 	{
 		if (WantsVisualPlaceholder(nullptr))
 		{
-			SpawnBurst(FVector(200.f, 140.f, 0.f), FVector(1.4f, 0.5f, 0.5f), Color, 0.3f);
-			SpawnBurst(FVector(200.f, -140.f, 0.f), FVector(1.4f, 0.5f, 0.5f), Color, 0.3f);
+			SpawnBurst(FVector(160.f, 210.f, 0.f), FVector(1.8f, 0.6f, 0.6f), Color, 0.35f);
+			SpawnBurst(FVector(160.f, -210.f, 0.f), FVector(1.8f, 0.6f, 0.6f), Color, 0.35f);
 		}
 		if (WantsCameraPlaceholder(nullptr))
 		{
@@ -319,7 +343,7 @@ void UTDFlightFeedbackComponent::PollMoments(float DeltaTime)
 			{
 				const FTDFXCue* Cue = FX ? &FX->HyperdriveTunnel : nullptr;
 				if (WantsCameraPlaceholder(Cue)) { AddCameraKick(0.f, 0.f, 12.f, 1.f, 0.7f); }
-				if (WantsVisualPlaceholder(Cue)) { SpawnBurst(FVector(-400.f, 0.f, 0.f), FVector(5.f, 1.6f, 1.6f), FLinearColor(0.7f, 0.85f, 1.f), 0.5f); }
+				if (WantsVisualPlaceholder(Cue)) { SpawnBurst(FVector(-350.f, 140.f, 0.f), FVector(4.f, 0.5f, 0.5f), FLinearColor(0.7f, 0.85f, 1.f), 0.5f); SpawnBurst(FVector(-350.f, -140.f, 0.f), FVector(4.f, 0.5f, 0.5f), FLinearColor(0.7f, 0.85f, 1.f), 0.5f); }
 				Note(TEXT("HyperdriveJump"));
 			}
 			else if (HyperState == ETDHyperdriveState::DropOut)
@@ -363,7 +387,7 @@ void UTDFlightFeedbackComponent::PollMoments(float DeltaTime)
 		{
 			const FTDFXCue* Cue = FX ? &FX->TakeOff : nullptr;
 			if (WantsCameraPlaceholder(Cue)) { AddCameraKick(0.f, 1.f, 3.f, 0.5f, 0.7f); }
-			if (WantsVisualPlaceholder(Cue)) { SpawnBurst(FVector(-60.f, 0.f, -150.f), FVector(3.5f, 3.5f, 0.6f), Color, 0.5f); }
+			if (WantsVisualPlaceholder(Cue)) { SpawnBurst(FVector(-60.f, 0.f, -230.f), FVector(3.2f, 3.2f, 0.2f), Color, 0.5f); }
 			Note(TEXT("TakeOff"));
 		}
 	}
@@ -472,7 +496,7 @@ void UTDFlightFeedbackComponent::UpdateDust(float DeltaTime)
 	const bool bWanted = Ship && Move && Tuning.bSpeedDust && Ship->IsPlayerFlown() && !Ship->IsHidden()
 		&& TDFlightFeedback::CVarSpeedDust.GetValueOnGameThread() != 0 && !(Landing && Landing->IsLanded());
 	const float Speed = Move ? Move->Velocity.Size() : 0.f;
-	const float Thick01 = FMath::Clamp((Speed - Tuning.DustMinSpeed) / 3000.f, 0.f, 1.f);
+	const float Thick01 = FMath::Clamp((Speed - Tuning.DustMinSpeed) / FMath::Max(1.f, Tuning.DustFullSpeed - Tuning.DustMinSpeed), 0.f, 1.f);
 	const bool bShow = bWanted && Thick01 > 0.f;
 	if (!bShow)
 	{
@@ -489,9 +513,11 @@ void UTDFlightFeedbackComponent::UpdateDust(float DeltaTime)
 	const float H = Tuning.DustHalfExtent;
 	const float Span = 2.f * H;
 	const float Length = FMath::Clamp(Speed * Tuning.DustStreakSeconds, 20.f, Tuning.DustStreakMax);
-	const float Thick = FMath::Max(0.01f, Tuning.DustThickness * Thick01);
+	const float Thick = Tuning.DustThickness * FMath::Sqrt(Thick01);
 	const FQuat Facing = FRotationMatrix::MakeFromX(Move->Velocity.GetSafeNormal()).ToQuat();
-	const FVector Scale(Length / 100.f, Thick / 100.f, Thick / 100.f);
+	const APlayerController* PC = Cast<APlayerController>(Ship->GetController());
+	const FVector Eye = (PC && PC->PlayerCameraManager) ? PC->PlayerCameraManager->GetCameraLocation() : Ship->GetActorLocation();
+	const float Clear = FMath::Max(1.f, Tuning.DustCameraClear);
 	for (int32 i = 0; i < DustPositions.Num(); ++i)
 	{
 		// The motes stay still in the world; the box follows the ship and wraps them around.
@@ -507,9 +533,11 @@ void UTDFlightFeedbackComponent::UpdateDust(float DeltaTime)
 			}
 		}
 		DustPositions[i] = Centre + Offset;
-		DustTransforms[i] = FTransform(Facing, DustPositions[i], Scale);
+		const float Near = FMath::Clamp(FVector::Dist(DustPositions[i], Eye) / Clear - 0.25f, 0.f, 1.f);
+		const float T = FMath::Max(0.01f, Thick * Near) / 100.f;
+		DustTransforms[i] = FTransform(Facing, DustPositions[i], FVector(FMath::Max(0.01f, Length * Near) / 100.f, T, T));
 	}
-	Dust->BatchUpdateInstancesTransforms(0, DustTransforms, false, true, true);
+	Dust->BatchUpdateInstancesTransforms(0, DustTransforms, false, false, true); // incremental: never re-create the render state per frame
 	if (!bDustVisible) { Dust->SetVisibility(true); }
 	bDustVisible = true;
 }

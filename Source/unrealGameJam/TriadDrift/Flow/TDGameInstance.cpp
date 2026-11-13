@@ -879,7 +879,13 @@ void UTDGameInstance::TakeCheckpoint(FName Reason)
 
 FString UTDGameInstance::GetSaveSlotName() const
 {
-	return SaveSlotOverride.IsEmpty() ? UTDFlowSettings::Get()->SaveSlotName : SaveSlotOverride;
+	if (!SaveSlotOverride.IsEmpty())
+	{
+		return SaveSlotOverride;
+	}
+	// Automation never touches the player's run: every test world that checkpoints would otherwise write (or a save
+	// test delete) the real slot. Found when a full suite wiped a playtest's Verdance checkpoint (CONTINUE went to wave 1).
+	return GIsAutomationTesting ? UTDFlowSettings::Get()->SaveSlotName + TEXT("_Automation") : UTDFlowSettings::Get()->SaveSlotName;
 }
 
 bool UTDGameInstance::WriteSaveSlot(bool bForce)

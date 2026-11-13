@@ -224,6 +224,7 @@ bool FTDRetakeSummons::RunTest(const FString& Parameters)
 	ATDCrewCharacter* Warden = Room->GetSpawned().Num() ? Cast<ATDCrewCharacter>(Room->GetSpawned()[0].Get()) : nullptr;
 	if (!TestNotNull(TEXT("warden"), Warden)) { return false; }
 	if (AController* AI = Warden->GetController()) { AI->UnPossess(); }
+	Warden->SetOpeningGrace(0.f); // this test is about summons, not the opening
 	TestTrue(TEXT("summon"), Warden->StartAttack(ETDCrewAttack::Summon, P));
 	W.Advance(Warden->Spec.BurstWindup + 0.1f);
 	TestEqual(TEXT("summons join the room (M7)"), Room->GetAliveCount(), 1 + Warden->Spec.SummonCount);
@@ -237,6 +238,7 @@ bool FTDRetakeSummons::RunTest(const FString& Parameters)
 	Room->Activate();
 	Warden = Cast<ATDCrewCharacter>(Room->GetSpawned()[0].Get());
 	if (AController* AI = Warden->GetController()) { AI->UnPossess(); }
+	Warden->SetOpeningGrace(0.f);
 	Warden->StartAttack(ETDCrewAttack::Summon, P);
 	W.Advance(Warden->Spec.BurstWindup + 0.1f);
 	Room->ResetEncounter();
@@ -285,6 +287,7 @@ bool FTDRetakeMercyHook::RunTest(const FString& Parameters)
 		{
 			ATDCrewCharacter* Warden = Cast<ATDCrewCharacter>(Room->GetSpawned()[0].Get());
 			if (AController* AI = Warden->GetController()) { AI->UnPossess(); }
+			Warden->SetOpeningGrace(0.f);
 			TestTrue(TEXT("take 3: one summon"), Warden->StartAttack(ETDCrewAttack::Summon, P));
 			W.Advance(Warden->Spec.BurstWindup + 1.f);
 			for (const TWeakObjectPtr<AActor>& M : Room->GetSpawned())
@@ -296,6 +299,43 @@ bool FTDRetakeMercyHook::RunTest(const FString& Parameters)
 			TestFalse(TEXT("take 3: no second summon"), Warden->StartAttack(ETDCrewAttack::Summon, P));
 		}
 		Plain->ResetEncounter();
+		Room->ResetEncounter();
+		W.Advance(0.1f);
+	}
+	return true;
+}
+
+// An encounter's crew show themselves before they hurt (opening grace), and a DropCrew tier fields fewer of them
+// on later takes (the Verdance wreck ambush: take 3 one grunt fewer, take 5 the trooper alone).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRetakeOpeningGrace, "TriadDrift.Ground.Retake.OpeningGraceAndFewerCrew", TD_TEST_FLAGS)
+bool FTDRetakeOpeningGrace::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(-1500.f, 0.f, 95.f)); // outside the box: Activate() is the only trigger
+	ATDEncounterVolume* Room = TDRetakeTest::MakeRoom(W, FVector(0.f, 0.f, 150.f), nullptr, INDEX_NONE, 3);
+	Room->CrewMix = { ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt };
+	FTDRetakeMercyTier T3; T3.FromTake = 3; T3.DropCrew = 1;
+	FTDRetakeMercyTier T5; T5.FromTake = 5; T5.DropCrew = 2;
+	Room->MercyTiers = { T3, T5 };
+	W.Advance(0.1f);
+	const int32 Expect[] = { 3, 3, 2, 2, 1, 1 };
+	for (int32 Take = 1; Take <= 6; ++Take)
+	{
+		Room->Activate();
+		TestEqual(*FString::Printf(TEXT("take %d crew"), Take), Room->GetSpawned().Num(), Expect[Take - 1]);
+		ATDCrewCharacter* Trooper = nullptr;
+		for (const TWeakObjectPtr<AActor>& M : Room->GetSpawned()) { if (ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get()); C && C->CrewType == ETDCrewType::Trooper) { Trooper = C; } }
+		if (!TestNotNull(*FString::Printf(TEXT("take %d: the trooper always fights"), Take), Trooper)) { return false; }
+		if (Take == 1)
+		{
+			if (AController* AI = Trooper->GetController()) { AI->UnPossess(); }
+			TestFalse(TEXT("no shot in the opening grace"), Trooper->StartAttack(ETDCrewAttack::Burst, P));
+			W.Advance(Room->OpeningGraceSeconds * 0.5f);
+			TestFalse(TEXT("still holding fire half-way"), Trooper->StartAttack(ETDCrewAttack::Burst, P));
+			W.Advance(Room->OpeningGraceSeconds * 0.5f + 0.1f);
+			TestTrue(TEXT("fires once the grace is over"), Trooper->StartAttack(ETDCrewAttack::Burst, P));
+		}
 		Room->ResetEncounter();
 		W.Advance(0.1f);
 	}
