@@ -157,6 +157,9 @@ public:
 	/** World position of the engine exhaust (art socket / Engine part, else the rear of the hull or the placeholder glow). */
 	FVector GetEngineExhaustLocation() const;
 
+	/** Every exhaust: the art's Engine_0..Engine_3 sockets when it has them, else the single exhaust above. */
+	void GetEngineExhaustLocations(TArray<FVector>& Out) const;
+
 	/** Engines are lit (alive, not parked or hidden, not landed with engines off). */
 	bool AreEnginesRunning() const { return ShouldEnginesRun(); }
 

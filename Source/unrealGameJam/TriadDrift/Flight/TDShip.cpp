@@ -298,6 +298,26 @@ FVector ATDShip::GetEngineExhaustLocation() const
 	return B.Origin - GetActorForwardVector() * B.BoxExtent.X;
 }
 
+void ATDShip::GetEngineExhaustLocations(TArray<FVector>& Out) const
+{
+	Out.Reset();
+	static const FName Names[] = { TEXT("Engine_0"), TEXT("Engine_1"), TEXT("Engine_2"), TEXT("Engine_3") };
+	if (bHasRealArt && HullMesh)
+	{
+		for (const FName& Name : Names)
+		{
+			if (HullMesh->DoesSocketExist(Name))
+			{
+				Out.Add(HullMesh->GetSocketLocation(Name));
+			}
+		}
+	}
+	if (Out.Num() == 0)
+	{
+		Out.Add(GetEngineExhaustLocation());
+	}
+}
+
 FTDFXCue ATDShip::ForThisShip(const FTDFXCue& Cue) const
 {
 	FTDFXCue Out = Cue;

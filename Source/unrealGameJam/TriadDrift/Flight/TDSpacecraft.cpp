@@ -225,7 +225,7 @@ void ATDSpacecraft::TeleportSpacecraft(const FVector& Location, const FRotator& 
 	{
 		UE_LOG(LogTriadDrift, Log, TEXT("TD teleport: %s %.0f m (%s -> %s). Caller:"), *GetName(), FVector::Dist(From, Location) / 100.f,
 			*From.ToCompactString(), *Location.ToCompactString());
-		FDebug::DumpStackTraceToLog(ELogVerbosity::Log);
+		if (!GIsAutomationTesting) { FDebug::DumpStackTraceToLog(ELogVerbosity::Log); } // tests: the line is enough (a stack reads like a crash in test logs)
 	}
 #endif
 	if (ShipMovement) { ShipMovement->SetMoveAnnounced(true); }
