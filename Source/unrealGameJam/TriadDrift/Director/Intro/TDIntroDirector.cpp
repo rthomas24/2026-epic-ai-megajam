@@ -144,12 +144,30 @@ namespace TDIntro
 		UStaticMeshComponent* Mesh = Dart->GetStaticMeshComponent();
 		Mesh->SetMobility(EComponentMobility::Movable);
 		Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		// The Null Armada's own fighters (engineering's fleet meshes, nose +X) until T4's showcase hook lands.
+		// The Null Armada's own fighters, exactly as the game shows them: mesh and materials from the enemy visuals assets
+		// (DA_Enemy_Fighter_Visuals / DA_Enemy_Interceptor_Visuals, Presentation over engineering), so the intro never drifts
+		// from the fleet and the meshes are cooked through the visuals. Every third ship is an interceptor.
 		static int32 Variant = 0;
-		const TCHAR* Fleet = (Variant++ % 3 == 2)
-			? TEXT("/Game/TriadDrift/Gameplay/Characters/NullFleet/SM_Null_Interceptor.SM_Null_Interceptor")
-			: TEXT("/Game/TriadDrift/Gameplay/Characters/NullFleet/SM_Null_Fighter.SM_Null_Fighter");
-		if (UStaticMesh* Ship = LoadObject<UStaticMesh>(nullptr, Fleet))
+		const bool bInterceptor = (Variant++ % 3 == 2);
+		if (const UTDEnemyVisuals* V = UTDStatics::LoadPresentation<UTDEnemyVisuals>(bInterceptor ? TEXT("DA_Enemy_Interceptor_Visuals") : TEXT("DA_Enemy_Fighter_Visuals")))
+		{
+			if (UStaticMesh* Ship = V->Mesh.LoadSynchronous())
+			{
+				Mesh->SetStaticMesh(Ship);
+				for (int32 i = 0; i < V->MaterialOverrides.Num(); ++i)
+				{
+					if (UMaterialInterface* M = V->MaterialOverrides[i].LoadSynchronous())
+					{
+						Mesh->SetMaterial(i, M);
+					}
+				}
+				return Dart;
+			}
+		}
+		// No visuals asset: the Rodin fleet by path (Lead, Nov 13).
+		if (UStaticMesh* Ship = LoadObject<UStaticMesh>(nullptr, bInterceptor
+			? TEXT("/Game/TriadDrift/Gameplay/Ships/NullInterceptor/SM_NullInterceptor.SM_NullInterceptor")
+			: TEXT("/Game/TriadDrift/Gameplay/Ships/NullFighter/SM_NullFighter.SM_NullFighter"), nullptr, LOAD_Quiet | LOAD_NoWarn))
 		{
 			Mesh->SetStaticMesh(Ship);
 			return Dart;
