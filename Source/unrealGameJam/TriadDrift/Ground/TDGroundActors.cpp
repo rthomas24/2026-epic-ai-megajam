@@ -16,6 +16,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/TextRenderComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -243,12 +244,66 @@ void ATDDoor::BeginPlay()
 	TDPropArt::Dress(Mesh, TDPropArt::Load(DoorMesh));
 }
 
-void ATDDoor::Open() { bWantOpen = true; }
+void ATDDoor::Open()
+{
+	if (!bWantOpen && bRecognisesPilot)
+	{
+		ShowAccessText();
+	}
+	bWantOpen = true;
+}
 void ATDDoor::Close() { bWantOpen = false; }
+
+bool ATDDoor::IsAccessTextShown() const { return AccessTextLeft > 0.f; }
+
+void ATDDoor::ShowAccessText()
+{
+	++AccessGreetings;
+	AccessTextLeft = FMath::Max(AccessTextSeconds, 0.1f);
+	if (AccessLabels.Num() == 0)
+	{
+		// Over the opening (the leaf's closed top), readable from both sides.
+		const FVector Scale = Mesh->GetRelativeScale3D();
+		const float Top = ClosedRelative.Z + 50.f * Scale.Z + 45.f;
+		const float Depth = 50.f * Scale.X + 6.f;
+		for (const float Side : { -1.f, 1.f })
+		{
+			UTextRenderComponent* Label = NewObject<UTextRenderComponent>(this);
+			Label->SetupAttachment(RootComponent);
+			Label->SetRelativeLocation(FVector(Side * Depth, 0.f, Top));
+			Label->SetRelativeRotation(FRotator(0.f, Side < 0.f ? 180.f : 0.f, 0.f));
+			Label->SetHorizontalAlignment(EHTA_Center);
+			Label->SetVerticalAlignment(EVRTA_TextCenter);
+			Label->SetWorldSize(36.f);
+			Label->SetTextRenderColor(FColor(150, 255, 230));
+			Label->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			Label->SetCastShadow(false);
+			Label->RegisterComponent();
+			AccessLabels.Add(Label);
+		}
+	}
+	for (UTextRenderComponent* Label : AccessLabels)
+	{
+		Label->SetText(AccessText);
+		Label->SetVisibility(true);
+	}
+	UE_LOG(LogTemp, Log, TEXT("TDDoor %s: %s"), *GetName(), *AccessText.ToString());
+}
 
 void ATDDoor::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (AccessTextLeft > 0.f)
+	{
+		AccessTextLeft -= DeltaSeconds;
+		if (AccessTextLeft <= 0.f)
+		{
+			for (UTextRenderComponent* Label : AccessLabels)
+			{
+				if (Label) { Label->SetVisibility(false); }
+			}
+		}
+	}
 	const float Target = bWantOpen ? 1.f : 0.f;
 	if (Open01 == Target)
 	{

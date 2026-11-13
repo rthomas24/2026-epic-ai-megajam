@@ -11,6 +11,10 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "Sound/SoundBase.h"
+#include "TriadDrift/Ground/TDGroundAudio.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "UObject/StrongObjectPtr.h"
+#include "Misc/ScopeExit.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 
 namespace TDGroundSoundTest
@@ -122,6 +126,37 @@ bool FTDObjectiveSting::RunTest(const FString& Parameters)
 	TestEqual(TEXT("a completed objective stings"), GI->GetObjectiveCompleteSounds(), Before + 1);
 	GI->CompleteObjective(TEXT("Obj_SoundTest"), ETDAbilityId::None, ETDShipId::Rift);
 	TestEqual(TEXT("not again for the same objective"), GI->GetObjectiveCompleteSounds(), Before + 1);
+	return true;
+}
+
+// Review M11: every on-foot sound resolves through DA_Ground_FX's cue slot when one is set (a sound of Nick's wins), and only
+// an empty slot falls back to engineering's sound in code.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGroundSoundCueSlots, "TriadDrift.Ground.Sound.ResolvedThroughThePresentationSlot", TD_TEST_FLAGS)
+bool FTDGroundSoundCueSlots::RunTest(const FString& Parameters)
+{
+	USoundBase* Nicks = LoadObject<USoundBase>(nullptr, TEXT("/Engine/EngineSounds/WhiteNoise.WhiteNoise"));
+	if (!TestNotNull(TEXT("a stand-in sound"), Nicks)) { return false; }
+	TStrongObjectPtr<UTDGroundFX> FX(NewObject<UTDGroundFX>(GetTransientPackage()));
+	FX->StepSoil.Sound = Nicks;
+	FX->Hurt.Sound = Nicks;
+	TDGroundAudio::SetGroundFXOverride(FX.Get());
+	ON_SCOPE_EXIT { TDGroundAudio::SetGroundFXOverride(nullptr); };
+
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W);
+	if (!TestNotNull(TEXT("pilot"), P)) { return false; }
+	W.Advance(0.3f);
+	P->SetMoveInput(FVector2D(0.f, 1.f));
+	W.Advance(1.f);
+	P->SetMoveInput(FVector2D::ZeroVector);
+	TestTrue(TEXT("a step played"), TDGroundSoundTest::Count(P->GetSoundEvents(), TEXT("StepSoil")) >= 1);
+	TestTrue(TEXT("the step came from the cue slot"), TDGroundAudio::WasLastFromCue() && TDGroundAudio::GetLastResolvedSound() == Nicks);
+	W.Advance(0.5f);
+	UTDStatics::ApplyTDDamage(P, 5.f, ETDDamageKind::Energy, nullptr, nullptr);
+	TestTrue(TEXT("the hurt came from the cue slot"), TDGroundAudio::WasLastFromCue() && TDGroundAudio::GetLastResolvedSound() == Nicks);
+	TestTrue(TEXT("jump"), P->TryJump());
+	TestFalse(TEXT("an empty slot (Jump) falls back to engineering's sound"), TDGroundAudio::WasLastFromCue());
 	return true;
 }
 

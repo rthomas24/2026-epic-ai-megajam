@@ -44,7 +44,7 @@ struct FTDTrailhead
 	GENERATED_BODY()
 	UPROPERTY() TObjectPtr<ATDObjective> Objective;
 	UPROPERTY() TObjectPtr<AActor> Marker;
-	/** "THE WRECK", "THE RELAY": used in the idle objective line. */
+	/** "THE RESEARCH SITE", "THE RELAY": used in the idle objective line. */
 	UPROPERTY() FText Name;
 };
 
@@ -78,7 +78,7 @@ public:
 	/** True while any of this planet's objectives is running. */
 	bool IsAnyObjectiveRunning() const;
 
-	/** Between objectives on foot: "HEAD TO A SIGNAL · THE WRECK OR THE RELAY" and the trailheads still open. */
+	/** Between objectives on foot: "HEAD TO A SIGNAL · THE RESEARCH SITE OR THE RELAY" and the trailheads still open. */
 	bool GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) const;
 
 	/** True if a point (course-local) is within Clearance of a route (tests: nothing collides on a route). */
@@ -173,7 +173,7 @@ private:
 	 */
 	FBox2D GroundBox = FBox2D(FVector2D(-300000.f, -300000.f), FVector2D(300000.f, 300000.f));
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> GroundSlab;
-	/** Give the slab the procedural terrain's own material (one ground), retrying while the terrain is spawned. */
+	/** Hide the slab (collision kept) under the procedural terrain, whose flat basin draws the floor; retries while it spawns. */
 	void AdoptTerrainMaterial();
 	int32 TerrainMaterialTries = 0;
 	FTimerHandle TerrainMaterialTimer;
