@@ -17,6 +17,8 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
+#include "Sound/SoundBase.h"
+#include "Kismet/GameplayStatics.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -286,6 +288,13 @@ void ATDDoor::ShowAccessText()
 	{
 		Label->SetText(AccessText);
 		Label->SetVisibility(true);
+	}
+	if (!AccessSound.IsNull())
+	{
+		if (USoundBase* S = AccessSound.LoadSynchronous())
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, S, GetActorLocation() + FVector(0.f, 0.f, 300.f));
+		}
 	}
 	UE_LOG(LogTemp, Log, TEXT("TDDoor %s: %s"), *GetName(), *AccessText.ToString());
 }
