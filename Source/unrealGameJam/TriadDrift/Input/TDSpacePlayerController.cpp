@@ -1,6 +1,7 @@
 // Triad Drift - space player controller and runtime Enhanced Input setup (ENG-02). Owner: Teammate 1.
 
 #include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "TriadDrift/Input/TDHintComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
@@ -124,6 +125,7 @@ FVector2D ATDSpacePlayerController::ShapeStick(const FVector2D& Raw, float Deadz
 
 ATDSpacePlayerController::ATDSpacePlayerController()
 {
+	Hints = CreateDefaultSubobject<UTDHintComponent>(TEXT("Hints")); // first-minute control hints
 	bShowMouseCursor = false;
 }
 
