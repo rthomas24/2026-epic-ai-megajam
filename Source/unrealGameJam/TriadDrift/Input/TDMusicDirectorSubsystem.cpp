@@ -59,6 +59,12 @@ void UTDMusicDirectorSubsystem::Deinitialize()
 		Audio->DestroyComponent();
 		Audio = nullptr;
 	}
+	if (AmbienceAudio)
+	{
+		AmbienceAudio->Stop();
+		AmbienceAudio->DestroyComponent();
+		AmbienceAudio = nullptr;
+	}
 	Super::Deinitialize();
 }
 
@@ -77,6 +83,69 @@ USoundBase* UTDMusicDirectorSubsystem::ResolveMusic() const
 	}
 	const FSoftObjectPtr& Soft = Prop->GetPropertyValue_InContainer(Style);
 	return Soft.IsNull() ? nullptr : Cast<USoundBase>(Soft.LoadSynchronous());
+}
+
+FName UTDMusicDirectorSubsystem::AmbienceSlotForMap(const FString& MapName)
+{
+	if (MapName.Contains(TEXT("Verdance"))) { return TEXT("AmbienceVerdance"); }
+	if (MapName.Contains(TEXT("Cinder"))) { return TEXT("AmbienceCinder"); }
+	if (MapName.Contains(TEXT("Galaxy"))) { return TEXT("AmbienceSpace"); }
+	return NAME_None; // the menu, the Dominion interior, test worlds: no bed
+}
+
+USoundBase* UTDMusicDirectorSubsystem::ResolveAmbience() const
+{
+	if (bUseAmbienceOverride)
+	{
+		return AmbienceOverride;
+	}
+	const UWorld* World = GetWorld();
+	const FName Slot = World ? AmbienceSlotForMap(World->GetMapName()) : NAME_None;
+	const UTDUIStyle* Style = Slot.IsNone() ? nullptr : UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+	const FSoftObjectProperty* Prop = Style ? CastField<FSoftObjectProperty>(Style->GetClass()->FindPropertyByName(Slot)) : nullptr;
+	if (!Prop)
+	{
+		return nullptr;
+	}
+	const FSoftObjectPtr& Soft = Prop->GetPropertyValue_InContainer(Style);
+	return Soft.IsNull() ? nullptr : Cast<USoundBase>(Soft.LoadSynchronous());
+}
+
+void UTDMusicDirectorSubsystem::TickAmbience(float Dt, bool bStop)
+{
+	UWorld* World = GetWorld();
+	AmbienceRetry -= Dt;
+	if (!AmbienceBed && !bStop && World && AmbienceRetry <= 0.f)
+	{
+		AmbienceRetry = 2.f; // the style asset may stream in later; never look it up every frame
+		AmbienceBed = ResolveAmbience();
+		if (AmbienceBed)
+		{
+			// The audio component may be absent (no audio device: headless, -nosound); the envelope still runs.
+			AmbienceAudio = UGameplayStatics::CreateSound2D(World, AmbienceBed, 1.f, 1.f, 0.f, nullptr, false, false);
+			if (AmbienceAudio)
+			{
+				AmbienceAudio->bIsUISound = true; // under the pause screen too, as the music
+				AmbienceAudio->bAutoDestroy = false;
+				AmbienceAudio->SetVolumeMultiplier(0.001f);
+				AmbienceAudio->Play(0.f);
+			}
+			UE_LOG(LogTriadDrift, Log, TEXT("TD music: ambience bed %s"), *GetNameSafe(AmbienceBed));
+		}
+	}
+	if (!AmbienceBed)
+	{
+		return;
+	}
+	AmbienceEnvelope = FMath::Clamp(AmbienceEnvelope + (bStop ? -Dt : Dt) / AmbienceFadeSeconds, 0.f, 1.f);
+	if (AmbienceAudio)
+	{
+		AmbienceAudio->SetVolumeMultiplier(FMath::Max(AmbienceEnvelope, 0.001f));
+		if (bStop && AmbienceEnvelope <= 0.f && AmbienceAudio->IsPlaying())
+		{
+			AmbienceAudio->Stop();
+		}
+	}
 }
 
 bool UTDMusicDirectorSubsystem::IsCombatNow() const
@@ -212,6 +281,7 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 	{
 		BeginStop(bTravelling ? TEXT("travel") : bVictory ? TEXT("victory") : TEXT("menu"));
 	}
+	TickAmbience(Dt, bTravelling || bVictory || bMenuMap);
 
 	StateTime += Dt;
 	switch (MusicState)
