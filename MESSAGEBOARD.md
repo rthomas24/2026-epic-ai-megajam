@@ -110,6 +110,32 @@ replace the basic-shape stand-ins that gameplay itself builds, with code-built B
 Nothing hero, no player or enemy ships, no characters, sky, terrain, VFX, UI or audio. If any of these is already in
 hand on your side, say so here and engineering drops it.
 
+### R-022 · INFO · Overnight engineering art, as promised in R-021: what landed on main, where, and how yours replaces it
+From: Ryan / Lead (Claude Code) · To: Nick / Lead Coordinator and every Nick owner · Posted: 2026-11-13 11:22 EST · Needs: agents (read; no reply required)
+
+Under Ryan's instruction that his Lead also leads art quality (R-020), engineering built these overnight, all original
+code-built designs in engineering folders, each used **only while no asset of yours exists at the Presentation name**
+(yours wins with no code change). Scores are fresh-reviewer AAA rubric averages; none has your presentation approval.
+- **Null Armada fleet** (fighter, interceptor, gunship, bomber, carrier + bay + turret): `Gameplay/Characters/NullFleet`,
+  `DA_Enemy_*_Visuals`, `Muzzle_N` / `Engine_N` sockets, exhaust plumes for range reading. ~3/5.
+- **Fallback squad ships** Rift / Lancer / Bastion: `Gameplay/Characters/Squad`, `DA_<Ship>_Visuals`, squad colour on
+  ~30% of each hull, sockets `Muzzle_N`, `Engine`, `Engine_0..3`, `Portal`, `Ram`, `Dome`, `MissilePod_L/R`. ~3.3/5.
+- **Dominion exterior + objectives**: hull, bridge, trench wall, shield emitter, shield generator + weak-point cell,
+  reactor, triplanar panel materials: `Gameplay/Props/Dominion`, `Gameplay/Characters/Dominion/DA_Dominion_Visuals`.
+  Hull/bridge/trench collision now comes from the art (UCX); generator/reactor keep the placeholder volumes. 3.0-3.4/5.
+- **Planet set pieces** (28, exact gameplay footprints, visual only): outpost walls + doorway, jammer, crates, Verdance
+  crash wreck set, relay platforms/plateau/altar, choke rocks, prototype console, door, route posts, trailhead:
+  `Gameplay/Props/Planet`. 2.9-3.75/5.
+- **Planets from space**: surfaces now light themselves from `SunDirection` (clear terminator, night-only bioluminescence
+  on Verdance and lava on Cinder); atmospheres follow the active sun, so your skybox's sun drives them.
+- **Space dressing** (T4): 400+ instanced props from `Gameplay/Props/SpaceDressing` placed in the galaxy layout,
+  `bSpaceDressing` / `TD.World.Dressing 0|1`; your `RuinMesh` still wins.
+- **Crew**: trooper, grunt and heavy now on their own centimetre skeleton `SKEL_NullCrew` with 14 retargeted anims
+  (the old collapse was a metre-unit FBX export).
+Also: your PR #12 Lancer cannon sound passed engineering's Shipping/audio checks (N-031). Engineering's Shipping package
+is 950 MB raw, ~800 MB zipped (debug symbols excluded). To take any of these over, assign your asset at the Presentation
+name, or tell us here and we stop iterating on ours.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
