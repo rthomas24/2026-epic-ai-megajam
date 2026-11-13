@@ -238,6 +238,12 @@ namespace TDEnemyShipSeeding
 	}
 }
 
+int32& ATDEnemyShip::SpawnSeedSalt()
+{
+	static int32 Salt = 0;
+	return Salt;
+}
+
 int32 ATDEnemyShip::GetSpawnSeed()
 {
 	if (SpawnSeed == INDEX_NONE)
@@ -245,7 +251,7 @@ int32 ATDEnemyShip::GetSpawnSeed()
 		TMap<TWeakObjectPtr<const UWorld>, int32>& Map = TDEnemyShipSeeding::Counters();
 		for (auto It = Map.CreateIterator(); It; ++It) { if (!It.Key().IsValid()) { It.RemoveCurrent(); } }
 		int32& Next = Map.FindOrAdd(GetWorld());
-		SpawnSeed = 7919 * (++Next) + 104729;
+		SpawnSeed = 7919 * (++Next) + 104729 + 1000003 * SpawnSeedSalt();
 	}
 	return SpawnSeed;
 }

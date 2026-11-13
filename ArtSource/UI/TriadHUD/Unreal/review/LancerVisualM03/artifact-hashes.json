@@ -1,0 +1,82 @@
+[
+  {
+    "file": "01-before-lancer-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 181651,
+    "sha256": "67f8f7aa542b398bd8041813b1b81786467e370efec387be4c2109ecbe03fedc",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "02-after-lancer-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 232083,
+    "sha256": "ed0988ed0296e33f15c032c04484513cdced3c9a334e0acf3c19c217d06bb349",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "03-rift-unchanged-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 181124,
+    "sha256": "4be6c7100b8c4877d24ceb314e47a6ef7e3e87092392155e2a1fb95614d9b603",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "04-bastion-unchanged-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 181398,
+    "sha256": "b23b696bdac308c02329da9ddcdf122a81a029c635a8cbb5ea85a32398ed8dd6",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "05-lancer-activation-damage-1080p.png",
+    "width": 1920,
+    "height": 1080,
+    "bytes": 248420,
+    "sha256": "24278e642f29d5183030717700fff148b24ea2e6551b7cfe970f864ae016873d",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "06-lancer-cooldown-720p.png",
+    "width": 1280,
+    "height": 720,
+    "bytes": 149895,
+    "sha256": "9ec961a21e47c087329c0d7e5ca07afef493ff82268cbfd1eefe2b45a5a17b5b",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "07-lancer-reduced-motion-ultrawide.png",
+    "width": 2560,
+    "height": 1080,
+    "bytes": 252145,
+    "sha256": "f7e1caec9a642337807c79ca761581fbc6fe3cf1bd92c34f246f5ef029b5d5b0",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "08-lancer-ready-ultrawide.png",
+    "width": 2560,
+    "height": 1080,
+    "bytes": 256019,
+    "sha256": "fd2cefffcca65ac17948ffbf28741effa12b843b9b15e30ba28104ed7f2756fe",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "09-lancer-gamepad-cooldown-ultrawide.png",
+    "width": 2560,
+    "height": 1080,
+    "bytes": 251693,
+    "sha256": "bea5692b1ee5fbe5e0a49ba84c2ed7a396288ce9a256e3ed33c80a21923aa16f",
+    "png_crc_and_end_valid": true
+  },
+  {
+    "file": "10-telemetry-unavailable.png",
+    "width": 2560,
+    "height": 1080,
+    "bytes": 101643,
+    "sha256": "8d90a15b66d6df859c0fc7eadb582da8b1090983887956e389568ee3a60e35c8",
+    "png_crc_and_end_valid": true
+  }
+]

@@ -247,3 +247,9 @@ Art direction stays with Nicholas, who can restyle or replace any of it. Three a
 **Captures:** `Saved/TDShots/mcp/pt4_*`, `Saved/TDShots/pkg_1538/` (local, not in git).
 **Stage, in AAA.md terms:** landing assist, HUD hosting and the cut presentation are gameplay validated by an agent.
 Both planets are technically verified and not yet played. Nothing is validated by a human yet.
+
+### Nov 12, 20:10 EST: first run of a Shipping package found it had no HUD (engineering Lead)
+- **Played:** `Builds/ship_1945` then `ship_2005` (Shipping, 778 MB), launched windowed with no input for 40 s each, window captured from outside the process. Not a human session; nobody touched the controls.
+- **Found:** the first Shipping build booted into `L_Galaxy` with stars, planet, belt and the squad, but with no HUD of any kind: the fallback HUD was compiled out of Shipping and Nick's HUD is still off by default. Every earlier check had been a Development build, so nothing caught it.
+- **Fixed:** the fallback HUD now exists in Shipping too (it hides wherever a real HUD widget is up). `ship_2005` shows ship cards, wave counter, objective line, wingman arrows, enemy markers and hit chevrons; wave 1 runs and the enemies attack.
+- **Lesson:** a package that builds is not a package that plays. Each integration batch now ends with the Shipping build launched and looked at.

@@ -225,6 +225,10 @@ void ATDDebugHUD::HandleBarkRequested(FName BarkId, FName Speaker)
 		}
 		Spaced.AppendChar(FChar::ToLower(Text[i]));
 	}
+	if (Spaced.RemoveFromStart(TEXT("engage ")))
+	{
+		Spaced = TEXT("engaging, ") + Spaced;
+	}
 	BarkLine = FString::Printf(TEXT("%s: %s"), *Speaker.ToString().ToUpper(), *Spaced);
 	BarkUntil = World->GetRealTimeSeconds() + 2.5;
 }
@@ -361,7 +365,7 @@ void ATDDebugHUD::DrawSquad(float& Y)
 			Line += FString::Printf(TEXT(" HULL %s  SHLD %s  PWR %s"), *Bar(Card.Health01), *Bar(Card.Shield01), *Bar(Card.PowerCooldown01, 5));
 			if (Card.bPlayerControlled)
 			{
-				Line += FString::Printf(TEXT("  BOOST %s  HEAT %s  AMMO %d"), *Bar(Card.Boost01, 6), *Bar(Card.Heat01, 6), Card.SecondaryAmmo);
+				Line += FString::Printf(TEXT("  BOOST %s  HEAT %s  AMMO %d  DODGE %s"), *Bar(Card.Boost01, 6), *Bar(Card.Heat01, 6), Card.SecondaryAmmo, *Bar(Card.Dodge01, 3));
 			}
 		}
 		else
@@ -630,12 +634,10 @@ void ATDDebugHUD::DrawFlight()
 
 bool UTDDebugHUDSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 {
-#if UE_BUILD_SHIPPING
-	return false;
-#else
+	// Also in Shipping: until Nick's HUD is on by default this is the only HUD a player gets (seen Nov 12:
+	// the Shipping package had no HUD at all). It hides itself wherever a real HUD widget is up.
 	const UWorld* World = Cast<UWorld>(Outer);
 	return World && World->IsGameWorld();
-#endif
 }
 
 void UTDDebugHUDSubsystem::Tick(float DeltaTime)

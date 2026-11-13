@@ -1,0 +1,24 @@
+[2026.11.12-19.51.06:308][  0]LogTemp: Display: TDHUD_PREVIEW_CLASS /Game/TriadDrift/UI/TriadHUD/WBP_SpaceHUD.WBP_SpaceHUD_C
+[2026.11.12-19.51.06:795][  0]TD.DebugHUD = "0"
+[2026.11.12-19.51.10:663][233]LogTemp: Display: TDHUD_LANCER_PAINT BEFORE samples=120 mean_us=92.28 max_us=130.30
+[2026.11.12-19.51.11:119][233]LogCore: Display: Tracing Screenshot "01-before-lancer-1080p" taken with size: 1920 x 1080
+[2026.11.12-19.51.14:752][450]LogTemp: Display: TDHUD_LANCER_PAINT AFTER samples=120 mean_us=147.26 max_us=226.20
+[2026.11.12-19.51.14:777][450]LogCore: Display: Tracing Screenshot "02-after-lancer-1080p" taken with size: 1920 x 1080
+[2026.11.12-19.51.15:760][508]LogTemp: Display: TDHUD_LANCER_INPUT PASS One active=0 refined=0
+[2026.11.12-19.51.16:785][568]LogCore: Display: Tracing Screenshot "03-rift-unchanged-1080p" taken with size: 1920 x 1080
+[2026.11.12-19.51.17:749][625]LogTemp: Display: TDHUD_LANCER_INPUT PASS Three active=2 refined=0
+[2026.11.12-19.51.18:773][685]LogCore: Display: Tracing Screenshot "04-bastion-unchanged-1080p" taken with size: 1920 x 1080
+[2026.11.12-19.51.19:755][743]LogTemp: Display: TDHUD_LANCER_INPUT PASS Two active=1 refined=1
+[2026.11.12-19.51.19:755][743]LogTemp: Display: TDHUD_LANCER_INPUT PASS Q active=1 refined=1
+[2026.11.12-19.51.19:755][743]LogTemp: Display: TDHUD_LANCER_INPUT PASS H active=1 refined=1
+[2026.11.12-19.51.19:755][743]LogTemp: Display: TDHUD_LANCER_INPUT PASS K active=1 refined=1
+[2026.11.12-19.51.19:897][750]LogCore: Display: Tracing Screenshot "05-lancer-activation-damage-1080p" taken with size: 1920 x 1080
+[2026.11.12-19.51.21:361][836]LogCore: Display: Tracing Screenshot "06-lancer-cooldown-720p" taken with size: 1280 x 720
+[2026.11.12-19.51.22:259][890]LogTemp: Display: TDHUD_LANCER_INPUT PASS F6 active=1 refined=1
+[2026.11.12-19.51.23:789][980]LogCore: Display: Tracing Screenshot "07-lancer-reduced-motion-ultrawide" taken with size: 2560 x 1080
+[2026.11.12-19.51.27:749][216]LogTemp: Display: TDHUD_LANCER_READY PASS
+[2026.11.12-19.51.27:779][216]LogCore: Display: Tracing Screenshot "08-lancer-ready-ultrawide" taken with size: 2560 x 1080
+[2026.11.12-19.51.28:758][273]LogTemp: Display: TDHUD_LANCER_INPUT PASS Gamepad_FaceButton_Left active=1 refined=1
+[2026.11.12-19.51.29:785][333]LogCore: Display: Tracing Screenshot "09-lancer-gamepad-cooldown-ultrawide" taken with size: 2560 x 1080
+[2026.11.12-19.51.31:789][450]LogCore: Display: Tracing Screenshot "10-telemetry-unavailable" taken with size: 2560 x 1080
+[2026.11.12-19.51.33:776][507]LogRun: Display: UE_RUN DONE 0 t=38300
