@@ -17,6 +17,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 
 #define LOCTEXT_NAMESPACE "TDPlanetProps"
 
@@ -925,7 +926,14 @@ void ATDArchiveTransfer::Tick(float DeltaSeconds)
 	if (bPaused != bWasPaused)
 	{
 		OnTransferPaused.Broadcast(bPaused);
+		if (bPaused)
+		{
+			UTDStorySubsystem::Fire(this, TEXT("G3_Moss_NobodyNear")); // the first time one reaches the terminal (once per run)
+		}
 	}
+	// T3's lines over the transfer (each once per run): the second wave, then nearly there.
+	if (Progress >= 0.25f) { UTDStorySubsystem::Fire(this, TEXT("G3_Wren_LeftApproach")); }
+	if (Progress >= 0.85f) { UTDStorySubsystem::Fire(this, TEXT("G3_Kato_AlmostThere")); }
 	if (!bPaused)
 	{
 		const float Cap = Step == LinkedStep - 1 ? 0.5f : 1.f;
