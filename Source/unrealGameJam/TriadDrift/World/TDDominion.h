@@ -18,6 +18,7 @@ class ATDEnemyTurret;
 class ATDEnemyShip;
 class ATDDominion;
 class ATDDockingBay;
+class ATDDistortionField;
 
 /** ENG-29: which ending the generators' fall leads to. */
 UENUM(BlueprintType)
@@ -268,6 +269,15 @@ public:
 	/** True when the defenses' fall leads to boarding (BoardingMode, the cvar, the map). */
 	bool UsesBoardingFinale() const;
 
+	/**
+	 * Story Act 1: before the passage opens (bDominionRevealed) the Dominion is seen far off behind its distortion
+	 * field (ATDDistortionField, a mirage of the hull): visible from wave 1, unreachable. False = hidden as before.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion")
+	bool bShowBehindField = true;
+
+	ATDDistortionField* GetDistortionField() const { return DistortionField; }
+
 	/** The docking bay (null until the boarding finale opens it). */
 	ATDDockingBay* GetDockingBay() const { return DockingBay; }
 
@@ -320,6 +330,9 @@ protected:
 
 	UPROPERTY(Transient)
 	TObjectPtr<ATDDockingBay> DockingBay;
+
+	UPROPERTY(Transient)
+	TObjectPtr<ATDDistortionField> DistortionField;
 
 	void SetState(ETDDominionState NewState);
 	/** Hyperdrive "Finale" lock: assault states AND a squad ship has been inside HyperdriveLockRadius. Idempotent. */

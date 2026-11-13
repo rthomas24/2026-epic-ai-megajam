@@ -408,6 +408,26 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
 	FTDFXCue BreakupFinalBlast;
 
+	/**
+	 * Story (Act 1): the distortion field that hides the Dominion, far off and unreachable, until Cinder's field anchor
+	 * falls. Attached loop on the field shell, authored for a 1 km radius; gameplay scales VFXScale to the real
+	 * radius. When it has VFX the engineering stand-in (a lattice of lights) hides.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Field")
+	FTDFXCue DistortionFieldIdle;
+
+	/** Optional material for a sphere shell at the field radius (a translucent shimmer); used with or without the cue. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Field")
+	TSoftObjectPtr<UMaterialInterface> DistortionFieldMaterial;
+
+	/** A ship touching the field (it pushes the ship back), at the contact point. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Field")
+	FTDFXCue DistortionFieldContact;
+
+	/** The field collapsing when the passage opens (the Dominion's reveal), authored for a 1 km radius. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Field")
+	FTDFXCue DistortionFieldCollapse;
+
 	/** Stretch: the docking bay opening (ENG-29). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
 	FTDFXCue DockingBayOpen;
