@@ -380,6 +380,8 @@ void UTDDescentSubsystem::RecordSquad(UWorld* World)
 	}
 	SquadCarry = C;
 	SquadCarryWorld.Reset();
+	// T5: FTDProgress::LastShip is what the spawners and a Continue read (saved); nothing wrote it until now.
+	if (UTDGameInstance* GI = Cast<UTDGameInstance>(GetGameInstance())) { GI->SetLastShip(C.Active); }
 	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: squad carried (flown %s; hulls %s)"), *UEnum::GetValueAsString(C.Active),
 		*FString::JoinBy(C.Hull01, TEXT(" "), [](const TPair<ETDShipId, float>& P) { return FString::Printf(TEXT("%s %.0f%%"), *UEnum::GetDisplayValueAsText(P.Key).ToString(), P.Value * 100.f); }));
 }

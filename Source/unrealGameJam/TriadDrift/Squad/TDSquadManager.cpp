@@ -1,6 +1,7 @@
 // Triad Drift - Squad (Teammate 3). ENG-07: squad manager & instant switching (PROTECT), ENG-03 respawn.
 
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/Squad/TDBarkLines.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -163,6 +164,15 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 	{
 		StartingShip = SwitchOrder[0];
 	}
+	// T1 (ENG-38, agreed with T3): planet travel keeps the ship the player was flying (and, on arrival, each ship's hull).
+	FTDSquadCarry Carry;
+	bool bCarryFirstInWorld = false;
+	UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this);
+	const bool bCarry = Descent && Descent->ConsumeSquadCarry(World, Carry, bCarryFirstInWorld);
+	if (bCarry && SwitchOrder.Contains(Carry.Active))
+	{
+		StartingShip = Carry.Active;
+	}
 
 	// Formation slots around the origin: starting ship leads, the others take left/right.
 	const FVector LeaderLoc = Origin.GetLocation();
@@ -217,6 +227,20 @@ void ATDSquadManager::SpawnSquad(const FTransform& Origin)
 		Slot->RespawnAtTime = 0.0;
 		Slot->bLowHullBarkArmed = true;
 		SpawnWingmanFor(*Slot);
+	}
+
+	// T1 (ENG-38): the carried hulls, on the first spawn in the new world only (a retake starts full, as before). A downed
+	// or dying ship arrives alive at 25 %; a ship missing from the record arrives full.
+	if (bCarry && bCarryFirstInWorld)
+	{
+		for (FTDSquadSlot& S : Slots)
+		{
+			UTDHealthComponent* H = S.Ship ? S.Ship->GetHealth() : nullptr;
+			if (!H) { continue; }
+			const float* Hu = Carry.Hull01.Find(S.ShipId);
+			const float* Sh = Carry.Shield01.Find(S.ShipId);
+			H->Revive(Hu ? FMath::Max(*Hu, 0.25f) : 1.f, Sh ? *Sh : 1.f);
+		}
 	}
 
 	// Damage indicators listen to every squad ship and keep only the player's (cheap, no rebinding on switch).
