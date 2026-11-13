@@ -816,6 +816,18 @@ bool FTDFlightHUDSubtitles::RunTest(const FString& Parameters)
 	}
 	F.HUD->Sample(4.f);
 	TestTrue(TEXT("expired after its seconds"), F.V().Subtitle.Text.IsEmpty());
+	// A short line gets a plate that fits it, centred (live capture: "Down he goes." sat alone in the full 880 px slot).
+	F.HUD->ShowTransmission(TEXT("Moss"), FText::FromString(TEXT("Down he goes.")), UTDFlightHUDWidget::ETransmissionStyle::Clean, 2.5f);
+	F.HUD->Sample(.5f);
+	Slate->SlatePrepass(1.f);
+	Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+		FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	Box = F.HUD->LastBoxes.FindByPredicate([](const TPair<FName, FBox2D>& B) { return B.Key == TEXT("subtitle"); });
+	if (TestNotNull(TEXT("short subtitle drawn"), Box))
+	{
+		TestTrue(TEXT("short line: plate narrower than the slot"), Box->Value.GetSize().X < 600.f);
+		TestTrue(TEXT("short line: plate centred"), FMath::IsNearlyEqual(Box->Value.GetCenter().X, 960.f, 1.f));
+	}
 	TestTrue(TEXT("claims the Subtitles surface"), GetDefault<UTDFlightHUDWidget>()->bCoversSubtitles);
 	return true;
 }

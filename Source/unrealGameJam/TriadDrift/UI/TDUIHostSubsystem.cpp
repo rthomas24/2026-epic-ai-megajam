@@ -696,6 +696,9 @@ namespace TDUIHost
 			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: flight HUD coverage=%.2f%% marks=%d wings=%d hits=%d lane=%d hull=%.2f shield=%.2f gamepad=%d waypoints=%d card=%d step=%d/%d"),
 				Flight->GetCoverage01() * 100.f, V.Marks.Num(), V.Wings.Num(), V.Hits.Num(), static_cast<int32>(V.Lane), V.Hull, V.Shield, V.bUsingGamepad ? 1 : 0,
 				V.Waypoints.Num(), V.bHintCard ? 1 : 0, V.HintStep, V.HintCount);
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Status: flight HUD %s inviewport=%d opacity=%.2f subtitle=\"%s\" age=%.2f/%.2f story=%d"),
+				*Flight->GetName(), Flight->IsInViewport() ? 1 : 0, V.HUDOpacity, *V.Subtitle.Text, V.Subtitle.Age, V.Subtitle.Seconds,
+				V.Subtitle.bStory ? 1 : 0);
 			if (const ITDHUDData* Src = Cast<ITDHUDData>(Flight->GetDataSource()))
 			{
 				for (const AActor* Marker : Src->GetObjectiveMarkers())
@@ -858,6 +861,16 @@ namespace TDUIHost
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{
 			UTDUIHostSubsystem::ShowTacticalDisplay(World, Args.Num() > 0 ? FCString::Atof(*Args[0]) : 20.f);
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUIBark(TEXT("TD.UI.Bark"),
+		TEXT("TD.UI.Bark <BarkId> <Speaker>: broadcast a bark request on the event bus, as the squad does (dev, captures)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (UTDEventBus* Bus = Args.Num() >= 2 ? UTDEventBus::Get(World) : nullptr)
+			{
+				Bus->BroadcastBarkRequested(FName(*Args[0]), FName(*Args[1]));
+			}
 		}));
 
 	FAutoConsoleCommandWithWorldAndArgs CmdTDUINavPulse(TEXT("TD.UI.NavPulse"),
