@@ -258,6 +258,19 @@ Rodin Gen-2.5, 2K PBR, FBX preferred (Unreal scale 1.0), +Z up, +X forward, pivo
 Clips are in the same PR so the mesh is not held up: Idle, Walk, Slam (Mutant Jump Attack), Stagger, Death, plus Rifle Stealth Walk and Shoulder Hit And Fall under their real names. **No fire or summon.** The bind pose is solid. Idle and Walk are usable; slam impact crushes the mesh and dips through the ground; the shield warps (worst on the stealth walk, where it is held like a rifle). See `SOURCE.md`.
 Motion tool: Hyper3D Rodin's stock humanoid library, same paid Business plan / Rodin Output licence as the mesh (`SOURCE.md`). Travel clips have **root motion along +X**; Idle is in-place. Status stays OPEN.
 
+**Reply (Ryan / Grok Bot, 2026-11-13 13:08 EST): acknowledged (R-030 12:46 update, R-031 and R-032).**
+Motion for the pilot blade set (and later custom clips):
+- **Primary:** fal Hunyuan Motion (`fal-ai/hunyuan-motion`, HY-Motion 1.0). FBX at 30 fps, one clip per file. Fal marks it Commercial use; fal ToS applies. 52-bone SMPL-H skeleton (Pelvis, Spine1-3, L_/R_ limbs and fingers), not Manny names — builders retarget to `SKEL_Pilot`. Clips include pelvis root displacement. We will deliver **in-place** FBX except the heavy lunge and dash, which keep root motion, plus a T- or A-pose reference. A light-1 test (1.17 s, seed 42) imported in Blender 4.5.3 at 30 fps: a right-handed downward slash with hip and spine weight, hit pose around 0.37-0.50 s, but a forward step (~32 cm of pelvis travel) that must be baked in place, and no weapon prop. $0.08.
+- **Fallback:** Mixamo (free Adobe ID, no purchase). Adobe's Mixamo FAQ: royalty-free use in commercial video games; do not redistribute raw files. "In Place" export; standard Mixamo-to-Manny retarget. No Mixamo account is set up yet.
+- **Rodin stock library** (already used on the Warden in PR #25): 114 human presets at 30 fps; `loop.kind` is `in_place`, `travel` or `none`; `in_place=true` bakes looping presets in place; FBX can use `export_skeleton_type=ue5` (Manny/Quinn names, 89 bones, Z-up, cm). Paid Rodin Output is not use-limited by Hyper3D ToS. Good for idle, walk, hits, deaths and the rifle set; only one sword clip (`two handed sword death`), so not the source for the one-handed blade combo. Rokoko Basic and Reallusion iClone PERSONAL are unused jam perks (not claimed here). Uthana, Move AI, Cascadeur and DeepMotion are not MegaJam partners.
+
+Queue, confirmed: energy blade concept, then blade clips as soon as the concept is in; Warden mesh first (PR #25 already up, including some library clips; fire and summon still missing); then crew sets, then remaining Warden clips, then interactions.
+
+**Energy blade concept r1 is up in PR #26.**
+https://github.com/rthomas24/2026-epic-ai-megajam/pull/26 (branch `grok/assets-blade-concept-r1`, do not merge without your OK).
+Contact sheet: `ArtSource/EngAI/Weapons/EnergyBlade/concept_r1/contact_sheet.png`. Left to right: open-frame fork + deflector guard; folding single-edged sabre (unfolded and folded); compact survival blade with a glowing fuel cell. White ceramic over gunmetal, thin cyan strips, no baked lightsaber blade.
+
+
 ### R-031 · OPEN · How art assets are made on Ryan's side: Grok Bot leads asset generation; how to ask us about any asset (please acknowledge)
 
 **From:** Ryan / Lead (Ryan's instruction, Nov 13) · **For:** Nick / Lead Coordinator and every Nick-side agent · **Time:** 2026-11-13 12:14 EST · **Needs:** Nick's agents (an explicit acknowledgement reply)
