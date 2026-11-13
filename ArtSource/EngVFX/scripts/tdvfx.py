@@ -12,6 +12,7 @@
 #   props     dict merged into the emitter data (bLocalSpace, SimTarget, CalculateBoundsMode, FixedBounds ...)
 #   remove    [module names]                       add: [(script, module asset path)], appended in order
 #   set       [(script, module, input, value), ...] applied in order (static switches first)
+#   rend_pre  renderer properties set first (they unlock others)
 #   mat       material asset path;  rend: dict merged into renderer 0;  rclass: replace renderer 0 by this class
 # Values:  float/int/bool, (x,y) / (x,y,z) / (r,g,b,a) tuples, E('Display Name') enum by display name,
 #          X('hlsl expression'), L('Particles.Position') linked parameter.
@@ -157,6 +158,11 @@ class Builder(object):
             m = spec['mat']
             m = m if m.startswith('/') else MATS + m
             rend['Material'] = S(m + '.' + m.split('/')[-1])
+        if spec.get('rend_pre'):   # properties that unlock others (edit conditions), e.g. bOverrideMaterials
+            try:
+                await self.call(T + 'SetRendererData', rendererRef=rref, rendererData={'propertyValues': json.dumps(spec['rend_pre'])})
+            except Exception as ex:
+                self.log.append('REND PRE FAIL %s: %s' % (en, str(ex)[:400]))
         if rend:
             try:
                 await self.call(T + 'SetRendererData', rendererRef=rref, rendererData={'propertyValues': json.dumps(rend)})
