@@ -243,7 +243,10 @@ By hand in the sandbox:
   - Cruise, the landing rule and the arrival are unchanged.
   - Live: coming in on a boost toward the pad, the landing assist latches at about 60 m/s and lands on the pad (Verdance and Cinder).
 - **The flight zone fits T4's terrain:** `ATDAtmosphereFlightZone` finds the `ATDPlanetTerrain` within a second and grows (never shrinks).
-  - Horizontally it covers the collision core minus `TerrainEdgeMargin` (500 m): 15 x 15 km.
+  - Horizontally it covers the whole collision core plus `TerrainEdgeExtension` (500 m): 17 x 17 km, so the edge warning (500 m inside the box) only starts at the 8 km edge of the world.
+  - Beyond the collision core (T4's far ring is visual only) the zone keeps ships at least 15 m above the generated ground, read from the terrain field.
+  - The boundary *text* on planets comes from `UTDShipMovementComponent::GetBoundaryWarningText` ("EDGE OF THE FLIGHT AREA" / "LEAVING THE FLIGHT AREA - TURN BACK"). The HUD plugin (`TDSpaceHUDWidget.cpp`) still hard-codes "BOUNDARY / RETURN TO COMBAT" instead of calling it; reported to the Lead.
+  - Test: `Travel.Safety.NoBoundaryAnywhereInTheWorld`. At 1, 4 and 7.9 km out, at 120-300 m and 600 m under the ceiling, boosting: no boundary. At 8.3 km: the turn-back, never inside the far ground.
   - Its ceiling sits `TerrainCeilingClearance` (400 m) above the highest ground in that area.
   - Verdance: ground up to 1365 m, ceiling 1765 m above the pad.
   - Before this, the old ±2.5 km box showed "BOUNDARY / RETURN TO COMBAT" over every mountain.

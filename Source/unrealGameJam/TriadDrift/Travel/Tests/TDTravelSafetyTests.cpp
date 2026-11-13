@@ -1210,8 +1210,7 @@ bool FTDTravelZoneFitsTerrain::RunTest(const FString& Parameters)
 	const float Core = Terrain->GetField()->GetStyle().CoreHalfSize;
 	AddInfo(FString::Printf(TEXT("zone %.1f x %.1f km, z %.0f..%.0f m (was %.1f km, ceiling %.0f m)"), After.GetSize().X / 1e5f, After.GetSize().Y / 1e5f,
 		After.Min.Z / 100.f, After.Max.Z / 100.f, Before.GetSize().X / 1e5f, Before.Max.Z / 100.f));
-	TestTrue(TEXT("covers the terrain core minus the margin"), After.Max.X >= Core - Zone->TerrainEdgeMargin - 1.f && After.Min.Y <= -(Core - Zone->TerrainEdgeMargin) + 1.f);
-	TestTrue(TEXT("stays inside the collision core"), After.Max.X <= Core);
+	TestTrue(TEXT("covers the whole 16 km core plus the extension"), After.Max.X >= Core + Zone->TerrainEdgeExtension - 1.f && After.Min.Y <= -(Core + Zone->TerrainEdgeExtension) + 1.f);
 	TestTrue(TEXT("the floor is unchanged"), FMath::IsNearlyEqual(After.Min.Z, Before.Min.Z, 1.f));
 	// No ground inside the zone reaches the ceiling (sampled finer than the fit).
 	float MaxGround = -1e9f;
@@ -1224,6 +1223,63 @@ bool FTDTravelZoneFitsTerrain::RunTest(const FString& Parameters)
 		}
 	}
 	TestTrue(FString::Printf(TEXT("ceiling %.0f m clears the highest ground %.0f m by 200 m+"), After.Max.Z / 100.f, MaxGround / 100.f), After.Max.Z >= MaxGround + 20000.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelNoBoundaryInTheWorld, "TriadDrift.Travel.Safety.NoBoundaryAnywhereInTheWorld", TD_TEST_FLAGS)
+bool FTDTravelNoBoundaryInTheWorld::RunTest(const FString& Parameters)
+{
+	// Lead (T4's captures, Nov 13): "BOUNDARY" showed at 300 m altitude ~1 km from the pad. The whole 16 km world is
+	// flyable: no boundary state anywhere inside +-8 km at any altitude below the ceiling, at boost speed; the
+	// turn-back only past the world's edge. Beyond the collision core the ship stays above the generated ground.
+	FTDTestWorld W;
+	ATDAtmosphereFlightZone* Zone = W.Spawn<ATDAtmosphereFlightZone>(FVector(0.f, 0.f, 59500.f));
+	if (!TestNotNull(TEXT("zone"), Zone)) { return false; }
+	Zone->SetZoneExtent(FVector(250000.f, 250000.f, 60000.f));
+	ATDPlanetTerrain* Terrain = ATDPlanetTerrain::SpawnForPlanet(W.GetWorld(), ETDDestination::Verdance, FTransform::Identity, nullptr);
+	ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W, FVector(0.f, 0.f, 30000.f));
+	if (!TestNotNull(TEXT("terrain"), Terrain) || !Ship) { return false; }
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	In.bBoost = true;
+	W.Advance(1.2f);
+	TestTrue(TEXT("zone fitted"), Zone->IsFittedToTerrain());
+	const float Ceiling = Zone->GetZoneBox().Max.Z;
+	UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	struct FSpot { float XKm, YKm; float AboveGroundM; bool bExpectEdge; };
+	const FSpot Spots[] = {
+		{ 1.f, 0.f, 300.f, false }, { 0.f, -4.f, 300.f, false }, { 7.9f, 0.f, 300.f, false }, { -7.9f, 7.9f, 300.f, false },
+		{ 0.f, 7.9f, 120.f, false }, { 4.5f, 4.5f, -1.f, false }, // -1: 600 m under the ceiling (the ceiling itself warns)
+		{ 8.3f, 0.f, 300.f, true }, { 0.f, -8.3f, 120.f, true } };
+	for (const FSpot& S : Spots)
+	{
+		const FVector XY(S.XKm * 100000.f, S.YKm * 100000.f, 0.f);
+		const float Ground = Terrain->GetHeightAt(XY);
+		const float Z = S.AboveGroundM >= 0.f ? Ground + S.AboveGroundM * 100.f : Ceiling - 60000.f;
+		Ship->TeleportSpacecraft(FVector(XY.X, XY.Y, Z), FRotator(0.f, FMath::RadiansToDegrees(FMath::Atan2(XY.Y, XY.X)), 0.f), false);
+		bool bEdge = false;
+		for (int32 i = 0; i < 30; ++i)
+		{
+			Ship->SetFlightInput(In);
+			W.Tick();
+			bEdge = bEdge || Move->GetBoundaryState() != ETDBoundaryState::Inside || Move->IsOutOfBounds();
+		}
+		const FString Tag = FString::Printf(TEXT("(%.1f, %.1f) km at %s: "), S.XKm, S.YKm, S.AboveGroundM >= 0.f ? *FString::Printf(TEXT("%.0f m above ground"), S.AboveGroundM) : TEXT("600 m under the ceiling"));
+		TestTrue(*(Tag + TEXT("in atmosphere")), Move->IsInAtmosphere());
+		if (!S.bExpectEdge)
+		{
+			TestTrue(*(Tag + TEXT("boosting the whole way")), Ship->IsBoosting());
+		}
+		if (S.bExpectEdge)
+		{
+			TestTrue(*(Tag + TEXT("past the world's edge: the turn-back")), bEdge);
+			TestTrue(*(Tag + TEXT("... and never inside the (collision-less) far ground")), Ship->GetActorLocation().Z >= Terrain->GetHeightAt(Ship->GetActorLocation()));
+		}
+		else
+		{
+			TestFalse(*(Tag + TEXT("no boundary warning")), bEdge);
+		}
+	}
 	return true;
 }
 

@@ -358,7 +358,9 @@ void ATDAtmosphereFlightZone::FitToTerrain(const ATDPlanetTerrain* Terrain)
 	{
 		return;
 	}
-	const float Half = FMath::Max(10000.f, Field->GetStyle().CoreHalfSize - TerrainEdgeMargin);
+	TerrainCoreHalf = Field->GetStyle().CoreHalfSize;
+	FittedTerrain = Terrain;
+	const float Half = FMath::Max(10000.f, TerrainCoreHalf + TerrainEdgeExtension);
 	const FVector O = Terrain->GetActorLocation();
 	// Highest ground in the zone (a coarse grid: ~200 m spacing; the clearance covers what falls between samples).
 	float MaxZ = O.Z;
@@ -382,6 +384,27 @@ void ATDAtmosphereFlightZone::FitToTerrain(const ATDPlanetTerrain* Terrain)
 	bFittedToTerrain = true;
 	UE_LOG(LogTriadDrift, Log, TEXT("TD travel: flight zone fitted to the terrain: %.1f x %.1f km, ground up to %.0f m, ceiling %.0f m (pad-relative heights from the zone floor)"),
 		Box.GetSize().X / 100000.f, Box.GetSize().Y / 100000.f, (MaxZ - O.Z) / 100.f, (Box.Max.Z - O.Z) / 100.f);
+}
+
+void ATDAtmosphereFlightZone::KeepAboveFarGround(ATDShip* Ship) const
+{
+	const ATDPlanetTerrain* Terrain = FittedTerrain.Get();
+	if (!Terrain || !Ship)
+	{
+		return;
+	}
+	const FVector P = Ship->GetActorLocation();
+	const FVector L = P - Terrain->GetActorLocation();
+	if (FMath::Abs(L.X) <= TerrainCoreHalf && FMath::Abs(L.Y) <= TerrainCoreHalf)
+	{
+		return; // inside the collision core: the ground floor and terrain sweeps see real collision
+	}
+	const float Radius = Ship->GetRootComponent() ? Ship->GetRootComponent()->Bounds.SphereRadius : 500.f;
+	const float Floor = Terrain->GetHeightAt(P) + Radius + 1500.f;
+	if (P.Z < Floor)
+	{
+		Ship->SetActorLocation(FVector(P.X, P.Y, Floor), false, nullptr, ETeleportType::TeleportPhysics);
+	}
 }
 
 void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
@@ -419,6 +442,7 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 			continue;
 		}
 		ApplyToShip(Ship, bExitOpen);
+		KeepAboveFarGround(Ship);
 
 		if (!Ship->IsPlayerFlown() || bExitTriggered)
 		{

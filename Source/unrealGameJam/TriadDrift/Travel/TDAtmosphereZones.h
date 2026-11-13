@@ -184,14 +184,16 @@ public:
 
 	/**
 	 * ENG-34: a planet with T4's generated terrain is explorable, so the zone grows (never shrinks) to the terrain's
-	 * collision core minus TerrainEdgeMargin, and its ceiling to TerrainCeilingClearance above the highest ground in
-	 * it, so no mountain top sits above the ceiling (or in the exit). Found automatically within a second.
+	 * whole collision core plus TerrainEdgeExtension (so the edge warning only starts at the edge of the 16 km world),
+	 * and its ceiling to TerrainCeilingClearance above the highest ground in it, so no mountain top sits above the
+	 * ceiling (or in the exit). Found automatically within a second. Past the collision core (T4's far ring is
+	 * visual only) the zone keeps ships above the generated ground itself.
 	 */
 	void FitToTerrain(const class ATDPlanetTerrain* Terrain);
 	bool IsFittedToTerrain() const { return bFittedToTerrain; }
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
-	float TerrainEdgeMargin = 50000.f;
+	float TerrainEdgeExtension = 50000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0"))
 	float TerrainCeilingClearance = 40000.f;
@@ -209,6 +211,9 @@ private:
 	void ApplyToShip(ATDShip* Ship, bool bExitOpen);
 
 	bool bFittedToTerrain = false;
+	TWeakObjectPtr<const class ATDPlanetTerrain> FittedTerrain;
+	float TerrainCoreHalf = 0.f;
+	void KeepAboveFarGround(class ATDShip* Ship) const;
 	float TerrainPoll = 0.f;
 	bool bExitOverride = false;
 	bool bExitAllowedOverride = false;
