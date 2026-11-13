@@ -20,6 +20,8 @@ AGENTS.md lifecycle conditions; branch publication alone does not release it.
 
 **BOUNDED PRODUCTION CYCLE — November 12, 2026, 21:00 EST.** Nicholas directly authorizes one 30–45-minute cycle, no continuous goal: existing Ships chat Material04 on nick/ships-lancer-m03 at a19f478 in Worktrees/ships-lancer-m03, exact existing M03 production/review roots; existing UI chat in Characters role Revision04 on nick/characters-lancer at 8e5de0d in Worktrees/characters-lancer, exact existing Lancer/M01 root. Read-only references: approved source/reference checkpoints and shared contracts. Preserve all dirty files and earlier checkpoints. Material04 first heavy slot, Revision04 BUILD then RENDER only on separate fresh Lead grants. Final Nick appearance acceptance required before export/import/runtime promotion; no Bastion/Rift/HUD changes. Environment/Audio may perform bounded lightweight readiness work only in existing roots, no heavy job/native asset edits. Lead serializes Git and resource grants; workers do not sync/push independently. Cycle ends by 21:43 EST at latest, saved checkpoints only. Continuous goal remains paused.
 
+**Scoped renewals at21:14EST:** Nick directly requested Audio finish menu integration/playback in chat01a1d0e9 (user01a1d2ae-3202-7361-ae80-6807ef71cfc2), Hero actual readability test in01a1d0cc (user01a1d2ae-f937-7520-97af-154519648bc8), and character armor/helmet/clearance refinement in01a1d0bb (user01a1d2ae-d9c9-7e02-9fb0-bdd4976de815). These supersede the intervening read-only inventory hold only for those scopes. Existing exact ownership is retained, including Audio's DA_UI_Style music-only asset. Lead's clean day1-integration host now merges current-main source for a matching Editor rebuild; ignored build/runtime outputs and exact granted asset mounts in that host are serialized Lead-controlled staging, never shared map/config edits. Queue: host build, Audio style creation/reload/audible menu tests, Hero native test, Character Blender as resources permit. No simultaneous heavy jobs; each launch needs fresh grant. Ships Material04 is explicitly held by Nick for material correction; no export/native promotion. Save and stop at21:43EST unless Nick renews; no continuous goal. Historical Nick task-board rows below are evidence only, not current dispatches.
+
 Lead-maintained current ownership; the historical Lead claim above is marked released.
 All Ryan claims below are preserved unchanged. Worktree paths are on Nick's PC
 under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`.
@@ -42,7 +44,7 @@ Completed Environment/VFX/HUD/Audio source snapshots are read-only shared refere
 Future combat VFX output paths and broader Audio/music production are not
 activated by these rows. Audio PrototypeV1 uses the approved existing-library sources in an isolated private host; no shared gameplay integration or licensed-media Git publication is authorized. No existing claim is released merely by publishing this table.
 
-## Nick task board — checkpoint November 12, 2026, 12:52 EST
+## Historical Nick task board — checkpoint November 12, 2026, 12:52 EST
 
 **Current Lead sequence:** Lancer A02 and WHITE pilot source readiness; preserve/publish finished Hero checkpoint; selected107s menu integration via Ryan; controlled PR8 review. One heavy job at a time; Nick visual acceptance before replacement promotion.
 
