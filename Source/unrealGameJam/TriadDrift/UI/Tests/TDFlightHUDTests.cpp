@@ -303,6 +303,10 @@ bool FTDFlightHUDObjective::RunTest(const FString& Parameters)
 	F.Src->Wave.bWaveActive = false;
 	F.HUD->Sample(.016f);
 	TestTrue(TEXT("between waves: no counter"), F.V().Counter.IsEmpty());
+	// The squad manager's "WAVE 1 · CLEAR ..." form: the wave moves to the detail line, the line keeps the instruction.
+	F.Src->Objective = FText::FromString(TEXT("WAVE 3 · Clear the Null Armada"));
+	F.HUD->Sample(.016f);
+	TestEqual(TEXT("wave prefix moved off the line"), F.V().Objective, FString(TEXT("CLEAR THE NULL ARMADA")));
 	F.Src->Objective = FText::FromString(TEXT("Jump to Verdance"));
 	F.HUD->Sample(.016f);
 	F.HUD->Sample(.4f);

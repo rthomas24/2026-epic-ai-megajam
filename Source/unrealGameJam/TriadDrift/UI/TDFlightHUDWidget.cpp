@@ -45,10 +45,24 @@ namespace TDFlightHUD
 		{
 			FSlateDrawElement::MakeBox(List, Layer, Geo({ X, Y }, { W, H }), RoundedBrush(Radius * Scale, 0.f), ESlateDrawEffect::None, C);
 		}
+		/** A rounded-rectangle outline as a polyline (the rounded brush with a transparent fill still filled, live). */
 		void Outline(float X, float Y, float W, float H, float Radius, float Width, FLinearColor C) const
 		{
-			FSlateDrawElement::MakeBox(List, Layer + 1, Geo({ X, Y }, { W, H }), RoundedBrush(Radius * Scale, FMath::Max(1.f, Width * Scale)),
-				ESlateDrawEffect::None, C);
+			const float R = FMath::Min(Radius, FMath::Min(W, H) * .5f);
+			TArray<FVector2D> Points;
+			const FVector2D Corners[4] = { { X + W - R, Y + R }, { X + W - R, Y + H - R }, { X + R, Y + H - R }, { X + R, Y + R } };
+			for (int32 Corner = 0; Corner < 4; ++Corner)
+			{
+				const float A0 = -PI * .5f + Corner * PI * .5f; // top-right corner starts pointing up, clockwise
+				for (int32 I = 0; I <= 5; ++I)
+				{
+					const float A = A0 + (PI * .5f) * I / 5.f;
+					Points.Add((Corners[Corner] + FVector2D(FMath::Cos(A), FMath::Sin(A)) * R) * Scale + Origin);
+				}
+			}
+			const FVector2D First = Points[0]; // a copy: adding an element of the array to itself asserts
+			Points.Add(First);
+			FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, C, true, Width * Scale);
 		}
 		FSlateFontInfo Font(const ANSICHAR* Face, int32 Size, int32 Tracking = 0) const
 		{
@@ -232,7 +246,13 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 	{
 		ObjectiveAge += Dt;
 	}
+	// "WAVE 1 · CLEAR THE NULL ARMADA": the wave goes to the detail line (and the counter), the line keeps the instruction.
 	View.Objective = Objective;
+	int32 Dot = INDEX_NONE;
+	if (Objective.StartsWith(TEXT("WAVE ")) && Objective.FindChar(TCHAR(0x00B7), Dot))
+	{
+		View.Objective = Objective.Mid(Dot + 1).TrimStartAndEnd();
+	}
 	const FTDWaveInfo Wave = Data->GetWaveInfo();
 	View.Counter = Wave.bWaveActive ? FString::Printf(TEXT("%d LEFT"), FMath::Max(0, Wave.EnemiesAlive)) : FString();
 	View.ObjectiveDetail = Wave.WaveNumber <= 0 ? FString()
@@ -395,12 +415,17 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	if (!View.Objective.IsEmpty())
 	{
 		const float E = FMath::SmoothStep(0.f, 1.f, View.ObjectiveExpand);
-		const float W = FMath::Lerp(ObjectiveWidth, ObjectiveExpandedWidth, E);
+		// Grow to fit long text: diamond + text + gap + counter + padding (headless measures 0: the design sizes stand).
+		const float TextW = P.Measure(View.Objective, P.Font("Bold", 17, 60));
+		const float CountW = View.Counter.IsEmpty() ? 0.f : P.Measure(View.Counter, P.Font("Bold", 15, 40)) + 24.f;
+		const float FitW = 34.f + TextW + CountW + 20.f;
+		const float BigW = 34.f + P.Measure(View.Objective, P.Font("Bold", 28, 40)) + CountW + 20.f;
+		const float W = FMath::Lerp(FMath::Max(ObjectiveWidth, FitW), FMath::Max(ObjectiveExpandedWidth, BigW), E);
 		const float H = FMath::Lerp(ObjectiveHeight, ObjectiveExpandedHeight, E);
 		const float X = CenterX - W * .5f, Y = SafeY;
 		P.Plate(X, Y, W, H, 14.f, T::Plate().CopyWithNewOpacity(FMath::Lerp(.45f, .7f, E)));
 		const float TextO = FMath::Lerp(.7f, 1.f, E);
-		const FVector2D Dia(X + 18.f, Y + 14.f);
+		const FVector2D Dia(X + 18.f, Y + FMath::Lerp(14.f, 26.f, E)); // centred on the 17 px line, then on the 28 px title
 		P.Poly(Dia, { { 0, -6 }, { 6, 0 }, { 0, 6 }, { -6, 0 }, { 0, -6 } }, T::Neutral().CopyWithNewOpacity(TextO), 2.f);
 		if (E < .5f)
 		{
