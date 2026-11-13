@@ -11,6 +11,7 @@
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/Tests/TDCombatTestCommon.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "GameFramework/Character.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 namespace TDCombatPlaceholderTest
@@ -372,7 +373,7 @@ bool FTDCombatPlaceholderColourCode::RunTest(const FString& Parameters)
 	const FLinearColor Enemy = UTDStatics::TeamColor(ETDTeam::Enemy);
 
 	// 1. A Trooper-style bolt (the spec's default colour is Rift magenta) fired by a non-spacecraft: enemy colour, bolt size.
-	AActor* Trooper = W.Spawn<AActor>(FVector(0.f, 0.f, 100.f));
+	AActor* Trooper = W.Spawn<ACharacter>(FVector(0.f, 0.f, 100.f)); // crew are characters
 	FTDProjectileSpec Bolt;
 	Bolt.Speed = 2200.f;
 	Bolt.CollisionRadius = 22.f;

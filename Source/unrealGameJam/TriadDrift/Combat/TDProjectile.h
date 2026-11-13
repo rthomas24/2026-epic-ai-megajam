@@ -99,7 +99,7 @@ public:
 	/** The colour the placeholder streak is drawn in right now (FTDCombatPlaceholders::ProjectileColor). */
 	FLinearColor GetPlaceholderLookColor() const { return LookColor; }
 
-	/** Drawn with the small on-foot bolt look (the local player is on foot, or a non-spacecraft fired it). */
+	/** Drawn with the small on-foot bolt look (the local player is on foot, or with no player pawn, a character fired it). */
 	bool UsesOnFootLook() const { return bOnFootLook; }
 
 	/** The placeholder streak in use (tests). */
