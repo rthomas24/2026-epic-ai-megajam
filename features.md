@@ -118,8 +118,8 @@ because no item is**. Pure polish is in the [AAA polish list](#the-aaa-polish-li
    shield). Nicholas's documents decided it; corrected below in §0 and ENG-18.
 4. **COMMAND or Control** as the authority's name; **who boards** (lines written for Wren); the **three-pulse** definition;
    the ending **caption** wording. **Nicholas.**
-5. **AGENTS.md** §1 and §11 still say the boarding finale is "stretch" and Cinder "reveals the mothership"; features.md
-   says WANTED and "passage pending". **Ryan's Lead** to align AGENTS.md (this agent may not edit it).
+5. ~~**AGENTS.md**~~ **Resolved (Ryan's Lead, Nov 13):** AGENTS.md §1, §2 and §11 aligned in the same push: the boarding
+   finale is the wanted ending, and Cinder's anchor opens the approach ("passage pending").
 6. **ART-15 / ART-16** sat in Nick's section marked STRETCH; §1 lists them as Ryan's since Nov 13. Corrected below.
 7. **Music hookups** were T7's (CLAIMS, N-045); Ryan's Lead moved them to Nick's side on Nov 13 evening (ART-19), T7
    as fallback. **Nicholas** to accept on the board.
@@ -127,8 +127,9 @@ because no item is**. Pure polish is in the [AAA polish list](#the-aaa-polish-li
    not built; reduced forms proposed in `docs/story/story-0708-actions.md` (b1, b17). **Nicholas** to accept.
 9. **Cinematic 08 form** (voices over a sealed threshold, or a control-away scene) and **ENG-30's extras** (ring timing,
    sweeping laser, acceleration; the documents forbid a perfect-deflect gate). **Ryan.**
-10. **Power-ups in space** (ENG-39) are new gameplay "proposed to Ryan before it is built"; no proposal is on the board.
-    **Ryan.** Also the galaxy map (ART-09, ENG-02): its key is hidden; this plan treats it as not required.
+10. ~~**Power-ups in space**~~ **Resolved (Ryan, Nov 13):** Ryan approved pickups ("yes ... just go now"; T2's
+    `UTDPickupSubsystem` is built) and asked for rewards from destroying asteroids (ENG-48). The galaxy map (ART-09,
+    ENG-02) is not required (decided by Ryan's Lead under Ryan's delegation); no web build.
 
 ## Who is doing what next (from CLAIMS.md, Nov 13 evening)
 
@@ -137,7 +138,7 @@ machine is lighter). Everything heavy (Niagara, Blender, cooks, terrain, big bui
 
 | Owner | Now | Next (in order) |
 |---|---|---|
-| **Lead** (Ryan's) | Integration batch C gating run; ENG-38 design; boarding cost review | Push batch C; Shipping package and size (ENG-28); fresh review of ENG-34-39; finale-mode decision (ENG-47); hand Ryan a build |
+| **Lead** (Ryan's) | Batch I/J gate (waiting on T4's carrier fix and T1's planet-exit test fix); hourly features.md alignment | Push batch I/J with T6's space field v1; Shipping package and size (ENG-28); fresh review of ENG-34-39; finale-mode decision (ENG-47); hand Ryan a build |
 | **T1** flight, input, travel | ENG-38 stage 1 (hidden load, arrival from entry); tutorial music fixes (#24) | Hyperdrive one jump (ENG-15); ENG-40 escape vector and music fade; camera feel and gamepad pass; ENG-38 stage 2 |
 | **T2** combat, powers, HUD | HUD contrast; hit feel | ENG-36 states for the story (generator count, archive meter, pending marker, transponder flicker, nav pulse); on-foot HUD; every power with its real effect |
 | **T3** squad, director, story | Onboarding; Director widget hook (N-038) | ENG-42 seed ~28 new ids and fire every sequence; ENG-44 ending fixes; ENG-43 bark table; trailer re-capture |

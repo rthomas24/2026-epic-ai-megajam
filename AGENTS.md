@@ -17,7 +17,7 @@ agent commit to this same repo at the same time.**
   **"Director's Cut"**. Keep `main` playable at all times and package often, so there's always a
   build we could submit.
 - **Scope** (features.md, "Scope"):
-  - **Core:** everything except the boarding finale. That includes flight, three-ship switching,
+  - **Core:** everything in features.md's complete-game checklist. That includes flight, three-ship switching,
     wingmen, combat, enemy waves, hyperdrive and portals, **all powers and unlockable abilities**,
     **both landable planets**, the Dominion space-assault finale, full presentation and packaging.
   - **Wanted since Nov 13 (Ryan; was stretch):** the **boarding finale** (Dominion interior on foot), scoped to
@@ -96,8 +96,9 @@ blade to end the war.
   the mothership's approach.
 - **Verdance:** a bioluminescent jungle planet. Its objectives (recover a wreck's core; wake an ancient
   relay) unlock **Gravity Well** and **Cloak**.
-- **Cinder:** a volcanic world with crystals. Its objectives (clear an enemy outpost; destroy a signal
-  jammer) unlock **EMP Pulse** and **reveal the mothership**.
+- **Cinder:** a volcanic world with crystals. Its objectives (in the reduced form of storyline.md §22: secure the
+  excavation, disable the field anchor) unlock **EMP Pulse** and prepare the passage to the mothership; the approach
+  field opens when Cinder is done and wave 5 is cleared.
 - **Enemy, the Null Armada:**
   - waves that grow in size and variety: swarming fighters, missile-firing interceptors, shielded
     gunships, mine-laying bombers, and carriers that launch more fighters
@@ -550,9 +551,10 @@ Check that a machine's Blender works with the skills:
 
 ## 11. Agent working style for this jam
 
-- **Scope is fixed:** everything core in features.md ships. Planets and powers are core; only the
-  boarding finale is stretch, and only once core is solid. Don't cut or shrink a core feature on your
-  own. If something looks at risk, tell your human and let them decide.
+- **Scope is fixed:** everything in features.md ships; its complete-game checklist is the definition of a finished
+  game (Ryan, Nov 13). Planets, powers and the boarding finale (the ending, wanted since Nov 13) are all in; the
+  space-only reactor ending stays as the fallback. Don't cut or shrink a feature on your own. If something looks at
+  risk, tell your human and let them decide.
 - **Protect the three-ship switching and satisfying combat.** Never ship a change that makes them
   worse.
 - **Stay in your role** (features.md §1 and §2). Ask before touching the other role's systems or
