@@ -1,0 +1,14 @@
+{
+  "original_author_result_retained": true,
+  "incorrect_report_only": {
+    "loop_start_s": 38,
+    "loop_duration_s": 57
+  },
+  "actual_authored_graph": {
+    "loop_start_s": 12,
+    "loop_duration_s": 28.08
+  },
+  "reason": "Copied report constants corrected in source; graph defaults were correct and assets not reauthored",
+  "author_os_exit": 125,
+  "fresh_reload_required": true
+}

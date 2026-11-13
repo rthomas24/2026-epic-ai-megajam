@@ -1,0 +1,72 @@
+{
+  "stage": "Native assets authored and fresh reload verified; actual playback/gameplay hookup pending",
+  "host": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-dominion-interior-ecc2dc9",
+  "branch": "nick/audio-dominion-interior-01",
+  "base": "ecc2dc9cf6410113746cf28b022151f06f771f43",
+  "claim": "8683623d",
+  "author_guard": {
+    "pid": 20980,
+    "exit_code": 125,
+    "reason": "completed",
+    "failure": null,
+    "minimum_free_gib": 1.4992942810058594,
+    "duration_s": 113.28099999999904,
+    "protected_count": 2044,
+    "protected_unchanged": true,
+    "changed_protected": [],
+    "new_content": {
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-dominion-interior-ecc2dc9\\Content\\TriadDrift\\Audio\\DominionInterior01\\MS_TD_DominionInteriorMusic.uasset": "da9ba881d6ac255299a7f43be770e67e61eaae75937028b9a64b39c06d2cd6d5",
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-dominion-interior-ecc2dc9\\Content\\TriadDrift\\Audio\\DominionInterior01\\MUS_DominionInterior_Calm_01.uasset": "93f552521c44ceeb1f80c0d492b29a7bd0243f3b91ae931681631f274a8b9af9"
+    },
+    "unexpected_content": []
+  },
+  "reload_guard": {
+    "pid": 25388,
+    "exit_code": 0,
+    "reason": "completed",
+    "failure": null,
+    "minimum_free_gib": 1.0676002502441406,
+    "duration_s": 19.89100000000326,
+    "protected_count": 2046,
+    "protected_unchanged": true,
+    "changed_protected": [],
+    "new_content": {},
+    "unexpected_content": [],
+    "structured_engine_result_present": true
+  },
+  "reload": {
+    "stage": "Fresh single-player graph and dependency reload verified; audible render/gameplay pending",
+    "asset": "/Game/TriadDrift/Audio/DominionInterior01/MS_TD_DominionInteriorMusic.MS_TD_DominionInteriorMusic",
+    "meta_sha256": "da9ba881d6ac255299a7f43be770e67e61eaae75937028b9a64b39c06d2cd6d5",
+    "wave_sha256": "93f552521c44ceeb1f80c0d492b29a7bd0243f3b91ae931681631f274a8b9af9",
+    "one_wave_player": true,
+    "start_time_float0": true,
+    "loop_region_s": [
+      12,
+      40.08
+    ],
+    "period_s": 28.08,
+    "gain_once_in_graph": 0.5,
+    "source_volume": 1,
+    "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music",
+    "dependencies": [
+      "/Script/MetasoundEngine",
+      "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music",
+      "/Game/TriadDrift/Audio/DominionInterior01/MUS_DominionInterior_Calm_01"
+    ],
+    "serialization_changed_keys": [
+      "nodes",
+      "connections"
+    ],
+    "topology_defaults_verified": true,
+    "no_saves": true
+  },
+  "exit_fade_seconds_required": 20,
+  "original_mp3_unchanged": true,
+  "remaining": [
+    "Ryan exact boarding/interior entry/completion/quiet-console contract and binding",
+    "Actual native playback/render and20s eventfade on matching gameplay build",
+    "Lead publication/integration and cook verification"
+  ],
+  "native_slot_released": true
+}

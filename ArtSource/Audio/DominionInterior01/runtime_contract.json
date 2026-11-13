@@ -1,0 +1,23 @@
+{
+  "user_approved_implementation": true,
+  "first_entry_seconds": 0,
+  "loop_start_seconds": 12,
+  "loop_end_seconds": 40.08,
+  "loop_duration_seconds": 28.08,
+  "exit_fade_seconds": 20,
+  "asset_root": "/Game/TriadDrift/Audio/DominionInterior01",
+  "wave_name": "MUS_DominionInterior_Calm_01",
+  "metasound_name": "MS_TD_DominionInteriorMusic",
+  "graph_gain": 0.5,
+  "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music",
+  "source_import_wav": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\DominionInterior01\\export\\MUS_DominionInterior_Calm_Import16_01.wav",
+  "source_sha256": "33a0792214143a37efcdea4716e7e5caf957c5370b600b53ff8ef8483fdad69a",
+  "runtime_owner": "Ryan through Lead; exact boarding start/interior completion/quiet-recording hooks pending",
+  "invariants": [
+    "Only one persistent cue instance; no restart on normal combat beats",
+    "Fade once at sequence completion; duplicate events do not restart fade",
+    "Apply Music slider; suppress generic competing music while cue owns sequence",
+    "Quiet recovered recordings require agreed duck/suspend behavior; never invent end event",
+    "No impact on tutorial/menu music or Ryan-owned code/config/maps"
+  ]
+}
