@@ -17,6 +17,12 @@ gates. This skill fixes that with three things:
 
 Read `references/aaa-quality-bar.md` before your first asset. It defines "done".
 
+## Approved Triad Drift routes and current references (November 12)
+
+Nicholas explicitly approved Lancer M03 source production from his blue reference and approved A02 v03 structure at19:07EST. Continue that existing authored foundation for bounded materials/detail improvements; the route defaults below do not revoke it or require a new acquisition. White-player armor is original fitted gear on the existing owned Manny reference, not newly generated anatomy. Preserve the base; rig/export readiness remains unverified.
+
+The fresh Lead handoff and CLAIMS.md identify exact source/reference paths and scoped grants. Blue Lancer, yellow Bastion and green Rift redesign references do not change the runtime Rift-magenta/Lancer-cyan/Bastion-amber contract. Bastion/Rift remain secondary and separately gated. Current-cycle Material04 was explicitly held by Nicholas for material correction; no export/import promotion follows a technical pass. Human final appearance, mesh QA, resource scheduling and Unreal validation remain mandatory.
+
 ## Step 0: Route the asset before touching Blender
 
 | Asset type | Route | Why |
