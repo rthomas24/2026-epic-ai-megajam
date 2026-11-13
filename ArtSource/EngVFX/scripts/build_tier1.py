@@ -48,7 +48,9 @@ def grow(expr, base='rate'):
 
 def single(name, mat, size, k=1.0, flicker=None, local=True, life=None, extra=None, rend=None, offset=None):
     """One persistent sprite (a looping particle): cores and halos."""
-    sets = [(PS, INIT, 'Color Mode', E('Direct Set')), (PS, INIT, 'Color', col(k))]
+    # Inactive Response = Kill: a pooled projectile only Deactivates its tracer when it is released, and a looping
+    # particle would otherwise hang in space where the shot ended until its loop ran out (seen in play, round 4).
+    sets = [(EU, 'EmitterState', 'Life Cycle Mode', E('Self')), (EU, 'EmitterState', 'Loop Behavior', E('Infinite')), (EU, 'EmitterState', 'Inactive Response', E('Kill')), (PS, INIT, 'Color Mode', E('Direct Set')), (PS, INIT, 'Color', col(k))]
     if isinstance(size, tuple):
         sets += [(PS, INIT, 'Sprite Size Mode', E('Non-Uniform')), (PS, INIT, 'Sprite Size', X('float2(%s, %s)*User.Scale' % size))]
     else:
@@ -247,7 +249,7 @@ def U(color, scale=1.0, **kw):
 # and the shed particles, which only show from the side.
 # A shot keeps a readable size on screen: the bolt grows with its distance from the camera (Engine.Owner.LODDistance,
 # the component's distance to the nearest view) and shrinks when it passes close by, like the placeholder streak did.
-DIST = 'clamp(Engine.Owner.LODDistance/2600.0, 0.5, 9.0)'
+DIST = 'clamp(Engine.Owner.LODDistance/2600.0, 0.35, 9.0)'
 SPRITE_SCALE = True   # also grow the two glow sprites with distance
 
 
@@ -259,30 +261,37 @@ def glow_single(name, size, k, flick):
     return e
 
 
-def tracer(length, width, sheath=3.2, rib_life=0.10, spark_rate=40.0, flick=71.3, extra=()):
+def tracer(length, width, sheath=3.2, rib_life=0.16, spark_rate=40.0, flick=71.3, extra=(), hot=1.0):
+    # Round 4: the shot must be the most readable thing on screen after the reticle. A white-hot core (the bolt mesh
+    # driven over 1 so its centre clips to white, plus a white core sprite), a saturated sheath in the squad colour, a
+    # short fading trail and a small additive glow.
     L, W = length / 100.0, width / 100.0
-    return [mesh_single('Bolt', 'SM_TD_VFX_Bolt', 'M_TD_VFX_Bolt', '%s, %s, %s' % (L, W, W), 0.95, flick, offset=(-length * 0.30, 0, 0),
+    white = single('White', 'M_TD_VFX_Glow', width * 1.15, 1.0, flick * 1.31)
+    white['set'] = [x for x in white['set'] if x[2] != 'Color'] + [(PS, INIT, 'Color', X('float4(lerp(User.Color.rgb, float3(1,1,1), 0.75)*%s, 1.0)' % (2.2 * hot))),
+                                                                    (PU, 'ScaleSpriteSize', 'Scale Sprite Size Mode', E('Uniform')), (PU, 'ScaleSpriteSize', 'Uniform Scale Factor', X(DIST))]
+    white['add'].append((PU, 'Update/Size/ScaleSpriteSize'))
+    return [mesh_single('Bolt', 'SM_TD_VFX_Bolt', 'M_TD_VFX_Bolt', '%s, %s, %s' % (L, W, W), 1.5 * hot, flick, offset=(-length * 0.30, 0, 0),
                         live_scale='float3(1,1,1)*' + DIST),
-            glow_single('Core', width * 1.6, 1.0, flick * 1.31),
-            glow_single('Sheath', width * sheath, 0.32, flick * 0.77),
-            trail('Trail', width * 0.75, rib_life, 0.9),
+            white,
+            glow_single('Sheath', width * sheath, 0.55, flick * 0.77),
+            trail('Trail', width * 0.95, rib_life, 1.1),
             shed('Sparks', 'M_TD_VFX_Glow', spark_rate, (0.15, 0.40), (width * 0.12, width * 0.30), (40, 300), k=1.2, radius=width * 0.3, drag=1.5, curl=900.0)] + list(extra)
 
 
 # Rift: a fat plasma bolt shedding plasma wisps.
-S('NS_TD_Tracer_Rift', U(RIFT), tracer(520, 90, sheath=3.6, spark_rate=34.0, flick=37.7, extra=[
+S('NS_TD_Tracer_Rift', U(RIFT), tracer(620, 85, sheath=3.6, spark_rate=34.0, flick=37.7, extra=[
     shed('Wisps', 'M_TD_VFX_Fire', 60.0, (0.14, 0.28), (60, 120), (20, 160), k=0.9, radius=24.0, drag=1.0, curl=1600.0, growth='1.0 + Particles.NormalizedAge*0.8')]))
 # Lancer: a tight fast needle.
-S('NS_TD_Tracer_Lancer', U(LANCER), tracer(680, 60, sheath=3.8, rib_life=0.12, spark_rate=24.0, flick=113.1))
+S('NS_TD_Tracer_Lancer', U(LANCER), tracer(820, 60, sheath=3.8, rib_life=0.18, spark_rate=24.0, flick=113.1))
 # Bastion: a heavy shell with a motor flame and a smoke-and-fire trail.
-S('NS_TD_Tracer_Bastion', U(BASTION), tracer(420, 115, sheath=3.2, rib_life=0.08, spark_rate=40.0, flick=53.9, extra=[
+S('NS_TD_Tracer_Bastion', U(BASTION), tracer(420, 115, sheath=3.2, rib_life=0.10, spark_rate=40.0, flick=53.9, extra=[
     mesh_single('Motor', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '-3.2, 1.3, 1.3', 1.1, 61.7, offset=(-190, 0, 0)),
     shed('FireTrail', 'M_TD_VFX_Fireball', 70.0, (0.18, 0.34), (90, 150), (10, 120), radius=12.0, drag=1.0, curl=600.0, rgb=(0.9, 0.9, 0.9),
          growth='0.8 + Particles.NormalizedAge*0.9'),
     spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 40.0, (0.5, 0.9), (130, 200), (10, 90), radius=12.0, drag=1.0, curl=500.0, power=0.8, rgb=(0.32, 0.28, 0.27), alpha=0.6,
               growth='0.8 + Particles.NormalizedAge*1.6', sort=True))]))
-# Enemy: a red-orange bolt, rounder than the squad's.
-S('NS_TD_Tracer_Enemy', U(ENEMY), tracer(400, 100, sheath=3.4, spark_rate=30.0, flick=47.1))
+# Enemy: a red-orange ball of plasma, short and round where the squad's shots are long needles; dimmer core.
+S('NS_TD_Tracer_Enemy', U(ENEMY), tracer(230, 125, sheath=3.0, rib_life=0.07, spark_rate=30.0, flick=47.1, hot=0.7))
 
 # --------------------------------------------------------------------------------------------- muzzle flashes
 # Directional: a short flame cone along +X, a spiked star seen down the barrel, a few forward sparks. 2-3 frames.
@@ -361,6 +370,15 @@ S('NS_TD_Impact_Shield', U(SHIELD_HIT), [
     flash('Glow', 'M_TD_VFX_Glow', 110, 0.10, 0.35, growth=NEAR),
     shed('Sparks', 'M_TD_VFX_Spark', 0, (0.10, 0.26), (4, 8), (900, 3200), k=1.2, radius=6.0, drag=3.0, stretch=10,
          cone=((1.0, 0.0, 0.0), 75.0), burst=7, dur=0.4)])
+
+# Ship-level hit cues (UTDShipVisuals / UTDEnemyVisuals HullHit, ShieldHit). An enemy ship plays these IN ADDITION to the
+# weapon's impact cue at the same point, with no rotation, so they are light and camera-facing: no ring, no flash.
+S('NS_TD_Ship_HullHit', U(FIRE), [
+    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.20, 0.50), (5, 10), (900, 3600), k=1.5, radius=14.0, drag=2.2, stretch=11, burst=10, dur=0.6),
+    shed('Flecks', 'M_TD_VFX_Glow', 0, (0.35, 0.8), (9, 20), (150, 1100), k=1.0, radius=16.0, drag=1.6, curl=700.0, burst=6, dur=1.0, power=2.0)])
+S('NS_TD_Ship_ShieldHit', U(SHIELD_HIT), [
+    flash('Glow', 'M_TD_VFX_Glow', 150, 0.12, 0.25, growth=NEAR),
+    shed('Motes', 'M_TD_VFX_Glow', 0, (0.25, 0.5), (7, 15), (250, 1100), k=1.0, radius=20.0, drag=2.5, curl=600.0, burst=8, dur=0.7, power=2.0)])
 
 # --------------------------------------------------------------------------------------------- explosions
 # The blast, the smoke and the main ring use Grok Bot's textures (T_TD_VFX_Grok_*, sources ArtSource/EngAI/VFX); the rest

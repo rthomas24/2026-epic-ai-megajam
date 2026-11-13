@@ -34,20 +34,25 @@ def weapon(tracer, muzzle, detonation=None):
     return d
 
 
+SHIP_H, SHIP_SH = 'NS_TD_Ship_HullHit', 'NS_TD_Ship_ShieldHit'   # light: the weapon's impact cue plays at the same point
+
+
 def ship(name, boom):
-    d = {'hull_hit': H, 'explosion': boom}
+    # BoostLoop stays EMPTY: the EngineTrail system holds the boost flame (code drives User.Throttle / User.Boost).
+    d = {'hull_hit': SHIP_H, 'explosion': boom}
     if WIRE_SHIELD:
-        d['shield_hit'] = SH
+        d['shield_hit'] = SHIP_SH
     if WIRE_ENGINES:
-        d.update({'engine_trail': 'NS_TD_Engine_' + name, 'boost_loop': 'NS_TD_EngineBoost_' + name})
+        d['engine_trail'] = 'NS_TD_Engine_' + name
     return d
 
 
-def enemy(boom):
+def enemy(boom, **more):
     # EngineTrail is NOT wired for enemies: the code attaches it at the hull mesh origin, not at the nozzle (code hook wanted).
-    d = {'hull_hit': H, 'explosion': boom}
+    d = {'hull_hit': SHIP_H, 'explosion': boom}
     if WIRE_SHIELD:
-        d['shield_hit'] = SH
+        d['shield_hit'] = SHIP_SH
+    d.update(more)
     return d
 
 
@@ -75,7 +80,10 @@ if WIRE_SHIPS:
         'NullFleet/DA_Enemy_Interceptor_Visuals': enemy('NS_TD_Explosion_Small'),
         'NullFleet/DA_Enemy_Gunship_Visuals': enemy('NS_TD_Explosion_Medium'),
         'NullFleet/DA_Enemy_Bomber_Visuals': enemy('NS_TD_Explosion_Medium'),
-        'NullFleet/DA_Enemy_Carrier_Visuals': enemy('NS_TD_Explosion_Large'),
+        'NullFleet/DA_Enemy_Carrier_Visuals': enemy('NS_TD_Explosion_Large', bay_destroyed='NS_TD_Explosion_Small', turret_destroyed='NS_TD_Explosion_Small'),
+        'Dominion/DA_DominionTurret_Visuals': {'turret_destroyed': 'NS_TD_Explosion_Small', 'explosion': 'NS_TD_Explosion_Small'},
+        'Dominion/DA_Dominion_Visuals': {'generator_explosion': 'NS_TD_Explosion_Medium', 'reactor_phase_change': 'NS_TD_Explosion_Medium',
+                                         'reactor_destroyed': 'NS_TD_Explosion_Large'},
     })
 
 
