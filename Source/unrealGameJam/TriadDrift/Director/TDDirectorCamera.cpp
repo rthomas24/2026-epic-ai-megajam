@@ -349,8 +349,16 @@ bool UTDDirectorCameraRig::BeginShot(const FTDDirectorShot& Shot, double ShotEnd
 	UWorld* World = OwnerWorld.Get();
 	APlayerController* Controller = GetPlayerController();
 	ATDShip* Ship = Controller ? Cast<ATDShip>(Controller->GetPawn()) : nullptr;
-	if (!World || !Controller || !Ship)
+	if (!World || !Controller)
 	{
+		return false;
+	}
+	if (!Ship)
+	{
+		// On foot (a perfect deflect, the blade): the view stays first-person. The director never cuts
+		// away from the pilot's eyes, so the body is never framed from outside and the first-person
+		// head-hiding is never touched (rule agreed with T5). The beat is the slow-mo plus an FOV punch.
+		PunchFOV();
 		return false;
 	}
 	const UTDDirectorSettings* S = UTDDirectorSettings::Get();

@@ -18,6 +18,7 @@
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Powers/TDPortalBlasterPower.h"
@@ -423,6 +424,38 @@ bool FTDDirectorCamFraming::RunTest(const FString& Parameters)
 			CheckFrame(*this, F, TEXT("generator kill"));
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorCamOnFoot, "TriadDrift.Director.Camera.OnFootStaysFirstPerson", TD_TEST_FLAGS)
+bool FTDDirectorCamOnFoot::RunTest(const FString& Parameters)
+{
+	// Lead (the pilot now has a body): on foot, a director beat (perfect deflect) never takes the view
+	// off the first-person camera, so the body is never framed from outside or clipped by the lens and
+	// the head-hiding stays as T5 set it. The beat is slow-mo + an FOV punch. A CUT on foot also keeps it.
+	FScopedCamMode Full(2);
+	FTDTestWorld W;
+	ATDFirstPersonCharacter* Pilot = W.Spawn<ATDFirstPersonCharacter>(FVector(0.f, 0.f, 95.f));
+	APlayerController* PC = W.SpawnLocalPlayerController(Pilot);
+	if (!TestNotNull(TEXT("pilot possessed"), PC))
+	{
+		return false;
+	}
+	W.Advance(0.3f);
+	UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(W.GetWorld());
+	TestTrue(TEXT("perfect deflect accepted"), Director->ReportHighlight(ETDHighlightKind::PerfectDeflect, Pilot, 0.6f));
+	W.Tick();
+	TestTrue(TEXT("the view stays on the pilot (first person)"), PC->GetViewTarget() == Pilot);
+	TestFalse(TEXT("no director camera on foot"), Director->GetCameraRig()->IsActive());
+	TestTrue(TEXT("slow-mo beat"), UTDFeelSubsystem::Get(W.GetWorld())->IsSlowMoActive());
+	const UTDDirectorFOVPunch* Punch = Director->GetCameraRig()->GetFOVPunch();
+	TestTrue(TEXT("FOV punch on the first-person camera"), Punch && Punch->GetCurrentPunch() > 0.f);
+	W.Advance(1.f);
+	TestTrue(TEXT("still first person after the beat"), PC->GetViewTarget() == Pilot);
+	// Death on foot -> CUT!: the presentation, never a camera move.
+	UTDEventBus::Get(W.GetWorld())->BroadcastSceneCut(TEXT("Obj_Outpost"), 2, 1.5f);
+	W.Advance(0.5f);
+	TestTrue(TEXT("a CUT on foot keeps the first-person view"), PC->GetViewTarget() == Pilot && !Director->GetCameraRig()->IsActive());
 	return true;
 }
 
