@@ -128,6 +128,8 @@ public:
 	void Play(const FVector& Location, float Radius, const FLinearColor& Color, float Seconds, USceneComponent* AttachTo);
 	/** A debris streak: flies at Velocity, stretched along it (Length x Thickness), shrinking as it fades. */
 	void PlayDebris(const FVector& Location, const FVector& Velocity, float Length, float Thickness, const FLinearColor& Color, float Seconds);
+	/** A flash sphere's radius never exceeds this fraction of its distance to the player's camera. */
+	static constexpr float MaxRadiusPerCameraDistance = 0.3f;
 	bool IsPlaying() const { return bPlaying; }
 	float GetRadius() const { return Radius; }
 	void Stop();
