@@ -1072,7 +1072,7 @@ one little section on the map ... a massive, massive map that you should be able
   ridgelines; Cinder: basalt plains, lava rivers in the valleys, ash and crystal on the heights), the planets' fog and
   sky, and biome scatter from the existing kits (trees, ferns, mushrooms, rocks, crystals, basalt columns) by height,
   slope and noise masks, instanced, never on the course's paths.
-- **Flight:** atmosphere flight (ENG-20) flies over and between the mountains; arrival and take-off stay as they are;
+- **Flight:** atmosphere flight (ENG-20) flies over and between the mountains; arrival and take-off are replaced by the planetary descent (ENG-38);
   the landing assist still finds the pad.
 - **Performance:** inside the ENG-28 budget on the target machine; generation is incremental (no hitch above 4 ms a
   frame) and the first view is ready before the arrival camera shows it.
@@ -1158,6 +1158,22 @@ Research and the recommended design: `docs/eng/planet-descent-research.md` (No M
 techniques, our current code path; in progress Nov 13). This item replaces the old arrival of ENG-20; the landing rule
 and the on-foot hand-over of ENG-20 stay.
 
+- **Architecture decided (Lead, Nov 13, from the research report): "A+".** Keep the separate planet maps and hide the
+  level load inside the brightest second of the plasma phase: a white-hot cover on the viewport and the roar loop
+  both survive the level change, replacing today's 0.6 s fade to black and the `L_Transition` loading screen. The
+  player arrives **where and on the heading they hit the atmosphere** (one mapping from a point on the globe to a
+  point over the flat terrain, with the landing zone as its pole; the same mapping bakes the globe's surface from the
+  terrain field and gives the take-off return point). On the planet side an Elite-style **forced glide** (about
+  3,000 m down to 900 m, 15-20 s) carries the ship through a cloud deck while fog, terrain detail and scatter
+  resolve by altitude. Streaming the terrain into the galaxy map, and a true sphere, were rejected for the jam (30-45
+  and 100+ engineer-hours). Today's code: a 2.5 s entry, a fade to black, a loading map, then a hard cut to a fixed
+  spot 600 m behind the pad; the entry point and heading are thrown away.
+- **Risks to settle in the first hour of stage 1:** the real load time (the white hold reads as a freeze past about
+  6 s; log it first), and whether the viewport cover and the sound really persist across the level change (fallback:
+  a white camera fade on both sides).
+- **Cut order if time runs short:** airbrake / heat-shield animation, volumetric clouds (use a card cloud deck),
+  landing anywhere, the polished take-off, the baked globe texture. Never cut: the white cover replacing the loading
+  screen, and arrival from the entry point.
 - **What the player does, with no loading screen at any point:**
   1. **Approach and orbit.** The planet is a real globe in the galaxy; the player can fly around it, low over the
      cloud tops, and choose where to go in. The globe shows the same world as the ground: the same continents,
@@ -1181,11 +1197,13 @@ and the on-foot hand-over of ENG-20 stay.
   visible swap of globe for ground); the ship effect reads from the chase camera and in a still; at least 60 fps at
   1080p through the whole descent on the target machine; works for all three ships and with a gamepad; a retake or
   Continue during the descent restarts it cleanly.
-- **Stages** (the research report sets the final cut): **stage 1**: the entry sequence at full quality (effects,
-  camera, sound, HUD, the hidden load, the focus-in) from any approach direction, arriving on a matching heading;
-  **stage 2**: orbiting the globe and entering at a chosen point that maps to a place on the terrain, the globe
-  showing the real terrain, wingmen in the sequence; **stage 3 (stretch)**: landing anywhere, and day / night matching
-  the entry longitude.
+- **Stages:** **stage 1 (tonight, about 11 engineer-hours):** the white cover that survives the load, no black fade
+  and no loading map for planet entry and exit, arrival point and heading from the entry, the terrain's first view
+  built around the arrival, the roar persisting, a timing log, a switch back to the old arrival. **Stage 2
+  (tomorrow midday, about 22 engineer + 12 builder hours):** the glide, the cloud deck, plasma / streak / heat
+  effects, sound layers, altimeter and hull-heat HUD, the globe texture baked from the terrain with the landing
+  beacon, map preload while orbiting, a mirrored take-off, the terrain bent down with distance so the horizon falls
+  away like a sphere's. **Stretch:** land anywhere, volumetric clouds, airbrake animation, bigger globes.
 - **Owners:** T1 (flight: orbit and entry flight model, control authority, camera with T3, the hand-over), T4
   (terrain: the globe-from-orbit view baked from the terrain field, focus-in LOD and fog schedule, arrival placement),
   T5 (flow: bringing the planet level in without a loading screen, arrival state, retake and Continue), T2 (HUD:
