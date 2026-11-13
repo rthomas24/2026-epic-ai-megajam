@@ -1,0 +1,139 @@
+{
+  "asset": "SM_Bastion",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\Bastion\\SM_Bastion.fbx",
+  "tris": 49871,
+  "size_cm": [
+    524.0,
+    472.3,
+    139.1
+  ],
+  "pivot": "root object origin (SM_Bastion~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Bastion.001"
+  ],
+  "material_params": [
+    {
+      "name": "M_Bastion.001",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_Bastion_00"
+  ],
+  "collision_source": "auto convex hulls",
+  "sockets": [
+    "SOCKET_Cockpit",
+    "SOCKET_Dome",
+    "SOCKET_Engine",
+    "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_MissilePod_L",
+    "SOCKET_MissilePod_R",
+    "SOCKET_Muzzle_0",
+    "SOCKET_Muzzle_1"
+  ],
+  "welded_verts": 60124,
+  "nanite_recommended": true,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": true,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "ue_cm": [
+        264,
+        -44,
+        -37
+      ]
+    },
+    {
+      "name": "Muzzle_1",
+      "ue_cm": [
+        264,
+        44,
+        -37
+      ]
+    },
+    {
+      "name": "Engine",
+      "ue_cm": [
+        -264,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "Engine_0",
+      "ue_cm": [
+        -264,
+        -77,
+        0
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "ue_cm": [
+        -264,
+        77,
+        0
+      ]
+    },
+    {
+      "name": "Dome",
+      "ue_cm": [
+        -26,
+        0,
+        68
+      ]
+    },
+    {
+      "name": "Cockpit",
+      "ue_cm": [
+        120,
+        0,
+        20
+      ]
+    },
+    {
+      "name": "MissilePod_L",
+      "ue_cm": [
+        124,
+        -165,
+        -20
+      ]
+    },
+    {
+      "name": "MissilePod_R",
+      "ue_cm": [
+        124,
+        165,
+        -20
+      ]
+    }
+  ],
+  "source": "ArtSource/EngAI/Ships/Bastion/mesh_r1",
+  "texture_dir": "ArtSource/EngAI/Ships/Bastion/mesh_r1",
+  "heat_mask": "ArtSource/EngAI/Ships/Bastion/heatmask_r1/T_Bastion_HeatMask.png",
+  "max_texture_size": 2048
+}

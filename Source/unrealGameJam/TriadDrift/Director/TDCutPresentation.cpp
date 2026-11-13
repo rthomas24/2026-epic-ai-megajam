@@ -105,14 +105,15 @@ namespace TDCutPresentationPrivate
 			{
 				FLinearColor C = S.NameCardColor;
 				C.A = S.NameCardAlpha;
-				// T2's flight HUD spec: the switch card sits centred in the lower third (~y 760 of 1080), above its lower lane
-				// (the tutorial card, 830+) and the boost bar (792).
-				const float Y = Size.Y * 0.70f;
-				Text(S.NameCardText, 30, FVector2D(Size.X * 0.5f, Y - 8.f), FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), true);
-				Box(FVector2D(Size.X * 0.5f - 90.f, Y + 18.f), FVector2D(180.f, 5.f), C); // squad-colour underline
+				// Left of the ship at reticle height: clear of T2's ship zone (790-1130 x 612-800 at 1080p), the tutorial card
+				// (830+) and the squad strip (Lead, after a capture with each ship: the Bastion is the widest).
+				const FVector2D At = UTDCutPresentation::NameCardCentre(Size);
+				const float Y = At.Y;
+				Text(S.NameCardText, 30, FVector2D(At.X, Y - 8.f), FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), true);
+				Box(FVector2D(At.X - 90.f, Y + 18.f), FVector2D(180.f, 5.f), C); // squad-colour underline
 				if (!S.NameCardSubText.IsEmpty())
 				{
-					Text(S.NameCardSubText, 16, FVector2D(Size.X * 0.5f, Y + 40.f), C, true); // "RIFT · BOLD · INSTINCTIVE"
+					Text(S.NameCardSubText, 16, FVector2D(At.X, Y + 40.f), C, true); // "HEAVY · STEADY · GOOD-HUMOURED"
 				}
 			}
 			// Slate, top centre under the bar.
@@ -217,6 +218,11 @@ void UTDCutPresentation::EnsureViewportWidget()
 	Widget = SNew(STDCutOverlay, this);
 	WidgetZOrder = OverlayZOrder(ATDDebugHUD::IsRealHUDActive(World));
 	GEngine->GameViewport->AddViewportWidgetContent(Widget.ToSharedRef(), WidgetZOrder);
+}
+
+FVector2D UTDCutPresentation::NameCardCentre(const FVector2D& Size)
+{
+	return FVector2D(Size.X * 0.245f, Size.Y * 0.48f);
 }
 
 bool UTDCutPresentation::IsNameCardClaimedByHUD(const UWorld* World)
@@ -383,7 +389,8 @@ void UTDCutPresentation::HandleSwitchCut(const FTDSwitchCut& Cut)
 		? FText::Format(NSLOCTEXT("TDDirector", "StrikeCard", "{0}  ·  STRIKE +25%"), Cut.NameCardText) : Cut.NameCardText;
 	NameColor = Cut.SquadColor;
 	const FText Trait = Cut.NewShipActor ? UTDStorySubsystem::PilotTrait(Cut.NewShipActor->GetShipId()) : FText::GetEmpty();
-	NameCardSub = FText::Format(NSLOCTEXT("TDDirector", "PilotSub", "{0}  ·  {1}"), Cut.ShipName, Trait.IsEmpty() ? Cut.RoleName : Trait);
+	// The card says "MOSS · BASTION"; the line under it is the role and traits, never the ship again (Lead).
+	NameCardSub = Trait.IsEmpty() ? FText::Format(NSLOCTEXT("TDDirector", "PilotSub", "{0}"), Cut.RoleName) : Trait;
 	++SwitchCount;
 	State.FlashAlpha = FlashFramesLeft > 0 ? 1.f : 0.f; // visible on the very next paint
 }

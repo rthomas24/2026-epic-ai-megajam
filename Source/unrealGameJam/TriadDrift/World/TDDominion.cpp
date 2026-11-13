@@ -6,6 +6,7 @@
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/World/TDDockingBay.h"
+#include "TriadDrift/World/TDDistortionField.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/World/TDEscapeDebris.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
@@ -268,6 +269,12 @@ bool ATDDominion::SetShowcase(bool bShow, const FTransform* Override)
 				ShowcaseActorHidden.Emplace(A, A->IsHidden());
 				A->SetActorHiddenInGame(true);
 			}
+		}
+		if (DistortionField)
+		{
+			// T3's shots show the real hull: the far-off mirage and its field step aside until the showcase ends.
+			ShowcaseActorHidden.Emplace(DistortionField.Get(), DistortionField->IsHidden());
+			DistortionField->SetActorHiddenInGame(true);
 		}
 	}
 	if (Override)
@@ -624,6 +631,8 @@ void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		Travel->RemoveHyperdriveLock(TDHyperdriveLocks::Finale);
 	}
+	if (IsValid(DistortionField)) { DistortionField->Destroy(); }
+	DistortionField = nullptr;
 	for (ATDShieldGenerator* G : Generators)
 	{
 		if (IsValid(G)) { G->OnGeneratorDestroyed.RemoveDynamic(this, &ATDDominion::HandleGeneratorDestroyed); }
@@ -643,6 +652,11 @@ void ATDDominion::SetState(ETDDominionState NewState)
 		SetShowcase(false);	// the real Dominion takes over (reveal, retake, victory)
 	}
 	StateTime = 0.f;
+	if (NewState != ETDDominionState::Hidden && DistortionField)
+	{
+		DistortionField->Collapse();	// the passage is open (or the run moved past it): the field goes, the real ship is here
+		DistortionField = nullptr;
+	}
 	if (State != NewState)
 	{
 		State = NewState;
@@ -818,6 +832,15 @@ void ATDDominion::SyncWithProgress()
 	// A voided wave-5 clear never sets the flag: the flow ignores SetDominionState while a retake is pending.
 	if (!P.bDominionRevealed)
 	{
+		// Story Act 1: seen far off behind its distortion field, unreachable, until Cinder's anchor falls.
+		if (bShowBehindField && !DistortionField && GetWorld())
+		{
+			FActorSpawnParameters SP;
+			SP.Owner = this;
+			SP.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			DistortionField = GetWorld()->SpawnActor<ATDDistortionField>(ATDDistortionField::StaticClass(), GetActorTransform(), SP);
+			if (DistortionField) { DistortionField->Init(this); }
+		}
 		return;
 	}
 	if (P.bDominionDefensesDown)

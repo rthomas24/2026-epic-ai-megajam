@@ -1,0 +1,130 @@
+{
+  "asset": "SM_NullGunship",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullGunship\\SM_NullGunship.fbx",
+  "tris": 19800,
+  "size_cm": [
+    1497.4,
+    1432.0,
+    1116.2
+  ],
+  "pivot": "root object origin (SM_NullGunship~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_NullGunship"
+  ],
+  "material_params": [
+    {
+      "name": "M_NullGunship",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_NullGunship_00"
+  ],
+  "collision_source": "auto convex hulls",
+  "sockets": [
+    "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_Engine_2",
+    "SOCKET_Engine_3",
+    "SOCKET_Muzzle_0",
+    "SOCKET_Muzzle_1",
+    "SOCKET_Muzzle_2",
+    "SOCKET_Muzzle_3"
+  ],
+  "welded_verts": 10587,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "ue_cm": [
+        748,
+        -280,
+        295
+      ]
+    },
+    {
+      "name": "Muzzle_1",
+      "ue_cm": [
+        748,
+        -210,
+        300
+      ]
+    },
+    {
+      "name": "Muzzle_2",
+      "ue_cm": [
+        748,
+        210,
+        300
+      ]
+    },
+    {
+      "name": "Muzzle_3",
+      "ue_cm": [
+        748,
+        280,
+        295
+      ]
+    },
+    {
+      "name": "Engine_0",
+      "ue_cm": [
+        -740,
+        -270,
+        421
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "ue_cm": [
+        -740,
+        -90,
+        421
+      ]
+    },
+    {
+      "name": "Engine_2",
+      "ue_cm": [
+        -740,
+        75,
+        421
+      ]
+    },
+    {
+      "name": "Engine_3",
+      "ue_cm": [
+        -740,
+        255,
+        421
+      ]
+    }
+  ],
+  "source": "ArtSource/EngAI/Ships/NullFleet/Gunship/mesh_r1",
+  "texture_dir": "ArtSource/EngAI/Ships/NullFleet/Gunship/mesh_r1",
+  "heat_mask": null,
+  "max_texture_size": 1024
+}

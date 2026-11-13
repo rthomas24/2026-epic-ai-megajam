@@ -11,6 +11,7 @@
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Squad/TDBarkLines.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Story/TDStoryTypes.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
@@ -216,6 +217,13 @@ static TAutoConsoleVariable<int32> CVarTDUIForceGlyphs(
 	TEXT("Engineering space HUD glyphs (dev, captures): -1 = follow the controller's device detection, 0 = keyboard, 1 = gamepad."),
 	ECVF_Default);
 
+static TAutoConsoleVariable<int32> CVarTDUILogBarks(
+	TEXT("TD.UI.LogBarks"), 0,
+	TEXT("1: the engineering space HUD logs each bark request and what it did with it (shown / no line / story)."),
+	ECVF_Default);
+
+DEFINE_LOG_CATEGORY_STATIC(LogTDFlightHUD, Log, All);
+
 bool UTDFlightHUDWidget::IsUsingGamepad() const
 {
 	if (ForceGamepad >= 0)
@@ -343,12 +351,24 @@ void UTDFlightHUDWidget::HandleBarkRequested(FName BarkId, FName Speaker)
 {
 	// A transmission also fires OnBarkRequested with its own id: T3's subsystem draws that one (no double line). And a story
 	// transmission on screen outranks a squad bark (it is the line the player must not miss).
+	const bool bLog = CVarTDUILogBarks.GetValueOnGameThread() != 0;
 	FTDTransmission Entry;
 	if (UTDStorySubsystem::FindEntry(BarkId, Entry) || (!View.Subtitle.Text.IsEmpty() && View.Subtitle.bStory))
 	{
+		UE_CLOG(bLog, LogTDFlightHUD, Display, TEXT("TD UI bark %s by %s: skipped (story transmission)"), *BarkId.ToString(), *Speaker.ToString());
 		return;
 	}
-	ShowTransmission(Speaker, FText::FromString(BarkText(BarkId)), ETransmissionStyle::Clean, BarkSeconds);
+	// The real line from dialogs.md (T3's FTDBarkLines: Nicholas's DT_Barks wins row by row; the same line every caller
+	// sees for 3 s, so this HUD and the dev HUD agree). No line, no subtitle: no more text made up from the id.
+	FText Line;
+	if (!FTDBarkLines::PickLine(this, BarkId, Speaker, Line) || Line.IsEmpty())
+	{
+		UE_CLOG(bLog, LogTDFlightHUD, Display, TEXT("TD UI bark %s by %s: no line"), *BarkId.ToString(), *Speaker.ToString());
+		return;
+	}
+	UE_CLOG(bLog, LogTDFlightHUD, Display, TEXT("TD UI bark %s by %s: shown \"%s\" (%s, in viewport %d)"), *BarkId.ToString(), *Speaker.ToString(),
+		*Line.ToString(), *GetName(), IsInViewport() ? 1 : 0);
+	ShowTransmission(Speaker, Line, ETransmissionStyle::Clean, BarkSeconds);
 	const FString& Who = View.Subtitle.Speaker;
 	View.Subtitle.TagColor = Who == TEXT("WREN") ? FTDFlightHUDTokens::Rift() : Who == TEXT("KATO") ? FTDFlightHUDTokens::Lancer()
 		: Who == TEXT("MOSS") ? FTDFlightHUDTokens::Bastion() : FTDFlightHUDTokens::Dim();
@@ -384,6 +404,14 @@ void UTDFlightHUDWidget::SampleStory()
 	const float Remaining01 = FMath::Max(1.f - T.Progress01, .01f);
 	Sub.Seconds = FMath::Max(.5f, T.TimeLeft / Remaining01);
 	Sub.Age = Sub.Seconds * T.Progress01;
+}
+
+void UTDFlightHUDWidget::ShowNavigationPulse(const FVector& From, const FVector& To, float Seconds)
+{
+	NavWorldFrom = From;
+	NavWorldTo = To;
+	NavSeconds = FMath::Max(.3f, Seconds);
+	NavLeft = NavSeconds;
 }
 
 void UTDFlightHUDWidget::HandleTakeStarted(FName SceneId, int32 TakeNumber)
@@ -638,6 +666,19 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		Wp.Health = Health && Health->IsAlive() ? Health->GetHull01() : -1.f;
 	}
 
+	// Navigation pulse: project the corridor; off screen or no view, a generic corridor from under the ship toward the
+	// screen's right third (it only has to read as a sensor flicker).
+	NavLeft = FMath::Max(0.f, NavLeft - Dt);
+	View.NavPulse = NavLeft > 0.f && NavSeconds > 0.f ? 1.f - NavLeft / NavSeconds : 0.f;
+	if (View.NavPulse > 0.f)
+	{
+		FVector2D A, B, DirA, DirB;
+		const bool bA = Project(NavWorldFrom, A, DirA);
+		const bool bB = Project(NavWorldTo, B, DirB);
+		View.NavFrom = bA ? A : FVector2D(CenterX, 760.f);
+		View.NavTo = bB ? B : OnSafeFrame(bA ? DirB : FVector2D(.8f, -.35f));
+	}
+
 	// Lead indicator (only with a current target).
 	FVector LeadWorld;
 	FVector2D LeadDir;
@@ -729,7 +770,8 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		View.Lane = ELane::HyperdriveBlocked;
 		View.LaneText = Blocked.ToUpper();
 	}
-	else if (!Hint.IsEmpty() || View.bHintCard)
+	else if ((!Hint.IsEmpty() || View.bHintCard) && !(View.Subtitle.bStory && !View.Subtitle.Text.IsEmpty()))
+	// (a story transmission on air holds the tutorial card back: the two crowded each other, Lead's note on #17's sheet)
 	{
 		View.Lane = ELane::Hint;
 		View.LaneText = Hint.ToUpper();
@@ -1068,6 +1110,33 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Line(Tick + FVector2D(0, -10), Tick + FVector2D(6, -14), T::Warning(), 2.f);
 		}
 	}
+	// ---- Aftermath navigation pulse: a faint corridor that flickers in and clears in 1.5 s, like sensor noise
+	if (View.NavPulse > 0.f)
+	{
+		const float T01 = View.NavPulse;
+		// Up fast (0.15 of the time), hold, then gone; with a high-frequency flicker so it reads as interference.
+		const float Env = FMath::Min(FMath::Clamp(T01 / .1f, 0.f, 1.f), FMath::Clamp((1.f - T01) / .35f, 0.f, 1.f));
+		const float Flicker = .55f + .45f * FMath::Abs(FMath::Sin(Now * 53.f) * FMath::Sin(Now * 31.f));
+		const FLinearColor Edge = T::Shield().CopyWithNewOpacity(.32f * Env * Flicker);
+		const FVector2D A = View.NavFrom, B = View.NavTo;
+		const FVector2D Along = (B - A).GetSafeNormal();
+		const FVector2D Side(-Along.Y, Along.X);
+		const float Jit = FMath::Sin(Now * 71.f) * 1.5f;
+		for (int32 S = 0; S < 24; S += 2) // two dashed rails, narrowing toward the far end
+		{
+			const float P0 = S / 24.f, P1 = (S + 1) / 24.f;
+			for (const float Sgn : { -1.f, 1.f })
+			{
+				const float W0 = FMath::Lerp(26.f, 8.f, P0) * Sgn + Jit, W1 = FMath::Lerp(26.f, 8.f, P1) * Sgn + Jit;
+				P.Line(FMath::Lerp(A, B, P0) + Side * W0, FMath::Lerp(A, B, P1) + Side * W1, Edge, 1.5f);
+			}
+		}
+		// A bright blip running down the corridor once.
+		const FVector2D Blip = FMath::Lerp(A, B, FMath::Clamp(T01 * 1.4f, 0.f, 1.f));
+		P.Box(Blip.X - 2.f, Blip.Y - 2.f, 4.f, 4.f, T::Neutral().CopyWithNewOpacity(.6f * Env));
+		Rec(TEXT("navpulse"), FMath::Min(A.X, B.X), FMath::Min(A.Y, B.Y), FMath::Abs(B.X - A.X), FMath::Abs(B.Y - A.Y));
+	}
+
 	// ---- objective waypoints: a white diamond + range on screen (health bar on a generator), an edge diamond off screen
 	auto Range = [](float Metres) { return Metres >= 1000.f ? FString::Printf(TEXT("%.1f km"), Metres / 1000.f) : FString::Printf(TEXT("%.0f m"), Metres); };
 	for (const FWaypoint& Wp : View.Waypoints)
@@ -1343,16 +1412,21 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			}
 		}
 		const float H = Line2.IsEmpty() ? 38.f : 64.f;
-		const float X = CenterX - SubtitleMaxWidth * .5f;
-		P.Plate(X, SubtitleY, SubtitleMaxWidth, H, 8.f, T::Plate().CopyWithNewOpacity(.6f * Fade));
-		Rec(TEXT("subtitle"), X, SubtitleY, SubtitleMaxWidth, H);
-		Area += SubtitleMaxWidth * H;
+		// After the tag's own width ("UNKNOWN SIGNAL" ran into the line at a fixed 120 px, live capture).
+		const float TagW = Who.IsEmpty() ? 0.f : FMath::Max(P.Measure(Who, P.Font("Bold", 16, 80)), Who.Len() * 11.5f) + 20.f;
+		// The plate fits the line (a short bark sat alone in an 880 px plate, live capture), centred, never wider than the slot.
+		auto LineW = [&P](const FString& S) { return S.IsEmpty() ? 0.f : FMath::Max(P.Measure(S, P.Font("Medium", 22, 10)), S.Len() * 10.5f); };
+		const float PlateW = FMath::Clamp(44.f + TagW + FMath::Max(LineW(Line1), LineW(Line2)), 240.f, SubtitleMaxWidth);
+		const float X = CenterX - PlateW * .5f;
+		P.Plate(X, SubtitleY, PlateW, H, 8.f, T::Plate().CopyWithNewOpacity(.6f * Fade));
+		Rec(TEXT("subtitle"), X, SubtitleY, PlateW, H);
+		Area += PlateW * H;
 		if (bStatic)
 		{
 			for (int32 S = 0; S < 3; ++S) // scan lines drifting through the plate
 			{
 				const float Y = SubtitleY + FMath::Fmod(Now * 40.f + S * 21.f, H);
-				P.Box(X + 6.f, Y, SubtitleMaxWidth - 12.f, 1.f, T::Neutral().CopyWithNewOpacity(.08f * Fade));
+				P.Box(X + 6.f, Y, PlateW - 12.f, 1.f, T::Neutral().CopyWithNewOpacity(.08f * Fade));
 			}
 		}
 		const float TextX = X + 22.f + Jitter;
@@ -1360,8 +1434,6 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		{
 			P.Words(TextX, SubtitleY + 8.f, Who, 16, Tag.CopyWithNewOpacity(Fade * Flicker), "Bold", 0.f, 80);
 		}
-		// After the tag's own width ("UNKNOWN SIGNAL" ran into the line at a fixed 120 px, live capture).
-		const float TagW = Who.IsEmpty() ? 0.f : FMath::Max(P.Measure(Who, P.Font("Bold", 16, 80)), Who.Len() * 11.5f) + 20.f;
 		const float BodyX = TextX + TagW;
 		const FLinearColor Body = T::Neutral().CopyWithNewOpacity(Fade * Flicker);
 		if (bEcho)

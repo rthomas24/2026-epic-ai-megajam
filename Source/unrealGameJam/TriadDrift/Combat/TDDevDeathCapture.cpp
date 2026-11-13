@@ -16,6 +16,8 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/MovementComponent.h"
+#include "Engine/World.h"
 #include "Engine/LocalPlayer.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogTDDevDeathCapture, Log, All);
@@ -145,7 +147,53 @@ AActor* UTDDevDeathCapture::KillCentral(UWorld* InWorld, const FString& IdFilter
 	UE_LOG(LogTDDevDeathCapture, Display, TEXT("TD.Dev.KillCentral: %s (%s) at %.0f m, %.0f px from centre."), *Best->GetName(), *DescribeVictim(Best),
 		Pawn ? FVector::Dist(Pawn->GetActorLocation(), Best->GetActorLocation()) * 0.01f : -1.f, BestScore);
 	UTDStatics::ApplyTDDamage(Best, 1000000.f, ETDDamageKind::Energy, Pawn, Pawn, Best->GetActorLocation() - Dir * 100.f, Dir, true);
+	// It stands in for the player's own killing shot, so the HUD's kill X and KillConfirm play as they would for one
+	// (only projectile and blade hits broadcast the confirm).
+	const UTDHealthComponent* Health = UTDStatics::GetHealth(Best);
+	if (UTDEventBus* Bus = UTDEventBus::Get(Best); Bus && Health && Health->IsDead())
+	{
+		Bus->BroadcastHitConfirmed(Best, true);
+	}
 	return Best;
+}
+
+AActor* UTDDevDeathCapture::SpawnAtScreen(UWorld* World, FName EnemyId, const FVector2D& Screen01, float Metres)
+{
+	APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+	int32 W = 0, H = 0;
+	if (!PC)
+	{
+		return nullptr;
+	}
+	PC->GetViewportSize(W, H);
+	FVector Origin, Dir;
+	if (W <= 0 || !PC->DeprojectScreenPositionToWorld(Screen01.X * W, Screen01.Y * H, Origin, Dir))
+	{
+		UE_LOG(LogTDDevDeathCapture, Warning, TEXT("TD.Dev.SpawnAt: cannot deproject (no viewport)."));
+		return nullptr;
+	}
+	const FVector At = Origin + Dir * FMath::Max(5.f, Metres) * 100.f;
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	ATDEnemyShip* Enemy = World->SpawnActor<ATDEnemyShip>(ATDEnemyShip::StaticClass(), At, (-Dir).Rotation() + FRotator(0.f, 35.f, 0.f), Params);
+	if (!Enemy)
+	{
+		return nullptr;
+	}
+	Enemy->InitFromSpec(EnemyId);
+	// Held still: no pilot, no drift (staged captures: the same target in front of a chosen backdrop).
+	if (AController* C = Enemy->GetController())
+	{
+		C->UnPossess();
+		C->Destroy();
+	}
+	if (UMovementComponent* Move = Enemy->FindComponentByClass<UMovementComponent>())
+	{
+		Move->StopMovementImmediately();
+		Move->Deactivate();
+	}
+	UE_LOG(LogTDDevDeathCapture, Display, TEXT("TD.Dev.SpawnAt: %s held at screen (%.2f, %.2f), %.0f m."), *EnemyId.ToString(), Screen01.X, Screen01.Y, Metres);
+	return Enemy;
 }
 
 void UTDDevDeathCapture::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind)
@@ -229,6 +277,21 @@ namespace TDDevDeathCaptureImpl
 			const float Hold = Args.Num() > 2 ? FCString::Atof(*Args[2]) : 3.f;
 			const float Dilation = Args.Num() > 3 ? FCString::Atof(*Args[3]) : UTDDevDeathCapture::DefaultHoldDilation;
 			UTDDevDeathCapture::Arm(World, Args[0], Count, Hold, true, Dilation);
+		}));
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdSpawnAt(TEXT("TD.Dev.SpawnAt"),
+		TEXT("TD.Dev.SpawnAt <enemy id> [screen x 0..1=0.5] [screen y 0..1=0.5] [metres=40]: a held enemy (no pilot, no drift) at that screen point."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (Args.Num() < 1)
+			{
+				UE_LOG(LogTDDevDeathCapture, Warning, TEXT("TD.Dev.SpawnAt <enemy id> [x01] [y01] [metres]"));
+				return;
+			}
+			const float X = Args.Num() > 1 ? FCString::Atof(*Args[1]) : .5f;
+			const float Y = Args.Num() > 2 ? FCString::Atof(*Args[2]) : .5f;
+			const float M = Args.Num() > 3 ? FCString::Atof(*Args[3]) : 40.f;
+			UTDDevDeathCapture::SpawnAtScreen(World, FName(*Args[0]), FVector2D(X, Y), M);
 		}));
 
 	static FAutoConsoleCommandWithWorldAndArgs CmdKillCentral(TEXT("TD.Dev.KillCentral"),

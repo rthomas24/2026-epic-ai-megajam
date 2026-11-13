@@ -408,6 +408,26 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
 	FTDFXCue BreakupFinalBlast;
 
+	/**
+	 * Story (Act 1): the distortion field that hides the Dominion, far off and unreachable, until Cinder's field anchor
+	 * falls. Attached loop on the field shell, authored for a 1 km radius; gameplay scales VFXScale to the real
+	 * radius. When it has VFX the engineering stand-in (a lattice of lights) hides.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Field")
+	FTDFXCue DistortionFieldIdle;
+
+	/** Optional material for a sphere shell at the field radius (a translucent shimmer); used with or without the cue. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Field")
+	TSoftObjectPtr<UMaterialInterface> DistortionFieldMaterial;
+
+	/** A ship touching the field (it pushes the ship back), at the contact point. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Field")
+	FTDFXCue DistortionFieldContact;
+
+	/** The field collapsing when the passage opens (the Dominion's reveal), authored for a 1 km radius. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Field")
+	FTDFXCue DistortionFieldCollapse;
+
 	/** Stretch: the docking bay opening (ENG-29). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
 	FTDFXCue DockingBayOpen;
@@ -464,6 +484,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue AtmosphericEntry;
+
+	/** ENG-38 (T1): the entry roar, a 2D loop that persists across the planet load under the white cover. Only Sound is
+	 *  used. Empty: AtmosphericEntry's sound stands in. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue DescentRoar;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue LandingDust;
@@ -669,6 +694,24 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music", meta = (ClampMin = "0"))
 	float TutorialFadeOutSeconds = 20.f;
+
+	/**
+	 * Issue #24 (contract agreed with Audio): ONE continuous source (prelude + loop, 95 s) in a MetaSound Source whose
+	 * Wave Player loops source TutorialMusicDownbeatSeconds .. end (0:38 for 57 s) and whose Float input "StartTime"
+	 * (seconds into the source) feeds the Wave Player's Start Time. When set, it replaces TutorialPrelude / TutorialLoop:
+	 * a watched intro enters so the downbeat lands on the control frame; a skip (or no intro) enters at the downbeat
+	 * with TutorialMusicSkipFadeInSeconds. The asset carries its own gain and the Music sound class.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music")
+	TSoftObjectPtr<USoundBase> TutorialMusic;
+
+	/** Source time (s) of the downbeat that must coincide with control. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music", meta = (ClampMin = "0", Units = "s"))
+	float TutorialMusicDownbeatSeconds = 38.f;
+
+	/** Fade-in (s) when the music enters at the downbeat on a skipped intro (Nicholas: 150 ms). Watched: none. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music", meta = (ClampMin = "0", Units = "s"))
+	float TutorialMusicSkipFadeInSeconds = 0.15f;
 
 	/** Music for the intro, swelling into wave 1 (optional; silence when empty). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")

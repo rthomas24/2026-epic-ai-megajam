@@ -145,6 +145,8 @@ void UTDProjectileSubsystem::HandleActorKilled(AActor* Victim, AActor* Killer, E
 	}
 	Feel->RequestHitStop(BigKillHitStopSeconds, BigKillHitStopDilation);
 	++BigKillHitStops;
+	UE_LOG(LogTriadDrift, Display, TEXT("TD hit feel: big-kill hit-stop %.2f s at x%.2f (%s, bounds %.0f m)"), BigKillHitStopSeconds, BigKillHitStopDilation,
+		*Victim->GetName(), [Victim]() { FVector O, E; Victim->GetActorBounds(true, O, E, false); return E.GetMax() / 100.f; }());
 }
 
 void UTDProjectileSubsystem::HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds)

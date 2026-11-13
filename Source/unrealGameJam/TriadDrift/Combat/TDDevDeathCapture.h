@@ -37,6 +37,9 @@ public:
 	 * name, "" = any) narrows the choice. Returns the victim, or null. Console: TD.Dev.KillCentral [id] (non-shipping).
 	 */
 	static AActor* KillCentral(UWorld* World, const FString& IdFilter);
+
+	/** TD.Dev.SpawnAt: an enemy held still (no pilot, no drift) where screen point Screen01 (0..1) looks, Metres away. */
+	static AActor* SpawnAtScreen(UWorld* World, FName EnemyId, const FVector2D& Screen01, float Metres);
 	/** "ShardFighter" for an enemy ship, else the class name (logs). */
 	static FString DescribeVictim(const AActor* Victim);
 

@@ -155,6 +155,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Galaxy")
 	ATDDominion* GetDominion() const { return Dominion; }
 
+	/** Story: the convoys and the transponder on the way to Verdance (shown only in Phase Verdance). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Layout")
+	bool bSpawnVerdanceApproach = true;
+
+	const TArray<TObjectPtr<AActor>>& GetVerdanceApproach() const { return VerdanceApproach; }
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Galaxy")
 	TArray<ATDPlanetAtmosphere*> GetPlanets() const;
 
@@ -350,6 +356,9 @@ protected:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDPlanetAtmosphere>> Planets;
+
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<AActor>> VerdanceApproach;
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDPortalGate>> GateActors;

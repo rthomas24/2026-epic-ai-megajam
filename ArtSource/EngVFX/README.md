@@ -98,3 +98,41 @@ What changed and why, for whoever continues:
   break-up (not wired: their fields arrive with a later code commit).
 - **Game captures**: `Saved/EngVFX/burst.sh`-style loops (slow motion 0.05, capture, resume) through `play.py`.
   `TD.World.KillNearest` kills the NEAREST enemy, which is rarely the one just spawned: check the log line.
+
+## Round 5 (Nov 13)
+- **A cue's `VFXScale` did nothing to sprites or world-space particles** (only local-space mesh particles follow the
+  component's scale), so the carrier's 2.5x explosion and every scaled Dominion break-up burst came out at 1x. Every size,
+  radius and speed of a sprite / world-space emitter now multiplies by `SCL = User.Scale * Engine.Owner.Scale.x`
+  (`build_tier1.py`). Local-space mesh particles keep `User.Scale` (the component already scales them).
+- **Wiring** (`scripts/wire_r5.py`; Sound fields read before and after, plus `scripts/sound_check.py <git rev>` which
+  compares the audio asset paths stored in every data asset against a git revision): enemy `EngineTrail` =
+  `NS_TD_Engine_Enemy` on all five Null fleet ships (VFXScale 1 / 1 / 2 gunship / 1.5 bomber / 5 carrier),
+  `HullSectionExplosion`, `BreakupFinalBlast`, carrier `Explosion` VFXScale 2.5, Dominion `ShieldIdle` / `ShieldCollapse`.
+- **Explosions** are now procedural in the main: three layers of noise-eroded black-body fire sprites (`Core`, `Fireball`,
+  `Licks`), Grok's flipbook kept as one dim layer (0.42), real spark trails, three kinds of tumbling mesh debris,
+  rim-lit smoke (`M_TD_VFX_SmokeRim`), no painted scrap sprites.
+- **Real spark trails**: the toolset's `AddEmitter` accepts an emitter that lives INSIDE a template system, by sub-object
+  path (`...Templates/Systems/AttributeReaderTrails.AttributeReaderTrails:Leaders_0` and `:Followers_0`). `Followers`
+  spawns particles along every particle of the emitter named `Leaders` (keep that name). `spark_trails()` in
+  `build_tier1.py`. Trap: leaders spawn at the exact centre, so velocity mode `From Point` gives them no direction; use
+  `In Cone` with a 360 degree angle.
+- **Tracers**: a dark translucent body under the bolt (`M_TD_VFX_BoltShadow`, `SortOrderHint` -10) and a white needle
+  core, so a magenta shot reads against the magenta nebula.
+- **Ship `HullHit` / `ShieldHit`** are now the ram / beam / splash / melee look (T4, fe7ca8f: a projectile hit plays only
+  the weapon's impact cue): a directional spray along +X.
+- **Memory**: one 18-emitter explosion rebuild takes the editor from 4 GB to 25 GB (4.5 minutes). One explosion per editor
+  session, always; nothing else in that session.
+- **Tier 2 and story effects**: `scripts/build_tier2.py` (run through `rebuild_all.sh T2:<prefixes>`; it reuses the tier 1
+  helpers). Each system's intended slot is in the comment above it. New materials: `M_TD_VFX_Field` (distortion shell on
+  the engine sphere), `M_TD_VFX_FlipArc` (Grok's electric arc), `M_TD_VFX_Glitch`, `M_TD_VFX_Swirl`.
+- **Game captures**: `TD.Dev.KillCentral <Id>` kills what is in front of the camera (set `TD.Dev.CaptureOnDeath 0` to keep
+  the player's camera); frame rate from the log's frame counter between two `TD.World.DominionStatus` lines.
+- **Later in round 5**: a system whose emitters reference sub-objects of the engine's template system builds but does
+  NOT save (and `save_loaded_asset` failed silently; `tdvfx` now logs `SAVE FAILED`). `scripts/make_trail_emitters.py`
+  copies the two emitters into `/Game/TriadDrift/Gameplay/VFX/Emitters/NE_TD_Leaders` / `NE_TD_Followers` with
+  `AssetTools.duplicate_asset`; the builder's `leaders` / `followers` bases use those.
+- A system made only of persistent (`single`) emitters compiles and never activates: it needs one spawning emitter.
+- A big system can report "not active" in `check_active.py` right after the editor starts (still compiling): run it twice.
+- The distortion field is wired (`ShieldIdle` / `ShieldCollapse`, VFXScale 0.46 = 460 m radius). From inside it overlays
+  the sky with a faint violet marbling; lower the `Shell` / `Inner` brightness in `build_tier2.py` if that is too much.
+- Sheets: `review/tier1_r5_*` (real `-game` captures), `review/tier2_r5_*` (Play-In-Editor rows, except `_field_wired_game`).

@@ -9,6 +9,7 @@
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Waves/TDWaveTypes.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
@@ -312,6 +313,11 @@ bool UTDHintComponent::IsSuppressed() const
 	if (const UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive())
 	{
 		if (Hyper->GetState() != ETDHyperdriveState::Idle) { return true; }
+	}
+	// A story transmission on air owns the lower lane (T2's HUD holds the card back): the hint waits, its clock stopped.
+	if (const UTDStorySubsystem* Story = UTDStorySubsystem::Get(this); Story && Story->GetCurrentTransmission().bActive)
+	{
+		return true;
 	}
 	return false;
 }
