@@ -70,6 +70,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsCharging() const { return ChargeTimeLeft > 0.f; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") float GetCooldownLeft(ETDCrewAttack Attack) const;
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsPlaceholderVisible() const;
+	/** The placeholder wind-up tell (muzzle glow + aim line) is up: only while telegraphing and only when the visuals
+	 *  supply no Telegraph cue of their own. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsTellShown() const;
+	UStaticMeshComponent* GetTellGlow() const { return TellGlow; }
+	UStaticMeshComponent* GetTellLine() const { return TellLine; }
 
 	/** Summoned grunts still alive (Warden). */
 	int32 GetAliveSummons() const;
@@ -128,6 +133,14 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Crew")
 	TObjectPtr<UTDHealthComponent> Health;
 
+	/** Placeholder tell: an enemy red-orange glow at the muzzle growing over the wind-up (all attacks). */
+	UPROPERTY(VisibleAnywhere, Category = "Crew")
+	TObjectPtr<UStaticMeshComponent> TellGlow;
+
+	/** Placeholder tell: a thin aim line from the muzzle to the target during a ranged wind-up. */
+	UPROPERTY(VisibleAnywhere, Category = "Crew")
+	TObjectPtr<UStaticMeshComponent> TellLine;
+
 private:
 	void ReleaseAttack();
 	void FinishAttack();
@@ -143,6 +156,8 @@ private:
 	float FilterDamage(const FTDDamageInfo& Info);
 	void LoadDefaultVisuals();
 	void PlayCrewCue(FName Name, const struct FTDFXCue& Cue, bool bAttached, const FVector& Location);
+	void UpdateTell();
+	bool bTellTinted = false;
 
 	UFUNCTION()
 	void HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
