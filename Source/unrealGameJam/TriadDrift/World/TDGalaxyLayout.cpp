@@ -3,6 +3,7 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 
 #include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/World/TDVerdanceApproach.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "TriadDrift/World/TDPortalGate.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
@@ -455,6 +456,41 @@ void ATDGalaxyLayout::Build()
 			for (int32 i = -2; i <= 2; ++i)
 			{
 				WorldSys->AddObstacle(Dominion->GetActorTransform().TransformPosition(FVector(i * E.X * 0.4f, 0.f, 0.f)), FMath::Max(E.Y, E.Z) * 1.3f);
+			}
+		}
+	}
+
+	// Story (storyline 14-18, reduced): on the way to Verdance, Armada convoys ferry scanning gear from the Dominion's
+	// field toward Verdance (one hauler scannable), and a transponder flickers off Verdance's orbit. Shown only in
+	// Phase Verdance; spawned once here so they cost nothing the rest of the run.
+	if (bSpawnVerdanceApproach && Dominion)
+	{
+		const FTDPlanetSpec* V = Layout.Planets.FindByPredicate([](const FTDPlanetSpec& P) { return P.Destination == ETDDestination::Verdance; });
+		if (V)
+		{
+			const FTransform Xf = GetActorTransform();
+			const FVector VLoc = Xf.TransformPosition(V->Location);
+			const FVector From = Dominion->GetActorLocation();
+			const FVector Dir = (VLoc - From).GetSafeNormal();
+			const FVector Side = FVector::CrossProduct(Dir, FVector::UpVector).GetSafeNormal();
+			const FVector A = From + Dir * 150000.f;							// out of the field
+			const FVector B = VLoc - Dir * (V->AtmosphereRadius + 50000.f);		// short of the atmosphere
+			FActorSpawnParameters P;
+			P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			const FVector Offsets[] = { Side * 60000.f + FVector(0.f, 0.f, 8000.f), -Side * 90000.f - FVector(0.f, 0.f, 6000.f) };
+			for (int32 i = 0; i < 2; ++i)
+			{
+				if (ATDArmadaConvoy* C = GetWorld()->SpawnActor<ATDArmadaConvoy>(ATDArmadaConvoy::StaticClass(), FTransform(A + Offsets[i]), P))
+				{
+					C->SetupLane(A + Offsets[i], B + Offsets[i], i == 0 ? 4 : 3, /*bScannable*/ i == 0);
+					VerdanceApproach.Add(C);
+				}
+			}
+			FTransform Orbit;
+			const FVector BeaconAt = (FindReturnPoint(V->ReturnPoint, Orbit) ? Orbit.GetLocation() : VLoc) + Side * 30000.f + FVector(0.f, 0.f, 12000.f);
+			if (ATDTransponderBeacon* T = GetWorld()->SpawnActor<ATDTransponderBeacon>(ATDTransponderBeacon::StaticClass(), FTransform(BeaconAt), P))
+			{
+				VerdanceApproach.Add(T);
 			}
 		}
 	}
