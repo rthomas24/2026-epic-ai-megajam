@@ -61,6 +61,11 @@ static TAutoConsoleVariable<int32> CVarTDIntro(
 	TEXT("ENG-33 cinematic intro on New Game: 1 = play (default), 0 = never."),
 	ECVF_Default);
 
+static TAutoConsoleVariable<float> CVarTDIntroEclipseEV(
+	TEXT("td.Intro.EclipseEV"), -3.5f,
+	TEXT("Intro shot 2 (Verdance in eclipse): the exposure bias (stops; the galaxy's exposure is manual). Lower = darker."),
+	ECVF_Default);
+
 static TAutoConsoleVariable<int32> CVarTDIntroSunFromLight(
 	TEXT("td.Intro.SunFromLight"), 0,
 	TEXT("Intro eclipse: 0 = the sky's sun (yaw 35, pitch 18), 1 = the brightest directional light in the level."),
@@ -622,8 +627,9 @@ void UTDIntroDirector::BuildShots()
 		S.Id = TEXT("Eclipse");
 		S.Duration = 6.f;
 		// The sun creeps up to the limb and stays just behind it: a rim of light, never a flare.
-		S.CamFrom = Base + Lat * (R * 0.45f) + Up * (R * 0.18f);
-		S.CamTo = Base + Lat * (R * 0.74f) + Up * (R * 0.2f);
+		// Silhouetted Verdance; the sun slides out from behind it and breaks over the limb in the last second.
+		S.CamFrom = Base + Lat * (R * 0.80f) + Up * (R * 0.12f);
+		S.CamTo = Base + Lat * (R * 1.03f) + Up * (R * 0.12f);
 		S.LookFrom = PV + Lat * (R * 0.35f);
 		S.LookTo = PV + Lat * (R * 0.5f);
 		S.FocalFrom = 85.f;
@@ -835,6 +841,35 @@ void UTDIntroDirector::BeginShot(int32 Index)
 		}
 	}
 	RestoreGateSurface();
+	RestoreShotHidden();
+	if (S.Id == TEXT("Eclipse"))
+	{
+		// An eclipse needs the night side dark: the sky's fill light (lighting the shadow side for gameplay) is off
+		// for this shot, and so are the gates near the planet (a pink ring floating beside it at 135 mm).
+		if (const UWorld* W = GetWorld())
+		{
+			for (TObjectIterator<UDirectionalLightComponent> It; It; ++It)
+			{
+				if (It->GetWorld() == W && It->IsVisible() && !It->IsUsedAsAtmosphereSunLight())
+				{
+					It->SetVisibility(false);
+					ShotHiddenLights.Add(*It);
+				}
+			}
+		}
+		if (const ATDGalaxyLayout* Galaxy = ATDGalaxyLayout::Get(this))
+		{
+			const FTDPlanetSpec* V = Galaxy->GetLayout().Planets.FindByPredicate([](const FTDPlanetSpec& P) { return P.Destination == ETDDestination::Verdance; });
+			for (ATDPortalGate* G : Galaxy->GetGateActors())
+			{
+				if (G && V && !G->IsHidden() && FVector::Dist(G->GetActorLocation(), V->Location) < V->PlanetRadius * 4.f)
+				{
+					G->SetActorHiddenInGame(true);
+					ShotHiddenActors.Add(G);
+				}
+			}
+		}
+	}
 	if (S.Id == TEXT("Gate"))
 	{
 		// The ring frames Cinder: hide the gate's membrane for the shot (put back at the next cut).
@@ -870,7 +905,11 @@ void UTDIntroDirector::BeginShot(int32 Index)
 		// The last beat eases into the chase camera: lift the exposure so the ship reads, not a black frame.
 		FPostProcessSettings& PP = Camera->GetCameraComponent()->PostProcessSettings;
 		PP.bOverride_AutoExposureBias = true;
-		PP.AutoExposureBias = S.Id == TEXT("Title") ? 1.5f : (S.Id.ToString().StartsWith(TEXT("Threat")) ? 0.7f : (S.Id == TEXT("Eclipse") ? -1.5f : 0.f));
+		// The galaxy's exposure is manual (the sky's post-process), so the bias is the exposure. The eclipse is shot
+		// well under it so the night side reads as a silhouette, with the lens flare down (its ghosts sat on the disc).
+		const bool bEclipse = S.Id == TEXT("Eclipse");
+		PP.LensFlareIntensity = bEclipse ? 0.f : 1.6f;
+		PP.AutoExposureBias = S.Id == TEXT("Title") ? 1.5f : (S.Id.ToString().StartsWith(TEXT("Threat")) ? 0.7f : (bEclipse ? EclipseExposureEV100() : 0.f));
 	}
 	if (S.Id == TEXT("Title"))
 	{
@@ -1276,6 +1315,31 @@ void UTDIntroDirector::SetKeyLight(const FVector& At, float Radius, float Intens
 	}
 }
 
+float UTDIntroDirector::EclipseExposureEV100()
+{
+	return CVarTDIntroEclipseEV.GetValueOnGameThread();
+}
+
+void UTDIntroDirector::RestoreShotHidden()
+{
+	for (const TWeakObjectPtr<UDirectionalLightComponent>& L : ShotHiddenLights)
+	{
+		if (UDirectionalLightComponent* C = L.Get())
+		{
+			C->SetVisibility(true);
+		}
+	}
+	ShotHiddenLights.Reset();
+	for (const TWeakObjectPtr<AActor>& A : ShotHiddenActors)
+	{
+		if (AActor* Actor = A.Get())
+		{
+			Actor->SetActorHiddenInGame(false);
+		}
+	}
+	ShotHiddenActors.Reset();
+}
+
 void UTDIntroDirector::RestoreGateSurface()
 {
 	if (UPrimitiveComponent* P = HiddenSurface.Get())
@@ -1612,6 +1676,7 @@ void UTDIntroDirector::Finish()
 		return;
 	}
 	ClearShowcase();
+	RestoreShotHidden();
 	if (SequencePlayer)
 	{
 		SequencePlayer->Stop();

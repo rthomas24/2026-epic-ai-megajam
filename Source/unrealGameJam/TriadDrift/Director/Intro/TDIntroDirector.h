@@ -177,6 +177,9 @@ private:
 	/** The Dominion hull's radius (cm) from its art, for framing. */
 	static float DominionRadius();
 	void RestoreGateSurface();
+	/** Put back what one shot hid (the eclipse's fill light, the gates beside Verdance). */
+	void RestoreShotHidden();
+	static float EclipseExposureEV100();
 	void ApplyLens(float FocalMm, float FStop, float FocusDistance);
 	void PlayNarrationVoice(int32 Line);
 	void EnsureWidget();
@@ -200,6 +203,8 @@ private:
 	UPROPERTY(Transient) TObjectPtr<AActor> DominionStandIn;
 	/** Shot 5: the gate's membrane, hidden so the ring frames Cinder instead of covering it. */
 	TWeakObjectPtr<class UPrimitiveComponent> HiddenSurface;
+	TArray<TWeakObjectPtr<class UDirectionalLightComponent>> ShotHiddenLights;
+	TArray<TWeakObjectPtr<AActor>> ShotHiddenActors;
 	UPROPERTY(Transient) TObjectPtr<ULevelSequencePlayer> SequencePlayer;
 	UPROPERTY(Transient) TObjectPtr<ALevelSequenceActor> SequenceActor;
 	TWeakObjectPtr<APlayerController> Player;
