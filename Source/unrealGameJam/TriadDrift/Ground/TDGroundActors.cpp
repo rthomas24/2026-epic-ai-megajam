@@ -162,7 +162,10 @@ void ATDInteractableActor::BeginPlay()
 {
 	Super::BeginPlay();
 	TDGroundShapes::Tint(Mesh, FLinearColor(0.1f, 0.7f, 0.9f)); // readable cyan console, solid
-	TDPropArt::Dress(Mesh, TDPropArt::Load(ConsoleMesh));
+	// A console whose own art is missing (the board point's SM_BoardPoint does not exist yet) wears the kit console,
+	// never the bare cyan placeholder box (it filled the bottom of the view at the pads).
+	UStaticMesh* Art = TDPropArt::Load(ConsoleMesh);
+	TDPropArt::Dress(Mesh, Art ? Art : TDPropArt::Load(TDPropArt::Default(TEXT("SM_Console"))));
 	if (TopCap && TopCap->GetStaticMesh() && Mesh->GetStaticMesh())
 	{
 		// The column's base sits on the console's top face (both in the console mesh's local space).
