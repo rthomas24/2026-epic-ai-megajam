@@ -1,6 +1,9 @@
 // Triad Drift - engineering host for Nick's native space HUD (Teammate 2).
 
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "TriadDrift/Core/TDEventBus.h"
+#include "Sound/SoundBase.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Blueprint/UserWidget.h"
 #include "Engine/Engine.h"
@@ -68,6 +71,7 @@ void UTDUIHostSubsystem::Deinitialize()
 	HideGround();
 	HidePause();
 	BindPause(nullptr);
+	BindHitSounds(false);
 	SetDevHUDSuppressed(false);
 	Super::Deinitialize();
 }
@@ -135,6 +139,7 @@ void UTDUIHostSubsystem::Evaluate()
 	// On foot and pause first: independent of the space HUD's switch.
 	APlayerController* LocalPC = FindLocalController();
 	BindPause(LocalPC);
+	BindHitSounds(true);
 	if (WantsGroundHUD(LocalPC))
 	{
 		if (!GroundWidget || GroundOwner.Get() != LocalPC)
@@ -356,6 +361,41 @@ void UTDUIHostSubsystem::BindPause(APlayerController* PC)
 	{
 		New->OnPauseChanged.AddUniqueDynamic(this, &UTDUIHostSubsystem::HandlePauseChanged);
 	}
+}
+
+void UTDUIHostSubsystem::BindHitSounds(bool bBind)
+{
+	UTDEventBus* Bus = bBind ? UTDEventBus::Get(this) : nullptr;
+	if (HitBus.Get() == Bus)
+	{
+		return;
+	}
+	if (UTDEventBus* Old = HitBus.Get())
+	{
+		Old->OnHitConfirmed.RemoveDynamic(this, &UTDUIHostSubsystem::HandleHitConfirmed);
+	}
+	HitBus = Bus;
+	if (Bus)
+	{
+		Bus->OnHitConfirmed.AddUniqueDynamic(this, &UTDUIHostSubsystem::HandleHitConfirmed);
+	}
+}
+
+void UTDUIHostSubsystem::HandleHitConfirmed(AActor* Target, bool bKill)
+{
+	const UTDUIStyle* Style = StyleOverride ? StyleOverride.Get() : UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+	if (!Style)
+	{
+		return;
+	}
+	const FTDFXCue& Cue = bKill ? Style->KillConfirm : Style->HitConfirm;
+	USoundBase* Sound = Cue.Sound.IsNull() ? nullptr : Cue.Sound.LoadSynchronous();
+	if (!Sound)
+	{
+		return; // silent until Nick assigns the sound
+	}
+	UGameplayStatics::PlaySound2D(this, Sound); // 2D, no overrides: the asset's class, volume and concurrency apply
+	++(bKill ? KillSoundsPlayed : HitSoundsPlayed);
 }
 
 void UTDUIHostSubsystem::HandlePauseChanged(bool bPaused)

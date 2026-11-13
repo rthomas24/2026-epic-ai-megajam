@@ -19,6 +19,9 @@
 #include "TriadDrift/UI/TDGroundHUDWidget.h"
 #include "TriadDrift/UI/TDPauseMenuWidget.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "Sound/SoundWave.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDEventBus.h"
 
 namespace TDUIGroundPauseTests
 {
@@ -227,6 +230,48 @@ bool FTDUIPauseScreenFollowsPause::RunTest(const FString& Parameters)
 	Pause.Set(0);
 	Host->HandlePauseChanged(true);
 	TestNull(TEXT("TD.UI.PauseScreen 0: no screen (the dev HUD line)"), Host->GetPauseScreen());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDUIHitConfirmSounds, "TriadDrift.UI.HitConfirmSounds", TD_TEST_FLAGS)
+bool FTDUIHitConfirmSounds::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass());
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("host"), Host) || !TestNotNull(TEXT("bus"), Bus))
+	{
+		return false;
+	}
+	Host->bAddToViewport = false;
+	UTDUIStyle* Style = NewObject<UTDUIStyle>();
+	Host->StyleOverride = Style;
+	Host->Evaluate(); // binds OnHitConfirmed
+
+	// Unset slots: silent.
+	Bus->BroadcastHitConfirmed(nullptr, false);
+	Bus->BroadcastHitConfirmed(nullptr, true);
+	TestEqual(TEXT("unset: no hit sound"), Host->GetHitSoundsPlayed(), 0);
+	TestEqual(TEXT("unset: no kill sound"), Host->GetKillSoundsPlayed(), 0);
+
+	// Set: a hit plays HitConfirm, a kill plays KillConfirm (never both).
+	USoundWave* Hit = NewObject<USoundWave>(Style);
+	USoundWave* Kill = NewObject<USoundWave>(Style);
+	Style->HitConfirm.Sound = Hit;
+	Style->KillConfirm.Sound = Kill;
+	Bus->BroadcastHitConfirmed(nullptr, false);
+	Bus->BroadcastHitConfirmed(nullptr, false);
+	Bus->BroadcastHitConfirmed(nullptr, true);
+	TestEqual(TEXT("two hits: two hit sounds"), Host->GetHitSoundsPlayed(), 2);
+	TestEqual(TEXT("one kill: one kill sound"), Host->GetKillSoundsPlayed(), 1);
+
+	// Only the kill slot set: hits stay silent, kills still sound.
+	Style->HitConfirm.Sound = nullptr;
+	Bus->BroadcastHitConfirmed(nullptr, false);
+	Bus->BroadcastHitConfirmed(nullptr, true);
+	TestEqual(TEXT("hit slot unset: still two"), Host->GetHitSoundsPlayed(), 2);
+	TestEqual(TEXT("kill slot set: two kills"), Host->GetKillSoundsPlayed(), 2);
 	return true;
 }
 
