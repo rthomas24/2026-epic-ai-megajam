@@ -366,6 +366,44 @@ missing, the cylinder shows.
   must be in the cook list (Lead) or the packaged game shows the cylinder.
 - **Test:** `Travel.Landing.PadArtSwapsTheLookNotTheCollision`.
 
+## Combat music director (N-029, `UTDMusicDirectorSubsystem`, a world subsystem in Input/)
+
+The director plays `UTDUIStyle::CombatMusic` (Nick's slot, read by name) through one 2D UI-sound audio component per
+map, using the sound's own class and volume. The options' Music slider reaches it through `SC_MenuTheme_Music`
+(or `SC_TD_Music` once that exists).
+- **When it plays:** while a fight is on, meaning any of `FTDAudioState::bWaveActive`, the DominionAssault phase, or
+  any `ATDEncounterVolume::IsActive()`.
+- **Fades:** a 2 s fade in. When the fight ends, a 6 s hold at full volume, then a 4 s fade out. A new fight during the
+  hold carries on; during the fade out the music swells back up without restarting.
+- **1 s stop:** on a level travel (any flow travel, quit to menu included), on the Victory phase and on a CUT. After a
+  CUT it stays silent until the retake starts (`OnTakeStarted`), then plays from the top.
+- **Never plays** with an empty slot or on the menu map. The component belongs to the map, so the menu's own music
+  can never overlap it.
+- **Why a world subsystem:** it ticks with the world (also when paused, in real seconds), its one component dies with
+  the map, and tests drive it with a test world.
+- **Tests (test sound):** `Input.Music.FadeInHoldAndFadeOut`, `Input.Music.NewFightInHoldOrFadeCarriesOn`,
+  `Input.Music.OneSecondStopOnCutTravelVictory`, `Input.Music.TriggersAndEmptySlot` (real Dominion phase and a real
+  encounter volume).
+- **Not yet:** heard in the game. The track isn't in the slot on this branch, and nobody has listened; Nicholas
+  approves by ear.
+
+## Placeholder engine trail
+
+Every squad ship draws a short ribbon of glow segments in its squad colour behind the exhaust
+(`UTDFlightFeedbackComponent`, `Tuning.TrailSegments` = 10 samples, 0.03 s apart).
+- The segments follow the exhaust's actual path, so the ribbon bends through turns. It tapers from 55 cm to nothing,
+  and boost makes it 40 % thicker and longer (it is speed × 0.3 s long: about 18 m at cruise).
+- It never draws across a teleport, and it hides when the ship is hidden, parked, landed with engines off, or when
+  `UTDShipVisuals::EngineTrail` has a VFX.
+- Exhaust point: the art `Engine` socket or part, else the rear of the hull or the placeholder glow
+  (`ATDShip::GetEngineExhaustLocation`).
+- **Test:** `Flight.Feedback.EngineTrailRibbonWithNoArt` (19 m at 60 m/s, longer on boost, no streak across a
+  400 m jump).
+- **Seen live:** only from the chase camera, where the player's own trail is end-on and hidden behind the hull. The
+  side view is for T3's intro capture.
+
+Settings page captures (offscreen, Nov 13): `Saved/TDShots/settings/{720p,1080p}_0N_*.png`.
+
 ## How to try it
 
 Tests:
