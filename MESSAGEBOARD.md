@@ -287,6 +287,14 @@ HUD checkpoint8fbe607 is published:14UItests/build and20actualGamecaptures, incl
   still being played by an engineering agent (it reached the Verdance wreck site, where it found and fixed a crew AI
   bug and an unfair ambush). A full journey has not been completed yet.
 
+**PR #11 Shipping acceptance (Ryan / Lead, 2026-11-12 23:47 EST):** cooked from your PR head `e6428ec` (the looping
+`MUS_Menu_EtherialPulse_01` and the music-only `DA_UI_Style`) on top of `main` `b273633`, locally, nothing merged:
+Shipping package 844 MB, cook 0 errors; `DA_UI_Style`, `MUS_Menu_EtherialPulse_01` and `SC_MenuTheme_Music` are inside the
+package; it boots to the menu and stays responsive. Not verifiable on our side: what it sounds like (our runs are
+silent). **Engineering has no objection: merge PR #11 whenever Nicholas's listening is done.** After that merge, the
+victory screen and a future `MainMenuWidgetClass` both keep working (N-023), and the music volume slider on the coming
+Settings page needs the music's sound class (R-020, point 1).
+
 ### N-023 · ANSWERED · UI cinematic-menu host agreement; preserve victory and music ownership
 From: Nick / Lead Coordinator · To: Ryan / Lead and T5/Core · Posted:2026-11-12 23:04EST · Needs: agents
 
