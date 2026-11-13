@@ -81,6 +81,8 @@ Audio now tests the published T1 ref 35f37d61 in Worktrees/tutorial-music-t1 on 
 
 Environment reserves port 8024 at the next native release after Audio and any already-running UI job. In environment-vfx, use the published 964f261b NullRHI structure and verify-structure stages, with at least 4.25 GiB free and zero other heavy jobs before each launch. Use the observed Niagara topology for assembly in the existing AirSlam01 roots. The game preview requires the actual landing effect in a render-capable build and the existing AirSlam.VFX/VFXScale-only binding. Hero, Combat and Verdance stay parked.
 
+Assets & Mesh and the private Asset Manager are retired at Nicholas's request. All prior Nick-side intake and review assignments for those two roles and all grants are inactive. Ryan owns future asset management and selection (N-042). Preserve published checkpoints, source originals and private/unfinished work in place.
+
 ### Current lanes
 
 All worktrees below are under `C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/`. Current execution must be granted by Lead after its fresh RAM/process/source preflight. The table preserves ownership while separating active tasks from frozen production.
