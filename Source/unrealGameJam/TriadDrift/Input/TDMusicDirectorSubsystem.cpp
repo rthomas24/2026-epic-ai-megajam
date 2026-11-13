@@ -300,7 +300,9 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 	UTDTutorialMusicSubsystem* Tutorial = UTDTutorialMusicSubsystem::Get(World);
 	if (Tutorial)
 	{
-		Tutorial->Step(World, Dt, bMenuMap);
+		// Issue #24: the tutorial voice is timed against the intro, which runs on unclamped real time; the world's delta
+		// is clamped on hitch frames (MaxUndilatedFrameTime), so step it on the larger of the two.
+		Tutorial->Step(World, FMath::Max(Dt, World->DeltaRealTimeSeconds), bMenuMap);
 	}
 	const bool bTutorialHolds = Tutorial && Tutorial->IsHoldingCombatMusic();
 	const bool bBlocked = bTravelling || bVictory || bMenuMap || bTutorialHolds || (MusicState == ETDCombatMusicState::Silent && !ResolveMusic());

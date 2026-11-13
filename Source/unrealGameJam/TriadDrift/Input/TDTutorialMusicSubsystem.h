@@ -89,6 +89,9 @@ public:
 	/** Source time on the control frame (single voice): the downbeat, for a correct hand-off. */
 	float GetSourceTimeAtControl() const { return EnterClock >= 0.f && ControlClock >= 0.f ? EnteredAtSource + (ControlClock - EnterClock) : -1.f; }
 	int32 GetFadesBegun() const { return FadesBegun; }
+	/** Seconds from Play to the voice's first audible sample (-1: not reported yet). */
+	float GetAudibleStartDelay() const { return (PlayWallTime >= 0.0 && AudibleWallTime >= 0.0) ? float(AudibleWallTime - PlayWallTime) : -1.f; }
+	int32 GetPrimedCount() const { return Primed.Num(); }
 	float GetControlClock() const { return ControlClock; }
 	float GetFadeVolume() const { return Volume; }
 	int32 GetVoicesStarted() const { return VoicesStarted; }
@@ -119,6 +122,12 @@ private:
 
 	ETDTutorialMusicState State = ETDTutorialMusicState::Off;
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> Voice;
+	/** Issue #24 (cold runs): the sounds loaded and held from the moment a New Game arms, until the tutorial ends. */
+	UPROPERTY(Transient) TArray<TObjectPtr<USoundBase>> Primed;
+	void HandleEnvelope(const UAudioComponent* Comp, const USoundWave* Wave, const float Envelope);
+	double PlayWallTime = -1.0;
+	double AudibleWallTime = -1.0;
+	float LastStepDt = 1.f / 60.f;
 	UPROPERTY(Transient) TObjectPtr<USoundBase> TestPrelude;
 	UPROPERTY(Transient) TObjectPtr<USoundBase> TestLoop;
 	bool bTestSounds = false;

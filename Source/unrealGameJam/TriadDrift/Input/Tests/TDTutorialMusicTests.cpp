@@ -319,4 +319,25 @@ bool FTDTutorialEndsOnEscape::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTutorialPrimedAndRealClock, "TriadDrift.Input.TutorialMusic.PrimedAtArmAndRealTimeClock", TD_TEST_FLAGS)
+bool FTDTutorialPrimedAndRealClock::RunTest(const FString& Parameters)
+{
+	using namespace TDTutorialMusicTest;
+	FRun R;
+	if (!TestTrue(TEXT("set up"), R.Init(false))) { return false; }
+	USoundWave* Track = NewObject<USoundWave>(GetTransientPackage(), TEXT("TD_TestTutorialSingle"));
+	Track->Duration = 95.f;
+	R.T->SetSingleVoiceForTests(Track, 38.f, FadeSeconds, 0.15f);
+	R.GI->StartNewRun(); // arm again with the sound set
+	TestEqual(TEXT("primed at arm: the music is loaded and held before the intro"), R.T->GetPrimedCount(), 1);
+	// A hitch: the world's delta is clamped, the real time is not; the tutorial clock follows real time.
+	R.Run(0.2f, 1.f / 60.f);
+	const float Before = R.T->GetClock();
+	R.T->Step(R.W.GetWorld(), 1.5f, false); // a 1.5 s frame, as the music director now passes it (max of clamped and real)
+	TestEqual(TEXT("a 1.5 s hitch is 1.5 s on the clock"), R.T->GetClock() - Before, 1.5f, 0.001f);
+	R.T->Stop(TEXT("test"));
+	TestEqual(TEXT("released when the tutorial ends"), R.T->GetPrimedCount(), 0);
+	return true;
+}
+
 #endif

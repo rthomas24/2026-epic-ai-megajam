@@ -48,11 +48,15 @@ void UTDTutorialMusicSubsystem::ArmForNewRun()
 	Volume = 1.f;
 	bPreludeStarted = false;
 	Intro.Reset();
-	UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: armed for a new run"));
+	// Prime (issue #24, cold runs): load the music now, in the menu, and hold it, so the intro never waits on it.
+	Primed.Reset();
+	for (USoundBase* S : { SingleSound(), PreludeSound(), LoopSound() }) { if (S) { Primed.AddUnique(S); } }
+	UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: armed for a new run (%d sound(s) primed)"), Primed.Num());
 }
 
 void UTDTutorialMusicSubsystem::Stop(const TCHAR* Why)
 {
+	Primed.Reset();
 	if (State != ETDTutorialMusicState::Off)
 	{
 		UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: stopped (%s)"), Why);
@@ -188,8 +192,18 @@ void UTDTutorialMusicSubsystem::HandleIntroFinished(bool bPlayed, bool bSkipped)
 			const float IntroWall = PreludeIntroTime + (ControlClock - PreludeStartClock);
 			const UTDIntroDirector* Director = Intro.IsValid() ? Intro.Get() : UTDIntroDirector::Get(BoundWorld.Get());
 			const float IntroOwn = Director ? Director->GetIntroLength() : -1.f;
-			UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: drift at control %+.0f ms (voice wall age %.3f s after source %.3f, downbeat %.3f) | intro wall %.3f s vs intro time %.3f s"),
-				1000.f * (GetSourceTimeAtControl() - PreludeSeconds()), ControlClock - EnterClock, EnteredAtSource, PreludeSeconds(), IntroWall, IntroOwn);
+			const float Drift = GetSourceTimeAtControl() - PreludeSeconds();
+			const float Audible = GetAudibleStartDelay();
+			UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: drift at control %+.0f ms (voice wall age %.3f s after source %.3f, downbeat %.3f) | intro wall %.3f s vs intro time %.3f s | audible %s after Play"),
+				1000.f * Drift, ControlClock - EnterClock, EnteredAtSource, PreludeSeconds(), IntroWall, IntroOwn,
+				Audible >= 0.f ? *FString::Printf(TEXT("%.0f ms"), 1000.f * Audible) : TEXT("(not reported)"));
+			// Audible lateness shifts the heard downbeat after control by the same amount.
+			const float Heard = Drift - FMath::Max(Audible, 0.f);
+			if (FMath::Abs(Heard) > LastStepDt)
+			{
+				UE_LOG(LogTriadDrift, Warning, TEXT("TD tutorial music: the downbeat is %.0f ms %s control (source %.3f s at control vs downbeat %.3f s; audible delay %.0f ms; one frame %.0f ms)"),
+					1000.f * FMath::Abs(Heard), Heard > 0.f ? TEXT("before") : TEXT("after"), GetSourceTimeAtControl(), PreludeSeconds(), 1000.f * FMath::Max(Audible, 0.f), 1000.f * LastStepDt);
+			}
 		}
 	}
 	else
@@ -237,6 +251,7 @@ void UTDTutorialMusicSubsystem::Step(UWorld* World, float Dt, bool bMenuMap)
 		return;
 	}
 	Clock += Dt;
+	LastStepDt = Dt;
 	if (bMenuMap)
 	{
 		// New Game arms it from the menu: only a tutorial that has started stops there (quit to menu).
@@ -359,10 +374,23 @@ void UTDTutorialMusicSubsystem::StartSingle(float SourceTime, float FadeIn, UWor
 	// The MetaSound reads its entry point from "StartTime" (Audio's graph feeds it to the Wave Player). A plain wave
 	// (no MetaSound) is seeked by the component instead; a MetaSound is not, so the offset is never applied twice.
 	Voice->SetFloatParameter(TEXT("StartTime"), SourceTime);
+	// The first audible sample (-60 dB), on the wall clock: how late the audio thread really starts it.
+	PlayWallTime = FPlatformTime::Seconds();
+	AudibleWallTime = -1.0;
+	Voice->OnAudioSingleEnvelopeValueNative.AddUObject(this, &UTDTutorialMusicSubsystem::HandleEnvelope);
 	const float Seek = Cast<USoundWave>(Sound) ? SourceTime : 0.f;
 	if (FadeIn > 0.f) { Voice->FadeIn(FadeIn, 1.f, Seek); }
 	else { Voice->Play(Seek); }
 	UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: one voice in at source %.3f s (fade-in %.2f s) at clock %.4f s"), SourceTime, FadeIn, Clock);
+}
+
+void UTDTutorialMusicSubsystem::HandleEnvelope(const UAudioComponent* Comp, const USoundWave* Wave, const float Envelope)
+{
+	if (AudibleWallTime < 0.0 && Comp == Voice && Envelope > 0.001f)
+	{
+		AudibleWallTime = FPlatformTime::Seconds();
+		UE_LOG(LogTriadDrift, Log, TEXT("TD tutorial music: audible %.0f ms after Play"), 1000.0 * (AudibleWallTime - PlayWallTime));
+	}
 }
 
 void UTDTutorialMusicSubsystem::StopVoice()
