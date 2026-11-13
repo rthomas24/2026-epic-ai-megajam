@@ -37,7 +37,7 @@ TSharedRef<SWidget> UTDLoadingWidget::RebuildWidget()
                                     .Font(FCoreStyle::GetDefaultFontStyle("Bold",30)).ColorAndOpacity(Ink)]
                                 +SVerticalBox::Slot().AutoHeight().Padding(0,14,0,22)
                                 [SNew(STextBlock).Text_Lambda([Weak]{return Weak.IsValid()?Weak->StatusText:FText::GetEmpty();}).AutoWrapText(true)
-                                    .Font(FCoreStyle::GetDefaultFontStyle("Regular",18)).ColorAndOpacity(Ink)]
+                                    .Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(Ink)]
                                 +SVerticalBox::Slot().AutoHeight()[Colours]
                             ]
                         ]
