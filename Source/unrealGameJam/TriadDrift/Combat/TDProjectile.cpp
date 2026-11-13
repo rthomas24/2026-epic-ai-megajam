@@ -937,8 +937,15 @@ void ATDProjectile::PlayPlaceholderImpact(const FVector& Location, bool bCueHasA
 	if (UTDProjectileSubsystem* Subsystem = UTDProjectileSubsystem::Get(this))
 	{
 		const FLinearColor Color = (Spec.FX && !Spec.FX->Color.Equals(FLinearColor::White)) ? Spec.FX->Color : Spec.PlaceholderColor;
-		const float Seconds = Spec.SplashRadius > 0.f ? 0.3f : 0.14f;
-		Subsystem->PlayPlaceholderFlash(Location, FTDCombatPlaceholders::ImpactFlashRadius(Spec), FMath::Lerp(Color, FLinearColor::White, 0.3f), Seconds);
+		if (Spec.SplashRadius > 0.f || Spec.bIsMissile)
+		{
+			// Rockets, missiles, flak and mines: a real explosion read (core, shell, debris), not a pop.
+			Subsystem->PlayPlaceholderExplosion(Location, FTDCombatPlaceholders::ImpactFlashRadius(Spec), Color, 6);
+		}
+		else
+		{
+			Subsystem->PlayPlaceholderFlash(Location, FTDCombatPlaceholders::ImpactFlashRadius(Spec), FMath::Lerp(Color, FLinearColor::White, 0.3f), 0.14f);
+		}
 	}
 }
 

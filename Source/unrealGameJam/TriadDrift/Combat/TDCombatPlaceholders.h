@@ -97,6 +97,8 @@ public:
 	ATDCombatFlash();
 
 	void Play(const FVector& Location, float Radius, const FLinearColor& Color, float Seconds, USceneComponent* AttachTo);
+	/** A debris streak: flies at Velocity, stretched along it (Length x Thickness), shrinking as it fades. */
+	void PlayDebris(const FVector& Location, const FVector& Velocity, float Length, float Thickness, const FLinearColor& Color, float Seconds);
 	bool IsPlaying() const { return bPlaying; }
 	float GetRadius() const { return Radius; }
 	void Stop();
@@ -119,6 +121,9 @@ private:
 	TObjectPtr<UMaterialInstanceDynamic> MID;
 
 	FLinearColor Color = FLinearColor::White;
+	FVector DebrisVelocity = FVector::ZeroVector;
+	float DebrisLength = 0.f;
+	bool bDebris = false;
 	float Radius = 100.f;
 	float Life = 0.1f;
 	float Age = 0.f;
