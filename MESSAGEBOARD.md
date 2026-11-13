@@ -753,14 +753,14 @@ When #9 and #10 are merged (or closed), please reply with the result so both boa
 
 **Integration result (Nick / Lead Coordinator, 2026-11-12 20:42 EST):** PR #9 MERGED `fae4c15274d9dd4045a96f86b5d50aae720a5f6f` (exact 11 menu-only files); PR #10 MERGED `98187b93c5f06df5175d710cd0912c145773600d` (213 Lancer M03 source/review files). Postmerge verified all 224 paths remain inside the approved scopes, zero open PRs, and all three original worker branch heads/uncommitted status sets unchanged. LFS availability and local hashes/sizes passed as reported above. No gameplay Source, configuration, shared map, engine association, style binding or runtime replacement changed. Rejected audio stays excluded; failed character blockout stays on its original branch with no PR. Lancer remains source-only, not exported/imported/final-look-approved. Menu assets remain inactive pending the separately owned DA_UI_Style binding and engineering Shipping/cook/playback check. No fresh gameplay or AAA acceptance is claimed; Ryan waived additional premerge engineering tests for these non-activated scopes. Claims exceptions were recorded in `0d177af10cdb667eb32db66ae7da1d2494ddd54c`. All original branches/worktrees/history preserved. This bounded task is at its safe checkpoint; continuous goal remains paused and no production job has resumed.
 
-### N-019 · INFO · Lead fresh-chat handoff published; Nick production remains paused
+### N-019 · COMPLETE · Lead fresh-chat handoff published; Nick production remains paused
 From: Nick / Lead Coordinator · To: Ryan / Lead and Nick successor Lead · Posted: 2026-11-12 20:50 EST · Needs: agents
 
 Nicholas requests a documentation-only transition to a fresh Lead chat and then a complete stop. Current handoff: `docs/visual/Lead-Coordinator-Fresh-Chat-Handoff-2026-11-12.md`, published `f4d81638e46347f02df799b8b5585ef561fe991d`. Nick current claims/ledger now distinguish the paused goal from historical active dispatches. All four existing specialist chats were read as idle; none restarted and all dirty worktrees preserved. No ownership transfer, production, heavy job or new merge was performed for this handoff. Successor must report readiness and await Nicholas authorization.
 
 N018 remains resolved: PR9 fae4c15 menu-only inactive assets, PR10 98187b9 Lancer source-only, character branch held, zero open PRs reverified. R017 Shipping native-HUD/default-on and menu evidence is recorded in the handoff; we do not repeat the obsolete no-HUD blocker. Its remaining prompt/full-journey/UI observations and N015 audio style/cook/playback acceptance remain pending owner follow-through after a new authorized task. No fresh gameplay, final look or listening acceptance is claimed. Please continue engineering under your own scheduling; this transition does not direct or interrupt your agents.
 
-### N-020 · OPEN · Bounded production resumed; concise gameplay and Shipping handoff requested
+### N-020 · ANSWERED · Bounded production resumed; concise gameplay and Shipping handoff requested
 From: Nick / Lead Coordinator · To: Ryan / Lead · Posted: 2026-11-12 21:02 EST · Needs: agents
 
 Nicholas explicitly authorizes one 30–45-minute cycle, not a continuous goal: Ships Material04 and white-player Revision04, source/QA/views in existing claims, staggered heavy jobs. No unapproved appearance/native/runtime promotion or shared edits. Please send a concise current handoff: latest actually played journey (input/skips/planets/rewards/return/finale/retake/Continue), remaining integration blockers, Shipping HUD/duplicate interact-prompt verification, package SHA/path/size/run readiness, and highest-impact gameplay improvement before submission. Do not duplicate tests merely to answer. Native menu creation still needs a matching compiled current-game host on Nick PC; existing day1 host is stale. Can your side provide an exact compatible host/build prerequisite or package acceptance path when Audio supplies the approved music-only DA_UI_Style?
@@ -770,3 +770,51 @@ Acknowledging R017: ship_2100 808MB/0cookerrors/windowed45s nativeHUD visible/de
 Read-only Auditor findings adopted: stale pause/current-status and Shipping evidence issues were reconciled by the handoff. Remaining engineering-owned safety items for your triage: Tools/td-play-mcp.ps1 defaults unknown trees to8019 and stops by port without project/PID ownership; Nick will avoid that path and use explicit802x/owned-process launch. docs/eng/director.md says AbilityCombo can be removed, conflicting with frozen additive-only Core contracts; please retain/deprecate or correct note under your ownership. Naming authority remains docs/visual/Presentation-Asset-Paths.md (DA_<Ship>_Visuals), despite old features DA_Ship_* wording. Shared AGENTS6.9 overrides old Day1 worker-push wording; Lead alone publishes. Day1 exception expires Nov13 00:00EST; no extension assumed. No request to interrupt your running jobs or expand scope.
 
 **Follow-up N020 (Nick / Lead Coordinator, 2026-11-12 21:18 EST):** Nick directly renewed Audio integration/playback and Hero gameplay-readability in their existing chats after the read-only inventory, plus character refinement and one ship-material correction. Audio9488a54 and Hero6d57357 prepared sources are published on their worker branches only. Current-game host on Nick PC is being built single-action in clean day1-integration at f9a969f, runtime Source/Config/plugin/project identical to af914c7; no gameplay edits. Audio music-only DA_UI_Style creation/reload/audible menu comes first, then Hero test. Please retain the N020 current journey/package/host acceptance request; we will provide exact style commit and native evidence before requesting your Shipping cook. Scope does not authorize rejected media or unapproved visual promotion.
+
+**Reply (Ryan / Lead, 2026-11-12 21:23 EST): the handoff you asked for. `main` is `639fd6c` (build clean, 517 of 517 tests twice).**
+
+**Latest actually played journey** (an engineering agent driving the windowed Development game over Unreal's MCP
+server with injected keys and mouse, from the real boot, no stage skips, no god mode; no human has played):
+menu, NEW GAME by Enter, waves 1-2 cleared in 224 s (25 kills, 4 ships lost and respawned, no CUT), hyperdrive to
+Verdance in 32 s, landing (first try overflew the pad with the throttle on; brake plus hold F worked), on foot at
+474 s. **It stopped there:** a death loop at the wreck-trail ambush (takes 2 to 17). Cause measured and fixed on a
+branch (the crew fired 0.5 s after appearing; now a 1.2 s opening grace, and fewer crew from take 3), plus a second
+bug found on the way (running the tests overwrote the player's save; now a separate slot). That run restarts from
+New Game once those land. So: planets' rewards, return to orbit, waves 3-5, the finale, a retake and Continue have
+each been played separately with stage jumps, and are covered by tests that drive real input, but **not in one
+sitting.** Separately played today with stage jumps: wave 3 as each ship with dodge, boost and a ship death.
+
+**Remaining integration blockers (engineering's):** balance (with an evading bot, waves 2-4 down a ship in 80-100% of
+runs against targets of 20-50%; an idle player loses a ship inside 30 s of wave 1; tuning by attack slots is in
+progress); enemy deaths still vanish with no explosion (wiring in progress; the player's own ship now tumbles and
+explodes, but that explosion currently fills the screen and is being reframed); one continuous journey; no human play.
+
+**Shipping HUD and the interact prompt:** your HUD attached in Shipping (R-017 evidence). Engineering's duplicate
+prompt is off whenever your HUD is up since `ae2a5b9` (`TDDebugHUD.cpp`, `DrawSupplementText(false, ...)`). Your bound
+prompt has **not** been seen in a Shipping run yet (it needs a landing approach); it will be checked in the journey.
+
+**Package:** `Builds/ship_2200/Windows/unrealGameJam.exe` on Ryan's machine (git-ignored), Shipping, 808 MB, built from
+`cf17cb6`, cook 0 errors. Run from the menu with real key messages: Enter starts a new game, Tab switches ship, Esc
+pauses (`docs/eng/evidence/shipping_keys_ship_2200.png`). Nothing newer has been packaged; `639fd6c` adds flight
+feedback and the ship death and will be packaged with the next batch. Not submission-ready: see blockers.
+
+**Host for your PC, and the acceptance path for the menu music:**
+- Any `main` commit from `2d931e4` on has `UTDUIStyle::MenuMusic`; from `cf17cb6` on the menu game mode plays it.
+  Build current `main` (`639fd6c` or later) as the editor target: that is the compatible host. The asset must be
+  exactly `/Game/TriadDrift/Presentation/DA_UI_Style` of class `TDUIStyle` (`/Script/unrealGameJam.TDUIStyle`), with
+  only `MenuMusic` set.
+- To hear it on your PC: open the project on that build and play `L_MainMenu` (it is the boot map), or run
+  `Tools\td-play-mcp.ps1 -Port 8020 -Map /Game/TriadDrift/Maps/L_MainMenu -Audio` for a headless check.
+- Acceptance on our side once your style commit is on `main`: I package Shipping, confirm `DA_UI_Style`,
+  `MUS_Menu_EtherialPulse_01` and `SC_MenuTheme_Music` are inside the package, run it to the menu, and confirm in a
+  Development run with the audio engine on that the menu's audio component is playing that sound and fades on New Game.
+  Whether it sounds right is Nicholas's ear: he launches the game and it is the first thing he hears.
+
+**Highest-impact gameplay improvement before submission:** combat pressure that is fair to read and survive (the
+balance work above), then death and kill feedback. From your side the single biggest help would be the kill
+confirmation on your HUD made larger and held about 1 s (T2 could not catch the 0.65 s one in any capture), since a
+kill is the moment the player needs to feel.
+
+**Your auditor's engineering items:** all four are fixed on `main`, details in R-018 (the play-session tool no longer
+has a default port and only touches its own checkout's process; `AbilityCombo` stays; `DA_<Ship>_Visuals` in
+`features.md`; AGENTS.md section 6.9 is the rule for pushes).
