@@ -24,6 +24,7 @@
 #include "Engine/World.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "GameFramework/WorldSettings.h"
@@ -992,7 +993,22 @@ void ATDEnemyShip::BeginDeath(AActor* Killer)
 		Weapons->SetTriggerHeld(ETDWeaponSlot::Secondary, false);
 	}
 	DestroyCarrierParts();
-	DeathTimer = Spec.DeathTumbleSeconds;
+	// Capped so a big hulk explodes in view (T2's death captures: carriers tumbled 2.5 s past the camera).
+	DeathTimer = FMath::Min(Spec.DeathTumbleSeconds, MaxDeathTumbleSeconds);
+	// The hulk drifts on its own velocity, never toward the player's view: the flight model lets go of it.
+	{
+		DeathDrift = GetVelocity();
+		if (const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr; PC && PC->PlayerCameraManager)
+		{
+			const FVector ToCam = (PC->PlayerCameraManager->GetCameraLocation() - GetActorLocation()).GetSafeNormal();
+			const float Toward = FVector::DotProduct(DeathDrift, ToCam);
+			if (Toward > 0.f) { DeathDrift -= ToCam * Toward; }	// strip the part heading at the camera
+			DeathDrift -= ToCam * DeathDriftAwaySpeed;				// and ease away from it
+		}
+		DeathDrift = DeathDrift.GetClampedToMaxSize(6000.f);
+		DeathSpin = FRotator(FMath::FRandRange(-60.f, 60.f), FMath::FRandRange(-40.f, 40.f), FMath::FRandRange(90.f, 160.f) * (FMath::RandBool() ? 1.f : -1.f));
+		if (UTDShipMovementComponent* Move = GetShipMovement()) { Move->SetComponentTickEnabled(false); }
+	}
 
 	// The tumbling wreck is scenery: ships fly through it (no 60-hull ram from a dead fighter).
 	if (USphereComponent* Sphere = GetCollisionSphere())
@@ -1192,13 +1208,19 @@ void ATDEnemyShip::Tick(float DeltaSeconds)
 {
 	if (bDying)
 	{
-		// Tumble: spin out, bleed speed.
-		FTDFlightInput Tumble;
-		Tumble.Throttle = -1.f;
-		Tumble.Aim = FVector2D(0.35f, 0.8f);
-		Tumble.Roll = 1.f;
-		SetFlightInput(Tumble);
+		// The hulk drifts and spins on its own (the flight model is off): never toward the player's view.
 		Super::Tick(DeltaSeconds);
+		DeathDrift *= FMath::Exp(-0.6f * DeltaSeconds);	// bleed speed
+		AddActorWorldOffset(DeathDrift * DeltaSeconds, false);
+		AddActorLocalRotation(DeathSpin * DeltaSeconds);
+		// Too close to (or behind) the camera to read: explode now, in view.
+		if (const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr; PC && PC->PlayerCameraManager && !bExploded)
+		{
+			const FVector Cam = PC->PlayerCameraManager->GetCameraLocation();
+			const FVector Fwd = PC->PlayerCameraManager->GetCameraRotation().Vector();
+			const FVector ToHulk = GetActorLocation() - Cam;
+			if (ToHulk.Size() < FMath::Max(4000.f, Spec.Radius * 3.f) || FVector::DotProduct(ToHulk, Fwd) < 0.f) { DeathTimer = 0.f; }
+		}
 		TickDeath(DeltaSeconds);
 		return;
 	}

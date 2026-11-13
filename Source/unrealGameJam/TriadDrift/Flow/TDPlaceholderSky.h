@@ -9,6 +9,8 @@
 class UDirectionalLightComponent;
 class USkyLightComponent;
 class UPostProcessComponent;
+class UExponentialHeightFogComponent;
+class UStaticMeshComponent;
 class USkyAtmosphereComponent;
 
 UENUM()
@@ -57,6 +59,9 @@ public:
 
 	void ApplyStyle(ETDPlaceholderSkyStyle Style);
 
+	/** Planet styles: far ground to the horizon + tinted height fog; other styles remove both. */
+	void ApplyHorizon(ETDPlaceholderSkyStyle Style);
+
 	/** Re-scan: drop the parts the world now provides; destroy self when nothing is left. */
 	void Refresh();
 
@@ -74,6 +79,13 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<USkyLightComponent> SkyLight;
 	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<USkyAtmosphereComponent> Atmosphere;
 	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<UPostProcessComponent> Exposure;
+	/** Planet styles: the ground carried to the horizon (a 200 km plane just under the course slab, same material). */
+	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<UStaticMeshComponent> FarGround;
+	/** Planet styles: planet-tinted height fog so the distance blends into the sky. */
+	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<UExponentialHeightFogComponent> HorizonFog;
+
+	/** True once a planet style built its far ground and haze (tests). */
+	bool HasHorizon() const;
 
 private:
 	float RescanTimer = 0.f;
