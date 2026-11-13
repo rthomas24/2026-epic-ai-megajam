@@ -1045,7 +1045,7 @@ void ATDPlanetCourse::BuildCinder()
 		Charges->WatchInteractable(Site);
 	}
 	ATDEncounterVolume* Defence = Encounter(Jammer, INDEX_NONE, Tower + FVector(0.f, 0.f, 200.f), FVector(2000.f, 2000.f, 600.f),
-		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Drone }, false, 1500.f);
+		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Drone }, false, 900.f); // (machine playtest: 5 on a 15 m ring spawned on top of the retake point)
 	StepEncounters.Add({ Jammer, 1, Defence });
 
 	// The run: back along the lake's south shore (solid ground), debris falling, out of the tower's reach.
@@ -1065,7 +1065,7 @@ void ATDPlanetCourse::BuildCinder()
 	Run->FinishSpawning(Run->GetActorTransform());
 	Routes.Add({ Tower, FVector(LakeX1 + 800.f, LakeY - 3300.f, 0.f), Exit });
 
-	Checkpoint(Jammer, 1, FVector(LakeX1 + 600.f, LakeY, 0.f), 0.f); // the charges: from the far bank, not the bridge again
+	Checkpoint(Jammer, 1, FVector(LakeX1 + 250.f, LakeY, 0.f), 0.f); // the charges: from the far bank, out of the defence's drop
 	FinishObjective(Jammer,
 		{ LOCTEXT("J0", "CROSS THE CRYSTAL BRIDGE"), LOCTEXT("J1", "PLANT THE CHARGES  0 / 3"), LOCTEXT("J2", "GET CLEAR OF THE TOWER") },
 		{ FarBank, Charges, Clear });

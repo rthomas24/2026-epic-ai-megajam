@@ -6,6 +6,8 @@
 
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Flow/TDJourney.h"
+#include "TriadDrift/Flow/TDSaveGame.h"
+#include "TriadDrift/World/Tests/TDFinaleTestHelpers.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
@@ -464,6 +466,74 @@ bool FTDJourneyFinaleResumes::RunTest(const FString& Parameters)
 	TestFalse(TEXT("ContinueRun refuses it"), G.GI->ContinueRun());
 	G.GI->DeleteSave();
 	G.GI->SetSaveSlotOverride(FString());
+	return true;
+}
+
+
+// ------------------------------------------------------------------------------------------------
+// The finale end to end (with T4's real-weapons helper): the real GI and space game mode, a real squad
+// firing real weapons, generators, a wipe in the middle, a Continue with defences down, three reactor
+// phases, victory; at 30 / 60 / 120 fps.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDJourneyFinaleEndToEnd, "TriadDrift.Flow.Journey.FinaleFoughtEndToEndWithWipeAndContinue", TD_TEST_FLAGS)
+bool FTDJourneyFinaleEndToEnd::RunTest(const FString& Parameters)
+{
+	for (const float Fps : { 30.f, 60.f, 120.f })
+	{
+		TDJourneyTest::FGalaxy G;
+		if (!TestNotNull(TEXT("GI"), G.GI)) { return false; }
+		G.GI->NotifyLevelEntered(ETDDestination::Galaxy);
+		G.GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationFinaleE2E"));
+		G.S->bWriteSlotOnCheckpoint = true; // like the game: victory rewrites the slot (restored by FGalaxy)
+		ON_SCOPE_EXIT { G.GI->DeleteSave(); G.GI->SetSaveSlotOverride(FString()); };
+		auto Run = [&G, Fps](float Seconds) { for (float T = 0.f; T < Seconds; T += 1.f / Fps) { G.W.Tick(1.f / Fps); G.GI->TickFlow(1.f / Fps); } };
+		const FString At = FString::Printf(TEXT("%.0f fps: "), Fps);
+
+		TestTrue(*(At + TEXT("assault stage")), FTDJourney::Go(G.W.GetWorld(), ETDJourneyStage::DominionAssault));
+		Run(8.f); // warp-in
+		ATDDominion* Dom = ATDDominion::Get(G.W.GetWorld());
+		ATDSquadManager* Squad = ATDSquadManager::Get(G.W.GetWorld());
+		if (!TestNotNull(*(At + TEXT("Dominion")), Dom) || !TestNotNull(*(At + TEXT("squad")), Squad)) { return false; }
+		TestEqual(*(At + TEXT("the assault is the Dominion scene")), G.GI->GetCurrentScene(), UTDGameInstance::DominionScene);
+
+		// Two generators with the real weapons.
+		TestTrue(*(At + TEXT("two generators down")), TDFinaleCombat::DestroyGenerators(*this, G.W, Dom, 2, Fps));
+		Run(0.5f);
+		TestTrue(*(At + FString::Printf(TEXT("objective line counts them ('%s')"), *G.GI->GetCurrentObjectiveText().ToString())), G.GI->GetCurrentObjectiveText().ToString().Contains(TEXT("2 / 4")));
+
+		// A wipe in the middle: every ship dies.
+		for (ATDShip* Ship : Squad->GetLivingShips()) { if (UTDHealthComponent* H = UTDStatics::GetHealth(Ship)) { H->Kill(nullptr, ETDDamageKind::Explosive); } }
+		Run(UTDFlowSettings::Get()->RetakeDelaySeconds + 1.5f);
+		TestEqual(*(At + TEXT("take 2 of the Dominion")), G.GI->GetProgressRef().Takes.FindRef(UTDGameInstance::DominionScene), 2);
+		FTransform Approach;
+		FTDJourney::FindStageStart(G.W.GetWorld(), FTDJourney::DominionApproach, Approach);
+		const ATDShip* Active = TDFinaleCombat::ActiveShip(G.W);
+		TestTrue(*(At + TEXT("respawned on the approach")), Active && FVector::Dist(Active->GetActorLocation(), Approach.GetLocation()) < 8000.f);
+		TestEqual(*(At + TEXT("destroyed generators stay destroyed")), Dom->GetGeneratorsRemaining(), 2);
+
+		// The last two: defences down, the trench.
+		TestTrue(*(At + TEXT("the last generators down")), TDFinaleCombat::DestroyGenerators(*this, G.W, Dom, 2, Fps));
+		Run(1.f);
+		TestTrue(*(At + TEXT("defences down in progress")), G.GI->GetProgressRef().bDominionDefensesDown);
+
+		// Continue with defences down: the save carries it, a restart puts the squad at the trench.
+		G.GI->TakeCheckpoint(TEXT("Manual"));
+		TestTrue(*(At + TEXT("saved")), G.GI->WriteSaveSlot(true));
+		TestTrue(*(At + TEXT("Continue offered mid-fight")), G.GI->HasContinue());
+		UTDSaveGame* Save = nullptr;
+		TestTrue(*(At + TEXT("read")), G.GI->ReadSaveSlot(Save) && Save && G.GI->ApplySave(*Save));
+		if (ATDSpaceGameMode* GM = G.W.GetWorld()->GetAuthGameMode<ATDSpaceGameMode>()) { GM->RestartScene(); }
+		Run(1.f);
+		FTransform Trench;
+		FTDJourney::FindStageStart(G.W.GetWorld(), FTDJourney::DominionTrench, Trench);
+		Active = TDFinaleCombat::ActiveShip(G.W);
+		TestTrue(*(At + TEXT("Continue starts at the trench")), Active && FVector::Dist(Active->GetActorLocation(), Trench.GetLocation()) < 8000.f);
+
+		// The reactor through its three phases, then victory.
+		TestTrue(*(At + TEXT("reactor phases")), TDFinaleCombat::DestroyReactorPhases(*this, G.W, Dom, 3, Fps));
+		Run(15.f); // the breakup plays, then victory
+		TestEqual(*(At + TEXT("victory")), G.GI->GetProgressRef().Phase, ETDGamePhase::Victory);
+		TestFalse(*(At + TEXT("no Continue into a won fight")), G.GI->HasContinue());
+	}
 	return true;
 }
 
