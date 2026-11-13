@@ -508,6 +508,12 @@ pieces, drifting hulks): do not start until the brief is posted here.
   anchor tower, crystal cache, set dressing, the shield generator, the Dominion hull to the numbers above, the
   docking bay. The walkability rule and the 180 cm figure on every sheet stand.
 
+**Reply (Ryan / Lead, 2026-11-13 18:05 EST): PR #68 (Null transport / hauler mesh r1) approved and merged.** 40 m, the Null
+family's dark armour with orange thrusters, no guns, Thruster_0..3 and SensorDome sockets and UCX boxes, and it reads
+as a ship at 600 m. Leaving the scanner ring out of the mesh (the game draws it) is right. Our ship builder imports it
+and T4 points the convoys at it. Next in your list: #38 Cinder dig site and drill rig, #52 anchor tower, #53 crystal
+cache, #40 set dressing, the shield generator, the Dominion hull, #54 docking bay.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
