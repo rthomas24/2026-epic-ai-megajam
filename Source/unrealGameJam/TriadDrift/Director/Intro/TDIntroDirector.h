@@ -158,6 +158,8 @@ private:
 	void PlaceSquad(const FVector& Centre, const FRotator& Facing, float Time);
 	void SpawnShowcase();
 	void ClearShowcase();
+	void SetKeyLight(const FVector& At, float Radius, float Intensity);
+	void RestoreGateSurface();
 	void ApplyLens(float FocalMm, float FStop, float FocusDistance);
 	void PlayNarrationVoice(int32 Line);
 	void EnsureWidget();
@@ -175,6 +177,10 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInputComponent> SkipInput;
 	UPROPERTY(Transient) TArray<TObjectPtr<AActor>> Showcase;
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> Music;
+	/** Shot 6: a red-orange key light on the fleet (it would read black against space otherwise). */
+	UPROPERTY(Transient) TObjectPtr<AActor> KeyLight;
+	/** Shot 5: the gate's membrane, hidden so the ring frames Cinder instead of covering it. */
+	TWeakObjectPtr<class UPrimitiveComponent> HiddenSurface;
 	UPROPERTY(Transient) TObjectPtr<ULevelSequencePlayer> SequencePlayer;
 	UPROPERTY(Transient) TObjectPtr<ALevelSequenceActor> SequenceActor;
 	TWeakObjectPtr<APlayerController> Player;

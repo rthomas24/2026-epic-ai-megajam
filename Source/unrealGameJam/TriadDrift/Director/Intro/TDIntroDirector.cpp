@@ -13,6 +13,8 @@
 #include "Engine/GameViewportClient.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshActor.h"
+#include "Engine/PointLight.h"
+#include "Components/PointLightComponent.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Fonts/FontMeasure.h"
@@ -123,7 +125,7 @@ namespace TDIntro
 		if (UMaterialInterface* Base = LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial")))
 		{
 			UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Base, Dart);
-			MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.45f, 0.03f, 0.02f));
+			MID->SetVectorParameterValue(TEXT("Color"), FLinearColor(0.9f, 0.12f, 0.04f));
 			Mesh->SetMaterial(0, MID);
 		}
 		return Dart;
@@ -203,9 +205,13 @@ namespace TDIntro
 			// Subtitle: centred in the lower bar (or just above the frame edge if the bar is thin).
 			if (S.SubtitleAlpha > 0.f && !S.Subtitle.IsEmpty())
 			{
-				const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle(TEXT("Italic"), FMath::RoundToInt(26.f * Scale));
-				const float Y = Size.Y - FMath::Max(Bar * 0.5f, 60.f * Scale);
-				Text(S.Subtitle, Font, FVector2D(Size.X * 0.5f, Y), FLinearColor(0.96f, 0.95f, 0.9f, S.SubtitleAlpha), 3);
+				const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle(TEXT("Italic"), FMath::RoundToInt(39.f * Scale));
+				const float Y = Size.Y - FMath::Max(Bar * 0.5f, 70.f * Scale);
+				// A soft dark backing so the line reads over bright space and planets.
+				const FVector2D TS = Measure->Measure(S.Subtitle, Font);
+				const FVector2D Pad(28.f * Scale, 10.f * Scale);
+				Box(FVector2D(Size.X * 0.5f, Y) - TS * 0.5f - Pad, TS + Pad * 2.f, FLinearColor(0.f, 0.f, 0.f, 0.45f * S.SubtitleAlpha), 2);
+				Text(S.Subtitle, Font, FVector2D(Size.X * 0.5f, Y), FLinearColor(0.97f, 0.96f, 0.92f, S.SubtitleAlpha), 3);
 			}
 			// Title.
 			if (S.TitleAlpha > 0.f)
@@ -712,6 +718,44 @@ void UTDIntroDirector::BeginShot(int32 Index)
 	{
 		bDominionShown = TDIntro::ShowDominion(World, true, nullptr);
 	}
+	RestoreGateSurface();
+	if (S.Id == TEXT("Gate"))
+	{
+		// The ring frames Cinder: hide the gate's membrane for the shot (put back at the next cut).
+		const FVector Dir = (S.SquadTo - S.SquadFrom).GetSafeNormal();
+		const FVector GateAt = S.SquadFrom + Dir * 11000.f;
+		if (const ATDGalaxyLayout* Galaxy = ATDGalaxyLayout::Get(this))
+		{
+			ATDPortalGate* Nearest = nullptr;
+			for (ATDPortalGate* G : Galaxy->GetGateActors())
+			{
+				if (G && (!Nearest || FVector::DistSquared(G->GetActorLocation(), GateAt) < FVector::DistSquared(Nearest->GetActorLocation(), GateAt)))
+				{
+					Nearest = G;
+				}
+			}
+			TArray<UPrimitiveComponent*> Prims;
+			if (Nearest)
+			{
+				Nearest->GetComponents(Prims);
+			}
+			for (UPrimitiveComponent* P : Prims)
+			{
+				if (P && P->GetFName() == TEXT("Surface") && P->IsVisible())
+				{
+					P->SetVisibility(false);
+					HiddenSurface = P;
+				}
+			}
+		}
+	}
+	if (Camera)
+	{
+		// The last beat eases into the chase camera: lift the exposure so the ship reads, not a black frame.
+		FPostProcessSettings& PP = Camera->GetCameraComponent()->PostProcessSettings;
+		PP.bOverride_AutoExposureBias = true;
+		PP.AutoExposureBias = S.Id == TEXT("Title") ? 1.5f : (S.Id.ToString().StartsWith(TEXT("Threat")) ? 0.7f : 0.f);
+	}
 	if (S.Id == TEXT("Title"))
 	{
 		ClearShowcase();
@@ -935,11 +979,35 @@ void UTDIntroDirector::UpdateShot(float T)
 			for (int32 k = 0; k < 6; ++k)
 			{
 				const FVector At = S.CamFrom + Fwd * (7000.f + k * 1800.f) + Side * ((k % 2 ? 1.f : -1.f) * (500.f + k * 260.f)) + FVector::UpVector * ((k % 3) - 1) * 380.f;
-				TDIntro::WarpFlash(World, At, 1400.f);
+				TDIntro::WarpFlash(World, At, 2600.f);
 				if (AActor* F = TDIntro::SpawnFighter(World, FTransform((-Fwd).Rotation(), At)))
 				{
 					Showcase.Add(F);
 				}
+			}
+		}
+		// A red-orange key on the fleet, from the lens side, so the ships read against black.
+		if (S.Id == TEXT("ThreatClose"))
+		{
+			const FVector Fwd = (S.LookFrom - S.CamFrom).GetSafeNormal();
+			SetKeyLight(Camera->GetActorLocation() + Fwd * 3500.f + FVector::UpVector * 1800.f, 26000.f, 60.f);
+		}
+		else
+		{
+			FVector Centroid = FVector::ZeroVector;
+			int32 N = 0;
+			for (AActor* F : Showcase)
+			{
+				if (F)
+				{
+					Centroid += F->GetActorLocation();
+					++N;
+				}
+			}
+			if (N)
+			{
+				Centroid /= N;
+				SetKeyLight(Centroid + (Camera->GetActorLocation() - Centroid).GetSafeNormal() * 15000.f + FVector::UpVector * 6000.f, 90000.f, 80.f);
 			}
 		}
 		// Fly the fleet: each fighter keeps on along its nose.
@@ -970,8 +1038,8 @@ void UTDIntroDirector::SpawnShowcase()
 	for (int32 k = 0; k < 10; ++k)
 	{
 		const FVector At = Base + Side * ((k - 4.5f) * 4200.f) + FVector::UpVector * FMath::Sin(k * 1.7f) * 3500.f + Toward * (k % 3) * 3000.f;
-		TDIntro::WarpFlash(World, At, 5000.f);
-		if (AActor* F = TDIntro::SpawnFighter(World, FTransform(Toward.Rotation(), At, FVector(3.f))))
+		TDIntro::WarpFlash(World, At, 12000.f);
+		if (AActor* F = TDIntro::SpawnFighter(World, FTransform(Toward.Rotation(), At, FVector(4.f))))
 		{
 			Showcase.Add(F);
 		}
@@ -988,11 +1056,59 @@ void UTDIntroDirector::ClearShowcase()
 		}
 	}
 	Showcase.Reset();
+	if (KeyLight)
+	{
+		KeyLight->Destroy();
+		KeyLight = nullptr;
+	}
+	RestoreGateSurface();
 	if (bDominionShown)
 	{
 		TDIntro::ShowDominion(GetWorld(), false, nullptr);
 		bDominionShown = false;
 	}
+}
+
+void UTDIntroDirector::SetKeyLight(const FVector& At, float Radius, float Intensity)
+{
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+	if (!KeyLight)
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		Params.ObjectFlags |= RF_Transient;
+		APointLight* Light = World->SpawnActor<APointLight>(APointLight::StaticClass(), FTransform(At), Params);
+		if (!Light)
+		{
+			return;
+		}
+		UPointLightComponent* L = Light->PointLightComponent;
+		L->SetMobility(EComponentMobility::Movable);
+		L->bUseInverseSquaredFalloff = false;
+		L->SetLightFalloffExponent(2.f);
+		L->SetLightColor(FLinearColor(1.f, 0.38f, 0.14f));
+		L->SetCastShadows(false);
+		KeyLight = Light;
+	}
+	KeyLight->SetActorLocation(At);
+	if (UPointLightComponent* L = Cast<APointLight>(KeyLight)->PointLightComponent)
+	{
+		L->SetAttenuationRadius(Radius);
+		L->SetIntensity(Intensity);
+	}
+}
+
+void UTDIntroDirector::RestoreGateSurface()
+{
+	if (UPrimitiveComponent* P = HiddenSurface.Get())
+	{
+		P->SetVisibility(true);
+	}
+	HiddenSurface.Reset();
 }
 
 void UTDIntroDirector::ApplyLens(float FocalMm, float FStop, float FocusDistance)
