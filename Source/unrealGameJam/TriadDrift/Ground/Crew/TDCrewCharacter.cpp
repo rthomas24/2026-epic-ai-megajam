@@ -988,6 +988,15 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 	{
 		GetMesh()->PlayAnimation(DeathAnim, false); // falls the way the killing shot came from, then holds
 	}
+	else if (GetMesh()->IsVisible() && GetMesh()->GetSkeletalMeshAsset())
+	{
+		// No death animation for this look yet: topple over about the feet, away from the killing shot.
+		const FVector Away = (KillingBlow.HitDirection.IsNearlyZero() ? -GetActorForwardVector() : KillingBlow.HitDirection).GetSafeNormal2D();
+		ToppleAxis = FVector::CrossProduct(FVector::UpVector, Away).GetSafeNormal();
+		ToppleStart = GetMesh()->GetComponentQuat();
+		ToppleAlpha = 0.f;
+		bToppling = !ToppleAxis.IsNearlyZero();
+	}
 	else if (GetMesh()->IsVisible() && GetMesh()->GetPhysicsAsset())
 	{
 		GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
@@ -1008,9 +1017,26 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 
 // ------------------------------------------------------------------------------------------------
 
+void ATDCrewCharacter::TickTopple(float DeltaSeconds)
+{
+	if (!bToppling || !GetMesh())
+	{
+		return;
+	}
+	ToppleAlpha = FMath::Min(1.f, ToppleAlpha + DeltaSeconds / 0.6f);
+	const float Ease = ToppleAlpha * ToppleAlpha; // a body falls: slow, then fast
+	const FQuat Fall(ToppleAxis, FMath::DegreesToRadians(85.f * Ease));
+	GetMesh()->SetWorldRotation(Fall * ToppleStart); // the mesh's origin is its feet: it pivots there
+	if (ToppleAlpha >= 1.f)
+	{
+		bToppling = false;
+	}
+}
+
 void ATDCrewCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	TickTopple(DeltaSeconds);
 	OpeningGraceLeft = FMath::Max(0.f, OpeningGraceLeft - DeltaSeconds);
 	UpdateTell();
 	if (!IsDead())

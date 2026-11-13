@@ -205,6 +205,16 @@ private:
 	int32 SummonsLeft = -1;
 	bool bFallbackAnim = false;
 	void UpdateFallbackLoop();
+	/** A skeletal look with no death animation topples over about its feet (no physics: PA_Mannequin on our crew
+	 *  meshes exploded the ragdoll 15 m in 0.4 s, Nov 13 live). */
+	void TickTopple(float DeltaSeconds);
+	bool bToppling = false;
+	float ToppleAlpha = 0.f;
+	FVector ToppleAxis = FVector::RightVector;
+	FQuat ToppleStart = FQuat::Identity;
+public:
+	bool IsToppling() const { return bToppling; }
+private:
 	/** A look whose bones don't map onto the mannequin animations collapses to the floor under them (playtest
 	 *  17e0437, SK_NullHeavy): detect it and show the look in its standing reference pose instead. */
 	void GuardAgainstCollapse(float DeltaSeconds);
