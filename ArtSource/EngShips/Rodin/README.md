@@ -157,3 +157,117 @@ freezes them for a set of views.
   tell apart at range. It has no missile pods: it has two muzzles (the chin guns) where the old mesh had four; where its missiles leave from was not checked in play.
 - The fighter's seams are near-white in the Rodin emissive, so they read white-peach, not orange.
 - The review sheets for the Lancer and the fighter were re-rendered with the corrected sockets.
+
+## Hybrids (Nov 13 night): Rift v11, Lancer v05
+
+The close-range pass is one pipeline for the three squad ships: `ArtSource/EngShips/RiftHero/scripts/rh_hybrid.py -- --ship
+<Rift|Lancer|Bastion> --tag <v> --close`, configured in `rh_ships.py` (source, sockets, accent colour, canopy / gun / nose
+measurements). `--out-root <dir>` builds into another folder (a check run: the Rift's result, manifests and textures
+are identical to v11 after the generalization). Outputs: `ArtSource/EngShips/<Ship>Hero/{export,review}` and
+`<Ship>_hybrid_<tag>.blend`.
+
+**Lancer v05** (524.0 x 269.5 x 149.9 cm as before; 58,451 triangles; slots `M_Lancer`, `M_Lancer_Glow`, `M_Lancer_Parts`;
+3 auto convex hulls, 2 before; gameplay uses its own sphere). Sockets as in the table above **except `Muzzle_1`, now
+(152, 45, -59)**: the mirror of `Muzzle_0` (Lead's decision: a clean symmetric pair). New: the canopy (a designed glass
+bubble on the measured crown and hull line, as its own non-Nanite mesh `SM_Lancer_Canopy` at `Cockpit`; sills, three
+bows, a coaming and a rear deck that close the cut; tub, seat, helmeted pilot, dash) and the cannons (a small receiver
+set into each Rodin gun housing, two parallel barrels, the lower one on the muzzle socket's axis). The hull is cut
+along straight sections (`_slice`) where new parts meet it. Kept: the Rodin prow and deck (a modelled prow failed two
+fresh-eyes reviews: "a featureless cone, out of style with the hull"; its builder stays in `rh_closeparts.py`,
+`nose=NEEDLE` data in `rh_ships.py`). `TD_RODIN_PLAIN=Lancer` imports the plain Rodin Lancer again.
+Review (third fresh-eyes round, in-game sheets `Builds/for-ryan/ships/lancer_hybrid_before_after*.png`): REPLACE, no
+BLOCKER or MAJOR. Open MINORs: the glass is paler on the bright planet pad than in space; the pilot reads as a seat
+and helmet shape, no face or visor detail; the gun receivers are plain next to the Rodin belly.
+
+**Rift v12**: v11 with three review MINORs closed (straight end to the magenta side panel under the canopy: the repaint
+is tested per texel; the stray glowing sliver ahead of it cleared; the nose slit glows in the accent colour). Not
+re-reviewed by a fresh agent (in-game sheet `Builds/for-ryan/ships/rift_v12_before_after.png`).
+
+**Bastion v01** (524.0 x 472.3 x 139.1 cm as before; 52,208 triangles (51,535 was the first build, before the muzzle bore was reshaped); slots `M_Bastion`, `M_Bastion_Glow`,
+`M_Bastion_Parts`; 3 auto convex hulls; sockets unchanged). The Rodin Bastion is the soundest of the three (blocky
+armour, a symmetric pair of cannons, six-tube launchers), so only the two lumpy barrel ends were replaced by clean
+muzzles on the same axes; the hull keeps its maps (`textures="raw"`; in the game base colour and emissive stay Grok
+Bot's `textures_r2` as imported: `keep_tex`). Fresh-eyes review: REPLACE, no BLOCKER or MAJOR; MINORs: the muzzles are
+plain next to the textured hull and no longer catch amber light at the tip.
+
+`ue_import_rodin_ships.py` also sets `CollisionScrape.VFX` = `NS_TD_Ship_ImpactScrape` (VFXScale 1, sound untouched) on the
+three squad visuals **once that system is in the checkout** (it prints "CollisionScrape NOT set" until then).
+
+## Enemy fleet at close range (Nov 14): fighter and gunship v01
+
+Same pipeline (`rh_hybrid.py --ship NullFighter | NullGunship`, config `_null()` in `rh_ships.py`): the low-poly Rodin
+hulls stay exactly as they are (not welded: welding the fighter wound faces against their neighbours; Rodin's normals
+and maps kept), only the lumpy parts are rebuilt: the fighter's three nozzle ends (`build_engines`), the gunship's
+four turret barrels (`_guns_barrels`). Second slot `MI_Null*_Parts` takes the hull's emissive tint and range boost.
+Sizes and sockets unchanged (gunship length 1500.0 cm, it was 1497.4: the new barrels end exactly on the old tips).
+
+**Honest result** (fresh-eyes review, sheets `Builds/for-ryan/ships/fleet_{fighter,gunship}_before_after_*.png`): no
+BLOCKER or MAJOR, both REPLACE, but the change is not visible from the chase camera at 20-80 m. What hurts the fleet
+at that range is not lumpy geometry: (1) the engine flame sprite covers the nozzles from every rear angle; (2) the
+fighter's seams break into flecks and no white eye shows from behind or the side; (3) the gunship hull is near pure
+black with mirror-like reflections, its eyes show only from the front 3/4 and its accents are sparse for its size.
+The next pass should be material and emissive work (rim / seam glow, roughness up, eye placement), not more modelling.
+
+## Null fleet readability pass (Nov 14)
+
+Materials and emissive maps only, for all five types. `M_TD_Ship` (rebuilt in place, `TD_RODIN_REBUILD=Master`; run it
+with a squad ship first in `TD_RODIN_ONLY`, the master's defaults need a heat mask) has three new blocks, default off:
+`PanelSteps` x `PanelCell` (value steps per cell of the pixel's local position), `RimStrength` x `RimColor` (fresnel,
+added to emissive), `GlowSpread` (the emissive map sampled four mips down and added from `RangeStart` on).
+Per type (`_read()` in the import script): RoughnessMin 0.42, MetallicScale 0.5, BaseFloor 0.012-0.016, PanelSteps
+0.35 with cells of 0.9 m (fighter) to 5.2 m (carrier), RimStrength 0.07 small ships / 0.025 gunship and carrier,
+GlowSpread 0.5 / 0.4 / 0.22 / 0.18, RangeStart 30 m, RangeEnd 240 m.
+`rs_fleet_lights.py` writes `ArtSource/EngShips/FleetLights/T_<Ship>_E.png`: Rodin's emissive map with seams dilated by
+2 texels at half strength (not the carrier) and dim white (0.55) running lights painted wherever the surface lies in
+small boxes placed by rule on the hull's extremes (rear corners, rear top, flank stations, tail top, keel).
+`TD_FLEET_READ=0` imports the old values and maps.
+
+What two rounds taught (values above are the third set): rim 0.5-0.9 and floor 0.05-0.07 turned the hulls pale
+grey-blue; rim 0.13-0.16 still read slate from behind and laid a blue sheet on the gunship's flat keel; lights of 1.3-2 %
+of the hull length at full white were blown-out blobs brighter than the eyes; a spread of 0.9-2.2 washed the gunship
+tan at 50-130 m.
+
+Open (fresh-eyes review of the second set; the third set was only self-checked): from the chase camera at real
+combat range the enemies are a few dozen pixels and are found by the HUD markers, so none of this changes the read
+there; fighter, interceptor and bomber cannot be told apart at that size; the carrier's Rodin maps are copper / cream
+rather than black (its base colour was halved, little visible change); carrier and gunship look alike in size in
+isolated views. Hull art cannot fix type and facing at range: that needs HUD or silhouette work.
+
+## Squad follow-ups and the master check (Nov 14)
+
+- **Master rebuilt, squad unchanged:** the three squad ships captured at one fixed spot (`TD.World.Goto Start`, speed 0,
+  same free cameras) with the old `M_TD_Ship` (`6fea15a3`) and the rebuilt one are the same picture
+  (`Builds/for-ryan/ships/master_old_vs_new_fixed_spot.png`). A reviewer's "maroon band" on the Bastion in an earlier pair
+  was the light of a different place in the level. The Dominion mothership renders with its panels and amber lines; the
+  hauler convoy was not in frame in the one planet-approach capture.
+- **Rift v13**, **Lancer glass v06**, **Bastion v02**: see `docs/eng/ART-HISTORY.md`. A fresh-eyes review saw Rift v13 and
+  the Lancer glass (slit fixed, specks reduced, glass now dark tinted glass; pilot still hard to read); Bastion v02 was
+  made after that review and is self-checked only.
+- **Bastion still lags on one point** (review): its cockpit is an opaque dark windscreen with no glass depth, seat or
+  pilot, where the Rift and Lancer have them. Its hard surfaces are the crispest of the three. A designed canopy was not
+  attempted: the windscreen is faceted and flush with the armour, and a bubble like the Lancer's would change the design.
+
+- **Rift v14** (crescent wings): see `docs/eng/ART-HISTORY.md`; fixed-spot and on-foot pairs in
+  `Builds/for-ryan/ships/rift_v14_before_after.png`. Self-checked only.
+- **Bastion glass cockpit, tried as v03 and stopped in Blender** (kept: v02). The Rodin "windscreen" is not a flush
+  pane: it is a raised cab block standing in a recess with dark sloped sides. `_canopy_facets` (in `rh_closeparts.py`,
+  unused) cut the dark faces into a glass part over a tub; the cab block stayed standing inside brown panes
+  (`Builds/for-ryan/ships/bastion_v03_cockpit_attempt_blender.png`). A real cockpit means redesigning that block.
+- **Hauler and Dominion turrets on the rebuilt master:** the convoy (`TD.World.ApproachView 1`) renders textured and lit
+  (`hauler_convoy_check.png`, at a distance); the Dominion's eight turrets use `SM_NullTurret` / `MI_NullTurret`
+  (`TD.World.DominionParts`), the same mesh and instance as on the carrier; they were not captured close.
+
+## Fleet silhouettes at fight range (Nov 14)
+
+`Builds/for-ryan/ships/fleet_silhouettes_60m_150m.png`: the five types held 100 m ahead of the player, a free camera 60 m
+and 150 m off each (same lens), and 150 m from behind. Fighter and interceptor were the same crescent with three
+engines. The interceptor now carries a lance forward from each wing tip and twin canted tail fins
+(`build_fins` in `rh_closeparts.py`, plain dark plates, no Rodin geometry cut): from the side it is clearly longer
+with a tall tail; from behind the twin fins stand up as a V over the engines. Its bounds grew (890 cm long, 306 tall);
+gameplay collision is the code's own sphere, the auto convex hulls follow the new bounds.
+Review of the first capture: side view solved; from behind not solved (before the last recapture; the V of the fins
+is visible in the zoom sheet since); fighter / interceptor / bomber read washed copper at 150 m, hence the lower
+RangeBoost and GlowSpread (self-checked after the change: black hulls with orange seams again at 60 and 150 m).
+Still open: bomber vs fighter from behind (the bomber is only wider); the fins are flat untextured plates up close.
+The hauler at 100 m shows flat purple / white blocks and a striped end cap: that is its own Rodin texture set
+(`ArtSource/EngAI/Ships/NullHauler`), not the master; it needs a texture pass or a regenerated source.

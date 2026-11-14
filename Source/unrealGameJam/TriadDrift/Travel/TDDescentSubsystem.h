@@ -46,6 +46,9 @@ public:
 	virtual void Deinitialize() override;
 
 	static UTDDescentSubsystem* Get(const UObject* WorldContext);
+	/** ENG-38 HUD (T2): the hull heat now, 0..1 (the entry burn and the climb out; 0 outside them). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Descent", meta = (WorldContext = "WorldContext"))
+	static float GetEntryHeat01(const UObject* WorldContext) { const UTDDescentSubsystem* D = Get(WorldContext); return D ? FMath::Clamp(D->Heat, 0.f, 1.f) : 0.f; }
 
 	// ---- Timing log (one line each: "TD.Descent.Timing <step> +X.XXX s").
 	/** The entry committed: t = 0 for every later step until control (or 40 s). */
@@ -62,6 +65,9 @@ public:
 
 	// ---- Roar (2D, persists across the level change).
 	void StartRoar(USoundBase* Sound);
+	/** The roar for a leg (the Lead, Nov 14): entry = DescentRoar, else AtmosphericEntry's sound; climb out = AtmosphericExit's
+	 *  sound, else the entry roar, so both legs always have sound. Loads it; null when nothing is assigned. */
+	static USoundBase* ResolveRoar(const class UTDTravelFX* FX, bool bExit);
 	void StopRoar(float FadeSeconds = 0.5f);
 	bool IsRoarPlaying() const;
 
@@ -138,6 +144,53 @@ public:
 	static const FName IntensityParam; // "User.Intensity"
 	void StopBurnFX();
 
+	// ---- The Director's Cut shot of the burn (ENG-38; the Lead, Nov 13): T3's director camera ahead of, beside and below
+	// the ship, looking back at it in three-quarter front profile (the bow shock side-on, the planet's limb and black space
+	// behind), a slow push-in; the cut back to the chase camera happens under the full white. td.Descent.DirectorShot 0
+	// keeps the chase camera. Reduced motion: no push-in.
+	/** Starts the shot for this ship (entry or climb out); false when the director camera is off, there's no player, or the cvar. */
+	bool BeginBurnShot(class ATDShip* Ship, bool bExit, float Seconds);
+	/** Ends it (a hard cut back to the pawn), if it runs. */
+	void EndBurnShot();
+	/** The camera, in the ship's own frame, Alpha 0..1 through the shot (also for tests and the effects builder). */
+	static FTransform BurnShotCamera(const class ATDShip* Ship, bool bExit, float Alpha, bool bReducedMotion);
+	static bool IsDirectorShotEnabled();
+
+	// ---- ENG-38 stage 2, the glide-lite (the Lead, Nov 14): the arrival sits GlideAboveDeckCm over the cloud deck; when the
+	// cover lifts, a forced glide (GlideSeconds at GlideSpeed, steering GlideSteering, invulnerable, the edge warning silent)
+	// carries the flown ship down through the deck to GlideEndAboveGroundCm over the ground, levels off and hands back over
+	// GlideHandBackSeconds. The load hides behind the white, then the cloud. td.Descent.Glide 0 = today's arrival.
+	static constexpr float GlideAboveDeckCm = 30000.f;
+	static constexpr float GlideEndAboveGroundCm = 90000.f;
+	static constexpr float GlideSeconds = 9.f;
+	static constexpr float GlideSpeed = 12000.f;
+	static constexpr float GlideSteering = 0.5f;
+	static constexpr float GlideHandBackSeconds = 1.f;
+	static const FName GlideOverride; // "DescentGlide" (a sequence owner: the edge warning stays silent)
+	static bool IsGlideEnabled();
+	/** Starts the glide for this ship now. GroundZFallback is used where there is no planet terrain (tests). */
+	bool BeginGlide(class ATDShip* Ship, float GroundZFallback = 0.f);
+	/** Ends it at once (level change, cover abort, retake): the ship is handed back. */
+	void EndGlide(const TCHAR* Why);
+	bool IsGliding() const { return GlideShip.IsValid() && GlideTime >= 0.f; }
+	/** -1 when no glide runs; else 0 at the arrival (deck + 300 m) to 1 at the glide end, by altitude (T4's fog). */
+	static float GetDescent01(const UObject* WorldContext);
+	/** The deck Z the current glide used (world cm), 0 when none. */
+	float GetDescentDeckZ() const { return GlideDeckZ; }
+	/** The cloud deck's world Z in a world (0 = no deck). */
+	static float FindDeckZ(UWorld* World);
+	void TickGlide(float Dt);
+
+	// ---- ENG-38 stage 2, the mirrored take-off (the Lead, Nov 14): where the squad leaves the planet's ground decides where
+	// it comes out on the galaxy globe (T4's FTDPlanetEntry::GlobeFromDeparture / WorldFromGlobe), not a fixed <Planet>_Orbit.
+	/** The climb out: the flown ship's course-local (pad frame) departure. */
+	void RecordDeparture(ETDDestination Planet, const FTransform& CourseLocalDeparture);
+	bool HasPendingDeparture() const { return bDepartPending; }
+	/** Places the squad outside that planet's atmosphere at the departure's globe point, heading out; false until it can. */
+	bool PlaceDeparture(UWorld* World);
+	/** Distance from the planet's centre the squad comes out at, in atmosphere radii (outside it: no re-entry). */
+	static constexpr float DepartureRadiusScale = 1.3f;
+
 	// ---- Tuning
 	static constexpr float CoverRampSeconds = 0.35f;   // a travel with no entry ramp in front of it (take-off, dev)
 	static constexpr float RevealMinHoldSeconds = 0.5f; // after the destination's first frame
@@ -200,6 +253,10 @@ private:
 	float AppliedHeat = -1.f;
 	float HeatFedLeft = 0.f;
 	bool bBurnExit = false;
+	bool bBurnShot = false;
+public:
+	bool IsBurnShotRunning() const { return bBurnShot; }
+private:
 	float ClimbHoldSeconds = 0.f;
 	bool bHUDHeld = false;
 	TMap<TWeakObjectPtr<class ATDShip>, TWeakObjectPtr<class UNiagaraComponent>> BurnFX;
@@ -217,6 +274,19 @@ private:
 	TWeakObjectPtr<UWorld> DestWorld;
 	bool bFirstViewBuilt = false;
 	bool bArrivalSettled = false;
+	bool bDepartPending = false;
+	ETDDestination DepartPlanet = ETDDestination::Verdance;
+	FTDGlobePoint DepartPoint;
+	FVector DepartGlobeDir = FVector::UpVector;
+	TWeakObjectPtr<class ATDShip> GlideShip;
+	float GlideTime = -1.f;
+	float GlideStartZ = 0.f;
+	float GlideEndZ = 0.f;
+	float GlideDeckZ = 0.f;
+	float GlideGroundFallback = 0.f;
+	float GlideProgress = -1.f;
+	bool bGlideLevelling = false;
+	float GlideLevelTime = 0.f;
 
 	bool bArrivalPending = false;
 	ETDDestination ArrivalPlanet = ETDDestination::Verdance;

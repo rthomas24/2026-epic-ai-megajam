@@ -154,6 +154,23 @@ float s = spikes*pow(m, 1.4); float core = pow(m, 5);
 float3 c = PC.rgb*(s*1.2 + core*1.4 + pow(m, 2.5)*0.3) + lerp(PC.rgb, float3(1,1,1), 0.85)*pow(m, 10)*2.0*max(lum, 0.25);
 return float4(c*Intensity, PC.a);''', {}),
 
+    # round 9r: a NEW asset name - rebuilding M_TD_VFX_IceBurst in place crashed the editor twice
+    # (DeleteAllMaterialExpressions, Assertion failed: !IsRooted()); the old asset stays, unused.
+    # round 9p (Lead: the break flare read like a lens flare): an ice burst - 9 rays of uneven length and width from a hash
+    # of the ray index and the particle's random, a soft core; only the asteroid breaks use it.
+    'M_TD_VFX_IceShatter': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''
+float ang = atan2(p.y, p.x) + Rnd*6.283;
+float seg = ang/6.2831853*9.0; float id = floor(seg); float f = frac(seg) - 0.5;
+float h = frac(sin(id*12.9898 + Rnd*78.233)*43758.5453);
+float h2 = frac(sin(id*39.346 + Rnd*11.135)*24634.6345);
+float len = lerp(0.18, 0.42, h);   // 9q: rays under half (Lead: still read as a lens-flare star)
+float wid = lerp(0.06, 0.16, h2);
+float ray = exp(-(f*f)/(wid*wid*0.08))*saturate(1.0 - r/len)*smoothstep(0.0, 0.08, r);
+float core = exp(-r*r/0.05);
+float3 cc = float3(0.80, 0.95, 1.0);   // pale cyan-white core
+float3 c = PC.rgb*(ray*1.0 + pow(m, 2.0)*0.15) + cc*core*1.1;
+return float4(c*Intensity*m, PC.a);''', {}),
+
     'M_TD_VFX_Shield': ('additive', True, 1.6, 2.4, (0.01, 0.02), (-0.02, 0.03), 0.05, PRE + '''
 float w = sin(r*24 - Age*17)*0.5 + 0.5;
 float front = smoothstep(Age*1.05 + 0.08, Age*1.05 - 0.12, r);
@@ -491,9 +508,20 @@ float d = max(dot(g, s*0.5), g.x);
 float edge = smoothstep(0.40, 0.48, d);
 float shim = 0.55 + 0.45*sin(Tm*1.7 - UV.y*31.0 + UV.x*13.0);
 float body = pow(f, 3.6);   // the first build (2.2) drew the lattice over the whole view from inside
-float rim = pow(f, 7.0)*smoothstep(1.0, 0.93, f);
+float rim = pow(f, 5.0)*smoothstep(1.0, 0.975, f)*1.4;   // 9e: brighter and closer to the silhouette, so the line where the dome crosses the screen reads (Lead)
 float a = edge*(0.02 + 0.98*body)*shim + rim*1.6 + body*0.05;
 float3 c = PC.rgb*a + lerp(PC.rgb, float3(1,1,1), 0.7)*rim*0.8;
+return float4(c*Intensity, PC.a);""", {}),
+
+    # round 9 (T7's colour-blind check: under deuteranopia the enemy's red-orange bolts and Bastion's amber shells match):
+    # the enemy bolt reads by SHAPE - a hollow diamond, a hot rim round a dark core, a soft halo. Camera-facing sprite.
+    'M_TD_VFX_Diamond': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
+float2 q = abs(p);
+float d = (q.x + q.y)*0.92 - 0.62;            // < 0 inside the diamond
+float rim = exp(-pow(d/0.075, 2.0));
+float inside = 1.0 - smoothstep(-0.02, 0.02, d);
+float halo = exp(-max(d, 0.0)*7.0)*m;
+float3 c = PC.rgb*(rim*1.8 + inside*0.10 + halo*0.30) + lerp(PC.rgb, float3(1,1,1), 0.35)*pow(rim, 4.0)*0.3;   // keep the rim enemy red-orange (Lead)
 return float4(c*Intensity, PC.a);""", {}),
 
     'M_TD_VFX_Backdrop': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, PRE + """

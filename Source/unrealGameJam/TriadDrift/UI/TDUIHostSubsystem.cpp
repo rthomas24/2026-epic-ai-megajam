@@ -25,6 +25,7 @@
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDTacticalDisplayWidget.h"
 #include "TriadDrift/UI/TDScanMonitorWidget.h"
+#include "TriadDrift/UI/TDRewardAnnouncementWidget.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "Components/MeshComponent.h"
 #include "Engine/Texture2D.h"
@@ -36,6 +37,9 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Powers/TDAbilityRewards.h"
+#include "Framework/Application/SlateApplication.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogTDUIHost, Log, All);
 
@@ -84,6 +88,12 @@ void UTDUIHostSubsystem::Deinitialize()
 		ScanWidget->RemoveFromParent();
 		ScanWidget = nullptr;
 	}
+	if (RewardWidget)
+	{
+		RewardWidget->RemoveFromParent(); // teardown without acknowledgment: the award stays pending, re-presented later
+		RewardWidget = nullptr;
+		PresentedReward = ETDAbilityId::None;
+	}
 	if (TacticalWidget)
 	{
 		TacticalWidget->RemoveFromParent();
@@ -121,6 +131,7 @@ void UTDUIHostSubsystem::Tick(float DeltaTime)
 	}
 	TimeUntilCheck = TDUIHost::CheckInterval;
 	Evaluate();
+	UpdateAbilityReward();
 }
 
 void UTDUIHostSubsystem::ApplyFocus()
@@ -506,6 +517,254 @@ namespace TDUIHost
 		const FSoftObjectPtr& Ptr = Slot->GetPropertyValue_InContainer(Style);
 		UClass* Class = Cast<UClass>(Ptr.IsNull() ? nullptr : Ptr.LoadSynchronous());
 		return Class && Class->IsChildOf(UUserWidget::StaticClass()) ? Class : nullptr;
+	}
+}
+
+// ---- The ability reward screen (board N-070 / N-072). Nick's UTDAbilityRewardWidget lives in the TriadDriftHUD plugin,
+// which this module does not link: its contract is called by name (README, IndustrialTerminal01).
+namespace TDRewardMount
+{
+	/** Calls a no-argument function; OutBool gets a bool return value when there is one. */
+	bool CallNoArgs(UObject* Target, FName Name, bool* OutBool = nullptr)
+	{
+		UFunction* F = Target ? Target->FindFunction(Name) : nullptr;
+		if (!F)
+		{
+			return false;
+		}
+		const int32 Size = FMath::Max<int32>(F->ParmsSize, 1);
+		uint8* Buf = static_cast<uint8*>(FMemory_Alloca(Size));
+		FMemory::Memzero(Buf, Size);
+		Target->ProcessEvent(F, Buf);
+		if (const FBoolProperty* Ret = CastField<FBoolProperty>(F->GetReturnProperty()); Ret && OutBool)
+		{
+			*OutBool = Ret->GetPropertyValue_InContainer(Buf);
+		}
+		return true;
+	}
+
+	template <typename TProp, typename TValue>
+	void SetField(const UScriptStruct* S, void* Data, const TCHAR* Name, const TValue& Value)
+	{
+		if (const TProp* P = FindFProperty<TProp>(S, Name))
+		{
+			P->SetPropertyValue_InContainer(Data, Value);
+		}
+	}
+
+	struct FDisplay
+	{
+		FName AbilityId;
+		FText AbilityName, ShipName, AvailabilityText, ActivationKey;
+		FLinearColor Accent = FLinearColor::White;
+		bool bCanUseNow = false;
+	};
+
+	/** PresentReward(const FTDAbilityRewardDisplay&) -> bool, the struct filled field by field by name. */
+	bool Present(UObject* Widget, const FDisplay& D, bool& bAccepted)
+	{
+		bAccepted = false;
+		UFunction* F = Widget ? Widget->FindFunction(TEXT("PresentReward")) : nullptr;
+		if (!F)
+		{
+			return false;
+		}
+		const int32 Size = FMath::Max<int32>(F->ParmsSize, 1);
+		uint8* Buf = static_cast<uint8*>(FMemory_Alloca(Size));
+		FMemory::Memzero(Buf, Size);
+		const FStructProperty* Arg = nullptr;
+		for (TFieldIterator<FProperty> It(F); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+		{
+			It->InitializeValue_InContainer(Buf);
+			if (!Arg && !It->HasAnyPropertyFlags(CPF_ReturnParm))
+			{
+				Arg = CastField<FStructProperty>(*It);
+			}
+		}
+		if (Arg)
+		{
+			const UScriptStruct* S = Arg->Struct;
+			void* Data = Arg->ContainerPtrToValuePtr<void>(Buf);
+			SetField<FNameProperty>(S, Data, TEXT("AbilityId"), D.AbilityId);
+			SetField<FTextProperty>(S, Data, TEXT("AbilityName"), D.AbilityName);
+			SetField<FTextProperty>(S, Data, TEXT("ShipName"), D.ShipName);
+			SetField<FTextProperty>(S, Data, TEXT("AvailabilityText"), D.AvailabilityText);
+			SetField<FTextProperty>(S, Data, TEXT("ActivationKey"), D.ActivationKey);
+			SetField<FBoolProperty>(S, Data, TEXT("bCanUseNow"), D.bCanUseNow);
+			if (const FStructProperty* Accent = FindFProperty<FStructProperty>(S, TEXT("Accent")); Accent && Accent->Struct == TBaseStructure<FLinearColor>::Get())
+			{
+				*Accent->ContainerPtrToValuePtr<FLinearColor>(Data) = D.Accent;
+			}
+			Widget->ProcessEvent(F, Buf);
+			if (const FBoolProperty* Ret = CastField<FBoolProperty>(F->GetReturnProperty()))
+			{
+				bAccepted = Ret->GetPropertyValue_InContainer(Buf);
+			}
+		}
+		for (TFieldIterator<FProperty> It(F); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+		{
+			It->DestroyValue_InContainer(Buf);
+		}
+		return Arg != nullptr;
+	}
+
+	FText UpperName(const UEnum* E, int64 Value)
+	{
+		// "EMPPulse" -> "EMP PULSE", "GravityWell" -> "GRAVITY WELL" (the enum's display name ran the acronym in: live).
+		// Words split at a lower->Upper step and before the last capital of an acronym ("EMPPulse" -> "EMP PULSE").
+		const FString N = E->GetNameStringByValue(Value);
+		FString Out;
+		for (int32 I = 0; I < N.Len(); ++I)
+		{
+			const bool bUpper = FChar::IsUpper(N[I]);
+			const bool bAfterLower = I > 0 && FChar::IsLower(N[I - 1]);
+			const bool bAcronymEnd = I > 0 && FChar::IsUpper(N[I - 1]) && I + 1 < N.Len() && FChar::IsLower(N[I + 1]);
+			if (bUpper && (bAfterLower || bAcronymEnd))
+			{
+				Out.AppendChar(TEXT(' '));
+			}
+			Out.AppendChar(N[I]);
+		}
+		return FText::FromString(Out.ToUpper());
+	}
+}
+
+bool UTDUIHostSubsystem::ShowSensorFlicker(const UObject* WorldContext, FVector At, float Seconds)
+{
+	UTDUIHostSubsystem* Host = Get(WorldContext);
+	const UWorld* World = Host ? Host->GetWorld() : nullptr;
+	if (!World)
+	{
+		return false;
+	}
+	Host->SensorAt = At;
+	Host->SensorStart = World->GetTimeSeconds();
+	Host->SensorSeconds = FMath::Max(Seconds, SensorVerifiedAt + 1.f);
+	return true;
+}
+
+bool UTDUIHostSubsystem::GetSensorFlicker(FVector& OutAt, float& OutAge) const
+{
+	const UWorld* World = GetWorld();
+	const float Age = World ? static_cast<float>(World->GetTimeSeconds() - SensorStart) : -1.f;
+	if (Age < 0.f || Age > SensorSeconds)
+	{
+		return false;
+	}
+	OutAt = SensorAt;
+	OutAge = Age;
+	return true;
+}
+
+UClass* UTDUIHostSubsystem::ResolveRewardWidgetClass() const
+{
+	if (RewardWidgetClassOverride && RewardWidgetClassOverride->IsChildOf(UUserWidget::StaticClass()))
+	{
+		return RewardWidgetClassOverride;
+	}
+	if (UClass* Class = TDUIHost::LoadStyleClass(TEXT("AbilityRewardWidgetClass")))
+	{
+		return Class;
+	}
+	UClass* Nick = FindObject<UClass>(nullptr, TEXT("/Script/TriadDriftHUD.TDAbilityRewardWidget"));
+	if (Nick && Nick->IsChildOf(UUserWidget::StaticClass()))
+	{
+		return Nick;
+	}
+	// No reward screen anywhere: engineering's native announcement, so an award is never silent (T7's Verdance playtest).
+	static bool bSaid = false;
+	if (!bSaid)
+	{
+		bSaid = true;
+		UE_LOG(LogTemp, Display, TEXT("TD reward: no AbilityRewardWidgetClass and no TriadDriftHUD reward widget: the native announcement shows (UTDRewardAnnouncementWidget)."));
+	}
+	return UTDRewardAnnouncementWidget::StaticClass();
+}
+
+void UTDUIHostSubsystem::UpdateAbilityReward()
+{
+	UTDAbilityRewardSubsystem* Rewards = UTDAbilityRewardSubsystem::Get(this);
+	APlayerController* PC = FindLocalController();
+	if (!Rewards || !PC || bCinematicHidden)
+	{
+		return;
+	}
+	ETDAbilityId Ability = ETDAbilityId::None;
+	ETDShipId Ship = ETDShipId::Rift;
+	bool bCanUseNow = false;
+	if (!Rewards->GetPendingAbilityReward(Ability, Ship, bCanUseNow, this))
+	{
+		return;
+	}
+	const ATDSpacePlayerController* SpacePC = Cast<ATDSpacePlayerController>(PC);
+	const bool bGamepad = SpacePC && SpacePC->IsUsingGamepad();
+	if (PresentedReward == Ability && bRewardShownGamepad == bGamepad && bRewardShownUsable == bCanUseNow)
+	{
+		return; // on screen and current
+	}
+	if (!RewardWidget)
+	{
+		UClass* Class = ResolveRewardWidgetClass();
+		RewardWidget = Class ? CreateWidget<UUserWidget>(PC, Class) : nullptr;
+		if (!RewardWidget)
+		{
+			return;
+		}
+		// Bound before mounting (the contract): the widget broadcasts exactly once per dismissal.
+		if (const FMulticastDelegateProperty* Dismissed = FindFProperty<FMulticastDelegateProperty>(RewardWidget->GetClass(), TEXT("OnRewardDismissed")))
+		{
+			FScriptDelegate D;
+			D.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UTDUIHostSubsystem, HandleRewardDismissed));
+			Dismissed->AddDelegate(MoveTemp(D), RewardWidget);
+		}
+	}
+	TDRewardMount::FDisplay D;
+	D.AbilityId = FName(*StaticEnum<ETDAbilityId>()->GetNameStringByValue(static_cast<int64>(Ability)));
+	D.AbilityName = TDRewardMount::UpperName(StaticEnum<ETDAbilityId>(), static_cast<int64>(Ability));
+	D.ShipName = TDRewardMount::UpperName(StaticEnum<ETDShipId>(), static_cast<int64>(Ship));
+	D.AvailabilityText = bCanUseNow ? NSLOCTEXT("TDUIHost", "RewardReady", "READY NOW")
+		: FText::Format(NSLOCTEXT("TDUIHost", "RewardLater", "READY WHEN YOU FLY {0}"), D.ShipName);
+	D.ActivationKey = UTDHintComponent::KeyFor(ETDHint::Ability, bGamepad);
+	D.Accent = UTDStatics::ShipColor(Ship);
+	D.bCanUseNow = bCanUseNow;
+	bool bAccepted = false;
+	if (!TDRewardMount::Present(RewardWidget, D, bAccepted) || !bAccepted)
+	{
+		return; // refused (another award still up, or bad data): tried again on the next check
+	}
+	const bool bFirstShow = PresentedReward != Ability;
+	PresentedReward = Ability;
+	bRewardShownGamepad = bGamepad;
+	bRewardShownUsable = bCanUseNow;
+	if (bAddToViewport && !RewardWidget->IsInViewport())
+	{
+		RewardWidget->AddToViewport(60);
+	}
+	if (bFirstShow)
+	{
+		TDRewardMount::CallNoArgs(RewardWidget, TEXT("FocusDismissButton"));
+	}
+	UE_LOG(LogTemp, Log, TEXT("TD reward: presented %s (ship %s, usable now %d, key %s, %s)"), *D.AbilityId.ToString(), *D.ShipName.ToString(),
+		bCanUseNow, *D.ActivationKey.ToString(), *RewardWidget->GetClass()->GetName());
+}
+
+void UTDUIHostSubsystem::HandleRewardDismissed(FName AbilityId)
+{
+	const int64 Value = StaticEnum<ETDAbilityId>()->GetValueByNameString(AbilityId.ToString());
+	const ETDAbilityId Ability = Value == INDEX_NONE ? ETDAbilityId::None : static_cast<ETDAbilityId>(Value);
+	if (Ability == ETDAbilityId::None || Ability != PresentedReward)
+	{
+		return; // only the award on screen is acknowledged
+	}
+	if (UTDAbilityRewardSubsystem* Rewards = UTDAbilityRewardSubsystem::Get(this))
+	{
+		Rewards->MarkAbilityRewardPresented(Ability);
+	}
+	PresentedReward = ETDAbilityId::None;
+	UpdateAbilityReward(); // the next pending award, at once
+	if (PresentedReward == ETDAbilityId::None && FSlateApplication::IsInitialized())
+	{
+		FSlateApplication::Get().SetAllUserFocusToGameViewport(); // back to play (the previous focus may be gone)
 	}
 }
 
@@ -1019,6 +1278,33 @@ namespace TDUIHost
 			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.GroundStatus: widget %s boss=%d hull=%.2f phase=%d ghost=%.2f | direct boss=%d hull=%.2f phase=%d"),
 				*GetNameSafe(Ground), Ground && Ground->GetView().bBoss ? 1 : 0, Ground ? Ground->GetView().Boss01 : -1.f,
 				Ground ? Ground->GetView().BossPhase : -1, Ground ? Ground->GetBossGhost01() : -1.f, bBoss ? 1 : 0, Hull, Phase);
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUIReward(TEXT("TD.UI.Reward"),
+		TEXT("TD.UI.Reward <GravityWell|Cloak|EMPPulse> [Rift|Lancer|Bastion] | dismiss: STAGED - an award on the reward screen only (the bus's ")
+		TEXT("OnAbilityUnlocked; no progression), or dismiss the one on screen. The real path is the objective's UnlockAbility."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(World);
+			if (Args.Num() > 0 && Args[0] == TEXT("dismiss"))
+			{
+				if (Host && Host->GetRewardWidget())
+				{
+					if (UFunction* F = Host->GetRewardWidget()->FindFunction(TEXT("RequestDismiss"))) { Host->GetRewardWidget()->ProcessEvent(F, nullptr); }
+				}
+				return;
+			}
+			const int64 A = Args.Num() > 0 ? StaticEnum<ETDAbilityId>()->GetValueByNameString(Args[0]) : INDEX_NONE;
+			const int64 S = Args.Num() > 1 ? StaticEnum<ETDShipId>()->GetValueByNameString(Args[1]) : static_cast<int64>(ETDShipId::Bastion);
+			UTDEventBus* Bus = UTDEventBus::Get(World);
+			if (A == INDEX_NONE || S == INDEX_NONE || !Bus)
+			{
+				UE_LOG(LogTDUIHost, Warning, TEXT("TD.UI.Reward <GravityWell|Cloak|EMPPulse> [Rift|Lancer|Bastion] | dismiss"));
+				return;
+			}
+			Bus->BroadcastAbilityUnlocked(static_cast<ETDAbilityId>(A), static_cast<ETDShipId>(S));
+			if (Host) { Host->UpdateAbilityReward(); }
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Reward: STAGED award %s for %s."), *Args[0], Args.Num() > 1 ? *Args[1] : TEXT("Bastion"));
 		}));
 
 	FAutoConsoleCommandWithWorldAndArgs CmdTDUIScanTexture(TEXT("TD.UI.ScanTexture"),

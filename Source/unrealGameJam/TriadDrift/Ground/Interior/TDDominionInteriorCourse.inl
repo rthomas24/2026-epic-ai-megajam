@@ -10,6 +10,7 @@
 
 ATDPlanetCourse::FTDOnFieldAnchorDisabled ATDPlanetCourse::OnFieldAnchorDisabled;
 ATDPlanetCourse::FTDOnFinalRecord ATDPlanetCourse::OnFinalRecordStarted;
+ATDPlanetCourse::FTDOnInteriorMoment ATDPlanetCourse::OnInteriorMoment;
 
 namespace TDInteriorImpl
 {
@@ -61,9 +62,19 @@ void ATDPlanetCourse::BuildInterior()
 	// The kit (lead/int 9e54fb8, ArtSource/EngProps/DominionInterior/README.md) is placed BY PIVOT at scale 1 with its own
 	// collision: floor top at z = 0, 600 cm per storey, walls centred on their plane and tiling along their Y. A piece
 	// whose mesh is missing falls back to a placeholder block of its size, so the layout always plays.
+	// The walkable rebuild from the Blender kit (structures builder, eng/struct 8ce5c3fb: Props/Kit/Dominion, same names,
+	// sizes, pivots and openings) wins; the earlier pieces in Props/DominionInterior (the reactor's among them) otherwise.
 	auto KitMesh = [](const TCHAR* Name) -> UStaticMesh*
 	{
-		return TDPropArt::Load(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/%s.%s"), Name, Name))));
+		for (const TCHAR* Folder : { TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion"), TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior") })
+		{
+			const FString Package = FString::Printf(TEXT("%s/%s"), Folder, Name);
+			if (FindPackage(nullptr, *Package) || FPackageName::DoesPackageExist(Package))
+			{
+				if (UStaticMesh* M = TDPropArt::Load(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(TEXT("%s.%s"), *Package, Name))))) { return M; }
+			}
+		}
+		return nullptr;
 	};
 	// Box: the piece's bounds from its pivot (README table), for the placeholder.
 	auto Kit = [this, KitMesh](const TCHAR* Name, const FVector& At, float Yaw, const FBox& Box, bool bCollide = true) -> UStaticMeshComponent*
@@ -156,7 +167,8 @@ void ATDPlanetCourse::BuildInterior()
 		{
 			D->OpenHeight = 400.f;
 			D->bRecognisesPilot = bRecognise;
-			D->DoorMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Door.SM_DI_Door")));
+			D->DoorMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Door"))
+				? TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Door.SM_DI_Door") : TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Door.SM_DI_Door")));
 			D->Mesh->SetRelativeScale3D(FVector(0.3f, 3.f, 4.f)); // the kit door's box, 30 x 300 x 400 (fitted exactly), before BeginPlay
 			D->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 200.f));
 			TDCourseImpl::FinishProp(D);
@@ -178,6 +190,7 @@ void ATDPlanetCourse::BuildInterior()
 		L->SetIntensityUnits(ELightUnits::Candelas);
 		L->SetIntensity(Intensity);
 		L->SetCastShadows(false); // many lights, cheap
+		L->ComponentTags.Add(TEXT("TD.InteriorLight")); // the environment builder's alarm and collapse lighting finds them (ART-13)
 		L->RegisterComponent();
 	};
 	// One story console per room (storyline.md act 4: a recording in each room, older and older-sounding voices).
@@ -218,6 +231,7 @@ void ATDPlanetCourse::BuildInterior()
 	const float KX1 = 14800.f, KY = 1800.f;                       // core chamber, 36 x 36 m, three storeys
 	const float CY = 170.f;                                       // corridor clear half width
 	const FVector CoreAt((L2X1 + KX1) * 0.5f, 0.f, 0.f);
+	CoreChamberBox = FBox(W(FVector(L2X1, -KY, -200.f)), W(FVector(KX1, KY, 1900.f)));
 
 	// --- Shell ----------------------------------------------------------------------------------------
 	Room(HX0, HX1, HY, 2, false, true);
@@ -458,6 +472,12 @@ void ATDPlanetCourse::BuildInterior()
 	Heart->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 160.f));
 	Heart->CrystalMesh.Reset(); // the glowing sphere until the heart's art lands (not a Cinder crystal)
 	TDCourseImpl::FinishProp(Heart);
+	ReactorHeart = Heart;
+	if (UTDHealthComponent* HH = UTDStatics::GetHealth(Heart))
+	{
+		HH->OnDamaged.AddUniqueDynamic(this, &ATDPlanetCourse::HandleHeartHit);
+	}
+	PlayReactorFX(TEXT("CoreIdle"), Heart->GetActorLocation(), Heart->GetRootComponent(), true);
 	// The heart's death completes its step (live run, Nov 13: it broke and nothing happened; a counter of one).
 	ATDStepCounter* HeartDone = SpawnProp<ATDStepCounter>(CoreAt + FVector(-760.f, 0.f, 0.f));
 	HeartDone->LinkedObjective = Reactor;
@@ -483,7 +503,7 @@ void ATDPlanetCourse::BuildInterior()
 	Ship->LinkedStep = 0;
 	TDCourseImpl::FinishProp(Ship);
 	Ship->Box->SetBoxExtent(FVector(500.f, 500.f, 400.f));
-	ATDCollapseRun* Collapse = SpawnProp<ATDCollapseRun>(FVector((HX0 + KX1) * 0.5f, 0.f, 0.f));
+	ATDCollapseRun* Collapse = EscapeCollapse = SpawnProp<ATDCollapseRun>(FVector((HX0 + KX1) * 0.5f, 0.f, 0.f));
 	Collapse->LinkedObjective = Run;
 	Collapse->LinkedStep = 0;
 	Collapse->Seconds = EscapeSeconds;
@@ -643,9 +663,15 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 		UTDStorySubsystem::PlaySequence(this, TEXT("FirstDoor")); // A4_DoorsKnowUs, C7_Kato_Archive, C7_Wren_Record (T3)
 	}
 	else if (Id == Warden && StepIndex == 0) { Beat(TEXT("G7_Kato_Authorisations")); } // the Warden door opens
-	else if (Id == Core && StepIndex == 0) { Beat(TEXT("G8_Wren_ConduitsFirst")); }
-	else if (Id == Core && StepIndex == 1) { Beat(TEXT("G8_Kato_HeartExposed")); }
-	else if (Id == Escape && StepIndex == 0) { Beat(TEXT("A5_Escape")); Beat(TEXT("G9_Moss_HoldingWayOut")); }
+	else if (Id == Core && StepIndex == 0) { Beat(TEXT("G8_Wren_ConduitsFirst")); OnInteriorMoment.Broadcast(TEXT("ReactorFightStarted"), this); }
+	else if (Id == Core && StepIndex == 1)
+	{
+		Beat(TEXT("G8_Kato_HeartExposed"));
+		PlayReactorFX(TEXT("ShieldDrop"), CoreShield ? CoreShield->GetComponentLocation() : (ReactorHeart ? ReactorHeart->GetActorLocation() : GetActorLocation()));
+	}
+	else if (Id == Escape && StepIndex == 0) { Beat(TEXT("A5_Escape")); Beat(TEXT("G9_Moss_HoldingWayOut")); OnInteriorMoment.Broadcast(TEXT("EscapeStarted"), this);
+		APawn* Runner = UGameplayStatics::GetPlayerPawn(this, 0);
+		PlayReactorFX(TEXT("EscapeRunLoop"), Runner ? Runner->GetActorLocation() : GetActorLocation(), Runner ? Runner->GetRootComponent() : nullptr, true); }
 	// The core's shield is up while its conduits stand, and drops for the heart (a retake raises it again).
 	if (Id == Core && CoreShield)
 	{
@@ -664,6 +690,13 @@ void ATDPlanetCourse::FireCompletionBeats(ATDObjective* Objective)
 	const FName Id = Objective->ObjectiveId;
 	auto Beat = [this](const TCHAR* Beat) { UTDStorySubsystem::Fire(this, FName(Beat)); };
 	auto Done = [this](const TCHAR* Other) { const ATDObjective* O = FindObjective(FName(Other)); return O && O->IsComplete(); };
+	if (Id == TDInteriorImpl::Core)
+	{
+		OnInteriorMoment.Broadcast(TEXT("ReactorFightEnded"), this); // the heart's death completes the core
+		StopReactorLoop(TEXT("CoreIdle"));
+		PlayReactorFX(TEXT("CoreDestroyed"), ReactorHeart ? ReactorHeart->GetActorLocation() : GetActorLocation());
+	}
+	if (Id == TDInteriorImpl::Escape) { StopReactorLoop(TEXT("EscapeRunLoop")); }
 	if (Id == TEXT("Obj_WreckCore")) { Beat(TEXT("A2_DeviceFound")); }
 	else if (Id == TEXT("Obj_Relay")) { Beat(TEXT("A2_Voices")); } // static, then human voices that should not be there
 	else if (Id == TEXT("Obj_Outpost")) { Beat(TEXT("A3_CrystalsFound")); }
@@ -681,6 +714,29 @@ void ATDPlanetCourse::FireCompletionBeats(ATDObjective* Objective)
 // ------------------------------------------------------------------------------------------------
 // The final record (story 07-09, b2): mandatory, at the reactor's threshold, combat held
 // ------------------------------------------------------------------------------------------------
+
+float ATDPlanetCourse::GetEscapeSecondsLeft() const
+{
+	return EscapeCollapse && EscapeCollapse->IsRunning() ? EscapeCollapse->GetTimeLeft() : -1.f;
+}
+
+void ATDPlanetCourse::TickCoreChamber()
+{
+	if (!IsInterior() || !CoreChamberBox.IsValid)
+	{
+		return;
+	}
+	bool bInside = false;
+	for (TActorIterator<ATDFirstPersonCharacter> It(GetWorld()); It && !bInside; ++It)
+	{
+		bInside = !It->IsDead() && CoreChamberBox.IsInsideXY(It->GetActorLocation()); // the on-foot pilot (crew are not first-person characters)
+	}
+	if (bInside && !bPlayerInCoreChamber)
+	{
+		OnInteriorMoment.Broadcast(TEXT("CoreChamberEntered"), this); // once per crossing in; a retake outside re-arms it
+	}
+	bPlayerInCoreChamber = bInside;
+}
 
 void ATDPlanetCourse::TickFinalRecord(float DeltaSeconds)
 {
@@ -737,9 +793,57 @@ void ATDPlanetCourse::OpenReactorDoor()
 	// T3's Cinematic 08 carries the decision lines now (no A5_Choice here).
 }
 
+void ATDPlanetCourse::HandleHeartHit(UTDHealthComponent* Health, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
+{
+	if (HullDamage > 0.f || ShieldDamage > 0.f)
+	{
+		PlayReactorFX(TEXT("HeartHit"), Info.HitLocation.IsNearlyZero() && Health && Health->GetOwner() ? Health->GetOwner()->GetActorLocation() : Info.HitLocation);
+	}
+}
+
+void ATDPlanetCourse::PlayReactorFX(FName Slot, const FVector& At, USceneComponent* AttachTo, bool bLoop)
+{
+	ReactorFXLog.Add(Slot);
+	const UTDReactorCoreFX* FX = UTDReactorCoreFX::Get();
+	const FTDFXCue* Cue = !FX ? nullptr : Slot == TEXT("CoreIdle") ? &FX->CoreIdle : Slot == TEXT("ConduitBreak") ? &FX->ConduitBreak
+		: Slot == TEXT("ShieldDrop") ? &FX->ShieldDrop : Slot == TEXT("HeartHit") ? &FX->HeartHit : Slot == TEXT("CoreDestroyed") ? &FX->CoreDestroyed
+		: Slot == TEXT("EscapeRunLoop") ? &FX->EscapeRunLoop : Slot == TEXT("LaserSweep") ? &FX->LaserSweep : nullptr;
+	if (bLoop)
+	{
+		StopReactorLoop(Slot);
+		UAudioComponent* Audio = nullptr;
+		UNiagaraComponent* N = Cue && !Cue->IsEmpty() && AttachTo ? UTDStatics::PlayCueAttachedLoop(*Cue, AttachTo, NAME_None, Audio) : nullptr;
+		// The escape alarm: the run's own sound, else the engineering 2D loop (Nick's at the Presentation name wins).
+		if (Slot == TEXT("EscapeRunLoop") && !Audio)
+		{
+			static const TCHAR* AlarmPath = TEXT("/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_EscapeAlarm_01.SW_Dominion_EscapeAlarm_01");
+			USoundBase* Alarm = FX && !FX->EscapeAlarm.IsNull() ? FX->EscapeAlarm.LoadSynchronous() : nullptr;
+			if (!Alarm && FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_EscapeAlarm_01")))
+			{
+				Alarm = LoadObject<USoundBase>(nullptr, AlarmPath, nullptr, LOAD_Quiet | LOAD_NoWarn);
+			}
+			Audio = Alarm ? UGameplayStatics::SpawnSound2D(this, Alarm, 1.f, 1.f, 0.f, nullptr, false, false) : nullptr;
+		}
+		if (N) { ReactorLoopFX.Add(Slot, N); }
+		if (Audio) { ReactorLoopAudio.Add(Slot, Audio); }
+		return;
+	}
+	if (Cue && !Cue->IsEmpty())
+	{
+		UTDStatics::PlayCue(this, *Cue, At);
+	}
+}
+
+void ATDPlanetCourse::StopReactorLoop(FName Slot)
+{
+	if (TObjectPtr<UNiagaraComponent>* N = ReactorLoopFX.Find(Slot)) { if (*N) { (*N)->Deactivate(); } ReactorLoopFX.Remove(Slot); }
+	if (TObjectPtr<UAudioComponent>* A = ReactorLoopAudio.Find(Slot)) { if (*A) { (*A)->FadeOut(0.5f, 0.f); } ReactorLoopAudio.Remove(Slot); }
+}
+
 void ATDPlanetCourse::HandleConduitDown(UTDHealthComponent* Health, const FTDDamageInfo& Info)
 {
 	++ConduitsDown;
+	PlayReactorFX(TEXT("ConduitBreak"), Health && Health->GetOwner() ? Health->GetOwner()->GetActorLocation() : GetActorLocation());
 	UTDStorySubsystem::Fire(this, ConduitsDown == 1 ? TEXT("G8_Kato_ConduitDown") : TEXT("G8_Moss_KeepMoving")); // T3: the first, then the second
 }
 

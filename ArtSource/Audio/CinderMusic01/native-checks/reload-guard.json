@@ -1,0 +1,12 @@
+{
+  "mode": "reload",
+  "pid": 14532,
+  "exit_code": 0,
+  "reason": "completed",
+  "duration_s": 16.18800000000192,
+  "minimum_free_gib": 2.4689903259277344,
+  "protected_count": 2461,
+  "changed_protected": [],
+  "new_content": [],
+  "unexpected_content": []
+}

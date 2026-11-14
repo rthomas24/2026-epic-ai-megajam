@@ -29,6 +29,8 @@
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
+#include "TriadDrift/Enemies/TDEnemyLibrary.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/UI/TDTacticalDisplayWidget.h"
 #include "TriadDrift/UI/TDScanMonitorWidget.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
@@ -339,6 +341,96 @@ bool FTDFlightHUDObjective::RunTest(const FString& Parameters)
 
 // P2: hostiles. A current target gets the bracket (48..160) and distance; others ticks; off screen = chevron on the
 // safe frame along the marker's direction; missiles flagged; locked and current carried through.
+// Enemy readability (the ship builder via the Lead): each enemy type has its own marker outline, on and off screen;
+// the heading class reads toward / away / crossing; the marker count is unchanged.
+// ENG-38 descent HUD (T1's readings): the altimeter tape, the hull-temperature bar and ATMOSPHERE only during the
+// descent; ORBIT for a moment after the climb-out reveal; nothing otherwise.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDDescent, "TriadDrift.UI.FlightHUD.DescentAltimeterHeatAndCues", TD_TEST_FLAGS)
+bool FTDFlightHUDDescent::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	auto PaintHas = [&F](const TCHAR* Name)
+	{
+		TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+		return F.HUD->LastBoxes.ContainsByPredicate([Name](const TPair<FName, FBox2D>& B) { return B.Key == FName(Name); });
+	};
+	F.HUD->ForceHeat01 = 0.f;
+	F.HUD->ForceDescent01 = -1.f;
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("outside the descent: hidden"), F.V().bDescent);
+	TestFalse(TEXT("no hull temp outside"), PaintHas(TEXT("hull_temp")));
+
+	F.HUD->ForceHeat01 = .8f;
+	F.Src->Altitude = 2400.f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("entry burn: descent on, heat read"), F.V().bDescent && FMath::IsNearlyEqual(F.V().Heat01, .8f));
+	TestTrue(TEXT("hull temp painted"), PaintHas(TEXT("hull_temp")));
+	TestTrue(TEXT("altimeter tape painted"), PaintHas(TEXT("altimeter")));
+
+	F.HUD->ForceHeat01 = 0.f;
+	F.HUD->ForceDescent01 = .4f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("the glide keeps it up after the heat"), F.V().bDescent);
+	F.HUD->ForceDescent01 = -1.f;
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("landed / clear: hidden again"), F.V().bDescent);
+
+	F.HUD->StartOrbitCue();
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("ORBIT after the climb-out reveal"), F.V().OrbitCue01 > .5f && PaintHas(TEXT("orbit")));
+	F.HUD->Sample(UTDFlightHUDWidget::OrbitCueSeconds);
+	TestEqual(TEXT("then gone"), F.V().OrbitCue01, 0.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDKinds, "TriadDrift.UI.FlightHUD.EnemyMarkerShapesPerType", TD_TEST_FLAGS)
+bool FTDFlightHUDKinds::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	struct FCase { FName Id; uint8 Kind; };
+	const FCase Cases[] = {
+		{ TDEnemyIds::ShardFighter, UTDFlightHUDWidget::KindFighter }, { TDEnemyIds::HookInterceptor, UTDFlightHUDWidget::KindInterceptor },
+		{ TDEnemyIds::MaulBomber, UTDFlightHUDWidget::KindBomber }, { TDEnemyIds::WallGunship, UTDFlightHUDWidget::KindGunship },
+		{ TDEnemyIds::HiveCarrier, UTDFlightHUDWidget::KindCarrier } };
+	TArray<ATDEnemyShip*> Ships;
+	for (int32 I = 0; I < UE_ARRAY_COUNT(Cases); ++I)
+	{
+		// In front of the view (origin), facing: toward, away, then crossing.
+		const FVector At(20000.f + I * 3000.f, (I - 2) * 2000.f, 0.f);
+		const FRotator Facing = I == 0 ? FRotator(0.f, 180.f, 0.f) : I == 1 ? FRotator::ZeroRotator : FRotator(0.f, 90.f, 0.f);
+		ATDEnemyShip* E = F.W.Spawn<ATDEnemyShip>(At, Facing);
+		if (AController* C = E->GetController()) { C->UnPossess(); C->Destroy(); }
+		E->InitFromSpec(Cases[I].Id);
+		E->SetActorRotation(Facing);
+		Ships.Add(E);
+		TestEqual(*FString::Printf(TEXT("%s -> %s"), *Cases[I].Id.ToString(), UTDFlightHUDWidget::KindName(Cases[I].Kind)), UTDFlightHUDWidget::KindOf(E), Cases[I].Kind);
+		F.Src->AddMarker(true, FVector2D(.2f + .15f * I, .4f), FVector2D(1.f, 0.f), 20000.f).Actor = E;
+	}
+	F.Src->AddMarker(false, FVector2D::ZeroVector, FVector2D(-1.f, 0.f), 30000.f).Actor = Ships[3]; // the gunship off left
+	TestEqual(TEXT("not an enemy ship: the plain marker"), UTDFlightHUDWidget::KindOf(nullptr), UTDFlightHUDWidget::KindOther);
+	F.HUD->Sample(.016f);
+	const auto& Marks = F.V().Marks;
+	if (!TestEqual(TEXT("one mark per marker (no extra)"), Marks.Num(), 6))
+	{
+		return false;
+	}
+	for (int32 I = 0; I < UE_ARRAY_COUNT(Cases); ++I)
+	{
+		TestEqual(*FString::Printf(TEXT("mark %d kind"), I), Marks[I].Kind, Cases[I].Kind);
+	}
+	TestEqual(TEXT("fighter faces the view: toward"), Marks[0].Heading, (uint8)1);
+	TestEqual(TEXT("interceptor faces away: away"), Marks[1].Heading, (uint8)2);
+	TestEqual(TEXT("bomber side-on: crossing"), Marks[2].Heading, (uint8)0);
+	TestTrue(TEXT("off-screen gunship keeps its kind"), !Marks[5].bOnScreen && Marks[5].Kind == UTDFlightHUDWidget::KindGunship);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDMarks, "TriadDrift.UI.FlightHUD.P2.TargetsAndEdgeArrows", TD_TEST_FLAGS)
 bool FTDFlightHUDMarks::RunTest(const FString& Parameters)
 {
@@ -766,6 +858,82 @@ bool FTDFlightHUDApproach::RunTest(const FString& Parameters)
 	F.HUD->ForceApproach = 1;
 	F.HUD->Sample(.1f);
 	TestEqual(TEXT("no Dominion to point at: nothing drawn"), F.V().Approach, 0);
+	return true;
+}
+
+// ENG-36 story states (storyline.md): the Dominion's generator count as pips under the objective (0/4 to 4/4, a flash
+// and "GENERATOR DOWN" after each, no "N LEFT" beside it), and the transponder off Verdance ("UNKNOWN", "VERIFIED" for a
+// moment once, then "UNKNOWN" for good).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDStoryStates, "TriadDrift.UI.FlightHUD.StoryStatesGeneratorsAndTransponder", TD_TEST_FLAGS)
+bool FTDFlightHUDStoryStates::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	auto PaintBoxes = [&F]()
+	{
+		TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	};
+	auto Has = [&F](const TCHAR* Name) { return F.HUD->LastBoxes.ContainsByPredicate([Name](const TPair<FName, FBox2D>& B) { return B.Key == FName(Name); }); };
+
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("no Dominion: no generator pips"), F.V().GeneratorsTotal, 0);
+	F.HUD->ForceGeneratorsTotal = 4;
+	F.HUD->ForceGeneratorsDown = 0;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("assault: 0 / 4"), F.V().GeneratorsTotal == 4 && F.V().GeneratorsDown == 0 && F.V().GeneratorFlash01 == 0.f);
+	TestTrue(TEXT("no wave counter beside the pips"), F.V().Counter.IsEmpty());
+	PaintBoxes();
+	TestTrue(TEXT("pips painted"), Has(TEXT("generators")));
+	F.HUD->ForceGeneratorsDown = 1;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("one down: 1 / 4 and a flash"), F.V().GeneratorsDown == 1 && F.V().GeneratorFlash01 > .5f);
+	F.HUD->Sample(1.3f);
+	TestEqual(TEXT("the flash fades"), F.V().GeneratorFlash01, 0.f);
+	F.HUD->ForceGeneratorsDown = 4;
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("4 / 4"), F.V().GeneratorsDown, 4);
+	F.HUD->ForceGeneratorsTotal = -1;
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("off when the assault ends"), F.V().GeneratorsTotal, 0);
+
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("no beacon: no transponder"), F.V().bTransponder);
+	F.HUD->ForceTransponderAt = FVector(400000.f, 0.f, 0.f);
+	F.HUD->ForceTransponderAge = .5f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("sighted: UNKNOWN"), F.V().bTransponder && !F.V().bTransponderVerified);
+	TestTrue(TEXT("a range"), F.V().TransponderMetres > 0.f);
+	F.HUD->ForceTransponderAge = UTDFlightHUDWidget::TransponderVerifiedAt + .2f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("a moment later: VERIFIED"), F.V().bTransponderVerified);
+	PaintBoxes();
+	TestTrue(TEXT("verified label painted"), Has(TEXT("transponder_verified")));
+	F.HUD->ForceTransponderAge = UTDFlightHUDWidget::TransponderVerifiedAt + 2.f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("then UNKNOWN for good"), F.V().bTransponder && !F.V().bTransponderVerified);
+	F.HUD->ForceTransponderAt.Reset();
+	F.HUD->ForceTransponderAge = -1.f;
+
+	// The escape flight: T4's clock and the way out (straight away from the hull at the exit radius).
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("no escape: no clock"), F.V().bEscapeFlight);
+	F.HUD->ForceEscapeLeft = 42.f;
+	F.HUD->ForceEscapeTotal = 60.f;
+	F.HUD->ForceEscapeCentre = FVector(-200000.f, 0.f, 0.f);
+	F.HUD->ForceEscapeRadius = 300000.f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("escape: 42 s of 60 (T4's numbers)"), F.V().bEscapeFlight && FMath::IsNearlyEqual(F.V().EscapeLeft, 42.f) && FMath::IsNearlyEqual(F.V().EscapeTotal, 60.f));
+	TestTrue(FString::Printf(TEXT("still to fly (%.0f m)"), F.V().ClearMetres), F.V().ClearMetres > 0.f);
+	PaintBoxes();
+	TestTrue(TEXT("clock and CLEAR painted"), Has(TEXT("escape")) && Has(TEXT("clear")));
+	F.HUD->ForceEscapeLeft = -1.f;
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("off after"), F.V().bEscapeFlight);
 	return true;
 }
 

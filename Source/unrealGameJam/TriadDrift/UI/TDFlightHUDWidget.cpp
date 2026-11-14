@@ -1,6 +1,7 @@
 // Triad Drift - engineering space HUD (ENG-36, Teammate 2). Spec: docs/eng/hud-redesign.md.
 
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "GameFramework/PlayerController.h"
@@ -17,6 +18,14 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/UI/TDUIPaint.h"
 #include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/World/TDVerdanceApproach.h"
+#include "TriadDrift/Travel/TDDescentSubsystem.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
+#include "TriadDrift/Enemies/TDEnemyLibrary.h"
+#include "TriadDrift/Enemies/TDEnemyAIController.h"
+#include "EngineUtils.h"
 #include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
 #include "TriadDrift/Combat/TDFieldDamageable.h"
 #include "TriadDrift/Combat/Pickups/TDPickup.h"
@@ -414,6 +423,57 @@ void UTDFlightHUDWidget::SampleStory()
 	Sub.Age = Sub.Seconds * T.Progress01;
 }
 
+uint8 UTDFlightHUDWidget::KindOf(const AActor* Actor)
+{
+	const ATDEnemyShip* Ship = Cast<ATDEnemyShip>(Actor);
+	if (!Ship)
+	{
+		return KindOther;
+	}
+	const FName Id = Ship->GetEnemyId();
+	return Id == TDEnemyIds::ShardFighter ? KindFighter : Id == TDEnemyIds::HookInterceptor ? KindInterceptor
+		: Id == TDEnemyIds::MaulBomber ? KindBomber : Id == TDEnemyIds::WallGunship ? KindGunship
+		: Id == TDEnemyIds::HiveCarrier ? KindCarrier : KindOther;
+}
+
+const TCHAR* UTDFlightHUDWidget::KindName(uint8 Kind)
+{
+	switch (Kind)
+	{
+	case KindFighter: return TEXT("fighter");
+	case KindInterceptor: return TEXT("interceptor");
+	case KindBomber: return TEXT("bomber");
+	case KindGunship: return TEXT("gunship");
+	case KindCarrier: return TEXT("carrier");
+	default: return TEXT("other");
+	}
+}
+
+namespace TDFlightHUDShapes
+{
+	/** The outline for a kind, pointing down (+Y): the end that points at the ship under it, or outward off screen. */
+	void Points(uint8 Kind, TArray<FVector2D>& Out, float& Width)
+	{
+		Width = 2.f;
+		switch (Kind)
+		{
+		case UTDFlightHUDWidget::KindFighter: Out = { { -7, -5 }, { 0, 5 }, { 7, -5 } }; break;
+		case UTDFlightHUDWidget::KindInterceptor: Out = { { -3, -9 }, { 0, 8 }, { 3, -9 }, { -3, -9 } }; break;
+		case UTDFlightHUDWidget::KindBomber: Out = { { -12, -4 }, { 0, 5 }, { 12, -4 }, { -12, -4 } }; break;
+		case UTDFlightHUDWidget::KindGunship: Out = { { 0, -8 }, { 8, 0 }, { 0, 8 }, { -8, 0 }, { 0, -8 } }; Width = 3.f; break;
+		case UTDFlightHUDWidget::KindCarrier:
+			for (int32 I = 0; I <= 6; ++I)
+			{
+				const float A = PI / 2.f + I * PI / 3.f;
+				Out.Add(FVector2D(FMath::Cos(A), FMath::Sin(A)) * 11.f);
+			}
+			Width = 2.5f;
+			break;
+		default: Out = { { -7, -6 }, { 7, -6 }, { 0, 6 }, { -7, -6 } }; break;
+		}
+	}
+}
+
 void UTDFlightHUDWidget::ShowNavigationPulse(const FVector& From, const FVector& To, float Seconds)
 {
 	NavWorldFrom = From;
@@ -624,6 +684,24 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		Mark.bFocus = Focus && M.Actor.Get() == Focus;
 		Mark.Distance = M.Distance / 100.f;
 		Mark.bOnScreen = M.bOnScreen;
+		if (const AActor* A = M.Actor.Get(); A && !M.bIncomingMissile)
+		{
+			Mark.Kind = KindOf(A);
+			// Toward / away / crossing, from its nose against the line to the player (the view).
+			const FVector Fwd = A->GetActorForwardVector();
+			const FVector ToMe = (ViewLoc - A->GetActorLocation()).GetSafeNormal();
+			const float Dot = FVector::DotProduct(Fwd, ToMe);
+			Mark.Heading = Dot > .6f ? 1 : (Dot < -.6f ? 2 : 0);
+			FVector2D From2, Ahead2, Dir2;
+			if (Project(A->GetActorLocation(), From2, Dir2) && Project(A->GetActorLocation() + Fwd * 3000.f, Ahead2, Dir2) && !(Ahead2 - From2).IsNearlyZero())
+			{
+				Mark.HeadingAngle = FMath::Atan2(Ahead2.Y - From2.Y, Ahead2.X - From2.X);
+			}
+			const APawn* Mine = PC ? PC->GetPawn() : nullptr;
+			const APawn* EnemyPawn = Cast<APawn>(A);
+			const ATDEnemyAIController* AI = EnemyPawn ? Cast<ATDEnemyAIController>(EnemyPawn->GetController()) : nullptr;
+			Mark.bThreat = Mine && AI && AI->GetTarget() == Mine;
+		}
 		if (M.bOnScreen)
 		{
 			Mark.Pos = ToDesign(M.ScreenPosition01 * ViewportSize);
@@ -762,6 +840,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		}
 		View.DebrisCount = Pickups->GetDebrisThisScene();
 		View.DebrisAge = Pickups->GetSecondsSinceDebris();
+		View.BreakBoostAge = Pickups->GetSecondsSinceBreakBoost();
 		const float Total = Pickups->GetOverchargeSeconds();
 		View.OverchargeSeconds = Pickups->GetOverchargeRemaining();
 		View.Overcharge01 = Total > 0.f ? FMath::Clamp(View.OverchargeSeconds / Total, 0.f, 1.f) : 0.f;
@@ -783,6 +862,111 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		const bool bB = Project(NavWorldTo, B, DirB);
 		View.NavFrom = bA ? A : FVector2D(CenterX, 760.f);
 		View.NavTo = bB ? B : OnSafeFrame(bA ? DirB : FVector2D(.8f, -.35f));
+	}
+
+	// ENG-38 descent readings (T1): by name, so this builds with or without T1's statics; GetHeat() before them.
+	{
+		auto ReadStatic = [this](const TCHAR* Name, float Fallback) -> float
+		{
+			UFunction* F = UTDDescentSubsystem::StaticClass()->FindFunctionByName(FName(Name));
+			if (!F || F->ParmsSize <= 0)
+			{
+				return Fallback;
+			}
+			uint8* Buf = static_cast<uint8*>(FMemory_Alloca(F->ParmsSize));
+			FMemory::Memzero(Buf, F->ParmsSize);
+			if (const FObjectPropertyBase* Ctx = CastField<FObjectPropertyBase>(F->PropertyLink); Ctx && !Ctx->HasAnyPropertyFlags(CPF_ReturnParm))
+			{
+				Ctx->SetObjectPropertyValue_InContainer(Buf, const_cast<UTDFlightHUDWidget*>(this));
+			}
+			UTDDescentSubsystem::StaticClass()->GetDefaultObject()->ProcessEvent(F, Buf);
+			const FFloatProperty* Ret = CastField<FFloatProperty>(F->GetReturnProperty());
+			return Ret ? Ret->GetPropertyValue_InContainer(Buf) : Fallback;
+		};
+		const UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this);
+		View.Heat01 = ForceHeat01 >= 0.f ? ForceHeat01 : FMath::Clamp(ReadStatic(TEXT("GetEntryHeat01"), Descent ? Descent->GetHeat() : 0.f), 0.f, 1.f);
+		View.Descent01 = ForceDescent01 > -2.f ? ForceDescent01 : ReadStatic(TEXT("GetDescent01"), -1.f);
+		const APawn* Ship = PC ? PC->GetPawn() : nullptr;
+		const ATDShip* AsShip = Cast<ATDShip>(Ship);
+		const bool bEntering = AsShip && AsShip->GetAtmosphereEntry() && AsShip->GetAtmosphereEntry()->IsEntering();
+		View.bDescent = View.Heat01 > .01f || View.Descent01 >= 0.f || bEntering;
+		// ORBIT: the descent cover ending on the galaxy map is the climb-out's reveal (the HUD is rebuilt after the travel,
+		// so the edge is watched here rather than only through OnRevealed).
+		const bool bCovered = Descent && Descent->GetCoverPhase() != ETDDescentCover::Off;
+		const UWorld* World = GetWorld();
+		if (bCoverSeen && !bCovered && World && World->GetMapName().Contains(TEXT("Galaxy")))
+		{
+			StartOrbitCue();
+		}
+		bCoverSeen = bCovered;
+		OrbitCueLeft = FMath::Max(0.f, OrbitCueLeft - Dt);
+		View.OrbitCue01 = OrbitCueLeft / OrbitCueSeconds;
+	}
+
+	// The escape flight (ENG-31, T4's timing): the clock, and the way out straight away from the hull at the exit radius.
+	{
+		const ATDDominion* Dom = ATDDominion::Get(this);
+		const bool bForced = ForceEscapeLeft >= 0.f;
+		View.bEscapeFlight = bForced || (Dom && Dom->GetState() == ETDDominionState::EscapeFlight && !Dom->IsEscapeClear());
+		if (View.bEscapeFlight)
+		{
+			View.EscapeLeft = bForced ? ForceEscapeLeft : Dom->GetEscapeTimeLeft();
+			View.EscapeTotal = FMath::Max(bForced ? ForceEscapeTotal : Dom->EscapeSeconds, 1.f);
+			const FVector Centre = bForced ? ForceEscapeCentre : Dom->GetActorLocation();
+			const float Radius = bForced ? ForceEscapeRadius : Dom->GetEscapeExitRadius();
+			const APawn* Ship = PC ? PC->GetPawn() : nullptr;
+			const FVector ShipAt = Ship ? Ship->GetActorLocation() : ViewLoc;
+			const FVector Out = (ShipAt - Centre).GetSafeNormal(UE_SMALL_NUMBER, FVector::ForwardVector);
+			const FVector Clear = Centre + Out * Radius;
+			View.ClearMetres = FMath::Max(0.f, Radius - FVector::Dist(ShipAt, Centre)) * .01f;
+			FVector2D Dir;
+			View.bClearOnScreen = Project(Clear, View.ClearPos, Dir);
+			if (!View.bClearOnScreen)
+			{
+				View.ClearPos = OnSafeFrame(Dir);
+			}
+		}
+	}
+
+	// The transponder off Verdance (storyline.md §18): a marker on T4's beacon once it is sighted, "UNKNOWN", that reads
+	// "VERIFIED" for a moment and resets. Found by iteration every 2 s (one beacon in the galaxy, only in Phase Verdance).
+	{
+		TransponderScanLeft -= Dt;
+		if (TransponderScanLeft <= 0.f && !ForceTransponderAt.IsSet())
+		{
+			TransponderScanLeft = 2.f;
+			TransponderBeacon = nullptr;
+			if (UWorld* World = GetWorld())
+			{
+				for (TActorIterator<ATDTransponderBeacon> It(World); It; ++It)
+				{
+					if (It->IsActive()) { TransponderBeacon = *It; break; }
+				}
+			}
+		}
+		const ATDTransponderBeacon* Beacon = Cast<ATDTransponderBeacon>(TransponderBeacon.Get());
+		const bool bSighted = ForceTransponderAt.IsSet() || (Beacon && Beacon->IsActive() && Beacon->WasSighted());
+		const FVector At = ForceTransponderAt.IsSet() ? ForceTransponderAt.GetValue() : (Beacon ? Beacon->GetActorLocation() : FVector::ZeroVector);
+		const float Metres = FVector::Dist(ViewLoc, At) * .01f;
+		View.bTransponder = bSighted && (ForceTransponderAt.IsSet() || (Beacon && Metres * 100.f <= Beacon->NoticeRadius));
+		if (View.bTransponder)
+		{
+			TransponderSeenFor = ForceTransponderAge >= 0.f ? ForceTransponderAge : FMath::Max(0.f, TransponderSeenFor) + Dt;
+			FVector2D Dir;
+			View.bTransponderOnScreen = Project(At, View.TransponderPos, Dir);
+			if (!View.bTransponderOnScreen)
+			{
+				View.TransponderPos = OnSafeFrame(Dir);
+			}
+			View.TransponderMetres = Metres;
+			const float Since = TransponderSeenFor - TransponderVerifiedAt;
+			// Twice, briefly: on for .45 s, a stutter off, on for .12 s, then UNKNOWN for good.
+			View.bTransponderVerified = (Since >= 0.f && Since < TransponderVerifiedFor) || (Since >= TransponderVerifiedFor + .1f && Since < TransponderVerifiedFor + .22f);
+		}
+		else
+		{
+			View.bTransponderVerified = false;
+		}
 	}
 
 	// Lead indicator (only with a current target).
@@ -912,6 +1096,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 
 void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 {
+	TD_COMBAT_PERF(FlightHUD);
 	const float Dt = FMath::Max(0.f, DeltaSeconds);
 	Time += Dt;
 	const ITDHUDData* Data = Cast<ITDHUDData>(Source.Get());
@@ -1021,6 +1206,33 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 	}
 	const FString& Objective = View.Objective;
 	View.Counter = Wave.bWaveActive ? FString::Printf(TEXT("%d LEFT"), FMath::Max(0, Wave.EnemiesAlive)) : FString();
+	// The Dominion assault: the generator pips are the count (the objective line names it); no "N LEFT" beside them.
+	{
+		int32 Total = 0, Down = 0;
+		if (ForceGeneratorsTotal >= 0)
+		{
+			Total = ForceGeneratorsTotal;
+			Down = FMath::Clamp(ForceGeneratorsDown, 0, Total);
+		}
+		else if (const ATDDominion* Dom = ATDDominion::Get(this); Dom && Dom->GetState() == ETDDominionState::ShieldsUp)
+		{
+			Total = FMath::Max(Dom->GetGenerators().Num(), 4);
+			Down = FMath::Clamp(Total - Dom->GetGeneratorsRemaining(), 0, Total);
+		}
+		if (Total > 0 && GeneratorsDownSeen >= 0 && Down > GeneratorsDownSeen)
+		{
+			GeneratorFlashLeft = 1.2f;
+		}
+		GeneratorsDownSeen = Total > 0 ? Down : -1;
+		GeneratorFlashLeft = FMath::Max(0.f, GeneratorFlashLeft - DeltaSeconds);
+		View.GeneratorsTotal = Total;
+		View.GeneratorsDown = Down;
+		View.GeneratorFlash01 = GeneratorFlashLeft / 1.2f;
+		if (Total > 0)
+		{
+			View.Counter.Reset();
+		}
+	}
 	// The wave line only while a wave is on or about to start (review m11).
 	View.ObjectiveDetail = !bWaveShown ? FString()
 		: Wave.WaveCount > 0 ? FString::Printf(TEXT("WAVE %d OF %d"), Wave.WaveNumber, Wave.WaveCount)
@@ -1161,9 +1373,36 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	const float Pulse25 = .55f + .45f * FMath::Sin(Now * 2.5f * 2.f * PI); // under 3 Hz
 	for (const FMark& M : View.Marks)
 	{
+		// A kind's outline at At, rotated (0 = pointing down), brighter and heavier on a threat to the flown ship.
+		auto Shape = [&P, &Enemy](const FMark& Mk, FVector2D At, float Rot, float Alpha)
+		{
+			TArray<FVector2D> Pts;
+			float Width = 2.f;
+			TDFlightHUDShapes::Points(Mk.Kind, Pts, Width);
+			const FLinearColor C = (Mk.bThreat ? FMath::Lerp(Enemy, FLinearColor::White, .35f) : Enemy).CopyWithNewOpacity(Alpha);
+			const float W = Width + (Mk.bThreat ? 1.f : 0.f);
+			const float Cs = FMath::Cos(Rot), Sn = FMath::Sin(Rot);
+			for (int32 I = 0; I + 1 < Pts.Num(); ++I)
+			{
+				const FVector2D A(Pts[I].X * Cs - Pts[I].Y * Sn, Pts[I].X * Sn + Pts[I].Y * Cs);
+				const FVector2D B(Pts[I + 1].X * Cs - Pts[I + 1].Y * Sn, Pts[I + 1].X * Sn + Pts[I + 1].Y * Cs);
+				P.Line(At + A, At + B, C, W);
+			}
+			if (Mk.Kind == UTDFlightHUDWidget::KindCarrier)
+			{
+				P.Brackets(At, 15.f, C, 5.f);
+			}
+		};
 		if (!M.bOnScreen)
 		{
-			P.Chevron(M.Pos, M.Angle, 18.f, Enemy.CopyWithNewOpacity(M.bMissile ? Pulse25 : .9f), true);
+			if (M.bMissile || M.Kind == KindOther)
+			{
+				P.Chevron(M.Pos, M.Angle, 18.f, Enemy.CopyWithNewOpacity(M.bMissile ? Pulse25 : .9f), true);
+			}
+			else
+			{
+				Shape(M, M.Pos, M.Angle - PI * .5f, .9f); // its point outward, toward where it is
+			}
 			Rec(M.bMissile ? TEXT("missile_edge") : TEXT("edge"), M.Pos.X - 9.f, M.Pos.Y - 9.f, 18.f, 18.f);
 			continue;
 		}
@@ -1205,7 +1444,18 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		// Other hostiles: a 14 px hollow triangle, point down, above the ship; a locked one gets a 20 px amber diamond.
 		const FVector2D Tick(M.Pos.X, M.Pos.Y - 18.f);
 		Rec(TEXT("tick"), Tick.X - 7.f, Tick.Y - 6.f, 14.f, 12.f);
-		P.Poly(Tick, { { -7, -6 }, { 7, -6 }, { 0, 6 }, { -7, -6 } }, Enemy.CopyWithNewOpacity(.9f), 2.f);
+		Shape(M, Tick, 0.f, .9f);
+		Rec(*FString::Printf(TEXT("kind_%s"), KindName(M.Kind)), Tick.X - 12.f, Tick.Y - 12.f, 24.f, 24.f);
+		// Heading: toward = a filled dot in the outline, otherwise a short tick on the ship along its nose (crossing or away).
+		if (M.Heading == 1)
+		{
+			P.Box(Tick.X - 2.f, Tick.Y - 2.f, 4.f, 4.f, Enemy);
+		}
+		else
+		{
+			const FVector2D Nose(FMath::Cos(M.HeadingAngle), FMath::Sin(M.HeadingAngle));
+			P.Line(M.Pos + Nose * 6.f, M.Pos + Nose * (M.Heading == 2 ? 11.f : 15.f), Enemy.CopyWithNewOpacity(.75f), 2.f);
+		}
 		if (M.bLocked)
 		{
 			P.Poly(M.Pos, { { 0, -6 }, { 6, 0 }, { 0, 6 }, { -6, 0 }, { 0, -6 } }, T::Warning().CopyWithNewOpacity(.5f), 1.5f);
@@ -1241,6 +1491,22 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		const FVector2D Blip = FMath::Lerp(A, B, FMath::Clamp(T01 * 1.4f, 0.f, 1.f));
 		P.Box(Blip.X - 2.f, Blip.Y - 2.f, 4.f, 4.f, T::Neutral().CopyWithNewOpacity(.6f * Env));
 		Rec(TEXT("navpulse"), FMath::Min(A.X, B.X), FMath::Min(A.Y, B.Y), FMath::Abs(B.X - A.X), FMath::Abs(B.Y - A.Y));
+	}
+
+	// ---- the transponder: a thin sensor bracket and "TRANSPONDER  UNKNOWN" (or, for a moment, "VERIFIED" in the
+	// shield colour with a stutter), the range under it. On the frame edge when off screen.
+	if (View.bTransponder)
+	{
+		const FVector2D TC = View.TransponderPos;
+		const float Stutter = View.bTransponderVerified ? .75f + .25f * FMath::Abs(FMath::Sin(Now * 47.f)) : 1.f;
+		const FLinearColor Col = (View.bTransponderVerified ? T::Shield() : T::Dim()).CopyWithNewOpacity(.85f * Stutter);
+		P.Brackets(TC, 16.f, Col, 6.f);
+		const FString Word = View.bTransponderVerified ? TEXT("VERIFIED") : TEXT("UNKNOWN");
+		P.Words(TC.X + 24.f, TC.Y - 16.f, TEXT("TRANSPONDER"), 11, T::Dim().CopyWithNewOpacity(.8f), "Bold", 0.f, 120);
+		P.Words(TC.X + 24.f, TC.Y - 2.f, Word, 13, Col, "Bold", 0.f, 100);
+		P.Words(TC.X + 24.f, TC.Y + 14.f, View.TransponderMetres >= 1000.f ? FString::Printf(TEXT("%.1f km"), View.TransponderMetres / 1000.f)
+			: FString::Printf(TEXT("%.0f m"), View.TransponderMetres), 11, T::Dim().CopyWithNewOpacity(.7f), "Bold", 0.f, 40);
+		Rec(View.bTransponderVerified ? TEXT("transponder_verified") : TEXT("transponder"), TC.X - 16.f, TC.Y - 16.f, 120.f, 46.f);
 	}
 
 	// ---- objective waypoints: a white diamond + range on screen (health bar on a generator), an edge diamond off screen
@@ -1510,7 +1776,49 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		P.Words(AmmoX, C.Y + PipOffsetY - 10.f, FString::FromInt(View.Ammo), 15, T::Neutral().CopyWithNewOpacity(View.Ammo > 0 ? .9f : .4f), "Bold", 0.f, 0);
 		Rec(TEXT("ammo"), AmmoX, C.Y + PipOffsetY - 10.f, 24.f, 18.f);
 	}
-	if (View.Altitude >= 0.f)
+	// ---- ENG-38 descent: an altimeter tape right of the reticle (100 m ticks, a number every 500 m, the reading in a
+	// box), a HULL TEMP bar under it (amber, red above 70%), "ATMOSPHERE" over it; squad-neutral tokens.
+	if (View.bDescent)
+	{
+		const float TX = C.X + 190.f, TY = C.Y - 100.f, TH = 200.f;
+		const float Alt = FMath::Max(0.f, View.Altitude);
+		P.Words(TX - 4.f, TY - 26.f, TEXT("ATMOSPHERE"), 12, T::Shield(), "Bold", 0.f, 160);
+		if (View.Altitude >= 0.f)
+		{
+			// 200 px = 1000 m: 0.2 px per metre, centred on the current altitude.
+			P.Line({ TX, TY }, { TX, TY + TH }, T::Dim().CopyWithNewOpacity(.6f), 1.5f);
+			const int32 First = FMath::FloorToInt((Alt - 500.f) / 100.f) * 100;
+			for (int32 M = First; M <= Alt + 500.f; M += 100)
+			{
+				if (M < 0) { continue; }
+				const float Y = TY + TH * .5f - (M - Alt) * .2f;
+				if (Y < TY || Y > TY + TH) { continue; }
+				const bool bMajor = M % 500 == 0;
+				P.Line({ TX, Y }, { TX + (bMajor ? 12.f : 6.f), Y }, T::Neutral().CopyWithNewOpacity(bMajor ? .8f : .45f), 1.5f);
+				if (bMajor)
+				{
+					P.Words(TX + 16.f, Y - 7.f, FString::Printf(TEXT("%d"), M), 11, T::Dim(), "Bold", 0.f, 20);
+				}
+			}
+			const float BY = TY + TH * .5f;
+			P.Plate(TX - 84.f, BY - 13.f, 76.f, 26.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
+			P.Words(TX - 14.f, BY - 9.f, FString::Printf(TEXT("%.0f m"), Alt), 15, Alt < 60.f ? T::Bastion() : T::Neutral(), "Bold", 1.f, 20);
+			Rec(TEXT("altimeter"), TX - 84.f, TY, 130.f, TH);
+		}
+		const float HY = TY + TH + 16.f;
+		P.Words(TX - 4.f, HY, TEXT("HULL TEMP"), 11, T::Dim(), "Bold", 0.f, 140);
+		P.Box(TX - 4.f, HY + 18.f, 120.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
+		const FLinearColor HeatC = View.Heat01 > .7f ? T::Danger() : T::Bastion();
+		P.Box(TX - 4.f, HY + 18.f, 120.f * View.Heat01, 6.f, HeatC);
+		Rec(TEXT("hull_temp"), TX - 4.f, HY, 120.f, 24.f);
+	}
+	if (View.OrbitCue01 > 0.f)
+	{
+		const float Fade = FMath::Min(1.f, View.OrbitCue01 * 3.f);
+		P.Words(C.X, C.Y - 170.f, TEXT("ORBIT"), 22, T::Shield().CopyWithNewOpacity(.9f * Fade), "Bold", .5f, 300);
+		Rec(TEXT("orbit"), C.X - 60.f, C.Y - 170.f, 120.f, 26.f);
+	}
+	if (View.Altitude >= 0.f && !View.bDescent)
 	{
 		P.Words(C.X - 110.f, C.Y - 5.f, FString::Printf(TEXT("ALT %.0f m"), View.Altitude), 15, View.Altitude < 60.f ? T::Bastion() : T::Neutral(),
 			"Bold", 1.f, 20);
@@ -1541,6 +1849,16 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		P.Bar(CenterX - 80.f, 792.f, 160.f, 6.f, View.Boost, Accent, .9f);
 		Rec(TEXT("boost"), CenterX - 80.f, 791.f, 168.f, 8.f);
+		// A break's top-up: "+BOOST" beside the bar and a short brightening of the bar (0.9 s).
+		if (View.BreakBoostAge < .9f)
+		{
+			const float Fade = FMath::Clamp((.9f - View.BreakBoostAge) / .4f, 0.f, 1.f);
+			auto Tick = P;
+			Tick.Layer = P.Layer + 2;
+			Tick.Box(CenterX - 80.f, 792.f, 160.f * View.Boost, 6.f, T::Neutral().CopyWithNewOpacity(.35f * Fade));
+			Tick.Words(CenterX + 92.f, 784.f, TEXT("+BOOST"), 12, Accent.CopyWithNewOpacity(.9f * Fade), "Bold", 0.f, 60);
+			Rec(TEXT("break_boost"), CenterX + 92.f, 784.f, 60.f, 16.f);
+		}
 		P.Box(CenterX + 84.f, 791.f, 2.f, 8.f, (View.bDodgeReady ? T::Neutral() : T::Dim()).CopyWithNewOpacity(View.bDodgeReady ? .95f : .4f));
 	}
 	if (View.Hyperdrive > 0.f)
@@ -1785,6 +2103,54 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		{
 			P.Words(X + W - 16.f, Y + 5.f, View.Counter, 15, T::Neutral().CopyWithNewOpacity(TextO), "Bold", 1.f, 40);
 		}
+	}
+	// ---- the escape flight: "ESCAPE 0:42" and a draining bar under the objective (red in the last 20 s, pulsing in the
+	// last 10), and an amber "CLEAR" diamond with the distance still to fly where the way out is.
+	if (View.bEscapeFlight)
+	{
+		const float W = 300.f, H = 64.f, X = CenterX - W * .5f, Y = SafeY + ObjectiveHeight + (View.GeneratorsTotal > 0 ? 40.f : 12.f);
+		const bool bLate = View.EscapeLeft <= 20.f;
+		const float Pulse = View.EscapeLeft <= 10.f ? .6f + .4f * FMath::Abs(FMath::Sin(Now * PI * 2.f)) : 1.f;
+		const FLinearColor Col = (bLate ? T::Danger() : T::Bastion()).CopyWithNewOpacity(Pulse);
+		P.Plate(X, Y, W, H, 14.f, T::Plate().CopyWithNewOpacity(.8f));
+		const int32 Secs = FMath::CeilToInt(View.EscapeLeft - KINDA_SMALL_NUMBER);
+		P.Words(X + 18.f, Y + 8.f, TEXT("ESCAPE"), 12, Col, "Bold", 0.f, 160);
+		P.Words(X + 18.f, Y + 24.f, FString::Printf(TEXT("%d:%02d"), Secs / 60, Secs % 60), 28, T::Neutral(), "Bold", 0.f, 40);
+		P.Box(X + 120.f, Y + 38.f, (W - 138.f) * FMath::Clamp(View.EscapeLeft / View.EscapeTotal, 0.f, 1.f), 6.f, Col);
+		Rec(TEXT("escape"), X, Y, W, H);
+		Area += W * H;
+		const FVector2D CP = View.ClearPos;
+		P.Poly(CP, { { 0, -12 }, { 12, 0 }, { 0, 12 }, { -12, 0 }, { 0, -12 } }, T::Bastion(), 2.5f);
+		P.Words(CP.X + 18.f, CP.Y - 16.f, TEXT("CLEAR"), 12, T::Bastion(), "Bold", 0.f, 150);
+		P.Words(CP.X + 18.f, CP.Y, View.ClearMetres >= 1000.f ? FString::Printf(TEXT("%.1f km"), View.ClearMetres / 1000.f)
+			: FString::Printf(TEXT("%.0f m"), View.ClearMetres), 12, T::Neutral().CopyWithNewOpacity(.85f), "Bold", 0.f, 40);
+		Rec(TEXT("clear"), CP.X - 12.f, CP.Y - 12.f, 24.f, 24.f);
+	}
+
+	// ---- the Dominion's shield generators: one pip each under the objective line, filled amber when down; the newest
+	// down flashes white and the row reads "GENERATOR DOWN" for a moment (storyline.md Gameplay 06: distinct feedback).
+	if (View.GeneratorsTotal > 0)
+	{
+		const float Pip = 14.f, Gap = 10.f;
+		const float RowW = View.GeneratorsTotal * Pip + (View.GeneratorsTotal - 1) * Gap;
+		const float PX = CenterX - RowW * .5f, PY = SafeY + ObjectiveHeight + 12.f;
+		for (int32 G = 0; G < View.GeneratorsTotal; ++G)
+		{
+			const FVector2D PC(PX + G * (Pip + Gap) + Pip * .5f, PY + Pip * .5f);
+			const bool bDown = G < View.GeneratorsDown;
+			const bool bNewest = bDown && G == View.GeneratorsDown - 1 && View.GeneratorFlash01 > 0.f;
+			const FLinearColor Col = bNewest ? FMath::Lerp(T::Warning(), T::Neutral(), View.GeneratorFlash01) : bDown ? T::Bastion() : T::Dim();
+			if (bDown)
+			{
+				P.Box(PC.X - 4.f, PC.Y - 4.f, 8.f, 8.f, Col);
+			}
+			P.Poly(PC, { { 0, -7 }, { 6, -3.5f }, { 6, 3.5f }, { 0, 7 }, { -6, 3.5f }, { -6, -3.5f }, { 0, -7 } }, Col.CopyWithNewOpacity(bDown ? 1.f : .7f), 2.f);
+		}
+		const FString Label = View.GeneratorFlash01 > 0.f ? FString(TEXT("GENERATOR DOWN"))
+			: FString::Printf(TEXT("%d / %d"), View.GeneratorsDown, View.GeneratorsTotal);
+		P.Words(PX + RowW + 14.f, PY - 1.f, Label, 13, (View.GeneratorFlash01 > 0.f ? T::Warning() : T::Neutral()).CopyWithNewOpacity(.9f), "Bold", 0.f, 80);
+		Rec(TEXT("generators"), PX, PY, RowW + 120.f, Pip);
+		Area += (RowW + 120.f) * Pip;
 	}
 	// ---- coverage (spec 3.3: bounding boxes of what was drawn this frame)
 	for (const FChip& Chip : View.Chips)

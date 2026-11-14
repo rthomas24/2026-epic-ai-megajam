@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
+#include "TriadDrift/Core/TDTypes.h"
 #include "TDUIHostSubsystem.generated.h"
 
 class UUserWidget;
@@ -164,6 +165,17 @@ public:
 	static bool ShowNavigationPulse(const UObject* WorldContext, FVector From, FVector To, float Seconds = 1.5f);
 
 	/**
+	 * storyline.md §18, the Verdance traverse: a sensor marker on a squad transponder at At reads "UNKNOWN", then
+	 * "VERIFIED" for a moment (SensorVerifiedAt s in), then "UNKNOWN" again; shown for Seconds on the on-foot HUD. Nobody
+	 * explains it. T5 calls it at the trigger point on the route.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static bool ShowSensorFlicker(const UObject* WorldContext, FVector At, float Seconds = 6.f);
+	/** The sensor marker while it shows: where, and seconds since it started. */
+	bool GetSensorFlicker(FVector& OutAt, float& OutAge) const;
+	static constexpr float SensorVerifiedAt = 1.4f;
+
+	/**
 	 * A focus hold on the flight HUD, by reason (T1's atmosphere entry: e.g. Reason "Entry", Opacity 0.35, bHideCombat true).
 	 * While any hold is up the whole HUD eases to the lowest Opacity, and with bHideCombat the objective pill and waypoints
 	 * leave the screen. Pushing the same Reason again replaces it; PopHUDFocus ends it. Holds survive a widget re-creation
@@ -234,6 +246,19 @@ public:
 	UFUNCTION()
 	void HandlePauseChanged(bool bPaused);
 
+	/** The reward screen's OnRewardDismissed: acknowledge that award, then present the next pending one at once. */
+	UFUNCTION()
+	void HandleRewardDismissed(FName AbilityId);
+
+	/** The mounted ability reward screen, and the award it shows (None when idle). */
+	UUserWidget* GetRewardWidget() const { return RewardWidget; }
+	ETDAbilityId GetPresentedReward() const { return PresentedReward; }
+	/** Tests: mount this class instead of DA_UI_Style's / Nick's (a stand-in with the same functions and fields). */
+	UPROPERTY(Transient)
+	TObjectPtr<UClass> RewardWidgetClassOverride;
+	/** Present / refresh / mount the pending award now (also run on every host check). */
+	void UpdateAbilityReward();
+
 private:
 	APlayerController* FindLocalController() const;
 	bool WantsSpaceHUD(APlayerController*& OutController, UObject*& OutSource) const;
@@ -264,6 +289,16 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> ScanWidget;
+	FVector SensorAt = FVector::ZeroVector;
+	double SensorStart = -1e9;
+	float SensorSeconds = 0.f;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UUserWidget> RewardWidget;
+	ETDAbilityId PresentedReward = ETDAbilityId::None;
+	bool bRewardShownGamepad = false;
+	bool bRewardShownUsable = false;
+	UClass* ResolveRewardWidgetClass() const;
 
 	struct FTDHUDFocus
 	{

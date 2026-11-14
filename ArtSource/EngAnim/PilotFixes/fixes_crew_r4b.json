@@ -1,0 +1,21 @@
+{
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "compose": [
+  {
+   "dst": "A_Crew_Warden_GuardRaise",
+   "segments": [
+    [
+     "A_Crew_Warden_GuardRaise",
+     0.0,
+     0.8
+    ],
+    [
+     "A_Crew_Warden_Guard",
+     0.0,
+     0.35
+    ]
+   ],
+   "blend": 0.3
+  }
+ ]
+}

@@ -245,6 +245,41 @@ bool FTDBarksMissile::RunTest(const FString& Parameters)
 	return true;
 }
 
+// dialogs.md Bark_MissileEvaded (T3's ask): a warned missile that ends without reaching the flown ship (shot down,
+// expired, returned) has the flown pilot say it once; one that hits the flown ship says nothing; an unwarned one nothing.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBarksMissileEvaded, "TriadDrift.Combat.Barks.MissileEvadedWhenItMisses", TD_TEST_FLAGS)
+bool FTDBarksMissileEvaded::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	if (!F.Init(*this))
+	{
+		return false;
+	}
+	ATDShip* Flown = F.Squad->GetActiveShip();
+	ATDShip* Wing = nullptr;
+	for (int32 I = 0; I < 3 && !Wing; ++I)
+	{
+		ATDShip* S = F.Squad->GetShip(static_cast<ETDShipId>(I));
+		Wing = S != Flown ? S : nullptr;
+	}
+	const FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyHomingMissile).Projectile;
+	const FTransform Far(FRotator::ZeroRotator, Flown->GetActorLocation() + FVector(-30000.f, 0.f, 0.f));
+	ATDProjectile* ShotDown = ATDProjectile::Spawn(F.W.GetWorld(), Spec, Far, nullptr, ETDTeam::Enemy, Flown);
+	if (ShotDown) { ShotDown->Kill(true); }
+	TestEqual(TEXT("shot down before reaching the flown ship: evaded once"), F.N(TDBarkIdsT2::MissileEvaded), 1);
+	if (ATDProjectile* AtWing = ATDProjectile::Spawn(F.W.GetWorld(), Spec, Far, nullptr, ETDTeam::Enemy, Wing)) { AtWing->Kill(true); }
+	TestEqual(TEXT("a missile at a wingman (never warned): nothing"), F.N(TDBarkIdsT2::MissileEvaded), 1);
+
+	// Launched point-blank at the flown ship: it hits, nothing evaded.
+	const FVector Dir = FVector::ForwardVector;
+	const FTransform Close(Dir.Rotation(), Flown->GetActorLocation() - Dir * 1500.f);
+	ATDProjectile* Hits = ATDProjectile::Spawn(F.W.GetWorld(), Spec, Close, nullptr, ETDTeam::Enemy, Flown);
+	TestNotNull(TEXT("close missile"), Hits);
+	F.W.Advance(2.f);
+	TestEqual(TEXT("it reached the flown ship: no evaded line"), F.N(TDBarkIdsT2::MissileEvaded), 1);
+	return true;
+}
+
 // Portals: the flown ship through a portal asks PortalThrough once per transit (the re-entry cooldown refuses an
 // immediate second one); an enemy missile sent back asks PortalMissileReturn once (it is the player's afterwards).
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBarksPortal, "TriadDrift.Combat.Barks.PortalThroughAndReturn", TD_TEST_FLAGS)

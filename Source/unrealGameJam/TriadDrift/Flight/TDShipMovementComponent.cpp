@@ -352,7 +352,23 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	const FVector StartLocation = State.Location;
 
 	MeasureGroundClearance();
-	TDFlightSim::Advance(State, Input, Tuning, Context, DeltaTime);
+	if (BoundaryReleases.Num() > 0)
+	{
+		FTDFlightContext Released = Context; // a scripted corridor past the edge (SetBoundaryReleaseFor): no containment
+		Released.bBoundaryEnabled = false;
+		TDFlightSim::Advance(State, Input, Tuning, Released, DeltaTime);
+	}
+	else
+	{
+		TDFlightSim::Advance(State, Input, Tuning, Context, DeltaTime);
+	}
+	if (bPitchHold)
+	{
+		// ENG-38 glide: the nose's pitch is held (the path), yaw and roll stay the pilot's; the next step flies along it.
+		FRotator R = State.Rotation.Rotator();
+		R.Pitch = FMath::FInterpConstantTo(R.Pitch, PitchHoldDeg, DeltaTime, PitchHoldRate);
+		State.Rotation = R.Quaternion();
+	}
 
 	const FVector Delta = State.Location - StartLocation;
 	State.Location = StartLocation;
@@ -691,10 +707,12 @@ void UTDShipMovementComponent::BroadcastStateChanges(const FTDFlightState& Befor
 		OnDriftReleased.Broadcast(State.bDriftBurstThisStep);
 	}
 	const ETDBoundaryState WasBoundary = Before.bOutOfBounds ? ETDBoundaryState::Outside : (Before.bNearBoundary ? ETDBoundaryState::Warning : ETDBoundaryState::Inside);
-	if (GetBoundaryState() != WasBoundary)
+	const bool bHeld = IsBoundaryWarningHeld();
+	if (!bHeld && (GetBoundaryState() != WasBoundary || (bBoundaryHeldLastStep && GetBoundaryState() != ETDBoundaryState::Inside)))
 	{
-		OnBoundaryStateChanged.Broadcast(GetBoundaryState());
+		OnBoundaryStateChanged.Broadcast(GetBoundaryState()); // a change, or the hold just ended near / past the edge
 	}
+	bBoundaryHeldLastStep = bHeld;
 }
 
 bool UTDShipMovementComponent::CanDodge() const
@@ -716,8 +734,32 @@ bool UTDShipMovementComponent::RequestDodge(float Direction)
 	return true;
 }
 
+void UTDShipMovementComponent::SetBoundaryWarningHoldFor(FName Owner, bool bHold)
+{
+	if (bHold) { BoundaryWarningHolds.Add(Owner); }
+	else { BoundaryWarningHolds.Remove(Owner); }
+}
+
+void UTDShipMovementComponent::SetBoundaryReleaseFor(FName Owner, bool bRelease)
+{
+	if (bRelease) { BoundaryReleases.Add(Owner); }
+	else { BoundaryReleases.Remove(Owner); }
+}
+
+bool UTDShipMovementComponent::IsBoundaryWarningHeld() const
+{
+	if (BoundaryWarningHolds.Num() > 0 || BoundaryReleases.Num() > 0) { return true; }
+	static const FName SequenceOwners[] = { FName(TEXT("AtmosphereEntry")), FName(TEXT("TDExitClimb")), FName(TEXT("Hyperdrive")), FName(TEXT("LandingAssist")), FName(TEXT("DescentGlide")) };
+	for (const FSpeedOverrideRequest& R : OverrideStack)
+	{
+		for (const FName& N : SequenceOwners) { if (R.Owner == N) { return true; } }
+	}
+	return false;
+}
+
 FText UTDShipMovementComponent::GetBoundaryWarningText() const
 {
+	if (IsBoundaryWarningHeld()) { return FText::GetEmpty(); }
 	const bool bZone = Context.bBoxBoundary;
 	switch (GetBoundaryState())
 	{

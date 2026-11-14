@@ -1,0 +1,30 @@
+{
+  "mode": "import",
+  "tracks": [
+    {
+      "asset": "/Game/TriadDrift/Audio/CinderMusic01/MUS_Cinder_Exploration_World_Full_01.MUS_Cinder_Exploration_World_Full_01",
+      "package_sha256": "07a595ccc27801752292c079c7531893a024dda58365ccb30716e8c6bafe235d",
+      "frames": 7200000,
+      "duration_seconds": 150.0,
+      "sample_rate": 48000,
+      "channels": 2,
+      "looping": false,
+      "volume": 1.0,
+      "maximum_pcm_error_lsb": 1,
+      "export_sha256": "52bbc2f2f65c8611b1b7becad537a4e028448defdf7a7626523cf50e0268cd75"
+    },
+    {
+      "asset": "/Game/TriadDrift/Audio/CinderMusic01/MUS_Cinder_Combat_Fall_Full_01.MUS_Cinder_Combat_Fall_Full_01",
+      "package_sha256": "076a5f2984308046acf490cc3d9600d71c9fe0ba8fef5f5f657271e68eb1d66c",
+      "frames": 7142400,
+      "duration_seconds": 148.8,
+      "sample_rate": 48000,
+      "channels": 2,
+      "looping": false,
+      "volume": 1.0,
+      "maximum_pcm_error_lsb": 1,
+      "export_sha256": "48a2e6d4f1f5e6f63093386ee11db82ed0472ba012f5d3f3db74b0bff5e35f18"
+    }
+  ],
+  "stage": "native data checked; no playback, offset, scene binding, cook or listening approval"
+}

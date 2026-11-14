@@ -16,7 +16,11 @@
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Profile/TDProfileSubsystem.h"
+#include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
+#include "TriadDrift/Flow/TDSaveGame.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryTable, "TriadDrift.Story.Transmissions.EveryBeatHasAPlaceholderAndNoEarlyTwist", TD_TEST_FLAGS)
 bool FTDStoryTable::RunTest(const FString& Parameters)
@@ -35,7 +39,7 @@ bool FTDStoryTable::RunTest(const FString& Parameters)
 		TEXT("S2_Moss_Accounted"), TEXT("S2_Kato_NotPursuing"), TEXT("S2_Command_Orders"), TEXT("S2_Kato_Recorders"),
 		TEXT("TB_Kato_Marking"), TEXT("TB_Command_FallBack"), TEXT("TB_Kato_BreakingOff"),
 		TEXT("A2_ConvoyScanned"), TEXT("A2_TransponderSighted"), TEXT("G2_Command_Archive"), TEXT("C3_Kato_Artificial"),
-		TEXT("C3_Wren_Answered"), TEXT("G3_TransferStart"), TEXT("G3_Disruption"), TEXT("G3_DataSecured"), TEXT("C4_Command_Proceed"), TEXT("C4_Wren_SetCourse"),
+		TEXT("C3_Wren_Answered"), TEXT("G3_TransferStart"), TEXT("G3_Disruption"), TEXT("G3_DataSecured"), TEXT("C4_Command_Proceed"),
 		TEXT("G4_Kato_Transports"), TEXT("C5_Kato_SameConstruction"), TEXT("C5_Unknown_SameConstruction"), TEXT("C5_Kato_Feedback"),
 		TEXT("C5_Kato_OriginCore"), TEXT("G5_Wren_ClearRoute"), TEXT("C6_Command_FindOutWhy"), TEXT("C6_Wren_StayTogether"),
 		TEXT("G6_Kato_MarkingTargets"), TEXT("G6_Command_ShieldCollapsed"), TEXT("G6_Clue1"), TEXT("G6_Clue2"),
@@ -43,7 +47,7 @@ bool FTDStoryTable::RunTest(const FString& Parameters)
 		TEXT("G7_Kato_Authorisations"), TEXT("G7_Wren_FullRecord"), TEXT("F_FutureWren_FullWarning"), TEXT("C8_RecKato_OneEvent"),
 		TEXT("C8_RecWren_LastChance"), TEXT("C8_RecMoss_SaveYou"), TEXT("C8_Kato_NoSafeShutdown"), TEXT("C8_Moss_CantLetThem"),
 		TEXT("C8_Wren_Order"), TEXT("G8_Wren_ConduitsFirst"), TEXT("G8_Kato_ConduitDown"), TEXT("G8_Moss_KeepMoving"),
-		TEXT("G8_Kato_HeartExposed"), TEXT("G8_Command_ReactorLost"), TEXT("G9_Moss_HoldingWayOut"), TEXT("G9_Kato_HangarConfirmed"),
+		TEXT("G8_Kato_HeartExposed"), TEXT("G8_Command_ReactorLost"), TEXT("G9_Moss_HoldingWayOut"), TEXT("G9_Wren_HoldingWayOut"), TEXT("G9_Kato_HangarConfirmed"),
 		TEXT("G9_Wren_PullAway"), TEXT("C9_Kato_Clear"), TEXT("C9_Moss_Clear"), TEXT("C9_Wren_Clear"), TEXT("C9_Moss_TakeThat"),
 		TEXT("C9_Kato_Identifiers"), TEXT("C9_Wren_Source"), TEXT("C9_Kato_Decades") };
 	for (const TCHAR* Gone : { TEXT("A3_EchoWren"), TEXT("A3_EchoKato"), TEXT("A3_EchoMoss") })
@@ -76,7 +80,9 @@ bool FTDStoryTable::RunTest(const FString& Parameters)
 		TestFalse(FString::Printf(TEXT("%s: no future speaker before the reveal"), *Id),
 			E.Speaker == ETDSpeaker::FutureWren || E.Speaker == ETDSpeaker::FutureKato || E.Speaker == ETDSpeaker::FutureMoss);
 		TestFalse(FString::Printf(TEXT("%s: never says 'future' or 'time' before the reveal"), *Id), Line.Contains(TEXT("future")) || Line.Contains(TEXT(" time")));
-		TestFalse(FString::Printf(TEXT("%s: never says 'us' as the enemy before the reveal"), *Id), Line.Contains(TEXT("it's us")));
+		// R020 (Story Director's decision, #29): Kato's "Doesn't look like it's us." means "not after us"; that exact line only.
+		const bool bR020 = Id == TEXT("S2_Kato_Planetside") && E.Text.ToString() == TEXT("They're after something. Doesn't look like it's us.");
+		TestFalse(FString::Printf(TEXT("%s: never says 'us' as the enemy before the reveal"), *Id), !bR020 && Line.Contains(TEXT("it's us")));
 		for (const TCHAR* Word : { TEXT("older"), TEXT("ourselves"), TEXT("our own voice"), TEXT("years from") })
 		{
 			TestFalse(FString::Printf(TEXT("%s: never says '%s' before the reveal"), *Id, Word), Line.Contains(Word));
@@ -340,12 +346,25 @@ bool FTDStoryDepartures::RunTest(const FString& Parameters)
 		TestEqual(Case + TEXT(": the rest queued, in order"), Story->GetQueueLength(), Set.Num() - 1);
 		if (C.bCinder)
 		{
-			TestFalse(TEXT("Cinder done: Verdance's departure is not replayed late"), Story->HasPlayed(TEXT("C4_Moss_Trouble")));
+			TestFalse(TEXT("Cinder done: Verdance's departure is not replayed late"), Story->HasPlayed(TEXT("C4_Wren_Badly")));
 			if (UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld()))
 			{
 				Bus->BroadcastWaveStarted(5, 1.f);
 			}
 			TestEqual(TEXT("wave 5 adds the guard-line pair"), Story->GetQueueLength(), Set.Num() - 1 + 2);
+		}
+		TestEqual(Case + TEXT(": N-087, three take-off calls"), Set.Num(), 3);
+		if (C.Expect == ETDDestination::Verdance)
+		{
+			TestTrue(TEXT("N-087: C4 is Badly, SurveyStation, Proceed"), Set == TArray<FName>({ TEXT("C4_Wren_Badly"), TEXT("C4_Kato_SurveyStation"), TEXT("C4_Command_Proceed") }));
+		}
+		for (const FName& Id : Set)
+		{
+			for (const TCHAR* Retired : { TEXT("C4_Moss_Volcanoes"), TEXT("C4_Wren_SetCourse"), TEXT("C4_Wren_WhatConnects"), TEXT("C4_Kato_SameSignature"),
+				TEXT("C4_Moss_Trouble"), TEXT("C6_Moss_SamplesAboard"), TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Wren_Understood") })
+			{
+				TestNotEqual(TEXT("a retired id is never fired"), Id, FName(Retired));
+			}
 		}
 	}
 	return true;
@@ -379,6 +398,16 @@ bool FTDStoryBoarder::RunTest(const FString& Parameters)
 			}
 		}
 	}
+	// N-087: the escape radio is Moss's unless Moss boarded; then Wren's.
+	for (const TPair<ETDShipId, FName>& R : { TPair<ETDShipId, FName>(ETDShipId::Rift, TEXT("G9_Moss_HoldingWayOut")),
+		TPair<ETDShipId, FName>(ETDShipId::Lancer, TEXT("G9_Moss_HoldingWayOut")), TPair<ETDShipId, FName>(ETDShipId::Bastion, TEXT("G9_Wren_HoldingWayOut")) })
+	{
+		const ETDShipId Ship = R.Key;
+		UTDStorySubsystem::BoardingShipResolver = [Ship](const UObject*) { return Ship; };
+		FTDTransmission Routed;
+		TestEqual(FString::Printf(TEXT("escape radio for ship %d"), (int32)Ship), UTDStorySubsystem::RouteForBoarder(nullptr, TEXT("G9_Moss_HoldingWayOut")), R.Value);
+		TestTrue(TEXT("the routed line exists"), UTDStorySubsystem::FindEntry(R.Value, Routed) && Routed.Speaker == (Ship == ETDShipId::Bastion ? ETDSpeaker::Wren : ETDSpeaker::Moss));
+	}
 	// Nothing else is changed by the resolver.
 	TestEqual(TEXT("Kato stays Kato"), UTDStorySubsystem::ResolveSpeaker(nullptr, ETDSpeaker::Kato), ETDSpeaker::Kato);
 
@@ -399,7 +428,7 @@ bool FTDStorySequence::RunTest(const FString& Parameters)
 	// T5's threshold console plays Cinematic 08 and opens the reactor door when it ends or is skipped. The five command
 	// deck lines (the "Dont" payoff) finally play in the game, in order, then the full warning and the case.
 	const TArray<FName>& Ids = UTDStorySubsystem::SequenceIds(TEXT("Cinematic08"));
-	TestTrue(TEXT("starts with the final record, then the command deck; ends with the order"), Ids.Num() >= 12 && Ids[0] == FName(TEXT("A4_Recording_Core")) && Ids[2] == FName(TEXT("F_FutureKato_Signatures"))
+	TestTrue(TEXT("R102 then the final record, then the command deck; ends with the order"), Ids.Num() >= 13 && Ids[0] == FName(TEXT("G7_RecKato_SameConstruction")) && Ids[1] == FName(TEXT("A4_Recording_Core")) && Ids[3] == FName(TEXT("F_FutureKato_Signatures"))
 		&& Ids.Contains(FName(TEXT("F_FutureWren_Dont"))) && Ids.Contains(FName(TEXT("F_FutureWren_FullWarning"))));
 	{
 		FTDTestWorld W(UTDGameInstance::StaticClass());
@@ -541,6 +570,304 @@ bool FTDStorySkipSaves::RunTest(const FString& Parameters)
 	bool bAll = true;
 	for (const FName& Id : UTDStorySubsystem::SequenceIds(TEXT("Cinematic08"))) { bAll &= GI->HasPlayedTransmission(Id); }
 	TestTrue(TEXT("the reveal is kept: every line of it saved"), bAll);
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryC3C5, "TriadDrift.Story.Transmissions.Cinematics03And05OnTheTerminals", TD_TEST_FLAGS)
+bool FTDStoryC3C5::RunTest(const FString& Parameters)
+{
+	// ENG-42: T5's relay console plays Cinematic 03 and the Cinder survey terminal Cinematic 05, as voice over the
+	// room, in order (the monitor and the drone's pulses are presentation on top).
+	struct FCase { const TCHAR* Seq; TFunction<void(AActor*)> Fire; };
+	const FCase Cases[] = {
+		{ TEXT("Cinematic03"), [](AActor* A) { ATDArchiveTransfer::OnAnyTerminalActivated.Broadcast(A); } },
+		{ TEXT("Cinematic05"), [](AActor* A) { ATDSurveyTerminal::OnAnySurveyRecordsAccessed.Broadcast(A); } } };
+	for (const FCase& C : Cases)
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		AActor* Terminal = W.Spawn<AActor>(FVector::ZeroVector);
+		C.Fire(Terminal);
+		W.Tick();
+		const TArray<FName>& Ids = UTDStorySubsystem::SequenceIds(C.Seq);
+		TestTrue(FString::Printf(TEXT("%s plays from its terminal"), C.Seq), Story->IsSequencePlaying(C.Seq) && Story->GetCurrentTransmission().Id == Ids[0]);
+		TArray<FName> Heard;
+		for (int32 i = 0; i < 20 * 120 && Story->IsSequencePlaying(); ++i)
+		{
+			const FName Now = Story->GetCurrentTransmission().Id;
+			if (Story->GetCurrentTransmission().bActive && (Heard.Num() == 0 || Heard.Last() != Now)) { Heard.Add(Now); }
+			W.Tick(1.f / 20.f);
+		}
+		TestTrue(FString::Printf(TEXT("%s: every line in order"), C.Seq), Heard == Ids);
+	}
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryAftermath, "TriadDrift.Story.Transmissions.AftermathOnTheTutorialsEnd", TD_TEST_FLAGS)
+bool FTDStoryAftermath::RunTest(const FString& Parameters)
+{
+	// ENG-42: T7's OnAftermathBegins (the real escape, or a skipped tutorial) plays Aftermath's S2 lines in order; a
+	// story subsystem that starts after it was armed takes it from ConsumeAftermathPending.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	UTDProfileSubsystem* Profile = UTDProfileSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("story"), Story) || !TestNotNull(TEXT("profile"), Profile))
+	{
+		return false;
+	}
+	Profile->OnAftermathBegins.Broadcast(false);
+	W.Tick();
+	const TArray<FName>& Ids = UTDStorySubsystem::SequenceIds(TEXT("Aftermath"));
+	TestEqual(TEXT("fifteen lines"), Ids.Num(), 15);
+	TestTrue(TEXT("Aftermath plays"), Story->IsSequencePlaying(TEXT("Aftermath")) && Story->GetCurrentTransmission().Id == Ids[0]);
+	TArray<FName> Heard;
+	for (int32 i = 0; i < 20 * 200 && Story->IsSequencePlaying(); ++i)
+	{
+		const FName Now = Story->GetCurrentTransmission().Id;
+		if (Story->GetCurrentTransmission().bActive && (Heard.Num() == 0 || Heard.Last() != Now)) { Heard.Add(Now); }
+		W.Tick(1.f / 20.f);
+	}
+	TestTrue(TEXT("every line in order"), Heard == Ids);
+	FTDTransmission E;
+	TestTrue(TEXT("TB_Escaped stays in the table for the record"), UTDStorySubsystem::FindEntry(TEXT("TB_Escaped"), E) && !E.Text.IsEmpty());
+	{
+		// #29 (Nick's Lead): retired from playback; T4's CompleteEscape may still fire it, and it is swallowed.
+		FTDTestWorld RW(UTDGameInstance::StaticClass());
+		UTDStorySubsystem* RS = UTDStorySubsystem::Get(RW.GetWorld());
+		TestTrue(TEXT("TB_Escaped is retired"), UTDStorySubsystem::IsRetired(TEXT("TB_Escaped")));
+		TestFalse(TEXT("firing TB_Escaped airs nothing"), UTDStorySubsystem::Fire(RW.GetWorld(), TEXT("TB_Escaped")));
+		TestTrue(TEXT("TB_Kato_BreakingOff still airs"), UTDStorySubsystem::Fire(RW.GetWorld(), TEXT("TB_Kato_BreakingOff")));
+		TestTrue(TEXT("only Kato's line is queued"), RS && RS->GetQueueLength() == 1);
+	}
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryFaceToFace, "TriadDrift.Story.Transmissions.FaceToFacePerBoardingPilot", TD_TEST_FLAGS)
+bool FTDStoryFaceToFace::RunTest(const FString& Parameters)
+{
+	// N-052: whichever pilot boards, the two other future pilots defend and the boarder's future self speaks to them.
+	for (const ETDShipId B : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		const TArray<FName>& Entry = UTDStorySubsystem::SequenceIds(UTDStorySubsystem::FaceToFaceSequence(B, false));
+		const TArray<FName>& Over = UTDStorySubsystem::SequenceIds(UTDStorySubsystem::FaceToFaceSequence(B, true));
+		TestTrue(TEXT("an entry exchange and an overcome pair"), Entry.Num() == 3 && Over.Num() == 2);
+		const ETDSpeaker Self = B == ETDShipId::Lancer ? ETDSpeaker::FutureKato : (B == ETDShipId::Bastion ? ETDSpeaker::FutureMoss : ETDSpeaker::FutureWren);
+		for (const FName& Id : Entry)
+		{
+			FTDTransmission E;
+			TestTrue(FString::Printf(TEXT("%s exists"), *Id.ToString()), UTDStorySubsystem::FindEntry(Id, E) && !E.Text.IsEmpty());
+		}
+		FTDTransmission Defender, Future, Over1, Over2;
+		UTDStorySubsystem::FindEntry(Entry[0], Defender);
+		UTDStorySubsystem::FindEntry(Entry[1], Future);
+		UTDStorySubsystem::FindEntry(Over[0], Over1);
+		UTDStorySubsystem::FindEntry(Over[1], Over2);
+		TestTrue(TEXT("the boarder's future self speaks to them"), Future.Speaker == Self);
+		TestTrue(TEXT("the defenders are the other two"), Defender.Speaker != Self && Over1.Speaker != Self && Over2.Speaker != Self && Over1.Speaker != Over2.Speaker);
+	}
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryAftermathResume, "TriadDrift.Story.Transmissions.CutAftermathResumesOnTheNextGalaxyLoad", TD_TEST_FLAGS)
+bool FTDStoryAftermathResume::RunTest(const FString& Parameters)
+{
+	// Lead (live walk): a descent 4.6 s after the escape cut Aftermath after one line, and its ambient lines were already
+	// claimed. Now its lines are saved only once heard, the run remembers Aftermath began, and the next galaxy load plays
+	// the lines not yet heard. T1's descent hold reads IsMustHearSequencePlaying.
+	const TArray<FName>& Ids = UTDStorySubsystem::SequenceIds(TEXT("Aftermath"));
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		UTDProfileSubsystem* Profile = UTDProfileSubsystem::Get(W.GetWorld());
+		if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("story"), Story) || !TestNotNull(TEXT("profile"), Profile))
+		{
+			return false;
+		}
+		Profile->OnAftermathBegins.Broadcast(false);
+		W.Tick();
+		TestTrue(TEXT("must-hear sequence playing (T1's descent hold)"), UTDStorySubsystem::IsMustHearSequencePlaying(W.GetWorld()));
+		TestTrue(TEXT("Aftermath lines are required"), UTDStorySubsystem::IsRequiredLine(Ids[3]));
+		TestFalse(TEXT("queued Aftermath lines are not saved"), GI->HasPlayedTransmission(Ids[3]));
+		TestTrue(TEXT("the run remembers Aftermath began"), GI->HasPlayedTransmission(TEXT("Seq_AftermathStarted")));
+	}
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("story"), Story))
+	{
+		return false;
+	}
+	// The same run after the cut: Aftermath began, its first two lines were heard, then the planet loaded.
+	GI->MarkTransmissionPlayed(TEXT("Seq_AftermathStarted"));
+	GI->MarkTransmissionPlayed(Ids[0]);
+	GI->MarkTransmissionPlayed(Ids[1]);
+	W.Tick();
+	TestFalse(TEXT("nothing resumes off the galaxy"), Story->IsSequencePlaying());
+	ATDGalaxyLayout::SpawnDefaultGalaxy(W.GetWorld());
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("back in the galaxy: Aftermath resumes"), Story->IsSequencePlaying(TEXT("Aftermath")));
+	TestEqual(TEXT("from the first unheard line"), Story->GetCurrentTransmission().Id, Ids[2]);
+	TestEqual(TEXT("the rest queued"), Story->GetQueueLength(), Ids.Num() - 3);
+
+	// Without Aftermath begun this run, a galaxy load plays nothing.
+	FTDTestWorld W2(UTDGameInstance::StaticClass());
+	UTDStorySubsystem* S2 = UTDStorySubsystem::Get(W2.GetWorld());
+	ATDGalaxyLayout::SpawnDefaultGalaxy(W2.GetWorld());
+	W2.Tick();
+	W2.Tick();
+	TestFalse(TEXT("no Aftermath without the escape"), S2 && S2->IsSequencePlaying());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryNoRefire, "TriadDrift.Story.Transmissions.HeardCinematicsDoNotRefireOnARetake", TD_TEST_FLAGS)
+bool FTDStoryNoRefire::RunTest(const FString& Parameters)
+{
+	// Lead (live walk): a retake after Cinematic03 finished started it again (empty). The relay's next activation is
+	// ignored once every line was played; T5's encounter hold reads HasLineAired.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("story"), Story))
+	{
+		return false;
+	}
+	TestFalse(TEXT("C3_Moss_Company not aired yet"), UTDStorySubsystem::HasLineAired(W.GetWorld(), TEXT("C3_Moss_Company")));
+	ATDArchiveTransfer::OnAnyTerminalActivated.Broadcast(nullptr);
+	TestTrue(TEXT("C03 plays on the relay"), Story->IsSequencePlaying(TEXT("Cinematic03")));
+	TestFalse(TEXT("queued is not aired"), UTDStorySubsystem::HasLineAired(W.GetWorld(), TEXT("C3_Moss_Company")));
+	for (int32 i = 0; i < 20 * 120 && !UTDStorySubsystem::HasLineAired(W.GetWorld(), TEXT("C3_Moss_Company")); ++i) { W.Tick(1.f / 20.f); }
+	TestTrue(TEXT("C3_Moss_Company airs"), UTDStorySubsystem::HasLineAired(W.GetWorld(), TEXT("C3_Moss_Company")));
+	for (int32 i = 0; i < 20 * 60 && Story->IsSequencePlaying(); ++i) { W.Tick(1.f / 20.f); }
+	TestFalse(TEXT("C03 done"), Story->IsSequencePlaying());
+	ATDArchiveTransfer::OnAnyTerminalActivated.Broadcast(nullptr);
+	TestFalse(TEXT("a retake's relay start does not replay it"), Story->IsSequencePlaying());
+	TestTrue(TEXT("and the line still counts as aired"), UTDStorySubsystem::HasLineAired(W.GetWorld(), TEXT("C3_Moss_Company")));
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryContinue, "TriadDrift.Story.Transmissions.SaveQuitContinueKeepsWhatWasHeard", TD_TEST_FLAGS)
+bool FTDStoryContinue::RunTest(const FString& Parameters)
+{
+	// Lead's queue (N-062): save, quit, Continue: the run lands in the saved phase; lines heard stay heard; a required
+	// line that was queued or cut off when the player quit plays again; a cut Aftermath resumes in the galaxy.
+	static const TCHAR* Slot = TEXT("TD_T3_StoryContinueTest");
+	const TArray<FName>& After = UTDStorySubsystem::SequenceIds(TEXT("Aftermath"));
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("story"), Story))
+		{
+			return false;
+		}
+		GI->OpenLevelOverride = [](const FString&) {};
+		GI->SetSaveSlotOverride(Slot);
+		GI->NotifyLevelEntered(ETDDestination::Galaxy);
+		GI->SetPhase(ETDGamePhase::Verdance);
+		GI->BeginScene(UTDGameInstance::WaveSceneId(2));
+		GI->ReportWaveCleared(2); // a checkpoint
+		TestTrue(TEXT("checkpoint"), GI->GetLastCheckpoint().bValid);
+		// Aftermath begins; two lines are heard in full, then the player quits mid-sequence.
+		GI->MarkTransmissionPlayed(TEXT("Seq_AftermathStarted"));
+		UTDStorySubsystem::PlaySequence(W.GetWorld(), TEXT("Aftermath"));
+		for (int32 i = 0; i < 20 * 60 && !Story->HasAired(After[2]); ++i) { W.Tick(1.f / 20.f); }
+		TestTrue(TEXT("the first two heard"), GI->HasPlayedTransmission(After[0]) && GI->HasPlayedTransmission(After[1]));
+		TestFalse(TEXT("the third is on air, not heard"), GI->HasPlayedTransmission(After[2]));
+		// An ambient line fired and aired before quitting stays played.
+		UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A1_TheySearch"));
+		TestTrue(TEXT("written"), GI->WriteSaveSlot(true));
+	}
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	if (!TestNotNull(TEXT("GI"), GI))
+	{
+		return false;
+	}
+	GI->OpenLevelOverride = [](const FString&) {};
+	GI->SetSaveSlotOverride(Slot);
+	ON_SCOPE_EXIT { GI->DeleteSave(); };
+	UTDSaveGame* Save = nullptr;
+	TestTrue(TEXT("Continue reads the slot"), GI->ReadSaveSlot(Save) && Save && GI->ApplySave(*Save));
+	TestEqual(TEXT("lands in the saved phase"), GI->GetProgressRef().Phase, ETDGamePhase::Verdance);
+	TestTrue(TEXT("heard lines stay heard"), GI->HasPlayedTransmission(After[0]) && GI->HasPlayedTransmission(After[1]));
+	TestTrue(TEXT("the ambient line stays played"), GI->HasPlayedTransmission(TEXT("A1_TheySearch")));
+	TestFalse(TEXT("the cut-off required line is not"), GI->HasPlayedTransmission(After[2]));
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	ATDGalaxyLayout::SpawnDefaultGalaxy(W.GetWorld());
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("back in the galaxy, Aftermath resumes"), Story && Story->IsSequencePlaying(TEXT("Aftermath")));
+	TestEqual(TEXT("from the line the player missed"), Story ? Story->GetCurrentTransmission().Id : NAME_None, After[2]);
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryStaticTear, "TriadDrift.Story.Transmissions.StaticLinesCarryTheTearCue", TD_TEST_FLAGS)
+bool FTDStoryStaticTear::RunTest(const FString& Parameters)
+{
+	// Lead: the "[static]" left the subtitles; those three lines keep a static delivery and play the glitch tear
+	// (UTDStoryFX::TransmissionStatic), null-safe while the asset is missing.
+	for (const TCHAR* Id : { TEXT("A2_Voices"), TEXT("G6_Clue1"), TEXT("G6_Clue2") })
+	{
+		FTDTransmission E;
+		TestTrue(FString::Printf(TEXT("%s: static delivery"), Id), UTDStorySubsystem::HasStaticDelivery(FName(Id)));
+		TestTrue(FString::Printf(TEXT("%s: no [static] in the subtitle"), Id), UTDStorySubsystem::FindEntry(FName(Id), E) && !E.Text.ToString().Contains(TEXT("[static]")));
+	}
+	TestFalse(TEXT("a clean line has none"), UTDStorySubsystem::HasStaticDelivery(TEXT("C3_Moss_Company")));
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	W.SpawnPlayerController();
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	TestTrue(TEXT("fires"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("G6_Clue1")));
+	W.Tick();
+	TestTrue(TEXT("on air without the asset (null-safe)"), Story && Story->GetCurrentTransmission().Id == FName(TEXT("G6_Clue1")));
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryR102Order, "TriadDrift.Story.Transmissions.ArchiveKatoAirsBeforeTheCoreRecord", TD_TEST_FLAGS)
+bool FTDStoryR102Order::RunTest(const FString& Parameters)
+{
+	// StoryFidelity01 order R099 -> R100 -> R101 -> R102 -> R103: the authorisations (T5's interior), then the clear
+	// recorded Kato "Same construction." (identified: KATO (RECORDED)), then the final Core record. Played, not listed.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("story"), Story))
+	{
+		return false;
+	}
+	TestTrue(TEXT("authorisations"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("G7_Kato_Authorisations")));
+	TestTrue(TEXT("Cinematic08"), UTDStorySubsystem::PlaySequence(W.GetWorld(), TEXT("Cinematic08")));
+	TArray<FName> Heard;
+	FString R102Tag;
+	for (int32 i = 0; i < 20 * 120 && Heard.Num() < 4; ++i)
+	{
+		const FTDTransmissionView V = Story->GetCurrentTransmission();
+		if (V.bActive && (Heard.Num() == 0 || Heard.Last() != V.Id))
+		{
+			Heard.Add(V.Id);
+			if (V.Id == FName(TEXT("G7_RecKato_SameConstruction"))) { R102Tag = V.SpeakerTag.ToString(); }
+		}
+		W.Tick(1.f / 20.f);
+	}
+	TestTrue(TEXT("R101, R102, then R103"), Heard.Num() >= 3 && Heard[0] == FName(TEXT("G7_Kato_Authorisations"))
+		&& Heard[1] == FName(TEXT("G7_RecKato_SameConstruction")) && Heard[2] == FName(TEXT("A4_Recording_Core")));
+	TestEqual(TEXT("R102 reads as recorded Kato"), R102Tag, FString(TEXT("KATO (RECORDED)")));
+	FTDTransmission E;
+	TestTrue(TEXT("R102 is not the Cinder echo"), UTDStorySubsystem::FindEntry(TEXT("G7_RecKato_SameConstruction"), E) && E.Speaker == ETDSpeaker::FutureKato);
 	return true;
 }
 #endif

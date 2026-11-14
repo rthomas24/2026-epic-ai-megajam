@@ -6,8 +6,10 @@ Writes build/spec_build_NN.json for the ue-game-audio skill's ue_audio_build.py 
 MetaSound one-shots: random take, +/-0.7 semitone, +/-1.5 dB) and build/spec_wire.json for ue_wire.py
 (the fallback data assets and their Sound slots).
 """
+import argparse
 import json
 import os
+import re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.normpath(os.path.join(HERE, ".."))
@@ -56,8 +58,18 @@ def sound_block(asset):
 
 
 def main():
+    # --only REGEX: specs for the matching sounds alone (a later batch of sounds), written beside the full set as
+    # build/spec_<tag>_build_NN.json and build/spec_<tag>_wire.json; the full set's files are left as they are.
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--only", help="regular expression on the sound name")
+    parser.add_argument("--tag", default="only")
+    args = parser.parse_args()
     with open(os.path.join(ROOT, "build", "manifest.json"), encoding="utf-8") as handle:
         manifest = json.load(handle)
+    if args.only:
+        manifest["assets"] = [a for a in manifest["assets"] if re.search(args.only, a["name"])]
+        keep = {w for a in manifest["assets"] for w in a["waves"]}
+        manifest["waves"] = [w for w in manifest["waves"] if w["path"] in keep]
     mix = [{"type": "SoundClass", "path": "%s/SC_TDE_Master" % MIX}]
     for name in CLASSES:
         props = {"parentClass": "%s/SC_TDE_Master" % MIX}
@@ -91,29 +103,31 @@ def main():
                              "volume_spread_db": 0 if signature else 1.5, "pitch_semitones": 0, "pitch_spread": 0 if signature else 0.7,
                              "sound": sound_block(asset)})
 
-    specs = [{"mix": mix}]
+    specs = [] if args.only else [{"mix": mix}]   # the mix assets exist once the full set is built
     for i in range(0, len(imports), 40):
         specs.append({"import": imports[i:i + 40]})
     for i in range(0, len(oneshots), 12):
         specs.append({"oneshots": oneshots[i:i + 12]})
+    stem = ("spec_%s_" % args.tag) if args.only else "spec_"
     for old in os.listdir(os.path.join(ROOT, "build")):
-        if old.startswith("spec_build_"):
+        if old.startswith(stem + "build_"):
             os.remove(os.path.join(ROOT, "build", old))
     for i, spec in enumerate(specs):
-        with open(os.path.join(ROOT, "build", "spec_build_%02d.json" % i), "w", encoding="utf-8") as handle:
+        with open(os.path.join(ROOT, "build", "%sbuild_%02d.json" % (stem, i)), "w", encoding="utf-8") as handle:
             json.dump(spec, handle, indent=1)
 
     slots = []
     for asset in manifest["assets"]:
         for slot in asset["slots"] + (["DA_UI_Style." + UI_STYLE_SLOTS[asset["name"]]] if asset["name"] in UI_STYLE_SLOTS else []):
-            data_asset, field = slot.split(".")
+            data_asset, field = slot.split(".", 1)   # "Hull.Collect": a cue inside a struct field (DA_Pickup_Visuals)
             slots.append({"asset": data_asset, "field": field, "soft": field in SOFT_SOUND_FIELDS, "sound": asset["path"]})
     # Nick's existing menu theme, referenced read-only (Lead's decision, Nov 13): the menu is silent without a DA_UI_Style
-    slots.append({"asset": "DA_UI_Style", "field": "MenuMusic", "soft": True, "sound": "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01"})
-    wire = {"folder": FX_FOLDER, "create": CREATE, "slots": slots,
+    if not args.only:
+        slots.append({"asset": "DA_UI_Style", "field": "MenuMusic", "soft": True, "sound": "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01"})
+    wire = {"folder": FX_FOLDER, "create": {} if args.only else CREATE, "slots": slots,
             # DA_Blade_FX did not exist: gameplay then used this colour. A new asset would default to white, so keep the look.
-            "keep": [{"asset": "DA_Blade_FX", "field": "BladeColor", "color": [0.1, 0.65, 1.0, 1.0]}]}
-    with open(os.path.join(ROOT, "build", "spec_wire.json"), "w", encoding="utf-8") as handle:
+            "keep": [] if args.only else [{"asset": "DA_Blade_FX", "field": "BladeColor", "color": [0.1, 0.65, 1.0, 1.0]}]}
+    with open(os.path.join(ROOT, "build", "%swire.json" % stem), "w", encoding="utf-8") as handle:
         json.dump(wire, handle, indent=1)
     print("%d build specs (%d mix assets, %d waves, %d MetaSound one-shots); %d slots on %d data assets" % (
         len(specs), len(mix), len(imports), len(oneshots), len(slots), len({s["asset"] for s in slots})))

@@ -15,12 +15,15 @@
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 
 #include "EngineUtils.h"
+#include "Engine/StaticMesh.h"
+#include "Components/StaticMeshComponent.h"
 
 namespace
 {
@@ -305,6 +308,63 @@ bool FTDBehPowers::RunTest(const FString& Parameters)
 	TestFalse(TEXT("Gravity Well: can't fire inside"), G->TryStartAttack(ETDEnemyAttack::MissileSalvo, T));
 	W.Advance(2.1f);
 	TestTrue(TEXT("Gravity Well: fires again after"), G->TryStartAttack(ETDEnemyAttack::MissileSalvo, T));
+	return true;
+}
+
+
+// T6's field, Nov 14 (Lead's rule): an enemy blocked by something it did not see coming (here a 60 m sphere that is not a
+// registered obstacle, the worst case) backs off and re-routes after ~1 s instead of grinding against it for seconds.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBehUnstick, "TriadDrift.Enemies.Behaviour.BlockedEnemyBacksOffAndReroutes", TD_TEST_FLAGS)
+bool FTDBehUnstick::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDEnemyBeh_SquadShip(W, FVector(30000.f, 0.f, 0.f));
+	AActor* Rock = W.Spawn<AActor>(FVector(8000.f, 0.f, 0.f));
+	UStaticMeshComponent* Ball = NewObject<UStaticMeshComponent>(Rock, TEXT("Ball"));
+	Ball->SetMobility(EComponentMobility::Movable);
+	Ball->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere")));
+	Ball->SetWorldScale3D(FVector(60.f));
+	Ball->SetCollisionProfileName(TEXT("BlockAll"));
+	Rock->SetRootComponent(Ball);
+	Ball->RegisterComponent();
+	Rock->SetActorLocation(FVector(8000.f, 0.f, 0.f));
+	// Nose-on, 15 m from the rock's surface (r 30 m at x 80 m), the target straight behind it.
+	ATDEnemyShip* F = TDEnemyBeh_Enemy(W, TDEnemyIds::ShardFighter, FVector(3500.f, 0.f, 0.f), true);
+	ATDEnemyAIController* AI = TDEnemyBeh_AIOf(F);
+	if (!TestNotNull(TEXT("AI"), AI)) { return false; }
+	float Pinned = 0.f, LongestPinned = 0.f, Run = 0.f, Closest = 1e9f;
+	for (int32 i = 0; i < 30 * 20; ++i)
+	{
+		W.Tick(1.f / 30.f);
+		Closest = FMath::Min(Closest, (float)FVector::Dist(F->GetActorLocation(), Rock->GetActorLocation()) - 3000.f);
+		const bool bTouching = FVector::Dist(F->GetActorLocation(), Rock->GetActorLocation()) < 3000.f + 600.f;
+		if (bTouching && F->GetVelocity().Size() < 300.f) { Run += 1.f / 30.f; Pinned += 1.f / 30.f; LongestPinned = FMath::Max(LongestPinned, Run); }
+		else { Run = 0.f; }
+	}
+	AddInfo(FString::Printf(TEXT("closest %.0f cm from the surface; pinned %.1f s in all, longest %.1f s; %d back-offs"), Closest, Pinned, LongestPinned, AI->GetBackOffCount()));
+	TestTrue(*FString::Printf(TEXT("the fighter met the rock (closest %.0f cm)"), Closest), Closest < 600.f);
+	TestTrue(*FString::Printf(TEXT("never pinned against the rock for more than 2 s at a time (%.1f s)"), LongestPinned), LongestPinned <= 2.f);
+
+	// The rule itself, deterministic: held against the rock (as item 866 was) with contacts every frame, the pilot backs
+	// off within ~1 s and leaves along the contact normal once free.
+	const FVector Against = Rock->GetActorLocation() - FVector(3000.f + 250.f, 0.f, 0.f);
+	const int32 Before = AI->GetBackOffCount();
+	FTDFlightImpact Hit;
+	Hit.OtherActor = Rock; Hit.ImpactNormal = FVector(-1.f, 0.f, 0.f); Hit.ImpactSpeed = 60.f; Hit.HeadOn01 = 1.f;
+	bool bBacking = false;
+	F->SetSpeedOverride(0.f, 1.f);	// grinding: the rock eats its speed (item 866 crawled at 0.4-1.5 m/s)
+	for (int32 i = 0; i < 30 * 1.5f && !bBacking; ++i)
+	{
+		F->SetActorLocation(Against);
+		F->GetShipMovement()->OnFlightImpact.Broadcast(Hit);
+		W.Tick(1.f / 30.f);
+		bBacking = AI->IsBackingOff();
+	}
+	TestTrue(TEXT("held against the rock with contacts, the pilot starts backing off within 1.5 s"), bBacking && AI->GetBackOffCount() > Before);
+	F->ClearSpeedOverride();
+	W.Advance(1.2f, 1.f / 30.f);
+	const float Away = (float)(Rock->GetActorLocation() - F->GetActorLocation()).Size() - 3000.f;
+	TestTrue(*FString::Printf(TEXT("and gets clear of it (%.0f cm from the surface)"), Away), Away > 1000.f);
 	return true;
 }
 

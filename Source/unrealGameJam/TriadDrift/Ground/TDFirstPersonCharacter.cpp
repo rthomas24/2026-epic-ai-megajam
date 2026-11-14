@@ -1,6 +1,7 @@
 // Triad Drift - first-person character (ENG-21). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Perf/TDAssetCache.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
@@ -606,11 +607,8 @@ UAnimSequenceBase* ATDFirstPersonCharacter::LoadPilotAnim(FName Anim) const
 	const FString Name = Anim.ToString();
 	const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/%s"), *Name);
 	const FString Path = Package + TEXT(".") + Name;
-	UAnimSequenceBase* Seq = FindObject<UAnimSequenceBase>(nullptr, *Path);
-	if (!Seq && FPackageName::DoesPackageExist(Package))
-	{
-		Seq = LoadObject<UAnimSequenceBase>(nullptr, *Path, nullptr, LOAD_Quiet | LOAD_NoWarn);
-	}
+	// T7 perf: one answer per path for the session (a missing move no longer asks the file system on every swing).
+	UAnimSequenceBase* Seq = TDAssetCache::Find<UAnimSequenceBase>(Path);
 	return Seq ? TDMakePlayable(Seq) : nullptr;
 }
 
@@ -758,7 +756,13 @@ FText ATDFirstPersonCharacter::GetInteractPrompt() const
 			return I->GetPrompt();
 		}
 	}
-	return FText::GetEmpty();
+	return GetTip();
+}
+
+void ATDFirstPersonCharacter::ShowTip(const FText& Text, float Seconds)
+{
+	Tip = Text;
+	TipLeft = Seconds;
 }
 
 TArray<AActor*> ATDFirstPersonCharacter::GetObjectiveMarkers() const
@@ -1364,6 +1368,7 @@ void ATDFirstPersonCharacter::ReturnToSafeGround()
 
 void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 {
+	TipLeft = FMath::Max(0.f, TipLeft - DeltaSeconds);
 	Super::Tick(DeltaSeconds);
 	if (DeltaSeconds <= 0.f)
 	{

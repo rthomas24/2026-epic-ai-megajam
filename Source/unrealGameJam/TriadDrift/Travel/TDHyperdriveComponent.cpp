@@ -3,6 +3,7 @@
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
+#include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -185,6 +186,14 @@ float UTDHyperdriveComponent::SweepAhead(float MaxDistance) const
 
 FText UTDHyperdriveComponent::GetBlockReasonText() const
 {
+	// The HUD's travel line also carries the atmosphere hold (a must-hear sequence before a planet entry commits).
+	if (const ATDShip* Ship = Cast<ATDShip>(GetOwner()))
+	{
+		if (const UTDAtmosphereEntryComponent* Entry = Ship->GetAtmosphereEntry())
+		{
+			if (Entry->IsHoldingForStory()) { return NSLOCTEXT("TDTravel", "AwaitingOrders", "AWAITING ORDERS"); }
+		}
+	}
 	const ETDHyperdriveBlock Block = ComputeBlockReason(true);
 	// Standing reasons the player can do nothing about (on a planet, landing, not flying this ship) only show
 	// briefly after a refused press, not permanently on the HUD (Lead, Nov 12). Reasons that tell the player
@@ -415,8 +424,13 @@ void UTDHyperdriveComponent::BeginJump()
 	{
 		StartLoopFX(TravelFX->HyperdriveTunnel);
 		// For T7's tunnel: how long and how fast (Niagara user floats; ignored when the system lacks them).
-		if (UNiagaraComponent* FX = LoopFX.Get())
+		UAudioComponent* NoAudio = nullptr;
+		FTDFXCue Streaks = TravelFX->HyperdriveStreaks;
+		Streaks.Sound.Reset(); // the tunnel cue carries the jump's sound
+		StreaksFX = UTDStatics::PlayCueAttachedLoop(Streaks, Craft->GetRootComponent(), NAME_None, NoAudio);
+		for (UNiagaraComponent* FX : { LoopFX.Get(), StreaksFX.Get() })
 		{
+			if (!FX) { continue; }
 			FX->SetVariableFloat(TEXT("User.TunnelSeconds"), bDest ? DestinationTunnelSeconds : Tuning.MaxJumpSeconds);
 			FX->SetVariableFloat(TEXT("User.JumpSpeed"), bDest ? DestinationJumpSpeed : Tuning.JumpSpeed);
 		}
@@ -480,6 +494,8 @@ void UTDHyperdriveComponent::StartLoopFX(const FTDFXCue& Cue)
 
 void UTDHyperdriveComponent::StopLoopFX()
 {
+	if (UNiagaraComponent* S = StreaksFX.Get()) { S->Deactivate(); }
+	StreaksFX.Reset();
 	if (UNiagaraComponent* FX = LoopFX.Get())
 	{
 		FX->Deactivate();

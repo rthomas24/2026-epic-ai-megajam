@@ -1464,3 +1464,35 @@ FX/DA_Travel_FX | portal_transit.sound | before=<Object '/Game/TriadDrift/Gamepl
 FX/DA_Travel_FX | take_off.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_TakeOff_01.SW_Travel_TakeOff_01' (0x0000016D3757C800) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_TakeOff_01.SW_Travel_TakeOff_01' (0x0000016D3757C800) Class 'SoundWave'> | SAME
 ==== independent check (sound_check.py): audio asset paths in each data asset changed since HEAD: 1 files changed, 0 differ
 Content/TriadDrift/Gameplay/Characters/FX/DA_Travel_FX.uasset | audio asset paths before=12 after=12 | SAME
+==== wire_r5 run: 18 sound fields read, 0 changed
+Dominion/DA_Dominion_Visuals | breakup_final_blast.sound | before=None | after=None | SAME
+Dominion/DA_Dominion_Visuals | breakup_sequence.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_Breakup_01.SW_Dominion_Breakup_01' (0x000001F119FC1E00) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_Breakup_01.SW_Dominion_Breakup_01' (0x000001F119FC1E00) Class 'SoundWave'> | SAME
+Dominion/DA_Dominion_Visuals | distortion_field_collapse.sound | before=None | after=None | SAME
+Dominion/DA_Dominion_Visuals | distortion_field_contact.sound | before=None | after=None | SAME
+Dominion/DA_Dominion_Visuals | distortion_field_idle.sound | before=None | after=None | SAME
+Dominion/DA_Dominion_Visuals | docking_bay_open.sound | before=None | after=None | SAME
+Dominion/DA_Dominion_Visuals | generator_explosion.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Large.MSS_Explosion_Large' (0x000001F196FF3C00) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Large.MSS_Explosion_Large' (0x000001F196FF3C00) Class 'MetaSoundSource'> | SAME
+Dominion/DA_Dominion_Visuals | generator_hit.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Far.MSS_Impact_Hull_Far' (0x000001F196FF5000) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Far.MSS_Impact_Hull_Far' (0x000001F196FF5000) Class 'MetaSoundSource'> | SAME
+Dominion/DA_Dominion_Visuals | hull_section_explosion.sound | before=None | after=None | SAME
+Dominion/DA_Dominion_Visuals | reactor_destroyed.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Large.MSS_Explosion_Large' (0x000001F196FF3C00) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Large.MSS_Explosion_Large' (0x000001F196FF3C00) Class 'MetaSoundSource'> | SAME
+Dominion/DA_Dominion_Visuals | reactor_exposed.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorExposed_01.SW_Dominion_ReactorExposed_01' (0x000001F0D81D7800) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorExposed_01.SW_Dominion_ReactorExposed_01' (0x000001F0D81D7800) Class 'SoundWave'> | SAME
+Dominion/DA_Dominion_Visuals | reactor_hit.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Far.MSS_Impact_Hull_Far' (0x000001F196FF5000) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Hull_Far.MSS_Impact_Hull_Far' (0x000001F196FF5000) Class 'MetaSoundSource'> | SAME
+Dominion/DA_Dominion_Visuals | reactor_phase_change.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorPhaseChange_01.SW_Dominion_ReactorPhaseChange_01' (0x000001F0D81D9600) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ReactorPhaseChange_01.SW_Dominion_ReactorPhaseChange_01' (0x000001F0D81D9600) Class 'SoundWave'> | SAME
+Dominion/DA_Dominion_Visuals | shield_collapse.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldCollapse_01.SW_Dominion_ShieldCollapse_01' (0x000001F0D81DF000) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldCollapse_01.SW_Dominion_ShieldCollapse_01' (0x000001F0D81DF000) Class 'SoundWave'> | SAME
+Dominion/DA_Dominion_Visuals | shield_hit.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Far.MSS_Impact_Shield_Far' (0x000001F196FFB400) Class 'MetaSoundSource'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Impact_Shield_Far.MSS_Impact_Shield_Far' (0x000001F196FFB400) Class 'MetaSoundSource'> | SAME
+Dominion/DA_Dominion_Visuals | shield_idle.sound | before=None | after=None | SAME
+Dominion/DA_Dominion_Visuals | shield_section_down.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldSectionDown_01.SW_Dominion_ShieldSectionDown_01' (0x000001F0D77DBE00) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_ShieldSectionDown_01.SW_Dominion_ShieldSectionDown_01' (0x000001F0D77DBE00) Class 'SoundWave'> | SAME
+Dominion/DA_Dominion_Visuals | warp_in.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_WarpIn_01.SW_Dominion_WarpIn_01' (0x000001F0D77DF000) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_WarpIn_01.SW_Dominion_WarpIn_01' (0x000001F0D77DF000) Class 'SoundWave'> | SAME
+==== independent check (sound_check.py): audio asset paths in each data asset changed since HEAD: 1 files changed, 0 differ
+Content/TriadDrift/Gameplay/Characters/Dominion/DA_Dominion_Visuals.uasset | audio asset paths before=9 after=9 | SAME
+==== independent check (sound_check.py): audio asset paths in each data asset changed since HEAD: 6 files changed, 1 differ
+Content/TriadDrift/Gameplay/Characters/FX/DA_CrewBlaster_FX.uasset | new file
+Content/TriadDrift/Gameplay/Characters/FX/DA_Enemy_HomingMissile_FX.uasset | audio asset paths before=6 after=6 | SAME
+Content/TriadDrift/Gameplay/Characters/FX/DA_Enemy_SalvoMissile_FX.uasset | audio asset paths before=6 after=6 | SAME
+Content/TriadDrift/Gameplay/Characters/FX/DA_MissileSwarm_FX.uasset | audio asset paths before=6 after=6 | SAME
+Content/TriadDrift/Gameplay/Characters/FX/DA_SpikeRockets_FX.uasset | audio asset paths before=6 after=6 | SAME
+Content/TriadDrift/Gameplay/Characters/FX/DA_Travel_FX.uasset | audio asset paths before=12 after=13 | DIFFERENT {b'/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_DescentRoar_01'}
+==== independent check (sound_check.py): audio asset paths in each data asset changed since HEAD: 1 files changed, 1 differ
+Content/TriadDrift/Gameplay/Characters/FX/DA_SpaceField_FX.uasset | audio asset paths before=0 after=4 | DIFFERENT {b'/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Special', b'/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Medium', b'/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Large', b'/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Small'}
+==== independent check (sound_check.py): audio asset paths in each data asset changed since HEAD: 1 files changed, 0 differ
+Content/TriadDrift/Gameplay/Characters/FX/DA_StoryFX.uasset | new file

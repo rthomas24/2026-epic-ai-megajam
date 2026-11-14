@@ -1,0 +1,722 @@
+{
+ "Grunt_pilot": {
+  "spawn": {
+   "type": "ETDCrewType::Grunt",
+   "dead": 0,
+   "loc": [
+    1024.1,
+    991.1,
+    92.2
+   ],
+   "x": [
+    -0.806,
+    -0.592,
+    0.0
+   ],
+   "y": [
+    0.592,
+    -0.806,
+    -0.0
+   ],
+   "pelvis": [
+    1025.6,
+    993.5,
+    88.4
+   ],
+   "head": [
+    1017.9,
+    986.1,
+    151.5
+   ],
+   "floor": 2.2,
+   "low": 8.1,
+   "clip": null,
+   "sim": null
+  },
+  "end": null,
+  "shots": [
+   [
+    0.5,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Grunt_pilot_0.png"
+   ],
+   [
+    4.38,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Grunt_pilot_1.png"
+   ],
+   [
+    5.47,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Grunt_pilot_2.png"
+   ],
+   [
+    6.6,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Grunt_pilot_3.png"
+   ]
+  ],
+  "trace": [
+   [
+    0.5,
+    59.1,
+    111.6,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ],
+   [
+    4.38,
+    24.5,
+    17.8,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ],
+   [
+    5.47,
+    22.2,
+    19.7,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ]
+  ]
+ },
+ "Grunt_behind": {
+  "spawn": {
+   "type": "ETDCrewType::Grunt",
+   "dead": 0,
+   "loc": [
+    1489.9,
+    3287.6,
+    92.2
+   ],
+   "x": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "y": [
+    -0.0,
+    -1.0,
+    0.0
+   ],
+   "pelvis": [
+    1491.0,
+    3289.3,
+    92.4
+   ],
+   "head": [
+    1482.5,
+    3286.1,
+    155.8
+   ],
+   "floor": 2.2,
+   "low": 7.9,
+   "clip": null,
+   "sim": null
+  },
+  "end": null,
+  "shots": [
+   [
+    0.52,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Grunt_behind_0.png"
+   ],
+   [
+    1.82,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Grunt_behind_1.png"
+   ],
+   [
+    3.12,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Grunt_behind_2.png"
+   ],
+   [
+    4.42,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Grunt_behind_3.png"
+   ]
+  ],
+  "trace": [
+   [
+    0.52,
+    75.8,
+    134.4,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ],
+   [
+    1.82,
+    20.0,
+    28.7,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ],
+   [
+    3.12,
+    19.1,
+    25.7,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ]
+  ]
+ },
+ "Trooper_pilot": {
+  "spawn": {
+   "type": "ETDCrewType::Trooper",
+   "dead": 0,
+   "loc": [
+    4315.9,
+    1062.3,
+    92.2
+   ],
+   "x": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "y": [
+    0.0,
+    -1.0,
+    -0.0
+   ],
+   "pelvis": [
+    4328.0,
+    1065.9,
+    84.1
+   ],
+   "head": [
+    4309.0,
+    1051.9,
+    146.2
+   ],
+   "floor": 2.2,
+   "low": 11.4,
+   "clip": null,
+   "sim": null
+  },
+  "end": null,
+  "shots": [
+   [
+    0.54,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Trooper_pilot_0.png"
+   ],
+   [
+    2.55,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Trooper_pilot_1.png"
+   ],
+   [
+    4.02,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Trooper_pilot_2.png"
+   ],
+   [
+    5.45,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Trooper_pilot_3.png"
+   ]
+  ],
+  "trace": [
+   [
+    0.54,
+    50.9,
+    107.9,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ],
+   [
+    2.55,
+    41.3,
+    18.6,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ],
+   [
+    4.02,
+    41.0,
+    20.5,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ]
+  ]
+ },
+ "Trooper_behind": {
+  "spawn": {
+   "type": "ETDCrewType::Trooper",
+   "dead": 0,
+   "loc": [
+    4288.3,
+    3507.2,
+    92.2
+   ],
+   "x": [
+    -1.0,
+    -0.005,
+    0.0
+   ],
+   "y": [
+    0.005,
+    -1.0,
+    -0.0
+   ],
+   "pelvis": [
+    4300.3,
+    3507.0,
+    90.9
+   ],
+   "head": [
+    4280.7,
+    3505.8,
+    155.1
+   ],
+   "floor": 2.2,
+   "low": 16.2,
+   "clip": null,
+   "sim": null
+  },
+  "end": null,
+  "shots": [
+   [
+    0.5,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Trooper_behind_0.png"
+   ],
+   [
+    1.59,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Trooper_behind_1.png"
+   ],
+   [
+    2.67,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Trooper_behind_2.png"
+   ],
+   [
+    4.0,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Trooper_behind_3.png"
+   ]
+  ],
+  "trace": [
+   [
+    0.5,
+    84.7,
+    144.5,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ],
+   [
+    1.59,
+    20.0,
+    27.5,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ],
+   [
+    2.67,
+    19.9,
+    26.8,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ]
+  ]
+ },
+ "Heavy_pilot": {
+  "spawn": {
+   "type": "ETDCrewType::Heavy",
+   "dead": 0,
+   "loc": [
+    -1352.8,
+    900.0,
+    107.2
+   ],
+   "x": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "y": [
+    -0.0,
+    -1.0,
+    0.0
+   ],
+   "pelvis": [
+    -1351.0,
+    900.1,
+    93.6
+   ],
+   "head": [
+    -1353.9,
+    896.0,
+    164.5
+   ],
+   "floor": 2.2,
+   "low": 8.9,
+   "clip": null,
+   "sim": null
+  },
+  "end": {
+   "type": "ETDCrewType::Heavy",
+   "dead": 0,
+   "loc": [
+    -1388.6,
+    900.0,
+    107.2
+   ],
+   "x": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "y": [
+    -0.0,
+    -1.0,
+    0.0
+   ],
+   "pelvis": [
+    -1385.7,
+    903.6,
+    102.6
+   ],
+   "head": [
+    -1384.8,
+    894.5,
+    173.4
+   ],
+   "floor": 2.2,
+   "low": 8.9,
+   "clip": null,
+   "sim": null
+  },
+  "shots": [
+   [
+    0.5,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Heavy_pilot_0.png"
+   ],
+   [
+    1.71,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Heavy_pilot_1.png"
+   ],
+   [
+    2.9,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Heavy_pilot_2.png"
+   ],
+   [
+    4.03,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Heavy_pilot_3.png"
+   ]
+  ],
+  "trace": [
+   [
+    0.5,
+    95.7,
+    164.4,
+    null,
+    null,
+    []
+   ],
+   [
+    1.71,
+    100.4,
+    171.2,
+    null,
+    null,
+    []
+   ],
+   [
+    2.9,
+    99.5,
+    170.4,
+    null,
+    null,
+    []
+   ],
+   [
+    4.03,
+    100.4,
+    171.1,
+    null,
+    null,
+    []
+   ]
+  ]
+ },
+ "Heavy_behind": {
+  "spawn": {
+   "type": "ETDCrewType::Heavy",
+   "dead": 0,
+   "loc": [
+    1192.0,
+    -1600.7,
+    107.2
+   ],
+   "x": [
+    -1.0,
+    0.002,
+    0.0
+   ],
+   "y": [
+    -0.002,
+    -1.0,
+    0.0
+   ],
+   "pelvis": [
+    1205.3,
+    -1600.3,
+    95.8
+   ],
+   "head": [
+    1182.7,
+    -1603.6,
+    164.5
+   ],
+   "floor": 2.2,
+   "low": 12.4,
+   "clip": null,
+   "sim": null
+  },
+  "end": null,
+  "shots": [
+   [
+    0.5,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Heavy_behind_0.png"
+   ],
+   [
+    1.55,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Heavy_behind_1.png"
+   ],
+   [
+    2.62,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Heavy_behind_2.png"
+   ],
+   [
+    4.0,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Heavy_behind_3.png"
+   ]
+  ],
+  "trace": [
+   [
+    0.5,
+    92.6,
+    157.0,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ],
+   [
+    1.55,
+    22.0,
+    27.7,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ],
+   [
+    2.62,
+    21.4,
+    28.9,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ]
+  ]
+ },
+ "Warden_pilot": {
+  "spawn": {
+   "type": "ETDCrewType::Warden",
+   "dead": 0,
+   "loc": [
+    -1000.0,
+    3400.0,
+    132.2
+   ],
+   "x": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "y": [
+    -0.0,
+    -1.0,
+    0.0
+   ],
+   "pelvis": [
+    -990.4,
+    3404.5,
+    143.2
+   ],
+   "head": [
+    -995.1,
+    3404.2,
+    216.2
+   ],
+   "floor": 2.2,
+   "low": 23.4,
+   "clip": null,
+   "sim": null
+  },
+  "end": null,
+  "shots": [
+   [
+    0.5,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Warden_pilot_0.png"
+   ],
+   [
+    1.63,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Warden_pilot_1.png"
+   ],
+   [
+    2.87,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Warden_pilot_2.png"
+   ],
+   [
+    4.0,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Warden_pilot_3.png"
+   ]
+  ],
+  "trace": [
+   [
+    0.5,
+    7.2,
+    21.5,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ],
+   [
+    1.63,
+    9.4,
+    15.9,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ],
+   [
+    2.87,
+    8.5,
+    14.6,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ]
+  ]
+ },
+ "Warden_behind": {
+  "spawn": {
+   "type": "ETDCrewType::Warden",
+   "dead": 0,
+   "loc": [
+    4000.0,
+    -1600.0,
+    132.2
+   ],
+   "x": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "y": [
+    -0.0,
+    -1.0,
+    0.0
+   ],
+   "pelvis": [
+    4009.5,
+    -1595.0,
+    142.9
+   ],
+   "head": [
+    4005.2,
+    -1595.0,
+    215.9
+   ],
+   "floor": 2.2,
+   "low": 23.3,
+   "clip": null,
+   "sim": null
+  },
+  "end": null,
+  "shots": [
+   [
+    0.5,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Warden_behind_0.png"
+   ],
+   [
+    1.53,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Warden_behind_1.png"
+   ],
+   [
+    2.64,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Warden_behind_2.png"
+   ],
+   [
+    4.0,
+    "ArtSource/EngAnim/PilotFixes/review/kills_m\\death_Warden_behind_3.png"
+   ]
+  ],
+  "trace": [
+   [
+    0.5,
+    16.1,
+    21.8,
+    null,
+    null,
+    []
+   ],
+   [
+    1.53,
+    16.8,
+    23.0,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ],
+   [
+    2.64,
+    17.7,
+    24.2,
+    null,
+    null,
+    [
+     "AnimSequence"
+    ]
+   ]
+  ]
+ }
+}

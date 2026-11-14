@@ -1,0 +1,19 @@
+{
+ "_note": "Light3 (finisher, also played x1.2 for the air slam) as an overhead downward cut; AirSlam_Land with the blade driven down in front. Same key format as fixes_swing.json.",
+ "swing": [
+  {"src": "A_Pilot_Light3", "dst": "A_Pilot_Light3_v2", "rate": 1.5, "max_yaw": 90,
+   "keys": [
+    {"t": 0.0,  "hand": [32, 2, -18],   "blade": [0.55, -0.15, 0.82],  "yaw": 0},
+    {"t": 0.05, "hand": [15, 8, 30],    "blade": [-0.3, 0.1, 0.95],    "yaw": 10},
+    {"t": 0.10, "hand": [50, -5, -5],   "blade": [0.85, -0.05, -0.5],  "yaw": 0},
+    {"t": 0.20, "hand": [40, -10, -38], "blade": [0.45, -0.1, -0.88],  "yaw": -5},
+    {"t": 0.32, "hand": [38, -10, -40], "blade": [0.45, -0.1, -0.88],  "yaw": -5},
+    {"t": "end", "hand": [32, 2, -18],  "blade": [0.55, -0.15, 0.82],  "yaw": 0}]},
+  {"src": "A_Pilot_AirSlam_Land", "dst": "A_Pilot_AirSlam_Land_v2", "rate": 1.0, "max_yaw": 45,
+   "keys": [
+    {"t": 0.0,  "hand": [40, -5, -30],  "blade": [0.5, 0.0, -0.85],    "yaw": 0},
+    {"t": 0.15, "hand": [42, -8, -45],  "blade": [0.35, -0.05, -0.94], "yaw": 0},
+    {"t": 0.45, "hand": [42, -8, -45],  "blade": [0.35, -0.05, -0.94], "yaw": 0},
+    {"t": "end", "hand": [32, 2, -18],  "blade": [0.55, -0.15, 0.82],  "yaw": 0}]}
+ ]
+}

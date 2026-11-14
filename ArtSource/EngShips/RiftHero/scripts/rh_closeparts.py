@@ -20,6 +20,7 @@ from mathutils.bvhtree import BVHTree
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import rh_geo as G
+import rh_ships
 
 PI = math.pi
 BLACK, ACCENT, GUN, STEEL, GLOW, WHITE, HOT, DIM = range(8)      # rh_parts.materials() order
@@ -28,6 +29,21 @@ CANOPY_X = (0.30, 1.50)              # the Rodin canopy's dark glass, measured f
 GUN_Y, GUN_Z = 0.37, -0.565
 NOSE_X = (1.45, 2.44)
 SPINE_X = (-0.92, 0.27)
+K = rh_ships.SHIPS["Rift"]                                         # the ship being built: configure(cfg)
+
+
+def configure(cfg):
+    """Build for another ship (rh_ships.py). The constants above are the Rift's and stay its defaults."""
+    global K, COCKPIT, CANOPY_X, GUN_Y, GUN_Z, NOSE_X, SPINE_X
+    K = cfg
+    if cfg.get("canopy"):
+        COCKPIT, CANOPY_X = cfg["canopy"]["cockpit"], cfg["canopy"]["x"]
+    if cfg.get("guns"):
+        GUN_Y, GUN_Z = cfg["guns"].get("y", GUN_Y), cfg["guns"].get("z", GUN_Z)
+    if cfg.get("nose") and "x" in cfg["nose"]:
+        NOSE_X = cfg["nose"]["x"]
+    if cfg.get("spine"):
+        SPINE_X = cfg["spine"]["x"]
 
 
 def _bvh(ob):
@@ -72,6 +88,37 @@ def _cut(body, pred):
     return n
 
 
+def _slice(body, pred, x, ahead=True):
+    """Cut the body with the plane X = x and drop what lies ahead of it, among the faces whose centre passes pred
+    (pred must also take the faces the plane crosses). Unlike _cut (whole faces by their centre: a ragged edge) the
+    hull ends in a straight section, which a new part's collar hides."""
+    bm = bmesh.new()
+    bm.from_mesh(body.data)
+    faces = [f for f in bm.faces if pred(f.calc_center_median())]
+    n0 = len(bm.faces)
+    geom = set(faces)
+    for f in faces:
+        geom.update(f.edges)
+        geom.update(f.verts)
+    bmesh.ops.bisect_plane(bm, geom=list(geom), dist=1e-5, plane_co=(x, 0.0, 0.0), plane_no=(1.0, 0.0, 0.0),
+                           clear_outer=ahead, clear_inner=not ahead)      # ahead=False: what lies behind the plane goes
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
+    n = n0 - len(bm.faces)
+    bm.to_mesh(body.data)
+    bm.free()
+    body.data.update()
+    return n
+
+
+def _face(ob, direction):
+    """Open strips: make the faces look along `direction` on average (Unreal draws one side only)."""
+    d = Vector(direction)
+    me = ob.data
+    if sum(p.normal.dot(d) * p.area for p in me.polygons) < 0:
+        me.flip_normals()
+    return ob
+
+
 def sweep_rect(name, pts, w, h, mats, mat_idx, up=(0, 0, 1), parent=None):
     """A rectangular bar (w across, h along `up`-ish) swept along a polyline: canopy frame members."""
     bm = bmesh.new()
@@ -103,14 +150,163 @@ def sweep_rect(name, pts, w, h, mats, mat_idx, up=(0, 0, 1), parent=None):
 
 
 # ---------------------------------------------------------------------------------------------------- canopy
+def _canopy_facets(mats, body, bvh):
+    """A faceted, flush windscreen kept exactly as designed (Bastion; Lead, Nov 14: no bubble). The Rodin windscreen
+    faces (dark texels inside the canopy box) leave the hull and come back as the glass part, 3.5 cm lower, so the
+    panes sit below the armour frame; a dark tub hangs from the opening's own boundary (walls straight down from every
+    boundary edge, a floor), and a seat back, headrest, helmeted pilot bust and a thin accent instrument strip go
+    inside."""
+    import rh_textures as T
+    import rh_common as C
+    ca = K["canopy"]
+    (x0, x1), wmax, (z0, z1) = ca["x"], ca["wmax"], ca["z"]
+    bc = T.load(os.path.join(C.RODIN, "T_%s_BC.png" % K["ship"]))
+    hh, ww = bc.shape[:2]
+    lum = bc @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+    bm = bmesh.new()
+    bm.from_mesh(body.data)
+    uvl = bm.loops.layers.uv.active
+
+    def dark(f):
+        v = []
+        for l in f.loops:
+            u = l[uvl].uv
+            v.append(lum[min(hh - 1, max(0, int(u.y * hh))), min(ww - 1, max(0, int(u.x * ww)))])
+        c = sum((l[uvl].uv for l in f.loops), Vector((0.0, 0.0))) / len(f.loops)
+        v.append(lum[min(hh - 1, max(0, int(c.y * hh))), min(ww - 1, max(0, int(c.x * ww)))])
+        return float(np.median(v)) < ca.get("dark", 0.16)
+    sel = []
+    for f in bm.faces:
+        c = f.calc_center_median()
+        if x0 < c.x < x1 and abs(c.y) < wmax and z0 < c.z < z1 and f.normal.z > -0.1 and dark(f):
+            sel.append(f)
+    # keep the main connected patch only (stray dark faces elsewhere in the box stay on the hull), then fill the holes:
+    # faces enclosed by the patch (frame bars, glints) go with it
+    selset = set(sel)
+    seen, best = set(), []
+    for f in sel:
+        if f in seen:
+            continue
+        comp, stack = [], [f]
+        seen.add(f)
+        while stack:
+            g = stack.pop()
+            comp.append(g)
+            for e in g.edges:
+                for h in e.link_faces:
+                    if h in selset and h not in seen:
+                        seen.add(h)
+                        stack.append(h)
+        if len(comp) > len(best):
+            best = comp
+    sel = best
+    # fill: a face in the box that has patch faces before and behind it and to both sides (seen from above, 3 cm
+    # cells) is inside the windscreen: bright frame bars, glints and the old squiggle's faces go with the patch
+    cell = 0.03
+    rows, cols = {}, {}
+    for f in sel:
+        c = f.calc_center_median()
+        i, j = int(c.x // cell), int(c.y // cell)
+        a = rows.setdefault(j, [i, i]); a[0] = min(a[0], i); a[1] = max(a[1], i)
+        b = cols.setdefault(i, [j, j]); b[0] = min(b[0], j); b[1] = max(b[1], j)
+    inpatch = set(sel)
+    for f in bm.faces:
+        if f in inpatch:
+            continue
+        c = f.calc_center_median()
+        if not (x0 < c.x < x1 and abs(c.y) < wmax and z0 < c.z < z1):
+            continue
+        i, j = int(c.x // cell), int(c.y // cell)
+        if j in rows and i in cols and rows[j][0] < i < rows[j][1] and cols[i][0] < j < cols[i][1]:
+            sel.append(f)
+    gm = G.mat("M_%s_Glass" % K["ship"], rh_ships.ACCENTS[K["accent"]]["glass"], roughness=0.05)
+    drop = Vector((0.0, 0.0, -ca.get("drop", 0.035)))
+    gb = bmesh.new()
+    guv = gb.loops.layers.uv.new("UVMap")
+    vmap = {}
+    for f in sel:
+        vs = []
+        for v in f.verts:
+            if v not in vmap:
+                vmap[v] = gb.verts.new(v.co + drop - Vector(COCKPIT))
+            vs.append(vmap[v])
+        try:
+            nf = gb.faces.new(vs)
+        except ValueError:
+            continue
+        for l, ol in zip(nf.loops, f.loops):
+            l[guv].uv = ol[uvl].uv
+    glass = G._finish("SM_%s_Canopy" % K["ship"], gb, [gm], 20.0)
+    glass.location = COCKPIT
+    # the tub: walls straight down from the opening's boundary, and a floor
+    selset = set(sel)
+    floor_z = min(v.co.z for v in vmap) - ca.get("depth", 0.42)
+    tb = bmesh.new()
+    tuv = tb.loops.layers.uv.new("UVMap")
+    cx = sum(v.co.x for v in vmap) / len(vmap)
+    lo = Vector((min(v.co.x for v in vmap), min(v.co.y for v in vmap), floor_z))
+    hi = Vector((max(v.co.x for v in vmap), max(v.co.y for v in vmap), floor_z))
+    for f in sel:
+        for e in f.edges:
+            if sum(1 for h in e.link_faces if h in selset) != 1:
+                continue
+            a, b = e.verts[0].co, e.verts[1].co
+            q = [tb.verts.new(a), tb.verts.new(b), tb.verts.new((b.x, b.y, floor_z)), tb.verts.new((a.x, a.y, floor_z))]
+            nf = tb.faces.new(q)
+            nf.normal_update()
+            mid = (a + b) / 2
+            if nf.normal.dot(Vector((cx - mid.x, -mid.y, 0.0))) < 0:      # walls face the inside of the tub
+                nf.normal_flip()
+            nf.material_index = BLACK
+    fl = tb.faces.new([tb.verts.new((lo.x - 0.05, lo.y - 0.05, floor_z)), tb.verts.new((hi.x + 0.05, lo.y - 0.05, floor_z)),
+                       tb.verts.new((hi.x + 0.05, hi.y + 0.05, floor_z)), tb.verts.new((lo.x - 0.05, hi.y + 0.05, floor_z))])
+    fl.normal_update()
+    if fl.normal.z < 0:
+        fl.normal_flip()
+    fl.material_index = BLACK
+    me = bpy.data.meshes.new("CP_Tub")
+    tb.to_mesh(me)
+    tb.free()
+    for m in mats:
+        me.materials.append(m)
+    tub = bpy.data.objects.new("CP_Tub", me)
+    G.collection().objects.link(tub)
+    cut = len(sel)
+    bmesh.ops.delete(bm, geom=sel, context="FACES")
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
+    bm.to_mesh(body.data)
+    bm.free()
+    body.data.update()
+    # seat, pilot bust and instruments (positions from the config: seat x, head height)
+    sx, hz, zd = ca["seat_x"], ca["head_z"], floor_z
+    parts = [tub]
+    parts.append(G.box("CP_SeatBack", (sx - 0.08, -0.13, zd), (sx, 0.13, hz - 0.04), mats, GUN))
+    parts.append(G.box("CP_SeatHead", (sx - 0.07, -0.07, hz - 0.04), (sx - 0.01, 0.07, hz + 0.07), mats, BLACK))
+    parts.append(G.box("CP_Shoulders", (sx, -0.16, hz - 0.20), (sx + 0.14, 0.16, hz - 0.09), mats, WHITE))
+    parts.append(G.lathe_x("CP_Helmet", [(0.0, 0.0), (0.012, 0.05), (0.05, 0.08), (0.11, 0.082), (0.16, 0.066), (0.185, 0.0)],
+                           (sx + 0.01, 0.0, hz), mats, segments=24, mat_idx=[WHITE] * 6))
+    parts.append(G.box("CP_Visor", (sx + 0.15, -0.045, hz - 0.012), (sx + 0.168, 0.045, hz + 0.028), mats, BLACK))
+    dx = ca["dash_x"]
+    parts.append(G.box("CP_Dash", (dx, -0.20, zd), (dx + 0.14, 0.20, ca["dash_z"]), mats, GUN, taper=(1.0, 0.5)))
+    parts.append(G.box("CP_Instr", (dx - 0.006, -0.12, ca["dash_z"] - 0.035), (dx, 0.12, ca["dash_z"] - 0.012), mats, GLOW))
+    for p in parts[1:]:
+        G.bevel(p, width=0.004, segments=2, angle_deg=30.0)
+    return parts, glass, cut
+
+
 def build_canopy(mats, body, bvh):
     """The glass follows the Rodin dome (rays from above, an even polynomial fitted per station: one clean, smooth
     pane), 8 mm above it; the Rodin dome under it is cut and a dark cockpit deck, seat, pilot and dash go inside."""
+    if K["canopy"].get("kind") == "facets":
+        return _canopy_facets(mats, body, bvh)
     L = CANOPY_X[1] - CANOPY_X[0]
+    ca = K["canopy"]
+    ox, ky = ca["ox"], ca["ky"]          # where the seat, pilot and dash sit (designed on the Rift: 0, 1)
 
     def plan_w(x):                                              # teardrop plan: wide behind, pointed at the front
         s = min(1.0, max(0.0, (x - CANOPY_X[0]) / L))
-        return 0.33 * (math.sin(PI * (0.08 + 0.92 * s)) ** 0.5) * (1.0 - 0.25 * s)
+        r0, r1 = ca.get("plan", (0.08, 0.92))                   # a larger r0 = a blunter, wider rear end
+        return ca["wmax"] * (math.sin(PI * (r0 + r1 * s)) ** 0.5) * (1.0 - 0.25 * s)
 
     xs = np.linspace(CANOPY_X[0], CANOPY_X[1], 25)
     coefs = []
@@ -131,19 +327,39 @@ def build_canopy(mats, body, bvh):
     def zdome(x, y, grow=0.008):
         return cf[0](x) + cf[1](x) * y * y + cf[2](x) * y ** 4 + grow
 
-    gm = G.mat("M_Rift_Glass", (0.03, 0.02, 0.06), roughness=0.05)
+    if ca.get("dome") == "super":
+        # a designed bubble instead of the fitted one (the Lancer's Rodin canopy is boxy, with thick frame bars: the
+        # fit wobbled): crown = the measured top on the centre line, base = the hull just outside the canopy, a
+        # superellipse between them. The glass edge and the sills then sit on the hull.
+        crown, base = [], []
+        for x in xs:
+            w = plan_w(x)
+            tops = [h.z for h in (_ray(bvh, (x, y, 5.0), (0, 0, -1)) for y in (-0.03, 0.0, 0.03)) if h]
+            sides = [h.z for h in (_ray(bvh, (x, sy * (w + 0.04), 5.0), (0, 0, -1)) for sy in (1, -1)) if h]
+            crown.append(max(tops) if tops else 0.0)
+            base.append(sum(sides) / len(sides) if sides else (crown[-1] - 0.2))
+        base = _smooth(base, 3)
+        crown = np.maximum(_smooth(crown, 2), base + 0.02)
+        cr, ba = _interp(xs, crown), _interp(xs, base)
+        ne = ca.get("dome_n", 2.3)
+
+        def zdome(x, y, grow=0.008):
+            t = min(1.0, abs(y) / max(plan_w(x), 0.04))
+            return ba(x) + (cr(x) - ba(x)) * (1.0 - t ** ne) ** (1.0 / ne) + grow
+
+    gm = G.mat("M_%s_Glass" % K["ship"], rh_ships.ACCENTS[K["accent"]]["glass"], roughness=0.05)
 
     def gf(u, v):
         y = (u - 0.5) * 2 * plan_w(v)
         return (v - COCKPIT[0], y, zdome(v, y) - COCKPIT[2])
-    glass = G.grid_surface("SM_Rift_Canopy", gf, list(np.linspace(0, 1, 25)), list(np.linspace(CANOPY_X[0], CANOPY_X[1], 40)),
+    glass = G.grid_surface("SM_%s_Canopy" % K["ship"], gf, list(np.linspace(0, 1, 25)), list(np.linspace(CANOPY_X[0], CANOPY_X[1], 40)),
                            [gm], closed_u=False, cap0="none", cap1="none", smooth_deg=80.0)
     glass.location = COCKPIT
 
     def deck_z(x):
-        return zdome(x, 0.0, 0.0) - 0.30
+        return zdome(x, 0.0, 0.0) - ca["deck"]
 
-    cut = _cut(body, lambda c: CANOPY_X[0] + 0.02 < c.x < CANOPY_X[1] - 0.03 and abs(c.y) < plan_w(c.x) * 1.08
+    cut = _cut(body, lambda c: CANOPY_X[0] + 0.02 < c.x < CANOPY_X[1] - 0.03 and abs(c.y) < plan_w(c.x) * ca.get("cutk", 1.08)
                and c.z > deck_z(c.x) + 0.01)                 # the Rodin chrome canopy frame goes too: the sills cover the seam
     parts = []
 
@@ -161,27 +377,204 @@ def build_canopy(mats, body, bvh):
     # frame: sills along the glass edges, three bows over it
     for sy in (1, -1):
         pts = [(x, sy * plan_w(x), zdome(x, sy * plan_w(x), 0.014)) for x in np.linspace(CANOPY_X[0] + 0.03, CANOPY_X[1] - 0.03, 30)]
-        parts.append(sweep_rect("CP_Sill_%d" % sy, pts, 0.052, 0.024, mats, WHITE))
-    for xb, wbar in ((CANOPY_X[0] + 0.10, 0.034), (0.88, 0.026), (1.28, 0.024)):
+        parts.append(sweep_rect("CP_Sill_%d" % sy, pts, ca.get("sill_w", 0.052), 0.024, mats, WHITE))
+    if ca.get("skirt"):
+        # (one-sided in Unreal: the tub's floor must face up and its walls inwards; the Rift's build is left as it was)
+        _face(parts[0], (0, 0, 1))
+        _face(parts[1], (0, -1, 0))
+        _face(parts[2], (0, 1, 0))
+        # a coaming around the canopy: from the sill out and down into the hull (covers the ragged edge of the cut),
+        # and a turtle-deck behind the glass that closes its open rear arch and fades into the hull
+        out, drop = ca["skirt"]
+        for sy in (1, -1):
+            def skirt_f(u, v, sy=sy):
+                w = plan_w(min(max(v, CANOPY_X[0]), CANOPY_X[1]))
+                inner = 0.015 * min(1.0, max(0.0, (CANOPY_X[1] - v) / 0.03))   # ahead of the glass tip the two sides meet
+                dive = min(1.0, max(0.0, (v - CANOPY_X[1] - 0.03) / 0.09)) ** 1.5      # the nose pad sinks into the hull
+                return (v, sy * (w + inner + u * out),
+                        zdome(min(max(v, CANOPY_X[0]), CANOPY_X[1]), w, 0.018) - (u ** 1.5) * drop - dive * (drop + 0.02))
+            sk = G.grid_surface("CP_Skirt_%d" % sy, skirt_f, list(np.linspace(0, 1, 5)),
+                                list(np.linspace(CANOPY_X[0] - 0.02, CANOPY_X[1] + 0.12, 38)), mats, closed_u=False,
+                                cap0="none", cap1="none", mat_fn=lambda u, v: WHITE, smooth_deg=50.0)
+            parts.append(_face(sk, (0, sy * 0.5, 1)))
+        # the Rodin frame's front tip and the ragged edge around it go: the coaming's nose pad covers the hole
+        cut += _cut(body, lambda c: CANOPY_X[1] - 0.10 < c.x < CANOPY_X[1] + 0.04 and abs(c.y) < 0.06
+                    and c.z > zdome(CANOPY_X[1], 0.0, 0.0) - drop + 0.01)
+        xr = CANOPY_X[0]
+        w0, hl = plan_w(xr), ca.get("hump", 0.18)
+        zb = zdome(xr, w0, 0.0) - drop
+
+        def hump_f(u, t):
+            y0 = (u - 0.5) * 2 * w0
+            k = (1.0 - t) ** 1.4
+            return (xr + 0.012 - t * hl, y0 * (1.0 + 0.14 * (1 - t)) * (1.0 - 0.3 * t), zb + (zdome(xr, y0, 0.020) - zb) * k)
+        hump = G.grid_surface("CP_Hump", hump_f, list(np.linspace(0, 1, 17)), list(np.linspace(0, 1, 9)), mats, closed_u=False,
+                              cap0="none", cap1="none", mat_fn=lambda u, v: GUN if v < 0.12 else WHITE, smooth_deg=50.0)
+        parts.append(_face(hump, (-0.3, 0, 1)))
+    for xb, wbar in ((CANOPY_X[0] + 0.10, 0.034), (ca["bows"][0], 0.026), (ca["bows"][1], 0.024)):
         w = plan_w(xb)
         pts = [(xb, y, zdome(xb, y, 0.016)) for y in np.linspace(-w, w, 21)]
         parts.append(sweep_rect("CP_Bow_%.2f" % xb, pts, wbar, 0.016, mats, GUN, up=(1, 0, 0)))
     # seat, pilot and dash, seen through the tinted glass
-    zd = deck_z(0.60)
-    parts.append(G.box("CP_SeatBack", (0.40, -0.09, zd), (0.47, 0.09, zd + 0.21), mats, BLACK))
-    parts.append(G.box("CP_SeatHead", (0.41, -0.06, zd + 0.21), (0.46, 0.06, zd + 0.27), mats, ACCENT))
-    parts.append(G.box("CP_Shoulders", (0.47, -0.105, zd + 0.06), (0.60, 0.105, zd + 0.15), mats, WHITE))
-    parts.append(G.box("CP_Dash", (0.98, -0.16, deck_z(1.0)), (1.12, 0.16, deck_z(1.0) + 0.10), mats, GUN, taper=(1.0, 0.4)))
-    hk = 0.78                                                   # v08: smaller, lower (review: large, sits high)
+    zd = deck_z(0.60 + ox)
+    parts.append(G.box("CP_SeatBack", (0.40 + ox, -0.09 * ky, zd), (0.47 + ox, 0.09 * ky, zd + 0.21), mats, ca.get("seat_mat", BLACK)))
+    parts.append(G.box("CP_SeatHead", (0.41 + ox, -0.06 * ky, zd + 0.21), (0.46 + ox, 0.06 * ky, zd + 0.27), mats,
+                       ca.get("seat_head", ACCENT)))
+    parts.append(G.box("CP_Shoulders", (0.47 + ox, -0.105 * ky, zd + 0.06), (0.60 + ox, 0.105 * ky, zd + 0.15), mats, WHITE))
+    parts.append(G.box("CP_Dash", (0.98 + ox, -0.16 * ky, deck_z(1.0 + ox)), (1.12 + ox, 0.16 * ky, deck_z(1.0 + ox) + 0.10), mats, GUN,
+                       taper=(1.0, 0.4)))
+    hk = 0.78 * ca.get("hk", 1.0)                               # v08: smaller, lower (review: large, sits high)
     parts.append(G.lathe_x("CP_Helmet", [(0.0, 0.0), (0.012 * hk, 0.042 * hk), (0.045 * hk, 0.066 * hk), (0.095 * hk, 0.068 * hk),
                                          (0.14 * hk, 0.055 * hk), (0.16 * hk, 0.0)],
-                           (0.49, 0.0, zd + 0.18), mats, segments=24, mat_idx=[WHITE] * 6))
-    parts.append(G.box("CP_Visor", (0.49 + 0.115, -0.035, zd + 0.17), (0.49 + 0.13, 0.035, zd + 0.20), mats, GLOW))
+                           (0.49 + ox, 0.0, zd + 0.18), mats, segments=24, mat_idx=[WHITE] * 6))
+    parts.append(G.box("CP_Visor", (0.49 + ox + 0.115, -0.035, zd + 0.17), (0.49 + ox + 0.13, 0.035, zd + 0.20), mats, ca.get("visor_mat", GLOW)))
+    if ca.get("instr"):          # a thin instrument glow on the dash's top edge and two side consoles: the interior reads
+        parts.append(G.box("CP_Instr", (0.975 + ox, -0.11 * ky, deck_z(1.0 + ox) + 0.085), (0.983 + ox, 0.11 * ky, deck_z(1.0 + ox) + 0.10), mats, GLOW))
+        for sy in (1, -1):
+            ya, yb = sorted((sy * 0.115 * ky, sy * 0.16 * ky))
+            parts.append(G.box("CP_Console_%d" % sy, (0.50 + ox, ya, zd), (0.86 + ox, yb, zd + 0.10), mats, STEEL))
     return parts, glass, cut
 
 
 # ---------------------------------------------------------------------------------------------------- guns
 def build_guns(mats, body):
+    return {"rift": _guns_rift, "lancer": _guns_lancer, "bastion": _guns_bastion, "barrels": _guns_barrels}[K["guns"]["kind"]](mats, body)
+
+
+def _guns_barrels(mats, body):
+    """Long turret barrels (Null gunship): the Rodin tubes ahead of cut_x go, each becomes a clean lathed barrel with a
+    base sleeve, a mid ring and a muzzle brake with a glowing bore. guns["barrels"] = [(y, z), ...] (both signs listed)."""
+    g = K["guns"]
+    x0, tip, r = g["x0"], g["tip"], g["r"]
+    (y0, y1), (z0, z1) = g["cut_y"], g["cut_z"]
+    cut = _slice(body, lambda c: c.x > g["cut_x"] - 0.4 and y0 < abs(c.y) < y1 and z0 < c.z < z1, g["cut_x"])
+    ln = tip - x0
+    parts = []
+    for i, (y, z) in enumerate(g["barrels"]):
+        prof = [(0.0, 0.0), (0.0, r * 1.35), (ln * 0.16, r * 1.35), (ln * 0.16, r), (ln * 0.50, r), (ln * 0.50, r * 1.18), (ln * 0.54, r * 1.18),
+                (ln * 0.54, r), (ln - 0.38, r), (ln - 0.38, r * 1.4), (ln, r * 1.4), (ln, r * 0.7), (ln - 0.10, r * 0.7), (ln - 0.10, r * 0.58),
+                (ln - 0.30, r * 0.58), (ln - 0.30, 0.0)]
+        idx = [GUN, GUN, BLACK, GUN, STEEL, GUN, STEEL, GUN, STEEL, GUN, GUN, BLACK, GLOW, BLACK, BLACK, BLACK]
+        parts.append(G.lathe_x("GN_Barrel_%d" % i, prof, (x0, y, z), mats, segments=20, mat_idx=idx))
+    for p in parts:
+        G.bevel(p, width=0.008, segments=2, angle_deg=30.0)
+    return parts, cut
+
+
+def _plate(name, prof, y, thick, cant, mats, mat_idx):
+    """A flat plate: the (x, z) outline `prof` extruded `thick` across Y at y, leaning outwards by `cant` (m of Y per
+    m of Z). Tail fins."""
+    sy = 1.0 if y >= 0 else -1.0
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new("UVMap")
+    rings = []
+    for off in (-thick / 2, thick / 2):
+        rings.append([bm.verts.new((x, y + off + sy * cant * (z - prof[0][1]), z)) for x, z in prof])
+    n = len(prof)
+    faces = [bm.faces.new(rings[0]), bm.faces.new(list(reversed(rings[1])))]
+    for k in range(n):
+        faces.append(bm.faces.new((rings[0][k], rings[1][k], rings[1][(k + 1) % n], rings[0][(k + 1) % n])))
+    for f in faces:
+        f.material_index = mat_idx
+        for j, l in enumerate(f.loops):
+            l[uvl].uv = ((0, 0), (1, 0), (1, 1), (0, 1))[j % 4]
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return G._finish(name, bm, mats, 30.0)
+
+
+def build_fins(mats, body):
+    """Silhouette parts (Null interceptor, Lead, Nov 14: at 150 m it read exactly like the fighter): a long lance
+    forward from each wing tip with a glow line on top, and twin canted tail fins. No
+    Rodin geometry is cut: the parts start inside the hull."""
+    f = K["fins"]
+    parts = []
+    for sy in (1, -1):
+        for i, (x0, x1, y, z, w, h) in enumerate(f.get("lances", ())):
+            yy = sy * y
+            parts.append(G.box("FN_Lance_%d_%d" % (sy, i), (x0, yy - w / 2, z - h / 2), (x1, yy + w / 2, z + h / 2), mats, GUN, taper=(0.12, 0.12)))
+            parts.append(G.box("FN_LanceGlow_%d_%d" % (sy, i), (x0 + 0.3, yy - w * 0.16, z + h * 0.42), (x0 + (x1 - x0) * 0.62, yy + w * 0.16, z + h * 0.55),
+                               mats, GLOW, taper=(0.5, 1.0)))
+        for i, (prof, y, thick, cant) in enumerate(f.get("fins", ())):
+            parts.append(_plate("FN_Fin_%d_%d" % (sy, i), prof, sy * y, thick, cant, mats, GUN))
+    for p in parts:
+        G.bevel(p, width=0.006, segments=2, angle_deg=30.0)
+    return parts
+
+
+def build_engines(mats, body):
+    """Clean engine nozzles on the Rodin bells (Null fighter): the last part of each bell goes (a straight cut), a
+    lathed nozzle takes its place: a collar the width of the bell, a cone to the exit, a dark lip, a glowing inner
+    ring, a dim throat and a hot core. engines["nozzles"] = [(y, z), ...]."""
+    e = K["engines"]
+    x0, xe, rc, re_ = e["x0"], e["exit"], e["r_collar"], e["r_exit"]
+    cut = _slice(body, lambda c: c.x < e["cut_x"] + 0.4 and any(math.hypot(c.y - y, c.z - z) < rc * 1.25 for y, z in e["nozzles"]), e["cut_x"], ahead=False)
+    ln = x0 - xe
+    parts = []
+    for i, (y, z) in enumerate(e["nozzles"]):
+        prof = [(0.0, 0.0), (0.0, rc), (-0.06, rc), (-0.06, rc * 0.93), (-ln * 0.6, (rc + re_) / 2), (-ln, re_), (-ln, re_ * 0.86),
+                (-ln * 0.7, re_ * 0.86), (-ln * 0.7, re_ * 0.74), (-ln * 0.3, re_ * 0.6), (-ln * 0.3, 0.0)]
+        idx = [GUN, STEEL, BLACK, GUN, GUN, STEEL, GLOW, BLACK, DIM, HOT, BLACK]
+        parts.append(G.lathe_x("EN_Nozzle_%d" % i, prof, (x0, y, z), mats, segments=28, mat_idx=idx))
+    for p in parts:
+        G.bevel(p, width=0.006, segments=2, angle_deg=30.0)
+    return parts, cut
+
+
+def _guns_bastion(mats, body):
+    """The Bastion's cannons are sound as Rodin made them (a symmetric pair in chunky housings); only the lumpy
+    barrel ends go: each becomes a clean lathed muzzle on the same axis, with a glowing bore."""
+    g = K["guns"]
+    gy, gz, x0, tip = g["y"], g["z"], g["x0"], g["tip"]
+    cut = _slice(body, lambda c: c.x > g["cut_x"] - 0.12 and 0.28 < abs(c.y) < 0.60 and c.z < -0.28, g["cut_x"])
+    parts = []
+    ln, r = tip - x0, g["r"]
+    for sy in (1, -1):
+        prof = [(0.0, 0.0), (0.0, r * 1.22), (0.06, r * 1.22), (0.06, r), (ln - 0.09, r), (ln - 0.09, r * 1.2), (ln, r * 1.2),
+                (ln, r * 0.66), (ln - 0.05, r * 0.66), (ln - 0.05, r * 0.56), (ln - 0.13, r * 0.56), (ln - 0.13, 0.0)]
+        idx = [GUN, STEEL, BLACK, GUN, STEEL, GUN, GUN, BLACK, GLOW, BLACK, BLACK, BLACK]     # a dark bore, one thin glow ring inside it
+        parts.append(G.lathe_x("GN_Muzzle_%d" % sy, prof, (x0, sy * gy, gz), mats, segments=28, mat_idx=idx))
+    for p in parts:
+        G.bevel(p, width=0.004, segments=2, angle_deg=30.0)
+    return parts, cut
+
+
+def _guns_lancer(mats, body):
+    """A clean symmetric pair of rapid cannons (Lead, Nov 13 night: the Rodin mesh had a long twin barrel on one side
+    and a short pod on the other). v04, after two fresh-eyes reviews (collar pods on pylons read as oversized, splayed
+    blockout parts): the Rodin gun's own layout, slim and tucked under the housing - a small receiver set into the
+    housing front, two parallel barrels (the lower one on the muzzle socket's axis), a clamp."""
+    g = K["guns"]
+    gy, gz, x0, tip = g["y"], g["z"], g["x0"], g["tip"]
+    cut = _slice(body, lambda c: c.x > g["cut_x"] - 0.15 and 0.385 < abs(c.y) < 0.62 and c.z < -0.40, g["cut_x"])
+    parts = []
+    for sy in (1, -1):
+        y = sy * gy
+        zu = gz + 0.085                                          # the upper barrel
+        # receiver: dark block with a white cover plate and an accent stripe on the outboard face
+        parts.append(G.box("GN_Recv_%d" % sy, (x0, y - 0.050, gz - 0.045), (x0 + 0.20, y + 0.050, zu + 0.045), mats, GUN, taper=(0.86, 0.9)))
+        yo = y + sy * 0.050
+        ya, yb = sorted((yo, yo + sy * 0.006))
+        parts.append(G.box("GN_Cover_%d" % sy, (x0 + 0.02, ya, gz - 0.02), (x0 + 0.15, yb, zu + 0.02), mats, WHITE))
+        ya, yb = sorted((yo, yo + sy * 0.008))
+        parts.append(G.box("GN_Stripe_%d" % sy, (x0 + 0.06, ya, gz + 0.03), (x0 + 0.13, yb, gz + 0.055), mats, ACCENT))
+        for k in range(3):                                       # cooling slots on top
+            vx = x0 + 0.04 + k * 0.04
+            parts.append(G.box("GN_Vent_%d_%d" % (sy, k), (vx, y - 0.030, zu + 0.040), (vx + 0.022, y + 0.030, zu + 0.050), mats, BLACK))
+        for name, zc, end, r in (("Lower", gz, tip, 0.024), ("Upper", zu, tip - 0.07, 0.021)):
+            bx = x0 + 0.16
+            ln = end - bx
+            prof = [(0.0, 0.0), (0.0, r * 1.45), (0.07, r * 1.45), (0.07, r), (ln - 0.20, r), (ln - 0.20, r * 1.3), (ln - 0.17, r * 1.3),
+                    (ln - 0.17, r), (ln - 0.07, r), (ln - 0.07, r * 1.5), (ln, r * 1.5), (ln, r * 0.8), (ln - 0.03, r * 0.8), (ln - 0.03, 0.0)]
+            idx = [GUN, GUN, GUN, STEEL, STEEL, GUN, STEEL, STEEL, GUN, GUN, BLACK, GLOW, DIM, BLACK]     # v05: dark muzzle caps, the glow in the bore only
+            parts.append(G.lathe_x("GN_%s_%d" % (name, sy), prof, (bx, y, zc), mats, segments=20, mat_idx=idx))
+        cx = x0 + 0.36
+        parts.append(G.box("GN_Clamp_%d" % sy, (cx, y - 0.036, gz - 0.034), (cx + 0.028, y + 0.036, zu + 0.032), mats, GUN))
+    for p in parts:
+        G.bevel(p, width=0.004, segments=2, angle_deg=30.0)
+    return parts, cut
+
+
+def _guns_rift(mats, body):
     parts = []
     cut = _cut(body, lambda c: 1.40 < c.x < 2.62 and math.hypot(abs(c.y) - GUN_Y, c.z - GUN_Z) < 0.15)
     for sy in (1, -1):
@@ -211,6 +604,67 @@ def build_guns(mats, body):
 
 # ---------------------------------------------------------------------------------------------------- nose
 def build_nose(mats, body, bvh):
+    return {"rift": _nose_rift, "needle": _nose_needle}[K["nose"]["kind"]](mats, body, bvh)
+
+
+def _nose_needle(mats, body, bvh):
+    """The Lancer's ram prow: a clean shell on the measured stations (top, bottom, half width), roof-like above the
+    chine and shallow below it, closing to a point at the Rodin tip; the Rodin nose inside it is cut whole."""
+    n = K["nose"]
+    T = np.array(n["table"], float)
+    xs = T[:, 0]
+    tf, bf, hf = _interp(xs, T[:, 1]), _interp(xs, T[:, 2]), _interp(xs, T[:, 3])
+    x0, tip = n["x0"], float(xs[-1])
+
+    def sec(x, u):
+        grow = 0.006
+        zt, zb, w = tf(x) + grow, bf(x) - grow, hf(x) + grow
+        zch = zb + 0.30 * (zt - zb)                               # the chine
+        c, s = math.cos(u), math.sin(u)
+        if s >= 0:
+            return (x, math.copysign(abs(c) ** (2 / 1.7), c) * w, zch + abs(s) ** (2 / 1.7) * (zt - zch))
+        return (x, math.copysign(abs(c) ** (2 / 2.6), c) * w, zch - abs(s) ** (2 / 2.6) * (zch - zb))
+
+    # v03 (fresh-eyes review: "a featureless cone, out of style with the hull"): the Rodin prow's own language - panel
+    # breaks, a dark recessed band along the top, dark inset panels on the flanks, glowing edge strips above the chine
+    seams = ((1.36, 1.366), (1.50, 1.506), (1.66, 1.666), (1.84, 1.846), (2.02, 2.025), (2.16, 2.165))
+    pockets = [{"u0": PI / 2 - 0.20, "u1": PI / 2 + 0.20, "v0": x0 + 0.06, "v1": 2.14, "depth": 0.007, "eu": 0.04, "ev": 0.02,
+                "mat": GUN, "wall_mat": BLACK}]
+    for sgn in (1, -1):
+        def span(a, b, sgn=sgn):
+            return (a, b) if sgn > 0 else (PI - b, PI - a)
+        for v0, v1 in ((x0 + 0.05, 1.35), (1.38, 1.49), (1.52, 1.65), (1.68, 1.83), (1.86, 2.01), (2.04, 2.15)):   # glow edge strips
+            u0, u1 = span(0.035, 0.150)
+            pockets.append({"u0": u0, "u1": u1, "v0": v0, "v1": v1, "depth": 0.004, "eu": 0.012, "ev": 0.008, "mat": HOT, "wall_mat": GLOW})
+        for v0, v1, ua, ub in ((1.385, 1.485, 0.66, 1.06), (1.69, 1.82, 0.60, 1.00)):                             # dark inset panels
+            u0, u1 = span(ua, ub)
+            pockets.append({"u0": u0, "u1": u1, "v0": v0, "v1": v1, "depth": 0.007, "eu": 0.03, "ev": 0.012, "mat": GUN, "wall_mat": BLACK})
+
+    def mat_fn(u, v):
+        c, s = math.cos(u), math.sin(u)
+        if any(a <= v <= b for a, b in seams):
+            return BLACK
+        if v > 2.26:
+            return STEEL                                         # the ram spike
+        if v > 2.19:
+            return GLOW                                          # a glowing collar behind the spike
+        if s < -0.03:
+            return GUN                                           # dark underside
+        if 0.30 < abs(c) < 0.56 and 1.52 < v < 2.16:
+            return ACCENT                                        # an accent flash down each flank; it tapers with the nose
+        if 0.70 < abs(c) < 0.985 and x0 + 0.05 < v < 1.35:
+            return ACCENT                                        # accent cheeks at the root, like the hull beside them
+        return WHITE
+    vs = sorted(set(list(np.linspace(x0, tip, 40)) + [v for ab in seams for v in ab] + [2.19, 2.26]))
+    nose = G.grid_surface("NS_Nose", lambda u, v: sec(v, u), list(np.linspace(0, 2 * PI, 49)[:-1]), vs, mats, pockets=pockets,
+                          closed_u=True, cap0="ngon", cap1="point", mat_fn=mat_fn, smooth_deg=34.0)
+    G.bevel(nose, width=0.003, segments=2, angle_deg=34.0)
+    gy, gz = n["gun_y"], n["gun_z"]
+    cut = _slice(body, lambda c: c.x > x0 - 0.12 and abs(c.y) < 0.30 and math.hypot(abs(c.y) - gy, c.z - gz) > 0.12, x0 + 0.012)
+    return [nose], cut
+
+
+def _nose_rift(mats, body, bvh):
     xs = np.linspace(NOSE_X[0], NOSE_X[1] - 0.04, 14)
     top, bot, half = [], [], []
     for x in xs:
@@ -239,8 +693,10 @@ def build_nose(mats, body, bvh):
         return (x, math.copysign(abs(c) ** (2 / n), c) * w, zc + math.copysign(abs(s) ** (2 / n), s) * hz)
     # panel lines as recessed pockets: a seam ring at two stations, the glowing nose slit on the top
     v_lo, v_hi = NOSE_X[0], tip
+    # v09: one long, narrow glowing slit along the top. v12 (review MINOR: "a hard white rectangle", "the nose lost its
+    # magenta accent"): the slit glows in the accent colour between dark walls, where it was white-hot
     pockets = [{"u0": PI / 2 - 0.10, "u1": PI / 2 + 0.10, "v0": 1.95, "v1": 2.24, "depth": 0.008, "eu": 0.025, "ev": 0.02,
-                "mat": HOT}]                                      # v09: one long, narrow glowing slit along the top
+                "mat": K.get("slit_mat", GLOW), "wall_mat": BLACK}]
     seams = ((1.72, 1.728), (1.90, 1.908), (2.20, 2.208))        # panel seams: clean dark bands
 
     def mat_fn(u, v):
@@ -278,15 +734,16 @@ def build_nose(mats, body, bvh):
 # ---------------------------------------------------------------------------------------------------- spine
 def build_spine(mats, body, bvh):
     xs = np.linspace(SPINE_X[0], SPINE_X[1], 16)
-    tops = _smooth([_top(bvh, x) or 0.15 for x in xs], 2)
+    sp = K["spine"]
+    tops = _smooth([_top(bvh, x) or sp["tdef"] for x in xs], 2)
     halfs = []
     for x, t in zip(xs, tops):
         s = _ray(bvh, (x, 3.0, t - 0.03), (0, -1, 0))
-        halfs.append(min(abs(s.y), 0.26) if s else 0.2)
+        halfs.append(min(abs(s.y), sp["hcap"]) if s else sp["hdef"])
     halfs = _smooth(halfs, 2)
     tf, hf = _interp(xs, tops), _interp(xs, halfs)
     parts = []
-    edges = [SPINE_X[0], -0.45, 0.0, SPINE_X[1]]
+    edges = sp["edges"]
     for i in range(len(edges) - 1):
         x0, x1 = edges[i] + 0.006, edges[i + 1] - 0.006
 
@@ -412,32 +869,44 @@ def denoise_sides(body):
     """v08: the cracks left on the fuselage sides are carved into the Rodin geometry. A mild, masked feature-preserving
     denoise (rh_denoise.py) on the side panels only (the full-hull v06 pass smeared steps and showed facets)."""
     import rh_denoise as D
+    sd = K["sides"]
     vg = body.vertex_groups.get("CP_Sides") or body.vertex_groups.new(name="CP_Sides")
     idx = []
     for v in body.data.vertices:
         c = v.co
-        if -0.6 < c.x < 1.6 and -0.78 < c.z < 0.10 and abs(c.y) > 0.14:
+        if sd["x"][0] < c.x < sd["x"][1] and sd["z"][0] < c.z < sd["z"][1] and abs(c.y) > sd["ymin"]:
             idx.append(v.index)
     vg.add(idx, 1.0, "REPLACE")
     co, tris, pairs, me = D._arrays(body)
     # v09 (Lead: "a strong side-panel pass"): flatter panels, wider spatial reach; the cap on vertex travel keeps the form
-    return D.denoise(body, sigma_s=2.6 * me, sigma_r=0.42, normal_iters=40, vertex_iters=40, mask_group="CP_Sides",
-                     max_move=0.03)
+    return D.denoise(body, sigma_s=sd["sigma_k"] * me, sigma_r=sd["sigma_r"], normal_iters=sd["iters"], vertex_iters=sd["iters"],
+                     mask_group="CP_Sides", max_move=sd["max_move"])
 
 
 def build(mats, body):
     bvh = _bvh(body)                 # measured once, on the untouched hull
     res = {}
-    canopy, glass, res["cut_canopy"] = build_canopy(mats, body, bvh)
-    guns, res["cut_guns"] = build_guns(mats, body)
-    nose, res["cut_nose"] = build_nose(mats, body, bvh)
-    spine = build_spine(mats, body, bvh)
+    canopy, guns, nose, spine, glass = [], [], [], [], None
+    if K.get("canopy"):
+        canopy, glass, res["cut_canopy"] = build_canopy(mats, body, bvh)
+    if K.get("guns"):
+        guns, res["cut_guns"] = build_guns(mats, body)
+    if K.get("nose"):
+        nose, res["cut_nose"] = build_nose(mats, body, bvh)
+    if K.get("spine"):
+        spine = build_spine(mats, body, bvh)
+    if K.get("engines"):
+        eng, res["cut_engines"] = build_engines(mats, body)
+        guns = guns + eng
+    if K.get("fins"):
+        guns = guns + build_fins(mats, body)
     # v10's side plates failed the toy-like gate (Lead, decision A): built only with TD_RIFT_PLATES=1; v11 = v09 sides
     if os.environ.get("TD_RIFT_PLATES"):
         plates = build_side_plates(mats, body, bvh)
     else:
         plates = []
-        res["side_denoise"] = denoise_sides(body)
+        if K.get("sides"):
+            res["side_denoise"] = denoise_sides(body)
     res["side_plates"] = len(plates)
     res["parts"] = len(canopy) + len(guns) + len(nose) + len(spine) + len(plates)
     return canopy + guns + nose + spine + plates, glass, res
@@ -450,16 +919,24 @@ REPAINT = [  # (x0, x1, |y| max, |y| min, z0, z1): leftover Rodin chrome under t
 ]
 
 
-def _paint_mask(body, shape, test):
-    """Texels (h, w) covered by the UV triangles of the body faces whose centre passes test(c)."""
+def _paint_mask(body, shape, test, boxes=None):
+    """Texels (h, w) covered by the UV triangles of the body faces whose centre passes test(c). With boxes
+    [(x0, x1, |y| max, |y| min, z0, z1)] the test is made per texel on its position on the surface instead (v12: by
+    whole faces the edge of a repainted area was a sawtooth of triangles)."""
     h, w = shape
     mask = np.zeros((h, w), bool)
     me = body.data
     uvl = me.uv_layers.active.data
     for poly in me.polygons:
         c = poly.center
-        if not test(c):
-            continue
+        if boxes is None:
+            if not test(c):
+                continue
+        else:
+            pv = [me.vertices[i].co for i in poly.vertices]
+            if not any(min(p.x for p in pv) < b[1] and max(p.x for p in pv) > b[0] and min(p.z for p in pv) < b[5]
+                       and max(p.z for p in pv) > b[4] and min(abs(p.y) for p in pv) < b[2] for b in boxes):
+                continue
         uv = [uvl[li].uv for li in poly.loop_indices]
         for k in range(1, len(uv) - 1):
             tri = np.array([[uv[0].x, uv[0].y], [uv[k].x, uv[k].y], [uv[k + 1].x, uv[k + 1].y]]) * [w, h]
@@ -476,6 +953,14 @@ def _paint_mask(body, shape, test):
             l1 = ((b[1] - cc[1]) * (gx - cc[0]) + (cc[0] - b[0]) * (gy - cc[1])) / d
             l2 = ((cc[1] - a[1]) * (gx - cc[0]) + (a[0] - cc[0]) * (gy - cc[1])) / d
             inside = (l1 >= -0.02) & (l2 >= -0.02) & (1 - l1 - l2 >= -0.02)
+            if boxes is not None:
+                p0, p1, p2 = pv[0], pv[k], pv[k + 1]
+                l3 = 1 - l1 - l2
+                px, py, pz = (l1 * p0[i] + l2 * p1[i] + l3 * p2[i] for i in range(3))
+                hit = np.zeros(inside.shape, bool)
+                for bx0, bx1, bymax, bymin, bz0, bz1 in boxes:
+                    hit |= (px > bx0) & (px < bx1) & (np.abs(py) >= bymin) & (np.abs(py) < bymax) & (pz > bz0) & (pz < bz1)
+                inside &= hit
             mask[y0:y1 + 1, x0:x1 + 1] |= inside
     return mask
 
@@ -489,7 +974,12 @@ def clean_livery(path, crack_px=6, smooth_px=10, body=None):
     mx, mn = a.max(-1), a.min(-1)
     sat = (mx - mn) / np.maximum(mx, 1e-4)
     white = (lum > 0.32) & (sat < 0.22)
-    magenta = (sat > 0.45) & (a[..., 0] > a[..., 1] * 2.0) & (a[..., 2] > a[..., 1] * 1.3) & (lum > 0.05)
+    if K["accent"] == "cyan":         # the accent paint class; called magenta below (the Rift came first)
+        magenta = (sat > 0.45) & (a[..., 2] > a[..., 0] * 2.0) & (a[..., 1] > a[..., 0] * 1.5) & (lum > 0.05)
+    elif K["accent"] == "amber":
+        magenta = (sat > 0.45) & (a[..., 0] > a[..., 2] * 2.0) & (a[..., 1] > a[..., 2] * 1.3) & (lum > 0.05)
+    else:
+        magenta = (sat > 0.45) & (a[..., 0] > a[..., 1] * 2.0) & (a[..., 2] > a[..., 1] * 1.3) & (lum > 0.05)
     dark = lum < 0.20
 
     def box(m, r):
@@ -511,13 +1001,33 @@ def clean_livery(path, crack_px=6, smooth_px=10, body=None):
     if body is not None:
         # leftover chrome around the new canopy and nose: dark texels there become white paint (and non-metal below)
         def test(c):
-            return any(x0 < c.x < x1 and ymin <= abs(c.y) < ymax and z0 < c.z < z1 for x0, x1, ymax, ymin, z0, z1 in REPAINT)
-        region = _paint_mask(body, lum.shape, test)
+            return any(x0 < c.x < x1 and ymin <= abs(c.y) < ymax and z0 < c.z < z1 for x0, x1, ymax, ymin, z0, z1 in K["repaint"])
+        region = _paint_mask(body, lum.shape, test, K["repaint"] if K.get("repaint_texel") else None)
         region = region[::-1] if False else region
         paint_white = np.median(a[white], axis=0) if white.any() else np.array([0.8, 0.8, 0.82])
-        rp = region & ((lum < 0.30) | magenta)                 # v09: the ragged magenta sill stripe goes white too
+        rp = region & ((lum < 0.30) | (magenta & K["repaint_accent"]))   # v09: the ragged magenta sill stripe goes white too
+        if K.get("repaint_tinted"):
+            # v13 (review of v12: lilac specks left in the repainted area): leftover purple chrome texels that are
+            # neither dark nor the accent paint go white too
+            rp |= region & (a[..., 2] > a[..., 1] * 1.12) & (sat > 0.12)
         out[rp] = paint_white
         repaint_px = int(rp.sum())
+        wing = None
+        if K.get("accent_boxes"):
+            wing = _paint_mask(body, lum.shape, None, K["accent_boxes"])
+            paint_accent = np.median(a[magenta], axis=0) if magenta.any() else np.array([0.8, 0.03, 0.46])
+            chips = wing & ~magenta & (lum > 0.16)
+            out[chips] = paint_accent
+            if K.get("accent_seams"):
+                out[_paint_mask(body, lum.shape, None, K["accent_seams"])] = (0.035, 0.035, 0.04)
+            repaint_px += int(chips.sum())
+        seam = None
+        if K.get("repaint_seams"):
+            # v13 (review of v12: the straight end of the repaint read as a texture seam with a stair-stepped edge):
+            # a dark panel joint a centimetre wide along it, so the change of paint sits on a seam
+            seam = _paint_mask(body, lum.shape, None, K["repaint_seams"])
+            out[seam] = (0.035, 0.035, 0.04)
+            rp = rp | seam
     T.save(out, path, True)
     res = {"white_px": int(white.sum()), "magenta_px": int(magenta.sum()), "cracks_filled": int(crack_w.sum() + crack_m.sum())}
     # the cracks are carved into the normal map too: inside the paint, the normal map's fine band is mostly removed
@@ -553,6 +1063,16 @@ def clean_livery(path, crack_px=6, smooth_px=10, body=None):
         res["normal_paint_softened_frac"] = round(float(pm.mean()), 3)
     if body is not None:
         res["repainted_px"] = repaint_px
+        if K.get("repaint_emissive") is not None:               # v12: a stray glowing sliver ahead of the side panel
+            epath = path.replace("_BC.png", "_E.png")
+            eb = K["repaint"][K["repaint_emissive"]]
+            emask = _paint_mask(body, lum.shape, None, [eb])
+            e = T.load(epath)
+            res["emissive_cleared_px"] = int((emask & (e.max(-1) > 0.02)).sum())
+            e[emask] = 0.0
+            if K.get("accent_boxes"):                           # v14: the patchy glow on the crescent wings, to a quarter
+                e[wing] *= K.get("accent_glow", 0.25)
+            T.save(e, epath, True)
         opath = path.replace("_BC.png", "_ORM.png")
         if os.path.isfile(opath):
             im = bpy.data.images.load(opath, check_existing=False)
@@ -563,6 +1083,9 @@ def clean_livery(path, crack_px=6, smooth_px=10, body=None):
             o = buf.reshape(h, w, 4)
             o[rp, 1] = 0.45
             o[rp, 2] = 0.0
+            if K.get("accent_boxes"):
+                o[wing, 1] = np.maximum(o[wing, 1], K.get("accent_rough", 0.55))
+                o[wing, 2] = 0.0
             im.pixels.foreach_set(o.ravel())
             im.filepath_raw = opath
             im.file_format = "PNG"

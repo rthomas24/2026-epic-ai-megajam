@@ -103,7 +103,23 @@ public:
 		float Health = -1.f;
 		/** Metres. */
 		float Distance = 0.f;
+		/** What it is (KindOf): its marker's outline. */
+		uint8 Kind = 0;
+		/** Its heading relative to the player: 0 crossing, 1 toward, 2 away; HeadingAngle = its nose on screen (radians). */
+		uint8 Heading = 0;
+		float HeadingAngle = 0.f;
+		/** It is attacking the flown ship (its pilot's target): a brighter, heavier outline. */
+		bool bThreat = false;
 	};
+
+	/**
+	 * Enemy marker shapes (the ship builder's readability pass, via the Lead): at chase-camera range the ships are a few
+	 * dozen pixels, so the marker carries the type. 1 fighter = small chevron, 2 interceptor = narrow dart, 3 bomber =
+	 * wide wedge, 4 gunship = heavy diamond, 5 carrier = large bracketed hexagon, 0 anything else = the plain triangle.
+	 */
+	enum : uint8 { KindOther = 0, KindFighter = 1, KindInterceptor = 2, KindBomber = 3, KindGunship = 4, KindCarrier = 5 };
+	static uint8 KindOf(const AActor* Actor);
+	static const TCHAR* KindName(uint8 Kind);
 
 	/** An objective waypoint (planet, gate, generator, landing pad): a white diamond on screen, an edge diamond off screen. */
 	struct FWaypoint
@@ -193,6 +209,8 @@ public:
 		/** T6's field: pieces the squad broke this scene, seconds since the last (the DEBRIS tick), a field-hit tick 0..1. */
 		int32 DebrisCount = 0;
 		float DebrisAge = 1e9f;
+		/** A broken asteroid / wreck topped up the boost meter this long ago (the "+BOOST" tick by the boost bar). */
+		float BreakBoostAge = 1e9f;
 		float FieldHit01 = 0.f;
 		/** Overcharge time left 0..1 (the timer ring) and in seconds. */
 		float Overcharge01 = 0.f;
@@ -274,6 +292,41 @@ public:
 		FString Counter;
 		/** Second line of the expanded objective ("WAVE 3 OF 5"). */
 		FString ObjectiveDetail;
+		/**
+		 * The Dominion assault (storyline.md Gameplay 06 step 3, a persistent count 0/4 to 4/4): one pip per shield
+		 * generator under the objective line, filled when it is down; GeneratorFlash01 1..0 after each one falls.
+		 */
+		int32 GeneratorsTotal = 0;
+		int32 GeneratorsDown = 0;
+		float GeneratorFlash01 = 0.f;
+		/**
+		 * The transponder off Verdance (T4's ATDTransponderBeacon; storyline.md §18): a sensor marker on it labelled
+		 * "UNKNOWN", that reads "VERIFIED" for a moment once, then resets. Nobody explains it.
+		 */
+		bool bTransponder = false;
+		bool bTransponderOnScreen = false;
+		FVector2D TransponderPos = FVector2D::ZeroVector;
+		bool bTransponderVerified = false;
+		float TransponderMetres = 0.f;
+		/**
+		 * The escape flight (T4's ATDDominion in EscapeFlight: GetEscapeTimeLeft, EscapeSeconds, GetEscapeExitRadius):
+		 * the clock under the objective, and "CLEAR" where the way out is (straight away from the hull, at the radius).
+		 */
+		/**
+		 * ENG-38, the descent (T1's readings): during the entry burn, the glide and the climb-out an altimeter tape
+		 * (ITDHUDData::GetAltitude), a hull-temperature bar (UTDDescentSubsystem::GetEntryHeat01) and "ATMOSPHERE";
+		 * "ORBIT" for OrbitCueSeconds after the climb-out's galaxy reveal. Hidden otherwise.
+		 */
+		bool bDescent = false;
+		float Heat01 = 0.f;
+		float Descent01 = -1.f;
+		float OrbitCue01 = 0.f;
+		bool bEscapeFlight = false;
+		float EscapeLeft = 0.f;
+		float EscapeTotal = 0.f;
+		bool bClearOnScreen = false;
+		FVector2D ClearPos = FVector2D::ZeroVector;
+		float ClearMetres = 0.f;
 		/** 0 collapsed .. 1 expanded (for ObjectiveExpandSeconds after the text changes, eased over 0.3 s). */
 		float ObjectiveExpand = 0.f;
 		bool bUsingGamepad = false;
@@ -457,6 +510,38 @@ private:
 	int32 PickupSeen[5] = {}; // TDPickupTypeCount (static_assert in the .cpp)
 	/** The quiet field-hit tick (FTDFieldDamage::OnPlayerFieldHit): its clock and the binding. */
 	float FieldHitLeft = 0.f;
+	/** Generator pips: the down count last seen (a rise flashes) and the flash clock. */
+	int32 GeneratorsDownSeen = -1;
+	/** The ORBIT cue's clock; the descent cover seen last sample (its end on the galaxy map is the climb-out reveal). */
+	float OrbitCueLeft = 0.f;
+	bool bCoverSeen = false;
+	FDelegateHandle RevealHandle;
+	float GeneratorFlashLeft = 0.f;
+	/** The transponder marker: the beacon (re-found every 2 s), and how long since it was first sighted. */
+	TWeakObjectPtr<AActor> TransponderBeacon;
+	float TransponderScanLeft = 0.f;
+	float TransponderSeenFor = -1.f;
+public:
+	/** Seconds after the first sighting when the label reads VERIFIED (twice, briefly), then UNKNOWN for good. */
+	static constexpr float TransponderVerifiedAt = 1.4f;
+	static constexpr float TransponderVerifiedFor = .45f;
+	/** Tests: >= 0 sets the seconds since the sighting (no beacon needed with ForceTransponderAt). */
+	float ForceTransponderAge = -1.f;
+	TOptional<FVector> ForceTransponderAt;
+	/** Tests: >= 0 forces the generator count (total, down) without a Dominion. */
+	int32 ForceGeneratorsTotal = -1;
+	int32 ForceGeneratorsDown = 0;
+	/** Tests: >= 0 forces the descent readings (heat 0..1, glide 0..1 or -1); bForceOrbitCue starts the ORBIT cue. */
+	float ForceHeat01 = -1.f;
+	float ForceDescent01 = -2.f;
+	void StartOrbitCue() { OrbitCueLeft = OrbitCueSeconds; }
+	static constexpr float OrbitCueSeconds = 3.f;
+	/** Tests: >= 0 forces an escape flight (seconds left of total) clear of a hull at ForceEscapeCentre, radius cm. */
+	float ForceEscapeLeft = -1.f;
+	float ForceEscapeTotal = 60.f;
+	FVector ForceEscapeCentre = FVector::ZeroVector;
+	float ForceEscapeRadius = 100000.f;
+private:
 	FDelegateHandle FieldHitHandle;
 	void HandleFieldHit(AActor* Field, const FVector& Where) { FieldHitLeft = FieldHitSeconds; }
 	static constexpr float FieldHitSeconds = .12f;

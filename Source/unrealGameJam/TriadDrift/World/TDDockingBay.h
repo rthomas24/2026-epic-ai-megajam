@@ -86,6 +86,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "1", ClampMax = "80"))
 	float ConeHalfAngleDeg = 35.f;
 
+	/**
+	 * Near the mouth the tractor takes a ship coming in from the side too: within CaptureRadius (cm) of the mouth and in
+	 * front of the bow, up to CaptureHalfAngleDeg off the axis (T7's playtest, Nov 14: a human approach came in outside
+	 * the 35 degree cone and never docked). The pull then lines it up on the axis.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
+	float CaptureRadius = 40000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "1", ClampMax = "89"))
+	float CaptureHalfAngleDeg = 80.f;
+
+	/** The HUD waypoint that leads into the cone: this far (cm) out on the bay axis while the bay is open. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
+	float ApproachMarkerDistance = 80000.f;
+
 	/** How far out (cm) the cone reaches from the mouth. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
 	float ConeDepth = 300000.f;
@@ -116,9 +131,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0.1"))
 	float GlideSeconds = 2.f;
 
-	/** How far inside the mouth (cm) the glide ends. */
+	/** How far inside the mouth (cm) the glide ends: over the pad, 20 m short of the 60 m pocket's back wall. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
-	float GlideDepth = 6000.f;
+	float GlideDepth = 4000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
 	float DoorOpenSeconds = 2.5f;
@@ -172,4 +187,9 @@ protected:
 	float CurrentPull = 0.f;
 	int32 TravelRequests = 0;
 	float DoorHalfWidth = 2500.f;
+
+	/** The approach waypoint (TDTags::ObjectiveMarker) on the axis while the bay is open. */
+	UPROPERTY(Transient)
+	TObjectPtr<AActor> ApproachMarker;
+	void ShowApproachMarker(bool bShow);
 };

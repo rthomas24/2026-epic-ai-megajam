@@ -82,6 +82,33 @@ struct UNREALGAMEJAM_API FTDGatePairSpec
 };
 
 /** Everything the galaxy is made of, in world units (cm). */
+/** What a journey key point asks of space dressing (T6's field, Nov 14). */
+UENUM(BlueprintType)
+enum class ETDJourneyPointKind : uint8
+{
+	KeepOut,	// nothing solid inside Radius (starts, return points, gates, planets' atmospheres)
+	Pocket,		// the dogfight: sparse cover only, lines of fire open (combat zone, the Dominion's kill zone)
+	Route		// a corridor from Location along Direction for Length, Radius wide: keep it flyable and readable
+};
+
+/** One place the journey needs, in world space (ATDGalaxyLayout::GetJourneyKeyPoints). */
+USTRUCT(BlueprintType)
+struct UNREALGAMEJAM_API FTDJourneyKeyPoint
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Layout") FName Id = NAME_None;
+	UPROPERTY(BlueprintReadOnly, Category = "Layout") ETDJourneyPointKind Kind = ETDJourneyPointKind::KeepOut;
+	UPROPERTY(BlueprintReadOnly, Category = "Layout") FVector Location = FVector::ZeroVector;
+	UPROPERTY(BlueprintReadOnly, Category = "Layout") float Radius = 0.f;
+	/** Route only: unit direction and length (cm) from Location. */
+	UPROPERTY(BlueprintReadOnly, Category = "Layout") FVector Direction = FVector::ZeroVector;
+	UPROPERTY(BlueprintReadOnly, Category = "Layout") float Length = 0.f;
+
+	/** Distance (cm) from P to this point's area: 0 or less inside it. */
+	float DistanceTo(const FVector& P) const;
+};
+
 USTRUCT(BlueprintType)
 struct UNREALGAMEJAM_API FTDGalaxyLayoutData
 {
@@ -352,6 +379,20 @@ public:
 	const TArray<TObjectPtr<ATDPortalGate>>& GetGateActors() const { return GateActors; }
 	/** Every place a ship appears: the player start and all return points. */
 	TArray<FTransform> GetSpawnPoints() const;
+
+	/**
+	 * The journey's key places for space dressing (T6's field; Lead, Nov 14), world space: keep-outs (player / skip start,
+	 * return points, gates, planets' atmospheres), pockets (the combat zone, the Dominion's kill zone) and routes (the
+	 * tutorial escape toward Verdance, each planet's approach, the Verdance convoy line, the Dominion approach and its
+	 * escape corridor). A field piece is fine where every point's DistanceTo(P) exceeds its own size.
+	 */
+	void GetJourneyKeyPoints(TArray<FTDJourneyKeyPoint>& Out) const;
+
+	/** True when P (world) is clear of every key point by Margin (cm). */
+	bool IsClearOfJourney(const FVector& WorldPoint, float Margin) const;
+
+	/** Layout.Ruins as placed: a ruin on the player start is turned around the ring until it is clear. */
+	TArray<FTDRuinSpec> GetPlacedRuins() const;
 protected:
 
 	UPROPERTY(Transient)

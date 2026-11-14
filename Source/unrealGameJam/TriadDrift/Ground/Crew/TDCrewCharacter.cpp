@@ -1,6 +1,7 @@
 // Triad Drift - on-foot Armada crew (ENG-23). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "TriadDrift/Perf/TDAssetCache.h" // T7 perf: path lookups answered once per session
 #include "TriadDrift/Ground/Crew/TDCrewAIController.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -24,11 +25,16 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/IAssetRegistry.h"
 #include "Animation/AnimInstance.h"
+#include "PhysicsEngine/PhysicsAsset.h"
+#include "HAL/IConsoleManager.h"
+#include "Animation/AnimSingleNodeInstance.h"
+#include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "Animation/AnimSequenceBase.h"
 #include "Materials/MaterialInterface.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
 #include "TriadDrift/Ground/TDGroundAudio.h"
 #include "Components/AudioComponent.h"
+#include "NiagaraComponent.h"
 #include "AnimationRuntime.h"
 
 // The crew set (Gameplay/Characters/Crew/Anims, retargeted onto SKEL_NullCrew with ACL, Nov 13): what a crew look with a
@@ -142,12 +148,30 @@ void ATDCrewCharacter::UpdateFallbackLoop()
 		return;
 	}
 	const int32 Want = Speed < 40.f ? 0 : Speed < 300.f ? 1 : 2;
+	// The type's own loops first (the animation builder's set), else the template copies.
+	{
+		const TCHAR* Own = nullptr;
+		switch (Spec.Type)
+		{
+		case ETDCrewType::Trooper: Own = Want == 0 ? TEXT("Idle_Aim") : nullptr; break;
+		case ETDCrewType::Grunt: Own = Want == 2 ? TEXT("Charge") : nullptr; break;
+		case ETDCrewType::Heavy: Own = Want == 0 ? TEXT("Idle_Guard") : TEXT("Walk_Fwd"); break;
+		case ETDCrewType::Warden: Own = Want == 0 ? TEXT("Guard") : TEXT("Walk"); break;
+		default: break;
+		}
+		if (UAnimSequenceBase* OwnLoop = Own ? TypeClip(Own) : nullptr)
+		{
+			const float OwnRef = Want == 1 ? 200.f : Want == 2 ? 450.f : 0.f;
+			Loops->SetLoop(OwnLoop, OwnRef > 0.f ? FMath::Clamp(Speed / OwnRef, 0.6f, 1.5f) : 1.f);
+			return;
+		}
+	}
 	const FString Path = CrewAnimPath(Spec.Type, Want);
-	UAnimSequenceBase* Loop = Path.IsEmpty() ? nullptr : LoadObject<UAnimSequenceBase>(nullptr, *Path, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UAnimSequenceBase* Loop = Path.IsEmpty() ? nullptr : TDAssetCache::Find<UAnimSequenceBase>(Path);
 	if (!Loop && Want != 0)
 	{
 		const FString IdlePath = CrewAnimPath(Spec.Type, 0);
-		Loop = IdlePath.IsEmpty() ? nullptr : LoadObject<UAnimSequenceBase>(nullptr, *IdlePath, nullptr, LOAD_Quiet | LOAD_NoWarn);
+		Loop = IdlePath.IsEmpty() ? nullptr : TDAssetCache::Find<UAnimSequenceBase>(IdlePath);
 	}
 	if (!Loop)
 	{
@@ -157,6 +181,9 @@ void ATDCrewCharacter::UpdateFallbackLoop()
 	const float Ref = Want == 1 ? 200.f : Want == 2 ? 450.f : 0.f;
 	Loops->SetLoop(Loop, Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.5f) : 1.f);
 }
+static TAutoConsoleVariable<int32> CVarCrewLogHits(TEXT("td.Crew.LogHits"), 0,
+	TEXT("1: log every enemy damage instant (type, action, the playing per-type clip and its time) to check contact frames."));
+
 namespace TDCrewAnims
 {
 	static const TCHAR* Melee = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Attack_01.MM_Attack_01");
@@ -186,6 +213,7 @@ ATDCrewCharacter::ATDCrewCharacter(const FObjectInitializer& ObjectInitializer)
 	PrimaryActorTick.bCanEverTick = true;
 	GetCapsuleComponent()->InitCapsuleSize(40.f, 90.f);
 	RifleShotSound = TDGroundAudio::Default(TEXT("Crew/MSS_Crew_RifleShot"));
+	GuardClangSound = TDGroundAudio::Default(TEXT("Crew/MSS_Crew_ShieldHit"));
 	DroneHumSound = TDGroundAudio::Default(TEXT("Crew/SW_Drone_Hum_01"));
 
 	Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
@@ -291,7 +319,54 @@ void ATDCrewCharacter::BeginPlay()
 	if (Spec.Type == ETDCrewType::Drone)
 	{
 		DroneHum = TDGroundAudio::PlayAttached(DroneHumSound, GetRootComponent(), SoundEvents, TEXT("DroneHum"));
+		StartDroneThrusters();
 	}
+}
+
+void ATDCrewCharacter::StartDroneThrusters()
+{
+	// The drone's EngineTrail (DA_Crew_Drone_Visuals; the effects builder sets NS_TD_Drone_Thruster): one per thruster
+	// socket on the art mesh, or one at the hull's origin. Throttle follows the speed (Tick).
+	StopDroneThrusters();
+	if (!Visuals || Visuals->EngineTrail.IsEmpty() || !Body)
+	{
+		return;
+	}
+	TArray<FName> Sockets;
+	for (const TCHAR* Name : { TEXT("Engine_0"), TEXT("Engine_1") })
+	{
+		if (Body->DoesSocketExist(Name)) { Sockets.Add(Name); }
+	}
+	if (Sockets.Num() == 0)
+	{
+		Sockets.Add(NAME_None);
+	}
+	for (const FName Socket : Sockets)
+	{
+		UAudioComponent* Audio = nullptr;
+		if (UNiagaraComponent* FX = UTDStatics::PlayCueAttachedLoop(Visuals->EngineTrail, Body, Socket, Audio))
+		{
+			DroneThrusters.Add(FX);
+		}
+		if (Audio)
+		{
+			DroneThrusterAudio.Add(Audio);
+		}
+	}
+}
+
+void ATDCrewCharacter::StopDroneThrusters()
+{
+	for (UNiagaraComponent* FX : DroneThrusters)
+	{
+		if (FX) { FX->Deactivate(); }
+	}
+	for (UAudioComponent* Audio : DroneThrusterAudio)
+	{
+		if (Audio) { Audio->FadeOut(.3f, 0.f); }
+	}
+	DroneThrusters.Reset();
+	DroneThrusterAudio.Reset();
 }
 
 void ATDCrewCharacter::FellOutOfWorld(const UDamageType& DmgType)
@@ -484,7 +559,7 @@ void ATDCrewCharacter::PlayFallbackAnim(const TCHAR* AssetPath, float Rate)
 	}
 	UTDLoopBlendAnimInstance* Loops = Cast<UTDLoopBlendAnimInstance>(GetMesh()->GetAnimInstance());
 	const FString Own = CrewAnimPath(AssetPath);
-	UAnimSequenceBase* Seq = Own.IsEmpty() ? nullptr : LoadObject<UAnimSequenceBase>(nullptr, *Own, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UAnimSequenceBase* Seq = Own.IsEmpty() ? nullptr : TDAssetCache::Find<UAnimSequenceBase>(Own);
 	if (Loops && Seq)
 	{
 		Loops->PlayOneShot(Seq, Rate);
@@ -727,8 +802,26 @@ bool ATDCrewCharacter::StartAttack(ETDCrewAttack Attack, AActor* Target)
 	RecoverLeft = 0.f;
 	ShotsLeft = 0;
 	PlayCrewCue(TEXT("Telegraph"), Visuals ? Visuals->Telegraph : FTDFXCue(), true, GetActorLocation());
-	PlayFallbackAnim(Attack == ETDCrewAttack::Melee ? TDCrewAnims::Melee
-		: (Attack == ETDCrewAttack::ChargeSlam || Attack == ETDCrewAttack::Summon) ? TDCrewAnims::Slam : TDCrewAnims::Fire);
+	// The type's own move, its contact frame on the wind-up's end (the animation builder's times, Nov 13-14), else today's.
+	bool bOwn = false;
+	switch (Attack)
+	{
+	case ETDCrewAttack::Melee:
+		bOwn = Spec.Type == ETDCrewType::Heavy ? PlayTypeClip(TEXT("ShieldBash"), 0.70f, WindupLeft) // Grok's: impact 0.70 s, the 0.7 s wind-up
+			: Spec.Type == ETDCrewType::Grunt ? ((MeleeSwings++ % 2) ? PlayTypeClip(TEXT("Melee_03"), 0.48f, WindupLeft) : PlayTypeClip(TEXT("Melee_02"), 0.45f, WindupLeft)) : false; // contacts measured at 30 fps
+		break;
+	case ETDCrewAttack::Burst: bOwn = Spec.Type == ETDCrewType::Trooper && PlayTypeClip(TEXT("Fire_Burst"), 0.40f, WindupLeft); break;
+	case ETDCrewAttack::BoltFan: bOwn = PlayTypeClip(TEXT("Fire_01"), 0.50f, WindupLeft); break;
+	// The slam lands after the wind-up AND the charge (damage at ChargeWindup + ChargeDuration); the live blend's contact is 1.30 s.
+	case ETDCrewAttack::ChargeSlam: bOwn = PlayTypeClip(TEXT("GroundSlam"), 1.30f, WindupLeft + Spec.ChargeDuration) || PlayTypeClip(TEXT("Slam"), 1.30f, WindupLeft + Spec.ChargeDuration); break;
+	case ETDCrewAttack::Summon: bOwn = PlayTypeClip(TEXT("Summon_01"), 0.50f, WindupLeft); break;
+	default: break;
+	}
+	if (!bOwn)
+	{
+		PlayFallbackAnim(Attack == ETDCrewAttack::Melee ? TDCrewAnims::Melee
+			: (Attack == ETDCrewAttack::ChargeSlam || Attack == ETDCrewAttack::Summon) ? TDCrewAnims::Slam : TDCrewAnims::Fire);
+	}
 	OnAttackStarted.Broadcast(this, Attack);
 	return true;
 }
@@ -823,6 +916,7 @@ void ATDCrewCharacter::DoMelee()
 	if (To.Size() <= Reach && bInFront)
 	{
 		const FVector Dir = To.GetSafeNormal();
+		LogHitInstant(TEXT("Melee"));
 		UTDStatics::ApplyTDDamage(T, Spec.MeleeDamage, ETDDamageKind::Melee, this, this, T->GetActorLocation() - Dir * 40.f, Dir);
 	}
 }
@@ -945,6 +1039,7 @@ void ATDCrewCharacter::EndCharge()
 {
 	ChargeTimeLeft = 0.f;
 	PlayCrewCue(TEXT("SlamImpact"), Visuals ? Visuals->Explosion : FTDFXCue(), false, GetActorLocation());
+	LogHitInstant(TEXT("ChargeSlam"));
 	UTDStatics::ApplyTDRadialDamage(this, GetActorLocation(), Spec.ChargeSlamRadius, Spec.ChargeSlamDamage, ETDDamageKind::Explosive,
 		ETDTeam::Enemy, this, this);
 	RecoverLeft = 0.6f;
@@ -977,8 +1072,53 @@ float ATDCrewCharacter::FilterDamage(const FTDDamageInfo& Info)
 	{
 		return Info.Amount;
 	}
-	PlayCrewCue(TEXT("ShieldHit"), Visuals ? Visuals->ShieldHit : FTDFXCue(), false, Info.HitLocation);
+	PlayGuardClang(Info.HitLocation.IsNearlyZero() ? GetActorLocation() + GetActorForwardVector() * Spec.CapsuleRadius : Info.HitLocation);
+	// Quick slashes chip the guard: GuardChipsToBreak in a row stagger it open (the held lunge still breaks it at once).
+	GuardChips = GuardChipAge <= GuardChipWindow ? GuardChips + 1 : 1;
+	GuardChipAge = 0.f;
+	// Teach the lunge: on the first blocked hit, and again every 5 more (the on-foot prompt line, 4 s).
+	if (ATDFirstPersonCharacter* Pilot = Cast<ATDFirstPersonCharacter>(Info.Instigator))
+	{
+		const int32 Blocked = Pilot->CountGuardedHit();
+		if (Blocked == 1 || (Blocked - 1) % 5 == 0)
+		{
+			Pilot->ShowTip(NSLOCTEXT("TriadDrift", "GuardTip", "HOLD ATTACK: LUNGE BREAKS GUARDS"), 4.f);
+		}
+	}
+	if (GuardChips >= GuardChipsToBreak)
+	{
+		GuardChips = 0;
+		BreakGuard(Info.Instigator);
+	}
 	return 0.f; // the shield takes the slash
+}
+
+void ATDCrewCharacter::PlayGuardClang(const FVector& At)
+{
+	// Nick's look cue first; the ground cue GuardClang (effects builder) or the engineering clang sound; and a hot spark.
+	const bool bArt = Visuals && !Visuals->ShieldHit.IsEmpty();
+	PlayCrewCue(TEXT("ShieldHit"), Visuals ? Visuals->ShieldHit : FTDFXCue(), false, At);
+	if (!bArt)
+	{
+		TDGroundAudio::Play(this, GuardClangSound, At, false, SoundEvents, TEXT("GuardClang"));
+		if (!GuardFlash)
+		{
+			GuardFlash = NewObject<UStaticMeshComponent>(this, TEXT("GuardFlash"));
+			GuardFlash->SetStaticMesh(TellGlow ? TellGlow->GetStaticMesh() : nullptr);
+			GuardFlash->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+			GuardFlash->SetCastShadow(false);
+			GuardFlash->SetUsingAbsoluteLocation(true);
+			GuardFlash->SetUsingAbsoluteScale(true);
+			GuardFlash->SetupAttachment(GetRootComponent());
+			GuardFlash->RegisterComponent();
+			UTDStatics::TintPlaceholder(GuardFlash, FLinearColor(1.f, 0.85f, 0.5f), 12.f);
+		}
+		GuardFlash->SetWorldLocation(At);
+		GuardFlash->SetWorldScale3D(FVector(0.45f));
+		GuardFlash->SetHiddenInGame(false);
+		GuardFlash->SetVisibility(true);
+		GuardFlashLeft = 0.12f;
+	}
 }
 
 void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
@@ -992,7 +1132,10 @@ void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDama
 			{
 				Loops->ProcFlinch = 1.f;
 			}
-			if (Spec.Type != ETDCrewType::Grunt) // the hit react holds a rifle: wrong on an unarmed grunt
+			const bool bFromBehind = !Info.HitDirection.IsNearlyZero() && FVector::DotProduct(-Info.HitDirection.GetSafeNormal2D(), GetActorForwardVector()) < 0.f;
+			const bool bOwn = Spec.Type == ETDCrewType::Trooper ? PlayTypeClip(bFromBehind ? TEXT("HitReact_Back") : TEXT("HitReact_Front"))
+				: Spec.Type == ETDCrewType::Grunt ? PlayTypeClip(TEXT("HitReact_01")) : false;
+			if (!bOwn && Spec.Type != ETDCrewType::Grunt) // the template hit react holds a rifle: wrong on an unarmed grunt
 			{
 				PlayFallbackAnim(TDCrewAnims::Hit); // flinch (attacks keep their own animation)
 			}
@@ -1024,6 +1167,7 @@ void ATDCrewCharacter::ApplyStagger(float Seconds, AActor* Source)
 		// Entering the stagger state: Nick's Stagger cue (falls back to the older Stunned slot).
 		const FTDFXCue* Cue = Visuals ? (Visuals->Stagger.IsEmpty() ? &Visuals->Stunned : &Visuals->Stagger) : nullptr;
 		PlayCrewCue(TEXT("Stagger"), Cue ? *Cue : FTDFXCue(), true, GetActorLocation());
+		PlayTypeClip(TEXT("Stagger")); // the Heavy's and the Warden's own (a cue only before)
 	}
 }
 
@@ -1047,6 +1191,7 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 			DroneHum->FadeOut(0.3f, 0.f);
 			DroneHum = nullptr;
 		}
+		StopDroneThrusters();
 	}
 	if (UTDCrewTokenSubsystem* Tokens = UTDCrewTokenSubsystem::Get(this))
 	{
@@ -1069,26 +1214,23 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 
 	// Ragdoll: the skeletal mesh if Nick's art has a physics asset, otherwise the placeholder block tumbles.
 	const FVector Push = (KillingBlow.HitDirection.IsNearlyZero() ? -GetActorForwardVector() : KillingBlow.HitDirection.GetSafeNormal()) * 450.f + FVector(0.f, 0.f, 250.f);
-	const FString DeathPath = bFallbackAnim ? CrewAnimPath(FallbackDeathAnim(KillingBlow.HitDirection)) : FString();
-	UAnimSequenceBase* DeathAnim = DeathPath.IsEmpty() ? nullptr : TDMakePlayable(LoadObject<UAnimSequenceBase>(nullptr, *DeathPath, nullptr, LOAD_Quiet | LOAD_NoWarn));
-	if (GetMesh()->IsVisible() && DeathAnim)
+	RagdollPush = Push * 0.35f;
+	ToppleAway = (KillingBlow.HitDirection.IsNearlyZero() ? -GetActorForwardVector() : KillingBlow.HitDirection).GetSafeNormal2D();
+	if (GetMesh()->IsVisible() && GetMesh()->GetSkeletalMeshAsset())
 	{
-		GetMesh()->PlayAnimation(DeathAnim, false); // falls the way the killing shot came from, then holds
-	}
-	else if (GetMesh()->IsVisible() && GetMesh()->GetSkeletalMeshAsset())
-	{
-		// No death animation for this look yet: topple over about the feet, away from the killing shot.
-		const FVector Away = (KillingBlow.HitDirection.IsNearlyZero() ? -GetActorForwardVector() : KillingBlow.HitDirection).GetSafeNormal2D();
-		ToppleAxis = FVector::CrossProduct(FVector::UpVector, Away).GetSafeNormal();
-		ToppleStart = GetMesh()->GetComponentQuat();
-		ToppleAlpha = 0.f;
-		bToppling = !ToppleAxis.IsNearlyZero();
-	}
-	else if (GetMesh()->IsVisible() && GetMesh()->GetPhysicsAsset())
-	{
-		GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-		GetMesh()->SetSimulatePhysics(true);
-		GetMesh()->AddImpulse(Push, NAME_None, true);
+		// The fall starts in the death clip (in place, no root travel) and ends in the ragdoll (or a topple without a
+		// physics asset), so every body lands on the ground (animation builder's sheet crew_deaths_as_played, Nov 13).
+		if (UAnimSequenceBase* DeathAnim = ChooseDeathClip(KillingBlow.HitDirection))
+		{
+			// The fall plays whether or not the body is on screen (a corpse behind the camera must still land; headless tests).
+			GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+			GetMesh()->PlayAnimation(DeathAnim, false);
+			RagdollIn = bGroundDeathClip ? -1.f : DeathClipSeconds; // a fall that ends lying down plays out and holds
+		}
+		else
+		{
+			StartRagdollOrTopple();
+		}
 	}
 	else if (Body->IsVisible())
 	{
@@ -1099,13 +1241,163 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 		Body->AddImpulse(Push, NAME_None, true);
 	}
 	DetachFromControllerPendingDestroy();
-	SetLifeSpan(FMath::Max(0.1f, CorpseSeconds));
+	// The body lies a moment after its fall ends (the per-type falls run 2.6-3.9 s; a 4 s corpse vanished as it landed).
+	const UAnimSequenceBase* Fall = GetMesh() ? Cast<UAnimSequenceBase>(GetMesh()->GetSingleNodeInstance() ? GetMesh()->GetSingleNodeInstance()->GetCurrentAsset() : nullptr) : nullptr;
+	CorpseLeft = FMath::Max3(0.1f, CorpseSeconds, Fall ? Fall->GetPlayLength() + 2.5f : 0.f);
+	SetLifeSpan(CorpseLeft + 0.1f);
 }
 
 // ------------------------------------------------------------------------------------------------
 
+UAnimSequenceBase* ATDCrewCharacter::ChooseDeathClip(const FVector& HitDirection) const
+{
+	const USkeletalMesh* SK = GetMesh() ? GetMesh()->GetSkeletalMeshAsset() : nullptr;
+	if (!SK)
+	{
+		return nullptr;
+	}
+	auto Fits = [SK](UAnimSequenceBase* A) { return A && A->GetSkeleton() == SK->GetSkeleton() ? A : nullptr; };
+	auto Load = [](const FString& Name) -> UAnimSequenceBase*
+	{
+		const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/%s"), *Name);
+		return TDAssetCache::Find<UAnimSequenceBase>(Package + TEXT(".") + Name); // T7 perf: one look per name per session
+	};
+	const bool bFromBehind = !HitDirection.IsNearlyZero() && FVector::DotProduct(-HitDirection.GetSafeNormal2D(), GetActorForwardVector()) < 0.f;
+	const FString Type = Spec.VisualsId.ToString();
+	// 1. Falls that end lying on the ground (Grok's set, made in place by the animation builder: A_Crew_Death_<Side>, and a
+	//    per-type A_Crew_<Type>_Death_<Side> when one exists), picked by the side the killing blow came from.
+	const FString Template(FallbackDeathAnim(HitDirection));
+	const TCHAR* Side = Template.Contains(TEXT("Back")) ? TEXT("Back") : Template.Contains(TEXT("Left")) ? TEXT("Left") : Template.Contains(TEXT("Right")) ? TEXT("Right") : TEXT("Front");
+	bGroundDeathClip = false;
+	// The type's own ground falls first (Grok's, made in place: A_Crew_<Type>_Death_<Side>, the Warden on its own rig).
+	if (UAnimSequenceBase* A = Fits(Load(FString::Printf(TEXT("A_Crew_%s_Death_%s"), *Type, Side)))) { bGroundDeathClip = true; return TDMakePlayable(A); }
+	// The shared in-place set. The animation builder's captures (Nov 13): the Heavy's shield stands on edge in its Front
+	// fall (a frontal kill falls Left) and the Warden's chest shield stands up in every fall but Back.
+	const TCHAR* SharedSide = (Spec.Type == ETDCrewType::Heavy && FCString::Strcmp(Side, TEXT("Front")) == 0) ? TEXT("Left") : Spec.Type == ETDCrewType::Warden ? TEXT("Back") : Side;
+	if (UAnimSequenceBase* A = Fits(Load(FString::Printf(TEXT("A_Crew_Death_%s"), SharedSide)))) { bGroundDeathClip = true; return TDMakePlayable(A); }
+	// 2. Falls that only start (today's): the ragdoll ends them.
+	TArray<FString> Names = {
+		FString::Printf(TEXT("A_Crew_%s_Death_%s"), *Type, bFromBehind ? TEXT("02") : TEXT("01")),
+		FString::Printf(TEXT("A_Crew_%s_Death_01"), *Type),
+		FString::Printf(TEXT("A_Crew_%s_Death"), *Type),
+		bFromBehind ? TEXT("A_Crew_Death_Front_03") : TEXT("A_Crew_Death_Front_02"),
+		TEXT("A_Crew_Death_Front_02") };
+	for (const FString& N : Names)
+	{
+		if (UAnimSequenceBase* A = Fits(Load(N))) { return TDMakePlayable(A); }
+	}
+	// The template set (root travel and a held crouch: only when nothing else fits; the ragdoll ends it anyway).
+	const FString Path = bFallbackAnim ? CrewAnimPath(FallbackDeathAnim(HitDirection)) : FString();
+	return Path.IsEmpty() ? nullptr : Fits(TDMakePlayable(TDAssetCache::Find<UAnimSequenceBase>(Path)));
+}
+
+UAnimSequenceBase* ATDCrewCharacter::TypeClip(const TCHAR* Action) const
+{
+	const USkeletalMesh* SK = GetMesh() ? GetMesh()->GetSkeletalMeshAsset() : nullptr;
+	if (!SK || !Action)
+	{
+		return nullptr;
+	}
+	const FString Name = FString::Printf(TEXT("A_Crew_%s_%s"), *Spec.VisualsId.ToString(), Action);
+	const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/%s"), *Name);
+	if (!FindPackage(nullptr, *Package) && !FPackageName::DoesPackageExist(Package))
+	{
+		return nullptr;
+	}
+	UAnimSequenceBase* A = LoadObject<UAnimSequenceBase>(nullptr, *(Package + TEXT(".") + Name), nullptr, LOAD_Quiet | LOAD_NoWarn);
+	return A && A->GetSkeleton() == SK->GetSkeleton() ? TDMakePlayable(A) : nullptr;
+}
+
+bool ATDCrewCharacter::PlayTypeClip(const TCHAR* Action, float Contact, float Windup)
+{
+	UTDLoopBlendAnimInstance* Loops = bFallbackAnim && GetMesh() ? Cast<UTDLoopBlendAnimInstance>(GetMesh()->GetAnimInstance()) : nullptr;
+	UAnimSequenceBase* Clip = Loops ? TypeClip(Action) : nullptr;
+	if (!Clip)
+	{
+		return false;
+	}
+	// The clip's contact frame on the gameplay hit: the damage keeps its timing (and the Heavy guard / deflect windows).
+	const float Rate = (Contact > 0.f && Windup > 0.f) ? FMath::Clamp(Contact / Windup, 0.5f, 2.f) : 1.f;
+	Loops->PlayOneShot(Clip, Rate);
+	LastTypeClip = Clip->GetFName();
+	LastTypeClipStart = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	LastTypeClipRate = Rate;
+	return true;
+}
+
+void ATDCrewCharacter::LogHitInstant(const TCHAR* What) const
+{
+	if (CVarCrewLogHits.GetValueOnGameThread() == 0)
+	{
+		return;
+	}
+	const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	UE_LOG(LogTriadDrift, Display, TEXT("td.Crew.LogHits: %s %s %s, clip %s at %.3f s (rate %.2f)"), *GetName(), *FTDCrewLibrary::TypeName(Spec.Type).ToString(), What,
+		LastTypeClip.IsNone() ? TEXT("(template)") : *LastTypeClip.ToString(), (Now - LastTypeClipStart) * LastTypeClipRate, LastTypeClipRate);
+}
+
+bool ATDCrewCharacter::IsRagdolling() const
+{
+	return GetMesh() && GetMesh()->IsSimulatingPhysics();
+}
+
+void ATDCrewCharacter::StartRagdollOrTopple()
+{
+	RagdollIn = -1.f;
+	USkeletalMeshComponent* M = GetMesh();
+	if (!M || !M->GetSkeletalMeshAsset())
+	{
+		return;
+	}
+	// Only our own crew ragdoll (PA_NullCrew, on its rig): the template PA_Mannequin on our meshes exploded the body 15 m in
+	// 0.4 s (Nov 13 live), and PA_Warden launched the Warden 3 m (DeathsEndOnTheGroundWhereTheyFell, Nov 13): those topple.
+	UPhysicsAsset* Ours = LoadObject<UPhysicsAsset>(nullptr, Spec.Type == ETDCrewType::Warden ? TEXT("/Game/TriadDrift/Gameplay/Characters/Warden/PA_Warden.PA_Warden")
+		: TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/PA_NullCrew.PA_NullCrew"), nullptr, LOAD_Quiet | LOAD_NoWarn); // PA_Warden settles now (Lead, Nov 14)
+	if (Ours && Ours->GetPreviewMesh() && Ours->GetPreviewMesh()->GetSkeleton() == M->GetSkeletalMeshAsset()->GetSkeleton())
+	{
+		if (M->GetPhysicsAsset() != Ours) { M->SetPhysicsAsset(Ours, true); }
+		M->SetCollisionProfileName(TEXT("Ragdoll"));
+		M->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		M->SetAllBodiesSimulatePhysics(true);
+		M->SetSimulatePhysics(true);
+		M->WakeAllRigidBodies();
+		M->AddImpulse(RagdollPush, NAME_None, true);
+		return;
+	}
+	// No ragdoll for this look: topple over about the feet, away from the killing shot, from the pose it is in.
+	ToppleAxis = FVector::CrossProduct(FVector::UpVector, ToppleAway).GetSafeNormal();
+	ToppleStart = M->GetComponentQuat();
+	ToppleAlpha = 0.f;
+	bToppling = !ToppleAxis.IsNearlyZero();
+}
+
 void ATDCrewCharacter::TickTopple(float DeltaSeconds)
 {
+	// The corpse sinks out over its last CorpseSinkSeconds (the mesh and the placeholder block; a ragdoll stops simulating).
+	if (CorpseLeft >= 0.f)
+	{
+		CorpseLeft -= DeltaSeconds;
+		if (CorpseLeft < CorpseSinkSeconds)
+		{
+			const float Sink = 120.f * DeltaSeconds / CorpseSinkSeconds;
+			for (USceneComponent* C : { static_cast<USceneComponent*>(GetMesh()), static_cast<USceneComponent*>(Body.Get()) })
+			{
+				if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(C))
+				{
+					if (Prim->IsSimulatingPhysics()) { Prim->SetSimulatePhysics(false); }
+					Prim->AddWorldOffset(FVector(0.f, 0.f, -Sink));
+				}
+			}
+		}
+	}
+	if (RagdollIn >= 0.f)
+	{
+		RagdollIn -= DeltaSeconds;
+		if (RagdollIn < 0.f)
+		{
+			StartRagdollOrTopple();
+		}
+	}
 	if (!bToppling || !GetMesh())
 	{
 		return;
@@ -1125,6 +1417,16 @@ void ATDCrewCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	TickTopple(DeltaSeconds);
 	OpeningGraceLeft = FMath::Max(0.f, OpeningGraceLeft - DeltaSeconds);
+	if (DroneThrusters.Num() > 0)
+	{
+		// "Throttle" 0..1 from the drone's speed (a hover idles at a low flame).
+		const float MaxSpeed = GetCharacterMovement() ? FMath::Max(GetCharacterMovement()->GetMaxSpeed(), 1.f) : 600.f;
+		const float Throttle = FMath::Clamp(.2f + .8f * GetVelocity().Size() / MaxSpeed, 0.f, 1.f);
+		for (UNiagaraComponent* FX : DroneThrusters)
+		{
+			if (FX) { FX->SetVariableFloat(TEXT("Throttle"), Throttle); }
+		}
+	}
 	UpdateTell();
 	if (!IsDead())
 	{
@@ -1137,6 +1439,12 @@ void ATDCrewCharacter::Tick(float DeltaSeconds)
 	}
 	StaggerLeft = FMath::Max(0.f, StaggerLeft - DeltaSeconds);
 	GuardBrokenLeft = FMath::Max(0.f, GuardBrokenLeft - DeltaSeconds);
+	GuardChipAge += DeltaSeconds;
+	if (GuardFlashLeft > 0.f)
+	{
+		GuardFlashLeft -= DeltaSeconds;
+		if (GuardFlashLeft <= 0.f && GuardFlash) { GuardFlash->SetVisibility(false); }
+	}
 	for (TPair<ETDCrewAttack, float>& C : Cooldowns)
 	{
 		C.Value = FMath::Max(0.f, C.Value - DeltaSeconds);
