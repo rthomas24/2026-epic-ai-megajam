@@ -1,0 +1,75 @@
+{
+  "A_CrewTrooper_StrafeAim_Left": {
+    "tgt": "ArtSource/EngCharacters/Crew/export/NullTrooper/SK_NullTrooper.fbx",
+    "tmesh": "SK_NullTrooper",
+    "name": "A_CrewTrooper_StrafeAim_Left",
+    "usf1": true,
+    "export_mesh": true,
+    "loop": true,
+    "rootmotion": false,
+    "lean": 10,
+    "rifle": {
+      "mode": "aim"
+    },
+    "src": "tstrafeL-s7101"
+  },
+  "A_CrewTrooper_StrafeAim_Right": {
+    "tgt": "ArtSource/EngCharacters/Crew/export/NullTrooper/SK_NullTrooper.fbx",
+    "tmesh": "SK_NullTrooper",
+    "name": "A_CrewTrooper_StrafeAim_Right",
+    "usf1": true,
+    "export_mesh": true,
+    "loop": true,
+    "rootmotion": false,
+    "lean": 10,
+    "rifle": {
+      "mode": "aim"
+    },
+    "src": "tstrafeR-s7201"
+  },
+  "A_CrewTrooper_BackpedalAim": {
+    "tgt": "ArtSource/EngCharacters/Crew/export/NullTrooper/SK_NullTrooper.fbx",
+    "tmesh": "SK_NullTrooper",
+    "name": "A_CrewTrooper_BackpedalAim",
+    "usf1": true,
+    "export_mesh": true,
+    "loop": true,
+    "rootmotion": false,
+    "lean": 10,
+    "rifle": {
+      "mode": "aim"
+    },
+    "src": "tback-s7301"
+  },
+  "A_NullGrunt_MeleeCombo": {
+    "tgt": "ArtSource/EngCharacters/Crew/export/NullGrunt/SK_NullGrunt.fbx",
+    "tmesh": "SK_NullGrunt",
+    "name": "A_NullGrunt_MeleeCombo",
+    "usf1": true,
+    "export_mesh": true,
+    "loop": false,
+    "rootmotion": false,
+    "fist": true,
+    "src": "gcombo-s7401"
+  },
+  "A_NullHeavy_GuardBreakStagger": {
+    "tgt": "ArtSource/EngCharacters/Crew/export/NullHeavy/SK_NullHeavy.fbx",
+    "tmesh": "SK_NullHeavy",
+    "name": "A_NullHeavy_GuardBreakStagger",
+    "usf1": true,
+    "export_mesh": true,
+    "loop": false,
+    "rootmotion": true,
+    "src": "hstagger-s7501"
+  },
+  "A_NullHeavy_ShieldWalk": {
+    "tgt": "ArtSource/EngCharacters/Crew/export/NullHeavy/SK_NullHeavy.fbx",
+    "tmesh": "SK_NullHeavy",
+    "name": "A_NullHeavy_ShieldWalk",
+    "usf1": true,
+    "export_mesh": true,
+    "loop": true,
+    "rootmotion": false,
+    "src": "hwalk-s7602"
+  }
+}
