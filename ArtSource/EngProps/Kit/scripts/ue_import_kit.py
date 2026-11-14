@@ -101,7 +101,7 @@ def ensure_pillar(notes):
     col.set_editor_property("default_value", unreal.LinearColor(0.1, 1.0, 0.85, 1))
     st = node(unreal.MaterialExpressionScalarParameter, -800, -50)
     st.set_editor_property("parameter_name", "PillarStrength")
-    st.set_editor_property("default_value", 6.0)
+    st.set_editor_property("default_value", 30.0)    # r4b: 6 did not read at 300 m against the Verdance haze
     m1 = node(unreal.MaterialExpressionMultiply, -600, 0)
     m2 = node(unreal.MaterialExpressionMultiply, -450, 100)
     m3 = node(unreal.MaterialExpressionMultiply, -300, 0)

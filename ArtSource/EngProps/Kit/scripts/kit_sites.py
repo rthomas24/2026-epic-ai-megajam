@@ -44,8 +44,8 @@ def relay(awake):
     ps.append(piece("Relay", R + "SM_Relay", 800, 0, 300 - 90, 90, materials={"0": R + ("MI_Relay_Awake" if awake else "MI_Relay")},
                     note="Grok Bot's Rodin relay on the plinth, turned so its stairs face north (they stay over the plinth); its tier sits 90 cm into the plinth top. Not walkable: the plinth top is 250 above the deck (the pilot mantles at most 180)."))
     ps.append(piece("Beacon", "SM_Kit_BeaconMast", 1250, -750, 300, 0, slots={"Glow": GLOW_V, "Beacon": K + "MI_Kit_Beacon_Verdance"}))
-    ps.append(piece("Beacon_Pillar", "SM_Kit_LightPillar", 1250, -750, 300 + 1730, 0, slots={"Pillar": K + "MI_Kit_LightPillar_Verdance"},
-                    note="a 60 m soft light beam from the lamp head, so the site reads from the approach (no Niagara)"))
+    ps.append(piece("Beacon_Pillar", "SM_Kit_LightPillar", 1250, -750, 300 + 1730, 0, slots={"Pillar": K + "MI_Kit_LightPillar_Verdance"}, scale=[3.0, 3.0, 1.0],
+                    note="a 60 m soft light beam (4.2 m wide) from the lamp head, so the site reads from the approach (no Niagara)"))
     # the device console: screen faces east, the pilot stands east of it facing west
     ps.append(piece("Device_Console", "SM_Kit_Console", -1000, 0, D, 0, slots={"Screen": K + "MI_Kit_Screen"}))
     # five covers off the ramp lanes (west Y +-800 at X < -1000; north / south X -800..-400)
@@ -291,12 +291,27 @@ def docking_bay():
             "inner_clear_cm": {"x": [-5925, 0], "y": [-2425, 2425], "z": [-1750, 1750]}}
 
 
+def docking_bay_galaxy_test():
+    """Capture only: the bay turned yaw 90 (the Dominion's heading in L_Galaxy: at (0, -520000, 20000) facing the combat
+    zone centre), so it can be spawned with no rotation at the hull's Bay socket. The hull's -2.2 deg pitch is ignored."""
+    import math
+    d = docking_bay()
+    for pc in d["pieces"]:
+        x, y, z = pc["location_cm"]
+        pc["location_cm"] = [-y, x, z]
+        pc["yaw_deg"] = (pc.get("yaw_deg", 0.0) + 90.0) % 360.0
+    d["site"] = "DockingBay_GalaxyTest"
+    d["actor"] = K + "Dominion/BP_DockingBay_GalaxyTest"
+    return d
+
+
 def main():
     out = os.path.join(KIT, "sites")
     os.makedirs(out, exist_ok=True)
     sites = {"Relay_Site": relay(False), "Relay_Site_Awake": relay(True), "Wreck_Site": wreck(),
              "Outpost_Site_Verdance": outpost("Verdance"), "Outpost_Site_Cinder": outpost("Cinder"), "DigSite_Cabin": digsite(),
-             "DominionInterior_Preview": dominion_interior(), "DockingBay_Interior": docking_bay()}
+             "DominionInterior_Preview": dominion_interior(), "DockingBay_Interior": docking_bay(),
+             "DockingBay_GalaxyTest": docking_bay_galaxy_test()}
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)
