@@ -46,6 +46,7 @@ namespace TDCourseColors
 	static const FLinearColor WreckMetal(0.18f, 0.18f, 0.22f);
 	static const FLinearColor Ember(1.f, 0.45f, 0.1f);
 	static const FLinearColor RelayStone(0.6f, 0.5f, 1.f);
+	static constexpr float OutpostClearRadius = 1200.f; // the 800 x 400 kit room: half diagonal 450, plus the door apron
 	static const FVector VerdanceRelaySite(8000.f, -6500.f, 0.f); // not a colour: the relay deck (decision 2), ground level
 	// Cinder: basalt, magma orange, crystal violet.
 	static const FLinearColor CinderGround(0.05f, 0.035f, 0.035f);
@@ -141,6 +142,8 @@ void ATDPlanetCourse::BeginPlay()
 			PropMeshes.Add(Ref.Key, M);
 		}
 	}
+	SiteClears.Reset();
+	bKeepOutBuilt = false;
 	if (PlanetId == TEXT("Cinder"))
 	{
 		BuildCinder();
@@ -219,6 +222,12 @@ void ATDPlanetCourse::BuildKeepOuts() const
 	{
 		const FVector C = Xf.TransformPosition(O.Center);
 		AddBox(TEXT("Site"), FBox(C - FVector(O.Extent.X, O.Extent.Y, 1000.f), C + FVector(O.Extent.X, O.Extent.Y, 1000.f)));
+	}
+	// Each walkable kit site's scatter-clear circle (as its bounding square).
+	for (const FSiteClear& S : SiteClears)
+	{
+		const FVector C = Xf.TransformPosition(S.Center);
+		AddBox(TEXT("Site"), FBox(C - FVector(S.Radius, S.Radius, 1000.f), C + FVector(S.Radius, S.Radius, 1000.f)));
 	}
 	// Everything the course spawned that play touches: objective props, interactables, triggers, doors, encounter
 	// volumes (and their crew spawn points), with a margin.
@@ -331,6 +340,7 @@ bool ATDPlanetCourse::IsScatterAllowedAt(const UObject* WorldContextObject, cons
 AActor* ATDPlanetCourse::PlaceOutpost(const FVector& Site, float Yaw, bool bCinder, UStaticMeshComponent*& OutConsole)
 {
 	OutConsole = nullptr;
+	ClearSite(Site, TDCourseColors::OutpostClearRadius); // the room (or its placeholder) and its door, whichever is built
 	const TCHAR* Path = bCinder ? TEXT("/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_Cinder.BP_Outpost_Site_Cinder_C")
 		: TEXT("/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_Verdance.BP_Outpost_Site_Verdance_C");
 	UClass* Cls = LoadClass<AActor>(nullptr, Path, nullptr, LOAD_Quiet | LOAD_NoWarn);
@@ -353,6 +363,7 @@ AActor* ATDPlanetCourse::PlaceOutpost(const FVector& Site, float Yaw, bool bCind
 		if (M && M->GetStaticMesh() && M->GetStaticMesh()->GetName().Contains(TEXT("Console")))
 		{
 			OutConsole = M;
+			M->CanCharacterStepUpOn = ECB_No; // no stepping or mantling onto a console (Lead, Nov 13)
 		}
 	}
 	SiteOutpost = A;
@@ -529,9 +540,18 @@ bool ATDPlanetCourse::IsKeptClear(const FVector& Local, float Clearance) const
 	{
 		return true;
 	}
+	// The prop's own clearance counts against the keep-outs too (Lead, Nov 13: a kapok placed at a box's edge put its
+	// canopy through the outpost room).
 	for (const FKeepOut& K : KeepOuts)
 	{
-		if (FMath::Abs(Local.X - K.Center.X) < K.Extent.X && FMath::Abs(Local.Y - K.Center.Y) < K.Extent.Y)
+		if (FMath::Abs(Local.X - K.Center.X) < K.Extent.X + Clearance && FMath::Abs(Local.Y - K.Center.Y) < K.Extent.Y + Clearance)
+		{
+			return true;
+		}
+	}
+	for (const FSiteClear& S : SiteClears)
+	{
+		if (FVector::Dist2D(Local, S.Center) < S.Radius + Clearance)
 		{
 			return true;
 		}
@@ -1089,6 +1109,8 @@ void ATDPlanetCourse::BuildVerdance()
 	DormantDrone = Block(EShape::Sphere, RelaySite + FVector(800.f, 700.f, DeckTop + 90.f), FVector(120.f, 120.f, 90.f), FLinearColor(0.32f, 0.36f, 0.4f), 0.f,
 		FRotator(0.f, -135.f, 0.f), false, TEXT("SM_Verd_Station_DormantDrone"));
 
+	ClearSite(RelaySite, 2400.f); // the deck's corners plus a margin; the 29 m keep-out below keeps the open ground
+	ClearSite(WreckSite, 1500.f); // the research site's hull and walkway
 	ATDStepTrigger* Reach = SpawnProp<ATDStepTrigger>(RelaySite);
 	Reach->LinkedObjective = Relay;
 	Reach->LinkedStep = 0;
