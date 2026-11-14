@@ -53,8 +53,8 @@ SCALARS = {
     "ValueVar": (0.55, 0.5), "HueContrast": (2.2, 2.0), "TintCThreshold": (0.68, 0.62), "TintCSoft": (0.18, 0.2),
     "RoughVar": (0.12, 0.1),
     # thresholds (metres / slope) and their breakup
-    "HeightBreakM": (140.0, 140.0), "BiomeBreakM": (260.0, 120.0), "SlopeBreak": (0.08, 0.07),
-    "RockSlopeStart": (0.17, 0.15), "RockSlopeRange": (0.13, 0.12),
+    "HeightBreakM": (140.0, 140.0), "BiomeBreakM": (260.0, 120.0), "SlopeBreak": (0.14, 0.07),
+    "RockSlopeStart": (0.15, 0.15), "RockSlopeRange": (0.2, 0.12),     # s6: a wider, broken cliff foot on Verdance (hard seam)
     "PeakStartM": (1450.0, 1300.0), "PeakRangeM": (550.0, 700.0), "PeakSlopeMax": (0.4, 0.36), "PeakSlopeRange": (0.3, 0.28),
     "LowTopM": (-260.0, 10.0), "LowFadeM": (130.0, 120.0), "LowAmount": (0.85, 0.7),
     # scatter v2: the patch (Verdance grove / Cinder obsidian) is a rule on the terrain's own masks, the same numbers as
@@ -64,7 +64,7 @@ SCALARS = {
     # roughness / specular / normal
     "FlatRoughness": (0.86, 0.9), "PatchRoughness": (0.7, 0.22), "LowRoughness": (0.9, 0.8), "RockRoughness": (0.82, 0.78),
     "PeakRoughness": (0.7, 0.95), "Specular": (0.15, 0.25), "NormalStrength": (1.0, 1.2),
-    "RockTile": (1400.0, 1100.0), "RockFarScale": (9.0, 11.0), "RockNormalStrength": (1.1, 1.4),
+    "RockTile": (900.0, 1100.0), "RockFarScale": (4.0, 11.0), "RockNormalStrength": (1.1, 1.4),   # s6: Verdance cliffs were blurry sheets from the pad
     # river / pool band
     "ValleyCenter": (0.5, 0.5), "ValleyWidth": (0.035, 0.3), "ValleyBreak": (0.02, 0.012),
     "ValleySlopeMax": (0.05, 0.10), "ValleyTopM": (220.0, 2100.0), "ValleyFadeM": (200.0, 500.0),
