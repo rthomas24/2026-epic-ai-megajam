@@ -1,0 +1,17 @@
+{
+  "motion_frame_mean_absolute_differences": [
+    21.489930555555556,
+    33.14048611111111,
+    5.705347222222223
+  ],
+  "changing_frames": true,
+  "audio_peak_dbfs": -13.97357045248403,
+  "audio_rms_dbfs": -27.59300699130277,
+  "audio_nonzero": true,
+  "full_scale_sample_count": 0,
+  "audio_discontinuities": 0,
+  "video_dropped_frames": 0,
+  "actual_game_pid": 22064,
+  "recording": "Same process WASAPI audio and native GameViewport, no substitute audio",
+  "status": "Smoke evidence only; menu107sreturn/travel and controlledhull/shield stillpending"
+}

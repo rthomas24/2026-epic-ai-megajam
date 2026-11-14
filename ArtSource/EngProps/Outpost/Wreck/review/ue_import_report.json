@@ -8,22 +8,22 @@
  ],
  "max_cm": [
   1600.0,
-  666.3,
+  1006.4,
   1171.7
  ],
  "size_cm": [
   3200.0,
-  1672.7,
+  2012.8,
   1211.7
  ],
- "tris": 27104,
- "hulls": 12,
+ "tris": 27212,
+ "hulls": 15,
  "instances": [
   "MI_Wreck"
  ],
  "actors": [
   "BP_Wreck"
  ],
- "uasset_bytes": 13271787,
+ "uasset_bytes": 13307929,
  "notes": []
 }

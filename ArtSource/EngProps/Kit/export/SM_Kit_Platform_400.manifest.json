@@ -1,0 +1,55 @@
+{
+  "asset": "SM_Kit_Platform_400",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export\\SM_Kit_Platform_400.fbx",
+  "tris": 236,
+  "size_cm": [
+    400.0,
+    400.0,
+    100.0
+  ],
+  "pivot": "root object origin (SM_Kit_Platform_400~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Kit_Trim"
+  ],
+  "material_params": [
+    {
+      "name": "M_Kit_Trim",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_Kit_Platform_400_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}

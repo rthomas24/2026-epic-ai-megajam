@@ -43,6 +43,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sandbox")
 	bool bSpawnEnvironment = true;
 
+	/** The space field (galaxy layer of belts, clusters, debris fields, wrecks, buoys; td.SpaceField 0 hides it). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sandbox")
+	bool bSpawnSpaceField = true;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sandbox", meta = (ClampMin = "0"))
 	int32 StarCount = 1200;
 

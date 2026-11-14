@@ -3,7 +3,7 @@
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Outpost\\Relay\\export\\SM_Relay.fbx",
   "tris": 26487,
   "size_cm": [
-    1124.0,
+    1311.4,
     1221.0,
     1000.0
   ],
@@ -46,7 +46,8 @@
     "UCX_SM_Relay_18",
     "UCX_SM_Relay_19",
     "UCX_SM_Relay_20",
-    "UCX_SM_Relay_21"
+    "UCX_SM_Relay_21",
+    "UCX_SM_Relay_22"
   ],
   "collision_source": "authored",
   "sockets": [],

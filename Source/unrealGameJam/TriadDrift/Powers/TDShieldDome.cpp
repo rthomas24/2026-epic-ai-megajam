@@ -12,6 +12,8 @@
 #include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "Engine/World.h"
 #include "TriadDrift/Combat/TDCombatBarks.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 
@@ -126,7 +128,21 @@ void ATDShieldDome::Tick(float DeltaSeconds)
 		if (!bCoveredByArt && (!FX || !FTDPowerPresentation::HasArt(FX->Loop)))
 		{
 			const FLinearColor Color = bProtectSquad ? UTDStatics::ShipColor(ETDShipId::Bastion) : UTDStatics::ShipColor(ETDShipId::Rift);
-			FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 3, 48, 22.f, Color, 3.f); // thin: seen from inside it must not bar the screen (live play)
+			Lattice = FTDPowerPresentation::AddRingLattice(this, nullptr, Radius, 3, 48, 22.f, Color, 3.f); // thin: seen from inside it must not bar the screen (live play)
+		}
+	}
+	// The placeholder rings are for seeing the dome from outside. With the camera inside, the great circles pass right by
+	// it and read as thick bars across the screen (T7's playtest): hide them until the camera is out again. The real
+	// inside look (a faint fresnel shimmer and a thin rim) is the effects builder's, through Bastion's Power2Active cue.
+	if (USceneComponent* Rings = Lattice.Get())
+	{
+		const UWorld* World = GetWorld();
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		const bool bCameraInside = PC && PC->PlayerCameraManager
+			&& FVector::DistSquared(PC->PlayerCameraManager->GetCameraLocation(), GetActorLocation()) < FMath::Square(Radius * 1.05f);
+		if (Rings->IsVisible() == bCameraInside)
+		{
+			Rings->SetVisibility(!bCameraInside, true);
 		}
 	}
 }

@@ -193,6 +193,50 @@ bool FTDUIGroundBossBar::RunTest(const FString& Parameters)
 	return true;
 }
 
+// T7's playtest: the objective panel grows to fit the longest line we have (50 characters) instead of running past its
+// edge, stays centred, wraps a line too long for 1000 px to two lines, and pushes the meter and the boss bar below it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDUIGroundObjectiveFits, "TriadDrift.UI.GroundHUD.ObjectivePanelFitsItsLine", TD_TEST_FLAGS)
+bool FTDUIGroundObjectiveFits::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDFirstPersonCharacter* Walker = W.Spawn<ATDFirstPersonCharacter>(FVector(0.f, 0.f, 95.f));
+	APlayerController* PC = W.SpawnLocalPlayerController(Walker, ATDSpacePlayerController::StaticClass());
+	const TStrongObjectPtr<UTDGroundHUDWidget> Keep(PC ? CreateWidget<UTDGroundHUDWidget>(PC, UTDGroundHUDWidget::StaticClass()) : nullptr);
+	UTDGroundHUDWidget* HUD = Keep.Get();
+	if (!TestNotNull(TEXT("ground HUD"), HUD))
+	{
+		return false;
+	}
+	auto PaintAndGet = [&](const TCHAR* Name)
+	{
+		HUD->Sample(.1f);
+		TSharedRef<SWidget> Slate = HUD->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+		const TPair<FName, FBox2D>* B = HUD->LastBoxes.FindByPredicate([Name](const TPair<FName, FBox2D>& X) { return X.Key == FName(Name); });
+		return B ? B->Value : FBox2D(ForceInit);
+	};
+	HUD->ForceObjective = TEXT("Head to a signal · the research site or the relay");
+	const FBox2D Long = PaintAndGet(TEXT("objective"));
+	TestTrue(FString::Printf(TEXT("the 50-character line widens the panel (%.0f px)"), Long.GetSize().X), Long.GetSize().X > 506.f && Long.GetSize().X <= 1000.f);
+	TestTrue(TEXT("centred"), FMath::IsNearlyEqual(Long.GetCenter().X, 960.f, 1.f));
+	TestTrue(TEXT("one line"), FMath::IsNearlyEqual(Long.GetSize().Y, 92.f, 1.f));
+	HUD->ForceObjective = TEXT("A very long objective line that keeps going well past anything the panel could hold on a single line at all");
+	const FBox2D Wrapped = PaintAndGet(TEXT("objective"));
+	TestTrue(TEXT("too long: two lines, at most 1000 px"), Wrapped.GetSize().Y > 100.f && Wrapped.GetSize().X <= 1000.f);
+	HUD->ForceTransfer01 = .5f;
+	HUD->ForceBoss01 = .8f;
+	const FBox2D Meter = PaintAndGet(TEXT("transfer"));
+	const FBox2D Boss = PaintAndGet(TEXT("boss"));
+	TestTrue(TEXT("the meter sits below a two-line panel"), Meter.Min.Y >= Wrapped.Max.Y);
+	TestTrue(TEXT("the boss bar below the meter"), Boss.Min.Y >= Meter.Max.Y);
+	return true;
+}
+
 // Verdance's archive transfer meter (T5's ATDArchiveTransfer): none without a transfer; shown with its progress while
 // one runs; paused is flagged; painted as one plate under the objective panel, inside the frame.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDUIGroundTransferMeter, "TriadDrift.UI.GroundHUD.ArchiveTransferMeter", TD_TEST_FLAGS)

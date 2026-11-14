@@ -30,6 +30,9 @@ struct FTDSquadCarry
 	TMap<ETDShipId, float> Shield01;
 };
 
+/** The cover starts to lift on the destination (planet or galaxy): music, HUD and story can start their arrival beat. */
+DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnDescentRevealed, ETDDestination /*Destination*/);
+
 /** Cover phases of a covered (white) travel. */
 enum class ETDDescentCover : uint8 { Off, RampIn, Held, Revealing, Aborting };
 
@@ -66,6 +69,8 @@ public:
 	/** td.Descent.Legacy 0 (default) and a galaxy <-> planet trip. Every other route keeps today's fade. */
 	static bool IsCoveredRoute(ETDDestination From, ETDDestination To);
 	static bool IsLegacy();
+	/** The take-off climb out (ENG-38): the next covered travel waits this long and the climb drives the cover itself. */
+	void SetClimbHold(float Seconds) { ClimbHoldSeconds = FMath::Max(Seconds, 0.f); }
 	/** The flow's TravelTo on a covered route: brings the cover to full white; returns the seconds until it is (0 = now). */
 	float BeginCoveredTravel(ETDDestination To);
 	/** The atmosphere entry ramps the cover with its plasma (0..1, never down while a travel is pending). */
@@ -73,6 +78,8 @@ public:
 	/** The travel fell through (voided, timed out, refused) or the entry aborted: cover and roar go. */
 	void AbortCover(const TCHAR* Why);
 	ETDDescentCover GetCoverPhase() const { return CoverPhase; }
+	/** Fires once per covered travel when the cover starts to lift (T7's Verdance theme, music, HUD). */
+	FTDOnDescentRevealed OnRevealed;
 	float GetCoverAlpha() const { return CoverAlpha; }
 
 	// ---- Arrival from the entry point (ENG-38 stage 1).
@@ -154,6 +161,17 @@ private:
 	void EndTiming(const TCHAR* Why);
 	void TickCover(float RealDt);
 	void TickHeat(float RealDt);
+	/** The cloud deck (ATDCloudDeck): CloudPunch when the flown ship crosses it, CloudWisps while within DeckBand of it. */
+	void TickCloudDeck();
+public:
+	static constexpr float CloudDeckBand = 15000.f;
+	int32 GetCloudPunches() const { return CloudPunches; }
+	bool AreCloudWispsOn() const { return CloudWisps.IsValid(); }
+private:
+	int32 CloudPunches = 0;
+	float LastShipDeckSide = 0.f; // sign of (ship Z - deck Z) last frame, 0 = unknown
+	TWeakObjectPtr<class AActor> LastDeckShip;
+	TWeakObjectPtr<class UNiagaraComponent> CloudWisps;
 	void SetCoverAlpha(float Alpha);
 
 	double TimingStart = -1.0;
@@ -182,6 +200,7 @@ private:
 	float AppliedHeat = -1.f;
 	float HeatFedLeft = 0.f;
 	bool bBurnExit = false;
+	float ClimbHoldSeconds = 0.f;
 	bool bHUDHeld = false;
 	TMap<TWeakObjectPtr<class ATDShip>, TWeakObjectPtr<class UNiagaraComponent>> BurnFX;
 	TWeakObjectPtr<UWorld> HeatWorld;

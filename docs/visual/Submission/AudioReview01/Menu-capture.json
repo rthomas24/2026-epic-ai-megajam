@@ -1,0 +1,31 @@
+{
+  "original_same_pid_audio": true,
+  "global_av_offset_s": 0.02281240080628777,
+  "video_duration_s": 111.74360883434613,
+  "video_dropped_frames": 0,
+  "audio_peak_dbfs": -5.797644138336182,
+  "audio_clipped_samples": 0,
+  "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-tutorial-production-64490fb\\Saved\\AudioMusic\\PR11-12Review\\Menu01\\ActualGame_WithAudio.mp4",
+  "guard": {
+    "pid": 13664,
+    "exit_code": 0,
+    "reason": "completed",
+    "failure": null,
+    "monitor_error": null,
+    "cleanup_error": null,
+    "minimum_free_gib": 1.4413070678710938,
+    "duration_s": 159.71899999999732,
+    "protected_count": 2449,
+    "changed_protected": [],
+    "new_content": [],
+    "pcm_captured": true
+  },
+  "audio_discontinuities": 0,
+  "source_fingerprint_correlation": 0.6314426553909489,
+  "estimated_source_position_at_capture_start_s": -0.09000000000000008,
+  "estimated_loop_return_audio_s": 107.09,
+  "loop_period_source_s": 107,
+  "measured_self_repeat_period_s": 107.0,
+  "self_repeat_normalized_correlation": 0.9999990572936285,
+  "travel_reentry_limit": "Native viewport recording stopped ViewportClosed on New Game travel at111.744s. SamePIDaudio continued140s and logs confirmGalaxy+Menu reentry; continuous travel video missing."
+}

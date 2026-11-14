@@ -634,6 +634,27 @@ public:
 	TSoftObjectPtr<USoundBase> CombatMusic;
 
 	/**
+	 * The Dominion assault's own score (Nick's Audio, ART-19; board N-048), optional. Plays from wave 5's clear (the run
+	 * enters ETDGamePhase::DominionAssault) through the four shield generators and the exposed reactor, with CombatMusic
+	 * held meanwhile; fades out (3 s) on docking (DominionInterior), on the reactor's end (Victory) or any travel. The
+	 * asset carries its own looping, class and volume. Empty: CombatMusic plays in the assault as before.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Music")
+	TSoftObjectPtr<USoundBase> AssaultMusic;
+
+	/**
+	 * Quiet flight in the galaxy (N-063), optional: plays when no other score does (out of the tutorial, not in a fight,
+	 * not in the Dominion assault, no travel, not the menu) after IdleMusicDelaySeconds of quiet, fading in over 4 s and
+	 * out over 2 s the moment a fight (combat music) or any other score starts. The asset's own class, looping and the
+	 * dialogue duck of its sound class apply.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Music")
+	TSoftObjectPtr<USoundBase> IdleSpaceMusic;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Music", meta = (ClampMin = "0", Units = "s"))
+	float IdleMusicDelaySeconds = 6.f;
+
+	/**
 	 * Combat feedback sounds (optional): played as 2D UI sounds by the HUD host when a squad shot lands
 	 * (OnHitConfirmed) and when it kills. The sound's own class, volume and concurrency apply; silent when unset.
 	 */

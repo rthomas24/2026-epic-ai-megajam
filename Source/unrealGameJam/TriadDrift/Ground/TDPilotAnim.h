@@ -50,6 +50,25 @@ public:
 
 	float BlendSeconds = 0.2f;
 
+	// ---- right-hand grip (the pilot's blade hilt): one pose on the hand bone's children only (fingers and thumb),
+	// laid over every loop, upper layer and one-shot, so every clip closes the hand round the hilt. On while the
+	// owner is the pilot holding a blade (ATDFirstPersonCharacter with a hilt or blade mesh in the hand); off for crew.
+	/** The closed-fist pose (a single-frame sequence on the body's skeleton). Always cooked: Gameplay/Characters. */
+	UPROPERTY(EditAnywhere, Category = "Grip")
+	TSoftObjectPtr<UAnimSequenceBase> GripPoseAsset = TSoftObjectPtr<UAnimSequenceBase>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/A_Pilot_Grip_R.A_Pilot_Grip_R")));
+	/** Its children (not the bone itself) take the grip pose. */
+	UPROPERTY(EditAnywhere, Category = "Grip")
+	FName GripHandBone = TEXT("hand_r");
+	UPROPERTY(EditAnywhere, Category = "Grip", meta = (Units = "s"))
+	float GripBlendSeconds = 0.1f;
+	/** Master switch (TD.Ground.Grip, tests). */
+	bool bGripEnabled = true;
+	float GetGripAlpha() const { return GripAlpha; }
+	UAnimSequenceBase* GetGripPose() const { return GripPose; }
+	UPROPERTY(Transient) TObjectPtr<UAnimSequenceBase> GripPose;
+	float GripAlpha = 0.f;
+	bool bGripPoseTried = false;
+
 	// ---- procedural pose (no animation data): built from the reference pose in C++. Used for crew meshes whose
 	// sequences evaluate collapsed (Nov 13: SK_Mannequin compressed data on the Null crew meshes).
 	/** Pose the body procedurally instead of playing loops. */

@@ -1,0 +1,34 @@
+{
+  "stage": "source proposal only; no native source edits/build/play",
+  "base_commit": "3b6d96c3ed0e6605f7f915a115e0382d4c50eb72",
+  "claim": "3b6d96c3ed0e6605f7f915a115e0382d4c50eb72",
+  "files": [
+    {
+      "path": "Source/unrealGameJam/TriadDrift/Director/TDCutPresentation.cpp",
+      "before_sha256": "49bdfe694b2f0fe573c9244323651ce7bd1912bb12495f21af3f25c5c62a58a4",
+      "after_sha256": "350fafecd429a58955505f4b2b9477c131359930819758bbb4186c8bd39e6f64"
+    },
+    {
+      "path": "Source/unrealGameJam/TriadDrift/Director/Tests/TDDirectorCardTests.cpp",
+      "before_sha256": "34a90705fd78e38ce356e44e044e4ee71b65a0b1799a274aa23bb5e0ed9d0209",
+      "after_sha256": "7d2bb99998db5181897ff33cf932fc8f87245a5f9fc735ff1cb0b0588b3f3323"
+    },
+    {
+      "path": "Source/unrealGameJam/TriadDrift/Director/TDDirectorCardMotion.h",
+      "before_sha256": null,
+      "after_sha256": "c8c8f147855ba5b45de67c0931c5fa12a37e18f56f00420e91620f7cc8076fcb"
+    }
+  ],
+  "patch_bytes": 5564,
+  "patch_sha256": "ddfcb749779730c4c4f4aee5dd8c67f9b1a6a009e097fbfe254511525a7d5e63",
+  "apply_check_passed": true,
+  "patch_applied": false,
+  "all_model_timing_events_and_state_unchanged": true,
+  "existing_label_draw_calls_unchanged": true,
+  "default_motion_mode": 0,
+  "shipping_motion_mode": 0,
+  "reference_arithmetic_passed": true,
+  "native_test_executed": false,
+  "visual_verified": false,
+  "shared_runtime_reduced_motion_setting_found": false
+}

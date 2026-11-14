@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Misc/ScopeExit.h"
 #include "Engine/Engine.h"
 #include "Rendering/SlateRenderer.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
@@ -18,6 +19,7 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
@@ -162,7 +164,8 @@ bool FTDIntroShotList::RunTest(const FString& Parameters)
 	const UCameraComponent* Cam = F.Intro->GetShotCamera()->GetCameraComponent();
 	TestNearlyEqual(TEXT("35 mm field of view"), Cam->FieldOfView, 39.1f, 0.5f);
 	TestTrue(TEXT("depth of field set"), Cam->PostProcessSettings.bOverride_DepthOfFieldFstop && Cam->PostProcessSettings.DepthOfFieldFstop <= 2.8f);
-	TestTrue(TEXT("motion blur, bloom, flare, grain"), Cam->PostProcessSettings.MotionBlurAmount > 0.f && Cam->PostProcessSettings.BloomIntensity > 0.f
+	TestEqual(TEXT("N-071: no motion blur in the steady hero frames"), Cam->PostProcessSettings.MotionBlurAmount, 0.f);
+	TestTrue(TEXT("bloom, flare, grain"), Cam->PostProcessSettings.BloomIntensity > 0.f
 		&& Cam->PostProcessSettings.LensFlareIntensity > 0.f && Cam->PostProcessSettings.FilmGrainIntensity > 0.f);
 	TestEqual(TEXT("2.39 bars"), F.Intro->GetOverlay().Bars, 1.f);
 
@@ -171,6 +174,7 @@ bool FTDIntroShotList::RunTest(const FString& Parameters)
 	TSet<FString> Cards;
 	float Closest = 1.0e9f;
 	float MaxTurnInFrame = 0.f;
+	float WorstEdge = 0.f, MinShare = 1.f, MaxShare = 0.f;
 	int32 Cuts = 0;
 	FVector LastFwd = F.Intro->GetShotCamera()->GetActorForwardVector();
 	int32 LastSeg = UTDIntroDirector::SquadSegment(F.Intro->GetElapsed() - 12.f, 8.f);
@@ -180,6 +184,27 @@ bool FTDIntroShotList::RunTest(const FString& Parameters)
 		const FVector Fwd = F.Intro->GetShotCamera()->GetActorForwardVector();
 		const float Turn = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(Fwd, LastFwd), -1.f, 1.f)));
 		const int32 Seg = UTDIntroDirector::SquadSegment(F.Intro->GetElapsed() - 12.f, 8.f);
+		// N-050: mid-frame, the framed ship is whole (inside the horizontal field of view) and large (25-70 % of it).
+		const float InSeg = FMath::Fmod(F.Intro->GetElapsed() - 12.f, 8.f / 3.f);
+		if (InSeg > 0.6f && InSeg < 2.4f)
+		{
+			const ETDShipId Framed = UTDShipLibrary::AllShips()[Seg];
+			const ATDShip* Ship = F.Squad->GetShip(Framed);
+			const ACameraActor* CamA = F.Intro->GetShotCamera();
+			float R = 0.f;
+			TInlineComponentArray<UStaticMeshComponent*> Meshes(const_cast<ATDShip*>(Ship));
+			for (const UStaticMeshComponent* M : Meshes)
+			{
+				if (M && M->GetStaticMesh() && M->IsVisible() && M->Bounds.SphereRadius < 6000.f) { R = FMath::Max(R, M->Bounds.SphereRadius); }
+			}
+			const FVector To = Ship->GetActorLocation() - CamA->GetActorLocation();
+			const float Off = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(To.GetSafeNormal(), CamA->GetActorForwardVector()), -1.f, 1.f)));
+			const float Half = FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(R / To.Size(), 0.f, 1.f)));
+			const float HalfFov = CamA->GetCameraComponent()->FieldOfView * 0.5f;
+			WorstEdge = FMath::Max(WorstEdge, (Off + Half) / HalfFov);
+			MinShare = FMath::Min(MinShare, Half / HalfFov);
+			MaxShare = FMath::Max(MaxShare, Half / HalfFov);
+		}
 		if (Seg != LastSeg) { ++Cuts; }
 		else { MaxTurnInFrame = FMath::Max(MaxTurnInFrame, Turn); }
 		LastSeg = Seg;
@@ -195,6 +220,8 @@ bool FTDIntroShotList::RunTest(const FString& Parameters)
 	}
 	TestEqual(TEXT("three pilot name cards"), Cards.Num(), 3);
 	TestTrue(FString::Printf(TEXT("close and large, never through the lens (%.0f cm)"), Closest), Closest > 400.f && Closest < 9000.f);
+	TestTrue(FString::Printf(TEXT("N-050: every ship whole in its frame (hull edge at %.0f %% of the half-width)"), WorstEdge * 100.f), WorstEdge > 0.f && WorstEdge < 0.97f);
+	TestTrue(FString::Printf(TEXT("and large: %.0f-%.0f %% of the width"), MinShare * 100.f, MaxShare * 100.f), MinShare >= 0.25f && MaxShare <= 0.75f);
 	TestTrue(FString::Printf(TEXT("steady: at most %.2f deg per frame inside a shot"), MaxTurnInFrame), MaxTurnInFrame < 1.0f);
 	TestEqual(TEXT("two cuts: three shots"), Cuts, 2);
 
@@ -403,6 +430,31 @@ bool FTDIntroCardFits::RunTest(const FString& Parameters)
 			TestTrue(At + TEXT(": readable sizes"), L.NameFontSize >= 12 && L.RoleFontSize >= 8);
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroSkipTen, "TriadDrift.Director.Intro.SkipOnlyAfterTenSeconds", TD_TEST_FLAGS)
+bool FTDIntroSkipTen::RunTest(const FString& Parameters)
+{
+	// N-060 (Nicholas): every cutscene waits ten seconds before Skip. The game's default; tests elsewhere use 1 s.
+	IConsoleVariable* Lock = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Intro.SkipLockSeconds"));
+	if (!TestNotNull(TEXT("td.Intro.SkipLockSeconds"), Lock))
+	{
+		return false;
+	}
+	Lock->Set(-1.f, ECVF_SetByCode);
+	ON_SCOPE_EXIT { Lock->Set(-1.f, ECVF_SetByCode); };
+	TestEqual(TEXT("1 s inside automation by default"), UTDIntroDirector::GetSkipLockSeconds(), 1.f);
+	Lock->Set(10.f, ECVF_SetByCode); // what the game uses
+	TDIntroTest::FIntroWorld F;
+	if (!TestTrue(TEXT("squad and player"), F.Init()) || !TestTrue(TEXT("plays"), F.Play()))
+	{
+		return false;
+	}
+	F.Run(5.f);
+	TestFalse(TEXT("no skip at 5 s"), F.Intro->Skip());
+	F.Run(5.5f);
+	TestTrue(TEXT("skip after 10 s"), F.Intro->Skip());
 	return true;
 }
 

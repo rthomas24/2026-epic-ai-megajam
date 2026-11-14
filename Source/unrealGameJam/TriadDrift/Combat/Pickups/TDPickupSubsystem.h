@@ -26,6 +26,10 @@ struct FTDPickupTuning
 	/** Overcharge: outgoing weapon damage x this for OverchargeSeconds (a second one refreshes the timer, never stacks). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float OverchargeMultiplier = 1.4f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float OverchargeSeconds = 8.f;
+	/** Boost refill: this much of the boost meter on the flown ship. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float Boost01 = .5f;
+	/** A special (crystal-veined) asteroid broken by the squad drops a Boost refill with this chance, else another pickup. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float SpecialBoostChance = .6f;
 
 	/** Drop chance per kill by type; carriers drop CarrierDrops. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float FighterChance = .12f;
@@ -89,6 +93,10 @@ public:
 	float GetOverchargeSeconds() const { return Tuning.OverchargeSeconds; }
 	int32 GetDropsThisWave(ETDPickupType Type) const { return DropsThisWave[static_cast<int32>(Type)]; }
 	int32 GetCollected(ETDPickupType Type) const { return Collected[static_cast<int32>(Type)]; }
+	/** Asteroids / wreckage the squad broke this scene ("Debris cleared"; the run total is FTDRunStats::DebrisCleared). */
+	int32 GetDebrisThisScene() const { return DebrisThisScene; }
+	/** Seconds since the squad last broke a piece of the field (HUD tick), large when never. */
+	float GetSecondsSinceDebris() const;
 
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Pickups")
 	FTDOnPickupCollected OnPickupCollected;
@@ -107,6 +115,7 @@ private:
 	UFUNCTION() void HandleWaveStarted(int32 WaveNumber, float Intensity01);
 	UFUNCTION() void HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds);
 	UFUNCTION() void HandleTakeStarted(FName SceneId, int32 TakeNumber);
+	UFUNCTION() void HandleFieldObjectDestroyed(FVector Location, uint8 SizeClass, bool bSpecial, AActor* Instigator);
 
 	ATDPickup* SpawnInternal(ETDPickupType Type, const FVector& Location);
 	bool PickDropType(ETDPickupType& Out);
@@ -118,8 +127,14 @@ private:
 	TWeakObjectPtr<ATDShip> OverchargedShip;
 	TWeakObjectPtr<class UTDEventBus> Bus;
 	float OverchargeLeft = 0.f;
-	int32 DropsThisWave[4] = { 0, 0, 0, 0 };
-	int32 Collected[4] = { 0, 0, 0, 0 };
+	int32 DropsThisWave[TDPickupTypeCount] = {};
+	int32 Collected[TDPickupTypeCount] = {};
+	int32 CollectedThisWave[TDPickupTypeCount] = {};
+	/** Field breaks by the squad (T6's OnFieldObjectDestroyed): this scene, and when the last one was (HUD tick). */
+	int32 DebrisThisScene = 0;
+	double LastDebrisTime = -1e9;
+	int32 CurrentWave = 0;
+	void LogWaveSummary() const;
 	bool bSafetyUsedThisScene = false;
 	bool bSafetyArmed = false;
 	double LastRepairDropTime = -1e9;

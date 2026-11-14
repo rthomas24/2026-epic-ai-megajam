@@ -2,8 +2,10 @@
 
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDCombatCueLog.h"
+#include "TriadDrift/Combat/TDAudioHitTrace.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Combat/TDFieldDamageable.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "GameFramework/Character.h"
@@ -1023,6 +1025,13 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 
 	const UTDHealthComponent* VictimHealth = Victim ? UTDStatics::GetHealth(Victim) : nullptr;
 	bool bImpactArt = false;
+	if (VictimHealth && FTDAudioHitTrace::IsOn() && !Victim->Implements<UTDFieldDamageable>() && CanDamage(Victim))
+	{
+		// Board N-069: mark the real hit for recorded audio, at the cue choice and before the damage.
+		const bool bShield = VictimHealth->IsShieldUp();
+		FTDAudioHitTrace::Trace(this, Spec.FX ? (bShield ? &Spec.FX->ImpactShield : &Spec.FX->ImpactHull) : nullptr,
+			bShield ? ETDCombatCueKind::ImpactShield : ETDCombatCueKind::ImpactHull, Shooter.Get(), Victim, VictimHealth);
+	}
 	if (Spec.FX)
 	{
 		const FTDFXCue& Cue = !VictimHealth ? Spec.FX->ImpactWorld : (VictimHealth->IsShieldUp() ? Spec.FX->ImpactShield : Spec.FX->ImpactHull);
@@ -1031,7 +1040,17 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 	}
 	PlayPlaceholderImpact(Hit.ImpactPoint, bImpactArt, VictimHealth, Hit.ImpactNormal);
 
-	if (Victim && CanDamage(Victim))
+	if (Victim && Victim->Implements<UTDFieldDamageable>())
+	{
+		// T6's destructible field: the instance hit, the shot's real damage. Player shots tell the HUD (a quiet marker),
+		// never the bus's OnHitConfirmed (no hit / kill sound, no director moment for a rock).
+		Cast<ITDFieldDamageable>(Victim)->ReceiveProjectileHit(Hit, Spec.Damage * DamageMultiplier, Shooter.Get(), Spec.DamageKind);
+		if (bReportHits)
+		{
+			FTDFieldDamage::OnPlayerFieldHit.Broadcast(Victim, Hit.ImpactPoint);
+		}
+	}
+	else if (Victim && CanDamage(Victim))
 	{
 		NoteShieldedHit(Victim); // before the damage: the shield's state as the shot arrived
 		DealDamage(Victim, Spec.Damage, Hit.ImpactPoint, Dir);
@@ -1131,6 +1150,15 @@ void ATDProjectile::ApplySplash(const FVector& Center, AActor* Exclude)
 	const float SplashAmount = Spec.GetSplashDamage();
 	if (SplashAmount > 0.f)
 	{
+		// T6's destructible field: rubble inside the blast breaks too (each field checks its own pieces against the radius).
+		{
+			TArray<AActor*> Fields;
+			FTDFieldDamage::GetFields(GetWorld(), Fields);
+			for (AActor* Field : Fields)
+			{
+				Cast<ITDFieldDamageable>(Field)->ReceiveSplash(Center, Spec.SplashRadius, SplashAmount * DamageMultiplier, Shooter.Get());
+			}
+		}
 		if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this))
 		{
 			// Copy: damage can kill and unregister actors while we iterate.

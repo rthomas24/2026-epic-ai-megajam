@@ -8,6 +8,7 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "EngineUtils.h"
@@ -840,6 +841,7 @@ void ATDCrewCharacter::FireBolt(const FVector& Direction, float Damage, float Sp
 	P.Range = Spec.RangedMaxRange * 1.5f;
 	P.CollisionRadius = Radius;
 	P.bInheritShooterVelocity = false;
+	P.FX = FTDPowerPresentation::LoadWeaponFX(TEXT("CrewBlaster")); // DA_CrewBlaster_FX (Gameplay/Characters/FX fallback; T2): tracer and impacts, else the placeholder bolt
 	const FVector Muzzle = GetMuzzleLocation(Direction);
 	ATDProjectile::Launch(World, P, FTransform(Direction.Rotation(), Muzzle), this, ETDTeam::Enemy, nullptr, FVector::ZeroVector, 1.f, false);
 	if (World->GetTimeSeconds() - LastShotSoundTime > 0.05) // a shotgun's pellets or a fan of bolts is one shot

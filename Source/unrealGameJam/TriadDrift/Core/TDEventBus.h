@@ -28,6 +28,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FTDOnHighlightMoment, ETDHighligh
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnTakeStarted, FName, SceneId, int32, TakeNumber);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FTDOnSceneCut, FName, SceneId, int32, NextTakeNumber, float, DelaySeconds);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnMarkerRevealed, ETDDestination, Destination);
+/** A space-field piece (rock, debris, wreck) was destroyed. SizeClass 0 small, 1 medium, 2 large. Never feeds kill counts. */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FTDOnFieldObjectDestroyed, FVector, Location, uint8, SizeClass, bool, bSpecial, AActor*, Instigator);
 
 UCLASS()
 class UNREALGAMEJAM_API UTDEventBus : public UGameInstanceSubsystem
@@ -73,6 +75,10 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Events")
 	FTDOnMarkerRevealed OnMarkerRevealed;
+
+	/** Space field (T6): a rock / debris / wreck broke. Separate from OnActorKilled on purpose (no kills, barks or money shots). */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Events")
+	FTDOnFieldObjectDestroyed OnFieldObjectDestroyed;
 
 	// ------------------------------------------------------------------ combat
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Events")
@@ -144,6 +150,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Events")
 	void BroadcastMarkerRevealed(ETDDestination Destination) { OnMarkerRevealed.Broadcast(Destination); }
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Events")
+	void BroadcastFieldObjectDestroyed(FVector Location, uint8 SizeClass, bool bSpecial, AActor* Instigator) { OnFieldObjectDestroyed.Broadcast(Location, SizeClass, bSpecial, Instigator); }
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Events")
 	void BroadcastHitConfirmed(AActor* Target, bool bKill) { OnHitConfirmed.Broadcast(Target, bKill); }

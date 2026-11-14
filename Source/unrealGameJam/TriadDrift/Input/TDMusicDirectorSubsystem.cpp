@@ -270,6 +270,77 @@ void UTDMusicDirectorSubsystem::HandleTakeStarted()
 	bWaitForTake = false;
 }
 
+USoundBase* UTDMusicDirectorSubsystem::ResolveAssaultMusic() const
+{
+	if (bAssaultOverride) { return AssaultOverride; }
+	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+	return Style && !Style->AssaultMusic.IsNull() ? Style->AssaultMusic.LoadSynchronous() : nullptr;
+}
+
+void UTDMusicDirectorSubsystem::TickAssault(UWorld* World, bool bWanted)
+{
+	if (bWanted && !AssaultVoice && !bAssaultLogical)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD music: the Dominion assault score starts"));
+		AssaultVoice = UGameplayStatics::SpawnSound2D(World, ResolveAssaultMusic(), 1.f, 1.f, 0.f, nullptr, false, false);
+		if (AssaultVoice) { AssaultVoice->FadeIn(2.f, 1.f); }
+		else { bAssaultLogical = true; } // no audio device (tests): still hold the combat music
+	}
+	else if (!bWanted && (AssaultVoice || bAssaultLogical))
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD music: the Dominion assault score ends"));
+		if (AssaultVoice) { AssaultVoice->FadeOut(3.f, 0.f); }
+		AssaultVoice = nullptr;
+		bAssaultLogical = false;
+	}
+}
+
+void UTDMusicDirectorSubsystem::RequestExclusiveScore(FName Owner)
+{
+	if (Owner.IsNone()) { return; }
+	ExclusiveClaims.Add(Owner, -1.f);
+	UE_LOG(LogTriadDrift, Log, TEXT("TD music: %s claims the score (combat bed held)"), *Owner.ToString());
+}
+
+void UTDMusicDirectorSubsystem::ReleaseExclusiveScore(FName Owner, float FadeSeconds)
+{
+	if (float* Left = ExclusiveClaims.Find(Owner))
+	{
+		*Left = FMath::Max(FadeSeconds, 0.f);
+		UE_LOG(LogTriadDrift, Log, TEXT("TD music: %s releases the score (%.1f s fade)"), *Owner.ToString(), FadeSeconds);
+	}
+}
+
+USoundBase* UTDMusicDirectorSubsystem::ResolveIdleMusic(float& OutDelay) const
+{
+	if (bIdleOverride) { OutDelay = IdleDelayOverride; return IdleOverride; }
+	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+	OutDelay = Style ? Style->IdleMusicDelaySeconds : 6.f;
+	return Style && !Style->IdleSpaceMusic.IsNull() ? Style->IdleSpaceMusic.LoadSynchronous() : nullptr;
+}
+
+void UTDMusicDirectorSubsystem::TickIdle(UWorld* World, bool bQuiet, float Dt)
+{
+	QuietTime = bQuiet ? QuietTime + Dt : 0.f;
+	float Delay = 6.f;
+	USoundBase* Sound = (bQuiet || IdleVoice || bIdleLogical) ? ResolveIdleMusic(Delay) : nullptr;
+	const bool bWanted = bQuiet && QuietTime >= Delay && (Sound || bIdleOverride);
+	if (bWanted && !IdleVoice && !bIdleLogical)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD music: quiet flight, the idle score starts"));
+		IdleVoice = Sound ? UGameplayStatics::SpawnSound2D(World, Sound, 1.f, 1.f, 0.f, nullptr, false, false) : nullptr;
+		if (IdleVoice) { IdleVoice->FadeIn(4.f, 1.f); }
+		else { bIdleLogical = true; } // no audio device (tests)
+	}
+	else if (!bQuiet && (IdleVoice || bIdleLogical))
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD music: the idle score yields"));
+		if (IdleVoice) { IdleVoice->FadeOut(2.f, 0.f); }
+		IdleVoice = nullptr;
+		bIdleLogical = false;
+	}
+}
+
 void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -305,7 +376,21 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 		Tutorial->Step(World, FMath::Max(Dt, World->DeltaRealTimeSeconds), bMenuMap);
 	}
 	const bool bTutorialHolds = Tutorial && Tutorial->IsHoldingCombatMusic();
-	const bool bBlocked = bTravelling || bVictory || bMenuMap || bTutorialHolds || (MusicState == ETDCombatMusicState::Silent && !ResolveMusic());
+	// N-048: the Dominion assault's own score, from wave 5's clear to docking or the reactor's end; combat music waits.
+	bool bAssaultPhase = false;
+	if (const UTDGameInstance* GI = Cast<UTDGameInstance>(World->GetGameInstance()))
+	{
+		bAssaultPhase = GI->GetProgressRef().Phase == ETDGamePhase::DominionAssault;
+	}
+	TickAssault(World, bAssaultPhase && !bTravelling && !bVictory && !bMenuMap && ResolveAssaultMusic() != nullptr);
+	const bool bAssaultHolds = IsAssaultMusicPlaying();
+	// N-074: claims from other score owners; a released claim holds through its fade, then goes.
+	for (auto It = ExclusiveClaims.CreateIterator(); It; ++It)
+	{
+		if (It.Value() >= 0.f) { It.Value() -= Dt; if (It.Value() <= 0.f) { It.RemoveCurrent(); } }
+	}
+	const bool bExclusiveHolds = IsExclusiveScoreHeld();
+	const bool bBlocked = bTravelling || bVictory || bMenuMap || bTutorialHolds || bAssaultHolds || bExclusiveHolds || (MusicState == ETDCombatMusicState::Silent && !ResolveMusic());
 	bool bCombat = !bBlocked && IsCombatNow();
 	if (bWaitForTake && !bCombat)
 	{
@@ -314,9 +399,18 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 	bCombat = bCombat && !bWaitForTake;
 	if (bBlocked)
 	{
-		BeginStop(bTravelling ? TEXT("travel") : bVictory ? TEXT("victory") : bTutorialHolds ? TEXT("tutorial music") : TEXT("menu"));
+		BeginStop(bTravelling ? TEXT("travel") : bVictory ? TEXT("victory") : bTutorialHolds ? TEXT("tutorial music") : bAssaultHolds ? TEXT("assault music") : bExclusiveHolds ? TEXT("another score") : TEXT("menu"));
 	}
 	TickAmbience(Dt, bTravelling || bVictory || bMenuMap);
+	// N-063: quiet flight in the galaxy gets its own score when nothing else plays.
+	{
+		const UTDGameInstance* GI = Cast<UTDGameInstance>(World->GetGameInstance());
+		const bool bGalaxy = GI && GI->GetCurrentDestination() == ETDDestination::Galaxy;
+		const bool bTutorialOn = Tutorial && Tutorial->GetState() != ETDTutorialMusicState::Off;
+		bQuietFlight = bGalaxy && !bTravelling && !bVictory && !bMenuMap && !bTutorialOn && !bAssaultHolds && !bAssaultPhase && !bExclusiveHolds && !IsCombatNow()
+			&& MusicState == ETDCombatMusicState::Silent;
+		TickIdle(World, bQuietFlight, Dt);
+	}
 
 	MusicRetry = FMath::Max(0.f, MusicRetry - Dt);
 	// N-037: the fight's intensity sets the music's level, rate-limited on top of the intensity's own smoothing.

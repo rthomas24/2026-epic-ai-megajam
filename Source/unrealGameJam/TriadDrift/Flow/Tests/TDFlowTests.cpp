@@ -1213,6 +1213,50 @@ bool FTDFlowPlaceholderSky::RunTest(const FString& Parameters)
 // ------------------------------------------------------------------------------------------------
 // The front end: New Game / Continue / Quit from the menu mode (Nick's widget or the placeholder), the win
 // travelling to the victory screen, and the victory screen returning to the menu.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDVictoryHeadlineLifetime, "TriadDrift.Flow.VictoryHeadlineIsCachedForThePresentation", TDFlowTest::TestFlags)
+bool FTDVictoryHeadlineLifetime::RunTest(const FString&)
+{
+	const TArray<FText>& Choices=ATDMenuGameMode::VictoryHeadlineChoices();
+	TestEqual(TEXT("all six approved localized headlines are available"),Choices.Num(),6);
+	for(const FText& Choice:Choices)
+	{
+		TestFalse(TEXT("headline is not empty"),Choice.IsEmpty());
+		TestFalse(TEXT("headline retains localization identity"),Choice.IsCultureInvariant());
+	}
+	for(const bool bWon:{false,true})
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI=Cast<UTDGameInstance>(W.GetGameInstance());
+		GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationVictoryHeadline"));
+		ON_SCOPE_EXIT { GI->SetSaveSlotOverride(FString()); };
+		GI->GetMutableProgress().Phase=bWon?ETDGamePhase::Victory:ETDGamePhase::Intro;
+		ATDMenuGameMode* Menu=W.GetWorld()->SpawnActorDeferred<ATDMenuGameMode>(ATDMenuGameMode::StaticClass(),FTransform::Identity);
+		// No production asset/music dependency: this test exercises the actual host lifecycle.
+		Menu->StyleOverride=NewObject<UTDUIStyle>(GetTransientPackage());
+		Menu->FinishSpawning(FTransform::Identity);
+		Menu->StartPlay();
+		const FText Selected=Menu->GetVictoryHeadline();
+		if(bWon)
+		{
+			TestTrue(TEXT("victory selects a member of the approved pool"),Choices.ContainsByPredicate([&](const FText& T){return T.EqualTo(Selected);}));
+			for(int32 I=0;I<60;++I)
+			{
+				Menu->Tick(1.f/60.f);
+				TestTrue(TEXT("frame updates and repeated reads do not reroll"),Menu->GetVictoryHeadline().EqualTo(Selected));
+			}
+			Menu->ReturnToMenu();
+			for (int32 I = 0; I < 900 && Menu->IsShowingVictory(); ++I) { W.Tick(1.f / 30.f); } // the stinger plays first (T3)
+			TestTrue(TEXT("leaving victory releases its cached headline"),Menu->GetVictoryHeadline().IsEmpty());
+			TestFalse(TEXT("normal menu restored"),Menu->IsShowingVictory());
+		}
+		else
+		{
+			TestTrue(TEXT("ordinary menu does not choose a victory headline"),Selected.IsEmpty());
+		}
+	}
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowMenuJourney, "TriadDrift.Flow.MenuNewGameContinueVictoryAndBack", TDFlowTest::TestFlags)
 bool FTDFlowMenuJourney::RunTest(const FString& Parameters)
 {

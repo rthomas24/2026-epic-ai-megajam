@@ -1,0 +1,37 @@
+{
+  "stage": "Full source decoded for Unreal; native import/runtime binding not performed",
+  "assignment": "All space-idle states; yield to tutorial, combat and assault score. Not concurrent environmental AmbienceSpace.",
+  "assignment_reference": "Nicholas direct request: Ambient1 for all idle events, at least in space",
+  "claim": "986d5a59",
+  "source_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\IdleAmbient01\\source\\Ambient1.mp3",
+  "source_sha256": "ee09f075d6c955e782c2b12f65f5678cdb4c25be503173cb45ef413750dce464",
+  "source_bytes": 3198704,
+  "source_metadata": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "48000",
+        "channels": 2
+      }
+    ],
+    "format": {
+      "duration": "144.800000"
+    }
+  },
+  "source_unchanged": true,
+  "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\IdleAmbient01\\export\\MUS_SpaceIdle_Ambient1_Full_01.wav",
+  "output_sha256": "3474e84a97dea20125ccdb5b06c6356ea4aea30cd40156149a2f74061d3d2ab6",
+  "sample_rate": 48000,
+  "channels": 2,
+  "bits": 16,
+  "decoded_frames": 6950400,
+  "decoded_duration_s": 144.8,
+  "processing": "Full audio decode/channel-map only. No trim, fade, normalization, crossfade, looping, pitch or tempo edit. Full decoded sample count retained.",
+  "proposed_native_path": "/Game/TriadDrift/Audio/IdleAmbient01/MUS_SpaceIdle_Ambient1_Full_01",
+  "runtime_behavior": "Repeat during space-idle ownership only; exact T1 state/suppression contract pending. No double music.",
+  "cook_exclusivity_gate": "Cook explicit Music reference; idle score yields to tutorial/combat/assault and is not placed in concurrent environmental ambience",
+  "utc": "2026-11-14T00:48:32.682861+00:00",
+  "original_supplied_path": "C:/Users/nicho/OneDrive/Desktop/GameJam/Muisc/Ambient1.mp3"
+}

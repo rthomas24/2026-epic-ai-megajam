@@ -1,5 +1,21 @@
 # Outpost: the survey outpost (Verdance research outpost, Cinder survey station)
 
+> **Superseded for everything the pilot walks on (Ryan, Nov 13 evening).** The walkable sites are now built from the
+> engineering modular kit: see [`../Kit/README.md`](../Kit/README.md). `BP_Outpost_Site_*`, `BP_Relay`,
+> `BP_Relay_Awake` and `BP_Wreck` keep their names and now hold kit pieces; the Rodin relay and wreck below remain
+> as sunk exterior dressing, and the Rodin cabin and console are no longer used. This file records the Rodin rounds
+> (history in `docs/eng/ART-HISTORY.md`; last committed state `fdccac29`).
+>
+> **Relay r2 (Rodin, Nov 13):** stair block re-sloped (the 46 cm top riser became a 20-degree carved slope, the
+> flight stretched 1.25 x so its nosings fall at 19.3 degrees), landing + ramp collision; walked in `-game` from the
+> ground up the stairs onto the court (feet within 5 cm of the collision everywhere); captures in
+> `Relay/review/game/`. Emissive on `RelayPower` squared x `GlowStrength` 40 (dormant 0.15 -> 0.9, awake 40): the
+> linear x 10 version looked the same dormant and awake in the game. Site manifest `export/Relay_Site.manifest.json`.
+> **Wreck r2 (Rodin):** a fallen-plate ramp on both sides; walking up one ramp found the r1 deck hull (built from 8
+> support directions) had lost two top corners and sank the pilot to the waist on the +Y half; the hull is exact in
+> r2 (`Wreck/scripts/wreck_build.py`). Site manifest `export/Wreck_Site.manifest.json`. Both sites are replaced by
+> the kit versions.
+
 Grok Bot's Rodin outpost and console (`ArtSource/EngAI/Props/VerdanceOutpost/mesh_r1`, read only, licence and prompts
 in its `SOURCE.md`) made walkable and imported. Nothing here is a redesign: the mesh, UVs and textures are as
 delivered except for the changes listed below. Nicholas's reference board:

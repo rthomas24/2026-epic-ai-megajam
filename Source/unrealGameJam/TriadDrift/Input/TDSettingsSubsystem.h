@@ -86,6 +86,11 @@ struct UNREALGAMEJAM_API FTDPlayerSettings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
 	float SpeedFOV = 1.f;
 
+	/** Comfort (N-064): one switch for reduced motion. Flight drops shake, FOV push and blur; the HUD and the Director's
+	 *  cards read IsReduceMotion for their own animation. Both camera sliders at 0 count as reduced motion too. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Camera")
+	bool bReduceMotion = false;
+
 	/** The player's chosen difficulty: the default for New Game. A continued run keeps the one saved with it. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Gameplay")
 	ETDDifficulty Difficulty = ETDDifficulty::Standard;
@@ -182,6 +187,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetHintsEnabled(bool bEnabled);
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetCameraShake(float Scale01);
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetSpeedFOV(float Scale01);
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetReduceMotion(bool bReduce);
+	/** N-064: the one persisted reduced-motion answer (the switch, or both camera sliders at 0). For HUD, cards, effects. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContext")) static bool IsReduceMotion(const UObject* WorldContext);
 
 	/**
 	 * Difficulty (features.md Settings; T4's UTDDifficultySettings presets). Saved here as the New Game default and

@@ -205,7 +205,9 @@ public:
 	bool IsDebugFrozen() const { return bDebugFrozen; }
 
 	/** Seconds after start before a skip is accepted, and how long the skip key must be held. */
-	static constexpr float SkipLockSeconds = 1.f;
+	/** Seconds before the intro can be skipped (Nicholas, N-060: ten for every cutscene). td.Intro.SkipLockSeconds;
+	 *  automation runs use 1 s unless a test sets the cvar (other suites skip early). */
+	static float GetSkipLockSeconds();
 	static constexpr float SkipHoldSeconds = 0.5f;
 	static constexpr float HandOffSeconds = 1.f;
 

@@ -289,7 +289,7 @@ bool FTDJourneyObjectiveText::RunTest(const FString& Parameters)
 		return N;
 	};
 	TestEqual(TEXT("markers: nothing tagged during a wave"), Tagged(), 0);
-	TestTrue(TEXT("wave line names the enemy"), LastText().Contains(TEXT("NULL ARMADA")));
+	TestTrue(TEXT("wave line (the enemy is not named, storyline.md 13)"), LastText().Contains(TEXT("CLEAR THE AREA")) && !LastText().Contains(TEXT("ARMADA")));
 
 	// The line is broadcast on change, not every tick.
 	const int32 Before = Log->ObjectiveTexts.Num();
@@ -662,6 +662,7 @@ bool FTDJourneyWavesWaitForZone::RunTest(const FString& Parameters)
 	TArray<AActor*> Markers;
 	FTDObjectiveText::ComputeMarkers(World, G.GI->GetProgressRef(), ETDDestination::Galaxy, Markers);
 	AActor* Marker = Director->GetCombatZoneMarker();
+	const TWeakObjectPtr<AActor> MarkerWeak(Marker); // the marker is destroyed (and may be collected) once the wave starts
 	TestTrue(TEXT("the HUD marker is the combat zone"), Marker && Markers.Num() == 1 && Markers[0] == Marker);
 	const FVector Centre = Layout->GetActorTransform().TransformPosition(Layout->GetLayout().CombatZoneCenter);
 	TestTrue(TEXT("the marker sits at the zone's centre"), Marker && FVector::Dist(Marker->GetActorLocation(), Centre) < 1.f);
@@ -681,7 +682,7 @@ bool FTDJourneyWavesWaitForZone::RunTest(const FString& Parameters)
 	G.W.Advance(0.5f, 1.f / 30.f);
 	TestFalse(TEXT("no longer waiting"), Director->IsAwaitingCombatZone());
 	TestTrue(TEXT("wave 3 running in the zone"), Director->IsWaveRunning() && Director->GetWaveInfo().WaveNumber == 3);
-	TestFalse(TEXT("marker gone"), IsValid(Marker));
+	TestFalse(TEXT("marker gone"), MarkerWeak.IsValid());
 	TestFalse(TEXT("Verdance orbit gate closed during the wave"), OrbitGate->bActive);
 	TestFalse(TEXT("its combat-zone end closed too"), ZoneGate->bActive);
 	TestTrue(TEXT("the flank pair is untouched by the wave"), Flank && Flank->bActive == bFlankBefore);

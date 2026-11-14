@@ -1,0 +1,104 @@
+{
+  "assets": [
+    "SM_CrystalCacheCradle",
+    "SM_CrystalCacheCrystal"
+  ],
+  "issue": 53,
+  "units": "cm in Unreal via FBX UnitScaleFactor 100; Blender sources are metres",
+  "pivot": "ground-base centre (min Z = 0, XY centred) for each mesh",
+  "forward": "+X (cradle emblem / door panel side)",
+  "up": "+Z",
+  "prefer": "FBX (UnitScaleFactor 100, Unreal uniform scale 1.0). GLB is glTF in metres.",
+  "blender": "4.5.3 LTS",
+  "modifiers_unapplied": {
+    "SM_CrystalCacheCradle": "Bevel (width 0.6 cm, 1 segment, angle 70 deg, harden normals) + WeightedNormal (keep_sharp, weight 50, FACE_AREA)",
+    "SM_CrystalCacheCrystal": "Bevel (width 0.25 cm, 1 segment, angle 30 deg, harden normals, hardsurface.add_bevel) + WeightedNormal (hardsurface.add_weighted_normal)"
+  },
+  "src_hidden": [
+    "SRC_CrystalCacheCradle",
+    "SRC_CrystalCacheCrystal"
+  ],
+  "cradle": {
+    "fbx": "SM_CrystalCacheCradle.fbx",
+    "blend": "SM_CrystalCacheCradle.blend",
+    "glb": "SM_CrystalCacheCradle.glb",
+    "route": "Hyper3D Rodin raw pack (source/cradle) + Blender polish (R-043: non-walkable prop)",
+    "tris": 50376,
+    "size_cm": [
+      200.0,
+      360.0,
+      180.0
+    ],
+    "sockets": [
+      {
+        "name": "SOCKET_Crystal",
+        "pos_cm": [
+          0.0,
+          0.0,
+          30.05
+        ],
+        "rot_deg": [
+          0,
+          0,
+          0
+        ],
+        "note": "Cradle floor. Attach SM_CrystalCacheCrystal here (its pivot is its base). Crystal top lands at ~169.4 cm, under the 180 cm cage."
+      }
+    ],
+    "collision": [
+      "UCX_SM_CrystalCacheCradle_00 (one 200 x 360 x 180 cm box)"
+    ],
+    "textures": [
+      "T_CrystalCacheCradle_BC.png",
+      "T_CrystalCacheCradle_N.png",
+      "T_CrystalCacheCradle_ORM.png",
+      "T_CrystalCacheCradle_E.png"
+    ],
+    "material": "M_CrystalCacheCradle",
+    "emission_strength": 2.4
+  },
+  "crystal": {
+    "fbx": "SM_CrystalCacheCrystal.fbx",
+    "blend": "SM_CrystalCacheCrystal.blend",
+    "glb": "SM_CrystalCacheCrystal.glb",
+    "route": "Route C: procedural hex-prism shards + basalt stubs in Blender (bmesh), no Rodin geometry",
+    "tris": 1384,
+    "size_cm": [
+      62.5,
+      100.4,
+      139.3
+    ],
+    "collision": [
+      "UCX_SM_CrystalCacheCrystal_00 (convex hull, 23 verts)"
+    ],
+    "textures": [
+      "T_CrystalCacheCrystal_BC.png",
+      "T_CrystalCacheCrystal_N.png",
+      "T_CrystalCacheCrystal_ORM.png",
+      "T_CrystalCacheCrystal_E.png"
+    ],
+    "material": "M_CrystalCacheCrystal",
+    "emission_strength": 2.2,
+    "separate_mesh_reason": "Issue #53: model the crystal cluster separately from the cradle; it can be hidden or animated on pickup.",
+    "ucx_size_cm": [
+      62.5,
+      100.6,
+      140.0
+    ]
+  },
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "normals": "Import Normals",
+    "combine_meshes": true,
+    "generate_lightmap_uvs": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on",
+      "_N": "Normalmap, already DirectX (do NOT flip green)",
+      "_ORM": "sRGB off, Masks (R=AO, G=rough, B=metal)",
+      "_E": "sRGB on"
+    },
+    "nanite": "cradle OK (opaque); crystal keep non-Nanite if it uses a translucent/emissive material"
+  },
+  "cpp_mismatch": "TDPlanetCourse.cpp (Cinder outpost obj 3, step 5) spawns the cache interaction as ATDInteractableActor with ConsoleMesh SM_Cind_PrototypeConsole (160 x 160 x 140 cm) at z = 70 cm, actor scale (1.6, 1.6, 1.4). No code references SM_CrystalCache*. Cradle is 200 x 360 x 180 cm; see SOURCE.md."
+}
