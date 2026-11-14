@@ -420,6 +420,12 @@ void ATDSpaceField::BuildClusters(FRandomStream& Rng)
 		}
 		++Made;
 		const int32 Fam = Rng.RandRange(0, 3);
+		// Landmarks first: a few big rocks near the cluster's heart (they collide and steer the AI).
+		for (int32 Lm = 0, Try = 0; Lm < LandmarksPerCluster && Try < LandmarksPerCluster * 4; ++Try)
+		{
+			const FVector Off = FVector(Rng.GetUnitVector()) * Rng.FRandRange(0.f, 14000.f);
+			Lm += AddRock(C + Off, Rng.FRandRange(6000.f, 15000.f), ETDSpaceFieldKind::Cluster, Rng, Fam) ? 1 : 0;
+		}
 		int32 Placed = 0;
 		for (int32 Try = 0; Placed < RocksPerCluster && Try < RocksPerCluster * 3; ++Try)
 		{

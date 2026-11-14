@@ -66,9 +66,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SpaceField") float BeltHalfThickness = 15000.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") TArray<float> BeltTilts = { 12.f, -18.f };
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 BeltRocks = 900;
-	/** Clusters per shell; two shells (ClusterShells: inner and outer distance pairs, cm) so every bearing has one near and one far. */
+	/** Clusters per shell; three shells (ClusterShells: inner and outer distance pairs, cm) so every bearing has one near and one far. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 Clusters = 30;
-	UPROPERTY(EditAnywhere, Category = "SpaceField") TArray<FVector2D> ClusterShells = { FVector2D(220000.f, 420000.f), FVector2D(420000.f, 750000.f) };
+	UPROPERTY(EditAnywhere, Category = "SpaceField") TArray<FVector2D> ClusterShells = { FVector2D(220000.f, 420000.f), FVector2D(420000.f, 620000.f), FVector2D(620000.f, 820000.f) };
+	/** Big rocks per cluster (60-150 m, they collide) so a cluster reads from 2 km away, not only as specks. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 LandmarksPerCluster = 3;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 RocksPerCluster = 32;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 DebrisFields = 5;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 PiecesPerDebrisField = 150;
