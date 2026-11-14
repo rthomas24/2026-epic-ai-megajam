@@ -325,6 +325,14 @@ public:
 	void NotifyPostLoadForTests(UWorld* World) { HandlePostLoadMap(World); }
 private:
 	bool bArrivedOverDeck = false;
+	TWeakObjectPtr<UWorld> FloorCheckedWorld;
+public:
+	/** No flying arrival on a planet starts below this above the ground (staged and uncovered arrivals; the Lead, Nov 14). */
+	static constexpr float ArrivalFloorCm = 30000.f;
+	/** Once per planet map: a flown ship first seen below the floor (not landing, not landed) is lifted to it. */
+	void TickArrivalFloor();
+	int32 ArrivalFloorLifts = 0;
+private:
 
 	bool bArrivalPending = false;
 	ETDDestination ArrivalPlanet = ETDDestination::Verdance;

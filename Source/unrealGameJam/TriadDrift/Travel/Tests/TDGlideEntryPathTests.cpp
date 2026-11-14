@@ -43,8 +43,10 @@ bool FTDT1GlideEveryEntryPath::RunTest(const FString& Parameters)
 		D->BeginCoveredTravel(ETDDestination::Verdance);
 		D->NotifyPostLoadForTests(World);
 		float StartZ = 0.f;
+		// The reveal holds on real time (0.5 s minimum after the first frame): ticks paced at ~5 ms of real time each.
 		for (int32 i = 0; i < 60 * 12 && !D->IsGliding(); ++i)
 		{
+			FPlatformProcess::Sleep(0.005f);
 			++GFrameCounter; // a test world's ticks don't advance the engine's frame counter
 			W.Tick(1.f / 60.f);
 			D->Tick(1.f / 60.f);
@@ -57,12 +59,41 @@ bool FTDT1GlideEveryEntryPath::RunTest(const FString& Parameters)
 		TestTrue(*FString::Printf(TEXT("%sstarts 300 m over the deck (%.0f vs %.0f m)"), *V, StartZ / 100.f, Want / 100.f), FMath::Abs(StartZ - Want) <= 3000.f);
 		TestTrue(*(V + TEXT("the squad is released from the zone for the glide")), Ship->GetShipMovement()->IsBoundaryReleased());
 		D->EndGlide(TEXT("test"));
-		for (int32 i = 0; i < 90; ++i) { D->Tick(1.f / 60.f); }
+		for (int32 i = 0; i < 120 && D->GetCoverPhase() != ETDDescentCover::Off; ++i) { FPlatformProcess::Sleep(0.005f); D->Tick(1.f / 60.f); } // the reveal's fade ends
+		TestTrue(*(V + TEXT("the zone has the squad back after the glide")), !Ship->GetShipMovement()->IsBoundaryReleased());
 	}
 	// A Continue (or any arrival with no cover): no placement, no glide.
 	Ship->TeleportSpacecraft(FVector(0.f, 0.f, Ground + 28500.f), FRotator::ZeroRotator, false);
-	for (int32 i = 0; i < 180; ++i) { ++GFrameCounter; W.Tick(1.f / 60.f); D->Tick(1.f / 60.f); }
+	for (int32 i = 0; i < 180; ++i) { FPlatformProcess::Sleep(0.005f); ++GFrameCounter; W.Tick(1.f / 60.f); D->Tick(1.f / 60.f); }
 	TestFalse(TEXT("no cover (Continue): no glide"), D->IsGliding());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1ArrivalFloor, "TriadDrift.Travel.Descent.UncoveredArrivalNeverStartsBelow300m", TD_TEST_FLAGS)
+bool FTDT1ArrivalFloor::RunTest(const FString& Parameters)
+{
+	// The structures builder's capture: a staged Cinder arrival skimming the ground at 5 m. Uncovered arrivals are lifted.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDDescentSubsystem* D = UTDDescentSubsystem::Get(W.GetWorld());
+	ATDPlanetTerrain* Terrain = ATDPlanetTerrain::SpawnForPlanet(W.GetWorld(), ETDDestination::Cinder, FTransform::Identity, nullptr);
+	if (!TestNotNull(TEXT("descent"), D) || !TestNotNull(TEXT("terrain"), Terrain)) { return false; }
+	const FVector At(120000.f, 0.f, 0.f);
+	const float Ground = Terrain->GetHeightAt(At);
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(At.X, At.Y, Ground + 500.f));
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.SpawnLocalPlayerController(Ship);
+	W.Advance(0.2f);
+	const int32 Lifts0 = D->ArrivalFloorLifts;
+	D->Tick(1.f / 60.f);
+	const float Alt = Ship->GetActorLocation().Z - Terrain->GetHeightAt(Ship->GetActorLocation());
+	AddInfo(FString::Printf(TEXT("after the floor: %.0f m above the ground"), Alt / 100.f));
+	TestEqual(TEXT("lifted once"), D->ArrivalFloorLifts - Lifts0, 1);
+	TestTrue(*FString::Printf(TEXT("at least ~300 m above the ground (%.0f m)"), Alt / 100.f), Alt >= UTDDescentSubsystem::ArrivalFloorCm - 2000.f);
+	// Once per map: flying low later is the player's own choice.
+	Ship->TeleportSpacecraft(FVector(At.X, At.Y, Ground + 500.f), FRotator::ZeroRotator, false);
+	D->Tick(1.f / 60.f);
+	TestEqual(TEXT("only the arrival is lifted, not later low flight"), D->ArrivalFloorLifts - Lifts0, 1);
 	return true;
 }
 

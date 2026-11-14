@@ -179,6 +179,7 @@ void UTDDescentSubsystem::Tick(float DeltaTime)
 	TickGlide(FMath::Min(DeltaTime, 0.1f));
 	TickExposureRamp();
 	TickGlideWind(FMath::Min(DeltaTime, 0.1f));
+	TickArrivalFloor();
 	if (!IsTiming()) { return; }
 	const double Now = FPlatformTime::Seconds();
 	LongestFrame = FMath::Max(LongestFrame, Now - LastTickTime);
@@ -812,6 +813,34 @@ bool UTDDescentSubsystem::PlaceDeparture(UWorld* World)
 	bDepartPending = false;
 	Mark(*FString::Printf(TEXT("departure placed at lat %.1f lon %.1f, %.0f m from the planet"), DepartPoint.LatDeg, DepartPoint.LonDeg, (At - Centre).Size() / 100.f));
 	return true;
+}
+
+void UTDDescentSubsystem::TickArrivalFloor()
+{
+	UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
+	if (!World || FloorCheckedWorld.Get() == World || !World->HasBegunPlay()) { return; }
+	ATDPlanetTerrain* Terrain = nullptr;
+	for (TActorIterator<ATDPlanetTerrain> It(World); It; ++It) { Terrain = *It; break; }
+	if (!Terrain) { FloorCheckedWorld = World; return; } // not a planet
+	if (CoverPhase != ETDDescentCover::Off) { return; } // a covered arrival settles itself (over the deck); look after the reveal
+	APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0);
+	ATDShip* Flown = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
+	if (!Flown) { return; } // on foot or not up yet: nothing to lift (checked again next frame)
+	FloorCheckedWorld = World;
+	if (IsGliding() || bArrivedOverDeck) { return; }
+	const UTDLandingComponent* Landing = Flown->GetLanding();
+	if (Landing && Landing->IsBusy()) { return; } // parked or landing: the pad holds it
+	const float Ground = Terrain->GetHeightAt(Flown->GetActorLocation());
+	const float Under = Ground + ArrivalFloorCm - Flown->GetActorLocation().Z;
+	if (Under <= 0.f) { return; }
+	for (TActorIterator<ATDShip> It(World); It; ++It)
+	{
+		const UTDLandingComponent* L = It->GetLanding();
+		if (L && L->IsBusy()) { continue; }
+		It->TeleportSpacecraft(It->GetActorLocation() + FVector(0.f, 0.f, Under), It->GetActorRotation(), /*bKeepSpeed*/ true);
+	}
+	++ArrivalFloorLifts;
+	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: arrival lifted %.0f m to %.0f m above the ground (uncovered arrival below the floor)"), Under / 100.f, ArrivalFloorCm / 100.f);
 }
 
 void UTDDescentSubsystem::TickGlideWind(float Dt)
