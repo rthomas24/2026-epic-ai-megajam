@@ -17,9 +17,15 @@
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "NiagaraComponent.h"
+#include "Engine/Engine.h"
+#include "GameFramework/Pawn.h"
+#include "HAL/IConsoleManager.h"
+#include "Kismet/GameplayStatics.h"
 #include "NiagaraSystem.h"
 #include "TriadDrift/Combat/TDFieldDamageable.h"
+#include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Powers/TDRamPower.h"
 
 namespace TDSpaceFieldBreak
@@ -82,6 +88,15 @@ int32 ATDSpaceField::RegisterPiece(UInstancedStaticMeshComponent* Visual, int32 
 		ColliderToPiece[S.Collider] = Index;
 	}
 	Grid.FindOrAdd(CellOf(Pieces[Index].Location)).Add(Index);
+	// Wingmen and enemies steer round everything 10 m and up (FindAvoidance, gridded): smalls only shatter on a ship.
+	if (S.SizeClass >= 1)
+	{
+		if (UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this))
+		{
+			States[Index].Obstacle = WorldSys->AddObstacle(Pieces[Index].Location, Size * 0.5f + (Wreck != INDEX_NONE ? 3000.f : 0.f));
+			++ObstaclesAdded;
+		}
+	}
 	return Index;
 }
 
@@ -160,6 +175,11 @@ void ATDSpaceField::BreakPiece(int32 Piece, AActor* ByWhom)
 	if (TArray<int32>* Cell = Grid.Find(CellOf(P.Location)))
 	{
 		Cell->RemoveSingleSwap(Piece);
+	}
+	if (S.Obstacle != INDEX_NONE)
+	{
+		if (UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this)) { WorldSys->RemoveObstacle(S.Obstacle); }
+		S.Obstacle = INDEX_NONE;
 	}
 
 	// Split: a medium into smalls, a large or a wreck into mediums.
@@ -401,4 +421,82 @@ bool ATDSpaceField::ReceiveShipImpact(UPrimitiveComponent* HitComponent, int32 I
 {
 	const UTDRamPower* Ram = Ship ? Ship->FindComponentByClass<UTDRamPower>() : nullptr;
 	return ShipImpact(HitComponent, Item, NormalSpeed, HeadOn01, Ship, Ram && Ram->IsPowerActive());
+}
+
+// ------------------------------------------------------------------------------------------- dev commands
+
+namespace TDSpaceFieldDev
+{
+	static FAutoConsoleCommandWithWorldAndArgs CmdAim(TEXT("TD.SpaceField.Aim"),
+		TEXT("Turn the flown ship (real input) toward the nearest live field piece: TD.SpaceField.Aim <class 0 small | 1 medium | 2 large | 3 special> [MinMetres=0]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDSpaceField* Field = ATDSpaceField::Get(World);
+			APawn* Pawn = World ? UGameplayStatics::GetPlayerPawn(World, 0) : nullptr;
+			if (!Field || !Pawn) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.Aim: no field or no pawn")); return; }
+			const int32 Want = Args.Num() > 0 ? FCString::Atoi(*Args[0]) : 1;
+			const float MinCm = Args.Num() > 1 ? FCString::Atof(*Args[1]) * 100.f : 0.f;
+			const FVector From = Pawn->GetActorLocation();
+			int32 Best = INDEX_NONE;
+			float BestD = TNumericLimits<float>::Max();
+			for (int32 i = 0; i < Field->GetPieces().Num(); ++i)
+			{
+				if (!Field->IsPieceAlive(i) || Field->GetPieces()[i].Kind == ETDSpaceFieldKind::Wreck) { continue; }
+				const bool bMatch = Want == 3 ? Field->IsPieceSpecial(i) : (Field->GetPieceSizeClass(i) == Want && !Field->IsPieceSpecial(i));
+				const float D = (float)FVector::Dist(From, Field->GetPieces()[i].Location);
+				if (bMatch && D >= MinCm && D < BestD) { Best = i; BestD = D; }
+			}
+			if (Best == INDEX_NONE) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.Aim: none of class %d"), Want); return; }
+			const FRotator R = (Field->GetPieces()[Best].Location - From).Rotation();
+			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.Aim: piece %d class %d size %.0f m at %.0f m, yaw %.1f pitch %.1f"), Best, Field->GetPieceSizeClass(Best),
+				Field->GetPieces()[Best].Size / 100.f, BestD / 100.f, R.Yaw, R.Pitch);
+			GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f 2"), R.Yaw, R.Pitch));
+		}));
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdStats(TEXT("TD.SpaceField.Stats"), TEXT("Log the field's pieces: alive, broken, specials, and the flown ship's distance to the nearest."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDSpaceField* Field = ATDSpaceField::Get(World);
+			if (!Field) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.Stats: no field")); return; }
+			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.Stats: %d pieces, %d alive, %d broken"), Field->GetPieces().Num(), Field->GetAliveCount(), Field->GetBrokenCount());
+		}));
+}
+
+namespace TDSpaceFieldDev
+{
+	static FAutoConsoleCommandWithWorldAndArgs CmdStage(TEXT("TD.SpaceField.Stage"),
+		TEXT("Captures: put the flown ship <Metres> from the nearest live piece of a class with a clear line, facing it, at rest: TD.SpaceField.Stage <class 0|1|2|3 special> [Metres=120]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDSpaceField* Field = ATDSpaceField::Get(World);
+			ATDSpacecraft* Ship = World ? Cast<ATDSpacecraft>(UGameplayStatics::GetPlayerPawn(World, 0)) : nullptr;
+			if (!Field || !Ship) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.Stage: no field or no flown ship")); return; }
+			const int32 Want = Args.Num() > 0 ? FCString::Atoi(*Args[0]) : 1;
+			const float Standoff = (Args.Num() > 1 ? FCString::Atof(*Args[1]) : 120.f) * 100.f;
+			const TArray<FTDSpaceFieldPiece>& P = Field->GetPieces();
+			const FVector From = Ship->GetActorLocation();
+			int32 Best = INDEX_NONE;
+			float BestD = TNumericLimits<float>::Max();
+			FVector BestAt = FVector::ZeroVector;
+			for (int32 i = 0; i < P.Num(); ++i)
+			{
+				if (!Field->IsPieceAlive(i) || P[i].Kind == ETDSpaceFieldKind::Wreck) { continue; }
+				const bool bMatch = Want == 3 ? Field->IsPieceSpecial(i) : (Field->GetPieceSizeClass(i) == Want && !Field->IsPieceSpecial(i));
+				const float D = (float)FVector::Dist(From, P[i].Location);
+				if (!bMatch || D >= BestD) { continue; }
+				// Stand off toward the current ship position, with nothing else on the line.
+				const FVector Dir = (From - P[i].Location).GetSafeNormal();
+				const FVector At = P[i].Location + Dir * (P[i].Size * 0.4f + Standoff);
+				bool bClear = true;
+				for (int32 j = 0; j < P.Num() && bClear; ++j)
+				{
+					bClear = j == i || !Field->IsPieceAlive(j) || FMath::PointDistToSegment(P[j].Location, At, P[i].Location) > P[j].Size * 0.4f + 800.f;
+				}
+				if (bClear) { Best = i; BestD = D; BestAt = At; }
+			}
+			if (Best == INDEX_NONE) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.Stage: no clear piece of class %d"), Want); return; }
+			Ship->TeleportSpacecraft(BestAt, (P[Best].Location - BestAt).Rotation(), /*bKeepSpeed*/ false);
+			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.Stage: piece %d class %d size %.0f m special %d, ship %.0f m from its surface"), Best, Field->GetPieceSizeClass(Best),
+				P[Best].Size / 100.f, Field->IsPieceSpecial(Best), Standoff / 100.f);
+		}));
 }

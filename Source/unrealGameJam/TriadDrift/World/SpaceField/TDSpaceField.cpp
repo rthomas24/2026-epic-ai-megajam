@@ -342,16 +342,7 @@ bool ATDSpaceField::AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotato
 	Piece.bCollides = bCollides;
 	Piece.Kind = Kind;
 	Pieces.Add(Piece);
-	RegisterPiece(VisualComp, VisualInstance, Mesh, Size, bSpecial, TumblerIndex, INDEX_NONE);
-	if (bCollides)
-	{
-		// Big pieces are also avoidance obstacles (the small ones only collide).
-		if (UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this))
-		{
-			WorldSys->AddObstacle(At, Size * 0.5f);
-			++ObstaclesAdded;
-		}
-	}
+	RegisterPiece(VisualComp, VisualInstance, Mesh, Size, bSpecial, TumblerIndex, INDEX_NONE);	// also its avoidance obstacle (10 m and up)
 	return true;
 }
 
@@ -500,11 +491,6 @@ void ATDSpaceField::BuildDebrisFields(FRandomStream& Rng)
 			Piece.Kind = ETDSpaceFieldKind::Wreck;
 			Pieces.Add(Piece);
 			RegisterPiece(W, 0, Hull, WreckSize, false, INDEX_NONE, WreckComponents.Num() - 1);
-			if (UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this))
-			{
-				WorldSys->AddObstacle(C, WreckSize * 0.5f + 3000.f);
-				++ObstaclesAdded;
-			}
 		}
 		// The battle debris around it: hull plates, struts, pods and small rubble, visual only.
 		int32 Placed = 0;

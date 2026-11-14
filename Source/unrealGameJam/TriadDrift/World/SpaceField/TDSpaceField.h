@@ -246,6 +246,7 @@ private:
 		int32 Collider = INDEX_NONE;
 		int32 Tumbler = INDEX_NONE;
 		int32 Wreck = INDEX_NONE;
+		int32 Obstacle = INDEX_NONE;	// UTDWorldSubsystem handle (medium and up), removed when it breaks
 		UStaticMesh* Mesh = nullptr;
 		float Health = 1.f;
 		uint8 SizeClass = 0;
