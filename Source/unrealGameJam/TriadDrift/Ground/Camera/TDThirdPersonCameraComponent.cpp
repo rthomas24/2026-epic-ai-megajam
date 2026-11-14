@@ -539,7 +539,7 @@ void UTDThirdPersonCameraComponent::RefreshCandidates(const FVector& Pivot)
 		else if (C->Bounds.SphereRadius >= 40.f && C->Bounds.SphereRadius <= MaxOccluderRadius
 			&& FVector::Dist(C->Bounds.Origin, Pivot) <= C->Bounds.SphereRadius + Reach)
 		{
-			Candidates.Add({ C, INDEX_NONE, C->Bounds.Origin, C->Bounds.SphereRadius });
+			Candidates.Add({ C, INDEX_NONE, C->Bounds.Origin, static_cast<float>(C->Bounds.SphereRadius) });
 		}
 	}
 }
@@ -688,6 +688,12 @@ static FAutoConsoleCommandWithWorldAndArgs GTDCameraOccluderCmd(TEXT("TD.Camera.
 			{
 				const float R = MeshRadius * T.GetScale3D().GetAbsMax();
 				if (R < 60.f || R > 600.f) { return; }
+				// Tall plant dressing only (a stem or a trunk that reaches the lens line), not low props.
+				const FString MeshName = C->GetStaticMesh()->GetName();
+				const bool bPlant = MeshName.Contains(TEXT("Mushroom")) || MeshName.Contains(TEXT("Tree")) || MeshName.Contains(TEXT("Fern"))
+					|| MeshName.Contains(TEXT("Frond")) || MeshName.Contains(TEXT("Stalk")) || MeshName.Contains(TEXT("Plant")) || MeshName.Contains(TEXT("Palm"));
+				const float Height = C->GetStaticMesh()->GetBounds().BoxExtent.Z * 2.f * T.GetScale3D().Z;
+				if (!bPlant || Height < 180.f) { return; }
 				const FVector At = T.GetLocation() + FVector(0.f, 0.f, R * 0.5f);
 				const float D = FVector::DistSquared(At, From);
 				if (D < Best) { Best = D; BestAt = At; BestName = C->GetStaticMesh()->GetName(); }
