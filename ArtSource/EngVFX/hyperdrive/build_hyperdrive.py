@@ -66,9 +66,9 @@ H('NS_TD_Hyperdrive_Tunnel', U(HYPER), [
     rifted(mesh_flash('Punch', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 8.0, 13.0', 0.30, 1.0, power=2.0,
                       growth='float3(1,1,1)*(1.0 + pow(Particles.NormalizedAge, 0.7)*1.5)')),
     flash('PunchFlash', 'M_TD_VFX_Glow', 2600, 0.20, 0.45, growth='0.6 + Particles.NormalizedAge*0.8'),
-    offset(shed('Streaks', 'M_TD_VFX_Spark', 650.0, (0.12, 0.26), (9, 20), (60000, 120000), k=2.6, radius=2600.0, drag=0.0, local=True, stretch=60,
+    offset(shed('Streaks', 'M_TD_VFX_Spark', 650.0, (0.12, 0.26), (6, 14), (60000, 120000), k=2.6, radius=2600.0, drag=0.0, local=True, stretch=60,   # r8: slimmer (review: fat near-camera streaks)
                 cone=((-1.0, 0.0, 0.0), 1.5), fade_in=10.0), 12000),
-    offset(shed('WhiteCore', 'M_TD_VFX_Spark', 140.0, (0.10, 0.20), (3, 6), (90000, 150000), radius=1600.0, drag=0.0, local=True, stretch=90,
+    offset(shed('WhiteCore', 'M_TD_VFX_Spark', 140.0, (0.10, 0.20), (2, 4), (90000, 150000), radius=1600.0, drag=0.0, local=True, stretch=70,
                 cone=((-1.0, 0.0, 0.0), 1.0), rgb=(1.4, 1.4, 1.6), fade_in=10.0), 12000),
     # r2: camera-facing ring sprites (r1's mesh-disc rings on the rate template left the whole system inactive)
     offset(shed('Rings', RING_MAT, 7.0, (0.42, 0.42), (4200, 4200), (50000, 50000), k=1.7, radius=10.0, drag=0.0, local=True,   # r7: brighter (faint at the frame edge)
