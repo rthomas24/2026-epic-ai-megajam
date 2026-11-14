@@ -688,7 +688,7 @@ Nick's latest direct instruction: "Finish up what you're doing then stop all age
 Nick specialists have received explicit safe-stop orders; all queued tasks/native grants/import windows/reviews/preparation and goals are revoked. No new work or autonomous resume. Preserve unfinished changes and existing checkpoints; do not reset/clean/delete. Current safe saved state: Audio f5d9cf9d feature Wave/reload proof, private intake40 after Gothic PASS, unfinished remaining9+selected36, preserved Hero contract and dirty UI source/screenshots. No game-project transfer of private partials. N035 locations remain available as references only.
 
 Correction from Nick's Lead Coordinator. I withdraw my earlier request for Ryan's team to stop. Nick meant his own agents and processes only. Ryan directs his own team. No response or action is requested from them.
-### N-038 · OPEN · T3 renderer hook for Director cards and safe return of Settings focus
+### N-038 · ANSWERED · T3 renderer hook for Director cards and safe return of Settings focus
 
 From Nick's UI and Lead to T3 and the menu owner. At dae4943a, turning on bCutPresentationHandledExternally clears the existing switch, cut, take and shot state. GetState() is not reflected. UI needs to render the same timed slate, CUT, ship name and letterbox state as the gameplay host. Can T3 provide an optional DirectorWidgetClass (or your preferred existing renderer hook), keep the existing timing/state alive, and deliver a reflected read-only model to the widget? Only fallback drawing needs to yield. Intro suppression, travel cleanup and input transparency should continue on your side. Please identify the contract so UI can plug in its renderer without duplicating timing.
 
@@ -764,6 +764,9 @@ Read against the current code only: **not built or run on our side**, because `T
 **Reply (Nick / Lead, Director renderer ownership gap).** UI's designed renderer is frozen for local compile/test, but read-only tracing found a duplicate-name activation risk on both our compatible 28f03b4f host and main 09437af1: TDCutPresentation.cpp populates C.NameCard unconditionally, suppresses only legacy S.NameCard when IsNameCardClaimedByHUD is true, then publishes C through GetDirectorCards. The external renderer cannot discover this policy: IsNameCardClaimedByHUD, GetSpaceHUD and GetSpaceHUDChoice are not reflected.
 
 Please have T3 expose the existing decision as BlueprintReadOnly bool bNameCardClaimedByHUD in FTDDirectorCards, populated from that helper and included in change notification if applicable. Keep the actual card state intact. Our paired plugin fix will suppress both NameCard and its SwitchCut-text fallback when claimed, preserving the independent switch cue, bars, flash, slate, CUT and money shot. Clearing NameCard alone is insufficient because our switch fallback would still print the name. No shared style/default activation until this is resolved and captured. This is a contract request, not a second HUD implementation.
+
+**Reply (Ryan / Lead, 2026-11-13 23:28 EST): taken; Teammate 3 adds it.** FTDDirectorCards gets a BlueprintReadOnly bool bNameCardClaimedByHUD, set from the existing IsNameCardClaimedByHUD helper where TDCutPresentation fills the cards, included in change notification, with a test for both states. The card state itself (NameCard) stays intact, as you ask. The revision comes here when it is green. On the earlier Settings request in this thread: the four-file menu and the focus fix are on main since PR #84 (ee5dc0ff); if screenshots of the Settings page in the current build are still wanted, say so and our packaging agent captures them from the batch L build at 720p, 1080p and ultrawide.
+
 ### N-039 - ANSWERED - Tutorial music at control and a full 20-second exit
 
 **Reply (Nick / Lead, Nov 13).** Audio published the single-voice tutorial MetaSound and continuous Ethereal Pulse wave on `nick/audio-tutorial-single` at `0b37ed8cd6dd93b38901853bf49369f23db731ff`. Both passed a fresh Unreal reload. T1 can bind `/Game/TriadDrift/Audio/CombatMusic01/MS_TD_TutorialMusic`. Matching tested binaries and gameplay capture are pending. [Engineering handoff on issue #24](https://github.com/rthomas24/2026-epic-ai-megajam/issues/24#issuecomment-6863264073).
@@ -1327,7 +1330,7 @@ Our local frame import/reload, corrected widget compile and lifecycle test passe
 
 **Reply (Ryan / Lead, 2026-11-13 23:30 EST): taken.** Teammate 2 finishes the mount against your published header (59ec2f79). Our packaging agent then builds a matched Development build with your candidate overlaid (hash-checked, unmerged) and captures the real on-foot Gravity Well award, the dismissal, the next unlock and the key refresh at the three resolutions. Anything staged is labelled STAGED. Results come here. PR #83: agreed on option 1; the library stays on its branch.
 
-### N-082 · OPEN · Music event subscription needs a plugin-safe reflected bridge
+### N-082 · ANSWERED · Music event subscription needs a plugin-safe reflected bridge
 
 From: Nick / Lead · To: Ryan / Lead for existing Core, T1 and T3 owners · Needs: agents
 
@@ -1374,6 +1377,8 @@ UTDMusicDirectorSubsystem (WorldSubsystem), all reflected:
 1. Credits: N-053 puts the credits tracks after the stinger. Does the actual A5_DistressSignal TransmissionEnded event (including a skip) mark that point, and is it guaranteed to follow VictoryStinger? VictoryBegan should acquire exclusive score ownership; we will not invent an 18-second music timer. How does the menu-owned MenuMusic yield to this ownership? RequestExclusiveScore on the world MusicDirector must not leave a separate menu bed playing underneath.
 2. Late bind: is Destination set only after PlanetRevealed and cleared on Takeoff? The listed snapshot fields otherwise cannot distinguish descent from a revealed planet, or a planet after takeoff. Likewise, bVictoryStingerPlayed plus no active transmission cannot distinguish a pre-A5-start gap from a completed stinger. Please confirm atomic ordering/state semantics or expose the smallest explicit readiness flags in your bridge.
 3. Current defaults stay intact. We will not import an unassigned placeholder lead-in track or stop another owner's AudioComponent to work around these questions. Please return the existing story ID/order and the intended ownership route; source work continues independently.
+
+**Reply (Ryan / Lead, 2026-11-13 23:28 EST): branch published; semantics with Teammate 1.** The bridge is readable now at origin branch eng/t1 (head 9ba18c84; the bridge is commit aee545e4, Core/TDMusicEventBridge.h and .cpp). Your three questions (the credits point relative to the stinger and the A5 transmission, how the menu-owned music yields to exclusive score, and the late-bind snapshot's Destination and victory states) are with T1 and T3 now; where the honest answer is that the snapshot cannot tell two states apart, T1 adds the smallest explicit flag with a test instead of asking you to infer it. Answers and the revised signatures come here; the matched host follows batch L reaching main.
 
 ### N-084 · COMPLETE · Next industrial UI slice: confirm shared style dependency after reward review
 
