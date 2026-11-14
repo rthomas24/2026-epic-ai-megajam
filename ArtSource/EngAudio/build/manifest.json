@@ -1134,6 +1134,26 @@
    "file": "wav/Impacts/SFX_Ship_Impact_Heavy_03.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Heavy_03",
    "cat": "sfx"
+  },
+  {
+   "file": "wav/Travel/SFX_Travel_CloudPunch_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_CloudPunch_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Travel/SFX_Travel_CloudPunch_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_CloudPunch_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Travel/SFX_Travel_CloudPunch_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_CloudPunch_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Travel/SFX_Travel_GlideWind_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_GlideWind_01",
+   "cat": "loop"
   }
  ],
  "assets": [
@@ -3660,6 +3680,42 @@
    "cls": "SFX",
    "slots": [],
    "note": "ENG-48: a hard, near head-on strike: a deeper longer thud, two ringing hull tones and a rattle. No data slot yet: for T1."
+  },
+  {
+   "name": "Travel_CloudPunch",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/MSS_Travel_CloudPunch",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_CloudPunch_01",
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_CloudPunch_02",
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_CloudPunch_03"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": "Ground_Medium",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_Travel_FX.CloudPunch"
+   ],
+   "note": "ENG-38: the ship punches through the cloud deck (either direction). A muffled rush that swells, a soft air-pressure thump as the ship breaks through, then the sound opens up bright with a fading vapour hiss. Played by TDDescentSubsystem at the ship (DA_Travel_FX.CloudPunch), 3D."
+  },
+  {
+   "name": "Travel_GlideWind",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_GlideWind_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_GlideWind_01"
+   ],
+   "volume_db": -9.0,
+   "looping": true,
+   "att": null,
+   "con": null,
+   "cls": "SFX",
+   "slots": [],
+   "note": "ENG-38: the wind under the 8-10 s planet glide, rising as the descent roar thins. 2D mono loop: airy mid-high wind in slow gusts with a faint whistle, no low rumble (the roar owns the lows). Needs a slot whose volume T1 drives against the roar (CloudWisps plays its sound with no handle kept, so it would never stop)."
   }
  ]
 }
