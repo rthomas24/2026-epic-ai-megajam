@@ -395,6 +395,8 @@ public:
 		 * the pull 0..1; once it glides in (controls locked) "DOCKING · CONTROLS LOCKED". 0 = none, 1 = pulled, 2 = gliding.
 		 */
 		uint8 Docking = 0;
+		/** T4's reactor hold has the flown ship: "REACTOR IN RANGE · HOLD FIRE ON THE CORE". */
+		bool bReactorHold = false;
 		float TractorPull01 = 0.f;
 		bool bDescent = false;
 		float Heat01 = 0.f;

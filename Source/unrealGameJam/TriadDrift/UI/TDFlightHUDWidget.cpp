@@ -960,6 +960,8 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		const ATDDockingBay* Bay = Cast<ATDDockingBay>(DockingBay.Get());
 		const ETDDockingState State = Bay ? Bay->GetDockingState() : ETDDockingState::Closed;
 		View.TractorPull01 = Bay ? FMath::Clamp(Bay->GetCurrentPull(), 0.f, 1.f) : 0.f;
+		const ATDDominion* HoldDom = ATDDominion::Get(this);
+		View.bReactorHold = HoldDom && HoldDom->IsReactorHoldActive();
 		View.Docking = State == ETDDockingState::Gliding || State == ETDDockingState::Docked ? 2 : (State == ETDDockingState::Open && View.TractorPull01 > .01f ? 1 : 0);
 	}
 
@@ -2438,6 +2440,16 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Box(X + 20.f, Y + 32.f, (W - 40.f) * View.TractorPull01, 4.f, T::Shield());
 		}
 		Rec(bGlide ? TEXT("docking_locked") : TEXT("tractor"), X, Y, W, H);
+	}
+	// ---- the reactor hold (T4's ATDDominion::IsReactorHoldActive: the ship is slowed in front of the exposed core):
+	// one calm amber line in the same place and style as the tractor plate.
+	if (View.bReactorHold && View.Docking == 0)
+	{
+		static const FString Hold(TEXT("REACTOR IN RANGE  ·  HOLD FIRE ON THE CORE"));
+		const float W = 520.f, H = 34.f, X = CenterX - W * .5f, Y = C.Y - 170.f;
+		P.Plate(X, Y, W, H, 12.f, T::Plate().CopyWithNewOpacity(.8f));
+		P.Words(CenterX, Y + 8.f, Hold, 15, T::Warning(), "Bold", .5f, 120);
+		Rec(TEXT("reactor_hold"), X, Y, W, H);
 	}
 	if (View.OrbitCue01 > 0.f)
 	{
