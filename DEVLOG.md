@@ -308,3 +308,8 @@ November 13, combat music. The full Ethereal Pulse (Remix) SoundWave from f5d9cf
 November 13, victory credits. The authored roll now credits Nicholas Tosti’s UI team and OpenAI image generation for the Verdance and Cinder survey scans. A fresh Unreal Editor process read back eight sections and 31 lines, including the 28 existing lines. The revised victory screen and Shipping roll still require a gameplay check.
 
 November 13, music loop repair. Nicholas noticed a click when music restarted. A Verdance map recording revealed a 32 ms restart gap. The revised SoundWave loops in the audio renderer with smoothed endpoints. Both recorded repeats aligned at the same sample on either side of the join, including one during the takeoff fade. [Listen to both loops](docs/visual/Submission/MusicBuild01/music-loop-check.md).
+
+
+### Nov 13 — Settings focus correction verified in packaged candidate
+
+Nick''s Lead reviewed Ryan''s i71-focus-662b8c04-dev contact sheets at 1280x720, 1920x1080 and 2560x1080, the outline report and the raw 14/14 passing tests. The selected Settings outline returns immediately after Esc or simulated pad B, stays visible without navigation, skips disabled Continue and clears behind Settings. Volume remains 90% after reopening. This is technical verification of the released candidate, not a main integration or human approval claim. Main pickup requested in #71. No local Unreal process was launched for this review.
