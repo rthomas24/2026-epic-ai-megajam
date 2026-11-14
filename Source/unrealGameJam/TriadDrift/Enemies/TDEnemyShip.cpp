@@ -888,6 +888,21 @@ void ATDEnemyShip::MountPart(AActor* Part, const FVector& LocalDirection, float 
 		Part->AttachToComponent(Hull, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, EAttachmentRule::SnapToTarget, EAttachmentRule::KeepWorld, true), Socket);
 		bSocketMounts = true;
 		FitCollisionToSocketedHull();
+		// The part sits ON the hull, clear of its collision: a socket inside the hull (the Rodin carrier's dorsal bay is)
+		// would bury the part, and its hits would land on the hull.
+		{
+			const FTransform SocketXf = Hull->GetSocketTransform(Socket);
+			const FVector Out = SocketXf.GetUnitAxis(EAxis::X);
+			const FVector From = SocketXf.GetLocation() + Out * 5000.f;
+			FHitResult Hit;
+			FCollisionQueryParams Q(SCENE_QUERY_STAT(TDCarrierMount), /*bTraceComplex*/ false);
+			// Buried socket (the trace from outside meets the hull first): stand on the hull's surface. Socket already
+			// outside the collision (the trace meets nothing): stand on the socket. Either way the part's centre sits its
+			// half-extent plus the clearance out along +X, so shots and rams reach the part before grazing the hull.
+			const bool bBuried = Hull->LineTraceComponent(Hit, From, SocketXf.GetLocation(), Q);
+			const FVector Surface = bBuried ? FVector(Hit.ImpactPoint) : SocketXf.GetLocation();
+			Part->SetActorLocation(Surface + Out * (PartHalfExtent + CarrierPartClearance));
+		}
 		if (USphereComponent* Sphere = GetCollisionSphere()) { Sphere->IgnoreActorWhenMoving(Part, true); }
 		if (UPrimitiveComponent* PartRoot = Cast<UPrimitiveComponent>(Part->GetRootComponent())) { PartRoot->IgnoreActorWhenMoving(this, true); }
 		return;
@@ -920,15 +935,18 @@ void ATDEnemyShip::FitCollisionToSocketedHull()
 	}
 	bFittedToSockets = true;
 	const FVector Half = Hull->GetStaticMesh()->GetBoundingBox().GetExtent() * Hull->GetComponentScale().GetAbs() / FMath::Max(GetActorScale3D().GetAbsMax(), KINDA_SMALL_NUMBER);
-	const float Thin = FMath::Max(100.f, Half.GetMin());
+	// The blocking sphere shrinks well inside the hull (60% of its thinnest half-extent): a ship ramming a part on the
+	// hull's side passes close to the centre-line and must not touch the sphere first. The hull's own collision (its
+	// UCX hulls) takes over: it blocks projectiles AND ships (query only), so nothing flies through the real shape.
+	const float Thin = FMath::Max(100.f, Half.GetMin() * 0.6f);
 	if (Thin < Sphere->GetUnscaledSphereRadius())
 	{
 		Sphere->SetSphereRadius(Thin);
 	}
-	// The hull's own collision answers projectiles (query only: flight and avoidance still use the sphere).
 	Hull->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	Hull->SetCollisionResponseToAllChannels(ECR_Ignore);
 	Hull->SetCollisionResponseToChannel(TDCollision::Projectile, ECR_Block);
+	Hull->SetCollisionResponseToChannel(TDCollision::Ship, ECR_Block);
 }
 
 void ATDEnemyShip::SpawnCarrierParts()
