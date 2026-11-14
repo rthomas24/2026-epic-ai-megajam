@@ -106,13 +106,14 @@ namespace TDPilotAnimDebug
 		const float Radius = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 6000.f;
 		const float MinDeg = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 12.f;
 		const float MaxDeg = Args.Num() > 2 ? FCString::Atof(*Args[2]) : 30.f;
+		const float MinRadius = Args.Num() > 3 ? FCString::Atof(*Args[3]) : 300.f; // skip the start (pad edges)
 		const FVector Here = Char->GetActorLocation();
 		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDFindSlope), false, Char);
 		auto Ground = [&](const FVector& XY, FHitResult& Hit)
 		{
 			return World->LineTraceSingleByChannel(Hit, FVector(XY.X, XY.Y, Here.Z + 3000.f), FVector(XY.X, XY.Y, Here.Z - 3000.f), ECC_Visibility, Params);
 		};
-		for (float R = 300.f; R <= Radius; R += 300.f)
+		for (float R = MinRadius; R <= Radius; R += 300.f)
 		{
 			for (int32 A = 0; A < 24; ++A)
 			{
@@ -140,6 +141,6 @@ namespace TDPilotAnimDebug
 	}
 
 	static FAutoConsoleCommandWithWorldAndArgs CmdFindSlope(TEXT("TD.Pilot.FindSlope"),
-		TEXT("TD.Pilot.FindSlope [Radius] [MinDeg] [MaxDeg]: teleport the pilot onto sloping ground, side-on to the slope."),
+		TEXT("TD.Pilot.FindSlope [Radius] [MinDeg] [MaxDeg] [MinRadius]: teleport the pilot onto sloping ground, side-on to the slope."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&FindSlope));
 }
