@@ -88,6 +88,8 @@ public:
 	bool HasPlayedTransmission(FName Id) const { return Progress.StoryTransmissions.Contains(Id); }
 	void MarkTransmissionPlayed(FName Id);
 	void ForgetPlayedTransmissions();
+	/** T3: an ambient line claimed when queued but cut off by a map travel before it aired: unclaim it (run and checkpoint). */
+	void ForgetTransmission(FName Id);
 	/** This run was resumed with Continue (onboarding's control lessons stay off). A New Game clears it. */
 	bool IsRunFromContinue() const { return bRunFromContinue; }
 #if WITH_DEV_AUTOMATION_TESTS
