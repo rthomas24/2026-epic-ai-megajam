@@ -215,6 +215,19 @@ for _ship, _rb in (("NullFighter", 2.0), ("NullInterceptor", 2.5), ("NullBomber"
     SHIPS[_ship]["mi_params"]["GlowSpread"] = 0.2
 SHIPS["NullFighter"]["enemy_trail"] = 0.6
 SHIPS["NullInterceptor"]["enemy_trail"] = 0.6
+# Squad silhouettes against the nebulae (Lead, Nov 14; T1's live check: the white and cyan Lancer nearly disappeared
+# against the cyan nebula from the chase camera): a fresnel rim in a deeper shade of each ship's own colour (M_TD_Ship
+# RimStrength / RimColor, added for the fleet) and a stronger idle nozzle glow. TD_SQUAD_RIM=0 turns both back.
+if os.environ.get("TD_SQUAD_RIM", "1") != "0":
+    for _ship, _rim, _col, _glow in (("Lancer", 0.8, (0.0, 0.32, 1.0), 2.6), ("Rift", 0.25, (1.0, 0.02, 0.45), None),
+                                     ("Bastion", 0.18, (1.0, 0.38, 0.02), 1.0)):       # (0.6 washed the Bastion's grey armour gold and the Rift's shadows pink)
+        SHIPS[_ship]["mi_params"]["RimStrength"] = _rim
+        SHIPS[_ship]["mi_vectors"] = {"RimColor": _col}
+        if _glow:
+            SHIPS[_ship]["glow_strength"] = _glow
+else:
+    for _ship in ("Lancer", "Rift", "Bastion"):
+        SHIPS[_ship]["mi_params"]["RimStrength"] = 0.0
 LIGHTS_DIR = os.path.join(KIT, "FleetLights")
 SUFFIX_PARAM = (("BaseColorTex", "BC"), ("ORMTex", "ORM"), ("NormalTex", "N"), ("EmissiveTex", "E"),
                 ("HeatMaskTex", "HeatMask"))
@@ -1167,6 +1180,8 @@ def main():
                 mel.set_material_instance_texture_parameter_value(mi, pname, dset[suffix])
         for pname, value in cfg.get("mi_params", {}).items():      # close-range pass: RoughnessMin, MetallicScale, Detail*
             mel.set_material_instance_scalar_parameter_value(mi, pname, value)
+        for pname, value in cfg.get("mi_vectors", {}).items():
+            mel.set_material_instance_vector_parameter_value(mi, pname, unreal.LinearColor(value[0], value[1], value[2], 1.0))
         et = cfg.get("emissive_tint", (1.0, 1.0, 1.0))
         mel.set_material_instance_vector_parameter_value(mi, "EmissiveTint", unreal.LinearColor(et[0], et[1], et[2], 1.0))
         bt = cfg["base_tint"]
@@ -1201,6 +1216,8 @@ def main():
                     mel.set_material_instance_texture_parameter_value(parts_mi, pname, dset[suffix])
             for pname, value in dict(cfg.get("mi_params", {}), **cfg.get("parts_params", {})).items():
                 mel.set_material_instance_scalar_parameter_value(parts_mi, pname, value)
+            for pname, value in cfg.get("mi_vectors", {}).items():
+                mel.set_material_instance_vector_parameter_value(parts_mi, pname, unreal.LinearColor(value[0], value[1], value[2], 1.0))
             pt = cfg.get("parts_tint", (1.0, 1.0, 1.0))
             mel.set_material_instance_vector_parameter_value(parts_mi, "BaseTint", unreal.LinearColor(pt[0], pt[1], pt[2], 1.0))
             if "emissive_tint" in cfg:      # the Null fleet: the parts' glow takes the hull's tint and its boost at range
