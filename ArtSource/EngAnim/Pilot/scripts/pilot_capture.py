@@ -49,6 +49,11 @@ MOVES = {
     "flinch":  (0.3, 5.0, [(0.0, "TD.God"), (4.0, "TD.God")], []),
     "dash":    (0.2, 3.0, [(0.0, "TD.Key Q")], []),
     "jump":    (0.3, 3.0, [(0.0, "TD.Key SpaceBar")], []),
+    "walk_follow": (0.5, 3.0, [(0.0, "TD.Pilot.Drive 150 1.4")], []),
+    "run_follow": (0.4, 3.0, [(0.0, "TD.Key W 1.1")], []),
+    "dash_follow": (0.15, 3.0, [(0.0, "TD.Key Q")], []),
+    "crew_heavy": (0.5, 6.0, [(0.3, "TD.Ground.BreakGuard")], [("TD.Ground.Spawn Heavy 450", 2.5)]),
+    "crew_warden": (0.5, 6.0, [(0.3, "TD.Ground.CrewHit 80")], [("TD.Dev.DestroySpawned", 0.5), ("TD.Ground.Spawn Warden 700", 3.0)]),
     # sequences at about 10 game fps (2 views) with every-frame foot positions in the log (TD.Pilot.FootTrace)
     "seq_walk_run_stop": (0.6, 6.5, [(0.0, "TD.Pilot.FootTrace 3.8"), (0.0, "TD.Pilot.Drive 150 1.2"), (2.0, "TD.Key W 1.2")], []),
     "seq_light_moving": (0.6, 5.5, [(0.0, "TD.Pilot.FootTrace 3.2"), (0.0, "TD.Key W 2.8"), (0.6, "TD.Key LeftMouseButton"), (1.2, "TD.Key LeftMouseButton"), (1.8, "TD.Key LeftMouseButton")], []),
