@@ -269,16 +269,18 @@ S2('NS_TD_Core_Destroyed', U(FIRE, 2.2), [
 # Slots wanted: UTDTravelFX.PlanetAmbientVerdance / PlanetAmbientCinder (FTDFXCue), played attached to the player's
 # camera by the planet's look code (ATDPlaceholderSky, which knows the planet style), User.Fade set every tick.
 AMB = '(User.Fade)'
+# round 9b: x3 size and rate (first look: nearly invisible on foot in daylight)
+# round 9c: born within 10 m of the camera (25 m spread them too thin to see on foot), larger
 S2('NS_TD_Ambient_Verdance', U((0.75, 1.0, 0.55, 1.0), 1.0, Fade=1.0), [
-    shed('Pollen', 'M_TD_VFX_Glow', 0, (4.0, 7.0), (2.5, 5.0), (5, 30), k=0.7, radius=2500.0, drag=0.4, curl=60.0, rgb=(1.0, 0.95, 0.70), alpha=0.8,
-         rate_expr='40.0*' + AMB, power=0.8, fade_in=3.0, gpu=True),
-    shed('Spores', 'M_TD_VFX_Glow', 0, (3.0, 6.0), (6, 14), (10, 50), k=1.6, radius=2200.0, drag=0.3, curl=90.0, rgb=(0.35, 1.0, 0.85), alpha=1.0,
-         rate_expr='9.0*' + AMB, power=1.2, fade_in=4.0, gpu=True)])
+    shed('Pollen', 'M_TD_VFX_Glow', 0, (4.0, 7.0), (12, 22), (5, 30), k=0.7, radius=1000.0, drag=0.4, curl=60.0, rgb=(1.0, 0.95, 0.70), alpha=0.8,
+         rate_expr='120.0*' + AMB, power=0.8, fade_in=3.0, gpu=True),
+    shed('Spores', 'M_TD_VFX_Glow', 0, (3.0, 6.0), (28, 60), (10, 50), k=1.6, radius=900.0, drag=0.3, curl=90.0, rgb=(0.35, 1.0, 0.85), alpha=1.0,
+         rate_expr='27.0*' + AMB, power=1.2, fade_in=4.0, gpu=True)])
 S2('NS_TD_Ambient_Cinder', U((1.0, 0.45, 0.12, 1.0), 1.0, Fade=1.0), [
-    shed('Ash', 'M_TD_VFX_Smoke', 0, (3.0, 6.0), (4, 9), (60, 160), radius=2500.0, drag=0.2, curl=40.0, rgb=(0.20, 0.19, 0.19), alpha=0.85,
-         cone=((0.0, 0.0, -1.0), 25.0), rate_expr='60.0*' + AMB, power=0.6, fade_in=3.0, gpu=True),
-    shed('Embers', 'M_TD_VFX_Glow', 0, (2.0, 4.0), (3, 7), (80, 240), k=1.8, radius=2200.0, drag=0.3, curl=120.0, rgb=(1.0, 0.45, 0.10),
-         cone=((0.0, 0.0, 1.0), 30.0), rate_expr='16.0*' + AMB, power=1.4, fade_in=4.0, gpu=True)])
+    shed('Ash', 'M_TD_VFX_Smoke', 0, (3.0, 6.0), (18, 36), (60, 160), radius=1000.0, drag=0.2, curl=40.0, rgb=(0.20, 0.19, 0.19), alpha=0.85,
+         cone=((0.0, 0.0, -1.0), 25.0), rate_expr='180.0*' + AMB, power=0.6, fade_in=3.0, gpu=True),
+    shed('Embers', 'M_TD_VFX_Glow', 0, (2.0, 4.0), (14, 30), (80, 240), k=1.8, radius=900.0, drag=0.3, curl=120.0, rgb=(1.0, 0.45, 0.10),
+         cone=((0.0, 0.0, 1.0), 30.0), rate_expr='48.0*' + AMB, power=1.4, fade_in=4.0, gpu=True)])
 
 # ---- round 9 (ART-16, T4): the Dominion's one-shots, all SpawnSystemAtLocation at a world point.
 # ReactorExposed: once, when the 4th generator falls, at the reactor (its rotation): the core uncovered. Authored for a
@@ -316,27 +318,28 @@ S2('NS_TD_Dominion_DockOpen', U(DOCK, 1.0), [
 # for the 90 s run (+X = the pawn's facing); EscapeFlightLoop, attached to the flown ship's root for the escape flight
 # (+X = the nose). Both read User.Intensity 0..1 (default 1) for the code to ramp the collapse up. Only spawning emitters.
 ESC = '(User.Intensity)'
+# round 9b: x3 size and rate
 S2('NS_TD_Escape_RunLoop', U((1.0, 0.55, 0.22, 1.0), 1.0, Intensity=1.0), [
     # a rain of sparks from the ceiling, ahead of and around the runner
-    offset(shed('SparkRain', 'M_TD_VFX_Spark', 0, (0.5, 1.1), (2.5, 5.0), (600, 1500), k=1.8, radius=1400.0, drag=0.4, local=False, stretch=16,
-                cone=((0.0, 0.0, -1.0), 14.0), rate_expr='70.0*' + ESC, fade_in=6.0), 700, 0, 900),
+    offset(shed('SparkRain', 'M_TD_VFX_Spark', 0, (0.5, 1.1), (7.5, 15.0), (600, 1500), k=1.8, radius=1400.0, drag=0.4, local=False, stretch=16,
+                cone=((0.0, 0.0, -1.0), 14.0), rate_expr='210.0*' + ESC, fade_in=6.0), 700, 0, 900),
     # embers drifting through the corridor
-    offset(shed('Embers', 'M_TD_VFX_Glow', 0, (0.8, 1.8), (4, 10), (40, 220), k=1.4, radius=1200.0, drag=0.6, curl=700.0, local=False,
-                rate_expr='45.0*' + ESC, power=1.6, fade_in=4.0), 500, 0, 200),
+    offset(shed('Embers', 'M_TD_VFX_Glow', 0, (0.8, 1.8), (12, 30), (40, 220), k=1.4, radius=1200.0, drag=0.6, curl=700.0, local=False,
+                rate_expr='135.0*' + ESC, power=1.6, fade_in=4.0), 500, 0, 200),
     # dark falling debris streaks
-    offset(shed('Debris', 'M_TD_VFX_Smoke', 0, (0.5, 0.9), (8, 18), (700, 1600), radius=1300.0, drag=0.2, local=False, stretch=6, rgb=(0.06, 0.05, 0.05), alpha=0.9,
-                cone=((0.0, 0.0, -1.0), 10.0), rate_expr='22.0*' + ESC, power=0.6, fade_in=6.0), 600, 0, 900),
+    offset(shed('Debris', 'M_TD_VFX_Smoke', 0, (0.5, 0.9), (24, 54), (700, 1600), radius=1300.0, drag=0.2, local=False, stretch=6, rgb=(0.06, 0.05, 0.05), alpha=0.9,
+                cone=((0.0, 0.0, -1.0), 10.0), rate_expr='66.0*' + ESC, power=0.6, fade_in=6.0), 600, 0, 900),
     # hot smoke haze rolling along the corridor
     offset(spin(shed('Haze', 'M_TD_VFX_SmokeRim', 0, (2.0, 3.4), (300, 620), (60, 260), radius=900.0, drag=0.8, curl=200.0, local=False, rgb=(0.36, 0.30, 0.28), alpha=0.35,
-                     rate_expr='3.0*' + ESC, power=0.8, fade_in=5.0, growth='0.7 + Particles.NormalizedAge*0.8', sort=True)), 900, 0, 150)])
+                     rate_expr='9.0*' + ESC, power=0.8, fade_in=5.0, growth='0.7 + Particles.NormalizedAge*0.8', sort=True)), 900, 0, 150)])
 S2('NS_TD_Escape_FlightLoop', U((1.0, 0.50, 0.18, 1.0), 1.0, Intensity=1.0), [
     # burning wreckage streaming past the cockpit: born far ahead, flying back past the ship
     offset(spin(shed('Fire', 'M_TD_VFX_Fireball', 0, (0.5, 0.9), (260, 620), (9000, 15000), radius=3000.0, drag=0.0, curl=900.0, local=True, rgb=(1.0, 0.62, 0.34),
-                     cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='14.0*' + ESC, growth='0.6 + Particles.NormalizedAge*1.4')), 4000),
-    offset(shed('Embers', 'M_TD_VFX_Spark', 0, (0.3, 0.6), (8, 16), (10000, 18000), k=1.7, radius=3200.0, drag=0.0, local=True, stretch=16,
-                cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='110.0*' + ESC, fade_in=6.0), 4000),
-    offset(shed('Ash', 'M_TD_VFX_Smoke', 0, (0.35, 0.6), (16, 34), (9000, 15000), radius=3200.0, drag=0.0, local=True, stretch=6, rgb=(0.05, 0.04, 0.04), alpha=0.9,
-                cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='60.0*' + ESC, power=0.6, fade_in=6.0), 4000),
+                     cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='28.0*' + ESC, growth='0.6 + Particles.NormalizedAge*1.4')), 4000),
+    offset(shed('Embers', 'M_TD_VFX_Spark', 0, (0.3, 0.6), (14, 26), (10000, 18000), k=1.7, radius=3200.0, drag=0.0, local=True, stretch=16,
+                cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='220.0*' + ESC, fade_in=6.0), 4000),
+    offset(shed('Ash', 'M_TD_VFX_Smoke', 0, (0.35, 0.6), (26, 52), (9000, 15000), radius=3200.0, drag=0.0, local=True, stretch=6, rgb=(0.05, 0.04, 0.04), alpha=0.9,
+                cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='120.0*' + ESC, power=0.6, fade_in=6.0), 4000),
     offset(spin(shed('Smoke', 'M_TD_VFX_SmokeRim', 0, (0.6, 1.1), (600, 1200), (8000, 13000), radius=3600.0, drag=0.0, local=True, rgb=(0.30, 0.26, 0.24), alpha=0.5,
                      cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='6.0*' + ESC, power=0.8, fade_in=5.0, growth='0.8 + Particles.NormalizedAge*1.2', sort=True)), 4500)])
 

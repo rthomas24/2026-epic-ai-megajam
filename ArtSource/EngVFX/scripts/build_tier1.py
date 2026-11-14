@@ -316,7 +316,7 @@ def enemy_tracer():
     shadow = mesh_single('Shadow', 'SM_TD_VFX_Bolt', 'M_TD_VFX_BoltShadow', '2.6, 1.9, 1.9', 1.0, None, offset=(-60, 0, 0), live_scale='float3(1,1,1)*' + DIST)
     shadow['rend']['SortOrderHint'] = -10
     out = [shadow]
-    for nm, size, back, k in (('Diamond', 260, 0, 1.9), ('Pulse2', 170, -190, 1.4), ('Pulse3', 110, -330, 1.0)):
+    for nm, size, back, k in (('Diamond', 156, 0, 2.1), ('Pulse2', 102, -120, 1.5), ('Pulse3', 66, -205, 1.1)):   # 60% (Lead: as big as the crosshair bracket at 60 m)
         d = single(nm, 'M_TD_VFX_Diamond', size, k, None, offset=(back, 0, 0) if back else None)
         d['add'].append((PU, 'Update/Size/ScaleSpriteSize'))
         d['set'] += [(PU, 'ScaleSpriteSize', 'Scale Sprite Size Mode', E('Uniform')), (PU, 'ScaleSpriteSize', 'Uniform Scale Factor', X(DIST))]

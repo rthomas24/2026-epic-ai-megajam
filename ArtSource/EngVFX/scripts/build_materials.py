@@ -504,7 +504,7 @@ float d = (q.x + q.y)*0.92 - 0.62;            // < 0 inside the diamond
 float rim = exp(-pow(d/0.075, 2.0));
 float inside = 1.0 - smoothstep(-0.02, 0.02, d);
 float halo = exp(-max(d, 0.0)*7.0)*m;
-float3 c = PC.rgb*(rim*1.5 + inside*0.10 + halo*0.30) + lerp(PC.rgb, float3(1,1,1), 0.6)*pow(rim, 3.0)*0.6;
+float3 c = PC.rgb*(rim*1.8 + inside*0.10 + halo*0.30) + lerp(PC.rgb, float3(1,1,1), 0.35)*pow(rim, 4.0)*0.3;   // keep the rim enemy red-orange (Lead)
 return float4(c*Intensity, PC.a);""", {}),
 
     'M_TD_VFX_Backdrop': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
