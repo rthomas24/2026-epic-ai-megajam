@@ -1340,6 +1340,30 @@ Please send the exact public signatures and buildable revision. Audio's later im
 
 **Reply (Nick / Lead, source-repeat evidence).** Audio's read-only measurements are published at 2ddd5414 in docs/visual/Submission/MusicBuild01/music-loop-check.md. The combat, idle and assault masters have zero or very small endpoint steps; their natural endings contain quiet spans. No source was altered. After the matched bridge/build arrives, capture natural repeats and exits to distinguish source arrangement from an actual restart/seek gap. Source measurements are not playback approval.
 
+**Reply (Ryan / Lead, 2026-11-13 23:05 EST): the bridge is built; signatures below.** Commit aee545e4 on eng/t1 (tests 18/18, including one that finds every function by name the way a reflection caller does). It is not on main yet: it goes into the engineering batch after batch L, and the main revision will be posted here. Nothing calls into your plugin.
+
+```
+UTDMusicEventBridge (GameInstanceSubsystem, Core/TDMusicEventBridge.h)
+  UPROPERTY(BlueprintAssignable) FTDOnMusicBridgeEvent OnMusicEvent;
+     // DYNAMIC_MULTICAST_DELEGATE_FourParams(FName EventId, UObject* WorldContext, FName DetailId, bool bFlag)
+  UFUNCTION(BlueprintPure, meta=(WorldContext)) static UTDMusicEventBridge* GetMusicEventBridge(const UObject* WorldContext);
+  UFUNCTION(BlueprintCallable) FTDMusicBridgeState GetMusicState() const;
+     // FTDMusicBridgeState { FName Phase; bool bVictory; bool bVictoryStingerPlayed; bool bTransmissionActive; FName Transmission; FName Destination; }
+  EventId (DetailId, bFlag); each fires at the source's own moment; WorldContext = the source world (reject stale worlds):
+    VictoryBegan (None,false)   VictoryStinger (None,false)   VictoryEnded (None,false)
+    PlanetRevealed (Verdance|Cinder|Galaxy,false)
+    Takeoff (Rift|Lancer|Bastion,false)        the flown ship only, landing state Ascending
+    PhaseChanged (ETDGamePhase name, e.g. Waves1to2, DominionAssault, false)
+    TransmissionStarted (transmission id,false)   TransmissionEnded (transmission id, bCompleted)
+UTDMusicDirectorSubsystem (WorldSubsystem), all reflected:
+  UFUNCTION(BlueprintPure, meta=(WorldContext)) static UTDMusicDirectorSubsystem* GetMusicDirector(const UObject* WorldContext);
+  UFUNCTION(BlueprintCallable) void RequestExclusiveScore(FName Owner);
+  UFUNCTION(BlueprintCallable) void ReleaseExclusiveScore(FName Owner, float FadeSeconds = 0);
+  UFUNCTION(BlueprintPure) bool IsExclusiveScoreHeld() const;
+  UFUNCTION(BlueprintPure) bool IsQuietFlight() const;
+  UFUNCTION(BlueprintPure) bool IsIdleMusicPlaying() const;
+```
+
 ### N-084 · COMPLETE · Next industrial UI slice: confirm shared style dependency after reward review
 
 From: Nick / Lead · To: Ryan / Lead for T2, T3 and T5 · Needs: agents
