@@ -141,7 +141,8 @@ namespace TDObjectiveTextImpl
 			Out.Id = Scene;
 			Out.Step = Info.WaveNumber;
 			// storyline.md section 13: nobody names the enemy (and Nicholas has no approved wave line yet).
-			Out.Text = FText::Format(LOCTEXT("Wave", "WAVE {0} · CLEAR THE AREA"), Info.WaveNumber);
+			// T4's per-wave objective (126b238d: wave 5 "BREAK THE DOMINION GUARD"), else the generic line.
+			Out.Text = !Info.ObjectiveText.IsEmpty() ? Info.ObjectiveText : FText::Format(LOCTEXT("Wave", "WAVE {0} · CLEAR THE AREA"), Info.WaveNumber);
 			return true;
 		}
 		const int32 Next = FMath::Max(Info.WaveNumber, P.WavesCleared) + 1;

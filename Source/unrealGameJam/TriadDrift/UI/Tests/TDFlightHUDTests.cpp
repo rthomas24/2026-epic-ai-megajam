@@ -389,6 +389,19 @@ bool FTDFlightHUDDescent::RunTest(const FString& Parameters)
 	F.HUD->Sample(1.3f);
 	TestEqual(TEXT("pulse over: 0"), F.HUD->GetNavigationPulseEnvelope(), 0.f);
 
+	// ENG-29 docking (T4's 10 s approach): the tractor line and its pull, then the locked glide; nothing otherwise.
+	F.HUD->ForceDocking = 0;
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("no tractor: nothing"), PaintHas(TEXT("tractor")) || PaintHas(TEXT("docking_locked")));
+	F.HUD->ForceDocking = 1;
+	F.HUD->ForceTractorPull01 = .4f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("pulled: TRACTOR BEAM · CONTROLS LIMITED, the first frame"), F.V().Docking == 1 && PaintHas(TEXT("tractor")));
+	F.HUD->ForceDocking = 2;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("gliding: DOCKING · CONTROLS LOCKED"), PaintHas(TEXT("docking_locked")));
+	F.HUD->ForceDocking = -1;
+
 	F.HUD->StartOrbitCue();
 	F.HUD->Sample(.1f);
 	TestTrue(TEXT("ORBIT after the climb-out reveal"), F.V().OrbitCue01 > .5f && PaintHas(TEXT("orbit")));

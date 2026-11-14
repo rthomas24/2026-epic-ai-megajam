@@ -167,6 +167,8 @@ TArray<FTDWaveDef> ATDWaveDirector::MakeDefaultWaves()
 		FTDWaveDef W;
 		W.SceneId = TEXT("Wave5");
 		W.Title = LOCTEXT("Wave5", "Dominion's Guard");
+		// features.md ENG-18 / storyline 24: wave 5's objective line (placeholder words; Nicholas may reword).
+		W.ObjectiveText = LOCTEXT("Wave5Objective", "BREAK THE DOMINION GUARD");
 		W.Intensity01 = 0.9f;
 		W.Phase = ETDGamePhase::Wave5;
 		W.StartTip = TDTipIds::Carriers;
@@ -347,6 +349,13 @@ void ATDWaveDirector::StartFromProgress()
 	{
 		CurrentWave = Waves.Num() - 1;
 		SetState(ETDWaveState::AllComplete);
+		// The field rule's other order: wave 5 was cleared before Cinder was finished (a stage, a cheat, an old save).
+		// Back in the galaxy with both done, the field opens now.
+		ITDGameFlow* Flow = UTDStatics::GetGameFlow(this);
+		if (Flow && !Progress.bDominionRevealed && Waves.Last().bRevealsDominion && IsCinderFinished(Progress))
+		{
+			Flow->SetDominionState(true, false);
+		}
 		return;
 	}
 	if (!PhaseMatches(Waves[Next].Phase, Progress.Phase))
@@ -1656,6 +1665,7 @@ FTDWaveInfo ATDWaveDirector::GetWaveInfo() const
 		Info.WaveNumber = CurrentWave + 1;
 		Info.Intensity01 = Def->Intensity01;
 		Info.SceneId = GetSceneId(CurrentWave);
+		Info.ObjectiveText = Def->ObjectiveText;
 	}
 	Info.EnemiesAlive = GetEnemiesAlive();
 	Info.EnemiesTotal = EnemiesTotal;
@@ -1668,6 +1678,7 @@ FTDWaveInfo ATDWaveDirector::GetWaveInfo() const
 		// line (T5) carries the finale; a HUD shows its wave block only while bWaveActive or bInBreather.
 		Info.WaveNumber = 0;
 		Info.SceneId = NAME_None;
+		Info.ObjectiveText = FText::GetEmpty();
 		Info.EnemiesAlive = 0;
 		Info.EnemiesTotal = 0;
 		Info.Intensity01 = 0.f;

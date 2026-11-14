@@ -118,21 +118,21 @@ Ids marked **(exists)** are fired by the game today; the rest are **(new)**: the
 | Id | When | Speaker | Priority | Wren | Kato | Moss |
 |---|---|---|---|---|---|---|
 | `Bark_Dom_GeneratorHit` / `_GeneratorDown` (new, T4) | A field generator at half health / destroyed | a pilot | Normal / High | "It's cracking!" / "Generator's gone!" | "Generator failing." / "One down. {n} remain." | "Keep at it." / "That's another." |
-| `Bark_Dom_Turrets` (new, T4) | Turret fire first hits the flown ship | a wingman | High | "Turrets, watch the turrets!" | "Defensive fire. Stay low." | "They've got guns everywhere." |
+| `Bark_Dom_Turrets` (new, T4) | **Retired (Nov 14):** replaced by the story line `G6_Moss_TurretsCharging` (storyline 24), once per run | a wingman | High | "Turrets, watch the turrets!" | "Defensive fire. Stay low." | "They've got guns everywhere." |
 | `Bark_Dom_FieldDown` (new, T4) | All four generators destroyed | Kato | Critical | - | "The shield is down. The bay is open." | - |
 | `Bark_Dom_Tractor` (new, T4) | The tractor assist takes hold | flown pilot | High | "Something's pulling us in." | "We are being guided. Controls limited." | "Easy. Let it take us." |
 | `Bark_Dom_Boarded` (new, T5) | First step in the hangar | radio | High | "Bring something back." | "We will hold outside." | "Careful in there." |
 | `Bark_Dom_CoreShield` / `_CoreOpen` (new, T5) | A conduit breaks / the heart is exposed | player's pilot | High | "Shield's dropping!" / "There's the heart!" | "Conduit down." / "Core exposed." | "One more like that." / "There it is." |
 | `Bark_Dom_Escape_Start` / `_30` / `_10` (new, T5) | Escape run begins / 30 s / 10 s left | radio | Critical | "Run! Run now!" / "Thirty seconds!" / "Move it!" | "It's coming apart. Ninety seconds." / "Thirty." / "Ten seconds." | "Get out of there!" / "Thirty seconds. Keep going." / "Almost, almost!" |
 | `Bark_Dom_EscapeFlight` (new, T4) | Launch from the hangar | a wingman | Critical | "Punch it!" | "Follow my line out." | "Stay with me, stay with me." |
-| `Bark_Dom_Clear` (new, T4) | Clear of the blast | a pilot | High | "We're clear! We're clear!" | "Clear of the blast radius." | "Everyone here? Good." |
+| `Bark_Dom_Clear` (new, T4) | **Retired (Nov 14):** replaced by the `ClearSpace` roll call (`C9_*`, storyline 31) | a pilot | High | "We're clear! We're clear!" | "Clear of the blast radius." | "Everyone here? Good." |
 
 ## 8. Command (mission control; sparse, never during a fight unless Critical)
 | Id | When | Line |
 |---|---|---|
 | `Bark_Cmd_ObjectiveNew` (new, T5 / T3) | A new objective is set | "Triad, new tasking. Marker's on your scope." |
 | `Bark_Cmd_ObjectiveDone` (new) | An objective completes in space | "Copy, Triad. Good work." |
-| `Bark_Cmd_Retreat` (new, T4; tutorial battle) | The withdrawal is ordered | "Triad, disengage. Pull back now." |
+| `Bark_Cmd_Retreat` (new, T4; tutorial battle) | **Retired (Nov 14, T4 with T3):** the withdrawal order is the story line `TB_Command_FallBack` ("Triad, withdraw. Take the marked corridor."), fired at the same moment as `OnTutorialWithdrawalOrdered` | "Triad, disengage. Pull back now." |
 | `Bark_Cmd_Retake` (new, T3) | First line of a retake after "CUT!", 1 in 2 | "Triad, reset. Go again." |
 | `Bark_Cmd_Welcome` (new, T5) | Continue from a save | "Welcome back, Triad. Picking up where you left off." |
 
