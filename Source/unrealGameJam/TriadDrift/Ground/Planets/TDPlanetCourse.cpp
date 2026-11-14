@@ -25,6 +25,7 @@
 #include "Components/BoxComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/StaticMeshSocket.h"
+#include "PhysicsEngine/BodySetup.h"
 #include "Engine/CollisionProfile.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
@@ -1580,6 +1581,7 @@ void ATDPlanetCourse::BuildCinder()
 	// The jammer tower and its three charge sites, defended.
 	const FVector Tower(12600.f, LakeY, 0.f);
 	AActor* TowerActor = SpawnProp<AActor>(Tower);
+	UStaticMeshComponent* AnchorBody = nullptr; // Grok Bot's tower, when it wears it: its collision places the charge points
 	if (TowerActor)
 	{
 		USceneComponent* Root = NewObject<USceneComponent>(TowerActor, TEXT("Root"));
@@ -1613,6 +1615,7 @@ void ATDPlanetCourse::BuildCinder()
 			for (UStaticMeshComponent* Other : { Tip, BarX, BarY }) { if (Other) { Other->SetHiddenInGame(true); } }
 			if (AnchorArt)
 			{
+				AnchorBody = Dressed;
 				// Its own UCX boxes (plinth, shaft, collar) are the collision now: the 5 m placeholder shaft stood inside
 				// the 15 m plinth, so the pilot walked into the visible base.
 				Dressed->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
@@ -1649,6 +1652,38 @@ void ATDPlanetCourse::BuildCinder()
 		// old 520 cm ring at 60 cm sat inside its plinth.
 		FVector SiteAt(FMath::Cos(A) * 520.f, FMath::Sin(A) * 520.f, 60.f);
 		if (AnchorTowerArt) { TDPlanetCourse_AnchorSocket(AnchorTowerArt, *FString::Printf(TEXT("Charge_%d"), i), SiteAt); }
+		// The sockets (r 587-601) sit inside the tower's plinth collision (UCX_00, a 13.8 m square box 5.7 m tall: Played.Cinder
+		// could never reach one, and the interact trace hits the box first). Each charge point goes just outside whatever
+		// collision the tower has (its lowest hull), along its port's heading, at a standing pilot's reach; it follows a better
+		// hull on its own.
+		if (AnchorBody && AnchorTowerArt && AnchorTowerArt->GetBodySetup())
+		{
+			// The lowest collision hull is the plinth: leave it along the port's heading (mesh space = course space here:
+			// the tower stands unrotated and unscaled at Tower).
+			FBox Plinth(ForceInit);
+			const FKConvexElem* PlinthHull = nullptr;
+			for (const FKConvexElem& Hull : AnchorTowerArt->GetBodySetup()->AggGeom.ConvexElems)
+			{
+				if (Hull.ElemBox.IsValid && Hull.ElemBox.Min.Z < 100.f && (!Plinth.IsValid || Hull.ElemBox.GetVolume() > Plinth.GetVolume())) { Plinth = Hull.ElemBox; PlinthHull = &Hull; }
+			}
+			for (const FKBoxElem& Box : AnchorTowerArt->GetBodySetup()->AggGeom.BoxElems)
+			{
+				const FBox B = FBox::BuildAABB(Box.Center, FVector(Box.X, Box.Y, Box.Z) * 0.5f);
+				if (B.Min.Z < 100.f && (!Plinth.IsValid || B.GetVolume() > Plinth.GetVolume())) { Plinth = B; PlinthHull = nullptr; }
+			}
+			// The refitted octagon (import a78930a4) leaves each socket 10 cm outside: then the socket is the charge point.
+			FVector Closest, Normal;
+			const bool bSocketOutside = PlinthHull && PlinthHull->GetClosestPointAndNormal(SiteAt, FTransform::Identity, Closest, Normal) > 1.f;
+			if (bSocketOutside) { Plinth = FBox(ForceInit); }
+			const FVector D = FVector(SiteAt.X, SiteAt.Y, 0.f).GetSafeNormal();
+			if (Plinth.IsValid && !D.IsNearlyZero())
+			{
+				const float Tx = FMath::Abs(D.X) > KINDA_SMALL_NUMBER ? (D.X > 0.f ? Plinth.Max.X : Plinth.Min.X) / D.X : BIG_NUMBER;
+				const float Ty = FMath::Abs(D.Y) > KINDA_SMALL_NUMBER ? (D.Y > 0.f ? Plinth.Max.Y : Plinth.Min.Y) / D.Y : BIG_NUMBER;
+				SiteAt = D * (FMath::Min(Tx, Ty) + 45.f);
+				SiteAt.Z = 110.f;
+			}
+		}
 		ATDInteractableActor* Site = SpawnProp<ATDInteractableActor>(Tower + SiteAt);
 		Site->Prompt = LOCTEXT("Plant", "Plant a charge");
 		Site->HoldTime = 1.5f;
@@ -1660,7 +1695,10 @@ void ATDPlanetCourse::BuildCinder()
 		Charges->WatchInteractable(Site);
 	}
 	ATDEncounterVolume* Defence = Encounter(Jammer, INDEX_NONE, Tower + FVector(0.f, 0.f, 200.f), FVector(2000.f, 2000.f, 600.f),
-		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 900.f); // take 1 about 25 dps standing still like every other room (the drone made it about 29); (machine playtest: 5 on a 15 m ring spawned on top of the retake point)
+		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 900.f,
+		// On the charge side (-X), clear of the tower's 13.8 m plinth box: a 9 m ring put crew inside its corners and behind
+		// the tower, where neither they nor the pilot could get round it (Played.Cinder, 7a958ecf's collision).
+		{ FVector(-1500.f, 0.f, 0.f), FVector(-1200.f, 1150.f, 0.f), FVector(-1200.f, -1150.f, 0.f) }); // take 1 about 25 dps standing still like every other room (the drone made it about 29); (machine playtest: 5 on a 15 m ring spawned on top of the retake point)
 	StepEncounters.Add({ Jammer, 1, Defence });
 	FTDRetakeMercyTier DefenceMercy3; DefenceMercy3.FromTake = 3; DefenceMercy3.DropCrew = 1;
 	FTDRetakeMercyTier DefenceMercy5; DefenceMercy5.FromTake = 5; DefenceMercy5.DropCrew = 2;

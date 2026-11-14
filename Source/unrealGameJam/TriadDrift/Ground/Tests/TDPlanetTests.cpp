@@ -22,6 +22,7 @@
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "TriadDrift/Ground/Crew/TDCrewAIController.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "Camera/CameraComponent.h"
@@ -853,6 +854,48 @@ bool FTDCourseCheckpointRefill::RunTest(const FString& Parameters)
 }
 
 // Journey run 2 stall: the pilot stood against the wreck core during the site fight and the grunts circled at
+// The Cinder field anchor (import a78930a4: the plinth's hull refitted to the visible octagon): crew round it to reach a
+// pilot on the far side, and every charge point is outside the tower's collision.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseAnchorLap, "TriadDrift.Ground.Course.CrewRoundTheFieldAnchorAndChargesAreReachable", TD_TEST_FLAGS)
+bool FTDCourseAnchorLap::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V(NAME_None, TEXT("Cinder"));
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	const FVector Tower(12600.f, -5000.f, 0.f);
+	ATDObjective* Jammer = R.Course->FindObjective(TEXT("Obj_Jammer"));
+	if (!TestNotNull(TEXT("anchor objective"), Jammer)) { return false; }
+	// The charge points: each outside every blocking shape (a pawn-sized probe in front of it is free) and within reach.
+	for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It)
+	{
+		if (It->LinkedObjective != Jammer || It->LinkedStep != 1) { continue; }
+		const FVector P = It->GetActorLocation();
+		const FVector D = FVector(P.X - Tower.X, P.Y - Tower.Y, 0.f).GetSafeNormal();
+		const FVector Stand(P.X + D.X * 130.f, P.Y + D.Y * 130.f, 92.f);
+		FCollisionQueryParams Q(SCENE_QUERY_STAT(TDAnchorProbe), false, R.FP);
+		TestFalse(*FString::Printf(TEXT("%s: a pilot fits in front of it"), *It->GetName()), V.W.GetWorld()->OverlapBlockingTestByChannel(Stand, FQuat::Identity, ECC_Pawn, FCollisionShape::MakeCapsule(40.f, 90.f), Q));
+		TestTrue(*FString::Printf(TEXT("%s: within interact reach from there (%.0f cm)"), *It->GetName(), FVector::Dist(Stand + FVector(0.f, 0.f, 74.f), P)), FVector::Dist(Stand + FVector(0.f, 0.f, 74.f), P) < 250.f);
+	}
+	// A grunt on the east side chases the pilot on the west side: it rounds the tower within 20 s.
+	R.FP->SetActorLocation(Tower + FVector(-1150.f, 0.f, 95.f), false, nullptr, ETeleportType::TeleportPhysics);
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	ATDCrewCharacter* Grunt = V.W.GetWorld()->SpawnActor<ATDCrewCharacter>(ATDCrewCharacter::StaticClass(), FTransform(Tower + FVector(1150.f, 300.f, 100.f)), Params);
+	if (!TestNotNull(TEXT("grunt"), Grunt)) { return false; }
+	R.Tick(0.2f);
+	if (ATDCrewAIController* AI = Cast<ATDCrewAIController>(Grunt->GetController())) { AI->SetTarget(R.FP); }
+	float Best = 1e9f, Took = -1.f;
+	for (float T = 0.f; T < 20.f; T += 0.25f)
+	{
+		R.Tick(0.25f);
+		const float D = (float)FVector::Dist2D(Grunt->GetActorLocation(), R.FP->GetActorLocation());
+		Best = FMath::Min(Best, D);
+		if (D < 300.f) { Took = T; break; }
+	}
+	TestTrue(*FString::Printf(TEXT("the grunt rounds the anchor to the pilot (closest %.0f cm, at %s, took %.1f s)"), Best, *Grunt->GetActorLocation().ToCompactString(), Took), Took >= 0.f);
+	return true;
+}
+
 // 1.0-1.3 m for 15 minutes without a swing. An idle pilot there must be attacked (and the crew must stay killable).
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseCoreStall, "TriadDrift.Ground.Course.CrewAttackAPilotStandingAtTheWreckCore", TD_TEST_FLAGS)
 bool FTDCourseCoreStall::RunTest(const FString& Parameters)
@@ -1186,6 +1229,33 @@ namespace TDPlayedTest
 			return true;
 		}
 
+		/** A charge point on the field anchor (just outside the tower's collision on its port's heading): round the tower
+		 *  at 9.5 m, as a player does, to the port's side, then in to the point, look at it and hold E. A straight line from
+		 *  the far side runs into the tower. */
+		bool UseChargePort(ATDInteractableActor* Port, const FVector& Tower)
+		{
+			const FVector P0 = FP->GetActorLocation() - Tower;
+			const float From = FMath::Atan2((float)P0.Y, (float)P0.X);
+			const FVector D = (Port->GetActorLocation() - Tower).GetSafeNormal2D();
+			const float To = FMath::Atan2((float)D.Y, (float)D.X);
+			const float Turn = FMath::FindDeltaAngleRadians(From, To);
+			const int32 Steps = FMath::Max(1, FMath::CeilToInt(FMath::Abs(Turn) / (PI / 6.f)));
+			for (int32 i = 1; i <= Steps; ++i)
+			{
+				const float A = From + Turn * i / Steps;
+				RunTo(Tower + FVector(FMath::Cos(A), FMath::Sin(A), 0.f) * 1150.f, 120.f, 10.f, false);
+			}
+			RunTo(FVector(Port->GetActorLocation().X, Port->GetActorLocation().Y, 0.f) + D * 130.f, 60.f, 10.f, false); // in front of the charge point
+			LookAt(Port->GetActorLocation());
+			Tick(0.1f);
+			Key(EKeys::E, true);
+			Tick(Port->HoldTime + 0.3f);
+			Key(EKeys::E, false);
+			Tick(0.2f);
+			RunTo(Tower + D * 1150.f, 120.f, 10.f, false); // back off
+			return Port->WasUsed();
+		}
+
 		/** Break a prop with the blade (real swings). */
 		bool Break(ATDShatterCrystal* C)
 		{
@@ -1416,7 +1486,7 @@ bool FTDCinderPlayed::RunTest(const FString& Parameters)
 			if (bDied) { continue; } // the retake restarted the defence
 			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It)
 			{
-				if (It->LinkedObjective == Jammer && It->LinkedStep == 1 && !It->WasUsed()) { P.Use(*It, It->HoldTime); }
+				if (It->LinkedObjective == Jammer && It->LinkedStep == 1 && !It->WasUsed()) { P.UseChargePort(*It, FVector(12600.f, -5000.f, 0.f)); }
 			}
 		}
 		if (Jammer->GetCurrentStepIndex() == 2)
