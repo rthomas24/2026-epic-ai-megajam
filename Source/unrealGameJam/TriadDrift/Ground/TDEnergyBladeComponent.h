@@ -298,6 +298,8 @@ private:
 	bool bAttackHeld = false;
 	float AttackHeldTime = 0.f;
 	bool bHeavyFiredThisPress = false;
+	/** A press from rest waits: released before HeavyHoldSeconds it is a light swing, held it goes straight to the heavy. */
+	bool bLightDeferred = false;
 	bool bBlockHeld = false;
 	float BlockTime = 0.f;
 	float Stamina = 3.f;

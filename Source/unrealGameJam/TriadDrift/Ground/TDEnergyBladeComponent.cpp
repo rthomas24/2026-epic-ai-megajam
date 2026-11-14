@@ -198,6 +198,7 @@ void UTDEnergyBladeComponent::PressAttack()
 	AttackHeldTime = 0.f;
 	bHeavyFiredThisPress = false;
 	bPressSwingLanded = false;
+	bLightDeferred = false;
 	const int32 HitsBefore = HitCounter;
 	if (const ATDFirstPersonCharacter* FPC = Cast<ATDFirstPersonCharacter>(GetOwner()))
 	{
@@ -219,6 +220,13 @@ void UTDEnergyBladeComponent::PressAttack()
 		SetBlockHeld(false); // attacking out of a block (after a parry) is allowed
 		bBlockHeld = true;   // still held: the guard comes back up after the swing
 	}
+	if (!IsAttacking() && !bRetracted && State != ETDBladeState::GuardBroken)
+	{
+		// From rest the press waits for its release (a light swing) or the hold threshold (straight into the heavy
+		// wind-up), so a held heavy never throws a light first. Mid-combo presses still queue the next light at once.
+		bLightDeferred = true;
+		return;
+	}
 	LightAttack();
 	bPressSwingLanded = HitCounter > HitsBefore;
 }
@@ -226,6 +234,14 @@ void UTDEnergyBladeComponent::PressAttack()
 void UTDEnergyBladeComponent::ReleaseAttack()
 {
 	bAttackHeld = false;
+	if (bLightDeferred && !bHeavyFiredThisPress)
+	{
+		bLightDeferred = false;
+		const int32 HitsBefore = HitCounter;
+		LightAttack();
+		bPressSwingLanded = HitCounter > HitsBefore;
+	}
+	bLightDeferred = false;
 }
 void UTDEnergyBladeComponent::SetBlockHeld(bool bHeld)
 {
@@ -768,6 +784,7 @@ void UTDEnergyBladeComponent::CancelAll()
 	ComboTimeLeft = 0.f;
 	bLightQueued = false;
 	bAttackHeld = false;
+	bLightDeferred = false;
 	bBlockHeld = false;
 	PendingHitLeft = -1.f;
 }
@@ -804,6 +821,7 @@ void UTDEnergyBladeComponent::TickComponent(float DeltaTime, ELevelTick TickType
 		{
 			// Held: charge into a heavy lunge, unless the press already connected (keep that combo going).
 			bHeavyFiredThisPress = true;
+			bLightDeferred = false;
 			if (!bPressSwingLanded)
 			{
 				bLightQueued = false;
