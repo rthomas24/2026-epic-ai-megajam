@@ -140,29 +140,23 @@ bool FTDRetakeWardenLeavesAlive::RunTest(const FString& Parameters)
 	GI->TickFlow(UTDFlowSettings::Get()->RetakeDelaySeconds + 0.1f);
 	W.Advance(0.5f);
 	// The take-2 Warden leaves the world alive (a fall, a bad spawn spot).
-	int32 Lost = 0;
+	// Snapshot first: a returned Warden must not be dropped again by the same loop (one fall, not four).
+	TArray<ATDCrewCharacter*> Wardens;
 	for (TActorIterator<ATDCrewCharacter> It(W.GetWorld()); It; ++It)
 	{
-		if (!It->IsDead() && It->CrewType == ETDCrewType::Warden) { It->FellOutOfWorld(*GetDefault<UDamageType>()); ++Lost; } // kill-Z, as on a real map
+		if (!It->IsDead() && It->CrewType == ETDCrewType::Warden) { Wardens.Add(*It); }
 	}
+	const int32 Lost = Wardens.Num();
+	for (ATDCrewCharacter* C : Wardens) { C->FellOutOfWorld(*GetDefault<UDamageType>()); } // kill-Z, as on a real map
 	AddInfo(FString::Printf(TEXT("Wardens removed alive after the CUT: %d"), Lost));
 	W.Advance(2.f);
 	const ATDObjective* Core = Course->FindObjective(TEXT("Obj_DI_Core"));
 	int32 Alive = 0;
 	for (TActorIterator<ATDCrewCharacter> It(W.GetWorld()); It; ++It) { Alive += (!It->IsDead() && It->CrewType == ETDCrewType::Warden) ? 1 : 0; }
-	const bool bHeld = GI->GetCurrentScene() == FName(TEXT("Obj_DI_Warden")) && !Obj->IsComplete() && !(Core && (Core->IsActive() || Core->IsComplete())) && Alive >= 1;
-	// OPEN MAJOR (T5, Nov 14): ATDCrewCharacter::FellOutOfWorld kills before it destroys, so ReturnLostBoss (alive only)
-	// never sees it and the room clears. Reported as a warning so the batch stays green; make it a hard check (TestTrue)
-	// once T5's fix lands.
-	if (!bHeld)
-	{
-		AddWarning(FString::Printf(TEXT("OPEN MAJOR (T5): a Warden lost to kill-Z after the CUT still clears its scene (scene %s, complete %d, Wardens %d)"),
-			*GI->GetCurrentScene().ToString(), Obj->IsComplete() ? 1 : 0, Alive));
-	}
-	else
-	{
-		AddInfo(TEXT("held: the Warden scene stays and a Warden stands again (T5's fix works here: make this a hard check)"));
-	}
+	TestEqual(TEXT("still the Warden's scene"), GI->GetCurrentScene(), FName(TEXT("Obj_DI_Warden")));
+	TestFalse(TEXT("the Warden objective is not complete"), Obj->IsComplete());
+	TestFalse(TEXT("the reactor has not started"), Core && (Core->IsActive() || Core->IsComplete()));
+	TestTrue(TEXT("a Warden stands again"), Alive >= 1);
 	return true;
 }
 
