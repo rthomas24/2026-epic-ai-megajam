@@ -547,8 +547,9 @@ void ATDFirstPersonCharacter::UpdateFacing(float DeltaSeconds)
 		bIdleTurnToCamera = bStill && FMath::Abs(FMath::FindDeltaAngleDegrees(Current, CameraYaw)) > 1.f;
 		Desired = bIdleTurnToCamera ? CameraYaw : Desired;
 	}
-	// A new attack snaps to the camera at once (no frames of swing the wrong way); blocking turns twice as fast.
-	const bool bAttacking = Blade && Blade->IsAttacking();
+	// A new attack or a raised guard snaps to the camera at once (no frames of swing or guard the wrong way: the guard
+	// faces the aim, where the shots come from); a held block keeps turning twice as fast.
+	const bool bAttacking = Blade && (Blade->IsAttacking() || Blade->GetBladeState() == ETDBladeState::Blocking);
 	const bool bSnap = bAttacking && !bFacingWasAttacking;
 	bFacingWasAttacking = bAttacking;
 	const float Rate = ThirdPersonTurnRate * (bCombat ? 2.f : 1.f);
