@@ -287,7 +287,25 @@ def build_canopy(mats, body, bvh):
 
 # ---------------------------------------------------------------------------------------------------- guns
 def build_guns(mats, body):
-    return {"rift": _guns_rift, "lancer": _guns_lancer}[K["guns"]["kind"]](mats, body)
+    return {"rift": _guns_rift, "lancer": _guns_lancer, "bastion": _guns_bastion}[K["guns"]["kind"]](mats, body)
+
+
+def _guns_bastion(mats, body):
+    """The Bastion's cannons are sound as Rodin made them (a symmetric pair in chunky housings); only the lumpy
+    barrel ends go: each becomes a clean lathed muzzle on the same axis, with a glowing bore."""
+    g = K["guns"]
+    gy, gz, x0, tip = g["y"], g["z"], g["x0"], g["tip"]
+    cut = _slice(body, lambda c: c.x > g["cut_x"] - 0.12 and 0.28 < abs(c.y) < 0.60 and c.z < -0.28, g["cut_x"])
+    parts = []
+    ln, r = tip - x0, g["r"]
+    for sy in (1, -1):
+        prof = [(0.0, 0.0), (0.0, r * 1.22), (0.06, r * 1.22), (0.06, r), (ln - 0.09, r), (ln - 0.09, r * 1.2), (ln, r * 1.2),
+                (ln, r * 0.66), (ln - 0.05, r * 0.66), (ln - 0.05, r * 0.56), (ln - 0.13, r * 0.56), (ln - 0.13, 0.0)]
+        idx = [GUN, STEEL, BLACK, GUN, STEEL, GUN, GUN, BLACK, GLOW, BLACK, BLACK, BLACK]     # a dark bore, one thin glow ring inside it
+        parts.append(G.lathe_x("GN_Muzzle_%d" % sy, prof, (x0, sy * gy, gz), mats, segments=28, mat_idx=idx))
+    for p in parts:
+        G.bevel(p, width=0.004, segments=2, angle_deg=30.0)
+    return parts, cut
 
 
 def _guns_lancer(mats, body):

@@ -178,3 +178,17 @@ fresh-eyes reviews: "a featureless cone, out of style with the hull"; its builde
 Review (third fresh-eyes round, in-game sheets `Builds/for-ryan/ships/lancer_hybrid_before_after*.png`): REPLACE, no
 BLOCKER or MAJOR. Open MINORs: the glass is paler on the bright planet pad than in space; the pilot reads as a seat
 and helmet shape, no face or visor detail; the gun receivers are plain next to the Rodin belly.
+
+**Rift v12**: v11 with three review MINORs closed (straight end to the magenta side panel under the canopy: the repaint
+is tested per texel; the stray glowing sliver ahead of it cleared; the nose slit glows in the accent colour). Not
+re-reviewed by a fresh agent (in-game sheet `Builds/for-ryan/ships/rift_v12_before_after.png`).
+
+**Bastion v01** (524.0 x 472.3 x 139.1 cm as before; 51,535 triangles; slots `M_Bastion`, `M_Bastion_Glow`,
+`M_Bastion_Parts`; 3 auto convex hulls; sockets unchanged). The Rodin Bastion is the soundest of the three (blocky
+armour, a symmetric pair of cannons, six-tube launchers), so only the two lumpy barrel ends were replaced by clean
+muzzles on the same axes; the hull keeps its maps (`textures="raw"`; in the game base colour and emissive stay Grok
+Bot's `textures_r2` as imported: `keep_tex`). Fresh-eyes review: REPLACE, no BLOCKER or MAJOR; MINORs: the muzzles are
+plain next to the textured hull and no longer catch amber light at the tip.
+
+`ue_import_rodin_ships.py` also sets `CollisionScrape.VFX` = `NS_TD_Ship_ImpactScrape` (VFXScale 1, sound untouched) on the
+three squad visuals **once that system is in the checkout** (it prints "CollisionScrape NOT set" until then).

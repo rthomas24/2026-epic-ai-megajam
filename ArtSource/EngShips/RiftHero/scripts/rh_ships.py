@@ -92,7 +92,11 @@ SHIPS = {
             "Dome": (-26, 0, 68), "Cockpit": (120, 0, 20),
             "MissilePod_L": (124, -165, -20), "MissilePod_R": (124, 165, -20),
         },
-        canopy=None, guns=None, nose=None, spine=None, sides=None, repaint=[], repaint_accent=False,
+        # The Rodin Bastion is the soundest of the three: blocky armour that reads well, a symmetric pair of cannons,
+        # six-tube launchers. Only the lumpy barrel ends are replaced; the hull maps stay as they are (T.clean flattens
+        # white paint, and this hull is mid-grey armour), and its hard edges keep a tighter smoothing angle.
+        canopy=None, nose=None, spine=None, sides=None, repaint=[], repaint_accent=False, textures="raw", sharp_deg=30,
+        guns=dict(kind="bastion", y=0.43, z=-0.41, x0=2.42, tip=2.62, r=0.068, cut_x=2.49),
     ),
 }
 

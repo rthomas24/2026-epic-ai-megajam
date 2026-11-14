@@ -258,16 +258,22 @@ def main():
     bpy.context.view_layer.update()
     res["body"]["hidden_faces_removed"] = remove_hidden(body, parts)
     body.data.shade_smooth()
-    body.data.set_sharp_from_angle(angle=math.radians(42))
+    body.data.set_sharp_from_angle(angle=math.radians(CFG.get("sharp_deg", 42)))
     wn = body.modifiers.new("WeightedNormal", "WEIGHTED_NORMAL")
     wn.keep_sharp = True
     wn.weight = 50
     res["body"]["tris_out"] = G.tri_count([body])
 
     # ---------------- textures of the kept Rodin set
-    res["textures"] = T.clean(C.RODIN, C.EXPORT, SHIP, CFG["accent"])
+    raw = CFG.get("textures") == "raw"     # the Rodin maps as they are (Bastion: grey armour, not white paint to flatten)
+    if raw:
+        for suffix in ("BC", "N", "ORM", "E"):
+            shutil.copyfile(os.path.join(C.RODIN, "T_%s_%s.png" % (SHIP, suffix)), os.path.join(C.EXPORT, "T_%s_%s.png" % (SHIP, suffix)))
+        res["textures"] = "source maps, unchanged"
+    else:
+        res["textures"] = T.clean(C.RODIN, C.EXPORT, SHIP, CFG["accent"])
     shutil.copyfile(HEAT, os.path.join(C.EXPORT, "T_%s_HeatMask.png" % SHIP))
-    if "--close" in ARGS:
+    if "--close" in ARGS and not raw:
         res["livery"] = CP.clean_livery(os.path.join(C.EXPORT, "T_%s_BC.png" % SHIP), body=body)
     body.data.materials.append(image_material("M_" + SHIP, os.path.join(C.EXPORT, "T_%s_" % SHIP), 2.0))
 
