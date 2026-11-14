@@ -316,6 +316,11 @@ public:
 	TMap<int32, FVector> RegionCentres;
 	/** Dev: each region's nearest approach from the player's routes (TD.SpaceField.RouteReport). */
 	void LogRouteReport() const;
+	/** Live check of T4's journey: for each keep-out and route, the field pieces (adopted included), set pieces and other
+	 *  obstacles (UTDWorldSubsystem) that sit inside it (TD.SpaceField.JourneyCheck). Returns the total inside. */
+	int32 LogJourneyCheck() const;
+	/** A pose along journey route Index (only Route points, in GetJourneyKeyPoints order) at fraction T, facing along it. */
+	bool JourneyPose(int32 Index, float T, FVector& OutFrom, FRotator& OutFacing, FName& OutId) const;
 	/** The routes the player flies (zone to each planet, the Dominion and each gate end), world space. */
 	TArray<TArray<FVector>> GetRouteLanes() const { TArray<TArray<FVector>> Out; for (int32 i = 0; i < BuoyLanes && i < Lanes.Num(); ++i) { Out.Add(Lanes[i]); } return Out; }
 	/** The Shepherd Belt's plane normal and centre (world), once built. */
