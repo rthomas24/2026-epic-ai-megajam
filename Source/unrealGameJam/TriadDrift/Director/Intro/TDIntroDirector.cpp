@@ -75,6 +75,9 @@ static TAutoConsoleVariable<int32> CVarTDIntroSunFromLight(
 	TEXT("Intro eclipse: 0 = the sky's sun (yaw 35, pitch 18), 1 = the brightest directional light in the level."),
 	ECVF_Default);
 
+static TAutoConsoleVariable<float> CVarTDIntroFlybyBlur(TEXT("td.Intro.FlybyMotionBlur"), 0.12f,
+	TEXT("Motion blur amount in the intro's two squad fly-by shots (Belt, Gate). The other moving shots keep 0.6."));
+
 namespace TDIntro
 {
 	/** The intro poses squad ships on purpose: tell T1's silent-move watchdog before each pose (something else, e.g. a
@@ -201,7 +204,7 @@ namespace TDIntro
 		return Dart;
 	}
 
-	static void WarpFlash(UWorld* World, const FVector& Where, float Size)
+	static void WarpFlash(UWorld* World, const FVector& Where, float Size, bool bSound = true)
 	{
 		// Nick's EnemyWarpIn cue through T4's hook once it has visual art. Until then T4's placeholder marker is a
 		// gameplay readability ring (big, long-lived, camera-facing) that would veil the Dominion in a 135 mm shot:
@@ -213,6 +216,13 @@ namespace TDIntro
 			return;
 		}
 		Flash(World, Where, Size, FLinearColor(1.f, 0.12f, 0.05f), 0.3f);
+		// Nicholas #90 (11): the cue's sound exists and was never heard here (the flash stands in for its missing effect).
+		if (FX && bSound && !FX->EnemyWarpIn.Sound.IsNull())
+		{
+			FTDFXCue SoundOnly = FX->EnemyWarpIn;
+			SoundOnly.VFX.Reset();
+			UTDStatics::PlayCue(World, SoundOnly, Where);
+		}
 	}
 
 	static void GateFlare(AActor* Gate, const FVector& Where)
@@ -717,6 +727,7 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	PendingMusic.Reset();
 	LastOpeningLine = -1;
 	bHandOffLinesFired = false;
+	bDominionStingPlayed = false;
 	ShotIndex = -1;
 	LastNarrationVoice = -1;
 	bFleetSpawned = false;
@@ -1133,6 +1144,16 @@ void UTDIntroDirector::BeginShot(int32 Index)
 	if (S.Id == TEXT("ThreatFar") || S.Id == TEXT("ThreatClose"))
 	{
 		bDominionShown = bDominionShown || TDIntro::ShowDominion(World, true, nullptr);
+		if (S.Id == TEXT("ThreatFar") && !bDominionStingPlayed)
+		{
+			// Nicholas #90 (11): the Dominion's own arrival sound at its reveal (32.0 s), once, at the lens.
+			bDominionStingPlayed = true;
+			const UTDDominionVisuals* DV = UTDStatics::LoadPresentation<UTDDominionVisuals>(TEXT("DA_Dominion_Visuals"));
+			if (USoundBase* Sting = DV ? DV->WarpIn.Sound.LoadSynchronous() : nullptr)
+			{
+				UGameplayStatics::PlaySound2D(this, Sting);
+			}
+		}
 		if (!bDominionShown && !DominionStandIn)
 		{
 			const ATDGalaxyLayout* Galaxy = ATDGalaxyLayout::Get(this);
@@ -1209,7 +1230,8 @@ void UTDIntroDirector::BeginShot(int32 Index)
 		PP.LensFlareIntensity = bEclipse ? 0.f : 1.6f;
 		// N-071: the three hero frames are locked to their ship; motion blur only smeared the hull's edges and lights (the
 		// ship drifts and banks a little inside the frame). Off there, on everywhere else.
-		PP.MotionBlurAmount = S.Id == TEXT("Squad") ? 0.f : 0.6f;
+		// Nicholas #90 (10): the ships are the subject of the two fly-bys too; at 0.6 they smeared as they crossed the frame.
+		PP.MotionBlurAmount = S.Id == TEXT("Squad") ? 0.f : ((S.Id == TEXT("Belt") || S.Id == TEXT("Gate")) ? CVarTDIntroFlybyBlur.GetValueOnGameThread() : 0.6f);
 		PP.AutoExposureBias = S.Id == TEXT("Title") ? 1.5f : (S.Id.ToString().StartsWith(TEXT("Threat")) ? 0.7f : (bEclipse ? EclipseExposureEV100() : 0.f));
 	}
 	if (S.Id == TEXT("Title"))
@@ -1535,7 +1557,7 @@ void UTDIntroDirector::SpawnShowcase()
 	for (int32 k = 0; k < 10; ++k)
 	{
 		const FVector At = Base + Side * ((k - 4.5f) * 2600.f) + FVector::UpVector * FMath::Sin(k * 1.7f) * 2200.f + Toward * (k % 3) * 2500.f;
-		TDIntro::WarpFlash(World, At, 5000.f);
+		TDIntro::WarpFlash(World, At, 5000.f, k < 2); // ten at once: two voices, not ten
 		if (AActor* F = TDIntro::SpawnFighter(World, FTransform(Toward.Rotation(), At, FVector(3.5f))))
 		{
 			Showcase.Add(F);
