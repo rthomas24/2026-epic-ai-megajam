@@ -67,6 +67,7 @@ namespace TDStory
 		using St = ETDTransmissionStyle;
 		static const TArray<FTDTransmission> Table = {
 			// Opening: the intro's narration (read by UTDIntroDirector, not fired as transmissions).
+			// Intro_N0-N4: retired (Lead, Nov 14): the opening speaks the O_* lines; td.Intro.Lines 0 brings these back to compare.
 			E(TEXT("Intro_N0"), S::Control, LOCTEXT("Intro_N0", "A ship appeared without warning. It answers nothing.")),
 			E(TEXT("Intro_N1"), S::Control, LOCTEXT("Intro_N1", "Its machines descend on our worlds, searching for something.")),
 			E(TEXT("Intro_N2"), S::Control, LOCTEXT("Intro_N2", "Triad is deployed. Wren. Kato. Moss.")),
@@ -659,6 +660,14 @@ void UTDStorySubsystem::UpdateDepartures(double Now)
 		return;
 	}
 	bDeparturesChecked = true;
+	// T4/T5 (Nov 14): a take-off's radio belongs to that take-off. From the Dominion assault on (a stage cheat, a save that
+	// skipped the galaxy after Cinder, the escape reloading the galaxy), no planet's departure airs late.
+	const ETDGamePhase Phase = GI->GetProgressRef().Phase;
+	if (Phase == ETDGamePhase::DominionAssault || Phase == ETDGamePhase::DominionInterior || Phase == ETDGamePhase::Escape
+		|| Phase == ETDGamePhase::Victory)
+	{
+		return;
+	}
 	const UTDFlowSettings* Flow = UTDFlowSettings::Get();
 	const TSet<FName>& Done = GI->GetProgressRef().CompletedObjectives;
 	auto AllDone = [&Done](const TArray<FName>& Ids)
@@ -1133,6 +1142,11 @@ void UTDStorySubsystem::StartNext()
 	OnTransmission.Broadcast(Current);
 	PlayStaticTear(Current.Id);
 	HandleLineOnAir(Current.Id);
+}
+
+bool UTDStorySubsystem::AreSubtitlesShown(const UObject* /*WorldContext*/)
+{
+	return true; // ENG-45: T1's setting is on its way (AreSubtitlesOn); this is the one place that will read it
 }
 
 bool UTDStorySubsystem::HasStaticDelivery(FName Id)
