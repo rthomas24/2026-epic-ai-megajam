@@ -61,6 +61,7 @@ namespace
 		int32 Trees = INDEX_NONE;	// 18 = 6 species x 3 stages (Verdance)
 		TArray<int32> Canopy, CanopyAccent, Rocks, CliffRocks, Grove, GroveGlow, Ground, GroundGlow, GroundForest, Columns, CharTrees, Spires, Crystals, Rubble;
 		TArray<int32> CourseCover, CourseAccent, CoursePebbles;	// s20: ground detail inside the course (never collides)
+		TArray<int32> FillStumps, FillOutcrops;	// #194: Fab VerdanceStump (no collision) / Fab CinderRock mounds (collide)
 	};
 	FTDScatterRanges GTDRanges[2];	// [0] Verdance, [1] Cinder (filled once, read-only after)
 	FCriticalSection GTDRangesLock;
@@ -230,6 +231,8 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		{
 			R.CourseCover = { R.Ground[0], R.Ground[1], R.Ground[2], R.GroundForest[0], R.GroundForest[1] };
 			R.CourseAccent = { R.GroundGlow[0], R.GroundGlow[1] };
+			// #194: stumps (140 cm patch, sunk 15 cm so the tan rim hides), never colliding
+			R.FillStumps.Add(Add(TDScatter_Path(TEXT("Fab/VerdanceStump"), TEXT("SM_Fab_VerdanceStump")), 0.8f, 1.3f, 15.f, 9000.f, 12000.f, 120.f, false, false, false));
 			for (int32 i = 1; i <= 3; ++i)
 			{
 				R.CoursePebbles.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Rock_%02d"), i)), 0.12f, 0.35f, 5.f, 9000.f, 12000.f, 50.f, false, true, false));
@@ -240,6 +243,8 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 			R.CourseCover = R.Rubble;
 			R.CourseAccent = { R.GroundGlow[0], R.GroundGlow[1] };
 			R.CoursePebbles.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_01")), 0.25f, 0.6f, 5.f, 9000.f, 12000.f, 50.f, false, true, false));
+			// #194: Fab CinderRock mounds (455 x 417 x 174 cm) for outcrops and clusters, colliding
+			R.FillOutcrops.Add(Add(TDScatter_Path(TEXT("Fab/CinderRock"), TEXT("SM_Fab_CinderRock")), 0.5f, 2.0f, 20.f, 60000.f, 80000.f, 250.f, true, true, true));
 			R.CoursePebbles.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_02")), 0.25f, 0.55f, 5.f, 9000.f, 12000.f, 50.f, false, true, false));
 		}
 		GTDRanges[Planet == ETDDestination::Cinder ? 1 : 0] = R;
@@ -333,17 +338,21 @@ void FTDScatterPlan::RunCourseGround(const FTDTerrainField& Field, FTDScatterRes
 			for (const FTDCourseKeepOut& K : KeepOuts)
 			{
 				if (K.Kind == TEXT("Route") || !K.Box.IsValid) { continue; }
+				// #194 (Lead): non-colliding cover goes inside encounter, spawn-ring and trigger boxes too; the pad only keeps its deck
+				if (bFill && (K.Kind == TEXT("Encounter") || K.Kind == TEXT("Spawn"))) { continue; }
+				if (bFill && K.Kind == TEXT("Pad")) { if (FVector2D::Distance(FVector2D(X, Y), FVector2D(K.Box.GetCenter())) < 1700.f) { bClear = false; break; } continue; }
 				if (X > K.Box.Min.X - 150.f && X < K.Box.Max.X + 150.f && Y > K.Box.Min.Y - 150.f && Y < K.Box.Max.Y + 150.f) { bClear = false; break; }
 			}
 			if (!bClear) { continue; }
 			// trodden: 15 % on the walked centre line (distance -700), rising to full ~4 m beyond the route's edge
-			const float Trodden = FMath::Lerp(0.15f, 1.f, FMath::SmoothStep(-500.f, 400.f, RouteDistance(X, Y)));
+			// #194: the walked 4 m strip (2 m either side of the centre line) bare, full cover from 3 m out
+			const float Trodden = bFill ? FMath::SmoothStep(-500.f, -400.f, RouteDistance(X, Y)) : FMath::Lerp(0.15f, 1.f, FMath::SmoothStep(-500.f, 400.f, RouteDistance(X, Y)));
 			// clumps, not an even carpet: the 30 m noise gathers the cover into patches with bare ground between
 			const float Patch = FMath::Clamp(0.55f + 0.8f * FTDTerrainField::Noise2D(X / 3000.f, Y / 3000.f, S.Seed + 777), 0.f, 1.f);
 			const float Roll = TDScatter_Hash01(Seed, ix, iy, 3);
-			if (Roll > Base * Trodden * Patch + 0.06f) { continue; }	// a few stones even on the trodden edges
+			if (Roll > Base * Trodden * (bFill ? FMath::Max(Patch, 0.55f) : Patch) + (bFill && Trodden <= 0.f ? 0.f : 0.06f)) { continue; }	// a few stones even on the trodden edges
 			const float Pk = TDScatter_Hash01(Seed, ix, iy, 4);
-			const int32 Kind = Pk < 0.14f ? TDScatter_OneOf(R.CoursePebbles, Pk / 0.14f)
+			const int32 Kind = (bFill && R.FillStumps.Num() && Pk > 0.97f) ? TDScatter_OneOf(R.FillStumps, (Pk - 0.97f) / 0.03f) : Pk < 0.14f ? TDScatter_OneOf(R.CoursePebbles, Pk / 0.14f)
 				: (Pk < 0.2f ? TDScatter_OneOf(R.CourseAccent, (Pk - 0.14f) / 0.06f) : TDScatter_OneOf(R.CourseCover, (Pk - 0.2f) / 0.8f));
 			if (!Kinds.IsValidIndex(Kind)) { continue; }
 			const FTDScatterKind& K = Kinds[Kind];
@@ -374,7 +383,35 @@ void FTDScatterPlan::RunCourseFill(const FTDTerrainField& Field, FTDScatterResul
 	{
 		if (!Kinds.IsValidIndex(Kind)) { return; }
 		const FTDScatterKind& K = Kinds[Kind];
-		if (!IsCourseClear(X, Y, K.ClearRadiusCm * K.MaxScale * ScaleMul)) { return; }
+		// Fill's own clearance (Lead, #194: "keep the 4 m path corridors clear"; trees within 6-8 m of a path): a route
+		// keeps a 2 m half width (not the zone layer's 7 m), every other keep-out (sites, encounters, spawn points, the
+		// pad, structures) as before; the kind's clear radius is capped at 6 m so big rocks still reach the routes' sides.
+		// #194 (Lead): colliding pieces up to 3 m from a path's centre line (the trunk or rock body, not its canopy), every
+		// structure / site / pad keep-out as before, and inside an encounter box only in its outer 15 % (fights stay open);
+		// spawn points stay clear.
+		const float Rc = FMath::Min(K.ClearRadiusCm * ScaleMul, 600.f);
+		const float Body = K.bBlocksOnFoot ? FMath::Min(Rc, 100.f) : 0.f;
+		for (const FTDCourseKeepOut& KO : KeepOuts)
+		{
+			if (KO.Points.Num() > 1)
+			{
+				for (int32 i = 0; i + 1 < KO.Points.Num(); ++i)
+				{
+					const FVector C = FMath::ClosestPointOnSegment(FVector(X, Y, 0.f), FVector(KO.Points[i].X, KO.Points[i].Y, 0.f), FVector(KO.Points[i + 1].X, KO.Points[i + 1].Y, 0.f));
+					if (FVector2D::Distance(FVector2D(C.X, C.Y), FVector2D(X, Y)) < 200.f + FMath::Max(Body, 100.f)) { return; }
+				}
+				continue;
+			}
+			if (!KO.Box.IsValid) { continue; }
+			if (KO.Kind == TEXT("Encounter"))
+			{
+				const FVector2D Ce(KO.Box.GetCenter()), Ex(KO.Box.GetExtent());
+				const float Ux = FMath::Abs(X - Ce.X) / FMath::Max(Ex.X, 1.f), Uy = FMath::Abs(Y - Ce.Y) / FMath::Max(Ex.Y, 1.f);
+				if (Ux < 0.85f && Uy < 0.85f) { return; }	// the open middle of a fight
+				continue;	// the outer ring, or outside: fine
+			}
+			if (X > KO.Box.Min.X - Rc && X < KO.Box.Max.X + Rc && Y > KO.Box.Min.Y - Rc && Y < KO.Box.Max.Y + Rc) { return; }
+		}
 		const FTDTerrainSample Sm = Field.Sample(X, Y, 300.f);
 		if (Sm.Slope > 0.6f) { return; }
 		const float Sc = FMath::Lerp(K.MinScale, K.MaxScale, TDScatter_Hash01(Seed, ix, iy, 5)) * ScaleMul;
@@ -423,13 +460,53 @@ void FTDScatterPlan::RunCourseFill(const FTDTerrainField& Field, FTDScatterResul
 			Place(Kind, X, Y, Seed, ix, iy, Col > 0.35f ? 0.6f : 1.f);
 		}
 	});
+	// 1b. #194: frame every path: walking each route every ~6 m, a clump of trees (Verdance) or charred trees, columns and
+	// CinderRock mounds (Cinder) 3-6 m either side, so from any route point something stands within 10 m on both sides.
+	{
+		const int32 Seed = S.Seed * 6007 + 71;
+		int32 n = 0;
+		for (const FTDCourseKeepOut& KO : KeepOuts)
+		{
+			if (KO.Kind != TEXT("Route") || KO.Points.Num() < 2) { continue; }
+			for (int32 i = 0; i + 1 < KO.Points.Num(); ++i)
+			{
+				const FVector2D A(KO.Points[i]), B(KO.Points[i + 1]);
+				const float Len = FVector2D::Distance(A, B);
+				const FVector2D D = (B - A) / FMath::Max(Len, 1.f), Side(-D.Y, D.X);
+				for (float T = 0.f; T < Len; T += 600.f, ++n)
+				{
+					for (int32 sgn = -1; sgn <= 1; sgn += 2)
+					{
+						if (TDScatter_Hash01(Seed, n, sgn, 3) > 0.7f) { continue; }
+						const float Off = 300.f + TDScatter_Hash01(Seed, n, sgn, 4) * 300.f;
+						const FVector2D P = A + D * (T + (TDScatter_Hash01(Seed, n, sgn, 9) - 0.5f) * 300.f) + Side * (Off * sgn);
+						const float Pk = TDScatter_Hash01(Seed, n, sgn, 10);
+						int32 Kind = INDEX_NONE;
+						if (bV)
+						{
+							if (R.Trees == INDEX_NONE) { continue; }
+							const int32 Species = Pk < 0.25f ? Kapok : (Pk < 0.5f ? BrazilNut : (Pk < 0.7f ? TrumpetTree : (Pk < 0.85f ? TreeFern : StiltPalm)));
+							Kind = Pk > 0.92f ? TDScatter_OneOf(R.Rocks, (Pk - 0.92f) / 0.08f) : R.Trees + Species * 3 + (TDScatter_Hash01(Seed, n, sgn, 11) < 0.5f ? 1 : 2);
+						}
+						else
+						{
+							Kind = Pk < 0.35f ? TDScatter_OneOf(R.CharTrees, Pk / 0.35f) : (Pk < 0.7f && R.FillOutcrops.Num() ? TDScatter_OneOf(R.FillOutcrops, (Pk - 0.35f) / 0.35f) : TDScatter_OneOf(R.Crystals, Pk));
+						}
+						Place(Kind, P.X, P.Y, Seed, n, sgn + 7, 1.f);
+					}
+				}
+			}
+		}
+	}
 	// 2. boulder fields and outcrops: 4.5 m grid, only where a 30 m noise is up (fields, not a sprinkle)
 	Grid(450.f, 23, [&](float X, float Y, int32 ix, int32 iy, int32 Seed)
 	{
 		const float F = FTDTerrainField::Noise2D(X / 3000.f, Y / 3000.f, S.Seed + 1951);
 		if (F < 0.25f || TDScatter_Hash01(Seed, ix, iy, 3) > 0.55f) { return; }
 		const float Pk = TDScatter_Hash01(Seed, ix, iy, 4);
-		Place(Pk < 0.6f ? TDScatter_OneOf(R.Rocks, Pk / 0.6f) : TDScatter_OneOf(R.CliffRocks, (Pk - 0.6f) / 0.4f), X, Y, Seed, ix, iy, 0.7f);
+		const int32 RockKind = (!bV && R.FillOutcrops.Num() && Pk > 0.5f) ? TDScatter_OneOf(R.FillOutcrops, (Pk - 0.5f) / 0.5f)
+			: (Pk < 0.6f ? TDScatter_OneOf(R.Rocks, Pk / 0.6f) : TDScatter_OneOf(R.CliffRocks, (Pk - 0.6f) / 0.4f));
+		Place(RockKind, X, Y, Seed, ix, iy, 0.7f);
 	});
 	// 3. groves (Verdance giant mushrooms and glow plants) / crystal clusters (Cinder): 9 m grid in the grove noise
 	Grid(900.f, 37, [&](float X, float Y, int32 ix, int32 iy, int32 Seed)
