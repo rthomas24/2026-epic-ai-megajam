@@ -79,7 +79,7 @@ namespace TDFlightHUD
 		void Outline(float X, float Y, float W, float H, float Radius, float Width, FLinearColor C) const
 		{
 			const float R = FMath::Min(Radius, FMath::Min(W, H) * .5f);
-			TArray<FVector2D> Points;
+			TArray<FVector2D>& Points = ScratchPoints();
 			const FVector2D Corners[4] = { { X + W - R, Y + R }, { X + W - R, Y + H - R }, { X + R, Y + H - R }, { X + R, Y + R } };
 			for (int32 Corner = 0; Corner < 4; ++Corner)
 			{
@@ -126,7 +126,7 @@ namespace TDFlightHUD
 		}
 		void Poly(const FVector2D& At, std::initializer_list<FVector2D> Local, FLinearColor C, float Width, float Size = 1.f) const
 		{
-			TArray<FVector2D> Points;
+			TArray<FVector2D>& Points = ScratchPoints();
 			for (const FVector2D& Q : Local)
 			{
 				Points.Add((At + Q * Size) * Scale + Origin);
@@ -157,7 +157,7 @@ namespace TDFlightHUD
 			}
 			else
 			{
-				TArray<FVector2D> Hex;
+				TArray<FVector2D>& Hex = ScratchPoints();
 				for (int32 I = 0; I <= 6; ++I)
 				{
 					const float A = PI / 6.f + I * PI / 3.f;
@@ -183,7 +183,7 @@ namespace TDFlightHUD
 					Line(Tip, FMath::Lerp(L, R, T), Color, 2.5f);
 				}
 			}
-			TArray<FVector2D> Points;
+			TArray<FVector2D>& Points = ScratchPoints();
 			for (const FVector2D& Q : { Tip, L, Notch, R, Tip })
 			{
 				Points.Add(Q * Scale + Origin);
@@ -1143,6 +1143,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 
 void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 {
+	FTDHUDCostScope CostScope(SampleCost);
 	TD_COMBAT_PERF(FlightHUD);
 	const float Dt = FMath::Max(0.f, DeltaSeconds);
 	Time += Dt;
@@ -1367,6 +1368,27 @@ void UTDFlightHUDWidget::LayoutChips()
 }
 
 // ------------------------------------------------------------------------------------------ squad panel (#160)
+
+#if !UE_BUILD_SHIPPING
+// TD.UI.Cost: the flight HUD's game-thread cost since the last call (sample = reading the game, paint = drawing), in
+// ms per frame: average and worst. Budget (#160): under 0.5 ms for both together.
+static FAutoConsoleCommandWithWorld CmdTDUICost(TEXT("TD.UI.Cost"), TEXT("TD.UI.Cost: log the flight HUD's sample + paint cost (ms per frame, average and worst) since the last call."),
+	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World)
+	{
+		const UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(World);
+		UTDFlightHUDWidget* HUD = Host ? Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD()) : nullptr;
+		if (!HUD)
+		{
+			UE_LOG(LogTemp, Display, TEXT("TD.UI.Cost: no flight HUD"));
+			return;
+		}
+		const FTDHUDCost S = HUD->SampleCost, P = HUD->PaintCost;
+		UE_LOG(LogTemp, Display, TEXT("TD.UI.Cost: %d frames; sample %.3f ms avg, %.3f worst; paint %.3f ms avg, %.3f worst; together %.3f ms avg (budget 0.5)"),
+			P.Frames, S.AverageMs(), S.WorstMs(), P.AverageMs(), P.WorstMs(), S.AverageMs() + P.AverageMs());
+		HUD->SampleCost = FTDHUDCost();
+		HUD->PaintCost = FTDHUDCost();
+	}));
+#endif
 
 static TAutoConsoleVariable<int32> CVarTDUIMinimalHUD(
 	TEXT("TD.UI.MinimalHUD"), 0, TEXT("1 = the ENG-36 flight HUD (small squad chips, no squad panel or radar); 0 = the #160 HUD."));
@@ -1751,6 +1773,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	using namespace TDFlightHUD;
+	FTDHUDCostScope CostScope(PaintCost);
 	const int32 Base = Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 	if (!View.bHasData)
 	{
@@ -1870,7 +1893,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		// A kind's outline at At, rotated (0 = pointing down), brighter and heavier on a threat to the flown ship.
 		auto Shape = [&P, &Enemy](const FMark& Mk, FVector2D At, float Rot, float Alpha)
 		{
-			TArray<FVector2D> Pts;
+			static TArray<FVector2D> Pts; // its own buffer: P.Line below reuses the shared one
+			Pts.Reset();
 			float Width = 2.f;
 			TDFlightHUDShapes::Points(Mk.Kind, Pts, Width);
 			const FLinearColor C = (Mk.bThreat ? FMath::Lerp(Enemy, FLinearColor::White, .35f) : Enemy).CopyWithNewOpacity(Alpha);
@@ -2605,7 +2629,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	if (View.bSquadPanel)
 	{
 		float Left = 1e9f, Top = 1e9f, Right = 0.f;
-		const FString AbilityKey = View.bUsingGamepad ? TEXT("Y") : TEXT("E");
+		static const FString PadAbilityKey(TEXT("Y")), KeyAbilityKey(TEXT("E"));
+		const FString& AbilityKey = View.bUsingGamepad ? PadAbilityKey : KeyAbilityKey;
 		for (const FChip& Chip : View.Chips)
 		{
 			const FSquadCard& Card = View.Cards[static_cast<int32>(Chip.Ship)];

@@ -44,6 +44,30 @@ struct FTDFlightHUDTokens
  * the dev HUD stay selectable. It exposes SetDataSource / RefreshData under the same names as his widget, so the host
  * drives both the same way.
  */
+/** Game-thread cost of one part of the flight HUD since the last reset (TD.UI.Cost). */
+struct FTDHUDCost
+{
+	uint64 Cycles = 0;
+	uint64 Worst = 0;
+	int32 Frames = 0;
+	double AverageMs() const { return Frames > 0 ? FPlatformTime::ToMilliseconds64(Cycles) / Frames : 0.0; }
+	double WorstMs() const { return FPlatformTime::ToMilliseconds64(Worst); }
+};
+
+struct FTDHUDCostScope
+{
+	FTDHUDCost& Cost;
+	uint64 Start;
+	explicit FTDHUDCostScope(FTDHUDCost& InCost) : Cost(InCost), Start(FPlatformTime::Cycles64()) {}
+	~FTDHUDCostScope()
+	{
+		const uint64 D = FPlatformTime::Cycles64() - Start;
+		Cost.Cycles += D;
+		Cost.Worst = FMath::Max(Cost.Worst, D);
+		++Cost.Frames;
+	}
+};
+
 UCLASS()
 class UNREALGAMEJAM_API UTDFlightHUDWidget : public UUserWidget
 {
@@ -632,6 +656,9 @@ public:
 	float ForceHeat01 = -1.f;
 	/** Issue #160: the squad panel and radar data (layout-free; drawn once the concept is picked). */
 	const FTDHUDModel& GetHUDModel() const { return HUDModel; }
+	/** TD.UI.Cost: what Sample and NativePaint cost on the game thread (NativePaint is const: mutable). */
+	FTDHUDCost SampleCost;
+	mutable FTDHUDCost PaintCost;
 	/** Tests: >= 0 forces the docking state (0 none, 1 pulled, 2 gliding) and ForceTractorPull01 its pull. */
 	int32 ForceDocking = -1;
 	float ForceTractorPull01 = 0.f;

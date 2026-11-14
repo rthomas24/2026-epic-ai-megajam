@@ -44,6 +44,15 @@ struct FTDUIPainter
 	float Alpha = 1.f;
 	FLinearColor Faded(FLinearColor C) const { C.A *= Alpha; return C; }
 
+	/** One reused point buffer for every polyline (painting is on the game thread, one polyline at a time): no heap
+	 *  allocation per line, arc or outline. Slate copies the points when the element is made. */
+	static TArray<FVector2D>& ScratchPoints()
+	{
+		static TArray<FVector2D> Points;
+		Points.Reset();
+		return Points;
+	}
+
 	FTDUIPainter(const FGeometry& InG, FSlateWindowElementList& InList, int32 InLayer, FVector2D Design = FVector2D(1920, 1080))
 		: G(InG), List(InList), Layer(InLayer)
 	{
@@ -78,7 +87,7 @@ struct FTDUIPainter
 	void Frame(float X, float Y, float W, float H, FLinearColor C, float Opacity = 1) const
 	{
 		const float Cut = 8;
-		TArray<FVector2D> Points;
+		TArray<FVector2D>& Points = ScratchPoints();
 		for (const FVector2D Q : { FVector2D(X + Cut, Y), FVector2D(X + W, Y), FVector2D(X + W, Y + H - Cut), FVector2D(X + W - Cut, Y + H), FVector2D(X, Y + H),
 				 FVector2D(X, Y + Cut), FVector2D(X + Cut, Y) })
 		{
@@ -149,7 +158,7 @@ struct FTDUIPainter
 	}
 	void Line(FVector2D A, FVector2D B, FLinearColor C, float Width = 1) const
 	{
-		TArray<FVector2D> Points;
+		TArray<FVector2D>& Points = ScratchPoints();
 		Points.Add(A * Scale + Origin);
 		Points.Add(B * Scale + Origin);
 		FSlateDrawElement::MakeLines(List, Layer + 1, G.ToPaintGeometry(), Points, ESlateDrawEffect::None, Faded(C), true, Width * Scale);
@@ -157,7 +166,7 @@ struct FTDUIPainter
 	void Arc(FVector2D C, float R, float Fraction, FLinearColor Color, float Width = 2, float Start = -PI * .5f) const
 	{
 		const int32 Count = FMath::Max(2, FMath::CeilToInt(48 * Fraction));
-		TArray<FVector2D> Points;
+		TArray<FVector2D>& Points = ScratchPoints();
 		Points.Reserve(Count + 1);
 		for (int32 I = 0; I <= Count; ++I)
 		{
@@ -207,7 +216,7 @@ struct FTDUIPainter
 	}
 	void HealthIcon(float X, float Y, FLinearColor C) const
 	{
-		TArray<FVector2D> Points;
+		TArray<FVector2D>& Points = ScratchPoints();
 		for (const FVector2D Q : { FVector2D(-8, -4), FVector2D(-5, -8), FVector2D(-1, -8), FVector2D(0, -5), FVector2D(1, -8), FVector2D(5, -8), FVector2D(8, -4),
 				 FVector2D(8, 0), FVector2D(0, 9), FVector2D(-8, 0), FVector2D(-8, -4) })
 		{
@@ -217,7 +226,7 @@ struct FTDUIPainter
 	}
 	void ShieldIcon(float X, float Y, FLinearColor C) const
 	{
-		TArray<FVector2D> Points;
+		TArray<FVector2D>& Points = ScratchPoints();
 		for (const FVector2D Q : { FVector2D(-8, -8), FVector2D(8, -8), FVector2D(7, 2), FVector2D(0, 10), FVector2D(-7, 2), FVector2D(-8, -8) })
 		{
 			Points.Add((FVector2D(X, Y) + Q) * Scale + Origin);
