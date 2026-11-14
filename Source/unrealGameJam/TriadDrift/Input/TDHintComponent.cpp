@@ -3,6 +3,7 @@
 #include "TriadDrift/Input/TDHintComponent.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
@@ -288,7 +289,17 @@ void UTDHintComponent::HandleWaveStarted(int32 WaveNumber, float Intensity01)
 	}
 }
 
-void UTDHintComponent::HandleShipSwitched(ETDShipId NewShip, ETDShipId OldShip) { Observe(ETDHint::Switch); }
+void UTDHintComponent::HandleShipSwitched(ETDShipId NewShip, ETDShipId OldShip)
+{
+	// Nick's playtest (#140): only the pilot's own switch teaches the lesson. A cut to a survivor when the flown ship dies,
+	// a rescue or a retake is not the player's press, and the card must stay owed.
+	if (const ATDSquadManager* Squad = ATDSquadManager::Get(this))
+	{
+		const ETDSwitchCause Cause = Squad->GetLastSwitchCause();
+		if (Cause != ETDSwitchCause::Manual && Cause != ETDSwitchCause::Buffered) { return; }
+	}
+	Observe(ETDHint::Switch);
+}
 
 void UTDHintComponent::HandleAbilityUnlocked(ETDAbilityId Ability, ETDShipId Ship)
 {

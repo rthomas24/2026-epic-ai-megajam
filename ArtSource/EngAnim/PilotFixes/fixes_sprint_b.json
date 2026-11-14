@@ -1,0 +1,11 @@
+{"_note": "Sprint, step 2: the side-guard carry of run v5 on the long-stride legs (same keys, a slightly bigger pump).",
+ "swing": [
+  {"src": "A_Pilot_Sprint_Legs", "dst": "A_Pilot_Sprint", "rate": 1.0, "max_yaw": 15,
+   "keys": [
+    {"t": 0.0,   "hand": [18, 21, -34], "blade": [0.6, 0.66, -0.29], "yaw": 4},
+    {"t": 0.16,  "hand": [25, 21, -32], "blade": [0.62, 0.65, -0.28], "yaw": 6},
+    {"t": 0.32,  "hand": [18, 21, -34], "blade": [0.6, 0.66, -0.29], "yaw": 4},
+    {"t": 0.47,  "hand": [11, 21, -33], "blade": [0.58, 0.67, -0.29], "yaw": 2},
+    {"t": "end", "hand": [18, 21, -34], "blade": [0.6, 0.66, -0.29], "yaw": 4}
+   ]}
+ ]}

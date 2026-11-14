@@ -18,10 +18,13 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/UI/TDUIPaint.h"
 #include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/World/TDVerdanceApproach.h"
 #include "TriadDrift/World/TDDockingBay.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
 #if __has_include("TriadDrift/UI/TDHUDRadarPaint.h")
 #include "TriadDrift/UI/TDHUDRadarPaint.h"
@@ -529,6 +532,12 @@ void UTDFlightHUDWidget::SampleDirector(float Dt)
 	const float Target = FMath::Min(View.bInCut ? 0.f : View.bInSlate ? SlateOpacity : View.bPaused ? PauseOpacity : 1.f,
 		FMath::Clamp(bPlanetClosed ? 1.f : FocusOpacity, 0.f, 1.f)); // #161: the closed-planet warning is never dimmed
 	View.bCombatHeld = bFocusHideCombat;
+	// A director shot (the highlight money shots with their letterbox bars, T3's frame: the bars cut across the panel
+	// and radar): they leave for the whole shot, whether or not the feel subsystem reports slow-mo, and come back after.
+	const UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(this);
+	const UTDCutPresentation* Cut = Director ? Director->GetCutPresentation() : nullptr;
+	const bool bShot = bMoney || (Director && Director->IsShotActive()) || (Cut && Cut->IsShotLetterboxHeld());
+	View.ShotHide = FMath::FInterpConstantTo(View.ShotHide, bShot ? 1.f : 0.f, RealDt, 1.f / MoneyShotEaseSeconds);
 	// Off at once on a cut; everything else eases (the fade back in after CUT is the 250 ms the spec asks for).
 	View.HUDOpacity = View.bInCut ? 0.f : FMath::FInterpConstantTo(View.HUDOpacity, Target, RealDt, 1.f / CutFadeInSeconds);
 	// Applied in NativePaint through the painter's Alpha (render opacity does not reach custom-painted elements).
@@ -1112,7 +1121,13 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 	{
 		Prompt.Reset(); // today the control hints also arrive as the interact prompt: show them as a hint (T3, Nov 13)
 	}
-	if (!Prompt.IsEmpty())
+	SwitchNoticeLeft = FMath::Max(0.f, SwitchNoticeLeft - Dt);
+	if (SwitchNoticeLeft > 0.f)
+	{
+		View.Lane = ELane::Prompt; // the auto-switch notice outranks a prompt for its 3 s
+		View.LaneText = SwitchNotice;
+	}
+	else if (!Prompt.IsEmpty())
 	{
 		View.Lane = ELane::Prompt;
 		View.LaneText = Prompt.ToUpper();
@@ -1212,6 +1227,17 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 	if (Flown)
 	{
 		const bool bSwitched = Flown->Ship != LastFlown;
+		// The view changed because the flown ship went down (auto-switch on death, respawn rescue): say so for 3 s
+		// ("KATO DOWN  ·  SWITCHED TO MOSS"), so the player knows why. A manual switch says nothing.
+		if (bSwitched && LastHull >= 0.f)
+		{
+			const FChip* Old = View.Chips.FindByPredicate([this](const FChip& C) { return C.Ship == LastFlown; });
+			if (Old && !Old->bAlive)
+			{
+				SwitchNotice = FString::Printf(TEXT("%s DOWN  ·  SWITCHED TO %s"), TDFlightHUD::PilotName(LastFlown), TDFlightHUD::PilotName(Flown->Ship));
+				SwitchNoticeLeft = 3.f;
+			}
+		}
 		View.Flown = Flown->Ship;
 		View.Hull = TDFlightHUD::Clamp01(Flown->Health01);
 		View.Shield = TDFlightHUD::Clamp01(Flown->Shield01);
@@ -1325,6 +1351,12 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 		GeneratorFlashLeft = FMath::Max(0.f, GeneratorFlashLeft - DeltaSeconds);
 		View.GeneratorsTotal = Total;
 		View.GeneratorsDown = Down;
+		// The radar header's assault state (T6): the reactor exposed (the space ending) and its phase.
+		const ATDDominion* HeaderDom = ForceGeneratorsTotal >= 0 ? nullptr : ATDDominion::Get(this);
+		const ATDDominionReactor* Reactor = HeaderDom ? HeaderDom->GetReactor() : nullptr;
+		View.bReactorExposed = HeaderDom && HeaderDom->GetState() == ETDDominionState::ReactorExposed;
+		View.ReactorPhase = Reactor ? Reactor->GetPhase() : 0;
+		View.ReactorPhases = Reactor ? Reactor->PhaseCount : 0;
 		View.GeneratorFlash01 = GeneratorFlashLeft / 1.2f;
 		if (Total > 0)
 		{
@@ -2234,9 +2266,39 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 
 	static const TArray<FWaypoint> NoWaypoints;
 	const TArray<FWaypoint>& ShownWaypoints = View.bCombatHeld ? NoWaypoints : View.Waypoints; // a focus hold: none
+	// A "follow the marker" objective (one waypoint, no wave count, no generators: the withdrawal, a planet, the bay):
+	// the marker is the thing to look at (T1's play: the small edge icon was easy to miss). Off screen it is twice the
+	// size with a slow pulse and an arrow, and it is named from the objective's first word ("WITHDRAW 2.7 KM"); on
+	// screen it gets a bracket.
+	const bool bFollow = ShownWaypoints.Num() == 1 && View.Counter.IsEmpty() && View.GeneratorsTotal == 0 && !View.Objective.IsEmpty();
+	static FString FollowObjective, FollowWord;
+	if (bFollow && FollowObjective != View.Objective)
+	{
+		FollowObjective = View.Objective;
+		int32 Space = INDEX_NONE;
+		FollowWord = View.Objective.FindChar(TEXT(' '), Space) ? View.Objective.Left(Space) : View.Objective;
+	}
+	const float FollowPulse = .7f + .3f * FMath::Sin(Now * 2.f * PI * .8f);
 	for (const FWaypoint& Wp : ShownWaypoints)
 	{
 		const FLinearColor Way = T::Neutral();
+		if (bFollow && !Wp.bOnScreen)
+		{
+			const FVector2D F(FMath::Cos(Wp.Angle), FMath::Sin(Wp.Angle));
+			const FLinearColor Lit = Way.CopyWithNewOpacity(FollowPulse);
+			P.Poly(Wp.Pos, { { 0, -9 }, { 9, 0 }, { 0, 9 }, { -9, 0 }, { 0, -9 } }, Lit, 3.f, 2.f);
+			P.Box(Wp.Pos.X - 2.5f, Wp.Pos.Y - 2.5f, 5.f, 5.f, Lit);
+			P.Chevron(Wp.Pos + F * 30.f, Wp.Angle, 22.f, Lit, true);
+			Rec(TEXT("waypoint_edge"), Wp.Pos.X - 18.f, Wp.Pos.Y - 18.f, 36.f, 36.f);
+			const FVector2D Label = Wp.Pos - F * 110.f;
+			P.BackedWords(Label.X, Label.Y - 10.f, FollowWord + TEXT("  ") + Range(Wp.Distance).ToUpper(), 17, Way, .5f, 40);
+			Area += 220.f * 44.f;
+			continue;
+		}
+		if (bFollow && Wp.bOnScreen && !Wp.bLifted)
+		{
+			P.Brackets(Wp.Pos, 26.f, Way.CopyWithNewOpacity(FollowPulse), 9.f);
+		}
 		if (Wp.bOnScreen && Wp.bLifted)
 		{
 			// Dead ahead on a planet the pad sits behind the player's own ship: draw it just above the ship zone, range
@@ -2606,7 +2668,9 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		// grows upward, at most 80% of the frame wide and clear of the radar when the #160 HUD is on. The wrap is cached
 		// per line / size (no per-frame measuring of the whole text).
 		const float TagW = Who.IsEmpty() ? 0.f : FMath::Max(P.Measure(Who, P.Font("Bold", TagPx, 80)), Who.Len() * 11.5f * Sc) + 20.f;
-		const float MaxPlateW = View.bSquadPanel ? 1140.f : 1536.f;
+		// With the #160 HUD on, the plate stops short of the radar, which is 280 * PanelK design units wide (wider in
+		// design units at 720p: the three-line Large block ran under it in the first capture).
+		const float MaxPlateW = View.bSquadPanel ? 2.f * (1920.f - SafeX - 280.f * View.PanelK - CenterX - 24.f) : 1536.f;
 		const float MaxTextW = MaxPlateW - 44.f - TagW;
 		auto LineW = [&P, BodyPx, Sc](const FString& S)
 		{
@@ -2686,7 +2750,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	const float Pulse1Hz = .75f + .25f * FMath::Sin(Time * 2.f * PI);
 	// The squad panel and the radar leave with the combat HUD: while docking (controls locked), under a focus hold that
 	// hides combat (director shots, letterboxed sequences, T4's breakup camera), and they fade out with a money shot.
-	const float PanelAlpha = (View.Docking > 0 || View.bCombatHeld) ? 0.f : 1.f - FMath::Clamp(View.MoneyShot * 2.f, 0.f, 1.f);
+	const float PanelAlpha = (View.Docking > 0 || View.bCombatHeld) ? 0.f : 1.f - FMath::Clamp(FMath::Max(View.MoneyShot, View.ShotHide) * 2.f, 0.f, 1.f);
 	FPaint PanelP = P;
 	PanelP.Alpha *= PanelAlpha;
 	const bool bPanelShown = View.bSquadPanel && PanelP.Alpha > .01f;
@@ -2717,7 +2781,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	// T6's radar (#160): bottom-right, from the HUD model.
 	if (bPanelShown)
 	{
-		TDPaintHUDRadar(PanelP, HUDModel, FTDHUDRadarInput{ View.Flown, View.bHasFlown, FrameWave, Time });
+		TDPaintHUDRadar(PanelP, HUDModel, FTDHUDRadarInput{ View.Flown, View.bHasFlown, FrameWave, Time,
+			View.GeneratorsTotal, View.GeneratorsDown, View.bReactorExposed, View.ReactorPhase, View.ReactorPhases });
 		const FBox2D RadarBox = TDHUDRadarBox(PanelP);
 		Rec(TEXT("radar"), RadarBox.Min.X, RadarBox.Min.Y, RadarBox.GetSize().X, RadarBox.GetSize().Y);
 	}

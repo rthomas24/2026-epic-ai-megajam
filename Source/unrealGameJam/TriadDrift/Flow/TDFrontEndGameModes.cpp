@@ -304,6 +304,43 @@ void ATDMenuGameMode::ChooseDifficulty(bool bSkipTutorial)
 	ShowPlaceholder();
 }
 
+void ATDMenuGameMode::RequestNewGame(bool bSkipTutorial)
+{
+	if (!CanContinue())
+	{
+		ChooseDifficulty(bSkipTutorial); // no saved run: nothing to replace, nothing to ask
+		return;
+	}
+	bConfirmingNewGame = true;
+	bConfirmSkipTutorial = bSkipTutorial;
+	ConfirmShownAt = FPlatformTime::Seconds();
+	HidePlaceholder();
+	ShowPlaceholder();
+}
+
+void ATDMenuGameMode::ConfirmNewGame()
+{
+	if (!bConfirmingNewGame || FPlatformTime::Seconds() - ConfirmShownAt < 0.3)
+	{
+		return; // the press that opened the question must not also answer it
+	}
+	bConfirmingNewGame = false;
+	ChooseDifficulty(bConfirmSkipTutorial);
+}
+
+void ATDMenuGameMode::CancelNewGameConfirm()
+{
+	bConfirmingNewGame = false;
+	HidePlaceholder();
+	ShowPlaceholder();
+}
+
+void ATDMenuGameMode::MenuBack()
+{
+	if (bConfirmingNewGame) { CancelNewGameConfirm(); }
+	else if (bChoosingDifficulty) { CancelDifficultyChoice(); }
+}
+
 void ATDMenuGameMode::CancelDifficultyChoice()
 {
 	bChoosingDifficulty = false;
@@ -453,10 +490,12 @@ void ATDMenuGameMode::ShowPlaceholder()
 	{
 		TSharedPtr<SButton> Made;
 		SAssignNew(Made, SButton).IsEnabled(bEnabled).HAlign(HAlign_Center)
-			.OnClicked_Lambda([Weak, Action]() { if (ATDMenuGameMode* M = Weak.Get()) { Action(M); } return FReply::Handled(); })
-			[
-				SNew(STextBlock).Text(FText::FromString(Label)).Font(FCoreStyle::GetDefaultFontStyle("Bold", 20))
-			];
+			.ButtonStyle(&TDFrontEndStyle::MenuButtonStyle()) // #142: the menu's own states, no default grey
+			.OnClicked_Lambda([Weak, Action]() { if (ATDMenuGameMode* M = Weak.Get()) { Action(M); } return FReply::Handled(); });
+		const TWeakPtr<SButton> WeakButton = Made;
+		Made->SetContent(
+			SNew(STextBlock).Text(FText::FromString(Label)).Font(FCoreStyle::GetDefaultFontStyle("Bold", 20))
+			.ColorAndOpacity_Lambda([WeakButton]() { return TDFrontEndStyle::MenuLabelColor(WeakButton); }));
 		// The focused button lights up in the squad colour and grows a little: a pad player sees what A presses.
 		TSharedRef<SWidget> Out = SNew(SBox).WidthOverride(320.f).Padding(FMargin(0.f, 6.f))
 			[
@@ -555,13 +594,28 @@ void ATDMenuGameMode::ShowPlaceholder()
 		KeepMenuFocus();
 		return; // the normal menu's card, focus, Settings and music path stay untouched
 	}
+	else if (bConfirmingNewGame)
+	{
+		// #142 (wording from Nick's Lead): a saved run exists; BACK is where the focus starts.
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 0.f, 0.f, 10.f)
+		[
+			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "ConfirmNewTitle", "START A NEW GAME?")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 40)).ColorAndOpacity(TDFrontEndStyle::Ink())
+		];
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 0.f, 0.f, 22.f)
+		[
+			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "ConfirmNewBody", "YOUR SAVED RUN WILL BE REPLACED.")).Font(FCoreStyle::GetDefaultFontStyle("Regular", 18)).ColorAndOpacity(TDFrontEndStyle::Cyan())
+		];
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("START NEW GAME"), [](ATDMenuGameMode* M) { M->ConfirmNewGame(); }, true)];
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("BACK"), [](ATDMenuGameMode* M) { M->CancelNewGameConfirm(); }, true)];
+		FirstButton = LastMade; // BACK
+	}
 	else if (bChoosingDifficulty)
 	{
 		// ENG-45: New Game's one question. Three choices with the Settings page's own lines; the difficulty in play is
 		// where the focus starts, so Enter / pad A keeps a returning player's last choice.
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 0.f, 0.f, 20.f)
 		[
-			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "ChooseDifficulty", "CHOOSE DIFFICULTY")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 40)).ColorAndOpacity(FLinearColor(0.4f, 0.9f, 1.f))
+			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "ChooseDifficulty", "CHOOSE DIFFICULTY")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 40)).ColorAndOpacity(TDFrontEndStyle::Ink())
 		];
 		const ETDDifficulty InPlay = UTDSettingsSubsystem::GetDifficultyInPlay();
 		TSharedPtr<SButton> Preselected;
@@ -583,12 +637,12 @@ void ATDMenuGameMode::ShowPlaceholder()
 	{
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 0.f, 0.f, 24.f)
 		[
-			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "Title", "TRIAD DRIFT")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 64)).ColorAndOpacity(FLinearColor(0.4f, 0.9f, 1.f))
+			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "Title", "TRIAD DRIFT")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 64)).ColorAndOpacity(TDFrontEndStyle::Ink())
 		];
-		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("NEW GAME"), [](ATDMenuGameMode* M) { M->ChooseDifficulty(false); }, true)];
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("NEW GAME"), [](ATDMenuGameMode* M) { M->RequestNewGame(false); }, true)];
 		if (CanSkipTutorial()) // T7: only after the tutorial was completed once on this profile
 		{
-			Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("SKIP THE TUTORIAL"), [](ATDMenuGameMode* M) { M->ChooseDifficulty(true); }, true)];
+			Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("SKIP THE TUTORIAL"), [](ATDMenuGameMode* M) { M->RequestNewGame(true); }, true)];
 		}
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("CONTINUE"), [](ATDMenuGameMode* M) { M->ContinueGame(); }, CanContinue())];
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("SETTINGS"), [](ATDMenuGameMode* M) { UTDSettingsSubsystem::OpenSettingsPage(M); }, true)];
@@ -596,17 +650,48 @@ void ATDMenuGameMode::ShowPlaceholder()
 	}
 	// A light veil over the whole screen and a darker panel behind the buttons only: the menu backdrop scene (T3)
 	// shows through while the text stays readable.
-	Placeholder = SNew(SBorder)
-		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-		.BorderBackgroundColor(FLinearColor(0.01f, 0.01f, 0.03f, 0.3f))
-		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+	// #142: a fine cyan rule under the title, the same footer hint on every page, a thin outline round the panel and a
+	// short fade-in. The backdrop stays visible: the veil is light and the panel is translucent.
+	Box->InsertSlot(1).AutoHeight().HAlign(HAlign_Center).Padding(0.f, 0.f, 0.f, 18.f)
+	[
+		SNew(SBox).WidthOverride(300.f).HeightOverride(1.f)
+		[
+			SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(0.40f, 0.75f, 0.81f, 0.65f)).Padding(0.f)
+		]
+	];
+	const bool bSubPage = bConfirmingNewGame || bChoosingDifficulty;
+	Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 16.f, 0.f, 0.f)
+	[
+		SNew(STextBlock)
+		.Text(bSubPage ? NSLOCTEXT("TDMenu", "FooterSub", "W / S  OR  ARROWS  SELECT      ENTER / A  CHOOSE      ESC / B  BACK")
+			: NSLOCTEXT("TDMenu", "FooterMain", "W / S  OR  ARROWS  SELECT      ENTER / A  CHOOSE"))
+		.Font(FCoreStyle::GetDefaultFontStyle("Regular", 11)).ColorAndOpacity(FLinearColor(0.70f, 0.78f, 0.84f, 0.85f))
+	];
+	MenuShownAt = FPlatformTime::Seconds();
+	const double ShownAt = MenuShownAt;
+	FSimpleDelegate Back;
+	if (bSubPage) { Back = FSimpleDelegate::CreateLambda([Weak]() { if (ATDMenuGameMode* M = Weak.Get()) { M->MenuBack(); } }); }
+	Placeholder = SNew(TDFrontEndStyle::STDMenuRoot).OnBack(Back)
 		[
 			SNew(SBorder)
 			.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-			.BorderBackgroundColor(FLinearColor(0.01f, 0.01f, 0.03f, 0.6f))
-			.Padding(FMargin(48.f, 32.f))
+			.BorderBackgroundColor(FLinearColor(0.005f, 0.012f, 0.025f, 0.22f))
+			.HAlign(HAlign_Center).VAlign(VAlign_Center)
+			.ColorAndOpacity_Lambda([ShownAt]() { return FLinearColor(1.f, 1.f, 1.f, FMath::Clamp(float((FPlatformTime::Seconds() - ShownAt) / 0.25), 0.f, 1.f)); })
 			[
-				Box
+				SNew(SBorder)
+				.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+				.BorderBackgroundColor(FLinearColor(0.40f, 0.75f, 0.81f, 0.28f)) // the fine outline
+				.Padding(FMargin(1.f))
+				[
+					SNew(SBorder)
+					.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+					.BorderBackgroundColor(FLinearColor(0.008f, 0.014f, 0.03f, 0.74f))
+					.Padding(FMargin(52.f, 34.f, 52.f, 26.f))
+					[
+						Box
+					]
+				]
 			]
 		];
 	GEngine->GameViewport->AddViewportWidgetContent(Placeholder.ToSharedRef(), 10);

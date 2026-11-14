@@ -459,6 +459,40 @@ void ATDPlanetCourse::BuildInterior()
 			{ PCore, TEXT("SM_Fab_PowerCore"), FVector(CX1 + 250.f, AY - 250.f, 0.f), 0.f, 1.f, true },	// arena corner, corridor mouth
 			{ PCore, TEXT("SM_Fab_PowerCore"), FVector(L1X1 + 250.f, -WY + 250.f, 0.f), 0.f, 1.f, true },	// Warden room corner
 		}, FVector::ZeroVector, 0.f, TEXT("InteriorFab"));
+		// A warm work light over each crate cluster (env a13 look pass): the black-and-crimson crates sank into the dark
+		// floor; a small amber pool picks out their edges and the barrels' yellow. No shadows, like the rest.
+		Light(FVector(450.f, 1080.f, 260.f), 750.f, FLinearColor(1.f, 0.55f, 0.22f), 280.f);
+		Light(FVector(-1020.f, -1060.f, 260.f), 750.f, FLinearColor(1.f, 0.55f, 0.22f), 260.f);
+	}
+	// Corridor dressing (environment builder): the three corridors were bare 3.4 m boxes. Wall-mounted kit pieces only, no
+	// collision and almost no floor (each wall gives up 12 cm): a bulkhead rib on both walls at every 4 m seam, a handrail
+	// along both walls, and a floor-edge light strip on both sides of every other cell, so the walk hangar -> arena ->
+	// Warden room reads as a ship's passage. Placed through Dress() (no map save).
+	{
+		const TCHAR* DI = TEXT("DominionInterior");
+		const TCHAR* K = TEXT("Kit");
+		TArray<FDressItem> Items;
+		for (const FVector2D& Run : { FVector2D(HX1, CX1), FVector2D(AX1, L1X1), FVector2D(WX1, L2X1) })
+		{
+			for (float X = Run.X + Grid; X < Run.Y - 1.f; X += Grid)
+			{
+				Items.Add({ DI, TEXT("SM_DI_Bulkhead_Rib"), FVector(X, -158.f, 0.f), 0.f, 1.f, false });
+				Items.Add({ DI, TEXT("SM_DI_Bulkhead_Rib"), FVector(X, 158.f, 0.f), 0.f, 1.f, false });
+			}
+			int32 Cell = 0;
+			for (float X = Run.X + 0.5f * Grid; X < Run.Y; X += Grid, ++Cell)
+			{
+				Items.Add({ K, TEXT("SM_Kit_Railing_400"), FVector(X, -165.f, 0.f), 0.f, 1.f, false });	// on +Y of its line: against the -Y wall
+				Items.Add({ K, TEXT("SM_Kit_Railing_400"), FVector(X, 165.f, 0.f), 180.f, 1.f, false });
+				if (Cell % 2 == 0)
+				{
+					Items.Add({ K, TEXT("SM_Kit_LightStrip_200"), FVector(X, -150.f, 0.f), 0.f, 1.f, false });
+					Items.Add({ K, TEXT("SM_Kit_LightStrip_200"), FVector(X, 150.f, 0.f), 0.f, 1.f, false });
+				}
+			}
+		}
+		const int32 Placed = Dress(Items, FVector::ZeroVector, 0.f, TEXT("InteriorCorridors"));
+		UE_LOG(LogTriadDrift, Display, TEXT("Dominion interior: corridor dressing %d of %d pieces"), Placed, Items.Num());
 	}
 
 	// 1. The deflect lesson: two troopers at the corridor's far end, behind low cover, firing down the lane.
@@ -531,7 +565,11 @@ void ATDPlanetCourse::BuildInterior()
 	StoryConsole(FVector(AX1 - 300.f, AY - 300.f, 0.f), 180.f, TEXT("Barracks")); // T3's id for this room
 
 	// 3. The Warden at the gate.
-	ATDObjective* Gate = MakeObjective(Warden, LOCTEXT("DIWardenTitle", "The Warden's Gate"), ETDAbilityId::None, ETDShipId::Rift, 1);
+	// Two steps (#96): the Warden, then the final record. The exit door, the Core objective and Face to Face all wait
+	// for the record, so nobody walks past it (Nick's Lead did, from a Continue at the Warden checkpoint).
+	ATDObjective* Gate = MakeObjective(Warden, LOCTEXT("DIWardenTitle", "The Warden's Gate"), ETDAbilityId::None, ETDShipId::Rift, 2);
+	WardenGateObjective = Gate;
+	WardenExitDoor = WardenOut;
 	AddTrailhead(Gate, FVector(L1X1 + 400.f, 0.f, 0.f), Strip, LOCTEXT("DIWarden", "THE GATE"));
 	Trailheads.Last().After = Fight;
 	StepDoors.Add({ Gate, 0, WardenIn });
@@ -547,7 +585,7 @@ void ATDPlanetCourse::BuildInterior()
 	}
 	CompletionDoors.Add({ Gate, 0, WardenOut });
 	Checkpoint(Gate, 0, FVector(L1X1 + 300.f, 0.f, 0.f), 0.f);
-	FinishObjective(Gate, { LOCTEXT("DIW0", "DEFEAT THE WARDEN") }, {});
+	FinishObjective(Gate, { LOCTEXT("DIW0", "DEFEAT THE WARDEN"), LOCTEXT("DIW1", "PLAY THE FINAL RECORD") }, {});
 	Entry(Warden, FVector(L1X1 - 300.f, 0.f, 0.f), 0.f);
 
 	// 4. The core: break the four shield conduits, then strike the heart (the orbs, the laser and the deflect-only
@@ -673,6 +711,7 @@ void ATDPlanetCourse::BuildInterior()
 		Rec->Prompt = LOCTEXT("FinalRecord", "Play the final record");
 		Rec->bSingleUse = false; // a second press skips the record
 	}
+	if (Gate && Gate->Steps.IsValidIndex(1)) { Gate->Steps[1].Waypoint = FinalRecordConsole; } // the marker sits on the console
 
 	// 5. The escape run: back to the ship against the clock, debris falling (a CUT restarts the run, not the fight).
 	ATDObjective* Run = MakeObjective(Escape, LOCTEXT("DIEscapeTitle", "Get Out"), ETDAbilityId::None, ETDShipId::Rift, 1);
@@ -888,6 +927,18 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 		UTDStorySubsystem::PlaySequence(this, TEXT("FirstDoor")); // A4_DoorsKnowUs, C7_Kato_Archive, C7_Wren_Record (T3)
 	}
 	else if (Id == Warden && StepIndex == 0) { Beat(TEXT("G7_Kato_Authorisations")); } // the Warden door opens
+	else if (Id == Warden && StepIndex == 1)
+	{
+		// The Warden is down: the record next. Already played (or skipped): the step is done at once.
+		if (bFinalRecordDone)
+		{
+			GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this, [this]() { CompleteFinalRecordStep(); }));
+		}
+		else if (WardenExitDoor)
+		{
+			WardenExitDoor->ShowStatusText(LOCTEXT("RecordFirst", "PLAY THE FINAL RECORD FIRST"));
+		}
+	}
 	else if (Id == Core && StepIndex == 0)
 	{
 		// N-052: Face to Face for the pilot who boarded, as the reactor room starts (T3's G8_Self_<Pilot> lines).
@@ -1066,6 +1117,16 @@ void ATDPlanetCourse::OpenReactorDoor()
 		Rec->bEnabled = false; // played
 	}
 	// T3's Cinematic 08 carries the decision lines now (no A5_Choice here).
+	CompleteFinalRecordStep();
+}
+
+void ATDPlanetCourse::CompleteFinalRecordStep()
+{
+	if (WardenExitDoor) { WardenExitDoor->ClearStatusText(); }
+	if (ATDObjective* Gate = WardenGateObjective.Get(); Gate && Gate->GetCurrentStepIndex() == 1)
+	{
+		Gate->CompleteStep(1); // the exit opens, the Core objective and Face to Face start
+	}
 }
 
 void ATDPlanetCourse::HandleHeartHit(UTDHealthComponent* Health, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)

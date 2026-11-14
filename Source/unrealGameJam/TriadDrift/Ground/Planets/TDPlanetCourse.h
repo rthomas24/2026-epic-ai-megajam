@@ -179,6 +179,10 @@ private:
 	UPROPERTY(Transient) TObjectPtr<AActor> InteriorExposure;
 	/** The final record (story 07-09): the reactor door opens only once it has played (or was skipped). */
 	UPROPERTY(Transient) TObjectPtr<class ATDDoor> ReactorDoor;
+	/** #96: the Warden objective's second step is the final record; its exit door says so while it waits. */
+	UPROPERTY(Transient) TObjectPtr<class ATDDoor> WardenExitDoor;
+	TWeakObjectPtr<class ATDObjective> WardenGateObjective;
+	void CompleteFinalRecordStep();
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> ParkedShip;
 	UPROPERTY(Transient) TArray<TObjectPtr<UStaticMeshComponent>> ParkedParts;
 	int32 ConduitsDown = 0;
