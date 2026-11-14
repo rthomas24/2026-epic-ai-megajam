@@ -337,3 +337,7 @@ Follow-up: the scoped core SoundWave import and independent fresh-process reload
 ### November 13 — two confirmed Cinder music roles
 
 Nicholas assigned Cinder World to exploration and Cinder Fall to combat. Audio preserved both originals and prepared complete 150.000-second and 148.800-second stereo masters with Python and FFmpeg. Both passed the music-category file checks without gain changes: World -14.4 LUFS/-2.2 dBTP; Fall -15.0 LUFS/-2.3 dBTP. Lead verified all original/master hashes for publication. A later combat beat-drop entry is being auditioned separately; the full masters are untrimmed, and no offset, loop or native gameplay integration is claimed here.
+
+### 2026-11-14 — Cinder music native data verification
+
+The complete World (150.0 s) and Fall (148.8 s) masters imported and reopened in separate guarded Unreal processes. Both exited cleanly; exported PCM matched across runs and the masters within one 16-bit step. Protected files remained unchanged. Verified packages transferred to the integration checkout; reports under ArtSource/Audio/CinderMusic01/native-checks. No loop, offset or gameplay binding was guessed. Next: T1/T5 event contract, Audio hookup, cook and in-game listening. No Unreal processes left.

@@ -78,3 +78,7 @@ GothicStoneArchWall private import PASS PID16364/OS0, six packages/9763tri/UV1;3
 
 
 Music hookup: Audio's source review identified that native static victory callbacks and game-owned enum/struct delegate signatures cannot be safely bound by the header-independent plugin as currently described. Ryan accepted N-082 and assigned T1 to build the primitive reflected bridge, state snapshot and callable exclusive-score functions. Exact signatures and buildable revision remain pending. No new plugin implementation has started; the current player's isolated playback results do not establish natural campaign hookup.
+
+## Cinder music native checkpoint — November 14
+
+World exploration and Fall combat are imported as full SoundWaves under /Game/TriadDrift/Audio/CinderMusic01/. Import and fresh reload both passed with matching exported PCM and unchanged protected files; see [native evidence](../../ArtSource/Audio/CinderMusic01/README.md). Native data technically verified only. Event hookup, component gain, cook, actual gameplay and Nicholas's listening approval remain open; no loop or beat-drop offset was applied.
