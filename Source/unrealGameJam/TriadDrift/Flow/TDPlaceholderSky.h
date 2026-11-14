@@ -12,6 +12,7 @@ class UPostProcessComponent;
 class UExponentialHeightFogComponent;
 class UStaticMeshComponent;
 class USkyAtmosphereComponent;
+class UNiagaraComponent;
 
 UENUM()
 enum class ETDPlaceholderSkyStyle : uint8
@@ -79,6 +80,9 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<USkyLightComponent> SkyLight;
 	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<USkyAtmosphereComponent> Atmosphere;
 	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<UPostProcessComponent> Exposure;
+	/** ART-13: the colour grade per style (environment builder). Its own unbound component above the levels' own post (the
+	 *  interior's exposure volume is priority 10), carrying only grading fields, so it survives a level that brings exposure. */
+	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<UPostProcessComponent> Grade;
 	/** Planet styles: the ground carried to the horizon (a 200 km plane just under the course slab, same material). */
 	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<UStaticMeshComponent> FarGround;
 	/** Planet styles: planet-tinted height fog so the distance blends into the sky. */
@@ -98,9 +102,19 @@ public:
 	/** The multiplier applied last frame (tests). */
 	float GetDescentFogScale() const { return DescentFogScale; }
 	float GetBaseFogDensity() const { return BaseFogDensity; }
+	ETDPlaceholderSkyStyle GetAppliedStyle() const { return AppliedStyle; }
+	/** ART-13: the planet's ambient particles (pollen and spores / ash and embers) on the player's camera, from the
+	 *  PlanetAmbientVerdance / PlanetAmbientCinder slots of DA_Travel_FX (found by name: empty or missing = nothing). */
+	void TickAmbient(float DeltaSeconds);
+	UNiagaraComponent* GetAmbientFX() const { return AmbientFX; }
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	void TickDescentFog();
 
 protected:
+	UPROPERTY(Transient) TObjectPtr<UNiagaraComponent> AmbientFX;
+	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> AmbientAudio;
+	TWeakObjectPtr<USceneComponent> AmbientParent;
+	float AmbientRetry = 0.f;
 	float BaseFogDensity = 0.f;
 	float DescentFogScale = 1.f;
 	TWeakObjectPtr<class ATDPlanetTerrain> FogTerrain;

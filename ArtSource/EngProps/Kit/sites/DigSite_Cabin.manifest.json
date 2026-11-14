@@ -404,6 +404,17 @@
     0
    ],
    "yaw_deg": 180
+  },
+  {
+   "name": "DrillRig",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/CinderDigSite/SM_CinderDrillRig",
+   "location_cm": [
+    -100,
+    1450,
+    0
+   ],
+   "yaw_deg": -15,
+   "note": "AI mesh as dressing (R-043): not walkable, its box only keeps the pilot out"
   }
  ],
  "console_interact": {
@@ -491,6 +502,7 @@
  },
  "placement_rules": [
   "Pivot on flat ground.",
-  "Keep 3 m clear in front of the stairs (X 1400..1700)."
+  "Keep 3 m clear in front of the stairs (X 1400..1700).",
+  "The drill rig stands at (-100, 1450): the footprint is X -600..1700, Y -600..1700."
  ]
 }

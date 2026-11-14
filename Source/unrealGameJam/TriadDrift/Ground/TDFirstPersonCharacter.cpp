@@ -758,7 +758,13 @@ FText ATDFirstPersonCharacter::GetInteractPrompt() const
 			return I->GetPrompt();
 		}
 	}
-	return FText::GetEmpty();
+	return GetTip();
+}
+
+void ATDFirstPersonCharacter::ShowTip(const FText& Text, float Seconds)
+{
+	Tip = Text;
+	TipLeft = Seconds;
 }
 
 TArray<AActor*> ATDFirstPersonCharacter::GetObjectiveMarkers() const
@@ -937,6 +943,15 @@ bool ATDFirstPersonCharacter::FindMantleTarget(FVector& OutTarget) const
 	if (Top.ImpactNormal.Z < 0.7f)
 	{
 		return false;
+	}
+	// Not onto a console (decided by Ryan's Lead, Nov 13): anything marked "no step-up" or unwalkable is not a ledge.
+	// Low cover stays vaultable.
+	if (const UPrimitiveComponent* Ledge = Top.GetComponent())
+	{
+		if (Ledge->CanCharacterStepUpOn == ECB_No || Ledge->GetWalkableSlopeOverride().GetWalkableSlopeBehavior() == WalkableSlope_Unwalkable)
+		{
+			return false;
+		}
 	}
 	const float LedgeHeight = Top.ImpactPoint.Z - FeetZ;
 	if (LedgeHeight < Tuning.MantleMinHeight || LedgeHeight > Tuning.MantleMaxHeight)
@@ -1355,6 +1370,7 @@ void ATDFirstPersonCharacter::ReturnToSafeGround()
 
 void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 {
+	TipLeft = FMath::Max(0.f, TipLeft - DeltaSeconds);
 	Super::Tick(DeltaSeconds);
 	if (DeltaSeconds <= 0.f)
 	{

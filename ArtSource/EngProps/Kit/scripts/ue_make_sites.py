@@ -30,7 +30,7 @@ def open_class(path):
         doomed = []
         for h in handles[1:]:
             obj = lib.get_object_for_blueprint(lib.get_data(h), bp)
-            if isinstance(obj, unreal.StaticMeshComponent):
+            if isinstance(obj, (unreal.StaticMeshComponent, unreal.PointLightComponent)):
                 doomed.append(h)
         for h in reversed(doomed):
             try:
@@ -59,6 +59,7 @@ def build(man):
     handles = sds.k2_gather_subobject_data_for_blueprint(bp)
     root = handles[0]
     made, bad = 0, []
+    made_lights = [0]
     for pc in man["pieces"]:
         mesh = eas.load_asset(pc["mesh"])
         if mesh is None:
@@ -81,8 +82,32 @@ def build(man):
         x, y, z = pc["location_cm"]
         comp.set_editor_property("relative_location", unreal.Vector(x, y, z))
         comp.set_editor_property("relative_rotation", unreal.Rotator(roll=0.0, pitch=0.0, yaw=pc.get("yaw_deg", 0.0)))
+        sc = pc.get("scale")
+        if sc:
+            comp.set_editor_property("relative_scale3d", unreal.Vector(sc[0], sc[1], sc[2]))
         comp.set_editor_property("mobility", unreal.ComponentMobility.MOVABLE)
         made += 1
+    for lt in man.get("lights", []):
+        params = unreal.AddNewSubobjectParams(parent_handle=root, new_class=unreal.PointLightComponent, blueprint_context=bp)
+        handle, fail = sds.add_new_subobject(params)
+        if not lib.is_handle_valid(handle):
+            bad.append("add light %s (%s)" % (lt["name"], fail))
+            continue
+        sds.rename_subobject(handle, unreal.Text(lt["name"]))
+        c = lib.get_object_for_blueprint(lib.get_data(handle), bp)
+        x, y, z = lt["location_cm"]
+        c.set_editor_property("relative_location", unreal.Vector(x, y, z))
+        try:
+            c.set_editor_property("intensity_units", unreal.LightUnits.CANDELAS)
+        except Exception as error:
+            bad.append("intensity_units: %s" % error)
+        c.set_editor_property("intensity", lt.get("intensity", 1500.0))
+        c.set_editor_property("attenuation_radius", lt.get("radius", 1200.0))
+        r, g, b = lt.get("color", (0.85, 0.9, 1.0))
+        c.set_editor_property("light_color", unreal.Color(int(b * 255), int(g * 255), int(r * 255), 255))
+        c.set_editor_property("cast_shadows", bool(lt.get("shadows", False)))
+        c.set_editor_property("mobility", unreal.ComponentMobility.MOVABLE)
+        made_lights[0] += 1
     unreal.BlueprintEditorLibrary.compile_blueprint(bp)
     eas.save_asset(path, only_if_is_dirty=False)
     names = []
@@ -94,7 +119,7 @@ def build(man):
     stale = [n for n in names if n not in [pc["name"] for pc in man["pieces"]]]
     if len(names) != made or stale:
         bad.append("component list %d (%s), expected %d; not from the manifest: %s" % (len(names), names[:4], made, stale))
-    log("%s: %d components%s%s" % (path, made, " (new class)" if new else "", (" PROBLEMS %s" % bad) if bad else ""))
+    log("%s: %d components, %d lights%s%s" % (path, made, made_lights[0], " (new class)" if new else "", (" PROBLEMS %s" % bad) if bad else ""))
     return not bad
 
 

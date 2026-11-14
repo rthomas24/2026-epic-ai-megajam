@@ -1,0 +1,51 @@
+{
+ "drop": [
+  {
+   "src": "A_Pilot_Blade_Death1",
+   "dst": "A_Pilot_Blade_Death1_v2",
+   "floor_cm": 4.0,
+   "bones": [
+    "pelvis",
+    "spine_01",
+    "spine_02",
+    "spine_03",
+    "neck_01",
+    "head",
+    "hand_r",
+    "hand_l",
+    "lowerarm_r",
+    "lowerarm_l",
+    "foot_r",
+    "foot_l",
+    "calf_r",
+    "calf_l",
+    "ball_r",
+    "ball_l"
+   ]
+  },
+  {
+   "src": "A_Pilot_Blade_Death2",
+   "dst": "A_Pilot_Blade_Death2_v2",
+   "floor_cm": 10.0,
+   "bones": [
+    "pelvis",
+    "spine_01",
+    "spine_02",
+    "spine_03",
+    "neck_01",
+    "head",
+    "hand_r",
+    "hand_l",
+    "lowerarm_r",
+    "lowerarm_l",
+    "foot_r",
+    "foot_l",
+    "calf_r",
+    "calf_l",
+    "ball_r",
+    "ball_l"
+   ]
+  }
+ ],
+ "_note": "Death2 r2 (review): floor 10 cm so the fist and hilt stay above the ground."
+}

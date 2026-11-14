@@ -1,8 +1,8 @@
 {
  "site": "DigSite_Cabin",
  "origin": [
-  4000.0,
-  -2500.0,
+  1000.0,
+  2800.0,
   2.0
  ],
  "steps": [
@@ -15,12 +15,12 @@
    "feet": [
     1750,
     0,
-    0,
+    40,
     180
    ]
   },
   {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\DigSite_Cabin\\01_stairs_foot.png"
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DigSite_Cabin\\01_stairs_foot.png"
   },
   {
    "walk": [
@@ -28,9 +28,9 @@
     0.45
    ],
    "feet": [
-    1461,
+    1475,
     0,
-    0,
+    40,
     180
    ],
    "at": "stairs 0"
@@ -41,9 +41,9 @@
     0.45
    ],
    "feet": [
-    1182,
+    1195,
     0,
-    64,
+    61,
     180
    ],
    "at": "stairs 1"
@@ -54,9 +54,9 @@
     0.45
    ],
    "feet": [
-    907,
+    917,
     0,
-    133,
+    130,
     180
    ],
    "at": "stairs 2"
@@ -67,9 +67,9 @@
     0.45
    ],
    "feet": [
-    627,
+    642,
     0,
-    202,
+    199,
     180
    ],
    "at": "stairs 3"
@@ -80,7 +80,7 @@
     0.45
    ],
    "feet": [
-    352,
+    372,
     0,
     202,
     180
@@ -93,7 +93,7 @@
     0.45
    ],
    "feet": [
-    72,
+    96,
     0,
     202,
     180
@@ -119,7 +119,7 @@
     0.45
    ],
    "feet": [
-    19,
+    21,
     -200,
     202,
     180
@@ -145,7 +145,7 @@
     0.45
    ],
    "feet": [
-    -540,
+    -533,
     -200,
     202,
     180
@@ -166,7 +166,7 @@
    ]
   },
   {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\DigSite_Cabin\\02_console.png"
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DigSite_Cabin\\02_console.png"
   },
   {
    "teleport": [
@@ -182,7 +182,7 @@
    ]
   },
   {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\DigSite_Cabin\\03_side_walkway.png"
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DigSite_Cabin\\03_side_walkway.png"
   },
   {
    "walk": [
@@ -190,7 +190,7 @@
     0.45
    ],
    "feet": [
-    -276,
+    -278,
     500,
     202,
     180
@@ -203,7 +203,7 @@
     0.45
    ],
    "feet": [
-    -544,
+    -554,
     500,
     202,
     180
@@ -250,7 +250,7 @@
    ]
   },
   {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\DigSite_Cabin\\04_15m.png"
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DigSite_Cabin\\04_15m.png"
   }
  ]
 }

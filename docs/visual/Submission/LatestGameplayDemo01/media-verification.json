@@ -1,0 +1,17 @@
+{
+  "revision": "6fe3e90f",
+  "video_epoch": 1794633806.757857,
+  "audio_epoch": 1794633806.7443256,
+  "audio_offset_s": -0.01353144645690918,
+  "audio_frames": 9595680,
+  "audio_seconds": 199.91,
+  "audio_peak_dbfs": -6.427596546772376,
+  "audio_rms_dbfs": -25.94500193342412,
+  "audio_discontinuities": 0,
+  "maximum_packet_timestamp_gap_s": 0.07,
+  "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\lead-audio-pickup-1113\\Builds\\LatestGameplayDemo01\\TriadDrift_6fe3e90f_gameplay_with_audio.mp4",
+  "output_bytes": 324343578,
+  "sha256": "d82b9715c842e4943648552d47bcdcd117bcaf6dfa7325608d5af4bd61ce67fd",
+  "method": "Unchanged game-client video plus same-PID WASAPI audio; UTC-aligned, AAC preview; originals preserved",
+  "limits": "Not final mix/listening approval; no proof of full tutorial exit fade or later campaign; image inspection required"
+}

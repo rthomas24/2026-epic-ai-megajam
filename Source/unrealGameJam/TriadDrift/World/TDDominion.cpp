@@ -122,9 +122,11 @@ ATDDominion::ATDDominion()
 	TurretGuns.TelegraphSeconds = 1.2f;
 
 	Stages.Add(TDDominion_MakeStage(15.f, 2.5f, 1.2f));	// shields up
-	Stages.Add(TDDominion_MakeStage(12.f, 2.0f, 1.0f));	// reactor phase 1
-	Stages.Add(TDDominion_MakeStage(9.f, 1.5f, 0.9f));		// phase 2
-	Stages.Add(TDDominion_MakeStage(6.f, 1.0f, 0.8f));		// phase 3
+	// The trench run is a 25-45 s fight for one flown ship (ENG-47 balance, Nov 14: the old 2.0 / 1.5 / 1.0 s bursts and
+	// 12 / 9 / 6 s launches killed a ship parked at the trench start in ~5 s). Still escalating, never a wall of fire.
+	Stages.Add(TDDominion_MakeStage(20.f, 3.5f, 1.5f));	// reactor phase 1
+	Stages.Add(TDDominion_MakeStage(16.f, 3.0f, 1.3f));	// phase 2
+	Stages.Add(TDDominion_MakeStage(12.f, 2.5f, 1.1f));	// phase 3
 
 	LaunchGroups.Add(TDDominion_MakeGroup(TDEnemyIds::ShardFighter, 4));
 	LaunchGroups.Add(TDDominion_MakeGroup(TDEnemyIds::HookInterceptor, 2));
@@ -153,6 +155,7 @@ void ATDDominion::BeginPlay()
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
 		Bus->OnTakeStarted.AddUniqueDynamic(this, &ATDDominion::HandleTakeStarted);
+		Bus->OnActorKilled.AddUniqueDynamic(this, &ATDDominion::HandleActorKilled);
 	}
 
 	// Nick's asset by convention when none is set (no gameplay BP edit needed).
@@ -292,7 +295,7 @@ FBox ATDDominion::GetLocalHullBounds() const
 	const FTransform Xf = GetActorTransform();
 	for (const UStaticMeshComponent* C : { HullMesh.Get(), BridgeMesh.Get(), TrenchWallLeft.Get(), TrenchWallRight.Get() })
 	{
-		if (!C || !C->GetStaticMesh()) { continue; }
+		if (!C || !C->GetStaticMesh() || (C != HullMesh.Get() && !C->GetVisibleFlag())) { continue; }	// hidden stand-ins are not the hull
 		// The mesh's own box in the Dominion's frame (world-axis bounds would grow with the Dominion's yaw).
 		Box += C->GetStaticMesh()->GetBoundingBox().TransformBy(C->GetComponentTransform().GetRelativeTransform(Xf));
 	}
@@ -312,7 +315,10 @@ FTransform ATDDominion::GetStageStart(bool bTrench) const
 	}
 	// Front-right and a little above, 2.5 hull radii out: the hull fills a good part of the frame and there are ~7 s
 	// at cruise before anything solid (the old 2.4 x HullExtent.X put the r8 art hull ~5 s away).
-	const float Radius = FMath::Max(B.GetExtent().Size(), HullExtent.Size());
+	// The larger horizontal half-size, not the box diagonal: hull r2's outriggers (|Y| 302 m) and its 200 m mast made
+	// the diagonal put the start beyond 3 shield radii, the hull a sliver in the frame.
+	const FVector BE = B.GetExtent();
+	const float Radius = FMath::Max(FMath::Max(BE.X, BE.Y), HullExtent.Size());
 	const float Dist = FMath::Max(ShieldRadius * 2.f, Radius * 2.5f);
 	const FVector Loc = D.TransformPosition(FVector(0.75f, 0.6f, 0.25f).GetSafeNormal() * Dist);
 	return FTransform((D.GetLocation() - Loc).Rotation(), Loc);
@@ -379,6 +385,7 @@ void ATDDominion::PlayFinalBlast()
 	}
 	if (Reactor) { Reactor->SetActorHiddenInGame(true); }
 	if (DockingBay) { DockingBay->SetActorHiddenInGame(true); }
+	if (DockingInterior) { DockingInterior->SetActorHiddenInGame(true); DockingInterior->SetActorEnableCollision(false); }
 	ShowHull(false);	// the ship is gone in the flash
 }
 
@@ -610,6 +617,12 @@ void ATDDominion::LayoutParts()
 	BridgeMesh->SetVisibility(bArtBridge || !bArtHull);
 	TrenchWallLeft->SetVisibility(bArtTrench || !bArtHull);
 	TrenchWallRight->SetVisibility(bArtTrench || !bArtHull);
+	// An art hull carries its own bridge and trench (r2): a hidden stand-in keeps no collision, or ships hit invisible
+	// walls about 2 m inside the real ones (import builder, r2: |Y| 2300-2700 against r2's walls).
+	for (UStaticMeshComponent* C : { BridgeMesh.Get(), TrenchWallLeft.Get(), TrenchWallRight.Get() })
+	{
+		if (C && !C->GetVisibleFlag()) { C->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
+	}
 	if (Visuals && !Visuals->ShieldEmitterMesh.IsNull())
 	{
 		for (UStaticMeshComponent* S : ShieldSections) { UsePiece(S, Visuals->ShieldEmitterMesh, FVector::OneVector); }
@@ -626,6 +639,7 @@ void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
 		Bus->OnTakeStarted.RemoveDynamic(this, &ATDDominion::HandleTakeStarted);
+		Bus->OnActorKilled.RemoveDynamic(this, &ATDDominion::HandleActorKilled);
 	}
 	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
@@ -799,6 +813,7 @@ void ATDDominion::FinishAfterVictory()
 	for (ATDShieldGenerator* G : Generators) { Retire(G); }
 	Retire(Reactor);
 	Retire(DockingBay);
+	if (DockingInterior) { DockingInterior->SetActorHiddenInGame(true); DockingInterior->SetActorEnableCollision(false); }
 	ShowHull(false);
 	SetState(ETDDominionState::Finished);
 }
@@ -912,27 +927,72 @@ void ATDDominion::BuildParts()
 		Into.Add(T);
 	};
 
+	// The art hull's sockets (r2: Generator_0..3, HullTurret_0..1, TrenchTurret_0..3, Reactor, Bay), in this actor's
+	// frame. Without them, the placeholder layout below.
+	auto SocketLocal = [&](const FString& Name, FTransform& Out) -> bool
+	{
+		const FName S(*Name);
+		if (!HullMesh || !HullMesh->DoesSocketExist(S)) { return false; }
+		Out = HullMesh->GetSocketTransform(S).GetRelativeTransform(GetActorTransform());
+		// Position and yaw only: the imported r2 sockets carry a 90 degree roll (their Z axis lies along the ring tangent),
+		// while the art contract is "+X out, Z up" (manifest ue_yaw_deg, z_up).
+		Out.SetRotation(FRotator(0.f, Out.GetUnitAxis(EAxis::X).Rotation().Yaw, 0.f).Quaternion());
+		Out.SetScale3D(FVector::OneVector);
+		return true;
+	};
+	// A point inside the art hull's collision moves out along Out to the surface plus Clearance (a trace from 50 m out
+	// meets the hull first: the point is buried). The same rule as the carrier's socket parts.
+	auto ClearOfHull = [&](const FVector& Local, const FVector& OutLocal, float Clearance) -> FVector
+	{
+		if (!HullMesh || OutLocal.IsNearlyZero()) { return Local; }
+		const FTransform Xf = GetActorTransform();
+		const FVector P = Xf.TransformPosition(Local);
+		const FVector Out = Xf.TransformVectorNoScale(OutLocal.GetSafeNormal());
+		FHitResult Hit;
+		// To Clearance past the point: a mount just under it (r2's guard perches: top Z 1420 under a 1500 turret) counts.
+		if (HullMesh->LineTraceComponent(Hit, P + Out * 5000.f, P - Out * Clearance, FCollisionQueryParams(SCENE_QUERY_STAT(TDDominionClear), false)))
+		{
+			return Xf.InverseTransformPosition(FVector(Hit.ImpactPoint) + Out * Clearance);
+		}
+		return Local;
+	};
+
 	// Generators on pylons just outside the main shield, one per quadrant, each with its guards.
 	const float Ring = ShieldRadius * 1.08f;
 	for (int32 i = 0; i < 4; ++i)
 	{
 		const float Angle = PI * 0.25f + PI * 0.5f * i;
-		const FVector Local(FMath::Cos(Angle) * Ring, FMath::Sin(Angle) * Ring, 0.f);
+		FVector Local(FMath::Cos(Angle) * Ring, FMath::Sin(Angle) * Ring, 0.f);
+		FVector Tangent(-FMath::Sin(Angle), FMath::Cos(Angle), 0.f);
+		FTransform Sock;
+		const bool bGenSocket = SocketLocal(FString::Printf(TEXT("Generator_%d"), i), Sock);
+		if (bGenSocket)
+		{
+			Local = Sock.GetLocation();
+			Tangent = Sock.GetUnitAxis(EAxis::Y);
+		}
 		ATDShieldGenerator* G = World->SpawnActorDeferred<ATDShieldGenerator>(ATDShieldGenerator::StaticClass(), FTransform::Identity, this, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
 		if (!G) { continue; }
 		G->Visuals = Visuals;	// before BeginPlay
 		G->FinishSpawning(FTransform::Identity);
 		G->AttachToActor(this, Attach);
 		G->SetActorRelativeLocation(Local);
+		if (bGenSocket) { G->SetActorRelativeRotation(Sock.GetRotation()); }
 		G->Init(GeneratorHull * UTDDifficultySettings::GetScale().EnemyHull, i);
+		if (bGenSocket)
+		{
+			// The art pylon's base on the plinth socket; the actor (its aim point) at the pylon's centre above it.
+			G->SetActorRelativeLocation(Local + Sock.GetUnitAxis(EAxis::Z) * G->GetArtCentreHeight());
+		}
 		G->OnGeneratorDestroyed.AddUniqueDynamic(this, &ATDDominion::HandleGeneratorDestroyed);
 		Generators.Add(G);
 
-		const FVector Tangent(-FMath::Sin(Angle), FMath::Cos(Angle), 0.f);
 		for (int32 k = 0; k < TurretsPerGenerator; ++k)
 		{
 			const float Side = (k % 2 ? 1.f : -1.f) * (1 + k / 2) * 3000.f;
-			SpawnTurret(Local + Tangent * Side + FVector(0, 0, 1500.f), Turrets);
+			const FVector Guard = Local + Tangent * Side + FVector(0, 0, 1500.f);
+			// r2: the guards stand on the plinth's perches (mount top Z 1420), set just above the mount, not in it.
+			SpawnTurret(bGenSocket ? ClearOfHull(Guard, FVector::UpVector, 200.f) : Guard, Turrets);
 		}
 	}
 
@@ -940,7 +1000,9 @@ void ATDDominion::BuildParts()
 	for (int32 i = 0; i < ExtraTurrets; ++i)
 	{
 		const float X = FMath::Lerp(-0.6f, 0.6f, ExtraTurrets > 1 ? float(i) / (ExtraTurrets - 1) : 0.5f) * E.X;
-		SpawnTurret(FVector(X, (i % 2 ? 1.f : -1.f) * E.Y, E.Z + 500.f), Turrets);
+		FTransform Sock;
+		if (SocketLocal(FString::Printf(TEXT("HullTurret_%d"), i), Sock)) { SpawnTurret(Sock.GetLocation(), Turrets); }
+		else { SpawnTurret(ClearOfHull(FVector(X, (i % 2 ? 1.f : -1.f) * E.Y, E.Z + 500.f), FVector::UpVector, 500.f), Turrets); }
 	}
 
 	// Reactor at the bottom of the trench, plus dormant trench turrets.
@@ -951,7 +1013,8 @@ void ATDDominion::BuildParts()
 		Reactor->Visuals = Visuals;	// read in the reactor's BeginPlay, so set it before FinishSpawning
 		Reactor->FinishSpawning(FTransform::Identity);
 		Reactor->AttachToActor(this, Attach);
-		Reactor->SetActorRelativeLocation(FVector(E.X * 0.55f, 0.f, TrenchZ));	// sits clear of the hull top and the trench walls
+		FTransform Sock;
+		Reactor->SetActorRelativeLocation(SocketLocal(TEXT("Reactor"), Sock) ? Sock.GetLocation() : FVector(E.X * 0.55f, 0.f, TrenchZ));	// clear of the hull top and the trench walls
 		Reactor->SetExposed(false);
 		Reactor->OnPhaseChanged.AddUniqueDynamic(this, &ATDDominion::HandleReactorPhase);
 		Reactor->OnReactorDestroyed.AddUniqueDynamic(this, &ATDDominion::HandleReactorDestroyed);
@@ -959,7 +1022,9 @@ void ATDDominion::BuildParts()
 	for (int32 i = 0; i < TrenchTurrets; ++i)
 	{
 		const float X = FMath::Lerp(-0.5f, 0.4f, TrenchTurrets > 1 ? float(i) / (TrenchTurrets - 1) : 0.5f) * E.X;
-		SpawnTurret(FVector(X, (i % 2 ? 1.f : -1.f) * 1700.f, TrenchZ + 1200.f), TrenchTurretActors);	// inside the walls (|y| < 2300)
+		FTransform Sock;
+		SpawnTurret(SocketLocal(FString::Printf(TEXT("TrenchTurret_%d"), i), Sock) ? Sock.GetLocation()
+			: FVector(X, (i % 2 ? 1.f : -1.f) * 1700.f, TrenchZ + 1200.f), TrenchTurretActors);	// inside the walls (|y| < 2300)
 	}
 	for (ATDEnemyTurret* T : TrenchTurretActors)
 	{
@@ -1155,6 +1220,26 @@ void ATDDominion::DebugDropShields()
 	}
 }
 
+void ATDDominion::HandleActorKilled(AActor* Victim, AActor* /*Killer*/, ETDDamageKind /*Kind*/)
+{
+	// The trench run is the player's own run: losing the flown ship there is "CUT!" and a retake at the trench start,
+	// not an auto-switch into a wingman a kilometre away facing out to space (effects builder and T4 live, Nov 14).
+	if (State != ETDDominionState::ReactorExposed)
+	{
+		return;
+	}
+	const ATDShip* Ship = Cast<ATDShip>(Victim);
+	if (!Ship || !Ship->IsPlayerFlown())
+	{
+		return;
+	}
+	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: the flown ship died in the trench run - CUT, retake at the trench start"));
+		Flow->ReportPlayerDefeated();
+	}
+}
+
 void ATDDominion::OnDefensesDown(bool bFromSave)
 {
 	if (!bFromSave)
@@ -1196,6 +1281,14 @@ bool ATDDominion::UsesBoardingFinale() const
 	return FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Maps/L_Dominion_Interior"));
 }
 
+FTransform ATDDominion::BaySocketWorld() const
+{
+	// The socket's position and yaw (+X out of the mouth) with the Dominion's up: the imported sockets carry a roll.
+	const FTransform S = HullMesh->GetSocketTransform(BaySocket);
+	const FVector Out = FVector::VectorPlaneProject(S.GetUnitAxis(EAxis::X), GetActorUpVector()).GetSafeNormal();
+	return FTransform(FRotationMatrix::MakeFromXZ(Out.IsNearlyZero() ? GetActorForwardVector() : Out, GetActorUpVector()).Rotator(), S.GetLocation());
+}
+
 void ATDDominion::BeginDockingFinale(bool bPlayCues)
 {
 	// The reactor stays shielded inside (T5's core fight); the trench turrets stay down. The hull turrets and the
@@ -1205,16 +1298,35 @@ void ATDDominion::BeginDockingFinale(bool bPlayCues)
 	{
 		return;
 	}
+	const bool bSocket = HullMesh && HullMesh->DoesSocketExist(BaySocket);
 	if (!DockingBay)
 	{
-		// The mouth sits on the real bow (art or placeholder hull), low on the hull, facing out.
+		// The art hull's Bay socket (+X out of the mouth) when it has one; else the real bow, low on the hull, facing out.
 		const FBox B = GetLocalHullBounds();
 		const FVector Local(B.Max.X, 0.f, FMath::Lerp(B.Min.Z, B.GetCenter().Z, 0.6f));
+		const FTransform At = bSocket ? BaySocketWorld() : FTransform(GetActorRotation(), GetActorTransform().TransformPosition(Local));
 		FActorSpawnParameters P;
 		P.Owner = this;
 		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		DockingBay = World->SpawnActor<ATDDockingBay>(ATDDockingBay::StaticClass(), GetActorTransform().TransformPosition(Local), GetActorRotation(), P);
-		if (DockingBay) { DockingBay->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform); }
+		DockingBay = World->SpawnActor<ATDDockingBay>(ATDDockingBay::StaticClass(), At.GetLocation(), At.Rotator(), P);
+		if (DockingBay)
+		{
+			if (bSocket) { DockingBay->AttachToComponent(HullMesh, FAttachmentTransformRules::KeepWorldTransform, BaySocket); }
+			else { DockingBay->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform); }
+		}
+	}
+	if (bSocket && !DockingInterior)
+	{
+		// The pocket behind the mouth (structures builder, Gameplay/Props: always cooked); its pivot is the mouth centre.
+		if (UClass* Pocket = LoadClass<AActor>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion/BP_DockingBay_Interior.BP_DockingBay_Interior_C"), nullptr, LOAD_NoWarn | LOAD_Quiet))
+		{
+			FActorSpawnParameters P;
+			P.Owner = this;
+			P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			const FTransform At = BaySocketWorld();
+			DockingInterior = World->SpawnActor<AActor>(Pocket, At.GetLocation(), At.Rotator(), P);
+			if (DockingInterior) { DockingInterior->AttachToComponent(HullMesh, FAttachmentTransformRules::KeepWorldTransform, BaySocket); }
+		}
 	}
 	if (DockingBay) { DockingBay->Open(this, bPlayCues); }
 	SetState(ETDDominionState::DockingOpen);

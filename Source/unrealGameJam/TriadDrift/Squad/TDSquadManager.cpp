@@ -768,6 +768,12 @@ void ATDSquadManager::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamag
 				Killer == Player ? TEXT(" (player)") : TEXT(" (wingman)"), bSteal ? TEXT(" STEAL of the player's target") : TEXT(""));
 		}
 	}
+	// The player scored: sometimes a wingman reacts; three in 4 s is a multi-kill (ENG-43).
+	if (const ATDShip* Player = GetActiveShip(); Player && Killer == Player && UTDStatics::AreHostile(Killer, Victim))
+	{
+		NotePlayerKill();
+		return;
+	}
 	// A wingman scored: that pilot crows about it.
 	for (const FTDSquadSlot& Slot : Slots)
 	{
@@ -783,6 +789,7 @@ void ATDSquadManager::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamag
 void ATDSquadManager::HandleWaveCleared(int32 WaveNumber)
 {
 	bBetweenWaves = true;
+	BreatherAt = RealNow() + BreatherDelaySeconds;
 	StartBanter();
 }
 
@@ -840,6 +847,7 @@ void ATDSquadManager::TickBanter()
 void ATDSquadManager::HandleWaveStarted(int32 WaveNumber, float Intensity01)
 {
 	bBetweenWaves = false;
+	BreatherAt = -1.0;
 }
 
 void ATDSquadManager::NotifyPowerUsed(ETDShipId Ship)
@@ -1083,6 +1091,7 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 			break;
 		}
 	}
+	TickMoreBarks(RealNow()); // ENG-43, after the low-hull check
 }
 
 void ATDSquadManager::HandleShipDeath(ETDShipId Ship)

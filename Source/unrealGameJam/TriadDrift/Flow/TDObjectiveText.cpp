@@ -108,7 +108,8 @@ namespace TDObjectiveTextImpl
 			const FName Scene = Info.SceneId.IsNone() ? FName(*FString::Printf(TEXT("Wave%d"), Info.WaveNumber)) : Info.SceneId;
 			Out.Id = Scene;
 			Out.Step = Info.WaveNumber;
-			Out.Text = FText::Format(LOCTEXT("Wave", "WAVE {0} · CLEAR THE NULL ARMADA"), Info.WaveNumber);
+			// storyline.md section 13: nobody names the enemy (and Nicholas has no approved wave line yet).
+			Out.Text = FText::Format(LOCTEXT("Wave", "WAVE {0} · CLEAR THE AREA"), Info.WaveNumber);
 			return true;
 		}
 		const int32 Next = FMath::Max(Info.WaveNumber, P.WavesCleared) + 1;

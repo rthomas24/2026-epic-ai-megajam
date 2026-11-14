@@ -1,0 +1,172 @@
+{
+ "site": "SurveyLine_Verdance",
+ "origin": [
+  4000.0,
+  3000.0,
+  2.0
+ ],
+ "steps": [
+  {
+   "teleport": [
+    -450,
+    350,
+    0
+   ],
+   "feet": [
+    -450,
+    350,
+    0,
+    -25
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\SurveyLine_Verdance\\01_line.png"
+  },
+  {
+   "teleport": [
+    950,
+    -120,
+    0
+   ],
+   "feet": [
+    950,
+    -120,
+    0,
+    25
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\SurveyLine_Verdance\\02_tripod_close.png"
+  },
+  {
+   "teleport": [
+    300,
+    -500,
+    0
+   ],
+   "feet": [
+    300,
+    -500,
+    0,
+    90
+   ]
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    300,
+    -237,
+    0,
+    90
+   ],
+   "at": "across 0"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    300,
+    40,
+    0,
+    90
+   ],
+   "at": "across 1"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    300,
+    320,
+    0,
+    90
+   ],
+   "at": "across 2"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    300,
+    610,
+    0,
+    90
+   ],
+   "at": "across 3"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    300,
+    894,
+    0,
+    90
+   ],
+   "at": "across 4"
+  },
+  {
+   "teleport": [
+    1200,
+    -400,
+    0
+   ],
+   "feet": [
+    1200,
+    -400,
+    0,
+    90
+   ]
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    1200,
+    -118,
+    0,
+    90
+   ],
+   "at": "into tripod 0"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    1200,
+    -61,
+    0,
+    90
+   ],
+   "at": "into tripod 1"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    1200,
+    -61,
+    0,
+    90
+   ],
+   "at": "into tripod 2"
+  }
+ ]
+}

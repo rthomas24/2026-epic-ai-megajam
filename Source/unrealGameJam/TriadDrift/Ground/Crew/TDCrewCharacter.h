@@ -148,6 +148,14 @@ public:
 
 	// ---- sound (ENG-35): the bolt's muzzle sound (one per volley) and the drone's hum (looped, stopped on death).
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> RifleShotSound;
+	/** The guard clang on a blocked slash (engineering fallback; the GuardClang ground cue, then the look's ShieldHit cue, win). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> GuardClangSound;
+
+	/** The Heavy's guard (T7's playtest, Nov 13: ~32 quick slashes did nothing and nothing taught the lunge): blocked quick
+	 *  slashes chip it, and this many in a row (each within GuardChipWindow s of the last) stagger it open. */
+	static constexpr int32 GuardChipsToBreak = 9;
+	static constexpr float GuardChipWindow = 4.f;
+	int32 GetGuardChips() const { return GuardChips; }
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> DroneHumSound;
 	/** The last sound events (RifleShot, DroneHum, DroneHumStop): tests and debugging. */
 	const TArray<FName>& GetSoundEvents() const { return SoundEvents; }
@@ -224,6 +232,11 @@ private:
 	float ShotTimer = 0.f;
 	float StaggerLeft = 0.f;
 	float GuardBrokenLeft = 0.f;
+	int32 GuardChips = 0;
+	float GuardChipAge = 0.f;
+	float GuardFlashLeft = 0.f;
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> GuardFlash;
+	void PlayGuardClang(const FVector& At);
 	float ChargeTimeLeft = 0.f;
 	FVector ChargeVelocity = FVector::ZeroVector;
 	int32 BossPhase = 1;
@@ -237,6 +250,22 @@ private:
 	float ToppleAlpha = 0.f;
 	FVector ToppleAxis = FVector::RightVector;
 	FQuat ToppleStart = FQuat::Identity;
+	/** Death: the in-place clip plays this long, then the body goes to ragdoll (animation builder, Nov 13: the 1.1 s
+	 *  clips are only the start of a fall and held their last frame standing). < 0 = no hand-off pending. */
+	float RagdollIn = -1.f;
+	/** The chosen death clip ends lying on the ground (no ragdoll hand-off). */
+	mutable bool bGroundDeathClip = false;
+	FVector RagdollPush = FVector::ZeroVector;
+	FVector ToppleAway = FVector::ForwardVector;
+	void StartRagdollOrTopple();
+public:
+	/** The death clip chosen for a skeletal look (tests): per-type in-place first, then the shared in-place copies, then
+	 *  the template set; only clips on the look's own skeleton. Null when none fits. */
+	class UAnimSequenceBase* ChooseDeathClip(const FVector& HitDirection) const;
+	/** Seconds of death clip before the ragdoll / topple hand-off. */
+	static constexpr float DeathClipSeconds = 0.5f;
+	bool IsRagdolling() const;
+private:
 public:
 	bool IsToppling() const { return bToppling; }
 private:

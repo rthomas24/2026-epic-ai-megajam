@@ -198,7 +198,7 @@ class Builder(object):
             await self.call(T + 'CreateNiagaraSystem', assetName=name, assetPath=folder, templateSystem=base)
             system = unreal.load_asset(path)
         summ = await self.call(T + 'GetSystemSummary', system=system)
-        todo = emitters if not chunk else emitters[chunk[0]:chunk[1]]
+        todo = emitters if not chunk else ([sp for sp in emitters if sp['name'] in chunk] if isinstance(chunk[0], str) else emitters[chunk[0]:chunk[1]])   # or a list of emitter names
         names_all = set(sp['name'] for sp in emitters)
         names_todo = set(sp['name'] for sp in todo)
         for e in summ['emitters']:

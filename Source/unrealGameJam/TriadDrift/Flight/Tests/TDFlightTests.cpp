@@ -480,7 +480,8 @@ bool FTDFlightCollision::RunTest(const FString& Parameters)
 		TestTrue(TEXT("head-on bounces back"), bHit);
 		TestTrue(TEXT("did not pass through the wall"), Ship->GetActorLocation().X < 3000.f);
 		const float Lost = HP0 - (Ship->GetHealth()->GetHull() + Ship->GetHealth()->GetShield());
-		TestTrue(FString::Printf(TEXT("head-on deals heavy damage (%.1f)"), Lost), Lost >= 40.f);
+		// At cruise the squared-speed curve gives ~24 % (a boost hit takes ~80 %: TriadDrift.Flight.Impact).
+		TestTrue(FString::Printf(TEXT("head-on at cruise hurts (%.1f)"), Lost), Lost >= 15.f);
 	}
 
 	// Glancing: wall the same, approach at 75 degrees off its normal.

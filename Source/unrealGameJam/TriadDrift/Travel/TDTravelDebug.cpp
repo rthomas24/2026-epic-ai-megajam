@@ -237,6 +237,34 @@ namespace TDTravelDebug
 	}
 }
 
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelJumpFromCmd(TEXT("TD.Travel.JumpFrom"),
+	TEXT("Captures: put the player ship <Km> back from a planet's centre, facing it, and spool the hyperdrive: TD.Travel.JumpFrom Verdance|Cinder [Km=8]"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+#if TD_TRAVELDEBUG_HAS_PLANETS
+		ATDShip* Ship = TDTravelDebug::GetPlayerShip(World);
+		if (!Ship) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.JumpFrom: no player ship")); return; }
+		const FString Want = Args.Num() > 0 ? Args[0] : TEXT("Verdance");
+		const float Km = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 8.f;
+		for (TActorIterator<ATDPlanetAtmosphere> It(World); It; ++It)
+		{
+			if (!StaticEnum<ETDDestination>()->GetNameStringByValue((int64)It->GetDestination()).Equals(Want, ESearchCase::IgnoreCase)) { continue; }
+			const FVector Centre = It->GetPlanetCenter();
+			FVector Out = (Ship->GetActorLocation() - Centre).GetSafeNormal2D();
+			if (Out.IsNearlyZero()) { Out = FVector::BackwardVector; }
+			const FVector Start = Centre + Out * Km * 100000.f;
+			if (UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive())
+			{
+				Hyper->ResetHyperdrive();
+				Ship->TeleportSpacecraft(Start, (-Out).Rotation(), false);
+				const bool bSpool = Hyper->StartSpool();
+				UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.JumpFrom: %s from %.1f km, spool %s"), *Want, Km, bSpool ? TEXT("started") : TEXT("refused"));
+			}
+			return;
+		}
+		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.JumpFrom: no planet named %s"), *Want);
+#endif
+	}));
 static FAutoConsoleCommandWithWorldAndArgs GTDTravelToPlanetCmd(TEXT("TD.Travel.ToPlanet"),
 	TEXT("Put the player ship just outside a planet's atmosphere, nose in: TD.Travel.ToPlanet Verdance|Cinder"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDTravelDebug::ToPlanet));

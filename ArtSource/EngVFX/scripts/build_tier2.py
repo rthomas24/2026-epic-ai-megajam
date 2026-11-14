@@ -139,10 +139,14 @@ S2('NS_TD_EMP_Pulse', U(EMP), [
     arcs('Arcs', 0, (700, 1800), 2600, life=(0.15, 0.5), k=1.6, burst=44, dur=0.7, local=False),
     shed('Sparks', 'M_TD_VFX_Spark', 0, (0.3, 0.7), (8, 16), (4000, 11000), k=1.5, radius=100.0, drag=1.8, stretch=18, burst=70, dur=0.9)])
 # Slot: Bastion UTDShipVisuals.PowerActive (looping, attached). Authored for a 30 m radius dome.
+# Round 9 (T7's playtest, T2 traced it to Power2Active): from inside it must read as a faint amber hex shimmer, nearly clear
+# in the middle, a thin rim where the dome crosses the screen; from outside a readable dome. One fresnel-driven shell
+# (M_TD_VFX_DomeHex) and a few motes. Slot: Bastion UTDShipVisuals.Power2Active (played on the dome actor, DomeRadius 30 m).
 S2('NS_TD_ShieldDome', U(BASTION), [
-    shell('Dome', 3000, 0.50, pulse='float3(1,1,1)*(1.0 + 0.01*sin(Engine.Time*3.0))'),
-    shell('Hex', 2960, 0.16, mat='M_TD_VFX_Hex'),
-    shed('Motes', 'M_TD_VFX_Glow', 40.0, (0.6, 1.4), (12, 30), (0, 120), k=1.0, radius=3000.0, drag=0.5, curl=400.0, local=True, power=1.5, fade_in=5.0)])
+    # inside the dome (camera closer to the centre than the radius) the whole shell drops to 0.35
+    alpha_by(shell('Dome', 3000, 0.9, mat='M_TD_VFX_DomeHex', pulse='float3(1,1,1)*(1.0 + 0.008*sin(Engine.Time*3.0))'),
+             'lerp(0.35, 1.0, saturate((Engine.Owner.LODDistance - 2850.0*User.Scale*Engine.Owner.Scale.x)/(300.0*User.Scale*Engine.Owner.Scale.x)))'),
+    shed('Motes', 'M_TD_VFX_Glow', 14.0, (0.8, 1.6), (12, 26), (0, 90), k=0.8, radius=2900.0, drag=0.5, curl=300.0, local=True, power=1.5, fade_in=5.0)])
 # Slot: UTDAbilityFX.Loop of DA_Ability_Cloak_FX (looping, attached; the ship itself is faded by code). 6 m shimmer.
 S2('NS_TD_Cloak_Shimmer', U((0.55, 0.85, 1.0, 1.0)), [
     shell('Shimmer', 600, 0.035, pulse='float3(1.25, 1.0, 0.45)*(1.0 + 0.03*sin(Engine.Time*5.0))'),   # 0.16 and 0.09 read as a frosted grey saucer in play
@@ -258,6 +262,87 @@ S2('NS_TD_Core_Destroyed', U(FIRE, 2.2), [
     shed('Sparks', 'M_TD_VFX_Spark', 0, (0.5, 1.3), (9, 20), (2600, 10500), k=1.9, radius=60.0, drag=2.2, stretch=26, burst=80, dur=1.5, power=1.4),
     spin(shed('Smoke', 'M_TD_VFX_SmokeRim', 0, (1.6, 2.8), (420, 640), (250, 1100), radius=200.0, drag=2.0, curl=500.0, rgb=(0.34, 0.30, 0.28), alpha=0.8,
               burst=8, dur=3.0, power=0.7, fade_in=6.0, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.2', sort=True))])
+
+# ---- round 9 (ART-06, environment audit): planet ambient particles, attached to the camera, world-space GPU sprites
+# spawned in a 25 m sphere round it (so they parallax as the camera moves). Cheap and bounded (rates, short lives,
+# fixed bounds). User.Fade 0..1: the spawning code sets it from the height above ground (1 below 450 m, 0 above 600 m).
+# Slots wanted: UTDTravelFX.PlanetAmbientVerdance / PlanetAmbientCinder (FTDFXCue), played attached to the player's
+# camera by the planet's look code (ATDPlaceholderSky, which knows the planet style), User.Fade set every tick.
+AMB = '(User.Fade)'
+# round 9b: x3 size and rate (first look: nearly invisible on foot in daylight)
+# round 9c: born within 10 m of the camera (25 m spread them too thin to see on foot), larger
+S2('NS_TD_Ambient_Verdance', U((0.75, 1.0, 0.55, 1.0), 1.0, Fade=1.0), [
+    shed('Pollen', 'M_TD_VFX_Glow', 0, (4.0, 7.0), (12, 22), (5, 30), k=0.7, radius=1000.0, drag=0.4, curl=60.0, rgb=(1.0, 0.95, 0.70), alpha=0.8,
+         rate_expr='120.0*' + AMB, power=0.8, fade_in=3.0, gpu=True),
+    shed('Spores', 'M_TD_VFX_Glow', 0, (3.0, 6.0), (28, 60), (10, 50), k=1.6, radius=900.0, drag=0.3, curl=90.0, rgb=(0.35, 1.0, 0.85), alpha=1.0,
+         rate_expr='27.0*' + AMB, power=1.2, fade_in=4.0, gpu=True)])
+S2('NS_TD_Ambient_Cinder', U((1.0, 0.45, 0.12, 1.0), 1.0, Fade=1.0), [
+    shed('Ash', 'M_TD_VFX_Smoke', 0, (3.0, 6.0), (11, 22), (60, 160), radius=1000.0, drag=0.2, curl=40.0, rgb=(0.20, 0.19, 0.19), alpha=0.55,   # 9d: -40%, fainter (Lead: grey blobs near the camera)
+         cone=((0.0, 0.0, -1.0), 25.0), rate_expr='180.0*' + AMB, power=0.6, fade_in=3.0, gpu=True),
+    shed('Embers', 'M_TD_VFX_Glow', 0, (2.0, 4.0), (14, 30), (80, 240), k=1.8, radius=900.0, drag=0.3, curl=120.0, rgb=(1.0, 0.45, 0.10),
+         cone=((0.0, 0.0, 1.0), 30.0), rate_expr='48.0*' + AMB, power=1.4, fade_in=4.0, gpu=True)])
+
+# ---- round 9 (ART-16, T4): the Dominion's one-shots, all SpawnSystemAtLocation at a world point.
+# ReactorExposed: once, when the 4th generator falls, at the reactor (its rotation): the core uncovered. Authored for a
+# 25 m reactor at Scale 1: a white flare, a red heat bloom, the shell falling apart, arcs and a shock ring.
+S2('NS_TD_Reactor_Exposed', U(CORE, 1.0), [
+    flash('Flare', 'M_TD_VFX_Flare', 14000, 0.22, 1.6, growth='0.4 + Particles.NormalizedAge'),
+    flash('Bloom', 'M_TD_VFX_Glow', 18000, 1.4, 1.0, growth='0.5 + Particles.NormalizedAge*0.6', power=1.4),
+    shell_flash('Shell', 2500, 0.9, 'float3(1,1,1)*(1.0 + 0.6*pow(Particles.NormalizedAge, 0.6))', k=1.4, power=1.6),
+    arcs('Arcs', 0, (1200, 2600), 2500, life=(0.15, 0.5), k=1.5, burst=24, dur=1.0, local=False),
+    flash('Ring', 'M_TD_VFX_FlipRing', 32000, 0.8, 1.0, growth='0.06 + pow(Particles.NormalizedAge, 0.5)*0.95', power=1.4)])
+# Round 9f, seen at real scale (25 m reactor, 160 m away in T4's stage): the flare read small; both doubled.
+# ReactorHit: every hull hit on the exposed reactor (a high rate): under 0.5 s and cheap, three emitters.
+S2('NS_TD_Reactor_Hit', U(CORE, 1.0), [
+    flash('Flash', 'M_TD_VFX_Flare', 1500, 0.08, 1.6, growth='0.5 + Particles.NormalizedAge'),
+    flash('Glow', 'M_TD_VFX_Glow', 2400, 0.18, 0.9),
+    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.2, 0.45), (10, 22), (1800, 6000), k=1.8, radius=80.0, drag=2.2, stretch=14, burst=16, dur=0.5, power=1.3)])
+# DockingBayOpen: once when the bay opens (the doors take 2.5 s), at the bay actor, +X out of the mouth. Authored for a
+# 60 m mouth: steam venting out of it for 2.5 s, the bay's lights coming on, a tractor glow building in the mouth.
+DOCK = (0.75, 0.88, 1.0, 1.0)
+
+
+def timed(e, secs):
+    """A rate emitter that runs once for secs (then the system ends)."""
+    e['set'] = [x for x in e['set'] if x[2] not in ('Loop Behavior',)] + [(EU, 'EmitterState', 'Loop Behavior', E('Once')), (EU, 'EmitterState', 'Loop Duration', float(secs))]
+    return e
+
+
+S2('NS_TD_Dominion_DockOpen', U(DOCK, 1.0), [
+    timed(spin(shed('Steam', 'M_TD_VFX_SmokeRim', 0, (1.6, 2.6), (300, 800), (800, 2200), radius=2600.0, drag=0.9, curl=300.0, rgb=(0.80, 0.84, 0.88), alpha=0.5,
+                    cone=((1.0, 0.0, 0.0), 25.0), rate_expr='34.0', power=0.8, fade_in=5.0, growth='0.6 + Particles.NormalizedAge*1.6', sort=True)), 2.5),
+    shed('Lights', 'M_TD_VFX_Glow', 0, (2.6, 3.2), (90, 160), (0, 0), k=2.0, radius=3200.0, drag=0.0, rgb=(1.0, 0.82, 0.55), burst=26, dur=3.2, power=0.4, fade_in=3.0),
+    flash('Tractor', 'M_TD_VFX_Glow', 6500, 3.0, 0.45, growth='0.3 + Particles.NormalizedAge*0.7', power=0.35),
+    shed('Vents', 'M_TD_VFX_Spark', 0, (0.3, 0.7), (6, 12), (900, 2600), k=1.5, radius=2400.0, drag=1.6, stretch=12, cone=((1.0, 0.0, 0.0), 30.0), burst=30, dur=1.0)])
+
+# ---- round 9 (ART-16): the escape. Slots wanted from T5 (DA_ReactorCore_FX): EscapeRunLoop, attached to the on-foot pawn
+# for the 90 s run (+X = the pawn's facing); EscapeFlightLoop, attached to the flown ship's root for the escape flight
+# (+X = the nose). Both read User.Intensity 0..1 (default 1) for the code to ramp the collapse up. Only spawning emitters.
+ESC = '(User.Intensity)'
+# round 9b: x3 size and rate
+S2('NS_TD_Escape_RunLoop', U((1.0, 0.55, 0.22, 1.0), 1.0, Intensity=1.0), [
+    # a rain of sparks from the ceiling, ahead of and around the runner
+    offset(shed('SparkRain', 'M_TD_VFX_Spark', 0, (0.5, 1.1), (7.5, 15.0), (600, 1500), k=1.8, radius=1400.0, drag=0.4, local=False, stretch=16,
+                cone=((0.0, 0.0, -1.0), 14.0), rate_expr='210.0*' + ESC, fade_in=6.0), 700, 0, 900),
+    # embers drifting through the corridor
+    offset(shed('Embers', 'M_TD_VFX_Glow', 0, (0.8, 1.8), (12, 30), (40, 220), k=1.4, radius=1200.0, drag=0.6, curl=700.0, local=False,
+                rate_expr='135.0*' + ESC, power=1.6, fade_in=4.0), 500, 0, 200),
+    # dark falling debris streaks
+    offset(shed('Debris', 'M_TD_VFX_Smoke', 0, (0.5, 0.9), (24, 54), (700, 1600), radius=1300.0, drag=0.2, local=False, stretch=6, rgb=(0.06, 0.05, 0.05), alpha=0.9,
+                cone=((0.0, 0.0, -1.0), 10.0), rate_expr='66.0*' + ESC, power=0.6, fade_in=6.0), 600, 0, 900),
+    # hot smoke haze rolling along the corridor
+    offset(spin(shed('Haze', 'M_TD_VFX_SmokeRim', 0, (2.0, 3.4), (300, 620), (60, 260), radius=900.0, drag=0.8, curl=200.0, local=False, rgb=(0.36, 0.30, 0.28), alpha=0.35,
+                     rate_expr='9.0*' + ESC, power=0.8, fade_in=5.0, growth='0.7 + Particles.NormalizedAge*0.8', sort=True)), 900, 0, 150)])
+S2('NS_TD_Escape_FlightLoop', U((1.0, 0.50, 0.18, 1.0), 1.0, Intensity=1.0), [
+    # burning wreckage streaming past the cockpit: born far ahead, flying back past the ship
+    offset(spin(shed('Fire', 'M_TD_VFX_Fireball', 0, (0.5, 0.9), (260, 620), (9000, 15000), radius=3000.0, drag=0.0, curl=900.0, local=True, rgb=(1.0, 0.62, 0.34),
+                     cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='28.0*' + ESC, growth='0.6 + Particles.NormalizedAge*1.4')), 4000),
+    offset(shed('Embers', 'M_TD_VFX_Spark', 0, (0.3, 0.6), (14, 26), (10000, 18000), k=1.7, radius=3200.0, drag=0.0, local=True, stretch=16,
+                cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='220.0*' + ESC, fade_in=6.0), 4000),
+    offset(shed('Ash', 'M_TD_VFX_Smoke', 0, (0.35, 0.6), (26, 52), (9000, 15000), radius=3200.0, drag=0.0, local=True, stretch=6, rgb=(0.05, 0.04, 0.04), alpha=0.9,
+                cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='120.0*' + ESC, power=0.6, fade_in=6.0), 4000),
+    offset(spin(shed('Smoke', 'M_TD_VFX_SmokeRim', 0, (0.6, 1.1), (600, 1200), (8000, 13000), radius=3600.0, drag=0.0, local=True, rgb=(0.30, 0.26, 0.24), alpha=0.5,
+                     cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='6.0*' + ESC, power=0.8, fade_in=5.0, growth='0.8 + Particles.NormalizedAge*1.2', sort=True)), 4500)])
 
 # ============================================================================================= planetary descent (ENG-38, round 6)
 # Grok Bot's descent textures (ArtSource/EngAI/Descent). Everything is attached at the ship's origin, +X forward.
@@ -594,23 +679,24 @@ S2('NS_TD_Pickup_Overcharge_Collect', U(PK_OVER), pk_collect([
 # Space rocks and junk are destructible (Ryan). Cheap and small: at most 4 emitters, bounded bursts, no loops. One-shots
 # at the rock's centre; +X does not matter (everything is radial). Sizes: S ~ 4 m, M ~ 9 m, L ~ 20 m rocks (User.Scale
 # 1 / 2.2 / 4.5); VFXScale scales on top. Slots: whatever T6 names them (a Break cue per size, a crystal-veined variant).
-ROCK = (0.55, 0.50, 0.46, 1.0)
+ROCK = (0.85, 0.93, 1.0, 1.0)   # 9g: the flash tint is ice white-blue (was dusty grey)
 CRYSTAL = (0.45, 0.55, 1.0, 1.0)   # the belt's blue-violet crystals: clear of the squad's cyan and magenta
 
 
 def rock_break(n_chunks, n_dust, n_grit):
-    # seen in play: over the magenta nebula at 60 m the first dust (0.50 grey, 0.75 alpha) and the 0.12 s flash barely read
-    return [flash('Flash', 'M_TD_VFX_Glow', 750, 0.22, 1.0, growth='0.5 + Particles.NormalizedAge*0.8', power=1.4),
-            spin(shed('Dust', 'M_TD_VFX_FlipSmoke', 0, (1.0, 1.8), (300, 540), (150, 800), radius=120.0, drag=2.0, rgb=(0.66, 0.60, 0.54), alpha=0.92,
-                      burst=n_dust, dur=2.0, power=0.7, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.3', sort=True)),
+    # Round 9g (T6's live capture: a dull dark-grey puff against bright ice rocks): a short bright white-blue flash, ice
+    # shards and glints thrown out, the rock chunks, and only a faint pale mist instead of grey smoke.
+    return [flash('Flash', 'M_TD_VFX_Flare', 900, 0.14, 1.6, growth='0.5 + Particles.NormalizedAge*0.9'),
+            spin(shed('Mist', 'M_TD_VFX_Smoke', 0, (0.6, 1.1), (200, 380), (100, 500), radius=100.0, drag=2.2, rgb=(0.78, 0.86, 0.92), alpha=0.30,
+                      burst=n_dust, dur=1.2, power=0.9, growth='0.6 + Particles.NormalizedAge*1.2', sort=True)),
             chunks('Chunks', 'SM_TD_VFX_Shard_C', n_chunks, (0.8, 1.6), (0.35, 0.9), (500, 2000), drag=0.6, radius=90.0, dur=1.8, spin=(0.8, 3.0)),
-            shed('Grit', 'M_TD_VFX_Spark', 0, (0.25, 0.6), (6, 12), (1500, 4500), k=1.2, radius=60.0, drag=2.2, stretch=10, rgb=(1.0, 0.80, 0.55),
-                 burst=n_grit, dur=0.7, power=1.4)]
+            shed('Shards', 'M_TD_VFX_Spark', 0, (0.3, 0.8), (7, 14), (1500, 4800), k=1.8, radius=60.0, drag=1.8, stretch=9, rgb=(0.80, 0.93, 1.0),
+                 burst=n_grit, dur=0.9, power=1.2)]
 
 
-S2('NS_TD_Asteroid_Break_S', U(ROCK, 1.0), rock_break(5, 3, 14))
-S2('NS_TD_Asteroid_Break_M', U(ROCK, 2.2), rock_break(7, 4, 18))
-S2('NS_TD_Asteroid_Break_L', U(ROCK, 4.5), rock_break(9, 6, 24))
+S2('NS_TD_Asteroid_Break_S', U(ROCK, 1.0), rock_break(5, 2, 18))
+S2('NS_TD_Asteroid_Break_M', U(ROCK, 2.2), rock_break(7, 2, 24))
+S2('NS_TD_Asteroid_Break_L', U(ROCK, 4.5), rock_break(9, 3, 32))
 # Crystal-veined rock: the crystals shatter in light. A flare, glowing shards streaking out, slow glints, a few rock chunks.
 S2('NS_TD_Asteroid_Break_Crystal', U(CRYSTAL, 2.2), [
     flash('Flash', 'M_TD_VFX_Flare', 900, 0.16, 1.4, growth='0.4 + Particles.NormalizedAge*0.9'),
@@ -627,6 +713,13 @@ S2('NS_TD_Ship_ImpactScrape', U((1.0, 0.72, 0.42, 1.0), 1.0, Strength=0.5), [
               burst='1.0 + 4.0*User.Strength', dur=1.0, power=0.8, growth='0.6 + Particles.NormalizedAge*1.2', sort=True)),
     shed('Embers', 'M_TD_VFX_Glow', 0, (0.3, 0.8), (5, 12), (300, 1500), k=1.4, radius=20.0, drag=1.5, cone=((1.0, 0.0, 0.0), 80.0),
          burst='4.0 + 14.0*User.Strength', dur=0.8, power=1.6)])
+
+# Round 9 (Lead): from the chase camera the blade is hidden behind the body at the hit frame. A short swing trail: a
+# hot thin ribbon and a soft wide one, 0.15 s of life, in the blade's colour. Slot wanted (T5): UTDBladeFX.SwingTrail,
+# attached to the blade mesh at its tip socket, activated when a swing starts and deactivated when it ends.
+S2('NS_TD_Blade_SwingTrail', U(BLADE), [
+    trail('Core', 10, 0.15, 1.8, rate=240.0, taper=0.9, power=1.4),
+    trail('Glow', 46, 0.12, 0.7, rate=240.0, taper=0.8, power=1.6)])
 
 # Slots: UTDBladeFX.SwingLight / SwingHeavy. The code plays these ATTACHED TO THE CHARACTER ROOT (not the blade tip), so
 # a ribbon would trail the body: this is a self-contained crescent in front of the chest instead (camera-facing).

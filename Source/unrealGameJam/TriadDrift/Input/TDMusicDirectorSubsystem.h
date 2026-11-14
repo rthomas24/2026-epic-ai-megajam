@@ -50,6 +50,9 @@ public:
 	virtual bool IsTickableWhenPaused() const override { return true; }
 
 	static UTDMusicDirectorSubsystem* Get(const UObject* WorldContextObject);
+	/** N-082: the music director of a world, for callers that use reflection (Nick's audio plugin). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music", meta = (WorldContext = "WorldContext"))
+	static UTDMusicDirectorSubsystem* GetMusicDirector(const UObject* WorldContext) { return Get(WorldContext); }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music")
 	ETDCombatMusicState GetMusicState() const { return MusicState; }
@@ -103,6 +106,25 @@ public:
 
 	/** True while the Dominion assault's own score plays (UTDUIStyle::AssaultMusic; combat music held). */
 	bool IsAssaultMusicPlaying() const { return AssaultVoice != nullptr || bAssaultLogical; }
+	/**
+	 * N-074: any score owner (Nick's players: Verdance, boarding, credits) claims the music; while any claim stands the
+	 * generic combat bed and the idle score hold. Release with a fade: the hold lasts through it, then combat may return.
+	 * Claiming again (same owner) cancels a pending release. Owners are independent: the hold lasts until the last one.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Music")
+	void RequestExclusiveScore(FName Owner);
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Music")
+	void ReleaseExclusiveScore(FName Owner, float FadeSeconds = 0.f);
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music")
+	bool IsExclusiveScoreHeld() const { return ExclusiveClaims.Num() > 0; }
+
+	/** True while the quiet-flight score plays (UTDUIStyle::IdleSpaceMusic). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music")
+	bool IsIdleMusicPlaying() const { return IdleVoice != nullptr || bIdleLogical; }
+	/** N-063: quiet flight in the galaxy right now (out of the tutorial, no fight, not the assault, no travel, no menu). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music")
+	bool IsQuietFlight() const { return bQuietFlight; }
+	void SetIdleMusicForTests(USoundBase* Sound, float DelaySeconds) { IdleOverride = Sound; bIdleOverride = true; IdleDelayOverride = DelaySeconds; }
 	/** Tests: this sound as AssaultMusic (null = the style's). */
 	void SetAssaultMusicForTests(USoundBase* Sound) { AssaultOverride = Sound; bAssaultOverride = true; }
 
@@ -110,6 +132,8 @@ private:
 	USoundBase* ResolveMusic() const;
 	USoundBase* ResolveAssaultMusic() const;
 	void TickAssault(UWorld* World, bool bWanted);
+	void TickIdle(UWorld* World, bool bQuiet, float Dt);
+	USoundBase* ResolveIdleMusic(float& OutDelay) const;
 	void StartPlayback();
 	void BeginStop(const TCHAR* Why);
 	void ApplyEnvelope();
@@ -122,6 +146,15 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> Audio;
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> AmbienceAudio;
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> AssaultVoice;
+	UPROPERTY(Transient) TObjectPtr<UAudioComponent> IdleVoice;
+	UPROPERTY(Transient) TObjectPtr<USoundBase> IdleOverride;
+	bool bIdleOverride = false;
+	float IdleDelayOverride = 6.f;
+	bool bIdleLogical = false;
+	bool bQuietFlight = false;
+	/** Owner -> seconds of release fade left (< 0: held until released). */
+	TMap<FName, float> ExclusiveClaims;
+	float QuietTime = 0.f;
 	UPROPERTY(Transient) TObjectPtr<USoundBase> AssaultOverride;
 	bool bAssaultOverride = false;
 	bool bAssaultLogical = false; // tests / no audio device: the assault score "plays"

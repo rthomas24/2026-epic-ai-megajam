@@ -23,9 +23,15 @@
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
+#include "Rendering/DrawElements.h"
+#include "Widgets/SLeafWidget.h"
+#include "Widgets/SOverlay.h"
+#include "Widgets/Layout/SScaleBox.h"
 #include "Widgets/Input/SButton.h"
 #include "TriadDrift/Flow/TDFrontEndStyle.h"
 #include "Widgets/Text/STextBlock.h"
+#include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/Layout/SBox.h"
 #include "Styling/CoreStyle.h"
 #include "Framework/Application/SlateApplication.h"
 #include "HAL/IConsoleManager.h"
@@ -51,6 +57,41 @@ UClass* FTDFrontEndWidgets::Resolve(UClass* Override, const UTDUIStyle* Style, E
 
 namespace TDFrontEnd
 {
+	/** Restrained, texture-free screen graphics; no scene capture, timer or input. */
+	class SVictoryLinework : public SLeafWidget
+	{
+	public:
+		SLATE_BEGIN_ARGS(SVictoryLinework) {} SLATE_END_ARGS()
+		void Construct(const FArguments&) { SetVisibility(EVisibility::HitTestInvisible); }
+		virtual FVector2D ComputeDesiredSize(float) const override { return FVector2D(1920,1080); }
+		virtual int32 OnPaint(const FPaintArgs&,const FGeometry& G,const FSlateRect&,FSlateWindowElementList& Out,int32 Layer,const FWidgetStyle&,bool) const override
+		{
+			const FLinearColor Cyan(.35f,.76f,.83f,.12f);
+			auto Line=[&](TArray<FVector2f> Points)
+			{
+				FSlateDrawElement::MakeLines(Out,Layer,G.ToPaintGeometry(),Points,ESlateDrawEffect::None,Cyan,true,1.f);
+			};
+			for(const float Radius:{450.f,600.f,860.f})
+			{
+				TArray<FVector2f> Arc;
+				for(int32 I=0;I<=96;++I)
+				{
+					const float A=2.f*PI*I/96.f;
+					Arc.Add(FVector2f(960.f+Radius*FMath::Cos(A),540.f+Radius*FMath::Sin(A)));
+				}
+				Line(MoveTemp(Arc));
+			}
+			Line({FVector2f(520,110),FVector2f(1400,110),FVector2f(1400,970),FVector2f(520,970),FVector2f(520,110)});
+			Line({FVector2f(280,0),FVector2f(1380,1080)});
+			Line({FVector2f(1640,0),FVector2f(540,1080)});
+			for(const FVector2f P:{FVector2f(960,52),FVector2f(310,540),FVector2f(1610,540)})
+			{
+				Line({P-FVector2f(12,0),P+FVector2f(12,0)});
+				Line({P-FVector2f(0,12),P+FVector2f(0,12)});
+			}
+			return Layer+1;
+		}
+	};
 	static UUserWidget* ShowWidget(UWorld* World, UClass* Class, bool bCursor)
 	{
 		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
@@ -137,6 +178,12 @@ void ATDMenuGameMode::StartPlay()
 
 void ATDMenuGameMode::ShowMenuUI()
 {
+	// Cache in the presentation lifecycle, never in Paint/Tick or a text attribute (N-064).
+	if (bShowingVictory && VictoryHeadline.IsEmpty())
+	{
+		const TArray<FText>& Choices = VictoryHeadlineChoices();
+		VictoryHeadline = Choices[FMath::RandHelper(Choices.Num())];
+	}
 	// Whatever is up goes first (a return to the menu from the victory screen comes through here too, N-033).
 	if (ShownWidget)
 	{
@@ -288,6 +335,7 @@ void ATDMenuGameMode::ReturnToMenu()
 	}
 	bReturnPending = false;
 	bShowingVictory = false;
+	VictoryHeadline = FText::GetEmpty();
 	for (TActorIterator<ATDMenuBackdrop> It(GetWorld()); It; ++It)
 	{
 		It->FadeStingerCaption(); // the menu comes up clean
@@ -338,9 +386,20 @@ void ATDMenuGameMode::ShowPlaceholder()
 	const UTDGameInstance* GI = UTDGameInstance::Get(this);
 	if (bShowingVictory && GI)
 	{
+		// N-064 (Nick's victory revision): eyebrow, a random large headline (cached for this presentation), stats in
+		// cyan, a thin rule, the scene list (T5's bounded scroll, N-047), the native credits at 1.4x, RETURN bottom-left,
+		// over a veil and fine linework instead of the opaque card.
+		const FLinearColor Ink(.88f, .95f, 1.f), Cyan(.40f, .75f, .81f);
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 0.f, 0.f, 8.f)
 		[
-			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "Wrap", "THAT'S A WRAP")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 54)).ColorAndOpacity(FLinearColor(1.f, 0.85f, 0.4f))
+			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "VictoryEyebrow", "MISSION COMPLETE // OPERATION PARADOX"))
+			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 24)).ColorAndOpacity(Cyan)
+		];
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)
+		[
+			SNew(SBox).WidthOverride(1320).HeightOverride(112)
+			[SNew(SScaleBox).Stretch(EStretch::ScaleToFit)
+				[SNew(STextBlock).Text(VictoryHeadline).Font(FCoreStyle::GetDefaultFontStyle("Bold", 72)).ColorAndOpacity(Ink)]]
 		];
 		const FTDProgress& P = GI->GetProgressRef();
 		const int32 Seconds = FMath::RoundToInt(P.RunTimeSeconds);
@@ -351,20 +410,63 @@ void ATDMenuGameMode::ShowPlaceholder()
 		}
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 4.f)
 		[
-			SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("RUN TIME %d:%02d   KILLS %d   SHIPS LOST %d   CUTS %d"), Seconds / 60, Seconds % 60, P.Stats.Kills, P.Stats.Deaths, Cuts)))
-			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 18))
+			SNew(SBox).WidthOverride(1320).HeightOverride(48)
+			[SNew(SScaleBox).Stretch(EStretch::ScaleToFit)
+				[SNew(STextBlock).Text(FText::Format(NSLOCTEXT("TDMenu", "VictoryStats", "RUN TIME {0}   |   KILLS {1}   |   SHIPS LOST {2}   |   CUTS {3}   |   DEBRIS CLEARED {4}"),
+					FText::FromString(FString::Printf(TEXT("%d:%02d"), Seconds / 60, Seconds % 60)), FText::AsNumber(P.Stats.Kills), FText::AsNumber(P.Stats.Deaths), FText::AsNumber(Cuts),
+					FText::AsNumber(P.Stats.DebrisCleared)))
+				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 28)).ColorAndOpacity(Cyan)]]
 		];
-		for (const FTDSceneTakes& Row : GI->GetSceneTakes())
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0, 24, 0, 18)
+		[SNew(SBox).WidthOverride(1040).HeightOverride(1)
+			[SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(.4f, .75f, .81f, .5f)).Padding(0)]];
+		// The scene list is bounded (N-047, T5: a long run pushed RETURN TO MENU off a 720p screen): a scroll box at most
+		// SceneListMaxHeight tall, so the credits roll and the button always fit.
+		const TArray<FTDSceneTakes> Scenes = GI->GetSceneTakes();
+		TSharedRef<SScrollBox> SceneList = SNew(SScrollBox).ScrollBarAlwaysVisible(Scenes.Num() > 9);
+		for (const FTDSceneTakes& Row : Scenes)
 		{
-			Box->AddSlot().AutoHeight().HAlign(HAlign_Center)
+			SceneList->AddSlot().HAlign(HAlign_Center)
 			[
 				SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("SCENE %d  %s  -  %d %s"), Row.SceneNumber, *Row.SceneId.ToString(), Row.Takes, Row.Takes == 1 ? TEXT("TAKE") : TEXT("TAKES"))))
-				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 14)).ColorAndOpacity(FLinearColor(0.8f, 0.85f, 0.95f))
+				.WrapTextAt(1160).Justification(ETextJustify::Center)
+				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 18)).ColorAndOpacity(Ink)
 			];
 		}
-		// T3: the credits roll (DA_Credits, else the CREDITS.md fallback), inside this panel: it goes with it.
-		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 14.f, 0.f, 0.f)[FTDCredits::MakeRoll()];
-		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 18.f, 0.f, 0.f)[Button(TEXT("RETURN TO MENU"), [](ATDMenuGameMode* M) { M->ReturnToMenu(); }, true)];
+		if (Scenes.Num() > 0)
+		{
+			Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 6.f, 0.f, 2.f)
+			[
+				SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("SCENES (%d)"), Scenes.Num()))).Font(FCoreStyle::GetDefaultFontStyle("Bold", 13))
+				.ColorAndOpacity(Cyan)
+			];
+			Box->AddSlot().AutoHeight().HAlign(HAlign_Center)
+			[
+				SNew(SBox).MaxDesiredHeight(SceneListMaxHeight).WidthOverride(1200.f)[SceneList]
+			];
+		}
+		// T3: the credits roll (DA_Credits, else the CREDITS.md fallback), at 1.4x of the native roll.
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0, 24, 0, 0)
+		[SNew(SBox).WidthOverride(1008).HeightOverride(280)
+			[SNew(SScaleBox).Stretch(EStretch::ScaleToFit)[FTDCredits::MakeRoll(720, 200)]]];
+		// Reference-like open composition; the real return action and focus, no invented shortcut hints.
+		Placeholder = SNew(SOverlay)
+			+ SOverlay::Slot()[SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(.005f, .012f, .025f, .38f))]
+			+ SOverlay::Slot()[SNew(SScaleBox).Stretch(EStretch::ScaleToFit)
+				[SNew(SBox).WidthOverride(1920).HeightOverride(1080)
+					[SNew(SOverlay)
+						+ SOverlay::Slot()[SNew(TDFrontEnd::SVictoryLinework)]
+						+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0, 188, 0, 0)[Box]
+						+ SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Bottom).Padding(56, 0, 0, 44)
+							[Button(TEXT("RETURN TO MENU"), [](ATDMenuGameMode* M) { M->ReturnToMenu(); }, true)]
+					]]];
+		if (GEngine && GEngine->GameViewport)
+		{
+			GEngine->GameViewport->AddViewportWidgetContent(Placeholder.ToSharedRef(), 10);
+		}
+		FocusButton = FirstButton;
+		KeepMenuFocus();
+		return; // the normal menu's card, focus, Settings and music path stay untouched
 	}
 	else
 	{
@@ -399,6 +501,19 @@ void ATDMenuGameMode::ShowPlaceholder()
 	GEngine->GameViewport->AddViewportWidgetContent(Placeholder.ToSharedRef(), 10);
 	FocusButton = FirstButton;
 	KeepMenuFocus();
+}
+
+const TArray<FText>& ATDMenuGameMode::VictoryHeadlineChoices()
+{
+	static const TArray<FText> Choices = {
+		NSLOCTEXT("TDMenu", "VictoryFuture", "A FUTURE RECLAIMED"),
+		NSLOCTEXT("TDMenu", "VictoryBalance", "BALANCE RESTORED"),
+		NSLOCTEXT("TDMenu", "VictoryTomorrow", "TOMORROW IS OURS"),
+		NSLOCTEXT("TDMenu", "VictoryWorlds", "THE WORLDS ENDURE"),
+		NSLOCTEXT("TDMenu", "VictoryDawn", "A NEW DAWN"),
+		NSLOCTEXT("TDMenu", "VictoryOdds", "AGAINST ALL ODDS")
+	};
+	return Choices;
 }
 
 void ATDMenuGameMode::PostLogin(APlayerController* NewPlayer)

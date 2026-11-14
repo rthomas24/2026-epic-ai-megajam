@@ -22,9 +22,78 @@
 #include "UObject/UObjectIterator.h"
 #include "Components/ExponentialHeightFogComponent.h"
 #include "TriadDrift/World/TDSkySphere.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
+#include "NiagaraComponent.h"
+#include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 const FName ATDPlaceholderSky::PresentationSkyTag(TEXT("TD.Presentation.Sky"));
 const FName ATDPlaceholderSky::PlaceholderTag(TEXT("TD.Placeholder.Sky"));
+
+// Environment builder, ART-05 / ART-13 (Nov 14): one colour grade per style. Grading only (no GI, shadow or reflection
+// change, so no frame cost). TD.Env.Look tunes the live values; the numbers below are what was settled in the game.
+namespace TDLook
+{
+	struct FGrade
+	{
+		float Saturation = 1.f, Contrast = 1.f, Gamma = 1.f;
+		float Toe = 0.55f, Slope = 0.88f, Shoulder = 0.26f;	// the engine's filmic defaults
+		float WhiteTemp = 6500.f, Vignette = 0.4f;
+		FLinearColor ShadowOffset = FLinearColor(0.f, 0.f, 0.f);	// tint added to the shadows only
+		float ShadowSaturation = 1.f;
+	};
+
+	static void Apply(FPostProcessSettings& S, const FGrade& G)
+	{
+		S.bOverride_ColorSaturation = true;
+		S.ColorSaturation = FVector4(1.f, 1.f, 1.f, G.Saturation);
+		S.bOverride_ColorContrast = true;
+		S.ColorContrast = FVector4(1.f, 1.f, 1.f, G.Contrast);
+		S.bOverride_ColorGamma = true;
+		S.ColorGamma = FVector4(1.f, 1.f, 1.f, G.Gamma);
+		S.bOverride_FilmToe = true;
+		S.FilmToe = G.Toe;
+		S.bOverride_FilmSlope = true;
+		S.FilmSlope = G.Slope;
+		S.bOverride_FilmShoulder = true;
+		S.FilmShoulder = G.Shoulder;
+		S.bOverride_WhiteTemp = true;
+		S.WhiteTemp = G.WhiteTemp;
+		S.bOverride_VignetteIntensity = true;
+		S.VignetteIntensity = G.Vignette;
+		S.bOverride_ColorOffsetShadows = true;
+		S.ColorOffsetShadows = FVector4(G.ShadowOffset.R, G.ShadowOffset.G, G.ShadowOffset.B, 0.f);
+		S.bOverride_ColorSaturationShadows = true;
+		S.ColorSaturationShadows = FVector4(1.f, 1.f, 1.f, G.ShadowSaturation);
+	}
+
+	static FGrade For(ETDPlaceholderSkyStyle Style)
+	{
+		FGrade G;
+		switch (Style)
+		{
+		case ETDPlaceholderSkyStyle::Space:	// the galaxy and the menu: saturated, deep blacks with a soft toe
+			G.Saturation = 1.12f; G.Contrast = 1.05f; G.Toe = 0.6f; G.Vignette = 0.35f;
+			G.ShadowOffset = FLinearColor(0.002f, 0.f, 0.006f);	// violet in the darks, never grey
+			break;
+		case ETDPlaceholderSkyStyle::Verdance:	// teal-violet bioluminescent dusk
+			G.Saturation = 1.14f; G.Contrast = 1.06f; G.Toe = 0.58f; G.WhiteTemp = 6900.f; G.Vignette = 0.38f;
+			G.ShadowOffset = FLinearColor(0.004f, 0.002f, 0.010f); G.ShadowSaturation = 1.1f;
+			break;
+		case ETDPlaceholderSkyStyle::Cinder:	// ember dusk under ash
+			G.Saturation = 1.1f; G.Contrast = 1.08f; G.Toe = 0.6f; G.WhiteTemp = 5700.f; G.Vignette = 0.42f;
+			G.ShadowOffset = FLinearColor(0.006f, 0.002f, 0.f);
+			break;
+		default:	// Planet style: today the Dominion interior (dark hull, coloured light pools)
+			G.Saturation = 1.08f; G.Contrast = 1.1f; G.Toe = 0.62f; G.WhiteTemp = 6300.f; G.Vignette = 0.45f;
+			G.ShadowOffset = FLinearColor(0.f, 0.002f, 0.005f);
+			break;
+		}
+		return G;
+	}
+}
 
 ATDPlaceholderSky::ATDPlaceholderSky()
 {
@@ -70,6 +139,11 @@ ATDPlaceholderSky::ATDPlaceholderSky()
 	Exposure->SetupAttachment(RootComponent);
 	Exposure->bUnbound = true;
 	Exposure->Priority = -100.f; // anything the map adds wins (Nick's skybox uses -10)
+
+	Grade = CreateDefaultSubobject<UPostProcessComponent>(TEXT("Grade"));
+	Grade->SetupAttachment(RootComponent);
+	Grade->bUnbound = true;
+	Grade->Priority = 20.f; // grading only: above the interior's exposure volume (10), which keeps its exposure
 }
 
 ATDPlaceholderSky::FWorldSky ATDPlaceholderSky::Scan(const UWorld* World)
@@ -153,7 +227,7 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 		Sun->SetAtmosphereSunLight(true);
 		// Soft shadowless fill from below and behind the sun, nebula violet: the shade side reads as shape, not black.
 		Fill->SetWorldRotation(FRotator(20.f, ATDSkySphere::SunYawDeg, 0.f));
-		Fill->SetIntensity(1.2f);
+		Fill->SetIntensity(2.f);	// ART-13: was 1.2 (ships seen from behind read as dark cut-outs)
 		Fill->SetLightColor(FLinearColor(0.5f, 0.4f, 1.f));
 		SkyLight->SetIntensity(1.f);
 		SkyLight->bLowerHemisphereIsBlack = false;
@@ -171,9 +245,9 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 		// Bloom only from real emitters (engines, eyes, bolts, explosions) and capped, so a mass explosion never
 		// whites out the screen (playtest: TD.KillAll in wave 5).
 		S.bOverride_BloomIntensity = true;
-		S.BloomIntensity = 0.8f;
+		S.BloomIntensity = 0.7f;	// ART-13: was 0.8 / 1.5 (engine glows washed the ship)
 		S.bOverride_BloomThreshold = true;
-		S.BloomThreshold = 1.5f;
+		S.BloomThreshold = 1.8f;
 		// A touch of motion blur sells speed without smearing the targets.
 		S.bOverride_MotionBlurAmount = true;
 		S.MotionBlurAmount = 0.2f;
@@ -202,21 +276,24 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 	{
 		// Environment pass (Nov 13): a late-afternoon sun high enough to light the valleys, a teal fill from the far side
 		// (the old fill came from the sun's side: every shadow was black), fixed exposure, squad colours stay readable.
-		Sun->SetWorldRotation(FRotator(-24.f, 200.f, 0.f));
-		Sun->SetIntensity(9.f);
-		Sun->SetLightColor(FLinearColor(1.f, 0.86f, 0.70f));
-		Atmosphere->SetRayleighScattering(FLinearColor(0.0035f, 0.02f, 0.03f));
+		// ART-13 (Nov 14, r2 after the Lead's review): a teal-dominant dusk with violet only toward the sun; shaded slopes lifted by
+		// the sky light and the fill so they stay dark teal, never black. Was: pitch -24, 9, (1, 0.86, 0.70), Rayleigh
+		// (0.0035, 0.02, 0.03), Mie 0.0015, fill 3, sky light 2, exposure 0. r1 (too lilac, black slopes): -15, 7.5, (1, 0.76, 0.8).
+		Sun->SetWorldRotation(FRotator(-20.f, 200.f, 0.f));
+		Sun->SetIntensity(8.f);
+		Sun->SetLightColor(FLinearColor(1.f, 0.9f, 0.88f));	// r4: less rose (the 900 m haze read pink-white)
+		Atmosphere->SetRayleighScattering(FLinearColor(0.002f, 0.024f, 0.034f));	// r4 (r3 0.0025 / 0.022 / 0.032): teal sky, ridges readable
 		Atmosphere->SetAerialPespectiveViewDistanceScale(1.f);
-		Atmosphere->SetMieScatteringScale(0.0015f);
-		if (Fill) { Fill->SetWorldRotation(FRotator(-35.f, 20.f, 0.f)); Fill->SetLightColor(FLinearColor(0.30f, 0.80f, 0.90f)); Fill->SetIntensity(3.f); }
-		SkyLight->SetIntensity(2.f);
+		Atmosphere->SetMieScatteringScale(0.0015f);	// r4: back to 0.0015 (the rose sun scattered into a pink-white haze)
+		if (Fill) { Fill->SetWorldRotation(FRotator(-35.f, 20.f, 0.f)); Fill->SetLightColor(FLinearColor(0.30f, 0.80f, 0.90f)); Fill->SetIntensity(5.f); }
+		SkyLight->SetIntensity(5.f);
 		FPostProcessSettings& S = Exposure->Settings;
 		S.bOverride_AutoExposureMethod = true;
 		S.AutoExposureMethod = EAutoExposureMethod::AEM_Manual;
 		S.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
 		S.AutoExposureApplyPhysicalCameraExposure = false;
 		S.bOverride_AutoExposureBias = true;
-		S.AutoExposureBias = 0.f;
+		S.AutoExposureBias = -0.05f;
 		S.bOverride_BloomIntensity = true;
 		S.BloomIntensity = 0.9f;
 		S.bOverride_BloomThreshold = true;
@@ -225,27 +302,123 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 	else if (Style == ETDPlaceholderSkyStyle::Cinder && Atmosphere)
 	{
 		// Environment pass (Nov 13): a red sun through ember haze, an ember fill from the far side, fixed exposure.
-		Sun->SetWorldRotation(FRotator(-22.f, 130.f, 0.f));
-		Sun->SetIntensity(8.f);
-		Sun->SetLightColor(FLinearColor(1.f, 0.62f, 0.42f));
-		Atmosphere->SetRayleighScattering(FLinearColor(0.03f, 0.011f, 0.005f));
+		// ART-13 (Nov 14): ember dusk under ash: a lower, redder sun, the lava carries the frame; r2: the deepest shadows lifted
+		// (sky light 2 -> 3.5, fill 1.2 -> 2.6). Was: pitch -22, 8, (1, 0.62, 0.42), Rayleigh (0.03, 0.011, 0.005), exposure 0.
+		Sun->SetWorldRotation(FRotator(-16.f, 130.f, 0.f));
+		Sun->SetIntensity(7.5f);
+		Sun->SetLightColor(FLinearColor(1.f, 0.55f, 0.34f));
+		Atmosphere->SetRayleighScattering(FLinearColor(0.035f, 0.01f, 0.004f));
 		Atmosphere->SetMieScatteringScale(0.004f);
-		if (Fill) { Fill->SetWorldRotation(FRotator(-30.f, 310.f, 0.f)); Fill->SetLightColor(FLinearColor(0.8f, 0.45f, 0.35f)); Fill->SetIntensity(1.2f); }
-		SkyLight->SetIntensity(2.f);
+		if (Fill) { Fill->SetWorldRotation(FRotator(-30.f, 310.f, 0.f)); Fill->SetLightColor(FLinearColor(0.8f, 0.45f, 0.35f)); Fill->SetIntensity(4.f); }	// pass 3: self-shadowed slopes out of near-black (was 2.6)
+		SkyLight->SetIntensity(5.f);	// pass 3 (was 3.5)
 		FPostProcessSettings& S = Exposure->Settings;
 		S.bOverride_AutoExposureMethod = true;
 		S.AutoExposureMethod = EAutoExposureMethod::AEM_Manual;
 		S.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
 		S.AutoExposureApplyPhysicalCameraExposure = false;
 		S.bOverride_AutoExposureBias = true;
-		S.AutoExposureBias = 0.f;
+		S.AutoExposureBias = -0.1f;
 		S.bOverride_BloomIntensity = true;
 		S.BloomIntensity = 1.f;
 		S.bOverride_BloomThreshold = true;
 		S.BloomThreshold = 1.f;
 	}
+	if (Grade)
+	{
+		TDLook::Apply(Grade->Settings, TDLook::For(Style));
+	}
 	SkyLight->RecaptureSky();
 }
+
+// TD.Env.Look: tune the live look of the placeholder sky in a running game (environment builder's tool; nothing is saved).
+//   TD.Env.Look exp -1 sat 1.1 con 1.05 gam 1 toe 0.6 slope 0.88 shoulder 0.26 temp 6500 vig 0.4 bloom 0.8 bthr 1.5
+//               sun 9 sunp -24 suny 200 sunr 1 sung 0.86 sunb 0.7 fill 3 sky 2 fog 1 shr 0 shg 0 shb 0 shsat 1
+// With no arguments it logs the current values.
+static void TDEnvLook(const TArray<FString>& Args, UWorld* World)
+{
+	ATDPlaceholderSky* P = nullptr;
+	for (TActorIterator<ATDPlaceholderSky> It(World); It && !P; ++It) { P = *It; }
+	if (!P) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.Env.Look: no placeholder sky in this world")); return; }
+	FPostProcessSettings* S = P->Exposure ? &P->Exposure->Settings : nullptr;	// exposure and bloom
+	FPostProcessSettings* G = P->Grade ? &P->Grade->Settings : nullptr;		// the grade
+	for (int32 i = 0; i + 1 < Args.Num(); i += 2)
+	{
+		const FString K = Args[i].ToLower();
+		const float V = FCString::Atof(*Args[i + 1]);
+		if (S)
+		{
+			if (K == TEXT("exp")) { S->bOverride_AutoExposureMethod = true; S->AutoExposureMethod = EAutoExposureMethod::AEM_Manual; S->bOverride_AutoExposureApplyPhysicalCameraExposure = true; S->AutoExposureApplyPhysicalCameraExposure = false; S->bOverride_AutoExposureBias = true; S->AutoExposureBias = V; }
+			else if (K == TEXT("auto")) { S->bOverride_AutoExposureMethod = V > 0.f; S->bOverride_AutoExposureBias = false; S->bOverride_AutoExposureApplyPhysicalCameraExposure = false; S->AutoExposureMethod = EAutoExposureMethod::AEM_Histogram; }
+			else if (K == TEXT("bloom")) { S->bOverride_BloomIntensity = true; S->BloomIntensity = V; }
+			else if (K == TEXT("bthr")) { S->bOverride_BloomThreshold = true; S->BloomThreshold = V; }
+		}
+		if (G)
+		{
+			if (K == TEXT("neutral")) { const TDLook::FGrade N; TDLook::Apply(*G, N); }
+			else if (K == TEXT("graded")) { TDLook::Apply(*G, TDLook::For(P->GetAppliedStyle())); }
+			else if (K == TEXT("sat")) { G->bOverride_ColorSaturation = true; G->ColorSaturation.W = V; }
+			else if (K == TEXT("con")) { G->bOverride_ColorContrast = true; G->ColorContrast.W = V; }
+			else if (K == TEXT("gam")) { G->bOverride_ColorGamma = true; G->ColorGamma.W = V; }
+			else if (K == TEXT("toe")) { G->bOverride_FilmToe = true; G->FilmToe = V; }
+			else if (K == TEXT("slope")) { G->bOverride_FilmSlope = true; G->FilmSlope = V; }
+			else if (K == TEXT("shoulder")) { G->bOverride_FilmShoulder = true; G->FilmShoulder = V; }
+			else if (K == TEXT("temp")) { G->bOverride_WhiteTemp = true; G->WhiteTemp = V; }
+			else if (K == TEXT("vig")) { G->bOverride_VignetteIntensity = true; G->VignetteIntensity = V; }
+			else if (K == TEXT("shr")) { G->bOverride_ColorOffsetShadows = true; G->ColorOffsetShadows.X = V; }
+			else if (K == TEXT("shg")) { G->bOverride_ColorOffsetShadows = true; G->ColorOffsetShadows.Y = V; }
+			else if (K == TEXT("shb")) { G->bOverride_ColorOffsetShadows = true; G->ColorOffsetShadows.Z = V; }
+			else if (K == TEXT("shsat")) { G->bOverride_ColorSaturationShadows = true; G->ColorSaturationShadows.W = V; }
+		}
+		if (P->Sun)
+		{
+			FRotator R = P->Sun->GetComponentRotation();
+			FLinearColor C = P->Sun->GetLightColor();
+			if (K == TEXT("sun")) { P->Sun->SetIntensity(V); }
+			else if (K == TEXT("sunp")) { R.Pitch = V; P->Sun->SetWorldRotation(R); }
+			else if (K == TEXT("suny")) { R.Yaw = V; P->Sun->SetWorldRotation(R); }
+			else if (K == TEXT("sunr")) { C.R = V; P->Sun->SetLightColor(C); }
+			else if (K == TEXT("sung")) { C.G = V; P->Sun->SetLightColor(C); }
+			else if (K == TEXT("sunb")) { C.B = V; P->Sun->SetLightColor(C); }
+		}
+		if (K == TEXT("fill") && P->Fill) { P->Fill->SetIntensity(V); }
+		else if (K == TEXT("sky") && P->SkyLight) { P->SkyLight->SetIntensity(V); P->SkyLight->RecaptureSky(); }
+		else if (K == TEXT("fog") && P->HorizonFog) { P->HorizonFog->SetFogDensity(P->GetBaseFogDensity() * V); }
+		if (UExponentialHeightFogComponent* F = P->HorizonFog)
+		{
+			FLinearColor In = F->FogInscatteringLuminance, Dir = F->DirectionalInscatteringLuminance;
+			if (K == TEXT("fogr")) { In.R = V; F->SetFogInscatteringColor(In); }
+			else if (K == TEXT("fogg")) { In.G = V; F->SetFogInscatteringColor(In); }
+			else if (K == TEXT("fogb")) { In.B = V; F->SetFogInscatteringColor(In); }
+			else if (K == TEXT("dfr")) { Dir.R = V; F->SetDirectionalInscatteringColor(Dir); }
+			else if (K == TEXT("dfg")) { Dir.G = V; F->SetDirectionalInscatteringColor(Dir); }
+			else if (K == TEXT("dfb")) { Dir.B = V; F->SetDirectionalInscatteringColor(Dir); }
+		}
+		if (USkyAtmosphereComponent* A = P->Atmosphere)
+		{
+			FLinearColor Ray = A->RayleighScattering;
+			if (K == TEXT("rayr")) { Ray.R = V; A->SetRayleighScattering(Ray); }
+			else if (K == TEXT("rayg")) { Ray.G = V; A->SetRayleighScattering(Ray); }
+			else if (K == TEXT("rayb")) { Ray.B = V; A->SetRayleighScattering(Ray); }
+			else if (K == TEXT("mie")) { A->SetMieScatteringScale(V); }
+		}
+	}
+	if (S && G)
+	{
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Env.Look: exp %.2f sat %.2f con %.2f gam %.2f toe %.2f slope %.2f shoulder %.2f temp %.0f vig %.2f bloom %.2f bthr %.2f sh %.3f %.3f %.3f shsat %.2f"),
+			S->AutoExposureBias, G->ColorSaturation.W, G->ColorContrast.W, G->ColorGamma.W, G->FilmToe, G->FilmSlope, G->FilmShoulder,
+			G->WhiteTemp, G->VignetteIntensity, S->BloomIntensity, S->BloomThreshold, G->ColorOffsetShadows.X, G->ColorOffsetShadows.Y, G->ColorOffsetShadows.Z, G->ColorSaturationShadows.W);
+	}
+	if (P->Sun)
+	{
+		const FRotator R = P->Sun->GetComponentRotation();
+		const FLinearColor C = P->Sun->GetLightColor();
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Env.Look: sun %.1f pitch %.0f yaw %.0f colour %.2f %.2f %.2f fill %.1f sky %.1f"),
+			P->Sun->Intensity, R.Pitch, R.Yaw, C.R, C.G, C.B, P->Fill ? P->Fill->Intensity : 0.f, P->SkyLight ? P->SkyLight->Intensity : 0.f);
+	}
+}
+static FAutoConsoleCommandWithWorldAndArgs GTDEnvLookCmd(TEXT("TD.Env.Look"),
+	TEXT("Tune the placeholder sky's look live (environment builder): TD.Env.Look <key> <value> ... (no args = log the values)."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDEnvLook));
 
 // Ryan's standing rule (keep the old look recoverable): td.PlanetTerrain 0 = today's flat slab + far ground, no terrain.
 static TAutoConsoleVariable<int32> CVarTDPlanetTerrain(TEXT("td.PlanetTerrain"), 1,
@@ -302,8 +475,9 @@ void ATDPlaceholderSky::ApplyHorizon(ETDPlaceholderSkyStyle Style)
 		HorizonFog->SetFogHeightFalloff(bVerdance ? 0.08f : 0.06f);
 		HorizonFog->SetStartDistance(bVerdance ? 150000.f : 120000.f);
 		HorizonFog->SetFogMaxOpacity(1.f);
-		HorizonFog->SetFogInscatteringColor(bVerdance ? FLinearColor(0.04f, 0.20f, 0.22f) : FLinearColor(0.16f, 0.05f, 0.025f));
-		HorizonFog->SetDirectionalInscatteringColor(bVerdance ? FLinearColor(0.10f, 0.20f, 0.18f) : FLinearColor(0.35f, 0.13f, 0.05f));
+		// ART-13 (Nov 14, r2): Verdance haze teal with violet toward the sun (was 0.04/0.20/0.22 and 0.10/0.20/0.18), Cinder a touch less orange (was 0.16/0.05/0.025).
+		HorizonFog->SetFogInscatteringColor(bVerdance ? FLinearColor(0.02f, 0.16f, 0.20f) : FLinearColor(0.14f, 0.045f, 0.025f));
+		HorizonFog->SetDirectionalInscatteringColor(bVerdance ? FLinearColor(0.08f, 0.12f, 0.16f) : FLinearColor(0.35f, 0.13f, 0.05f));
 		{
 			// Environment pass: the first layer is the valley mist (thins out ~125 m up); the second is the aerial haze
 			// that reaches flight altitude (thins out ~3 km up), so from 5 km the horizon fades instead of ending.
@@ -367,6 +541,77 @@ void ATDPlaceholderSky::Tick(float DeltaSeconds)
 		Refresh(); // a sky streamed in or spawned late takes over
 	}
 	TickDescentFog();
+	TickAmbient(DeltaSeconds);
+}
+
+void ATDPlaceholderSky::TickAmbient(float DeltaSeconds)
+{
+	const bool bVerdance = AppliedStyle == ETDPlaceholderSkyStyle::Verdance;
+	if (!bVerdance && AppliedStyle != ETDPlaceholderSkyStyle::Cinder)
+	{
+		return;
+	}
+	APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0);
+	USceneComponent* Parent = Cam ? Cam->GetTransformComponent() : nullptr;
+	if (!Parent)
+	{
+		return;
+	}
+	if (AmbientFX && AmbientParent.Get() != Parent)
+	{
+		AmbientFX->DestroyComponent();	// a new camera manager (travel): start again on it
+		AmbientFX = nullptr;
+		if (AmbientAudio) { AmbientAudio->Stop(); AmbientAudio = nullptr; }
+	}
+	if (!AmbientFX)
+	{
+		AmbientRetry -= DeltaSeconds;
+		if (AmbientRetry > 0.f)
+		{
+			return;
+		}
+		AmbientRetry = 2.f;
+		const UTDTravelFX* FX = UTDStatics::LoadPresentation<UTDTravelFX>(TEXT("DA_Travel_FX"));
+		const FName Slot = bVerdance ? FName(TEXT("PlanetAmbientVerdance")) : FName(TEXT("PlanetAmbientCinder"));
+		const FStructProperty* Prop = FX ? CastField<FStructProperty>(UTDTravelFX::StaticClass()->FindPropertyByName(Slot)) : nullptr;
+		const FTDFXCue* Cue = (Prop && Prop->Struct == FTDFXCue::StaticStruct()) ? Prop->ContainerPtrToValuePtr<FTDFXCue>(FX) : nullptr;
+		if (!Cue || Cue->VFX.IsNull())
+		{
+			return;
+		}
+		UAudioComponent* Audio = nullptr;
+		AmbientFX = UTDStatics::PlayCueAttachedLoop(*Cue, Parent, NAME_None, Audio);
+		AmbientAudio = Audio;
+		AmbientParent = Parent;
+		if (!AmbientFX)
+		{
+			return;
+		}
+	}
+	// Full on foot and in low flight; fades out between 450 m and 600 m over the ground.
+	float Fade = 1.f;
+	const APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (Cast<ATDSpacecraft>(Pawn))
+	{
+		if (!FogTerrain.IsValid())
+		{
+			for (TActorIterator<ATDPlanetTerrain> It(GetWorld()); It; ++It) { FogTerrain = *It; break; }
+		}
+		if (const ATDPlanetTerrain* T = FogTerrain.Get())
+		{
+			const FVector At = Cam->GetCameraLocation();
+			Fade = 1.f - FMath::SmoothStep(45000.f, 60000.f, float(At.Z - T->GetHeightAt(At)));
+		}
+	}
+	AmbientFX->SetVariableFloat(FName(TEXT("User.Fade")), Fade);
+}
+
+void ATDPlaceholderSky::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// Travel and retakes rebuild the sky; the camera manager can outlive it, so the ambient goes with the sky.
+	if (AmbientFX) { AmbientFX->DestroyComponent(); AmbientFX = nullptr; }
+	if (AmbientAudio) { AmbientAudio->Stop(); AmbientAudio = nullptr; }
+	Super::EndPlay(EndPlayReason);
 }
 
 void ATDPlaceholderSky::TickDescentFog()

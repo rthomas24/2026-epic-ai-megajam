@@ -1,0 +1,319 @@
+{
+  "pylon": {
+    "eval_tris": 16512,
+    "raw_faces": 3600,
+    "raw_verts": 3938,
+    "eval_verts": 8642,
+    "bevel_edges": 1608
+  },
+  "core": {
+    "eval_tris": 6040,
+    "raw_faces": 1268,
+    "raw_verts": 1180,
+    "eval_verts": 3132,
+    "bevel_edges": 760
+  },
+  "pylon_bounds_m": {
+    "min": [
+      -7.439999580383301,
+      -7.439999580383301,
+      -0.5
+    ],
+    "max": [
+      7.439999580383301,
+      7.439999580383301,
+      19.18000030517578
+    ],
+    "max_radius_m": 7.439999580383301
+  },
+  "core_bounds_m": {
+    "min": [
+      -3.2756574153900146,
+      -2.9800000190734863,
+      7.171599864959717
+    ],
+    "max": [
+      3.2756574153900146,
+      2.9800000190734863,
+      13.628398895263672
+    ],
+    "centre_z_m": 10.399999380111694
+  },
+  "core_contract": {
+    "visual_cradle_z_m": 11.0,
+    "cpp_core_relative_z_m": 0.6,
+    "core_mesh_authored_centre_z_m": 10.4,
+    "show_destroyed_z_scale": 0.4,
+    "stump_z_m": [
+      -0.5,
+      7.3
+    ],
+    "base_z_m": -0.5,
+    "destroyed_base_z_m": -0.2
+  },
+  "ucx": [
+    {
+      "name": "UCX_SM_DominionShieldGenerator_00",
+      "part": "base_ring",
+      "verts": 32,
+      "tris": 60
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_01",
+      "part": "collar",
+      "verts": 32,
+      "tris": 60
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_02",
+      "part": "stump_cap",
+      "verts": 32,
+      "tris": 60
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_03",
+      "part": "buttress_foot_0",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_04",
+      "part": "pylon_0_low",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_05",
+      "part": "pylon_0_mid",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_06",
+      "part": "pylon_0_up",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_07",
+      "part": "prong_0_a",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_08",
+      "part": "prong_0_b",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_09",
+      "part": "buttress_foot_1",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_10",
+      "part": "pylon_1_low",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_11",
+      "part": "pylon_1_mid",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_12",
+      "part": "pylon_1_up",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_13",
+      "part": "prong_1_a",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_14",
+      "part": "prong_1_b",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_15",
+      "part": "buttress_foot_2",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_16",
+      "part": "pylon_2_low",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_17",
+      "part": "pylon_2_mid",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_18",
+      "part": "pylon_2_up",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_19",
+      "part": "prong_2_a",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_20",
+      "part": "prong_2_b",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_21",
+      "part": "buttress_foot_3",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_22",
+      "part": "pylon_3_low",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_23",
+      "part": "pylon_3_mid",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_24",
+      "part": "pylon_3_up",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_25",
+      "part": "prong_3_a",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_26",
+      "part": "prong_3_b",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_27",
+      "part": "buttress_foot_4",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_28",
+      "part": "pylon_4_low",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_29",
+      "part": "pylon_4_mid",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_30",
+      "part": "pylon_4_up",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_31",
+      "part": "prong_4_a",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_32",
+      "part": "prong_4_b",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_33",
+      "part": "buttress_foot_5",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_34",
+      "part": "pylon_5_low",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_35",
+      "part": "pylon_5_mid",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_36",
+      "part": "pylon_5_up",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_37",
+      "part": "prong_5_a",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_38",
+      "part": "prong_5_b",
+      "verts": 8,
+      "tris": 12
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_39",
+      "part": "ring_lower",
+      "verts": 96,
+      "tris": 188
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_40",
+      "part": "ring_equator",
+      "verts": 96,
+      "tris": 188
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_41",
+      "part": "ring_upper",
+      "verts": 96,
+      "tris": 188
+    },
+    {
+      "name": "UCX_SM_DominionShieldGenerator_42",
+      "part": "ring_crown",
+      "verts": 72,
+      "tris": 140
+    }
+  ],
+  "socket_core_m": [
+    0.0,
+    0.0,
+    11.0
+  ]
+}
