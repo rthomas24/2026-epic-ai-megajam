@@ -436,8 +436,8 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 			if (Zone <= 0.f || TDScatter_Hash01(Seed, ix, iy, Salt + 2) > Zone || IsKeptOut(Field, X, Y)) { continue; }
 			if (ScarHalfB > 0.f && (Mode == ModeFar || Mode == ModeDense || Mode == ModeCanopy))
 			{
-				// a canopy clump is kept out by its whole footprint (its centre can sit 90 m from the scar and still cover it)
-				const float Scar = ScarWeight(X, Y, Mode == ModeCanopy ? 9000.f : 0.f);
+				// a canopy clump is kept out by its whole footprint (its centre can sit 120 m from the scar and still cover it)
+				const float Scar = ScarWeight(X, Y, Mode == ModeCanopy ? 13000.f : 0.f);	// s14: 2.6-3.6x clumps reach ~120 m
 				if (Scar > 0.f)
 				{
 					// Inside the scar: no living forest; on the far-tree grid, a charred trunk now and then

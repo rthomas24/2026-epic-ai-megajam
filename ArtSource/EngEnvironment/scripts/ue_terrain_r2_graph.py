@@ -416,5 +416,6 @@ def build_graph(b, t, means):
     e_amb = mul(mul(base, Vp("AmbientTint")), mul(S("AmbientFloor"), inv(molten)))
     # s11: irregular embers: two noises at different scales, sparse at the edges (scar_w squared), none in the ash
     ember = mul(sat(mul(sub(add(mul(c(nS, "B"), 0.55), mul(c(nM, "R"), 0.45)), 0.74), 9.0)), mul(mul(mul(scar_w, scar_w), inv(ash)), S("ScarEmber")))
+    ember = mul(ember, inv(ramp(nslope, 0.2, 0.15)))   # s14: embers only on the flatter ground (on the hillside they stacked into a glowing column)
     e_amb = add(e_amb, mul(b.const3(1.0, 0.28, 0.04), ember))
     b.out(add(add(add(e_vein, e_patch), add(e_val, e_pk)), e_amb), "", MP.MP_EMISSIVE_COLOR)
