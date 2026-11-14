@@ -186,6 +186,15 @@ protected:
 	FQuat GlideFromRot = FQuat::Identity;
 	float CurrentPull = 0.f;
 	int32 TravelRequests = 0;
+	bool bTractorSaid = false;
+	/** The tractor beam loop (TractorBeam cue) while the tractor holds the ship. */
+	UPROPERTY(Transient)
+	TObjectPtr<class UNiagaraComponent> BeamFX;
+	bool bBeamOn = false;
+	void UpdateBeam(const class ATDShip* Ship, float Pull);
+public:
+	bool IsBeamActive() const;
+protected:
 	float DoorHalfWidth = 2500.f;
 
 	/** The approach waypoint (TDTags::ObjectiveMarker) on the axis while the bay is open. */

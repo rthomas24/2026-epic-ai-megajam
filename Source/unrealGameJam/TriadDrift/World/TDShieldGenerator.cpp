@@ -1,5 +1,6 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDShieldGenerator.h"
+#include "TriadDrift/World/TDWorldBarks.h"
 
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -92,6 +93,11 @@ void ATDShieldGenerator::HandleDamaged(UTDHealthComponent* /*InHealth*/, const F
 	if (Visuals && HullDamage > 0.f && !bDestroyed)
 	{
 		UTDStatics::PlayCue(this, Visuals->GeneratorHit, Info.HitLocation.IsNearlyZero() ? GetActorLocation() : Info.HitLocation);
+	}
+	if (!bHalfSaid && !bDestroyed && Health && Health->GetHull01() <= 0.5f && Health->IsAlive())
+	{
+		bHalfSaid = true;	// dialogs.md Bark_Dom_GeneratorHit: a generator at half health
+		FTDWorldBarks::Say(this, TDWorldBarkIds::DomGeneratorHit, ETDBarkPriority::Normal, FTDWorldBarks::EWho::Wingman, 8.f);
 	}
 }
 

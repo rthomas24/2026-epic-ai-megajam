@@ -87,6 +87,24 @@ tag(NFL.spawn_system_at_location(world, unreal.load_asset(SYS + 'NS_TD_Reactor_E
 "exposed"''')
     burst('exposedup_%dm' % arg, cam)
     con('slomo 1'); py('clear()\n"ok"')
+elif mode == 'plumes':   # round 10: the five Null plumes, +X = forward (seen from behind by the chase camera), arg m ahead of
+    # the ship (so Engine.Owner.LODDistance, measured from the player's view, matches), each at its type's VFXScale; the fixed
+    # side camera is arg m to the right of the row, i.e. at the same distance. Throttle 0.8.
+    PL = [('Fighter', 1.0), ('Interceptor', 1.0), ('Gunship', 2.0), ('Bomber', 1.5), ('Carrier', 5.0)]
+    cam = py(SETUP + '''
+o = pawn.get_actor_location() + pawn.get_actor_forward_vector() * %r
+json.dumps(look(o + pawn.get_actor_right_vector() * %r + unreal.Vector(0, 0, 600), o))''' % (arg * 100.0, arg * 100.0))
+    py(SETUP + '''
+clear()
+o = pawn.get_actor_location() + pawn.get_actor_forward_vector() * %r
+rt = pawn.get_actor_right_vector(); fw = pawn.get_actor_forward_vector()
+for i, (n, s) in enumerate(%r):
+    c = tag(NFL.spawn_system_at_location(world, unreal.load_asset(SYS + 'NS_TD_Plume_Enemy_' + n), o + fw * ((i - 2) * %r) + rt * ((i - 2) * %r),
+            pawn.get_actor_rotation(), unreal.Vector(s, s, s), True, True, unreal.NCPoolMethod.NONE, True))
+    c.set_variable_float('Throttle', 0.8)
+"plumes"''' % (arg * 100.0, PL, arg * 100.0 * 0.06, arg * 100.0 * 0.10))
+    time.sleep(1.0)
+    burst('plumes_side_%dm' % arg, cam)
 elif mode == 'rocks':
     cam = py(SETUP + '''
 o = pawn.get_actor_location() + pawn.get_actor_forward_vector() * 30000

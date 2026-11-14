@@ -18,6 +18,7 @@
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "TriadDrift/Ground/TDGroundBarks.h"
 #include "GameFramework/PlayerController.h"
 
 // ================================================================================================
@@ -322,6 +323,10 @@ bool ATDPlanetDirector::HandOverToFoot(ATDShip* Ship)
 	{
 		UTDStorySubsystem::Fire(this, TEXT("G4_Moss_SolidGround")); // T3: on landing (once per run)
 	}
+	else if (PlanetId == TEXT("Verdance"))
+	{
+		UTDStorySubsystem::Fire(this, TEXT("G2_Command_Archive")); // T3's audit (storyline section 14, Gameplay 02): on landing
+	}
 
 	// The re-board prompt stands where the pilot climbed out.
 	if (!BoardPoint)
@@ -391,6 +396,7 @@ bool ATDPlanetDirector::Reboard()
 		Squad->SetWingmenPassive(false);
 	}
 	Ship->GetLanding()->RequestTakeOff();
+	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->NotifyTakeOff(); } // "lifting off" (ENG-43)
 	if (UTDGameInstance* GI = UTDGameInstance::Get(this))
 	{
 		GI->GetMutableProgress().ReturnPoint = NAME_None; // airborne: a reload starts with a fresh descent
@@ -433,6 +439,10 @@ void ATDPlanetDirector::HandleSceneRestart(FName SceneId, int32 TakeNumber)
 					Where = Spot->GetActorTransform();
 				}
 			}
+		}
+		if (Course)
+		{
+			Course->ResolveRespawn(Where); // two magma deaths in a row: the far side of it (T7's Cinder play)
 		}
 		FirstPerson->RespawnAt(Where);
 		return;

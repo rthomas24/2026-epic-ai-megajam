@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Waves/Balance/TDDifficulty.h"
+#include "TriadDrift/Ground/TDGroundBarks.h"
 #include "Misc/PackageName.h"
 #include "Engine/StaticMesh.h"
 #include "TriadDrift/Ground/TDObjective.h"
@@ -25,6 +26,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "EngineUtils.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace TDGroundShapes
@@ -608,6 +610,7 @@ void ATDEncounterVolume::MarkClearedOnLoad()
 
 void ATDEncounterVolume::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	GetWorldTimerManager().ClearTimer(StragglerTimer);
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
 		Scene->Unregister(this);
@@ -697,6 +700,8 @@ void ATDEncounterVolume::Activate()
 		return;
 	}
 	bActivated = true;
+	Stragglers.Reset();
+	GetWorldTimerManager().SetTimer(StragglerTimer, FTimerDelegate::CreateWeakLambda(this, [this]() { SweepStragglers(1.f); }), 1.f, true);
 	bCleared = false;
 	++Take;
 	const FTDRetakeMercyTier* Mercy = GetActiveMercy();
@@ -781,6 +786,7 @@ void ATDEncounterVolume::Activate()
 		AdoptMember(Member);
 
 	}
+	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->NotifyEncounterStarted(this); } // contact, a new crew type (ENG-43)
 	CheckCleared(); // nothing spawned (bad class) still opens the way rather than soft-locking
 }
 
@@ -817,6 +823,63 @@ void ATDEncounterVolume::HandleMemberDeath(UTDHealthComponent* InHealth, const F
 	CheckCleared();
 }
 
+void ATDEncounterVolume::SweepStragglers(float Seconds)
+{
+	if (!bActivated || bCleared || StragglerSeconds <= 0.f)
+	{
+		GetWorldTimerManager().ClearTimer(StragglerTimer);
+		return;
+	}
+	const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+	const APawn* Pilot = PC ? PC->GetPawn() : nullptr;
+	for (TActorIterator<ATDFirstPersonCharacter> It(GetWorld()); It && !Pilot; ++It) // tests and played runs drive the pilot by AI
+	{
+		if (!It->IsDead()) { Pilot = *It; }
+	}
+	if (!Pilot)
+	{
+		return;
+	}
+	const FVector Eye = Pilot->GetPawnViewLocation();
+	TArray<AActor*> Remove;
+	for (const TWeakObjectPtr<AActor>& M : Spawned)
+	{
+		AActor* A = M.Get();
+		const UTDHealthComponent* H = A && !A->IsActorBeingDestroyed() ? UTDStatics::GetHealth(A) : nullptr;
+		const ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(A);
+		if (!H || !H->IsAlive() || (Crew && Crew->Spec.Type == ETDCrewType::Warden))
+		{
+			continue;
+		}
+		FStraggler& S = Stragglers.FindOrAdd(M);
+		FHitResult Hit;
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDStraggler), false, A);
+		Params.AddIgnoredActor(Pilot);
+		const bool bSeen = !GetWorld()->LineTraceSingleByChannel(Hit, A->GetActorLocation() + FVector(0.f, 0.f, 60.f), Eye, ECC_Visibility, Params);
+		const float Health = H->GetHull() + H->GetShield();
+		if (bSeen || (S.LastHealth >= 0.f && Health < S.LastHealth))
+		{
+			S.Unseen = 0.f;
+		}
+		else
+		{
+			S.Unseen += Seconds;
+		}
+		S.LastHealth = Health;
+		if (S.Unseen >= StragglerSeconds)
+		{
+			Remove.Add(A);
+		}
+	}
+	for (AActor* A : Remove)
+	{
+		UE_LOG(LogTriadDrift, Display, TEXT("%s: %s removed, out of the pilot's sight and untouched for %.0f s (%.0f m away)"), *GetName(), *A->GetName(),
+			StragglerSeconds, FVector::Dist(A->GetActorLocation(), Pilot->GetActorLocation()) / 100.f);
+		Stragglers.Remove(A);
+		A->Destroy(); // OnDestroyed: counts as gone, and the room clears when it was the last
+	}
+}
+
 void ATDEncounterVolume::CheckCleared()
 {
 	if (!bActivated || bCleared || GetAliveCount() > 0)
@@ -824,6 +887,8 @@ void ATDEncounterVolume::CheckCleared()
 		return;
 	}
 	bCleared = true;
+	UE_LOG(LogTriadDrift, Display, TEXT("%s cleared (take %d, %d spawned this take)%s"), *GetName(), Take, Spawned.Num(),
+		LinkedObjective && LinkedStep != INDEX_NONE ? *FString::Printf(TEXT(": completes %s step %d"), *LinkedObjective->ObjectiveId.ToString(), LinkedStep) : TEXT(""));
 	for (ATDDoor* Door : DoorsToOpen)
 	{
 		if (Door) { Door->Open(); }
@@ -833,6 +898,7 @@ void ATDEncounterVolume::CheckCleared()
 		if (Door) { Door->Open(); }
 	}
 	OnCleared.Broadcast(this);
+	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->NotifyEncounterCleared(this); } // "that's the lot"
 	if (LinkedObjective && LinkedStep != INDEX_NONE)
 	{
 		LinkedObjective->CompleteStep(LinkedStep);

@@ -21,6 +21,7 @@
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/Flow/TDSaveGame.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryTable, "TriadDrift.Story.Transmissions.EveryBeatHasAPlaceholderAndNoEarlyTwist", TD_TEST_FLAGS)
 bool FTDStoryTable::RunTest(const FString& Parameters)
@@ -942,6 +943,150 @@ bool FTDStoryCarry::RunTest(const FString& Parameters)
 		W.Tick(1.f / 30.f);
 	}
 	TestTrue(TEXT("the three must-hear lines air after the arrival, in order, and nothing else"), Heard == TArray<FName>({ Must[0], Must[1], Must[2] }));
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStorySubtitlesOff, "TriadDrift.Story.Transmissions.SubtitlesOffHidesEveryStoryLine", TD_TEST_FLAGS)
+bool FTDStorySubtitlesOff::RunTest(const FString& Parameters)
+{
+	// ENG-45: with T1's subtitles setting off, no story text is drawn: radio transmissions, the Dominion's console
+	// recordings, and the opening's lines. The voices, the timing and the queue are unchanged (a line still airs).
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDSettingsSubsystem* Settings = W.GetGameInstance() ? W.GetGameInstance()->GetSubsystem<UTDSettingsSubsystem>() : nullptr;
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("settings"), Settings) || !TestNotNull(TEXT("story"), Story))
+	{
+		return false;
+	}
+	Settings->UseSlotForTests(TEXT("TD_Settings_T3_Subtitles"));
+	ON_SCOPE_EXIT { Settings->SetSubtitlesEnabled(true); };
+	for (const TCHAR* Id : { TEXT("A1_TheySearch"), TEXT("A4_Recording_Hangar") }) // a transmission, a console recording
+	{
+		Settings->SetSubtitlesEnabled(true);
+		TestTrue(TEXT("fires"), UTDStorySubsystem::Fire(W.GetWorld(), FName(Id)));
+		for (int32 i = 0; i < 90 && Story->GetCurrentTransmission().Id != FName(Id); ++i) { W.Tick(1.f / 30.f); }
+		TestTrue(FString::Printf(TEXT("%s: on, its text shows"), Id), Story->GetCurrentTransmission().bActive && Story->GetCurrentTransmission().bShowSubtitle);
+		Settings->SetSubtitlesEnabled(false);
+		W.Tick(1.f / 30.f);
+		TestTrue(FString::Printf(TEXT("%s: off mid-line, still on air (voice and timing)"), Id), Story->GetCurrentTransmission().bActive);
+		TestFalse(FString::Printf(TEXT("%s: off, no text"), Id), Story->GetCurrentTransmission().bShowSubtitle);
+		for (int32 i = 0; i < 30 * 15 && Story->GetCurrentTransmission().bActive; ++i) { W.Tick(1.f / 30.f); }
+	}
+	TestFalse(TEXT("the shared query reads the setting"), UTDStorySubsystem::AreSubtitlesShown(W.GetWorld()));
+	Settings->SetSubtitlesEnabled(true);
+	TestTrue(TEXT("and back on"), UTDStorySubsystem::AreSubtitlesShown(W.GetWorld()));
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+#include "HAL/FileManager.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Internationalization/Regex.h"
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryTriggerAudit, "TriadDrift.Story.Transmissions.EveryLineHasATrigger", TD_TEST_FLAGS)
+bool FTDStoryTriggerAudit::RunTest(const FString& Parameters)
+{
+	// Lead (Nov 14): a line nothing fires is a line no player hears. Every table id must be fired by name, sit in a sequence
+	// that something plays, or be built by a known dynamic pattern; deliberate exceptions are listed with a reason. Known
+	// gaps (a trigger owed by a lane) are listed too, so a NEW orphan fails; a gap that got its trigger is reported.
+	const FString Dir = FPaths::Combine(FPaths::GameSourceDir(), TEXT("unrealGameJam"), TEXT("TriadDrift"));
+	TArray<FString> Files;
+	IFileManager::Get().FindFilesRecursive(Files, *Dir, TEXT("*.*"), true, false);
+	if (Files.Num() == 0)
+	{
+		AddWarning(TEXT("no source tree next to this build (packaged?): audit skipped"));
+		return true;
+	}
+	FString All;
+	FString SequenceBody;
+	for (const FString& F : Files)
+	{
+		// The story's own header declares the builders (FaceToFaceSequence); a declaration is not a trigger.
+		if (F.Contains(TEXT("/Tests/")) || F.EndsWith(TEXT("Story/TDStorySubsystem.h"))
+			|| !(F.EndsWith(TEXT(".cpp")) || F.EndsWith(TEXT(".h")) || F.EndsWith(TEXT(".inl"))))
+		{
+			continue;
+		}
+		FString Text;
+		if (!FFileHelper::LoadFileToString(Text, *F))
+		{
+			continue;
+		}
+		if (F.EndsWith(TEXT("Story/TDStorySubsystem.cpp")))
+		{
+			// The table's own rows and the sequence lists are not triggers.
+			const int32 SeqStart = Text.Find(TEXT("const TArray<FName>& UTDStorySubsystem::SequenceIds("));
+			const FString FuncEnd = FString(TEXT("\n}"));
+			const int32 SeqEnd = SeqStart >= 0 ? Text.Find(FuncEnd, ESearchCase::CaseSensitive, ESearchDir::FromStart, SeqStart) : INDEX_NONE;
+			if (SeqStart >= 0 && SeqEnd > SeqStart)
+			{
+				SequenceBody = Text.Mid(SeqStart, SeqEnd - SeqStart);
+				Text = Text.Left(SeqStart) + Text.Mid(SeqEnd);
+			}
+			TArray<FString> Lines;
+			Text.ParseIntoArrayLines(Lines, false);
+			Text.Reset();
+			for (const FString& L : Lines) { if (!L.Contains(TEXT("E(TEXT(\""))) { Text += L + TEXT("\n"); } }
+		}
+		All += Text;
+	}
+	// Sequences something plays (by name, or the Face to Face builder).
+	TSet<FName> Played;
+	for (const TCHAR* Seq : { TEXT("Cinematic03"), TEXT("Cinematic05"), TEXT("Cinematic08"), TEXT("Aftermath"), TEXT("Docking"),
+		TEXT("HangarArrival"), TEXT("FirstDoor"), TEXT("ClearSpace") })
+	{
+		const FRegexPattern P(FString::Printf(TEXT("PlaySequence\\([^;]*TEXT\\(\"%s\"\\)"), Seq));
+		FRegexMatcher M(P, All);
+		if (M.FindNext()) { Played.Add(Seq); }
+	}
+	const bool bFaceToFace = All.Contains(TEXT("FaceToFaceSequence("));
+	// Deliberate: never fired on purpose.
+	static const TMap<FString, FString> Deliberate = {
+		{ TEXT("Intro_N"), TEXT("the old narrator captions: td.Intro.Lines 0 only (opening rebuilt, Lead Nov 14)") },
+		{ TEXT("A5_Choice"), TEXT("legacy decision line; C8_Wren_Order carries the decision (StoryFidelity R117)") },
+		{ TEXT("Trait_"), TEXT("name-card text read through PilotTrait, not aired") },
+	};
+	// Known gaps: owed triggers, by owner (sent Nov 14). Remove a row when its trigger lands.
+	static const TMap<FString, FString> Gaps = {
+		{ TEXT("G4_Command_FollowCoordinates"), TEXT("T4 wave 3") }, { TEXT("G4_Kato_Transports"), TEXT("T4 wave 3") },
+		{ TEXT("G4_Moss_NotShooting"), TEXT("T4 wave 4") }, { TEXT("G4_Kato_Cargo"), TEXT("T4 wave 4") }, { TEXT("G4_Wren_StartThere"), TEXT("T4 wave 4 cleared") },
+		{ TEXT("G2_Command_Archive"), TEXT("T5 Verdance landing") }, { TEXT("G2_Kato_OneLine"), TEXT("T5 research site") },
+		{ TEXT("G2_Moss_LightsOn"), TEXT("T5 relay deck") },
+		{ TEXT("G6_Wren_ClearCarriers"), TEXT("T4 assault") }, { TEXT("G6_Kato_MarkingTargets"), TEXT("T4 assault") },
+		{ TEXT("G6_Moss_TurretsCharging"), TEXT("T4 assault") }, { TEXT("G6_Kato_ShieldWeakening"), TEXT("T4 assault") },
+		{ TEXT("G8_Self_"), TEXT("T5 Face to Face (N-052)") }, { TEXT("C7_Moss_WayOut"), TEXT("T4 docking: PlaySequence Docking") },
+		{ TEXT("C9_Kato_Clear"), TEXT("T4 escape clear: PlaySequence ClearSpace") }, { TEXT("C9_Moss_Clear"), TEXT("T4 escape clear") },
+		{ TEXT("C9_Wren_Clear"), TEXT("T4 escape clear") },
+	};
+	auto Lookup = [](const TMap<FString, FString>& Map, const FString& Id) -> const FString*
+	{
+		for (const TPair<FString, FString>& P : Map) { if (Id == P.Key || (P.Key.EndsWith(TEXT("_")) && Id.StartsWith(P.Key)) || (P.Key == TEXT("Intro_N") && Id.StartsWith(P.Key))) { return &P.Value; } }
+		return nullptr;
+	};
+	TArray<FString> NewOrphans, Fixed;
+	for (const FTDTransmission& E : UTDStorySubsystem::GetAllEntries())
+	{
+		const FString Id = E.Id.ToString();
+		if (UTDStorySubsystem::IsRetired(E.Id) || Lookup(Deliberate, Id))
+		{
+			continue;
+		}
+		bool bTriggered = All.Contains(FString::Printf(TEXT("\"%s\""), *Id));
+		for (const FName& S : Played) { bTriggered |= UTDStorySubsystem::SequenceIds(S).Contains(E.Id); }
+		bTriggered |= bFaceToFace && Id.StartsWith(TEXT("G8_Self_"));
+		// Built at runtime: T5's interior consoles ("A4_Recording_%s"), T4's generators ("A4_GeneratorDown%d").
+		bTriggered |= Id.StartsWith(TEXT("A4_Recording_")) && All.Contains(TEXT("A4_Recording_%s"));
+		bTriggered |= Id.StartsWith(TEXT("A4_GeneratorDown")) && All.Contains(TEXT("A4_GeneratorDown%d"));
+		const FString* Gap = Lookup(Gaps, Id);
+		if (!bTriggered && !Gap) { NewOrphans.Add(Id); }
+		if (bTriggered && Gap) { Fixed.Add(Id + TEXT(" (") + *Gap + TEXT(")")); }
+	}
+	for (const FString& F : Fixed) { AddInfo(FString::Printf(TEXT("gap closed, remove it from the list: %s"), *F)); }
+	TestTrue(FString::Printf(TEXT("every line has a trigger; new orphans: %s"), *FString::Join(NewOrphans, TEXT(", "))), NewOrphans.Num() == 0);
 	return true;
 }
 #endif

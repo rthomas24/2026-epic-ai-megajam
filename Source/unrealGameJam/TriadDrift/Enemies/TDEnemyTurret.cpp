@@ -1,5 +1,7 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Enemies/TDEnemyTurret.h"
+#include "TriadDrift/World/TDWorldBarks.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -216,6 +218,12 @@ void ATDEnemyTurret::Tick(float DeltaSeconds)
 			BurstRemaining = BurstSeconds;
 			++BurstCount;
 			Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, true);
+			if (GetAttachParentActor() && FTDCombatBarks::IsPlayerFlown(Target.Get()))
+			{
+				// storyline 24: the Dominion's hull turret fire first comes at the flown ship (G6_Moss_TurretsCharging,
+				// once per run; it replaces Bark_Dom_Turrets).
+				UTDStorySubsystem::Fire(this, TEXT("G6_Moss_TurretsCharging"));
+			}
 		}
 		return;
 	}

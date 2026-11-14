@@ -1,6 +1,8 @@
 // Triad Drift - hyperdrive (ENG-15). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Travel/TDTravelBarks.h"
 #include "HAL/IConsoleManager.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
@@ -253,9 +255,14 @@ bool UTDHyperdriveComponent::RequestSpoolFromPilot()
 		UE_LOG(LogTriadDrift, Log, TEXT("Hyperdrive refused: %s"), *Reason.ToString());
 		OnSpoolRefused.Broadcast(this, Block, Reason);
 		TDHyperdrive_PlayRefusedCue(TravelFX.Get(), GetCraft());
+		// ENG-43 Bark_Hyper_Blocked: refused in combat (the enemy lock), per refused press (the limiter spaces them).
+		if (Block == ETDHyperdriveBlock::Locked) { FTDCombatBarks::SayAsPilot(GetCraft(), TDBarkIdsT1::HyperBlocked, ETDBarkPriority::Normal); }
 		return false;
 	}
-	return StartSpool();
+	const bool bSpooling = StartSpool();
+	// ENG-43 Bark_Hyper_Spool: the pilot's own jump starts charging.
+	if (bSpooling) { FTDCombatBarks::SayAsPilot(GetCraft(), TDBarkIdsT1::HyperSpool, ETDBarkPriority::Normal); }
+	return bSpooling;
 }
 
 bool UTDHyperdriveComponent::StartSpool()

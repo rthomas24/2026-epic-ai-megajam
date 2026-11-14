@@ -1,8 +1,8 @@
 {
  "site": "StorySet_VerdanceCamp",
  "origin": [
-  1500.0,
-  1800.0,
+  -2500.0,
+  2500.0,
   2.0
  ],
  "steps": [
@@ -21,6 +21,22 @@
   },
   {
    "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\StorySet_VerdanceCamp\\01_5m.png"
+  },
+  {
+   "teleport": [
+    -950.0,
+    -880.0,
+    0.0
+   ],
+   "feet": [
+    -950,
+    -880,
+    0,
+    40
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\StorySet_VerdanceCamp\\01b_8m.png"
   },
   {
    "teleport": [

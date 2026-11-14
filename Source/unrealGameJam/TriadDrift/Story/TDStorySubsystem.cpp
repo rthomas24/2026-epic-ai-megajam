@@ -336,7 +336,7 @@ namespace TDStory
 				return Layer;
 			}
 			const FTDTransmissionView V = S->GetCurrentTransmission();
-			if (!V.bActive || V.Alpha <= 0.f)
+			if (!V.bActive || V.Alpha <= 0.f || !V.bShowSubtitle)
 			{
 				return Layer;
 			}
@@ -570,6 +570,11 @@ void UTDStorySubsystem::HandleLineOnAir(FName Id)
 				UTDUIHostSubsystem::ShowNavigationPulse(this, From, Galaxy->GetActorTransform().TransformPosition(V->Location), 1.5f);
 			}
 		}
+	}
+	// Verdance's orbital clue (storyline §14 phase 1): Wren answers Kato's convoy scan.
+	if (Id == TEXT("A2_ConvoyScanned"))
+	{
+		FireTransmission(TEXT("G2_Wren_Geology"));
 	}
 	if (Id == TEXT("C3_Kato_Artificial")) { Stage = 1; }
 	else if (Id == TEXT("C3_Kato_Beneath")) { Stage = 2; }
@@ -861,7 +866,8 @@ bool UTDStorySubsystem::IsRetired(FName Id)
 	// Kept in the table for the record (N-087, #29), never aired. A caller that still fires one is swallowed quietly.
 	static const TSet<FName> Retired = { TEXT("TB_Escaped"), TEXT("C4_Moss_Volcanoes"), TEXT("C4_Wren_SetCourse"),
 		TEXT("C4_Wren_WhatConnects"), TEXT("C4_Kato_SameSignature"), TEXT("C4_Moss_Trouble"), TEXT("C6_Moss_SamplesAboard"),
-		TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Wren_Understood") };
+		TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Wren_Understood"),
+		TEXT("A4_GeneratorDown1") }; // Nov 14 (T4): the first generator is the screenplay's G6_Kato_ShieldWeakening
 	return Retired.Contains(Id);
 }
 
@@ -1147,9 +1153,10 @@ void UTDStorySubsystem::StartNext()
 	HandleLineOnAir(Current.Id);
 }
 
-bool UTDStorySubsystem::AreSubtitlesShown(const UObject* /*WorldContext*/)
+bool UTDStorySubsystem::AreSubtitlesShown(const UObject* WorldContext)
 {
-	return true; // ENG-45: T1's setting is on its way (AreSubtitlesOn); this is the one place that will read it
+	// ENG-45: T1's setting, the one place every story path reads it (transmissions, recordings, the opening's lines).
+	return UTDSettingsSubsystem::AreSubtitlesOn(WorldContext);
 }
 
 bool UTDStorySubsystem::HasStaticDelivery(FName Id)
@@ -1217,6 +1224,7 @@ void UTDStorySubsystem::Tick(float DeltaTime)
 		}
 	}
 	UpdateSequence();
+	Current.bShowSubtitle = AreSubtitlesShown(this); // live: the setting can change mid-line
 	if (!bCarryTaken && Now >= CarryResumeAt)
 	{
 		bCarryTaken = true; // the arrival has settled (descent, docking, retake): the carried radio resumes

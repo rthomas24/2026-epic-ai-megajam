@@ -3,6 +3,12 @@
 // the fallback. Run: .\Tools\td-test.ps1 -Filter TriadDrift.World.Docking
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDEventBus.h"
+#include "NiagaraSystem.h"
+#include "TriadDrift/Combat/TDWeaponLibrary.h"
+#include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/World/TDWorldBarks.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -206,7 +212,10 @@ bool FTDDominionStoryBeats::RunTest(const FString&)
 	ATDDominion* D = TDDockingTest::DefensesDown(W, ETDBoardingMode::ForceOff);
 	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(D);
 	if (!TestNotNull(TEXT("story subsystem"), Story)) { return false; }
-	for (int32 i = 1; i <= 4; ++i)
+	// Nov 14 (T3 / T4): the first generator speaks the screenplay's G6_Kato_ShieldWeakening; A4_GeneratorDown1 is retired.
+	TestTrue(TEXT("G6_Kato_ShieldWeakening played (first generator)"), Story->HasPlayed(TEXT("G6_Kato_ShieldWeakening")));
+	TestFalse(TEXT("A4_GeneratorDown1 retired"), Story->HasPlayed(TEXT("A4_GeneratorDown1")));
+	for (int32 i = 2; i <= 4; ++i)
 	{
 		const FName Id(*FString::Printf(TEXT("A4_GeneratorDown%d"), i));
 		TestTrue(*FString::Printf(TEXT("%s played"), *Id.ToString()), Story->HasPlayed(Id));
@@ -250,6 +259,116 @@ bool FTDDockingWingmen::RunTest(const FString&)
 		const ATDShip* S = Squad->GetShip(Id);
 		if (S && S != Lead) { TestFalse(TEXT("a released wingman flies"), S->IsFlightParked()); }
 	}
+	return true;
+}
+
+
+// ENG-43: dialogs.md Bark_Dom_GeneratorDown (each but the last, whose line is the field's), Bark_Dom_FieldDown (all four
+// down) and Bark_Dom_Tractor (the tractor takes hold, once per take).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDominionBarks, "TriadDrift.World.Barks.GeneratorsFieldAndTractor", TD_TEST_FLAGS)
+bool FTDDominionBarks::RunTest(const FString&)
+{
+	FTDCombatBarks::ResetRequestCounts();
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.bDominionRevealed = true; GI->Progress.Phase = ETDGamePhase::DominionAssault;
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
+	D->BoardingMode = ETDBoardingMode::ForceOn;
+	W.Advance(D->ProgressPollSeconds + D->WarpInSeconds + 0.5f);
+	for (ATDShieldGenerator* G : D->GetGenerators())	// one at a time, as in play
+	{
+		if (G && G->GetHealth()) { G->GetHealth()->Kill(); }
+		W.Advance(0.5f);
+	}
+	ATDDockingBay* Bay = D->GetDockingBay();
+	if (!TestNotNull(TEXT("bay"), Bay)) { return false; }
+	TestEqual(TEXT("Bark_Dom_GeneratorDown retired (Command's A4_GeneratorDown2-4 and Kato's G6 line cover the count)"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomGeneratorDown), 0);
+	if (const UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld()))
+	{
+		TestTrue(TEXT("G6_Kato_MarkingTargets when the generators showed"), Story->HasPlayed(TEXT("G6_Kato_MarkingTargets")));
+		TestTrue(TEXT("G6_Kato_ShieldWeakening on the first generator down"), Story->HasPlayed(TEXT("G6_Kato_ShieldWeakening")));
+	}
+	TestEqual(TEXT("Bark_Dom_FieldDown once"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomFieldDown), 1);
+	ATDShip* Ship = TDDockingTest::ShipInCone(W, Bay, 180000.f, 25000.f, 20.f);
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	W.Advance(1.f);
+	TestEqual(TEXT("Bark_Dom_Tractor once as the pull takes hold"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomTractor), 1);
+	W.Advance(1.f);
+	TestEqual(TEXT("not repeated while held"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomTractor), 1);
+	return true;
+}
+
+// ENG-43: dialogs.md Bark_Dom_GeneratorHit (a generator at half health, once each).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGeneratorHitBark, "TriadDrift.World.Barks.GeneratorAtHalf", TD_TEST_FLAGS)
+bool FTDGeneratorHitBark::RunTest(const FString&)
+{
+	FTDCombatBarks::ResetRequestCounts();
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.bDominionRevealed = true; GI->Progress.Phase = ETDGamePhase::DominionAssault;
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
+	W.Advance(D->ProgressPollSeconds + D->WarpInSeconds + 0.5f);
+	ATDShieldGenerator* G = D->GetGenerators().Num() > 0 ? D->GetGenerators()[0] : nullptr;
+	if (!TestNotNull(TEXT("generator"), G)) { return false; }
+	// Real player bolts from outside (the generators only take hits that reach them).
+	FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyHeavyBolt).Projectile;
+	Spec.SplashRadius = 0.f; Spec.ProximityFuseRadius = 0.f; Spec.bHoming = false; Spec.Speed = 40000.f; Spec.Range = 40000.f;
+	Spec.bInheritShooterVelocity = false; Spec.DamageKind = ETDDamageKind::Explosive;
+	const FVector Out = (G->GetActorLocation() - D->GetActorLocation()).GetSafeNormal() * 8000.f;
+	auto Shoot = [&](float Amount) { Spec.Damage = Amount; ATDProjectile::Spawn(W.GetWorld(), Spec, FTransform((-Out).Rotation(), G->GetActorLocation() + Out), nullptr, ETDTeam::Player); W.Advance(0.5f); };
+	Shoot(G->GetHealth()->MaxHull * 0.3f);
+	AddInfo(FString::Printf(TEXT("generator hull after one hit: %.2f"), G->GetHealth()->GetHull01()));
+	TestEqual(TEXT("not at 70 %"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomGeneratorHit), 0);
+	Shoot(G->GetHealth()->MaxHull * 0.3f);
+	TestEqual(TEXT("Bark_Dom_GeneratorHit at half health"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomGeneratorHit), 1);
+	Shoot(10.f);
+	TestEqual(TEXT("once per generator"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomGeneratorHit), 1);
+	return true;
+}
+
+
+// ENG-37: the TractorBeam cue plays as a loop at the bay mouth while the tractor holds the flown ship, and stops when it lets go.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTractorBeamCue, "TriadDrift.World.Docking.TractorBeamPlaysWhileHeld", TD_TEST_FLAGS)
+bool FTDTractorBeamCue::RunTest(const FString&)
+{
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	ATDDominion* D = TDDockingTest::DefensesDown(W, ETDBoardingMode::ForceOn);
+	ATDDockingBay* Bay = D ? D->GetDockingBay() : nullptr;
+	if (!TestNotNull(TEXT("bay"), Bay) || !TestNotNull(TEXT("visuals"), D->Visuals.Get())) { return false; }
+	D->Visuals = DuplicateObject(D->Visuals.Get(), GetTransientPackage());	// never the shared asset
+	D->Visuals->TractorBeam.VFX = TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Ambient_Verdance.NS_TD_Ambient_Verdance")));
+	TestFalse(TEXT("no beam before a ship is held"), Bay->IsBeamActive());
+	ATDShip* Ship = TDDockingTest::ShipInCone(W, Bay, 180000.f, 25000.f, 20.f);
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	W.Advance(1.f);
+	TestTrue(TEXT("the beam plays while the tractor holds"), Bay->IsBeamActive());
+	Ship->SetActorLocation(Bay->GetMouth() + Bay->GetOutward() * 150000.f + FVector(0.f, 0.f, 250000.f));
+	W.Advance(0.3f);
+	TestFalse(TEXT("and stops when it lets go"), Bay->IsBeamActive());
+	return true;
+}
+
+// ART-18: the AftermathLightRow cue starts at the hull face nearest the escape line, +X along its outward normal, and
+// stops at the hyperdrive jump.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDAftermathLightRow, "TriadDrift.World.Dominion.AftermathLightRowStartsAndStopsAtTheJump", TD_TEST_FLAGS)
+bool FTDAftermathLightRow::RunTest(const FString&)
+{
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.Phase = ETDGamePhase::Waves1to2;
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(600000.f, 0.f, 0.f));
+	W.Advance(D->ProgressPollSeconds + 0.2f);
+	if (!TestNotNull(TEXT("visuals"), D->Visuals.Get())) { return false; }
+	D->Visuals = DuplicateObject(D->Visuals.Get(), GetTransientPackage());
+	D->Visuals->AftermathLightRow.VFX = TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Ambient_Verdance.NS_TD_Ambient_Verdance")));
+	// The escape line off the Dominion's port side, 5 km away.
+	D->StartAftermathLightRow(D->GetActorLocation() - D->GetActorRightVector() * 500000.f);
+	TestTrue(TEXT("the light row plays"), D->IsAftermathLightRowActive());
+	const FTransform T = D->GetAftermathLightRowTransform();
+	TestTrue(*FString::Printf(TEXT("on the port face, facing out (+X = %s)"), *T.GetRotation().GetForwardVector().ToCompactString()),
+		T.GetRotation().GetForwardVector().Y < -0.99f && T.GetLocation().Y <= D->GetLocalHullBounds().Min.Y + 1.f);
+	if (UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld())) { Bus->OnHyperdriveState.Broadcast(ETDHyperdriveState::Jumping); }
+	TestFalse(TEXT("deactivated at the hyperdrive jump"), D->IsAftermathLightRowActive());
 	return true;
 }
 

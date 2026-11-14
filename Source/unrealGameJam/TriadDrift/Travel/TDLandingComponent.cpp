@@ -1,6 +1,8 @@
 // Triad Drift - auto-landing and take-off (ENG-20). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDLandingComponent.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Travel/TDTravelBarks.h"
 #include "TriadDrift/Travel/TDLandingPad.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
@@ -404,8 +406,11 @@ bool UTDLandingComponent::SnapLanded(ATDLandingPad* InPad)
 	ATDShip* Ship = GetShip();
 	if (!Ship || !InPad || State != ETDLandingState::Flying || !InPad->Reserve(Ship))
 	{
+		UE_LOG(LogTriadDrift, Warning, TEXT("SnapLanded: %s NOT placed on %s (state %d, pad %s)"), *GetNameSafe(Ship), *GetNameSafe(InPad), (int32)State,
+			InPad ? TEXT("reserved by another ship or missing") : TEXT("none"));
 		return false;
 	}
+	UE_LOG(LogTriadDrift, Display, TEXT("SnapLanded: %s on %s at %s"), *GetNameSafe(Ship), *GetNameSafe(InPad), *InPad->GetActorLocation().ToCompactString());
 	Pad = InPad;
 	PauseFlight(true);
 	if (UTDShipMovementComponent* Move = Ship->GetShipMovement()) { Move->SetMoveAnnounced(true); }
@@ -719,6 +724,7 @@ void UTDLandingComponent::SetState(ETDLandingState NewState)
 	{
 	case ETDLandingState::GearDown: bGearDown = true; break;
 	case ETDLandingState::Touchdown:
+		FTDCombatBarks::SayAsPilot(GetOwner(), TDBarkIdsT1::LandDown, ETDBarkPriority::Normal); // ENG-43 Bark_Land_Down
 		if (TravelFX)
 		{
 			UTDStatics::PlayCue(this, TravelFX->LandingDust, Pad.IsValid() ? Pad->GetBeaconLocation() : SegmentStart);
@@ -780,6 +786,13 @@ void UTDLandingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	UpdatePadMarker();
+	// ENG-43 Bark_Land_Ready: a pad comes in range (the landing prompt appears) - once per approach.
+	if (State == ETDLandingState::Flying)
+	{
+		const bool bReady = GetAvailablePad() != nullptr || GetAssistPad() != nullptr;
+		if (bReady && !bLandReadySaid) { FTDCombatBarks::SayAsPilot(GetOwner(), TDBarkIdsT1::LandReady, ETDBarkPriority::Normal); }
+		bLandReadySaid = bReady;
+	}
 	if (State == ETDLandingState::Flying && (AssistPad.IsValid() || AssistPad.IsStale()) && DeltaTime > 0.f)
 	{
 		TickApproachAssist(DeltaTime);

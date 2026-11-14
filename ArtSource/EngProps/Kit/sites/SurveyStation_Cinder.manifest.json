@@ -113,11 +113,11 @@
    "name": "Rack",
    "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_SampleCases",
    "location_cm": [
-    -300.0,
-    120.0,
-    103.0
+    150.0,
+    360.0,
+    3.0
    ],
-   "yaw_deg": 90.0
+   "yaw_deg": 0.0
   },
   {
    "name": "Console",
@@ -170,7 +170,23 @@
    180
   ]
  ],
+ "tested_site_world_cm": [
+  -3500,
+  2000,
+  2
+ ],
+ "footprint_with_rack_cm": {
+  "x": [
+   -400,
+   1000
+  ],
+  "y": [
+   -280,
+   420
+  ]
+ },
  "placement_rules": [
-  "Pivot on flat ground; the shield wall (-Y) faces the lava; keep 3 m clear past the ramp foot (+X)."
+  "Pivot on flat ground; the shield wall (-Y) faces the lava; keep 3 m clear past the ramp foot (+X).",
+  "Not inside the course keep-outs (the magma river is X 4500..6700, Y 1100..8500); walk-tested at (-3500, 2000)."
  ]
 }
