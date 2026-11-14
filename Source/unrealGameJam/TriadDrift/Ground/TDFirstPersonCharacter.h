@@ -231,6 +231,8 @@ public:
 	 *  puts the blade away and moves the capsule; input waits until it ends. Returns the clip's length (0: none). */
 	float StartShipTransition(bool bBoarding, const FVector& Hatch);
 	bool IsInShipTransition() const { return bShipTransition; }
+	/** Dev (TD.Pilot.Act, animation builder): play a body clip by name as the game would. */
+	void DebugPlayBodyAction(FName Anim, float Rate, bool bUpperOnly) { PlayBodyAction(Anim, Rate, bUpperOnly); }
 	USceneComponent* GetBladeGrip() const { return BladeGrip; }
 
 	/** Applies the blade's UTDBladeFX: BladeMesh if set, otherwise the placeholder tinted with BladeColor. */
