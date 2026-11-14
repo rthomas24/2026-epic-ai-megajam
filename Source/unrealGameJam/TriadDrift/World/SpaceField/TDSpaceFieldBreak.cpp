@@ -9,6 +9,7 @@
 // (UTDSpaceFieldFX, or a placeholder burst) and broadcasts OnFieldObjectDestroyed on the Core bus (T2: score, drops).
 
 #include "TriadDrift/World/SpaceField/TDSpaceField.h"
+#include "EngineUtils.h"
 #include "TriadDrift/World/SpaceField/TDSpaceFieldFX.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -488,13 +489,35 @@ void ATDSpaceField::ReceiveSplash(const FVector& Center, float Radius, float Dam
 bool ATDSpaceField::ReceiveShipImpact(UPrimitiveComponent* HitComponent, int32 Item, const FVector& ImpactPoint, float NormalSpeed, float HeadOn01, ATDShip* Ship)
 {
 	const UTDRamPower* Ram = Ship ? Ship->FindComponentByClass<UTDRamPower>() : nullptr;
-	return ShipImpact(HitComponent, Item, NormalSpeed, HeadOn01, Ship, Ram && Ram->IsPowerActive());
+	const bool bBroken = ShipImpact(HitComponent, Item, NormalSpeed, HeadOn01, Ship, Ram && Ram->IsPowerActive());
+	if (GTDLogBreaks != 0 && Ship)
+	{
+		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.Impact: %s (%s) at %.0f m/s normal, head-on %.2f -> %s"), *GetNameSafe(Ship),
+			Ship->IsPlayerControlled() ? TEXT("flown") : TEXT("wingman"), NormalSpeed / 100.f, HeadOn01, bBroken ? TEXT("rock broke") : TEXT("bounced"));
+	}
+	return bBroken;
 }
 
 // ------------------------------------------------------------------------------------------- dev commands
 
 namespace TDSpaceFieldDev
 {
+	static FAutoConsoleCommandWithWorldAndArgs CmdWingCheck(TEXT("TD.SpaceField.WingCheck"),
+		TEXT("Log each squad ship's speed and its distance to the nearest obstacle surface (wingman rock avoidance watch)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const UTDWorldSubsystem* WS = UTDWorldSubsystem::Get(World);
+			for (TActorIterator<ATDShip> It(World); It; ++It)
+			{
+				ATDShip* Ship = *It;
+				FSphere Near(ForceInit);
+				const bool bNear = WS && WS->FindNearestObstacle(Ship->GetActorLocation(), 50000.f, Near);
+				const float Gap = bNear ? (float)FVector::Dist(Ship->GetActorLocation(), Near.Center) - Near.W : 50000.f;
+				UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.WingCheck: %s (%s) speed %.0f m/s, nearest rock surface %.0f m%s"), *GetNameSafe(Ship),
+					Ship->IsPlayerControlled() ? TEXT("flown") : TEXT("wingman"), Ship->GetVelocity().Size() / 100.f, Gap / 100.f, bNear ? TEXT("") : TEXT(" (none within 500 m)"));
+			}
+		}));
+
 	static FAutoConsoleCommandWithWorldAndArgs CmdAim(TEXT("TD.SpaceField.Aim"),
 		TEXT("Turn the flown ship (real input) toward the nearest live field piece: TD.SpaceField.Aim <class 0 small | 1 medium | 2 large | 3 special> [MinMetres=0]"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
