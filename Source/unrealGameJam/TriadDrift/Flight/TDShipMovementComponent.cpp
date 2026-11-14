@@ -1,6 +1,8 @@
 // Triad Drift - ship movement component (ENG-01). Owner: Teammate 1 (Flight & Input).
 
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Travel/TDTravelBarks.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipImpactReceiver.h"
@@ -697,6 +699,11 @@ void UTDShipMovementComponent::BroadcastStateChanges(const FTDFlightState& Befor
 	if (State.bBoosting != Before.bBoosting)
 	{
 		State.bBoosting ? OnBoostStarted.Broadcast() : OnBoostEnded.Broadcast();
+	}
+	// ENG-43 Bark_BoostEmpty: the meter ran dry with boost held (once per lock-out).
+	if (State.bBoostLockout && !Before.bBoostLockout)
+	{
+		FTDCombatBarks::SayAsPilot(GetOwner(), TDBarkIdsT1::BoostEmpty, ETDBarkPriority::Flavour);
 	}
 	if (State.bDrifting && !Before.bDrifting)
 	{

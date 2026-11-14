@@ -1,6 +1,7 @@
 // Triad Drift - planet objective props and hazards (ENG-25 / ENG-26). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/TDGroundScene.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
@@ -476,6 +477,10 @@ void ATDMagmaVolume::HandleOverlap(UPrimitiveComponent*, AActor* Other, UPrimiti
 		if (!P->IsDead())
 		{
 			P->ReturnToSafeGround();
+		}
+		else if (ATDPlanetCourse* Course = ATDPlanetCourse::Get(this))
+		{
+			Course->NoteMagmaDeath(this); // two in a row: the course respawns the pilot past it
 		}
 	}
 }

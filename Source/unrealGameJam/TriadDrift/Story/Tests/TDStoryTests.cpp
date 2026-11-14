@@ -21,6 +21,7 @@
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/Flow/TDSaveGame.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryTable, "TriadDrift.Story.Transmissions.EveryBeatHasAPlaceholderAndNoEarlyTwist", TD_TEST_FLAGS)
 bool FTDStoryTable::RunTest(const FString& Parameters)
@@ -942,6 +943,40 @@ bool FTDStoryCarry::RunTest(const FString& Parameters)
 		W.Tick(1.f / 30.f);
 	}
 	TestTrue(TEXT("the three must-hear lines air after the arrival, in order, and nothing else"), Heard == TArray<FName>({ Must[0], Must[1], Must[2] }));
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStorySubtitlesOff, "TriadDrift.Story.Transmissions.SubtitlesOffHidesEveryStoryLine", TD_TEST_FLAGS)
+bool FTDStorySubtitlesOff::RunTest(const FString& Parameters)
+{
+	// ENG-45: with T1's subtitles setting off, no story text is drawn: radio transmissions, the Dominion's console
+	// recordings, and the opening's lines. The voices, the timing and the queue are unchanged (a line still airs).
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDSettingsSubsystem* Settings = W.GetGameInstance() ? W.GetGameInstance()->GetSubsystem<UTDSettingsSubsystem>() : nullptr;
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("settings"), Settings) || !TestNotNull(TEXT("story"), Story))
+	{
+		return false;
+	}
+	Settings->UseSlotForTests(TEXT("TD_Settings_T3_Subtitles"));
+	ON_SCOPE_EXIT { Settings->SetSubtitlesEnabled(true); };
+	for (const TCHAR* Id : { TEXT("A1_TheySearch"), TEXT("A4_Recording_Hangar") }) // a transmission, a console recording
+	{
+		Settings->SetSubtitlesEnabled(true);
+		TestTrue(TEXT("fires"), UTDStorySubsystem::Fire(W.GetWorld(), FName(Id)));
+		for (int32 i = 0; i < 90 && Story->GetCurrentTransmission().Id != FName(Id); ++i) { W.Tick(1.f / 30.f); }
+		TestTrue(FString::Printf(TEXT("%s: on, its text shows"), Id), Story->GetCurrentTransmission().bActive && Story->GetCurrentTransmission().bShowSubtitle);
+		Settings->SetSubtitlesEnabled(false);
+		W.Tick(1.f / 30.f);
+		TestTrue(FString::Printf(TEXT("%s: off mid-line, still on air (voice and timing)"), Id), Story->GetCurrentTransmission().bActive);
+		TestFalse(FString::Printf(TEXT("%s: off, no text"), Id), Story->GetCurrentTransmission().bShowSubtitle);
+		for (int32 i = 0; i < 30 * 15 && Story->GetCurrentTransmission().bActive; ++i) { W.Tick(1.f / 30.f); }
+	}
+	TestFalse(TEXT("the shared query reads the setting"), UTDStorySubsystem::AreSubtitlesShown(W.GetWorld()));
+	Settings->SetSubtitlesEnabled(true);
+	TestTrue(TEXT("and back on"), UTDStorySubsystem::AreSubtitlesShown(W.GetWorld()));
 	return true;
 }
 #endif

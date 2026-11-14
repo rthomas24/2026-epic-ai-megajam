@@ -24,6 +24,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(KIT)))
 sys.path.insert(0, HERE)
 import kit_lib  # noqa: E402
 import kit_pieces  # noqa: E402
+import kit_pieces_bridge  # noqa: E402
 import kit_pieces_d  # noqa: E402
 import kit_pieces_space  # noqa: E402
 import kit_pieces_story  # noqa: E402
@@ -164,7 +165,7 @@ def build_all():
     rows, objs, pieces = [], {}, {}
     for fn in {"dominion": kit_pieces_d.BUILDERS, "space": kit_pieces_space.BUILDERS, "story": kit_pieces_story.BUILDERS,
                 "region": kit_pieces_region.BUILDERS,
-                "gear": kit_pieces_gear.BUILDERS}.get(SET, kit_pieces.BUILDERS):
+                "gear": kit_pieces_gear.BUILDERS, "bridge": kit_pieces_bridge.BUILDERS}.get(SET, kit_pieces.BUILDERS):
         p = fn()
         lo, hi = p.bounds()
         size = tuple(round(hi[i] - lo[i], 2) for i in range(3))
@@ -508,7 +509,7 @@ def main():
     ap.add_argument("--tag", default="r0")
     ap.add_argument("--render", action="store_true")
     ap.add_argument("--export", action="store_true")
-    ap.add_argument("--set", default="planet", choices=("planet", "dominion", "space", "story", "region", "gear"))
+    ap.add_argument("--set", default="planet", choices=("planet", "dominion", "space", "story", "region", "gear", "bridge"))
     a = ap.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     global SET, EXPORT
     SET = a.set
@@ -518,6 +519,9 @@ def main():
     elif SET == "region":
         EXPORT = os.path.join(KIT, "export_region")
         a.tag = "R_" + a.tag
+    elif SET == "bridge":                       # walkable crossings (planet trim), their own export so the planet kit is untouched
+        EXPORT = os.path.join(KIT, "export_bridge")
+        a.tag = "B_" + a.tag
     elif SET == "gear":
         EXPORT = os.path.join(KIT, "export_gear")
         a.tag = "G_" + a.tag
@@ -558,7 +562,7 @@ def main():
             w = o.dimensions.y
             o.location = (0, x + w / 2, 0)
             x += w + 1.0
-        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, {"dominion": "KitDominion.blend", "space": "KitSpace.blend", "story": "KitStory.blend", "region": "KitRegion.blend", "gear": "KitGear.blend"}.get(SET, "Kit.blend")), compress=True)
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, {"dominion": "KitDominion.blend", "space": "KitSpace.blend", "story": "KitStory.blend", "region": "KitRegion.blend", "gear": "KitGear.blend", "bridge": "KitBridge.blend"}.get(SET, "Kit.blend")), compress=True)
     print("__RESULT__ done")
 
 

@@ -619,7 +619,11 @@ float ATDPlaceholderSky::ComputeDescentFogScale(float Descent01, float AltitudeC
 {
 	if (Descent01 >= 0.f)
 	{
-		return FMath::Lerp(MaxScale, 1.f, FMath::SmoothStep(0.f, 1.f, FMath::Clamp(Descent01, 0.f, 1.f)));
+		// The glide's haze only high up: from 1.5 km over the ground it applies fully, fading out by 900 m (the glide
+		// end). A staged or uncovered arrival that reports a glide at 300 m never gets the arrival's thick haze
+		// (structures builder, Nov 14: solid haze at ALT 308 m on Verdance).
+		const float Glide = FMath::Lerp(MaxScale, 1.f, FMath::SmoothStep(0.f, 1.f, FMath::Clamp(Descent01, 0.f, 1.f)));
+		return FMath::Lerp(1.f, Glide, FMath::SmoothStep(90000.f, 150000.f, AltitudeCm));
 	}
 	return 1.f + (MaxScale - 1.f) * FMath::SmoothStep(LowCm, HighCm, AltitudeCm);
 }

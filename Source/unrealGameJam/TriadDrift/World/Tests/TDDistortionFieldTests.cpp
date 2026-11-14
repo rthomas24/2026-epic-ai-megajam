@@ -2,6 +2,7 @@
 // Run: .\Tools\td-test.ps1 -Filter TriadDrift.World.Field
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/World/TDWorldBarks.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -105,6 +106,32 @@ bool FTDFieldDeflects::RunTest(const FString&)
 	TestTrue(TEXT("one contact counted, not one per frame"), F->GetRepelCount() >= 1 && F->GetRepelCount() <= 2);
 	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(D);
 	TestTrue(TEXT("A1_FieldUnreachable on the first approach"), Story && Story->HasPlayed(TEXT("A1_FieldUnreachable")));
+	return true;
+}
+
+
+// ENG-43: dialogs.md Bark_FieldBlocked (Kato), when the flown ship is pushed back by the field; not for an AI ship.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFieldBark, "TriadDrift.World.Barks.FieldBlocked", TD_TEST_FLAGS)
+bool FTDFieldBark::RunTest(const FString&)
+{
+	FTDCombatBarks::ResetRequestCounts();
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.Phase = ETDGamePhase::Waves1to2;
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(600000.f, 0.f, 0.f));
+	W.Advance(D->ProgressPollSeconds + 0.2f);
+	ATDDistortionField* F = D->GetDistortionField();
+	if (!TestNotNull(TEXT("field"), F)) { return false; }
+	ATDShip* Ship = W.Spawn<ATDShip>(D->GetActorLocation() + FVector(-F->GetFieldRadius() * 0.8f, 0.f, 0.f));
+	W.Advance(0.1f);
+	TestEqual(TEXT("an AI ship pushed back: no bark"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::FieldBlocked), 0);
+	Ship->SetPlayerControlled(true);
+	Ship->SetActorLocation(D->GetActorLocation() + FVector(-F->GetFieldRadius() * 0.8f, 0.f, 0.f));
+	W.Advance(0.1f);
+	TestEqual(TEXT("the flown ship pushed back: Bark_FieldBlocked"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::FieldBlocked), 1);
+	Ship->SetActorLocation(D->GetActorLocation() + FVector(-F->GetFieldRadius() * 0.8f, 0.f, 0.f));
+	W.Advance(0.1f);
+	TestEqual(TEXT("not again within its cooldown"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::FieldBlocked), 1);
 	return true;
 }
 

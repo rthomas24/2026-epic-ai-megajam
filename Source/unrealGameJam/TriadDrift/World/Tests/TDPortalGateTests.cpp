@@ -1,6 +1,7 @@
 // Automation tests for portal gates (ENG-16). Run: .\Tools\td-test.ps1 -Filter TriadDrift.World.Gate
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/World/TDWorldBarks.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -215,6 +216,32 @@ bool FTDWorldGateArrivalGrace::RunTest(const FString& Parameters)
 			TestTrue(*FString::Printf(TEXT("@%.0f: after the grace a normal pass transits"), Fps), R.A->GetTransitCount() > Before);
 		}
 	}
+	return true;
+}
+
+
+// ENG-43: dialogs.md Bark_Gate_Enter, one transit in three of the flown ship (flavour).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGateBark, "TriadDrift.World.Barks.GateEnterOneInThree", TD_TEST_FLAGS)
+bool FTDGateBark::RunTest(const FString& Parameters)
+{
+	FTDCombatBarks::ResetRequestCounts();
+	FTDGateTestRig R;
+	ATDShip* Ship = R.W.Spawn<ATDShip>(FVector(-800.f, 300.f, 0.f), FRotator::ZeroRotator);
+	Ship->SetTeam(ETDTeam::Player);
+	Ship->SetPlayerControlled(true);
+	Ship->SetSpeedOverride(6000.f, 1.f);
+	int32 Transits = 0;
+	for (int32 i = 0; i < 30; ++i)
+	{
+		Ship->TeleportSpacecraft(FVector(-800.f, 300.f, 0.f), FRotator::ZeroRotator, false);
+		const int32 Before = R.A->GetTransitCount();
+		R.W.Advance(0.6f);
+		Transits += R.A->GetTransitCount() - Before;
+	}
+	const int32 Said = FTDCombatBarks::GetRequestCount(TDWorldBarkIds::GateEnter);
+	AddInfo(FString::Printf(TEXT("%d transits, %d barks"), Transits, Said));
+	TestTrue(TEXT("transits happened"), Transits >= 20);
+	TestTrue(*FString::Printf(TEXT("about one in three (%d of %d)"), Said, Transits), Said >= 2 && Said <= Transits * 2 / 3);
 	return true;
 }
 

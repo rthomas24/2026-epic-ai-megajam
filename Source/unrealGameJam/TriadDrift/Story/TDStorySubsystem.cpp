@@ -336,7 +336,7 @@ namespace TDStory
 				return Layer;
 			}
 			const FTDTransmissionView V = S->GetCurrentTransmission();
-			if (!V.bActive || V.Alpha <= 0.f)
+			if (!V.bActive || V.Alpha <= 0.f || !V.bShowSubtitle)
 			{
 				return Layer;
 			}
@@ -1147,9 +1147,10 @@ void UTDStorySubsystem::StartNext()
 	HandleLineOnAir(Current.Id);
 }
 
-bool UTDStorySubsystem::AreSubtitlesShown(const UObject* /*WorldContext*/)
+bool UTDStorySubsystem::AreSubtitlesShown(const UObject* WorldContext)
 {
-	return true; // ENG-45: T1's setting is on its way (AreSubtitlesOn); this is the one place that will read it
+	// ENG-45: T1's setting, the one place every story path reads it (transmissions, recordings, the opening's lines).
+	return UTDSettingsSubsystem::AreSubtitlesOn(WorldContext);
 }
 
 bool UTDStorySubsystem::HasStaticDelivery(FName Id)
@@ -1217,6 +1218,7 @@ void UTDStorySubsystem::Tick(float DeltaTime)
 		}
 	}
 	UpdateSequence();
+	Current.bShowSubtitle = AreSubtitlesShown(this); // live: the setting can change mid-line
 	if (!bCarryTaken && Now >= CarryResumeAt)
 	{
 		bCarryTaken = true; // the arrival has settled (descent, docking, retake): the carried radio resumes

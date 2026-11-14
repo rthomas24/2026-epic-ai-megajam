@@ -1,0 +1,67 @@
+{
+  "asset": "SM_Kit_MagmaBridge",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_bridge\\SM_Kit_MagmaBridge.fbx",
+  "tris": 4728,
+  "size_cm": [
+    2800.0,
+    370.0,
+    310.0
+  ],
+  "pivot": "root object origin (SM_Kit_MagmaBridge~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Kit_Trim"
+  ],
+  "material_params": [
+    {
+      "name": "M_Kit_Trim",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_Kit_MagmaBridge_00",
+    "UCX_SM_Kit_MagmaBridge_01",
+    "UCX_SM_Kit_MagmaBridge_02",
+    "UCX_SM_Kit_MagmaBridge_03",
+    "UCX_SM_Kit_MagmaBridge_04",
+    "UCX_SM_Kit_MagmaBridge_05",
+    "UCX_SM_Kit_MagmaBridge_06",
+    "UCX_SM_Kit_MagmaBridge_07",
+    "UCX_SM_Kit_MagmaBridge_08",
+    "UCX_SM_Kit_MagmaBridge_09",
+    "UCX_SM_Kit_MagmaBridge_10",
+    "UCX_SM_Kit_MagmaBridge_11",
+    "UCX_SM_Kit_MagmaBridge_12"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}

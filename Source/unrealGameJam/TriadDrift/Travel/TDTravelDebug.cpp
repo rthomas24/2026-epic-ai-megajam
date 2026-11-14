@@ -265,6 +265,22 @@ static FAutoConsoleCommandWithWorldAndArgs GTDTravelJumpFromCmd(TEXT("TD.Travel.
 		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.JumpFrom: no planet named %s"), *Want);
 #endif
 	}));
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelOpenPlanetCmd(TEXT("TD.Travel.OpenPlanet"),
+	TEXT("Captures: open a planet's atmosphere trigger without moving the ship (a natural approach): TD.Travel.OpenPlanet Verdance|Cinder"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+#if TD_TRAVELDEBUG_HAS_PLANETS
+		const FString Want = Args.Num() > 0 ? Args[0] : TEXT("Verdance");
+		for (TActorIterator<ATDPlanetAtmosphere> It(World); It; ++It)
+		{
+			if (!StaticEnum<ETDDestination>()->GetNameStringByValue((int64)It->GetDestination()).Equals(Want, ESearchCase::IgnoreCase)) { continue; }
+			It->SetOpen(true);
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.OpenPlanet: %s open"), *Want);
+			return;
+		}
+		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.OpenPlanet: no planet named %s"), *Want);
+#endif
+	}));
 static FAutoConsoleCommandWithWorldAndArgs GTDTravelToPlanetCmd(TEXT("TD.Travel.ToPlanet"),
 	TEXT("Put the player ship just outside a planet's atmosphere, nose in: TD.Travel.ToPlanet Verdance|Cinder"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDTravelDebug::ToPlanet));
