@@ -20,9 +20,11 @@ KIT = os.path.dirname(HERE)
 ROOT = "/Game/TriadDrift/Gameplay/Props/Huts"
 KT = "/Game/TriadDrift/Gameplay/Props/Kit/"
 eas, mel = unreal.EditorAssetLibrary, unreal.MaterialEditingLibrary
-PALETTE = {   # planet: (BaseTint, BandTint, GrimeAmount, SelfIllum)
-    "Verdance": ((0.95, 1.0, 1.0), (0.15, 0.85, 0.8), 0.3, 0.0),
-    "Cinder": ((0.32, 0.3, 0.29), (1.0, 0.55, 0.08), 0.6, 0.02),
+PALETTE = {   # planet: (BaseTint, BandTint, GrimeAmount, SelfIllum, GrimeRough)
+    # r3 (the Lead on the in-game look: flat black silhouettes at dusk): Verdance a clearly lighter off-white with a
+    # teal band that survives dusk, Cinder a mid warm grey with amber hazard; both a little self-lit so the panels read
+    "Verdance": ((1.35, 1.45, 1.42), (0.2, 0.95, 0.85), 0.2, 0.22, 0.35),   # r4: 0.04 still read black at dusk
+    "Cinder": ((0.95, 0.86, 0.76), (1.0, 0.55, 0.08), 0.3, 0.3, 0.35),     # r5: the rig and hopper still read black against the lava sky
 }
 
 
@@ -31,7 +33,7 @@ def log(m):
 
 
 def trim(planet):
-    base, band, grime, illum = PALETTE[planet]
+    base, band, grime, illum, grough = PALETTE[planet]
     mi = K.instance("MI_Hut_%s_Trim" % planet, eas.load_asset(KT + "Materials/M_KitD_Trim"))
     for p_, t in (("BaseColorTex", "T_Kit_Trim_BC"), ("ORMTex", "T_Kit_Trim_ORM"), ("NormalTex", "T_Kit_Trim_N")):
         mel.set_material_instance_texture_parameter_value(mi, p_, eas.load_asset(KT + "Textures/" + t))
@@ -39,6 +41,7 @@ def trim(planet):
     mel.set_material_instance_vector_parameter_value(mi, "BandTint", unreal.LinearColor(band[0], band[1], band[2], 1.0))
     mel.set_material_instance_scalar_parameter_value(mi, "GrimeAmount", grime)
     mel.set_material_instance_scalar_parameter_value(mi, "SelfIllum", illum)
+    mel.set_material_instance_scalar_parameter_value(mi, "GrimeRough", grough)
     eas.save_loaded_asset(mi)
     return mi
 

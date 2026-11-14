@@ -1,9 +1,9 @@
 {
   "asset": "SM_Hut_Cinder_PumpHouse",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_huts\\SM_Hut_Cinder_PumpHouse.fbx",
-  "tris": 1920,
+  "tris": 2664,
   "size_cm": [
-    326.0,
+    344.0,
     668.0,
     400.0
   ],
@@ -11,7 +11,8 @@
   "forward": "+X (authoring front +X rotated)",
   "materials": [
     "M_Kit_Trim",
-    "M_Kit_Glow"
+    "M_Kit_Glow",
+    "M_Kit_Light"
   ],
   "material_params": [
     {
@@ -43,6 +44,23 @@
         0.75
       ],
       "emission_strength": 6.0
+    },
+    {
+      "name": "M_Kit_Light",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.72,
+        0.42
+      ],
+      "emission_strength": 8.0
     }
   ],
   "textures": [],
