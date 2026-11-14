@@ -43,8 +43,11 @@ SHIPS = {
         spine=dict(x=(-0.92, 0.27), edges=[-0.92, -0.45, 0.0, 0.27], hcap=0.26, hdef=0.2, tdef=0.15),
         sides=dict(x=(-0.6, 1.6), z=(-0.78, 0.10), ymin=0.14, sigma_k=2.6, sigma_r=0.42, iters=40, max_move=0.03),
         # (x0, x1, |y| max, |y| min, z0, z1): leftover Rodin chrome under the canopy sill and beside the nose
-        repaint=[(0.95, 1.75, 0.42, 0.0, -0.42, 0.30), (1.40, 1.95, 0.36, 0.12, -0.48, -0.08)],
-        repaint_accent=True,
+        # v12: tested per texel (a straight end to the magenta side panel under the canopy, where whole faces left a
+        # torn sawtooth), the first box a little wider and deeper (a stray magenta sliver ahead of the panel), and a
+        # third box for the magenta shard between the panel and the canopy sill
+        repaint=[(0.95, 1.75, 0.46, 0.0, -0.50, 0.30), (1.40, 1.95, 0.36, 0.12, -0.48, -0.08), (0.60, 0.95, 0.46, 0.0, -0.10, 0.30)],
+        repaint_accent=True, repaint_texel=True, repaint_emissive=0,      # index of the box whose emissive texels go too
     ),
     "Lancer": dict(
         ship="Lancer", root=os.path.join(KIT, "LancerHero"), rodin=os.path.join(AI, "Lancer", "mesh_r1"),

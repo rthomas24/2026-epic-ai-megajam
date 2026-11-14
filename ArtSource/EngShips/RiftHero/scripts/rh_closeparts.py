@@ -445,8 +445,10 @@ def _nose_rift(mats, body, bvh):
         return (x, math.copysign(abs(c) ** (2 / n), c) * w, zc + math.copysign(abs(s) ** (2 / n), s) * hz)
     # panel lines as recessed pockets: a seam ring at two stations, the glowing nose slit on the top
     v_lo, v_hi = NOSE_X[0], tip
+    # v09: one long, narrow glowing slit along the top. v12 (review MINOR: "a hard white rectangle", "the nose lost its
+    # magenta accent"): the slit glows in the accent colour between dark walls, where it was white-hot
     pockets = [{"u0": PI / 2 - 0.10, "u1": PI / 2 + 0.10, "v0": 1.95, "v1": 2.24, "depth": 0.008, "eu": 0.025, "ev": 0.02,
-                "mat": HOT}]                                      # v09: one long, narrow glowing slit along the top
+                "mat": GLOW, "wall_mat": BLACK}]
     seams = ((1.72, 1.728), (1.90, 1.908), (2.20, 2.208))        # panel seams: clean dark bands
 
     def mat_fn(u, v):
@@ -664,16 +666,24 @@ REPAINT = [  # (x0, x1, |y| max, |y| min, z0, z1): leftover Rodin chrome under t
 ]
 
 
-def _paint_mask(body, shape, test):
-    """Texels (h, w) covered by the UV triangles of the body faces whose centre passes test(c)."""
+def _paint_mask(body, shape, test, boxes=None):
+    """Texels (h, w) covered by the UV triangles of the body faces whose centre passes test(c). With boxes
+    [(x0, x1, |y| max, |y| min, z0, z1)] the test is made per texel on its position on the surface instead (v12: by
+    whole faces the edge of a repainted area was a sawtooth of triangles)."""
     h, w = shape
     mask = np.zeros((h, w), bool)
     me = body.data
     uvl = me.uv_layers.active.data
     for poly in me.polygons:
         c = poly.center
-        if not test(c):
-            continue
+        if boxes is None:
+            if not test(c):
+                continue
+        else:
+            pv = [me.vertices[i].co for i in poly.vertices]
+            if not any(min(p.x for p in pv) < b[1] and max(p.x for p in pv) > b[0] and min(p.z for p in pv) < b[5]
+                       and max(p.z for p in pv) > b[4] and min(abs(p.y) for p in pv) < b[2] for b in boxes):
+                continue
         uv = [uvl[li].uv for li in poly.loop_indices]
         for k in range(1, len(uv) - 1):
             tri = np.array([[uv[0].x, uv[0].y], [uv[k].x, uv[k].y], [uv[k + 1].x, uv[k + 1].y]]) * [w, h]
@@ -690,6 +700,14 @@ def _paint_mask(body, shape, test):
             l1 = ((b[1] - cc[1]) * (gx - cc[0]) + (cc[0] - b[0]) * (gy - cc[1])) / d
             l2 = ((cc[1] - a[1]) * (gx - cc[0]) + (a[0] - cc[0]) * (gy - cc[1])) / d
             inside = (l1 >= -0.02) & (l2 >= -0.02) & (1 - l1 - l2 >= -0.02)
+            if boxes is not None:
+                p0, p1, p2 = pv[0], pv[k], pv[k + 1]
+                l3 = 1 - l1 - l2
+                px, py, pz = (l1 * p0[i] + l2 * p1[i] + l3 * p2[i] for i in range(3))
+                hit = np.zeros(inside.shape, bool)
+                for bx0, bx1, bymax, bymin, bz0, bz1 in boxes:
+                    hit |= (px > bx0) & (px < bx1) & (np.abs(py) >= bymin) & (np.abs(py) < bymax) & (pz > bz0) & (pz < bz1)
+                inside &= hit
             mask[y0:y1 + 1, x0:x1 + 1] |= inside
     return mask
 
@@ -731,7 +749,7 @@ def clean_livery(path, crack_px=6, smooth_px=10, body=None):
         # leftover chrome around the new canopy and nose: dark texels there become white paint (and non-metal below)
         def test(c):
             return any(x0 < c.x < x1 and ymin <= abs(c.y) < ymax and z0 < c.z < z1 for x0, x1, ymax, ymin, z0, z1 in K["repaint"])
-        region = _paint_mask(body, lum.shape, test)
+        region = _paint_mask(body, lum.shape, test, K["repaint"] if K.get("repaint_texel") else None)
         region = region[::-1] if False else region
         paint_white = np.median(a[white], axis=0) if white.any() else np.array([0.8, 0.8, 0.82])
         rp = region & ((lum < 0.30) | (magenta & K["repaint_accent"]))   # v09: the ragged magenta sill stripe goes white too
@@ -772,6 +790,14 @@ def clean_livery(path, crack_px=6, smooth_px=10, body=None):
         res["normal_paint_softened_frac"] = round(float(pm.mean()), 3)
     if body is not None:
         res["repainted_px"] = repaint_px
+        if K.get("repaint_emissive") is not None:               # v12: a stray glowing sliver ahead of the side panel
+            epath = path.replace("_BC.png", "_E.png")
+            eb = K["repaint"][K["repaint_emissive"]]
+            emask = _paint_mask(body, lum.shape, None, [eb])
+            e = T.load(epath)
+            res["emissive_cleared_px"] = int((emask & (e.max(-1) > 0.02)).sum())
+            e[emask] = 0.0
+            T.save(e, epath, True)
         opath = path.replace("_BC.png", "_ORM.png")
         if os.path.isfile(opath):
             im = bpy.data.images.load(opath, check_existing=False)
