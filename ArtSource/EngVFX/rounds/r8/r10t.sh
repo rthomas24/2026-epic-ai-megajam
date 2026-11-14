@@ -28,7 +28,7 @@ case $PART in
   $P sleep:1 cap:${T}_cloak_prev_a >/dev/null; python Saved/EngVFX/_side.py ${T}_cloak_prev_side; C off;;
  breakup)
   bash $G "('pie_start',)" >/dev/null; sleep 25
-  $P con:"TD.Stage ReactorExposed" sleep:14 con:"god" con:"TD.Director.ReactorKill" sleep:1 cap:${T}_breakup_1 sleep:1.5 cap:${T}_breakup_2 sleep:1.5 cap:${T}_breakup_3 sleep:1.5 cap:${T}_breakup_4 sleep:1.5 cap:${T}_breakup_5 sleep:1.5 cap:${T}_breakup_6 sleep:2 cap:${T}_breakup_7 sleep:3 cap:${T}_breakup_8 >/dev/null;;
+  $P con:"td.Finale.Boarding 0" con:"TD.Stage ReactorExposed" sleep:14 con:"god" con:"TD.Director.ReactorKill" sleep:1 cap:${T}_breakup_1 sleep:1.5 cap:${T}_breakup_2 sleep:1.5 cap:${T}_breakup_3 sleep:1.5 cap:${T}_breakup_4 sleep:1.5 cap:${T}_breakup_5 sleep:1.5 cap:${T}_breakup_6 sleep:2 cap:${T}_breakup_7 sleep:3 cap:${T}_breakup_8 >/dev/null;;
  dock)
   bash $G "('pie_start',)" >/dev/null; sleep 25
   $P con:"TD.Stage DominionDocking" sleep:14 con:"god" sleep:2 cap:${T}_dock_1 sleep:1.5 cap:${T}_dock_2 sleep:1.5 cap:${T}_dock_3 sleep:1.5 cap:${T}_dock_4 >/dev/null;;
