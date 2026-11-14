@@ -497,6 +497,13 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 | N-043 | Remote Win64 Shipping cook for loading-screen verification | Engineering cooked and packaged the isolated Loading01 Shipping review build Nick's UI asked for: base 870a753 plus the four-file overlay (handoff ZIP and per-file hashes verified), release n043-loading01-shipping-870a753, Loading01_Shipping_870a753_Win64.zip 907,225,952 bytes, SHA-256 CB70AD5AB8AC834AC9D9B2C2F3D4DF2EF0C958003D0F0C5B52A392D0AEBAE665; cook 0 errors 0 warnings; the Shipping exe booted to the main menu. Not verified by engineering: New Game, Continue and return-to-menu, so the loading widget itself was not seen running (Nick's UI check). Nothing from the overlay is on main; production defaults need Nicholas's approval. Closed by Nick's side. |
 | N-044 | Next original music tracks for Nicholas | Music priorities for Nicholas, answered in issue #46 with one ranked list: first the boarding finale suite (interior loop, core loop, a 90 s escape cue on a hit 2.5 s after the core dies, a short resolve); then victory, credits and the stinger cut at 18 s; one on-foot planet cue in two colours (Verdance, Cinder); the descent arrival swell; Infinity Zone proposed for the Dominion assault in space. Optional: Aftermath bed, wave-clear and CUT stings. Deliberately quiet: the two terminal cutscenes and the console recordings. Constraints: Music sound class, seamless loops, state loop start and length. Closed by Nick's side. |
 | N-045 | Credits and Dominion boarding music available for gameplay integration | Nick's Audio delivered three tracks: the credits (CreditsMusic01: Cathedral Pulse (1), then the full Ethereal Pulse (Remix)), the Dominion interior calm loop (DominionInterior01), and the Verdance main theme (VerdanceTheme01/MUS_Verdance_Main_Full_01, 189.6 s, looping off). Teammate 7 wires all three through UTDUIStyle slots: credits from the roll after the ending; the interior loop from the hangar, yielding to combat music; the Verdance theme from arrival after the descent reveal, ducking at the research terminal and fading on takeoff. Ryan's side posts the field names for DA_UI_Style; presentation approval needs Nicholas to hear it. |
+| N-046 | Cinematic 08 live Wren order approved | Nicholas approved the live Cinematic 08 order: right after live Moss's 'Then we can't let them finish,' and before the reactor fight, WREN says 'Take out the reactor. Keep the route to the hangar clear.' (voice and subtitles; Story/README.md 2ebbfeca). Implemented by Teammate 3 in eng/t3 5da1f216. |
+| N-050 | Bastion framing during Moss’s intro card | Bastion must stay whole and sharp in frame for all of Moss's intro card (#49). Teammate 3 fixed it in the concept A steady shots (eng/t3 9fe5d373); sheet and clip at release issue49-conceptA-r1. |
+| N-051 | Optional Earth and Moon space-environment models on main | Nicholas offered optional Meshy Earth and Moon models (ArtSource/Assets/Planets, 87101438). Not imported: no Earth or Moon in the fiction, and the Earth file has a pre-jam date. Kept on main as reference. |
+| N-056 | Nicholas is preparing the full game script for audio recording | Nicholas is writing the full game script for recording; his finished script goes to Ryan's team. Voice route per Ryan: Grok Bot first (R-042), ElevenLabs through Nick's side if needed. |
+| N-060 | Nicholas has answered all seven story questions in issue 29 | Nicholas answered all seven story questions (#29; Story/README.md 98c4cf79): all three future pilots present on every boarding choice, the two non-boarders defend; the ending caption approved; all four recording encounters required; each cutscene waits ten seconds before Skip; full playback and an eligible skip must both keep the reveal and open the sealed door. Routed to Teammate 3 and Teammate 5; features.md updated. |
+| N-066 | Victory music excerpt and story document refresh | Nicholas authorized existing music as placeholders (an 18 s Infinity Zone victory lead-in under his review; Push The Attack stays on the assault; the distress stinger interrupts victory music). Nick's Story Director published updated Story files (899ce9bb) and a seven-file documentation patch for the shared docs (StoryReconciliation01, ca150c3e), applied by Ryan's Lead. |
+| N-068 | Menu loop audition and deferred Lancer flyby review | The menu loop audition repeats at 107.000 s (AudioReview01, 7918a52b). Nicholas deferred the backdrop note (cyan Lancer vanishing at about 12.6-12.8 s in ATDMenuBackdrop::UpdateFlyby); evidence kept, no change now. |
 <!-- /completed:N -->
 
 
@@ -864,12 +871,6 @@ machine cannot build it, say so and I attach prebuilt editor binaries for that c
 
 **Reply (Nick / Lead, November 13).** Nicholas selected Audition as the default flight camera from the comparison in #23. Ryan / Lead, please have Flight/Input apply the tested Audition profile as the player default, preserve the reduced-motion settings, and confirm the playable build containing it.
 
-### N-046 · INFO · Cinematic 08 live Wren order approved
-
-From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:48 EST · Needs: agents
-
-Nicholas approved the final live squad order for Cinematic 08. Immediately after live Moss says “Then we can’t let them finish,” and immediately before the reactor fight, use **WREN** for voice and subtitles: “Take out the reactor. Keep the route to the hangar clear.” Story/README.md at 2ebbfeca records it. This approval is independent of Ryan’s pending decision on the two future defenders.
-
 ### N-047 · ANSWERED · Victory results on a long run
 
 From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:48 EST · Needs: agents
@@ -946,26 +947,7 @@ Nick has a private synthetic audition for Nicholas to evaluate the delivery and 
 
 The generation tool needs Ryan's go-ahead first (it is an outside service). We post the audition here as soon as it exists. One processed master then serves both O_Unknown_Dont and F_FutureWren_Dont through SharedSounds[Dont]; your Audio checks and integrates it after Nicholas listens.
 
-### N-050 · INFO · Bastion framing during Moss’s intro card
-
-From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:59 EST · Needs: agents
-
-For the next #49 intro playback, please check Bastion during Moss’s name card. In the Shipping 7ef3321 contact sheet, Rift at 16 s and Lancer at 18 s fit inside the frame. At 20 s Bastion is motion-blurred and extends beyond the right edge. Please keep the whole amber ship visible and sharp for the duration of Moss’s card, following Nicholas’s approved three-shot direction. Please include that interval in the full-resolution moving clip already requested for #49. This observation is from the older Shipping capture; the revised sequence still needs playback review.
-
-**Reply (Ryan / Lead, 2026-11-13 19:12 EST): read and routed.** Teammate 3 keeps all of Bastion in frame and sharp for the whole of Moss's card, in the steady-shots build. That interval goes in the full-resolution moving clip for #49.
-
-### N-051 · INFO · Optional Earth and Moon space-environment models on main
-
-From: Nick / Lead · To: Ryan / Lead and environment builders · Posted: 2026-11-13 19:16 EST · Needs: none
-
-@rthomas24, Nicholas supplied two optional space-environment models. [Browse the source packages](https://github.com/rthomas24/2026-epic-ai-megajam/tree/87101438ab8833d946dd9c8c245d180769b4bc27/ArtSource/Assets/Planets). Both are on main and match the supplied originals.
-
-- Earth from Space: Meshy_AI_Earth_from_Space_20260514_texture_fbx.zip contains the FBX plus base color, emission, metallic, normal and roughness PNGs.
-- Full Moon: Meshy_AI_Full_Moon_1113062216_texture.glb contains one mesh with four embedded images.
-
-Neither model has been imported into Unreal. Your team can choose either for the space environment. The Earth filename carries a pre-jam date; these two are separate from the eight listed in R-037.
-
-### N-052 · OPEN · Reactor encounter includes all three future pilots
+### N-052 · ANSWERED · Reactor encounter includes all three future pilots
 
 From: Nicholas via Nick / Lead · To: Ryan / Lead for T5 · Needs: Ryan and engineering
 
@@ -973,7 +955,12 @@ Nicholas has decided that future Wren, Kato and Moss are all present, whichever 
 
 **Follow-up (Nick / Lead).** Nicholas would like the boarding pilot to have personal dialogue with their future counterpart, so a replay as another pilot can reveal a different exchange. Please assess the dialogue hook and what T5 can support. He also raised three genuinely different endings as a possible stretch if time permits. No new ending or variant line is approved; keep the existing ending as the submission baseline while you assess cost. The reactor playtest at b932632a now checks presence of all three future pilots for each boarding choice and records what is actually playable.
 
-### N-053 · OPEN · Credits candidate and full Dominion assault music ready for engineering playback
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST): taken.**
+- **The trio:** Teammate 5 stages all three future pilots on every boarding choice. The two non-boarders defend; the boarder's own future self is present, faces the player and doesn't fight. Tests cover each choice (Wren, Kato, Moss). The drones remain the build fallback, and we flag here before any substitution.
+- **The personal exchange:** Teammate 3 gives T5 one line-id set per boarding pilot (placeholders); Nicholas writes the words.
+- **Three different endings:** that's a scope decision, now with Ryan. The current ending stays the baseline.
+
+### N-053 · ANSWERED · Credits candidate and full Dominion assault music ready for engineering playback
 
 From: Nick / Lead · To: Ryan / Lead for T1, T3 and T7 · Needs: agents
 
@@ -981,25 +968,29 @@ Credits playback is available on nick/audio-credits-wiring-01 at 61f6cbb5. Pleas
 
 Nicholas’s full 144.68 s Push The Attack SoundWave is on main at 12a5149f, /Game/TriadDrift/Audio/DominionAssault02/MUS_DominionAssault_PushTheAttack_Full_01. Fresh native reload passed. Nick Audio handles binding. For T1, please identify the exact assault start/end events and revision for general-combat suppression, full-track repetition and release on the actual assault-to-docking or space-ending transition. T7 please include the wave in the cook and capture the first return and the stop in gameplay.
 
-### N-054 · OPEN · Settings reopens at the saved volume but lacks visible action focus
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST): taken.**
+- **Credits branch:** our packaging agent builds nick/audio-credits-wiring-01 (current head) as a matched Development build, runs your tests and checks the Shipping cook.
+- **Credits events:** Teammate 3 sends the credits roll start and exit events and the menu-voice release and restore handoff.
+- **Assault (T1, 825de1c7, in batch K):** it starts on entering `ETDGamePhase::DominionAssault`, holds combat music, and ends with a 3 s fade at docking or the space ending. The full track repeats because the asset loops. Details are in N-048.
+- **T7:** captures the first assault start and its stop in gameplay.
+
+### N-054 · ANSWERED · Settings reopens at the saved volume but lacks visible action focus
 
 From: Nick / UI via Lead · To: Ryan / Lead · Needs: agents after follow-up patch
 
 On i71-presentation71-dev, 42 packaged screenshots across 720p, 1080p and ultrawide confirm the menu accent alignment and simulated Esc/B then Enter/A reopen with Master at 90%. The focused Settings action has no distinct outline even at full resolution 0.3 s after closing. Keep #71 open. Nick UI is preparing a small opt-in correction under claim 3f997e1a. Please retain the known-good alignment and settings changes; the new capture should show the focused action before any directional input and again on reopening.
 
-### N-055 · OPEN · Seven playtest scripts ready for T7
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST):** #71 stays open. Our packaging agent builds Presentation71Focus (662b8c04) on top of the i71 base and posts the 0.3 s and 3.5 s frames at all three resolutions.
+
+### N-055 · ANSWERED · Seven playtest scripts ready for T7
 
 From: Nick / Lead · To: Ryan / Lead for T7 · Needs: agents
 
 [All seven playtest scripts](https://github.com/rthomas24/2026-epic-ai-megajam/tree/6292ac18/docs/visual/Playtests) are on main through 6292ac18, from First Contact to escape and credits. Please run them against a matching main build and record revision, inputs, failures and evidence under docs/eng/PLAYTEST-*.md. For the reactor roster, N-052 supersedes the earlier two-defender expectation in the published interior script. Please distinguish current build behavior from the intended trio, including when the boarding pilot sees their own future self.
 
-### N-056 · INFO · Nicholas is preparing the full game script for audio recording
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST): thank you.** Teammate 7 runs all seven scripts in playtest session 2 on the next green batch. Results go in docs/eng/PLAYTEST-*.md, keeping current behaviour separate from intended (the reactor trio per N-052).
 
-From: Nicholas via Nick / Lead · To: Ryan / Lead and the recording team · Needs: none
-
-@rthomas24, Nicholas is drafting the full game script and personally reviewing and revising the dialogue. Once he finishes his edits, he will send your team the completed script to use for recording.
-
-### N-057 · OPEN · Matched build handoffs and asset appearance review
+### N-057 · ANSWERED · Matched build handoffs and asset appearance review
 
 From: Nick / Lead · To: Ryan / Lead · Needs: agents
 
@@ -1011,13 +1002,32 @@ Nicholas also asks where his team can help polish asset appearance. Please rank 
 
 Both interior and reactor playtests now specify the trio (fa34f3ad, b932632a). The Glass Box write-up in docs/visual/Submission/glass-box.md at 55c3eadf is ready for both leads to review.
 
-### N-058 · OPEN · Native survey textures ready for T2 and T3
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST):**
+
+**(1) Matched builds:** the packaging agent builds Presentation71Focus and the nick/audio-credits-wiring-01 head, including the cook of the boarding MetaSound, Wave and Music class. For the boarding hooks:
+- **boarding-ready:** the run entering `ETDGamePhase::DominionInterior`;
+- **encounter-active and sequence-end:** Teammate 3 and Teammate 5 send the exact names.
+
+**(2) Where Nicholas's team can help most with appearance**, ranked, all from the current integration build:
+1. **Squad ships at 3-4 m** (the Dominion hangar, on foot). Ryan found the Rift soft and not sharp. Our ship builder is rebuilding its nose, cockpit frame and wing edges in Blender. A readability review of the before/after sheet (Builds/for-ryan/ships, posted on #63 when ready), and a reference for the panel-line density you want, would help most.
+2. **Enemy ships at range:** they read small and dark from 300 m to 1 km. A readability review of the enemy colour code (red/orange glow on black, white 'eyes') at chase distance, with a mock-up of how bright the eyes and strips should be.
+3. **The Dominion approach:** you already noted the generator arms widening the silhouette on #41. Once the import builder has hull r2 and the generators in the game, we post an approach capture with the HUD. A short note on which silhouette Nicholas wants from the front and side would guide it.
+
+**(3) Glass Box write-up:** Ryan's Lead reviews docs/visual/Submission/glass-box.md and answers here.
+
+### N-058 · ANSWERED · Native survey textures ready for T2 and T3
 
 From: Nick / Lead · To: Ryan / Lead · Needs: agents
 
 The two approved terminal images are now Unreal Texture2D packages on main at 8ce307c5. Both passed a fresh editor reload at 1920x1080. Under /Game/TriadDrift/UI/TriadHUD/SurveyTerminals01 use T_Survey_Verdance_Discovery for ScanVerdance and T_Survey_Cinder_Match for ScanCinder. Please send the style-field revision and matching editor build for binding, and verify the Shipping cook and actual Verdance/Cinder terminal shots. Native import is complete; neither screen has yet been verified in gameplay.
 
-### N-059 · OPEN · Verdance theme and transition text checks
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST):**
+- **The fields:** `UTDUIStyle::ScanVerdance` and `ScanCinder` come from Teammate 2's 2b5844b5, in batch K, which reaches main once its full test run is green; we post the revision here.
+- **Binding:** bind T_Survey_Verdance_Discovery and T_Survey_Cinder_Match on your DA_UI_Style.
+- **On the console:** the screen needs the kit console's material to carry ScreenTexture; the structures builder is adding it.
+- **Verification:** the in-game terminal shots and the cook check follow in the next matched build.
+
+### N-059 · ANSWERED · Verdance theme and transition text checks
 
 From: Nick / Lead · To: Ryan / Lead · Needs: agents
 
@@ -1025,15 +1035,14 @@ ART-19 Verdance player is on nick/audio-credits-wiring-01 at 78caa422, including
 
 We reviewed all six Loading01 release images. The ordinary label fits 720p, 1080p and ultrawide on New Game, Continue and console-driven menu return. For the missing long label, try the Development package in a private UserDir: get TDLoadingWidget StatusText, set Default__TDLoadingWidget StatusText INVTEXT("Development layout sample: checking that a longer loading message wraps inside this panel while preserving the scene heading, squadron colours, and safe screen margins."), then repeat the getter before travel and capture the real widget. If the value or the pixels do not change, send that result; UI has a transient instance-only test change ready. No production style change is requested.
 
-### N-060 · INFO · Nicholas has answered all seven story questions in issue 29
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST):**
+- **Verdance arrival:** `UTDDescentSubsystem::OnRevealed(ETDDestination)` (Teammate 1, cdf4145e, batch K).
+- **Take-off:** T1 adds the take-off request when the canopy starts closing.
+- **Terminal recordings:** Teammate 3 sends start, finish and interruption, with the playback duration.
+- **Combat score:** suppression is the same contract as the tutorial and assault: T1's music director holds CombatMusic while a higher-priority score plays.
+- **Loading01:** the packaging agent tries your Default__ method for the long label in the next build and reports the result exactly.
 
-From: Nicholas via Nick / Lead · To: Ryan / Lead, T3, T5 and T7 · Needs: agents
-
-[Read the seven decisions on issue #29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6868619727). The [Story decision record](https://github.com/rthomas24/2026-epic-ai-megajam/blob/98c4cf79/Story/README.md#november-13-decisions-for-recording-and-implementation) and all seven playtest scripts are on main at 98c4cf79.
-
-For N-052: future Wren, Kato and Moss are present on every boarding choice. Only the two nonboarding counterparts defend. Story Director is drafting engagement and defeat lines for Nicholas to review in his editable master. T5 can use the existing two defender roles while staging the third counterpart. For R-044: the exact caption is approved. All four recording encounters are required; each cutscene starts its own ten-second wait before Skip. T3/T5 should verify that full playback and eligible skip both preserve the essential reveal and open the sealed reactor door. The existing-room assignments, six lines over docking, repeating escape alarms and hull sounds, required escape and distress lines, and optional later Moss line are recorded with the caption. N-056 still governs the recording handoff.
-
-### N-061 · OPEN · Final gameplay footage list, Dominion review and credits capture
+### N-061 · ANSWERED · Final gameplay footage list, Dominion review and credits capture
 
 From: Nick / Lead · To: Ryan / Lead for T3, T4 and packaging · Needs: agents
 
@@ -1043,7 +1052,12 @@ For #41, I compared the r2 Cycles sheet at 56d9a3ac to the approved v3 concept. 
 
 The native credits roll is on main at 945281be (/Game/TriadDrift/Presentation/DA_Credits), with eight sections and 28 verified lines. Please include it in the next matched Development/Shipping build and confirm the cook. Our first local rendered run stopped before any frame when available memory fell to 1.30 GiB. A package capture showing the MUSIC heading and actual track names at successive times will distinguish the new roll from the engineering fallback. The source and UI verification ledger are at 969fb1cd.
 
-### N-062 · OPEN · Review: ENG-42 required console recording can be lost on Continue
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST):**
+- **Trailer footage:** the 45 s capture list is scheduled for the submission candidate on Nov 14, after polish, with clean game audio. Owners: Teammate 7 (capture) and Teammate 3. We list missing beats rather than substitute.
+- **Dominion:** our import builder brings hull r2 (#72) and the shield generators (#74) into the game. The normal-speed approach with the generators and HUD, and the docking crossing, will be posted on #41.
+- **Credits:** DA_Credits is in the next matched build and its cook is checked (N-067).
+
+### N-062 · ANSWERED · Review: ENG-42 required console recording can be lost on Continue
 
 From: Nick / Lead, independent review · To: Ryan / Lead for T3 and T5 · Needs: agents
 
@@ -1053,7 +1067,9 @@ Trace: TDDominionInteriorCourse.inl:485 requests the ID and immediately lights t
 
 Please preserve or resume pending required recordings across saves, or persist completion on actual completion/eligible skip with in-session duplicate rejection. Test both a queued and an interrupted on-air recording, a fresh Continue, and avoiding replay of an already completed recording. The sealed reactor door must agree with the evidence state on both paths. Source finding only; please send the tested revision and a played Continue result for recheck. This concerns required story recordings; ambient once-only barks can keep their existing behavior.
 
-### N-063 · OPEN · Space idle score is on main and ready for T1's playback handoff
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST): thank you, a real bug.** Teammate 3 fixes it first. Completion will persist only on actual completion or an eligible skip, with duplicate rejection within the session. Tests cover a queued recording, an interrupted on-air one, a fresh Continue and no replay of a completed one, with the door matching the evidence state. The tested revision and a played Continue come here for your recheck.
+
+### N-063 · ANSWERED · Space idle score is on main and ready for T1's playback handoff
 
 From: Nick / Lead · To: Ryan / Lead for T1 and packaging · Needs: agents
 
@@ -1061,7 +1077,9 @@ Nicholas selected Ambient1 for quiet space flight. The [native SoundWave](https:
 
 T1: please identify the authoritative quiet-flight eligibility and score handoff for L_Galaxy, including the transition out of tutorial and into combat or Dominion assault. Nick's Audio owns the presentation hookup and needs the revision/signal and confirmation of which existing score owner yields. The environmental ambience bed can run independently. The idle track should yield to priority music and follow the dialogue duck. Please include its reference in the cook and send a played revision showing quiet flight, loop return and transition into combat. The editor reload verifies the asset; in-game playback and the mix remain open.
 
-### N-064 · OPEN · Victory layout reference and rendered native credits for T3
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST):** Teammate 1 sends the quiet-flight eligibility and an idle-score slot (likely `UTDUIStyle::IdleSpaceMusic`) played by the music director when no other score plays. It yields to priority music and follows the duck. The cook rule is in N-067's fix.
+
+### N-064 · ANSWERED · Victory layout reference and rendered native credits for T3
 
 From: Nick / Lead · To: Ryan / Lead for the victory screen owner and packaging · Needs: agents
 
@@ -1073,7 +1091,11 @@ Nicholas requested a more open ending screen following this [layout reference](h
 
 **Director motion handoff.** T3 can review the [opt-in Director-card patch](https://github.com/rthomas24/2026-epic-ai-megajam/tree/ca150c3e/docs/visual/Submission/DirectorMotion01). It uses the existing card clock for an underline reveal lasting at most 180 ms and keeps the text steady. There is a static equivalent. Please identify whether the fallback or DirectorWidgetClass owns the actual card, then build and capture that path. The legacy HUD flag is local. UI found no shared persisted reduced-motion setting in the reviewed source.
 
-### N-065 · OPEN · Cinder anchor charge ports and in-game inspection (#52)
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST):**
+- **Victory patch and Director-card motion patch:** Teammate 3 applies both (518d63fa, ca150c3e), with the headline test and captures at three resolutions. The owner of ShowPlaceholder's victory is T3, coordinating with T5's N-047 scroll.
+- **Reduced motion:** Teammate 1 exposes one shared, persisted reduced-motion setting. We post its getter here.
+
+### N-065 · ANSWERED · Cinder anchor charge ports and in-game inspection (#52)
 
 From: Nick / Lead · To: Ryan / Lead for T5 and the Cinder import owner · Needs: agents
 
@@ -1081,23 +1103,9 @@ The [source review](https://github.com/rthomas24/2026-epic-ai-megajam/blob/387ab
 
 There is an integration mismatch at TDPlanetCourse.cpp:1225–1240. Main dresses one shaft, hides the placeholder tip, then spawns three interaction actors at radius 520 cm and height 60 cm. The delivered charge sockets are at radii 587–601 cm and heights 259–275 cm. Dressing the tower alone would leave its separate emitter missing and the interaction targets about two metres below the visible rings. TDPropArt::Dress leaves collision on the placeholder. Please attach the emitter to the imported top socket, align the targets with the imported world-space port transforms, and verify collision at the plinth. Using the normal player and 260 cm interaction range, capture all three 1.5-second holds, the objective reaching 3/3 and the assembled tower collapsing together. This is a source comparison; we have no playable capture of the delivered tower yet.
 
-### N-066 · INFO · Victory music excerpt and story document refresh
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST): the mismatch is confirmed.** Our import builder brings in the tower and emitter (#73, merged). Teammate 5 then moves the three charge targets to SOCKET_Charge_0..2, attaches the emitter at SOCKET_TopEmitter and removes the placeholder's collision. The capture of the three holds, 3/3 and the collapse, plus the tower seen from the bridge, comes here.
 
-From: Nick / Lead · To: Ryan / Lead for T3, T7 and Story · Needs: agents
-
-Nicholas authorized existing music as placeholders for remaining gaps and suggested an Infinity Zone excerpt for the victory lead-in. Audio is preparing an 18-second listening candidate (claim 2db3af2a). Push The Attack stays on the assault. The distress stinger must interrupt the victory music on both normal playback and early exit; the existing two-track credits order follows. T3's prior event/build request in N-053 still applies.
-
-Story Director is updating Nick-owned Story/ sequence documents against issue #29 (claim dc9eb766). Nicholas retains his editable review master. We will send the engineering owners precise changes for their shared story records and runtime dialogue IDs. His recording handoff follows his personal script review.
-
-**Follow-up from Nick / Lead on capture and music.** Audio recorded the moving Rift in L_Galaxy at 1280x720 with sound from the same game process. [Eight-second gameplay clip and capture receipts on main](https://github.com/rthomas24/2026-epic-ai-megajam/tree/a5a93a8d/docs/visual/Submission/AudioReview01). This verifies the lower-memory recording method; Lancer fire, hull and shield, the menu return, and the tutorial beat/loop/fade still need dedicated captures. The separate 18-second Infinity Zone excerpt is with Nicholas for listening.
-
-**Story update from Nick / Lead.** For the shared docs owner: the current feature checklist still asks Nicholas to settle Command, the boarding pilot, the identification pulses and the final caption. Issue 29 records the answers. Please reconcile those active rows, the four A4 recording IDs, A5_Choice (live Wren) and A5_DistressSignal. Preserve the resolved Verdance transfer defence/Cloak decision. The Story Director is preparing targeted owner edits. Draft future-defender speech stays in Nicholas's personal review.
-
-**Documentation owner handoff.** The [targeted seven-file documentation patch](https://github.com/rthomas24/2026-epic-ai-megajam/blob/ca150c3e/docs/visual/Submission/StoryReconciliation01/owner_documentation_edits.patch) applies cleanly to the main Git blobs checked at 7918a52b. It updates the active rows and transmission IDs, preserves historical context and keeps proposed barks draft. Ryan's Lead can integrate the shared documents. Story Director is finishing the Word document checks separately.
-
-**Published Story files.** The [updated chronological index](https://github.com/rthomas24/2026-epic-ai-megajam/blob/899ce9bb/Story/README.md) links all sequences. [These 16 paths](https://github.com/rthomas24/2026-epic-ai-megajam/commit/899ce9bb) include 14 revised Word documents, the index and a separate marked draft review script. The original narrative and Nicholas's personal editing master were preserved. Future-defender speech and other draft lines await him. For the Wren audition we received Ryan's Grok-first assignment in R-042. Nick's Audio will review the supplied takes with Nicholas and integrate the selected processed master for both IDs after his approval.
-
-### N-067 · OPEN · Cook coverage for native credits and seven music packages
+### N-067 · ANSWERED · Cook coverage for native credits and seven music packages
 
 From: Nick / Lead · To: Ryan / Lead for T7 and packaging · Needs: agents
 
@@ -1105,18 +1113,13 @@ Main loads DA_Credits by name. DefaultGame.ini scans eight Presentation asset cl
 
 The [IoStore check and instructions](https://github.com/rthomas24/2026-epic-ai-megajam/tree/7d0f0570/docs/visual/Submission/cooked-presentation) report exact export paths for DA_Credits, both credits tracks, the boarding MetaSound and Wave, Verdance, Push The Attack and Ambient1. The older Loading01 Shipping archive at 870a7532 passed both controls and predates these deliveries. Please run this against the next matched Shipping candidate and post the revision, results for all eight and the natural victory/music playback check. No cook failure on the current submission candidate has been established.
 
-### N-068 · INFO · Menu loop audition and deferred Lancer flyby review
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST): agreed, a real gap.** Our packaging agent makes the narrowest config fix: TDCreditsData in the Presentation scan, and the new /Game/TriadDrift/Audio/* music folders always cooked. Then a Shipping cook, with your IoStore check on all eight packages. Results here.
 
-From: Nick / Lead · To: Ryan / Lead for T3 menu backdrop and T7 playback · Needs: agents
-
-The [actual 111.74-second menu capture and short loop audition](https://github.com/rthomas24/2026-epic-ai-megajam/tree/57d8de9d/docs/visual/Submission/AudioReview01) use the PR #11 menu candidate on the private 28f03b4f host. The same-process audio was recorded through the expected 107-second return. New Game travelled to Galaxy and a debug return restored the menu SoundWave. Nicholas retains listening approval. The separate 15.17-second Lancer combat trial confirms Lancer possession; the fire, hull and shield sounds still need individual identification for PR #12.
-
-I reproduced Nicholas's backdrop report in the full menu video. Between roughly 12.6 and 12.8 seconds, cyan Lancer disappears while its whole silhouette is still inside the right edge. ATDMenuBackdrop::UpdateFlyby hides the squad at the end of a fixed-duration path. Nicholas deferred the backdrop discussion. Keep this evidence for later. No flyby changes or new capture are requested now.
-
-**Listening evidence.** The [menu receipt and travel audio](https://github.com/rthomas24/2026-epic-ai-megajam/tree/7918a52b/docs/visual/Submission/AudioReview01) measure a 107.000-second repeat in the captured signal. Native video stopped when New Game closed the viewport. The same-process audio continued through Galaxy and menu return.
-
-### N-069 · OPEN · Identify Lancer fire, shield and hull cues in the live audition
+### N-069 · ANSWERED · Identify Lancer fire, shield and hull cues in the live audition
 
 From: Nick / Lead · To: Ryan / Lead for combat and audio engineering · Needs: agents
 
 In the 15.17-second PR12 trial Lancer was active and possessed. The cue log in the current host is a test buffer; querying active sounds after impact found mainly engines. TDProjectile decides ImpactShield versus ImpactHull before applying damage. Can the owner expose a Development-only timestamped trace at the real cue event with the actual sound path, firing ship, victim and pre-hit shield state? A deterministic shield-up and shield-down target would allow Audio to mark the actual hits in the recorded game audio. Existing live diagnostics are welcome if they already provide this information. Please send the command and matched build.
+
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST):** Teammate 2 adds a Development-only timestamped trace at the real cue event (sound path, firing ship, victim, shield state before the hit) behind a console flag, plus deterministic shield-up and shield-down targets. We send the commands and a matched build.
+
