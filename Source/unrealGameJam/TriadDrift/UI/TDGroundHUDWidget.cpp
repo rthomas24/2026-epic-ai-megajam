@@ -105,6 +105,7 @@ void UTDGroundHUDWidget::HandleDamaged(UTDHealthComponent* Health, const FTDDama
 	Hits.Insert(Hit, 0);
 	Hits.SetNum(FMath::Min(Hits.Num(), 6));
 	DamageFlash = 1.f;
+	UnderFireLeft = 1.5f;
 }
 
 void UTDGroundHUDWidget::HandleDeflect(AActor* Projectile, bool bPerfect)
@@ -134,7 +135,18 @@ void UTDGroundHUDWidget::Sample(float DeltaSeconds)
 	if (const ATDFirstPersonCharacter* Character = Cast<ATDFirstPersonCharacter>(Pawn))
 	{
 		View.DashMax = FMath::Max(1, Character->Tuning.DashCharges);
+		View.Blade = static_cast<uint8>(Character->GetBladeState());
 	}
+	// The pilot card (#160 on foot): who is on foot, the health number (rebuilt only when it changes), under fire.
+	View.Pilot = ATDFirstPersonCharacter::GetOnFootPilotShip(this);
+	const int32 HealthN = FMath::RoundToInt(FMath::Clamp(View.Health, 0.f, 1.f) * 100.f);
+	if (HealthN != HealthShown)
+	{
+		HealthShown = HealthN;
+		View.HealthText = FString::FromInt(HealthN);
+	}
+	UnderFireLeft = FMath::Max(0.f, UnderFireLeft - DeltaSeconds);
+	View.UnderFire01 = UnderFireLeft / 1.5f;
 	View.DashMax = FMath::Max(View.DashMax, View.Dash);
 
 	// Meters ease like the space HUD's (MeterResponse 9).
@@ -739,36 +751,153 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 		LastBoxes.Emplace(TEXT("prompt"), FBox2D(FVector2D(960 - W * .5f, 680), FVector2D(960 + W * .5f, 720)));
 	}
 
-	// Vitals: a slim chip bottom-left, like the flight HUD's squad chip: health (number and bar), block under it, dash pips.
+	// The pilot card, bottom-left: the flown card of the flight HUD carried to the ground (#160; Ryan: "see their health
+	// and power-ups"). Pilot name with ON FOOT in the pilot's colour, HUL (health) with its number, BLK (block stamina,
+	// the thin bar), the blade's state as a ring with a word, the dash charges as pips, and the same flag lane above.
+	// Only real values: there is no shield on foot. Below 900 real px the card is 85% and its text keeps its 1080 size.
 	const bool bLow = View.Health <= .25f;
 	{
-		const float X = 96.f, Y = 950.f, W = 270.f, H = 76.f;
-		P.Glass(X, Y, W, H, bLow ? Hostile : Accent, bLow);
-		FTDUIPainter Bars = P;
-		Bars.Layer = P.Layer + 2;
-		const FString HealthPct = FString::Printf(TEXT("%d"), FMath::RoundToInt(FMath::Clamp(View.Health, 0.f, 1.f) * 100.f));
-		Bars.HealthIcon(X + 22.f, Y + 22.f, bLow ? Hostile : Ink);
-		Bars.Text(X + 40.f, Y + 11.f, HealthPct, 18, bLow ? Hostile : Ink, true);
-		Bars.Box(X + 92.f, Y + 18.f, W - 112.f, 8.f, FLinearColor(.05f, .06f, .08f, .95f));
-		Bars.Box(X + 92.f, Y + 18.f, (W - 112.f) * FMath::Clamp(SmoothHealth, 0.f, 1.f), 8.f, bLow ? Hostile : Accent);
-		Bars.ShieldIcon(X + 22.f, Y + 46.f, Ink.CopyWithNewOpacity(.8f));
-		Bars.Box(X + 40.f, Y + 44.f, W - 150.f, 5.f, FLinearColor(.05f, .06f, .08f, .95f));
-		Bars.Box(X + 40.f, Y + 44.f, (W - 150.f) * FMath::Clamp(SmoothBlock, 0.f, 1.f), 5.f, View.Block < .2f ? Dim : Ink.CopyWithNewOpacity(.9f));
-		for (int32 I = 0; I < FMath::Min(View.DashMax, 6); ++I)
+		const float Real = P.Scale * FMath::Max(.01f, G.GetAccumulatedLayoutTransform().GetScale());
+		const bool bSmall = Real < 900.f / 1080.f;
+		const float K = bSmall ? .85f / Real : 1.f, F = bSmall ? 1.f / Real : 1.f;
+		auto Sz = [F](float Px) { return FMath::RoundToInt(Px * F); };
+		const float W = 320.f * K, H = 100.f * K, X = 96.f, Y = 1026.f - H;
+		const ETDShipId PilotShip = View.Pilot;
+		const FLinearColor Ship = PilotShip == ETDShipId::Rift ? FTDUIPalette::Rift() : PilotShip == ETDShipId::Lancer ? FTDUIPalette::Lancer() : FTDUIPalette::Bastion();
+		static const FString Pilots[3] = { TEXT("WREN"), TEXT("KATO"), TEXT("MOSS") };
+		static const FString OnFoot(TEXT("ON FOOT")), Hul(TEXT("HUL")), Blk(TEXT("BLK")), DashWord(TEXT("DASH"));
+		FTDUIPainter Top = P;
+		Top.Layer = P.Layer + 2;
+		auto Words = [&Top](float TX, float TY, const FString& S, int32 Size, FLinearColor C, const ANSICHAR* Face, float Align)
 		{
-			const float DX = X + W - 98.f + I * 26.f;
-			const bool bReady = I < View.Dash;
-			Bars.Box(DX, Y + 42.f, 20.f, 9.f, bReady ? Accent : FLinearColor(.05f, .06f, .08f, .95f));
-			if (!bReady)
+			const FSlateFontInfo Font = FTDUIPainter::MakeFont(Face, Size, Top.Scale, Face[0] == 'M' && Face[1] == 'o' ? 0 : 60);
+			float TW = 0.f;
+			if (Align > 0.f)
 			{
-				Bars.Frame(DX, Y + 42.f, 20.f, 9.f, Accent, .3f);
+				TW = Top.Measure(S, Font);
+				if (TW <= 0.f) { TW = S.Len() * Size * .62f; }
 			}
+			FSlateDrawElement::MakeText(Top.List, Top.Layer, Top.Geo({ TX - TW * Align, TY }, { 1, 1 }), S, Font, ESlateDrawEffect::None, Top.Faded(C));
+		};
+		// Plate, cut corner, border and top bar (red while low).
+		const float Cut = 14.f * K;
+		const FLinearColor Edge = bLow ? Hostile : Ship;
+		P.Box(X, Y, W, H, FTDUIPalette::Panel());
+		Top.Line({ X, Y }, { X + W - Cut, Y }, Edge, 1.5f);
+		Top.Line({ X + W - Cut, Y }, { X + W, Y + Cut }, Edge, 1.5f);
+		Top.Line({ X + W, Y + Cut }, { X + W, Y + H }, Edge, 1.5f);
+		Top.Line({ X + W, Y + H }, { X, Y + H }, Edge, 1.5f);
+		Top.Line({ X, Y + H }, { X, Y }, Edge, 1.5f);
+		Top.Box(X, Y - 2.f, W - Cut, 7.f, Edge.CopyWithNewOpacity(.22f));
+		Top.Box(X, Y, W - Cut, 3.f, Edge);
+		const float Pad = 12.f * K;
+		// Names.
+		Words(X + Pad, Y + 8.f * K, Pilots[FMath::Clamp(static_cast<int32>(PilotShip), 0, 2)], Sz(19), Ink, "Bold", 0.f);
+		Words(X + Pad, Y + 8.f * K + Sz(19) * 1.3f, OnFoot, Sz(12), Ship.CopyWithNewOpacity(.9f), "Bold", 0.f);
+		// Bars: ten segments each; the hull keeps its number.
+		const float TagW = Sz(11) * 3.2f, NumW = Sz(14) * 3.f;
+		const float BarX = X + Pad + TagW, BarRight = X + W - 78.f * K - NumW, BarW = FMath::Max(20.f, BarRight - BarX);
+		const float HuH = 12.f * K, BlH = 6.f * K, HuY = Y + H - Pad - HuH, BlY = HuY - 12.f * K - BlH;
+		const FLinearColor HullC = bLow ? Hostile : FTDFlightHUDTokens::Hull(View.Health);
+		auto Segments = [&Top, BarX, BarW](float SY, float SH, float Value, FLinearColor C)
+		{
+			const float Gap = 2.f, SegW = (BarW - Gap * 9.f) / 10.f;
+			for (int32 I = 0; I < 10; ++I)
+			{
+				const float SX = BarX + I * (SegW + Gap);
+				const float Fill = FMath::Clamp(Value * 10.f - I, 0.f, 1.f);
+				Top.Box(SX, SY, SegW, SH, FTDUIPalette::Muted().CopyWithNewOpacity(.22f));
+				if (Fill > 0.f) { Top.Box(SX, SY, SegW * Fill, SH, C); }
+			}
+		};
+		Words(X + Pad, BlY + BlH * .5f - Sz(11) * .68f, Blk, Sz(11), Dim, "Medium", 0.f);
+		Words(X + Pad, HuY + HuH * .5f - Sz(11) * .68f, Hul, Sz(11), Dim, "Medium", 0.f);
+		Segments(BlY, BlH, SmoothBlock, View.Block < .2f ? Dim : FTDFlightHUDTokens::Shield());
+		Segments(HuY, HuH, SmoothHealth, HullC);
+		Words(BarRight + NumW, HuY + HuH * .5f - Sz(14) * .68f, View.HealthText, Sz(14), HullC, "Mono", 1.f);
+		// The blade: a ring with the blade's line; READY = open ring, a strike = filled, BLOCK = a bar across, BROKEN = a
+		// dashed red ring with a cross. The word under it says the same.
+		{
+			const FVector2D At(X + W - 42.f * K, Y + 30.f * K);
+			const float R = 16.f * K;
+			const ETDBladeState BladeState = static_cast<ETDBladeState>(View.Blade);
+			static const FString Ready(TEXT("BLADE")), Strike(TEXT("STRIKE")), Block(TEXT("BLOCK")), Broken(TEXT("BROKEN"));
+			const FString* Word = &Ready;
+			FLinearColor C = Ship;
+			if (BladeState == ETDBladeState::GuardBroken)
+			{
+				C = Hostile;
+				Word = &Broken;
+				for (int32 I = 0; I < 8; ++I)
+				{
+					const float A0 = I * PI * .25f;
+					Top.Line(At + FVector2D(FMath::Cos(A0), FMath::Sin(A0)) * R, At + FVector2D(FMath::Cos(A0 + .35f), FMath::Sin(A0 + .35f)) * R, C, 2.f);
+				}
+				Top.Line(At + FVector2D(-R, -R) * .45f, At + FVector2D(R, R) * .45f, C, 2.5f);
+				Top.Line(At + FVector2D(-R, R) * .45f, At + FVector2D(R, -R) * .45f, C, 2.5f);
+			}
+			else
+			{
+				const bool bBlock = BladeState == ETDBladeState::Blocking;
+				const bool bStrike = !bBlock && BladeState != ETDBladeState::Idle;
+				Word = bBlock ? &Block : bStrike ? &Strike : &Ready;
+				Top.Arc(At, R, 1.f, C, bStrike ? 4.f : 2.5f);
+				// The blade itself: a diagonal line with a short hilt; held flat across the ring while blocking.
+				const FVector2D D = bBlock ? FVector2D(1, 0) : FVector2D(.6f, -.8f);
+				Top.Line(At - D * R * .7f, At + D * R * .7f, bStrike ? Ink : C, bStrike ? 4.f : 2.5f);
+				const FVector2D N(-D.Y, D.X);
+				Top.Line(At - D * R * .35f - N * R * .25f, At - D * R * .35f + N * R * .25f, C, 2.f);
+			}
+			Words(At.X, At.Y + R + 3.f * K, *Word, Sz(10), C, "Bold", .5f);
+		}
+		// Dash charges: a pip each (filled = ready, outline = spent), with the word.
+		{
+			const float PipW = 16.f * K, PipH = 8.f * K, DY = Y + H - Pad - PipH;
+			const int32 N = FMath::Min(View.DashMax, 4);
+			const float DX0 = X + W - Pad - N * (PipW + 4.f * K) + 4.f * K;
+			for (int32 I = 0; I < N; ++I)
+			{
+				const float DX = DX0 + I * (PipW + 4.f * K);
+				if (I < View.Dash)
+				{
+					Top.Box(DX, DY, PipW, PipH, Ship);
+				}
+				else
+				{
+					Top.Box(DX, DY, PipW, PipH, FTDUIPalette::Muted().CopyWithNewOpacity(.22f));
+					Top.Line({ DX, DY }, { DX + PipW, DY }, Ship.CopyWithNewOpacity(.5f), 1.f);
+					Top.Line({ DX, DY + PipH }, { DX + PipW, DY + PipH }, Ship.CopyWithNewOpacity(.5f), 1.f);
+				}
+			}
+			Words(DX0 + N * (PipW + 4.f * K) - 4.f * K, DY - Sz(10) * 1.5f, DashWord, Sz(10), Dim, "Medium", 1.f);
+		}
+		// Flag lane above the card: UNDER FIRE (a hit in the last 1.5 s) and LOW HEALTH, icon + word.
+		{
+			static const FString UnderFire(TEXT("UNDER FIRE")), Low(TEXT("LOW HEALTH"));
+			const float TagH = 20.f * K, TagY = Y - TagH - 6.f * K;
+			float TagX = X;
+			auto Flag = [&](const FString& Word)
+			{
+				const int32 Px = Sz(11);
+				float TextW = Top.Measure(Word, FTDUIPainter::MakeFont("Bold", Px, Top.Scale, 60));
+				if (TextW <= 0.f) { TextW = Word.Len() * Px * .72f; }
+				const float TW = TextW + 30.f * K + 8.f;
+				P.Box(TagX, TagY, TW, TagH, FMath::Lerp(FTDUIPalette::Panel(), Hostile, .28f).CopyWithNewOpacity(.92f));
+				Top.Line({ TagX, TagY }, { TagX + TW, TagY }, Hostile, 1.2f);
+				Top.Line({ TagX, TagY + TagH }, { TagX + TW, TagY + TagH }, Hostile, 1.2f);
+				const FVector2D I(TagX + 13.f * K, TagY + TagH * .5f);
+				Top.Line(I + FVector2D(0, -6) * K, I + FVector2D(6, 5) * K, Hostile, 1.6f);
+				Top.Line(I + FVector2D(6, 5) * K, I + FVector2D(-6, 5) * K, Hostile, 1.6f);
+				Top.Line(I + FVector2D(-6, 5) * K, I + FVector2D(0, -6) * K, Hostile, 1.6f);
+				Words(TagX + 26.f * K, TagY + TagH * .5f - Px * .68f, Word, Px, Hostile, "Bold", 0.f);
+				TagX += TW + 6.f * K;
+			};
+			if (View.UnderFire01 > 0.f) { Flag(UnderFire); }
+			if (bLow) { Flag(Low); }
 		}
 		LastBoxes.Emplace(TEXT("vitals"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
 	}
-	if (bLow)
-	{
-		P.CenteredText(960, 714, TEXT("LOW HEALTH  /  BLOCK AND FALL BACK"), 17, Hostile, true);
-	}
+	// (The centre "LOW HEALTH / BLOCK AND FALL BACK" line is gone: it sat across the pilot's legs in the chase view, and
+	// the card's LOW HEALTH tab and red hull bar say it.)
 	return Base + 3;
 }

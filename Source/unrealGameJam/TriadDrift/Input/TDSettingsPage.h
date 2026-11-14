@@ -24,6 +24,7 @@ enum class ETDSettingsRow : uint8
 	GamepadDeadzone,
 	InvertGamepadY,
 	Hints,
+	MinimalHUD, // #160
 	Difficulty,
 	CameraShake,
 	SpeedFOV,
@@ -111,5 +112,5 @@ public:
 	void SetPageHeightForTests(float H) { PageHeight = H; }
 	/** Tests: is the row's widget inside the scrolling list (false for Back, which is always shown). */
 	bool IsRowInScrollList(ETDSettingsRow Row) const;
-	static constexpr float FixedPartsHeight = 250.f;
+	static constexpr float FixedPartsHeight = 290.f; // title, Back, the selected row's hint (up to three lines) and the help line
 };

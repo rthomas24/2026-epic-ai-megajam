@@ -14,6 +14,8 @@
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
+#include "TriadDrift/Travel/TDPlanetTravelRig.h"
+#include "TriadDrift/Travel/TDLandingPad.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Flight/Tests/TDFlightTestHelpers.h"
 #include "Misc/ScopeExit.h"
@@ -271,6 +273,111 @@ bool FTDMusicBridgeReveal::RunTest(const FString& Parameters)
 	Story->OnSequenceFinished.Broadcast(TEXT("Cinematic08"), true);
 	const auto* S = L->Last(UTDMusicEventBridge::RevealEnded);
 	TestTrue(TEXT("skipped: RevealEnded(false)"), S && !S->bFlag);
+	return true;
+}
+
+// #138 (Nick's side's source review; compile-only by the Lead's rule): three focused cases for fca00389.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMusicBridgeOtherInstance, "TriadDrift.Core.MusicBridge.AnotherGameInstancesBackdropIsRejectedFirst", TD_TEST_FLAGS)
+bool FTDMusicBridgeOtherInstance::RunTest(const FString& Parameters)
+{
+	FTDTestWorld Mine(UTDGameInstance::StaticClass());
+	FTDTestWorld Other(UTDGameInstance::StaticClass());
+	UTDMusicEventBridge* B = UTDMusicEventBridge::GetMusicEventBridge(Mine.GetWorld());
+	if (!TestNotNull(TEXT("bridge"), B)) { return false; }
+	UTDMusicBridgeTestListener* L = NewObject<UTDMusicBridgeTestListener>();
+	L->AddToRoot();
+	ON_SCOPE_EXIT { L->RemoveFromRoot(); };
+	B->OnMusicEvent.AddDynamic(L, &UTDMusicBridgeTestListener::Handle);
+	ATDMenuBackdrop* Theirs = Other.Spawn<ATDMenuBackdrop>();
+	ATDMenuBackdrop* Ours = Mine.Spawn<ATDMenuBackdrop>();
+	if (!TestNotNull(TEXT("their backdrop"), Theirs) || !TestNotNull(TEXT("our backdrop"), Ours)) { return false; }
+	L->Events.Reset();
+	ATDMenuBackdrop::OnVictoryBegan.Broadcast(Theirs);
+	ATDMenuBackdrop::OnStinger.Broadcast(Theirs);
+	const FTDMusicBridgeState After = B->GetMusicState();
+	TestFalse(TEXT("another instance's victory: our snapshot is untouched"), After.bVictory || After.bVictoryStingerPlayed || After.bVictoryStingerDone);
+	TestNull(TEXT("... and nothing was forwarded"), L->Last(UTDMusicEventBridge::VictoryBegan));
+	TestNull(TEXT("... nor the stinger"), L->Last(UTDMusicEventBridge::VictoryStinger));
+	ATDMenuBackdrop::OnVictoryEnded.Broadcast(Theirs);
+	TestNull(TEXT("... nor its end"), L->Last(UTDMusicEventBridge::VictoryEnded));
+	// The control: our own backdrop.
+	ATDMenuBackdrop::OnVictoryBegan.Broadcast(Ours);
+	TestTrue(TEXT("our own backdrop: forwarded, in victory"), L->Last(UTDMusicEventBridge::VictoryBegan) != nullptr && B->GetMusicState().bVictory);
+	ATDMenuBackdrop::OnVictoryEnded.Broadcast(Ours);
+	TestFalse(TEXT("... and out again"), B->GetMusicState().bVictory);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMusicBridgeAfterDeinit, "TriadDrift.Core.MusicBridge.NoCallbacksAfterDeinitialize", TD_TEST_FLAGS)
+bool FTDMusicBridgeAfterDeinit::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UWorld* World = W.GetWorld();
+	UTDMusicEventBridge* B = UTDMusicEventBridge::GetMusicEventBridge(World);
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(World);
+	if (!TestNotNull(TEXT("bridge"), B) || !TestNotNull(TEXT("story"), Story)) { return false; }
+	UTDMusicBridgeTestListener* L = NewObject<UTDMusicBridgeTestListener>();
+	L->AddToRoot();
+	ON_SCOPE_EXIT { L->RemoveFromRoot(); };
+	B->OnMusicEvent.AddDynamic(L, &UTDMusicBridgeTestListener::Handle);
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 2000.f));
+	APlayerController* PC = W.SpawnLocalPlayerController(Ship);
+	if (!TestNotNull(TEXT("ship"), Ship) || !TestNotNull(TEXT("pc"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	B->Tick(0.016f); // binds the story and the flown ship's landing
+	B->Deinitialize();
+	L->Events.Reset();
+	FTDTransmissionView View;
+	View.bActive = true;
+	View.Id = TEXT("TX_AfterDeinit");
+	Story->OnTransmission.Broadcast(View);
+	Story->OnTransmissionEnded.Broadcast(View.Id, true);
+	Story->OnSequenceFinished.Broadcast(TEXT("Cinematic08"), false);
+	UTDLandingComponent* Land = Ship->GetLanding();
+	Land->OnLandingStateChanged.Broadcast(Land, ETDLandingState::Ascending);
+	if (UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance())) { GI->SetPhase(ETDGamePhase::Wave5); }
+	ATDMenuBackdrop::OnVictoryBegan.Broadcast(nullptr);
+	if (UTDDescentSubsystem* D = UTDDescentSubsystem::Get(World)) { D->OnRevealed.Broadcast(ETDDestination::Cinder); }
+	TestEqual(TEXT("after Deinitialize: no story, landing, phase, victory or reveal callback arrives"), L->Events.Num(), 0);
+	TestFalse(TEXT("... and the snapshot did not move"), B->GetMusicState().bTransmissionActive || B->GetMusicState().bVictory || B->GetMusicState().bPlanetRevealed);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMusicBridgeLateBind, "TriadDrift.Core.MusicBridge.LateBindSeedsTheLineOnAirAndTheParkedShip", TD_TEST_FLAGS)
+bool FTDMusicBridgeLateBind::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UWorld* World = W.GetWorld();
+	UTDMusicEventBridge* B = UTDMusicEventBridge::GetMusicEventBridge(World);
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(World);
+	if (!TestNotNull(TEXT("bridge"), B) || !TestNotNull(TEXT("story"), Story)) { return false; }
+	UTDMusicBridgeTestListener* L = NewObject<UTDMusicBridgeTestListener>();
+	L->AddToRoot();
+	ON_SCOPE_EXIT { L->RemoveFromRoot(); };
+	B->OnMusicEvent.AddDynamic(L, &UTDMusicBridgeTestListener::Handle);
+	// Before the bridge's first tick (the test world does not tick game-instance tickables): a line goes on air ...
+	UTDStorySubsystem::PlaySequence(World, TEXT("HangarArrival"));
+	for (int32 i = 0; i < 120 && !Story->GetCurrentTransmission().bActive; ++i) { W.Tick(1.f / 30.f); }
+	const FTDTransmissionView OnAir = Story->GetCurrentTransmission();
+	// ... and the flown ship is already parked on a pad.
+	ATDPlanetTravelRig* Rig = ATDPlanetTravelRig::SpawnForPlanet(World, TEXT("Verdance"), FTransform(FVector(0.f, 0.f, 200.f)), { TEXT("Obj_Test") });
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 3000.f));
+	APlayerController* PC = W.SpawnLocalPlayerController(Ship);
+	if (!TestNotNull(TEXT("rig"), Rig) || !TestNotNull(TEXT("ship"), Ship) || !TestNotNull(TEXT("pc"), PC)) { return false; }
+	Ship->SetPlayerControlled(true);
+	const bool bParked = Rig->GetPlayerPad() && Ship->GetLanding()->SnapLanded(Rig->GetPlayerPad());
+	L->Events.Reset();
+	B->Tick(0.016f); // the late bind
+	const FTDMusicBridgeState S = B->GetMusicState();
+	if (OnAir.bActive)
+	{
+		TestTrue(TEXT("a line already on air at bind: the snapshot has it"), S.bTransmissionActive && S.Transmission == OnAir.Id);
+	}
+	else { AddInfo(TEXT("no line went on air in this world: the transmission half is not exercised")); }
+	if (bParked) { TestTrue(TEXT("a ship already landed at bind: the snapshot is parked"), S.bLanded); }
+	else { AddInfo(TEXT("the ship could not be parked in this world: the parked half is not exercised")); }
+	TestNull(TEXT("no catch-up TransmissionStarted"), L->Last(UTDMusicEventBridge::TransmissionStarted));
+	TestNull(TEXT("no catch-up Takeoff"), L->Last(UTDMusicEventBridge::Takeoff));
 	return true;
 }
 

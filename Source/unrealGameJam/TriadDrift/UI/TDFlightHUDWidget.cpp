@@ -960,6 +960,8 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		const ATDDockingBay* Bay = Cast<ATDDockingBay>(DockingBay.Get());
 		const ETDDockingState State = Bay ? Bay->GetDockingState() : ETDDockingState::Closed;
 		View.TractorPull01 = Bay ? FMath::Clamp(Bay->GetCurrentPull(), 0.f, 1.f) : 0.f;
+		const ATDDominion* HoldDom = ATDDominion::Get(this);
+		View.bReactorHold = HoldDom && HoldDom->IsReactorHoldActive();
 		View.Docking = State == ETDDockingState::Gliding || State == ETDDockingState::Docked ? 2 : (State == ETDDockingState::Open && View.TractorPull01 > .01f ? 1 : 0);
 	}
 
@@ -1416,7 +1418,31 @@ static TAutoConsoleVariable<float> CVarTDUISubtitleScale(
 
 void UTDFlightHUDWidget::UpdateSquadCards(float Dt)
 {
-	View.bSquadPanel = CVarTDUIMinimalHUD.GetValueOnGameThread() == 0;
+	// Minimal HUD: the player's setting (T1's UTDSettingsSubsystem::IsMinimalHUD, read by name once a second: off until
+	// it exists), or the dev override TD.UI.MinimalHUD 1.
+	MinimalReadLeft -= Dt;
+	if (MinimalReadLeft <= 0.f)
+	{
+		MinimalReadLeft = 1.f;
+		bMinimalSetting = false;
+		static UClass* Settings = FindObject<UClass>(nullptr, TEXT("/Script/unrealGameJam.TDSettingsSubsystem"));
+		UFunction* F = Settings ? Settings->FindFunctionByName(TEXT("IsMinimalHUD")) : nullptr;
+		if (F && F->ParmsSize > 0)
+		{
+			uint8* Buf = static_cast<uint8*>(FMemory_Alloca(F->ParmsSize));
+			FMemory::Memzero(Buf, F->ParmsSize);
+			if (const FObjectPropertyBase* Ctx = CastField<FObjectPropertyBase>(F->PropertyLink); Ctx && !Ctx->HasAnyPropertyFlags(CPF_ReturnParm))
+			{
+				Ctx->SetObjectPropertyValue_InContainer(Buf, this);
+			}
+			Settings->GetDefaultObject()->ProcessEvent(F, Buf);
+			if (const FBoolProperty* Ret = CastField<FBoolProperty>(F->GetReturnProperty()))
+			{
+				bMinimalSetting = Ret->GetPropertyValue_InContainer(Buf);
+			}
+		}
+	}
+	View.bSquadPanel = CVarTDUIMinimalHUD.GetValueOnGameThread() == 0 && !bMinimalSetting;
 	const float ForcedScale = CVarTDUISubtitleScale.GetValueOnGameThread();
 	View.SubtitleScale = FMath::Clamp(ForcedScale > 0.f ? ForcedScale : UTDSettingsSubsystem::GetSubtitleScale(this), .5f, 2.f);
 	// Below 900 px of height the design frame would shrink the text under its 1080 size: the cards go to 85% and the
@@ -2414,6 +2440,16 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Box(X + 20.f, Y + 32.f, (W - 40.f) * View.TractorPull01, 4.f, T::Shield());
 		}
 		Rec(bGlide ? TEXT("docking_locked") : TEXT("tractor"), X, Y, W, H);
+	}
+	// ---- the reactor hold (T4's ATDDominion::IsReactorHoldActive: the ship is slowed in front of the exposed core):
+	// one calm amber line in the same place and style as the tractor plate.
+	if (View.bReactorHold && View.Docking == 0)
+	{
+		static const FString Hold(TEXT("REACTOR IN RANGE  ·  HOLD FIRE ON THE CORE"));
+		const float W = 520.f, H = 34.f, X = CenterX - W * .5f, Y = C.Y - 170.f;
+		P.Plate(X, Y, W, H, 12.f, T::Plate().CopyWithNewOpacity(.8f));
+		P.Words(CenterX, Y + 8.f, Hold, 15, T::Warning(), "Bold", .5f, 120);
+		Rec(TEXT("reactor_hold"), X, Y, W, H);
 	}
 	if (View.OrbitCue01 > 0.f)
 	{
