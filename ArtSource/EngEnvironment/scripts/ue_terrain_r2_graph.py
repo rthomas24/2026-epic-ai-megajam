@@ -370,6 +370,8 @@ def build_graph(b, t, means):
     sdist = un(E.MaterialExpressionSquareRoot, dot(sv, sv))
     shalf = mul(lerp(S("ScarHalfA"), S("ScarHalfB"), st), add(0.75, mul(add(mul(c(nS, "R"), 0.4), mul(c(nM, "G"), 0.6)), 0.5)))
     scar_w = mul(sat(div(sub(shalf, sdist), mul(shalf, 0.35))), mul(ramp(st, 0.0, 0.03), inv(ramp(st, 0.97, 0.03))))
+    # s10: only on the ground, never up a wall (on the basin wall behind the research site it stood up as a glowing pillar)
+    scar_w = mul(scar_w, inv(ramp(sj, 0.12, 0.08)))
     base = lerp(base, mul(b.const3(0.014, 0.011, 0.009), add(0.6, mul(c(nS, "B"), 0.8))), mul(scar_w, 0.92))
     rough = lerp(lerp(S("FlatRoughness"), S("PatchRoughness"), patch_w), S("LowRoughness"), low_w)
     rough = lerp(rough, S("WetRoughness"), mul(wet, c(nS, "R")))

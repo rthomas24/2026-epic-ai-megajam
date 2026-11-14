@@ -526,6 +526,7 @@ void FTDScatterPlan::Generate(const FTDTerrainField& Field, FTDScatterResult& Ou
 			const FVector2D P = ScarA + Dir * T + Side * ((TDScatter_Hash01(977, i, 0, 3) - 0.5f) * Half);
 			if (IsKeptOut(Field, P.X, P.Y) || !IsCourseClear(P.X, P.Y, K.ClearRadiusCm)) { continue; }
 			const FTDTerrainSample Sm = Field.Sample(P.X, P.Y, 800.f);
+			if (Sm.Slope > 0.12f) { continue; }	// a flat decal on a wall stands up as a pillar
 			const float Sc = FMath::Lerp(K.MinScale, K.MaxScale, TDScatter_Hash01(977, i, 0, 4)) * FMath::Lerp(0.8f, 1.4f, A);
 			const FVector Fwd = FVector(FVector2D(Dir.X, Dir.Y).GetRotated((TDScatter_Hash01(977, i, 0, 5) - 0.5f) * 30.f), 0.f);
 			const FRotator Rot = FRotationMatrix::MakeFromZX(Sm.Normal, Fwd).Rotator();
