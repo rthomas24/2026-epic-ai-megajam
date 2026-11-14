@@ -1247,11 +1247,12 @@ void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDama
 			}
 			const bool bFromBehind = !Info.HitDirection.IsNearlyZero() && FVector::DotProduct(-Info.HitDirection.GetSafeNormal2D(), GetActorForwardVector()) < 0.f;
 			bool bOwn = false;
-			// A hit of the heavy blade's weight that it survives: the heavy hit react (the animation builder's
+			// A hit of 60% or more of its max hull that it survives (the blade's heavy kills a Grunt or Trooper outright), or its
+			// own bolt sent back: the heavy hit react (the animation builder's
 			// A_Crew_<Type>_HeavyHit, about 0.6 s) in place of the flinch; no attack starts while it plays.
 			const ATDProjectile* Returned = Cast<ATDProjectile>(Info.Causer);
 			const bool bReturnedBolt = Returned && Returned->WasDeflected(); // a bolt the pilot's blade sent back
-			if ((Spec.Type == ETDCrewType::Grunt || Spec.Type == ETDCrewType::Trooper) && (ShieldDamage + HullDamage >= HeavyHitThreshold || bReturnedBolt))
+			if ((Spec.Type == ETDCrewType::Grunt || Spec.Type == ETDCrewType::Trooper) && (ShieldDamage + HullDamage >= HeavyHitFraction * Health->MaxHull || bReturnedBolt))
 			{
 				if (UAnimSequenceBase* Heavy = TypeClip(TEXT("HeavyHit")))
 				{
