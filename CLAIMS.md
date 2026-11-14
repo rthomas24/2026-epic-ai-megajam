@@ -308,7 +308,7 @@ Current resource checkpoint: Nick stopped the general campaign and revoked all p
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-14 16:30 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-14 17:30 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -332,6 +332,45 @@ Paths are under `Source/unrealGameJam/TriadDrift/` unless they start with `/` (r
 
 Workers commit only on their own branch and never pull, merge or push; the Lead integrates in
 `.wt/int`, builds, runs the headless suite, then fast-forwards and pushes `main`.
+
+### Current board, Nov 14 17:30 EST (supersedes the in-progress and queued rows of the 16:30 board below)
+
+**Main is a7e35ba2** (since 16:30: BV 28c2fb05, 0c986a7d, b8a55662, 6f0536ca, bb7a8ba5, 8ea0f5f1, 67021ade, 6e6c088b, a7e35ba2; compile-only gate). **Compiling, not on main:** T4's Verdance relief and mountain ring (f6c1853f), T3's #96 cold-Continue fix (77ad713e). **On a branch:** the wingman builder's shadow mode and wingman powers (eng/wing 1a3025fa; compiles, not yet played). **Top focus:** #194 the planets filled on foot; **new from Ryan (17:05):** #201 shadow mode, wingmen using their powers, aim assist on all three ships, enemies hard but fair. Every Ryan-side item that is 🟨 in features.md has an owner here: ENG-05 (T2), ENG-08 (wingman builder, T7), ENG-27 (T4, T7), ENG-28 (Lead, packaging agent, T6), ENG-36 (T2, T1), ENG-37 (effects builder, T4), ENG-39 (#194: T4, environment, structures and effects builders, T6, T7, T1), ENG-42 (T3, T5), ENG-46 (T7), ART-07 and ART-16 (effects builder, T4), ART-08 (T5).
+
+| Owner | Now (in progress) | Next (queued, in order) | Items | Shared paths |
+|---|---|---|---|---|
+| Lead | The batch with f6c1853f and 77ad713e; boards; hourly features.md alignment | The next batch; #201 from eng/wing when the wingman builder reports; AGENTS.md section 2 squad line | ENG-28 (integration), ENG-46 | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
+| T1 | #194 descent and take-off on the new terrain; #159 the hint cards with T2 | The #138 check cases (bffd905a) to main | ENG-39 (descent), ENG-36 (hints) | `Flight/`, `Travel/`, `Flow/TDFrontEndGameModes.*` |
+| T2 | The measured HUD layout pass from Ryan's review (squad cards overlapping and off-centre, the Q ring; #103) | #201 / #192 aim assist on all three ships with a HUD indicator; the pause-menu hover; #159; #133 the reward captures | ENG-36, ENG-05 | `Combat/`, `Powers/`, HUD |
+| T3 | #96 the cold-Continue fix (77ad713e, compiling); #146 the opening bed (skip fade) | `Bark_Wipe`; the victory recap names and camera fade seen | ENG-42, ART-10 (hand-off) | `Squad/`, `Director/`, `Story/`; the #146 paths in the row below |
+| T4 | #194 the Verdance relief and mountain ring (f6c1853f, compiling), then Cinder | #201 enemy balance once it lands; the beam v2 and mines seen with the effects builder; the two take-offs with their lines (#96); the breakup at the escape clear | ENG-39, ENG-27, ENG-37, ENG-42, ART-07, ART-16 | `Enemies/`, `Waves/`, `World/` |
+| T5 | The legacy final-record bypass (#96); #139's interior-light reset | The blade and crew hooks seen in a fight (#124); drone tilt / look / tumble; the stray attack after CONTINUE; the orange disc near Grunts | ENG-42, ART-08 | `Flow/` (except `TDFrontEndGameModes.*`), `Ground/` |
+| T6 | #89 the Verdance take-off below 800 m (with the environment builder); boot to menu in the next package | The on-foot frame rate on the filled planets (#194); the Cinder take-off | ENG-28, ENG-39 (perf) | `World/SpaceField/**`, HUD radar files agreed with T2 |
+| T7 | #194 frames; #149 the real-speed intro check | #201 the verdict with shadow on and off; #142 the menu checks in the next package; #152 a package start to end | ENG-46, ENG-28, ENG-39, ENG-08 (verdict) | `docs/eng/PLAYTEST-*` |
+| Wingman builder (`.wt/wing`, eng/wing) | #201 shadow mode and wingmen using their powers and abilities (1a3025fa compiles, not yet played) | Tuning with T4; T7's verdict | ENG-08 | `Squad/**` wingman files agreed with T3 |
+| Effects builder | #194 the 16 ambient systems spawned on both planets; the beam v2 and mines back in the data | The hull-scale explosions on the breakup (#111) | ENG-37, ART-07, ART-16, ENG-39 | `Gameplay/VFX/**`, `DA_*_FX` |
+| Environment builder | #194 Verdance route views and the rest of the camps; then Cinder's fill | The Verdance take-off frame rate with T6 (#89) | ENG-39, ENG-28 (perf) | planet and sky materials; dressing code |
+| Structures builder (eng/struct) | #194 kit pieces as the environment builder asks | The story console look (#96) | ENG-39 | `ArtSource/EngProps/{Kit,Outpost}/**`, `Content/TriadDrift/Gameplay/Props/{Huts,Kit}/**` |
+| Animation builder | Clips for T5's hooks as asked (the sprint frame is fixed by the camera-blade guard, 40184e39) | - | ART-08 | `ArtSource/EngAnim/**`, `Characters/*/Anims/**` |
+| Intake builder (`.wt/imp`, eng/import) | #151 enemy engine loops (row below) | Nicholas's next batch issue (at most eight assets, #206) | ART-10 (hand-off), asset intake | `Content/TriadDrift/Gameplay/Audio/Engines/**`, `Content/TriadDrift/Gameplay/Props/Fab/**`, `CREDITS.md` |
+| Packaging agent | The 17:30 package with the size check and boot to menu measured (#89) | A package every 30 minutes, launch-checked and handed to T7 | ENG-28 | isolated `.wt/pkg` |
+| Blade effects builder | Idle | Polish, on the Lead's dispatch | - | `.wt/blade`, eng/blade |
+| Ship builder | Stopped (usage limit) | Restart only on the Lead's dispatch | - | squad and fleet visuals |
+| Character builder (not started) | - | Game-ready pilot meshes (#149, beyond the canopies; waits on an approved look) | polish (B1-9) | `ArtSource/EngCharacters/**` |
+| Grok Bot | No asks open (R-042) | Ask 5 (instanced set pieces) once its brief is posted | - | `ArtSource/EngAI/**` |
+
+Rows opened or closed Nov 14 17:30 (they supersede the same items' rows of 16:30 below):
+
+| Item | Owner | State | Paths |
+|---|---|---|---|
+| **Integration since 16:30** (0c986a7d, b8a55662, 6f0536ca, bb7a8ba5, 8ea0f5f1, 67021ade, 6e6c088b, a7e35ba2) | Lead | done: on main by 17:25 EST (compile-only gate) | none |
+| **#201 shadow mode and wingman powers** (Ryan, 17:05) | Wingman builder; T2 aim assist; T4 balance; T7 verdict | in progress (eng/wing 1a3025fa, not yet played) | `Squad/**` wingman files; `Combat/` aim assist |
+| #100 portal missile return | T2 | done: played GOOD on 0c986a7d and closed; ENG-09 ✅ | none |
+| #96 Face to Face lines and once per run | T3 | done: on main 0c986a7d; #96 reopened by Nick's side for the cold-Continue replay (fix 77ad713e compiling) | `Story/` |
+| #96 legacy final-record bypass (Nick's session 28) | T5 | in progress | `Ground/`, `Flow/` |
+| Wave 5 carrier cap | T4 | done: played on main 6f0536ca | none |
+| T5's blade and crew hooks (#124) | T5 | in review: on main bb7a8ba5; seen in a fight pending | none |
+| Asset issues #180, #182, #185, #186, #189, #190, #193, #195 to #200, #202 to #206 | Intake builder | done: closed (used, skipped or answered); placement in #194; downloads deleted | none |
 
 ### Current board, Nov 14 16:30 EST (supersedes the in-progress and queued rows of the 15:30 board below)
 
