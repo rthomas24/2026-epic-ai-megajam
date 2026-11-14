@@ -128,15 +128,22 @@ def outpost(variant):
         ps.append(piece("Corner_%d_%d" % (x, y), "SM_Kit_Corner", x, y, 0, yaw, slots=g))
     ps.append(piece("Console", "SM_Kit_Console", -360, 0, 0, 0, slots={"Screen": K + "MI_Kit_Screen"}))
     ps.append(piece("Lamp_Door", "SM_Kit_LightStrip_200", 425, 0, 296, 90, slots=g))
+    # ART-17 (Lead, 03:00 audit): the room sits 3 cm above the ground so uneven terrain does not show through the floor
+    # (evidence-eb1bf334/raw/42_console_c.png showed Verdance's ground as the outpost floor). The 20 cm slab still reaches
+    # 17 cm below the pivot, and every piece (walls, door, console) moves with it; the floor's collision top is the visual top.
+    LIFT = 3.0
+    for pc in ps:
+        pc["location_cm"][2] += LIFT
     return {
         "site": "Outpost_Site", "actor": "/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_" + variant,
         "about": "Survey outpost rebuilt from the kit: one 800 x 400 room, 300 to the roof, floor flush with the ground, doorway (160 x 260) on +X.",
         "pieces": ps,
-        "console_interact": {"stand_at_site_cm": [-250.0, 0.0, 0.0], "pilot_faces_yaw_deg": 180.0, "console_site_cm": [-360.0, 0.0, 0.0],
+        "console_interact": {"stand_at_site_cm": [-250.0, 0.0, 3.0], "pilot_faces_yaw_deg": 180.0, "console_site_cm": [-360.0, 0.0, 3.0],
                              "clear_in_front_cm": 316.0, "moved_from": "(76, 81.5, 153) yaw 180 on the Rodin cabin's bay floor"},
         "walk_path_site_cm": [[700, 0, 0, "ground in front of the door"], [400, 0, 0, "doorway, 160 x 260 clear"], [0, 0, 0, "room centre"], [-250, 0, 0, "console point"]],
-        "walkability_cm": {"floor_top_z": 0, "room": {"x": [-390, 390], "y": [-190, 190]}, "door": {"y": [-80, 80], "z": [0, 260]}, "roof_underside_z": 296},
-        "placement_rules": ["Put the pivot on flat ground: the floor top IS the ground (the 20 cm slab is buried).", "Keep 3 m clear in front of the door (X 400..700)."],
+        "walkability_cm": {"floor_top_z": 3, "room": {"x": [-390, 390], "y": [-190, 190]}, "door": {"y": [-80, 80], "z": [3, 263]}, "roof_underside_z": 299},
+        "placement_rules": ["Put the pivot on the ground: the floor top is 3 cm above it (a 3 cm step at the door, well under the pawn's 45 cm step); the slab reaches 17 cm below the pivot, so keep terrain bumps under 15 cm inside the footprint.",
+                            "Keep 3 m clear in front of the door (X 400..700)."],
     }
 
 
@@ -504,15 +511,16 @@ KSP = K + "Space/"
 def region_sites():
     """Capture / grouping classes for the region set pieces (one per region)."""
     one = lambda n, mesh, about, **kw: {"site": n, "actor": KSP + "BP_" + n, "about": about, "pieces": [piece("P", KSP + mesh, 0.0, 0.0, 0.0, 0.0, **kw)]}
-    return {"KS_PicketRing": one("KS_PicketRing", "SM_KS_PicketRing", "Watchline: the broken picket-station ring segment (pivot = the ring centre, 60 m from the arc).", roll_deg=12.0),
+    # r4: captured at the placement scale recommended to T6 (ring and rig 2x, hulks 1.5x, shards 1x)
+    return {"KS_PicketRing": one("KS_PicketRing", "SM_KS_PicketRing", "Watchline: the broken picket-station ring segment at 2x (pivot = the ring centre, 132 m from the arc at 2x).", roll_deg=12.0, scale=[2.0, 2.0, 2.0]),
             "KS_Hulk": {"site": "KS_Hulk", "actor": KSP + "BP_KS_Hulk", "about": "Quiet Graveyard: the cut-up cruiser's three sections drifting apart (about 200 m).",
-                        "pieces": [piece("Fore", KSP + "SM_KS_Hulk_Fore", 6500.0, 800.0, 400.0, 8.0, roll_deg=-12.0),
-                                   piece("Mid", KSP + "SM_KS_Hulk_Mid", 0.0, 0.0, 0.0, 0.0, roll_deg=6.0),
-                                   piece("Aft", KSP + "SM_KS_Hulk_Aft", -6200.0, -900.0, -600.0, -10.0, pitch_deg=5.0, roll_deg=25.0)]},
+                        "pieces": [piece("Fore", KSP + "SM_KS_Hulk_Fore", 9750.0, 1200.0, 600.0, 8.0, roll_deg=-12.0, scale=[1.5, 1.5, 1.5]),
+                                   piece("Mid", KSP + "SM_KS_Hulk_Mid", 0.0, 0.0, 0.0, 0.0, roll_deg=6.0, scale=[1.5, 1.5, 1.5]),
+                                   piece("Aft", KSP + "SM_KS_Hulk_Aft", -9300.0, -1350.0, -900.0, -10.0, pitch_deg=5.0, roll_deg=25.0, scale=[1.5, 1.5, 1.5])]},
             # yaw -128: the canyon (local Y) lies along the capture camera's line at Cinder, so it can be seen into
             "KS_ScarRig":
             {"site": "KS_ScarRig", "actor": KSP + "BP_KS_ScarRig", "about": "Survey Scar: a Null survey rig clamped across a split asteroid (about 90 m); the canyon runs along local Y.",
-             "pieces": [piece("P", KSP + "SM_KS_ScarRig", 0.0, 0.0, 0.0, -128.0)]},
+             "pieces": [piece("P", KSP + "SM_KS_ScarRig", 0.0, 0.0, 0.0, -128.0, scale=[2.0, 2.0, 2.0])]},
             "KS_MoonShards": {"site": "KS_MoonShards", "actor": KSP + "BP_KS_MoonShards", "about": "Shattered Moons: two shards of one moon (300 m and 180 m).",
                               # r2: both fracture faces (+X) turned toward the capture camera at Belt (it looks along (0.89, 0.44))
                               "pieces": [piece("A", KSP + "SM_KS_MoonShard_A", 0.0, 0.0, 0.0, 206.0),
