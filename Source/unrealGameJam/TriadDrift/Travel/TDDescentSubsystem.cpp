@@ -148,6 +148,7 @@ void UTDDescentSubsystem::HandlePostLoadMap(UWorld* World)
 		bDestFirstFrameSeen = false;
 		bFirstViewBuilt = false;
 		bArrivalSettled = false;
+		bGlideEndPredicted = false;
 	}
 	if (!IsTiming() || !World || World->GetGameInstance() != GetGameInstance()) { return; }
 	PostLoadTime = FPlatformTime::Seconds() - TimingStart;
@@ -378,6 +379,18 @@ void UTDDescentSubsystem::TickCover(float Dt)
 							It->TeleportSpacecraft(L, It->GetActorRotation(), /*bKeepSpeed*/ true);
 						}
 						Mark(*FString::Printf(TEXT("arrival over the cloud deck (%.0f m above it, shift %.0f m)"), (Want - DeckZ) / 100.f, Shift / 100.f));
+						// T4: build the scatter around where the glide will end, before the reveal (which waits on it).
+						if (Terrain)
+						{
+							const FVector Fwd = FVector(Flown->GetActorForwardVector().X, Flown->GetActorForwardVector().Y, 0.f).GetSafeNormal();
+							float Dur = 0.f, Speed = 0.f;
+							PlanGlide(Want, Ground + GlideEndAboveGroundCm, Dur, Speed);
+							FVector End = Flown->GetActorLocation() + Fwd * Speed * Dur * 0.85f;
+							End.Z = Terrain->GetGroundZAt(End) + GlideEndAboveGroundCm;
+							GlideEndPredicted = End;
+							bGlideEndPredicted = true;
+							Terrain->PrepareArrival(End);
+						}
 						FVector A = ArrivalWorldXf.GetLocation(); A.Z = Want; ArrivalWorldXf.SetLocation(A); // retakes too
 					}
 				}
@@ -396,6 +409,7 @@ void UTDDescentSubsystem::TickCover(float Dt)
 				if (A.Z > Top) { A.Z = FMath::Max(Top, (Terrain ? Terrain->GetHeightAt(A) : A.Z) + 30000.f); ArrivalWorldXf.SetLocation(A); } // retakes too
 			}
 			const double Held = Now - DestFirstFrameAt;
+			if (bTerrainReady && bGlideEndPredicted && Terrain && !Terrain->IsArrivalReady(GlideEndPredicted)) { bTerrainReady = false; } // T4's scatter
 			if (bTerrainReady && Held >= RevealMinHoldSeconds) { bReveal = true; Why = Terrain ? TEXT("terrain built") : TEXT("no terrain"); }
 			else if (Held >= RevealMaxHoldSeconds) { bReveal = true; Why = TEXT("4 s hold limit"); }
 		}
@@ -635,6 +649,8 @@ bool UTDDescentSubsystem::IsGlideEnabled() { return CVarTDDescentGlide.GetValueO
 float UTDDescentSubsystem::FindDeckZ(UWorld* World)
 {
 	if (!World) { return 0.f; }
+	// T4's fitted deck (highest ground in the zone + 600 m) once the terrain knows it; else the built deck actor.
+	for (TActorIterator<ATDPlanetTerrain> It(World); It; ++It) { const float Z = It->GetCloudDeckZ(); if (Z > 0.f) { return Z; } break; }
 	for (TActorIterator<ATDCloudDeck> It(World); It; ++It) { if (It->IsBuilt()) { return It->GetActorLocation().Z; } } // unbuilt: not placed yet
 	return 0.f;
 }
@@ -643,6 +659,13 @@ float UTDDescentSubsystem::GetDescent01(const UObject* WorldContext)
 {
 	const UTDDescentSubsystem* D = Get(WorldContext);
 	return D && D->IsGliding() ? D->GlideProgress : -1.f;
+}
+
+void UTDDescentSubsystem::PlanGlide(float StartZ, float EndZ, float& OutSeconds, float& OutSpeed)
+{
+	const float Drop = FMath::Max(StartZ - EndZ, 0.f);
+	OutSeconds = FMath::Clamp(Drop / 6000.f, GlideSeconds, GlideMaxSeconds);
+	OutSpeed = FMath::Clamp(Drop / (OutSeconds * 0.7f) * 1.1f, GlideSpeed, GlideMaxSpeed);
 }
 
 bool UTDDescentSubsystem::BeginGlide(ATDShip* Ship, float GroundZFallback)
@@ -658,11 +681,16 @@ bool UTDDescentSubsystem::BeginGlide(ATDShip* Ship, float GroundZFallback)
 	GlideStartZ = Ship->GetActorLocation().Z;
 	GlideEndZ = GlideStartZ;
 	GlideProgress = 0.f;
-	Move->SetSpeedOverrideFor(GlideOverride, GlideSpeed, GlideSteering);
-	Move->SetForwardSpeedImmediate(GlideSpeed);
+	{
+		float Ground = GroundZFallback;
+		for (TActorIterator<ATDPlanetTerrain> It(Ship->GetWorld()); It; ++It) { Ground = It->GetGroundZAt(Ship->GetActorLocation()); break; }
+		PlanGlide(GlideStartZ, Ground + GlideEndAboveGroundCm, GlideDur, GlideSpeedNow);
+	}
+	Move->SetSpeedOverrideFor(GlideOverride, GlideSpeedNow, GlideSteering);
+	Move->SetForwardSpeedImmediate(GlideSpeedNow);
 	if (UTDHealthComponent* Health = Ship->GetHealth()) { Health->SetInvulnerable(true); }
 	Mark(TEXT("glide begins"));
-	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: glide begins at %.0f m (deck at %.0f m)"), GlideStartZ / 100.f, GlideDeckZ / 100.f);
+	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: glide begins at %.0f m (deck at %.0f m): %.1f s at %.0f m/s"), GlideStartZ / 100.f, GlideDeckZ / 100.f, GlideDur, GlideSpeedNow / 100.f);
 	return true;
 }
 
@@ -680,6 +708,7 @@ void UTDDescentSubsystem::EndGlide(const TCHAR* Why)
 		UE_LOG(LogTriadDrift, Log, TEXT("TD descent: glide ends (%s) at %.0f m"), Why, Ship->GetActorLocation().Z / 100.f);
 	}
 	GlideShip.Reset();
+	bGlideEndPredicted = false;
 	GlideTime = -1.f;
 	GlideProgress = -1.f;
 	bGlideLevelling = false;
@@ -703,11 +732,11 @@ void UTDDescentSubsystem::TickGlide(float Dt)
 	GlideProgress = GlideStartZ > GlideEndZ ? FMath::Clamp((GlideStartZ - L.Z) / (GlideStartZ - GlideEndZ), 0.f, 1.f) : 1.f;
 	if (!bGlideLevelling)
 	{
-		const float Left = FMath::Max(GlideSeconds - GlideTime, 0.5f);
+		const float Left = FMath::Max(GlideDur - GlideTime, 0.5f);
 		const float Rate = (L.Z - GlideEndZ) / Left; // cm/s down wanted
-		const float Pitch = -FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(Rate / GlideSpeed, 0.f, 0.7f)));
+		const float Pitch = -FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(Rate / GlideSpeedNow, 0.f, 0.7f)));
 		Move->SetPitchHold(Pitch, 40.f);
-		if (GlideTime >= GlideSeconds || L.Z <= GlideEndZ + 2000.f)
+		if (GlideTime >= GlideDur || L.Z <= GlideEndZ + 2000.f)
 		{
 			bGlideLevelling = true; // level off, then hand back
 			GlideLevelTime = 0.f;
@@ -720,7 +749,7 @@ void UTDDescentSubsystem::TickGlide(float Dt)
 		Move->SetPitchHold(0.f, 60.f);
 		// The speed eases from the glide's to cruise over the level-off (no drop when the override goes).
 		const float A = FMath::Clamp(GlideLevelTime / GlideHandBackSeconds, 0.f, 1.f);
-		Move->SetSpeedOverrideFor(GlideOverride, FMath::Lerp(GlideSpeed, Move->GetFlightTuning().CruiseSpeed, A * A * (3.f - 2.f * A)), GlideSteering);
+		Move->SetSpeedOverrideFor(GlideOverride, FMath::Lerp(GlideSpeedNow, Move->GetFlightTuning().CruiseSpeed, A * A * (3.f - 2.f * A)), GlideSteering);
 		if (GlideLevelTime >= GlideHandBackSeconds) { EndGlide(TEXT("handed back")); }
 	}
 }

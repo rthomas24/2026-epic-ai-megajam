@@ -179,6 +179,13 @@ public:
 	float GetDescentDeckZ() const { return GlideDeckZ; }
 	/** The cloud deck's world Z in a world (0 = no deck). */
 	static float FindDeckZ(UWorld* World);
+	/** The glide for a drop (the Lead, Nov 14, T4's higher deck): duration = drop / 60 m/s within 9-12 s; speed raised so the
+	 *  dive never needs more than ~44 deg of pitch (vertical <= 0.7 x speed). */
+	static void PlanGlide(float StartZ, float EndZ, float& OutSeconds, float& OutSpeed);
+	static constexpr float GlideMaxSeconds = 12.f;
+	static constexpr float GlideMaxSpeed = 30000.f;
+	float GetGlideSeconds() const { return GlideDur; }
+	float GetGlideSpeedNow() const { return GlideSpeedNow; }
 	void TickGlide(float Dt);
 	/** The glide's pass through the deck: the CloudWisps layer on the camera while within this of the deck (cm). */
 	static constexpr float GlideDeckPassBand = 4000.f;
@@ -307,6 +314,10 @@ private:
 	void TickGlideWind(float Dt);
 	UPROPERTY(Transient) TObjectPtr<class UMaterialInstanceDynamic> ExposureMID;
 	float GlideLevelTime = 0.f;
+	float GlideDur = 9.f;
+	float GlideSpeedNow = 12000.f;
+	FVector GlideEndPredicted = FVector::ZeroVector;
+	bool bGlideEndPredicted = false;
 
 	bool bArrivalPending = false;
 	ETDDestination ArrivalPlanet = ETDDestination::Verdance;

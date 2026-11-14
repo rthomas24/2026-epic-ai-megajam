@@ -19,6 +19,7 @@ namespace TDT1Glide
 	struct FRun { float EndZ = 0.f; float EndPitch = 0.f; float MinZ = 1e9f; bool bHeldWarning = true; bool bInvulnerable = true; bool bDescent01InRange = true;
 		bool bHandedBack = false; bool bOverrideCleared = false; bool bVulnerableAgain = false; float Seconds = 0.f;
 		float MaxStepDrop = 0.f; float EndSpeed = 0.f; float Cruise = 0.f; int32 DeckPasses = 0;
+		float GlideSeconds = 0.f; float GlideSpeed = 0.f;
 		float MaxCloud = 0.f; float CloudSeconds = 0.f; float MaxWind = 0.f; float EndWind = -1.f; };
 
 	FRun Fly(ETDShipId Id, float Fps, float StartZ, float GroundZ, bool bDeck = false)
@@ -36,6 +37,8 @@ namespace TDT1Glide
 		W.Advance(0.2f);
 		UTDShipMovementComponent* Move = Ship->GetShipMovement();
 		if (!D->BeginGlide(Ship, GroundZ)) { return R; }
+		R.GlideSeconds = D->GetGlideSeconds();
+		R.GlideSpeed = D->GetGlideSpeedNow();
 		const float Dt = 1.f / Fps;
 		R.Cruise = Move->GetFlightTuning().CruiseSpeed;
 		float LastSpeed = Move->GetSpeed();
@@ -74,17 +77,20 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1GlideEndsLevel, "TriadDrift.Travel.Descent
 bool FTDT1GlideEndsLevel::RunTest(const FString& Parameters)
 {
 	using namespace TDT1Glide;
-	// Arrival 300 m over a deck at 1.15 km above the pad (Verdance), flat ground at the pad: about 550 m of drop.
-	const float Ground = 0.f, Start = 115000.f + UTDDescentSubsystem::GlideAboveDeckCm;
+	// Arrival 300 m over the deck, flat ground at the pad: the old 1.15 km deck (~550 m of drop) and T4's fitted deck
+	// (highest ground + 600 m: 2.36 km on Verdance, ~1.76 km of drop).
+	const float Ground = 0.f;
 	const float Want = Ground + UTDDescentSubsystem::GlideEndAboveGroundCm;
+	for (const float Deck : { 115000.f, 236000.f })
 	for (const ETDShipId Id : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
 	{
 		for (const float Fps : { 30.f, 60.f, 120.f })
 		{
+			const float Start = Deck + UTDDescentSubsystem::GlideAboveDeckCm;
 			const FRun R = Fly(Id, Fps, Start, Ground);
-			const FString Tag = FString::Printf(TEXT("%s @%.0f fps"), *UEnum::GetValueAsString(Id), Fps);
+			const FString Tag = FString::Printf(TEXT("deck %.0f m, %s @%.0f fps (%.1f s at %.0f m/s)"), Deck / 100.f, *UEnum::GetValueAsString(Id), Fps, R.GlideSeconds, R.GlideSpeed / 100.f);
 			AddInfo(FString::Printf(TEXT("%s: %.1f s, end %.0f m (want %.0f), lowest %.0f m, pitch %.1f"), *Tag, R.Seconds, R.EndZ / 100.f, Want / 100.f, R.MinZ / 100.f, R.EndPitch));
-			TestTrue(*FString::Printf(TEXT("%s: handed back within the glide + level-off (%.1f s)"), *Tag, R.Seconds), R.bHandedBack && R.Seconds <= UTDDescentSubsystem::GlideSeconds + UTDDescentSubsystem::GlideHandBackSeconds + 1.f);
+			TestTrue(*FString::Printf(TEXT("%s: handed back within the glide + level-off (%.1f s)"), *Tag, R.Seconds), R.bHandedBack && R.Seconds <= UTDDescentSubsystem::GlideMaxSeconds + UTDDescentSubsystem::GlideHandBackSeconds + 1.f);
 			TestTrue(*FString::Printf(TEXT("%s: ends near 900 m over the ground (%.0f m)"), *Tag, R.EndZ / 100.f), FMath::Abs(R.EndZ - Want) <= 15000.f);
 			TestTrue(*FString::Printf(TEXT("%s: never below 700 m (%.0f m)"), *Tag, R.MinZ / 100.f), R.MinZ >= Ground + 70000.f);
 			TestTrue(*FString::Printf(TEXT("%s: ends level (pitch %.1f)"), *Tag, R.EndPitch), FMath::Abs(R.EndPitch) <= 5.f);
@@ -92,7 +98,7 @@ bool FTDT1GlideEndsLevel::RunTest(const FString& Parameters)
 			TestTrue(*FString::Printf(TEXT("%s: Descent01 0..1 while gliding, -1 after"), *Tag), R.bDescent01InRange && R.bHandedBack);
 			TestTrue(*FString::Printf(TEXT("%s: override and pitch hold cleared, vulnerable again"), *Tag), R.bOverrideCleared && R.bVulnerableAgain);
 			TestTrue(*FString::Printf(TEXT("%s: no speed drop at the hand-back (largest step %.0f cm/s, at hand-back %.0f, cruise %.0f)"), *Tag, R.MaxStepDrop, R.EndSpeed, R.Cruise),
-				R.MaxStepDrop <= 600.f && FMath::Abs(R.EndSpeed - R.Cruise) <= R.Cruise * 0.15f);
+				R.MaxStepDrop <= 1.6f * (R.GlideSpeed - R.Cruise) / (Fps * UTDDescentSubsystem::GlideHandBackSeconds) + 150.f && FMath::Abs(R.EndSpeed - R.Cruise) <= R.Cruise * 0.15f);
 		}
 	}
 	return true;
