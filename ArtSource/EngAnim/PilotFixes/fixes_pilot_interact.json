@@ -1,40 +1,16 @@
 {
- "_note": "Pilot interact r3 (Lead, Nov 14): the idle pose held for 1.13 s (so the body's facing and the blade arm never change), with only the LEFT arm taking the forward reach of A_Pilot_Interact_Shoulder at 1.30 s (hand about 50 cm ahead at chest height): out by 0.37 s, held to 0.70 s, back at rest by 1.10 s. No hand to the helmet.",
+ "_note": "Pilot interact r4, step 1: the idle pose held for 1.13 s (A_Pilot_Interact_Pre); body_pilot_interact.json adds the left-hand press.",
  "folder": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims",
  "skeleton": "/Game/TriadDrift/Gameplay/Characters/Pilot/SKEL_Pilot",
  "clips": [
   {
    "src": "A_Pilot_Idle3_v2",
-   "dst": "A_Pilot_Interact",
+   "dst": "A_Pilot_Interact_Pre",
    "trim": [
     0.0,
     0.04
    ],
-   "rate": 0.0353,
-   "copy_pose": {
-    "src": "A_Pilot_Interact_Shoulder",
-    "t": 1.3,
-    "bones": [
-     "clavicle",
-     "upperarm",
-     "lowerarm",
-     "hand",
-     "index",
-     "middle",
-     "ring",
-     "pinky",
-     "thumb"
-    ],
-    "side": "_l",
-    "ramp": [
-     0.0,
-     0.33
-    ],
-    "hold": [
-     0.7,
-     1.1
-    ]
-   }
+   "rate": 0.0353
   }
  ]
 }

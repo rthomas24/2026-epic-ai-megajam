@@ -7,6 +7,7 @@
 #   retime     [[out s, source s], ...]  piecewise-linear time map (the clip keeps its length unless the last key says otherwise)
 #   time_warp  {"until": s, "power": p}  the source clip eases in over its first seconds
 #   foot_cap   {"above_hip": cm, "from": s}  from that time a foot is pulled down (leg IK) so it never rises more than this above its hip
+#   reach      {"l" | "r": [[t, x, y, z, weight], ...]}  that hand goes (two-bone IK) to pelvis XY + (x, y) at height z, by weight
 #   arm_drop   {"l" | "r": [[t, deg], ...]}  that arm swings down from the shoulder by deg
 # Keys are eased (smoothstep) between neighbours. TD_BODY = config json. Animation builder (eng/anim), Nov 14.
 import json
@@ -98,6 +99,26 @@ for cl in CFG["clips"]:
                         if b.endswith("_" + s) and b.startswith(ARM):
                             W[b][0] = add(piv, rot(q, sub(W[b][0], piv)))
                             W[b][1] = qmul(q, W[b][1])
+        for s, keys in cl.get("reach", {}).items():   # [[t, x, y, z, weight], ...]: the hand goes to pelvis XY + (x, y), height z (mesh space, cm)
+            x_, y_, z_, w_ = keyed(keys, t, 4)
+            if w_ > 1e-4:
+                up_, lo_, ha_ = "upperarm_" + s, "lowerarm_" + s, "hand_" + s
+                S = W[up_][0]
+                L1, L2 = length(sub(W[lo_][0], S)), length(sub(W[ha_][0], W[lo_][0]))
+                goal = (W["pelvis"][0][0] + x_, W["pelvis"][0][1] + y_, z_)
+                tgt = add(W[ha_][0], mul(sub(goal, W[ha_][0]), w_))
+                pole = add(sub(W[lo_][0], S), (0.0, 0.0, -0.4 * (L1 + L2)))
+                K, Tg = two_bone(S, tgt, L1, L2, pole)
+                tree = [b for b in ALL if b.endswith("_" + s) and b.startswith(ARM)]
+                qa = from_to(sub(W[lo_][0], S), sub(K, S))
+                for b in tree:
+                    W[b][0] = add(S, rot(qa, sub(W[b][0], S)))
+                    W[b][1] = qmul(qa, W[b][1])
+                qb = from_to(sub(W[ha_][0], W[lo_][0]), sub(Tg, K))
+                for b in tree:
+                    if not b.startswith("upperarm"):
+                        W[b][0] = add(K, rot(qb, sub(W[b][0], K)))
+                        W[b][1] = qmul(qb, W[b][1])
         solve = ik0 - 1e-6 <= t <= ik1 + 1e-6
         for s in "lr":
             th, ca, fo = "thigh_" + s, "calf_" + s, "foot_" + s
@@ -131,6 +152,8 @@ for cl in CFG["clips"]:
             track.setdefault(s, []).append(W[fo][0])
         par = {"spine_01": "pelvis"}
         for sd in "lr":
+            if sd in cl.get("reach", {}):
+                par.update({"lowerarm_" + sd: "upperarm_" + sd, "hand_" + sd: "lowerarm_" + sd})
             par.update({"upperarm_" + sd: "clavicle_" + sd, "thigh_" + sd: "pelvis", "calf_" + sd: "thigh_" + sd, "foot_" + sd: "calf_" + sd})
         out = {}
         for b in ALL:
