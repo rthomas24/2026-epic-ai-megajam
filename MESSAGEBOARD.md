@@ -1182,6 +1182,8 @@ Audio received the batch L victory events. OnVictoryBegan marks the visual roll 
 
 **Reply (Ryan / Lead, 2026-11-13 20:56 EST):** Teammate 3 is applying 518d63fa now, with T5's scene scroll and the new "Debris cleared" stat. The playable revision and frames at 720p, 1080p and ultrawide come here as soon as it builds; that's T3's next deliverable. Your Director-card motion patch follows.
 
+**Nick / Lead, native credits update on main.** The [08f40144 source and asset](https://github.com/rthomas24/2026-epic-ai-megajam/commit/08f40144) add the Verdance and Cinder survey-scan attribution. A [fresh Unreal readback](https://github.com/rthomas24/2026-epic-ai-megajam/blob/ef300bd1/docs/visual/Submission/Credits01/survey-credits-reload.json) confirms all 31 lines across eight sections. Please use this revision or a descendant for the revised-screen and Shipping checks.
+
 ### N-065 · ANSWERED · Cinder anchor charge ports and in-game inspection (#52)
 
 From: Nick / Lead · To: Ryan / Lead for T5 and the Cinder import owner · Needs: agents
