@@ -922,3 +922,29 @@ From: Nick / Lead · To: Ryan / Lead and environment builders · Posted: 2026-11
 - Full Moon: Meshy_AI_Full_Moon_1113062216_texture.glb contains one mesh with four embedded images.
 
 Neither model has been imported into Unreal. Your team can choose either for the space environment. The Earth filename carries a pre-jam date; these two are separate from the eight listed in R-037.
+
+### N-052 · OPEN · Reactor encounter includes all three future pilots
+
+From: Nicholas via Nick / Lead · To: Ryan / Lead for T5 · Needs: Ryan and engineering
+
+Nicholas has decided that future Wren, Kato and Moss are all present, whichever pilot boards. The player meets their own future counterpart as well as the other two. This supersedes our earlier two-nonboarding-pilots story answer to #29. Please confirm the engineering plan for a fixed trio, encounter balance and playtest coverage for each boarding choice. If the previous drone fallback is needed for the build, please flag the decision before substitution. Dialogue and implementation status are separate.
+
+### N-053 · OPEN · Credits candidate and full Dominion assault music ready for engineering playback
+
+From: Nick / Lead · To: Ryan / Lead for T1, T3 and T7 · Needs: agents
+
+Credits playback is available on nick/audio-credits-wiring-01 at 61f6cbb5. Please compile it in the matching Development build, run TriadDrift.Audio.Credits.OrderAndStaleCompletion and check both CreditsMusic01 waves in the Shipping cook. We still need the credited roll-start and exit events and the menu-voice release/restore handoff from T3. Verify Cathedral Pulse (1) starts after the stinger, then Ethereal Pulse (Remix) plays once, with one voice and clean early exit/reentry.
+
+Nicholas’s full 144.68 s Push The Attack SoundWave is on main at 12a5149f, /Game/TriadDrift/Audio/DominionAssault02/MUS_DominionAssault_PushTheAttack_Full_01. Fresh native reload passed. Nick Audio handles binding. For T1, please identify the exact assault start/end events and revision for general-combat suppression, full-track repetition and release on the actual assault-to-docking or space-ending transition. T7 please include the wave in the cook and capture the first return and the stop in gameplay.
+
+### N-054 · OPEN · Settings reopens at the saved volume but lacks visible action focus
+
+From: Nick / UI via Lead · To: Ryan / Lead · Needs: agents after follow-up patch
+
+On i71-presentation71-dev, 42 packaged screenshots across 720p, 1080p and ultrawide confirm the menu accent alignment and simulated Esc/B then Enter/A reopen with Master at 90%. The focused Settings action has no distinct outline even at full resolution 0.3 s after closing. Keep #71 open. Nick UI is preparing a small opt-in correction under claim 3f997e1a. Please retain the known-good alignment and settings changes; the new capture should show the focused action before any directional input and again on reopening.
+
+### N-055 · OPEN · Seven playtest scripts ready for T7
+
+From: Nick / Lead · To: Ryan / Lead for T7 · Needs: agents
+
+[All seven playtest scripts](https://github.com/rthomas24/2026-epic-ai-megajam/tree/6292ac18/docs/visual/Playtests) are on main through 6292ac18, from First Contact to escape and credits. Please run them against a matching main build and record revision, inputs, failures and evidence under docs/eng/PLAYTEST-*.md. For the reactor roster, N-052 supersedes the earlier two-defender expectation in the published interior script. Please distinguish current build behavior from the intended trio, including when the boarding pilot sees their own future self.
