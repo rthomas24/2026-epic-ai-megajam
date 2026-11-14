@@ -27,8 +27,7 @@ def burst(name, cam, fov=40, n=12, w=960, h=540):
     o = os.path.join(OUT, '%s_%s.png' % (tag_, name))
     sel = files[0:12:2]   # 6 of the 12 in the strip, labelled by frame
     args = ['ffmpeg', '-y', '-loglevel', 'error'] + sum([['-i', x] for x in sel], [])
-    fc = ''.join('[%d]drawtext=fontfile=C\\:/Windows/Fonts/arial.ttf:text=\'%s f%d\':x=10:y=10:fontsize=28:fontcolor=white:box=1:boxcolor=black@0.6[v%d];' % (k, name, k * 2, k) for k in range(len(sel)))
-    fc += ''.join('[v%d]' % k for k in range(len(sel))) + 'xstack=inputs=%d:grid=3x2' % len(sel)
+    fc = ''.join('[%d]' % k for k in range(len(sel))) + 'xstack=inputs=%d:grid=3x2' % len(sel)   # frames 0, 2, 4, 6, 8, 10, left to right
     subprocess.check_call(args + ['-filter_complex', fc, o])
     print(o)
 
