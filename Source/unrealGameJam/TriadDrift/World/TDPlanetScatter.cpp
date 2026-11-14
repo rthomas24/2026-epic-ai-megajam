@@ -553,6 +553,7 @@ void ATDPlanetScatter::BuildNow()
 	FTDScatterResult R;
 	Plan.Generate(Field, R);
 	Apply(MoveTemp(R), (FPlatformTime::Seconds() - Start) * 1000.0);
+	ApplyQueued(0.0);	// tests and dev: everything now
 }
 
 UStaticMesh* ATDPlanetScatter::LoadKindMesh(int32 Kind) const
@@ -595,39 +596,76 @@ void ATDPlanetScatter::SetupComponent(UInstancedStaticMeshComponent* H, int32 Ki
 void ATDPlanetScatter::Apply(FTDScatterResult&& Result, double Ms)
 {
 	bBuilding = false;
-	if (bBuilt)
+	if (bBuilt || ApplyJobs.Num() > 0)
 	{
 		return;
 	}
-	bBuilt = true;
 	GenerateMs = Ms;
-	const double ApplyStart = FPlatformTime::Seconds();
-	for (int32 k = 0; k < Plan.Kinds.Num(); ++k)
+	// Queue, near tier first, big kinds split: the actor's tick adds a few components per frame (issue #89).
+	for (int32 Pass = 0; Pass < 2; ++Pass)
 	{
-		UStaticMesh* Mesh = LoadKindMesh(k);
-		if (!Mesh)
+		for (int32 k = 0; k < Plan.Kinds.Num(); ++k)
 		{
-			continue;
-		}
-		for (int32 Pass = 0; Pass < 2; ++Pass)
-		{
-			const TArray<FTransform>& Xfs = Pass == 0 ? Result.Near[k] : Result.Far[k];
-			if (Xfs.Num() == 0) { continue; }
-			UHierarchicalInstancedStaticMeshComponent* H = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
-			H->SetStaticMesh(Mesh);
-			SetupComponent(H, k, Pass == 0 && Plan.Kinds[k].bBlocksOnFoot);
-			if (Pass == 1) { H->SetCastShadow(false); }	// beyond the course's surroundings nothing casts dynamic shadow (render thread)
-			H->RegisterComponent();
-			H->AddInstances(Xfs, /*bShouldReturnIndices*/ false, /*bWorldSpace*/ false);
-			AddInstanceComponent(H);
-			Hisms.Add(H);
-			InstanceCount += Xfs.Num();
-			UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: %s x%d (%s, cull %d-%d, mat %s)"), *Mesh->GetName(), Xfs.Num(), Pass == 0 ? TEXT("near") : TEXT("far"),
-				H->InstanceStartCullDistance, H->InstanceEndCullDistance, H->GetMaterial(0) ? *H->GetMaterial(0)->GetName() : TEXT("none"));
+			TArray<FTransform>& Xfs = Pass == 0 ? Result.Near[k] : Result.Far[k];
+			for (int32 From = 0; From < Xfs.Num(); From += FMath::Max(1, ApplyChunk))
+			{
+				FApplyJob J;
+				J.Kind = k;
+				J.bNear = Pass == 0;
+				J.Xfs.Append(Xfs.GetData() + From, FMath::Min(FMath::Max(1, ApplyChunk), Xfs.Num() - From));
+				ApplyJobs.Add(MoveTemp(J));
+			}
 		}
 	}
-	UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: zone layer %d instances in %d HISMs (generate %.0f ms off-thread, apply %.0f ms)"),
-		InstanceCount, Hisms.Num(), GenerateMs, (FPlatformTime::Seconds() - ApplyStart) * 1000.0);
+	ApplyJobHead = 0;
+	bNearApplied = ApplyJobs.Num() == 0 || !ApplyJobs[0].bNear;
+	if (ApplyJobs.Num() == 0) { bBuilt = true; }
+}
+
+void ATDPlanetScatter::ApplyQueued(double BudgetMs)
+{
+	if (ApplyJobHead >= ApplyJobs.Num())
+	{
+		return;
+	}
+	const double Start = FPlatformTime::Seconds();
+	int32 Done = 0;
+	while (ApplyJobHead < ApplyJobs.Num())
+	{
+		if (Done > 0 && BudgetMs > 0.0 && (FPlatformTime::Seconds() - Start) * 1000.0 >= BudgetMs) { break; }
+		FApplyJob& J = ApplyJobs[ApplyJobHead++];
+		++Done;
+		UStaticMesh* Mesh = LoadKindMesh(J.Kind);
+		if (Mesh && J.Xfs.Num() > 0)
+		{
+			UHierarchicalInstancedStaticMeshComponent* H = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
+			H->SetStaticMesh(Mesh);
+			SetupComponent(H, J.Kind, J.bNear && Plan.Kinds[J.Kind].bBlocksOnFoot);
+			if (!J.bNear) { H->SetCastShadow(false); }	// beyond the course's surroundings nothing casts dynamic shadow (render thread)
+			H->RegisterComponent();
+			H->AddInstances(J.Xfs, /*bShouldReturnIndices*/ false, /*bWorldSpace*/ false);
+			AddInstanceComponent(H);
+			Hisms.Add(H);
+			InstanceCount += J.Xfs.Num();
+		}
+		J.Xfs.Empty();
+		if (!bNearApplied && (ApplyJobHead >= ApplyJobs.Num() || !ApplyJobs[ApplyJobHead].bNear))
+		{
+			bNearApplied = true;
+			UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: near tier in (%d instances)"), InstanceCount);
+		}
+	}
+	const double FrameMs = (FPlatformTime::Seconds() - Start) * 1000.0;
+	if (BudgetMs > 0.0) { MaxApplyFrameMs = FMath::Max(MaxApplyFrameMs, FrameMs); }
+	ApplyTotalMs += FrameMs;
+	if (ApplyJobHead >= ApplyJobs.Num())
+	{
+		ApplyJobs.Reset();
+		ApplyJobHead = 0;
+		bBuilt = true;
+		UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: zone layer %d instances in %d HISMs (generate %.0f ms off-thread, apply %.0f ms spread, worst frame %.1f ms)"),
+			InstanceCount, Hisms.Num(), GenerateMs, ApplyTotalMs, MaxApplyFrameMs);
+	}
 }
 
 // ------------------------------------------------------------------------------------------------ rings
@@ -646,15 +684,20 @@ bool ATDPlanetScatter::GetViewLocal(FVector& OutLocal) const
 void ATDPlanetScatter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (ApplyJobs.Num() > 0)
+	{
+		ApplyQueued(ApplyBudgetMs);
+	}
 	if (!bBuilt)
 	{
 		return;
 	}
 	FVector Local;
-	if (!GetViewLocal(Local))
-	{
-		return;
-	}
+	const bool bView = GetViewLocal(Local);
+	// ENG-38: the arrival's glide end is ready before the camera gets there; hand back once a real camera is within 1 km.
+	if (bFocusOverride && bView && FVector2D::Distance(FVector2D(Local), FVector2D(FocusLocal)) < 100000.f) { bFocusOverride = false; }
+	if (bFocusOverride) { Local = FocusLocal; }
+	else if (!bView) { return; }
 	UpdateRing(ETDScatterRing::Mid, Local, false);
 	// The near ring (ground cover, culled at ~150 m) only while the camera is low over the ground.
 	const ATDPlanetTerrain* Terrain = Cast<ATDPlanetTerrain>(GetOwner());
@@ -670,6 +713,22 @@ void ATDPlanetScatter::Tick(float DeltaSeconds)
 	{
 		UpdateRing(ETDScatterRing::Near, Local, false);
 	}
+}
+
+void ATDPlanetScatter::SetFocusOverride(const FVector& WorldPoint)
+{
+	bFocusOverride = true;
+	FocusLocal = GetActorTransform().InverseTransformPosition(WorldPoint);
+}
+
+bool ATDPlanetScatter::IsReadyAround(const FVector& WorldPoint) const
+{
+	if (!bBuilt) { return false; }
+	const FRingState& St = Rings[int32(ETDScatterRing::Mid)];
+	if (Plan.RingKinds(ETDScatterRing::Mid).Num() == 0) { return true; }
+	const FVector L = GetActorTransform().InverseTransformPosition(WorldPoint);
+	const FIntPoint Want(FMath::FloorToInt(L.X / Plan.MidCell), FMath::FloorToInt(L.Y / Plan.MidCell));
+	return St.Centre == Want && St.Pending.Num() == 0 && !St.bDirty;
 }
 
 void ATDPlanetScatter::BuildRingsNowAt(const FVector& CourseLocal)

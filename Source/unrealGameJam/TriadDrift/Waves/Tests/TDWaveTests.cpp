@@ -5,6 +5,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Story/TDTutorialPhases.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Waves/Tests/TDWaveTestTypes.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
@@ -409,10 +410,40 @@ namespace TDWaveTutorialTest
 		OutPlayer = TDWaveTest_SpawnPlayer(W);
 		ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, OutPlayer);
 		D->TutorialMode = ETDTutorialMode::ForceOn;
+		D->bWaitForLessons = false;	// these tests are about the withdrawal itself; the lesson gate has its own test
 		D->StartWave(1);
 		TDWaveTest_SpawnEverything(W, D, 60.f);
 		return D;
 	}
+}
+
+// ENG-40 with T3's lessons (agreed Nov 14): while the squad lesson is still being taught, wave 2's heavy contact waits; at
+// GunshipHoldCapSeconds it comes anyway, so a player who never switches ships is never locked out.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWavesTutorialLessonGate, "TriadDrift.Waves.Tutorial.TheHeavyContactWaitsForTheLessonsButNeverLocks", TD_TEST_FLAGS)
+bool FTDWavesTutorialLessonGate::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.Phase = ETDGamePhase::Waves1to2;
+	if (UTDTutorialPhases* Lessons = UTDTutorialPhases::Get(W.GetWorld())) { Lessons->bForceTutorialForTests = true; }
+	AActor* Player = TDWaveTest_SpawnPlayer(W);
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, Player);
+	D->TutorialMode = ETDTutorialMode::ForceOn;
+	D->StartWave(0);
+	W.Advance(1.f);
+	const ETDTeachPhase Teach = UTDTutorialPhases::GetTeachPhase(W.GetWorld());
+	AddInfo(FString::Printf(TEXT("lesson phase at wave 1: %d"), (int32)Teach));
+	if (Teach == ETDTeachPhase::None || Teach == ETDTeachPhase::Done)
+	{
+		AddWarning(TEXT("the lessons did not start in this test world: nothing to gate"));
+		return true;
+	}
+	D->StartWave(1);
+	W.Advance(35.f, 1.f / 20.f);
+	TestNull(TEXT("35 s into wave 2, lessons still running: no heavy contact yet (it was due at 20 s)"), D->GetHeavyContact());
+	W.Advance(30.f, 1.f / 20.f);
+	TestNotNull(TEXT("past the 60 s cap: the heavy contact arrives anyway"), D->GetHeavyContact());
+	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWavesTutorialKillsDoNotEnd, "TriadDrift.Waves.Tutorial.KillingEverythingOrdersTheWithdrawalNotTheEnd", TD_TEST_FLAGS)

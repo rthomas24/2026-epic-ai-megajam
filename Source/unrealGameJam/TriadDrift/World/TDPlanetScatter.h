@@ -132,6 +132,25 @@ public:
 	void BuildRingsNowAt(const FVector& CourseLocal);
 
 	bool IsBuilt() const { return bBuilt; }
+
+	/**
+	 * The zone layer reaches the scene a few components per frame (issue #89: one 109-330 ms apply at the atmosphere
+	 * entry), near tier first. True once every near-tier piece is in: whoever lifts the entry cover can wait for it.
+	 */
+	bool IsNearApplied() const { return bNearApplied; }
+	/** ENG-38: stream the rings round this world point instead of the camera, until the camera comes within 1 km of it. */
+	void SetFocusOverride(const FVector& WorldPoint);
+	/** The mid ring is centred on, and complete round, this world point. */
+	bool IsReadyAround(const FVector& WorldPoint) const;
+	int32 GetPendingApplyJobs() const { return ApplyJobs.Num(); }
+	/** The most game-thread time one frame spent applying the zone layer (ms). */
+	double GetMaxApplyFrameMs() const { return MaxApplyFrameMs; }
+	/** Game-thread budget per frame for applying the zone layer (ms); at least one job runs per frame. */
+	float ApplyBudgetMs = 4.f;
+	/** Instances per component job (a big kind is split so no single job blows the frame). */
+	int32 ApplyChunk = 1000;
+	/** Tests: run queued apply jobs now within BudgetMs (<= 0: all of them). */
+	void ApplyQueued(double BudgetMs);
 	int32 GetInstanceCount() const { return InstanceCount; }
 	int32 GetRingInstanceCount() const { return RingInstances[0] + RingInstances[1]; }
 	int32 GetTotalInstanceCount() const { return InstanceCount + GetRingInstanceCount(); }
@@ -177,6 +196,19 @@ protected:
 	TSharedPtr<FTDTerrainField, ESPMode::ThreadSafe> RingField;
 	bool bBuilt = false;
 	bool bBuilding = false;
+	bool bFocusOverride = false;
+	FVector FocusLocal = FVector::ZeroVector;
+	struct FApplyJob
+	{
+		int32 Kind = 0;
+		bool bNear = true;
+		TArray<FTransform> Xfs;
+	};
+	TArray<FApplyJob> ApplyJobs;	// front first
+	int32 ApplyJobHead = 0;
+	bool bNearApplied = false;
+	double MaxApplyFrameMs = 0.0;
+	double ApplyTotalMs = 0.0;
 	int32 InstanceCount = 0;
 	int32 RingInstances[2] = { 0, 0 };
 	double GenerateMs = 0.0;

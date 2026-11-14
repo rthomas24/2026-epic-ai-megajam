@@ -218,4 +218,61 @@ bool FTDScatterV2Rings::RunTest(const FString&)
 	return true;
 }
 
+
+// Issue #89 (T7's profile): the zone layer arrived in one 109-330 ms frame at the atmosphere entry. Now it is applied a few
+// components per frame, near tier first: no frame spends more than 8 ms on it, and the near tier lands before the far one.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDScatterSpread, "TriadDrift.World.Scatter.ZoneLayerAppliesWithoutAHitch", TD_TEST_FLAGS)
+bool FTDScatterSpread::RunTest(const FString&)
+{
+	FTDTestWorld W;
+	ATDPlanetTerrain* T = ATDPlanetTerrain::SpawnForPlanet(W.GetWorld(), ETDDestination::Verdance, FTransform(FVector(1900000.f, 1700000.f, 2500.f)), nullptr);
+	ATDPlanetScatter* S = T ? T->GetScatter() : nullptr;
+	if (!TestNotNull(TEXT("scatter"), S)) { return false; }
+	bool bNearBeforeBuilt = false;
+	for (int32 i = 0; i < 60 * 30 && !S->IsBuilt(); ++i)
+	{
+		W.Tick(1.f / 60.f);
+		if (S->IsNearApplied() && !S->IsBuilt() && S->GetPendingApplyJobs() > 0) { bNearBeforeBuilt = true; }
+	}
+	AddInfo(FString::Printf(TEXT("zone layer %d instances, worst apply frame %.1f ms"), S->GetInstanceCount(), S->GetMaxApplyFrameMs()));
+	TestTrue(TEXT("built within 30 s"), S->IsBuilt());
+	TestTrue(TEXT("instances"), S->GetInstanceCount() > 1000);
+	TestTrue(*FString::Printf(TEXT("no frame spends more than 8 ms applying (%.1f ms)"), S->GetMaxApplyFrameMs()), S->GetMaxApplyFrameMs() <= 8.0);
+	TestTrue(TEXT("the near tier is in before the far tier finishes"), bNearBeforeBuilt || S->IsNearApplied());
+	return true;
+}
+
+
+// ENG-38 arrival (agreed with T1, Nov 14): the deck clears the flight zone's highest ground by DeckClearance, the deck actor
+// sits there, and after PrepareArrival(glide end) the scatter round that point is ready before the camera gets near it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDArrivalReady, "TriadDrift.World.Arrival.DeckClearsTheZoneAndTheGlideEndIsReadyFirst", TD_TEST_FLAGS)
+bool FTDArrivalReady::RunTest(const FString&)
+{
+	for (const ETDDestination Planet : { ETDDestination::Verdance, ETDDestination::Cinder })
+	{
+		const FString Name = Planet == ETDDestination::Verdance ? TEXT("Verdance") : TEXT("Cinder");
+		FTDTestWorld W;
+		const FVector Origin(1900000.f, 1700000.f, 2500.f);
+		ATDPlanetTerrain* T = ATDPlanetTerrain::SpawnForPlanet(W.GetWorld(), Planet, FTransform(Origin), nullptr);
+		if (!TestNotNull(*(Name + TEXT(": terrain")), T)) { continue; }
+		const float MaxZ = T->GetZoneMaxGroundZ();
+		const float Deck = T->GetCloudDeckZ();
+		AddInfo(FString::Printf(TEXT("%s: highest ground %.0f m, deck %.0f m (above the course origin)"), *Name, (MaxZ - Origin.Z) / 100.f, (Deck - Origin.Z) / 100.f));
+		TestTrue(*(Name + TEXT(": the deck clears the highest ground by DeckClearance")), FMath::IsNearlyEqual(Deck - MaxZ, T->DeckClearance, 1.f));
+		for (const FVector& P : { Origin, Origin + FVector(300000.f, -200000.f, 0.f), Origin + FVector(-450000.f, 450000.f, 0.f) })
+		{
+			TestTrue(*FString::Printf(TEXT("%s: ground under the deck at %s"), *Name, *P.ToCompactString()), T->GetGroundZAt(P) <= Deck - T->DeckClearance + 1.f);
+		}
+		// The glide end 900 m over the ground 2 km from the pad; the camera stays far away (as under the cover).
+		const FVector EndXY = Origin + FVector(200000.f, 0.f, 0.f);
+		const FVector GlideEnd(EndXY.X, EndXY.Y, T->GetGroundZAt(EndXY) + 90000.f);
+		T->PrepareArrival(GlideEnd);
+		bool bReady = false;
+		for (int32 i = 0; i < 60 * 20 && !bReady; ++i) { W.Tick(1.f / 60.f); bReady = T->IsArrivalReady(GlideEnd); }
+		TestTrue(*(Name + TEXT(": the glide end is ready within 20 s of PrepareArrival")), bReady);
+		TestTrue(*(Name + TEXT(": the zone layer's near tier is in")), T->GetScatter() && T->GetScatter()->IsNearApplied());
+	}
+	return true;
+}
+
 #endif
