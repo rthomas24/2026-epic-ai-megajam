@@ -138,6 +138,9 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDProjectile>> Pool;
+	/** Prewarmed projectiles never used yet (handed out after the released ones). */
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<ATDProjectile>> Reserve;
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<ATDProjectile>> Live;
