@@ -415,7 +415,7 @@ void UTDShipMovementComponent::ApplyKeepOut(float DeltaTime)
 		FVector Axis = FVector::CrossProduct(Forward, Out);
 		if (!Axis.Normalize()) { Axis = State.Rotation.GetUpVector(); }
 		const float Angle = FMath::Acos(FMath::Clamp(FVector::DotProduct(Forward, Out), -1.f, 1.f));
-		const float Step = FMath::DegreesToRadians(FMath::Lerp(45.f, 220.f, KeepOut01)) * DeltaTime;
+		const float Step = FMath::DegreesToRadians(FMath::Lerp(18.f, 240.f, KeepOut01 * KeepOut01)) * DeltaTime;
 		State.Rotation = (FQuat(Axis, FMath::Min(Angle, Step)) * State.Rotation).GetNormalized();
 	}
 	// Slow toward a firm crawl as it goes deeper (the sim re-accelerates outside the band).
