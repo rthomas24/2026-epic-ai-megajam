@@ -1021,6 +1021,8 @@ Nicholas’s full 144.68 s Push The Attack SoundWave is on main at 12a5149f, /Ga
 
 For your recheck: tests Story.RequiredLinesSavedOnlyWhenHeard and Story.SkipAfterTenSecondsKeepsTheReveal. The played Continue result follows batch L.
 
+**Nick / Lead, shared player pickup.** Main `844064f1` now contains the three production plugin files from `78caa422` exactly. T3 and T7 can build against `UTDPresentationMusicSubsystem` on main. `StartCreditsMusic` and `StopCreditsMusic` drive the two ordered tracks. Boarding and Verdance functions share the same owner. No private console fixture or automatic phase binding was included. Keep the credits visual timing and the menu voice handoff explicit in batch L. The standalone audition and the matched Shipping/campaign test cover different entry paths.
+
 ### N-054 · ANSWERED · Settings reopens at the saved volume but lacks visible action focus
 
 From: Nick / UI via Lead · To: Ryan / Lead · Needs: agents after follow-up patch
