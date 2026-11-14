@@ -216,6 +216,23 @@ namespace TDLoopBlend
 			{
 				return;
 			}
+			// The rotation the upper body hangs from (UpperRoot's parent chain), before and after: the chest keeps its
+			// facing however the strafe clip turns the hips (an orientation-warp-like counter-twist).
+			const int32 Parent = Ref.GetParentIndex(Root);
+			auto ChainRot = [&Bones, &Ref, &Output](int32 MeshIndex)
+			{
+				FQuat Q = FQuat::Identity;
+				for (int32 I = MeshIndex; I != INDEX_NONE; I = Ref.GetParentIndex(I))
+				{
+					const FCompactPoseBoneIndex C = Bones.MakeCompactPoseIndex(FMeshPoseBoneIndex(I));
+					if (C.IsValid())
+					{
+						Q = Output.Pose[C].GetRotation() * Q;
+					}
+				}
+				return Q;
+			};
+			const FQuat Before = Parent != INDEX_NONE ? ChainRot(Parent) : FQuat::Identity;
 			for (const FCompactPoseBoneIndex B : Output.Pose.ForEachBoneIndex())
 			{
 				const int32 Mesh = Bones.MakeMeshPoseIndex(B).GetInt();
@@ -223,6 +240,12 @@ namespace TDLoopBlend
 				{
 					Output.Pose[B].BlendWith(Over.Pose[B], W);
 				}
+			}
+			const FCompactPoseBoneIndex RootC = Bones.MakeCompactPoseIndex(FMeshPoseBoneIndex(Root));
+			if (Parent != INDEX_NONE && RootC.IsValid())
+			{
+				const FQuat After = ChainRot(Parent);
+				Output.Pose[RootC].SetRotation((After.Inverse() * Before * Output.Pose[RootC].GetRotation()).GetNormalized());
 			}
 		}
 
