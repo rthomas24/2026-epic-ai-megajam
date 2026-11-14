@@ -161,9 +161,9 @@ public:
 	/** Beam length in the hand (the art is 100 cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm"))
 	float HandBladeLength = 95.f;
-	/** #163: the blade's cast light at rest (candelas); x1.6 while fighting, up to x3.5 in a hit / slam pulse. */
+	/** #163: the blade's cast light at rest (candelas); x1.4 while fighting, up to x3.5 in a short hit / slam pulse. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (ClampMin = "0"))
-	float BladeLightCandelas = 35.f; // r7: 60 tinted the whole suit pink at rest in the hangar
+	float BladeLightCandelas = 14.f; // #128: 22 and 35 tinted the enemy armour at arm's reach (r7: 60 tinted the pilot's whole suit)
 	/** Where the hilt sits on the hand bone when the mesh has no BladeSocket (set by eye on SK_Pilot). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body")
 	FTransform HandBladeOffset;
@@ -231,6 +231,8 @@ public:
 	 *  puts the blade away and moves the capsule; input waits until it ends. Returns the clip's length (0: none). */
 	float StartShipTransition(bool bBoarding, const FVector& Hatch);
 	bool IsInShipTransition() const { return bShipTransition; }
+	/** Dev (TD.Pilot.Act, animation builder): play a body clip by name as the game would. */
+	void DebugPlayBodyAction(FName Anim, float Rate, bool bUpperOnly) { PlayBodyAction(Anim, Rate, bUpperOnly); }
 	USceneComponent* GetBladeGrip() const { return BladeGrip; }
 
 	/** Applies the blade's UTDBladeFX: BladeMesh if set, otherwise the placeholder tinted with BladeColor. */
