@@ -81,6 +81,9 @@ def build(man):
         x, y, z = pc["location_cm"]
         comp.set_editor_property("relative_location", unreal.Vector(x, y, z))
         comp.set_editor_property("relative_rotation", unreal.Rotator(roll=0.0, pitch=0.0, yaw=pc.get("yaw_deg", 0.0)))
+        sc = pc.get("scale")
+        if sc:
+            comp.set_editor_property("relative_scale3d", unreal.Vector(sc[0], sc[1], sc[2]))
         comp.set_editor_property("mobility", unreal.ComponentMobility.MOVABLE)
         made += 1
     unreal.BlueprintEditorLibrary.compile_blueprint(bp)

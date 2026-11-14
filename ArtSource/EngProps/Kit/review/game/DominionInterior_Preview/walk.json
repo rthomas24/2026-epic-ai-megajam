@@ -1,0 +1,145 @@
+{
+ "site": "DominionInterior_Preview",
+ "origin": [
+  -2000.0,
+  9000.0,
+  3000.0
+ ],
+ "steps": [
+  {
+   "teleport": [
+    -600,
+    0,
+    0
+   ],
+   "feet": [
+    -600,
+    0,
+    3,
+    0
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DominionInterior_Preview\\01_hangar.png"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    -90,
+    0,
+    3,
+    0
+   ],
+   "at": "east 0"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    417,
+    0,
+    2,
+    0
+   ],
+   "at": "east 1"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    417,
+    0,
+    2,
+    0
+   ],
+   "at": "east 2"
+  },
+  {
+   "teleport": [
+    3000,
+    0,
+    0
+   ],
+   "feet": [
+    3000,
+    0,
+    2,
+    0
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DominionInterior_Preview\\02_corridor.png"
+  },
+  {
+   "teleport": [
+    6200,
+    0,
+    0
+   ],
+   "feet": [
+    6200,
+    0,
+    2,
+    0
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DominionInterior_Preview\\03_arena.png"
+  },
+  {
+   "teleport": [
+    9200,
+    0,
+    0
+   ],
+   "feet": [
+    9200,
+    0,
+    2,
+    0
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DominionInterior_Preview\\04_warden.png"
+  },
+  {
+   "teleport": [
+    12000,
+    0,
+    0
+   ],
+   "feet": [
+    12000,
+    0,
+    2,
+    0
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DominionInterior_Preview\\05_core.png"
+  },
+  {
+   "teleport": [
+    1100,
+    -600,
+    0
+   ],
+   "feet": [
+    1100,
+    -600,
+    2,
+    330
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DominionInterior_Preview\\06_hangar_doorway.png"
+  }
+ ]
+}

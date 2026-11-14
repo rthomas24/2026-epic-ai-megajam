@@ -24,6 +24,9 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(KIT)))
 sys.path.insert(0, HERE)
 import kit_lib  # noqa: E402
 import kit_pieces  # noqa: E402
+import kit_pieces_d  # noqa: E402
+
+SET = "planet"          # --set dominion: the Dominion shell (kit_pieces_d), T_KitD_Trim, red strips
 
 TEX = os.path.join(KIT, "textures")
 REVIEW = os.path.join(KIT, "review")
@@ -35,6 +38,9 @@ GLOW_EMBER = (1.0, 0.36, 0.06)
 
 def make_materials(glow=GLOW_TEAL):
     mats = {}
+    stem = "T_KitD_Trim" if SET == "dominion" else "T_Kit_Trim"
+    if SET == "dominion":
+        glow = (1.0, 0.1, 0.03)
     m = bpy.data.materials.new("M_Kit_Trim")
     nt = m.node_tree
     bsdf = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
@@ -45,7 +51,7 @@ def make_materials(glow=GLOW_TEAL):
         n.image.colorspace_settings.name = "sRGB" if srgb else "Non-Color"
         n.location = (-700, y)
         return n
-    bc, orm, nm = tex("T_Kit_Trim_BC.png", True, 300), tex("T_Kit_Trim_ORM.png", False, 0), tex("T_Kit_Trim_N.png", False, -300)
+    bc, orm, nm = tex(stem + "_BC.png", True, 300), tex(stem + "_ORM.png", False, 0), tex(stem + "_N.png", False, -300)
     nt.links.new(bc.outputs["Color"], bsdf.inputs["Base Color"])
     sep = nt.nodes.new("ShaderNodeSeparateColor")
     nt.links.new(orm.outputs["Color"], sep.inputs["Color"])
@@ -66,7 +72,8 @@ def make_materials(glow=GLOW_TEAL):
     nt.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
     m.use_backface_culling = True
     mats["Trim"] = m
-    for key, col, strength in (("Glow", glow, 6.0), ("Screen", (0.06, 0.4, 0.45), 1.5)):
+    for key, col, strength in (("Glow", glow, 6.0), ("Screen", (0.06, 0.4, 0.45), 1.5), ("Light", (0.9, 0.95, 1.0), 8.0),
+                               ("Beacon", glow, 20.0)):
         g = bpy.data.materials.new("M_Kit_" + key)
         b = next(n for n in g.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
         b.inputs["Base Color"].default_value = (0.02, 0.025, 0.03, 1.0)
@@ -85,13 +92,13 @@ def build_all():
     bpy.context.scene.collection.children.link(coll)
     mats = make_materials()
     rows, objs, pieces = [], {}, {}
-    for fn in kit_pieces.BUILDERS:
+    for fn in (kit_pieces_d.BUILDERS if SET == "dominion" else kit_pieces.BUILDERS):
         p = fn()
         lo, hi = p.bounds()
         size = tuple(round(hi[i] - lo[i], 2) for i in range(3))
         ok = all(abs(lo[i] - p.expect[0][i]) < 0.6 and abs(hi[i] - p.expect[1][i]) < 0.6 for i in range(3)) if p.expect else True
         obj = p.build(mats, coll)
-        kit_lib.finish(obj)
+        kit_lib.finish(obj, clamp=p.name not in getattr(kit_pieces_d, "NO_CLAMP", ()))
         clamped = kit_lib.bake_and_clamp(obj, lo, hi)
         objs[p.name], pieces[p.name] = obj, p
         dg = bpy.context.evaluated_depsgraph_get()
@@ -220,7 +227,7 @@ def contact_sheet(objs, tag, clay, cell=420, cols=5):
     for i, a in enumerate(cells):
         r, cc = divmod(i, cols)
         sheet[r * cell:(r + 1) * cell, cc * cell:(cc + 1) * cell] = a
-    out = os.path.join(REVIEW, "kit_%s_%s.png" % (tag, "clay" if clay else "material"))
+    out = os.path.join(REVIEW, "kit%s_%s_%s.png" % ("D" if SET == "dominion" else "", tag, "clay" if clay else "material"))
     save_px(sheet, out)
     if os.path.exists(tmp):
         os.remove(tmp)
@@ -332,12 +339,100 @@ def assembly(objs, tag):
     return out
 
 
+def assembly_d(objs, tag):
+    """A slice of T5's course: hangar floor + pad + walls, the hangar doorway (door half raised), three corridor cells,
+    a doorway and a 2 x 3 room with cover, ceilings; a 180 cm figure. Unreal cm in (Blender Y mirrored)."""
+    scene = bpy.context.scene
+    for o in objs.values():
+        o.hide_render = True
+    coll = bpy.data.collections.new("AssemblyD")
+    scene.collection.children.link(coll)
+
+    def put(name, x, y, z=0.0, yaw=0.0):
+        o = bpy.data.objects.new("A_" + name, objs[name].data)
+        coll.objects.link(o)
+        o.location = (x / 100.0, -y / 100.0, z / 100.0)
+        o.rotation_euler = (0, 0, math.radians(-yaw))
+        return o
+    ceils = []
+    for x in (-600, -200):                         # hangar slice X -800..0, Y -600..600
+        for y in (-400, 0, 400):
+            put("SM_DI_Room_Floor", x, y)
+            ceils.append(put("SM_DI_Room_Ceiling", x, y))
+    put("SM_DI_Hangar_Pad", -600, 0, 0.5)
+    for y in (-400, 400):
+        put("SM_DI_Room_Wall", 0, y)
+    for x in (-600, -200):
+        put("SM_DI_Room_Wall", x, -600, yaw=90)
+        put("SM_DI_Room_Wall", x, 600, yaw=90)
+    put("SM_DI_Doorway", 0, 0)
+    put("SM_DI_Door", 0, 0, 250)
+    for x in (200, 600, 1000):
+        put("SM_DI_Corridor_Straight", x, 0)
+    put("SM_DI_Doorway", 1200, 0)
+    for x in (1400, 1800):
+        for y in (-400, 0, 400):
+            put("SM_DI_Room_Floor", x, y)
+            ceils.append(put("SM_DI_Room_Ceiling", x, y))
+    for y in (-400, 400):
+        put("SM_DI_Room_Wall", 1200, y)
+        put("SM_DI_Room_Wall", 2000, y)
+    put("SM_DI_Room_Wall", 2000, 0)
+    for x in (1400, 1800):
+        put("SM_DI_Room_Wall", x, -600, yaw=90)
+        put("SM_DI_Room_Wall", x, 600, yaw=90)
+    put("SM_DI_Cover_Low", 1600, -250)
+    put("SM_DI_Cover_Low", 1750, 250)
+    figure(coll, (-2.0, 0.6, 0.0), 0.0)
+    figure(coll, (6.0, 0.4, 0.0), 0.0)
+    figure(coll, (16.0, -1.0, 0.0), 0.3)
+    lights = [add_light("POINT", (x / 100.0, 0, 5.4), 600, (1.0, 0.35, 0.25), 0.5) for x in (-400, 200, 600, 1000, 1600)]
+    cam_d = bpy.data.cameras.new("C")
+    cam_d.lens = 18
+    cam = bpy.data.objects.new("C", cam_d)
+    scene.collection.objects.link(cam)
+    scene.camera = cam
+    setup_render(scene, 1600, 900, 0.25, (0.05, 0.05, 0.06))
+    shots = []
+    tmp = os.path.join(REVIEW, "_asm.png")
+    look_at(cam, (-7.0, 3.5, 2.6), (2.0, 0.0, 1.6))          # hangar toward the doorway
+    render_to(scene, tmp)
+    shots.append(load_px(tmp))
+    look_at(cam, (2.0, 0.9, 1.9), (12.0, 0.0, 1.5))           # in the corridor (third-person height)
+    render_to(scene, tmp)
+    shots.append(load_px(tmp))
+    for c in ceils:
+        c.hide_render = True
+    cam_d.lens = 24
+    look_at(cam, (-6.0, 14.0, 16.0), (7.0, 0.0, 0.5))         # cutaway from above
+    for l in lights:
+        l.data.energy *= 2.0
+    render_to(scene, tmp)
+    shots.append(load_px(tmp))
+    out = os.path.join(REVIEW, "kit%s_assembly.png" % tag)
+    save_px(np.concatenate(shots, 0), out)
+    os.remove(tmp)
+    for o in list(coll.objects) + lights + [cam]:
+        bpy.data.objects.remove(o, do_unlink=True)
+    bpy.data.collections.remove(coll)
+    for o in objs.values():
+        o.hide_render = False
+    print("SHEET", out)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--tag", default="r0")
     ap.add_argument("--render", action="store_true")
     ap.add_argument("--export", action="store_true")
+    ap.add_argument("--set", default="planet", choices=("planet", "dominion"))
     a = ap.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
+    global SET, EXPORT
+    SET = a.set
+    if SET == "dominion":
+        EXPORT = os.path.join(KIT, "export_dominion")
+        a.tag = "D_" + a.tag
     os.makedirs(REVIEW, exist_ok=True)
     objs, rows, mats, pieces = build_all()
     with open(os.path.join(REVIEW, "size_check_%s.json" % a.tag), "w", encoding="utf-8") as fh:
@@ -347,7 +442,10 @@ def main():
     if a.render:
         contact_sheet(objs, a.tag, True)
         contact_sheet(objs, a.tag, False)
-        assembly(objs, a.tag)
+        if SET == "planet":
+            assembly(objs, a.tag)
+        else:
+            assembly_d(objs, a.tag)
     if a.export and not fails:
         rep = runpy.run_path(os.path.join(SKILLS, "blender-mcp", "scripts", "asset_report.py"))["main"](targets=list(objs))
         with open(os.path.join(REVIEW, "health_%s.json" % a.tag), "w", encoding="utf-8") as fh:
@@ -366,7 +464,7 @@ def main():
             w = o.dimensions.y
             o.location = (0, x + w / 2, 0)
             x += w + 1.0
-        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, "Kit.blend"), compress=True)
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, "KitDominion.blend" if SET == "dominion" else "Kit.blend"), compress=True)
     print("__RESULT__ done")
 
 

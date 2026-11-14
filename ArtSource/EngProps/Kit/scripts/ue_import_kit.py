@@ -23,13 +23,33 @@ TEX_DEST = DEST + "/Textures"
 PIPELINE = DEST + "/Pipelines/PL_Kit_StaticMesh"
 MASTER_TEX = "/Game/TriadDrift/Gameplay/Materials/M_TD_PropTextured"
 MASTER_GLOW = "/Game/TriadDrift/Gameplay/Props/Dominion/M_TD_DominionGlow"
-SIZE_CHECK = os.path.join(KIT, "review", "size_check_r3.json")
+SIZE_CHECK = os.path.join(KIT, "review", "size_check_r4.json")
 
 GLOWS = {   # MI name: (slot key it fills by default, scalars, colour)
-    "MI_Kit_Glow_Verdance": ("Glow", {"GlowStrength": 8.0, "PulseAmount": 0.0}, (0.05, 0.85, 0.75)),
-    "MI_Kit_Glow_Cinder": (None, {"GlowStrength": 8.0, "PulseAmount": 0.0}, (1.0, 0.36, 0.06)),
-    "MI_Kit_Screen": ("Screen", {"GlowStrength": 2.5, "PulseAmount": 0.0}, (0.1, 0.6, 0.7)),
+    # strips at 4 (r4; 8 flooded the outpost room), the beacon lamp at 60 (reads from the approach)
+    "MI_Kit_Glow_Verdance": ("Glow", {"GlowStrength": 4.0, "PulseAmount": 0.0}, (0.05, 0.85, 0.75)),
+    "MI_Kit_Glow_Cinder": (None, {"GlowStrength": 4.0, "PulseAmount": 0.0}, (1.0, 0.36, 0.06)),
+    "MI_Kit_Light": ("Light", {"GlowStrength": 10.0, "PulseAmount": 0.0}, (0.9, 0.95, 1.0)),
+    "MI_Kit_Beacon_Verdance": ("Beacon", {"GlowStrength": 60.0, "PulseAmount": 0.25, "PulseRate": 0.8}, (0.1, 1.0, 0.85)),
+    "MI_Kit_Beacon_Cinder": (None, {"GlowStrength": 60.0, "PulseAmount": 0.25, "PulseRate": 0.8}, (1.0, 0.4, 0.08)),
 }
+SCREEN_MI = "MI_Kit_Screen"
+SET = {"stem": "T_Kit_Trim", "trim_mi": "MI_Kit_Trim", "export": "export", "prefix": "SM_Kit_"}
+
+
+def configure_dominion():
+    """The Dominion set: /Props/Kit/Dominion, the T_KitD sheet, red strips, white work lights; the meshes keep the
+    DominionInterior names (SM_DI_*) so T5's course switches by its folder string only."""
+    global DEST, TEX_DEST, PIPELINE, SIZE_CHECK, GLOWS, NO_COLLISION, SCREEN_MI
+    DEST = "/Game/TriadDrift/Gameplay/Props/Kit/Dominion"
+    TEX_DEST = DEST + "/Textures"
+    PIPELINE = DEST + "/Pipelines/PL_KitD_StaticMesh"
+    SIZE_CHECK = os.path.join(KIT, "review", "size_check_D_r1.json")
+    GLOWS = {"MI_KitD_Glow": ("Glow", {"GlowStrength": 6.0, "PulseAmount": 0.0}, (1.0, 0.1, 0.03)),
+             "MI_KitD_Light": ("Light", {"GlowStrength": 12.0, "PulseAmount": 0.0}, (0.9, 0.95, 1.0))}
+    NO_COLLISION = ()
+    SCREEN_MI = None
+    SET.update({"stem": "T_KitD_Trim", "trim_mi": "MI_KitD_Trim", "export": "export_dominion", "prefix": "SM_DI_"})
 NO_COLLISION = ("SM_Kit_LightStrip_200",)
 
 eas = unreal.EditorAssetLibrary
@@ -56,7 +76,7 @@ def ensure_dir(path):
 def import_textures(notes):
     out = {}
     tasks = []
-    for p in sorted(glob.glob(os.path.join(KIT, "textures", "T_Kit_Trim_*.png"))):
+    for p in sorted(glob.glob(os.path.join(KIT, "textures", SET["stem"] + "_*.png"))):
         t = unreal.AssetImportTask()
         t.set_editor_property("filename", p)
         t.set_editor_property("destination_path", TEX_DEST)
@@ -66,7 +86,7 @@ def import_textures(notes):
         tasks.append(t)
     tools.import_asset_tasks(tasks)
     for suffix in ("BC", "N", "ORM"):
-        tex = eas.load_asset("%s/T_Kit_Trim_%s" % (TEX_DEST, suffix))
+        tex = eas.load_asset("%s/%s_%s" % (TEX_DEST, SET["stem"], suffix))
         if tex is None:
             notes.append("texture missing: " + suffix)
             continue
@@ -91,6 +111,66 @@ def instance(name, parent):
         name, DEST, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
     mel.set_material_instance_parent(mi, parent)
     return mi
+
+
+SCREEN_MASTER = "/Game/TriadDrift/Gameplay/Props/Kit/Materials/M_Kit_Screen"
+
+
+def ensure_screen_master(notes):
+    """M_Kit_Screen (#62): the console glass shows an image. Parameters: ScreenTexture (texture, the 0..1 UVs cover the
+    glass; default T_Kit_ScreenDefault), ScreenPower (emissive strength, default 3), ScreenTint (colour, default white).
+    Emissive = ScreenTexture x ScreenTint x ScreenPower over a near-black glossy glass."""
+    ensure_dir(DEST + "/Materials")
+    tex_path = TEX_DEST + "/T_Kit_ScreenDefault"
+    t = unreal.AssetImportTask()
+    t.set_editor_property("filename", os.path.join(KIT, "textures", "T_Kit_ScreenDefault.png"))
+    t.set_editor_property("destination_path", TEX_DEST)
+    t.set_editor_property("automated", True)
+    t.set_editor_property("replace_existing", True)
+    t.set_editor_property("save", True)
+    tools.import_asset_tasks([t])
+    default_tex = eas.load_asset(tex_path)
+    if default_tex is None:
+        log("FAILED: %s" % tex_path)
+        return None
+    folder, name = SCREEN_MASTER.rsplit("/", 1)
+    mat = eas.load_asset(SCREEN_MASTER) if eas.does_asset_exist(SCREEN_MASTER) else tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
+    mel.delete_all_material_expressions(mat)
+
+    def node(cls, x, y):
+        return mel.create_material_expression(mat, cls, x, y)
+    tx = node(unreal.MaterialExpressionTextureSampleParameter2D, -900, 0)
+    tx.set_editor_property("parameter_name", "ScreenTexture")
+    tx.set_editor_property("texture", default_tex)
+    tint = node(unreal.MaterialExpressionVectorParameter, -900, 250)
+    tint.set_editor_property("parameter_name", "ScreenTint")
+    tint.set_editor_property("default_value", unreal.LinearColor(1, 1, 1, 1))
+    pw = node(unreal.MaterialExpressionScalarParameter, -900, 400)
+    pw.set_editor_property("parameter_name", "ScreenPower")
+    pw.set_editor_property("default_value", 3.0)
+    m1 = node(unreal.MaterialExpressionMultiply, -600, 100)
+    m2 = node(unreal.MaterialExpressionMultiply, -400, 150)
+    base = node(unreal.MaterialExpressionConstant3Vector, -600, -200)
+    base.set_editor_property("constant", unreal.LinearColor(0.01, 0.012, 0.015, 1))
+    rough = node(unreal.MaterialExpressionConstant, -600, -80)
+    rough.set_editor_property("r", 0.08)
+    ok = True
+    ok &= mel.connect_material_expressions(tx, "RGB", m1, "A")
+    ok &= mel.connect_material_expressions(tint, "", m1, "B")
+    ok &= mel.connect_material_expressions(m1, "", m2, "A")
+    ok &= mel.connect_material_expressions(pw, "", m2, "B")
+    ok &= mel.connect_material_property(m2, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    ok &= mel.connect_material_property(base, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    ok &= mel.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
+    if not ok:
+        log("FAILED: could not wire " + SCREEN_MASTER)
+        return None
+    try:
+        mel.recompile_material(mat)
+    except Exception:
+        notes.append("M_Kit_Screen compiles on first load")
+    eas.save_asset(SCREEN_MASTER, only_if_is_dirty=False)
+    return mat
 
 
 def ensure_pipeline(notes):
@@ -132,7 +212,7 @@ def main():
         log("FAILED: atlas textures %s %s" % (sorted(tex), notes))
         return
     mis = {}
-    atlas = instance("MI_Kit_Trim", master_tex)
+    atlas = instance(SET["trim_mi"], master_tex)
     mel.set_material_instance_texture_parameter_value(atlas, "BaseColorTex", tex["BC"])
     mel.set_material_instance_texture_parameter_value(atlas, "ORMTex", tex["ORM"])
     mel.set_material_instance_texture_parameter_value(atlas, "NormalTex", tex["N"])
@@ -147,15 +227,22 @@ def main():
         eas.save_loaded_asset(mi)
         if key:
             mis[key] = mi
+    if SCREEN_MI:
+        scr = ensure_screen_master(notes)
+        if scr is None:
+            return
+        mi = instance(SCREEN_MI, scr)
+        eas.save_loaded_asset(mi)
+        mis["Screen"] = mi
     pipe = ensure_pipeline(notes)
     sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
     mgr = unreal.InterchangeManager.get_interchange_manager_scripted()
     rows, bad = [], 0
-    for man_path in sorted(glob.glob(os.path.join(KIT, "export", "SM_Kit_*.manifest.json"))):
+    for man_path in sorted(glob.glob(os.path.join(KIT, SET["export"], SET["prefix"] + "*.manifest.json"))):
         with open(man_path, encoding="utf-8") as fh:
             man = json.load(fh)
         asset = man["asset"]
-        fbx = os.path.join(KIT, "export", asset + ".fbx")
+        fbx = os.path.join(KIT, SET["export"], asset + ".fbx")
         n = []
         params = unreal.ImportAssetParameters()
         params.is_automated = True
@@ -245,4 +332,6 @@ def main():
 
 
 if __name__ == "__main__":
+    if os.environ.get("TD_KIT_SET") == "dominion":
+        configure_dominion()
     main()

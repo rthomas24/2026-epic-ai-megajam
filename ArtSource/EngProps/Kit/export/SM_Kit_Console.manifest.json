@@ -1,6 +1,6 @@
 {
   "asset": "SM_Kit_Console",
-  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\export\\SM_Kit_Console.fbx",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export\\SM_Kit_Console.fbx",
   "tris": 916,
   "size_cm": [
     74.0,
@@ -51,7 +51,7 @@
   ],
   "collision_source": "authored",
   "sockets": [],
-  "welded_verts": 30,
+  "welded_verts": 0,
   "nanite_recommended": false,
   "unreal_import": {
     "uniform_scale": 1.0,
