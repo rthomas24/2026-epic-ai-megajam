@@ -22,6 +22,9 @@
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/World/TDDockingBay.h"
+#include "TriadDrift/World/TDPortalGate.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "TriadDrift/Travel/TDLandingPad.h"
@@ -301,6 +304,56 @@ static FAutoConsoleCommandWithWorldAndArgs GTDTravelAimPadCmd(TEXT("TD.Travel.Ai
 			FVector::Dist(Pad->GetBeaconLocation(), Ship->GetActorLocation()) / 100.f, FVector::Dist2D(Pad->GetBeaconLocation(), Ship->GetActorLocation()) / 100.f,
 			(Ship->GetActorLocation().Z - Pad->GetBeaconLocation().Z) / 100.f, R.Yaw, R.Pitch, Ship->GetVelocity().Size() / 100.f,
 			Ship->GetLanding() ? *Ship->GetLanding()->GetLandPrompt().ToString() : TEXT(""));
+		GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f %.2f"), R.Yaw, R.Pitch, FMath::Max(0.3f, Secs)));
+	}));
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelToGateCmd(TEXT("TD.Travel.ToGate"),
+	TEXT("Captures: put the flown ship <m> in front of a portal gate (name contains <id>, default the flank pair), nose on its centre: TD.Travel.ToGate [id=Flank_West] [m=600]"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		ATDShip* Ship = TDTravelDebug::GetPlayerShip(World);
+		const FString Want = Args.Num() > 0 ? Args[0] : TEXT("Flank_West");
+		const float Out = (Args.Num() > 1 ? FCString::Atof(*Args[1]) : 600.f) * 100.f;
+		for (TActorIterator<ATDPortalGate> It(World); It && Ship; ++It)
+		{
+			if (!It->GateId.ToString().Contains(Want)) { continue; }
+			const FVector At = It->GetActorLocation() + It->GetActorForwardVector() * Out;
+			Ship->TeleportSpacecraft(At, (It->GetActorLocation() - At).Rotation(), false);
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.ToGate: %s at %s, %.0f m out, active %d, radius %.0f m"), *It->GateId.ToString(), *It->GetActorLocation().ToCompactString(), Out / 100.f, It->IsGateActive() ? 1 : 0, It->Radius / 100.f);
+			return;
+		}
+		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.ToGate: no gate named like %s"), *Want);
+	}));
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelAimGateCmd(TEXT("TD.Travel.AimGate"),
+	TEXT("Captures: steer the flown ship's nose at the nearest portal gate (the ATDPortalGate actor's own centre) through the real input; logs its distance, active state and the nearest gate-ring dressing mesh's offset: TD.Travel.AimGate [seconds=1.0]"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		ATDShip* Ship = TDTravelDebug::GetPlayerShip(World);
+		if (!Ship) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.AimGate: no player ship")); return; }
+		const ATDPortalGate* Best = nullptr;
+		for (TActorIterator<ATDPortalGate> It(World); It; ++It)
+		{
+			if (!Best || FVector::DistSquared(It->GetActorLocation(), Ship->GetActorLocation()) < FVector::DistSquared(Best->GetActorLocation(), Ship->GetActorLocation())) { Best = *It; }
+		}
+		if (!Best) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.AimGate: no portal gate")); return; }
+		// The nearest static mesh named like a gate ring (environment dressing), to see whether the art sits on the gate.
+		float RingDist = -1.f;
+		FVector RingAt = FVector::ZeroVector;
+		for (TActorIterator<AActor> It(World); It; ++It)
+		{
+			TArray<UStaticMeshComponent*> Meshes;
+			It->GetComponents<UStaticMeshComponent>(Meshes);
+			for (const UStaticMeshComponent* M : Meshes)
+			{
+				if (!M || !M->GetStaticMesh() || !M->GetStaticMesh()->GetName().Contains(TEXT("GateRing"))) { continue; }
+				const float D = FVector::Dist(M->GetComponentLocation(), Best->GetActorLocation());
+				if (RingDist < 0.f || D < RingDist) { RingDist = D; RingAt = M->GetComponentLocation(); }
+			}
+		}
+		const FRotator R = (Best->GetActorLocation() - Ship->GetActorLocation()).Rotation();
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.AimGate: %s at %s, %.0f m from the ship, active %d | nearest GateRing mesh %.0f m from the gate centre (at %s) | yaw %.1f pitch %.1f"),
+			*Best->GetName(), *Best->GetActorLocation().ToCompactString(), FVector::Dist(Best->GetActorLocation(), Ship->GetActorLocation()) / 100.f, Best->IsGateActive() ? 1 : 0,
+			RingDist / 100.f, *RingAt.ToCompactString(), R.Yaw, R.Pitch);
+		const float Secs = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 1.f;
 		GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f %.2f"), R.Yaw, R.Pitch, FMath::Max(0.3f, Secs)));
 	}));
 static FAutoConsoleCommandWithWorldAndArgs GTDTravelOpenPlanetCmd(TEXT("TD.Travel.OpenPlanet"),
