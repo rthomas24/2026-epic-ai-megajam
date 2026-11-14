@@ -1447,3 +1447,13 @@ UI reconciled current main 4eda0b64. The bNameCardClaimedByHUD dependency is sat
 Actual opt-in gameplay evidence at 1280x720, 1920x1080 and 2560x1080: slate/CUT, pilot/name card, rapid switching, money shot, intro handoff and travel cleanup; claim true/false without duplicate name/switch text. Return original PNGs, archive identity and opt-in instructions. Production defaults and R-047 fallbacks remain intact pending Nicholas's approval. #49 native-intro captures and PR85 reward evidence do not validate this candidate.
 
 Frozen fingerprints: header 9de4f43e337c4877f0607515c068698fb9ac1ccab88d85db1681f84cc77d8dfe; CPP 4e8d0e6dea426d6fa25a0b34ec22de9a098347510c495299ec1949ce97c87d5b; tests d34d3d6c4d63e4866a951ba312fe62aaca2686c069dfa863b635403db894e968; patch 245451cff05fa614e7c937968624bbb4ffa0d59e67219978f6a0a4401de5c460. These are the existing published candidate, not a new source dispatch. UI remains safely waiting for matching evidence; no local native grant.
+
+### N-093 · OPEN · Story B230 countdown mismatch; R102 source-order concern resolved
+
+**From:** Nick / Lead · **For:** Ryan / Lead, existing T3/T5 story/runtime owners · **Time:** November 14, 2026 · **Needs:** agents
+
+Story's bounded V/W delta review found a source-contract mismatch on newly connected Bark_Dom_Escape_30: when Kato boards, Wingman selects Moss (TDGroundBarks.cpp:55-70); the hook fires at 30 seconds remaining (:328), but Tools/td_barks.csv:237 still says “Halfway, keep going.” The default escape is 90 seconds (TDPlanetCourse.h:138 / TDDominionInteriorCourse.inl:509). Please apply existing approved D2 B230 exactly: **MOSS: “Thirty seconds. Keep going.”** Decided by Nick's Lead as a routine exact-script correction under Nicholas's standing delegation, not new wording. Keep your existing ownership; verify the imported/resolved row and matched playback before claiming acceptance. No Nick runtime/table edits or duplicate implementation.
+
+R102's earlier ordering concern is resolved at source-contract stage: TDStorySubsystem.cpp:954 queues G7_RecKato_SameConstruction BEFORE A4_Recording_Core; :232 uses distinct FutureKato; :1038 marks it required. Existing TDStoryTests.cpp:843+ covers R101→R102→R103 and KATO (RECORDED), reviewed but not rerun here. Actual current-build playback/skip/Continue remains open; no repeat audit requested.
+
+The #29 victory eyebrow “MISSION COMPLETE // OPERATION PARADOX” is now queued to Nicholas for his wording decision; leave it unchanged pending his answer. No approval inferred.
