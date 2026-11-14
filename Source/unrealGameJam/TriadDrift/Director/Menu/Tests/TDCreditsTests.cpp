@@ -22,7 +22,7 @@ bool FTDCreditsRoll::RunTest(const FString& Parameters)
 			All += L.ToString() + TEXT("\\n");
 		}
 	}
-	for (const TCHAR* Must : { TEXT("Ryan T"), TEXT("Nicholas Tosti"), TEXT("Story by Nicholas Tosti"), TEXT("Claude Code"), TEXT("OpenAI Codex"),
+	for (const TCHAR* Must : { TEXT("Ryan Thomas"), TEXT("Nicholas Tosti"), TEXT("Story by Nicholas Tosti"), TEXT("Claude Code"), TEXT("OpenAI Codex"),
 		TEXT("Unreal Engine 5.9"), TEXT("MegaJam") })
 	{
 		TestTrue(FString::Printf(TEXT("the credits name %s"), Must), All.Contains(Must));

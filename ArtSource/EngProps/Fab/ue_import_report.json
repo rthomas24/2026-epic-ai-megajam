@@ -1,0 +1,81 @@
+[
+ {
+  "mesh": "/Game/TriadDrift/Gameplay/Props/Fab/CrateStack/SM_Fab_CrateStack.SM_Fab_CrateStack",
+  "tris": 8412,
+  "convex_hulls": 1,
+  "bounds_min_cm": [
+   -81.2,
+   -82.9,
+   0.0
+  ],
+  "bounds_max_cm": [
+   81.2,
+   82.9,
+   145.1
+  ],
+  "slots": [
+   "M_Fab_CrateStack"
+  ],
+  "mi": "/Game/TriadDrift/Gameplay/Props/Fab/CrateStack/MI_Fab_CrateStack.MI_Fab_CrateStack",
+  "textures": {
+   "BC": "/Game/TriadDrift/Gameplay/Props/Fab/CrateStack/T_Fab_CrateStack_BC.T_Fab_CrateStack_BC",
+   "N": "/Game/TriadDrift/Gameplay/Props/Fab/CrateStack/T_Fab_CrateStack_N.T_Fab_CrateStack_N",
+   "ORM": "/Game/TriadDrift/Gameplay/Props/Fab/CrateStack/T_Fab_CrateStack_ORM.T_Fab_CrateStack_ORM"
+  },
+  "nanite": true,
+  "notes": []
+ },
+ {
+  "mesh": "/Game/TriadDrift/Gameplay/Props/Fab/PowerCore/SM_Fab_PowerCore.SM_Fab_PowerCore",
+  "tris": 952,
+  "convex_hulls": 1,
+  "bounds_min_cm": [
+   -30.5,
+   -50.0,
+   -0.0
+  ],
+  "bounds_max_cm": [
+   30.5,
+   50.0,
+   49.2
+  ],
+  "slots": [
+   "M_Fab_PowerCore"
+  ],
+  "mi": "/Game/TriadDrift/Gameplay/Props/Fab/PowerCore/MI_Fab_PowerCore.MI_Fab_PowerCore",
+  "textures": {
+   "BC": "/Game/TriadDrift/Gameplay/Props/Fab/PowerCore/T_Fab_PowerCore_BC.T_Fab_PowerCore_BC",
+   "N": "/Game/TriadDrift/Gameplay/Props/Fab/PowerCore/T_Fab_PowerCore_N.T_Fab_PowerCore_N",
+   "ORM": "/Game/TriadDrift/Gameplay/Props/Fab/PowerCore/T_Fab_PowerCore_ORM.T_Fab_PowerCore_ORM",
+   "E": "/Game/TriadDrift/Gameplay/Props/Fab/PowerCore/T_Fab_PowerCore_E.T_Fab_PowerCore_E"
+  },
+  "nanite": true,
+  "notes": []
+ },
+ {
+  "mesh": "/Game/TriadDrift/Gameplay/Props/Fab/OilBarrel/SM_Fab_OilBarrel.SM_Fab_OilBarrel",
+  "tris": 1606,
+  "convex_hulls": 1,
+  "bounds_min_cm": [
+   -29.4,
+   -29.4,
+   -0.0
+  ],
+  "bounds_max_cm": [
+   29.4,
+   29.4,
+   81.3
+  ],
+  "slots": [
+   "M_Fab_OilBarrel"
+  ],
+  "mi": "/Game/TriadDrift/Gameplay/Props/Fab/OilBarrel/MI_Fab_OilBarrel.MI_Fab_OilBarrel",
+  "textures": {
+   "BC": "/Game/TriadDrift/Gameplay/Props/Fab/OilBarrel/T_Fab_OilBarrel_BC.T_Fab_OilBarrel_BC",
+   "N": "/Game/TriadDrift/Gameplay/Props/Fab/OilBarrel/T_Fab_OilBarrel_N.T_Fab_OilBarrel_N",
+   "ORM": "/Game/TriadDrift/Gameplay/Props/Fab/OilBarrel/T_Fab_OilBarrel_ORM.T_Fab_OilBarrel_ORM"
+  },
+  "nanite": true,
+  "notes": []
+ }
+]

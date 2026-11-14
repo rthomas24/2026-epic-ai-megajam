@@ -17,7 +17,7 @@ def SB(name, user, emitters):
 
 
 def UA(**kw):
-    d = {'Color': MAGENTA, 'Scale': 1.0, 'Length': 95.0, 'TipVelocity': (0.0, 0.0, 0.0), 'TipSpeed': 0.0}
+    d = {'Color': MAGENTA, 'Scale': 1.0, 'Length': 95.0, 'TipVelocity': (0.0, 0.0, 0.0), 'TipSpeed': 0.0, 'Swing': 0.0}
     d.update(kw)
     return d
 
@@ -25,9 +25,9 @@ def UA(**kw):
 # moving: 0 still .. 1 a fast swing (the tip at 2,100 cm/s); walking with the blade is about 0.05-0.15
 MOVE = 'pow(saturate((User.TipSpeed - 300.0)/1700.0), 1.25)'
 # round 3: the sheet is full on every swing (light 1 was faint); SWING is for the sparks, quiet while walking
-SHEET = 'saturate((User.TipSpeed - 550.0)/650.0)'   # r3b: running arms reached the old threshold
-SWING = 'pow(saturate((User.TipSpeed - 900.0)/1500.0), 1.3)'
-WALK = 'saturate((User.TipSpeed - 200.0)/400.0)'
+SHEET = 'saturate((User.TipSpeed - 550.0)/650.0)*User.Swing'   # T7: only while fighting (User.Swing from the code)   # r3b: running arms reached the old threshold
+SWING = 'pow(saturate((User.TipSpeed - 900.0)/1500.0), 1.3)*User.Swing'
+WALK = 'saturate((User.TipSpeed - 200.0)/400.0)*(1.0 - User.Swing)'
 
 
 def along(e, lo, hi, thick=1.5):
@@ -92,7 +92,7 @@ SB('NS_TD_Blade_Aura', UA(), [
     sweep('SweepTip', 0.92, 0.18, 0.14, 1.0, power=1.6),
     thrown('Sparks', 'M_TD_VFX_Spark', '1400.0*%s' % SWING, (0.25, 0.55), (2.6, 4.8), (0.35, 0.95), 420.0, 3.4, stretch=10, rgb_white=0.12),
     thrown('Motes', 'M_TD_VFX_BladeEmber', '80.0*%s' % SWING, (0.6, 1.0), (1.8, 3.6), (0.1, 0.35), 140.0, 2.2, grav=-260.0, drag=1.6, curl=250.0, lo=0.2, rgb_white=0.15),
-    thrown('Trickle', 'M_TD_VFX_BladeEmber', '16.0*%s' % WALK, (0.4, 0.8), (1.2, 2.2), (0.05, 0.15), 60.0, 2.0, grav=-200.0, drag=1.5, curl=200.0, lo=0.85, rgb_white=0.2),
+    thrown('Trickle', 'M_TD_VFX_BladeEmber', '8.0*%s' % WALK, (0.15, 0.3), (0.8, 1.5), (0.0, 0.05), 30.0, 1.6, grav=0.0, drag=3.0, curl=150.0, lo=0.85, rgb_white=0.2),   # a faint tip shimmer, never reaches the ground
     single('Halo', 'M_TD_VFX_Glow', 72, 0.45, 23.7, offset=(46.0, 0, 0)),   # camera-facing: the blade reads from behind when it points at the camera
 ])
 

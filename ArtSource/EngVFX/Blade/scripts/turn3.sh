@@ -16,7 +16,7 @@ if [ "$2" != "nobuild" ]; then
   for i in $(seq 1 30); do powershell -Command "if (Get-CimInstance Win32_Process -Filter \"Name like 'UnrealEditor%'\" | ? { \$_.CommandLine -match 'ModelContextProtocolPort=$PORT' }) { exit 1 }" && break; sleep 2; done
   echo "A done $(date +%H:%M:%S)"; sleep 3
 fi
-powershell -ExecutionPolicy Bypass -File Tools/td-play-mcp.ps1 -Port $PORT -Map /Game/TriadDrift/Maps/L_Galaxy -MaxSeconds 600 -ResX 1600 -ResY 900 | tail -1
+powershell -ExecutionPolicy Bypass -File Tools/td-play-mcp.ps1 -Port $PORT -Map /Game/TriadDrift/Maps/L_Galaxy -MaxSeconds 600 -ResX 1280 -ResY 720 -Offscreen | tail -1
 P="python ArtSource/EngVFX/scripts/play.py $PORT $OUT"
 B="con:TD.Ground.Blade"
 $P sleep:8 con:TD.Stage\ DominionInterior sleep:22 con:TD.God con:TD.Ground.ThirdPerson\ 1 sleep:3 cap:dark_idle con:TD.Ground.HandBlade \
