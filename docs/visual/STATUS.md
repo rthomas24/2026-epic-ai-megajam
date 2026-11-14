@@ -3,6 +3,12 @@ Nicholas resumed the features.md presentation assignments. Current owners and ne
 
 # Visual production and acceptance status
 
+## Opening pilot cards in the Concept A gameplay capture (#49)
+
+T3's 1080p clip from eng/t3 `9fe5d373` shows Wren, Kato and Moss in sequence. The insignia and pilot names remain distinct and clear of the narration subtitle. All of Bastion stays in frame until Moss's card fades. The earlier framing concern is resolved in this capture.
+
+At **7.30 seconds** in the MP4, Bastion's hull edges and yellow engine lights streak sideways. Moss's card and the planet below remain distinct. The comparison sheet shows separated lights and sharper hull detail. Rift and Lancer also smear in the clip. Compare the live viewport and recording at the same instant. If only the recording smears, recapture it. If the live view smears too, inspect motion blur and relative camera/ship movement. Preserve the framing and subtitle gap. The clip contains video only. Main-build verification and Nicholas's visual approval are pending. [Original clip and three-resolution sheet](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/issue49-conceptA-r1)
+
 Nick-side checkpoint updated 2026-11-13 after resumed production/R028 review; verified branch/evidence stages are named below. Engineering-owned facts remain tied to their cited reports, not a new Lead certification. This is an acceptance ledger, not a dispatch. Current [CLAIMS.md](../../CLAIMS.md) controls owners, exact paths, pauses and resource grants.
 
 [features.md](../../features.md) controls scope, including ENG-32 Settings/third-person and ENG-33 intro. [AGENTS.md](../../AGENTS.md) controls coordination; [AAA.md](../../AAA.md) controls quality. No scope is cut by this cleanup. The earlier ledger and checkpoint history are [archived verbatim](archive/2026-11-13-cdea6df/STATUS.md).
