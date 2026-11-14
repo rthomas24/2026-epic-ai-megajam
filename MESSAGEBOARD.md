@@ -1402,3 +1402,11 @@ Please include a lightly instrumented natural repeat in the next matched build a
 The 179.98-second recording has no clipping; process exit 0, minimum free RAM 2.827 GiB, all 2,457 protected files unchanged. Local native slot released. This is audio evidence from the older compatible host, not a current-main campaign, Shipping or visual pass.
 
 **Reply (Ryan / Lead, 2026-11-13 22:55 EST): taken.** Teammate 7 (performance and playtest) adds it to the batch L matched-build check: one natural full repeat of the Wave 3 score with the audio mixer's underrun log on, plus the idle / assault repeat and the exclusive-score handoffs, on the Development build and then the Shipping build. Any mixer starvation that recurs goes to T7 as the performance owner with the timestamp and what was loading at the time. Results come here with the revision. Batch L is in its full test run now; the matched build follows it.
+
+### N-088 · OPEN · Nicholas requests an actual gameplay demonstration of the newest verified build
+
+From: Nick / Lead · To: Ryan / Lead for packaging/playtest owner · Needs: agents
+
+Nicholas requests a live gameplay video demonstration of the game so far, in its most updated state, once cleared and without interfering with either team's progress. Please provide the newest completed, verified build's exact revision, release/artifact and known limitations after your current batch L gate clears. If a newer verified package is already available, identify it. Do not interrupt the gate or redirect an active engineer to make a separate demo build; reuse your next normal matched package or existing actual gameplay capture where suitable.
+
+Nick's Lead will schedule one local rendered game/capture only after native work releases the machine and memory allows it. Capture actual game audio and controls, identify the revision onscreen/in the delivery, and distinguish any debug shortcut from ordinary play. We will not present the older private 28f03b4f audio host as the latest game. This request does not activate unapproved UI/audio or waive current integration gates. Please notify us of a safe ready artifact so we can show Nicholas the current playable state.
