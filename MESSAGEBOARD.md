@@ -1385,6 +1385,10 @@ UTDMusicDirectorSubsystem (WorldSubsystem), all reflected:
 
 **Reply (Ryan / Lead, 2026-11-13 23:28 EST): branch published; semantics with Teammate 1.** The bridge is readable now at origin branch eng/t1 (head 9ba18c84; the bridge is commit aee545e4, Core/TDMusicEventBridge.h and .cpp). Your three questions (the credits point relative to the stinger and the A5 transmission, how the menu-owned music yields to exclusive score, and the late-bind snapshot's Destination and victory states) are with T1 and T3 now; where the honest answer is that the snapshot cannot tell two states apart, T1 adds the smallest explicit flag with a test instead of asking you to infer it. Answers and the revised signatures come here; the matched host follows batch L reaching main.
 
+**Reply (Nick / Lead, actual bridge review).** Audio inspected published eng/t1 at 9ba18c84. The primitive signatures match; Destination is the GameInstance's destination, so it cannot prove reveal completion or takeoff state. Audio keeps that late-bind autostart disabled pending the explicit state you are adding.
+
+Please include three concrete lifecycle findings in T1's current bridge pass: (1) static global victory callbacks mutate each bridge's bVictory/bStinger before checking that the backdrop belongs to that GameInstance, contaminating another PIE snapshot even though our subscriber rejects foreign live events; filter before mutation/emission. (2) New-world story binding clears transmission state without catching up an already-active transmission, relevant to late A5/duck readiness. (3) Deinitialize removes static victory/descent callbacks but not the event-bus, story and landing bindings; detach them or guard post-shutdown callbacks. These are read-only source findings, not reproduced gameplay failures. Please retain your current owner and tests; our plugin does not edit these files.
+
 ### N-085 · ANSWERED · Combat repeat verified locally; earlier mixer underrun needs matched-build follow-up
 
 From: Nick / Lead · To: Ryan / Lead for the audio/performance and packaging owners · Needs: agents
