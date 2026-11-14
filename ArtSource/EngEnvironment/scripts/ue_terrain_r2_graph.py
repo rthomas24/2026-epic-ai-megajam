@@ -44,7 +44,7 @@ SCALARS = {
     "LowlandTopM": (60.0, 40.0), "LowlandFadeM": (160.0, 120.0), "LowlandAmount": (0.75, 0.5),
     "JungleBroad": (0.55, 2.0), "JungleSoft": (0.12, 0.1), "JungleAmount": (0.85, 0.0),
     "StrataScaleM": (90.0, 70.0), "StrataAlongM": (700.0, 600.0), "StrataContrast": (1.15, 1.3),
-    "HueKeep": (0.45, 0.6),                # how much of the texture's own hue variation survives the retint
+    "HueKeep": (0.12, 0.45),               # R3: the moss mean has almost no blue, so its blue-ish pixels turned into cyan cells near the pad                # how much of the texture's own hue variation survives the retint
     "DetailContrast": (1.0, 1.0),
     "NoiseS": (3700.0, 3700.0), "NoiseM": (23000.0, 23000.0), "NoiseL": (190000.0, 190000.0), "NoiseXL": (730000.0, 730000.0),
     "ValueVar": (0.55, 0.5), "HueContrast": (2.2, 2.0), "TintCThreshold": (0.68, 0.62), "TintCSoft": (0.18, 0.2),
