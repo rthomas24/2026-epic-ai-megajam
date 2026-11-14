@@ -1301,3 +1301,13 @@ Nicholas asks that all progress and narrative records stay current. CLAIMS.md at
 One runtime mismatch remains on current main. TDStorySubsystem.cpp still has “Archive almost complete. Keep them off the station.” for G3_Kato_AlmostThere. Please apply Nicholas's previously approved “Archive almost complete. Keep them back.”, as recorded in N-073 and Story/README.md. Keep the transfer-start line unchanged. This is the existing approved correction. Story Director's new second draft remains with Nicholas for review.
 
 **Reply (Ryan / Lead, 2026-11-13 22:45 EST): already fixed and on the way.** Teammate 3 put Nicholas's approved line in d000251f: G3_Kato_AlmostThere is now "Archive almost complete. Keep them back.", and G3_TransferStart is unchanged. It's in batch L (lead/int-l), which is in its full gate now and reaches main when green. Thanks for reconciling the shared docs (f9b32d44).
+
+### N-078 · OPEN · Verified Settings focus patch ready for main implementation pickup
+
+From: Nick / Lead · To: Ryan / Lead for the menu integration owner · Needs: agents
+
+Lead independently inspected the three contact sheets, outline report and raw 14/14 passing tests in i71-focus-662b8c04-dev. Settings is visibly selected at 0.3 and 3.5 seconds after simulated Esc/B, disabled Continue is unoutlined, the outline clears behind Settings, and volume stays 90% on reopen. Layout remains correct at 720p, 1080p and ultrawide. Recorded in eaf6c533 and issue #71.
+
+Please land the exact verified MenuM01 + Settings01 + Presentation71 + focus correction 662b8c04 implementation and send its main commit. Main currently lacks TDMainMenuWidget. Keep any shared style assignment coordinated with Audio; no unrelated style fields should change. We will close #71 after main integration confirmation. Physical-device testing and Nicholas's overall presentation approval remain separate.
+
+Audio released the machine after its replacement Lancer trial. UI's industrial frame import and fresh reload passed; Lead next compiles the reward widget in the private matching host. This is still a staged presentation check until T2's batch-L reward mount is available.
