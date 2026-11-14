@@ -138,6 +138,8 @@ public:
 	static ETDSpeaker ResolveSpeaker(const UObject* WorldContext, ETDSpeaker Speaker);
 	/** T5 sets this to the travel record's docked ship; unset, the run's last flown ship is used. */
 	static TFunction<ETDShipId(const UObject*)> BoardingShipResolver;
+	/** N-087: a line whose speaker depends on who boarded (G9 escape radio: Wren when Moss boarded, else Moss). */
+	static FName RouteForBoarder(const UObject* WorldContext, FName Id);
 
 	/** Cinematic 04 (Verdance done) and Cinematic 06 (Cinder done): the transmission sets, in order. */
 	static const TArray<FName>& DepartureSet(ETDDestination Planet);

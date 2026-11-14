@@ -149,14 +149,14 @@ namespace TDStory
 			E(TEXT("G3_Kato_AlmostThere"), S::Kato, LOCTEXT("G3_Kato_AlmostThere", "Archive almost complete. Keep them back.")),
 			E(TEXT("G3_Command_Extraction"), S::Command, LOCTEXT("G3_Command_Extraction", "Triad, extraction corridor is open. Return with the archive intact.")),
 			// Cinematic 04, Verdance Departure (§17, §25: transmissions over the take-off; no shielding).
-			E(TEXT("C4_Moss_Trouble"), S::Moss, LOCTEXT("C4_Moss_Trouble", "All that for a recorder full of voices. None of them answering.")),
+			E(TEXT("C4_Moss_Trouble"), S::Moss, LOCTEXT("C4_Moss_Trouble", "All that for a recorder full of voices. None of them answering.")), // retired (N-087: kept for the record, never fired)
 			E(TEXT("C4_Wren_Badly"), S::Wren, LOCTEXT("C4_Wren_Badly", "They wanted that device and its records. We need to know why.")),
 			E(TEXT("C4_Kato_SameSignature"), S::Kato, LOCTEXT("C4_Kato_SameSignature", "They weren't searching at random. These two sites have the same geometric signature.")),
-			E(TEXT("C4_Wren_WhatConnects"), S::Wren, LOCTEXT("C4_Wren_WhatConnects", "Verdance and Cinder. What connects them?")),
-			E(TEXT("C4_Kato_SurveyStation"), S::Kato, LOCTEXT("C4_Kato_SurveyStation", "I don't know. Cinder's mining complex has matching readings. They're extracting stabilising crystals there.")),
+			E(TEXT("C4_Wren_WhatConnects"), S::Wren, LOCTEXT("C4_Wren_WhatConnects", "Verdance and Cinder. What connects them?")), // retired (N-087: kept for the record, never fired)
+			E(TEXT("C4_Kato_SurveyStation"), S::Kato, LOCTEXT("C4_Kato_SurveyStation", "I don't know. Cinder's mining complex has matching readings. They're extracting stabilising crystals there.")), // retired (N-087: kept for the record, never fired)
 			E(TEXT("C4_Command_Proceed"), S::Command, LOCTEXT("C4_Command_Proceed", "Proceed to Cinder. Investigate the mining complex and recover the stabilising crystals. Compare them with the signal-analysis records. Maintain reconnaissance priority.")),
-			E(TEXT("C4_Moss_Volcanoes"), S::Moss, LOCTEXT("C4_Moss_Volcanoes", "Volcanoes. Great. I was getting tired of the jungle.")),
-			E(TEXT("C4_Wren_SetCourse"), S::Wren, LOCTEXT("C4_Wren_SetCourse", "Triad, set course for Cinder.")),
+			E(TEXT("C4_Moss_Volcanoes"), S::Moss, LOCTEXT("C4_Moss_Volcanoes", "Volcanoes. Great. I was getting tired of the jungle.")), // retired (N-087: kept for the record, never fired)
+			E(TEXT("C4_Wren_SetCourse"), S::Wren, LOCTEXT("C4_Wren_SetCourse", "Triad, set course for Cinder.")), // retired (N-087: kept for the record, never fired)
 			// Act 3: Cinder, the Pattern.
 			E(TEXT("A3_CrystalsFound"), S::Kato, LOCTEXT("A3_CrystalsFound", "Samples secured. EMP prototype recovered. Lancer's pulse is online.")),
 			E(TEXT("A3_PassageOpen"), S::Kato, LOCTEXT("A3_PassageOpen", "The anchor is down. The approach is prepared; passage is still blocked.")),
@@ -184,12 +184,12 @@ namespace TDStory
 			E(TEXT("G5_Command_AnchorMarked"), S::Command, LOCTEXT("G5_Command_AnchorMarked", "Field anchor marked. Shut it down and confirm your exit.")),
 			E(TEXT("G5_Wren_BackToShips"), S::Wren, LOCTEXT("G5_Wren_BackToShips", "Keep the samples intact. Back to the ships.")),
 			// Cinematic 06, The Path to Dominion (§23): transmissions only, six over the Cinder take-off, two as wave 5 forms.
-			E(TEXT("C6_Moss_SamplesAboard"), S::Moss, LOCTEXT("C6_Moss_SamplesAboard", "Samples aboard. I'm ready for somewhere with fewer volcanoes.")),
+			E(TEXT("C6_Moss_SamplesAboard"), S::Moss, LOCTEXT("C6_Moss_SamplesAboard", "Samples aboard. I'm ready for somewhere with fewer volcanoes.")), // retired (N-087: kept for the record, never fired)
 			E(TEXT("C6_Kato_GuardLine"), S::Kato, LOCTEXT("C6_Kato_GuardLine", "The anchor is down. The approach is prepared. We still have to clear the guard line.")),
 			E(TEXT("C6_Kato_FourGenerators"), S::Kato, LOCTEXT("C6_Kato_FourGenerators", "The crystals can stabilise the approach. Four generators are still sustaining its defensive shield.")),
-			E(TEXT("C6_Wren_FindAWayInside"), S::Wren, LOCTEXT("C6_Wren_FindAWayInside", "Then we take down the generators and find a way inside.")),
+			E(TEXT("C6_Wren_FindAWayInside"), S::Wren, LOCTEXT("C6_Wren_FindAWayInside", "Then we take down the generators and find a way inside.")), // retired (N-087: kept for the record, never fired)
 			E(TEXT("C6_Command_FindOutWhy"), S::Command, LOCTEXT("C6_Command_FindOutWhy", "They're collecting parts of the Origin Core. We need to know why. Disable the outer defences and secure access. Keep your channels recording.")),
-			E(TEXT("C6_Wren_Understood"), S::Wren, LOCTEXT("C6_Wren_Understood", "Understood. We find out what they intend to do with it.")),
+			E(TEXT("C6_Wren_Understood"), S::Wren, LOCTEXT("C6_Wren_Understood", "Understood. We find out what they intend to do with it.")), // retired (N-087: kept for the record, never fired)
 			E(TEXT("C6_Moss_WholeFleet"), S::Moss, LOCTEXT("C6_Moss_WholeFleet", "They've put a whole fleet across our route.")),
 			E(TEXT("C6_Wren_StayTogether"), S::Wren, LOCTEXT("C6_Wren_StayTogether", "Stay together. Clear the guard line, then the generators.")),
 			// Gameplay 06, The Dominion Assault (§24). An access mission: nothing here orders the ship or reactor destroyed.
@@ -260,6 +260,8 @@ namespace TDStory
 			E(TEXT("G8_Command_ReactorLost"), S::Command, LOCTEXT("G8_Command_ReactorLost", "Reactor lost. Get back to the hangar.")),
 			// Gameplay 09, Escape from the Dominion (storyline.md 30).
 			E(TEXT("G9_Moss_HoldingWayOut"), S::Moss, LOCTEXT("G9_Moss_HoldingWayOut", "Keep moving. We're holding the way out.")),
+			// N-087: when Moss is the one on foot, Wren holds the way out (FireTransmission routes it).
+			E(TEXT("G9_Wren_HoldingWayOut"), S::Wren, LOCTEXT("G9_Wren_HoldingWayOut", "Keep moving. We're holding the way out.")),
 			E(TEXT("G9_Kato_HangarConfirmed"), S::Kato, LOCTEXT("G9_Kato_HangarConfirmed", "Hangar signal confirmed. Get the ship clear.")),
 			E(TEXT("G9_Wren_PullAway"), S::Wren, LOCTEXT("G9_Wren_PullAway", "Triad, pull away. Follow the clear vector.")),
 			// Cinematic 09, The Paradox (storyline.md 31): clear space, then the signal (the caption stays on screen under them).
@@ -607,11 +609,10 @@ const TArray<FName>& UTDStorySubsystem::DepartureSet(ETDDestination Planet)
 {
 	// Cinematic 04, Verdance Departure (§17, §25) and Cinematic 06, The Path to Dominion (§23): transmissions over the
 	// existing take-off, no cutscene (Story/README.md: "transmissions over existing take-off transitions").
-	static const TArray<FName> Verdance = { TEXT("C4_Moss_Trouble"), TEXT("C4_Wren_Badly"), TEXT("C4_Kato_SameSignature"),
-		TEXT("C4_Wren_WhatConnects"), TEXT("C4_Kato_SurveyStation"), TEXT("C4_Command_Proceed"), TEXT("C4_Moss_Volcanoes"),
-		TEXT("C4_Wren_SetCourse") };
-	static const TArray<FName> Cinder = { TEXT("C6_Moss_SamplesAboard"), TEXT("C6_Kato_GuardLine"), TEXT("C6_Kato_FourGenerators"),
-		TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Command_FindOutWhy"), TEXT("C6_Wren_Understood") };
+	// N-087 (Nick's Lead under Nicholas's delegation, issue #29): three calls each; the five C4 and three C6 lines cut are
+	// kept in the table, marked retired.
+	static const TArray<FName> Verdance = { TEXT("C4_Wren_Badly"), TEXT("C4_Kato_SameSignature"), TEXT("C4_Command_Proceed") };
+	static const TArray<FName> Cinder = { TEXT("C6_Kato_GuardLine"), TEXT("C6_Kato_FourGenerators"), TEXT("C6_Command_FindOutWhy") };
 	static const TArray<FName> None;
 	return Planet == ETDDestination::Verdance ? Verdance : (Planet == ETDDestination::Cinder ? Cinder : None);
 }
@@ -788,8 +789,19 @@ void UTDStorySubsystem::ResetPlayed()
 	}
 }
 
+FName UTDStorySubsystem::RouteForBoarder(const UObject* WorldContext, FName Id)
+{
+	// N-087: the escape radio is Moss's, unless Moss boarded; then Wren holds the way out.
+	if (Id == TEXT("G9_Moss_HoldingWayOut") && ResolveSpeaker(WorldContext, ETDSpeaker::Boarder) == ETDSpeaker::Moss)
+	{
+		return TEXT("G9_Wren_HoldingWayOut");
+	}
+	return Id;
+}
+
 bool UTDStorySubsystem::FireTransmission(FName Id)
 {
+	Id = RouteForBoarder(this, Id);
 	FTDTransmission Entry;
 	if (Id.IsNone() || !FindEntry(Id, Entry))
 	{
