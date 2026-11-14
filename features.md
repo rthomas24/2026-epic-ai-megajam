@@ -1,5 +1,7 @@
 # Triad Drift: Feature Spec & Work Split (Ryan × Nick)
 
+**Nick-side availability, November 14 at01:16EST:** Nicholas explicitly stopped his Codex agents at safe checkpoints. Lead, Story, UI/HUD, Audio and Auditor are stopped; Lead's goal and the recurring issue check are paused. Existing features and acceptance gates remain unchanged. No Nick-side queued row authorizes restart before Nicholas resumes the team. Ryan's development continues under its existing authority. See CLAIMS.md and MESSAGEBOARD N-090.
+
 > **Working title:** Triad Drift · **Jam:** 2026 Epic AI MegaJam · **Engine:** UE 5.9 (MegaJam Preview), project `unrealGameJam`
 > **Theme:** **DIRECTOR'S CUT** (how the game expresses it: C-03)
 > **Story:** **The Paradox** (Nicholas's narrative, adopted by Ryan Nov 13): [`storyline.md`](storyline.md). Every feature below serves it.

@@ -1,5 +1,18 @@
-# Active presentation production, Nov 13
-Nicholas resumed the features.md presentation assignments. Current owners and next tasks are recorded in CLAIMS.md. The previous stop checkpoint preserves earlier work.
+# Presentation stopped at safe checkpoints — November 14, 01:16 EST
+
+Nicholas explicitly stopped his Codex agents while shutting down. Lead's goal is paused. Story, UI/HUD, Audio and Auditor each reported stopped with no owned operations; the recurring issue audit is paused. A local process check found no Unreal, game, Blender, FFmpeg or process-capture jobs. This is a manual stop, not a10% usage-reserve shutdown (latest supported specialist observations:54% weekly remaining). Ryan/Claude/Grok work is unaffected. Resume only with Nicholas's explicit authorization; preserved queues are not permission.
+
+## Recovery checkpoint
+
+| Owner | Preserved work and exact restart context |
+|---|---|
+| Lead | Integration worktree C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/lead-audio-pickup-1113, branch nick/lead-audio-pickup-1113. Submission drafts e0b543c0/2d549ba4, actual200s demo11b8ab97,50s trailer draft2690aad5; no final approval implied. N-090 initial shutdown notice6aa427ec. After authorization, fetch/reconcile all rules and pending owner replies before assigning work. |
+| Audio | C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/audio-music-events-1113, branch nick/audio-music-events-1113. Preserve modified Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDPresentationMusicSubsystem.h, Private/TDPresentationMusicSubsystem.cpp and Private/TDPresentationMusicTests.cpp; source_checkpoint_02.json retains hashes. Untracked ArtSource/Audio/CinderMusic01 is already delivered on main; do not delete it. Saved/MusicEvents01/TutorialShippingReadiness01 and TutorialShippingCapture01 preserve both failed attempts and script792126a0. Normal02 failed before recording on foreground guard, then physical Escape stopped UI; PID10636/recorders closed, package unchanged. No tutorial-loop/full-fade acceptance. Next authorized task: consume9cfa5ec9 contract in the existing three files, or a newly coordinated capture; do not blindly retry. |
+| UI/HUD | C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/ui-director-cards-1113, branch nick/ui-director-cards-1113/base9af1978e. Preserve untracked Public/TDDirectorCardsWidget.h, Private/TDDirectorCardsWidget.cpp and Private/TDDirectorCardsWidgetTests.cpp under Plugins/TriadDriftHUD/Source/TriadDriftHUD, plus docs/visual/Playtests/08-Batch-M-Presentation-and-Combat.md. Renderer payload is on main2946312b; supplementae62fc0e. Matching T3 flag/build, five tests and720/1080/2560 captures still required; reward59ec2f79/PR85 unchanged. |
+| Story | C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/story-fidelity-1113, branch nick/story-fidelity-1113. Untracked docs/visual/StoryFidelity01/{matrix.json,README.md,voice-pickups.md} are preserved copies of main5459d415. Private Saved/StoryFidelity01/VideoReview01 and Decisions03/recommendations.json retain completed reviews. Three #29 exact-word recommendations are ready; R102 placement before the final confirmation needs owner-order verification. Reported T3 branch revisions were unavailable locally; do not call their17tests independently verified. |
+| Auditor | C:/Users/nicho/OneDrive/Documents/ChatGPT/Unreal Game Jam 2026/Artifacts/IssueAudit: attention-checkpoint.json, current-item-discussions.json, item-triage-ledger.json, board-completion-review-20261114.md, issue31-exact-change-review.md, issue31-before-after.jpg and auditor-shutdown.json. No repository edits. Five completed messages archived by Ryan after55fe57d2. #31 rings/shards/dust0.75 verified, centralFlash unchanged; stagedPIE comparison does not establish new natural landing proof. Automation triad-drift-manual-attention-check is PAUSED. |
+
+Current blockers remain: matching music/UI build and actual playback/captures; full tutorial fade; final human appearance/listening approval; final submission package/trailer. No PR11/12 approval, new asset acceptance or goal completion was inferred from shutdown.
 
 # Visual production and acceptance status
 
