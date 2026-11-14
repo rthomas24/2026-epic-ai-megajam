@@ -31,6 +31,7 @@
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -443,6 +444,8 @@ namespace TDWorldDebug
 			const float Metres = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 60.f;
 			FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyPlasmaMines).Projectile;
 			Spec.FuseArmDelay = FMath::Max(Spec.FuseArmDelay, 10.f);
+			// The mine's real look (DA_<Weapon>_FX), as the bomber's weapon component equips it (effects builder, Nov 14).
+			if (!Spec.FX) { Spec.FX = FTDPowerPresentation::LoadWeaponFX(TDWeaponIds::EnemyPlasmaMines); }
 			Spec.bInheritShooterVelocity = false;
 			const FVector At = Pawn->GetActorLocation() + Pawn->GetActorForwardVector() * Metres * 100.f;
 			ATDProjectile* Mine = ATDProjectile::Spawn(World, Spec, FTransform(Pawn->GetActorRotation(), At), nullptr, ETDTeam::Enemy);
