@@ -78,6 +78,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Menu")
 	void QuitGame();
 
+	/**
+	 * ENG-45: the code-built menu's New Game asks for the difficulty first (Story / Standard / Ace, the last choice
+	 * preselected), then starts the run. ChooseDifficulty opens that page (bSkipTutorial: for "Skip the tutorial");
+	 * StartWithDifficulty saves the choice and starts; CancelDifficultyChoice goes back to the menu.
+	 */
+	void ChooseDifficulty(bool bSkipTutorial);
+	bool StartWithDifficulty(uint8 Difficulty);
+	void CancelDifficultyChoice();
+	bool IsChoosingDifficulty() const { return bChoosingDifficulty; }
+
 	/** From the victory screen back to the main menu. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Menu")
 	void ReturnToMenu();
@@ -144,6 +154,8 @@ public:
 	static TSharedPtr<class SWidget> ChooseRefocus(const TSharedPtr<class SWidget>& LastFocused, const TSharedPtr<class SWidget>& First);
 private:
 	bool bShowingVictory = false;
+	bool bChoosingDifficulty = false;
+	bool bDifficultyThenSkipTutorial = false;
 	FText VictoryHeadline;
 	bool bReturnPending = false; // the stinger plays before the menu comes back
 	bool bMusicStarted = false;
