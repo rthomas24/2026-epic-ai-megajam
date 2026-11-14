@@ -78,16 +78,18 @@ void ATDDockingBay::BuildPlaceholder()
 	}
 	UTDStatics::TintPlaceholder(DoorLeft, FLinearColor(0.02f, 0.02f, 0.025f), 0.f);
 	UTDStatics::TintPlaceholder(DoorRight, FLinearColor(0.02f, 0.02f, 0.025f), 0.f);
-	UTDStatics::TintPlaceholder(Frame, FLinearColor(1.f, 0.3f, 0.05f), 4.f);
-	UTDStatics::TintPlaceholder(FrameBars, FLinearColor(1.f, 0.3f, 0.05f), 4.f);
-	UTDStatics::TintPlaceholder(GuideLights, FLinearColor(1.f, 1.f, 1.f), 12.f);
+	// Lead (Nov 14, #126 / #110): at gameplay distance with bloom the frame at x4 and the guide spheres at x12 washed the
+	// bay out near-white. Frame x1.5; guide lights x3 and a third of their size.
+	UTDStatics::TintPlaceholder(Frame, FLinearColor(1.f, 0.3f, 0.05f), 1.5f);
+	UTDStatics::TintPlaceholder(FrameBars, FLinearColor(1.f, 0.3f, 0.05f), 1.5f);
+	UTDStatics::TintPlaceholder(GuideLights, FLinearColor(1.f, 1.f, 1.f), 3.f);
 	GuideLights->ClearInstances();
 	for (int32 i = 1; i <= 12; ++i)
 	{
 		const float X = i * (ConeDepth / 13.f);
 		for (const float Side : { -1.f, 1.f })
 		{
-			GuideLights->AddInstance(FTransform(FRotator::ZeroRotator, FVector(X, Side * (DoorHalfWidth + X * 0.08f), -H), FVector(6.f)));
+			GuideLights->AddInstance(FTransform(FRotator::ZeroRotator, FVector(X, Side * (DoorHalfWidth + X * 0.08f), -H), FVector(2.f)));
 		}
 	}
 }

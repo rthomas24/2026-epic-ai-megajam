@@ -42,6 +42,11 @@ public:
 	float CooldownSeconds = 40.f;
 	/** Only enemies this close to the player's ship can pre-empt (cm). */
 	float Range = 300000.f;
+	/** At most one tell in a wave (the clue stays rare and deniable). */
+	bool bOncePerWave = true;
+	/** The visible tell: a small pale flash at the enemy's nose as it turns (cm; 0 = none). */
+	float TellFlashRadius = 500.f;
+	int32 GetTellsThisWave() const { return TellsThisWave; }
 
 	int32 GetTellCount() const { return Tells; }
 	int32 GetCurrentWave() const { return Wave; }
@@ -70,6 +75,7 @@ protected:
 
 	int32 Wave = 0;
 	int32 Tells = 0;
+	int32 TellsThisWave = 0;
 	double LastTellTime = -1e9;
 	float BindTimer = 0.f;
 	FRandomStream Rng{ 0x5EED };
