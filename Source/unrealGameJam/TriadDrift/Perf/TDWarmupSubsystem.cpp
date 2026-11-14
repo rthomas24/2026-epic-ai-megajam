@@ -207,8 +207,17 @@ void UTDWarmupSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	WaitLeft = StartDelaySeconds;
 }
 
+static int32 GTDWarmupKeepForRun = 1;
+static FAutoConsoleVariableRef CVarTDWarmupKeepForRun(TEXT("td.Warmup.KeepForRun"), GTDWarmupKeepForRun,
+	TEXT("#89: 1 = what the warm-up loads stays in memory for the whole run (a return to the galaxy finds it resident); 0 = released with each level, as before (and what was kept is let go)."));
+
 void UTDWarmupKeep::Keep(const TArray<TObjectPtr<UObject>>& Assets)
 {
+	if (GTDWarmupKeepForRun == 0)
+	{
+		Kept.Reset();
+		return;
+	}
 	for (UObject* Asset : Assets)
 	{
 		if (Asset) { Kept.Add(Asset); }
