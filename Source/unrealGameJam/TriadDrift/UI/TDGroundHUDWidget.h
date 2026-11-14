@@ -98,6 +98,10 @@ public:
 	static constexpr float BossPhase2At = .5f;
 	/** The objective panel grows to fit its line up to this width (design px), then wraps to two lines. */
 	static constexpr float ObjectiveMaxWidth = 1000.f;
+	/** The flight-style objective pill: at least this wide, one line / two lines tall. */
+	static constexpr float ObjectiveMinWidth = 300.f;
+	static constexpr float ObjectiveHeight = 40.f;
+	static constexpr float ObjectiveHeight2 = 64.f;
 
 	/** Named boxes painted last frame (tests: "transfer" for the meter plate). */
 	mutable TArray<TPair<FName, FBox2D>> LastBoxes;
