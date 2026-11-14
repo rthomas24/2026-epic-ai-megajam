@@ -151,6 +151,16 @@ S2('NS_TD_Dominion_TractorBeam', U((0.35, 0.65, 1.0, 1.0), 1.0, Length=20000.0, 
 # photographed in PIE (Python cannot add a mesh component there). T6 uses a plain sphere actor.
 S2('NS_TD_Debug_HazeSphere', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='MI_TD_RegionHaze_Review')])
 
+# 10d debug (review only): why the region beacon and the haze never show. Same emitter with (A) a fixed 8.4 m size,
+# (B) the size straight from Engine.Owner.LODDistance (0 if the engine does not fill it); the haze sphere with the
+# known-good field material, and with the haze base material (not the instance).
+def dbg_beacon(size_expr):
+    return [shed('Beacon', 'M_TD_VFX_Glow', 0, (0.1, 0.1), (size_expr, size_expr), (0, 0), radius=0.0, drag=0.0, local=True, power=0.01, k=2.5, rate_expr='20.0')]
+S2('NS_TD_Debug_BeaconFixed', U((1.0, 0.62, 0.18, 1.0), 1.0), dbg_beacon('840.0'))
+S2('NS_TD_Debug_BeaconLOD', U((1.0, 0.62, 0.18, 1.0), 1.0), dbg_beacon('(0.028*Engine.Owner.LODDistance)'))
+S2('NS_TD_Debug_HazeField', U((0.70, 0.85, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0)])
+S2('NS_TD_Debug_HazeBase', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='M_TD_RegionHaze')])
+
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
 # ---- round 10 MAJOR (T7's play): Cinder magma kills but does not read as dangerous on foot. A looping hazard layer for
