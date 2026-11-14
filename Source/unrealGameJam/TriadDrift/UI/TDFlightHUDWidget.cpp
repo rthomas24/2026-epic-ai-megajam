@@ -20,6 +20,7 @@
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDVerdanceApproach.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
@@ -701,6 +702,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 			const APawn* EnemyPawn = Cast<APawn>(A);
 			const ATDEnemyAIController* AI = EnemyPawn ? Cast<ATDEnemyAIController>(EnemyPawn->GetController()) : nullptr;
 			Mark.bThreat = Mine && AI && AI->GetTarget() == Mine;
+			Mark.ScreenRadius = FMath::Clamp(A->GetSimpleCollisionRadius() / FMath::Max(M.Distance, 1.f) * PxPerRadian, 0.f, 220.f);
 		}
 		if (M.bOnScreen)
 		{
@@ -899,6 +901,17 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 			StartOrbitCue();
 		}
 		bCoverSeen = bCovered;
+		// The host's record of the reveal (this HUD may be built after it): ORBIT for what is left of its seconds.
+		const double Reveal = UTDUIHostSubsystem::GetLastGalaxyReveal();
+		if (Reveal > 0.0 && Reveal != OrbitRevealSeen)
+		{
+			OrbitRevealSeen = Reveal;
+			const float Since = static_cast<float>(FPlatformTime::Seconds() - Reveal);
+			if (Since < OrbitCueSeconds + 1.f)
+			{
+				OrbitCueLeft = FMath::Max(OrbitCueLeft, FMath::Max(OrbitCueSeconds - Since, 1.5f));
+			}
+		}
 		OrbitCueLeft = FMath::Max(0.f, OrbitCueLeft - Dt);
 		View.OrbitCue01 = OrbitCueLeft / OrbitCueSeconds;
 	}
@@ -1381,7 +1394,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			TDFlightHUDShapes::Points(Mk.Kind, Pts, Width);
 			const FLinearColor C = (Mk.bThreat ? FMath::Lerp(Enemy, FLinearColor::White, .35f) : Enemy).CopyWithNewOpacity(Alpha);
 			const float W = Width + (Mk.bThreat ? 1.f : 0.f);
-			const float Cs = FMath::Cos(Rot), Sn = FMath::Sin(Rot);
+			// 1.4x the first size: live at 1080p the 12 px outlines were hard to tell apart.
+			const float Cs = FMath::Cos(Rot) * 1.4f, Sn = FMath::Sin(Rot) * 1.4f;
 			for (int32 I = 0; I + 1 < Pts.Num(); ++I)
 			{
 				const FVector2D A(Pts[I].X * Cs - Pts[I].Y * Sn, Pts[I].X * Sn + Pts[I].Y * Cs);
@@ -1390,7 +1404,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			}
 			if (Mk.Kind == UTDFlightHUDWidget::KindCarrier)
 			{
-				P.Brackets(At, 15.f, C, 5.f);
+				P.Brackets(At, 21.f, C, 6.f);
 			}
 		};
 		if (!M.bOnScreen)
@@ -1442,9 +1456,10 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			continue;
 		}
 		// Other hostiles: a 14 px hollow triangle, point down, above the ship; a locked one gets a 20 px amber diamond.
-		const FVector2D Tick(M.Pos.X, M.Pos.Y - 18.f);
+		// Just above the ship's outline (live: a fixed 18 px sat on the hull of a close ship).
+		const FVector2D Tick(M.Pos.X, M.Pos.Y - FMath::Max(18.f, M.ScreenRadius + 16.f));
 		Rec(TEXT("tick"), Tick.X - 7.f, Tick.Y - 6.f, 14.f, 12.f);
-		Shape(M, Tick, 0.f, .9f);
+		Shape(M, Tick, 0.f, .95f);
 		Rec(*FString::Printf(TEXT("kind_%s"), KindName(M.Kind)), Tick.X - 12.f, Tick.Y - 12.f, 24.f, 24.f);
 		// Heading: toward = a filled dot in the outline, otherwise a short tick on the ship along its nose (crossing or away).
 		if (M.Heading == 1)

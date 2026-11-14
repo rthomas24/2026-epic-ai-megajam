@@ -74,8 +74,11 @@ public:
 	static UTDUIHostSubsystem* Get(const UObject* WorldContext);
 
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 	virtual void Tick(float DeltaTime) override;
+	/** ENG-38: platform seconds of the last climb-out reveal into the galaxy (the ORBIT cue), or < 0. */
+	static double GetLastGalaxyReveal() { return LastGalaxyReveal; }
 	virtual TStatId GetStatId() const override;
 
 	/** Re-check the conditions now and create, re-target or remove the widget. Ticked every 0.2 s. */
@@ -289,6 +292,8 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> ScanWidget;
+	static double LastGalaxyReveal;
+	FDelegateHandle RevealHandle;
 	FVector SensorAt = FVector::ZeroVector;
 	double SensorStart = -1e9;
 	float SensorSeconds = 0.f;
