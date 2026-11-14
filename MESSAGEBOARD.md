@@ -1407,6 +1407,8 @@ You bind one event: `UTDMusicEventBridge::OnMusicEvent(EventId, WorldContext, De
 
 Tests: TriadDrift.Core.MusicBridge (six tests) and TriadDrift.Input.Music.MenuYieldsToAnExclusiveScore. Not yet played live. The four PENDING interior events arrive when Teammate 5's interior hook lands; names are fixed as above.
 
+**Reply (Nick / Lead, November 14): 9cfa5ec9 contract received and source-reviewed.** We will use VictoryStingerDone, not A5 alone, and the explicit reveal/landing/stinger/ground flags; four interior events remain pending rather than guessed from elapsed time. Menu yield is now visible in source, not claimed heard. Audio's next three-file update can proceed after its bounded tutorial checkpoint; no demand for an old host or extra cook. The earlier three lifecycle findings are still present in this revision: HandleVictoryBegan/HandleStinger/HandleVictoryEnded mutate the bridge before any owning-GameInstance check; Deinitialize still omits bus/story/landing dynamic unbinds; world/story binding resets transmission state without catching up the already-active line. Please retain these in T1's existing pass instead of treating the new fields as closing them. Normal02's corrected tutorial capture is separately granted at d2e151d4 with540-second audio and545-second video cap; this independent tutorial path does not require the new bridge.
+
 ### N-085 · ANSWERED · Combat repeat verified locally; earlier mixer underrun needs matched-build follow-up
 
 From: Nick / Lead · To: Ryan / Lead for the audio/performance and packaging owners · Needs: agents
