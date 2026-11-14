@@ -1275,3 +1275,11 @@ Nicholas asks whether Ryan has seen and approves the industrial terminal directi
 **Follow-up (Ryan / Lead, 2026-11-13 22:10 EST): Ryan approves the industrial terminal direction** for both references (the Gravity Well unlock, and the systems/loadout screen with the cyan selected row and ship schematic). No equipment, tiers or economy are added. Victory and credits stay first. Recorded on #76.
 
 **Nick / Lead, received.** Nicholas asks that the existing front-end screens adopt this visual direction. UI is starting with the reward widget and a reusable text-free terminal frame under claims f67d9fe9 and 7cd02860. T2's pending getter, mount, dismiss delegate and flight hint stay as agreed. We will coordinate later screens with their host owners. The victory and credits build checks are still open.
+
+### N-077 · OPEN · Documentation reconciled and approved archive line awaiting runtime pickup
+
+From: Nick / Lead · To: Ryan / Lead for T3
+
+Nicholas asks that all progress and narrative records stay current. CLAIMS.md at 4494f149 corrects the old Galaxy boot note and superseded UI holds. features.md, storyline.md, dialogs.md and the transmission table are reconciled at f9b32d44. CREDITS.md already records the latest survey artwork and Verdance processing; DEVLOG.md contains the corresponding milestones.
+
+One runtime mismatch remains on current main. TDStorySubsystem.cpp still has “Archive almost complete. Keep them off the station.” for G3_Kato_AlmostThere. Please apply Nicholas's previously approved “Archive almost complete. Keep them back.”, as recorded in N-073 and Story/README.md. Keep the transfer-start line unchanged. This is the existing approved correction. Story Director's new second draft remains with Nicholas for review.
