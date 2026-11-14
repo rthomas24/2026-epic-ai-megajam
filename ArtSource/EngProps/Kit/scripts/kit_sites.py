@@ -571,7 +571,9 @@ def survey_stations():
         c.append(piece("Shield_%d" % x, ST + "SM_Kit_HeatShieldCracked", x, -230.0, 100.0 + L, 0.0, slots=gc))
         c.append(piece("Rail_%d" % x, "SM_Kit_Railing_400", x, 200.0, 100.0 + L, 180.0))
     c.append(piece("Rail_back", "SM_Kit_Railing_400", -400.0, 0.0, 100.0 + L, 90.0))
-    c.append(piece("Rack", ST + "SM_Kit_SampleCases", -300.0, 120.0, 100.0 + L, 90.0))
+    # batch W (walk test: the pawn climbed the rack at the back rail and went over it): the rack stands on the ground
+    # beside the +Y side, 1.3 m clear of the deck rail, nothing on the deck to climb
+    c.append(piece("Rack", ST + "SM_Kit_SampleCases", 150.0, 360.0, L, 0.0))
     c.append(piece("Console", "SM_Kit_Console", -330.0, -80.0, 100.0 + L, 0.0, slots={"Screen": K + "MI_Kit_Screen"}))
     c.append(piece("Beacon", ST + "SM_Kit_WarningBeacon", 150.0, -170.0, 100.0 + L, 0.0, slots={"Beacon": K + "MI_Kit_Beacon_Cinder"}))
     return {"SurveyStation_Verdance": {"site": "SurveyStation_Verdance", "actor": K + "Sites/BP_SurveyStation_Verdance",
@@ -585,7 +587,9 @@ def survey_stations():
                 "pieces": c,
                 "footprint_cm": {"x": [-400, 1000], "y": [-280, 200]}, "deck_top_z": 103,
                 "stair_foot_site_cm": [1000, 0, 3], "console_stand_site_cm": [[-220, -80, 103, 180]],
-                "placement_rules": ["Pivot on flat ground; the shield wall (-Y) faces the lava; keep 3 m clear past the ramp foot (+X)."]}}
+                "tested_site_world_cm": [-3500, 2000, 2], "footprint_with_rack_cm": {"x": [-400, 1000], "y": [-280, 420]},
+                "placement_rules": ["Pivot on flat ground; the shield wall (-Y) faces the lava; keep 3 m clear past the ramp foot (+X).",
+                                    "Not inside the course keep-outs (the magma river is X 4500..6700, Y 1100..8500); walk-tested at (-3500, 2000)."]}}
 
 
 def ship_gear():
@@ -599,6 +603,20 @@ def ship_gear():
                                    "pieces": [piece("Hull", SH + "%s/SM_%s" % (ship, ship), 0.0, 0.0, -pad, 0.0),
                                               piece("Gear", SH + "%s/SM_%s_Gear" % (ship, ship), 0.0, 0.0, -pad + att, 0.0)]}
     return out
+
+
+def magma_bridge():
+    """Cinder: the magma bridge on the conduit route (T7's play: the route crosses the magma river). SM_Kit_MagmaBridge
+    is one mesh: pivot on the bank ground at the span centre, +X along the span; 200 cm ramps (14 degrees) at both ends
+    up to a 2400 cm deck, walk top 50 (the magma trigger ends 10 cm above the surface), 300 cm between the rails."""
+    return {"Bridge_Magma": {"site": "Bridge_Magma", "actor": K + "Sites/BP_MagmaBridge",
+            "about": "Cinder magma bridge (walkable kit, exact collision): 2800 x 370 cm overall, deck top 50 cm, walk width 300 cm.",
+            "pieces": [piece("Bridge", "SM_Kit_MagmaBridge", 0.0, 0.0, 0.0)],
+            "footprint_cm": {"x": [-1400, 1400], "y": [-185, 185]}, "deck_top_z": 50, "walk_width_cm": 300,
+            "ramp_feet_site_cm": [[-1400, 0, 0], [1400, 0, 0]], "deck_x_cm": [-1200, 1200],
+            "placement_rules": ["Pivot at the river's centre line on the conduit route, Z = the bank ground; yaw so +X runs along the route.",
+                                "Both ramp feet (x +-1400) on dry ground: the magma channel must lie within x -1200..1200 (24 m deck).",
+                                "The piers (x +-400, down to -150) stand in the magma; nothing else under the deck."]}}
 
 
 def main():
@@ -615,6 +633,7 @@ def main():
     sites.update(region_sites())
     sites.update(survey_stations())
     sites.update(ship_gear())
+    sites.update(magma_bridge())
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)

@@ -1089,6 +1089,8 @@ void ATDFirstPersonCharacter::BeginInteract()
 		return;
 	}
 	const float Hold = I->GetHoldTime();
+	// The animation builder's reach-out (eng/anim batch L): upper body, so walking up to a console keeps the legs.
+	PlayBodyAction(TEXT("A_Pilot_Interact_Console"), 1.f, true);
 	if (Hold <= 0.f)
 	{
 		I->Interact(this);

@@ -22,6 +22,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -778,6 +779,33 @@ bool FTDIntroWarmUp::RunTest(const FString& Parameters)
 		TestFalse(FString::Printf(TEXT("setting %.1f: the cover dropped within 1 s"), Setting), F.Intro->IsWarmingUp());
 		TestTrue(TEXT("the clock runs"), F.Intro->GetElapsed() > 0.f);
 	}
+	return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroSubtitlesOff, "TriadDrift.Director.Intro.SubtitlesOffHidesTheOpeningLines", TD_TEST_FLAGS)
+bool FTDIntroSubtitlesOff::RunTest(const FString& Parameters)
+{
+	// ENG-45: the opening's O_* lines obey T1's subtitles setting (the line still runs: a voice would still play).
+	TDIntroTest::FIntroWorld F;
+	if (!TestTrue(TEXT("squad and player"), F.Init()))
+	{
+		return false;
+	}
+	UTDSettingsSubsystem* Settings = F.W.GetGameInstance() ? F.W.GetGameInstance()->GetSubsystem<UTDSettingsSubsystem>() : nullptr;
+	if (!TestNotNull(TEXT("settings"), Settings) || !TestTrue(TEXT("plays"), F.Play()))
+	{
+		return false;
+	}
+	Settings->UseSlotForTests(TEXT("TD_Settings_T3_Subtitles"));
+	ON_SCOPE_EXIT { Settings->SetSubtitlesEnabled(true); };
+	const UTDIntroDirector::FTimedLine& L = UTDIntroDirector::OpeningLines()[2];
+	F.Intro->DebugSetTime(L.Start + 0.8f, true);
+	TestTrue(TEXT("on: the line shows"), F.Intro->GetOverlay().SubtitleAlpha > 0.5f);
+	Settings->SetSubtitlesEnabled(false);
+	F.Intro->DebugSetTime(L.Start + 0.9f, true);
+	TestEqual(TEXT("off: no text"), F.Intro->GetOverlay().SubtitleAlpha, 0.f);
+	TestEqual(TEXT("off: the line still runs"), F.Intro->GetOverlay().SubtitleLineId, FName(L.Id));
 	return true;
 }
 

@@ -29,7 +29,7 @@ def log(m):
     unreal.log("TDPY: " + m)
 
 
-def trim_mi(name, grime, grime_rough, tint=(1.0, 1.0, 1.0), self_illum=0.0, stem="T_Kit_Trim"):
+def trim_mi(name, grime, grime_rough, tint=(1.0, 1.0, 1.0), self_illum=0.0, stem="T_Kit_Trim", grime_scale=1.0):
     """r2 (Lead: near-black blocks in space light): the kit trim with weathering, a BaseTint for two-tone panels and a
     faint SelfIllum so the shadow side keeps its form against the nebula without a fill light."""
     parent = eas.load_asset(KT + "Materials/M_KitD_Trim")
@@ -40,6 +40,7 @@ def trim_mi(name, grime, grime_rough, tint=(1.0, 1.0, 1.0), self_illum=0.0, stem
     mel.set_material_instance_scalar_parameter_value(mi, "GrimeRough", grime_rough)
     mel.set_material_instance_vector_parameter_value(mi, "BaseTint", unreal.LinearColor(tint[0], tint[1], tint[2], 1.0))
     mel.set_material_instance_scalar_parameter_value(mi, "SelfIllum", self_illum)
+    mel.set_material_instance_scalar_parameter_value(mi, "GrimeScale", grime_scale)
     eas.save_loaded_asset(mi)
     return mi
 
@@ -192,8 +193,10 @@ def main():
     scorch = trim_mi("MI_SP_Scorch", 1.0, 0.4, (0.12, 0.1, 0.09), 0.02)              # burnt plates and frames
     hulk = trim_mi("MI_KS_HulkDark", 0.4, 0.3, (0.62, 0.62, 0.66), 0.14)              # r4: mid-grey hull (was near-black)
     hulk2 = trim_mi("MI_KS_HulkDark2", 0.6, 0.35, (0.3, 0.3, 0.33), 0.08)             # and its dark panels
-    strata = trim_mi("MI_KS_Strata", 0.5, 0.3, (0.5, 0.45, 0.4), 0.05, stem="T_KitS_Trim")      # r3: subtle strata (about 25 %)
-    strata2 = trim_mi("MI_KS_Strata2", 0.45, 0.3, (0.64, 0.58, 0.51), 0.05, stem="T_KitS_Trim")
+    # batch W: the strata's sheet read as a regular grid at 1 km; 0.08 x the grime noise position = 110 m and 19 m
+    # value blotches over the face, stronger (0.75), so the repeat breaks up
+    strata = trim_mi("MI_KS_Strata", 0.75, 0.3, (0.5, 0.45, 0.4), 0.05, stem="T_KitS_Trim", grime_scale=0.08)      # r3: subtle strata (about 25 %)
+    strata2 = trim_mi("MI_KS_Strata2", 0.7, 0.3, (0.64, 0.58, 0.51), 0.05, stem="T_KitS_Trim", grime_scale=0.08)
     rim = trim_mi("MI_KS_FractureRim", 0.3, 0.3, (0.9, 0.86, 0.78), 0.08, stem="T_KitS_Trim")    # the pale band along the break
     rock = eas.load_asset(KT + "Materials/M_KitD_Trim")
     rock = K.instance("MI_KS_Rock", rock)                       # r2: the asteroid textures on the trim master (world-position

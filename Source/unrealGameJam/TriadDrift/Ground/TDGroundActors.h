@@ -377,6 +377,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (Units = "s", ClampMin = "0"))
 	float OpeningGraceSeconds = 1.2f;
 
+	/** A member (never the Warden) that has had no line of sight to the pilot and lost no health for this long is
+	 *  removed, so a fight cannot stall on crew stuck behind a wall (T7's play, Nov 14: a Trooper and a Heavy stood
+	 *  23 m away behind the relay's terminal wall for 2 minutes). 0 = never. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (Units = "s", ClampMin = "0"))
+	float StragglerSeconds = 30.f;
+
+	/** One straggler pass (the encounter runs it every second while the fight is on); public for tests. */
+	void SweepStragglers(float Seconds);
+
 	/** Director's mercy: easing per take of this fight (empty = always the same fight). Sorted by FromTake. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	TArray<FTDRetakeMercyTier> MercyTiers;
@@ -433,6 +442,9 @@ private:
 	bool IsPlayerPawn(const AActor* Actor) const;
 
 	TArray<TWeakObjectPtr<AActor>> Spawned;
+	struct FStraggler { float Unseen = 0.f; float LastHealth = -1.f; };
+	TMap<TWeakObjectPtr<AActor>, FStraggler> Stragglers;
+	FTimerHandle StragglerTimer;
 	bool bActivated = false;
 	bool bCleared = false;
 	int32 Take = 0;
