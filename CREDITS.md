@@ -182,6 +182,10 @@ The Verdance buried-structure scan and the Cinder comparison overlay were create
 
 Nicholas Tosti supplied Ambient1 for quiet space flight. Audio used FFmpeg to decode the full stereo track and the Unreal Engine 5.9 editor Python API to import and reload its SoundWave. [Source and tool record](ArtSource/Audio/IdleAmbient01/source_manifest.json).
 
+Credits playlist implementation and verification: Nicholas Tosti supplied the music; the presentation team used OpenAI Codex, Unreal Engine 5.9, Windows WASAPI process capture, FFmpeg and Python for playback, lossless excerpting and source comparison. [Listen to the game recording](docs/visual/Submission/MusicBuild01/credits-playback.md).
+
+Nicholas Tosti supplied the Suno track Ethereal Pulse (Remix) for combat. Audio prepared the full 139.2-second loop with FFmpeg and Python and imported the stereo SoundWave in Unreal Engine 5.9. [Track provenance and preparation](https://github.com/rthomas24/2026-epic-ai-megajam/blob/nick/audio-prototype-v1/ArtSource/Audio/CombatMusic01/CREDITS.md).
+
 ### Grok Bot deliveries imported by the import builder (Dominion hull r2, shield generator, Cinder anchor, Null hauler, drill rig) - November 13, 2026
 
 | Asset | Tool | Licence / plan | Added by |
@@ -210,3 +214,77 @@ Original Cathedral Pulse core-chamber selection: supplied by Nicholas Tosti, pre
 
 Cinder World and Cinder Fall: supplied by Nicholas Tosti and explicitly assigned by him to Cinder exploration and combat, respectively. Audio used Python and FFmpeg to prepare full-duration stereo PCM16 masters, preserving both original MP3s and applying no gain, trim, loop or crossfade. Source receipts and measurements are in ArtSource/Audio/CinderMusic01. A possible later combat entry is for audition; no gameplay start offset is approved or applied by this source preparation. Native import, playback and mix acceptance remain separate.
 - **Null Trooper rifle clips (13) and Warden fire / summon clips (4)** (`ArtSource/EngAI/Animations/CrewTrooper/r1`, `ArtSource/EngAI/Animations/Warden/r1`; in game as `A_Crew_Trooper_*` and `A_Crew_Warden_*_01/02`): motion generated with HY-Motion 1.0 via fal.ai (AI-generated; commercial use per the fal terms recorded in each SOURCE.md), by Grok Bot for Ryan's side; retargeted in Blender; imported by the animation builder (Claude Code). PRs #86 and #87, Nov 13.
+
+Nicholas Tosti supplied the Verdance theme. For the loop revision, the Lead used Python to smooth its stereo endpoints, Unreal Engine 5.9 for native loop playback, and NumPy and FFmpeg to check and extract the original game recording. The earlier full-length source and asset remain available in project history.
+
+### Grok Bot deliveries imported by the import builder, second batch (outpost set dressing, crystal cluster r2) - November 13, 2026
+
+| Asset | Tool | Licence / plan | Added by |
+|---|---|---|---|
+| `SM_Outpost_{CargoCrate,SupplyCrate,FieldTerminal,DataKiosk,CommAntenna,CommsDish,Floodlight,BollardLight,Generator,PowerJunction}`, `T_OutpostProps_BC/N/ORM/E`, `MI_OutpostProps` in `Content/TriadDrift/Gameplay/Props/OutpostDressing/` (PR #79) | Blender 4.5.3, procedural hard-surface by Grok Bot after Nicholas's landing-pad board (`ArtSource/EngAI/Props/OutpostSetDressing/mesh_r1/SOURCE.md`); no AI 3D generator | project-authored | Grok Bot; import by Claude Code (Ryan's side) |
+| `SM_CrystalCacheCrystal` r2, `T_CrystalCacheCrystal_*` in `Content/TriadDrift/Gameplay/Props/CrystalCache/` (PR #80) | Blender 4.5.3, procedural bmesh by Grok Bot (`ArtSource/EngAI/Props/CrystalCache/mesh_r2/SOURCE.md`); no AI 3D generator | project-authored | same |
+
+### Grok Bot deliveries not credited before (asset ledger pass, ART-02) - November 13, 2026
+
+Made during the jam by Grok Bot (Ryan's asset-generation agent) on Ryan's own paid accounts. The facts below are copied from each folder's `SOURCE.md`; states and use are in `docs/eng/ASSETS.md` 2.8.
+
+| Asset | Tool | Licence / plan | Added by |
+|---|---|---|---|
+| Effect flipbooks `T_TD_VFX_Grok_*` in `Content/TriadDrift/Gameplay/VFX/Textures/` (explosion, smoke, fire, engine exhaust, shockwave, debris; sources `ArtSource/EngAI/VFX/**`) | **AI-generated video**: fal.ai, Alibaba Wan 3.0 Prime text-to-video (`alibaba/wan-3.0-prime/text-to-video`), frames packed locally with ffmpeg, Pillow and NumPy. Electric arc, glow, plasma bolt, shield hex ripple and spark are procedural (Python, NumPy, Pillow; no generator) | fal terms: content generated through the fal API is cleared for commercial projects (each `r1/SOURCE.md`); Ryan's paid fal.ai account | Grok Bot; imported and wired by Claude Code (Ryan's side, effects builder) |
+| Descent textures (PR #33): `T_Descent_CloudDeck` in `Content/TriadDrift/Gameplay/Props/Sky/` (in the game); cloud wisp, cloud punch, plasma sheath, heat streak, shock cone in `ArtSource/EngAI/Descent/**` | **AI-generated**: fal.ai, Nano Banana 2 (`fal-ai/nano-banana-2`) for the cloud deck, made tileable locally; Alibaba Wan 3.0 Prime text-to-video for the flipbooks; heat streak and shock cone procedural (no generator) | fal terms, cleared for commercial projects; Ryan's paid fal.ai account | Grok Bot; cloud deck material by Claude Code (Ryan's side, environment builder) |
+| `SM_CrystalCacheCradle`, `T_CrystalCacheCradle_BC/N/ORM/E`, `MI_CrystalCacheCradle` in `Content/TriadDrift/Gameplay/Props/CrystalCache/` (PR #75) | **Hyper3D Rodin** image-to-3D from Nicholas's crystal-cache board, then Blender 4.5.3 polish (`ArtSource/EngAI/Props/CrystalCache/mesh_r1/SOURCE.md`). The r1 hero crystal in the same PR was procedural Blender, no generator | Hyper3D terms, paid Business plan, commercial use | Grok Bot; import by Claude Code (Ryan's side) |
+| Energy blade concept (PR #26) and mesh `SM_EnergyBlade_Deployed` / `_Folded` (PR #47) in `ArtSource/EngAI/Weapons/EnergyBlade/**`. Source only: not in the game | Concept: **AI-generated image**, fal.ai, Google Nano Banana 2.1. Mesh: **Hyper3D Rodin Gen-2.5** image-to-3D | fal terms; Hyper3D terms, paid Business plan, commercial use | Grok Bot |
+| Dominion mothership concept v3 (PR #65) in `ArtSource/EngAI/Ships/DominionMothership/concept_r1/`. Concept only, the design input of the hull | **AI-generated image**: fal.ai, Google Nano Banana 2.1 (text-to-image and edit) | fal terms, cleared for commercial projects | Grok Bot; picked by Nicholas |
+| Dominion hull mesh_r1 (PR #70) in `ArtSource/EngAI/Ships/DominionMothership/mesh_r1/`. Source only: superseded by mesh_r2 | Blender 4.5.3 procedural hard-surface, NumPy textures; no AI 3D generator | project-authored | Grok Bot |
+| Dominion docking bay plans, blockout, `SM_DominionBay_Door_L/R`, `SM_DominionBay_TractorEmitter`, `T_DominionBay_Trim_*` (PR #77) in `ArtSource/EngAI/Props/DominionDockingBay/plans_r1/`. Source only | Blender 4.5.3, matplotlib, NumPy; no AI generator | project-authored | Grok Bot |
+| Dominion interior plans, sections, trim sheet and decal atlas (PR #82) in `ArtSource/EngAI/Props/DominionInterior/plans_r1/`. Source only | Blender 4.5.3, matplotlib, NumPy; no AI generator | project-authored | Grok Bot |
+| Rift mesh_r2 (PR #67) in `ArtSource/EngAI/Ships/Rift/mesh_r2/`. Source only | Blender 4.5.3 (Python / bmesh), OpenCV and NumPy for textures; no generator | project-authored over the Rodin output | Grok Bot |
+| Anchor tower plinth collision in `SM_CinderAnchorTower` (`ArtSource/EngImport/CinderAnchor/`) | Blender 5.2 headless: one convex hull refitted on Grok Bot's Rodin tower | project-authored | Claude Code (Ryan's side, import builder) |
+
+Held, not in the game: a voice audition for Wren (PR #78, not merged) made with **xAI text-to-speech through fal.ai** (AI-generated voice). If a take ships, it is credited here as AI-generated with the terms in its `SOURCE.md`.
+
+### Tools used on Ryan's side, in one list (for the submission's "Tools you used")
+
+AI tools, each marked where its output is AI-generated:
+- **Claude Code** (Anthropic): engineering lead, teammates and builders; all gameplay code, tools, imports and docs.
+- **Grok Bot** (xAI Grok, Ryan's asset-generation agent): runs the generators below and the Blender builds in `ArtSource/EngAI/**`.
+- **Hyper3D Rodin** Gen-2.5 (image-to-3D, AI-generated meshes and textures): squad ships, Null fleet, hauler, drone, Warden, anchor tower, drill rig, crystal cradle, relay, wreck, outpost, energy blade mesh. List it for the Rodin prize pool.
+- **fal.ai** hosted models (AI-generated): OpenAI GPT Image 2 / 2.6 Edit and Google Nano Banana 2 / 2.1 (concept images, cloud deck texture); Alibaba Wan 3.0 Prime text-to-video (effect and descent flipbooks); HY-Motion 1.0 / Hunyuan Motion (pilot blade animation); xAI text-to-speech (voice audition, held, not shipped).
+- **PBRgen** (AI-generated PBR terrain sets; start textures from Nano Banana 2).
+
+Other tools: Unreal Engine 5.9 (MegaJam Preview) with its built-in MCP server, Niagara, Interchange and Procedural Vegetation Editor; Blender 5.2 and 4.5.3 (headless Python); Python with NumPy, Pillow, OpenCV, matplotlib; ffmpeg.
+
+Tools on Nicholas's side (OpenAI Codex, Suno, Meshy AI, OpenAI image generation and others) are in his entries above and are not restated here.
+
+### Engineering originals not credited before (asset ledger pass, ART-02) - November 13, 2026
+
+All original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan T: code-built in Blender 5.2 (headless Python) or built in Unreal Engine 5.9 by script. No AI mesh, image or texture generator and no third-party model, texture or scan, except where the row says so.
+
+| Asset | Tool | Licence / provenance | Added by |
+|---|---|---|---|
+| Walkable site kit: `SM_Kit_*` (16 meshes), `MI_Kit_*`, `T_Kit_*` in `Content/TriadDrift/Gameplay/Props/Kit/`, and the site classes built from it (`BP_Relay`, `BP_Relay_Awake`, `BP_Wreck`, `BP_Outpost_Site_Verdance` / `_Cinder`, `BP_DigSite_Cabin`); sources `ArtSource/EngProps/Kit/` | Blender 5.2 code-built hard surface with one trim sheet; classes assembled by Unreal Python. The relay, wreck and drill rig inside those classes are Grok Bot's Rodin meshes, credited above | project-authored | Claude Code (Ryan's side, structures builder) |
+| Scatter kit: `SM_Scatter_*` (14 meshes), `M_TD_Scatter*`, `MI_Scatter_*`, `T_Scatter_Atlas_*` in `Content/TriadDrift/Gameplay/Props/Scatter/`; sources `ArtSource/EngProps/Scatter/` | Blender 5.2 code-built | project-authored | Claude Code (Ryan's side) |
+| Space dressing kit: 20 meshes (ice, metal and crystal asteroids, cargo pods, satellites, trusses, buoy, gate ring) in `Content/TriadDrift/Gameplay/Props/SpaceDressing/`; sources `ArtSource/EngProps/SpaceDressing/` | Blender 5.2 code-built, baked textures | project-authored | Claude Code (Ryan's side) |
+| Nebula sky: `T_TD_NebulaSky` with its mesh and material in `Content/TriadDrift/Gameplay/Props/Sky/`; sources `ArtSource/EngProps/Sky/` | Blender world shader bake, procedural and seeded | project-authored | Claude Code (Ryan's side) |
+| Energy blade in the game: `SM_TD_BladeHilt`, `SM_TD_BladeBeam`, `M_TD_BladeBeam`, `MI_TD_Blade*`, `T_TD_BladeHilt_*` in `Content/TriadDrift/Gameplay/Props/Blade/`; sources `ArtSource/EngProps/Blade/` | Blender 5.2 code-built | project-authored | Claude Code (Ryan's side) |
+| Landing pad: `SM_LandingPad` with its material and textures in `Content/TriadDrift/Gameplay/Props/Planet/`; sources `ArtSource/EngProps/Pad/` | Blender 5.2 code-built | project-authored | Claude Code (Ryan's side) |
+| Null Armada grunt and heavy: `Content/TriadDrift/Gameplay/Characters/{NullGrunt,NullHeavy}/`; sources with the trooper in `ArtSource/EngCharacters/` | Blender 5.2, armour modelled on Epic's UE5 mannequin body and skeleton, the same pipeline and design as the trooper (see the trooper's entry for its concept image) | armour project-authored; body and skeleton: Epic template content, Unreal Engine EULA | Claude Code (Ryan's side) |
+| Planets from space: the Verdance and Cinder globes, atmosphere, ring, `M_TD_Planet`, `M_TD_PlanetAtmosphere`, `M_TD_Ground` and their textures in `Content/TriadDrift/Gameplay/Props/Planets/`; sources `ArtSource/EngProps/Planets/` | Blender (Cycles bake) and NumPy; material graphs by Unreal Python | project-authored | Claude Code (Ryan's side) |
+| `M_TD_TerrainR2` in `Content/TriadDrift/Gameplay/Props/Planets/` | Material graph by Unreal Python (`ArtSource/EngEnvironment/scripts`). Its `T_Terr_*` textures are Grok Bot's PBRgen sets (AI-generated, credited above) | graph project-authored; textures: PBRgen Pro plan | Claude Code (Ryan's side, environment builder) |
+| `M_TD_CloudDeck`, `MI_CloudDeck_*` in `Content/TriadDrift/Gameplay/Props/Sky/` | Material by Unreal Python. Its texture `T_Descent_CloudDeck` is Grok Bot's (AI-generated, fal, credited above) | material project-authored | Claude Code (Ryan's side, environment builder) |
+| `M_DI_AtlasLit` in `Content/TriadDrift/Gameplay/Props/DominionInterior/Materials/` | Material by Unreal Python on the interior kit's own atlas | project-authored | Claude Code (Ryan's side, environment builder) |
+| `M_TD_PortalMembrane`, `M_TD_FlashGlow`, `M_TD_TrailGlow`, `M_TD_SmokePuff` in `Content/TriadDrift/Gameplay/Materials/` | Built by script in Unreal | project-authored | Claude Code (Ryan's side) |
+
+### Engineering fallback sounds, the gaps (ENG-35) - November 13, 2026
+
+Fourteen more fallback sounds (27 takes) in `Content/TriadDrift/Gameplay/Audio/`, sources and recipes in `ArtSource/EngAudio/` (`recipes/p5_gaps.json`). Original work: synthesised from oscillators, noise and filters by the project's own script (`ArtSource/EngAudio/scripts/td_synth.py`, NumPy), levelled and measured with ffmpeg. No samples, no recordings, no library audio, no AI sound or voice generator. Fallbacks only: a sound of Nicholas's at the Presentation name replaces each one. Not approved by ear.
+
+| Sound | Asset | Tool | Licence | Added by |
+|---|---|---|---|---|
+| Pickup collected: hull, shield, power, overcharge | `Pickups/SW_Pickup_Collect_{Hull,Shield,Power,Overcharge}_01` | original synthesis (NumPy), ffmpeg | project-authored | Claude Code (Ryan's side, import builder) |
+| Reward drop | `Pickups/MSS_Pickup_Drop` (3 takes) | same | project-authored | same |
+| Planet descent roar (loop) | `Travel/SW_Travel_DescentRoar_01` | same | project-authored | same |
+| Three-pulse signal | `Story/SW_Story_ThreePulse_01` | same | project-authored | same |
+| Dominion escape alarm (loop) | `Dominion/SW_Dominion_EscapeAlarm_01` | same | project-authored | same |
+| Space-field breaks: small, medium, large, special | `Field/MSS_Field_Break_{Small,Medium,Large,Special}` (4, 3, 2, 2 takes) | same; MetaSound one-shots built with Unreal's MetaSound toolset | project-authored | same |
+| Ship impact thuds: light and heavy | `Impacts/MSS_Ship_Impact_Thud`, `Impacts/MSS_Ship_Impact_Heavy` (3 takes each) | same | project-authored | same |
