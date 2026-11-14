@@ -179,7 +179,7 @@ public:
 	float GetDescentDeckZ() const { return GlideDeckZ; }
 	/** The cloud deck's world Z in a world (0 = no deck). */
 	static float FindDeckZ(UWorld* World);
-	/** The glide for a drop (the Lead, Nov 14, T4's higher deck): duration = drop / 60 m/s within 9-12 s; speed raised so the
+	/** The glide for a drop (the Lead, Nov 14, T4's higher deck): duration = drop / 85 m/s within 9-12 s; speed raised so the
 	 *  dive never needs more than ~44 deg of pitch (vertical <= 0.7 x speed). */
 	static void PlanGlide(float StartZ, float EndZ, float& OutSeconds, float& OutSpeed);
 	static constexpr float GlideMaxSeconds = 12.f;

@@ -685,7 +685,7 @@ float UTDDescentSubsystem::GetDescent01(const UObject* WorldContext)
 void UTDDescentSubsystem::PlanGlide(float StartZ, float EndZ, float& OutSeconds, float& OutSpeed)
 {
 	const float Drop = FMath::Max(StartZ - EndZ, 0.f);
-	OutSeconds = FMath::Clamp(Drop / 6000.f, GlideSeconds, GlideMaxSeconds);
+	OutSeconds = FMath::Clamp(Drop / 8500.f, GlideSeconds, GlideMaxSeconds); // ~9-10 s for T4's 1.1-1.6 km decks (the Lead)
 	OutSpeed = FMath::Clamp(Drop / (OutSeconds * 0.7f) * 1.1f, GlideSpeed, GlideMaxSpeed);
 }
 
