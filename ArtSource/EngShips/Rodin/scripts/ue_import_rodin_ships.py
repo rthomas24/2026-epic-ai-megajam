@@ -67,7 +67,7 @@ SHIPS = {
                  # metallic 0.42): in the engine the ring and engine block read as black chrome. A plain BaseTint gain
                  # (2.6) only blew out the white panels, so the darks are lifted to a grey floor instead
                  # (BaseFloor), metal is cut and the gloss calmed.
-                 parts_rough=1.8, parts_tint=(1.3, 1.3, 1.3), parts_floor=0.07, parts_metal=0.3, parts_self_light=0.1,
+                 parts_rough=1.15, parts_tint=(1.3, 1.3, 1.3), parts_floor=0.07, parts_metal=0.3, parts_self_light=0.1,
                  trail_scale=0.6, portal_brightness=1.0, portal_max=2.5,
                  portal_fill="/Game/TriadDrift/Gameplay/VFX/Materials/MI_TD_VFX_RiftPortalVortex",
                  # Close-range pass (Ryan in the Dominion hangar at 3-4 m, Nov 13): no chrome on the paint (metal cut,
@@ -76,7 +76,8 @@ SHIPS = {
                  squad_detail=True,
                  mi_params={"MetallicScale": 0.2, "RoughnessMin": 0.36, "DetailTiling": 10.0, "DetailStrength": 0.5,
                             "DetailAO": 0.6, "DetailRough": 0.25},
-                 parts_params={"MetallicScale": 0.3, "RoughnessMin": 0.3, "DetailTiling": 8.0, "DetailStrength": 0.35},
+                 # v08: glossier parts (review: the new nose read "plaster-matte" next to the glossy hull)
+                 parts_params={"MetallicScale": 0.3, "RoughnessMin": 0.2, "DetailTiling": 8.0, "DetailStrength": 0.35},
                  # close-range parts (rh_closeparts.py, v07): the canopy glass is its own non-Nanite part at Cockpit
                  parts=(("Portal", "SM_Rift_PortalDisc", "Portal"), ("Canopy", "SM_Rift_Canopy", "Cockpit"))),
     "Lancer": dict(da=(SQUAD, "DA_Lancer_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Lancer", old_mi=None, squad=True, glow=SQUAD_GLOW["Lancer"],
@@ -526,14 +527,24 @@ def ensure_glass():
         n, _ = _node(mat, E.MaterialExpressionScalarParameter, x, y, {"parameter_name": name, "default_value": value})
         return n
     tint, _ = _node(mat, E.MaterialExpressionVectorParameter, -800, -200,
-                    {"parameter_name": "Tint", "default_value": unreal.LinearColor(0.035, 0.02, 0.07, 1.0)})
-    fres, _ = _node(mat, E.MaterialExpressionFresnel, -800, 200, {"exponent": 3.0, "base_reflect_fraction": 0.04})
-    op, k = _node(mat, E.MaterialExpressionLinearInterpolate, -500, 150, A=(P("Opacity", 0.45, -800, 100), ""),
-                  B=(P("EdgeOpacity", 0.92, -800, 150), ""), Alpha=(fres, "")); ok &= k
+                    {"parameter_name": "Tint", "default_value": unreal.LinearColor(0.10, 0.03, 0.20, 1.0)})
+    fres, _ = _node(mat, E.MaterialExpressionFresnel, -800, 200, {"exponent": 2.5, "base_reflect_fraction": 0.06})
+    op, k = _node(mat, E.MaterialExpressionLinearInterpolate, -500, 150, A=(P("Opacity", 0.62, -800, 100), ""),
+                  B=(P("EdgeOpacity", 0.96, -800, 150), ""), Alpha=(fres, "")); ok &= k
+    # v08 (review: "vinyl" / "nearly invisible"): a fresnel sheen and a faint tint glow so the pane reads on dark and
+    # bright maps alike; translucency gets no reliable screen-space reflection, so the sheen stands in for it
+    sheen_c, _ = _node(mat, E.MaterialExpressionVectorParameter, -800, 450,
+                       {"parameter_name": "SheenColor", "default_value": unreal.LinearColor(0.55, 0.62, 0.80, 1.0)})
+    sh1, k = _node(mat, E.MaterialExpressionMultiply, -500, 450, A=(sheen_c, "RGB"), B=(fres, "")); ok &= k
+    sh2, k = _node(mat, E.MaterialExpressionMultiply, -350, 450, A=(sh1, ""), B=(P("SheenStrength", 0.9, -800, 600), "")); ok &= k
+    tg, k = _node(mat, E.MaterialExpressionMultiply, -500, 650, A=(tint, "RGB"), B=(P("TintGlow", 0.35, -800, 700), "")); ok &= k
+    em, k = _node(mat, E.MaterialExpressionAdd, -200, 550, A=(sh2, ""), B=(tg, "")); ok &= k
     mp = unreal.MaterialProperty
     ok &= mel.connect_material_property(tint, "RGB", mp.MP_BASE_COLOR)
-    ok &= mel.connect_material_property(P("Roughness", 0.06, -800, 300), "", mp.MP_ROUGHNESS)
-    ok &= mel.connect_material_property(P("Specular", 0.9, -800, 350), "", mp.MP_SPECULAR)
+    ok &= mel.connect_material_property(P("Roughness", 0.03, -800, 300), "", mp.MP_ROUGHNESS)
+    ok &= mel.connect_material_property(P("Specular", 1.0, -800, 350), "", mp.MP_SPECULAR)
+    ok &= mel.connect_material_property(P("Metallic", 0.4, -800, 400), "", mp.MP_METALLIC)
+    ok &= mel.connect_material_property(em, "", mp.MP_EMISSIVE_COLOR)
     ok &= mel.connect_material_property(op, "", mp.MP_OPACITY)
     return _finish(mat, GLASSM, ok)
 
