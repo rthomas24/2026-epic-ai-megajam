@@ -103,6 +103,8 @@ bool FTDDockingOpens::RunTest(const FString&)
 		TestTrue(*FString::Printf(TEXT("mouth on the bow (x %.0f vs hull max %.0f)"), Local.X, D->GetLocalHullBounds().Max.X), FMath::IsNearlyEqual(Local.X, D->GetLocalHullBounds().Max.X, 10.f));
 	}
 	TestTrue(TEXT("faces out of the bow"), FVector::DotProduct(Bay->GetOutward(), D->GetActorForwardVector()) > 0.99f);
+	// T1 (docking2/H2_10): the glide flew the camera through a solid lit frame slab. The opening must stay clear.
+	TestTrue(TEXT("no lit frame part crosses the mouth within 15 m of the axis"), Bay->IsMouthClear(1500.f));
 	// The approach stays a fight: launches and the hyperdrive lock carry on.
 	TestTrue(TEXT("still a hot approach (stage 1)"), D->GetStage() == 1);
 	return true;
@@ -241,7 +243,7 @@ bool FTDDockingWingmen::RunTest(const FString&)
 	W.Advance(0.1f);
 	TestEqual(TEXT("gliding"), (int32)Bay->GetDockingState(), (int32)ETDDockingState::Gliding);
 	TestEqual(TEXT("both wingmen held outside"), Bay->GetHeldWingmenCount(), 2);
-	W.Advance(Bay->GlideSeconds * 0.5f);	// mid-glide (a docked bay ignores retakes: the travel is under way)
+	W.Advance(0.5f);	// mid-glide (a docked bay ignores retakes: the travel is under way)
 	for (const ETDShipId Id : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
 	{
 		const ATDShip* S = Squad->GetShip(Id);
@@ -366,6 +368,37 @@ bool FTDAftermathLightRow::RunTest(const FString&)
 		T.GetRotation().GetForwardVector().Y < -0.99f && T.GetLocation().Y <= D->GetLocalHullBounds().Min.Y + 1.f);
 	if (UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld())) { Bus->OnHyperdriveState.Broadcast(ETDHyperdriveState::Jumping); }
 	TestFalse(TEXT("deactivated at the hyperdrive jump"), D->IsAftermathLightRowActive());
+	return true;
+}
+
+
+// T1's live review and the Lead (Nov 14): cone edge to commit in about 12 s flown straight (it took ~40 s under fire), and
+// the glide never faster than the ship's boost (it lunged at ~340 m/s).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDockingPace, "TriadDrift.World.Docking.ApproachIsBriskAndTheGlideNeverLunges", TD_TEST_FLAGS)
+bool FTDDockingPace::RunTest(const FString&)
+{
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	ATDDominion* D = TDDockingTest::DefensesDown(W, ETDBoardingMode::ForceOn);
+	ATDDockingBay* Bay = D ? D->GetDockingBay() : nullptr;
+	if (!TestNotNull(TEXT("bay"), Bay)) { return false; }
+	ATDShip* Ship = TDDockingTest::ShipInCone(W, Bay, Bay->ConeDepth * 0.98f, 0.f, 0.f);	// at the cone's edge, on the axis
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	float T = 0.f, PeakGlide = 0.f, Arrive = 0.f;
+	FVector Prev = Ship->GetActorLocation();
+	while (T < 40.f && Bay->GetDockingState() != ETDDockingState::Docked)
+	{
+		const bool bGliding = Bay->GetDockingState() == ETDDockingState::Gliding;
+		W.Tick(1.f / 60.f);
+		T += 1.f / 60.f;
+		const float Speed = (float)FVector::Dist(Prev, Ship->GetActorLocation()) * 60.f;
+		Prev = Ship->GetActorLocation();
+		if (!bGliding && Bay->GetDockingState() == ETDDockingState::Gliding) { Arrive = Speed; AddInfo(FString::Printf(TEXT("glide starts after %.1f s at %.0f m/s"), T, Speed / 100.f)); TestTrue(*FString::Printf(TEXT("cone edge to commit in about 12 s flown straight (%.1f s)"), T), T <= 12.5f); }
+		if (bGliding) { PeakGlide = FMath::Max(PeakGlide, Speed); }
+	}
+	AddInfo(FString::Printf(TEXT("glide peak %.0f m/s, docked after %.1f s"), PeakGlide / 100.f, T));
+	TestTrue(TEXT("docked"), Bay->GetDockingState() == ETDDockingState::Docked);
+	TestTrue(*FString::Printf(TEXT("the glide never goes faster than the ship's boost (peak %.0f m/s, arrival %.0f m/s)"), PeakGlide / 100.f, Arrive / 100.f),
+		Ship->GetShipMovement() && PeakGlide <= Ship->GetShipMovement()->GetFlightTuning().BoostSpeed * 1.05f);
 	return true;
 }
 
