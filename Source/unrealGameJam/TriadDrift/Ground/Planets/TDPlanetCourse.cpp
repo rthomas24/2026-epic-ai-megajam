@@ -1661,15 +1661,20 @@ void ATDPlanetCourse::BuildCinder()
 			// The lowest collision hull is the plinth: leave it along the port's heading (mesh space = course space here:
 			// the tower stands unrotated and unscaled at Tower).
 			FBox Plinth(ForceInit);
+			const FKConvexElem* PlinthHull = nullptr;
 			for (const FKConvexElem& Hull : AnchorTowerArt->GetBodySetup()->AggGeom.ConvexElems)
 			{
-				if (Hull.ElemBox.IsValid && Hull.ElemBox.Min.Z < 100.f && (!Plinth.IsValid || Hull.ElemBox.GetVolume() > Plinth.GetVolume())) { Plinth = Hull.ElemBox; }
+				if (Hull.ElemBox.IsValid && Hull.ElemBox.Min.Z < 100.f && (!Plinth.IsValid || Hull.ElemBox.GetVolume() > Plinth.GetVolume())) { Plinth = Hull.ElemBox; PlinthHull = &Hull; }
 			}
 			for (const FKBoxElem& Box : AnchorTowerArt->GetBodySetup()->AggGeom.BoxElems)
 			{
 				const FBox B = FBox::BuildAABB(Box.Center, FVector(Box.X, Box.Y, Box.Z) * 0.5f);
-				if (B.Min.Z < 100.f && (!Plinth.IsValid || B.GetVolume() > Plinth.GetVolume())) { Plinth = B; }
+				if (B.Min.Z < 100.f && (!Plinth.IsValid || B.GetVolume() > Plinth.GetVolume())) { Plinth = B; PlinthHull = nullptr; }
 			}
+			// The refitted octagon (import a78930a4) leaves each socket 10 cm outside: then the socket is the charge point.
+			FVector Closest, Normal;
+			const bool bSocketOutside = PlinthHull && PlinthHull->GetClosestPointAndNormal(SiteAt, FTransform::Identity, Closest, Normal) > 1.f;
+			if (bSocketOutside) { Plinth = FBox(ForceInit); }
 			const FVector D = FVector(SiteAt.X, SiteAt.Y, 0.f).GetSafeNormal();
 			if (Plinth.IsValid && !D.IsNearlyZero())
 			{
