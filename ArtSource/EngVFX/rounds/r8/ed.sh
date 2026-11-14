@@ -18,6 +18,9 @@ case $1 in
    grep -q '^vfx ' "$LOCKD/owner.txt" 2>/dev/null || { echo "no render-slot LOCK of ours: not launching"; exit 1; }
    # round 10 (Lead): wait for a slot, launch, recount 10 s later; if we pushed the machine over two, back off and retry
    for t in 1 2 3 4 5 6; do
+     # 10h: re-check the lock before EVERY launch (a retry once launched after our lock had been released)
+     grep -q '^vfx ' "$LOCKD/owner.txt" 2>/dev/null || { echo "no render-slot LOCK of ours: not launching"; exit 1; }
+     [ -f Saved/EngVFX/STOP ] && { echo "STOP file present: not launching"; exit 1; }
      bash ArtSource/EngVFX/rounds/r8/waitslot.sh || exit 1
      powershell -File Tools/td-play-mcp.ps1 -Port ${TD_PORT:-21031} -Editor -Offscreen | grep -c "SESSION READY"
      sleep 10
