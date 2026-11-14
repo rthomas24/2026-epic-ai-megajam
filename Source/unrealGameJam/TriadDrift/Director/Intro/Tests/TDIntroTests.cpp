@@ -466,6 +466,17 @@ bool FTDIntroSkip::RunTest(const FString& Parameters)
 	{
 		return false;
 	}
+	// Once skipping is allowed the prompt shows by itself (nobody has to discover it).
+	{
+		TDIntroTest::FIntroWorld G;
+		if (TestTrue(TEXT("a second intro"), G.Init() && G.Play()))
+		{
+			G.Run(UTDIntroDirector::GetSkipLockSeconds() + 0.8f);
+			TestTrue(TEXT("HOLD TO SKIP announced without a press"), G.Intro->GetOverlay().SkipHintAlpha > 0.3f);
+			G.Run(5.f);
+			TestTrue(TEXT("then it fades"), G.Intro->GetOverlay().SkipHintAlpha < 0.1f);
+		}
+	}
 	// In the first second nothing skips, however long it is held.
 	F.Hold(EKeys::SpaceBar, 0.8f);
 	TestTrue(TEXT("first second: no skip"), F.Intro->IsPlaying());
@@ -486,7 +497,7 @@ bool FTDIntroSkip::RunTest(const FString& Parameters)
 	F.CheckRestored(*this, TEXT("skipped"));
 
 	// ...and from the mouse and the pad (fresh intros).
-	for (const FKey& Key : { EKeys::LeftMouseButton, EKeys::Gamepad_FaceButton_Bottom })
+	for (const FKey& Key : { EKeys::LeftMouseButton, EKeys::Gamepad_FaceButton_Bottom, EKeys::Escape })
 	{
 		const int32 Before = F.Finished;
 		F.Before = F.Snapshot(); // this intro starts from where the squad is now

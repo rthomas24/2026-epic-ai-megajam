@@ -1896,7 +1896,11 @@ void UTDIntroDirector::UpdateSkip(float RealDelta)
 	else
 	{
 		Overlay.SkipProgress = 0.f;
-		Overlay.SkipHintAlpha = FMath::Max(0.f, Overlay.SkipHintAlpha - RealDelta * 0.8f);
+		// Lead (Shipping check): say it before anyone presses. For 4 s once skipping is allowed, the prompt shows faintly.
+		const float Lock = GetSkipLockSeconds();
+		const bool bAnnounce = !bWarmingUp && Elapsed >= Lock && Elapsed < Lock + 4.f;
+		Overlay.SkipHintAlpha = bAnnounce ? FMath::Min(0.6f, Overlay.SkipHintAlpha + RealDelta * 2.f)
+			: FMath::Max(0.f, Overlay.SkipHintAlpha - RealDelta * 0.8f);
 	}
 }
 
