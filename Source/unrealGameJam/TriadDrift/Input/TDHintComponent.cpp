@@ -279,7 +279,8 @@ void UTDHintComponent::HandleWaveStarted(int32 WaveNumber, float Intensity01)
 	}
 	if (bFirstOffer && Queue.Num() > 0)
 	{
-		Gap = FMath::Max(Gap, FirstHintDelay);
+		// A new game's first lesson (fly) is up as the wave starts; a returning pilot keeps the short pause.
+		Gap = (!IsContinuedRun() && !Done.Contains(ETDHint::Fly)) ? FMath::Min(Gap, 0.3f) : FMath::Max(Gap, FirstHintDelay);
 	}
 	if (WaveNumber >= 2)
 	{
@@ -364,7 +365,7 @@ void UTDHintComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	if (const ATDShip* Ship = GetFlownShip())
 	{
 		const FTDFlightInput& In = Ship->GetFlightInput();
-		FlySeconds += (In.Aim.Size() > 0.25f) ? DeltaTime : 0.f;
+		FlySeconds += (In.Aim.Size() > 0.06f) ? DeltaTime : 0.f; // a small mouse move counts (0.25 never completed for a gentle hand)
 		if (FlySeconds >= FlySecondsToComplete) { Observe(ETDHint::Fly); }
 		if (Ship->IsBoosting()) { Observe(ETDHint::Boost); }
 		if (Ship->IsDrifting()) { Observe(ETDHint::Drift); }
@@ -451,7 +452,24 @@ void UTDHintComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		Queue.RemoveAll([this](ETDHint H) { return Done.Contains(H); });
 		// The first queued hint that fits the teaching phase on screen (T3's ENG-40); the others wait their phase.
 		const ETDTeachPhase Phase = CurrentTeachPhase();
-		const int32 Pick = Queue.IndexOfByPredicate([Phase](ETDHint H) { return FitsTeachPhase(H, Phase); });
+		int32 Pick = INDEX_NONE;
+		// The Lead (Nov 14): on a new game the four lessons come first, in their order - fly, fire, switch, power - one at a
+		// time, each waiting for its action, whatever the teaching phase; everything else (NEXT TARGET included) after them.
+		bool bLessonsLeft = false;
+		if (!IsContinuedRun())
+		{
+			for (ETDHint E : TDHints::Essentials)
+			{
+				if (Done.Contains(E)) { continue; }
+				bLessonsLeft = true;
+				Pick = Queue.IndexOfByKey(E);
+				break; // the first lesson not done yet: it, or nothing until it has been offered
+			}
+		}
+		if (!bLessonsLeft)
+		{
+			Pick = Queue.IndexOfByPredicate([Phase](ETDHint H) { return FitsTeachPhase(H, Phase); });
+		}
 		if (Pick != INDEX_NONE)
 		{
 			Current = Queue[Pick];

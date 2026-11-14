@@ -171,7 +171,7 @@ public:
 
 	/** Seconds of steering (aim input over 25%) that complete the Fly hint. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Hints", meta = (ClampMin = "0"))
-	float FlySecondsToComplete = 1.f;
+	float FlySecondsToComplete = 0.7f;
 	ETDHint DebugPinned = ETDHint::None;
 
 private:
