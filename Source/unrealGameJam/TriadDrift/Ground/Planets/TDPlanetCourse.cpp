@@ -2000,6 +2000,8 @@ void ATDPlanetCourse::BuildCinder()
 			GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(Site, [Site, Charge, HideAllButCharge]() { HideAllButCharge(Site, Charge); }));
 		}
 		Charges->WatchInteractable(Site);
+		UE_LOG(LogTriadDrift, Display, TEXT("Cinder anchor: charge point %d at %s (stand about 1.4 m out from the tower face and look up at it)"), i,
+			*Site->GetActorLocation().ToCompactString());
 		// Each unplanted charge point carries the marker, nearest first (T7, Nov 14: only the counter at the tower had one).
 		if (MarkerGroups.Num() == 0 || MarkerGroups.Last().Objective.Get() != Jammer) { FMarkerGroup& G = MarkerGroups.AddDefaulted_GetRef(); G.Objective = Jammer; G.Step = 1; G.Counter = Charges; }
 		MarkerGroups.Last().Targets.Add(Site);
