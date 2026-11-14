@@ -442,6 +442,10 @@ public:
 	void HandleShieldBroken(UTDHealthComponent* Health, const FTDDamageInfo& Info);
 	UFUNCTION()
 	void HandleTakeStartedForBarks(FName SceneId, int32 TakeNumber);
+	UFUNCTION()
+	void HandleAbilityUnlockedForBarks(ETDAbilityId Ability, ETDShipId Ship);
+	UFUNCTION()
+	void HandleObjectiveForBarks(FName ObjectiveId, int32 Step, FText Text);
 	/** Chances (tests set 1): a wingman reacting to the player's kill; Command's line on a retake. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad|Barks", meta = (ClampMin = "0", ClampMax = "1"))
 	float PlayerKillBarkChance = 1.f / 3.f;
@@ -521,7 +525,9 @@ protected:
 	bool RequestBarkFromAWingman(FName BarkId, ETDBarkPriority Priority);
 	TArray<double> PlayerKillTimes;
 	TMap<ETDShipId, double> ShieldsBroken;   // when it broke (ShieldBack retries while full, up to 15 s after)
-	TSet<ETDShipId> ShieldDownPending;       // said on the next tick, unless the same hit left the hull low
+	TSet<ETDShipId> ShieldDownPending;
+	FName LastSpaceObjective = NAME_None;
+	bool CommandSays(FName BarkId, ETDBarkPriority Priority);       // said on the next tick, unless the same hit left the hull low
 	double BreatherAt = -1.0;
 	double NextSixCheck = 0.0;
 	TWeakObjectPtr<AActor> SixEnemy;

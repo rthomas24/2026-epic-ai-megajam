@@ -139,3 +139,42 @@ void ATDSquadManager::TickMoreBarks(double Now)
 		}
 	}
 }
+
+bool ATDSquadManager::CommandSays(FName BarkId, ETDBarkPriority Priority)
+{
+	if (!BarkLimiter.TryConsume(BarkTuning, BarkId, Priority, RealNow()))
+	{
+		return false;
+	}
+	TDSquad::RequestBark(this, BarkId, TEXT("Command"));
+	return true;
+}
+
+void ATDSquadManager::HandleAbilityUnlockedForBarks(ETDAbilityId /*Ability*/, ETDShipId Ship)
+{
+	// The pilot of the ship that earned it (Wren: Cloak, Kato: EMP Pulse, Moss: Gravity Well; one row per pilot).
+	RequestSquadBark(TDBarkIds::AbilityUnlocked, Ship, ETDBarkPriority::High);
+}
+
+void ATDSquadManager::HandleObjectiveForBarks(FName ObjectiveId, int32 /*Step*/, FText /*Text*/)
+{
+	// Space objectives only (the planets' own lines are T5's; waves have their slate): an objective line that changes to
+	// another means the last one is done ("Copy, Triad. Good work.") and, if nothing says that, the new one is set.
+	const FString Id = ObjectiveId.ToString();
+	const bool bSpace = !ObjectiveId.IsNone() && !Id.StartsWith(TEXT("Wave")) && !Id.StartsWith(TEXT("Return_")) && !Id.StartsWith(TEXT("Obj_"))
+		&& !Id.StartsWith(TEXT("Victory"));
+	if (ObjectiveId == LastSpaceObjective)
+	{
+		return; // a step of the same objective
+	}
+	const bool bHadOne = !LastSpaceObjective.IsNone();
+	LastSpaceObjective = bSpace ? ObjectiveId : NAME_None;
+	if (bHadOne && CommandSays(TDBarkIds::CmdObjectiveDone, ETDBarkPriority::Normal))
+	{
+		return;
+	}
+	if (bSpace)
+	{
+		CommandSays(TDBarkIds::CmdObjectiveNew, ETDBarkPriority::Normal);
+	}
+}

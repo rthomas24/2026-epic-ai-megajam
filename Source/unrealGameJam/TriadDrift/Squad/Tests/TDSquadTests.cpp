@@ -1535,6 +1535,29 @@ bool FTDSquadBarksEng43::RunTest(const FString& Parameters)
 		FName Speaker;
 		TestTrue(TEXT("Command on the retake"), Count(F.Events, TEXT("Bark_Cmd_Retake"), &Speaker) == 1 && Speaker == FName(TEXT("Command")));
 	}
+	// An ability earned: that ship's pilot (Moss for Gravity Well on Bastion).
+	{
+		FSquadFixture F;
+		F.W.Advance(1.f);
+		UTDEventBus::Get(F.W.GetWorld())->BroadcastAbilityUnlocked(ETDAbilityId::GravityWell, ETDShipId::Bastion);
+		FName Speaker;
+		TestTrue(TEXT("ability unlocked: Moss"), Count(F.Events, TEXT("Bark_AbilityUnlocked_<Ability>"), &Speaker) == 1 && Speaker == FName(TEXT("Moss")));
+	}
+	// Space objectives: a new one is set (Command); when it changes to the next, the last one is done.
+	{
+		FSquadFixture F;
+		F.W.Advance(9.f);
+		UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
+		Bus->BroadcastObjectiveUpdated(TEXT("Wave1"), 1, FText::FromString(TEXT("wave")));
+		TestEqual(TEXT("no line for a wave (it has its slate)"), Count(F.Events, TEXT("Bark_Cmd_ObjectiveNew")), 0);
+		Bus->BroadcastObjectiveUpdated(TEXT("Dominion_Generators"), 0, FText::FromString(TEXT("generators")));
+		TestEqual(TEXT("a new space objective"), Count(F.Events, TEXT("Bark_Cmd_ObjectiveNew")), 1);
+		Bus->BroadcastObjectiveUpdated(TEXT("Dominion_Generators"), 1, FText::FromString(TEXT("generators 1/4")));
+		TestEqual(TEXT("a step is not a new objective"), Count(F.Events, TEXT("Bark_Cmd_ObjectiveNew")), 1);
+		F.W.Advance(5.f);
+		Bus->BroadcastObjectiveUpdated(TEXT("Dominion_Dock"), 0, FText::FromString(TEXT("dock")));
+		TestEqual(TEXT("the last one done"), Count(F.Events, TEXT("Bark_Cmd_ObjectiveDone")), 1);
+	}
 	return true;
 }
 

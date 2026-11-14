@@ -33,6 +33,9 @@ namespace TDBarkIds
 	inline const FName Breather(TEXT("Bark_Breather"));       // 4 s into the gap between waves (Flavour)
 	inline const FName OnMySix(TEXT("Bark_OnMySix"));         // an enemy holds behind the flown ship for 3 s (High)
 	inline const FName CmdRetake(TEXT("Bark_Cmd_Retake"));    // Command, first line of a retake, 1 in 2
+	inline const FName AbilityUnlocked(TEXT("Bark_AbilityUnlocked_<Ability>")); // that ship's pilot (the row per pilot holds their ability's line)
+	inline const FName CmdObjectiveNew(TEXT("Bark_Cmd_ObjectiveNew"));   // Command, a new objective in space
+	inline const FName CmdObjectiveDone(TEXT("Bark_Cmd_ObjectiveDone")); // Command, an objective in space completes
 
 	UNREALGAMEJAM_API FName ShipDownFor(ETDShipId Ship);
 
