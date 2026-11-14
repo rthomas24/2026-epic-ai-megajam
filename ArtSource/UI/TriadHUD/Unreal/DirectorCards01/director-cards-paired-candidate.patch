@@ -1,0 +1,588 @@
+--- /dev/null
++++ b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDDirectorCardsWidget.h
+@@ -0,0 +1,78 @@
++#pragma once
++
++#include "CoreMinimal.h"
++#include "Blueprint/UserWidget.h"
++#include "TDDirectorCardsWidget.generated.h"
++
++/** Plugin-owned copy, populated field-by-field; never cast to an engineering struct or delegate. */
++USTRUCT()
++struct TRIADDRIFTHUD_API FTDDirectorCardDisplay
++{
++    GENERATED_BODY()
++    UPROPERTY() bool bActive=false;
++    UPROPERTY() FText Text;
++    UPROPERTY() FText SubText;
++    UPROPERTY() FLinearColor Color=FLinearColor::White;
++    UPROPERTY() float Alpha=0.f;
++    UPROPERTY() float Progress01=0.f;
++    UPROPERTY() float TimeLeft=0.f;
++};
++
++USTRUCT()
++struct TRIADDRIFTHUD_API FTDDirectorCardsDisplay
++{
++    GENERATED_BODY()
++    UPROPERTY() FTDDirectorCardDisplay SwitchCut;
++    UPROPERTY() FTDDirectorCardDisplay NameCard;
++    UPROPERTY() FTDDirectorCardDisplay Slate;
++    UPROPERTY() FTDDirectorCardDisplay Cut;
++    UPROPERTY() FTDDirectorCardDisplay MoneyShot;
++    UPROPERTY() bool bQuickCut=false;
++    UPROPERTY() bool bNameCardClaimedByHUD=false;
++    UPROPERTY() int32 SwitchCount=0;
++    UPROPERTY() FName SlateScene;
++    UPROPERTY() int32 SlateTake=0;
++    UPROPERTY() float Letterbox=0.f;
++    UPROPERTY() float FlashAlpha=0.f;
++    bool IsEmpty() const;
++};
++
++struct TRIADDRIFTHUD_API FTDDirectorCardsLayout
++{
++    bool bValid=false;
++    float Scale=0.f;
++    FBox2D Pilot=FBox2D(ForceInit),Slate=FBox2D(ForceInit),Cut=FBox2D(ForceInit);
++    FBox2D TopBar=FBox2D(ForceInit),BottomBar=FBox2D(ForceInit),Shot=FBox2D(ForceInit);
++};
++
++struct TRIADDRIFTHUD_API FTDDirectorCardTextLayout
++{
++    TArray<FString> Lines;
++    int32 FontSize=0;
++    float LineHeight=0.f;
++    FVector2D Measured=FVector2D::ZeroVector;
++};
++
++/** Set only via the existing optional DirectorWidgetClass slot after owner build/capture review. */
++UCLASS(BlueprintType,Blueprintable)
++class TRIADDRIFTHUD_API UTDDirectorCardsWidget : public UUserWidget
++{
++    GENERATED_BODY()
++public:
++    /** Clears Out on every failure. Requires initialized storage belonging to Type. Schema mapping is atomic. */
++    static bool DecodeCards(const UScriptStruct* Type,const void* Data,FTDDirectorCardsDisplay& Out);
++    /** Exact static, native, BlueprintPure WorldContextObject -> FTDDirectorCards signature. */
++    static bool IsSupportedGetter(const UFunction* Function);
++    /** Reads the existing native getter for this widget's local owning player/world; no state mutation. */
++    bool ReadFreshCards(FTDDirectorCardsDisplay& Out) const;
++    /** False on older/malformed hosts; those render blank instead of guessing name-card ownership. */
++    UFUNCTION(BlueprintPure,Category="Director") bool HasCompatibleHostContract() const;
++    static bool ShouldDrawPilotText(const FTDDirectorCardsDisplay& Frame);
++    static FTDDirectorCardsLayout LayoutFor(const FVector2D& Viewport,float Letterbox);
++    static FTDDirectorCardTextLayout FitText(const FText& Text,const FVector2D& Space,int32 PreferredSize,bool bBold,int32 MaxLines=2);
++    virtual void ReleaseSlateResources(bool bReleaseChildren) override;
++protected:
++    virtual TSharedRef<SWidget> RebuildWidget() override;
++private:
++    mutable bool bReportedIncompatibleHost=false;
++};
+--- /dev/null
++++ b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDDirectorCardsWidget.cpp
+@@ -0,0 +1,329 @@
++#include "TDDirectorCardsWidget.h"
++#include "Engine/LocalPlayer.h"
++#include "Engine/World.h"
++#include "GameFramework/PlayerController.h"
++#include "Fonts/FontMeasure.h"
++#include "Framework/Application/SlateApplication.h"
++#include "Rendering/DrawElements.h"
++#include "Styling/CoreStyle.h"
++#include "UObject/NoExportTypes.h"
++#include "UObject/StructOnScope.h"
++#include "UObject/UnrealType.h"
++#include "Widgets/SLeafWidget.h"
++
++DEFINE_LOG_CATEGORY_STATIC(LogTDDirectorCards,Log,All);
++
++namespace TDDirectorDisplay
++{
++template<class T> const T* Field(const UStruct* Type,const TCHAR* Name)
++{
++    const T* P=Type?FindFProperty<T>(Type,Name):nullptr;
++    return P && P->ArrayDim==1?P:nullptr;
++}
++bool CardShape(const UScriptStruct* Type)
++{
++    const FStructProperty* Color=Field<FStructProperty>(Type,TEXT("Color"));
++    return Field<FBoolProperty>(Type,TEXT("bActive")) && Field<FTextProperty>(Type,TEXT("Text")) &&
++        Field<FTextProperty>(Type,TEXT("SubText")) && Color && Color->Struct==TBaseStructure<FLinearColor>::Get() &&
++        Field<FFloatProperty>(Type,TEXT("Alpha")) && Field<FFloatProperty>(Type,TEXT("Progress01")) &&
++        Field<FFloatProperty>(Type,TEXT("TimeLeft"));
++}
++bool FrameShape(const UScriptStruct* Type,bool bHostNames=false)
++{
++    if(!Type || (bHostNames && Type->GetFName()!=TEXT("TDDirectorCards"))) return false;
++    for(const TCHAR* Name:{TEXT("SwitchCut"),TEXT("NameCard"),TEXT("Slate"),TEXT("Cut"),TEXT("MoneyShot")})
++    {
++        const FStructProperty* P=Field<FStructProperty>(Type,Name);
++        if(!P || !CardShape(P->Struct) || (bHostNames && P->Struct->GetFName()!=TEXT("TDDirectorCard"))) return false;
++    }
++    return Field<FBoolProperty>(Type,TEXT("bQuickCut")) && Field<FBoolProperty>(Type,TEXT("bNameCardClaimedByHUD")) && Field<FIntProperty>(Type,TEXT("SwitchCount")) &&
++        Field<FNameProperty>(Type,TEXT("SlateScene")) && Field<FIntProperty>(Type,TEXT("SlateTake")) &&
++        Field<FFloatProperty>(Type,TEXT("Letterbox")) && Field<FFloatProperty>(Type,TEXT("FlashAlpha"));
++}
++bool Card(const UScriptStruct* Type,const void* Memory,FTDDirectorCardDisplay& Out)
++{
++    Out.bActive=Field<FBoolProperty>(Type,TEXT("bActive"))->GetPropertyValue_InContainer(Memory);
++    Out.Text=Field<FTextProperty>(Type,TEXT("Text"))->GetPropertyValue_InContainer(Memory);
++    Out.SubText=Field<FTextProperty>(Type,TEXT("SubText"))->GetPropertyValue_InContainer(Memory);
++    Out.Color=*Field<FStructProperty>(Type,TEXT("Color"))->ContainerPtrToValuePtr<FLinearColor>(Memory);
++    Out.Alpha=Field<FFloatProperty>(Type,TEXT("Alpha"))->GetPropertyValue_InContainer(Memory);
++    Out.Progress01=Field<FFloatProperty>(Type,TEXT("Progress01"))->GetPropertyValue_InContainer(Memory);
++    Out.TimeLeft=Field<FFloatProperty>(Type,TEXT("TimeLeft"))->GetPropertyValue_InContainer(Memory);
++    if(!FMath::IsFinite(Out.Alpha) || !FMath::IsFinite(Out.Progress01) || !FMath::IsFinite(Out.TimeLeft) ||
++       !FMath::IsFinite(Out.Color.R) || !FMath::IsFinite(Out.Color.G) || !FMath::IsFinite(Out.Color.B) || !FMath::IsFinite(Out.Color.A)) return false;
++    Out.Alpha=FMath::Clamp(Out.Alpha,0.f,1.f);
++    Out.Progress01=FMath::Clamp(Out.Progress01,0.f,1.f);
++    Out.TimeLeft=FMath::Max(0.f,Out.TimeLeft);
++    return true;
++}
++FVector2D Measure(const FString& Text,int32 Size,bool Bold)
++{
++    const FSlateFontInfo Font=FCoreStyle::GetDefaultFontStyle(Bold?TEXT("Bold"):TEXT("Regular"),Size);
++    if(FSlateApplication::IsInitialized() && FSlateApplication::Get().GetRenderer())
++        return FSlateApplication::Get().GetRenderer()->GetFontMeasureService()->Measure(Text,Font);
++    return FVector2D(Text.Len()*Size*.64f,Size*1.35f);
++}
++TArray<FString> Wrap(const FString& Text,float Width,int32 Size,bool Bold)
++{
++    TArray<FString> Paragraphs,Lines;
++    Text.ParseIntoArrayLines(Paragraphs,false);
++    for(FString Remaining:Paragraphs)
++    {
++        if(Remaining.IsEmpty()){Lines.Add(FString());continue;}
++        while(!Remaining.IsEmpty())
++        {
++            if(Measure(Remaining,Size,Bold).X<=Width){Lines.Add(Remaining);break;}
++            int32 Low=1,High=Remaining.Len();
++            while(Low<High){const int32 Mid=(Low+High+1)/2;if(Measure(Remaining.Left(Mid),Size,Bold).X<=Width)Low=Mid;else High=Mid-1;}
++            int32 Break=Low;
++            for(int32 I=Low-1;I>0;--I){if(FChar::IsWhitespace(Remaining[I])){Break=I;break;}}
++            Lines.Add(Remaining.Left(Break));
++            Remaining=Remaining.Mid(Break);
++            if(!Remaining.IsEmpty() && FChar::IsWhitespace(Remaining[0]))Remaining.RightChopInline(1);
++        }
++    }
++    return Lines;
++}
++
++/** The only live read is at paint: no delegate signature cast, tick, second clock, animation or retained snapshot. */
++class SCards final : public SLeafWidget
++{
++public:
++    SLATE_BEGIN_ARGS(SCards) {} SLATE_ARGUMENT(TWeakObjectPtr<UTDDirectorCardsWidget>,Owner) SLATE_END_ARGS()
++    void Construct(const FArguments& Args){Owner=Args._Owner;SetVisibility(EVisibility::HitTestInvisible);ForceVolatile(true);}
++    virtual FVector2D ComputeDesiredSize(float) const override{return FVector2D::ZeroVector;}
++    virtual int32 OnPaint(const FPaintArgs&,const FGeometry& G,const FSlateRect&,FSlateWindowElementList& List,int32 Layer,const FWidgetStyle& Style,bool) const override
++    {
++        const UTDDirectorCardsWidget* W=Owner.Get();
++        FTDDirectorCardsDisplay Frame;
++        if(!W || !W->ReadFreshCards(Frame) || Frame.IsEmpty())return Layer;
++        const FVector2D Size=G.GetLocalSize();
++        const FTDDirectorCardsLayout L=UTDDirectorCardsWidget::LayoutFor(Size,Frame.Letterbox);
++        if(!L.bValid)return Layer;
++        const FLinearColor Tint=Style.GetColorAndOpacityTint();
++        const FSlateBrush* White=FCoreStyle::Get().GetBrush(TEXT("WhiteBrush"));
++        auto Box=[&](const FBox2D& R,FLinearColor Color,int32 Z=0)
++        {
++            if(R.GetSize().X<=0 || R.GetSize().Y<=0)return;
++            FSlateDrawElement::MakeBox(List,Layer+Z,G.ToPaintGeometry(R.GetSize(),FSlateLayoutTransform(R.Min)),White,ESlateDrawEffect::None,Color*Tint);
++        };
++        auto Edge=[&](const FBox2D& R,FLinearColor Color,float Width=1.f)
++        {
++            const float C=10*L.Scale;
++            TArray<FVector2D> P={{R.Min.X+C,R.Min.Y},{R.Max.X-C,R.Min.Y},{R.Max.X,R.Min.Y+C},
++                {R.Max.X,R.Max.Y-C},{R.Max.X-C,R.Max.Y},{R.Min.X+C,R.Max.Y},{R.Min.X,R.Max.Y-C},{R.Min.X,R.Min.Y+C},{R.Min.X+C,R.Min.Y}};
++            FSlateDrawElement::MakeLines(List,Layer+2,G.ToPaintGeometry(),P,ESlateDrawEffect::None,Color*Tint,true,Width*L.Scale);
++        };
++        auto Label=[&](const FText& Text,const FBox2D& R,int32 Preferred,FLinearColor Color,bool Bold,bool Center,int32 MaxLines)
++        {
++            if(Text.IsEmpty())return;
++            const auto Fit=UTDDirectorCardsWidget::FitText(Text,R.GetSize(),FMath::Max(1,FMath::RoundToInt(Preferred*L.Scale)),Bold,MaxLines);
++            if(Fit.Lines.IsEmpty())return;
++            const FSlateFontInfo Font=FCoreStyle::GetDefaultFontStyle(Bold?TEXT("Bold"):TEXT("Regular"),Fit.FontSize);
++            List.PushClip(FSlateClippingZone(G.ToPaintGeometry(R.GetSize(),FSlateLayoutTransform(R.Min))));
++            float Y=R.Min.Y+(R.GetSize().Y-Fit.Measured.Y)*.5f;
++            for(const FString& Line:Fit.Lines)
++            {
++                const FVector2D M=Measure(Line,Fit.FontSize,Bold);
++                const FVector2D At(Center?R.GetCenter().X-M.X*.5f:R.Min.X,Y);
++                FSlateDrawElement::MakeText(List,Layer+3,G.ToPaintGeometry(M,FSlateLayoutTransform(At+FVector2D(1,2)*L.Scale)),Line,Font,ESlateDrawEffect::None,FLinearColor(0,0,0,Color.A*.85f)*Tint);
++                FSlateDrawElement::MakeText(List,Layer+4,G.ToPaintGeometry(M,FSlateLayoutTransform(At)),Line,Font,ESlateDrawEffect::None,Color*Tint);
++                Y+=Fit.LineHeight;
++            }
++            List.PopClip();
++        };
++        auto Panel=[&](const FBox2D& R,const FTDDirectorCardDisplay& Card)
++        {
++            Box(R,FLinearColor(.008f,.018f,.028f,.88f*Card.Alpha),1);
++            Edge(R,Card.Color.CopyWithNewOpacity(Card.Alpha*.66f));
++            const float D=5*L.Scale;
++            Box(FBox2D(R.Min+FVector2D(0,10)*L.Scale,FVector2D(R.Min.X+D,R.Max.Y-10*L.Scale)),Card.Color.CopyWithNewOpacity(Card.Alpha),2);
++            Box(FBox2D(R.Min+FVector2D(18,8)*L.Scale,FVector2D(R.Max.X-18*L.Scale,R.Min.Y+9*L.Scale)),FLinearColor(.7f,.8f,.85f,Card.Alpha*.20f),2);
++        };
++        const FLinearColor Ink(.90f,.95f,.98f);
++        Box(L.TopBar,FLinearColor::Black);Box(L.BottomBar,FLinearColor::Black);
++        if(Frame.Slate.bActive && Frame.Slate.Alpha>0 && (!Frame.Slate.Text.IsEmpty() || !Frame.Slate.SubText.IsEmpty()))
++        {
++            Panel(L.Slate,Frame.Slate);
++            const FBox2D Text(L.Slate.Min+FVector2D(28,16)*L.Scale,L.Slate.Max-FVector2D(28,16)*L.Scale);
++            const bool Sub=!Frame.Slate.SubText.IsEmpty();
++            Label(Frame.Slate.Text,Sub?FBox2D(Text.Min,FVector2D(Text.Max.X,Text.Min.Y+42*L.Scale)):Text,30,Ink.CopyWithNewOpacity(Frame.Slate.Alpha),true,true,Sub?1:2);
++            if(Sub)Label(Frame.Slate.SubText,FBox2D(Text.Min+FVector2D(0,46)*L.Scale,Text.Max),18,Frame.Slate.Color.CopyWithNewOpacity(Frame.Slate.Alpha),false,true,1);
++        }
++        if(UTDDirectorCardsWidget::ShouldDrawPilotText(Frame) && Frame.NameCard.bActive && Frame.NameCard.Alpha>0 && (!Frame.NameCard.Text.IsEmpty() || !Frame.NameCard.SubText.IsEmpty()))
++        {
++            Panel(L.Pilot,Frame.NameCard);
++            Label(Frame.NameCard.Text,FBox2D(L.Pilot.Min+FVector2D(26,15)*L.Scale,L.Pilot.Max-FVector2D(26,73)*L.Scale),38,Ink.CopyWithNewOpacity(Frame.NameCard.Alpha),true,false,1);
++            Label(Frame.NameCard.SubText,FBox2D(L.Pilot.Min+FVector2D(26,79)*L.Scale,L.Pilot.Max-FVector2D(26,16)*L.Scale),20,Frame.NameCard.Color.CopyWithNewOpacity(Frame.NameCard.Alpha),false,false,2);
++        }
++        // Switch state is an edge mark, not a duplicate pilot card; quick cuts never add their own bars or clock.
++        if(Frame.SwitchCut.bActive && Frame.SwitchCut.Alpha>0)
++        {
++            if(!UTDDirectorCardsWidget::ShouldDrawPilotText(Frame))
++            {
++                // A small non-textual switch cue survives even when the HUD owns all pilot-name text.
++                Box(FBox2D(L.Pilot.Min+FVector2D(0,28)*L.Scale,L.Pilot.Min+FVector2D(4,92)*L.Scale),Frame.SwitchCut.Color.CopyWithNewOpacity(Frame.SwitchCut.Alpha),2);
++            }
++            else if(Frame.NameCard.bActive)Edge(L.Pilot,Frame.SwitchCut.Color.CopyWithNewOpacity(Frame.SwitchCut.Alpha),2.f);
++            else if(!Frame.SwitchCut.Text.IsEmpty())
++            {
++                Panel(L.Pilot,Frame.SwitchCut);
++                Label(Frame.SwitchCut.Text,FBox2D(L.Pilot.Min+FVector2D(26,18)*L.Scale,L.Pilot.Max-FVector2D(26,18)*L.Scale),36,Ink.CopyWithNewOpacity(Frame.SwitchCut.Alpha),true,false,2);
++            }
++        }
++        if(Frame.MoneyShot.bActive && Frame.MoneyShot.Alpha>0)
++        {
++            Label(Frame.MoneyShot.Text.IsEmpty()?Frame.MoneyShot.SubText:Frame.MoneyShot.Text,L.Shot,18,Frame.MoneyShot.Color.CopyWithNewOpacity(Frame.MoneyShot.Alpha),false,true,1);
++        }
++        if(Frame.Cut.bActive && Frame.Cut.Alpha>0 && !Frame.Cut.Text.IsEmpty())
++        {
++            Panel(L.Cut,Frame.Cut);
++            const bool Sub=!Frame.Cut.SubText.IsEmpty();
++            Label(Frame.Cut.Text,FBox2D(L.Cut.Min+FVector2D(32,20)*L.Scale,L.Cut.Max-FVector2D(32,Sub?70:20)*L.Scale),104,Ink.CopyWithNewOpacity(Frame.Cut.Alpha),true,true,1);
++            if(Sub)Label(Frame.Cut.SubText,FBox2D(L.Cut.Min+FVector2D(32,150)*L.Scale,L.Cut.Max-FVector2D(32,16)*L.Scale),22,Frame.Cut.Color.CopyWithNewOpacity(Frame.Cut.Alpha),false,true,2);
++        }
++        if(Frame.FlashAlpha>0)Box(FBox2D(FVector2D::ZeroVector,Size),FLinearColor(1,1,1,Frame.FlashAlpha),5);
++        return Layer+5;
++    }
++private:
++    TWeakObjectPtr<UTDDirectorCardsWidget> Owner;
++};
++}
++
++bool FTDDirectorCardsDisplay::IsEmpty() const
++{
++    return Letterbox<=0 && FlashAlpha<=0 &&
++        !(SwitchCut.bActive && SwitchCut.Alpha>0) && !(NameCard.bActive && NameCard.Alpha>0) &&
++        !(Slate.bActive && Slate.Alpha>0) && !(Cut.bActive && Cut.Alpha>0) && !(MoneyShot.bActive && MoneyShot.Alpha>0);
++}
++
++bool UTDDirectorCardsWidget::DecodeCards(const UScriptStruct* Type,const void* Data,FTDDirectorCardsDisplay& Out)
++{
++    using namespace TDDirectorDisplay;
++    Out=FTDDirectorCardsDisplay();
++    if(!Data || !FrameShape(Type))return false;
++    FTDDirectorCardsDisplay Next;
++    const TCHAR* Names[]={TEXT("SwitchCut"),TEXT("NameCard"),TEXT("Slate"),TEXT("Cut"),TEXT("MoneyShot")};
++    FTDDirectorCardDisplay* Cards[]={&Next.SwitchCut,&Next.NameCard,&Next.Slate,&Next.Cut,&Next.MoneyShot};
++    for(int32 I=0;I<5;++I)
++    {
++        const FStructProperty* P=Field<FStructProperty>(Type,Names[I]);
++        if(!Card(P->Struct,P->ContainerPtrToValuePtr<void>(Data),*Cards[I]))return false;
++    }
++    Next.bQuickCut=Field<FBoolProperty>(Type,TEXT("bQuickCut"))->GetPropertyValue_InContainer(Data);
++    Next.bNameCardClaimedByHUD=Field<FBoolProperty>(Type,TEXT("bNameCardClaimedByHUD"))->GetPropertyValue_InContainer(Data);
++    Next.SwitchCount=Field<FIntProperty>(Type,TEXT("SwitchCount"))->GetPropertyValue_InContainer(Data);
++    Next.SlateScene=Field<FNameProperty>(Type,TEXT("SlateScene"))->GetPropertyValue_InContainer(Data);
++    Next.SlateTake=Field<FIntProperty>(Type,TEXT("SlateTake"))->GetPropertyValue_InContainer(Data);
++    Next.Letterbox=Field<FFloatProperty>(Type,TEXT("Letterbox"))->GetPropertyValue_InContainer(Data);
++    Next.FlashAlpha=Field<FFloatProperty>(Type,TEXT("FlashAlpha"))->GetPropertyValue_InContainer(Data);
++    if(!FMath::IsFinite(Next.Letterbox) || !FMath::IsFinite(Next.FlashAlpha))return false;
++    Next.Letterbox=FMath::Clamp(Next.Letterbox,0.f,.5f);
++    Next.FlashAlpha=FMath::Clamp(Next.FlashAlpha,0.f,1.f);
++    Out=MoveTemp(Next);
++    return true;
++}
++
++bool UTDDirectorCardsWidget::IsSupportedGetter(const UFunction* Function)
++{
++    using namespace TDDirectorDisplay;
++    if(!Function || !Function->HasAllFunctionFlags(FUNC_Static|FUNC_Native|FUNC_BlueprintPure) || Function->NumParms!=2)return false;
++    const FStructProperty* Ret=CastField<FStructProperty>(Function->GetReturnProperty());
++    const FObjectPropertyBase* Context=FindFProperty<FObjectPropertyBase>(Function,TEXT("WorldContextObject"));
++    if(!Ret || Ret->ArrayDim!=1 || !FrameShape(Ret->Struct,true) || !Context || Context->ArrayDim!=1 ||
++       Context->PropertyClass!=UObject::StaticClass() || !Context->HasAnyPropertyFlags(CPF_Parm) ||
++       Context->HasAnyPropertyFlags(CPF_OutParm|CPF_ReturnParm))return false;
++    for(TFieldIterator<FProperty> It(Function);It;++It)
++    {
++        const FProperty* P=*It;
++        if(P->HasAnyPropertyFlags(CPF_Parm) && (P!=Ret && P!=Context))return false;
++        if(P->HasAnyPropertyFlags(CPF_Parm) && (P->GetOffset_ForUFunction()<0 || P->GetOffset_ForUFunction()+P->GetSize()>Function->ParmsSize))return false;
++    }
++    return true;
++}
++
++bool UTDDirectorCardsWidget::ReadFreshCards(FTDDirectorCardsDisplay& Out) const
++{
++    Out=FTDDirectorCardsDisplay();
++    const APlayerController* PC=GetOwningPlayer();
++    UWorld* World=GetWorld();
++    if(!IsValid(PC) || !GetOwningLocalPlayer() || !PC->IsLocalController() || !IsValid(World) || World->bIsTearingDown || !World->IsGameWorld() || PC->GetWorld()!=World)return false;
++    UClass* Host=FindObject<UClass>(nullptr,TEXT("/Script/unrealGameJam.TDDirectorSubsystem"));
++    UFunction* Getter=Host?Host->FindFunctionByName(TEXT("GetDirectorCardsFor")):nullptr;
++    if(!IsSupportedGetter(Getter))
++    {
++        if(!bReportedIncompatibleHost)
++        {
++            UE_LOG(LogTDDirectorCards,Warning,TEXT("Director renderer requires typed FTDDirectorCards.bNameCardClaimedByHUD and the current native GetDirectorCardsFor signature; incompatible host renders blank, no ownership policy inferred."));
++            bReportedIncompatibleHost=true;
++        }
++        return false;
++    }
++    bReportedIncompatibleHost=false;
++    // UFunction owns its actual parameter layout. All FText/struct storage is initialized and destroyed by reflection.
++    FStructOnScope Parameters(Getter);
++    const FObjectPropertyBase* Context=FindFProperty<FObjectPropertyBase>(Getter,TEXT("WorldContextObject"));
++    Context->SetObjectPropertyValue_InContainer(Parameters.GetStructMemory(),const_cast<UTDDirectorCardsWidget*>(this));
++    Host->GetDefaultObject()->ProcessEvent(Getter,Parameters.GetStructMemory());
++    const FStructProperty* Ret=CastField<FStructProperty>(Getter->GetReturnProperty());
++    return DecodeCards(Ret->Struct,Ret->ContainerPtrToValuePtr<void>(Parameters.GetStructMemory()),Out);
++}
++
++bool UTDDirectorCardsWidget::HasCompatibleHostContract() const
++{
++    UClass* Host=FindObject<UClass>(nullptr,TEXT("/Script/unrealGameJam.TDDirectorSubsystem"));
++    return IsSupportedGetter(Host?Host->FindFunctionByName(TEXT("GetDirectorCardsFor")):nullptr);
++}
++
++bool UTDDirectorCardsWidget::ShouldDrawPilotText(const FTDDirectorCardsDisplay& Frame)
++{
++    return !Frame.bNameCardClaimedByHUD;
++}
++
++FTDDirectorCardsLayout UTDDirectorCardsWidget::LayoutFor(const FVector2D& Size,float Letterbox)
++{
++    FTDDirectorCardsLayout L;
++    if(!FMath::IsFinite(Size.X) || !FMath::IsFinite(Size.Y) || Size.X<=0 || Size.Y<=0 || !FMath::IsFinite(Letterbox))return L;
++    L.Scale=FMath::Min(Size.X/1920.f,Size.Y/1080.f);
++    const FVector2D Offset=(Size-FVector2D(1920,1080)*L.Scale)*.5f;
++    auto Rect=[&](float X,float Y,float W,float H){return FBox2D(Offset+FVector2D(X,Y)*L.Scale,Offset+FVector2D(X+W,Y+H)*L.Scale);};
++    const float Bar=Size.Y*FMath::Clamp(Letterbox,0.f,.5f);
++    L.TopBar=FBox2D(FVector2D::ZeroVector,FVector2D(Size.X,Bar));
++    L.BottomBar=FBox2D(FVector2D(0,Size.Y-Bar),Size);
++    L.Pilot=Rect(112,430,600,158);
++    L.Slate=Rect(400,FMath::Max(225.f,Bar/L.Scale+24.f),1120,112);
++    L.Cut=Rect(550,410,820,220);
++    L.Shot=Rect(660,30,600,44);
++    L.bValid=true;
++    return L;
++}
++
++FTDDirectorCardTextLayout UTDDirectorCardsWidget::FitText(const FText& Text,const FVector2D& Space,int32 Preferred,bool Bold,int32 MaxLines)
++{
++    using namespace TDDirectorDisplay;
++    FTDDirectorCardTextLayout Result;
++    if(Text.IsEmpty() || Space.X<=0 || Space.Y<=0 || !FMath::IsFinite(Space.X) || !FMath::IsFinite(Space.Y) || MaxLines<=0)return Result;
++    const FString Source=Text.ToString();
++    for(int32 Font=FMath::Clamp(Preferred,1,256);Font>=1;--Font)
++    {
++        auto Lines=Wrap(Source,Space.X,Font,Bold);
++        const float Height=FMath::Max(Measure(TEXT("Ag"),Font,Bold).Y,Font*1.25f);
++        if(Lines.Num()>MaxLines || Height*Lines.Num()>Space.Y)continue;
++        Result.FontSize=Font;Result.LineHeight=Height;Result.Lines=MoveTemp(Lines);
++        for(const FString& Line:Result.Lines)Result.Measured.X=FMath::Max(Result.Measured.X,Measure(Line,Font,Bold).X);
++        Result.Measured.Y=Height*Result.Lines.Num();
++        return Result;
++    }
++    return Result; // pathological unrenderable input fails blank rather than drawing outside its panel
++}
++
++TSharedRef<SWidget> UTDDirectorCardsWidget::RebuildWidget()
++{
++    SetIsFocusable(false);
++    SetVisibility(ESlateVisibility::HitTestInvisible);
++    return SNew(TDDirectorDisplay::SCards).Owner(TWeakObjectPtr<UTDDirectorCardsWidget>(this));
++}
++void UTDDirectorCardsWidget::ReleaseSlateResources(bool bReleaseChildren)
++{
++    Super::ReleaseSlateResources(bReleaseChildren); // no delegate, timer, retained model or external ownership to release
++}
+--- /dev/null
++++ b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDDirectorCardsWidgetTests.cpp
+@@ -0,0 +1,172 @@
++#include "TDDirectorCardsWidget.h"
++#include "Misc/AutomationTest.h"
++#include "UObject/GarbageCollection.h"
++#include "UObject/NoExportTypes.h"
++#include "UObject/StrongObjectPtr.h"
++#include "UObject/StructOnScope.h"
++#include "UObject/UnrealType.h"
++#include <limits>
++
++#if WITH_DEV_AUTOMATION_TESTS
++namespace TDDirectorDisplayTests
++{
++constexpr EAutomationTestFlags Flags=EAutomationTestFlags::EditorContext|EAutomationTestFlags::ProductFilter;
++FTDDirectorCardsDisplay Sample()
++{
++    FTDDirectorCardsDisplay F;
++    F.bQuickCut=true;F.SwitchCount=7;F.SlateScene=TEXT("CinderOutpost");F.SlateTake=3;
++    F.Letterbox=.11f;F.FlashAlpha=.25f;
++    FTDDirectorCardDisplay* Cards[]={&F.SwitchCut,&F.NameCard,&F.Slate,&F.Cut,&F.MoneyShot};
++    for(int32 I=0;I<5;++I)
++    {
++        Cards[I]->bActive=true;Cards[I]->Text=FText::FromString(FString::Printf(TEXT("Card %d"),I));
++        Cards[I]->SubText=FText::FromString(TEXT("BASTION · HEAVY · STEADY"));
++        Cards[I]->Color=FLinearColor(.8f,.3f,.6f,1.f);Cards[I]->Alpha=.2f+I*.1f;
++        Cards[I]->Progress01=.15f+I*.1f;Cards[I]->TimeLeft=3.75f-I*.25f;
++    }
++    return F;
++}
++}
++
++IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorDisplayMapping,"TriadDrift.UI.Director.ReflectedMappingAndFailureClears",TDDirectorDisplayTests::Flags)
++bool FTDDirectorDisplayMapping::RunTest(const FString&)
++{
++    const auto Original=TDDirectorDisplayTests::Sample();
++    FTDDirectorCardsDisplay Mapped;
++    {
++        FStructOnScope Storage(FTDDirectorCardsDisplay::StaticStruct());
++        FTDDirectorCardsDisplay::StaticStruct()->CopyScriptStruct(Storage.GetStructMemory(),&Original);
++        TestTrue(TEXT("matching reflected schema decodes"),UTDDirectorCardsWidget::DecodeCards(FTDDirectorCardsDisplay::StaticStruct(),Storage.GetStructMemory(),Mapped));
++    }
++    TestEqual(TEXT("FText survives destruction of reflected parameter storage"),Mapped.NameCard.SubText.ToString(),Original.NameCard.SubText.ToString());
++    const FTDDirectorCardDisplay* Actual[]={&Mapped.SwitchCut,&Mapped.NameCard,&Mapped.Slate,&Mapped.Cut,&Mapped.MoneyShot};
++    const FTDDirectorCardDisplay* Expected[]={&Original.SwitchCut,&Original.NameCard,&Original.Slate,&Original.Cut,&Original.MoneyShot};
++    for(int32 I=0;I<5;++I)
++    {
++        TestEqual(TEXT("all five card identities mapped independently"),Actual[I]->Text.ToString(),Expected[I]->Text.ToString());
++        TestEqual(TEXT("authoritative fade preserved, no second animation"),Actual[I]->Alpha,Expected[I]->Alpha);
++        TestEqual(TEXT("host progress preserved"),Actual[I]->Progress01,Expected[I]->Progress01);
++        TestEqual(TEXT("host seconds preserved"),Actual[I]->TimeLeft,Expected[I]->TimeLeft);
++        TestTrue(TEXT("ship color preserved"),Actual[I]->Color.Equals(Expected[I]->Color));
++    }
++    TestTrue(TEXT("quick cut flag retained"),Mapped.bQuickCut);
++    TestFalse(TEXT("non-claiming host permits the renderer's pilot text"),Mapped.bNameCardClaimedByHUD);
++    TestTrue(TEXT("normal pilot and switch fallback text permitted"),UTDDirectorCardsWidget::ShouldDrawPilotText(Mapped));
++    TestEqual(TEXT("scene/take retained"),Mapped.SlateTake,3);
++    TestEqual(TEXT("switch count retained"),Mapped.SwitchCount,7);
++    TestEqual(TEXT("scene identity retained"),Mapped.SlateScene,FName(TEXT("CinderOutpost")));
++    TestEqual(TEXT("letterbox retained"),Mapped.Letterbox,.11f);
++    TestEqual(TEXT("flash retained"),Mapped.FlashAlpha,.25f);
++    FLinearColor Wrong=FLinearColor::White;
++    TestFalse(TEXT("incompatible reflected model rejected"),UTDDirectorCardsWidget::DecodeCards(TBaseStructure<FLinearColor>::Get(),&Wrong,Mapped));
++    TestTrue(TEXT("bad model clears previously active frame"),Mapped.IsEmpty());
++    auto Invalid=Original;Invalid.MoneyShot.TimeLeft=std::numeric_limits<float>::quiet_NaN();
++    TestFalse(TEXT("nonfinite late card rejects whole frame atomically"),UTDDirectorCardsWidget::DecodeCards(FTDDirectorCardsDisplay::StaticStruct(),&Invalid,Mapped));
++    TestTrue(TEXT("no partial earlier cards survive malformed model"),Mapped.IsEmpty());
++    TestFalse(TEXT("null storage rejected"),UTDDirectorCardsWidget::DecodeCards(FTDDirectorCardsDisplay::StaticStruct(),nullptr,Mapped));
++    TestFalse(TEXT("null getter rejected"),UTDDirectorCardsWidget::IsSupportedGetter(nullptr));
++    TestFalse(TEXT("wrong native getter signature rejected"),UTDDirectorCardsWidget::IsSupportedGetter(UUserWidget::StaticClass()->FindFunctionByName(TEXT("GetOwningPlayer"))));
++    auto Hidden=Original;
++    Hidden.Letterbox=Hidden.FlashAlpha=0;
++    for(auto* C:{&Hidden.SwitchCut,&Hidden.NameCard,&Hidden.Slate,&Hidden.Cut,&Hidden.MoneyShot})C->bActive=false;
++    TestTrue(TEXT("hidden model still maps"),UTDDirectorCardsWidget::DecodeCards(FTDDirectorCardsDisplay::StaticStruct(),&Hidden,Mapped));
++    TestTrue(TEXT("host inactive flags suppress stale text and alpha"),Mapped.IsEmpty());
++    return true;
++}
++
++IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorDisplayNameClaim,"TriadDrift.UI.Director.AuthoritativeNameOwnership",TDDirectorDisplayTests::Flags)
++bool FTDDirectorDisplayNameClaim::RunTest(const FString&)
++{
++    auto Source=TDDirectorDisplayTests::Sample();
++    Source.bNameCardClaimedByHUD=true;
++    FTDDirectorCardsDisplay Mapped;
++    TestTrue(TEXT("typed host ownership maps"),UTDDirectorCardsWidget::DecodeCards(FTDDirectorCardsDisplay::StaticStruct(),&Source,Mapped));
++    TestTrue(TEXT("claim is authoritative"),Mapped.bNameCardClaimedByHUD);
++    TestFalse(TEXT("claim suppresses duplicate pilot text in both paint branches"),UTDDirectorCardsWidget::ShouldDrawPilotText(Mapped));
++    TestEqual(TEXT("host name data remains intact for other consumers"),Mapped.NameCard.Text.ToString(),Source.NameCard.Text.ToString());
++    TestEqual(TEXT("name timing is not changed to implement suppression"),Mapped.NameCard.Alpha,Source.NameCard.Alpha);
++    TestTrue(TEXT("independent quick switch cue stays active"),Mapped.SwitchCut.bActive && Mapped.bQuickCut);
++    TestEqual(TEXT("switch cue alpha preserved"),Mapped.SwitchCut.Alpha,Source.SwitchCut.Alpha);
++    TestEqual(TEXT("host bars preserved"),Mapped.Letterbox,Source.Letterbox);
++    TestEqual(TEXT("host flash preserved"),Mapped.FlashAlpha,Source.FlashAlpha);
++    for(const auto* C:{&Mapped.Slate,&Mapped.Cut,&Mapped.MoneyShot})TestTrue(TEXT("other Director cards unaffected"),C->bActive && C->Alpha>0);
++    Source.NameCard.bActive=false;
++    TestTrue(TEXT("claim with inactive NameCard still maps switch state"),UTDDirectorCardsWidget::DecodeCards(FTDDirectorCardsDisplay::StaticStruct(),&Source,Mapped));
++    TestFalse(TEXT("inactive NameCard cannot cause SwitchCut name fallback to duplicate HUD"),UTDDirectorCardsWidget::ShouldDrawPilotText(Mapped));
++    TestTrue(TEXT("nontext switch cue remains available"),Mapped.SwitchCut.bActive);
++    Source.bNameCardClaimedByHUD=false;
++    TestTrue(TEXT("ownership changes read from fresh host state"),UTDDirectorCardsWidget::DecodeCards(FTDDirectorCardsDisplay::StaticStruct(),&Source,Mapped));
++    TestTrue(TEXT("unclaimed switch fallback available again"),UTDDirectorCardsWidget::ShouldDrawPilotText(Mapped));
++    return true;
++}
++
++IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorDisplayLifecycle,"TriadDrift.UI.Director.LocalWorldAndLifecycle",TDDirectorDisplayTests::Flags)
++bool FTDDirectorDisplayLifecycle::RunTest(const FString&)
++{
++    TStrongObjectPtr<UTDDirectorCardsWidget> W(NewObject<UTDDirectorCardsWidget>());
++    TestTrue(TEXT("code-built widget initializes"),W->Initialize());
++    auto Slate=W->TakeWidget();
++    TestTrue(TEXT("all decoration and children input transparent"),W->GetVisibility()==ESlateVisibility::HitTestInvisible);
++    TestFalse(TEXT("renderer cannot steal keyboard focus"),Slate->SupportsKeyboardFocus());
++    auto Frame=TDDirectorDisplayTests::Sample();
++    TestFalse(TEXT("worldless preview cannot read a different live player's director"),W->ReadFreshCards(Frame));
++    TestTrue(TEXT("no stale snapshot after missing local world"),Frame.IsEmpty());
++    W->ReleaseSlateResources(true);
++    CollectGarbage(GARBAGE_COLLECTION_KEEPFLAGS);
++    auto Rebuilt=W->TakeWidget();
++    Frame=TDDirectorDisplayTests::Sample();
++    TestFalse(TEXT("rebuild does not revive cached card data"),W->ReadFreshCards(Frame));
++    TestTrue(TEXT("released/rebuilt renderer remains empty without local owner"),Frame.IsEmpty());
++    TestFalse(TEXT("rebuilt renderer is not focusable"),Rebuilt->SupportsKeyboardFocus());
++    return true;
++}
++
++IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorDisplayLayout,"TriadDrift.UI.Director.LayoutAndTextAtThreeResolutions",TDDirectorDisplayTests::Flags)
++bool FTDDirectorDisplayLayout::RunTest(const FString&)
++{
++    for(const FVector2D Size:{FVector2D(1280,720),FVector2D(1920,1080),FVector2D(2560,1080)})
++    {
++        const auto L=UTDDirectorCardsWidget::LayoutFor(Size,.11f);
++        TestTrue(TEXT("supported viewport accepted"),L.bValid);
++        for(const FBox2D R:{L.Pilot,L.Slate,L.Cut,L.Shot,L.TopBar,L.BottomBar})
++            TestTrue(TEXT("all complete card regions inside viewport"),R.Min.X>=0 && R.Min.Y>=0 && R.Max.X<=Size.X && R.Max.Y<=Size.Y);
++        TestEqual(TEXT("bars follow host screen-height fraction"),L.TopBar.GetSize().Y,double(Size.Y*.11f));
++        TestTrue(TEXT("pilot stays clear of central aiming/ship region"),L.Pilot.Max.X<Size.X*.5f);
++        TestTrue(TEXT("slate and pilot do not collide"),L.Slate.Max.Y<L.Pilot.Min.Y);
++        const FText Long=FText::FromString(TEXT("SCENE 12 · CINDER SURVEY ARCHIVE · TAKE 3 — THE PARADOX"));
++        const FVector2D Space=L.Slate.GetSize()-FVector2D(56,32)*L.Scale;
++        const auto Text=UTDDirectorCardsWidget::FitText(Long,Space,FMath::RoundToInt(30*L.Scale),true,2);
++        TestTrue(TEXT("long localized scene fits within two lines"),Text.Lines.Num()>0 && Text.Lines.Num()<=2 && Text.Measured.X<=Space.X+.5f && Text.Measured.Y<=Space.Y+.5f);
++        TestEqual(TEXT("wrapping preserves complete scene wording"),FString::Join(Text.Lines,TEXT(" ")),Long.ToString());
++        const FVector2D SubSpace=L.Pilot.GetSize()-FVector2D(52,95)*L.Scale;
++        const auto Sub=UTDDirectorCardsWidget::FitText(FText::FromString(TEXT("BASTION · HEAVY · STEADY · GOOD-HUMOURED · SHIELD SUPPORT")),SubSpace,FMath::RoundToInt(20*L.Scale),false,2);
++        TestTrue(TEXT("complete pilot trait line fits without footer/edge clipping"),Sub.Lines.Num()>0 && Sub.Measured.X<=SubSpace.X+.5f && Sub.Measured.Y<=SubSpace.Y+.5f);
++    }
++    TestFalse(TEXT("zero viewport fails blank"),UTDDirectorCardsWidget::LayoutFor(FVector2D::ZeroVector,0).bValid);
++    TestFalse(TEXT("nonfinite bars fail blank"),UTDDirectorCardsWidget::LayoutFor(FVector2D(1920,1080),std::numeric_limits<float>::quiet_NaN()).bValid);
++    return true;
++}
++
++IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorDisplayActualHost,"TriadDrift.UI.Director.ActualHostReflectionContract",TDDirectorDisplayTests::Flags)
++bool FTDDirectorDisplayActualHost::RunTest(const FString&)
++{
++    UClass* Host=FindObject<UClass>(nullptr,TEXT("/Script/unrealGameJam.TDDirectorSubsystem"));
++    if(!TestNotNull(TEXT("actual game host must be loaded for this separate integration contract test"),Host))return false;
++    UFunction* Getter=Host->FindFunctionByName(TEXT("GetDirectorCardsFor"));
++    const auto* Return=Getter?CastField<FStructProperty>(Getter->GetReturnProperty()):nullptr;
++    const auto* Claim=Return?FindFProperty<FBoolProperty>(Return->Struct,TEXT("bNameCardClaimedByHUD")):nullptr;
++    if(!TestNotNull(TEXT("matching T3 host MUST expose the new typed ownership field; older hosts are incompatible"),Claim))return false;
++    TestEqual(TEXT("claim must be one bool, not an array"),Claim->ArrayDim,1);
++    if(!TestTrue(TEXT("actual native host getter has exact supported reflected signature"),UTDDirectorCardsWidget::IsSupportedGetter(Getter)))return false;
++    FTDDirectorCardsDisplay Frame;
++    {
++        FStructOnScope Parameters(Getter);
++        // Initialized null world context: owner's real getter must return empty safely, with no gameplay state changes.
++        Host->GetDefaultObject()->ProcessEvent(Getter,Parameters.GetStructMemory());
++        const auto* Ret=CastFieldChecked<FStructProperty>(Getter->GetReturnProperty());
++        TestTrue(TEXT("actual engineering return struct maps, without C++ include/cast"),UTDDirectorCardsWidget::DecodeCards(Ret->Struct,Ret->ContainerPtrToValuePtr<void>(Parameters.GetStructMemory()),Frame));
++    }
++    TestTrue(TEXT("null-world actual host returns empty, no fabricated state"),Frame.IsEmpty());
++    return true;
++}
++#endif
