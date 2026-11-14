@@ -356,6 +356,8 @@ t1, t2, t3 = head[tch[0]], head[tch[1]], head[tch[2]]
 tdir3 = (t3 - t2).normalized()
 tip_rest = t3 + tdir3 * 2.4
 tverts = [seg_verts(b) for b in tch]
+_reach = max([(co - t1).length for seg in tverts for co, ws in seg] or [0.0])
+print("GRIP thumb reach (skin, from thumb_01 head) %.2f cm; target %.2f cm away; index P2 middle %.2f cm away" % (_reach, (target - t1).length, (mid_i - t1).length))
 ivert = [(co, ws) for co, ws, dom in verts if dom in ich]
 ipts = [deform(co, ws, D) for co, ws in ivert]
 best = None
@@ -368,9 +370,19 @@ def thumb_eval(a, b, c, f2, f3, fine=False):
     ang[tch[0]] = q1
     d2 = (q1 @ (t2 - t1)).normalized()
     # curls about the axis that turns the thumb toward the hilt axis side (perpendicular to its own direction and A)
-    kt = d2.cross(-radial_out).normalized() if d2.cross(-radial_out).length > 1e-4 else A
-    ang[tch[1]] = Quaternion(kt, math.radians(f2))
-    ang[tch[2]] = Quaternion(kt, math.radians(f3))
+    if P.get("thumb_mode") == "wrap":
+        # hand-posed wrap: the base swings the thumb round the hilt (about its axis A), then the two joints curl about
+        # A as posed (their rest-space axes are A carried back through the turns above them)
+        q1 = Quaternion(A, math.radians(a)) @ Quaternion(N, math.radians(b)) @ Quaternion(along, math.radians(c))
+        ang[tch[0]] = q1
+        q2 = Quaternion(q1.inverted() @ A, math.radians(f2))
+        ang[tch[1]] = q2
+        ang[tch[2]] = Quaternion((q1 @ q2).inverted() @ A, math.radians(f3))
+    else:
+        kt = d2.cross(-radial_out).normalized() if d2.cross(-radial_out).length > 1e-4 else A
+        kt = q1.inverted() @ kt   # the curl axis in the joints' rest frame
+        ang[tch[1]] = Quaternion(kt, math.radians(f2))
+        ang[tch[2]] = Quaternion(kt, math.radians(f3))
     DD = deltas(ang)
     tip = DD[tch[2]] @ tip_rest
     pen = 0.0
@@ -379,7 +391,7 @@ def thumb_eval(a, b, c, f2, f3, fine=False):
         pts += [deform(co, ws, DD) for co, ws in tverts[s]]
     pen = penetration(pts, C, A, 0.1)
     pen = max([pen] + [palm_depth(p) for p in pts[::2]])
-    if max(abs(b), abs(c)) > P.get("thumb_max", 45) or not (-40 <= a <= 130):
+    if max(abs(b), abs(c)) > P.get("thumb_max", 45) or not (P.get("thumb_a_min", -40) <= a <= P.get("thumb_a_max", 130)):
         pen = max(pen, 1.0)
     # into the index finger (its skin points within 0.4 cm of a thumb skin point)
     pen_i = 0.0
@@ -400,7 +412,7 @@ def thumb_eval(a, b, c, f2, f3, fine=False):
 
 
 TM = int(P.get("thumb_max", 45))
-for a in range(-40, 131, 10):
+for a in range(int(P.get("thumb_a_min", -40)), int(P.get("thumb_a_max", 130)) + 1, 10):
     for b in range(-TM, TM + 1, max(9, TM // 6)):
         for c in range(-TM, TM + 1, max(9, TM // 6)):
             for f2 in (0, 25, 50, 75):
@@ -428,6 +440,25 @@ print("GRIP thumb %s tip->target %.2f cm pen hilt %.2f index %.2f" % ([round(p, 
 
 # ---- contact report on the final pose
 D = deltas(angles)
+# skin crumple: how much the thumb's triangles stretch or shrink (area ratio), worst and mean
+_vd = {}
+for v in mesh.data.vertices:
+    ws = [(gname[g.group], g.weight) for g in v.groups if g.weight > 0 and g.group in gname]
+    t = sum(w for _, w in ws)
+    if t > 0 and any(n.startswith("thumb") for n, _ in ws):
+        _vd[v.index] = deform(v.co, [(n, w / t) for n, w in ws], D)
+_ratios = []
+for poly in mesh.data.polygons:
+    vs = list(poly.vertices)
+    if len(vs) >= 3 and all(i in _vd for i in vs[:3]):
+        a0, b0, c0 = (mesh.data.vertices[i].co for i in vs[:3])
+        a1, b1, c1 = (_vd[i] for i in vs[:3])
+        r0 = (b0 - a0).cross(c0 - a0).length
+        if r0 > 1e-6:
+            _ratios.append((b1 - a1).cross(c1 - a1).length / r0)
+if _ratios:
+    _dev = sorted(abs(r - 1.0) for r in _ratios)
+    print("GRIP thumb skin: %d tris, area change mean %.2f, 90th pct %.2f, worst %.2f" % (len(_dev), sum(_dev) / len(_dev), _dev[int(0.9 * (len(_dev) - 1))], _dev[-1]))
 print("GRIP joints from the hilt axis (cm): " + " ".join("%s %.2f" % (b, axial(D[PARENT[b]] @ head[b], C, A)[1]) for b in
       ["index_02_r", "index_03_r", "middle_03_r", "ring_03_r", "pinky_03_r", "thumb_02_r", "thumb_03_r"]))
 for f in FINGERS + ["thumb"]:

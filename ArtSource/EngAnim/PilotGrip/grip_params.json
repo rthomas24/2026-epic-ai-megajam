@@ -1,3 +1,39 @@
-{"cam_m": 0.32, "palm_tol_cm": 1.2, "deep_w": 0.5, "thumb_max": 70, "thumb_reg": 0.0012,
- "fit_tilts": [-15.0, -10.0, -5.0, 0.0], "tilt_pref": -8,
- "curls": {"index": [75, 82, 55], "middle": [80, 84, 58], "ring": [84, 88, 64], "pinky": [88, 90, 64]}}
+{
+    "cam_m":  0.32,
+    "palm_tol_cm":  1.2,
+    "deep_w":  0.5,
+    "thumb_max":  60,
+    "thumb_reg":  0.0003,
+    "fit_tilts":  [
+                      -15.0,
+                      -10.0,
+                      -5.0,
+                      0.0
+                  ],
+    "tilt_pref":  -8,
+    "curls":  {
+                  "index":  [
+                                75,
+                                82,
+                                55
+                            ],
+                  "middle":  [
+                                 80,
+                                 84,
+                                 58
+                             ],
+                  "ring":  [
+                               84,
+                               88,
+                               64
+                           ],
+                  "pinky":  [
+                                88,
+                                90,
+                                64
+                            ]
+              },
+    "thumb_mode":  "wrap",
+    "thumb_a_min":  -180,
+    "thumb_a_max":  180
+}
