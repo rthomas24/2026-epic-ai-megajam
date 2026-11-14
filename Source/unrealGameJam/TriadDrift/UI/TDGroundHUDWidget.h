@@ -75,6 +75,11 @@ public:
 		bool bSensorVerified = false;
 		FVector2D SensorPos = FVector2D::ZeroVector;
 		bool bSensorOnScreen = false;
+		/**
+		 * ENG-26, Cinder (storyline.md §22): after the field anchor is down (T5's ATDPlanetCourse::IsFieldAnchorDisabled,
+		 * saved) and until the Dominion passage opens: "APPROACH PREPARED · PASSAGE STILL BLOCKED". Never says open.
+		 */
+		bool bApproachPending = false;
 	};
 	const FView& GetView() const { return View; }
 	/** The boss bar's damage ghost (tests). */
@@ -89,6 +94,8 @@ public:
 	float ForceBoss01 = -1.f;
 	/** Tests: >= 0 forces a counted step (count, required) / a running escape (left, total) / an exit marker spot. */
 	int32 ForceStepRequired = -1;
+	/** Tests: >= 0 forces the pending approach line (1 on, 0 off). */
+	int32 ForceApproachPending = -1;
 	int32 ForceStepCount = 0;
 	FString ForceStepNoun;
 	float ForceEscapeLeft = -1.f;
@@ -98,6 +105,10 @@ public:
 	static constexpr float BossPhase2At = .5f;
 	/** The objective panel grows to fit its line up to this width (design px), then wraps to two lines. */
 	static constexpr float ObjectiveMaxWidth = 1000.f;
+	/** The flight-style objective pill: at least this wide, one line / two lines tall. */
+	static constexpr float ObjectiveMinWidth = 300.f;
+	static constexpr float ObjectiveHeight = 40.f;
+	static constexpr float ObjectiveHeight2 = 64.f;
 
 	/** Named boxes painted last frame (tests: "transfer" for the meter plate). */
 	mutable TArray<TPair<FName, FBox2D>> LastBoxes;

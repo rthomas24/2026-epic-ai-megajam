@@ -31,6 +31,7 @@ namespace TDBarkIds
 	inline const FName ShieldDown(TEXT("Bark_ShieldDown"));   // that pilot's shield breaks (High)
 	inline const FName ShieldBack(TEXT("Bark_ShieldBack"));   // full again after a break (Flavour)
 	inline const FName Breather(TEXT("Bark_Breather"));       // 4 s into the gap between waves (Flavour)
+	inline const FName Anticipated(TEXT("Bark_Anticipated"));  // storyline §6 clue: an enemy pre-empted a switch or dodge (High)
 	inline const FName OnMySix(TEXT("Bark_OnMySix"));         // an enemy holds behind the flown ship for 3 s (High)
 	inline const FName CmdRetake(TEXT("Bark_Cmd_Retake"));    // Command, first line of a retake, 1 in 2
 	inline const FName AbilityUnlocked(TEXT("Bark_AbilityUnlocked_<Ability>")); // that ship's pilot (the row per pilot holds their ability's line)

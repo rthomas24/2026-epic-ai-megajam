@@ -95,10 +95,14 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 GraveyardHulls = 5;
 	/** Region 7, the Outer Dark: lone rocks with gravel from this distance (cm) to the play bounds. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 OuterDarkRocks = 500;
-	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 IceDriftRocks = 600;
-	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRocks = 320;
-	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRubble = 220;
-	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 MoonShards = 8;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 IceDriftRocks = 900;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRocks = 500;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRubble = 400;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 MoonShards = 14;
+	/** The Shattered Moons sit closer than the 3.5 km Dominion sphere, beside the route, with T4's finer keep-outs:
+	 *  this far from the Dominion (its 720 m field, the generators, the turrets), clear of the bow tube and the stage start. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float MoonDominionClear = 180000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float GraveyardFragments = 220;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float OuterDarkInner = 600000.f;
 
 	/** Shepherd moonlets at the Verdance and Dominion gap edges (bounding diameter, cm). */
@@ -234,6 +238,10 @@ private:
 	void BuildShatteredMoons(FRandomStream& Rng);
 	void PlaceRegionCentrepieces(FRandomStream& Rng);
 	bool AddStructure(UStaticMesh* Mesh, const FTransform& T);
+	/** T4: the Dominion docking bay's tractor cone and near-field capture (no set piece inside). */
+public:
+	bool IsInDockingCone(const FVector& WorldPoint, float Radius) const;
+private:
 	void ScatterDebris(const FVector& Centre, float Radius, int32 Count, float MaxSize, FRandomStream& Rng);
 	/** Indestructible set pieces placed (for tests and keep-out checks). */
 	TArray<FTDSpaceFieldPiece> Structures;
@@ -285,6 +293,10 @@ public:
 	const TArray<FTDSpaceFieldPiece>& GetStructures() const { return Structures; }
 	/** Each built region's centre (world), by its number in docs/eng/SPACE-DESIGN.md (captures, tests). */
 	TMap<int32, FVector> RegionCentres;
+	/** Dev: each region's nearest approach from the player's routes (TD.SpaceField.RouteReport). */
+	void LogRouteReport() const;
+	/** The routes the player flies (zone to each planet, the Dominion and each gate end), world space. */
+	TArray<TArray<FVector>> GetRouteLanes() const { TArray<TArray<FVector>> Out; for (int32 i = 0; i < BuoyLanes && i < Lanes.Num(); ++i) { Out.Add(Lanes[i]); } return Out; }
 	/** The Shepherd Belt's plane normal and centre (world), once built. */
 	FVector BeltNormal = FVector::UpVector;
 	FVector BeltCenter = FVector::ZeroVector;
@@ -351,6 +363,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInstancedStaticMeshComponent> LayoutCollision;
 	/** For the next RegisterPiece: an exact collision radius (> 0), and an obstacle handle to reuse (>= 0) or none (-2). */
 	float PendingColliderRadius = -1.f;
+	bool bMoonPlacement = false;
 	/** Adopt during Build (false when td.SpaceField was 0 at load). */
 	bool bAdoptAtLoad = true;
 	bool bWarnedToggle = false;

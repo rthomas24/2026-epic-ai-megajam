@@ -97,6 +97,8 @@ public:
 public:
 	/** ENG-38 focus-in: horizon fog density multiplier high up (DescentFogHighCm and above), easing to 1 at DescentFogLowCm. */
 	UPROPERTY(EditAnywhere, Category = "Placeholder") float DescentFogMaxScale = 12.f;
+	/** ENG-38: fog density scale for a descent progress (T1's GetDescent01, -1 = no glide: the altitude ramp instead). */
+	static float ComputeDescentFogScale(float Descent01, float AltitudeCm, float MaxScale, float LowCm, float HighCm);
 	UPROPERTY(EditAnywhere, Category = "Placeholder") float DescentFogHighCm = 500000.f;
 	UPROPERTY(EditAnywhere, Category = "Placeholder") float DescentFogLowCm = 150000.f;
 	/** The multiplier applied last frame (tests). */

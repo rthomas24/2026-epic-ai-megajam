@@ -146,6 +146,15 @@ private:
 	int32 CollectedThisWave[TDPickupTypeCount] = {};
 	/** Field breaks by the squad (T6's OnFieldObjectDestroyed): this scene, and when the last one was (HUD tick). */
 	int32 DebrisThisScene = 0;
+	/** Issue #89: one inert pickup of each type at world start, drawn once and destroyed (the first-of-class cost). */
+	void WarmPickups(UWorld& InWorld);
+	int32 WarmedPickups = 0;
+public:
+	int32 GetWarmedPickups() const { return WarmedPickups; }
+	/** The first real pickup's spawn + init cost this world (ms), or < 0 before one (the benchmark asserts it). */
+	float GetFirstSpawnMs() const { return FirstSpawnMs; }
+	float FirstSpawnMs = -1.f;
+private:
 	double LastDebrisTime = -1e9;
 	/** The break top-up: the last one paid, when, and the current one-second cap window. */
 	float LastBreakBoost01 = 0.f;
