@@ -20,14 +20,14 @@ powershell -ExecutionPolicy Bypass -File Tools/td-play-mcp.ps1 -Port $PORT -Map 
 P="python ArtSource/EngVFX/scripts/play.py $PORT $OUT"
 B="con:TD.Ground.Blade"
 $P sleep:8 con:TD.Stage\ DominionInterior sleep:22 con:TD.God con:TD.Ground.ThirdPerson\ 1 sleep:3 cap:dark_idle con:TD.Ground.HandBlade \
-   con:slomo\ 0.25 "$B light" sleep:0.15 cap:dark_l1a cap:dark_l1b "$B light" sleep:0.15 cap:dark_l2a cap:dark_l2b sleep:1 "$B heavy" sleep:0.2 cap:dark_hva cap:dark_hvb \
-   sleep:1.5 "$B retract" sleep:0.12 cap:dark_retract sleep:1.5 "$B ignite" cap:dark_ignite_a cap:dark_ignite_b sleep:1 \
+   con:TD.Power.TimeScale\ 0.25 "$B light" sleep:0.05 cap:dark_l1a cap:dark_l1b "$B light" sleep:0.05 cap:dark_l2a cap:dark_l2b sleep:1 "$B heavy" sleep:0.2 cap:dark_hva cap:dark_hvb \
+   sleep:1.5 "$B retract" sleep:0.05 cap:dark_retract sleep:1.5 "$B ignite" cap:dark_ignite_a cap:dark_ignite_b sleep:1 \
    con:TD.Ground.Spawn\ Grunt\ 260 sleep:1.5 con:TD.Ground.FaceNearest "$B light" sleep:0.3 cap:dark_hit_a cap:dark_hit_b sleep:1 \
-   "$B jump" sleep:1.2 "$B slam" sleep:0.6 cap:dark_slam_a cap:dark_slam_b con:slomo\ 1 sleep:1 con:TD.Dev.DestroySpawned \
-   con:TD.Ground.Spawn\ Trooper\ 900 sleep:1 con:TD.Ground.FaceNearest "$B block" con:slomo\ 0.35 \
+   "$B jump" sleep:1.2 "$B slam" sleep:0.6 cap:dark_slam_a cap:dark_slam_b con:TD.Power.TimeScale\ 1 sleep:1 con:TD.Dev.DestroySpawned \
+   con:TD.Ground.Spawn\ Trooper\ 900 sleep:1 con:TD.Ground.FaceNearest "$B block" con:TD.Power.TimeScale\ 0.35 \
    cap:dark_blk_00 sleep:0.3 cap:dark_blk_01 sleep:0.3 cap:dark_blk_02 sleep:0.3 cap:dark_blk_03 sleep:0.3 cap:dark_blk_04 sleep:0.3 cap:dark_blk_05 \
    "$B unblock" sleep:0.4 "$B block" cap:dark_blk_06 sleep:0.25 cap:dark_blk_07 sleep:0.25 cap:dark_blk_08 sleep:0.25 cap:dark_blk_09 \
-   "$B unblock" sleep:0.4 "$B block" cap:dark_blk_10 sleep:0.25 cap:dark_blk_11 sleep:0.25 cap:dark_blk_12 "$B unblock" con:slomo\ 1 \
+   "$B unblock" sleep:0.4 "$B block" cap:dark_blk_10 sleep:0.25 cap:dark_blk_11 sleep:0.25 cap:dark_blk_12 "$B unblock" con:TD.Power.TimeScale\ 1 \
    con:TD.Ground.Where 2>&1 | tail -3
 echo "B done $(date +%H:%M:%S)"
 grep -a "TD.Ground.Blade\|HandBlade\|Deflect\|Stage " Saved/Logs/td-play-mcp_$PORT.log | tail -25 | cut -c1-220

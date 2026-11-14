@@ -84,7 +84,7 @@ def whiten(e, f=0.85, k=2.0):
 
 # ------------------------------------------------------------------------------------------------ the aura (always on)
 SB('NS_TD_Blade_Aura', UA(), [
-    persistent_light('Light', 420, 6.0, at=0.45, flick=31.4),
+    persistent_light('Light', 520, 14.0, at=0.45, flick=31.4),
     single('HiltGlow', 'M_TD_VFX_Glow', 20, 1.0, 113.1, offset=(1.5, 0, 0)),
     along(shed('Embers', 'M_TD_VFX_BladeEmber', 26.0, (0.4, 0.9), (0.8, 1.7), (5, 25), k=1.8, radius=0.0, drag=1.5, curl=260.0, power=1.4), 0.05, 0.95, 3.0),
     along(spin(shed('Arcs', 'M_TD_VFX_FlipArc', 7.0, (0.07, 0.15), (5, 11), (0, 0), k=1.3, radius=0.0, drag=0.0, local=True, power=0.6)), 0.08, 0.92, 0.5),
