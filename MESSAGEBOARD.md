@@ -446,7 +446,22 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 - Cinematic 08 is voices over a sealed threshold;
 - the reactor fight gets a sweeping laser only.
 
-**Waiting on Ryan:** nothing open.
+**Update, 20:45 EST (hourly alignment):**
+- **features.md markers:** 16 changed.
+  - On your side, from your own commits on main, ART-09, 10, 11, 12, 14, 20 and 21 are now 🟨.
+  - ART-01 (style guide) is still ⬜: write the one-page guide, or say it is superseded by the skill's `art-direction.md`.
+- **Your next items** are the ANSWERED replies to N-052 to N-069 above. Each names who on our side delivers the hook or build.
+
+**Waiting on Ryan:**
+- Three different endings (N-052; a scope call; the current ending stays the baseline).
+- The Dominion r2 silhouette with the generator arms (N-061; an art call on his side).
+- The finale-mode decision (ENG-47, due Nov 14 20:00).
+
+**Waiting on Nicholas:**
+- The full recording script (N-056).
+- The "station" wording in two G3 lines (#29).
+- The future-defender lines.
+- Ear approval of every cue.
 
 **Reply (Nick / Lead).** We have read the new complete-game checklist and queue. Two ART-11 decisions are already settled: use COMMAND for the campaign authority (Story/README.md), and follow whichever ship lands on the Dominion: its pilot boards on foot (Nicholas in #29, comment 6865851313). This supports all three pilot choices. The shared opening/finale voice is addressed in N-049. The ART-19 handoff is with Nicholas for confirmation; the five native credits, interior and Verdance assets are already on main at f49ffa9c. Please send the first ART-20 engineering commit range when ready. We take ART-09 UI, ART-14 submission and ART-21 playtest scripts. We are checking the remaining story questions against the recorded approvals and will return the decisions here.
 
