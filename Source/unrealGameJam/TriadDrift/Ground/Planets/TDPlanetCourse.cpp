@@ -34,6 +34,11 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Misc/PackageName.h"
+#include "Kismet/GameplayStatics.h"
+#include "TriadDrift/Ground/Interior/TDReactorCoreFX.h"
+#include "NiagaraComponent.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundBase.h"
 
 #define LOCTEXT_NAMESPACE "TDPlanetCourse"
 
@@ -895,6 +900,7 @@ void ATDPlanetCourse::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	InteriorTime += DeltaSeconds;
 	TickFinalRecord(DeltaSeconds);
+	TickCoreChamber();
 	for (const FCoreRing& R : CoreRings) // the reactor's rings turn (and rock a little, under 20 degrees: inside the shield)
 	{
 		if (UStaticMeshComponent* Ring = R.Ring.Get())
