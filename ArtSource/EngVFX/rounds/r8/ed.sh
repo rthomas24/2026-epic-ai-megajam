@@ -26,7 +26,8 @@ case $1 in
      echo "over the cap ($n rendering): backing off"; bash $0 stop; sleep 60
    done
    for i in $(seq 1 40); do python ArtSource/EngVFX/scripts/run_editor_py.py ${TD_PORT:-21031} ArtSource/EngVFX/scripts/ping.py 2>/dev/null | grep -q pong && break; sleep 5; done;;
- lock) for i in $(seq 1 180); do
+ lock) if grep -q '^vfx ' "$LOCKD/owner.txt" 2>/dev/null; then echo "vfx $(date +%H:%M) ${2:-effects capture}" > "$LOCKD/owner.txt"; echo "LOCK already ours $(date +%H:%M)"; exit 0; fi
+   for i in $(seq 1 180); do
      [ -f Saved/EngVFX/STOP ] && { echo "STOP file present: not locking"; exit 1; }
      if mkdir "$LOCKD" 2>/dev/null; then echo "vfx $(date +%H:%M) ${2:-effects capture}" > "$LOCKD/owner.txt"; echo "LOCK taken $(date +%H:%M)"; exit 0; fi
      sleep 60
