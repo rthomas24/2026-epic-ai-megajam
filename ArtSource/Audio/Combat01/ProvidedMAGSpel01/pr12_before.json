@@ -1,0 +1,195 @@
+{
+  "url": "https://github.com/rthomas24/2026-epic-ai-megajam/pull/12",
+  "title": "Audio: add Lancer firing and impact cues",
+  "state": "open",
+  "draft": true,
+  "head": "69c18e33e519096eea065988e6874bd7f86c9cd5",
+  "head_ref": "nick/integrate-combat01-20261113",
+  "base": "003b6c1d4c8909927eac01f9b7429cebea8e04bf",
+  "body": "NeedleCannons muzzle, hull-hit and shield-hit events receive dedicated Combat01 cues through the existing DA_NeedleCannons_FX lookup.\n\nIncludes only 16 Combat01 audio packages, the sound-only presentation data asset, original evidence and one integration handoff (26 paths). Excludes rejected Audio history, menu music/style changes and CombatMusic01. No gameplay Source, Config, maps or VFX changes.\n\nValidation: authoring, fresh reload and actual Lancer firing/hull/shield playback passed in the preserved compiled day1 test host, OS0 and zero logged engine errors; gameplay preserved all1123 protected files. Candidate payloads match the frozen checkpoint;18 LFS objects uploaded. Not built, cooked or run on current Main: Nick queued native jobs for RAM.\n\nRequested engineering N028 checks: cook on current Main, confirm packages in Shipping, Development Lancer firing with audio enabled and no cue warnings, then post no objection on the board. Nick retains final listening acceptance. Keep draft/unmerged until those gates pass; no expired Day1 exception is assumed.\n\nSee docs/visual/Combat01-Integration-2026-11-13.md and ArtSource/Audio/Combat01/PLAYBACK.md for evidence and source context.",
+  "files": [
+    {
+      "path": "ArtSource/Audio/Combat01/PLAYBACK.md",
+      "status": "added",
+      "additions": 19,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,19 @@\n+# Lancer firing and impact listening review\n+\n+Actual game playback passed on November 13, 2026, in the Lead-granted compiled test host:\n+\n+`C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\day1-integration\\unrealGameJam.uproject`\n+\n+Open `/Game/TriadDrift/Maps/L_Galaxy` and play. Press **2** to fly Lancer, then hold **left mouse** for short firing bursts. The new sounds are attached to NeedleCannons muzzle fire, hull hits and shield hits. In a Development session, stationary close targets can be created with the existing console commands `TD.World.SpawnEnemy ShardFighter 3000 0 0` (hull) and `TD.World.SpawnEnemy HookInterceptor 3000 0 0` (shield, then hull). These spawn test actors only; no map saves are needed.\n+\n+Use this test host for listening: the Combat01 packages have not been published to Main. Observe the shared Unreal resource queue and the established 4 GiB launch floor; keep one heavy process running at a time.\n+\n+The completed automated test used real `TD.Input.Key Two` and `LeftMouseButton` inputs plus these two targets. Its capture shows Lancer marked YOU and 67% weapon heat. The engine reported active `MSS_NeedleCannon`, `MSS_Hull` and `MSS_Shield` cues. Output was Headphones (Xbox Controller), WASAPI, 48 kHz stereo. OS exit 0; zero logged engine errors; 1,123 protected files unchanged. It ran 39.72 seconds and reached 1.553 GiB minimum available RAM.\n+\n+Evidence: `native_gameplay_01.json`, `review/Lancer_Gameplay01.png`, and the private host directory `Saved/AudioMusic/Combat01/Gameplay01/`. The initial authoring and fresh reload checks are preserved separately.\n+\n+These results establish event playback in the game. They do not establish subjective sound approval, in-game PCM loudness/clipping, exact rendered-voice limits, Shipping acceptance or Main integration. Active-sound dumps include retiring/deferred-stop voices; the observed maximum of eight cannon entries must not be reported as a measured six-voice hard cap.\n+\n+The local prepared-file comparison remains available at:\n+\n+`C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\AudioMusic\\PrototypeV1\\Combat01\\audition.html`"
+    },
+    {
+      "path": "ArtSource/Audio/Combat01/README.md",
+      "status": "added",
+      "additions": 36,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,36 @@\n+# Combat01 - Lancer firing and impacts\n+\n+The Lancer primary-fire, hull-impact and shield-impact family is authored, freshly reloaded and played through the real game input/projectile path. The exact 17 tested packages are copied into the isolated audio-prototype-v1 feature worktree. Branch publication, subjective listening approval, Shipping/cook and Main integration remain pending.\n+\n+## Gameplay mapping\n+\n+- DA_NeedleCannons_FX.Muzzle.Sound -> /Game/TriadDrift/Audio/Combat01/MSS_NeedleCannon\n+- DA_NeedleCannons_FX.ImpactHull.Sound -> /Game/TriadDrift/Audio/Combat01/MSS_Hull\n+- DA_NeedleCannons_FX.ImpactShield.Sound -> /Game/TriadDrift/Audio/Combat01/MSS_Shield\n+\n+Only these three Sound fields are assigned. Every VFX, shake, scale, color, tracer, mesh and other cue field retains the class default. Sound-only cues preserve engineering's HasVisualArt fallback and squad colors. No Source, Config or map changes. Environment's later Niagara integration must serialize shared DA edits through Lead.\n+\n+## Sources and mix\n+\n+Primary: three existing owned AK-47 with animations / A.D fire4-6 recordings/designs, credited Dennis/dennish18/Pixabay in the pack. Hull/shield: existing 50 Free Game Sounds Pack / PlaceHolder Hit_Generic_2-1 and Shield_Metal_Impact_1-3. Exact sources, hashes and rights records are in sources.json. No new purchase, download, AI generation or rejected procedural/M02/V1 primary content. Original WAVs remain unchanged and private/ignored; no standalone library distribution. No field-recording provenance is claimed.\n+\n+Nine 48 kHz, 16-bit mono takes pass category QA. Primary takes are 0.32 s with responsive attacks and clean fades. Native MetaSounds provide take selection and subtle pitch/level variation, with their own SoundClass, spatial attenuation and concurrency presets. Cue gains are fire -8 dB, hull -14 dB, shield -16 dB; variation is +/-0.7 semitone and +/-1.5 dB. Presets configure weapon concurrency 6 and impact concurrency 8 with 30 ms stealing fade. Active-sound dump counts can include retiring/deferred-stop voices and are not a measurement of a six-rendered-voice hard cap.\n+\n+The offline stress mix combines 80 shots at 20 Hz plus 80 alternating impacts at maximum +1.5 dB variation without attenuation/concurrency reduction: -4.2 dBTP, -19.1 LUFS, no clipping. These are offline measurements; no in-game PCM mix/clipping measurement is claimed.\n+\n+## Verified results\n+\n+- Author02: exact 16 audio packages plus the new sound-only data asset; OS 0, 18.77 s, zero logged engine errors, 1,106 pre-existing protected files unchanged, no unexpected Content writes.\n+- Reload01: all 17 assets load, SoundClass/attenuation/concurrency references and three sound slots match; all remaining defaults preserved. OS 0, 18.82 s, zero logged engine errors, 1,123 protected files unchanged.\n+- Gameplay01: real Two/LeftMouseButton input in L_Galaxy, stationary ShardFighter and HookInterceptor trials, active cannon/hull/shield cues observed. The capture shows Lancer marked YOU and 67% weapon heat. Headphones (Xbox Controller), WASAPI, 48 kHz stereo. OS 0, 39.72 s, zero logged engine errors, 1,123 protected files unchanged, no new Content. Minimum available RAM 1.553 GiB.\n+- The startup-gated Author01 attempt made no writes and remains preserved as a failed attempt.\n+\n+See native_author_01.json, native_author_02.json, native_reload_01.json, native_gameplay_01.json and native_package_freeze.json. The latter pins the exact 17 copied packages (669,897 bytes), all matching the tested host. Menu theme/style hashes are unchanged. author_combat.py and verify_combat.py preserve the granted authoring/read-only reload entrypoints.\n+\n+## Listen\n+\n+PLAYBACK.md gives the exact compiled test-project path and controls. Private prepared-file listening page:\n+\n+C:/Users/nicho/OneDrive/Desktop/GameJam/Worktrees/audio-prototype-v1/Saved/AudioMusic/PrototypeV1/Combat01/audition.html\n+\n+Current acceptance: actual event playback technically verified in the compiled test host; final ear, native PCM balancing/clipping, exact rendered concurrency behavior and Shipping remain open. No automatic Main merge or full audio overhaul is authorized by this milestone."
+    },
+    {
+      "path": "ArtSource/Audio/Combat01/native_author_01.json",
+      "status": "added",
+      "additions": 28,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,28 @@\n+{\n+  \"pid\": 5904,\n+  \"exit_code\": 0,\n+  \"reason\": \"completed\",\n+  \"failure\": \"AssertionError('Missing required toolset editor_toolset.toolsets.python_scripting.PythonScriptingTools')\",\n+  \"minimum_free_gib\": 1.7051124572753906,\n+  \"duration_s\": 79.66570350000256,\n+  \"protected_count\": 1106,\n+  \"protected_unchanged\": true,\n+  \"changed_protected\": [],\n+  \"new_content\": {},\n+  \"unexpected_content\": [],\n+  \"stage\": \"Native author NOT submitted; startup slow-task gate returned before mutation. Corrected Author02 queued through Lead.\",\n+  \"engine_errors\": 0,\n+  \"engine_warnings\": 1,\n+  \"editor_clean_exit\": true,\n+  \"structured_engine_result_present\": true,\n+  \"evidence_directory\": \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Saved\\\\AudioMusic\\\\Combat01\\\\Author01\",\n+  \"startup_reply\": {\n+    \"content\": [\n+      \"Not run: the Unreal Editor is running a slow task, which blocks editor tools. This call made no changes. The task must finish before this call can run, so wait for it to finish, then retry. Retrying while it runs returns this message again.\"\n+    ],\n+    \"isError\": true\n+  },\n+  \"git_commit_at_attempt\": \"8be74bdb1b674c2d778df5f0a730b3b46451f21f\",\n+  \"new_native_assets\": 0,\n+  \"gameplay_auditioned\": false\n+}"
+    },
+    {
+      "path": "ArtSource/Audio/Combat01/native_author_02.json",
+      "status": "added",
+      "additions": 47,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,47 @@\n+{\n+  \"pid\": 30364,\n+  \"exit_code\": 0,\n+  \"reason\": \"completed\",\n+  \"failure\": null,\n+  \"minimum_free_gib\": 2.2905426025390625,\n+  \"duration_s\": 18.769874500001606,\n+  \"protected_count\": 1106,\n+  \"protected_unchanged\": true,\n+  \"changed_protected\": [],\n+  \"new_content\": {\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Presentation\\\\DA_NeedleCannons_FX.uasset\": \"1c2413527616882104afc798170d096970654338676bfa238b45dc2fbd181729\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\MSS_Hull.uasset\": \"c4bf9e6432207ed27fae6ad5fe0b55a1031581c8fdfc0748dad60595c3220b83\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\MSS_NeedleCannon.uasset\": \"1d00e0b927dd183002bf116e10eaf036989f18ce3ffb700070370206ace4ee88\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\MSS_Shield.uasset\": \"efae935c7b9ef00edf32806d2964d3c2284adefa084a7f04b8f79f655c478752\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\Mix\\\\ATT_Combat01_Medium.uasset\": \"d654b0f26c829efe5683e88d74d4d3373cd530b6567b9fcb9c2c40ce4edb305a\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\Mix\\\\SCON_Combat01_Impact.uasset\": \"133a1723e7a7d2cb901ee3ca5e2a200c4b9d51218065b4b30fd9ea28d1744f94\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\Mix\\\\SCON_Combat01_Weapon.uasset\": \"f5737d3b01f14eddecd471fc4224f896461dfe0750583012a264f41c253b84c5\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\Mix\\\\SC_Combat01_SFX.uasset\": \"b541874ed629f4bf41c3d72debf98426bf116f530ffde7bb63439c5d02fb52c0\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\Waves\\\\SW_Hull_01.uasset\": \"75c6d98243ceefdab3539c879afdb09c167b7d58ed264cd8551545253f05ce0b\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\Waves\\\\SW_Hull_02.uasset\": \"1364d151f165c799f2f452023864997dda67cdc9ff8edfa17e16f766f8a5c2db\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\Waves\\\\SW_Hull_03.uasset\": \"84d93256f5ce77d85d95034f0507fd6317af7278a90020dfc6eb28aa8022d3b9\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\Waves\\\\SW_NeedleCannon_01.uasset\": \"93f228741579178c75fecd5107abd2738fbdf04bd76cd64dabcf695669b21f06\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\Waves\\\\SW_NeedleCannon_02.uasset\": \"4359b72556f39de5c5f1693a56f4344fbdb191f045970237cbe7dca1cc717eed\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\Waves\\\\SW_NeedleCannon_03.uasset\": \"a9b3f8e6019dc40440367655e8a23446cc7067ec0b3722c1db9e0a70cfcc089e\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\Waves\\\\SW_Shield_01.uasset\": \"b450410712dd40e4d5106bf50a34d6e95aa3b80444c4b5a3368d7193d4c74201\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\Waves\\\\SW_Shield_02.uasset\": \"2ae917fc3713b43d5cc8e36cb337ff6547c4e58b9b095f693cda67978f998955\",\n+    \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Content\\\\TriadDrift\\\\Audio\\\\Combat01\\\\Waves\\\\SW_Shield_03.uasset\": \"f348bf0f7f997089d214c0e681824f771c77e3ccda58eed0f4c09793edd56d04\"\n+  },\n+  \"unexpected_content\": [],\n+  \"structured_engine_result_present\": true,\n+  \"stage\": \"Native assets created and three Sound slots assigned. Reload, actual playback, listening and Shipping pending.\",\n+  \"engine_errors\": 0,\n+  \"engine_warnings\": 1,\n+  \"editor_clean_exit\": true,\n+  \"binding\": {\n+    \"asset\": \"/Game/TriadDrift/Presentation/DA_NeedleCannons_FX.DA_NeedleCannons_FX\",\n+    \"sound_slots\": {\n+      \"muzzle\": \"/Game/TriadDrift/Audio/Combat01/MSS_NeedleCannon.MSS_NeedleCannon\",\n+      \"impact_hull\": \"/Game/TriadDrift/Audio/Combat01/MSS_Hull.MSS_Hull\",\n+      \"impact_shield\": \"/Game/TriadDrift/Audio/Combat01/MSS_Shield.MSS_Shield\"\n+    },\n+    \"all_visual_and_other_defaults_preserved\": true,\n+    \"stage\": \"Sound slots assigned; reload/real firing/hits/cook/listening pending\"\n+  },\n+  \"evidence_directory\": \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Saved\\\\AudioMusic\\\\Combat01\\\\Author02\"\n+}"
+    },
+    {
+      "path": "ArtSource/Audio/Combat01/native_gameplay_01.json",
+      "status": "added",
+      "additions": 243,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,243 @@\n+{\n+  \"pid\": 28068,\n+  \"exit_code\": 0,\n+  \"reason\": \"completed\",\n+  \"failure\": null,\n+  \"minimum_free_gib\": 1.5530357360839844,\n+  \"duration_s\": 39.72139230000175,\n+  \"protected_count\": 1123,\n+  \"protected_unchanged\": true,\n+  \"changed_protected\": [],\n+  \"new_content\": {},\n+  \"unexpected_content\": [],\n+  \"structured_engine_result_present\": false,\n+  \"stage\": \"Actual Lancer firing and hull/shield impact cues observed in the game. Subjective approval and Shipping pending.\",\n+  \"engine_errors\": 0,\n+  \"output_device\": \"Headphones (Xbox Controller)\",\n+  \"mixer\": \"WASAPIMixer\",\n+  \"sample_rate_hz\": 48000,\n+  \"output_channels\": 2,\n+  \"actual_game\": \"/Game/TriadDrift/Maps/L_Galaxy\",\n+  \"real_input\": \"TD.Input.Key Two 0.1 followed by LeftMouseButton bursts\",\n+  \"debug_targets\": [\n+    \"ShardFighter 3000 0 0\",\n+    \"HookInterceptor 3000 0 0\"\n+  ],\n+  \"evidence_directory\": \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Saved\\\\AudioMusic\\\\Combat01\\\\Gameplay01\",\n+  \"capture_confirms\": \"Lancer marked YOU; weapon heat 67 percent\",\n+  \"pcm_output_captured\": false,\n+  \"clipping_in_game_measured\": false,\n+  \"presentation_approved\": false,\n+  \"shipping_verified\": false,\n+  \"cue_evidence\": {\n+    \"MSS_NeedleCannon\": {\n+      \"first_log_line\": 1956,\n+      \"dump_entries\": 126\n+    },\n+    \"MSS_Hull\": {\n+      \"first_log_line\": 2036,\n+      \"dump_entries\": 4\n+    },\n+    \"MSS_Shield\": {\n+      \"first_log_line\": 2194,\n+      \"dump_entries\": 10\n+    }\n+  },\n+  \"observed_max_cues_per_dump\": {\n+    \"MSS_NeedleCannon\": 8,\n+    \"MSS_Hull\": 1,\n+    \"MSS_Shield\": 2\n+  },\n+  \"active_sound_dumps\": [\n+    {\n+      \"line\": 1954,\n+      \"total\": 3,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 3,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 1965,\n+      \"total\": 5,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 5,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 1980,\n+      \"total\": 7,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 7,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 1999,\n+      \"total\": 7,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 7,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 2026,\n+      \"total\": 5,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 4,\n+        \"MSS_Hull\": 1,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 2041,\n+      \"total\": 6,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 5,\n+        \"MSS_Hull\": 1,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 2058,\n+      \"total\": 6,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 5,\n+        \"MSS_Hull\": 1,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 2075,\n+      \"total\": 8,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 7,\n+        \"MSS_Hull\": 1,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 2096,\n+      \"total\": 7,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 7,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 2115,\n+      \"total\": 8,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 8,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 2136,\n+      \"total\": 7,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 7,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 2155,\n+      \"total\": 8,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 8,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 2184,\n+      \"total\": 6,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 5,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 1\n+      }\n+    },\n+    {\n+      \"line\": 2201,\n+      \"total\": 6,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 4,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 2\n+      }\n+    },\n+    {\n+      \"line\": 2218,\n+      \"total\": 7,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 5,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 2\n+      }\n+    },\n+    {\n+      \"line\": 2237,\n+      \"total\": 9,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 7,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 2\n+      }\n+    },\n+    {\n+      \"line\": 2260,\n+      \"total\": 9,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 7,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 2\n+      }\n+    },\n+    {\n+      \"line\": 2283,\n+      \"total\": 8,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 7,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 1\n+      }\n+    },\n+    {\n+      \"line\": 2304,\n+      \"total\": 7,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 7,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 2323,\n+      \"total\": 7,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 7,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 0\n+      }\n+    },\n+    {\n+      \"line\": 2347,\n+      \"total\": 4,\n+      \"cues\": {\n+        \"MSS_NeedleCannon\": 4,\n+        \"MSS_Hull\": 0,\n+        \"MSS_Shield\": 0\n+      }\n+    }\n+  ],\n+  \"concurrency_limit_note\": \"Configured weapon cap 6, impacts cap 8, with 30ms stealing fade. Active-sound dumps may include retiring voices; these counts are not rendered voice counts.\"\n+}"
+    },
+    {
+      "path": "ArtSource/Audio/Combat01/native_package_freeze.json",
+      "status": "added",
+      "additions": 94,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,94 @@\n+{\n+  \"stage\": \"Exact tested native packages copied into owned audio feature worktree; publication and Shipping pending\",\n+  \"source_host\": \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\",\n+  \"count\": 17,\n+  \"total_bytes\": 669897,\n+  \"packages\": [\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/MSS_Hull.uasset\",\n+      \"sha256\": \"c4bf9e6432207ed27fae6ad5fe0b55a1031581c8fdfc0748dad60595c3220b83\",\n+      \"bytes\": 148116\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/MSS_NeedleCannon.uasset\",\n+      \"sha256\": \"1d00e0b927dd183002bf116e10eaf036989f18ce3ffb700070370206ace4ee88\",\n+      \"bytes\": 148204\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/MSS_Shield.uasset\",\n+      \"sha256\": \"efae935c7b9ef00edf32806d2964d3c2284adefa084a7f04b8f79f655c478752\",\n+      \"bytes\": 148138\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/Mix/ATT_Combat01_Medium.uasset\",\n+      \"sha256\": \"d654b0f26c829efe5683e88d74d4d3373cd530b6567b9fcb9c2c40ce4edb305a\",\n+      \"bytes\": 1728\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/Mix/SCON_Combat01_Impact.uasset\",\n+      \"sha256\": \"133a1723e7a7d2cb901ee3ca5e2a200c4b9d51218065b4b30fd9ea28d1744f94\",\n+      \"bytes\": 1770\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/Mix/SCON_Combat01_Weapon.uasset\",\n+      \"sha256\": \"f5737d3b01f14eddecd471fc4224f896461dfe0750583012a264f41c253b84c5\",\n+      \"bytes\": 1770\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/Mix/SC_Combat01_SFX.uasset\",\n+      \"sha256\": \"b541874ed629f4bf41c3d72debf98426bf116f530ffde7bb63439c5d02fb52c0\",\n+      \"bytes\": 1122\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/Waves/SW_Hull_01.uasset\",\n+      \"sha256\": \"75c6d98243ceefdab3539c879afdb09c167b7d58ed264cd8551545253f05ce0b\",\n+      \"bytes\": 26734\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/Waves/SW_Hull_02.uasset\",\n+      \"sha256\": \"1364d151f165c799f2f452023864997dda67cdc9ff8edfa17e16f766f8a5c2db\",\n+      \"bytes\": 27151\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/Waves/SW_Hull_03.uasset\",\n+      \"sha256\": \"84d93256f5ce77d85d95034f0507fd6317af7278a90020dfc6eb28aa8022d3b9\",\n+      \"bytes\": 27170\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_01.uasset\",\n+      \"sha256\": \"93f228741579178c75fecd5107abd2738fbdf04bd76cd64dabcf695669b21f06\",\n+      \"bytes\": 22508\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_02.uasset\",\n+      \"sha256\": \"4359b72556f39de5c5f1693a56f4344fbdb191f045970237cbe7dca1cc717eed\",\n+      \"bytes\": 22447\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_03.uasset\",\n+      \"sha256\": \"a9b3f8e6019dc40440367655e8a23446cc7067ec0b3722c1db9e0a70cfcc089e\",\n+      \"bytes\": 22451\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/Waves/SW_Shield_01.uasset\",\n+      \"sha256\": \"b450410712dd40e4d5106bf50a34d6e95aa3b80444c4b5a3368d7193d4c74201\",\n+      \"bytes\": 22541\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/Waves/SW_Shield_02.uasset\",\n+      \"sha256\": \"2ae917fc3713b43d5cc8e36cb337ff6547c4e58b9b095f693cda67978f998955\",\n+      \"bytes\": 23367\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Audio/Combat01/Waves/SW_Shield_03.uasset\",\n+      \"sha256\": \"f348bf0f7f997089d214c0e681824f771c77e3ccda58eed0f4c09793edd56d04\",\n+      \"bytes\": 22652\n+    },\n+    {\n+      \"path\": \"Content/TriadDrift/Presentation/DA_NeedleCannons_FX.uasset\",\n+      \"sha256\": \"1c2413527616882104afc798170d096970654338676bfa238b45dc2fbd181729\",\n+      \"bytes\": 2028\n+    }\n+  ],\n+  \"menu_unchanged\": true\n+}"
+    },
+    {
+      "path": "ArtSource/Audio/Combat01/native_reload_01.json",
+      "status": "added",
+      "additions": 29,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,29 @@\n+{\n+  \"pid\": 2760,\n+  \"exit_code\": 0,\n+  \"reason\": \"completed\",\n+  \"failure\": null,\n+  \"minimum_free_gib\": 1.835174560546875,\n+  \"duration_s\": 18.821869699997478,\n+  \"protected_count\": 1123,\n+  \"protected_unchanged\": true,\n+  \"changed_protected\": [],\n+  \"new_content\": {},\n+  \"unexpected_content\": [],\n+  \"structured_engine_result_present\": true,\n+  \"stage\": \"Fresh read-only reload verified; actual playback, listening and Shipping pending.\",\n+  \"engine_errors\": 0,\n+  \"engine_warnings\": 1,\n+  \"validation\": {\n+    \"loaded_assets\": 17,\n+    \"sound_class_attenuation_concurrency_refs_verified\": true,\n+    \"sound_slots\": {\n+      \"muzzle\": \"/Game/TriadDrift/Audio/Combat01/MSS_NeedleCannon.MSS_NeedleCannon\",\n+      \"impact_hull\": \"/Game/TriadDrift/Audio/Combat01/MSS_Hull.MSS_Hull\",\n+      \"impact_shield\": \"/Game/TriadDrift/Audio/Combat01/MSS_Shield.MSS_Shield\"\n+    },\n+    \"all_visual_and_other_defaults_preserved\": true,\n+    \"stage\": \"Read-only reload validation; runtime playback, listening and Shipping still required\"\n+  },\n+  \"evidence_directory\": \"C:\\\\Users\\\\nicho\\\\OneDrive\\\\Desktop\\\\GameJam\\\\Worktrees\\\\day1-integration\\\\Saved\\\\AudioMusic\\\\Combat01\\\\Reload01\"\n+}"
+    },
+    {
+      "path": "ArtSource/Audio/Combat01/review/Lancer_Gameplay01.png",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:4659412c17cb3aac4e80c0ed8d5dfc36543db6523abbd4ea4c10c3ebddf3e6b5\n+size 247271"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/MSS_Hull.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:c4bf9e6432207ed27fae6ad5fe0b55a1031581c8fdfc0748dad60595c3220b83\n+size 148116"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/MSS_NeedleCannon.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:1d00e0b927dd183002bf116e10eaf036989f18ce3ffb700070370206ace4ee88\n+size 148204"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/MSS_Shield.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:efae935c7b9ef00edf32806d2964d3c2284adefa084a7f04b8f79f655c478752\n+size 148138"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Mix/ATT_Combat01_Medium.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:d654b0f26c829efe5683e88d74d4d3373cd530b6567b9fcb9c2c40ce4edb305a\n+size 1728"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Mix/SCON_Combat01_Impact.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:133a1723e7a7d2cb901ee3ca5e2a200c4b9d51218065b4b30fd9ea28d1744f94\n+size 1770"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Mix/SCON_Combat01_Weapon.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:f5737d3b01f14eddecd471fc4224f896461dfe0750583012a264f41c253b84c5\n+size 1770"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Mix/SC_Combat01_SFX.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:b541874ed629f4bf41c3d72debf98426bf116f530ffde7bb63439c5d02fb52c0\n+size 1122"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_Hull_01.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:75c6d98243ceefdab3539c879afdb09c167b7d58ed264cd8551545253f05ce0b\n+size 26734"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_Hull_02.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:1364d151f165c799f2f452023864997dda67cdc9ff8edfa17e16f766f8a5c2db\n+size 27151"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_Hull_03.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:84d93256f5ce77d85d95034f0507fd6317af7278a90020dfc6eb28aa8022d3b9\n+size 27170"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_01.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:93f228741579178c75fecd5107abd2738fbdf04bd76cd64dabcf695669b21f06\n+size 22508"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_02.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:4359b72556f39de5c5f1693a56f4344fbdb191f045970237cbe7dca1cc717eed\n+size 22447"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_03.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:a9b3f8e6019dc40440367655e8a23446cc7067ec0b3722c1db9e0a70cfcc089e\n+size 22451"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_Shield_01.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:b450410712dd40e4d5106bf50a34d6e95aa3b80444c4b5a3368d7193d4c74201\n+size 22541"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_Shield_02.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:2ae917fc3713b43d5cc8e36cb337ff6547c4e58b9b095f693cda67978f998955\n+size 23367"
+    },
+    {
+      "path": "Content/TriadDrift/Audio/Combat01/Waves/SW_Shield_03.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:f348bf0f7f997089d214c0e681824f771c77e3ccda58eed0f4c09793edd56d04\n+size 22652"
+    },
+    {
+      "path": "Content/TriadDrift/Presentation/DA_NeedleCannons_FX.uasset",
+      "status": "added",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,3 @@\n+version https://git-lfs.github.com/spec/v1\n+oid sha256:1c2413527616882104afc798170d096970654338676bfa238b45dc2fbd181729\n+size 2028"
+    },
+    {
+      "path": "docs/visual/Combat01-Integration-2026-11-13.md",
+      "status": "added",
+      "additions": 11,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,11 @@\n+# Combat01 targeted integration candidate\n+\n+NeedleCannons muzzle, hull-hit and shield-hit Sound fields reference three authored cues. This candidate contains exactly16 Combat01 audio packages, the sound-only DA_NeedleCannons_FX, original native/gameplay evidence and this handoff. It excludes the Audio branch history, rejected media, menu loop/style changes and CombatMusic01.\n+\n+Source checkpoint: nick/audio-prototype-v1@b78f28b5cb89cc62df8db22df406720cc90e6a25. The two grant-dependent author/reload entrypoint scripts are intentionally kept with their full authoring context on that branch; they are not standalone candidate commands. Original README/evidence retain the tested checkpoint facts.\n+\n+Verified in the preserved compiled day1 test host: author02, fresh reload and actual Lancer firing/hull/shield cue playback, each OS0; gameplay protected1123 files unchanged/zero logged engine errors. This candidate has not been launched, built, cooked or tested against its current Main base because Nick explicitly queued native jobs for memory. Prior-host evidence does not prove current-Main or Shipping behavior.\n+\n+Engineering N028 agreed path: cook candidate locally on current Main, confirm packages in Shipping, Development firing with audio enabled and no cue warnings, then post no objection. Nick retains final listening acceptance. Keep this PR draft/unmerged until those gates pass. No automatic merge under the expired Day1 exception.\n+\n+DA_NeedleCannons_FX uses the three Sound fields on the tested default data asset. Engineering confirms no competing edits/readers of other fields; if that changes, reconcile serialized ownership rather than overwrite a changed binary. No gameplay Source, Config, maps, interface, UI style or VFX assets change here."
+    }
+  ],
+  "read_at": "2026-11-14T02:26:55.373036+00:00"
+}

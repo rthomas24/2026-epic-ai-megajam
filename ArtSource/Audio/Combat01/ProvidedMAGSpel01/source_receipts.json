@@ -1,0 +1,52 @@
+[
+  {
+    "source": "C:\\Users\\nicho\\AppData\\Local\\Temp\\MAGSpel_ Spell Impact3_raw_Ambience.wav",
+    "preserved_copy": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\PR12Replacement01\\provided\\MAGSpel_ Spell Impact3_raw_Ambience.wav",
+    "sha256": "f6237a823cfdfe016c3054985e2b649d3899ae0439feceaafc4d67a2fa1f36c6",
+    "duration_s": 2.6049583333333333,
+    "provenance": "Nick supplied original WAV; pack/source attribution to be matched against existing library records, not inferred from filename",
+    "claimed_source_copy": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact3_raw_Ambience.wav",
+    "embedded_originator": "rawAmbience",
+    "embedded_description": "Magic Spell Impact"
+  },
+  {
+    "source": "C:\\Users\\nicho\\AppData\\Local\\Temp\\MAGSpel_ Spell Impact19_raw_Ambience.wav",
+    "preserved_copy": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\PR12Replacement01\\provided\\MAGSpel_ Spell Impact19_raw_Ambience.wav",
+    "sha256": "02af20c137d187ce0b2b7434623e29777a4f0151e707b463c7cb79801897a79a",
+    "duration_s": 1.2482083333333334,
+    "provenance": "Nick supplied original WAV; pack/source attribution to be matched against existing library records, not inferred from filename",
+    "claimed_source_copy": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact19_raw_Ambience.wav",
+    "embedded_originator": "rawAmbience",
+    "embedded_description": "Magic Spell Impact"
+  },
+  {
+    "source": "C:\\Users\\nicho\\AppData\\Local\\Temp\\MAGSpel_ Spell Impact29_raw_Ambience.wav",
+    "preserved_copy": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\PR12Replacement01\\provided\\MAGSpel_ Spell Impact29_raw_Ambience.wav",
+    "sha256": "80070112530001fad1e96a52476ac79631f97ec65705921ef998e40ee937c0f3",
+    "duration_s": 2.8879375,
+    "provenance": "Nick supplied original WAV; pack/source attribution to be matched against existing library records, not inferred from filename",
+    "claimed_source_copy": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact29_raw_Ambience.wav",
+    "embedded_originator": "rawAmbience",
+    "embedded_description": "Magic Spell Impact"
+  },
+  {
+    "source": "C:\\Users\\nicho\\AppData\\Local\\Temp\\MAGSpel_ Spell Impact109_raw_Ambience.wav",
+    "preserved_copy": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\PR12Replacement01\\provided\\MAGSpel_ Spell Impact109_raw_Ambience.wav",
+    "sha256": "f623c7f41bb5cbd23e851b7c1d5e4d759e6530909fed801e5ae36133d3462189",
+    "duration_s": 1.0992083333333333,
+    "provenance": "Nick supplied original WAV; pack/source attribution to be matched against existing library records, not inferred from filename",
+    "claimed_source_copy": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact109_raw_Ambience.wav",
+    "embedded_originator": "rawAmbience",
+    "embedded_description": "Magic Spell Impact"
+  },
+  {
+    "source": "C:\\Users\\nicho\\AppData\\Local\\Temp\\MAGSpel_ Spell Impact117_raw_Ambience.wav",
+    "preserved_copy": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\Saved\\PR12Replacement01\\provided\\MAGSpel_ Spell Impact117_raw_Ambience.wav",
+    "sha256": "425fc6e2726cf8a9124ad4f8e338ea9f4b9498b82d78863419a2a1c780a97e1b",
+    "duration_s": 2.26375,
+    "provenance": "Nick supplied original WAV; pack/source attribution to be matched against existing library records, not inferred from filename",
+    "claimed_source_copy": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact117_raw_Ambience.wav",
+    "embedded_originator": "rawAmbience",
+    "embedded_description": "Magic Spell Impact"
+  }
+]

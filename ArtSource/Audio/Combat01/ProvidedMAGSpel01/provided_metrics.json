@@ -1,0 +1,72 @@
+[
+  {
+    "name": "MAGSpel_ Spell Impact109_raw_Ambience.wav",
+    "duration_s": 1.0992083333333333,
+    "peak_dbfs": -1.0684361282708388,
+    "active_onset_s": 0.06316666666666666,
+    "active_end_s": 0.8649375,
+    "energy90_s": 0.456625,
+    "energy99_s": 0.6265,
+    "spectral_centroid_hz": 872.8792377947066,
+    "energy_below200_percent": 86.31225054515043,
+    "energy_above6000_percent": 5.516541638197073,
+    "stereo_mono_correlation": 0.7863889674630622,
+    "sample_fullscale_count": 0
+  },
+  {
+    "name": "MAGSpel_ Spell Impact117_raw_Ambience.wav",
+    "duration_s": 2.26375,
+    "peak_dbfs": -2.655862853632427,
+    "active_onset_s": 0.1220625,
+    "active_end_s": 1.8462708333333333,
+    "energy90_s": 0.729,
+    "energy99_s": 1.1322291666666666,
+    "spectral_centroid_hz": 1741.8268314620757,
+    "energy_below200_percent": 76.5296133312058,
+    "energy_above6000_percent": 11.11712342281237,
+    "stereo_mono_correlation": 0.905948167807796,
+    "sample_fullscale_count": 0
+  },
+  {
+    "name": "MAGSpel_ Spell Impact19_raw_Ambience.wav",
+    "duration_s": 1.2482083333333334,
+    "peak_dbfs": -2.998608700548193,
+    "active_onset_s": 0.0301875,
+    "active_end_s": 1.101125,
+    "energy90_s": 0.4043125,
+    "energy99_s": 0.593875,
+    "spectral_centroid_hz": 1028.5923588353778,
+    "energy_below200_percent": 78.93345198408626,
+    "energy_above6000_percent": 5.946048818826288,
+    "stereo_mono_correlation": 0.8161149574436635,
+    "sample_fullscale_count": 0
+  },
+  {
+    "name": "MAGSpel_ Spell Impact29_raw_Ambience.wav",
+    "duration_s": 2.8879375,
+    "peak_dbfs": -0.9999962237790276,
+    "active_onset_s": 0.13091666666666665,
+    "active_end_s": 1.932375,
+    "energy90_s": 0.6627083333333333,
+    "energy99_s": 0.9406666666666667,
+    "spectral_centroid_hz": 965.7547413284407,
+    "energy_below200_percent": 81.09003548706386,
+    "energy_above6000_percent": 4.834759563035428,
+    "stereo_mono_correlation": 0.7640457824006078,
+    "sample_fullscale_count": 0
+  },
+  {
+    "name": "MAGSpel_ Spell Impact3_raw_Ambience.wav",
+    "duration_s": 2.6049583333333333,
+    "peak_dbfs": -1.614944112379216,
+    "active_onset_s": 0.033916666666666664,
+    "active_end_s": 2.237125,
+    "energy90_s": 1.54575,
+    "energy99_s": 1.87425,
+    "spectral_centroid_hz": 285.49881775851753,
+    "energy_below200_percent": 96.50835450811583,
+    "energy_above6000_percent": 1.6662445555215575,
+    "stereo_mono_correlation": 0.2387526130624172,
+    "sample_fullscale_count": 0
+  }
+]

@@ -1,0 +1,205 @@
+{
+  "stage": "Nine native replacements imported, reloaded and copied to isolated feature; actual fire/shield playback captured; Hull event and Main/Shipping validation pending",
+  "claim": "98c956c9",
+  "pr12_head_preserved": "69c18e33e519096eea065988e6874bd7f86c9cd5",
+  "rows": [
+    {
+      "role": "NeedleCannon",
+      "take": 1,
+      "supplied_impact": 19,
+      "source": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact19_raw_Ambience.wav",
+      "source_sha256": "02af20c137d187ce0b2b7434623e29777a4f0151e707b463c7cb79801897a79a",
+      "source_range_s": [
+        0.030708333333333334,
+        0.3401875
+      ],
+      "duration_s": 0.3094791666666667,
+      "dc_removed": 0.0003199267451589014,
+      "linear_gain_db": 1.7566243398508274,
+      "attack_s": 0.002,
+      "release_s": 0.1,
+      "asset_path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_01",
+      "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\export_v4\\SW_NeedleCannon_01.wav",
+      "output_sha256": "f50dd612502e7ead191ae3b38ada49f785a2b133d6c6b027d640b1228038fcfa",
+      "common_stress_headroom_gain_db": -0.9083339124894241,
+      "peak_dbfs": -2.4083339124779624
+    },
+    {
+      "role": "NeedleCannon",
+      "take": 2,
+      "supplied_impact": 109,
+      "source": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact109_raw_Ambience.wav",
+      "source_sha256": "f623c7f41bb5cbd23e851b7c1d5e4d759e6530909fed801e5ae36133d3462189",
+      "source_range_s": [
+        0.05316666666666667,
+        0.37316666666666665
+      ],
+      "duration_s": 0.32,
+      "dc_removed": 0.005818732983122269,
+      "linear_gain_db": 3.273666423356732,
+      "attack_s": 0.002,
+      "release_s": 0.1,
+      "asset_path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_02",
+      "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\export_v4\\SW_NeedleCannon_02.wav",
+      "output_sha256": "9436344fe496f93e0fc65f89ae5ee1628ac11c692c9a4d41c21598c217a10718",
+      "common_stress_headroom_gain_db": -0.9083339124894241,
+      "peak_dbfs": -2.4083339124779624
+    },
+    {
+      "role": "NeedleCannon",
+      "take": 3,
+      "supplied_impact": 117,
+      "source": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact117_raw_Ambience.wav",
+      "source_sha256": "425fc6e2726cf8a9124ad4f8e338ea9f4b9498b82d78863419a2a1c780a97e1b",
+      "source_range_s": [
+        0.1120625,
+        0.4320625
+      ],
+      "duration_s": 0.32,
+      "dc_removed": 0.004926186629260579,
+      "linear_gain_db": 9.917779579542774,
+      "attack_s": 0.002,
+      "release_s": 0.1,
+      "asset_path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_NeedleCannon_03",
+      "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\export_v4\\SW_NeedleCannon_03.wav",
+      "output_sha256": "a76e9167b01da7856889abbf6cf573e21c30ed4998ed2039832f37cc1ae9376a",
+      "common_stress_headroom_gain_db": -0.9083339124894241,
+      "peak_dbfs": -2.4083339124779624
+    },
+    {
+      "role": "Hull",
+      "take": 1,
+      "supplied_impact": 109,
+      "source": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact109_raw_Ambience.wav",
+      "source_sha256": "f623c7f41bb5cbd23e851b7c1d5e4d759e6530909fed801e5ae36133d3462189",
+      "source_range_s": [
+        0.05316666666666667,
+        0.8832291666666666
+      ],
+      "duration_s": 0.8300625,
+      "dc_removed": 0.0003413572240395696,
+      "linear_gain_db": 0.7527724953230148,
+      "attack_s": 0.002,
+      "release_s": 0.12,
+      "asset_path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_Hull_01",
+      "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\export_v4\\SW_Hull_01.wav",
+      "output_sha256": "b269678d8d8409a8702c0f5e150d25d5642d7da3d68b1d95eae8399fdb4e8e6b",
+      "common_stress_headroom_gain_db": -0.9083339124894241,
+      "peak_dbfs": -2.408333912477961
+    },
+    {
+      "role": "Hull",
+      "take": 2,
+      "supplied_impact": 29,
+      "source": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact29_raw_Ambience.wav",
+      "source_sha256": "80070112530001fad1e96a52476ac79631f97ec65705921ef998e40ee937c0f3",
+      "source_range_s": [
+        0.126125,
+        1.26275
+      ],
+      "duration_s": 1.136625,
+      "dc_removed": -0.0005915714709513615,
+      "linear_gain_db": 1.2998473874864602,
+      "attack_s": 0.002,
+      "release_s": 0.12,
+      "asset_path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_Hull_02",
+      "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\export_v4\\SW_Hull_02.wav",
+      "output_sha256": "33b2dc6ae6284b507d674837ee1fb3430d438dcf654c6a6a1f60e7a06c74a44d",
+      "common_stress_headroom_gain_db": -0.9083339124894241,
+      "peak_dbfs": -2.4083339124779624
+    },
+    {
+      "role": "Hull",
+      "take": 3,
+      "supplied_impact": 117,
+      "source": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact117_raw_Ambience.wav",
+      "source_sha256": "425fc6e2726cf8a9124ad4f8e338ea9f4b9498b82d78863419a2a1c780a97e1b",
+      "source_range_s": [
+        0.1120625,
+        1.2606875
+      ],
+      "duration_s": 1.148625,
+      "dc_removed": 0.0002587595895148706,
+      "linear_gain_db": 1.9548108058522198,
+      "attack_s": 0.002,
+      "release_s": 0.12,
+      "asset_path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_Hull_03",
+      "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\export_v4\\SW_Hull_03.wav",
+      "output_sha256": "b313d2c134a58baed57344ea0fc426de96fa7b98ec8e6ab75cddd4eb42f3e203",
+      "common_stress_headroom_gain_db": -0.9083339124894241,
+      "peak_dbfs": -2.4083339124779624
+    },
+    {
+      "role": "Shield",
+      "take": 1,
+      "supplied_impact": 3,
+      "source": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact3_raw_Ambience.wav",
+      "source_sha256": "f6237a823cfdfe016c3054985e2b649d3899ae0439feceaafc4d67a2fa1f36c6",
+      "source_range_s": [
+        0.023916666666666666,
+        2.121354166666667
+      ],
+      "duration_s": 2.0974375,
+      "dc_removed": 8.266918479450166e-05,
+      "linear_gain_db": 2.4034335191819265,
+      "attack_s": 0.002,
+      "release_s": 0.18,
+      "asset_path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_Shield_01",
+      "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\export_v4\\SW_Shield_01.wav",
+      "output_sha256": "c54db4bbb9ae553fcc908b93d014a927fba345beff8de8fe165da8dfe20f9391",
+      "common_stress_headroom_gain_db": -0.9083339124894241,
+      "peak_dbfs": -2.4083339124779624
+    },
+    {
+      "role": "Shield",
+      "take": 2,
+      "supplied_impact": 29,
+      "source": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact29_raw_Ambience.wav",
+      "source_sha256": "80070112530001fad1e96a52476ac79631f97ec65705921ef998e40ee937c0f3",
+      "source_range_s": [
+        0.126125,
+        1.6034583333333334
+      ],
+      "duration_s": 1.4773333333333334,
+      "dc_removed": -0.00043033201953324607,
+      "linear_gain_db": 1.297965459275713,
+      "attack_s": 0.002,
+      "release_s": 0.18,
+      "asset_path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_Shield_02",
+      "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\export_v4\\SW_Shield_02.wav",
+      "output_sha256": "5cc970d7f02254302428506d07b936cef4111d621bbfdb16eef3fb04f635cfab",
+      "common_stress_headroom_gain_db": -0.9083339124894241,
+      "peak_dbfs": -2.4083339124779624
+    },
+    {
+      "role": "Shield",
+      "take": 3,
+      "supplied_impact": 19,
+      "source": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\source\\MAGSpel_ Spell Impact19_raw_Ambience.wav",
+      "source_sha256": "02af20c137d187ce0b2b7434623e29777a4f0151e707b463c7cb79801897a79a",
+      "source_range_s": [
+        0.030708333333333334,
+        1.0994375
+      ],
+      "duration_s": 1.0687291666666667,
+      "dc_removed": 0.0002881834305781095,
+      "linear_gain_db": 1.4565861354675151,
+      "attack_s": 0.002,
+      "release_s": 0.18,
+      "asset_path": "/Game/TriadDrift/Audio/Combat01/Waves/SW_Shield_03",
+      "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\export_v4\\SW_Shield_03.wav",
+      "output_sha256": "8d91cbe3134d37cf1bad6ca3a6445cd3360031e6cc9434be870e1c9b95375394",
+      "common_stress_headroom_gain_db": -0.9083339124894241,
+      "peak_dbfs": -2.708333912477559
+    }
+  ],
+  "routing_changes": false,
+  "synthetic_layers": false,
+  "original_sources_unchanged": true,
+  "offline_stress": {
+    "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-pr12-replacements-1113\\ArtSource\\Audio\\Combat01\\ProvidedMAGSpel01\\export_v4\\PR12_Provided_20Hz_OfflineStress.wav",
+    "source_peak_dbfs": -3.999999999986234,
+    "final_engine_mix_verified": false
+  },
+  "provenance": "Supplied by Nick; embedded rawAmbience. Acquisition/free-pack match pending; no raw GitHub publication."
+}

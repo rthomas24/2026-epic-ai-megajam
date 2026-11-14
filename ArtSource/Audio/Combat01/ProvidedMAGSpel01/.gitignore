@@ -1,0 +1,5 @@
+# Preserve supplied originals locally; do not publish raw library downloads.
+source/
+export*/
+*.wav
+__pycache__/
