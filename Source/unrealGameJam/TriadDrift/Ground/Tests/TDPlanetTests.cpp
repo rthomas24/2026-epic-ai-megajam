@@ -23,6 +23,7 @@
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TriadDrift/Ground/Crew/TDCrewAIController.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
@@ -782,6 +783,76 @@ bool FTDCourseDressed::RunTest(const FString& Parameters)
 	return true;
 }
 
+// ENG-45's extra crew (Lead, Nov 14: a Trooper spawned behind a room's wall on Ace and the room never cleared): on every
+// preset, every fight on both planets spawns each crewman on walkable floor, clear of walls, inside its room.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseSpawnsOnFloor, "TriadDrift.Ground.Course.EveryPresetSpawnsCrewOnTheFloorInsideTheRoom", TD_TEST_FLAGS)
+bool FTDCourseSpawnsOnFloor::RunTest(const FString& Parameters)
+{
+	const ETDDifficulty Was = UTDDifficultySettings::GetCurrent();
+	for (const ETDDifficulty D : { ETDDifficulty::Story, ETDDifficulty::Standard, ETDDifficulty::Ace })
+	{
+		UTDDifficultySettings::SetCurrent(D);
+		const UEnum* En = StaticEnum<ETDDifficulty>();
+		const FString Preset = En ? En->GetNameStringByValue((int64)D) : TEXT("?");
+		for (const TCHAR* Planet : { TEXT("Verdance"), TEXT("Cinder") })
+		{
+			TDPlanetTest::FVisit V(NAME_None, Planet);
+			UWorld* World = V.W.GetWorld();
+			int32 Fights = 0, Crew = 0, Bad = 0;
+			TArray<ATDEncounterVolume*> All;
+			for (TActorIterator<ATDEncounterVolume> It(World); It; ++It) { All.Add(*It); }
+			for (ATDEncounterVolume* E : All)
+			{
+				E->Activate();
+				++Fights;
+			}
+			// Checked where they spawn, before anyone moves (crew walk straight toward the pilot; the waves drop in from 9 m).
+			for (ATDEncounterVolume* E : All)
+			{
+				FVector BoxO = E->GetActorLocation(), BoxE = E->Box ? E->Box->GetScaledBoxExtent() : FVector::ZeroVector;
+				const bool bRoom = BoxE.X > 300.f && BoxE.Y > 300.f; // a room fight (the waves' boxes are 10 cm markers)
+				for (const TWeakObjectPtr<AActor>& M : E->GetSpawned())
+				{
+					ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get());
+					if (!C || C->Spec.bFlying || C->IsDead()) { continue; }
+					++Crew;
+					const FVector At = C->GetActorLocation();
+					FCollisionQueryParams Q(SCENE_QUERY_STAT(TDSpawnFloor), false, C);
+					FHitResult Floor;
+					const bool bFloor = World->LineTraceSingleByChannel(Floor, At, At - FVector(0.f, 0.f, 3000.f), ECC_Visibility, Q)
+						&& Floor.ImpactNormal.Z > 0.7f; // walkable floor straight below (a drop-in lands on it)
+					const bool bClear = !World->OverlapBlockingTestByChannel(At + FVector(0.f, 0.f, 5.f), FQuat::Identity, ECC_Pawn,
+						FCollisionShape::MakeCapsule(C->Spec.CapsuleRadius * 0.9f, C->Spec.CapsuleHalfHeight * 0.9f), Q);
+					const bool bInRoom = !bRoom || (FMath::Abs(At.X - BoxO.X) <= BoxE.X + 50.f && FMath::Abs(At.Y - BoxO.Y) <= BoxE.Y + 50.f);
+					// And not walled off from its own fight (behind a room's wall, the bug this test is for): a clear line to at
+					// least one other crewman of the same fight (a structure in the middle, the anchor's tower, is fine).
+					bool bSeesCentre = !bRoom || E->GetSpawned().Num() < 2; // room fights (a drop-in wave around the relay spire is open ground)
+					for (const TWeakObjectPtr<AActor>& O : E->GetSpawned())
+					{
+						const AActor* Other = O.Get();
+						if (bSeesCentre || !Other || Other == C) { continue; }
+						FCollisionQueryParams Q2(SCENE_QUERY_STAT(TDSpawnMate), false, C);
+						Q2.AddIgnoredActor(Other);
+						for (const TWeakObjectPtr<AActor>& X : E->GetSpawned()) { if (X.IsValid()) { Q2.AddIgnoredActor(X.Get()); } }
+						FHitResult Wall;
+						bSeesCentre = !World->LineTraceSingleByChannel(Wall, At, Other->GetActorLocation(), ECC_Visibility, Q2);
+					}
+					if (!bFloor || !bClear || !bInRoom || !bSeesCentre)
+					{
+						++Bad;
+						AddError(FString::Printf(TEXT("%s %s: %s of %s at %s: floor %d, clear of walls %d, inside its room %d"), *Preset, Planet,
+							*C->GetName(), *E->GetName(), *At.ToCompactString(), bFloor, bClear, bInRoom) + FString::Printf(TEXT(", sees the centre %d"), bSeesCentre));
+					}
+				}
+			}
+			AddInfo(FString::Printf(TEXT("%s %s: %d fights, %d walking crew checked, %d misplaced"), *Preset, Planet, Fights, Crew, Bad));
+			TestTrue(*FString::Printf(TEXT("%s %s: crew checked"), *Preset, Planet), Crew > 5);
+		}
+	}
+	UTDDifficultySettings::SetCurrent(Was);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseKeepOuts, "TriadDrift.Ground.Course.KeepOutsProtectRoutesSitesAndSpawns", TD_TEST_FLAGS)
 bool FTDCourseKeepOuts::RunTest(const FString& Parameters)
 {
@@ -1105,6 +1176,21 @@ bool FTDCourseWardenMercy::RunTest(const FString& Parameters)
 // ================================================================================================
 namespace TDPlayedTest
 {
+	/** The difficulty a played test runs on: TD_TEST_DIFFICULTY (Story / Standard / Ace), else the current one; restored. */
+	struct FScopedTestDifficulty
+	{
+		ETDDifficulty Was;
+		explicit FScopedTestDifficulty(FAutomationTestBase& T) : Was(UTDDifficultySettings::GetCurrent())
+		{
+			const FString Want = FPlatformMisc::GetEnvironmentVariable(TEXT("TD_TEST_DIFFICULTY"));
+			const UEnum* E = StaticEnum<ETDDifficulty>();
+			const int64 V = E && !Want.IsEmpty() ? E->GetValueByNameString(Want) : INDEX_NONE;
+			if (V != INDEX_NONE) { UTDDifficultySettings::SetCurrent((ETDDifficulty)V); }
+			T.AddInfo(FString::Printf(TEXT("difficulty %s"), E ? *E->GetNameStringByValue((int64)UTDDifficultySettings::GetCurrent()) : TEXT("?")));
+		}
+		~FScopedTestDifficulty() { UTDDifficultySettings::SetCurrent(Was); }
+	};
+
 	struct FPlayer
 	{
 		TDPlanetTest::FVisit& V;
@@ -1435,6 +1521,7 @@ namespace TDPlayedTest
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDVerdancePlayed, "TriadDrift.Ground.Played.Verdance", TD_TEST_FLAGS)
 bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 {
+	TDPlayedTest::FScopedTestDifficulty Difficulty(*this); // TD_TEST_DIFFICULTY=Story|Standard|Ace (ENG-45: each preset played)
 	TDPlanetTest::FVisit V(NAME_None, TEXT("Verdance"), true, {}, /*bLocalController*/ true);
 	TDPlayedTest::FPlayer P(V, *this, 60.f);
 	if (!P.Land()) { return false; }
@@ -1511,6 +1598,7 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCinderPlayed, "TriadDrift.Ground.Played.Cinder", TD_TEST_FLAGS)
 bool FTDCinderPlayed::RunTest(const FString& Parameters)
 {
+	TDPlayedTest::FScopedTestDifficulty Difficulty(*this); // TD_TEST_DIFFICULTY=Story|Standard|Ace (ENG-45: each preset played)
 	TDPlanetTest::FVisit V(NAME_None, TEXT("Cinder"), true, {}, /*bLocalController*/ true);
 	TDPlayedTest::FPlayer P(V, *this, 60.f);
 	if (!P.Land()) { return false; }
