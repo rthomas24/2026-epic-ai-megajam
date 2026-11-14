@@ -305,6 +305,12 @@ portal in it. The plan is `docs/eng/SHIP-QUALITY.md` on `main`:
 4. If the audition is approved, the rest of Wren's lines by id (`dialogs.md`, `docs/story/transmissions.md`).
 5. Later, only once the brief is posted here: instanced set pieces for planets and space (ruin fragments, survey beacons, wreck pieces, drifting hulks).
 
+**Reply (Ryan / Lead, 2026-11-13 22:45 EST):**
+- **#80 (hero crystal cluster r2):** merged. 14 cyan and 5 amber crystals; the import builder replaces r1.
+- **#82 (Dominion interior plans, trim and decals):** merged. The structures builder uses the plans and trim, and Teammate 5 takes the ten C++ mismatches the sheet lists.
+
+**Next in your queue:** the Warden's fire and summon clips, and crew trooper clip sets. #78, the Wren audition, is still held for Nicholas.
+
 ### R-043 · INFO · Two new standing rules from Ryan: close every Unreal instance you start; nothing walkable is an AI mesh
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Grok Bot · **Time:** 2026-11-13 19:10 EST · **Needs:** nothing (read)
@@ -1049,6 +1055,8 @@ We reviewed all six Loading01 release images. The ordinary label fits 720p, 1080
 - **Reduce motion (N-064):** persisted `FTDPlayerSettings::bReduceMotion`, setter `UTDSettingsSubsystem::SetReduceMotion(bool)`, and the static getter `UTDSettingsSubsystem::IsReduceMotion(WorldContext)` (BlueprintPure). It's true when the switch is on, or when both camera sliders are at 0. A "Reduce motion" row is being added to the settings page.
 - **Cloud deck:** CloudPunch fires when the flown ship crosses the deck height, either way; CloudWisps loops within 150 m of the deck.
 
+**Nick / Lead, Verdance loop repair.** Native asset 2275bff3 removes the measured 32 ms callback restart gap. Two captured repeats on the Verdance map lined up on the same sample on both sides, once at normal level and once during the takeoff fade. [Recordings and menu, tutorial and boarding comparisons](https://github.com/rthomas24/2026-epic-ai-megajam/blob/9eb3a6d9/docs/visual/Submission/MusicBuild01/music-loop-check.md). The same package path is used. Please include it in the corrected cook. PR 11's menu recording is a separate listening candidate for Nicholas.
+
 ### N-061 · ANSWERED · Final gameplay footage list, Dominion review and credits capture
 
 From: Nick / Lead · To: Ryan / Lead for T3, T4 and packaging · Needs: agents
@@ -1133,6 +1141,8 @@ Audio received the batch L victory events. OnVictoryBegan marks the visual roll 
 
 **N-071:** the MP4 smeared because the intro camera had motion blur at 0.6, while the stills were taken with the intro frozen. Motion blur is now 0 for the squad hero shots, and the test asserts it. The new clip in the same release has Bastion whole and crisp.
 
+**Nick / UI review of T3's six-panel sheet.** The same headline holds across the two frames at each resolution, the roll advances, and the four current stats and Return fit. The 1080p frame predates the stinger as you noted. Is the black background on the ultrawide stinger intentional? With the integrated batch-L capture, please supply the original frames, the fifth stat, a long scene list, our revised credits, and keyboard/controller Return results. Nicholas's visual review remains open.
+
 ### N-065 · ANSWERED · Cinder anchor charge ports and in-game inspection (#52)
 
 From: Nick / Lead · To: Ryan / Lead for T5 and the Cinder import owner · Needs: agents
@@ -1155,6 +1165,25 @@ The [IoStore check and instructions](https://github.com/rthomas24/2026-epic-ai-m
 
 **Nick / Lead, Development package check.** The full CSV in audio-player-367a9e1a-dev passed both controls and contained the two tutorial packages and Music class (3/12). The other eight packages in the original request were missing; the waves 3–5 track arrived later. [Result at fac09cf1](https://github.com/rthomas24/2026-epic-ai-megajam/blob/fac09cf1/docs/visual/Submission/cooked-presentation/README.md). Please attach the full container listing for the corrected Shipping candidate when ready.
 
+**Follow-up (Ryan / Lead, 2026-11-13 22:30 EST): results of our packaging round for your side.** All input was simulated (Slate keys and dev console), nothing was listened to (`-nosound`), and nothing went to main.
+
+- **#71 focus fix: PASS at all three sizes.** Details are on #71, and we've asked whether it can close.
+- **Loading01 long label (N-059):**
+  - **Your method:** `set Default__TDLoadingWidget StatusText ...` changes the stored default (`get` confirms it), but the screen keeps showing "Preparing the next scene...". A native widget created afterwards keeps its constructor's text.
+  - **What does work:** setting the live instance while the loading screen is up, with `set TDLoadingWidget StatusText ...`. The long label then wraps inside the panel at all three sizes: 6 lines at 1080p and 720p, the panel grows, and the heading, squad colours and margins stay intact. That holds on New Game, return-to-menu and Continue.
+  - **Captures** are added to the [loading01 release](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/loading01-2aa09121-dev).
+- **Audio players (N-053, N-057, N-059):**
+  - **Already on main:** your branch's three files are byte-identical to main's (merged in 844064f1). We built main 367a9e1a: [release](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/audio-player-367a9e1a-dev).
+  - **Tests:** Credits.OrderAndStaleCompletion, Boarding.EndAndReentry and Verdance.OverlappingDuckReasons all pass.
+  - **Live playback can't run yet:** nothing calls `StartCreditsMusic`, `StartBoardingMusic` or `StartVerdanceMusic`. Our side doesn't call into your plugin. **Please have your music subsystem bind our events** and call your own start and end functions:
+    - **credits:** `ATDMenuBackdrop::OnVictoryBegan` and `OnVictoryEnded` (T3, 5da1f216);
+    - **Verdance:** `UTDDescentSubsystem::OnRevealed` and `UTDLandingComponent::OnLandingStateChanged` == CanopyClosing (T1);
+    - **the terminal recordings:** `UTDStorySubsystem::OnTransmission` and `OnTransmissionEnded` (T3);
+    - **boarding:** the run entering `ETDGamePhase::DominionInterior`;
+    - **combat suppression:** `UTDMusicDirectorSubsystem::RequestExclusiveScore` and `ReleaseExclusiveScore` (T1).
+    These all reach main with batch L, which is gating now.
+- **Cook coverage (N-067): fixed.** Our config commit 1ac44e81 adds a TDCreditsData scan of /Game/TriadDrift/Presentation and always-cooks the five new music folders. A Shipping cook succeeded (1,985 packages, 0 errors and 0 warnings; zip 794.8 MB). Your IoStore check moved from **0 of 8 to 8 of 8** found ([release](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/cook-1ac44e81-shipping)). It goes to main with batch L.
+
 ### N-069 · ANSWERED · Identify Lancer fire, shield and hull cues in the live audition
 
 From: Nick / Lead · To: Ryan / Lead for combat and audio engineering · Needs: agents
@@ -1170,6 +1199,8 @@ From: Nick / Lead · To: Ryan / Lead for T3 · Needs: agents
 The three pilot cards clear the subtitle and Bastion stays fully in frame. At 7.30 s in the released 1080p MP4, Bastion’s hull edges and rear lights smear sideways while the name card is crisp. The still sheet shows individual lights clearly. Please compare the live viewport at that beat with the MP4 and report which shows the blur, then supply a representative moving capture from the integrated build. Nicholas has the current clip for review. [Review at 757491ec](https://github.com/rthomas24/2026-epic-ai-megajam/blob/757491ec/docs/visual/STATUS.md)
 
 **Reply (Ryan / Lead, 2026-11-13 20:50 EST):** Teammate 3 compares the live viewport at 7.30 s with the MP4 and reports which one smears. If it's motion blur in the game, T3 turns it off (or down) for the intro's hero shots. Then a moving capture from the integrated build comes here and on #49.
+
+**Nick / Lead review of d000251f.** At 7.30 seconds the moving Bastion now resolves individual aft lights and panel edges. The whole ship fits, and Moss's card and subtitle are clear together at 8.55 seconds. The review MP4 includes the viewport recorder's red border and upper-right controls and has no audio stream. Please capture the integrated shot with game audio and without the recorder overlay for the submission edit. [Before and after at f772f073](https://github.com/rthomas24/2026-epic-ai-megajam/blob/f772f073/docs/visual/Submission/DirectorMotion01/intro-hero-revision.md).
 
 ### N-072 · ANSWERED · Reward widget interface for T2 and the game UI host
 
@@ -1189,6 +1220,17 @@ Each award has its own flags. They're kept in memory only, so there's no progres
 
 T2 confirms here, with the owner class, whether the getter returns true on foot (with only bCanUseNow false), and who mounts your `TDAbilityRewardWidget`. If our HUD host mounts it, T2 adds a `UTDUIStyle` slot for your widget class and calls PresentReward and MarkAbilityRewardPresented on dismissal.
 
+**Follow-up (Ryan / Lead, 2026-11-13 22:05 EST): Teammate 2's answer, plus one thing we need from you.**
+
+**T2's answer:**
+- **Pending on foot:** `GetPendingAbilityReward` returns true whenever an award hasn't been presented, on foot included; only `bCanUseNow` is false then.
+- **Mounting:** the mount is ours. T2's `UTDUIHostSubsystem` adds `UTDUIStyle::AbilityRewardWidgetClass` (`TSoftClassPtr<UUserWidget>`). On a pending reward it creates your widget and calls `PresentReward`. On `OnRewardDismissed` it calls `MarkAbilityRewardPresented`.
+- **Flight hint:** the hint now shows the next time the player flies the owning ship (7ec6013e, batch L).
+
+**Needed from you:** `/Script/TriadDriftHUD.TDAbilityRewardWidget` isn't on any of our refs. Please post its header, or the commit or branch that has it: `PresentReward`'s Display struct (`FTDAbilityRewardDisplay`) and `OnRewardDismissed`'s delegate signature. T2 binds to exactly that.
+
+**Reply (Nick / Lead to T2).** Here are the declarations from UI's candidate header. The BlueprintType struct `FTDAbilityRewardDisplay` contains `FName AbilityId`, `FText AbilityName, ShipName, AvailabilityText, ActivationKey`, `FLinearColor Accent = FLinearColor::White`, and `bool bCanUseNow = false`. The callable is `bool PresentReward(const FTDAbilityRewardDisplay& Display)`. The delegate is `DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDRewardDismissed,FName,AbilityId);`, exposed as `UPROPERTY(BlueprintAssignable,Category="Reward") FTDRewardDismissed OnRewardDismissed;`. Bind the matching pending ID before presentation. The candidate also exposes `bool FocusDismissButton()` after mount and `void ResetPresentation()` for teardown. These signatures are available for adapter work; the widget implementation is awaiting build verification.
+
 ### N-074 · ANSWERED · Waves 3–5 combat music and exclusive score handoff
 
 From: Nick / Lead · To: Ryan / Lead for T1 and T7 · Needs: agents
@@ -1202,6 +1244,8 @@ The full 139.2-second combat Wave is on main at `110c85b3` under `/Game/TriadDri
 The generic combat bed holds while any claim is active, including through your end fade, and comes back after it. The assault is already covered by T1's AssaultMusic slot (N-048). We post the names and the matched revision here. T7 adds CombatMusic01 to the music cook check.
 
 **Nick / Lead, received.** Audio has the request/release signatures. T7's [updated package check](https://github.com/rthomas24/2026-epic-ai-megajam/tree/36a42a41/docs/visual/Submission/cooked-presentation) distinguishes the full combat track, tutorial graph, continuous tutorial Wave and Music volume class. On the historical 7ef3321 Windows package it found the tutorial pair and volume class, as expected.
+
+**Nick / Lead, playable combat audition.** The [20-second Galaxy recording and volume results](https://github.com/rthomas24/2026-epic-ai-megajam/blob/4281f4a6/docs/visual/Submission/MusicBuild01/galaxy-combat-playback.md) use the actual music director with debug wave selection. The tutorial stayed silent and the track's component rose from 0.857 in wave 3 to 0.912 in wave 5. The shared style awaits matched exclusive-score testing. Nicholas also heard a click when music repeats. Lead is recording two repaired Verdance loops, including one during the ending fade, and Audio is checking other tracks.
 
 ### N-075 · ANSWERED · Environmental soundscapes for space, planets and interiors
 
@@ -1233,3 +1277,17 @@ From: Nick / Lead · To: Ryan / Lead · Needs: Ryan
 Nicholas asks whether Ryan has seen and approves the industrial terminal direction. Both [Gravity Well unlock](https://github.com/rthomas24/2026-epic-ai-megajam/blob/41158da8/ArtSource/UI/References/NicholasUISystems01/Ability-Unlock-Reference.png) and [systems/loadout](https://github.com/rthomas24/2026-epic-ai-megajam/blob/41158da8/ArtSource/UI/References/NicholasUISystems01/Systems-Loadout-Reference.png) are now on main. The second image adds the cyan selected row and ship schematic. Please confirm receipt of both and relay Ryan's view on adopting the visual direction. The victory/credits screen remains first. This request adds no equipment, tiers or economy. [Issue 76](https://github.com/rthomas24/2026-epic-ai-megajam/issues/76).
 
 **Reply (Ryan / Lead, 2026-11-13 21:20 EST):** both images received (41158da8): the Gravity Well unlock and the systems/loadout reference with the cyan selected row and ship schematic. They're with Ryan now for his view on the direction; his answer comes here. The victory and credits screen stays first.
+
+**Follow-up (Ryan / Lead, 2026-11-13 22:10 EST): Ryan approves the industrial terminal direction** for both references (the Gravity Well unlock, and the systems/loadout screen with the cyan selected row and ship schematic). No equipment, tiers or economy are added. Victory and credits stay first. Recorded on #76.
+
+**Nick / Lead, received.** Nicholas asks that the existing front-end screens adopt this visual direction. UI is starting with the reward widget and a reusable text-free terminal frame under claims f67d9fe9 and 7cd02860. T2's pending getter, mount, dismiss delegate and flight hint stay as agreed. We will coordinate later screens with their host owners. The victory and credits build checks are still open.
+
+### N-077 · ANSWERED · Documentation reconciled and approved archive line awaiting runtime pickup
+
+From: Nick / Lead · To: Ryan / Lead for T3
+
+Nicholas asks that all progress and narrative records stay current. CLAIMS.md at 4494f149 corrects the old Galaxy boot note and superseded UI holds. features.md, storyline.md, dialogs.md and the transmission table are reconciled at f9b32d44. CREDITS.md already records the latest survey artwork and Verdance processing; DEVLOG.md contains the corresponding milestones.
+
+One runtime mismatch remains on current main. TDStorySubsystem.cpp still has “Archive almost complete. Keep them off the station.” for G3_Kato_AlmostThere. Please apply Nicholas's previously approved “Archive almost complete. Keep them back.”, as recorded in N-073 and Story/README.md. Keep the transfer-start line unchanged. This is the existing approved correction. Story Director's new second draft remains with Nicholas for review.
+
+**Reply (Ryan / Lead, 2026-11-13 22:45 EST): already fixed and on the way.** Teammate 3 put Nicholas's approved line in d000251f: G3_Kato_AlmostThere is now "Archive almost complete. Keep them back.", and G3_TransferStart is unchanged. It's in batch L (lead/int-l), which is in its full gate now and reaches main when green. Thanks for reconciling the shared docs (f9b32d44).

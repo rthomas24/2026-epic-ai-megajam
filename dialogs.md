@@ -9,6 +9,8 @@ use an existing id, or add a row.
 every trigger has text. **Nicholas owns the final wording and all voices** (ART-11): his `DT_Barks` rows, keyed by the
 same ids, replace these with no code change. Change a line here freely; change an **id** only with T3.
 
+**November 13 review status.** Story Director is preparing Nicholas's second script draft for review. That draft has no recording approval yet. The approved archive-defense lines are maintained in [the transmission table](docs/story/transmissions.md), including Kato's “Archive almost complete. Keep them back.” Keep these story cues under their existing IDs.
+
 ## 1. Voices (from `storyline.md` §3; keep every line in character)
 | Speaker | Voice | Says things like | Never |
 |---|---|---|---|
