@@ -359,3 +359,153 @@ What I could not verify: the RDO, compression-level and shader savings (estimate
 jam's 1 GB is decimal or binary; whether the Warden, the Null drone, the Verdance wreck parts and the interior kit
 are all really loaded by code (they are loaded by constructed names, so they were treated as used); and the
 state of the ship data assets, which another agent was editing in the `lead/int` working tree during the audit.
+
+## 6. Update, Nov 14 03:30: the zip is at 981 MB (import builder)
+
+Headless only: no cook, nothing rendered. **Measured** = read with Epic's `trim_report.py stage` from the packaging
+agent's staged Shipping build of `eb1bf334` (`.wt/pkg/Saved/StagedBuilds/Windows`, 2,466 packages) or from the asset
+files on `f39a8372`. **Estimated** = computed from those numbers. Every never-cook saving below is unproven until a
+Shipping cook runs clean with the rules in. MB = 10^6 bytes; cooked package bytes are within 1.3 % of zipped bytes.
+
+**Where the 981 MB is (measured, `eb1bf334`).** `.ucas` 879.8 MB: textures 610.5 (639 packages), static meshes
+113.1, shader code 89.9, audio 45.4 (Nicholas's music 39.5, engineering 5.8), skeletal 5.7, animation 5.3,
+everything else under 6. Outside it: the Shipping exe 178.1 (about 70 zipped), `vc_redist.x64.exe` 18.6, other DLLs
+about 23 (about 9 zipped), the `.pak` 11.0. Items 1 to 4 of section 4 (denoiser, MegaLights and path-tracer shaders,
+ARM64 installer, compression level) are already in; the growth since is content: 174 more texture packages.
+
+### 6.1 The plan, ranked (target: 120 MB of headroom with no visible or audible loss)
+
+| # | Lever | Est. zip MB | Risk | Exact change | State |
+|---:|---|---:|---|---|---|
+| 1 | Never-cook 142 engineering packages that nothing reaches: the old Null fleet (42.1), old squad ships (16.3), Verdance planet-kit pieces no longer placed (51.1), the Rodin wreck set (7.8), old Dominion exterior pieces (5.1), two flipbooks with their materials and two scatter canopies (6.0) | **128** | None to the picture if the scan is right. If kept content does reference one, the cook fails ("Content is missing from cook"): loud, not silent. Nothing is deleted | `Config/DefaultGame.ini`, one `+DirectoriesToNeverCook` line per package, one commit per family: `48899d94`, `587802f1`, `713f9b0d`, `f7ed0a59`, `afc63afd`, `9a526f32` | **committed, unproven** |
+| 2 | The earlier never-cook list (35 superseded packages, 2 walk-test classes, 13 pipelines) | **11** (cooked: 10.5 + 0.2, measured) | Same | `2229c130`, `17855ca5`, `d49ced2b` | committed, in the packaging agent's proving cook |
+| 3 | Drop the DirectX 11 (SM5) shader set | **10** | The game no longer starts on a machine without DirectX 12 / SM6. It could not run Nanite or Lumen there anyway. Lead decides | `Config/DefaultEngine.ini`: the `+D3D11TargetedShaderFormats=PCD3D_SM5` line removed. `36fd0fac` | committed, optional |
+| 4 | Leave `d3d12SDKLayers.dll` out of the package | **2** | None: the debug layer loads only with `-d3ddebug` | `Tools/td-package.ps1`. `8471b9b5` | committed |
+| | **No-look total** | **about 150** | | | |
+| 5 | Oodle Texture RDO on all textures | 80 to 130 | **Needs eyes.** 474 MB of engineering textures remain after item 1; 238 MB of that is BC5 normal maps, which RDO shrinks most. Possible faint 4x4 steps in smooth gradients (the nebula sky, glows, UI) | `Config/DefaultEngine.ini`: `[/Script/Engine.TextureEncodingProjectSettings]` `bFinalUsesRDO=True`, `FinalRDOLambda=20` (30 saves more). Exempt `T_TD_NebulaSky` and Nicholas's UI textures per asset (Lossy Compression Amount: None) if steps show. Full texture re-encode on the next cook | not applied: not provably invisible |
+| 6 | Normal maps of space dressing and the planet kit at half size (`LODBias 1`) | 40 to 70 (54.1 + 40.2 MB of normals today; three quarters of each goes) | Softer close-up surface on foot (walls, choke rocks). Not visible on asteroids at flight distance | Per asset, in the editor: `LODBias=1` on `Props/SpaceDressing/Textures/*_N` first (keeps the mip chain; reversible by setting 0). Not a texture-group cap: the group also holds the ships, pilot and ground | not applied: binary edits, needs a look |
+| 7 | Planet globe maps (nine at 4096 x 2048; `T_Planet_Cinder_N` 10.8, `T_Planet_Verdance_N` 5.7) at `LODBias 1` | 12 to 20 | The globes are seen whole from space and close during the dive. Needs a look at the dive | Per asset, editor | not applied |
+| 8 | Nebula sky 8192 x 4096 to 4096 x 2048 | 19 | Stars soften at 1440p and above | Per asset `MaxTextureSize=4096` (it has no mips, so `LODBias` does nothing) | not applied: visible at high resolution |
+| 9 | Music quality (Nicholas's, 39.5 MB cooked, 11 tracks at about 270 kbps) | about 17 at quality 50 | Audible only on a close listen; audio is judged; **his call** | Per SoundWave `Quality`. Nothing changed | **Nicholas's folders: listed only** (6.4) |
+| 10 | Trees: Nanite data of the 18 `Props/Trees` meshes (28.8 MB; two are 7.5 and 4.8 MB) | 8 to 15 | Changes tree silhouettes up close; hardware Lumen traces the fallback | Per mesh: Nanite `Keep Triangle Percent` 50 on `SM_TDVeg_Kapok_S100_11` and `SM_TDVeg_TrumpetTree_S100_31` | not applied: needs a look |
+| 11 | `vc_redist.x64.exe` out of the zip | 18 | A machine without the Visual C++ runtime cannot start the game. Last resort | `Tools/td-package.ps1` | not applied |
+| 12 | Hardware ray tracing off (`r.RayTracing=False`) | about 18 | Changes Lumen on RTX cards (section 4, item 8): Ryan's decision after an A/B | `Config/DefaultEngine.ini` | not applied |
+
+Items 1 to 4 need no look at the picture, only a clean cook and a boot. With all four in, the zip should be about
+**830 MB** before batch O's additions. Item 5 is the next 100 MB if a look at the sky and the HUD passes.
+
+### 6.2 The 40 largest cooked packages (measured, `eb1bf334`)
+
+Paths are under `/Game/TriadDrift/Gameplay/` unless they start with `Audio/` or `UI/` (Nicholas's).
+
+| # | MB | Class | Package | Use |
+|---:|---:|---|---|---|
+| 1 | 25.35 | texture | `Props/Sky/T_TD_NebulaSky` | used |
+| 2 | 10.91 | texture | `Characters/NullFleet/Textures/T_Null_Carrier_N` | **unused**, never-cook line added |
+| 3 | 10.84 | texture | `Props/Planets/T_Planet_Cinder_N` | used |
+| 4 | 7.51 | staticmesh | `Props/Trees/SM_TDVeg_Kapok_S100_11` | used |
+| 5 | 5.74 | texture | `Props/Planets/T_Planet_Verdance_N` | used |
+| 6 | 5.68 | sound | `Audio/VerdanceTheme01/MUS_Verdance_Main_Full_01` | used |
+| 7 | 5.59 | texture | `Props/Planet/Textures/T_Cind_MagmaSurface_N` | used |
+| 8 | 5.59 | texture | `Props/Planets/T_Ground_Verdance_N` | used |
+| 9 | 5.59 | texture | `Props/Planets/T_Ground_Cinder_N` | used |
+| 10 | 5.10 | texture | `Characters/Pilot/T_Pilot_N` | used |
+| 11 | 4.87 | sound | `Audio/DominionAssault02/MUS_DominionAssault_PushTheAttack_Full_01` | Nick's; named by no asset (played by his plugin) |
+| 12 | 4.86 | sound | `Audio/CinderMusic01/MUS_Cinder_Combat_Fall_Full_01` | Nick's; named by no asset (played by his plugin) |
+| 13 | 4.84 | staticmesh | `Props/Trees/SM_TDVeg_TrumpetTree_S100_31` | used |
+| 14 | 4.80 | texture | `Props/Planet/Textures/T_Cind_MagmaSurface_M` | used |
+| 15 | 4.77 | texture | `Props/Kit/Textures/T_KitS_Trim_N` | used |
+| 16 | 4.71 | texture | `Props/DominionInterior/Textures/T_DI_Atlas_N` | used |
+| 17 | 4.69 | texture | `Props/Kit/Textures/T_Kit_Trim_N` | used |
+| 18 | 4.59 | texture | `Props/CinderAnchor/T_CinderAnchorEmitter_N` | used |
+| 19 | 4.53 | staticmesh | `Ships/DominionMothership/SM_DominionMothership` | used |
+| 20 | 4.51 | sound | `Audio/CinderMusic01/MUS_Cinder_Exploration_World_Full_01` | Nick's; named by no asset (played by his plugin) |
+| 21 | 4.43 | texture | `Characters/NullFleet/Textures/T_Null_Carrier_ORM` | **unused**, never-cook line added |
+| 22 | 4.42 | sound | `Audio/CreditsMusic01/MUS_Credits_EtherealPulseRemix_Full_02` | used |
+| 23 | 4.39 | texture | `VFX/Textures/T_TD_VFX_Grok_Smoke_8x8` | used |
+| 24 | 4.30 | texture | `VFX/Textures/T_TD_VFX_Grok_PlasmaSheath_8x8` | used |
+| 25 | 4.22 | texture | `Props/SpaceDressing/Textures/T_Derelict_Satellite_02_N` | used |
+| 26 | 4.19 | texture | `Props/Planet/Textures/T_Cind_ChokeRock_B_N` | used |
+| 27 | 4.17 | texture | `Props/Planet/Textures/T_Cind_OutpostWall_N` | used |
+| 28 | 4.13 | texture | `VFX/Textures/T_TD_VFX_Grok_CloudPunch_8x8` | used |
+| 29 | 4.10 | texture | `Props/Planet/Textures/T_Cind_ChokeRock_A_N` | used |
+| 30 | 3.99 | texture | `Props/Relay/Textures/T_Relay_N` | used |
+| 31 | 3.98 | texture | `VFX/Textures/T_TD_VFX_Grok_CloudWisp_8x8` | used |
+| 32 | 3.98 | texture | `Props/Planet/Textures/T_Verd_RelayPlatform_M_N` | **unused**, never-cook line added |
+| 33 | 3.97 | texture | `Props/SpaceDressing/Textures/T_Derelict_Satellite_01_N` | used |
+| 34 | 3.93 | texture | `Props/Planet/Textures/T_Verd_Plateau_N` | **unused**, never-cook line added |
+| 35 | 3.88 | texture | `Props/Planet/Textures/T_Verd_RelayPlatform_L_N` | **unused**, never-cook line added |
+| 36 | 3.84 | texture | `Props/SpaceDressing/Textures/T_StationTruss_03_N` | used |
+| 37 | 3.83 | texture | `Props/CinderAnchor/T_CinderAnchorTower_N` | used |
+| 38 | 3.83 | texture | `Props/Wreck/Textures/T_Wreck_N` | **unused**, never-cook line added |
+| 39 | 3.83 | texture | `Props/SpaceDressing/Textures/T_GateRing_01_N` | used |
+| 40 | 3.78 | texture | `Props/Planet/Textures/T_Cind_JammerTower_N` | used |
+
+"Used" = reachable from a cooked map, a data asset, a Presentation asset or a name in `Source/`, `Config/` or
+`Plugins/` (names built with `%d` / `%s` patterns included). The scan cannot see a name assembled from table data.
+No package in the top 40 is duplicated; the duplicates that mattered were the old ships beside the Rodin ones.
+
+### 6.3 Textures (610.5 MB cooked; 590.6 of it in engineering folders)
+
+| Folder | Cooked MB today | After item 1 | Of which normal maps | Seen |
+|---|---:|---:|---:|---|
+| `Props/SpaceDressing` (textures and meshes) | 103.4 | 103.4 | 54.1 | flight distance, 100 m and more |
+| `Props/Planet` (set-piece kit) | 120.8 | 69.7 | 40.2 | on foot, close |
+| `Props/Planets` (globes, ground, terrain sets) | 72.0 | 72.0 | 43.1 | globes from space; ground on foot |
+| `VFX/Textures` (flipbooks) | 39.1 | 32.0 | 0 | effects, BC7 |
+| `Props/Sky` | 26.8 | 26.8 | 0 | full screen |
+| `Props/Kit` | 17.8 | 17.8 | 12.1 | on foot, close |
+| `Characters/NullFleet` + `Characters/Squad` (old ships) | 54.4 | about 4 (carrier bay) | - | not in the game |
+
+Over 2048 on a side: `T_TD_NebulaSky` 8192 x 4096 (item 8); nine planet globe maps 4096 x 2048 (item 7); the old Null
+carrier set 4096 x 4096 (19 MB: unused, gone with item 1). Nothing else is over 2048 (sizes from section 1's
+audit; the textures added since are 2K and 1K deliveries), so a "cap at 2048" does nothing. The levers are item 1,
+RDO (item 5) and half-size normals where the camera never gets close (item 6).
+
+### 6.4 Audio (45.4 MB cooked)
+
+Engineering's fallback set is 5.8 MB for 227 waves: leave it. Nicholas's music as cooked (measured), with the
+duration estimated from the source size (about 7.7 s per MB of `.uasset`, checked against the one known length,
+139 s): about 270 kbps each. Whether a wave streams and its quality setting were not read (that needs the editor),
+so "current compression" here is the measured bit rate only.
+
+| Track (`Content/TriadDrift/Audio/`) | Cooked MB | About | Est. saving at quality 50 |
+|---|---:|---|---:|
+| `VerdanceTheme01/MUS_Verdance_Main_Full_01` | 5.68 | 185 s | 2.5 |
+| `DominionAssault02/MUS_DominionAssault_PushTheAttack_Full_01` | 4.87 | 146 s | 2.2 |
+| `CinderMusic01/MUS_Cinder_Combat_Fall_Full_01` | 4.86 | 154 s | 2.2 |
+| `CinderMusic01/MUS_Cinder_Exploration_World_Full_01` | 4.51 | 146 s | 2.0 |
+| `CreditsMusic01/MUS_Credits_EtherealPulseRemix_Full_02` | 4.42 | 139 s | 2.0 |
+| `IdleAmbient01/MUS_SpaceIdle_Ambient1_Full_01` | 3.44 | 115 s | 1.5 |
+| `MenuTheme01/MUS_Menu_EtherialPulse_01` | 3.23 | 100 s | 1.4 |
+| `CombatMusic01/MUS_Tutorial_EtherealPulse_Continuous95_01` | 3.10 | 92 s | 1.4 |
+| `CreditsMusic01/MUS_Credits_CathedralPulse_Full_01` | 2.42 | 77 s | 1.1 |
+| `DominionCore01/MUS_DominionCore_CathedralPulse_Full_01` | 2.05 | 66 s | 0.9 |
+| `DominionInterior01/MUS_DominionInterior_Calm_01` | 0.96 | 32 s | 0.4 |
+| **Total** | **39.5** | | **about 17** |
+
+Batch O's new tracks will cook at the same rate (about 34 kB per second). `MUS_Combat_EtherealPulseRemix_01` and
+`MUS_DominionAssault_InfinityZone_Full_01` exist in the repository and are not in the `eb1bf334` package.
+
+### 6.5 Meshes (113.1 MB cooked)
+
+By folder: `Props/Trees` 28.8 (18 trees, all named by code now), `Props/SpaceDressing` 13.1, `Props/Planet` 10.5
+(about 6 of it unused, item 1), `Props/Scatter` 6.9, `Props/Dominion` 6.8 (the old hull 2.5 and four more unused,
+item 1), old Null fleet 5.0 (item 1), the r2 Dominion hull 4.5, the anchor 4.3, ships 1.5 to 1.8 each. The hull, the
+kits and the ships are small; only the trees are worth a setting (item 10). Nanite fallback and LOD settings were
+not read: that needs the editor.
+
+### 6.6 Engine content and plugins still in the package
+
+Engine and plugin content in the `.ucas` is 14.5 MB in all: `/Engine` 9.3 (blue-noise and default textures, Substrate
+tables), Interchange `/Assets` 2.1 (one LUT), Niagara vector fields 1.7, ControlRig 0.8, SpeedTree 0.5. Not worth a
+rule tonight. The exe is 178 MB (about 70 zipped) with the default plugin set compiled in; cutting plugins is 10 to
+25 MB with a crash-at-boot risk for each wrong cut (section 4, "not worth doing"): still not during the jam.
+`GFSDK_Aftermath_Lib.x64.dll` (5.8 MB) and `msquic.dll` (2.5 MB) could go the way of the debug layer (item 4) for
+about 3 MB zipped, but engine modules load both at start: not without a boot test.
+
+### 6.7 Unused by the scan but deliberately not excluded
+
+The drill rig set (7.6 MB) and `BP_DigSite_Cabin`, the ten outpost set-dressing props (1.1), unwired effects waiting
+on a slot, about 2.3 MB of crew and pilot clips no code names. `BP_Wreck` is in item 1's wreck family: no code or
+asset names it on `f39a8372`; if T5 means to place the wreck site again, drop commit `f7ed0a59`.
