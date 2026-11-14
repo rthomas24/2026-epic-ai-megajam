@@ -246,8 +246,9 @@ def tele_line():
 
 
 S2('NS_TD_Turret_LockTelegraph', U(TLK, 1.0), [
-    flash('Charge', 'M_TD_VFX_Glow', '(1200.0*%s)' % TDIST, 1.0, 2.2, growth='0.25 + 0.75*pow(Particles.NormalizedAge, 1.5)', power=0.2),
-    flash('Core', 'M_TD_VFX_Flare', '(520.0*%s)' % TDIST, 1.0, 2.6, growth='0.2 + 0.8*Particles.NormalizedAge', power=0.3),
+    # 10s (seen in a real assault from about 300 m: a faint red-orange smudge): twice the size, brighter
+    flash('Charge', 'M_TD_VFX_Glow', '(2400.0*%s)' % TDIST, 1.0, 4.0, growth='0.25 + 0.75*pow(Particles.NormalizedAge, 1.5)', power=0.2),
+    flash('Core', 'M_TD_VFX_Flare', '(1000.0*%s)' % TDIST, 1.0, 3.6, growth='0.2 + 0.8*Particles.NormalizedAge', power=0.3),
     flash('Snap', 'M_TD_VFX_Flare', '(1400.0*%s)' % TDIST, 0.12, 2.8, growth='0.6 + Particles.NormalizedAge', delay=0.95),
     tele_line()])
 

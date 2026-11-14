@@ -1506,6 +1506,9 @@ void UTDFlightHUDWidget::UpdateSquadCards(float Dt)
 		Card.Ability01 = S.Ability01;
 		Card.bAbilityActive = S.bAbilityActive;
 		Card.bTrouble = S.bTrouble && !S.bFlown;
+		// Under 25% hull, any card (flown included): a red-orange pulsing edge and hull bar, so the player sees which
+		// ship not to switch into.
+		Card.bCritical = S.bAlive && S.Hull < .25f;
 		Card.UnderFire01 = S.UnderFire01;
 		// Switch: the old flown card shrinks and the new one grows over 120 ms (the first sample snaps).
 		const float Target = S.bFlown ? 1.f : 0.f;
@@ -1538,7 +1541,7 @@ void UTDFlightHUDWidget::UpdateSquadCards(float Dt)
 		Card.bCloaked = S.bAlive && S.bAbilityActive && S.Ability == ETDAbilityId::Cloak;
 		Card.bDomeUp = S.bAlive && S.bPower2Active;
 		Card.bAfterburn = S.bAlive && S.Ship == ETDShipId::Lancer && S.bPowerActive;
-		Card.bOvercharge = S.bAlive && S.bFlown && S.OverchargeSeconds > 0.f;
+		Card.bOvercharge = S.bAlive && S.bFlown && S.OverchargeSeconds >= .05f; // never "OVERCHARGE 0.0" in its last frames
 		const int32 OverN = Card.bOvercharge ? FMath::RoundToInt(S.OverchargeSeconds * 10.f) : -1;
 		if (OverN != CardOverShown[Index])
 		{
@@ -1684,9 +1687,10 @@ namespace TDFlightHUD
 		P.Box(X, Y, W, H, Plate);
 		const float Pulse1Hz = .65f + .35f * FMath::Sin(Time * 2.f * PI);
 		const FLinearColor Border = !Card.bAlive ? T::Danger().CopyWithNewOpacity(.7f)
+			: Card.bCritical ? FTDUIPalette::Hostile().CopyWithNewOpacity(Pulse1Hz)
 			: Card.bTrouble ? T::Warning().CopyWithNewOpacity(Pulse1Hz)
 			: bBig ? Ship.CopyWithNewOpacity(.95f) : Ink.CopyWithNewOpacity(.22f);
-		P.Poly(FVector2D(X, Y), { { 0, 0 }, { W - Cut, 0 }, { W, Cut }, { W, H }, { 0, H }, { 0, 0 } }, Border, bBig || Card.bTrouble ? 1.5f : 1.f);
+		P.Poly(FVector2D(X, Y), { { 0, 0 }, { W - Cut, 0 }, { W, Cut }, { W, H }, { 0, H }, { 0, 0 } }, Border, Card.bCritical ? 2.5f : bBig || Card.bTrouble ? 1.5f : 1.f);
 		if (bBig)
 		{
 			P.Box(X, Y - 2.f, W - Cut, 7.f, Ship.CopyWithNewOpacity(.22f)); // glow
@@ -1825,7 +1829,7 @@ namespace TDFlightHUD
 		const float BarW = FMath::Max(20.f, BarRight - BarX);
 		const float ShH = (bBig ? 6.f : 4.f) * K, HuH = (bBig ? 12.f : 10.f) * K;
 		const float HuY = Y + H - Pad - HuH, ShY = HuY - (bBig ? 12.f : 6.f) * K - ShH;
-		const FLinearColor HullC = T::Hull(Card.Hull);
+		const FLinearColor HullC = Card.bCritical ? FTDUIPalette::Hostile().CopyWithNewOpacity(Pulse1Hz) : T::Hull(Card.Hull);
 		if (bBig)
 		{
 			P.Words(X + Pad, ShY + ShH * .5f - Sz(11) * .68f, Shd, Sz(11), Muted, "Medium", 0.f, 80);
@@ -2270,13 +2274,30 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	// the marker is the thing to look at (T1's play: the small edge icon was easy to miss). Off screen it is twice the
 	// size with a slow pulse and an arrow, and it is named from the objective's first word ("WITHDRAW 2.7 KM"); on
 	// screen it gets a bracket.
-	const bool bFollow = ShownWaypoints.Num() == 1 && View.Counter.IsEmpty() && View.GeneratorsTotal == 0 && !View.Objective.IsEmpty();
+	const bool bFollow = ShownWaypoints.Num() >= 1 && ShownWaypoints.Num() <= 2 && View.Counter.IsEmpty() && View.GeneratorsTotal == 0 && !View.Objective.IsEmpty();
 	static FString FollowObjective, FollowWord;
 	if (bFollow && FollowObjective != View.Objective)
 	{
 		FollowObjective = View.Objective;
-		int32 Space = INDEX_NONE;
-		FollowWord = View.Objective.FindChar(TEXT(' '), Space) ? View.Objective.Left(Space) : View.Objective;
+		// The verb of the last clause: "THE SHIELD IS DOWN · DOCK WITH THE DOMINION" -> DOCK, "WITHDRAW TO ..." ->
+		// WITHDRAW (live: the first word gave "THE 1.0 KM"); articles are skipped.
+		FString Clause = View.Objective;
+		int32 Dot = INDEX_NONE;
+		if (Clause.FindLastChar(TEXT('·'), Dot))
+		{
+			Clause = Clause.Mid(Dot + 1);
+		}
+		TArray<FString> Words;
+		Clause.ParseIntoArray(Words, TEXT(" "), true);
+		FollowWord.Reset();
+		for (const FString& Wd : Words)
+		{
+			if (Wd != TEXT("THE") && Wd != TEXT("A") && Wd != TEXT("AN") && Wd != TEXT("TO"))
+			{
+				FollowWord = Wd;
+				break;
+			}
+		}
 	}
 	const float FollowPulse = .7f + .3f * FMath::Sin(Now * 2.f * PI * .8f);
 	for (const FWaypoint& Wp : ShownWaypoints)
@@ -2291,7 +2312,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Chevron(Wp.Pos + F * 30.f, Wp.Angle, 22.f, Lit, true);
 			Rec(TEXT("waypoint_edge"), Wp.Pos.X - 18.f, Wp.Pos.Y - 18.f, 36.f, 36.f);
 			const FVector2D Label = Wp.Pos - F * 110.f;
-			P.BackedWords(Label.X, Label.Y - 10.f, FollowWord + TEXT("  ") + Range(Wp.Distance).ToUpper(), 17, Way, .5f, 40);
+			P.BackedWords(Label.X, Label.Y - 10.f, (FollowWord.IsEmpty() ? FString() : FollowWord + TEXT("  ")) + Range(Wp.Distance).ToUpper(), 17, Way, .5f, 40);
 			Area += 220.f * 44.f;
 			continue;
 		}
