@@ -132,7 +132,7 @@ namespace TDObjectiveTextImpl
 			{
 				FName PromptId;
 				FText Prompt;
-				if (UTDTutorialPhases::GetPrompt(World, PromptId, Prompt))
+				if (Info.WaveNumber <= 2 && UTDTutorialPhases::GetPrompt(World, PromptId, Prompt)) // never past the tutorial (TD.Stage Wave3 showed it)
 				{
 					Out.Id = Scene; // the scene stays the wave (slates, takes); only the line changes
 					Out.Step = Info.WaveNumber;
