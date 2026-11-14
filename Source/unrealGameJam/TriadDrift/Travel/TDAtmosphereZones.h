@@ -137,6 +137,24 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Atmosphere")
 	void AbortEntry();
 
+	/**
+	 * #161 (Ryan, Nov 14): a planet is never a wall. While a planet does not take this ship (closed: before it is
+	 * available, after its work is done; or the ship is a wingman), the ship is kept out of its atmosphere: entry heat
+	 * and roar at the edge, slowed, nose turned away, a HUD line saying why, a flash and a small hull hit on contact.
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
+	bool IsPlanetClosedWarning() const { return ClosedPlanet01 > 0.02f; }
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
+	FText GetPlanetClosedText() const { return ClosedPlanetText; }
+	/** The band outside the atmosphere where the turn-away works (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "cm"))
+	float ClosedPlanetBand = 35000.f;
+	/** Hull damage of one bounce off a closed planet (fraction of max hull), at most once per ClosedPlanetHitCooldown. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", ClampMax = "1"))
+	float ClosedPlanetHitHull = 0.04f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "s"))
+	float ClosedPlanetHitCooldown = 2.f;
+
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 protected:
@@ -163,6 +181,15 @@ private:
 	FVector HeldPlanetCenter = FVector::ZeroVector;
 	float HeldSurfaceRadius = 0.f;
 	float HeldStartDistance = 0.f;
+
+	void TickClosedPlanetGuard(float DeltaTime);
+	TArray<TWeakObjectPtr<class ATDPlanetAtmosphere>> GuardPlanets;
+	float GuardRefresh = 0.f;
+	float ClosedPlanet01 = 0.f;
+	FText ClosedPlanetText;
+	double LastClosedHit = -100.0;
+	bool bGuardRoar = false;
+	bool bGuardLogged = false;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnAtmosphereExit, ATDShip*, Ship);

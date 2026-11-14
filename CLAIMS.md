@@ -18,6 +18,10 @@ AGENTS.md lifecycle conditions; branch publication alone does not release it.
 
 ## Nick-side current ownership and reservations
 
+**Current Lead playtest lane, November 14:** Nicholas authorized Lead-only systematic offscreen playtests and feedback batches. Existing Story/UI/Audio/Auditor tasks and schedules remain paused. Runtime evidence through Verdance arrival/landing is on 8b4eabae; Batch 2 source comparison through 9155a6dc is not a current-main gameplay pass. No source/assets were changed, human saves preserved, no owned Unreal processes remain.
+
+**Lead coordination checkpoint (this commit):** only Nick availability/ownership notes in features.md and CLAIMS.md, N-098 in MESSAGEBOARD.md, the dated DEVLOG.md entry and docs/visual/STATUS.md. Branch nick/lead-playtest-feedback-1114 from efdf4284. Batch 1/2 reports and original media are evidence releases linked on #90. No gameplay/native/asset claim is created. Batch 1 menu styling and audio-asset ownership remain Nick's; T3 supplies empty cue moments/slots. Current-main runtime verification and owner fixes remain pending. No appearance approval or specialist restart.
+
 **Lead documentation task complete in this commit:** Nicholas approved the victory eyebrow MISSION COMPLETE // OPERATION PARADOX and random six-message headline on November 14. Lead owns only Story/README.md, docs/visual/Submission/Credits01/VictoryRevision01/README.md and the related Nick wording notes in features.md; branch nick/lead-audio-pickup-1113, base 2adbb1bb. Source/assets remain read-only. Existing six choices and caching already present in current source; document decision and retain separate gameplay validation.
 
 **Bounded reconciliation checkpoint, November 14:** All four resumed reviews are complete; private outputs in the exact folders below are preserved. Audio found current bridge dependencies source-satisfied, lifecycle risks retained and local Ritual source not imported; no source/native work started. UI is safely waiting for N-092 matching candidate evidence. Story resolved R102 source order and routed existing D2 B230 countdown correction via N-093; actual playback remains open. Auditor supplied #88 Nick-row credit corrections qualified to the older ddc50a2f package snapshot; current/final inventory still required. No specialist is authorized to launch a native retry or broaden its task from completion.
@@ -286,7 +290,7 @@ Current resource checkpoint: Nick stopped the general campaign and revoked all p
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-14 09:30 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-14 11:30 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -310,6 +314,100 @@ Paths are under `Source/unrealGameJam/TriadDrift/` unless they start with `/` (r
 
 Workers commit only on their own branch and never pull, merge or push; the Lead integrates in
 `.wt/int`, builds, runs the headless suite, then fast-forwards and pushes `main`.
+
+### Current board, Nov 14 11:30 EST (supersedes the in-progress and queued rows of the 10:30 board below)
+
+**Main is b82ed996 (batch AM)**, on top of AL 90a132aa and AK e154cf11 (compile-only gate). **Batch AN** (T4's bay mouth hook c94f1795, T5's interior doorway markers 128a5907) is compiling. **Newest package:** `playable-main-80a2ee4d`; next hourly cook 12:00. Lock turns of 15 minutes, quickest to close first. Every Ryan-side item that is 🟨, 🟢 or 🐞 in features.md has a row here.
+
+| Owner | Now (in progress) | Next (queued, in order) | Items | Shared paths |
+|---|---|---|---|---|
+| Lead | Batch AN gate; boards; hourly features.md alignment | Push AN; ENG-47 decision record (due 20:00); the defenders tuning call with T5; offer Ryan the #161 retest | ENG-47, ENG-28 (integration) | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
+| T1 | #161: the player's bounce, turn-away and atmosphere burn at a closed planet (no commit yet) | Verdance and waves 3-5 music confirmed in play; shake and speed-FOV sliders; the C7 lines heard to the end | ENG-38 (🐞), ENG-35, ENG-45, ENG-29 | `Travel/`, `Flight/` |
+| T2 | The new flight HUD's squad panel (#160, Concept A) | Status flags, boost arc, pickup toast; #157 / #159 / #155 (the flight HUD's story-lane scale); the docking plates, pips, escape clock, *Aftermath* lanes, transponder flicker (#103); a portal fly-through and returned missile (#100); Cloak in a fight (#102); the combat bark list (#122) | ENG-36, ENG-09, ENG-12, ENG-43 | `Combat/`, `Powers/`, HUD |
+| T3 | The #154 / #155 retake (capture frames) | Subtitles off (#94); the credits roll, RETURN TO MENU, no CONTINUE after victory (#95); a money shot in slow motion (#97); menu music in the log; the `dialogs.md` count (#122); Skip through the difficulty page | ENG-32, ENG-44, C-03, ENG-43, ENG-45 | `Squad/`, `Director/` |
+| T4 | Lock turn: bomber mines (#109); the space ending through the breakup and the generators by hand (#112, #113); the tractor beam in docking (#110, #128); the bay mouth hook (#126, in AN) | The C4, C6, C7, interception and C9 lines (#96); the pre-empt clue seen in waves 3-4 | ENG-13, ENG-18, ENG-47, ENG-29, ENG-37, ART-15, ENG-42 | `Enemies/`, `Waves/`, `World/` |
+| T5 | The console recordings, the final record, Cinematic 08, its skip and the Dont voice (#96) | #117 Cinder past the gate (with T7); the defenders at 200 health with a guard and their look captured (ENG-30 polish) | ENG-42, ENG-26 | `Flow/`, `Ground/` |
+| T6 | #153: the death / CUT hitch measured in the zone | The new flight HUD's radar (#160) | ENG-28, ENG-36 | `World/SpaceField/**`, HUD radar files agreed with T2 |
+| T7 | #129 leftovers: the Warden to the reveal replay on AN | #117: the Cinder gate fight by hand through the cache; a start-to-end run (#131, #152) | ENG-26, ENG-46 | `docs/eng/PLAYTEST-*` |
+| Effects builder | The Cloak effect's last pass (#102) | #111 boarding and escape effects (a trailer-quality breakup); #105 | ENG-12 (effect), ART-16, ART-07, ENG-37 | `Gameplay/VFX/**`, `DA_*_FX` |
+| Environment builder | #145, #148, #158 (fixes on main AL, to be seen); the bay exposure | Per-level before / after | ART-13, ART-15 (exposure) | planet and sky materials |
+| Structures builder | #119: the collapse pieces seen from the shore | #126: bay mouth captures once T4's hook lands | ART-18, ART-15 | `Gameplay/Props/**` |
+| Animation builder | (no dispatch this hour) | A visual verdict on the pilot and crew animation set (#124); Warden ragdoll cases | ART-08 | `Characters/**/Anims/**` |
+| Packaging agent | The hourly cook of the newest main (next 12:00) | Publish each with a launch check | ENG-28 | isolated `.wt/pkg` |
+| Ship builder | Stopped (usage limit) | Restart only on the Lead's dispatch | - | squad and fleet visuals |
+| Character builder (to be started by the Lead) | - | Game-ready pilot meshes (#149; waits on an approved look from Nicholas) | polish (B1-9) | `ArtSource/EngCharacters/**` |
+| Grok Bot | R-042 queue | - | - | `ArtSource/EngAI/**` |
+
+Rows opened or closed Nov 14 11:30 (they supersede the same items' rows of 10:30 below):
+
+| Item | Owner | State | Paths |
+|---|---|---|---|
+| **Integration batch AK** (New Game difficulty d82e682c; menu fly-by plumes cf28153e; intro blur and warp-in sounds c2340d05; Settings over pause ef34a7a7; power hint 4076a658; Cinder gate retake 3445cc64; docking glide release 06816116) | Lead | done: main e154cf11, Nov 14 (compile-only gate) | none |
+| **Integration batch AL** (planets as avoidance obstacles 45d5652c; bay mouth frame and guide light bffb1036; bay look, ring, opening shot, canopy undersides 60974009; HUD data model 4d8e8b39; `GetPendingGroups` and the pre-empt clue 0e740f77; conduits in game 64475a67; captures b8e175b4; unused effects removed 4f94870b) | Lead | done: main 90a132aa, Nov 14 | none |
+| **Integration batch AM** (story overlay wrap and size 3c5e68f6; flight HUD concept docs f4b2962e) | Lead | done: main b82ed996, Nov 14 | none |
+| **Integration batch AN** (T4 c94f1795 bay hook; T5 128a5907 doorway markers) | Lead | in progress (compiling) | none |
+| ENG-05 Rift and Bastion primaries, ENG-06 swarm locks, ENG-11 missile swarm (#98, #99, #101) | T2 | done: played good, on main (10:51 EST) | none |
+| ENG-15 hyperdrive jump (#104), ENG-16 ring centred and gate transit (#106, 498a9081 in AG efdf4284), ENG-17 one transit (#107) | T1 | done: played good, on main efdf4284 (10:52 EST) | none |
+| ENG-25 Verdance to Cloak (#116) | T7, T5 | done: played good on main 9155a6dc (10:57 EST) | none |
+| ENG-30 interior and reactor fight with the defenders (#129) | T7, T5 | done: played good on main (11:29 EST); polish leftovers with T5 | none |
+| ENG-39 / ART-05 Ice Drift and Outer Dark (#114, #115) | T6 | done: accepted on main b0198c5e (10:51 EST) | none |
+| ART-02 credits rows U to AG (#123) | Import builder, T6 | done: main c63633a6 (10:58 EST) | none |
+| ART-03 Lancer contrast (#108) | T1 | done: closed as shipped, main efdf4284 (707937a8; 10:53 EST); the boost plume rebuild is polish | none |
+| ART-06 Cinder conduit art (#118) | Structures builder | done: seen in game on main (11:13 EST) | none |
+| ART-17 natural docking into the hangar (#120) | T7 | done: played good on main 473543fb (11:17 EST) | none |
+| The anchor charges cannot be planted (ENG-26 MAJOR) | T5; T7 replayed | done: played good by T7 on main 9155a6dc (10:51 EST) | none |
+| Nicholas's findings 1, 3, 4, 7, 10 (#141, #143, #144, #147, #150) | Environment builder, T3, effects builder | done: seen on main (c0ea8682, a2436be7, cf28153e, c2340d05; 10:53 to 11:25 EST) | none |
+| New Game difficulty choice (ENG-45 part, #127) | T3, T5 | done: seen good on main e154cf11 (11:08 EST) | none |
+| #161 ship stuck against a planet (ENG-38 🐞) | T1 (player), T4 (avoidance) | in progress: T4's half done on main 90a132aa; T1's bounce and burn not committed | `Travel/`, `World/` |
+| #160 flight HUD redesign (ENG-36 sub-point) | T2 (squad panel, flags, boost arc, toast), T6 (radar) | in progress: Concept A chosen and approved, data model on main 90a132aa; nothing drawn yet | HUD |
+
+### Current board, Nov 14 10:30 EST (supersedes the in-progress and queued rows of the 09:30 board below)
+
+**Batch AD is on main at b0198c5e**, on top of AC 75b834d4, AB 9ba9d067 and AA 1ca6ff3b (compile-only gate since AB). **Batch AE** (T5 96c5a3ae + d8bd567f, T3 06c1cf43) reached main at 9155a6dc during this update; PR #11 and #85 were closed at 10:30 with their branches kept (03ab7ec7); no pull request is open. **Newest package:** `playable-main-80a2ee4d` (batch Z); the packaging agent cooks the newest main hourly on the hour. **Rules (Ryan):** 10:15, an item is ✅ when every player-facing part named in its heading has been played good by an agent, and polish leftovers move to features.md's AAA polish list; 10:25, the gate is compile-only, tests are not part of the done bar. Lock turns are 15 minutes, the quickest to close first: T1, T3, T2, T4, T6, T5, then the builders. Item headings now 25 ✅, 12 🟢, 35 🟨; checklist rows 9 ✅, 28 🟨.
+
+| Owner | Now (in progress) | Next (queued, in order) | Shared paths |
+|---|---|---|---|
+| Lead | Boards; hourly features.md alignment; the play queue on AE | The next batch; the pilot-mesh plan for Nicholas's finding 9 (start a character builder); ENG-47 decision record (due 20:00); the defenders decision with T5 at 14:00 | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
+| T1 | Lock turn: one hyperdrive jump (ENG-15) and one portal gate transit (ENG-16, ENG-17) | Lancer contrast against cyan (ART-03); Verdance and waves 3-5 music confirmed in play (ENG-35); the C4 lines and Verdance theme fade on take-off (checklist); the C7 lines heard to the end (ENG-29); shake and speed-FOV sliders (ENG-45) | `Travel/`, `Flight/`, `M_TD_Ship` |
+| T2 | Lock turn: Rift and Bastion primaries (ENG-05), the missile swarm locks (ENG-06, ENG-11), a portal fly-through and a returned missile (ENG-09) | Cloak used in a fight (ENG-12); the docking plates, generator pips, escape clock and *Aftermath* lanes (ENG-36); the transponder flicker live (Verdance route row); the combat bark list (ENG-43) | `Combat/`, `Powers/`, HUD |
+| T3 | Lock turn: the credits roll, RETURN TO MENU, no CONTINUE after victory (ENG-44); subtitles off (ENG-32, ENG-45) | Money shot in slow motion (C-03); the console recordings, the final record and Cinematic 08 with the Dont voice (ENG-42, ENG-30, with T7); menu music and C6 lines from the log (checklist); Nicholas's findings 3, 10, 11's cue list and the pilot mesh paths (#90); the `dialogs.md` count (ENG-43); the New Game difficulty with T5 | `Squad/`, `Director/` |
+| T4 | Lock turn: bomber mines seen (ENG-13); the space-reactor ending replayed through the breakup after 782669d5 (ENG-18, ENG-47) | The tractor beam seen in docking (ENG-29, ENG-37, ART-16); the four generators killed by hand; the pre-empt clue's AI side | `Enemies/`, `Waves/`, `World/` |
+| T5 | The anchor charges (MAJOR on AB; prompt and markers in AE), the hangar start for the staged start (AE) | The future-pilot defenders (ENG-30; decision at 14:00, drones the fallback); the Cinematic 03 drone and three pulses with T3; the New Game difficulty choice (ENG-45); the gap-between-scenes retake spot (MINOR, polish) | `Flow/`, `Ground/` |
+| T6 | Ice Drift and Outer Dark looked at after AD (ENG-39, ART-05) | The wave 5 frame budget with the field on (polish) | `World/SpaceField/**` |
+| T7 | Verdance on main AB: the relay transfer to the Cloak unlock (ENG-25) | On AE: the Cinder gate conduits, areas, Warden, cache, the three charges and the collapse to the exit (ENG-26, ART-06, ART-18); the hangar start after a natural docking (ART-17); a start-to-end run (ENG-46) | `docs/eng/PLAYTEST-*` |
+| Ship builder | Stopped (usage limit); its Lancer work is with T1 | Restart only on the Lead's dispatch | squad and fleet visuals |
+| Character builder (to be started by the Lead) | - | Game-ready pilot meshes for Wren, Kato and Moss (Nicholas's finding 9; waits on an approved look) | `ArtSource/EngCharacters/**` |
+| Effects builder | Nicholas's finding 4 (menu flyby thrusters) | Finding 10 with T3; the Cloak shimmer (not accepted; polish); a trailer-quality breakup (ART-16) | `Gameplay/VFX/**`, `DA_*_FX` |
+| Environment builder | Nicholas's findings 1, 7 (white object, white spot) with T3 | Findings 5 (ring patch) and 8 (opening shot polish); per-level before / after (ART-13); Verdance ground detail (parked, polish) | planet and sky materials |
+| Structures builder | The bay mouth (#54; ART-15) | Captures of the AE anchor and conduit pieces in play | `Gameplay/Props/**` |
+| Animation builder | A visual verdict pass on the pilot and crew animation set (ART-08) | Warden ragdoll cases; pilot foot IK held for Ryan | `Characters/**/Anims/**` |
+| Import builder | Credits rows for the assets of batches U to AE (ART-02) | The Oodle RDO trial | `docs/eng/ASSETS.md`, `CREDITS.md` |
+| Packaging agent | The hourly cook of the newest main (ENG-28) | Publish each with a launch check | isolated `.wt/pkg` |
+| Grok Bot | R-042 queue | #52, #53, #40, #54 | `ArtSource/EngAI/**` |
+
+Rows opened or closed Nov 14 10:30 (they supersede the same items' rows of 09:30 below):
+
+| Item | Owner | State | Paths |
+|---|---|---|---|
+| **Integration batch AA** (T4's reactor brake assist; the final blast retires turrets, generators and reactor, 782669d5) | Lead | done: main 1ca6ff3b, Nov 14; the after-victory fix not replayed (T4 queued) | none |
+| **Integration batch AB** (T5's on-foot markers, Warden kill-Z, hangar start measured, anchor charge at scale 1, `SkipTo`; T6's Ice Drift components; plumes wired; tractor beam slot; conduit kit meshes) | Lead | done: main 9ba9d067, Nov 14 (compile-only gate) | none |
+| **Integration batch AC** (T2's hint card on the owning ship, `TD.Power.Hold/Release`, Cloak hull overlay slot; T3's Warden guard hard check; T1's branch) | Lead | done: main 75b834d4, Nov 14 | none |
+| **Integration batch AD** (rock health 27e9b92e; Verdance and waves 3-5 music fallbacks 83cbddba) | Lead | done: main b0198c5e, Nov 14 | none |
+| **Integration batch AE** (T5 96c5a3ae + d8bd567f: charges plantable with markers and a prompt, hangar start for the staged start, conduit markers and art; T3's `TD.Story.Subtitles`) | Lead | done: main 9155a6dc, Nov 14 (compile-only gate); not played yet (T7, T5) | none |
+| **ENG-48 destructible, solid space field** | T6 | done: main b0198c5e (rock health 27e9b92e); breaks, ram, drops and break cost played GOOD; ✅ by the Lead's decision | `World/SpaceField/**` |
+| **The anchor charges cannot be planted** (ENG-26, MAJOR, on main AB; no prompt, no marker) | T5; T7 replays | in review (fix on main 9155a6dc, AE; T7 replays) | `Ground/` |
+| Ability hint card on the wrong ship, "EMPPULSE" (ENG-12, MAJOR) | T2 | done: main 75b834d4 (d5cb3ff5); not replayed (T2 queued) | `Powers/`, HUD |
+| No on-foot marker on the HEAD TO legs (ENG-24, MAJOR) | T5 | done: main 9ba9d067 (9b5d9eae); the marker seen on T7's tree | `Ground/` |
+| Hangar spawn behind the parked Rift (MINOR) | T5 | in progress (staged-start fix in AE); a dev-only quirk under the 10:15 rule (polish) | `Ground/` |
+| Docking approach pace, hold for the Docking lines (ENG-29) | T1 | queued: the C7 lines heard to the end in one replay | `Travel/` |
+| Effects decisions: region haze and region beacon DROPPED; plume beacons accepted and wired; tractor beam accepted, slot filled; Cloak effect not accepted | Effects builder; Lead accepts | done (decisions); the Cloak shimmer queued as polish | `Gameplay/VFX/**` |
+| Nicholas's finding 1 (white object above the menu planet), 5 (ring patch), 7 (white spot in the opening shot), 8 (opening shot polish) (#90, Manual Feedback Batch 1) | Environment builder (T3 for the scenes) | 1 and 7 in progress; 5 and 8 queued | planet and sky materials, menu and intro scenes |
+| Nicholas's finding 3 (menu ship leaves early), 10 (blurry intro flybys), 11 (cue list for the capital-ship sequence), the pilot mesh paths for 9 | T3 (effects builder on 10) | queued | `Director/`, menu and intro scenes |
+| Nicholas's finding 4 (thruster and exhaust detail on the menu flyby) | Effects builder | in progress | `Gameplay/VFX/**` |
+| Nicholas's finding 9 (game-ready pilot meshes for Wren, Kato and Moss) | Lead (needs a character builder; waits on an approved look from Nicholas) | queued | `ArtSource/EngCharacters/**` |
+| Nicholas's findings 2 (menu treatment), 6 (ambient music before the intro track), the sounds of 11 | Nick's side by ownership | waiting: Nicholas's answer on #90 (his side, or ours as a marked R-024 fallback) | Nick's UI and Audio folders (not ours) |
+| Pull requests within the hour (R-048): #11 and #85 | Lead | done: closed at the 10:30 deadline with branches kept (03ab7ec7); no PR open; reopening is Nicholas's call | none |
+| **Held for Ryan:** one real click on CONTINUE; a play of the Shipping package; `MI_TD_DominionGlowRed`; the DirectX 11 shader set; the Bastion cockpit; the ENG-38 left-for-Ryan list; pilot foot IK; a precompiled pipeline-state cache; T3's stash "t3-failed-merge-lead-int-u-0921" | Ryan | waiting | - |
 
 ### Current board, Nov 14 09:30 EST (supersedes the in-progress and queued rows of the 06:30 board and of the history table below)
 

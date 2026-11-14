@@ -14,6 +14,8 @@ ATDPlanetCourse::FTDOnInteriorMoment ATDPlanetCourse::OnInteriorMoment;
 
 namespace TDInteriorImpl
 {
+	static TAutoConsoleVariable<int32> CVarDefenders(TEXT("td.Interior.Defenders"), 1,
+		TEXT("The reactor room's defenders: 1 the two future pilots (N-052), 0 the two drones (the fallback). Read when the interior is built."));
 	static const FLinearColor Hull(0.018f, 0.018f, 0.022f);     // gloss black
 	static const FLinearColor Strip(1.f, 0.08f, 0.04f);         // red light strips
 	static const FLinearColor Deck(0.04f, 0.04f, 0.05f);
@@ -52,6 +54,51 @@ FTransform ATDPlanetCourse::GetInteriorStart() const
 	}
 	const FTransform* Hangar = InteriorEntries.Find(NAME_None);
 	return (Hangar ? *Hangar : FTransform(FVector(-600.f, 0.f, 100.f))) * GetActorTransform();
+}
+
+AActor* ATDPlanetCourse::RouteThroughDoors(const FVector& Pilot, AActor* Target) const
+{
+	if (!Target || !IsInterior())
+	{
+		return Target;
+	}
+	const FTransform& Xf = GetActorTransform();
+	const float PX = Xf.InverseTransformPosition(Pilot).X;
+	const float TX = Xf.InverseTransformPosition(Target->GetActorLocation()).X;
+	AActor* Best = nullptr;
+	float BestX = 0.f;
+	for (const TWeakObjectPtr<AActor>& W : InteriorDoorways)
+	{
+		AActor* D = W.Get();
+		if (!D) { continue; }
+		const float DX = Xf.InverseTransformPosition(D->GetActorLocation()).X;
+		// A door ahead of the pilot (more than 1.5 m) and before the target, either way along the rooms.
+		const bool bForward = TX > PX && DX > PX + 150.f && DX < TX;
+		const bool bBack = TX < PX && DX < PX - 150.f && DX > TX;
+		if ((bForward || bBack) && (!Best || FMath::Abs(DX - PX) < FMath::Abs(BestX - PX)))
+		{
+			Best = D;
+			BestX = DX;
+		}
+	}
+	if (!Best)
+	{
+		return Target;
+	}
+	// Close to the door but off its centre line (T7: wedged at (10318, -246) coming from the final record console):
+	// first the approach point on the centre line on this side, then the door.
+	const int32 Index = InteriorDoorways.IndexOfByKey(Best);
+	const float PY = Xf.InverseTransformPosition(Pilot).Y;
+	const float DY = Xf.InverseTransformPosition(Best->GetActorLocation()).Y;
+	if (DoorApproaches.IsValidIndex(Index) && FMath::Abs(PX - BestX) < 600.f && FMath::Abs(PY - DY) > 100.f)
+	{
+		AActor* Approach = (TX > PX ? DoorApproaches[Index].Key : DoorApproaches[Index].Value).Get();
+		if (Approach && FVector::Dist2D(Pilot, Approach->GetActorLocation()) > 80.f)
+		{
+			return Approach;
+		}
+	}
+	return Best;
 }
 
 FTransform ATDPlanetCourse::GetInteriorRetakeSpot(FName SceneId) const
@@ -177,6 +224,8 @@ void ATDPlanetCourse::BuildInterior()
 		ATDDoor* D = SpawnProp<ATDDoor>(FVector(X, 0.f, 0.f));
 		if (D)
 		{
+			InteriorDoorways.Add(D);
+			DoorApproaches.Add({ Marker(FVector(X - 250.f, 0.f, 0.f)), Marker(FVector(X + 250.f, 0.f, 0.f)) });
 			D->OpenHeight = 400.f;
 			D->bRecognisesPilot = bRecognise;
 			D->DoorMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Door"))
@@ -486,16 +535,58 @@ void ATDPlanetCourse::BuildInterior()
 	Trailheads.Last().After = Gate;
 	ReactorDoor = CoreIn; // opens when the final record has played (TickFinalRecord), not on the fight's start
 	{
-		ATDEncounterVolume* Drones = Encounter(Reactor, INDEX_NONE, CoreAt + FVector(0.f, 0.f, 700.f), FVector(10.f),
-			{ ETDCrewType::Drone, ETDCrewType::Drone }, false, 1400.f);
-		if (Drones)
+		// The future crew (Nicholas, N-052 / N-060, #29): all three future pilots are here whichever pilot boarded. The
+		// boarder's own future self stands apart behind the reactor and never fights; the other two defend the room with
+		// blades. td.Interior.Defenders 0 brings back the two drones (the fallback). Beating the defenders plays Face to
+		// Face's "overcome" half (T3's G8 sequences).
+		const FName Boarder = ATDFirstPersonCharacter::GetOnFootPilotName(this);
+		ATDEncounterVolume* Defenders = nullptr;
+		if (TDInteriorImpl::CVarDefenders.GetValueOnGameThread() != 0)
 		{
-			FTDRetakeMercyTier DroneMercy3; DroneMercy3.FromTake = 3; DroneMercy3.DropCrew = 1;
-			Drones->MercyTiers = { DroneMercy3 };
-			StepEncounters.Add({ Reactor, 0, Drones });
-			// N-052 (T3's G8 sequences): beating the room's defenders plays Face to Face's "overcome" half. Today they are
-			// the two drones; the future-pilot defenders replace them when they land.
-			Drones->OnCleared.AddUniqueDynamic(this, &ATDPlanetCourse::HandleReactorDefendersCleared);
+			Defenders = Encounter(Reactor, INDEX_NONE, CoreAt + FVector(0.f, 0.f, 120.f), FVector(10.f),
+				{ ETDCrewType::FutureCrew, ETDCrewType::FutureCrew }, false, 1300.f, { FVector(1300.f, 520.f, 0.f), FVector(1300.f, -520.f, 0.f) });
+			if (Defenders)
+			{
+				Defenders->MemberNames = TDFutureCrew::OthersThan(Boarder);
+				Defenders->OpeningGraceSeconds = 1.6f; // they turn from the reactor to the pilot before they come
+				FTDRetakeMercyTier M3; M3.FromTake = 3; M3.HealthScale = 0.75f;
+				FTDRetakeMercyTier M5; M5.FromTake = 5; M5.HealthScale = 0.6f; M5.DropCrew = 1;
+				Defenders->MercyTiers = { M3, M5 };
+			}
+		}
+		if (!Defenders)
+		{
+			Defenders = Encounter(Reactor, INDEX_NONE, CoreAt + FVector(0.f, 0.f, 700.f), FVector(10.f),
+				{ ETDCrewType::Drone, ETDCrewType::Drone }, false, 1400.f);
+			if (Defenders)
+			{
+				FTDRetakeMercyTier DroneMercy3; DroneMercy3.FromTake = 3; DroneMercy3.DropCrew = 1;
+				Defenders->MercyTiers = { DroneMercy3 };
+			}
+		}
+		if (Defenders)
+		{
+			StepEncounters.Add({ Reactor, 0, Defenders });
+			Defenders->OnCleared.AddUniqueDynamic(this, &ATDPlanetCourse::HandleReactorDefendersCleared);
+			ReactorDefenders = Defenders;
+		}
+		// The boarder's own future self: on the far side of the reactor, facing the door the pilot comes through.
+		if (TDInteriorImpl::CVarDefenders.GetValueOnGameThread() != 0)
+		{
+			FActorSpawnParameters SelfParams;
+			SelfParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			SelfParams.bDeferConstruction = true;
+			const FTransform SelfAt(GetActorRotation() + FRotator(0.f, 180.f, 0.f), W(CoreAt + FVector(1550.f, 0.f, 92.f)));
+			if (ATDFutureSelf* Self = GetWorld()->SpawnActor<ATDFutureSelf>(ATDFutureSelf::StaticClass(), SelfAt, SelfParams))
+			{
+				Self->SetPilot(Boarder);
+				Self->ExchangeRadius = 2400.f;
+				Self->FinishSpawning(SelfAt);
+				Spawned.Add(Self);
+				FutureSelf = Self;
+				UE_LOG(LogTriadDrift, Display, TEXT("Reactor room: %s's future self at %s; defenders %s"), *Boarder.ToString(), *Self->GetActorLocation().ToCompactString(),
+					*FString::JoinBy(TDFutureCrew::OthersThan(Boarder), TEXT(", "), [](const FName& N) { return N.ToString(); }));
+			}
 		}
 	}
 	ATDStepCounter* Conduits = SpawnProp<ATDStepCounter>(CoreAt);

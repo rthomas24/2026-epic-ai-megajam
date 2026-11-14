@@ -24,11 +24,18 @@
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Flow/TDPlaceholderSky.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "NiagaraComponent.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "TriadDrift/World/TDSkySphere.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
+
+static float MenuPlanetOffsetRadii = 3.2f;
+static FAutoConsoleVariableRef CVarTDMenuPlanetOffset(TEXT("td.Menu.PlanetOffset"), MenuPlanetOffsetRadii,
+	TEXT("Menu backdrop: how far right of the frame's centre Verdance sits, in planet radii (read when the menu opens)."));
 
 static TAutoConsoleVariable<int32> CVarTDMenuBackdrop(
 	TEXT("td.MenuBackdrop"), 1,
@@ -152,7 +159,8 @@ void ATDMenuBackdrop::Build()
 	CamBase = PlanetAt + (CamDir + FVector::UpVector * 0.22f).GetSafeNormal() * (PlanetRadius * 14.f);
 	const FVector ToPlanet = (PlanetAt - CamBase).GetSafeNormal();
 	const FVector Right = FVector::CrossProduct(FVector::UpVector, ToPlanet).GetSafeNormal();
-	LookBase = PlanetAt - Right * (PlanetRadius * 2.6f);
+	// Nicholas #90: the planet's body clear of the centred menu panel (ends ~0.66 of the width), through the drift.
+	LookBase = PlanetAt - Right * (PlanetRadius * MenuPlanetOffsetRadii);
 	Camera = World->SpawnActor<ACameraActor>(ACameraActor::StaticClass(), FTransform((LookBase - CamBase).Rotation(), CamBase), Params);
 	if (Camera)
 	{
@@ -199,6 +207,46 @@ void ATDMenuBackdrop::Build()
 			C->SetVisibility(false);
 			C->RegisterComponent();
 			SquadMeshes.Add(C);
+			// The ship's visual parts (canopies): attached, so they fly, bank and hide with the hull.
+			for (const FTDShipVisualPart& PartSpec : Visuals->Parts)
+			{
+				UStaticMesh* PartMesh = PartSpec.Mesh.IsNull() ? nullptr : PartSpec.Mesh.LoadSynchronous();
+				if (!PartMesh) { continue; }
+				UStaticMeshComponent* Part = NewObject<UStaticMeshComponent>(Squad);
+				Part->SetupAttachment(C, C->DoesSocketExist(PartSpec.ParentSocket) ? PartSpec.ParentSocket : NAME_None);
+				Part->SetRelativeTransform(PartSpec.RelativeTransform);
+				Part->SetStaticMesh(PartMesh);
+				Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				for (int32 i = 0; i < PartSpec.MaterialOverrides.Num(); ++i)
+				{
+					if (UMaterialInterface* M = PartSpec.MaterialOverrides[i].LoadSynchronous()) { Part->SetMaterial(i, M); }
+				}
+				Part->SetVisibility(false);
+				Part->RegisterComponent();
+			}
+			// The ship's own thrusters (NS_TD_Engine_<ship>): one per nozzle socket, the hull origin without; no sound
+			// in the menu, a short cruising trail.
+			FTDFXCue Trail = Visuals->EngineTrail;
+			Trail.Sound.Reset();
+			Trail.Shake.Reset();
+			if (!Trail.VFX.IsNull())
+			{
+				TArray<FName> Nozzles;
+				ATDShip::GetNozzleSockets(C, Nozzles);
+				if (Nozzles.Num() == 0) { Nozzles.Add(NAME_None); }
+				for (const FName& Socket : Nozzles)
+				{
+					if (UNiagaraComponent* FX = UTDStatics::PlayCueAttached(Trail, C, Socket))
+					{
+						ATDShip::SetExhaustParamIfExposed(FX, TEXT("Throttle"), 0.8f);
+						ATDShip::SetExhaustParamIfExposed(FX, TEXT("Boost"), 0.25f);
+						FX->SetAutoDestroy(false); // it is switched off between passes: it must survive that
+						FX->Deactivate();
+						FX->SetVisibility(false);
+						SquadTrails.Add(FX);
+					}
+				}
+			}
 		}
 		Spawned.Add(Squad);
 	}
@@ -464,20 +512,19 @@ void ATDMenuBackdrop::UpdateFlyby(float Dt)
 	{
 		// Across the frame left to right through the lower third, under the menu, at a glide. In the lens's own space
 		// (x forward, y right, z up): the camera drifts kilometres round the planet, so the squad flies with it.
-		FlybyFrom = FVector(8000.f, -4200.f, -1300.f);
-		FlybyTo = FVector(10500.f, 4400.f, -700.f);
+		// Nicholas #90 (3): both ends far enough out that the trailing wingmen (900-1100 cm behind the lead) are past the
+		// frame edge too, at 16:9 and at 21:9 (the 40-degree lens is ~2900 cm half-wide at 8 km, ~5300 at 11 km on 21:9).
+		FlybyFrom = FVector(7500.f, -8200.f, -1450.f);
+		FlybyTo = FVector(11000.f, 9000.f, -620.f);
 		if (Scene == ETDBackdropScene::Victory)
 		{
 			// Away from the burning Dominion (deep in frame, left) and home past the lens on the right.
 			FlybyFrom = FVector(70000.f, -14000.f, -6000.f);
-			FlybyTo = FVector(4500.f, 5200.f, -900.f);
+			FlybyTo = FVector(4000.f, 8000.f, -900.f);
 		}
 		FlybyT = 0.f;
 		++Flybys;
-		for (UStaticMeshComponent* C : SquadMeshes)
-		{
-			C->SetVisibility(true);
-		}
+		ShowSquad(true);
 	}
 	if (FlybyT < 0.f)
 	{
@@ -489,10 +536,7 @@ void ATDMenuBackdrop::UpdateFlyby(float Dt)
 	{
 		FlybyT = -1.f;
 		NextFlyby = Time + FMath::Max(1.f, FlybyEverySeconds - FlybySeconds);
-		for (UStaticMeshComponent* C : SquadMeshes)
-		{
-			C->SetVisibility(false);
-		}
+		ShowSquad(false);
 		return;
 	}
 	const FTransform Lens = Camera ? Camera->GetActorTransform() : FTransform::Identity;
@@ -506,6 +550,31 @@ void ATDMenuBackdrop::UpdateFlyby(float Dt)
 		const FVector At = Lead + Facing.RotateVector(Wedge[i % 3]) + FVector(0.f, 0.f, FMath::Sin(Time * 1.1f + i) * 40.f);
 		const FRotator Bank = Facing + FRotator(0.f, 0.f, FMath::Sin(Time * 0.7f + i * 1.9f) * 8.f - 6.f);
 		SquadMeshes[i]->SetWorldLocationAndRotation(At, Bank);
+	}
+	if (bRestartTrails)
+	{
+		// After the ships are at the start of the pass: no streak from where the last pass ended.
+		bRestartTrails = false;
+		for (UNiagaraComponent* FX : SquadTrails)
+		{
+			if (FX) { FX->SetVisibility(true); FX->Activate(true); }
+		}
+	}
+}
+
+void ATDMenuBackdrop::ShowSquad(bool bShow)
+{
+	for (UStaticMeshComponent* C : SquadMeshes)
+	{
+		if (C) { C->SetVisibility(bShow, true); } // and its parts
+	}
+	bRestartTrails = bShow;
+	if (!bShow)
+	{
+		for (UNiagaraComponent* FX : SquadTrails)
+		{
+			if (FX) { FX->Deactivate(); FX->SetVisibility(false); }
+		}
 	}
 }
 
@@ -536,10 +605,7 @@ void ATDMenuBackdrop::DebugSetTime(float Seconds)
 	Flybys = 0;
 	FireRng.Initialize(20261115);
 	NextFire = Seconds - 1.f; // only the last second's fires are replayed
-	for (UStaticMeshComponent* C : SquadMeshes)
-	{
-		C->SetVisibility(false);
-	}
+	ShowSquad(false);
 	for (float T = 0.f; T < Seconds; T += 1.f / 30.f)
 	{
 		Time += 1.f / 30.f;

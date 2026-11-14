@@ -529,7 +529,7 @@ void ATDSpaceField::BuildOuterDark(FRandomStream& Rng)
 			Red->SetWorldLocation(Biggest + FVector(0.f, 0.f, BiggestSize * 0.42f + 2500.f) + Face.Vector() * 3000.f);
 			Red->SetLightColor(FLinearColor(1.f, 0.08f, 0.03f));
 			Red->SetIntensityUnits(ELightUnits::Candelas);
-			Red->SetIntensity(2.0e6f);
+			Red->SetIntensity(6.0e6f);	// 3x (Lead, Nov 14)
 			Red->SetAttenuationRadius(BiggestSize * 1.6f + 20000.f);
 			Red->SetCastShadows(false);
 			Red->RegisterComponent();
@@ -540,7 +540,7 @@ void ATDSpaceField::BuildOuterDark(FRandomStream& Rng)
 	{
 		RegionCentres.Add(7, Zone + FVector(OuterDarkInner, 0.f, 0.f));
 	}
-	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: Outer Dark watch %d lone rocks 50-150 m on the Dominion run-in, watcher %s"), Watch, bWatcher ? TEXT("placed") : TEXT("missing"));
+	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: Outer Dark watch %d lone rocks 75-225 m on the Dominion run-in, watcher %s"), Watch, bWatcher ? TEXT("placed") : TEXT("missing"));
 }
 
 // ------------------------------------------------------------------------------ regions 3, 5, 6 and the region set pieces

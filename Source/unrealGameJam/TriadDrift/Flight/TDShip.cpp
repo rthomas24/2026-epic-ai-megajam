@@ -14,6 +14,11 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
+#include "HAL/IConsoleManager.h"
+
+static TAutoConsoleVariable<float> CVarTDLancerBoostPlume(TEXT("td.Lancer.BoostPlumeScale"), 0.55f,
+	TEXT("Lancer contrast (Lead, Nov 14): the intensity of the squad cyan fed to the Lancer's exhaust at boost (1 = as authored, white-hot core)."));
 #include "Kismet/GameplayStatics.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "Components/AudioComponent.h"
@@ -416,6 +421,21 @@ void ATDShip::UpdateExhaustParams()
 	};
 	Feed(EngineTrailFX.Get());
 	for (const TWeakObjectPtr<UNiagaraComponent>& FX : ExtraExhaustFX) { Feed(FX.Get()); }
+	// The Lead (Nov 14, Lancer contrast, option c light): at boost the Lancer's plume bloomed white into the cyan nebula.
+	// The squad cyan at a lower intensity keeps its hue but stops the flame material clipping to white.
+	if (ShipId == ETDShipId::Lancer)
+	{
+		static const FLinearColor LancerCyan(0.10f, 0.80f, 1.0f, 1.f); // ArtSource/EngVFX build_tier1.py LANCER
+		const float K = bExhaustBoost ? FMath::Clamp(CVarTDLancerBoostPlume.GetValueOnGameThread(), 0.05f, 1.f) : 1.f;
+		const FLinearColor Want(LancerCyan.R * K, LancerCyan.G * K, LancerCyan.B * K, 1.f);
+		for (UNiagaraComponent* FX : { EngineTrailFX.Get(), BoostLoopFX.Get() })
+		{
+			if (FX && FX->GetAsset() && FX->GetAsset()->GetExposedParameters().FindParameterOffset(FNiagaraVariable(FNiagaraTypeDefinition::GetColorDef(), TEXT("User.Color"))))
+			{
+				FX->SetVariableLinearColor(TEXT("User.Color"), Want);
+			}
+		}
+	}
 }
 
 FTDFXCue ATDShip::ForThisShip(const FTDFXCue& Cue) const

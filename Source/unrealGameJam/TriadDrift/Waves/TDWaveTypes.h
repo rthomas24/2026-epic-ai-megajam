@@ -107,6 +107,43 @@ struct UNREALGAMEJAM_API FTDWaveDef : public FTableRowBase
 	}
 };
 
+/** One group that is on its way (issue #160, the radar's incoming blips): ATDWaveDirector::GetPendingGroups. */
+USTRUCT(BlueprintType)
+struct FTDIncomingGroup
+{
+	GENERATED_BODY()
+
+	/** UTDEnemyLibrary id: ShardFighter, HookInterceptor, WallGunship, MaulBomber, HiveCarrier. */
+	UPROPERTY(BlueprintReadOnly, Category = "Wave")
+	FName EnemyId = NAME_None;
+
+	/** Ships in the group (after difficulty scaling for the running wave). */
+	UPROPERTY(BlueprintReadOnly, Category = "Wave")
+	int32 Count = 0;
+
+	/** Seconds until the group is in the fight (its delay and warp-in; plus the breather for the next wave). */
+	UPROPERTY(BlueprintReadOnly, Category = "Wave")
+	float SecondsUntilSpawn = 0.f;
+
+	/** Where it warps in (world). Known only once the warp-in is announced (bHasLocation), about WarpInSeconds ahead. */
+	UPROPERTY(BlueprintReadOnly, Category = "Wave")
+	FVector Location = FVector::ZeroVector;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Wave")
+	bool bHasLocation = false;
+
+	/** Where it is set to come from (for a blip before the point is picked). */
+	UPROPERTY(BlueprintReadOnly, Category = "Wave")
+	ETDSpawnZone Zone = ETDSpawnZone::AnyFlank;
+
+	/** 1-based wave the group belongs to; bNextWave when that wave has not started (a breather). */
+	UPROPERTY(BlueprintReadOnly, Category = "Wave")
+	int32 WaveNumber = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Wave")
+	bool bNextWave = false;
+};
+
 /** Tip ids the wave director requests (Nick's DT_Tips rows use the same names). */
 namespace TDTipIds
 {

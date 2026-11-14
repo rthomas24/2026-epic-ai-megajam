@@ -291,7 +291,8 @@ void STDSettingsPage::Construct(const FArguments& InArgs)
 	[
 		SNew(SBorder)
 		.BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-		.BorderBackgroundColor(FLinearColor(0.f, 0.f, 0.02f, 0.82f))
+		// B2-03 (Nick's playtest): at 0.82 the pause screen's text and buttons bled through; the page covers what it sits on.
+		.BorderBackgroundColor(FLinearColor(0.f, 0.f, 0.015f, 0.97f))
 		.HAlign(HAlign_Center).VAlign(VAlign_Center)
 		[
 			SNew(SBox).WidthOverride(780.f)[ Rows ]

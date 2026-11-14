@@ -238,6 +238,19 @@ public:
 	/** Where a CUT in the interior picks up: the scene's checkpoint, else the next room's door (a death between rooms,
 	 *  scene None: T7 came back at the hangar, 104 m from the reactor). */
 	FTransform GetInteriorRetakeSpot(FName SceneId) const;
+	/** The reactor room (N-052 / N-060): the boarder's own future self (staged, never fights), and the fight of the other
+	 *  two future pilots (or the two drones when td.Interior.Defenders is 0). */
+	class ATDFutureSelf* GetFutureSelf() const { return FutureSelf; }
+	class ATDEncounterVolume* GetReactorDefenders() const { return ReactorDefenders; }
+	UPROPERTY(Transient) TObjectPtr<class ATDFutureSelf> FutureSelf;
+	UPROPERTY(Transient) TObjectPtr<class ATDEncounterVolume> ReactorDefenders;
+	/** The interior's doorways, in order along +X: the marker leads through the next one square-on (T7, Nov 14: the
+	 *  walker wedged on the arena's far door frame heading straight for the Warden's trailhead). */
+	TArray<TWeakObjectPtr<AActor>> InteriorDoorways;
+	/** Each doorway's approach points on its centre line, 2.5 m before and after it (same order as InteriorDoorways). */
+	TArray<TPair<TWeakObjectPtr<AActor>, TWeakObjectPtr<AActor>>> DoorApproaches;
+	/** Target, or the centre of the first doorway between the pilot and it (interior, along +X). */
+	AActor* RouteThroughDoors(const FVector& Pilot, AActor* Target) const;
 	/** The course's objectives in story order (the order they were made). */
 	const TArray<TObjectPtr<ATDObjective>>& GetObjectives() const { return Objectives; }
 	/** Where a magma rescue puts the pilot, per magma volume (tests). */
@@ -302,6 +315,13 @@ public:
 	 *  and wave 5 cleared); this never says it is open. */
 	static bool IsFieldAnchorDisabled(const UObject* WorldContextObject);
 	UStaticMeshComponent* GetDormantDrone() const { return DormantDrone; }
+	/** Cinematic 03's drone (features.md row "drone wakes blue, three pulses"): its optic, dark until C3_Wren_Answered,
+	 *  then three blue blinks in step with T3's light and steady blue; the drone lifts off the deck as it wakes. */
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> DroneOptic;
+	FVector DroneHome = FVector::ZeroVector;
+	double DroneWakeStart = -1.0;
+	UFUNCTION() void HandleStoryLine(const struct FTDTransmissionView& Line);
+	void TickDroneWake();
 private:
 	float InteriorTime = 0.f;
 	/** Story beats on objective moments (T3's transmissions, storyline.md §5): planets and interior. */

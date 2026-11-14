@@ -9,6 +9,8 @@
 // (UTDSpaceFieldFX, or a placeholder burst) and broadcasts OnFieldObjectDestroyed on the Core bus (T2: score, drops).
 
 #include "TriadDrift/World/SpaceField/TDSpaceField.h"
+#include "EngineUtils.h"
+#include "Containers/Ticker.h"
 #include "TriadDrift/World/SpaceField/TDSpaceFieldFX.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -488,13 +490,35 @@ void ATDSpaceField::ReceiveSplash(const FVector& Center, float Radius, float Dam
 bool ATDSpaceField::ReceiveShipImpact(UPrimitiveComponent* HitComponent, int32 Item, const FVector& ImpactPoint, float NormalSpeed, float HeadOn01, ATDShip* Ship)
 {
 	const UTDRamPower* Ram = Ship ? Ship->FindComponentByClass<UTDRamPower>() : nullptr;
-	return ShipImpact(HitComponent, Item, NormalSpeed, HeadOn01, Ship, Ram && Ram->IsPowerActive());
+	const bool bBroken = ShipImpact(HitComponent, Item, NormalSpeed, HeadOn01, Ship, Ram && Ram->IsPowerActive());
+	if (GTDLogBreaks != 0 && Ship)
+	{
+		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.Impact: %s (%s) at %.0f m/s normal, head-on %.2f -> %s"), *GetNameSafe(Ship),
+			Ship->IsPlayerControlled() ? TEXT("flown") : TEXT("wingman"), NormalSpeed / 100.f, HeadOn01, bBroken ? TEXT("rock broke") : TEXT("bounced"));
+	}
+	return bBroken;
 }
 
 // ------------------------------------------------------------------------------------------- dev commands
 
 namespace TDSpaceFieldDev
 {
+	static FAutoConsoleCommandWithWorldAndArgs CmdWingCheck(TEXT("TD.SpaceField.WingCheck"),
+		TEXT("Log each squad ship's speed and its distance to the nearest obstacle surface (wingman rock avoidance watch)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const UTDWorldSubsystem* WS = UTDWorldSubsystem::Get(World);
+			for (TActorIterator<ATDShip> It(World); It; ++It)
+			{
+				ATDShip* Ship = *It;
+				FSphere Near(ForceInit);
+				const bool bNear = WS && WS->FindNearestObstacle(Ship->GetActorLocation(), 50000.f, Near);
+				const float Gap = bNear ? (float)FVector::Dist(Ship->GetActorLocation(), Near.Center) - Near.W : 50000.f;
+				UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.WingCheck: %s (%s) speed %.0f m/s, nearest rock surface %.0f m%s"), *GetNameSafe(Ship),
+					Ship->IsPlayerControlled() ? TEXT("flown") : TEXT("wingman"), Ship->GetVelocity().Size() / 100.f, Gap / 100.f, bNear ? TEXT("") : TEXT(" (none within 500 m)"));
+			}
+		}));
+
 	static FAutoConsoleCommandWithWorldAndArgs CmdAim(TEXT("TD.SpaceField.Aim"),
 		TEXT("Turn the flown ship (real input) toward the nearest live field piece: TD.SpaceField.Aim <class 0 small | 1 medium | 2 large | 3 special> [MinMetres=0]"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
@@ -613,6 +637,7 @@ namespace TDSpaceFieldDev
 		TArray<TPair<float, double>> Worst;	// ms, seconds since start
 	};
 	static FFrameWatch GFrameWatch;
+	static FTSTicker::FDelegateHandle GFrameWatchTicker;
 
 	static FAutoConsoleCommandWithWorldAndArgs CmdFrameWatch(TEXT("TD.SpaceField.FrameWatch"),
 		TEXT("Live: TD.SpaceField.FrameWatch 1 starts (resets) recording every frame's time; 0 stops and logs frames, mean, frames over 16.6 and 33.3 ms and the ten worst (with seconds since start)"),
@@ -624,10 +649,20 @@ namespace TDSpaceFieldDev
 				GFrameWatch = FFrameWatch();
 				GFrameWatch.bOn = true;
 				GFrameWatch.StartTime = FPlatformTime::Seconds();
+				// The engine's core ticker (once per frame, any map, the field or not; travel included).
+				if (!GFrameWatchTicker.IsValid())
+				{
+					GFrameWatchTicker = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([](float DeltaTime)
+					{
+						ATDSpaceField::NoteFrameWatch(DeltaTime);
+						return true;
+					}));
+				}
 				UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.FrameWatch: started"));
 				return;
 			}
 			GFrameWatch.bOn = false;
+			if (GFrameWatchTicker.IsValid()) { FTSTicker::GetCoreTicker().RemoveTicker(GFrameWatchTicker); GFrameWatchTicker.Reset(); }
 			FString W;
 			for (const TPair<float, double>& P : GFrameWatch.Worst) { W += FString::Printf(TEXT(" %.1f ms @%.1fs"), P.Key, P.Value); }
 			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.FrameWatch: %d frames, mean %.2f ms, over 16.6 ms %d, over 33.3 ms %d, worst:%s"), GFrameWatch.Frames,
@@ -818,11 +853,10 @@ namespace TDSpaceFieldWarm
 	} GRegister;
 }
 
-void ATDSpaceField::NoteFrame(float DeltaSeconds)
+void ATDSpaceField::NoteFrameWatch(float DeltaSeconds)
 {
 	using namespace TDSpaceFieldDev;
-	if (!GFrameWatch.bOn || GFrameNoted == GFrameCounter) { return; }
-	GFrameNoted = GFrameCounter;
+	if (!GFrameWatch.bOn) { return; }
 	const float Ms = DeltaSeconds * 1000.f;
 	++GFrameWatch.Frames;
 	GFrameWatch.Sum += Ms;

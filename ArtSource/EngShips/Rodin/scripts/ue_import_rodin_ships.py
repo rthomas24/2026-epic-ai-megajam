@@ -226,14 +226,17 @@ if os.environ.get("TD_SQUAD_RIM", "1") != "0":
         if _glow:
             SHIPS[_ship]["glow_strength"] = _glow
     # The Lancer's worst case (T1, Nov 14: the cyan rim vanished against the cyan lobe at sky Yaw 166 / Pitch -10, and the
-    # nozzles bloomed white into its core at boost): a dark edge instead of a cyan one, and a deep saturated blue nozzle
-    # core. The rim is added emissive, so a dark edge is a NEGATIVE RimColor (it takes light away at grazing angles).
-    # TD_LANCER_DARK=0 keeps the cyan rim above. Tuning: TD_LANCER_RIM="strength,r,g,b", TD_LANCER_GLOW="r,g,b,strength".
+    # nozzles bloomed white into its core at boost): a dark edge instead of a cyan one (M_TD_Ship RimDarken: the base
+    # colour lerps toward RimDarkenColor at grazing angles; the added-emissive rim cannot darken), and a deep saturated
+    # blue nozzle core. The squad cyan stays on the markings (emissive map) and the trail.
+    # TD_LANCER_DARK=0 keeps the cyan rim above. Tuning: TD_LANCER_RIM="darken,exponent,r,g,b", TD_LANCER_GLOW="r,g,b,strength".
     if os.environ.get("TD_LANCER_DARK", "1") != "0":
-        _r = [float(v) for v in os.environ.get("TD_LANCER_RIM", "0.6,-0.35,-0.35,-0.3").split(",")]
+        _r = [float(v) for v in os.environ.get("TD_LANCER_RIM", "1.0,1.2,0.008,0.01,0.02").split(",")]
         _g = [float(v) for v in os.environ.get("TD_LANCER_GLOW", "0.02,0.22,1.0,2.6").split(",")]
-        SHIPS["Lancer"]["mi_params"]["RimStrength"] = _r[0]
-        SHIPS["Lancer"]["mi_vectors"] = {"RimColor": tuple(_r[1:4])}
+        SHIPS["Lancer"]["mi_params"]["RimStrength"] = 0.0
+        SHIPS["Lancer"]["mi_params"]["RimDarken"] = _r[0]
+        SHIPS["Lancer"]["mi_params"]["RimDarkenExponent"] = _r[1]
+        SHIPS["Lancer"]["mi_vectors"] = {"RimDarkenColor": tuple(_r[2:5])}
         SHIPS["Lancer"]["glow"] = tuple(_g[0:3])
         SHIPS["Lancer"]["glow_strength"] = _g[3]
 else:
@@ -927,7 +930,24 @@ def ensure_master(defaults):
     add_x = mel.create_material_expression(mat, E.MaterialExpressionAdd, -100, 1300)
     ok &= mel.connect_material_expressions(add, "", add_x, "A")
     ok &= mel.connect_material_expressions(ex0, "", add_x, "B")
-    ok &= mel.connect_material_property(bc_p, "", mp.MP_BASE_COLOR)
+    # RimDarken (T1, Nov 14): base colour lerps toward RimDarkenColor by saturate(fresnel x RimDarken) - a dark edge that
+    # separates a pale hull from a bright nebula of its own colour. Default 0 = unchanged. ue_ship_rim_darken.py adds the
+    # same nodes to an existing master in place.
+    rd_s = scalar("RimDarken", 0.0, -950, -400)
+    rd_c = vector("RimDarkenColor", (0.008, 0.01, 0.02), -950, -600)
+    rd_x = scalar("RimDarkenExponent", 2.5, -1100, -300)
+    rd_f = mel.create_material_expression(mat, E.MaterialExpressionFresnel, -850, -300)
+    rd_f.set_editor_property("base_reflect_fraction", 0.0)
+    ok &= mel.connect_material_expressions(rd_x, "", rd_f, "ExponentIn")
+    rd_m, k = mul(rd_f, "", rd_s, "", -700, -360); ok &= k
+    rd_sat = mel.create_material_expression(mat, E.MaterialExpressionSaturate, -600, -360)
+    ok &= mel.connect_material_expressions(rd_m, "", rd_sat, "")
+    rd_l = mel.create_material_expression(mat, E.MaterialExpressionLinearInterpolate, -450, -520)
+    rd_l.set_editor_property("desc", "TD rim darken")
+    ok &= mel.connect_material_expressions(bc_p, "", rd_l, "A")
+    ok &= mel.connect_material_expressions(rd_c, "RGB", rd_l, "B")
+    ok &= mel.connect_material_expressions(rd_sat, "", rd_l, "Alpha")
+    ok &= mel.connect_material_property(rd_l, "", mp.MP_BASE_COLOR)
     ok &= mel.connect_material_property(ao, "", mp.MP_AMBIENT_OCCLUSION)
     ok &= mel.connect_material_property(rg, "", mp.MP_ROUGHNESS)
     ok &= mel.connect_material_property(mt, "", mp.MP_METALLIC)

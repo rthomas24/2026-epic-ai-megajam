@@ -1,0 +1,353 @@
+// Triad Drift - the flight HUD's radar (issue #160; Teammate 6). See TDHUDRadarPaint.h.
+
+#include "TriadDrift/UI/TDHUDRadarPaint.h"
+#include "TriadDrift/UI/TDHUDModel.h"
+#include "TriadDrift/UI/TDUIPaint.h"
+#include "TriadDrift/Combat/Pickups/TDPickup.h"
+#include "Brushes/SlateRoundedBoxBrush.h"
+
+namespace TDHUDRadar
+{
+	using Pal = FTDUIPalette;
+
+	// Design frame (HUD-CONCEPT.md section 4): centre (1684, 886), radius 140; the wave header 280x34 above it.
+	static constexpr float CX = 1684.f, CY = 886.f, Radius = 140.f, HeaderH = 34.f, HeaderGap = 12.f;
+	// Enemy kinds as UTDFlightHUDWidget::KindOf numbers them.
+	enum : uint8 { KindOther = 0, KindFighter = 1, KindInterceptor = 2, KindBomber = 3, KindGunship = 4, KindCarrier = 5 };
+
+	/** One scratch point list, reused every draw call (no allocation once it has grown). */
+	static TArray<FVector2D>& Scratch()
+	{
+		static TArray<FVector2D> Points;
+		Points.Reset();
+		return Points;
+	}
+
+	struct FRadarPaint
+	{
+		const FTDUIPainter& P;
+		FVector2D C;
+		float R;
+		/** Small screens (under 900 px tall): the radar at 85%, text never under 12 px on screen. */
+		float Shrink;
+
+		FVector2D Px(const FVector2D& D) const { return D * P.Scale + P.Origin; }
+		void Lines(const TArray<FVector2D>& Pts, FLinearColor Col, float Width, int32 LayerAdd = 1) const
+		{
+			FSlateDrawElement::MakeLines(P.List, P.Layer + LayerAdd, P.G.ToPaintGeometry(), Pts, ESlateDrawEffect::None, P.Faded(Col), true,
+				FMath::Max(1.f, Width * P.Scale));
+		}
+		void Seg(const FVector2D& A, const FVector2D& B, FLinearColor Col, float Width) const
+		{
+			TArray<FVector2D>& Pts = Scratch();
+			Pts.Add(Px(A));
+			Pts.Add(Px(B));
+			Lines(Pts, Col, Width);
+		}
+		/** A closed or open shape from local points (design units, around At). */
+		void Shape(const FVector2D& At, std::initializer_list<FVector2D> Local, FLinearColor Col, float Width, bool bClose) const
+		{
+			TArray<FVector2D>& Pts = Scratch();
+			for (const FVector2D& Q : Local) { Pts.Add(Px(At + Q)); }
+			if (bClose && Pts.Num() > 0) { Pts.Add(Pts[0]); }
+			Lines(Pts, Col, Width);
+		}
+		void Circle(const FVector2D& At, float Rad, FLinearColor Col, float Width, int32 Segments = 40) const
+		{
+			ArcAt(At, Rad, 0.f, 2.f * PI, Col, Width, Segments);
+		}
+		/** Angles in radians, 0 = up (forward), clockwise. */
+		void ArcAt(const FVector2D& At, float Rad, float A0, float Sweep, FLinearColor Col, float Width, int32 Segments = 24) const
+		{
+			TArray<FVector2D>& Pts = Scratch();
+			for (int32 I = 0; I <= Segments; ++I)
+			{
+				const float A = A0 + Sweep * I / Segments;
+				Pts.Add(Px(At + FVector2D(FMath::Sin(A), -FMath::Cos(A)) * Rad));
+			}
+			Lines(Pts, Col, Width);
+		}
+		void Ellipse(const FVector2D& At, float Rx, float Ry, FLinearColor Col, float Width) const
+		{
+			TArray<FVector2D>& Pts = Scratch();
+			for (int32 I = 0; I <= 20; ++I)
+			{
+				const float A = 2.f * PI * I / 20;
+				Pts.Add(Px(At + FVector2D(FMath::Cos(A) * Rx, FMath::Sin(A) * Ry)));
+			}
+			Lines(Pts, Col, Width);
+		}
+		void Dot(const FVector2D& At, float Size, FLinearColor Col) const
+		{
+			P.Box(At.X - Size * .5f, At.Y - Size * .5f, Size, Size, Col);
+		}
+		/** Text at design (X, Y), Align 0 left / .5 centre / 1 right; at least 12 px on screen. */
+		void Text(float X, float Y, const FString& S, int32 Size, FLinearColor Col, const ANSICHAR* Face, float Align) const
+		{
+			const int32 Design = FMath::Max(Size, FMath::CeilToInt(12.f / FMath::Max(P.Scale, .01f)));
+			const FSlateFontInfo Font = FTDUIPainter::MakeFont(Face, Design, P.Scale, 20);
+			const float W = Align > 0.f ? P.Measure(S, Font) : 0.f;
+			FSlateDrawElement::MakeText(P.List, P.Layer + 2, P.Geo({ X - W * Align, Y }, { 1, 1 }), S, Font, ESlateDrawEffect::None, P.Faded(Col));
+		}
+	};
+
+	/** Horizontal metres -> radius on the scope: half the range takes 2/3 of the radius (close fights get the space), the
+	 *  rest is compressed (log) into the outer third. */
+	static float RadiusFor(float Metres, float Range, float R)
+	{
+		const float T = FMath::Clamp(Metres / FMath::Max(Range, 1.f), 0.f, 1.f);
+		if (T <= .5f)
+		{
+			return R * (2.f / 3.f) * (T / .5f);
+		}
+		const float U = FMath::Loge(1.f + 9.f * (T - .5f) / .5f) / FMath::Loge(10.f);	// 0..1
+		return R * (2.f / 3.f + .27f * U);
+	}
+
+	/** An enemy glyph by kind (the on-screen marker shapes at radar scale). */
+	static void Enemy(const FRadarPaint& D, const FVector2D& At, uint8 Kind, FLinearColor Col, float S)
+	{
+		switch (Kind)
+		{
+		case KindFighter:		D.Shape(At, { { -5 * S, 3 * S }, { 0, -3 * S }, { 5 * S, 3 * S } }, Col, 1.8f, false); break;	// chevron
+		case KindInterceptor:	D.Shape(At, { { 0, -6 * S }, { 2.5f * S, 5 * S }, { 0, 2.5f * S }, { -2.5f * S, 5 * S } }, Col, 1.5f, true); break;	// narrow dart
+		case KindBomber:		D.Shape(At, { { -8 * S, 4 * S }, { 0, -4 * S }, { 8 * S, 4 * S } }, Col, 1.8f, true); break;	// wide wedge
+		case KindGunship:		D.Shape(At, { { 0, -7 * S }, { 7 * S, 0 }, { 0, 7 * S }, { -7 * S, 0 } }, Col, 1.6f, true); break;	// diamond
+		case KindCarrier:
+		{
+			const float H = 8 * S;
+			D.Shape(At, { { H, 0 }, { H * .5f, H * .866f }, { -H * .5f, H * .866f }, { -H, 0 }, { -H * .5f, -H * .866f }, { H * .5f, -H * .866f } }, Col, 1.6f, true);	// hexagon
+			D.Dot(At, 2.5f * S, Col);
+			break;
+		}
+		default:				D.Shape(At, { { 0, -4 * S }, { 4 * S, 3 * S }, { -4 * S, 3 * S } }, Col, 1.5f, true); break;	// small triangle
+		}
+	}
+
+	static void Pickup(const FRadarPaint& D, const FVector2D& At, uint8 Kind, float S)
+	{
+		const ETDPickupType Type = static_cast<ETDPickupType>(Kind);
+		const FLinearColor Col = ATDPickup::ColorOf(Type);
+		switch (Type)
+		{
+		case ETDPickupType::Hull:		D.Seg(At + FVector2D(-4 * S, 0), At + FVector2D(4 * S, 0), Col, 2.f); D.Seg(At + FVector2D(0, -4 * S), At + FVector2D(0, 4 * S), Col, 2.f); break;	// plus
+		case ETDPickupType::Shield:		D.Circle(At, 4 * S, Col, 1.6f, 12); break;	// disc
+		case ETDPickupType::Power:		D.Shape(At, { { -4 * S, 3 * S }, { -1.5f * S, -4 * S }, { 1 * S, 3 * S } }, Col, 1.6f, false); D.Shape(At, { { 0.5f * S, 3 * S }, { 3 * S, -4 * S }, { 5.5f * S, 3 * S } }, Col, 1.6f, false); break;	// double point
+		case ETDPickupType::Overcharge:	D.Shape(At, { { -4 * S, -4 * S }, { 4 * S, -4 * S }, { 4 * S, 4 * S }, { -4 * S, 4 * S } }, Col, 1.6f, true); break;	// square
+		default:						D.Shape(At, { { -4 * S, 3 * S }, { 0, -4 * S }, { 4 * S, 3 * S }, { 0, 1 * S } }, Col, 1.6f, true); break;	// arrowhead (Boost)
+		}
+	}
+
+	/** A pulsing arc on the rim at a bearing, 30 degrees wide, with an inward arrow (warp-in solid, incoming dashed). */
+	static void RimArc(const FRadarPaint& D, float Bearing, float Pulse, bool bDashed)
+	{
+		const FLinearColor Col = Pal::Hostile().CopyWithNewOpacity(.45f + .55f * Pulse);
+		const float Half = FMath::DegreesToRadians(15.f);
+		if (bDashed)
+		{
+			for (int32 I = 0; I < 3; ++I) { D.ArcAt(D.C, D.R - 1.f, Bearing - Half + I * (2.f * Half / 3.f), 2.f * Half / 3.f * .6f, Col, 4.f, 4); }
+		}
+		else
+		{
+			D.ArcAt(D.C, D.R - 1.f, Bearing - Half, 2.f * Half, Col, 4.f, 10);
+		}
+		const FVector2D Dir(FMath::Sin(Bearing), -FMath::Cos(Bearing));
+		const FVector2D Side(-Dir.Y, Dir.X);
+		const FVector2D Tip = D.C + Dir * (D.R - 16.f);
+		D.Shape(Tip, { Dir * 7.f + Side * 5.f, FVector2D::ZeroVector, Dir * 7.f - Side * 5.f }, Col, 1.8f, false);
+	}
+
+	/** Strings rebuilt only when what they show changes. */
+	struct FCache
+	{
+		int32 Wave = -1, Count = -1, Next = -1, NextIn = -1, Breather = -1;
+		float Range = -1.f;
+		FString WaveText, NextText, BreatherText, RangeText;
+	};
+	static FCache& Cache()
+	{
+		static FCache C;
+		return C;
+	}
+}
+
+FBox2D TDHUDRadarBox(const FTDUIPainter& P)
+{
+	using namespace TDHUDRadar;
+	const float Shrink = P.Scale * 1080.f < 900.f ? .85f : 1.f;
+	const float R = Radius * Shrink;
+	const FVector2D C(CX + (Radius - R), CY + (Radius - R));	// shrinks into the bottom-right corner, away from the subtitles
+	return FBox2D(FVector2D(C.X - R, C.Y - R - HeaderGap - HeaderH), FVector2D(C.X + R, C.Y + R));
+}
+
+void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDHUDRadarInput& In)
+{
+	using namespace TDHUDRadar;
+	const float Shrink = P.Scale * 1080.f < 900.f ? .85f : 1.f;
+	const float R = Radius * Shrink;
+	const FRadarPaint D{ P, FVector2D(CX + (Radius - R), CY + (Radius - R)), R, Shrink };
+	const FVector2D& C = D.C;
+	const float S = Shrink;	// glyph scale
+	const float Range = FMath::Max(Model.RadarRange, 1.f);
+
+	// ---- plate: a dark disc (Panel), a soft rim, rings at 1/3 and 2/3, cardinal ticks, the camera's 70 degree view cone
+	static FSlateRoundedBoxBrush Disc(FLinearColor::White, 0.f);
+	Disc.OutlineSettings.RoundingType = ESlateBrushRoundingType::HalfHeightRadius;
+	FSlateDrawElement::MakeBox(P.List, P.Layer, P.Geo({ C.X - R, C.Y - R }, { 2 * R, 2 * R }), &Disc, ESlateDrawEffect::None,
+		P.Faded(Pal::Panel().CopyWithNewOpacity(.82f)));
+	const float ConeHalf = FMath::DegreesToRadians(35.f);
+	for (int32 I = 0; I < 6; ++I)	// the cone: a faint fan
+	{
+		D.ArcAt(C, R * (I + 1) / 6.f, -ConeHalf, 2.f * ConeHalf, Pal::Ink().CopyWithNewOpacity(.035f), R / 6.f + 1.f, 8);
+	}
+	D.Seg(C, C + FVector2D(FMath::Sin(-ConeHalf), -FMath::Cos(-ConeHalf)) * R, Pal::Muted().CopyWithNewOpacity(.16f), 1.f);
+	D.Seg(C, C + FVector2D(FMath::Sin(ConeHalf), -FMath::Cos(ConeHalf)) * R, Pal::Muted().CopyWithNewOpacity(.16f), 1.f);
+	D.Circle(C, R * (1.f / 3.f), Pal::Muted().CopyWithNewOpacity(.16f), 1.f);
+	D.Circle(C, R * (2.f / 3.f), Pal::Muted().CopyWithNewOpacity(.20f), 1.f);
+	D.Circle(C, R, Pal::Muted().CopyWithNewOpacity(.38f), 1.5f, 56);
+	for (int32 I = 0; I < 4; ++I)
+	{
+		const float A = I * PI * .5f;
+		const FVector2D Dir(FMath::Sin(A), -FMath::Cos(A));
+		D.Seg(C + Dir * (R - 7.f), C + Dir * R, Pal::Muted().CopyWithNewOpacity(I == 0 ? .7f : .4f), I == 0 ? 2.f : 1.2f);
+	}
+	FCache& K = Cache();
+	if (K.Range != Range)
+	{
+		K.Range = Range;
+		K.RangeText = Range >= 1000.f ? FString::Printf(TEXT("%.1f KM"), Range / 1000.f) : FString::Printf(TEXT("%.0f M"), Range);
+	}
+	D.Text(C.X, C.Y + R - 20.f, K.RangeText, 12, Pal::Muted().CopyWithNewOpacity(.8f), "Mono", .5f);
+
+	// ---- contacts (the model holds at most MaxContacts, nearest first after the must-shows)
+	const float Flash = FMath::Fmod(In.Time * 2.5f, 1.f) < .55f ? 1.f : .25f;	// missiles: 2.5 Hz
+	const float Pulse2 = .5f + .5f * FMath::Sin(In.Time * 2.f * 2.f * PI);		// warp-ins: 2 Hz
+	const float Pulse1 = .5f + .5f * FMath::Sin(In.Time * 2.f * PI);			// trouble ring: 1 Hz
+	const float Level = 50.f;	// within 50 m up or down: no stem
+	for (const FTDRadarContact& Ct : Model.Contacts)
+	{
+		const float Flat = (float)Ct.Plane.Size();
+		const float Bearing = FMath::Atan2((float)Ct.Plane.X, (float)Ct.Plane.Y);	// 0 = forward (up), clockwise
+		const FVector2D Dir(FMath::Sin(Bearing), -FMath::Cos(Bearing));
+		const bool bBig = Ct.Type == ETDRadarType::Objective || Ct.Type == ETDRadarType::Gate || Ct.Type == ETDRadarType::Incoming
+			|| Ct.Type == ETDRadarType::WarpIn || (Ct.Type == ETDRadarType::Enemy && Ct.Kind == KindCarrier);
+		if (Ct.bBeyond && !bBig)
+		{
+			continue;	// small things beyond range are not pinned (the edge chevrons on screen cover them)
+		}
+		if (Ct.Type == ETDRadarType::Incoming || Ct.Type == ETDRadarType::WarpIn)
+		{
+			RimArc(D, Bearing, Pulse2, Ct.Type == ETDRadarType::Incoming);	// announced arrivals only: the model lists nothing else
+			if (Ct.bBeyond || Ct.Type == ETDRadarType::Incoming) { continue; }
+		}
+		const float Rad = Ct.bBeyond ? R - 8.f : RadiusFor(Flat, Range, R);
+		const FVector2D At = C + Dir * Rad;
+		// Height: above = full brightness, stem hangs down to the foot; below = dimmed, stem rises; level: none.
+		const bool bAbove = Ct.Up > Level, bBelow = Ct.Up < -Level;
+		const float Stem = FMath::Min(18.f * S, FMath::Abs(Ct.Up) / Range * R);
+		const float Bright = bBelow ? .55f : 1.f;
+		const FVector2D Blip = At + FVector2D(0.f, bAbove ? -Stem : bBelow ? Stem : 0.f);
+		if (!Ct.bBeyond && (bAbove || bBelow) && Stem >= 2.f)
+		{
+			D.Seg(At, Blip, Pal::Muted().CopyWithNewOpacity(.5f * Bright), 1.f);
+			D.Dot(At, 1.6f, Pal::Muted().CopyWithNewOpacity(.7f * Bright));	// the foot on your plane
+		}
+		const float Hollow = Ct.bBeyond ? .6f : 1.f;	// pinned to the rim: drawn fainter, hollow shapes
+		switch (Ct.Type)
+		{
+		case ETDRadarType::Enemy:
+			Enemy(D, Blip, Ct.Kind, Pal::Hostile().CopyWithNewOpacity(Bright * Hollow), S);
+			if (Ct.bThreat && !Ct.bBeyond) { D.Circle(Blip, 9.f * S, Pal::Hostile().CopyWithNewOpacity(.55f * Bright), 1.f, 16); }	// attacking you
+			break;
+		case ETDRadarType::Missile:
+			D.Dot(Blip, 4.f * S, Pal::Ink().CopyWithNewOpacity(Flash * Bright));
+			D.Shape(Blip, { { -3.5f * S, -3.5f * S }, { 3.5f * S, -3.5f * S }, { 3.5f * S, 3.5f * S }, { -3.5f * S, 3.5f * S } }, Pal::Hostile().CopyWithNewOpacity(Flash * Bright), 1.2f, true);
+			D.Seg(Blip, Blip + (Blip - C).GetSafeNormal() * 7.f * S, Pal::Hostile().CopyWithNewOpacity(.4f * Flash * Bright), 1.2f);	// a short trail
+			break;
+		case ETDRadarType::Wingman:
+		{
+			const ETDShipId Ship = static_cast<ETDShipId>(Ct.Kind);
+			const FLinearColor Col = (Ship == ETDShipId::Rift ? Pal::Rift() : Ship == ETDShipId::Lancer ? Pal::Lancer() : Pal::Bastion()).CopyWithNewOpacity(Bright);
+			D.Shape(Blip, { { 0, -6 * S }, { 4.5f * S, 5 * S }, { 0, 2.5f * S }, { -4.5f * S, 5 * S } }, Col, 1.5f, true);	// hollow dart
+			const int32 Index = (int32)Ship;
+			if (Index >= 0 && Index < 3 && Model.Squad[Index].bTrouble)
+			{
+				D.Circle(Blip, 9.f * S, Pal::Bastion().CopyWithNewOpacity(.35f + .5f * Pulse1), 1.2f, 16);	// in trouble: an amber ring at 1 Hz
+			}
+			break;
+		}
+		case ETDRadarType::Objective:
+			D.Shape(Blip, { { 0, -7 * S }, { 7 * S, 0 }, { 0, 7 * S }, { -7 * S, 0 } }, Pal::Ink().CopyWithNewOpacity(Hollow), 1.6f, true);
+			D.Dot(Blip, 2.5f * S, Pal::Ink().CopyWithNewOpacity(Hollow));
+			break;
+		case ETDRadarType::Pickup:
+			Pickup(D, Blip, Ct.Kind, S);
+			break;
+		case ETDRadarType::Gate:
+			D.Ellipse(Blip, 8.f * S, 5.f * S, Pal::Muted().CopyWithNewOpacity(Hollow), 1.5f);
+			D.Ellipse(Blip, 4.f * S, 2.5f * S, Pal::Muted().CopyWithNewOpacity(.7f * Hollow), 1.2f);
+			break;
+		case ETDRadarType::WarpIn:
+			D.Circle(Blip, 6.f * S * (1.f + .3f * Pulse2), Pal::Hostile().CopyWithNewOpacity(.4f + .5f * Pulse2), 1.5f, 16);
+			break;
+		default:
+			break;
+		}
+	}
+
+	// ---- you: a filled dart at the centre in the flown ship's colour, with a soft glow
+	if (In.bHasFlown)
+	{
+		const FLinearColor You = In.Flown == ETDShipId::Rift ? Pal::Rift() : In.Flown == ETDShipId::Lancer ? Pal::Lancer() : Pal::Bastion();
+		D.Shape(C, { { 0, -8 * S }, { 6 * S, 7 * S }, { 0, 3.5f * S }, { -6 * S, 7 * S } }, You.CopyWithNewOpacity(.25f), 5.f, true);	// glow
+		for (float W = 1.f; W <= 4.f; W += 1.5f)	// filled: nested darts
+		{
+			const float F = 1.f - (W - 1.f) / 5.f;
+			D.Shape(C, { { 0, -8 * S * F }, { 6 * S * F, 7 * S * F }, { 0, 3.5f * S * F }, { -6 * S * F, 7 * S * F } }, You, 2.f, true);
+		}
+	}
+
+	// ---- wave header above the radar: WAVE n / N, a pip per wave, the next group (+count, seconds) or NEXT WAVE
+	if (In.Wave.WaveCount > 0)
+	{
+		const float HX = C.X - R, HY = C.Y - R - HeaderGap - HeaderH, HW = 2.f * R;
+		P.Box(HX, HY, HW, HeaderH, Pal::Panel().CopyWithNewOpacity(.78f));
+		D.Seg(FVector2D(HX, HY + HeaderH), FVector2D(HX + HW * .4f, HY + HeaderH), Pal::Hostile().CopyWithNewOpacity(.55f), 1.5f);
+		if (K.Wave != In.Wave.WaveNumber || K.Count != In.Wave.WaveCount)
+		{
+			K.Wave = In.Wave.WaveNumber;
+			K.Count = In.Wave.WaveCount;
+			K.WaveText = FString::Printf(TEXT("WAVE %d / %d"), FMath::Max(1, K.Wave), K.Count);
+		}
+		D.Text(HX + 10.f, HY + 7.f, K.WaveText, 14, Pal::Ink(), "Bold", 0.f);
+		// Pips: cleared = filled ink, current = hostile, to come = hollow.
+		const int32 Pips = FMath::Min(In.Wave.WaveCount, 8);
+		const float PipX0 = HX + HW * .44f;
+		for (int32 I = 0; I < Pips; ++I)
+		{
+			const FVector2D Pip(PipX0 + I * 11.f * S, HY + HeaderH * .5f);
+			const int32 Number = I + 1;
+			if (Number < In.Wave.WaveNumber) { D.Dot(Pip, 6.f * S, Pal::Ink().CopyWithNewOpacity(.85f)); }
+			else if (Number == In.Wave.WaveNumber) { D.Dot(Pip, 7.f * S, Pal::Hostile()); }
+			else { D.Shape(Pip, { { -3 * S, -3 * S }, { 3 * S, -3 * S }, { 3 * S, 3 * S }, { -3 * S, 3 * S } }, Pal::Muted().CopyWithNewOpacity(.7f), 1.f, true); }
+		}
+		// The next group from T4's GetPendingGroups (Incoming contacts), soonest first.
+		const FTDRadarContact* Next = nullptr;
+		for (const FTDRadarContact& Ct : Model.Contacts)
+		{
+			if (Ct.Type == ETDRadarType::Incoming && (!Next || Ct.Seconds < Next->Seconds)) { Next = &Ct; }
+		}
+		if (In.Wave.bInBreather && !Next)
+		{
+			const int32 Secs = FMath::CeilToInt(FMath::Max(0.f, In.Wave.BreatherRemaining));
+			if (K.Breather != Secs) { K.Breather = Secs; K.BreatherText = FString::Printf(TEXT("NEXT WAVE %d:%02d"), Secs / 60, Secs % 60); }
+			D.Text(HX + HW - 10.f, HY + 8.f, K.BreatherText, 12, Pal::Muted(), "Mono", 1.f);
+		}
+		else if (Next)
+		{
+			const int32 Secs = FMath::CeilToInt(FMath::Max(0.f, Next->Seconds));
+			if (K.Next != Next->Count || K.NextIn != Secs) { K.Next = Next->Count; K.NextIn = Secs; K.NextText = FString::Printf(TEXT("+%d %d:%02d"), Next->Count, Secs / 60, Secs % 60); }
+			D.Text(HX + HW - 10.f, HY + 8.f, K.NextText, 12, Pal::Hostile(), "Mono", 1.f);
+		}
+	}
+}

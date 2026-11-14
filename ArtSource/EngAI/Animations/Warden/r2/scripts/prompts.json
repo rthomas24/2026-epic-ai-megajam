@@ -1,0 +1,108 @@
+{
+  "jobs": [
+    {
+      "index": 16,
+      "name": "wstagger-s8101",
+      "clip": "wstagger",
+      "submission_key": "r042-wstagger-s8101",
+      "input": {
+        "prompt": "A giant, massive armored warrior, twice the size of a man and extremely heavy, standing in a wide planted stance, is struck hard in the chest from the front. He staggers but does not fall: his huge body rocks backward, he takes one heavy step back, both arms flinch outward, then he plants his feet wide again and recovers to the planted stance, still standing and facing forward.",
+        "seed": 8101,
+        "duration": 1.8,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 17,
+      "name": "wstagger-s8102",
+      "clip": "wstagger",
+      "submission_key": "r042-wstagger-s8102",
+      "input": {
+        "prompt": "A giant, massive armored warrior, twice the size of a man and extremely heavy, standing in a wide planted stance, is struck hard in the chest from the front. He staggers but does not fall: his huge body rocks backward, he takes one heavy step back, both arms flinch outward, then he plants his feet wide again and recovers to the planted stance, still standing and facing forward.",
+        "seed": 8102,
+        "duration": 1.8,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 18,
+      "name": "wstagger-s8103",
+      "clip": "wstagger",
+      "submission_key": "r042-wstagger-s8103",
+      "input": {
+        "prompt": "A giant, massive armored warrior, twice the size of a man and extremely heavy, standing in a wide planted stance, is struck hard in the chest from the front. He staggers but does not fall: his huge body rocks backward, he takes one heavy step back, both arms flinch outward, then he plants his feet wide again and recovers to the planted stance, still standing and facing forward.",
+        "seed": 8103,
+        "duration": 1.8,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 19,
+      "name": "wstagger-s8104",
+      "clip": "wstagger",
+      "submission_key": "r042-wstagger-s8104",
+      "input": {
+        "prompt": "A giant, massive armored warrior twice the size of a man is hit hard in the chest and recoils. His massive torso heaves backward, he takes one slow, heavy recovering step, the arms open then return, and he settles again into a wide, planted, threatening stance without falling, still facing forward.",
+        "seed": 8104,
+        "duration": 1.8,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 20,
+      "name": "wroar-s8201",
+      "clip": "wroar",
+      "submission_key": "r042-wroar-s8201",
+      "input": {
+        "prompt": "A giant, massive armored warrior, twice the size of a man and extremely heavy, standing in a wide planted stance, throws his head back and lets out a huge enraged roar to begin a second, more furious phase of the fight. His chest swells, both arms spread wide and then clench into fists as he leans back and then surges forward, roaring at an enemy in front of him, then he settles into an aggressive ready stance, still facing forward, and holds.",
+        "seed": 8201,
+        "duration": 2.6,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 21,
+      "name": "wroar-s8202",
+      "clip": "wroar",
+      "submission_key": "r042-wroar-s8202",
+      "input": {
+        "prompt": "A giant, massive armored warrior, twice the size of a man and extremely heavy, standing in a wide planted stance, throws his head back and lets out a huge enraged roar to begin a second, more furious phase of the fight. His chest swells, both arms spread wide and then clench into fists as he leans back and then surges forward, roaring at an enemy in front of him, then he settles into an aggressive ready stance, still facing forward, and holds.",
+        "seed": 8202,
+        "duration": 2.6,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 22,
+      "name": "wroar-s8203",
+      "clip": "wroar",
+      "submission_key": "r042-wroar-s8203",
+      "input": {
+        "prompt": "A giant, massive armored warrior, twice the size of a man and extremely heavy, standing in a wide planted stance, throws his head back and lets out a huge enraged roar to begin a second, more furious phase of the fight. His chest swells, both arms spread wide and then clench into fists as he leans back and then surges forward, roaring at an enemy in front of him, then he settles into an aggressive ready stance, still facing forward, and holds.",
+        "seed": 8203,
+        "duration": 2.6,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 23,
+      "name": "wroar-s8204",
+      "clip": "wroar",
+      "submission_key": "r042-wroar-s8204",
+      "input": {
+        "prompt": "A giant, massive armored warrior twice the size of a man rears back, spreads both arms wide, tilts his head up and roars in furious rage, a second-phase battle cry, then slams his fists down to his sides and leans forward in an aggressive ready stance, still facing an enemy in front of him, and holds still.",
+        "seed": 8204,
+        "duration": 2.6,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    }
+  ]
+}

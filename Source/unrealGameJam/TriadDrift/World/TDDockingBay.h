@@ -192,6 +192,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Docking")
 	TObjectPtr<UInstancedStaticMeshComponent> FrameBars;
 
+	/** The engine cube and sphere the placeholders fall back to when the bay art is missing. */
+	UPROPERTY(Transient)
+	TObjectPtr<class UStaticMesh> FallbackCube;
+	UPROPERTY(Transient)
+	TObjectPtr<class UStaticMesh> FallbackSphere;
+	bool bArtFrame = false;
+
 	TWeakObjectPtr<ATDDominion> Dominion;
 	TWeakObjectPtr<ATDShip> ShipOverride;
 	TWeakObjectPtr<ATDShip> Held;	// the ship the tractor holds now
@@ -201,6 +208,8 @@ protected:
 	float GlideDuration = 2.f;	// set at the glide's start from the distance and the arrival speed
 	float GlideStartSlope = 1.f;
 	float HoldTime = 0.f;	// over the pad after the glide, waiting for the Docking lines
+	FVector LastGlideLoc = FVector::ZeroVector;	// where the glide last put the ship (a move by anything else lets go)
+	bool bGlideLocSet = false;
 	FVector GlideFrom = FVector::ZeroVector;
 	FQuat GlideFromRot = FQuat::Identity;
 	float CurrentPull = 0.f;

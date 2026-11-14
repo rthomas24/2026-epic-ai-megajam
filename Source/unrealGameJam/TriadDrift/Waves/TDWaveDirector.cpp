@@ -1656,6 +1656,44 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 	}
 }
 
+int32 ATDWaveDirector::GetPendingGroups(TArray<FTDIncomingGroup>& OutGroups) const
+{
+	OutGroups.Reset();
+	if (State == ETDWaveState::WarpingIn || State == ETDWaveState::Active)
+	{
+		for (const FPendingGroup& P : Pending)
+		{
+			FTDIncomingGroup G;
+			G.EnemyId = P.Group.EnemyId;
+			G.Count = P.Group.Total();
+			G.SecondsUntilSpawn = FMath::Max(0.f, P.Remaining);
+			G.Location = P.Location;
+			G.bHasLocation = P.bWarpAnnounced;
+			G.Zone = P.Group.Zone;
+			G.WaveNumber = CurrentWave + 1;
+			OutGroups.Add(G);
+		}
+	}
+	else if (State == ETDWaveState::Breather && Waves.IsValidIndex(CurrentWave + 1))
+	{
+		// The next wave as its table has it (difficulty scaling is applied when it begins).
+		for (const FTDWaveGroup& Group : Waves[CurrentWave + 1].Groups)
+		{
+			if (Group.EnemyId.IsNone() || Group.Total() <= 0) { continue; }
+			FTDIncomingGroup G;
+			G.EnemyId = Group.EnemyId;
+			G.Count = Group.Total();
+			G.SecondsUntilSpawn = FMath::Max(0.f, StateRemaining) + Group.Delay + WarpInSeconds;
+			G.Zone = Group.Zone;
+			G.WaveNumber = CurrentWave + 2;
+			G.bNextWave = true;
+			OutGroups.Add(G);
+		}
+	}
+	OutGroups.Sort([](const FTDIncomingGroup& A, const FTDIncomingGroup& B) { return A.SecondsUntilSpawn < B.SecondsUntilSpawn; });
+	return OutGroups.Num();
+}
+
 FTDWaveInfo ATDWaveDirector::GetWaveInfo() const
 {
 	FTDWaveInfo Info;

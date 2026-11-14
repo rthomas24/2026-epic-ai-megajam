@@ -588,6 +588,15 @@ namespace TDDirectorDebug
 			UE_LOG(LogTriadDrift, Display, TEXT("TD.Director.Claim: %s"), V < 0 ? TEXT("the real HUD") : (V ? TEXT("claimed") : TEXT("not claimed")));
 		}));
 #endif
+	static FAutoConsoleCommandWithWorldAndArgs CmdMenuDifficulty(TEXT("TD.Menu.Difficulty"), TEXT("TD.Menu.Difficulty [Story|Standard|Ace|Back]: press NEW GAME (no argument: the difficulty page opens), or one of its choices"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDMenuGameMode* M = World ? World->GetAuthGameMode<ATDMenuGameMode>() : nullptr;
+			if (!M) { return; }
+			if (Args.Num() == 0) { M->ChooseDifficulty(false); return; }
+			if (Args[0].Equals(TEXT("Back"), ESearchCase::IgnoreCase)) { M->CancelDifficultyChoice(); return; }
+			M->StartWithDifficulty(Args[0].Equals(TEXT("Story"), ESearchCase::IgnoreCase) ? 0 : (Args[0].Equals(TEXT("Ace"), ESearchCase::IgnoreCase) ? 2 : 1));
+		}));
 	static FAutoConsoleCommandWithWorldAndArgs CmdMenuReturn(TEXT("TD.Menu.Return"), TEXT("TD.Menu.Return: press RETURN TO MENU on the victory screen (captures, tests)"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
 		{

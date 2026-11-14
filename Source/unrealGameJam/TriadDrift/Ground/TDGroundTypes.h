@@ -148,6 +148,13 @@ struct FTDBladeSwing
 	/** Velocity added to hit targets (the third combo hit knocks back). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swing", meta = (Units = "cm/s"))
 	float Knockback = 0.f;
+
+	/**
+	 * When the hit lands after the press (the active frame). The pilot clips reach the target 0.10-0.13 s in (the
+	 * animation audit, Nov 13): the hit lands with the hand, not before it. 0 = on the press.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swing", meta = (Units = "s", ClampMin = "0"))
+	float HitDelay = 0.1f;
 };
 
 /** Anything a melee parry or a heavy can stagger (crew AI, ENG-23). */
