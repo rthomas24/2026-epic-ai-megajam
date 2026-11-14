@@ -312,4 +312,9 @@ November 13, music loop repair. Nicholas noticed a click when music restarted. A
 
 ### Nov 13 — Settings focus correction verified in packaged candidate
 
-Nick''s Lead reviewed Ryan''s i71-focus-662b8c04-dev contact sheets at 1280x720, 1920x1080 and 2560x1080, the outline report and the raw 14/14 passing tests. The selected Settings outline returns immediately after Esc or simulated pad B, stays visible without navigation, skips disabled Continue and clears behind Settings. Volume remains 90% after reopening. This is technical verification of the released candidate, not a main integration or human approval claim. Main pickup requested in #71. No local Unreal process was launched for this review.
+Nick's Lead reviewed Ryan''s i71-focus-662b8c04-dev contact sheets at 1280x720, 1920x1080 and 2560x1080, the outline report and the raw 14/14 passing tests. The selected Settings outline returns immediately after Esc or simulated pad B, stays visible without navigation, skips disabled Continue and clears behind Settings. Volume remains 90% after reopening. This is technical verification of the released candidate, not a main integration or human approval claim. Main pickup requested in #71. No local Unreal process was launched for this review.
+
+
+### Nov 13 — reward build checkpoint and Lancer replacement audition
+
+The industrial reward frame passed import and reload. The first widget build exposed a missing Slate bracket; UI corrected it and Lead rebuilt successfully, then passed the existing dismissal/next-unlock lifecycle test with 2,434 protected files unchanged. Actual rendered appearance remains queued for memory. Audio published the nine supplied-recording replacements on its isolated branch at 2b074bb5; its actual game capture observed fire and shield cues, but not a hull-hit event. Neither result is a final appearance/listening approval or a main asset integration.

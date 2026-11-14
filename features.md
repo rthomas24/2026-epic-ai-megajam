@@ -1954,7 +1954,7 @@ the mix, lighting and look, menus and the Director's Cut presentation, voice, th
 | ART-06 planets | 🟨 | **🟦 Ryan** (moved to §5): terrain, materials, props, trees | Review only (lighting moved to Ryan with ART-13) |
 | ART-07 VFX | 🟨 source only | **🟦 Ryan** (moved to §5): ENG-37 | Review only; offer per-cue studies |
 | ART-08 ground visuals | 🟨 Sentinel pilot in game | **🟦 Ryan** (moved to §5): crew, animations | Review only |
-| ART-09 HUD and menus | 🟨 native credits updated on main 08f40144, fresh readback ef300bd1; industrial reward redesign active | ENG-36 flight HUD; T2 mounts rewards; T3/T5 own front-end hosts | **Priority 3:** revised victory and Return verification, reward, menus, loading, fonts and tokens |
+| ART-09 HUD and menus | 🟨 native credits on main 08f40144; industrial reward frame imported/reloaded and candidate widget compiled/lifecycle-tested; rendered review pending | ENG-36 flight HUD; T2 mounts rewards; T3/T5 own front-end hosts | **Priority 3:** revised victory and Return verification, reward, menus, loading, fonts and tokens |
 | ART-10 audio and music | 🟨 Verdance loop repair on main 2275bff3, recorded across two wraps; waves 3–5 director audition 4281f4a6; PR 11 listening and PR 12 replacement audition pending | ENG-35 effects; engineering score exclusivity hooks | **Priority 1:** matched-build music integration, remaining loop checks, mix and ear approval |
 | ART-11 barks, voice | ⬜ | Text barks | **Priority 4** |
 | ART-12 cinematics, Director's Cut look | 🟨 | Fallback slate, CUT, name card, letterbox; ENG-33 intro | **Priority 3:** design them as a set |
