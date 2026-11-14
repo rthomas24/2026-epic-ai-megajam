@@ -253,6 +253,8 @@ private:
 	bool bExitOverride = false;
 	bool bExitAllowedOverride = false;
 	float ExitClimbTime = -1.f;
+	bool bBreakawayPlayed = false;
+	void PlayBreakaway(ATDShip* Ship);
 	TWeakObjectPtr<ATDShip> ExitClimbShip;
 	bool bExitTriggered = false;
 	bool bTipShown = false;
