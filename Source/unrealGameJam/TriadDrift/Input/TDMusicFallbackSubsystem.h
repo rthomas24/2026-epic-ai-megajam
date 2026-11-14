@@ -89,5 +89,6 @@ private:
 	ETDMusicPlacement FinishedPlacement = ETDMusicPlacement::None; // played once to its end: don't restart it
 	int32 TrackIndex = 0;
 	bool bBound = false;
+	bool bTakenOff = false;	// the bridge's Takeoff: the planet theme fades as the ship lifts (a new world starts clear)
 	bool bGroundFight = false; // GroundCombat .. GroundAllClear (the snapshot's bGroundCombat for a late binder)
 };

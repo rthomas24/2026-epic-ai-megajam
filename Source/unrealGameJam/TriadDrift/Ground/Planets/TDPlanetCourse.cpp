@@ -1085,9 +1085,42 @@ bool ATDPlanetCourse::GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) c
 	return true;
 }
 
+void ATDPlanetCourse::HandleStoryLine(const FTDTransmissionView& Line)
+{
+	// The drone answers on T3's pulse line (the "three pulses" sound plays from DA_UI_Style there; Nick's slot).
+	if (Line.bActive && Line.Id == TEXT("C3_Wren_Answered") && DormantDrone && DroneWakeStart < 0.0)
+	{
+		DroneWakeStart = GetWorld() ? GetWorld()->GetRealTimeSeconds() : 0.0;
+		UE_LOG(LogTriadDrift, Display, TEXT("Cinematic 03: the relay drone wakes (three pulses, then steady blue)"));
+	}
+}
+
+void ATDPlanetCourse::TickDroneWake()
+{
+	if (DroneWakeStart < 0.0 || !DormantDrone || !GetWorld())
+	{
+		return;
+	}
+	// T3's light timing: three 0.25 s pulses 0.6 s apart, then steady.
+	const float T = (float)(GetWorld()->GetRealTimeSeconds() - DroneWakeStart);
+	const float Cycle = 0.6f;
+	const bool bSteady = T >= 3.f * Cycle;
+	const float Glow = bSteady ? 6.f : (FMath::Fmod(T, Cycle) < 0.25f ? 14.f : 0.4f);
+	if (UMaterialInstanceDynamic* MID = DroneOptic ? Cast<UMaterialInstanceDynamic>(DroneOptic->GetMaterial(0)) : nullptr)
+	{
+		const FLinearColor Blue(0.2f, 0.55f, 1.f);
+		MID->SetVectorParameterValue(TEXT("Color"), Blue * Glow);
+		MID->SetVectorParameterValue(TEXT("EmissiveColor"), Blue * Glow);
+	}
+	// Up off the deck, 40 cm over 2 s, then a slow bob.
+	const float Lift = 40.f * FMath::Clamp(T / 2.f, 0.f, 1.f) + (bSteady ? 6.f * FMath::Sin(T * 1.6f) : 0.f);
+	DormantDrone->SetWorldLocation(DroneHome + FVector(0.f, 0.f, Lift));
+}
+
 void ATDPlanetCourse::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	TickDroneWake();
 	InteriorTime += DeltaSeconds;
 	TickFinalRecord(DeltaSeconds);
 	TickCoreChamber();
@@ -1371,6 +1404,20 @@ void ATDPlanetCourse::BuildVerdance()
 	// The dormant drone (Cinematic 03 wakes it, T3): on the deck north of the plinth, in view from the console.
 	DormantDrone = Block(EShape::Sphere, RelaySite + FVector(700.f, 1100.f, DeckTop + 90.f), FVector(120.f, 120.f, 90.f), FLinearColor(0.32f, 0.36f, 0.4f), 0.f,
 		FRotator(0.f, -135.f, 0.f), false, TEXT("SM_Verd_Station_DormantDrone"));
+	if (DormantDrone)
+	{
+		// Its eye: dark until it wakes (TickDroneWake), facing the console.
+		const FVector Front = FRotator(0.f, -135.f, 0.f).Vector();
+		DroneOptic = Block(EShape::Sphere, RelaySite + FVector(700.f, 1100.f, DeckTop + 100.f) + Front * 62.f, FVector(26.f), FLinearColor(0.02f, 0.03f, 0.05f), 0.05f,
+			FRotator::ZeroRotator, false);
+		if (DroneOptic) { DroneOptic->AttachToComponent(DormantDrone, FAttachmentTransformRules::KeepWorldTransform); }
+		DroneHome = DormantDrone->GetComponentLocation();
+		DroneWakeStart = -1.0;
+		if (UTDStorySubsystem* Story = UTDStorySubsystem::Get(this))
+		{
+			Story->OnTransmission.AddUniqueDynamic(this, &ATDPlanetCourse::HandleStoryLine);
+		}
+	}
 
 	ClearSite(RelaySite, 2400.f); // the deck's corners plus a margin; the 29 m keep-out below keeps the open ground
 	ClearSite(WreckSite, 1500.f); // the research site's hull and walkway
