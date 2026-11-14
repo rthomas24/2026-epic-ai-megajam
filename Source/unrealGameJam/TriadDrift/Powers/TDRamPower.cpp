@@ -49,6 +49,48 @@ namespace
 		return FVector::Dist(X.TransformPosition(OnSeg), X.TransformPosition(Local.GetClosestPointTo(OnSeg)));
 	}
 
+	/**
+	 * Distance from the segment to the real collision of a big hull (its blocking primitives: the UCX hull or the
+	 * blocking sphere), 0 touching. T4 (Rodin carrier): the art box sits well outside the hull surface where bays and
+	 * turrets are now socket-mounted, so the box stopped the dash before the parts were in reach. Falls back to the box
+	 * when no primitive answers (no physics body yet).
+	 */
+	float TDRamDistanceSegmentToHull(const AActor* Actor, const FVector& From, const FVector& To)
+	{
+		float Best = -1.f;
+		TInlineComponentArray<UPrimitiveComponent*> Prims(Actor);
+		for (const UPrimitiveComponent* Prim : Prims)
+		{
+			if (!Prim || !Prim->IsCollisionEnabled() || Prim->GetCollisionResponseToChannel(TDCollision::Ship) != ECR_Block)
+			{
+				continue;
+			}
+			// Alternate closest points between the segment and the primitive (convex enough for a hull's UCX pieces).
+			FVector OnSeg = FMath::ClosestPointOnSegment(Prim->Bounds.Origin, From, To);
+			FVector OnPrim;
+			float D = -1.f;
+			for (int32 Pass = 0; Pass < 3; ++Pass)
+			{
+				D = Prim->GetClosestPointOnCollision(OnSeg, OnPrim);
+				if (D < 0.f)
+				{
+					break;
+				}
+				if (D == 0.f)
+				{
+					break; // the segment point is inside: touching
+				}
+				OnSeg = FMath::ClosestPointOnSegment(OnPrim, From, To);
+			}
+			if (D >= 0.f)
+			{
+				D = D == 0.f ? 0.f : FVector::Dist(OnSeg, OnPrim);
+				Best = Best < 0.f ? D : FMath::Min(Best, D);
+			}
+		}
+		return Best >= 0.f ? Best : TDRamDistanceSegmentToBounds(Actor, From, To);
+	}
+
 	float TDRamBoundsRadius(const AActor* Actor, FVector& OutCenter)
 	{
 		FVector Extent;
@@ -284,7 +326,8 @@ void UTDRamPower::SweepHits(const FVector& From, const FVector& To)
 			// side no longer "touches" its long axis (second review), and nothing is reached earlier than before.
 			FVector Center;
 			const float Radius = TDRamBoundsRadius(Hostile, Center);
-			if (FMath::PointDistToSegment(Center, From, To) <= Reach + Radius && TDRamDistanceSegmentToBounds(Hostile, From, To) <= Reach)
+			const float ToSurface = IsBig(Hostile) ? TDRamDistanceSegmentToHull(Hostile, From, To) : TDRamDistanceSegmentToBounds(Hostile, From, To);
+			if (FMath::PointDistToSegment(Center, From, To) <= Reach + Radius && ToSurface <= Reach)
 			{
 				Touched.Add({ Hostile, (float)(FVector::DotProduct(Center - From, Seg) / SegLenSq) });
 			}
@@ -370,7 +413,7 @@ void UTDRamPower::HitActor(AActor* Victim, const FVector& Direction)
 		FVector OwnerCenter;
 		const float OwnerRadius = TDRamBoundsRadius(Owner, OwnerCenter);
 		const FVector Here = Owner->GetActorLocation();
-		const float Back = FMath::Max(0.f, OwnerRadius - TDRamDistanceSegmentToBounds(Victim, Here, Here)); // to the hull's box
+		const float Back = FMath::Max(0.f, OwnerRadius - TDRamDistanceSegmentToHull(Victim, Here, Here)); // to the hull's real collision
 		if (Back > 0.f)
 		{
 			Owner->SetActorLocation(Owner->GetActorLocation() - Direction * Back);
