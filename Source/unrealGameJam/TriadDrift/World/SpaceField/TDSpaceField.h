@@ -319,6 +319,9 @@ public:
 	/** Live check of T4's journey: for each keep-out and route, the field pieces (adopted included), set pieces and other
 	 *  obstacles (UTDWorldSubsystem) that sit inside it (TD.SpaceField.JourneyCheck). Returns the total inside. */
 	int32 LogJourneyCheck() const;
+	/** TD.SpaceField.FrameWatch: record this frame (once per frame). */
+	void NoteFrame(float DeltaSeconds);
+	uint64 GFrameNoted = 0;
 	/** Layout rocks the adoption moved out of the journey (to its corridor edges). */
 	int32 GetAdoptedMovedOffJourney() const { return AdoptedMovedOffJourney; }
 	/** A pose along journey route Index (only Route points, in GetJourneyKeyPoints order) at fraction T, facing along it. */
