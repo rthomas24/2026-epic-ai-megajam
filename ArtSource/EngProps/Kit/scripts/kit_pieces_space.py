@@ -337,7 +337,7 @@ def null_rig():
     return p
 
 
-def _rock(p, R, seed, XC=None, BR=950.0, BD=2600.0, ZT=None, NU=48, NV=26):
+def _rock(p, R, seed, XC=None, BR=950.0, BD=2600.0, ZT=None, NU=48, NV=26, rim=False):
     """A lumpy asteroid on a lat / long grid. XC: a face cut flat at x = XC (slot Cut) with a bore of radius BR and depth
     BD into it (slot Bore). ZT: the top levelled at z = ZT (slot Cut: a pad the rigs flattened). Rock UVs tile 4 x 2 so
     the asteroid material's normal map keeps its scale."""
@@ -358,8 +358,9 @@ def _rock(p, R, seed, XC=None, BR=950.0, BD=2600.0, ZT=None, NU=48, NV=26):
             y = R[1] * k * math.sin(v) * math.sin(u)
             z = R[2] * k * math.cos(v)
             t = "rock"
-            if XC is not None and x > XC:
-                x, t = XC, "cut"
+            xc = XC(y, z) if callable(XC) else XC           # a callable XC gives a stepped (multi-plate) break
+            if XC is not None and x > xc:
+                x, t = xc, "cut"
                 if math.hypot(y - 200.0, z + 300.0) < BR:
                     x, t = XC - BD, "bore"
             if ZT is not None and z > ZT:
@@ -370,9 +371,9 @@ def _rock(p, R, seed, XC=None, BR=950.0, BD=2600.0, ZT=None, NU=48, NV=26):
             q = [pts[i, j], pts[(i + 1) % NU, j], pts[(i + 1) % NU, j + 1], pts[i, j + 1]]
             ks = {kind[i, j], kind[(i + 1) % NU, j], kind[(i + 1) % NU, j + 1], kind[i, j + 1]}
             pad = ks == {"pad"}
-            mat = "Bore" if "bore" in ks else ("Cut" if ks == {"cut"} or pad else "Rock")
+            mat = "Bore" if "bore" in ks else ("Cut" if ks == {"cut"} or pad else ("Rim" if rim and "cut" in ks else "Rock"))
             uvq = [(4.0 * i / NU, 2.0 * j / NV), (4.0 * (i + 1) / NU, 2.0 * j / NV), (4.0 * (i + 1) / NU, 2.0 * (j + 1) / NV), (4.0 * i / NU, 2.0 * (j + 1) / NV)]
-            if mat != "Rock":
+            if mat not in ("Rock", "Rim"):
                 uvq = [((q_[0] if pad else q_[1]) / 2000.0, (q_[1] if pad else q_[2]) / 2000.0) for q_ in q]
             if j == 0:
                 q, uvq = [q[0], q[2], q[3]], [uvq[0], uvq[2], uvq[3]]
@@ -381,7 +382,7 @@ def _rock(p, R, seed, XC=None, BR=950.0, BD=2600.0, ZT=None, NU=48, NV=26):
             cx = sum(a[0] for a in q) / len(q)
             cy = sum(a[1] for a in q) / len(q)
             cz = sum(a[2] for a in q) / len(q)
-            if mat == "Rock":
+            if mat in ("Rock", "Rim"):
                 nrm = (cx, cy, cz)
             elif pad:
                 nrm = (0.0, 0.0, 1.0)

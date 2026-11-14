@@ -309,6 +309,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	bool IsBoundaryReleased() const { return BoundaryReleases.Num() > 0; }
 
+	/** ENG-38 glide: hold the nose's pitch at PitchDeg (eased at RateDegPerSec; yaw and roll stay the pilot's). */
+	void SetPitchHold(float PitchDeg, float RateDegPerSec = 30.f) { bPitchHold = true; PitchHoldDeg = PitchDeg; PitchHoldRate = RateDegPerSec; }
+	void ClearPitchHold() { bPitchHold = false; }
+	bool IsPitchHeld() const { return bPitchHold; }
+
 	/**
 	 * Terrain for the ground floor, terrain look-ahead and landing paths: anything static, plus large movable
 	 * geometry (a planet course built from movable BlockAll meshes is WorldDynamic). Small movers (projectiles,
@@ -372,6 +377,9 @@ private:
 	TArray<FSpeedOverrideRequest> OverrideStack;
 	TSet<FName> BoundaryWarningHolds;
 	TSet<FName> BoundaryReleases;
+	bool bPitchHold = false;
+	float PitchHoldDeg = 0.f;
+	float PitchHoldRate = 30.f;
 	bool bBoundaryHeldLastStep = false;
 	float LegacyOverrideAcceleration = -1.f;
 	void ApplyOverrideStack();

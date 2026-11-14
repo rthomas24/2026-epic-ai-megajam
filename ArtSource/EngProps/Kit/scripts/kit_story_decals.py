@@ -58,6 +58,24 @@ def scorch_lines():
     flat("T_Kit_ScorchLines", w, h)
 
 
+def light_pool():
+    """A warm radial pool: alpha falls off from the centre; the emissive carries the warm light."""
+    w = 512
+    a = Image.new("L", (w, w), 0)
+    d = ImageDraw.Draw(a)
+    for r in range(w // 2, 0, -2):
+        v = int(255 * (1.0 - r / (w / 2)) ** 1.6)
+        d.ellipse((w / 2 - r, w / 2 - r, w / 2 + r, w / 2 + r), fill=v)
+    bc = Image.new("RGB", (w, w), (120, 90, 55))
+    bc.putalpha(a)
+    bc.save(os.path.join(OUT, "T_Kit_LightPool_BC.png"))
+    Image.new("RGB", (w, w), (128, 128, 255)).save(os.path.join(OUT, "T_Kit_LightPool_N.png"))
+    Image.new("RGB", (w, w), (255, 200, 0)).save(os.path.join(OUT, "T_Kit_LightPool_ORM.png"))
+    Image.merge("RGB", [a.point(lambda v: v), a.point(lambda v: int(v * 0.7)), a.point(lambda v: int(v * 0.35))]).save(
+        os.path.join(OUT, "T_Kit_LightPool_E.png"))
+
+
 drag_mark()
 scorch_lines()
+light_pool()
 print("wrote T_Kit_DragMark_* and T_Kit_ScorchLines_*")
