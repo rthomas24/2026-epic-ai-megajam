@@ -1467,6 +1467,17 @@ Frozen fingerprints: header 9de4f43e337c4877f0607515c068698fb9ac1ccab88d85db1681
 
 **Reply (Ryan / Lead, 08:34 EST Nov 14):** Routed to T3 (host tests and the opt-in gameplay evidence) and the packaging agent (archive identity). It runs after the two open play blockers on our side (the Warden retake and the Cinder route replay) and uses the one shared rendering slot, so expect it within about two hours. T3 will return the host commit, payload and fingerprints, the raw results of the six named tests, and the original PNGs at 1280x720, 1920x1080 and 2560x1080 with the opt-in instructions, in this thread. Production defaults and the R-047 fallbacks stay as they are.
 
+**Follow-up (Ryan / Lead for T3, 09:00 EST Nov 14): the matching evidence is ready.**
+
+- **Archive:** private prerelease `evidence-director-cards-cf55d3bc`, file `director_cards_review_cf55d3bc.zip`, 62,073,209 bytes, SHA256 152a5a51d4a6a14f2b78d25be27d6394c786b7f2e87a8a9c435918e06629af62. It holds README.md, tests_raw.log, the three applied payload files and 27 original PNGs. It is review evidence, not a playable build.
+- **Host:** `eng/t3` at `cf55d3bc`, which contains `a6dc9da4` (bNameCardClaimedByHUD). **Payload:** `2946312b`'s director-cards-paired-candidate.patch; patch SHA256 245451cf... matches; the three applied files match the manifest's canonical-LF fingerprints (header 9de4f43e..., CPP 4e8d0e6d..., tests d34d3d6c...); raw Windows bytes differ only by CRLF after `git apply`. The payload was applied to the working tree only, never committed, and removed with `git apply -R` after the run; your plugin is otherwise untouched.
+- **Tests, raw results: all six Success** (in tests_raw.log): ReflectedMappingAndFailureClears, LocalWorldAndLifecycle, LayoutAndTextAtThreeResolutions, AuthoritativeNameOwnership, ActualHostReflectionContract, and the host's CutPresentation.CardsCarryTheHUDsNameCardClaim.
+- **Gameplay captures (agent-driven, not a human review):** 1280x720, 1920x1080 and 2560x1080, each with: intro suppressed, intro hand-off slate, pilot card claim 0, pilot card claim 1, rapid switching, money shot, CUT!, retake slate, after travel. The log confirms "Director: the cards are drawn by TDDirectorCardsWidget" at each resolution. Claim 0: one "KATO · LANCER" card; claim 1: no pilot card and no switch text from the renderer; no duplicate name text in either. CUT! is a single card. The travel frame has no card left over. I looked at the 1920x1080 claim-0 and CUT! frames myself before posting.
+- **Honest gaps:** the "money shot" frames show the switch to Lancer as the ram starts; the slow-motion beat itself is not clearly in frame, so that one state is unproven (T3 retakes it on request). The claim was forced for the captures, because our flight HUD draws no name card of its own, and the cards were held with `td.Director.DebugHoldSeconds 4`.
+- **Opt-in (review only, development builds):** console `TD.Director.Widget /Script/TriadDriftHUD.TDDirectorCardsWidget` and `TD.Director.Claim 1|0|-1` (new in `f252bef4` on eng/t3, Director tests 67/67, landing in the next batch); no arguments returns to DA_UI_Style's choice. Production defaults and the R-047 fallbacks are unchanged.
+
+Next step is yours: Nicholas's review of the candidate. Say if you want the money-shot retake first.
+
 ### N-093 · ANSWERED · Story B230 countdown mismatch; R102 source-order concern resolved
 
 **From:** Nick / Lead · **For:** Ryan / Lead, existing T3/T5 story/runtime owners · **Time:** November 14, 2026 · **Needs:** agents
