@@ -2,19 +2,46 @@
 
 This folder contains the official narrative development documents for Triad Drift, created for the 2026 Epic AI MegaJam.
 
+## Current review script — SECOND DRAFT
+
+[Download Nicholas's complete second draft](Triad_Drift_Complete_Script_Second_Draft.docx). Nicholas requested immediate circulation on November 13 so Ryan's team uses this draft for ongoing script review instead of the first draft. The exact reviewed file is preserved: SHA-256 7b2ab60d23db4b0d868a554d7b5e76ad1bc4c68d1b59901f7c13022db4a8fffa.
+
+This is the current **review draft**, not a final recording lock. Previously approved lines and decisions remain in force; circulation does not approve every revised line. Flag any voice or asset work already underway from the first draft to both Leads. The original narrative, previous scripts and Nicholas's editable working copy are preserved.
+
+## Approved update after the second draft
+
+Nicholas approved this replacement for Wren's post-battle line, S2_Wren_WelcomeParty:
+
+> Is it over? I think I blacked out...
+
+**Delivery:** sarcastic; a dry, deadpan comment. Preserve the exact wording and trailing three-dot ellipsis.
+
+This supersedes the prior hold and the second draft's "Give me a second. My hands are still shaking." for this line only. Other proposed second-draft changes remain subject to Nicholas's review. Ryan's team owns runtime and shared dialogue-record implementation; this approval does not claim that it is already in the game. [Approval sent to Ryan in issue 29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6871262780). The circulated second-draft DOCX remains unchanged.
+
+## Overnight Lead decisions after draft circulation
+
+Nicholas delegated routine editorial and implementation decisions to the Leads while both humans are hands-off. These specific decisions preserve the approved story and existing retained wording; they are not blanket approval of the second draft or final voice performances. See [the playback cut](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6871349665) and [the boundary decision and correction](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6871591719).
+
+- **Escape radio:** Moss delivers the existing holding-the-way-out line when Wren or Kato boards. Wren delivers the same words when Moss boards. Ryan reports the Wren variant as `G9_Wren_HoldingWayOut`. Keep “Keep moving. We're holding the way out.”; the draft's separate rewording is not adopted.
+- **Cinematic 04:** play `C4_Wren_Badly`, `C4_Kato_SurveyStation`, then `C4_Command_Proceed`, with their existing wording. Retire `C4_Moss_Trouble`, `C4_Kato_SameSignature`, `C4_Wren_WhatConnects`, `C4_Moss_Volcanoes` and `C4_Wren_SetCourse` from playback, preserving their IDs/history.
+- **Cinematic 06:** play `C6_Kato_GuardLine`, `C6_Kato_FourGenerators` and `C6_Command_FindOutWhy` at takeoff. Keep `C6_Moss_WholeFleet` and `C6_Wren_StayTogether` at the guard-wave start. Retire `C6_Moss_SamplesAboard`, `C6_Wren_FindAWayInside` and `C6_Wren_Understood`. Retained wording, objectives and timing gates stay intact.
+- **Tutorial withdrawal boundary:** retire the unapproved `TB_Escaped` Command placeholder, “You're clear, Triad. Hold at the rally point.” Keep Kato's `TB_Kato_BreakingOff`, “They're breaking off.”, the earlier Command withdrawal order and the existing Aftermath handoff. This removes redundant confirmation and the conflict with Command's later lost-telemetry report; it adds no rally-point hold or new objective. Preserve tutorial completion and its full music fade.
+
+Ryan reports Wren's approved sarcastic line at `25854f49` and the conditional escape speaker/C4/C6 changes at `cfe8d39e` on `eng/t3`, with story tests 13/13. These are branch reports, not main or actual-playback verification. The latter report names `C4_Kato_SameSignature` instead of the retained `C4_Kato_SurveyStation`; Lead has requested that correction and the boundary retirement. All circulated DOCX files remain unchanged.
+
 ## Narrative overview
 
-[Nicholas’s first draft for Ryan’s team, November 13 at 8:45 p.m. Eastern](Triad_Drift_Complete_Dialogue_FIRST_DRAFT_20261113_204517.docx) is a snapshot of the script he is still editing. Use it for reference and review. Dialogue, timing and proposed additions can change. Previously approved decisions stand; new wording and optional ending variations await approval before recording or implementation.
+[Nicholas’s first draft for Ryan’s team, November 13 at 8:45 p.m. Eastern](Triad_Drift_Complete_Dialogue_FIRST_DRAFT_20261113_204517.docx) is preserved as the earlier review snapshot. Use the second draft above for current script review. Dialogue, timing and proposed additions can change. Previously approved decisions stand; new wording and optional ending variations await approval before recording or implementation.
 
 [The Paradox Narrative](Triad_Drift_The_Paradox_Narrative.docx) covers the main storyline, the pilots, the Dominion mystery, and the future-self reveal.
 
 Use that original narrative and Nicholas's explicitly approved decisions as the reference for every new or revised sequence. Check characterisation, discovery order, carried evidence, ability progression and reveal timing before publication; proposed additions must not silently become established lore.
 
-## Current script and approval status
+## Earlier review material and approval status
 
-[Complete dialogue review script — DRAFT](Triad_Drift_Complete_Dialogue_Review_Script_DRAFT.docx) contains the chronological campaign script, gameplay barks, approval references and missing voice/integration work. It is a separate repository review copy; Nicholas's existing editable local master is preserved. **This is not an approved recording handoff.** Approved lines stay marked approved; new encounter speech, pilot-specific replies, shortened cuts and other unapproved wording remain drafts. The runtime reference appendix preserves superseded text for comparison, not performance.
+[Complete dialogue review script — DRAFT](Triad_Drift_Complete_Dialogue_Review_Script_DRAFT.docx) is preserved as earlier technical review material containing campaign dialogue, gameplay barks, approval references and missing voice/integration work. It is a separate repository review copy; Nicholas's existing editable local master is preserved. **This is not an approved recording handoff.** Approved lines stay marked approved; new encounter speech, pilot-specific replies, shortened cuts and other unapproved wording remain drafts. The runtime reference appendix preserves superseded text for comparison, not performance.
 
-The sequence documents below were synchronized with the approved decisions on 13 November 2026. The original narrative is unchanged. For story direction use the original plus explicit approvals; use the marked master script for line review and the sequence documents for staging and dependencies. A published document does not prove a line has been voiced or implemented. Ryan's team owns realistic voice creation; final performance approval remains with Nicholas.
+The sequence documents below were synchronized with the approved decisions on 13 November 2026. The original narrative is unchanged. For story direction use the original plus explicit approvals; use the second draft above for current line review and the sequence documents for staging and dependencies. A published document does not prove a line has been voiced or implemented. Ryan's team owns realistic voice creation; final performance approval remains with Nicholas.
 
 ## Cinematic and gameplay sequences
 

@@ -25,7 +25,7 @@ namespace TDSpaceFieldAdopt
 void ATDSpaceField::AdoptLayoutRocks()
 {
 	using namespace TDSpaceFieldAdopt;
-	if (!Layout || !bAdoptLayoutRocks)
+	if (!Layout || !bAdoptLayoutRocks || AdoptedLayoutComps.Num() > 0)
 	{
 		return;
 	}
@@ -91,7 +91,9 @@ void ATDSpaceField::AdoptLayoutRocks()
 			// Exactly the layout's collision for its rocks (cover keeps its shape); its own obstacle, not a second one.
 			PendingColliderRadius = R ? *R : Radius * 0.8f;
 			const int32* Obstacle = Src.bRock ? ObstacleAt.Find(Key(At)) : nullptr;
-			PendingObstacle = Obstacle ? *Obstacle : (Src.bRock ? INDEX_NONE : -2);
+			// Debris and lane rocks were visual only in the layout: solid now (every piece has a collision sphere), and those
+			// of 10 m and up get an obstacle like every field piece, so the AI steers round them (smalls shatter on contact).
+			PendingObstacle = Obstacle ? *Obstacle : INDEX_NONE;
 			const int32 Index = RegisterPiece(Visual, Instance, Mesh, Size, false, INDEX_NONE, INDEX_NONE);
 			PendingColliderRadius = -1.f;
 			PendingObstacle = INDEX_NONE;
@@ -110,12 +112,22 @@ void ATDSpaceField::AdoptLayoutRocks()
 void ATDSpaceField::ShowLayoutRocks(bool bLayoutOwnsThem)
 {
 	// The field on = the layout's rocks hidden and not solid (the field's copies are); off = the layout exactly as today.
+	// Flip both hidden flags and rebuild the render state of the layout's look components. Used by tests and internally;
+	// td.SpaceField itself is read at level load only (0 at load never adopts, so it never needs this path).
+	int32 Shown = 0, Instances = 0;
 	for (const TWeakObjectPtr<UInstancedStaticMeshComponent>& C : AdoptedLayoutComps)
 	{
-		if (C.IsValid()) { C->SetVisibility(bLayoutOwnsThem); }
+		if (!C.IsValid()) { continue; }
+		C->SetHiddenInGame(!bLayoutOwnsThem);
+		C->SetVisibility(bLayoutOwnsThem);
+		C->MarkRenderStateDirty();
+		Shown += C->IsVisible() && !C->bHiddenInGame ? 1 : 0;
+		Instances += C->GetInstanceCount();
 	}
 	if (LayoutCollision && AdoptedLayoutComps.Num() > 0)
 	{
 		LayoutCollision->SetCollisionEnabled(bLayoutOwnsThem ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
 	}
+	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: layout rocks %s: %d of %d components shown, %d instances, layout collision %d"), bLayoutOwnsThem ? TEXT("restored") : TEXT("taken over"),
+		Shown, AdoptedLayoutComps.Num(), Instances, LayoutCollision ? (int32)LayoutCollision->IsCollisionEnabled() : -1);
 }

@@ -1,0 +1,205 @@
+{
+ "hitback-s2901": {
+  "prompt": "A soldier holding an assault rifle in both hands is hit hard in the back from behind, the upper body lurches forward and hunches, the head snaps forward and the rifle dips, the soldier stumbles one short step forward with the left foot, then recovers and brings the rifle back up to a ready stance facing forward.",
+  "duration": 1.1,
+  "guidance_scale": 6,
+  "seed": 2901,
+  "output_format": "fbx"
+ },
+ "hitback-s2902": {
+  "prompt": "A soldier holding an assault rifle in both hands is hit hard in the back from behind, the upper body lurches forward and hunches, the head snaps forward and the rifle dips, the soldier stumbles one short step forward with the left foot, then recovers and brings the rifle back up to a ready stance facing forward.",
+  "duration": 1.1,
+  "guidance_scale": 6,
+  "seed": 2902,
+  "output_format": "fbx"
+ },
+ "deathfront-s3001": {
+  "prompt": "A soldier aiming an assault rifle is shot in the chest from the front, the body jolts backward, the knees buckle, the soldier staggers back one step and falls heavily backward onto the back, the arms drop to the sides, and the soldier lies still flat on the ground.",
+  "duration": 2.6,
+  "guidance_scale": 6,
+  "seed": 3001,
+  "output_format": "fbx"
+ },
+ "deathfront-s3002": {
+  "prompt": "A soldier aiming an assault rifle is shot in the chest from the front, the body jolts backward, the knees buckle, the soldier staggers back one step and falls heavily backward onto the back, the arms drop to the sides, and the soldier lies still flat on the ground.",
+  "duration": 2.6,
+  "guidance_scale": 6,
+  "seed": 3002,
+  "output_format": "fbx"
+ },
+ "deathback-s3101": {
+  "prompt": "A soldier holding an assault rifle is shot in the back from behind, the body arches and lurches forward, the knees give way, the soldier stumbles forward and collapses face down onto the ground, the arms falling forward, and lies still on the stomach.",
+  "duration": 2.6,
+  "guidance_scale": 6,
+  "seed": 3101,
+  "output_format": "fbx"
+ },
+ "deathback-s3102": {
+  "prompt": "A soldier holding an assault rifle is shot in the back from behind, the body arches and lurches forward, the knees give way, the soldier stumbles forward and collapses face down onto the ground, the arms falling forward, and lies still on the stomach.",
+  "duration": 2.6,
+  "guidance_scale": 6,
+  "seed": 3102,
+  "output_format": "fbx"
+ },
+ "deathleft-s3201": {
+  "prompt": "A soldier holding an assault rifle is shot on the left side of the body, the body twists and is knocked sideways to the right, the soldier stumbles one step to the right and collapses onto the right side on the ground and lies still.",
+  "duration": 2.6,
+  "guidance_scale": 6,
+  "seed": 3201,
+  "output_format": "fbx"
+ },
+ "deathright-s3301": {
+  "prompt": "A soldier holding an assault rifle is shot on the right side of the body, the body twists and is knocked sideways to the left, the soldier stumbles one step to the left and collapses onto the left side on the ground and lies still.",
+  "duration": 2.6,
+  "guidance_scale": 6,
+  "seed": 3301,
+  "output_format": "fbx"
+ },
+ "idleready-s2101": {
+  "prompt": "A soldier stands guard in a ready stance holding an assault rifle with both hands, the right hand on the grip and the left hand on the front of the rifle, the rifle held across the chest with the muzzle pointing forward and slightly down. Feet are shoulder width apart, left foot slightly forward, knees slightly bent. The soldier breathes slowly and shifts weight a little while keeping the rifle steady. The feet do not move. The starting pose and the ending pose are the same so the motion can loop.",
+  "duration": 3,
+  "guidance_scale": 6,
+  "seed": 2101,
+  "output_format": "fbx"
+ },
+ "idleready-s2102": {
+  "prompt": "A soldier stands guard in a ready stance holding an assault rifle with both hands, the right hand on the grip and the left hand on the front of the rifle, the rifle held across the chest with the muzzle pointing forward and slightly down. Feet are shoulder width apart, left foot slightly forward, knees slightly bent. The soldier breathes slowly and shifts weight a little while keeping the rifle steady. The feet do not move. The starting pose and the ending pose are the same so the motion can loop.",
+  "duration": 3,
+  "guidance_scale": 6,
+  "seed": 2102,
+  "output_format": "fbx"
+ },
+ "idleaim-s2201": {
+  "prompt": "A soldier stands and aims an assault rifle straight ahead, the rifle butt pressed into the right shoulder, the right hand on the grip and the left hand supporting the front of the rifle, head tilted down to look along the sights. Feet are planted shoulder width apart, left foot forward, knees bent. The soldier holds the aim steady with only slight breathing and a tiny sway. The feet do not move. The starting pose and the ending pose are the same so the motion can loop.",
+  "duration": 3,
+  "guidance_scale": 6,
+  "seed": 2201,
+  "output_format": "fbx"
+ },
+ "idleaim-s2202": {
+  "prompt": "A soldier stands and aims an assault rifle straight ahead, the rifle butt pressed into the right shoulder, the right hand on the grip and the left hand supporting the front of the rifle, head tilted down to look along the sights. Feet are planted shoulder width apart, left foot forward, knees bent. The soldier holds the aim steady with only slight breathing and a tiny sway. The feet do not move. The starting pose and the ending pose are the same so the motion can loop.",
+  "duration": 3,
+  "guidance_scale": 6,
+  "seed": 2202,
+  "output_format": "fbx"
+ },
+ "alert-s2301": {
+  "prompt": "A soldier stands relaxed holding an assault rifle low in both hands, then suddenly notices an enemy straight ahead, flinches, and quickly raises the rifle to the right shoulder and aims straight forward, bending the knees into a firm combat stance. The soldier stays in place facing forward and holds the aim at the end.",
+  "duration": 1.6,
+  "guidance_scale": 6,
+  "seed": 2301,
+  "output_format": "fbx"
+ },
+ "alert-s2302": {
+  "prompt": "A soldier stands relaxed holding an assault rifle low in both hands, then suddenly notices an enemy straight ahead, flinches, and quickly raises the rifle to the right shoulder and aims straight forward, bending the knees into a firm combat stance. The soldier stays in place facing forward and holds the aim at the end.",
+  "duration": 1.6,
+  "guidance_scale": 6,
+  "seed": 2302,
+  "output_format": "fbx"
+ },
+ "fire-s2401": {
+  "prompt": "A soldier aims an assault rifle straight ahead with the butt in the right shoulder and both hands on the rifle, then fires three quick shots in a burst. Each shot kicks the rifle and the shoulders back sharply and the soldier pulls the rifle back on target. Feet stay planted in a wide stance with knees bent, leaning slightly forward into the recoil. After the burst the soldier holds the aim.",
+  "duration": 1.6,
+  "guidance_scale": 6,
+  "seed": 2401,
+  "output_format": "fbx"
+ },
+ "fire-s2402": {
+  "prompt": "A soldier aims an assault rifle straight ahead with the butt in the right shoulder and both hands on the rifle, then fires three quick shots in a burst. Each shot kicks the rifle and the shoulders back sharply and the soldier pulls the rifle back on target. Feet stay planted in a wide stance with knees bent, leaning slightly forward into the recoil. After the burst the soldier holds the aim.",
+  "duration": 1.6,
+  "guidance_scale": 6,
+  "seed": 2402,
+  "output_format": "fbx"
+ },
+ "hitback2-s2911": {
+  "prompt": "A soldier standing in a ready stance holding an assault rifle in both hands is hit hard in the back from behind. The upper body jolts forward and the shoulders hunch, the head snaps forward, the soldier takes one small step forward with the left foot, then straightens up and returns to the same standing ready stance holding the rifle. The soldier keeps facing forward the whole time and does not turn around.",
+  "duration": 1.1,
+  "guidance_scale": 7,
+  "seed": 2911,
+  "output_format": "fbx"
+ },
+ "hitback2-s2912": {
+  "prompt": "A soldier standing in a ready stance holding an assault rifle in both hands is hit hard in the back from behind. The upper body jolts forward and the shoulders hunch, the head snaps forward, the soldier takes one small step forward with the left foot, then straightens up and returns to the same standing ready stance holding the rifle. The soldier keeps facing forward the whole time and does not turn around.",
+  "duration": 1.1,
+  "guidance_scale": 7,
+  "seed": 2912,
+  "output_format": "fbx"
+ },
+ "deathright2-s3311": {
+  "prompt": "A soldier holding an assault rifle is shot in the right shoulder. The upper body twists to the left and the soldier staggers one step sideways to the left, the knees give way and the soldier collapses onto the left side on the ground close to where they stood, then lies still.",
+  "duration": 2.6,
+  "guidance_scale": 7,
+  "seed": 3311,
+  "output_format": "fbx"
+ },
+ "deathright2-s3312": {
+  "prompt": "A soldier holding an assault rifle is shot in the right shoulder. The upper body twists to the left and the soldier staggers one step sideways to the left, the knees give way and the soldier collapses onto the left side on the ground close to where they stood, then lies still.",
+  "duration": 2.6,
+  "guidance_scale": 7,
+  "seed": 3312,
+  "output_format": "fbx"
+ },
+ "deathleft2-s3211": {
+  "prompt": "A soldier holding an assault rifle is shot in the left shoulder. The upper body twists to the right and the soldier staggers one step sideways to the right, the knees give way and the soldier collapses onto the right side on the ground close to where they stood, then lies still.",
+  "duration": 2.6,
+  "guidance_scale": 7,
+  "seed": 3211,
+  "output_format": "fbx"
+ },
+ "reload-s2501": {
+  "prompt": "A soldier standing in place holds an assault rifle at chest height with the right hand on the grip, tilts the rifle, pulls the empty magazine out from under the rifle with the left hand and drops it, takes a new magazine from the belt with the left hand, pushes it firmly into the rifle, slaps the side of the rifle with the left hand to chamber it, and returns the left hand to the front of the rifle in a ready stance. Feet stay planted.",
+  "duration": 2.6,
+  "guidance_scale": 6,
+  "seed": 2501,
+  "output_format": "fbx"
+ },
+ "reload-s2502": {
+  "prompt": "A soldier standing in place holds an assault rifle at chest height with the right hand on the grip, tilts the rifle, pulls the empty magazine out from under the rifle with the left hand and drops it, takes a new magazine from the belt with the left hand, pushes it firmly into the rifle, slaps the side of the rifle with the left hand to chamber it, and returns the left hand to the front of the rifle in a ready stance. Feet stay planted.",
+  "duration": 2.6,
+  "guidance_scale": 6,
+  "seed": 2502,
+  "output_format": "fbx"
+ },
+ "coverenter-s2601": {
+  "prompt": "A soldier standing with an assault rifle held in both hands quickly drops down into cover, going down onto the right knee into a low crouch with the left foot planted forward, keeping the rifle held close to the chest in both hands with the muzzle pointing up, ducking the head low. The soldier stays in place and holds the low kneeling crouch at the end.",
+  "duration": 1.3,
+  "guidance_scale": 6,
+  "seed": 2601,
+  "output_format": "fbx"
+ },
+ "coverenter-s2602": {
+  "prompt": "A soldier standing with an assault rifle held in both hands quickly drops down into cover, going down onto the right knee into a low crouch with the left foot planted forward, keeping the rifle held close to the chest in both hands with the muzzle pointing up, ducking the head low. The soldier stays in place and holds the low kneeling crouch at the end.",
+  "duration": 1.3,
+  "guidance_scale": 6,
+  "seed": 2602,
+  "output_format": "fbx"
+ },
+ "coveridle-s2701": {
+  "prompt": "A soldier kneels on the right knee in a low crouch behind cover with the left foot planted forward, holding an assault rifle close to the chest in both hands with the muzzle pointing up, head ducked low. The soldier breathes heavily and glances slightly left and right but stays kneeling in the same spot. The starting pose and the ending pose are the same so the motion can loop.",
+  "duration": 3,
+  "guidance_scale": 6,
+  "seed": 2701,
+  "output_format": "fbx"
+ },
+ "coveridle-s2702": {
+  "prompt": "A soldier kneels on the right knee in a low crouch behind cover with the left foot planted forward, holding an assault rifle close to the chest in both hands with the muzzle pointing up, head ducked low. The soldier breathes heavily and glances slightly left and right but stays kneeling in the same spot. The starting pose and the ending pose are the same so the motion can loop.",
+  "duration": 3,
+  "guidance_scale": 6,
+  "seed": 2702,
+  "output_format": "fbx"
+ },
+ "hitfront-s2801": {
+  "prompt": "A soldier holding an assault rifle in both hands is hit hard in the chest from the front, the upper body snaps backward, the head jerks back and the rifle lifts, the soldier staggers one short step back with the right foot, then recovers and brings the rifle back to a ready stance facing forward.",
+  "duration": 1.1,
+  "guidance_scale": 6,
+  "seed": 2801,
+  "output_format": "fbx"
+ },
+ "hitfront-s2802": {
+  "prompt": "A soldier holding an assault rifle in both hands is hit hard in the chest from the front, the upper body snaps backward, the head jerks back and the rifle lifts, the soldier staggers one short step back with the right foot, then recovers and brings the rifle back to a ready stance facing forward.",
+  "duration": 1.1,
+  "guidance_scale": 6,
+  "seed": 2802,
+  "output_format": "fbx"
+ }
+}

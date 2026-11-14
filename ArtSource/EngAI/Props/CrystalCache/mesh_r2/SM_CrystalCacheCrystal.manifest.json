@@ -1,0 +1,70 @@
+{
+  "asset": "SM_CrystalCacheCrystal",
+  "fbx": "SM_CrystalCacheCrystal.fbx",
+  "tris": 3574,
+  "size_cm": [
+    88.7,
+    140.9,
+    130.4
+  ],
+  "pivot": "base centre of the nest (min Z = 0, XY centred); attach to SOCKET_Crystal on SM_CrystalCacheCradle",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_CrystalCacheCrystal"
+  ],
+  "material_params": [
+    {
+      "name": "M_CrystalCacheCrystal",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.2
+    }
+  ],
+  "textures": [
+    "T_CrystalCacheCrystal_BC.png",
+    "T_CrystalCacheCrystal_E.png",
+    "T_CrystalCacheCrystal_N.png",
+    "T_CrystalCacheCrystal_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_CrystalCacheCrystal_00",
+    "UCX_SM_CrystalCacheCrystal_01",
+    "UCX_SM_CrystalCacheCrystal_02",
+    "UCX_SM_CrystalCacheCrystal_03",
+    "UCX_SM_CrystalCacheCrystal_04",
+    "UCX_SM_CrystalCacheCrystal_05",
+    "UCX_SM_CrystalCacheCrystal_06",
+    "UCX_SM_CrystalCacheCrystal_07",
+    "UCX_SM_CrystalCacheCrystal_08",
+    "UCX_SM_CrystalCacheCrystal_09",
+    "UCX_SM_CrystalCacheCrystal_10",
+    "UCX_SM_CrystalCacheCrystal_11",
+    "UCX_SM_CrystalCacheCrystal_12",
+    "UCX_SM_CrystalCacheCrystal_13",
+    "UCX_SM_CrystalCacheCrystal_14"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 1,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}

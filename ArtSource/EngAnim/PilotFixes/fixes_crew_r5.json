@@ -1,0 +1,24 @@
+{
+ "_note": "r5 (review): the gun arm's hand was open with splayed fingers beside the head; its fingers take the rifle idle's closed grip.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "clips": [
+  {
+   "src": "A_Crew_Warden_Guard",
+   "dst": "A_Crew_Warden_Guard",
+   "loop": true,
+   "loop_s": 0.2,
+   "copy_pose": {
+    "src": "MF_Rifle_Idle_ADS",
+    "t": 0.0,
+    "side": "_r",
+    "bones": [
+     "index",
+     "middle",
+     "ring",
+     "pinky",
+     "thumb"
+    ]
+   }
+  }
+ ]
+}

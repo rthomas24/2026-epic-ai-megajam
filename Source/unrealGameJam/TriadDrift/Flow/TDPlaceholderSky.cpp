@@ -22,6 +22,12 @@
 #include "UObject/UObjectIterator.h"
 #include "Components/ExponentialHeightFogComponent.h"
 #include "TriadDrift/World/TDSkySphere.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
+#include "NiagaraComponent.h"
+#include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 const FName ATDPlaceholderSky::PresentationSkyTag(TEXT("TD.Presentation.Sky"));
 const FName ATDPlaceholderSky::PlaceholderTag(TEXT("TD.Placeholder.Sky"));
@@ -275,10 +281,10 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 		// (0.0035, 0.02, 0.03), Mie 0.0015, fill 3, sky light 2, exposure 0. r1 (too lilac, black slopes): -15, 7.5, (1, 0.76, 0.8).
 		Sun->SetWorldRotation(FRotator(-20.f, 200.f, 0.f));
 		Sun->SetIntensity(8.f);
-		Sun->SetLightColor(FLinearColor(1.f, 0.86f, 0.82f));
-		Atmosphere->SetRayleighScattering(FLinearColor(0.0025f, 0.022f, 0.032f));	// r3: red 0.0038 -> 0.0025, upper sky teal-grey, not lilac
+		Sun->SetLightColor(FLinearColor(1.f, 0.9f, 0.88f));	// r4: less rose (the 900 m haze read pink-white)
+		Atmosphere->SetRayleighScattering(FLinearColor(0.002f, 0.024f, 0.034f));	// r4 (r3 0.0025 / 0.022 / 0.032): teal sky, ridges readable
 		Atmosphere->SetAerialPespectiveViewDistanceScale(1.f);
-		Atmosphere->SetMieScatteringScale(0.0025f);
+		Atmosphere->SetMieScatteringScale(0.0015f);	// r4: back to 0.0015 (the rose sun scattered into a pink-white haze)
 		if (Fill) { Fill->SetWorldRotation(FRotator(-35.f, 20.f, 0.f)); Fill->SetLightColor(FLinearColor(0.30f, 0.80f, 0.90f)); Fill->SetIntensity(5.f); }
 		SkyLight->SetIntensity(5.f);
 		FPostProcessSettings& S = Exposure->Settings;
@@ -287,7 +293,7 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 		S.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
 		S.AutoExposureApplyPhysicalCameraExposure = false;
 		S.bOverride_AutoExposureBias = true;
-		S.AutoExposureBias = -0.15f;
+		S.AutoExposureBias = -0.05f;
 		S.bOverride_BloomIntensity = true;
 		S.BloomIntensity = 0.9f;
 		S.bOverride_BloomThreshold = true;
@@ -303,8 +309,8 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 		Sun->SetLightColor(FLinearColor(1.f, 0.55f, 0.34f));
 		Atmosphere->SetRayleighScattering(FLinearColor(0.035f, 0.01f, 0.004f));
 		Atmosphere->SetMieScatteringScale(0.004f);
-		if (Fill) { Fill->SetWorldRotation(FRotator(-30.f, 310.f, 0.f)); Fill->SetLightColor(FLinearColor(0.8f, 0.45f, 0.35f)); Fill->SetIntensity(2.6f); }
-		SkyLight->SetIntensity(3.5f);
+		if (Fill) { Fill->SetWorldRotation(FRotator(-30.f, 310.f, 0.f)); Fill->SetLightColor(FLinearColor(0.8f, 0.45f, 0.35f)); Fill->SetIntensity(4.f); }	// pass 3: self-shadowed slopes out of near-black (was 2.6)
+		SkyLight->SetIntensity(5.f);	// pass 3 (was 3.5)
 		FPostProcessSettings& S = Exposure->Settings;
 		S.bOverride_AutoExposureMethod = true;
 		S.AutoExposureMethod = EAutoExposureMethod::AEM_Manual;
@@ -470,8 +476,8 @@ void ATDPlaceholderSky::ApplyHorizon(ETDPlaceholderSkyStyle Style)
 		HorizonFog->SetStartDistance(bVerdance ? 150000.f : 120000.f);
 		HorizonFog->SetFogMaxOpacity(1.f);
 		// ART-13 (Nov 14, r2): Verdance haze teal with violet toward the sun (was 0.04/0.20/0.22 and 0.10/0.20/0.18), Cinder a touch less orange (was 0.16/0.05/0.025).
-		HorizonFog->SetFogInscatteringColor(bVerdance ? FLinearColor(0.025f, 0.17f, 0.20f) : FLinearColor(0.14f, 0.045f, 0.025f));
-		HorizonFog->SetDirectionalInscatteringColor(bVerdance ? FLinearColor(0.16f, 0.10f, 0.20f) : FLinearColor(0.35f, 0.13f, 0.05f));
+		HorizonFog->SetFogInscatteringColor(bVerdance ? FLinearColor(0.02f, 0.16f, 0.20f) : FLinearColor(0.14f, 0.045f, 0.025f));
+		HorizonFog->SetDirectionalInscatteringColor(bVerdance ? FLinearColor(0.08f, 0.12f, 0.16f) : FLinearColor(0.35f, 0.13f, 0.05f));
 		{
 			// Environment pass: the first layer is the valley mist (thins out ~125 m up); the second is the aerial haze
 			// that reaches flight altitude (thins out ~3 km up), so from 5 km the horizon fades instead of ending.
@@ -535,6 +541,77 @@ void ATDPlaceholderSky::Tick(float DeltaSeconds)
 		Refresh(); // a sky streamed in or spawned late takes over
 	}
 	TickDescentFog();
+	TickAmbient(DeltaSeconds);
+}
+
+void ATDPlaceholderSky::TickAmbient(float DeltaSeconds)
+{
+	const bool bVerdance = AppliedStyle == ETDPlaceholderSkyStyle::Verdance;
+	if (!bVerdance && AppliedStyle != ETDPlaceholderSkyStyle::Cinder)
+	{
+		return;
+	}
+	APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0);
+	USceneComponent* Parent = Cam ? Cam->GetTransformComponent() : nullptr;
+	if (!Parent)
+	{
+		return;
+	}
+	if (AmbientFX && AmbientParent.Get() != Parent)
+	{
+		AmbientFX->DestroyComponent();	// a new camera manager (travel): start again on it
+		AmbientFX = nullptr;
+		if (AmbientAudio) { AmbientAudio->Stop(); AmbientAudio = nullptr; }
+	}
+	if (!AmbientFX)
+	{
+		AmbientRetry -= DeltaSeconds;
+		if (AmbientRetry > 0.f)
+		{
+			return;
+		}
+		AmbientRetry = 2.f;
+		const UTDTravelFX* FX = UTDStatics::LoadPresentation<UTDTravelFX>(TEXT("DA_Travel_FX"));
+		const FName Slot = bVerdance ? FName(TEXT("PlanetAmbientVerdance")) : FName(TEXT("PlanetAmbientCinder"));
+		const FStructProperty* Prop = FX ? CastField<FStructProperty>(UTDTravelFX::StaticClass()->FindPropertyByName(Slot)) : nullptr;
+		const FTDFXCue* Cue = (Prop && Prop->Struct == FTDFXCue::StaticStruct()) ? Prop->ContainerPtrToValuePtr<FTDFXCue>(FX) : nullptr;
+		if (!Cue || Cue->VFX.IsNull())
+		{
+			return;
+		}
+		UAudioComponent* Audio = nullptr;
+		AmbientFX = UTDStatics::PlayCueAttachedLoop(*Cue, Parent, NAME_None, Audio);
+		AmbientAudio = Audio;
+		AmbientParent = Parent;
+		if (!AmbientFX)
+		{
+			return;
+		}
+	}
+	// Full on foot and in low flight; fades out between 450 m and 600 m over the ground.
+	float Fade = 1.f;
+	const APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (Cast<ATDSpacecraft>(Pawn))
+	{
+		if (!FogTerrain.IsValid())
+		{
+			for (TActorIterator<ATDPlanetTerrain> It(GetWorld()); It; ++It) { FogTerrain = *It; break; }
+		}
+		if (const ATDPlanetTerrain* T = FogTerrain.Get())
+		{
+			const FVector At = Cam->GetCameraLocation();
+			Fade = 1.f - FMath::SmoothStep(45000.f, 60000.f, float(At.Z - T->GetHeightAt(At)));
+		}
+	}
+	AmbientFX->SetVariableFloat(FName(TEXT("User.Fade")), Fade);
+}
+
+void ATDPlaceholderSky::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// Travel and retakes rebuild the sky; the camera manager can outlive it, so the ambient goes with the sky.
+	if (AmbientFX) { AmbientFX->DestroyComponent(); AmbientFX = nullptr; }
+	if (AmbientAudio) { AmbientAudio->Stop(); AmbientAudio = nullptr; }
+	Super::EndPlay(EndPlayReason);
 }
 
 void ATDPlaceholderSky::TickDescentFog()

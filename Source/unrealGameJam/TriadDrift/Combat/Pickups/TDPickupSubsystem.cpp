@@ -274,6 +274,47 @@ float UTDPickupSubsystem::GetSecondsSinceDebris() const
 	return World ? static_cast<float>(World->GetTimeSeconds() - LastDebrisTime) : 1e9f;
 }
 
+float UTDPickupSubsystem::GetSecondsSinceBreakBoost() const
+{
+	const UWorld* World = GetWorld();
+	return World ? static_cast<float>(World->GetTimeSeconds() - LastBreakBoostTime) : 1e9f;
+}
+
+void UTDPickupSubsystem::PayBreakBoost(uint8 SizeClass)
+{
+	UWorld* World = GetWorld();
+	if (!World || !IsEnabled())
+	{
+		return;
+	}
+	const APlayerController* PC = World->GetFirstPlayerController();
+	ATDShip* Flown = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
+	UTDShipMovementComponent* Move = Flown ? Flown->GetShipMovement() : nullptr;
+	if (!Move)
+	{
+		return; // on foot / between ships: nothing to top up
+	}
+	const double Now = World->GetTimeSeconds();
+	if (Now - BreakBoostWindowStart >= 1.0)
+	{
+		BreakBoostWindowStart = Now;
+		BreakBoostInWindow01 = 0.f;
+	}
+	const float Want = FMath::Min(BreakBoostFor(SizeClass), FMath::Max(0.f, Tuning.BreakBoostPerSecondCap01 - BreakBoostInWindow01));
+	const float Paid = Want > 0.f ? Move->AddBoost01(Want) : 0.f;
+	BreakBoostInWindow01 += Want;
+	if (Paid <= KINDA_SMALL_NUMBER)
+	{
+		return; // capped, or the meter was full
+	}
+	LastBreakBoost01 = Paid;
+	LastBreakBoostTime = Now;
+	if (const UTDPickupVisuals* Look = UTDPickupVisuals::Get())
+	{
+		UTDStatics::PlayCue(this, Look->BreakBoost, Flown->GetActorLocation(), Flown->GetActorRotation());
+	}
+}
+
 void UTDPickupSubsystem::HandleFieldObjectDestroyed(FVector Location, uint8 SizeClass, bool bSpecial, AActor* Instigator)
 {
 	// T6's field (Ryan: shooting asteroids and junk is rewarding). Only the squad's breaks count; a rock a missile of the
@@ -291,6 +332,7 @@ void UTDPickupSubsystem::HandleFieldObjectDestroyed(FVector Location, uint8 Size
 	{
 		Flow->AddStat(TEXT("DebrisCleared"), 1);
 	}
+	PayBreakBoost(SizeClass);
 	// A special (crystal-veined) rock pays out: mostly a boost refill, else a pickup the player needs. Outside the
 	// per-wave caps (they are rare, about 1 in 15) but not with pickups off or during a money shot's slow motion.
 	if (!bSpecial || !IsEnabled())

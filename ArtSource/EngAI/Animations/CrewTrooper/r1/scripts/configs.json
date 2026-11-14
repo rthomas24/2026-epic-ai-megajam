@@ -1,0 +1,181 @@
+{
+ "idleready": {
+  "loop": true,
+  "lean": 4,
+  "rifle": {
+   "mode": "ready"
+  }
+ },
+ "idleaim": {
+  "loop": true,
+  "lean": 10,
+  "rifle": {
+   "mode": "aim"
+  }
+ },
+ "alert": {
+  "lean": 6,
+  "rifle": {
+   "modekeys": [
+    [
+     6,
+     "ready"
+    ],
+    [
+     22,
+     "aim"
+    ]
+   ],
+   "follow": 0.6
+  },
+  "rootmotion": true,
+  "vthresh": 0.8
+ },
+ "fire": {
+  "lean": 10,
+  "rifle": {
+   "mode": "aim"
+  },
+  "kicks": [
+   12,
+   17,
+   23
+  ],
+  "trim": [
+   0,
+   47
+  ]
+ },
+ "reload": {
+  "lean": 4,
+  "rifle": {
+   "mode": {
+    "ready": 0.7,
+    "aim": 0.3
+   },
+   "lw": [
+    [
+     0,
+     1
+    ],
+    [
+     8,
+     0
+    ],
+    [
+     64,
+     0
+    ],
+    [
+     74,
+     1
+    ]
+   ]
+  }
+ },
+ "coverenter": {
+  "rifle": {
+   "modekeys": [
+    [
+     0,
+     "ready"
+    ],
+    [
+     24,
+     "up"
+    ]
+   ],
+   "follow": 0.35
+  },
+  "rootmotion": true,
+  "vthresh": 1.0,
+  "floor": "kneel",
+  "kneel_from": 22,
+  "lockfrom": 24,
+  "drop": true
+ },
+ "coveridle": {
+  "loop": true,
+  "rifle": {
+   "mode": "up"
+  },
+  "lockall": true,
+  "floor": "kneel",
+  "drop": true
+ },
+ "hitfront": {
+  "rifle": {
+   "mode": "ready"
+  },
+  "rootmotion": true,
+  "vthresh": 3.0
+ },
+ "hitback": {
+  "rifle": {
+   "mode": "ready"
+  },
+  "rootmotion": true,
+  "vthresh": 3.0
+ },
+ "deathfront": {
+  "rifle": {
+   "mode": "ready",
+   "release": "auto"
+  },
+  "rootmotion": true,
+  "grip": 0.7,
+  "vthresh": 3.0
+ },
+ "deathback": {
+  "rifle": {
+   "mode": "ready",
+   "release": "auto"
+  },
+  "rootmotion": true,
+  "grip": 0.7,
+  "vthresh": 3.0
+ },
+ "deathleft": {
+  "rifle": {
+   "mode": "ready",
+   "release": "auto"
+  },
+  "rootmotion": true,
+  "grip": 0.7,
+  "vthresh": 3.0
+ },
+ "deathright": {
+  "rifle": {
+   "mode": "ready",
+   "release": "auto"
+  },
+  "rootmotion": true,
+  "grip": 0.7,
+  "vthresh": 3.0
+ },
+ "hitback2": {
+  "rifle": {
+   "mode": "ready"
+  },
+  "rootmotion": true,
+  "vthresh": 3.0
+ },
+ "deathright2": {
+  "rifle": {
+   "mode": "ready",
+   "release": "auto"
+  },
+  "rootmotion": true,
+  "grip": 0.7,
+  "vthresh": 3.0
+ },
+ "deathleft2": {
+  "rifle": {
+   "mode": "ready",
+   "release": "auto"
+  },
+  "rootmotion": true,
+  "grip": 0.7,
+  "vthresh": 3.0
+ }
+}

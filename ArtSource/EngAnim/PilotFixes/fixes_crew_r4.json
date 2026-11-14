@@ -1,0 +1,57 @@
+{
+ "_note": "r4: the Warden's left arm takes the rifle idle's pose, where the shield was placed in its hand (shield rigid on spine_05), so the off hand braces the shield; per-type attack clips, in place.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "clips": [
+  {
+   "src": "A_Crew_Warden_Guard",
+   "dst": "A_Crew_Warden_Guard",
+   "loop": true,
+   "loop_s": 0.2,
+   "copy_pose": {
+    "src": "MF_Rifle_Idle_ADS",
+    "t": 0.0,
+    "side": "_l",
+    "bones": [
+     "clavicle",
+     "upperarm",
+     "lowerarm",
+     "hand",
+     "index",
+     "middle",
+     "ring",
+     "pinky",
+     "thumb"
+    ]
+   }
+  },
+  {
+   "src": "A_Crew_Grunt_Attack_02",
+   "dst": "A_Crew_Grunt_Melee_02"
+  },
+  {
+   "src": "A_Crew_Grunt_Attack_03",
+   "dst": "A_Crew_Grunt_Melee_03"
+  },
+  {
+   "src": "A_Crew_Grunt_Lunge",
+   "dst": "A_Crew_Grunt_Charge"
+  },
+  {
+   "src": "A_Crew_Heavy_Bash",
+   "dst": "A_Crew_Heavy_ShieldBash"
+  },
+  {
+   "src": "A_Crew_Hit_Front_Hvy_01",
+   "dst": "A_Crew_Heavy_Stagger",
+   "rate": 0.8
+  },
+  {
+   "src": "MM_ChargedAttack",
+   "dst": "A_Crew_Warden_Slam"
+  },
+  {
+   "src": "A_Crew_Trooper_Reload",
+   "dst": "A_Crew_Trooper_Reload_InPlace"
+  }
+ ]
+}

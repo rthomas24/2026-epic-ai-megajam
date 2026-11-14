@@ -1,0 +1,243 @@
+{
+ "trim": {
+  "size": 2048,
+  "px_per_cm": 5.12,
+  "tiles_u_cm": 400,
+  "bands": [
+   {
+    "key": "WALL_PANEL",
+    "v_px": [
+     0,
+     512
+    ],
+    "height_px": 512,
+    "height_cm": 100.0,
+    "uv_v": [
+     0.75,
+     1.0
+    ],
+    "desc": "armour wall panels, gunmetal, 4 plates per tile (100 cm each), grooves + bolt rows"
+   },
+   {
+    "key": "DECK_PLATE",
+    "v_px": [
+     512,
+     768
+    ],
+    "height_px": 256,
+    "height_cm": 50.0,
+    "uv_v": [
+     0.625,
+     0.75
+    ],
+    "desc": "floor deck: diamond tread plate, matte, 2 plates per 100 cm"
+   },
+   {
+    "key": "CRIMSON_BAND",
+    "v_px": [
+     768,
+     896
+    ],
+    "height_px": 128,
+    "height_cm": 25.0,
+    "uv_v": [
+     0.5625,
+     0.625
+    ],
+    "desc": "Dominion crimson band with brass pinstripes + rivets (hull r2 band language)"
+   },
+   {
+    "key": "HAZARD",
+    "v_px": [
+     896,
+     1024
+    ],
+    "height_px": 128,
+    "height_cm": 25.0,
+    "uv_v": [
+     0.5,
+     0.5625
+    ],
+    "desc": "hazard chevrons orange #BF541A on black, 45 deg, period 256 px (50 cm)"
+   },
+   {
+    "key": "VENT",
+    "v_px": [
+     1024,
+     1152
+    ],
+    "height_px": 128,
+    "height_cm": 25.0,
+    "uv_v": [
+     0.4375,
+     0.5
+    ],
+    "desc": "ribbed vent / grille, 6.25 cm pitch"
+   },
+   {
+    "key": "KICK_PLATE",
+    "v_px": [
+     1152,
+     1280
+    ],
+    "height_px": 128,
+    "height_cm": 25.0,
+    "uv_v": [
+     0.375,
+     0.4375
+    ],
+    "desc": "kick plate / skirting, scuffed, worn top edge"
+   },
+   {
+    "key": "STRIP_RED",
+    "v_px": [
+     1280,
+     1344
+    ],
+    "height_px": 64,
+    "height_cm": 12.5,
+    "uv_v": [
+     0.34375,
+     0.375
+    ],
+    "desc": "emissive strip, red-orange (1.0, 0.14, 0.02) = MI_DI_GlowRed"
+   },
+   {
+    "key": "STRIP_AMBER",
+    "v_px": [
+     1344,
+     1408
+    ],
+    "height_px": 64,
+    "height_cm": 12.5,
+    "uv_v": [
+     0.3125,
+     0.34375
+    ],
+    "desc": "emissive strip, amber (1.0, 0.55, 0.10) = MI_DI_Cell family"
+   },
+   {
+    "key": "STRIP_CYAN",
+    "v_px": [
+     1408,
+     1472
+    ],
+    "height_px": 64,
+    "height_cm": 12.5,
+    "uv_v": [
+     0.28125,
+     0.3125
+    ],
+    "desc": "emissive strip, cyan (0.25, 0.85, 1.0) = MI_DI_Screen family"
+   },
+   {
+    "key": "STRIP_WHITE",
+    "v_px": [
+     1472,
+     1536
+    ],
+    "height_px": 64,
+    "height_cm": 12.5,
+    "uv_v": [
+     0.25,
+     0.28125
+    ],
+    "desc": "work-light strip, cold white (0.9, 0.95, 1.0) = MI_DI_GlowWhite"
+   },
+   {
+    "key": "CABLE_TRAY",
+    "v_px": [
+     1536,
+     1792
+    ],
+    "height_px": 256,
+    "height_cm": 50.0,
+    "uv_v": [
+     0.125,
+     0.25
+    ],
+    "desc": "cable tray: 5 pipes / cable runs with clamps every 50 cm"
+   },
+   {
+    "key": "TRIM_CAP",
+    "v_px": [
+     1792,
+     2048
+    ],
+    "height_px": 256,
+    "height_cm": 50.0,
+    "uv_v": [
+     0.0,
+     0.125
+    ],
+    "desc": "bevelled trim caps / door-jamb panels, 2 rows of small plates with bolts"
+   }
+  ]
+ },
+ "decals": [
+  {
+   "key": "TRIDENT",
+   "px": [
+    0,
+    0,
+    1024,
+    1024
+   ],
+   "uv": [
+    0.0,
+    0.5,
+    0.5,
+    1.0
+   ],
+   "desc": "Dominion trident emblem plate (original): crimson disc, gunmetal ring, pale trident; 160 cm on door heads / bulkheads"
+  },
+  {
+   "key": "TRIAD_MARK",
+   "px": [
+    1024,
+    0,
+    2048,
+    1024
+   ],
+   "uv": [
+    0.5,
+    0.5,
+    1.0,
+    1.0
+   ],
+   "desc": "three-chevron Triad unit marking + bar-and-dot bay mark, worn stencil (brief: on lintels, half-covered); 120 cm"
+  },
+  {
+   "key": "HAZARD_FRAME",
+   "px": [
+    0,
+    1024,
+    1024,
+    2048
+   ],
+   "uv": [
+    0.0,
+    0.0,
+    0.5,
+    0.5
+   ],
+   "desc": "hazard-striped keep-clear frame for door thresholds / pad edges (no text); 400 cm floor"
+  },
+  {
+   "key": "ROUTE_ARROW",
+   "px": [
+    1024,
+    1024,
+    2048,
+    2048
+   ],
+   "uv": [
+    0.5,
+    0.0,
+    1.0,
+    0.5
+   ],
+   "desc": "squadron route stencil: three amber emissive chevrons pointing +U with dot/bar marks; 200 cm floor"
+  }
+ ]
+}

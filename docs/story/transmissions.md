@@ -102,16 +102,16 @@ are spoken by whoever flew the docked ship (issue #29). `F_FutureWren_FullWarnin
 | `G3_DataSecured` | Kato | Device and recordings secured. I've got the Cinder coordinates. Let's move. |
 | `G3_Moss_NobodyNear` | Moss | Then nobody gets near the station. |
 | `G3_Wren_LeftApproach` | Wren | Left approach! Keep them off Kato. |
-| `G3_Kato_AlmostThere` | Kato | Archive almost complete. Keep them off the station. |
+| `G3_Kato_AlmostThere` | Kato | Archive almost complete. Keep them back. |
 | `G3_Command_Extraction` | Command | Triad, extraction corridor is open. Return with the archive intact. |
-| `C4_Moss_Trouble` | Moss | All that for a recorder full of voices. None of them answering. |
+| `C4_Moss_Trouble` (retired, N-087) | Moss | All that for a recorder full of voices. None of them answering. |
 | `C4_Wren_Badly` | Wren | They wanted that device and its records. We need to know why. |
-| `C4_Kato_SameSignature` | Kato | They weren't searching at random. These two sites have the same geometric signature. |
-| `C4_Wren_WhatConnects` | Wren | Verdance and Cinder. What connects them? |
+| `C4_Kato_SameSignature` (retired, N-087) | Kato | They weren't searching at random. These two sites have the same geometric signature. |
+| `C4_Wren_WhatConnects` (retired, N-087) | Wren | Verdance and Cinder. What connects them? |
 | `C4_Kato_SurveyStation` | Kato | I don't know. Cinder's mining complex has matching readings. They're extracting stabilising crystals there. |
 | `C4_Command_Proceed` | Command | Proceed to Cinder. Investigate the mining complex and recover the stabilising crystals. Compare them with the signal-analysis records. Maintain reconnaissance priority. |
-| `C4_Moss_Volcanoes` | Moss | Volcanoes. Great. I was getting tired of the jungle. |
-| `C4_Wren_SetCourse` | Wren | Triad, set course for Cinder. |
+| `C4_Moss_Volcanoes` (retired, N-087) | Moss | Volcanoes. Great. I was getting tired of the jungle. |
+| `C4_Wren_SetCourse` (retired, N-087) | Wren | Triad, set course for Cinder. |
 | `G4_Command_FollowCoordinates` | Command | Follow the survey coordinates. Identify the excavation before you engage. |
 | `G4_Kato_Transports` | Kato | Those transports are all heading for the same site. |
 | `G4_Moss_NotShooting` | Moss | They're not even shooting back. They've got somewhere to be. |
@@ -132,12 +132,12 @@ are spoken by whoever flew the docked ship (issue #29). `F_FutureWren_FullWarnin
 | `G5_Moss_Guardian` | Moss | That one's staying with the crystals. |
 | `G5_Command_AnchorMarked` | Command | Field anchor marked. Shut it down and confirm your exit. |
 | `G5_Wren_BackToShips` | Wren | Keep the samples intact. Back to the ships. |
-| `C6_Moss_SamplesAboard` | Moss | Samples aboard. I'm ready for somewhere with fewer volcanoes. |
+| `C6_Moss_SamplesAboard` (retired, N-087) | Moss | Samples aboard. I'm ready for somewhere with fewer volcanoes. |
 | `C6_Kato_GuardLine` | Kato | The anchor is down. The approach is prepared. We still have to clear the guard line. |
 | `C6_Kato_FourGenerators` | Kato | The crystals can stabilise the approach. Four generators are still sustaining its defensive shield. |
-| `C6_Wren_FindAWayInside` | Wren | Then we take down the generators and find a way inside. |
+| `C6_Wren_FindAWayInside` (retired, N-087) | Wren | Then we take down the generators and find a way inside. |
 | `C6_Command_FindOutWhy` | Command | They're collecting parts of the Origin Core. We need to know why. Disable the outer defences and secure access. Keep your channels recording. |
-| `C6_Wren_Understood` | Wren | Understood. We find out what they intend to do with it. |
+| `C6_Wren_Understood` (retired, N-087) | Wren | Understood. We find out what they intend to do with it. |
 | `C6_Moss_WholeFleet` | Moss | They've put a whole fleet across our route. |
 | `C6_Wren_StayTogether` | Wren | Stay together. Clear the guard line, then the generators. |
 | `G6_Wren_ClearCarriers` | Wren | Clear the carriers. We need that approach. |
@@ -167,7 +167,7 @@ are spoken by whoever flew the docked ship (issue #29). `F_FutureWren_FullWarnin
 | `G8_Moss_KeepMoving` | Moss | Keep moving. Watch the way back. |
 | `G8_Kato_HeartExposed` | Kato | The heart is exposed. |
 | `G8_Command_ReactorLost` | Command | Reactor lost. Get back to the hangar. |
-| `G9_Moss_HoldingWayOut` | Moss | Keep moving. We're holding the way out. |
+| `G9_Moss_HoldingWayOut` | Moss (Wren when Moss boarded, N-087: `G9_Wren_HoldingWayOut`) | Keep moving. We're holding the way out. |
 | `G9_Kato_HangarConfirmed` | Kato | Hangar signal confirmed. Get the ship clear. |
 | `G9_Wren_PullAway` | Wren | Triad, pull away. Follow the clear vector. |
 | `C9_Kato_Clear` | Kato | Lancer clear. |
@@ -207,7 +207,21 @@ are spoken by whoever flew the docked ship (issue #29). `F_FutureWren_FullWarnin
 | `A5_Escape` | Control | The ship is coming apart. Ninety seconds. Move! |
 | `A5_DistressSignal` | Unknown (Static) | DISTRESS SIGNAL  ·  TRIAD: WREN, KATO, MOSS  ·  DATED DECADES AHEAD |
 
-### To be added: Sequence 02, *Aftermath* (Nicholas's brief of Nov 13; ids reserved `S2_*`)
-Moss "All three ships accounted for...", Wren "If that was a welcome party...", Kato "Hold on. They're not pursuing
-us.", the vectors exchange, Command's new orders, Wren "Triad, form up. Verdance it is.", Kato "And keep your recorders
-running." T3 seeds these with the brief's draft lines next.
+### Sequence 02, *Aftermath* (plays on T7's OnAftermathBegins: the tutorial's escape, or a skipped tutorial)
+| Id | Speaker (style) | Line |
+|---|---|---|
+| `S2_Moss_Accounted` | Moss | All three ships accounted for. I'm calling that a win. |
+| `S2_Wren_WelcomeParty` | Wren | Is it over? I think I blacked out... (approved; delivery: sarcastic, dry, deadpan) |
+| `S2_Kato_NotPursuing` | Kato | Hold on. They're not pursuing us. |
+| `S2_Kato_Vectors` | Kato | Look at their vectors. Most of those craft never joined the fight. |
+| `S2_Wren_WhatDoing` | Wren | Then what are they doing? |
+| `S2_Kato_Planetside` | Kato | Heading planetside. Every group. Same destination. |
+| `S2_Moss_InTheWay` | Moss | So we got in the way of something. |
+| `S2_Command_Report` | Command (Static) | Triad, report. We lost your telemetry when you approached the unidentified vessel. |
+| `S2_Wren_Hostile` | Wren | Confirmed hostile. Automated fighters, heavy numbers. We're intact, barely. |
+| `S2_Kato_Coordinated` | Kato | They've launched a coordinated operation toward Verdance. This wasn't a defensive scramble. |
+| `S2_Command_Outpost` | Command | We've received an emergency report from a research outpost there. Unidentified machines landed near a restricted survey zone. The outpost has gone dark. |
+| `S2_Moss_FindOut` | Moss | And you want us to find out why. |
+| `S2_Command_Orders` | Command | Affirmative. Avoid direct engagement with the mothership. Reach Verdance, locate the outpost, and recover its survey data. We need to know what they're looking for. |
+| `S2_Wren_FormUp` | Wren | Triad, form up. Verdance it is. |
+| `S2_Kato_Recorders` | Kato | And keep your recorders running. Nothing about this adds up. |

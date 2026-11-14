@@ -18,11 +18,12 @@
    640.0
   ],
   "bounds_match": "same",
-  "tris": 1521,
+  "tris": 1523,
   "slots": [
    "0:Trim",
    "1:Glow",
-   "2:Light"
+   "2:Light",
+   "3:Route"
   ],
   "hulls": 6,
   "asymmetric_side": null,
@@ -60,25 +61,26 @@
   "asset": "SM_DI_Door",
   "ok": true,
   "min_cm": [
-   -16.0,
+   -16.3,
    -150.0,
    -0.0
   ],
   "max_cm": [
-   16.0,
+   16.3,
    150.0,
    400.0
   ],
   "size_cm": [
-   32.0,
+   32.6,
    300.0,
    400.0
   ],
   "bounds_match": "same",
-  "tris": 444,
+  "tris": 448,
   "slots": [
    "0:Trim",
-   "1:Glow"
+   "1:Glow",
+   "2:Decal"
   ],
   "hulls": 1,
   "asymmetric_side": null,
@@ -103,11 +105,10 @@
    600.0
   ],
   "bounds_match": "same",
-  "tris": 1172,
+  "tris": 1340,
   "slots": [
    "0:Trim",
-   "1:Glow",
-   "2:Light"
+   "1:Glow"
   ],
   "hulls": 3,
   "asymmetric_side": null,

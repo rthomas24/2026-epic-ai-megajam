@@ -1,0 +1,35 @@
+{
+  "stage": "remote build/test/capture request; no execution claimed",
+  "candidate_manifest": "source-manifest.json",
+  "patch_sha256": "245451cff05fa614e7c937968624bbb4ffa0d59e67219978f6a0a4401de5c460",
+  "patch_bytes": 35980,
+  "requires_host_field": "FTDDirectorCards.bNameCardClaimedByHUD",
+  "widget_class": "/Script/TriadDriftHUD.TDDirectorCardsWidget",
+  "test_filter": "TriadDrift.UI.Director.",
+  "expected_plugin_test_count": 5,
+  "resolutions": [
+    [
+      1280,
+      720
+    ],
+    [
+      1920,
+      1080
+    ],
+    [
+      2560,
+      1080
+    ]
+  ],
+  "required_evidence": [
+    "matching source/runtime hashes",
+    "five explicit test results",
+    "original full UI PNGs",
+    "claiming and non-claiming HUD state",
+    "pilot/slate/CUT/quick cut/money shot",
+    "intro suppression/travel cleanup",
+    "engine logs/results"
+  ],
+  "default_activation": false,
+  "style_update": "private isolated review copy only; preserve unrelated fields"
+}

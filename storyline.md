@@ -1,5 +1,7 @@
 # Triad Drift: The Paradox (storyline)
 
+**November 13 review status.** Nicholas requested immediate circulation of the [second draft](Story/Triad_Drift_Complete_Script_Second_Draft.docx), published at 2240d3cd as the current script for team review. Previously approved decisions remain the production reference until he approves the new draft. For the archive defense, the approved `G3_Kato_AlmostThere` wording is “Archive almost complete. Keep them back.” The transfer-start line retains “If they destroy this station, we lose everything.” [Approval record](Story/README.md)
+
 **Adopted by Ryan on Nov 13, 2026.** The story is **Nicholas's** ("Triad Drift: The Paradox, narrative concept
 brief"); this file is that brief, plus how each beat is played in the game we have. **Every feature, objective name,
 line of dialogue, set piece and asset now serves this story.** `features.md` says what to build; this file says what it

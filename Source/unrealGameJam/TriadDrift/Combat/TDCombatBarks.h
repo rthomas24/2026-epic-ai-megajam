@@ -15,6 +15,7 @@
 namespace TDBarkIdsT2
 {
 	inline const FName MissileIncoming(TEXT("Bark_MissileIncoming"));	// a wingman, Critical
+	inline const FName MissileEvaded(TEXT("Bark_MissileEvaded"));		// the flown pilot, Flavour (a warned missile that never reached them)
 	inline const FName TargetShielded(TEXT("Bark_TargetShielded"));	// Kato or a wingman, Normal
 	inline const FName AmmoLow(TEXT("Bark_AmmoLow"));					// flown pilot, Normal
 	inline const FName AmmoOut(TEXT("Bark_AmmoOut"));					// flown pilot, High

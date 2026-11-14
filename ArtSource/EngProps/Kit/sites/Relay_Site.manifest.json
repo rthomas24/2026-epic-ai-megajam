@@ -885,7 +885,12 @@
    "slots": {
     "Pillar": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_LightPillar_Verdance"
    },
-   "note": "a 60 m soft light beam from the lamp head, so the site reads from the approach (no Niagara)"
+   "scale": [
+    3.0,
+    3.0,
+    1.0
+   ],
+   "note": "a 60 m soft light beam (4.2 m wide) from the lamp head, so the site reads from the approach (no Niagara)"
   },
   {
    "name": "Device_Console",
