@@ -1,24 +1,37 @@
 {
-  "stage": "Technically verified on DAE native game host; visual approval and production integration pending",
-  "branch": "nick/hud-usability-20261112",
-  "head": "1a8d942907ab39928a68e791a810bd1c6219434a",
+  "stage": "Source candidate; Development override build, focused test and three-route capture pending",
+  "branch": "nick/ui-loading-readability-01",
+  "head": "2aa09121",
   "native_class": "/Script/TriadDriftHUD.TDLoadingWidget",
   "shared_activation_changed": false,
   "files": [
     {
       "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDLoadingWidget.h",
-      "bytes": 780,
-      "sha256": "eddbcf37d87b81fa5bb2fefed2a1adef7357fe0d0f15993901d78960ac5cc769"
+      "bytes": 802,
+      "sha256": "233de57ca8fb8d5a983f3e89952baebcc82d0467f07e7eb09f0f1e48817324bd",
+      "sha256_lf": "eddbcf37d87b81fa5bb2fefed2a1adef7357fe0d0f15993901d78960ac5cc769"
     },
     {
       "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDLoadingWidget.cpp",
-      "bytes": 3160,
-      "sha256": "53a2bc55ca7dcdd6ac858d69e8face100fba635a7fe04d37a63657e53102bd20"
+      "bytes": 7292,
+      "sha256": "c656d4510eddde34226842bd369a1faa91663da96b276fdb0454c322d6bff2bf",
+      "sha256_lf": "f5bcdbce889fa1c4fc00b3461cec6a312bc7097332cc60d95adf05ba74059821"
     },
     {
       "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDLoadingWidgetTests.cpp",
-      "bytes": 1920,
-      "sha256": "02e0b7bd18e58d17e62810e55991880e8f367fc589a2df24946f08cb1fefa1d5"
+      "bytes": 1947,
+      "sha256": "582e939ba0d1e9878335d47316f318b8618fcd3a93248f47f5f40ca7413408c2",
+      "sha256_lf": "0d0fccc0192ec0daa159c82c8931e3d684c6e2ee08dd1550145d86e5873c8911"
     }
-  ]
+  ],
+  "working_tree_candidate": true,
+  "claim": "c30a61b6e9cb705a73c1802aebbd17c8332f2349",
+  "hash_basis": "sha256 hashes exact current on-disk bytes; sha256_lf normalizes CRLF to LF for Git/package comparison",
+  "development_override_commands": [
+    "TD.UI.LoadingStatus \"text\"",
+    "TD.UI.LoadingStatus.Clear"
+  ],
+  "shipping_override_compiled": false,
+  "native_build_verified": false,
+  "new_test_executed": false
 }
