@@ -1,0 +1,195 @@
+{
+  "asset": "SM_Lancer",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\LancerHero\\export\\SM_Lancer.fbx",
+  "tris": 58035,
+  "size_cm": [
+    524.0,
+    269.5,
+    149.9
+  ],
+  "pivot": "root object origin (SM_Lancer~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Lancer",
+    "M_Lancer_Glow",
+    "M_Lancer_Parts"
+  ],
+  "material_params": [
+    {
+      "name": "M_Lancer",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    },
+    {
+      "name": "M_Lancer_Glow",
+      "textured": false,
+      "base_color": [
+        0.25,
+        0.91,
+        1.0
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5,
+      "emission_color": [
+        0.25,
+        0.91,
+        1.0
+      ],
+      "emission_strength": 4.0
+    },
+    {
+      "name": "M_Lancer_Parts",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 3.0
+    }
+  ],
+  "textures": [
+    "T_Lancer_BC.png",
+    "T_Lancer_E.png",
+    "T_Lancer_HeatMask.png",
+    "T_Lancer_N.png",
+    "T_Lancer_ORM.png",
+    "T_Lancer_Parts_BC.png",
+    "T_Lancer_Parts_E.png",
+    "T_Lancer_Parts_HeatMask.png",
+    "T_Lancer_Parts_N.png",
+    "T_Lancer_Parts_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_Lancer_00",
+    "UCX_SM_Lancer_01",
+    "UCX_SM_Lancer_02"
+  ],
+  "collision_source": "auto convex hulls",
+  "sockets": [
+    "SOCKET_Cockpit",
+    "SOCKET_Engine",
+    "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_Engine_2",
+    "SOCKET_Muzzle_0",
+    "SOCKET_Muzzle_1",
+    "SOCKET_Ram",
+    "SOCKET_WingTip_L",
+    "SOCKET_WingTip_R"
+  ],
+  "welded_verts": 217,
+  "nanite_recommended": true,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": true,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "ue_cm": [
+        152,
+        -45,
+        -59
+      ]
+    },
+    {
+      "name": "Muzzle_1",
+      "ue_cm": [
+        152,
+        45,
+        -59
+      ]
+    },
+    {
+      "name": "Engine",
+      "ue_cm": [
+        -264,
+        0,
+        -35
+      ]
+    },
+    {
+      "name": "Engine_0",
+      "ue_cm": [
+        -264,
+        0,
+        -35
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "ue_cm": [
+        -209,
+        -55,
+        -38
+      ]
+    },
+    {
+      "name": "Engine_2",
+      "ue_cm": [
+        -209,
+        55,
+        -38
+      ]
+    },
+    {
+      "name": "Ram",
+      "ue_cm": [
+        262,
+        0,
+        -58
+      ]
+    },
+    {
+      "name": "Cockpit",
+      "ue_cm": [
+        25,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "WingTip_L",
+      "ue_cm": [
+        -188,
+        -132,
+        -50
+      ]
+    },
+    {
+      "name": "WingTip_R",
+      "ue_cm": [
+        -188,
+        132,
+        -50
+      ]
+    }
+  ],
+  "slots": {
+    "M_Lancer": "kept Rodin hull, corrected set T_Lancer_BC/N/ORM/E + T_Lancer_HeatMask",
+    "M_Lancer_Parts": "new canopy interior and frame / guns / nose / spine, baked set T_Lancer_Parts_BC/N/ORM/E + T_Lancer_Parts_HeatMask"
+  },
+  "canopy": {
+    "fbx": "SM_Lancer_Canopy.fbx",
+    "attach_socket": "Cockpit",
+    "slot": "M_Lancer_Glass",
+    "note": "tinted canopy glass (translucent, not Nanite); seat, pilot, frame and deck are in SM_Lancer_Parts"
+  }
+}
