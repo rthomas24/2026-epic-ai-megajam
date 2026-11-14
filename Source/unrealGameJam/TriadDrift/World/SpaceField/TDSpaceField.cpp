@@ -1,6 +1,8 @@
 // Triad Drift - the space field, galaxy layer. Owner: Teammate 5 (T4 reviews).
 
 #include "TriadDrift/World/SpaceField/TDSpaceField.h"
+#include "TriadDrift/World/SpaceField/TDSpaceFieldFX.h"
+#include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
@@ -109,7 +111,10 @@ void ATDSpaceField::BeginPlay()
 	// td.SpaceField 0 at load: never take over the layout's rocks, so the galaxy is exactly today's by construction.
 	bAdoptAtLoad = bAdoptLayoutRocks && TDSpaceFieldImpl::GEnabled != 0;
 	Build();
-	FTDFieldDamage::Register(this);	// (DA_SpaceField_FX is warmed by T7's UTDWarmupSubsystem; the defaults register below)	// Lancer's ram and explosions find the field without searching the world
+	FTDFieldDamage::Register(this);	// (DA_SpaceField_FX is warmed by T7's UTDWarmupSubsystem; the defaults register below)
+	// Look the effects asset up now (T7's warm-up has streamed it): on the first break the lookup cost 26 ms.
+	if (!FX) { FX = UTDStatics::LoadPresentation<UTDSpaceFieldFX>(TEXT("DA_SpaceField_FX")); }
+	bFXLoaded = true;	// Lancer's ram and explosions find the field without searching the world
 	// Caches: four per debris field, the types in turn (one use each per run).
 	Caches.Reset();
 	const TArray<FVector> Spots = GetCacheSpots(this);
