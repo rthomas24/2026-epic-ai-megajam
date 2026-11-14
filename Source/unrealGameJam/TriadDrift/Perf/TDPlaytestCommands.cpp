@@ -27,7 +27,12 @@ namespace TDPlaytest
 		const FVector From = Pilot->GetActorLocation();
 		AActor* Best = nullptr;
 		double BestD = TNumericLimits<double>::Max();
-		for (AActor* M : Pilot->GetObjectiveMarkers())
+		// The on-foot courses tag their live objective markers (the HUD reads the same tag).
+		TArray<AActor*> Marks = Pilot->GetObjectiveMarkers();
+		TArray<AActor*> Tagged;
+		UGameplayStatics::GetAllActorsWithTag(World, FName(TEXT("TD.Objective.Marker")), Tagged);
+		Marks.Append(Tagged);
+		for (AActor* M : Marks)
 		{
 			if (IsValid(M))
 			{
