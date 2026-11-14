@@ -250,6 +250,9 @@ public:
 		float SubtitleBottom = 964.f;
 		/** Bottom of the prompt lane / hint card (above the squad row's flags when the panel is on). */
 		float LaneBottom = 890.f;
+		/** The squad row's avoid zone for edge markers and their labels: the flag tabs' top and the row's right end. */
+		float RowFlagTop = 1080.f;
+		float RowRight = 0.f;
 		/** Navigation pulse: 0..1 through it (0 = none), and the corridor's ends in the design frame. */
 		float NavPulse = 0.f;
 		FVector2D NavFrom = FVector2D::ZeroVector;
