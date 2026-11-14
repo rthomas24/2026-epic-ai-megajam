@@ -178,8 +178,29 @@ namespace TDSpaceFieldCompose
 		return false;
 	}
 
+	/** Range 3: the point of nearest approach on the routes the player flies, looking half along the route, half at the region. */
+	static bool RouteView(const ATDSpaceField* Field, int32 Region, FVector& OutFrom, FVector& OutAt)
+	{
+		const FVector* C = Field->RegionCentres.Find(Region);
+		if (!C) { return false; }
+		float Best = TNumericLimits<float>::Max();
+		for (const TArray<FVector>& Lane : Field->GetRouteLanes())
+		{
+			const FVector P = FMath::ClosestPointOnSegment(*C, Lane[0], Lane[1]);
+			const float D = (float)FVector::Dist(P, *C);
+			if (D < Best)
+			{
+				Best = D;
+				const FVector Fwd = (Lane[1] - Lane[0]).GetSafeNormal();
+				OutFrom = P - Fwd * 20000.f;	// a little before the nearest point
+				OutAt = OutFrom + (Fwd + (*C - P).GetSafeNormal()).GetSafeNormal() * 100000.f;
+			}
+		}
+		return Best < TNumericLimits<float>::Max();
+	}
+
 	static FAutoConsoleCommandWithWorldAndArgs CmdView(TEXT("TD.SpaceField.ViewRegion"),
-		TEXT("Captures: park the flown ship at a region's fixed vantage, facing it: TD.SpaceField.ViewRegion <region 1-7 of docs/eng/SPACE-DESIGN.md> <0 = 5 km | 1 = 1 km | 2 = inside>"),
+		TEXT("Captures: park the flown ship at a region's fixed vantage, facing it: TD.SpaceField.ViewRegion <region 1-7 of docs/eng/SPACE-DESIGN.md> <0 = 5 km | 1 = 1 km | 2 = inside | 3 = from the route>"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{
 			ATDSpaceField* Field = ATDSpaceField::Get(World);
@@ -187,7 +208,7 @@ namespace TDSpaceFieldCompose
 			FVector From, At;
 			const int32 Region = Args.Num() > 0 ? FCString::Atoi(*Args[0]) : 2;
 			const int32 Range = Args.Num() > 1 ? FCString::Atoi(*Args[1]) : 0;
-			if (!Field || !Ship || !RegionView(Field, Region, Range, From, At)) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.ViewRegion: no field / ship / view for region %d"), Region); return; }
+			if (!Field || !Ship || !(Range == 3 ? RouteView(Field, Region, From, At) : RegionView(Field, Region, Range, From, At))) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.ViewRegion: no field / ship / view for region %d"), Region); return; }
 			const FRotator Facing = (At - From).Rotation();
 			Ship->TeleportSpacecraft(From, Facing, /*bKeepSpeed*/ false);
 			GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f 2"), Facing.Yaw, Facing.Pitch));
@@ -217,6 +238,7 @@ bool ATDSpaceField::AddStructure(UStaticMesh* Mesh, const FTransform& T)
 	const FBox Box = Mesh->GetBoundingBox();
 	const FVector Ext = Box.GetExtent() * T.GetScale3D();
 	if (!IsPlacementAllowed(T.GetLocation(), Ext.Size() * 2.f, true)) { return false; }
+	if (IsInDockingCone(T.GetLocation(), Ext.Size())) { return false; }
 	const FString Key = FString::Printf(TEXT("Struct_%s"), *GetNameSafe(Mesh));
 	TObjectPtr<UHierarchicalInstancedStaticMeshComponent>& C = Components.FindOrAdd(Key);
 	if (!C)
@@ -337,22 +359,37 @@ void ATDSpaceField::BuildQuietGraveyard(FRandomStream& Rng)
 		}
 		if (Clear > BestClear) { BestClear = Clear; Sign = Sg; }
 	}
-	const FVector A = Zone + VDir * 320000.f + Side * Sign * 70000.f + FVector(0.f, 0.f, 15000.f);
-	const FVector B = Zone + VDir * 380000.f + Side * Sign * 90000.f + FVector(0.f, 0.f, 30000.f);
+	const FVector A = Zone + VDir * 320000.f + Side * Sign * 45000.f + FVector(0.f, 0.f, 12000.f);
+	const FVector B = Zone + VDir * 380000.f + Side * Sign * 55000.f + FVector(0.f, 0.f, 20000.f);
 	UStaticMesh* Hulls[] = { LoadSetPiece(TEXT("SM_SP_Research_A")), LoadSetPiece(TEXT("SM_SP_Research_B")) };
 	RegionCentres.Add(4, (A + B) * 0.5f);
 	int32 Placed = 0;
 	for (int32 i = 0; i < GraveyardHulls; ++i)
 	{
 		const float T = GraveyardHulls > 1 ? float(i) / (GraveyardHulls - 1) : 0.5f;
-		const FVector P = FMath::Lerp(A, B, T) + FVector(Rng.GetUnitVector()) * 9000.f;
-		// Lying roughly along the line, each a little turned and rolled: a fleet that went quiet in formation.
+		// Lying roughly along the line, each a little turned and rolled: a fleet that went quiet in formation. Up to eight
+		// nearby spots per hull (a little along the line, a little further from the route) before giving up.
 		const FRotator R = FRotator(Rng.FRandRange(-15.f, 15.f), (B - A).Rotation().Yaw + Rng.FRandRange(-30.f, 30.f), Rng.FRandRange(-60.f, 60.f));
-		if (AddStructure(Hulls[i % 2], FTransform(R, P)))
+		for (int32 Try = 0; Try < 8; ++Try)
 		{
-			++Placed;
-			ScatterDebris(P, 12000.f, 35, 1500.f, Rng);
+			const FVector P = FMath::Lerp(A, B, FMath::Clamp(T + Rng.FRandRange(-0.08f, 0.08f), -0.1f, 1.1f)) + Side * Sign * (Try * 5000.f) + FVector(Rng.GetUnitVector()) * 6000.f;
+			if (AddStructure(Hulls[i % 2], FTransform(R, P)))
+			{
+				++Placed;
+				ScatterDebris(P, 12000.f, 35, 1500.f, Rng);
+				break;
+			}
 		}
+	}
+	// The fleet's debris along its line: hull fragments and trails, thicker near each hull (150-300 pieces).
+	int32 Frags = 0;
+	for (int32 Try = 0; Frags < GraveyardFragments && Try < GraveyardFragments * 4; ++Try)
+	{
+		const TArray<TObjectPtr<UStaticMesh>>& Pool = Families[Rng.FRand() < 0.75f ? 5 : 4];
+		if (Pool.Num() == 0) { continue; }
+		const FVector At = FMath::Lerp(A, B, Rng.FRandRange(-0.15f, 1.15f)) + FVector(Gauss(Rng) * 9000.f, Gauss(Rng) * 9000.f, Gauss(Rng) * 5000.f);
+		Frags += AddPiece(Pool[Rng.RandRange(0, Pool.Num() - 1)], At, FRotator(Rng.FRandRange(-180.f, 180.f), Rng.FRandRange(-180.f, 180.f), Rng.FRandRange(-180.f, 180.f)),
+			Power(Rng, 300.f, 3000.f, 2.2f), ETDSpaceFieldKind::Debris, false) ? 1 : 0;
 	}
 	if (BuoyMesh)
 	{
@@ -399,6 +436,7 @@ void ATDSpaceField::BuildOuterDark(FRandomStream& Rng)
 // ------------------------------------------------------------------------------ regions 3, 5, 6 and the region set pieces
 
 #include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/World/TDDockingBay.h"
 
 namespace TDSpaceFieldCompose
 {
@@ -431,9 +469,9 @@ void ATDSpaceField::BuildIceDrift(FRandomStream& Rng)
 	const FVector Side = FVector::CrossProduct(FVector::UpVector, VDir).GetSafeNormal();
 	const float GraveSign = RegionCentres.Contains(4) ? FMath::Sign((float)FVector::DotProduct(RegionCentres[4] - Zone, Side)) : 1.f;
 	const float S = -GraveSign;	// the other side
-	const FVector Head = Zone + VDir * (BeltOuter + 25000.f) + Side * S * 60000.f;
-	const FVector Tail = VLoc - VDir * (VAtmo * 1.5f + 30000.f) + Side * S * 90000.f + FVector(0.f, 0.f, -20000.f);
-	const FVector Ctrl = (Head + Tail) * 0.5f + Side * S * 70000.f;
+	const FVector Head = Zone + VDir * (BeltOuter + 25000.f) + Side * S * 40000.f;
+	const FVector Tail = VLoc - VDir * (VAtmo * 1.5f + 30000.f) + Side * S * 50000.f + FVector(0.f, 0.f, -15000.f);
+	const FVector Ctrl = (Head + Tail) * 0.5f + Side * S * 40000.f;
 	int32 Placed = 0;
 	for (int32 Try = 0; Placed < IceDriftRocks && Try < IceDriftRocks * 6; ++Try)
 	{
@@ -467,7 +505,7 @@ void ATDSpaceField::BuildSurveyScar(FRandomStream& Rng)
 	for (const FTDPlanetSpec& Pl : L.Planets) { if (Pl.Destination == ETDDestination::Cinder) { CLoc = Xf.TransformPosition(Pl.Location); CAtmo = Pl.AtmosphereRadius; } }
 	const FVector CDir = (CLoc - Zone).GetSafeNormal();
 	const FVector Side = FVector::CrossProduct(FVector::UpVector, CDir).GetSafeNormal();
-	const FVector Centre = Zone + CDir * 360000.f + Side * 75000.f + FVector(0.f, 0.f, 15000.f);
+	const FVector Centre = Zone + CDir * 360000.f + Side * 50000.f + FVector(0.f, 0.f, 10000.f);
 	RegionCentres.Add(5, Centre);
 	// The centrepiece: the split-rock survey rig.
 	// Scales from the structures builder (Lead, Nov 14): each piece subtends 3+ degrees at 1.5 km.
@@ -484,10 +522,22 @@ void ATDSpaceField::BuildSurveyScar(FRandomStream& Rng)
 	}
 	// Hollowed rocks round the field.
 	UStaticMesh* Hollow = LoadSetPiece(TEXT("SM_SP_HollowRock"));
-	for (int32 h = 0; h < 3; ++h)
+	TArray<FVector> Husks;
+	for (int32 h = 0, Try = 0; h < 8 && Try < 40; ++Try)
 	{
-		const FVector At = Centre + FVector(Rng.GetUnitVector()) * Rng.FRandRange(18000.f, 45000.f);
-		AddStructure(Hollow, FTransform(FRotator(Rng.FRandRange(-180.f, 180.f), Rng.FRandRange(-180.f, 180.f), Rng.FRandRange(-180.f, 180.f)), At));
+		const FVector At = Centre + (FVector(Rng.GetUnitVector()) * FVector(1.f, 1.f, 0.5f)).GetSafeNormal() * Rng.FRandRange(16000.f, 42000.f);
+		if (AddStructure(Hollow, FTransform(FRotator(Rng.FRandRange(-180.f, 180.f), Rng.FRandRange(-180.f, 180.f), Rng.FRandRange(-180.f, 180.f)), At))) { Husks.Add(At); ++h; }
+	}
+	// Cable lines from the rig to each husk: thin truss segments every 12 m (the yield is hauled along them).
+	UStaticMesh* Cable = Families.IsValidIndex(5) && Families[5].Num() > 0 ? Families[5][0].Get() : nullptr;
+	for (const FVector& H : Husks)
+	{
+		const float Len = (float)FVector::Dist(Centre, H);
+		const FRotator Along = (H - Centre).Rotation();
+		for (float D = 6000.f; Cable && D < Len - 4000.f; D += 1200.f)
+		{
+			AddPiece(Cable, FMath::Lerp(Centre, H, D / Len), Along, 1100.f, ETDSpaceFieldKind::Debris, false);
+		}
 	}
 	// The mined-out field: metal and violet crystal, an elongated blob along the approach.
 	int32 Rocks = 0;
@@ -511,10 +561,11 @@ void ATDSpaceField::BuildSurveyScar(FRandomStream& Rng)
 
 void ATDSpaceField::BuildShatteredMoons(FRandomStream& Rng)
 {
-	// Region 6, the Shattered Moons: moon shards on the rim of the Dominion's cleared zone (3.6-4.6 km from it), on its
-	// far and side arcs only (never the side facing the Watchline), never within 400 m of the Dominion's bow axis out to
-	// 5 km (T4: the escape flight leaves the bay mouth); fracture faces (+X) turned toward the lane the player flies;
-	// gravel in each shard's lee.
+	// Region 6, the Shattered Moons: broken moon shards lining the last stretch of the route to the Dominion, so the
+	// player flies between them on the approach. T4's finer keep-outs instead of the 3.5 km sphere: MoonDominionClear from
+	// the Dominion (its 720 m field, the generators on a 389 m ring, the turrets), 400 m + the shard from the bow axis out
+	// to 5 km (the escape flight), 600 m from the approach stage start, and 300 m + the shard from the route line.
+	// Fracture faces (+X) turned toward the route; gravel in each shard's lee.
 	using namespace TDSpaceFieldCompose;
 	const ATDDominion* Dom = ATDDominion::Get(this);
 	const FTransform Xf = Layout->GetActorTransform();
@@ -522,31 +573,36 @@ void ATDSpaceField::BuildShatteredMoons(FRandomStream& Rng)
 	const FVector Zone = Xf.TransformPosition(L.CombatZoneCenter);
 	const FVector DLoc = Dom ? Dom->GetActorLocation() : Xf.TransformPosition(L.Dominion.GetLocation());
 	const FVector Bow = Dom ? Dom->GetActorForwardVector() : (Zone - DLoc).GetSafeNormal();
-	const FVector ToZone = (Zone - DLoc).GetSafeNormal();
+	const FVector Stage = Dom ? Dom->GetStageStart(false).GetLocation() : DLoc + Bow * 200000.f;
+	const FVector Route = (DLoc - Zone).GetSafeNormal();
+	const FVector Side = FVector::CrossProduct(FVector::UpVector, Route).GetSafeNormal();
 	UStaticMesh* Shards[] = { LoadKitPiece(TEXT("SM_KS_MoonShard_A")), LoadKitPiece(TEXT("SM_KS_MoonShard_B")) };
+	TGuardValue<bool> MoonRules(bMoonPlacement, true);
 	int32 Placed = 0;
-	for (int32 Try = 0; Placed < MoonShards && Try < MoonShards * 40; ++Try)
+	for (int32 Try = 0; Placed < MoonShards && Try < MoonShards * 60; ++Try)
 	{
-		FVector Dir = FVector(Rng.GetUnitVector()); Dir.Z *= 0.5f; Dir.Normalize();
-		if (FVector::DotProduct(Dir, ToZone) > 0.2f) { continue; }	// not the side facing the Watchline
-		const FVector At = DLoc + Dir * Rng.FRandRange(360000.f, 460000.f);
-		// The escape corridor: nothing within 400 m (plus the shard) of the bow axis out to 5 km.
-		const FVector OnBow = FMath::ClosestPointOnSegment(At, DLoc, DLoc + Bow * 500000.f);
-		if (FVector::Dist(At, OnBow) < 40000.f + 18000.f) { continue; }
-		// Fracture face toward the player's lane (the zone -> Dominion route).
-		const FVector OnLane = FMath::ClosestPointOnSegment(At, Zone, DLoc);
-		const FRotator Face = (OnLane - At).Rotation();
 		UStaticMesh* M = Shards[Placed % 2];
+		if (!M) { break; }
+		const float Half = M->GetBounds().SphereRadius;
+		// Along the route from 1.9 to 3.6 km short of the Dominion, alternating sides, 300 m + the shard to 1.1 km out.
+		const float FromDom = Rng.FRandRange(MoonDominionClear + Half + 10000.f, 360000.f);
+		const float Out = 30000.f + Half + Rng.FRandRange(0.f, 80000.f);
+		const FVector At = DLoc - Route * FromDom + Side * ((Placed % 2) ? 1.f : -1.f) * Out + FVector(0.f, 0.f, Rng.FRandRange(-40000.f, 40000.f));
+		const FVector OnBow = FMath::ClosestPointOnSegment(At, DLoc, DLoc + Bow * 500000.f);
+		if (FVector::Dist(At, OnBow) < 40000.f + Half) { continue; }
+		if (FVector::Dist(At, Stage) < 60000.f + Half) { continue; }
+		const FVector OnRoute = FMath::ClosestPointOnSegment(At, Zone, DLoc);
+		const FRotator Face = (OnRoute - At).Rotation();
 		if (!AddStructure(M, FTransform(FRotator(Face.Pitch, Face.Yaw, Rng.FRandRange(-40.f, 40.f)), At))) { continue; }
 		++Placed;
-		const FVector Lee = At + (At - OnLane).GetSafeNormal() * 22000.f;
-		for (int32 g = 0, n = 25; g < n; ++g)
+		const FVector Lee = At + (At - OnRoute).GetSafeNormal() * (Half + 8000.f);
+		for (int32 g = 0; g < 25; ++g)
 		{
 			AddRock(Lee + FVector(Rng.GetUnitVector()) * Rng.FRandRange(0.f, 15000.f), Power(Rng, 400.f, 3500.f, 2.5f), ETDSpaceFieldKind::Cluster, Rng, 0);
 		}
-		if (!RegionCentres.Contains(6)) { RegionCentres.Add(6, At); }
 	}
-	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: Shattered Moons %d shards"), Placed);
+	RegionCentres.Add(6, DLoc - Route * 270000.f);
+	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: Shattered Moons %d shards along the Dominion route"), Placed);
 }
 
 void ATDSpaceField::PlaceRegionCentrepieces(FRandomStream& Rng)
@@ -612,4 +668,21 @@ void ATDSpaceField::LogRouteReport() const
 		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.RouteReport: %d %s, centre %.1f km from the zone, biggest piece %.0f m, nearest route %.1f km%s"), R, Names[R],
 			FVector::Dist(*C, BeltCenter) / 100000.f, Big / 100.f, Nearest / 100000.f, *Line);
 	}
+}
+
+bool ATDSpaceField::IsInDockingCone(const FVector& P, float Radius) const
+{
+	// T4: the tractor cone (the bay's +X out of the mouth, ConeHalfAngleDeg out to ConeDepth) and the near-field capture
+	// (up to 80 degrees within 400 m). No set piece in it, so a pilot lining up from the side never meets a shard.
+	const ATDDominion* Dom = ATDDominion::Get(this);
+	const ATDDockingBay* Bay = Dom ? Dom->GetDockingBay() : nullptr;
+	if (!Bay) { return false; }
+	const FVector Mouth = Bay->GetActorLocation();
+	const FVector Fwd = Bay->GetActorForwardVector();
+	const FVector V = P - Mouth;
+	const float Along = (float)FVector::DotProduct(V, Fwd);
+	const float Lateral = (float)(V - Fwd * Along).Size();
+	if (V.Size() < 40000.f + Radius && Along > -Radius && Lateral <= FMath::Tan(FMath::DegreesToRadians(80.f)) * FMath::Max(Along, 0.f) + Radius) { return true; }
+	if (Along < -Radius || Along > Bay->ConeDepth + Radius) { return false; }
+	return Lateral <= FMath::Tan(FMath::DegreesToRadians(Bay->ConeHalfAngleDeg)) * FMath::Max(Along, 0.f) + Radius;
 }
