@@ -87,6 +87,7 @@ void FTDSettingsPageModel::AdjustRow(ETDSettingsRow Row, int32 Direction)
 	case ETDSettingsRow::GamepadDeadzone: S->SetGamepadDeadzone(TDSettingsPage::Step(P.GamepadDeadzone, 0.05f * D, 0.f, 0.5f)); break;
 	case ETDSettingsRow::InvertGamepadY: S->SetInvertGamepadY(!P.bInvertGamepadY); break;
 	case ETDSettingsRow::Hints: S->SetHintsEnabled(!P.bHintsEnabled); break;
+	case ETDSettingsRow::MinimalHUD: S->SetMinimalHUD(!P.bMinimalHUD); break;
 	case ETDSettingsRow::CameraShake: S->SetCameraShake(TDSettingsPage::Step(P.CameraShake, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::SpeedFOV: S->SetSpeedFOV(TDSettingsPage::Step(P.SpeedFOV, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::ReduceMotion: S->SetReduceMotion(!P.bReduceMotion); break;
@@ -172,6 +173,7 @@ FText FTDSettingsPageModel::RowLabel(ETDSettingsRow Row)
 	case ETDSettingsRow::GamepadDeadzone: return LOCTEXT("PadDead", "Gamepad dead zone");
 	case ETDSettingsRow::InvertGamepadY: return LOCTEXT("InvertPad", "Invert gamepad Y");
 	case ETDSettingsRow::Hints: return LOCTEXT("Hints", "Control hints");
+	case ETDSettingsRow::MinimalHUD: return LOCTEXT("MinimalHUD", "Minimal HUD");
 	case ETDSettingsRow::Difficulty: return LOCTEXT("Difficulty", "Difficulty");
 	case ETDSettingsRow::CameraShake: return LOCTEXT("CameraShake", "Camera shake");
 	case ETDSettingsRow::SpeedFOV: return LOCTEXT("SpeedFOV", "Speed effects (FOV, blur)");
@@ -217,6 +219,7 @@ FText FTDSettingsPageModel::RowValue(ETDSettingsRow Row) const
 	case ETDSettingsRow::GamepadDeadzone: return TDSettingsPage::Percent(P.GamepadDeadzone);
 	case ETDSettingsRow::InvertGamepadY: return TDSettingsPage::OnOff(P.bInvertGamepadY);
 	case ETDSettingsRow::Hints: return TDSettingsPage::OnOff(P.bHintsEnabled);
+	case ETDSettingsRow::MinimalHUD: return TDSettingsPage::OnOff(P.bMinimalHUD);
 	case ETDSettingsRow::CameraShake: return TDSettingsPage::Percent(P.CameraShake);
 	case ETDSettingsRow::SpeedFOV: return TDSettingsPage::Percent(P.SpeedFOV);
 	case ETDSettingsRow::ReduceMotion: return TDSettingsPage::OnOff(P.bReduceMotion);

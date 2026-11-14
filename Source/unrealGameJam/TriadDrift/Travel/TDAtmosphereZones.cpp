@@ -306,14 +306,14 @@ void UTDAtmosphereEntryComponent::TickClosedPlanetGuard(float DeltaTime)
 		if (Descent)
 		{
 			Descent->SetBurnIsExit(false);
-			Descent->SetEntryHeat(FMath::Clamp(0.35f + ClosedPlanet01 * 2.5f, 0.f, 1.f)); // the hull burn and the HUD's heat bar: seen from the band's edge
+			Descent->SetEntryHeat(FMath::Clamp(0.3f + ClosedPlanet01 * 1.2f, 0.f, ClosedPlanetMaxHeat)); // the hull burn and the HUD's heat bar: seen from the band's edge
 			if (ClosedPlanet01 > 0.25f && !bGuardFlashed)
 			{
 				// Skipping off the atmosphere: the flash, once per approach (a real contact also costs hull, below).
 				bGuardFlashed = true;
 				const FVector N = (At - Planet->GetPlanetCenter()).GetSafeNormal();
 				if (TravelFX) { UTDStatics::PlayCue(this, TravelFX->ExitBreakaway, At - N * 300.f, N.Rotation()); }
-				UE_LOG(LogTriadDrift, Log, TEXT("Closed planet: %s skips off the atmosphere (flash, heat %.2f)"), *Ship->GetName(), FMath::Clamp(0.35f + ClosedPlanet01 * 2.5f, 0.f, 1.f));
+				UE_LOG(LogTriadDrift, Log, TEXT("Closed planet: %s skips off the atmosphere (flash, heat %.2f)"), *Ship->GetName(), FMath::Clamp(0.3f + ClosedPlanet01 * 1.2f, 0.f, ClosedPlanetMaxHeat));
 			}
 			if (ClosedPlanet01 > 0.2f && !bGuardRoar)
 			{

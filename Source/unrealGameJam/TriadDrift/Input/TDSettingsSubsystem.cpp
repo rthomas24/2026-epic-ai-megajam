@@ -313,6 +313,13 @@ TArray<FIntPoint> UTDSettingsSubsystem::GetSupportedResolutions() const
 void UTDSettingsSubsystem::SetSubtitleSize(ETDSubtitleSize Size) { Settings.SubtitleSize = Size; Changed(); }
 
 void UTDSettingsSubsystem::SetSubtitlesEnabled(bool bEnabled) { Settings.bSubtitles = bEnabled; Changed(); }
+void UTDSettingsSubsystem::SetMinimalHUD(bool bMinimal) { Settings.bMinimalHUD = bMinimal; Changed(); }
+
+bool UTDSettingsSubsystem::IsMinimalHUD(const UObject* WorldContextObject)
+{
+	const UTDSettingsSubsystem* S = GetTDSettings(WorldContextObject);
+	return S && S->Settings.bMinimalHUD;
+}
 
 bool UTDSettingsSubsystem::AreSubtitlesOn(const UObject* WorldContext)
 {
@@ -504,6 +511,7 @@ namespace TDSettings
 				else if (K == TEXT("PadDeadzone")) { S->SetGamepadDeadzone(V); }
 				else if (K == TEXT("InvertPad")) { S->SetInvertGamepadY(B); }
 				else if (K == TEXT("Hints")) { S->SetHintsEnabled(B); }
+				else if (K == TEXT("MinimalHUD")) { S->SetMinimalHUD(B); }
 				else if (K == TEXT("Master")) { S->SetMasterVolume(V); }
 				else if (K == TEXT("CameraShake")) { S->SetCameraShake(V); }
 				else if (K == TEXT("SpeedFOV")) { S->SetSpeedFOV(V); }
