@@ -365,39 +365,47 @@ void UTDDescentSubsystem::TickCover(float Dt)
 			if (bTerrainReady && !bArrivalSettled && ArrivalWorld.Get() == World && Zone)
 			{
 				bArrivalSettled = true;
-				const float DeckZ = IsGlideEnabled() && CoverDestination != ETDDestination::Galaxy ? FindDeckZ(World) : 0.f;
+				float DeckZ = IsGlideEnabled() && CoverDestination != ETDDestination::Galaxy ? FindDeckZ(World) : 0.f;
 				if (DeckZ > 0.f)
 				{
-					// The glide-lite: the arrival over the cloud tops (inside the ceiling), the squad kept in formation.
+					// The glide-lite: the arrival over the cloud tops, the squad kept in formation and released from the zone
+					// (even above the normal ceiling) until the glide ends.
 					APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0);
 					ATDShip* Flown = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
-					// Over the deck, even above the normal ceiling: the squad is released from the zone until the glide ends.
-					const float Ceiling = TNumericLimits<float>::Max();
 					if (Flown)
 					{
-						const float Ground = Terrain ? Terrain->GetHeightAt(Flown->GetActorLocation()) : 0.f;
-						const float Want = FMath::Min(Ceiling, FMath::Max(DeckZ + GlideAboveDeckCm, Ground + 30000.f));
-						const float Shift = Want - Flown->GetActorLocation().Z;
+						const FVector From = Flown->GetActorLocation();
+						const float Ground = Terrain ? Terrain->GetHeightAt(From) : 0.f;
+						const FVector Fwd = FVector(Flown->GetActorForwardVector().X, Flown->GetActorForwardVector().Y, 0.f).GetSafeNormal();
+						// The glide end, predicted from a provisional plan; T4's deck for that corridor; the plan again on it.
+						auto PredictEnd = [&](float StartZ)
+						{
+							float Dur = 0.f, Speed = 0.f;
+							PlanGlide(StartZ, Ground + GlideEndAboveGroundCm, Dur, Speed);
+							FVector E = From + Fwd * Speed * Dur * 0.85f;
+							E.Z = (Terrain ? Terrain->GetGroundZAt(E) : 0.f) + GlideEndAboveGroundCm;
+							return E;
+						};
+						FVector End = PredictEnd(DeckZ + GlideAboveDeckCm);
+						if (Terrain)
+						{
+							const float Corridor = Terrain->GetCloudDeckZFor(FVector(From.X, From.Y, DeckZ + GlideAboveDeckCm), End);
+							if (Corridor > 0.f) { DeckZ = Corridor; End = PredictEnd(DeckZ + GlideAboveDeckCm); }
+						}
+						const float Want = FMath::Max(DeckZ + GlideAboveDeckCm, Ground + 30000.f);
+						const float Shift = Want - From.Z;
 						for (TActorIterator<ATDShip> It(World); It; ++It)
 						{
 							FVector L = It->GetActorLocation();
-							L.Z = FMath::Min(Ceiling, L.Z + Shift);
+							L.Z += Shift;
 							It->TeleportSpacecraft(L, It->GetActorRotation(), /*bKeepSpeed*/ true);
 							if (UTDShipMovementComponent* M = It->GetShipMovement()) { M->SetBoundaryReleaseFor(GlideOverride, true); }
 						}
-						Mark(*FString::Printf(TEXT("arrival over the cloud deck (%.0f m above it, shift %.0f m)"), (Want - DeckZ) / 100.f, Shift / 100.f));
-						// T4: build the scatter around where the glide will end, before the reveal (which waits on it).
-						if (Terrain)
-						{
-							const FVector Fwd = FVector(Flown->GetActorForwardVector().X, Flown->GetActorForwardVector().Y, 0.f).GetSafeNormal();
-							float Dur = 0.f, Speed = 0.f;
-							PlanGlide(Want, Ground + GlideEndAboveGroundCm, Dur, Speed);
-							FVector End = Flown->GetActorLocation() + Fwd * Speed * Dur * 0.85f;
-							End.Z = Terrain->GetGroundZAt(End) + GlideEndAboveGroundCm;
-							GlideEndPredicted = End;
-							bGlideEndPredicted = true;
-							Terrain->PrepareArrival(End);
-						}
+						Mark(*FString::Printf(TEXT("arrival over the cloud deck (deck %.0f m, %.0f m above it, shift %.0f m)"), DeckZ / 100.f, (Want - DeckZ) / 100.f, Shift / 100.f));
+						GlideEndPredicted = End;
+						bGlideEndPredicted = Terrain != nullptr;
+						// T4: the deck actor moves to the corridor's deck, and the scatter round the glide end is built first.
+						if (Terrain) { Terrain->PrepareArrival(FVector(From.X, From.Y, Want), End); }
 						FVector A = ArrivalWorldXf.GetLocation(); A.Z = Want; ArrivalWorldXf.SetLocation(A); // retakes too
 					}
 				}
@@ -656,9 +664,9 @@ bool UTDDescentSubsystem::IsGlideEnabled() { return CVarTDDescentGlide.GetValueO
 float UTDDescentSubsystem::FindDeckZ(UWorld* World)
 {
 	if (!World) { return 0.f; }
-	// T4's fitted deck (highest ground in the zone + 600 m) once the terrain knows it; else the built deck actor.
+	// The built deck actor (T4 moves it to the corridor's deck at PrepareArrival); else T4's zone-wide deck.
+	for (TActorIterator<ATDCloudDeck> It(World); It; ++It) { if (It->IsBuilt()) { return It->GetActorLocation().Z; } }
 	for (TActorIterator<ATDPlanetTerrain> It(World); It; ++It) { const float Z = It->GetCloudDeckZ(); if (Z > 0.f) { return Z; } break; }
-	for (TActorIterator<ATDCloudDeck> It(World); It; ++It) { if (It->IsBuilt()) { return It->GetActorLocation().Z; } } // unbuilt: not placed yet
 	return 0.f;
 }
 
