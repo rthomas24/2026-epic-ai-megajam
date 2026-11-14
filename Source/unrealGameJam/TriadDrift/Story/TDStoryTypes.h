@@ -126,6 +126,11 @@ struct UNREALGAMEJAM_API FTDTransmissionView
 	UPROPERTY(BlueprintReadOnly, Category = "Transmission")
 	float Alpha = 0.f;
 
+	/** ENG-45: false when the player turned subtitles off. A HUD that draws transmissions draws no text then; the voice,
+	 *  the timing and the queue are unchanged. */
+	UPROPERTY(BlueprintReadOnly, Category = "Transmission")
+	bool bShowSubtitle = true;
+
 	UPROPERTY(BlueprintReadOnly, Category = "Transmission")
 	float Progress01 = 0.f;
 
