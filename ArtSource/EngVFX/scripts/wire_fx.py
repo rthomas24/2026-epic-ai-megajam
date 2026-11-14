@@ -43,6 +43,10 @@ PLAN_R10 = {   # round 10 (Lead accepted r10_shielddrop): the 4th generator's sh
 PLAN_R10_PLUMES = {   # round 10, only once the Lead accepts the plume sheets: EngineTrail VFX; VFXScale left as it is
     'NullFleet/DA_Enemy_%s_Visuals' % t: {'engine_trail': 'NS_TD_Plume_Enemy_%s' % t} for t in ('Fighter', 'Interceptor', 'Gunship', 'Bomber', 'Carrier')
 }
+PLAN_R10K = {   # round 10k (#105 / #112 breakup at hull scale, #111 tractor seen from behind): VFX only, VFXScale kept
+    'Dominion/DA_Dominion_Visuals': {'hull_section_explosion': 'NS_TD_Explosion_HullSection2', 'breakup_final_blast': 'NS_TD_Explosion_FinalBlast2',
+                                     'tractor_beam': 'NS_TD_Dominion_TractorBeam2'},
+}
 PLAN = globals().get('PLAN') or PLAN_R10
 PLAN_R5 = {
     'NullFleet/DA_Enemy_Fighter_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},

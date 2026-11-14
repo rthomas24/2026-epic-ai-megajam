@@ -6,7 +6,7 @@ cd /c/Users/ryant/Documents/myRepos/game-jam/.wt/anim
 OUT=$1; shift
 mkdir -p "$OUT"
 for i in $(seq 1 12); do bash /c/Users/ryant/Documents/myRepos/game-jam/Builds/render-slot/can_launch.sh && break; sleep 10; done
-powershell -NoProfile -Command "Set-Location C:\Users\ryant\Documents\myRepos\game-jam\.wt\anim; .\Tools\td-play-mcp.ps1 -Port 21085 -Map /Game/TriadDrift/Maps/L_Planet_Verdance -MaxSeconds 600" | tail -1
+powershell -NoProfile -Command "Set-Location C:\Users\ryant\Documents\myRepos\game-jam\.wt\anim; .\Tools\td-play-mcp.ps1 -Port 21085 -Map /Game/TriadDrift/Maps/L_Planet_Verdance -MaxSeconds 600 -Offscreen" | tail -1
 python - <<'PY'
 import sys,time
 sys.path.insert(0,"Tools"); import td_mcp
@@ -17,6 +17,10 @@ PY
 cd ArtSource/EngAnim/Pilot/scripts
 for g in "$@"; do
   V=${g%%|*}; M=${g#*|}
+  if [ "$V" = "FIGHT" ]; then   # crew in a real fight: ../../PilotFixes/scripts/fight_capture.py <out> <Type>[:dist],...
+    TD_PORT=21085 TD_FIGHT_S=10 TD_CMDS_Heavy="3.0:TD.Ground.BreakGuard;3.1:@" TD_CMDS_Warden="2.5:TD.Ground.FaceNearest;2.6:TD.Key LeftMouseButton 0.5;3.2:@" timeout 200 python ../../PilotFixes/scripts/fight_capture.py "/c/Users/ryant/Documents/myRepos/game-jam/.wt/anim/$OUT" "$M" | tail -12
+    continue
+  fi
   TD_PORT=21085 TD_PASS=1 TD_VIEWS=$V timeout 200 python pilot_capture.py "/c/Users/ryant/Documents/myRepos/game-jam/.wt/anim/$OUT" "$M" | tail -20
 done
 cd /c/Users/ryant/Documents/myRepos/game-jam/.wt/anim
