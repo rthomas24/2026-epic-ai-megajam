@@ -597,8 +597,9 @@ bool FTDCourseRetake::RunTest(const FString& Parameters)
 	R.ConnectAtRelay(Relay);
 	ATDArchiveTransfer* X = R.Transfer();
 	if (!TestNotNull(TEXT("transfer"), X) || !TestEqual(TEXT("transfer first half"), R.Step(Relay), 2)) { return false; }
-	R.Tick(8.f);
-	TestTrue(TEXT("progress made"), X->GetProgress01() > 0.05f);
+	R.Tick(4.f); // before the first wave reaches the console (it pauses the transfer then)
+	TestTrue(*FString::Printf(TEXT("progress made (%.3f)"), X->GetProgress01()), X->GetProgress01() > 0.02f);
+	R.Tick(4.f);
 	R.FP->GetHealth()->SetInvulnerable(false);
 	R.FP->GetHealth()->Kill(nullptr, ETDDamageKind::Energy);
 	R.Tick(UTDFlowSettings::Get()->RetakeDelaySeconds + 1.f);
