@@ -11,6 +11,9 @@
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Flight/Tests/TDFlightTestHelpers.h"
 #include "Components/SphereComponent.h"
+#include "TriadDrift/World/SpaceField/TDSpaceField.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
+#include "EngineUtils.h"
 
 namespace TDImpactTest
 {
@@ -102,6 +105,64 @@ bool FTDImpactBreaks::RunTest(const FString& Parameters)
 		const FResult R = Fly(Boost, Fps, 0.f, /*bBreaks*/ true);
 		TestTrue(*FString::Printf(TEXT("@%.0f fps: the rock broke: no damage, the ship carries on through (dmg %.0f)"), Fps, R.Damage), R.Damage < 0.01f && R.bThrough && R.Received == 1);
 	}
+	return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDImpactRealField, "TriadDrift.Flight.Impact.ARealFieldRockTakesTheCrash", TD_TEST_FLAGS)
+bool FTDImpactRealField::RunTest(const FString& Parameters)
+{
+	// The Lead (T6's live crash, Nov 13): the ship bounced off a large rock that took no damage. The real galaxy and field,
+	// the flown ship at boost straight into a lone large piece: the piece is damaged, the ship stops outside it.
+	FTDTestWorld W;
+	ATDGalaxyLayout* Layout = ATDGalaxyLayout::SpawnDefaultGalaxy(W.GetWorld());
+	W.Advance(0.1f);
+	ATDSpaceField* Field = ATDSpaceField::SpawnFor(Layout);
+	W.Advance(0.1f);
+	if (!TestNotNull(TEXT("field"), Field)) { return false; }
+	const TArray<FTDSpaceFieldPiece>& P = Field->GetPieces();
+	int32 Big = INDEX_NONE;
+	for (int32 i = 0; i < P.Num() && Big == INDEX_NONE; ++i)
+	{
+		if (!Field->IsPieceAlive(i) || Field->GetPieceSizeClass(i) != 2 || P[i].Kind == ETDSpaceFieldKind::Wreck) { continue; }
+		bool bLone = true;
+		// Clear on the approach side only (-X), 100 m out: the real field packs its large rocks close together.
+		const FVector Approach = P[i].Location - FVector(P[i].Size + 9000.f, 0.f, 0.f);
+		for (int32 j = 0; j < P.Num() && bLone; ++j)
+		{
+			if (j == i || !Field->IsPieceAlive(j)) { continue; }
+			const FVector Seg = FMath::ClosestPointOnSegment(P[j].Location, Approach, P[i].Location);
+			bLone = FVector::Dist(Seg, P[j].Location) > P[j].Size + 2000.f;
+		}
+		if (bLone) { Big = i; }
+	}
+	if (!TestTrue(TEXT("a lone large piece"), Big != INDEX_NONE)) { return false; }
+	const FVector At = P[Big].Location;
+	const FVector From = At - FVector(P[Big].Size + 9000.f, 0.f, 0.f);
+	ATDShip* Ship = W.Spawn<ATDShip>(From);
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	Ship->SetPlayerControlled(true);
+	Ship->TeleportSpacecraft(From, (At - From).Rotation(), false);
+	UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	const float Boost = Move->GetFlightTuning().BoostSpeed;
+	Move->SetSpeedOverrideFor(TEXT("TDImpactTest"), Boost, 0.f);
+	Move->SetForwardSpeedImmediate(Boost);
+	UTDFlightEventCounter* Counter = NewObject<UTDFlightEventCounter>();
+	Counter->AddToRoot();
+	Counter->Bind(Move);
+	const float Health0 = Field->GetPieceHealth(Big);
+	const float Hull0 = Ship->GetHealth()->GetHull() + Ship->GetHealth()->GetShield();
+	for (int32 i = 0; i < 240 && Counter->Impacts == 0; ++i) { W.Tick(1.f / 60.f); }
+	Move->ClearSpeedOverrideFor(TEXT("TDImpactTest"));
+	W.Advance(0.3f);
+	const float Health1 = Field->IsPieceAlive(Big) ? Field->GetPieceHealth(Big) : 0.f;
+	const float ShipLost = Hull0 - (Ship->GetHealth()->GetHull() + Ship->GetHealth()->GetShield());
+	AddInfo(FString::Printf(TEXT("large piece %d (size %.0f m): health %.0f -> %.0f; impacts %d, ship lost %.0f, gap to centre %.0f m"), Big, P[Big].Size / 100.f, Health0, Health1,
+		Counter->Impacts, ShipLost, (FVector::Dist(Ship->GetActorLocation(), At) - P[Big].Size) / 100.f));
+	TestTrue(TEXT("the ship hit the rock"), Counter->Impacts > 0);
+	TestTrue(TEXT("the rock took the crash (its health dropped)"), Health1 < Health0);
+	TestTrue(TEXT("the ship took the crash too (most of the hull at boost)"), ShipLost >= 40.f);
+	Counter->RemoveFromRoot();
 	return true;
 }
 

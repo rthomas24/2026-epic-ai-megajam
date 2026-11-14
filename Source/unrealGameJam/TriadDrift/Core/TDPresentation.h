@@ -512,6 +512,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue CloudWisps;
 
+	/** Planet ambience (the effects builder's; ATDPlaceholderSky spawns it attached to the camera and drives User.Fade).
+	 *  No gameplay code plays these. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue PlanetAmbientVerdance;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue PlanetAmbientCinder;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue LandingDust;
 
@@ -714,6 +721,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
 	FTDFXCue SlateClap;
+
+	/** Cinematic 03: the dormant drone's three pulses as it wakes blue (the motif; Nicholas's sound). Played at the drone. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue ThreePulse;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
 	FTDFXCue CutSting;

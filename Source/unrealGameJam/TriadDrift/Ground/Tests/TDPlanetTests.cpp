@@ -1164,6 +1164,28 @@ namespace TDPlayedTest
 			return true;
 		}
 
+		/** A console inside a kit outpost room (Outpost_Site_*.manifest.json): in through the door on the room's +X, as a
+		 *  player walks it (outside -> doorway -> the stand point), then E. The interact box sits at site (-353, 0, 53.3)
+		 *  in the room's frame, which is the box's own rotation. */
+		bool UseKitConsole(AActor* Box, float Hold)
+		{
+			const FRotator R(0.f, Box->GetActorRotation().Yaw, 0.f);
+			const FVector Site = Box->GetActorLocation() - R.RotateVector(FVector(-353.f, 0.f, 53.3f));
+			for (const FVector& L : { FVector(700.f, 0.f, 0.f), FVector(400.f, 0.f, 0.f), FVector(-250.f, 0.f, 0.f) })
+			{
+				if (!RunTo(Site + R.RotateVector(L), 60.f, 20.f, false)) { Failed = FString::Printf(TEXT("could not walk into the outpost to %s"), *L.ToString()); return false; }
+			}
+			LookAt(Box->GetActorLocation());
+			Tick(0.1f);
+			Key(EKeys::E, true);
+			Tick(Hold + 0.3f);
+			Key(EKeys::E, false);
+			Tick(0.2f);
+			// And back out through the door (the room's walls stand between the console and everywhere else).
+			for (const FVector& L : { FVector(400.f, 0.f, 0.f), FVector(800.f, 0.f, 0.f) }) { RunTo(Site + R.RotateVector(L), 80.f, 15.f, false); }
+			return true;
+		}
+
 		/** Break a prop with the blade (real swings). */
 		bool Break(ATDShatterCrystal* C)
 		{
@@ -1253,7 +1275,7 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 		{
 			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It)
 			{
-				if (It->LinkedObjective == Wreck && It->LinkedStep == 2) { P.Use(*It, It->HoldTime, It->GetActorLocation()); } // the console's origin is its box centre
+				if (It->LinkedObjective == Wreck && It->LinkedStep == 2) { P.UseKitConsole(*It, It->HoldTime); } // in through the outpost's door
 			}
 		}
 	}
@@ -1321,7 +1343,7 @@ bool FTDCinderPlayed::RunTest(const FString& Parameters)
 		if (ATDEncounterVolume* Patrol = P.ActiveFightNear(FVector(2300.f, 0.f, 0.f), 1500.f)) { P.Fight(Patrol); }
 		P.RunTo(FVector(2900.f, 0.f, 0.f), 200.f, 20.f);
 		if (ATDEncounterVolume* Patrol = P.ActiveFightNear(FVector(2300.f, 0.f, 0.f), 1500.f)) { P.Fight(Patrol); }
-		if (ATDSurveyTerminal* T = P.Course->GetSurveyTerminal()) { P.Use(T, T->HoldTime, T->GetActorLocation() + FVector(0.f, 0.f, 40.f)); }
+		if (ATDSurveyTerminal* T = P.Course->GetSurveyTerminal()) { P.UseKitConsole(T, T->HoldTime); }
 		P.Tick(0.3f);
 	}
 	P.Report(Survey && Survey->IsComplete(), TEXT("survey records accessed after the patrol"));

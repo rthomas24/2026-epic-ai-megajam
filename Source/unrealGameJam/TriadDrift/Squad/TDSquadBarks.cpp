@@ -30,6 +30,12 @@ FTDBarkTuning::FTDBarkTuning()
 	CooldownById.Add(TDBarkIds::LowHull, 20.f);
 	CooldownById.Add(TDBarkIds::Respawn, 20.f); // wave 5 (a death every ~12 s): one "back in" line per 20 s
 	CooldownById.Add(TDBarkIds::SquadWipe, 5.f);
+	CooldownById.Add(TDBarkIds::PlayerKill, 10.f);
+	CooldownById.Add(TDBarkIds::MultiKill, 15.f);
+	CooldownById.Add(TDBarkIds::ShieldDown, 8.f);
+	CooldownById.Add(TDBarkIds::ShieldBack, 10.f);
+	CooldownById.Add(TDBarkIds::Breather, 30.f);
+	CooldownById.Add(TDBarkIds::OnMySix, 12.f);
 }
 
 bool FTDBarkLimiter::TryConsume(const FTDBarkTuning& Tuning, FName BarkId, ETDBarkPriority Priority, double RealNow)

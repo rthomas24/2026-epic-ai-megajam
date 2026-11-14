@@ -1,6 +1,7 @@
 // Triad Drift - hyperdrive (ENG-15). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
+#include "EngineUtils.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
@@ -333,6 +334,59 @@ void UTDHyperdriveComponent::SetState(ETDHyperdriveState NewState)
 	}
 }
 
+bool UTDHyperdriveComponent::PickDestination(const ATDSpacecraft* Craft)
+{
+	bHasDestination = false;
+	DestinationWell = NAME_None;
+	if (!Craft) { return false; }
+	const FVector From = Craft->GetActorLocation();
+	const FVector Nose = Craft->GetActorForwardVector();
+	const float CosCone = FMath::Cos(FMath::DegreesToRadians(Tuning.DestinationConeDeg));
+	float BestCos = CosCone;
+	// A gravity well ahead (planets, the Dominion): drop out at its edge.
+	if (const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
+	{
+		for (const FTDTravelGravityWell& W : Travel->GetGravityWells())
+		{
+			const FVector Centre = W.Owner.IsValid() ? W.Owner->GetActorLocation() : W.Location;
+			const FVector To = Centre - From;
+			const float Dist = To.Size();
+			if (Dist <= W.Radius + 1000.f) { continue; } // already there
+			const float C = FVector::DotProduct(To / Dist, Nose);
+			if (C >= BestCos)
+			{
+				BestCos = C;
+				bHasDestination = true;
+				DestinationWell = W.Id;
+				DestinationPoint = Centre - To / Dist * W.Radius;
+			}
+		}
+	}
+	// Else the objective marker ahead: drop out MarkerStandOff short of it.
+	if (!bHasDestination)
+	{
+		for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+		{
+			if (!It->ActorHasTag(TDTags::ObjectiveMarker)) { continue; }
+			const FVector To = It->GetActorLocation() - From;
+			const float Dist = To.Size();
+			if (Dist <= Tuning.MarkerStandOff + 5000.f) { continue; }
+			const float C = FVector::DotProduct(To / Dist, Nose);
+			if (C >= BestCos)
+			{
+				BestCos = C;
+				bHasDestination = true;
+				DestinationPoint = It->GetActorLocation() - To / Dist * Tuning.MarkerStandOff;
+			}
+		}
+	}
+	if (!bHasDestination) { return false; }
+	const float Distance = FVector::Dist(From, DestinationPoint);
+	DestinationJumpSpeed = FMath::Max(Tuning.JumpSpeed, Distance / FMath::Max(Tuning.DestinationMaxTunnelSeconds, 0.5f));
+	DestinationTunnelSeconds = Distance / DestinationJumpSpeed;
+	return true;
+}
+
 void UTDHyperdriveComponent::BeginJump()
 {
 	ATDSpacecraft* Craft = GetCraft();
@@ -345,14 +399,27 @@ void UTDHyperdriveComponent::BeginJump()
 	LastDropOutWell = NAME_None;
 	LastLocation = Craft->GetActorLocation();
 	LastEndCause = ETDHyperdriveEndCause::None;
+	// One jump to a marked destination (Ryan): the nose is laid on it and the speed set so the tunnel lasts at most
+	// DestinationMaxTunnelSeconds from anywhere on the map. Nothing ahead: a free jump, as before.
+	const bool bDest = PickDestination(Craft);
+	if (bDest)
+	{
+		Craft->TeleportSpacecraft(Craft->GetActorLocation(), (DestinationPoint - Craft->GetActorLocation()).Rotation(), true);
+	}
 	if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 	{
-		Move->SetSpeedOverrideFor(OverrideOwner, Tuning.JumpSpeed, Tuning.JumpSteeringScale, Tuning.JumpAcceleration);
+		Move->SetSpeedOverrideFor(OverrideOwner, bDest ? DestinationJumpSpeed : Tuning.JumpSpeed, bDest ? 0.f : Tuning.JumpSteeringScale, bDest ? DestinationJumpSpeed * 4.f : Tuning.JumpAcceleration);
 	}
 	SetState(ETDHyperdriveState::Jumping);
 	if (TravelFX)
 	{
 		StartLoopFX(TravelFX->HyperdriveTunnel);
+		// For T7's tunnel: how long and how fast (Niagara user floats; ignored when the system lacks them).
+		if (UNiagaraComponent* FX = LoopFX.Get())
+		{
+			FX->SetVariableFloat(TEXT("User.TunnelSeconds"), bDest ? DestinationTunnelSeconds : Tuning.MaxJumpSeconds);
+			FX->SetVariableFloat(TEXT("User.JumpSpeed"), bDest ? DestinationJumpSpeed : Tuning.JumpSpeed);
+		}
 	}
 }
 
@@ -368,7 +435,10 @@ void UTDHyperdriveComponent::BeginDropOut(FName WellId, ETDHyperdriveEndCause Ca
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 		{
 			// Short of an obstacle there's no burst: snap straight down to cruise.
-			const float Speed = bBurst ? Tuning.DropOutSpeed : Move->GetFlightTuning().CruiseSpeed;
+			// The longer boost out only after reaching the marker's stand-off: a well's edge has a planet or the Dominion
+			// behind it, so a well arrival keeps the short burst (it must not carry the ship on into the hull).
+			const bool bBoostOut = Cause == ETDHyperdriveEndCause::Arrived;
+			const float Speed = bBurst ? FMath::Max(Tuning.DropOutSpeed, bBoostOut ? Move->GetFlightTuning().BoostSpeed * 1.4f : 0.f) : Move->GetFlightTuning().CruiseSpeed;
 			Move->SetSpeedOverrideFor(OverrideOwner, Speed, 1.f, Tuning.DropOutDeceleration);
 		}
 		if (TravelFX)
@@ -530,9 +600,26 @@ void UTDHyperdriveComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
 		// Look far enough ahead to brake from jump speed to cruise before reaching it.
 		const float LookAhead = Tuning.LookAheadDistance + Craft->GetVelocity().Size() * DeltaTime;
+		// A destination jump brakes inside the tunnel: never faster than what still stops at the drop-out point, so the
+		// ship arrives at the well's edge (or the marker's stand-off), not inside it, however far it came.
+		if (bHasDestination)
+		{
+			if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
+			{
+				const float Left = FMath::Max(0.f, (float)FVector::DotProduct(DestinationPoint - Loc, Craft->GetActorForwardVector()));
+				const float Stop = FMath::Sqrt(2.f * Tuning.DropOutDeceleration * Left) + Tuning.DropOutSpeed;
+				Move->SetSpeedOverrideFor(OverrideOwner, FMath::Clamp(Stop, Tuning.DropOutSpeed, DestinationJumpSpeed), 0.f, Tuning.DropOutDeceleration);
+			}
+		}
+		const bool bReachedMarker = bHasDestination && DestinationWell.IsNone()
+			&& FVector::DotProduct(DestinationPoint - Ahead, Craft->GetActorForwardVector()) <= 0.f;
 		if (Travel && Travel->FindWellOnSegment(LastLocation, Ahead, Well))
 		{
 			BeginDropOut(Well.Id, ETDHyperdriveEndCause::GravityWell);
+		}
+		else if (bReachedMarker)
+		{
+			BeginDropOut(NAME_None, ETDHyperdriveEndCause::Arrived);
 		}
 		else if (SweepAhead(LookAhead) >= 0.f)
 		{
@@ -547,7 +634,7 @@ void UTDHyperdriveComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		{
 			BeginDropOut(NAME_None, ETDHyperdriveEndCause::Boundary);
 		}
-		else if (StateTime >= Tuning.MaxJumpSeconds)
+		else if (StateTime >= (bHasDestination ? DestinationTunnelSeconds + 1.f : Tuning.MaxJumpSeconds))
 		{
 			BeginDropOut(NAME_None, ETDHyperdriveEndCause::Timeout);
 		}
@@ -555,7 +642,7 @@ void UTDHyperdriveComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		break;
 	}
 	case ETDHyperdriveState::DropOut:
-		if (StateTime >= Tuning.DropOutSeconds)
+		if (StateTime >= (LastEndCause == ETDHyperdriveEndCause::Arrived ? Tuning.DestinationBoostOutSeconds : Tuning.DropOutSeconds))
 		{
 			FinishDropOut();
 		}

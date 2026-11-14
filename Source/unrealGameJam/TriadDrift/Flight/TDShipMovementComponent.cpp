@@ -567,9 +567,12 @@ bool UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 	}
 	// The world (asteroids, wrecks, debris) is told first and may break (T6's field: Lancer's ram, tiny pieces).
 	const bool bWorld = !Cast<APawn>(Hit.GetActor());
+	ITDShipImpactReceiver* Receiver = bWorld ? Cast<ITDShipImpactReceiver>(Hit.GetActor()) : nullptr;
+	UE_LOG(LogTriadDrift, Verbose, TEXT("TD flight: %s hit %s / %s item %d at %.1f m/s into it (receiver %d, scrape below %.0f m/s)"),
+		*GetNameSafe(GetOwner()), *GetNameSafe(Hit.GetActor()), *GetNameSafe(Hit.GetComponent()), Hit.Item, Into / 100.f, Receiver ? 1 : 0, Tuning.WorldScrapeSpeed / 100.f);
 	if (bWorld && Into >= Tuning.WorldScrapeSpeed)
 	{
-		if (ITDShipImpactReceiver* Receiver = Cast<ITDShipImpactReceiver>(Hit.GetActor()))
+		if (Receiver)
 		{
 			if (Receiver->ReceiveShipImpact(Hit.GetComponent(), Hit.Item, Hit.ImpactPoint, Into, FMath::Clamp(Into / Speed, 0.f, 1.f), Cast<ATDShip>(GetOwner())))
 			{
