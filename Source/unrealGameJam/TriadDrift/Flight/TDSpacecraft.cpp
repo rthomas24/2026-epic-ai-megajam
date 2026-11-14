@@ -10,6 +10,11 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "UObject/ConstructorHelpers.h"
+#include "HAL/IConsoleManager.h"
+
+static TAutoConsoleVariable<int32> CVarTDTeleportStack(TEXT("td.Debug.TeleportStack"), 0,
+	TEXT("1 = log the caller's stack on long player teleports and silent moves (dev; each stack costs 60-270 ms). Default 0: the line only."));
+bool TDTeleportStackEnabled() { return CVarTDTeleportStack.GetValueOnAnyThread() != 0; }
 
 namespace TDSpacecraftDefaults
 {
@@ -232,7 +237,7 @@ void ATDSpacecraft::TeleportSpacecraft(const FVector& Location, const FRotator& 
 	{
 		UE_LOG(LogTriadDrift, Log, TEXT("TD teleport: %s %.0f m (%s -> %s). Caller:"), *GetName(), FVector::Dist(From, Location) / 100.f,
 			*From.ToCompactString(), *Location.ToCompactString());
-		if (!GIsAutomationTesting) { FDebug::DumpStackTraceToLog(ELogVerbosity::Log); } // tests: the line is enough (a stack reads like a crash in test logs)
+		if (!GIsAutomationTesting && TDTeleportStackEnabled()) { FDebug::DumpStackTraceToLog(ELogVerbosity::Log); } // td.Debug.TeleportStack 1: a stack costs 60-270 ms (T6, #153) // tests: the line is enough (a stack reads like a crash in test logs)
 	}
 #endif
 	if (ShipMovement) { ShipMovement->SetMoveAnnounced(true); }
