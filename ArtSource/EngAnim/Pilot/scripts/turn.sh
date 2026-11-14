@@ -12,7 +12,7 @@ import sys,time
 sys.path.insert(0,"Tools"); import td_mcp
 c=td_mcp.McpClient("http://127.0.0.1:21085/mcp",180); c.connect()
 def cmd(s): c.tool("call_tool",{"toolset_name":"ConsoleToolset.ConsoleToolset","tool_name":"RunConsoleCommand","arguments":{"command":s}})
-cmd("TD.Stage VerdanceOnFoot"); time.sleep(18); cmd("TD.God"); cmd("TD.Ground.ThirdPerson 1"); time.sleep(1)
+cmd("TD.Stage VerdanceOnFoot"); time.sleep(28); cmd("TD.God"); cmd("TD.Ground.ThirdPerson 1"); time.sleep(1)
 PY
 cd ArtSource/EngAnim/Pilot/scripts
 for g in "$@"; do
