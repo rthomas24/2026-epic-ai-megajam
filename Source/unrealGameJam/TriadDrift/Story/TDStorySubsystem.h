@@ -72,6 +72,13 @@ public:
 	 */
 	FText SpeakerTagNow(ETDSpeaker Speaker) const;
 	bool HasAired(FName Id) const;
+	/** T5 (live walk): the line has gone on air, in this world or earlier in the run (and isn't waiting to air again).
+	 *  Hold an encounter on it: false until it starts; true for good once it has (a retake or a reload included). */
+	static bool HasLineAired(const UObject* WorldContext, FName Id);
+	/** T1 (live walk): a sequence the player must hear is running (Aftermath): hold the planet descent until false. */
+	static bool IsMustHearSequencePlaying(const UObject* WorldContext);
+	/** Every live line of a sequence has been played this run. */
+	bool HasPlayedAll(FName SequenceId) const;
 	/** A pilot's trait line for the name cards (Trait_Wren / _Kato / _Moss): "BOLD · INSTINCTIVE". */
 	static FText PilotTrait(ETDShipId Ship);
 	static FLinearColor SpeakerColor(ETDSpeaker Speaker);
@@ -127,6 +134,8 @@ public:
 	static bool IsRequiredLine(FName Id);
 	/** Lines kept in the table but never aired (N-087, #29: TB_Escaped and the cut C4/C6 calls). */
 	static bool IsRetired(FName Id);
+	/** A line delivered as static: plays UTDStoryFX::TransmissionStatic when it goes on air. */
+	static bool HasStaticDelivery(FName Id);
 	/** Seconds a sequence must have run before it can be skipped (Nicholas, N-060: ten). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Story")
 	float SkipAllowedAfterSeconds = 10.f;
@@ -169,6 +178,10 @@ private:
 	void HandleAftermathBegins(bool bSkippedTutorial);
 	FDelegateHandle AftermathHandle;
 	bool bAftermathChecked = false;
+	bool bAftermathResumeChecked = false;
+	void PlayStaticTear(FName Id);
+	/** A run marker (never a line): this run's Aftermath has begun. */
+	static constexpr const TCHAR* AftermathStartedId = TEXT("Seq_AftermathStarted");
 	void HandleSurveyRecords(AActor* Terminal);
 	void HandleLineOnAir(FName Id);
 	void UpdateDronePulses(double Now);

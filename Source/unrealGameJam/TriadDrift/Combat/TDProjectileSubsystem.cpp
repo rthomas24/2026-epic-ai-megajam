@@ -43,6 +43,7 @@ ATDProjectile* UTDProjectileSubsystem::Acquire()
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	Params.ObjectFlags |= RF_Transient;
+	++SpawnedProjectiles;
 	return World->SpawnActor<ATDProjectile>(ATDProjectile::StaticClass(), FTransform::Identity, Params);
 }
 
@@ -185,6 +186,7 @@ ATDCombatFlash* UTDProjectileSubsystem::AcquireFlash(const FVector& Location)
 		Params.ObjectFlags |= RF_Transient;
 		if (ATDCombatFlash* Flash = World->SpawnActor<ATDCombatFlash>(ATDCombatFlash::StaticClass(), Location, FRotator::ZeroRotator, Params))
 		{
+			++SpawnedFlashes;
 			Flashes.Add(Flash);
 			return Flash;
 		}

@@ -1,0 +1,218 @@
+[
+ {
+  "asset": "SM_KS_PicketRing",
+  "min_cm": [
+   1092.76,
+   -6800.918,
+   -400.0
+  ],
+  "max_cm": [
+   9563.643,
+   6500.938,
+   1720.0
+  ],
+  "size_cm": [
+   8470.88,
+   13301.86,
+   2120.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 6008,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Light",
+   "M_Kit_Nav",
+   "M_Kit_Scorch",
+   "M_Kit_Trim2"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 2,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_KS_Hulk_Fore",
+  "min_cm": [
+   -700.0,
+   -1204.0,
+   -896.0
+  ],
+  "max_cm": [
+   6500.0,
+   1204.0,
+   1170.0
+  ],
+  "size_cm": [
+   7200.0,
+   2408.0,
+   2066.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 1358,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Cold",
+   "M_Kit_Light",
+   "M_Kit_Scorch",
+   "M_Kit_Trim2"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_KS_Hulk_Mid",
+  "min_cm": [
+   -2900.0,
+   -1208.0,
+   -896.0
+  ],
+  "max_cm": [
+   2900.0,
+   1350.0,
+   1020.0
+  ],
+  "size_cm": [
+   5800.0,
+   2558.0,
+   1916.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 2760,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Breach",
+   "M_Kit_Cold",
+   "M_Kit_Light",
+   "M_Kit_Scorch",
+   "M_Kit_Trim2"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 48,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_KS_Hulk_Aft",
+  "min_cm": [
+   -2100.0,
+   -1283.703,
+   -896.0
+  ],
+  "max_cm": [
+   2200.0,
+   1283.703,
+   1100.0
+  ],
+  "size_cm": [
+   4300.0,
+   2567.41,
+   1996.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 1952,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Cold",
+   "M_Kit_Light",
+   "M_Kit_Scorch",
+   "M_Kit_Trim2"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_KS_ScarRig",
+  "min_cm": [
+   -4533.917,
+   -3999.738,
+   -3608.729
+  ],
+  "max_cm": [
+   4345.799,
+   4281.305,
+   4550.0
+  ],
+  "size_cm": [
+   8879.72,
+   8281.04,
+   8158.73
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 15880,
+  "materials": [
+   "M_Kit_Bore",
+   "M_Kit_Dom",
+   "M_Kit_Rock",
+   "M_Kit_Strobe",
+   "M_Kit_Work"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_KS_MoonShard_A",
+  "min_cm": [
+   -19736.197,
+   -17121.652,
+   -10300.469
+  ],
+  "max_cm": [
+   6330.0,
+   15833.118,
+   10777.536
+  ],
+  "size_cm": [
+   26066.2,
+   32954.77,
+   21078.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 20406,
+  "materials": [
+   "M_Kit_Rock",
+   "M_Kit_Seam",
+   "M_Kit_Strata",
+   "M_Kit_Strata2"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_KS_MoonShard_B",
+  "min_cm": [
+   -10770.24,
+   -8616.964,
+   -7738.754
+  ],
+  "max_cm": [
+   3530.0,
+   8329.089,
+   7808.218
+  ],
+  "size_cm": [
+   14300.24,
+   16946.05,
+   15546.97
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 21139,
+  "materials": [
+   "M_Kit_Rock",
+   "M_Kit_Seam",
+   "M_Kit_Strata",
+   "M_Kit_Strata2"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ }
+]

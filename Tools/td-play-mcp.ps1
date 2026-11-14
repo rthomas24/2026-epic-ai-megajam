@@ -25,7 +25,9 @@ param(
     [int]$MaxSeconds = 900,
     [switch]$Editor,
     [switch]$Audio,
+    [switch]$RealtimeAudio,
     [switch]$Offscreen,
+    [string[]]$ExtraArgs = @(),
     [switch]$Stop,
     [int]$StartTimeoutSeconds = 600
 )
@@ -90,9 +92,11 @@ if (Test-Path $logFile) { Remove-Item $logFile -Force }
 
 # -nosound skips MetaSound pre-save and cannot preview or render audio. -Audio swaps it for
 # -NonRealtimeAudio: the audio engine runs and can be rendered offline, nothing reaches the speakers.
-$soundFlag = if ($Audio) { "-NonRealtimeAudio" } else { "-nosound" }
+# -RealtimeAudio: the real output device drives the mixer (so buffer underruns can happen and be logged, as in the shipped
+# game), with the final submix muted (au.MuteAudio=1) so nothing reaches the speakers. For mixer / performance checks.
+$soundFlag = if ($RealtimeAudio) { "-ExecCmds=`"au.MuteAudio 1`"" } elseif ($Audio) { "-NonRealtimeAudio" } else { "-nosound" }
 $common = @("-nosplash", $soundFlag, "-unattended", "-NoLiveCoding",
-            "-ModelContextProtocolStartServer", "-ModelContextProtocolPort=$Port", "-abslog=`"$logFile`"")
+            "-ModelContextProtocolStartServer", "-ModelContextProtocolPort=$Port", "-abslog=`"$logFile`"") + $ExtraArgs
 if ($Editor) {
     # Full editor, hidden: every enabled editor toolset (Blueprint, Niagara, automation tests, cheats in PIE...).
     $arguments = @("`"$project`"", $Map, "-RenderOffscreen") + $common

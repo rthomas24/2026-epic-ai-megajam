@@ -1,6 +1,7 @@
 // Triad Drift - Combat (Teammate 2). Swept, pooled projectile.
 
 #include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 #include "TriadDrift/Combat/TDCombatCueLog.h"
 #include "TriadDrift/Combat/TDAudioHitTrace.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
@@ -137,6 +138,7 @@ ATDProjectile* ATDProjectile::Spawn(UWorld* World, const FTDProjectileSpec& InSp
 ATDProjectile* ATDProjectile::Launch(UWorld* World, const FTDProjectileSpec& InSpec, const FTransform& Transform, AActor* InInstigator,
 	ETDTeam InTeam, AActor* InHomingTarget, const FVector& InheritedVelocity, float InDamageMultiplier, bool bInReportHits)
 {
+	TD_COMBAT_PERF(ProjectileLaunch);
 	UTDProjectileSubsystem* Subsystem = World ? World->GetSubsystem<UTDProjectileSubsystem>() : nullptr;
 	if (!Subsystem)
 	{
@@ -579,6 +581,7 @@ void ATDProjectile::TeleportProjectile(const FVector& NewLocation, const FVector
 
 void ATDProjectile::Tick(float DeltaSeconds)
 {
+	TD_COMBAT_PERF(Projectiles);
 	Super::Tick(DeltaSeconds);
 	// Launched earlier in this same frame: the weapon placed it (and stepped its sub-frame age) already.
 	const UWorld* World = GetWorld();

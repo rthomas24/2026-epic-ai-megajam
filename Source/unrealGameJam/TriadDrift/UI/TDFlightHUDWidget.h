@@ -103,7 +103,23 @@ public:
 		float Health = -1.f;
 		/** Metres. */
 		float Distance = 0.f;
+		/** What it is (KindOf): its marker's outline. */
+		uint8 Kind = 0;
+		/** Its heading relative to the player: 0 crossing, 1 toward, 2 away; HeadingAngle = its nose on screen (radians). */
+		uint8 Heading = 0;
+		float HeadingAngle = 0.f;
+		/** It is attacking the flown ship (its pilot's target): a brighter, heavier outline. */
+		bool bThreat = false;
 	};
+
+	/**
+	 * Enemy marker shapes (the ship builder's readability pass, via the Lead): at chase-camera range the ships are a few
+	 * dozen pixels, so the marker carries the type. 1 fighter = small chevron, 2 interceptor = narrow dart, 3 bomber =
+	 * wide wedge, 4 gunship = heavy diamond, 5 carrier = large bracketed hexagon, 0 anything else = the plain triangle.
+	 */
+	enum : uint8 { KindOther = 0, KindFighter = 1, KindInterceptor = 2, KindBomber = 3, KindGunship = 4, KindCarrier = 5 };
+	static uint8 KindOf(const AActor* Actor);
+	static const TCHAR* KindName(uint8 Kind);
 
 	/** An objective waypoint (planet, gate, generator, landing pad): a white diamond on screen, an edge diamond off screen. */
 	struct FWaypoint
@@ -292,6 +308,16 @@ public:
 		FVector2D TransponderPos = FVector2D::ZeroVector;
 		bool bTransponderVerified = false;
 		float TransponderMetres = 0.f;
+		/**
+		 * The escape flight (T4's ATDDominion in EscapeFlight: GetEscapeTimeLeft, EscapeSeconds, GetEscapeExitRadius):
+		 * the clock under the objective, and "CLEAR" where the way out is (straight away from the hull, at the radius).
+		 */
+		bool bEscapeFlight = false;
+		float EscapeLeft = 0.f;
+		float EscapeTotal = 0.f;
+		bool bClearOnScreen = false;
+		FVector2D ClearPos = FVector2D::ZeroVector;
+		float ClearMetres = 0.f;
 		/** 0 collapsed .. 1 expanded (for ObjectiveExpandSeconds after the text changes, eased over 0.3 s). */
 		float ObjectiveExpand = 0.f;
 		bool bUsingGamepad = false;
@@ -492,6 +518,11 @@ public:
 	/** Tests: >= 0 forces the generator count (total, down) without a Dominion. */
 	int32 ForceGeneratorsTotal = -1;
 	int32 ForceGeneratorsDown = 0;
+	/** Tests: >= 0 forces an escape flight (seconds left of total) clear of a hull at ForceEscapeCentre, radius cm. */
+	float ForceEscapeLeft = -1.f;
+	float ForceEscapeTotal = 60.f;
+	FVector ForceEscapeCentre = FVector::ZeroVector;
+	float ForceEscapeRadius = 100000.f;
 private:
 	FDelegateHandle FieldHitHandle;
 	void HandleFieldHit(AActor* Field, const FVector& Where) { FieldHitLeft = FieldHitSeconds; }

@@ -48,7 +48,7 @@ public:
 
 	/** Seconds the body stays after death (placeholder ragdoll). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew", meta = (Units = "s"))
-	float CorpseSeconds = 4.f;
+	float CorpseSeconds = 10.f; // the falls run 2.6-3.9 s: the body lies, then sinks out (CorpseSinkSeconds), never pops
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Crew")
 	void InitFromType(ETDCrewType Type);
@@ -148,6 +148,14 @@ public:
 
 	// ---- sound (ENG-35): the bolt's muzzle sound (one per volley) and the drone's hum (looped, stopped on death).
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> RifleShotSound;
+	/** The guard clang on a blocked slash (engineering fallback; the GuardClang ground cue, then the look's ShieldHit cue, win). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> GuardClangSound;
+
+	/** The Heavy's guard (T7's playtest, Nov 13: ~32 quick slashes did nothing and nothing taught the lunge): blocked quick
+	 *  slashes chip it, and this many in a row (each within GuardChipWindow s of the last) stagger it open. */
+	static constexpr int32 GuardChipsToBreak = 9;
+	static constexpr float GuardChipWindow = 4.f;
+	int32 GetGuardChips() const { return GuardChips; }
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> DroneHumSound;
 	/** The last sound events (RifleShot, DroneHum, DroneHumStop): tests and debugging. */
 	const TArray<FName>& GetSoundEvents() const { return SoundEvents; }
@@ -162,6 +170,14 @@ public:
 protected:
 	TArray<FName> SoundEvents;
 	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> DroneHum;
+	/** The drone's thrusters (its visuals' EngineTrail at Engine_0 / Engine_1, else the hull origin; T2), stopped on death. */
+	UPROPERTY(Transient) TArray<TObjectPtr<class UNiagaraComponent>> DroneThrusters;
+	UPROPERTY(Transient) TArray<TObjectPtr<class UAudioComponent>> DroneThrusterAudio;
+	void StartDroneThrusters();
+	void StopDroneThrusters();
+public:
+	const TArray<TObjectPtr<class UNiagaraComponent>>& GetDroneThrusters() const { return DroneThrusters; }
+protected:
 	double LastShotSoundTime = -10.0;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -216,6 +232,11 @@ private:
 	float ShotTimer = 0.f;
 	float StaggerLeft = 0.f;
 	float GuardBrokenLeft = 0.f;
+	int32 GuardChips = 0;
+	float GuardChipAge = 0.f;
+	float GuardFlashLeft = 0.f;
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> GuardFlash;
+	void PlayGuardClang(const FVector& At);
 	float ChargeTimeLeft = 0.f;
 	FVector ChargeVelocity = FVector::ZeroVector;
 	int32 BossPhase = 1;
@@ -234,6 +255,11 @@ private:
 	float RagdollIn = -1.f;
 	/** The chosen death clip ends lying on the ground (no ragdoll hand-off). */
 	mutable bool bGroundDeathClip = false;
+	/** The corpse's last second: it sinks through the floor instead of popping out (Lead, Nov 14). */
+	static constexpr float CorpseSinkSeconds = 1.2f;
+	float CorpseLeft = -1.f;
+	FName LastTypeClip;
+	int32 MeleeSwings = 0;
 	FVector RagdollPush = FVector::ZeroVector;
 	FVector ToppleAway = FVector::ForwardVector;
 	void StartRagdollOrTopple();
@@ -241,6 +267,13 @@ public:
 	/** The death clip chosen for a skeletal look (tests): per-type in-place first, then the shared in-place copies, then
 	 *  the template set; only clips on the look's own skeleton. Null when none fits. */
 	class UAnimSequenceBase* ChooseDeathClip(const FVector& HitDirection) const;
+	/** A per-type clip A_Crew_<VisualsId>_<Action> on this look's skeleton (the animation builder's set), or null. */
+	class UAnimSequenceBase* TypeClip(const TCHAR* Action) const;
+	/** Plays TypeClip(Action) as a one-shot, timed so its Contact (s into the clip) lands at Windup (s from now); false
+	 *  when there is no such clip (then today's template clip plays). */
+	bool PlayTypeClip(const TCHAR* Action, float Contact = 0.f, float Windup = 0.f);
+	/** The per-type clip that played last (tests), or None. */
+	FName GetLastTypeClip() const { return LastTypeClip; }
 	/** Seconds of death clip before the ragdoll / topple hand-off. */
 	static constexpr float DeathClipSeconds = 0.5f;
 	bool IsRagdolling() const;

@@ -1,0 +1,142 @@
+[
+ {
+  "asset": "SM_KS_Hulk_Aft",
+  "size_m": [
+   43.0,
+   25.6,
+   19.9
+  ],
+  "tris_lod0": 2060,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Cold",
+   "2:Scorch",
+   "3:Trim2",
+   "4:Light",
+   "5:Nav"
+  ]
+ },
+ {
+  "asset": "SM_KS_Hulk_Fore",
+  "size_m": [
+   72.0,
+   24.1,
+   23.1
+  ],
+  "tris_lod0": 1466,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Cold",
+   "2:Scorch",
+   "3:Trim2",
+   "4:Light",
+   "5:Nav"
+  ]
+ },
+ {
+  "asset": "SM_KS_Hulk_Mid",
+  "size_m": [
+   58.0,
+   25.6,
+   21.6
+  ],
+  "tris_lod0": 2868,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Cold",
+   "2:Scorch",
+   "3:Trim2",
+   "4:Breach",
+   "5:Light",
+   "6:Nav"
+  ]
+ },
+ {
+  "asset": "SM_KS_MoonShard_A",
+  "size_m": [
+   260.7,
+   329.5,
+   210.7
+  ],
+  "tris_lod0": 23012,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Seam",
+   "1:Rock",
+   "2:Strata",
+   "3:Strata2",
+   "4:CrackDim",
+   "5:CrackHot",
+   "6:Rim"
+  ]
+ },
+ {
+  "asset": "SM_KS_MoonShard_B",
+  "size_m": [
+   143.0,
+   169.4,
+   155.4
+  ],
+  "tris_lod0": 23905,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Seam",
+   "1:Rock",
+   "2:Strata",
+   "3:Strata2",
+   "4:CrackDim",
+   "5:CrackHot",
+   "6:Rim"
+  ]
+ },
+ {
+  "asset": "SM_KS_PicketRing",
+  "size_m": [
+   89.8,
+   132.9,
+   23.7
+  ],
+  "tris_lod0": 7626,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Nav",
+   "2:Scorch",
+   "3:Trim2",
+   "4:Light",
+   "5:Breach",
+   "6:CyanRun",
+   "7:Flicker",
+   "8:Stripe"
+  ]
+ },
+ {
+  "asset": "SM_KS_ScarRig",
+  "size_m": [
+   88.8,
+   82.8,
+   81.6
+  ],
+  "tris_lod0": 15904,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:DomRaw",
+   "1:Dom",
+   "2:Rock",
+   "3:Strobe",
+   "4:Work",
+   "5:Eye",
+   "6:Glow"
+  ]
+ }
+]

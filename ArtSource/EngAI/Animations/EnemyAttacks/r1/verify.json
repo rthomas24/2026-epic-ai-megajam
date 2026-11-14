@@ -1,0 +1,615 @@
+{
+ "A_NullGrunt_Charge": {
+  "fbx_settings": {
+   "UpAxis": 1,
+   "FrontAxis": 2,
+   "UnitScaleFactor": 1.0,
+   "TimeMode": 6,
+   "CustomFrameRate": 30.0
+  },
+  "armature_object": "root",
+  "bones": 88,
+  "bone_names_match_ref": true,
+  "rest_max_diff_cm": 0.0001,
+  "frames": 17,
+  "seconds": 0.533,
+  "first_frame_after_reimport": 1,
+  "fps": 30,
+  "contact_tolerance_cm": 2.0,
+  "contact_per_frame": {
+   "l": "LLLLLLLLL........",
+   "r": "........RRRRRRRRR"
+  },
+  "contact_line": "llllllllBrrrrrrrr",
+  "frames_without_any_contact": [],
+  "contact_runs": {
+   "l": [
+    {
+     "frames_1based": [
+      1,
+      9
+     ],
+     "ball_slide_cm": 0.0,
+     "ankle_slide_cm": 3.5,
+     "pivot_slide_cm": 0.0
+    }
+   ],
+   "r": [
+    {
+     "frames_1based": [
+      9,
+      17
+     ],
+     "ball_slide_cm": 0.0,
+     "ankle_slide_cm": 3.5,
+     "pivot_slide_cm": 0.0
+    }
+   ]
+  },
+  "max_planted_slide_cm": 0.0,
+  "sole_min_cm": {
+   "l": -0.08,
+   "r": -0.08
+  },
+  "lowest_vertex_cm": -0.08,
+  "lowest_vertex_per_frame": [
+   -0.1,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   -0.0,
+   -0.0,
+   -0.1,
+   -0.0,
+   -0.0,
+   0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.1
+  ],
+  "torso_lean_deg_mean": 41.0,
+  "torso_lean_deg_range": [
+   34.9,
+   45.8
+  ],
+  "shoulder_drop_cm_mean (left minus right shoulder height)": 9.2,
+  "right_shoulder_ahead_cm_mean": 6.3,
+  "loop_first_last_max_bone_delta_cm": 0.0
+ },
+ "A_NullGrunt_Charge_RootMotion": {
+  "fbx_settings": {
+   "UpAxis": 1,
+   "FrontAxis": 2,
+   "UnitScaleFactor": 1.0,
+   "TimeMode": 6,
+   "CustomFrameRate": 30.0
+  },
+  "armature_object": "root",
+  "bones": 88,
+  "bone_names_match_ref": true,
+  "rest_max_diff_cm": 0.0001,
+  "frames": 17,
+  "seconds": 0.533,
+  "first_frame_after_reimport": 1,
+  "fps": 30,
+  "contact_tolerance_cm": 2.0,
+  "contact_per_frame": {
+   "l": "LLLLLLLLL........",
+   "r": "........RRRRRRRRR"
+  },
+  "contact_line": "llllllllBrrrrrrrr",
+  "frames_without_any_contact": [],
+  "contact_runs": {
+   "l": [
+    {
+     "frames_1based": [
+      1,
+      9
+     ],
+     "ball_slide_cm": 0.0,
+     "ankle_slide_cm": 3.5,
+     "pivot_slide_cm": 0.0
+    }
+   ],
+   "r": [
+    {
+     "frames_1based": [
+      9,
+      17
+     ],
+     "ball_slide_cm": 0.0,
+     "ankle_slide_cm": 3.5,
+     "pivot_slide_cm": 0.0
+    }
+   ]
+  },
+  "max_planted_slide_cm": 0.0,
+  "sole_min_cm": {
+   "l": -0.08,
+   "r": -0.08
+  },
+  "lowest_vertex_cm": -0.08,
+  "lowest_vertex_per_frame": [
+   -0.1,
+   -0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   -0.0,
+   -0.0,
+   -0.1,
+   -0.0,
+   -0.0,
+   0.0,
+   0.0,
+   0.0,
+   -0.0,
+   -0.0,
+   -0.1
+  ],
+  "torso_lean_deg_mean": 41.0,
+  "torso_lean_deg_range": [
+   34.9,
+   45.8
+  ],
+  "shoulder_drop_cm_mean (left minus right shoulder height)": 9.2,
+  "right_shoulder_ahead_cm_mean": 6.3,
+  "loop_first_last_max_bone_delta_cm": 161.882
+ },
+ "A_NullHeavy_ShieldBash": {
+  "fbx_settings": {
+   "UpAxis": 1,
+   "FrontAxis": 2,
+   "UnitScaleFactor": 1.0,
+   "TimeMode": 6,
+   "CustomFrameRate": 30.0
+  },
+  "armature_object": "root",
+  "bones": 88,
+  "bone_names_match_ref": true,
+  "rest_max_diff_cm": 0.0001,
+  "frames": 56,
+  "seconds": 1.833,
+  "first_frame_after_reimport": 1,
+  "fps": 30,
+  "contact_tolerance_cm": 2.0,
+  "contact_per_frame": {
+   "l": "LLLLLLLLLLLLLL....LLLLLLLLLLLLLLLLLLLLLLL....LLLLLLLLLLL",
+   "r": "RRRRRRRRRRRRRRRRRR......RRRRRRRRRRRRRRRRRRRRRR......RRRR"
+  },
+  "contact_line": "BBBBBBBBBBBBBBrrrrllllllBBBBBBBBBBBBBBBBBrrrrBllllllBBBB",
+  "frames_without_any_contact": [],
+  "contact_runs": {
+   "l": [
+    {
+     "frames_1based": [
+      1,
+      14
+     ],
+     "ball_slide_cm": 0.0,
+     "ankle_slide_cm": 0.0,
+     "pivot_slide_cm": 0.0
+    },
+    {
+     "frames_1based": [
+      19,
+      41
+     ],
+     "ball_slide_cm": 0.0,
+     "ankle_slide_cm": 0.0,
+     "pivot_slide_cm": 0.0
+    },
+    {
+     "frames_1based": [
+      46,
+      56
+     ],
+     "ball_slide_cm": 0.0,
+     "ankle_slide_cm": 0.0,
+     "pivot_slide_cm": 0.0
+    }
+   ],
+   "r": [
+    {
+     "frames_1based": [
+      1,
+      18
+     ],
+     "ball_slide_cm": 0.0,
+     "ankle_slide_cm": 0.0,
+     "pivot_slide_cm": 0.0
+    },
+    {
+     "frames_1based": [
+      25,
+      46
+     ],
+     "ball_slide_cm": 0.0,
+     "ankle_slide_cm": 0.0,
+     "pivot_slide_cm": 0.0
+    },
+    {
+     "frames_1based": [
+      53,
+      56
+     ],
+     "ball_slide_cm": 0.0,
+     "ankle_slide_cm": 0.0,
+     "pivot_slide_cm": 0.0
+    }
+   ]
+  },
+  "max_planted_slide_cm": 0.0,
+  "sole_min_cm": {
+   "l": 0.0,
+   "r": -0.0
+  },
+  "lowest_vertex_cm": -0.0,
+  "lowest_vertex_per_frame": [
+   -0.0,
+   0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   -0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0
+  ],
+  "shield_fwd_speed_cm_s_per_frame (forearm, +=forward)": [
+   0,
+   158,
+   158,
+   151,
+   140,
+   118,
+   83,
+   40,
+   -2,
+   -34,
+   -52,
+   -59,
+   -58,
+   -46,
+   14,
+   217,
+   447,
+   656,
+   544,
+   357,
+   245,
+   159,
+   108,
+   71,
+   35,
+   -15,
+   -41,
+   -65,
+   -90,
+   -115,
+   -135,
+   -146,
+   -146,
+   -135,
+   -198,
+   -180,
+   -159,
+   -140,
+   -90,
+   -24,
+   21,
+   17,
+   -25,
+   -99,
+   -178,
+   -221,
+   -224,
+   -186,
+   -115,
+   -39,
+   -4,
+   9,
+   17,
+   0,
+   0,
+   0
+  ],
+  "shield_peak_speed_frame_1based": 18,
+  "shield_fwd_position_cm_per_frame": [
+   22,
+   27,
+   32,
+   37,
+   42,
+   46,
+   49,
+   50,
+   50,
+   49,
+   47,
+   45,
+   43,
+   42,
+   42,
+   49,
+   64,
+   86,
+   104,
+   116,
+   124,
+   130,
+   133,
+   136,
+   137,
+   136,
+   135,
+   133,
+   130,
+   126,
+   121,
+   116,
+   112,
+   107,
+   100,
+   94,
+   89,
+   85,
+   82,
+   81,
+   81,
+   82,
+   81,
+   78,
+   72,
+   65,
+   57,
+   51,
+   47,
+   46,
+   46,
+   46,
+   46,
+   46,
+   46,
+   46
+  ]
+ },
+ "A_Warden_GroundSlam": {
+  "fbx_settings": {
+   "UpAxis": 1,
+   "FrontAxis": 2,
+   "UnitScaleFactor": 1.0,
+   "TimeMode": 6,
+   "CustomFrameRate": 30.0
+  },
+  "armature_object": "root",
+  "bones": 88,
+  "bone_names_match_ref": true,
+  "rest_max_diff_cm": 0.0001,
+  "frames": 63,
+  "seconds": 2.067,
+  "first_frame_after_reimport": 1,
+  "fps": 30,
+  "contact_tolerance_cm": 2.5,
+  "contact_per_frame": {
+   "l": "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+   "r": "RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR"
+  },
+  "contact_line": "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+  "frames_without_any_contact": [],
+  "contact_runs": {
+   "l": [
+    {
+     "frames_1based": [
+      1,
+      63
+     ],
+     "ball_slide_cm": 0.0,
+     "ankle_slide_cm": 0.0,
+     "pivot_slide_cm": 0.0
+    }
+   ],
+   "r": [
+    {
+     "frames_1based": [
+      1,
+      63
+     ],
+     "ball_slide_cm": 0.57,
+     "ankle_slide_cm": 0.57,
+     "pivot_slide_cm": 0.57
+    }
+   ]
+  },
+  "max_planted_slide_cm": 0.57,
+  "sole_min_cm": {
+   "l": -0.33,
+   "r": -0.3
+  },
+  "lowest_vertex_cm": -0.33,
+  "lowest_vertex_per_frame": [
+   -0.3,
+   -0.2,
+   0.0,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.2,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   -0.0,
+   -0.1,
+   -0.3,
+   -0.3,
+   -0.1,
+   0.2,
+   0.1,
+   0.1,
+   0.0,
+   -0.0,
+   -0.1,
+   -0.1,
+   -0.0,
+   -0.0,
+   0.0,
+   0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   -0.0,
+   0.0,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   0.1,
+   -0.0,
+   -0.1,
+   -0.3,
+   -0.3,
+   -0.3
+  ],
+  "hands_low_z_cm_per_frame": [
+   94,
+   99,
+   115,
+   148,
+   186,
+   211,
+   224,
+   230,
+   234,
+   236,
+   236,
+   234,
+   230,
+   224,
+   219,
+   218,
+   220,
+   222,
+   225,
+   227,
+   229,
+   231,
+   232,
+   232,
+   233,
+   233,
+   233,
+   225,
+   217,
+   208,
+   204,
+   206,
+   213,
+   230,
+   256,
+   230,
+   146,
+   82,
+   65,
+   66,
+   62,
+   52,
+   45,
+   44,
+   40,
+   38,
+   38,
+   41,
+   42,
+   44,
+   50,
+   57,
+   66,
+   76,
+   79,
+   80,
+   79,
+   76,
+   66,
+   67,
+   84,
+   106,
+   118
+  ],
+  "hands_top_frame_1based": 35,
+  "first_frame_hands_within_15cm_of_floor_1based": null
+ }
+}

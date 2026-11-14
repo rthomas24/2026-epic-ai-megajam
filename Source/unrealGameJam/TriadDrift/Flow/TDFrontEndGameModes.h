@@ -105,6 +105,11 @@ public:
 	class UAudioComponent* GetMusic() const { return Music; }
 	bool WasMusicStarted() const { return bMusicStarted; }
 	bool IsMusicFadingOut() const { return bMusicFading; }
+	/** The menu music has stepped aside for another score (UTDMusicDirectorSubsystem::IsExclusiveScoreHeld; T1, N-053). */
+	bool IsMusicYielded() const { return bMusicYielded; }
+	/** Out over 1 s when a score claims exclusivity (Nick's victory score), back in over 2 s on release (T1, T5-approved). */
+	float MusicYieldFadeOutSeconds = 1.f;
+	float MusicYieldFadeInSeconds = 2.f;
 	/** How many times the menu music has restarted on its own (the track is not a looping asset). */
 	int32 GetMusicLoops() const { return MusicLoops; }
 
@@ -122,6 +127,8 @@ private:
 	/** The menu track ended: play it again from the top, unless it is fading out for a travel. */
 	UFUNCTION() void HandleMusicFinished();
 	int32 MusicLoops = 0;
+	bool bMusicYielded = false;
+	void TickMusicYield();
 	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> Music;
 	void ShowPlaceholder();
 	void HidePlaceholder();

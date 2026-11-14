@@ -1676,7 +1676,17 @@ void UTDIntroDirector::UpdateOverlay(float T)
 				Overlay.NameCard = FText::Format(LOCTEXT("PilotCard", "{0}"), Spec.PilotName);
 				const FText Trait = UTDStorySubsystem::PilotTrait(Id);
 				Overlay.NameCardRole = FText::FromString(FText::Format(LOCTEXT("PilotRole", "{0}  \u00b7  {1}"), Spec.ShipName, Spec.RoleName).ToString().ToUpper());
-				Overlay.NameCardTrait = Trait;
+				// #49 re-check: the role line already says "INTERCEPTOR"; the trait line opened with it too. Drop the repeat here
+				// only (the switch card has no role line above its trait).
+				FString TraitText = Trait.ToString();
+				const FString Role = Spec.RoleName.ToString().ToUpper();
+				if (!Role.IsEmpty() && TraitText.ToUpper().StartsWith(Role))
+				{
+					TraitText = TraitText.Mid(Role.Len()).TrimStart();
+					TraitText.RemoveFromStart(TEXT("·"));
+					TraitText = TraitText.TrimStart();
+				}
+				Overlay.NameCardTrait = TraitText.IsEmpty() ? Trait : FText::FromString(TraitText);
 				Overlay.NameCardShip = i;
 				Overlay.NameCardColor = UTDIntroDirector::CardColor(i);
 				Overlay.NameCardAlpha = Alpha;

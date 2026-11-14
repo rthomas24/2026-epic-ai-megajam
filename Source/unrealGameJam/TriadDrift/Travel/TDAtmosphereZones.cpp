@@ -2,6 +2,8 @@
 
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
+#include "TriadDrift/Travel/TDPlanetTravelRig.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 #include "Sound/SoundBase.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
@@ -111,6 +113,18 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 			return false;
 		}
 	}
+	if (IsStoryHoldingEntry())
+	{
+		// A must-hear sequence is on (Aftermath): don't commit; fly on, commit when it ends (TickComponent).
+		EntryState = ETDAtmosphereEntryState::Holding;
+		Destination = InDestination;
+		ReturnPoint = InReturnPoint;
+		HeldPlanetCenter = PlanetCenter;
+		HeldSurfaceRadius = PlanetSurfaceRadius;
+		HeldStartDistance = (float)FVector::Dist(Craft->GetActorLocation(), PlanetCenter);
+		UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: held - a story sequence is playing (awaiting orders)"));
+		return true; // taken (not committed): the planet must not run its own fallback travel; it re-arms on the next pass
+	}
 	EntryState = ETDAtmosphereEntryState::Entering;
 	EntryTime = 0.f;
 	Destination = InDestination;
@@ -157,8 +171,7 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 		if (Descent) { Descent->SetBurnIsExit(false); }
 		if (bCoveredEntry)
 		{
-			USoundBase* RoarSound = !TravelFX->DescentRoar.Sound.IsNull() ? TravelFX->DescentRoar.Sound.LoadSynchronous() : Cue.Sound.LoadSynchronous();
-			Descent->StartRoar(RoarSound);
+			Descent->StartRoar(UTDDescentSubsystem::ResolveRoar(TravelFX, false));
 			Cue.Sound.Reset();
 		}
 		UAudioComponent* Audio = nullptr;
@@ -257,8 +270,24 @@ void UTDAtmosphereEntryComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 	Super::EndPlay(EndPlayReason);
 }
 
+bool UTDAtmosphereEntryComponent::IsStoryHoldingEntry() const
+{
+	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
+	if (!Story) { return false; }
+	for (const FName& Id : HoldEntryForSequences)
+	{
+		if (!Id.IsNone() && Story->IsSequencePlaying(Id)) { return true; }
+	}
+	return false;
+}
+
 void UTDAtmosphereEntryComponent::AbortEntry()
 {
+	if (EntryState == ETDAtmosphereEntryState::Holding)
+	{
+		EntryState = ETDAtmosphereEntryState::Idle;
+		return;
+	}
 	if (EntryState == ETDAtmosphereEntryState::Entering)
 	{
 		RestoreFlight();
@@ -298,6 +327,23 @@ void UTDAtmosphereEntryComponent::TickComponent(float DeltaTime, ELevelTick Tick
 		if (EntryTime >= EntrySeconds)
 		{
 			FinishEntry();
+		}
+	}
+	else if (EntryState == ETDAtmosphereEntryState::Holding)
+	{
+		const AActor* Owner = GetOwner();
+		const ATDShip* Ship = Cast<ATDShip>(Owner);
+		const float Dist = Owner ? (float)FVector::Dist(Owner->GetActorLocation(), HeldPlanetCenter) : TNumericLimits<float>::Max();
+		if (!Ship || !Ship->IsPlayerFlown() || Dist > HeldStartDistance + HoldLeaveMargin)
+		{
+			EntryState = ETDAtmosphereEntryState::Idle; // flew out (or switched): the planet takes it on the next pass
+			UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: hold dropped (left the atmosphere or not flown)"));
+		}
+		else if (!IsStoryHoldingEntry())
+		{
+			EntryState = ETDAtmosphereEntryState::Idle;
+			UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: the sequence ended - committing"));
+			BeginEntry(Destination, ReturnPoint, HeldPlanetCenter, HeldSurfaceRadius);
 		}
 	}
 	else if (EntryState == ETDAtmosphereEntryState::Travelling)
@@ -405,7 +451,7 @@ void ATDAtmosphereFlightZone::ApplyToShip(ATDShip* Ship, bool bExitOpen)
 	// The edge in words: a wingman calls the turn when the player first reaches the warning band.
 	if (Ship->IsPlayerFlown())
 	{
-		const bool bNear = Move->GetBoundaryState() != ETDBoundaryState::Inside;
+		const bool bNear = Move->GetBoundaryState() != ETDBoundaryState::Inside && !Move->IsBoundaryWarningHeld(); // silent while a sequence owns the ship
 		const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
 		if (bNear && !bWasNearEdge && Now - LastEdgeBarkTime >= EdgeBarkInterval)
 		{
@@ -470,6 +516,9 @@ void ATDAtmosphereFlightZone::FitToTerrain(const ATDPlanetTerrain* Terrain)
 		Box.Max.Y = FMath::Max(Box.Max.Y, O.Y + Half);
 		Box.Max.Z = FMath::Max(Box.Max.Z, MaxZ + TerrainCeilingClearance);
 	}
+	// ENG-38 glide-lite (agreed with T4): the arrival sits 300 m over the cloud deck, so the ceiling clears the deck by 500 m.
+	const float DeckZ = UTDDescentSubsystem::FindDeckZ(GetWorld());
+	if (DeckZ > 0.f && UTDDescentSubsystem::IsGlideEnabled()) { Box.Max.Z = FMath::Max(Box.Max.Z, DeckZ + 50000.f); }
 	SetActorLocation(Box.GetCenter());
 	SetZoneExtent(Box.GetExtent());
 	bFittedToTerrain = true;
@@ -589,6 +638,17 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 			UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
 			UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this);
 			if (Descent) { Descent->RecordSquad(GetWorld()); Descent->SetClimbHold(ExitClimbSeconds); } // and back up
+			// The mirrored take-off: where on the ground the squad leaves decides where it comes out on the globe.
+			if (Descent && UTDDescentSubsystem::IsGlideEnabled())
+			{
+				for (TActorIterator<ATDPlanetTravelRig> It(GetWorld()); It; ++It)
+				{
+					if (It->PlanetId != PlanetId) { continue; }
+					Descent->RecordDeparture(PlanetId == TEXT("Cinder") ? ETDDestination::Cinder : ETDDestination::Verdance,
+						Ship->GetActorTransform().GetRelativeTransform(It->GetActorTransform()));
+					break;
+				}
+			}
 			const bool bRequested = Travel && Travel->RequestLevelTravel(ETDDestination::Galaxy, FName(*FString::Printf(TEXT("%s_Orbit"), *PlanetId.ToString())));
 			// No game flow (tests, sandbox): still report the exit, as the entry does.
 			if (bRequested || !Travel || !UTDStatics::GetGameFlow(this))
@@ -606,6 +666,9 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 					{
 						Descent->SetBurnIsExit(true);
 						Descent->BeginTiming(TEXT("climb out"));
+						// The climb out roars too (AtmosphericExit's sound, else the entry roar); it persists over the load
+						// and fades at the galaxy reveal, as the entry's does on the planet.
+						Descent->StartRoar(UTDDescentSubsystem::ResolveRoar(UTDTravelSubsystem::GetDefaultTravelFX(GetWorld()), true));
 						Descent->BeginBurnShot(Ship, true, ExitClimbSeconds + 1.f);
 					}
 				}

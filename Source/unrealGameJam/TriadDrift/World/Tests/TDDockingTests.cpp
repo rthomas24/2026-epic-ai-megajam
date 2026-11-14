@@ -6,6 +6,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDDockingBay.h"
 #include "TriadDrift/World/TDShieldGenerator.h"
@@ -128,6 +129,29 @@ bool FTDDockingTractor::RunTest(const FString&)
 	TestEqual(TEXT("out of the cone: released"), Bay->GetCurrentPull(), 0.f);
 	TestFalse(TEXT("override cleared"), Ship->GetShipMovement()->HasSpeedOverrideFor(ATDDockingBay::TractorOverride));
 	TestEqual(TEXT("still open, nobody docked"), (int32)Bay->GetDockingState(), (int32)ETDDockingState::Open);
+	return true;
+}
+
+// T7's playtest (Nov 14): a human approach came in from the side, outside the 35 degree cone, and never docked. Near the
+// mouth the tractor takes a ship up to CaptureHalfAngleDeg off the axis; farther out the cone stays as it was. And the
+// open bay shows an approach waypoint on its axis.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDockingCapture, "TriadDrift.World.Docking.SideApproachNearTheMouthIsCaptured", TD_TEST_FLAGS)
+bool FTDDockingCapture::RunTest(const FString&)
+{
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	ATDDominion* D = TDDockingTest::DefensesDown(W, ETDBoardingMode::ForceOn);
+	ATDDockingBay* Bay = D ? D->GetDockingBay() : nullptr;
+	if (!TestNotNull(TEXT("bay"), Bay)) { return false; }
+	const FVector Side = FVector::CrossProduct(Bay->GetOutward(), FVector::UpVector).GetSafeNormal();
+	auto At = [Bay, Side](float Dist, float Deg) { const float R = FMath::DegreesToRadians(Deg); return Bay->GetMouth() + (Bay->GetOutward() * FMath::Cos(R) + Side * FMath::Sin(R)) * Dist; };
+	TestTrue(TEXT("300 m out, 60 degrees off the axis: captured"), Bay->GetTractorStrength(At(30000.f, 60.f)) > 0.f);
+	TestEqual(TEXT("1 km out, 60 degrees off the axis: the plain cone, no pull"), Bay->GetTractorStrength(At(100000.f, 60.f)), 0.f);
+	TestEqual(TEXT("behind the bow stays out"), Bay->GetTractorStrength(At(30000.f, 100.f)), 0.f);
+	bool bMarker = false;
+	TArray<AActor*> Attached;
+	Bay->GetAttachedActors(Attached);
+	for (const AActor* A : Attached) { if (A && A->ActorHasTag(TDTags::ObjectiveMarker)) { bMarker = true; } }
+	TestTrue(TEXT("the open bay shows an approach waypoint on its axis"), bMarker);
 	return true;
 }
 

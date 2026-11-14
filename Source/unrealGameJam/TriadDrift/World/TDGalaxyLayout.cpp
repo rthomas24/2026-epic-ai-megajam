@@ -542,6 +542,101 @@ void ATDGalaxyLayout::SetHidePlaceholderDressing(bool bHide)
 	}
 }
 
+float FTDJourneyKeyPoint::DistanceTo(const FVector& P) const
+{
+	if (Kind == ETDJourneyPointKind::Route && Length > 0.f && !Direction.IsNearlyZero())
+	{
+		return FMath::PointDistToSegment(P, Location, Location + Direction * Length) - Radius;
+	}
+	return FVector::Dist(P, Location) - Radius;
+}
+
+void ATDGalaxyLayout::GetJourneyKeyPoints(TArray<FTDJourneyKeyPoint>& Out) const
+{
+	Out.Reset();
+	const FTransform Xf = GetActorTransform();
+	auto Add = [&Out](FName Id, ETDJourneyPointKind Kind, const FVector& At, float Radius, const FVector& Dir = FVector::ZeroVector, float Length = 0.f)
+	{
+		FTDJourneyKeyPoint K;
+		K.Id = Id; K.Kind = Kind; K.Location = At; K.Radius = Radius; K.Direction = Dir.GetSafeNormal(); K.Length = Length;
+		Out.Add(K);
+	};
+	const FVector Zone = Xf.TransformPosition(Layout.CombatZoneCenter);
+	Add(TEXT("CombatZone"), ETDJourneyPointKind::Pocket, Zone, Layout.CombatZoneRadius);
+	// The player start is also the tutorial-skip start (T7's playtest: the squad landed in station dressing there).
+	Add(TEXT("PlayerStart"), ETDJourneyPointKind::KeepOut, Xf.TransformPosition(Layout.PlayerStart.GetLocation()), AsteroidKeepOut * 2.f);
+	for (const TPair<FName, FTransform>& RP : Layout.ReturnPoints)
+	{
+		Add(RP.Key, ETDJourneyPointKind::KeepOut, Xf.TransformPosition(RP.Value.GetLocation()), AsteroidKeepOut);
+	}
+	for (const FTDGatePairSpec& G : Layout.Gates)
+	{
+		Add(G.IdA, ETDJourneyPointKind::KeepOut, Xf.TransformPosition(G.A.GetLocation()), G.Radius + 5000.f);
+		Add(G.IdB, ETDJourneyPointKind::KeepOut, Xf.TransformPosition(G.B.GetLocation()), G.Radius + 5000.f);
+	}
+	for (const ATDPlanetAtmosphere* P : GetPlanets())
+	{
+		if (!P) { continue; }
+		const FName Name = P->GetDestination() == ETDDestination::Verdance ? FName(TEXT("Verdance")) : FName(TEXT("Cinder"));
+		Add(Name, ETDJourneyPointKind::KeepOut, P->GetPlanetCenter(), P->GetAtmosphereRadius() + 30000.f);
+		// The approach from the combat zone to the atmosphere, 400 m wide.
+		const FVector To = P->GetPlanetCenter() - Zone;
+		const float Len = FMath::Max(0.f, (float)To.Size() - P->GetAtmosphereRadius());
+		Add(FName(*(Name.ToString() + TEXT("_Approach"))), ETDJourneyPointKind::Route, Zone, 20000.f, To, Len);
+		if (P->GetDestination() == ETDDestination::Verdance)
+		{
+			// Wave 2's ordered withdrawal flies this way (ATDWaveDirector::BeginWithdrawal, up to 2.5 km).
+			Add(TEXT("TutorialEscape"), ETDJourneyPointKind::Route, Zone, 30000.f, To, FMath::Min(Len, 300000.f));
+		}
+	}
+	for (const AActor* A : VerdanceApproach)
+	{
+		if (A) { Add(FName(*A->GetName()), ETDJourneyPointKind::KeepOut, A->GetActorLocation(), 15000.f); }	// convoy lanes and the transponder
+	}
+	if (const ATDDominion* D = Dominion.Get())
+	{
+		const FVector DL = D->GetActorLocation();
+		Add(TEXT("Dominion"), ETDJourneyPointKind::KeepOut, DL, D->GetLocalHullBounds().GetExtent().Size() + 10000.f);
+		Add(TEXT("DominionKillZone"), ETDJourneyPointKind::Pocket, DL, D->ShieldRadius * 3.f);
+		const FVector ToDom = DL - Zone;
+		Add(TEXT("DominionApproach"), ETDJourneyPointKind::Route, Zone, 30000.f, ToDom, FMath::Max(0.f, (float)ToDom.Size() - D->ShieldRadius * 3.f));
+		// The escape flight leaves the bow (the bay mouth) and flies out to the clear line.
+		const FTransform Esc = D->GetEscapeStart();
+		Add(TEXT("EscapeCorridor"), ETDJourneyPointKind::Route, Esc.GetLocation(), 30000.f, Esc.GetRotation().GetForwardVector(), D->GetEscapeExitRadius());
+	}
+}
+
+TArray<FTDRuinSpec> ATDGalaxyLayout::GetPlacedRuins() const
+{
+	// A ruin may never sit on the player start (also the tutorial-skip start: T7's playtest, Nov 14, the squad landed in a
+	// girder 80 m away). One that does turns about the combat zone's up axis, 30 degrees at a time, until it is clear.
+	TArray<FTDRuinSpec> Out = Layout.Ruins;
+	const FVector Start = Layout.PlayerStart.GetLocation();
+	for (FTDRuinSpec& R : Out)
+	{
+		for (int32 Step = 0; Step < 11; ++Step)
+		{
+			const float Need = R.Extent.Size() * 2.5f + AsteroidKeepOut * 2.f;	// the art and its panels reach past the box
+			if (FVector::Dist(R.Location, Start) >= Need) { break; }
+			const FVector Rel = R.Location - Layout.CombatZoneCenter;
+			R.Location = Layout.CombatZoneCenter + FRotator(0.f, 30.f, 0.f).RotateVector(Rel);
+			R.Rotation.Yaw += 30.f;
+		}
+	}
+	return Out;
+}
+
+bool ATDGalaxyLayout::IsClearOfJourney(const FVector& WorldPoint, float Margin) const
+{
+	TArray<FTDJourneyKeyPoint> Points;
+	GetJourneyKeyPoints(Points);
+	for (const FTDJourneyKeyPoint& K : Points)
+	{
+		if (K.Kind != ETDJourneyPointKind::Pocket && K.DistanceTo(WorldPoint) < Margin) { return false; }
+	}
+	return true;
+}
+
 bool ATDGalaxyLayout::IsInKeepOut(const FVector& LocalPoint, float Margin) const
 {
 	const float R = AsteroidKeepOut + Margin;
@@ -650,7 +745,7 @@ void ATDGalaxyLayout::BuildInstances(bool bRegisterObstacles)
 		UTDStatics::TintPlaceholder(Asteroids, FLinearColor(0.25f, 0.2f, 0.3f), 0.f);
 	}
 
-	for (const FTDRuinSpec& R : Layout.Ruins)
+	for (const FTDRuinSpec& R : GetPlacedRuins())
 	{
 		if (R.bModule && ModuleArt && RuinModules)
 		{
@@ -700,7 +795,7 @@ void ATDGalaxyLayout::BuildDressing()
 	// 1) Ruins: truss art over each collision box, its long axis on the box's long axis, uniformly scaled to the box's
 	//    length; 2-3 debris clusters drifting around it.
 	FRandomStream RuinRng(9137);
-	for (const FTDRuinSpec& R : Layout.Ruins)
+	for (const FTDRuinSpec& R : GetPlacedRuins())
 	{
 		if (bRuinArt)
 		{

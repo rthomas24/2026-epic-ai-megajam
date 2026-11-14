@@ -1,6 +1,7 @@
 // Triad Drift - Powers (Teammate 2). Power presentation: data assets by convention + Shipping-safe placeholders.
 
 #include "TriadDrift/Powers/TDPowerPresentation.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -262,6 +263,7 @@ ATDPlaceholderFlash* ATDPlaceholderFlash::SpawnRingFlash(UWorld* World, const FV
 
 void ATDPlaceholderFlash::Tick(float DeltaSeconds)
 {
+	TD_COMBAT_PERF(Flashes);
 	Super::Tick(DeltaSeconds);
 	Age += DeltaSeconds;
 	// Expand from StartScale to 100% of the radius (ease-out) so the pulse reads as a wave leaving its source.
