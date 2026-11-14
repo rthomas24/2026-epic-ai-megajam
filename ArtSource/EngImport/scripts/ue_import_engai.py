@@ -21,6 +21,7 @@
 #   Anchor, DrillRig: meshes only (the course code and the dig-site class place them).
 # TD_IMPORT_REVERT=Dominion,Generator puts the previous meshes back in DA_Dominion_Visuals.
 import json
+import math
 import os
 
 import unreal
@@ -187,8 +188,8 @@ def manifest_sockets(folder, asset):
             m = json.load(fh)
         if isinstance(m.get("ue_sockets"), list):
             out = [(s["name"], tuple(s["ue_cm"])) for s in m["ue_sockets"]]
-        elif isinstance(m.get("sockets"), dict):                      # the Dominion hull
-            out = [(k, tuple(v["ue_cm"])) for k, v in m["sockets"].items()]
+        elif isinstance(m.get("sockets"), dict):                      # the Dominion hull: position and yaw
+            out = [(k, tuple(v["ue_cm"]), v.get("ue_yaw_deg")) for k, v in m["sockets"].items()]
         elif asset == "SM_CinderAnchorTower" and "tower" in m:
             out = [(s["name"], tuple(s["pos_cm"])) for s in m["tower"]["sockets"]]
         elif asset == "SM_CrystalCacheCradle" and "cradle" in m:
@@ -204,7 +205,9 @@ def check_sockets(mesh, wanted, notes):
     """Each delivered socket must exist where the manifest says (within 2 cm). Interchange may keep or strip the
     SOCKET_ prefix; the name it gave is kept (gameplay is told the exact names)."""
     report = []
-    for name, pos in wanted:
+    for entry in wanted:
+        name, pos = entry[0], entry[1]
+        want_yaw = entry[2] if len(entry) > 2 else None
         bare = name[7:] if name.startswith("SOCKET_") else name
         sock = mesh.find_socket(name) or mesh.find_socket(bare)
         if sock is None:
@@ -220,8 +223,31 @@ def check_sockets(mesh, wanted, notes):
             # manifest lists the charge ports in Blender's Y (mirrored), the FBX puts ports and sockets at -Y together.
             notes.append("socket %s at (%.0f,%.0f,%.0f) differs from the manifest (%.0f,%.0f,%.0f): kept as imported" % (
                 sock.get_editor_property("socket_name"), loc.x, loc.y, loc.z, pos[0], pos[1], pos[2]))
+        # Upright: the FBX empties come through Interchange with the Blender-to-Unreal axis turn left in their rotation
+        # (found by T4 on the r2 hull: +X right, but Z along the ring tangent, a 90 degree roll). Every delivered
+        # socket is specified as a position and a heading with Z up, so keep the heading (the manifest's yaw when it
+        # gives one, else where the imported +X points in the horizontal plane) and set pitch and roll to zero.
         rot = sock.get_editor_property("relative_rotation")
-        report.append("%s(%.0f,%.0f,%.0f yaw %.0f)" % (sock.get_editor_property("socket_name"), loc.x, loc.y, loc.z, rot.yaw))
+        fwd = unreal.MathLibrary.get_forward_vector(rot)
+        up = unreal.MathLibrary.get_up_vector(rot)
+        if want_yaw is not None:
+            yaw = ((float(want_yaw) + 180.0) % 360.0) - 180.0
+        elif abs(fwd.z) < 0.9:
+            yaw = math.degrees(math.atan2(fwd.y, fwd.x))
+        else:
+            yaw = None
+            notes.append("socket %s: +X is vertical, rotation left as imported" % name)
+        if yaw is not None:
+            if up.z < 0.99985 or abs((((rot.yaw - yaw) + 180.0) % 360.0) - 180.0) > 0.5:
+                notes.append("socket %s: rotation (p %.0f y %.0f r %.0f, up %.2f %.2f %.2f) set upright, yaw %.1f" % (
+                    sock.get_editor_property("socket_name"), rot.pitch, rot.yaw, rot.roll, up.x, up.y, up.z, yaw))
+            sock.set_editor_property("relative_rotation", unreal.Rotator(roll=0.0, pitch=0.0, yaw=yaw))
+            rot = sock.get_editor_property("relative_rotation")
+        up = unreal.MathLibrary.get_up_vector(rot)
+        tilt = math.degrees(math.acos(max(-1.0, min(1.0, up.z))))
+        if tilt > 1.0:
+            notes.append("socket %s: up is %.1f degrees off the mesh's up" % (name, tilt))
+        report.append("%s(%.0f,%.0f,%.0f yaw %.0f up-tilt %.1f)" % (sock.get_editor_property("socket_name"), loc.x, loc.y, loc.z, rot.yaw, tilt))
     return report
 
 
@@ -384,6 +410,24 @@ def main():
         log("FAILED: pipeline %s missing (run ue_import_rodin_ships.py once)" % PIPELINE)
         return
     rows, bad = [], 0
+    if os.environ.get("TD_IMPORT_SOCKETS_ONLY", "") == "1":
+        # Re-check and correct the sockets of meshes that are already imported: nothing is re-imported, no material,
+        # texture or data asset is touched, only the static meshes with sockets are saved.
+        for item, meshes in ITEMS.items():
+            if only and item not in only:
+                continue
+            for cfg in meshes:
+                wanted = manifest_sockets(os.path.join(AI, *cfg["src"].split("/")), cfg["asset"])
+                mesh = eas.load_asset("%s/%s" % (cfg["dest"], cfg["asset"]))
+                if not wanted or mesh is None:
+                    continue
+                notes = []
+                report = check_sockets(mesh, wanted, notes)
+                save_loaded(mesh)
+                log("%s sockets: %s%s" % (cfg["asset"], report, ("  NOTES: " + "; ".join(notes)) if notes else ""))
+                bad += sum(1 for n in notes if "degrees off" in n)
+        log("OK" if not bad and not SAVE_FAILURES else "FAILED: sockets")
+        return
     if revert:
         fields = {}
         if "Dominion" in revert:
