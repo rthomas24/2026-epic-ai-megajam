@@ -1,5 +1,5 @@
 {
- "_note": "In-place copies of Grok's four ground deaths for every crew type: root travel removed, the body ends on the ground at the capsule. Death_Front: the source ends with the hips 41 cm and the feet about 48 cm above the floor; the body is tipped 16 deg about the head so the hips and legs come down.",
+ "_note": "In-place copies of Grok's four ground deaths for every crew type: root travel removed, the body ends on the ground at the capsule. Death_Front: the source ends with the hips 41 cm and the feet about 48 cm above the floor; the body is tipped 16 deg about the head so the hips and legs come down. Death_Right: legs ended in the air; tipped 15 deg about the head the same way.",
  "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
  "clips": [
   {
@@ -24,7 +24,15 @@
   },
   {
    "src": "A_Crew_Trooper_Death_Right",
-   "dst": "A_Crew_Death_Right"
+   "dst": "A_Crew_Death_Right",
+   "settle": {
+    "pivot_bone": "head",
+    "deg": 15,
+    "ramp": [
+     1.2,
+     1.8
+    ]
+   }
   }
  ]
 }
