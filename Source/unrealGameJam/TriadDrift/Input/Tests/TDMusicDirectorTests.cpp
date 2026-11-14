@@ -9,6 +9,8 @@
 #include "TriadDrift/Input/TDMusicSettings.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "Sound/SoundWave.h"
@@ -335,6 +337,22 @@ bool FTDMusicExclusive::RunTest(const FString& Parameters)
 	W.Advance(2.f);
 	TestFalse(TEXT("after the fade: released"), M->IsExclusiveScoreHeld());
 	TestTrue(TEXT("... and combat music comes back"), M->GetMusicState() != ETDCombatMusicState::Silent);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMusicPrimesScoresInBackground, "TriadDrift.Input.Music.ScoreSlotsStreamInAtMapStart", TD_TEST_FLAGS)
+bool FTDMusicPrimesScoresInBackground::RunTest(const FString& Parameters)
+{
+	// T7 perf (#89): the combat, idle and assault scores are requested asynchronously when the map starts, so the
+	// first fight or the assault never loads a two-minute music asset on the game thread.
+	FTDTestWorld W;
+	UTDMusicDirectorSubsystem* M = UTDMusicDirectorSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("director"), M)) { return false; }
+	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+	if (!Style) { AddInfo(TEXT("no DA_UI_Style in this build: nothing to prime")); return true; }
+	// FTDTestWorld has begun play: the director primed its slots then.
+	const int32 Wanted = (Style->IdleSpaceMusic.IsNull() ? 0 : 1) + (Style->AssaultMusic.IsNull() ? 0 : 1);
+	TestTrue(FString::Printf(TEXT("score slots primed (%d, at least %d)"), M->GetPrimedScoreCountForTests(), Wanted), M->GetPrimedScoreCountForTests() >= Wanted);
 	return true;
 }
 

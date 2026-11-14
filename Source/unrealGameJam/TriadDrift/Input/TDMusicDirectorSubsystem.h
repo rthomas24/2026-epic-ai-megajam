@@ -92,6 +92,8 @@ public:
 	float GetAppliedVolume() const { return Envelope * IntensityGain; }
 	/** Tests (review M10): how many times the style slot was looked up (never per frame while silent). */
 	int32 GetMusicLookupsForTests() const { return MusicLookups; }
+	/** T7 perf: score slots requested in the background or already held (none is ever loaded on the game thread). */
+	int32 GetPrimedScoreCountForTests() const { return PendingScores.Num() + HeldScores.Num(); }
 	/** Tests: force the music intensity (otherwise UTDAudioStateSubsystem's smoothed MusicIntensity01). */
 	void SetIntensityForTests(TOptional<float> InIntensity) { IntensityOverride = InIntensity; }
 
@@ -171,6 +173,11 @@ private:
 	float TargetIntensityGain() const;
 	float AmbienceRetry = 0.f;
 	USoundBase* ResolveAmbience() const;
+	/** The loaded sound, or null while it streams in (requested once, in the background; never a game-thread load). */
+	USoundBase* AsyncSound(const FSoftObjectPtr& Soft) const;
+	void PrimeScoreSlots();
+	UPROPERTY(Transient) mutable TArray<TObjectPtr<USoundBase>> HeldScores;
+	mutable TMap<FSoftObjectPath, TSharedPtr<struct FStreamableHandle>> PendingScores;
 	void TickAmbience(float Dt, bool bStop);
 	UPROPERTY(Transient) TObjectPtr<USoundBase> MusicOverride;
 	bool bUseOverride = false;
