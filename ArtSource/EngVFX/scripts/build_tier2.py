@@ -214,10 +214,10 @@ S2('NS_TD_Magma_Heat', U((1.0, 0.42, 0.08, 1.0), 1.0, SizeX=800.0, SizeY=800.0, 
 # and brightness. User.Color per region: Watchline amber (1.0, 0.62, 0.18), Quiet Graveyard (0.70, 0.85, 1.0), Survey
 # Scar Null red (1.0, 0.10, 0.04), Shattered Moons ember orange (1.0, 0.38, 0.08).
 BPULSE = '(0.80 + 0.20*sin(Engine.Time*2.5133))'
-BSIZE = '4200.0'   # 10e: fixed; MI_TD_VFX_RangeGlow_Beacon keeps the disc 0.8 degrees across up to 3 km (LODDistance read 0)
+BSIZE = '(0.06*clamp(Engine.Owner.LODDistance, 30000.0, 300000.0))'   # 10g: Glow again, sprite about 3.4 degrees (core about 1 degree), held between 300 m and 3 km
 S2('NS_TD_Region_Beacon', U((1.0, 0.62, 0.18, 1.0), 1.0), [
-    shed('Beacon', 'MI_TD_VFX_RangeGlow_Beacon', 0, (0.1, 0.1), (BSIZE, BSIZE), (0, 0), radius=0.0, drag=0.0, local=True, power=0.01,
-         k=10.0, alpha=BPULSE, rate_expr='20.0')])   # 10e: the 0.4 Hz pulse is in the alpha (the material multiplies it)
+    shed('Beacon', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('%s*%s' % (BSIZE, BPULSE), '%s*%s' % (BSIZE, BPULSE)), (0, 0), radius=0.0, drag=0.0, local=True, power=0.6,
+         k=12.0, rate_expr='20.0')])   # 10g: the range-glow custom material rendered dark; plain Glow, pulse in the size   # 10e: the 0.4 Hz pulse is in the alpha (the material multiplies it)
 
 # Slot: none yet (code hook wanted: T3's transmissions, the escape sequence, a hit of "static"). A one-shot, camera-facing
 # tear of chromatic bars, 0.3 s; spawn it attached in front of the camera (authored 12 m wide) or at a world point.
@@ -280,8 +280,17 @@ S2('NS_TD_ShieldDome', U(BASTION), [
 # 10f (T2's play: the flattened shell drew a grey-white "saucer" round the ship): no shell any more. The hull itself is
 # carried by M_TD_VFX_CloakOverlay (an overlay material T2 sets on the ship's meshes while cloaked); this system only adds
 # magenta glints flickering close to the hull and a few motes trailing off it. Rift magenta.
+# 10g: SM_Rift is Nanite, so an overlay material on the hull draws nothing. Instead the hull mesh itself, 3% larger, as a
+# mesh particle with the rim-lit additive field material in Rift magenta: the silhouette glows and shimmer cells crawl over
+# it, attached at the ship root like the hull (zero rotation, scale 1). Glints were 8-20 cm: invisible at the chase camera.
+def cloak_hull():
+    return engine_mesh(mesh_single('Hull', 'SM_TD_VFX_Disc', 'M_TD_VFX_Field', '1.03, 1.03, 1.03', 0.9, None,
+                                   live_scale='float3(1,1,1)*(1.0 + 0.006*sin(Engine.Time*9.0))'), '/Game/TriadDrift/Gameplay/Ships/Rift/SM_Rift')
+
+
 S2('NS_TD_Cloak_Shimmer', U((1.0, 0.12, 0.85, 1.0)), [
-    shed('Glints', 'M_TD_VFX_Glow', 0, (0.15, 0.35), (8, 20), (0, 40), k=4.0, radius=330.0, drag=2.0, local=True, power=1.2, rate_expr='70.0'),
+    cloak_hull(),
+    shed('Glints', 'M_TD_VFX_Glow', 0, (0.15, 0.35), (40, 90), (0, 40), k=4.0, radius=330.0, drag=2.0, local=True, power=1.2, rate_expr='70.0'),
     shed('Motes', 'M_TD_VFX_Glow', 18.0, (0.4, 0.9), (5, 12), (0, 160), k=1.2, radius=360.0, drag=1.0, curl=500.0, local=True, power=1.5, fade_in=5.0)])
 # Slot: UTDAbilityFX.Loop of DA_Ability_GravityWell_FX (looping, at the well). Authored for a 40 m pull radius.
 # Round 8, seen in play: the Bastion drops the well about 9 m away, so from the chase camera (26 m from it) the 70 m swirl
