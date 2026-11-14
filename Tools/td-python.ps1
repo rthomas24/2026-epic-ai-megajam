@@ -13,6 +13,9 @@ param(
 )
 $ErrorActionPreference = "Stop"
 . (Join-Path $PSScriptRoot "td-common.ps1")
+# Skip the editor's startup SDK check (Build.bat -Mode=ValidatePlatforms): it queues behind every other
+# worktree's UnrealBuildTool run and stalled agent launches for 5-20 minutes. Win64 only; builds and packaging unaffected.
+$env:UE_SKIP_UBT_SDK_SETUP = '1'
 
 $project = Get-TDProjectFile $ProjectRoot
 $root = Split-Path -Parent $project
