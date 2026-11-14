@@ -468,3 +468,7 @@ Nicholas approved the written art guide only (#132). Lead accepted Bastion tap/h
 ## November 14 — Nick Lead: historical menu credit status clarified
 
 CREDITS.md now distinguishes the November 12 menu-music preparation checkpoint from Ryan's reported ddc50a2f package inclusion, with the original source URL and authorship/Pro-at-generation record preserved. The new scoped note does not apply ddc inclusion/exclusion to later packages or qualify Ryan's separately dated entries. No loop-join/mix approval, PR11/style merge, final-container claim or asset change. Reused the stopped Auditor's ResumeCredits01 and Issue Coordinator's Submission137 delta at91a70782; no repeated inventory audit. Verified exact diff/whitespace and retained source attribution. Remaining credit-row corrections and final package inventory stay open in #137.
+### Nov 14, 14:40 - Pilot animation round 2 (animation builder, eng/anim)
+- Measured, not assumed: a per-frame foot trace in the running game (TD.Pilot.FootTrace) showed planted feet sliding 72-83 cm/s at walk / run; the reference speeds ignored the body's 1.04 mesh scale and the walk / run switch sat too high. After the fix: 10-15 cm/s steady, 18-19 in the start, 29-32 at sprint.
+- The blade carry was re-posed three times from T7's chase-camera playtests (stub at idle, tip in the ground behind the walk, hidden in the run) until the whole beam reads from behind in idle, walk and run.
+- Deflect proven by the log (flick clip playing on a returned bolt); foot IK proven by numbers on a found 14 deg slope.

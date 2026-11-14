@@ -104,6 +104,8 @@ public:
 	/** The multiplier applied last frame (tests). */
 	float GetDescentFogScale() const { return DescentFogScale; }
 	float GetBaseFogDensity() const { return BaseFogDensity; }
+	/** TD.Env.Look fogbase: the horizon fog's base density (the descent ramp multiplies it every tick). */
+	void SetBaseFogDensity(float V) { BaseFogDensity = V; }
 	ETDPlaceholderSkyStyle GetAppliedStyle() const { return AppliedStyle; }
 	/** ART-13: the planet's ambient particles (pollen and spores / ash and embers) on the player's camera, from the
 	 *  PlanetAmbientVerdance / PlanetAmbientCinder slots of DA_Travel_FX (found by name: empty or missing = nothing). */

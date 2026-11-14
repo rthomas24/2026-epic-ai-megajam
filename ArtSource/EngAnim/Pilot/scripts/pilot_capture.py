@@ -46,6 +46,14 @@ MOVES = {
     "heavy_follow": (0.06, 9.0, [(0.0, "TD.Key LeftMouseButton 0.45")], []),
     "combat_idle": (0.5, 3.0, [], [("TD.Ground.Spawn Trooper 380", 2.5)]),
     "deflect": (0.25, 7.0, [(0.0, "TD.Pilot.FootTrace 1.8"), (0.0, "TD.Key RightMouseButton 1.6")], []),
+    "seq_sprint_long": (1.0, 7.5, [(0.0, "TD.Pilot.FootTrace 6.5"), (0.0, "TD.Key W 6.5"), (0.0, "TD.Key LeftShift 6.5")], []),
+    "sprint_follow": (0.4, 3.0, [(0.0, "TD.Key W 1.1"), (0.0, "TD.Key LeftShift 1.1")], []),
+    "walk_stop": (0.4, 4.0, [(0.0, "TD.Pilot.Drive 150 1.0")], []),
+    "seq_start": (0.6, 3.5, [(0.0, "TD.Pilot.FootTrace 1.6"), (0.3, "TD.Key W 1.0")], []),
+    "slope_find": (1.0, 2.0, [], [("TD.Pilot.FootIK 1", 0.2), ("TD.Pilot.FindSlope 12000 10 25 2500", 3.0)]),
+    "slope_find_off": (1.0, 2.0, [(0.0, "TD.Pilot.FootTrace 0.3")], [("TD.Pilot.FootIK 0", 0.8)]),
+    "slope_find_on": (1.0, 2.0, [(0.0, "TD.Pilot.FootTrace 0.3")], [("TD.Pilot.FootIK 1", 0.8)]),
+    "deflect_trooper": (0.35, 9.0, [(0.0, "TD.Pilot.FootTrace 3.0"), (0.0, "TD.Key RightMouseButton 2.8")], [("TD.Ground.Spawn Trooper 900", 3.0)]),
     "seq_start_stop": (0.6, 5.0, [(0.0, "TD.Pilot.FootTrace 2.8"), (0.3, "TD.Pilot.Drive 150 1.0"), (2.4, "TD.Key W 0.6")], []),
     "flinch":  (0.3, 5.0, [(0.0, "TD.God"), (4.0, "TD.God")], []),
     "dash":    (0.2, 3.0, [(0.0, "TD.Key Q")], []),
@@ -127,7 +135,9 @@ def main():
     for name in names:
         slomo, secs, todo, pre = MOVES[name]
         cmd("slomo 1")
-        cmd("TD.Look 0 -10")
+        keep_yaw = name.startswith("slope_find")   # the slope moves keep the facing FindSlope chose
+        if not keep_yaw:
+            cmd("TD.Look 0 -10")
         time.sleep(0.6)
         for pc, wait in pre:
             cmd(pc)
@@ -136,7 +146,7 @@ def main():
         if not p:
             print("no pilot")
             return 1
-        cams = {v: camera(p, 0.0, v) for v in views}
+        cams = {v: camera(p, p[3] if keep_yaw else 0.0, v) for v in views}
         cmd("slomo %.3f" % slomo)
         todo = sorted(todo)
         t0 = time.time()

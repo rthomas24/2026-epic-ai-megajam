@@ -749,6 +749,10 @@ void ATDCollapseRun::BeginPlay()
 	if (Tower)
 	{
 		TowerHome = Tower->GetActorLocation();
+		// Fully destroyed means gone: the whole tower goes under (its height plus a margin), not 25 m of a 36 m tower.
+		FVector Origin, Extent;
+		Tower->GetActorBounds(false, Origin, Extent);
+		TowerSink = FMath::Max(2500.f, (float)Extent.Z * 2.f + 300.f);
 	}
 }
 
@@ -771,25 +775,60 @@ void ATDCollapseRun::ApplyCollapse(float A)
 	{
 		return;
 	}
-	Tower->SetActorLocation(TowerHome + FVector(0.f, 0.f, -A * 2500.f));
+	Tower->SetActorLocation(TowerHome + FVector(0.f, 0.f, -A * TowerSink));
 	Tower->SetActorRotation(FRotator(A * 12.f, 0.f, A * 6.f));
 	// Its sections break off in turn (the structures builder's AnchorSection_A/B/C): out and down from its top.
 	const int32 Sections = SectionMeshes.Num();
 	while (Sections > 0 && SectionsDropped < Sections && A >= float(SectionsDropped + 1) / float(Sections + 1))
 	{
 		const float Side = SectionsDropped % 2 ? 1.f : -1.f;
-		const FVector Out = FRotator(0.f, 60.f * SectionsDropped, 0.f).Vector();
+		const FVector Out = FRotator(0.f, SectionYaw + 50.f * SectionsDropped, 0.f).Vector(); // toward the escape route, in view
 		bDroppingSection = true;
-		DropPiece(TowerHome + Out * 400.f + FVector(0.f, 0.f, 2200.f - SectionsDropped * 500.f), TDPropArt::Load(SectionMeshes[SectionsDropped]), 1.f,
+		DropPiece(TowerHome + Out * 1300.f + FVector(0.f, 0.f, 2200.f - SectionsDropped * 500.f), TDPropArt::Load(SectionMeshes[SectionsDropped]), 1.f,
 			Out * 500.f + FVector(0.f, Side * 150.f, -600.f));
 		bDroppingSection = false;
 		++SectionsDropped;
 	}
 }
 
+void ATDCollapseRun::TickPieces(float DeltaSeconds)
+{
+	UWorld* World = GetWorld();
+	for (int32 i = Pieces.Num() - 1; i >= 0; --i)
+	{
+		FFallingPiece& P = Pieces[i];
+		AActor* A = P.Actor.Get();
+		if (!A)
+		{
+			Pieces.RemoveAtSwap(i);
+			continue;
+		}
+		P.Velocity.Z -= 980.f * DeltaSeconds;
+		FVector At = A->GetActorLocation() + P.Velocity * DeltaSeconds;
+		// The ground under it: anything solid except the tower and the other pieces.
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDCollapsePiece), false, A);
+		if (Tower) { Params.AddIgnoredActor(Tower); }
+		if (const APlayerController* PC = World->GetFirstPlayerController()) { Params.AddIgnoredActor(PC->GetPawn()); }
+		FHitResult Hit;
+		const bool bGround = World->LineTraceSingleByChannel(Hit, At + FVector(0.f, 0.f, 3000.f), At - FVector(0.f, 0.f, 6000.f), ECC_Visibility, Params);
+		const float RestZ = (bGround ? (float)Hit.ImpactPoint.Z : (float)GetActorLocation().Z) + P.HalfThickness;
+		if (At.Z <= RestZ)
+		{
+			At.Z = RestZ;
+			A->SetActorLocation(At);
+			A->SetActorRotation(FRotator(FMath::FRandRange(-8.f, 8.f), A->GetActorRotation().Yaw, FMath::FRandRange(-8.f, 8.f))); // lying, a little askew
+			Pieces.RemoveAtSwap(i);
+			continue;
+		}
+		A->SetActorLocation(At);
+		A->AddActorWorldRotation(P.Spin * DeltaSeconds);
+	}
+}
+
 void ATDCollapseRun::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	TickPieces(DeltaSeconds);
 	if (bFinishing)
 	{
 		// Made it: no deadline, no countdown, but the anchor keeps coming down to its fully destroyed end state.
@@ -885,13 +924,21 @@ AActor* ATDCollapseRun::DropPiece(const FVector& WorldAt, UStaticMesh* Art, floa
 	M->SetStaticMesh(TDPlanetPropsImpl::Shape(TDPlanetPropsImpl::CubePath));
 	M->SetMobility(EComponentMobility::Movable);
 	M->SetWorldScale3D(Size / 100.f);
-	M->SetCollisionProfileName(TEXT("PhysicsActor"));
-	M->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);   // falling pieces are scenery, never a trap or a wall on the run
-	M->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore); // nor something the chase camera bumps into
+	// No physics body: simulated pieces fell through Cinder's ground and were never seen (T5's slot turn, Nov 14).
+	// The run moves each piece itself (TickPieces): gravity, a tumble, and rest on the traced ground. Scenery only:
+	// never a trap, a wall on the run or something the chase camera bumps into.
+	M->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Rock->SetRootComponent(M);
 	M->RegisterComponent();
-	M->SetSimulatePhysics(true);
-	M->SetPhysicsLinearVelocity(Velocity);
+	// A bare AActor has no root when it spawns, so the spawn transform is dropped: every piece used to appear at the
+	// world origin, which is why no debris was ever seen at the anchor. Place it now that it has a root.
+	Rock->SetActorLocation(WorldAt);
+	FFallingPiece Piece;
+	Piece.Actor = Rock;
+	Piece.Velocity = Velocity;
+	Piece.HalfThickness = 0.5f * FMath::Min3((float)Size.X, (float)Size.Y, (float)Size.Z);
+	Piece.Spin = FRotator(FMath::FRandRange(-60.f, 60.f), FMath::FRandRange(-40.f, 40.f), FMath::FRandRange(-90.f, 90.f));
+	Pieces.Add(Piece);
 	if (Art)
 	{
 		M->SetVisibility(false);
@@ -914,6 +961,7 @@ AActor* ATDCollapseRun::DropPiece(const FVector& WorldAt, UStaticMesh* Art, floa
 	{
 		Rock->SetLifeSpan(12.f);
 	}
+	UE_LOG(LogTriadDrift, Display, TEXT("TD.Collapse: dropped %s (%s) at %s size %s"), bDroppingSection ? TEXT("section") : TEXT("debris"), *GetNameSafe(Art), *WorldAt.ToCompactString(), *Size.ToCompactString());
 	Debris.Add(Rock);
 	return Rock;
 }

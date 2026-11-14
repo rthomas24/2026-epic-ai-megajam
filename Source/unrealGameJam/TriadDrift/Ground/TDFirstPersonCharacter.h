@@ -161,6 +161,9 @@ public:
 	/** Beam length in the hand (the art is 100 cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm"))
 	float HandBladeLength = 95.f;
+	/** #163: the blade's cast light at rest (candelas); x1.6 while fighting, up to x3.5 in a hit / slam pulse. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (ClampMin = "0"))
+	float BladeLightCandelas = 35.f; // r7: 60 tinted the whole suit pink at rest in the hangar
 	/** Where the hilt sits on the hand bone when the mesh has no BladeSocket (set by eye on SK_Pilot). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body")
 	FTransform HandBladeOffset;
@@ -332,6 +335,11 @@ protected:
 	bool bBladeAuraPrevTip = false;
 	float BladeAuraSpeed = 0.f;
 	float BladeAuraSwingHold = 0.f;
+	/** #163: the blade's cast light in the pilot colour (no shadows), pulsed by swings and hits. */
+	UPROPERTY(Transient)
+	TObjectPtr<class UPointLightComponent> BladeLight;
+	float BladeLightPulse = 0.f;
+	void HandleBladeCue(FName CueName);
 
 private:
 	FText Tip;

@@ -290,7 +290,10 @@ void UTDAtmosphereEntryComponent::TickClosedPlanetGuard(float DeltaTime)
 		StandDown();
 		return;
 	}
-	Move->SetKeepOutSphere(Planet->GetPlanetCenter(), Planet->GetAtmosphereRadius() * 1.02f, ClosedPlanetBand);
+	// A scripted corridor (the tutorial withdrawal's marker sits about 150 m off Verdance's atmosphere): the turn-away band
+	// shrinks to a thin skin so the ship can reach the marker; the hold at the edge itself stays (never a wall, never inside).
+	const float Band = Move->IsBoundaryReleased() ? FMath::Min(ClosedPlanetBand, 4000.f) : ClosedPlanetBand;
+	Move->SetKeepOutSphere(Planet->GetPlanetCenter(), Planet->GetAtmosphereRadius() * 1.02f, Band);
 	ClosedPlanet01 = Move->GetKeepOut01(); // last step's depth
 	if (ClosedPlanet01 > 0.f && bPlayer)
 	{
@@ -299,7 +302,10 @@ void UTDAtmosphereEntryComponent::TickClosedPlanetGuard(float DeltaTime)
 		const bool bDone = (int32)Phase > (int32)ATDPlanetAtmosphere::PhaseFor(Planet->GetDestination());
 		const ATDWaveDirector* Waves = ATDWaveDirector::Get(this);
 		// Why: a fight is on; or this world's work is done; or it is not time for it yet.
-		ClosedPlanetText = (Waves && Waves->IsWaveRunning()) ? NSLOCTEXT("TDTravel", "PlanetFight", "PLANET CLOSED  ·  FINISH THE FIGHT FIRST")
+		// A scripted corridor is up (the tutorial withdrawal runs toward Verdance): the fight is being left on orders, so
+		// "finish the fight" would contradict the objective on screen (T1's first-ten-minutes play).
+		ClosedPlanetText = Move->IsBoundaryReleased() ? NSLOCTEXT("TDTravel", "PlanetOrders", "PLANET CLOSED  ·  AWAIT ORDERS")
+			: (Waves && Waves->IsWaveRunning()) ? NSLOCTEXT("TDTravel", "PlanetFight", "PLANET CLOSED  ·  FINISH THE FIGHT FIRST")
 			: bDone ? NSLOCTEXT("TDTravel", "PlanetDone", "PLANET CLOSED  ·  NOTHING LEFT HERE")
 			: NSLOCTEXT("TDTravel", "PlanetNotYet", "PLANET CLOSED  ·  CLEAR THE AREA FIRST");
 		ClosedLineUntil = World->GetTimeSeconds() + ClosedPlanetLineSeconds;
