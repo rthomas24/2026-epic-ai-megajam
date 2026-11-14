@@ -713,7 +713,9 @@ MICS = {'M_TD_VFX_Ribbon_Clean': ('M_TD_VFX_Ribbon', {'Wisp': 0.12}),
         'M_TD_VFX_Flame_Boost': ('M_TD_VFX_Flame', {'Diamonds': 1.0}),
         # round 8: the vortex for the Rift's portal disc as a plain mesh material (for the ship builder to assign to the
         # disc's slot; T1's SetShipMaterialScalar drives PortalPower). Rift magenta.
-        'MI_TD_VFX_RiftPortalVortex': ('M_TD_VFX_PortalVortex', {'Tint': (1.0, 0.10, 0.85), 'PortalPower': 0.5})}
+        'MI_TD_VFX_RiftPortalVortex': ('M_TD_VFX_PortalVortex', {'Tint': (1.0, 0.10, 0.85), 'PortalPower': 0.5}),
+        # 10c: review only (NS_TD_Debug_HazeSphere): the haze at Density 0.6 to judge its shape; T6 sets its own Density
+        'MI_TD_RegionHaze_Review': ('M_TD_RegionHaze', {'Density': 0.6})}
 mic_log = []
 for _n, (_parent, _params) in MICS.items():
     if ONLY_MATS and _n not in ONLY_MATS:   # round 8: no incidental re-saves of the instances

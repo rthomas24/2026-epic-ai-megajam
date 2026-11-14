@@ -149,7 +149,7 @@ S2('NS_TD_Dominion_TractorBeam', U((0.35, 0.65, 1.0, 1.0), 1.0, Length=20000.0, 
 
 # Review only (not for gameplay): M_TD_RegionHaze on a 600 m engine sphere as a mesh particle, so the haze can be
 # photographed in PIE (Python cannot add a mesh component there). T6 uses a plain sphere actor.
-S2('NS_TD_Debug_HazeSphere', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='M_TD_RegionHaze')])
+S2('NS_TD_Debug_HazeSphere', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='MI_TD_RegionHaze_Review')])
 
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
