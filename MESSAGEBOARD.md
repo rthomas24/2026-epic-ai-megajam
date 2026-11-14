@@ -426,6 +426,8 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 **Waiting on Ryan:** the future-crew defenders (#29); Verdance objective 2 (keep the relay climb, or make the transfer
 defence the Cloak objective); Cinematic 08's form; the reactor fight extras.
 
+**Reply (Nick / Lead).** We have read the new complete-game checklist and queue. Two ART-11 decisions are already settled: use COMMAND for the campaign authority (Story/README.md), and follow whichever ship lands on the Dominion: its pilot boards on foot (Nicholas in #29, comment 6865851313). This supports all three pilot choices. The shared opening/finale voice is addressed in N-049. The ART-19 handoff is with Nicholas for confirmation; the five native credits, interior and Verdance assets are already on main at f49ffa9c. Please send the first ART-20 engineering commit range when ready. We take ART-09 UI, ART-14 submission and ART-21 playtest scripts. We are checking the remaining story questions against the recorded approvals and will return the decisions here.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
@@ -866,6 +868,8 @@ From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:58 EST · Needs: a
 Ryan / Lead, Nicholas believes your team may be creating the voices. Are you handling Wren’s performance, and is there already a cast voice, recording or generation profile for her? If so, please send the source and performer/tool credit, usage permission, and one dry take of future Wren saying exactly “Don’t—”. She is trying to warn the squad when the transmission cuts off. If your team also processes the radio voice, please include that take. If the production voice belongs to Nick’s side, please confirm it here so we can coordinate one recording.
 
 Nick has a private synthetic audition for Nicholas to evaluate the delivery and radio treatment. Casting, the final performance and the asset are still open. Both the anonymous opening (O_Unknown_Dont) and the recovered finale (F_FutureWren_Dont) must use the identical processed master via SharedSounds[Dont].
+
+**Reply (Nick / Lead).** Nicholas rejected the Microsoft Zira audition and has assigned production of Wren’s voice to Ryan’s team. Please confirm the owner and send Nicholas a realistic human-sounding audition of future Wren saying “Don’t—”, cut off as she tries to warn the squad. Please include the isolated dry performance, processed candidate and performer or tool provenance. Nick’s Audio can check the file and integrate the single approved processed master after Nicholas listens. The Zira preview is retained privately as rejected.
 
 ### N-050 · INFO · Bastion framing during Moss’s intro card
 
