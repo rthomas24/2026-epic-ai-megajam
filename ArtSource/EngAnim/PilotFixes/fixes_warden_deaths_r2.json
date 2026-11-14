@@ -1,5 +1,5 @@
 {
- "_note": "Warden deaths, r6 (Lead, Nov 14): base = the Trooper's in-place Back fall (A_Crew_Death_Back) on SKEL_Warden, 2.76 s (rate 0.93); the Back fall from EnemyDeaths r1 is dropped (it flips, legs above the torso, at 1.3-1.5 s). Frame 0 is the Guard pose and the fall blends in over 0.35 s. Written to A_Crew_Warden_DeathPre_<Side>; body_warden_death.json adds the buckle. All four sides share it.",
+ "_note": "Warden deaths, r6 (Lead, Nov 14): base = the Trooper's in-place Back fall (A_Crew_Death_Back) on SKEL_Warden, 2.76 s (rate 0.93); the Back fall from EnemyDeaths r1 is dropped (it flips, legs above the torso, at 1.3-1.5 s). Frame 0 is the Guard pose and the fall blends in over 0.35 s. Written to A_Crew_Warden_DeathPre_<Side>; body_warden_death.json adds the buckle. All four sides share it. The left arm keeps the Guard pose to 0.7 s and lets go by 1.2 s, so the shield stays in front through the buckle and goes down with the body (the base pulled the arm back and the shield stuck out behind).",
  "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
  "skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
  "clips": [
@@ -12,6 +12,26 @@
     "src": "A_Crew_Warden_Guard",
     "in": 0.35,
     "out": 0
+   },
+   "copy_pose": {
+    "src": "A_Crew_Warden_Guard",
+    "t": 0.0,
+    "bones": [
+     "clavicle",
+     "upperarm",
+     "lowerarm",
+     "hand",
+     "index",
+     "middle",
+     "ring",
+     "pinky",
+     "thumb"
+    ],
+    "side": "_l",
+    "hold": [
+     0.7,
+     1.2
+    ]
    }
   },
   {
@@ -23,6 +43,26 @@
     "src": "A_Crew_Warden_Guard",
     "in": 0.35,
     "out": 0
+   },
+   "copy_pose": {
+    "src": "A_Crew_Warden_Guard",
+    "t": 0.0,
+    "bones": [
+     "clavicle",
+     "upperarm",
+     "lowerarm",
+     "hand",
+     "index",
+     "middle",
+     "ring",
+     "pinky",
+     "thumb"
+    ],
+    "side": "_l",
+    "hold": [
+     0.7,
+     1.2
+    ]
    }
   },
   {
@@ -34,6 +74,26 @@
     "src": "A_Crew_Warden_Guard",
     "in": 0.35,
     "out": 0
+   },
+   "copy_pose": {
+    "src": "A_Crew_Warden_Guard",
+    "t": 0.0,
+    "bones": [
+     "clavicle",
+     "upperarm",
+     "lowerarm",
+     "hand",
+     "index",
+     "middle",
+     "ring",
+     "pinky",
+     "thumb"
+    ],
+    "side": "_l",
+    "hold": [
+     0.7,
+     1.2
+    ]
    }
   },
   {
@@ -45,6 +105,26 @@
     "src": "A_Crew_Warden_Guard",
     "in": 0.35,
     "out": 0
+   },
+   "copy_pose": {
+    "src": "A_Crew_Warden_Guard",
+    "t": 0.0,
+    "bones": [
+     "clavicle",
+     "upperarm",
+     "lowerarm",
+     "hand",
+     "index",
+     "middle",
+     "ring",
+     "pinky",
+     "thumb"
+    ],
+    "side": "_l",
+    "hold": [
+     0.7,
+     1.2
+    ]
    }
   }
  ]
