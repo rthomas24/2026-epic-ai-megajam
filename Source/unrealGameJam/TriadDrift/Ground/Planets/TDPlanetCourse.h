@@ -205,6 +205,21 @@ private:
 	UPROPERTY(Transient) TObjectPtr<class ATDArchiveTransfer> ArchiveTransfer;
 	UPROPERTY(Transient) TObjectPtr<class ATDSurveyTerminal> SurveyTerminal;
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> DormantDrone;
+	/**
+	 * Grok Bot's survey outpost (BP_Outpost_Site_Verdance / _Cinder; ArtSource/EngProps/Outpost/export/
+	 * Outpost_Site.manifest.json): spawned at Site (course-local, on the ground), +X (its bay and ramp) turned to Yaw.
+	 * Returns null when the asset is missing (the caller keeps its placeholder pieces). OutConsole: its console mesh.
+	 */
+	AActor* PlaceOutpost(const FVector& Site, float Yaw, bool bCinder, UStaticMeshComponent*& OutConsole);
+	/** An invisible interact box over the outpost console, at its 87 x 260 x 150 cm, facing Yaw. */
+	template <class T> T* OutpostTerminal(const FVector& Site, float Yaw);
+	/** Terminal -> its outpost console screen and planet (the scan on the screen when used, T2's ShowScanOnScreen). */
+	UPROPERTY(Transient) TMap<TObjectPtr<AActor>, TObjectPtr<UStaticMeshComponent>> TerminalScreens;
+	UFUNCTION() void HandleTerminalScreen(AActor* Interactable, AActor* Interactor);
+public:
+	AActor* GetOutpost() const { return SiteOutpost; }
+private:
+	UPROPERTY(Transient) TObjectPtr<AActor> SiteOutpost;
 public:
 	class ATDArchiveTransfer* GetArchiveTransfer() const { return ArchiveTransfer; }
 	class ATDSurveyTerminal* GetSurveyTerminal() const { return SurveyTerminal; }

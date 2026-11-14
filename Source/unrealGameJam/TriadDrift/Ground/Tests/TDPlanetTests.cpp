@@ -370,6 +370,14 @@ namespace TDCourseTest
 			for (float Tm = 0.f; X && Tm < MaxSeconds && Step(Obj) >= 3 && Step(Obj) <= 4; Tm += 1.f)
 			{
 				for (ATDEncounterVolume* E : X->Waves) { if (E && E->IsActive()) { KillAll(E); } }
+				// Anyone else at the terminal holds it too (drones from an earlier fight follow the pilot): a player clears them.
+				for (TActorIterator<ATDCrewCharacter> It(V.W.GetWorld()); It; ++It)
+				{
+					if (!It->IsDead() && FVector::Dist2D(It->GetActorLocation(), X->GetActorLocation()) < X->PauseRadius * 2.f)
+					{
+						if (UTDHealthComponent* H = UTDStatics::GetHealth(*It)) { H->Kill(FP, ETDDamageKind::Melee); }
+					}
+				}
 				Tick(1.f);
 			}
 			if (X && Step(Obj) >= 3 && Step(Obj) <= 4)
@@ -1144,6 +1152,14 @@ namespace TDPlayedTest
 			{
 				Failed = FString::Printf(TEXT("fight %s not cleared (%d alive, %d spawned, active %d, room step %d, objective step %d)"), *E->GetName(), E->GetAliveCount(),
 					E->GetSpawned().Num(), E->IsActive(), E->LinkedStep, E->LinkedObjective ? E->LinkedObjective->GetCurrentStepIndex() : -9);
+				for (const TWeakObjectPtr<AActor>& M : E->GetSpawned())
+				{
+					if (const ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get()); C && !C->IsDead())
+					{
+						Failed += FString::Printf(TEXT(" [%s alive at %s, pilot at %s]"), *UEnum::GetValueAsString(C->CrewType), *C->GetActorLocation().ToCompactString(),
+							*FP->GetActorLocation().ToCompactString());
+					}
+				}
 				return false;
 			}
 			return true;
@@ -1315,6 +1331,11 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 			if (ATDArchiveTransfer* X = P.Course->GetArchiveTransfer())
 			{
 				for (ATDEncounterVolume* E : X->Waves) { if (E && E->IsActive()) { P.Fight(E, 60.f); bFought = true; } }
+				// Anything else that came to the terminal (the relay's drones follow the pilot) is fought too.
+				if (!bFought && X->IsPaused())
+				{
+					if (ATDEncounterVolume* Other = P.ActiveFightNear(X->GetActorLocation(), 2500.f)) { P.Fight(Other, 60.f); bFought = true; }
+				}
 			}
 			if (!bFought) { P.Tick(1.f); }
 		}

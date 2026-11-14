@@ -3,6 +3,7 @@
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "Components/MeshComponent.h"
 #include "TimerManager.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "Engine/PostProcessVolume.h"
@@ -319,6 +320,69 @@ bool ATDPlanetCourse::IsScatterAllowedAt(const UObject* WorldContextObject, cons
 {
 	const ATDPlanetCourse* Course = Get(WorldContextObject);
 	return !Course || Course->IsScatterAllowed(WorldPoint, Radius);
+}
+
+
+// ------------------------------------------------------------------------------------------------
+// Grok Bot's survey outpost (the Verdance research site, the Cinder survey station)
+// ------------------------------------------------------------------------------------------------
+
+AActor* ATDPlanetCourse::PlaceOutpost(const FVector& Site, float Yaw, bool bCinder, UStaticMeshComponent*& OutConsole)
+{
+	OutConsole = nullptr;
+	const TCHAR* Path = bCinder ? TEXT("/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_Cinder.BP_Outpost_Site_Cinder_C")
+		: TEXT("/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_Verdance.BP_Outpost_Site_Verdance_C");
+	UClass* Cls = LoadClass<AActor>(nullptr, Path, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	if (!Cls)
+	{
+		return nullptr;
+	}
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	// Not sunk, not scaled (the manifest): its pivot is on the ground under the deck centre.
+	AActor* A = GetWorld()->SpawnActor<AActor>(Cls, FTransform(GetActorRotation() + FRotator(0.f, Yaw, 0.f), W(Site)), Params);
+	if (!A)
+	{
+		return nullptr;
+	}
+	Spawned.Add(A);
+	TInlineComponentArray<UStaticMeshComponent*> Meshes(A);
+	for (UStaticMeshComponent* M : Meshes)
+	{
+		if (M && M->GetStaticMesh() && M->GetStaticMesh()->GetName().Contains(TEXT("Console")))
+		{
+			OutConsole = M;
+		}
+	}
+	SiteOutpost = A;
+	return A;
+}
+
+template <class T>
+T* ATDPlanetCourse::OutpostTerminal(const FVector& Site, float Yaw)
+{
+	// The console stands at site (-19, 81.5, 153), 87 x 260 x 150 cm, pivot bottom-centre; its box centre is 75 cm up.
+	const FVector At = Site + FRotator(0.f, Yaw, 0.f).RotateVector(FVector(-19.f, 81.5f, 153.f + 75.f));
+	T* C = SpawnProp<T>(At, FRotator(0.f, Yaw, 0.f));
+	return C;
+}
+
+void ATDPlanetCourse::HandleTerminalScreen(AActor* Interactable, AActor* Interactor)
+{
+	const TObjectPtr<UStaticMeshComponent>* Screen = TerminalScreens.Find(Interactable);
+	if (!Screen || !*Screen)
+	{
+		return;
+	}
+	// Nicholas's scan on the screen (T2, issue #62); else the screens brighten (the manifest's ScreenPower 6-10).
+	const bool bCinder = PlanetId == TEXT("Cinder");
+	if (!UTDUIHostSubsystem::ShowScanOnScreen(*Screen, NAME_None, bCinder, 8.f))
+	{
+		if (UMaterialInstanceDynamic* MID = (*Screen)->CreateDynamicMaterialInstance(0))
+		{
+			MID->SetScalarParameterValue(TEXT("ScreenPower"), 8.f);
+		}
+	}
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -921,7 +985,17 @@ void ATDPlanetCourse::BuildVerdance()
 	// The survey station (storyline.md section 18, reduced form): one open-sided station, intact and lit, nobody home. A
 	// roofed deck on four posts with two low equipment walls, the survey terminal in the middle and a dormant drone in a
 	// corner (Cinematic 03 wakes it). Placeholders by name until the builder's pieces land (SM_Verd_Station_*).
+	// Grok Bot's outpost when it exists (its bay and ramp turned to the beacon the pilot comes from); else the placeholder.
+	// At the fight's edge, not its middle (Played.Verdance: a solid cabin in the middle of the station fight walled the
+	// pilot off from the crew), clear of the spawn points and of the line from the checkpoint.
+	const FVector OutpostSite = WreckSite + FVector(900.f, -1700.f, 0.f);
+	const float SiteYaw = FMath::RadiansToDegrees(FMath::Atan2(6300.f - OutpostSite.Y, 9300.f - OutpostSite.X));
+	UStaticMeshComponent* VerdConsole = nullptr;
+	AActor* VerdOutpost = PlaceOutpost(OutpostSite, SiteYaw, false, VerdConsole);
+	auto OP = [&OutpostSite, SiteYaw](const FVector& Local) { return OutpostSite + FRotator(0.f, SiteYaw, 0.f).RotateVector(Local); };
 	const FLinearColor StationMetal(0.32f, 0.36f, 0.4f);
+	if (!VerdOutpost)
+	{
 	Platform(FVector(WreckSite.X, WreckSite.Y, 0.f), 30.f, FVector(1600.f, 1600.f, 30.f), StationMetal, 0.f, TEXT("SM_Verd_Station_Deck"));
 	for (const FVector2D& C : { FVector2D(-700.f, -700.f), FVector2D(700.f, -700.f), FVector2D(-700.f, 700.f), FVector2D(700.f, 700.f) })
 	{
@@ -931,7 +1005,10 @@ void ATDPlanetCourse::BuildVerdance()
 	Block(EShape::Cube, WreckSite + FVector(0.f, -760.f, 90.f), FVector(900.f, 60.f, 120.f), StationMetal, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_Station_Rack"));
 	Block(EShape::Cube, WreckSite + FVector(-760.f, 200.f, 90.f), FVector(60.f, 700.f, 120.f), StationMetal, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_Station_Rack"));
 	Block(EShape::Cube, WreckSite + FVector(0.f, 0.f, 505.f), FVector(1200.f, 60.f, 8.f), Cyan, 3.f, FRotator::ZeroRotator, false); // the station's work light
-	DormantDrone = Block(EShape::Sphere, WreckSite + FVector(550.f, 550.f, 110.f), FVector(120.f, 120.f, 90.f), StationMetal, 0.f, FRotator(0.f, -135.f, 0.f), false, TEXT("SM_Verd_Station_DormantDrone"));
+	}
+	// The dormant drone (Cinematic 03 wakes it): on the outpost's deck, in the corner by the bay.
+	DormantDrone = Block(EShape::Sphere, VerdOutpost ? OP(FVector(-300.f, -280.f, 140.f + 90.f)) : WreckSite + FVector(550.f, 550.f, 110.f), FVector(120.f, 120.f, 90.f), StationMetal, 0.f,
+		FRotator(0.f, -135.f, 0.f), false, TEXT("SM_Verd_Station_DormantDrone"));
 
 	ATDStepTrigger* Beacon = SpawnProp<ATDStepTrigger>(FVector(9300.f, 6300.f, 0.f));
 	Beacon->LinkedObjective = Wreck;
@@ -951,15 +1028,26 @@ void ATDPlanetCourse::BuildVerdance()
 	// The survey terminal: a tap starts the archive transfer (and Cinematic 03, T3's hook).
 	// The console's origin is its box centre: 60 x 120 x 130 cm standing on the 30 cm deck (T2's live check: at deck height
 	// it sat half sunk and only took the interact trace looking 40 degrees down).
-	ATDInteractableActor* Terminal = SpawnProp<ATDInteractableActor>(WreckSite + FVector(-250.f, 0.f, 30.f + 65.f), FRotator(0.f, 180.f, 0.f));
+	ATDInteractableActor* Terminal = VerdOutpost ? OutpostTerminal<ATDInteractableActor>(OutpostSite, SiteYaw)
+		: SpawnProp<ATDInteractableActor>(WreckSite + FVector(-250.f, 0.f, 30.f + 65.f), FRotator(0.f, 180.f, 0.f));
 	Terminal->Prompt = LOCTEXT("SurveyTerminal", "Connect the device");
 	Terminal->HoldTime = 0.f;
 	Terminal->LinkedObjective = Wreck;
 	Terminal->LinkedStep = 2;
 	Terminal->ConsoleMesh = TDPropArt::Default(TEXT("SM_Verd_Station_Terminal"));
 	TDCourseImpl::FinishProp(Terminal);
-	Terminal->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f)); // the cube is 60 x 60 x 120 at scale 1
-	UTDStatics::TintPlaceholder(Terminal->Mesh, FLinearColor(0.1f, 0.8f, 1.f), 1.5f);
+	if (VerdOutpost)
+	{
+		Terminal->SetActorScale3D(FVector(87.f / 60.f, 260.f / 60.f, 150.f / 120.f)); // the outpost console's box (the cube is 60 x 60 x 120)
+		Terminal->Mesh->SetHiddenInGame(true); // Grok Bot's console is what the player sees; this is its interact box
+		TerminalScreens.Add(Terminal, VerdConsole);
+		Terminal->OnInteracted.AddUniqueDynamic(this, &ATDPlanetCourse::HandleTerminalScreen);
+	}
+	else
+	{
+		Terminal->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f)); // the cube is 60 x 60 x 120 at scale 1
+		UTDStatics::TintPlaceholder(Terminal->Mesh, FLinearColor(0.1f, 0.8f, 1.f), 1.5f);
+	}
 
 	// The transfer (60-90 s, here 75): three fixed waves dropping in around the station, the third with the Heavy (the
 	// disruption); it pauses while a crewman stands at the terminal. Spawned high: they fall in.
@@ -968,7 +1056,8 @@ void ATDPlanetCourse::BuildVerdance()
 	ATDEncounterVolume* Wave3 = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Heavy, ETDCrewType::Grunt }, false, 1400.f);
 	FTDRetakeMercyTier TransferMercy3; TransferMercy3.FromTake = 3; TransferMercy3.DropCrew = 1;
 	Wave3->MercyTiers = { TransferMercy3 };
-	ATDArchiveTransfer* Transfer = SpawnProp<ATDArchiveTransfer>(WreckSite + FVector(-250.f, 0.f, 0.f));
+	// The pause zone is centred where the pilot stands at the console (site (76, 81.5, 153)).
+	ATDArchiveTransfer* Transfer = SpawnProp<ATDArchiveTransfer>(VerdOutpost ? OP(FVector(76.f, 81.5f, 153.f)) : WreckSite + FVector(-250.f, 0.f, 0.f));
 	Transfer->LinkedObjective = Wreck;
 	Transfer->LinkedStep = 4; // steps 3 (first half) and 4 (second half, the midpoint checkpoint)
 	Transfer->Waves = { Wave1, Wave2, Wave3 };
@@ -978,7 +1067,7 @@ void ATDPlanetCourse::BuildVerdance()
 
 	// The data package: take it from the terminal (a short hold) and get it back to the ship; two grunts give chase.
 	ATDEncounterVolume* Pursuit = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 1300.f);
-	ATDExtractionSite* Core = SpawnProp<ATDExtractionSite>(WreckSite + FVector(-250.f, 350.f, 60.f));
+	ATDExtractionSite* Core = SpawnProp<ATDExtractionSite>(VerdOutpost ? OP(FVector(120.f, -200.f, 140.f + 60.f)) : WreckSite + FVector(-250.f, 350.f, 60.f)); // on the deck by the ramp
 	Core->LinkedObjective = Wreck;
 	Core->LinkedStep = 5;
 	Core->HoldTime = 1.5f;
@@ -1153,6 +1242,9 @@ void ATDPlanetCourse::BuildCinder()
 	ATDObjective* Survey = MakeObjective(TEXT("Obj_Survey"), LOCTEXT("SurveyTitle", "Access the Survey Records"), ETDAbilityId::None, ETDShipId::Rift, 2);
 	AddTrailhead(Survey, FVector(1300.f, 0.f, 0.f), Crystal, LOCTEXT("TheSurvey", "THE SURVEY STATION"));
 	Route({ FVector(700.f, 0.f, 0.f), FVector(2300.f, 0.f, 0.f), StationAt - FVector(900.f, 0.f, 0.f) }, Crystal);
+	UStaticMeshComponent* CindConsole = nullptr;
+	const AActor* CindOutpost = PlaceOutpost(StationAt, 180.f, true, CindConsole); // bay and ramp to the pad (-X)
+	if (!CindOutpost)
 	{
 		const FLinearColor StationMetal(0.3f, 0.3f, 0.32f);
 		Platform(FVector(StationAt.X, StationAt.Y, 0.f), 30.f, FVector(1600.f, 1600.f, 30.f), StationMetal, 0.f, TEXT("SM_Verd_Station_Deck"));
@@ -1170,15 +1262,26 @@ void ATDPlanetCourse::BuildCinder()
 	AtStation->LinkedObjective = Survey;
 	AtStation->LinkedStep = 0;
 	TDCourseImpl::FinishProp(AtStation);
-	ATDSurveyTerminal* Records = SpawnProp<ATDSurveyTerminal>(StationAt + FVector(0.f, 0.f, 30.f + 65.f), FRotator(0.f, 180.f, 0.f));
+	ATDSurveyTerminal* Records = CindOutpost ? OutpostTerminal<ATDSurveyTerminal>(StationAt, 180.f)
+		: SpawnProp<ATDSurveyTerminal>(StationAt + FVector(0.f, 0.f, 30.f + 65.f), FRotator(0.f, 180.f, 0.f));
 	Records->Prompt = LOCTEXT("SurveyRecords", "Access the survey records");
 	Records->HoldTime = 0.f;
 	Records->LinkedObjective = Survey;
 	Records->LinkedStep = 1;
 	Records->ConsoleMesh = TDPropArt::Default(TEXT("SM_Verd_Station_Terminal"));
 	TDCourseImpl::FinishProp(Records);
-	Records->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f));
-	UTDStatics::TintPlaceholder(Records->Mesh, FLinearColor(1.f, 0.55f, 0.15f), 1.5f);
+	if (CindOutpost)
+	{
+		Records->SetActorScale3D(FVector(87.f / 60.f, 260.f / 60.f, 150.f / 120.f));
+		Records->Mesh->SetHiddenInGame(true);
+		TerminalScreens.Add(Records, CindConsole);
+		Records->OnInteracted.AddUniqueDynamic(this, &ATDPlanetCourse::HandleTerminalScreen);
+	}
+	else
+	{
+		Records->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f));
+		UTDStatics::TintPlaceholder(Records->Mesh, FLinearColor(1.f, 0.55f, 0.15f), 1.5f);
+	}
 	FinishObjective(Survey, { LOCTEXT("S0", "INVESTIGATE THE MINING COMPLEX"), LOCTEXT("S1", "ACCESS THE SURVEY RECORDS · [E]") }, { AtStation, Records });
 	SurveyTerminal = Records;
 
