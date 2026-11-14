@@ -6,6 +6,8 @@
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/World/TDDockingBay.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
+#include "TriadDrift/Profile/TDProfileSubsystem.h"
 #include "TriadDrift/World/TDWorldBarks.h"
 #include "TriadDrift/World/TDDistortionField.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
@@ -157,6 +159,11 @@ void ATDDominion::BeginPlay()
 	{
 		Bus->OnTakeStarted.AddUniqueDynamic(this, &ATDDominion::HandleTakeStarted);
 		Bus->OnActorKilled.AddUniqueDynamic(this, &ATDDominion::HandleActorKilled);
+		Bus->OnHyperdriveState.AddUniqueDynamic(this, &ATDDominion::HandleHyperdriveForLightRow);
+	}
+	if (UTDProfileSubsystem* Profile = UTDProfileSubsystem::Get(this))
+	{
+		Profile->OnAftermathBegins.AddUObject(this, &ATDDominion::HandleAftermathBegins);
 	}
 
 	// Nick's asset by convention when none is set (no gameplay BP edit needed).
@@ -530,7 +537,7 @@ void ATDDominion::TickEscapeFlight(float DeltaSeconds)
 	if (Ship && FVector::Dist(Ship->GetActorLocation(), GetActorLocation()) >= GetEscapeExitRadius())
 	{
 		bEscapeClear = true;
-		FTDWorldBarks::Say(this, TDWorldBarkIds::DomClear, ETDBarkPriority::High, FTDWorldBarks::EWho::Wingman, 0.f);	// dialogs.md Bark_Dom_Clear
+		UTDStorySubsystem::PlaySequence(this, TEXT("ClearSpace"));	// storyline 31: "Lancer clear / Bastion clear / Rift clear" (replaces Bark_Dom_Clear)
 		EscapeClearTime = 0.f;
 		for (AActor* A : EscapeDebris) { if (IsValid(A)) { A->Destroy(); } }
 		EscapeDebris.Reset();
@@ -651,6 +658,7 @@ void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		Bus->OnTakeStarted.RemoveDynamic(this, &ATDDominion::HandleTakeStarted);
 		Bus->OnActorKilled.RemoveDynamic(this, &ATDDominion::HandleActorKilled);
+		Bus->OnHyperdriveState.RemoveDynamic(this, &ATDDominion::HandleHyperdriveForLightRow);
 	}
 	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
@@ -672,6 +680,10 @@ void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ATDDominion::SetState(ETDDominionState NewState)
 {
+	if (NewState == ETDDominionState::ShieldsUp && State != ETDDominionState::ShieldsUp)
+	{
+		UTDStorySubsystem::Fire(this, TEXT("G6_Kato_MarkingTargets"));	// storyline 24: the generator markers first show
+	}
 	if (bShowcase && NewState != State)
 	{
 		SetShowcase(false);	// the real Dominion takes over (reveal, retake, victory)
@@ -1205,9 +1217,9 @@ void ATDDominion::HandleGeneratorDestroyed(ATDShieldGenerator* Generator, AActor
 	// The GeneratorKill money shot comes from T3's UTDDirectorSubsystem (generator actors are tagged).
 
 	const int32 Remaining = GetGeneratorsRemaining();
-	if (Remaining > 0)
+	if (Remaining == 3)
 	{
-		FTDWorldBarks::Say(this, TDWorldBarkIds::DomGeneratorDown, ETDBarkPriority::High, FTDWorldBarks::EWho::Wingman, 0.f);	// dialogs.md Bark_Dom_GeneratorDown
+		UTDStorySubsystem::Fire(this, TEXT("G6_Kato_ShieldWeakening"));	// storyline 24: the first generator down (A4_GeneratorDown1 retired by T3)
 	}
 	// Story (T3's transmissions): one per generator by count down, not by which one. Once per run, queued, held
 	// during money shots; a retake or a resumed save (generators silently destroyed) never replays them.
@@ -1253,6 +1265,65 @@ void ATDDominion::HandleActorKilled(AActor* Victim, AActor* /*Killer*/, ETDDamag
 		UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: the flown ship died in the trench run - CUT, retake at the trench start"));
 		Flow->ReportPlayerDefeated();
 	}
+}
+
+void ATDDominion::HandleAftermathBegins(bool bSkippedTutorial)
+{
+	// The escape line's point on the natural path; the player start on a tutorial skip.
+	FVector From = GetActorLocation();
+	FVector Normal;
+	const ATDWaveDirector* Waves = ATDWaveDirector::Get(this);
+	if (!bSkippedTutorial && Waves && Waves->GetEscapeBoundary(From, Normal)) {}
+	else if (const ATDGalaxyLayout* Layout = ATDGalaxyLayout::Get(this)) { From = Layout->GetPlayerStart().GetLocation(); }
+	StartAftermathLightRow(From);
+}
+
+void ATDDominion::StartAftermathLightRow(const FVector& WorldPoint)
+{
+	if (!Visuals || Visuals->AftermathLightRow.IsEmpty() || !HullMesh)
+	{
+		return;
+	}
+	// The hull point nearest WorldPoint (its box: before the reveal the hull is the hidden real ship, without collision),
+	// +X along the outward normal of that face.
+	const FBox B = GetLocalHullBounds();
+	const FVector L = GetActorTransform().InverseTransformPosition(WorldPoint);
+	const FVector OnBox = B.GetClosestPointTo(L);
+	const FVector Ext = B.GetExtent(), C = B.GetCenter();
+	const FVector Rel = (OnBox - C) / Ext.ComponentMax(FVector(1.f));
+	const FVector N = FMath::Abs(Rel.X) >= FMath::Abs(Rel.Y) && FMath::Abs(Rel.X) >= FMath::Abs(Rel.Z) ? FVector(FMath::Sign(Rel.X), 0.f, 0.f)
+		: FMath::Abs(Rel.Y) >= FMath::Abs(Rel.Z) ? FVector(0.f, FMath::Sign(Rel.Y), 0.f) : FVector(0.f, 0.f, FMath::Sign(Rel.Z));
+	if (!LightRowAnchor)
+	{
+		LightRowAnchor = NewObject<USceneComponent>(this, TEXT("AftermathLightRow"));
+		LightRowAnchor->SetupAttachment(GetRootComponent());
+		LightRowAnchor->RegisterComponent();
+	}
+	LightRowAnchor->SetRelativeLocationAndRotation(OnBox, N.Rotation());
+	bLightRowOn = true;
+	if (!LightRowFX) { LightRowFX = UTDStatics::PlayCueAttached(Visuals->AftermathLightRow, LightRowAnchor); }
+	else if (!LightRowFX->IsActive()) { LightRowFX->Activate(true); }
+}
+
+void ATDDominion::StopAftermathLightRow()
+{
+	bLightRowOn = false;
+	if (LightRowFX) { LightRowFX->Deactivate(); }	// the system fades itself out within 1 s
+}
+
+bool ATDDominion::IsAftermathLightRowActive() const
+{
+	return bLightRowOn;	// the cue's state (its Niagara component exists only where something renders)
+}
+
+FTransform ATDDominion::GetAftermathLightRowTransform() const
+{
+	return LightRowAnchor ? LightRowAnchor->GetRelativeTransform() : FTransform::Identity;
+}
+
+void ATDDominion::HandleHyperdriveForLightRow(ETDHyperdriveState NewState)
+{
+	if (NewState == ETDHyperdriveState::Jumping) { StopAftermathLightRow(); }
 }
 
 void ATDDominion::OnDefensesDown(bool bFromSave)

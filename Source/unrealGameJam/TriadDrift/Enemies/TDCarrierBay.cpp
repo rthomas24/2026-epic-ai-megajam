@@ -1,6 +1,8 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Enemies/TDCarrierBay.h"
 #include "TriadDrift/World/TDWorldBarks.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -171,7 +173,15 @@ void ATDCarrierBay::Tick(float DeltaSeconds)
 	{
 		bTelegraphing = false;
 		CarrierShip->LaunchFightersFromBay(this, FightersPerLaunch);
-		FTDWorldBarks::Say(this, TDWorldBarkIds::CarrierLaunch, ETDBarkPriority::Normal, FTDWorldBarks::EWho::Wingman, 20.f);	// dialogs.md Bark_CarrierLaunch
+		const UTDGameInstance* GI = UTDGameInstance::Get(this);
+		if (GI && GI->GetProgressRef().Phase == ETDGamePhase::DominionAssault && !UTDStorySubsystem::HasLineAired(this, TEXT("G6_Wren_ClearCarriers")))
+		{
+			UTDStorySubsystem::Fire(this, TEXT("G6_Wren_ClearCarriers"));	// storyline 24: the first carrier launch in the assault
+		}
+		else
+		{
+			FTDWorldBarks::Say(this, TDWorldBarkIds::CarrierLaunch, ETDBarkPriority::Normal, FTDWorldBarks::EWho::Wingman, 20.f);	// dialogs.md Bark_CarrierLaunch
+		}
 		++LaunchCount;
 		if (Visuals) { UTDStatics::PlayCue(this, Visuals->BayLaunch, GetActorLocation(), GetActorRotation()); }
 		OnLaunched.Broadcast(this);
