@@ -1,0 +1,575 @@
+[
+ {
+  "course": "[2026.11.14-11.51.02:641][280]LogTriadDrift: Display: TD.Course TDPlanetCourse_0 at V(0) yaw 0.0",
+  "xf": [
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ {
+  "teleport": [
+   4120.140726144673,
+   3595.2968578244804,
+   0.0
+  ],
+  "feet": [
+   4120,
+   3595,
+   2
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchX\\bridge_01_near_foot.png"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   4431,
+   3810,
+   2
+  ],
+  "at": "span 0"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   4737,
+   4022,
+   52
+  ],
+  "at": "span 1"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   5045,
+   4235,
+   52
+  ],
+  "at": "span 2"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   5351,
+   4447,
+   52
+  ],
+  "at": "span 3"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   5659,
+   4661,
+   62
+  ],
+  "at": "span 4"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   5966,
+   4874,
+   52
+  ],
+  "at": "span 5"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   6276,
+   5088,
+   62
+  ],
+  "at": "span 6"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   6610,
+   5319,
+   46
+  ],
+  "at": "span 7"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   6947,
+   5553,
+   32
+  ],
+  "at": "span 8"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   7253,
+   5765,
+   2
+  ],
+  "at": "span 9"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   7920,
+   6227,
+   596
+  ],
+  "at": "span 10"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   8529,
+   6648,
+   2
+  ],
+  "at": "span 11"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   8838,
+   6862,
+   2
+  ],
+  "at": "span 12"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   8838,
+   6862,
+   2
+  ],
+  "at": "span 13"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   311,
+   612,
+   2
+  ],
+  "at": "span 14"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   620,
+   826,
+   2
+  ],
+  "at": "span 15"
+ },
+ {
+  "teleport": [
+   5600.0,
+   4620.0,
+   60.0
+  ],
+  "feet": [
+   5600,
+   4620,
+   62
+  ]
+ },
+ {
+  "walk": [
+   124.7,
+   0.6
+  ],
+  "feet": [
+   5537,
+   4710,
+   62
+  ],
+  "at": "into the left rail 0"
+ },
+ {
+  "walk": [
+   124.7,
+   0.6
+  ],
+  "feet": [
+   5537,
+   4710,
+   62
+  ],
+  "at": "into the left rail 1"
+ },
+ {
+  "teleport": [
+   5600.0,
+   4620.0,
+   60.0
+  ],
+  "feet": [
+   5600,
+   4620,
+   62
+  ]
+ },
+ {
+  "walk": [
+   -55.3,
+   0.6
+  ],
+  "feet": [
+   5663,
+   4530,
+   52
+  ],
+  "at": "into the right rail 0"
+ },
+ {
+  "walk": [
+   -55.3,
+   0.6
+  ],
+  "feet": [
+   5663,
+   4530,
+   52
+  ],
+  "at": "into the right rail 1"
+ },
+ {
+  "teleport": [
+   5600.0,
+   4620.0,
+   60.0
+  ],
+  "feet": [
+   5600,
+   4620,
+   62
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchX\\bridge_02_mid_deck.png"
+ },
+ {
+  "teleport": [
+   6662.432204516853,
+   5720.562497455488,
+   0.0
+  ],
+  "feet": [
+   6662,
+   5721,
+   2
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchX\\bridge_03_far_foot_back.png"
+ },
+ {
+  "teleport": [
+   6627.680051288422,
+   5331.599404288555,
+   60.0
+  ],
+  "feet": [
+   6628,
+   5332,
+   41
+  ]
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   6935,
+   5544,
+   499
+  ],
+  "at": "off the far ramp toward the geysers 0"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   7025,
+   5607,
+   596
+  ],
+  "at": "off the far ramp toward the geysers 1"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   209,
+   397,
+   42
+  ],
+  "at": "off the far ramp toward the geysers 2"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   516,
+   609,
+   2
+  ],
+  "at": "off the far ramp toward the geysers 3"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchX\\bridge_04_far_side_geysers.png"
+ },
+ {
+  "course": "[2026.11.14-11.52.33:313][135]LogTriadDrift: Display: TD.Course TDPlanetCourse_0 at V(0) yaw 0.0",
+  "xf": [
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ {
+  "teleport": [
+   2000.0,
+   0.0,
+   0.0
+  ],
+  "feet": [
+   2000,
+   0,
+   2
+  ]
+ },
+ {
+  "walk": [
+   180.0,
+   0.6
+  ],
+  "feet": [
+   1629,
+   0,
+   2
+  ],
+  "at": "door centre 0"
+ },
+ {
+  "walk": [
+   180.0,
+   0.6
+  ],
+  "feet": [
+   1256,
+   0,
+   2
+  ],
+  "at": "door centre 1"
+ },
+ {
+  "walk": [
+   180.0,
+   0.6
+  ],
+  "feet": [
+   882,
+   0,
+   2
+  ],
+  "at": "door centre 2"
+ },
+ {
+  "walk": [
+   180.0,
+   0.6
+  ],
+  "feet": [
+   509,
+   0,
+   2
+  ],
+  "at": "door centre 3"
+ },
+ {
+  "walk": [
+   180.0,
+   0.6
+  ],
+  "feet": [
+   131,
+   0,
+   3
+  ],
+  "at": "door centre 4"
+ },
+ {
+  "walk": [
+   180.0,
+   0.6
+  ],
+  "feet": [
+   84,
+   0,
+   3
+  ],
+  "at": "door centre 5"
+ },
+ {
+  "teleport": [
+   2000.0,
+   130.0,
+   0.0
+  ],
+  "feet": [
+   2000,
+   130,
+   2
+  ]
+ },
+ {
+  "walk": [
+   180.0,
+   0.6
+  ],
+  "feet": [
+   1671,
+   93,
+   2
+  ],
+  "at": "door wall 0"
+ },
+ {
+  "walk": [
+   180.0,
+   0.6
+  ],
+  "feet": [
+   1296,
+   93,
+   2
+  ],
+  "at": "door wall 1"
+ },
+ {
+  "walk": [
+   180.0,
+   0.6
+  ],
+  "feet": [
+   922,
+   93,
+   2
+  ],
+  "at": "door wall 2"
+ },
+ {
+  "walk": [
+   180.0,
+   0.6
+  ],
+  "feet": [
+   914,
+   93,
+   2
+  ],
+  "at": "door wall 3"
+ },
+ {
+  "walk": [
+   180.0,
+   0.6
+  ],
+  "feet": [
+   1243,
+   0,
+   2
+  ],
+  "at": "door wall 4"
+ },
+ {
+  "walk": [
+   180.0,
+   0.6
+  ],
+  "feet": [
+   868,
+   0,
+   2
+  ],
+  "at": "door wall 5"
+ },
+ {
+  "teleport": [
+   1900.0,
+   130.0,
+   0.0
+  ],
+  "feet": [
+   1900,
+   130,
+   2
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchX\\door_01_wall_line.png"
+ }
+]

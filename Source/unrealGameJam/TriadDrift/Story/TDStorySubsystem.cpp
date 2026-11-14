@@ -206,6 +206,8 @@ namespace TDStory
 			E(TEXT("G6_Kato_ShieldWeakening"), S::Kato, LOCTEXT("G6_Kato_ShieldWeakening", "Generator down. Shield's weakening.")),
 			E(TEXT("G6_Command_ShieldCollapsed"), S::Command, LOCTEXT("G6_Command_ShieldCollapsed", "Shield's down. Docking route marked.")),
 			E(TEXT("G6_Wren_CoverTheBay"), S::Boarder, LOCTEXT("G6_Wren_CoverTheBay", "Keep that bay covered. We need a way back out.")),
+			// Lead (T1's docking review): when Moss boards, Kato asks for the bay (Moss answers with C7_Moss_WayOut).
+			E(TEXT("G6_Kato_CoverTheBay"), S::Kato, LOCTEXT("G6_Kato_CoverTheBay", "Keep that bay covered. We need a way back out.")),
 			// Clue fragments as generators fall: less distorted each time, no identified speaker (placeholders for Nicholas).
 			E(TEXT("G6_Clue1"), S::Unknown, LOCTEXT("G6_Clue1", "…hold formation… vector two…"), St::Static),
 			E(TEXT("G6_Clue2"), S::Unknown, LOCTEXT("G6_Clue2", "…Triad… wait for authentication…"), St::Echo),
@@ -571,6 +573,11 @@ void UTDStorySubsystem::HandleLineOnAir(FName Id)
 			}
 		}
 	}
+	// Verdance's orbital clue (storyline §14 phase 1): Wren answers Kato's convoy scan.
+	if (Id == TEXT("A2_ConvoyScanned"))
+	{
+		FireTransmission(TEXT("G2_Wren_Geology"));
+	}
 	if (Id == TEXT("C3_Kato_Artificial")) { Stage = 1; }
 	else if (Id == TEXT("C3_Kato_Beneath")) { Stage = 2; }
 	else if (Id == TEXT("C3_Kato_CinderMatch")) { Stage = 3; }
@@ -846,12 +853,24 @@ void UTDStorySubsystem::ResetPlayed()
 	}
 }
 
+TArray<FName> UTDStorySubsystem::RouteForBoarderAll(FName Id)
+{
+	if (Id == TEXT("G9_Moss_HoldingWayOut")) { return { TEXT("G9_Wren_HoldingWayOut") }; }
+	if (Id == TEXT("G6_Wren_CoverTheBay")) { return { TEXT("G6_Kato_CoverTheBay") }; }
+	return {};
+}
+
 FName UTDStorySubsystem::RouteForBoarder(const UObject* WorldContext, FName Id)
 {
 	// N-087: the escape radio is Moss's, unless Moss boarded; then Wren holds the way out.
 	if (Id == TEXT("G9_Moss_HoldingWayOut") && ResolveSpeaker(WorldContext, ETDSpeaker::Boarder) == ETDSpeaker::Moss)
 	{
 		return TEXT("G9_Wren_HoldingWayOut");
+	}
+	// The docking call is the boarder's; when that is Moss, Kato makes it (Moss answers with C7_Moss_WayOut).
+	if (Id == TEXT("G6_Wren_CoverTheBay") && ResolveSpeaker(WorldContext, ETDSpeaker::Boarder) == ETDSpeaker::Moss)
+	{
+		return TEXT("G6_Kato_CoverTheBay");
 	}
 	return Id;
 }
@@ -861,7 +880,8 @@ bool UTDStorySubsystem::IsRetired(FName Id)
 	// Kept in the table for the record (N-087, #29), never aired. A caller that still fires one is swallowed quietly.
 	static const TSet<FName> Retired = { TEXT("TB_Escaped"), TEXT("C4_Moss_Volcanoes"), TEXT("C4_Wren_SetCourse"),
 		TEXT("C4_Wren_WhatConnects"), TEXT("C4_Kato_SameSignature"), TEXT("C4_Moss_Trouble"), TEXT("C6_Moss_SamplesAboard"),
-		TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Wren_Understood") };
+		TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Wren_Understood"),
+		TEXT("A4_GeneratorDown1") }; // Nov 14 (T4): the first generator is the screenplay's G6_Kato_ShieldWeakening
 	return Retired.Contains(Id);
 }
 
@@ -1090,8 +1110,15 @@ void UTDStorySubsystem::UpdateSequence()
 		return;
 	}
 	const TArray<FName>& Ids = SequenceIds(ActiveSequence);
-	const bool bOnAir = Current.bActive && Ids.Contains(Current.Id);
-	const bool bQueued = Queue.ContainsByPredicate([&Ids](const FTDTransmission& T) { return Ids.Contains(T.Id); });
+	// A line routed for the boarder (RouteForBoarder) still belongs to its sequence.
+	auto InSequence = [&Ids](FName Id)
+	{
+		if (Ids.Contains(Id)) { return true; }
+		for (const FName& S : Ids) { if (RouteForBoarderAll(S).Contains(Id)) { return true; } }
+		return false;
+	};
+	const bool bOnAir = Current.bActive && InSequence(Current.Id);
+	const bool bQueued = Queue.ContainsByPredicate([&InSequence](const FTDTransmission& T) { return InSequence(T.Id); });
 	if (!bOnAir && !bQueued)
 	{
 		FinishSequence(false);

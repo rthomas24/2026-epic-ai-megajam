@@ -24,12 +24,14 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(KIT)))
 sys.path.insert(0, HERE)
 import kit_lib  # noqa: E402
 import kit_pieces  # noqa: E402
+import kit_pieces_bridge  # noqa: E402
 import kit_pieces_d  # noqa: E402
 import kit_pieces_space  # noqa: E402
 import kit_pieces_story  # noqa: E402
 import kit_pieces_region  # noqa: E402
 import kit_pieces_gear  # noqa: E402
 
+ONLY = ()                # --only SM_A,SM_B: build / export just these (the set's .blend is then not re-saved)
 SET = "planet"          # --set dominion: the Dominion shell (kit_pieces_d), T_KitD_Trim, red strips
 
 TEX = os.path.join(KIT, "textures")
@@ -164,8 +166,10 @@ def build_all():
     rows, objs, pieces = [], {}, {}
     for fn in {"dominion": kit_pieces_d.BUILDERS, "space": kit_pieces_space.BUILDERS, "story": kit_pieces_story.BUILDERS,
                 "region": kit_pieces_region.BUILDERS,
-                "gear": kit_pieces_gear.BUILDERS}.get(SET, kit_pieces.BUILDERS):
+                "gear": kit_pieces_gear.BUILDERS, "bridge": kit_pieces_bridge.BUILDERS}.get(SET, kit_pieces.BUILDERS):
         p = fn()
+        if ONLY and p.name not in ONLY:
+            continue
         lo, hi = p.bounds()
         size = tuple(round(hi[i] - lo[i], 2) for i in range(3))
         ok = all(abs(lo[i] - p.expect[0][i]) < 0.6 and abs(hi[i] - p.expect[1][i]) < 0.6 for i in range(3)) if p.expect else True
@@ -508,9 +512,11 @@ def main():
     ap.add_argument("--tag", default="r0")
     ap.add_argument("--render", action="store_true")
     ap.add_argument("--export", action="store_true")
-    ap.add_argument("--set", default="planet", choices=("planet", "dominion", "space", "story", "region", "gear"))
+    ap.add_argument("--set", default="planet", choices=("planet", "dominion", "space", "story", "region", "gear", "bridge"))
+    ap.add_argument("--only", default="")
     a = ap.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
-    global SET, EXPORT
+    global SET, EXPORT, ONLY
+    ONLY = tuple(x for x in a.only.split(",") if x)
     SET = a.set
     if SET == "dominion":
         EXPORT = os.path.join(KIT, "export_dominion")
@@ -518,6 +524,9 @@ def main():
     elif SET == "region":
         EXPORT = os.path.join(KIT, "export_region")
         a.tag = "R_" + a.tag
+    elif SET == "bridge":                       # walkable crossings (planet trim), their own export so the planet kit is untouched
+        EXPORT = os.path.join(KIT, "export_bridge")
+        a.tag = "B_" + a.tag
     elif SET == "gear":
         EXPORT = os.path.join(KIT, "export_gear")
         a.tag = "G_" + a.tag
@@ -536,9 +545,9 @@ def main():
     if a.render:
         contact_sheet(objs, a.tag, True)
         contact_sheet(objs, a.tag, False)
-        if SET == "planet":
+        if SET == "planet" and not ONLY:
             assembly(objs, a.tag)
-        elif SET == "dominion":
+        elif SET == "dominion" and not ONLY:
             assembly_d(objs, a.tag)
     if a.export and not fails:
         rep = runpy.run_path(os.path.join(SKILLS, "blender-mcp", "scripts", "asset_report.py"))["main"](targets=list(objs))
@@ -558,7 +567,8 @@ def main():
             w = o.dimensions.y
             o.location = (0, x + w / 2, 0)
             x += w + 1.0
-        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, {"dominion": "KitDominion.blend", "space": "KitSpace.blend", "story": "KitStory.blend", "region": "KitRegion.blend", "gear": "KitGear.blend"}.get(SET, "Kit.blend")), compress=True)
+        if not ONLY:
+            bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, {"dominion": "KitDominion.blend", "space": "KitSpace.blend", "story": "KitStory.blend", "region": "KitRegion.blend", "gear": "KitGear.blend", "bridge": "KitBridge.blend"}.get(SET, "Kit.blend")), compress=True)
     print("__RESULT__ done")
 
 

@@ -135,6 +135,7 @@ void ATDSpaceField::Build()
 	{
 		return;
 	}
+	Layout->GetJourneyKeyPoints(JourneyPoints);	// T4: the journey's keep-outs and routes
 	// The kit: the classic rocks and the space dressing (all real-scale meshes, normalised by their bounds).
 	Families.SetNum(6);
 	auto Fill = [this](int32 F, std::initializer_list<const TCHAR*> Paths)
@@ -227,6 +228,7 @@ void ATDSpaceField::Build()
 		BuildShatteredMoons(Rng);
 		BuildOuterDark(Rng);
 		PlaceRegionCentrepieces(Rng);
+		if (IsDressingWanted()) { BuildRegionDressing(); }	// off by default: built the first time td.SpaceField.Dressing turns 1
 	}
 	else
 	{
@@ -303,6 +305,11 @@ bool ATDSpaceField::IsPlacementAllowed(const FVector& P, float Size, bool bColli
 	{
 		return false;
 	}
+	// T4's journey key points: nothing on a keep-out or a route (a hittable piece keeps 50 m more clear).
+	if (!JourneyBlockerAt(P, Size, bCollides).IsNone())
+	{
+		return false;
+	}
 	if (const FTransform* Exit = L.ReturnPoints.Find(TDReturnPoints::DominionHangarExit))
 	{
 		if (FVector::Dist(P, Xf.TransformPosition(Exit->GetLocation())) < (bMoonPlacement ? MoonDominionClear : DominionKeepOut) + Half)
@@ -311,6 +318,16 @@ bool ATDSpaceField::IsPlacementAllowed(const FVector& P, float Size, bool bColli
 		}
 	}
 	return true;
+}
+
+FName ATDSpaceField::JourneyBlockerAt(const FVector& P, float Size, bool bCollides) const
+{
+	const float Need = Size * 0.5f + (bCollides ? 5000.f : 0.f);	// its own radius clear, 50 m more when it can be hit
+	for (const FTDJourneyKeyPoint& K : JourneyPoints)
+	{
+		if (K.Kind != ETDJourneyPointKind::Pocket && K.DistanceTo(P) < Need) { return K.Id; }
+	}
+	return NAME_None;
 }
 
 float ATDSpaceField::NormFor(UStaticMesh* Mesh) const
@@ -672,6 +689,8 @@ void ATDSpaceField::Tick(float DeltaSeconds)
 	Clock += DeltaSeconds;
 	// Every frame (about 20 distance checks): the magnet pulls a taken cache off its spot within a few frames.
 	UpdateCaches();
+	if (IsDressingWanted() && !bDressingBuilt && BeaconPoints.Num() > 0) { BuildRegionDressing(); }
+	else if (bDressingBuilt && IsDressingWanted() != bDressingShown) { SetRegionDressingVisible(IsDressingWanted()); }
 	// Tumblers and wrecks: slow motion, so a throttled update near the camera only (nothing per frame for far rocks).
 	AnimAccum += DeltaSeconds;
 	const float Hz = TDSpaceFieldImpl::GAnimHz;

@@ -980,3 +980,137 @@ bool FTDStorySubtitlesOff::RunTest(const FString& Parameters)
 	return true;
 }
 #endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+#include "HAL/FileManager.h"
+#include "Misc/FileHelper.h"
+#include "Misc/Paths.h"
+#include "Internationalization/Regex.h"
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryTriggerAudit, "TriadDrift.Story.Transmissions.EveryLineHasATrigger", TD_TEST_FLAGS)
+bool FTDStoryTriggerAudit::RunTest(const FString& Parameters)
+{
+	// Lead (Nov 14): a line nothing fires is a line no player hears. Every table id must be fired by name, sit in a sequence
+	// that something plays, or be built by a known dynamic pattern; deliberate exceptions are listed with a reason. Known
+	// gaps (a trigger owed by a lane) are listed too, so a NEW orphan fails; a gap that got its trigger is reported.
+	const FString Dir = FPaths::Combine(FPaths::GameSourceDir(), TEXT("unrealGameJam"), TEXT("TriadDrift"));
+	TArray<FString> Files;
+	IFileManager::Get().FindFilesRecursive(Files, *Dir, TEXT("*.*"), true, false);
+	if (Files.Num() == 0)
+	{
+		AddWarning(TEXT("no source tree next to this build (packaged?): audit skipped"));
+		return true;
+	}
+	FString All;
+	FString SequenceBody;
+	for (const FString& F : Files)
+	{
+		// The story's own header declares the builders (FaceToFaceSequence); a declaration is not a trigger.
+		if (F.Contains(TEXT("/Tests/")) || F.EndsWith(TEXT("Story/TDStorySubsystem.h"))
+			|| !(F.EndsWith(TEXT(".cpp")) || F.EndsWith(TEXT(".h")) || F.EndsWith(TEXT(".inl"))))
+		{
+			continue;
+		}
+		FString Text;
+		if (!FFileHelper::LoadFileToString(Text, *F))
+		{
+			continue;
+		}
+		if (F.EndsWith(TEXT("Story/TDStorySubsystem.cpp")))
+		{
+			// The table's own rows and the sequence lists are not triggers.
+			const int32 SeqStart = Text.Find(TEXT("const TArray<FName>& UTDStorySubsystem::SequenceIds("));
+			const FString FuncEnd = FString(TEXT("\n}"));
+			const int32 SeqEnd = SeqStart >= 0 ? Text.Find(FuncEnd, ESearchCase::CaseSensitive, ESearchDir::FromStart, SeqStart) : INDEX_NONE;
+			if (SeqStart >= 0 && SeqEnd > SeqStart)
+			{
+				SequenceBody = Text.Mid(SeqStart, SeqEnd - SeqStart);
+				Text = Text.Left(SeqStart) + Text.Mid(SeqEnd);
+			}
+			TArray<FString> Lines;
+			Text.ParseIntoArrayLines(Lines, false);
+			Text.Reset();
+			for (const FString& L : Lines) { if (!L.Contains(TEXT("E(TEXT(\""))) { Text += L + TEXT("\n"); } }
+		}
+		All += Text;
+	}
+	// Sequences something plays (by name, or the Face to Face builder).
+	TSet<FName> Played;
+	for (const TCHAR* Seq : { TEXT("Cinematic03"), TEXT("Cinematic05"), TEXT("Cinematic08"), TEXT("Aftermath"), TEXT("Docking"),
+		TEXT("HangarArrival"), TEXT("FirstDoor"), TEXT("ClearSpace") })
+	{
+		const FRegexPattern P(FString::Printf(TEXT("PlaySequence\\([^;]*TEXT\\(\"%s\"\\)"), Seq));
+		FRegexMatcher M(P, All);
+		if (M.FindNext()) { Played.Add(Seq); }
+	}
+	const bool bFaceToFace = All.Contains(TEXT("FaceToFaceSequence("));
+	// Deliberate: never fired on purpose.
+	static const TMap<FString, FString> Deliberate = {
+		{ TEXT("Intro_N"), TEXT("the old narrator captions: td.Intro.Lines 0 only (opening rebuilt, Lead Nov 14)") },
+		{ TEXT("A5_Choice"), TEXT("legacy decision line; C8_Wren_Order carries the decision (StoryFidelity R117)") },
+		{ TEXT("Trait_"), TEXT("name-card text read through PilotTrait, not aired") },
+	};
+	// Known gaps: owed triggers, by owner (sent Nov 14). Remove a row when its trigger lands.
+	static const TMap<FString, FString> Gaps = {
+		{ TEXT("G8_Self_"), TEXT("T5 Face to Face (N-052)") }, // T4 21040d6b and T5 b3e2f5d8 closed the rest (Nov 14)
+	};
+	auto Lookup = [](const TMap<FString, FString>& Map, const FString& Id) -> const FString*
+	{
+		for (const TPair<FString, FString>& P : Map) { if (Id == P.Key || (P.Key.EndsWith(TEXT("_")) && Id.StartsWith(P.Key)) || (P.Key == TEXT("Intro_N") && Id.StartsWith(P.Key))) { return &P.Value; } }
+		return nullptr;
+	};
+	TArray<FString> NewOrphans, Fixed;
+	for (const FTDTransmission& E : UTDStorySubsystem::GetAllEntries())
+	{
+		const FString Id = E.Id.ToString();
+		if (UTDStorySubsystem::IsRetired(E.Id) || Lookup(Deliberate, Id))
+		{
+			continue;
+		}
+		bool bTriggered = All.Contains(FString::Printf(TEXT("\"%s\""), *Id));
+		for (const FName& S : Played) { bTriggered |= UTDStorySubsystem::SequenceIds(S).Contains(E.Id); }
+		bTriggered |= bFaceToFace && Id.StartsWith(TEXT("G8_Self_"));
+		// Built at runtime: T5's interior consoles ("A4_Recording_%s"), T4's generators ("A4_GeneratorDown%d").
+		bTriggered |= Id.StartsWith(TEXT("A4_Recording_")) && All.Contains(TEXT("A4_Recording_%s"));
+		bTriggered |= Id.StartsWith(TEXT("A4_GeneratorDown")) && All.Contains(TEXT("A4_GeneratorDown%d"));
+		const FString* Gap = Lookup(Gaps, Id);
+		if (!bTriggered && !Gap) { NewOrphans.Add(Id); }
+		if (bTriggered && Gap) { Fixed.Add(Id + TEXT(" (") + *Gap + TEXT(")")); }
+	}
+	for (const FString& F : Fixed) { AddInfo(FString::Printf(TEXT("gap closed, remove it from the list: %s"), *F)); }
+	TestTrue(FString::Printf(TEXT("every line has a trigger; new orphans: %s"), *FString::Join(NewOrphans, TEXT(", "))), NewOrphans.Num() == 0);
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryDockingSpeakers, "TriadDrift.Story.Transmissions.DockingCallNeverTwoLinesFromOnePilot", TD_TEST_FLAGS)
+bool FTDStoryDockingSpeakers::RunTest(const FString& Parameters)
+{
+	// Lead (T1's docking review): the Docking sequence is the boarder's "cover the bay" then Moss's "way out". When Moss
+	// boards, Kato makes the call, so one pilot never says both; the sequence still finishes.
+	ON_SCOPE_EXIT { UTDStorySubsystem::BoardingShipResolver = nullptr; };
+	for (const ETDShipId Ship : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		UTDStorySubsystem::BoardingShipResolver = [Ship](const UObject*) { return Ship; };
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		if (!TestNotNull(TEXT("story"), Story) || !TestTrue(TEXT("docking plays"), UTDStorySubsystem::PlaySequence(W.GetWorld(), TEXT("Docking"))))
+		{
+			return false;
+		}
+		TArray<ETDSpeaker> Speakers;
+		FName Last;
+		for (int32 i = 0; i < 30 * 20 && Story->IsSequencePlaying(); ++i)
+		{
+			const FTDTransmissionView V = Story->GetCurrentTransmission();
+			if (V.bActive && V.Id != Last) { Last = V.Id; Speakers.Add(V.Speaker); }
+			W.Tick(1.f / 30.f);
+		}
+		TestFalse(FString::Printf(TEXT("ship %d: the sequence finished"), (int32)Ship), Story->IsSequencePlaying());
+		TestTrue(FString::Printf(TEXT("ship %d: two lines, two pilots"), (int32)Ship), Speakers.Num() == 2 && Speakers[0] != Speakers[1]);
+		if (Ship == ETDShipId::Bastion && Speakers.Num() > 0) { TestEqual(TEXT("Moss boards: Kato calls the bay"), Speakers[0], ETDSpeaker::Kato); }
+	}
+	return true;
+}
+#endif

@@ -126,7 +126,10 @@ def build(man):
 
 def main():
     ok = True
+    only = [o for o in os.environ.get("TD_SITES_ONLY", "").split(",") if o]       # rebuild just these sites (others untouched)
     for p in sorted(glob.glob(os.path.join(KIT, "sites", "*.manifest.json"))):
+        if only and os.path.basename(p).split(".")[0] not in only:
+            continue
         with open(p, encoding="utf-8") as fh:
             ok = build(json.load(fh)) and ok
     log("OK" if ok else "FAILED: see the lines above")

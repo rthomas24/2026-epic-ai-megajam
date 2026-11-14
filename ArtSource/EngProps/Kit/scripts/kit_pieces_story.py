@@ -49,9 +49,10 @@ def shelter_frame():
     rnd = random.Random(5)
     NX, NA, R0, H0 = 12, 15, 157.0, 247.0
     x0, x1 = -200.0, 67.0
-    lo = [rnd.uniform(0.0, 3.0) for _ in range(NX)]                 # +Y side: ragged torn hem
-    hi = [rnd.uniform(10.5, 14.5) for _ in range(NX)]               # -Y side: torn shorter
-    holes = {(rnd.randrange(NX), rnd.randrange(2, NA - 2)) for _ in range(9)}
+    # batch W (Lead: read as a shelter at 8 m): fuller - the hems come almost to the ground, only three small holes
+    lo = [rnd.uniform(0.0, 1.2) for _ in range(NX)]                 # +Y side: ragged torn hem
+    hi = [rnd.uniform(13.4, 15.0) for _ in range(NX)]               # -Y side: torn a little shorter
+    holes = {(rnd.randrange(NX), rnd.randrange(4, NA - 4)) for _ in range(3)}
 
     def cloth(i, j):
         t = i / NX
@@ -408,4 +409,6 @@ CINDER = [_worn(f) for f in (ore_cart, rail_stub, cable_reel, heat_shield_cracke
                              marker_pole)] + [light_pool]
 LANDMARKS = [relay_mast, null_derrick]
 BUILDERS = VERDANCE + CINDER + LANDMARKS + [insignia_hull, insignia_panel]
+import kit_pieces_anchor  # noqa: E402  (batch X: the Cinder field anchor collapse pieces)
+BUILDERS += kit_pieces_anchor.BUILDERS
 NO_COLLISION = ("SM_Kit_SurveyStakeFlag", "SM_Kit_DragMark", "SM_Kit_ScorchLines", "SM_Kit_LightPool", "SM_Kit_InsigniaHull", "SM_Kit_InsigniaPanel")

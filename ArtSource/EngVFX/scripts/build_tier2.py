@@ -92,6 +92,119 @@ S2('NS_TD_Dominion_FieldCollapse', U(FIELD), [
     flash('Flash', 'M_TD_VFX_Glow', 300000, 0.5, 0.8, growth='0.4 + Particles.NormalizedAge*0.8', power=1.5, delay=1.5),
     arcs('Arcs', 0, (14000, 30000), 95000, life=(0.3, 1.2), k=0.9, burst=40, dur=1.6, local=False),   # seen in play: bigger arcs whited out the screen near a generator
     shed('Shards', 'M_TD_VFX_Spark', 0, (0.8, 1.8), (500, 1100), (20000, 90000), k=1.6, radius=95000.0, drag=0.8, stretch=22, burst=140, dur=2.0, power=1.2)])
+# ---- round 10 (Lead's 03:00 audit, ENG-37): the approach field must read "cannot pass yet"; the shield drop gets its own
+# one shot. New names (the round-8 systems stay for ART-HISTORY).
+# Slot: UTDDominionVisuals.DistortionFieldIdle (the approach field; TDDistortionField scales VFXScale by radius / 1 km).
+# A hex lattice (about 100 m cells at 1 km) over the old marbled shell, with a slow bright band sweeping pole to pole,
+# so the barrier reads as a wall, not weather. Outside only (from inside, the old lesson: no violet sky).
+S2('NS_TD_Dominion_ApproachField', U(FIELD), [
+    outside_only(shell('Shell', 100000, 0.40, pulse='float3(1,1,1)*(1.0 + 0.012*sin(Engine.Time*1.7))')),
+    # 10b: FieldHex, not DomeHex (DomeHex shows its lattice only at the rim)
+    outside_only(shell('Lattice', 100400, 0.85, mat='M_TD_VFX_FieldHex2', pulse='float3(1,1,1)*(1.0 + 0.006*sin(Engine.Time*2.3 + 1.0))')),
+    outside_only(single('Halo', 'M_TD_VFX_Glow', 330000, 0.10, 3.1)),
+    arcs('Arcs', 34.0, (20000, 42000), 100000, life=(0.25, 0.6), k=1.0)])
+# Slot: UTDDominionVisuals.ShieldCollapse (the 4th generator dies; one shot at the centre). Authored at 1 km radius
+# (the asset's VFXScale 0.46 makes it the shield's 460 m). 0 s the lattice flashes white-violet; 0.25 s arcs race over it;
+# 0.5 s the shell shatters outward into streaking shards with a ring wave; 1.4 s a last inward flash where it was.
+S2('NS_TD_Dominion_ShieldDrop', U(FIELD), [
+    shell_flash('Flash', 100500, 0.45, 'float3(1,1,1)*(1.0 + 0.02*Particles.NormalizedAge)', k=2.6, mat='M_TD_VFX_DomeHex', power=0.7),
+    shell_flash('Glow', 100000, 0.6, 'float3(1,1,1)*(1.0 + 0.05*Particles.NormalizedAge)', k=1.6, power=0.6),
+    shell_flash('Break', 100800, 0.9, 'float3(1,1,1)*(1.0 + 0.35*pow(Particles.NormalizedAge, 0.7))', k=1.8, mat='M_TD_VFX_DomeHex', power=1.3, delay=0.45),
+    arcs('Arcs', 0, (16000, 34000), 98000, life=(0.2, 0.55), k=1.3, burst=60, dur=0.9, local=False),
+    flash('Wave', 'M_TD_VFX_Ring', 300000, 1.4, 1.0, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*0.8', power=1.4, delay=0.5),
+    shed('Shards', 'M_TD_VFX_Spark', 0, (0.9, 1.8), (600, 1300), (25000, 80000), k=1.8, radius=99000.0, drag=0.6, stretch=24, burst=180, dur=2.4, power=1.2),
+    flash('Core', 'M_TD_VFX_Flare', 120000, 0.35, 1.2, growth='0.3 + Particles.NormalizedAge', power=1.0, delay=1.4)])
+# ART-18 Aftermath (T4 spawns it; no data slot): a row of 12 exterior lights on the Dominion, 400 m long along +Y, facing
+# +X, pulsing in the HUD navigation pulse's rhythm. User.Pulse 0..1 is fed each frame by T4 from the HUD pulse; while it is
+# below 0 (never set) an internal three-pulse cycle runs (0 / 0.45 / 0.9 s, the third held, every 3 s). The ripple along
+# the row is 30 ms per light. Every light is re-spawned 20 times a second (no persistent sprite), so Deactivate fades it
+# in 0.1 s. Sizes grow with the camera distance (x1 at 1 km, x4 at 4 km and beyond).
+ROWD = 'clamp(Engine.Owner.LODDistance/60000.0, 1.0, 5.0)'   # 10b: unseen at 1.5 km at /100000
+
+
+def row_pulse(lag):
+    t = 'frac((Engine.Time - %s)/3.0)*3.0' % lag
+    internal = '(saturate(1.0 - abs(%s - 0.10)/0.10) + saturate(1.0 - abs(%s - 0.55)/0.10) + saturate(1.0 - abs(%s - 1.15)/0.25))' % (t, t, t)
+    return 'lerp(%s, User.Pulse, step(0.0, User.Pulse))' % internal
+
+
+def row_light(i, n=12, length=40000.0):
+    y = -length / 2 + length * i / (n - 1)
+    p = row_pulse(0.03 * i)
+    return offset(shed('Light%02d' % i, 'M_TD_VFX_Glow', 0, (0.08, 0.08), ('(2700.0 + 6300.0*%s)*%s' % (p, ROWD), '(2700.0 + 6300.0*%s)*%s' % (p, ROWD)), (0, 0),   # 10c: 1.5x (Lead)
+                       k=2.4, radius=0.0, drag=0.0, local=True, power=0.5, rate_expr='20.0'), 300.0, y)
+
+
+# Slot: UTDDominionVisuals.TractorBeam (T4: a loop at the bay mouth, +X out of the bay toward the ship; User.Length cm
+# each frame, User.Intensity 0..1). A pale-blue cone from a 60 m mouth narrowing toward the ship, motes pulled in from
+# the ship's end toward the bay, and a soft glow in the mouth.
+S2('NS_TD_Dominion_TractorBeam', U((0.35, 0.65, 1.0, 1.0), 1.0, Length=20000.0, Intensity=1.0), [
+    # 10d: the flame-mesh cone read as a white exhaust jet; the beam is now a column of big soft blue glows streaming from
+    # the ship's end into the bay (reads as a pull), the motes, and the glow in the mouth.
+    offset(shed('Stream', 'M_TD_VFX_Glow', 0, (2.5, 4.0), (1400, 2600), (3500, 5000), k=1.6, radius=600.0, drag=0.0, local=True,
+                cone=((-1.0, 0.0, 0.0), 2.0), rate_expr='40.0*User.Intensity', power=0.7, fade_in=5.0), 'User.Length/User.Scale'),
+    offset(shed('Motes', 'M_TD_VFX_Glow', 0, (1.2, 2.4), (60, 140), (4000, 7000), k=1.4, radius=900.0, drag=0.0, local=True, stretch=None,
+                cone=((-1.0, 0.0, 0.0), 6.0), rate_expr='70.0*User.Intensity', power=0.8, fade_in=4.0), 'User.Length/User.Scale'),
+    shed('Mouth', 'M_TD_VFX_Glow', 0, (0.3, 0.3), (5000, 6000), (0, 0), k=0.5, radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='12.0*User.Intensity')])
+
+# Review only (not for gameplay): M_TD_RegionHaze on a 600 m engine sphere as a mesh particle, so the haze can be
+# photographed in PIE (Python cannot add a mesh component there). T6 uses a plain sphere actor.
+# 10d: a system of persistent emitters only never activates (round 3's trap, seen again: active=False); a token spawner keeps it alive
+def keepalive():
+    return shed('KeepAlive', 'M_TD_VFX_Glow', 0, (0.1, 0.1), (1, 1), (0, 0), k=0.0, radius=0.0, drag=0.0, local=True, rate_expr='2.0')
+S2('NS_TD_Debug_HazeSphere', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='MI_TD_RegionHaze_Review'), keepalive()])
+
+# 10d debug (review only): why the region beacon and the haze never show. Same emitter with (A) a fixed 8.4 m size,
+# (B) the size straight from Engine.Owner.LODDistance (0 if the engine does not fill it); the haze sphere with the
+# known-good field material, and with the haze base material (not the instance).
+def dbg_beacon(size_expr):
+    return [shed('Beacon', 'M_TD_VFX_Glow', 0, (0.1, 0.1), (size_expr, size_expr), (0, 0), radius=0.0, drag=0.0, local=True, power=0.01, k=2.5, rate_expr='20.0')]
+S2('NS_TD_Debug_BeaconFixed', U((1.0, 0.62, 0.18, 1.0), 1.0), dbg_beacon('840.0'))
+S2('NS_TD_Debug_BeaconLOD', U((1.0, 0.62, 0.18, 1.0), 1.0), dbg_beacon('(0.028*Engine.Owner.LODDistance)'))
+S2('NS_TD_Debug_HazeField', U((0.70, 0.85, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0)])
+S2('NS_TD_Debug_HazeBase', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='M_TD_RegionHaze'), keepalive()])
+
+S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
+
+# ---- round 10 MAJOR (T7's play): Cinder magma kills but does not read as dangerous on foot. A looping hazard layer for
+# each ATDMagmaVolume, attached at its root (the surface; +Z up). User.SizeX / User.SizeY = the footprint in cm (the Size
+# passed to SetSize), User.Intensity 0..1. Every rate scales with the area, clamped, so a 4 x 4 m pool and a 60 x 60 m lake
+# both stay cheap: embers rising (tiny additive points), lava spatter arcing up and falling back (bright blobs with
+# gravity), and a few small rising heat shimmers (additive, small: no big translucent sheets, little overdraw).
+# Spawn positions: a sphere of radius half the shorter side, at the surface (the half below it is hidden by the surface).
+MAREA = '(User.SizeX*User.SizeY/10000.0)'
+MRAD = '(0.5*min(User.SizeX, User.SizeY))'
+
+
+def magma_rate(per_m2, lo, hi):
+    return 'clamp(%s*%s, %s, %s)*User.Intensity' % (MAREA, per_m2, lo, hi)
+
+
+def with_gravity(e, g=-980.0):
+    e['set'] = [x for x in e['set'] if x[1] != 'GravityForce'] + [(PU, 'GravityForce', 'Gravity', (0.0, 0.0, g))]
+    return e
+
+
+S2('NS_TD_Magma_Heat', U((1.0, 0.42, 0.08, 1.0), 1.0, SizeX=800.0, SizeY=800.0, Intensity=1.0), [
+    # 10d (captured on foot at 5 and 20 m: off and on looked identical against the bright lava): 3-4x larger, HDR-bright
+    shed('Embers', 'M_TD_VFX_Glow', 0, (1.2, 2.6), (20, 45), (80, 260), k=2.2, radius=MRAD, drag=0.4, curl=90.0, local=True,
+         rgb=(9.0, 3.6, 0.6), cone=((0.0, 0.0, 1.0), 25.0), rate_expr=magma_rate(0.25, 6.0, 70.0), power=1.4, fade_in=6.0),
+    with_gravity(shed('Spatter', 'M_TD_VFX_Spark', 0, (0.6, 1.0), (40, 80), (450, 900), k=2.6, radius=MRAD, drag=0.1, local=True, stretch=4,
+                      rgb=(12.0, 5.0, 0.8), cone=((0.0, 0.0, 1.0), 30.0), rate_expr=magma_rate(0.06, 3.0, 24.0), power=0.8)),
+    shed('Shimmer', 'M_TD_VFX_Fire', 0, (0.8, 1.4), (90, 180), (60, 140), k=0.35, radius=MRAD, drag=0.6, local=True,
+         cone=((0.0, 0.0, 1.0), 10.0), growth='0.6 + Particles.NormalizedAge*0.8', rate_expr=magma_rate(0.02, 2.0, 12.0), power=1.0, fade_in=4.0)])
+
+# round 10 (Lead, for T6): a set piece's range beacon at its beacon point. One emitter, one particle re-spawned 10 times a
+# second (Init-only size: no persistent sprite, no Update ScaleColor). About 0.8 degrees across (core), held between 300 m
+# and 3 km from the camera (closer it stops shrinking with distance, so it never covers the piece); 0.4 Hz pulse in size
+# and brightness. User.Color per region: Watchline amber (1.0, 0.62, 0.18), Quiet Graveyard (0.70, 0.85, 1.0), Survey
+# Scar Null red (1.0, 0.10, 0.04), Shattered Moons ember orange (1.0, 0.38, 0.08).
+BPULSE = '(0.80 + 0.20*sin(Engine.Time*2.5133))'
+BSIZE = '(0.028*clamp(Engine.Owner.LODDistance, 30000.0, 300000.0)*%s)' % BPULSE
+S2('NS_TD_Region_Beacon', U((1.0, 0.62, 0.18, 1.0), 1.0), [
+    shed('Beacon', 'M_TD_VFX_Glow', 0, (0.1, 0.1), (BSIZE, BSIZE), (0, 0), radius=0.0, drag=0.0, local=True, power=0.01,   # 10c: Glow (M_TD_VFX_Beacon never showed)
+         k=12.0, rate_expr='20.0')])   # 10d: k 12 (an additive glow at k 2.5 vanished against the nebula), rate 20   # 10b: User.Color via the standard colour (the per-channel expression did not render)
+
 # Slot: none yet (code hook wanted: T3's transmissions, the escape sequence, a hit of "static"). A one-shot, camera-facing
 # tear of chromatic bars, 0.3 s; spawn it attached in front of the camera (authored 12 m wide) or at a world point.
 # Round 9 (T3's slot, UTDStoryFX.TransmissionStatic): played 60 cm in front of the camera, so sized to the view at that
@@ -418,8 +531,8 @@ S2('NS_TD_Entry_CloudPunch', U(WHITE4, 1.0, Intensity=1.0), [
 S2('NS_TD_Entry_CloudWisps', U((0.78, 0.92, 0.92, 1.0), 1.0, Intensity=1.0, Embers=0.0), [
     # v2 (Lead): the base is a soft, nearly uniform veil over 70-80% of the frame (big low-contrast blobs, no curl), slow so
     # it lingers around the chase camera; Cinder (User.Embers 1) gets fewer of them, so the same veil at lower opacity.
-    offset(shed('Veil', 'M_TD_VFX_CloudVeil', 0, (0.9, 1.4), (5000, 9000), (2500, 5000), radius=2200.0, drag=0.0, local=True, alpha=0.30,
-                cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='34.0*(1.0 - 0.45*User.Embers)*' + RAMP, power=0.8, fade_in=8.0, sort=True), 900),
+    offset(shed('Veil', 'M_TD_VFX_CloudVeil', 0, (0.9, 1.4), (5000, 9000), (2500, 5000), radius=2200.0, drag=0.0, local=True, alpha=0.24,
+                cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='19.0*(1.0 - 0.25*User.Embers)*' + RAMP, power=0.8, fade_in=8.0, sort=True), 900),
     # the streaking wisps ride on top for speed: fewer and fainter than v1 so they read as motion, not as smoke
     offset(spin(shed('Wisps', 'M_TD_VFX_CloudWisp', 0, (0.4, 0.7), (1400, 3200), (11000, 17000), radius=3800.0, drag=0.0, local=True, alpha=0.40,
                      cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='45.0*' + RAMP, power=0.9, fade_in=6.0, sort=True)), 2500),
@@ -451,7 +564,7 @@ S2('NS_TD_Entry_Debris', U(ENTRY, 1.0, Intensity=1.0), entry_debris())
 # Exit breakaway (slot wanted, one shot on the ship as it leaves the atmosphere, +X forward): a Mach ring, a flash, and
 # embers falling away behind.
 S2('NS_TD_Exit_Breakaway', U(ENTRY, 1.0, Intensity=1.0), [
-    mesh_flash('Ring', 'SM_TD_VFX_Disc', 'M_TD_VFX_FlipShockCone', '1.0, 22.0, 22.0', 0.55, 1.0, growth='float3(1,1,1)*(0.12 + pow(Particles.NormalizedAge, 0.5)*0.88)', power=1.2),
+    mesh_flash('Ring', 'SM_TD_VFX_Disc', 'M_TD_VFX_FlipShockCone', '1.0, 30.0, 30.0', 0.55, 1.0, growth='float3(1,1,1)*(0.12 + pow(Particles.NormalizedAge, 0.5)*0.88)', power=1.2),
     flash('Flash', 'M_TD_VFX_Flare', 1500, 0.14, 1.0, growth='0.5 + Particles.NormalizedAge'),
     flash('Glow', 'M_TD_VFX_Glow', 1800, 0.30, 0.5, growth='0.5 + Particles.NormalizedAge*0.7'),
     shed('Embers', 'M_TD_VFX_Glow', 0, (0.6, 1.4), (10, 24), (1500, 6000), k=1.3, radius=250.0, drag=1.2, curl=1200.0, cone=((-1.0, 0.0, 0.0), 30.0), burst=70, dur=1.6, power=2.0),
@@ -714,7 +827,14 @@ def rock_break(n_chunks, n_dust, n_grit, fl=1800):
 
 S2('NS_TD_Asteroid_Break_S', U(ROCK, 1.0), rock_break(5, 2, 18))
 S2('NS_TD_Asteroid_Break_M', U(ROCK, 2.2), rock_break(7, 2, 24, fl=1000))
-S2('NS_TD_Asteroid_Break_L', U(ROCK, 4.5), rock_break(9, 3, 32, fl=670))
+def late_ring(e, delay):
+    e['set'].append((EU, 'SpawnBurst_Instantaneous', 'Spawn Time', float(delay)))
+    return e
+
+
+# 10 (Lead MINOR): the L break carries more weight at 200 m - a second, slightly later ring of 5 bigger, slower ice shards.
+S2('NS_TD_Asteroid_Break_L', U(ROCK, 4.5), rock_break(9, 3, 32, fl=670) + [
+    late_ring(chunks('IceBig', 'SM_TD_VFX_Shard_A', 5, (1.2, 2.0), (0.6, 1.0), (500, 1300), drag=0.5, radius=90.0, dur=2.2, spin=(0.6, 2.0)), 0.12)])
 # Crystal-veined rock: the crystals shatter in light. A flare, glowing shards streaking out, slow glints, a few rock chunks.
 S2('NS_TD_Asteroid_Break_Crystal', U(CRYSTAL, 2.2), [
     flash('Flash', 'M_TD_VFX_Flare', 900, 0.16, 1.4, growth='0.4 + Particles.NormalizedAge*0.9'),

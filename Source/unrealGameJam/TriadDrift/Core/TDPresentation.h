@@ -438,6 +438,21 @@ public:
 	/** Stretch: the docking bay opening (ENG-29). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
 	FTDFXCue DockingBayOpen;
+
+	/**
+	 * ENG-37: the tractor beam. A loop attached at the bay mouth, +X out of the bay toward the ship, while the tractor
+	 * holds the flown ship. Gameplay sets User.Length (cm, bay to ship) and User.Intensity (0..1, the pull) each frame.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
+	FTDFXCue TractorBeam;
+
+	/**
+	 * ART-18: the Aftermath light row (NS_TD_Dominion_LightRow: 12 lights about 400 m along +Y, facing +X). Attached
+	 * to the Dominion at the hull point nearest the escape line (or the player start on a tutorial skip), +X along
+	 * the outward hull normal, from OnAftermathBegins until the hyperdrive jump (then deactivated: it fades in 1 s).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
+	FTDFXCue AftermathLightRow;
 };
 
 UCLASS(BlueprintType)

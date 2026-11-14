@@ -87,6 +87,11 @@ def ensure_trim_grime(tex, notes):
     orm = tp("ORMTex", tex["ORM"], S.SAMPLERTYPE_MASKS, 0)
     n1, n2 = noise(0.0011, 300), noise(0.0065, 500)
     amt, rgh = sp("GrimeAmount", 0.45, 700), sp("GrimeRough", 0.2, 800)
+    # batch W: GrimeScale (default 1 = unchanged) scales the noise position, so a huge piece (the 261 m moon shards'
+    # strata) can take 100+ m value blotches that break the trim sheet's repeat at 1 km
+    wp = node(unreal.MaterialExpressionWorldPosition, -1500, 400)
+    gs = sp("GrimeScale", 1.0, 900)
+    wps = node(unreal.MaterialExpressionMultiply, -1350, 400)
     g = node(unreal.MaterialExpressionMultiply, -900, 400)           # 0..1 grime mask = n1 * n2
     inv = node(unreal.MaterialExpressionOneMinus, -750, 400)
     lerp = node(unreal.MaterialExpressionLinearInterpolate, -600, 400)   # value = lerp(1 - amt, 1, 1 - mask)
@@ -97,6 +102,10 @@ def ensure_trim_grime(tex, notes):
     gr = node(unreal.MaterialExpressionMultiply, -600, 800)           # roughness add = mask * GrimeRough
     ro = node(unreal.MaterialExpressionAdd, -400, 100)
     ok = True
+    ok &= mel.connect_material_expressions(wp, "", wps, "A")
+    ok &= mel.connect_material_expressions(gs, "", wps, "B")
+    ok &= mel.connect_material_expressions(wps, "", n1, "World Position")
+    ok &= mel.connect_material_expressions(wps, "", n2, "World Position")
     ok &= mel.connect_material_expressions(n1, "", g, "A")
     ok &= mel.connect_material_expressions(n2, "", g, "B")
     ok &= mel.connect_material_expressions(g, "", inv, "")
@@ -399,6 +408,15 @@ def configure_dominion():
                 "decals": True})
 NO_COLLISION = ("SM_Kit_LightStrip_200", "SM_Kit_LightPillar")
 
+
+def configure_bridge():
+    """Walkable crossings (export_bridge: SM_Kit_MagmaBridge): the planet trim in Props/Kit, no screen, no extras;
+    only the bridge's own manifest is imported, its report in review/ue_import_bridge.json."""
+    global SIZE_CHECK, SCREEN_MI
+    SIZE_CHECK = os.path.join(KIT, "review", "size_check_B_r1.json")
+    SCREEN_MI = None
+    SET.update({"export": "export_bridge", "extras": False, "report": "ue_import_bridge.json"})
+
 eas = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()
 mel = unreal.MaterialEditingLibrary
@@ -620,10 +638,13 @@ def main():
     sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
     mgr = unreal.InterchangeManager.get_interchange_manager_scripted()
     rows, bad = [], 0
+    only = [o for o in os.environ.get("TD_KIT_ONLY", "").split(",") if o]       # re-import just these meshes
     for man_path in sorted(glob.glob(os.path.join(KIT, SET["export"], SET["prefix"] + "*.manifest.json"))):
         with open(man_path, encoding="utf-8") as fh:
             man = json.load(fh)
         asset = man["asset"]
+        if only and asset not in only:
+            continue
         fbx = os.path.join(KIT, SET["export"], asset + ".fbx")
         n = []
         params = unreal.ImportAssetParameters()
@@ -702,7 +723,7 @@ def main():
                "hulls": hulls, "asymmetric_side": side, "notes": n}
         rows.append(row)
         log(json.dumps(row))
-    out = os.path.join(KIT, "review", "ue_import_report.json")
+    out = os.path.join(KIT, "review", SET.get("report", "ue_import_report.json"))
     with open(out, "w", encoding="utf-8") as fh:
         json.dump(rows, fh, indent=1)
     log("report: %s; notes %s" % (out, notes))
@@ -716,4 +737,6 @@ def main():
 if __name__ == "__main__":
     if os.environ.get("TD_KIT_SET") == "dominion":
         configure_dominion()
+    elif os.environ.get("TD_KIT_SET") == "bridge":
+        configure_bridge()
     main()

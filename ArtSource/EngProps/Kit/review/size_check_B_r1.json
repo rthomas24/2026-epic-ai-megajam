@@ -1,0 +1,40 @@
+[
+ {
+  "asset": "SM_Kit_MagmaBridge",
+  "min_cm": [
+   -1400.0,
+   -185.0,
+   -150.0
+  ],
+  "max_cm": [
+   1400.0,
+   185.0,
+   160.0
+  ],
+  "size_cm": [
+   2800.0,
+   370.0,
+   310.0
+  ],
+  "expected": [
+   [
+    -1400.0,
+    -185.0,
+    -150
+   ],
+   [
+    1400.0,
+    185.0,
+    160.0
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 4728,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 13,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ }
+]

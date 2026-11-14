@@ -1,0 +1,24 @@
+{
+ "oneshots": [
+  {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/MSS_Travel_CloudPunch",
+   "format": "Mono",
+   "sounds": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_CloudPunch_01",
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_CloudPunch_02",
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_CloudPunch_03"
+   ],
+   "volume_db": -9.0,
+   "volume_spread_db": 1.5,
+   "pitch_semitones": 0,
+   "pitch_spread": 0.7,
+   "sound": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Ground_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ]
+   }
+  }
+ ]
+}

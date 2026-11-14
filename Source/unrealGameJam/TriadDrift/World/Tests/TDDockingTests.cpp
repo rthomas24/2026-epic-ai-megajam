@@ -3,6 +3,9 @@
 // the fallback. Run: .\Tools\td-test.ps1 -Filter TriadDrift.World.Docking
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDEventBus.h"
+#include "NiagaraSystem.h"
 #include "TriadDrift/Combat/TDWeaponLibrary.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/World/TDWorldBarks.h"
@@ -100,6 +103,8 @@ bool FTDDockingOpens::RunTest(const FString&)
 		TestTrue(*FString::Printf(TEXT("mouth on the bow (x %.0f vs hull max %.0f)"), Local.X, D->GetLocalHullBounds().Max.X), FMath::IsNearlyEqual(Local.X, D->GetLocalHullBounds().Max.X, 10.f));
 	}
 	TestTrue(TEXT("faces out of the bow"), FVector::DotProduct(Bay->GetOutward(), D->GetActorForwardVector()) > 0.99f);
+	// T1 (docking2/H2_10): the glide flew the camera through a solid lit frame slab. The opening must stay clear.
+	TestTrue(TEXT("no lit frame part crosses the mouth within 15 m of the axis"), Bay->IsMouthClear(1500.f));
 	// The approach stays a fight: launches and the hyperdrive lock carry on.
 	TestTrue(TEXT("still a hot approach (stage 1)"), D->GetStage() == 1);
 	return true;
@@ -173,7 +178,7 @@ bool FTDDockingHandOff::RunTest(const FString&)
 	TestTrue(TEXT("controls locked for the glide"), Ship->IsFlightParked());
 	const UTDHealthComponent* H = UTDStatics::GetHealth(Ship);
 	TestTrue(TEXT("invulnerable in the glide"), H && H->IsInvulnerable());
-	W.Advance(Bay->GlideSeconds + 1.f);
+	W.Advance(Bay->GlideSeconds + Bay->DockingLinesHoldSeconds + 1.f);
 	TestEqual(TEXT("docked"), (int32)Bay->GetDockingState(), (int32)ETDDockingState::Docked);
 	TestEqual(TEXT("exactly one travel request"), Bay->GetTravelRequests(), 1);
 	TestTrue(TEXT("travels to the interior"), GI->Travels.Num() == 1 && GI->Travels[0] == ETDDestination::DominionInterior);
@@ -209,7 +214,10 @@ bool FTDDominionStoryBeats::RunTest(const FString&)
 	ATDDominion* D = TDDockingTest::DefensesDown(W, ETDBoardingMode::ForceOff);
 	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(D);
 	if (!TestNotNull(TEXT("story subsystem"), Story)) { return false; }
-	for (int32 i = 1; i <= 4; ++i)
+	// Nov 14 (T3 / T4): the first generator speaks the screenplay's G6_Kato_ShieldWeakening; A4_GeneratorDown1 is retired.
+	TestTrue(TEXT("G6_Kato_ShieldWeakening played (first generator)"), Story->HasPlayed(TEXT("G6_Kato_ShieldWeakening")));
+	TestFalse(TEXT("A4_GeneratorDown1 retired"), Story->HasPlayed(TEXT("A4_GeneratorDown1")));
+	for (int32 i = 2; i <= 4; ++i)
 	{
 		const FName Id(*FString::Printf(TEXT("A4_GeneratorDown%d"), i));
 		TestTrue(*FString::Printf(TEXT("%s played"), *Id.ToString()), Story->HasPlayed(Id));
@@ -238,7 +246,7 @@ bool FTDDockingWingmen::RunTest(const FString&)
 	W.Advance(0.1f);
 	TestEqual(TEXT("gliding"), (int32)Bay->GetDockingState(), (int32)ETDDockingState::Gliding);
 	TestEqual(TEXT("both wingmen held outside"), Bay->GetHeldWingmenCount(), 2);
-	W.Advance(Bay->GlideSeconds * 0.5f);	// mid-glide (a docked bay ignores retakes: the travel is under way)
+	W.Advance(0.5f);	// mid-glide (a docked bay ignores retakes: the travel is under way)
 	for (const ETDShipId Id : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
 	{
 		const ATDShip* S = Squad->GetShip(Id);
@@ -276,7 +284,12 @@ bool FTDDominionBarks::RunTest(const FString&)
 	}
 	ATDDockingBay* Bay = D->GetDockingBay();
 	if (!TestNotNull(TEXT("bay"), Bay)) { return false; }
-	TestEqual(TEXT("Bark_Dom_GeneratorDown for generators 1-3"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomGeneratorDown), 3);
+	TestEqual(TEXT("Bark_Dom_GeneratorDown retired (Command's A4_GeneratorDown2-4 and Kato's G6 line cover the count)"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomGeneratorDown), 0);
+	if (const UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld()))
+	{
+		TestTrue(TEXT("G6_Kato_MarkingTargets when the generators showed"), Story->HasPlayed(TEXT("G6_Kato_MarkingTargets")));
+		TestTrue(TEXT("G6_Kato_ShieldWeakening on the first generator down"), Story->HasPlayed(TEXT("G6_Kato_ShieldWeakening")));
+	}
 	TestEqual(TEXT("Bark_Dom_FieldDown once"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomFieldDown), 1);
 	ATDShip* Ship = TDDockingTest::ShipInCone(W, Bay, 180000.f, 25000.f, 20.f);
 	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
@@ -315,4 +328,111 @@ bool FTDGeneratorHitBark::RunTest(const FString&)
 	return true;
 }
 
+
+// ENG-37: the TractorBeam cue plays as a loop at the bay mouth while the tractor holds the flown ship, and stops when it lets go.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTractorBeamCue, "TriadDrift.World.Docking.TractorBeamPlaysWhileHeld", TD_TEST_FLAGS)
+bool FTDTractorBeamCue::RunTest(const FString&)
+{
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	ATDDominion* D = TDDockingTest::DefensesDown(W, ETDBoardingMode::ForceOn);
+	ATDDockingBay* Bay = D ? D->GetDockingBay() : nullptr;
+	if (!TestNotNull(TEXT("bay"), Bay) || !TestNotNull(TEXT("visuals"), D->Visuals.Get())) { return false; }
+	D->Visuals = DuplicateObject(D->Visuals.Get(), GetTransientPackage());	// never the shared asset
+	D->Visuals->TractorBeam.VFX = TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Ambient_Verdance.NS_TD_Ambient_Verdance")));
+	TestFalse(TEXT("no beam before a ship is held"), Bay->IsBeamActive());
+	ATDShip* Ship = TDDockingTest::ShipInCone(W, Bay, 180000.f, 25000.f, 20.f);
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	W.Advance(1.f);
+	TestTrue(TEXT("the beam plays while the tractor holds"), Bay->IsBeamActive());
+	Ship->SetActorLocation(Bay->GetMouth() + Bay->GetOutward() * 150000.f + FVector(0.f, 0.f, 250000.f));
+	W.Advance(0.3f);
+	TestFalse(TEXT("and stops when it lets go"), Bay->IsBeamActive());
+	return true;
+}
+
+// ART-18: the AftermathLightRow cue starts at the hull face nearest the escape line, +X along its outward normal, and
+// stops at the hyperdrive jump.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDAftermathLightRow, "TriadDrift.World.Dominion.AftermathLightRowStartsAndStopsAtTheJump", TD_TEST_FLAGS)
+bool FTDAftermathLightRow::RunTest(const FString&)
+{
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.Phase = ETDGamePhase::Waves1to2;
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(600000.f, 0.f, 0.f));
+	W.Advance(D->ProgressPollSeconds + 0.2f);
+	if (!TestNotNull(TEXT("visuals"), D->Visuals.Get())) { return false; }
+	D->Visuals = DuplicateObject(D->Visuals.Get(), GetTransientPackage());
+	D->Visuals->AftermathLightRow.VFX = TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Ambient_Verdance.NS_TD_Ambient_Verdance")));
+	// The escape line off the Dominion's port side, 5 km away.
+	D->StartAftermathLightRow(D->GetActorLocation() - D->GetActorRightVector() * 500000.f);
+	TestTrue(TEXT("the light row plays"), D->IsAftermathLightRowActive());
+	const FTransform T = D->GetAftermathLightRowTransform();
+	TestTrue(*FString::Printf(TEXT("on the port face, facing out (+X = %s)"), *T.GetRotation().GetForwardVector().ToCompactString()),
+		T.GetRotation().GetForwardVector().Y < -0.99f && T.GetLocation().Y <= D->GetLocalHullBounds().Min.Y + 1.f);
+	if (UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld())) { Bus->OnHyperdriveState.Broadcast(ETDHyperdriveState::Jumping); }
+	TestFalse(TEXT("deactivated at the hyperdrive jump"), D->IsAftermathLightRowActive());
+	return true;
+}
+
+
+// T1's live review and the Lead (Nov 14): cone edge to commit in about 12 s flown straight (it took ~40 s under fire), and
+// the glide never faster than the ship's boost (it lunged at ~340 m/s).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDockingPace, "TriadDrift.World.Docking.ApproachIsBriskAndTheGlideNeverLunges", TD_TEST_FLAGS)
+bool FTDDockingPace::RunTest(const FString&)
+{
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	ATDDominion* D = TDDockingTest::DefensesDown(W, ETDBoardingMode::ForceOn);
+	ATDDockingBay* Bay = D ? D->GetDockingBay() : nullptr;
+	if (!TestNotNull(TEXT("bay"), Bay)) { return false; }
+	ATDShip* Ship = TDDockingTest::ShipInCone(W, Bay, Bay->ConeDepth * 0.98f, 0.f, 0.f);	// at the cone's edge, on the axis
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	float T = 0.f, PeakGlide = 0.f, Arrive = 0.f;
+	FVector Prev = Ship->GetActorLocation();
+	while (T < 40.f && Bay->GetDockingState() != ETDDockingState::Docked)
+	{
+		const bool bGliding = Bay->GetDockingState() == ETDDockingState::Gliding;
+		W.Tick(1.f / 60.f);
+		T += 1.f / 60.f;
+		const float Speed = (float)FVector::Dist(Prev, Ship->GetActorLocation()) * 60.f;
+		Prev = Ship->GetActorLocation();
+		if (!bGliding && Bay->GetDockingState() == ETDDockingState::Gliding) { Arrive = Speed; AddInfo(FString::Printf(TEXT("glide starts after %.1f s at %.0f m/s"), T, Speed / 100.f)); TestTrue(*FString::Printf(TEXT("cone edge to commit in about 12 s flown straight (%.1f s)"), T), T <= 12.5f); }
+		if (bGliding) { PeakGlide = FMath::Max(PeakGlide, Speed); }
+	}
+	AddInfo(FString::Printf(TEXT("glide peak %.0f m/s, docked after %.1f s"), PeakGlide / 100.f, T));
+	TestTrue(TEXT("docked"), Bay->GetDockingState() == ETDDockingState::Docked);
+	TestTrue(*FString::Printf(TEXT("the glide never goes faster than the ship's boost (peak %.0f m/s, arrival %.0f m/s)"), PeakGlide / 100.f, Arrive / 100.f),
+		Ship->GetShipMovement() && PeakGlide <= Ship->GetShipMovement()->GetFlightTuning().BoostSpeed * 1.05f);
+	return true;
+}
+
 #endif
+
+
+// T1 (live, Nov 14): commit to load is ~5 s now, and the load cut the Docking lines. The ship holds over the pad until
+// the sequence has finished (or is skipped), at most DockingLinesHoldSeconds, then travels. Story lines run on real time,
+// which a headless tick loop outruns, so the test holds through the glide, then skips the sequence.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDockingWaitsForLines, "TriadDrift.World.Docking.TravelWaitsForTheDockingLines", TD_TEST_FLAGS)
+bool FTDDockingWaitsForLines::RunTest(const FString&)
+{
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	ATDDominion* D = TDDockingTest::DefensesDown(W, ETDBoardingMode::ForceOn);
+	ATDDockingBay* Bay = D ? D->GetDockingBay() : nullptr;
+	if (!TestNotNull(TEXT("bay"), Bay)) { return false; }
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("story"), Story)) { return false; }
+	ATDShip* Ship = TDDockingTest::ShipInCone(W, Bay, 20000.f, 1000.f, 0.f);
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	W.Advance(0.2f);
+	TestEqual(TEXT("gliding"), (int32)Bay->GetDockingState(), (int32)ETDDockingState::Gliding);
+	TestTrue(TEXT("the Docking lines start at the commit"), Story->IsSequencePlaying(TEXT("Docking")));
+	W.Advance(Bay->GlideSeconds + 0.5f);	// past the glide, inside the hold
+	TestTrue(TEXT("still on air"), Story->IsSequencePlaying(TEXT("Docking")));
+	TestEqual(TEXT("no travel while the Docking lines are on air"), Bay->GetTravelRequests(), 0);
+	TestEqual(TEXT("held over the pad"), (int32)Bay->GetDockingState(), (int32)ETDDockingState::Gliding);
+	Story->SkipAllowedAfterSeconds = 0.f;	// the ten-second skip guard runs on real time too
+	TestTrue(TEXT("skipped"), Story->SkipSequence());
+	W.Advance(0.2f);
+	TestEqual(TEXT("travels once the lines are done (skipped)"), Bay->GetTravelRequests(), 1);
+	TestEqual(TEXT("docked"), (int32)Bay->GetDockingState(), (int32)ETDDockingState::Docked);
+	return true;
+}
