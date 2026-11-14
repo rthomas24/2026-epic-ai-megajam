@@ -422,6 +422,15 @@ float g = m*m*(3-2*m);
 float a = pow(g, 0.8)*(0.85 + 0.30*(n-0.5))*smoothstep(0.0, 0.25, Age)*saturate((1-Age)*2.5);
 return float4(PC.rgb*(0.92 + 0.10*n)*Intensity, saturate(a*PC.a));''', {}),
 
+    # round 10: a set piece's range beacon (NS_TD_Region_Beacon): soft round core, a short thin horizontal streak, a white
+    # pin-point centre. Camera-facing sprite, additive.
+    'M_TD_VFX_Beacon': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''
+float core = pow(m, 2.6);
+float streak = pow(saturate(1.0 - abs(p.x)), 1.5)*exp(-abs(p.y)*22.0);
+float pin = pow(m, 12.0);
+float3 c = PC.rgb*(core*0.9 + streak*0.8) + lerp(PC.rgb, float3(1,1,1), 0.75)*pin*1.4;
+return float4(c*Intensity, PC.a);''', {}),
+
     # Blade swing: a crescent swept left to right across the top half of a camera-facing sprite over the particle's life.
     'M_TD_VFX_Slash': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
 float ang = atan2(p.x, -p.y);

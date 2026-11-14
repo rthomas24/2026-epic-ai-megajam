@@ -148,6 +148,17 @@ S2('NS_TD_Dominion_TractorBeam', U((0.75, 0.88, 1.0, 1.0), 1.0, Length=20000.0, 
 
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
+# round 10 (Lead, for T6): a set piece's range beacon at its beacon point. One emitter, one particle re-spawned 10 times a
+# second (Init-only size: no persistent sprite, no Update ScaleColor). About 0.8 degrees across (core), held between 300 m
+# and 3 km from the camera (closer it stops shrinking with distance, so it never covers the piece); 0.4 Hz pulse in size
+# and brightness. User.Color per region: Watchline amber (1.0, 0.62, 0.18), Quiet Graveyard (0.70, 0.85, 1.0), Survey
+# Scar Null red (1.0, 0.10, 0.04), Shattered Moons ember orange (1.0, 0.38, 0.08).
+BPULSE = '(0.80 + 0.20*sin(Engine.Time*2.5133))'
+BSIZE = '(0.028*clamp(Engine.Owner.LODDistance, 30000.0, 300000.0)*%s)' % BPULSE
+S2('NS_TD_Region_Beacon', U((1.0, 0.62, 0.18, 1.0), 1.0), [
+    shed('Beacon', 'M_TD_VFX_Beacon', 0, (0.1, 0.1), (BSIZE, BSIZE), (0, 0), radius=0.0, drag=0.0, local=True, power=0.01,
+         rgb=('User.Color.r*%s' % BPULSE, 'User.Color.g*%s' % BPULSE, 'User.Color.b*%s' % BPULSE), rate_expr='10.0')])
+
 # Slot: none yet (code hook wanted: T3's transmissions, the escape sequence, a hit of "static"). A one-shot, camera-facing
 # tear of chromatic bars, 0.3 s; spawn it attached in front of the camera (authored 12 m wide) or at a world point.
 # Round 9 (T3's slot, UTDStoryFX.TransmissionStatic): played 60 cm in front of the camera, so sized to the view at that
