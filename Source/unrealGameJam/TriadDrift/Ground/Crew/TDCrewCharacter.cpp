@@ -1125,6 +1125,8 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 		// physics asset), so every body lands on the ground (animation builder's sheet crew_deaths_as_played, Nov 13).
 		if (UAnimSequenceBase* DeathAnim = ChooseDeathClip(KillingBlow.HitDirection))
 		{
+			// The fall plays whether or not the body is on screen (a corpse behind the camera must still land; headless tests).
+			GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 			GetMesh()->PlayAnimation(DeathAnim, false);
 			RagdollIn = bGroundDeathClip ? -1.f : DeathClipSeconds; // a fall that ends lying down plays out and holds
 		}
@@ -1172,7 +1174,8 @@ UAnimSequenceBase* ATDCrewCharacter::ChooseDeathClip(const FVector& HitDirection
 	if (Spec.Type == ETDCrewType::Heavy && FCString::Strcmp(Side, TEXT("Front")) == 0) { Side = TEXT("Left"); }
 	if (Spec.Type == ETDCrewType::Warden) { Side = TEXT("Back"); }
 	bGroundDeathClip = false;
-	for (const FString& N : { FString::Printf(TEXT("A_Crew_%s_Death_%s"), *Type, Side), FString::Printf(TEXT("A_Crew_Death_%s"), Side) })
+	// Only the in-place set: A_Crew_Trooper_Death_<Side> is Grok's source with 77-166 cm of root travel (Lead, Nov 14).
+	for (const FString& N : { FString::Printf(TEXT("A_Crew_Death_%s"), Side) })
 	{
 		if (UAnimSequenceBase* A = Fits(Load(N))) { bGroundDeathClip = true; return TDMakePlayable(A); }
 	}

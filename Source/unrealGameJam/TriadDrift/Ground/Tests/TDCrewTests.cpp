@@ -842,7 +842,9 @@ bool FTDCrewDeathsLand::RunTest(const FString& Parameters)
 		const FVector At = C->GetActorLocation();
 		const UAnimSequenceBase* Clip = C->ChooseDeathClip(FVector(1.f, 0.f, 0.f));
 		C->GetHealth()->Kill(P, ETDDamageKind::Melee);
-		for (int32 i = 0; i < 200; ++i) { W.Tick(1.f / 60.f); } // past a 2.57 s ground fall
+		// Sampled after the chosen fall has played out (a ground fall is 2.57 s; a start clip hands off to the ragdoll at 0.5 s).
+		const float Wait = (Clip ? FMath::Max(Clip->GetPlayLength(), ATDCrewCharacter::DeathClipSeconds) : 0.f) + 1.f;
+		for (float T = 0.f; T < Wait; T += 1.f / 60.f) { W.Tick(1.f / 60.f); }
 		if (!TestTrue(*FString::Printf(TEXT("%s: the corpse stays"), *TypeName.ToString()), IsValid(C) && !C->IsActorBeingDestroyed())) { continue; }
 		const FName Pelvis = M->GetBoneIndex(TEXT("pelvis")) != INDEX_NONE ? FName(TEXT("pelvis")) : M->GetBoneName(FMath::Min(1, M->GetNumBones() - 1));
 		const float PelvisZ = (float)M->GetBoneLocation(Pelvis).Z;
