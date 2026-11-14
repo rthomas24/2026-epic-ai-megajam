@@ -260,6 +260,18 @@ def build_nose(mats, body, bvh):
     cut = _cut(body, lambda c: (NOSE_X[0] + 0.05 < c.x and abs(c.y) < min(hf(min(c.x, xs[-1])) * 1.32, 0.27) * 0.97 and
                bf(min(c.x, xs[-1])) - 0.01 < c.z < tf(min(c.x, xs[-1])) + 0.01 and math.hypot(abs(c.y) - GUN_Y, c.z - GUN_Z) > 0.13)
                or (c.x > 2.22 and abs(c.y) < 0.30 and c.z > -0.85 and math.hypot(abs(c.y) - GUN_Y, c.z - GUN_Z) > 0.10))
+    # v11: whatever of the Rodin nose still pokes out of the shell goes: spikes above it (canopy front, top) and the
+    # shards under its lip (the chin between the gun pods), the guns kept
+    def poke(c):
+        if not (NOSE_X[0] - 0.03 < c.x < NOSE_X[1] + 0.06) or math.hypot(abs(c.y) - GUN_Y, c.z - GUN_Z) < 0.12:
+            return False
+        xx = min(c.x, xs[-1])
+        w = min(hf(xx) * 1.32, 0.27)
+        above = abs(c.y) < w * 1.05 and c.z > tf(xx) + 0.004
+        below = c.x > 1.95 and abs(c.y) < 0.30 and c.z < bf(xx) + 0.02
+        tip = c.x > 2.28 and abs(c.y) < 0.32
+        return above or below or tip
+    cut += _cut(body, poke)
     return [nose], cut
 
 
@@ -420,7 +432,12 @@ def build(mats, body):
     guns, res["cut_guns"] = build_guns(mats, body)
     nose, res["cut_nose"] = build_nose(mats, body, bvh)
     spine = build_spine(mats, body, bvh)
-    plates = build_side_plates(mats, body, bvh)             # v10: replaces the side denoise (no visible effect at 3 m)
+    # v10's side plates failed the toy-like gate (Lead, decision A): built only with TD_RIFT_PLATES=1; v11 = v09 sides
+    if os.environ.get("TD_RIFT_PLATES"):
+        plates = build_side_plates(mats, body, bvh)
+    else:
+        plates = []
+        res["side_denoise"] = denoise_sides(body)
     res["side_plates"] = len(plates)
     res["parts"] = len(canopy) + len(guns) + len(nose) + len(spine) + len(plates)
     return canopy + guns + nose + spine + plates, glass, res
