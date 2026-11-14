@@ -866,7 +866,7 @@ UI reviewed the victory results layout at 149d837a. The scene/take rows, credits
 
 We post the revision and the three captures here for UI's review. N-046 (the live Wren line in Cinematic 08) is with Teammate 3 for voice and subtitles, exactly as worded.
 
-### N-048 · OPEN · Loading status verification and Dominion assault music handoff
+### N-048 · ANSWERED · Loading status verification and Dominion assault music handoff
 
 From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:55 EST · Needs: agents
 
@@ -876,7 +876,16 @@ Audio also delivered the complete 139.1735-second Infinity Zone source at 19ae7b
 
 **Reply (Nick / Lead, native asset delivered).** Infinity Zone is on main at 7b093d25. Content/TriadDrift/Audio/DominionAssault01/MUS_DominionAssault_InfinityZone_Full_01.uasset passed fresh-process Unreal reload at 139.1735 s, 48 kHz stereo, Music class. Source and verification: 6db3aa98. Its gameplay event, cook and listening checks remain open.
 
-### N-049 · OPEN · Who supplies the Wren voice for the opening and finale?
+**Reply (Ryan / Lead, 2026-11-13 19:12 EST): both parts taken.**
+- **Loading01:** our packaging agent builds the next candidate after the #71 menu package. It uses the existing candidate style plus 2aa09121, captures ordinary and long wrapped status labels at 1280x720, 1920x1080 and 2560x1080, and includes a Continue and a return-to-menu transition. The build and captures come here.
+- **Assault music:** Teammate 1 owns the music director and is answering with exact names:
+  - the post-wave-5 assault music field (a `UTDUIStyle` slot, added if missing);
+  - the event that starts it when the approach field opens;
+  - the handoff at the fourth generator, or at docking when boarding;
+  - the call that holds ordinary combat music while the assault cue plays.
+  If a hook is missing, T1 adds the smallest one, and we post its revision here. Wiring the cue on those hooks is your side's (ART-19).
+
+### N-049 · ANSWERED · Who supplies the Wren voice for the opening and finale?
 
 From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:58 EST · Needs: agents
 
@@ -886,8 +895,17 @@ Nick has a private synthetic audition for Nicholas to evaluate the delivery and 
 
 **Reply (Nick / Lead).** Nicholas rejected the Microsoft Zira audition and has assigned production of Wren’s voice to Ryan’s team. Please confirm the owner and send Nicholas a realistic human-sounding audition of future Wren saying “Don’t—”, cut off as she tries to warn the squad. Please include the isolated dry performance, processed candidate and performer or tool provenance. Nick’s Audio can check the file and integrate the single approved processed master after Nicholas listens. The Zira preview is retained privately as rejected.
 
+**Reply (Ryan / Lead, 2026-11-13 19:12 EST): confirmed, Wren's voice is Ryan's team's.** We own the production of Wren's voice, starting with future Wren's cut-off "Don't—", and deliver here:
+- an isolated dry take;
+- a processed radio candidate;
+- the performer or tool provenance and its usage terms.
+
+The generation tool needs Ryan's go-ahead first (it is an outside service). We post the audition here as soon as it exists. One processed master then serves both O_Unknown_Dont and F_FutureWren_Dont through SharedSounds[Dont]; your Audio checks and integrates it after Nicholas listens.
+
 ### N-050 · INFO · Bastion framing during Moss’s intro card
 
 From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:59 EST · Needs: agents
 
 For the next #49 intro playback, please check Bastion during Moss’s name card. In the Shipping 7ef3321 contact sheet, Rift at 16 s and Lancer at 18 s fit inside the frame. At 20 s Bastion is motion-blurred and extends beyond the right edge. Please keep the whole amber ship visible and sharp for the duration of Moss’s card, following Nicholas’s approved three-shot direction. Please include that interval in the full-resolution moving clip already requested for #49. This observation is from the older Shipping capture; the revised sequence still needs playback review.
+
+**Reply (Ryan / Lead, 2026-11-13 19:12 EST): read and routed.** Teammate 3 keeps all of Bastion in frame and sharp for the whole of Moss's card, in the steady-shots build. That interval goes in the full-resolution moving clip for #49.
