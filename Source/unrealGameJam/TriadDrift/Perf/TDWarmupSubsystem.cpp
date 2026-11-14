@@ -203,12 +203,30 @@ void UTDWarmupSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		return;
 	}
+	// The front end needs none of it (T6, launch check of 685d8bea: the menu warmed 351 data assets and about 550 assets
+	// while the player waited on a black screen; on the Shipping boot that kept about ten cores busy). The galaxy, the
+	// planets and the interior warm their own sets when they load.
+	const FString MapName = InWorld.GetMapName();
+	if (MapName.Contains(TEXT("MainMenu")) || MapName.Contains(TEXT("Transition")))
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD warmup: skipped on %s (front end)"), *MapName);
+		return;
+	}
 	Stage = ETDWarmupStage::Waiting;
 	WaitLeft = StartDelaySeconds;
 }
 
+static int32 GTDWarmupKeepForRun = 1;
+static FAutoConsoleVariableRef CVarTDWarmupKeepForRun(TEXT("td.Warmup.KeepForRun"), GTDWarmupKeepForRun,
+	TEXT("#89: 1 = what the warm-up loads stays in memory for the whole run (a return to the galaxy finds it resident); 0 = released with each level, as before (and what was kept is let go)."));
+
 void UTDWarmupKeep::Keep(const TArray<TObjectPtr<UObject>>& Assets)
 {
+	if (GTDWarmupKeepForRun == 0)
+	{
+		Kept.Reset();
+		return;
+	}
 	for (UObject* Asset : Assets)
 	{
 		if (Asset) { Kept.Add(Asset); }
@@ -341,8 +359,13 @@ void UTDWarmupSubsystem::OnContentLoaded()
 	{
 		if (UGameInstance* GI = World->GetGameInstance())
 		{
-			if (UTDWarmupKeep* KeepSub = GI->GetSubsystem<UTDWarmupKeep>())
+			// Only the galaxy's set: that is what a return from a planet needs. A planet's own assets are let go when the
+			// player is back in the galaxy (the full loop with every level kept cost 337 MB of private memory, Lead's cap
+			// about 300 MB; galaxy-only measured below it).
+			UTDWarmupKeep* KeepSub = GI->GetSubsystem<UTDWarmupKeep>();
+			if (KeepSub && World->GetMapName().EndsWith(TEXT("L_Galaxy")))
 			{
+				KeepSub->Reset();
 				KeepSub->Keep(Held);
 				UE_LOG(LogTriadDrift, Log, TEXT("TD warmup: %d assets kept for the run"), KeepSub->GetKeptCount());
 			}

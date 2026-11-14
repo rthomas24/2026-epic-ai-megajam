@@ -69,13 +69,13 @@ struct UNREALGAMEJAM_API FTDScatterPlan
 	float RockSpacing = 4000.f;
 	float GroveSpacing = 1600.f;
 	float GroundSpacing = 650.f;		// near ring
-	float CourseGroundSpacing = 380.f;	// s20: ground detail inside the course's ground box
+	float CourseGroundSpacing = 270.f;	// #194: ~2x the s20 cover	// s20: ground detail inside the course's ground box
 	float KeepOutMargin = 3000.f;	// around the course's ground box
 	float CollisionRadius = 40000.f;	// instances this close to the ground box collide on foot (zone layer: full forest)
 	float MidCell = 20000.f, MidRadius = 80000.f;
 	float NearCell = 5000.f, NearRadius = 15000.f;
 	float NearMaxHeightCm = 25000.f;	// the near ring only while the camera is this low over the ground
-	int32 InstanceBudget = 25000;
+	int32 InstanceBudget = 32000;	// #194: the course fill
 	/** Story (environment builder, s6): Verdance's wreck scar, a burned strip through the forest from the research site
 	 *  outward (course-local cm), ScarHalfA wide at A widening to ScarHalfB at B; 0 = none. Inside it the forest is gone:
 	 *  charred trunks and scorch marks only. */
@@ -117,6 +117,8 @@ struct UNREALGAMEJAM_API FTDScatterPlan
 
 private:
 	void RunCourseGround(const FTDTerrainField& Field, FTDScatterResult& Out) const;
+	/** #194: forest / groves, boulder fields and landmarks inside the course's ground box, off every keep-out. */
+	void RunCourseFill(const FTDTerrainField& Field, FTDScatterResult& Out) const;
 	void RunLayer(const FTDTerrainField& Field, float Spacing, int32 Salt, const FBox2D& Rect, int32 Mode, bool bParallel,
 		TArray<TArray<FTransform>>& OutNear, TArray<TArray<FTransform>>& OutFar) const;
 	int32 Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM, float Rnd, float Stand) const;

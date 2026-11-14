@@ -1,0 +1,19 @@
+{
+ "name": "VerdanceRockCluster",
+ "source_tris": 14106,
+ "size_cm": [
+  193.3,
+  165.6,
+  38.0
+ ],
+ "stood_up_from_axis": "Z",
+ "tris": 3500,
+ "source_mean_luma": 0.182,
+ "moss_share": 0.193,
+ "normal": "OpenGL, flipped (-0.438)",
+ "orm_mean": [
+  0.718,
+  0.895,
+  0.0
+ ]
+}

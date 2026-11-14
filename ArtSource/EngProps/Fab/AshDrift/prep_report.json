@@ -1,0 +1,23 @@
+{
+ "looks": {
+  "Cinder": {
+   "CharColor": [
+    0.16,
+    0.15,
+    0.14
+   ],
+   "CharRoughness": 0.95,
+   "Opacity": 0.55,
+   "Bias": 0.1,
+   "Contrast": 0.9,
+   "EmberColor": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "EmberStrength": 0.0,
+   "EmberPower": 10.0
+  }
+ },
+ "mask_mean": 0.283
+}

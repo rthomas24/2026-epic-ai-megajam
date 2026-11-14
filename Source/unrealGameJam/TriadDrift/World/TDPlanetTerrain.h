@@ -173,6 +173,22 @@ protected:
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<UProceduralMeshComponent>> ChunkMeshes;
 
+	// Ryan (#194): the relief underfoot, drawn and collided by a fine patch (2 m grid) over the course and its margin;
+	// the coarse chunks under it drop out of sight.
+	UPROPERTY(Transient)
+	TObjectPtr<UProceduralMeshComponent> DetailGround;
+	bool bDetailReady = false;
+	void BuildDetailGround();
+	void RegisterCourseFlats(ETDDestination Planet);
+public:
+	/** Grid spacing of the relief patch (cm). */
+	UPROPERTY(EditAnywhere, Category = "TriadDrift|Terrain", meta = (ClampMin = "100"))
+	float DetailSpacing = 200.f;
+	/** True once the relief patch has collision: T5's course then turns its flat GroundSlab's collision off. */
+	static bool HasDetailGround(const UObject* WorldContext);
+	bool IsDetailGroundReady() const { return bDetailReady; }
+protected:
+
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Terrain")
 	TObjectPtr<UProceduralMeshComponent> FarMesh;
 
