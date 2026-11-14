@@ -97,4 +97,19 @@ private:
 	TSharedRef<SWidget> MakeRow(ETDSettingsRow Row);
 	TSharedPtr<FTDSettingsPageModel> Model;
 	FSimpleDelegate OnClose;
+
+	// T7: the page fits any height (720p up). The option rows scroll; the title, the hint and Back stay on screen, and the
+	// list follows the keyboard / pad selection.
+	TSharedPtr<class SScrollBox> RowScroll;
+	TArray<TSharedPtr<SWidget>> RowWidgets;
+	int32 LastScrolledRow = -1;
+	float PageHeight = 0.f;
+public:
+	/** Space the scrolling rows may take: the page height minus the title, hint, help line and Back (Slate units). */
+	float GetRowListMaxHeight() const;
+	/** Tests: the height the page was laid out at (set every tick from its geometry). */
+	void SetPageHeightForTests(float H) { PageHeight = H; }
+	/** Tests: is the row's widget inside the scrolling list (false for Back, which is always shown). */
+	bool IsRowInScrollList(ETDSettingsRow Row) const;
+	static constexpr float FixedPartsHeight = 250.f;
 };

@@ -232,8 +232,18 @@ FVector2D UTDCutPresentation::NameCardCentre(const FVector2D& Size)
 	return FVector2D(Size.X * 0.245f, Size.Y * 0.48f);
 }
 
+#if WITH_DEV_AUTOMATION_TESTS
+TOptional<bool> UTDCutPresentation::NameCardClaimOverrideForTests;
+#endif
+
 bool UTDCutPresentation::IsNameCardClaimedByHUD(const UWorld* World)
 {
+#if WITH_DEV_AUTOMATION_TESTS
+	if (NameCardClaimOverrideForTests.IsSet())
+	{
+		return NameCardClaimOverrideForTests.GetValue();
+	}
+#endif
 	const UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(World);
 	const UUserWidget* HUD = Host ? Host->GetSpaceHUD() : nullptr;
 	if (!HUD)
@@ -308,6 +318,7 @@ uint32 FTDDirectorCards::Signature() const
 		H = HashCombine(H, C->bActive ? 1u : 0u);
 		H = HashCombine(H, GetTypeHash(C->bActive ? C->Text.ToString() : FString()));
 	}
+	H = HashCombine(H, bNameCardClaimedByHUD ? 1u : 0u); // N-038: a renderer hears when the HUD takes or gives back the card
 	return HashCombine(H, HashCombine(GetTypeHash(SwitchCount), GetTypeHash(SlateTake)));
 }
 
@@ -553,6 +564,7 @@ void UTDCutPresentation::Tick(double RealNow)
 	Card(C.NameCard, SwitchStart, SwitchTiming.NameCardSeconds, CardA, NameCard);
 	C.NameCard.SubText = NameCardSub;
 	C.NameCard.Color = NameColor;
+	C.bNameCardClaimedByHUD = IsNameCardClaimedByHUD(OwnerWorld.Get()); // N-038: for external renderers; NameCard stays intact
 	// N-007 (Lead): Nick's real HUD draws its own "CUT TO" card; ours would sit on top of it. It steps aside only for a
 	// HUD that really draws one (Nick's, or one that claims bCoversNameCard); under engineering's default flight HUD
 	// (ENG-36) the card is ours. Flash, letterbox, CUT! and the slate stay ours until bCutPresentationHandledExternally.

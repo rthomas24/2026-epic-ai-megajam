@@ -164,6 +164,7 @@ void ATDProjectile::Activate(const FTDProjectileSpec& InSpec, const FTransform& 
 	OriginalShooter = InInstigator;
 	HomingTarget = InHomingTarget;
 	bWarnedFlown = false;
+	bReachedFlown = false;
 	NoteHomingOnFlown();
 	IgnoreActor = nullptr;
 	SetInstigator(Cast<APawn>(InInstigator));
@@ -340,6 +341,7 @@ void ATDProjectile::Deactivate()
 	{
 		return;
 	}
+	NoteMissileEnded();
 	bActive = false;
 	SetActorTickEnabled(false);
 	PlaceholderMesh->SetVisibility(false);
@@ -447,6 +449,12 @@ void ATDProjectile::Detonate()
 	const FVector Here = GetActorLocation();
 	if (Spec.SplashRadius > 0.f)
 	{
+		if (bWarnedFlown)
+		{
+			const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+			const APawn* Flown = PC ? PC->GetPawn() : nullptr;
+			bReachedFlown |= Flown && FVector::Dist(Flown->GetActorLocation(), Here) <= Spec.SplashRadius;
+		}
 		ApplySplash(Here, nullptr);
 	}
 	if (Spec.ShardCount > 0)
@@ -484,6 +492,23 @@ void ATDProjectile::NoteHomingOnFlown()
 	{
 		bWarnedFlown = true;
 		FTDCombatBarks::SayAsWingman(this, TDBarkIdsT2::MissileIncoming, ETDBarkPriority::Critical);
+	}
+}
+
+void ATDProjectile::NoteMissileEnded()
+{
+	if (!bWarnedFlown || bReachedFlown)
+	{
+		return;
+	}
+	bWarnedFlown = false;
+	const UWorld* World = GetWorld();
+	const APlayerController* PC = World && !World->bIsTearingDown ? World->GetFirstPlayerController() : nullptr;
+	const AActor* Flown = PC ? PC->GetPawn() : nullptr;
+	const UTDHealthComponent* H = Flown ? UTDStatics::GetHealth(Flown) : nullptr;
+	if (Flown && H && H->IsAlive() && FTDCombatBarks::IsPlayerFlown(Flown))
+	{
+		FTDCombatBarks::SayAsPilot(Flown, TDBarkIdsT2::MissileEvaded, ETDBarkPriority::Flavour);
 	}
 }
 
@@ -1024,6 +1049,13 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 	const FVector Dir = Velocity.GetSafeNormal();
 
 	const UTDHealthComponent* VictimHealth = Victim ? UTDStatics::GetHealth(Victim) : nullptr;
+	bReachedFlown |= bWarnedFlown && Victim && FTDCombatBarks::IsPlayerFlown(Victim);
+	if (bWarnedFlown && Spec.SplashRadius > 0.f && !bReachedFlown)
+	{
+		const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+		const APawn* Flown = PC ? PC->GetPawn() : nullptr;
+		bReachedFlown = Flown && FVector::Dist(Flown->GetActorLocation(), Hit.ImpactPoint) <= Spec.SplashRadius;
+	}
 	bool bImpactArt = false;
 	if (VictimHealth && FTDAudioHitTrace::IsOn() && !Victim->Implements<UTDFieldDamageable>() && CanDamage(Victim))
 	{

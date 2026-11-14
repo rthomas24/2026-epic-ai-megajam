@@ -103,6 +103,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Story", meta = (WorldContext = "WorldContext"))
 	static bool PlaySequence(const UObject* WorldContext, FName SequenceId);
 	static const TArray<FName>& SequenceIds(FName SequenceId);
+	/** N-052: the Face to Face sequence for the boarding pilot ("FaceToFace_<Pilot>" on entry, "FaceToFaceOvercome_<Pilot>"). */
+	static FName FaceToFaceSequence(ETDShipId Boarder, bool bOvercome)
+	{
+		const TCHAR* P = Boarder == ETDShipId::Lancer ? TEXT("Kato") : (Boarder == ETDShipId::Bastion ? TEXT("Moss") : TEXT("Wren"));
+		return FName(*((bOvercome ? FString(TEXT("FaceToFaceOvercome_")) : FString(TEXT("FaceToFace_"))) + P));
+	}
 	/** True while a sequence (or this one) still has a line on air or queued. */
 	bool IsSequencePlaying(FName SequenceId = NAME_None) const;
 	/** Skip the running sequence: its lines count as heard (saved), the rest are dropped, OnSequenceFinished(Id, true). */
@@ -119,6 +125,8 @@ public:
 	 * when fired, as before (ambient once-only).
 	 */
 	static bool IsRequiredLine(FName Id);
+	/** Lines kept in the table but never aired (N-087, #29: TB_Escaped and the cut C4/C6 calls). */
+	static bool IsRetired(FName Id);
 	/** Seconds a sequence must have run before it can be skipped (Nicholas, N-060: ten). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Story")
 	float SkipAllowedAfterSeconds = 10.f;
@@ -132,6 +140,8 @@ public:
 	static ETDSpeaker ResolveSpeaker(const UObject* WorldContext, ETDSpeaker Speaker);
 	/** T5 sets this to the travel record's docked ship; unset, the run's last flown ship is used. */
 	static TFunction<ETDShipId(const UObject*)> BoardingShipResolver;
+	/** N-087: a line whose speaker depends on who boarded (G9 escape radio: Wren when Moss boarded, else Moss). */
+	static FName RouteForBoarder(const UObject* WorldContext, FName Id);
 
 	/** Cinematic 04 (Verdance done) and Cinematic 06 (Cinder done): the transmission sets, in order. */
 	static const TArray<FName>& DepartureSet(ETDDestination Planet);

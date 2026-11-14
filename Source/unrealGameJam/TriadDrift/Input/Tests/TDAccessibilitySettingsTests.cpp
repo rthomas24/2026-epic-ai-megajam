@@ -9,6 +9,7 @@
 #include "TriadDrift/Input/TDSettingsPage.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "Kismet/GameplayStatics.h"
+#include "Framework/Application/SlateApplication.h"
 
 namespace TDAccessibilityTest
 {
@@ -79,6 +80,31 @@ bool FTDAccessibilityPersist::RunTest(const FString& Parameters)
 	T.S->ReloadForTests();
 	TestFalse(TEXT("reset: graphics back to detected"), T.S->GetSettings().bGraphicsChosen);
 	TestEqual(TEXT("reset: medium subtitles"), T.S->GetSubtitleSize(), ETDSubtitleSize::Medium);
+	return true;
+}
+
+// The page fits short screens (T7, playtest 2: at 900p Reset was cut and Back off screen): the option rows scroll in the
+// space left over, Back is pinned below the list.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSettingsPageFits, "TriadDrift.Input.Settings.Accessibility.PageFitsShortScreens", TD_TEST_FLAGS)
+bool FTDSettingsPageFits::RunTest(const FString& Parameters)
+{
+	TDAccessibilityTest::FWorld T;
+	if (!TestTrue(TEXT("settings subsystem"), T.Init())) { return false; }
+	if (!FSlateApplication::IsInitialized())
+	{
+		AddInfo(TEXT("no Slate in this runner: the layout is checked in play"));
+		return true;
+	}
+	const TSharedRef<STDSettingsPage> Page = SNew(STDSettingsPage).Settings(T.S);
+	TestFalse(TEXT("Back is pinned outside the scrolling list"), Page->IsRowInScrollList(ETDSettingsRow::Back));
+	TestTrue(TEXT("Reset scrolls with the options"), Page->IsRowInScrollList(ETDSettingsRow::Reset));
+	TestTrue(TEXT("every option row is in the list"), Page->IsRowInScrollList(ETDSettingsRow::SubtitleSize) && Page->IsRowInScrollList(ETDSettingsRow::OnFootCamera));
+	for (const float H : { 720.f, 900.f, 1080.f })
+	{
+		Page->SetPageHeightForTests(H);
+		const float Max = Page->GetRowListMaxHeight();
+		TestTrue(*FString::Printf(TEXT("%.0f: the list leaves room for title, hint and Back (max %.0f)"), H, Max), Max + STDSettingsPage::FixedPartsHeight <= H + 0.5f);
+	}
 	return true;
 }
 

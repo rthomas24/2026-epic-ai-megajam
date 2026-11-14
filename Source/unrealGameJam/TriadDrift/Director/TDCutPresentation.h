@@ -119,6 +119,11 @@ struct UNREALGAMEJAM_API FTDDirectorCards
 	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
 	FTDDirectorCard NameCard;
 
+	/** N-038: the hosted HUD draws its own pilot card (UTDCutPresentation::IsNameCardClaimedByHUD), so an external card
+	 *  renderer should not draw NameCard on top of it. NameCard itself stays filled either way. */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
+	bool bNameCardClaimedByHUD = false;
+
 	/** "SCENE 3 · WAVE 3 · TAKE 2". */
 	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Director")
 	FTDDirectorCard Slate;
@@ -244,6 +249,10 @@ public:
 	/** True when the hosted space HUD draws its own pilot card: Nick's (N-007), or any widget whose bCoversNameCard is
 	 *  true. Engineering's flight HUD (the default since ENG-36) doesn't, so the fallback card shows under it. */
 	static bool IsNameCardClaimedByHUD(const UWorld* World);
+#if WITH_DEV_AUTOMATION_TESTS
+	/** Tests: force IsNameCardClaimedByHUD's answer (a test world hosts no real HUD). */
+	static TOptional<bool> NameCardClaimOverrideForTests;
+#endif
 	/** Centre of the fallback pilot card on a viewport of Size: left of the ship at reticle height. */
 	static FVector2D NameCardCentre(const FVector2D& Size);
 

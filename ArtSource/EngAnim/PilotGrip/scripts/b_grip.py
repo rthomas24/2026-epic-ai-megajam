@@ -416,7 +416,7 @@ for a in range(int(P.get("thumb_a_min", -40)), int(P.get("thumb_a_max", 130)) + 
     for b in range(-TM, TM + 1, max(9, TM // 6)):
         for c in range(-TM, TM + 1, max(9, TM // 6)):
             for f2 in (0, 25, 50, 75):
-                for f3 in (0, 30, 60):
+                for f3 in P.get("thumb_f3", (0, 30, 60)):
                     cost, ang, tip, pen, _ = thumb_eval(a, b, c, f2, f3)
                     if best is None or cost < best[0]:
                         best = (cost, (a, b, c, f2, f3))

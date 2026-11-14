@@ -6,6 +6,9 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
+#include "TriadDrift/Travel/TDLandingComponent.h"
+#include "TriadDrift/Squad/TDSquadIntegration.h"
+#include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Travel/TDPlanetTravelRig.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
@@ -396,6 +399,40 @@ bool FTDT1DescentBurnFeel::RunTest(const FString& Parameters)
 	TestTrue(TEXT("reduced motion: no FOV push, blur or shake"), Reduced.FOV <= Calm.FOV + 0.1f && Reduced.Blur < 0.001f && Reduced.Shake < 0.001f);
 	TestTrue(TEXT("the HUD is held (dimmed, combat away) through the burn"), Burn.bHeld);
 	TestFalse(TEXT("... and not without it"), Calm.bHeld);
+	return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1DescentBurnShot, "TriadDrift.Travel.Descent.DirectorShotFramesTheShipFromAheadAndTheSide", TD_TEST_FLAGS)
+bool FTDT1DescentBurnShot::RunTest(const FString& Parameters)
+{
+	// The Lead's shot: ahead of, beside and below the ship (the climb out: the other side, above), looking back at it, with
+	// a slow push-in (none with reduced motion); td.Descent.DirectorShot 0 keeps the chase camera.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 20000.f));
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	TDSquad::ApplySpec(Ship, UTDShipLibrary::Get(ETDShipId::Bastion)); // the real hull: the shot scales to it
+	for (const bool bExit : { false, true })
+	{
+		const FString Tag = bExit ? TEXT("climb out: ") : TEXT("entry: ");
+		const FTransform A0 = UTDDescentSubsystem::BurnShotCamera(Ship, bExit, 0.f, false);
+		const FTransform A1 = UTDDescentSubsystem::BurnShotCamera(Ship, bExit, 1.f, false);
+		const FTransform R1 = UTDDescentSubsystem::BurnShotCamera(Ship, bExit, 1.f, true);
+		const FVector L = A0.GetLocation();
+		TestTrue(*(Tag + TEXT("ahead of the ship")), L.X > 1000.f);
+		TestTrue(*(Tag + TEXT("to the side")), FMath::Abs(L.Y) > 700.f && (bExit ? L.Y < 0.f : L.Y > 0.f));
+		TestTrue(*(Tag + (bExit ? TEXT("above") : TEXT("below"))), bExit ? L.Z > 0.f : L.Z < 0.f);
+		const FVector Hull = UTDLandingComponent::VisibleHullBoxLocal(Ship).GetCenter();
+		TestTrue(*(Tag + TEXT("looks back at the ship")), FVector::DotProduct(A0.GetRotation().GetForwardVector(), (Hull - L).GetSafeNormal()) > 0.99f);
+		TestEqual(*(Tag + TEXT("slow push-in: 15 % closer at the end")), (float)(A1.GetLocation().Size() / L.Size()), 0.85f, 0.01f);
+		TestEqual(*(Tag + TEXT("reduced motion: no push-in")), (float)(R1.GetLocation().Size() / L.Size()), 1.f, 0.01f);
+	}
+	IConsoleVariable* Shot = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Descent.DirectorShot"));
+	if (!TestNotNull(TEXT("td.Descent.DirectorShot"), Shot)) { return false; }
+	ON_SCOPE_EXIT { Shot->Set(1, ECVF_SetByCode); };
+	Shot->Set(0, ECVF_SetByCode);
+	UTDDescentSubsystem* D = UTDDescentSubsystem::Get(W.GetWorld());
+	TestFalse(TEXT("td.Descent.DirectorShot 0: no shot (the chase camera)"), D && D->BeginBurnShot(Ship, false, 3.f));
 	return true;
 }
 
