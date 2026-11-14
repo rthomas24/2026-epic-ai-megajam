@@ -518,6 +518,11 @@ void ATDFirstPersonCharacter::UpdateBladeAura(float DeltaSeconds)
 	BladeAura->SetVariableFloat(TEXT("Length"), FMath::Max(1.f, Length));
 	BladeAura->SetVariableVec3(TEXT("TipVelocity"), TipVelocity);
 	BladeAura->SetVariableFloat(TEXT("TipSpeed"), BladeAuraSpeed);
+	// User.Swing 1 while the blade fights (attack, block / deflect, dash), held 0.25 s after: the swing sheet and the
+	// thrown sparks only emit then (T7 on main: walking drew a lit streak and ground sparks behind the pilot).
+	const bool bFighting = (Blade && (Blade->IsAttacking() || Blade->IsBlocking() || Blade->IsGuardBroken())) || bDashing;
+	BladeAuraSwingHold = bFighting ? 0.25f : FMath::Max(0.f, BladeAuraSwingHold - DeltaSeconds);
+	BladeAura->SetVariableFloat(TEXT("Swing"), BladeAuraSwingHold > 0.f ? 1.f : 0.f);
 	if (!BladeAura->IsActive())
 	{
 		BladeAura->Activate(true);
