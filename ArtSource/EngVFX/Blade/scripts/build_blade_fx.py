@@ -25,9 +25,9 @@ def UA(**kw):
 # moving: 0 still .. 1 a fast swing (the tip at 2,100 cm/s); walking with the blade is about 0.05-0.15
 MOVE = 'pow(saturate((User.TipSpeed - 300.0)/1700.0), 1.25)'
 # round 3: the sheet is full on every swing (light 1 was faint); SWING is for the sparks, quiet while walking
-SHEET = 'saturate(%s*2.4)' % MOVE
-SWING = 'pow(saturate((User.TipSpeed - 700.0)/1500.0), 1.3)'
-WALK = 'saturate((User.TipSpeed - 250.0)/500.0)'
+SHEET = 'saturate((User.TipSpeed - 700.0)/700.0)'   # r3b: running arms reached the old threshold
+SWING = 'pow(saturate((User.TipSpeed - 900.0)/1500.0), 1.3)'
+WALK = 'saturate((User.TipSpeed - 200.0)/400.0)'
 
 
 def along(e, lo, hi, thick=1.5):
