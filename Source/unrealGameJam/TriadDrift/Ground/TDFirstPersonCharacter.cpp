@@ -290,6 +290,15 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		{
 			Loop = V->Idle.LoadSynchronous(); // a look with fewer loops still moves
 		}
+		// Combat idle (animation builder, Nov 14): standing with an enemy at sword range, the ready guard the swings
+		// start and end on (weight shifting, blade forward and up), instead of the exploring idle.
+		if (Loop && Want == 0 && !Fall && bLastCloseCombat && TDPilotMeleePassOn())
+		{
+			if (UAnimSequenceBase* Guard = LoadPilotAnim(TEXT("A_Pilot_Blade_Idle_v2")))
+			{
+				Loop = Guard;
+			}
+		}
 		// Run v2 (animation builder, Nov 14): the blade held out and down beside the leg, not swept across the head.
 		if (Loop && Want == 2 && Loop->GetFName() == TEXT("A_Pilot_Run") && TDPilotMeleePassOn())
 		{

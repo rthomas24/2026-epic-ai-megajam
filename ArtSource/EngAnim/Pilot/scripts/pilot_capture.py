@@ -88,6 +88,8 @@ def main():
                 "rotation": {"pitch": math.degrees(math.atan2(d[2], math.hypot(d[0], d[1]))), "yaw": math.degrees(math.atan2(d[1], d[0])), "roll": 0.0},
                 "projectionMode": "Perspective", "fOV": fov, "orthoWidth": 512}
 
+    if os.environ.get("TD_PASS") is not None:  # A/B: TD.Pilot.MeleePass 0 (before) or 1 (after)
+        cmd("TD.Pilot.MeleePass %s" % os.environ["TD_PASS"])
     report = {}
     for name in names:
         slomo, secs, todo, pre = MOVES[name]
