@@ -35,3 +35,17 @@ Verified master hashes:
 - Assault: aebd45f1302afbe2069936a35f95160797f87e66ae72147753e2f15ae378bcdd
 
 Detailed local measurements and exact six-second tail/head diagnostic copies remain under the Audio worktree's Saved/AudioMusic/RemainingLoopReview01. These are source diagnostics, not gameplay recordings or human sound approval.
+
+## Combat: one natural in-game repeat recorded
+
+[Hear the actual combat repeat](combat-loop-native.flac). This lossless 14-second excerpt has its inferred wrap seven seconds in; decoded PCM matches the original recording exactly.
+
+The existing private 28f03b4f host ran L_Galaxy with its real MusicDirector. Wave 3 was entered with a debug command; the 139.2-second song then repeated naturally, with only one music-start log and the same audio component. No direct Play or restart was injected. Debug travel to the main menu after 160 seconds left only MenuMusic active in subsequent component enumerations.
+
+Late first-cycle source matches and second-cycle matches give a local repeat period of **139.20000 seconds**, with no additional loop-specific timing step resolved at 0.25 ms precision. This is timing evidence, not approval of musical continuity or perceived seamlessness.
+
+The run was **not glitch-free**: an earlier 42.75 ms alignment shift occurred between first-cycle source positions 40 and 44 seconds. An AudioMixer underrun was logged at 03:41:53.181 UTC, about 39.95 seconds into the capture, consistent with that interval. Another underrun preceded recording. Zero recorder discontinuities does not exclude game-mixer starvation. Preserve the master; an endpoint fade cannot repair this earlier runtime interruption.
+
+The 179.980-second recording had no clipping (-6.5 dBTP), and the process exited 0 with all 2,457 protected files unchanged. Minimum free RAM was 2.827 GiB. The original WAV SHA-256 is 1f771237af956e81c992ad8e2fa8cd29caf1cf086b874fc60ab12efff0882ca1. [Playback measurements](combat-repeat-qa.json) and [additional pre-wrap source matches](combat-repeat-prewrap-timing.json) retain the timing evidence.
+
+This older compatible host does not establish batch-L exclusive ownership, idle/assault playback, natural campaign transitions, Shipping behavior or visual acceptance. The next matched build should repeat the check with lighter instrumentation and investigate mixer starvation separately.
