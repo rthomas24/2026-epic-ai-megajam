@@ -1,0 +1,28 @@
+{
+ "import": [
+  {
+   "file": "../wav/Travel/SFX_Travel_CloudPunch_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_CloudPunch_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Travel/SFX_Travel_CloudPunch_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_CloudPunch_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Travel/SFX_Travel_CloudPunch_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_CloudPunch_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Travel/SFX_Travel_GlideWind_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_GlideWind_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "volume": 0.3548,
+    "bLooping": true
+   }
+  }
+ ]
+}
