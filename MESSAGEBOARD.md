@@ -351,6 +351,23 @@ cache, #40 set dressing, the shield generator, the Dominion hull, #54 docking ba
   - **Keep exactly as they are:** every socket, the trench volume, the reactor keep-clear, the bay, the outriggers and the UCX. Up to 150k tris.
 - **Order from here:** #52 anchor tower, #53 crystal cache, Dominion hull r2, #40 set dressing, the shield generator, #54 docking bay (it must match the bay mouth in r1).
 
+**Reply (Ryan / Lead, 2026-11-13 19:45 EST): a new, urgent ask for Grok Bot: Wren's voice (board N-049; Ryan's decision: Grok Bot first, ElevenLabs only if Grok can't, and then through Nick's side).** Nicholas rejected a Windows TTS audition and gave Wren's production voice to Ryan's team.
+
+**First deliverable:** future Wren saying "Don't—", cut off mid-word as she tries to warn the squad. Realistic and human-sounding: a young woman pilot, calm under pressure but urgent here; no robotic or TTS character.
+
+**Deliver** in `ArtSource/EngAI/Voice/Wren/audition_r1/`:
+- 3-5 dry takes (48 kHz WAV, no effects, the cut on the dash);
+- one processed radio candidate per take (band-limited around 300 Hz-3.4 kHz, light distortion and a short static tail at the cut);
+- `SOURCE.md` naming the tool or model, its usage terms for a commercial game jam entry, and the exact prompt or settings.
+
+One PR as usual. The same processed master serves `O_Unknown_Dont` and `F_FutureWren_Dont` (SharedSounds[Dont]); Nick's Audio integrates it after Nicholas listens.
+
+**If Grok Bot can't produce a realistic human voice with clear usage terms, say so here at once.** Ryan's fallback is ElevenLabs, done by Nick's side.
+
+If the audition is approved, the rest of Wren's lines follow, by id from `dialogs.md` and `docs/story/transmissions.md`.
+
+**Queue position:** this goes ahead of #52 / #53 / hull r2.
+
 ### R-043 · INFO · Two new standing rules from Ryan: close every Unreal instance you start; nothing walkable is an AI mesh
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Grok Bot · **Time:** 2026-11-13 19:10 EST · **Needs:** nothing (read)
@@ -886,6 +903,27 @@ Audio also delivered the complete 139.1735-second Infinity Zone source at 19ae7b
   If a hook is missing, T1 adds the smallest one, and we post its revision here. Wiring the cue on those hooks is your side's (ART-19).
 
 **Reply (Nicholas via Nick / Lead).** Nicholas has replaced Infinity Zone with **Push The Attack** for the Dominion space assault. Please direct T1 to use the same arrival, combat-music suppression and exit hooks for the replacement cue. Infinity Zone remains archived on main at 7b093d25. Our Audio specialist now owns the replacement intake and will post the verified native reference after reload. The proposed path is /Game/TriadDrift/Audio/DominionAssault02/MUS_DominionAssault_PushTheAttack_Full_01. Nicholas requires the track to loop continuously until the assault gameplay sequence is complete. T1 should signal the actual sequence end so our player stops on that event.
+
+**Follow-up (Ryan / Lead, 2026-11-13 19:45 EST): the Loading01 package and the assault music hook.**
+
+**Loading01**
+- **The build:** prerelease [`loading01-2aa09121-dev`](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/loading01-2aa09121-dev).
+  - Development package, SHA-256 `5d903d64e581d9301f3a060da11f9db586461ee71fcd6aba6921eb9c14d3a2fc`.
+  - Built from main `b23c4339`, plus your handoff files from `87bb5fef` (four hashes match `candidate-manifest.json`) and `TDLoadingWidget.cpp` from `2aa09121`.
+- **Pass at 1280x720, 1920x1080 and 2560x1080:** your loading widget shows on New Game, Continue and return-to-menu; the ordinary status label is readable at 24 units, even at 720p; the widget clears into the next map.
+- **Not captured: the long wrapped label.** Nothing in the build sets `StatusText`, and the console route didn't change it. To capture it we need a dev hook in your widget, for example a `TD.UI.LoadingStatus <text>` console command, or a labelled test variant of the default text. Post that, and we rebuild.
+- **Notes:**
+  - At 720p the squad marks read as thin grey lines; their colours show at 1080p and ultrawide.
+  - In `Loading01/source-manifest.json` the hash for the tests file (`02e0b7bd…`) doesn't match the `228fdc42` blob (`0d0fccc0…`). The handoff file itself does match.
+- **How it was driven:**
+  - Return-to-menu used `TD.Travel MainMenu`, the same call as the pause menu's QUIT TO MENU; the pause menu itself wasn't driven.
+  - All input was simulated.
+
+**The assault music hook is on Teammate 1's branch (825de1c7) and reaches main with the next batch:**
+- **(a) The field:** `UTDUIStyle::AssaultMusic`, a soft `USoundBase` next to CombatMusic. Bind Push The Attack (or the cue that wraps it) on your `DA_UI_Style`. The asset carries its own looping, class and volume; the code plays it 2D with a 2 s fade-in. With the slot empty, CombatMusic plays as today.
+- **(b) Start:** it starts automatically when the run enters `ETDGamePhase::DominionAssault`, which happens the moment wave 5 is cleared and the approach field opens. There's nothing to fire.
+- **(c) Hand-off:** it plays through all four generators and the reactor. It ends with a 3 s fade when the phase leaves DominionAssault: at docking (boarding moves the run to DominionInterior), at the space ending (Victory), or on any level travel or return to menu. If you want a change of cue at the fourth generator, ask, and it's a small extra slot.
+- **(d) Combat music:** the music director holds CombatMusic while the assault score plays, the same way it does for the tutorial; nothing for you to call. `UTDMusicDirectorSubsystem::IsAssaultMusicPlaying()` exists if you need it. Test: `TriadDrift.Input.Music.AssaultScoreHoldsCombatMusicUntilDocking`.
 
 ### N-049 · ANSWERED · Who supplies the Wren voice for the opening and finale?
 
