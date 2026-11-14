@@ -25,9 +25,9 @@ def UA(**kw):
 # moving: 0 still .. 1 a fast swing (the tip at 2,100 cm/s); walking with the blade is about 0.05-0.15
 MOVE = 'pow(saturate((User.TipSpeed - 300.0)/1700.0), 1.25)'
 # round 3: the sheet is full on every swing (light 1 was faint); SWING is for the sparks, quiet while walking
-SHEET = 'saturate(%s*2.4)' % MOVE
-SWING = 'pow(saturate((User.TipSpeed - 700.0)/1500.0), 1.3)'
-WALK = 'saturate((User.TipSpeed - 250.0)/500.0)'
+SHEET = 'saturate((User.TipSpeed - 550.0)/650.0)'   # r3b: running arms reached the old threshold
+SWING = 'pow(saturate((User.TipSpeed - 900.0)/1500.0), 1.3)'
+WALK = 'saturate((User.TipSpeed - 200.0)/400.0)'
 
 
 def along(e, lo, hi, thick=1.5):
@@ -88,12 +88,12 @@ SB('NS_TD_Blade_Aura', UA(), [
     single('HiltGlow', 'M_TD_VFX_Glow', 20, 1.0, 113.1, offset=(1.5, 0, 0)),
     along(shed('Embers', 'M_TD_VFX_BladeEmber', 26.0, (0.4, 0.9), (0.8, 1.7), (5, 25), k=1.8, radius=0.0, drag=1.5, curl=260.0, power=1.4), 0.05, 0.95, 3.0),
     along(spin(shed('Arcs', 'M_TD_VFX_FlipArc', 7.0, (0.07, 0.15), (5, 11), (0, 0), k=1.3, radius=0.0, drag=0.0, local=True, power=0.6)), 0.08, 0.92, 0.5),
-    sweep('Sweep', 0.56, 0.86, 0.22, 1.0),
+    sweep('Sweep', 0.68, 0.58, 0.15, 1.0, power=1.6),   # Lead taste r4: a narrower crescent, faster fade
     sweep('SweepTip', 0.92, 0.18, 0.14, 1.0, power=1.6),
     thrown('Sparks', 'M_TD_VFX_Spark', '1400.0*%s' % SWING, (0.25, 0.55), (2.6, 4.8), (0.35, 0.95), 420.0, 3.4, stretch=10, rgb_white=0.12),
     thrown('Motes', 'M_TD_VFX_BladeEmber', '80.0*%s' % SWING, (0.6, 1.0), (1.8, 3.6), (0.1, 0.35), 140.0, 2.2, grav=-260.0, drag=1.6, curl=250.0, lo=0.2, rgb_white=0.15),
     thrown('Trickle', 'M_TD_VFX_BladeEmber', '16.0*%s' % WALK, (0.4, 0.8), (1.2, 2.2), (0.05, 0.15), 60.0, 2.0, grav=-200.0, drag=1.5, curl=200.0, lo=0.85, rgb_white=0.2),
-    single('Halo', 'M_TD_VFX_Glow', 46, 0.32, 23.7, offset=(46.0, 0, 0)),   # camera-facing: the blade reads from behind when it points at the camera
+    single('Halo', 'M_TD_VFX_Glow', 72, 0.45, 23.7, offset=(46.0, 0, 0)),   # camera-facing: the blade reads from behind when it points at the camera
 ])
 
 # ------------------------------------------------------------------------------------------------ ignite / retract
@@ -116,9 +116,9 @@ SB('NS_TD_Blade_Retract', U(MAGENTA, Length=95.0), [
 
 # ------------------------------------------------------------------------------------------------ hit (world point, +X = the pilot's facing)
 SB('NS_TD_Blade_Hit', U(MAGENTA), [
-    flash('Flash', 'M_TD_VFX_Flare', 75, 0.08, 1.6, growth='0.5 + Particles.NormalizedAge'),
-    flash('Glow', 'M_TD_VFX_Glow', 120, 0.16, 0.7),
-    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.18, 0.5), (0.9, 2.0), (500, 2100), k=1.9, radius=4.0, drag=2.2, stretch=13, cone=((1.0, 0.0, 0.0), 55.0), burst=42, dur=0.6),
+    whiten(flash('Flash', 'M_TD_VFX_Flare', 150, 0.10, 1.6, growth='0.5 + Particles.NormalizedAge'), 0.8, 2.6),   # r4: a hot white contact flash
+    flash('Glow', 'M_TD_VFX_Glow', 220, 0.18, 0.8),
+    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.18, 0.5), (2.0, 3.8), (600, 2400), k=2.6, radius=4.0, drag=2.2, stretch=12, cone=((1.0, 0.0, 0.0), 60.0), burst=60, dur=0.6),
     shed('Hot', 'M_TD_VFX_Spark', 0, (0.08, 0.18), (1.6, 2.8), (900, 2600), k=2.4, radius=2.0, drag=3.0, stretch=18, cone=((1.0, 0.0, 0.0), 30.0), burst=10, dur=0.3),
     shed('Embers', 'M_TD_VFX_BladeEmber', 0, (0.35, 0.8), (1.0, 2.2), (120, 520), k=1.5, radius=6.0, drag=2.0, curl=300.0, cone=((1.0, 0.0, 0.0), 80.0), burst=14, dur=0.9),
     spin(shed('Smoke', 'M_TD_VFX_Smoke', 0, (0.5, 0.9), (16, 30), (20, 80), radius=4.0, drag=1.6, rgb=(0.32, 0.30, 0.32), alpha=0.45, cone=((1.0, 0.0, 0.0), 60.0),

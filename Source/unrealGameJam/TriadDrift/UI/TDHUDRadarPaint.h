@@ -30,6 +30,10 @@ struct FTDHUDRadarInput
 	FTDWaveInfo Wave;
 	/** Seconds, for pulses and flashes (the widget's own clock). */
 	float Time = 0.f;
+	/** The Dominion assault (the flight HUD's GeneratorsTotal / GeneratorsDown; 0 total = not in the assault). Once waves
+	 *  are done the header shows GENERATORS n / N, then REACTOR; never a wave line outside a wave or its breather. */
+	int32 GeneratorsTotal = 0;
+	int32 GeneratorsDown = 0;
 };
 
 /** Paints the radar and its wave header with P (the flight HUD's painter, already letterboxed and faded). */
