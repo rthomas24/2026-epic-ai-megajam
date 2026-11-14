@@ -1,0 +1,103 @@
+# SPDX-License-Identifier: MIT
+# #194 camp buildings -> /Game/TriadDrift/Gameplay/Props/Huts/<Planet>/SM_Hut_<Planet>_<Name> (under Props: cooked).
+# One palette per planet on the kit trim (M_KitD_Trim with the planet trim sheet T_Kit_Trim): Verdance teal / white with
+# warm windows, Cinder black / amber hazard. Slots by name: Trim, Light (warm windows), Glow, Beacon. Box / hull
+# collision from the export (UCX), no Nanite.
+#   powershell -File Tools\td-python.ps1 -Script ArtSource\EngProps\Kit\scripts\ue_import_huts.py   [TD_HUTS_ONLY=Verdance|Cinder]
+import glob
+import json
+import os
+import re
+import sys
+
+import unreal
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import ue_import_kit as K  # noqa: E402
+
+KIT = os.path.dirname(HERE)
+ROOT = "/Game/TriadDrift/Gameplay/Props/Huts"
+KT = "/Game/TriadDrift/Gameplay/Props/Kit/"
+eas, mel = unreal.EditorAssetLibrary, unreal.MaterialEditingLibrary
+PALETTE = {   # planet: (BaseTint, BandTint, GrimeAmount, SelfIllum)
+    "Verdance": ((0.95, 1.0, 1.0), (0.15, 0.85, 0.8), 0.3, 0.0),
+    "Cinder": ((0.32, 0.3, 0.29), (1.0, 0.55, 0.08), 0.6, 0.02),
+}
+
+
+def log(m):
+    unreal.log("TDPY: " + m)
+
+
+def trim(planet):
+    base, band, grime, illum = PALETTE[planet]
+    mi = K.instance("MI_Hut_%s_Trim" % planet, eas.load_asset(KT + "Materials/M_KitD_Trim"))
+    for p_, t in (("BaseColorTex", "T_Kit_Trim_BC"), ("ORMTex", "T_Kit_Trim_ORM"), ("NormalTex", "T_Kit_Trim_N")):
+        mel.set_material_instance_texture_parameter_value(mi, p_, eas.load_asset(KT + "Textures/" + t))
+    mel.set_material_instance_vector_parameter_value(mi, "BaseTint", unreal.LinearColor(base[0], base[1], base[2], 1.0))
+    mel.set_material_instance_vector_parameter_value(mi, "BandTint", unreal.LinearColor(band[0], band[1], band[2], 1.0))
+    mel.set_material_instance_scalar_parameter_value(mi, "GrimeAmount", grime)
+    mel.set_material_instance_scalar_parameter_value(mi, "SelfIllum", illum)
+    eas.save_loaded_asset(mi)
+    return mi
+
+
+def window_light(planet):
+    mi = K.instance("MI_Hut_%s_Window" % planet, eas.load_asset(K.MASTER_GLOW))
+    mel.set_material_instance_scalar_parameter_value(mi, "GlowStrength", 5.0)
+    mel.set_material_instance_scalar_parameter_value(mi, "PulseAmount", 0.0)
+    mel.set_material_instance_vector_parameter_value(mi, "GlowColor", unreal.LinearColor(1.0, 0.72, 0.42, 1.0))
+    eas.save_loaded_asset(mi)
+    return mi
+
+
+def main():
+    only = os.environ.get("TD_HUTS_ONLY", "")
+    notes, rows = [], []
+    sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
+    mgr = unreal.InterchangeManager.get_interchange_manager_scripted()
+    for planet in ("Verdance", "Cinder"):
+        if only and planet != only:
+            continue
+        dest = "%s/%s" % (ROOT, planet)
+        K.DEST = dest
+        K.ensure_dir(dest)
+        K.PIPELINE = dest + "/Pipelines/PL_Hut_%s" % planet
+        pipe = K.ensure_pipeline(notes)
+        mis = {"Trim": trim(planet), "Light": window_light(planet), "Glow": eas.load_asset(KT + "MI_Kit_Glow_%s" % planet),
+               "Beacon": eas.load_asset(KT + "MI_Kit_Beacon_%s" % planet)}
+        for man in sorted(glob.glob(os.path.join(KIT, "export_huts", "SM_Hut_%s_*.manifest.json" % planet))):
+            with open(man, encoding="utf-8") as fh:
+                asset = json.load(fh)["asset"]
+            params = unreal.ImportAssetParameters()
+            params.is_automated = True
+            params.replace_existing = True
+            params.override_pipelines.append(pipe)
+            mgr.import_asset(dest, unreal.InterchangeManager.create_source_data(os.path.join(KIT, "export_huts", asset + ".fbx")), params)
+            mesh = eas.load_asset("%s/%s" % (dest, asset))
+            if mesh is None:
+                log("FAILED %s" % asset)
+                continue
+            slots = []
+            for i, sm in enumerate(mesh.static_materials):
+                slot = re.sub(r"_\d+$", "", str(sm.material_slot_name))
+                key = next((k for k in sorted(mis, key=len, reverse=True) if slot.endswith("_" + k) or slot == k), None)
+                if key and mis[key]:
+                    mesh.set_material(i, mis[key])
+                slots.append("%d:%s" % (i, key))
+            ns = mesh.get_editor_property("nanite_settings")
+            ns.enabled = False
+            mesh.set_editor_property("nanite_settings", ns)
+            eas.save_loaded_asset(mesh)
+            bb = mesh.get_bounding_box()
+            row = {"asset": asset, "size_cm": [round(bb.max.x - bb.min.x), round(bb.max.y - bb.min.y), round(bb.max.z - bb.min.z)],
+                   "tris": mesh.get_num_triangles(0), "hulls": sme.get_convex_collision_count(mesh), "slots": slots}
+            rows.append(row)
+            log(json.dumps(row))
+    with open(os.path.join(KIT, "review", "ue_import_huts.json"), "w", encoding="utf-8") as fh:
+        json.dump(rows, fh, indent=1)
+    log("huts import done, %d meshes, notes %s" % (len(rows), notes))
+
+
+main()

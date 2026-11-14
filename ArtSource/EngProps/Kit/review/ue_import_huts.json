@@ -1,0 +1,103 @@
+[
+ {
+  "asset": "SM_Hut_Verdance_Dome",
+  "size_cm": [
+   320,
+   320,
+   236
+  ],
+  "tris": 4708,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Glow",
+   "2:Light"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_Fence",
+  "size_cm": [
+   410,
+   10,
+   140
+  ],
+  "tris": 840,
+  "hulls": 1,
+  "slots": [
+   "0:Trim"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_Lab",
+  "size_cm": [
+   790,
+   420,
+   728
+  ],
+  "tris": 5506,
+  "hulls": 2,
+  "slots": [
+   "0:Trim",
+   "1:Glow",
+   "2:Light"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_Mast",
+  "size_cm": [
+   160,
+   246,
+   630
+  ],
+  "tris": 948,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Beacon",
+   "2:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_Prefab",
+  "size_cm": [
+   505,
+   430,
+   350
+  ],
+  "tris": 3044,
+  "hulls": 2,
+  "slots": [
+   "0:Trim",
+   "1:Glow",
+   "2:Light"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_Walkway",
+  "size_cm": [
+   400,
+   150,
+   17
+  ],
+  "tris": 274,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_WaterTank",
+  "size_cm": [
+   249,
+   240,
+   471
+  ],
+  "tris": 2988,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ]
+ }
+]
