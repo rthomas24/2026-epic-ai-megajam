@@ -220,7 +220,7 @@ public:
 	float BreakupSeconds = 9.2f;	// the final blast at BreakupSeconds - BreakupAfterBlastSeconds; the outside camera holds to the end
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "1"))
-	float GeneratorHull = 250.f;	// Lead (Nov 14): 800 -> 400 -> 250 after T7's run without god mode (neither fell in 8 min of passes)
+	float GeneratorHull = 300.f;	// Lead (Nov 14): 800 -> 400 -> 250 -> 300 (at 250 T7 took two in 88 s with 0 deaths: a notch easy)
 
 	/** Turrets guarding each generator (2 x 4 = 8) plus ExtraTurrets on the hull: 8-12 total. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))

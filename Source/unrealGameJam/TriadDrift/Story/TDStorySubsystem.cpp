@@ -37,6 +37,7 @@
 #include "NiagaraComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
+#include "TriadDrift/Story/TDTutorialPhases.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/Story/TDStoryFX.h"
 
@@ -486,6 +487,11 @@ bool UTDStorySubsystem::FindEntry(FName Id, FTDTransmission& Out)
 		{
 			Out.Sound = TSoftObjectPtr<USoundBase>(EngineeringSharedSound(Out.SharedSound));
 		}
+	}
+	// #135: a line's own engineering master (by its id), when the presentation table gives it no sound.
+	if (bFound && Out.Sound.IsNull())
+	{
+		Out.Sound = TSoftObjectPtr<USoundBase>(EngineeringSharedSound(Out.Id));
 	}
 	return bFound;
 }
@@ -995,6 +1001,13 @@ bool UTDStorySubsystem::FireTransmission(FName Id)
 		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Story: no transmission '%s'"), *Id.ToString());
 		return false;
 	}
+	// Lead: a line still carrying placeholder words never reaches the air or the screen (the fifteen Face to Face lines
+	// aired "[PLACEHOLDER] ..." in a play). Its sequence plays on without it; real words in the table bring it back.
+	if (Entry.Text.ToString().StartsWith(TEXT("[PLACEHOLDER]")))
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %s has placeholder words, not aired"), *Id.ToString());
+		return false;
+	}
 	const bool bQueued = Queue.ContainsByPredicate([Id](const FTDTransmission& T) { return T.Id == Id; });
 	if (!Entry.bRepeatable && (HasPlayed(Id) || bQueued || (Current.bActive && Current.Id == Id)))
 	{
@@ -1322,6 +1335,8 @@ FSoftObjectPath UTDStorySubsystem::EngineeringSharedSound(FName Key)
 	// Only an asset that exists: before the import the line stays subtitle-only, with no load warning.
 	static const TMap<FName, FString> Paths = {
 		{ TEXT("Dont"), TEXT("/Game/TriadDrift/Gameplay/Audio/VO/SW_VO_FutureWren_Dont_04.SW_VO_FutureWren_Dont_04") },
+		// #135: by line id. Take 03, dry (no radio effect), selected for C8_Wren_Order; Tools/td-import-vo-wren-order.py.
+		{ TEXT("C8_Wren_Order"), TEXT("/Game/TriadDrift/Gameplay/Audio/VO/SW_VO_PresentWren_Order_03.SW_VO_PresentWren_Order_03") },
 	};
 	const FString* P = Paths.Find(Key);
 	if (!P || !FPackageName::DoesPackageExist(FSoftObjectPath(*P).GetLongPackageName()))
@@ -1423,6 +1438,21 @@ void UTDStorySubsystem::Tick(float DeltaTime)
 			{
 				UTDUIHostSubsystem::ShowTacticalDisplay(this, 30.f);
 			}
+		}
+	}
+	if (!Current.bActive && Queue.Num() > 0 && Now >= NextAllowed && !IsHeld())
+	{
+		// A line whose moment has passed is dropped, not aired late: the opening's "Evade now!" once the evade lesson is
+		// over (it waits behind three other hand-off lines).
+		while (Queue.Num() > 0 && Queue[0].Id == TEXT("O_Command_Evade"))
+		{
+			const UTDTutorialPhases* Teach = UTDTutorialPhases::Get(this);
+			if (!Teach || Teach->GetPhase() == ETDTeachPhase::None || Teach->GetPhase() == ETDTeachPhase::Evade)
+			{
+				break; // still its moment
+			}
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %s dropped (its lesson is over)"), *Queue[0].Id.ToString());
+			Queue.RemoveAt(0);
 		}
 	}
 	if (!Current.bActive && Queue.Num() > 0 && Now >= NextAllowed && !IsHeld())

@@ -1,0 +1,56 @@
+﻿BUDGET Anims                           3.2 MB  {"anims": 3.2}
+BUDGET CrateStack                      3.0 MB  {"other": 0.0, "meshes": 0.3, "textures": 2.7}
+BUDGET MechanicBase                   18.0 MB  {"other": 0.3, "meshes": 3.8, "textures": 13.8}
+BUDGET OilBarrel                       2.7 MB  {"other": 0.0, "meshes": 0.1, "textures": 2.7}
+BUDGET PipeBeam                       12.2 MB  {"other": 0.0, "meshes": 0.1, "textures": 12.0}
+BUDGET PowerCore                       3.4 MB  {"other": 0.0, "meshes": 0.0, "textures": 3.3}
+BUDGET Textures/ConcreteRubble         4.7 MB  {"other": 0.0, "textures": 4.7}
+BUDGET Textures/ForestNordicMoss       4.7 MB  {"other": 0.0, "textures": 4.7}
+BUDGET Textures/StoneTileFloor         4.7 MB  {"other": 0.0, "textures": 4.7}
+BUDGET TOTAL 56.5 MB (uncompressed estimate, before the pak's Oodle compression)
+TEX CrateStack T_Fab_CrateStack_BC src 2048x2048 cooked 1024x1024 DXT1 0.67 MB
+TEX CrateStack T_Fab_CrateStack_N src 2048x2048 cooked 1024x1024 BC5 1.33 MB
+TEX CrateStack T_Fab_CrateStack_ORM src 2048x2048 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_HOLE_01 src 4096x4096 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_INFO_ALPHA src 4096x4096 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_INFO_COLOR src 4096x4096 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_MECHA_DETAIL_Ao src 8192x8192 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_MECHA_DETAIL_EMISSION src 8192x8192 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_MECHA_DETAIL_HEIGHT src 8192x8192 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_MECHA_DETAIL_MASKS src 8192x8192 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_MECHA_DETAIL_NORMAL src 8192x8192 cooked 1024x1024 BC5 1.33 MB
+TEX MechanicBase T_METAL_01 src 4096x4096 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_NOISE_01 src 512x512 cooked 512x512 DXT1 0.17 MB
+TEX MechanicBase T_NOISE_02 src 4096x4096 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_NOISE_04 src 2048x2048 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_NOISE_05 src 2048x2048 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_NOISE_06 src 512x512 cooked 512x512 DXT1 0.17 MB
+TEX MechanicBase T_NOISE_10 src 512x512 cooked 512x512 DXT1 0.17 MB
+TEX MechanicBase T_NORMAL_01 src 4096x4096 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_NORMAL_02 src 4096x4096 cooked 1024x1024 BC5 1.33 MB
+TEX MechanicBase T_NORMAL_03 src 4096x4096 cooked 1024x1024 BC5 1.33 MB
+TEX MechanicBase T_ROUGHNESS_01 src 4096x4096 cooked 1024x1024 DXT1 0.67 MB
+TEX MechanicBase T_SCI_FI_HUD_01 src 4096x4096 cooked 1024x1024 DXT1 0.67 MB
+TEX OilBarrel T_Fab_OilBarrel_BC src 2048x2048 cooked 1024x1024 DXT1 0.67 MB
+TEX OilBarrel T_Fab_OilBarrel_N src 2048x2048 cooked 1024x1024 BC5 1.33 MB
+TEX OilBarrel T_Fab_OilBarrel_ORM src 2048x2048 cooked 1024x1024 DXT1 0.67 MB
+TEX PipeBeam T_Fab_PipeBeam_Cable_BC src 2048x2048 cooked 2048x2048 DXT1 2.67 MB
+TEX PipeBeam T_Fab_PipeBeam_Cable_N src 2048x2048 cooked 1024x1024 BC5 1.33 MB
+TEX PipeBeam T_Fab_PipeBeam_Cable_ORM src 2048x2048 cooked 1024x1024 DXT1 0.67 MB
+TEX PipeBeam T_Fab_PipeBeam_Truss_BC src 2048x2048 cooked 2048x2048 DXT1 2.67 MB
+TEX PipeBeam T_Fab_PipeBeam_Truss_E src 2048x2048 cooked 2048x2048 DXT1 2.67 MB
+TEX PipeBeam T_Fab_PipeBeam_Truss_N src 2048x2048 cooked 1024x1024 BC5 1.33 MB
+TEX PipeBeam T_Fab_PipeBeam_Truss_ORM src 2048x2048 cooked 1024x1024 DXT1 0.67 MB
+TEX PowerCore T_Fab_PowerCore_BC src 2048x2048 cooked 1024x1024 DXT1 0.67 MB
+TEX PowerCore T_Fab_PowerCore_E src 2048x2048 cooked 1024x1024 DXT1 0.67 MB
+TEX PowerCore T_Fab_PowerCore_N src 2048x2048 cooked 1024x1024 BC5 1.33 MB
+TEX PowerCore T_Fab_PowerCore_ORM src 2048x2048 cooked 1024x1024 DXT1 0.67 MB
+TEX Textures/ConcreteRubble T_Fab_ConcreteRubble_BC src 4096x4096 cooked 2048x2048 DXT1 2.67 MB
+TEX Textures/ConcreteRubble T_Fab_ConcreteRubble_N src 4096x4096 cooked 1024x1024 BC5 1.33 MB
+TEX Textures/ConcreteRubble T_Fab_ConcreteRubble_ORM src 4096x4096 cooked 1024x1024 DXT1 0.67 MB
+TEX Textures/ForestNordicMoss T_Fab_ForestNordicMoss_BC src 4096x4096 cooked 2048x2048 DXT1 2.67 MB
+TEX Textures/ForestNordicMoss T_Fab_ForestNordicMoss_N src 4096x4096 cooked 1024x1024 BC5 1.33 MB
+TEX Textures/ForestNordicMoss T_Fab_ForestNordicMoss_ORM src 4096x4096 cooked 1024x1024 DXT1 0.67 MB
+TEX Textures/StoneTileFloor T_Fab_StoneTileFloor_BC src 4096x4096 cooked 2048x2048 DXT1 2.67 MB
+TEX Textures/StoneTileFloor T_Fab_StoneTileFloor_N src 4096x4096 cooked 1024x1024 BC5 1.33 MB
+TEX Textures/StoneTileFloor T_Fab_StoneTileFloor_ORM src 4096x4096 cooked 1024x1024 DXT1 0.67 MB
