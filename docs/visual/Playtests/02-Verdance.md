@@ -1,5 +1,7 @@
 # Verdance — device, transfer defence and extraction
 
+Time Skip from the start of each Verdance cutscene. Input before ten seconds must leave playback running. An eligible skip must preserve the evidence, objective and reward state reached by full playback.
+
 Start from a named save after the tutorial withdrawal. Use ordinary flight and landing inputs. Budget 12–18 minutes including one retry; record actual time. Record build, pilot, input device, resolution and save point in the ENG-46 log.
 
 1. Follow the Verdance bearing. Time one hyperdrive jump; record where it ends relative to the target. Descend, land and dismount. Capture the space-to-ground transition and first footstep. Check the horizon, landing silhouette, terrain collision and any exposed loading frame. Listen for the Verdance theme after the reveal and whether it competes with combat music.

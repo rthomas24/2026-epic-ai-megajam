@@ -1,5 +1,7 @@
 # Front end and Act 1 — First Contact
 
+For every cutscene in this act, attempt Skip just before ten seconds and again at or after ten seconds from that scene’s start. Only the latter can skip. Skipping the opening cinematic on a first play still leads into the tutorial battle.
+
 Use a Windows build from main. Record the commit, package name, resolution, input device and save state in the run log. Allow about 20–30 minutes for a first run and a second boundary crossing, plus restart time. This is a tester estimate. Record actual elapsed time. Use a separate, fresh save profile for the first-play check. Preserve the player's existing saves.
 
 | Step | What to do | What to see or hear |

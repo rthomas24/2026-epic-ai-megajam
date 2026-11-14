@@ -1,5 +1,7 @@
 # Dominion assault — four generators and docking
 
+On one docking run, capture all six boarding lines over the existing docking and arrival. On another, verify an attempted cutscene skip before ten seconds is rejected. At or after ten seconds, an eligible skip must reach the same hangar checkpoint with the landed ship’s pilot.
+
 Use a save after Cinder with wave 5 still active. Allow 10–15 minutes for a full attempt and a saved restart. Record build, flown ship, input and audio settings.
 
 1. Before clearing wave 5, inspect the approach barrier and objective. Clear the wave and approach with Cinder complete; record the moment the field opens. On a separate save with Cinder incomplete, use an available wave-five checkpoint to check the other half of the gate. If no such save exists, mark that branch untested.

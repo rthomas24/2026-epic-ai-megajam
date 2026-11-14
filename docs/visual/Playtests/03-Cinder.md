@@ -1,5 +1,7 @@
 # Interception and Cinder — terminal to extraction
 
+Time each cutscene separately. Attempt Skip before ten seconds, then at or after ten seconds. The first attempt must leave playback running. The eligible skip must preserve the briefing state without completing the excavation or disabling the anchor.
+
 Start at Verdance departure with Gravity Well and Cloak earned. Allow 15–25 minutes including a retake. Log build, input, pilot and resolution. Keep game audio and HUD visible during the following checks.
 
 1. Play waves 3–4 on the Cinder route. Check the interception objective, the enemy anticipation clue, ship switching and power feedback. Compare ship silhouettes against debris at combat speed. Distinguish a failed cue from one masked by music or weapons.

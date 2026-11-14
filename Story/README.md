@@ -64,6 +64,24 @@ The ancient **Origin Core** and the Dominion's destructible **reactor** are dist
 
 The ending preserves the original narrative's uncertainty: the present trio survives and apparently saves the system, but the future distress signal does not prove whether the intervention prevented or caused the catastrophe. It is new distress traffic, not the recovered opening warning or another Cinder echo. Use **“Decades ahead”** rather than an unapproved exact year; the engineering forty-one-year caption remains a placeholder. The future commanders' fate, the Core's exact mechanism and the causal paradox are not resolved by the breakup.
 
+## November 13 decisions for recording and implementation
+
+Nicholas approved the following directions for the boarding sequence and ending. They govern the recording script and take precedence over earlier proposals in the sequence drafts. [Decision in issue #29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6868619727)
+
+| Present pilot who boards | Future pilots present | Active defenders |
+|---|---|---|
+| Wren (Rift) | Wren, Kato and Moss | Kato and Moss |
+| Kato (Lancer) | Wren, Kato and Moss | Wren and Moss |
+| Moss (Bastion) | Wren, Kato and Moss | Wren and Kato |
+
+The ship actually landed determines who boards. Dialogue or interactions can change with that choice so each pilot can meet their own future counterpart. Story Director will propose the engagement and defeat lines for Nicholas’s review in the editable master script.
+
+- **Boarding and interior.** The six boarding lines play over the existing docking and arrival. The flight deck doubles as the barracks, the Warden-room door is the security checkpoint, and an existing console serves as the command archive.
+- **Recordings and cutscene skips.** Encounter all four recordings in their established order. The final recording and essential reveal precede the reactor fight. Each cutscene has its own ten-second wait before Skip becomes available. During the confrontation the player can move safely near the sealed reactor entrance. Finishing the scene or using an eligible skip opens the door and preserves the same essential story state. The first-play tutorial gameplay rule still applies separately.
+- **Escape and ending.** Repeating alarms and hull sounds convey temporal instability. Afterimages are optional. Keep all three escape confirmations and all three distress-signal lines. Moss’s “All three. I’ll take that.” may be omitted if necessary.
+- **Final on-screen caption, approved verbatim.** “DISTRESS SIGNAL · TRIAD: WREN, KATO, MOSS · DATED DECADES AHEAD”
+- **Authority and authentication.** Use Command in prose and COMMAND in speaker labels. The authentication cue has three short, evenly spaced pulses. Nicholas will audition the final sound and exact timing.
+
 ## Approved Cinder decisions
 
 Nicholas approved [all six decisions in issue 29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6863767143). The fixed sequence is **terminal → excavation and crystal cache → field anchor → extraction**.

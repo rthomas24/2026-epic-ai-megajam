@@ -1,5 +1,7 @@
 # 05 Interior and reveal playable test
 
+For the current acceptance run, visit all four recordings in order. In separate attempts, omit each of the first three and confirm the final reveal cannot be completed early. Verify the flight deck serves as the barracks, the Warden-room door as the security checkpoint, and an existing console as the command archive. For each boarding choice, all three future pilots appear and only the two nonboarding counterparts defend.
+
 Owner: T7 for execution; Story Director for narrative expectations; T5 for interior flow; T3 for transmissions, labels and playback; T4 for docking. ART-21 script, prepared 13 November 2026. **Not executed. No gameplay or presentation pass is claimed.**
 
 This test starts with the selected ship committing to Dominion docking and ends when Cinematic 08 finishes or is skipped and the future-crew defender encounter becomes available. It includes the defender handoff and identity checks; reactor damage, detailed boss/combat balance, the timed escape and victory belong to subsequent act tests. Retake/Continue checks here must also prove that they do not accidentally start those later acts.
@@ -118,7 +120,7 @@ Screen-only readout: **`REACTOR WARNING: Unverified Safety Shutdown...`**. Do no
 
 ### IR-06 C08 skip and rapid input
 
-- On fresh isolated checkpoints, use the build's supported skip control near the beginning, during the shared warning, and during a later confrontation line. Record the actual input and time; a console close, subtitle disable or pause is not automatically a skip feature.
+- On separate C08 runs, try Skip just before ten seconds and at or after ten seconds from C08 start. Early input must leave the door sealed and the scene playing. On the eligible skip, verify the same reveal state and doorway as the uninterrupted run.
 - Each skip must apply essential evidence/decision state once, end pending scene audio cleanly, restore the same safe gameplay endpoint and release the defender encounter once. It must not grant defender defeat, conduit destruction, reactor completion, escape, rewards or victory. No remaining recording may speak over newly unavoidable combat.
 - Repeated/held skip plus interact must not stack duplicate playback, teleport past the reactor, or leave a sealed door with a consumed single-use console. If no supported skip exists in the tested build, report pending integration and do not claim this case passed.
 
