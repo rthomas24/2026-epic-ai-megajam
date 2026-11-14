@@ -58,6 +58,11 @@ log.append({"fallen": near})
 print("fallen kit pieces:", len(near))
 for n in near[:12]:
     print("  ", n[n.find("TD.Near"):][:220])
+if os.environ.get("TD_AF_ONLY") == "collapse":
+    with open(os.path.join(OUT, "walk.json"), "w", encoding="utf-8") as fh:
+        json.dump(log, fh, indent=1)
+    G.cmd("TD.Input.ReleaseAll")
+    sys.exit(0)
 # 2. a guide light close-up (DominionDocking: the bay exists there)
 G.cmd("TD.Stage DominionDocking")
 time.sleep(22.0)
