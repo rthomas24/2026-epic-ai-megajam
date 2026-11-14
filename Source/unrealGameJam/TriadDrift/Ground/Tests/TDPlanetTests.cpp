@@ -20,6 +20,8 @@
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
+#include "TriadDrift/Flow/TDObjectiveText.h"
+#include "TriadDrift/Ground/TDGroundBarks.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
@@ -153,6 +155,7 @@ bool FTDPlanetReboard::RunTest(const FString& Parameters)
 	ATDBoardShipInteractable* Board = V.Director->GetBoardPoint();
 	if (!TestNotNull(TEXT("board point"), Board)) { return false; }
 	Board->Interact(FP); // the prompt the player uses
+	V.W.Advance(1.f); // the climb in (A_Pilot_Board_Ship): the ship is handed over inside 0.9 s
 	TestFalse(TEXT("off foot"), V.Director->IsOnFoot());
 	TestTrue(TEXT("player possesses the ship again"), V.PC->GetPawn() == (APawn*)Ship);
 	TestTrue(TEXT("player-controlled again"), Ship->IsPlayerFlown());
@@ -1847,6 +1850,18 @@ bool FTDCinderMarkersOffMagma::RunTest(const FString& Parameters)
 			}
 		}
 		TestTrue(TEXT("the geysers are there"), Geysers >= 3);
+		// No fight starts within 12 m of the far ramp foot (the builder's walk: crew 2-3 m from the bridge end).
+		const FVector FarFoot = R.Course->GetActorTransform().TransformPosition(Feet[1]);
+		for (TActorIterator<ATDEncounterVolume> It(V.W.GetWorld()); It; ++It)
+		{
+			const FBox B = It->Box->Bounds.GetBox();
+			const float Dx = FMath::Max3(B.Min.X - FarFoot.X, 0.0, FarFoot.X - B.Max.X), Dy = FMath::Max3(B.Min.Y - FarFoot.Y, 0.0, FarFoot.Y - B.Max.Y);
+			const float D = FMath::Sqrt(Dx * Dx + Dy * Dy);
+			if (D < 3000.f)
+			{
+				TestTrue(*FString::Printf(TEXT("%s's trigger is %.1f m from the far ramp foot (>= 12)"), *It->GetName(), D / 100.f), D >= 1200.f);
+			}
+		}
 	}
 
 	// Two magma deaths in a row in the river: the far bank.
@@ -1864,6 +1879,142 @@ bool FTDCinderMarkersOffMagma::RunTest(const FString& Parameters)
 	TestFalse(TEXT("a non-magma death resets"), R.Course->ResolveRespawn(Where));
 	R.Course->NoteMagmaDeath(River);
 	TestFalse(TEXT("one again after the reset"), R.Course->ResolveRespawn(Where));
+	return true;
+}
+
+// T2's sweep (Nov 14): Bark_Planet_Arrive_Verdance plays once per run, on the first time on foot there; never again
+// on a retake or on a reload / staged start in the same run.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDVerdanceArriveBark, "TriadDrift.Ground.Barks.PlanetArrivalOncePerRun", TD_TEST_FLAGS)
+bool FTDVerdanceArriveBark::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	UTDGroundBarks* B = UTDGroundBarks::Get(V.W.GetWorld());
+	if (!TestNotNull(TEXT("barks"), B)) { return false; }
+	const FName Arrive(TEXT("Bark_Planet_Arrive_Verdance"));
+	auto Count = [B, Arrive]() { return B->GetSaid().FilterByPredicate([Arrive](const FName& N) { return N == Arrive; }).Num(); };
+	for (float T = 0.f; T < 40.f && Count() == 0; T += 0.5f) { V.W.Advance(0.5f); }
+	TestEqual(TEXT("said on the first time on foot"), Count(), 1);
+	TestEqual(TEXT("by the pilot on foot"), B->GetLastSpeaker(Arrive), ATDFirstPersonCharacter::GetOnFootPilotName(V.W.GetWorld()));
+	TestTrue(TEXT("claimed for the run"), V.GI->HasRunOnceBark(Arrive));
+	// A reload or a staged start in the same run: a fresh bark state, the run remembers.
+	B->ResetForTests();
+	V.W.Advance(10.f);
+	TestFalse(TEXT("not again in the same run"), B->GetSaid().Contains(Arrive));
+	// A new run plays it again.
+	V.GI->StartNewRun();
+	TestFalse(TEXT("a new run forgets it"), V.GI->HasRunOnceBark(Arrive));
+	return true;
+}
+
+// The animation builder's hooks (Nov 14): out of the ship (A_Pilot_Exit_Ship), back in (A_Pilot_Board_Ship) with the
+// capsule carried and the blade put away; the death clip before the ragdoll; the deflect flick; the v3 heavy lunge.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPilotAnimHooks, "TriadDrift.Ground.Pilot.ShipDeathDeflectAndHeavyClips", TD_TEST_FLAGS)
+bool FTDPilotAnimHooks::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDFirstPersonCharacter* P = V.Director->GetFirstPerson();
+	if (!TestNotNull(TEXT("pilot"), P)) { return false; }
+	const bool bBody = P->GetMesh() && P->GetMesh()->GetSkeletalMeshAsset() && P->GetMesh()->GetAnimInstance();
+	if (!bBody)
+	{
+		AddInfo(TEXT("no pilot body in this checkout: the clip hooks are not exercised"));
+		return true;
+	}
+	// Out of the ship: done by now (0.63 s), on the ground, blade drawn.
+	V.W.Advance(1.f);
+	TestFalse(TEXT("the exit clip has ended"), P->IsInShipTransition());
+	TestTrue(TEXT("walking after the exit"), P->GetCharacterMovement()->MovementMode == MOVE_Walking);
+	TestFalse(TEXT("the blade is drawn after the exit"), P->GetBlade()->IsRetracted());
+	// The heavy lunge plays v3.
+	P->GetBlade()->HeavyLunge();
+	V.W.Advance(0.1f);
+	TestEqual(TEXT("the heavy lunge plays v3"), P->GetBodyActionName(), FName(TEXT("A_Pilot_Heavy_v3")));
+	V.W.Advance(1.5f);
+	// A successful deflect flicks.
+	P->GetBlade()->OnDeflect.Broadcast(nullptr, false);
+	TestEqual(TEXT("a deflect flicks"), P->GetBodyActionName(), FName(TEXT("A_Pilot_Blade_DeflectFlick")));
+	V.W.Advance(1.5f);
+	// Back in: the climb plays, the capsule rises, the blade is away, the ship is taken over inside 1 s.
+	const float Z0 = P->GetActorLocation().Z;
+	if (ATDBoardShipInteractable* Board = V.Director->GetBoardPoint()) { Board->Interact(P); }
+	TestTrue(TEXT("climbing in"), P->IsInShipTransition());
+	TestEqual(TEXT("the board clip"), P->GetBodyActionName(), FName(TEXT("A_Pilot_Board_Ship")));
+	TestTrue(TEXT("the blade is away for the climb"), P->GetBlade()->IsRetracted());
+	V.W.Advance(0.5f);
+	TestTrue(*FString::Printf(TEXT("the capsule rises (%.0f cm)"), P->GetActorLocation().Z - Z0), P->GetActorLocation().Z > Z0 + 30.f);
+	V.W.Advance(0.6f);
+	TestFalse(TEXT("aboard"), V.Director->IsOnFoot());
+	return true;
+}
+
+// The death clip (Death1_v2 / Death2_v2) plays first, the ragdoll takes over 0.7 s later.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPilotDeathClip, "TriadDrift.Ground.Pilot.DeathClipThenRagdoll", TD_TEST_FLAGS)
+bool FTDPilotDeathClip::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDFirstPersonCharacter* P = V.Director->GetFirstPerson();
+	if (!TestNotNull(TEXT("pilot"), P)) { return false; }
+	USkeletalMeshComponent* Body = P->GetMesh();
+	if (!Body || !Body->GetSkeletalMeshAsset() || !Body->GetPhysicsAsset())
+	{
+		AddInfo(TEXT("no pilot body with a physics asset here"));
+		return true;
+	}
+	V.W.Advance(1.f);
+	P->GetHealth()->Kill(nullptr, ETDDamageKind::Melee);
+	TestTrue(*FString::Printf(TEXT("a v2 death clip (%s)"), *P->GetBodyActionName().ToString()), P->GetBodyActionName().ToString().EndsWith(TEXT("_v2")));
+	TestFalse(TEXT("not a ragdoll yet"), Body->IsSimulatingPhysics());
+	V.W.Advance(0.9f);
+	TestTrue(TEXT("the ragdoll after 0.7 s"), Body->IsSimulatingPhysics());
+	return true;
+}
+
+// T2's play (Nov 14): no on-foot marker at all during "HEAD TO THE RESEARCH SITE" / "HEAD TO THE SURVEY STATION". On
+// both planets every objective line the pilot can see on foot has at least one live marker on the pilot's own list
+// (what the ground HUD draws): arriving, every step of every objective, and the way back to the ship.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEveryFootLineHasAMarker, "TriadDrift.Ground.Course.EveryOnFootLineHasAMarker", TD_TEST_FLAGS)
+bool FTDEveryFootLineHasAMarker::RunTest(const FString& Parameters)
+{
+	for (const TCHAR* Planet : { TEXT("Verdance"), TEXT("Cinder") })
+	{
+		TDPlanetTest::FVisit V(NAME_None, Planet);
+		TDCourseTest::FRun R(V, *this);
+		if (!R.Land()) { return false; }
+		ATDFirstPersonCharacter* P = V.Director->GetFirstPerson();
+		if (!TestNotNull(TEXT("pilot"), P)) { return false; }
+		auto Check = [&](const FString& Where)
+		{
+			FTDObjectiveLine Line;
+			const bool bLine = FTDObjectiveText::Compute(V.W.GetWorld(), V.GI->GetProgressRef(), V.GI->GetCurrentDestination(), Line);
+			const TArray<AActor*> M = P->GetObjectiveMarkers();
+			int32 Live = 0;
+			for (const AActor* A : M) { Live += IsValid(A) ? 1 : 0; }
+			TestTrue(*FString::Printf(TEXT("%s %s: '%s' has a marker"), Planet, *Where, bLine ? *Line.Text.ToString() : TEXT("(no line)")), !bLine || Live > 0);
+		};
+		V.W.Advance(1.f);
+		Check(TEXT("on arrival"));
+		for (const TObjectPtr<ATDObjective>& O : R.Course->GetObjectives())
+		{
+			if (!O || O->IsComplete()) { continue; }
+			if (!O->IsActive()) { R.Course->StartObjectiveAt(O->ObjectiveId); }
+			if (!O->IsActive()) { O->StartObjective(); }
+			for (int32 Step = 0; Step < 12 && O->IsActive(); ++Step)
+			{
+				V.W.Advance(0.3f);
+				Check(FString::Printf(TEXT("%s step %d"), *O->ObjectiveId.ToString(), O->GetCurrentStepIndex()));
+				O->AdvanceStep();
+			}
+			V.W.Advance(0.3f);
+			Check(FString::Printf(TEXT("after %s"), *O->ObjectiveId.ToString()));
+		}
+		Check(TEXT("all done"));
+	}
 	return true;
 }
 

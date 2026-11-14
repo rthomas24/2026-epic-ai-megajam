@@ -54,6 +54,18 @@ FTransform ATDPlanetCourse::GetInteriorStart() const
 	return (Hangar ? *Hangar : FTransform(FVector(-600.f, 0.f, 100.f))) * GetActorTransform();
 }
 
+FTransform ATDPlanetCourse::GetInteriorRetakeSpot(FName SceneId) const
+{
+	if (const ATDObjective* Obj = SceneId.IsNone() ? nullptr : FindObjective(SceneId))
+	{
+		if (const AActor* Spot = Obj->GetCheckpointRespawn())
+		{
+			return Spot->GetActorTransform();
+		}
+	}
+	return GetInteriorStart();
+}
+
 void ATDPlanetCourse::BuildInterior()
 {
 	using namespace TDInteriorImpl;
@@ -354,18 +366,24 @@ void ATDPlanetCourse::BuildInterior()
 	// --- Objectives, in order -------------------------------------------------------------------------
 	// The hangar start (T4's docking travels to "Hangar"): beside the parked ship, facing the door with nothing in the
 	// way (T7, Nov 14: at (-484, 0) the pilot stood behind the Rift with the hull between them and the door).
-	FVector HangarStart(-600.f, 0.f, 40.f);
+	// Measured from each part's own bounds now (CalcBounds), never the cached ones; when there is no ship to measure, a
+	// fixed spot on the pad's -Y side clear of any hull (T7, Nov 14: the staged start still stood behind the tail at
+	// (-484, 0) - the old fallback (-600, 0) pushed out of the ship).
+	FVector HangarStart(-200.f, -1050.f, 40.f);
 	{
 		FBox ShipBox(ForceInit);
+		const FTransform ToLocal = GetActorTransform().Inverse();
 		for (const TObjectPtr<UStaticMeshComponent>& Part : ParkedParts)
 		{
-			if (Part) { ShipBox += Part->Bounds.GetBox().TransformBy(GetActorTransform().Inverse()); }
+			if (Part && Part->GetStaticMesh()) { ShipBox += Part->CalcBounds(Part->GetComponentTransform()).GetBox().TransformBy(ToLocal); }
 		}
-		if (ParkedShip) { ShipBox += ParkedShip->Bounds.GetBox().TransformBy(GetActorTransform().Inverse()); }
+		if (ParkedShip && ParkedShip->GetStaticMesh()) { ShipBox += ParkedShip->CalcBounds(ParkedShip->GetComponentTransform()).GetBox().TransformBy(ToLocal); }
 		if (ShipBox.IsValid)
 		{
 			HangarStart = FVector(ShipBox.GetCenter().X, FMath::Max(ShipBox.Min.Y - 250.f, -HY + 200.f), 40.f);
 		}
+		UE_LOG(LogTriadDrift, Display, TEXT("Dominion interior: hangar start %s (%s)"), *HangarStart.ToCompactString(),
+			ShipBox.IsValid ? *FString::Printf(TEXT("beside the parked ship, its box %s"), *ShipBox.ToString()) : TEXT("no ship to measure: the fixed spot"));
 	}
 	Entry(NAME_None, HangarStart, 0.f);
 	// Kato on arrival in the hangar (first visit: the story fires once per run).
@@ -474,6 +492,9 @@ void ATDPlanetCourse::BuildInterior()
 			FTDRetakeMercyTier DroneMercy3; DroneMercy3.FromTake = 3; DroneMercy3.DropCrew = 1;
 			Drones->MercyTiers = { DroneMercy3 };
 			StepEncounters.Add({ Reactor, 0, Drones });
+			// N-052 (T3's G8 sequences): beating the room's defenders plays Face to Face's "overcome" half. Today they are
+			// the two drones; the future-pilot defenders replace them when they land.
+			Drones->OnCleared.AddUniqueDynamic(this, &ATDPlanetCourse::HandleReactorDefendersCleared);
 		}
 	}
 	ATDStepCounter* Conduits = SpawnProp<ATDStepCounter>(CoreAt);
@@ -752,7 +773,13 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 		UTDStorySubsystem::PlaySequence(this, TEXT("FirstDoor")); // A4_DoorsKnowUs, C7_Kato_Archive, C7_Wren_Record (T3)
 	}
 	else if (Id == Warden && StepIndex == 0) { Beat(TEXT("G7_Kato_Authorisations")); } // the Warden door opens
-	else if (Id == Core && StepIndex == 0) { Beat(TEXT("G8_Wren_ConduitsFirst")); OnInteriorMoment.Broadcast(TEXT("ReactorFightStarted"), this); }
+	else if (Id == Core && StepIndex == 0)
+	{
+		// N-052: Face to Face for the pilot who boarded, as the reactor room starts (T3's G8_Self_<Pilot> lines).
+		UTDStorySubsystem::PlaySequence(this, UTDStorySubsystem::FaceToFaceSequence(ATDFirstPersonCharacter::GetOnFootPilotShip(this), false));
+		Beat(TEXT("G8_Wren_ConduitsFirst"));
+		OnInteriorMoment.Broadcast(TEXT("ReactorFightStarted"), this);
+	}
 	else if (Id == Core && StepIndex == 1)
 	{
 		Beat(TEXT("G8_Kato_HeartExposed"));
@@ -814,6 +841,11 @@ bool ATDPlanetCourse::IsFieldAnchorDisabled(const UObject* WorldContextObject)
 float ATDPlanetCourse::GetEscapeSecondsLeft() const
 {
 	return EscapeCollapse && EscapeCollapse->IsRunning() ? EscapeCollapse->GetTimeLeft() : -1.f;
+}
+
+void ATDPlanetCourse::HandleReactorDefendersCleared(AActor* Encounter)
+{
+	UTDStorySubsystem::PlaySequence(this, UTDStorySubsystem::FaceToFaceSequence(ATDFirstPersonCharacter::GetOnFootPilotShip(this), true));
 }
 
 void ATDPlanetCourse::UpdateConduitMarker()

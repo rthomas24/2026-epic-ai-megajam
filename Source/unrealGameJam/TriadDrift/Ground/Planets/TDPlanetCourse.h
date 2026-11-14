@@ -194,6 +194,8 @@ private:
 	int32 ShownPlaybackSecond = -1;
 	bool bFinalRecordSequence = false;
 	UFUNCTION() void HandleConduitDown(class UTDHealthComponent* Health, const struct FTDDamageInfo& Info);
+	/** N-052: the reactor room's defenders overcome: T3's Face to Face "overcome" sequence for the boarding pilot. */
+	UFUNCTION() void HandleReactorDefendersCleared(AActor* Encounter);
 	UFUNCTION() void HandleHeartHit(class UTDHealthComponent* Health, const struct FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
 	/** DA_ReactorCore_FX (UTDReactorCoreFX): play a slot (logged by name, even when empty: tests, the effects builder). */
 	void PlayReactorFX(FName Slot, const FVector& At, USceneComponent* AttachTo = nullptr, bool bLoop = false);
@@ -233,6 +235,11 @@ public:
 	 *  magma, the far side of it instead. True when it moved the spot. */
 	bool ResolveRespawn(FTransform& InOutWhere);
 	static constexpr int32 MagmaRescueAfterDeaths = 2;
+	/** Where a CUT in the interior picks up: the scene's checkpoint, else the next room's door (a death between rooms,
+	 *  scene None: T7 came back at the hangar, 104 m from the reactor). */
+	FTransform GetInteriorRetakeSpot(FName SceneId) const;
+	/** The course's objectives in story order (the order they were made). */
+	const TArray<TObjectPtr<ATDObjective>>& GetObjectives() const { return Objectives; }
 	/** Where a magma rescue puts the pilot, per magma volume (tests). */
 	bool GetMagmaRescue(const AActor* Magma, FTransform& Out) const;
 	/** Every DA_ReactorCore_FX slot played, in order (CoreIdle, ConduitBreak, ShieldDrop, HeartHit, CoreDestroyed,

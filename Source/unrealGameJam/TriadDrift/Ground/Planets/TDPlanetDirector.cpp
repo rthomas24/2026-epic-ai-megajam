@@ -44,7 +44,7 @@ void ATDBoardShipInteractable::Interact(AActor* Interactor)
 	if (CanInteract(Interactor))
 	{
 		OnInteracted.Broadcast(this, Interactor);
-		Director->Reboard();
+		Director->BeginReboard();
 	}
 }
 
@@ -310,6 +310,7 @@ bool ATDPlanetDirector::HandOverToFoot(ATDShip* Ship)
 	Ship->SetPlayerControlled(false);
 	PC->Possess(FirstPerson);
 	PC->SetControlRotation(Exit.Rotator());
+	FirstPerson->StartShipTransition(false, Ship->GetActorLocation()); // A_Pilot_Exit_Ship: down from the hatch
 	if (ATDSquadManager* Squad = ATDSquadManager::Get(this))
 	{
 		Squad->SetWingmenPassive(true);
@@ -353,6 +354,29 @@ bool ATDPlanetDirector::HandOverToFoot(ATDShip* Ship)
 		GI->SetLastShip(Ship->GetShipId());
 		GI->SaveCheckpoint(); // a later Continue / CUT restarts on foot at this pad
 	}
+	return true;
+}
+
+bool ATDPlanetDirector::BeginReboard()
+{
+	// The pilot climbs in first (A_Pilot_Board_Ship, 1.10 s; the capsule goes up toward the hatch), then the ship is
+	// handed over; inside 0.9 s, so the hand-over comes as the pilot is through the hatch. No clip: at once.
+	if (bReboardPending)
+	{
+		return true;
+	}
+	const ATDShip* Ship = PlayerShip.Get();
+	const float Climb = (bOnFoot && FirstPerson && Ship) ? FirstPerson->StartShipTransition(true, Ship->GetActorLocation()) : 0.f;
+	if (Climb <= 0.f || !GetWorld())
+	{
+		return Reboard();
+	}
+	bReboardPending = true;
+	GetWorldTimerManager().SetTimer(ReboardTimer, FTimerDelegate::CreateWeakLambda(this, [this]()
+	{
+		bReboardPending = false;
+		Reboard();
+	}), FMath::Min(Climb, 0.9f), false);
 	return true;
 }
 
@@ -406,6 +430,8 @@ bool ATDPlanetDirector::Reboard()
 
 void ATDPlanetDirector::HandleSceneRestart(FName SceneId, int32 TakeNumber)
 {
+	GetWorldTimerManager().ClearTimer(ReboardTimer); // a CUT mid-climb: the take starts on the ground
+	bReboardPending = false;
 	if (bOnFoot && FirstPerson)
 	{
 		// CUT on foot: back at the pad, the ship parked beside it. If it was destroyed or knocked out of

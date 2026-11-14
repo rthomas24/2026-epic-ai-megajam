@@ -58,6 +58,10 @@ struct UNREALGAMEJAM_API FTDWaveDef : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave")
 	FText Title;
 
+	/** The objective line while this wave is active (FTDWaveInfo::ObjectiveText); empty = the generic wave line. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave")
+	FText ObjectiveText;
+
 	/** Drives music and presentation (OnWaveStarted). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave", meta = (ClampMin = "0", ClampMax = "1"))
 	float Intensity01 = 0.2f;

@@ -6,6 +6,8 @@
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/World/TDWorldBarks.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -312,6 +314,7 @@ bool FTDWavesFieldRule::RunTest(const FString& Parameters)
 	GI->Progress.WavesCleared = 4;
 	TestFalse(TEXT("Cinder not finished"), ATDWaveDirector::IsCinderFinished(GI->Progress));
 	D->StartWave(4);	// wave 5 reached without Cinder (a stage, a cheat, an old save)
+	TestEqual(TEXT("wave 5's objective line hook (FTDWaveInfo::ObjectiveText)"), D->GetWaveInfo().ObjectiveText.ToString(), FString(TEXT("BREAK THE DOMINION GUARD")));
 	TDWaveTest_SpawnEverything(W, D);
 	TDWaveTest_KillAll(D);
 	W.Tick();
@@ -319,6 +322,11 @@ bool FTDWavesFieldRule::RunTest(const FString& Parameters)
 	TestFalse(TEXT("the field stays up: Cinder is not finished"), GI->Progress.bDominionRevealed);
 	for (const FName& Id : UTDFlowSettings::Get()->CinderObjectives) { GI->Progress.CompletedObjectives.Add(Id); }
 	TestTrue(TEXT("Cinder finished"), ATDWaveDirector::IsCinderFinished(GI->Progress));
+	TestFalse(TEXT("finishing Cinder alone does not open it mid-flight"), GI->Progress.bDominionRevealed);
+	// Back in the galaxy with both done (the other order), the field opens: neither half alone, both in either order.
+	D->StopAndClear();
+	D->StartFromProgress();
+	TestTrue(TEXT("the field opens once both are done (wave 5 first, then Cinder)"), GI->Progress.bDominionRevealed && !GI->Progress.bDominionDefensesDown);
 	return true;
 }
 
@@ -463,6 +471,12 @@ bool FTDWavesTutorialKillsDoNotEnd::RunTest(const FString& Parameters)
 	W.Tick();
 	TestTrue(TEXT("the wave is still running"), D->GetState() == ETDWaveState::Active || D->GetState() == ETDWaveState::WarpingIn);
 	TestEqual(TEXT("withdrawal ordered"), (int32)D->GetTutorialPhase(), (int32)ETDTutorialPhase::Withdrawal);
+	// T2's bark sweep (Nov 14): the order is Command's story line TB_Command_FallBack; Bark_Cmd_Retreat is retired.
+	{
+		const UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		TestTrue(TEXT("Command orders the withdrawal (TB_Command_FallBack)"), Story && Story->HasPlayed(TEXT("TB_Command_FallBack")));
+		TestEqual(TEXT("Bark_Cmd_Retreat retired (no request)"), FTDCombatBarks::GetRequestCount(TEXT("Bark_Cmd_Retreat")), 0);
+	}
 	TestFalse(TEXT("wave 2 not reported"), GI->ReportedWaves.Contains(2));
 	AActor* M = D->GetEscapeMarker();
 	TestTrue(TEXT("the corridor marker is an objective marker"), M && M->ActorHasTag(TDTags::ObjectiveMarker));
