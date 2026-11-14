@@ -23,6 +23,8 @@ TEXSETS = {
     "ForestNordicMoss": (os.path.join(FAB, "Textures", "ForestNordicMoss", "export"), "/Game/TriadDrift/Gameplay/Props/Fab/Textures/ForestNordicMoss", 4096),
     "ConcreteRubble": (os.path.join(FAB, "Textures", "ConcreteRubble", "export"), "/Game/TriadDrift/Gameplay/Props/Fab/Textures/ConcreteRubble", 4096),
     "StoneTileFloor": (os.path.join(FAB, "Textures", "StoneTileFloor", "export"), "/Game/TriadDrift/Gameplay/Props/Fab/Textures/StoneTileFloor", 4096),
+    # source files already at 2048 (BC) and 1024 (N, ORM)
+    "TundraVolcanic": (os.path.join(FAB, "Textures", "TundraVolcanic", "export"), "/Game/TriadDrift/Gameplay/Props/Fab/Textures/TundraVolcanic", 2048),
 }
 eas = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()

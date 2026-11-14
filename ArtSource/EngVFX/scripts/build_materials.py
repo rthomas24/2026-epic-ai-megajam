@@ -214,9 +214,9 @@ float ex = dot(lerp(FA, FB, frac({FP})).rgb, float3(0.35,0.35,0.30));
 float body = pow(f, 1.15)*(0.40 + n*1.05)*fadeTip*(0.55 + 1.6*ex);
 float core = pow(f, 3.2)*pow(saturate(1-v*1.2), 1.8);
 float dia = Diamonds*pow(abs(sin(v*3.14159*5.5 - 0.4)), 5.0)*pow(saturate(1-v), 1.2)*pow(f, 1.6);
-float3 hot = lerp(PC.rgb, float3(1,1,1), 0.9);
-float3 c = PC.rgb*body*1.25 + hot*(core*2.6 + dia*3.2)*max(lum, 0.25);
-return float4(c*fadeIn*Intensity, PC.a);''', {'Diamonds': 0.0}),
+float3 hot = lerp(PC.rgb, float3(1,1,1), CoreWhite);   // 10r (the Lancer's boost read near-white on the cyan nebula): the core keeps the colour
+float3 c = PC.rgb*body*1.25 + hot*(core*2.0 + dia*2.6)*max(lum, 0.25);
+return float4(c*fadeIn*Intensity, PC.a);''', {'Diamonds': 0.0, 'CoreWhite': 0.4}),
 
     # Explosion fire: black-body ramp over the particle's life, white-hot -> yellow -> orange -> deep red, eroding to nothing.
     'M_TD_VFX_Fireball': ('additive', True, 0.55, 0.9, (0.02, 0.07), (-0.04, 0.11), 0.18, PRE + '''
