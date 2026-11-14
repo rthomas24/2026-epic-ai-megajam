@@ -68,6 +68,32 @@
   ]
  },
  {
+  "asset": "SM_Kit_InsigniaHull",
+  "size_cm": [
+   0,
+   320,
+   320
+  ],
+  "tris": 2,
+  "hulls": 0,
+  "slots": [
+   "0:Insignia"
+  ]
+ },
+ {
+  "asset": "SM_Kit_InsigniaPanel",
+  "size_cm": [
+   0,
+   90,
+   90
+  ],
+  "tris": 2,
+  "hulls": 0,
+  "slots": [
+   "0:Insignia"
+  ]
+ },
+ {
   "asset": "SM_Kit_LampPostDead",
   "size_cm": [
    115,
@@ -78,6 +104,33 @@
   "hulls": 1,
   "slots": [
    "0:Trim"
+  ]
+ },
+ {
+  "asset": "SM_Kit_LightPool",
+  "size_cm": [
+   600,
+   600,
+   0
+  ],
+  "tris": 2,
+  "hulls": 0,
+  "slots": [
+   "0:Pool"
+  ]
+ },
+ {
+  "asset": "SM_Kit_MarkerPole",
+  "size_cm": [
+   90,
+   90,
+   620
+  ],
+  "tris": 432,
+  "hulls": 1,
+  "slots": [
+   "0:Light",
+   "1:Worn"
   ]
  },
  {
@@ -125,15 +178,16 @@
  {
   "asset": "SM_Kit_RelayMast",
   "size_cm": [
-   5080,
-   5080,
-   6277
+   8120,
+   8120,
+   10396
   ],
-  "tris": 10032,
+  "tris": 19092,
   "hulls": 1,
   "slots": [
    "0:Trim",
-   "1:Nav"
+   "1:Nav",
+   "2:Band"
   ]
  },
  {

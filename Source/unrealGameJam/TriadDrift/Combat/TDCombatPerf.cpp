@@ -62,3 +62,32 @@ namespace TDCombatPerfCommands
 		}));
 }
 #endif
+
+#if !UE_BUILD_SHIPPING
+#include "Engine/World.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Pawn.h"
+#include "TriadDrift/Combat/TDWeaponComponent.h"
+
+namespace TDWeaponDevCommands
+{
+	// Scripted captures (the Lancer tracer-origin check): hold the flown ship's trigger without input.
+	static FAutoConsoleCommandWithWorldAndArgs CmdHoldFire(TEXT("TD.Weapons.HoldFire"),
+		TEXT("TD.Weapons.HoldFire 1|0 [secondary]: hold or release the flown ship's primary (or secondary) trigger (dev)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+			APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+			UTDWeaponComponent* Guns = Pawn ? Pawn->FindComponentByClass<UTDWeaponComponent>() : nullptr;
+			if (!Guns)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("TD.Weapons.HoldFire: no flown ship with weapons."));
+				return;
+			}
+			const bool bHold = Args.Num() == 0 || Args[0] != TEXT("0");
+			const ETDWeaponSlot Slot = Args.Num() > 1 && Args[1].StartsWith(TEXT("sec")) ? ETDWeaponSlot::Secondary : ETDWeaponSlot::Primary;
+			Guns->SetTriggerHeld(Slot, bHold);
+			UE_LOG(LogTemp, Display, TEXT("TD.Weapons.HoldFire: %s %s"), Slot == ETDWeaponSlot::Primary ? TEXT("primary") : TEXT("secondary"), bHold ? TEXT("held") : TEXT("released"));
+		}));
+}
+#endif

@@ -26,6 +26,9 @@
 #include "AssetRegistry/IAssetRegistry.h"
 #include "Animation/AnimInstance.h"
 #include "PhysicsEngine/PhysicsAsset.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
+#include "HAL/IConsoleManager.h"
+#include "GameFramework/WorldSettings.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "Animation/AnimSequenceBase.h"
@@ -180,6 +183,9 @@ void ATDCrewCharacter::UpdateFallbackLoop()
 	const float Ref = Want == 1 ? 200.f : Want == 2 ? 450.f : 0.f;
 	Loops->SetLoop(Loop, Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.5f) : 1.f);
 }
+static TAutoConsoleVariable<int32> CVarCrewLogHits(TEXT("td.Crew.LogHits"), 0,
+	TEXT("1: log every enemy damage instant (type, action, the playing per-type clip and its time) to check contact frames."));
+
 namespace TDCrewAnims
 {
 	static const TCHAR* Melee = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Attack_01.MM_Attack_01");
@@ -275,6 +281,16 @@ void ATDCrewCharacter::InitFromType(ETDCrewType Type)
 	CrewType = Type;
 	Spec = FTDCrewLibrary::Get(Type);
 	bSpecApplied = true;
+	// ENG-45: the run's difficulty (T4's presets, chosen at New Game) scales the crew like the Armada in space: their
+	// health (the damage the pilot deals goes further or less far) and every hit they land.
+	{
+		const FTDDifficultyScale Scale = UTDDifficultySettings::GetScale();
+		Spec.MaxHealth = FMath::Max(1.f, Spec.MaxHealth * Scale.EnemyHull);
+		Spec.MeleeDamage *= Scale.EnemyDamage;
+		Spec.BoltDamage *= Scale.EnemyDamage;
+		Spec.ShotgunPelletDamage *= Scale.EnemyDamage;
+		Spec.ChargeSlamDamage *= Scale.EnemyDamage;
+	}
 
 	GetCapsuleComponent()->SetCapsuleSize(Spec.CapsuleRadius, Spec.CapsuleHalfHeight);
 	if (Health)
@@ -772,7 +788,7 @@ int32 ATDCrewCharacter::GetAliveSummons() const
 
 bool ATDCrewCharacter::StartAttack(ETDCrewAttack Attack, AActor* Target)
 {
-	if (Attack == ETDCrewAttack::None || IsDead() || IsStaggered() || IsAttacking() || GetCooldownLeft(Attack) > 0.f || OpeningGraceLeft > 0.f)
+	if (Attack == ETDCrewAttack::None || IsDead() || IsStaggered() || IsReacting() || IsAttacking() || GetCooldownLeft(Attack) > 0.f || OpeningGraceLeft > 0.f)
 	{
 		return false;
 	}
@@ -794,6 +810,7 @@ bool ATDCrewCharacter::StartAttack(ETDCrewAttack Attack, AActor* Target)
 	}
 	CurrentAttack = Attack;
 	AttackTarget = Target;
+	AttackStartedAt = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
 	WindupLeft = FMath::Max(0.01f, Windup);
 	RecoverLeft = 0.f;
 	ShotsLeft = 0;
@@ -804,11 +821,12 @@ bool ATDCrewCharacter::StartAttack(ETDCrewAttack Attack, AActor* Target)
 	{
 	case ETDCrewAttack::Melee:
 		bOwn = Spec.Type == ETDCrewType::Heavy ? PlayTypeClip(TEXT("ShieldBash"), 0.70f, WindupLeft) // Grok's: impact 0.70 s, the 0.7 s wind-up
-			: Spec.Type == ETDCrewType::Grunt ? PlayTypeClip((MeleeSwings++ % 2) ? TEXT("Melee_03") : TEXT("Melee_02")) : false;
+			: Spec.Type == ETDCrewType::Grunt ? ((MeleeSwings++ % 2) ? PlayTypeClip(TEXT("Melee_03"), 0.48f, WindupLeft) : PlayTypeClip(TEXT("Melee_02"), 0.45f, WindupLeft)) : false; // contacts measured at 30 fps
 		break;
 	case ETDCrewAttack::Burst: bOwn = Spec.Type == ETDCrewType::Trooper && PlayTypeClip(TEXT("Fire_Burst"), 0.40f, WindupLeft); break;
 	case ETDCrewAttack::BoltFan: bOwn = PlayTypeClip(TEXT("Fire_01"), 0.50f, WindupLeft); break;
-	case ETDCrewAttack::ChargeSlam: bOwn = PlayTypeClip(TEXT("GroundSlam"), 1.10f, WindupLeft) || PlayTypeClip(TEXT("Slam"), 1.10f, WindupLeft); break;
+	// The slam lands after the wind-up AND the charge (damage at ChargeWindup + ChargeDuration); the live blend's contact is 1.30 s.
+	case ETDCrewAttack::ChargeSlam: bOwn = PlayTypeClip(TEXT("GroundSlam"), 1.30f, WindupLeft + Spec.ChargeDuration) || PlayTypeClip(TEXT("Slam"), 1.30f, WindupLeft + Spec.ChargeDuration); break;
 	case ETDCrewAttack::Summon: bOwn = PlayTypeClip(TEXT("Summon_01"), 0.50f, WindupLeft); break;
 	default: break;
 	}
@@ -911,6 +929,8 @@ void ATDCrewCharacter::DoMelee()
 	if (To.Size() <= Reach && bInFront)
 	{
 		const FVector Dir = To.GetSafeNormal();
+		LogHitInstant(TEXT("Melee"));
+		LastMeleeLandedAt = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
 		UTDStatics::ApplyTDDamage(T, Spec.MeleeDamage, ETDDamageKind::Melee, this, this, T->GetActorLocation() - Dir * 40.f, Dir);
 	}
 }
@@ -1033,6 +1053,7 @@ void ATDCrewCharacter::EndCharge()
 {
 	ChargeTimeLeft = 0.f;
 	PlayCrewCue(TEXT("SlamImpact"), Visuals ? Visuals->Explosion : FTDFXCue(), false, GetActorLocation());
+	LogHitInstant(TEXT("ChargeSlam"));
 	UTDStatics::ApplyTDRadialDamage(this, GetActorLocation(), Spec.ChargeSlamRadius, Spec.ChargeSlamDamage, ETDDamageKind::Explosive,
 		ETDTeam::Enemy, this, this);
 	RecoverLeft = 0.6f;
@@ -1119,6 +1140,13 @@ void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDama
 	if (HullDamage > 0.f)
 	{
 		PlayCrewCue(TEXT("HullHit"), Visuals ? Visuals->HullHit : FTDFXCue(), false, Info.HitLocation);
+		// A Trooper's react interrupts its wind-up or burst (the animation builder's close-camera check, Nov 14: a front
+		// hit during the burst showed nothing and it kept firing). Heavies, Grunts and the Warden keep their attacks.
+		const ETDCrewAttack Interrupted = Spec.Type == ETDCrewType::Trooper && !IsDead() ? CurrentAttack : ETDCrewAttack::None;
+		if (Interrupted != ETDCrewAttack::None)
+		{
+			CancelAttack();
+		}
 		if (!IsDead() && !IsAttacking())
 		{
 			if (UTDLoopBlendAnimInstance* Loops = GetMesh() ? Cast<UTDLoopBlendAnimInstance>(GetMesh()->GetAnimInstance()) : nullptr; Loops && Loops->bProcedural)
@@ -1126,11 +1154,48 @@ void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDama
 				Loops->ProcFlinch = 1.f;
 			}
 			const bool bFromBehind = !Info.HitDirection.IsNearlyZero() && FVector::DotProduct(-Info.HitDirection.GetSafeNormal2D(), GetActorForwardVector()) < 0.f;
-			const bool bOwn = Spec.Type == ETDCrewType::Trooper ? PlayTypeClip(bFromBehind ? TEXT("HitReact_Back") : TEXT("HitReact_Front"))
-				: Spec.Type == ETDCrewType::Grunt ? PlayTypeClip(TEXT("HitReact_01")) : false;
+			bool bOwn = false;
+			if (Spec.Type == ETDCrewType::Trooper)
+			{
+				// Scaled with the hit: a chip plays quicker (rate up to 1.5), a quarter of its hull or more at full length.
+				const float Weight = FMath::Clamp(HullDamage / FMath::Max(1.f, Health->MaxHull * 0.25f), 0.f, 1.f);
+				const TCHAR* Action = bFromBehind ? TEXT("HitReact_Back") : TEXT("HitReact_Front");
+				UAnimSequenceBase* Clip = TypeClip(Action);
+				const float Rate = FMath::Lerp(1.5f, 1.f, Weight);
+				bOwn = PlayTypeClip(Action, Clip ? Clip->GetPlayLength() * Rate : 0.f, Clip ? Clip->GetPlayLength() : 0.f);
+				HitReactLeft = FMath::Max(HitReactLeft, Clip ? Clip->GetPlayLength() / Rate : 0.45f);
+				if (CVarCrewLogHits.GetValueOnGameThread() != 0)
+				{
+					UE_LOG(LogTriadDrift, Display, TEXT("td.Crew.LogHits: %s Trooper hit %.0f from the %s: %s (rate %.2f, holds %.2f s)%s"), *GetName(), HullDamage,
+						bFromBehind ? TEXT("back") : TEXT("front"), bOwn ? *LastTypeClip.ToString() : TEXT("template flinch"), Rate, HitReactLeft,
+						Interrupted != ETDCrewAttack::None ? TEXT(", attack interrupted") : TEXT(""));
+				}
+			}
+			else if (Spec.Type == ETDCrewType::Grunt)
+			{
+				bOwn = PlayTypeClip(TEXT("HitReact_01"));
+			}
 			if (!bOwn && Spec.Type != ETDCrewType::Grunt) // the template hit react holds a rifle: wrong on an unarmed grunt
 			{
 				PlayFallbackAnim(TDCrewAnims::Hit); // flinch (attacks keep their own animation)
+			}
+		}
+	}
+	if (Spec.Type == ETDCrewType::Warden && !IsDead() && WardenStaggerCooldownLeft <= 0.f && !IsStaggered())
+	{
+		// A heavy blade hit from the pilot, or its own bolt returned by a perfect deflect (the blade doubles a perfect
+		// return's damage; a normal deflect leaves it at 1).
+		const ATDProjectile* Bolt = Cast<ATDProjectile>(Info.Causer);
+		const bool bHeavy = Info.Kind == ETDDamageKind::Melee && Cast<ATDFirstPersonCharacter>(Info.Instigator) && ShieldDamage + HullDamage >= WardenHeavyHitDamage;
+		const bool bPerfectReturn = Bolt && Bolt->GetOriginalShooter() == this && Bolt->GetDamageMultiplier() >= 1.99f;
+		if (bHeavy || bPerfectReturn)
+		{
+			const UAnimSequenceBase* Clip = TypeClip(TEXT("Stagger"));
+			ApplyStagger(Clip ? Clip->GetPlayLength() : 1.2f, Info.Instigator);
+			WardenStaggerCooldownLeft = WardenStaggerCooldown;
+			if (CVarCrewLogHits.GetValueOnGameThread() != 0)
+			{
+				UE_LOG(LogTriadDrift, Display, TEXT("td.Crew.LogHits: %s Warden staggered by a %s for %.2f s"), *GetName(), bHeavy ? TEXT("heavy blade hit") : TEXT("perfect deflect"), StaggerLeft);
 			}
 		}
 	}
@@ -1298,7 +1363,20 @@ UAnimSequenceBase* ATDCrewCharacter::TypeClip(const TCHAR* Action) const
 		return nullptr;
 	}
 	UAnimSequenceBase* A = LoadObject<UAnimSequenceBase>(nullptr, *(Package + TEXT(".") + Name), nullptr, LOAD_Quiet | LOAD_NoWarn);
-	return A && A->GetSkeleton() == SK->GetSkeleton() ? TDMakePlayable(A) : nullptr;
+	if (A && A->GetSkeleton() != SK->GetSkeleton())
+	{
+		// The clip exists but is on another rig: it would fall back silently (the animation builder's Warden clips on
+		// SKEL_NullCrew, Nov 14). Say so once per clip.
+		static TSet<FString> Warned;
+		if (!Warned.Contains(Name))
+		{
+			Warned.Add(Name);
+			UE_LOG(LogTriadDrift, Warning, TEXT("Crew clip %s is on %s, not %s's %s: today's template clip plays instead."), *Name,
+				*GetNameSafe(A->GetSkeleton()), *Spec.VisualsId.ToString(), *GetNameSafe(SK->GetSkeleton()));
+		}
+		return nullptr;
+	}
+	return A ? TDMakePlayable(A) : nullptr;
 }
 
 bool ATDCrewCharacter::PlayTypeClip(const TCHAR* Action, float Contact, float Windup)
@@ -1313,7 +1391,24 @@ bool ATDCrewCharacter::PlayTypeClip(const TCHAR* Action, float Contact, float Wi
 	const float Rate = (Contact > 0.f && Windup > 0.f) ? FMath::Clamp(Contact / Windup, 0.5f, 2.f) : 1.f;
 	Loops->PlayOneShot(Clip, Rate);
 	LastTypeClip = Clip->GetFName();
+	LastTypeClipStart = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	LastTypeClipRate = Rate;
 	return true;
+}
+
+void ATDCrewCharacter::LogHitInstant(const TCHAR* What) const
+{
+	if (CVarCrewLogHits.GetValueOnGameThread() == 0)
+	{
+		return;
+	}
+	const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	// The wind-up's own elapsed time and this frame's timing, so a live capture shows where any variation comes from.
+	const UWorld* World = GetWorld();
+	UE_LOG(LogTriadDrift, Display, TEXT("td.Crew.LogHits: %s %s %s, clip %s at %.3f s (rate %.2f); wind-up elapsed %.3f s, frame %.4f s, time dilation %.2f x %.2f"),
+		*GetName(), *FTDCrewLibrary::TypeName(Spec.Type).ToString(), What,
+		LastTypeClip.IsNone() ? TEXT("(template)") : *LastTypeClip.ToString(), (Now - LastTypeClipStart) * LastTypeClipRate, LastTypeClipRate,
+		Now - (float)AttackStartedAt, World ? World->GetDeltaSeconds() : 0.f, World ? World->GetWorldSettings()->TimeDilation : 1.f, CustomTimeDilation);
 }
 
 bool ATDCrewCharacter::IsRagdolling() const
@@ -1418,6 +1513,8 @@ void ATDCrewCharacter::Tick(float DeltaSeconds)
 		return;
 	}
 	StaggerLeft = FMath::Max(0.f, StaggerLeft - DeltaSeconds);
+	HitReactLeft = FMath::Max(0.f, HitReactLeft - DeltaSeconds);
+	WardenStaggerCooldownLeft = FMath::Max(0.f, WardenStaggerCooldownLeft - DeltaSeconds);
 	GuardBrokenLeft = FMath::Max(0.f, GuardBrokenLeft - DeltaSeconds);
 	GuardChipAge += DeltaSeconds;
 	if (GuardFlashLeft > 0.f)

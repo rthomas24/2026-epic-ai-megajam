@@ -110,6 +110,8 @@ public:
 		float HeadingAngle = 0.f;
 		/** It is attacking the flown ship (its pilot's target): a brighter, heavier outline. */
 		bool bThreat = false;
+		/** Its projected radius on screen (design px): the marker sits just above the ship's outline. */
+		float ScreenRadius = 0.f;
 	};
 
 	/**
@@ -312,6 +314,15 @@ public:
 		 * The escape flight (T4's ATDDominion in EscapeFlight: GetEscapeTimeLeft, EscapeSeconds, GetEscapeExitRadius):
 		 * the clock under the objective, and "CLEAR" where the way out is (straight away from the hull, at the radius).
 		 */
+		/**
+		 * ENG-38, the descent (T1's readings): during the entry burn, the glide and the climb-out an altimeter tape
+		 * (ITDHUDData::GetAltitude), a hull-temperature bar (UTDDescentSubsystem::GetEntryHeat01) and "ATMOSPHERE";
+		 * "ORBIT" for OrbitCueSeconds after the climb-out's galaxy reveal. Hidden otherwise.
+		 */
+		bool bDescent = false;
+		float Heat01 = 0.f;
+		float Descent01 = -1.f;
+		float OrbitCue01 = 0.f;
 		bool bEscapeFlight = false;
 		float EscapeLeft = 0.f;
 		float EscapeTotal = 0.f;
@@ -503,6 +514,11 @@ private:
 	float FieldHitLeft = 0.f;
 	/** Generator pips: the down count last seen (a rise flashes) and the flash clock. */
 	int32 GeneratorsDownSeen = -1;
+	/** The ORBIT cue's clock; the descent cover seen last sample (its end on the galaxy map is the climb-out reveal). */
+	float OrbitCueLeft = 0.f;
+	double OrbitRevealSeen = -1.0;
+	bool bCoverSeen = false;
+	FDelegateHandle RevealHandle;
 	float GeneratorFlashLeft = 0.f;
 	/** The transponder marker: the beacon (re-found every 2 s), and how long since it was first sighted. */
 	TWeakObjectPtr<AActor> TransponderBeacon;
@@ -518,6 +534,11 @@ public:
 	/** Tests: >= 0 forces the generator count (total, down) without a Dominion. */
 	int32 ForceGeneratorsTotal = -1;
 	int32 ForceGeneratorsDown = 0;
+	/** Tests: >= 0 forces the descent readings (heat 0..1, glide 0..1 or -1); bForceOrbitCue starts the ORBIT cue. */
+	float ForceHeat01 = -1.f;
+	float ForceDescent01 = -2.f;
+	void StartOrbitCue() { OrbitCueLeft = OrbitCueSeconds; }
+	static constexpr float OrbitCueSeconds = 3.f;
 	/** Tests: >= 0 forces an escape flight (seconds left of total) clear of a hull at ForceEscapeCentre, radius cm. */
 	float ForceEscapeLeft = -1.f;
 	float ForceEscapeTotal = 60.f;

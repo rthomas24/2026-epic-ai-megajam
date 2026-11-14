@@ -2,146 +2,146 @@
  {
   "shot": "Verdance_approach_00",
   "pos": [
-   -48558.0,
+   -34013.0,
    0.0,
-   24455.0
+   26794.0
   ],
-  "dist_m": 672
+  "dist_m": 547
  },
  {
   "shot": "Verdance_approach_01",
   "pos": [
-   -37838.0,
+   -22436.0,
    0.0,
-   19227.0
+   26394.0
   ],
-  "dist_m": 554
+  "dist_m": 449
  },
  {
   "shot": "Verdance_approach_02",
   "pos": [
-   -26963.0,
+   -11146.0,
    0.0,
-   13923.0
+   26006.0
   ],
-  "dist_m": 434
+  "dist_m": 363
  },
  {
   "shot": "Verdance_approach_03",
   "pos": [
-   -16410.0,
+   272.0,
    0.0,
-   8777.0
-  ],
-  "dist_m": 318
- },
- {
-  "shot": "Verdance_approach_04",
-  "pos": [
-   -5439.0,
-   0.0,
-   3426.0
-  ],
-  "dist_m": 200
- },
- {
-  "shot": "Verdance_approach_05",
-  "pos": [
-   5956.0,
-   0.0,
-   2254.0
-  ],
-  "dist_m": 89
- },
- {
-  "shot": "Verdance_approach_06",
-  "pos": [
-   17944.0,
-   0.0,
-   1841.0
-  ],
-  "dist_m": 53
- },
- {
-  "shot": "Verdance_approach_07",
-  "pos": [
-   30676.0,
-   0.0,
-   2619.0
-  ],
-  "dist_m": 171
- },
- {
-  "shot": "Verdance_approach_08",
-  "pos": [
-   42805.0,
-   0.0,
-   5635.0
+   25614.0
   ],
   "dist_m": 295
  },
  {
+  "shot": "Verdance_approach_04",
+  "pos": [
+   11515.0,
+   0.0,
+   25228.0
+  ],
+  "dist_m": 262
+ },
+ {
+  "shot": "Verdance_approach_05",
+  "pos": [
+   22946.0,
+   0.0,
+   24835.0
+  ],
+  "dist_m": 275
+ },
+ {
+  "shot": "Verdance_approach_06",
+  "pos": [
+   34233.0,
+   0.0,
+   24447.0
+  ],
+  "dist_m": 330
+ },
+ {
+  "shot": "Verdance_approach_07",
+  "pos": [
+   45550.0,
+   0.0,
+   24059.0
+  ],
+  "dist_m": 409
+ },
+ {
+  "shot": "Verdance_approach_08",
+  "pos": [
+   57081.0,
+   0.0,
+   23664.0
+  ],
+  "dist_m": 503
+ },
+ {
   "shot": "Verdance_approach_09",
   "pos": [
-   54268.0,
-   0.0,
-   10817.0
+   68533.0,
+   2.0,
+   23356.0
   ],
-  "dist_m": 418
+  "dist_m": 604
  },
  {
   "shot": "Verdance_approach_10",
   "pos": [
-   65207.0,
-   57.0,
-   17790.0
+   77725.0,
+   214.0,
+   29417.0
   ],
-  "dist_m": 543
+  "dist_m": 712
  },
  {
   "shot": "Verdance_approach_11",
   "pos": [
-   74199.0,
-   237.0,
-   25354.0
+   84872.0,
+   501.0,
+   37871.0
   ],
-  "dist_m": 654
+  "dist_m": 813
  },
  {
   "shot": "Verdance_approach_12",
   "pos": [
-   81533.0,
-   459.0,
-   33720.0
+   91908.0,
+   787.0,
+   46392.0
   ],
-  "dist_m": 755
+  "dist_m": 916
  },
  {
   "shot": "Verdance_approach_13",
   "pos": [
-   88479.0,
-   690.0,
-   42423.0
+   98974.0,
+   1074.0,
+   54952.0
   ],
-  "dist_m": 857
+  "dist_m": 1020
  },
  {
   "shot": "Verdance_approach_14",
   "pos": [
-   95660.0,
-   928.0,
-   51420.0
+   106558.0,
+   1382.0,
+   64136.0
   ],
-  "dist_m": 965
+  "dist_m": 1134
  },
  {
   "shot": "Verdance_approach_15",
   "pos": [
-   102582.0,
-   1158.0,
-   60092.0
+   114493.0,
+   1704.0,
+   73746.0
   ],
-  "dist_m": 1071
+  "dist_m": 1254
  },
  {
   "shot": "Verdance_ground_from_pad",
@@ -150,14 +150,14 @@
    397.0,
    132.0
   ],
-  "dist_m": 142
+  "dist_m": 147
  },
  {
   "shot": "Verdance_ground_150m",
   "pos": [
-   -747.0,
-   258.0,
-   92.0
+   -296.0,
+   253.0,
+   132.0
   ],
   "dist_m": 150
  }

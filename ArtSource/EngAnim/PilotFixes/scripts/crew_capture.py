@@ -1,4 +1,4 @@
-﻿# Triad Drift - captures of crew / Warden clips in a running game (Tools/td-play-mcp.ps1, pilot on foot).
+# Triad Drift - captures of crew / Warden clips in a running game (Tools/td-play-mcp.ps1, pilot on foot).
 # python crew_capture.py <outdir> <tag> <Type>:<Clip>:<t01>[,...]
 # For each item: spawn that crew type 6 m in front of the pilot (once per type), hold the clip frozen at the fraction
 # with TD.Ground.CrewHold, read where it stands (TD.CrewWhere in the game log) and render a front-quarter and a side
@@ -47,7 +47,7 @@ def main():
             cmd("TD.Dev.DestroySpawned")
             cmd("TD.KillAll")
             time.sleep(0.5)
-            spot = SPOTS[len(seen) % len(SPOTS)]; seen.append(typ)
+            spot = SPOTS[(len(seen) + int(os.environ.get("TD_SPOT_SKIP", "0"))) % len(SPOTS)]; seen.append(typ)
             cmd("TD.Ground.Teleport %d %d 300" % spot)
             time.sleep(1.0)
             cmd("TD.Ground.Spawn %s 600" % typ)

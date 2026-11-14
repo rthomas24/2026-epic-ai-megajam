@@ -1,0 +1,132 @@
+{
+ "_note": "Warden fire and summon with the shield on the left forearm (Nov 14): the left arm keeps the guard pose, so the shield stays in front of the body instead of swinging out behind or to the side with the arm. Timing unchanged (release 0.50 s).",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+ "clips": [
+  {
+   "src": "A_Crew_Warden_Fire_01",
+   "dst": "A_Crew_Warden_Fire_01",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+   "copy_pose": {
+    "src": "A_Crew_Warden_Guard",
+    "t": 0.0,
+    "bones": [
+     "clavicle",
+     "upperarm",
+     "lowerarm",
+     "hand",
+     "index",
+     "middle",
+     "ring",
+     "pinky",
+     "thumb"
+    ],
+    "side": "_l",
+    "ramp": [
+     0.0,
+     0.0
+    ]
+   }
+  },
+  {
+   "src": "A_Crew_Warden_Fire_02",
+   "dst": "A_Crew_Warden_Fire_02",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+   "copy_pose": {
+    "src": "A_Crew_Warden_Guard",
+    "t": 0.0,
+    "bones": [
+     "clavicle",
+     "upperarm",
+     "lowerarm",
+     "hand",
+     "index",
+     "middle",
+     "ring",
+     "pinky",
+     "thumb"
+    ],
+    "side": "_l",
+    "ramp": [
+     0.0,
+     0.0
+    ]
+   }
+  },
+  {
+   "src": "A_Crew_Warden_Summon_01",
+   "dst": "A_Crew_Warden_Summon_01",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+   "copy_pose": {
+    "src": "A_Crew_Warden_Guard",
+    "t": 0.0,
+    "bones": [
+     "clavicle",
+     "upperarm",
+     "lowerarm",
+     "hand",
+     "index",
+     "middle",
+     "ring",
+     "pinky",
+     "thumb"
+    ],
+    "side": "_l",
+    "ramp": [
+     0.0,
+     0.0
+    ]
+   }
+  },
+  {
+   "src": "A_Crew_Warden_Summon_02",
+   "dst": "A_Crew_Warden_Summon_02",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+   "copy_pose": {
+    "src": "A_Crew_Warden_Guard",
+    "t": 0.0,
+    "bones": [
+     "clavicle",
+     "upperarm",
+     "lowerarm",
+     "hand",
+     "index",
+     "middle",
+     "ring",
+     "pinky",
+     "thumb"
+    ],
+    "side": "_l",
+    "ramp": [
+     0.0,
+     0.0
+    ]
+   }
+  },
+  {
+   "src": "A_Crew_Warden_Fire",
+   "dst": "A_Crew_Warden_Fire",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+   "copy_pose": {
+    "src": "A_Crew_Warden_Guard",
+    "t": 0.0,
+    "bones": [
+     "clavicle",
+     "upperarm",
+     "lowerarm",
+     "hand",
+     "index",
+     "middle",
+     "ring",
+     "pinky",
+     "thumb"
+    ],
+    "side": "_l",
+    "ramp": [
+     0.0,
+     0.0
+    ]
+   }
+  }
+ ]
+}

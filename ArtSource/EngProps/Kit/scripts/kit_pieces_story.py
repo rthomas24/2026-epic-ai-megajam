@@ -32,27 +32,53 @@ def shelter_frame():
     """A field shelter (400 long, 300 wide, 240 high): four tube hoops on ground plates, a ridge bar, and what is left of
     its canopy - two torn panels hanging on one side, the rest gone. Seen against the pilot it is a tent you could stand in."""
     p = Piece("SM_Kit_ShelterFrame", None)
+    # camp r2 (T5's placed capture: bare hoops read as spider legs): three hoops stand, the fourth (+X end) has
+    # collapsed outward onto the ground, bare; a torn, sagging canopy covers the two standing bays (two thirds of the
+    # frame), faded research-team teal-grey with one Triad cyan stripe down each side.
+    ca, sa = math.cos(math.radians(78.0)), math.sin(math.radians(78.0))
     for x in (-200.0, -67.0, 67.0, 200.0):
         pts = [(x, 150.0 * math.cos(math.radians(a)), 240.0 * math.sin(math.radians(a))) for a in range(0, 181, 30)]
+        if x > 100.0:                      # collapsed: tipped 78 degrees about its foot line, top resting near the ground
+            pts = [(x + z * sa, y, z * ca + 4.0 * (1.0 - abs(y) / 150.0)) for (_, y, z) in pts]
         for i in range(len(pts) - 1):
             _tube(p, pts[i], pts[i + 1], 4.0)
         for y in (-150.0, 150.0):
             p.box((x - 15, y - 15, 0.0), (x + 15, y + 15, 3.0), reg="sw_dark")
-    _tube(p, (-205.0, 0.0, 240.0), (205.0, 0.0, 240.0), 4.0)
-    # torn canopy: two panels between hoops on the +Y slope, ragged lower edges, both faces
+    _tube(p, (-205.0, 0.0, 240.0), (72.0, 0.0, 240.0), 4.0)
+    _tube(p, (72.0, 0.0, 240.0), (128.0, 6.0, 168.0), 4.0)        # the ridge bar snapped and hanging into the bare bay
     rnd = random.Random(5)
-    for x0, x1 in ((-200.0, -67.0), (67.0, 200.0)):
-        top = [(x0, 75.0, 207.0), (x1, 75.0, 207.0)]
-        n = 6
-        for k in range(n):
-            xa, xb = x0 + (x1 - x0) * k / n, x0 + (x1 - x0) * (k + 1) / n
-            ha = 60.0 + rnd.random() * 120.0
-            hb = 60.0 + rnd.random() * 120.0
-            ya, za = 75.0 + 75.0 * min(1.0, ha / 180.0), 207.0 - ha
-            yb, zb = 75.0 + 75.0 * min(1.0, hb / 180.0), 207.0 - hb
-            q = [(xa, 75.0, 207.0), (xb, 75.0, 207.0), (xb, yb, zb), (xa, ya, za)]
-            p.poly(q, "wall", mat="Canopy", n=(0, 1, 0.5), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
-            p.poly(q[::-1], "wall", mat="Canopy", n=(0, -1, -0.5), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+    NX, NA, R0, H0 = 12, 15, 157.0, 247.0
+    x0, x1 = -200.0, 67.0
+    lo = [rnd.uniform(0.0, 3.0) for _ in range(NX)]                 # +Y side: ragged torn hem
+    hi = [rnd.uniform(10.5, 14.5) for _ in range(NX)]               # -Y side: torn shorter
+    holes = {(rnd.randrange(NX), rnd.randrange(2, NA - 2)) for _ in range(9)}
+
+    def cloth(i, j):
+        t = i / NX
+        x = x0 + (x1 - x0) * t
+        bay = (t * 2.0) % 1.0
+        sag = math.sin(math.pi * bay)
+        a = math.radians(180.0 * j / NA)
+        f = 1.0 - 0.07 * sag * (0.4 + 0.6 * math.sin(a))
+        return (x, R0 * f * math.cos(a), H0 * f * math.sin(a) - 10.0 * sag * math.sin(a))
+
+    for i in range(NX):
+        for j in range(NA):
+            if j < lo[i] or j + 1 > hi[i] or (i, j) in holes:
+                continue
+            q = [cloth(i, j), cloth(i + 1, j), cloth(i + 1, j + 1), cloth(i, j + 1)]
+            a = math.radians(180.0 * (j + 0.5) / NA)
+            out = (0.0, math.cos(a), math.sin(a))
+            mat = "CanopyStripe" if j in (3, 11) else "Canopy"
+            p.poly(q, "wall", mat=mat, n=out, uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+            p.poly(q[::-1], "wall", mat=mat, n=(0.0, -out[1], -out[2]), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+    # a loose flap still tied at the last standing hoop, hanging into the bare bay
+    for k in range(4):
+        za, zb = 236.0 - 30.0 * k, 236.0 - 30.0 * (k + 1)
+        w = 46.0 - 7.0 * k
+        q = [(70.0 + 3 * k, 20.0 + 4 * k, za), (70.0 + 3 * k, 20.0 + 4 * k + w, za), (73.0 + 3 * k, 24.0 + 4 * k + w - 7.0, zb), (73.0 + 3 * k, 24.0 + 4 * k, zb)]
+        p.poly(q, "wall", mat="Canopy", n=(1, 0, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+        p.poly(q[::-1], "wall", mat="Canopy", n=(-1, 0, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
     p.chull([(x, y, z) for x in (-205.0, 205.0) for y in (-150.0, 150.0) for z in (0.0, 30.0)] +
             [(x, y, 240.0) for x in (-205.0, 205.0) for y in (-20.0, 20.0)])
     return p
@@ -254,43 +280,82 @@ def _worn(fn):
 
 # ------------------------------------------------------------------------------------------------ landmarks
 def relay_mast():
-    """Verdance landmark: a leaning expedition relay mast (about 60 m, 6 degrees off vertical): a lattice tower on a
-    concrete pad, four guy lines (one snapped and hanging), a dead dish two thirds up, a blinking green-amber light at the
-    top. Seen from the landing approach it marks the research site. Collision: the pad only."""
+    """Verdance landmark r2: a leaning expedition relay mast (about 100 m, 5 degrees off vertical): a square lattice
+    tower 9 m across at the base tapering to 1.4 m, two cross-arms, a 13 m dead dish two thirds up (its disc faces -X:
+    yaw the mast so -X points at the landing pad), green-amber lit bands on three levels and a blinking light at the top,
+    four guy lines (one snapped). Collision: the pad only."""
     p = Piece("SM_Kit_RelayMast", None)
-    H = 6000.0
-    p.box((-300.0, -300.0, 0.0), (300.0, 300.0, 60.0), reg="floor")
-    with p.at(Matrix.Rotation(math.radians(6.0), 4, "Y")):
-        for (x, y) in ((-90.0, -90.0), (90.0, -90.0), (90.0, 90.0), (-90.0, 90.0)):
-            _tube(p, (x * 1.6, y * 1.6, 60.0), (x * 0.5, y * 0.5, H), 9.0)
-        z = 60.0
-        k = 0
-        while z < H - 300:
-            t0, t1 = z / H, (z + 300.0) / H
-            w0, w1 = 144.0 - 99.0 * t0, 144.0 - 99.0 * t1
-            for (ya, yb) in ((-1, 1),):
-                _tube(p, (-w0, -w0, z), (w1, w1, z + 300.0), 4.0, reg="sw_gun")
-                _tube(p, (w0, -w0, z), (-w1, w1, z + 300.0), 4.0, reg="sw_gun")
-            _tube(p, (-w1, -w1, z + 300.0), (w1, -w1, z + 300.0), 4.0, reg="sw_gun")
-            _tube(p, (-w1, w1, z + 300.0), (w1, w1, z + 300.0), 4.0, reg="sw_gun")
-            z += 300.0
-            k += 1
-        # the dead dish, two thirds up
-        with p.at(Matrix.Translation((60.0, 0.0, H * 0.66)) @ Matrix.Rotation(math.radians(80.0), 4, "Y")):
-            p.lathe([(0.0, 0.0), (150.0, 30.0), (420.0, 120.0)], 16, regs=["sw_gun", "wallB"], a0=0.0, a1=360.0)
-            p.lathe([(420.0, 122.0), (150.0, 32.0), (0.0, 2.0)], 16, regs=["sw_dark", "sw_dark"], a0=0.0, a1=360.0)
-        p.box((-60.0, -60.0, H), (60.0, 60.0, H + 120.0), reg="frame")
-        p.box((-90.0, -90.0, H + 120.0), (90.0, 90.0, H + 300.0), mat="Nav")
+    H = 10000.0
+    W0, W1 = 450.0, 70.0                                   # half-width at the base and at the top
+
+    def hw(z):
+        return W0 + (W1 - W0) * z / H
+    p.box((-650.0, -650.0, 0.0), (650.0, 650.0, 80.0), reg="floor")
+    with p.at(Matrix.Rotation(math.radians(5.0), 4, "Y")):
+        for (sx, sy) in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+            _tube(p, (sx * W0, sy * W0, 80.0), (sx * W1, sy * W1, H), 16.0)
+        z = 80.0
+        step = 500.0
+        while z < H - step:
+            w0, w1 = hw(z), hw(z + step)
+            for (ax, ay, bx, by) in ((-1, -1, 1, -1), (1, -1, 1, 1), (1, 1, -1, 1), (-1, 1, -1, -1)):
+                _tube(p, (ax * w0, ay * w0, z), (bx * w1, by * w1, z + step), 7.0, reg="sw_gun")
+                _tube(p, (ax * w1, ay * w1, z + step), (bx * w1, by * w1, z + step), 7.0, reg="sw_gun")
+            z += step
+        # lit bands on three levels (steady green-amber), one strip on each face
+        for t in (0.3, 0.55, 0.8):
+            zb = H * t
+            w = hw(zb) + 12.0
+            for (nx, ny) in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                if nx:
+                    q = [(nx * w, -w, zb), (nx * w, w, zb), (nx * w, w, zb + 60.0), (nx * w, -w, zb + 60.0)]
+                else:
+                    q = [(-w, ny * w, zb), (w, ny * w, zb), (w, ny * w, zb + 60.0), (-w, ny * w, zb + 60.0)]
+                p.poly(q, mat="Band", n=(nx, ny, 0))
+        # two cross-arms
+        for (t, L) in ((0.55, 1300.0), (0.8, 900.0)):
+            zc = H * t
+            p.box((-L, -25.0, zc + 100.0), (L, 25.0, zc + 160.0), reg="frame")
+            for sx in (-1, 1):
+                _tube(p, (sx * L, 0.0, zc + 130.0), (sx * hw(zc), 0.0, zc - 400.0), 8.0, reg="sw_gun")
+        # the dead dish, facing -X (toward the pad once the mast is yawed), tilted 15 degrees up
+        with p.at(Matrix.Translation((-hw(H * 0.66) - 150.0, 0.0, H * 0.66)) @ Matrix.Rotation(math.radians(-75.0), 4, "Y")):
+            p.lathe([(0.0, 0.0), (200.0, 40.0), (650.0, 220.0)], 20, regs=["sw_gun", "wallB"], a0=0.0, a1=360.0)
+            p.lathe([(650.0, 222.0), (200.0, 42.0), (0.0, 2.0)], 20, regs=["sw_dark", "sw_dark"], a0=0.0, a1=360.0)
+        _tube(p, (-hw(H * 0.66), 0.0, H * 0.66), (-hw(H * 0.66) - 150.0, 0.0, H * 0.66), 20.0)
+        p.box((-90.0, -90.0, H), (90.0, 90.0, H + 160.0), reg="frame")
+        p.box((-130.0, -130.0, H + 160.0), (130.0, 130.0, H + 420.0), mat="Nav")
     # guy lines (one snapped)
-    top = (H * math.sin(math.radians(6.0)) * 0.8, 0.0, H * 0.8)
-    for (gx, gy, snapped) in ((2600.0, 0.0, False), (-2400.0, 300.0, False), (0.0, 2500.0, False), (200.0, -2500.0, True)):
+    top = (H * 0.8 * math.sin(math.radians(5.0)), 0.0, H * 0.8)
+    for (gx, gy, snapped) in ((4200.0, 0.0, False), (-3800.0, 500.0, False), (0.0, 4000.0, False), (300.0, -4000.0, True)):
         if snapped:
-            _tube(p, top, (top[0] * 0.95, top[1] - 120.0, top[2] - 1800.0), 3.0, reg="sw_dark")
-            _tube(p, (gx, gy, 0.0), (gx * 0.6, gy * 0.6, 300.0), 3.0, reg="sw_dark")
+            _tube(p, top, (top[0] * 0.95, top[1] - 200.0, top[2] - 3000.0), 5.0, reg="sw_dark")
+            _tube(p, (gx, gy, 0.0), (gx * 0.6, gy * 0.6, 500.0), 5.0, reg="sw_dark")
         else:
-            _tube(p, top, (gx, gy, 0.0), 3.0, reg="sw_dark")
-        p.box((gx - 40.0, gy - 40.0, 0.0), (gx + 40.0, gy + 40.0, 40.0), reg="frame")
-    p.cbox((-300.0, -300.0, 0.0), (300.0, 300.0, 400.0))
+            _tube(p, top, (gx, gy, 0.0), 5.0, reg="sw_dark")
+        p.box((gx - 60.0, gy - 60.0, 0.0), (gx + 60.0, gy + 60.0, 60.0), reg="frame")
+    p.cbox((-650.0, -650.0, 0.0), (650.0, 650.0, 600.0))
+    return p
+
+
+def light_pool():
+    """A warm light pool on the ground (600 x 600, 1 cm up): an emissive decal under the gantry's working lamp, so the
+    lamp seems to light the ground without a dynamic light. Slot Pool (M_Kit_Decal over T_Kit_LightPool)."""
+    p = Piece("SM_Kit_LightPool", None)
+    p.poly([(-300.0, -300.0, 1.0), (300.0, -300.0, 1.0), (300.0, 300.0, 1.0), (-300.0, 300.0, 1.0)], mat="Pool", n=(0, 0, 1),
+           uv=[(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)])
+    return p
+
+
+def marker_pole():
+    """A 6 m camp marker pole: a worn steel mast on a weighted foot, a hazard-yellow band, a working lamp on top - it
+    gives the Cinder camp a lit silhouette from 30 m. Collision: one thin hull."""
+    p = Piece("SM_Kit_MarkerPole", None)
+    p.box((-45.0, -45.0, 0.0), (45.0, 45.0, 25.0), reg="frame")
+    p.box((-10.0, -10.0, 25.0), (10.0, 10.0, 560.0), reg="pillar")
+    p.box((-13.0, -13.0, 300.0), (13.0, 13.0, 420.0), reg="hazard")
+    p.box((-28.0, -28.0, 560.0), (28.0, 28.0, 620.0), mat="Light")
+    p.cbox((-45.0, -45.0, 0.0), (45.0, 45.0, 620.0))
     return p
 
 
@@ -317,8 +382,30 @@ def null_derrick():
     return p
 
 
+def _insignia(name, size):
+    """ART-18 clue decal: Triad's three-chevron mark half-hidden under burnt black plating (slot Insignia,
+    M_Kit_Decal over T_Kit_InsigniaScorched). A single quad 1 cm proud of +X, centred on the pivot: lay it on a broken
+    plate's face. No collision."""
+    p = Piece(name, None)
+    h = size / 2.0
+    p.poly([(1.0, -h, -h), (1.0, h, -h), (1.0, h, h), (1.0, -h, h)], mat="Insignia", n=(1, 0, 0),
+           uv=[(0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)])
+    return p
+
+
+def insignia_hull():
+    """For a destroyed Null ship's hull plate: 3.2 m."""
+    return _insignia("SM_Kit_InsigniaHull", 320.0)
+
+
+def insignia_panel():
+    """For an on-foot wreck panel or a trooper's torn chest plate: 0.9 m."""
+    return _insignia("SM_Kit_InsigniaPanel", 90.0)
+
+
 VERDANCE = [shelter_frame, lamp_post_dead, sample_cases, antenna_toppled, survey_stake_flag, drag_mark]
-CINDER = [_worn(f) for f in (ore_cart, rail_stub, cable_reel, heat_shield_cracked, warning_beacon, gantry_collapsed, scorch_lines)]
+CINDER = [_worn(f) for f in (ore_cart, rail_stub, cable_reel, heat_shield_cracked, warning_beacon, gantry_collapsed, scorch_lines,
+                             marker_pole)] + [light_pool]
 LANDMARKS = [relay_mast, null_derrick]
-BUILDERS = VERDANCE + CINDER + LANDMARKS
-NO_COLLISION = ("SM_Kit_SurveyStakeFlag", "SM_Kit_DragMark", "SM_Kit_ScorchLines")
+BUILDERS = VERDANCE + CINDER + LANDMARKS + [insignia_hull, insignia_panel]
+NO_COLLISION = ("SM_Kit_SurveyStakeFlag", "SM_Kit_DragMark", "SM_Kit_ScorchLines", "SM_Kit_LightPool", "SM_Kit_InsigniaHull", "SM_Kit_InsigniaPanel")

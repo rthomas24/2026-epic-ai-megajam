@@ -15,8 +15,11 @@
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/UI/TDUIPaint.h"
+#include "TriadDrift/UI/TDFlightHUDWidget.h"
+#include "Brushes/SlateRoundedBoxBrush.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
 
 void UTDGroundHUDWidget::NativeConstruct()
@@ -327,6 +330,20 @@ void UTDGroundHUDWidget::Sample(float DeltaSeconds)
 			ExitWorld = At.GetValue();
 		}
 	}
+	// ENG-26: the prepared-but-blocked approach after Cinder's anchor (wording a placeholder for Nicholas).
+	if (ForceApproachPending >= 0)
+	{
+		View.bApproachPending = ForceApproachPending > 0;
+	}
+	else
+	{
+		bool bRevealed = false;
+		if (const ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+		{
+			bRevealed = Flow->GetProgress().bDominionRevealed;
+		}
+		View.bApproachPending = ATDPlanetCourse::IsFieldAnchorDisabled(this) && !bRevealed;
+	}
 	// The sensor marker flicker (host): "UNKNOWN", "VERIFIED" for a moment once, then "UNKNOWN".
 	View.bSensor = false;
 	if (const UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(this))
@@ -345,11 +362,48 @@ void UTDGroundHUDWidget::Sample(float DeltaSeconds)
 
 // ------------------------------------------------------------------------------------------ paint
 
+namespace TDGroundStyle
+{
+	const FSlateBrush* Rounded(float RadiusPx)
+	{
+		static TMap<int32, TSharedPtr<FSlateRoundedBoxBrush>> Cache;
+		const int32 R = FMath::Clamp(FMath::RoundToInt(RadiusPx), 1, 255);
+		TSharedPtr<FSlateRoundedBoxBrush>& Brush = Cache.FindOrAdd(R);
+		if (!Brush.IsValid())
+		{
+			Brush = MakeShared<FSlateRoundedBoxBrush>(FLinearColor::White, float(R));
+		}
+		return Brush.Get();
+	}
+
+	/**
+	 * ENG-36 (the 03:00 audit): the on-foot HUD in the flight HUD's language. Every panel is the flight HUD's dark rounded
+	 * plate with a short accent edge on top (emphasis: a brighter edge and a thin outline), not the older space HUD's glass.
+	 */
+	struct FPaint : FTDUIPainter
+	{
+		using FTDUIPainter::FTDUIPainter;
+		void Plate(float X, float Y, float W, float H, float Radius, FLinearColor C) const
+		{
+			FSlateDrawElement::MakeBox(List, Layer, Geo({ X, Y }, { W, H }), Rounded(Radius * Scale), ESlateDrawEffect::None, Faded(C));
+		}
+		void Glass(float X, float Y, float W, float H, FLinearColor C, bool bEmphasis = false) const
+		{
+			Plate(X, Y, W, H, 12.f, FTDFlightHUDTokens::Plate().CopyWithNewOpacity(.82f));
+			Line({ X + 14.f, Y + 1.5f }, { X + FMath::Min(W - 14.f, 14.f + FMath::Max(40.f, W * .28f)), Y + 1.5f }, C.CopyWithNewOpacity(bEmphasis ? .95f : .7f), 2.f);
+			if (bEmphasis)
+			{
+				Frame(X + 2.f, Y + 2.f, W - 4.f, H - 4.f, C, .22f);
+			}
+		}
+	};
+}
+
 int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G, const FSlateRect& Culling, FSlateWindowElementList& List,
 	int32 LayerId, const FWidgetStyle& Style, bool bParentEnabled) const
 {
 	const int32 Base = Super::NativePaint(Args, G, Culling, List, LayerId, Style, bParentEnabled);
-	const FTDUIPainter P(G, List, Base + 1);
+	const TDGroundStyle::FPaint P(G, List, Base + 1);
 	if (P.Scale <= 0.f)
 	{
 		return Base;
@@ -379,10 +433,10 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 	if (!View.Objective.IsEmpty())
 	{
 		const FString Line = View.Objective.ToUpper();
-		auto Width = [&P](const FString& S) { const float M = P.MeasureTitle(S, 20); return M > 0.f ? M : S.Len() * 11.5f; };
+		auto Width = [&P](const FString& S) { const float M = P.MeasureTitle(S, 18); return M > 0.f ? M : S.Len() * 10.5f; };
 		FString Line1 = Line, Line2;
 		float TextW = Width(Line);
-		if (TextW + 40.f > ObjectiveMaxWidth)
+		if (TextW + 56.f > ObjectiveMaxWidth)
 		{
 			// Split at the space nearest the middle.
 			int32 Split = INDEX_NONE;
@@ -404,21 +458,21 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 				TextW = FMath::Max(Width(Line1), Width(Line2));
 			}
 		}
-		const float W = FMath::Clamp(TextW + 40.f, 506.f, ObjectiveMaxWidth);
-		const float H = Line2.IsEmpty() ? 92.f : 118.f;
-		const float X = 960.f - W * .5f, Y = 53.f;
-		P.Glass(X, Y, W, H, Accent);
-		for (int32 I = 0; I < int32(W / 46.f); ++I)
-		{
-			P.Line({ X + 14.f + I * 46, Y + H - 9.f }, { X + 22.f + I * 44, Y + H - 2.f }, Accent.CopyWithNewOpacity(.09f), .6f);
-		}
-		P.Label(X + 20.f, Y + 13.f, TEXT("OBJECTIVE"), 11, Accent, 150);
-		P.Title(X + 20.f, Y + 37.f, Line1, 20, Ink);
+		// The flight HUD's objective pill: a white diamond, the line in caps, centred at the top.
+		const float W = FMath::Clamp(TextW + 56.f, ObjectiveMinWidth, ObjectiveMaxWidth);
+		const float H = Line2.IsEmpty() ? ObjectiveHeight : ObjectiveHeight2;
+		const float X = 960.f - W * .5f, Y = 54.f;
+		P.Plate(X, Y, W, H, 14.f, FTDFlightHUDTokens::Plate().CopyWithNewOpacity(.75f));
+		const FVector2D Dia(X + 20.f, Y + 20.f);
+		P.Line({ Dia.X, Dia.Y - 6.f }, { Dia.X + 6.f, Dia.Y }, Ink, 2.f);
+		P.Line({ Dia.X + 6.f, Dia.Y }, { Dia.X, Dia.Y + 6.f }, Ink, 2.f);
+		P.Line({ Dia.X, Dia.Y + 6.f }, { Dia.X - 6.f, Dia.Y }, Ink, 2.f);
+		P.Line({ Dia.X - 6.f, Dia.Y }, { Dia.X, Dia.Y - 6.f }, Ink, 2.f);
+		P.Title(X + 36.f, Y + 8.f, Line1, 18, Ink);
 		if (!Line2.IsEmpty())
 		{
-			P.Title(X + 20.f, Y + 63.f, Line2, 20, Ink);
+			P.Title(X + 36.f, Y + 32.f, Line2, 18, Ink);
 		}
-		P.Line({ X + 20.f, Y + H - 17.f }, { X + W - 20.f, Y + H - 17.f }, Accent.CopyWithNewOpacity(.2f));
 		LastBoxes.Emplace(TEXT("objective"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
 		PanelBottom = Y + H;
 	}
@@ -522,6 +576,27 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 		Clock.Title(X + 20.f, Y + 24.f, FString::Printf(TEXT("%d:%02d"), Secs / 60, Secs % 60), 30, Ink);
 		Clock.Box(X + 130.f, Y + 40.f, (W - 150.f) * FMath::Clamp(View.EscapeLeft / View.EscapeTotal, 0.f, 1.f), 8.f, Col);
 		LastBoxes.Emplace(TEXT("escape"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
+		Stack += H + 10.f;
+	}
+	// The approach after the anchor: a dashed amber diamond and the line, under the stack.
+	if (View.bApproachPending)
+	{
+		const FString Line = TEXT("APPROACH PREPARED  ·  PASSAGE STILL BLOCKED");
+		const float TW = FMath::Max(P.MeasureText(Line, 14, true), Line.Len() * 8.f);
+		const float W = TW + 64.f, H = 34.f, X = 960.f - W * .5f, Y = Stack;
+		const FLinearColor Amber = FTDUIPalette::Bastion();
+		P.Glass(X, Y, W, H, Amber);
+		FTDUIPainter Top = P;
+		Top.Layer = P.Layer + 2;
+		const FVector2D D(X + 22.f, Y + H * .5f);
+		for (int32 S = 0; S < 4; ++S) // dashed: half of each edge
+		{
+			const FVector2D A = D + FVector2D(FMath::Cos(S * HALF_PI), FMath::Sin(S * HALF_PI)) * 8.f;
+			const FVector2D B = D + FVector2D(FMath::Cos((S + 1) * HALF_PI), FMath::Sin((S + 1) * HALF_PI)) * 8.f;
+			Top.Line(A, FMath::Lerp(A, B, .5f), Amber, 2.f);
+		}
+		Top.Text(X + 42.f, Y + 8.f, Line, 14, Ink, true);
+		LastBoxes.Emplace(TEXT("approach_pending"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
 		Stack += H + 10.f;
 	}
 	// The way out: an amber diamond with "EXIT" and the range on screen; off screen, a chevron on the frame edge.
@@ -649,41 +724,37 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 		const FString Prompt = View.Prompt.ToUpper();
 		const float TextW = P.MeasureText(Prompt, 17, true);
 		const float W = FMath::Clamp((TextW > 0 ? TextW : 22.f * Prompt.Len() * .5f) + 56.f, 220.f, 900.f);
-		P.Glass(960 - W * .5f, 676, W, 50, Accent, true);
+		P.Plate(960 - W * .5f, 680, W, 40, 12.f, FTDFlightHUDTokens::Plate().CopyWithNewOpacity(.82f));
 		P.CenteredText(960, 688, Prompt, 17, Ink, true);
+		LastBoxes.Emplace(TEXT("prompt"), FBox2D(FVector2D(960 - W * .5f, 680), FVector2D(960 + W * .5f, 720)));
 	}
 
-	// Vitals panel, bottom-left (the space HUD's telemetry panel position and style).
+	// Vitals: a slim chip bottom-left, like the flight HUD's squad chip: health (number and bar), block under it, dash pips.
 	const bool bLow = View.Health <= .25f;
-	P.Glass(66, 812, 320, 206, bLow ? Hostile : Accent);
-	P.Label(87, 826, TEXT("PILOT  /  VITALS"), 11, bLow ? Hostile : Accent, 90);
-	P.Line({ 87, 850 }, { 365, 850 }, Accent.CopyWithNewOpacity(.15f));
-
-	P.HealthIcon(97, 874, bLow ? Hostile : Accent);
-	P.Text(116, 862, TEXT("HEALTH"), 14, Ink);
-	const FString HealthPct = FString::Printf(TEXT("%d"), FMath::RoundToInt(FMath::Clamp(View.Health, 0.f, 1.f) * 100.f));
-	const float PctW = P.MeasureText(HealthPct, 20, true);
-	P.Text(365 - (PctW > 0 ? PctW : 30.f), 856, HealthPct, 20, bLow ? Hostile : Ink, true);
-	P.Meter(87, 890, 278, SmoothHealth, bLow ? Hostile : Accent, 10);
-
-	P.ShieldIcon(97, 928, Ink.CopyWithNewOpacity(.85f));
-	P.Text(116, 916, TEXT("BLOCK"), 14, Ink);
-	P.Meter(87, 942, 278, SmoothBlock, View.Block < .2f ? Dim : Ink.CopyWithNewOpacity(.9f), 7);
-
-	P.Text(87, 968, TEXT("DASH"), 14, Ink);
-	for (int32 I = 0; I < FMath::Min(View.DashMax, 6); ++I)
 	{
-		const float X = 160 + I * 38.f;
-		if (I < View.Dash)
+		const float X = 96.f, Y = 950.f, W = 270.f, H = 76.f;
+		P.Glass(X, Y, W, H, bLow ? Hostile : Accent, bLow);
+		FTDUIPainter Bars = P;
+		Bars.Layer = P.Layer + 2;
+		const FString HealthPct = FString::Printf(TEXT("%d"), FMath::RoundToInt(FMath::Clamp(View.Health, 0.f, 1.f) * 100.f));
+		Bars.HealthIcon(X + 22.f, Y + 22.f, bLow ? Hostile : Ink);
+		Bars.Text(X + 40.f, Y + 11.f, HealthPct, 18, bLow ? Hostile : Ink, true);
+		Bars.Box(X + 92.f, Y + 18.f, W - 112.f, 8.f, FLinearColor(.05f, .06f, .08f, .95f));
+		Bars.Box(X + 92.f, Y + 18.f, (W - 112.f) * FMath::Clamp(SmoothHealth, 0.f, 1.f), 8.f, bLow ? Hostile : Accent);
+		Bars.ShieldIcon(X + 22.f, Y + 46.f, Ink.CopyWithNewOpacity(.8f));
+		Bars.Box(X + 40.f, Y + 44.f, W - 150.f, 5.f, FLinearColor(.05f, .06f, .08f, .95f));
+		Bars.Box(X + 40.f, Y + 44.f, (W - 150.f) * FMath::Clamp(SmoothBlock, 0.f, 1.f), 5.f, View.Block < .2f ? Dim : Ink.CopyWithNewOpacity(.9f));
+		for (int32 I = 0; I < FMath::Min(View.DashMax, 6); ++I)
 		{
-			P.Gradient(X, 973, 30, 10, Accent * .55f, Accent, false);
-			P.Line({ X, 973.5f }, { X + 30, 973.5f }, Ink.CopyWithNewOpacity(.7f), .7f);
+			const float DX = X + W - 98.f + I * 26.f;
+			const bool bReady = I < View.Dash;
+			Bars.Box(DX, Y + 42.f, 20.f, 9.f, bReady ? Accent : FLinearColor(.05f, .06f, .08f, .95f));
+			if (!bReady)
+			{
+				Bars.Frame(DX, Y + 42.f, 20.f, 9.f, Accent, .3f);
+			}
 		}
-		else
-		{
-			P.Box(X, 973, 30, 10, FLinearColor(.05f, .10f, .14f, .95f));
-			P.Frame(X, 973, 30, 10, Accent, .25f);
-		}
+		LastBoxes.Emplace(TEXT("vitals"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
 	}
 	if (bLow)
 	{

@@ -17,6 +17,7 @@
 #include "Engine/DataAsset.h"
 #include "Modules/ModuleManager.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -283,6 +284,20 @@ static bool TDRunCombatWave5(FAutomationTestBase& Test, bool bWarm)
 	Test.AddInfo(Summary);
 	UE_LOG(LogTemp, Display, TEXT("%s"), *Summary);
 	Test.TestTrue(TEXT("a fight happened (enemies alive, shots in the air)"), MaxEnemies > 0 && PeakLive > 0);
+	if (UTDPickupSubsystem* Pickups = UTDPickupSubsystem::Get(W.GetWorld()))
+	{
+		if (Pickups->GetFirstSpawnMs() < 0.f)
+		{
+			// No drop this run (random): spawn the session's first pickup here, the way a kill or a special rock does.
+			UTDPickupSubsystem::SpawnPickup(W.GetWorld(), ETDPickupType::Boost, Flown->GetActorLocation() + FVector(20000.f, 0.f, 0.f));
+		}
+		Test.AddInfo(FString::Printf(TEXT("pickups warmed at world start: %d; first real pickup spawn %.2f ms"), Pickups->GetWarmedPickups(), Pickups->GetFirstSpawnMs()));
+		if (bWarm && Pickups->GetFirstSpawnMs() >= 0.f)
+		{
+			// Run alone (fresh process): T6 measured 25 ms for the first pickup before the warm spawn.
+			Test.TestTrue(FString::Printf(TEXT("the first pickup spawn is warm (%.2f ms < 2 ms)"), Pickups->GetFirstSpawnMs()), Pickups->GetFirstSpawnMs() < 2.f);
+		}
+	}
 	if (Misses > 0)
 	{
 		// Known (issue #89, T2): the pool grows during the fight; a prewarm at world start is queued with the asset preload.

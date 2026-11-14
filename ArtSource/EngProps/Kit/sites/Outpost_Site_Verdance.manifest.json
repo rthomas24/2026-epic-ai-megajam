@@ -9,7 +9,7 @@
    "location_cm": [
     -200,
     0,
-    0.0
+    3.0
    ],
    "yaw_deg": 0.0
   },
@@ -19,7 +19,7 @@
    "location_cm": [
     -200,
     0,
-    0
+    3.0
    ],
    "yaw_deg": 0,
    "slots": {
@@ -32,7 +32,7 @@
    "location_cm": [
     200,
     0,
-    0.0
+    3.0
    ],
    "yaw_deg": 0.0
   },
@@ -42,7 +42,7 @@
    "location_cm": [
     200,
     0,
-    0
+    3.0
    ],
    "yaw_deg": 0,
    "slots": {
@@ -55,7 +55,7 @@
    "location_cm": [
     -200,
     -200,
-    0
+    3.0
    ],
    "yaw_deg": 90,
    "slots": {
@@ -68,7 +68,7 @@
    "location_cm": [
     200,
     -200,
-    0
+    3.0
    ],
    "yaw_deg": 90,
    "slots": {
@@ -81,7 +81,7 @@
    "location_cm": [
     -200,
     200,
-    0
+    3.0
    ],
    "yaw_deg": 270,
    "slots": {
@@ -94,7 +94,7 @@
    "location_cm": [
     200,
     200,
-    0
+    3.0
    ],
    "yaw_deg": 270,
    "slots": {
@@ -107,7 +107,7 @@
    "location_cm": [
     -400,
     0,
-    0
+    3.0
    ],
    "yaw_deg": 0,
    "slots": {
@@ -120,7 +120,7 @@
    "location_cm": [
     400,
     0,
-    0
+    3.0
    ],
    "yaw_deg": 180,
    "slots": {
@@ -133,7 +133,7 @@
    "location_cm": [
     400,
     200,
-    0
+    3.0
    ],
    "yaw_deg": 0,
    "slots": {
@@ -146,7 +146,7 @@
    "location_cm": [
     400,
     -200,
-    0
+    3.0
    ],
    "yaw_deg": 270,
    "slots": {
@@ -159,7 +159,7 @@
    "location_cm": [
     -400,
     -200,
-    0
+    3.0
    ],
    "yaw_deg": 180,
    "slots": {
@@ -172,7 +172,7 @@
    "location_cm": [
     -400,
     200,
-    0
+    3.0
    ],
    "yaw_deg": 90,
    "slots": {
@@ -185,7 +185,7 @@
    "location_cm": [
     -360,
     0,
-    0
+    3.0
    ],
    "yaw_deg": 0,
    "slots": {
@@ -198,7 +198,7 @@
    "location_cm": [
     425,
     0,
-    296
+    299.0
    ],
    "yaw_deg": 90,
    "slots": {
@@ -210,13 +210,13 @@
   "stand_at_site_cm": [
    -250.0,
    0.0,
-   0.0
+   3.0
   ],
   "pilot_faces_yaw_deg": 180.0,
   "console_site_cm": [
    -360.0,
    0.0,
-   0.0
+   3.0
   ],
   "clear_in_front_cm": 316.0,
   "moved_from": "(76, 81.5, 153) yaw 180 on the Rodin cabin's bay floor"
@@ -248,7 +248,7 @@
   ]
  ],
  "walkability_cm": {
-  "floor_top_z": 0,
+  "floor_top_z": 3,
   "room": {
    "x": [
     -390,
@@ -265,14 +265,14 @@
     80
    ],
    "z": [
-    0,
-    260
+    3,
+    263
    ]
   },
-  "roof_underside_z": 296
+  "roof_underside_z": 299
  },
  "placement_rules": [
-  "Put the pivot on flat ground: the floor top IS the ground (the 20 cm slab is buried).",
+  "Put the pivot on the ground: the floor top is 3 cm above it (a 3 cm step at the door, well under the pawn's 45 cm step); the slab reaches 17 cm below the pivot, so keep terrain bumps under 15 cm inside the footprint.",
   "Keep 3 m clear in front of the door (X 400..700)."
  ]
 }

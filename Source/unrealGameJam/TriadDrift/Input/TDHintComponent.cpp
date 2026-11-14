@@ -395,18 +395,46 @@ void UTDHintComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		return;
 	}
 	Gap -= DeltaTime;
-	while (Gap <= 0.f && Queue.Num() > 0)
+	if (Gap <= 0.f && Queue.Num() > 0)
 	{
-		const ETDHint Next = Queue[0];
-		Queue.RemoveAt(0);
-		if (!Done.Contains(Next))
+		Queue.RemoveAll([this](ETDHint H) { return Done.Contains(H); });
+		// The first queued hint that fits the teaching phase on screen (T3's ENG-40); the others wait their phase.
+		const ETDTeachPhase Phase = CurrentTeachPhase();
+		const int32 Pick = Queue.IndexOfByPredicate([Phase](ETDHint H) { return FitsTeachPhase(H, Phase); });
+		if (Pick != INDEX_NONE)
 		{
-			Current = Next;
+			Current = Queue[Pick];
+			Queue.RemoveAt(Pick);
 			CurrentAge = 0.f;
 			UE_LOG(LogTriadDrift, Log, TEXT("TD hint: %s"), *GetCurrentText().ToString());
-			break;
 		}
 	}
+}
+
+bool UTDHintComponent::FitsTeachPhase(ETDHint Hint, ETDTeachPhase Phase)
+{
+	switch (Phase)
+	{
+	case ETDTeachPhase::Evade: break;
+	case ETDTeachPhase::TargetAndFire: break;
+	case ETDTeachPhase::SquadSystems: break;
+	default: return true; // no lesson running: today's order
+	}
+	const bool bLesson = Hint == ETDHint::Fly || Hint == ETDHint::Fire || Hint == ETDHint::Boost || Hint == ETDHint::Dodge
+		|| Hint == ETDHint::Switch || Hint == ETDHint::Power || Hint == ETDHint::TargetCycle;
+	if (!bLesson) { return true; } // drift, hyperdrive, abilities: when they apply
+	switch (Phase)
+	{
+	case ETDTeachPhase::Evade: return Hint == ETDHint::Fly || Hint == ETDHint::Boost || Hint == ETDHint::Dodge;
+	case ETDTeachPhase::TargetAndFire: return Hint == ETDHint::Fire || Hint == ETDHint::TargetCycle;
+	default: return Hint == ETDHint::Switch || Hint == ETDHint::Power;
+	}
+}
+
+ETDTeachPhase UTDHintComponent::CurrentTeachPhase() const
+{
+	if (TeachPhaseOverrideForTests.IsSet()) { return TeachPhaseOverrideForTests.GetValue(); }
+	return UTDTutorialPhases::GetTeachPhase(this);
 }
 
 ETDHint UTDHintComponent::GetCurrentHint() const

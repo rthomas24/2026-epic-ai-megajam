@@ -1,165 +1,244 @@
 [
  {
-  "asset": "SM_SP_HollowRock",
+  "asset": "SM_KS_DomDebris_PlateA",
   "size_m": [
-   69.6,
-   73.4,
-   67.2
+   20.9,
+   13.6,
+   2.4
   ],
-  "tris_lod0": 8271,
+  "tris_lod0": 716,
   "lods": 3,
   "hulls": 1,
-  "slots": [
-   "0:Bore",
-   "1:Cut",
-   "2:Rock",
-   "3:Dom",
-   "4:Work",
-   "5:BoreEnd"
-  ]
- },
- {
-  "asset": "SM_SP_NullRig",
-  "size_m": [
-   36.6,
-   36.6,
-   63.5
-  ],
-  "tris_lod0": 1804,
-  "lods": 3,
-  "hulls": 2,
   "slots": [
    "0:Dom",
-   "1:Eye",
-   "2:Glow",
-   "3:Beacon"
+   "1:Glow"
   ]
  },
  {
-  "asset": "SM_SP_Patrol_Aft",
+  "asset": "SM_KS_DomDebris_PlateB",
   "size_m": [
-   15.7,
-   10.8,
-   4.2
+   36.1,
+   17.5,
+   2.8
   ],
-  "tris_lod0": 1172,
+  "tris_lod0": 652,
   "lods": 3,
   "hulls": 1,
   "slots": [
-   "0:Trim",
-   "1:Trim2",
-   "2:Breach",
-   "3:Stripe",
-   "4:CyanRun"
+   "0:Dom",
+   "1:Glow"
   ]
  },
  {
-  "asset": "SM_SP_Patrol_Bow",
+  "asset": "SM_KS_DomDebris_PlateC",
   "size_m": [
-   18.8,
-   7.2,
-   6.1
+   8.6,
+   6.8,
+   2.0
   ],
-  "tris_lod0": 1282,
+  "tris_lod0": 716,
   "lods": 3,
   "hulls": 1,
   "slots": [
-   "0:Trim",
-   "1:Breach",
-   "2:Scorch",
-   "3:Trim2",
-   "4:Stripe",
-   "5:Strobe",
-   "6:CyanRun"
+   "0:Dom",
+   "1:Glow"
   ]
  },
  {
-  "asset": "SM_SP_Patrol_Mid",
+  "asset": "SM_KS_DomDebris_Shroud",
   "size_m": [
    18.0,
-   7.2,
-   5.2
+   15.0,
+   17.6
   ],
-  "tris_lod0": 2044,
+  "tris_lod0": 448,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Ember",
+   "2:Glow",
+   "3:DomRaw"
+  ]
+ },
+ {
+  "asset": "SM_KS_DomDebris_Truss",
+  "size_m": [
+   26.5,
+   6.9,
+   7.8
+  ],
+  "tris_lod0": 2488,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_KS_DomDebris_Turret",
+  "size_m": [
+   13.1,
+   12.0,
+   7.5
+  ],
+  "tris_lod0": 632,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_KS_Hulk_Aft",
+  "size_m": [
+   44.9,
+   25.6,
+   20.9
+  ],
+  "tris_lod0": 3688,
   "lods": 3,
   "hulls": 1,
   "slots": [
    "0:Trim",
-   "1:Breach",
+   "1:Cold",
    "2:Scorch",
    "3:Trim2",
-   "4:CyanRun",
-   "5:Stripe"
+   "4:Light",
+   "5:Nav",
+   "6:RimLight"
   ]
  },
  {
-  "asset": "SM_SP_Patrol_Wing",
+  "asset": "SM_KS_Hulk_Fore",
   "size_m": [
-   11.5,
-   12.6,
-   0.9
+   73.0,
+   25.4,
+   24.2
   ],
-  "tris_lod0": 384,
+  "tris_lod0": 3094,
   "lods": 3,
   "hulls": 1,
   "slots": [
    "0:Trim",
-   "1:Scorch",
-   "2:Trim2"
+   "1:Cold",
+   "2:Scorch",
+   "3:Trim2",
+   "4:Light",
+   "5:Nav",
+   "6:RimLight"
   ]
  },
  {
-  "asset": "SM_SP_Research_A",
+  "asset": "SM_KS_Hulk_Mid",
   "size_m": [
-   158.7,
-   57.3,
-   62.4
+   59.2,
+   25.6,
+   23.0
   ],
-  "tris_lod0": 8384,
-  "lods": 3,
-  "hulls": 2,
-  "slots": [
-   "0:Trim",
-   "1:Light",
-   "2:Nav",
-   "3:Run",
-   "4:Trim2",
-   "5:Scorch"
-  ]
- },
- {
-  "asset": "SM_SP_Research_B",
-  "size_m": [
-   108.0,
-   28.0,
-   41.3
-  ],
-  "tris_lod0": 10278,
+  "tris_lod0": 6012,
   "lods": 3,
   "hulls": 1,
   "slots": [
    "0:Trim",
-   "1:Light",
-   "2:Flicker",
-   "3:Run",
-   "4:Scorch",
-   "5:Trim2",
-   "6:Nav"
+   "1:Cold",
+   "2:Scorch",
+   "3:Trim2",
+   "4:Breach",
+   "5:Light",
+   "6:Nav",
+   "7:RimLight"
   ]
  },
  {
-  "asset": "SM_SP_RigRock",
+  "asset": "SM_KS_MoonShard_A",
   "size_m": [
-   66.4,
-   61.0,
-   43.4
+   260.7,
+   329.5,
+   210.7
   ],
-  "tris_lod0": 3013,
+  "tris_lod0": 23012,
   "lods": 3,
   "hulls": 1,
   "slots": [
-   "0:Cut",
-   "1:Rock"
+   "0:Seam",
+   "1:Rock",
+   "2:Strata",
+   "3:Strata2",
+   "4:CrackDim",
+   "5:CrackHot",
+   "6:Rim",
+   "7:FlareEmber",
+   "8:Recess"
+  ]
+ },
+ {
+  "asset": "SM_KS_MoonShard_B",
+  "size_m": [
+   143.0,
+   169.4,
+   155.4
+  ],
+  "tris_lod0": 23905,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Seam",
+   "1:Rock",
+   "2:Strata",
+   "3:Strata2",
+   "4:CrackDim",
+   "5:CrackHot",
+   "6:Rim",
+   "7:FlareEmber",
+   "8:Recess"
+  ]
+ },
+ {
+  "asset": "SM_KS_PicketRing",
+  "size_m": [
+   89.8,
+   132.9,
+   23.7
+  ],
+  "tris_lod0": 7858,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Nav",
+   "2:Scorch",
+   "3:Trim2",
+   "4:Light",
+   "5:Breach",
+   "6:CyanRun",
+   "7:Flicker",
+   "8:Stripe",
+   "9:FlareAmber",
+   "10:Insignia"
+  ]
+ },
+ {
+  "asset": "SM_KS_ScarRig",
+  "size_m": [
+   88.8,
+   82.8,
+   92.1
+  ],
+  "tris_lod0": 16120,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:DomRaw",
+   "1:Dom",
+   "2:Rock",
+   "3:Strobe",
+   "4:Work",
+   "5:Eye",
+   "6:Glow",
+   "7:Beacon"
   ]
  }
 ]

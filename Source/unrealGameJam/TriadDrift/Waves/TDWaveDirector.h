@@ -341,6 +341,33 @@ protected:
 	void HandleTakeStarted(FName SceneId, int32 TakeNumber);
 
 	UFUNCTION()
+	void HandleGamePhaseChanged(ETDGamePhase Phase);
+
+public:
+	// ENG-40 with T3's UTDTutorialPhases (agreed Nov 14): the lessons gate the pressure.
+	/** Wave-1 enemies' outgoing damage while the player is taught to evade. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0", ClampMax = "1"))
+	float EvadeDamageScale = 0.3f;
+	/** Gate the heavy contact and Command's withdrawal on T3's squad lesson (tests of the withdrawal itself turn it off). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial")
+	bool bWaitForLessons = true;
+	/** Wave 2's heavy contact waits for the squad lesson (Done), at most this long after the wave starts (never locks). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float GunshipHoldCapSeconds = 60.f;
+	/** Command's withdrawal waits for the squad lesson (Done), at most this long after it was due (never locks). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float WithdrawalWaitCapSeconds = 45.f;
+protected:
+	void RequestWithdrawal();
+	void UpdateTeachPressure();
+	bool IsTeachingSquad() const;
+	void SetSquadBoundaryRelease(bool bRelease);
+	float TutorialClock = 0.f;
+	float WithdrawalWait = 0.f;
+	bool bWithdrawalRequested = false;
+	bool bBoundaryReleased = false;
+
+	UFUNCTION()
 	void HandleEnemyDeath(UTDHealthComponent* Health, const FTDDamageInfo& KillingBlow);
 
 	UFUNCTION()

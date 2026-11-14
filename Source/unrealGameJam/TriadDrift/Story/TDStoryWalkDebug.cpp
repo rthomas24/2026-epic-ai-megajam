@@ -20,6 +20,7 @@
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 
 namespace TDStoryWalk
 {
@@ -97,6 +98,16 @@ namespace TDStoryWalk
 		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Story.Goto: no active objective"));
 	}
 
+	// The menu's CONTINUE runs UTDGameInstance::ContinueRun (TDFrontEndGameModes.cpp); this calls the same function for
+	// agents, whose injected keys never reach the menu's Slate focus.
+	static FAutoConsoleCommandWithWorldAndArgs CmdContinue(TEXT("TD.Story.Continue"),
+		TEXT("TD.Story.Continue: what the main menu's CONTINUE does (UTDGameInstance::ContinueRun)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
+		{
+			UTDGameInstance* GI = UTDGameInstance::Get(World);
+			const bool bOk = GI && GI->ContinueRun();
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Story.Continue: %s"), bOk ? TEXT("continuing the saved run") : TEXT("nothing to continue"));
+		}));
 	static FAutoConsoleCommandWithWorldAndArgs CmdGoto(TEXT("TD.Story.Goto"),
 		TEXT("TD.Story.Goto Trailhead <ObjectiveId> | Step | Survey: stand the on-foot pilot at a real course step (then press E for real)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Goto));

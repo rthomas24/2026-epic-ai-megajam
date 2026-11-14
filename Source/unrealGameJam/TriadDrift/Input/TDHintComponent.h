@@ -13,6 +13,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TriadDrift/Story/TDTutorialPhases.h"
 #include "Components/ActorComponent.h"
 #include "GameFramework/SaveGame.h"
 #include "TriadDrift/Core/TDTypes.h"
@@ -192,6 +193,14 @@ private:
 	ETDHint JustDone = ETDHint::None;
 	float JustDoneLeft = 0.f;
 	TArray<ETDHint> Queue;
+public:
+	/** T3's ENG-40 phases: a control lesson is shown only in its phase (Evade: Fly, Boost, Dodge; TargetAndFire: Fire,
+	 *  TargetCycle; SquadSystems: Switch, Power). Other hints (drift, hyperdrive, abilities) any time; no phase = today's order. */
+	static bool FitsTeachPhase(ETDHint Hint, ETDTeachPhase Phase);
+	/** Tests: this phase instead of UTDTutorialPhases' (None = use the real one). */
+	TOptional<ETDTeachPhase> TeachPhaseOverrideForTests;
+	ETDTeachPhase CurrentTeachPhase() const;
+private:
 	ETDHint Current = ETDHint::None;
 	float CurrentAge = 0.f;
 	float Gap = 0.f;

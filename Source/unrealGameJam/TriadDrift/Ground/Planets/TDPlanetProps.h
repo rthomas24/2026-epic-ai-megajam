@@ -379,6 +379,13 @@ public:
 	/** The waves and the transfer fraction each drops in at (same order). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TArray<TObjectPtr<ATDEncounterVolume>> Waves;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TArray<float> WaveAt;
+	/** T3's live walk (Nov 13): Cinematic 03 talks for ~45 s over the fight. The first half waits (no waves, no progress)
+	 *  until this line starts or has already played this run, the scene isn't playing (skipped, or none), or HoldMaxSeconds
+	 *  pass. None = no hold. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FName HoldUntilLine = TEXT("C3_Moss_Company");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s")) float HoldMaxSeconds = 60.f;
+	/** Held for the cinematic (the meter shows, nothing moves). */
+	bool IsHolding() const { return bHolding; }
 	/** The objective line; {0} = the whole percent. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FText RunningText;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FText PausedText;
@@ -412,6 +419,9 @@ private:
 	float Progress = 0.f;
 	bool bPaused = false;
 	bool bRunning = false;
+	bool bHolding = false;
+	float HoldElapsed = 0.f;
+	bool ShouldRelease() const;
 	int32 ShownPercent = -1;
 	bool bShownPaused = false;
 	TArray<bool> Fired;

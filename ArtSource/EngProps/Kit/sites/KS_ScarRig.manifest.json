@@ -1,0 +1,22 @@
+{
+ "site": "KS_ScarRig",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Space/BP_KS_ScarRig",
+ "about": "Survey Scar: a Null survey rig clamped across a split asteroid (about 90 m); the canyon runs along local Y.",
+ "pieces": [
+  {
+   "name": "P",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_ScarRig",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": -128.0,
+   "scale": [
+    2.0,
+    2.0,
+    2.0
+   ]
+  }
+ ]
+}

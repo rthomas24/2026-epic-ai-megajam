@@ -307,6 +307,16 @@ TArray<FIntPoint> UTDSettingsSubsystem::GetSupportedResolutions() const
 
 void UTDSettingsSubsystem::SetSubtitleSize(ETDSubtitleSize Size) { Settings.SubtitleSize = Size; Changed(); }
 
+void UTDSettingsSubsystem::SetSubtitlesEnabled(bool bEnabled) { Settings.bSubtitles = bEnabled; Changed(); }
+
+bool UTDSettingsSubsystem::AreSubtitlesOn(const UObject* WorldContext)
+{
+	const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+	const UGameInstance* GI = World ? World->GetGameInstance() : nullptr;
+	const UTDSettingsSubsystem* S = GI ? GI->GetSubsystem<UTDSettingsSubsystem>() : nullptr;
+	return !S || S->Settings.bSubtitles;
+}
+
 float UTDSettingsSubsystem::SubtitleScaleFor(ETDSubtitleSize Size)
 {
 	switch (Size)

@@ -1,0 +1,1144 @@
+{
+ "status": "ok",
+ "scene_units": {
+  "system": "METRIC",
+  "scale_length": 1.0,
+  "length_unit": "METERS"
+ },
+ "objects": [
+  {
+   "name": "SM_KS_PicketRing",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    8983.5,
+    13290.0,
+    2366.92
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Breach",
+    "M_Kit_CyanRun",
+    "M_Kit_Flicker",
+    "M_Kit_Light",
+    "M_Kit_Nav",
+    "M_Kit_Scorch",
+    "M_Kit_Stripe",
+    "M_Kit_Trim2"
+   ],
+   "verts": 4335,
+   "faces": 3912,
+   "tris": 7842,
+   "quads": 3904,
+   "ngons": 7,
+   "boundary_edges": 397,
+   "non_manifold_edges": 19,
+   "wire_edges": 0,
+   "flipped_winding_edges": 2,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 0.998,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 2328,
+    "1": 1,
+    "2": 80,
+    "3": 54,
+    "4": 42,
+    "5": 108,
+    "6": 895,
+    "7": 26,
+    "8": 378
+   },
+   "local_bbox_min": [
+    5.74023,
+    -64.95198,
+    -6.4692
+   ],
+   "local_bbox_max": [
+    95.57524,
+    67.948,
+    17.2
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_KS_PicketRing_00",
+   "type": "MESH",
+   "parent": "SM_KS_PicketRing",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    9253.09,
+    12403.94,
+    2120.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 12,
+   "faces": 18,
+   "tris": 18,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 1,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 18
+   },
+   "local_bbox_min": [
+    18.46909,
+    -62.01971,
+    -4.0
+   ],
+   "local_bbox_max": [
+    111.0,
+    62.01971,
+    17.2
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_KS_Hulk_Fore",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    7200.0,
+    2408.0,
+    2416.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Cold",
+    "M_Kit_Light",
+    "M_Kit_Nav",
+    "M_Kit_RimLight",
+    "M_Kit_Scorch",
+    "M_Kit_Trim2"
+   ],
+   "verts": 950,
+   "faces": 782,
+   "tris": 1578,
+   "quads": 775,
+   "ngons": 7,
+   "boundary_edges": 190,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 296,
+    "1": 108,
+    "2": 3,
+    "3": 54,
+    "4": 2,
+    "5": 216,
+    "6": 103
+   },
+   "local_bbox_min": [
+    -7.0,
+    -12.04,
+    -8.96
+   ],
+   "local_bbox_max": [
+    65.0,
+    12.04,
+    15.2
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_KS_Hulk_Fore_00",
+   "type": "MESH",
+   "parent": "SM_KS_Hulk_Fore",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    7200.0,
+    2400.0,
+    2050.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 16,
+   "faces": 28,
+   "tris": 28,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 28
+   },
+   "local_bbox_min": [
+    -7.0,
+    -12.0,
+    -8.8
+   ],
+   "local_bbox_max": [
+    65.0,
+    12.0,
+    11.7
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_KS_Hulk_Mid",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    5800.0,
+    2558.0,
+    2266.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Breach",
+    "M_Kit_Cold",
+    "M_Kit_Light",
+    "M_Kit_Nav",
+    "M_Kit_RimLight",
+    "M_Kit_Scorch",
+    "M_Kit_Trim2"
+   ],
+   "verts": 1692,
+   "faces": 1476,
+   "tris": 2980,
+   "quads": 1462,
+   "ngons": 14,
+   "boundary_edges": 208,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 657,
+    "1": 1,
+    "2": 108,
+    "3": 5,
+    "4": 54,
+    "5": 2,
+    "6": 433,
+    "7": 216
+   },
+   "local_bbox_min": [
+    -29.0,
+    -13.5,
+    -8.96
+   ],
+   "local_bbox_max": [
+    29.0,
+    12.08,
+    13.7
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_KS_Hulk_Mid_00",
+   "type": "MESH",
+   "parent": "SM_KS_Hulk_Mid",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    5800.0,
+    2400.0,
+    1900.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 14,
+   "faces": 24,
+   "tris": 24,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 24
+   },
+   "local_bbox_min": [
+    -29.0,
+    -12.0,
+    -8.8
+   ],
+   "local_bbox_max": [
+    29.0,
+    12.0,
+    10.2
+   ],
+   "origin_placement": "center"
+  },
+  {
+   "name": "SM_KS_Hulk_Aft",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    4300.0,
+    2559.31,
+    1991.85
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Cold",
+    "M_Kit_Light",
+    "M_Kit_Nav",
+    "M_Kit_RimLight",
+    "M_Kit_Scorch",
+    "M_Kit_Trim2"
+   ],
+   "verts": 1260,
+   "faces": 1079,
+   "tris": 2172,
+   "quads": 1072,
+   "ngons": 7,
+   "boundary_edges": 238,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 318,
+    "1": 108,
+    "2": 3,
+    "3": 54,
+    "4": 2,
+    "5": 216,
+    "6": 378
+   },
+   "local_bbox_min": [
+    -21.0,
+    -12.79655,
+    -8.96
+   ],
+   "local_bbox_max": [
+    22.0,
+    12.79655,
+    10.95848
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_KS_Hulk_Aft_00",
+   "type": "MESH",
+   "parent": "SM_KS_Hulk_Aft",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    5500.0,
+    2400.0,
+    1760.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -33.0,
+    -12.0,
+    -9.6
+   ],
+   "local_bbox_max": [
+    22.0,
+    12.0,
+    8.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_KS_ScarRig",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    8876.01,
+    8276.74,
+    9208.73
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Beacon",
+    "M_Kit_Dom",
+    "M_Kit_DomRaw",
+    "M_Kit_Eye",
+    "M_Kit_Glow",
+    "M_Kit_Rock",
+    "M_Kit_Strobe",
+    "M_Kit_Work"
+   ],
+   "verts": 8491,
+   "faces": 8087,
+   "tris": 16120,
+   "quads": 7053,
+   "ngons": 471,
+   "boundary_edges": 674,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 343,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 54,
+    "1": 2592,
+    "2": 1696,
+    "3": 12,
+    "4": 8,
+    "5": 3239,
+    "6": 54,
+    "7": 432
+   },
+   "local_bbox_min": [
+    -45.32343,
+    -42.78399,
+    -36.08729
+   ],
+   "local_bbox_max": [
+    43.43673,
+    39.98341,
+    56.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_KS_ScarRig_00",
+   "type": "MESH",
+   "parent": "SM_KS_ScarRig",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    8600.0,
+    7600.0,
+    7800.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Beacon"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -43.0,
+    -38.0,
+    -32.0
+   ],
+   "local_bbox_max": [
+    43.0,
+    38.0,
+    46.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_KS_MoonShard_A",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    26065.55,
+    32948.75,
+    21071.82
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_CrackDim",
+    "M_Kit_CrackHot",
+    "M_Kit_Rim",
+    "M_Kit_Rock",
+    "M_Kit_Seam",
+    "M_Kit_Strata",
+    "M_Kit_Strata2"
+   ],
+   "verts": 14400,
+   "faces": 11541,
+   "tris": 23012,
+   "quads": 8481,
+   "ngons": 1328,
+   "boundary_edges": 4090,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 143,
+   "loose_verts": 6,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 597,
+    "1": 38,
+    "2": 596,
+    "3": 7847,
+    "4": 256,
+    "5": 1125,
+    "6": 1082
+   },
+   "local_bbox_min": [
+    -197.30547,
+    -158.32051,
+    -102.99777
+   ],
+   "local_bbox_max": [
+    63.35,
+    171.16698,
+    107.72044
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_KS_MoonShard_A_00",
+   "type": "MESH",
+   "parent": "SM_KS_MoonShard_A",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    24300.0,
+    30000.0,
+    18000.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_CrackDim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -180.0,
+    -150.0,
+    -90.0
+   ],
+   "local_bbox_max": [
+    63.0,
+    150.0,
+    90.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_KS_MoonShard_B",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    14302.14,
+    16943.45,
+    15543.1
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_CrackDim",
+    "M_Kit_CrackHot",
+    "M_Kit_Rim",
+    "M_Kit_Rock",
+    "M_Kit_Seam",
+    "M_Kit_Strata",
+    "M_Kit_Strata2"
+   ],
+   "verts": 13522,
+   "faces": 11989,
+   "tris": 23905,
+   "quads": 9030,
+   "ngons": 1290,
+   "boundary_edges": 2353,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 181,
+   "loose_verts": 2,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 299,
+    "1": 26,
+    "2": 712,
+    "3": 8121,
+    "4": 126,
+    "5": 1508,
+    "6": 1197
+   },
+   "local_bbox_min": [
+    -107.67143,
+    -83.27364,
+    -77.36665
+   ],
+   "local_bbox_max": [
+    35.35,
+    86.16084,
+    78.06433
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_KS_MoonShard_B_00",
+   "type": "MESH",
+   "parent": "SM_KS_MoonShard_B",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    13500.0,
+    16000.0,
+    14000.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_CrackDim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -100.0,
+    -80.0,
+    -70.0
+   ],
+   "local_bbox_max": [
+    35.0,
+    80.0,
+    70.0
+   ],
+   "origin_placement": "custom"
+  }
+ ],
+ "totals": {
+  "objects": 14,
+  "tris": 77727,
+  "errors": 4,
+  "warnings": 4
+ },
+ "issues": [
+  {
+   "severity": "warn",
+   "object": "SM_KS_PicketRing",
+   "message": "19 non-manifold edges (edges shared by 3+ faces)"
+  },
+  {
+   "severity": "error",
+   "object": "SM_KS_PicketRing",
+   "message": "2 edges between faces with opposite winding; recalculate normals outside"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_PicketRing",
+   "message": "7 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_PicketRing",
+   "message": "397 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "warn",
+   "object": "UCX_SM_KS_PicketRing_00",
+   "message": "Loose geometry: 1 verts, 0 wire edges; delete loose"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_Hulk_Fore",
+   "message": "7 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_Hulk_Fore",
+   "message": "190 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_Hulk_Mid",
+   "message": "14 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_Hulk_Mid",
+   "message": "208 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_Hulk_Aft",
+   "message": "7 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_Hulk_Aft",
+   "message": "238 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "error",
+   "object": "SM_KS_ScarRig",
+   "message": "343 edges between faces with opposite winding; recalculate normals outside"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_ScarRig",
+   "message": "471 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_ScarRig",
+   "message": "674 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "error",
+   "object": "SM_KS_MoonShard_A",
+   "message": "143 edges between faces with opposite winding; recalculate normals outside"
+  },
+  {
+   "severity": "warn",
+   "object": "SM_KS_MoonShard_A",
+   "message": "Loose geometry: 6 verts, 0 wire edges; delete loose"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_MoonShard_A",
+   "message": "1328 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_MoonShard_A",
+   "message": "4090 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "error",
+   "object": "SM_KS_MoonShard_B",
+   "message": "181 edges between faces with opposite winding; recalculate normals outside"
+  },
+  {
+   "severity": "warn",
+   "object": "SM_KS_MoonShard_B",
+   "message": "Loose geometry: 2 verts, 0 wire edges; delete loose"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_MoonShard_B",
+   "message": "1290 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_KS_MoonShard_B",
+   "message": "2353 open boundary edges (mesh is not closed); OK for planes/cards"
+  }
+ ]
+}
