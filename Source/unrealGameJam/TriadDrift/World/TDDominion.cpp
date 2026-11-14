@@ -1,5 +1,8 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDDominion.h"
+#include "TimerManager.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 #include "GameFramework/PlayerController.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
@@ -122,6 +125,13 @@ ATDDominion::ATDDominion()
 
 	HangarPoint = CreateDefaultSubobject<USceneComponent>(TEXT("Hangar"));
 	HangarPoint->SetupAttachment(Root);
+
+	// The effects builder's turret lock telegraph (Lead, Nov 14): a hard reference from the class default so it cooks.
+	if (FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Turret_LockTelegraph")))
+	{
+		static ConstructorHelpers::FObjectFinder<UNiagaraSystem> LockFX(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Turret_LockTelegraph.NS_TD_Turret_LockTelegraph"));
+		if (LockFX.Succeeded()) { TurretLockFX = LockFX.Object; }
+	}
 
 	TurretGuns.Kind = ETDEnemyAttack::Guns;
 	TurretGuns.WeaponId = TDEnemyWeaponIds::HeavyBolt;
@@ -984,6 +994,7 @@ void ATDDominion::BuildParts()
 		const FTDDifficultyScale Difficulty = UTDDifficultySettings::GetScale();
 		T->Init(TurretGuns, TurretHull * Difficulty.EnemyHull);
 		T->SetDamageMultiplier(Difficulty.EnemyDamage * HullTurretDamageScale);	// Lead (Nov 14): -40 % per hit
+		T->OnTelegraphStarted.AddUniqueDynamic(this, &ATDDominion::HandleTurretTelegraph);	// the lock telegraph at the muzzle
 		T->SetActorScale3D(FVector(4.f));
 		Into.Add(T);
 	};
@@ -1915,4 +1926,31 @@ void ATDDominion::TickGeneratorPassHint(float /*DeltaSeconds*/)
 			break;
 		}
 	}
+}
+
+// ------------------------------------------------------------------------------------------------ turret lock telegraph
+
+void ATDDominion::HandleTurretTelegraph(ATDEnemyTurret* Turret)
+{
+	if (!Turret || !TurretLockFX || !GetWorld())
+	{
+		return;
+	}
+	// One shot at the muzzle, +X toward the target, started 1.0 s before the burst (it snaps white-orange at 0.95 s).
+	const float Delay = FMath::Max(0.f, Turret->Guns.TelegraphSeconds - 1.f);
+	TWeakObjectPtr<ATDEnemyTurret> Weak(Turret);
+	TWeakObjectPtr<ATDDominion> Self(this);
+	auto Play = [Weak, Self]()
+	{
+		ATDEnemyTurret* T = Weak.Get();
+		ATDDominion* D = Self.Get();
+		if (!T || !D || !D->TurretLockFX || !T->IsAlive() || T->IsStunned()) { return; }
+		const AActor* Target = T->GetTarget();
+		const FVector Loc = T->GetActorLocation();
+		const FVector Aim = Target ? (Target->GetActorLocation() - Loc).GetSafeNormal() : T->GetActorForwardVector();
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(D, D->TurretLockFX, Loc + Aim * 400.f, Aim.Rotation(), FVector(1.f), true, true, ENCPoolMethod::AutoRelease);
+	};
+	if (Delay <= 0.02f) { Play(); return; }
+	FTimerHandle Handle;
+	GetWorld()->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateLambda(Play), Delay, false);
 }

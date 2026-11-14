@@ -495,6 +495,11 @@ public:
 	/** Distance (cm) from WorldPoint to the reactor's surface (its bounds sphere); a large value without a reactor. */
 	float GetReactorSurfaceDistance(const FVector& WorldPoint) const;
 protected:
+	UFUNCTION()
+	void HandleTurretTelegraph(class ATDEnemyTurret* Turret);
+	/** The effects builder's NS_TD_Turret_LockTelegraph (class default: a hard reference, so it cooks). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion")
+	TObjectPtr<class UNiagaraSystem> TurretLockFX;
 	void TickReactorHold(float DeltaSeconds);
 	// Lead (Nov 14, T7 killed all four by hand: throttling down was what made it work): after two fast passes on a
 	// generator that did not kill it, a wingman says to throttle back, once.
