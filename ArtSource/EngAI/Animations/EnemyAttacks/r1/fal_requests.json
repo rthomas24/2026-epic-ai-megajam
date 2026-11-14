@@ -1,0 +1,306 @@
+{
+ "total_generations": 20,
+ "total_cost_usd": 1.6,
+ "requests": [
+  {
+   "name": "gruntA_s4101",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d875-f12f-7001-aba1-6a665db086f4",
+   "submitted_approx": "2026-11-14 ~05:10 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A soldier charges forward at a heavy, grounded run: torso leaning far forward, head down, right shoulder dropped low and pushed ahead as if about to ram through a door, arms pumping close to the body. Short, powerful, stomping strides with knees bent and weight low; his feet stay close to the ground and one foot is always on the floor, he never leaps. He keeps running straight ahead at a steady pace.",
+    "seed": 4101,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "gruntA_s4102",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d875-f087-79c0-8b19-b56f8089c690",
+   "submitted_approx": "2026-11-14 ~05:10 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A soldier charges forward at a heavy, grounded run: torso leaning far forward, head down, right shoulder dropped low and pushed ahead as if about to ram through a door, arms pumping close to the body. Short, powerful, stomping strides with knees bent and weight low; his feet stay close to the ground and one foot is always on the floor, he never leaps. He keeps running straight ahead at a steady pace.",
+    "seed": 4102,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "gruntB_s4201",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d875-f057-7432-bdf1-5b911f43e0f1",
+   "submitted_approx": "2026-11-14 ~05:10 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A heavy brute rushes straight ahead in a low, aggressive jog, bent forward at the waist with his right shoulder dropped and leading, fists close to his chest. Quick, short, heavy steps that stay low to the ground, always keeping one foot planted, no jumping or bounding. Steady speed, running in a straight line.",
+    "seed": 4201,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "gruntB_s4202",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d875-f067-7972-8140-9ca9de8a7cba",
+   "submitted_approx": "2026-11-14 ~05:10 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A heavy brute rushes straight ahead in a low, aggressive jog, bent forward at the waist with his right shoulder dropped and leading, fists close to his chest. Quick, short, heavy steps that stay low to the ground, always keeping one foot planted, no jumping or bounding. Steady speed, running in a straight line.",
+    "seed": 4202,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "heavyA_s5101",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d875-f098-7bb3-81d9-3d86c0852f0a",
+   "submitted_approx": "2026-11-14 ~05:10 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A big armored soldier with a shield strapped to his left forearm stands in a wide stance. He crouches and pulls the left arm back across his chest, coiling his body, then steps forward with his left foot and drives his left forearm and shoulder forward hard, slamming the shield into an enemy in front of him with all his body weight. He holds the impact for a moment, then pulls back and returns to a guarded stance with the shield arm raised in front of him.",
+    "seed": 5101,
+    "duration": 2.5,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "heavyA_s5102",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d875-f086-7192-813e-f47959983b7c",
+   "submitted_approx": "2026-11-14 ~05:10 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A big armored soldier with a shield strapped to his left forearm stands in a wide stance. He crouches and pulls the left arm back across his chest, coiling his body, then steps forward with his left foot and drives his left forearm and shoulder forward hard, slamming the shield into an enemy in front of him with all his body weight. He holds the impact for a moment, then pulls back and returns to a guarded stance with the shield arm raised in front of him.",
+    "seed": 5102,
+    "duration": 2.5,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "heavyB_s5201",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d875-f136-7222-b56a-dfb21cfd3e7f",
+   "submitted_approx": "2026-11-14 ~05:10 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A heavy armored man holds his left forearm up in front of his chest like a shield. He sinks low and twists his torso away, then lunges one short step forward and rams his left shoulder and forearm straight ahead in a powerful shield bash. His right foot stays planted behind him. After the hit he straightens up slowly and steps back into his guard.",
+    "seed": 5201,
+    "duration": 2.5,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": "A_NullHeavy_ShieldBash"
+  },
+  {
+   "name": "heavyB_s5202",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d875-f073-7311-8ff5-b97d83ce7e0f",
+   "submitted_approx": "2026-11-14 ~05:10 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A heavy armored man holds his left forearm up in front of his chest like a shield. He sinks low and twists his torso away, then lunges one short step forward and rams his left shoulder and forearm straight ahead in a powerful shield bash. His right foot stays planted behind him. After the hit he straightens up slowly and steps back into his guard.",
+    "seed": 5202,
+    "duration": 2.5,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "slamA_s6101",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d876-0dec-7b73-83eb-723f5cbf7919",
+   "submitted_approx": "2026-11-14 ~05:10 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A huge, heavy armored giant stands with his feet planted wide. He raises both arms high above his head with his fists clasped together, arching his back and rising onto his toes, then hunches forward and brings both fists down with tremendous force, smashing the ground in front of him and dropping into a deep squat. He stays down for a moment, then slowly and heavily rises back to a standing stance. His feet stay planted, no stepping.",
+    "seed": 6101,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "slamA_s6102",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d876-0e07-7f62-8a75-d349f42f9550",
+   "submitted_approx": "2026-11-14 ~05:10 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A huge, heavy armored giant stands with his feet planted wide. He raises both arms high above his head with his fists clasped together, arching his back and rising onto his toes, then hunches forward and brings both fists down with tremendous force, smashing the ground in front of him and dropping into a deep squat. He stays down for a moment, then slowly and heavily rises back to a standing stance. His feet stay planted, no stepping.",
+    "seed": 6102,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "slamB_s6201",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d876-0e35-7003-a9b7-7709c41e1a75",
+   "submitted_approx": "2026-11-14 ~05:10 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A massive brute leans back and lifts both hands together high overhead like swinging a giant hammer, holds the coiled pose, then crashes down two-handed onto the floor in front of him, bending his knees deeply and bending forward so both fists hit the ground at the same time. After the impact he pushes up off the ground and slowly stands up again. His feet stay planted wide the whole time.",
+    "seed": 6201,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "slamB_s6202",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d876-0e35-7142-858e-d2f7aec57bf2",
+   "submitted_approx": "2026-11-14 ~05:10 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A massive brute leans back and lifts both hands together high overhead like swinging a giant hammer, holds the coiled pose, then crashes down two-handed onto the floor in front of him, bending his knees deeply and bending forward so both fists hit the ground at the same time. After the impact he pushes up off the ground and slowly stands up again. His feet stay planted wide the whole time.",
+    "seed": 6202,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "gruntC_s4701",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d879-4159-7e11-a904-87e508af42f0",
+   "submitted_approx": "2026-11-14 ~05:13 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "An aggressive soldier charges forward in a fast, low, driving run with quick, short, choppy steps, like a football lineman driving forward: torso leaning forward, right shoulder dropped and pushed ahead, elbows tucked, fists up. His feet stay low and one foot is always touching the floor; he never jumps or bounds. Constant speed, straight line.",
+    "seed": 4701,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "gruntC_s4702",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d879-4185-7713-8f7c-ada124aaf50e",
+   "submitted_approx": "2026-11-14 ~05:13 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "An aggressive soldier charges forward in a fast, low, driving run with quick, short, choppy steps, like a football lineman driving forward: torso leaning forward, right shoulder dropped and pushed ahead, elbows tucked, fists up. His feet stay low and one foot is always touching the floor; he never jumps or bounds. Constant speed, straight line.",
+    "seed": 4702,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "gruntD_s4801",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d879-4194-7f00-abe3-16889beaced3",
+   "submitted_approx": "2026-11-14 ~05:13 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A heavy soldier runs forward at a steady, fast jog with his weight low and his upper body leaning forward, the right shoulder dropped low and leading as if bracing to body-check an enemy, arms bent and swinging tight. Heavy, grounded footfalls with short strides; he keeps contact with the ground at every moment and never leaps. Running straight ahead.",
+    "seed": 4801,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": "A_NullGrunt_Charge (upper body only)"
+  },
+  {
+   "name": "gruntD_s4802",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d879-4206-7fe3-96e9-0569b1880b5c",
+   "submitted_approx": "2026-11-14 ~05:13 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A heavy soldier runs forward at a steady, fast jog with his weight low and his upper body leaning forward, the right shoulder dropped low and leading as if bracing to body-check an enemy, arms bent and swinging tight. Heavy, grounded footfalls with short strides; he keeps contact with the ground at every moment and never leaps. Running straight ahead.",
+    "seed": 4802,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "slamC_s6301",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d889-45dc-7063-8f1e-1940afa0afdb",
+   "submitted_approx": "2026-11-14 ~05:30 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A giant armored brute stands tall with his feet planted wide. He lifts both arms straight up high above his head with his hands locked together, leaning back slightly, then swings both arms down in front of him in one huge hammer blow, bending his knees into a half squat with his back kept fairly straight and his chest up, his locked fists stopping at knee height in front of him as if pounding a shockwave into the ground. He holds the pose for a moment, then straightens up heavily. His feet stay planted, no stepping.",
+    "seed": 6301,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "slamC_s6302",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d889-463f-77f3-a31a-e2ba4faf0e31",
+   "submitted_approx": "2026-11-14 ~05:30 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A giant armored brute stands tall with his feet planted wide. He lifts both arms straight up high above his head with his hands locked together, leaning back slightly, then swings both arms down in front of him in one huge hammer blow, bending his knees into a half squat with his back kept fairly straight and his chest up, his locked fists stopping at knee height in front of him as if pounding a shockwave into the ground. He holds the pose for a moment, then straightens up heavily. His feet stay planted, no stepping.",
+    "seed": 6302,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": "A_Warden_GroundSlam"
+  },
+  {
+   "name": "slamD_s6401",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d889-460b-77f2-b53e-916ce1063722",
+   "submitted_approx": "2026-11-14 ~05:30 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A huge, heavy warrior raises both fists together high over his head, then brings them crashing straight down in front of his body with all his weight, dropping into a wide sumo squat with his torso upright, the fists ending just above his knees. He stays low for a moment as if the ground shook, then slowly rises back up to standing. His feet stay planted wide the whole time.",
+    "seed": 6401,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  },
+  {
+   "name": "slamD_s6402",
+   "endpoint_id": "fal-ai/hunyuan-motion",
+   "request_id": "01a1d889-4644-7fb2-9493-8aeaa4eb1f89",
+   "submitted_approx": "2026-11-14 ~05:30 UTC",
+   "cost_usd": 0.08,
+   "input": {
+    "prompt": "A huge, heavy warrior raises both fists together high over his head, then brings them crashing straight down in front of his body with all his weight, dropping into a wide sumo squat with his torso upright, the fists ending just above his knees. He stays low for a moment as if the ground shook, then slowly rises back up to standing. His feet stay planted wide the whole time.",
+    "seed": 6402,
+    "duration": 3,
+    "guidance_scale": 7,
+    "output_format": "fbx"
+   },
+   "picked_for": null
+  }
+ ]
+}

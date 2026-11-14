@@ -26,4 +26,18 @@ The menu passed its input tests: closing Settings returned focus to the right bu
 
 UI changed the outline drawing. Engineering captured the packaged game immediately after Escape and a simulated controller B press, before any further navigation. At 720p, 1080p and ultrawide, only Settings was outlined. It stayed selected, cleared behind the reopened Settings page, and skipped disabled Continue. We checked those images alongside the passing tests before the implementation reached main. The production menu assignment and physical-device playtest remain separate steps. [Packaged review images](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/i71-focus-662b8c04-dev).
 
-Drafted November 13 from the [team development log](../../../DEVLOG.md). The full campaign playthrough and final submission build are still ahead of this account.
+## A package, a recording, and two different kinds of evidence
+
+On November 14, engineering released Shipping build `6fe3e90f`, a 938,981,901-byte ZIP. The full engineering suite had passed 870 tests. An agent had traversed the campaign in the engineering build, using labelled debug moves for some stages. The package itself had a shorter launch check. We kept those results separate: neither established a complete human playthrough of the packaged game.
+
+Nicholas asked to see and hear the current game. We verified the released ZIP, extracted it to an isolated folder and recorded the opening and early combat. Our first window-capture method kept returning the menu image while the game had already moved on. That take was rejected. The next take captured the foreground game area with audio from the same game process. It produced 200 seconds of actual play, with no replacement soundtrack. We retained the recorder's 70-millisecond packet-timestamp gap in the report rather than treating the video as a precise music-loop test. [Watch the recording and read its limits](LatestGameplayDemo01/README.md).
+
+Story's review then found a gap that the build tests had not addressed: the opening still selected five legacy narrator captions. Updating the approved dialogue table would not fix the scene if the scene continued to select a different track. We sent the actual timestamps to engineering alongside the existing script-correction assignment. The captured build remains useful evidence of what played, including what still needs fixing.
+
+## Keeping a supplied track intact until its scene is ready
+
+Nicholas selected separate tracks for Cinder exploration and combat, and the original Cathedral Pulse for the core chamber. We preserved the supplied originals, decoded complete stereo masters and imported the SoundWaves. Separate Unreal processes reopened them and exported their samples for comparison. The two Cinder tracks retained their full 150.0- and 148.8-second durations; the core track retained 69.56 seconds. The check did not choose a new loop, entry offset or final mix.
+
+The next dependency was the game's event contract: which scene owns the score, when dialogue yields it, and when the reactor fight gives way to escape. Engineering agreed to include the new music folders in its next normal cook and supply the actual phase events. Those agreements are recorded as pending work, not as music already heard in the campaign. [Cinder verification](../../../ArtSource/Audio/CinderMusic01/native-checks) · [Core verification](../../../ArtSource/Audio/DominionCore01/native-checks).
+
+Updated November 14 from the [team development log](../../../DEVLOG.md), published capture evidence and the coordination record. The 200-second review recording is not the final 30–60-second submission trailer. A complete human campaign playthrough, matched music/UI verification, final credits/source reconciliation and the final submission build remain open. This draft does not certify unresolved asset rights or final presentation approval.
