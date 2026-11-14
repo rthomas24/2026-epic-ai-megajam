@@ -272,6 +272,7 @@ void UTDAtmosphereEntryComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 
 bool UTDAtmosphereEntryComponent::IsStoryHoldingEntry() const
 {
+	if (UTDStorySubsystem::IsMustHearSequencePlaying(this)) { return true; } // T3's rule (Aftermath and any later must-hear)
 	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
 	if (!Story) { return false; }
 	for (const FName& Id : HoldEntryForSequences)

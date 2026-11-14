@@ -479,6 +479,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hyperdrive")
 	FTDFXCue HyperdriveStreaks;
 
+	/** ENG-38 exposure ramp (M_TD_PP_DescentWhite, the effects builder): a post-process material on the flown ship's camera
+	 *  whose scalar "Weight" follows the white cover, entry and exit, so the frame brightens into the white and out of it.
+	 *  Not applied (no cost) while the cover is off. Halved under reduced motion. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Descent")
+	TSoftObjectPtr<class UMaterialInterface> DescentWhitePP;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hyperdrive")
 	FTDFXCue HyperdriveDropOut;
 

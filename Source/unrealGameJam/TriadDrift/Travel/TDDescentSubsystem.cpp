@@ -1,6 +1,7 @@
 // Triad Drift - planetary descent (ENG-38 stage 1). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
+#include "Camera/CameraComponent.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
@@ -168,6 +169,7 @@ void UTDDescentSubsystem::Tick(float DeltaTime)
 	TickHeat(FMath::Min(DeltaTime, 0.1f));
 	TickCloudDeck();
 	TickGlide(FMath::Min(DeltaTime, 0.1f));
+	TickExposureRamp();
 	if (!IsTiming()) { return; }
 	const double Now = FPlatformTime::Seconds();
 	LongestFrame = FMath::Max(LongestFrame, Now - LastTickTime);
@@ -488,12 +490,24 @@ void UTDDescentSubsystem::TickCloudDeck()
 	}
 	LastShipDeckSide = Side;
 	LastDeckShip = Ship;
-	const bool bNear = FMath::Abs(Rel) < CloudDeckBand;
+	// The glide's pass through the deck (the Lead, Nov 14): 1-2 s inside cloud - the wisps ride the camera (full screen),
+	// with User.Inside01 (1 at the deck's middle) and User.Planet (0 Verdance, 1 Cinder) for the look (the effects builder's).
+	const bool bGlidePass = IsGliding() && GlideShip.Get() == Ship;
+	const float Band = bGlidePass ? GlideDeckPassBand : CloudDeckBand;
+	const bool bNear = FMath::Abs(Rel) < Band;
 	if (bNear && !CloudWisps.IsValid() && FX)
 	{
 		UAudioComponent* NoAudio = nullptr;
-		CloudWisps = UTDStatics::PlayCueAttachedLoop(FX->CloudWisps, Ship->GetRootComponent(), NAME_None, NoAudio);
+		USceneComponent* Attach = Ship->GetRootComponent();
+		if (bGlidePass)
+		{
+			if (UCameraComponent* Cam = Ship->FindComponentByClass<UCameraComponent>()) { Attach = Cam; }
+		}
+		CloudWisps = UTDStatics::PlayCueAttachedLoop(FX->CloudWisps, Attach, NAME_None, NoAudio);
+		if (UNiagaraComponent* W = CloudWisps.Get()) { W->SetVariableFloat(TEXT("User.Planet"), Deck->GetPlanet() == ETDDestination::Cinder ? 1.f : 0.f); }
+		if (bGlidePass) { ++GlideDeckPasses; }
 	}
+	if (UNiagaraComponent* W = CloudWisps.Get()) { W->SetVariableFloat(TEXT("User.Inside01"), FMath::Clamp(1.f - FMath::Abs(Rel) / Band, 0.f, 1.f)); }
 	else if (!bNear && CloudWisps.IsValid())
 	{
 		CloudWisps->Deactivate();
@@ -607,7 +621,7 @@ bool UTDDescentSubsystem::IsGlideEnabled() { return CVarTDDescentGlide.GetValueO
 float UTDDescentSubsystem::FindDeckZ(UWorld* World)
 {
 	if (!World) { return 0.f; }
-	for (TActorIterator<ATDCloudDeck> It(World); It; ++It) { return It->GetActorLocation().Z; }
+	for (TActorIterator<ATDCloudDeck> It(World); It; ++It) { if (It->IsBuilt()) { return It->GetActorLocation().Z; } } // unbuilt: not placed yet
 	return 0.f;
 }
 
@@ -690,6 +704,9 @@ void UTDDescentSubsystem::TickGlide(float Dt)
 	{
 		GlideLevelTime += Dt;
 		Move->SetPitchHold(0.f, 60.f);
+		// The speed eases from the glide's to cruise over the level-off (no drop when the override goes).
+		const float A = FMath::Clamp(GlideLevelTime / GlideHandBackSeconds, 0.f, 1.f);
+		Move->SetSpeedOverrideFor(GlideOverride, FMath::Lerp(GlideSpeed, Move->GetFlightTuning().CruiseSpeed, A * A * (3.f - 2.f * A)), GlideSteering);
 		if (GlideLevelTime >= GlideHandBackSeconds) { EndGlide(TEXT("handed back")); }
 	}
 }
@@ -727,6 +744,39 @@ bool UTDDescentSubsystem::PlaceDeparture(UWorld* World)
 	bDepartPending = false;
 	Mark(*FString::Printf(TEXT("departure placed at lat %.1f lon %.1f, %.0f m from the planet"), DepartPoint.LatDeg, DepartPoint.LonDeg, (At - Centre).Size() / 100.f));
 	return true;
+}
+
+void UTDDescentSubsystem::TickExposureRamp()
+{
+	UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
+	APlayerController* PC = World ? UGameplayStatics::GetPlayerController(World, 0) : nullptr;
+	ATDShip* Ship = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
+	UCameraComponent* Cam = Ship ? Ship->FindComponentByClass<UCameraComponent>() : nullptr;
+	float Want = FMath::Clamp(CoverAlpha, 0.f, 1.f);
+	if (Ship && UTDSettingsSubsystem::IsReduceMotion(Ship)) { Want *= 0.5f; } // a gentler flash
+	// Off: take the blendable away (no cost).
+	if (Want <= 0.f || !Cam)
+	{
+		if (UCameraComponent* Old = ExposureCamera.Get()) { if (ExposureMID) { Old->PostProcessSettings.RemoveBlendable(ExposureMID); } }
+		ExposureCamera.Reset();
+		ExposureWeight = 0.f;
+		return;
+	}
+	const UTDTravelFX* FX = UTDTravelSubsystem::GetDefaultTravelFX(World);
+	if (!ExposureMID)
+	{
+		UMaterialInterface* Mat = FX && !FX->DescentWhitePP.IsNull() ? FX->DescentWhitePP.LoadSynchronous() : nullptr;
+		if (!Mat) { ExposureWeight = Want; return; } // no material yet: the weight is still reported (tests, the log)
+		ExposureMID = UMaterialInstanceDynamic::Create(Mat, this);
+	}
+	if (ExposureCamera.Get() != Cam)
+	{
+		if (UCameraComponent* Old = ExposureCamera.Get()) { Old->PostProcessSettings.RemoveBlendable(ExposureMID); }
+		Cam->PostProcessSettings.AddBlendable(ExposureMID, 1.f);
+		ExposureCamera = Cam;
+	}
+	ExposureMID->SetScalarParameterValue(TEXT("Weight"), Want);
+	ExposureWeight = Want;
 }
 
 bool UTDDescentSubsystem::IsDirectorShotEnabled() { return CVarTDDescentDirectorShot.GetValueOnGameThread() != 0; }

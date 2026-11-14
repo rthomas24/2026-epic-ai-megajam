@@ -180,6 +180,11 @@ public:
 	/** The cloud deck's world Z in a world (0 = no deck). */
 	static float FindDeckZ(UWorld* World);
 	void TickGlide(float Dt);
+	/** The glide's pass through the deck: the CloudWisps layer on the camera while within this of the deck (cm). */
+	static constexpr float GlideDeckPassBand = 4000.f;
+	/** ENG-38 exposure ramp: the DescentWhitePP blendable's weight now (0 = not applied). */
+	float GetExposureRampWeight() const { return ExposureWeight; }
+	void TickExposureRamp();
 
 	// ---- ENG-38 stage 2, the mirrored take-off (the Lead, Nov 14): where the squad leaves the planet's ground decides where
 	// it comes out on the galaxy globe (T4's FTDPlanetEntry::GlobeFromDeparture / WorldFromGlobe), not a fixed <Planet>_Orbit.
@@ -286,6 +291,12 @@ private:
 	float GlideGroundFallback = 0.f;
 	float GlideProgress = -1.f;
 	bool bGlideLevelling = false;
+	float ExposureWeight = 0.f;
+public:
+	int32 GlideDeckPasses = 0; // tests and the timing log
+private:
+	TWeakObjectPtr<class UCameraComponent> ExposureCamera;
+	UPROPERTY(Transient) TObjectPtr<class UMaterialInstanceDynamic> ExposureMID;
 	float GlideLevelTime = 0.f;
 
 	bool bArrivalPending = false;

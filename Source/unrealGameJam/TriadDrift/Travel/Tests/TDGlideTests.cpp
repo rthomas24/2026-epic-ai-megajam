@@ -11,17 +11,20 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/World/TDCloudDeck.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 
 namespace TDT1Glide
 {
 	struct FRun { float EndZ = 0.f; float EndPitch = 0.f; float MinZ = 1e9f; bool bHeldWarning = true; bool bInvulnerable = true; bool bDescent01InRange = true;
-		bool bHandedBack = false; bool bOverrideCleared = false; bool bVulnerableAgain = false; float Seconds = 0.f; };
+		bool bHandedBack = false; bool bOverrideCleared = false; bool bVulnerableAgain = false; float Seconds = 0.f;
+		float MaxStepDrop = 0.f; float EndSpeed = 0.f; float Cruise = 0.f; int32 DeckPasses = 0; };
 
-	FRun Fly(ETDShipId Id, float Fps, float StartZ, float GroundZ)
+	FRun Fly(ETDShipId Id, float Fps, float StartZ, float GroundZ, bool bDeck = false)
 	{
 		FRun R;
 		FTDTestWorld W(UTDGameInstance::StaticClass());
+		if (bDeck) { if (ATDCloudDeck* Deck = ATDCloudDeck::EnsureForWorld(W.GetWorld(), ETDDestination::Verdance)) { Deck->Build(); } }
 		ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, StartZ));
 		UTDDescentSubsystem* D = UTDDescentSubsystem::Get(W.GetWorld());
 		if (!Ship || !D) { return R; }
@@ -33,10 +36,15 @@ namespace TDT1Glide
 		UTDShipMovementComponent* Move = Ship->GetShipMovement();
 		if (!D->BeginGlide(Ship, GroundZ)) { return R; }
 		const float Dt = 1.f / Fps;
+		R.Cruise = Move->GetFlightTuning().CruiseSpeed;
+		float LastSpeed = Move->GetSpeed();
+		const int32 Passes0 = D->GlideDeckPasses;
 		for (; R.Seconds < 20.f && D->IsGliding(); R.Seconds += Dt)
 		{
 			W.Tick(Dt);
-			D->TickGlide(Dt); // the game instance's tickables don't run in a test world
+			D->Tick(Dt); // the game instance's tickables don't run in a test world (glide, cloud deck, exposure)
+			R.MaxStepDrop = FMath::Max(R.MaxStepDrop, LastSpeed - Move->GetSpeed());
+			LastSpeed = Move->GetSpeed();
 			if (!D->IsGliding()) { break; }
 			R.MinZ = FMath::Min(R.MinZ, (float)Ship->GetActorLocation().Z);
 			R.bHeldWarning &= Move->IsBoundaryWarningHeld();
@@ -47,6 +55,9 @@ namespace TDT1Glide
 		R.bHandedBack = !D->IsGliding() && UTDDescentSubsystem::GetDescent01(Ship) < 0.f;
 		R.bOverrideCleared = !Move->HasSpeedOverrideFor(UTDDescentSubsystem::GlideOverride) && !Move->IsPitchHeld();
 		R.bVulnerableAgain = Ship->GetHealth() && !Ship->GetHealth()->IsInvulnerable();
+		for (int32 i = 0; i < 10; ++i) { W.Tick(Dt); R.MaxStepDrop = FMath::Max(R.MaxStepDrop, LastSpeed - Move->GetSpeed()); LastSpeed = Move->GetSpeed(); }
+		R.EndSpeed = Move->GetSpeed();
+		R.DeckPasses = D->GlideDeckPasses - Passes0;
 		R.EndZ = Ship->GetActorLocation().Z;
 		R.EndPitch = Ship->GetActorRotation().Pitch;
 		return R;
@@ -74,6 +85,8 @@ bool FTDT1GlideEndsLevel::RunTest(const FString& Parameters)
 			TestTrue(*FString::Printf(TEXT("%s: invulnerable and no edge warning while gliding"), *Tag), R.bInvulnerable && R.bHeldWarning);
 			TestTrue(*FString::Printf(TEXT("%s: Descent01 0..1 while gliding, -1 after"), *Tag), R.bDescent01InRange && R.bHandedBack);
 			TestTrue(*FString::Printf(TEXT("%s: override and pitch hold cleared, vulnerable again"), *Tag), R.bOverrideCleared && R.bVulnerableAgain);
+			TestTrue(*FString::Printf(TEXT("%s: no speed drop at the hand-back (largest step %.0f cm/s, end %.0f, cruise %.0f)"), *Tag, R.MaxStepDrop, R.EndSpeed, R.Cruise),
+				R.MaxStepDrop <= 600.f && FMath::Abs(R.EndSpeed - R.Cruise) <= R.Cruise * 0.15f);
 		}
 	}
 	return true;
@@ -137,6 +150,41 @@ bool FTDT1Departure::RunTest(const FString& Parameters)
 		AddInfo(FString::Printf(TEXT("the two departures come out %.1f deg apart on the globe"), Deg));
 		TestTrue(TEXT("two places on the ground: two places on the globe"), Deg > 5.f);
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1GlideDeckPass, "TriadDrift.Travel.Descent.GlidePassesThroughTheDeckOnce", TD_TEST_FLAGS)
+bool FTDT1GlideDeckPass::RunTest(const FString& Parameters)
+{
+	// The cloud deck at 1.15 km (Verdance), the arrival 300 m over it: the glide passes through it once (the camera wisps).
+	const TDT1Glide::FRun R = TDT1Glide::Fly(ETDShipId::Lancer, 60.f, 115000.f + UTDDescentSubsystem::GlideAboveDeckCm, 0.f, true);
+	AddInfo(FString::Printf(TEXT("deck passes %d, end %.0f m"), R.DeckPasses, R.EndZ / 100.f));
+	TestEqual(TEXT("one pass through the deck"), R.DeckPasses, 1);
+	TestTrue(TEXT("handed back"), R.bHandedBack);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1ExposureRamp, "TriadDrift.Travel.Descent.ExposureRampFollowsTheCover", TD_TEST_FLAGS)
+bool FTDT1ExposureRamp::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 50000.f));
+	UTDDescentSubsystem* D = UTDDescentSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("ship"), Ship) || !TestNotNull(TEXT("descent"), D)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.SpawnLocalPlayerController(Ship);
+	W.Advance(0.1f);
+	D->TickExposureRamp();
+	TestEqual(TEXT("no cover: weight 0 (not applied)"), D->GetExposureRampWeight(), 0.f);
+	D->SetEntryCover(0.5f);
+	D->TickExposureRamp();
+	TestTrue(*FString::Printf(TEXT("half cover: weight follows it (%.2f)"), D->GetExposureRampWeight()), FMath::IsNearlyEqual(D->GetExposureRampWeight(), 0.5f, 0.01f));
+	D->SetEntryCover(1.f);
+	D->TickExposureRamp();
+	TestTrue(TEXT("full white: weight 1"), FMath::IsNearlyEqual(D->GetExposureRampWeight(), 1.f, 0.01f));
+	D->AbortCover(TEXT("test"));
+	for (int32 i = 0; i < 30; ++i) { D->Tick(1.f / 30.f); }
+	TestEqual(TEXT("cover gone: weight 0 again"), D->GetExposureRampWeight(), 0.f);
 	return true;
 }
 
