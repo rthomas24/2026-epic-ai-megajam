@@ -190,6 +190,13 @@ def ensure_decal(notes):
     folder, name = DECAL_MASTER.rsplit("/", 1)
     mat = eas.load_asset(DECAL_MASTER) if eas.does_asset_exist(DECAL_MASTER) else tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
     mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_MASKED)
+    # the decal meshes are also scattered as instances (the planet scatter: SM_Kit_ScorchLines on Verdance's wreck scar)
+    for usage in (unreal.MaterialUsage.MATUSAGE_INSTANCED_STATIC_MESHES, unreal.MaterialUsage.MATUSAGE_NANITE):
+        try:
+            mel.set_material_usage(mat, usage)
+        except Exception as error:
+            notes.append("M_Kit_Decal usage %s: %s" % (usage, error))
+    mat.set_editor_property("used_with_instanced_static_meshes", True)
     mel.delete_all_material_expressions(mat)
 
     def node(cls, x, y):
