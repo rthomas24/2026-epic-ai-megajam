@@ -12,6 +12,10 @@
 #include "UObject/StrongObjectPtr.h"
 #include "UObject/UObjectArray.h"
 #include "TriadDrift/Combat/TDCombatPerf.h"
+#include "TriadDrift/Combat/TDCombatAssetList.h"
+#include "AssetRegistry/AssetRegistryModule.h"
+#include "Engine/DataAsset.h"
+#include "Modules/ModuleManager.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -54,14 +58,90 @@ namespace TDCombatPerfTest
 	};
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPerfWave5, "TriadDrift.Perf.CombatWave5", TD_TEST_FLAGS)
-bool FTDCombatPerfWave5::RunTest(const FString& Parameters)
+namespace TDCombatPerfTest
+{
+	/** Loads every soft reference (FX, sounds, meshes) of an object's properties, recursing into structs. */
+	void LoadSoftRefs(const UStruct* Type, const void* Data, int32& Loaded)
+	{
+		for (TFieldIterator<FProperty> It(Type); It; ++It)
+		{
+			for (int32 I = 0; I < It->ArrayDim; ++I)
+			{
+				const void* Value = It->ContainerPtrToValuePtr<void>(Data, I);
+				if (const FSoftObjectProperty* Soft = CastField<FSoftObjectProperty>(*It))
+				{
+					const FSoftObjectPtr& Ptr = Soft->GetPropertyValue(Value);
+					if (!Ptr.IsNull() && Ptr.LoadSynchronous()) { ++Loaded; }
+				}
+				else if (const FStructProperty* Struct = CastField<FStructProperty>(*It))
+				{
+					LoadSoftRefs(Struct->Struct, Value, Loaded);
+				}
+				else if (const FArrayProperty* Array = CastField<FArrayProperty>(*It))
+				{
+					FScriptArrayHelper Helper(Array, Value);
+					for (int32 E = 0; E < Helper.Num(); ++E)
+					{
+						if (const FSoftObjectProperty* InnerSoft = CastField<FSoftObjectProperty>(Array->Inner))
+						{
+							const FSoftObjectPtr& Ptr = InnerSoft->GetPropertyValue(Helper.GetRawPtr(E));
+							if (!Ptr.IsNull() && Ptr.LoadSynchronous()) { ++Loaded; }
+						}
+						else if (const FStructProperty* InnerStruct = CastField<FStructProperty>(Array->Inner))
+						{
+							LoadSoftRefs(InnerStruct->Struct, Helper.GetRawPtr(E), Loaded);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/** What T7's warm-up does for a galaxy map, synchronously (automation worlds never warm): my list, then every
+	 *  data asset under Presentation and Gameplay/Characters with all its soft references. Returns the assets touched. */
+	int32 WarmLikeTheGame(TArray<TStrongObjectPtr<UObject>>& Hold)
+	{
+		int32 Loaded = 0;
+		TArray<FSoftObjectPath> Paths;
+		FTDCombatAssetList::CollectFor(true, Paths);
+		for (const FSoftObjectPath& P : Paths)
+		{
+			if (UObject* O = P.TryLoad()) { Hold.Emplace(O); ++Loaded; }
+		}
+		IAssetRegistry& Registry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
+		TArray<FAssetData> Assets;
+		FARFilter Filter;
+		Filter.PackagePaths = { TEXT("/Game/TriadDrift/Presentation"), TEXT("/Game/TriadDrift/Gameplay/Characters") };
+		Filter.bRecursivePaths = true;
+		Filter.ClassPaths.Add(UPrimaryDataAsset::StaticClass()->GetClassPathName());
+		Filter.bRecursiveClasses = true;
+		Registry.GetAssets(Filter, Assets);
+		for (const FAssetData& A : Assets)
+		{
+			if (UObject* O = A.GetAsset())
+			{
+				Hold.Emplace(O);
+				++Loaded;
+				LoadSoftRefs(O->GetClass(), O, Loaded);
+			}
+		}
+		return Loaded;
+	}
+}
+
+static bool TDRunCombatWave5(FAutomationTestBase& Test, bool bWarm)
 {
 	constexpr float Step = 1.f / 60.f;
+	TArray<TStrongObjectPtr<UObject>> Held;
+	if (bWarm)
+	{
+		const int32 N = TDCombatPerfTest::WarmLikeTheGame(Held);
+		Test.AddInfo(FString::Printf(TEXT("warm-up (as T7's subsystem): %d assets loaded and held"), N));
+	}
 	FTDTestWorld W;
 	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
 	ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass()));
-	if (!TestNotNull(TEXT("squad"), Squad) || !TestNotNull(TEXT("controller"), PC))
+	if (!Test.TestNotNull(TEXT("squad"), Squad) || !Test.TestNotNull(TEXT("controller"), PC))
 	{
 		return false;
 	}
@@ -83,7 +163,7 @@ bool FTDCombatPerfWave5::RunTest(const FString& Parameters)
 	const TStrongObjectPtr<UTDFlightHUDWidget> HUD(CreateWidget<UTDFlightHUDWidget>(PC, UTDFlightHUDWidget::StaticClass()));
 	UTDProjectileSubsystem* Projectiles = W.GetWorld()->GetSubsystem<UTDProjectileSubsystem>();
 	UTDWeaponComponent* Guns = Flown ? Flown->FindComponentByClass<UTDWeaponComponent>() : nullptr;
-	if (!TestNotNull(TEXT("flown ship's guns"), Guns) || !TestNotNull(TEXT("projectiles"), Projectiles))
+	if (!Test.TestNotNull(TEXT("flown ship's guns"), Guns) || !Test.TestNotNull(TEXT("projectiles"), Projectiles))
 	{
 		return false;
 	}
@@ -175,8 +255,8 @@ bool FTDCombatPerfWave5::RunTest(const FString& Parameters)
 		Combat += FTDCombatPerf::Milliseconds(static_cast<ETDCombatPerf>(I));
 	}
 	const FString Summary = FString::Printf(
-		TEXT("TD perf wave5: %d frames, world tick avg %.2f ms, p99 %.2f ms, worst %.2f ms | combat systems %.3f ms/frame | live projectiles peak %d | enemies %d..%d | new UObjects %d | pool misses: projectiles %d, flashes %d\n%s"),
-		Frames, Frames ? Sum / Frames : 0.0, Frames ? Sorted[FMath::Min(Frames - 1, FMath::FloorToInt(Frames * .99f))] : 0.0, Frames ? Sorted.Last() : 0.0,
+		TEXT("TD perf wave5 %s: %d frames, world tick avg %.2f ms, p99 %.2f ms, worst %.2f ms | combat systems %.3f ms/frame | live projectiles peak %d | enemies %d..%d | new UObjects %d | pool misses: projectiles %d, flashes %d\n%s"),
+		bWarm ? TEXT("WARM") : TEXT("COLD"), Frames, Frames ? Sum / Frames : 0.0, Frames ? Sorted[FMath::Min(Frames - 1, FMath::FloorToInt(Frames * .99f))] : 0.0, Frames ? Sorted.Last() : 0.0,
 		Frames ? Combat / Frames : 0.0, PeakLive, MinEnemies == MAX_int32 ? 0 : MinEnemies, MaxEnemies, NewObjects, Misses, FlashMisses,
 		*FTDCombatPerf::Report(Frames));
 	FString Worst;
@@ -200,16 +280,29 @@ bool FTDCombatPerfWave5::RunTest(const FString& Parameters)
 			Salvos, Salvos ? float(SalvoObjects) / Salvos : 0.f, QuietFrames ? float(QuietObjects) / QuietFrames : 0.f);
 	}
 	UE_LOG(LogTemp, Display, TEXT("TD perf worst frames:\n%s"), *Worst);
-	AddInfo(Summary);
+	Test.AddInfo(Summary);
 	UE_LOG(LogTemp, Display, TEXT("%s"), *Summary);
-	TestTrue(TEXT("a fight happened (enemies alive, shots in the air)"), MaxEnemies > 0 && PeakLive > 0);
+	Test.TestTrue(TEXT("a fight happened (enemies alive, shots in the air)"), MaxEnemies > 0 && PeakLive > 0);
 	if (Misses > 0)
 	{
 		// Known (issue #89, T2): the pool grows during the fight; a prewarm at world start is queued with the asset preload.
-		AddWarning(FString::Printf(TEXT("%d projectile actors spawned during the fight (pool grew)"), Misses));
+		Test.AddWarning(FString::Printf(TEXT("%d projectile actors spawned during the fight (pool grew)"), Misses));
 	}
 	Guns->SetTriggerHeld(ETDWeaponSlot::Primary, false);
 	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPerfWave5, "TriadDrift.Perf.CombatWave5", TD_TEST_FLAGS)
+bool FTDCombatPerfWave5::RunTest(const FString& Parameters)
+{
+	return TDRunCombatWave5(*this, false);
+}
+
+// The same fight after the map's warm-up (T7's subsystem in the game; emulated here): the after-numbers for issue #89.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCombatPerfWave5Warm, "TriadDrift.Perf.CombatWave5Warm", TD_TEST_FLAGS)
+bool FTDCombatPerfWave5Warm::RunTest(const FString& Parameters)
+{
+	return TDRunCombatWave5(*this, true);
 }
 
 #endif
