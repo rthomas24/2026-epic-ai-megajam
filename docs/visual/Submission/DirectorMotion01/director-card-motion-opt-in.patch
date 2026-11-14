@@ -1,0 +1,124 @@
+--- a/Source/unrealGameJam/TriadDrift/Director/TDCutPresentation.cpp
++++ b/Source/unrealGameJam/TriadDrift/Director/TDCutPresentation.cpp
+@@ -1,6 +1,8 @@
+ // Triad Drift - Director (Teammate 3). C-03 fallback presentation (see header).
+ 
+ #include "TriadDrift/Director/TDCutPresentation.h"
++#include "TriadDrift/Director/TDDirectorCardMotion.h"
++#include "HAL/IConsoleManager.h"
+ #include "TriadDrift/Director/TDDirectorSounds.h"
+ #include "TriadDrift/Story/TDStorySubsystem.h"
+ #include "TriadDrift/Flight/TDShip.h"
+@@ -13,6 +15,11 @@
+ 
+ namespace TDCutPresentationPrivate
+ {
++	#if !UE_BUILD_SHIPPING
++	// Private audition only. No project/style/settings writes; Shipping keeps current presentation.
++	static TAutoConsoleVariable<int32> CVarCardMotion(TEXT("TD.UI.DirectorCardMotion"),0,
++		TEXT("Director card line audition: 0 existing, 1 brief reveal, 2 static reduced-motion."),ECVF_Default);
++	#endif
+ 	/** Real text size (the font measure service), with a rough fallback when Slate isn't up. */
+ 	static FVector2D MeasureText(const FText& T, const FSlateFontInfo& Font)
+ 	{
+@@ -68,6 +75,11 @@
+ 				return Layer;
+ 			}
+ 			const FTDCutPresentationState& S = M->GetState();
++			int32 MotionMode=0;
++			#if !UE_BUILD_SHIPPING
++			MotionMode=FMath::Clamp(CVarCardMotion.GetValueOnGameThread(),0,2);
++			#endif
++			const FTDDirectorCards& Cards=M->GetCards();
+ 			if (S.IsEmpty())
+ 			{
+ 				return Layer;
+@@ -110,7 +122,8 @@
+ 				const FVector2D At = UTDCutPresentation::NameCardCentre(Size);
+ 				const float Y = At.Y;
+ 				Text(S.NameCardText, 30, FVector2D(At.X, Y - 8.f), FLinearColor(1.f, 1.f, 1.f, S.NameCardAlpha), true);
+-				Box(FVector2D(At.X - 90.f, Y + 18.f), FVector2D(180.f, 5.f), C); // squad-colour underline
++				const float Reveal=MotionMode==0?1.f:TDDirectorCardMotion::Reveal01(Cards.NameCard,MotionMode==2);
++				Box(FVector2D(At.X - 90.f, Y + 18.f), FVector2D(180.f*Reveal, 5.f), C); // text never moves or reveals
+ 				if (!S.NameCardSubText.IsEmpty())
+ 				{
+ 					Text(S.NameCardSubText, 16, FVector2D(At.X, Y + 40.f), C, true); // "HEAVY · STEADY · GOOD-HUMOURED"
+@@ -122,6 +135,11 @@
+ 				const FVector2D TextSize = MeasureText(S.SlateText, FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 28));
+ 				const FBox2D R = UTDCutPresentation::SlateRect(Size, S.Letterbox, TextSize.X);
+ 				Box(R.Min, R.GetSize(), FLinearColor(0.f, 0.f, 0.f, 0.65f * S.SlateAlpha));
++				if(MotionMode!=0)
++				{
++					const float Reveal=TDDirectorCardMotion::Reveal01(Cards.Slate,MotionMode==2);
++					Box(FVector2D(R.Min.X,R.Max.Y-2.f),FVector2D(R.GetSize().X*Reveal,2.f),FLinearColor(.35f,.8f,.9f,.55f*S.SlateAlpha));
++				}
+ 				Text(S.SlateText, 28, R.GetCenter(), FLinearColor(1.f, 1.f, 1.f, S.SlateAlpha), true);
+ 			}
+ 			// "CUT!"
+--- a/Source/unrealGameJam/TriadDrift/Director/Tests/TDDirectorCardTests.cpp
++++ b/Source/unrealGameJam/TriadDrift/Director/Tests/TDDirectorCardTests.cpp
+@@ -9,6 +9,7 @@
+ #include "GameFramework/PlayerController.h"
+ #include "TriadDrift/Core/TDEventBus.h"
+ #include "TriadDrift/Director/TDCutPresentation.h"
++#include "TriadDrift/Director/TDDirectorCardMotion.h"
+ #include "TriadDrift/Director/TDDirectorSubsystem.h"
+ #include "TriadDrift/Squad/TDSwitchCut.h"
+ #include "TriadDrift/Tests/TDTestWorld.h"
+@@ -26,6 +27,31 @@
+ 		Cut.SquadColor = FLinearColor(0.1f, 0.9f, 1.f);
+ 		return Cut;
+ 	}
++}
++
++IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorCardMotionTiming,"TriadDrift.Director.Cards.LineRevealUsesHostTime",TD_TEST_FLAGS)
++bool FTDDirectorCardMotionTiming::RunTest(const FString&)
++{
++	for(const float Total:{.1f,1.3f,2.f})
++	{
++		FTDDirectorCard Card;
++		Card.bActive=true;Card.Text=FText::FromString(TEXT("SCENE 6 · CINDER · OUTPOST · TAKE 2"));
++		const FText Original=Card.Text;
++		float Previous=0.f;
++		for(int32 I=0;I<=100;++I)
++		{
++			Card.Progress01=I/100.f;Card.TimeLeft=Total*(1.f-Card.Progress01);
++			const float Reveal=TDDirectorCardMotion::Reveal01(Card,false);
++			TestTrue(TEXT("reveal bounded and monotonic"),Reveal>=Previous && Reveal<=1.f);
++			TestEqual(TEXT("reduced motion is immediately complete"),TDDirectorCardMotion::Reveal01(Card,true),1.f);
++			if(I>=35) TestTrue(TEXT("short cards complete before their dwell ends"),Reveal>=.999f);
++			TestTrue(TEXT("presentation never changes or hides text"),Card.Text.EqualTo(Original));
++			Previous=Reveal;
++		}
++		Card.bActive=false;
++		TestEqual(TEXT("inactive card has no effect"),TDDirectorCardMotion::Reveal01(Card,false),0.f);
++	}
++	return true;
+ }
+ 
+ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorCards_Renderer, "TriadDrift.Director.Cards.StateForARendererWidget", TD_TEST_FLAGS)
+--- /dev/null
++++ b/Source/unrealGameJam/TriadDrift/Director/TDDirectorCardMotion.h
+@@ -0,0 +1,22 @@
++#pragma once
++
++#include "TriadDrift/Director/TDCutPresentation.h"
++
++/** Presentation-only line reveal from the existing real-time Director state. No second clock. */
++namespace TDDirectorCardMotion
++{
++	inline float Reveal01(const FTDDirectorCard& Card,bool bReducedMotion)
++	{
++		if(!Card.bActive) return 0.f;
++		if(bReducedMotion) return 1.f;
++		// Invalid state must not leave a permanently half-drawn decoration.
++		if(!FMath::IsFinite(Card.Progress01) || !FMath::IsFinite(Card.TimeLeft)) return 1.f;
++		const float P=FMath::Clamp(Card.Progress01,0.f,1.f);
++		if(P>=.9999f || Card.TimeLeft<=0.f) return 1.f;
++		const float Total=Card.TimeLeft/(1.f-P);
++		const float Age=P*Total;
++		const float Duration=FMath::Min(.18f,Total*.35f);
++		const float T=FMath::Clamp(Age/FMath::Max(Duration,.0001f),0.f,1.f);
++		return 1.f-FMath::Pow(1.f-T,3.f);
++	}
++}
