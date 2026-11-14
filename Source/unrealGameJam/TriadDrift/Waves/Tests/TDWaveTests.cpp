@@ -1,6 +1,7 @@
 // Automation tests for the wave director (ENG-14). Run: .\Tools\td-test.ps1 -Filter TriadDrift.Waves
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/Combat/TDWeaponLibrary.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -600,6 +601,47 @@ bool FTDWaveMineBark::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Bark_MinesAhead"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::MinesAhead), 1);
 	W.Advance(2.f);
 	TestEqual(TEXT("not every half second"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::MinesAhead), 1);
+	return true;
+}
+
+
+// T6's regions put solid set pieces and rocks near every route: a wave never warps a ship in inside an obstacle.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWaveSpawnClear, "TriadDrift.Waves.Spawn.NeverInsideAnObstacle", TD_TEST_FLAGS)
+bool FTDWaveSpawnClear::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.Phase = ETDGamePhase::Waves1to2;
+	AActor* Player = TDWaveTest_SpawnPlayer(W);
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, Player);
+	UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("world subsystem"), WorldSys)) { return false; }
+	// A ring of 30 m rocks right on the spawn distance, every 20 degrees, plus one big set piece behind the player.
+	const FVector P = Player->GetActorLocation();
+	for (int32 a = 0; a < 18; ++a)
+	{
+		const float R = FMath::DegreesToRadians(a * 20.f);
+		WorldSys->AddObstacle(P + FVector(FMath::Cos(R), FMath::Sin(R), 0.f) * D->SpawnDistance, 3000.f);
+	}
+	WorldSys->AddObstacle(P - Player->GetActorForwardVector() * D->SpawnDistance, 9000.f);
+	D->StartWave(1);
+	TDWaveTest_SpawnEverything(W, D, 40.f);
+	// The warp-in points themselves (the ships then fly: these test spheres have no collision, so where they end up
+	// 40 s later says nothing about the spawn).
+	int32 Inside = 0;
+	const TArray<AActor*> Enemies = D->GetLivingEnemies();
+	for (const FVector& At : D->GetPickedSpawnPoints())
+	{
+		for (const FSphere& O : WorldSys->GetObstacles())
+		{
+			if (O.W > 0.f && FVector::Dist(At, O.Center) < O.W) { ++Inside; break; }
+		}
+	}
+	AddInfo(FString::Printf(TEXT("%d warp-in points checked"), D->GetPickedSpawnPoints().Num()));
+	AddInfo(FString::Printf(TEXT("%d enemies, %d retries, %d pushed out"), Enemies.Num(), D->GetSpawnPointRetries(), D->GetSpawnPointsPushedOut()));
+	TestTrue(TEXT("enemies spawned"), Enemies.Num() > 0);
+	TestEqual(TEXT("no enemy warped in inside an obstacle"), Inside, 0);
+	TestTrue(TEXT("the obstacles were in the way and were avoided"), D->GetSpawnPointRetries() > 0);
 	return true;
 }
 

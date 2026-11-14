@@ -299,6 +299,11 @@ public:
 	/** The corridor marker (tags TD.Objective.Marker and TD.Tutorial.Escape) while the withdrawal is on. */
 	AActor* GetEscapeMarker() const { return EscapeMarker.Get(); }
 	AActor* GetHeavyContact() const { return HeavyContact.Get(); }
+	/** Spawn points re-picked because they fell inside an obstacle, and those pushed out as a last resort (tests). */
+	int32 GetSpawnPointRetries() const { return SpawnPointRetries; }
+	int32 GetSpawnPointsPushedOut() const { return SpawnPointsPushedOut; }
+	/** The warp-in points picked this wave (tests). */
+	const TArray<FVector>& GetPickedSpawnPoints() const { return PickedSpawnPoints; }
 	bool IsTutorialWithdrawalWave() const;
 	/** Pursuers holding at the perimeter right now (tests). */
 	int32 GetHoldingPursuers() const { return HeldPursuers.Num(); }
@@ -370,6 +375,9 @@ protected:
 	TSet<FName> SeenTypes;
 	bool bIncomingSaid = false;
 	float MineCheckTimer = 0.f;
+	int32 SpawnPointRetries = 0;
+	int32 SpawnPointsPushedOut = 0;
+	TArray<FVector> PickedSpawnPoints;
 	void CheckMinesAhead();
 
 	UFUNCTION()

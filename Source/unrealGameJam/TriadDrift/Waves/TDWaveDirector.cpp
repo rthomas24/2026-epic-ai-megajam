@@ -32,6 +32,7 @@
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
 #include "TriadDrift/World/TDWorldBarks.h"
+#include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -775,9 +776,41 @@ void ATDWaveDirector::PickSpawnPoint(ETDSpawnZone Zone, bool bLarge, FVector& Ou
 	Dir = Dir.GetSafeNormal(UE_SMALL_NUMBER, -Fwd);
 
 	const float Distance = SpawnDistance * (bLarge ? LargeShipSpawnDistanceScale : 1.f);
-	const FVector Jitter = Rng.GetUnitVector() * (Rng.FRand() * SpawnJitter);
-	OutLocation = Origin + Dir * Distance + Jitter;
+	// Never warp a group in inside a rock, set piece or hull (T6's regions put solid obstacles near every route):
+	// retry with fresh jitter, turning the direction 30 degrees round the player each time; last resort, push out.
+	const float Clear = bLarge ? 3000.f : 1200.f;
+	const UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this);
+	auto Blocker = [WorldSys, Clear](const FVector& P, FSphere& Out) -> bool
+	{
+		if (!WorldSys) { return false; }
+		for (const FSphere& O : WorldSys->GetObstacles())
+		{
+			if (O.W > 0.f && FVector::DistSquared(P, O.Center) < FMath::Square(O.W + Clear)) { Out = O; return true; }
+		}
+		return false;
+	};
+	FSphere Hit(ForceInit);
+	for (int32 Try = 0; Try < 12; ++Try)
+	{
+		const FVector D = Try == 0 ? Dir : FQuat(Up, FMath::DegreesToRadians(30.f * ((Try + 1) / 2) * (Try % 2 ? 1.f : -1.f))).RotateVector(Dir);
+		static const float DistanceScale[12] = { 1.f, 1.f, 1.f, 1.f, 1.35f, 0.75f, 1.35f, 0.75f, 1.7f, 1.7f, 0.6f, 2.f };	// a ring of rocks at one distance
+		const FVector Jitter = Rng.GetUnitVector() * (Rng.FRand() * SpawnJitter);
+		OutLocation = Origin + D * Distance * DistanceScale[Try] + Jitter;
+		if (!Blocker(OutLocation, Hit)) { break; }
+		if (Try == 11)
+		{
+			// Last resort: step out of each blocker in turn until the point is clear (a few steps at most).
+			for (int32 Step = 0; Step < 8 && Blocker(OutLocation, Hit); ++Step)
+			{
+				const FVector Away = (OutLocation - Hit.Center).GetSafeNormal(UE_SMALL_NUMBER, Up);
+				OutLocation = Hit.Center + Away * (Hit.W + Clear + 100.f);
+			}
+			++SpawnPointsPushedOut;
+		}
+		++SpawnPointRetries;
+	}
 	OutFacing = (Origin - OutLocation).Rotation();
+	PickedSpawnPoints.Add(OutLocation);
 }
 
 AActor* ATDWaveDirector::SpawnEnemy(FName EnemyId, const FTransform& Transform)
@@ -1202,6 +1235,7 @@ void ATDWaveDirector::ResetTutorial()
 	EscapeMarker.Reset();
 	TutorialPhase = ETDTutorialPhase::Battle;
 	bIncomingSaid = false;
+	PickedSpawnPoints.Reset();
 	TutorialClock = 0.f;
 	WithdrawalWait = 0.f;
 	bWithdrawalRequested = false;
