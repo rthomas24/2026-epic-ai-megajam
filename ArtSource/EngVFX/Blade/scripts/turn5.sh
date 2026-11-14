@@ -16,7 +16,7 @@ if [ "$2" != "nobuild" ]; then
   echo "A done $(date +%H:%M:%S)"
 fi
 guard || exit 1
-powershell -ExecutionPolicy Bypass -File Tools/td-play-mcp.ps1 -Port $PORT -Map /Game/TriadDrift/Maps/L_Galaxy -MaxSeconds 600 -ResX 1280 -ResY 720 | tail -1
+powershell -ExecutionPolicy Bypass -File Tools/td-play-mcp.ps1 -Port $PORT -Map /Game/TriadDrift/Maps/L_Galaxy -MaxSeconds 600 -ResX 1280 -ResY 720 -Offscreen | tail -1
 P="python ArtSource/EngVFX/scripts/play.py $PORT $OUT"
 B="con:TD.Ground.Blade"
 TS="con:TD.Power.TimeScale"
