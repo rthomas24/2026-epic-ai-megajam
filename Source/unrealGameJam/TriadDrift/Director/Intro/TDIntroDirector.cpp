@@ -66,7 +66,7 @@ static TAutoConsoleVariable<int32> CVarTDIntro(
 	ECVF_Default);
 
 static TAutoConsoleVariable<float> CVarTDIntroEclipseEV(
-	TEXT("td.Intro.EclipseEV"), -3.5f,
+	TEXT("td.Intro.EclipseEV"), -3.0f,
 	TEXT("Intro shot 2 (Verdance in eclipse): the exposure bias (stops; the galaxy's exposure is manual). Lower = darker."),
 	ECVF_Default);
 
@@ -1992,7 +1992,7 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		HandOffElapsed += RealDt;
 		Overlay.Black = 0.f;
 		Overlay.SubtitleAlpha = 0.f;
-		Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
+		Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(FMath::Clamp(HandOffElapsed / BarsOutSeconds, 0.f, 1.f)); // T7: gone as control returns
 		if (HandOffElapsed >= HandOffSeconds)
 		{
 			Finish();
@@ -2070,7 +2070,7 @@ void UTDIntroDirector::Tick(float DeltaTime)
 			Elapsed = GetTotalDuration();
 			Overlay.Black = 0.f;
 			Overlay.SubtitleAlpha = 0.f;
-			Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
+			Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(FMath::Clamp(HandOffElapsed / BarsOutSeconds, 0.f, 1.f)); // T7: gone as control returns
 			if (bPlaying && HandOffElapsed >= HandOffSeconds)
 			{
 				Finish(); // once: Finish ends play, and a later Tick returns at !bPlaying

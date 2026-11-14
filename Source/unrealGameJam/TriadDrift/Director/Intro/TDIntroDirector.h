@@ -221,6 +221,8 @@ public:
 	static bool UseOpeningLines();
 	static constexpr float SkipHoldSeconds = 0.5f;
 	static constexpr float HandOffSeconds = 1.f;
+	/** The bars leave in the first part of the hand-off: the ship is already flyable then (T7, Shipping play). */
+	static constexpr float BarsOutSeconds = 0.3f;
 
 	// UTickableWorldSubsystem
 	virtual void Tick(float DeltaTime) override;

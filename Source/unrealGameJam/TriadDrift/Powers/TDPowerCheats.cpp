@@ -21,6 +21,8 @@
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Powers/TDPowerComponent.h"
+#include "TriadDrift/Powers/TDPortalBlasterPower.h"
+#include "Engine/Engine.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "EngineUtils.h"
 #include "GameFramework/WorldSettings.h"
@@ -121,6 +123,35 @@ namespace
 		}
 	}
 
+	// TD.Power.ToPortal [index=0] [speed m/s=300] [seconds=4]: point the player's Rift at one of its open portals and hold
+	// that speed (TD.World.Hold), so a scripted session flies through it (and a missile on its tail follows).
+	void TDPowerCheatToPortal(const TArray<FString>& Args, UWorld* World)
+	{
+		APawn* Pawn = TDPowerCheatPlayerPawn(World);
+		const UTDPortalBlasterPower* Blaster = Pawn ? Pawn->FindComponentByClass<UTDPortalBlasterPower>() : nullptr;
+		const int32 Index = Args.Num() > 0 ? FCString::Atoi(*Args[0]) : 0;
+		const AActor* Portal = Blaster && Blaster->GetPortals().IsValidIndex(Index) ? Cast<AActor>(Blaster->GetPortals()[Index].Get()) : nullptr;
+		if (!Portal)
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.ToPortal: no open portal %d on the player's ship"), Index);
+			return;
+		}
+		const FVector To = Portal->GetActorLocation() - Pawn->GetActorLocation();
+		const FRotator R = To.Rotation();
+		Pawn->SetActorRotation(R);
+		if (AController* C = Pawn->GetController())
+		{
+			C->SetControlRotation(R);
+		}
+		const float Speed = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 300.f;
+		const float Seconds = Args.Num() > 2 ? FCString::Atof(*Args[2]) : 4.f;
+		if (GEngine)
+		{
+			GEngine->Exec(World, *FString::Printf(TEXT("TD.World.Hold %.1f %.0f"), Seconds, Speed));
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.ToPortal: portal %d is %.0f m away, flying at it at %.0f m/s for %.1f s"), Index, To.Size() / 100.f, Speed, Seconds);
+	}
+
 	void TDPowerCheatTargets(const TArray<FString>& Args, UWorld* World)
 	{
 		APawn* Pawn = TDPowerCheatPlayerPawn(World);
@@ -179,6 +210,8 @@ namespace
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDPowerCheatHold));
 	FAutoConsoleCommandWithWorldAndArgs CmdTDPowerShip(TEXT("TD.Power.Ship"), TEXT("TD.Power.Ship <Rift|Lancer|Bastion>: switch ships."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDPowerCheatShip));
+	FAutoConsoleCommandWithWorldAndArgs CmdTDPowerToPortal(TEXT("TD.Power.ToPortal"), TEXT("TD.Power.ToPortal [index=0] [speed m/s=300] [seconds=4]: aim the player's Rift at its open portal and hold speed."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDPowerCheatToPortal));
 	FAutoConsoleCommandWithWorldAndArgs CmdTDPowerTurn(TEXT("TD.Power.Turn"), TEXT("TD.Power.Turn <yaw> [pitch]: turn the player's ship."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDPowerCheatTurn));
 	FAutoConsoleCommandWithWorldAndArgs CmdTDPowerTargets(TEXT("TD.Power.Targets"), TEXT("TD.Power.Targets [count] [distance]: still Shard Fighters ahead."),

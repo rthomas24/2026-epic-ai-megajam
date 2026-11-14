@@ -1570,6 +1570,26 @@ void ATDCrewCharacter::Tick(float DeltaSeconds)
 	{
 		return;
 	}
+	// Never inside the pilot (T7: a Grunt walked into the body during a heavy wind-up): closer than MinPilotSeparation
+	// centre to centre, the crewman is pushed back out along the line (swept, so not through a wall). A Warden's
+	// charge and a hovering drone are left alone.
+	if (Spec.Type != ETDCrewType::Drone && !IsCharging())
+	{
+		const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+		const APawn* Pilot = PC ? PC->GetPawn() : nullptr;
+		if (Pilot && Pilot != this)
+		{
+			FVector Away = GetActorLocation() - Pilot->GetActorLocation();
+			const float Dz = FMath::Abs((float)Away.Z);
+			Away.Z = 0.f;
+			const float D = (float)Away.Size();
+			if (D < MinPilotSeparation && Dz < 180.f)
+			{
+				const FVector Dir = D > 1.f ? Away / D : Pilot->GetActorForwardVector().GetSafeNormal2D();
+				AddActorWorldOffset(Dir * FMath::Min(MinPilotSeparation - D, 600.f * DeltaSeconds), true);
+			}
+		}
+	}
 	StaggerLeft = FMath::Max(0.f, StaggerLeft - DeltaSeconds);
 	HitReactLeft = FMath::Max(0.f, HitReactLeft - DeltaSeconds);
 	WardenStaggerCooldownLeft = FMath::Max(0.f, WardenStaggerCooldownLeft - DeltaSeconds);

@@ -220,7 +220,8 @@ bool UTDThirdPersonCameraComponent::HasLineToPilot(const FVector& Pivot, const F
 	{
 		return true;
 	}
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(TDThirdPersonCameraLine), false, GetOwner());
+	// Complex: a tree's branches are outside its simple (trunk) collision, and a branch across the lens hides the pilot.
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(TDThirdPersonCameraLine), true, GetOwner());
 	for (int32 Try = 0; Try < 4; ++Try)
 	{
 		FHitResult Hit;

@@ -1,6 +1,7 @@
 // Triad Drift - ship movement component (ENG-01). Owner: Teammate 1 (Flight & Input).
 
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Combat/TDCombatBarks.h"
 #include "TriadDrift/Travel/TDTravelBarks.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -410,12 +411,12 @@ void UTDShipMovementComponent::ApplyKeepOut(float DeltaTime)
 	}
 	// Turn the nose away: toward the surface normal until the ship is clearly heading out, faster the deeper it is.
 	const FVector Forward = State.Rotation.GetForwardVector();
-	if (FVector::DotProduct(Forward, Out) < 0.45f)
+	if (FVector::DotProduct(Forward, Out) < 0.6f) // until the nose is clearly away (about 53 deg off the normal): the planet leaves the view
 	{
 		FVector Axis = FVector::CrossProduct(Forward, Out);
 		if (!Axis.Normalize()) { Axis = State.Rotation.GetUpVector(); }
 		const float Angle = FMath::Acos(FMath::Clamp(FVector::DotProduct(Forward, Out), -1.f, 1.f));
-		const float Step = FMath::DegreesToRadians(FMath::Lerp(45.f, 220.f, KeepOut01)) * DeltaTime;
+		const float Step = FMath::DegreesToRadians(FMath::Lerp(18.f, 240.f, KeepOut01 * KeepOut01)) * DeltaTime;
 		State.Rotation = (FQuat(Axis, FMath::Min(Angle, Step)) * State.Rotation).GetNormalized();
 	}
 	// Slow toward a firm crawl as it goes deeper (the sim re-accelerates outside the band).
@@ -459,7 +460,7 @@ void UTDShipMovementComponent::HandleTransformUpdated(USceneComponent* Component
 	{
 		UE_LOG(LogTriadDrift, Warning, TEXT("TD silent move: %s moved %.0f m in one step, outside flight and without TeleportSpacecraft (%s -> %s). Mover's callstack:"),
 			*GetNameSafe(GetOwner()), Moved / 100.f, *From.ToCompactString(), *Now.ToCompactString());
-		if (!GIsAutomationTesting) { FDebug::DumpStackTraceToLog(ELogVerbosity::Warning); } // tests: the line is enough, a stack per move is noise
+		if (!GIsAutomationTesting && TDTeleportStackEnabled()) { FDebug::DumpStackTraceToLog(ELogVerbosity::Warning); } // tests: the line is enough, a stack per move is noise
 	}
 #endif
 }

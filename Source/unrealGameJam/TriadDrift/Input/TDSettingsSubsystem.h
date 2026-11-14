@@ -76,7 +76,7 @@ struct UNREALGAMEJAM_API FTDPlayerSettings
 
 	/** ENG-32: first or third person on foot. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Camera")
-	ETDOnFootCamera OnFootCameraMode = ETDOnFootCamera::FirstPerson;
+	ETDOnFootCamera OnFootCameraMode = ETDOnFootCamera::ThirdPerson; // Ryan, Nov 14: third person on foot everywhere; first person is the Settings option
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Controls", meta = (ClampMin = "0.25", ClampMax = "3"))
 	float MouseSensitivity = 1.f;
@@ -146,6 +146,10 @@ struct UNREALGAMEJAM_API FTDPlayerSettings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Accessibility")
 	bool bSubtitles = true;
 
+	/** #160 (T2's flight HUD): small squad chips and no radar instead of the squad panel and radar. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "HUD")
+	bool bMinimalHUD = false;
+
 	/** Graphics preset. Until the player picks one (bGraphicsChosen) it shows the level the engine detected at start-up. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Video")
 	ETDGraphicsPreset GraphicsPreset = ETDGraphicsPreset::High;
@@ -161,7 +165,7 @@ class UNREALGAMEJAM_API UTDSettingsSave : public USaveGame
 	GENERATED_BODY()
 
 public:
-	static constexpr int32 CurrentVersion = 1;
+	static constexpr int32 CurrentVersion = 2; // 2: on-foot camera default became third person
 
 	UPROPERTY(SaveGame)
 	int32 Version = CurrentVersion;
@@ -273,6 +277,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings") bool AreSubtitlesEnabled() const { return Settings.bSubtitles; }
 	/** Subtitles on for this world (true when there is no settings subsystem). */
 	static bool AreSubtitlesOn(const UObject* WorldContext);
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetMinimalHUD(bool bMinimal);
+	/** #160: the player's Minimal HUD choice (false when there is no settings subsystem). T2's HUD reads it by name. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContextObject"))
+	static bool IsMinimalHUD(const UObject* WorldContextObject);
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings") ETDSubtitleSize GetSubtitleSize() const { return Settings.SubtitleSize; }
 	/** The subtitle text scale for a size: Small 0.8, Medium 1.0, Large 1.3 (multiply the authored font size). */
 	static float SubtitleScaleFor(ETDSubtitleSize Size);

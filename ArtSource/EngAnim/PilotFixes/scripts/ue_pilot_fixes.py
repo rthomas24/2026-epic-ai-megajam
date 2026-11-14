@@ -162,6 +162,9 @@ _PILOT_MESH = unreal.load_asset("/Game/TriadDrift/Gameplay/Characters/Pilot/SK_P
 SOCKET = _PILOT_MESH.find_socket("BladeSocket") if _PILOT_MESH else None
 SOCK_Q = tq(SOCKET.relative_rotation.quaternion()) if SOCKET else (0, 0, 0, 1)
 
+def qinv(q): return (-q[0], -q[1], -q[2], q[3])
+
+
 for a in CFG.get("aim", []):
     # Turn the hand at the wrist, frame by frame, so the blade (BladeSocket +X) points where it should, by at most
     # max_deg. "dir" is a mesh-space direction (the pilot faces +Y, right is -X, up +Z); "thrust" lines the blade up
@@ -184,12 +187,49 @@ for a in CFG.get("aim", []):
         else:
             want = tuple(a["dir"])
         qw, ang = from_to(blade, want, a.get("max_deg", 60.0) * weight)
+        if a.get("twist"):
+            # Split the turn: the part about the forearm's own axis is a forearm roll (pronation, on lowerarm_r, up to
+            # twist_max deg), the rest bends the wrist (up to max_deg). The hand stays where it is (it is on the axis).
+            hp, lp = tv(hand_w.translation), tv(low_w.translation)
+            ax = [h - l for h, l in zip(hp, lp)]
+            na = math.sqrt(sum(c * c for c in ax)); ax = [c / na for c in ax]
+            full, _ = from_to(blade, want, 180.0)
+            d = sum(full[k] * ax[k] for k in range(3))
+            tw = (ax[0] * d, ax[1] * d, ax[2] * d, full[3])
+            nt = math.sqrt(sum(c * c for c in tw)) or 1.0
+            tw = tuple(c / nt for c in tw)
+            if tw[3] < 0:
+                tw = tuple(-c for c in tw)
+            tang = math.degrees(2 * math.acos(min(1.0, tw[3])))
+            tmax = a.get("twist_max", 90.0)
+            if tang > tmax:
+                s_ = math.sin(math.radians(tmax) / 2) / max(1e-6, math.sin(math.radians(tang) / 2))
+                tw = (tw[0] * s_, tw[1] * s_, tw[2] * s_, math.cos(math.radians(tmax) / 2))
+                tang = tmax
+            # what is left after the roll, as a wrist bend capped at max_deg
+            rolled = prot(tw, blade)
+            qs, sang = from_to(rolled, want, a.get("max_deg", 60.0) * weight)
+            # forearm roll: lowerarm CS' = tw * lowerarm CS; local = parent^-1 * CS
+            up_w = unreal.AnimPoseExtensions.get_bone_pose(pose, "upperarm_r", WORLD)
+            uq = tq(up_w.rotation)
+            low_new = pmul(tw, lq)
+            loc_l, _ = fr["lowerarm_r"]
+            fr["lowerarm_r"] = (loc_l, unreal.Quat(*pmul(qinv(uq), low_new)))
+            hand_new = pmul(qs, pmul(tw, hq))
+            loc_h, _ = fr["hand_r"]
+            fr["hand_r"] = (loc_h, unreal.Quat(*pmul(qinv(low_new), hand_new)))
+            frs.append(fr)
+            turned.append(sang)
+            a.setdefault("_tw", []).append(tang)
+            continue
         # a turn in component space about the wrist = the same turn in the forearm's frame, applied before the local
         qpar = pmul(pmul((-lq[0], -lq[1], -lq[2], lq[3]), qw), lq)
         loc, rot = fr["hand_r"]
         fr["hand_r"] = (loc, qmul(unreal.Quat(*qpar), rot))
         frs.append(fr)
         turned.append(ang)
+    if a.get("_tw"):
+        log("%s: forearm roll %.0f..%.0f deg" % (a["dst"], min(a["_tw"]), max(a["_tw"])))
     log("%s -> %s: wrist turned %.0f..%.0f deg (mean %.0f)" % (a["src"], a["dst"], min(turned), max(turned), sum(turned) / len(turned)))
     write(a["dst"], frs)
 
@@ -292,6 +332,9 @@ for sw in CFG.get("swing", []):
         for child, parent in (("spine_01", "pelvis"), ("upperarm_r", "clavicle_r"), ("lowerarm_r", "upperarm_r"), ("hand_r", "lowerarm_r")):
             loc, _ = fr[child]
             fr[child] = (loc, unreal.Quat(*local(child, parent)))
+        if sw.get("pelvis_shift"):  # (x, y) cm in component space: a source whose whole body stands off the root
+            loc, prot_ = fr["pelvis"]
+            fr["pelvis"] = (unreal.Vector(loc.x + sw["pelvis_shift"][0], loc.y + sw["pelvis_shift"][1], loc.z), prot_)
         frs.append(fr)
         if i % 3 == 0:
             log_lines.append("t%.2f yaw%+.0f hand(F%.0f R%.0f U%.0f) wrist%.0f" % (t, cur_yaw + dyaw, hp[0], hp[1], hp[2], ang))

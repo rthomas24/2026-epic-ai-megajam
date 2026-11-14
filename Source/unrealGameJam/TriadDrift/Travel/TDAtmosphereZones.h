@@ -143,7 +143,13 @@ public:
 	 * and roar at the edge, slowed, nose turned away, a HUD line saying why, a flash and a small hull hit on contact.
 	 */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
-	bool IsPlanetClosedWarning() const { return ClosedPlanet01 > 0.02f; }
+	bool IsPlanetClosedWarning() const;
+	/** The HUD line stays up at least this long per approach (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "s"))
+	float ClosedPlanetLineSeconds = 2.5f;
+	/** The most entry heat the skip-off shows (a real entry reaches 1): the ship and the planet stay readable (Lead, Nov 14). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", ClampMax = "1"))
+	float ClosedPlanetMaxHeat = 0.62f;
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
 	FText GetPlanetClosedText() const { return ClosedPlanetText; }
 	/** The band outside the atmosphere where the turn-away works (cm). */
@@ -190,6 +196,8 @@ private:
 	double LastClosedHit = -100.0;
 	bool bGuardRoar = false;
 	bool bGuardLogged = false;
+	bool bGuardFlashed = false;
+	double ClosedLineUntil = -1.0;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnAtmosphereExit, ATDShip*, Ship);

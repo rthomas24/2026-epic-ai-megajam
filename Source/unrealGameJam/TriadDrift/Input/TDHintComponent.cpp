@@ -30,6 +30,7 @@ namespace TDHints
 	static const ETDHint Core[] = { ETDHint::Fly, ETDHint::Fire, ETDHint::Switch, ETDHint::Power, ETDHint::Boost,
 		ETDHint::Dodge, ETDHint::TargetCycle };
 	static const ETDHint Essentials[] = { ETDHint::Fly, ETDHint::Fire, ETDHint::Switch, ETDHint::Power };
+	static bool IsEssential(ETDHint Hint) { for (ETDHint H : Essentials) { if (H == Hint) { return true; } } return false; }
 
 	static bool IsCore(ETDHint H)
 	{
@@ -260,6 +261,17 @@ void UTDHintComponent::HandleWaveStarted(int32 WaveNumber, float Intensity01)
 	// hints below still come when they apply).
 	if (!IsContinuedRun())
 	{
+		// T1's first-ten-minutes play (Nov 14): a New Game on a machine that has been played before showed no key for any
+		// lesson (hints are remembered across runs). A new run is a new pilot: once per run, at wave 1, the core lessons
+		// are offered again (doing the action still ticks each off at once, shown or not).
+		static uint32 OnboardedRun = MAX_uint32;
+		const UTDGameInstance* GI = UTDGameInstance::Get(this);
+		if (WaveNumber == 1 && GI && !GIsAutomationTesting && GI->GetRunSerial() != OnboardedRun)
+		{
+			OnboardedRun = GI->GetRunSerial();
+			for (ETDHint H : TDHints::Core) { Done.Remove(H); Missed.Remove(H); }
+			UE_LOG(LogTriadDrift, Log, TEXT("TD hints: a new game - the core control hints are offered again (run %u)"), OnboardedRun);
+		}
 		for (ETDHint H : TDHints::Core)
 		{
 			Offer(H);
@@ -424,7 +436,10 @@ void UTDHintComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	if (Current != ETDHint::None)
 	{
 		CurrentAge += DeltaTime;
-		if (CurrentAge >= TimeoutSeconds)
+		// The four essentials (fly, fire, switch, power) are lessons: on a new game their card stays, key named, until the
+		// pilot does it (the Lead, Nov 14: a lesson must not pass silently). Everything else still times out.
+		const bool bLessonStays = !IsContinuedRun() && TDHints::IsEssential(Current);
+		if (CurrentAge >= TimeoutSeconds && !bLessonStays)
 		{
 			MissCurrent(); // ignored: once more later, then it counts as seen
 		}
@@ -475,6 +490,7 @@ ETDTeachPhase UTDHintComponent::CurrentTeachPhase() const
 
 ETDHint UTDHintComponent::GetCurrentHint() const
 {
+	if (DebugPinned != ETDHint::None) { return DebugPinned; } // dev captures
 	if (IsSuppressed())
 	{
 		return ETDHint::None;
@@ -484,6 +500,7 @@ ETDHint UTDHintComponent::GetCurrentHint() const
 
 ETDHintState UTDHintComponent::GetCurrentHintState() const
 {
+	if (DebugPinned != ETDHint::None) { return ETDHintState::Showing; } // dev captures
 	if (IsSuppressed())
 	{
 		return ETDHintState::None;
@@ -544,9 +561,9 @@ namespace TDHints
 				: Part == 2 ? LOCTEXT("LancerAct", "AFTERBURNER RAM")
 				: (P ? LOCTEXT("LancerLineP", "X  AFTERBURNER RAM") : LOCTEXT("LancerLineK", "Q  AFTERBURNER RAM"));
 		case ETDShipId::Bastion:
-			return Part == 1 ? (P ? LOCTEXT("BastionKeyP", "X  ·  HOLD X") : LOCTEXT("BastionKeyK", "Q  ·  HOLD Q"))
-				: Part == 2 ? LOCTEXT("BastionAct", "MISSILE SWARM  ·  HOLD: SHIELD DOME")
-				: (P ? LOCTEXT("BastionLineP", "X  MISSILE SWARM   ·   HOLD X  SHIELD DOME") : LOCTEXT("BastionLineK", "Q  MISSILE SWARM   ·   HOLD Q  SHIELD DOME"));
+			return Part == 1 ? (P ? LOCTEXT("BastionKeyP", "TAP X  ·  HOLD X") : LOCTEXT("BastionKeyK", "TAP Q  ·  HOLD Q"))
+				: Part == 2 ? LOCTEXT("BastionAct", "MISSILE SWARM  ·  SHIELD DOME")
+				: (P ? LOCTEXT("BastionLineP", "TAP X: MISSILE SWARM   ·   HOLD X: SHIELD DOME") : LOCTEXT("BastionLineK", "TAP Q: MISSILE SWARM   ·   HOLD Q: SHIELD DOME"));
 		default:
 			return FText::GetEmpty();
 		}
@@ -716,6 +733,30 @@ namespace TDHints
 		{
 			if (UTDHintComponent* H = Find(World)) { H->ResetHints(); H->Offer(ETDHint::Fly); }
 		}));
+
+#if !UE_BUILD_SHIPPING
+	static FAutoConsoleCommandWithWorldAndArgs CmdShow(TEXT("TD.Hints.Show"),
+		TEXT("Captures: put one control hint on screen for the flown ship and hold it: TD.Hints.Show <Fly|Fire|Boost|Dodge|Switch|Power|TargetCycle|Drift|Hyperdrive|Ability|None> (None releases it)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			UTDHintComponent* H = Find(World);
+			if (!H || Args.Num() == 0) { return; }
+			const int64 V = StaticEnum<ETDHint>()->GetValueByNameString(Args[0], EGetByNameFlags::None);
+			if (V == INDEX_NONE) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.Hints.Show: no hint named %s"), *Args[0]); return; }
+			H->DebugPinHint((ETDHint)V);
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Hints.Show: %s -> '%s'"), *Args[0], *H->GetCurrentText().ToString());
+		}));
+	static FAutoConsoleCommandWithWorld CmdNext(TEXT("TD.Hints.Next"), TEXT("Captures: show the next control hint in order (Fly, Fire, Boost, ... Ability, then back to Fly)."),
+		FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World)
+		{
+			UTDHintComponent* H = Find(World);
+			if (!H) { return; }
+			const int32 Now = (int32)H->GetDebugPinnedHint();
+			const int32 Next = Now >= (int32)ETDHint::Ability ? (int32)ETDHint::Fly : Now + 1;
+			H->DebugPinHint((ETDHint)Next);
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Hints.Next: %s -> '%s'"), *StaticEnum<ETDHint>()->GetNameStringByValue(Next), *H->GetCurrentText().ToString());
+		}));
+#endif
 
 	static FAutoConsoleCommandWithWorld CmdStatus(TEXT("TD.Hints.Status"), TEXT("Log the current control hint and which are done."),
 		FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World)

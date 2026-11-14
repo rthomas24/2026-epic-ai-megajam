@@ -23,13 +23,25 @@ namespace TDHUDRadar
 		return Points;
 	}
 
+	/** T2's small-screen rule (the squad panel's, 3f6b57c3), from the painter's own geometry: real pixels per design unit =
+	 *  the frame fit times UMG's DPI scale. Under 900 / 1080 the radar draws at 85% of its 1080 pixel size and its text at
+	 *  the 1080 pixel size; otherwise 1. */
+	static void Fit(const FTDUIPainter& P, float& OutK, float& OutFont)
+	{
+		const float Real = P.Scale * FMath::Max(.01f, P.G.GetAccumulatedLayoutTransform().GetScale());
+		const bool bSmall = Real > 0.f && Real < 900.f / 1080.f;
+		OutK = bSmall ? .85f / Real : 1.f;
+		OutFont = bSmall ? 1.f / Real : 1.f;
+	}
+
 	struct FRadarPaint
 	{
 		const FTDUIPainter& P;
 		FVector2D C;
 		float R;
-		/** Small screens (under 900 px tall): the radar at 85%, text never under 12 px on screen. */
+		/** Design-unit multiplier for sizes (T2's rule, see Fit) and for font sizes. */
 		float Shrink;
+		float FontK = 1.f;
 
 		FVector2D Px(const FVector2D& D) const { return D * P.Scale + P.Origin; }
 		void Lines(const TArray<FVector2D>& Pts, FLinearColor Col, float Width, int32 LayerAdd = 1) const
@@ -49,7 +61,7 @@ namespace TDHUDRadar
 		{
 			TArray<FVector2D>& Pts = Scratch();
 			for (const FVector2D& Q : Local) { Pts.Add(Px(At + Q)); }
-			if (bClose && Pts.Num() > 0) { Pts.Add(Pts[0]); }
+			if (bClose && Pts.Num() > 0) { const FVector2D First = Pts[0]; Pts.Add(First); } // never Add an element of the array itself by reference (asserts, or reads freed memory in Shipping)
 			Lines(Pts, Col, Width);
 		}
 		void Circle(const FVector2D& At, float Rad, FLinearColor Col, float Width, int32 Segments = 40) const
@@ -84,7 +96,7 @@ namespace TDHUDRadar
 		/** Text at design (X, Y), Align 0 left / .5 centre / 1 right; at least 12 px on screen. */
 		void Text(float X, float Y, const FString& S, int32 Size, FLinearColor Col, const ANSICHAR* Face, float Align) const
 		{
-			const int32 Design = FMath::Max(Size, FMath::CeilToInt(12.f / FMath::Max(P.Scale, .01f)));
+			const int32 Design = FMath::Max(1, FMath::RoundToInt(Size * FontK));
 			const FSlateFontInfo Font = FTDUIPainter::MakeFont(Face, Design, P.Scale, 20);
 			const float W = Align > 0.f ? P.Measure(S, Font) : 0.f;
 			FSlateDrawElement::MakeText(P.List, P.Layer + 2, P.Geo({ X - W * Align, Y }, { 1, 1 }), S, Font, ESlateDrawEffect::None, P.Faded(Col));
@@ -160,9 +172,13 @@ namespace TDHUDRadar
 	/** Strings rebuilt only when what they show changes. */
 	struct FCache
 	{
+		bool bNextWave = false;
 		int32 Wave = -1, Count = -1, Next = -1, NextIn = -1, Breather = -1;
 		float Range = -1.f;
-		FString WaveText, NextText, BreatherText, RangeText;
+		FString WaveText, NextText, BreatherText, RangeText, GenText;
+		int32 GenDown = -1, GenTotal = -1;
+		bool bGenReactor = false;
+		int32 GenPhase = -1;
 	};
 	static FCache& Cache()
 	{
@@ -174,27 +190,34 @@ namespace TDHUDRadar
 FBox2D TDHUDRadarBox(const FTDUIPainter& P)
 {
 	using namespace TDHUDRadar;
-	const float Shrink = P.Scale * 1080.f < 900.f ? .85f : 1.f;
-	const float R = Radius * Shrink;
-	const FVector2D C(CX + (Radius - R), CY + (Radius - R));	// shrinks into the bottom-right corner, away from the subtitles
-	return FBox2D(FVector2D(C.X - R, C.Y - R - HeaderGap - HeaderH), FVector2D(C.X + R, C.Y + R));
+	float K = 1.f, Font = 1.f;
+	Fit(P, K, Font);
+	const float R = Radius * K;
+	const FVector2D C(CX + Radius - R, CY + Radius - R);	// anchored to the bottom-right corner of the safe frame
+	return FBox2D(FVector2D(C.X - R, C.Y - R - HeaderGap - HeaderH * Font), FVector2D(C.X + R, C.Y + R));
 }
 
 void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDHUDRadarInput& In)
 {
 	using namespace TDHUDRadar;
-	const float Shrink = P.Scale * 1080.f < 900.f ? .85f : 1.f;
+	float Shrink = 1.f, FontK = 1.f;
+	Fit(P, Shrink, FontK);
 	const float R = Radius * Shrink;
-	const FRadarPaint D{ P, FVector2D(CX + (Radius - R), CY + (Radius - R)), R, Shrink };
+	const FRadarPaint D{ P, FVector2D(CX + Radius - R, CY + Radius - R), R, Shrink, FontK };	// anchored to the bottom-right of the safe frame
 	const FVector2D& C = D.C;
 	const float S = Shrink;	// glyph scale
 	const float Range = FMath::Max(Model.RadarRange, 1.f);
 
 	// ---- plate: a dark disc (Panel), a soft rim, rings at 1/3 and 2/3, cardinal ticks, the camera's 70 degree view cone
-	static FSlateRoundedBoxBrush Disc(FLinearColor::White, 0.f);
-	Disc.OutlineSettings.RoundingType = ESlateBrushRoundingType::HalfHeightRadius;
+	// Built once and never written again: the render thread reads this brush after the paint returns.
+	static const FSlateRoundedBoxBrush Disc = []()
+	{
+		FSlateRoundedBoxBrush B(FLinearColor::White, 0.f);
+		B.OutlineSettings.RoundingType = ESlateBrushRoundingType::HalfHeightRadius;
+		return B;
+	}();
 	FSlateDrawElement::MakeBox(P.List, P.Layer, P.Geo({ C.X - R, C.Y - R }, { 2 * R, 2 * R }), &Disc, ESlateDrawEffect::None,
-		P.Faded(Pal::Panel().CopyWithNewOpacity(.82f)));
+		P.Faded(Pal::Panel().CopyWithNewOpacity(.88f)));	// readable over bright nebula (T7, Lead)
 	const float ConeHalf = FMath::DegreesToRadians(35.f);
 	for (int32 I = 0; I < 6; ++I)	// the cone: a faint fan
 	{
@@ -202,9 +225,9 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 	}
 	D.Seg(C, C + FVector2D(FMath::Sin(-ConeHalf), -FMath::Cos(-ConeHalf)) * R, Pal::Muted().CopyWithNewOpacity(.16f), 1.f);
 	D.Seg(C, C + FVector2D(FMath::Sin(ConeHalf), -FMath::Cos(ConeHalf)) * R, Pal::Muted().CopyWithNewOpacity(.16f), 1.f);
-	D.Circle(C, R * (1.f / 3.f), Pal::Muted().CopyWithNewOpacity(.16f), 1.f);
-	D.Circle(C, R * (2.f / 3.f), Pal::Muted().CopyWithNewOpacity(.20f), 1.f);
-	D.Circle(C, R, Pal::Muted().CopyWithNewOpacity(.38f), 1.5f, 56);
+	D.Circle(C, R * (1.f / 3.f), Pal::Muted().CopyWithNewOpacity(.30f), 1.f);
+	D.Circle(C, R * (2.f / 3.f), Pal::Muted().CopyWithNewOpacity(.34f), 1.f);
+	D.Circle(C, R, Pal::Ink().CopyWithNewOpacity(.55f), 1.5f, 56);	// a thin light rim
 	for (int32 I = 0; I < 4; ++I)
 	{
 		const float A = I * PI * .5f;
@@ -217,7 +240,6 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 		K.Range = Range;
 		K.RangeText = Range >= 1000.f ? FString::Printf(TEXT("%.1f KM"), Range / 1000.f) : FString::Printf(TEXT("%.0f M"), Range);
 	}
-	D.Text(C.X, C.Y + R - 20.f, K.RangeText, 12, Pal::Muted().CopyWithNewOpacity(.8f), "Mono", .5f);
 
 	// ---- contacts (the model holds at most MaxContacts, nearest first after the must-shows)
 	const float Flash = FMath::Fmod(In.Time * 2.5f, 1.f) < .55f ? 1.f : .25f;	// missiles: 2.5 Hz
@@ -240,7 +262,8 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 			RimArc(D, Bearing, Pulse2, Ct.Type == ETDRadarType::Incoming);	// announced arrivals only: the model lists nothing else
 			if (Ct.bBeyond || Ct.Type == ETDRadarType::Incoming) { continue; }
 		}
-		const float Rad = Ct.bBeyond ? R - 8.f : RadiusFor(Flat, Range, R);
+		// Never on the player's dart: anything closer than about 150 m sits on a small ring round it, at its bearing.
+		const float Rad = Ct.bBeyond ? R - 8.f : FMath::Max(RadiusFor(Flat, Range, R), 20.f * S);
 		const FVector2D At = C + Dir * Rad;
 		// Height: above = full brightness, stem hangs down to the foot; below = dimmed, stem rises; level: none.
 		const bool bAbove = Ct.Up > Level, bBelow = Ct.Up < -Level;
@@ -257,7 +280,7 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 		{
 		case ETDRadarType::Enemy:
 			Enemy(D, Blip, Ct.Kind, Pal::Hostile().CopyWithNewOpacity(Bright * Hollow), S);
-			if (Ct.bThreat && !Ct.bBeyond) { D.Circle(Blip, 9.f * S, Pal::Hostile().CopyWithNewOpacity(.55f * Bright), 1.f, 16); }	// attacking you
+			// No ring on attackers: in a close fight the rings merged into a blob over the player's dart (played, Nov 14).
 			break;
 		case ETDRadarType::Missile:
 			D.Dot(Blip, 4.f * S, Pal::Ink().CopyWithNewOpacity(Flash * Bright));
@@ -295,6 +318,13 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 		}
 	}
 
+	// ---- the range label, after the contacts and on its own small plate so a rim blip never covers it
+	{
+		const float LW = 66.f * D.FontK, LH = 16.f * D.FontK, LY = C.Y + R - 22.f * D.FontK;
+		P.Box(C.X - LW * .5f, LY, LW, LH, Pal::Panel().CopyWithNewOpacity(.92f));
+		D.Text(C.X, LY + 1.f * D.FontK, K.RangeText, 12, Pal::Muted().CopyWithNewOpacity(.9f), "Mono", .5f);
+	}
+
 	// ---- you: a filled dart at the centre in the flown ship's colour, with a soft glow
 	if (In.bHasFlown)
 	{
@@ -308,29 +338,57 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 	}
 
 	// ---- wave header above the radar: WAVE n / N, a pip per wave, the next group (+count, seconds) or NEXT WAVE
-	if (In.Wave.WaveCount > 0)
+	// Only during a wave or its breather (after wave 5 the director reports wave 0: it read "WAVE 1 / 5", #103).
+	const bool bWaves = In.Wave.WaveCount > 0 && In.Wave.WaveNumber > 0 && (In.Wave.bWaveActive || In.Wave.bInBreather);
+	if (!bWaves && (In.GeneratorsTotal > 0 || In.bReactorExposed))
 	{
-		const float HX = C.X - R, HY = C.Y - R - HeaderGap - HeaderH, HW = 2.f * R;
-		P.Box(HX, HY, HW, HeaderH, Pal::Panel().CopyWithNewOpacity(.78f));
-		D.Seg(FVector2D(HX, HY + HeaderH), FVector2D(HX + HW * .4f, HY + HeaderH), Pal::Hostile().CopyWithNewOpacity(.55f), 1.5f);
-		if (K.Wave != In.Wave.WaveNumber || K.Count != In.Wave.WaveCount)
+		// The Dominion assault: GENERATORS n / N with a pip each (down = filled), then REACTOR.
+		const float HH = HeaderH * D.FontK;
+		const float HX = C.X - R, HY = C.Y - R - HeaderGap - HH, HW = 2.f * R;
+		P.Box(HX, HY, HW, HH, Pal::Panel().CopyWithNewOpacity(.88f));
+		D.Seg(FVector2D(HX, HY + HH), FVector2D(HX + HW * .4f, HY + HH), Pal::Hostile().CopyWithNewOpacity(.55f), 1.5f);
+		const bool bReactor = In.bReactorExposed || In.GeneratorsDown >= In.GeneratorsTotal;
+		if (K.GenDown != In.GeneratorsDown || K.GenTotal != In.GeneratorsTotal || K.bGenReactor != bReactor || K.GenPhase != In.ReactorPhase)
 		{
-			K.Wave = In.Wave.WaveNumber;
+			K.bGenReactor = bReactor;
+			K.GenDown = In.GeneratorsDown;
+			K.GenTotal = In.GeneratorsTotal;
+			K.GenPhase = In.ReactorPhase;
+			K.GenText = !bReactor ? FString::Printf(TEXT("GENERATORS %d / %d"), K.GenDown, K.GenTotal)
+				: In.ReactorPhases > 0 && In.ReactorPhase > 0 && In.ReactorPhase <= In.ReactorPhases ? FString::Printf(TEXT("REACTOR  %d / %d"), In.ReactorPhase, In.ReactorPhases)
+				: FString(TEXT("REACTOR"));
+		}
+		D.Text(HX + 10.f, HY + 7.f * D.FontK, K.GenText, 14, bReactor ? Pal::Hostile() : Pal::Ink(), "Bold", 0.f);
+		if (!bReactor)
+		{
+			const int32 Pips = FMath::Min(In.GeneratorsTotal, 8);
+			for (int32 I = 0; I < Pips; ++I)
+			{
+				const FVector2D Pip(HX + HW - 14.f * S - (Pips - 1 - I) * 13.f * S, HY + HH * .5f);
+				if (I < In.GeneratorsDown) { D.Dot(Pip, 7.f * S, Pal::Ink().CopyWithNewOpacity(.85f)); }
+				else { D.Shape(Pip, { { 0, -4.5f * S }, { 4.5f * S, 0 }, { 0, 4.5f * S }, { -4.5f * S, 0 } }, Pal::Hostile(), 1.4f, true); }	// still up: a hollow diamond
+			}
+		}
+	}
+	if (bWaves)
+	{
+		const float HH = HeaderH * D.FontK;	// the header grows with its text
+		const float HX = C.X - R, HY = C.Y - R - HeaderGap - HH, HW = 2.f * R;
+		P.Box(HX, HY, HW, HH, Pal::Panel().CopyWithNewOpacity(.88f));
+		D.Seg(FVector2D(HX, HY + HH), FVector2D(HX + HW * .4f, HY + HH), Pal::Hostile().CopyWithNewOpacity(.55f), 1.5f);
+		// In a breather the header names the wave that is coming, as the objective line does (Shipping check, Nov 14: it
+		// kept "WAVE 1 / 5" while the objective read "Wave 2 incoming").
+		const bool bNext = In.Wave.bInBreather && In.Wave.WaveNumber < In.Wave.WaveCount;
+		const int32 Shown = bNext ? In.Wave.WaveNumber + 1 : In.Wave.WaveNumber;
+		if (K.Wave != Shown || K.Count != In.Wave.WaveCount || K.bNextWave != bNext)
+		{
+			K.Wave = Shown;
 			K.Count = In.Wave.WaveCount;
-			K.WaveText = FString::Printf(TEXT("WAVE %d / %d"), FMath::Max(1, K.Wave), K.Count);
+			K.bNextWave = bNext;
+			K.WaveText = bNext ? FString::Printf(TEXT("NEXT WAVE %d / %d"), Shown, K.Count) : FString::Printf(TEXT("WAVE %d / %d"), Shown, K.Count);
 		}
-		D.Text(HX + 10.f, HY + 7.f, K.WaveText, 14, Pal::Ink(), "Bold", 0.f);
-		// Pips: cleared = filled ink, current = hostile, to come = hollow.
-		const int32 Pips = FMath::Min(In.Wave.WaveCount, 8);
-		const float PipX0 = HX + HW * .44f;
-		for (int32 I = 0; I < Pips; ++I)
-		{
-			const FVector2D Pip(PipX0 + I * 11.f * S, HY + HeaderH * .5f);
-			const int32 Number = I + 1;
-			if (Number < In.Wave.WaveNumber) { D.Dot(Pip, 6.f * S, Pal::Ink().CopyWithNewOpacity(.85f)); }
-			else if (Number == In.Wave.WaveNumber) { D.Dot(Pip, 7.f * S, Pal::Hostile()); }
-			else { D.Shape(Pip, { { -3 * S, -3 * S }, { 3 * S, -3 * S }, { 3 * S, 3 * S }, { -3 * S, 3 * S } }, Pal::Muted().CopyWithNewOpacity(.7f), 1.f, true); }
-		}
+		D.Text(HX + 10.f, HY + 7.f * D.FontK, K.WaveText, 14, Pal::Ink(), "Bold", 0.f);
+		const FString* TimerText = nullptr;
 		// The next group from T4's GetPendingGroups (Incoming contacts), soonest first.
 		const FTDRadarContact* Next = nullptr;
 		for (const FTDRadarContact& Ct : Model.Contacts)
@@ -340,14 +398,32 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 		if (In.Wave.bInBreather && !Next)
 		{
 			const int32 Secs = FMath::CeilToInt(FMath::Max(0.f, In.Wave.BreatherRemaining));
-			if (K.Breather != Secs) { K.Breather = Secs; K.BreatherText = FString::Printf(TEXT("NEXT WAVE %d:%02d"), Secs / 60, Secs % 60); }
-			D.Text(HX + HW - 10.f, HY + 8.f, K.BreatherText, 12, Pal::Muted(), "Mono", 1.f);
+			if (K.Breather != Secs) { K.Breather = Secs; K.BreatherText = FString::Printf(TEXT("%d:%02d"), Secs / 60, Secs % 60); }
+			D.Text(HX + HW - 10.f, HY + 8.f * D.FontK, K.BreatherText, 12, Pal::Muted(), "Mono", 1.f);
+			TimerText = &K.BreatherText;
 		}
 		else if (Next)
 		{
 			const int32 Secs = FMath::CeilToInt(FMath::Max(0.f, Next->Seconds));
 			if (K.Next != Next->Count || K.NextIn != Secs) { K.Next = Next->Count; K.NextIn = Secs; K.NextText = FString::Printf(TEXT("+%d %d:%02d"), Next->Count, Secs / 60, Secs % 60); }
-			D.Text(HX + HW - 10.f, HY + 8.f, K.NextText, 12, Pal::Hostile(), "Mono", 1.f);
+			D.Text(HX + HW - 10.f, HY + 8.f * D.FontK, K.NextText, 12, Pal::Hostile(), "Mono", 1.f);
+			TimerText = &K.NextText;
+		}
+		const float TimerW = TimerText ? P.Measure(*TimerText, FTDUIPainter::MakeFont("Mono", FMath::Max(1, FMath::RoundToInt(12 * D.FontK)), P.Scale, 20)) + 18.f : 0.f;
+		// Pips: cleared = filled ink, current = hostile, to come = hollow.
+		const int32 Pips = FMath::Min(In.Wave.WaveCount, 8);
+		// After the wave text, wherever it ends (it is larger on small screens).
+		const float PipX0 = HX + 10.f + FMath::Max(HW * .34f, P.Measure(K.WaveText, FTDUIPainter::MakeFont("Bold", FMath::Max(1, FMath::RoundToInt(14 * D.FontK)), P.Scale, 20))) + 14.f * S;
+		// The pips give way to the timer when the header is too narrow for both (720p, "NEXT WAVE", a long timer).
+		const bool bPipsFit = PipX0 + Pips * 11.f * S <= HX + HW - 10.f - TimerW;
+		for (int32 I = 0; bPipsFit && I < Pips; ++I)
+		{
+			const FVector2D Pip(PipX0 + I * 11.f * S, HY + HH * .5f);
+			const int32 Number = I + 1;
+			if (Number < Shown) { D.Dot(Pip, 6.f * S, Pal::Ink().CopyWithNewOpacity(.85f)); }
+			else if (Number == Shown && !bNext) { D.Dot(Pip, 7.f * S, Pal::Hostile()); }
+			else if (Number == Shown) { D.Shape(Pip, { { -3.5f * S, -3.5f * S }, { 3.5f * S, -3.5f * S }, { 3.5f * S, 3.5f * S }, { -3.5f * S, 3.5f * S } }, Pal::Hostile(), 1.4f, true); }	// coming: hollow, hostile
+			else { D.Shape(Pip, { { -3 * S, -3 * S }, { 3 * S, -3 * S }, { 3 * S, 3 * S }, { -3 * S, 3 * S } }, Pal::Muted().CopyWithNewOpacity(.7f), 1.f, true); }
 		}
 	}
 }

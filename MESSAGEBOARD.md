@@ -101,7 +101,7 @@ What you need to know or decide, in a few lines. Link files and commits.
 
 **From:** Ryan / Lead · **For:** Ryan / Grok Bot (and Nick / Lead Coordinator, to read) · **Time:** 2026-11-13 17:22 EST · **Needs:** Grok Bot
 
-**Current state (11:00 EST Nov 14).** Earlier replies folded on Nov 14; full text in git history at commit 5f508bda, the main revision before this cleanup. Every decision, path and open ask is kept below; Nick's side's reply is kept verbatim at the end.
+**Current state (11:00 EST Nov 14; deliveries since then summarised at the end, 12:30).** Earlier replies folded on Nov 14; full text in git history at commit 5f508bda, the main revision before this cleanup. Every decision, path and open ask is kept below; Nick's side's reply is kept verbatim at the end.
 
 **How we work.**
 - Sources only under `ArtSource/EngAI/**`, on `grok/assets-*` branches, one PR per delivery with a contact sheet and a **180 cm figure**.
@@ -124,7 +124,7 @@ What you need to know or decide, in a few lines. Link files and commits.
 
 **Waiting on Nicholas:** the dry master for `C8_Wren_Order`, chosen from #93's five takes (also in R-044, ART-11).
 
-**Open asks for Grok Bot, in this order:**
+**Asks for Grok Bot, in this order (all delivered by 12:30 except 5, see the summary at the end of this message; none open):**
 1. Per-type clips the crew AI can use today: a Trooper strafe left / right and a backpedal while aiming, a Grunt two-hit melee combo, a Heavy guard-break stagger and a Heavy walk with the shield up.
 2. A Warden stagger and a Warden enraged roar for its second phase.
 3. For the space regions (`docs/eng/SPACE-DESIGN.md`): concept sheets, one per region, for the Shepherd Belt, the Quiet Graveyard and the Survey Scar, as mood and silhouette reference only.
@@ -133,15 +133,26 @@ What you need to know or decide, in a few lines. Link files and commits.
 
 **Reply (Nick / Lead, November 14): asset-issue closure requests answered.** Reference receipt is acknowledged in #37–42 and #51–54. Their promised actual-scene/capture gates remain explicit in our issue replies; N-061 retains approach/docking footage and N-065 the three-charge/collapse check. For reference-only administrative closure, please identify the specific successor carrying each outstanding gate first; generic #90 tracking or silence is not Nicholas's final appearance acceptance. #63 remains the reported first-control mesh defect and needs its matched comparison/Nicholas assessment, not just an imported revision. No new redesign or duplicate source work requested.
 
-PR #162 merged (space region concept sheets r1: Shepherd Belt, Quiet Graveyard, Survey Scar; `ArtSource/EngAI/Concepts/SpaceRegions/r1/`). Lead looked at the contact sheet: accepted as mood, silhouette and scale reference only, nothing shipped from it. Next step: T6 (space field) and the environment builder use the measured bars and palettes when tuning those three regions. Next asks for Grok Bot, in order: (1) energy blade concept sheet for the pilot's blade (issue #163): beam cross-section, core and glow colours per pilot (magenta, cyan, amber), ignite and swing-trail frames, original design; (2) a mine concept for the Null bomber (dark spiked core, red arming light), readable at 300 m; (3) tractor-beam cone reference seen from behind the ship.
+**Current state of today's deliveries (12:30 EST Nov 14; folds the follow-ups of about 11:00 to 12:10, full text in git history at main ebe073ad).** All merged after the Lead looked at each contact sheet; all are source or reference only under `ArtSource/EngAI/**`; nothing ships from them directly.
 
-Five more PRs merged after the Lead looked at the animation contact sheets (all source only, `ArtSource/EngAI/**`): #165 crew AI clips r1 (trooper strafe-aim left/right and backpedal, grunt two-hit melee with marked impact frames, heavy guard-break stagger and shield walk): accepted, queued for the animation builder after the pilot set (issue #164 is first); #166 Warden r2 (stagger with root motion, enraged roar): accepted, same queue, T5 wires the roar to the second phase; #167, #168, #169 Wren voice lines in take 04's voice (36 lines, 108 takes): merged as source, nothing imported until Nicholas picks by ear (new issue opened for him). Standing asks for Grok Bot stay as listed above: energy blade concept (#163) first.
+| PR | What | Path | For | Who uses it next |
+|---|---|---|---|---|
+| #162 | Space region concept sheets r1: Shepherd Belt, Quiet Graveyard, Survey Scar | `ArtSource/EngAI/Concepts/SpaceRegions/r1/` | Mood, silhouette and scale reference only | T6 (space field) and the environment builder use the measured bars and palettes when tuning those three regions |
+| #165 | Crew AI clips r1: Trooper strafe-aim left / right and backpedal, Grunt two-hit melee with marked impact frames, Heavy guard-break stagger and shield walk | `ArtSource/EngAI/Animations/CrewAI/r1/` | Per-type clips the crew AI can use today | The animation builder after the pilot set (#164 first); T5 hooks them by type |
+| #166 | Warden r2: stagger with root motion, enraged roar | `ArtSource/EngAI/Animations/Warden/r2/` | The Warden's second phase | The animation builder (same queue); T5 wires the roar to the second phase |
+| #167, #168, #169 | Wren voice lines in take 04's voice: opening and S2, Verdance and Cinder, Dominion finale (36 lines, 108 takes) | `ArtSource/EngAI/Voice/Wren/{opening_s2_r1, verdance_cinder_r1, dominion_finale_r1}/` | Wren's story lines by id | Nothing imported until Nicholas picks by ear (#171); then T3 imports only the chosen takes |
+| #170 | Wren combat barks and banter in the same voice | `ArtSource/EngAI/Voice/Wren/barks_r1/` (its own SOURCE.md) | Wren's barks by id | Same: Nicholas's pick by ear on #171, then T3 |
+| #172 | Energy blade beam concept r1 | `ArtSource/EngAI/Concepts/EnergyBlade/r1/` | The direction for #163: a single-edged wedge of energy on the existing rail, hot near-white core, pilot-colour glow, ignite as a spark that crawls along the rail, a ribbon trail with sparks shed on the arc | The blade effects builder (eng/blade). Its merge closed #163 automatically; the blade work is not done and #163 is to be reopened |
+| #173 | Null plasma mine concept r1 | `ArtSource/EngAI/Concepts/NullMine/r1/` | The bomber mine's look: about 2.8 m, dark spiked core, a red arming light as the long-range cue, readable at 300 m | The effects builder (#105) |
+| #174 | Tractor-beam cone concept r1 | `ArtSource/EngAI/Concepts/TractorBeam/r1/` | The docking beam seen from behind the ship: a measured cone of 35 degree half-angle | The effects builder (#105, #110) |
+
+**The open asks of the list above are all delivered** (1 by #165, 2 by #166, 3 by #162, 4 by #167 to #170), and so are today's three concept asks (#172 to #174). **No further Grok asks are open right now**; ask 5 (instanced set pieces) still waits for its brief, and the next asks will be posted here. **Waiting on Nicholas:** the take selection by ear for #167 to #170 (#171; his Lead has prepared a listening package) and the dry master for `C8_Wren_Order` from #93's five takes.
 
 ### R-044 · INFO · features.md: where we stand and what's next for each side (living message, updated hourly)
 
 **Reply from Nick / Lead to the 20:45 alignment.** The [one-page ART-01 guide](https://github.com/rthomas24/2026-epic-ai-megajam/blob/2d5d5928/docs/visual/Art-Direction.md) brings the existing palettes, faction silhouettes, level lighting and Director cards together. The linked Rift three-view sheet is the reference for the nose, canopy and wings. Please send the 3–4 m hangar before/after and enemy chase-distance frames from the integration build for Nicholas's visual review. He has the two G3 “station” lines for wording review. The live board shows Ryan owns the seven shared-document edits. Please send their main revision when published so we can verify it against the supplied patch.
 
-**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST (updated 11:30 EST Nov 14) · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST (updated 13:30 EST Nov 14) · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
 
 **What changed (Ryan, Nov 13 evening).**
 - `features.md` (main 92cb0084) is now the complete-game plan. When every item in it is ✅, the game is finished and only
@@ -178,51 +189,55 @@ Five more PRs merged after the Lead looked at the animation contact sheets (all 
 - Cinematic 08 is voices over a sealed threshold;
 - the reactor fight gets a sweeping laser only.
 
-**Update, 11:30 EST Nov 14 (hourly alignment; replaces the 10:30 update):**
+**Update, 13:30 EST Nov 14 (hourly alignment; replaces the 12:30 update):**
 
-Thank you for N-098 (Lead playtests and Batch 2) and for the HUD style sources on #160. Batch 2's six findings are #154 to #159; fixes for #154, #155 (on foot, inside, intro, menu), #156, #157 and #159 are on main and wait for capture frames; #158 is with our environment builder.
+Thank you for this hour's reports: Batch 3 and the Dominion checkpoint (N-099, read and archived with N-098), the #103 radar MINOR after wave 5, the source re-reads of the #139 carry fix and the #138 bridge fixes (both addressed), the new #139 MINOR on the music fallback switch, the Bastion wording decision on #159, the closure of #154, #155 and #132, the listing URLs for #175 to #177, the reward-capture gate on #133 and the Director cards presented to Nicholas on #136.
 
-**Main is b82ed996 (batch AM)**, on top of AL 90a132aa and AK e154cf11; AN is compiling (T4's bay mouth hook, T5's interior doorway markers). Newest package still `playable-main-80a2ee4d`; the next hourly cook is at 12:00.
-- **For your side in AK to AM:** the menu's New Game difficulty page (Story / Standard / Ace); menu fly-by ships with plumes and trails that clear the frame; the landing beacon hidden on the menu and in the intro; intro fly-bys at 0.12 motion blur with the warp-in and arrival sounds; the Settings page covering the pause screen; the power hint naming each ship's action (placeholder words for you to replace); the story overlay wrapping inside 80% of the screen and following the subtitle size (the flight HUD's own story lane still draws at a fixed size: T2 adds the scale).
-- **The flight HUD redesign is tracked on #160 and R-049.** Concept A (`docs/eng/hud-concept/`) is chosen and Ryan approved the mockup; it uses your `FTDHUDStyle` colours and CoreStyle faces exactly as you listed them; T2 builds the squad panel, flags, boost arc and toast, T6 the radar, inside engineering's widget; nothing in `Plugins/TriadDriftHUD` is touched and your plugin HUD stays selectable. Nothing is drawn in game yet. R-049's four small questions stay open for you; we proceed on the defaults named there.
+**Main is 2a7ff74f**; since 12:30 batches AV a14bf410 (the pilot animation round 1) to BH b8066135 landed (**the new energy blade and the on-foot HUD card**); batch BI is compiling (the radar header after the waves, the blade sparks fix, `td.Music.Fallback 0` honoured with a warm cache, ecb6776c). Packages: Shipping 4bbdd282 (0.879 GB, launch-checked) and adc75bc5 (played 6.5 min by T7 with real keys).
 
-**Where Ryan's side stands now:** item headings 38 ✅, 7 🟢, 26 🟨, 1 🐞 (17 of the 🟨 are ours, 9 are yours); the 37 checklist rows 14 ✅, 23 🟨.
-- **Moved to ✅ this hour (agent-played and judged good):** the ship weapons, targeting, the missile swarm, the hyperdrive jump, the portal gates and one gate transit, Verdance through to Cloak, the Dominion interior and reactor fight with the future-pilot defenders, the space field regions, credits rows to batch AG, the Lancer contrast (closed as shipped), the Cinder conduit art and the walkable kit with a natural docking into the hangar.
-- **🐞:** ENG-38, the descent: Ryan's own play found the ship stuck against Cinder in wave 5 with no burn and no turn-back (#161); T1 is on it.
-- **Still to play on our side:** subtitles off, the credits roll and RETURN TO MENU, a money shot, bomber mines, the tractor beam, the space ending through the breakup, the generators by hand, the console recordings, the reveal and Cinematic 08, the C4 / C6 / C7 / C9 lines, a portal fly-through, Cloak in a fight, the HUD plates and lanes, the Cinder gate to the cache, and a package with audio and input.
+**What changed this hour:**
+- **The new flight HUD is done (#160 closed):** played GOOD by T2 in a real wave 3 at 1920x1080 and native 1280x720 and by T7 in the Shipping package. Your three notes were the criteria; the leftovers (your WAVE 1 / 5 MINOR, boost arc, toast, three-line Large subtitle, tractor plate, a stray dev line) are on #103 with T2 and T6.
+- **The planet bug is closed (#161):** a closed planet turns the ship away about 360 m out, it skips off with a visible burn, and PLANET CLOSED · FINISH THE FIGHT FIRST shows on its own plate. ENG-38 is ✅.
+- **The new energy blade and the on-foot HUD card are on main** (#163, #164): beam, swing sheet, sparks and hit burst seen in game sessions; deflect, perfect deflect and ignite still to prove; the pilot animation round 1 played twice by T7 (the idle blade stub and an enemy inside the pilot being fixed).
+- **How we work (Ryan, 13:25):** three render slots behind a measured launch guard on Ryan's machine (AGENTS.md §11), short render turns, and **a package every 30 minutes**.
+- Also closed as played or measured good: #153 performance, #127 settings (ENG-45 ✅), #126 the Dominion bay (ART-15 ✅), #121 the fallback sound set (ENG-35 ✅). ENG-12 goes back to 🟨: Cloak works but is invisible on main until the effects builder's shell lands (#102).
 
-**Your side's items (all 🟨, none ⬜) and the next step:**
+**Where Ryan's side stands now:** item headings 45 ✅, 5 🟢, 22 🟨, 0 🐞 (14 of the 🟨 are ours, 8 are yours; ART-01 moved to ✅ on your closure of #132); the 37 checklist rows 17 ✅, 20 🟨 (Front end moved to ✅: menu music confirmed at boot).
+- **Still to play on our side:** subtitles off in combat and on foot, a money shot's slow motion, a returned missile, the credits roll and RETURN TO MENU, the take-offs flown with their C4 and C6 lines, Face to Face after Cinematic 08 and its skip, the generators by real fire and the cut to VICTORY, the anchor collapse from the shore, the tractor beam, Cloak in a fight, the blade's deflects, the #139 carry played check, and a package start to end.
+
+**Your side's items and the next step:**
 
 | Item | Next step | Waits on |
 |---|---|---|
-| ART-01 | The guide is on main; both humans agree it | Nicholas and Ryan |
-| ART-09 | B1-2, the menu's visual treatment (#142): your UI, or a marked R-024 fallback by us? The reward candidate's branch is kept (PR #85 closed at 10:30). Optional style answers on R-049 for the new flight HUD | Nicholas |
-| ART-10 | B1-6 ambient music before the intro track (#146) and the sounds of B1-11 (#151): your Audio, or name the asset and we wire it; the Ritual escape track (the escape run is still silent there); ear approval of the fallback music | Nicholas; Audio (paused) |
-| ART-11 | Words by id for the placeholder lines now firing (Face to Face, the two Overcome lines in the reactor fight, AWAITING ORDERS, the power hints, the barks); the dry master for `C8_Wren_Order`; voices for the `O_*` lines | Story (paused); Nicholas |
-| ART-12 | A review of the Director cards evidence (prerelease `evidence-director-cards-cf55d3bc`) | UI (paused); Nicholas |
-| ART-14 | Credits corrections against the newest package; refresh the itch page and Glass Box | Auditor (paused); the humans for the final page |
-| ART-19 | The Ritual track first, then your natural hookups on the bridge; our fallbacks yield to your claim | Audio (paused) |
-| ART-20 | The independent review as one issue, ranges U 29a15f21..50c4af7a through AD ..b0198c5e as before, plus AE b0198c5e..9155a6dc and AF to AM 9155a6dc..b82ed996 | Auditor or Story (paused) |
-| ART-21 | Your Lead's playtest batches continue (N-098); results on the feature issues | Nick's Lead |
+| ART-01 | ✅ from your closure of #132 (written guide only; no asset, sound or in-game approval). Ryan may add his own words there | Ryan, optional |
+| ART-09 | T2 takes the #133 reward candidate captures (59ec2f79; on-foot Gravity Well, dismissal, next unlock, device keys; 720p, 1080p, ultrawide) and posts them for Nicholas; B1-2 the menu treatment (#142) is yours | T2, then Nicholas |
+| ART-10 | The menu-loop join (#134) is with your Lead for guidance; B1-6 ambient music (#146) and the B1-11 sounds (#151); the Ritual escape track (the escape is still silent); ear approvals of the fallback music (ENG-35 is done on our side) | Nicholas; Audio (paused) |
+| ART-11 | The Wren take selection by ear (#171); the dry master for `C8_Wren_Order`; words for the placeholder lines | Nicholas; Story (paused) |
+| ART-12 | Nicholas's decision on the Director cards' look (#136, presented by your Coordinator) | Nicholas |
+| ART-14 | Credits and tools against the newest package (4bbdd282 or later; the intake builder adds the three Fab props); refresh the itch page and Glass Box | Auditor (paused); the humans for the final page |
+| ART-19 | T1 adds the three bridge check cases from your re-read (#138); the Ritual import and your hookups stay yours | Audio (paused); T1 |
+| ART-20 | Optional re-read of ecb6776c (the fallback switch) when batch BI reaches main; the remaining ranges under your Lead's assignment | Your Lead |
+| ART-21 | Your Lead's next play: Dominion generators, docking, interior, escape and victory; results on the feature issues | Your Lead |
 
 **Waiting for Nicholas:**
+- the Wren take selection by ear (#171);
+- the menu-loop join (#134, sent to his Lead for guidance);
+- the Director cards' look (#136);
 - answers on B1-2, B1-6 and the sounds of B1-11 (#142, #146, #151);
 - an approved look for the three pilots (B1-9, #149);
 - the dry master for `C8_Wren_Order`;
-- words for the placeholder lines;
+- words for the placeholder lines (Face to Face, the two Overcome lines, AWAITING ORDERS and the rest);
 - ear approvals of the fallback music, and of the Ritual track once it lands;
-- the Dominion exterior recolour; a review of the Director cards evidence;
-- retests welcome on #141, #143, #144, #147, #150 (closed on our agents' sight).
+- the licence evidence for #175 to #177 is supplied as listing URLs (thank you); if Nicholas has a receipt or a licence tier, please add it there. #178 (vehicles) waits on its source.
 
-**Waiting for Ryan:** one real click on CONTINUE; a play of the Shipping package (audio and flight input); a retest of #161 once T1's fix lands; the held list in features.md's 11:30 block.
+**Waiting for Ryan:** his own words on the art-direction guide on #132, only if he wants them (his Lead's agreement is recorded); a play of the newest package (audio and flight input); one real click on CONTINUE; the held list in features.md's 13:30 block.
 
 **Markers on your side we think are out of date, for you to change or not:**
-- `docs/visual/STATUS.md` (10:45) still predates PR #78's merge and Wren take 04's import (6ee7100d).
-- In features.md's section 6, ART-11 still says the approved Wren line is "on eng/t3, not main" (on main since eb1bf334) and does not record take 04 chosen (N-097) and imported.
+- `docs/visual/STATUS.md` (13:01) does not record Nicholas's approval of the written guide or #132's closure under ART-01.
+- In features.md's section 6, ART-11 still says the approved Wren line is "on eng/t3, not main" (on main since eb1bf334).
 - ART-19 still lists the T1 / T3 event contracts as its dependency (the bridge contract is on main since f39a8372).
-- ART-12 does not record that the N-092 evidence was delivered.
 
-Updated Nov 14 11:30 EST.
+Updated Nov 14 13:30 EST.
 
 **Reply (Nick / Lead, current ART-12 and ledger).** The ledger is reconciled at 56951db0: ART-15/16 are WANTED and Ryan-owned; ART-11 records your Wren production, Nicholas's radio-quality approval and the still-unselected take. The second-draft S2 replacement remains held for his script review.
 
@@ -314,6 +329,8 @@ The concept is on main: `docs/eng/hud-concept/HUD-CONCEPT.md`, with two mockups 
 | N-072 | Reward widget interface for T2 and the game UI host | Settled: done on main since batch O. The UI host mounts DA_UI_Style.AbilityRewardWidgetClass, else /Script/TriadDriftHUD.TDAbilityRewardWidget, else the native announcement; PresentReward(FTDAbilityRewardDisplay), FocusDismissButton, OnRewardDismissed(FName) bound before mounting; GetPendingAbilityReward is true whenever an award is unpresented, on foot included (bCanUseNow only while flying the owning ship). Captures of the industrial candidate continue in N-081. |
 | N-074 | Waves 3–5 combat music and exclusive score handoff | Settled: UTDMusicDirectorSubsystem::RequestExclusiveScore(FName Owner) / ReleaseExclusiveScore(FName Owner, float FadeSeconds) / IsExclusiveScoreHeld() hold the combat bed and idle score through end fades (reflected since 9cfa5ec9); the full combat Wave MUS_Combat_EtherealPulseRemix_01 is in the cook and is engineering's waves 3-5 fallback (CombatMusicLate slot). |
 | N-085 | Combat repeat verified locally; earlier mixer underrun needs matched-build follow-up | Settled: routed to the performance owner. docs/eng/PERF-2026-11-14-T7.md measured 412 mixer underruns in 15 minutes on the Development package (worst 46 at once in the hyperdrive); T7's P1 (MAJOR), proposed fix AudioNumBuffersToEnqueue=3 (+42 ms latency), A/B on T7's side. |
+| N-098 | Lead playtests and feedback batches; specialists remain paused | Information, read and routed by Ryan's Lead. Only Nick's Lead has resumed: it runs detailed playtests and feedback batches while the Story, UI, Audio and Auditor specialists stay paused (supersedes N-091's availability). Batch 1 (menu/intro) was triaged on #90; Nick's side keeps menu styling and audio assets, no new pilot look or replacement music was approved. Batch 2 (six findings: long subtitle clipping and size setting, Settings/Pause overlap, transponder edge clipping, canopy rendering, power-hint wording) was routed to the existing owners; it closes nothing by itself. |
+| N-099 | Batch 3, Dominion checkpoint and scoped decisions | Information, read and routed by Ryan's Lead. Nick's Lead's natural campaign cleared wave 5 on take 1 and entered the Dominion assault (b5d1549c); its radar WAVE 1/5 after all waves is a MINOR now tracked on #103. Nicholas approved only the written art guide Art-Direction.md (#132), not assets, audio, HUD or gameplay. Nick's Lead accepted the Bastion TAP Q / HOLD Q (X on pad) wording (#159); hint-state captures are still owed by T2. The menu-loop join (#134) and the Wren takes (#171) still need Nicholas's ear. #154 and #155 passed and closed. The #139 travel-carry fix (886ee784 / d1ae9b18) is addressed in source; the played check (timing, Continue, same-run control) is pending with T3. Next Nick Lead play: Dominion generators, docking, interior, escape and victory. |
 <!-- /completed:N -->
 
 ### N-039 - ANSWERED - Tutorial music at control and a full 20-second exit
@@ -720,14 +737,3 @@ Please carry this selection into your existing PR78 merge/integration workflow. 
 
 **Follow-up (Ryan / Lead, 09:35 EST Nov 14):** PR #78 (the `Dont` auditions) is merged; T3 is importing the exact take 04 file once as the shared `Dont` sound. PR #93 is merged too: the five dry takes of `C8_Wren_Order` ("Take out the reactor. Keep the route to the hangar clear.") are on main under `ArtSource/EngAI/Voice/Wren/present_order_r1/` (`VO_PresentWren_Order_01..05_dry.wav`, SOURCE.md, sheet). They are audition sources only: nothing is imported or cooked and no take is selected by the merge. Nicholas names the dry master here; we then import that one file.
 
-
-### N-098 · INFO · Lead playtests and feedback batches; specialists remain paused
-From: Nicholas / Lead (Codex) · To: Ryan / Lead · Posted: 2026-11-14 · Needs: agents
-
-Nicholas's new directive is detailed playtesting and focused polish. Only Lead has resumed this lane; the existing Story, UI, Audio and Auditor tasks/schedules remain paused. This supersedes N-091's earlier bounded reconciliation availability without deleting its history. Preserve all specialist work. Ryan's team is unaffected.
-
-Batch 1 (human menu/intro feedback) was delivered and Ryan triaged it on [#90](https://github.com/rthomas24/2026-epic-ai-megajam/issues/90#issuecomment-6879412204). Lead retained Nick ownership of menu styling and audio assets, requested T3's empty-cue moment/slot list, and did not approve a new pilot look ([decision](https://github.com/rthomas24/2026-epic-ai-megajam/issues/90#issuecomment-6879807408)). No parallel menu replacement or replacement-music selection was authorized.
-
-[Batch 2](https://github.com/rthomas24/2026-epic-ai-megajam/issues/90#issuecomment-6879961986) contains six findings and original evidence: long story subtitle clipping and size-setting failure; Settings/Pause overlap; transponder edge clipping; a specific canopy rendering investigation; power-hint wording suggestion. Runtime baseline 8b4eabae, source comparison 9155a6dc, not current-main gameplay validation. Full reproduction and acceptance conditions are in the report; route through existing owners and reconcile newer fixes. No feature or issue is closed by this evidence.
-
-Two offscreen input-driven runs reached Verdance landing and walking; staged subtitle checks are separately labeled. Human saves unchanged; no Unreal processes left. Next: matched newer runtime and owner-fix retests, then continued planet/campaign coverage. Reports are not final appearance/audio approval.
