@@ -15,6 +15,7 @@
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "EngineUtils.h"
 #include "Engine/World.h"
+#include "Components/BoxComponent.h"
 
 namespace TDGroundBarkIds
 {
@@ -292,6 +293,24 @@ void UTDGroundBarks::TickBarks(float DeltaTime)
 		DoorPushSeconds = -20.f; // not again straight away
 		Say(TDGroundBarkIds::DoorLocked, ETDFootSpeaker::Pilot, ETDBarkPriority::Normal, 20.f);
 	}
+	// Near a magma's edge the first time (T7's Cinder play, Nov 14: 21 CUTs in the river): a wingman warns and the tip
+	// line says how across. Placeholder words; the storyline's are Nicholas's.
+	for (TActorIterator<ATDMagmaVolume> It(World); It; ++It)
+	{
+		if (!It->Box || MagmaWarned.Contains(*It))
+		{
+			continue;
+		}
+		const FBox B = It->Box->Bounds.GetBox();
+		const FVector P = Pilot->GetActorLocation();
+		const double Dx = FMath::Max3(B.Min.X - P.X, 0.0, P.X - B.Max.X), Dy = FMath::Max3(B.Min.Y - P.Y, 0.0, P.Y - B.Max.Y);
+		if (FMath::Sqrt(Dx * Dx + Dy * Dy) < MagmaWarnDistance)
+		{
+			MagmaWarned.Add(*It);
+			Say(TDGroundBarkIds::Hazard, ETDFootSpeaker::Wingman, ETDBarkPriority::Critical, 10.f);
+			Pilot->ShowTip(NSLOCTEXT("TDGroundBarks", "MagmaEdge", "MAGMA KILLS · FOLLOW THE MARKER ACROSS"), 5.f);
+		}
+	}
 	// In lava.
 	for (TActorIterator<ATDMagmaVolume> It(World); It; ++It)
 	{
@@ -318,5 +337,6 @@ void UTDGroundBarks::ResetForTests()
 	SaidOnce.Reset();
 	Said.Reset();
 	NearMarkers.Reset();
+	MagmaWarned.Reset();
 	Kills = 0;
 }
