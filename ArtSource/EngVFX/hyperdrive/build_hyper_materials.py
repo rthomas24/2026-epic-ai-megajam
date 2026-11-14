@@ -32,17 +32,17 @@ float rays = pow(0.5 + 0.5*sin(ang*22.0 + 2.2/(r + 0.15) - t*9.0), 6.0);
 float rays2 = pow(0.5 + 0.5*sin(ang*9.0 - 1.4/(r + 0.25) + t*5.0), 10.0);
 float3 c = col*0.015;
 c += col*(rays*1.3 + rays2*0.8)*depth*inside;
-float rim = exp(-pow((r - 0.87)/0.022, 2.0));
+float rim = exp(-pow((r - 0.87)/0.045, 2.0));   // r2: wider and brighter (r1 read as a dark fan in play)
 float flick = 0.75 + 0.5*frac(sin(floor(t*30.0)*12.9898 + floor(ang*4.0))*43758.5453);
-c += hot*rim*3.2*flick;
-float halo = exp(-max(r - 0.87, 0.0)*10.0)*(1.0 - inside);
-c += col*halo*0.8;
+c += hot*rim*14.0*flick;   // r3: r2's rim read grey at the partial opacity of a fading rift
+float halo = exp(-max(r - 0.87, 0.0)*7.0)*(1.0 - inside);
+c += col*halo*1.4;
 float arcs = pow(saturate(0.5 + 0.5*sin(ang*5.0 - t*6.0)), 24.0)*exp(-pow((r - 0.94)/0.05, 2.0));
 arcs += pow(saturate(0.5 + 0.5*sin(ang*3.0 + t*4.3 + 1.7)), 30.0)*exp(-pow((r - 0.91)/0.04, 2.0));
 c += hot*arcs*2.4;
 float mask = 1.0 - smoothstep(0.96, 1.0, length(p));
-float a = saturate(inside*0.9 + rim + halo*0.35 + arcs)*mask*open;
-return float4(c*Intensity*mask*open, a);""", {'Tint': (1.0, 1.0, 1.0)}),
+float a = saturate(inside*0.9*open + (rim + arcs)*max(open, 0.7) + halo*0.35*open)*mask;   // r3: the rim stays opaque while it fades
+return float4(c*Intensity*mask*max(open, 0.25), a);""", {'Tint': (1.0, 1.0, 1.0)}),
 }
 
 
