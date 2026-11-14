@@ -440,6 +440,16 @@ for cl in CFG.get("clips", []):
             nl = vadd(piv, prot(q, rel))
             fr["pelvis"] = (unreal.Vector(*nl), qmul(unreal.Quat(*q), pr))
         log("%s: settled %.0f deg about %s; pelvis ends at %.0f cm" % (cl["dst"], st["deg"], st["pivot_bone"], frs[-1]["pelvis"][0].z))
+    if cl.get("drop"):
+        # a lying body that rests above the floor: lower the pelvis by cm, eased in over ramp [t0, t1] seconds
+        dr = cl["drop"]
+        for ti, fr in enumerate(frs):
+            a_, b_ = dr["ramp"]
+            w = min(1.0, max(0.0, (ti / float(FPS) - a_) / (b_ - a_)))
+            w = w * w * (3 - 2 * w)
+            loc, rot_ = fr["pelvis"]
+            fr["pelvis"] = (unreal.Vector(loc.x, loc.y, loc.z - dr["cm"] * w), rot_)
+        log("%s: dropped %.0f cm; pelvis ends at %.0f cm" % (cl["dst"], dr["cm"], frs[-1]["pelvis"][0].z))
     seam = 0.0
     if cl.get("loop"):
         k = max(1, int(round(cl.get("loop_s", 0.25) * FPS)))
