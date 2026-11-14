@@ -662,4 +662,82 @@ bool FTDIntroSlate::RunTest(const FString& Parameters)
 	return true;
 }
 
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroOpeningLines, "TriadDrift.Director.Intro.OpeningSpeaksTheFirstContactLines", TD_TEST_FLAGS)
+bool FTDIntroOpeningLines::RunTest(const FString& Parameters)
+{
+	// Lead (Nov 14): the approved O_* lines replace the narrator captions; story order over the shots, the last four at the
+	// hand-off as radio (watched or skipped), words untouched, td.Intro.Lines 0 brings the captions back.
+	TArray<FName> All;
+	for (const UTDIntroDirector::FTimedLine& L : UTDIntroDirector::OpeningLines()) { All.Add(FName(L.Id)); }
+	All.Append(UTDIntroDirector::HandOffLines());
+	TArray<FName> Table;
+	for (const FTDTransmission& E : UTDStorySubsystem::GetAllEntries())
+	{
+		if (E.Id.ToString().StartsWith(TEXT("O_"))) { Table.Add(E.Id); }
+	}
+	TestTrue(TEXT("all fifteen O_* lines, in the table's story order"), All == Table && All.Num() == 15);
+	float Prev = -1.f;
+	for (const UTDIntroDirector::FTimedLine& L : UTDIntroDirector::OpeningLines())
+	{
+		TestTrue(FString::Printf(TEXT("%s starts after the one before"), L.Id), L.Start > Prev);
+		Prev = L.Start;
+	}
+	TestEqual(TEXT("\"Evade now!\" is the very last"), UTDIntroDirector::HandOffLines().Last(), FName(TEXT("O_Command_Evade")));
+	{
+		TDIntroTest::FIntroWorld F;
+		if (!TestTrue(TEXT("squad and player"), F.Init()) || !TestTrue(TEXT("plays"), F.Play()))
+		{
+			return false;
+		}
+		for (const UTDIntroDirector::FTimedLine& L : UTDIntroDirector::OpeningLines())
+		{
+			F.Intro->DebugSetTime(L.Start + 0.6f, true);
+			const FTDIntroOverlayState& O = F.Intro->GetOverlay();
+			FTDTransmission E;
+			UTDStorySubsystem::FindEntry(FName(L.Id), E);
+			TestTrue(FString::Printf(TEXT("%s on screen at %.1f s"), L.Id, L.Start + 0.6f), O.SubtitleLineId == FName(L.Id) && O.SubtitleAlpha > 0.5f
+				&& O.Subtitle.EqualTo(E.Text));
+			TestTrue(FString::Printf(TEXT("%s: its speaker named"), L.Id), O.SubtitleSpeaker.EqualTo(UTDStorySubsystem::SpeakerTag(E.Speaker)));
+		}
+	}
+	{
+		// Skipped: the hand-off radio still plays, in order, as control returns.
+		TDIntroTest::FIntroWorld F;
+		if (!TestTrue(TEXT("plays again"), F.Init() && F.Play()))
+		{
+			return false;
+		}
+		F.Run(UTDIntroDirector::GetSkipLockSeconds() + 0.5f);
+		TestTrue(TEXT("skip"), F.Intro->Skip());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(F.W.GetWorld());
+		TArray<FName> Heard;
+		for (int32 i = 0; i < 30 * 20 && Story; ++i)
+		{
+			const FTDTransmissionView V = Story->GetCurrentTransmission();
+			if (V.bActive && (Heard.Num() == 0 || Heard.Last() != V.Id)) { Heard.Add(V.Id); }
+			F.W.Tick(1.f / 30.f);
+		}
+		TestTrue(TEXT("Disengage, Don't-, Break, Evade at the hand-off"), Heard == UTDIntroDirector::HandOffLines());
+	}
+	{
+		// td.Intro.Lines 0: the narrator captions, no speaker.
+		IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Intro.Lines"));
+		if (!TestNotNull(TEXT("td.Intro.Lines"), CVar))
+		{
+			return false;
+		}
+		CVar->Set(0, ECVF_SetByCode);
+		ON_SCOPE_EXIT { CVar->Set(1, ECVF_SetByCode); };
+		TDIntroTest::FIntroWorld F;
+		if (!TestTrue(TEXT("plays with captions"), F.Init() && F.Play()))
+		{
+			return false;
+		}
+		F.Intro->DebugSetTime(14.f, true);
+		TestTrue(TEXT("a narrator caption, no speaker"), F.Intro->GetOverlay().SubtitleSpeaker.IsEmpty() && !F.Intro->GetOverlay().Subtitle.IsEmpty());
+	}
+	return true;
+}
+
 #endif

@@ -136,6 +136,8 @@ public:
 	static bool IsRetired(FName Id);
 	/** A line delivered as static: plays UTDStoryFX::TransmissionStatic when it goes on air. */
 	static bool HasStaticDelivery(FName Id);
+	/** ENG-45: the player's subtitles setting (T1's UTDSettingsSubsystem::AreSubtitlesOn once it lands); true without one. */
+	static bool AreSubtitlesShown(const UObject* WorldContext);
 	/** Seconds a sequence must have run before it can be skipped (Nicholas, N-060: ten). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Story")
 	float SkipAllowedAfterSeconds = 10.f;

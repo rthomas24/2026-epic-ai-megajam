@@ -99,6 +99,10 @@ struct FTDIntroOverlayState
 	float Bars = 1.f;
 	FText Subtitle;
 	float SubtitleAlpha = 0.f;
+	/** Lines mode (td.Intro.Lines 1): who speaks ("KATO") and their squad colour; empty for the narrator. */
+	FText SubtitleSpeaker;
+	FLinearColor SubtitleSpeakerColor = FLinearColor::White;
+	FName SubtitleLineId;
 	float TitleAlpha = 0.f;
 	FText NameCard;
 	FText NameCardRole;   // "RIFT  ·  TRICKSTER"
@@ -208,6 +212,12 @@ public:
 	/** Seconds before the intro can be skipped (Nicholas, N-060: ten for every cutscene). td.Intro.SkipLockSeconds;
 	 *  automation runs use 1 s unless a test sets the cvar (other suites skip early). */
 	static float GetSkipLockSeconds();
+	/** The opening's First Contact lines (O_*, storyline.md §11) shown over the shots: (start second, id), in story order.
+	 *  The four after them play as radio at the hand-off (HandOffLines). td.Intro.Lines 0 restores the narrator captions. */
+	struct FTimedLine { float Start; const TCHAR* Id; };
+	static const TArray<FTimedLine>& OpeningLines();
+	static const TArray<FName>& HandOffLines();
+	static bool UseOpeningLines();
 	static constexpr float SkipHoldSeconds = 0.5f;
 	static constexpr float HandOffSeconds = 1.f;
 
@@ -248,6 +258,9 @@ private:
 	static float EclipseExposureEV100();
 	void ApplyLens(float FocalMm, float FStop, float FocusDistance);
 	void PlayNarrationVoice(int32 Line);
+	int32 LastOpeningLine = -1;
+	bool bHandOffLinesFired = false;
+	void FireHandOffLines();
 	void EnsureWidget();
 	void RemoveWidget();
 	void HandleSkipPressed(FKey Key);
