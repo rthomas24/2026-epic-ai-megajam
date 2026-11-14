@@ -3,6 +3,8 @@
 #   feet       {"l" | "r": [[t, dx, dy, dz], ...]}  where that foot goes from its own position in the source clip
 #   ik         [t0, t1]  when the legs are solved to the foot targets (default: the whole clip)
 #   chest_yaw  [[t, deg], ...]  the upper body turns about spine_01 (+ = left shoulder forward), on top of the clip
+#   chest_pitch [[t, deg], ...]  the upper body folds forward about spine_01
+#   time_warp  {"until": s, "power": p}  the source clip eases in over its first seconds
 #   arm_drop   {"l" | "r": [[t, deg], ...]}  that arm swings down from the shoulder by deg
 # Keys are eased (smoothstep) between neighbours. TD_BODY = config json. Animation builder (eng/anim), Nov 14.
 import json
@@ -40,7 +42,11 @@ for cl in CFG["clips"]:
     track = {}
     for i in range(n):
         t = i / float(FPS)
-        pose = X.get_anim_pose_at_time(src, min(src.get_play_length(), t * rate), OPTS)
+        ts = t * rate
+        tw = cl.get("time_warp")   # {"until": s, "power": p}: the source eases in over the first seconds (no step off frame 0)
+        if tw and ts < tw["until"]:
+            ts = tw["until"] * (ts / tw["until"]) ** tw["power"]
+        pose = X.get_anim_pose_at_time(src, min(src.get_play_length(), ts), OPTS)
         fr, W = {}, {}
         for b in ALL:
             lt, wt = X.get_bone_pose(pose, b, LOCAL), X.get_bone_pose(pose, b, WORLD)
@@ -56,6 +62,16 @@ for cl in CFG["clips"]:
         yaw = keyed(cl.get("chest_yaw"), t, 1)[0]
         if abs(yaw) > 1e-4:
             piv, q = W["spine_01"][0], qaxis((0.0, 0.0, 1.0), yaw)
+            for b in upper:
+                W[b][0] = add(piv, rot(q, sub(W[b][0], piv)))
+                W[b][1] = qmul(q, W[b][1])
+        pitch = keyed(cl.get("chest_pitch"), t, 1)[0]   # + = the upper body folds forward (mesh +Y) about spine_01
+        if abs(pitch) > 1e-4:
+            piv = W["spine_01"][0]
+            axis = norm(sub(W["upperarm_r"][0], W["upperarm_l"][0]))
+            q = qaxis(axis, pitch)
+            if rot(q, sub(W["head"][0], piv))[1] < sub(W["head"][0], piv)[1]:
+                q = qaxis(axis, -pitch)
             for b in upper:
                 W[b][0] = add(piv, rot(q, sub(W[b][0], piv)))
                 W[b][1] = qmul(q, W[b][1])

@@ -1,5 +1,5 @@
 {
- "_note": "Warden death (the Back fall, 2.80 s): knees buckle (hips dip 14 cm at 0.3 s, feet held by leg IK to 0.6 s), the torso twists 22 deg and back, the shield-side arm drops first, and the body bounces once when it lands (about 1.75 s).",
+ "_note": "Warden death (the Back fall, 2.80 s), r5: the source eases in over the first 0.84 s (no step off frame 0), then a progressive buckle: knees (hips dip 9 cm by 0.3 s), hips (19 cm by 0.58 s), then the torso folds forward 20 deg by 0.84 s; feet held by leg IK to 1.1 s; the shield arm sinks with it; a landing bounce at about 1.8 s.",
  "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
  "skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
  "clips": [
@@ -8,7 +8,7 @@
    "dst": "A_Crew_Warden_Death_Front",
    "ik": [
     0.0,
-    0.6
+    1.3
    ],
    "shift": [
     [
@@ -18,13 +18,31 @@
      0
     ],
     [
-     0.28,
+     0.3,
      0,
-     3,
-     -14
+     2,
+     -9
     ],
     [
-     0.6,
+     0.58,
+     0,
+     5,
+     -19
+    ],
+    [
+     0.84,
+     0,
+     4,
+     -16
+    ],
+    [
+     1.22,
+     0,
+     2,
+     -11
+    ],
+    [
+     1.45,
      0,
      0,
      0
@@ -66,11 +84,11 @@
      0
     ],
     [
-     0.32,
-     22
+     0.5,
+     14
     ],
     [
-     0.9,
+     1.0,
      0
     ]
    ],
@@ -81,22 +99,52 @@
       0
      ],
      [
-      0.22,
-      35
+      0.35,
+      30
      ],
      [
-      0.9,
+      1.0,
       0
      ]
     ]
-   }
+   },
+   "time_warp": {
+    "until": 0.84,
+    "power": 1.7
+   },
+   "chest_pitch": [
+    [
+     0.0,
+     0
+    ],
+    [
+     0.3,
+     0
+    ],
+    [
+     0.6,
+     12
+    ],
+    [
+     0.84,
+     20
+    ],
+    [
+     1.3,
+     8
+    ],
+    [
+     1.5,
+     0
+    ]
+   ]
   },
   {
    "src": "A_Crew_Warden_DeathPre_Back",
    "dst": "A_Crew_Warden_Death_Back",
    "ik": [
     0.0,
-    0.6
+    1.3
    ],
    "shift": [
     [
@@ -106,13 +154,31 @@
      0
     ],
     [
-     0.28,
+     0.3,
      0,
-     3,
-     -14
+     2,
+     -9
     ],
     [
-     0.6,
+     0.58,
+     0,
+     5,
+     -19
+    ],
+    [
+     0.84,
+     0,
+     4,
+     -16
+    ],
+    [
+     1.22,
+     0,
+     2,
+     -11
+    ],
+    [
+     1.45,
      0,
      0,
      0
@@ -154,11 +220,11 @@
      0
     ],
     [
-     0.32,
-     22
+     0.5,
+     14
     ],
     [
-     0.9,
+     1.0,
      0
     ]
    ],
@@ -169,22 +235,52 @@
       0
      ],
      [
-      0.22,
-      35
+      0.35,
+      30
      ],
      [
-      0.9,
+      1.0,
       0
      ]
     ]
-   }
+   },
+   "time_warp": {
+    "until": 0.84,
+    "power": 1.7
+   },
+   "chest_pitch": [
+    [
+     0.0,
+     0
+    ],
+    [
+     0.3,
+     0
+    ],
+    [
+     0.6,
+     12
+    ],
+    [
+     0.84,
+     20
+    ],
+    [
+     1.3,
+     8
+    ],
+    [
+     1.5,
+     0
+    ]
+   ]
   },
   {
    "src": "A_Crew_Warden_DeathPre_Left",
    "dst": "A_Crew_Warden_Death_Left",
    "ik": [
     0.0,
-    0.6
+    1.3
    ],
    "shift": [
     [
@@ -194,13 +290,31 @@
      0
     ],
     [
-     0.28,
+     0.3,
      0,
-     3,
-     -14
+     2,
+     -9
     ],
     [
-     0.6,
+     0.58,
+     0,
+     5,
+     -19
+    ],
+    [
+     0.84,
+     0,
+     4,
+     -16
+    ],
+    [
+     1.22,
+     0,
+     2,
+     -11
+    ],
+    [
+     1.45,
      0,
      0,
      0
@@ -242,11 +356,11 @@
      0
     ],
     [
-     0.32,
-     22
+     0.5,
+     14
     ],
     [
-     0.9,
+     1.0,
      0
     ]
    ],
@@ -257,22 +371,52 @@
       0
      ],
      [
-      0.22,
-      35
+      0.35,
+      30
      ],
      [
-      0.9,
+      1.0,
       0
      ]
     ]
-   }
+   },
+   "time_warp": {
+    "until": 0.84,
+    "power": 1.7
+   },
+   "chest_pitch": [
+    [
+     0.0,
+     0
+    ],
+    [
+     0.3,
+     0
+    ],
+    [
+     0.6,
+     12
+    ],
+    [
+     0.84,
+     20
+    ],
+    [
+     1.3,
+     8
+    ],
+    [
+     1.5,
+     0
+    ]
+   ]
   },
   {
    "src": "A_Crew_Warden_DeathPre_Right",
    "dst": "A_Crew_Warden_Death_Right",
    "ik": [
     0.0,
-    0.6
+    1.3
    ],
    "shift": [
     [
@@ -282,13 +426,31 @@
      0
     ],
     [
-     0.28,
+     0.3,
      0,
-     3,
-     -14
+     2,
+     -9
     ],
     [
-     0.6,
+     0.58,
+     0,
+     5,
+     -19
+    ],
+    [
+     0.84,
+     0,
+     4,
+     -16
+    ],
+    [
+     1.22,
+     0,
+     2,
+     -11
+    ],
+    [
+     1.45,
      0,
      0,
      0
@@ -330,11 +492,11 @@
      0
     ],
     [
-     0.32,
-     -22
+     0.5,
+     14
     ],
     [
-     0.9,
+     1.0,
      0
     ]
    ],
@@ -345,15 +507,45 @@
       0
      ],
      [
-      0.22,
-      35
+      0.35,
+      30
      ],
      [
-      0.9,
+      1.0,
       0
      ]
     ]
-   }
+   },
+   "time_warp": {
+    "until": 0.84,
+    "power": 1.7
+   },
+   "chest_pitch": [
+    [
+     0.0,
+     0
+    ],
+    [
+     0.3,
+     0
+    ],
+    [
+     0.6,
+     12
+    ],
+    [
+     0.84,
+     20
+    ],
+    [
+     1.3,
+     8
+    ],
+    [
+     1.5,
+     0
+    ]
+   ]
   }
  ]
 }
