@@ -578,7 +578,10 @@ void ATDPlanetCourse::DressRouteBreaks(bool bCinder)
 				const FVector P = FMath::Lerp(R[i], R[i + 1], (Want - Run) / FMath::Max(Len, 1.f));
 				const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(R[i + 1].Y - R[i].Y, R[i + 1].X - R[i].X));
 				const TCHAR* Piece = bCinder ? TEXT("SM_Site_Cinder_BasaltArch") : (r % 2 == 0 ? TEXT("SM_Site_Verdance_RootArch") : TEXT("SM_Site_Verdance_FallenTrunk"));
-				Dress({ { Folder, Piece, FVector::ZeroVector, Yaw, 1.f, true } }, FVector(P.X, P.Y, 0.f), 0.f, FName(*FString::Printf(TEXT("RouteBreak%d"), r)));
+				// T7 (relief1 walk): an arch's feet on the walk line jam the pilot: set it 8 m beside the route instead, a framing
+				// piece the player passes, not walks into
+				const FVector Side = FVector(-(R[i + 1].Y - R[i].Y), R[i + 1].X - R[i].X, 0.f).GetSafeNormal2D() * ((r % 2) ? 800.f : -800.f);
+				DressCamp(FVector(P.X, P.Y, 0.f) + Side, 0.f, 1200.f, { { Folder, Piece, FVector::ZeroVector, Yaw, 1.f, true } }, FName(*FString::Printf(TEXT("RouteBreak%d"), r)));
 				break;
 			}
 			Run += Len;
@@ -626,9 +629,29 @@ int32 ATDPlanetCourse::DressCamp(const FVector& Around, float MinR, float MaxR, 
 				// to any objective (each route's end)
 				if (It.bCollide)
 				{
+					FVector Prev = FVector::ZeroVector;
 					for (const TArray<FVector>& Rt : Routes)
 					{
-						if (Rt.Num() && FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), FVector::ZeroVector, FVector(Rt.Last().X, Rt.Last().Y, 0.f)) < 600.f + Radius(It)) { bOk = false; break; }
+						if (!Rt.Num()) { continue; }
+						const FVector End(Rt.Last().X, Rt.Last().Y, 0.f);
+						if (FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), FVector::ZeroVector, End) < 600.f + Radius(It)
+							|| FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), Prev, End) < 400.f + Radius(It)) { bOk = false; break; }
+						Prev = End;
+					}
+					// ...and 4 m + body off every route's own line (lamp-lit paths), checked directly
+					for (const TArray<FVector>& Rt : Routes)
+					{
+						for (int32 q = 0; q + 1 < Rt.Num() && bOk; ++q)
+						{
+							if (FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), FVector(Rt[q].X, Rt[q].Y, 0.f), FVector(Rt[q + 1].X, Rt[q + 1].Y, 0.f)) < 400.f + Radius(It)) { bOk = false; }
+						}
+						if (!bOk) { break; }
+					}
+					if (!bOk) { break; }
+					// T7: huts 5 m back from any interact point (the camera boom ended in a hut wall at the device)
+					for (const TObjectPtr<AActor>& Sp : Spawned)
+					{
+						if (Sp && Sp->IsA<ATDInteractableActor>() && FVector::Dist2D(GetActorTransform().InverseTransformPosition(Sp->GetActorLocation()), L) < 500.f + Radius(It)) { bOk = false; break; }
 					}
 					if (!bOk) { break; }
 				}
@@ -2572,7 +2595,7 @@ void ATDPlanetCourse::BuildCinder()
 		// ground-break arches and landmarks. Each where it clears every keep-out (DressCamp).
 		{
 			const TCHAR* Hut = TEXT("Huts/Cinder");
-			DressCamp(StationAt, 2600.f, 6500.f, {
+			DressCamp(StationAt, 2000.f, 9600.f, {
 				{ Hut, TEXT("SM_Hut_Cinder_Workshop"), FVector(-950.f, 0.f, 0.f), 0.f, 1.f, true },
 				{ Hut, TEXT("SM_Hut_Cinder_Shack"), FVector(900.f, 0.f, 0.f), 180.f, 1.f, true },
 				{ Hut, TEXT("SM_Hut_Cinder_Shack"), FVector(0.f, 950.f, 0.f), 270.f, 1.f, true },

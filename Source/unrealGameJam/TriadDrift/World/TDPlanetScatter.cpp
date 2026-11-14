@@ -427,6 +427,16 @@ void FTDScatterPlan::RunCourseFill(const FTDTerrainField& Field, FTDScatterResul
 	const float Floor = S.BasinFloor;
 	auto Place = [&](int32 Kind, float X, float Y, int32 Seed, int32 ix, int32 iy, float ScaleMul)
 	{
+		// Lead (Cinder pad views were a wall of tall yellow crystals): within 60 m of the pad a third of the tall crystals and
+		// spires become dark shapes (basalt columns, CinderRock outcrops, charred trees) so the glow has gaps and the camp
+		// and landmarks stay visible
+		if (!bV && FVector2D(X, Y).Size() < 6000.f && (R.Spires.Contains(Kind) || (R.Crystals.Contains(Kind) && R.Crystals.IndexOfByKey(Kind) >= 2))
+			&& TDScatter_Hash01(Seed, ix, iy, 31) < 0.4f)
+		{
+			const float Sw = TDScatter_Hash01(Seed, ix, iy, 32);
+			Kind = Sw < 0.4f && R.FillOutcrops.Num() ? TDScatter_OneOf(R.FillOutcrops, Sw / 0.4f) : (Sw < 0.75f ? TDScatter_OneOf(R.Columns, (Sw - 0.4f) / 0.35f) : TDScatter_OneOf(R.CharTrees, (Sw - 0.75f) / 0.25f));
+			ScaleMul = FMath::Min(ScaleMul, 0.7f);
+		}
 		if (!Kinds.IsValidIndex(Kind)) { return; }
 		const FTDScatterKind& K = Kinds[Kind];
 		// Fill's own clearance (Lead, #194: "keep the 4 m path corridors clear"; trees within 6-8 m of a path): a route
@@ -437,6 +447,24 @@ void FTDScatterPlan::RunCourseFill(const FTDTerrainField& Field, FTDScatterResul
 		// spawn points stay clear.
 		const float Rc = FMath::Min(K.ClearRadiusCm * ScaleMul, 600.f);
 		const float Body = K.bBlocksOnFoot ? FMath::Min(Rc, 100.f) : 0.f;
+		// T7 (relief1 walk: the pilot jammed on a landmark walking straight at the marker): colliding pieces also stay
+		// 4 m + body off the straight walk lines, from the pad to each objective (each route's end) and from each objective
+		// to the next
+		if (K.bBlocksOnFoot)
+		{
+			FVector2D Prev(0.f, 0.f);
+			for (const FTDCourseKeepOut& KO : KeepOuts)
+			{
+				if (KO.Kind != TEXT("Route") || KO.Points.Num() < 2) { continue; }
+				const FVector2D End(KO.Points.Last());
+				for (const FVector2D& From : { FVector2D(0.f, 0.f), Prev })
+				{
+					const FVector C = FMath::ClosestPointOnSegment(FVector(X, Y, 0.f), FVector(From, 0.f), FVector(End, 0.f));
+					if (FVector2D::Distance(FVector2D(C.X, C.Y), FVector2D(X, Y)) < 400.f + Body) { return; }
+				}
+				Prev = End;
+			}
+		}
 		for (const FTDCourseKeepOut& KO : KeepOuts)
 		{
 			if (KO.Points.Num() > 1)
