@@ -1,6 +1,7 @@
 // Triad Drift - Squad (Teammate 3). Cross-area calls, isolated here (see TDSquadIntegration.h).
 
 #include "TriadDrift/Squad/TDSquadIntegration.h"
+#include "TriadDrift/Enemies/TDArmadaForesight.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
@@ -1115,6 +1116,10 @@ namespace TDSquad
 			Bus->OnAbilityUnlocked.AddUniqueDynamic(Squad, &ATDSquadManager::HandleAbilityUnlockedForBarks);
 			Bus->OnObjectiveUpdated.AddUniqueDynamic(Squad, &ATDSquadManager::HandleObjectiveForBarks);
 		}
+		if (UTDArmadaForesight* Foresight = UTDArmadaForesight::Get(Squad))
+		{
+			Foresight->OnAnticipated.AddUniqueDynamic(Squad, &ATDSquadManager::HandleAnticipatedForBarks);
+		}
 	}
 
 	void UnbindWaveEvents(ATDSquadManager* Squad)
@@ -1126,6 +1131,10 @@ namespace TDSquad
 			Bus->OnTakeStarted.RemoveDynamic(Squad, &ATDSquadManager::HandleTakeStartedForBarks);
 			Bus->OnAbilityUnlocked.RemoveDynamic(Squad, &ATDSquadManager::HandleAbilityUnlockedForBarks);
 			Bus->OnObjectiveUpdated.RemoveDynamic(Squad, &ATDSquadManager::HandleObjectiveForBarks);
+		}
+		if (UTDArmadaForesight* Foresight = UTDArmadaForesight::Get(Squad))
+		{
+			Foresight->OnAnticipated.RemoveDynamic(Squad, &ATDSquadManager::HandleAnticipatedForBarks);
 		}
 	}
 

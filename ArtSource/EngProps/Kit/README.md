@@ -130,3 +130,19 @@ at hull-local (hull max X, 0, -2000) (`sites/DockingBay_Interior.manifest.json`)
   wall (X 14736 = 14800 - 30 - 34), feet at 0 the whole way.
 - **Docking bay** (`BP_DockingBay_Interior`): stood in it for scale (floor = ground); captures from outside the mouth
   and from the back. Seen on Cinder's terrain only, so terrain crystals poke into the captures; the hull is not in them.
+
+## Space region set pieces and Dominion escape debris (`Props/Kit/Space/`, `scripts/kit_pieces_region.py`, `--set region`)
+
+One modular set piece per region for T6 (docs/eng/SPACE-DESIGN.md on eng/t6), placed at 2x (ring, rig), 1.5x (hulks), 1x
+(shards): `SM_KS_PicketRing` (Watchline), `SM_KS_Hulk_Fore/_Mid/_Aft` (Quiet Graveyard), `SM_KS_ScarRig` (Survey Scar),
+`SM_KS_MoonShard_A/_B` (Shattered Moons); escape debris for T4: `SM_KS_DomDebris_PlateA/B/C`, `_Truss`, `_Turret`,
+`_Shroud`. Capture classes `BP_KS_*`, captures `review/game/Space/`.
+
+State at the close-out (Nov 14, 04:30, the Lead's decision): the shards are the r4 version (r5's faceted face and glowing
+recesses read as flat orange blobs in game); the ring keeps r5's cyan stencil block and the burnt breach with Triad's
+mark, the hulks keep r5's closed ends with torn ribs; the debris shroud's inside is Null black trim with a thin ember rim.
+
+**`Materials/M_Kit_Flare` and `MI_KS_Flare*` are UNUSED.** r5 tried a camera-facing range flare in a material
+(world-position-offset billboard on one quad); in game it did not show, and it could not be debugged headless (no
+renderer). The flare quads were removed from every piece; the range flare goes to the effects builder as a Niagara
+sprite. `MI_KS_Recess` is unused for the same reason (r5's shard recesses).

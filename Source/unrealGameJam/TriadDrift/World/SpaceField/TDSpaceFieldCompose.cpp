@@ -144,7 +144,7 @@ namespace TDSpaceFieldCompose
 			const FVector C = Found ? *Found : (Region == 1 ? FVector(170000.f, 0.f, 0.f) : (Region == 4 ? FVector(300000.f, 150000.f, 20000.f) : FVector(600000.f, 0.f, 0.f)));
 			FVector Out = C.GetSafeNormal2D();
 			if (Out.IsNearlyZero()) { Out = FVector::ForwardVector; }
-			if (Region == 7) { Out = -Out; }	// the Outer Dark is seen from the zone side, looking out (5 km beyond it is outside the play bounds)
+			if (Region == 7 || Region == 6) { Out = -Out; }	// seen from the zone side (the Moons: along the route to the Dominion)	// the Outer Dark is seen from the zone side, looking out (5 km beyond it is outside the play bounds)
 			const FVector Dir = (Out * FMath::Cos(FMath::DegreesToRadians(25.f)) + FVector::UpVector * FMath::Sin(FMath::DegreesToRadians(25.f))).GetSafeNormal();
 			const float D = Range == 0 ? 500000.f : (Range == 1 ? 100000.f : 15000.f);
 			OutAt = C;
@@ -574,5 +574,42 @@ void ATDSpaceField::PlaceRegionCentrepieces(FRandomStream& Rng)
 			const FVector At = Base + Along * (i - 1) * 30000.f + FVector(Rng.GetUnitVector()) * 3500.f;	// 1.5x: sections and spacing
 			AddStructure(LoadKitPiece(Parts[i]), FTransform(FRotator(Rng.FRandRange(-12.f, 12.f), Along.Rotation().Yaw + Rng.FRandRange(-15.f, 15.f), Rng.FRandRange(-35.f, 35.f)), At, FVector(1.5f)));
 		}
+	}
+}
+
+namespace TDSpaceFieldCompose
+{
+	static FAutoConsoleCommandWithWorldAndArgs CmdRouteReport(TEXT("TD.SpaceField.RouteReport"),
+		TEXT("Log, for each region, its nearest approach from every route the player flies (zone to each planet, the Dominion and each gate end), and how large its biggest set piece looks from there"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const ATDSpaceField* Field = ATDSpaceField::Get(World);
+			if (!Field) { return; }
+			Field->LogRouteReport();
+		}));
+}
+
+void ATDSpaceField::LogRouteReport() const
+{
+	static const TCHAR* Names[] = { TEXT(""), TEXT("Watchline halo"), TEXT("Shepherd Belt"), TEXT("Ice Drift"), TEXT("Quiet Graveyard"), TEXT("Survey Scar"), TEXT("Shattered Moons"), TEXT("Outer Dark") };
+	static const TCHAR* Routes[] = { TEXT("zone->Verdance"), TEXT("zone->Cinder"), TEXT("zone->Dominion") };
+	for (int32 R = 1; R <= 7; ++R)
+	{
+		const FVector* C = RegionCentres.Find(R);
+		if (!C) { UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.RouteReport: %d %s not built"), R, Names[R]); continue; }
+		// The region's biggest set piece within 1.2 km of its centre (its silhouette), else 100 m.
+		float Big = 10000.f;
+		for (const FTDSpaceFieldPiece& S : Structures) { if (FVector::Dist(S.Location, *C) < 120000.f) { Big = FMath::Max(Big, S.Size); } }
+		FString Line;
+		float Nearest = TNumericLimits<float>::Max();
+		for (int32 L = 0; L < BuoyLanes && L < Lanes.Num(); ++L)
+		{
+			const FVector P = FMath::ClosestPointOnSegment(*C, Lanes[L][0], Lanes[L][1]);
+			const float D = (float)FVector::Dist(P, *C);
+			Nearest = FMath::Min(Nearest, D);
+			if (L < 3) { Line += FString::Printf(TEXT(" | %s %.1f km (%.1f deg)"), Routes[L], D / 100000.f, FMath::RadiansToDegrees(2.f * FMath::Atan(Big * 0.5f / FMath::Max(D, 1.f)))); }
+		}
+		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.RouteReport: %d %s, centre %.1f km from the zone, biggest piece %.0f m, nearest route %.1f km%s"), R, Names[R],
+			FVector::Dist(*C, BeltCenter) / 100000.f, Big / 100.f, Nearest / 100000.f, *Line);
 	}
 }

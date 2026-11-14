@@ -12,6 +12,7 @@
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "Components/CapsuleComponent.h"
@@ -897,6 +898,42 @@ bool FTDCrewTypeClips::RunTest(const FString& Parameters)
 			AddInfo(FString::Printf(TEXT("%s not in this checkout: today's clip plays"), C.Want));
 		}
 	}
+	return true;
+}
+
+// ENG-45: the New Game difficulty (T4's presets) scales ground combat like space: crew health (the pilot's damage out),
+// every crew hit (damage in), and the size of every on-foot fight; a lone boss stays alone.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewDifficulty, "TriadDrift.Ground.Crew.DifficultyScalesGroundCombat", TD_TEST_FLAGS)
+bool FTDCrewDifficulty::RunTest(const FString& Parameters)
+{
+	const ETDDifficulty Was = UTDDifficultySettings::GetCurrent();
+	for (const ETDDifficulty D : { ETDDifficulty::Story, ETDDifficulty::Standard, ETDDifficulty::Ace })
+	{
+		UTDDifficultySettings::SetCurrent(D);
+		const FTDDifficultyScale Scale = UTDDifficultySettings::GetScale();
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(-2000.f, 0.f, 95.f));
+		ATDCrewCharacter* G = TDCrewTest::SpawnCrew(W, ETDCrewType::Grunt, FVector(0.f, 0.f, 120.f));
+		if (!TestNotNull(TEXT("grunt"), G) || !P) { UTDDifficultySettings::SetCurrent(Was); return false; }
+		const FTDCrewSpec& Base = FTDCrewLibrary::Get(ETDCrewType::Grunt);
+		const UEnum* E = StaticEnum<ETDDifficulty>();
+		const FString Name = E ? E->GetNameStringByValue((int64)D) : TEXT("?");
+		TestEqual(*FString::Printf(TEXT("%s: crew health"), *Name), G->GetHealth()->MaxHull, FMath::Max(1.f, Base.MaxHealth * Scale.EnemyHull), 0.01f);
+		TestEqual(*FString::Printf(TEXT("%s: crew damage"), *Name), G->Spec.MeleeDamage, Base.MeleeDamage * Scale.EnemyDamage, 0.01f);
+		// A three-crew fight and a one-boss fight.
+		ATDEncounterVolume* Fight = W.Spawn<ATDEncounterVolume>(FVector(0.f, 3000.f, 150.f));
+		ATDEncounterVolume* Boss = W.Spawn<ATDEncounterVolume>(FVector(0.f, -3000.f, 150.f));
+		if (!Fight || !Boss) { UTDDifficultySettings::SetCurrent(Was); return false; }
+		Fight->bTriggerOnOverlap = false; Boss->bTriggerOnOverlap = false;
+		Fight->CrewMix = { ETDCrewType::Grunt }; Fight->SpawnPoints = { FVector(0.f, 0.f, 0.f), FVector(300.f, 0.f, 0.f), FVector(-300.f, 0.f, 0.f) };
+		Boss->CrewMix = { ETDCrewType::Grunt }; Boss->SpawnPoints = { FVector::ZeroVector };
+		Fight->Activate(); Boss->Activate();
+		W.Advance(0.2f);
+		TestEqual(*FString::Printf(TEXT("%s: fight size"), *Name), Fight->GetSpawned().Num(), UTDDifficultySettings::ScaleCount(3, Scale.WaveSize));
+		TestEqual(*FString::Printf(TEXT("%s: a lone one stays alone"), *Name), Boss->GetSpawned().Num(), 1);
+	}
+	UTDDifficultySettings::SetCurrent(Was);
 	return true;
 }
 

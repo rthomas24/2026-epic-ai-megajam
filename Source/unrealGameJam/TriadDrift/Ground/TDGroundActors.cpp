@@ -1,6 +1,7 @@
 // Triad Drift - ground gameplay actors (ENG-24). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/TDGroundActors.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "Misc/PackageName.h"
 #include "Engine/StaticMesh.h"
 #include "TriadDrift/Ground/TDObjective.h"
@@ -731,6 +732,21 @@ void ATDEncounterVolume::Activate()
 	if (Mercy && Mercy->DropCrew > 0 && Points.Num() > 1)
 	{
 		Points.SetNum(FMath::Max(1, Points.Num() - Mercy->DropCrew));
+	}
+	// ENG-45: the difficulty's crew count, as the Armada's pack sizes (a lone boss stays alone; named crews, the
+	// reactor's future pilots, will be exempt when they land).
+	if (Points.Num() > 1)
+	{
+		const int32 Want = UTDDifficultySettings::ScaleCount(Points.Num(), UTDDifficultySettings::GetScale().WaveSize);
+		const int32 Base = Points.Num();
+		for (int32 i = Base; i < Want; ++i)
+		{
+			// Inside the fight, never outward: a point pushed out of a room spawned crew behind its wall (Played.Cinder on Ace).
+			const FVector& From = Points[i % Base];
+			const FVector Inward = From.Size2D() > 200.f ? From * 0.7f : From + FVector(0.f, 150.f, 0.f);
+			Points.Add(FVector(Inward.X, Inward.Y, From.Z));
+		}
+		Points.SetNum(FMath::Min(Points.Num(), Want));
 	}
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;

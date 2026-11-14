@@ -123,9 +123,9 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		{
 			// s6: 1.9-2.7x across but 0.6 of that in height (a clump spans ~70-170 m, crowns ~25-60 m high), sunk 18 m per
 			// unit of height scale and seated on the lowest ground under its footprint (25 m x scale)
-			const int32 Ci = Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Verd_TreeClump_%02d"), i)), 1.9f, 2.7f, 1800.f, 420000.f, 460000.f, 2200.f, false, false, false);
-			P.Kinds[Ci].ZScale = 0.6f;
-			P.Kinds[Ci].ContactRadiusCm = 2500.f;
+			const int32 Ci = Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Verd_TreeClump_%02d"), i)), 2.6f, 3.6f, 1800.f, 420000.f, 460000.f, 2200.f, false, false, false);
+			P.Kinds[Ci].ZScale = 0.45f;	// s8: 2.6-3.6x across (150-250 m), crowns still 30-60 m high
+			P.Kinds[Ci].ContactRadiusCm = 2000.f;
 			R.Canopy.Add(Ci);
 		}
 		R.CanopyAccent.Add(Add(TDScatter_Path(TEXT("Scatter"), TEXT("SM_Scatter_Verd_Canopy_02")), 1.0f, 1.5f, 400.f, 420000.f, 460000.f, 4000.f, false, false, false));
@@ -137,7 +137,7 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		P.ScarHalfB = 6000.f;
 		for (int32 i = 1; i <= 2; ++i)
 		{
-			R.CharTrees.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.4f, 2.4f, 30.f, 180000.f, 240000.f, 300.f, true, false, true));
+			R.CharTrees.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.0f, 1.6f, 30.f, 180000.f, 240000.f, 300.f, true, false, true));
 		}
 		P.ScorchKind = Add(TDScatter_Path(TEXT("Kit/Story"), TEXT("SM_Kit_ScorchLines")), 4.f, 6.5f, 0.f, 180000.f, 240000.f, 1200.f, false, false, false);
 		for (int32 i = 1; i <= 3; ++i)
@@ -258,7 +258,7 @@ bool FTDScatterPlan::IsCourseClear(float X, float Y, float Radius) const
 	return true;
 }
 
-float FTDScatterPlan::ScarWeight(float X, float Y) const
+float FTDScatterPlan::ScarWeight(float X, float Y, float Margin) const
 {
 	if (ScarHalfB <= 0.f) { return 0.f; }
 	const FVector2D P(X, Y), D = ScarB - ScarA;
@@ -267,7 +267,7 @@ float FTDScatterPlan::ScarWeight(float X, float Y) const
 	if (T < 0.f || T > 1.f) { return 0.f; }
 	const float Half = FMath::Lerp(ScarHalfA, ScarHalfB, T);
 	// a ragged edge: the half width breathes with a slow noise along the strip
-	const float Edge = Half * (0.8f + 0.4f * (FTDTerrainField::Noise2D(T * 18.f, 3.1f, 4411) * 0.5f + 0.5f));
+	const float Edge = Half * (0.8f + 0.4f * (FTDTerrainField::Noise2D(T * 18.f, 3.1f, 4411) * 0.5f + 0.5f)) + Margin;
 	const float Dist = FVector2D::Distance(P, ScarA + D * T);
 	return FMath::Clamp(1.f - Dist / FMath::Max(Edge, 1.f), 0.f, 1.f) * FMath::Clamp(T * 20.f, 0.f, 1.f);
 }
@@ -315,7 +315,7 @@ int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM
 			// (s6 sheet: that left the hills bare; now ~34 degrees, Slope 0.17) nor on the heights; RunLayer's contact check
 			// drops any clump whose footprint spans a ridge edge, so no crown overhangs a cliff top.
 			const float Valley = FMath::Clamp(1.f - HeightM / 300.f, 0.f, 1.f);
-			const float Threshold = 0.12f - 0.3f * Moist - 0.15f * Valley;
+			const float Threshold = 0.24f - 0.3f * Moist - 0.15f * Valley;	// s8: coverage test 58 % at 0.04, 54 % at 0.09, 51 % at 0.13, 40 % at 0.24 (1475 clumps)
 			if (Stand < Threshold) { return INDEX_NONE; }
 			const float Density = FMath::Clamp((Stand - Threshold) * 12.f, 0.f, 1.f) * FMath::Clamp((0.17f - Sm.Slope) / 0.04f, 0.f, 1.f)
 				* FMath::Clamp(1.f - (HeightM - 900.f) / 500.f, 0.f, 1.f);
@@ -425,19 +425,21 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 			if (Zone <= 0.f || TDScatter_Hash01(Seed, ix, iy, Salt + 2) > Zone || IsKeptOut(Field, X, Y)) { continue; }
 			if (ScarHalfB > 0.f && (Mode == ModeFar || Mode == ModeDense || Mode == ModeCanopy))
 			{
-				const float Scar = ScarWeight(X, Y);
+				// a canopy clump is kept out by its whole footprint (its centre can sit 90 m from the scar and still cover it)
+				const float Scar = ScarWeight(X, Y, Mode == ModeCanopy ? 9000.f : 0.f);
 				if (Scar > 0.f)
 				{
 					// Inside the scar: no living forest; on the far-tree grid, a charred trunk now and then
 					const TArray<int32>& Char = TDScatter_Ranges(Planet).CharTrees;
-					if (Mode == ModeDense || Char.Num() == 0 || TDScatter_Hash01(Seed, ix, iy, Salt + 9) > 0.9f * Scar) { continue; }
+					// (none in the course's surroundings: by the research site a glowing trunk read as a strange pillar, s8 walk)
+					if (Mode == ModeDense || Char.Num() == 0 || TDScatter_Hash01(Seed, ix, iy, Salt + 9) > 0.9f * Scar || IsNearCourse(Field, X, Y)) { continue; }
 					const int32 Ck = TDScatter_OneOf(Char, TDScatter_Hash01(Seed, ix, iy, Salt + 10));
 					const FTDScatterKind& K = Kinds[Ck];
 					if (!IsCourseClear(X, Y, K.ClearRadiusCm * K.MaxScale)) { continue; }
 					const float Sc = FMath::Lerp(K.MinScale, K.MaxScale, TDScatter_Hash01(Seed, ix, iy, Salt + 4));
 					const FTransform Xf(FRotator(TDScatter_Hash01(Seed, ix, iy, Salt + 6) * 16.f - 8.f, TDScatter_Hash01(Seed, ix, iy, Salt + 5) * 360.f, 0.f),
 						FVector(X, Y, Field.Height(X, Y) - K.SinkCm * Sc), FVector(Sc));
-					(IsNearCourse(Field, X, Y) ? Row.Near : Row.Far)[Ck].Add(Xf);
+					Row.Far[Ck].Add(Xf);
 					continue;
 				}
 			}
@@ -467,7 +469,7 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 					Ground = FMath::Min(Ground, H);
 					High = FMath::Max(High, H);
 				}
-				if (High - Ground > 0.6f * Rr) { continue; }	// its footprint spans a ridge or a cliff edge: it would overhang
+				if (High - Ground > 1.0f * Rr) { continue; }	// its footprint spans a ridge or a cliff edge: it would overhang
 			}
 			const FTransform Xf(Rot, FVector(X, Y, Ground - K.SinkCm * Scale * K.ZScale), FVector(Scale, Scale, Scale * K.ZScale));
 			(bNearCourse ? Row.Near : Row.Far)[Kind].Add(Xf);

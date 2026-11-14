@@ -1,0 +1,37 @@
+{
+ "_note": "T5's per-type lookup only accepts a clip on the mesh's own skeleton. Guard, Walk, Stagger, GuardRaise and Slam were on SKEL_NullCrew, so the Warden never played them (found with td.Crew.LogHits: the slam damage logged Fire_01 as the last type clip). Copies on SKEL_Warden (_W); ue_swap_warden_skel.py then replaces the originals.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+ "clips": [
+  {
+   "src": "A_Crew_Warden_Guard",
+   "dst": "A_Crew_Warden_Guard_W",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+   "in_place": false
+  },
+  {
+   "src": "A_Crew_Warden_Walk",
+   "dst": "A_Crew_Warden_Walk_W",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+   "in_place": false
+  },
+  {
+   "src": "A_Crew_Warden_Stagger",
+   "dst": "A_Crew_Warden_Stagger_W",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+   "in_place": false
+  },
+  {
+   "src": "A_Crew_Warden_GuardRaise",
+   "dst": "A_Crew_Warden_GuardRaise_W",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+   "in_place": false
+  },
+  {
+   "src": "A_Crew_Warden_Slam",
+   "dst": "A_Crew_Warden_Slam_W",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+   "in_place": false
+  }
+ ]
+}

@@ -98,7 +98,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 IceDriftRocks = 600;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRocks = 320;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRubble = 220;
-	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 MoonShards = 8;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 MoonShards = 14;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float OuterDarkInner = 600000.f;
 
 	/** Shepherd moonlets at the Verdance and Dominion gap edges (bounding diameter, cm). */
@@ -285,6 +285,8 @@ public:
 	const TArray<FTDSpaceFieldPiece>& GetStructures() const { return Structures; }
 	/** Each built region's centre (world), by its number in docs/eng/SPACE-DESIGN.md (captures, tests). */
 	TMap<int32, FVector> RegionCentres;
+	/** Dev: each region's nearest approach from the player's routes (TD.SpaceField.RouteReport). */
+	void LogRouteReport() const;
 	/** The Shepherd Belt's plane normal and centre (world), once built. */
 	FVector BeltNormal = FVector::UpVector;
 	FVector BeltCenter = FVector::ZeroVector;

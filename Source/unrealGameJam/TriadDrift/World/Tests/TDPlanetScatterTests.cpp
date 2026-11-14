@@ -85,6 +85,62 @@ bool FTDScatterOnTheTerrain::RunTest(const FString&)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDScatterCanopyCover, "TriadDrift.World.Scatter.VerdanceCanopyCoversALargeShareOfTheLowland", TD_TEST_FLAGS)
+bool FTDScatterCanopyCover::RunTest(const FString&)
+{
+	// s8 (environment builder): continuous forest from the air means the merged canopy clumps cover roughly 35-45 % of the
+	// vegetated lowland (below 900 m over the pad, gentler than the rock slope, not sea), and none of the wreck scar.
+	const FTDTerrainField F(FTDTerrainStyle::ForPlanet(ETDDestination::Verdance));
+	const FTDScatterPlan P = FTDScatterPlan::ForPlanet(ETDDestination::Verdance);
+	FTDScatterResult R;
+	P.Generate(F, R);
+	TArray<FVector4> Crowns;	// x, y, radius
+	for (int32 k = 0; k < P.Kinds.Num(); ++k)
+	{
+		if (!P.Kinds[k].MeshPath.Contains(TEXT("TreeClump"))) { continue; }
+		for (const TArray<FTransform>* L : { &R.Near[k], &R.Far[k] })
+		{
+			for (const FTransform& X : *L) { Crowns.Add(FVector4(X.GetLocation().X, X.GetLocation().Y, 2400.f * X.GetScale3D().X, 0.f)); }
+		}
+	}
+	const float Cell = 20000.f;
+	TMap<FIntPoint, TArray<int32>> Grid;
+	for (int32 i = 0; i < Crowns.Num(); ++i) { Grid.FindOrAdd(FIntPoint(FMath::FloorToInt(Crowns[i].X / Cell), FMath::FloorToInt(Crowns[i].Y / Cell))).Add(i); }
+	int32 Land = 0, Covered = 0, Scar = 0, ScarCovered = 0;
+	const FTDTerrainStyle& S = F.GetStyle();
+	for (float Y = -300000.f; Y <= 300000.f; Y += 5000.f)
+	{
+		for (float X = -300000.f; X <= 300000.f; X += 5000.f)
+		{
+			if (P.IsKeptOut(F, X, Y)) { continue; }
+			const FTDTerrainSample Sm = F.Sample(X, Y, 1750.f);
+			const bool bScar = P.ScarWeight(X, Y) > 0.5f;
+			if (!bScar && (Sm.Height < S.SeaLevel + 1000.f || (Sm.Height - S.BasinFloor) > 90000.f || Sm.Slope > 0.17f || P.IsPatch(Sm))) { continue; }
+			bool bIn = false;
+			const FIntPoint C(FMath::FloorToInt(X / Cell), FMath::FloorToInt(Y / Cell));
+			for (int32 dy = -1; dy <= 1 && !bIn; ++dy)
+			{
+				for (int32 dx = -1; dx <= 1 && !bIn; ++dx)
+				{
+					if (const TArray<int32>* L = Grid.Find(C + FIntPoint(dx, dy)))
+					{
+						for (int32 i : *L) { if (FVector2D::Distance(FVector2D(X, Y), FVector2D(Crowns[i].X, Crowns[i].Y)) < Crowns[i].Z) { bIn = true; break; } }
+					}
+				}
+			}
+			if (bScar) { ++Scar; ScarCovered += bIn ? 1 : 0; continue; }
+			++Land;
+			Covered += bIn ? 1 : 0;
+		}
+	}
+	const float Share = Land > 0 ? float(Covered) / Land : 0.f;
+	AddInfo(FString::Printf(TEXT("Verdance canopy: %d clumps cover %.0f %% of %d lowland samples (50 m grid, 3 km); wreck scar %d / %d covered"),
+		Crowns.Num(), Share * 100.f, Land, ScarCovered, Scar));
+	TestTrue(*FString::Printf(TEXT("canopy covers 30-50 %% of the vegetated lowland (%.0f %%)"), Share * 100.f), Share > 0.3f && Share < 0.5f);
+	TestTrue(TEXT("the wreck scar is open ground"), Scar > 0 && ScarCovered * 10 <= Scar);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDScatterV2Cinder, "TriadDrift.World.Scatter.CinderHasItsZoneCrystalsOnTheObsidianNoneInTheRivers", TD_TEST_FLAGS)
 bool FTDScatterV2Cinder::RunTest(const FString&)
 {
@@ -232,7 +288,9 @@ bool FTDScatterSpread::RunTest(const FString&)
 	ATDPlanetScatter* S = T ? T->GetScatter() : nullptr;
 	if (!TestNotNull(TEXT("scatter"), S)) { return false; }
 	bool bNearBeforeBuilt = false;
-	const double Until = FPlatformTime::Seconds() + 30.0;	// real time: generation runs on the thread pool
+	// Real time, generously: generation runs on the thread pool, and a loaded gate machine can take a while. The per-frame
+	// budget is what this test is about, not how long the machine took (batch U: flaky at 30 s under load).
+	const double Until = FPlatformTime::Seconds() + 120.0;
 	while (!S->IsBuilt() && FPlatformTime::Seconds() < Until)
 	{
 		if (S->GetPendingApplyJobs() > 0 && !S->AreKindsLoaded()) { FlushAsyncLoading(); }	// a test world ticks no async loader
@@ -240,7 +298,7 @@ bool FTDScatterSpread::RunTest(const FString&)
 		if (S->IsNearApplied() && !S->IsBuilt() && S->GetPendingApplyJobs() > 0) { bNearBeforeBuilt = true; }
 	}
 	AddInfo(FString::Printf(TEXT("zone layer %d instances, worst apply frame %.1f ms"), S->GetInstanceCount(), S->GetMaxApplyFrameMs()));
-	TestTrue(TEXT("built within 30 s"), S->IsBuilt());
+	TestTrue(TEXT("built (within a generous 120 s of real time)"), S->IsBuilt());
 	TestTrue(TEXT("instances"), S->GetInstanceCount() > 1000);
 	TestTrue(*FString::Printf(TEXT("no frame spends more than 8 ms applying (%.1f ms)"), S->GetMaxApplyFrameMs()), S->GetMaxApplyFrameMs() <= 8.0);
 	TestTrue(TEXT("the near tier is in before the far tier finishes"), bNearBeforeBuilt || S->IsNearApplied());
@@ -273,14 +331,14 @@ bool FTDArrivalReady::RunTest(const FString&)
 		const FVector GlideEnd(EndXY.X, EndXY.Y, T->GetGroundZAt(EndXY) + 90000.f);
 		T->PrepareArrival(FVector(Origin.X, Origin.Y, Deck + 30000.f), GlideEnd);
 		bool bReady = false;
-		const double Until = FPlatformTime::Seconds() + 30.0;	// real time: generation runs on the thread pool
+		const double Until = FPlatformTime::Seconds() + 120.0;	// real time, generous: the gate machine is loaded
 		while (!bReady && FPlatformTime::Seconds() < Until)
 		{
 			if (T->GetScatter() && T->GetScatter()->GetPendingApplyJobs() > 0 && !T->GetScatter()->AreKindsLoaded()) { FlushAsyncLoading(); }	// no async loader in a test world
 			W.Tick(1.f / 60.f);
 			bReady = T->IsArrivalReady(GlideEnd);
 		}
-		TestTrue(*(Name + TEXT(": the glide end is ready within 20 s of PrepareArrival")), bReady);
+		TestTrue(*(Name + TEXT(": the glide end becomes ready after PrepareArrival")), bReady);
 		TestTrue(*(Name + TEXT(": the zone layer's near tier is in")), T->GetScatter() && T->GetScatter()->IsNearApplied());
 	}
 	return true;
