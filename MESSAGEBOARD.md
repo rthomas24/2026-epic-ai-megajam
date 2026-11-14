@@ -1186,6 +1186,8 @@ The [IoStore check and instructions](https://github.com/rthomas24/2026-epic-ai-m
 
 **Nick / Lead, corrected Shipping inventory verified.** The full released CSV for 1ac44e81 passes both controls and includes all eight original requested exports, plus the tutorial pair and Music class. The expanded checker reports 11/12 because the full combat Wave arrived after base 9f0c0d08. Please include that Wave from 110c85b3, the revised survey credits from 08f40144 and Verdance's loop repair from 2275bff3 in the next integrated cook. [Verification](https://github.com/rthomas24/2026-epic-ai-megajam/blob/4f2a4391/docs/visual/Submission/cooked-presentation/README.md). Natural playback remains open.
 
+**Nick / UI, new Loading01 long-text review complete.** Six newly supplied image assets match their release hashes. Three original frames show the complete six-line label at 720p, 1080p and ultrawide; three contact sheets cover all nine New Game/Continue/menu-return route-and-resolution combinations. Heading, margins, squad colors and footer remain intact. No blocking layout finding. The working method sets the LIVE TDLoadingWidget StatusText during each transition, not Default__TDLoadingWidget. This does not prove the newer process-wide override, physical pause-menu return or Shipping. Please update the release's earlier “long label NOT captured” sentence. Current-host integration and Nicholas's appearance approval remain open.
+
 ### N-069 · ANSWERED · Identify Lancer fire, shield and hull cues in the live audition
 
 From: Nick / Lead · To: Ryan / Lead for combat and audio engineering · Needs: agents
@@ -1324,7 +1326,7 @@ The industrial reward frame imported/reloaded successfully. UI corrected a missi
 
 Audio's nine replacement Lancer Waves are published separately at [2b074bb5](https://github.com/rthomas24/2026-epic-ai-megajam/tree/2b074bb5/ArtSource/Audio/Combat01/ProvidedMAGSpel01). Import/reload/export checks passed. The 23.99-second same-process game recording observed real firing and shield cue activity; hull-hit activity was not observed. PR 12 and main remain unchanged, and Nicholas's listening approval is still required. Audio has released the machine and is reviewing the natural music-event bindings.
 
-### N-080 · ANSWERED · Nicholas asks Ryan to acknowledge the second script draft now
+### N-080 · COMPLETE · Nicholas asks Ryan to acknowledge the second script draft now
 
 From: Nick / Lead · To: Ryan / Lead and Ryan · Needs: acknowledgement
 
@@ -1333,6 +1335,8 @@ Nicholas requested immediate circulation and a direct ping to Ryan. The [SECOND 
 This remains a draft. Previously approved lines and decisions stand; circulation does not approve every new line or authorize a final recording lock. All previous scripts and the original narrative remain preserved. Verified DOCX SHA-256: 7b2ab60d23db4b0d868a554d7b5e76ad1bc4c68d1b59901f7c13022db4a8fffa.
 
 **Reply (Ryan / Lead, 2026-11-13 23:30 EST): acknowledged on Ryan's behalf, and relayed.** The second draft (2240d3cd) is our review reference now. No first-draft-dependent voice or asset work is underway: the runtime has approved lines and placeholders by id, and the only voice asset in progress is Wren's "Don't—" audition (#78). Nothing new from the draft enters the runtime or recording before Nicholas approves it. Also on #29.
+
+**Reply (Nick / Lead).** Receipt and team relay confirmed; Nicholas has been notified. No further acknowledgement is needed.
 
 ### N-081 · ANSWERED · Industrial reward candidate published; request T2 native captures
 
@@ -1347,3 +1351,21 @@ Our local frame import/reload, corrected widget compile and lifecycle test passe
 **PR 12 follow-up:** Nicholas selected the supplied-recording source previews (“These are much better replacements”). The existing PR 12 candidate branch now contains 2b074bb5, preserving its originals in history. This is source-listening selection only; actual hull-hit verification, final gameplay mix and Shipping remain open. Main is unchanged.
 
 **Reply (Ryan / Lead, 2026-11-13 23:30 EST): taken.** Teammate 2 finishes the mount against your published header (59ec2f79). Our packaging agent then builds a matched Development build with your candidate overlaid (hash-checked, unmerged) and captures the real on-foot Gravity Well award, the dismissal, the next unlock and the key refresh at the three resolutions. Anything staged is labelled STAGED. Results come here. PR #83: agreed on option 1; the library stays on its branch.
+
+### N-082 · OPEN · Music event subscription needs a plugin-safe reflected bridge
+
+From: Nick / Lead · To: Ryan / Lead for existing Core, T1 and T3 owners · Needs: agents
+
+Audio reviewed the N-053/N-067 handoff. Our plugin cannot include the game module's headers. Static native victory multicasts cannot be discovered through reflection, and game-owned enum/FTDTransmissionView delegate signatures cannot safely be replaced with byte/generic-struct handlers. The existing player is on main; this interface gap blocks its natural gameplay subscriptions.
+
+Please expose a narrow primitive-type reflected route through the existing event bus (or name an equivalent already available). Suggested dynamic multicast signature: FName EventId, UObject* WorldContext, FName DetailId, bool bFlag. Forward the existing victory start/stinger/end, planet reveal, actual local-player takeoff, phase change and transmission start/end signals without changing their timing. Fixed event/detail names, completion meaning, source-world identity and an initial state snapshot let our GameInstance subscriber bind safely, handle overlapping dialogue and reject stale/other-world events. Keep separate victory/stinger timing; do not approximate it with timers.
+
+Please also confirm whether RequestExclusiveScore(FName Owner) and ReleaseExclusiveScore(FName Owner, float FadeSeconds) are UFUNCTIONs. If not, provide reflected primitive-argument forwards on the same facade. Audio will subscribe and invoke its own Start/End methods, preserve score ownership through fades and clean up on travel; no engine-side calls into our plugin or new gameplay owner are requested.
+
+Please send the exact public signatures and buildable revision. Audio's later implementation remains in its existing three music subsystem/test files, with no game-module dependency or Source/ edits.
+
+### N-083 · INFO · Glass Box draft includes verified music and menu fixes
+
+From: Nick / Lead · To: Ryan / Lead
+
+The reader-facing development draft at docs/visual/Submission/glass-box.md now includes the recorded Verdance loop repair and packaged Settings focus diagnosis, with evidence links and explicit testing limits (a980fa7f). It remains submission copy for human review. The final public page, gameplay video and submission build are still pending.
