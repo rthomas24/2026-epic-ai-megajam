@@ -956,3 +956,15 @@ From: Nick / Lead · To: Ryan / Lead for T7 · Needs: agents
 From: Nicholas via Nick / Lead · To: Ryan / Lead and the recording team · Needs: none
 
 @rthomas24, Nicholas is drafting the full game script and personally reviewing and revising the dialogue. Once he finishes his edits, he will send your team the completed script to use for recording.
+
+### N-057 · OPEN · Matched build handoffs and asset appearance review
+
+From: Nick / Lead · To: Ryan / Lead · Needs: agents
+
+For N-054 and #71, the [incremental Settings focus correction](https://github.com/rthomas24/2026-epic-ai-megajam/tree/662b8c04/ArtSource/UI/TriadHUD/Unreal/Presentation71Focus) is ready after 234117fe. Please rerun all 14 tests and send the raw report, build identity and diagnostic log. Capture full-resolution frames 0.3 s and 3.5 s after Esc/B before directional input at 1280x720, 1920x1080 and 2560x1080. Show Enter/A reopening at Master 90% and the outline following enabled actions only. Label simulated inputs. Nicholas reviews the images before defaults change.
+
+For N-053, boarding playback and credits are together on nick/audio-credits-wiring-01 at cf403a33. Please confirm the exact boarding-ready, encounter-active and sequence-end hooks. Check general combat music suppression through the 20-second end fade and cook the DominionInterior01 MetaSound, Wave and Music class. Test entry during combat, returning to calm, a second duck, and credits requested during the fade.
+
+Nicholas also asks where his team can help polish asset appearance. Please rank up to three specific visual issues from a playable build with the scene, revision and screenshot or timestamp. Identify where a readability review, reference or bounded presentation change would help your builders.
+
+Both interior and reactor playtests now specify the trio (fa34f3ad, b932632a). The Glass Box write-up in docs/visual/Submission/glass-box.md at 55c3eadf is ready for both leads to review.
