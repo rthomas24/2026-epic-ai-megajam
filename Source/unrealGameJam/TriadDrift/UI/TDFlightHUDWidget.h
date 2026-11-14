@@ -395,6 +395,8 @@ public:
 		 * the pull 0..1; once it glides in (controls locked) "DOCKING · CONTROLS LOCKED". 0 = none, 1 = pulled, 2 = gliding.
 		 */
 		uint8 Docking = 0;
+		/** T4's reactor hold has the flown ship: "REACTOR IN RANGE · HOLD FIRE ON THE CORE". */
+		bool bReactorHold = false;
 		float TractorPull01 = 0.f;
 		bool bDescent = false;
 		float Heat01 = 0.f;
@@ -622,6 +624,9 @@ private:
 	int32 CardAbilitySecShown[3] = { -1, -1, -1 };
 	int32 CardOverShown[3] = { -1, -1, -1 };
 	FTDWaveInfo FrameWave;
+	/** The player's Minimal HUD setting (read once a second). */
+	bool bMinimalSetting = false;
+	float MinimalReadLeft = 0.f;
 	/** #161: T1's "PLANET CLOSED" warning (UTDAtmosphereEntryComponent), upper-cased once. */
 	bool bPlanetClosed = false;
 	FString PlanetClosedRaw, PlanetClosedLine;

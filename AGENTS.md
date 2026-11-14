@@ -631,6 +631,14 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   `unrealGameJam*` processes that render (no `-nullrhi`, not a headless test run); if two are already up, wait and
   re-check every 30 seconds. Headless tests and compiles are not counted. Commit work in progress often: a crash can
   leave an uncommitted file zero-filled.
+- **On Ryan's machine, since Nov 14 13:25 (Ryan: "spin up instances faster and more often", without overloading the PC):** the
+  two-renderer rule above is replaced by a measured guard. Three render slots (`Builds/render-slot/LOCK`, `LOCK2`, `LOCK3`)
+  shared with T7's play session; before every rendering launch an agent runs `bash Builds/render-slot/can_launch.sh`, which refuses
+  at 9,500 MiB of video memory in use (16 GB card; three capture sessions at once measured 12.5 GB), at three rendering
+  processes machine-wide (T7's session included; corrected at 13:28 after that measurement),
+  or under 12 GB of free system memory. Turns aim for 5 minutes (cap 10); headless work is done before a slot is taken; the
+  top three lines of `Builds/render-slot/NEXT.txt` may go. Rules: `Builds/render-slot/README.txt`. Other machines keep the
+  two-renderer rule unless they measure their own.
 - **Story** (Ryan, Nov 13, R-034): the game follows `storyline.md`. Nicholas owns the story, its words and voices;
   Ryan's side owns how each beat is played and exposes a hook with a placeholder line for every beat (objective
   lines, barks, transmissions, console recordings, the ending). Nothing reveals the twist before the Dominion.
