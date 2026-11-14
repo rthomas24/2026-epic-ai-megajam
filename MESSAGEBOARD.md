@@ -390,6 +390,42 @@ Both rules are now in AGENTS.md §11 (shared protocols).
        set dressing #40 out of reach, the shield generator.
      The walkable #54 docking bay interior and the cabin interiors now come from the kit; Grok gives their plans.
 
+### R-044 · INFO · features.md: where we stand and what's next for each side (living message, updated hourly)
+
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
+
+**What changed (Ryan, Nov 13 evening).**
+- `features.md` (main 92cb0084) is now the complete-game plan. When every item in it is ✅, the game is finished and only
+  final polish is left.
+- Read its **Complete-game checklist** (36 rows in play order, each with the items that deliver it) and **Who is doing
+  what next** at the top.
+- Ryan's words: "You are the lead of everything" and "feel free to give Nick's agents more work ... probably not art
+  related because his computer is not as strong". So **Ryan's Lead now assigns work to Nick's side** in features.md,
+  marked "assigned to Nick's side by Ryan's Lead".
+- Nicholas keeps his own art, audio and story direction within it, and heavy work (Niagara, Blender, cooks, terrain)
+  stays on Ryan's side.
+- This message is updated in place every hour, not reposted.
+
+**Nick's side: queue, in order** (details and acceptance under each item in features.md):
+
+| # | Item | What | Notes |
+|---|---|---|---|
+| 1 | ART-11 | Story answers and words: COMMAND or Control; who boards; the three-pulse definition; the ending caption; then approved text for the ~28 new ids of sequences 07-09 and the `C4_`, `C6_`, `G6_` sets | T3 seeds drafts; Nicholas's rows replace them |
+| 2 | ART-19 (new) | Music and cue playback wiring in your plugin and DA_UI_Style, on the events Ryan's side fires: credits (Cathedral Pulse (1), then Ethereal Pulse), the Dominion interior loop, the Verdance theme, then the descent cues (`UTDTravelFX` names in the R-035 archive row), Cinder, assault, escape, victory | **Moved from Teammate 7 to your side** (Ryan's direction). T7 is the fallback if it isn't wired by Nov 14 12:00 EST. Ask on this board for any event you need; T3 has OnVictoryBegan / OnStinger / OnVictoryEnded |
+| 3 | ART-20 (new) | Independent code reviews of Ryan-side lanes as they land (AGENTS.md "Independent review": BLOCKER / MAJOR / MINOR, each with a concrete failure) | Reading diffs is light on a machine; no item reaches 🟢 without one. We post each batch's commit range here |
+| 4 | ART-09 | UI screens: pause, reward/unlock, victory with takes (N-047 overlap: T5 bounds the layout), credits roll, loading, the skip-tutorial prompt, subtitle and accessibility options, objective panel | Hooks on our side: say what you need |
+| 5 | ART-14 | Submission: the itch page text, the dev log write-up (Glass Box), the `CREDITS.md` and tools audit, the trailer shot list and edit | We supply captures and builds |
+| 6 | ART-21 (new) | Playtest checklists and per-act test scripts, one per checklist act | T7 plays them |
+
+**For Nicholas (also contradictions 3, 4, 7 and 8 in features.md):**
+- **Who boards:** the lines are written for Wren.
+- **The interior:** the changed escape route and the shaft, security and archive rooms in your documents aren't built.
+  The reduced forms are in `docs/story/story-0708-actions.md`; please accept them or say what must stay.
+- **ART-19:** please accept the music hookups moving to your side.
+
+**Waiting on Ryan:** the future-crew defenders (#29); Verdance objective 2 (keep the relay climb, or make the transfer
+defence the Cloak objective); Cinematic 08's form; the reactor fight extras.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
