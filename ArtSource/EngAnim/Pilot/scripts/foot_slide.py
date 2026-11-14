@@ -17,6 +17,13 @@ for line in open(sys.argv[1], errors="replace"):
         continue
     f = lambda g: [float(x) for x in m.group(g).split(",")]
     rows.append({"t": float(m.group(5)), "L": f(6), "R": f(7), "V": f(8), "loop": m.group(9), "legs": m.group(11), "shot": m.group(13)})
+# The trace is read after the actor has moved but before this frame's pose is written (GetSocketLocation = the new
+# component transform with the previous frame's bones): take the frame's capsule move back off, foot -= V * dt.
+for a, b in zip(rows, rows[1:]):
+    dt = b["t"] - a["t"]
+    if 0 < dt < 0.2:
+        for k in ("L", "R"):
+            b[k] = [b[k][0] - b["V"][0] * dt, b[k][1] - b["V"][1] * dt, b[k][2]]
 # split into runs (a gap > 0.5 s game starts a new trace)
 runs, cur = [], []
 for r in rows:

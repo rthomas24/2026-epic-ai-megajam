@@ -25,6 +25,11 @@ Extract the full Windows build to a folder and launch **unrealGameJam.exe** insi
 
 ## Credits and development
 
+**Ryan Thomas — Gameplay & Engineering Lead:** game design, flight and three-ship switching, combat and enemy AI, waves and the game loop, planets and levels, environment, VFX and animation direction, packaging.
+
+**Nicholas Tosti — Player Experience Lead:** UI and menus, audio and music, voice, and story.
+
+
 Built in Unreal Engine 5.9 for the 2026 Epic AI MegaJam theme **Director's Cut**. The project credits identify the team, tools and assets used. The development log follows the playable build through the jam.
 
 [Project credits](https://github.com/rthomas24/2026-epic-ai-megajam/blob/main/CREDITS.md) · [How we built Triad Drift](https://github.com/rthomas24/2026-epic-ai-megajam/blob/main/docs/visual/Submission/glass-box.md) · [Development log](https://github.com/rthomas24/2026-epic-ai-megajam/blob/main/DEVLOG.md)
