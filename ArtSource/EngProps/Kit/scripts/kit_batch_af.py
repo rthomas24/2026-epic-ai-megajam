@@ -67,13 +67,19 @@ shot("guide_light_close")
 print(G.log_tail(r"TD\.Travel\.ToDock", 1))
 # 3. the breakup, when T4's trigger is given
 if BREAKUP:
+    # T4: kill shot about 1 s, the outside camera cuts in, the final blast at 7 s, the chunks fly; frames 6-12 s after the kill
     for c in BREAKUP.split(";"):
-        G.cmd(c.strip())
-        time.sleep(1.0)
-    for i in range(8):
-        time.sleep(2.0)
-        shot("breakup_%02ds" % (2 + i * 2))
-    print(G.log_tail(r"hull chunks thrown", 1))
+        c = c.strip()
+        if c.lower().startswith("sleep "):
+            time.sleep(float(c.split()[1]))
+        elif c:
+            G.cmd(c)
+            time.sleep(0.5)
+    time.sleep(5.5)
+    for i in range(7):
+        shot("breakup_%02ds" % (6 + i))
+        time.sleep(0.5)
+    print(G.log_tail(r"breakup camera on|hull chunks thrown", 2))
 with open(os.path.join(OUT, "walk.json"), "w", encoding="utf-8") as fh:
     json.dump(log, fh, indent=1)
 G.cmd("TD.Input.ReleaseAll")
