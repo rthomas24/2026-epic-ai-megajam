@@ -78,6 +78,21 @@ public:
 	/** Clusters per shell; three shells (ClusterShells: inner and outer distance pairs, cm) so every bearing has one near and one far. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 Clusters = 30;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") TArray<FVector2D> ClusterShells = { FVector2D(220000.f, 420000.f), FVector2D(420000.f, 620000.f), FVector2D(620000.f, 820000.f) };
+	// ---- The Shepherd Belt (region 2): one thin ring round the zone ----
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltInner = 200000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltOuter = 260000.f;
+	/** Standard deviation across the plane (cm): about +-60 m. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltThickness = 3000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltTiltDeg = 8.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") int32 ShepherdRocks = 1800;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") int32 BeltLandmarks = 14;
+	/** Half width of the gap where a route crosses (cm); the Verdance gap is wider (T4: the tutorial escape crosses it). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltGapHalf = 25000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltVerdanceGapHalf = 50000.f;
+	/** Shepherd moonlets at the Verdance and Dominion gap edges (bounding diameter, cm). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float MoonletMinSize = 25000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float MoonletMaxSize = 40000.f;
+
 	/** Big rocks per cluster (60-150 m, they collide) so a cluster reads from 2 km away, not only as specks. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 LandmarksPerCluster = 3;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 RocksPerCluster = 32;
@@ -195,7 +210,10 @@ protected:
 private:
 	void Build();
 	void BuildBelts(FRandomStream& Rng);
-	void BuildClusters(FRandomStream& Rng);
+	void BuildClusters(FRandomStream& Rng, int32 FirstShell = 0);
+	// Composed regions (TDSpaceFieldCompose.cpp; docs/eng/SPACE-DESIGN.md).
+	bool UseComposedRegions() const;
+	void BuildShepherdBelt(FRandomStream& Rng);
 	void BuildDebrisFields(FRandomStream& Rng);
 	void BuildBuoys();
 
@@ -241,6 +259,9 @@ private:
 
 public:
 	int32 GetTumblerCount() const { return Tumblers.Num(); }
+	/** The Shepherd Belt's plane normal and centre (world), once built. */
+	FVector BeltNormal = FVector::UpVector;
+	FVector BeltCenter = FVector::ZeroVector;
 	TArray<UInstancedStaticMeshComponent*> GetTumbleComponents() const
 	{
 		TArray<UInstancedStaticMeshComponent*> Out;

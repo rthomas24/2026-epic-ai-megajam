@@ -94,7 +94,7 @@ bool FTDSpaceFieldFills::RunTest(const FString& Parameters)
 	}
 	TestEqual(*FString::Printf(TEXT("nothing in a keep-out (first: %s)"), *FirstBad), Bad, 0);
 
-	// Something in every direction: 26 points on a 4 km sphere round the zone, at least 20 pieces within 1.5 km of each.
+	// Something in every direction: 26 points on a 7.2 km sphere round the zone, at least 20 pieces within 1.5 km of each.
 	int32 Thin = 0;
 	FString ThinList;
 	for (int32 i = 0; i < 26; ++i)
@@ -102,7 +102,8 @@ bool FTDSpaceFieldFills::RunTest(const FString& Parameters)
 		const float Y = 1.f - 2.f * (i + 0.5f) / 26.f;
 		const float R = FMath::Sqrt(1.f - Y * Y);
 		const float Phi = i * PI * (3.f - FMath::Sqrt(5.f));
-		const FVector S = Zone + FVector(FMath::Cos(Phi) * R, FMath::Sin(Phi) * R, Y) * 400000.f;
+		// 7.2 km: the outer regions (the belt sits at 2.0-2.6 km in one plane, tested on its own).
+		const FVector S = Zone + FVector(FMath::Cos(Phi) * R, FMath::Sin(Phi) * R, Y) * 720000.f;
 		// The Dominion's 3.5 km sphere and the planets' approaches are empty by design.
 		if (FVector::Dist(S, Xf.TransformPosition(L.Dominion.GetLocation())) < 350000.f + 100000.f) { continue; }
 		int32 Near = 0;
@@ -247,6 +248,45 @@ bool FTDSpaceFieldCaches::RunTest(const FString& Parameters)
 	F.Field->UpdateCachesAt(Spots[1]);
 	TestEqual(TEXT("off: none spawn"), F.Field->GetCachesAlive(), 0);
 	F.Field->SetFieldEnabled(true);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSpaceFieldShepherdBelt, "TriadDrift.World.SpaceField.ShepherdBeltIsOneThinRingWithAClearVerdanceGap", TD_TEST_FLAGS)
+bool FTDSpaceFieldShepherdBelt::RunTest(const FString& Parameters)
+{
+	TDSpaceFieldTest::FField F;
+	if (!TestNotNull(TEXT("field"), F.Field)) { return false; }
+	const ATDSpaceField* Fd = F.Field;
+	const FTDGalaxyLayoutData& L = F.Layout->GetLayout();
+	const FTransform Xf = F.Layout->GetActorTransform();
+	FVector VDir = FVector::ZeroVector;
+	for (const FTDPlanetSpec& Pl : L.Planets) { if (Pl.Destination == ETDDestination::Verdance) { VDir = Xf.TransformPosition(Pl.Location) - Fd->BeltCenter; } }
+	VDir -= Fd->BeltNormal * FVector::DotProduct(VDir, Fd->BeltNormal);
+	VDir = VDir.GetSafeNormal();
+	int32 Belt = 0, InPlane = 0, InRing = 0, InGap = 0, InnerBig = 0, Inner = 0, OuterBig = 0, Outer = 0;
+	for (const FTDSpaceFieldPiece& P : Fd->GetPieces())
+	{
+		if (P.bAdopted || P.Kind != ETDSpaceFieldKind::Belt) { continue; }
+		const FVector Local = P.Location - Fd->BeltCenter;
+		const float H = FMath::Abs((float)FVector::DotProduct(Local, Fd->BeltNormal));
+		const FVector Flat = Local - Fd->BeltNormal * FVector::DotProduct(Local, Fd->BeltNormal);
+		const float R = (float)Flat.Size();
+		if (P.Size > 20000.f) { continue; }	// the moonlets sit on the gap edges, by design
+		++Belt;
+		InPlane += H < 20000.f ? 1 : 0;
+		InRing += R > Fd->BeltInner - 10000.f && R < Fd->BeltOuter + 10000.f ? 1 : 0;
+		const float Along = (float)FVector::DotProduct(Flat, VDir);
+		if (Along > 0.f && (Flat - VDir * Along).Size() < 45000.f) { ++InGap; }
+		const float T = (R - Fd->BeltInner) / (Fd->BeltOuter - Fd->BeltInner);
+		if (T < 0.3f) { ++Inner; InnerBig += P.Size > 2500.f ? 1 : 0; }
+		if (T > 0.7f) { ++Outer; OuterBig += P.Size > 2500.f ? 1 : 0; }
+	}
+	AddInfo(FString::Printf(TEXT("belt %d: in plane %d, in ring %d, in the Verdance gap %d; >25 m inner %d/%d, outer %d/%d"), Belt, InPlane, InRing, InGap, InnerBig, Inner, OuterBig, Outer));
+	TestTrue(TEXT("a full belt"), Belt > 1200);
+	TestTrue(TEXT("one thin plane (98% within 200 m)"), InPlane * 100 >= Belt * 98);
+	TestTrue(TEXT("on the ring (98%)"), InRing * 100 >= Belt * 98);
+	TestEqual(TEXT("nothing in the 900 m Verdance gap"), InGap, 0);
+	TestTrue(TEXT("bigger rocks on the inner edge than the outer"), Inner > 0 && Outer > 0 && float(InnerBig) / Inner > 2.f * float(OuterBig) / Outer);
 	return true;
 }
 

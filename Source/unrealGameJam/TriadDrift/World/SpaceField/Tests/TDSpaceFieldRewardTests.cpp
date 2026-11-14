@@ -13,6 +13,7 @@
 #include "TriadDrift/Combat/Pickups/TDPickup.h"
 #include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 
@@ -108,17 +109,33 @@ bool FTDSpaceFieldSpecialReward::RunTest(const FString& Parameters)
 	TestEqual(TEXT("the reward is collected by the flown ship"), F.CollectedTotal(), CollectedBefore + 1);
 	TestFalse(TEXT("and gone"), IsValid(Reward));
 
-	// Plain rocks and debris: Debris cleared, no pickup. (Batch M adds T2's boost top-up by size; asserted then.)
+	// Plain rocks and debris: Debris cleared and a boost top-up by size (T2 f447189e: +0.03 / +0.06 / +0.12), no pickup.
+	UTDShipMovementComponent* Move = F.Flown->GetShipMovement();
+	if (!TestNotNull(TEXT("ship movement"), Move)) { return false; }
 	for (const int32 Class : { 2, 1, 0 })
 	{
 		const int32 P = F.FindLone(false, Class);
 		if (!TestTrue(*FString::Printf(TEXT("a lone plain piece of class %d"), Class), P != INDEX_NONE)) { return false; }
 		const FVector PAt = F.Field->GetPieces()[P].Location;
 		const int32 Debris = F.Pickups->GetDebrisThisScene();
+		F.W.Advance(1.2f);			// a fresh one-second cap window
+		Move->AddBoost01(-1.f);		// an empty meter, measured right after the break (no regen in between)
+		const float Before = Move->GetBoost01();
 		F.Field->DamagePiece(P, 1000000.f, F.Flown);
+		const float Gain = Move->GetBoost01() - Before;
 		TestEqual(*FString::Printf(TEXT("class %d counts toward Debris cleared"), Class), F.Pickups->GetDebrisThisScene(), Debris + 1);
+		TestEqual(*FString::Printf(TEXT("class %d tops up the boost meter by %.2f"), Class, F.Pickups->BreakBoostFor((uint8)Class)), Gain, F.Pickups->BreakBoostFor((uint8)Class), 0.005f);
 		TestNull(*FString::Printf(TEXT("class %d drops no pickup"), Class), F.PickupNear(PAt, 5000.f));
 	}
+	// The cap: many breaks inside one second pay at most BreakBoostPerSecondCap01.
+	F.W.Advance(1.2f);
+	Move->AddBoost01(-1.f);
+	for (int32 k = 0; k < 6; ++k)
+	{
+		const int32 P = F.FindLone(false, 2);
+		if (P != INDEX_NONE) { F.Field->DamagePiece(P, 1000000.f, F.Flown); }
+	}
+	TestTrue(*FString::Printf(TEXT("six large breaks in a second pay at most the cap (%.2f)"), Move->GetBoost01()), Move->GetBoost01() <= F.Pickups->Tuning.BreakBoostPerSecondCap01 + 0.005f);
 
 	// A special broken by nobody in the squad (no instigator): no reward, no stat.
 	const int32 S2 = F.FindLone(true);

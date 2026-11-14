@@ -104,6 +104,9 @@ Restore a whole snapshot in a separate checkout: `git worktree add ../old art/mo
 | | plain Rodin Bastion | `5b956f58` and earlier | same folder; source `ArtSource/EngShips/Bastion` |
 | Walkable sites `BP_Relay`, `BP_Relay_Awake`, `BP_Wreck`, `BP_Outpost_Site_Verdance` / `_Cinder` | rebuilt from the engineering modular kit (`SM_Kit_*`, route C): relay defence deck, wreck walkway, outpost room; the Rodin relay and wreck kept as sunk dressing; the Rodin outpost cabin and console no longer used (current; Lead's commit) | Lead's commit | `Content/TriadDrift/Gameplay/Props/{Relay,Wreck,Outpost,Kit}`, `ArtSource/EngProps/Kit/**` (`sites/*.manifest.json`) |
 | | Rodin meshes made walkable (r2): the classes as committed before the kit | `fdccac29` | same classes; restore with `git checkout fdccac29 -- Content/TriadDrift/Gameplay/Props/{Relay,Wreck,Outpost}` on a branch |
+| Space composition (the space field) | **composed regions** of `docs/eng/SPACE-DESIGN.md` (Shepherd Belt first, then the Watchline halo, Quiet Graveyard, Ice Drift, Survey Scar, Shattered Moons, Outer Dark; T6, Nov 14) | T6's commit | Switch back: `td.SpaceField.Compose 0` at level load (e.g. `-ExecCmds="td.SpaceField.Compose 0"`) |
+| | Nov 13 composition: two random tilted rings (1.6 / 3.4 km) and three shells of 30 random clusters | `be0a69e1` | the same switch; code kept in `World/SpaceField/TDSpaceField.cpp` (`BuildBelts`, `BuildClusters`) |
+| | No space field at all (only the galaxy layout's own rocks, not breakable) | before `4c54636e` | `td.SpaceField 0` at level load |
 
 Earlier versions of anything: `git log --oneline -- <path>`. Local review renders and capture sets that are not in
 git (`Saved/TDShots/**`, `Saved/*/` builder scratch) are kept on Ryan's machine and are not cleaned up.

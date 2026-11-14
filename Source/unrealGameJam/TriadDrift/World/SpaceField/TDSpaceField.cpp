@@ -211,8 +211,17 @@ void ATDSpaceField::Build()
 	}
 
 	FRandomStream Rng(Seed * 7919 + Layout->GetLayout().AsteroidFields.Num());
-	BuildBelts(Rng);
-	BuildClusters(Rng);
+	if (UseComposedRegions())
+	{
+		// The regions of docs/eng/SPACE-DESIGN.md as they land; the outermost cluster shell stands in for the Outer Dark.
+		BuildShepherdBelt(Rng);
+		BuildClusters(Rng, FMath::Max(0, ClusterShells.Num() - 1));
+	}
+	else
+	{
+		BuildBelts(Rng);	// the Nov 13 composition (td.SpaceField.Compose 0)
+		BuildClusters(Rng);
+	}
 	BuildDebrisFields(Rng);
 	BuildBuoys();
 	if (bAdoptAtLoad) { AdoptLayoutRocks(); }
@@ -420,7 +429,7 @@ void ATDSpaceField::BuildBelts(FRandomStream& Rng)
 	}
 }
 
-void ATDSpaceField::BuildClusters(FRandomStream& Rng)
+void ATDSpaceField::BuildClusters(FRandomStream& Rng, int32 FirstShell)
 {
 	using namespace TDSpaceFieldImpl;
 	const FTransform Xf = Layout->GetActorTransform();
@@ -429,7 +438,7 @@ void ATDSpaceField::BuildClusters(FRandomStream& Rng)
 	// Even directions (a Fibonacci sphere of exactly the count) so every bearing, up and down too, has something; a
 	// direction blocked at one distance tries others.
 	const int32 N = Clusters;
-	for (int32 Shell = 0; Shell < ClusterShells.Num(); ++Shell)
+	for (int32 Shell = FirstShell; Shell < ClusterShells.Num(); ++Shell)
 	{
 	// The outer shell's directions are turned half a step, so its clusters sit between the inner shell's.
 	const FQuat ShellTurn(FVector::UpVector, Shell * PI * (3.f - FMath::Sqrt(5.f)) * 0.5f);

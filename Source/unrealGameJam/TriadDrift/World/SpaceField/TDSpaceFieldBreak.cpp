@@ -18,6 +18,7 @@
 #include "Engine/StaticMesh.h"
 #include "NiagaraComponent.h"
 #include "Engine/Engine.h"
+#include "TimerManager.h"
 #include "GameFramework/Pawn.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -297,8 +298,9 @@ void ATDSpaceField::PlayBreakCue(const FVector& At, float Size, uint8 SizeClass,
 		Cue.VFX = Default ? TSoftObjectPtr<UNiagaraSystem>(Default) : TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(DefaultVFX[Slot]));
 	}
 	UNiagaraComponent* Played = UTDStatics::PlayCue(this, Cue, At, FRotator::ZeroRotator);
-	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: break class %d special %d size %.0f m at %s: %s %s"), SizeClass, bSpecial, Size / 100.f, *At.ToCompactString(),
-		*GetNameSafe(Cue.VFX.Get()), Played ? TEXT("playing") : TEXT("NOT PLAYED (placeholder burst)"));
+	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: break class %d special %d size %.0f m at %s: %s %s, sound %s (%s)"), SizeClass, bSpecial, Size / 100.f, *At.ToCompactString(),
+		*GetNameSafe(Cue.VFX.Get()), Played ? TEXT("playing") : TEXT("NOT PLAYED (placeholder burst)"), Cue.Sound.IsNull() ? TEXT("none") : *Cue.Sound.ToSoftObjectPath().GetAssetName(),
+		bAuthored ? TEXT("DA_SpaceField_FX") : TEXT("defaults"));
 	if (UNiagaraComponent* NC = Played)
 	{
 		if (!bAuthored)
@@ -638,5 +640,55 @@ namespace TDSpaceFieldDev
 			const int32 N = Args.Num() > 0 ? FMath::Max(1, FCString::Atoi(*Args[0])) : 5;
 			const double Ms = Field->BreakChain(Pawn->GetActorLocation(), N, Pawn);
 			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.BreakChain: %d breaks in one frame took %.3f ms"), N, Ms);
+		}));
+}
+
+namespace TDSpaceFieldDev
+{
+	static FAutoConsoleCommandWithWorldAndArgs CmdStageBreak(TEXT("TD.SpaceField.StageBreak"),
+		TEXT("Effects review: park the flown ship <Metres> from a piece of the class (clear space preferred), facing it, then break it after <Delay> s and log the system and sound: TD.SpaceField.StageBreak <class 0|1|2|3 special> [Metres=150] [Delay=1.5]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDSpaceField* Field = ATDSpaceField::Get(World);
+			ATDSpacecraft* Ship = World ? Cast<ATDSpacecraft>(UGameplayStatics::GetPlayerPawn(World, 0)) : nullptr;
+			if (!Field || !Ship) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.StageBreak: no field or no flown ship")); return; }
+			const int32 Want = Args.Num() > 0 ? FCString::Atoi(*Args[0]) : 2;
+			const float Standoff = (Args.Num() > 1 ? FCString::Atof(*Args[1]) : 150.f) * 100.f;
+			const float Delay = Args.Num() > 2 ? FMath::Max(0.1f, FCString::Atof(*Args[2])) : 1.5f;
+			const TArray<FTDSpaceFieldPiece>& P = Field->GetPieces();
+			const FVector From = Ship->GetActorLocation();
+			// The nearest match with the most clear space around it within 2 km of the best candidates (any match as a fallback).
+			int32 Best = INDEX_NONE;
+			float BestScore = -TNumericLimits<float>::Max();
+			for (int32 i = 0; i < P.Num(); ++i)
+			{
+				if (!Field->IsPieceAlive(i) || P[i].Kind == ETDSpaceFieldKind::Wreck) { continue; }
+				const bool bMatch = Want == 3 ? Field->IsPieceSpecial(i) : (Field->GetPieceSizeClass(i) == Want && !Field->IsPieceSpecial(i));
+				if (!bMatch) { continue; }
+				float Clear = 20000.f;	// up to 200 m of clearance counts
+				for (int32 j = 0; j < P.Num(); ++j)
+				{
+					if (j == i || !Field->IsPieceAlive(j)) { continue; }
+					const float D = (float)FVector::Dist(P[i].Location, P[j].Location) - P[j].Size * 0.5f - P[i].Size * 0.5f;
+					if (D < Clear) { Clear = D; if (Clear <= 0.f) { break; } }
+				}
+				const float Score = Clear * 10.f - (float)FVector::Dist(From, P[i].Location) * 0.01f;
+				if (Score > BestScore) { BestScore = Score; Best = i; }
+			}
+			if (Best == INDEX_NONE) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.StageBreak: no live piece of class %d"), Want); return; }
+			const FVector Target = P[Best].Location;
+			const FVector Stand = Target + (From - Target).GetSafeNormal() * (P[Best].Size * 0.5f + Standoff);
+			const FRotator Facing = (Target - Stand).Rotation();
+			Ship->TeleportSpacecraft(Stand, Facing, /*bKeepSpeed*/ false);
+			GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f %.1f"), Facing.Yaw, Facing.Pitch, Delay + 0.5f));
+			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.StageBreak: piece %d class %d special %d size %.0f m, ship %.0f m from its surface, breaking in %.1f s"), Best,
+				Field->GetPieceSizeClass(Best), Field->IsPieceSpecial(Best), P[Best].Size / 100.f, Standoff / 100.f, Delay);
+			TWeakObjectPtr<ATDSpaceField> WeakField(Field);
+			TWeakObjectPtr<ATDSpacecraft> WeakShip(Ship);
+			FTimerHandle Handle;
+			World->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateLambda([WeakField, WeakShip, Best]()
+			{
+				if (ATDSpaceField* F = WeakField.Get()) { F->DamagePiece(Best, 1.0e7f, WeakShip.Get()); }
+			}), Delay, false);
 		}));
 }
