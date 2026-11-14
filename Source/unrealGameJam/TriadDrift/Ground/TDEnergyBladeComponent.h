@@ -307,6 +307,7 @@ private:
 	bool bHeavyFiredThisPress = false;
 	/** A press from rest waits: released before HeavyHoldSeconds it is a light swing, held it goes straight to the heavy. */
 	bool bLightDeferred = false;
+	double SwingStartSeconds = 0.0;
 	/** The heavy's chosen victim, stabbed when HeavyHitDelay runs out (if the lunge is still on). */
 	TWeakObjectPtr<AActor> PendingHeavyTarget;
 	float PendingHeavyLeft = -1.f;

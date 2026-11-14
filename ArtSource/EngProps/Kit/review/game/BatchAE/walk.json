@@ -1,0 +1,73 @@
+[
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAE\\collapse_shore_02s.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAE\\collapse_shore_05s.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAE\\collapse_shore_08s.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAE\\collapse_shore_11s.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAE\\collapse_shore_14s.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAE\\collapse_shore_17s.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAE\\collapse_shore_20s.png"
+ },
+ {
+  "near": [
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near Actor_0.StaticMeshComponent_235 (StaticMeshComponent) mesh=SM_RoutePost mat=MI_RoutePost centre=V(X=6290.86, Y=-5336.56, Z=77.00) size=V(X=34.00, Y=34.00, Z=154.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near Actor_0.StaticMeshComponent_243 (StaticMeshComponent) mesh=Cube mat=MID_BasicShapeMaterial_0 centre=V(X=9500.00, Y=-8300.00, Z=15.00) size=V(X=5800.00, Y=1200.00, Z=30.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near Actor_0.StaticMeshComponent_249 (StaticMeshComponent) mesh=SM_Kit_WarningBeacon mat=MI_Kit_StoryWorn centre=V(X=6600.00, Y=-7200.00, Z=114.00) size=V(X=60.00, Y=60.00, Z=222.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near Actor_0.StaticMeshComponent_250 (StaticMeshComponent) mesh=SM_Kit_ScorchLines mat=MI_Kit_ScorchLines centre=V(X=13800.00, Y=-3600.00, Z=6.40) size=V(X=1041.66, Y=1127.94, Z=0.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near Actor_0.StaticMeshComponent_251 (StaticMeshComponent) mesh=SM_Kit_ScorchLines mat=MI_Kit_ScorchLines centre=V(X=11600.00, Y=-6600.00, Z=6.20) size=V(X=892.85, Y=966.81, Z=0.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near Actor_0.StaticMeshComponent_252 (StaticMeshComponent) mesh=SM_Kit_CableReel mat=MI_Kit_StoryWorn centre=V(X=14303.64, Y=-6181.73, Z=85.50) size=V(X=397.27, Y=194.09, Z=175.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near Actor_0.InstancedStaticMeshComponent_3 (InstancedStaticMeshComponent) mesh=SM_Cind_Crystal_03 mat=MI_Cind_Crystal_03 centre=V(X=6637.32, Y=-4945.41, Z=133.93) size=V(X=9448.45, Y=10566.84, Z=384.35)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near Actor_0.InstancedStaticMeshComponent_4 (InstancedStaticMeshComponent) mesh=SM_Cind_Crystal_01 mat=MI_Cind_Crystal_01 centre=V(X=4848.59, Y=-3844.60, Z=42.63) size=V(X=8361.25, Y=8892.94, Z=142.78)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDMagmaVolume_1.StaticMeshComponent_0 (StaticMeshComponent) mesh=SM_Cind_MagmaSurface mat=MI_Cind_MagmaSurface centre=V(X=8700.00, Y=-5000.00, Z=-5.00) size=V(X=3400.00, Y=5000.00, Z=10.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDMagmaVolume_1.NiagaraComponent_0 (NiagaraComponent) mesh=None mat=None centre=V(X=8720.86, Y=-5021.78, Z=114.78) size=V(X=3561.99, Y=3701.39, Z=3716.58)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDCollapsingPlatform_0.StaticMeshComponent_0 (StaticMeshComponent) mesh=SM_Cind_CollapseSlab mat=MI_Cind_CollapseSlab centre=V(X=7250.00, Y=-5060.00, Z=50.00) size=V(X=610.00, Y=320.00, Z=60.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDCollapsingPlatform_1.StaticMeshComponent_0 (StaticMeshComponent) mesh=SM_Cind_CollapseSlab mat=MI_Cind_CollapseSlab centre=V(X=7830.00, Y=-4940.00, Z=50.00) size=V(X=610.00, Y=320.00, Z=60.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDCollapsingPlatform_2.StaticMeshComponent_0 (StaticMeshComponent) mesh=SM_Cind_CollapseSlab mat=MI_Cind_CollapseSlab centre=V(X=8410.00, Y=-5060.00, Z=50.00) size=V(X=610.00, Y=320.00, Z=60.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDCollapsingPlatform_3.StaticMeshComponent_0 (StaticMeshComponent) mesh=SM_Cind_CollapseSlab mat=MI_Cind_CollapseSlab centre=V(X=8990.00, Y=-4940.00, Z=50.00) size=V(X=610.00, Y=320.00, Z=60.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDCollapsingPlatform_4.StaticMeshComponent_0 (StaticMeshComponent) mesh=SM_Cind_CollapseSlab mat=MI_Cind_CollapseSlab centre=V(X=9570.00, Y=-5060.00, Z=50.00) size=V(X=610.00, Y=320.00, Z=60.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDCollapsingPlatform_5.StaticMeshComponent_0 (StaticMeshComponent) mesh=SM_Cind_CollapseSlab mat=MI_Cind_CollapseSlab centre=V(X=10150.00, Y=-4940.00, Z=50.00) size=V(X=610.00, Y=320.00, Z=60.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near Actor_15.StaticMeshComponent_4 (StaticMeshComponent) mesh=SM_CinderAnchorTower mat=MI_CinderAnchorTower centre=V(X=12292.42, Y=-4845.05, Z=-314.62) size=V(X=2034.67, Y=1731.53, Z=3877.94)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near Actor_15.StaticMeshComponent_5 (StaticMeshComponent) mesh=SM_CinderAnchorEmitter mat=MI_CinderAnchorEmitter centre=V(X=11963.65, Y=-4679.42, Z=1561.93) size=V(X=513.66, Y=467.76, Z=692.55)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDInteractableActor_1.ChargeArt (StaticMeshComponent) mesh=SM_Kit_AnchorCharge mat=MI_Kit_Trim centre=V(X=12189.88, Y=-5430.87, Z=277.90) size=V(X=63.80, Y=62.73, Z=54.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDInteractableActor_2.ChargeArt (StaticMeshComponent) mesh=SM_Kit_AnchorCharge mat=MI_Kit_Trim centre=V(X=11993.98, Y=-5003.85, Z=266.12) size=V(X=29.88, Y=60.19, Z=54.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDInteractableActor_3.ChargeArt (StaticMeshComponent) mesh=SM_Kit_AnchorCharge mat=MI_Kit_Trim centre=V(X=12172.70, Y=-4590.43, Z=282.45) size=V(X=62.82, Y=63.73, Z=54.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDStepTrigger_2.Beacon (StaticMeshComponent) mesh=Cylinder mat=MID_M_TD_PlaceholderGlow_0 centre=V(X=6400.00, Y=-8400.00, Z=3000.00) size=V(X=60.00, Y=60.00, Z=6000.00)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDFirstPersonCharacter_0.CharacterMesh0 (SkeletalMeshComponent) mesh=None mat=MI_Pilot centre=V(X=11190.60, Y=-7598.42, Z=87.98) size=V(X=86.33, Y=98.91, Z=186.85)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDFirstPersonCharacter_0.HandBladeHilt (StaticMeshComponent) mesh=SM_TD_BladeHilt mat=MI_TD_BladeHilt centre=V(X=11174.00, Y=-7569.45, Z=92.44) size=V(X=25.54, Y=21.23, Z=20.11)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDFirstPersonCharacter_0.HandBladeBeam (StaticMeshComponent) mesh=SM_TD_BladeBeam mat=MID_MI_TD_BladeBeam_0 centre=V(X=11217.60, Y=-7539.22, Z=61.54) size=V(X=70.56, Y=50.57, Z=50.62)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDCrewCharacter_0.CharacterMesh0 (SkeletalMeshComponent) mesh=None mat=MI_NullTrooper centre=V(X=11094.14, Y=-5000.12, Z=130.36) size=V(X=211.54, Y=227.25, Z=55.81)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDCrewCharacter_1.CharacterMesh0 (SkeletalMeshComponent) mesh=None mat=MI_NullGrunt centre=V(X=11409.51, Y=-3843.29, Z=134.17) size=V(X=231.67, Y=229.54, Z=67.13)",
+   "[2026.11.14-17.42.17:976][503]LogTriadDrift: Display: TD.Near TDCrewCharacter_2.CharacterMesh0 (SkeletalMeshComponent) mesh=None mat=MI_NullGrunt centre=V(X=11393.70, Y=-6140.21, Z=134.17) size=V(X=231.67, Y=229.54, Z=67.13)",
+   "[2026.11.14-17.42.17:982][504]LogTriadDrift: Display: TD.Near Actor_0.StaticMeshComponent_250 (StaticMeshComponent) mesh=SM_Kit_ScorchLines mat=MI_Kit_ScorchLines centre=V(X=13800.00, Y=-3600.00, Z=6.40) size=V(X=1041.66, Y=1127.94, Z=0.00)",
+   "[2026.11.14-17.42.17:982][504]LogTriadDrift: Display: TD.Near Actor_0.StaticMeshComponent_251 (StaticMeshComponent) mesh=SM_Kit_ScorchLines mat=MI_Kit_ScorchLines centre=V(X=11600.00, Y=-6600.00, Z=6.20) size=V(X=892.85, Y=966.81, Z=0.00)",
+   "[2026.11.14-17.42.17:982][504]LogTriadDrift: Display: TD.Near Actor_0.InstancedStaticMeshComponent_3 (InstancedStaticMeshComponent) mesh=SM_Cind_Crystal_03 mat=MI_Cind_Crystal_03 centre=V(X=6637.32, Y=-4945.41, Z=133.93) size=V(X=9448.45, Y=10566.84, Z=384.35)",
+   "[2026.11.14-17.42.17:982][504]LogTriadDrift: Display: TD.Near Actor_15.StaticMeshComponent_4 (StaticMeshComponent) mesh=SM_CinderAnchorTower mat=MI_CinderAnchorTower centre=V(X=12292.29, Y=-4844.98, Z=-315.51) size=V(X=2034.92, Y=1731.66, Z=3878.04)",
+   "[2026.11.14-17.42.17:982][504]LogTriadDrift: Display: TD.Near Actor_15.StaticMeshComponent_5 (StaticMeshComponent) mesh=SM_CinderAnchorEmitter mat=MI_CinderAnchorEmitter centre=V(X=11963.39, Y=-4679.29, Z=1561.02) size=V(X=513.70, Y=467.78, Z=692.58)",
+   "[2026.11.14-17.42.17:982][504]LogTriadDrift: Display: TD.Near TDInteractableActor_1.ChargeArt (StaticMeshComponent) mesh=SM_Kit_AnchorCharge mat=MI_Kit_Trim centre=V(X=12189.88, Y=-5430.87, Z=277.90) size=V(X=63.80, Y=62.73, Z=54.00)",
+   "[2026.11.14-17.42.17:982][504]LogTriadDrift: Display: TD.Near TDInteractableActor_2.ChargeArt (StaticMeshComponent) mesh=SM_Kit_AnchorCharge mat=MI_Kit_Trim centre=V(X=11993.98, Y=-5003.85, Z=266.12) size=V(X=29.88, Y=60.19, Z=54.00)",
+   "[2026.11.14-17.42.17:982][504]LogTriadDrift: Display: TD.Near TDInteractableActor_3.ChargeArt (StaticMeshComponent) mesh=SM_Kit_AnchorCharge mat=MI_Kit_Trim centre=V(X=12172.70, Y=-4590.43, Z=282.45) size=V(X=62.82, Y=63.73, Z=54.00)",
+   "[2026.11.14-17.42.17:982][504]LogTriadDrift: Display: TD.Near TDCrewCharacter_0.CharacterMesh0 (SkeletalMeshComponent) mesh=None mat=MI_NullTrooper centre=V(X=11094.14, Y=-5000.12, Z=130.36) size=V(X=211.54, Y=227.25, Z=55.81)"
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAE\\bay_mouth_1500m.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAE\\bay_mouth_600m.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAE\\bay_mouth_250m.png"
+ }
+]

@@ -401,7 +401,9 @@ def configure_dominion():
     # review r1 fix 1: a deep red (renders red, not salmon) at half the strength
     GLOWS = {"MI_KitD_Glow": ("Glow", {"GlowStrength": 3.0, "PulseAmount": 0.0}, (1.0, 0.025, 0.006)),     # #FF2A10 (review r2)
              # r9 (review r4): the ceiling strips dimmed and warmed so the arena stops reading as a clean-room
-             "MI_KitD_Light": ("Light", {"GlowStrength": 1.4, "PulseAmount": 0.0}, (1.0, 0.62, 0.42))}
+             "MI_KitD_Light": ("Light", {"GlowStrength": 1.4, "PulseAmount": 0.0}, (1.0, 0.62, 0.42)),
+             # #96: the story console's screen (the course's readable-console cyan), soft enough to keep its bezel
+             "MI_KitD_Screen": ("Screen", {"GlowStrength": 2.0, "PulseAmount": 0.0}, (0.3, 0.78, 0.95))}
     NO_COLLISION = ()
     SCREEN_MI = None
     SET.update({"stem": "T_KitD_Trim", "trim_mi": "MI_KitD_Trim", "export": "export_dominion", "prefix": "SM_DI_", "extras": False,

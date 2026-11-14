@@ -40,6 +40,8 @@
 #include "TriadDrift/Ground/TDGroundAudio.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 
 ATDFirstPersonCharacter::ATDFirstPersonCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -409,6 +411,107 @@ void ATDFirstPersonCharacter::UpdateFootIK(UTDLoopBlendAnimInstance* Loops, floa
 	Loops->SetFootIK((FootIKL + Down) / Scale, (FootIKR + Down) / Scale, Down / Scale);
 }
 
+// #163: the energy blade's beam. SM_TD_BladeBeam_V2 (core + glow shell, two slots) when it exists, else the first beam.
+// Both have their origin at the emitter and run 100 cm along +X.
+static UStaticMesh* TDBladeBeamArt()
+{
+	UStaticMesh* V2 = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeBeam_V2.SM_TD_BladeBeam_V2"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+	return V2 ? V2 : LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeBeam.SM_TD_BladeBeam"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+}
+
+static bool TDIsBladeBeamArt(const UStaticMesh* Beam)
+{
+	return Beam && Beam->GetName().StartsWith(TEXT("SM_TD_BladeBeam"));
+}
+
+static void TDTintBladeBeam(UStaticMeshComponent* Beam, const FLinearColor& Color)
+{
+	for (int32 i = 0; Beam && i < Beam->GetNumMaterials(); ++i)
+	{
+		if (UMaterialInstanceDynamic* MID = Beam->CreateDynamicMaterialInstance(i))
+		{
+			MID->SetVectorParameterValue(TEXT("BladeColor"), Color);
+		}
+	}
+}
+
+FLinearColor ATDFirstPersonCharacter::GetBladeColor() const
+{
+	return UTDStatics::ShipColor(GetOnFootPilotShip(this));
+}
+
+UStaticMeshComponent* ATDFirstPersonCharacter::GetVisibleBladeBeam() const
+{
+	if (HandBladeBeam && HandBladeBeam->IsVisible() && TDIsBladeBeamArt(HandBladeBeam->GetStaticMesh()))
+	{
+		return HandBladeBeam;
+	}
+	if (BladePlaceholder && BladePlaceholder->IsVisible() && BladeGrip && BladeGrip->IsVisible() && TDIsBladeBeamArt(BladePlaceholder->GetStaticMesh()))
+	{
+		return BladePlaceholder;
+	}
+	return nullptr;
+}
+
+void ATDFirstPersonCharacter::UpdateBladeAura(float DeltaSeconds)
+{
+	UStaticMeshComponent* Beam = GetVisibleBladeBeam();
+	if (!Beam || IsDead())
+	{
+		if (BladeAura && BladeAura->IsActive())
+		{
+			BladeAura->Deactivate(); // the system lets its live particles finish
+		}
+		bBladeAuraPrevTip = false;
+		return;
+	}
+	if (!BladeAura)
+	{
+		UNiagaraSystem* System = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Blade_Aura.NS_TD_Blade_Aura"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+		if (!System)
+		{
+			return;
+		}
+		BladeAura = NewObject<UNiagaraComponent>(this, TEXT("BladeAura"));
+		BladeAura->SetAsset(System);
+		BladeAura->SetAutoActivate(false);
+		BladeAura->SetUsingAbsoluteScale(true); // the beam is scaled along X by its length; the effect is not
+		BladeAura->SetupAttachment(Beam);
+		BladeAura->RegisterComponent();
+	}
+	if (BladeAura->GetAttachParent() != Beam)
+	{
+		BladeAura->AttachToComponent(Beam, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		bBladeAuraPrevTip = false;
+	}
+	// The tip's world velocity drives the sheet and the sparks (a still blade throws almost nothing).
+	const FTransform T = Beam->GetComponentTransform();
+	const UStaticMesh* BeamMesh = Beam->GetStaticMesh();
+	const float Length = (BeamMesh ? (float)BeamMesh->GetBoundingBox().Max.X : 100.f) * (float)T.GetScale3D().X;
+	const FVector TipNow = T.GetLocation() + T.GetUnitAxis(EAxis::X) * Length;
+	FVector TipVelocity = FVector::ZeroVector;
+	if (bBladeAuraPrevTip && DeltaSeconds > KINDA_SMALL_NUMBER)
+	{
+		TipVelocity = (TipNow - BladeAuraPrevTip) / DeltaSeconds;
+		if (TipVelocity.SizeSquared() > FMath::Square(9000.f))
+		{
+			TipVelocity = FVector::ZeroVector; // a teleport (respawn, a cut), not a swing
+		}
+	}
+	BladeAuraPrevTip = TipNow;
+	bBladeAuraPrevTip = true;
+	// A little smoothing on the speed only (one frame spikes at low frame rates); the direction stays raw.
+	BladeAuraSpeed = FMath::FInterpTo(BladeAuraSpeed, (float)TipVelocity.Size(), DeltaSeconds, 30.f);
+	BladeAura->SetVariableLinearColor(TEXT("Color"), GetBladeColor());
+	BladeAura->SetVariableFloat(TEXT("Length"), FMath::Max(1.f, Length));
+	BladeAura->SetVariableVec3(TEXT("TipVelocity"), TipVelocity);
+	BladeAura->SetVariableFloat(TEXT("TipSpeed"), BladeAuraSpeed);
+	if (!BladeAura->IsActive())
+	{
+		BladeAura->Activate(true);
+	}
+}
+
 void ATDFirstPersonCharacter::ApplyBladeVisuals()
 {
 	ApplyHandBladeVisuals(); // the blade in the body's hand follows the same FX
@@ -429,11 +532,11 @@ void ATDFirstPersonCharacter::ApplyBladeVisuals()
 		}
 	}
 	bBladeMeshFromArt = false;
-	const FLinearColor Color = FX ? FX->BladeColor : FLinearColor(0.1f, 0.65f, 1.f);
+	const FLinearColor Color = GetBladeColor(); // #163: the pilot's squad colour
 	// Engineering's blade (Gameplay/Props/Blade): the sculpted hilt in the grip and the two-layer beam out of its
 	// emitter, 70 cm, the same pair the body holds in third person. The engine cubes only if the art is missing.
 	UStaticMesh* HiltArt = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeHilt.SM_TD_BladeHilt"), nullptr, LOAD_Quiet | LOAD_NoWarn);
-	UStaticMesh* BeamArt = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeBeam.SM_TD_BladeBeam"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UStaticMesh* BeamArt = TDBladeBeamArt();
 	if (HiltArt && BeamArt)
 	{
 		BladeHilt->SetStaticMesh(HiltArt);
@@ -444,10 +547,7 @@ void ATDFirstPersonCharacter::ApplyBladeVisuals()
 		BladePlaceholder->AttachToComponent(BladeHilt, FAttachmentTransformRules::SnapToTargetNotIncludingScale, bEmitter ? FName(TEXT("BladeEmitter")) : NAME_None);
 		BladePlaceholder->SetRelativeLocationAndRotation(bEmitter ? FVector::ZeroVector : FVector(19.3f, 0.f, 0.f), FRotator::ZeroRotator);
 		BladePlaceholder->SetRelativeScale3D(FVector(0.7f, 1.f, 1.f));
-		if (UMaterialInstanceDynamic* MID = BladePlaceholder->CreateDynamicMaterialInstance(0))
-		{
-			MID->SetVectorParameterValue(TEXT("BladeColor"), Color);
-		}
+		TDTintBladeBeam(BladePlaceholder, Color);
 		return;
 	}
 	UTDStatics::TintPlaceholder(BladePlaceholder, Color, 1.4f);
@@ -653,9 +753,8 @@ void ATDFirstPersonCharacter::ApplyHandBladeVisuals()
 		}
 	}
 	static const TCHAR* HiltPath = TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeHilt.SM_TD_BladeHilt");
-	static const TCHAR* BeamPath = TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeBeam.SM_TD_BladeBeam");
 	UStaticMesh* Hilt = LoadObject<UStaticMesh>(nullptr, HiltPath, nullptr, LOAD_Quiet | LOAD_NoWarn);
-	UStaticMesh* Beam = LoadObject<UStaticMesh>(nullptr, BeamPath, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UStaticMesh* Beam = TDBladeBeamArt();
 	if (!Beam)
 	{
 		Beam = BladePlaceholder ? BladePlaceholder->GetStaticMesh() : nullptr; // no art: the engine cube, as in first person
@@ -668,13 +767,10 @@ void ATDFirstPersonCharacter::ApplyHandBladeVisuals()
 	{
 		HandBladeBeam->SetRelativeLocation(FVector(Hilt ? 19.3f : 6.f, 0.f, 0.f));
 	}
-	const FLinearColor Color = FX ? FX->BladeColor : FLinearColor(0.1f, 0.65f, 1.f);
-	if (Beam && Beam->GetName() == TEXT("SM_TD_BladeBeam"))
+	const FLinearColor Color = GetBladeColor(); // #163: the pilot's squad colour
+	if (TDIsBladeBeamArt(Beam))
 	{
-		if (UMaterialInstanceDynamic* MID = HandBladeBeam->CreateDynamicMaterialInstance(0))
-		{
-			MID->SetVectorParameterValue(TEXT("BladeColor"), Color);
-		}
+		TDTintBladeBeam(HandBladeBeam, Color);
 	}
 	else
 	{
@@ -702,7 +798,7 @@ void ATDFirstPersonCharacter::UpdateHandBlade(float DeltaSeconds)
 		return;
 	}
 	const float Authored = Beam ? FMath::Max(1.f, (float)Beam->GetBoundingBox().GetSize().X) : 100.f;
-	const bool bArtBeam = Beam && Beam->GetName() == TEXT("SM_TD_BladeBeam");
+	const bool bArtBeam = TDIsBladeBeamArt(Beam);
 	const float Length = HandBladeLength * FMath::Max(HandBladeExtend, 0.001f);
 	if (bArtBeam)
 	{
@@ -1736,6 +1832,7 @@ void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 	// Mirror state for animation and HUD.
 	BladeState = GetBladeState();
 	UpdateBladePose(DeltaSeconds);
+	UpdateBladeAura(DeltaSeconds); // after both blades have their pose for this frame
 	bBlocking = Blade && Blade->IsBlocking();
 	const float Horizontal = GetVelocity().Size2D();
 	Speed01 = FMath::Clamp(Horizontal / FMath::Max(Tuning.SprintSpeed, 1.f), 0.f, 1.f);

@@ -16,6 +16,11 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/World.h"
 #include "Misc/PackageName.h"
+#include "NiagaraComponent.h"
+#include "HAL/IConsoleManager.h"
+
+static TAutoConsoleVariable<int32> CVarBladeLogHits(TEXT("td.Blade.LogHits"), 0,
+	TEXT("1: log each pilot blade swing start and each hit with its time after the swing started (hit-window checks)."));
 
 namespace TDBlade
 {
@@ -96,13 +101,25 @@ void UTDEnergyBladeComponent::PlayBladeCue(FName Name, const FTDFXCue* Cue, bool
 	{
 		return;
 	}
+	// #163: ignite and retract play on the visible blade's emitter (+X up the beam); everything else as before.
+	const ATDFirstPersonCharacter* Pilot = Cast<ATDFirstPersonCharacter>(GetOwner());
+	USceneComponent* Beam = Pilot && (Name == TEXT("Ignite") || Name == TEXT("Retract")) ? Pilot->GetVisibleBladeBeam() : nullptr;
+	UNiagaraComponent* FX = nullptr;
 	if (bAttached)
 	{
-		UTDStatics::PlayCueAttached(*Cue, GetOwner()->GetRootComponent());
+		FX = UTDStatics::PlayCueAttached(*Cue, Beam ? Beam : GetOwner()->GetRootComponent());
+		if (FX && Beam)
+		{
+			FX->SetUsingAbsoluteScale(true); // the beam is scaled along X by its length
+		}
 	}
 	else
 	{
-		UTDStatics::PlayCue(this, *Cue, Location, Rotation ? *Rotation : GetOwner()->GetActorRotation());
+		FX = UTDStatics::PlayCue(this, *Cue, Location, Rotation ? *Rotation : GetOwner()->GetActorRotation());
+	}
+	if (FX && Pilot)
+	{
+		FX->SetVariableLinearColor(TEXT("Color"), Pilot->GetBladeColor()); // the pilot's squad colour (#163)
 	}
 }
 
@@ -300,6 +317,8 @@ void UTDEnergyBladeComponent::StartSwing(int32 Index)
 	ComboTimeLeft = 0.f;
 	bLightQueued = false;
 	OnSwing.Broadcast(State);
+	SwingStartSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	if (CVarBladeLogHits.GetValueOnGameThread() != 0) { UE_LOG(LogTriadDrift, Display, TEXT("td.Blade.LogHits: swing %d starts"), int32(State)); }
 	PlayBladeCue(TEXT("SwingLight"), BladeFX ? &BladeFX->SwingLight : nullptr, true, FVector::ZeroVector);
 	PlaySwingTrail();
 	// The hit lands with the hand, not on the press (the pilot clips reach the target 0.10-0.13 s in).
@@ -350,6 +369,8 @@ bool UTDEnergyBladeComponent::HeavyLunge()
 	ComboIndex = 0;
 	ComboTimeLeft = 0.f;
 	OnSwing.Broadcast(State);
+	SwingStartSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	if (CVarBladeLogHits.GetValueOnGameThread() != 0) { UE_LOG(LogTriadDrift, Display, TEXT("td.Blade.LogHits: swing %d starts"), int32(State)); }
 	PlayBladeCue(TEXT("SwingHeavy"), BladeFX ? &BladeFX->SwingHeavy : nullptr, true, FVector::ZeroVector);
 	PlaySwingTrail();
 
@@ -426,6 +447,8 @@ bool UTDEnergyBladeComponent::AirSlam()
 	State = ETDBladeState::AirSlam;
 	SwingTimeLeft = AirSlamTimeout; // ends on landing (or times out)
 	OnSwing.Broadcast(State);
+	SwingStartSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	if (CVarBladeLogHits.GetValueOnGameThread() != 0) { UE_LOG(LogTriadDrift, Display, TEXT("td.Blade.LogHits: swing %d starts"), int32(State)); }
 	Char->LaunchCharacter(FVector(0.f, 0.f, -AirSlamSpeed), true, true);
 	return true;
 }
@@ -486,6 +509,8 @@ bool UTDEnergyBladeComponent::DashStrike(FVector Direction, float Distance)
 	SwingTimeLeft = 0.2f;
 	MoveDuration = 0.2f;
 	OnSwing.Broadcast(State);
+	SwingStartSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	if (CVarBladeLogHits.GetValueOnGameThread() != 0) { UE_LOG(LogTriadDrift, Display, TEXT("td.Blade.LogHits: swing %d starts"), int32(State)); }
 	PlayBladeCue(TEXT("SwingLight"), BladeFX ? &BladeFX->SwingLight : nullptr, true, FVector::ZeroVector);
 	const FVector Start = Owner->GetActorLocation();
 	const FVector End = Start + Dir * FMath::Max(Distance, 0.f);
@@ -549,6 +574,10 @@ int32 UTDEnergyBladeComponent::HitArc(float Range, float ArcDegrees, float Damag
 
 bool UTDEnergyBladeComponent::HitActor(AActor* Victim, float Damage, const FVector& HitLocation, const FVector& HitDir, float Knockback)
 {
+	if (CVarBladeLogHits.GetValueOnGameThread() != 0 && Victim && GetWorld())
+	{
+		UE_LOG(LogTriadDrift, Display, TEXT("td.Blade.LogHits: swing %d hits %s %.0f at %.3f s"), int32(State), *Victim->GetName(), Damage, GetWorld()->GetTimeSeconds() - SwingStartSeconds);
+	}
 	AActor* Owner = GetOwner();
 	UTDHealthComponent* Health = UTDStatics::GetHealth(Victim);
 	if (!Victim || !Health || !Health->IsAlive())

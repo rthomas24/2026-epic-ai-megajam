@@ -360,6 +360,7 @@ private:
 	/** Sinks and leans the tower to collapse amount A (0 standing, 1 fully down) and breaks off the sections due by then. */
 	void ApplyCollapse(float A);
 	int32 SectionsDropped = 0;
+	bool bDroppingSection = false;
 	/** After the escape succeeds the deadline is gone, but the tower falls on from FinishFromA to fully down. */
 	bool bFinishing = false;
 	float FinishFromA = 0.f;
