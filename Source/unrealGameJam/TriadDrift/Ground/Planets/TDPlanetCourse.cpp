@@ -1710,12 +1710,18 @@ void ATDPlanetCourse::BuildCinder()
 		C->LinkedStep = 0;
 		C->Color = FLinearColor(1.f, 0.1f, 0.05f);
 		C->MaxHealth = 60.f;
-		C->CrystalMesh = TDPropArt::Default(TEXT("SM_Cind_Conduit"));
+		// The structures builder's conduit (100 x 100 x 300 cm, pivot at the footing on the ground; it fits the placeholder
+		// cylinder at scale 1) and its broken stump in its place once it falls (eng/struct 4a5f5060). The old path
+		// (Props/Planet/SM_Cind_Conduit) never existed.
+		C->CrystalMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_NullConduit.SM_Kit_NullConduit")));
+		C->BrokenMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_NullConduitBroken.SM_Kit_NullConduitBroken")));
 		C->Mesh->SetStaticMesh(CylinderMesh); // before FinishSpawning: the art is fitted to this shape at BeginPlay
 		C->Mesh->SetRelativeScale3D(FVector(1.f, 1.f, 3.f));
 		C->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
 		TDCourseImpl::FinishProp(C);
 		Conduits->WatchDestructible(C);
+		if (MarkerGroups.Num() == 0 || MarkerGroups.Last().Objective.Get() != Outpost) { FMarkerGroup& G = MarkerGroups.AddDefaulted_GetRef(); G.Objective = Outpost; G.Step = 0; G.Counter = Conduits; }
+		MarkerGroups.Last().Targets.Add(C);
 	}
 	// The gate's guards start 12 m+ past the bridge's far ramp foot (6751, 5417): the structures builder's walk (Nov 14)
 	// had crew 2-3 m from the bridge end killing the pilot stepping off. Trigger box x 8200..9600, crew on a 5 m ring.
@@ -1979,9 +1985,26 @@ void ATDPlanetCourse::BuildCinder()
 			Charge->SetWorldScale3D(FVector(1.f));
 			Charge->SetWorldRotation(GetActorRotation() + FRotator(0.f, Away.Rotation().Yaw, 0.f));
 			Charge->SetWorldLocation(W(Tower + SiteAt - Away * FaceGap)); // on the face
-			Site->Mesh->SetHiddenInGame(true); // the box: the interact volume only
+			// The box is the interact volume only. Its BeginPlay dressed it with the kit console and a top-cap column (the
+			// "box on a thin stalk" the structures builder saw): hide every mesh on the site but the charge.
+			auto HideAllButCharge = [](ATDInteractableActor* On, UStaticMeshComponent* Keep)
+			{
+				TInlineComponentArray<UStaticMeshComponent*> SiteMeshes(On);
+				for (UStaticMeshComponent* M : SiteMeshes)
+				{
+					if (M && M != Keep) { M->SetHiddenInGame(true); }
+				}
+			};
+			HideAllButCharge(Site, Charge);
+			// Again next tick, in case its BeginPlay (which dresses it) runs after this.
+			GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(Site, [Site, Charge, HideAllButCharge]() { HideAllButCharge(Site, Charge); }));
 		}
 		Charges->WatchInteractable(Site);
+		UE_LOG(LogTriadDrift, Display, TEXT("Cinder anchor: charge point %d at %s (stand about 1.4 m out from the tower face and look up at it)"), i,
+			*Site->GetActorLocation().ToCompactString());
+		// Each unplanted charge point carries the marker, nearest first (T7, Nov 14: only the counter at the tower had one).
+		if (MarkerGroups.Num() == 0 || MarkerGroups.Last().Objective.Get() != Jammer) { FMarkerGroup& G = MarkerGroups.AddDefaulted_GetRef(); G.Objective = Jammer; G.Step = 1; G.Counter = Charges; }
+		MarkerGroups.Last().Targets.Add(Site);
 	}
 	ATDEncounterVolume* Defence = Encounter(Jammer, INDEX_NONE, Tower + FVector(0.f, 0.f, 200.f), FVector(2000.f, 2000.f, 600.f),
 		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 900.f,

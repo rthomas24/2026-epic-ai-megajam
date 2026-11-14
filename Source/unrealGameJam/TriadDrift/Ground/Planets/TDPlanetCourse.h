@@ -372,8 +372,16 @@ private:
 	TWeakObjectPtr<const AActor> LastMagmaDeath;
 	int32 MagmaDeathsInRow = 0;
 	/** The reactor's four conduits and their step counter: the marker points at the nearest one still standing. */
-	TArray<TWeakObjectPtr<AActor>> ReactorConduits;
-	TWeakObjectPtr<AActor> ReactorConduitCounter;
+	/** A step whose targets are several things to break (the reactor's conduits, Cinder's gate conduits): its marker is
+	 *  the nearest one still standing, the step's own waypoint (the counter) once none is. */
+	struct FMarkerGroup
+	{
+		TWeakObjectPtr<ATDObjective> Objective;
+		int32 Step = 0;
+		TWeakObjectPtr<AActor> Counter;
+		TArray<TWeakObjectPtr<AActor>> Targets;
+	};
+	TArray<FMarkerGroup> MarkerGroups;
 	void UpdateConduitMarker();
 	/** A magma the marker routes around (chain of local points, safe way across) and its rescue spot (local, yaw). */
 	void AddMagmaCrossing(const AActor* Magma, ATDObjective* Objective, int32 Step, const TArray<FVector>& Chain, const FVector& RescueAt, float RescueYaw);

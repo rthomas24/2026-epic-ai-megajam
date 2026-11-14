@@ -380,7 +380,8 @@ void ATDPlanetCourse::BuildInterior()
 		if (ParkedShip && ParkedShip->GetStaticMesh()) { ShipBox += ParkedShip->CalcBounds(ParkedShip->GetComponentTransform()).GetBox().TransformBy(ToLocal); }
 		if (ShipBox.IsValid)
 		{
-			HangarStart = FVector(ShipBox.GetCenter().X, FMath::Max(ShipBox.Min.Y - 250.f, -HY + 200.f), 40.f);
+			// 2.5 m past the hull's -Y side and never closer than 5 m to the pad's line (the Lead: |y| >= 500 for every ship).
+			HangarStart = FVector(ShipBox.GetCenter().X, FMath::Clamp(ShipBox.Min.Y - 250.f, -HY + 200.f, -500.f), 40.f);
 		}
 		UE_LOG(LogTriadDrift, Display, TEXT("Dominion interior: hangar start %s (%s)"), *HangarStart.ToCompactString(),
 			ShipBox.IsValid ? *FString::Printf(TEXT("beside the parked ship, its box %s"), *ShipBox.ToString()) : TEXT("no ship to measure: the fixed spot"));
@@ -517,7 +518,8 @@ void ATDPlanetCourse::BuildInterior()
 		C->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
 		TDCourseImpl::FinishProp(C);
 		Conduits->WatchDestructible(C);
-		ReactorConduits.Add(C);
+		if (MarkerGroups.Num() == 0 || MarkerGroups.Last().Objective.Get() != Reactor) { MarkerGroups.AddDefaulted_GetRef().Objective = Reactor; }
+		MarkerGroups.Last().Targets.Add(C);
 		if (UTDHealthComponent* H = UTDStatics::GetHealth(C))
 		{
 			H->OnDeath.AddUniqueDynamic(this, &ATDPlanetCourse::HandleConduitDown);
@@ -550,7 +552,7 @@ void ATDPlanetCourse::BuildInterior()
 	HeartDone->WatchDestructible(Heart);
 	Checkpoint(Reactor, 0, FVector(L2X1 + 300.f, 0.f, 0.f), 0.f);
 	FinishObjective(Reactor, { LOCTEXT("DIK0", "BREAK THE REACTOR CONDUITS  0 / 4"), LOCTEXT("DIK1", "DESTROY THE REACTOR HEART") }, { Conduits, Heart });
-	ReactorConduitCounter = Conduits;
+	for (FMarkerGroup& G : MarkerGroups) { if (G.Objective.Get() == Reactor) { G.Counter = Conduits; } }
 	Entry(Core, FVector(L2X1 - 300.f, 0.f, 0.f), 0.f);
 	FinalRecordConsole = StoryConsole(FVector(WX1 - 350.f, -WY + 350.f, 0.f), 0.f, TEXT("Core")); // mandatory: on the main route, after the Warden
 	if (ATDInteractableActor* Rec = Cast<ATDInteractableActor>(FinalRecordConsole))
@@ -850,35 +852,42 @@ void ATDPlanetCourse::HandleReactorDefendersCleared(AActor* Encounter)
 
 void ATDPlanetCourse::UpdateConduitMarker()
 {
-	// T7 (Nov 14): the conduits carried no marker, only the step counter at the heart. While the conduits are the step,
-	// the marker is the nearest one still standing (the counter once none is).
-	ATDObjective* Reactor = FindObjective(TDInteriorImpl::Core);
-	if (!Reactor || !Reactor->IsActive() || Reactor->GetCurrentStepIndex() != 0 || !Reactor->Steps.IsValidIndex(0))
-	{
-		return;
-	}
+	// T7 (Nov 14): the conduits carried no marker, only the step counter (the reactor's at the heart, Cinder's at the
+	// gate). While they are the step, the marker is the nearest one still standing (the counter once none is).
 	FVector Pilot = GetActorLocation();
 	for (TActorIterator<ATDFirstPersonCharacter> It(GetWorld()); It; ++It) { if (!It->IsDead()) { Pilot = It->GetActorLocation(); break; } }
-	AActor* Best = nullptr;
-	for (const TWeakObjectPtr<AActor>& W : ReactorConduits)
+	for (const FMarkerGroup& G : MarkerGroups)
 	{
-		AActor* C = W.Get();
-		const UTDHealthComponent* H = C && !C->IsActorBeingDestroyed() ? UTDStatics::GetHealth(C) : nullptr;
-		if (H && H->IsAlive() && (!Best || FVector::DistSquared(Pilot, C->GetActorLocation()) < FVector::DistSquared(Pilot, Best->GetActorLocation())))
+		ATDObjective* O = G.Objective.Get();
+		if (!O || !O->IsActive() || O->GetCurrentStepIndex() != G.Step || !O->Steps.IsValidIndex(G.Step))
 		{
-			Best = C;
+			continue;
 		}
+		AActor* Best = nullptr;
+		for (const TWeakObjectPtr<AActor>& W : G.Targets)
+		{
+			AActor* C = W.Get();
+			if (!C || C->IsActorBeingDestroyed()) { continue; }
+			// Still to do: a target standing (health), or a point not used yet (the anchor's charges).
+			const UTDHealthComponent* H = UTDStatics::GetHealth(C);
+			const ATDInteractableActor* Use = Cast<ATDInteractableActor>(C);
+			const bool bRemaining = Use ? !Use->WasUsed() : (H && H->IsAlive());
+			if (bRemaining && (!Best || FVector::DistSquared(Pilot, C->GetActorLocation()) < FVector::DistSquared(Pilot, Best->GetActorLocation())))
+			{
+				Best = C;
+			}
+		}
+		O->Steps[G.Step].Waypoint = Best ? Best : G.Counter.Get();
 	}
-	Reactor->Steps[0].Waypoint = Best ? Best : ReactorConduitCounter.Get();
 }
 
 void ATDPlanetCourse::TickCoreChamber()
 {
+	UpdateConduitMarker(); // the interior's and the planets' (Cinder's gate conduits)
 	if (!IsInterior() || !CoreChamberBox.IsValid)
 	{
 		return;
 	}
-	UpdateConduitMarker();
 	bool bInside = false;
 	for (TActorIterator<ATDFirstPersonCharacter> It(GetWorld()); It && !bInside; ++It)
 	{

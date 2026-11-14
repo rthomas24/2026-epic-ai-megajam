@@ -266,6 +266,11 @@ public:
 
 	UPROPERTY(VisibleAnywhere, Category = "Planet") TObjectPtr<UStaticMeshComponent> Mesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> CrystalMesh;
+	/** Shown at the actor's own transform (pivot on the ground, scale 1) once it breaks, instead of nothing (the
+	 *  structures builder's SM_Kit_NullConduitBroken for Cinder's gate conduits). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> BrokenMesh;
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> Broken;
+	void ShowBroken(bool bShow);
 	UPROPERTY(VisibleAnywhere, Category = "Planet") TObjectPtr<UTDHealthComponent> Health;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FLinearColor Color = FLinearColor(1.f, 0.45f, 0.1f);
