@@ -7,7 +7,7 @@
 #include "EngineUtils.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 
-const FName UTDInteriorLightSubsystem::LightTag(TEXT("TD.InteriorLight"));
+const FName UTDInteriorLightSubsystem::LightTag(ATDPlanetCourse::InteriorLightTag);	// T5's tag on the interior's lights
 const FName UTDInteriorLightSubsystem::StripTag(TEXT("TD.EmergencyStrip"));
 const FName UTDInteriorLightSubsystem::StripParam(TEXT("EmergencyPulse"));
 
@@ -35,6 +35,7 @@ void UTDInteriorLightSubsystem::HandleMoment(FName Moment, AActor* Source)
 	{
 		return;
 	}
+	if (ATDPlanetCourse* C = Cast<ATDPlanetCourse>(Source)) { Course = C; }
 	if (Moment == TEXT("CoreChamberEntered") || Moment == TEXT("ReactorFightStarted"))
 	{
 		// A retake from before the reactor's death: back to the interior as built.
@@ -103,7 +104,8 @@ void UTDInteriorLightSubsystem::Step(float DeltaTime)
 	if (SinceEscape >= 0.f)
 	{
 		SinceEscape += DeltaTime;
-		if (SinceEscape >= EscapeSeconds - CollapseSeconds) { Mode = ETDInteriorLightMode::Collapse; }
+		const float Left = Course.IsValid() ? Course->GetEscapeSecondsLeft() : -1.f;
+		if (Left >= 0.f ? Left <= CollapseSeconds : SinceEscape >= EscapeSeconds - CollapseSeconds) { Mode = ETDInteriorLightMode::Collapse; }
 	}
 	const float Pulse = 0.5f + 0.5f * FMath::Sin(Time * 2.f * PI * PulseHz);
 	float Flicker = 1.f;
@@ -113,7 +115,9 @@ void UTDInteriorLightSubsystem::Step(float DeltaTime)
 		FlickerHold -= DeltaTime;
 		if (FlickerHold <= 0.f)
 		{
-			const float Late = FMath::Clamp((SinceEscape - (EscapeSeconds - CollapseSeconds)) / FMath::Max(CollapseSeconds, 1.f), 0.f, 1.f);
+			const float Left = Course.IsValid() ? Course->GetEscapeSecondsLeft() : -1.f;
+			const float Late = Left >= 0.f ? FMath::Clamp(1.f - Left / FMath::Max(CollapseSeconds, 1.f), 0.f, 1.f)
+				: FMath::Clamp((SinceEscape - (EscapeSeconds - CollapseSeconds)) / FMath::Max(CollapseSeconds, 1.f), 0.f, 1.f);
 			const float R = Rng.FRand();
 			FlickerValue = R < 0.12f + 0.2f * Late ? Rng.FRandRange(0.f, 0.15f) : (R < 0.45f ? Rng.FRandRange(0.4f, 0.8f) : 1.f);
 			FlickerHold = Rng.FRandRange(0.04f, 0.25f);

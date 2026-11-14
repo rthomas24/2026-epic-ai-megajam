@@ -27,7 +27,8 @@ public:
 	static const FName StripTag;	// TD.EmergencyStrip
 	static const FName StripParam;	// EmergencyPulse (0..1 on the strip material)
 
-	/** Seconds from EscapeStarted to the end of the escape (storyline: a 90 s run) and the collapse window at its end. */
+	/** The collapse window at the escape's end (T5's ATDPlanetCourse::GetEscapeSecondsLeft(); when the moment's source is
+	 *  not a course, a timer from EscapeStarted with EscapeSeconds, the storyline's 90 s run). */
 	float EscapeSeconds = 90.f;
 	float CollapseSeconds = 30.f;
 	/** Alarm look. */
@@ -63,6 +64,7 @@ private:
 	TArray<FLightRef> Lights;
 	TArray<TWeakObjectPtr<UMeshComponent>> Strips;
 	FDelegateHandle MomentHandle;
+	TWeakObjectPtr<class ATDPlanetCourse> Course;	// the source of the moments: its GetEscapeSecondsLeft() drives the collapse
 	FRandomStream Rng = FRandomStream(4517);
 	float FlickerHold = 0.f, FlickerValue = 1.f;
 };
