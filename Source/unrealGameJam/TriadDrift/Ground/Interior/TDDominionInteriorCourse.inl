@@ -400,9 +400,21 @@ void ATDPlanetCourse::BuildInterior()
 	Trailheads.Last().After = Lesson;
 	const FVector ArenaMid((CX1 + AX1) * 0.5f, 0.f, 200.f);
 	const FVector ArenaExtent((AX1 - CX1) * 0.5f, AY, 500.f);
-	ATDEncounterVolume* Wave1 = Encounter(Fight, 0, ArenaMid, ArenaExtent, { ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 800.f);
-	ATDEncounterVolume* Wave2 = Encounter(Fight, 1, ArenaMid, ArenaExtent, { ETDCrewType::Trooper, ETDCrewType::Trooper, ETDCrewType::Heavy }, false, 900.f);
-	ATDEncounterVolume* Wave3 = Encounter(Fight, 2, ArenaMid, ArenaExtent, { ETDCrewType::Drone, ETDCrewType::Drone, ETDCrewType::Grunt }, false, 900.f);
+	// Every wave comes in at the deck's far end (T7, Nov 14: on the 8-9 m ring round the deck's middle a ring point sat
+	// 1 m from the retake spot and two more 3.5-4 m from it in the open; the scripted pilot died to Trooper bolts every
+	// 6-7 s after each retake, 38 takes). The retake spot is the deck's door, 15 m or more from any of them.
+	auto FarEnd = [&](std::initializer_list<FVector2D> Points)
+	{
+		TArray<FVector> Out;
+		for (const FVector2D& P : Points) { Out.Add(FVector(P.X, P.Y, 0.f) - FVector(ArenaMid.X, ArenaMid.Y, 0.f)); }
+		return Out;
+	};
+	ATDEncounterVolume* Wave1 = Encounter(Fight, 0, ArenaMid, ArenaExtent, { ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 800.f,
+		FarEnd({ FVector2D(AX1 - 600.f, -800.f), FVector2D(AX1 - 400.f, 0.f), FVector2D(AX1 - 600.f, 800.f) }));
+	ATDEncounterVolume* Wave2 = Encounter(Fight, 1, ArenaMid, ArenaExtent, { ETDCrewType::Trooper, ETDCrewType::Trooper, ETDCrewType::Heavy }, false, 900.f,
+		FarEnd({ FVector2D(AX1 - 400.f, -700.f), FVector2D(AX1 - 400.f, 700.f), FVector2D(AX1 - 700.f, 0.f) }));
+	ATDEncounterVolume* Wave3 = Encounter(Fight, 2, ArenaMid, ArenaExtent, { ETDCrewType::Drone, ETDCrewType::Drone, ETDCrewType::Grunt }, false, 900.f,
+		FarEnd({ FVector2D(AX1 - 500.f, -600.f), FVector2D(AX1 - 500.f, 600.f), FVector2D(AX1 - 400.f, 0.f) }));
 	// Director's mercy on the deck too (T7, Nov 14: 17-18 takes here with no easing at all): take 2 the crew at 75 %
 	// health, take 3 one fewer (the last listed: wave 2's Heavy), take 5 two fewer.
 	for (ATDEncounterVolume* E : { Wave1, Wave2, Wave3 })
@@ -422,8 +434,8 @@ void ATDPlanetCourse::BuildInterior()
 		Kit(TEXT("SM_DI_Cover_Low"), At - FVector(0.f, 0.f, 55.f), 90.f * (i % 2), CoverBox);
 	}
 	CompletionDoors.Add({ Fight, 0, ArenaOut });
-	Checkpoint(Fight, 1, FVector(CX1 + 400.f, 0.f, 0.f), 0.f);
-	Checkpoint(Fight, 2, FVector(CX1 + 400.f, 0.f, 0.f), 0.f);
+	Checkpoint(Fight, 1, FVector(CX1 + 200.f, 0.f, 0.f), 0.f); // the deck's door: 15 m from the nearest spawn
+	Checkpoint(Fight, 2, FVector(CX1 + 200.f, 0.f, 0.f), 0.f);
 	FinishObjective(Fight, { LOCTEXT("DIA0", "CLEAR THE DECK"), LOCTEXT("DIA1", "THEY'RE SENDING MORE"), LOCTEXT("DIA2", "LAST WAVE") }, {});
 	Entry(Arena, FVector(CX1 + 400.f, 0.f, 0.f), 0.f);
 	StoryConsole(FVector(AX1 - 300.f, AY - 300.f, 0.f), 0.f, TEXT("Barracks")); // T3's id for this room

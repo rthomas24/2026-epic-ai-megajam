@@ -1832,6 +1832,23 @@ bool FTDCinderMarkersOffMagma::RunTest(const FString& Parameters)
 	}
 	AddInfo(FString::Printf(TEXT("%d respawn-to-marker legs checked"), Legs));
 
+	// No geyser within 8 m of either ramp foot of the river's bridge (pivot (5600, 4620), yaw 34.7, feet at +-1400).
+	{
+		const FVector Along = FRotator(0.f, 34.7f, 0.f).Vector();
+		const FVector Feet[] = { FVector(5600.f, 4620.f, 0.f) - Along * 1400.f, FVector(5600.f, 4620.f, 0.f) + Along * 1400.f };
+		int32 Geysers = 0;
+		for (TActorIterator<ATDGeyser> It(V.W.GetWorld()); It; ++It)
+		{
+			++Geysers;
+			for (const FVector& Foot : Feet)
+			{
+				const float D = FVector::Dist2D(It->GetActorLocation(), R.Course->GetActorTransform().TransformPosition(Foot));
+				TestTrue(*FString::Printf(TEXT("%s %.1f m from a ramp foot (>= 8)"), *It->GetName(), D / 100.f), D >= 800.f);
+			}
+		}
+		TestTrue(TEXT("the geysers are there"), Geysers >= 3);
+	}
+
 	// Two magma deaths in a row in the river: the far bank.
 	ATDMagmaVolume* River = nullptr;
 	for (ATDMagmaVolume* M : Magma) { if (!River || FVector::Dist2D(M->GetActorLocation(), FVector(5600.f, 4800.f, 0.f)) < FVector::Dist2D(River->GetActorLocation(), FVector(5600.f, 4800.f, 0.f))) { River = M; } }

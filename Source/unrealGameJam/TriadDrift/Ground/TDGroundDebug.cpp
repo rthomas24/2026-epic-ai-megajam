@@ -31,6 +31,7 @@
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "TriadDrift/Ground/TDObjective.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInterface.h"
@@ -236,6 +237,44 @@ namespace TDGroundDebug
 		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.WardenSummon: no Warden"));
 	}
 
+	/** TD.Ground.SkipTo <Obj_DI_Warden | Warden | Arena | Core | Escape>: in the Dominion interior, finish every room
+	 *  before that one (as if played) and put the pilot at its door (T7, Nov 14: a way to start at the Warden). */
+	static void SkipTo(const TArray<FString>& Args, UWorld* World)
+	{
+		ATDPlanetCourse* Course = World ? ATDPlanetCourse::Get(World) : nullptr;
+		if (!Course || !Course->IsInterior() || Args.Num() == 0)
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.SkipTo <objective>: only in the Dominion interior"));
+			return;
+		}
+		const TArray<FName>& Ids = ATDPlanetCourse::InteriorObjectiveIds();
+		int32 Target = INDEX_NONE;
+		for (int32 i = 0; i < Ids.Num(); ++i)
+		{
+			if (Ids[i].ToString().Equals(Args[0], ESearchCase::IgnoreCase) || Ids[i].ToString().EndsWith(TEXT("_") + Args[0], ESearchCase::IgnoreCase)) { Target = i; }
+		}
+		if (Target == INDEX_NONE)
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.SkipTo: no interior objective '%s'"), *Args[0]);
+			return;
+		}
+		for (int32 i = 0; i < Target; ++i)
+		{
+			ATDObjective* O = Course->FindObjective(Ids[i]);
+			if (!O || O->IsComplete()) { continue; }
+			if (!O->IsActive()) { Course->StartObjectiveAt(Ids[i]); }
+			for (int32 Step = 0; Step < 12 && O->IsActive(); ++Step) { O->AdvanceStep(); }
+		}
+		const APlayerController* PC = World->GetFirstPlayerController();
+		if (ATDFirstPersonCharacter* P = PC ? Cast<ATDFirstPersonCharacter>(PC->GetPawn()) : nullptr)
+		{
+			P->RespawnAt(Course->GetInteriorStart());
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.SkipTo: rooms before %s done; at its door"), *Ids[Target].ToString());
+	}
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdSkipTo(TEXT("TD.Ground.SkipTo"), TEXT("TD.Ground.SkipTo <Warden|Arena|Core|Escape>: finish the interior rooms before it and stand at its door (dev)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&SkipTo));
 	static FAutoConsoleCommandWithWorldAndArgs CmdCrewHit(TEXT("TD.Ground.CrewHit"), TEXT("TD.Ground.CrewHit <damage> [behind]: hurt the nearest crew (never a kill)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&CrewHit));
 	static FAutoConsoleCommandWithWorldAndArgs CmdWardenSummon(TEXT("TD.Ground.WardenSummon"), TEXT("The nearest Warden summons now (dev)."),
