@@ -203,6 +203,15 @@ void UTDWarmupSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	{
 		return;
 	}
+	// The front end needs none of it (T6, launch check of 685d8bea: the menu warmed 351 data assets and about 550 assets
+	// while the player waited on a black screen; on the Shipping boot that kept about ten cores busy). The galaxy, the
+	// planets and the interior warm their own sets when they load.
+	const FString MapName = InWorld.GetMapName();
+	if (MapName.Contains(TEXT("MainMenu")) || MapName.Contains(TEXT("Transition")))
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD warmup: skipped on %s (front end)"), *MapName);
+		return;
+	}
 	Stage = ETDWarmupStage::Waiting;
 	WaitLeft = StartDelaySeconds;
 }
