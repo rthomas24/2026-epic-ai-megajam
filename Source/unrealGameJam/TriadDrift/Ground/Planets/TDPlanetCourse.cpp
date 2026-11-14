@@ -993,7 +993,6 @@ void ATDPlanetCourse::BuildVerdance()
 	const float SiteYaw = FMath::RadiansToDegrees(FMath::Atan2(6300.f - OutpostSite.Y, 9300.f - OutpostSite.X));
 	UStaticMeshComponent* VerdConsole = nullptr;
 	AActor* VerdOutpost = PlaceOutpost(OutpostSite, SiteYaw, false, VerdConsole);
-	auto OP = [&OutpostSite, SiteYaw](const FVector& Local) { return OutpostSite + FRotator(0.f, SiteYaw, 0.f).RotateVector(Local); };
 	const FLinearColor StationMetal(0.32f, 0.36f, 0.4f);
 	if (!VerdOutpost)
 	{
@@ -1007,9 +1006,7 @@ void ATDPlanetCourse::BuildVerdance()
 	Block(EShape::Cube, WreckSite + FVector(-760.f, 200.f, 90.f), FVector(60.f, 700.f, 120.f), StationMetal, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_Station_Rack"));
 	Block(EShape::Cube, WreckSite + FVector(0.f, 0.f, 505.f), FVector(1200.f, 60.f, 8.f), Cyan, 3.f, FRotator::ZeroRotator, false); // the station's work light
 	}
-	// The dormant drone (Cinematic 03 wakes it): on the outpost's deck, in the corner by the bay.
-	DormantDrone = Block(EShape::Sphere, VerdOutpost ? OP(FVector(-300.f, -280.f, 140.f + 90.f)) : WreckSite + FVector(550.f, 550.f, 110.f), FVector(120.f, 120.f, 90.f), StationMetal, 0.f,
-		FRotator(0.f, -135.f, 0.f), false, TEXT("SM_Verd_Station_DormantDrone"));
+	// (The dormant drone moved to the relay deck with the transfer: Cinematic 03 fires there.)
 
 	ATDStepTrigger* Beacon = SpawnProp<ATDStepTrigger>(FVector(9300.f, 6300.f, 0.f));
 	Beacon->LinkedObjective = Wreck;
@@ -1087,6 +1084,10 @@ void ATDPlanetCourse::BuildVerdance()
 	// The relay: a tall stone spire at the east side with a glowing core (collides; not a perch).
 	Block(EShape::Cylinder, RelaySite + FVector(1150.f, 0.f, DeckTop + 900.f), FVector(220.f, 220.f, 1800.f), RelayStone, 0.6f, FRotator::ZeroRotator, true, TEXT("SM_Verd_RelaySpire"));
 	Block(EShape::Cylinder, RelaySite + FVector(1150.f, 0.f, DeckTop + 1400.f), FVector(90.f, 90.f, 1800.f), RelayStone, 2.f, FRotator::ZeroRotator, false);
+
+	// The dormant drone (Cinematic 03 wakes it, T3): on the deck by the spire, in view from the console (about 20 m).
+	DormantDrone = Block(EShape::Sphere, RelaySite + FVector(800.f, 700.f, DeckTop + 90.f), FVector(120.f, 120.f, 90.f), FLinearColor(0.32f, 0.36f, 0.4f), 0.f,
+		FRotator(0.f, -135.f, 0.f), false, TEXT("SM_Verd_Station_DormantDrone"));
 
 	ATDStepTrigger* Reach = SpawnProp<ATDStepTrigger>(RelaySite);
 	Reach->LinkedObjective = Relay;
