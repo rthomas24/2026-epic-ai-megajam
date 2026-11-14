@@ -160,6 +160,11 @@ bool ATDSpaceField::DamagePiece(int32 Piece, float Damage, AActor* ByWhom)
 }
 
 static int32 GTDLogBreaks = 0;
+#if !UE_BUILD_SHIPPING
+static int32 GTDStressGrowth = 0;
+static FAutoConsoleVariableRef CVarTDStressGrowth(TEXT("td.SpaceField.StressGrowth"), GTDStressGrowth,
+	TEXT("Dev: 1 = before each break's fragments, drop the spare capacity of the piece arrays, so every split reallocates them (#139 check)."));
+#endif
 static FAutoConsoleVariableRef CVarTDLogBreaks(TEXT("td.SpaceField.LogBreaks"), GTDLogBreaks,
 	TEXT("1: log every field break (piece, class, size, special, who broke it). Live captures and playtests."));
 
@@ -234,22 +239,33 @@ void ATDSpaceField::BreakPieceInner(int32 Piece, AActor* ByWhom)
 	}
 
 	const double T1 = FPlatformTime::Seconds();
-	// Split: a medium into smalls, a large or a wreck into mediums.
-	if (S.SizeClass > 0)
+	// #139 (Nick's review): SpawnFragment appends to Pieces and States, which can reallocate both, so the reference S must
+	// not be used past this point. Everything below reads this copy.
+	const FPieceState Snap = S;
+#if !UE_BUILD_SHIPPING
+	if (GTDStressGrowth != 0)
 	{
-		const bool bWreck = S.Wreck != INDEX_NONE;
+		// Dev stress: no spare capacity, so the first fragment below reallocates States and Pieces.
+		States.Shrink();
+		Pieces.Shrink();
+	}
+#endif
+	// Split: a medium into smalls, a large or a wreck into mediums.
+	if (Snap.SizeClass > 0)
+	{
+		const bool bWreck = Snap.Wreck != INDEX_NONE;
 		const float Real = bWreck ? P.Size - 6000.f : P.Size;	// a wreck's piece size includes its drift loop
-		const float Cap = (S.SizeClass == 1 ? MediumFromSize : LargeFromSize) * 0.95f;
+		const float Cap = (Snap.SizeClass == 1 ? MediumFromSize : LargeFromSize) * 0.95f;
 		const int32 N = BreakRng.RandRange(FMath::Max(1, SplitMin), FMath::Max(SplitMin, SplitMax));
 		for (int32 i = 0; i < N; ++i)
 		{
 			const float Size = FMath::Clamp(Real * BreakRng.FRandRange(0.3f, 0.5f), 150.f, Cap);
-			UStaticMesh* Mesh = S.Mesh;
+			UStaticMesh* Mesh = Snap.Mesh;
 			if (bWreck && Families.IsValidIndex(5) && Families[5].Num() > 0)
 			{
 				Mesh = Families[5][BreakRng.RandRange(0, Families[5].Num() - 1)];
 			}
-			else if (S.bSpecial && Families.IsValidIndex(0) && Families[0].Num() > 0)
+			else if (Snap.bSpecial && Families.IsValidIndex(0) && Families[0].Num() > 0)
 			{
 				Mesh = Families[0][BreakRng.RandRange(0, Families[0].Num() - 1)];	// the crystal heart is gone
 			}
@@ -259,18 +275,18 @@ void ATDSpaceField::BreakPieceInner(int32 Piece, AActor* ByWhom)
 	}
 
 	const double T2 = FPlatformTime::Seconds();
-	PlayBreakCue(P.Location, P.Size, S.SizeClass, S.bSpecial);
+	PlayBreakCue(P.Location, P.Size, Snap.SizeClass, Snap.bSpecial);
 	const double T3 = FPlatformTime::Seconds();
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
-		Bus->BroadcastFieldObjectDestroyed(P.Location, S.SizeClass, S.bSpecial, ByWhom);	// T2's drops, stat, boost; the HUD's notice
+		Bus->BroadcastFieldObjectDestroyed(P.Location, Snap.SizeClass, Snap.bSpecial, ByWhom);	// T2's drops, stat, boost; the HUD's notice
 	}
 	const double T4 = FPlatformTime::Seconds();
 	// Zero-lag budget (3 ms a break): any slow break says which phase took the time.
 	if ((T4 - T0) * 1000.0 > 3.0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("TDSpaceField: slow break %.2f ms (class %d special %d): collision+look %.2f, fragments %.2f, effect+sound %.2f, bus listeners %.2f"),
-			(T4 - T0) * 1000.0, S.SizeClass, S.bSpecial, (T1 - T0) * 1000.0, (T2 - T1) * 1000.0, (T3 - T2) * 1000.0, (T4 - T3) * 1000.0);
+			(T4 - T0) * 1000.0, Snap.SizeClass, Snap.bSpecial, (T1 - T0) * 1000.0, (T2 - T1) * 1000.0, (T3 - T2) * 1000.0, (T4 - T3) * 1000.0);
 	}
 }
 
