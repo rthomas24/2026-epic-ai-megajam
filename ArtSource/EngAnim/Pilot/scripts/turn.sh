@@ -17,6 +17,10 @@ PY
 cd ArtSource/EngAnim/Pilot/scripts
 for g in "$@"; do
   V=${g%%|*}; M=${g#*|}
+  if [ "$V" = "CREW" ]; then    # held crew frames: ../../PilotFixes/scripts/crew_capture.py <out> <tag> <Type>:<Clip>:<t01>,...
+    TD_PORT=21085 timeout 150 python ../../PilotFixes/scripts/crew_capture.py "/c/Users/ryant/Documents/myRepos/game-jam/.wt/anim/$OUT" crew "$M" | tail -4
+    continue
+  fi
   if [ "$V" = "FIGHT" ]; then   # crew in a real fight: ../../PilotFixes/scripts/fight_capture.py <out> <Type>[:dist],...
     TD_PORT=21085 TD_FIGHT_S=10 TD_CMDS_Heavy="3.0:TD.Ground.BreakGuard;3.1:@" TD_CMDS_Warden="2.5:TD.Ground.FaceNearest;2.6:TD.Key LeftMouseButton 0.5;3.2:@" timeout 200 python ../../PilotFixes/scripts/fight_capture.py "/c/Users/ryant/Documents/myRepos/game-jam/.wt/anim/$OUT" "$M" | tail -12
     continue

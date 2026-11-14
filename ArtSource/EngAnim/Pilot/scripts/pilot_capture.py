@@ -47,7 +47,7 @@ MOVES = {
     "combat_idle": (0.5, 3.0, [], [("TD.Ground.Spawn Trooper 380", 2.5)]),
     "deflect": (0.25, 7.0, [(0.0, "TD.Pilot.FootTrace 1.8"), (0.0, "TD.Key RightMouseButton 1.6")], []),
     "seq_sprint_long": (1.0, 7.5, [(0.0, "TD.Pilot.FootTrace 6.5"), (0.0, "TD.Key W 6.5"), (0.0, "TD.Key LeftShift 6.5")], []),
-    "act_exit": (0.5, 3.5, [(0.0, "TD.Pilot.Act Exit")], []),
+    "act_exit": (0.5, 3.5, [(0.0, "TD.Pilot.Act Exit")], [("TD.Dev.DestroySpawned", 0.5)]),
     "act_board": (0.5, 3.5, [(0.0, "TD.Pilot.Act Board")], [("TD.Ground.Teleport 0 397 300", 2.0)]),
     "act_interact": (0.5, 3.5, [(0.0, "TD.Pilot.Act Interact")], [("TD.Ground.Teleport 0 397 300", 2.0)]),
     "act_die": (0.5, 6.0, [(0.0, "TD.God"), (0.2, "TD.Pilot.Act Die")], []),
