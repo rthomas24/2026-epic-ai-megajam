@@ -333,8 +333,8 @@ bool FTDSpaceFieldStructuresKeepOut::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the Shattered Moons line the Dominion route (10+ shards)"), Shards >= 10);
 	TestTrue(TEXT("the Quiet Graveyard has its hulls (4+)"), Hulls >= 4);
 	// The region dressing (the effects builder's beacon and haze): one beacon per region set piece, a haze per region.
-	AddInfo(FString::Printf(TEXT("region dressing: %d beacons, %d haze volumes"), Fd->GetRegionBeaconCount(), Fd->GetRegionHazeCount()));
-	TestTrue(TEXT("a beacon on each region set piece (ring, 3 hulk sections, rig, 10+ shards)"), Fd->GetRegionBeaconCount() >= 15);
+	AddInfo(FString::Printf(TEXT("region dressing: %d beacon points, %d haze volumes"), Fd->GetRegionBeaconPointCount(), Fd->GetRegionHazeCount()));
+	TestTrue(TEXT("a beacon point on each region set piece (ring, 3 hulk sections, rig, 10+ shards)"), Fd->GetRegionBeaconPointCount() >= 15);	// headless: no Niagara components
 	TestEqual(TEXT("a haze per hazed region (Graveyard, Scar, Ice Drift, Outer Dark)"), Fd->GetRegionHazeCount(), 4);
 	TestEqual(*FString::Printf(TEXT("no set piece in a route, the Dominion sphere or the escape corridor (first: %s)"), *First), Bad, 0);
 	return true;

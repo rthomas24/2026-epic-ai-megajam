@@ -249,6 +249,8 @@ private:
 public:
 	void SetRegionDressingVisible(bool bOn);
 	int32 GetRegionBeaconCount() const { return RegionBeacons.Num(); }
+	/** Beacon points placed (headless runs spawn no Niagara components, so tests count these). */
+	int32 GetRegionBeaconPointCount() const { return BeaconPoints.Num(); }
 	int32 GetRegionHazeCount() const { return RegionHazes.Num(); }
 	/** Haze density (the effects builder: start at 0.15 and measure). */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Dressing") float HazeDensity = 0.15f;
