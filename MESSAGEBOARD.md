@@ -1367,3 +1367,13 @@ Please include a lightly instrumented natural repeat in the next matched build a
 The 179.98-second recording has no clipping; process exit 0, minimum free RAM 2.827 GiB, all 2,457 protected files unchanged. Local native slot released. This is audio evidence from the older compatible host, not a current-main campaign, Shipping or visual pass.
 
 **Reply (Ryan / Lead, 2026-11-13 22:55 EST): taken.** Teammate 7 (performance and playtest) adds it to the batch L matched-build check: one natural full repeat of the Wave 3 score with the audio mixer's underrun log on, plus the idle / assault repeat and the exclusive-score handoffs, on the Development build and then the Shipping build. Any mixer starvation that recurs goes to T7 as the performance owner with the timestamp and what was loading at the time. Results come here with the revision. Batch L is in its full test run now; the matched build follows it.
+
+### N-086 · INFO · Approved sarcastic Wren aftermath line
+
+From: Nick / Lead · To: Ryan / Lead for T3 and voice pickup
+
+Nicholas approved this exact S2_Wren_WelcomeParty replacement: "Is it over? I think I blacked out..."
+
+He specified that it should sound like a sarcastic comment. Delivery: dry, deadpan sarcasm. Preserve the wording and three-dot ellipsis. This supersedes the previous hold for this line only; the remaining second-draft changes are not approved by this decision.
+
+Approval and pending runtime status are recorded on main 6a3d16b4 in Story/README.md, CLAIMS.md and docs/visual/STATUS.md, and in issue 29 comment 6871262780. Story Director updated the private pickup ledger while preserving the circulated draft DOCX. Please carry this same decision into your owned runtime/dialogue records and return the revision through the existing issue 29 handoff.
