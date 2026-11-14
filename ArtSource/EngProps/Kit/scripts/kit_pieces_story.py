@@ -356,9 +356,30 @@ def null_derrick():
     return p
 
 
+def _insignia(name, size):
+    """ART-18 clue decal: Triad's three-chevron mark half-hidden under burnt black plating (slot Insignia,
+    M_Kit_Decal over T_Kit_InsigniaScorched). A single quad 1 cm proud of +X, centred on the pivot: lay it on a broken
+    plate's face. No collision."""
+    p = Piece(name, None)
+    h = size / 2.0
+    p.poly([(1.0, -h, -h), (1.0, h, -h), (1.0, h, h), (1.0, -h, h)], mat="Insignia", n=(1, 0, 0),
+           uv=[(0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)])
+    return p
+
+
+def insignia_hull():
+    """For a destroyed Null ship's hull plate: 3.2 m."""
+    return _insignia("SM_Kit_InsigniaHull", 320.0)
+
+
+def insignia_panel():
+    """For an on-foot wreck panel or a trooper's torn chest plate: 0.9 m."""
+    return _insignia("SM_Kit_InsigniaPanel", 90.0)
+
+
 VERDANCE = [shelter_frame, lamp_post_dead, sample_cases, antenna_toppled, survey_stake_flag, drag_mark]
 CINDER = [_worn(f) for f in (ore_cart, rail_stub, cable_reel, heat_shield_cracked, warning_beacon, gantry_collapsed, scorch_lines,
                              marker_pole)] + [light_pool]
 LANDMARKS = [relay_mast, null_derrick]
-BUILDERS = VERDANCE + CINDER + LANDMARKS
-NO_COLLISION = ("SM_Kit_SurveyStakeFlag", "SM_Kit_DragMark", "SM_Kit_ScorchLines", "SM_Kit_LightPool")
+BUILDERS = VERDANCE + CINDER + LANDMARKS + [insignia_hull, insignia_panel]
+NO_COLLISION = ("SM_Kit_SurveyStakeFlag", "SM_Kit_DragMark", "SM_Kit_ScorchLines", "SM_Kit_LightPool", "SM_Kit_InsigniaHull", "SM_Kit_InsigniaPanel")
