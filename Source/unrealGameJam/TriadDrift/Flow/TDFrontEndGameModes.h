@@ -89,6 +89,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Menu")
 	bool IsShowingVictory() const { return bShowingVictory; }
 
+	/** Chosen once for this victory presentation; reads and UI rebuilds never reroll it (Nick's N-064). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Menu")
+	FText GetVictoryHeadline() const { return VictoryHeadline; }
+	static const TArray<FText>& VictoryHeadlineChoices();
+
 	/** True while the code-built placeholder menu is up (no widget assigned in DA_UI_Style). */
 	bool IsPlaceholderShown() const { return Placeholder.IsValid(); }
 	/** The code-built menu is used (no widget class resolved), whether or not a viewport exists to show it. */
@@ -132,6 +137,7 @@ public:
 	static TSharedPtr<class SWidget> ChooseRefocus(const TSharedPtr<class SWidget>& LastFocused, const TSharedPtr<class SWidget>& First);
 private:
 	bool bShowingVictory = false;
+	FText VictoryHeadline;
 	bool bReturnPending = false; // the stinger plays before the menu comes back
 	bool bMusicStarted = false;
 	bool bPlaceholderWanted = false;
