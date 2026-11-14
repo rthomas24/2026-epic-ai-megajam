@@ -1142,6 +1142,18 @@ bool UTDStorySubsystem::PlaySequence(const UObject* WorldContext, FName Sequence
 	{
 		return true; // already running
 	}
+	// Face to Face is a once-per-run meeting: a Continue or a retake in the reactor room (the Core step restarts from its
+	// checkpoint) never plays it again. The claim is made as it starts and is saved with the run (T5's Continue test).
+	if (SequenceId.ToString().StartsWith(TEXT("FaceToFace")))
+	{
+		const FName Claim(*(TEXT("Seq_Started_") + SequenceId.ToString()));
+		if (Story->HasPlayed(Claim))
+		{
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: sequence %s already played this run, not again"), *SequenceId.ToString());
+			return false;
+		}
+		Story->MarkPlayed(Claim);
+	}
 	if (!Story->ActiveSequence.IsNone())
 	{
 		Story->FinishSequence(false); // one at a time: the earlier one is done as far as its gate is concerned
