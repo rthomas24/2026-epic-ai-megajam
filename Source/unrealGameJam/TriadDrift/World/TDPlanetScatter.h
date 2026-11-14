@@ -28,6 +28,8 @@ struct FTDScatterKind
 	bool bBlocksOnFoot = false;	// trunks and boulders near the course block the pilot (never ships)
 	bool bTumble = false;		// rocks: random tilt; everything else stands up (a slight lean with the slope)
 	bool bShadow = true;
+	float ZScale = 1.f;			// height relative to the scale (the merged canopy clumps spread wide but stay tree height)
+	float ContactRadiusCm = 0.f;	// > 0: seated on the lowest ground within this radius x scale (no crown floats off a slope)
 };
 
 /** The scatter's result: per kind, the transforms (course-local), split into "near the course" and the rest. */
@@ -73,6 +75,14 @@ struct UNREALGAMEJAM_API FTDScatterPlan
 	float NearCell = 5000.f, NearRadius = 15000.f;
 	float NearMaxHeightCm = 25000.f;	// the near ring only while the camera is this low over the ground
 	int32 InstanceBudget = 25000;
+	/** Story (environment builder, s6): Verdance's wreck scar, a burned strip through the forest from the research site
+	 *  outward (course-local cm), ScarHalfA wide at A widening to ScarHalfB at B; 0 = none. Inside it the forest is gone:
+	 *  charred trunks and scorch marks only. */
+	FVector2D ScarA = FVector2D::ZeroVector, ScarB = FVector2D::ZeroVector;
+	float ScarHalfA = 0.f, ScarHalfB = 0.f;
+	int32 ScorchKind = INDEX_NONE;
+	/** 0 outside the scar, 1 on its centre line. */
+	float ScarWeight(float X, float Y) const;
 	/** The course's keep-outs in course-local space (copied on the game thread before any generation). */
 	TArray<FTDCourseKeepOut> KeepOuts;
 

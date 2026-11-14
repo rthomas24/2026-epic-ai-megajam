@@ -42,6 +42,10 @@ struct UNREALGAMEJAM_API FTDTerrainStyle
 
 	/** Second ridged octave for erosion-like gullies on the ranges (fraction of MountainHeight). */
 	float GullyAmount = 0.15f;
+	/** Drainage gullies (environment builder, realism pass): parallel crests and channels that run straight down the
+	 *  slope of the ranges, like water-cut ground, in two scales (fraction of MountainHeight; 0 = off). */
+	float ErosionAmount = 0.f;
+	float ErosionScale = 70000.f;	// the larger gully spacing (cm)
 
 	/** The hero peak: one clearly tallest summit, visible from the course (centre, radius, height, all cm).
 	 *  bVolcano = a cone with a crater (CraterRadius / CraterDepth) instead of a ridged massif. */
@@ -121,6 +125,10 @@ private:
 	float Fbm(float X, float Y, int32 Octaves, int32 Seed) const;
 	float Ridged(float X, float Y, int32 Octaves, int32 Seed, float Sharp) const;
 	float RawHeight(float X, float Y) const;
+	/** Slope-aligned gully height (cm) for the drainage pass, given the downhill gradient of the large forms. */
+	float Erosion(float X, float Y, const FVector2D& Grad) const;
+	/** The large forms only (hills + 3 octaves of the ranges): cheap, for the erosion's slope direction. */
+	float LargeForms(float X, float Y) const;
 
 	FTDTerrainStyle Style;
 };
