@@ -234,6 +234,8 @@ public:
 	{
 		/** #160: the squad panel is on (off = the Minimal HUD setting: today's chips). */
 		bool bSquadPanel = false;
+		/** 0..1 while a director shot runs (eased): the squad panel and radar are out of the shot. */
+		float ShotHide = 0.f;
 		FSquadCard Cards[3];
 		/** Cards' size factor in design units and the text factor (below 900 px: cards 85%, text at its 1080 size). */
 		float PanelK = 1.f;
@@ -624,6 +626,9 @@ private:
 	int32 CardAbilitySecShown[3] = { -1, -1, -1 };
 	int32 CardOverShown[3] = { -1, -1, -1 };
 	FTDWaveInfo FrameWave;
+	/** "KATO DOWN · SWITCHED TO MOSS" after an auto-switch, for 3 s. */
+	FString SwitchNotice;
+	float SwitchNoticeLeft = 0.f;
 	/** The player's Minimal HUD setting (read once a second). */
 	bool bMinimalSetting = false;
 	float MinimalReadLeft = 0.f;
