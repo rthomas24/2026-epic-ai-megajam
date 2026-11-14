@@ -74,6 +74,15 @@ public:
 	float GaitLean = 0.f;
 	float GaitDrop = 0.f;
 
+	/**
+	 * Foot IK on uneven ground (owner traces under each foot): the pelvis comes down by PelvisDown so the lower foot
+	 * reaches its ground, and each foot is lifted by FootUp (component cm) with a two-bone solve on thigh / calf.
+	 */
+	void SetFootIK(float InFootUpL, float InFootUpR, float InPelvisDown) { FootUpL = InFootUpL; FootUpR = InFootUpR; PelvisDown = InPelvisDown; }
+	float FootUpL = 0.f;
+	float FootUpR = 0.f;
+	float PelvisDown = 0.f;
+
 	/** Loop on the upper body only (the block guard) over whatever the legs do; null fades it back out (0.12 s). */
 	void SetUpperLoop(UAnimSequenceBase* Loop);
 	UAnimSequenceBase* GetUpperLoop() const { return bUpperWanted ? Upper.Get() : nullptr; }

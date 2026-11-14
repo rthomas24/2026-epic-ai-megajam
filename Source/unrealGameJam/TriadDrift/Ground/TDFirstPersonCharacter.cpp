@@ -348,7 +348,45 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 			LegRate = 1.2f;
 		}
 		Loops->SetLegLoop(Legs, LegRate);
+		UpdateFootIK(Loops, DeltaSeconds);
 	}
+}
+
+static TAutoConsoleVariable<int32> CVarPilotFootIK(TEXT("TD.Pilot.FootIK"), 1,
+	TEXT("1: the pilot's feet find uneven ground (two traces, pelvis down, two-bone legs); 0: off."));
+
+void ATDFirstPersonCharacter::UpdateFootIK(UTDLoopBlendAnimInstance* Loops, float DeltaSeconds)
+{
+	// Animation builder, Nov 14: a trace under each foot from the capsule's floor; the lower ground brings the pelvis
+	// down, each foot is lifted onto its own ground. Only standing or moving on the ground; eased in and out.
+	USkeletalMeshComponent* Body = GetMesh();
+	const UCharacterMovementComponent* Move = GetCharacterMovement();
+	const bool bOn = Body && Move && Move->IsMovingOnGround() && !IsDead() && !bMantling && !bShipTransition
+		&& CVarPilotFootIK.GetValueOnGameThread() != 0 && TDPilotMeleePassOn();
+	float WantL = 0.f, WantR = 0.f;
+	const float Scale = Body ? FMath::Max(0.01f, (float)Body->GetComponentScale().Z) : 1.f;
+	if (bOn && GetWorld())
+	{
+		const float Floor = (float)(GetActorLocation().Z - GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDPilotFootIK), false, this);
+		auto Ground = [&](FName Bone)
+		{
+			const FVector At = Body->GetSocketLocation(Bone);
+			FHitResult Hit;
+			if (GetWorld()->LineTraceSingleByChannel(Hit, FVector(At.X, At.Y, Floor + 50.f), FVector(At.X, At.Y, Floor - 60.f), ECC_Visibility, Params))
+			{
+				return FMath::Clamp((float)(Hit.ImpactPoint.Z - Floor), -45.f, 45.f);
+			}
+			return 0.f;
+		};
+		WantL = Ground(TEXT("foot_l"));
+		WantR = Ground(TEXT("foot_r"));
+	}
+	const float Speed = 14.f;
+	FootIKL = FMath::FInterpTo(FootIKL, WantL, DeltaSeconds, Speed);
+	FootIKR = FMath::FInterpTo(FootIKR, WantR, DeltaSeconds, Speed);
+	const float Down = FMath::Max(0.f, -FMath::Min(FootIKL, FootIKR));
+	Loops->SetFootIK((FootIKL + Down) / Scale, (FootIKR + Down) / Scale, Down / Scale);
 }
 
 void ATDFirstPersonCharacter::ApplyBladeVisuals()

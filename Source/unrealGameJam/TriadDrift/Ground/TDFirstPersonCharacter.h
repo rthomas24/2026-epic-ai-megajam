@@ -16,6 +16,7 @@ class UTDHealthComponent;
 class UTDEnergyBladeComponent;
 class UTDThirdPersonCameraComponent;
 class UAnimSequenceBase;
+class UTDLoopBlendAnimInstance;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
@@ -275,6 +276,10 @@ public:
 
 protected:
 	void UpdateBody(float DeltaSeconds);
+	/** Foot IK on uneven ground (animation builder, Nov 14): traces under the feet, eased offsets to the anim instance. */
+	void UpdateFootIK(UTDLoopBlendAnimInstance* Loops, float DeltaSeconds);
+	float FootIKL = 0.f;
+	float FootIKR = 0.f;
 	void PlaceBody();
 	bool bBodyFirstPerson = false;
 	bool bBodyViewKnown = false;

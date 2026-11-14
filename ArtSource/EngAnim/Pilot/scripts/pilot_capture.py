@@ -47,6 +47,10 @@ MOVES = {
     "combat_idle": (0.5, 3.0, [], [("TD.Ground.Spawn Trooper 380", 2.5)]),
     "deflect": (0.25, 7.0, [(0.0, "TD.Key RightMouseButton 1.6")], []),
     "flinch":  (0.3, 5.0, [(0.0, "TD.God"), (4.0, "TD.God")], []),
+    "dash":    (0.2, 3.0, [(0.0, "TD.Key Q")], []),
+    "slide":   (0.25, 4.0, [(0.0, "TD.Key LeftShift 1.0"), (0.0, "TD.Key W 1.0"), (0.5, "TD.Key LeftControl")], []),
+    "slope_ik_on": (1.0, 2.0, [], [("TD.Pilot.FootIK 1", 0.5)]),
+    "slope_ik_off": (1.0, 2.0, [], [("TD.Pilot.FootIK 0", 0.5)]),
 }
 
 

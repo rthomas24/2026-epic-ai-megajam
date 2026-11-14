@@ -47,6 +47,7 @@ namespace TDLoopBlend
 		FVector ForwardCS = FVector(0.f, 1.f, 0.f);
 		double ShotTime = 0.0;
 		float ShotAlpha = 0.f;
+		float FootUpL = 0.f, FootUpR = 0.f, PelvisDown = 0.f;
 		float GaitLean = 0.f;
 		float GaitDrop = 0.f;
 		const UAnimSequenceBase* Legs = nullptr;
@@ -76,6 +77,9 @@ namespace TDLoopBlend
 			ShotTime = A->ShotTime;
 			ShotAlpha = A->ShotAlpha;
 			bShotUpper = A->bShotUpper;
+			FootUpL = A->FootUpL;
+			FootUpR = A->FootUpR;
+			PelvisDown = A->PelvisDown;
 			GaitLean = A->GaitLean;
 			GaitDrop = A->GaitDrop;
 			Legs = A->Legs;
@@ -253,6 +257,81 @@ namespace TDLoopBlend
 			}
 		}
 
+		/** Component-space transform of a bone from the local pose (walks the parents). */
+		static FTransform CSOf(const FCompactPose& Pose, const FReferenceSkeleton& Ref, int32 Mesh)
+		{
+			FTransform T = FTransform::Identity;
+			for (int32 I = Mesh; I != INDEX_NONE; I = Ref.GetParentIndex(I))
+			{
+				const FCompactPoseBoneIndex C = Pose.GetBoneContainer().MakeCompactPoseIndex(FMeshPoseBoneIndex(I));
+				if (C.IsValid())
+				{
+					T = T * Pose[C];
+				}
+			}
+			return T;
+		}
+
+		/** Lift one foot by Up (component cm) with a two-bone solve on thigh / calf; the foot keeps its CS rotation. */
+		static void LiftFoot(FCompactPose& Pose, const FReferenceSkeleton& Ref, const TCHAR* Thigh, const TCHAR* Calf, const TCHAR* Foot, float Up)
+		{
+			const int32 HI = Ref.FindBoneIndex(Thigh), KI = Ref.FindBoneIndex(Calf), FI = Ref.FindBoneIndex(Foot);
+			if (HI == INDEX_NONE || KI == INDEX_NONE || FI == INDEX_NONE || FMath::IsNearlyZero(Up, 0.2f))
+			{
+				return;
+			}
+			const FBoneContainer& Bones = Pose.GetBoneContainer();
+			const FCompactPoseBoneIndex HC = Bones.MakeCompactPoseIndex(FMeshPoseBoneIndex(HI));
+			const FCompactPoseBoneIndex KC = Bones.MakeCompactPoseIndex(FMeshPoseBoneIndex(KI));
+			const FCompactPoseBoneIndex FC = Bones.MakeCompactPoseIndex(FMeshPoseBoneIndex(FI));
+			if (!HC.IsValid() || !KC.IsValid() || !FC.IsValid())
+			{
+				return;
+			}
+			const FTransform ParentCS = CSOf(Pose, Ref, Ref.GetParentIndex(HI));
+			const FTransform HCS = Pose[HC] * ParentCS;
+			const FTransform KCS = Pose[KC] * HCS;
+			const FTransform FCS = Pose[FC] * KCS;
+			const FVector H = HCS.GetLocation(), K = KCS.GetLocation(), F = FCS.GetLocation();
+			const FVector T = F + FVector(0.f, 0.f, Up);
+			const double L1 = (K - H).Size(), L2 = (F - K).Size();
+			const FVector ToT = T - H;
+			const double D = FMath::Clamp(ToT.Size(), FMath::Abs(L1 - L2) + 0.5, L1 + L2 - 0.1);
+			const FVector Dir = ToT.GetSafeNormal();
+			FVector Bend = (K - H) - Dir * FVector::DotProduct(K - H, Dir);
+			Bend = Bend.IsNearlyZero() ? FVector(0.f, 1.f, 0.f) : Bend.GetSafeNormal();
+			const double A = (L1 * L1 + D * D - L2 * L2) / (2.0 * D);
+			const double Hh = FMath::Sqrt(FMath::Max(0.0, L1 * L1 - A * A));
+			const FVector K2 = H + Dir * A + Bend * Hh;
+			const FVector T2 = H + Dir * D;
+			const FQuat Q1 = FQuat::FindBetweenVectors(K - H, K2 - H);
+			const FQuat HRot = Q1 * HCS.GetRotation();
+			const FQuat KRot1 = Q1 * KCS.GetRotation();
+			const FQuat Q2 = FQuat::FindBetweenVectors(Q1.RotateVector(F - K), T2 - K2);
+			const FQuat KRot = Q2 * KRot1;
+			Pose[HC].SetRotation((ParentCS.GetRotation().Inverse() * HRot).GetNormalized());
+			Pose[KC].SetRotation((HRot.Inverse() * KRot).GetNormalized());
+			Pose[FC].SetRotation((KRot.Inverse() * FCS.GetRotation()).GetNormalized());
+		}
+
+		void ApplyFootIK(FPoseContext& Output) const
+		{
+			if (FMath::IsNearlyZero(FootUpL, 0.2f) && FMath::IsNearlyZero(FootUpR, 0.2f) && FMath::IsNearlyZero(PelvisDown, 0.2f))
+			{
+				return;
+			}
+			const FReferenceSkeleton& Ref = Output.Pose.GetBoneContainer().GetReferenceSkeleton();
+			const int32 PelvisMesh = Ref.FindBoneIndex(TEXT("pelvis"));
+			const FCompactPoseBoneIndex Pelvis = PelvisMesh != INDEX_NONE ? Output.Pose.GetBoneContainer().MakeCompactPoseIndex(FMeshPoseBoneIndex(PelvisMesh)) : FCompactPoseBoneIndex(INDEX_NONE);
+			if (Pelvis.IsValid())
+			{
+				Output.Pose[Pelvis].AddToTranslation(FVector(0.f, 0.f, -PelvisDown)); // the feet come down with it ...
+			}
+			// ... and are lifted back by PelvisDown, plus their own ground offset.
+			LiftFoot(Output.Pose, Ref, TEXT("thigh_l"), TEXT("calf_l"), TEXT("foot_l"), FootUpL);
+			LiftFoot(Output.Pose, Ref, TEXT("thigh_r"), TEXT("calf_r"), TEXT("foot_r"), FootUpR);
+		}
+
 		virtual bool Evaluate(FPoseContext& Output) override
 		{
 			if (bProcedural)
@@ -335,6 +414,7 @@ namespace TDLoopBlend
 			{
 				ApplyGrip(Output);
 			}
+			ApplyFootIK(Output);
 			// In place, always: a sequence that keeps root motion (the crew attacks travel 1.4-1.5 m) would walk the
 			// body out of its capsule. The capsule does the moving.
 			if (Output.Pose.GetNumBones() > 0)
