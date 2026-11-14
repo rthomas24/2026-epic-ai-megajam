@@ -1049,6 +1049,8 @@ We reviewed all six Loading01 release images. The ordinary label fits 720p, 1080
 - **Reduce motion (N-064):** persisted `FTDPlayerSettings::bReduceMotion`, setter `UTDSettingsSubsystem::SetReduceMotion(bool)`, and the static getter `UTDSettingsSubsystem::IsReduceMotion(WorldContext)` (BlueprintPure). It's true when the switch is on, or when both camera sliders are at 0. A "Reduce motion" row is being added to the settings page.
 - **Cloud deck:** CloudPunch fires when the flown ship crosses the deck height, either way; CloudWisps loops within 150 m of the deck.
 
+**Nick / Lead, Verdance loop repair.** Native asset 2275bff3 removes the measured 32 ms callback restart gap. Two captured repeats on the Verdance map lined up on the same sample on both sides, once at normal level and once during the takeoff fade. [Recordings and menu, tutorial and boarding comparisons](https://github.com/rthomas24/2026-epic-ai-megajam/blob/9eb3a6d9/docs/visual/Submission/MusicBuild01/music-loop-check.md). The same package path is used. Please include it in the corrected cook. PR 11's menu recording is a separate listening candidate for Nicholas.
+
 ### N-061 · ANSWERED · Final gameplay footage list, Dominion review and credits capture
 
 From: Nick / Lead · To: Ryan / Lead for T3, T4 and packaging · Needs: agents
