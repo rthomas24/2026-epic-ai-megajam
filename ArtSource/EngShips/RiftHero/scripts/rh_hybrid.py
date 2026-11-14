@@ -23,6 +23,7 @@ import rh_geo as G
 import rh_parts as P
 import rh_shots as S
 import rh_textures as T
+import rh_closeparts as CP
 
 ARGS = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 TAG = ARGS[ARGS.index("--tag") + 1] if "--tag" in ARGS else "v01"
@@ -241,6 +242,10 @@ def main():
     body.data.materials.clear()
     res["body"] = clean_body(body)
     mats, parts, disc = P.build_all()
+    glass = None
+    if "--close" in ARGS:                       # close-range parts: canopy, guns, nose, spine (rh_closeparts.py)
+        extra, glass, res["close"] = CP.build(mats, body)
+        parts += extra
     bpy.context.view_layer.update()
     res["body"]["hidden_faces_removed"] = remove_hidden(body, parts)
     body.data.shade_smooth()
@@ -253,6 +258,8 @@ def main():
     # ---------------- textures of the kept Rodin set
     res["textures"] = T.clean(C.RODIN, C.EXPORT, "Rift")
     shutil.copyfile(HEAT, os.path.join(C.EXPORT, "T_Rift_HeatMask.png"))
+    if "--close" in ARGS:
+        res["livery"] = CP.clean_livery(os.path.join(C.EXPORT, "T_Rift_BC.png"), body=body)
     body.data.materials.append(image_material("M_Rift", os.path.join(C.EXPORT, "T_Rift_"), 2.0))
 
     # ---------------- new parts: one mesh, one texture set
@@ -324,7 +331,7 @@ def main():
     # ---------------- export
     if "--no-export" not in ARGS:
         ex = C.skill("blender-unreal-export/scripts/export_for_unreal.py")
-        for root, coll in ((body.name, "auto"), (disc.name, "none")):
+        for root, coll in ((body.name, "auto"), (disc.name, "none")) + (((glass.name, "none"),) if glass else ()):
             for stale in (root + ".fbx", root + ".manifest.json"):
                 if os.path.isfile(os.path.join(C.EXPORT, stale)):
                     os.remove(os.path.join(C.EXPORT, stale))
@@ -339,6 +346,9 @@ def main():
             man["ue_sockets"] = [{"name": n, "ue_cm": list(p)} for n, p in SOCKETS_UE.items()]
             man["slots"] = {"M_Rift": "kept Rodin hull, corrected set T_Rift_BC/N/ORM/E + T_Rift_HeatMask",
                             "M_Rift_Parts": "new ring / engines / tail, baked set T_Rift_Parts_BC/N/ORM/E + T_Rift_Parts_HeatMask"}
+            if glass:
+                man["canopy"] = {"fbx": "SM_Rift_Canopy.fbx", "attach_socket": "Cockpit", "slot": "M_Rift_Glass",
+                                 "note": "tinted canopy glass (translucent, not Nanite); seat, pilot, frame and deck are in SM_Rift_Parts"}
             man["portal_disc"] = {"fbx": "SM_Rift_PortalDisc.fbx", "attach_socket": "Portal", "slot": "M_Rift_Portal",
                                   "radius_cm": 44.0, "uv": "radial: centre (0.5, 0.5), rim at radius 0.5"}
             with open(man_path, "w", encoding="utf-8") as fh:

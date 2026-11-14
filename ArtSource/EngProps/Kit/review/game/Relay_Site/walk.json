@@ -8,110 +8,100 @@
  "steps": [
   {
    "teleport": [
-    1450,
-    0,
+    -1800,
+    -800,
     0
    ],
    "feet": [
-    1450,
+    -1800,
+    -800,
     0,
-    0,
-    180
+    0
    ]
   },
   {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\01_front_ramp_foot.png"
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\01_west_ramp.png"
   },
   {
    "walk": [
-    180,
+    0,
     0.45
    ],
    "feet": [
-    1172,
+    -1800,
+    -800,
     0,
-    10,
-    180
+    0
    ],
-   "at": "front ramp / deck 0"
+   "at": "west ramp onto the deck 0"
   },
   {
    "walk": [
-    180,
+    0,
     0.45
    ],
    "feet": [
-    890,
-    0,
-    81,
-    180
+    -1244,
+    -800,
+    52,
+    0
    ],
-   "at": "front ramp / deck 1"
+   "at": "west ramp onto the deck 1"
   },
   {
    "walk": [
-    180,
+    0,
     0.45
    ],
    "feet": [
-    610,
-    0,
-    102,
-    180
+    -1244,
+    -800,
+    52,
+    0
    ],
-   "at": "front ramp / deck 2"
-  },
-  {
-   "walk": [
-    180,
-    0.45
-   ],
-   "feet": [
-    328,
-    0,
-    102,
-    180
-   ],
-   "at": "front ramp / deck 3"
-  },
-  {
-   "walk": [
-    180,
-    0.45
-   ],
-   "feet": [
-    70,
-    0,
-    207,
-    180
-   ],
-   "at": "front ramp / deck 4"
+   "at": "west ramp onto the deck 2"
   },
   {
    "teleport": [
-    190,
+    -890,
     0,
-    100
+    50
    ],
    "feet": [
-    190,
-    0,
-    102,
-    180
+    -976,
+    -800,
+    52,
+    0
    ]
   },
   {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\02_device_point.png"
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\02_device_point.png"
   },
   {
    "teleport": [
-    200,
-    1450,
+    -890,
+    0,
+    50
+   ],
+   "feet": [
+    -890,
+    0,
+    52,
+    0
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\03_device_point_view_east.png"
+  },
+  {
+   "teleport": [
+    -600,
+    1800,
     0
    ],
    "feet": [
-    200,
-    1450,
+    -600,
+    1800,
     0,
     270
    ]
@@ -122,9 +112,9 @@
     0.45
    ],
    "feet": [
-    200,
-    1170,
-    11,
+    -600,
+    1521,
+    23,
     270
    ],
    "at": "north ramp 0"
@@ -135,9 +125,9 @@
     0.45
    ],
    "feet": [
-    200,
-    892,
-    80,
+    -600,
+    1231,
+    52,
     270
    ],
    "at": "north ramp 1"
@@ -148,35 +138,22 @@
     0.45
    ],
    "feet": [
-    200,
-    612,
-    102,
+    -600,
+    1231,
+    52,
     270
    ],
    "at": "north ramp 2"
   },
   {
-   "walk": [
-    270,
-    0.45
-   ],
-   "feet": [
-    200,
-    336,
-    102,
-    270
-   ],
-   "at": "north ramp 3"
-  },
-  {
    "teleport": [
-    200,
-    -1450,
+    -600,
+    -1800,
     0
    ],
    "feet": [
-    200,
-    -1450,
+    -600,
+    -1800,
     0,
     90
    ]
@@ -187,9 +164,9 @@
     0.45
    ],
    "feet": [
-    200,
-    -1168,
-    11,
+    -600,
+    -1508,
+    26,
     90
    ],
    "at": "south ramp 0"
@@ -200,9 +177,9 @@
     0.45
    ],
    "feet": [
-    200,
-    -896,
-    79,
+    -600,
+    -1508,
+    26,
     90
    ],
    "at": "south ramp 1"
@@ -213,102 +190,125 @@
     0.45
    ],
    "feet": [
-    200,
-    -621,
-    102,
+    -600,
+    -1508,
+    26,
     90
    ],
    "at": "south ramp 2"
   },
   {
-   "walk": [
-    90,
-    0.45
-   ],
-   "feet": [
-    179,
-    -358,
-    102,
-    90
-   ],
-   "at": "south ramp 3"
-  },
-  {
    "teleport": [
-    700,
-    700,
-    100
+    -200,
+    0,
+    50
    ],
    "feet": [
-    700,
-    700,
-    102,
-    225
-   ]
-  },
-  {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\03_deck_covers.png"
-  },
-  {
-   "teleport": [
-    420,
-    -460,
-    100
-   ],
-   "feet": [
-    420,
-    -460,
-    102,
-    90
+    -200,
+    0,
+    52,
+    0
    ]
   },
   {
    "walk": [
-    90,
-    0.4
+    0,
+    0.6
    ],
    "feet": [
-    420,
-    -374,
-    102,
-    90
+    -200,
+    0,
+    52,
+    0
    ],
-   "at": "into cover (blocked)"
+   "at": "into the relay plinth (must stay on the deck) 0"
   },
   {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\04_behind_cover.png"
+   "walk": [
+    0,
+    0.6
+   ],
+   "feet": [
+    165,
+    0,
+    52,
+    0
+   ],
+   "at": "into the relay plinth (must stay on the deck) 1"
+  },
+  {
+   "walk": [
+    0,
+    0.6
+   ],
+   "feet": [
+    166,
+    0,
+    52,
+    0
+   ],
+   "at": "into the relay plinth (must stay on the deck) 2"
+  },
+  {
+   "walk": [
+    0,
+    0.6
+   ],
+   "feet": [
+    166,
+    0,
+    52,
+    0
+   ],
+   "at": "into the relay plinth (must stay on the deck) 3"
   },
   {
    "teleport": [
-    2000,
-    -1400,
+    -1700,
+    -1700,
+    600
+   ],
+   "feet": [
+    -1700,
+    -1700,
+    475,
+    45
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\04_deck_overview.png"
+  },
+  {
+   "teleport": [
+    -2900,
+    -1900,
     0
    ],
    "feet": [
-    2000,
-    -1400,
-    0,
-    145
+    -1700,
+    -1700,
+    475,
+    45
    ]
   },
   {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\05_15m.png"
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\05_15m.png"
   },
   {
    "teleport": [
-    29000,
+    -29000,
     0,
     5800
    ],
    "feet": [
-    29000,
+    -29000,
     0,
-    5702,
-    180
+    5725,
+    0
    ]
   },
   {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\06_300m.png"
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\06_300m.png"
   }
  ]
 }

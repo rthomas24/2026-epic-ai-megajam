@@ -289,7 +289,7 @@ bool FTDJourneyObjectiveText::RunTest(const FString& Parameters)
 		return N;
 	};
 	TestEqual(TEXT("markers: nothing tagged during a wave"), Tagged(), 0);
-	TestTrue(TEXT("wave line names the enemy"), LastText().Contains(TEXT("NULL ARMADA")));
+	TestTrue(TEXT("wave line (the enemy is not named, storyline.md 13)"), LastText().Contains(TEXT("CLEAR THE AREA")) && !LastText().Contains(TEXT("ARMADA")));
 
 	// The line is broadcast on change, not every tick.
 	const int32 Before = Log->ObjectiveTexts.Num();

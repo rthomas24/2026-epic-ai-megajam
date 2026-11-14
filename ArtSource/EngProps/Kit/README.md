@@ -28,12 +28,17 @@ ember), `Screen` (MI_Kit_Screen). Collision is authored: walkable tops equal the
 | `SM_Kit_Stairs_400` | (-200,-108,0) .. (200,108,220) | 2720 | 3 | 8 level treads of 50 cm, 12.5 cm risers, rise 100 toward +X; ramp collision through the middle of each tread (feet within 6.25 cm), a 25 cm lip before the first riser; rails end 40 cm short of the top |
 | `SM_Kit_Catwalk_400` | (-200,-100,-45) .. (200,100,110) | 2412 | 3 | deck top 0, grating, beams under, rails 110 both sides, toe boards |
 | `SM_Kit_Railing_400` | (-200,0,0) .. (200,6,110) | 864 | 1 | edge railing on +Y of its line (put it on the inside of an edge) |
-| `SM_Kit_Cover_200` | (-100,-21,0) .. (100,21,100) | 248 | 1 | low cover: 100 high, 40 deep, chamfered top |
+| `SM_Kit_Cover_200` | (-100,-21,0) .. (100,21,110) | 248 | 1 | waist-high cover: 110 high, 40 deep, chamfered top |
+| `SM_Kit_Platform_400x50` | (-200,-200,0) .. (200,200,50) | 142 | 1 | low deck tile, top 50, hazard nosing |
+| `SM_Kit_RampLow_400` | (-100,-200,0) .. (100,200,50) | 80 | 1 | approach onto a 50 deck: 400 wide, 200 run, 14 deg, no rails |
+| `SM_Kit_BeaconMast` | (-60,-60,0) .. (60,60,1660) | 1036 | 2 | 16 m light mast: glow strips (Glow) and a lamp head (`Beacon` slot: MI_Kit_Beacon_Verdance / _Cinder, strength 60, slow pulse) |
 | `SM_Kit_Pillar` | (-25,-25,0) .. (25,25,300) | 348 | 1 | |
 | `SM_Kit_Corner` | (-20,-20,0) .. (20,20,300) | 438 | 1 | octagonal post for an outside corner; its light strip faces +X +Y |
 | `SM_Kit_Roof_400` | (-200,-200,296) .. (200,200,320) | 316 | 1 | place at the SAME transform as the floor below; two light strips under it |
-| `SM_Kit_Console` | (-30,-83,0) .. (44,83,106.6) | 916 | 1 | screen slopes toward +X; the operator stands at +X (keep 150 clear) |
+| `SM_Kit_Console` | (-30,-83,0) .. (44,83,106.6) | 916 | 1 | screen slopes toward +X; the operator stands at +X (keep 150 clear). The glass has 0..1 UVs and the `Screen` slot uses `MI_Kit_Screen` of **`Materials/M_Kit_Screen`**: `ScreenTexture` (default `T_Kit_ScreenDefault`), `ScreenPower` (3), `ScreenTint` (white) for T2's scan images (#62) |
 | `SM_Kit_LightStrip_200` | (-100,-5,0) .. (100,5,6) | 174 | 0 | surface light, no collision |
+
+Glow strength (r4): the strips are at 4 (8 flooded the outpost room), the Light instance at 10.
 
 Edge finish: every edge sharper than 30 degrees bevelled 1.5 cm in 2 segments, hardened normals, weighted normals.
 Trim sheet: `textures/T_Kit_Trim_{BC,N,ORM}.png` (2K, procedural, `scripts/kit_atlas.py`; layout `scripts/kit_regions.py`).
@@ -53,3 +58,55 @@ rules; it is the placement contract for T5.
 
 **Moved interact points (tell T5):** relay wake / device point was (150, -2, 135), now (190, 0, 100); wreck core
 point was (75, 0, 252), now (0, 0, 200); outpost console point was (76, 81.5, 153) yaw 180, now (-250, 0, 0) yaw 180.
+
+### Relay defence arena (r4, to T5's needs of Nov 13 night)
+
+`BP_Relay` / `BP_Relay_Awake`: a flat 2800 x 2800 deck (`SM_Kit_Platform_400x50`, top 50), low ramps on the west (two),
+north and south; the device console 4 m in from the west edge (console (-1000, 0, 50), the pilot stands at
+(-890, 0, 50) facing yaw 180, 10.9 m of open floor east of him); five 110 cm covers, the nearest 8.8 m from the stand
+point; the Rodin relay on a solid plinth at the east side (X 200..1400, Y -800..800, top 300 = 250 above the deck, out
+of the 180 cm mantle) with the beacon mast at its south-east corner; a suggested dormant-drone spot (700, 1100, 50).
+Walked (r4b, `-game`, Verdance): up the west, north and south ramps onto the deck (feet 52 = deck 50 + 2), walking into
+the plinth stops at its face (no mantle at 250), every ramp lane clear (two covers that sat on the north / south lanes
+were moved off them).
+Manifest: `sites/Relay_Site.manifest.json` (`device_interact`, `arena_cm`).
+
+## Dominion set (`/Game/TriadDrift/Gameplay/Props/Kit/Dominion/`, `scripts/kit_pieces_d.py`, `--set dominion`)
+
+The walkable shell of the Dominion interior rebuilt with the kit's construction, in the Dominion palette
+(`T_KitD_Trim_*`: gloss black armour, dark gunmetal, red / orange marks; `MI_KitD_Trim`, `MI_KitD_Glow` red,
+`MI_KitD_Light` white). **Each piece keeps the name, size, pivot and opening of the DominionInterior piece it replaces**
+(`../DominionInterior/README.md`), so T5's course places them unchanged once its folder string points at
+`/Game/TriadDrift/Gameplay/Props/Kit/Dominion/` (`KitMesh` and the door's `DoorMesh` in `TDDominionInteriorCourse.inl`).
+
+| Mesh | Bounds (cm) | Notes |
+|---|---|---|
+| `SM_DI_Room_Floor` | (-200,-200,-20) .. (200,200,0) | |
+| `SM_DI_Room_Ceiling` | (-200,-200,596) .. (200,200,620) | at the floor's transform; white work light at 596..600 |
+| `SM_DI_Room_Wall` | (-30,-200,0) .. (30,200,600) | same both faces; red strips at 236 and 536 |
+| `SM_DI_Corridor_Straight` | (-200,-200,-20) .. (200,200,620) | inner faces at +-170, portal rib at X 0, 4 hulls |
+| `SM_DI_Doorway` | (-32,-200,0) .. (32,200,600) | clear opening exactly 300 x 400, 3 hulls |
+| `SM_DI_Door` | (-16,-150,0) .. (16,150,400) | slides +Z by 400 |
+| `SM_DI_Cover_Low` | (-30.8,-100,0) .. (30.8,100,110) | |
+| `SM_DI_Hangar_Pad` | (-600,-600,-40) .. (600,600,0.3) | collision top exactly 0 |
+
+The reactor pieces (core, rings, shield, conduit) are not walked on and stay the DominionInterior ones.
+`BP_KitD_InteriorPreview` (walk test only) lays the set out with T5's own constants (hangar, deflect corridor, arena,
+links, Warden room, core chamber).
+
+### Docking bay interior (#54)
+
+`BP_DockingBay_Interior`: the pocket behind the bow bay mouth, 6000 deep x 5000 x 3500, the Dominion set at scale 2.5
+(flown into, not walked), a 24 m landing pad near the back. Pivot = the centre of the bay mouth; attach it to the hull
+at hull-local (hull max X, 0, -2000) (`sites/DockingBay_Interior.manifest.json`).
+
+## Walk tests (r4, `-game`, real pawn, transient spawns; captures `review/game/<Site>/walk_sheet.jpg`)
+
+- **Cinder** (`TD.Stage CinderOnFoot`): `BP_Outpost_Site_Cinder` door -> room; `BP_DigSite_Cabin` stairs (feet 40 -> 61
+  -> 129 -> 199 -> 202), door, console, side walkway to the back rail (held at -560). Placement note: the spots used
+  had course props (a beacon ring, a pillar) and crystals inside the footprints; T5 places on a cleared spot.
+- **Dominion preview** (`BP_KitD_InteriorPreview`, floated over Cinder): walked from the hangar (X -1100) through all
+  six doorways, the 40 m deflect corridor, the arena, both links and the Warden room into the core chamber to its far
+  wall (X 14736 = 14800 - 30 - 34), feet at 0 the whole way.
+- **Docking bay** (`BP_DockingBay_Interior`): stood in it for scale (floor = ground); captures from outside the mouth
+  and from the back. Seen on Cinder's terrain only, so terrain crystals poke into the captures; the hull is not in them.

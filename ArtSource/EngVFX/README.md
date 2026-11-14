@@ -171,3 +171,23 @@ What changed and why, for whoever continues:
   inward, small arcs.
 - **Enemy exhaust per type**: `NS_TD_Engine_Enemy_Interceptor` (long, thin, white-yellow), `NS_TD_Engine_Enemy_Fighter`
   (short, red), wired into the two `EngineTrail` fields (`wire_fx.py`, `PLAN_R7`). `engine()` takes `lm` / `wm`.
+
+## Round 8 (Nov 13): pickups, Rift's vortex, the director-shot entry, leftovers wired, rocks
+- **Memory rule** (Lead): the Niagara toolset keeps about 1 GB per emitter it builds until the editor quits (one 25-emitter
+  entry build took an editor to 28 GB). Build big systems in chunks, one fresh editor per chunk: `tdvfx.system(..., chunk=(s, e))`
+  or `chunk=['Name', ...]` rebuilds only those emitters and keeps the rest of the saved system (idempotent);
+  `rounds/r8/chunk_list.sh <tier-2 system> "0:3 3:6"`, `chunk_list1.sh` for tier 1. `rounds/r8/guard.sh` kills an editor
+  of this worktree over 12 GB (8 GB when free RAM is under 20 GB). Port 21031 (not 8010-8019). Close every editor when done.
+  Three editors died mid-build with no log line, no crash folder and no guard kill; re-running the chunk smaller worked.
+- **Pickups** (T2's `UTDPickupVisuals`, `Gameplay/Characters/FX/DA_Pickup_Visuals`: Loop and Collect VFX per type): sized to
+  T2's 3.4 m pickup, every sprite grows with camera distance (`PKD`, 1x inside 40 m to 4x), a dark translucent backdrop
+  disc (`M_TD_VFX_Backdrop`) so colour holds over the magenta nebula, a crisp plus (`M_TD_VFX_Plus`). `rounds/r8/pk_play.sh`.
+- **Rift's portal**: `M_TD_VFX_PortalVortex` animates in the shader on engine time (works on a mesh too; PortalPower x PC.a,
+  Tint), `MI_TD_VFX_RiftPortalVortex` for the disc's own slot. The fill on main is a dome about 65 cm in radius: a flat
+  overlay disc (`NS_TD_Rift_RingIdle`, now one disc and a few sparks) loses its centre behind it.
+- **Entry / exit** for T1's director camera (25 m ahead, 18 m aside, 6 m below): 18 / 16 emitters, fire only off the tail,
+  belly and wing tips, point lights on the hull, standing bow arcs, embers across the frame. `rounds/r8/entry.py`.
+- **Wired** (`wire_fx.py` PLAN_R8, PLAN_R8B): PortalOpen/Close, EMP, Cloak, GravityWell, the distortion field, T7's hyperdrive.
+  Gravity well swirls fade and are capped to the view inside 50 m; the field shell fades with the camera inside; the
+  final blast's sprites shrink with distance (screen cap); spark-trail followers scale their rate with the explosion.
+- **Rocks**: `NS_TD_Asteroid_Break_S/M/L`, `_Crystal`, `NS_TD_Ship_ImpactScrape` (User.Strength), unwired (T6's slots).

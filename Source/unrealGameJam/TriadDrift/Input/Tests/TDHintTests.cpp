@@ -12,6 +12,7 @@
 #include "TriadDrift/Waves/TDWaveTypes.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Powers/TDAbilityRewards.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "InputActionValue.h"
 
@@ -162,8 +163,13 @@ bool FTDHintsLater::RunTest(const FString& Parameters)
 	TestTrue(TEXT("a spool completes hyperdrive"), S.Hints->IsHintDone(ETDHint::Hyperdrive));
 	S.W.Advance(2.f);
 
-	// An unlocked ability: named, completed by E.
+	// An unlocked ability: its hint waits for its own ship (board N-070), named, completed by E.
+	if (UTDAbilityRewardSubsystem* Rewards = UTDAbilityRewardSubsystem::Get(S.W.GetWorld())) { Rewards->ResetRewards(); }
+	if (S.Squad->GetActiveShipId() == ETDShipId::Bastion) { S.Squad->RequestSwitchTo(ETDShipId::Rift); S.W.Advance(1.f); }
 	Bus->OnAbilityUnlocked.Broadcast(ETDAbilityId::GravityWell, ETDShipId::Bastion);
+	TestEqual(TEXT("another ship: no ability hint"), S.WaitForHint(2.f), ETDHint::None);
+	S.Squad->RequestSwitchTo(ETDShipId::Bastion);
+	S.W.Advance(1.f);
 	TestEqual(TEXT("ability hint"), S.WaitForHint(), ETDHint::Ability);
 	TestTrue(*FString::Printf(TEXT("names the ability (%s)"), *S.Hints->GetCurrentText().ToString()), S.Hints->GetCurrentText().ToString().Contains(TEXT("GRAVITY")));
 	S.Press(EKeys::E, 0.05f);

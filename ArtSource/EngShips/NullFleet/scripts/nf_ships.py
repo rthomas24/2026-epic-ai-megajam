@@ -1150,6 +1150,27 @@ def build_bay(asset, tag, stage):
         surf = Surf(P.parts)
         loc, nrm = surf.hit((0, 0.4, 4.0), (0, 0, -1))
         lens(P, m, loc, nrm, 0.2)
+        # b5 (Nov 13 evening, ship builder): seen from the side or behind, the bay read as a flat black box in the
+        # game (Lead / Ryan). Lit seams ride the housing so it reads as Null armour from every side: two runs along each
+        # flank, a chevron on the back, a seam over the top and under the belly, all ray-cast onto the skin.
+        def on_skin(origin, direction, lift=0.012):
+            hl, hn = surf.hit(origin, direction)
+            return None if hl is None else hl + hn * lift
+        for sx in (1, -1):
+            for zz in (0.95, -0.95):
+                run = [on_skin((sx * 5.0, y, zz), (-sx, 0, 0)) for y in (-0.6, -0.1, 0.4, 0.9, 1.3)]
+                run = [q for q in run if q is not None]
+                if len(run) >= 2:
+                    glow_line(P, m, run, 0.035)
+        for sz in (1, -1):
+            run = [on_skin((x, 0.4, sz * 5.0), (0, 0, -sz)) for x in (-2.2, -1.1, 0.0, 1.1, 2.2)]
+            run = [q for q in run if q is not None]
+            if len(run) >= 2:
+                glow_line(P, m, run, 0.035)
+        back = [on_skin((x, 5.0, z), (0, -1, 0)) for x, z in ((-1.7, 0.9), (0.0, 0.25), (1.7, 0.9))]
+        back = [q for q in back if q is not None]
+        if len(back) >= 2:
+            glow_line(P, m, back, 0.04)
         greeble_cluster(P, m["metal"], surf, (0, 0.6, 2.0), (0, 0, 1), 6, (0.12, 0.3), (0.05, 0.12), 0.9, seed=2,
                         along=(1, 0, 0))
         greeble_cluster(P, m["metal"], surf, (0, 0.6, -2.0), (0, 0, -1), 5, (0.12, 0.3), (0.05, 0.12), 0.9, seed=3,

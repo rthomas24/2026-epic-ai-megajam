@@ -1,11 +1,11 @@
 {
   "asset": "SM_Kit_Cover_200",
-  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\export\\SM_Kit_Cover_200.fbx",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export\\SM_Kit_Cover_200.fbx",
   "tris": 248,
   "size_cm": [
     200.0,
     42.0,
-    100.0
+    110.0
   ],
   "pivot": "root object origin (SM_Kit_Cover_200~exp)",
   "forward": "+X (authoring front +X rotated)",

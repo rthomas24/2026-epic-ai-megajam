@@ -1,0 +1,24 @@
+{
+  "original_same_pid_audio": true,
+  "global_av_offset_s": 0.020985801056667697,
+  "video_duration_s": 15.173376133789619,
+  "video_dropped_frames": 0,
+  "audio_peak_dbfs": -9.748152732849121,
+  "audio_clipped_samples": 0,
+  "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-tutorial-production-64490fb\\Saved\\AudioMusic\\PR11-12Review\\Lancer01\\ActualGame_WithAudio.mp4",
+  "guard": {
+    "pid": 30352,
+    "exit_code": 0,
+    "reason": "completed",
+    "failure": null,
+    "monitor_error": null,
+    "cleanup_error": null,
+    "minimum_free_gib": 1.7160530090332031,
+    "duration_s": 48.65600000000268,
+    "protected_count": 2449,
+    "changed_protected": [],
+    "new_content": [],
+    "pcm_captured": true
+  },
+  "audio_discontinuities": 0
+}

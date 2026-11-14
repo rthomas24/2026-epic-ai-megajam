@@ -1,0 +1,1506 @@
+{
+  "target_assembled_m": 40.0,
+  "socket_clearance_m": 0.01,
+  "blender": "4.5.3 LTS",
+  "pipeline": "cinder-anchor-r1 polish (R-042/R-043, audit B2/B3)",
+  "tower_prep": {
+    "raw": {
+      "counts": {
+        "tris": 50000,
+        "verts": 24970,
+        "polygons": 50000,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "has_custom_normals": true
+      },
+      "topology": {
+        "loose_verts": 0,
+        "loose_edges": 0,
+        "nonmanifold_edges": 0,
+        "boundary_edges": 0,
+        "vert_islands": 7,
+        "volume_proxy": 0.3593975638326346
+      },
+      "uv": {
+        "uv_layers": 1,
+        "u_min": 0.0009999871253967285,
+        "u_max": 0.9990000128746033,
+        "v_min": 0.0009999275207519531,
+        "v_max": 0.9990000128746033,
+        "out_of_01": 0,
+        "n": 150000
+      },
+      "census": {
+        "flat": 8.79470092117084,
+        "wobble": 56.464956623178104,
+        "hard": 34.74034245565105,
+        "n": 74579
+      },
+      "bbox": {
+        "min_cm": [
+          -37.67902851104736,
+          -37.86216378211975,
+          1.6813699321716058e-07
+        ],
+        "max_cm": [
+          37.68071532249451,
+          37.87302374839783,
+          190.00152349472046
+        ],
+        "size_cm": [
+          75.35974383354187,
+          75.73518753051758,
+          190.00152349472046
+        ],
+        "center_cm": [
+          0.0008434057235717773,
+          0.005429983139038086,
+          95.00076174736023
+        ]
+      }
+    },
+    "removed_islands": [
+      {
+        "nfaces": 16,
+        "min": [
+          0.14405900239944458,
+          0.14879442751407623,
+          1.872936725616455
+        ],
+        "max": [
+          0.1630343198776245,
+          0.16581274569034576,
+          1.8751256465911865
+        ],
+        "size": [
+          0.01897531747817993,
+          0.01701831817626953,
+          0.0021889209747314453
+        ],
+        "center": [
+          0.15354666113853455,
+          0.157303586602211,
+          1.8740311861038208
+        ]
+      },
+      {
+        "nfaces": 4,
+        "min": [
+          -0.039127200841903687,
+          0.20300954580307007,
+          1.852555274963379
+        ],
+        "max": [
+          -0.03777182102203369,
+          0.20307476818561554,
+          1.8529176712036133
+        ],
+        "size": [
+          0.0013553798198699951,
+          6.522238254547119e-05,
+          0.000362396240234375
+        ],
+        "center": [
+          -0.03844951093196869,
+          0.2030421495437622,
+          1.852736473083496
+        ]
+      }
+    ],
+    "nonmanifold_fix": {
+      "before": {
+        "loose_verts": 0,
+        "loose_edges": 0,
+        "nonmanifold_edges": 9,
+        "boundary_edges": 6,
+        "vert_islands": 5,
+        "volume_proxy": 0.3593976599838771
+      },
+      "after": {
+        "loose_verts": 0,
+        "loose_edges": 0,
+        "nonmanifold_edges": 0,
+        "boundary_edges": 0,
+        "vert_islands": 5,
+        "volume_proxy": 0.359397631618191
+      }
+    },
+    "after_clean": {
+      "counts": {
+        "tris": 49652,
+        "verts": 24792,
+        "polygons": 49646,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "has_custom_normals": false
+      },
+      "topology": {
+        "loose_verts": 0,
+        "loose_edges": 0,
+        "nonmanifold_edges": 0,
+        "boundary_edges": 0,
+        "vert_islands": 5,
+        "volume_proxy": 0.35939763238232014
+      },
+      "uv": {
+        "uv_layers": 1,
+        "u_min": 0.0009999871253967285,
+        "u_max": 0.9990000128746033,
+        "v_min": 0.0009999275207519531,
+        "v_max": 0.9990000128746033,
+        "out_of_01": 0,
+        "n": 148944
+      },
+      "census": {
+        "flat": 8.807336985712752,
+        "wobble": 56.47625953378451,
+        "hard": 34.71640348050274,
+        "n": 74472
+      }
+    }
+  },
+  "tower_yaw_deg": -0.6026386675034854,
+  "socket_raw": {
+    "zmin": 0.0,
+    "zmax": 1.9000152349472046,
+    "h": 1.9000152349472046,
+    "floor_z": 1.806902536531774,
+    "lip_inner_r": 0.11270320305900863,
+    "collar_outer_r": 0.2744930831360293,
+    "depth": 0.09311269841543068
+  },
+  "emitter_prep": {
+    "raw": {
+      "counts": {
+        "tris": 50000,
+        "verts": 24842,
+        "polygons": 50000,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "has_custom_normals": true
+      },
+      "topology": {
+        "loose_verts": 0,
+        "loose_edges": 0,
+        "nonmanifold_edges": 0,
+        "boundary_edges": 0,
+        "vert_islands": 4,
+        "volume_proxy": 0.9092087972462428
+      },
+      "uv": {
+        "uv_layers": 1,
+        "u_min": 0.0009999871253967285,
+        "u_max": 0.9990000128746033,
+        "v_min": 0.0009999871253967285,
+        "v_max": 0.9990000128746033,
+        "out_of_01": 0,
+        "n": 150000
+      },
+      "census": {
+        "flat": 8.387010735480429,
+        "wobble": 50.42208441688338,
+        "hard": 41.1909048476362,
+        "n": 74985
+      },
+      "bbox": {
+        "min_cm": [
+          -65.30004739761353,
+          -66.4332926273346,
+          -1.3229172424189528e-06
+        ],
+        "max_cm": [
+          65.41218757629395,
+          66.4079487323761,
+          189.9606704711914
+        ],
+        "size_cm": [
+          130.71223497390747,
+          132.8412413597107,
+          189.9606704711914
+        ],
+        "center_cm": [
+          0.05607008934020996,
+          -0.012671947479248047,
+          94.9803352355957
+        ]
+      }
+    },
+    "removed_islands": [
+      {
+        "nfaces": 4,
+        "min": [
+          -0.45683902502059937,
+          -0.3784676194190979,
+          0.057022348046302795
+        ],
+        "max": [
+          -0.451867938041687,
+          -0.3762502074241638,
+          0.0652470737695694
+        ],
+        "size": [
+          0.0049710869789123535,
+          0.002217411994934082,
+          0.008224725723266602
+        ],
+        "center": [
+          -0.4543534815311432,
+          -0.37735891342163086,
+          0.061134710907936096
+        ]
+      },
+      {
+        "nfaces": 4,
+        "min": [
+          0.2863571047782898,
+          0.22257490456104279,
+          0.4484177231788635
+        ],
+        "max": [
+          0.28774118423461914,
+          0.22398795187473297,
+          0.4484756588935852
+        ],
+        "size": [
+          0.0013840794563293457,
+          0.0014130473136901855,
+          5.793571472167969e-05
+        ],
+        "center": [
+          0.28704914450645447,
+          0.22328142821788788,
+          0.44844669103622437
+        ]
+      },
+      {
+        "nfaces": 4,
+        "min": [
+          0.5192363262176514,
+          0.36445316672325134,
+          0.22052399814128876
+        ],
+        "max": [
+          0.5197001695632935,
+          0.3662213087081909,
+          0.22194431722164154
+        ],
+        "size": [
+          0.00046384334564208984,
+          0.0017681419849395752,
+          0.0014203190803527832
+        ],
+        "center": [
+          0.5194682478904724,
+          0.3653372526168823,
+          0.22123415768146515
+        ]
+      }
+    ],
+    "nonmanifold_fix": {
+      "before": {
+        "loose_verts": 0,
+        "loose_edges": 0,
+        "nonmanifold_edges": 0,
+        "boundary_edges": 0,
+        "vert_islands": 1,
+        "volume_proxy": 0.9092088019763149
+      },
+      "after": {
+        "loose_verts": 0,
+        "loose_edges": 0,
+        "nonmanifold_edges": 0,
+        "boundary_edges": 0,
+        "vert_islands": 1,
+        "volume_proxy": 0.9092088019763149
+      }
+    },
+    "after_clean": {
+      "counts": {
+        "tris": 49976,
+        "verts": 24824,
+        "polygons": 49976,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "has_custom_normals": false
+      },
+      "topology": {
+        "loose_verts": 0,
+        "loose_edges": 0,
+        "nonmanifold_edges": 0,
+        "boundary_edges": 0,
+        "vert_islands": 1,
+        "volume_proxy": 0.9092087898821424
+      },
+      "uv": {
+        "uv_layers": 1,
+        "u_min": 0.0009999871253967285,
+        "u_max": 0.9990000128746033,
+        "v_min": 0.0009999871253967285,
+        "v_max": 0.9989306926727295,
+        "out_of_01": 0,
+        "n": 149928
+      },
+      "census": {
+        "flat": 8.386692278960568,
+        "wobble": 50.43354143322128,
+        "hard": 41.179766287818154,
+        "n": 74964
+      }
+    }
+  },
+  "scale": {
+    "S_t": 18.832356730765575,
+    "S_e": 3.1436859216677226,
+    "em_h_raw": 1.899606704711914,
+    "em_r_use": 0.6719713665245854,
+    "lip_raw": 0.11270320305900863,
+    "floor_raw": 1.806902536531774,
+    "predicted_tower_h_m": 35.781764698415124,
+    "predicted_emitter_h_m": 5.971766854308459,
+    "predicted_assembled_m": 40.0,
+    "predicted_base_r_m": 7.516849048801261
+  },
+  "tower_polish_test": {
+    "routes": [
+      {
+        "label": "smooth30+WN",
+        "counts": {
+          "tris": 49652,
+          "verts": 24792,
+          "polygons": 49646,
+          "uv_layers": [
+            "UVMap"
+          ],
+          "has_custom_normals": true
+        },
+        "topology": {
+          "loose_verts": 0,
+          "loose_edges": 0,
+          "nonmanifold_edges": 0,
+          "boundary_edges": 0,
+          "vert_islands": 5,
+          "volume_proxy": 2400.431270085997
+        },
+        "census": {
+          "flat": 8.807336985712752,
+          "wobble": 56.47625953378451,
+          "hard": 34.71640348050274,
+          "n": 74472
+        },
+        "uv": {
+          "uv_layers": 1,
+          "u_min": 0.0009999871253967285,
+          "u_max": 0.9990000128746033,
+          "v_min": 0.0009999275207519531,
+          "v_max": 0.9990000128746033,
+          "out_of_01": 0,
+          "n": 148944
+        },
+        "route": "A_smooth30_WN"
+      },
+      {
+        "label": "bevel50+WN",
+        "counts": {
+          "tris": 49652,
+          "verts": 24792,
+          "polygons": 49646,
+          "uv_layers": [
+            "UVMap"
+          ],
+          "has_custom_normals": true
+        },
+        "topology": {
+          "loose_verts": 0,
+          "loose_edges": 0,
+          "nonmanifold_edges": 0,
+          "boundary_edges": 0,
+          "vert_islands": 5,
+          "volume_proxy": 2400.431270085997
+        },
+        "census": {
+          "flat": 8.807336985712752,
+          "wobble": 56.47625953378451,
+          "hard": 34.71640348050274,
+          "n": 74472
+        },
+        "uv": {
+          "uv_layers": 1,
+          "u_min": 0.0009999871253967285,
+          "u_max": 0.9990000128746033,
+          "v_min": 0.0009999275207519531,
+          "v_max": 0.9990000128746033,
+          "out_of_01": 0,
+          "n": 148944
+        },
+        "route": "B_bevel50_WN",
+        "bevel_width_m": 0.14312705993652344
+      }
+    ],
+    "chosen": "A_smooth30_WN",
+    "reason": "smooth30+WN is as clean and keeps original UVs for the Rodin bake"
+  },
+  "emitter_polish_test": {
+    "routes": [
+      {
+        "label": "smooth30+WN",
+        "counts": {
+          "tris": 49976,
+          "verts": 24824,
+          "polygons": 49976,
+          "uv_layers": [
+            "UVMap"
+          ],
+          "has_custom_normals": true
+        },
+        "topology": {
+          "loose_verts": 0,
+          "loose_edges": 0,
+          "nonmanifold_edges": 0,
+          "boundary_edges": 0,
+          "vert_islands": 1,
+          "volume_proxy": 28.247566004019415
+        },
+        "census": {
+          "flat": 8.386692278960568,
+          "wobble": 50.43354143322128,
+          "hard": 41.179766287818154,
+          "n": 74964
+        },
+        "uv": {
+          "uv_layers": 1,
+          "u_min": 0.0009999871253967285,
+          "u_max": 0.9990000128746033,
+          "v_min": 0.0009999871253967285,
+          "v_max": 0.9989306926727295,
+          "out_of_01": 0,
+          "n": 149928
+        },
+        "route": "A_smooth30_WN"
+      },
+      {
+        "label": "bevel50+WN",
+        "counts": {
+          "tris": 49976,
+          "verts": 24824,
+          "polygons": 49976,
+          "uv_layers": [
+            "UVMap"
+          ],
+          "has_custom_normals": true
+        },
+        "topology": {
+          "loose_verts": 0,
+          "loose_edges": 0,
+          "nonmanifold_edges": 0,
+          "boundary_edges": 0,
+          "vert_islands": 1,
+          "volume_proxy": 28.247566004019415
+        },
+        "census": {
+          "flat": 8.386692278960568,
+          "wobble": 50.43354143322128,
+          "hard": 41.179766287818154,
+          "n": 74964
+        },
+        "uv": {
+          "uv_layers": 1,
+          "u_min": 0.0009999871253967285,
+          "u_max": 0.9990000128746033,
+          "v_min": 0.0009999871253967285,
+          "v_max": 0.9989306926727295,
+          "out_of_01": 0,
+          "n": 149928
+        },
+        "route": "B_bevel50_WN",
+        "bevel_width_m": 0.023887065887451174
+      }
+    ],
+    "chosen": "A_smooth30_WN",
+    "reason": "smooth30+WN is as clean and keeps original UVs for the Rodin bake"
+  },
+  "tower_modifiers": [
+    "WeightedNormal"
+  ],
+  "emitter_modifiers": [
+    "WeightedNormal"
+  ],
+  "tower_nm_after_polish_base": {
+    "loose_verts": 0,
+    "loose_edges": 0,
+    "nonmanifold_edges": 0,
+    "boundary_edges": 0,
+    "vert_islands": 5,
+    "volume_proxy": 2400.431270085997
+  },
+  "emitter_nm_after_polish_base": {
+    "loose_verts": 0,
+    "loose_edges": 0,
+    "nonmanifold_edges": 0,
+    "boundary_edges": 0,
+    "vert_islands": 1,
+    "volume_proxy": 28.247566004019415
+  },
+  "tower_eval": {
+    "label": "tower_eval",
+    "counts": {
+      "tris": 49652,
+      "verts": 24792,
+      "polygons": 49646,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "has_custom_normals": true
+    },
+    "topology": {
+      "loose_verts": 0,
+      "loose_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_edges": 0,
+      "vert_islands": 5,
+      "volume_proxy": 2400.431270085997
+    },
+    "census": {
+      "flat": 8.807336985712752,
+      "wobble": 56.47625953378451,
+      "hard": 34.71640348050274,
+      "n": 74472
+    },
+    "uv": {
+      "uv_layers": 1,
+      "u_min": 0.0009999871253967285,
+      "u_max": 0.9990000128746033,
+      "v_min": 0.0009999275207519531,
+      "v_max": 0.9990000128746033,
+      "out_of_01": 0,
+      "n": 148944
+    }
+  },
+  "emitter_eval": {
+    "label": "emitter_eval",
+    "counts": {
+      "tris": 49976,
+      "verts": 24824,
+      "polygons": 49976,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "has_custom_normals": true
+    },
+    "topology": {
+      "loose_verts": 0,
+      "loose_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_edges": 0,
+      "vert_islands": 1,
+      "volume_proxy": 28.247566004019415
+    },
+    "census": {
+      "flat": 8.386692278960568,
+      "wobble": 50.43354143322128,
+      "hard": 41.179766287818154,
+      "n": 74964
+    },
+    "uv": {
+      "uv_layers": 1,
+      "u_min": 0.0009999871253967285,
+      "u_max": 0.9990000128746033,
+      "v_min": 0.0009999871253967285,
+      "v_max": 0.9989306926727295,
+      "out_of_01": 0,
+      "n": 149928
+    }
+  },
+  "socket": {
+    "zmin": 0.0,
+    "zmax": 35.78176498413086,
+    "h": 35.78176498413086,
+    "floor_z": 34.02823462137362,
+    "lip_inner_r": 2.1224669885983123,
+    "collar_outer_r": 5.169351938225929,
+    "depth": 1.753530362757239
+  },
+  "tower": {
+    "counts": {
+      "tris": 49652,
+      "verts": 24792,
+      "polygons": 49646,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "has_custom_normals": false
+    },
+    "topology": {
+      "loose_verts": 0,
+      "loose_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_edges": 0,
+      "vert_islands": 5,
+      "volume_proxy": 2400.431270085997
+    },
+    "uv": {
+      "uv_layers": 1,
+      "u_min": 0.0009999871253967285,
+      "u_max": 0.9990000128746033,
+      "v_min": 0.0009999275207519531,
+      "v_max": 0.9990000128746033,
+      "out_of_01": 0,
+      "n": 148944
+    },
+    "bbox": {
+      "min_cm": [
+        -709.7379207611084,
+        -713.4952545166016,
+        0.0
+      ],
+      "max_cm": [
+        709.7379207611084,
+        713.4952545166016,
+        3578.176498413086
+      ],
+      "size_cm": [
+        1419.4758415222168,
+        1426.9905090332031,
+        3578.176498413086
+      ],
+      "center_cm": [
+        0.0,
+        0.0,
+        1789.088249206543
+      ]
+    },
+    "census_base": {
+      "flat": 8.807336985712752,
+      "wobble": 56.47625953378451,
+      "hard": 34.71640348050274,
+      "n": 74472
+    },
+    "base_r_m": 7.516849166846541,
+    "shaft_r_m": 5.314632491757515
+  },
+  "emitter": {
+    "counts": {
+      "tris": 49976,
+      "verts": 24824,
+      "polygons": 49976,
+      "uv_layers": [
+        "UVMap"
+      ],
+      "has_custom_normals": false
+    },
+    "topology": {
+      "loose_verts": 0,
+      "loose_edges": 0,
+      "nonmanifold_edges": 0,
+      "boundary_edges": 0,
+      "vert_islands": 1,
+      "volume_proxy": 28.247566004019415
+    },
+    "uv": {
+      "uv_layers": 1,
+      "u_min": 0.0009999871253967285,
+      "u_max": 0.9990000128746033,
+      "v_min": 0.0009999871253967285,
+      "v_max": 0.9989306926727295,
+      "out_of_01": 0,
+      "n": 149928
+    },
+    "bbox": {
+      "min_cm": [
+        -205.4590940475464,
+        -208.80556106567383,
+        0.0
+      ],
+      "max_cm": [
+        205.4590940475464,
+        208.80556106567383,
+        597.1766471862793
+      ],
+      "size_cm": [
+        410.9181880950928,
+        417.61112213134766,
+        597.1766471862793
+      ],
+      "center_cm": [
+        0.0,
+        0.0,
+        298.58832359313965
+      ]
+    },
+    "census_base": {
+      "flat": 8.386692278960568,
+      "wobble": 50.43354143322128,
+      "hard": 41.179766287818154,
+      "n": 74964
+    },
+    "base_r_m": 2.1010272409034108,
+    "overall_r_m": 2.1124669220370396
+  },
+  "ports_all": [
+    {
+      "bin": 5,
+      "nfaces": 190,
+      "center_m": [
+        -4.238709819944281,
+        -4.062878177040502,
+        2.7544538384989687
+      ],
+      "r_m": 5.871425722868683,
+      "ang_deg": -136.21337085733805,
+      "mean_lum": 84.05846851750427
+    },
+    {
+      "bin": 6,
+      "nfaces": 189,
+      "center_m": [
+        -0.0022892082928034365,
+        -6.097547626999951,
+        2.7812281771311684
+      ],
+      "r_m": 6.097548056719795,
+      "ang_deg": -90.02151060975086,
+      "mean_lum": 91.43204991106846
+    },
+    {
+      "bin": 7,
+      "nfaces": 211,
+      "center_m": [
+        4.13294063699189,
+        -4.198692413302959,
+        2.6777646134814943
+      ],
+      "r_m": 5.891537684715829,
+      "ang_deg": -45.45215878424563,
+      "mean_lum": 86.13268424361047
+    },
+    {
+      "bin": 0,
+      "nfaces": 206,
+      "center_m": [
+        6.038055871296855,
+        0.002352743111189129,
+        2.520415034687635
+      ],
+      "r_m": 6.038056329672867,
+      "ang_deg": 0.02232543828687129,
+      "mean_lum": 85.07228457194694
+    },
+    {
+      "bin": 1,
+      "nfaces": 189,
+      "center_m": [
+        4.231624569211688,
+        4.149543212204383,
+        2.6311922786097046
+      ],
+      "r_m": 5.9266647757999165,
+      "ang_deg": 44.43888905379873,
+      "mean_lum": 103.85291542241605
+    },
+    {
+      "bin": 2,
+      "nfaces": 177,
+      "center_m": [
+        -0.00010085505424172612,
+        6.124551436321884,
+        2.6964392500408625
+      ],
+      "r_m": 6.124551437152291,
+      "ang_deg": 90.00094350892635,
+      "mean_lum": 100.797671402466
+    },
+    {
+      "bin": 3,
+      "nfaces": 193,
+      "center_m": [
+        -4.068423100703739,
+        4.274267690787044,
+        2.709022645505599
+      ],
+      "r_m": 5.9009686339486525,
+      "ang_deg": 133.5865910580783,
+      "mean_lum": 88.3635921774751
+    },
+    {
+      "bin": 4,
+      "nfaces": 202,
+      "center_m": [
+        -6.0126639828823585,
+        0.038150709409423465,
+        2.5912370782087346
+      ],
+      "r_m": 6.012785015920592,
+      "ang_deg": 179.6364597610566,
+      "mean_lum": 85.11179386428482
+    }
+  ],
+  "charge_ports_chosen": [
+    {
+      "bin": 3,
+      "nfaces": 193,
+      "center_m": [
+        -4.068423100703739,
+        4.274267690787044,
+        2.709022645505599
+      ],
+      "r_m": 5.9009686339486525,
+      "ang_deg": 133.5865910580783,
+      "mean_lum": 88.3635921774751
+    },
+    {
+      "bin": 4,
+      "nfaces": 202,
+      "center_m": [
+        -6.0126639828823585,
+        0.038150709409423465,
+        2.5912370782087346
+      ],
+      "r_m": 6.012785015920592,
+      "ang_deg": 179.6364597610566,
+      "mean_lum": 85.11179386428482
+    },
+    {
+      "bin": 5,
+      "nfaces": 190,
+      "center_m": [
+        -4.238709819944281,
+        -4.062878177040502,
+        2.7544538384989687
+      ],
+      "r_m": 5.871425722868683,
+      "ang_deg": -136.21337085733805,
+      "mean_lum": 84.05846851750427
+    }
+  ],
+  "charge_sockets": [
+    {
+      "name": "SOCKET_Charge_0",
+      "pos_m": [
+        -4.068423271179199,
+        4.274267673492432,
+        2.7090227603912354
+      ],
+      "pos_cm": [
+        -406.8423271179199,
+        427.42676734924316,
+        270.90227603912354
+      ],
+      "ang_deg": 133.5865910580783,
+      "r_cm": 590.0968633948653,
+      "cpp_ang_deg": 128.43379843822592,
+      "cpp_r_cm": 520.0,
+      "note": "Use these sockets. C++ currently plants charges on a 520 cm ring; the plinth radius (~752 cm) buries that ring. Charge sockets sit at ~587-601 cm on the plinth faces."
+    },
+    {
+      "name": "SOCKET_Charge_1",
+      "pos_m": [
+        -6.012663841247559,
+        0.03815070912241936,
+        2.5912370681762695
+      ],
+      "pos_cm": [
+        -601.2663841247559,
+        3.8150709122419357,
+        259.12370681762695
+      ],
+      "ang_deg": 179.6364597610566,
+      "r_cm": 601.2785015920592,
+      "cpp_ang_deg": 180.0,
+      "cpp_r_cm": 520.0,
+      "note": "Use these sockets. C++ currently plants charges on a 520 cm ring; the plinth radius (~752 cm) buries that ring. Charge sockets sit at ~587-601 cm on the plinth faces."
+    },
+    {
+      "name": "SOCKET_Charge_2",
+      "pos_m": [
+        -4.238709926605225,
+        -4.062878131866455,
+        2.7544538974761963
+      ],
+      "pos_cm": [
+        -423.87099266052246,
+        -406.2878131866455,
+        275.44538974761963
+      ],
+      "ang_deg": -136.21337085733805,
+      "r_cm": 587.1425722868682,
+      "cpp_ang_deg": 231.5662015617741,
+      "cpp_r_cm": 520.0,
+      "note": "Use these sockets. C++ currently plants charges on a 520 cm ring; the plinth radius (~752 cm) buries that ring. Charge sockets sit at ~587-601 cm on the plinth faces."
+    }
+  ],
+  "socket_top_emitter_cm": [
+    0.0,
+    0.0,
+    3402.823462137362
+  ],
+  "cpp_charge_note": "charge_sockets sit at radius ~587-601 cm because the tower's base plinth (r ~ 752 cm) buries C++'s 520 cm ring (TDPlanetCourse.cpp, Cos/Sin * 520, z=60). Keep SOCKET_TopEmitter and SOCKET_Charge_0..2; builders should use the sockets, not the 520 cm ring.",
+  "ucx": [
+    {
+      "name": "UCX_SM_CinderAnchorTower_00",
+      "mins_m": [
+        -6.9155012334988175,
+        -6.9155012334988175,
+        0.0
+      ],
+      "maxs_m": [
+        6.9155012334988175,
+        6.9155012334988175,
+        5.7250823974609375
+      ],
+      "size_cm": [
+        1383.1002466997636,
+        1383.1002466997636,
+        572.5082397460938
+      ],
+      "center_cm": [
+        0.0,
+        0.0,
+        286.2541198730469
+      ]
+    },
+    {
+      "name": "UCX_SM_CinderAnchorTower_01",
+      "mins_m": [
+        -4.783169242581764,
+        -4.783169242581764,
+        4.866320037841796
+      ],
+      "maxs_m": [
+        4.783169242581764,
+        4.783169242581764,
+        34.02823462137362
+      ],
+      "size_cm": [
+        956.6338485163527,
+        956.6338485163527,
+        2916.1914583531825
+      ],
+      "center_cm": [
+        0.0,
+        0.0,
+        1944.7277329607707
+      ]
+    },
+    {
+      "name": "UCX_SM_CinderAnchorTower_02",
+      "mins_m": [
+        -4.910884341314632,
+        -4.910884341314632,
+        33.62823462137362
+      ],
+      "maxs_m": [
+        4.910884341314632,
+        4.910884341314632,
+        35.78176498413086
+      ],
+      "size_cm": [
+        982.1768682629264,
+        982.1768682629264,
+        215.35303627572375
+      ],
+      "center_cm": [
+        0.0,
+        0.0,
+        3470.499980275224
+      ]
+    },
+    {
+      "name": "UCX_SM_CinderAnchorEmitter_00",
+      "mins_m": [
+        -1.99597587885824,
+        -1.99597587885824,
+        0.0
+      ],
+      "maxs_m": [
+        1.99597587885824,
+        1.99597587885824,
+        1.9109652709960938
+      ],
+      "size_cm": [
+        399.195175771648,
+        399.195175771648,
+        191.09652709960938
+      ],
+      "center_cm": [
+        0.0,
+        0.0,
+        95.54826354980469
+      ]
+    },
+    {
+      "name": "UCX_SM_CinderAnchorEmitter_01",
+      "mins_m": [
+        -1.9012202298333356,
+        -1.9012202298333356,
+        1.6720946121215823
+      ],
+      "maxs_m": [
+        1.9012202298333356,
+        1.9012202298333356,
+        5.971766471862793
+      ],
+      "size_cm": [
+        380.2440459666671,
+        380.2440459666671,
+        429.9671859741211
+      ],
+      "center_cm": [
+        0.0,
+        0.0,
+        382.19305419921875
+      ]
+    }
+  ],
+  "bake": {
+    "tower_ao": {
+      "path": "/tmp/cinder-anchor-r2/tex/tower/T_CinderAnchorTower_AO.png",
+      "mean": 0.5605691075325012,
+      "min": 0.0,
+      "max": 1.0,
+      "p5": 0.0,
+      "p50": 0.6117647290229797,
+      "p95": 1.0
+    },
+    "emitter_ao": {
+      "path": "/tmp/cinder-anchor-r2/tex/emitter/T_CinderAnchorEmitter_AO.png",
+      "mean": 0.030266692861914635,
+      "min": 0.0,
+      "max": 1.0,
+      "p5": 0.0,
+      "p50": 0.0,
+      "p95": 0.125490203499794
+    },
+    "tower_N": {
+      "path": "/tmp/cinder-anchor-r2/tex/tower/T_CinderAnchorTower_N.png",
+      "bevel_radius_m": 0.055,
+      "noise_scale": 18.0,
+      "tilt_lt2": 70.4188585281372,
+      "tilt_lt6": 79.17747497558594,
+      "tilt_6_24": 17.377066612243652,
+      "tilt_gt24": 3.44545841217041,
+      "seconds": 29.8
+    },
+    "emitter_N": {
+      "path": "/tmp/cinder-anchor-r2/tex/emitter/T_CinderAnchorEmitter_N.png",
+      "bevel_radius_m": 0.025,
+      "noise_scale": 28.0,
+      "tilt_lt2": 52.907586097717285,
+      "tilt_lt6": 62.3424768447876,
+      "tilt_6_24": 24.138259887695312,
+      "tilt_gt24": 13.51926326751709,
+      "seconds": 55.9
+    }
+  },
+  "exports": {
+    "tower_fbx_units": [
+      {
+        "offset": 2696,
+        "vals": [
+          {
+            "off": 43,
+            "val": 100.0
+          }
+        ]
+      },
+      {
+        "offset": 2774,
+        "vals": [
+          {
+            "off": 43,
+            "val": 100.0
+          }
+        ]
+      }
+    ],
+    "emitter_fbx_units": [
+      {
+        "offset": 2696,
+        "vals": [
+          {
+            "off": 43,
+            "val": 100.0
+          }
+        ]
+      },
+      {
+        "offset": 2774,
+        "vals": [
+          {
+            "off": 43,
+            "val": 100.0
+          }
+        ]
+      }
+    ],
+    "tower_glb_accessors": {
+      "accessors_vec3": [
+        {
+          "min": [
+            -7.097379207611084,
+            -7.134952545166016,
+            0
+          ],
+          "max": [
+            7.097379207611084,
+            7.134952545166016,
+            35.78176498413086
+          ],
+          "count": 55077
+        }
+      ],
+      "asset": {
+        "generator": "Khronos glTF Blender I/O v4.5.48",
+        "version": "2.0"
+      }
+    },
+    "emitter_glb_accessors": {
+      "accessors_vec3": [
+        {
+          "min": [
+            -2.054590940475464,
+            -2.0880556106567383,
+            0
+          ],
+          "max": [
+            2.054590940475464,
+            2.0880556106567383,
+            5.971766471862793
+          ],
+          "count": 62170
+        }
+      ],
+      "asset": {
+        "generator": "Khronos glTF Blender I/O v4.5.48",
+        "version": "2.0"
+      }
+    },
+    "bytes": {
+      "SM_CinderAnchorTower.fbx": 4236588,
+      "SM_CinderAnchorTower.glb": 14562676,
+      "SM_CinderAnchorEmitter.fbx": 4425916,
+      "SM_CinderAnchorEmitter.glb": 19381444
+    }
+  },
+  "reimport": {
+    "tower_fbx": {
+      "objects": [
+        [
+          "SM_CinderAnchorTower.001",
+          "MESH"
+        ],
+        [
+          "SOCKET_Charge_0.001",
+          "EMPTY"
+        ],
+        [
+          "SOCKET_Charge_1.001",
+          "EMPTY"
+        ],
+        [
+          "SOCKET_Charge_2.001",
+          "EMPTY"
+        ],
+        [
+          "SOCKET_TopEmitter.001",
+          "EMPTY"
+        ],
+        [
+          "UCX_SM_CinderAnchorTower_00.001",
+          "MESH"
+        ],
+        [
+          "UCX_SM_CinderAnchorTower_01.001",
+          "MESH"
+        ],
+        [
+          "UCX_SM_CinderAnchorTower_02.001",
+          "MESH"
+        ]
+      ],
+      "n_meshes": 1,
+      "n_ucx": 3,
+      "n_empties": 4,
+      "empty_names": [
+        "SOCKET_Charge_0.001",
+        "SOCKET_Charge_1.001",
+        "SOCKET_Charge_2.001",
+        "SOCKET_TopEmitter.001"
+      ],
+      "ucx_names": [
+        "UCX_SM_CinderAnchorTower_00.001",
+        "UCX_SM_CinderAnchorTower_01.001",
+        "UCX_SM_CinderAnchorTower_02.001"
+      ],
+      "counts": {
+        "tris": 49652,
+        "verts": 24792,
+        "polygons": 49652,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "has_custom_normals": true
+      },
+      "topology": {
+        "loose_verts": 0,
+        "loose_edges": 0,
+        "nonmanifold_edges": 0,
+        "boundary_edges": 0,
+        "vert_islands": 5,
+        "volume_proxy": 2400.431270085996
+      },
+      "uv": {
+        "uv_layers": 1,
+        "u_min": 0.0009999871253967285,
+        "u_max": 0.9990000128746033,
+        "v_min": 0.0009999275207519531,
+        "v_max": 0.9990000128746033,
+        "out_of_01": 0,
+        "n": 148956
+      },
+      "bbox": {
+        "min_cm": [
+          -709.7379207611084,
+          -713.4952545166016,
+          -0.00011624313174252165
+        ],
+        "max_cm": [
+          709.7379207611084,
+          713.4958267211914,
+          3578.176498413086
+        ],
+        "size_cm": [
+          1419.4758415222168,
+          1426.991081237793,
+          3578.176498413086
+        ],
+        "center_cm": [
+          0.0,
+          0.000286102294921875,
+          1789.088249206543
+        ]
+      },
+      "census": {
+        "flat": 8.809312817207767,
+        "wobble": 56.47708048014179,
+        "hard": 34.713606702650445,
+        "n": 74478
+      }
+    },
+    "tower_glb": {
+      "objects": [
+        [
+          "SM_CinderAnchorTower.001",
+          "MESH"
+        ]
+      ],
+      "n_meshes": 1,
+      "n_ucx": 0,
+      "n_empties": 0,
+      "empty_names": [],
+      "ucx_names": [],
+      "counts": {
+        "tris": 49652,
+        "verts": 55077,
+        "polygons": 49652,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "has_custom_normals": true
+      },
+      "topology": {
+        "loose_verts": 0,
+        "loose_edges": 0,
+        "nonmanifold_edges": 49362,
+        "boundary_edges": 49362,
+        "vert_islands": 5756,
+        "volume_proxy": 2400.4312701064187
+      },
+      "uv": {
+        "uv_layers": 1,
+        "u_min": 0.0009999871253967285,
+        "u_max": 0.9990000128746033,
+        "v_min": 0.0009999275207519531,
+        "v_max": 0.9990000128746033,
+        "out_of_01": 0,
+        "n": 148956
+      },
+      "bbox": {
+        "min_cm": [
+          -709.7379207611084,
+          -3578.176498413086,
+          -713.4952545166016
+        ],
+        "max_cm": [
+          709.7379207611084,
+          0.0,
+          713.4952545166016
+        ],
+        "size_cm": [
+          1419.4758415222168,
+          3578.176498413086,
+          1426.9905090332031
+        ],
+        "center_cm": [
+          0.0,
+          -1789.088249206543,
+          0.0
+        ]
+      },
+      "census": {
+        "flat": 8.806627460458122,
+        "wobble": 56.47976583689143,
+        "hard": 34.713606702650445,
+        "n": 74478
+      }
+    },
+    "emitter_fbx": {
+      "objects": [
+        [
+          "SM_CinderAnchorEmitter.001",
+          "MESH"
+        ],
+        [
+          "UCX_SM_CinderAnchorEmitter_00.001",
+          "MESH"
+        ],
+        [
+          "UCX_SM_CinderAnchorEmitter_01.001",
+          "MESH"
+        ]
+      ],
+      "n_meshes": 1,
+      "n_ucx": 2,
+      "n_empties": 0,
+      "empty_names": [],
+      "ucx_names": [
+        "UCX_SM_CinderAnchorEmitter_00.001",
+        "UCX_SM_CinderAnchorEmitter_01.001"
+      ],
+      "counts": {
+        "tris": 49976,
+        "verts": 24824,
+        "polygons": 49976,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "has_custom_normals": true
+      },
+      "topology": {
+        "loose_verts": 0,
+        "loose_edges": 0,
+        "nonmanifold_edges": 0,
+        "boundary_edges": 0,
+        "vert_islands": 1,
+        "volume_proxy": 28.247566004019415
+      },
+      "uv": {
+        "uv_layers": 1,
+        "u_min": 0.0009999871253967285,
+        "u_max": 0.9990000128746033,
+        "v_min": 0.0009999871253967285,
+        "v_max": 0.9989306926727295,
+        "out_of_01": 0,
+        "n": 149928
+      },
+      "bbox": {
+        "min_cm": [
+          -205.4590940475464,
+          -208.80556106567383,
+          -3.4018745509456494e-05
+        ],
+        "max_cm": [
+          205.4590940475464,
+          208.80565643310547,
+          597.1766948699951
+        ],
+        "size_cm": [
+          410.9181880950928,
+          417.6112174987793,
+          597.1767425537109
+        ],
+        "center_cm": [
+          0.0,
+          4.76837158203125e-05,
+          298.58832359313965
+        ]
+      },
+      "census": {
+        "flat": 8.386692278960568,
+        "wobble": 50.43354143322128,
+        "hard": 41.179766287818154,
+        "n": 74964
+      }
+    },
+    "emitter_glb": {
+      "objects": [
+        [
+          "SM_CinderAnchorEmitter.001",
+          "MESH"
+        ]
+      ],
+      "n_meshes": 1,
+      "n_ucx": 0,
+      "n_empties": 0,
+      "empty_names": [],
+      "ucx_names": [],
+      "counts": {
+        "tris": 49976,
+        "verts": 62170,
+        "polygons": 49976,
+        "uv_layers": [
+          "UVMap"
+        ],
+        "has_custom_normals": true
+      },
+      "topology": {
+        "loose_verts": 0,
+        "loose_edges": 0,
+        "nonmanifold_edges": 59112,
+        "boundary_edges": 59112,
+        "vert_islands": 7781,
+        "volume_proxy": 28.24756600401939
+      },
+      "uv": {
+        "uv_layers": 1,
+        "u_min": 0.0009999871253967285,
+        "u_max": 0.9990000128746033,
+        "v_min": 0.0009999871253967285,
+        "v_max": 0.9989306926727295,
+        "out_of_01": 0,
+        "n": 149928
+      },
+      "bbox": {
+        "min_cm": [
+          -205.4590940475464,
+          -597.1766471862793,
+          -208.80556106567383
+        ],
+        "max_cm": [
+          205.4590940475464,
+          0.0,
+          208.80556106567383
+        ],
+        "size_cm": [
+          410.9181880950928,
+          597.1766471862793,
+          417.61112213134766
+        ],
+        "center_cm": [
+          0.0,
+          -298.58832359313965,
+          0.0
+        ]
+      },
+      "census": {
+        "flat": 8.386692278960568,
+        "wobble": 50.43354143322128,
+        "hard": 41.179766287818154,
+        "n": 74964
+      }
+    }
+  },
+  "seconds": 161.5
+}

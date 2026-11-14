@@ -399,4 +399,111 @@ bool FTDWavesEvents::RunTest(const FString& Parameters)
 	return true;
 }
 
+namespace TDWaveTutorialTest
+{
+	/** Wave 2 (the tutorial withdrawal wave) running with everything spawned, the withdrawal forced on (test worlds are Auto = off). */
+	ATDWaveDirector* Start(FTDTestWorld& W, AActor*& OutPlayer, UTDWaveTestGameInstance*& OutGI)
+	{
+		OutGI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+		OutGI->Progress.Phase = ETDGamePhase::Waves1to2;
+		OutPlayer = TDWaveTest_SpawnPlayer(W);
+		ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, OutPlayer);
+		D->TutorialMode = ETDTutorialMode::ForceOn;
+		D->StartWave(1);
+		TDWaveTest_SpawnEverything(W, D, 60.f);
+		return D;
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWavesTutorialKillsDoNotEnd, "TriadDrift.Waves.Tutorial.KillingEverythingOrdersTheWithdrawalNotTheEnd", TD_TEST_FLAGS)
+bool FTDWavesTutorialKillsDoNotEnd::RunTest(const FString& Parameters)
+{
+	// Nicholas: wave 1's clear and the gunship's destruction must NOT end the tutorial; crossing the boundary does.
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	AActor* Player = nullptr; UTDWaveTestGameInstance* GI = nullptr;
+	ATDWaveDirector* D = TDWaveTutorialTest::Start(W, Player, GI);
+	TestTrue(TEXT("the heavy contact arrived"), D->GetHeavyContact() != nullptr);
+	TDWaveTest_KillAll(D);
+	W.Tick();
+	TestTrue(TEXT("the wave is still running"), D->GetState() == ETDWaveState::Active || D->GetState() == ETDWaveState::WarpingIn);
+	TestEqual(TEXT("withdrawal ordered"), (int32)D->GetTutorialPhase(), (int32)ETDTutorialPhase::Withdrawal);
+	TestFalse(TEXT("wave 2 not reported"), GI->ReportedWaves.Contains(2));
+	AActor* M = D->GetEscapeMarker();
+	TestTrue(TEXT("the corridor marker is an objective marker"), M && M->ActorHasTag(TDTags::ObjectiveMarker));
+	FVector P, N;
+	TestTrue(TEXT("boundary up"), D->GetEscapeBoundary(P, N));
+	TestTrue(*FString::Printf(TEXT("2.5 km out (%.0f m)"), FVector::Dist(P, Player->GetActorLocation()) / 100.f), FMath::IsNearlyEqual((float)FVector::Dist(P, Player->GetActorLocation()), D->EscapeBoundaryDistance, 100.f));
+	// Crossing it completes the tutorial and clears the wave the normal way.
+	Player->SetActorLocation(P + N * 2000.f);
+	W.Tick();
+	TestEqual(TEXT("escaped"), (int32)D->GetTutorialPhase(), (int32)ETDTutorialPhase::Escaped);
+	TestTrue(TEXT("wave 2 reported cleared"), GI->ReportedWaves.Contains(2));
+	TestTrue(TEXT("phase complete (the flow sends the player to Verdance)"), D->GetState() == ETDWaveState::PhaseComplete);
+	TestTrue(TEXT("marker gone"), !IsValid(M) || M->IsActorBeingDestroyed());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWavesTutorialGunshipAlive, "TriadDrift.Waves.Tutorial.HalfHullOrdersItPursuersStopEscapeWithTheGunshipAlive", TD_TEST_FLAGS)
+bool FTDWavesTutorialGunshipAlive::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	AActor* Player = nullptr; UTDWaveTestGameInstance* GI = nullptr;
+	ATDWaveDirector* D = TDWaveTutorialTest::Start(W, Player, GI);
+	AActor* Heavy = D->GetHeavyContact();
+	if (!TestNotNull(TEXT("heavy contact"), Heavy)) { return false; }
+	TestEqual(TEXT("fighting"), (int32)D->GetTutorialPhase(), (int32)ETDTutorialPhase::Battle);
+	UTDHealthComponent* H = UTDStatics::GetHealth(Heavy);
+	if (!TestNotNull(TEXT("heavy health"), H)) { return false; }
+	UTDStatics::ApplyTDDamage(Heavy, H->GetHull() * 0.55f + H->GetShield(), ETDDamageKind::Kinetic, Player, Player);
+	W.Tick();
+	TestEqual(TEXT("half hull: withdrawal ordered"), (int32)D->GetTutorialPhase(), (int32)ETDTutorialPhase::Withdrawal);
+	TestTrue(TEXT("the gunship is alive"), H->IsAlive());
+	// A pursuer that reaches the perimeter stops there.
+	FVector P, N;
+	D->GetEscapeBoundary(P, N);
+	TArray<AActor*> Living = D->GetLivingEnemies();
+	if (Living.Num() > 0)
+	{
+		Living[0]->SetActorLocation(P - N * 5000.f);
+		W.Tick();
+		TestTrue(TEXT("a pursuer holds at the perimeter"), D->GetHoldingPursuers() >= 1);
+	}
+	// The flown ship crosses: complete, with the gunship alive; what remains stands down.
+	Player->SetActorLocation(P + N * 1000.f);
+	W.Tick();
+	TestEqual(TEXT("escaped with the gunship alive"), (int32)D->GetTutorialPhase(), (int32)ETDTutorialPhase::Escaped);
+	TestTrue(TEXT("wave 2 cleared"), GI->ReportedWaves.Contains(2));
+	TestEqual(TEXT("the rest stood down"), D->GetEnemiesAlive(), 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWavesTutorialRetake, "TriadDrift.Waves.Tutorial.ARetakeStartsTheBattleOverAndTestWorldsKeepKills", TD_TEST_FLAGS)
+bool FTDWavesTutorialRetake::RunTest(const FString& Parameters)
+{
+	{
+		FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+		AActor* Player = nullptr; UTDWaveTestGameInstance* GI = nullptr;
+		ATDWaveDirector* D = TDWaveTutorialTest::Start(W, Player, GI);
+		TDWaveTest_KillAll(D);
+		W.Tick();
+		TestEqual(TEXT("withdrawal"), (int32)D->GetTutorialPhase(), (int32)ETDTutorialPhase::Withdrawal);
+		D->RestartCurrentWave();	// CUT
+		TestEqual(TEXT("retake: back to the battle"), (int32)D->GetTutorialPhase(), (int32)ETDTutorialPhase::Battle);
+		TestNull(TEXT("retake: no marker"), D->GetEscapeMarker());
+	}
+	{
+		// Auto in a test world (simulations, other lanes' tests): wave 2 still clears by kills.
+		FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+		UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+		GI->Progress.Phase = ETDGamePhase::Waves1to2;
+		ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, TDWaveTest_SpawnPlayer(W));
+		D->StartWave(1);
+		TDWaveTest_SpawnEverything(W, D, 60.f);
+		TDWaveTest_KillAll(D);
+		W.Tick();
+		TestTrue(TEXT("Auto in a test world: cleared by kills"), GI->ReportedWaves.Contains(2));
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

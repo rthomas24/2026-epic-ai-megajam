@@ -76,6 +76,14 @@ struct UNREALGAMEJAM_API FTDWaveDef : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave", meta = (EditCondition = "bRevealsMarker"))
 	ETDDestination MarkerRevealed = ETDDestination::Galaxy;
 
+	/**
+	 * Story (storyline 13, Nicholas's decision): this wave ends the tutorial with an ordered WITHDRAWAL, not a kill
+	 * count. Once the heavy contact (its WallGunship) is engaged, damaged to half or destroyed - or every enemy is
+	 * down - Command orders the pull-back; the wave clears when the flown ship crosses the escape boundary.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave")
+	bool bTutorialWithdrawal = false;
+
 	/** Clearing this wave reveals the Dominion (ENG-18). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wave")
 	bool bRevealsDominion = false;

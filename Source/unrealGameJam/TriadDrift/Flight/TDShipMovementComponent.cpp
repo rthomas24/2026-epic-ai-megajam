@@ -1,6 +1,9 @@
 // Triad Drift - ship movement component (ENG-01). Owner: Teammate 1 (Flight & Input).
 
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "TriadDrift/Core/TDHealthComponent.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Flight/TDShipImpactReceiver.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
@@ -487,7 +490,21 @@ void UTDShipMovementComponent::ResolveMove(const FVector& Delta, float DeltaTime
 		return;
 	}
 
-	HandleShipImpact(Hit, DeltaTime);
+	if (HandleShipImpact(Hit, DeltaTime))
+	{
+		// The piece broke (a rammed or tiny rock; its collision is gone): carry on through with the rest of the move.
+		const float Left = FMath::Clamp(1.f - Hit.Time, 0.f, 1.f);
+		if (Left > KINDA_SMALL_NUMBER)
+		{
+			FHitResult Through(1.f);
+			SafeMoveUpdatedComponent(Delta * Left, State.Rotation, true, Through);
+			if (Through.IsValidBlockingHit() && !HandleShipImpact(Through, DeltaTime))
+			{
+				SlideAlongSurface(Delta * Left, 1.f - Through.Time, Through.Normal, Through, true);
+			}
+		}
+		return;
+	}
 
 	// Spend the rest of the frame moving with the post-impact velocity (one extra iteration).
 	const float Remaining = FMath::Clamp(1.f - Hit.Time, 0.f, 1.f);
@@ -538,7 +555,7 @@ void UTDShipMovementComponent::SlideOffSurface(const FVector& Normal, float Delt
 	}
 }
 
-void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float DeltaTime)
+bool UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float DeltaTime)
 {
 	const FVector Normal = Hit.Normal.GetSafeNormal();
 	const FVector V = State.Velocity;
@@ -546,14 +563,26 @@ void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 	const float Into = -FVector::DotProduct(V, Normal);
 	if (Speed < KINDA_SMALL_NUMBER || Into <= 0.f || Normal.IsNearlyZero())
 	{
-		return;
+		return false;
+	}
+	// The world (asteroids, wrecks, debris) is told first and may break (T6's field: Lancer's ram, tiny pieces).
+	const bool bWorld = !Cast<APawn>(Hit.GetActor());
+	if (bWorld && Into >= Tuning.WorldScrapeSpeed)
+	{
+		if (ITDShipImpactReceiver* Receiver = Cast<ITDShipImpactReceiver>(Hit.GetActor()))
+		{
+			if (Receiver->ReceiveShipImpact(Hit.GetComponent(), Hit.Item, Hit.ImpactPoint, Into, FMath::Clamp(Into / Speed, 0.f, 1.f), Cast<ATDShip>(GetOwner())))
+			{
+				return true; // broken: no bounce, no damage
+			}
+		}
 	}
 	if (Into < Tuning.MinImpactSpeed)
 	{
 		// Resting / pinned contact: stop pushing into the surface and slide off it. No event, no damage.
 		State.Velocity = V + Normal * Into;
 		if (!Cast<APawn>(Hit.GetActor())) { SlideOffSurface(Normal, DeltaTime); } // bodies and walls, not other ships
-		return;
+		return false;
 	}
 
 	const UWorld* ContactWorld = GetWorld();
@@ -567,7 +596,7 @@ void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 		State.Velocity = V + Normal * Into;
 		State.ForwardSpeed = FMath::Min(State.ForwardSpeed, Tuning.MinSpeed);
 		if (!Cast<APawn>(Hit.GetActor())) { SlideOffSurface(Normal, DeltaTime); } // bodies and walls, not other ships
-		return;
+		return false;
 	}
 
 	FTDFlightImpact Impact;
@@ -612,15 +641,36 @@ void UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 		State.DriftDirection = State.Velocity.GetSafeNormal(UE_SMALL_NUMBER, State.DriftDirection);
 	}
 
+	Impact.bWorld = bWorld;
+	float MaxDamage = Tuning.MaxImpactDamage;
+	if (bWorld)
+	{
+		// Ryan (Nov 13): the harder you hit the world, the more it hurts. Nothing below the scrape speed; above it, the
+		// square of the speed into the surface, up to WorldImpactHullAtBoost of the max hull at boost speed.
+		const UTDHealthComponent* Health = nullptr;
+		if (const ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner())) { Health = Craft->GetHealth(); }
+		const float MaxHull = Health ? Health->MaxHull : 100.f;
+		const float S0 = Tuning.WorldScrapeSpeed, S1 = FMath::Max(Tuning.BoostSpeed, S0 + 1.f);
+		const float K = Into <= S0 ? 0.f : (FMath::Square(Into) - FMath::Square(S0)) / (FMath::Square(S1) - FMath::Square(S0));
+		Damage = MaxHull * Tuning.WorldImpactHullAtBoost * K;
+		MaxDamage = MaxHull * Tuning.WorldImpactMaxHull;
+		Impact.Strength01 = Into <= S0 ? 0.3f * Into / FMath::Max(S0, 1.f) : FMath::Clamp(0.3f + 0.7f * K, 0.f, 1.f);
+	}
+	else
+	{
+		Impact.Strength01 = FMath::Clamp(Into / FMath::Max(Tuning.BoostSpeed, 1.f), 0.f, 1.f);
+	}
+
 	const UWorld* World = GetWorld();
 	const double Now = World ? World->GetTimeSeconds() : 0.0;
-	if (Now - LastCollisionDamageTime >= Tuning.CollisionDamageCooldown)
+	if (Damage > 0.f && Now - LastCollisionDamageTime >= Tuning.CollisionDamageCooldown)
 	{
 		LastCollisionDamageTime = Now;
-		Impact.Damage = FMath::Min(Damage, Tuning.MaxImpactDamage);
+		Impact.Damage = FMath::Min(Damage, MaxDamage);
 	}
 
 	OnFlightImpact.Broadcast(Impact);
+	return false;
 }
 
 void UTDShipMovementComponent::BroadcastStateChanges(const FTDFlightState& Before)
