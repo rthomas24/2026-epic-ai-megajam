@@ -5,6 +5,8 @@
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Combat/Pickups/TDPickupVisuals.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -330,6 +332,15 @@ bool UTDPickupSubsystem::Collect(ATDPickup* Pickup, ATDShip* Ship)
 	}
 	const ETDPickupType Type = Pickup->GetType();
 	++Collected[static_cast<int32>(Type)];
+	// The collect burst and sound (DA_Pickup_Visuals; nothing when unset).
+	if (const UTDPickupVisuals* Visuals = UTDPickupVisuals::Get())
+	{
+		const FTDFXCue& Burst = Visuals->LookOf(static_cast<uint8>(Type)).Collect;
+		if (FTDPowerPresentation::HasArt(Burst))
+		{
+			FTDPowerPresentation::RequestCueAttached(TEXT("Pickup.Collect"), Burst, Ship->GetRootComponent());
+		}
+	}
 	Pickups.Remove(Pickup);
 	Pickup->Destroy();
 	UE_LOG(LogTDPickups, Display, TEXT("TD pickup: collected %s by %s"), ATDPickup::WordOf(Type), *GetNameSafe(Ship));

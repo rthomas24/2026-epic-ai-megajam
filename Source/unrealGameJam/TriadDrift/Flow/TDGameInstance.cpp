@@ -5,6 +5,7 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Input/TDTutorialMusicSubsystem.h"
+#include "TriadDrift/Profile/TDProfileSubsystem.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDDebugMenu.h"
@@ -786,6 +787,10 @@ void UTDGameInstance::StartNewRun()
 	if (UTDTutorialMusicSubsystem* Tutorial = GetSubsystem<UTDTutorialMusicSubsystem>())
 	{
 		Tutorial->ArmForNewRun(); // N-039: only a New Game plays the tutorial music (a Continue never does)
+	}
+	if (UTDProfileSubsystem* Profile = GetSubsystem<UTDProfileSubsystem>())
+	{
+		Profile->HandleNewRun(); // T7: a plain New Game never skips the tutorial (StartNewRunSkippingTutorial arms it after)
 	}
 }
 

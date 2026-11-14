@@ -55,6 +55,16 @@ private:
 	TArray<TObjectPtr<UStaticMeshComponent>> Parts;
 	UPROPERTY(Transient)
 	TObjectPtr<UMaterialInstanceDynamic> Glow;
+	/** The effects builder's loop (DA_Pickup_Visuals), when there is one: then no primitive shapes. */
+	UPROPERTY(Transient)
+	TObjectPtr<class UNiagaraComponent> LoopFX;
+	bool bArtLook = false;
+
+public:
+	/** True when the pickup shows DA_Pickup_Visuals' loop instead of the primitive shapes (tests). */
+	bool HasArtLook() const { return bArtLook; }
+
+private:
 
 	UStaticMeshComponent* AddPart(UStaticMesh* Mesh, const FVector& Offset, const FRotator& Rotation, const FVector& Scale);
 

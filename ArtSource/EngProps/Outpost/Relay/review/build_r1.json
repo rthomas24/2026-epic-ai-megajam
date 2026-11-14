@@ -1,0 +1,102 @@
+{
+ "court_radius_cm": [
+  390,
+  400,
+  430,
+  430,
+  410,
+  420,
+  430,
+  430,
+  430,
+  430,
+  430,
+  430,
+  430,
+  420,
+  420,
+  430,
+  430,
+  430,
+  430,
+  410,
+  380,
+  430,
+  430,
+  390
+ ],
+ "tier_radius_cm": [
+  480,
+  480,
+  480,
+  480,
+  440,
+  460,
+  480,
+  480,
+  480,
+  480,
+  480,
+  480,
+  470,
+  450,
+  440,
+  480,
+  480,
+  480,
+  480,
+  480,
+  440,
+  480,
+  480,
+  480
+ ],
+ "stairs": {
+  "slope_deg": 24.2,
+  "y_blender": [
+   -5.0,
+   195.0
+  ],
+  "top": [
+   296.0,
+   146.0
+  ],
+  "toe": [
+   572.0,
+   22.0
+  ],
+  "tread_clear_width_cm": 120,
+  "as_modelled": "risers about 20 cm; lower flight 18 deg, upper two steps steeper"
+ },
+ "ring": {
+  "centre_yz": [
+   1.7,
+   492.7
+  ],
+  "outer_radius": 507.3,
+  "x_slab": [
+   -316,
+   -67
+  ]
+ },
+ "hulls": {
+  "ring": 12,
+  "cross": 4,
+  "pylons": 3,
+  "plinth": 2,
+  "stairs": 1
+ },
+ "export": {
+  "status": "ok (read back from the manifest)",
+  "tris": 26487,
+  "size_cm": [
+   1124.0,
+   1221.0,
+   1000.0
+  ],
+  "welded_verts": 0,
+  "warnings": [],
+  "errors": [],
+  "hulls": 22
+ }
+}

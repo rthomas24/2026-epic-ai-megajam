@@ -69,6 +69,9 @@ public:
 	static float SecondsFor(const FTDTransmission& Entry);
 
 	bool HasPlayed(FName Id) const;
+	/** Lines whose words are already on screen (the victory caption holds A5_DistressSignal's): their sound plays and
+	 *  they take their time in the queue, but no subtitle is shown. */
+	void SetSubtitleSuppressed(FName Id, bool bSuppressed) { if (bSuppressed) { SoundOnly.Add(Id); } else { SoundOnly.Remove(Id); } }
 	int32 GetQueueLength() const { return Queue.Num(); }
 	/** Forget what played this run (TD.Story.Reset; a new run resets with the progress anyway). */
 	void ResetPlayed();
@@ -141,6 +144,7 @@ private:
 	double NextAllowed = 0.0;
 	/** Played this run when there is no TD game instance (tests, bare worlds). */
 	TSet<FName> LocalPlayed;
+	TSet<FName> SoundOnly;
 	/** Cinematics 04 and 06 (transmissions over the take-off): checked once per galaxy world, after the arrival settles. */
 	bool bDeparturesChecked = false;
 	double DeparturesAt = -1.0;

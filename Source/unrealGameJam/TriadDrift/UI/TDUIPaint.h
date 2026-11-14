@@ -60,6 +60,14 @@ struct FTDUIPainter
 	{
 		FSlateDrawElement::MakeBox(List, Layer, Geo({ X, Y }, { W, H }), FCoreStyle::Get().GetBrush("WhiteBrush"), ESlateDrawEffect::None, Faded(C));
 	}
+	/** An image brush (a texture) stretched over the box; Tint multiplies it (white = as authored). */
+	void Image(float X, float Y, float W, float H, const FSlateBrush* Brush, FLinearColor Tint = FLinearColor::White) const
+	{
+		if (Brush)
+		{
+			FSlateDrawElement::MakeBox(List, Layer, Geo({ X, Y }, { W, H }), Brush, ESlateDrawEffect::None, Faded(Tint));
+		}
+	}
 	void Gradient(float X, float Y, float W, float H, FLinearColor A, FLinearColor B, bool bVertical = true) const
 	{
 		TArray<FSlateGradientStop> Stops;

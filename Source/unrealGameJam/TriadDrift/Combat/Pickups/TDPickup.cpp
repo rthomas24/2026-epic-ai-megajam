@@ -6,6 +6,28 @@
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Combat/Pickups/TDPickupVisuals.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
+#include "NiagaraComponent.h"
+
+namespace TDPickupLookPrivate
+{
+	static TWeakObjectPtr<const UTDPickupVisuals> Override;
+}
+
+void UTDPickupVisuals::SetOverrideForTests(const UTDPickupVisuals* InOverride)
+{
+	TDPickupLookPrivate::Override = InOverride;
+}
+
+const UTDPickupVisuals* UTDPickupVisuals::Get()
+{
+	if (const UTDPickupVisuals* O = TDPickupLookPrivate::Override.Get())
+	{
+		return O;
+	}
+	return UTDStatics::LoadPresentation<UTDPickupVisuals>(AssetName);
+}
 
 ATDPickup::ATDPickup()
 {
@@ -71,6 +93,21 @@ void ATDPickup::Init(ETDPickupType InType, float InLifetime, float InBlinkSecond
 	BlinkSeconds = FMath::Clamp(InBlinkSeconds, 0.f, Lifetime);
 	Age = 0.f;
 	Home = GetActorLocation();
+	// The effects builder's look (DA_Pickup_Visuals) wins; without one, the glowing primitive shapes below.
+	if (const UTDPickupVisuals* Visuals = UTDPickupVisuals::Get())
+	{
+		const FTDPickupLook& Look = Visuals->LookOf(static_cast<uint8>(Type));
+		if (FTDPowerPresentation::HasArt(Look.Loop))
+		{
+			LoopFX = FTDPowerPresentation::RequestCueAttached(TEXT("Pickup.Loop"), Look.Loop, Spinner);
+			if (LoopFX)
+			{
+				bArtLook = true;
+				Advance(0.f);
+				return;
+			}
+		}
+	}
 	if (UMaterialInterface* Base = UTDStatics::GetPlaceholderGlowMaterial())
 	{
 		Glow = UMaterialInstanceDynamic::Create(Base, this);

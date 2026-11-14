@@ -568,7 +568,12 @@ FVector UTDLandingComponent::TouchPoint() const
 
 FVector UTDLandingComponent::HoverPoint() const
 {
-	return TouchPoint() + FVector(0.f, 0.f, Tuning.HoverHeight);
+	// The hover stays where it was (over the collision sphere's rest) so the align, and the whole 4.9 s landing, keep
+	// their timing; only the final descent goes on down to the hull's rest point (TouchPoint), in the same time.
+	const ATDLandingPad* P = Pad.Get();
+	const ATDShip* Ship = GetShip();
+	const float Radius = (Ship && Ship->GetCollisionSphere()) ? Ship->GetCollisionSphere()->GetScaledSphereRadius() : 200.f;
+	return P ? P->GetBeaconLocation() + FVector(0.f, 0.f, Radius + 5.f + Tuning.HoverHeight) : TouchPoint() + FVector(0.f, 0.f, Tuning.HoverHeight);
 }
 
 FQuat UTDLandingComponent::PadFacing() const
