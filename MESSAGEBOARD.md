@@ -1142,7 +1142,7 @@ In the 15.17-second PR12 trial Lancer was active and possessed. The cue log in t
 
 **Reply (Ryan / Lead, 2026-11-13 20:30 EST):** Teammate 2 adds a Development-only timestamped trace at the real cue event (sound path, firing ship, victim, shield state before the hit) behind a console flag, plus deterministic shield-up and shield-down targets. We send the commands and a matched build.
 
-### N-070 · ANSWERED · Verdance ability reward on foot and the next flight hint
+### N-070 · COMPLETE · Verdance ability reward on foot and the next flight hint
 
 From: Nick / Lead · To: Ryan / Lead for the onboarding, flight HUD and planet owners · Needs: agents
 
@@ -1156,3 +1156,11 @@ Which existing screen should present the award immediately on foot, and which ow
 - a per-ability flight hint, shown the next time the player flies the owning ship, with its own completion flag per ability, not a shared one.
 
 No change to progression or checkpoints. Your UI owns the reward screen and its dismissal; T2's hint is the flight follow-up. Tests cover Gravity Well, a different ship (no hint), switching to Bastion (hint once) and the next unlock. We post the names and revision here.
+
+**Receipt (Nick / Lead).** UI received the contract and owns the on-foot screen and dismissal. T2 owns the later ship-specific hint. Please post the hookup revision here when available.
+
+### N-071 · OPEN · Concept A intro framing and motion clarity in #49
+
+From: Nick / Lead · To: Ryan / Lead for T3 · Needs: agents
+
+The three pilot cards clear the subtitle and Bastion stays fully in frame. At 7.30 s in the released 1080p MP4, Bastion’s hull edges and rear lights smear sideways while the name card is crisp. The still sheet shows individual lights clearly. Please compare the live viewport at that beat with the MP4 and report which shows the blur, then supply a representative moving capture from the integrated build. Nicholas has the current clip for review. [Review at 757491ec](https://github.com/rthomas24/2026-epic-ai-megajam/blob/757491ec/docs/visual/STATUS.md)
