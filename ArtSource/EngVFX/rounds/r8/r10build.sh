@@ -16,7 +16,7 @@ python $S/ue_run_python.py --port $PORT $S/ue_audio_build.py --spec ArtSource/En
 python $S/ue_run_python.py --port $PORT ArtSource/EngAudio/scripts/ue_wire.py --spec ArtSource/EngAudio/build/spec_cloud_wire.json 2>&1 | tail -3 | cut -c1-300
 echo "== reactor core data"
 python ArtSource/EngVFX/scripts/run_editor_py.py $PORT $R/data_core.py 2>&1 | tail -12 | cut -c1-200
-python ArtSource/EngVFX/scripts/sound_check.py 2>&1 | tail -2
+python ArtSource/EngVFX/scripts/sound_check.py HEAD 2>&1 | tail -2
 bash $R/ed.sh stop >/dev/null
 echo "== tier 2 $(date +%H:%M)"
 bash $R/chunk_list.sh NS_TD_Entry_CloudWisps "0:4"
