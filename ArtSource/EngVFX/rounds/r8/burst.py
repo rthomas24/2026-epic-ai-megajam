@@ -86,8 +86,7 @@ o, e = r.get_actor_bounds(True)
 tag(NFL.spawn_system_at_location(world, unreal.load_asset(SYS + 'NS_TD_Reactor_Exposed'), o, r.get_actor_rotation(), unreal.Vector(1, 1, 1), True, True, unreal.NCPoolMethod.NONE, True))
 "exposed"''')
     burst('exposedup_%dm' % arg, cam)
-    con('slomo 1'); py('clear()
-"ok"')
+    con('slomo 1'); py('clear()\n"ok"')
 elif mode == 'rocks':
     cam = py(SETUP + '''
 o = pawn.get_actor_location() + pawn.get_actor_forward_vector() * 30000
