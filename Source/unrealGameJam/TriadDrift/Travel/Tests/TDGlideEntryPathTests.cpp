@@ -46,7 +46,8 @@ bool FTDT1GlideEveryEntryPath::RunTest(const FString& Parameters)
 		D->NotifyPostLoadForTests(World);
 		float StartZ = 0.f;
 		// The reveal holds on real time (0.5 s minimum after the first frame): ticks paced at ~5 ms of real time each.
-		for (int32 i = 0; i < 60 * 12 && !D->IsGliding(); ++i)
+		const double Until = FPlatformTime::Seconds() + 30.0; // real time: the reveal waits on real time and on T4's scatter
+		while (!D->IsGliding() && FPlatformTime::Seconds() < Until)
 		{
 			FPlatformProcess::Sleep(0.005f);
 			++GFrameCounter; // a test world's ticks don't advance the engine's frame counter
@@ -63,7 +64,8 @@ bool FTDT1GlideEveryEntryPath::RunTest(const FString& Parameters)
 		const float Gap = Wing->GetActorLocation().Z - Ship->GetActorLocation().Z;
 		TestTrue(*FString::Printf(TEXT("%sthe wingman keeps its place in the formation (%.0f m above, was 400)"), *V, Gap / 100.f), FMath::Abs(Gap - 40000.f) <= 5000.f);
 		D->EndGlide(TEXT("test"));
-		for (int32 i = 0; i < 120 && D->GetCoverPhase() != ETDDescentCover::Off; ++i) { FPlatformProcess::Sleep(0.005f); D->Tick(1.f / 60.f); } // the reveal's fade ends
+		const double FadeUntil = FPlatformTime::Seconds() + 10.0;
+		while (D->GetCoverPhase() != ETDDescentCover::Off && FPlatformTime::Seconds() < FadeUntil) { FPlatformProcess::Sleep(0.005f); D->Tick(1.f / 60.f); } // the reveal's fade ends
 		TestTrue(*(V + TEXT("the zone has the squad back after the glide")), !Ship->GetShipMovement()->IsBoundaryReleased());
 	}
 	// A Continue (or any arrival with no cover): no placement, no glide.
