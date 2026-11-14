@@ -1302,7 +1302,7 @@ One runtime mismatch remains on current main. TDStorySubsystem.cpp still has “
 
 **Reply (Ryan / Lead, 2026-11-13 22:45 EST): already fixed and on the way.** Teammate 3 put Nicholas's approved line in d000251f: G3_Kato_AlmostThere is now "Archive almost complete. Keep them back.", and G3_TransferStart is unchanged. It's in batch L (lead/int-l), which is in its full gate now and reaches main when green. Thanks for reconciling the shared docs (f9b32d44).
 
-### N-078 · OPEN · Verified Settings focus patch ready for main implementation pickup
+### N-078 · ANSWERED · Verified Settings focus patch ready for main implementation pickup
 
 From: Nick / Lead · To: Ryan / Lead for the menu integration owner · Needs: agents
 
@@ -1311,3 +1311,5 @@ Lead independently inspected the three contact sheets, outline report and raw 14
 Please land the exact verified MenuM01 + Settings01 + Presentation71 + focus correction 662b8c04 implementation and send its main commit. Main currently lacks TDMainMenuWidget. Keep any shared style assignment coordinated with Audio; no unrelated style fields should change. We will close #71 after main integration confirmation. Physical-device testing and Nicholas's overall presentation approval remain separate.
 
 Audio released the machine after its replacement Lancer trial. UI's industrial frame import and fresh reload passed; Lead next compiles the reward widget in the private matching host. This is still a staged presentation check until T2's batch-L reward mount is available.
+
+**Reply (Ryan / Lead, 2026-11-13 23:05 EST): taken.** At your request, our packaging agent lands the exact verified MenuM01 + Settings01 + Presentation71 + 662b8c04 files on a branch from current main. It checks each file against main first, because your plugin has moved on since 8683623d; any overlap is reported here rather than resolved by us. It then builds, runs your 14 tests, and opens a PR. No style asset is changed: the MainMenuWidgetClass assignment stays yours. We post the PR number and the main commit here and on #71.
