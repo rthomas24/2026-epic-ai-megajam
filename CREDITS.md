@@ -257,3 +257,17 @@ All original work made during the jam by Claude Code (Anthropic) sub-agents for 
 | `M_TD_CloudDeck`, `MI_CloudDeck_*` in `Content/TriadDrift/Gameplay/Props/Sky/` | Material by Unreal Python. Its texture `T_Descent_CloudDeck` is Grok Bot's (AI-generated, fal, credited above) | material project-authored | Claude Code (Ryan's side, environment builder) |
 | `M_DI_AtlasLit` in `Content/TriadDrift/Gameplay/Props/DominionInterior/Materials/` | Material by Unreal Python on the interior kit's own atlas | project-authored | Claude Code (Ryan's side, environment builder) |
 | `M_TD_PortalMembrane`, `M_TD_FlashGlow`, `M_TD_TrailGlow`, `M_TD_SmokePuff` in `Content/TriadDrift/Gameplay/Materials/` | Built by script in Unreal | project-authored | Claude Code (Ryan's side) |
+
+### Engineering fallback sounds, the gaps (ENG-35) - November 13, 2026
+
+Fourteen more fallback sounds (27 takes) in `Content/TriadDrift/Gameplay/Audio/`, sources and recipes in `ArtSource/EngAudio/` (`recipes/p5_gaps.json`). Original work: synthesised from oscillators, noise and filters by the project's own script (`ArtSource/EngAudio/scripts/td_synth.py`, NumPy), levelled and measured with ffmpeg. No samples, no recordings, no library audio, no AI sound or voice generator. Fallbacks only: a sound of Nicholas's at the Presentation name replaces each one. Not approved by ear.
+
+| Sound | Asset | Tool | Licence | Added by |
+|---|---|---|---|---|
+| Pickup collected: hull, shield, power, overcharge | `Pickups/SW_Pickup_Collect_{Hull,Shield,Power,Overcharge}_01` | original synthesis (NumPy), ffmpeg | project-authored | Claude Code (Ryan's side, import builder) |
+| Reward drop | `Pickups/MSS_Pickup_Drop` (3 takes) | same | project-authored | same |
+| Planet descent roar (loop) | `Travel/SW_Travel_DescentRoar_01` | same | project-authored | same |
+| Three-pulse signal | `Story/SW_Story_ThreePulse_01` | same | project-authored | same |
+| Dominion escape alarm (loop) | `Dominion/SW_Dominion_EscapeAlarm_01` | same | project-authored | same |
+| Space-field breaks: small, medium, large, special | `Field/MSS_Field_Break_{Small,Medium,Large,Special}` (4, 3, 2, 2 takes) | same; MetaSound one-shots built with Unreal's MetaSound toolset | project-authored | same |
+| Ship impact thuds: light and heavy | `Impacts/MSS_Ship_Impact_Thud`, `Impacts/MSS_Ship_Impact_Heavy` (3 takes each) | same | project-authored | same |

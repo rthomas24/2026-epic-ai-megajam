@@ -1,0 +1,187 @@
+{
+ "import": [
+  {
+   "file": "../wav/Pickups/SFX_Pickup_Collect_Hull_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Hull_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.3162,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "../wav/Pickups/SFX_Pickup_Collect_Shield_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Shield_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.2818,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "../wav/Pickups/SFX_Pickup_Collect_Power_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Power_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.3162,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "../wav/Pickups/SFX_Pickup_Collect_Overcharge_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Overcharge_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Space_Near",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Power"
+    ],
+    "volume": 0.3981,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "../wav/Pickups/SFX_Pickup_Drop_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Drop_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Pickups/SFX_Pickup_Drop_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Drop_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Pickups/SFX_Pickup_Drop_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Drop_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Travel/SFX_Travel_DescentRoar_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_DescentRoar_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "volume": 0.4467,
+    "bLooping": true
+   }
+  },
+  {
+   "file": "../wav/Story/SFX_Story_ThreePulse_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Story/SW_Story_ThreePulse_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "attenuationSettings": "/Game/TriadDrift/Gameplay/Audio/Mix/ATT_TDE_Ground_Medium",
+    "concurrencySet": [
+     "/Game/TriadDrift/Gameplay/Audio/Mix/SCON_TDE_Impact"
+    ],
+    "volume": 0.3981,
+    "bLooping": false
+   }
+  },
+  {
+   "file": "../wav/Dominion/SFX_Dominion_EscapeAlarm_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_EscapeAlarm_01",
+   "properties": {
+    "soundClassObject": "/Game/TriadDrift/Gameplay/Audio/Mix/SC_TDE_SFX",
+    "volume": 0.2818,
+    "bLooping": true
+   }
+  },
+  {
+   "file": "../wav/Field/SFX_Field_Break_Small_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Small_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Field/SFX_Field_Break_Small_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Small_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Field/SFX_Field_Break_Small_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Small_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Field/SFX_Field_Break_Small_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Small_04",
+   "properties": null
+  },
+  {
+   "file": "../wav/Field/SFX_Field_Break_Medium_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Medium_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Field/SFX_Field_Break_Medium_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Medium_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Field/SFX_Field_Break_Medium_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Medium_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Field/SFX_Field_Break_Large_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Large_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Field/SFX_Field_Break_Large_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Large_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Field/SFX_Field_Break_Special_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Special_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Field/SFX_Field_Break_Special_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Special_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Impacts/SFX_Ship_Impact_Thud_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Thud_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Impacts/SFX_Ship_Impact_Thud_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Thud_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Impacts/SFX_Ship_Impact_Thud_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Thud_03",
+   "properties": null
+  },
+  {
+   "file": "../wav/Impacts/SFX_Ship_Impact_Heavy_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Heavy_01",
+   "properties": null
+  },
+  {
+   "file": "../wav/Impacts/SFX_Ship_Impact_Heavy_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Heavy_02",
+   "properties": null
+  },
+  {
+   "file": "../wav/Impacts/SFX_Ship_Impact_Heavy_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Heavy_03",
+   "properties": null
+  }
+ ]
+}
