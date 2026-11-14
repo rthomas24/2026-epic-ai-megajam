@@ -306,6 +306,37 @@ void ATDMenuBackdrop::BuildVictory(UWorld* World)
 			if (bHull) { C->SetVisibility(false); } // Lead: the whole hull read as the ship still intact; only its wreckage is left
 			Wreck.Add(W);
 		}
+		// Lead: more wreckage. The structures builder's torn hull sections (T4's breakup uses the same three; always
+		// cooked): eight of mixed size around where the hull was, drifting apart slowly and tumbling. No intact hull.
+		{
+			static const TCHAR* SectionPaths[] = {
+				TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomHullChunk_A.SM_KS_DomHullChunk_A"),
+				TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomHullChunk_B.SM_KS_DomHullChunk_B"),
+				TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomHullChunk_C.SM_KS_DomHullChunk_C") };
+			TArray<UStaticMesh*> Sections;
+			for (const TCHAR* Path : SectionPaths)
+			{
+				if (UStaticMesh* M = LoadObject<UStaticMesh>(nullptr, Path, nullptr, LOAD_NoWarn | LOAD_Quiet)) { Sections.Add(M); }
+			}
+			for (int32 i = 0; i < 8 && Sections.Num() > 0; ++i)
+			{
+				UStaticMeshComponent* D = NewObject<UStaticMeshComponent>(Dominion, *FString::Printf(TEXT("HullSection%d"), i));
+				D->SetupAttachment(Dominion->GetRootComponent());
+				D->SetStaticMesh(Sections[i % Sections.Num()]);
+				D->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				D->RegisterComponent();
+				// Along the old hull's length (its X), a little off the axis; the sections are 117 to 173 m long.
+				const float Along = (i / 7.f - 0.5f) * 1.5f;
+				const FVector PieceAt = FVector(Along, R.FRandRange(-0.25f, 0.25f), R.FRandRange(-0.2f, 0.2f)) * DominionRadius;
+				FWreckPiece W;
+				W.Component = D;
+				W.Start = FTransform(FRotator(R.FRandRange(-35.f, 35.f), R.FRandRange(-50.f, 50.f), R.FRandRange(-60.f, 60.f)), PieceAt, FVector(R.FRandRange(0.45f, 1.1f)));
+				W.Drift = (PieceAt.GetSafeNormal() + R.GetUnitVector() * 0.5f).GetSafeNormal() * DominionRadius * R.FRandRange(0.006f, 0.018f);
+				W.Spin = FRotator(R.FRandRange(-2.5f, 2.5f), R.FRandRange(-2.5f, 2.5f), R.FRandRange(-3.5f, 3.5f));
+				W.Head = 8.f;
+				Wreck.Add(W);
+			}
+		}
 		if (UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube")))
 		{
 			for (int32 i = 0; i < 14; ++i)
