@@ -131,6 +131,7 @@ void UTDDescentSubsystem::HandlePreLoadMap(const FString& MapName)
 {
 	EndBurnShot(); // the cover is full white here: the cut back to the chase camera is hidden
 	EndGlide(TEXT("level change"));
+	bArrivedOverDeck = false;
 	if (CoverPhase == ETDDescentCover::RampIn || CoverPhase == ETDDescentCover::Held)
 	{
 		SetCoverAlpha(1.f); // the last galaxy frame is full white
@@ -153,6 +154,7 @@ void UTDDescentSubsystem::HandlePostLoadMap(UWorld* World)
 		bDestFirstFrameSeen = false;
 		bFirstViewBuilt = false;
 		bArrivalSettled = false;
+		bArrivedOverDeck = false;
 		bGlideEndPredicted = false;
 	}
 	if (!IsTiming() || !World || World->GetGameInstance() != GetGameInstance()) { return; }
@@ -362,7 +364,9 @@ void UTDDescentSubsystem::TickCover(float Dt)
 			for (TActorIterator<ATDAtmosphereFlightZone> It(World); It; ++It) { Zone = *It; break; }
 			if (Terrain && Zone && !Zone->IsFittedToTerrain()) { bTerrainReady = false; }
 			if (bDepartPending && CoverDestination == ETDDestination::Galaxy) { PlaceDeparture(World); }
-			if (bTerrainReady && !bArrivalSettled && ArrivalWorld.Get() == World && Zone)
+			// Every covered arrival on a planet settles (a recorded entry, or any other travel in: the cheat, a stage, a flow
+			// travel with no entry point - T2's live finding: those glided from the spawn height).
+			if (bTerrainReady && !bArrivalSettled && Zone && (ArrivalWorld.Get() == World || (IsGlideEnabled() && CoverDestination != ETDDestination::Galaxy)))
 			{
 				bArrivalSettled = true;
 				float DeckZ = IsGlideEnabled() && CoverDestination != ETDDestination::Galaxy ? FindDeckZ(World) : 0.f;
@@ -406,7 +410,8 @@ void UTDDescentSubsystem::TickCover(float Dt)
 						bGlideEndPredicted = Terrain != nullptr;
 						// T4: the deck actor moves to the corridor's deck, and the scatter round the glide end is built first.
 						if (Terrain) { Terrain->PrepareArrival(FVector(From.X, From.Y, Want), End); }
-						FVector A = ArrivalWorldXf.GetLocation(); A.Z = Want; ArrivalWorldXf.SetLocation(A); // retakes too
+						if (ArrivalWorld.Get() == World) { FVector A = ArrivalWorldXf.GetLocation(); A.Z = Want; ArrivalWorldXf.SetLocation(A); } // retakes too
+						bArrivedOverDeck = true;
 					}
 				}
 				const float Top = DeckZ > 0.f ? Zone->GetZoneBox().Max.Z : Zone->GetZoneBox().Max.Z - CeilingClearanceCm;
@@ -435,7 +440,7 @@ void UTDDescentSubsystem::TickCover(float Dt)
 			UE_LOG(LogTriadDrift, Log, TEXT("TD descent: reveal (%s)"), Why);
 			CoverPhase = ETDDescentCover::Revealing;
 			StopRoar(1.f);
-			if (IsGlideEnabled() && CoverDestination != ETDDestination::Galaxy && World)
+			if (IsGlideEnabled() && CoverDestination != ETDDestination::Galaxy && World && bArrivedOverDeck) // never from a spawn height
 			{
 				APlayerController* GlidePC = UGameplayStatics::GetPlayerController(World, 0);
 				if (ATDShip* Flown = GlidePC ? Cast<ATDShip>(GlidePC->GetPawn()) : nullptr) { BeginGlide(Flown); }

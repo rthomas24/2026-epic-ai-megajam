@@ -318,6 +318,13 @@ private:
 	float GlideSpeedNow = 12000.f;
 	FVector GlideEndPredicted = FVector::ZeroVector;
 	bool bGlideEndPredicted = false;
+public:
+	/** This visit's arrival was placed over the cloud deck (the glide may start at the reveal). */
+	bool HasArrivedOverDeck() const { return bArrivedOverDeck; }
+	/** Tests: the destination map has loaded (what PostLoadMapWithWorld does in the game). */
+	void NotifyPostLoadForTests(UWorld* World) { HandlePostLoadMap(World); }
+private:
+	bool bArrivedOverDeck = false;
 
 	bool bArrivalPending = false;
 	ETDDestination ArrivalPlanet = ETDDestination::Verdance;
