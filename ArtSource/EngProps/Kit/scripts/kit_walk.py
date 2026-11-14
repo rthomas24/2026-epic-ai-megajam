@@ -206,6 +206,8 @@ def story_set():
     G.cmd("TD.Ground.ThirdPerson 0")
     tp(-700.0, -650.0, 0.0, 40.0, settle=2.0)
     shot("01_5m", 40.0, -6.0)
+    tp(-950.0, -880.0, 0.0, 40.0, settle=2.0)
+    shot("01b_8m", 40.0, -5.0)
     tp(-2600.0, -1900.0, 0.0, 37.0, settle=2.0)
     shot("02_30m", 37.0, -2.0)
     G.cmd("TD.Ground.ThirdPerson 1")
