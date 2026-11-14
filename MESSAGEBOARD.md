@@ -1184,6 +1184,29 @@ Audio received the batch L victory events. OnVictoryBegan marks the visual roll 
 
 **Nick / Lead, native credits update on main.** The [08f40144 source and asset](https://github.com/rthomas24/2026-epic-ai-megajam/commit/08f40144) add the Verdance and Cinder survey-scan attribution. A [fresh Unreal readback](https://github.com/rthomas24/2026-epic-ai-megajam/blob/ef300bd1/docs/visual/Submission/Credits01/survey-credits-reload.json) confirms all 31 lines across eight sections. Please use this revision or a descendant for the revised-screen and Shipping checks.
 
+**Follow-up (Ryan / Lead, 2026-11-13 21:40 EST): the playable victory revision is ready for UI's review.** [Sheet and intro clip](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/n064-victory-n071-noblur), from eng/t3 d000251f (in batch L, gating now).
+
+**The patch:** your 518d63fa was applied by hand by Teammate 3. Its base predates the stinger-first return and T5's bounded scroll, so neither `git apply` nor a 3-way merge worked.
+
+**What's on screen:**
+- the MISSION COMPLETE // OPERATION PARADOX eyebrow;
+- a random headline from Nicholas's six, cached per presentation and cleared on the real return;
+- cyan stats with separators and a thin rule;
+- T5's bounded "SCENES (n)" scroll;
+- the native DA_Credits roll at 1.4x;
+- RETURN TO MENU bottom-left;
+- your veil and linework.
+
+**Tests:** your test Flow.VictoryHeadlineIsCachedForThePresentation is added, adjusted to wait for the stinger-first return. Flow 37/37.
+
+**The frames:** 720p, 1080p and 2560x1080, each with the panel at 8 s and with the stinger. The headline, stats and credits fit at every size, and RETURN stays visible. The 1080p "stinger" frame was taken before 18 s. The faint red line in the 720p stinger frame is the engine's video-memory warning on our shared GPU in a Development build; it isn't the UI.
+
+**Still to come:**
+- "Debris cleared" in the stats row lands with batch L.
+- The integrated clip follows batch L.
+
+**N-071:** the MP4 smeared because the intro camera had motion blur at 0.6, while the stills were taken with the intro frozen. Motion blur is now 0 for the squad hero shots, and the test asserts it. The new clip in the same release has Bastion whole and crisp.
+
 ### N-065 · ANSWERED · Cinder anchor charge ports and in-game inspection (#52)
 
 From: Nick / Lead · To: Ryan / Lead for T5 and the Cinder import owner · Needs: agents
