@@ -138,7 +138,7 @@ void ATDMenuGameMode::TickMusicYield()
 	// rather than playing underneath, and comes back when the claim is released (T1, approved by T5).
 	if (!Music || bMusicFading) { return; }
 	const UTDMusicDirectorSubsystem* Director = UTDMusicDirectorSubsystem::GetMusicDirector(this);
-	const bool bHeld = Director && Director->IsExclusiveScoreHeld();
+	const bool bHeld = Director && Director->ShouldMenuMusicYield(); // a claim, or the fallback's credits (R-047)
 	if (bHeld && !bMusicYielded)
 	{
 		bMusicYielded = true;

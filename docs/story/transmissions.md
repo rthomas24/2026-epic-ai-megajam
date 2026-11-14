@@ -204,7 +204,7 @@ are spoken by whoever flew the docked ship (issue #29). `F_FutureWren_FullWarnin
 | Id | Speaker (style) | Line |
 |---|---|---|
 | `A5_Choice` | Moss | We can't trust them, and we can't let them finish. We end it here. |
-| `A5_Escape` | Control | The ship is coming apart. Ninety seconds. Move! |
+| `A5_Escape` | Command | Triad, you've got ninety seconds. Get to the hangar. |
 | `A5_DistressSignal` | Unknown (Static) | DISTRESS SIGNAL  ·  TRIAD: WREN, KATO, MOSS  ·  DATED DECADES AHEAD |
 
 ### Sequence 02, *Aftermath* (plays on T7's OnAftermathBegins: the tutorial's escape, or a skipped tutorial)
@@ -215,7 +215,7 @@ are spoken by whoever flew the docked ship (issue #29). `F_FutureWren_FullWarnin
 | `S2_Kato_NotPursuing` | Kato | Wait. Look behind us. |
 | `S2_Kato_Vectors` | Kato | Most of their fleet never even joined the fight. |
 | `S2_Wren_WhatDoing` | Wren | Would you rather they had? |
-| `S2_Kato_Planetside` | Kato | Heading planetside. Every group. Same destination. (R020 draft held: "it's us") |
+| `S2_Kato_Planetside` | Kato | They're after something. Doesn't look like it's us. |
 | `S2_Moss_InTheWay` | Moss | So we got in the way. |
 | `S2_Command_Report` | Command (Static) | Triad, answer me. We lost you near that ship. |
 | `S2_Wren_Hostile` | Wren | Fighters. A lot of them. All three of us got out. |

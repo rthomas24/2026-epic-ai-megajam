@@ -128,15 +128,22 @@ def outpost(variant):
         ps.append(piece("Corner_%d_%d" % (x, y), "SM_Kit_Corner", x, y, 0, yaw, slots=g))
     ps.append(piece("Console", "SM_Kit_Console", -360, 0, 0, 0, slots={"Screen": K + "MI_Kit_Screen"}))
     ps.append(piece("Lamp_Door", "SM_Kit_LightStrip_200", 425, 0, 296, 90, slots=g))
+    # ART-17 (Lead, 03:00 audit): the room sits 3 cm above the ground so uneven terrain does not show through the floor
+    # (evidence-eb1bf334/raw/42_console_c.png showed Verdance's ground as the outpost floor). The 20 cm slab still reaches
+    # 17 cm below the pivot, and every piece (walls, door, console) moves with it; the floor's collision top is the visual top.
+    LIFT = 3.0
+    for pc in ps:
+        pc["location_cm"][2] += LIFT
     return {
         "site": "Outpost_Site", "actor": "/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_" + variant,
         "about": "Survey outpost rebuilt from the kit: one 800 x 400 room, 300 to the roof, floor flush with the ground, doorway (160 x 260) on +X.",
         "pieces": ps,
-        "console_interact": {"stand_at_site_cm": [-250.0, 0.0, 0.0], "pilot_faces_yaw_deg": 180.0, "console_site_cm": [-360.0, 0.0, 0.0],
+        "console_interact": {"stand_at_site_cm": [-250.0, 0.0, 3.0], "pilot_faces_yaw_deg": 180.0, "console_site_cm": [-360.0, 0.0, 3.0],
                              "clear_in_front_cm": 316.0, "moved_from": "(76, 81.5, 153) yaw 180 on the Rodin cabin's bay floor"},
         "walk_path_site_cm": [[700, 0, 0, "ground in front of the door"], [400, 0, 0, "doorway, 160 x 260 clear"], [0, 0, 0, "room centre"], [-250, 0, 0, "console point"]],
-        "walkability_cm": {"floor_top_z": 0, "room": {"x": [-390, 390], "y": [-190, 190]}, "door": {"y": [-80, 80], "z": [0, 260]}, "roof_underside_z": 296},
-        "placement_rules": ["Put the pivot on flat ground: the floor top IS the ground (the 20 cm slab is buried).", "Keep 3 m clear in front of the door (X 400..700)."],
+        "walkability_cm": {"floor_top_z": 3, "room": {"x": [-390, 390], "y": [-190, 190]}, "door": {"y": [-80, 80], "z": [3, 263]}, "roof_underside_z": 299},
+        "placement_rules": ["Put the pivot on the ground: the floor top is 3 cm above it (a 3 cm step at the door, well under the pawn's 45 cm step); the slab reaches 17 cm below the pivot, so keep terrain bumps under 15 cm inside the footprint.",
+                            "Keep 3 m clear in front of the door (X 400..700)."],
     }
 
 
@@ -456,6 +463,70 @@ def space_sites():
     return out
 
 
+# ------------------------------------------------------------------------------------------------ planet story sets
+ST = K + "Story/"
+STORY_LM = {}
+
+
+def story_sets():
+    """Story props composed into two small sets (about 20 m across) for the capture and as a starting layout for the
+    environment builder / T5's Dress lists. Not walkable; collision only on the pieces over 1 m."""
+    camp = [piece("ShelterA", ST + "SM_Kit_ShelterFrame", 0.0, 0.0, 0.0, 0.0),
+            piece("ShelterB", ST + "SM_Kit_ShelterFrame", 650.0, 500.0, 0.0, 28.0),
+            piece("Lamp", ST + "SM_Kit_LampPostDead", -380.0, -320.0, 0.0, 30.0),
+            piece("Cases", ST + "SM_Kit_SampleCases", 280.0, -300.0, 0.0, -15.0),
+            piece("Antenna", ST + "SM_Kit_AntennaToppled", -500.0, 600.0, 0.0, 160.0),
+            piece("Drag", ST + "SM_Kit_DragMark", 1100.0, -150.0, 0.0, 12.0)]
+    for i, x in enumerate((500.0, 900.0, 1300.0, 1700.0)):
+        camp.append(piece("Stake%d" % i, ST + "SM_Kit_SurveyStakeFlag", x, -750.0 - 40.0 * i, 0.0, 90.0))
+    mine = [piece("Rail", ST + "SM_Kit_RailStub", 0.0, 0.0, 0.0, 0.0),
+            piece("Cart", ST + "SM_Kit_OreCart", -180.0, 0.0, 22.0, 0.0),
+            piece("CartTipped", ST + "SM_Kit_OreCart", 550.0, 380.0, 60.0, 35.0, roll_deg=95.0),
+            piece("Reel", ST + "SM_Kit_CableReel", 250.0, -400.0, 0.0, 70.0),
+            piece("Shield", ST + "SM_Kit_HeatShieldCracked", -150.0, 520.0, 0.0, 0.0),
+            piece("BeaconA", ST + "SM_Kit_WarningBeacon", 650.0, -250.0, 0.0, 0.0),
+            piece("BeaconB", ST + "SM_Kit_WarningBeacon", -550.0, -350.0, 0.0, 0.0),
+            piece("Gantry", ST + "SM_Kit_GantryCollapsed", -950.0, -150.0, 0.0, 20.0),
+            piece("Scorch", ST + "SM_Kit_ScorchLines", -700.0, 450.0, 0.0, 150.0),
+            piece("LampPool", ST + "SM_Kit_LightPool", -640.0, -40.0, 0.0, 0.0),
+            piece("MarkerPole", ST + "SM_Kit_MarkerPole", 200.0, 750.0, 0.0, 0.0)]
+    lm = {"Landmark_RelayMast": {"site": "Landmark_RelayMast", "actor": K + "Sites/BP_Landmark_RelayMast",
+                                 "about": "Verdance landmark: a leaning expedition relay mast (about 100 m) for the research site; yaw it so its -X (the dish) faces the landing pad; collision on its pad only.",
+                                 "pieces": [piece("Mast", ST + "SM_Kit_RelayMast", 0.0, 0.0, 0.0, 0.0)]},
+          "Landmark_NullDerrick": {"site": "Landmark_NullDerrick", "actor": K + "Sites/BP_Landmark_NullDerrick",
+                                   "about": "Cinder landmark: a Null excavation derrick (87 m) over the dig; cables run below its pivot into the pit; collision on its feet only.",
+                                   "pieces": [piece("Derrick", ST + "SM_Kit_NullDerrick", 0.0, 0.0, 0.0, 0.0)]}}
+    STORY_LM.update(lm)
+    return {"StorySet_VerdanceCamp": {"site": "StorySet_VerdanceCamp", "actor": K + "Sites/BP_StorySet_VerdanceCamp",
+                                      "about": "Verdance: an abandoned field camp (shelters with torn canopies, a dead lamp, sample cases, a toppled antenna, survey stakes, a drag mark leading away).",
+                                      "pieces": camp},
+            "StorySet_CinderMine": {"site": "StorySet_CinderMine", "actor": K + "Sites/BP_StorySet_CinderMine",
+                                    "about": "Cinder: a mining camp (ore carts on a rail stub, one tipped, a cable reel, a cracked heat-shield wall, warning beacons, a collapsed gantry, scorch lines).",
+                                    "pieces": mine}}
+
+
+KSP = K + "Space/"
+
+
+def region_sites():
+    """Capture / grouping classes for the region set pieces (one per region)."""
+    one = lambda n, mesh, about, **kw: {"site": n, "actor": KSP + "BP_" + n, "about": about, "pieces": [piece("P", KSP + mesh, 0.0, 0.0, 0.0, 0.0, **kw)]}
+    # r4: captured at the placement scale recommended to T6 (ring and rig 2x, hulks 1.5x, shards 1x)
+    return {"KS_PicketRing": one("KS_PicketRing", "SM_KS_PicketRing", "Watchline: the broken picket-station ring segment at 2x (pivot = the ring centre, 132 m from the arc at 2x).", roll_deg=12.0, scale=[2.0, 2.0, 2.0]),
+            "KS_Hulk": {"site": "KS_Hulk", "actor": KSP + "BP_KS_Hulk", "about": "Quiet Graveyard: the cut-up cruiser's three sections drifting apart (about 200 m).",
+                        "pieces": [piece("Fore", KSP + "SM_KS_Hulk_Fore", 9750.0, 1200.0, 600.0, 8.0, roll_deg=-12.0, scale=[1.5, 1.5, 1.5]),
+                                   piece("Mid", KSP + "SM_KS_Hulk_Mid", 0.0, 0.0, 0.0, 0.0, roll_deg=6.0, scale=[1.5, 1.5, 1.5]),
+                                   piece("Aft", KSP + "SM_KS_Hulk_Aft", -9300.0, -1350.0, -900.0, -10.0, pitch_deg=5.0, roll_deg=25.0, scale=[1.5, 1.5, 1.5])]},
+            # yaw -128: the canyon (local Y) lies along the capture camera's line at Cinder, so it can be seen into
+            "KS_ScarRig":
+            {"site": "KS_ScarRig", "actor": KSP + "BP_KS_ScarRig", "about": "Survey Scar: a Null survey rig clamped across a split asteroid (about 90 m); the canyon runs along local Y.",
+             "pieces": [piece("P", KSP + "SM_KS_ScarRig", 0.0, 0.0, 0.0, -128.0, scale=[2.0, 2.0, 2.0])]},
+            "KS_MoonShards": {"site": "KS_MoonShards", "actor": KSP + "BP_KS_MoonShards", "about": "Shattered Moons: two shards of one moon (300 m and 180 m).",
+                              # r2: both fracture faces (+X) turned toward the capture camera at Belt (it looks along (0.89, 0.44))
+                              "pieces": [piece("A", KSP + "SM_KS_MoonShard_A", 0.0, 0.0, 0.0, 206.0),
+                                         piece("B", KSP + "SM_KS_MoonShard_B", 8000.0, -26000.0, 6000.0, 196.0, pitch_deg=10.0)]}}
+
+
 def main():
     out = os.path.join(KIT, "sites")
     os.makedirs(out, exist_ok=True)
@@ -465,6 +536,9 @@ def main():
              "DockingBay_GalaxyTest": docking_bay_galaxy_test(), "DockingBay_Course": docking_bay_course(),
              "SurveyLine_Verdance": survey_line(), "Artefact": artefact()}
     sites.update(space_sites())
+    sites.update(story_sets())
+    sites.update(STORY_LM)
+    sites.update(region_sites())
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)

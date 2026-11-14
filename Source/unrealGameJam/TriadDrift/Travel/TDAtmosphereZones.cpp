@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
+#include "TriadDrift/Travel/TDPlanetTravelRig.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "Sound/SoundBase.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
@@ -515,6 +516,9 @@ void ATDAtmosphereFlightZone::FitToTerrain(const ATDPlanetTerrain* Terrain)
 		Box.Max.Y = FMath::Max(Box.Max.Y, O.Y + Half);
 		Box.Max.Z = FMath::Max(Box.Max.Z, MaxZ + TerrainCeilingClearance);
 	}
+	// ENG-38 glide-lite (agreed with T4): the arrival sits 300 m over the cloud deck, so the ceiling clears the deck by 500 m.
+	const float DeckZ = UTDDescentSubsystem::FindDeckZ(GetWorld());
+	if (DeckZ > 0.f && UTDDescentSubsystem::IsGlideEnabled()) { Box.Max.Z = FMath::Max(Box.Max.Z, DeckZ + 50000.f); }
 	SetActorLocation(Box.GetCenter());
 	SetZoneExtent(Box.GetExtent());
 	bFittedToTerrain = true;
@@ -634,6 +638,17 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 			UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
 			UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this);
 			if (Descent) { Descent->RecordSquad(GetWorld()); Descent->SetClimbHold(ExitClimbSeconds); } // and back up
+			// The mirrored take-off: where on the ground the squad leaves decides where it comes out on the globe.
+			if (Descent && UTDDescentSubsystem::IsGlideEnabled())
+			{
+				for (TActorIterator<ATDPlanetTravelRig> It(GetWorld()); It; ++It)
+				{
+					if (It->PlanetId != PlanetId) { continue; }
+					Descent->RecordDeparture(PlanetId == TEXT("Cinder") ? ETDDestination::Cinder : ETDDestination::Verdance,
+						Ship->GetActorTransform().GetRelativeTransform(It->GetActorTransform()));
+					break;
+				}
+			}
 			const bool bRequested = Travel && Travel->RequestLevelTravel(ETDDestination::Galaxy, FName(*FString::Printf(TEXT("%s_Orbit"), *PlanetId.ToString())));
 			// No game flow (tests, sandbox): still report the exit, as the entry does.
 			if (bRequested || !Travel || !UTDStatics::GetGameFlow(this))

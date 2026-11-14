@@ -274,6 +274,14 @@ def main():
         for suffix in ("BC", "N", "ORM", "E"):
             shutil.copyfile(os.path.join(C.RODIN, "T_%s_%s.png" % (SHIP, suffix)), os.path.join(C.EXPORT, "T_%s_%s.png" % (SHIP, suffix)))
         res["textures"] = "source maps, unchanged"
+        if CFG.get("emissive_src"):
+            # the emissive map from another revision of the same UVs (Grok Bot's textures_r2), with the texels whose
+            # surface lies in the given boxes cleared (Bastion: the glowing squiggle inside the windscreen)
+            e = T.load(CFG["emissive_src"])
+            m = CP._paint_mask(body, e.shape[:2], None, CFG.get("emissive_clear", []))
+            res["emissive_cleared_px"] = int((m & (e.max(-1) > 0.02)).sum())
+            e[m] = 0.0
+            T.save(e, os.path.join(C.EXPORT, "T_%s_E.png" % SHIP), True)
     else:
         res["textures"] = T.clean(C.RODIN, C.EXPORT, SHIP, CFG["accent"])
     if HEAT:

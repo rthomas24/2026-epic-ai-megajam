@@ -22,12 +22,14 @@ bool FTDCreditsRoll::RunTest(const FString& Parameters)
 			All += L.ToString() + TEXT("\\n");
 		}
 	}
-	for (const TCHAR* Must : { TEXT("Ryan T"), TEXT("Nicholas Tosti"), TEXT("The Paradox"), TEXT("Claude Code"), TEXT("OpenAI Codex"),
+	for (const TCHAR* Must : { TEXT("Ryan T"), TEXT("Nicholas Tosti"), TEXT("Story by Nicholas Tosti"), TEXT("Claude Code"), TEXT("OpenAI Codex"),
 		TEXT("Unreal Engine 5.9"), TEXT("MegaJam") })
 	{
 		TestTrue(FString::Printf(TEXT("the credits name %s"), Must), All.Contains(Must));
 	}
 	TestTrue(TEXT("no future reveal in the credits"), !All.Contains(TEXT("future")));
+	// StoryFidelity01 (Nick's Story Director): the story's title gives the twist away and the credits can be read before the reveal.
+	TestTrue(TEXT("the credits do not name the story's title"), !All.Contains(TEXT("The Paradox")));
 
 	// Nicholas's DA_Credits replaces the whole list.
 	UTDCreditsData* Nicks = NewObject<UTDCreditsData>(GetTransientPackage());

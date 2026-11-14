@@ -34,7 +34,7 @@ namespace TDTutorialPhasesTests
 			if (PC && Pawn) { PC->Possess(Pawn); }
 			Phases = UTDTutorialPhases::Get(W.GetWorld());
 			Bus = UTDEventBus::Get(W.GetWorld());
-			if (Phases) { Phases->bForceTutorialForTests = bTutorial; }
+			if (Phases) { Phases->bForceTutorialForTests = bTutorial; Phases->bRequireFlyingShip = false; }
 		}
 		FString Prompt() const
 		{
@@ -124,6 +124,14 @@ bool FTDTutorialPhasesOff::RunTest(const FString& Parameters)
 		F.Bus->BroadcastWaveStarted(1, 0.2f);
 		F.Phases->SkipAll();
 		TestEqual(TEXT("skip: done"), F.Phases->GetPhase(), ETDTeachPhase::Done);
+	}
+	{
+		// Live walk: no time counts while the player has no ship (the intro, a cut): the substitute never runs out unseen.
+		FFixture F(true);
+		F.Phases->bRequireFlyingShip = true;
+		F.Bus->BroadcastWaveStarted(1, 0.2f);
+		F.W.Advance(F.Phases->EvadeSubstituteSeconds + 5.f, 1.f / 30.f);
+		TestEqual(TEXT("no flying ship: still evading"), F.Phases->GetPhase(), ETDTeachPhase::Evade);
 	}
 	return true;
 }

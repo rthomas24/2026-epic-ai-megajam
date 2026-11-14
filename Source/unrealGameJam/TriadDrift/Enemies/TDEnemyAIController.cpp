@@ -53,6 +53,16 @@ void ATDEnemyAIController::OnPossess(APawn* InPawn)
 		Rng.Initialize(Ship->GetSpawnSeed() ^ 0x5bd1e995);	// deterministic per world, not per object count
 	}
 	bPrefersPlayer = Rng.FRand() < PreferPlayerShipChance;
+	if (ATDEnemyShip* Ship = Cast<ATDEnemyShip>(InPawn))
+	{
+		if (UTDShipMovementComponent* Move = Ship->GetShipMovement())
+		{
+			Move->OnFlightImpact.AddUniqueDynamic(this, &ATDEnemyAIController::HandleFlightImpact);
+			ImpactSource = Move;
+		}
+	}
+	StuckTime = 0.f;
+	BackOffLeft = 0.f;
 	CrossInFrontDistance = GTDEnemyCrossInFront;
 	bOpeningPass = false;
 	bOpeningPassChecked = GTDEnemyOpeningPass == 0;
@@ -62,8 +72,19 @@ void ATDEnemyAIController::OnPossess(APawn* InPawn)
 	RetargetTimer = 0.f;
 }
 
+void ATDEnemyAIController::HandleFlightImpact(const FTDFlightImpact& Impact)
+{
+	LastImpactTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	LastImpactNormal = Impact.ImpactNormal;
+}
+
 void ATDEnemyAIController::OnUnPossess()
 {
+	if (UTDShipMovementComponent* Move = ImpactSource.Get())
+	{
+		Move->OnFlightImpact.RemoveDynamic(this, &ATDEnemyAIController::HandleFlightImpact);
+	}
+	ImpactSource = nullptr;
 	if (ATDEnemyShip* Ship = GetEnemyShip())
 	{
 		Ship->SetGunsFiring(false, nullptr);
@@ -356,6 +377,39 @@ FVector2D ATDEnemyAIController::ComputeSteer(const FTransform& Ship, const FVect
 void ATDEnemyAIController::SteerToward(ATDEnemyShip& Ship, const FVector& WorldPoint, float Throttle01, bool bBoost)
 {
 	FVector Goal = WorldPoint;
+
+	// Stuck on something (a field rock, a hull): blocked and slow for StuckSeconds right after a contact -> back off along
+	// the contact normal, a little to one side, then re-route with the avoidance below (T6's item 866, Nov 14).
+	if (const UWorld* World = GetWorld())
+	{
+		const float Dt = World->GetDeltaSeconds();
+		const bool bRecentHit = World->GetTimeSeconds() - LastImpactTime < 0.35;
+		if (BackOffLeft > 0.f)
+		{
+			BackOffLeft -= Dt;
+			Ship.SetFlightInput(TDEnemyAI_MakeInput(ComputeSteer(Ship.GetActorTransform(), Ship.GetActorLocation() + BackOffDir * 10000.f, SteerFullDeflectionDeg), 1.f, false));
+			bAvoiding = true;
+			return;
+		}
+		if (bRecentHit && Ship.GetVelocity().Size() < StuckSpeed)
+		{
+			StuckTime += Dt;
+		}
+		else if (!bRecentHit)
+		{
+			StuckTime = 0.f;
+		}
+		if (StuckTime >= StuckSeconds)
+		{
+			StuckTime = 0.f;
+			BackOffLeft = BackOffSeconds;
+			++BackOffCount;
+			const FVector N = LastImpactNormal.IsNearlyZero() ? -Ship.GetActorForwardVector() : LastImpactNormal.GetSafeNormal();
+			const FVector Side = FVector::CrossProduct(N, FVector::UpVector).GetSafeNormal();
+			BackOffDir = (N + Side * (Rng.FRand() < 0.5f ? -0.6f : 0.6f) + FVector::UpVector * 0.3f).GetSafeNormal();
+			UE_LOG(LogTriadDrift, Verbose, TEXT("TD.EnemyAI: %s stuck against an obstacle for %.1f s - backing off"), *Ship.GetName(), StuckSeconds);
+		}
+	}
 
 	// Obstacle avoidance: probe ahead along the velocity (or nose) and slide around asteroids,
 	// ruins, planets and the Dominion hull. Targets beyond the obstacle stay the goal once clear.

@@ -1,0 +1,164 @@
+[
+ {
+  "shot": "Verdance_approach_00",
+  "pos": [
+   -44830.0,
+   0.0,
+   22639.0
+  ],
+  "dist_m": 631
+ },
+ {
+  "shot": "Verdance_approach_01",
+  "pos": [
+   -34351.0,
+   0.0,
+   17528.0
+  ],
+  "dist_m": 515
+ },
+ {
+  "shot": "Verdance_approach_02",
+  "pos": [
+   -23934.0,
+   0.0,
+   12448.0
+  ],
+  "dist_m": 400
+ },
+ {
+  "shot": "Verdance_approach_03",
+  "pos": [
+   -13477.0,
+   0.0,
+   7348.0
+  ],
+  "dist_m": 286
+ },
+ {
+  "shot": "Verdance_approach_04",
+  "pos": [
+   -2934.0,
+   0.0,
+   2691.0
+  ],
+  "dist_m": 174
+ },
+ {
+  "shot": "Verdance_approach_05",
+  "pos": [
+   9145.0,
+   0.0,
+   2145.0
+  ],
+  "dist_m": 61
+ },
+ {
+  "shot": "Verdance_approach_06",
+  "pos": [
+   9145.0,
+   0.0,
+   2145.0
+  ],
+  "dist_m": 61
+ },
+ {
+  "shot": "Verdance_approach_07",
+  "pos": [
+   34017.0,
+   0.0,
+   3196.0
+  ],
+  "dist_m": 205
+ },
+ {
+  "shot": "Verdance_approach_08",
+  "pos": [
+   46480.0,
+   0.0,
+   7054.0
+  ],
+  "dist_m": 334
+ },
+ {
+  "shot": "Verdance_approach_09",
+  "pos": [
+   57852.0,
+   0.0,
+   12881.0
+  ],
+  "dist_m": 458
+ },
+ {
+  "shot": "Verdance_approach_10",
+  "pos": [
+   68257.0,
+   101.0,
+   20149.0
+  ],
+  "dist_m": 580
+ },
+ {
+  "shot": "Verdance_approach_11",
+  "pos": [
+   76656.0,
+   301.0,
+   27873.0
+  ],
+  "dist_m": 686
+ },
+ {
+  "shot": "Verdance_approach_12",
+  "pos": [
+   83756.0,
+   531.0,
+   36496.0
+  ],
+  "dist_m": 788
+ },
+ {
+  "shot": "Verdance_approach_13",
+  "pos": [
+   90662.0,
+   760.0,
+   45134.0
+  ],
+  "dist_m": 890
+ },
+ {
+  "shot": "Verdance_approach_14",
+  "pos": [
+   97662.0,
+   992.0,
+   53890.0
+  ],
+  "dist_m": 995
+ },
+ {
+  "shot": "Verdance_approach_15",
+  "pos": [
+   104589.0,
+   1222.0,
+   62553.0
+  ],
+  "dist_m": 1101
+ },
+ {
+  "shot": "Verdance_ground_from_pad",
+  "pos": [
+   0.0,
+   397.0,
+   132.0
+  ],
+  "dist_m": 142
+ },
+ {
+  "shot": "Verdance_ground_150m",
+  "pos": [
+   -747.0,
+   258.0,
+   92.0
+  ],
+  "dist_m": 150
+ }
+]

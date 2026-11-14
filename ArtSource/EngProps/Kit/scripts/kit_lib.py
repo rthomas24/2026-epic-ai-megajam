@@ -16,8 +16,8 @@ from kit_regions import ATLAS, REGIONS  # noqa: E402
 
 AX = {"x": 0, "y": 1, "z": 2}
 INSET = 1.0     # px kept clear inside every region (mip bleed)
-GLOW = ("Glow", "Screen", "Light", "Beacon", "Pillar", "Eye", "Breach", "Run", "Flicker", "Work", "Strobe", "Nav")
-RAW_UV = ("Screen", "Pillar", "Decal", "Route", "Rock", "Cut", "Bore", "BoreEnd")       # these keep the 0..1 UVs given to poly() (the screen shows a whole image)
+GLOW = ("Glow", "Screen", "Light", "Beacon", "Pillar", "Eye", "Breach", "Run", "Flicker", "Work", "Strobe", "Nav", "CyanRun", "Band", "Cold", "Seam", "CrackHot", "CrackDim", "RimLight")
+RAW_UV = ("Screen", "Pillar", "Decal", "Route", "Rock", "Cut", "Bore", "BoreEnd", "Decal2", "Pool", "Strata", "Strata2", "DomRaw", "Insignia")       # these keep the 0..1 UVs given to poly() (the screen shows a whole image)
 
 
 def rotz(deg):
