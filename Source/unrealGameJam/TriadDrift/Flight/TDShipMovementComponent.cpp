@@ -411,7 +411,7 @@ void UTDShipMovementComponent::ApplyKeepOut(float DeltaTime)
 	}
 	// Turn the nose away: toward the surface normal until the ship is clearly heading out, faster the deeper it is.
 	const FVector Forward = State.Rotation.GetForwardVector();
-	if (FVector::DotProduct(Forward, Out) < 0.45f)
+	if (FVector::DotProduct(Forward, Out) < 0.6f) // until the nose is clearly away (about 53 deg off the normal): the planet leaves the view
 	{
 		FVector Axis = FVector::CrossProduct(Forward, Out);
 		if (!Axis.Normalize()) { Axis = State.Rotation.GetUpVector(); }
