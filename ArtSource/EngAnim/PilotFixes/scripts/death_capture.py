@@ -89,6 +89,9 @@ def main():
         camera = {"location": {"x": cam[0], "y": cam[1], "z": cam[2]},
                   "rotation": {"pitch": math.degrees(math.atan2(fwd[2], math.hypot(fwd[0], fwd[1]))), "yaw": math.degrees(math.atan2(fwd[1], fwd[0])), "roll": 0.0},
                   "projectionMode": "Perspective", "fOV": 45.0, "orthoWidth": 512}
+        if how == "front" and typ == "Heavy":
+            cmd("TD.Ground.BreakGuard")   # T5's dev command: a Heavy dies from the front only with its guard broken
+            time.sleep(0.1)
         for attempt in range(10):   # a shielded Heavy takes several hits (the first ones break its guard)
             cmd("TD.Ground.CrewKill" + (" " + how if how else ""))
             time.sleep(0.15)
@@ -99,7 +102,7 @@ def main():
         t0 = time.time() - 0.3
         shots = []
         trace = []
-        for want in (0.6, 1.6, 2.6, 3.5):
+        for want in [float(x) for x in os.environ.get("TD_TIMES", "0.6,1.6,2.6,3.5").split(",")]:
             time.sleep(max(0.0, want - (time.time() - t0)))
             t = time.time() - t0
             w = where(loc)
