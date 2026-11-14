@@ -36,20 +36,20 @@ branch since Nov 13 and on `main` with engineering batch B.
 ### First Contact opening (the cinematic brief's draft lines; used when the opening is rebuilt)
 | Id | Speaker (style) | Line |
 |---|---|---|
-| `O_PatrolSeven` | PatrolSeven (Static) | Command, we have an unidentified structure on the outer perimeter. It's not on any chart. Wait, something's coming out of- |
-| `O_Command_Orders` | Command | Triad Squadron, investigate Patrol Seven's last coordinates. Identify the contact and report. Recon only. Do not engage. |
+| `O_PatrolSeven` | PatrolSeven (Static) | Command, there's something out here. |
+| `O_Command_Orders` | Command | Triad, identify the ship and report. Recon only. Do not engage. |
 | `O_Wren_HowBad` | Wren | Three ships, one mystery. How bad could it be? |
 | `O_Kato_StopSaying` | Kato | Please stop saying that. |
 | `O_Moss_Especially` | Moss | Especially before we've seen it. |
-| `O_Wren_BigShip` | Wren | Okay. That is a big ship. |
-| `O_Kato_NoSignature` | Kato | No propulsion signature. No answer to our hails. Wait, we're receiving something. |
+| `O_Wren_BigShip` | Wren | That's all one ship? |
+| `O_Kato_NoSignature` | Kato | No engine readings. And they're not answering. |
 | `O_Moss_Message` | Moss | A message? |
-| `O_Kato_Handshake` | Kato | More like a handshake. And now it's gone. |
-| `O_Wren_WhyNotFiring` | Wren | Why isn't that one firing? |
+| `O_Kato_Handshake` | Kato | Wait—a handshake. Encrypted. It's gone. |
+| `O_Wren_WhyNotFiring` | Wren | What? Why didn't it shoot us? |
 | `O_Kato_Contacts` | Kato | Unknown. Multiple contacts are turning toward us. |
-| `O_Command_Disengage` | Command | Triad, disengage. Repeat, disengage immediately. |
+| `O_Command_Disengage` | Command | Triad, pull out. Now. |
 | `O_Unknown_Dont` | Unknown (Static, shared sound `Dont`) | Don't- |
-| `O_Wren_Break` | Wren | Triad, break formation! |
+| `O_Wren_Break` | Wren | Break formation! |
 | `O_Command_Evade` | Command | Pilot, incoming fire! Evade now! |
 
 ### Act 1 (the first battle)
@@ -63,16 +63,15 @@ branch since Nov 13 and on `main` with engineering batch B.
 ### Act 2 (Verdance)
 | Id | Speaker (style) | Line |
 |---|---|---|
-| `A2_DeviceFound` | Kato | A signal-analysis device. Someone here was listening to them. |
-| `A2_Voices` | Unknown (Static) | ...[static] ...maintain the sequence... [static]... |
+| `A2_DeviceFound` | Kato | Signal-analysis gear. They were listening to the machines. |
+| `A2_Voices` | Unknown (Static) | Maintain the sequence. |
 | `A2_TrailToCinder` | Moss | Human voices, under their signal. The data points to Cinder. |
 
 ### Act 3 (Cinder)
 | Id | Speaker (style) | Line |
 |---|---|---|
 | `A3_CrystalsFound` | Kato | Samples secured. EMP prototype recovered. Lancer's pulse is online. |
-| `A3_PassageOpen` | Kato | The anchor is down. The approach is prepared; passage is still blocked. |
-
+| `A3_PassageOpen` | Kato | Anchor's down. Route's prepared, but the field's still closed. |
 ### Sequences 02-09 (storyline.md §14-31; generated from the code table, Nov 13)
 The one echo is at the Cinder terminal (`C5_Unknown_SameConstruction`). `C5_Kato_OriginCore` is the one line before
 the reveal that says "temporal". The reveal is aboard the Dominion: the four recordings climb (Unknown, then future
@@ -81,29 +80,29 @@ are spoken by whoever flew the docked ship (issue #29). `F_FutureWren_FullWarnin
 
 | Id | Speaker | Placeholder line |
 |---|---|---|
-| `A2_ConvoyScanned` | Kato | Scanner assemblies. Extraction rigs. No troops. They're surveying. |
+| `A2_ConvoyScanned` | Kato | Those transports are carrying survey gear. Not troops. |
 | `A2_TransponderSighted` | Moss | There's a transponder down there. It keeps flickering. |
-| `G2_Wren_Geology` | Wren | That's a lot of machines for a geology expedition. |
-| `G2_Command_Archive` | Command | The outpost went dark twelve hours ago. Find its survey archive. Do not destroy the facility. |
-| `G2_Kato_OneLine` | Kato | They're concentrating their scans along one underground line. That's not random. |
-| `G2_Moss_LightsOn` | Moss | Lights are on. Doors are open. Nobody's answering. I don't like this. |
-| `C3_Moss_NoBodies` | Moss | No bodies. No signs of a fight. Where did everybody go? |
-| `C3_Wren_Survey` | Wren | Kato, see if the survey station can tell us anything. |
-| `C3_Kato_Artificial` | Kato | Those are human voices. Buried in their signal. And this shape beneath the station is artificial. |
-| `C3_Wren_NotThePlanet` | Wren | So they didn't come here to take the planet. |
-| `C3_Kato_Beneath` | Kato | They're looking for something beneath it. |
-| `C3_Wren_Answered` | Wren | Did we just answer that thing? |
-| `C3_Kato_DidntSend` | Kato | I didn't send anything. |
-| `C3_Kato_CinderMatch` | Kato | There's another match. Cinder. I'm copying the data- |
-| `C3_Moss_Company` | Moss | Company incoming. A lot of it. |
-| `C3_Wren_HoldThem` | Wren | Keep that transfer running. We'll hold them off. |
+| `G2_Wren_Geology` | Wren | They brought all this just to dig? |
+| `G2_Command_Archive` | Command | Twelve hours since their last transmission. Recover the archive. Keep the station intact. |
+| `G2_Kato_OneLine` | Kato | Look where they're scanning. One line, under the ground. |
+| `G2_Moss_LightsOn` | Moss | Power's still on. You'd think someone would answer. |
+| `C3_Moss_NoBodies` | Moss | No bodies. No sign of a fight, either. |
+| `C3_Wren_Survey` | Wren | Kato. Tell me what we've got. |
+| `C3_Kato_Artificial` | Kato | Those are people. Listen. And the thing under the station—someone built it. |
+| `C3_Wren_NotThePlanet` | Wren | They're digging for that? |
+| `C3_Kato_Beneath` | Kato | Every survey line runs over it. |
+| `C3_Wren_Answered` | Wren | That was our radio. What did you send? |
+| `C3_Kato_DidntSend` | Kato | Nothing. I didn't touch it. |
+| `C3_Kato_CinderMatch` | Kato | Cinder. Same readings at a mining site. Hang on, I'm taking a copy— |
+| `C3_Moss_Company` | Moss | We've got company. Coming in fast. |
+| `C3_Wren_HoldThem` | Wren | Keep copying. We'll cover the station. |
 | `G3_TransferStart` | Kato | Transfer's moving. If they destroy this station, we lose everything. |
-| `G3_Disruption` | Kato | Something heavy is coming in. The transfer's stalling. |
-| `G3_DataSecured` | Kato | Device and recordings secured. I've got the Cinder coordinates. Let's move. |
-| `G3_Moss_NobodyNear` | Moss | Then nobody gets near the station. |
-| `G3_Wren_LeftApproach` | Wren | Left approach! Keep them off Kato. |
+| `G3_Disruption` | Kato | The copy's stalled. Something's interfering. |
+| `G3_DataSecured` | Kato | Got it. Recordings, coordinates—the lot. Let's get out. |
+| `G3_Moss_NobodyNear` | Moss | Heard you. Keep it moving. |
+| `G3_Wren_LeftApproach` | Wren | Left side! They're going for the console. |
 | `G3_Kato_AlmostThere` | Kato | Archive almost complete. Keep them back. |
-| `G3_Command_Extraction` | Command | Triad, extraction corridor is open. Return with the archive intact. |
+| `G3_Command_Extraction` | Command | Your way out is marked. Bring that device back. |
 | `C4_Moss_Trouble` (retired, N-087) | Moss | All that for a recorder full of voices. None of them answering. |
 | `C4_Wren_Badly` | Wren | They wanted that device and its records. We need to know why. |
 | `C4_Kato_SameSignature` (retired, N-087) | Kato | They weren't searching at random. These two sites have the same geometric signature. |
@@ -112,26 +111,26 @@ are spoken by whoever flew the docked ship (issue #29). `F_FutureWren_FullWarnin
 | `C4_Command_Proceed` | Command | Proceed to Cinder. Investigate the mining complex and recover the stabilising crystals. Compare them with the signal-analysis records. Maintain reconnaissance priority. |
 | `C4_Moss_Volcanoes` (retired, N-087) | Moss | Volcanoes. Great. I was getting tired of the jungle. |
 | `C4_Wren_SetCourse` (retired, N-087) | Wren | Triad, set course for Cinder. |
-| `G4_Command_FollowCoordinates` | Command | Follow the survey coordinates. Identify the excavation before you engage. |
-| `G4_Kato_Transports` | Kato | Those transports are all heading for the same site. |
-| `G4_Moss_NotShooting` | Moss | They're not even shooting back. They've got somewhere to be. |
-| `G4_Kato_Cargo` | Kato | Heavy cargo. Excavation gear, all of it. |
-| `G4_Wren_StartThere` | Wren | Then that's where we start. Keep the landing route clear. |
-| `G4_Moss_SolidGround` | Moss | Solid ground. Preferably the kind that stays solid. |
-| `G4_Kato_TerminalAhead` | Kato | That pattern again. Get me to the survey terminal. |
+| `G4_Command_FollowCoordinates` | Command | Find the excavation before you engage. |
+| `G4_Kato_Transports` | Kato | Watch the transports. Same landing point. |
+| `G4_Moss_NotShooting` | Moss | They've got us in sight. Still not interested. |
+| `G4_Kato_Cargo` | Kato | Digging equipment. Heavy loads. |
+| `G4_Wren_StartThere` | Wren | Then we follow them down. |
+| `G4_Moss_SolidGround` | Moss | I'm putting down well clear of the lava. |
+| `G4_Kato_TerminalAhead` | Kato | There. On the terminal. I've seen that shape. |
 | `C5_Kato_SameConstruction` | Kato | Different worlds. Same construction. They knew where to dig. |
 | `C5_Unknown_SameConstruction` | Unknown (Echo) | Same construction. |
 | `C5_Kato_Feedback` | Kato | Could be feedback. Keep the recording. |
 | `C5_Kato_OriginCore` | Kato | The records call it the Origin Core. These look like components—or keys—to a temporal device. |
-| `C5_Moss_Sample` | Moss | So we take a sample and get out? |
-| `C5_Wren_Guarding` | Wren | First we find out what's guarding it. |
-| `C5_Kato_Anchor` | Kato | The anchor is blocking the approach. We need the samples, then we shut it down. |
-| `C5_Command_Recover` | Command | Recover the samples and preserve the survey data. Confirm a passage before approaching the Dominion. |
-| `C5_Wren_Route` | Wren | We've got our route. Triad, move. |
-| `G5_Wren_ClearRoute` | Wren | Clear the route to the cache. Watch the rig. |
-| `G5_Moss_Guardian` | Moss | That one's staying with the crystals. |
-| `G5_Command_AnchorMarked` | Command | Field anchor marked. Shut it down and confirm your exit. |
-| `G5_Wren_BackToShips` | Wren | Keep the samples intact. Back to the ships. |
+| `C5_Moss_Sample` | Moss | How much of this stuff do we need? |
+| `C5_Wren_Guarding` | Wren | Let's get past the thing guarding it first. |
+| `C5_Kato_Anchor` | Kato | That's the field anchor. We'll need it shut down as well. |
+| `C5_Command_Recover` | Command | Recover what you need and get clear. Report before you approach the Dominion. |
+| `C5_Wren_Route` | Wren | Fine. We start with the cache. |
+| `G5_Wren_ClearRoute` | Wren | Cache is behind it. Stay out of its reach. |
+| `G5_Moss_Guardian` | Moss | It's not leaving the crystals. We'll have to get past it. |
+| `G5_Command_AnchorMarked` | Command | Anchor's marked. Disable it, then head for extraction. |
+| `G5_Wren_BackToShips` | Wren | We've got what we came for. Back to the ships. |
 | `C6_Moss_SamplesAboard` (retired, N-087) | Moss | Samples aboard. I'm ready for somewhere with fewer volcanoes. |
 | `C6_Kato_GuardLine` | Kato | The anchor is down. The approach is prepared. We still have to clear the guard line. |
 | `C6_Kato_FourGenerators` | Kato | The crystals can stabilise the approach. Four generators are still sustaining its defensive shield. |
@@ -140,20 +139,21 @@ are spoken by whoever flew the docked ship (issue #29). `F_FutureWren_FullWarnin
 | `C6_Wren_Understood` (retired, N-087) | Wren | Understood. We find out what they intend to do with it. |
 | `C6_Moss_WholeFleet` | Moss | They've put a whole fleet across our route. |
 | `C6_Wren_StayTogether` | Wren | Stay together. Clear the guard line, then the generators. |
-| `G6_Wren_ClearCarriers` | Wren | Clear the carriers. We need that approach. |
-| `G6_Kato_MarkingTargets` | Kato | Four generators. I'm marking the live targets. |
-| `G6_Moss_TurretsCharging` | Moss | Those turrets are charging. Keep moving. |
-| `G6_Kato_ShieldWeakening` | Kato | Generator down. Their shield is weakening. |
-| `G6_Command_ShieldCollapsed` | Command | Dominion shield collapsed. Docking approach marked. |
+| `G6_Wren_ClearCarriers` | Wren | Take the carriers. Don't let them keep launching. |
+| `G6_Kato_MarkingTargets` | Kato | Four shield generators. Targets marked. |
+| `G6_Moss_TurretsCharging` | Moss | Hull turrets. Keep moving across them. |
+| `G6_Kato_ShieldWeakening` | Kato | Generator down. Shield's weakening. |
+| `G6_Command_ShieldCollapsed` | Command | Shield's down. Docking route marked. |
 | `G6_Wren_CoverTheBay` | Boarding pilot | Keep that bay covered. We need a way back out. |
-| `G6_Clue1` | Unknown (Static) | ...[static] ...hold formation... [static] ...vector two... |
-| `G6_Clue2` | Unknown (Echo) | ...Triad... authentication pending... hold formation... |
+| `G6_Clue1` | Unknown (Static) | …hold formation… vector two… |
+| `G6_Clue2` | Unknown (Echo) | …Triad… wait for authentication… |
 | `C7_Moss_WayOut` | Moss | We'll keep a way out clear. |
 | `C7_Kato_Layout` | Kato | That layout. We use the same arrangement. |
 | `C7_Kato_Archive` | Kato | There's a local command archive ahead. |
 | `C7_Wren_Record` | Boarding pilot | Record everything. Find who's giving the orders. |
 | `G7_Moss_MyVoice` | Moss | That's my voice in those records. Older. |
 | `G7_Kato_Authorisations` | Kato | Those authorisations match all three of us. |
+| `G7_RecKato_SameConstruction` | Future Kato (reads KATO (RECORDED)) | Same construction. (R102: opens Cinematic08, distinct from the Cinder echo) |
 | `G7_Wren_FullRecord` | Boarding pilot | We hear the full record before we touch that reactor. |
 | `F_FutureWren_FullWarning` | FutureWren | Don't engage the Dominion. You don't understand what happens if you do. |
 | `C8_RecKato_OneEvent` | FutureKato (Echo) | The Origin Core may let us change one event. Before everything was lost. |
@@ -210,18 +210,18 @@ are spoken by whoever flew the docked ship (issue #29). `F_FutureWren_FullWarnin
 ### Sequence 02, *Aftermath* (plays on T7's OnAftermathBegins: the tutorial's escape, or a skipped tutorial)
 | Id | Speaker (style) | Line |
 |---|---|---|
-| `S2_Moss_Accounted` | Moss | All three ships accounted for. I'm calling that a win. |
+| `S2_Moss_Accounted` | Moss | Well, we're not dead. I'd say that's a win. |
 | `S2_Wren_WelcomeParty` | Wren | Is it over? I think I blacked out... (approved; delivery: sarcastic, dry, deadpan) |
-| `S2_Kato_NotPursuing` | Kato | Hold on. They're not pursuing us. |
-| `S2_Kato_Vectors` | Kato | Look at their vectors. Most of those craft never joined the fight. |
-| `S2_Wren_WhatDoing` | Wren | Then what are they doing? |
-| `S2_Kato_Planetside` | Kato | Heading planetside. Every group. Same destination. |
-| `S2_Moss_InTheWay` | Moss | So we got in the way of something. |
-| `S2_Command_Report` | Command (Static) | Triad, report. We lost your telemetry when you approached the unidentified vessel. |
-| `S2_Wren_Hostile` | Wren | Confirmed hostile. Automated fighters, heavy numbers. We're intact, barely. |
-| `S2_Kato_Coordinated` | Kato | They've launched a coordinated operation toward Verdance. This wasn't a defensive scramble. |
-| `S2_Command_Outpost` | Command | We've received an emergency report from a research outpost there. Unidentified machines landed near a restricted survey zone. The outpost has gone dark. |
-| `S2_Moss_FindOut` | Moss | And you want us to find out why. |
-| `S2_Command_Orders` | Command | Affirmative. Avoid direct engagement with the mothership. Reach Verdance, locate the outpost, and recover its survey data. We need to know what they're looking for. |
-| `S2_Wren_FormUp` | Wren | Triad, form up. Verdance it is. |
-| `S2_Kato_Recorders` | Kato | And keep your recorders running. Nothing about this adds up. |
+| `S2_Kato_NotPursuing` | Kato | Wait. Look behind us. |
+| `S2_Kato_Vectors` | Kato | Most of their fleet never even joined the fight. |
+| `S2_Wren_WhatDoing` | Wren | Would you rather they had? |
+| `S2_Kato_Planetside` | Kato | They're after something. Doesn't look like it's us. |
+| `S2_Moss_InTheWay` | Moss | So we got in the way. |
+| `S2_Command_Report` | Command (Static) | Triad, answer me. We lost you near that ship. |
+| `S2_Wren_Hostile` | Wren | Fighters. A lot of them. All three of us got out. |
+| `S2_Kato_Coordinated` | Kato | They're sending the rest down to Verdance. They didn't launch them for us. |
+| `S2_Command_Outpost` | Command | An outpost there sent a distress beacon. Machines in the survey zone. Then it went quiet. |
+| `S2_Moss_FindOut` | Moss | Anyone answer the beacon? |
+| `S2_Command_Orders` | Command | No response. Find the outpost and recover its survey records. Stay clear of the mothership. |
+| `S2_Wren_FormUp` | Wren | All right. Verdance. Stay on me. |
+| `S2_Kato_Recorders` | Kato | Leave the recorders on. All channels. |
