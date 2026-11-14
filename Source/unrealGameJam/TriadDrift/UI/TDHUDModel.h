@@ -66,6 +66,9 @@ struct UNREALGAMEJAM_API FTDSquadStatus
 	ETDAbilityId Ability = ETDAbilityId::None;
 	float Ability01 = 1.f;
 	bool bAbilityActive = false;
+	/** Seconds until the signature power / the ability is ready again (0 = ready). */
+	float PowerSeconds = 0.f;
+	float AbilitySeconds = 0.f;
 	float Boost01 = 1.f;
 	/** Squad-wide overcharge (a pickup powers every ship's guns): 0..1 left and seconds left. */
 	float Overcharge01 = 0.f;
