@@ -83,8 +83,8 @@ struct UNREALGAMEJAM_API FTDTerrainStyle
 	/** Ryan (#194): ridgelines in a ring around the pad, framing every view (cm; 0 = off). */
 	float RingRidgeHeight = 0.f;
 	float RingInner = 25000.f;	// rising from (cm from the pad)
-	float RingPeak = 55000.f;	// tallest around
-	float RingOuter = 140000.f;	// gone by
+	float RingPeak = 85000.f;	// tallest around
+	float RingOuter = 180000.f;	// gone by
 
 	/** Ryan (#194): ground relief over the course and MicroMargin around it (craters, divots, pits, mounds, gullies;
 	 *  Cinder cracks), off the course's flat shapes. Set by ForPlanet once the course registered its flats. */

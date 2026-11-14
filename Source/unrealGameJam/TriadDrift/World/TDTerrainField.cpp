@@ -437,12 +437,22 @@ float FTDTerrainField::Height(float X, float Y) const
 	// (-X) and the hero sightline.
 	if (Style.RingRidgeHeight > 0.f)
 	{
-		const float R = FMath::Sqrt(X * X + Y * Y);
+		// Played (turn 15): measured from the pad the ring stood as one sheer wall at the course's edge. It is measured
+		// from the walked region's edge instead (foothills first, the crest well beyond), and broken into massifs and
+		// saddles so it reads as mountains, not a canyon wall.
+		float R = FMath::Sqrt(X * X + Y * Y);
+		if (Style.HasMicroRelief())
+		{
+			const FBox2D& Rg = Style.MicroRegion;
+			const float EX = FMath::Max3((float)Rg.Min.X - X, 0.f, X - (float)Rg.Max.X), EY = FMath::Max3((float)Rg.Min.Y - Y, 0.f, Y - (float)Rg.Max.Y);
+			R = FMath::Sqrt(EX * EX + EY * EY) + Style.RingInner * 0.6f;
+		}
 		const float Rise = FMath::SmoothStep(Style.RingInner, Style.RingPeak, R) * (1.f - FMath::SmoothStep(Style.RingPeak + 15000.f, Style.RingOuter, R));
 		if (Rise > 0.f)
 		{
+			const float Massif = FMath::SmoothStep(0.25f, 0.7f, Fbm(X / 70000.f, Y / 70000.f, 3, Style.Seed + 307));
 			const float Crest = 0.4f + 0.85f * Ridged(X / 32000.f, Y / 32000.f, 4, Style.Seed + 301, Style.Sharpness);
-			H += Rise * Style.RingRidgeHeight * Crest;
+			H += Rise * Style.RingRidgeHeight * Crest * (0.3f + 0.7f * Massif);
 		}
 	}
 	// A valley that frames the hero peak from the pad: toward it, the ground stays under the sightline to its summit.

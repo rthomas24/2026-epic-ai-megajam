@@ -45,7 +45,12 @@ namespace TDWorldDebug
 	{
 		UE_LOG(LogTriadDrift, Display, TEXT("TD.World.Goto: %s -> %s"), Pawn ? *Pawn->GetName() : TEXT("none"), *Loc.ToString());
 		if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Pawn)) { Craft->TeleportSpacecraft(Loc, Facing, false); }
-		else if (Pawn) { Pawn->SetActorLocationAndRotation(Loc, Facing); }
+		else if (Pawn)
+		{
+			Pawn->SetActorLocationAndRotation(Loc, Facing);
+			// On foot the camera follows the control rotation, not the actor's (turn 15: every pad view faced north).
+			if (AController* C = Pawn->GetController()) { C->SetControlRotation(Facing); }
+		}
 	}
 
 	void Place(APawn* Pawn, const FVector& Loc, const FVector& LookAt)
