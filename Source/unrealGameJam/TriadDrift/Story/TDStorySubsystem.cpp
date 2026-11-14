@@ -660,6 +660,14 @@ void UTDStorySubsystem::UpdateDepartures(double Now)
 		return;
 	}
 	bDeparturesChecked = true;
+	// T4/T5 (Nov 14): a take-off's radio belongs to that take-off. From the Dominion assault on (a stage cheat, a save that
+	// skipped the galaxy after Cinder, the escape reloading the galaxy), no planet's departure airs late.
+	const ETDGamePhase Phase = GI->GetProgressRef().Phase;
+	if (Phase == ETDGamePhase::DominionAssault || Phase == ETDGamePhase::DominionInterior || Phase == ETDGamePhase::Escape
+		|| Phase == ETDGamePhase::Victory)
+	{
+		return;
+	}
 	const UTDFlowSettings* Flow = UTDFlowSettings::Get();
 	const TSet<FName>& Done = GI->GetProgressRef().CompletedObjectives;
 	auto AllDone = [&Done](const TArray<FName>& Ids)

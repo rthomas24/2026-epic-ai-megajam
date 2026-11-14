@@ -871,3 +871,33 @@ bool FTDStoryR102Order::RunTest(const FString& Parameters)
 	return true;
 }
 #endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryNoLateDeparture, "TriadDrift.Story.Transmissions.NoDepartureRadioFromTheDominionOn", TD_TEST_FLAGS)
+bool FTDStoryNoLateDeparture::RunTest(const FString& Parameters)
+{
+	// T4 heard C6_Kato_GuardLine at the escape's start (TD.Stage EscapeFlight: Cinder done, the galaxy reloaded). From the
+	// Dominion assault on, neither planet's departure set airs; before it, Cinder's still does.
+	struct FCase { ETDGamePhase Phase; bool bExpect; };
+	for (const FCase& C : { FCase{ ETDGamePhase::Escape, false }, FCase{ ETDGamePhase::DominionAssault, false },
+		FCase{ ETDGamePhase::DominionInterior, false }, FCase{ ETDGamePhase::Wave5, true } })
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("story"), Story))
+		{
+			return false;
+		}
+		const UTDFlowSettings* Flow = UTDFlowSettings::Get();
+		for (const FName& Id : Flow->VerdanceObjectives) { GI->CompleteObjective(Id, ETDAbilityId::None, ETDShipId::Rift); }
+		for (const FName& Id : Flow->CinderObjectives) { GI->CompleteObjective(Id, ETDAbilityId::None, ETDShipId::Rift); }
+		GI->GetMutableProgress().Phase = C.Phase;
+		GI->NotifyLevelEntered(ETDDestination::Galaxy);
+		W.Advance(Story->DepartureDelaySeconds * 1.5f, 1.f / 30.f);
+		const bool bAired = Story->GetCurrentTransmission().bActive || Story->GetQueueLength() > 0;
+		TestEqual(FString::Printf(TEXT("phase %d: departure radio %s"), (int32)C.Phase, C.bExpect ? TEXT("airs") : TEXT("stays silent")), bAired, C.bExpect);
+	}
+	return true;
+}
+#endif
