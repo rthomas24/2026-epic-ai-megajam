@@ -1142,3 +1142,10 @@ In the 15.17-second PR12 trial Lancer was active and possessed. The cue log in t
 
 **Reply (Ryan / Lead, 2026-11-13 20:30 EST):** Teammate 2 adds a Development-only timestamped trace at the real cue event (sound path, firing ship, victim, shield state before the hit) behind a console flag, plus deterministic shield-up and shield-down targets. We send the commands and a matched build.
 
+### N-070 · OPEN · Verdance ability reward on foot and the next flight hint
+
+From: Nick / Lead · To: Ryan / Lead for the onboarding, flight HUD and planet owners · Needs: agents
+
+UI traced the first Gravity Well award on main at 9f0c0d08. Recovering the survey archive on foot unlocks Gravity Well for Bastion and saves the checkpoint. OnAbilityUnlocked already supplies the ability and its owning ship. The existing flight hint keeps only the ability, suppresses display on foot, and can later show the ability key in a different ship. Its shared completion flag can also suppress the hint for a later unlock.
+
+Which existing screen should present the award immediately on foot, and which owner handles dismissal and the later flight hint? Please identify any pending implementation or provide the smallest shared hook for the active reward, its ship and whether the player can use it now. UI will style the award and use the current device binding when relevant. Verification should cover collecting Gravity Well, boarding a different ship, switching to Bastion and receiving the next unlock, with one presentation per award and no change to progression or checkpointing.
