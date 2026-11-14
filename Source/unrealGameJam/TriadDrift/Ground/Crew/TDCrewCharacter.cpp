@@ -885,7 +885,20 @@ bool ATDCrewCharacter::StartAttack(ETDCrewAttack Attack, AActor* Target)
 	WindupLeft = FMath::Max(0.01f, Windup);
 	RecoverLeft = 0.f;
 	ShotsLeft = 0;
-	PlayCrewCue(TEXT("Telegraph"), Visuals ? Visuals->Telegraph : FTDFXCue(), true, GetActorLocation());
+	if (Attack == ETDCrewAttack::Melee && Visuals && !Visuals->Telegraph.IsEmpty() && GetMesh() && GetMesh()->IsVisible())
+	{
+		// The melee tell (NS_TD_Crew_MeleeWindup: a ground ring, a chest glow, a white flare 0.3 s in) on the body at the
+		// feet, started so the flare lands 0.3 s before the hit; a wind-up of 0.6 s or less starts it at once.
+		const float Delay = FMath::Max(0.f, WindupLeft - 0.6f);
+		const FTDFXCue Cue = Visuals->Telegraph;
+		auto Play = [this, Cue]() { if (!IsDead() && IsTelegraphing()) { OnCueRequested.Broadcast(this, TEXT("Telegraph")); UTDStatics::PlayCueAttached(Cue, GetMesh()); } };
+		if (Delay > 0.f) { FTimerHandle H; GetWorldTimerManager().SetTimer(H, FTimerDelegate::CreateWeakLambda(this, Play), Delay, false); }
+		else { Play(); }
+	}
+	else
+	{
+		PlayCrewCue(TEXT("Telegraph"), Visuals ? Visuals->Telegraph : FTDFXCue(), true, GetActorLocation());
+	}
 	// The type's own move, its contact frame on the wind-up's end (the animation builder's times, Nov 13-14), else today's.
 	bool bOwn = false;
 	switch (Attack)

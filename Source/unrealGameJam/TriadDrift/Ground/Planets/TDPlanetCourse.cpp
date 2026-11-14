@@ -1084,6 +1084,10 @@ bool ATDPlanetCourse::StartObjectiveAt(FName ObjectiveId)
 		{
 			return false; // an ordered course (the interior): the rooms come one after the other
 		}
+		if (T.Objective == O && T.After && T.After == WardenGateObjective.Get() && !IsFinalRecordPlayed())
+		{
+			return false; // #96: the reactor waits for the final record, an old checkpoint's Warden completion included
+		}
 	}
 	O->StartObjective();
 	return O->IsActive();
@@ -1095,6 +1099,13 @@ bool ATDPlanetCourse::GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) c
 	if (IsAnyObjectiveRunning())
 	{
 		return false;
+	}
+	if (IsInterior() && WardenGateObjective.IsValid() && WardenGateObjective->IsComplete() && !IsFinalRecordPlayed() && FinalRecordConsole)
+	{
+		// #96, a checkpoint from before the gate: the Warden is done but the record was never played.
+		OutText = LOCTEXT("IdleRecord", "PLAY THE FINAL RECORD");
+		OutMarkers.Add(FinalRecordConsole);
+		return true;
 	}
 	TArray<FText> Names;
 	for (const FTDTrailhead& T : Trailheads)
@@ -1258,9 +1269,14 @@ void ATDPlanetCourse::MarkCompletedFromProgress()
 			}
 			for (const FTDStepDoor& D : CompletionDoors)
 			{
-				if (D.Objective == O && D.Door) { D.Door->Open(); }
+				if (D.Objective == O && D.Door && !(D.Door == WardenExitDoor && !IsFinalRecordPlayed())) { D.Door->Open(); }
 			}
 		}
+	}
+	if (IsInterior() && WardenExitDoor && WardenGateObjective.IsValid() && WardenGateObjective->IsComplete() && !IsFinalRecordPlayed())
+	{
+		WardenExitDoor->ShowStatusText(LOCTEXT("RecordFirstLoad", "PLAY THE FINAL RECORD FIRST"));
+		UE_LOG(LogTriadDrift, Display, TEXT("#96: checkpoint has the Warden done but no final record: exit shut, the record first"));
 	}
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{

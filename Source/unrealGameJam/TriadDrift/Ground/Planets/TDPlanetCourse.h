@@ -183,6 +183,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<class ATDDoor> WardenExitDoor;
 	TWeakObjectPtr<class ATDObjective> WardenGateObjective;
 	void CompleteFinalRecordStep();
+	bool IsFinalRecordPlayed() const;
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> ParkedShip;
 	UPROPERTY(Transient) TArray<TObjectPtr<UStaticMeshComponent>> ParkedParts;
 	int32 ConduitsDown = 0;

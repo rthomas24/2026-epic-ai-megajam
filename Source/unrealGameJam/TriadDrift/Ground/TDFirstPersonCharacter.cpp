@@ -695,6 +695,17 @@ void ATDFirstPersonCharacter::HandleBladeRetract(bool bRetracted)
 	if (!IsDead() && !bShipTransition && InteractRetractLeft <= 0.f && HasBody() && BodyActionName != TEXT("A_Pilot_Interact_Console"))
 	{
 		PlayFirstBodyAction({ bRetracted ? TEXT("A_Pilot_Blade_Retract") : TEXT("A_Pilot_Blade_Ignite") }, 1.f, true);
+		// The beam draws back into the hilt over the whole retract clip as the arm lowers (Lead, Nov 14), not in 0.15 s.
+		if (bRetracted)
+		{
+			const UAnimSequenceBase* Clip = LoadPilotAnim(TEXT("A_Pilot_Blade_Retract"));
+			HandBladeRetractSeconds = Clip ? FMath::Max(0.15f, Clip->GetPlayLength()) : 0.15f;
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Blade: retract clip %.2f s"), Clip ? Clip->GetPlayLength() : 0.f);
+		}
+	}
+	else if (bRetracted)
+	{
+		HandBladeRetractSeconds = 0.15f;
 	}
 	const bool bShow = !bRetracted && !IsThirdPersonView();
 	BladePlaceholder->SetVisibility(bShow);
@@ -873,7 +884,7 @@ void ATDFirstPersonCharacter::UpdateHandBlade(float DeltaSeconds)
 		return;
 	}
 	const bool bRetracted = !Blade || Blade->IsRetracted();
-	HandBladeExtend = FMath::Clamp(HandBladeExtend + (bRetracted ? -1.f : 1.f) * DeltaSeconds / 0.15f, 0.f, 1.f);
+	HandBladeExtend = FMath::Clamp(HandBladeExtend + (bRetracted ? -DeltaSeconds / FMath::Max(0.05f, HandBladeRetractSeconds) : DeltaSeconds / 0.15f), 0.f, 1.f);
 	// Shown whenever the whole pilot is (third person, director shots, the death view), never in first person.
 	const bool bShow = HasBody() && !bBodyFirstPerson;
 	HandBladeHilt->SetVisibility(bShow && HandBladeHilt->GetStaticMesh() != nullptr);

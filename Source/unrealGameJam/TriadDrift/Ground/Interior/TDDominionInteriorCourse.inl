@@ -1122,12 +1122,21 @@ void ATDPlanetCourse::OpenReactorDoor()
 	CompleteFinalRecordStep();
 }
 
+bool ATDPlanetCourse::IsFinalRecordPlayed() const
+{
+	return bFinalRecordDone || UTDStorySubsystem::IsSequenceDoneOrSkipped(this, TEXT("Cinematic08"));
+}
+
 void ATDPlanetCourse::CompleteFinalRecordStep()
 {
 	if (WardenExitDoor) { WardenExitDoor->ClearStatusText(); }
 	if (ATDObjective* Gate = WardenGateObjective.Get(); Gate && Gate->GetCurrentStepIndex() == 1)
 	{
 		Gate->CompleteStep(1); // the exit opens, the Core objective and Face to Face start
+	}
+	else if (Gate && Gate->IsComplete() && WardenExitDoor)
+	{
+		WardenExitDoor->Open(); // an old checkpoint: the Warden was already done, the record opens the way on
 	}
 }
 
