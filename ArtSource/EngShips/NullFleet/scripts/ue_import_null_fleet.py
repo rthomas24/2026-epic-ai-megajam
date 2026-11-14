@@ -307,10 +307,13 @@ def main():
         return
     rows, meshes, good, bad = [], {}, 0, 0
     sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
+    only = [a.strip() for a in os.environ.get("TD_NF_ONLY", "").split(",") if a.strip()]   # e.g. SM_Null_CarrierBay
     for man_path in manifests:
         with open(man_path, encoding="utf-8") as fh:
             man = json.load(fh)
         asset = man["asset"]
+        if only and asset not in only:
+            continue
         short = asset[3:]
         folder = os.path.dirname(man_path)
         notes = []
@@ -382,7 +385,9 @@ def main():
         good += 1
     # enemy visuals data assets
     da_ok = 0
-    for da_name, (hull, extra) in VISUALS.items():
+    # With TD_NF_ONLY the data assets are left alone: they now point at the Rodin fleet (ue_import_rodin_ships.py), and
+    # this loop would put the old SM_Null_* hulls back. The bay and turret are picked up through their own asset paths.
+    for da_name, (hull, extra) in ({} if only else VISUALS).items():
         notes = []
         assets = {"mesh": meshes.get(hull) or eas.load_asset("%s/%s" % (DEST, hull))}
         for prop, mname in extra.items():

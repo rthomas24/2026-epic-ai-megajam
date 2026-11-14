@@ -158,6 +158,15 @@ namespace TDWorldDebug
 
 	AActor* DominionTarget(UWorld* World, const TArray<FString>& Args)
 	{
+		// The tutorial's escape marker (ATDWaveDirector::BeginWithdrawal), for flying the withdrawal through the real input.
+		if (Args.Num() > 0 && Args[0].Equals(TEXT("Escape"), ESearchCase::IgnoreCase))
+		{
+			for (TActorIterator<AActor> It(World); It; ++It)
+			{
+				if (It->ActorHasTag(TEXT("TD.Tutorial.Escape"))) { return *It; }
+			}
+			return nullptr;
+		}
 		ATDDominion* D = nullptr;
 		for (TActorIterator<ATDDominion> It(World); It && !D; ++It) { D = *It; }
 		if (!D || Args.Num() == 0) { return nullptr; }
@@ -167,14 +176,14 @@ namespace TDWorldDebug
 		return Gens.IsValidIndex(I) ? Gens[I] : nullptr;
 	}
 
-	FAutoConsoleCommandWithWorldAndArgs CmdAimAt(TEXT("TD.World.AimAt"), TEXT("Steer the player's nose at a Dominion target through the real input (TD.Input.TurnToward): Generator <i> | Reactor [seconds]."),
+	FAutoConsoleCommandWithWorldAndArgs CmdAimAt(TEXT("TD.World.AimAt"), TEXT("Steer the player's nose at a target through the real input (TD.Input.TurnToward): Generator <i> | Reactor [seconds] | Escape [seconds] (the tutorial withdrawal marker)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{
 			APawn* Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
 			AActor* Target = DominionTarget(World, Args);
 			if (!Pawn || !Target) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.World.AimAt Generator <i> | Reactor [seconds]: no pawn or target")); return; }
 			const FRotator R = (Target->GetActorLocation() - Pawn->GetActorLocation()).Rotation();
-			const float Secs = Args.Num() > 2 ? FCString::Atof(*Args[2]) : (Args.Num() == 2 && Args[0].Equals(TEXT("Reactor"), ESearchCase::IgnoreCase) ? FCString::Atof(*Args[1]) : 2.f);
+			const float Secs = Args.Num() > 2 ? FCString::Atof(*Args[2]) : (Args.Num() == 2 && (Args[0].Equals(TEXT("Reactor"), ESearchCase::IgnoreCase) || Args[0].Equals(TEXT("Escape"), ESearchCase::IgnoreCase)) ? FCString::Atof(*Args[1]) : 2.f);
 			UE_LOG(LogTriadDrift, Display, TEXT("TD.World.AimAt %s: yaw %.1f pitch %.1f, %.0f m"), *Target->GetName(), R.Yaw, R.Pitch, FVector::Dist(Target->GetActorLocation(), Pawn->GetActorLocation()) / 100.f);
 			GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f %.2f"), R.Yaw, R.Pitch, FMath::Max(0.5f, Secs)));
 		}));

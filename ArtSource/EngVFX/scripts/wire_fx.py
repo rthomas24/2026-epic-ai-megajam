@@ -23,7 +23,20 @@ PLAN_R8 = {   # round 8: the round-6 leftovers whose slots exist (hyperdrive is 
     'Dominion/DA_Dominion_Visuals': {'distortion_field_idle': ('NS_TD_Dominion_Field', 1.0), 'distortion_field_collapse': ('NS_TD_Dominion_FieldCollapse', 1.0),
                                      'distortion_field_contact': ('NS_TD_Impact_Shield', 3.0)},
 }
-PLAN = globals().get('PLAN') or PLAN_R8
+HYP = '/Game/TriadDrift/Gameplay/VFX/Hyperdrive/'
+PLAN_R8B = {   # round 8: Teammate 7's hyperdrive look (eng/t7 b486768f); VFX only, the SW_Hyperdrive_* sounds stay
+    'FX/DA_Travel_FX': {'hyperdrive_spool': (HYP + 'NS_TD_Hyperdrive_Spool', 1.0), 'hyperdrive_tunnel': (HYP + 'NS_TD_Hyperdrive_Tunnel', 1.0),
+                        'hyperdrive_drop_out': (HYP + 'NS_TD_Hyperdrive_DropOut', 1.0)},
+}
+PLAN_R9 = {   # round 9: T1's entry / exit set (lead/int-k b35bf640). CloudPunch / CloudWisps: the cloud deck at 1,150 m (Verdance) / 1,250 m (Cinder)
+    'FX/DA_Travel_FX': {'atmospheric_exit': ('NS_TD_Exit', 1.0), 'exit_breakaway': ('NS_TD_Exit_Breakaway', 1.0),
+                        'cloud_punch': ('NS_TD_Entry_CloudPunch', 1.0), 'cloud_wisps': ('NS_TD_Entry_CloudWisps', 1.0)},
+}
+PLAN_R9B = {   # round 9 (ART-16, T4's answer): one-shots at world points; BreakupSequence stays EMPTY (T4's chain plays the art)
+    'Dominion/DA_Dominion_Visuals': {'reactor_exposed': ('NS_TD_Reactor_Exposed', 1.0), 'reactor_hit': ('NS_TD_Reactor_Hit', 1.0),
+                                     'docking_bay_open': ('NS_TD_Dominion_DockOpen', 1.0)},
+}
+PLAN = globals().get('PLAN') or PLAN_R9B
 PLAN_R5 = {
     'NullFleet/DA_Enemy_Fighter_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},
     'NullFleet/DA_Enemy_Interceptor_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},
@@ -64,7 +77,7 @@ for rel, fields in PLAN.items():
         try:
             cue = da.get_editor_property(field)
             if name:
-                s = unreal.load_asset(SYS + name)
+                s = unreal.load_asset(name if name.startswith('/') else SYS + name)
                 if not s:
                     log.append('NO SYSTEM ' + name); continue
                 cue.set_editor_property('vfx', s)

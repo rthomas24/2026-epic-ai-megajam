@@ -195,6 +195,10 @@ struct FTDRunStats
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "TriadDrift|Stats")
 	int32 HighlightMoments = 0;
+
+	/** Asteroids and wreckage the squad broke in T6's space field (Ryan, Nov 13: shooting the field is rewarding). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "TriadDrift|Stats")
+	int32 DebrisCleared = 0;
 };
 
 USTRUCT(BlueprintType)

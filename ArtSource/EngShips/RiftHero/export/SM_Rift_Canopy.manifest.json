@@ -1,0 +1,57 @@
+{
+  "asset": "SM_Rift_Canopy",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\RiftHero\\export\\SM_Rift_Canopy.fbx",
+  "tris": 1848,
+  "size_cm": [
+    120.0,
+    59.0,
+    32.6
+  ],
+  "pivot": "root object origin (SM_Rift_Canopy~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Rift_Glass"
+  ],
+  "material_params": [
+    {
+      "name": "M_Rift_Glass",
+      "textured": false,
+      "base_color": [
+        0.03,
+        0.02,
+        0.06
+      ],
+      "metallic": 0.0,
+      "roughness": 0.05,
+      "emission_color": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "emission_strength": 0.0
+    }
+  ],
+  "textures": [],
+  "collision": [],
+  "collision_source": "none",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "none / add simple collision in UE",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}

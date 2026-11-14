@@ -1,6 +1,7 @@
 #include "TDSpaceHUDWidget.h"
 #include "Engine/GameInstance.h"
 #include "Components/ActorComponent.h"
+#include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Rendering/DrawElements.h"

@@ -49,7 +49,8 @@ FLinearColor ATDPickup::ColorOf(ETDPickupType Type)
 	// Live at 200 m the first shield (.72, .86, 1) and power (.62, .35, 1) glowed plain white: more saturated.
 	case ETDPickupType::Shield: return FLinearColor(.42f, .70f, 1.f);
 	case ETDPickupType::Power: return FLinearColor(.55f, .22f, 1.f);
-	default: return FLinearColor(1.f, .92f, .62f);
+	case ETDPickupType::Overcharge: return FLinearColor(1.f, .92f, .62f);
+	default: return FLinearColor(.96f, .97f, 1.f); // Boost: white
 	}
 }
 
@@ -60,7 +61,8 @@ const TCHAR* ATDPickup::WordOf(ETDPickupType Type)
 	case ETDPickupType::Hull: return TEXT("+HULL");
 	case ETDPickupType::Shield: return TEXT("SHIELD CELL");
 	case ETDPickupType::Power: return TEXT("POWER READY");
-	default: return TEXT("OVERCHARGE");
+	case ETDPickupType::Overcharge: return TEXT("OVERCHARGE");
+	default: return TEXT("+BOOST");
 	}
 }
 
@@ -135,7 +137,11 @@ void ATDPickup::Init(ETDPickupType InType, float InLifetime, float InBlinkSecond
 		AddPart(Cone, FVector(0.f, 0.f, .3f * Size), FRotator::ZeroRotator, FVector(.7f, .7f, .6f) * S);
 		AddPart(Cone, FVector(0.f, 0.f, -.3f * Size), FRotator(180.f, 0.f, 0.f), FVector(.7f, .7f, .6f) * S);
 		break;
-	default: // a cube turned on its corner, with a smaller one inside the other way
+	case ETDPickupType::Boost: // an arrowhead: a wide cone pointing ahead with a short shaft behind
+		AddPart(Cone, FVector(.15f * Size, 0.f, 0.f), FRotator(-90.f, 0.f, 0.f), FVector(.75f, .75f, .55f) * S);
+		AddPart(Cube, FVector(-.25f * Size, 0.f, 0.f), FRotator::ZeroRotator, FVector(.45f, .22f, .22f) * S);
+		break;
+	default: // Overcharge: a cube turned on its corner, with a smaller one inside the other way
 		AddPart(Cube, FVector::ZeroVector, FRotator(45.f, 0.f, 45.f), FVector(.62f) * S);
 		AddPart(Cube, FVector::ZeroVector, FRotator(0.f, 45.f, 0.f), FVector(.4f) * S);
 		break;

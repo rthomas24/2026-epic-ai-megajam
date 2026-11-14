@@ -413,6 +413,22 @@ void UTDRamPower::HitActor(AActor* Victim, const FVector& Direction)
 		FVector OwnerCenter;
 		const float OwnerRadius = TDRamBoundsRadius(Owner, OwnerCenter);
 		const FVector Here = Owner->GetActorLocation();
+		// The hull's own parts at the point of impact (a bay or turret on its socket, flush with the hull) take the ram
+		// too: at a fine frame step the hull is reached a frame before the part beside it, and the dash ends there.
+		{
+			TArray<AActor*> Mounted;
+			Victim->GetAttachedActors(Mounted, true, true);
+			const float PartReach = OwnerRadius + HitPadding;
+			for (AActor* Part : Mounted)
+			{
+				if (IsValid(Part) && !HitThisDash.Contains(Part) && !IsBig(Part) && UTDStatics::GetHealth(Part)
+					&& UTDStatics::AreTeamsHostile(GetOwnerTeam(), UTDStatics::GetTeam(Part))
+					&& TDRamDistanceSegmentToBounds(Part, Here, Here + Direction * MountedPartGrace) <= PartReach)
+				{
+					HitActor(Part, Direction);
+				}
+			}
+		}
 		const float Back = FMath::Max(0.f, OwnerRadius - TDRamDistanceSegmentToHull(Victim, Here, Here)); // to the hull's real collision
 		if (Back > 0.f)
 		{

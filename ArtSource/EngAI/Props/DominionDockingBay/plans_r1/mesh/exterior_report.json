@@ -1,0 +1,78 @@
+{
+ "SM_DominionBay_Door_L": {
+  "tris": 2376,
+  "ue_bounds_cm": {
+   "min": [
+    -320.0,
+    -1250.0,
+    -1750.0
+   ],
+   "max": [
+    -20.0,
+    1250.0,
+    1750.0
+   ]
+  },
+  "size_cm": [
+   300.0,
+   2500.0,
+   3500.0
+  ],
+  "bevel_edges": 264,
+  "bevel_width_cm": 5.0,
+  "ucx": [
+   "UCX_SM_DominionBay_Door_L_00"
+  ]
+ },
+ "SM_DominionBay_Door_R": {
+  "tris": 2376,
+  "ue_bounds_cm": {
+   "min": [
+    -320.0,
+    -1250.0,
+    -1750.0
+   ],
+   "max": [
+    -20.0,
+    1250.0,
+    1750.0
+   ]
+  },
+  "size_cm": [
+   300.0,
+   2500.0,
+   3500.0
+  ],
+  "bevel_edges": 264,
+  "bevel_width_cm": 5.0,
+  "ucx": [
+   "UCX_SM_DominionBay_Door_R_00"
+  ]
+ },
+ "SM_DominionBay_TractorEmitter": {
+  "tris": 4636,
+  "ue_bounds_cm": {
+   "min": [
+    0.0,
+    -450.0,
+    -450.0
+   ],
+   "max": [
+    186.0,
+    450.0,
+    450.0
+   ]
+  },
+  "size_cm": [
+   186.0,
+   900.0,
+   900.0
+  ],
+  "bevel_edges": 752,
+  "bevel_width_cm": 4.0,
+  "ucx": [
+   "UCX_SM_DominionBay_TractorEmitter_00",
+   "UCX_SM_DominionBay_TractorEmitter_01"
+  ]
+ }
+}
