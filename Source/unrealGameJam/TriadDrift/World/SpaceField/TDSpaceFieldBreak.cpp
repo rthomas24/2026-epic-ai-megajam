@@ -59,6 +59,13 @@ int32 ATDSpaceField::AddCollider(const FVector& At, float Size)
 		Collision->UpdateInstanceTransform(Index, T, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ false, /*bTeleport*/ true);
 		return Index;
 	}
+	if (bBuildingField)
+	{
+		// During Build the spheres are collected and added in one batch at the end: one add per rock on a component that
+		// already holds thousands grew slower with every rock (about 1 ms each by the end; the galaxy load's long frame).
+		PendingColliderXf.Add(T);
+		return PendingColliderBase + PendingColliderXf.Num() - 1;
+	}
 	return Collision->AddInstance(T, /*bWorldSpace*/ true);
 }
 

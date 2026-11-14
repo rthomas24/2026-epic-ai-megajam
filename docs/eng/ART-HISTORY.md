@@ -38,6 +38,7 @@ Restore a whole snapshot in a separate checkout: `git worktree add ../old art/mo
 | Menu backdrop off | `td.MenuBackdrop 0`. |
 | Intro off | `td.Intro 0`. |
 | Pilot moves before the Nov 14 melee pass (old light combo, heavy v3, block, flick, hit reacts, run; no strafe legs, no chained-swing blend, no combat idle) | `TD.Pilot.MeleePass 0`. Every old clip is still in `Characters/Pilot/Anims` under its old name; the new ones are `*_v3` / `_v4` / `Block_v2` / `Flick_v2` / `Run_v2` / `Blade_Idle_v2` / `AirSlam_*_v2/_v3`. |
+| Crew: the Heavy's template forward walk and authored stagger, the Warden's authored stagger (before Grok's #165 / #166 clips took the live names, Nov 14) | `A_Crew_Heavy_Walk_Fwd_Template`, `A_Crew_Heavy_Stagger_Authored`, `A_Crew_Warden_Stagger_Authored` in `Characters/Crew/Anims`: copy one back over the live name with `ue_pilot_fixes.py` (`compose`, see `fixes_crew_r7_live_*.json`). |
 
 ## Versions by asset (each row's commit contains that version; the row above it is the newer one)
 
@@ -124,6 +125,9 @@ Restore a whole snapshot in a separate checkout: `git worktree add ../old art/mo
 | | Nov 13 composition: two random tilted rings (1.6 / 3.4 km) and three shells of 30 random clusters | `be0a69e1` | the same switch; code kept in `World/SpaceField/TDSpaceField.cpp` (`BuildBelts`, `BuildClusters`) |
 | | No space field at all (only the galaxy layout's own rocks, not breakable) | before `4c54636e` | `td.SpaceField 0` at level load |
 | Null fleet engine exhaust (`DA_Enemy_*_Visuals.EngineTrail`, VFX only; VFXScale kept: fighter 0.6, interceptor 0.6, gunship 2, bomber 1.5, carrier 5) | **per-type plumes** (effects builder, Nov 14, round 10; Lead accepted r10g): `NS_TD_Plume_Enemy_Fighter` / `_Interceptor` / `_Gunship` / `_Bomber` / `_Carrier`: thin streak, twin needles, short wide bloom, smoky pulse, four pads, each with a camera-facing Glow beacon of 6 m + 6% of the camera distance (up to 800 m) so enemies are findable at 300-800 m | this commit | Switch back: `PLAN = PLAN_R7` (fighter `NS_TD_Engine_Enemy_Fighter`, interceptor `NS_TD_Engine_Enemy_Interceptor`) plus gunship / bomber / carrier `NS_TD_Engine_Enemy` in `ArtSource/EngVFX/scripts/wire_fx.py` (`run_editor_py.py <port> wire_fx.py`), or the five `DA_Enemy_*_Visuals` from `0beff71f` |
+| Dominion breakup (`DA_Dominion_Visuals.HullSectionExplosion` / `BreakupFinalBlast`, VFX only) | **hull-scale v2** (effects builder, Nov 14, #105 / #112): `NS_TD_Explosion_HullSection2` (about 3x, lingering glow) and `NS_TD_Explosion_FinalBlast2` (white-hot core, second ring, radial debris, ember cloud) | this commit | Switch back: `NS_TD_Explosion_HullSection` / `NS_TD_Explosion_FinalBlast` on the same fields (`wire_fx.py` with a one-line plan), or `DA_Dominion_Visuals` from `6bd0a04b` |
+| Tractor beam (`DA_Dominion_Visuals.TractorBeam`) | **v2, read from behind the ship** (#111): `NS_TD_Dominion_TractorBeam2` (cone opening toward the player, travelling rings, streaks into the bay, ship tint) | this commit | `NS_TD_Dominion_TractorBeam` (v1, side-on column) on the same field |
+| Null bomber plasma mine (`DA_Enemy_PlasmaMines_FX.Tracer`) | **NS_TD_Mine_Plasma** (dark spiked core, red arming blink, distance halo) | this commit | empty Tracer = the placeholder disc |
 
 Earlier versions of anything: `git log --oneline -- <path>`. Local review renders and capture sets that are not in
 git (`Saved/TDShots/**`, `Saved/*/` builder scratch) are kept on Ryan's machine and are not cleaned up.

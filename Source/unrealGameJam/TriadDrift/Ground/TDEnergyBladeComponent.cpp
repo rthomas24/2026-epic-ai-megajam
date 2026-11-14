@@ -101,16 +101,32 @@ void UTDEnergyBladeComponent::PlayBladeCue(FName Name, const FTDFXCue* Cue, bool
 	{
 		return;
 	}
-	// #163: ignite and retract play on the visible blade's emitter (+X up the beam); everything else as before.
+	// #163: ignite and retract play at the blade's emitter (+X up the blade): on the hand hilt's BladeEmitter socket in
+	// third person, on the camera blade in first. Never on the hand BEAM: during the crawl its length scale is near zero,
+	// and a degenerate parent transform made the ignite flash bloom into a white screen (r5 capture).
 	const ATDFirstPersonCharacter* Pilot = Cast<ATDFirstPersonCharacter>(GetOwner());
-	USceneComponent* Beam = Pilot && (Name == TEXT("Ignite") || Name == TEXT("Retract")) ? Pilot->GetVisibleBladeBeam() : nullptr;
+	USceneComponent* AtBlade = nullptr;
+	FName Socket = NAME_None;
+	if (Pilot && (Name == TEXT("Ignite") || Name == TEXT("Retract")))
+	{
+		UStaticMeshComponent* Hilt = Pilot->GetHandBladeHilt();
+		if (Pilot->IsThirdPersonView() && Hilt && Hilt->GetStaticMesh())
+		{
+			AtBlade = Hilt;
+			Socket = Hilt->DoesSocketExist(TEXT("BladeEmitter")) ? FName(TEXT("BladeEmitter")) : NAME_None;
+		}
+		else if (!Pilot->IsThirdPersonView())
+		{
+			AtBlade = Pilot->GetBladeMesh();
+		}
+	}
 	UNiagaraComponent* FX = nullptr;
 	if (bAttached)
 	{
-		FX = UTDStatics::PlayCueAttached(*Cue, Beam ? Beam : GetOwner()->GetRootComponent());
-		if (FX && Beam)
+		FX = UTDStatics::PlayCueAttached(*Cue, AtBlade ? AtBlade : GetOwner()->GetRootComponent(), Socket);
+		if (FX && AtBlade)
 		{
-			FX->SetUsingAbsoluteScale(true); // the beam is scaled along X by its length
+			FX->SetUsingAbsoluteScale(true); // the camera blade is scaled along X
 		}
 	}
 	else

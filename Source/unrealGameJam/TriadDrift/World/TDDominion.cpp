@@ -1,5 +1,8 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDDominion.h"
+#include "TimerManager.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 #include "GameFramework/PlayerController.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
@@ -122,6 +125,13 @@ ATDDominion::ATDDominion()
 
 	HangarPoint = CreateDefaultSubobject<USceneComponent>(TEXT("Hangar"));
 	HangarPoint->SetupAttachment(Root);
+
+	// The effects builder's turret lock telegraph (Lead, Nov 14): a hard reference from the class default so it cooks.
+	if (FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Turret_LockTelegraph")))
+	{
+		static ConstructorHelpers::FObjectFinder<UNiagaraSystem> LockFX(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Turret_LockTelegraph.NS_TD_Turret_LockTelegraph"));
+		if (LockFX.Succeeded()) { TurretLockFX = LockFX.Object; }
+	}
 
 	TurretGuns.Kind = ETDEnemyAttack::Guns;
 	TurretGuns.WeaponId = TDEnemyWeaponIds::HeavyBolt;
@@ -983,7 +993,8 @@ void ATDDominion::BuildParts()
 		T->SetActorRelativeLocation(Local);
 		const FTDDifficultyScale Difficulty = UTDDifficultySettings::GetScale();
 		T->Init(TurretGuns, TurretHull * Difficulty.EnemyHull);
-		T->SetDamageMultiplier(Difficulty.EnemyDamage);
+		T->SetDamageMultiplier(Difficulty.EnemyDamage * HullTurretDamageScale);	// Lead (Nov 14): -40 % per hit
+		T->OnTelegraphStarted.AddUniqueDynamic(this, &ATDDominion::HandleTurretTelegraph);	// the lock telegraph at the muzzle
 		T->SetActorScale3D(FVector(4.f));
 		Into.Add(T);
 	};
@@ -1127,7 +1138,8 @@ void ATDDominion::ApplyStage(int32 NewStage)
 	{
 		if (!T) { return; }
 		T->BurstCooldownSeconds = S.TurretBurstCooldown;
-		T->Guns.TelegraphSeconds = S.TurretTelegraph;
+		T->Guns.TelegraphSeconds = FMath::Max(1.f, S.TurretTelegraph);	// a visible lock of at least 1.0 s before every burst (Lead, Nov 14)
+		T->Guns.Range = FMath::Min(T->Guns.Range, 90000.f);	// never fires at a ship beyond 900 m
 	};
 	for (ATDEnemyTurret* T : Turrets) { Tune(T); }
 	for (ATDEnemyTurret* T : TrenchTurretActors) { Tune(T); }
@@ -1150,10 +1162,23 @@ void ATDDominion::TickLaunches(float DeltaSeconds)
 	}
 	LaunchTimer += Stages[Stage].LaunchInterval;
 	if (LaunchTimer <= 0.f) { LaunchTimer = Stages[Stage].LaunchInterval; }
-	if (GetLaunchedAlive() < MaxLaunchedAlive || MaxLaunchedAlive <= 0)
+	const int32 Cap = GetLaunchCapNow();
+	if (GetLaunchedAlive() < Cap || Cap <= 0)
 	{
 		LaunchGroup();
 	}
+}
+
+int32 ATDDominion::GetLaunchCapNow() const
+{
+	if (State == ETDDominionState::ShieldsUp && AssaultFighterCap > 0)
+	{
+		// At most AssaultFighterCap alive, one fewer with each generator destroyed (never below 2: the approach stays a fight).
+		const int32 Down = Generators.Num() - GetGeneratorsRemaining();
+		const int32 Cap = FMath::Max(2, AssaultFighterCap - Down);
+		return MaxLaunchedAlive > 0 ? FMath::Min(MaxLaunchedAlive, Cap) : Cap;
+	}
+	return MaxLaunchedAlive;
 }
 
 void ATDDominion::LaunchGroup()
@@ -1178,7 +1203,7 @@ void ATDDominion::LaunchGroup()
 		ATDEnemyShip* Leader = nullptr;
 		for (int32 Slot = 0; Slot < G.PerPack; ++Slot)
 		{
-			if (MaxLaunchedAlive > 0 && GetLaunchedAlive() >= MaxLaunchedAlive)
+			if (GetLaunchCapNow() > 0 && GetLaunchedAlive() >= GetLaunchCapNow())
 			{
 				break;
 			}
@@ -1287,8 +1312,17 @@ void ATDDominion::DebugDropShields()
 	}
 }
 
-void ATDDominion::HandleActorKilled(AActor* Victim, AActor* /*Killer*/, ETDDamageKind /*Kind*/)
+void ATDDominion::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind)
 {
+	// Lead (Nov 14): name what kills the squad in the assault (T7 without god mode: a ship lost every 20 s).
+	if (const ATDShip* Lost = Cast<ATDShip>(Victim))
+	{
+		const ATDEnemyShip* ByShip = Cast<ATDEnemyShip>(Killer);
+		UE_LOG(LogTriadDrift, Log, TEXT("TDSQUAD death: %s (%s) by %s [%s%s%s] %s, dominion state %d, %.0f m from the hull"),
+			*Lost->GetName(), Lost->IsPlayerFlown() ? TEXT("flown") : TEXT("wingman"), *GetNameSafe(Killer),
+			Killer ? *Killer->GetClass()->GetName() : TEXT("none"), ByShip ? TEXT(" ") : TEXT(""), ByShip ? *ByShip->GetSpec().Id.ToString() : TEXT(""),
+			*UEnum::GetValueAsString(Kind), (int32)State, FVector::Dist(Lost->GetActorLocation(), GetActorLocation()) / 100.f);
+	}
 	// The trench run is the player's own run: losing the flown ship there is "CUT!" and a retake at the trench start,
 	// not an auto-switch into a wingman a kilometre away facing out to space (effects builder and T4 live, Nov 14).
 	if (State != ETDDominionState::ReactorExposed)
@@ -1591,6 +1625,7 @@ void ATDDominion::Tick(float DeltaSeconds)
 		Launched.RemoveAll([](const TWeakObjectPtr<ATDEnemyShip>& S) { return !S.IsValid(); });
 		TickLaunches(DeltaSeconds);
 		TickReactorHold(DeltaSeconds);
+		if (State == ETDDominionState::ShieldsUp) { TickGeneratorPassHint(DeltaSeconds); }
 		break;
 
 	case ETDDominionState::Breakup:
@@ -1819,4 +1854,103 @@ int32 ATDDominion::GetBreakupChunksAlive() const
 	int32 N = 0;
 	for (const TWeakObjectPtr<ATDEscapeDebris>& C : BreakupChunkActors) { if (C.IsValid()) { ++N; } }
 	return N;
+}
+
+// ------------------------------------------------------------------------------------------------ generator pass hint
+
+void ATDDominion::TickGeneratorPassHint(float /*DeltaSeconds*/)
+{
+	if ((bThrottleHintSaid && bDomeHintSaid) || GeneratorPassDistance <= 0.f)
+	{
+		return;
+	}
+	ATDShip* Ship = FlownShipOverride.Get();
+	if (!Ship)
+	{
+		const ATDSquadManager* Squad = ATDSquadManager::Get(this);
+		Ship = Squad ? Squad->GetActiveShip() : nullptr;
+	}
+	const UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
+	if (!Move)
+	{
+		return;
+	}
+	// The first approach: Moss says the dome is the answer on the way in (Lead, Nov 14), once.
+	if (!bDomeHintSaid)
+	{
+		for (const ATDShieldGenerator* G : Generators)
+		{
+			if (G && G->IsAlive() && FVector::Dist(Ship->GetActorLocation(), G->GetActorLocation()) <= DomeHintDistance)
+			{
+				bDomeHintSaid = true;
+				// dialogs.md Bark_Dom_DomeApproach (Moss): "Stay under my dome on the way in. I'll hold their fire."
+				FTDCombatBarks::Say(this, ETDShipId::Bastion, TEXT("Bark_Dom_DomeApproach"), ETDBarkPriority::High);
+				UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: dome hint on the first approach"));
+				break;
+			}
+		}
+	}
+	if (bThrottleHintSaid)
+	{
+		return;
+	}
+	const float Speed = (float)Ship->GetVelocity().Size();
+	if (ATDShieldGenerator* In = PassGenerator.Get())
+	{
+		// In a pass: it ends when the ship is clear of that generator (or the generator died: not a failed pass).
+		if (!In->IsAlive()) { PassGenerator.Reset(); return; }
+		PassMinSpeed = FMath::Min(PassMinSpeed, Speed);
+		if (FVector::Dist(Ship->GetActorLocation(), In->GetActorLocation()) > GeneratorPassDistance * 1.5f)
+		{
+			PassGenerator.Reset();
+			if (PassMinSpeed > Move->GetFlightTuning().CruiseSpeed * 0.7f)
+			{
+				++FastPasses;	// never slowed down on the way through
+				if (FastPasses >= 2)
+				{
+					bThrottleHintSaid = true;
+					// dialogs.md Bark_Dom_ThrottleBack: "Throttle back on the generators. Hold your fire on them."
+					FTDWorldBarks::Say(this, TEXT("Bark_Dom_ThrottleBack"), ETDBarkPriority::High, FTDWorldBarks::EWho::Wingman, 0.f);
+					UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: throttle-back hint after %d fast passes on a generator"), FastPasses);
+				}
+			}
+		}
+		return;
+	}
+	for (ATDShieldGenerator* G : Generators)
+	{
+		if (G && G->IsAlive() && FVector::Dist(Ship->GetActorLocation(), G->GetActorLocation()) <= GeneratorPassDistance)
+		{
+			PassGenerator = G;
+			PassMinSpeed = Speed;
+			break;
+		}
+	}
+}
+
+// ------------------------------------------------------------------------------------------------ turret lock telegraph
+
+void ATDDominion::HandleTurretTelegraph(ATDEnemyTurret* Turret)
+{
+	if (!Turret || !TurretLockFX || !GetWorld())
+	{
+		return;
+	}
+	// One shot at the muzzle, +X toward the target, started 1.0 s before the burst (it snaps white-orange at 0.95 s).
+	const float Delay = FMath::Max(0.f, Turret->Guns.TelegraphSeconds - 1.f);
+	TWeakObjectPtr<ATDEnemyTurret> Weak(Turret);
+	TWeakObjectPtr<ATDDominion> Self(this);
+	auto Play = [Weak, Self]()
+	{
+		ATDEnemyTurret* T = Weak.Get();
+		ATDDominion* D = Self.Get();
+		if (!T || !D || !D->TurretLockFX || !T->IsAlive() || T->IsStunned()) { return; }
+		const AActor* Target = T->GetTarget();
+		const FVector Loc = T->GetActorLocation();
+		const FVector Aim = Target ? (Target->GetActorLocation() - Loc).GetSafeNormal() : T->GetActorForwardVector();
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(D, D->TurretLockFX, Loc + Aim * 400.f, Aim.Rotation(), FVector(1.f), true, true, ENCPoolMethod::AutoRelease);
+	};
+	if (Delay <= 0.02f) { Play(); return; }
+	FTimerHandle Handle;
+	GetWorld()->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateLambda(Play), Delay, false);
 }

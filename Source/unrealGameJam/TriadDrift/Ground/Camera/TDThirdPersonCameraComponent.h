@@ -147,6 +147,29 @@ private:
 	UPROPERTY(Transient) TWeakObjectPtr<UCameraComponent> FirstPersonCamera;
 	UPROPERTY(Transient) TArray<TWeakObjectPtr<UPrimitiveComponent>> HiddenByUs;
 
+	// ---- Dressing between the lens and the pilot (T7's frame: a mushroom stem across the middle of the screen) ----
+	// Thin dressing has no Camera-channel collision, so the arm never pulls in for it (and for a stem a pull-in is worse
+	// than hiding it). Each frame a line from the lens to the pilot collects what it crosses that ignores the Camera
+	// channel and is small (MaxOccluderRadius): those are hidden, one instance at a time for instanced meshes, and come
+	// back OccluderRestoreSeconds after the line is clear.
+	struct FHiddenOccluder
+	{
+		TWeakObjectPtr<UPrimitiveComponent> Component;
+		int32 Instance = INDEX_NONE;      // an instanced mesh's instance; INDEX_NONE = the whole component
+		FTransform InstanceWas = FTransform::Identity;
+		double LastHit = 0.0;
+	};
+	TArray<FHiddenOccluder> Occluders;
+	void UpdateOccluders();
+	void RestoreOccluders(bool bAll);
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "cm"))
+	float MaxOccluderRadius = 700.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Third Person", meta = (Units = "s"))
+	float OccluderRestoreSeconds = 0.25f;
+	int32 GetHiddenOccluderCount() const { return Occluders.Num(); }
+private:
+
 	bool bWantThirdPerson = false;
 	bool bCloseCombat = false;
 	float CombatBlend = 0.f;

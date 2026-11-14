@@ -1,0 +1,22 @@
+{
+ "_note": "Block guard v3 and flick v3 (Nov 14, round 2, after T7's playtest: v2's blade leant up-left across the body, away from a shooter ahead-right). The guard now holds the hilt in front of the sternum and the blade up the centre line, tipped forward toward the aim (45 deg), only 10 deg off vertical sideways: it reads the same from behind whichever side the shot comes from. The flick goes out along the aim and back. Same key format as fixes_swing.json (rate 1).",
+ "swing": [
+  {
+   "src": "A_Pilot_Block", "dst": "A_Pilot_Block_v3", "rate": 1.0, "max_yaw": 20,
+   "keys": [
+    {"t": 0.0,  "hand": [42, -12, -10], "blade": [0.68, -0.12, 0.72], "yaw": 0},
+    {"t": 0.5,  "hand": [42, -12, -9],  "blade": [0.68, -0.12, 0.72], "yaw": 1},
+    {"t": "end", "hand": [42, -12, -10], "blade": [0.68, -0.12, 0.72], "yaw": 0}
+   ]
+  },
+  {
+   "src": "A_Pilot_Blade_DeflectFlick", "dst": "A_Pilot_Blade_DeflectFlick_v3", "rate": 1.0, "max_yaw": 30,
+   "keys": [
+    {"t": 0.0,  "hand": [42, -12, -10], "blade": [0.68, -0.12, 0.72], "yaw": 0},
+    {"t": 0.08, "hand": [54, 8, 0],     "blade": [0.95, 0.25, 0.2],   "yaw": 14},
+    {"t": 0.25, "hand": [42, -10, -10], "blade": [0.68, -0.1, 0.72],  "yaw": 0},
+    {"t": "end", "hand": [42, -12, -10], "blade": [0.68, -0.12, 0.72], "yaw": 0}
+   ]
+  }
+ ]
+}
