@@ -232,8 +232,17 @@ void ATDPlanetCourse::AdoptTerrainMaterial()
 	// entirely, or the pilot would stand on an invisible floor over every divot.
 	if (bTerrain && ATDPlanetTerrain::HasDetailGround(this))
 	{
-		GroundSlab->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		UE_LOG(LogTriadDrift, Display, TEXT("#194: relief ground has collision: the course's flat slab is off"));
+		// BLOCKER fix (Nick's Lead, #194): with the slab's collision off, a Continue on Cinder dropped the pilot 19 m below
+		// the course where the relief was not (yet) under it. The slab never stops colliding: it drops to sit just under
+		// the relief (2.6 m down, under its 2.5 m deepest) as a safety floor, so the relief is walked wherever it exists and a gap in it
+		// costs a short step down, never a fall out of the course.
+		if (!bSlabLowered)
+		{
+			bSlabLowered = true;
+			GroundSlab->AddWorldOffset(FVector(0.f, 0.f, -260.f)); // just under T4's deepest relief (2.5 m clamp)
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("#194: relief ground has collision: the course's flat slab stays as a safety floor 2.6 m down (top z %.0f)"),
+			(float)GroundSlab->Bounds.GetBox().Max.Z);
 		return;
 	}
 	// The terrain and its patch may come a moment after the course: look again for ~30 s.
