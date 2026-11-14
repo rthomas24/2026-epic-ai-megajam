@@ -1186,6 +1186,33 @@ namespace TDPlayedTest
 			return true;
 		}
 
+		/** A charge point on the field anchor (just outside the tower's collision on its port's heading): round the tower
+		 *  at 9.5 m, as a player does, to the port's side, then in to the point, look at it and hold E. A straight line from
+		 *  the far side runs into the tower. */
+		bool UseChargePort(ATDInteractableActor* Port, const FVector& Tower)
+		{
+			const FVector P0 = FP->GetActorLocation() - Tower;
+			const float From = FMath::Atan2((float)P0.Y, (float)P0.X);
+			const FVector D = (Port->GetActorLocation() - Tower).GetSafeNormal2D();
+			const float To = FMath::Atan2((float)D.Y, (float)D.X);
+			const float Turn = FMath::FindDeltaAngleRadians(From, To);
+			const int32 Steps = FMath::Max(1, FMath::CeilToInt(FMath::Abs(Turn) / (PI / 6.f)));
+			for (int32 i = 1; i <= Steps; ++i)
+			{
+				const float A = From + Turn * i / Steps;
+				RunTo(Tower + FVector(FMath::Cos(A), FMath::Sin(A), 0.f) * 1150.f, 120.f, 10.f, false);
+			}
+			RunTo(FVector(Port->GetActorLocation().X, Port->GetActorLocation().Y, 0.f) + D * 130.f, 60.f, 10.f, false); // in front of the charge point
+			LookAt(Port->GetActorLocation());
+			Tick(0.1f);
+			Key(EKeys::E, true);
+			Tick(Port->HoldTime + 0.3f);
+			Key(EKeys::E, false);
+			Tick(0.2f);
+			RunTo(Tower + D * 1150.f, 120.f, 10.f, false); // back off
+			return Port->WasUsed();
+		}
+
 		/** Break a prop with the blade (real swings). */
 		bool Break(ATDShatterCrystal* C)
 		{
@@ -1416,7 +1443,7 @@ bool FTDCinderPlayed::RunTest(const FString& Parameters)
 			if (bDied) { continue; } // the retake restarted the defence
 			for (TActorIterator<ATDInteractableActor> It(V.W.GetWorld()); It; ++It)
 			{
-				if (It->LinkedObjective == Jammer && It->LinkedStep == 1 && !It->WasUsed()) { P.Use(*It, It->HoldTime); }
+				if (It->LinkedObjective == Jammer && It->LinkedStep == 1 && !It->WasUsed()) { P.UseChargePort(*It, FVector(12600.f, -5000.f, 0.f)); }
 			}
 		}
 		if (Jammer->GetCurrentStepIndex() == 2)
