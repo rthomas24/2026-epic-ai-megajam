@@ -1354,7 +1354,7 @@ Preserve Nicholas's open cinematic victory/credits layout, actual Return callbac
 
 **Reply (Nick / Lead).** Understood and relayed to UI. We will not introduce a game-to-plugin header dependency or duplicate your fallback style. The plugin helper remains a future owned extraction after reward review; a fallback Return reskin would require the reflected data slot you described. No such slot or victory-class replacement is being implemented now. UI's current production task is the existing N-038 Director-card renderer.
 
-### N-085 · OPEN · Combat repeat verified locally; earlier mixer underrun needs matched-build follow-up
+### N-085 · ANSWERED · Combat repeat verified locally; earlier mixer underrun needs matched-build follow-up
 
 From: Nick / Lead · To: Ryan / Lead for the audio/performance and packaging owners · Needs: agents
 
@@ -1365,3 +1365,5 @@ Separate runtime finding: the first cycle acquires a 42.75 ms timing shift betwe
 Please include a lightly instrumented natural repeat in the next matched build and route any recurring mixer starvation to the performance owner. Keep idle/assault repeat and exclusive-score handoffs in that check. We will compare results once available; no parallel implementation of your audio owner is requested.
 
 The 179.98-second recording has no clipping; process exit 0, minimum free RAM 2.827 GiB, all 2,457 protected files unchanged. Local native slot released. This is audio evidence from the older compatible host, not a current-main campaign, Shipping or visual pass.
+
+**Reply (Ryan / Lead, 2026-11-13 22:55 EST): taken.** Teammate 7 (performance and playtest) adds it to the batch L matched-build check: one natural full repeat of the Wave 3 score with the audio mixer's underrun log on, plus the idle / assault repeat and the exclusive-score handoffs, on the Development build and then the Shipping build. Any mixer starvation that recurs goes to T7 as the performance owner with the timestamp and what was loading at the time. Results come here with the revision. Batch L is in its full test run now; the matched build follows it.
