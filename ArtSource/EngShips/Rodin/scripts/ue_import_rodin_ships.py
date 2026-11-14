@@ -77,7 +77,8 @@ SHIPS = {
                  mi_params={"MetallicScale": 0.2, "RoughnessMin": 0.36, "DetailTiling": 10.0, "DetailStrength": 0.5,
                             "DetailAO": 0.6, "DetailRough": 0.25},
                  parts_params={"MetallicScale": 0.3, "RoughnessMin": 0.3, "DetailTiling": 8.0, "DetailStrength": 0.35},
-                 parts=(("Portal", "SM_Rift_PortalDisc", "Portal"),)),
+                 # close-range parts (rh_closeparts.py, v07): the canopy glass is its own non-Nanite part at Cockpit
+                 parts=(("Portal", "SM_Rift_PortalDisc", "Portal"), ("Canopy", "SM_Rift_Canopy", "Cockpit"))),
     "Lancer": dict(da=(SQUAD, "DA_Lancer_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Lancer", old_mi=None, squad=True, glow=SQUAD_GLOW["Lancer"],
                    emissive=6.0, base_tint=(1.0, 1.0, 1.0), rough=1.45, self_light=0.08, detail=0.55, trail_scale=0.7, glow_strength=1.0,
                    # boost_scale=0.55 would set BoostLoop / BoostStart VFXScale, but the Lancer's boost cues have no VFX: the
@@ -502,6 +503,39 @@ def ensure_glow():
     cust, k = _custom(mat, -500, 0, GLOW_HLSL, inputs, unreal.CustomMaterialOutputType.CMOT_FLOAT3, (), "TD nozzle glow"); ok &= k
     ok &= mel.connect_material_property(cust, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     return _finish(mat, GLOWM, ok)
+
+
+GLASSM = SHARED + "/M_TD_ShipGlass"
+
+
+def ensure_glass():
+    """M_TD_ShipGlass: lit translucent canopy glass (separate, non-Nanite canopy part): Tint, Opacity (face-on),
+    EdgeOpacity (grazing, fresnel), Roughness. The pilot and seat inside read through it at 3-10 m."""
+    have = _keep_or_clear(GLASSM, "Glass")
+    if have and have[0] == "keep":
+        return have[1]
+    E = unreal
+    mat = _new_material(GLASSM, translucent=True, existing=have[1] if have else None)
+    try:
+        mat.set_editor_property("translucency_lighting_mode", unreal.TranslucencyLightingMode.TLM_SURFACE_PER_PIXEL_LIGHTING)
+    except Exception as error:
+        log("note: glass lighting mode (%s)" % error)
+    ok = True
+
+    def P(name, value, x, y):
+        n, _ = _node(mat, E.MaterialExpressionScalarParameter, x, y, {"parameter_name": name, "default_value": value})
+        return n
+    tint, _ = _node(mat, E.MaterialExpressionVectorParameter, -800, -200,
+                    {"parameter_name": "Tint", "default_value": unreal.LinearColor(0.035, 0.02, 0.07, 1.0)})
+    fres, _ = _node(mat, E.MaterialExpressionFresnel, -800, 200, {"exponent": 3.0, "base_reflect_fraction": 0.04})
+    op, k = _node(mat, E.MaterialExpressionLinearInterpolate, -500, 150, A=(P("Opacity", 0.45, -800, 100), ""),
+                  B=(P("EdgeOpacity", 0.92, -800, 150), ""), Alpha=(fres, "")); ok &= k
+    mp = unreal.MaterialProperty
+    ok &= mel.connect_material_property(tint, "RGB", mp.MP_BASE_COLOR)
+    ok &= mel.connect_material_property(P("Roughness", 0.06, -800, 300), "", mp.MP_ROUGHNESS)
+    ok &= mel.connect_material_property(P("Specular", 0.9, -800, 350), "", mp.MP_SPECULAR)
+    ok &= mel.connect_material_property(op, "", mp.MP_OPACITY)
+    return _finish(mat, GLASSM, ok)
 
 
 def ensure_trim():
@@ -1049,6 +1083,19 @@ def main():
             xp = "%s/MI_%s_%s" % (dest, ship, part_name)
             pmi = eas.load_asset(xp) if eas.does_asset_exist(xp) else tools.create_asset(
                 "MI_%s_%s" % (ship, part_name), dest, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+            if part_name == "Canopy":
+                mel.set_material_instance_parent(pmi, ensure_glass())
+                eas.save_loaded_asset(pmi)
+                for i in range(len(pmesh.static_materials)):
+                    pmesh.set_material(i, pmi)
+                eas.save_loaded_asset(pmesh)
+                spec = unreal.TDShipVisualPart()
+                spec.set_editor_property("part_name", part_name)
+                spec.set_editor_property("mesh", pmesh)
+                spec.set_editor_property("parent_socket", part_socket)
+                part_specs.append(spec)
+                notes.append("canopy glass %s" % pmi.get_name())
+                continue
             mel.set_material_instance_parent(pmi, portal_m)
             mel.set_material_instance_scalar_parameter_value(pmi, "PortalPower", 0.5)
             for pname, value in (("Brightness", cfg.get("portal_brightness", 1.0)), ("MaxEmissive", cfg.get("portal_max", 2.5))):
