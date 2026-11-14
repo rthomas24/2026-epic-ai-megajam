@@ -1,5 +1,5 @@
 {
- "_note": "Light combo v3 (Nov 14, melee pass). Three distinct arcs that hand off: L1 forehand diagonal (high right to low left), L2 back-hand flat (left to right, starts where L1 ends), L3 overhead finisher (starts where L2 ends). Coil 0.05 s (torso turned against the cut), contact at 0.10 s (the code's HitDelay), follow-through 30-40 deg past centre by 0.18 s, recovery held to the lockout (0.28 / 0.28 / 0.36 s) so a chained press starts from the same pose, then back to the guard. hand = (forward, right, up) cm from the right shoulder in the chest frame; blade = direction in that frame; yaw = torso turn (deg, + = to the right); t = game seconds at the code's rate. Light2's source stands 45 cm left of the root: pelvis_shift puts it back over the capsule.",
+ "_note": "Light combo v3 (Nov 14, melee pass). Three distinct arcs that hand off: L1 forehand diagonal (high right to low left), L2 back-hand flat (left to right, starts where L1 ends), L3 overhead finisher (starts where L2 ends). Coil 0.05 s (torso turned against the cut), contact at 0.10 s (the code's HitDelay), follow-through 30-40 deg past centre by 0.18 s, recovery held to the lockout (0.28 / 0.28 / 0.36 s) so a chained press starts from the same pose, then back to the guard. hand = (forward, right, up) cm from the right shoulder in the chest frame; blade = direction in that frame; yaw = torso turn (deg, + = to the right); t = game seconds at the code's rate. Light2 is authored on Light1's legs (square stance): Light2's own legs stand side-on and turned the whole body 90 deg between the first and second hit in game (r1).",
  "swing": [
   {
    "src": "A_Pilot_Light1", "dst": "A_Pilot_Light1_v3", "rate": 1.6, "max_yaw": 90,
@@ -13,7 +13,7 @@
    ]
   },
   {
-   "src": "A_Pilot_Light2", "dst": "A_Pilot_Light2_v3", "rate": 1.6, "max_yaw": 90, "pelvis_shift": [-45, -12],
+   "src": "A_Pilot_Light1", "dst": "A_Pilot_Light2_v3", "rate": 1.6, "max_yaw": 90,
    "keys": [
     {"t": 0.0,  "hand": [30, -42, -30], "blade": [0.32, -0.76, -0.52], "yaw": -30},
     {"t": 0.05, "hand": [18, -48, -8],  "blade": [-0.35, -0.9, 0.15],  "yaw": -42},
@@ -36,3 +36,4 @@
   }
  ]
 }
+

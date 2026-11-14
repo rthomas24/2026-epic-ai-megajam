@@ -27,6 +27,7 @@ MOVES = {
     "run":     (0.35, 3.0, [(0.0, "TD.Key W 1.2")], []),
     "strafe":  (0.35, 3.0, [(0.0, "TD.Key D 1.2")], []),
     "turn":    (0.35, 3.0, [(0.0, "TD.Key S 0.25"), (0.9, "TD.Key W 0.6")], []),
+    "turn_idle": (0.4, 3.0, [(0.0, "TD.Look 120 -10")], []),
     "stop":    (0.35, 3.0, [(0.0, "TD.Key W 0.25")], [("TD.Key W 1.0", 1.0)]),
     "light123": (0.08, 9.5, [(0.0, "TD.Key LeftMouseButton"), (2.0, "TD.Key LeftMouseButton"), (5.0, "TD.Key LeftMouseButton")], []),
     "light_run": (0.1, 7.0, [(0.0, "TD.Key W 0.7"), (0.4, "TD.Key LeftMouseButton"), (2.6, "TD.Key LeftMouseButton")], []),

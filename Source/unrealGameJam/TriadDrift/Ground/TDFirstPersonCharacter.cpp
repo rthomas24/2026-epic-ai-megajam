@@ -334,6 +334,14 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 				LegRate = FMath::Clamp(Speed / (bRun ? D->JogSpeed : D->WalkSpeed), 0.6f, 1.7f);
 			}
 		}
+		// Turn in place (standing, the body swinging round to the camera): small side steps on the legs instead of the
+		// idle's planted feet sliding round.
+		if (!bAir && Want == 0 && bIdleTurnToCamera && TDPilotMeleePassOn())
+		{
+			const float Delta = FMath::FindDeltaAngleDegrees((float)GetActorRotation().Yaw, (float)GetControlRotation().Yaw);
+			Legs = LoadPilotAnim(Delta > 0.f ? TEXT("A_Pilot_Walk_Right") : TEXT("A_Pilot_Walk_Left"));
+			LegRate = 1.2f;
+		}
 		Loops->SetLegLoop(Legs, LegRate);
 	}
 }
