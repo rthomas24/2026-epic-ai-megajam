@@ -454,4 +454,29 @@ bool FTDDockingRouteLineOnlyWhenBoarding::RunTest(const FString&)
 	return true;
 }
 
+// Lead (Nov 14): the effects builder's tractor beam (eng/vfx, accepted) fills DA_Dominion_Visuals.TractorBeam. It is a
+// Niagara system that takes the bay's User.Length (cm) and User.Intensity every frame (ATDDockingBay::UpdateBeam).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTractorBeamSlot, "TriadDrift.World.Docking.TractorBeamSlotHoldsTheAcceptedEffect", TD_TEST_FLAGS)
+bool FTDTractorBeamSlot::RunTest(const FString&)
+{
+	const UTDDominionVisuals* V = UTDStatics::LoadPresentation<UTDDominionVisuals>(TEXT("DA_Dominion_Visuals"));
+	if (!TestNotNull(TEXT("DA_Dominion_Visuals"), V)) { return false; }
+	TestFalse(TEXT("the TractorBeam slot is filled"), V->TractorBeam.IsEmpty());
+	UNiagaraSystem* Sys = V->TractorBeam.VFX.LoadSynchronous();
+	if (!TestNotNull(TEXT("the TractorBeam system loads"), Sys)) { return false; }
+	TestEqual(TEXT("the accepted system"), Sys->GetName(), FString(TEXT("NS_TD_Dominion_TractorBeam")));
+	bool bLength = false, bIntensity = false;
+	TArray<FNiagaraVariable> Params;
+	Sys->GetExposedParameters().GetUserParameters(Params);
+	for (const FNiagaraVariable& P : Params)
+	{
+		const FString N = P.GetName().ToString();
+		bLength |= N.EndsWith(TEXT("Length"));
+		bIntensity |= N.EndsWith(TEXT("Intensity"));
+	}
+	TestTrue(TEXT("it exposes User.Length (the bay sets it every frame)"), bLength);
+	TestTrue(TEXT("it exposes User.Intensity"), bIntensity);
+	return true;
+}
+
 #endif
