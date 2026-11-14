@@ -49,6 +49,8 @@ public:
 	void Step(float DeltaTime);
 
 	ETDInteriorLightMode GetMode() const { return Mode; }
+	/** Dev / captures (TD.Env.InteriorLight <Normal|Alarm|Collapse>): jump straight to a state. */
+	void ForceMode(ETDInteriorLightMode NewMode);
 	int32 GetLightCount() const { return Lights.Num(); }
 
 private:

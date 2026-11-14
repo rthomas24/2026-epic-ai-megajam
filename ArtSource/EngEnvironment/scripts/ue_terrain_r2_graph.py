@@ -84,8 +84,9 @@ SCALARS = {
     "WetRockDark": (0.45, 0.7),
     # s7 story: Verdance's wreck scar (the same segment as FTDScatterPlan::ScarA/B, course-local = world on the planet
     # maps): charred black ground with ember specks, narrow at the research site, wide outward. Off on Cinder.
-    "ScarAX": (13000.0, 0.0), "ScarAY": (8200.0, 0.0), "ScarBX": (57000.0, 0.0), "ScarBY": (41000.0, 0.0),
-    "ScarHalfA": (1500.0, 0.0), "ScarHalfB": (6000.0, 0.0), "ScarEmber": (6.0, 0.0),
+    # s9: it starts beyond the basin wall (on the wall behind the research site it stood up as a glowing pillar), wider
+    "ScarAX": (24000.0, 0.0), "ScarAY": (15500.0, 0.0), "ScarBX": (60000.0, 0.0), "ScarBY": (43000.0, 0.0),
+    "ScarHalfA": (2500.0, 0.0), "ScarHalfB": (9000.0, 0.0), "ScarEmber": (6.0, 0.0),
 }
 VECTORS = {
     # R3 (Verdance): A = teal moss, B = bright yellow-green moss (open meadow side), C = blue-teal glade

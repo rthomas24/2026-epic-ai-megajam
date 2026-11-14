@@ -5,6 +5,7 @@
 #include "Components/LightComponent.h"
 #include "Components/MeshComponent.h"
 #include "EngineUtils.h"
+#include "HAL/IConsoleManager.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 
 const FName UTDInteriorLightSubsystem::LightTag(ATDPlanetCourse::InteriorLightTag);	// T5's tag on the interior's lights
@@ -168,3 +169,35 @@ void UTDInteriorLightSubsystem::Restore()
 	Strips.Reset();
 	bRestorePending = false;
 }
+
+void UTDInteriorLightSubsystem::ForceMode(ETDInteriorLightMode NewMode)
+{
+	if (NewMode == ETDInteriorLightMode::Normal)
+	{
+		HandleMoment(TEXT("CoreChamberEntered"), nullptr);
+		return;
+	}
+	HandleMoment(TEXT("EscapeStarted"), nullptr);
+	if (NewMode == ETDInteriorLightMode::Collapse)
+	{
+		Course.Reset();
+		SinceEscape = EscapeSeconds - CollapseSeconds;
+	}
+}
+
+#if !UE_BUILD_SHIPPING
+namespace
+{
+	FAutoConsoleCommandWithWorldAndArgs GTDInteriorLightCmd(TEXT("TD.Env.InteriorLight"),
+		TEXT("TD.Env.InteriorLight <Normal|Alarm|Collapse>: show an interior lighting state (captures)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			UTDInteriorLightSubsystem* S = World ? World->GetSubsystem<UTDInteriorLightSubsystem>() : nullptr;
+			if (!S || Args.Num() < 1) { return; }
+			const FString& A = Args[0];
+			S->ForceMode(A.Equals(TEXT("Collapse"), ESearchCase::IgnoreCase) ? ETDInteriorLightMode::Collapse
+				: (A.Equals(TEXT("Alarm"), ESearchCase::IgnoreCase) ? ETDInteriorLightMode::Alarm : ETDInteriorLightMode::Normal));
+			UE_LOG(LogTemp, Display, TEXT("TD.Env.InteriorLight %s: %d lights"), *A, S->GetLightCount());
+		}));
+}
+#endif

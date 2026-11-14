@@ -129,10 +129,10 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		R.CanopyAccent.Add(Add(TDScatter_Path(TEXT("Scatter"), TEXT("SM_Scatter_Verd_Canopy_02")), 1.0f, 1.5f, 400.f, 420000.f, 460000.f, 4000.f, false, false, false));
 		// s6 story: the wreck scar. Something came down on the research site from the north-east: a 550 m strip of burned
 		// forest, narrow at the site and widening outward, readable from the landing approach (charred trunks, scorch).
-		P.ScarA = FVector2D(13000.f, 8200.f);
-		P.ScarB = FVector2D(57000.f, 41000.f);
-		P.ScarHalfA = 1500.f;
-		P.ScarHalfB = 6000.f;
+		P.ScarA = FVector2D(24000.f, 15500.f);	// s9: beyond the basin wall (same numbers as the terrain material's Scar*)
+		P.ScarB = FVector2D(60000.f, 43000.f);
+		P.ScarHalfA = 2500.f;
+		P.ScarHalfB = 9000.f;
 		for (int32 i = 1; i <= 2; ++i)
 		{
 			R.CharTrees.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.0f, 1.6f, 30.f, 180000.f, 240000.f, 300.f, true, false, true));
