@@ -531,7 +531,11 @@ void ATDPlanetCourse::BuildInterior()
 	StoryConsole(FVector(AX1 - 300.f, AY - 300.f, 0.f), 180.f, TEXT("Barracks")); // T3's id for this room
 
 	// 3. The Warden at the gate.
-	ATDObjective* Gate = MakeObjective(Warden, LOCTEXT("DIWardenTitle", "The Warden's Gate"), ETDAbilityId::None, ETDShipId::Rift, 1);
+	// Two steps (#96): the Warden, then the final record. The exit door, the Core objective and Face to Face all wait
+	// for the record, so nobody walks past it (Nick's Lead did, from a Continue at the Warden checkpoint).
+	ATDObjective* Gate = MakeObjective(Warden, LOCTEXT("DIWardenTitle", "The Warden's Gate"), ETDAbilityId::None, ETDShipId::Rift, 2);
+	WardenGateObjective = Gate;
+	WardenExitDoor = WardenOut;
 	AddTrailhead(Gate, FVector(L1X1 + 400.f, 0.f, 0.f), Strip, LOCTEXT("DIWarden", "THE GATE"));
 	Trailheads.Last().After = Fight;
 	StepDoors.Add({ Gate, 0, WardenIn });
@@ -547,7 +551,7 @@ void ATDPlanetCourse::BuildInterior()
 	}
 	CompletionDoors.Add({ Gate, 0, WardenOut });
 	Checkpoint(Gate, 0, FVector(L1X1 + 300.f, 0.f, 0.f), 0.f);
-	FinishObjective(Gate, { LOCTEXT("DIW0", "DEFEAT THE WARDEN") }, {});
+	FinishObjective(Gate, { LOCTEXT("DIW0", "DEFEAT THE WARDEN"), LOCTEXT("DIW1", "PLAY THE FINAL RECORD") }, {});
 	Entry(Warden, FVector(L1X1 - 300.f, 0.f, 0.f), 0.f);
 
 	// 4. The core: break the four shield conduits, then strike the heart (the orbs, the laser and the deflect-only
@@ -673,6 +677,7 @@ void ATDPlanetCourse::BuildInterior()
 		Rec->Prompt = LOCTEXT("FinalRecord", "Play the final record");
 		Rec->bSingleUse = false; // a second press skips the record
 	}
+	if (Gate && Gate->Steps.IsValidIndex(1)) { Gate->Steps[1].Waypoint = FinalRecordConsole; } // the marker sits on the console
 
 	// 5. The escape run: back to the ship against the clock, debris falling (a CUT restarts the run, not the fight).
 	ATDObjective* Run = MakeObjective(Escape, LOCTEXT("DIEscapeTitle", "Get Out"), ETDAbilityId::None, ETDShipId::Rift, 1);
@@ -888,6 +893,18 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 		UTDStorySubsystem::PlaySequence(this, TEXT("FirstDoor")); // A4_DoorsKnowUs, C7_Kato_Archive, C7_Wren_Record (T3)
 	}
 	else if (Id == Warden && StepIndex == 0) { Beat(TEXT("G7_Kato_Authorisations")); } // the Warden door opens
+	else if (Id == Warden && StepIndex == 1)
+	{
+		// The Warden is down: the record next. Already played (or skipped): the step is done at once.
+		if (bFinalRecordDone)
+		{
+			GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this, [this]() { CompleteFinalRecordStep(); }));
+		}
+		else if (WardenExitDoor)
+		{
+			WardenExitDoor->ShowStatusText(LOCTEXT("RecordFirst", "PLAY THE FINAL RECORD FIRST"));
+		}
+	}
 	else if (Id == Core && StepIndex == 0)
 	{
 		// N-052: Face to Face for the pilot who boarded, as the reactor room starts (T3's G8_Self_<Pilot> lines).
@@ -1066,6 +1083,16 @@ void ATDPlanetCourse::OpenReactorDoor()
 		Rec->bEnabled = false; // played
 	}
 	// T3's Cinematic 08 carries the decision lines now (no A5_Choice here).
+	CompleteFinalRecordStep();
+}
+
+void ATDPlanetCourse::CompleteFinalRecordStep()
+{
+	if (WardenExitDoor) { WardenExitDoor->ClearStatusText(); }
+	if (ATDObjective* Gate = WardenGateObjective.Get(); Gate && Gate->GetCurrentStepIndex() == 1)
+	{
+		Gate->CompleteStep(1); // the exit opens, the Core objective and Face to Face start
+	}
 }
 
 void ATDPlanetCourse::HandleHeartHit(UTDHealthComponent* Health, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
