@@ -139,10 +139,10 @@ def row_light(i, n=12, length=40000.0):
 # each frame, User.Intensity 0..1). A pale-blue cone from a 60 m mouth narrowing toward the ship, motes pulled in from
 # the ship's end toward the bay, and a soft glow in the mouth.
 S2('NS_TD_Dominion_TractorBeam', U((0.35, 0.65, 1.0, 1.0), 1.0, Length=20000.0, Intensity=1.0), [
-    mesh_single('Beam', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '1.0, 30.0, 30.0', 0.10, None,   # 10b: 0.55 read as a white jet
-                live_scale='float3(User.Length/(100.0*User.Scale), 1.0, 1.0)*User.Intensity*(0.97 + 0.03*sin(Engine.Time*3.1))'),
-    mesh_single('Core', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '1.0, 10.0, 10.0', 0.16, None,
-                live_scale='float3(User.Length/(100.0*User.Scale), 1.0, 1.0)*User.Intensity*(0.95 + 0.05*sin(Engine.Time*5.3))'),
+    # 10d: the flame-mesh cone read as a white exhaust jet; the beam is now a column of big soft blue glows streaming from
+    # the ship's end into the bay (reads as a pull), the motes, and the glow in the mouth.
+    offset(shed('Stream', 'M_TD_VFX_Glow', 0, (2.5, 4.0), (1400, 2600), (3500, 5000), k=1.6, radius=600.0, drag=0.0, local=True,
+                cone=((-1.0, 0.0, 0.0), 2.0), rate_expr='40.0*User.Intensity', power=0.7, fade_in=5.0), 'User.Length/User.Scale'),
     offset(shed('Motes', 'M_TD_VFX_Glow', 0, (1.2, 2.4), (60, 140), (4000, 7000), k=1.4, radius=900.0, drag=0.0, local=True, stretch=None,
                 cone=((-1.0, 0.0, 0.0), 6.0), rate_expr='70.0*User.Intensity', power=0.8, fade_in=4.0), 'User.Length/User.Scale'),
     shed('Mouth', 'M_TD_VFX_Glow', 0, (0.3, 0.3), (5000, 6000), (0, 0), k=0.5, radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='12.0*User.Intensity')])
