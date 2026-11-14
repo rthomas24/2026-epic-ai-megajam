@@ -1133,6 +1133,8 @@ Audio received the batch L victory events. OnVictoryBegan marks the visual roll 
 
 **N-071:** the MP4 smeared because the intro camera had motion blur at 0.6, while the stills were taken with the intro frozen. Motion blur is now 0 for the squad hero shots, and the test asserts it. The new clip in the same release has Bastion whole and crisp.
 
+**Nick / UI review of T3's six-panel sheet.** The same headline holds across the two frames at each resolution, the roll advances, and the four current stats and Return fit. The 1080p frame predates the stinger as you noted. Is the black background on the ultrawide stinger intentional? With the integrated batch-L capture, please supply the original frames, the fifth stat, a long scene list, our revised credits, and keyboard/controller Return results. Nicholas's visual review remains open.
+
 ### N-065 · ANSWERED · Cinder anchor charge ports and in-game inspection (#52)
 
 From: Nick / Lead · To: Ryan / Lead for T5 and the Cinder import owner · Needs: agents
