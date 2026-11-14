@@ -136,10 +136,20 @@ SHIPS = {
                         # its seams are a pale peach in the texture: a sharper white test keeps them orange and
                         # leaves only the really neutral texels (the nose chevron eye) white
                         # The fighter is the RED one of the pair (the interceptor is amber): see NullInterceptor.
-                        emissive_tint=(1.0, 0.26, 0.12), eye_boost=1.4, white_sharp=22.0, range_boost=6.0, eye_mul=1.6),
+                        emissive_tint=(1.0, 0.26, 0.12), eye_boost=1.4, white_sharp=22.0, range_boost=6.0, eye_mul=1.6,
+                        # The HYBRID (second ship builder, Nov 14; rh_hybrid.py --ship NullFighter): the Rodin hull, normals and maps
+                        # as they were, with clean lathed engine nozzles in a second slot M_NullFighter_Parts.
+                        # TD_RODIN_PLAIN=NullFighter imports the plain Rodin ship again.
+                        kit=os.path.join("NullFighterHero", "export"), parts_emissive=4.0, parts_rough=1.1, parts_tint=(0.6, 0.6, 0.6),
+                        parts_metal=0.3, parts_params={"MetallicScale": 0.3, "RoughnessMin": 0.3}, plain=dict(kit=None),),
     "NullGunship": dict(da=(FLEET, "DA_Enemy_Gunship_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Gunship",
                         old_mi=FLEET + "/MI_Null_Gunship", emissive=8.0, base_tint=(0.6, 0.57, 0.57),
-                        emissive_tint=ENEMY_GLOW, eye_boost=1.6, range_boost=5.0, eye_mul=1.6),
+                        emissive_tint=ENEMY_GLOW, eye_boost=1.6, range_boost=5.0, eye_mul=1.6,
+                        # The HYBRID (second ship builder, Nov 14; rh_hybrid.py --ship NullGunship): the Rodin hull, normals and maps
+                        # as they were, with clean lathed turret barrels in a second slot M_NullGunship_Parts.
+                        # TD_RODIN_PLAIN=NullGunship imports the plain Rodin ship again.
+                        kit=os.path.join("NullGunshipHero", "export"), parts_emissive=4.0, parts_rough=1.1, parts_tint=(0.6, 0.6, 0.6),
+                        parts_metal=0.3, parts_params={"MetallicScale": 0.3, "RoughnessMin": 0.3}, plain=dict(kit=None),),
     # Fleet r3 (Grok Bot, Nov 13): these came out properly dark with clean orange seams: no BaseTint darkening.
     "NullInterceptor": dict(da=(FLEET, "DA_Enemy_Interceptor_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Interceptor",
                             old_mi=FLEET + "/MI_Null_Interceptor", emissive=14.0, base_tint=(1.0, 1.0, 1.0),
@@ -1087,6 +1097,11 @@ def main():
                 mel.set_material_instance_scalar_parameter_value(parts_mi, pname, value)
             pt = cfg.get("parts_tint", (1.0, 1.0, 1.0))
             mel.set_material_instance_vector_parameter_value(parts_mi, "BaseTint", unreal.LinearColor(pt[0], pt[1], pt[2], 1.0))
+            if "emissive_tint" in cfg:      # the Null fleet: the parts' glow takes the hull's tint and its boost at range
+                et2 = cfg["emissive_tint"]
+                mel.set_material_instance_vector_parameter_value(parts_mi, "EmissiveTint", unreal.LinearColor(et2[0], et2[1], et2[2], 1.0))
+                mel.set_material_instance_scalar_parameter_value(parts_mi, "RangeBoost", cfg.get("range_boost", 1.0))
+                mel.set_material_instance_scalar_parameter_value(parts_mi, "WhiteSharpness", cfg.get("white_sharp", 4.0))
             eas.save_loaded_asset(parts_mi)
         slot_notes = []
         for i, sm in enumerate(mesh.static_materials):

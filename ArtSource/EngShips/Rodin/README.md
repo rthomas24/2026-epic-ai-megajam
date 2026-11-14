@@ -192,3 +192,18 @@ plain next to the textured hull and no longer catch amber light at the tip.
 
 `ue_import_rodin_ships.py` also sets `CollisionScrape.VFX` = `NS_TD_Ship_ImpactScrape` (VFXScale 1, sound untouched) on the
 three squad visuals **once that system is in the checkout** (it prints "CollisionScrape NOT set" until then).
+
+## Enemy fleet at close range (Nov 14): fighter and gunship v01
+
+Same pipeline (`rh_hybrid.py --ship NullFighter | NullGunship`, config `_null()` in `rh_ships.py`): the low-poly Rodin
+hulls stay exactly as they are (not welded: welding the fighter wound faces against their neighbours; Rodin's normals
+and maps kept), only the lumpy parts are rebuilt: the fighter's three nozzle ends (`build_engines`), the gunship's
+four turret barrels (`_guns_barrels`). Second slot `MI_Null*_Parts` takes the hull's emissive tint and range boost.
+Sizes and sockets unchanged (gunship length 1500.0 cm, it was 1497.4: the new barrels end exactly on the old tips).
+
+**Honest result** (fresh-eyes review, sheets `Builds/for-ryan/ships/fleet_{fighter,gunship}_before_after_*.png`): no
+BLOCKER or MAJOR, both REPLACE, but the change is not visible from the chase camera at 20-80 m. What hurts the fleet
+at that range is not lumpy geometry: (1) the engine flame sprite covers the nozzles from every rear angle; (2) the
+fighter's seams break into flecks and no white eye shows from behind or the side; (3) the gunship hull is near pure
+black with mirror-like reflections, its eyes show only from the front 3/4 and its accents are sparse for its size.
+The next pass should be material and emissive work (rim / seam glow, roughness up, eye placement), not more modelling.
