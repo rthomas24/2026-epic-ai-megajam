@@ -311,6 +311,14 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 				Loop = Idle3;
 			}
 		}
+		// Walk v3: the same blade-out-to-the-right carriage through the stride.
+		if (Loop && Want == 1 && !Fall && Loop->GetFName() == TEXT("A_Pilot_Walk_v2") && TDPilotMeleePassOn())
+		{
+			if (UAnimSequenceBase* Walk3 = LoadPilotAnim(TEXT("A_Pilot_Walk_v3")))
+			{
+				Loop = Walk3;
+			}
+		}
 		// Run v2 (animation builder, Nov 14): the blade held out and down beside the leg, not swept across the head.
 		if (Loop && Want == 2 && Loop->GetFName() == TEXT("A_Pilot_Run") && TDPilotMeleePassOn())
 		{
@@ -731,7 +739,7 @@ UAnimSequenceBase* ATDFirstPersonCharacter::LoadPilotAnim(FName Anim) const
 			TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_Blade_Idle_v2"), TEXT("A_Pilot_Run_v2"), TEXT("A_Pilot_Run_v3"),
 			TEXT("A_Pilot_FallLoop_v2"), TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_JumpStart_v2"),
 			TEXT("A_Pilot_Block_v3"), TEXT("A_Pilot_Blade_DeflectFlick_v3"),
-			TEXT("A_Pilot_Idle3_v3"), TEXT("A_Pilot_Blade_Idle_v3") };
+			TEXT("A_Pilot_Idle3_v3"), TEXT("A_Pilot_Blade_Idle_v3"), TEXT("A_Pilot_Walk_v3") };
 		for (const FName& N : NewMoves)
 		{
 			if (Anim == N)

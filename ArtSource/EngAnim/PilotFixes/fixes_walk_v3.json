@@ -1,0 +1,6 @@
+{
+ "_note": "Walk v3 (Nov 14, round 2): as Idle3_v3, the blade out to the right side 35 deg down through the stride, so it reads whole from the chase camera (Walk_v2 pointed it forward-down: a stub from behind). Forearm roll <= 90 + wrist <= 70.",
+ "aim": [
+  {"src": "A_Pilot_Walk", "dst": "A_Pilot_Walk_v3", "dir": [-0.75, 0.33, -0.57], "max_deg": 70, "twist": true, "twist_max": 90}
+ ]
+}
