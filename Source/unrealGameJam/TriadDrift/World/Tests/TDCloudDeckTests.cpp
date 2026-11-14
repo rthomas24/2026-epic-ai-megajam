@@ -42,12 +42,14 @@ bool FTDCloudDeckOnPlanetsOnly::RunTest(const FString&)
 		TestTrue(*(Name + TEXT(": visual only (no collision)")), M && M->GetCollisionEnabled() == ECollisionEnabled::NoCollision);
 		TestFalse(*(Name + TEXT(": no shadow")), M && M->CastShadow);
 		TestTrue(*(Name + TEXT(": has its material")), M && M->GetMaterial(0) && M->GetMaterial(0)->GetName().Contains(TEXT("CloudDeck_") + Name));
-		// Below the 1.6 km ceiling and above the pad.
+		// ENG-38 (agreed with T1, Nov 14): the deck clears the flight zone's highest ground by DeckClearance (T1 raises
+		// the zone ceiling to deck + 500 m and arrives at deck + 300 m).
 		ATDPlanetTerrain* T = nullptr;
 		for (TActorIterator<ATDPlanetTerrain> It(W.GetWorld()); It; ++It) { T = *It; }
 		const float PadZ = T ? T->GetActorLocation().Z : 0.f;
 		const float Up = D[0]->GetActorLocation().Z - PadZ;
-		TestTrue(*FString::Printf(TEXT("%s: deck %.0f m over the pad, between 0.5 and 1.6 km"), *Name, Up / 100.f), Up > 50000.f && Up < 160000.f);
+		TestTrue(*FString::Printf(TEXT("%s: deck %.0f m over the pad, the pad corridor's rule, inside 1.1-1.6 km"), *Name, Up / 100.f),
+			T && FMath::IsNearlyEqual(D[0]->GetActorLocation().Z, T->GetCloudDeckZ(), 1.f) && Up >= T->DeckMinAbovePad - 1.f && Up <= T->DeckMaxAbovePad + 1.f);
 		// The edge bends down with the terrain's far ring (never a visible lip over the horizon).
 		if (M && M->GetNumSections() == 1)
 		{
@@ -74,6 +76,29 @@ bool FTDCloudDeckOnPlanetsOnly::RunTest(const FString&)
 			Cv->Set(Was, ECVF_SetByCode);
 		}
 	}
+	return true;
+}
+
+
+// ENG-38 (agreed with T1): during the glide the haze follows T1's Descent01 - thick at the arrival over the deck, the planet's
+// normal fog at the glide end, easing (no step); with no glide (-1) the altitude ramp as before.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDescentFogRamp, "TriadDrift.World.CloudDeck.DescentHazeFollowsTheGlide", TD_TEST_FLAGS)
+bool FTDDescentFogRamp::RunTest(const FString&)
+{
+	const float Max = 12.f, Low = 150000.f, High = 500000.f;
+	TestEqual(TEXT("thick at the arrival"), ATDPlaceholderSky::ComputeDescentFogScale(0.f, 999999.f, Max, Low, High), Max, 0.01f);
+	TestEqual(TEXT("normal at the glide end"), ATDPlaceholderSky::ComputeDescentFogScale(1.f, 0.f, Max, Low, High), 1.f, 0.01f);
+	float Prev = Max + 1.f, BiggestStep = 0.f;
+	for (int32 i = 0; i <= 100; ++i)
+	{
+		const float S = ATDPlaceholderSky::ComputeDescentFogScale(i / 100.f, 0.f, Max, Low, High);
+		TestTrue(TEXT("never thickens as the glide goes on"), S <= Prev + KINDA_SMALL_NUMBER);
+		if (i > 0) { BiggestStep = FMath::Max(BiggestStep, Prev - S); }
+		Prev = S;
+	}
+	TestTrue(*FString::Printf(TEXT("no step: at most %.2f per 1%% of the glide"), BiggestStep), BiggestStep < (Max - 1.f) * 0.05f);
+	TestEqual(TEXT("no glide, low: the altitude ramp's normal"), ATDPlaceholderSky::ComputeDescentFogScale(-1.f, 0.f, Max, Low, High), 1.f, 0.01f);
+	TestEqual(TEXT("no glide, high: the altitude ramp's thick"), ATDPlaceholderSky::ComputeDescentFogScale(-1.f, 900000.f, Max, Low, High), Max, 0.01f);
 	return true;
 }
 

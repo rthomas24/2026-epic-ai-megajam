@@ -13,6 +13,8 @@
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/StreamableManager.h"
+#include "Engine/AssetManager.h"
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -631,6 +633,44 @@ void ATDPlanetScatter::CaptureKeepOuts()
 	}
 }
 
+void ATDPlanetScatter::RequestKindLoads()
+{
+	// Every kind's mesh and material, loaded off the game thread while Generate runs (T7, issue #89: the old apply did
+	// DoesPackageExist + TryLoad per kind on the game thread, ~330 ms on the first entry).
+	TArray<FSoftObjectPath> Paths;
+	for (const FTDScatterKind& K : Plan.Kinds)
+	{
+		for (const FString& S : { K.MeshPath, K.MaterialPath })
+		{
+			if (S.IsEmpty()) { continue; }
+			const FSoftObjectPath P(S);
+			if (FPackageName::DoesPackageExist(P.GetLongPackageName())) { Paths.AddUnique(P); }
+		}
+	}
+	if (Paths.Num() == 0) { bKindsLoaded = true; return; }
+	TWeakObjectPtr<ATDPlanetScatter> Weak(this);
+	KindLoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(Paths, FStreamableDelegate::CreateLambda([Weak]()
+	{
+		if (ATDPlanetScatter* Self = Weak.Get()) { Self->bKindsLoaded = true; }
+	}));
+	if (!KindLoadHandle.IsValid() || KindLoadHandle->HasLoadCompleted()) { bKindsLoaded = true; }
+}
+
+bool ATDPlanetScatter::AreKindPathsResolved() const
+{
+	// Every existing kind mesh / material is in memory (the async request finished, or something else loaded them).
+	for (const FTDScatterKind& K : Plan.Kinds)
+	{
+		for (const FString& S : { K.MeshPath, K.MaterialPath })
+		{
+			if (S.IsEmpty()) { continue; }
+			const FSoftObjectPath P(S);
+			if (!P.ResolveObject() && FPackageName::DoesPackageExist(P.GetLongPackageName())) { return false; }
+		}
+	}
+	return true;
+}
+
 void ATDPlanetScatter::StartAsync()
 {
 	if (bBuilt || bBuilding)
@@ -638,6 +678,7 @@ void ATDPlanetScatter::StartAsync()
 		return;
 	}
 	bBuilding = true;
+	RequestKindLoads();
 	TWeakObjectPtr<ATDPlanetScatter> Weak(this);
 	const ETDDestination P = Planet;
 	const FTDScatterPlan PlanCopy = Plan;
@@ -665,13 +706,29 @@ void ATDPlanetScatter::BuildNow()
 	const FTDTerrainField Field(FTDTerrainStyle::ForPlanet(Planet));
 	FTDScatterResult R;
 	Plan.Generate(Field, R);
+	bKindsLoaded = true;	// tests and dev: loads happen synchronously here, by design
 	Apply(MoveTemp(R), (FPlatformTime::Seconds() - Start) * 1000.0);
+	ApplyQueued(0.0);	// tests and dev: everything now
 }
 
 UStaticMesh* ATDPlanetScatter::LoadKindMesh(int32 Kind) const
 {
 	const FSoftObjectPath Path(Plan.Kinds[Kind].MeshPath);
-	return FPackageName::DoesPackageExist(Path.GetLongPackageName()) ? Cast<UStaticMesh>(Path.TryLoad()) : nullptr;
+	if (UStaticMesh* Loaded = Cast<UStaticMesh>(Path.ResolveObject())) { return Loaded; }	// the async load's result
+	if (!FPackageName::DoesPackageExist(Path.GetLongPackageName())) { return nullptr; }
+	++SyncKindLoads;	// BuildNow (tests, dev) or a kind the async request missed
+	return Cast<UStaticMesh>(Path.TryLoad());
+}
+
+UMaterialInterface* ATDPlanetScatter::ResolveKindMaterial(int32 Kind) const
+{
+	const FString& S = Plan.Kinds[Kind].MaterialPath;
+	if (S.IsEmpty()) { return nullptr; }
+	const FSoftObjectPath MP(S);
+	if (UMaterialInterface* Loaded = Cast<UMaterialInterface>(MP.ResolveObject())) { return Loaded; }
+	if (!FPackageName::DoesPackageExist(MP.GetLongPackageName())) { return nullptr; }
+	++SyncKindLoads;
+	return Cast<UMaterialInterface>(MP.TryLoad());
 }
 
 void ATDPlanetScatter::SetupComponent(UInstancedStaticMeshComponent* H, int32 Kind, bool bCollide) const
@@ -683,14 +740,7 @@ void ATDPlanetScatter::SetupComponent(UInstancedStaticMeshComponent* H, int32 Ki
 	H->SetMobility(EComponentMobility::Movable);
 	H->SetCullDistances(int32(K.CullStartCm), int32(K.CullEndCm));
 	H->SetCastShadow(K.bShadow);
-	if (!K.MaterialPath.IsEmpty())
-	{
-		const FSoftObjectPath MP(K.MaterialPath);
-		if (FPackageName::DoesPackageExist(MP.GetLongPackageName()))
-		{
-			if (UMaterialInterface* M = Cast<UMaterialInterface>(MP.TryLoad())) { H->SetMaterial(0, M); }
-		}
-	}
+	if (UMaterialInterface* M = ResolveKindMaterial(Kind)) { H->SetMaterial(0, M); }
 	if (bCollide)
 	{
 		// On foot near the course: trunks and boulders block the pilot. Ships and shots fly through.
@@ -708,39 +758,77 @@ void ATDPlanetScatter::SetupComponent(UInstancedStaticMeshComponent* H, int32 Ki
 void ATDPlanetScatter::Apply(FTDScatterResult&& Result, double Ms)
 {
 	bBuilding = false;
-	if (bBuilt)
+	if (bBuilt || ApplyJobs.Num() > 0)
 	{
 		return;
 	}
-	bBuilt = true;
 	GenerateMs = Ms;
-	const double ApplyStart = FPlatformTime::Seconds();
-	for (int32 k = 0; k < Plan.Kinds.Num(); ++k)
+	// Queue, near tier first, big kinds split: the actor's tick adds a few components per frame (issue #89).
+	for (int32 Pass = 0; Pass < 2; ++Pass)
 	{
-		UStaticMesh* Mesh = LoadKindMesh(k);
-		if (!Mesh)
+		for (int32 k = 0; k < Plan.Kinds.Num(); ++k)
 		{
-			continue;
-		}
-		for (int32 Pass = 0; Pass < 2; ++Pass)
-		{
-			const TArray<FTransform>& Xfs = Pass == 0 ? Result.Near[k] : Result.Far[k];
-			if (Xfs.Num() == 0) { continue; }
-			UHierarchicalInstancedStaticMeshComponent* H = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
-			H->SetStaticMesh(Mesh);
-			SetupComponent(H, k, Pass == 0 && Plan.Kinds[k].bBlocksOnFoot);
-			if (Pass == 1) { H->SetCastShadow(false); }	// beyond the course's surroundings nothing casts dynamic shadow (render thread)
-			H->RegisterComponent();
-			H->AddInstances(Xfs, /*bShouldReturnIndices*/ false, /*bWorldSpace*/ false);
-			AddInstanceComponent(H);
-			Hisms.Add(H);
-			InstanceCount += Xfs.Num();
-			UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: %s x%d (%s, cull %d-%d, mat %s)"), *Mesh->GetName(), Xfs.Num(), Pass == 0 ? TEXT("near") : TEXT("far"),
-				H->InstanceStartCullDistance, H->InstanceEndCullDistance, H->GetMaterial(0) ? *H->GetMaterial(0)->GetName() : TEXT("none"));
+			TArray<FTransform>& Xfs = Pass == 0 ? Result.Near[k] : Result.Far[k];
+			for (int32 From = 0; From < Xfs.Num(); From += FMath::Max(1, ApplyChunk))
+			{
+				FApplyJob J;
+				J.Kind = k;
+				J.bNear = Pass == 0;
+				J.Xfs.Append(Xfs.GetData() + From, FMath::Min(FMath::Max(1, ApplyChunk), Xfs.Num() - From));
+				ApplyJobs.Add(MoveTemp(J));
+			}
 		}
 	}
-	UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: zone layer %d instances in %d HISMs (generate %.0f ms off-thread, apply %.0f ms)"),
-		InstanceCount, Hisms.Num(), GenerateMs, (FPlatformTime::Seconds() - ApplyStart) * 1000.0);
+	ApplyJobHead = 0;
+	bNearApplied = ApplyJobs.Num() == 0 || !ApplyJobs[0].bNear;
+	if (ApplyJobs.Num() == 0) { bBuilt = true; }
+}
+
+void ATDPlanetScatter::ApplyQueued(double BudgetMs)
+{
+	if (!bKindsLoaded && ((KindLoadHandle.IsValid() && KindLoadHandle->HasLoadCompleted()) || AreKindPathsResolved())) { bKindsLoaded = true; }
+	if (ApplyJobHead >= ApplyJobs.Num() || !bKindsLoaded)
+	{
+		return;	// nothing queued, or the kinds are still loading off the game thread
+	}
+	const double Start = FPlatformTime::Seconds();
+	int32 Done = 0;
+	while (ApplyJobHead < ApplyJobs.Num())
+	{
+		if (Done > 0 && BudgetMs > 0.0 && (FPlatformTime::Seconds() - Start) * 1000.0 >= BudgetMs) { break; }
+		FApplyJob& J = ApplyJobs[ApplyJobHead++];
+		++Done;
+		UStaticMesh* Mesh = LoadKindMesh(J.Kind);
+		if (Mesh && J.Xfs.Num() > 0)
+		{
+			UHierarchicalInstancedStaticMeshComponent* H = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
+			H->SetStaticMesh(Mesh);
+			SetupComponent(H, J.Kind, J.bNear && Plan.Kinds[J.Kind].bBlocksOnFoot);
+			if (!J.bNear) { H->SetCastShadow(false); }	// beyond the course's surroundings nothing casts dynamic shadow (render thread)
+			H->RegisterComponent();
+			H->AddInstances(J.Xfs, /*bShouldReturnIndices*/ false, /*bWorldSpace*/ false);
+			AddInstanceComponent(H);
+			Hisms.Add(H);
+			InstanceCount += J.Xfs.Num();
+		}
+		J.Xfs.Empty();
+		if (!bNearApplied && (ApplyJobHead >= ApplyJobs.Num() || !ApplyJobs[ApplyJobHead].bNear))
+		{
+			bNearApplied = true;
+			UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: near tier in (%d instances)"), InstanceCount);
+		}
+	}
+	const double FrameMs = (FPlatformTime::Seconds() - Start) * 1000.0;
+	if (BudgetMs > 0.0) { MaxApplyFrameMs = FMath::Max(MaxApplyFrameMs, FrameMs); }
+	ApplyTotalMs += FrameMs;
+	if (ApplyJobHead >= ApplyJobs.Num())
+	{
+		ApplyJobs.Reset();
+		ApplyJobHead = 0;
+		bBuilt = true;
+		UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: zone layer %d instances in %d HISMs (generate %.0f ms off-thread, apply %.0f ms spread, worst frame %.1f ms)"),
+			InstanceCount, Hisms.Num(), GenerateMs, ApplyTotalMs, MaxApplyFrameMs);
+	}
 }
 
 // ------------------------------------------------------------------------------------------------ rings
@@ -759,15 +847,30 @@ bool ATDPlanetScatter::GetViewLocal(FVector& OutLocal) const
 void ATDPlanetScatter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (ApplyJobs.Num() > 0)
+	{
+		if (!bKindsLoaded)
+		{
+			KindWaitSeconds += DeltaSeconds;
+			if (KindWaitSeconds >= KindLoadTimeoutSeconds)
+			{
+				// A kind that never finishes loading must not hold the zone layer (or the arrival's reveal) forever.
+				bKindsLoaded = true;
+				UE_LOG(LogTriadDrift, Warning, TEXT("ATDPlanetScatter: kind loads not done after %.0f s - applying anyway (missing kinds load on the game thread)"), KindLoadTimeoutSeconds);
+			}
+		}
+		ApplyQueued(ApplyBudgetMs);
+	}
 	if (!bBuilt)
 	{
 		return;
 	}
 	FVector Local;
-	if (!GetViewLocal(Local))
-	{
-		return;
-	}
+	const bool bView = GetViewLocal(Local);
+	// ENG-38: the arrival's glide end is ready before the camera gets there; hand back once a real camera is within 1 km.
+	if (bFocusOverride && bView && FVector2D::Distance(FVector2D(Local), FVector2D(FocusLocal)) < 100000.f) { bFocusOverride = false; }
+	if (bFocusOverride) { Local = FocusLocal; }
+	else if (!bView) { return; }
 	UpdateRing(ETDScatterRing::Mid, Local, false);
 	// The near ring (ground cover, culled at ~150 m) only while the camera is low over the ground.
 	const ATDPlanetTerrain* Terrain = Cast<ATDPlanetTerrain>(GetOwner());
@@ -783,6 +886,22 @@ void ATDPlanetScatter::Tick(float DeltaSeconds)
 	{
 		UpdateRing(ETDScatterRing::Near, Local, false);
 	}
+}
+
+void ATDPlanetScatter::SetFocusOverride(const FVector& WorldPoint)
+{
+	bFocusOverride = true;
+	FocusLocal = GetActorTransform().InverseTransformPosition(WorldPoint);
+}
+
+bool ATDPlanetScatter::IsReadyAround(const FVector& WorldPoint) const
+{
+	if (!bBuilt) { return false; }
+	const FRingState& St = Rings[int32(ETDScatterRing::Mid)];
+	if (Plan.RingKinds(ETDScatterRing::Mid).Num() == 0) { return true; }
+	const FVector L = GetActorTransform().InverseTransformPosition(WorldPoint);
+	const FIntPoint Want(FMath::FloorToInt(L.X / Plan.MidCell), FMath::FloorToInt(L.Y / Plan.MidCell));
+	return St.Centre == Want && St.Pending.Num() == 0 && !St.bDirty;
 }
 
 void ATDPlanetScatter::BuildRingsNowAt(const FVector& CourseLocal)

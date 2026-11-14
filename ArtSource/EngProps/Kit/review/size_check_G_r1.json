@@ -1,0 +1,89 @@
+[
+ {
+  "asset": "SM_Rift_Gear",
+  "min_cm": [
+   -166.0,
+   -171.0,
+   -75.0
+  ],
+  "max_cm": [
+   196.0,
+   171.0,
+   3.634
+  ],
+  "size_cm": [
+   362.0,
+   342.0,
+   78.63
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 1944,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Accent",
+   "M_Kit_Pad"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Lancer_Gear",
+  "min_cm": [
+   -186.0,
+   -116.0,
+   -75.0
+  ],
+  "max_cm": [
+   211.0,
+   116.0,
+   3.098
+  ],
+  "size_cm": [
+   397.0,
+   232.0,
+   78.1
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 1944,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Accent",
+   "M_Kit_Pad"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Bastion_Gear",
+  "min_cm": [
+   -186.0,
+   -201.0,
+   -75.0
+  ],
+  "max_cm": [
+   186.0,
+   201.0,
+   3.634
+  ],
+  "size_cm": [
+   372.0,
+   402.0,
+   78.63
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 2592,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Accent",
+   "M_Kit_Pad"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ }
+]

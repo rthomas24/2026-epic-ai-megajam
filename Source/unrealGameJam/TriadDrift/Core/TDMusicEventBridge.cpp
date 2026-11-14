@@ -1,6 +1,7 @@
 // Triad Drift - the music event bridge (N-082; T1).
 
 #include "TriadDrift/Core/TDMusicEventBridge.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Director/Menu/TDMenuBackdrop.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -29,6 +30,10 @@ const FName UTDMusicEventBridge::VictoryStingerDone(TEXT("VictoryStingerDone"));
 const FName UTDMusicEventBridge::GroundCombat(TEXT("GroundCombat"));
 const FName UTDMusicEventBridge::GroundAllClear(TEXT("GroundAllClear"));
 const FName UTDMusicEventBridge::RevealEnded(TEXT("RevealEnded"));
+const FName UTDMusicEventBridge::CoreChamberEntered(TEXT("CoreChamberEntered"));
+const FName UTDMusicEventBridge::ReactorFightStarted(TEXT("ReactorFightStarted"));
+const FName UTDMusicEventBridge::ReactorFightEnded(TEXT("ReactorFightEnded"));
+const FName UTDMusicEventBridge::EscapeStarted(TEXT("EscapeStarted"));
 
 const TArray<FName>& UTDMusicEventBridge::StingerLines()
 {
@@ -62,6 +67,16 @@ void UTDMusicEventBridge::Initialize(FSubsystemCollectionBase& Collection)
 		bPhaseBound = true;
 	}
 	PreLoadHandle = FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UTDMusicEventBridge::HandlePreLoadMap);
+	InteriorHandle = ATDPlanetCourse::OnInteriorMoment.AddUObject(this, &UTDMusicEventBridge::HandleInteriorMoment);
+}
+
+void UTDMusicEventBridge::HandleInteriorMoment(FName Moment, AActor* Source)
+{
+	// T5's interior course: forwarded under the same fixed names, from the course's world.
+	if (Moment == CoreChamberEntered || Moment == ReactorFightStarted || Moment == ReactorFightEnded || Moment == EscapeStarted)
+	{
+		Emit(Moment, Source ? (UObject*)Source->GetWorld() : (UObject*)CurrentWorld(), NAME_None, false);
+	}
 }
 
 void UTDMusicEventBridge::HandlePreLoadMap(const FString& MapName)
@@ -77,6 +92,7 @@ void UTDMusicEventBridge::Deinitialize()
 	ATDMenuBackdrop::OnStinger.Remove(StingerHandle);
 	ATDMenuBackdrop::OnVictoryEnded.Remove(VictoryEndedHandle);
 	FCoreUObjectDelegates::PreLoadMap.Remove(PreLoadHandle);
+	ATDPlanetCourse::OnInteriorMoment.Remove(InteriorHandle);
 	if (UTDDescentSubsystem* Descent = GetGameInstance() ? GetGameInstance()->GetSubsystem<UTDDescentSubsystem>() : nullptr)
 	{
 		Descent->OnRevealed.Remove(RevealedHandle);

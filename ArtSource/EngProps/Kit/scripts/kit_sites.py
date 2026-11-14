@@ -521,10 +521,84 @@ def region_sites():
             "KS_ScarRig":
             {"site": "KS_ScarRig", "actor": KSP + "BP_KS_ScarRig", "about": "Survey Scar: a Null survey rig clamped across a split asteroid (about 90 m); the canyon runs along local Y.",
              "pieces": [piece("P", KSP + "SM_KS_ScarRig", 0.0, 0.0, 0.0, -128.0, scale=[2.0, 2.0, 2.0])]},
+            "KS_DomDebris": {"site": "KS_DomDebris", "actor": KSP + "BP_KS_DomDebris",
+                             "about": "Capture group: three of the Dominion escape debris pieces tumbling apart (T4 swaps the meshes in for its blocks).",
+                             "pieces": [piece("PlateB", KSP + "SM_KS_DomDebris_PlateB", 0.0, -2600.0, 0.0, 20.0, pitch_deg=35.0, roll_deg=-20.0),
+                                        piece("Truss", KSP + "SM_KS_DomDebris_Truss", 600.0, 1200.0, 900.0, -40.0, pitch_deg=-25.0, roll_deg=50.0),
+                                        piece("Shroud", KSP + "SM_KS_DomDebris_Shroud", -500.0, 2800.0, -700.0, 120.0, pitch_deg=15.0, roll_deg=70.0)]},
             "KS_MoonShards": {"site": "KS_MoonShards", "actor": KSP + "BP_KS_MoonShards", "about": "Shattered Moons: two shards of one moon (300 m and 180 m).",
                               # r2: both fracture faces (+X) turned toward the capture camera at Belt (it looks along (0.89, 0.44))
                               "pieces": [piece("A", KSP + "SM_KS_MoonShard_A", 0.0, 0.0, 0.0, 206.0),
                                          piece("B", KSP + "SM_KS_MoonShard_B", 8000.0, -26000.0, 6000.0, 196.0, pitch_deg=10.0)]}}
+
+
+# ------------------------------------------------------------------------------------------------ ART-17 survey stations
+def survey_stations():
+    """ART-17 walkable survey stations, one per planet, from the kit (50 cm grid). Floors 3 cm proud of the ground where
+    they sit on it; the raised decks' collision tops are their visual tops. Pivot = the ground under the deck centre; +X =
+    the stair / ramp side (where the pilot arrives)."""
+    L = 3.0
+    gv, gc = {"Glow": GLOW_V}, {"Glow": GLOW_C}
+    VER = "/Game/TriadDrift/Gameplay/Props/Verdance/"
+    # Verdance: a raised instrument deck (8 x 8 m, top 53) with a mast base, two consoles, a railing on three sides and a
+    # low ramp up from +X; overgrown at the feet
+    v = []
+    for x in (-200.0, 200.0):
+        for y in (-200.0, 200.0):
+            v.append(piece("Deck_%d_%d" % (x, y), "SM_Kit_Platform_400x50", x, y, L))
+    v.append(piece("Ramp", "SM_Kit_RampLow_400", 500.0, 0.0, L, 180.0))          # high (53) at the deck edge x 400, foot at x 600
+    for (x, y, yaw) in ((-200.0, -400.0, 0.0), (200.0, -400.0, 0.0), (-200.0, 400.0, 180.0), (200.0, 400.0, 180.0)):
+        v.append(piece("Rail_%d_%d" % (x, y), "SM_Kit_Railing_400", x, y, 50.0 + L, yaw))
+    v.append(piece("Rail_back", "SM_Kit_Railing_400", -400.0, 0.0, 50.0 + L, 90.0))
+    v.append(piece("MastBase", "SM_Kit_Pillar", -280.0, 280.0, 50.0 + L, 0.0, slots=gv))
+    v.append(piece("Mast", "SM_Kit_BeaconMast", -280.0, 280.0, 350.0 + L, 0.0, scale=[0.6, 0.6, 0.5],
+                   slots={"Glow": GLOW_V, "Beacon": K + "MI_Kit_Beacon_Verdance"}))
+    v.append(piece("ConsoleA", "SM_Kit_Console", -300.0, -150.0, 50.0 + L, 0.0, slots={"Screen": K + "MI_Kit_Screen"}))
+    v.append(piece("ConsoleB", "SM_Kit_Console", -150.0, -300.0, 50.0 + L, 90.0, slots={"Screen": K + "MI_Kit_Screen"}))
+    v.append(piece("Cases", ST + "SM_Kit_SampleCases", 150.0, 280.0, 50.0 + L, 20.0))
+    for i, (x, y, m) in enumerate(((420.0, -380.0, "SM_Verd_GlowPlant_01"), (-430.0, 330.0, "SM_Verd_GlowPlant_02"), (-420.0, -380.0, "SM_Verd_Rock_02"),
+                                   (380.0, 420.0, "SM_Verd_Mushroom_01"))):
+        v.append(piece("Overgrowth%d" % i, VER + m, x, y, 0.0, 37.0 * i))
+    # Cinder: a heat-shielded deck on short legs (8 x 4 m, top 103) with a sample rack, a console and a warning beacon,
+    # a shield wall on the lava side (-Y), reached by a landing and two low ramps from +X
+    c = []
+    for x in (-200.0, 200.0):
+        c.append(piece("Deck_%d" % x, "SM_Kit_Platform_400", x, 0.0, L))
+    c.append(piece("Landing", "SM_Kit_Platform_400x50", 600.0, 0.0, L))
+    c.append(piece("RampLow", "SM_Kit_RampLow_400", 900.0, 0.0, L, 180.0))      # ground (3) at x 1000 up to the landing (53) at x 800
+    c.append(piece("RampHigh", "SM_Kit_RampLow_400", 500.0, 0.0, 50.0 + L, 180.0))  # the landing (53) at x 600 up to the deck (103) at x 400
+    for x in (-200.0, 200.0):
+        c.append(piece("Shield_%d" % x, ST + "SM_Kit_HeatShieldCracked", x, -230.0, 100.0 + L, 0.0, slots=gc))
+        c.append(piece("Rail_%d" % x, "SM_Kit_Railing_400", x, 200.0, 100.0 + L, 180.0))
+    c.append(piece("Rail_back", "SM_Kit_Railing_400", -400.0, 0.0, 100.0 + L, 90.0))
+    c.append(piece("Rack", ST + "SM_Kit_SampleCases", -300.0, 120.0, 100.0 + L, 90.0))
+    c.append(piece("Console", "SM_Kit_Console", -330.0, -80.0, 100.0 + L, 0.0, slots={"Screen": K + "MI_Kit_Screen"}))
+    c.append(piece("Beacon", ST + "SM_Kit_WarningBeacon", 150.0, -170.0, 100.0 + L, 0.0, slots={"Beacon": K + "MI_Kit_Beacon_Cinder"}))
+    return {"SurveyStation_Verdance": {"site": "SurveyStation_Verdance", "actor": K + "Sites/BP_SurveyStation_Verdance",
+                "about": "ART-17 Verdance survey station: raised instrument deck (8 x 8 m, top 53 above the pivot), low ramp on +X, mast base, two consoles, railings, overgrown at the feet.",
+                "pieces": v,
+                "footprint_cm": {"x": [-400, 600], "y": [-400, 400]}, "deck_top_z": 53,
+                "stair_foot_site_cm": [600, 0, 3], "console_stand_site_cm": [[-190, -150, 53, 180], [-150, -190, 53, 270]],
+                "placement_rules": ["Pivot on flat ground (bumps under 15 cm in the footprint); keep 3 m clear past the ramp foot (+X)."]},
+            "SurveyStation_Cinder": {"site": "SurveyStation_Cinder", "actor": K + "Sites/BP_SurveyStation_Cinder",
+                "about": "ART-17 Cinder survey station: heat-shielded deck (8 x 4 m, top 103) reached by a landing (top 53) and two low ramps from +X; sample rack, console, warning beacon, a shield wall on -Y.",
+                "pieces": c,
+                "footprint_cm": {"x": [-400, 1000], "y": [-280, 200]}, "deck_top_z": 103,
+                "stair_foot_site_cm": [1000, 0, 3], "console_stand_site_cm": [[-220, -80, 103, 180]],
+                "placement_rules": ["Pivot on flat ground; the shield wall (-Y) faces the lava; keep 3 m clear past the ramp foot (+X)."]}}
+
+
+def ship_gear():
+    """Capture classes: each squad hull parked on its gear (pivot = the pad surface). Hull at -pad_contact_z, the gear at
+    -pad_contact_z + attach_z (kit_pieces_gear: Rift attach -93 / pad -168, Lancer -55 / -130, Bastion -50 / -125)."""
+    SH = "/Game/TriadDrift/Gameplay/Ships/"
+    out = {}
+    for ship, (att, pad) in {"Rift": (-93.0, -168.0), "Lancer": (-55.0, -130.0), "Bastion": (-50.0, -125.0)}.items():
+        out["ShipGear_" + ship] = {"site": "ShipGear_" + ship, "actor": K + "Sites/BP_ShipGear_" + ship,
+                                   "about": "Capture only: SM_%s parked on SM_%s_Gear." % (ship, ship),
+                                   "pieces": [piece("Hull", SH + "%s/SM_%s" % (ship, ship), 0.0, 0.0, -pad, 0.0),
+                                              piece("Gear", SH + "%s/SM_%s_Gear" % (ship, ship), 0.0, 0.0, -pad + att, 0.0)]}
+    return out
 
 
 def main():
@@ -539,6 +613,8 @@ def main():
     sites.update(story_sets())
     sites.update(STORY_LM)
     sites.update(region_sites())
+    sites.update(survey_stations())
+    sites.update(ship_gear())
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)

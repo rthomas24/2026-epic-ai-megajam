@@ -48,6 +48,16 @@ def ensure_trim_grime(tex, notes):
     ensure_dir("/Game/TriadDrift/Gameplay/Props/Kit/Materials")
     folder, name = TRIMD_MASTER.rsplit("/", 1)
     mat = eas.load_asset(TRIMD_MASTER) if eas.does_asset_exist(TRIMD_MASTER) else tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
+    # the space region pieces (moon shards, hulks, picket ring...) and the debris are placed by T6 as instances in a
+    # HierarchicalInstancedStaticMeshComponent, the story kit by the planet scatter the same way: without this flag the
+    # engine draws the default checkerboard on every M_KitD_Trim instance in game
+    for usage in (unreal.MaterialUsage.MATUSAGE_INSTANCED_STATIC_MESHES, unreal.MaterialUsage.MATUSAGE_NANITE):
+        try:
+            mel.set_material_usage(mat, usage)
+        except Exception as error:
+            notes.append("M_KitD_Trim usage %s: %s" % (usage, error))
+    mat.set_editor_property("used_with_instanced_static_meshes", True)
+    mat.set_editor_property("used_with_nanite", True)
     mel.delete_all_material_expressions(mat)
 
     def node(cls, x, y):
@@ -314,6 +324,11 @@ def ensure_pillar(notes):
     mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_ADDITIVE)
     mat.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
     mat.set_editor_property("two_sided", True)
+    try:                                    # in case a scatter ever instances the pillar (default material otherwise)
+        mel.set_material_usage(mat, unreal.MaterialUsage.MATUSAGE_INSTANCED_STATIC_MESHES)
+    except Exception as error:
+        notes.append("M_Kit_LightPillar usage: %s" % error)
+    mat.set_editor_property("used_with_instanced_static_meshes", True)
     mel.delete_all_material_expressions(mat)
 
     def node(cls, x, y):

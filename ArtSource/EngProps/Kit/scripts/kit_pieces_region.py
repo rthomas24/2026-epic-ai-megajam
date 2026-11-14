@@ -18,6 +18,14 @@ from kit_pieces_space import _lathe_x, _rock, _ribs, hull_prof, loft
 from kit_pieces_story import _tube
 
 
+def _flare(p, x, y, z, mat):
+    """r5: the range cue - one tiny quad at the beacon; M_Kit_Flare turns it into a camera-facing additive glow with a
+    short horizontal streak about 0.8 degrees tall at any range (world-position offset), so it costs one quad."""
+    h = 1.0
+    p.poly([(x, y - h, z - h), (x, y + h, z - h), (x, y + h, z + h), (x, y - h, z + h)], mat=mat, n=(1, 0, 0),
+           uv=[(0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)])
+
+
 # ------------------------------------------------------------------------------------------------ Watchline
 def picket_ring():
     """A broken picket-station ring segment (about 130 m across): a 140-degree arc of a 60 m ring, 12 x 8 m in section,
@@ -73,6 +81,19 @@ def picket_ring():
         # r4: the distance cue - an 8 m amber panel and a squad-cyan panel on the outer face
         p.box((R_ + T, -400.0, -350.0), (R_ + T + 40.0, 400.0, 50.0), mat="Nav")
         p.box((R_ + T, -400.0, 80.0), (R_ + T + 40.0, 400.0, 330.0), mat="CyanRun")
+    with p.at(rotz(-25.0)):                                      # r5: a scorched squad-cyan stencil block (bars, no numerals)
+        for k, (y0, y1) in enumerate(((-500.0, -380.0), (-330.0, -210.0), (-160.0, 120.0), (170.0, 290.0))):
+            p.poly([(R_ + T + 5.0, y0, -150.0), (R_ + T + 5.0, y1, -150.0), (R_ + T + 5.0, y1, 250.0), (R_ + T + 5.0, y0, 250.0)],
+                   "frame", mat="Stripe", n=(1, 0, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+        p.poly([(R_ + T + 6.0, -620.0, -260.0), (R_ + T + 6.0, -100.0, -300.0), (R_ + T + 6.0, -200.0, 330.0), (R_ + T + 6.0, -650.0, 300.0)],
+               "wall", mat="Scorch", n=(1, 0, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+    with p.at(rotz(40.0)):                                       # r5: a burnt breach with Triad's mark half-hidden beside it
+        p.poly([(R_ + T + 4.0, -250.0, -250.0), (R_ + T + 4.0, 200.0, -280.0), (R_ + T + 4.0, 260.0, 220.0), (R_ + T + 4.0, -220.0, 260.0)],
+               mat="Breach", n=(1, 0, 0))
+        p.poly([(R_ + T + 3.0, -700.0, -380.0), (R_ + T + 3.0, 650.0, -380.0), (R_ + T + 3.0, 650.0, 380.0), (R_ + T + 3.0, -700.0, 380.0)],
+               "wall", mat="Scorch", n=(1, 0, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+        p.poly([(R_ + T + 8.0, 300.0, -380.0), (R_ + T + 8.0, 1060.0, -380.0), (R_ + T + 8.0, 1060.0, 380.0), (R_ + T + 8.0, 300.0, 380.0)],
+               mat="Insignia", n=(1, 0, 0), uv=[(0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)])
     with p.at(rotz(52.0)):                                       # the failing light: a flickering lamp on a bracket
         p.box((R_ + T, -40.0, 300.0), (R_ + T + 300.0, 40.0, 360.0), reg="frame")
         p.box((R_ + T + 220.0, -90.0, 360.0), (R_ + T + 380.0, 90.0, 520.0), mat="Flicker")
@@ -96,6 +117,19 @@ def _torn_end(p, x, sign, w=W2, h=H2):
         xa, xb = sorted((x, x + sign * ext))
         p.box((xa, y0, z0), (xb, y1, z1), reg="wall", mat="Scorch")
     _ribs(p, min(x, x + sign * 500.0), max(x, x + sign * 500.0), 250.0, hull_prof(w * 0.92, h * 0.92), t=60.0)
+    # r5: close the open end - a dark inner bulkhead set back, torn ribs bent out past the cut
+    xb_ = x - sign * 300.0
+    prof = hull_prof(w * 0.9, h * 0.9)
+    p.poly([(xb_, y_, z_) for y_, z_ in prof], "sw_black", mat="Scorch", n=(sign, 0, 0), uv=[(0.5, 0.5)] * len(prof))
+    rnd_ = random.Random(int(x) + 7)
+    for j in range(7):
+        a_ = 2 * math.pi * j / 7 + rnd_.uniform(-0.2, 0.2)
+        r0 = (w * 0.42 * abs(math.cos(a_)) + h * 0.42 * abs(math.sin(a_))) * 0.85
+        base = (x, math.cos(a_) * r0, math.sin(a_) * r0 * (h / w) * 1.4)
+        mid = (x + sign * rnd_.uniform(300.0, 600.0), base[1] * rnd_.uniform(0.9, 1.25), base[2] * rnd_.uniform(0.9, 1.3))
+        tip = (mid[0] + sign * rnd_.uniform(150.0, 400.0), mid[1] + rnd_.uniform(-300, 300), mid[2] + rnd_.uniform(-300, 300))
+        _tube(p, base, mid, 28.0, reg="frame", mat="Scorch")
+        _tube(p, mid, tip, 20.0, reg="frame", mat="Scorch")
 
 
 def _slits(p, x0, x1, k=1.0):
@@ -315,3 +349,99 @@ def moon_shard_b():
 
 
 BUILDERS = [picket_ring, hulk_fore, hulk_mid, hulk_aft, scar_rig, moon_shard_a, moon_shard_b]
+
+
+# ------------------------------------------------------------------------------------------------ Dominion debris (escape flight)
+def _plate(name, L, W, T, seed, holes=3):
+    """A torn Null hull plate (L x W, T thick): a ragged polygon outline, Null black armour, a red seam glowing along the
+    torn edge (it reads while tumbling at speed), a few rib stubs on the back."""
+    p = Piece(name, None)
+    rnd = random.Random(seed)
+    n = 14
+    pts = []
+    for k in range(n):
+        a = 2 * math.pi * k / n
+        r = 1.0 if k % 3 else rnd.uniform(0.62, 0.85)
+        pts.append((math.cos(a) * L / 2 * r, math.sin(a) * W / 2 * r))
+    p.prism(pts, "xy", -T / 2, T / 2, regs="wallB", cap_reg="wall", mat="Dom")
+    for k in range(n):                                      # red seam on the torn edge, both faces
+        (x0, y0), (x1, y1) = pts[k], pts[(k + 1) % n]
+        if k % 3 == 0 or k % 3 == 2:
+            for z in (T / 2 + 2.0, -T / 2 - 2.0):
+                ix0, iy0, ix1, iy1 = x0 * 0.93, y0 * 0.93, x1 * 0.93, y1 * 0.93
+                p.poly([(x0, y0, z), (x1, y1, z), (ix1, iy1, z), (ix0, iy0, z)], mat="Glow", n=(0, 0, 1 if z > 0 else -1))
+    for k in range(3):
+        x = -L * 0.3 + k * L * 0.3
+        p.box((x - 40.0, -W * 0.35, -T / 2 - 120.0), (x + 40.0, W * 0.35, -T / 2), reg="frame", mat="Dom")
+    p.chull([(x, y, z) for x, y in pts for z in (-T / 2 - 120.0, T / 2)])
+    return p
+
+
+def debris_plate_a():
+    """Torn hull plate, 22 x 14 m."""
+    return _plate("SM_KS_DomDebris_PlateA", 2200.0, 1400.0, 120.0, 51)
+
+
+def debris_plate_b():
+    """Torn hull plate, 38 x 18 m (the largest piece)."""
+    return _plate("SM_KS_DomDebris_PlateB", 3800.0, 1800.0, 160.0, 53)
+
+
+def debris_plate_c():
+    """Torn hull plate, 9 x 7 m (the small fast one)."""
+    return _plate("SM_KS_DomDebris_PlateC", 900.0, 700.0, 80.0, 57)
+
+
+def debris_truss():
+    """Broken truss section, 26 m: two box chords and their diagonals, one end snapped and bent, red seam on the chords."""
+    p = Piece("SM_KS_DomDebris_Truss", None)
+    for y in (-200.0, 200.0):
+        for z in (-200.0, 200.0):
+            _tube(p, (-1300.0, y, z), (900.0, y, z), 45.0, reg="frame", mat="Dom")
+            _tube(p, (900.0, y, z), (1300.0, y * 1.5, z + 300.0), 45.0, reg="frame", mat="Dom")
+    for x in range(-1300, 900, 440):
+        for y in (-200.0, 200.0):
+            _tube(p, (float(x), y, -200.0), (float(x) + 220.0, y, 200.0), 25.0, reg="sw_gun", mat="Dom")
+        _tube(p, (float(x), -200.0, 200.0), (float(x), 200.0, 200.0), 25.0, reg="sw_gun", mat="Dom")
+    for z in (-247.0, 247.0):
+        p.poly([(-1300.0, -40.0, z), (900.0, -40.0, z), (900.0, 40.0, z), (-1300.0, 40.0, z)], mat="Glow", n=(0, 0, 1 if z > 0 else -1))
+    p.chull([(x, y, z) for x in (-1350.0, 1350.0) for y in (-350.0, 350.0) for z in (-250.0, 550.0)])
+    return p
+
+
+def debris_turret():
+    """A turret base torn off the hull, 12 m: an octagonal ring mount and the stump of a barrel housing, red seam round
+    the ring, white eye sensor dead dark."""
+    p = Piece("SM_KS_DomDebris_Turret", None)
+    p.lathe([(0.0, -150.0), (600.0, -150.0), (600.0, 100.0), (450.0, 250.0), (0.0, 250.0)], 8,
+            regs=["sw_dark", "wallB", "frame", "roof"], mat="Dom")
+    p.lathe([(602.0, -20.0), (602.0, 40.0)], 8, regs="sw_dark", mat="Glow")
+    p.box((-250.0, -220.0, 250.0), (250.0, 220.0, 600.0), regs={"Z": "roof"}, reg="wallB", mat="Dom")
+    _tube(p, (150.0, 0.0, 450.0), (700.0, 0.0, 520.0), 70.0, reg="frame", mat="Dom")
+    p.chull([(x, y, z) for x in (-600.0, 750.0) for y in (-600.0, 600.0) for z in (-150.0, 600.0)])
+    return p
+
+
+def debris_shroud():
+    """A reactor shroud fragment, 30 m: a curved armour shell (a 100-degree slice of a 30 m cylinder) with its inner face
+    still glowing a dying ember and red seams on the cut edges."""
+    p = Piece("SM_KS_DomDebris_Shroud", None)
+    with p.at(Matrix.Rotation(math.radians(90.0), 4, "Y")):
+        p.lathe([(1500.0, -900.0), (1500.0, 900.0)], 16, regs="wallB", mat="Dom", a0=0.0, a1=100.0)
+        p.lathe([(1350.0, 900.0), (1350.0, -900.0)], 16, regs="wallB", mat="DomRaw", a0=0.0, a1=100.0)   # close-out: Null black inside
+        p.lathe([(1349.0, 900.0), (1349.0, 780.0)], 16, regs="sw_dark", mat="Ember", a0=0.0, a1=100.0)    # a thin dying-ember rim
+        p.lathe([(1349.0, -780.0), (1349.0, -900.0)], 16, regs="sw_dark", mat="Ember", a0=0.0, a1=100.0)
+        p.lathe([(1350.0, -900.0), (1500.0, -900.0)], 16, regs="frame", mat="Glow", a0=0.0, a1=100.0)
+        p.lathe([(1500.0, 900.0), (1350.0, 900.0)], 16, regs="frame", mat="Glow", a0=0.0, a1=100.0)
+    pts = []
+    for k in range(9):
+        a = math.radians(100.0 * k / 8)
+        for r in (1350.0, 1500.0):
+            for x in (-900.0, 900.0):
+                pts.append((-x, r * math.sin(a), r * math.cos(a)))
+    p.chull(pts)
+    return p
+
+
+DEBRIS = [debris_plate_a, debris_plate_b, debris_plate_c, debris_truss, debris_turret, debris_shroud]
+BUILDERS = BUILDERS + DEBRIS

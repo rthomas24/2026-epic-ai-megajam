@@ -4,6 +4,7 @@
 // TDSquad::SendFlightInput) and pulls the primary/secondary triggers. It never touches powers.
 
 #include "TriadDrift/Squad/TDWingmanAIController.h"
+#include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -820,7 +821,7 @@ void ATDWingmanAIController::SteerToward(ATDShip* Ship, const FVector& DesiredDi
 	const float Yaw = FMath::Clamp(YawErr * Gain, -1.f, 1.f);
 	const float Pitch = FMath::Clamp(PitchErr * Gain, -1.f, 1.f);
 	// Roll is left to the flight model's auto-level and visual bank.
-	TDSquad::SendFlightInput(Ship, Pitch, Yaw, 0.f, TargetSpeed, bBoost);
+	TDSquad::SendFlightInput(Ship, Pitch, Yaw, 0.f, TargetSpeed * AvoidSpeedScale, bBoost && AvoidSpeedScale > 0.99f);
 }
 
 FVector ATDWingmanAIController::ApplyAvoidance(ATDShip* Ship, const FVector& DesiredDir)
@@ -849,11 +850,20 @@ FVector ATDWingmanAIController::ApplyAvoidance(ATDShip* Ship, const FVector& Des
 		const FVector VelDir = Vel.GetSafeNormal();
 
 		// 1) T4's obstacle registry (asteroids, ruins, planets, Dominion hull): cheap and exact.
+		// T6's live log: wingmen hit pocket rocks while engaging. The velocity probe alone missed a rock on the heading the
+		// ship was turning into, and at combat speeds it looked too short. Probe both ways, never shorter than the floor.
 		FVector RegisteredAvoid;
-		const float Probe = Vel.Size() * AvoidanceLookAhead + 4.f * AvoidanceShipRadius;
+		const float Probe = FMath::Max(Vel.Size() * AvoidanceLookAhead + 4.f * AvoidanceShipRadius, MinAvoidanceProbe);
+		const FVector WantDir = DesiredDir.GetSafeNormal();
+		FVector HeadingAvoid;
 		if (TDSquad::FindRegisteredAvoidance(World, Loc, VelDir, Probe, AvoidanceShipRadius, RegisteredAvoid))
 		{
 			CachedAvoidance = RegisteredAvoid.GetSafeNormal() * 3.f;
+		}
+		else if (!WantDir.IsNearlyZero() && FVector::DotProduct(WantDir, VelDir) < 0.985f
+			&& TDSquad::FindRegisteredAvoidance(World, Loc, WantDir, Probe, AvoidanceShipRadius, HeadingAvoid))
+		{
+			CachedAvoidance = HeadingAvoid.GetSafeNormal() * 3.f;
 		}
 		else
 		{
@@ -887,10 +897,28 @@ FVector ATDWingmanAIController::ApplyAvoidance(ATDShip* Ship, const FVector& Des
 		}
 	}
 
+	// Close range, every tick (T6's pocket rocks): a rock beside the ship that no forward probe sees, e.g. while circling a
+	// target in a pocket. Push straight out from it, harder the closer the surface.
+	FVector Clearance = FVector::ZeroVector;
+	float Closeness = 0.f;
+	if (const UTDWorldSubsystem* WorldSub = World->GetSubsystem<UTDWorldSubsystem>())
+	{
+		FSphere Near;
+		if (WorldSub->FindNearestObstacle(Loc, AvoidanceShipRadius + CloseAvoidanceRange, Near))
+		{
+			const FVector Out = (Loc - Near.Center).GetSafeNormal();
+			const float Gap = FVector::Dist(Loc, Near.Center) - Near.W - AvoidanceShipRadius;
+			Closeness = 1.f - FMath::Clamp(Gap / FMath::Max(CloseAvoidanceRange, 1.f), 0.f, 1.f);
+			Clearance = Out * (5.f * Closeness);
+		}
+	}
+
 	// Squadmates (and the player): keep TeammateSeparation.
 	const FVector Separation = ComputeSeparation(Ship);
 
-	const FVector Result = (DesiredDir + CachedAvoidance + Separation).GetSafeNormal();
+	// Near a rock surface, slow down so the turn away has time (SteerToward applies it).
+	AvoidSpeedScale = FMath::Lerp(1.f, 0.45f, Closeness);
+	const FVector Result = (DesiredDir + CachedAvoidance + Clearance + Separation).GetSafeNormal();
 	return Result.IsNearlyZero() ? DesiredDir : Result;
 }
 

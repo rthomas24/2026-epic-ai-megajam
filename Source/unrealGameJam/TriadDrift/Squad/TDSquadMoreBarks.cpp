@@ -156,6 +156,12 @@ void ATDSquadManager::HandleAbilityUnlockedForBarks(ETDAbilityId /*Ability*/, ET
 	RequestSquadBark(TDBarkIds::AbilityUnlocked, Ship, ETDBarkPriority::High);
 }
 
+void ATDSquadManager::HandleAnticipatedForBarks(ATDEnemyShip* /*Enemy*/, FName /*Kind*/)
+{
+	// storyline §6: rare and deniable (T4 decides when); one wingman notices it out loud.
+	RequestBarkFromAWingman(TDBarkIds::Anticipated, ETDBarkPriority::High);
+}
+
 void ATDSquadManager::HandleObjectiveForBarks(FName ObjectiveId, int32 /*Step*/, FText /*Text*/)
 {
 	// Space objectives only (the planets' own lines are T5's; waves have their slate): an objective line that changes to

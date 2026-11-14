@@ -1,6 +1,7 @@
 // Triad Drift - hyperdrive (ENG-15). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
+#include "HAL/IConsoleManager.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
@@ -17,6 +18,10 @@
 #include "TriadDrift/Core/TDCombatRegistry.h"
 
 const FName UTDHyperdriveComponent::OverrideOwner(TEXT("Hyperdrive"));
+
+// Dev / capture only (the effects builder couldn't film a jump through "ENEMIES IN RANGE"): the enemy lock is ignored.
+static TAutoConsoleVariable<int32> CVarTDHyperdriveIgnoreLock(TEXT("td.Hyperdrive.IgnoreLock"), 0,
+	TEXT("Dev: 1 = the hyperdrive ignores the enemies-in-range lock (other blocks stay: atmosphere, wells, damage, cooldown). For captures; never shipped on."));
 
 template <typename TFX>
 concept TDHyperdrive_HasRefusedCue = requires(TFX* FX) { FX->HyperdriveRefused; };
@@ -118,7 +123,7 @@ ETDHyperdriveBlock UTDHyperdriveComponent::ComputeBlockReason(bool bCachedSweep)
 	if (const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
 		FText LockReason;
-		if (Travel->IsHyperdriveLocked(LockReason))
+		if (Travel->IsHyperdriveLocked(LockReason) && CVarTDHyperdriveIgnoreLock.GetValueOnGameThread() == 0)
 		{
 			return ETDHyperdriveBlock::Locked;
 		}

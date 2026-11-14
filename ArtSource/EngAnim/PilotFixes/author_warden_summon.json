@@ -1,0 +1,152 @@
+{
+ "_note": "Warden summon, authored on the Guard pose (Nov 14, Lead): the shield stays planted upright in front on the left forearm, the body leans onto it (12 deg, hips 4 % lower) and the gun arm is raised to call, fully up at 0.50 s (the summon's release), held to 1.0 s. Replaces Grok's Summon_01, whose torso bend carried the shield behind the body. 1.57 s.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+ "moves": [
+  {
+   "src": "A_Crew_Warden_Guard",
+   "dst": "A_Crew_Warden_Summon_01",
+   "length": 1.57,
+   "keys": [
+    {
+     "t": 0.0,
+     "yaw": 45,
+     "pitch": 0,
+     "pelvis": [
+      0,
+      0
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.62,
+        -0.42,
+        -0.04
+       ],
+       "pole": [
+        -0.2,
+        1.0,
+        0.3
+       ]
+      }
+     }
+    },
+    {
+     "t": 0.22,
+     "yaw": 45,
+     "pitch": 8,
+     "pelvis": [
+      0.02,
+      -0.03
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.5,
+        -0.45,
+        0.35
+       ],
+       "pole": [
+        -0.2,
+        1.0,
+        0.3
+       ]
+      }
+     }
+    },
+    {
+     "t": 0.5,
+     "yaw": 45,
+     "pitch": 12,
+     "pelvis": [
+      0.03,
+      -0.04
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.22,
+        -0.34,
+        0.92
+       ],
+       "pole": [
+        -0.6,
+        0.6,
+        -0.2
+       ]
+      }
+     }
+    },
+    {
+     "t": 1.0,
+     "yaw": 45,
+     "pitch": 12,
+     "pelvis": [
+      0.03,
+      -0.04
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.22,
+        -0.34,
+        0.92
+       ],
+       "pole": [
+        -0.6,
+        0.6,
+        -0.2
+       ]
+      }
+     }
+    },
+    {
+     "t": 1.3,
+     "yaw": 45,
+     "pitch": 5,
+     "pelvis": [
+      0.01,
+      -0.02
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.55,
+        -0.45,
+        0.3
+       ],
+       "pole": [
+        -0.2,
+        1.0,
+        0.3
+       ]
+      }
+     }
+    },
+    {
+     "t": "end",
+     "yaw": 45,
+     "pitch": 0,
+     "pelvis": [
+      0,
+      0
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.62,
+        -0.42,
+        -0.04
+       ],
+       "pole": [
+        -0.2,
+        1.0,
+        0.3
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

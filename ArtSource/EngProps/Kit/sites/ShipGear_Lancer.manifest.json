@@ -1,0 +1,27 @@
+{
+ "site": "ShipGear_Lancer",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_ShipGear_Lancer",
+ "about": "Capture only: SM_Lancer parked on SM_Lancer_Gear.",
+ "pieces": [
+  {
+   "name": "Hull",
+   "mesh": "/Game/TriadDrift/Gameplay/Ships/Lancer/SM_Lancer",
+   "location_cm": [
+    0.0,
+    0.0,
+    130.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Gear",
+   "mesh": "/Game/TriadDrift/Gameplay/Ships/Lancer/SM_Lancer_Gear",
+   "location_cm": [
+    0.0,
+    0.0,
+    75.0
+   ],
+   "yaw_deg": 0.0
+  }
+ ]
+}

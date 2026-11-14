@@ -446,6 +446,9 @@ public:
 	void HandleAbilityUnlockedForBarks(ETDAbilityId Ability, ETDShipId Ship);
 	UFUNCTION()
 	void HandleObjectiveForBarks(FName ObjectiveId, int32 Step, FText Text);
+	/** T4's UTDArmadaForesight::OnAnticipated: a wingman notices (the paradox clue). */
+	UFUNCTION()
+	void HandleAnticipatedForBarks(class ATDEnemyShip* Enemy, FName Kind);
 	/** Chances (tests set 1): a wingman reacting to the player's kill; Command's line on a retake. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad|Barks", meta = (ClampMin = "0", ClampMax = "1"))
 	float PlayerKillBarkChance = 1.f / 3.f;
