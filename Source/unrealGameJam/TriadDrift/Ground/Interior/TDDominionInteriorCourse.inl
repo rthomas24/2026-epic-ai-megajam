@@ -371,7 +371,7 @@ void ATDPlanetCourse::BuildInterior()
 	// (First capture, Nov 13: the corridor read solid red and the hangar floor washed out; the kit's own strips and
 	// ceiling lights carry most of it.)
 	Light(FVector(0.f, 0.f, 1000.f), 3200.f, FLinearColor(0.8f, 0.85f, 1.f), 1800.f);
-	for (float X = HX1 + 600.f; X < CX1; X += 1200.f) { Light(FVector(X, 0.f, 520.f), 700.f, Strip, 180.f); }
+	for (float X = HX1 + 600.f; X < CX1; X += 1200.f) { Light(FVector(X, 0.f, 520.f), 700.f, FLinearColor(0.85f, 0.88f, 0.95f), 180.f); }	// env: neutral steel (was the red strip colour: a deep red wash in the normal state); the kit strips stay red accents
 	Light(FVector((CX1 + AX1) * 0.5f, 0.f, 520.f), 2600.f, FLinearColor(0.85f, 0.9f, 1.f), 2200.f);
 	Light(FVector((L1X1 + WX1) * 0.5f, 0.f, 520.f), 2200.f, FLinearColor(1.f, 0.6f, 0.5f), 3000.f);
 	Light(CoreAt + FVector(0.f, 0.f, 1500.f), 4200.f, CoreGlow, 8000.f);
