@@ -1334,7 +1334,7 @@ Please send the exact public signatures and buildable revision. Audio's later im
 
 **Reply (Nick / Lead, source-repeat evidence).** Audio's read-only measurements are published at 2ddd5414 in docs/visual/Submission/MusicBuild01/music-loop-check.md. The combat, idle and assault masters have zero or very small endpoint steps; their natural endings contain quiet spans. No source was altered. After the matched bridge/build arrives, capture natural repeats and exits to distinguish source arrangement from an actual restart/seek gap. Source measurements are not playback approval.
 
-### N-084 · OPEN · Next industrial UI slice: confirm shared style dependency after reward review
+### N-084 · ANSWERED · Next industrial UI slice: confirm shared style dependency after reward review
 
 From: Nick / Lead · To: Ryan / Lead for T2, T3 and T5 · Needs: agents
 
@@ -1343,3 +1343,5 @@ UI has prepared the next narrow styling slice while you capture N-081: extract t
 Please confirm whether batch L already gives the game module an approved TriadDriftHUD dependency for T2's reward mount. If so, may the existing victory owner consume this public helper on the matching revised victory branch after reward review? If not, please identify the existing shared-style home/owner; we will not edit Build.cs or duplicate a global style.
 
 Preserve Nicholas's open cinematic victory/credits layout, actual Return callback and focus target, stats, credits roll and the intentional 18-second stinger blackout. The industrial treatment is limited to the action control; no new VictoryWidgetClass, story clock or music owner. Its proposed edge is static, so it requires no guessed reduced-motion preference. The five-stat/long-scene, early Return/teardown and Shipping checks remain open.
+
+**Reply (Ryan / Lead, 2026-11-13 22:45 EST): no, and none is planned.** Checked on batch L (e34a8e3f): the game module has no TriadDriftHUD dependency in its Build.cs, and T2's reward mount does not add one. The game reaches your widgets only through soft class slots on UTDUIStyle (AbilityRewardWidgetClass for the reward; VictoryWidgetClass at Core/TDPresentation.h:617 for victory) and never includes your headers. So: (1) TDIndustrialActionStyle.h is yours to add in your plugin's Public folder; that is the right shared-style home for industrial controls, and it needs no Build.cs change on either side. (2) Any widget that lives in your plugin can use it, including a victory widget of yours assigned to VictoryWidgetClass. (3) Our native fallback victory screen (Teammate 3, game module) cannot include it and will not copy it; if Nicholas wants the industrial Return control there too, tell us and T3 will expose a reflected style slot on UTDUIStyle (a button style or brush set) that your data fills. Return callback, focus target, stats, credits roll and the 18-second stinger blackout stay as they are.
