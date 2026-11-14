@@ -1,38 +1,40 @@
 {
- "_note": "In-place game deaths per type (T5's first lookup name A_Crew_<Type>_Death_<Side>): Grunt and Heavy from Grok's EnemyDeaths r1 (kept with root travel as A_Crew_<Type>_DeathRM_<Side>); the Trooper's four become the in-place settled falls (its root-motion originals are kept as A_Crew_Trooper_DeathRM_<Side>). Shield rule: Heavy_Death_Left is the Back fall (Grok's Left ends with the shield standing on edge). Drops: bodies that rested above the floor in game.",
+ "_note": "In-place game deaths per type (T5's first lookup name A_Crew_<Type>_Death_<Side>): Grunt and Heavy from Grok's EnemyDeaths r1 (kept with root travel as A_Crew_<Type>_DeathRM_<Side>); the Trooper's four become the in-place settled falls (its root-motion originals are kept as A_Crew_Trooper_DeathRM_<Side>). Shield rule: Heavy_Death_Left is the Back fall (Grok's Left ends with the shield standing on edge). Drops: bodies that rested above the floor in game. r3 (Lead, Nov 14): Heavy Right = Back fall; Grunt Left / Right = the Trooper's in-place Left / Right falls (Grok's Grunt sides ended as a curled lump); Grunt Front tipped 14 deg about the head so the hips rest. r4: Heavy Front tipped 18 deg about the head from 1.15 s (the legs kicked up to 70-89 cm after it landed and rested at 43 cm). r5: Grunt Left = the Back fall (the Trooper's Left fall read as a lump from the front quarter).",
  "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
  "clips": [
   {
    "src": "A_Crew_Grunt_DeathRM_Front",
-   "dst": "A_Crew_Grunt_Death_Front"
+   "dst": "A_Crew_Grunt_Death_Front",
+   "settle": {
+    "pivot_bone": "head",
+    "deg": 14,
+    "ramp": [
+     1.2,
+     2.0
+    ]
+   }
   },
   {
    "src": "A_Crew_Grunt_DeathRM_Back",
    "dst": "A_Crew_Grunt_Death_Back"
   },
   {
-   "src": "A_Crew_Grunt_DeathRM_Left",
+   "src": "A_Crew_Grunt_DeathRM_Back",
    "dst": "A_Crew_Grunt_Death_Left"
   },
   {
-   "src": "A_Crew_Grunt_DeathRM_Right",
-   "dst": "A_Crew_Grunt_Death_Right",
-   "drop": {
-    "cm": 16,
-    "ramp": [
-     1.0,
-     1.9
-    ]
-   }
+   "src": "A_Crew_Death_Right",
+   "dst": "A_Crew_Grunt_Death_Right"
   },
   {
    "src": "A_Crew_Heavy_DeathRM_Front",
    "dst": "A_Crew_Heavy_Death_Front",
-   "drop": {
-    "cm": 9,
+   "settle": {
+    "pivot_bone": "head",
+    "deg": 18,
     "ramp": [
-     1.2,
-     2.4
+     1.15,
+     1.5
     ]
    }
   },
@@ -45,15 +47,8 @@
    "dst": "A_Crew_Heavy_Death_Left"
   },
   {
-   "src": "A_Crew_Heavy_DeathRM_Right",
-   "dst": "A_Crew_Heavy_Death_Right",
-   "drop": {
-    "cm": 8,
-    "ramp": [
-     1.2,
-     2.4
-    ]
-   }
+   "src": "A_Crew_Heavy_DeathRM_Back",
+   "dst": "A_Crew_Heavy_Death_Right"
   },
   {
    "src": "A_Crew_Death_Front",

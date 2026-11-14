@@ -61,7 +61,7 @@ TRIM = SHARED + "/M_TD_ShipTrim"
 def _read(cell, rim=0.07, spread=0.5, steps=0.35, floor=0.012):       # (rim 0.16 still read slate grey-blue from behind: review)      # (first values 0.5 / 1.6 / 0.45 / 0.05 turned the hulls pale grey-blue)
     return dict(base_floor=floor, lights=True,
                 mi_params={"RoughnessMin": 0.42, "MetallicScale": 0.5, "RimStrength": rim, "GlowSpread": spread,
-                           "PanelSteps": steps, "PanelCell": cell, "RangeStart": 3000.0, "RangeEnd": 24000.0})
+                           "PanelSteps": steps, "PanelCell": cell, "RangeStart": 3000.0, "RangeEnd": 50000.0})    # (RangeEnd 240 m turned the small ships all orange-gold at 150 m)
 
 
 # ship -> data asset folder, data asset, visuals class, the old mesh (for revert), material instance values
@@ -114,7 +114,8 @@ SHIPS = {
                    # metallic mirror. Non-metal, a weak sheen, more opaque and darker: the pilot reads on foot too)
                    # (Nov 14, two reviews: still milky on the bright pad. Rougher, almost no specular or sheen, near opaque: the sky
                    # no longer lies on the pane as a white film; the tint glow keeps it cyan in the dark)
-                   glass={"Tint": (0.006, 0.045, 0.075), "SheenColor": (0.45, 0.75, 0.85), "Opacity": 0.95, "SheenStrength": 0.04,
+                   # (v07: opacity 0.95 -> 0.8: the milkiness was specular and sheen, not transparency; the pilot has to read)
+                   glass={"Tint": (0.006, 0.045, 0.075), "SheenColor": (0.45, 0.75, 0.85), "Opacity": 0.8, "SheenStrength": 0.04,
                           "Metallic": 0.0, "Specular": 0.08, "Roughness": 0.3, "TintGlow": 0.25},
                    # Lead, Nov 14 (batch M): the ram streak of the effects builder on PowerActive (sound kept), and the boost
                    # plume at 0.6 (T7's UTDShipVisuals::ExhaustBoostScale: the boost plumes swamped this small hull)
@@ -169,7 +170,13 @@ SHIPS = {
                             old_mi=FLEET + "/MI_Null_Interceptor", emissive=14.0, base_tint=(1.0, 1.0, 1.0),
                             # Same silhouette as the fighter, so the accent tells them apart: hotter yellow-amber
                             # seams and a much brighter white eye here, deep red on the fighter.
-                            emissive_tint=(1.0, 0.78, 0.22), eye_boost=5.0, range_boost=6.0, eye_mul=1.6),
+                            emissive_tint=(1.0, 0.78, 0.22), eye_boost=5.0, range_boost=6.0, eye_mul=1.6,
+                            # The HYBRID (second ship builder, Nov 14; rh_hybrid.py --ship NullInterceptor): the Rodin hull as it
+                            # was with wing-tip lances and twin canted tail fins in a second slot, so it no longer reads as
+                            # the fighter at 150 m. TD_RODIN_PLAIN=NullInterceptor imports the plain Rodin ship again.
+                            kit=os.path.join("NullInterceptorHero", "export"), parts_emissive=5.0, parts_rough=1.1,
+                            parts_tint=(0.6, 0.6, 0.6), parts_metal=0.3, parts_params={"MetallicScale": 0.3, "RoughnessMin": 0.3},
+                            plain=dict(kit=None),),
     "NullBomber": dict(da=(FLEET, "DA_Enemy_Bomber_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Bomber",
                        old_mi=FLEET + "/MI_Null_Bomber", emissive=9.0, base_tint=(1.0, 1.0, 1.0),
                        emissive_tint=ENEMY_GLOW, eye_boost=2.0, range_boost=5.0, eye_mul=1.6),
@@ -194,6 +201,11 @@ for _ship, _kw in (("NullFighter", _read(90.0)), ("NullInterceptor", _read(100.0
 # review: the interceptor's yellow-amber seams sat close to the Bastion's amber; the carrier read copper / cream, not black
 SHIPS["NullInterceptor"]["emissive_tint"] = (1.0, 0.48, 0.13)
 SHIPS["NullCarrier"].update(base_tint=(0.5, 0.5, 0.5), emissive=2.0)
+# review at 60 / 150 m (Nov 14): fighter, interceptor and bomber read washed copper, not black armour with accents:
+# their distance boost of the emissive map comes down (6 / 6 / 5 -> 2.5 / 2.5 / 2) and so does the seam spread
+for _ship, _rb in (("NullFighter", 2.5), ("NullInterceptor", 2.5), ("NullBomber", 2.0)):
+    SHIPS[_ship]["range_boost"] = _rb
+    SHIPS[_ship]["mi_params"]["GlowSpread"] = 0.2
 SHIPS["NullFighter"]["enemy_trail"] = 0.6
 SHIPS["NullInterceptor"]["enemy_trail"] = 0.6
 LIGHTS_DIR = os.path.join(KIT, "FleetLights")
@@ -1007,6 +1019,8 @@ def main():
                 cfg.update(base_tint=(1.0, 1.0, 1.0), emissive=3.0)
             if "enemy_trail" in cfg:
                 cfg["enemy_trail"] = 1.0
+            if ship in ("NullFighter", "NullInterceptor", "NullBomber"):
+                cfg["range_boost"] = 5.0 if ship == "NullBomber" else 6.0
         if ship in plain and cfg.get("plain"):      # back to the plain Rodin ship (no hybrid kit, no attached parts)
             cfg = dict(cfg, **cfg["plain"])
             for k in [k for k, v in cfg.items() if v is None]:
