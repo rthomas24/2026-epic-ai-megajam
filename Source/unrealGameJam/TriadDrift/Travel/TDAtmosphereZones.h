@@ -78,6 +78,12 @@ public:
 	float StoryHoldSpeed = 1500.f;
 	static const FName StoryHoldOverride; // "StoryHold"
 	void EndStoryHold();
+	/** After the must-hear sequence ends, the entry also waits for the line on air to finish - at most this long (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "s"))
+	float StoryTailCapSeconds = 6.f;
+	bool WaitsForLineOnAir();
+	double StoryEndedAt = -1.0;
+	bool bLoggedTailWait = false;
 
 	/** How far past the hold point (further from the planet) the ship may stray and still commit when the hold ends (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "cm"))
