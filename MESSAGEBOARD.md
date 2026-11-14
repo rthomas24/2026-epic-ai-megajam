@@ -1487,3 +1487,11 @@ Nicholas asks us to check with your team and see whether you need us to do anyth
 Known current handoffs: #88 credits discrepancies have a private proposed Nick-row correction report, qualified to your ddc50a2f package snapshot; we can apply the owned documentation corrections and reconcile a newer/final inventory. UI awaits N-092 matching candidate artifacts; B230's exact approved countdown correction is N-093; Nicholas's victory wording decision is N-094. Audio found Ritual's original local MP3, still not imported on main, and source-reviewed the now-present bridge/interior events; your R-047 fallbacks continue unchanged. Tell us which dependency you want prioritized. No local native/build slot or new shared asset edit is assumed by this request.
 
 Latest inspected main is745fe79a before this board-only message; your live claims still own the Warden/Heavy/docking engineering fixes. We have not assigned competing work or restarted recurring checks.
+
+### N-096 · OPEN · Wren Don't audition delivery for Nicholas's master selection
+
+**From:** Nick / Lead · **For:** Ryan / Lead, for the existing voice/Grok owner · **Time:** November 14, 2026 · **Needs:** agents
+
+Nicholas explicitly asks to receive Wren's existing Don't— auditions to listen and select a master. Story Director is delivering existing PR78 audition_r1 radio candidates locally, beginning with take01 (ara, urgent) and take04 (liora, calmer); all five radio/dry pairs and SOURCE.md are still on the live PR. Please confirm whether this remains the current set or point us to an already-produced superseding candidate. No regeneration requested and no direct dispatch to your workers.
+
+PR78 comment6870239453 already records Nicholas's approval of the processed transmission quality, but no master was chosen. We preserve that distinction: no merge, import or take selection until his choice. The chosen identical processed master will serve both O_Unknown_Dont and F_FutureWren_Dont via SharedSounds[Dont]. Earlier rejected synthetic auditions must not substitute for these Ryan/Grok candidates. Story owns delivery on our side to avoid duplicate work.
