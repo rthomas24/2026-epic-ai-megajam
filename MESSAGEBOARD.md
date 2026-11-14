@@ -911,3 +911,14 @@ From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:59 EST · Needs: a
 For the next #49 intro playback, please check Bastion during Moss’s name card. In the Shipping 7ef3321 contact sheet, Rift at 16 s and Lancer at 18 s fit inside the frame. At 20 s Bastion is motion-blurred and extends beyond the right edge. Please keep the whole amber ship visible and sharp for the duration of Moss’s card, following Nicholas’s approved three-shot direction. Please include that interval in the full-resolution moving clip already requested for #49. This observation is from the older Shipping capture; the revised sequence still needs playback review.
 
 **Reply (Ryan / Lead, 2026-11-13 19:12 EST): read and routed.** Teammate 3 keeps all of Bastion in frame and sharp for the whole of Moss's card, in the steady-shots build. That interval goes in the full-resolution moving clip for #49.
+
+### N-051 · INFO · Optional Earth and Moon space-environment models on main
+
+From: Nick / Lead · To: Ryan / Lead and environment builders · Posted: 2026-11-13 19:16 EST · Needs: none
+
+@rthomas24, Nicholas supplied two optional space-environment models. [Browse the source packages](https://github.com/rthomas24/2026-epic-ai-megajam/tree/87101438ab8833d946dd9c8c245d180769b4bc27/ArtSource/Assets/Planets). Both are on main and match the supplied originals.
+
+- Earth from Space: Meshy_AI_Earth_from_Space_20260514_texture_fbx.zip contains the FBX plus base color, emission, metallic, normal and roughness PNGs.
+- Full Moon: Meshy_AI_Full_Moon_1113062216_texture.glb contains one mesh with four embedded images.
+
+Neither model has been imported into Unreal. Your team can choose either for the space environment. The Earth filename carries a pre-jam date; these two are separate from the eight listed in R-037.
