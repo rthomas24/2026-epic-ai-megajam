@@ -1010,3 +1010,19 @@ From: Nick / Lead, independent review · To: Ryan / Lead for T3 and T5 · Needs:
 Trace: TDDominionInteriorCourse.inl:485 requests the ID and immediately lights the console; TDStorySubsystem.cpp:529–537 rejects a previously played ID and marks a new one played before enqueue; TDGameInstance.cpp:746–749 writes it into both progress and the retained checkpoint. WriteSaveSlot serializes that checkpoint, and ContinueRun at line 817 loads it into a new world. TDStoryTests.cpp:163 checks retained IDs after a retake of lines already aired, which does not cover interruption before playback.
 
 Please preserve or resume pending required recordings across saves, or persist completion on actual completion/eligible skip with in-session duplicate rejection. Test both a queued and an interrupted on-air recording, a fresh Continue, and avoiding replay of an already completed recording. The sealed reactor door must agree with the evidence state on both paths. Source finding only; please send the tested revision and a played Continue result for recheck. This concerns required story recordings; ambient once-only barks can keep their existing behavior.
+
+### N-063 · OPEN · Space idle score is on main and ready for T1's playback handoff
+
+From: Nick / Lead · To: Ryan / Lead for T1 and packaging · Needs: agents
+
+Nicholas selected Ambient1 for quiet space flight. The [native SoundWave](https://github.com/rthomas24/2026-epic-ai-megajam/tree/c1fb5032/Content/TriadDrift/Audio/IdleAmbient01) is on main at c1fb5032. Use /Game/TriadDrift/Audio/IdleAmbient01/MUS_SpaceIdle_Ambient1_Full_01. Audio verified all 144.8 seconds, stereo 48 kHz, looping, Music class and volume 0.5 in a fresh editor. [Source, credits and reload receipt](https://github.com/rthomas24/2026-epic-ai-megajam/tree/c1fb5032/ArtSource/Audio/IdleAmbient01).
+
+T1: please identify the authoritative quiet-flight eligibility and score handoff for L_Galaxy, including the transition out of tutorial and into combat or Dominion assault. Nick's Audio owns the presentation hookup and needs the revision/signal and confirmation of which existing score owner yields. The environmental ambience bed can run independently. The idle track should yield to priority music and follow the dialogue duck. Please include its reference in the cook and send a played revision showing quiet flight, loop return and transition into combat. The editor reload verifies the asset; in-game playback and the mix remain open.
+
+### N-064 · OPEN · Victory layout reference and rendered native credits for T3
+
+From: Nick / Lead · To: Ryan / Lead for the victory screen owner and packaging · Needs: agents
+
+The [current in-game credits frames](https://github.com/rthomas24/2026-epic-ai-megajam/tree/dcf40eef/docs/visual/Submission/Credits01) show the actual native roll and track names. The staged victory ran at 720p and 1080p. The ultrawide run captured three frames before the memory guard stopped it. Please include natural campaign entry, roll, return to menu and cooked DA_Credits in the final build check from N-061.
+
+Nicholas requested a more open ending screen following this [layout reference](https://github.com/rthomas24/2026-epic-ai-megajam/blob/fff31c81/docs/visual/Submission/Credits01/victory-layout-reference.png). Keep MISSION COMPLETE // OPERATION PARADOX as the small eyebrow. UI proposes THE FINAL CUT as the large title for Nicholas to review. Use the existing live backdrop, subtle dark veil and fine cyan lines, a centred stats row with separators, and the native credits below. Retain the working Return action and show only supported controls. Preserve music, game state and menu navigation. Please confirm the engineering owner of ShowPlaceholder's victory branch in Source/unrealGameJam/TriadDrift/Flow/TDFrontEndGameModes.cpp and the target revision. UI owns presentation guidance and capture review.
