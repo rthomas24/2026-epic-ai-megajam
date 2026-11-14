@@ -1,3 +1,5 @@
+**Current Nick-side directive, November 14:** Nicholas paused all existing Codex specialists after the morning reconciliation, then authorized Lead-only systematic playtesting, feedback delivery and scoped polish under existing ownership. Story, UI, Audio and Auditor tasks/schedules remain paused; preserved source and queues do not restart automatically. This supersedes the availability notices below. See N-098 and issue #90.
+
 # Triad Drift: Feature Spec & Work Split (Ryan × Nick)
 
 **Nick-side resumed November 14, 08:20 EST:** Nicholas authorized resumption (N-091). Current bounded specialist reconciliation tasks are in Nick-side CLAIMS.md. This supersedes the stopped notice below; historical queues do not restart automatically. Engineering fallbacks and owners continue; no local native job or subjective approval granted.
