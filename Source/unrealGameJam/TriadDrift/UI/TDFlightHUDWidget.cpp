@@ -2279,8 +2279,25 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	if (bFollow && FollowObjective != View.Objective)
 	{
 		FollowObjective = View.Objective;
-		int32 Space = INDEX_NONE;
-		FollowWord = View.Objective.FindChar(TEXT(' '), Space) ? View.Objective.Left(Space) : View.Objective;
+		// The verb of the last clause: "THE SHIELD IS DOWN · DOCK WITH THE DOMINION" -> DOCK, "WITHDRAW TO ..." ->
+		// WITHDRAW (live: the first word gave "THE 1.0 KM"); articles are skipped.
+		FString Clause = View.Objective;
+		int32 Dot = INDEX_NONE;
+		if (Clause.FindLastChar(TEXT('·'), Dot))
+		{
+			Clause = Clause.Mid(Dot + 1);
+		}
+		TArray<FString> Words;
+		Clause.ParseIntoArray(Words, TEXT(" "), true);
+		FollowWord.Reset();
+		for (const FString& Wd : Words)
+		{
+			if (Wd != TEXT("THE") && Wd != TEXT("A") && Wd != TEXT("AN") && Wd != TEXT("TO"))
+			{
+				FollowWord = Wd;
+				break;
+			}
+		}
 	}
 	const float FollowPulse = .7f + .3f * FMath::Sin(Now * 2.f * PI * .8f);
 	for (const FWaypoint& Wp : ShownWaypoints)
@@ -2295,7 +2312,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Chevron(Wp.Pos + F * 30.f, Wp.Angle, 22.f, Lit, true);
 			Rec(TEXT("waypoint_edge"), Wp.Pos.X - 18.f, Wp.Pos.Y - 18.f, 36.f, 36.f);
 			const FVector2D Label = Wp.Pos - F * 110.f;
-			P.BackedWords(Label.X, Label.Y - 10.f, FollowWord + TEXT("  ") + Range(Wp.Distance).ToUpper(), 17, Way, .5f, 40);
+			P.BackedWords(Label.X, Label.Y - 10.f, (FollowWord.IsEmpty() ? FString() : FollowWord + TEXT("  ")) + Range(Wp.Distance).ToUpper(), 17, Way, .5f, 40);
 			Area += 220.f * 44.f;
 			continue;
 		}
