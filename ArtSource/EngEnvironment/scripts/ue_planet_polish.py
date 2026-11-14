@@ -10,10 +10,10 @@ import unreal
 eal = unreal.EditorAssetLibrary
 mel = unreal.MaterialEditingLibrary
 D = "/Game/TriadDrift/Gameplay/Props/Planets/"
-VALUES = {
-    "MI_Planet_Verdance": {"NightAmbient": 0.17, "EmissiveStrength": 7.0, "SurfaceRimStrength": 0.8},   # was 0.10 / 4.5 / 0.5
-    "MI_PlanetAtmo_Verdance": {"SunMaskAmount": 0.62, "AtmoIntensity": 3.4},                        # was 0.92 / 3.0
-    "MI_PlanetRing_Verdance": {"Brightness": 1.55},                                                   # was 1.2
+VALUES = {   # #148 (second pass, Lead: "still a hole"): the planet must read as a world in the eclipse shot
+    "MI_Planet_Verdance": {"NightAmbient": 0.3, "EmissiveStrength": 11.0, "SurfaceRimStrength": 1.4, "NightGlowStart": 0.0},
+    "MI_PlanetAtmo_Verdance": {"SunMaskAmount": 0.3, "AtmoIntensity": 4.5, "RimPower": 3.2},
+    "MI_PlanetRing_Verdance": {"Brightness": 2.0},
 }
 bad = []
 for name, vals in VALUES.items():
