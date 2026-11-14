@@ -1,0 +1,28 @@
+{
+ "name": "CinderRockScatter",
+ "kind": "scan",
+ "basalt_scale": 0.538,
+ "normal": "no height map: flipped as OpenGL like the other Megascans glTF sets",
+ "meshes": [
+  {
+   "mesh": "SM_Fab_CinderRockScatter_A",
+   "source_tris": 4885,
+   "tris": 2500,
+   "size_cm": [
+    128.4,
+    94.1,
+    10.8
+   ]
+  },
+  {
+   "mesh": "SM_Fab_CinderRockScatter_B",
+   "source_tris": 7074,
+   "tris": 2499,
+   "size_cm": [
+    142.5,
+    141.3,
+    19.4
+   ]
+  }
+ ]
+}
