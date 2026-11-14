@@ -1,5 +1,10 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDDominion.h"
+#include "GameFramework/PlayerController.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "Camera/CameraComponent.h"
+#include "Camera/CameraActor.h"
 
 #include "Misc/PackageName.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -654,6 +659,7 @@ void ATDDominion::LayoutParts()
 
 void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	EndBreakupCamera();
 	ReleaseReactorHold();
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
@@ -682,6 +688,7 @@ void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void ATDDominion::SetState(ETDDominionState NewState)
 {
 	if (NewState != ETDDominionState::ReactorExposed) { ReleaseReactorHold(); }
+	if (NewState != ETDDominionState::Breakup) { EndBreakupCamera(); }
 	if (NewState == ETDDominionState::ShieldsUp && State != ETDDominionState::ShieldsUp)
 	{
 		UTDStorySubsystem::Fire(this, TEXT("G6_Kato_MarkingTargets"));	// storyline 24: the generator markers first show
@@ -1504,6 +1511,7 @@ void ATDDominion::HandleReactorDestroyed(ATDDominionReactor* InReactor, AActor* 
 	BreakupBoomTimer = 0.f;
 	BreakupBooms = 0;
 	bBreakupFinalBlast = false;
+	bBreakupCameraUsed = false;
 	OnBreakupStarted.Broadcast(this, State);
 }
 
@@ -1562,6 +1570,12 @@ void ATDDominion::Tick(float DeltaSeconds)
 		break;
 
 	case ETDDominionState::Breakup:
+		if (bUseBreakupCamera && !bBreakupCameraUsed && StateTime > 0.1f)
+		{
+			// After the ReactorKill money shot (its rig owns the view until it ends).
+			const UTDDirectorSubsystem* Director = UTDDirectorSubsystem::Get(this);
+			if (!Director || !Director->IsShotActive()) { BeginBreakupCamera(); }
+		}
 		if (bPlaceholderBreakup) { TickPlaceholderBreakup(DeltaSeconds); }
 		if (StateTime >= BreakupSeconds)
 		{
@@ -1644,4 +1658,69 @@ void ATDDominion::TickReactorHold(float DeltaSeconds)
 	const float Speed = FMath::Lerp(ReactorHoldSpeed * Inner, Cruise, Outer);
 	Ship->SetSpeedOverrideFor(TDReactorHold::Owner, Speed, /*SteeringScale*/ 1.f, /*AccelerationCmPerSec2*/ 4000.f);
 	ReactorHeld = Ship;
+}
+
+// ------------------------------------------------------------------------------------------------ breakup camera
+
+namespace TDBreakupCamera { static const FName HUDHold(TEXT("DominionBreakup")); }
+
+void ATDDominion::BeginBreakupCamera()
+{
+	bBreakupCameraUsed = true;
+	UWorld* World = GetWorld();
+	APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+	if (!PC || !PC->GetPawn())
+	{
+		return;	// no player view (a test world, a dedicated capture)
+	}
+	// Off the hull's flank on the side the flown ship is on, a little above and toward the bow: the whole hull in frame.
+	const FBox B = GetLocalHullBounds();
+	const FTransform D = GetActorTransform();
+	const FVector Centre = D.TransformPosition(B.GetCenter());
+	const float Radius = (float)B.GetExtent().Size();
+	const float Dist = FMath::Max(BreakupCameraDistance, Radius * 2.2f);
+	const FVector Right = D.GetUnitAxis(EAxis::Y);
+	const float Side = FVector::DotProduct(PC->GetPawn()->GetActorLocation() - Centre, Right) >= 0.f ? 1.f : -1.f;
+	const FVector Dir = (Right * Side + D.GetUnitAxis(EAxis::Z) * 0.3f + D.GetUnitAxis(EAxis::X) * 0.35f).GetSafeNormal();
+	const FVector Loc = Centre + Dir * Dist;
+	if (!BreakupCamera)
+	{
+		FActorSpawnParameters P;
+		P.Owner = this;
+		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		BreakupCamera = World->SpawnActor<ACameraActor>(ACameraActor::StaticClass(), FTransform::Identity, P);
+		if (BreakupCamera && BreakupCamera->GetCameraComponent())
+		{
+			BreakupCamera->GetCameraComponent()->bConstrainAspectRatio = false;
+			BreakupCamera->GetCameraComponent()->SetFieldOfView(55.f);
+		}
+	}
+	if (!BreakupCamera)
+	{
+		return;
+	}
+	BreakupCamera->SetActorLocationAndRotation(Loc, (Centre - Loc).Rotation());
+	PC->SetViewTarget(BreakupCamera);	// a hard cut, like the director's
+	UTDUIHostSubsystem::PushHUDFocus(this, TDBreakupCamera::HUDHold, 0.f, /*bHideCombat*/ true);
+	bBreakupCameraOn = true;
+	UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: breakup camera on, %.0f m off the hull"), Dist / 100.f);
+}
+
+void ATDDominion::EndBreakupCamera()
+{
+	if (!bBreakupCameraOn)
+	{
+		return;
+	}
+	bBreakupCameraOn = false;
+	UWorld* World = GetWorld();
+	if (APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr)
+	{
+		if (APawn* Pawn = PC->GetPawn(); Pawn && PC->GetViewTarget() == BreakupCamera)
+		{
+			PC->SetViewTarget(Pawn);	// cut back to the flown ship for VICTORY
+		}
+	}
+	UTDUIHostSubsystem::PopHUDFocus(this, TDBreakupCamera::HUDHold);
+	UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: breakup camera off"));
 }
