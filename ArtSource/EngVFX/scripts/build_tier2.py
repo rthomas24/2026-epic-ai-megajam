@@ -231,6 +231,26 @@ S2('NS_TD_Mine_Plasma', U(MINE, 1.0), [
     shed('Halo', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(500.0 + 0.03*clamp(Engine.Owner.LODDistance, 0.0, 60000.0))*%s' % MBLINK,) * 2, (0, 0), k=1.6,
          radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='20.0')] + [mine_spike(i) for i in range(6)])
 
+# ---- round 10n (Lead): (a) the Dominion turret's 1.0 s lock telegraph before each burst (T4 adds the timing; slot:
+# the turret's telegraph cue, e.g. UTDEnemyVisuals.TurretTelegraph / T4's field). One shot at the muzzle, +X = the aim:
+# a red-orange glint that charges up over 1.0 s and snaps white at the end, with a dashed aim line racing out along +X.
+TLK = (1.0, 0.28, 0.06, 1.0)
+S2('NS_TD_Turret_LockTelegraph', U(TLK, 1.0), [
+    flash('Charge', 'M_TD_VFX_Glow', 900, 1.0, 1.6, growth='0.25 + 0.75*pow(Particles.NormalizedAge, 1.5)', power=0.2),
+    flash('Core', 'M_TD_VFX_Flare', 420, 1.0, 2.2, growth='0.2 + 0.8*Particles.NormalizedAge', power=0.3),
+    flash('Snap', 'M_TD_VFX_Flare', 1200, 0.12, 2.6, growth='0.6 + Particles.NormalizedAge', delay=0.95),
+    shed('AimLine', 'M_TD_VFX_Spark', 0, (0.12, 0.18), (18, 28), (30000, 36000), k=2.4, radius=0.0, drag=0.0, local=True, stretch=40,
+         cone=((1.0, 0.0, 0.0), 0.3), burst=14, dur=1.1, power=0.5)])
+
+# (b) the "switch grace" after an auto-switch on death (T2 adds the 1.5 s grace): a hex shield shimmer wrapped round the
+# squad ship in the pilot's colour (User.Color: Rift magenta, Lancer cyan, Bastion amber), flashing in, pulsing twice and
+# fading out over 1.5 s. One shot attached at the ship root; authored for a 6 m ship at Scale 1.
+S2('NS_TD_Ship_SwitchGrace', U((1.0, 0.10, 0.85, 1.0), 1.0), [
+    shell_flash('Hex', 520, 1.5, 'float3(1,1,1)*(1.0 + 0.04*sin(Particles.NormalizedAge*12.566))', k=1.4, mat='M_TD_VFX_DomeHex', power=1.6),
+    shell_flash('Glow', 500, 1.5, 'float3(1,1,1)*(1.0 + 0.02*Particles.NormalizedAge)', k=0.6, power=2.0),
+    flash('In', 'M_TD_VFX_Glow', 1600, 0.25, 1.2, growth='0.6 + Particles.NormalizedAge', power=1.2),
+    shed('Glints', 'M_TD_VFX_Glow', 0, (0.2, 0.4), (40, 80), (0, 60), k=3.0, radius=480.0, drag=1.0, local=True, burst=40, dur=1.5, power=1.0)])
+
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
 # ---- round 10 MAJOR (T7's play): Cinder magma kills but does not read as dangerous on foot. A looping hazard layer for
