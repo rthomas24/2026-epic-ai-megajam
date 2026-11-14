@@ -14,11 +14,13 @@ cmd("TD.Stage VerdanceOnFoot"); time.sleep(20); cmd("TD.God"); cmd("TD.Ground.Th
 PY
 cd ArtSource/EngAnim/Pilot/scripts
 export TD_PORT=21085 TD_PASS=1
-TD_VIEWS=chase,side,front timeout 200 python pilot_capture.py ../../../../$OUT walk_slow,start,stop2,guard_strafe,guard_back,run
+TD_VIEWS=chase,side timeout 150 python pilot_capture.py ../../../../$OUT seq_walk_run_stop,seq_sprint,seq_light_moving,seq_guard_strafe
+TD_VIEWS=chase,side,front timeout 200 python pilot_capture.py ../../../../$OUT idle,block,walk_slow,start,stop2,guard_back
 TD_VIEWS=chase,side timeout 120 python pilot_capture.py ../../../../$OUT heavy_follow,dash,slide
 TD_VIEWS=side,front timeout 120 python pilot_capture.py ../../../../$OUT slope_a,slope_a_off,slope_b,slope_b_off,home
 TD_VIEWS=chase,side,front timeout 160 python pilot_capture.py ../../../../$OUT combat_idle,deflect,flinch
 cd ../../../..
+python ArtSource/EngAnim/Pilot/scripts/foot_slide.py Saved/Logs/td-play-mcp_21085.log > $OUT/foot_slide.txt; cat $OUT/foot_slide.txt
 grep -a "TD.Pilot.Drive\|God mode\|Deflect\|deflect" Saved/Logs/td-play-mcp_21085.log | tail -8
 powershell -NoProfile -Command "Set-Location C:\Users\ryant\Documents\myRepos\game-jam\.wt\anim; .\Tools\td-play-mcp.ps1 -Stop -Port 21085" | tail -1
 O=/c/Users/ryant/Documents/myRepos/game-jam/Builds/render-slot/LOCK/owner.txt

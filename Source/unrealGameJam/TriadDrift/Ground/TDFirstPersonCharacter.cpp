@@ -295,9 +295,20 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		// start and end on (weight shifting, blade forward and up), instead of the exploring idle.
 		if (Loop && Want == 0 && !Fall && bLastCloseCombat && TDPilotMeleePassOn())
 		{
-			if (UAnimSequenceBase* Guard = LoadPilotAnim(TEXT("A_Pilot_Blade_Idle_v2")))
+			UAnimSequenceBase* Guard = LoadPilotAnim(TEXT("A_Pilot_Blade_Idle_v3")); // v3: blade out right, 35 deg down
+			Guard = Guard ? Guard : LoadPilotAnim(TEXT("A_Pilot_Blade_Idle_v2"));
+			if (Guard)
 			{
 				Loop = Guard;
+			}
+		}
+		// Idle v3 (round 2): the blade hangs out to the right side, 35 deg down, so it reads whole from the chase camera
+		// (Idle3_v2 pointed it forward-down: a short stub from behind, the rest hidden or in the ground).
+		else if (Loop && Want == 0 && !Fall && Loop->GetFName() == TEXT("A_Pilot_Idle3_v2") && TDPilotMeleePassOn())
+		{
+			if (UAnimSequenceBase* Idle3 = LoadPilotAnim(TEXT("A_Pilot_Idle3_v3")))
+			{
+				Loop = Idle3;
 			}
 		}
 		// Run v2 (animation builder, Nov 14): the blade held out and down beside the leg, not swept across the head.
@@ -718,7 +729,8 @@ UAnimSequenceBase* ATDFirstPersonCharacter::LoadPilotAnim(FName Anim) const
 			TEXT("A_Pilot_AirSlam_Fall_v2"), TEXT("A_Pilot_AirSlam_Land_v3"), TEXT("A_Pilot_AirSlam_Land_v2"), TEXT("A_Pilot_Block_v2"), TEXT("A_Pilot_Blade_DeflectFlick_v2"),
 			TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_Blade_Idle_v2"), TEXT("A_Pilot_Run_v2"), TEXT("A_Pilot_Run_v3"),
 			TEXT("A_Pilot_FallLoop_v2"), TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_JumpStart_v2"),
-			TEXT("A_Pilot_Block_v3"), TEXT("A_Pilot_Blade_DeflectFlick_v3") };
+			TEXT("A_Pilot_Block_v3"), TEXT("A_Pilot_Blade_DeflectFlick_v3"),
+			TEXT("A_Pilot_Idle3_v3"), TEXT("A_Pilot_Blade_Idle_v3") };
 		for (const FName& N : NewMoves)
 		{
 			if (Anim == N)

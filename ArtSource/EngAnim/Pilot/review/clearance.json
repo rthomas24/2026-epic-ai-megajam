@@ -1,38 +1,14 @@
 {
- "A_Pilot_JumpStart_v2": {
+ "A_Pilot_Blade_Idle_v3": {
   "hilt": {
-   "gap": 1.9,
-   "part": "belly",
-   "t": 0.07
-  },
-  "beam": {
-   "gap": 10.0,
+   "gap": 6.4,
    "part": "thigh_r",
-   "t": 0.17
-  }
- },
- "A_Pilot_FallLoop_v2": {
-  "hilt": {
-   "gap": 19.6,
-   "part": "head",
-   "t": 2.47
+   "t": 0.0
   },
   "beam": {
-   "gap": 29.4,
-   "part": "chest",
-   "t": 2.47
-  }
- },
- "A_Pilot_Dash_v3": {
-  "hilt": {
-   "gap": 33.2,
-   "part": "belly",
-   "t": 0.03
-  },
-  "beam": {
-   "gap": 35.7,
+   "gap": 13.9,
    "part": "thigh_r",
-   "t": 0.43
+   "t": 0.0
   }
  }
 }
