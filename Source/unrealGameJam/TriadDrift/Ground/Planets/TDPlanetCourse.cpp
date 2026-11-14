@@ -891,6 +891,14 @@ ATDEncounterVolume* ATDPlanetCourse::Encounter(ATDObjective* Obj, int32 LinkedSt
 	E->LinkedObjective = Obj;
 	E->LinkedStep = LinkedStep;
 	E->bTriggerOnOverlap = bOnOverlap;
+	// Director's mercy on every course fight unless the build sets its own (T7's Cinder play, Nov 14: mercy never
+	// logged there): take 2 at 85 % health, take 3 one fewer at 75 %, take 5 two fewer at 60 %.
+	{
+		FTDRetakeMercyTier M2; M2.FromTake = 2; M2.HealthScale = 0.85f;
+		FTDRetakeMercyTier M3; M3.FromTake = 3; M3.HealthScale = 0.75f; M3.DropCrew = 1;
+		FTDRetakeMercyTier M5; M5.FromTake = 5; M5.HealthScale = 0.6f; M5.DropCrew = 2;
+		E->MercyTiers = { M2, M3, M5 };
+	}
 	TDCourseImpl::FinishProp(E);
 	if (E->Box)
 	{
@@ -1679,6 +1687,13 @@ void ATDPlanetCourse::BuildCinder()
 			RiverChain = { FootA - Along * 150.f, FVector(BridgeAt.X, BridgeAt.Y, BankZ + 50.f), FootB + Along * 100.f };
 		}
 	}
+	// A 60 cm basalt lip along both banks (T7, Nov 14: two deaths stepping into the river's east edge at y 6000), open
+	// where the bridge and the stepping stones meet the banks (east y 4850..5500, west y 3750..4600). Jumpable on purpose.
+	for (const FVector4f& Seg : { FVector4f(6430.f, 1300.f, 4850.f, 0.f), FVector4f(6430.f, 5500.f, 8300.f, 0.f),
+		FVector4f(4770.f, 1300.f, 3750.f, 0.f), FVector4f(4770.f, 4600.f, 8300.f, 0.f) })
+	{
+		Block(EShape::Cube, FVector(Seg.X, (Seg.Y + Seg.Z) * 0.5f, 30.f), FVector(50.f, Seg.Z - Seg.Y, 60.f), Basalt, 0.f, FRotator::ZeroRotator, true);
+	}
 	// The marker crosses from wherever the pilot is (T7: the straight line from the respawn ran over the river); two
 	// magma deaths in a row put the pilot on the far bank (clear of the geyser row), facing the gate.
 	AddMagmaCrossing(River, Outpost, INDEX_NONE, RiverChain, FVector(6900.f, 4900.f, 0.f), 25.f);
@@ -1775,6 +1790,9 @@ void ATDPlanetCourse::BuildCinder()
 	// had crew 2-3 m from the bridge end killing the pilot stepping off. Trigger box x 8200..9600, crew on a 5 m ring.
 	ATDEncounterVolume* GateGuards = Encounter(Outpost, INDEX_NONE, FVector(XGate - 700.f, Y0, 200.f), FVector(700.f, 1800.f, 600.f),
 		{ ETDCrewType::Grunt, ETDCrewType::Trooper, ETDCrewType::Grunt }, true, 500.f);
+	// They belong to the gate step for retakes: past the gate a CUT does not bring them back (T5's replay, Nov 14: the
+	// yard's retake spot is inside their trigger box and they re-armed on every yard retake).
+	if (GateGuards) { GateGuards->RetakeStep = 0; }
 	StepDoors.Add({ Outpost, 1, Gate });
 
 	// Cover crates inside each room.
@@ -1803,7 +1821,8 @@ void ATDPlanetCourse::BuildCinder()
 	// Escalating, one new threat per room (machine playtest: two troopers plus a heavy beat the pilot five times):
 	// grunts + a shooter, then the heavy, then shooters with a drone, then the Warden.
 	ATDEncounterVolume* Yard = RoomFight(XGate, XBarracks, 1, { ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Trooper }, DoorB);
-	ATDEncounterVolume* Barracks = RoomFight(XBarracks, XCommand, 2, { ETDCrewType::Heavy, ETDCrewType::Grunt, ETDCrewType::Grunt }, DoorC);
+	// The Heavy listed last: mercy's "one fewer" (take 3) takes it first (T5's replay: 8 CUTs to its bash while it stayed).
+	ATDEncounterVolume* Barracks = RoomFight(XBarracks, XCommand, 2, { ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Heavy }, DoorC);
 	ATDEncounterVolume* Command = RoomFight(XCommand, XArena, 3, { ETDCrewType::Trooper, ETDCrewType::Drone, ETDCrewType::Trooper }, DoorD);
 	ATDEncounterVolume* Arena = RoomFight(XArena, XEnd, 4, { ETDCrewType::Warden }, nullptr);
 	// Director's mercy (machine playtests lost the Warden up to 9 takes running with him nearly dead): from take 3

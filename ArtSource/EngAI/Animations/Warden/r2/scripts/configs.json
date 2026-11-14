@@ -1,0 +1,22 @@
+{
+  "A_Warden_Stagger": {
+    "tgt": "ArtSource/EngCharacters/Warden/export/SK_Warden.fbx",
+    "tmesh": "SK_Warden",
+    "name": "A_Warden_Stagger",
+    "usf1": true,
+    "export_mesh": true,
+    "loop": false,
+    "rootmotion": true,
+    "src": "wstagger-s8102"
+  },
+  "A_Warden_EnragedRoar": {
+    "tgt": "ArtSource/EngCharacters/Warden/export/SK_Warden.fbx",
+    "tmesh": "SK_Warden",
+    "name": "A_Warden_EnragedRoar",
+    "usf1": true,
+    "export_mesh": true,
+    "loop": false,
+    "rootmotion": false,
+    "src": "wroar-s8204"
+  }
+}

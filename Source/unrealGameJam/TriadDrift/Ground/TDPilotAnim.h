@@ -36,7 +36,7 @@ public:
 	 * bUpperBodyOnly: only UpperRootBone and its children take it (the legs keep walking). bHold: stay on its last
 	 * frame until StopOneShot or another shot (a pose held on purpose, not a montage left playing).
 	 */
-	void PlayOneShot(UAnimSequenceBase* Shot, float Rate = 1.f, bool bUpperBodyOnly = false, bool bHold = false);
+	void PlayOneShot(UAnimSequenceBase* Shot, float Rate = 1.f, bool bUpperBodyOnly = false, bool bHold = false, float BlendIn = -1.f);
 	void StopOneShot() { Shot = nullptr; ShotAlpha = 0.f; bShotHold = false; PrevShot = nullptr; PrevShotAlpha = 0.f; }
 	UAnimSequenceBase* GetOneShot() const { return Shot; }
 	bool IsOneShotUpperBody() const { return bShotUpper; }
@@ -151,6 +151,8 @@ public:
 	float ChainBlendSeconds = 0.08f;
 	bool bShotUpper = false;
 	bool bShotHold = false;
+	/** This shot's fade-in from the loops (seconds; <= 0: the default 0.1 s). */
+	float ShotBlendIn = -1.f;
 	double UpperTime = 0.0;
 	float UpperAlpha = 0.f;
 	bool bUpperWanted = false;

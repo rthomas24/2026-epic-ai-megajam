@@ -10,6 +10,7 @@
 
 #include "TriadDrift/World/SpaceField/TDSpaceField.h"
 #include "EngineUtils.h"
+#include "Containers/Ticker.h"
 #include "TriadDrift/World/SpaceField/TDSpaceFieldFX.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -636,6 +637,7 @@ namespace TDSpaceFieldDev
 		TArray<TPair<float, double>> Worst;	// ms, seconds since start
 	};
 	static FFrameWatch GFrameWatch;
+	static FTSTicker::FDelegateHandle GFrameWatchTicker;
 
 	static FAutoConsoleCommandWithWorldAndArgs CmdFrameWatch(TEXT("TD.SpaceField.FrameWatch"),
 		TEXT("Live: TD.SpaceField.FrameWatch 1 starts (resets) recording every frame's time; 0 stops and logs frames, mean, frames over 16.6 and 33.3 ms and the ten worst (with seconds since start)"),
@@ -647,10 +649,20 @@ namespace TDSpaceFieldDev
 				GFrameWatch = FFrameWatch();
 				GFrameWatch.bOn = true;
 				GFrameWatch.StartTime = FPlatformTime::Seconds();
+				// The engine's core ticker (once per frame, any map, the field or not; travel included).
+				if (!GFrameWatchTicker.IsValid())
+				{
+					GFrameWatchTicker = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([](float DeltaTime)
+					{
+						ATDSpaceField::NoteFrameWatch(DeltaTime);
+						return true;
+					}));
+				}
 				UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.FrameWatch: started"));
 				return;
 			}
 			GFrameWatch.bOn = false;
+			if (GFrameWatchTicker.IsValid()) { FTSTicker::GetCoreTicker().RemoveTicker(GFrameWatchTicker); GFrameWatchTicker.Reset(); }
 			FString W;
 			for (const TPair<float, double>& P : GFrameWatch.Worst) { W += FString::Printf(TEXT(" %.1f ms @%.1fs"), P.Key, P.Value); }
 			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.FrameWatch: %d frames, mean %.2f ms, over 16.6 ms %d, over 33.3 ms %d, worst:%s"), GFrameWatch.Frames,
@@ -841,11 +853,10 @@ namespace TDSpaceFieldWarm
 	} GRegister;
 }
 
-void ATDSpaceField::NoteFrame(float DeltaSeconds)
+void ATDSpaceField::NoteFrameWatch(float DeltaSeconds)
 {
 	using namespace TDSpaceFieldDev;
-	if (!GFrameWatch.bOn || GFrameNoted == GFrameCounter) { return; }
-	GFrameNoted = GFrameCounter;
+	if (!GFrameWatch.bOn) { return; }
 	const float Ms = DeltaSeconds * 1000.f;
 	++GFrameWatch.Frames;
 	GFrameWatch.Sum += Ms;

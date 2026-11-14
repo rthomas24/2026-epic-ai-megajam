@@ -495,7 +495,7 @@ void UTDLoopBlendAnimInstance::SetUpperLoop(UAnimSequenceBase* Loop)
 	}
 }
 
-void UTDLoopBlendAnimInstance::PlayOneShot(UAnimSequenceBase* InShot, float Rate, bool bUpperBodyOnly, bool bHold)
+void UTDLoopBlendAnimInstance::PlayOneShot(UAnimSequenceBase* InShot, float Rate, bool bUpperBodyOnly, bool bHold, float BlendIn)
 {
 	if (!InShot)
 	{
@@ -522,6 +522,7 @@ void UTDLoopBlendAnimInstance::PlayOneShot(UAnimSequenceBase* InShot, float Rate
 	ShotRate = Rate;
 	bShotUpper = bUpperBodyOnly;
 	bShotHold = bHold;
+	ShotBlendIn = BlendIn;
 	ShotAlpha = FMath::Max(ShotAlpha, 0.01f);
 }
 
@@ -543,7 +544,7 @@ void UTDLoopBlendAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	{
 		const float Length = Shot->GetPlayLength();
 		ShotTime += DeltaSeconds * ShotRate;
-		const float Fade = PrevShot ? ChainBlendSeconds : 0.1f;
+		const float Fade = PrevShot ? ChainBlendSeconds : (ShotBlendIn > 0.f ? ShotBlendIn : 0.1f);
 		if (bShotHold)
 		{
 			ShotTime = FMath::Min(ShotTime, (double)FMath::Max(0.f, Length - 0.001f));

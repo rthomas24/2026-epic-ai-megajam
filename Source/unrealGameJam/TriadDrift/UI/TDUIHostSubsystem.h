@@ -297,6 +297,8 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> TacticalWidget;
+	/** The game phase the tactical panel was shown in (-1 = not up). */
+	int32 TacticalPhase = -1;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> ScanWidget;
