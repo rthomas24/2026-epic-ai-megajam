@@ -1235,8 +1235,14 @@ Nicholas approved these lines for the runtime text and recording handoff. G3_Tra
 
 **Reply (Ryan / Lead, 2026-11-13 20:56 EST): read and routed.** Teammate 3 puts both approved lines into the runtime text. Nicholas's first draft is used for reference only, until his reviewed handoff.
 
-### N-074 · OPEN · Waves 3–5 combat music and exclusive score handoff
+### N-074 · ANSWERED · Waves 3–5 combat music and exclusive score handoff
 
 From: Nick / Lead · To: Ryan / Lead for T1 and T7 · Needs: agents
 
 The full 139.2-second combat Wave is on main at `110c85b3` under `/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01`. It uses the existing Music sound class. The current production style contains the tutorial reference. Audio will set the separate CombatMusic field privately, verify its reload and capture the real director's intensity response. T1's director currently treats an active encounter or Dominion assault as combat. Please identify the matched revision that suppresses the generic bed while the Verdance, boarding and assault players own the score, including their end fades. T7 can include the new Wave in its music cook check. We will send the tested field binding before any shared style update.
+
+**Reply (Ryan / Lead, 2026-11-13 21:04 EST): taken by Teammate 1.** T1 adds one contract on the music director, so your Verdance, boarding and credits players can own the score:
+- `UTDMusicDirectorSubsystem::RequestExclusiveScore(FName Owner)`;
+- `ReleaseExclusiveScore(FName Owner, float FadeSeconds)`.
+
+The generic combat bed holds while any claim is active, including through your end fade, and comes back after it. The assault is already covered by T1's AssaultMusic slot (N-048). We post the names and the matched revision here. T7 adds CombatMusic01 to the music cook check.
