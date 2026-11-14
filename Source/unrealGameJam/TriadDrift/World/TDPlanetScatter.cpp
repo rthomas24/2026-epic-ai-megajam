@@ -121,9 +121,9 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		{
 			// s6: 1.9-2.7x across but 0.6 of that in height (a clump spans ~70-170 m, crowns ~25-60 m high), sunk 18 m per
 			// unit of height scale and seated on the lowest ground under its footprint (25 m x scale)
-			const int32 Ci = Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Verd_TreeClump_%02d"), i)), 1.9f, 2.7f, 1800.f, 420000.f, 460000.f, 2200.f, false, false, false);
-			P.Kinds[Ci].ZScale = 0.6f;
-			P.Kinds[Ci].ContactRadiusCm = 2500.f;
+			const int32 Ci = Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Verd_TreeClump_%02d"), i)), 2.6f, 3.6f, 1800.f, 420000.f, 460000.f, 2200.f, false, false, false);
+			P.Kinds[Ci].ZScale = 0.45f;	// s8: 2.6-3.6x across (150-250 m), crowns still 30-60 m high
+			P.Kinds[Ci].ContactRadiusCm = 2000.f;
 			R.Canopy.Add(Ci);
 		}
 		R.CanopyAccent.Add(Add(TDScatter_Path(TEXT("Scatter"), TEXT("SM_Scatter_Verd_Canopy_02")), 1.0f, 1.5f, 400.f, 420000.f, 460000.f, 4000.f, false, false, false));
@@ -313,7 +313,7 @@ int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM
 			// (s6 sheet: that left the hills bare; now ~34 degrees, Slope 0.17) nor on the heights; RunLayer's contact check
 			// drops any clump whose footprint spans a ridge edge, so no crown overhangs a cliff top.
 			const float Valley = FMath::Clamp(1.f - HeightM / 300.f, 0.f, 1.f);
-			const float Threshold = 0.12f - 0.3f * Moist - 0.15f * Valley;
+			const float Threshold = 0.04f - 0.3f * Moist - 0.15f * Valley;	// s8: s7 still left ~20 % canopy
 			if (Stand < Threshold) { return INDEX_NONE; }
 			const float Density = FMath::Clamp((Stand - Threshold) * 12.f, 0.f, 1.f) * FMath::Clamp((0.17f - Sm.Slope) / 0.04f, 0.f, 1.f)
 				* FMath::Clamp(1.f - (HeightM - 900.f) / 500.f, 0.f, 1.f);
@@ -465,7 +465,7 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 					Ground = FMath::Min(Ground, H);
 					High = FMath::Max(High, H);
 				}
-				if (High - Ground > 0.6f * Rr) { continue; }	// its footprint spans a ridge or a cliff edge: it would overhang
+				if (High - Ground > 1.0f * Rr) { continue; }	// its footprint spans a ridge or a cliff edge: it would overhang
 			}
 			const FTransform Xf(Rot, FVector(X, Y, Ground - K.SinkCm * Scale * K.ZScale), FVector(Scale, Scale, Scale * K.ZScale));
 			(bNearCourse ? Row.Near : Row.Far)[Kind].Add(Xf);
