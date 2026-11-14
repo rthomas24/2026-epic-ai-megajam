@@ -7,7 +7,18 @@ Nick-side checkpoint updated 2026-11-13 after resumed production/R028 review; ve
 
 [features.md](../../features.md) controls scope, including ENG-32 Settings/third-person and ENG-33 intro. [AGENTS.md](../../AGENTS.md) controls coordination; [AAA.md](../../AAA.md) controls quality. No scope is cut by this cleanup. The earlier ledger and checkpoint history are [archived verbatim](archive/2026-11-13-cdea6df/STATUS.md).
 
-## Current acceptance ledger
+## November 13 evening acceptance checks
+
+| Item | Verified | Next gameplay check |
+|---|---|---|
+| Survey terminals | Both approved 1920×1080 Unreal textures reopened in a fresh editor and reached main at 8ce307c5. | T2 binds them to the correct terminal scenes. Read the buried structure on Verdance and the comparison overlay on Cinder in the packaged build. |
+| Victory credits | Main 945281be contains the native credits data. Its eight sections and 28 lines matched the source after reload. | The first rendered run reached the memory limit during startup and produced no screen image. Capture a source-specific music line during the real roll, check clipping and reconcile credits against the final cook. |
+| Loading screen | Six release images cover the ordinary label at 720p, 1080p and ultrawide across New Game, Continue and a console-driven menu return on the isolated 2aa09121 candidate. | Capture a long wrapped label through the same transitions. |
+| Settings focus | The 234117fe packaged candidate kept Master at 90% across close/reopen, but the selected action lacked a visible outline. | Compile the 662b8c04 correction, return all 14 test results and capture Esc/B close at 0.3 and 3.5 seconds before further navigation. |
+| Music | Push The Attack reopened with full-track looping on main 12a5149f. Credits, boarding and Verdance playback code is on the review branch at 78caa422. | Bind actual gameplay events, play and capture the cues, and verify the Shipping cook. Nicholas still needs the in-game PR #11 menu return and PR #12 Lancer fire, hull and shield sounds. |
+| Dominion exterior | Source sheet 56d9a3ac shows the three crimson flank bands, stepped bridge and illuminated bow bay. Its front view is much wider than the approved concept because the four generator platforms extend beyond the hull. | Ryan's team checks the silhouette from normal approach distance and shows each live generator and the bay during docking. The annotated domes and close-up bay on the source sheet do not establish in-game readability. |
+
+## Earlier acceptance ledger
 
 | Feature | Verified repository or branch state | Remaining gate / responsible lane |
 |---|---|---|
