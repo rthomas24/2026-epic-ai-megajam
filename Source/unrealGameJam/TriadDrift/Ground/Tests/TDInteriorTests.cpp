@@ -549,26 +549,41 @@ bool FTDInteriorConduitMarkers::RunTest(const FString& Parameters)
 	return true;
 }
 
-// T7 (Nov 14): the hangar start stood behind the parked Rift, facing the door with the hull in the way. From the
-// start, the first 6 m toward the door are clear of every parked part.
+// T7 / the structures builder (Nov 14): the hangar start stood behind the parked Rift, and the pilot walking to the door
+// stopped at x -484 on every step. For every ship that can be parked there (the one the pilot boarded from), the start
+// is clear of the hull, and the pilot walks from it through the hangar door (x 1200). Staged starts and docking use the
+// same start (GetInteriorStart).
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorHangarStartClear, "TriadDrift.Ground.Interior.HangarStartHasAClearWayToTheDoor", TD_TEST_FLAGS)
 bool FTDInteriorHangarStartClear::RunTest(const FString& Parameters)
 {
-	TDInteriorTest::FInterior I;
-	if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
-	const FTransform Start = I.Course->GetInteriorStart();
-	const FVector A = Start.GetLocation() + FVector(0.f, 0.f, 90.f);
-	const FVector B = A + Start.GetRotation().GetForwardVector() * 600.f;
-	int32 Parts = 0;
-	for (const TObjectPtr<UStaticMeshComponent>& Part : I.Course->GetParkedParts())
+	for (const ETDShipId Ship : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
 	{
-		if (!Part) { continue; }
-		++Parts;
-		const FBox Box = Part->Bounds.GetBox().ExpandBy(50.f);
-		TestFalse(*FString::Printf(TEXT("%s clear of the start's first 6 m (start %s)"), *Part->GetName(), *A.ToCompactString()),
-			Box.IsInside(A) || FMath::LineBoxIntersection(Box, A, B, B - A));
+		TDInteriorTest::FInterior I(TArray<FName>(), &Ship);
+		if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
+		const FTransform Start = I.Course->GetInteriorStart();
+		const FVector A = Start.GetLocation() + FVector(0.f, 0.f, 90.f);
+		int32 Parts = 0;
+		for (const TObjectPtr<UStaticMeshComponent>& Part : I.Course->GetParkedParts())
+		{
+			if (!Part) { continue; }
+			++Parts;
+			const FBox Box = Part->Bounds.GetBox().ExpandBy(50.f);
+			TestFalse(*FString::Printf(TEXT("ship %d: %s clear of the start %s"), (int32)Ship, *Part->GetName(), *A.ToCompactString()), Box.IsInside(A));
+		}
+		// Walk it: toward the hangar door, from the start.
+		ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(I.W, Start.GetLocation() + FVector(0.f, 0.f, 95.f));
+		if (!TestNotNull(TEXT("pilot"), P)) { return false; }
+		const FVector Door = I.Course->GetActorTransform().TransformPosition(FVector(1200.f, 0.f, 0.f));
+		for (float T = 0.f; T < 12.f && FVector::Dist2D(P->GetActorLocation(), Door) > 150.f; T += 1.f / 30.f)
+		{
+			const FVector To = (Door - P->GetActorLocation()).GetSafeNormal2D();
+			P->AddMovementInput(To, 1.f);
+			I.W.Tick(1.f / 30.f);
+		}
+		const float Left = FVector::Dist2D(P->GetActorLocation(), Door);
+		TestTrue(*FString::Printf(TEXT("ship %d: walked from %s to the door (%.1f m left, at %s; %d parts)"), (int32)Ship, *Start.GetLocation().ToCompactString(),
+			Left / 100.f, *P->GetActorLocation().ToCompactString(), Parts), Left <= 200.f);
 	}
-	AddInfo(FString::Printf(TEXT("%d parked parts checked"), Parts));
 	return true;
 }
 
@@ -665,6 +680,29 @@ bool FTDInteriorFaceToFace::RunTest(const FString& Parameters)
 		TestTrue(TEXT("the defenders are overcome"), It->IsCleared());
 	}
 	TestTrue(*FString::Printf(TEXT("%s plays when they fall"), *Over.ToString()), Story->IsSequencePlaying(Over));
+	return true;
+}
+
+// T7 (Nov 14): a death between rooms ("CUT! Scene None") came back at the hangar start, 104 m from the reactor. In every
+// gap between interior rooms the retake spot is the next room's door, ahead of the last room done.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorRetakeBetweenRooms, "TriadDrift.Ground.Interior.ADeathBetweenRoomsComesBackAtTheNextDoor", TD_TEST_FLAGS)
+bool FTDInteriorRetakeBetweenRooms::RunTest(const FString& Parameters)
+{
+	const TArray<FName>& Ids = ATDPlanetCourse::InteriorObjectiveIds();
+	float LastX = -1e9f;
+	for (int32 Done = 1; Done < Ids.Num(); ++Done)
+	{
+		TArray<FName> Before;
+		for (int32 i = 0; i < Done; ++i) { Before.Add(Ids[i]); }
+		TDInteriorTest::FInterior I(Before);
+		if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
+		const FVector Spot = I.Course->GetInteriorRetakeSpot(NAME_None).GetLocation();
+		const FVector Hangar = TDInteriorTest::FInterior().Course->GetInteriorRetakeSpot(NAME_None).GetLocation();
+		AddInfo(FString::Printf(TEXT("after %s: retake at %s"), *Ids[Done - 1].ToString(), *Spot.ToCompactString()));
+		TestTrue(*FString::Printf(TEXT("after %s: not the hangar"), *Ids[Done - 1].ToString()), FVector::Dist2D(Spot, Hangar) > 1000.f);
+		TestTrue(*FString::Printf(TEXT("after %s: further in than the last gap"), *Ids[Done - 1].ToString()), Spot.X >= LastX);
+		LastX = Spot.X;
+	}
 	return true;
 }
 

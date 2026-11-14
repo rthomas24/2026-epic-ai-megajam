@@ -691,7 +691,12 @@ bool ATDEncounterVolume::ReturnLostBoss(AActor* Member)
 		return false;
 	}
 	++BossReturns;
-	const FTransform Xf = *At;
+	// The first time where it was spawned; if it is lost again, the room's middle (its spawn spot may be over a gap).
+	FTransform Xf = *At;
+	if (BossReturns > 1)
+	{
+		Xf.SetLocation(FVector(GetActorLocation().X, GetActorLocation().Y, At->GetLocation().Z + 50.f));
+	}
 	AActor* Fresh = GetWorld()->SpawnActorDeferred<AActor>(Member->GetClass(), Xf, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 	ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Fresh);
 	if (!Crew)

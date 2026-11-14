@@ -1,6 +1,8 @@
 // Triad Drift - first-person character (ENG-21). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Flow/TDObjectiveText.h"
+#include "TriadDrift/Flow/TDCheatManager.h"
 #include "TriadDrift/Perf/TDAssetCache.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
@@ -144,6 +146,7 @@ void ATDFirstPersonCharacter::BeginPlay()
 	ApplyBladeVisuals();
 	ApplyPilotVisuals();
 	Blade->OnRetractChanged.AddUObject(this, &ATDFirstPersonCharacter::HandleBladeRetract);
+	Blade->OnDeflect.AddUObject(this, &ATDFirstPersonCharacter::HandleBladeDeflect);
 
 	ThirdPersonRig->SetFirstPersonCamera(Camera);
 	// Almost no motion blur on foot (the Rodin drone smeared under the planet volume's 0.2): both views.
@@ -612,6 +615,101 @@ UAnimSequenceBase* ATDFirstPersonCharacter::LoadPilotAnim(FName Anim) const
 	return Seq ? TDMakePlayable(Seq) : nullptr;
 }
 
+bool ATDFirstPersonCharacter::PlayFirstBodyAction(std::initializer_list<const TCHAR*> Anims, float Rate, bool bUpperOnly)
+{
+	for (const TCHAR* Anim : Anims)
+	{
+		if (LoadPilotAnim(Anim))
+		{
+			PlayBodyAction(Anim, Rate, bUpperOnly);
+			return BodyActionName == FName(Anim);
+		}
+	}
+	return false;
+}
+
+void ATDFirstPersonCharacter::HandleBladeDeflect(AActor* Projectile, bool bPerfect)
+{
+	// The animation builder's flick (0.97 s, the flick at 0.13 s): upper body, so the legs keep their move.
+	if (!IsDead())
+	{
+		PlayBodyAction(TEXT("A_Pilot_Blade_DeflectFlick"), 1.f, true);
+	}
+}
+
+float ATDFirstPersonCharacter::StartShipTransition(bool bBoarding, const FVector& Hatch)
+{
+	UAnimSequenceBase* Clip = LoadPilotAnim(bBoarding ? TEXT("A_Pilot_Board_Ship") : TEXT("A_Pilot_Exit_Ship"));
+	if (!Clip || IsDead())
+	{
+		return 0.f;
+	}
+	CancelInteract();
+	if (Blade) { Blade->CancelAll(); Blade->Retract(); } // it sweeps through the body in these clips
+	PlayBodyAction(bBoarding ? TEXT("A_Pilot_Board_Ship") : TEXT("A_Pilot_Exit_Ship"), 1.f, false);
+	bShipTransition = true;
+	bShipBoarding = bBoarding;
+	ShipTransitionTime = 0.f;
+	ShipTransitionDuration = Clip->GetPlayLength();
+	const FVector Here = GetActorLocation();
+	if (bBoarding)
+	{
+		// Up and in: 1.5 m up and 0.8 m toward the hatch over the climb.
+		ShipTransitionFrom = Here;
+		ShipTransitionTo = Here + (Hatch - Here).GetSafeNormal2D() * 80.f + FVector(0.f, 0.f, 150.f);
+	}
+	else
+	{
+		// Down from the hatch sill onto the ground where the pilot stands.
+		ShipTransitionFrom = Here + FVector(0.f, 0.f, 120.f);
+		ShipTransitionTo = Here;
+		SetActorLocation(ShipTransitionFrom, false, nullptr, ETeleportType::TeleportPhysics);
+	}
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->SetMovementMode(MOVE_Flying); // no gravity while the clip carries the capsule
+	ShipTransitionLast = GetActorLocation();
+	return ShipTransitionDuration;
+}
+
+void ATDFirstPersonCharacter::TickShipTransition(float DeltaSeconds)
+{
+	if (!bShipTransition)
+	{
+		return;
+	}
+	// Moved by something else meanwhile (a teleport, a respawn, a dev command): the clip lets go where the pilot is.
+	if (FVector::Dist(GetActorLocation(), ShipTransitionLast) > 50.f)
+	{
+		bShipTransition = false;
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		if (Blade && Blade->IsRetracted() && !IsDead()) { Blade->Ignite(); }
+		return;
+	}
+	ShipTransitionTime += DeltaSeconds;
+	const float A = ShipTransitionDuration > 0.f ? FMath::Clamp(ShipTransitionTime / ShipTransitionDuration, 0.f, 1.f) : 1.f;
+	SetActorLocation(FMath::Lerp(ShipTransitionFrom, ShipTransitionTo, FMath::SmoothStep(0.f, 1.f, A)), false, nullptr, ETeleportType::TeleportPhysics);
+	ShipTransitionLast = GetActorLocation();
+	if (A >= 1.f)
+	{
+		bShipTransition = false;
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		if (!bShipBoarding && Blade && !IsDead()) { Blade->Ignite(); } // on the ground: the blade back in hand
+	}
+}
+
+void ATDFirstPersonCharacter::StartDeathRagdoll()
+{
+	if (!IsDead())
+	{
+		return; // revived meanwhile (a fast retake)
+	}
+	if (USkeletalMeshComponent* Body = GetMesh(); Body && HasBody() && Body->GetPhysicsAsset())
+	{
+		Body->SetCollisionProfileName(TEXT("Ragdoll"));
+		Body->SetSimulatePhysics(true);
+	}
+}
+
 void ATDFirstPersonCharacter::PlayBodyAction(FName Anim, float Rate, bool bUpperOnly)
 {
 	USkeletalMeshComponent* Body = GetMesh();
@@ -691,7 +789,7 @@ void ATDFirstPersonCharacter::UpdateBodyActions()
 		case ETDBladeState::Light2: PlayBodyAction(TEXT("A_Pilot_Light2"), 1.6f, bMoving); break;
 		case ETDBladeState::Light3: PlayBodyAction(TEXT("A_Pilot_Light3"), 1.5f, bMoving); break;
 		case ETDBladeState::HeavyLunge:
-		case ETDBladeState::DashStrike: PlayBodyAction(TEXT("A_Pilot_Heavy"), 1.4f, false); break;
+		case ETDBladeState::DashStrike: PlayFirstBodyAction({ TEXT("A_Pilot_Heavy_v3"), TEXT("A_Pilot_Heavy") }, 1.4f, false); break; // v3: the blade along the forearm
 		case ETDBladeState::AirSlam: PlayBodyAction(TEXT("A_Pilot_Light3"), 1.2f, false); break;
 		case ETDBladeState::GuardBroken: PlayBodyAction(TEXT("A_Pilot_HitReact_Front"), 1.f, true); break;
 		default: break;
@@ -767,10 +865,22 @@ void ATDFirstPersonCharacter::ShowTip(const FText& Text, float Seconds)
 
 TArray<AActor*> ATDFirstPersonCharacter::GetObjectiveMarkers() const
 {
+	// The flow's markers, the same ones the objective line names (T2's play, Nov 14: during "HEAD TO THE RESEARCH SITE"
+	// and "HEAD TO THE SURVEY STATION" no objective was running, so the active waypoints alone were empty and the HUD
+	// drew nothing): the running objective's waypoint (routed round the magma), else the open trailheads, else the board
+	// point once the planet is done.
 	TArray<AActor*> Out;
-	if (const UTDObjectiveSubsystem* Objectives = UTDObjectiveSubsystem::Get(this))
+	UWorld* World = GetWorld();
+	if (const UTDGameInstance* GI = UTDGameInstance::Get(this); GI && World)
 	{
-		Objectives->GetActiveWaypoints(Out);
+		FTDObjectiveText::ComputeMarkers(World, GI->GetProgressRef(), GI->GetCurrentDestination(), Out);
+	}
+	if (Out.Num() == 0)
+	{
+		if (const UTDObjectiveSubsystem* Objectives = UTDObjectiveSubsystem::Get(this))
+		{
+			Objectives->GetActiveWaypoints(Out);
+		}
 	}
 	return Out;
 }
@@ -1004,6 +1114,9 @@ void ATDFirstPersonCharacter::SetCarrying(bool bNewCarrying)
 
 void ATDFirstPersonCharacter::RespawnAt(const FTransform& Where)
 {
+	GetWorldTimerManager().ClearTimer(DeathRagdollTimer);
+	bShipTransition = false;
+	InteractRetractLeft = 0.f;
 	LastSafeLocation = Where.GetLocation();
 	bForcedMove = bDashing = bSliding = bMantling = false;
 	ForcedTimeLeft = SlideTimeLeft = 0.f;
@@ -1089,8 +1202,15 @@ void ATDFirstPersonCharacter::BeginInteract()
 		return;
 	}
 	const float Hold = I->GetHoldTime();
-	// The animation builder's reach-out (eng/anim batch L): upper body, so walking up to a console keeps the legs.
+	// The animation builder's reach-out (eng/anim batch L): upper body, so walking up to a console keeps the legs; the
+	// blade is put away while it plays (it sweeps through the body) and drawn again after.
 	PlayBodyAction(TEXT("A_Pilot_Interact_Console"), 1.f, true);
+	if (UAnimSequenceBase* Reach = LoadPilotAnim(TEXT("A_Pilot_Interact_Console")); Reach && Blade && !Blade->IsRetracted())
+	{
+		Blade->CancelAll();
+		Blade->Retract();
+		InteractRetractLeft = Reach->GetPlayLength();
+	}
 	if (Hold <= 0.f)
 	{
 		I->Interact(this);
@@ -1162,11 +1282,21 @@ void ATDFirstPersonCharacter::HandleDeath(UTDHealthComponent* InHealth, const FT
 	}
 	GetCharacterMovement()->StopMovementImmediately();
 	GetCharacterMovement()->DisableMovement();
+	bShipTransition = false;
 	if (USkeletalMeshComponent* Body = GetMesh(); Body && HasBody() && Body->GetPhysicsAsset())
 	{
 		SetBodyFirstPersonView(false); // the death view sees the whole pilot fall
-		Body->SetCollisionProfileName(TEXT("Ragdoll"));
-		Body->SetSimulatePhysics(true);
+		// The animation builder's death (Death1_v2 / Death2_v2, 2.47 s): the first 0.7 s as a clip, then the ragdoll.
+		const bool bClip = PlayFirstBodyAction({ FMath::RandBool() ? TEXT("A_Pilot_Blade_Death1_v2") : TEXT("A_Pilot_Blade_Death2_v2"), TEXT("A_Pilot_Blade_Death1_v2") }, 1.f, false);
+		if (bClip && GetWorld())
+		{
+			GetWorldTimerManager().SetTimer(DeathRagdollTimer, FTimerDelegate::CreateUObject(this, &ATDFirstPersonCharacter::StartDeathRagdoll), 0.7f, false);
+		}
+		else
+		{
+			Body->SetCollisionProfileName(TEXT("Ragdoll"));
+			Body->SetSimulatePhysics(true);
+		}
 	}
 	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
 	{
@@ -1371,6 +1501,14 @@ void ATDFirstPersonCharacter::ReturnToSafeGround()
 void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 {
 	TipLeft = FMath::Max(0.f, TipLeft - DeltaSeconds);
+#if !UE_BUILD_SHIPPING
+	// TD.God (dev): the pilot on foot too, whenever it was spawned or handed over (the structures builder, Nov 14: it
+	// only covered the pawn present at the toggle).
+	if (UTDCheatManager::IsGodModeOn() && Health && !Health->IsInvulnerable() && !IsDead() && IsPlayerControlled())
+	{
+		Health->SetInvulnerable(true);
+	}
+#endif
 	Super::Tick(DeltaSeconds);
 	if (DeltaSeconds <= 0.f)
 	{
@@ -1378,13 +1516,19 @@ void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 	}
 	if (!IsDead())
 	{
-		if (!bMantling && !bForcedMove && !MoveInput.IsNearlyZero() && !bSliding)
+		if (!bMantling && !bForcedMove && !bShipTransition && !MoveInput.IsNearlyZero() && !bSliding)
 		{
 			const FRotator Yaw(0.f, GetControlRotation().Yaw, 0.f);
 			AddMovementInput(Yaw.RotateVector(FVector::ForwardVector), MoveInput.Y);
 			AddMovementInput(Yaw.RotateVector(FVector::RightVector), MoveInput.X);
 		}
 		UpdateMoveSpeed();
+		TickShipTransition(DeltaSeconds);
+		if (InteractRetractLeft > 0.f)
+		{
+			InteractRetractLeft -= DeltaSeconds;
+			if (InteractRetractLeft <= 0.f && Blade && Blade->IsRetracted() && !bShipTransition) { Blade->Ignite(); }
+		}
 		TickForcedMove(DeltaSeconds);
 		UpdateBody(DeltaSeconds);
 		TickSlide(DeltaSeconds);
