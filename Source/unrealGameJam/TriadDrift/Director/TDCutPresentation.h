@@ -198,6 +198,14 @@ public:
 	/** Real-time update: recomputes the state, rebinds to the squad manager if it changed. */
 	void Tick(double RealNow);
 
+	/** The money shot's thin bars held while any key is held (T4's Dominion breakup camera); same ease in and out. */
+	void HoldShotLetterbox(FName Key) { LetterboxHolds.Add(Key); }
+	void ReleaseShotLetterbox(FName Key) { LetterboxHolds.Remove(Key); }
+	bool IsShotLetterboxHeld() const { return LetterboxHolds.Num() > 0; }
+	TSet<FName> LetterboxHolds;
+	float HeldLetterboxA = 0.f;
+	double LastHoldTick = 0.0;
+
 	UFUNCTION()
 	void HandleSwitchCut(const FTDSwitchCut& Cut);
 
