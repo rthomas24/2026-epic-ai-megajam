@@ -232,7 +232,8 @@ bool FTDScatterSpread::RunTest(const FString&)
 	ATDPlanetScatter* S = T ? T->GetScatter() : nullptr;
 	if (!TestNotNull(TEXT("scatter"), S)) { return false; }
 	bool bNearBeforeBuilt = false;
-	for (int32 i = 0; i < 60 * 30 && !S->IsBuilt(); ++i)
+	const double Until = FPlatformTime::Seconds() + 30.0;	// real time: generation runs on the thread pool
+	while (!S->IsBuilt() && FPlatformTime::Seconds() < Until)
 	{
 		if (S->GetPendingApplyJobs() > 0 && !S->AreKindsLoaded()) { FlushAsyncLoading(); }	// a test world ticks no async loader
 		W.Tick(1.f / 60.f);

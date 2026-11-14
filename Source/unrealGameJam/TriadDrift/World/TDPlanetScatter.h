@@ -217,6 +217,7 @@ protected:
 	TSharedPtr<FStreamableHandle> KindLoadHandle;
 	UMaterialInterface* ResolveKindMaterial(int32 Kind) const;
 	void RequestKindLoads();
+	bool AreKindPathsResolved() const;
 	FVector FocusLocal = FVector::ZeroVector;
 	struct FApplyJob
 	{

@@ -642,6 +642,21 @@ void ATDPlanetScatter::RequestKindLoads()
 	if (!KindLoadHandle.IsValid() || KindLoadHandle->HasLoadCompleted()) { bKindsLoaded = true; }
 }
 
+bool ATDPlanetScatter::AreKindPathsResolved() const
+{
+	// Every existing kind mesh / material is in memory (the async request finished, or something else loaded them).
+	for (const FTDScatterKind& K : Plan.Kinds)
+	{
+		for (const FString& S : { K.MeshPath, K.MaterialPath })
+		{
+			if (S.IsEmpty()) { continue; }
+			const FSoftObjectPath P(S);
+			if (!P.ResolveObject() && FPackageName::DoesPackageExist(P.GetLongPackageName())) { return false; }
+		}
+	}
+	return true;
+}
+
 void ATDPlanetScatter::StartAsync()
 {
 	if (bBuilt || bBuilding)
@@ -757,7 +772,7 @@ void ATDPlanetScatter::Apply(FTDScatterResult&& Result, double Ms)
 
 void ATDPlanetScatter::ApplyQueued(double BudgetMs)
 {
-	if (!bKindsLoaded && KindLoadHandle.IsValid() && KindLoadHandle->HasLoadCompleted()) { bKindsLoaded = true; }
+	if (!bKindsLoaded && ((KindLoadHandle.IsValid() && KindLoadHandle->HasLoadCompleted()) || AreKindPathsResolved())) { bKindsLoaded = true; }
 	if (ApplyJobHead >= ApplyJobs.Num() || !bKindsLoaded)
 	{
 		return;	// nothing queued, or the kinds are still loading off the game thread
