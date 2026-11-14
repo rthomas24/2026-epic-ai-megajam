@@ -456,6 +456,46 @@ def space_sites():
     return out
 
 
+# ------------------------------------------------------------------------------------------------ planet story sets
+ST = K + "Story/"
+STORY_LM = {}
+
+
+def story_sets():
+    """Story props composed into two small sets (about 20 m across) for the capture and as a starting layout for the
+    environment builder / T5's Dress lists. Not walkable; collision only on the pieces over 1 m."""
+    camp = [piece("ShelterA", ST + "SM_Kit_ShelterFrame", 0.0, 0.0, 0.0, 0.0),
+            piece("ShelterB", ST + "SM_Kit_ShelterFrame", 650.0, 500.0, 0.0, 28.0),
+            piece("Lamp", ST + "SM_Kit_LampPostDead", -380.0, -320.0, 0.0, 30.0),
+            piece("Cases", ST + "SM_Kit_SampleCases", 280.0, -300.0, 0.0, -15.0),
+            piece("Antenna", ST + "SM_Kit_AntennaToppled", -500.0, 600.0, 0.0, 160.0),
+            piece("Drag", ST + "SM_Kit_DragMark", 1100.0, -150.0, 0.0, 12.0)]
+    for i, x in enumerate((500.0, 900.0, 1300.0, 1700.0)):
+        camp.append(piece("Stake%d" % i, ST + "SM_Kit_SurveyStakeFlag", x, -750.0 - 40.0 * i, 0.0, 90.0))
+    mine = [piece("Rail", ST + "SM_Kit_RailStub", 0.0, 0.0, 0.0, 0.0),
+            piece("Cart", ST + "SM_Kit_OreCart", -180.0, 0.0, 22.0, 0.0),
+            piece("CartTipped", ST + "SM_Kit_OreCart", 550.0, 380.0, 60.0, 35.0, roll_deg=95.0),
+            piece("Reel", ST + "SM_Kit_CableReel", 250.0, -400.0, 0.0, 70.0),
+            piece("Shield", ST + "SM_Kit_HeatShieldCracked", -150.0, 520.0, 0.0, 0.0),
+            piece("BeaconA", ST + "SM_Kit_WarningBeacon", 650.0, -250.0, 0.0, 0.0),
+            piece("BeaconB", ST + "SM_Kit_WarningBeacon", -550.0, -350.0, 0.0, 0.0),
+            piece("Gantry", ST + "SM_Kit_GantryCollapsed", -950.0, -150.0, 0.0, 20.0),
+            piece("Scorch", ST + "SM_Kit_ScorchLines", -700.0, 450.0, 0.0, 150.0)]
+    lm = {"Landmark_RelayMast": {"site": "Landmark_RelayMast", "actor": K + "Sites/BP_Landmark_RelayMast",
+                                 "about": "Verdance landmark: a leaning expedition relay mast (63 m) for the research site; collision on its pad only.",
+                                 "pieces": [piece("Mast", ST + "SM_Kit_RelayMast", 0.0, 0.0, 0.0, 0.0)]},
+          "Landmark_NullDerrick": {"site": "Landmark_NullDerrick", "actor": K + "Sites/BP_Landmark_NullDerrick",
+                                   "about": "Cinder landmark: a Null excavation derrick (87 m) over the dig; cables run below its pivot into the pit; collision on its feet only.",
+                                   "pieces": [piece("Derrick", ST + "SM_Kit_NullDerrick", 0.0, 0.0, 0.0, 0.0)]}}
+    STORY_LM.update(lm)
+    return {"StorySet_VerdanceCamp": {"site": "StorySet_VerdanceCamp", "actor": K + "Sites/BP_StorySet_VerdanceCamp",
+                                      "about": "Verdance: an abandoned field camp (shelters with torn canopies, a dead lamp, sample cases, a toppled antenna, survey stakes, a drag mark leading away).",
+                                      "pieces": camp},
+            "StorySet_CinderMine": {"site": "StorySet_CinderMine", "actor": K + "Sites/BP_StorySet_CinderMine",
+                                    "about": "Cinder: a mining camp (ore carts on a rail stub, one tipped, a cable reel, a cracked heat-shield wall, warning beacons, a collapsed gantry, scorch lines).",
+                                    "pieces": mine}}
+
+
 def main():
     out = os.path.join(KIT, "sites")
     os.makedirs(out, exist_ok=True)
@@ -465,6 +505,8 @@ def main():
              "DockingBay_GalaxyTest": docking_bay_galaxy_test(), "DockingBay_Course": docking_bay_course(),
              "SurveyLine_Verdance": survey_line(), "Artefact": artefact()}
     sites.update(space_sites())
+    sites.update(story_sets())
+    sites.update(STORY_LM)
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)

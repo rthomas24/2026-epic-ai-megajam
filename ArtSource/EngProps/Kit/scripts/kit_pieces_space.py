@@ -82,6 +82,9 @@ def _band(p, x0, x1, w=W_, h=H_):
         y = s * (w / 2 + 6.0)
         p.poly([(x0, y, -h * 0.1), (x1, y, -h * 0.1), (x1, y, h * 0.05), (x0, y, h * 0.05)], "frame", mat="Stripe", n=(0, s, 0),
                uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+        # r5: a steady dim cyan running glow under the band (the strobe alone is dark half the time)
+        p.poly([(x0, y + s * 1.0, -h * 0.16), (x1, y + s * 1.0, -h * 0.16), (x1, y + s * 1.0, -h * 0.12), (x0, y + s * 1.0, -h * 0.12)],
+               mat="CyanRun", n=(0, s, 0))
 
 
 def patrol_mid():
@@ -103,6 +106,7 @@ def patrol_mid():
     # the breach: a cold blue glow on the inner wall of the open side, and scorch round it
     p.poly([(-700.0, -2.0, -H_ * 0.4), (700.0, -2.0, -H_ * 0.4), (700.0, -2.0, H_ * 0.25), (-700.0, -2.0, H_ * 0.25)], mat="Breach", n=(0, -1, 0))
     p.box((-900.0, -W_ * 0.05, H_ * 0.3), (900.0, 0.0, H_ * 0.45), reg="wall", mat="Scorch")
+    _band(p, -880.0, 880.0)
     # outward breach on the intact +Y flank: a torn hole glowing cold blue, scorch round it
     p.poly([(-350.0, W_ / 2 + 4.0, -120.0), (350.0, W_ / 2 + 4.0, -120.0), (250.0, W_ / 2 + 4.0, 150.0), (-280.0, W_ / 2 + 4.0, 120.0)],
            mat="Breach", n=(0, 1, 0))
