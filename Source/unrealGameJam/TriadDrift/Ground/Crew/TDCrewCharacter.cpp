@@ -26,6 +26,7 @@
 #include "AssetRegistry/IAssetRegistry.h"
 #include "Animation/AnimInstance.h"
 #include "PhysicsEngine/PhysicsAsset.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "HAL/IConsoleManager.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
@@ -279,6 +280,16 @@ void ATDCrewCharacter::InitFromType(ETDCrewType Type)
 	CrewType = Type;
 	Spec = FTDCrewLibrary::Get(Type);
 	bSpecApplied = true;
+	// ENG-45: the run's difficulty (T4's presets, chosen at New Game) scales the crew like the Armada in space: their
+	// health (the damage the pilot deals goes further or less far) and every hit they land.
+	{
+		const FTDDifficultyScale Scale = UTDDifficultySettings::GetScale();
+		Spec.MaxHealth = FMath::Max(1.f, Spec.MaxHealth * Scale.EnemyHull);
+		Spec.MeleeDamage *= Scale.EnemyDamage;
+		Spec.BoltDamage *= Scale.EnemyDamage;
+		Spec.ShotgunPelletDamage *= Scale.EnemyDamage;
+		Spec.ChargeSlamDamage *= Scale.EnemyDamage;
+	}
 
 	GetCapsuleComponent()->SetCapsuleSize(Spec.CapsuleRadius, Spec.CapsuleHalfHeight);
 	if (Health)
