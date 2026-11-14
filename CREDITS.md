@@ -193,3 +193,7 @@ Nicholas Tosti supplied Ambient1 for quiet space flight. Audio used FFmpeg to de
 | `SM_CinderDrillRig`, `T_CinderDrillRig_BC/N/ORM/E`, `MI_CinderDrillRig` in `Content/TriadDrift/Gameplay/Props/CinderDigSite/`, placed in `BP_DigSite_Cabin` (PR #69) | **Hyper3D Rodin Gen-2.5** image-to-3D from a cleaned fal concept of Nicholas's dig-site board, Blender 4.5.3 clean-up (`ArtSource/EngAI/Props/CinderDigSite/mesh_r1/SOURCE.md`) | Hyper3D terms, paid Business plan, commercial use | same |
 
 Tools used: **Hyper3D Rodin** (list it in the submission for the Rodin prize pool), fal.ai, Blender 4.5.3, Claude Code.
+
+Credits playlist implementation and verification: Nicholas Tosti supplied the music; the presentation team used OpenAI Codex, Unreal Engine 5.9, Windows WASAPI process capture, FFmpeg and Python for playback, lossless excerpting and source comparison. [Listen to the game recording](docs/visual/Submission/MusicBuild01/credits-playback.md).
+
+Nicholas Tosti supplied the Suno track Ethereal Pulse (Remix) for combat. Audio prepared the full 139.2-second loop with FFmpeg and Python and imported the stereo SoundWave in Unreal Engine 5.9. [Track provenance and preparation](https://github.com/rthomas24/2026-epic-ai-megajam/blob/nick/audio-prototype-v1/ArtSource/Audio/CombatMusic01/CREDITS.md).
