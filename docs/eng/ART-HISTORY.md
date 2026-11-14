@@ -132,3 +132,5 @@ Restore a whole snapshot in a separate checkout: `git worktree add ../old art/mo
 
 Earlier versions of anything: `git log --oneline -- <path>`. Local review renders and capture sets that are not in
 git (`Saved/TDShots/**`, `Saved/*/` builder scratch) are kept on Ryan's machine and are not cleaned up.
+| Nov 14 17:10 | DA_Crew_Grunt_Visuals.Telegraph (Gameplay/Characters/NullGrunt) | previous value at 5ce0870b (eng/vfx) | NS_TD_Crew_MeleeWindup (red-orange ground ring, chest glow, white flare, 0.38 s) | `git show 5ce0870b:Content/TriadDrift/Gameplay/Characters/NullGrunt/DA_Crew_Grunt_Visuals.uasset` |
+| Nov 14 17:10 | NS_TD_Amb_Verdance_Spores / Fireflies / GroundMist (12a look) | the 12a spec is in build_tier2.py at 5ce0870b | 12b: bigger slower spores with light shafts and bright ones, fireflies 3x with halo, mist denser, lower, teal | `git show 5ce0870b:Content/TriadDrift/Gameplay/VFX/Systems/Ambient/<name>.uasset` |
