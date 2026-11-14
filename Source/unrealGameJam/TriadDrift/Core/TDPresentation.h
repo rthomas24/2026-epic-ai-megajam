@@ -609,6 +609,15 @@ public:
 	TSoftClassPtr<UUserWidget> PauseWidgetClass;
 
 	/**
+	 * The ability-unlock reward screen (board N-070 / N-072), mounted by UTDUIHostSubsystem for each award pending in
+	 * UTDAbilityRewardSubsystem. Nick's UTDAbilityRewardWidget contract, called by name: PresentReward(Display) -> bool,
+	 * FocusDismissButton(), IsRewardActive(), OnRewardDismissed(FName AbilityId). Empty: /Script/TriadDriftHUD.TDAbilityRewardWidget
+	 * when that class exists; otherwise no reward screen (the flight hint still comes).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> AbilityRewardWidgetClass;
+
+	/**
 	 * Shown on the menu map after a won run INSTEAD of MainMenuWidgetClass (optional). Empty = the code-built
 	 * victory screen (run time, kills, ships lost, cuts, takes per scene, return to menu). A main-menu widget is
 	 * therefore never asked to show the victory statistics (N-023).
