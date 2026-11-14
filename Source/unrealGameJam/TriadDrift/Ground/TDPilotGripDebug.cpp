@@ -18,6 +18,11 @@
 #include "Animation/Skeleton.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "EngineUtils.h"
+#include "Containers/Ticker.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "PhysicsEngine/PhysicsAsset.h"
+#include "PhysicsEngine/SkeletalBodySetup.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "Engine/SkeletalMeshSocket.h"
 
@@ -286,6 +291,135 @@ namespace TDPilotGripDebug
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&CrewKill));
 	static FAutoConsoleCommandWithWorldAndArgs CmdCrewWhere(TEXT("TD.Ground.CrewWhere"), TEXT("Log every crew member's capsule, pelvis, head and lowest bone."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&CrewWhere));
+
+	// TD.Ground.CrewRagdoll: the nearest live crew member goes limp (skeletal ragdoll from its current pose); its pelvis
+	// height above the floor is logged every 0.25 s for 4 s, with the highest point reached (a launch shows here).
+	static void CrewRagdoll(const TArray<FString>& Args, UWorld* World)
+	{
+		ATDFirstPersonCharacter* P = GripPilot(World);
+		ATDCrewCharacter* Best = nullptr;
+		double BestD = TNumericLimits<double>::Max();
+		for (TActorIterator<ATDCrewCharacter> It(World); It && P; ++It)
+		{
+			const double D = FVector::DistSquared(It->GetActorLocation(), P->GetActorLocation());
+			if (!It->IsDead() && D < BestD)
+			{
+				Best = *It;
+				BestD = D;
+			}
+		}
+		USkeletalMeshComponent* M = Best ? Best->GetMesh() : nullptr;
+		if (!M || !M->GetPhysicsAsset())
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.CrewRagdoll: no crew with a physics asset nearby"));
+			return;
+		}
+		const float Floor = (float)(Best->GetActorLocation().Z - Best->GetSimpleCollisionHalfHeight());
+		Best->CustomTimeDilation = 1.f;
+		Best->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Best->GetCharacterMovement()->DisableMovement();
+		M->SetCollisionProfileName(TEXT("Ragdoll"));
+		M->SetSimulatePhysics(true);
+		TWeakObjectPtr<USkeletalMeshComponent> Weak(M);
+		const FString Name = GetNameSafe(M->GetPhysicsAsset());
+		TSharedRef<float> Time = MakeShared<float>(0.f);
+		TSharedRef<float> Peak = MakeShared<float>(-1.e6f);
+		TSharedRef<float> NextLog = MakeShared<float>(0.f);
+		FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([Weak, Floor, Name, Time, Peak, NextLog](float Dt)
+		{
+			if (!Weak.IsValid())
+			{
+				return false;
+			}
+			*Time += Dt;
+			const float H = (float)Weak->GetBoneLocation(TEXT("pelvis")).Z - Floor;
+			*Peak = FMath::Max(*Peak, H);
+			if (*Time >= *NextLog)
+			{
+				*NextLog += 0.25f;
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.CrewRagdoll %s t=%.2f pelvis=%.0f cm peak=%.0f cm speed=%.0f"), *Name, *Time, H, *Peak,
+					(float)Weak->GetPhysicsLinearVelocity(TEXT("pelvis")).Size());
+			}
+			return *Time < 4.f;
+		}));
+	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdCrewRagdoll(TEXT("TD.Ground.CrewRagdoll"), TEXT("Nearest crew goes limp; logs its pelvis height for 4 s."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&CrewRagdoll));
+
+#if WITH_EDITOR
+	// TD.Ground.PAReport <PhysicsAssetPath> [fix]: list a physics asset's bodies (bone, shapes, size, mass override) and how
+	// many body pairs collide with each other. "fix": no body collides with another body of the same ragdoll (it still
+	// collides with the world) and every body's depenetration speed is capped, so bodies that overlap in the reference
+	// pose (the Warden's chest shield and gun arm) cannot throw the ragdoll into the air. The caller saves the asset.
+	static void PAReport(const TArray<FString>& Args, UWorld*)
+	{
+		UPhysicsAsset* PA = Args.Num() >= 1 ? LoadObject<UPhysicsAsset>(nullptr, *Args[0]) : nullptr;
+		if (!PA)
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.PAReport: usage <PhysicsAssetPath> [fix]"));
+			return;
+		}
+		const bool bFix = Args.Num() > 1 && Args[1] == TEXT("fix");
+		const int32 N = PA->SkeletalBodySetups.Num();
+		int32 Pairs = 0;
+		for (int32 i = 0; i < N; ++i)
+		{
+			for (int32 j = i + 1; j < N; ++j)
+			{
+				Pairs += PA->IsCollisionEnabled(i, j) ? 1 : 0;
+			}
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.PAReport %s: %d bodies, %d constraints, %d of %d body pairs collide"), *PA->GetName(), N,
+			PA->ConstraintSetup.Num(), Pairs, N * (N - 1) / 2);
+		if (bFix)
+		{
+			PA->Modify();
+		}
+		for (int32 i = 0; i < N; ++i)
+		{
+			USkeletalBodySetup* B = PA->SkeletalBodySetups[i];
+			if (!B)
+			{
+				continue;
+			}
+			const FVector Size = B->AggGeom.CalcAABB(FTransform::Identity).GetSize();
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.PAReport   %s: %d spheres %d capsules %d boxes %d convex, size %.0f x %.0f x %.0f cm, mass override %d (%.0f kg)"),
+				*B->BoneName.ToString(), B->AggGeom.SphereElems.Num(), B->AggGeom.SphylElems.Num(), B->AggGeom.BoxElems.Num(), B->AggGeom.ConvexElems.Num(),
+				Size.X, Size.Y, Size.Z, (int32)B->DefaultInstance.bOverrideMass, B->DefaultInstance.GetMassOverride());
+			if (bFix)
+			{
+				B->Modify();
+				B->DefaultInstance.SetMaxDepenetrationVelocity(100.f);
+				// Bodies fitted round a rigid prop (the chest shield: 220 x 136 x 173 cm; the gun arm: 119 cm) are cut back
+				// to the limb itself: a capsule of at most 32 cm radius and 70 cm length, near its bone.
+				for (FKSphylElem& C : B->AggGeom.SphylElems)
+				{
+					const float OldR = C.Radius, OldL = C.Length;
+					C.Radius = FMath::Min(C.Radius, 32.f);
+					C.Length = FMath::Min(C.Length, 70.f);
+					if (C.Radius != OldR || C.Length != OldL)
+					{
+						C.Center = C.Center.GetClampedToMaxSize(20.f);
+						UE_LOG(LogTriadDrift, Display, TEXT("TD.PAReport   %s: capsule %.0f / %.0f -> %.0f / %.0f cm (radius / length)"), *B->BoneName.ToString(), OldR, OldL, C.Radius, C.Length);
+					}
+				}
+				B->InvalidatePhysicsData();
+				B->CreatePhysicsMeshes();
+				for (int32 j = i + 1; j < N; ++j)
+				{
+					PA->DisableCollision(i, j);
+				}
+			}
+		}
+		if (bFix)
+		{
+			PA->MarkPackageDirty();
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.PAReport %s: fixed (no body-to-body collision, depenetration capped at 100 cm/s)"), *PA->GetName());
+		}
+	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdPAReport(TEXT("TD.Ground.PAReport"), TEXT("Editor: TD.Ground.PAReport <PhysicsAssetPath> [fix]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&PAReport));
+#endif
 
 	static FAutoConsoleCommandWithWorldAndArgs CmdGrip(TEXT("TD.Ground.Grip"), TEXT("TD.Ground.Grip [0|1]: the pilot's right-hand grip layer off / on."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Grip));
