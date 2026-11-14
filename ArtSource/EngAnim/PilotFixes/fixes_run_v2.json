@@ -1,0 +1,6 @@
+{
+ "_note": "Run v2 (Nov 14, melee pass): the run's wrist held so the blade points out, forward and down beside the right leg through the whole arm pump (the original swept it up and back across the chest and head on every forward swing). Mesh space: forward +Y, right -X, up +Z.",
+ "aim": [
+  {"src": "A_Pilot_Run", "dst": "A_Pilot_Run_v2", "dir": [-0.45, 0.4, -0.8], "max_deg": 150}
+ ]
+}

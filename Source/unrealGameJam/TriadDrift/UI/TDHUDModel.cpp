@@ -82,6 +82,8 @@ void FTDHUDModel::UpdateSquad(const UWorld* World, const TArray<FTDShipHUD>& Car
 		S.bHasPower2 = P2 != nullptr;
 		S.bPower2Active = P2 && P2->IsPowerActive();
 		S.bAbilityActive = PA && PA->IsPowerActive();
+		S.PowerSeconds = P1 ? P1->GetCooldownRemaining() : 0.f;
+		S.AbilitySeconds = PA ? PA->GetCooldownRemaining() : 0.f;
 		if (PA && S.Ability == ETDAbilityId::None)
 		{
 			S.Ability = PA->GetAbilityId();

@@ -306,6 +306,7 @@ void ATDDebugHUD::EndPlay(const EEndPlayReason::Type EndPlayReason)
 }
 
 bool (*ATDDebugHUD::BarkLineResolver)(const UObject*, FName, FName, FString&) = nullptr;
+bool (*ATDDebugHUD::BarkCaptionSink)(const UObject*, FName, const FString&, float) = nullptr;
 
 // "KATO: Contact high left. Engaging." from the bark table (dialogs.md, Squad's FTDBarkLines). A bark without a line
 // (a story transmission's id, or an id with no row yet) shows nothing: never the raw id.
@@ -319,6 +320,12 @@ void ATDDebugHUD::HandleBarkRequested(FName BarkId, FName Speaker)
 	FString Line;
 	if (!BarkLineResolver || !BarkLineResolver(this, BarkId, Speaker, Line) || Line.IsEmpty())
 	{
+		return;
+	}
+	const bool bLaneTaken = IsRealHUDActive(World) && UTDUIHostSubsystem::IsSurfaceCoveredByNativeHUD(this, ETDHUDSurface::Subtitles);
+	if (!bLaneTaken && BarkCaptionSink && BarkCaptionSink(this, Speaker, Line, 2.5f))
+	{
+		BarkLine.Reset(); // shown in the styled subtitle strip (on foot, and anywhere the flight HUD is not up)
 		return;
 	}
 	BarkLine = FString::Printf(TEXT("%s: %s"), *Speaker.ToString().ToUpper(), *Line);
