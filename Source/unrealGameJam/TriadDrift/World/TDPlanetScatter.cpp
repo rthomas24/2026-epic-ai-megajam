@@ -133,8 +133,8 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		// forest, narrow at the site and widening outward, readable from the landing approach (charred trunks, scorch).
 		P.ScarA = FVector2D(24000.f, 15500.f);	// s9: beyond the basin wall (same numbers as the terrain material's Scar*)
 		P.ScarB = FVector2D(60000.f, 43000.f);
-		P.ScarHalfA = 2500.f;
-		P.ScarHalfB = 9000.f;
+		P.ScarHalfA = 5000.f;	// s15: 50-140 m half width (thin line from 340 m up)
+		P.ScarHalfB = 14000.f;
 		for (int32 i = 1; i <= 2; ++i)
 		{
 			// s11: snapped charred stumps, not whole glowing trunks (from above their ember material read as a grid of
