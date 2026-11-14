@@ -294,8 +294,10 @@ S2('NS_TD_Reactor_Exposed', U(CORE, 1.0), [
 # Round 9f, seen at real scale (25 m reactor, 160 m away in T4's stage): the flare read small; both doubled.
 # ReactorHit: every hull hit on the exposed reactor (a high rate): under 0.5 s and cheap, three emitters.
 S2('NS_TD_Reactor_Hit', U(CORE, 1.0), [
-    flash('Flash', 'M_TD_VFX_Flare', 1500, 0.08, 1.6, growth='0.5 + Particles.NormalizedAge'),
-    flash('Glow', 'M_TD_VFX_Glow', 2400, 0.18, 0.9),
+    # 9m (Lead): a hit must read on every bolt from 300-400 m behind the Rift: flash and glow 1.5x, plus a short radial spark burst
+    flash('Flash', 'M_TD_VFX_Flare', 2250, 0.08, 1.7, growth='0.5 + Particles.NormalizedAge'),
+    flash('Glow', 'M_TD_VFX_Glow', 3600, 0.18, 0.9),
+    shed('Burst', 'M_TD_VFX_Spark', 0, (0.15, 0.3), (40, 80), (4000, 9000), k=1.9, radius=60.0, drag=2.6, stretch=10, burst=10, dur=0.35, power=1.2),
     shed('Sparks', 'M_TD_VFX_Spark', 0, (0.2, 0.45), (10, 22), (1800, 6000), k=1.8, radius=80.0, drag=2.2, stretch=14, burst=16, dur=0.5, power=1.3)])
 # DockingBayOpen: once when the bay opens (the doors take 2.5 s), at the bay actor, +X out of the mouth. Authored for a
 # 60 m mouth: steam venting out of it for 2.5 s, the bay's lights coming on, a tractor glow building in the mouth.
