@@ -19,6 +19,7 @@
 #include "TriadDrift/UI/TDUIPaint.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDVerdanceApproach.h"
+#include "TriadDrift/World/TDDockingBay.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -917,6 +918,31 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		}
 		OrbitCueLeft = FMath::Max(0.f, OrbitCueLeft - Dt);
 		View.OrbitCue01 = OrbitCueLeft / OrbitCueSeconds;
+	}
+
+	// ENG-29 docking (T4): the tractor's hold on the flown ship, then the glide in (controls locked). Read every frame:
+	// the approach is short (10 s from the cone's edge to the commit).
+	if (ForceDocking >= 0)
+	{
+		View.Docking = static_cast<uint8>(ForceDocking);
+		View.TractorPull01 = ForceTractorPull01;
+	}
+	else
+	{
+		DockingScanLeft -= Dt;
+		if (DockingScanLeft <= 0.f)
+		{
+			DockingScanLeft = .5f;
+			DockingBay = nullptr;
+			if (UWorld* World = GetWorld())
+			{
+				for (TActorIterator<ATDDockingBay> It(World); It; ++It) { if (It->IsOpen()) { DockingBay = *It; break; } }
+			}
+		}
+		const ATDDockingBay* Bay = Cast<ATDDockingBay>(DockingBay.Get());
+		const ETDDockingState State = Bay ? Bay->GetDockingState() : ETDDockingState::Closed;
+		View.TractorPull01 = Bay ? FMath::Clamp(Bay->GetCurrentPull(), 0.f, 1.f) : 0.f;
+		View.Docking = State == ETDDockingState::Gliding || State == ETDDockingState::Docked ? 2 : (State == ETDDockingState::Open && View.TractorPull01 > .01f ? 1 : 0);
 	}
 
 	// The escape flight (ENG-31, T4's timing): the clock, and the way out straight away from the hull at the exit radius.
@@ -1864,6 +1890,21 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		const FLinearColor HeatC = View.Heat01 > .7f ? T::Danger() : T::Bastion();
 		D.Box(TX - 4.f, HY + 18.f, 120.f * View.Heat01, 6.f, HeatC);
 		Rec(TEXT("hull_temp"), TX - 4.f, HY, 120.f, 24.f);
+	}
+	// ---- ENG-29 docking: the tractor's hold, above the reticle on a plate (calm: no flashing), the pull as a bar
+	if (View.Docking > 0)
+	{
+		const bool bGlide = View.Docking == 2;
+		const FString Line = bGlide ? TEXT("DOCKING  ·  CONTROLS LOCKED") : TEXT("TRACTOR BEAM  ·  CONTROLS LIMITED");
+		const float W = 380.f, H = bGlide ? 34.f : 44.f, X = CenterX - W * .5f, Y = C.Y - 170.f;
+		P.Plate(X, Y, W, H, 12.f, T::Plate().CopyWithNewOpacity(.8f));
+		P.Words(CenterX, Y + 8.f, Line, 15, T::Shield(), "Bold", .5f, 120);
+		if (!bGlide)
+		{
+			P.Box(X + 20.f, Y + 32.f, W - 40.f, 4.f, T::Dim().CopyWithNewOpacity(.4f));
+			P.Box(X + 20.f, Y + 32.f, (W - 40.f) * View.TractorPull01, 4.f, T::Shield());
+		}
+		Rec(bGlide ? TEXT("docking_locked") : TEXT("tractor"), X, Y, W, H);
 	}
 	if (View.OrbitCue01 > 0.f)
 	{
