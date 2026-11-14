@@ -41,6 +41,7 @@ class UNREALGAMEJAM_API UTDWarmupKeep : public UGameInstanceSubsystem
 public:
 	void Keep(const TArray<TObjectPtr<UObject>>& Assets);
 	int32 GetKeptCount() const { return Kept.Num(); }
+	void Reset() { Kept.Reset(); }
 
 private:
 	UPROPERTY(Transient) TSet<TObjectPtr<UObject>> Kept;
