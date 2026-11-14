@@ -405,8 +405,6 @@ bool FTDDockingPace::RunTest(const FString&)
 	return true;
 }
 
-#endif
-
 
 // T1 (live, Nov 14): commit to load is ~5 s now, and the load cut the Docking lines. The ship holds over the pad until
 // the sequence has finished (or is skipped), at most DockingLinesHoldSeconds, then travels. Story lines run on real time,
@@ -436,3 +434,5 @@ bool FTDDockingWaitsForLines::RunTest(const FString&)
 	TestEqual(TEXT("docked"), (int32)Bay->GetDockingState(), (int32)ETDDockingState::Docked);
 	return true;
 }
+
+#endif
