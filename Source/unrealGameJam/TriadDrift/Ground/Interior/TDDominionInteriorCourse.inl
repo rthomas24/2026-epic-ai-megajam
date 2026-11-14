@@ -715,6 +715,12 @@ void ATDPlanetCourse::FireCompletionBeats(ATDObjective* Objective)
 // The final record (story 07-09, b2): mandatory, at the reactor's threshold, combat held
 // ------------------------------------------------------------------------------------------------
 
+bool ATDPlanetCourse::IsFieldAnchorDisabled(const UObject* WorldContextObject)
+{
+	const UTDGameInstance* GI = UTDGameInstance::Get(WorldContextObject);
+	return GI && GI->GetProgressRef().CompletedObjectives.Contains(FName(TEXT("Obj_Jammer")));
+}
+
 float ATDPlanetCourse::GetEscapeSecondsLeft() const
 {
 	return EscapeCollapse && EscapeCollapse->IsRunning() ? EscapeCollapse->GetTimeLeft() : -1.f;

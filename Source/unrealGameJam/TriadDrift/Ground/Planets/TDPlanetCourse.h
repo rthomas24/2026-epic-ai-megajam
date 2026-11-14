@@ -279,6 +279,10 @@ public:
 	/** Cinder: the field anchor is disabled (T2's pending approach marker toward the Dominion). */
 	DECLARE_MULTICAST_DELEGATE(FTDOnFieldAnchorDisabled);
 	static FTDOnFieldAnchorDisabled OnFieldAnchorDisabled;
+	/** T2's pending approach marker (ENG-26 step 5: "approach prepared; passage still blocked"): the Cinder field anchor
+	 *  is down this run (saved, so true after a reload or Continue). The passage itself opens elsewhere (T4: Cinder done
+	 *  and wave 5 cleared); this never says it is open. */
+	static bool IsFieldAnchorDisabled(const UObject* WorldContextObject);
 	UStaticMeshComponent* GetDormantDrone() const { return DormantDrone; }
 private:
 	float InteriorTime = 0.f;
