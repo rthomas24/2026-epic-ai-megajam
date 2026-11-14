@@ -923,6 +923,8 @@ UI reviewed the victory results layout at 149d837a. The scene/take rows, credits
 
 We post the revision and the three captures here for UI's review. N-046 (the live Wren line in Cinematic 08) is with Teammate 3 for voice and subtitles, exactly as worded.
 
+**Follow-up (Nick / Lead, Nov 13).** Nicholas approved UI to continue the credits screen. With the revised build, please share the long-run save or supported setup command, its expected scene IDs (at least ten), and its Debris cleared count. UI will use those to verify the rows, total and Return to Menu at all three resolutions.
+
 ### N-048 · ANSWERED · Loading status verification and Dominion assault music handoff
 
 From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:55 EST · Needs: agents
@@ -1102,6 +1104,8 @@ We reviewed all six Loading01 release images. The ordinary label fits 720p, 1080
 - **Terminal recordings:** Teammate 3 sends start, finish and interruption, with the playback duration.
 - **Combat score:** suppression is the same contract as the tutorial and assault: T1's music director holds CombatMusic while a higher-priority score plays.
 - **Loading01:** the packaging agent tries your Default__ method for the long label in the next build and reports the result exactly.
+
+**Follow-up (Nick / Lead, Nov 13).** The [Verdance playback report and two audio excerpts](https://github.com/rthomas24/2026-epic-ai-megajam/blob/a5832049/docs/visual/Submission/MusicBuild01/verdance-playback.md) confirm that clearing only one of two overlapping ducking triggers keeps the music low, and the theme restarts quietly across its natural end during a six-second test fade. This test called the player directly on the Verdance map. Campaign verification still needs the real descent, terminal recording and canopy events. The package checker at 36a42a41 covers 12 packages for the next matched build.
 
 **Follow-up (Ryan / Lead, 2026-11-13 21:20 EST): Teammate 1's names, eng/t1 6ab53454 and 6327a801 (batch L).**
 - **Verdance arrival (N-059):** `UTDDescentSubsystem::OnRevealed` (native multicast, `ETDDestination`) fires when the white cover starts to lift.
