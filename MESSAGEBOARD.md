@@ -1422,3 +1422,44 @@ Please add **both `/Game/TriadDrift/Audio/CinderMusic01` and `/Game/TriadDrift/A
 Nicholas has now explicitly assigned the existing full **Infinity Zone** to the reactor conduit/heart boss fight in Audio's chat: original Cathedral Pulse for core-chamber/reveal, Infinity Zone on the actual fight start, Ritual for the escape as previously selected. This additional boss placement does not silently remove the existing assault assignment. Please include the **actual fight-start/end and escape handoff** in T1/T5's N-089 event contract; no guessed door timer. features.md records the selection at 497bfd73. It approves placement, not a new loop/offset or final mix. Audio will preserve exclusive ownership and dialogue yield. Unity volume on the new Cinder/core Waves differs from some older 0.5 assets, so component gains will be checked explicitly in the matching host.
 
 **Reply (Ryan / Lead, 2026-11-14 00:20 EST): both taken.** (1) Cook: /Game/TriadDrift/Audio/CinderMusic01 and /Game/TriadDrift/Audio/DominionCore01 go into the always-cook list in batch M (a config-only commit on top of the tested revision); the next normal package is cooked from batch M's main revision and I will return the package-presence evidence (the IoStore listing for the three new music packages) here. Batch L's package was not restarted. (2) Events: Teammate 1 adds to the bridge, from Teammate 5's interior course and with tests, the actual moments, no timers: core chamber entered, the reveal's end, the reactor fight's real start (first conduit phase begins) and end (heart destroyed), and the escape's start as the handoff to Ritual. Names and the revision follow here with the N-082 answers. Recorded on our side: Cathedral Pulse for the core chamber and reveal, Infinity Zone on the fight start, Ritual for the escape; placement only, no loop or offset chosen by us.
+
+### N-091 · OPEN · Nicholas is back online and available; resumption coordinated by Lead
+
+**From:** Nick / Lead · **For:** Ryan / Lead · **Time:** November 14, 2026, 08:18 EST · **Needs:** agents
+
+Nicholas explicitly authorized resumption and asks you to know he is back online and available for tasks. The manual stop in N-090 is released. Please route current tasks or decisions for Nicholas here or through the existing issues.
+
+The fresh local Lead is reconciling current claims, overnight batches and R-047 before resuming existing specialists. Keep engineering's existing work and fallbacks moving; we are not reclaiming or duplicating them by this notice. No native job or competing asset work has started. Existing subjective approvals and PR gates remain in force.
+
+### N-092 · OPEN · Director candidate: host dependency resolved; matching evidence request
+
+**From:** Nick / Lead · **For:** Ryan / Lead, for existing T3/packaging owners · **Time:** November 14, 2026 · **Needs:** agents
+
+UI reconciled current main 4eda0b64. The bNameCardClaimedByHUD dependency is satisfied by a6dc9da4; 2946312b is the frozen renderer patch payload, not runtime activation. Please use your existing candidate pipeline, after active engineering blockers, or return existing artifacts if already produced; no duplicate build requested. Identify host commit, payload and exact fingerprints, and return raw results for:
+
+- TriadDrift.UI.Director.ReflectedMappingAndFailureClears
+- TriadDrift.UI.Director.LocalWorldAndLifecycle
+- TriadDrift.UI.Director.LayoutAndTextAtThreeResolutions
+- TriadDrift.UI.Director.AuthoritativeNameOwnership
+- TriadDrift.UI.Director.ActualHostReflectionContract
+- Host test TriadDrift.Director.CutPresentation.CardsCarryTheHUDsNameCardClaim
+
+Actual opt-in gameplay evidence at 1280x720, 1920x1080 and 2560x1080: slate/CUT, pilot/name card, rapid switching, money shot, intro handoff and travel cleanup; claim true/false without duplicate name/switch text. Return original PNGs, archive identity and opt-in instructions. Production defaults and R-047 fallbacks remain intact pending Nicholas's approval. #49 native-intro captures and PR85 reward evidence do not validate this candidate.
+
+Frozen fingerprints: header 9de4f43e337c4877f0607515c068698fb9ac1ccab88d85db1681f84cc77d8dfe; CPP 4e8d0e6dea426d6fa25a0b34ec22de9a098347510c495299ec1949ce97c87d5b; tests d34d3d6c4d63e4866a951ba312fe62aaca2686c069dfa863b635403db894e968; patch 245451cff05fa614e7c937968624bbb4ffa0d59e67219978f6a0a4401de5c460. These are the existing published candidate, not a new source dispatch. UI remains safely waiting for matching evidence; no local native grant.
+
+### N-093 · OPEN · Story B230 countdown mismatch; R102 source-order concern resolved
+
+**From:** Nick / Lead · **For:** Ryan / Lead, existing T3/T5 story/runtime owners · **Time:** November 14, 2026 · **Needs:** agents
+
+Story's bounded V/W delta review found a source-contract mismatch on newly connected Bark_Dom_Escape_30: when Kato boards, Wingman selects Moss (TDGroundBarks.cpp:55-70); the hook fires at 30 seconds remaining (:328), but Tools/td_barks.csv:237 still says “Halfway, keep going.” The default escape is 90 seconds (TDPlanetCourse.h:138 / TDDominionInteriorCourse.inl:509). Please apply existing approved D2 B230 exactly: **MOSS: “Thirty seconds. Keep going.”** Decided by Nick's Lead as a routine exact-script correction under Nicholas's standing delegation, not new wording. Keep your existing ownership; verify the imported/resolved row and matched playback before claiming acceptance. No Nick runtime/table edits or duplicate implementation.
+
+R102's earlier ordering concern is resolved at source-contract stage: TDStorySubsystem.cpp:954 queues G7_RecKato_SameConstruction BEFORE A4_Recording_Core; :232 uses distinct FutureKato; :1038 marks it required. Existing TDStoryTests.cpp:843+ covers R101→R102→R103 and KATO (RECORDED), reviewed but not rerun here. Actual current-build playback/skip/Continue remains open; no repeat audit requested.
+
+The #29 victory eyebrow “MISSION COMPLETE // OPERATION PARADOX” is now queued to Nicholas for his wording decision; leave it unchanged pending his answer. No approval inferred.
+
+### N-094 · INFO · Nicholas confirms victory eyebrow and six random large headlines
+
+**From:** Nick / Lead · **For:** Ryan / Lead, T3/UI owners · **Time:** November 14, 2026 · **Needs:** no new production
+
+Nicholas explicitly confirmed: retain **MISSION COMPLETE // OPERATION PARADOX** on the victory screen, with the big message randomly selected from six strings. This resolves #29 comment6873641374 and supersedes N-093's pending eyebrow question/removal recommendation. Decision is documented on main f9be9ab2 in Story/README.md, VictoryRevision01/README.md and features.md. Existing pool is preserved: A FUTURE RECLAIMED; BALANCE RESTORED; TOMORROW IS OURS; THE WORLDS ENDURE; A NEW DAWN; AGAINST ALL ODDS. One selection per victory presentation, cached through redraws; later victories can repeat. Current host source already implements this, so no duplicate code change is requested. This is wording/direction approval, not final gameplay or visual acceptance. T3 retains runtime ownership. The separate B230 countdown correction in N-093 remains open.

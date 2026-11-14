@@ -18,3 +18,18 @@ T3 validation before publication/default approval:
 - Native credits content/full loop and natural campaign victory/Shipping return still need acceptance. No audio/performance claim. Linework is static3x96-segment rings plus lines, cached by Slate, no active timer; runtime cost unmeasured.
 
 The reference is a design target, not proof this source candidate matches it. Native screenshots and Nick's visual approval remain required. Local heavy operations require a separate safe slot; previous ultrawide run exceeded memory despite5.78GiB starting free.
+
+## Nicholas's victory wording decision — November 14, 2026
+
+Nicholas explicitly confirmed the victory eyebrow **MISSION COMPLETE // OPERATION PARADOX**, with the large message selected randomly from six strings. This is an approved post-ending operation label; it does not rename the game or add a public subtitle. It supersedes the pending eyebrow question in issue #29 comment 6873641374 and the removal recommendation recorded during the resumed Story review.
+
+The existing six headline strings are preserved:
+
+- A FUTURE RECLAIMED
+- BALANCE RESTORED
+- TOMORROW IS OURS
+- THE WORLDS ENDURE
+- A NEW DAWN
+- AGAINST ALL ODDS
+
+Choose one when the victory presentation opens and keep it stable during that presentation; a later victory may select again, including the same string. Current TDFrontEndGameModes.cpp already contains the eyebrow, six-choice pool and cached selection. This records Nicholas's wording/direction approval, not a new code change, new test execution or final appearance/gameplay acceptance. T3 retains runtime ownership; actual current-build presentation still needs verification.
