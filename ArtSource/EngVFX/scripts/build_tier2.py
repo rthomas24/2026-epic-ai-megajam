@@ -599,8 +599,9 @@ CRYSTAL = (0.45, 0.55, 1.0, 1.0)   # the belt's blue-violet crystals: clear of t
 
 
 def rock_break(n_chunks, n_dust, n_grit):
-    return [flash('Flash', 'M_TD_VFX_Glow', 650, 0.12, 0.7, growth='0.5 + Particles.NormalizedAge*0.8', power=1.4),
-            spin(shed('Dust', 'M_TD_VFX_FlipSmoke', 0, (1.0, 1.8), (260, 480), (150, 800), radius=120.0, drag=2.0, rgb=(0.50, 0.46, 0.42), alpha=0.75,
+    # seen in play: over the magenta nebula at 60 m the first dust (0.50 grey, 0.75 alpha) and the 0.12 s flash barely read
+    return [flash('Flash', 'M_TD_VFX_Glow', 750, 0.22, 1.0, growth='0.5 + Particles.NormalizedAge*0.8', power=1.4),
+            spin(shed('Dust', 'M_TD_VFX_FlipSmoke', 0, (1.0, 1.8), (300, 540), (150, 800), radius=120.0, drag=2.0, rgb=(0.66, 0.60, 0.54), alpha=0.92,
                       burst=n_dust, dur=2.0, power=0.7, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.3', sort=True)),
             chunks('Chunks', 'SM_TD_VFX_Shard_C', n_chunks, (0.8, 1.6), (0.35, 0.9), (500, 2000), drag=0.6, radius=90.0, dur=1.8, spin=(0.8, 3.0)),
             shed('Grit', 'M_TD_VFX_Spark', 0, (0.25, 0.6), (6, 12), (1500, 4500), k=1.2, radius=60.0, drag=2.2, stretch=10, rgb=(1.0, 0.80, 0.55),
