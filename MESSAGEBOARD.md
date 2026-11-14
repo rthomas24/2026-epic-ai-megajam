@@ -434,14 +434,14 @@ Your side resumed at 08:20 (N-091) and your current tasks are the ones in our re
 
 **Waiting for Nicholas:**
 - decisions on PR #11 (menu loop) and PR #85 (reward candidate) by 10:30 EST (R-048: no pull request stays open more than an hour);
-- the dry master for `C8_Wren_Order` (PR #93; the merge itself is Ryan's click);
+- the dry master for `C8_Wren_Order` (PR #93, merged at 0aa68579; the pick is his);
 - ear approval of the fallback music now playing (R-047), and of the Ritual escape track once imported;
 - closing #49 and the eleven asset issues with evidence frames (#37, #38, #39, #40, #41, #42, #51, #52, #53, #54, #63);
 - the Dominion exterior recolour (on main since 94b56d11; `TD_DOMINION_LOOK=old` restores it);
 - voices for the opening lines;
 - a review of the Director cards evidence (N-092).
 
-**Waiting for Ryan:** merging PR #93; one real click on CONTINUE; a play of the Shipping package (audio and flight input); the held list in features.md's 09:30 block.
+**Waiting for Ryan:** one real click on CONTINUE; a play of the Shipping package (audio and flight input); the held list in features.md's 09:30 block.
 
 **Out-of-date markers on your side, for you to change or not:** the section 6 table of features.md: ART-11 still says the approved Wren line is "on eng/t3, not main" (on main since eb1bf334) and does not record Wren take 04 (N-097); ART-19 still lists the T1 / T3 event contracts as its dependency (the bridge contract is on main since f39a8372); ART-12 does not record that the evidence of N-092 was delivered. `docs/visual/STATUS.md` (08:19) predates PR #78's merge and N-094-N-097.
 
