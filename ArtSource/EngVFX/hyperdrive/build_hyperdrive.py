@@ -17,6 +17,13 @@
 HYPER_DIR = '/Game/TriadDrift/Gameplay/VFX/Hyperdrive'
 HYPER = (0.42, 0.52, 1.0, 1.0)
 RIFT_MAT = HYPER_DIR + '/Materials/M_TD_VFX_HyperRift'
+RING_MAT = HYPER_DIR + '/Materials/M_TD_VFX_HyperRing'   # r5: thin hard ring (review: the shared ring read as a soft donut)
+
+
+def ringed(e):
+    """Point a meshed emitter at the hyperdrive ring material."""
+    e['rend']['OverrideMaterials'] = [{'explicitMat': ref(RING_MAT)}]
+    return e
 
 
 def rifted(e):
@@ -53,15 +60,16 @@ H('NS_TD_Hyperdrive_Spool', U(HYPER), [
 # ---- Tunnel: the punch-through (the tear sweeps over the camera in 0.35 s), hair-thin streaks rushing back from 120 m
 # ahead, rings of light flying past, the destination rift glowing 300 m ahead, a faint sheath round the hull.
 H('NS_TD_Hyperdrive_Tunnel', U(HYPER), [
-    rifted(mesh_flash('Punch', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 8.0, 13.0', 0.35, 1.0, power=1.2,
-                      growth='float3(1,1,1)*(1.0 + pow(Particles.NormalizedAge, 0.7)*3.5)')),
-    flash('PunchFlash', 'M_TD_VFX_Glow', 3200, 0.30, 0.9, growth='0.6 + Particles.NormalizedAge*0.8'),
+    # r5 (review BLOCKER: the punch filled 60% of the screen and hid the ship): grows 2.5x, not 4.5x, and fades faster
+    rifted(mesh_flash('Punch', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 8.0, 13.0', 0.30, 1.0, power=2.0,
+                      growth='float3(1,1,1)*(1.0 + pow(Particles.NormalizedAge, 0.7)*1.5)')),
+    flash('PunchFlash', 'M_TD_VFX_Glow', 2600, 0.20, 0.45, growth='0.6 + Particles.NormalizedAge*0.8'),
     offset(shed('Streaks', 'M_TD_VFX_Spark', 650.0, (0.12, 0.26), (9, 20), (60000, 120000), k=2.6, radius=2600.0, drag=0.0, local=True, stretch=60,
                 cone=((-1.0, 0.0, 0.0), 1.5), fade_in=10.0), 12000),
     offset(shed('WhiteCore', 'M_TD_VFX_Spark', 140.0, (0.10, 0.20), (3, 6), (90000, 150000), radius=1600.0, drag=0.0, local=True, stretch=90,
                 cone=((-1.0, 0.0, 0.0), 1.0), rgb=(1.4, 1.4, 1.6), fade_in=10.0), 12000),
     # r2: camera-facing ring sprites (r1's mesh-disc rings on the rate template left the whole system inactive)
-    offset(shed('Rings', 'M_TD_VFX_Ring', 7.0, (0.42, 0.42), (4200, 4200), (50000, 50000), k=1.6, radius=10.0, drag=0.0, local=True,
+    offset(shed('Rings', RING_MAT, 7.0, (0.42, 0.42), (4200, 4200), (50000, 50000), k=1.0, radius=10.0, drag=0.0, local=True,
                 cone=((-1.0, 0.0, 0.0), 0.5), power=0.8), 18000),
     rifted(mesh_single('Destination', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 70.0, 70.0', 0.7, offset=(30000, 0, 0))),
     offset(single('Sheath', 'M_TD_VFX_Glow', 1700, 0.22, 13.7), 200)])
@@ -73,10 +81,11 @@ H('NS_TD_Hyperdrive_DropOut', U(HYPER), [
                              growth='float3(1.0, 1.0 - pow(Particles.NormalizedAge, 1.5), 1.0 - pow(Particles.NormalizedAge, 2.5))'), 1500)),
     # r4: 15 m AHEAD, not behind: behind the ship it sat at the chase camera and was never seen; ahead, the camera sees
     # the ship framed by the closing tear in the first frames, as if it had just burst out of it.
-    mesh_flash('Shock', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 10.0, 10.0', 0.5, 2.2, power=1.3,
-               growth='float3(1,1,1)*(0.2 + pow(Particles.NormalizedAge, 0.5)*4.0)'),
-    flash('Flare', 'M_TD_VFX_Flare', 2600, 0.16, 1.2, growth='0.5 + Particles.NormalizedAge'),
-    flash('Glow', 'M_TD_VFX_Glow', 3000, 0.35, 0.6, growth='0.6 + Particles.NormalizedAge*0.6'),
+    # r5 (review MAJOR: a white haze washed the first frame; MINOR: the ring lingered): sharp ring, shorter, weaker flash
+    ringed(mesh_flash('Shock', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 10.0, 10.0', 0.35, 1.4, power=1.5,
+                      growth='float3(1,1,1)*(0.2 + pow(Particles.NormalizedAge, 0.5)*4.0)')),
+    flash('Flare', 'M_TD_VFX_Flare', 2200, 0.10, 0.8, growth='0.5 + Particles.NormalizedAge'),
+    flash('Glow', 'M_TD_VFX_Glow', 2400, 0.20, 0.22, growth='0.6 + Particles.NormalizedAge*0.6'),
     shed('Spray', 'M_TD_VFX_Spark', 0, (0.30, 0.70), (5, 12), (8000, 26000), k=1.9, radius=300.0, drag=2.0, stretch=30,
          cone=((1.0, 0.0, 0.0), 28.0), burst=130, dur=0.9, power=1.3),
     shed('Wake', 'M_TD_VFX_Spark', 0, (0.20, 0.45), (4, 9), (12000, 30000), k=1.6, radius=400.0, drag=1.0, stretch=45,

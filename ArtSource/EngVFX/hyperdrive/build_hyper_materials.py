@@ -30,19 +30,32 @@ float inside = 1.0 - smoothstep(0.84, 0.88, r);
 float depth = pow(saturate(r/0.86), 2.0);
 float rays = pow(0.5 + 0.5*sin(ang*22.0 + 2.2/(r + 0.15) - t*9.0), 6.0);
 float rays2 = pow(0.5 + 0.5*sin(ang*9.0 - 1.4/(r + 0.25) + t*5.0), 10.0);
-float3 c = col*0.015;
-c += col*(rays*1.3 + rays2*0.8)*depth*inside;
-float rim = exp(-pow((r - 0.87)/0.045, 2.0));   // r2: wider and brighter (r1 read as a dark fan in play)
+float3 c = col*0.01;
+c += col*(rays*0.55 + rays2*0.35)*depth*inside;   // r5: review: the interior washed pale; keep it dark with thin rays
+// r5 (review BLOCKER: a fat soft white rim filling the screen): a thin hard white-hot line inside a coloured band
+float rim = exp(-pow((r - 0.87)/0.012, 2.0));
+float band = exp(-pow((r - 0.875)/0.035, 2.0));
 float flick = 0.75 + 0.5*frac(sin(floor(t*30.0)*12.9898 + floor(ang*4.0))*43758.5453);
-c += hot*rim*14.0*flick;   // r3: r2's rim read grey at the partial opacity of a fading rift
-float halo = exp(-max(r - 0.87, 0.0)*7.0)*(1.0 - inside);
-c += col*halo*1.4;
+c += float3(1,1,1)*rim*10.0*flick + col*band*3.0;
+float halo = exp(-max(r - 0.87, 0.0)*12.0)*(1.0 - inside);
+c += col*halo*0.9;
 float arcs = pow(saturate(0.5 + 0.5*sin(ang*5.0 - t*6.0)), 24.0)*exp(-pow((r - 0.94)/0.05, 2.0));
 arcs += pow(saturate(0.5 + 0.5*sin(ang*3.0 + t*4.3 + 1.7)), 30.0)*exp(-pow((r - 0.91)/0.04, 2.0));
 c += hot*arcs*2.4;
 float mask = 1.0 - smoothstep(0.96, 1.0, length(p));
-float a = saturate(inside*0.9*open + (rim + arcs)*max(open, 0.7) + halo*0.35*open)*mask;   // r3: the rim stays opaque while it fades
+float a = saturate(inside*0.9*open + (rim + band*0.6 + arcs)*max(open, 0.7) + halo*0.35*open)*mask;   // r3: the rim stays opaque while it fades
 return float4(c*Intensity*mask*max(open, 0.25), a);""", {'Tint': (1.0, 1.0, 1.0)}),
+
+    # r5 (review MAJOR: the tunnel rings were soft blurry donuts): a thin, hard-edged ring with a white core line and a
+    # coloured glow just outside it. Additive, for camera-facing sprites. PC.a fades it.
+    'M_TD_VFX_HyperRing': ('additive', """
+float2 p = UV*2-1; float r = length(p);
+float3 col = PC.rgb*Tint.rgb;
+float core = exp(-pow((r - 0.90)/0.010, 2.0));
+float glow = exp(-pow((r - 0.90)/0.045, 2.0));
+float3 c = float3(1,1,1)*core*2.5 + col*glow*1.2;
+float mask = 1.0 - smoothstep(0.97, 1.0, r);
+return float4(c*Intensity*mask*PC.a, PC.a);""", {'Tint': (1.0, 1.0, 1.0)}),
 }
 
 
