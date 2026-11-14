@@ -663,7 +663,8 @@ UAnimSequenceBase* ATDFirstPersonCharacter::LoadPilotAnim(FName Anim) const
 	if (!TDPilotMeleePassOn())
 	{
 		static const FName NewMoves[] = { TEXT("A_Pilot_Light1_v3"), TEXT("A_Pilot_Light2_v3"), TEXT("A_Pilot_Light3_v3"), TEXT("A_Pilot_Heavy_v4"),
-			TEXT("A_Pilot_AirSlam_Fall_v2"), TEXT("A_Pilot_AirSlam_Land_v3"), TEXT("A_Pilot_AirSlam_Land_v2"), TEXT("A_Pilot_Block_v2"), TEXT("A_Pilot_Blade_DeflectFlick_v2") };
+			TEXT("A_Pilot_AirSlam_Fall_v2"), TEXT("A_Pilot_AirSlam_Land_v3"), TEXT("A_Pilot_AirSlam_Land_v2"), TEXT("A_Pilot_Block_v2"), TEXT("A_Pilot_Blade_DeflectFlick_v2"),
+			TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_Blade_Idle_v2"), TEXT("A_Pilot_Run_v2") };
 		for (const FName& N : NewMoves)
 		{
 			if (Anim == N)
@@ -860,7 +861,7 @@ void ATDFirstPersonCharacter::UpdateBodyActions()
 		// Air slam (animation builder, Nov 14): a plunge, the blade point down, held while falling; on landing the
 		// hard-landing crouch with the blade driven into the ground in front.
 		case ETDBladeState::AirSlam: PlayFirstBodyAction({ TEXT("A_Pilot_AirSlam_Fall_v2"), TEXT("A_Pilot_Light3") }, 1.f, false); break;
-		case ETDBladeState::GuardBroken: PlayBodyAction(TEXT("A_Pilot_HitReact_Front"), 1.f, true); break;
+		case ETDBladeState::GuardBroken: PlayFirstBodyAction({ TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Front") }, 1.f, true); break;
 		default: break;
 		}
 		if (LastBodyBladeState == ETDBladeState::AirSlam && State == ETDBladeState::Idle)
@@ -1331,7 +1332,15 @@ void ATDFirstPersonCharacter::HandleDamaged(UTDHealthComponent* InHealth, const 
 		// A flinch the camera can read in third person: front or back by where the hit came from.
 		const AActor* From = Info.Causer ? Info.Causer.Get() : Info.Instigator.Get();
 		const bool bFromBehind = From && FVector::DotProduct((From->GetActorLocation() - GetActorLocation()).GetSafeNormal2D(), GetActorForwardVector()) < 0.f;
-		PlayBodyAction(bFromBehind ? TEXT("A_Pilot_HitReact_Back") : TEXT("A_Pilot_HitReact_Front"), 1.2f, true);
+		// v3 (animation builder, Nov 14): the blade arm thrown out to the side, never through the head. One flinch per
+		// burst: a bolt landing in the first 0.3 s of a flinch does not restart it.
+		const UTDLoopBlendAnimInstance* Loops = GetMesh() ? Cast<UTDLoopBlendAnimInstance>(GetMesh()->GetAnimInstance()) : nullptr;
+		const UAnimSequenceBase* Showing = Loops ? Loops->GetOneShot() : nullptr;
+		if (Showing && Showing->GetName().Contains(TEXT("HitReact")) && Loops->ShotTime < 0.36 && TDPilotMeleePassOn())
+		{
+		}
+		else if (bFromBehind) { PlayFirstBodyAction({ TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_HitReact_Back") }, 1.2f, true); }
+		else { PlayFirstBodyAction({ TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Front") }, 1.2f, true); }
 	}
 	const ATDInteractableActor* Held = Cast<ATDInteractableActor>(HoldTarget.Get());
 	if (ShieldDamage + HullDamage > 0.f && !(Held && Held->bHoldSurvivesDamage))
