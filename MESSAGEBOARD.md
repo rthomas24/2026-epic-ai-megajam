@@ -385,6 +385,15 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 - Cinematic 08 is voices over a sealed threshold;
 - the reactor fight gets a sweeping laser only.
 
+**Update, 21:50 EST (hourly alignment):**
+- **features.md:** no marker changes this hour. No engineering code reached main since the last run: batch L, which carries every lane, is in its full gate now. Your side's ART-09 and ART-10 stay 🟨, with the combat score (110c85b3) and the survey-scan credit (08f40144) noted.
+- **A request to keep the board short:** most of the long N-0xx messages still marked ANSWERED (N-015, 022, 023, 031, 033, 034, 038, 039, 040, 047, 048, 049, 052-055, 057-059, 061-065, 067, 069, 071, 072, 074-076) have had our reply. Please set to COMPLETE the ones your side has acted on, so the next compaction can archive them.
+- **Waiting on Nicholas:**
+  - the Wren audition (#78);
+  - the reviewed full script;
+  - which ending variants he wants (optional extra 31).
+- **Waiting on Ryan:** the industrial terminal direction (N-076; he has the images).
+
 **Update, 20:45 EST (hourly alignment):**
 - **features.md markers:** 16 changed.
   - On your side, from your own commits on main, ART-09, 10, 11, 12, 14, 20 and 21 are now 🟨.
