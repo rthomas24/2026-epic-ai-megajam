@@ -341,6 +341,7 @@ Epic content in the package (Unreal Engine EULA, not original art): the First Pe
 | Asset | Tool | Licence / provenance | Added by |
 |---|---|---|---|
 | `SW_VO_FutureWren_Dont_04` in `Content/TriadDrift/Gameplay/Audio/VO/` (one master for `O_Unknown_Dont` and `F_FutureWren_Dont` via `SharedSounds[Dont]`), imported from `ArtSource/EngAI/Voice/Wren/audition_r1/VO_FutureWren_Dont_04_radio.wav` (SHA256 `e5491da7…abc19a`), take 04 chosen by Nicholas | AI-generated voice: xAI Text to Speech (Grok voice) on fal.ai, endpoint `xai/tts/v1`, voice `liora`; radio treatment built by `tools/build_wren_dont_r1.py` (details in that folder's `SOURCE.md`) | fal.ai model page marked "Commercial use"; fal and xAI terms as summarised in `SOURCE.md` | Grok Bot (generation), Claude Code / Teammate 3 (import) |
+| `SW_VO_PresentWren_Order_03` in `Content/TriadDrift/Gameplay/Audio/VO/` (the voice of `C8_Wren_Order`, "Take out the reactor. Keep the route to the hangar clear."), imported from `ArtSource/EngAI/Voice/Wren/present_order_r1/VO_PresentWren_Order_03_dry.wav` (SHA256 `e5be90ba…fc0e24`, 431,180 bytes), take 03 dry, selected for #135; no radio effect | AI-generated voice: xAI Text to Speech (Grok voice) on fal.ai, endpoint `xai/tts/v1`, voice `liora` (details in that folder's `SOURCE.md`) | fal.ai model page marked "Commercial use"; fal and xAI terms as summarised in `SOURCE.md` | Grok Bot (generation), Claude Code / Teammate 3 (import, `Tools/td-import-vo-wren-order.py`) |
 
 Tools used (add to the submission's "Tools you used"): xAI Text to Speech via fal.ai.
 
