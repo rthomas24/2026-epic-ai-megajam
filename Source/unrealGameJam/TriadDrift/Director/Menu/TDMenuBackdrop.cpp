@@ -377,7 +377,13 @@ float ATDMenuBackdrop::PlayStinger()
 			.BorderBackgroundColor_Lambda([Weak]()
 			{
 				const ATDMenuBackdrop* B = Weak.Get();
-				const float A = B ? FMath::Clamp(static_cast<float>(FPlatformTime::Seconds() - B->StingerStart) / 0.35f, 0.f, 1.f) : 1.f;
+				float A = B ? FMath::Clamp(static_cast<float>(FPlatformTime::Seconds() - B->StingerStart) / 0.35f, 0.f, 1.f) : 1.f;
+				// The black goes with its caption once the menu is back (1 s): the main menu stood on a black screen after
+				// every victory (T3's capture, 22 s after RETURN TO MENU).
+				if (B && B->CaptionFadeStart > 0.0)
+				{
+					A *= 1.f - FMath::Clamp(static_cast<float>(FPlatformTime::Seconds() - B->CaptionFadeStart), 0.f, 1.f);
+				}
 				return FSlateColor(FLinearColor(0.f, 0.f, 0.f, A));
 			})
 			[
