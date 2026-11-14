@@ -226,7 +226,7 @@ private:
 
 	// Tumblers: movable instanced components (one per mesh), every instance rotates about its own axis.
 	UPROPERTY(Transient) TMap<TObjectPtr<UStaticMesh>, TObjectPtr<UInstancedStaticMeshComponent>> TumbleComponents;
-	struct FTumbler { TObjectPtr<UInstancedStaticMeshComponent> Comp; FTransform Home; FVector Axis; float RadPerSec; };
+	struct FTumbler { TObjectPtr<UInstancedStaticMeshComponent> Comp; FTransform Home; FVector Axis; float RadPerSec; int32 Instance = INDEX_NONE; };
 	TArray<FTumbler> Tumblers;
 	FRandomStream TumbleRng;
 	TArray<FTransform> TumbleScratch;
@@ -285,6 +285,7 @@ private:
 	int32 RegisterPiece(UInstancedStaticMeshComponent* Visual, int32 Instance, UStaticMesh* Mesh, float Size, bool bSpecial, int32 Tumbler, int32 Wreck);
 	int32 AddCollider(const FVector& At, float Size);
 	void BreakPiece(int32 Piece, AActor* ByWhom);
+	void BreakPieceInner(int32 Piece, AActor* ByWhom);
 	void SpawnFragment(UStaticMesh* Mesh, const FVector& At, float Size);
 	void PlayBreakCue(const FVector& At, float Size, uint8 SizeClass, bool bSpecial);
 	uint8 SizeClassFor(float Size) const { return Size < MediumFromSize ? 0 : (Size < LargeFromSize ? 1 : 2); }
@@ -302,6 +303,21 @@ private:
 	bool bAdoptAtLoad = true;
 	bool bWarnedToggle = false;
 	int32 PendingObstacle = INDEX_NONE;
+
+	// Performance (Lead / Ryan, Nov 14: zero lag). TD.SpaceField.Perf prints them.
+	double AnimAccum = 0.0;
+	double PerfTickMsSum = 0.0, PerfTickMsMax = 0.0;
+	int64 PerfTickFrames = 0;
+	double PerfBreakMsSum = 0.0, PerfBreakMsMax = 0.0;
+	int64 PerfBreaks = 0;
+	double PerfFrameBreakMs = 0.0, PerfFrameBreakMsMax = 0.0;
+	int32 PerfBreakDepth = 0;
+	int32 PerfAnimated = 0;
+public:
+	void PerfReport(bool bReset);
+	/** Dev: break the Count live pieces nearest Where in one call (one frame); returns the ms it took. */
+	double BreakChain(const FVector& Where, int32 Count, AActor* ByWhom);
+private:
 
 	int32 ObstaclesAdded = 0;
 	bool bEnabled = true;

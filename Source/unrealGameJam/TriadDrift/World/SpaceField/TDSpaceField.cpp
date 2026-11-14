@@ -10,6 +10,9 @@
 #include "EngineUtils.h"
 #include "HAL/IConsoleManager.h"
 #include "Engine/Engine.h"
+#include "Misc/ScopeExit.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "UObject/ConstructorHelpers.h"
 #include "NiagaraSystem.h"
 #include "Kismet/GameplayStatics.h"
@@ -20,6 +23,12 @@
 namespace TDSpaceFieldImpl
 {
 	static int32 GEnabled = 1;
+	static float GAnimHz = 30.f;
+	static FAutoConsoleVariableRef CVarAnimHz(TEXT("td.SpaceField.AnimHz"), GAnimHz,
+		TEXT("Tumbling rocks and drifting wrecks update this often (Hz; 0 = every frame)."));
+	static float GAnimRange = 400000.f;
+	static FAutoConsoleVariableRef CVarAnimRange(TEXT("td.SpaceField.AnimRange"), GAnimRange,
+		TEXT("Only tumblers and wrecks within this distance of the player's camera move (cm; 0 = all). Slow turns farther away are invisible."));
 	static FAutoConsoleVariableRef CVarSpaceField(TEXT("td.SpaceField"), GEnabled,
 		TEXT("Space field (belts, clusters, debris fields, wrecks, buoys, and the layout's rocks made breakable): 1 on (default), 0 = the galaxy exactly as before the field. Read at level load."));
 
@@ -343,6 +352,7 @@ bool ATDSpaceField::AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotato
 		VisualInstance = T->AddInstance(PieceXf, true);
 		TumblerIndex = Tumblers.Num();
 		FTumbler Tu;
+		Tu.Instance = VisualInstance;
 		Tu.Comp = T;
 		Tu.Home = PieceXf;
 		Tu.Axis = FVector(TumbleRng.GetUnitVector());
@@ -623,19 +633,42 @@ void ATDSpaceField::Tick(float DeltaSeconds)
 		UE_LOG(LogTemp, Warning, TEXT("td.SpaceField %d: applies at the next level load (the field stays %s until then)"), TDSpaceFieldImpl::GEnabled, bEnabled ? TEXT("on") : TEXT("off"));
 		if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 4.f, FColor::Yellow, TEXT("td.SpaceField applies at the next level load")); }
 	}
+	PerfFrameBreakMsMax = FMath::Max(PerfFrameBreakMsMax, PerfFrameBreakMs);
+	PerfFrameBreakMs = 0.0;
 	if (!bEnabled)
 	{
 		return;
 	}
-	UpdateTumblers();
+	const double TickStart = FPlatformTime::Seconds();
+	ON_SCOPE_EXIT
+	{
+		const double Ms = (FPlatformTime::Seconds() - TickStart) * 1000.0;
+		PerfTickMsSum += Ms;
+		PerfTickMsMax = FMath::Max(PerfTickMsMax, Ms);
+		++PerfTickFrames;
+	};
+	Clock += DeltaSeconds;
 	// Every frame (about 20 distance checks): the magnet pulls a taken cache off its spot within a few frames.
 	UpdateCaches();
+	// Tumblers and wrecks: slow motion, so a throttled update near the camera only (nothing per frame for far rocks).
+	AnimAccum += DeltaSeconds;
+	const float Hz = TDSpaceFieldImpl::GAnimHz;
+	if (Hz > 0.f && AnimAccum < 1.0 / Hz)
+	{
+		return;
+	}
+	AnimAccum = 0.0;
+	UpdateTumblers();
+	const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+	const bool bHaveEye = PC && PC->PlayerCameraManager;
+	const FVector Eye = bHaveEye ? PC->PlayerCameraManager->GetCameraLocation() : FVector::ZeroVector;
+	const float Range = TDSpaceFieldImpl::GAnimRange;
 	// The wrecks drift round a 30 m loop (about 1.6 m/s) and turn slowly: they never leave their keep-out-checked spot.
-	Clock += DeltaSeconds;
 	for (int32 i = 0; i < WreckComponents.Num(); ++i)
 	{
 		UInstancedStaticMeshComponent* W = WreckComponents[i];
 		if (!W || !WreckHomes.IsValidIndex(i)) { continue; }
+		if (bHaveEye && Range > 0.f && FVector::Dist(Eye, WreckHomes[i].GetLocation()) > Range) { continue; }
 		const float Phase = Clock * (2.f * PI / 120.f) + i * 1.3f;
 		FTransform T = WreckHomes[i];
 		T.AddToTranslation(FVector(FMath::Cos(Phase), FMath::Sin(Phase), 0.f) * 3000.f);
@@ -646,28 +679,27 @@ void ATDSpaceField::Tick(float DeltaSeconds)
 
 void ATDSpaceField::UpdateTumblers()
 {
+	PerfAnimated = 0;
 	if (Tumblers.Num() == 0)
 	{
 		return;
 	}
-	// One batch per component; instances were added in tumbler order, so a component's tumblers are its instances 0..N.
-	for (const TPair<TObjectPtr<UStaticMesh>, TObjectPtr<UInstancedStaticMeshComponent>>& Pair : TumbleComponents)
+	const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+	const bool bHaveEye = PC && PC->PlayerCameraManager;
+	const FVector Eye = bHaveEye ? PC->PlayerCameraManager->GetCameraLocation() : FVector::ZeroVector;
+	const float Range = TDSpaceFieldImpl::GAnimRange;
+	TSet<UInstancedStaticMeshComponent*, DefaultKeyFuncs<UInstancedStaticMeshComponent*>, TInlineSetAllocator<16>> Touched;
+	for (const FTumbler& T : Tumblers)
 	{
-		UInstancedStaticMeshComponent* Comp = Pair.Value;
-		if (!Comp) { continue; }
-		TumbleScratch.Reset();
-		for (const FTumbler& T : Tumblers)
-		{
-			if (T.Comp != Comp) { continue; }
-			FTransform X = T.Home;
-			X.SetRotation(FQuat(T.Axis, Clock * T.RadPerSec) * T.Home.GetRotation());
-			TumbleScratch.Add(X);
-		}
-		if (TumbleScratch.Num() == Comp->GetInstanceCount())
-		{
-			Comp->BatchUpdateInstancesTransforms(0, TumbleScratch, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ true, /*bTeleport*/ true);
-		}
+		if (!T.Comp || T.Instance == INDEX_NONE) { continue; }
+		if (bHaveEye && Range > 0.f && FVector::DistSquared(Eye, T.Home.GetLocation()) > FMath::Square(Range)) { continue; }
+		FTransform X = T.Home;
+		X.SetRotation(FQuat(T.Axis, Clock * T.RadPerSec) * T.Home.GetRotation());
+		T.Comp->UpdateInstanceTransform(T.Instance, X, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ false, /*bTeleport*/ true);
+		Touched.Add(T.Comp);
+		++PerfAnimated;
 	}
+	for (UInstancedStaticMeshComponent* C : Touched) { C->MarkRenderStateDirty(); }
 }
 
 void ATDSpaceField::UpdateCaches()
@@ -732,4 +764,18 @@ void ATDSpaceField::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	FTDFieldDamage::Unregister(this);
 	Super::EndPlay(EndPlayReason);
+}
+
+void ATDSpaceField::PerfReport(bool bReset)
+{
+	const double TickAvg = PerfTickFrames > 0 ? PerfTickMsSum / PerfTickFrames : 0.0;
+	const double BreakAvg = PerfBreaks > 0 ? PerfBreakMsSum / PerfBreaks : 0.0;
+	UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.Perf: tick avg %.3f ms max %.3f ms over %lld frames (animated %d of %d tumblers) | breaks %lld, avg %.3f ms, max %.3f ms, worst frame of breaks %.3f ms | pieces %d alive %d"),
+		TickAvg, PerfTickMsMax, PerfTickFrames, PerfAnimated, Tumblers.Num(), PerfBreaks, BreakAvg, PerfBreakMsMax, PerfFrameBreakMsMax, Pieces.Num(), GetAliveCount());
+	if (bReset)
+	{
+		PerfTickMsSum = PerfTickMsMax = 0.0; PerfTickFrames = 0;
+		PerfBreakMsSum = PerfBreakMsMax = 0.0; PerfBreaks = 0;
+		PerfFrameBreakMsMax = 0.0;
+	}
 }

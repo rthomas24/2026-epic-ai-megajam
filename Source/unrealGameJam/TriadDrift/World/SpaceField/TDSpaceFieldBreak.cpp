@@ -149,6 +149,23 @@ bool ATDSpaceField::DamagePiece(int32 Piece, float Damage, AActor* ByWhom)
 
 void ATDSpaceField::BreakPiece(int32 Piece, AActor* ByWhom)
 {
+	// Timed at the outermost break only (a ram can break several in one call; each is counted inside).
+	const double Start = FPlatformTime::Seconds();
+	++PerfBreakDepth;
+	BreakPieceInner(Piece, ByWhom);
+	--PerfBreakDepth;
+	const double Ms = (FPlatformTime::Seconds() - Start) * 1000.0;
+	if (PerfBreakDepth == 0)
+	{
+		PerfFrameBreakMs += Ms;
+	}
+	PerfBreakMsSum += Ms;
+	PerfBreakMsMax = FMath::Max(PerfBreakMsMax, Ms);
+	++PerfBreaks;
+}
+
+void ATDSpaceField::BreakPieceInner(int32 Piece, AActor* ByWhom)
+{
 	using namespace TDSpaceFieldBreak;
 	FPieceState& S = States[Piece];
 	const FTDSpaceFieldPiece P = Pieces[Piece];
@@ -590,5 +607,36 @@ namespace TDSpaceFieldDev
 			}
 			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.TestShot: piece %d class %d special %d size %.0f m health %.0f, %d bolts of %.0f from 80 m"), Best,
 				Field->GetPieceSizeClass(Best), Field->IsPieceSpecial(Best), P[Best].Size / 100.f, Field->GetPieceHealth(Best), Shots, Spec.Damage);
+		}));
+}
+
+double ATDSpaceField::BreakChain(const FVector& Where, int32 Count, AActor* ByWhom)
+{
+	TArray<int32> Order;
+	for (int32 i = 0; i < Pieces.Num(); ++i) { if (IsPieceAlive(i) && Pieces[i].Kind != ETDSpaceFieldKind::Wreck) { Order.Add(i); } }
+	Order.Sort([this, &Where](int32 A, int32 B) { return FVector::DistSquared(Pieces[A].Location, Where) < FVector::DistSquared(Pieces[B].Location, Where); });
+	const double Start = FPlatformTime::Seconds();
+	for (int32 k = 0; k < FMath::Min(Count, Order.Num()); ++k) { DamagePiece(Order[k], 1.0e7f, ByWhom); }
+	return (FPlatformTime::Seconds() - Start) * 1000.0;
+}
+
+namespace TDSpaceFieldDev
+{
+	static FAutoConsoleCommandWithWorldAndArgs CmdPerf(TEXT("TD.SpaceField.Perf"), TEXT("Log the field's tick and break costs: TD.SpaceField.Perf [reset]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (ATDSpaceField* Field = ATDSpaceField::Get(World)) { Field->PerfReport(Args.Num() > 0 && Args[0].Equals(TEXT("reset"), ESearchCase::IgnoreCase)); }
+		}));
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdChain(TEXT("TD.SpaceField.BreakChain"),
+		TEXT("Perf: break the N live pieces nearest the flown ship in one frame and log the cost: TD.SpaceField.BreakChain [N=5]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDSpaceField* Field = ATDSpaceField::Get(World);
+			APawn* Pawn = World ? UGameplayStatics::GetPlayerPawn(World, 0) : nullptr;
+			if (!Field || !Pawn) { return; }
+			const int32 N = Args.Num() > 0 ? FMath::Max(1, FCString::Atoi(*Args[0])) : 5;
+			const double Ms = Field->BreakChain(Pawn->GetActorLocation(), N, Pawn);
+			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.BreakChain: %d breaks in one frame took %.3f ms"), N, Ms);
 		}));
 }
