@@ -9,6 +9,7 @@
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDCheatManager.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
+#include "TriadDrift/Input/TDMusicDirectorSubsystem.h"
 #include "Blueprint/UserWidget.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -128,6 +129,26 @@ void ATDMenuGameMode::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	KeepMenuFocus();
+	TickMusicYield();
+}
+
+void ATDMenuGameMode::TickMusicYield()
+{
+	// Another score owns the music (Nick's victory score claims it on VictoryBegan, N-053): the menu bed steps aside
+	// rather than playing underneath, and comes back when the claim is released (T1, approved by T5).
+	if (!Music || bMusicFading) { return; }
+	const UTDMusicDirectorSubsystem* Director = UTDMusicDirectorSubsystem::GetMusicDirector(this);
+	const bool bHeld = Director && Director->IsExclusiveScoreHeld();
+	if (bHeld && !bMusicYielded)
+	{
+		bMusicYielded = true;
+		Music->FadeOut(MusicYieldFadeOutSeconds, 0.f);
+	}
+	else if (!bHeld && bMusicYielded)
+	{
+		bMusicYielded = false;
+		Music->FadeIn(MusicYieldFadeInSeconds, 1.f);
+	}
 }
 
 void ATDMenuGameMode::KeepMenuFocus()
@@ -236,7 +257,7 @@ void ATDMenuGameMode::StartMusic()
 
 void ATDMenuGameMode::HandleMusicFinished()
 {
-	if (Music && !bMusicFading && !IsActorBeingDestroyed())
+	if (Music && !bMusicFading && !bMusicYielded && !IsActorBeingDestroyed())
 	{
 		++MusicLoops;
 		Music->Play(0.f);

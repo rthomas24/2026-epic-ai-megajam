@@ -691,10 +691,12 @@ void UTDShipMovementComponent::BroadcastStateChanges(const FTDFlightState& Befor
 		OnDriftReleased.Broadcast(State.bDriftBurstThisStep);
 	}
 	const ETDBoundaryState WasBoundary = Before.bOutOfBounds ? ETDBoundaryState::Outside : (Before.bNearBoundary ? ETDBoundaryState::Warning : ETDBoundaryState::Inside);
-	if (GetBoundaryState() != WasBoundary)
+	const bool bHeld = IsBoundaryWarningHeld();
+	if (!bHeld && (GetBoundaryState() != WasBoundary || (bBoundaryHeldLastStep && GetBoundaryState() != ETDBoundaryState::Inside)))
 	{
-		OnBoundaryStateChanged.Broadcast(GetBoundaryState());
+		OnBoundaryStateChanged.Broadcast(GetBoundaryState()); // a change, or the hold just ended near / past the edge
 	}
+	bBoundaryHeldLastStep = bHeld;
 }
 
 bool UTDShipMovementComponent::CanDodge() const
@@ -716,8 +718,26 @@ bool UTDShipMovementComponent::RequestDodge(float Direction)
 	return true;
 }
 
+void UTDShipMovementComponent::SetBoundaryWarningHoldFor(FName Owner, bool bHold)
+{
+	if (bHold) { BoundaryWarningHolds.Add(Owner); }
+	else { BoundaryWarningHolds.Remove(Owner); }
+}
+
+bool UTDShipMovementComponent::IsBoundaryWarningHeld() const
+{
+	if (BoundaryWarningHolds.Num() > 0) { return true; }
+	static const FName SequenceOwners[] = { FName(TEXT("AtmosphereEntry")), FName(TEXT("TDExitClimb")), FName(TEXT("Hyperdrive")), FName(TEXT("LandingAssist")) };
+	for (const FSpeedOverrideRequest& R : OverrideStack)
+	{
+		for (const FName& N : SequenceOwners) { if (R.Owner == N) { return true; } }
+	}
+	return false;
+}
+
 FText UTDShipMovementComponent::GetBoundaryWarningText() const
 {
+	if (IsBoundaryWarningHeld()) { return FText::GetEmpty(); }
 	const bool bZone = Context.bBoxBoundary;
 	switch (GetBoundaryState())
 	{
