@@ -149,7 +149,31 @@ namespace
 		{
 			GEngine->Exec(World, *FString::Printf(TEXT("TD.World.Hold %.1f %.0f"), Seconds, Speed));
 		}
-		UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.ToPortal: portal %d is %.0f m away, flying at it at %.0f m/s for %.1f s"), Index, To.Size() / 100.f, Speed, Seconds);
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.ToPortal: portal %d of %d is %.0f m away, flying at it at %.0f m/s for %.1f s"), Index, Blaster->GetPortals().Num(), To.Size() / 100.f, Speed, Seconds);
+		// A trace of the pass, every 0.1 s for 2 s: the distance to the portal and how far off its axis the ship is, so a
+		// miss (aim) can be told from a crossing that did not register.
+		TWeakObjectPtr<APawn> WeakPawn(Pawn);
+		TWeakObjectPtr<const AActor> WeakPortal(Portal);
+		for (int32 Step = 1; Step <= 20; ++Step)
+		{
+			FTimerHandle H;
+			World->GetTimerManager().SetTimer(H, [WeakPawn, WeakPortal, Step]()
+			{
+				const APawn* P = WeakPawn.Get();
+				const AActor* Q = WeakPortal.Get();
+				if (P && Q)
+				{
+					const FVector D = P->GetActorLocation() - Q->GetActorLocation();
+					const float Along = FVector::DotProduct(D, Q->GetActorForwardVector());
+					UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.ToPortal trace %.1f s: %.0f m from the portal, %.0f m along its axis, %.0f m off it, speed %.0f m/s"),
+						Step * .1f, D.Size() / 100.f, Along / 100.f, (D - Along * Q->GetActorForwardVector()).Size() / 100.f, P->GetVelocity().Size() / 100.f);
+				}
+				else
+				{
+					UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.ToPortal trace %.1f s: %s"), Step * .1f, Q ? TEXT("no pawn") : TEXT("the portal is gone"));
+				}
+			}, Step * .1f, false);
+		}
 	}
 
 	void TDPowerCheatTargets(const TArray<FString>& Args, UWorld* World)
