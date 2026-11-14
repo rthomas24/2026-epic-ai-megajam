@@ -334,6 +334,23 @@ bool FTDSpaceFieldStructuresKeepOut::RunTest(const FString& Parameters)
 	AddInfo(FString::Printf(TEXT("Shattered Moons shards %d, Quiet Graveyard hulls %d"), Shards, Hulls));
 	TestTrue(TEXT("the Shattered Moons line the Dominion route (10+ shards)"), Shards >= 10);
 	TestTrue(TEXT("the Quiet Graveyard has its hulls (4+)"), Hulls >= 4);
+	// The Outer Dark's watch (Lead, Nov 14): big lone rocks flanking the Dominion run-in, and a watcher on the biggest.
+	{
+		int32 Watch = 0;
+		const float Len = (float)FVector::Dist(Zone, DLoc);
+		const FVector Dir = (DLoc - Zone).GetSafeNormal();
+		for (const FTDSpaceFieldPiece& P : Fd->GetPieces())
+		{
+			if (P.bAdopted || P.Size < 5000.f) { continue; }
+			const float Along = (float)FVector::DotProduct(P.Location - Zone, Dir);
+			const float Off = (float)FVector::Dist(P.Location, Zone + Dir * Along);
+			Watch += Along > Len * 0.25f && Along < Len * 0.7f && Off > 100000.f && Off < 220000.f ? 1 : 0;
+		}
+		const int32 Watcher = CountNear(7, 30000.f, 0.f);
+		AddInfo(FString::Printf(TEXT("Outer Dark watch: %d rocks of 50 m+ flanking the Dominion run-in, %d set piece at its centre"), Watch, Watcher));
+		TestTrue(TEXT("the Outer Dark's watch flanks the Dominion run-in (8+ lone rocks of 50 m+)"), Watch >= 8);
+		TestTrue(TEXT("a watcher on the biggest"), Watcher >= 1);
+	}
 	// T4's journey: no set piece and no hittable rock of 10 m or more on a keep-out or a route (pockets allow sparse cover).
 	{
 		TArray<FTDJourneyKeyPoint> Journey;

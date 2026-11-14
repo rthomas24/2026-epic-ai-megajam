@@ -12,6 +12,7 @@
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "Engine/StaticMesh.h"
 #include "HAL/IConsoleManager.h"
+#include "TriadDrift/World/TDDominion.h"
 
 namespace TDSpaceFieldCompose
 {
@@ -467,8 +468,62 @@ void ATDSpaceField::BuildOuterDark(FRandomStream& Rng)
 			Gravel += AddRock(At + FVector(Rng.GetUnitVector()) * Rng.FRandRange(Size * 0.6f, Size * 0.6f + 8000.f), Power(Rng, 300.f, 1500.f, 2.f), ETDSpaceFieldKind::Cluster, Rng, Fam) ? 1 : 0;
 		}
 	}
-	RegionCentres.Add(7, Zone + FVector(OuterDarkInner, 0.f, 0.f));
 	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: Outer Dark %d lone rocks, %d gravel, %.1f-%.1f km"), Anchors, Gravel, OuterDarkInner / 100000.f, Outer / 100000.f);
+
+	// The watch (Lead, Nov 14: the Outer Dark read blank from the route). On the run in to the Dominion, before the Shattered
+	// Moons' outer flank: a dozen big lone rocks (50-150 m), far apart, high and low, 1.6-3.3 km along the run-in and 1.2-2 km
+	// off it (beyond the shards' band), and one Null rig anchored on the biggest, facing the route. Empty, and watched. They
+	// keep every keep-out (IsPlacementAllowed, the journey).
+	const FTDGalaxyLayoutData& L = Layout->GetLayout();
+	const ATDDominion* Dom = ATDDominion::Get(this);
+	const FVector DLoc = Dom ? Dom->GetActorLocation() : Xf.TransformPosition(L.Dominion.GetLocation());
+	const FVector Route = (DLoc - Zone).GetSafeNormal();
+	const float RouteLen = (float)FVector::Dist(Zone, DLoc);
+	const FVector Side = FVector::CrossProduct(FVector::UpVector, Route).GetSafeNormal();
+	const float AlongNear = FMath::Min(160000.f, RouteLen * 0.3f), AlongFar = FMath::Min(330000.f, RouteLen * 0.65f);
+	// T4's finer Dominion keep-outs, as for the Shattered Moons: MoonDominionClear from the Dominion, 400 m + the rock from
+	// the bow axis out to 5 km (the escape flight), 600 m from the approach stage start, out of the docking cone.
+	const FVector Bow = Dom ? Dom->GetActorForwardVector() : (Zone - DLoc).GetSafeNormal();
+	const FVector Stage = Dom ? Dom->GetStageStart(false).GetLocation() : DLoc + Bow * 200000.f;
+	TGuardValue<bool> WatchRules(bMoonPlacement, true);
+	int32 Watch = 0;
+	FVector Biggest = FVector::ZeroVector;
+	float BiggestSize = 0.f;
+	for (int32 Try = 0; Watch < OuterWatchRocks && Try < OuterWatchRocks * 30; ++Try)
+	{
+		const float Along = Rng.FRandRange(AlongNear, AlongFar);
+		const float Out = Rng.FRandRange(120000.f, 200000.f) * (Rng.FRand() < 0.5f ? -1.f : 1.f);
+		const FVector At = Zone + Route * Along + Side * Out + FVector(0.f, 0.f, Rng.FRandRange(-70000.f, 70000.f));
+		const float HalfMax = 7500.f;
+		if (FVector::Dist(At, FMath::ClosestPointOnSegment(At, DLoc, DLoc + Bow * 500000.f)) < 40000.f + HalfMax) { continue; }
+		if (FVector::Dist(At, Stage) < 60000.f + HalfMax) { continue; }
+		if (IsInDockingCone(At, HalfMax)) { continue; }
+		// Far apart: lone, not a cluster.
+		bool bLone = true;
+		for (const FTDSpaceFieldPiece& P : Pieces) { if (P.Size >= 5000.f && FVector::DistSquared(P.Location, At) < FMath::Square(45000.f)) { bLone = false; break; } }
+		if (!bLone) { continue; }
+		const float Size = Power(Rng, 5000.f, 15000.f, 1.6f);
+		if (!AddRock(At, Size, ETDSpaceFieldKind::Cluster, Rng, Rng.FRand() < 0.5f ? 0 : 2)) { continue; }
+		++Watch;
+		if (Size > BiggestSize) { BiggestSize = Size; Biggest = At; }
+	}
+	bool bWatcher = false;
+	if (BiggestSize > 0.f)
+	{
+		// The watcher: a Null rig on the biggest lone rock's top, turned to the route.
+		if (UStaticMesh* Rig = LoadSetPiece(TEXT("SM_SP_NullRig")))
+		{
+			const FVector OnRoute = FMath::ClosestPointOnSegment(Biggest, Zone, DLoc);
+			const FRotator Face(0.f, (OnRoute - Biggest).Rotation().Yaw, 0.f);
+			bWatcher = AddStructure(Rig, FTransform(Face, Biggest + FVector(0.f, 0.f, BiggestSize * 0.42f), FVector(1.5f)), 7);
+		}
+		RegionCentres.Add(7, Biggest);
+	}
+	else
+	{
+		RegionCentres.Add(7, Zone + FVector(OuterDarkInner, 0.f, 0.f));
+	}
+	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: Outer Dark watch %d lone rocks 50-150 m on the Dominion run-in, watcher %s"), Watch, bWatcher ? TEXT("placed") : TEXT("missing"));
 }
 
 // ------------------------------------------------------------------------------ regions 3, 5, 6 and the region set pieces
@@ -510,6 +565,7 @@ void ATDSpaceField::BuildIceDrift(FRandomStream& Rng)
 	const FVector Head = Zone + VDir * (BeltOuter + 25000.f) + Side * S * 40000.f;
 	const FVector Tail = VLoc - VDir * (VAtmo * 1.5f + 30000.f) + Side * S * 50000.f + FVector(0.f, 0.f, -15000.f);
 	const FVector Ctrl = (Head + Tail) * 0.5f + Side * S * 40000.f;
+	TGuardValue<bool> IceLook(bIceDriftPlacement, true);	// its own components, the ice glow raised
 	int32 Placed = 0;
 	for (int32 Try = 0; Placed < IceDriftRocks && Try < IceDriftRocks * 6; ++Try)
 	{
