@@ -418,6 +418,9 @@ void UTDFlightHUDWidget::SampleStory()
 	}
 	Sub.bStory = true;
 	Sub.TagColor = T.Color;
+	// ENG-45 (T3): FTDTransmissionView::bShowSubtitle, read by name (on when the field is not there yet).
+	static const FBoolProperty* ShowProp = FindFProperty<FBoolProperty>(FTDTransmissionView::StaticStruct(), TEXT("bShowSubtitle"));
+	Sub.bStoryHidden = ShowProp && !ShowProp->GetPropertyValue_InContainer(&T);
 	// Drive the fade from the subsystem's own clock (one line at a time, never overlapping).
 	const float Remaining01 = FMath::Max(1.f - T.Progress01, .01f);
 	Sub.Seconds = FMath::Max(.5f, T.TimeLeft / Remaining01);
@@ -1184,6 +1187,31 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 	BindBus();
 	SampleDirector(Dt);
 	SampleStory();
+	// ENG-45 (T1's setting): UTDSettingsSubsystem::AreSubtitlesOn(World), by name (on without it).
+	if (ForceSubtitlesOn >= 0)
+	{
+		bSubtitlesOn = ForceSubtitlesOn > 0;
+	}
+	else
+	{
+		static UClass* Settings = FindObject<UClass>(nullptr, TEXT("/Script/unrealGameJam.TDSettingsSubsystem"));
+		UFunction* F = Settings ? Settings->FindFunctionByName(TEXT("AreSubtitlesOn")) : nullptr;
+		bSubtitlesOn = true;
+		if (F && F->ParmsSize > 0)
+		{
+			uint8* Buf = static_cast<uint8*>(FMemory_Alloca(F->ParmsSize));
+			FMemory::Memzero(Buf, F->ParmsSize);
+			if (const FObjectPropertyBase* Ctx = CastField<FObjectPropertyBase>(F->PropertyLink); Ctx && !Ctx->HasAnyPropertyFlags(CPF_ReturnParm))
+			{
+				Ctx->SetObjectPropertyValue_InContainer(Buf, this);
+			}
+			Settings->GetDefaultObject()->ProcessEvent(F, Buf);
+			if (const FBoolProperty* Ret = CastField<FBoolProperty>(F->GetReturnProperty()))
+			{
+				bSubtitlesOn = Ret->GetPropertyValue_InContainer(Buf);
+			}
+		}
+	}
 	SampleCombat(*Data, Flown, Dt);
 	ArcAwake = FMath::Max(0.f, ArcAwake - Dt);
 	View.ArcOpacity = (View.Hull < .999f || View.Shield < .999f || ArcAwake > 0.f) ? 1.f : ArcRestOpacity;
@@ -1943,8 +1971,9 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		P.Words(CenterX + (View.Lane == ELane::HyperdriveBlocked ? 10.f : 0.f), 845.f, View.LaneText, 17, LaneC, "Bold", .5f, 50);
 	}
 
-	// ---- subtitles / story transmissions: centred under the lower lane, speaker tag in the pilot's colour, 2 lines max
-	if (!View.Subtitle.Text.IsEmpty())
+	// ---- subtitles / story transmissions: centred under the lower lane, speaker tag in the pilot's colour, 2 lines max.
+	// ENG-45: nothing when subtitles are off (barks) or the transmission says so (story lines); the voices still play.
+	if (!View.Subtitle.Text.IsEmpty() && bSubtitlesOn && !(View.Subtitle.bStory && View.Subtitle.bStoryHidden))
 	{
 		const FSubtitle& Sub = View.Subtitle;
 		const FString& Who = Sub.Speaker;

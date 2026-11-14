@@ -397,6 +397,36 @@ bool FTDFlightHUDDescent::RunTest(const FString& Parameters)
 	return true;
 }
 
+// ENG-45: with subtitles off, the bark lane draws no text (the bark still plays); on again, it draws.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDSubtitlesOff, "TriadDrift.UI.FlightHUD.SubtitlesSettingHidesBarkText", TD_TEST_FLAGS)
+bool FTDFlightHUDSubtitlesOff::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	auto PaintHas = [&F](const TCHAR* Name)
+	{
+		TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+		return F.HUD->LastBoxes.ContainsByPredicate([Name](const TPair<FName, FBox2D>& B) { return B.Key == FName(Name); });
+	};
+	F.HUD->ForceSubtitlesOn = 0;
+	F.HUD->ShowTransmission(TEXT("KATO"), FText::FromString(TEXT("Contact, high left.")), UTDFlightHUDWidget::ETransmissionStyle::Clean, 3.f);
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("subtitles off: the setting is read"), F.HUD->AreSubtitlesShown());
+	TestFalse(TEXT("subtitles off: no bark text drawn"), PaintHas(TEXT("subtitle")));
+	F.HUD->ForceSubtitlesOn = 1;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("subtitles on: the bark is drawn"), PaintHas(TEXT("subtitle")));
+	F.HUD->ForceSubtitlesOn = -1;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("no settings subsystem / default: on"), F.HUD->AreSubtitlesShown());
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDKinds, "TriadDrift.UI.FlightHUD.EnemyMarkerShapesPerType", TD_TEST_FLAGS)
 bool FTDFlightHUDKinds::RunTest(const FString& Parameters)
 {
