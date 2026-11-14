@@ -68,9 +68,9 @@ public:
 	bool IsSpent() const;
 	/** Every carrier pauses launching while this many carrier fighters are alive, and resumes under ResumeBelow. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Carrier", meta = (ClampMin = "0"))
-	int32 ScreenFullAt = 16;
+	int32 ScreenFullAt = 10;	// Lead (Nov 14): 16 / 12 played to 7 deaths in wave 5 with a crude driver
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Carrier", meta = (ClampMin = "0"))
-	int32 ResumeBelow = 12;
+	int32 ResumeBelow = 6;
 	bool IsScreenHeld() const { return bScreenHeld; }
 
 	/** Half depth along the bay's outward (+X) axis, for mounting outside the hull (cm). */
