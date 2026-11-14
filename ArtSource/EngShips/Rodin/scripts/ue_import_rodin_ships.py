@@ -806,8 +806,10 @@ def main():
     if len(shared) < 3:
         log("FAILED: shared textures missing (run rs_textures.py + rs_textures_png.py) %s" % shared_notes)
         return
-    portal_m, glow_m, trim_m = ensure_portal(shared["T_TD_PortalNoise"]), ensure_glow(), ensure_trim()
-    if not (portal_m and glow_m and trim_m):
+    # M_TD_ShipTrim (and MI_<Ship>_Ring / _Glow on the hull) only exist for a plain Rodin ship with code-built extras
+    # (rs_extras.py): built on demand when a mesh has such a slot. Deleted Nov 13 with the Rift hybrid (git: 759b34e).
+    portal_m, glow_m = ensure_portal(shared["T_TD_PortalNoise"]), ensure_glow()
+    if not (portal_m and glow_m):
         return
     rows, good, bad = [], 0, 0
     sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
@@ -979,7 +981,7 @@ def main():
                 use = parts_mi
             elif "_Portal" in slot or "_Ring" in slot or "_Glow" in slot:
                 kind = "Portal" if "_Portal" in slot else ("Ring" if "_Ring" in slot else "Glow")
-                parent = {"Portal": portal_m, "Ring": trim_m, "Glow": glow_m}[kind]
+                parent = {"Portal": portal_m, "Ring": ensure_trim() if kind == "Ring" else None, "Glow": glow_m}[kind]
                 xp = "%s/MI_%s_%s" % (dest, ship, kind)
                 use = eas.load_asset(xp) if eas.does_asset_exist(xp) else tools.create_asset(
                     "MI_%s_%s" % (ship, kind), dest, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
