@@ -505,7 +505,7 @@ def _nose_rift(mats, body, bvh):
     # v09: one long, narrow glowing slit along the top. v12 (review MINOR: "a hard white rectangle", "the nose lost its
     # magenta accent"): the slit glows in the accent colour between dark walls, where it was white-hot
     pockets = [{"u0": PI / 2 - 0.10, "u1": PI / 2 + 0.10, "v0": 1.95, "v1": 2.24, "depth": 0.008, "eu": 0.025, "ev": 0.02,
-                "mat": GLOW, "wall_mat": BLACK}]
+                "mat": K.get("slit_mat", GLOW), "wall_mat": BLACK}]
     seams = ((1.72, 1.728), (1.90, 1.908), (2.20, 2.208))        # panel seams: clean dark bands
 
     def mat_fn(u, v):
@@ -813,8 +813,19 @@ def clean_livery(path, crack_px=6, smooth_px=10, body=None):
         region = region[::-1] if False else region
         paint_white = np.median(a[white], axis=0) if white.any() else np.array([0.8, 0.8, 0.82])
         rp = region & ((lum < 0.30) | (magenta & K["repaint_accent"]))   # v09: the ragged magenta sill stripe goes white too
+        if K.get("repaint_tinted"):
+            # v13 (review of v12: lilac specks left in the repainted area): leftover purple chrome texels that are
+            # neither dark nor the accent paint go white too
+            rp |= region & (a[..., 2] > a[..., 1] * 1.12) & (sat > 0.12)
         out[rp] = paint_white
         repaint_px = int(rp.sum())
+        seam = None
+        if K.get("repaint_seams"):
+            # v13 (review of v12: the straight end of the repaint read as a texture seam with a stair-stepped edge):
+            # a dark panel joint a centimetre wide along it, so the change of paint sits on a seam
+            seam = _paint_mask(body, lum.shape, None, K["repaint_seams"])
+            out[seam] = (0.035, 0.035, 0.04)
+            rp = rp | seam
     T.save(out, path, True)
     res = {"white_px": int(white.sum()), "magenta_px": int(magenta.sum()), "cracks_filled": int(crack_w.sum() + crack_m.sum())}
     # the cracks are carved into the normal map too: inside the paint, the normal map's fine band is mostly removed

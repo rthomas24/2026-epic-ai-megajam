@@ -50,6 +50,9 @@ SHIPS = {
         # torn sawtooth), the first box a little wider and deeper (a stray magenta sliver ahead of the panel), and a
         # third box for the magenta shard between the panel and the canopy sill
         repaint=[(0.95, 1.75, 0.46, 0.0, -0.50, 0.30), (1.40, 1.95, 0.36, 0.12, -0.48, -0.08), (0.60, 0.95, 0.46, 0.0, -0.10, 0.30)],
+        # v13: purple leftovers in the repainted area go too, a dark panel joint sits on the repaint's straight end, and
+        # the nose slit is saturated accent paint (index 1 of rh_parts.materials()), it was a pale lilac glow
+        repaint_tinted=True, repaint_seams=[(0.944, 0.956, 0.46, 0.0, -0.50, 0.30)], slit_mat=1,
         repaint_accent=True, repaint_texel=True, repaint_emissive=0,      # index of the box whose emissive texels go too
     ),
     "Lancer": dict(
@@ -100,6 +103,10 @@ SHIPS = {
         # white paint, and this hull is mid-grey armour), and its hard edges keep a tighter smoothing angle.
         canopy=None, nose=None, spine=None, sides=None, repaint=[], repaint_accent=False, textures="raw", sharp_deg=30,
         guns=dict(kind="bastion", y=0.43, z=-0.41, x0=2.42, tip=2.62, r=0.068, cut_x=2.49),
+        # v02 (review: the cockpit read as a black windscreen with a yellow glowing squiggle inside): the emissive map
+        # is textures_r2's with the windscreen's texels cleared, so it reads as dark glass
+        emissive_src=os.path.join(AI, "Bastion", "textures_r2", "T_Bastion_E.png"),
+        emissive_clear=[(1.20, 2.14, 0.30, 0.0, 0.03, 0.56)],
     ),
 }
 
