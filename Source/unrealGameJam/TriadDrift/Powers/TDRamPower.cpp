@@ -1,6 +1,7 @@
 // Triad Drift - Powers (Teammate 2). Lancer: Afterburner Ram.
 
 #include "TriadDrift/Powers/TDRamPower.h"
+#include "TriadDrift/Combat/TDFieldDamageable.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -302,6 +303,23 @@ void UTDRamPower::SweepHits(const FVector& From, const FVector& To)
 			HitActor(Victim, DashDirection);
 		}
 	}
+	// T6's destructible field: the dash smashes small and medium rocks along its path, looking a little ahead so they
+	// break before the flight model touches them; a large one stops the dash where the field says.
+	if (IsPowerActive())
+	{
+		TArray<AActor*> Fields;
+		FTDFieldDamage::GetFields(GetWorld(), Fields);
+		const FVector Ahead = To + DashDirection * (Reach + GetDashSpeed() * .05f);
+		for (AActor* Field : Fields)
+		{
+			FVector Block;
+			if (Cast<ITDFieldDamageable>(Field)->ReceiveRamSweep(From, Ahead, Reach, Owner, Block))
+			{
+				StopDash(Block, Field);
+				return;
+			}
+		}
+	}
 }
 
 void UTDRamPower::HitActor(AActor* Victim, const FVector& Direction)
@@ -371,6 +389,21 @@ void UTDRamPower::HandleFlightImpact(const FTDFlightImpact& Impact)
 	AActor* Other = Impact.OtherActor.Get();
 	if (Other && Other->IsA<ATDSpacecraft>())
 	{
+		return;
+	}
+	// The flight model touched T6's field before the sweep broke it: the field decides (a small or medium rock breaks and
+	// the dash goes on; a large one stops it).
+	if (Other && Other->Implements<UTDFieldDamageable>())
+	{
+		FVector OwnerCenter;
+		const float Reach = TDRamBoundsRadius(GetOwner(), OwnerCenter) + HitPadding;
+		FVector Block;
+		if (!Cast<ITDFieldDamageable>(Other)->ReceiveRamSweep(Impact.ImpactPoint - DashDirection * Reach, Impact.ImpactPoint + DashDirection * Reach,
+			Reach, GetOwner(), Block))
+		{
+			return;
+		}
+		StopDash(Block, Other);
 		return;
 	}
 	// A hostile part the flight model hits first (carrier bay, turret, shield generator: BlockAllDynamic) takes the
