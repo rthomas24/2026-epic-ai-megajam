@@ -459,6 +459,10 @@ void ATDPlanetCourse::BuildInterior()
 			{ PCore, TEXT("SM_Fab_PowerCore"), FVector(CX1 + 250.f, AY - 250.f, 0.f), 0.f, 1.f, true },	// arena corner, corridor mouth
 			{ PCore, TEXT("SM_Fab_PowerCore"), FVector(L1X1 + 250.f, -WY + 250.f, 0.f), 0.f, 1.f, true },	// Warden room corner
 		}, FVector::ZeroVector, 0.f, TEXT("InteriorFab"));
+		// A warm work light over each crate cluster (env a13 look pass): the black-and-crimson crates sank into the dark
+		// floor; a small amber pool picks out their edges and the barrels' yellow. No shadows, like the rest.
+		Light(FVector(450.f, 1080.f, 260.f), 750.f, FLinearColor(1.f, 0.55f, 0.22f), 420.f);
+		Light(FVector(-1020.f, -1060.f, 260.f), 750.f, FLinearColor(1.f, 0.55f, 0.22f), 380.f);
 	}
 
 	// 1. The deflect lesson: two troopers at the corridor's far end, behind low cover, firing down the lane.
