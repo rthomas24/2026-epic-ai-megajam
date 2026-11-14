@@ -46,6 +46,7 @@ namespace TDCourseColors
 	static const FLinearColor WreckMetal(0.18f, 0.18f, 0.22f);
 	static const FLinearColor Ember(1.f, 0.45f, 0.1f);
 	static const FLinearColor RelayStone(0.6f, 0.5f, 1.f);
+	static const FVector VerdanceRelaySite(8000.f, -6500.f, 0.f); // not a colour: the relay deck (decision 2), ground level
 	// Cinder: basalt, magma orange, crystal violet.
 	static const FLinearColor CinderGround(0.05f, 0.035f, 0.035f);
 	static const FLinearColor Basalt(0.12f, 0.1f, 0.1f);
@@ -904,12 +905,12 @@ void ATDPlanetCourse::HandleObjectiveCompleted(ATDObjective* Objective)
 		HandleInteriorObjectiveCompleted(Objective);
 		return;
 	}
-	// The relay wakes: a pulse ring grows over the plateau (the reward screen is Nick's).
+	// The relay wakes: a pulse ring grows over its deck (the reward screen is Nick's).
 	if (Objective && Objective->ObjectiveId == TEXT("Obj_Relay"))
 	{
 		for (int32 i = 0; i < 3; ++i)
 		{
-			Block(EShape::Sphere, FVector(9200.f, -8200.f, 900.f), FVector(1200.f + i * 900.f, 1200.f + i * 900.f, 40.f), TDCourseColors::RelayStone, 2.f - i * 0.5f, FRotator::ZeroRotator, false);
+			Block(EShape::Sphere, TDCourseColors::VerdanceRelaySite + FVector(0.f, 0.f, 900.f), FVector(1200.f + i * 900.f, 1200.f + i * 900.f, 40.f), TDCourseColors::RelayStone, 2.f - i * 0.5f, FRotator::ZeroRotator, false);
 		}
 	}
 }
@@ -965,7 +966,7 @@ void ATDPlanetCourse::BuildVerdance()
 	const FVector WreckHead(2600.f, 2600.f, 0.f);
 	const FVector Ambush(6200.f, 4600.f, 0.f);
 	const FVector WreckSite(11500.f, 7200.f, 0.f);
-	ATDObjective* Wreck = MakeObjective(TEXT("Obj_WreckCore"), LOCTEXT("WreckTitle", "Recover the Signal-Analysis Device"), ETDAbilityId::GravityWell, ETDShipId::Bastion, 7);
+	ATDObjective* Wreck = MakeObjective(TEXT("Obj_WreckCore"), LOCTEXT("WreckTitle", "Recover the Signal-Analysis Device"), ETDAbilityId::GravityWell, ETDShipId::Bastion, 3);
 	AddTrailhead(Wreck, WreckHead, Cyan, LOCTEXT("TheWreck", "THE RESEARCH SITE"));
 	Route({ FVector(900.f, 900.f, 0.f), WreckHead, Ambush, FVector(9300.f, 6300.f, 0.f), WreckSite }, Cyan);
 
@@ -1025,12 +1026,13 @@ void ATDPlanetCourse::BuildVerdance()
 	FTDRetakeMercyTier SiteMercy5; SiteMercy5.FromTake = 5; SiteMercy5.DropCrew = 2;
 	SiteFight->MercyTiers = { SiteMercy3, SiteMercy5 };
 
-	// The survey terminal: a tap starts the archive transfer (and Cinematic 03, T3's hook).
+	// The survey console: the signal-analysis device is recovered here (a tap; Gravity Well). Decision 2 (Ryan, Nov 13): the
+	// transfer defence moved to the relay, so the station is the pick-up and nothing is carried.
 	// The console's origin is its box centre: 60 x 120 x 130 cm standing on the 30 cm deck (T2's live check: at deck height
 	// it sat half sunk and only took the interact trace looking 40 degrees down).
 	ATDInteractableActor* Terminal = VerdOutpost ? OutpostTerminal<ATDInteractableActor>(OutpostSite, SiteYaw)
 		: SpawnProp<ATDInteractableActor>(WreckSite + FVector(-250.f, 0.f, 30.f + 65.f), FRotator(0.f, 180.f, 0.f));
-	Terminal->Prompt = LOCTEXT("SurveyTerminal", "Connect the device");
+	Terminal->Prompt = LOCTEXT("SurveyTerminal", "Recover the device");
 	Terminal->HoldTime = 0.f;
 	Terminal->LinkedObjective = Wreck;
 	Terminal->LinkedStep = 2;
@@ -1049,125 +1051,99 @@ void ATDPlanetCourse::BuildVerdance()
 		UTDStatics::TintPlaceholder(Terminal->Mesh, FLinearColor(0.1f, 0.8f, 1.f), 1.5f);
 	}
 
-	// The transfer (60-90 s, here 75): three fixed waves dropping in around the station, the third with the Heavy (the
-	// disruption); it pauses while a crewman stands at the terminal. Spawned high: they fall in.
-	ATDEncounterVolume* Wave1 = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 1300.f);
-	ATDEncounterVolume* Wave2 = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Trooper, ETDCrewType::Drone }, false, 1400.f);
-	ATDEncounterVolume* Wave3 = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Heavy, ETDCrewType::Grunt }, false, 1400.f);
+	Checkpoint(Wreck, 1, FVector(8300.f, 5800.f, 0.f), 30.f); // dying in the station fight: back at its edge, not at the pad
+	FinishObjective(Wreck,
+		{ LOCTEXT("W0", "FOLLOW THE BEACON TO THE RESEARCH SITE"), LOCTEXT("W1", "CLEAR THE RESEARCH SITE"),
+		  LOCTEXT("W2", "RECOVER THE SIGNAL-ANALYSIS DEVICE · [E]") },
+		{ Beacon, SiteFight, Terminal });
+
+	// ---- Obj 2: the relay (-> Cloak on Rift). South-east, at ground level; after the device (decision 2, Ryan Nov 13). ----
+	// The device is connected to the relay and the archive transfers while the squad holds the deck: the transfer defence
+	// (75 s in two halves, a midpoint checkpoint, three waves, the Heavy at 50%, paused while a crewman is at the console).
+	// The old climb (platforms, resonance nodes, altar) is gone. The arena brief for the structures builder: a flat 28 x 28 m
+	// deck 30-60 cm high with ramps on three sides, 4-6 waist-high cover pieces, the console 4 m in from the west edge with
+	// 3 m clear in front, the relay itself at the far (east) side and not walkable, 14 m of open ground around the deck, and
+	// no perch over 2.5 m within 10 m of the console. Until BP_Relay lands, this is the placeholder by those numbers.
+	const FVector RelayHead(2600.f, -2600.f, 0.f);
+	const FVector RelaySite = VerdanceRelaySite;
+	ATDObjective* Relay = MakeObjective(TEXT("Obj_Relay"), LOCTEXT("RelayTitle", "Wake the Relay"), ETDAbilityId::Cloak, ETDShipId::Rift, 5);
+	AddTrailhead(Relay, RelayHead, Magenta, LOCTEXT("TheRelay", "THE RELAY"));
+	Trailheads.Last().After = Wreck; // the fixed order: the relay waits for the device
+	Route({ FVector(900.f, -900.f, 0.f), RelayHead, FVector(5200.f, -5000.f, 0.f), RelaySite + FVector(-1900.f, 0.f, 0.f) }, Magenta);
+
+	const float DeckTop = 40.f;
+	Platform(RelaySite, DeckTop, FVector(2800.f, 2800.f, DeckTop), RelayStone, 0.2f, TEXT("SM_Verd_RelayDeck"));
+	for (const FVector& R : { FVector(-1550.f, 0.f, 0.f), FVector(0.f, 1550.f, 0.f), FVector(0.f, -1550.f, 0.f) }) // ramps on the west, north and south sides
+	{
+		const bool bX = FMath::Abs(R.X) > 1.f;
+		Block(EShape::Cube, RelaySite + R + FVector(0.f, 0.f, DeckTop * 0.25f), bX ? FVector(300.f, 800.f, DeckTop * 0.5f) : FVector(800.f, 300.f, DeckTop * 0.5f),
+			RelayStone, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_RelayRamp"));
+	}
+	// Waist-high cover (100 cm), clear of the console's 3 m.
+	for (const FVector& C : { FVector(-300.f, 700.f, 0.f), FVector(-300.f, -700.f, 0.f), FVector(500.f, 0.f, 0.f), FVector(400.f, 900.f, 0.f), FVector(400.f, -900.f, 0.f) })
+	{
+		Block(EShape::Cube, RelaySite + C + FVector(0.f, 0.f, DeckTop + 50.f), FVector(300.f, 80.f, 100.f), RelayStone, 0.f, FRotator(0.f, C.Y == 0.f ? 90.f : 0.f, 0.f), true, TEXT("SM_Verd_RelayCover"));
+	}
+	// The relay: a tall stone spire at the east side with a glowing core (collides; not a perch).
+	Block(EShape::Cylinder, RelaySite + FVector(1150.f, 0.f, DeckTop + 900.f), FVector(220.f, 220.f, 1800.f), RelayStone, 0.6f, FRotator::ZeroRotator, true, TEXT("SM_Verd_RelaySpire"));
+	Block(EShape::Cylinder, RelaySite + FVector(1150.f, 0.f, DeckTop + 1400.f), FVector(90.f, 90.f, 1800.f), RelayStone, 2.f, FRotator::ZeroRotator, false);
+
+	ATDStepTrigger* Reach = SpawnProp<ATDStepTrigger>(RelaySite);
+	Reach->LinkedObjective = Relay;
+	Reach->LinkedStep = 0;
+	TDCourseImpl::FinishProp(Reach);
+	Reach->Box->SetBoxExtent(FVector(1800.f, 1800.f, 400.f));
+
+	// The relay console: 4 m in from the west edge, facing the pad; the tap connects the device (Cinematic 03, T3's hook,
+	// fires on the transfer's start).
+	const FVector ConsoleAt = RelaySite + FVector(-1000.f, 0.f, 0.f);
+	ATDInteractableActor* RelayConsole = SpawnProp<ATDInteractableActor>(ConsoleAt + FVector(0.f, 0.f, DeckTop + 65.f), FRotator(0.f, 180.f, 0.f));
+	RelayConsole->Prompt = LOCTEXT("RelayConsole", "Connect the device");
+	RelayConsole->HoldTime = 0.f;
+	RelayConsole->LinkedObjective = Relay;
+	RelayConsole->LinkedStep = 1;
+	RelayConsole->ConsoleMesh = TDPropArt::Default(TEXT("SM_Verd_RelayConsole"));
+	TDCourseImpl::FinishProp(RelayConsole);
+	RelayConsole->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f));
+	UTDStatics::TintPlaceholder(RelayConsole->Mesh, Magenta, 1.5f);
+
+	// Three waves dropping in at the deck's north, south and east edges (never the west, the pilot's side), the third with
+	// the Heavy (the disruption). Spawn points are relative to the volume, which sits 9 m up: they fall in.
+	auto Wave = [&](const TArray<ETDCrewType>& Mix, const TArray<FVector>& Points)
+	{
+		return Encounter(Relay, INDEX_NONE, RelaySite + FVector(0.f, 0.f, 900.f), FVector(10.f), Mix, false, 1700.f, Points);
+	};
+	ATDEncounterVolume* Wave1 = Wave({ ETDCrewType::Grunt, ETDCrewType::Grunt }, { FVector(0.f, 1800.f, 0.f), FVector(0.f, -1800.f, 0.f) });
+	ATDEncounterVolume* Wave2 = Wave({ ETDCrewType::Trooper, ETDCrewType::Drone }, { FVector(1300.f, 1300.f, 0.f), FVector(1300.f, -1300.f, 0.f) });
+	ATDEncounterVolume* Wave3 = Wave({ ETDCrewType::Heavy, ETDCrewType::Grunt }, { FVector(1800.f, 500.f, 0.f), FVector(200.f, 1800.f, 0.f) });
 	FTDRetakeMercyTier TransferMercy3; TransferMercy3.FromTake = 3; TransferMercy3.DropCrew = 1;
 	Wave3->MercyTiers = { TransferMercy3 };
-	// The pause zone is centred where the pilot stands at the console (site (76, 81.5, 153)).
-	ATDArchiveTransfer* Transfer = SpawnProp<ATDArchiveTransfer>(VerdOutpost ? OP(FVector(76.f, 81.5f, 153.f)) : WreckSite + FVector(-250.f, 0.f, 0.f));
-	Transfer->LinkedObjective = Wreck;
-	Transfer->LinkedStep = 4; // steps 3 (first half) and 4 (second half, the midpoint checkpoint)
+	// The pause zone is centred on the console.
+	ATDArchiveTransfer* Transfer = SpawnProp<ATDArchiveTransfer>(ConsoleAt + FVector(0.f, 0.f, DeckTop));
+	Transfer->LinkedObjective = Relay;
+	Transfer->LinkedStep = 3; // steps 2 (first half) and 3 (second half, the midpoint checkpoint)
 	Transfer->Waves = { Wave1, Wave2, Wave3 };
 	Transfer->WaveAt = { 0.f, 0.25f, 0.5f };
 	TDCourseImpl::FinishProp(Transfer);
 	ArchiveTransfer = Transfer;
 
-	// The data package: take it from the terminal (a short hold) and get it back to the ship; two grunts give chase.
-	ATDEncounterVolume* Pursuit = Encounter(Wreck, INDEX_NONE, WreckSite + FVector(0.f, 0.f, 900.f), FVector(10.f), { ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 1300.f);
-	ATDExtractionSite* Core = SpawnProp<ATDExtractionSite>(VerdOutpost ? OP(FVector(120.f, -200.f, 140.f + 60.f)) : WreckSite + FVector(-250.f, 350.f, 60.f)); // on the deck by the ramp
-	Core->LinkedObjective = Wreck;
-	Core->LinkedStep = 5;
-	Core->HoldTime = 1.5f;
-	Core->Prompt = LOCTEXT("TakePackage", "Take the device and the archive");
-	Core->WaveA = Pursuit;
-	Core->WaveB = nullptr;
-	TDCourseImpl::FinishProp(Core);
-
 	ATDStepTrigger* Ship = SpawnProp<ATDStepTrigger>(FVector(300.f, 0.f, 0.f));
-	Ship->LinkedObjective = Wreck;
-	Ship->LinkedStep = 6;
-	Ship->bRequireCarrying = true;
+	Ship->LinkedObjective = Relay;
+	Ship->LinkedStep = 4;
 	TDCourseImpl::FinishProp(Ship);
 	Ship->Box->SetBoxExtent(FVector(1400.f, 1400.f, 400.f));
 
-	Checkpoint(Wreck, 1, FVector(8300.f, 5800.f, 0.f), 30.f); // dying in the station fight: back at its edge, not at the pad
-	Checkpoint(Wreck, 4, WreckSite + FVector(-900.f, -300.f, 0.f), 15.f); // the transfer's midpoint
-	Checkpoint(Wreck, 5, WreckSite + FVector(-900.f, -300.f, 0.f), 15.f); // the package: back at the station
-	FinishObjective(Wreck,
-		{ LOCTEXT("W0", "FOLLOW THE BEACON TO THE RESEARCH SITE"), LOCTEXT("W1", "CLEAR THE RESEARCH SITE"),
-		  LOCTEXT("W2", "CONNECT THE DEVICE TO THE SURVEY CONSOLE · [E]"), LOCTEXT("W3", "PROTECT THE DATA TRANSFER"), LOCTEXT("W4", "PROTECT THE DATA TRANSFER"),
-		  LOCTEXT("W5", "TAKE THE DEVICE AND THE ARCHIVE · HOLD [E]"), LOCTEXT("W6", "GET BACK TO YOUR SHIP") },
-		{ Beacon, SiteFight, Terminal, Transfer, Transfer, Core, Ship });
-
-	// ---- Obj 2: the ancient relay (-> Cloak on Rift). South-east, up a ruined climb. ----
-	const FVector RelayHead(2600.f, -2600.f, 0.f);
-	ATDObjective* Relay = MakeObjective(TEXT("Obj_Relay"), LOCTEXT("RelayTitle", "Wake the Relay"), ETDAbilityId::Cloak, ETDShipId::Rift, 3);
-	AddTrailhead(Relay, RelayHead, Magenta, LOCTEXT("TheRelay", "THE RELAY"));
-	Route({ FVector(900.f, -900.f, 0.f), RelayHead, FVector(5000.f, -5000.f, 0.f) }, Magenta);
-
-	// The climb (jump 134 cm, double jump ~214, mantle 180 above the feet, dash 12 m), sized from playtest:
-	// A +110 jump -> B +180 double jump / mantle -> a 7 m gap: jump + dash onto C, a deep 10 m landing (a 12 m
-	// dash must not overshoot it) -> plateau +270 jump + mantle. C (330) can't be climbed from the ground, so a
-	// miss means back to A: platforming, not a wall walk.
-	Platform(FVector(5700.f, -5500.f, 0.f), 110.f, FVector(600.f, 600.f, 110.f), RelayStone, 0.4f, TEXT("SM_Verd_RelayPlatform_S"));
-	Platform(FVector(6400.f, -6050.f, 0.f), 290.f, FVector(600.f, 600.f, 290.f), RelayStone, 0.4f, TEXT("SM_Verd_RelayPlatform_M"));
-	Platform(FVector(7550.f, -7000.f, 0.f), 330.f, FVector(1000.f, 1000.f, 330.f), RelayStone, 0.4f, TEXT("SM_Verd_RelayPlatform_L"));
-	// (the gap-hint glow sat under the ground top and was never visible: dropped, Lead Nov 13) // glowing hint under the gap
-	const FVector Plateau(9200.f, -8200.f, 0.f);
-	const float PlateauTop = 600.f;
-	Platform(Plateau, PlateauTop, FVector(2600.f, 2600.f, PlateauTop), VerdanceRock, 0.f, TEXT("SM_Verd_Plateau"));
-	// Ruined pillars around the plateau edge.
-	for (int32 i = 0; i < 8; ++i)
-	{
-		const float A = i * PI / 4.f;
-		Block(EShape::Cylinder, Plateau + FVector(FMath::Cos(A) * 1200.f, FMath::Sin(A) * 1200.f, PlateauTop + 300.f), FVector(120.f, 120.f, 600.f), VerdanceRock, 0.f, FRotator::ZeroRotator, true, TEXT("SM_Verd_RuinPillar"));
-	}
-
-	ATDStepTrigger* Climb = SpawnProp<ATDStepTrigger>(Plateau + FVector(0.f, 0.f, PlateauTop));
-	Climb->LinkedObjective = Relay;
-	Climb->LinkedStep = 0;
-	TDCourseImpl::FinishProp(Climb);
-	Climb->Box->SetBoxExtent(FVector(1300.f, 1300.f, 300.f));
-
-	// Three resonance nodes on stone stubs around the plateau (+180: double jump or mantle), drones guarding.
-	ATDStepCounter* Nodes = SpawnProp<ATDStepCounter>(Plateau + FVector(0.f, 0.f, PlateauTop));
-	Nodes->LinkedObjective = Relay;
-	Nodes->LinkedStep = 1;
-	Nodes->Required = 3;
-	Nodes->BaseText = LOCTEXT("Nodes", "WAKE THE RESONANCE NODES");
-	TDCourseImpl::FinishProp(Nodes);
-	for (int32 i = 0; i < 3; ++i)
-	{
-		const float A = PI * 0.3f + i * PI * 2.f / 3.f;
-		const FVector Stub = Plateau + FVector(FMath::Cos(A) * 800.f, FMath::Sin(A) * 800.f, 0.f);
-		Platform(Stub, PlateauTop + 180.f, FVector(320.f, 320.f, 180.f), RelayStone, 0.6f, TEXT("SM_Verd_NodeStub"));
-		ATDInteractableActor* Node = SpawnProp<ATDInteractableActor>(Stub + FVector(0.f, 0.f, PlateauTop + 180.f + 60.f));
-		Node->Prompt = LOCTEXT("NodePrompt", "Wake the node");
-		Node->LinkedObjective = Relay;
-		Node->LinkedStep = 1;
-		Node->bCompleteLinkedStep = false;
-		TDCourseImpl::FinishProp(Node);
-		UTDStatics::TintPlaceholder(Node->Mesh, Magenta, 2.f);
-		Nodes->WatchInteractable(Node);
-	}
-	ATDEncounterVolume* Drones = Encounter(Relay, INDEX_NONE, Plateau + FVector(0.f, 0.f, PlateauTop + 400.f), FVector(1400.f, 1400.f, 600.f),
-		{ ETDCrewType::Drone, ETDCrewType::Drone, ETDCrewType::Drone }, false, 900.f);
-	StepEncounters.Add({ Relay, 1, Drones });
-
-	ATDInteractableActor* RelayCore = SpawnProp<ATDInteractableActor>(Plateau + FVector(0.f, 0.f, PlateauTop + 75.f)); // 150 tall (scaled below), standing on the plateau
-	RelayCore->ConsoleMesh = TDPropArt::Default(TEXT("SM_Verd_RelayAltar")); // 200 x 200 x 150, the scale below
-	RelayCore->Prompt = LOCTEXT("RelayPrompt", "Wake the relay");
-	RelayCore->HoldTime = 1.5f;
-	RelayCore->LinkedObjective = Relay;
-	RelayCore->LinkedStep = 2;
-	TDCourseImpl::FinishProp(RelayCore);
-	RelayCore->SetActorScale3D(FVector(2.f, 2.f, 1.5f));
-	UTDStatics::TintPlaceholder(RelayCore->Mesh, RelayStone, 2.5f);
-	Block(EShape::Cylinder, Plateau + FVector(0.f, 0.f, PlateauTop + 1400.f), FVector(80.f, 80.f, 1800.f), RelayStone, 2.f, FRotator::ZeroRotator, false);
-
-	Checkpoint(Relay, 1, Plateau + FVector(-450.f, 0.f, PlateauTop), 0.f); // no re-climb for a death on the plateau; beside the altar, never in it
+	Checkpoint(Relay, 2, ConsoleAt + FVector(-600.f, 0.f, DeckTop), 0.f); // the transfer's start: back at the console
+	Checkpoint(Relay, 3, ConsoleAt + FVector(-600.f, 0.f, DeckTop), 0.f); // the midpoint
 	FinishObjective(Relay,
-		{ LOCTEXT("R0", "CLIMB TO THE RELAY"), LOCTEXT("R1", "WAKE THE RESONANCE NODES  0 / 3"), LOCTEXT("R2", "WAKE THE RELAY · HOLD [E]") },
-		{ Climb, Nodes, RelayCore });
+		{ LOCTEXT("R0", "FOLLOW THE SIGNAL TO THE RELAY"), LOCTEXT("R1", "CONNECT THE DEVICE TO THE RELAY · [E]"),
+		  LOCTEXT("R2", "PROTECT THE DATA TRANSFER"), LOCTEXT("R3", "PROTECT THE DATA TRANSFER"), LOCTEXT("R4", "GET BACK TO YOUR SHIP") },
+		{ Reach, RelayConsole, Transfer, Transfer, Ship });
 
 	// Dressing: engineering's props and trees (the placeholder flora only if they are missing).
 	KeepOuts = {
 		{ WreckSite, FVector(2800.f, 2800.f, 0.f) },
-		{ FVector(7400.f, -6700.f, 0.f), FVector(2400.f, 1600.f, 0.f) },  // the climb: jump and dash lines
-		{ FVector(9200.f, -8200.f, 0.f), FVector(2000.f, 2000.f, 0.f) },  // the plateau
+		{ RelaySite, FVector(2900.f, 2900.f, 0.f) },  // the relay deck and its 14 m of open ground
 		{ Ambush, FVector(1700.f, 1700.f, 0.f) },
 	};
 	MarkRoutes(TEXT("SM_Verd_Mushroom_03"), 1600.f, 700.f, FVector2D(0.8f, 1.1f)); // tall glowing trail markers

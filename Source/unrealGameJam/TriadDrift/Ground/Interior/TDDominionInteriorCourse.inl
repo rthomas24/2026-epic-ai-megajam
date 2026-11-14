@@ -595,11 +595,11 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 	}
 	const FName Id = Objective->ObjectiveId;
 	auto Beat = [this](const TCHAR* Beat) { UTDStorySubsystem::Fire(this, FName(Beat)); };
-	// Verdance, the survey archive (storyline.md section 16, reduced form): the transfer starts, the disruption, data secured.
-	if (Id == TEXT("Obj_WreckCore") && StepIndex == 3) { Beat(TEXT("G3_TransferStart")); }
-	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 4) { Beat(TEXT("G3_Disruption")); }
-	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 5) { Beat(TEXT("G3_DataSecured")); }
-	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 6) { Beat(TEXT("G3_Command_Extraction")); }
+	// Verdance, the survey archive (storyline.md section 16, reduced form; at the relay since decision 2): the transfer
+	// starts, the disruption, data secured and the way home.
+	if (Id == TEXT("Obj_Relay") && StepIndex == 2) { Beat(TEXT("G3_TransferStart")); }
+	else if (Id == TEXT("Obj_Relay") && StepIndex == 3) { Beat(TEXT("G3_Disruption")); }
+	else if (Id == TEXT("Obj_Relay") && StepIndex == 4) { Beat(TEXT("G3_DataSecured")); Beat(TEXT("G3_Command_Extraction")); }
 	// Cinder (T3's ids): no echo on the route (story alignment a5 / a7); the only echo is in Cinematic 05 at the terminal.
 	else if (Id == TEXT("Obj_Survey") && StepIndex == 1) { Beat(TEXT("G4_Kato_TerminalAhead")); }
 	else if (Id == TEXT("Obj_Outpost") && StepIndex == 0) { Beat(TEXT("G5_Wren_ClearRoute")); }
