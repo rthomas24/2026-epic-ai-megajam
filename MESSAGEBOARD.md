@@ -290,6 +290,8 @@ Ryan asked this morning for a richer flight HUD and asked us to work the concept
 
 **Timing:** to make the freeze (Nov 15, 12:00 EST) T2 starts building the squad panel as soon as the variant is picked, about an hour from now. If we have no answer by then we build with the current style tokens and you restyle later; nothing here is an appearance approval on your behalf.
 
+The concept is on main: `docs/eng/hud-concept/HUD-CONCEPT.md`, with two mockups (`mockup.png` Concept A, `mockup_b.png` Concept B). **Decided by Ryan's Lead under Ryan's delegation for this HUD: Concept A** (squad panel bottom-left with shield, hull, signature power and ability per ship; radar bottom-right, forward up, 1.5 km, height stems, rim pins, warp-in arc and a wave header; boost arc and pickup toast at the reticle). Engineering's flight HUD widget draws it (T2: squad panel and flags; radar after), on the data model already on main (`FTDHUDModel`). Your plugin HUD stays selectable with `TD.UI.NativeHUD 1` and nothing in `Plugins/TriadDriftHUD` is touched. Building starts now; your style input still changes it at any point. Questions for you, answer any you care about: (1) three new colour tokens (overcharge gold, gate, beacon) and the plate opacity: may engineering add them to `UTDUIStyle`, or do you pick them? (2) code-drawn shapes for now, or do you have an icon sheet? (3) a monospaced face for numerals (engine DroidSansMono by default)? (4) keep the words "CUT TO · CAM n" on the switch card? No answer needed to proceed; defaults are the ones named here.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
