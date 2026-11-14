@@ -1,6 +1,9 @@
 // Automation tests for the wave director (ENG-14). Run: .\Tools\td-test.ps1 -Filter TriadDrift.Waves
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/Combat/TDWeaponLibrary.h"
+#include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/World/TDWorldBarks.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -534,6 +537,59 @@ bool FTDWavesTutorialRetake::RunTest(const FString& Parameters)
 		W.Tick();
 		TestTrue(TEXT("Auto in a test world: cleared by kills"), GI->ReportedWaves.Contains(2));
 	}
+	return true;
+}
+
+
+// ENG-43: dialogs.md Bark_WaveIncoming (from wave 2, once per wave), Bark_NewEnemy_Interceptor (first of the type, once
+// per run) and Bark_WaveCleared (a wave ends).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWaveBarks, "TriadDrift.Waves.Barks.IncomingNewTypeAndCleared", TD_TEST_FLAGS)
+bool FTDWaveBarks::RunTest(const FString& Parameters)
+{
+	FTDCombatBarks::ResetRequestCounts();
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.Phase = ETDGamePhase::Waves1to2;
+	AActor* Player = TDWaveTest_SpawnPlayer(W);
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, Player);
+	D->StartWave(0);
+	TDWaveTest_SpawnEverything(W, D, 30.f);
+	TestEqual(TEXT("wave 1: no Bark_WaveIncoming"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::WaveIncoming), 0);
+	TDWaveTest_KillAll(D);
+	W.Advance(0.5f);
+	TestEqual(TEXT("Bark_WaveCleared after wave 1"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::WaveCleared), 1);
+	D->StartWave(1);
+	TDWaveTest_SpawnEverything(W, D, 40.f);
+	TestEqual(TEXT("wave 2: Bark_WaveIncoming once"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::WaveIncoming), 1);
+	TestEqual(TEXT("first interceptors: Bark_NewEnemy_Interceptor once"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::NewEnemyInterceptor), 1);
+	D->StartWave(1);	// a retake of the same wave
+	TDWaveTest_SpawnEverything(W, D, 40.f);
+	TestEqual(TEXT("a type seen before is not announced again"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::NewEnemyInterceptor), 1);
+	return true;
+}
+
+// ENG-43: dialogs.md Bark_MinesAhead: two or more slow, fused enemy charges ahead of the flown ship.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWaveMineBark, "TriadDrift.Waves.Barks.MinesAhead", TD_TEST_FLAGS)
+bool FTDWaveMineBark::RunTest(const FString& Parameters)
+{
+	FTDCombatBarks::ResetRequestCounts();
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.Phase = ETDGamePhase::Waves1to2;
+	AActor* Player = TDWaveTest_SpawnPlayer(W);
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, Player);
+	D->StartWave(0);
+	W.Advance(1.f);
+	const FTDProjectileSpec Mine = UTDWeaponLibrary::Get(TDWeaponIds::EnemyPlasmaMines).Projectile;
+	const FVector Fwd = Player->GetActorForwardVector();
+	for (int32 i = 0; i < 3; ++i)
+	{
+		ATDProjectile::Spawn(W.GetWorld(), Mine, FTransform(FRotator::ZeroRotator, Player->GetActorLocation() + Fwd * (20000.f + i * 3000.f)), nullptr, ETDTeam::Enemy);
+	}
+	W.Advance(1.f);
+	TestEqual(TEXT("Bark_MinesAhead"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::MinesAhead), 1);
+	W.Advance(2.f);
+	TestEqual(TEXT("not every half second"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::MinesAhead), 1);
 	return true;
 }
 

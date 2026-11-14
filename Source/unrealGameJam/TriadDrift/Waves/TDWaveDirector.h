@@ -366,6 +366,11 @@ protected:
 	float WithdrawalWait = 0.f;
 	bool bWithdrawalRequested = false;
 	bool bBoundaryReleased = false;
+	// ENG-43 barks (TDWorldBarks).
+	TSet<FName> SeenTypes;
+	bool bIncomingSaid = false;
+	float MineCheckTimer = 0.f;
+	void CheckMinesAhead();
 
 	UFUNCTION()
 	void HandleEnemyDeath(UTDHealthComponent* Health, const FTDDamageInfo& KillingBlow);

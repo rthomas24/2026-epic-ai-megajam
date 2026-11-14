@@ -31,6 +31,8 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
+#include "TriadDrift/World/TDWorldBarks.h"
+#include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Story/TDTutorialPhases.h"
@@ -860,6 +862,18 @@ void ATDWaveDirector::SpawnGroup(const FPendingGroup& P)
 				continue;
 			}
 			// The tutorial's heavy contact: the gunship of the withdrawal wave (by the group's id, so stand-ins count).
+			// dialogs.md Bark_NewEnemy_<Type>: the first of each type this run (Kato identifies it). The tutorial's heavy
+			// contact has its own line (TB_Wren_Bigger), so a gunship there does not also get this one.
+			if (!SeenTypes.Contains(G.EnemyId))
+			{
+				SeenTypes.Add(G.EnemyId);
+				const bool bTutorialHeavy = G.EnemyId == TDEnemyIds::WallGunship && IsTutorialWithdrawalWave();
+				const FName NewId = G.EnemyId == TDEnemyIds::HookInterceptor ? TDWorldBarkIds::NewEnemyInterceptor
+					: G.EnemyId == TDEnemyIds::WallGunship ? TDWorldBarkIds::NewEnemyGunship
+					: G.EnemyId == TDEnemyIds::MaulBomber ? TDWorldBarkIds::NewEnemyBomber
+					: G.EnemyId == TDEnemyIds::HiveCarrier ? TDWorldBarkIds::NewEnemyCarrier : NAME_None;
+				if (!NewId.IsNone() && !bTutorialHeavy) { FTDWorldBarks::Say(this, NewId, ETDBarkPriority::High, FTDWorldBarks::EWho::Kato, 0.f); }
+			}
 			if (G.EnemyId == TDEnemyIds::WallGunship && !bHeavySeen && IsTutorialWithdrawalWave())
 			{
 				HeavyContact = Enemy;
@@ -987,6 +1001,11 @@ void ATDWaveDirector::FinishWave()
 	if (!Waves.IsValidIndex(CurrentWave))
 	{
 		return;
+	}
+	// dialogs.md Bark_WaveCleared: a wave ends (a pilot, rotating). The tutorial wave ends on Command's withdrawal instead.
+	if (!IsTutorialWithdrawalWave())
+	{
+		FTDWorldBarks::Say(this, TDWorldBarkIds::WaveCleared, ETDBarkPriority::High, FTDWorldBarks::EWho::Wingman, 5.f);
 	}
 	const FTDWaveDef& Wave = Waves[CurrentWave];
 	const int32 WaveNumber = CurrentWave + 1;
@@ -1182,6 +1201,7 @@ void ATDWaveDirector::ResetTutorial()
 	if (AActor* M = EscapeMarker.Get()) { M->Destroy(); }
 	EscapeMarker.Reset();
 	TutorialPhase = ETDTutorialPhase::Battle;
+	bIncomingSaid = false;
 	TutorialClock = 0.f;
 	WithdrawalWait = 0.f;
 	bWithdrawalRequested = false;
@@ -1279,6 +1299,31 @@ void ATDWaveDirector::CompleteEscape()
 	Pending.Reset();
 	ClearEnemies();
 	FinishWave();
+}
+
+void ATDWaveDirector::CheckMinesAhead()
+{
+	// dialogs.md Bark_MinesAhead: the flown ship heads at a mine cluster (slow, fused enemy charges) within ~6 s of travel.
+	const AActor* Flown = GetSpawnAnchor();
+	const UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(this);
+	if (!Flown || !Projectiles) { return; }
+	const FVector Me = Flown->GetActorLocation();
+	const FVector Fwd = Flown->GetVelocity().SizeSquared() > 1.f ? Flown->GetVelocity().GetSafeNormal() : Flown->GetActorForwardVector();
+	const float Reach = FMath::Max(60000.f, (float)Flown->GetVelocity().Size() * 6.f);
+	int32 Ahead = 0;
+	for (const ATDProjectile* P : Projectiles->GetLiveProjectiles())
+	{
+		if (!P || P->GetTeam() != ETDTeam::Enemy) { continue; }
+		const FTDProjectileSpec& S = P->GetSpec();
+		if (S.ProximityFuseRadius <= 0.f || S.Speed > 1000.f) { continue; }	// a mine: slow and fused
+		const FVector To = P->GetActorLocation() - Me;
+		const float D = To.Size();
+		if (D < Reach && FVector::DotProduct(To / FMath::Max(D, 1.f), Fwd) > 0.85f) { ++Ahead; }
+	}
+	if (Ahead >= 2)
+	{
+		FTDWorldBarks::Say(this, TDWorldBarkIds::MinesAhead, ETDBarkPriority::High, FTDWorldBarks::EWho::Wingman, 20.f);
+	}
 }
 
 bool ATDWaveDirector::IsTeachingSquad() const
@@ -1401,6 +1446,15 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 	{
 		UpdateTeachPressure();
 	}
+	if (State == ETDWaveState::Active || State == ETDWaveState::WarpingIn)
+	{
+		MineCheckTimer -= DeltaSeconds;
+		if (MineCheckTimer <= 0.f)
+		{
+			MineCheckTimer = 0.5f;
+			CheckMinesAhead();
+		}
+	}
 
 	if (bOpeningGrace)
 	{
@@ -1453,6 +1507,11 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 			if (!P.bWarpAnnounced && P.Remaining <= WarpInSeconds)
 			{
 				P.bWarpAnnounced = true;
+				if (CurrentWave >= 1 && !bIncomingSaid)
+				{
+					bIncomingSaid = true;	// dialogs.md Bark_WaveIncoming: the next wave warps in (Kato), once per wave
+					FTDWorldBarks::Say(this, TDWorldBarkIds::WaveIncoming, ETDBarkPriority::High, FTDWorldBarks::EWho::Kato, 10.f);
+				}
 				const FTDEnemySpec& Spec = UTDEnemyLibrary::Get(P.Group.EnemyId);
 				PickSpawnPoint(P.Group.Zone, Spec.IsValid() && Spec.Size >= ETDEnemySize::Large, P.Location, P.Facing);
 				OnWarpInStarted.Broadcast(P.Location, P.Group.EnemyId);

@@ -437,6 +437,7 @@ protected:
 	int32 EscapeDebrisSpawned = 0;
 	bool bEscapeClear = false;
 	bool bEscapeFailReported = false;
+	bool bEscapeBarkSaid = false;
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AActor>> EscapeDebris;
 	bool bPlaceholderBreakup = false;

@@ -3,6 +3,7 @@
 // Run: .\Tools\td-test.ps1 -Filter TriadDrift.World.Escape
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/World/TDWorldBarks.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -144,6 +145,24 @@ bool FTDEscapeDebrisHurts::RunTest(const FString&)
 	W.Advance(0.1f);
 	TestTrue(*FString::Printf(TEXT("the ship took damage (%.0f -> %.0f)"), Before, H->GetHull() + H->GetShield()), H->GetHull() + H->GetShield() < Before);
 	TestFalse(TEXT("the chunk burst"), IsValid(Chunk) && !Chunk->IsActorBeingDestroyed());
+	return true;
+}
+
+
+// ENG-43: dialogs.md Bark_Dom_EscapeFlight (after Wren's line) and Bark_Dom_Clear (clear of the blast).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEscapeBarks, "TriadDrift.World.Barks.EscapeFlightAndClear", TD_TEST_FLAGS)
+bool FTDEscapeBarks::RunTest(const FString&)
+{
+	FTDCombatBarks::ResetRequestCounts();
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	TDEscapeTest::FSetup S = TDEscapeTest::Start(W);
+	if (!TestNotNull(TEXT("ship"), S.Ship)) { return false; }
+	TestEqual(TEXT("not yet: Wren's transmission plays first"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomEscapeFlight), 0);
+	W.Advance(5.f);
+	TestEqual(TEXT("Bark_Dom_EscapeFlight once"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomEscapeFlight), 1);
+	S.Ship->SetActorLocation(S.Dominion->GetActorLocation() + S.Dominion->GetActorForwardVector() * (S.Dominion->GetEscapeExitRadius() + 5000.f));
+	W.Advance(0.5f);
+	TestEqual(TEXT("Bark_Dom_Clear once"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomClear), 1);
 	return true;
 }
 

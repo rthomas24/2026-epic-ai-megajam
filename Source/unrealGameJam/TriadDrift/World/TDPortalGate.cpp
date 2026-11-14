@@ -1,5 +1,6 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDPortalGate.h"
+#include "TriadDrift/World/TDWorldBarks.h"
 
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "Misc/PackageName.h"
@@ -294,6 +295,10 @@ bool ATDPortalGate::TryTransit(AActor* Traveller, float DeltaSeconds)
 		UTDStatics::PlayCue(this, TravelFX->PortalTransit, Traveller->GetActorLocation(), Exit.Rotator());
 	}
 	OnTransit.Broadcast(this, Traveller);
+	if (FTDCombatBarks::IsPlayerFlown(Traveller) && FMath::RandRange(0, 2) == 0)
+	{
+		FTDWorldBarks::Say(this, TDWorldBarkIds::GateEnter, ETDBarkPriority::Flavour, FTDWorldBarks::EWho::FlownPilot, 0.f, Traveller);	// dialogs.md Bark_Gate_Enter, 1 in 3
+	}
 	return true;
 }
 
