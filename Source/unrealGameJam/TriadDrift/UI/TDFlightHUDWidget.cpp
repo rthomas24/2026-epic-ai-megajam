@@ -527,7 +527,7 @@ void UTDFlightHUDWidget::SampleDirector(float Dt)
 	const float RealDt = World && World->GetWorldSettings() ? Dt / FMath::Max(World->GetWorldSettings()->GetEffectiveTimeDilation(), .01f) : Dt;
 	View.MoneyShot = FMath::FInterpConstantTo(View.MoneyShot, bMoney ? 1.f : 0.f, RealDt, 1.f / MoneyShotEaseSeconds);
 	const float Target = FMath::Min(View.bInCut ? 0.f : View.bInSlate ? SlateOpacity : View.bPaused ? PauseOpacity : 1.f,
-		FMath::Clamp(FocusOpacity, 0.f, 1.f));
+		FMath::Clamp(bPlanetClosed ? 1.f : FocusOpacity, 0.f, 1.f)); // #161: the closed-planet warning is never dimmed
 	View.bCombatHeld = bFocusHideCombat;
 	// Off at once on a cut; everything else eases (the fade back in after CUT is the 250 ms the spec asks for).
 	View.HUDOpacity = View.bInCut ? 0.f : FMath::FInterpConstantTo(View.HUDOpacity, Target, RealDt, 1.f / CutFadeInSeconds);
@@ -900,7 +900,20 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		const APawn* Ship = PC ? PC->GetPawn() : nullptr;
 		const ATDShip* AsShip = Cast<ATDShip>(Ship);
 		const bool bEntering = AsShip && AsShip->GetAtmosphereEntry() && AsShip->GetAtmosphereEntry()->IsEntering();
-		View.bDescent = View.Heat01 > .01f || View.Descent01 >= 0.f || bEntering;
+		// #161 (T1): a closed planet burns the hull through the entry heat, but it is not a descent: no ATMOSPHERE panel,
+		// and its warning line shows in the prompt lane for as long as the entry component reports it.
+		const bool bClosed = AsShip && AsShip->GetAtmosphereEntry() && AsShip->GetAtmosphereEntry()->IsPlanetClosedWarning();
+		View.bDescent = !bClosed && (View.Heat01 > .01f || View.Descent01 >= 0.f || bEntering);
+		if (bClosed)
+		{
+			const FString Raw = AsShip->GetAtmosphereEntry()->GetPlanetClosedText().ToString();
+			if (Raw != PlanetClosedRaw)
+			{
+				PlanetClosedRaw = Raw;
+				PlanetClosedLine = Raw.ToUpper();
+			}
+		}
+		bPlanetClosed = bClosed && !PlanetClosedLine.IsEmpty();
 		// ORBIT: the descent cover ending on the galaxy map is the climb-out's reveal (the HUD is rebuilt after the travel,
 		// so the edge is watched here rather than only through OnRevealed).
 		const bool bCovered = Descent && Descent->GetCoverPhase() != ETDDescentCover::Off;
@@ -1101,6 +1114,11 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 	{
 		View.Lane = ELane::Prompt;
 		View.LaneText = Prompt.ToUpper();
+	}
+	else if (bPlanetClosed)
+	{
+		View.Lane = ELane::HyperdriveBlocked; // the same warning look: amber words with the padlock
+		View.LaneText = PlanetClosedLine;
 	}
 	else if (BlockedLeft > 0.f && !Blocked.IsEmpty())
 	{
@@ -2513,18 +2531,22 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	else if (View.Lane != ELane::None && !View.LaneText.IsEmpty())
 	{
 		const FLinearColor LaneC = View.Lane == ELane::HyperdriveBlocked ? T::Warning() : T::Neutral();
-		const float LaneW = FMath::Clamp(P.Measure(View.LaneText, P.Font("Bold", 17, 50)) + 48.f, 240.f, 760.f);
-		Area += LaneW * 36.f;
-		P.Plate(CenterX - LaneW * .5f, 838.f, LaneW, 36.f, 8.f, T::Plate().CopyWithNewOpacity(View.Lane == ELane::Hint ? .5f : .65f));
-		Rec(TEXT("lane"), CenterX - LaneW * .5f, 838.f, LaneW, 36.f);
+		// #161: the closed-planet warning is the one large line (24 px on a taller plate, at full strength).
+		const bool bBigLane = bPlanetClosed && View.Lane == ELane::HyperdriveBlocked;
+		const int32 LanePx = bBigLane ? 24 : 17;
+		const float LaneH = bBigLane ? 50.f : 36.f, LaneY = bBigLane ? 826.f : 838.f;
+		const float LaneW = FMath::Clamp(P.Measure(View.LaneText, P.Font("Bold", LanePx, 50)) + 56.f, 240.f, bBigLane ? 1100.f : 760.f);
+		Area += LaneW * LaneH;
+		P.Plate(CenterX - LaneW * .5f, LaneY, LaneW, LaneH, 8.f, T::Plate().CopyWithNewOpacity(View.Lane == ELane::Hint ? .5f : bBigLane ? .85f : .65f));
+		Rec(TEXT("lane"), CenterX - LaneW * .5f, LaneY, LaneW, LaneH);
 		if (View.Lane == ELane::HyperdriveBlocked)
 		{
 			// A padlock: shackle arc + body.
-			const FVector2D L(CenterX - LaneW * .5f + 20.f, 858.f);
+			const FVector2D L(CenterX - LaneW * .5f + 20.f, LaneY + LaneH * .5f + 2.f);
 			P.ArcSpan(L + FVector2D(0, -4), 5.f, PI, PI, LaneC, 2.f);
 			P.Outline(L.X - 7.f, L.Y - 4.f, 14.f, 10.f, 2.f, 1.5f, LaneC);
 		}
-		P.Words(CenterX + (View.Lane == ELane::HyperdriveBlocked ? 10.f : 0.f), 845.f, View.LaneText, 17, LaneC, "Bold", .5f, 50);
+		P.Words(CenterX + (View.Lane == ELane::HyperdriveBlocked ? 10.f : 0.f), LaneY + LaneH * .5f - LanePx * .66f, View.LaneText, LanePx, LaneC, "Bold", .5f, 50);
 	}
 
 	// ---- subtitles / story transmissions: centred under the lower lane, speaker tag in the pilot's colour, 2 lines max.

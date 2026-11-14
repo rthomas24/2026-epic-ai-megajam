@@ -622,6 +622,9 @@ private:
 	int32 CardAbilitySecShown[3] = { -1, -1, -1 };
 	int32 CardOverShown[3] = { -1, -1, -1 };
 	FTDWaveInfo FrameWave;
+	/** #161: T1's "PLANET CLOSED" warning (UTDAtmosphereEntryComponent), upper-cased once. */
+	bool bPlanetClosed = false;
+	FString PlanetClosedRaw, PlanetClosedLine;
 	/** #154: the subtitle's wrap, cached per text / size / width (NativePaint is const). */
 	mutable FString SubWrapText;
 	mutable TArray<FString> SubWrapLines;
