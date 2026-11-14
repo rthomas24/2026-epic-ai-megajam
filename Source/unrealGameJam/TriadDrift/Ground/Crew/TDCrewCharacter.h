@@ -148,6 +148,14 @@ public:
 
 	// ---- sound (ENG-35): the bolt's muzzle sound (one per volley) and the drone's hum (looped, stopped on death).
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> RifleShotSound;
+	/** The guard clang on a blocked slash (engineering fallback; the GuardClang ground cue, then the look's ShieldHit cue, win). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> GuardClangSound;
+
+	/** The Heavy's guard (T7's playtest, Nov 13: ~32 quick slashes did nothing and nothing taught the lunge): blocked quick
+	 *  slashes chip it, and this many in a row (each within GuardChipWindow s of the last) stagger it open. */
+	static constexpr int32 GuardChipsToBreak = 9;
+	static constexpr float GuardChipWindow = 4.f;
+	int32 GetGuardChips() const { return GuardChips; }
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> DroneHumSound;
 	/** The last sound events (RifleShot, DroneHum, DroneHumStop): tests and debugging. */
 	const TArray<FName>& GetSoundEvents() const { return SoundEvents; }
@@ -216,6 +224,11 @@ private:
 	float ShotTimer = 0.f;
 	float StaggerLeft = 0.f;
 	float GuardBrokenLeft = 0.f;
+	int32 GuardChips = 0;
+	float GuardChipAge = 0.f;
+	float GuardFlashLeft = 0.f;
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> GuardFlash;
+	void PlayGuardClang(const FVector& At);
 	float ChargeTimeLeft = 0.f;
 	FVector ChargeVelocity = FVector::ZeroVector;
 	int32 BossPhase = 1;
