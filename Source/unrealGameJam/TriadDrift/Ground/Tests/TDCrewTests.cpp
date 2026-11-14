@@ -856,6 +856,47 @@ bool FTDCrewDeathsLand::RunTest(const FString& Parameters)
 	return true;
 }
 
+// The animation builder (Nov 14): none of the per-type action clips played; every type ran the template's one clip per
+// action. Each type's own move plays now (A_Crew_<Type>_<Action>, on its own skeleton), else today's clip.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewTypeClips, "TriadDrift.Ground.Crew.EachTypePlaysItsOwnActionClips", TD_TEST_FLAGS)
+bool FTDCrewTypeClips::RunTest(const FString& Parameters)
+{
+	struct FCase { ETDCrewType Type; ETDCrewAttack Attack; const TCHAR* Want; };
+	const FCase Cases[] = {
+		{ ETDCrewType::Heavy, ETDCrewAttack::Melee, TEXT("A_Crew_Heavy_ShieldBash") },
+		{ ETDCrewType::Trooper, ETDCrewAttack::Burst, TEXT("A_Crew_Trooper_Fire_Burst") },
+		{ ETDCrewType::Grunt, ETDCrewAttack::Melee, TEXT("A_Crew_Grunt_Melee_02") },
+		{ ETDCrewType::Warden, ETDCrewAttack::BoltFan, TEXT("A_Crew_Warden_Fire_01") },
+		{ ETDCrewType::Warden, ETDCrewAttack::Summon, TEXT("A_Crew_Warden_Summon_01") },
+	};
+	for (const FCase& C : Cases)
+	{
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(-150.f, 0.f, 95.f));
+		ATDCrewCharacter* Crew = TDCrewTest::SpawnCrew(W, C.Type, FVector(0.f, 0.f, 140.f), FRotator(0.f, 180.f, 0.f));
+		if (!TestNotNull(TEXT("crew"), Crew) || !P) { return false; }
+		W.Advance(0.5f);
+		if (!Crew->TypeClip(TEXT("Death_Back")) && !Crew->UsesFallbackAnimation())
+		{
+			AddInfo(FString::Printf(TEXT("%s: no skeletal look with the loop player here"), *FTDCrewLibrary::TypeName(C.Type).ToString()));
+			continue;
+		}
+		const bool bClip = FPackageName::DoesPackageExist(FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/%s"), C.Want));
+		Crew->SetOpeningGrace(0.f);
+		TestTrue(*FString::Printf(TEXT("%s starts"), C.Want), Crew->StartAttack(C.Attack, P));
+		if (bClip)
+		{
+			TestEqual(*FString::Printf(TEXT("its own clip (%s)"), *Crew->GetLastTypeClip().ToString()), Crew->GetLastTypeClip(), FName(C.Want));
+		}
+		else
+		{
+			AddInfo(FString::Printf(TEXT("%s not in this checkout: today's clip plays"), C.Want));
+		}
+	}
+	return true;
+}
+
 // The Rodin drone (Lead, Nov 13): its 79 x 90 x 88 cm look is what the blade and deflected bolts must hit, and a static-mesh
 // look's Muzzle socket is where its shots start.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDroneLookAndMuzzle, "TriadDrift.Ground.Crew.DroneCapsuleCoversItsLookAndShootsFromItsMuzzle", TD_TEST_FLAGS)
