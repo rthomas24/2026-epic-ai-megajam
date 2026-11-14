@@ -8,6 +8,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "EngineUtils.h"
+#include "NiagaraComponent.h"
+#include "UObject/UObjectIterator.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
@@ -23,9 +25,70 @@
 namespace TDPowerTest
 {
 
+// With the real art (DA_Ability_*_FX, fc0980c5): an ability whose cue has a system spawns it, and no placeholder.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPresRealArt, "TriadDrift.Powers.Presentation.RealArtReplacesPlaceholders", TD_TEST_FLAGS)
+bool FTDPresRealArt::RunTest(const FString& Parameters)
+{
+	// Headless runs spawn no Niagara component: the art's cue request is what is checked (the moment asked for its system).
+	auto LiveSystems = [](UWorld*)
+	{
+		return FTDPowerPresentation::GetCueRequests(TEXT("Ability.Loop")) + FTDPowerPresentation::GetCueRequests(TEXT("Ability.Activate"))
+			+ FTDPowerPresentation::GetCueRequests(TEXT("Ability.AffectedTarget"));
+	};
+	FTDPowerPresentation::ResetCueRequests();
+	auto Art = [](ETDAbilityId Id, bool bActivate)
+	{
+		const UTDAbilityFX* FX = FTDPowerPresentation::LoadAbilityFX(Id);
+		return FX && FTDPowerPresentation::HasArt(bActivate ? FX->Activate : FX->Loop);
+	};
+	FTDTestWorld W;
+	int32 Checked = 0;
+	if (Art(ETDAbilityId::GravityWell, false))
+	{
+		AActor* Bastion = SpawnBody(W, ETDTeam::Player, FVector(0.f, -30000.f, 0.f), FVector(100.f));
+		UTDGravityWellPower* Well = AddPower<UTDGravityWellPower>(Bastion);
+		const int32 Before = LiveSystems(W.GetWorld());
+		Well->TryActivate();
+		W.Advance(1.f);
+		TestTrue(TEXT("well: the art plays"), LiveSystems(W.GetWorld()) > Before);
+		TestEqual(TEXT("well: no placeholder core or ring"), Well->GetLastWell() ? FTDPowerPresentation::CountPlaceholders(Well->GetLastWell()) : -1, 0);
+		++Checked;
+	}
+	if (Art(ETDAbilityId::EMPPulse, true))
+	{
+		AActor* Lancer = SpawnBody(W, ETDTeam::Player, FVector(0.f, 30000.f, 0.f), FVector(100.f));
+		UTDEMPPower* Emp = AddPower<UTDEMPPower>(Lancer);
+		const int32 Before = LiveSystems(W.GetWorld());
+		Emp->TryActivate();
+		W.Tick();
+		int32 Flashes = 0;
+		for (TActorIterator<ATDPlaceholderFlash> It(W.GetWorld()); It; ++It) { ++Flashes; }
+		TestTrue(TEXT("EMP: the art plays"), LiveSystems(W.GetWorld()) > Before);
+		TestEqual(TEXT("EMP: no placeholder flash"), Flashes, 0);
+		++Checked;
+	}
+	if (Art(ETDAbilityId::Cloak, false))
+	{
+		AActor* Rift = SpawnBody(W, ETDTeam::Player, FVector::ZeroVector, FVector(50.f));
+		UTDCloakPower* Cloak = AddPower<UTDCloakPower>(Rift);
+		const int32 Before = FTDPowerPresentation::CountPlaceholders(Rift);
+		const int32 Systems = LiveSystems(W.GetWorld());
+		Cloak->TryActivate();
+		W.Tick();
+		TestTrue(TEXT("cloak: the art plays"), LiveSystems(W.GetWorld()) > Systems);
+		TestEqual(TEXT("cloak: no placeholder shimmer"), FTDPowerPresentation::CountPlaceholders(Rift), Before);
+		Cloak->EndPower(true);
+		++Checked;
+	}
+	AddInfo(FString::Printf(TEXT("%d abilities with art checked"), Checked));
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPresPlaceholders, "TriadDrift.Powers.Presentation.PlaceholdersWithoutArt", TD_TEST_FLAGS)
 bool FTDPresPlaceholders::RunTest(const FString& Parameters)
 {
+	// The placeholder path, whatever art the data assets carry (the effects builder's DA_Ability_*_FX now replace several).
+	struct FNoArt { FNoArt() { FTDPowerPresentation::SetIgnoreArtForTests(true); } ~FNoArt() { FTDPowerPresentation::SetIgnoreArtForTests(false); } } NoArt;
 	for (const float TDFrameStep : kPowerFrameSteps)
 	{
 	FScopedPowerFrameStep TDStepScope(TDFrameStep);
