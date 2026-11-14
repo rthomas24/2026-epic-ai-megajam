@@ -1,0 +1,109 @@
+{
+  "asset": "SM_KS_DomHullChunk_C",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_DomHullChunk_C.fbx",
+  "tris": 2996,
+  "size_cm": [
+    11650.6,
+    3009.0,
+    6526.0
+  ],
+  "pivot": "root object origin (SM_KS_DomHullChunk_C~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Kit_Dom",
+    "M_Kit_DomRaw",
+    "M_Kit_Ember",
+    "M_Kit_Glow"
+  ],
+  "material_params": [
+    {
+      "name": "M_Kit_Dom",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_DomRaw",
+      "textured": false,
+      "base_color": [
+        0.03,
+        0.03,
+        0.035
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Ember",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.25,
+        0.05
+      ],
+      "emission_strength": 3.0
+    },
+    {
+      "name": "M_Kit_Glow",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.1,
+        0.03
+      ],
+      "emission_strength": 6.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_KS_DomHullChunk_C_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}
