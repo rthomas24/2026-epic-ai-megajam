@@ -1,6 +1,10 @@
 // Automation tests for Squad (ENG-04, ENG-07, ENG-08). Run: .\Tools\td-test.ps1 -Filter TriadDrift.Squad
 
 #include "Misc/AutomationTest.h"
+#include "Engine/DataTable.h"
+#include "TriadDrift/Squad/TDBarkLines.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
+#include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/SpaceField/TDSpaceField.h"
 
@@ -1443,6 +1447,94 @@ bool FTDSquadAvoidRealField::RunTest(const FString& Parameters)
 	TestTrue(FString::Printf(TEXT("no wingman touches a field piece (closest surface gap %.0f cm)"), WorstGap), WorstGap > 0.f);
 	TestTrue(TEXT("and the Lancer is back by its slot"),
 		FVector::Dist(F.Ship(ETDShipId::Lancer)->GetActorLocation(), F.Squad->GetFormationSlotLocation(ETDShipId::Lancer)) < 3000.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadBarksEng43, "TriadDrift.Squad.Barks.DialogsTriggersForT3", TD_TEST_FLAGS)
+bool FTDSquadBarksEng43::RunTest(const FString& Parameters)
+{
+	// ENG-43: every dialogs.md row tagged T3 fires from its condition (the limiter decides what plays).
+	auto Count = [](const UTDSquadTestListener* L, const TCHAR* Id, FName* OutSpeaker = nullptr)
+	{
+		int32 N = 0;
+		for (const TPair<FName, FName>& B : L->Barks) { if (B.Key == FName(Id)) { ++N; if (OutSpeaker) { *OutSpeaker = B.Value; } } }
+		return N;
+	};
+	// The player's kill (1 in 3; here always), then three inside 4 s is a multi-kill.
+	{
+		FSquadFixture F;
+		F.Squad->PlayerKillBarkChance = 1.f;
+		F.W.Advance(0.5f);
+		ATDShip* P = F.Squad->GetActiveShip();
+		FName Speaker;
+		for (int32 i = 0; i < 3; ++i)
+		{
+			ATDEnemyShip* E = TDPowerTest::SpawnEnemyShip(F.W, TDEnemyIds::ShardFighter, P->GetActorLocation() + P->GetActorForwardVector() * (20000.f + 3000.f * i));
+			UTDStatics::ApplyTDDamage(E, 1000000.f, ETDDamageKind::Kinetic, P, P);
+			F.W.Tick();
+		}
+		TestTrue(TEXT("a wingman reacts to the player's kill"), Count(F.Events, TEXT("Bark_PlayerKill"), &Speaker) >= 1
+			&& Speaker != FName(TDBarkIds::SpeakerFor(F.Squad->GetActiveShipId())));
+		TestEqual(TEXT("three kills in 4 s: a multi-kill"), Count(F.Events, TEXT("Bark_MultiKill")), 1);
+	}
+	// A wingman's shield breaks, then comes back full: that pilot both times.
+	{
+		FSquadFixture F;
+		F.W.Advance(0.5f);
+		ATDShip* Lancer = F.Ship(ETDShipId::Lancer);
+		UTDHealthComponent* H = UTDStatics::GetHealth(Lancer);
+		ATDEnemyShip* E = TDPowerTest::SpawnEnemyShip(F.W, TDEnemyIds::ShardFighter, Lancer->GetActorLocation() + FVector(0.f, 0.f, 30000.f));
+		E->SetFlightParked(true);
+		UTDStatics::ApplyTDDamage(Lancer, H->GetShield() + 1.f, ETDDamageKind::Kinetic, E, E);
+		F.W.Tick();
+		FName Speaker;
+		TestTrue(TEXT("shield down: Kato says it"), Count(F.Events, TEXT("Bark_ShieldDown"), &Speaker) == 1 && Speaker == FName(TEXT("Kato")));
+		H->Revive(H->GetHull01(), 1.f);
+		F.W.Advance(9.f); // ShieldBack is Flavour: it waits for a quiet radio
+		TestTrue(TEXT("shield back: Kato again"), Count(F.Events, TEXT("Bark_ShieldBack"), &Speaker) == 1 && Speaker == FName(TEXT("Kato")));
+	}
+	// A breather with nothing else to say (no banter left): 4 s into the gap.
+	{
+		UDataTable* Empty = NewObject<UDataTable>(GetTransientPackage());
+		Empty->RowStruct = FTDBarkRow::StaticStruct();
+		Empty->AddToRoot();
+		FTDBarkLines::PresentationOverrideForTests = Empty;
+		FTDBarkLines::FallbackOverrideForTests = Empty;
+		ON_SCOPE_EXIT { FTDBarkLines::ResetForTests(); Empty->RemoveFromRoot(); };
+		FSquadFixture F;
+		F.W.Advance(9.f); // quiet: Flavour needs the radio silent for a while
+		UTDEventBus::Get(F.W.GetWorld())->BroadcastWaveCleared(1);
+		F.W.Advance(3.f);
+		TestEqual(TEXT("not before 4 s"), Count(F.Events, TEXT("Bark_Breather")), 0);
+		F.W.Advance(1.5f);
+		TestEqual(TEXT("the breather"), Count(F.Events, TEXT("Bark_Breather")), 1);
+	}
+	// An enemy holding behind the flown ship for 3 s: a wingman calls it, once.
+	{
+		FSquadFixture F;
+		F.W.Advance(0.5f);
+		ATDShip* P = F.Squad->GetActiveShip();
+		P->SetActorEnableCollision(false);
+		ATDEnemyShip* E = TDPowerTest::SpawnEnemyShip(F.W, TDEnemyIds::ShardFighter, P->GetActorLocation() - P->GetActorForwardVector() * 2500.f);
+		E->SetFlightParked(true);
+		for (int32 i = 0; i < 240; ++i)
+		{
+			E->SetActorLocation(P->GetActorLocation() - P->GetActorForwardVector() * 2500.f); // it holds on the tail
+			F.W.Tick(1.f / 60.f);
+		}
+		TestEqual(TEXT("on your six"), Count(F.Events, TEXT("Bark_OnMySix")), 1);
+	}
+	// A retake: Command's line (1 in 2; here always), never on the first take.
+	{
+		FSquadFixture F;
+		F.Squad->RetakeBarkChance = 1.f;
+		F.W.Advance(9.f);
+		UTDEventBus::Get(F.W.GetWorld())->BroadcastTakeStarted(TEXT("Wave1"), 1);
+		TestEqual(TEXT("not on the first take"), Count(F.Events, TEXT("Bark_Cmd_Retake")), 0);
+		UTDEventBus::Get(F.W.GetWorld())->BroadcastTakeStarted(TEXT("Wave1"), 2);
+		FName Speaker;
+		TestTrue(TEXT("Command on the retake"), Count(F.Events, TEXT("Bark_Cmd_Retake"), &Speaker) == 1 && Speaker == FName(TEXT("Command")));
+	}
 	return true;
 }
 

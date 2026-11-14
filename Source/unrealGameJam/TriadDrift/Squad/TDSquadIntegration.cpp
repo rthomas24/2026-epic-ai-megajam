@@ -597,6 +597,7 @@ namespace TDSquad
 		if (UTDHealthComponent* H = Health(Ship))
 		{
 			H->OnDamaged.AddUniqueDynamic(Squad, &ATDSquadManager::HandleShipDamaged);
+			H->OnShieldBroken.AddUniqueDynamic(Squad, &ATDSquadManager::HandleShieldBroken);
 		}
 	}
 
@@ -1110,6 +1111,7 @@ namespace TDSquad
 		{
 			Bus->OnWaveCleared.AddUniqueDynamic(Squad, &ATDSquadManager::HandleWaveCleared);
 			Bus->OnWaveStarted.AddUniqueDynamic(Squad, &ATDSquadManager::HandleWaveStarted);
+			Bus->OnTakeStarted.AddUniqueDynamic(Squad, &ATDSquadManager::HandleTakeStartedForBarks);
 		}
 	}
 
@@ -1119,6 +1121,7 @@ namespace TDSquad
 		{
 			Bus->OnWaveCleared.RemoveDynamic(Squad, &ATDSquadManager::HandleWaveCleared);
 			Bus->OnWaveStarted.RemoveDynamic(Squad, &ATDSquadManager::HandleWaveStarted);
+			Bus->OnTakeStarted.RemoveDynamic(Squad, &ATDSquadManager::HandleTakeStartedForBarks);
 		}
 	}
 

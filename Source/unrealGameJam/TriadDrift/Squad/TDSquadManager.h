@@ -437,6 +437,23 @@ public:
 	UFUNCTION()
 	void HandleWaveStarted(int32 WaveNumber, float Intensity01);
 
+	// ENG-43: dialogs.md's T3 bark triggers (TDSquadMoreBarks.cpp).
+	UFUNCTION()
+	void HandleShieldBroken(UTDHealthComponent* Health, const FTDDamageInfo& Info);
+	UFUNCTION()
+	void HandleTakeStartedForBarks(FName SceneId, int32 TakeNumber);
+	/** Chances (tests set 1): a wingman reacting to the player's kill; Command's line on a retake. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad|Barks", meta = (ClampMin = "0", ClampMax = "1"))
+	float PlayerKillBarkChance = 1.f / 3.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad|Barks", meta = (ClampMin = "0", ClampMax = "1"))
+	float RetakeBarkChance = 0.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad|Barks", meta = (Units = "s"))
+	float BreatherDelaySeconds = 4.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad|Barks", meta = (Units = "s"))
+	float OnMySixSeconds = 3.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad|Barks", meta = (Units = "cm"))
+	float OnMySixRange = 5000.f;
+
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
 	bool IsBetweenWaves() const { return bBetweenWaves; }
 
@@ -499,6 +516,16 @@ protected:
 	bool bSquadWiped = false;
 	bool bWingmenPassive = false;
 	bool bBetweenWaves = false;
+	void NotePlayerKill();
+	void TickMoreBarks(double Now);
+	bool RequestBarkFromAWingman(FName BarkId, ETDBarkPriority Priority);
+	TArray<double> PlayerKillTimes;
+	TMap<ETDShipId, double> ShieldsBroken;   // when it broke (ShieldBack retries while full, up to 15 s after)
+	TSet<ETDShipId> ShieldDownPending;       // said on the next tick, unless the same hit left the hull low
+	double BreatherAt = -1.0;
+	double NextSixCheck = 0.0;
+	TWeakObjectPtr<AActor> SixEnemy;
+	double SixSince = -1.0;
 	FTDBarkLimiter BarkLimiter;
 
 	// Banter (dialogs.md §9): the exchange in progress, and the ones already heard.
