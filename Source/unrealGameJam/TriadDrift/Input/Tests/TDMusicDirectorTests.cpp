@@ -3,6 +3,7 @@
 #include "Misc/AutomationTest.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
+#include "TriadDrift/Flow/TDGameInstance.h"
 
 #include "TriadDrift/Input/TDMusicDirectorSubsystem.h"
 #include "TriadDrift/Input/TDMusicSettings.h"
@@ -238,6 +239,38 @@ bool FTDMusicNoPerFrameLookup::RunTest(const FString& Parameters)
 	for (int32 i = 0; i < 120; ++i) { W.Tick(1.f / 60.f); } // 2 s of silence
 	const int32 Lookups = M->GetMusicLookupsForTests() - Before;
 	TestTrue(FString::Printf(TEXT("at most one lookup per 2 s while silent (%d in 120 frames)"), Lookups), Lookups <= 2);
+	return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMusicAssault, "TriadDrift.Input.Music.AssaultScoreHoldsCombatMusicUntilDocking", TD_TEST_FLAGS)
+bool FTDMusicAssault::RunTest(const FString& Parameters)
+{
+	// N-048: the Dominion assault's own score plays from wave 5's clear (phase DominionAssault) through the generators and
+	// the reactor, combat music held; docking (DominionInterior) or the end ends it and lets combat music back.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDMusicDirectorSubsystem* M = UTDMusicDirectorSubsystem::Get(W.GetWorld());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	if (!TestNotNull(TEXT("music"), M) || !TestNotNull(TEXT("gi"), GI)) { return false; }
+	USoundWave* Combat = NewObject<USoundWave>(GetTransientPackage(), TEXT("TD_TestAssaultCombat"));
+	Combat->Duration = 60.f;
+	USoundWave* Assault = NewObject<USoundWave>(GetTransientPackage(), TEXT("TD_TestAssaultScore"));
+	Assault->Duration = 139.f;
+	M->SetMusicForTests(Combat);
+	M->SetAssaultMusicForTests(Assault);
+	GI->SetPhase(ETDGamePhase::Wave5);
+	M->SetCombatOverrideForTests(true);
+	W.Advance(3.f);
+	TestFalse(TEXT("wave 5: no assault score"), M->IsAssaultMusicPlaying());
+	TestTrue(TEXT("wave 5: combat music"), M->GetMusicState() != ETDCombatMusicState::Silent);
+	GI->SetPhase(ETDGamePhase::DominionAssault); // wave 5 cleared
+	W.Advance(3.f);
+	TestTrue(TEXT("the assault: its own score"), M->IsAssaultMusicPlaying());
+	TestEqual(TEXT("... and combat music held, even in a fight"), M->GetMusicState(), ETDCombatMusicState::Silent);
+	GI->SetPhase(ETDGamePhase::DominionInterior); // docked
+	W.Advance(3.f);
+	TestFalse(TEXT("docked: the assault score ends"), M->IsAssaultMusicPlaying());
+	TestTrue(TEXT("... and combat music may play again"), M->GetMusicState() != ETDCombatMusicState::Silent);
 	return true;
 }
 
