@@ -718,11 +718,17 @@ int32 ATDSpaceField::LogJourneyCheck() const
 	for (const FTDJourneyKeyPoint& K : Journey)
 	{
 		if (K.Kind == ETDJourneyPointKind::Pocket) { continue; }
+		// A piece inside a pocket (the combat zone, the kill zone) is sparse cover by design: not counted.
+		auto InPocket = [&Journey](const FVector& P)
+		{
+			for (const FTDJourneyKeyPoint& Q : Journey) { if (Q.Kind == ETDJourneyPointKind::Pocket && Q.DistanceTo(P) < 0.f) { return true; } }
+			return false;
+		};
 		int32 Field = 0, Adopted = 0, Sets = 0, Other = 0;
 		FString First;
 		for (const FTDSpaceFieldPiece& P : Pieces)
 		{
-			if (K.DistanceTo(P.Location) < P.Size * 0.5f)
+			if (K.DistanceTo(P.Location) < P.Size * 0.5f && !InPocket(P.Location))
 			{
 				++(P.bAdopted ? Adopted : Field);
 				if (First.IsEmpty()) { First = FString::Printf(TEXT("%s rock %.0f m at %s"), P.bAdopted ? TEXT("adopted") : TEXT("field"), P.Size / 100.f, *P.Location.ToCompactString()); }
@@ -730,14 +736,14 @@ int32 ATDSpaceField::LogJourneyCheck() const
 		}
 		for (const FTDSpaceFieldPiece& S : Structures)
 		{
-			if (K.DistanceTo(S.Location) < S.Size * 0.5f) { ++Sets; if (First.IsEmpty()) { First = FString::Printf(TEXT("set piece %.0f m at %s"), S.Size / 100.f, *S.Location.ToCompactString()); } }
+			if (K.DistanceTo(S.Location) < S.Size * 0.5f && !InPocket(S.Location)) { ++Sets; if (First.IsEmpty()) { First = FString::Printf(TEXT("set piece %.0f m at %s"), S.Size / 100.f, *S.Location.ToCompactString()); } }
 		}
 		if (WS)
 		{
 			// Every obstacle sphere in the galaxy (the field's own are counted above too; this catches ruins, wrecks, the layout's).
 			for (const FSphere& O : WS->GetObstacles())
 			{
-				if (O.W >= 0.f && K.DistanceTo(O.Center) < O.W) { ++Other; if (First.IsEmpty()) { First = FString::Printf(TEXT("obstacle r %.0f m at %s"), O.W / 100.f, *O.Center.ToCompactString()); } }
+				if (O.W >= 0.f && K.DistanceTo(O.Center) < O.W && !InPocket(O.Center)) { ++Other; if (First.IsEmpty()) { First = FString::Printf(TEXT("obstacle r %.0f m at %s"), O.W / 100.f, *O.Center.ToCompactString()); } }
 			}
 		}
 		const bool bRoute = K.Kind == ETDJourneyPointKind::Route;
@@ -747,7 +753,7 @@ int32 ATDSpaceField::LogJourneyCheck() const
 		Total += Field + Adopted + Sets;
 		RouteIdx += bRoute ? 1 : 0;
 	}
-	UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.JourneyCheck: %d field rocks and set pieces inside the journey"), Total);
+	UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.JourneyCheck: %d rocks and set pieces inside the journey outside its pockets"), Total);
 	return Total;
 }
 
