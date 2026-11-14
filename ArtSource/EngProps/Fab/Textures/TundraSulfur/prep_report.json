@@ -1,0 +1,20 @@
+{
+ "source_mean_luma": 0.386,
+ "brightness_match": {
+  "volcanic_mean_luma": 0.172,
+  "goal_mean_luma": 0.275,
+  "scale": 0.711,
+  "saturation": 1.15
+ },
+ "normal": "OpenGL, flipped (-0.841)",
+ "bc_mean": [
+  0.361,
+  0.26,
+  0.164
+ ],
+ "orm_mean": [
+  0.855,
+  0.74,
+  0.0
+ ]
+}
