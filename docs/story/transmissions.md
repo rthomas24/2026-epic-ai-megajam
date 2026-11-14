@@ -101,7 +101,7 @@ The one echo is at the Cinder terminal (`C5_Unknown_SameConstruction`); the thre
 | `G3_DataSecured` | Kato | Device and recordings secured. I've got the Cinder coordinates. Let's move. |
 | `G3_Moss_NobodyNear` | Moss | Then nobody gets near the station. |
 | `G3_Wren_LeftApproach` | Wren | Left approach! Keep them off Kato. |
-| `G3_Kato_AlmostThere` | Kato | Archive almost complete. Keep them off the station. |
+| `G3_Kato_AlmostThere` | Kato | Archive almost complete. Keep them back. |
 | `G3_Command_Extraction` | Command | Triad, extraction corridor is open. Return with the archive intact. |
 | `C4_Moss_Trouble` | Moss | All that for a recorder full of voices. None of them answering. |
 | `C4_Wren_Badly` | Wren | They wanted that device and its records. We need to know why. |
