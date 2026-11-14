@@ -46,8 +46,8 @@ namespace TDShadowPrivate
 		TEXT("Enemies needed in reach for a wingman's EMP, cluster swarm or gravity well. Default 3."), ECVF_Default);
 	static TAutoConsoleVariable<float> CVarTough(TEXT("td.Squad.Powers.ToughHull"), 250.f,
 		TEXT("A single enemy with at least this much max hull is worth a wingman's missile swarm. Default 250."), ECVF_Default);
-	static TAutoConsoleVariable<int32> CVarPortals(TEXT("td.Squad.Powers.Portals"), 1,
-		TEXT("1: Rift's wingman places a portal pair in front of a missile homing on it (default). 0: never."), ECVF_Default);
+	static TAutoConsoleVariable<int32> CVarPortals(TEXT("td.Squad.Powers.Portals"), 0,
+		TEXT("1: Rift's wingman places a portal pair in front of a missile homing on it. 0: never (default: not yet seen working in play; missiles are noticed too close)."), ECVF_Default);
 
 	/** 80% of the radar's range (UI/TDHUDModel.h RadarRange = 1500 m): beyond it a wingman sits on the rim. */
 	constexpr float RadarSafeRange = 120000.f;
