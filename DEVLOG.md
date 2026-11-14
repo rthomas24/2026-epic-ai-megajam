@@ -292,3 +292,5 @@ Nov 13, Dominion assault music. Published the full 144.68-second Push The Attack
 Nov 13, survey terminals. Both approved 1920x1080 scan graphics reopened as native Unreal Texture2D assets in a second editor process, with their UI colour settings, clamped edges and no mipmaps. The next check is reading the buried structure on the Verdance terminal and the cyan/amber overlay on Cinder during the actual scenes.
 
 Nov 13, credits. Imported the first eight-section credits roll through the existing victory panel data contract and reopened all 28 lines in a fresh editor. Its team, story, music, assets and tools text matched the source, including punctuation. Final cooked-asset reconciliation and checking the scrolling text at gameplay resolution remain open.
+
+Nov 13, space idle music. The full 144.8-second Ambient1 track reopened as a looping Music SoundWave in a fresh Unreal process. The import added one asset and the reload changed none. Quiet-flight playback, giving way to the tutorial, combat and assault, and the cooked build still need a gameplay check.
