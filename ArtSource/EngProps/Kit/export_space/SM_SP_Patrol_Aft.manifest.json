@@ -10,11 +10,25 @@
   "pivot": "root object origin (SM_SP_Patrol_Aft~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
-    "M_Kit_Trim"
+    "M_Kit_Trim",
+    "M_Kit_Trim2"
   ],
   "material_params": [
     {
       "name": "M_Kit_Trim",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Trim2",
       "textured": true,
       "base_color": null,
       "metallic": null,

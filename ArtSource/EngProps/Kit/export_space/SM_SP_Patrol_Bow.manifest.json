@@ -1,7 +1,7 @@
 {
   "asset": "SM_SP_Patrol_Bow",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_space\\SM_SP_Patrol_Bow.fbx",
-  "tris": 1164,
+  "tris": 1166,
   "size_cm": [
     1880.0,
     720.0,
@@ -10,11 +10,57 @@
   "pivot": "root object origin (SM_SP_Patrol_Bow~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
-    "M_Kit_Trim"
+    "M_Kit_Trim",
+    "M_Kit_Breach",
+    "M_Kit_Scorch",
+    "M_Kit_Trim2"
   ],
   "material_params": [
     {
       "name": "M_Kit_Trim",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Breach",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "emission_strength": 6.0
+    },
+    {
+      "name": "M_Kit_Scorch",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Trim2",
       "textured": true,
       "base_color": null,
       "metallic": null,

@@ -1,7 +1,7 @@
 {
   "asset": "SM_SP_Patrol_Wing",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_space\\SM_SP_Patrol_Wing.fbx",
-  "tris": 284,
+  "tris": 384,
   "size_cm": [
     1146.2,
     1263.4,
@@ -10,11 +10,39 @@
   "pivot": "root object origin (SM_SP_Patrol_Wing~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
-    "M_Kit_Trim"
+    "M_Kit_Trim",
+    "M_Kit_Scorch",
+    "M_Kit_Trim2"
   ],
   "material_params": [
     {
       "name": "M_Kit_Trim",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Scorch",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Trim2",
       "textured": true,
       "base_color": null,
       "metallic": null,

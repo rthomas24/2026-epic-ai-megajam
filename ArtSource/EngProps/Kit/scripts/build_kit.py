@@ -81,6 +81,19 @@ def make_materials(glow=GLOW_TEAL):
                 nd.image = bpy.data.images.load(os.path.join(TEX, nd.image.name.replace("T_Kit_Trim", "T_KitD_Trim")), check_existing=True)
                 nd.image.colorspace_settings.name = "sRGB" if "_BC" in nd.image.name else "Non-Color"
         mats["Dom"] = d
+        for key, tint in (("Trim2", (0.55, 0.56, 0.6)), ("Scorch", (0.08, 0.06, 0.05))):
+            t2 = m.copy()
+            t2.name = "M_Kit_" + key
+            bs = next(n for n in t2.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+            mix = t2.node_tree.nodes.new("ShaderNodeMix")
+            mix.data_type = "RGBA"
+            mix.blend_type = "MULTIPLY"
+            mix.inputs["Factor"].default_value = 1.0
+            src = bs.inputs["Base Color"].links[0].from_socket
+            t2.node_tree.links.new(src, mix.inputs["A"])
+            mix.inputs["B"].default_value = (tint[0], tint[1], tint[2], 1.0)
+            t2.node_tree.links.new(mix.outputs["Result"], bs.inputs["Base Color"])
+            mats[key] = t2
         for key, col, rough in (("Rock", (0.16, 0.14, 0.13), 0.9), ("Cut", (0.24, 0.23, 0.22), 0.6), ("Bore", (0.03, 0.03, 0.035), 0.9)):
             r_ = bpy.data.materials.new("M_Kit_" + key)
             b_ = next(n for n in r_.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
@@ -97,7 +110,8 @@ def make_materials(glow=GLOW_TEAL):
         mats["Stone"] = st
     for key, col, strength in (("Glow", glow, 6.0), ("Screen", (0.06, 0.4, 0.45), 1.5), ("Light", (0.9, 0.95, 1.0), 8.0),
                                ("Beacon", glow, 20.0), ("Pillar", glow, 3.0), ("Decal", (1.0, 0.45, 0.1), 0.5), ("Route", (1.0, 0.05, 0.03), 0.5),
-                               ("Eye", (1.0, 1.0, 1.0), 12.0)):
+                               ("Eye", (1.0, 1.0, 1.0), 12.0), ("Breach", (0.2, 0.5, 1.0), 6.0), ("Run", (1.0, 0.2, 0.15), 6.0),
+                               ("Flicker", (1.0, 0.72, 0.42), 4.0), ("Work", (1.0, 0.9, 0.7), 8.0)):
         g = bpy.data.materials.new("M_Kit_" + key)
         b = next(n for n in g.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
         b.inputs["Base Color"].default_value = (0.02, 0.025, 0.03, 1.0)

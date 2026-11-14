@@ -448,8 +448,8 @@ def space_sites():
     out["Space_ResearchB"] = {"site": "Space_ResearchB", "actor": SPS + "BP_SP_ResearchB", "about": "Quiet Graveyard hull B (108 m).",
                               "pieces": [piece("Hull", SPS + "SM_SP_Research_B", 0.0, 0.0, 0.0, 0.0, roll_deg=-20.0, pitch_deg=4.0)]}
     out["Space_NullRig"] = {"site": "Space_NullRig", "actor": SPS + "BP_SP_NullRig",
-        "about": "Survey Scar: a Null survey rig clamped to a rock (SM_Asteroid_03 at scale 80, about 78 m).",
-        "pieces": [piece("Rock", "/Game/TriadDrift/Gameplay/Props/Space/SM_Asteroid_03", 0.0, 0.0, -3300.0, 0.0, scale=[80.0, 80.0, 80.0]),
+        "about": "Survey Scar: a Null survey rig clamped to the levelled pad of its rock (SM_SP_RigRock, about 65 m).",
+        "pieces": [piece("Rock", SPS + "SM_SP_RigRock", 0.0, 0.0, 0.0, 0.0),
                    piece("Rig", SPS + "SM_SP_NullRig", 0.0, 0.0, 0.0, 0.0)]}
     out["Space_HollowRock"] = {"site": "Space_HollowRock", "actor": SPS + "BP_SP_HollowRock", "about": "Survey Scar: a mined-out rock (70 m).",
                                "pieces": [piece("Rock", SPS + "SM_SP_HollowRock", 0.0, 0.0, 0.0, 200.0, pitch_deg=-10.0)]}

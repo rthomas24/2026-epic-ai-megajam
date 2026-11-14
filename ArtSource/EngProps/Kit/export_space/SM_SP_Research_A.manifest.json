@@ -1,17 +1,20 @@
 {
   "asset": "SM_SP_Research_A",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_space\\SM_SP_Research_A.fbx",
-  "tris": 4906,
+  "tris": 5382,
   "size_cm": [
-    15800.0,
+    15865.0,
     4400.0,
-    4400.0
+    4550.0
   ],
   "pivot": "root object origin (SM_SP_Research_A~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
     "M_Kit_Trim",
-    "M_Kit_Light"
+    "M_Kit_Flicker",
+    "M_Kit_Light",
+    "M_Kit_Run",
+    "M_Kit_Trim2"
   ],
   "material_params": [
     {
@@ -26,6 +29,23 @@
         1.0
       ],
       "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Flicker",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.72,
+        0.42
+      ],
+      "emission_strength": 4.0
     },
     {
       "name": "M_Kit_Light",
@@ -43,6 +63,36 @@
         1.0
       ],
       "emission_strength": 8.0
+    },
+    {
+      "name": "M_Kit_Run",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.2,
+        0.15
+      ],
+      "emission_strength": 6.0
+    },
+    {
+      "name": "M_Kit_Trim2",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
     }
   ],
   "textures": [],

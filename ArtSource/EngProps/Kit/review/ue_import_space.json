@@ -2,17 +2,19 @@
  {
   "asset": "SM_SP_HollowRock",
   "size_m": [
-   69.1,
+   69.6,
    73.4,
    67.2
   ],
-  "tris_lod0": 4909,
+  "tris_lod0": 7861,
   "lods": 3,
   "hulls": 1,
   "slots": [
    "0:Bore",
    "1:Cut",
-   "2:Rock"
+   "2:Rock",
+   "3:Dom",
+   "4:Work"
   ]
  },
  {
@@ -20,15 +22,16 @@
   "size_m": [
    36.6,
    36.6,
-   56.0
+   58.0
   ],
-  "tris_lod0": 1588,
+  "tris_lod0": 1696,
   "lods": 3,
   "hulls": 2,
   "slots": [
    "0:Dom",
    "1:Eye",
-   "2:Glow"
+   "2:Glow",
+   "3:Beacon"
   ]
  },
  {
@@ -42,7 +45,8 @@
   "lods": 3,
   "hulls": 1,
   "slots": [
-   "0:Trim"
+   "0:Trim",
+   "1:Trim2"
   ]
  },
  {
@@ -52,11 +56,14 @@
    7.2,
    4.4
   ],
-  "tris_lod0": 1164,
+  "tris_lod0": 1166,
   "lods": 3,
   "hulls": 1,
   "slots": [
-   "0:Trim"
+   "0:Trim",
+   "1:Breach",
+   "2:Scorch",
+   "3:Trim2"
   ]
  },
  {
@@ -66,11 +73,14 @@
    6.9,
    4.2
   ],
-  "tris_lod0": 1994,
+  "tris_lod0": 2030,
   "lods": 3,
   "hulls": 1,
   "slots": [
-   "0:Trim"
+   "0:Trim",
+   "1:Breach",
+   "2:Scorch",
+   "3:Trim2"
   ]
  },
  {
@@ -80,41 +90,65 @@
    12.6,
    0.9
   ],
-  "tris_lod0": 284,
+  "tris_lod0": 384,
   "lods": 3,
   "hulls": 1,
   "slots": [
-   "0:Trim"
+   "0:Trim",
+   "1:Scorch",
+   "2:Trim2"
   ]
  },
  {
   "asset": "SM_SP_Research_A",
   "size_m": [
-   158.0,
+   158.7,
    44.0,
-   44.0
+   45.5
   ],
-  "tris_lod0": 4906,
+  "tris_lod0": 5382,
   "lods": 3,
   "hulls": 2,
   "slots": [
    "0:Trim",
-   "1:Light"
+   "1:Light",
+   "2:Flicker",
+   "3:Run",
+   "4:Trim2"
   ]
  },
  {
   "asset": "SM_SP_Research_B",
   "size_m": [
    108.0,
-   17.2,
-   36.3
+   28.0,
+   41.3
   ],
-  "tris_lod0": 1668,
+  "tris_lod0": 10028,
   "lods": 3,
   "hulls": 1,
   "slots": [
    "0:Trim",
-   "1:Light"
+   "1:Light",
+   "2:Flicker",
+   "3:Run",
+   "4:Scorch",
+   "5:Trim2"
+  ]
+ },
+ {
+  "asset": "SM_SP_RigRock",
+  "size_m": [
+   66.4,
+   61.0,
+   43.4
+  ],
+  "tris_lod0": 3013,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Cut",
+   "1:Rock"
   ]
  }
 ]
