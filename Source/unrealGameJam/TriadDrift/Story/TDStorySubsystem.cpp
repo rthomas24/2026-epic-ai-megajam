@@ -528,6 +528,13 @@ void UTDStorySubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	Super::OnWorldBeginPlay(InWorld);
 	CarryResumeAt = InWorld.GetRealTimeSeconds() + CarryResumeDelaySeconds;
 	bCarryTaken = false;
+	if (InWorld.GetAuthGameMode<ATDMenuGameMode>())
+	{
+		// #139: at once on arriving at the menu, not at the delayed tick: a New Game started inside those 2.5 s on the
+		// same game instance must find nothing waiting.
+		ClearCarriedLines();
+		bCarryTaken = true;
+	}
 	if (UTDEventBus* Bus = UTDEventBus::Get(&InWorld))
 	{
 		Bus->OnWaveStarted.AddUniqueDynamic(this, &UTDStorySubsystem::HandleWaveStarted);
@@ -1366,6 +1373,24 @@ namespace TDStoryCarry
 	// Lines a map travel cut off, waiting for the next gameplay world (process-wide: the story subsystem is per world).
 	static TArray<FName> Pending;
 	static TWeakObjectPtr<const UGameInstance> Owner;
+	// The run they belong to (UTDGameInstance::GetRunSerial): New Game, Continue and a run reset change it, so a
+	// recording left unheard in one run never queues into the next on the same game instance (#139).
+	static uint32 RunSerial = 0;
+}
+
+void UTDStorySubsystem::ClearCarriedLines()
+{
+	if (TDStoryCarry::Pending.Num() > 0)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %d carried line(s) dropped (the menu, or another run)"), TDStoryCarry::Pending.Num());
+	}
+	TDStoryCarry::Pending.Reset();
+	TDStoryCarry::Owner.Reset();
+}
+
+int32 UTDStorySubsystem::NumCarriedLines()
+{
+	return TDStoryCarry::Pending.Num();
 }
 
 void UTDStorySubsystem::CarryAcrossTravel()
@@ -1400,6 +1425,7 @@ void UTDStorySubsystem::CarryAcrossTravel()
 	{
 		TDStoryCarry::Pending = Carry;
 		TDStoryCarry::Owner = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
+		TDStoryCarry::RunSerial = GI ? GI->GetRunSerial() : 0;
 		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %d must-hear line(s) carried across the travel"), Carry.Num());
 	}
 	Queue.Reset();
@@ -1414,10 +1440,14 @@ void UTDStorySubsystem::TakeCarriedLines()
 	}
 	const UWorld* World = GetWorld();
 	const UGameInstance* GI = World ? World->GetGameInstance() : nullptr;
-	const bool bSameRun = TDStoryCarry::Owner.Get() == GI || bCarryAcrossInstancesForTests;
+	const UTDGameInstance* TDGI = Cast<UTDGameInstance>(GI);
+	// The same run: the same game instance and the same run serial (the test bypass lets a carry cross test worlds, each
+	// with its own instance and serial).
+	const bool bSameRun = bCarryAcrossInstancesForTests
+		|| (TDStoryCarry::Owner.Get() == GI && TDGI && TDGI->GetRunSerial() == TDStoryCarry::RunSerial);
 	if (!bSameRun || (World && World->GetAuthGameMode<ATDMenuGameMode>()))
 	{
-		TDStoryCarry::Pending.Reset(); // a menu, or another run: never replay the last run's radio
+		ClearCarriedLines(); // a menu, or another run: never replay the last run's radio
 		return;
 	}
 	for (const FName& Id : TDStoryCarry::Pending)

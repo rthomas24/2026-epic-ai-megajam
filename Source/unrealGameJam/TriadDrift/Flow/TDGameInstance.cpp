@@ -765,6 +765,7 @@ void UTDGameInstance::ForgetPlayedTransmissions()
 
 void UTDGameInstance::ResetRunState()
 {
+	++RunSerial; // a new run: nothing carried from the last one may reach it
 	Progress = FTDProgress();
 	LastCheckpoint = FTDCheckpoint();
 	SceneOrder.Reset();
@@ -830,6 +831,7 @@ bool UTDGameInstance::ContinueRun()
 {
 	bIntroPending = false; // Continue never plays the intro
 	bRunFromContinue = true; // nor the control lessons (onboarding)
+	++RunSerial; // the saved run is not the run that was in memory
 	UTDSaveGame* Save = nullptr;
 	if (!ReadSaveSlot(Save) || (Save && Save->Checkpoint.Progress.Phase == ETDGamePhase::Victory) || !ApplySave(*Save))
 	{

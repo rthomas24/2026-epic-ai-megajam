@@ -192,12 +192,17 @@ private:
 	double CarryResumeAt = 0.0;
 	bool bCarryTaken = false;
 public:
+	/** Drop every line waiting to cross a travel (the menu; a run boundary). */
+	static void ClearCarriedLines();
+	static int32 NumCarriedLines();
 	/** Seconds after a world begins before carried lines resume (the arrival settles first). */
 	float CarryResumeDelaySeconds = 2.5f;
 #if WITH_DEV_AUTOMATION_TESTS
 	/** Test worlds each have their own game instance: let a carry cross them. */
 	static inline bool bCarryAcrossInstancesForTests = false;
 	void SimulateTravelForTests() { CarryAcrossTravel(); }
+	/** A new world's arrival: the delayed resume is armed again. */
+	void SimulateArrivalForTests() { bCarryTaken = false; CarryResumeAt = 0.0; }
 #else
 	static constexpr bool bCarryAcrossInstancesForTests = false;
 #endif
