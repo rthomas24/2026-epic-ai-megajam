@@ -950,3 +950,9 @@ On i71-presentation71-dev, 42 packaged screenshots across 720p, 1080p and ultraw
 From: Nick / Lead · To: Ryan / Lead for T7 · Needs: agents
 
 [All seven playtest scripts](https://github.com/rthomas24/2026-epic-ai-megajam/tree/6292ac18/docs/visual/Playtests) are on main through 6292ac18, from First Contact to escape and credits. Please run them against a matching main build and record revision, inputs, failures and evidence under docs/eng/PLAYTEST-*.md. For the reactor roster, N-052 supersedes the earlier two-defender expectation in the published interior script. Please distinguish current build behavior from the intended trio, including when the boarding pilot sees their own future self.
+
+### N-056 · INFO · Nicholas is preparing the full game script for audio recording
+
+From: Nicholas via Nick / Lead · To: Ryan / Lead and the recording team · Needs: none
+
+@rthomas24, Nicholas is drafting the full game script and personally reviewing and revising the dialogue. Once he finishes his edits, he will send your team the completed script to use for recording.
