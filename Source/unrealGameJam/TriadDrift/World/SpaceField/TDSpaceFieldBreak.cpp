@@ -196,7 +196,8 @@ void ATDSpaceField::BreakPieceInner(int32 Piece, AActor* ByWhom)
 		FTransform T;
 		S.Visual->GetInstanceTransform(S.Instance, T, true);
 		T.SetScale3D(FVector(0.001f));
-		S.Visual->UpdateInstanceTransform(S.Instance, T, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ true, /*bTeleport*/ true);
+		S.Visual->UpdateInstanceTransform(S.Instance, T, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ false, /*bTeleport*/ true);
+		DirtyVisuals.Add(S.Visual);	// one render-state update per component per frame (Tick), not per break
 		FreeVisuals.FindOrAdd(S.Visual).Add(S.Instance);
 	}
 	if (TArray<int32>* Cell = Grid.Find(CellOf(P.Location)))
@@ -248,7 +249,7 @@ void ATDSpaceField::SpawnFragment(UStaticMesh* Mesh, const FVector& At, float Si
 	}
 	const FTransform T(FRotator(BreakRng.FRandRange(-180.f, 180.f), BreakRng.FRandRange(-180.f, 180.f), BreakRng.FRandRange(-180.f, 180.f)), At,
 		FVector(Size * NormFor(Mesh)));
-	UInstancedStaticMeshComponent* Visual = ComponentFor(Mesh, Size);
+	UInstancedStaticMeshComponent* Visual = FragmentComponentFor(Mesh);
 	int32 Instance = INDEX_NONE;
 	if (TArray<int32>* Free = FreeVisuals.Find(Visual); Free && Free->Num() > 0)
 	{
@@ -691,4 +692,44 @@ namespace TDSpaceFieldDev
 				if (ATDSpaceField* F = WeakField.Get()) { F->DamagePiece(Best, 1.0e7f, WeakShip.Get()); }
 			}), Delay, false);
 		}));
+}
+
+UInstancedStaticMeshComponent* ATDSpaceField::FragmentComponentFor(UStaticMesh* Mesh)
+{
+	// Fragments of broken rocks: a plain (non-hierarchical) instanced component per mesh, so adding or recycling one never
+	// rebuilds a cluster tree. Few instances, near the camera: no shadows, 4 km cull.
+	TObjectPtr<UInstancedStaticMeshComponent>& C = FragmentComponents.FindOrAdd(Mesh);
+	if (!C)
+	{
+		C = NewObject<UInstancedStaticMeshComponent>(this, *FString::Printf(TEXT("Frag_%s"), *GetNameSafe(Mesh)));
+		C->SetupAttachment(RootComponent);
+		C->SetStaticMesh(Mesh);
+		C->SetMobility(EComponentMobility::Movable);
+		C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		C->SetCanEverAffectNavigation(false);
+		C->SetCastShadow(false);
+		C->bAffectDistanceFieldLighting = false;
+		C->SetCullDistances(0, 400000);
+		C->RegisterComponent();
+	}
+	return C;
+}
+
+void ATDSpaceField::PreloadBreakCues()
+{
+	// Load every break effect and sound now, so no break ever loads one synchronously in its frame (the first breaks of
+	// each kind cost 10-20 ms before this).
+	if (!FX)
+	{
+		FX = UTDStatics::LoadPresentation<UTDSpaceFieldFX>(TEXT("DA_SpaceField_FX"));
+	}
+	bFXLoaded = true;
+	if (FX)
+	{
+		for (const FTDFXCue* Cue : { &FX->BreakSmall, &FX->BreakMedium, &FX->BreakLarge, &FX->BreakSpecial })
+		{
+			if (!Cue->VFX.IsNull()) { PreloadedCueAssets.Add(Cue->VFX.LoadSynchronous()); }
+			if (!Cue->Sound.IsNull()) { PreloadedCueAssets.Add(Cue->Sound.LoadSynchronous()); }
+		}
+	}
 }

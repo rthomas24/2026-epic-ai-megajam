@@ -109,7 +109,8 @@ void ATDSpaceField::BeginPlay()
 	// td.SpaceField 0 at load: never take over the layout's rocks, so the galaxy is exactly today's by construction.
 	bAdoptAtLoad = bAdoptLayoutRocks && TDSpaceFieldImpl::GEnabled != 0;
 	Build();
-	FTDFieldDamage::Register(this);	// Lancer's ram and explosions find the field without searching the world
+	FTDFieldDamage::Register(this);
+	PreloadBreakCues();	// Lancer's ram and explosions find the field without searching the world
 	// Caches: four per debris field, the types in turn (one use each per run).
 	Caches.Reset();
 	const TArray<FVector> Spots = GetCacheSpots(this);
@@ -213,11 +214,15 @@ void ATDSpaceField::Build()
 	FRandomStream Rng(Seed * 7919 + Layout->GetLayout().AsteroidFields.Num());
 	if (UseComposedRegions())
 	{
-		// The regions of docs/eng/SPACE-DESIGN.md as they land (1, 2, 4, 7 so far).
+		// The seven regions of docs/eng/SPACE-DESIGN.md.
 		BuildShepherdBelt(Rng);
 		BuildWatchlineHalo(Rng);
 		BuildQuietGraveyard(Rng);
+		BuildIceDrift(Rng);
+		BuildSurveyScar(Rng);
+		BuildShatteredMoons(Rng);
 		BuildOuterDark(Rng);
+		PlaceRegionCentrepieces(Rng);
 	}
 	else
 	{
@@ -646,6 +651,8 @@ void ATDSpaceField::Tick(float DeltaSeconds)
 	}
 	PerfFrameBreakMsMax = FMath::Max(PerfFrameBreakMsMax, PerfFrameBreakMs);
 	PerfFrameBreakMs = 0.0;
+	for (UInstancedStaticMeshComponent* C : DirtyVisuals) { if (IsValid(C)) { C->MarkRenderStateDirty(); } }
+	DirtyVisuals.Reset();
 	if (!bEnabled)
 	{
 		return;

@@ -85,7 +85,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltThickness = 3000.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltTiltDeg = 8.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") int32 ShepherdRocks = 1800;
-	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") int32 BeltLandmarks = 14;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") int32 BeltLandmarks = 40;
 	/** Half width of the gap where a route crosses (cm); the Verdance gap is wider (T4: the tutorial escape crosses it). */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltGapHalf = 25000.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltVerdanceGapHalf = 50000.f;
@@ -95,6 +95,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 GraveyardHulls = 5;
 	/** Region 7, the Outer Dark: lone rocks with gravel from this distance (cm) to the play bounds. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 OuterDarkRocks = 500;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 IceDriftRocks = 600;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRocks = 320;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRubble = 220;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 MoonShards = 8;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float OuterDarkInner = 600000.f;
 
 	/** Shepherd moonlets at the Verdance and Dominion gap edges (bounding diameter, cm). */
@@ -225,6 +229,10 @@ private:
 	void BuildWatchlineHalo(FRandomStream& Rng);
 	void BuildQuietGraveyard(FRandomStream& Rng);
 	void BuildOuterDark(FRandomStream& Rng);
+	void BuildIceDrift(FRandomStream& Rng);
+	void BuildSurveyScar(FRandomStream& Rng);
+	void BuildShatteredMoons(FRandomStream& Rng);
+	void PlaceRegionCentrepieces(FRandomStream& Rng);
 	bool AddStructure(UStaticMesh* Mesh, const FTransform& T);
 	void ScatterDebris(const FVector& Centre, float Radius, int32 Count, float MaxSize, FRandomStream& Rng);
 	/** Indestructible set pieces placed (for tests and keep-out checks). */
@@ -326,6 +334,11 @@ private:
 	void BreakPiece(int32 Piece, AActor* ByWhom);
 	void BreakPieceInner(int32 Piece, AActor* ByWhom);
 	void SpawnFragment(UStaticMesh* Mesh, const FVector& At, float Size);
+	UInstancedStaticMeshComponent* FragmentComponentFor(UStaticMesh* Mesh);
+	void PreloadBreakCues();
+	UPROPERTY(Transient) TMap<TObjectPtr<UStaticMesh>, TObjectPtr<UInstancedStaticMeshComponent>> FragmentComponents;
+	UPROPERTY(Transient) TArray<TObjectPtr<UObject>> PreloadedCueAssets;
+	TSet<UInstancedStaticMeshComponent*> DirtyVisuals;
 	void PlayBreakCue(const FVector& At, float Size, uint8 SizeClass, bool bSpecial);
 	uint8 SizeClassFor(float Size) const { return Size < MediumFromSize ? 0 : (Size < LargeFromSize ? 1 : 2); }
 	float HealthFor(float Size, bool bWreck) const;
