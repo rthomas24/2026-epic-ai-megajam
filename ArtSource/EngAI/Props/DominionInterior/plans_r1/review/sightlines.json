@@ -1,0 +1,37 @@
+[
+ [
+  "Hangar door (1200,0) -> troopers (4750,\u00b1100)",
+  3551,
+  "clear (cover blocks y <= 30 only past x 4470)"
+ ],
+ [
+  "Core door ckpt (11500,0) -> conduit (13777,777)",
+  2407,
+  "BLOCKED by the core body"
+ ],
+ [
+  "Core door ckpt (11500,0) -> conduit (12222,777)",
+  1061,
+  "clear"
+ ],
+ [
+  "Core door ckpt (11500,0) -> conduit (12222,-777)",
+  1061,
+  "clear"
+ ],
+ [
+  "Core door ckpt (11500,0) -> conduit (13777,-777)",
+  2407,
+  "BLOCKED by the core body"
+ ],
+ [
+  "Arena door to door",
+  2400,
+  "clear (covers at |y| 500 off-axis)"
+ ],
+ [
+  "Warden door (8400) -> Warden spawn (9900)",
+  1500,
+  "clear"
+ ]
+]
