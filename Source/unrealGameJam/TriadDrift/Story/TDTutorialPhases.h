@@ -85,4 +85,12 @@ private:
 	int32 Kills = 0;
 	bool bSwitched = false;
 	bool bPowerUsed = false;
+	/** #140: the firing lesson was passed by the wingmen (wave 1 cleared with no kill of the player's own): it is owed. */
+	bool bFireOwed = false;
+public:
+	/**
+	 * The firing lesson is still owed: its line (TARGET AND FIRE 0 / 1) comes back once the squad lesson is done and
+	 * stays until the player has fired and scored once. Never a gate (T1's fire card asks this to come back too).
+	 */
+	static bool IsFireLessonOwed(const UObject* WorldContext);
 };

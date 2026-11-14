@@ -1296,6 +1296,31 @@ namespace TDUIHost
 		TEXT("TD.UI.DevHurt <amount> [fromYawDeg]: damage the player's ship from a side (dev, HUD captures)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&DevHurt));
 
+	// TD.UI.Pause down | up | activate | back: drive the pause menu directly (an offscreen game's menu has no Slate focus,
+	// so TD.UI.Key Down / Enter never reach it). "TD.UI.Pause settings" = select SETTINGS and activate it.
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUIPause(TEXT("TD.UI.Pause"),
+		TEXT("TD.UI.Pause <down|up|activate|back|settings>: drive the pause menu (captures)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(World);
+			UTDPauseMenuWidget* Menu = Host ? Cast<UTDPauseMenuWidget>(Host->GetPauseScreen()) : nullptr;
+			if (!Menu || Args.Num() < 1)
+			{
+				UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Pause: %s"), Menu ? TEXT("down|up|activate|back|settings") : TEXT("no pause menu on screen"));
+				return;
+			}
+			const FString& A = Args[0];
+			if (A.Equals(TEXT("down"), ESearchCase::IgnoreCase)) { Menu->MoveSelection(1); }
+			else if (A.Equals(TEXT("up"), ESearchCase::IgnoreCase)) { Menu->MoveSelection(-1); }
+			else if (A.Equals(TEXT("activate"), ESearchCase::IgnoreCase)) { Menu->Activate(); }
+			else if (A.Equals(TEXT("back"), ESearchCase::IgnoreCase)) { Menu->Back(); }
+			else if (A.Equals(TEXT("settings"), ESearchCase::IgnoreCase))
+			{
+				Menu->MoveSelection(static_cast<int32>(ETDPauseItem::Settings) - Menu->GetSelected());
+				Menu->Activate();
+			}
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Pause %s: selected %d"), *A, Menu->GetSelected());
+		}));
 	FAutoConsoleCommandWithWorldAndArgs CmdTDUITactical(TEXT("TD.UI.Tactical"),
 		TEXT("TD.UI.Tactical [seconds=20]: show the Aftermath tactical display (dev, captures)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)

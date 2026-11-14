@@ -46,7 +46,17 @@ if (Test-Path $slotRoot) {
     $mutexArg = "-NoMutex"
 }
 try {
-    $output = & $buildBat $Target Win64 $Configuration "-Project=$project" $mutexArg -NoHotReload 2>&1 | ForEach-Object { "$_" }
+    if ($slot) {
+        # Build.bat holds its own lock file for its whole run, so two of them still queue (seen 15:45: a slot holder sat in
+        # its ping loop for five minutes). With a slot, run UnrealBuildTool directly, as Build.bat does after its lock.
+        $ubtDll = Join-Path $engine "Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll"
+        $getDotnet = Join-Path $engine "Engine/Build/BatchFiles/GetDotnetPath.bat"
+        $cmdLine = "call `"$getDotnet`" && dotnet `"$ubtDll`" $Target Win64 $Configuration `"-Project=$project`" -NoMutex -NoHotReload"
+        Push-Location (Join-Path $engine "Engine/Source")
+        try { $output = & cmd.exe /c $cmdLine 2>&1 | ForEach-Object { "$_" } } finally { Pop-Location }
+    } else {
+        $output = & $buildBat $Target Win64 $Configuration "-Project=$project" $mutexArg -NoHotReload 2>&1 | ForEach-Object { "$_" }
+    }
     $code = $LASTEXITCODE
 } finally {
     if ($slot) { Remove-Item -Recurse -Force $slot -ErrorAction SilentlyContinue }
