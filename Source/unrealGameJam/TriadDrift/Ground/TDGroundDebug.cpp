@@ -30,6 +30,7 @@
 #include "Animation/AnimMontage.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
+#include "Containers/Ticker.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Ground/TDObjective.h"
@@ -405,6 +406,25 @@ namespace TDGroundDebug
 		else if (A == TEXT("retract")) { B->Retract(); }
 		else if (A == TEXT("ignite")) { B->Ignite(); }
 		else if (A == TEXT("jump")) { P->Jump(); }
+		else if (A == TEXT("walk") || A == TEXT("run"))
+		{
+			// TD.Ground.Blade walk|run [seconds]: hold forward for a while (walk = half input), for captures of the
+			// blade while moving. A core ticker feeds the movement input each frame, then removes itself.
+			const float Seconds = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 2.f;
+			const float Scale = A == TEXT("walk") ? 0.5f : 1.f;
+			TWeakObjectPtr<ATDFirstPersonCharacter> Weak(P);
+			TSharedRef<double> End = MakeShared<double>(FPlatformTime::Seconds() + Seconds);
+			FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([Weak, End, Scale](float)
+			{
+				ATDFirstPersonCharacter* Q = Weak.Get();
+				if (!Q || FPlatformTime::Seconds() > *End)
+				{
+					return false;
+				}
+				Q->AddMovementInput(Q->GetActorForwardVector(), Scale);
+				return true;
+			}));
+		}
 		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.Blade %s ok=%d state=%d retracted=%d"), *A, bOk ? 1 : 0, (int32)B->GetBladeState(), B->IsRetracted() ? 1 : 0);
 	}
 	// TD.Ground.HandBlade X Y Z Pitch Yaw Roll: place the hand blade on hand_r live (to set HandBladeOffset by eye).
@@ -539,7 +559,7 @@ namespace TDGroundDebug
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Art));
 	static FAutoConsoleCommandWithWorldAndArgs CmdThird(TEXT("TD.Ground.ThirdPerson"), TEXT("TD.Ground.ThirdPerson [0|1]: switch the on-foot camera (not saved)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&ThirdPerson));
-	static FAutoConsoleCommandWithWorldAndArgs CmdBladeDo(TEXT("TD.Ground.Blade"), TEXT("TD.Ground.Blade <light|heavy|slam|block|unblock|retract|ignite|jump>: drive the pilot's blade (dev, agent captures)."),
+	static FAutoConsoleCommandWithWorldAndArgs CmdBladeDo(TEXT("TD.Ground.Blade"), TEXT("TD.Ground.Blade <light|heavy|slam|block|unblock|retract|ignite|jump|walk|run> [seconds]: drive the pilot's blade (dev, agent captures)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&BladeDo));
 	static FAutoConsoleCommandWithWorldAndArgs CmdHandBlade(TEXT("TD.Ground.HandBlade"), TEXT("TD.Ground.HandBlade [X Y Z Pitch Yaw Roll]: place / report the hand blade."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&HandBlade));
