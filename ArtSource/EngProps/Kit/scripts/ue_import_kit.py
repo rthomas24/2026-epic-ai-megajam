@@ -101,7 +101,7 @@ def ensure_pillar(notes):
     col.set_editor_property("default_value", unreal.LinearColor(0.1, 1.0, 0.85, 1))
     st = node(unreal.MaterialExpressionScalarParameter, -800, -50)
     st.set_editor_property("parameter_name", "PillarStrength")
-    st.set_editor_property("default_value", 30.0)    # r4b: 6 did not read at 300 m against the Verdance haze
+    st.set_editor_property("default_value", 14.0)    # r4b: 6 did not read at 300 m against the Verdance haze
     m1 = node(unreal.MaterialExpressionMultiply, -600, 0)
     m2 = node(unreal.MaterialExpressionMultiply, -450, 100)
     m3 = node(unreal.MaterialExpressionMultiply, -300, 0)
@@ -126,7 +126,7 @@ def ensure_pillar(notes):
         notes.append("M_Kit_LightPillar compiles on first load")
     eas.save_asset(PILLAR_MASTER, only_if_is_dirty=False)
     out = {}
-    for nm, rgb in (("MI_Kit_LightPillar_Verdance", (0.1, 1.0, 0.85)), ("MI_Kit_LightPillar_Cinder", (1.0, 0.4, 0.08))):
+    for nm, rgb in (("MI_Kit_LightPillar_Verdance", (0.0, 0.9, 0.65)), ("MI_Kit_LightPillar_Cinder", (1.0, 0.4, 0.08))):
         mi = instance(nm, mat)
         mel.set_material_instance_vector_parameter_value(mi, "PillarColor", unreal.LinearColor(rgb[0], rgb[1], rgb[2], 1.0))
         eas.save_loaded_asset(mi)
@@ -141,9 +141,9 @@ def configure_dominion():
     DEST = "/Game/TriadDrift/Gameplay/Props/Kit/Dominion"
     TEX_DEST = DEST + "/Textures"
     PIPELINE = DEST + "/Pipelines/PL_KitD_StaticMesh"
-    SIZE_CHECK = os.path.join(KIT, "review", "size_check_D_r2.json")
+    SIZE_CHECK = os.path.join(KIT, "review", "size_check_D_r3.json")
     # review r1 fix 1: a deep red (renders red, not salmon) at half the strength
-    GLOWS = {"MI_KitD_Glow": ("Glow", {"GlowStrength": 3.0, "PulseAmount": 0.0}, (1.0, 0.08, 0.02)),
+    GLOWS = {"MI_KitD_Glow": ("Glow", {"GlowStrength": 3.0, "PulseAmount": 0.0}, (1.0, 0.025, 0.006)),     # #FF2A10 (review r2)
              "MI_KitD_Light": ("Light", {"GlowStrength": 12.0, "PulseAmount": 0.0}, (0.9, 0.95, 1.0))}
     NO_COLLISION = ()
     SCREEN_MI = None

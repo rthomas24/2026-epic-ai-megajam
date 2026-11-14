@@ -30,6 +30,8 @@ STEN = (0.20, 0.21, 0.22)
 HOLE = (0.025, 0.026, 0.03)
 RUB = (0.07, 0.072, 0.078)
 FLOOR_R, FLOOR_M = 0.72, 0.35
+WALL_R, WALL_M = 0.42, 0.05          # the wall panels' roughness / metal (Dominion: gloss black armour)
+STONE_MODE = False                   # stone: no rivets, vents, barcodes, grates or hazard stripes; moss in the crevices
 ROUGH_ADD, METAL_MUL = 0.0, 1.0
 
 
@@ -104,10 +106,14 @@ class Reg:
         return m
 
     def bolt(self, cx, cy, r=5):
+        if STONE_MODE:
+            return
         m = self.disc(cx, cy, r, 2.5)
         self.paint(m, GUN, 0.35, 1.0)
 
     def stencil(self, m, col=STEN, keep=0.25):
+        if STONE_MODE:
+            return
         n = pnoise(self.h, self.w, 14, 60)
         self.paint(m & (n > -keep), col, 0.7, 0.0, 0.85)
 
@@ -119,7 +125,7 @@ def chevrons(r, y0, y1, pitch=64, width=30):
 # ---------------------------------------------------------------------------------------------- regions
 def r_wall(name):
     """400 x 300 cm (1024 x 768 px). y = 0 is the TOP of the wall (V = 1)."""
-    r = Reg(name, WHITE, 0.42, 0.05)
+    r = Reg(name, WHITE, WALL_R, WALL_M)
     s = 2.56
     # top frame band 0..20 cm, kick band 270..300 cm (dark), light-slot band at 55..65 cm from the top
     top = r.hband(0, int(20 * s), 3)
@@ -143,6 +149,14 @@ def r_wall(name):
         # a painted teal band and a small id stencil on the upper panel
         band = r.rect(x + 40, int(96 * s), x + 472, int(110 * s))
         r.paint(band, TEAL_P, 0.4, 0.1)
+    if STONE_MODE:
+        # carved glyph band (teal inlay) instead of the vent and the stencils
+        gy0, gy1 = int(118 * s), int(140 * s)
+        gl = r.rect(0, gy0, 1024, gy1) & ((((r.xx // 18) * 7 + (r.yy // 9) * 3) % 5) < 2)
+        r.H[gl] -= 3
+        r.paint(gl, TEAL_P, 0.5, 0.0)
+        r.wear = 2.2
+        return r
     if name == "wallB":
         v = r.plate(560, int(180 * s), 760, int(250 * s), -4, 4)      # vent on the second panel
         r.paint(v, GUN_D, 0.5, 0.7)
@@ -185,6 +199,11 @@ def r_floor():
 
 
 def r_grate():
+    if STONE_MODE:
+        r = Reg("grate", FLOOR, 0.85, 0.0)
+        r.plate(4, 4, 508, 508, 3, 6)
+        r.wear = 2.0
+        return r
     r = Reg("grate", FLOOR_D, 0.65, 0.7)
     m = r.hband(0, 20, 3) | r.hband(492, 512, 3)
     r.paint(m, GUN, 0.5, 0.85)
@@ -262,6 +281,11 @@ def r_frame():
 
 
 def r_hazard():
+    if STONE_MODE:
+        r = Reg("hazard", GUN, 0.85, 0.0)
+        r.hband(0, 12, 3)
+        r.hband(116, 128, 3)
+        return r
     r = Reg("hazard", (0.06, 0.06, 0.065), 0.55, 0.2)
     m = r.hband(0, 12, 3) | r.hband(116, 128, 3)
     r.paint(m, GUN, 0.5, 0.9)
@@ -353,6 +377,12 @@ def finish(r):
     c = c + (0.08 * r.wear) * (edge * np.clip(0.4 + fine, 0, 1))[..., None]       # worn bright edges
     grime = np.clip(pnoise(h, w, 30, 60) - 0.5, 0, 1) * 1.6 * r.wear
     c = c * (1.0 - 0.18 * grime[..., None])                                          # grime streaks
+    if STONE_MODE:
+        # warm / cool stone variation and moss in the crevices (from the cavity term)
+        v = pnoise(h, w, 4, 30)[..., None]
+        c = c * (1.0 + 0.10 * v) + np.array([0.03, 0.0, -0.03]) * v
+        moss = np.clip(cav * 1.8 + 0.25 * pnoise(h, w, 12, 50), 0, 1)[..., None]
+        c = c * (1 - 0.6 * moss) + np.array([0.12, 0.2, 0.08]) * 0.6 * moss
     rough = np.clip(r.R + ROUGH_ADD + 0.06 * wear + 0.05 * fine + 0.2 * grime + 0.15 * cav, 0.04, 1.0)
     dx = (np.roll(r.H, -1, 1) - np.roll(r.H, 1, 1)) * 0.5
     dy = (np.roll(r.H, -1, 0) - np.roll(r.H, 1, 0)) * 0.5
@@ -382,14 +412,16 @@ def save(arr, path, srgb):
 
 # The Dominion variant (KIT_PALETTE=dominion): the same layout in the Null Armada palette (gloss black armour, dark
 # gunmetal, red / orange marks), so the same pieces read as the mothership's interior. Written as T_KitD_Trim_*.
-DOMINION = {"WHITE": (0.10, 0.104, 0.12), "WHITE_D": (0.075, 0.078, 0.092), "GUN": (0.13, 0.15, 0.19),
-            "GUN_D": (0.085, 0.088, 0.1), "FLOOR_R": 0.86, "FLOOR_M": 0.2, "FLOOR": (0.14, 0.145, 0.16), "FLOOR_D": (0.10, 0.104, 0.115),
+DOMINION = {"WHITE": (0.10, 0.104, 0.12), "WHITE_D": (0.075, 0.078, 0.092), "GUN": (0.157, 0.165, 0.188),
+            "WALL_R": 0.24, "WALL_M": 0.5,
+            "GUN_D": (0.085, 0.088, 0.1), "FLOOR_R": 0.35, "FLOOR_M": 0.3, "FLOOR": (0.19, 0.19, 0.20), "FLOOR_D": (0.15, 0.15, 0.16),
             "YEL": (0.72, 0.16, 0.04), "TEAL_P": (0.34, 0.035, 0.045), "STEN": (0.42, 0.43, 0.42)}
 
 
 # The ancient-stone variant (KIT_PALETTE=stone): warm grey-green stone, darker joints, moss in place of the hazard
 # yellow, a cyan rune band; rough, no metal. For the relay's plinth (review r1 fix 3). Written as T_KitS_Trim_*.
-STONE = {"WHITE": (0.40, 0.42, 0.37), "WHITE_D": (0.31, 0.33, 0.29), "GUN": (0.25, 0.26, 0.23), "GUN_D": (0.17, 0.18, 0.16),
+STONE = {"STONE_MODE": True, "WALL_R": 0.78, "WALL_M": 0.0, "FLOOR_R": 0.8, "FLOOR_M": 0.0,
+         "WHITE": (0.45, 0.44, 0.40), "WHITE_D": (0.31, 0.33, 0.29), "GUN": (0.25, 0.26, 0.23), "GUN_D": (0.17, 0.18, 0.16),
          "FLOOR": (0.34, 0.35, 0.31), "FLOOR_D": (0.27, 0.29, 0.25), "YEL": (0.20, 0.28, 0.17), "TEAL_P": (0.08, 0.42, 0.42),
          "STEN": (0.22, 0.24, 0.21), "ROUGH_ADD": 0.35, "METAL_MUL": 0.0}
 

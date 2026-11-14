@@ -70,7 +70,7 @@ def room_wall():
     (review r1 fix 2): a 40 cm chamfered rib 30 deep at the centre and half ribs at both seams (a full rib where two
     walls meet), a sloped 60 cm base plinth and an angled cornice, all gunmetal; ONE red strip per storey at 236..244
     (review fix 1: the 536 band is gone). Ribs and plinth block the pawn (their own hulls)."""
-    p = Piece("SM_DI_Room_Wall", ((-60, -200, 0), (60, 200, 600)))
+    p = Piece("SM_DI_Room_Wall", ((-64, -200, 0), (64, 200, 600)))
     _stacked(p, (-30, -200, 0), (30, 200, 600), "xX", {"Z": "frame", "z": "sw_dark"})
     for s in (-1.0, 1.0):
         prof = [(s * 30.0, 0.0), (s * 55.0, 0.0), (s * 55.0, 15.0), (s * 30.0, 60.0)]
@@ -79,6 +79,8 @@ def room_wall():
         prof = [(s * 30.0, 540.0), (s * 30.0, 600.0), (s * 52.0, 600.0)]
         p.prism(prof, "xz", -200.0, 200.0, regs="frame", cap_reg="frame", fitu=True)
         _rib(p, s, -20.0, 20.0)
+        for yy in (-10.0, 10.0):                                    # a watching pair high on the centre rib
+            _eye(p, s, 470.0, r_lens=4.0, r_bezel=7.0, yc=yy, x_face=60.0, ring=False)
         _rib(p, s, -200.0, -180.0)
         _rib(p, s, 180.0, 200.0)
         xa2, xb2 = sorted((s * 30, s * 33))
@@ -119,21 +121,27 @@ def corridor_straight():
     return p
 
 
-def _eye(p, s, zc, r_lens=35.0, r_bezel=45.0):
+def _eye(p, s, zc, r_lens=35.0, r_bezel=45.0, yc=0.0, x_face=30.0, ring=True):
     """A round lens on the face X = s*30, centred (Y 0, Z zc): a black bezel ring 4 cm proud, the white lens 2 cm proud."""
     import math
-    n = 20
-    x0 = s * 30.0
+    n = 24
+    x0 = s * x_face
+    f1, f2 = x_face + 4.0, x_face + 2.0
+    r_ring = r_lens + 0.35 * (r_bezel - r_lens)
     for i in range(n):
         a0, a1 = 2 * math.pi * i / n, 2 * math.pi * (i + 1) / n
         c0, s0, c1, s1 = math.cos(a0), math.sin(a0), math.cos(a1), math.sin(a1)
-        p.poly([(s * 34.0, r_lens * c0, zc + r_lens * s0), (s * 34.0, r_bezel * c0, zc + r_bezel * s0),
-                (s * 34.0, r_bezel * c1, zc + r_bezel * s1), (s * 34.0, r_lens * c1, zc + r_lens * s1)], "sw_black", n=(s, 0, 0),
+        Y = lambda r, c: yc + r * c
+        p.poly([(s * f1, Y(r_ring, c0), zc + r_ring * s0), (s * f1, Y(r_bezel, c0), zc + r_bezel * s0),
+                (s * f1, Y(r_bezel, c1), zc + r_bezel * s1), (s * f1, Y(r_ring, c1), zc + r_ring * s1)], "sw_black", n=(s, 0, 0),
                uv=[(0.5, 0.5)] * 4)
-        p.poly([(x0, r_bezel * c0, zc + r_bezel * s0), (s * 34.0, r_bezel * c0, zc + r_bezel * s0),
-                (s * 34.0, r_bezel * c1, zc + r_bezel * s1), (x0, r_bezel * c1, zc + r_bezel * s1)], "sw_black",
+        p.poly([(s * f1, Y(r_lens, c0), zc + r_lens * s0), (s * f1, Y(r_ring, c0), zc + r_ring * s0),
+                (s * f1, Y(r_ring, c1), zc + r_ring * s1), (s * f1, Y(r_lens, c1), zc + r_lens * s1)],
+               "sw_black" if not ring else None, mat="Trim" if not ring else "Glow", n=(s, 0, 0), uv=[(0.5, 0.5)] * 4)
+        p.poly([(x0, Y(r_bezel, c0), zc + r_bezel * s0), (s * f1, Y(r_bezel, c0), zc + r_bezel * s0),
+                (s * f1, Y(r_bezel, c1), zc + r_bezel * s1), (x0, Y(r_bezel, c1), zc + r_bezel * s1)], "sw_black",
                n=(0, (c0 + c1) * 0.5, (s0 + s1) * 0.5), uv=[(0.5, 0.5)] * 4)
-        p.poly([(s * 32.0, 0.0, zc), (s * 32.0, r_lens * c0, zc + r_lens * s0), (s * 32.0, r_lens * c1, zc + r_lens * s1)],
+        p.poly([(s * f2, yc, zc), (s * f2, Y(r_lens, c0), zc + r_lens * s0), (s * f2, Y(r_lens, c1), zc + r_lens * s1)],
                mat="Light", n=(s, 0, 0))
 
 
@@ -152,7 +160,7 @@ def doorway():
         p.box((xa, -140, 408), (xb, 140, 416), mat="Glow")
         p.box((xa, -192, 520), (xb, -184, 560), mat="Glow")         # 40 cm caps (review fix 1)
         p.box((xa, 184, 520), (xb, 192, 560), mat="Glow")
-        _eye(p, s, 500.0)                                          # white = exits, red = ambience
+        _eye(p, s, 500.0, r_lens=62.0, r_bezel=84.0)               # 1.7 m: white = exits, red = ambience (review r2)
     p.cbox((-30, -200, 0), (30, -150, 600))
     p.cbox((-30, 150, 0), (30, 200, 600))
     p.cbox((-30, -150, 400), (30, 150, 600))

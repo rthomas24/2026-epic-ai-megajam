@@ -261,6 +261,8 @@ def dominion_interior():
     grid(HX0, HX1, HY, 1100.0)
     grid(CX1, AX1, AY, 540.0)
     grid(L1X1, WX1, WY, 540.0)
+    for lt in lights[9:]:
+        lt["intensity"] = 900.0          # arena and Warden: half (review r2: washed out)
     grid(L2X1, KX1, KY, 1650.0, 1200.0)
     for x in [HX1 + 400 + 800 * k for k in range(5)] + [AX1 + 400, WX1 + 400]:
         lights.append({"name": "L%03d" % len(lights), "location_cm": [x, 0.0, 540.0], "intensity": 900.0, "radius": 1000.0, "color": [0.8, 0.88, 1.0]})
@@ -302,6 +304,11 @@ def _bay_pieces(to_hull):
         for y in (-1800.0, -600.0, 600.0, 1800.0):
             lx, ly, lz = (-7200.0 - x, -y, 3300.0 - 1750.0) if to_hull else (x, y, 3300.0)
             lights.append({"name": "BL%02d" % len(lights), "location_cm": [lx, ly, lz], "intensity": 6000.0, "radius": 3000.0, "color": [0.8, 0.88, 1.0]})
+    # a low red fill along both pocket walls so the lower storeys and the mouth are not dead black (review r2)
+    for x in (-6400.0, -4400.0, -2400.0):
+        for y in (-2300.0, 2300.0):
+            lx, ly, lz = (-7200.0 - x, -y, 250.0 - 1750.0) if to_hull else (x, y, 250.0)
+            lights.append({"name": "BR%02d" % len(lights), "location_cm": [lx, ly, lz], "intensity": 600.0, "radius": 1800.0, "color": [1.0, 0.12, 0.05]})
     return plan, ps, lights
 
 
