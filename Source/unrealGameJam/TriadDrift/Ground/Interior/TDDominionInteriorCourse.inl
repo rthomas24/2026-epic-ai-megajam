@@ -509,7 +509,7 @@ void ATDPlanetCourse::BuildInterior()
 	Checkpoint(Fight, 2, FVector(CX1 + 200.f, 0.f, 0.f), 0.f);
 	FinishObjective(Fight, { LOCTEXT("DIA0", "CLEAR THE DECK"), LOCTEXT("DIA1", "THEY'RE SENDING MORE"), LOCTEXT("DIA2", "LAST WAVE") }, {});
 	Entry(Arena, FVector(CX1 + 400.f, 0.f, 0.f), 0.f);
-	StoryConsole(FVector(AX1 - 300.f, AY - 300.f, 0.f), 0.f, TEXT("Barracks")); // T3's id for this room
+	StoryConsole(FVector(AX1 - 300.f, AY - 300.f, 0.f), 180.f, TEXT("Barracks")); // T3's id for this room
 
 	// 3. The Warden at the gate.
 	ATDObjective* Gate = MakeObjective(Warden, LOCTEXT("DIWardenTitle", "The Warden's Gate"), ETDAbilityId::None, ETDShipId::Rift, 1);
@@ -648,7 +648,7 @@ void ATDPlanetCourse::BuildInterior()
 	FinishObjective(Reactor, { LOCTEXT("DIK0", "BREAK THE REACTOR CONDUITS  0 / 4"), LOCTEXT("DIK1", "DESTROY THE REACTOR HEART") }, { Conduits, Heart });
 	for (FMarkerGroup& G : MarkerGroups) { if (G.Objective.Get() == Reactor) { G.Counter = Conduits; } }
 	Entry(Core, FVector(L2X1 - 300.f, 0.f, 0.f), 0.f);
-	FinalRecordConsole = StoryConsole(FVector(WX1 - 350.f, -WY + 350.f, 0.f), 0.f, TEXT("Core")); // mandatory: on the main route, after the Warden
+	FinalRecordConsole = StoryConsole(FVector(WX1 - 350.f, -WY + 350.f, 0.f), 180.f, TEXT("Core")); // mandatory: on the main route, after the Warden
 	if (ATDInteractableActor* Rec = Cast<ATDInteractableActor>(FinalRecordConsole))
 	{
 		Rec->Prompt = LOCTEXT("FinalRecord", "Play the final record");

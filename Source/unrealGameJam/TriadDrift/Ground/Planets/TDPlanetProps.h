@@ -361,6 +361,15 @@ private:
 	void ApplyCollapse(float A);
 	int32 SectionsDropped = 0;
 	bool bDroppingSection = false;
+	struct FFallingPiece
+	{
+		TWeakObjectPtr<AActor> Actor;
+		FVector Velocity = FVector::ZeroVector;
+		FRotator Spin = FRotator::ZeroRotator;
+		float HalfThickness = 50.f;
+	};
+	TArray<FFallingPiece> Pieces;
+	void TickPieces(float DeltaSeconds);
 	float TowerSink = 2500.f;
 	/** After the escape succeeds the deadline is gone, but the tower falls on from FinishFromA to fully down. */
 	bool bFinishing = false;
