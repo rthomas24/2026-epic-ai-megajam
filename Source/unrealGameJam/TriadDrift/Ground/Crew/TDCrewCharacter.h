@@ -294,6 +294,11 @@ private:
 	/** td.Crew.LogHits: one line per enemy damage instant (type, action, clip, clip time) for the animation builder. */
 	void LogHitInstant(const TCHAR* What) const;
 	int32 MeleeSwings = 0;
+	/** The Grunt's two-hit combo clip is playing this swing; its second impact's countdown. */
+	bool bComboSwing = false;
+	float ComboSecondLeft = 0.f;
+	/** The Warden's phase-change roar: no damage taken while it lasts. */
+	float RoarLeft = 0.f;
 	FVector RagdollPush = FVector::ZeroVector;
 	FVector ToppleAway = FVector::ForwardVector;
 	void StartRagdollOrTopple();

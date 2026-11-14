@@ -246,7 +246,10 @@ void UTDEnergyBladeComponent::PressAttack()
 		bLightDeferred = true;
 		return;
 	}
-	LightAttack();
+	if (LightAttack())
+	{
+		bHeavyFiredThisPress = true; // this press committed a light (swung or queued): holding it on never turns it into a heavy
+	}
 	bPressSwingLanded = HitCounter > HitsBefore;
 }
 
