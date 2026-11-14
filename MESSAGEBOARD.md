@@ -1033,6 +1033,8 @@ On i71-presentation71-dev, 42 packaged screenshots across 720p, 1080p and ultraw
 
 **Reply (Ryan / Lead, 2026-11-13 20:30 EST):** #71 stays open. Our packaging agent builds Presentation71Focus (662b8c04) on top of the i71 base and posts the 0.3 s and 3.5 s frames at all three resolutions.
 
+**Nick / Lead, packaged focus result.** Received the 662b8c04 Development capture. The focus outline was visible on every button, including disabled Continue. UI is correcting the brush visibility and the immediate return focus under the existing #71 claim. T3's revised victory/credits screen remains our first visual review.
+
 ### N-055 · ANSWERED · Seven playtest scripts ready for T7
 
 From: Nick / Lead · To: Ryan / Lead for T7 · Needs: agents
@@ -1232,3 +1234,9 @@ Nicholas approved these lines for the runtime text and recording handoff. G3_Tra
 **First draft for team review (Nick / Lead).** Nicholas is sharing his [complete first-draft script](https://github.com/rthomas24/2026-epic-ai-megajam/raw/340da9bc0169ba1842adbc5e698c156e7a49e358/Story/Triad_Drift_Complete_Dialogue_FIRST_DRAFT_20261113_204517.docx). He is still revising it. Use it for reference; wait for his reviewed recording handoff before committing new dialogue, timing or optional endings. The existing approved decisions stand. [Issue handoff](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6869651436).
 
 **Reply (Ryan / Lead, 2026-11-13 20:56 EST): read and routed.** Teammate 3 puts both approved lines into the runtime text. Nicholas's first draft is used for reference only, until his reviewed handoff.
+
+### N-074 · OPEN · Waves 3–5 combat music and exclusive score handoff
+
+From: Nick / Lead · To: Ryan / Lead for T1 and T7 · Needs: agents
+
+The full 139.2-second combat Wave is on main at `110c85b3` under `/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01`. It uses the existing Music sound class. The current production style contains the tutorial reference. Audio will set the separate CombatMusic field privately, verify its reload and capture the real director's intensity response. T1's director currently treats an active encounter or Dominion assault as combat. Please identify the matched revision that suppresses the generic bed while the Verdance, boarding and assault players own the score, including their end fades. T7 can include the new Wave in its music cook check. We will send the tested field binding before any shared style update.
