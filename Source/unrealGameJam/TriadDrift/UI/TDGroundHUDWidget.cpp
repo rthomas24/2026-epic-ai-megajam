@@ -304,10 +304,17 @@ void UTDGroundHUDWidget::Sample(float DeltaSeconds)
 		View.bEscape = false;
 	}
 	// The way out while the clock runs: the pawn's first objective marker (T5 points it at the exit).
+	// The objective waypoint (ENG-36, the new style draws it natively): the first live marker the objective supplies, which
+	// is T5's route point while the straight line would cross magma (GetActiveWaypoints), "EXIT" during the escape. Re-read
+	// every frame: a broken conduit drops out at once.
 	View.bExitMarker = false;
-	if (View.bEscape && PC && Pawn)
+	if (PC && Pawn)
 	{
 		TOptional<FVector> At = ForceExitAt;
+		if (!At.IsSet() && ForceMarkerActor.IsValid())
+		{
+			At = ForceMarkerActor->GetActorLocation();
+		}
 		if (!At.IsSet() && Data)
 		{
 			for (AActor* Marker : Data->GetObjectiveMarkers())
@@ -610,7 +617,7 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 			Pos = P.ToDesign(UI);
 			bOn = View.bExitOnScreen && Pos.X >= 60.f && Pos.X <= 1860.f && Pos.Y >= 60.f && Pos.Y <= 1020.f;
 		}
-		const FLinearColor Amber = FTDUIPalette::Bastion();
+		const FLinearColor Amber = View.bEscape ? FTDUIPalette::Bastion() : Ink;
 		if (!bOn)
 		{
 			const FVector2D D = ExitDirection;
@@ -628,7 +635,10 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 			P.Line({ Pos.X - 12.f, Pos.Y }, { Pos.X, Pos.Y - 12.f }, Amber, 2.5f);
 		}
 		const FVector2D LabelAt = bOn ? Pos + FVector2D(18.f, -16.f) : Pos - ExitDirection * 40.f + FVector2D(-20.f, -10.f);
-		P.Label(LabelAt.X, LabelAt.Y, TEXT("EXIT"), 12, Amber, 150);
+		if (View.bEscape)
+		{
+			P.Label(LabelAt.X, LabelAt.Y, TEXT("EXIT"), 12, Amber, 150);
+		}
 		P.Text(LabelAt.X, LabelAt.Y + 15.f, FString::Printf(TEXT("%.0f m"), View.ExitMetres), 12, Ink.CopyWithNewOpacity(.85f));
 		LastBoxes.Emplace(TEXT("exit"), FBox2D(Pos - FVector2D(14.f, 14.f), Pos + FVector2D(14.f, 14.f)));
 	}

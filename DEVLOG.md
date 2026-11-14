@@ -1,5 +1,33 @@
 # Triad Drift dev log
 
+## WAKE-UP REPORT for Ryan: overnight Nov 13-14 (Ryan's Lead, written 08:50 EST Nov 14)
+
+**Update 09:15:** main is now batch Y (`8b4eabae`, gate 999/999); newest package `playable-main-8b4eabae` (zip `TriadDrift_8b4eabae_Shipping.zip` in the for-ryan builds folder, 877 MB, cook 0 errors 0 warnings, checked in Shipping to wave 1 only). Batch Z is gating. PR #78 (Wren take 04, chosen by Nicholas) needs Ryan's merge click.
+
+**Main:** `c8f78e1e` (batch X, gate 991/991). Batch Y is gating (`lead/int-y` 305453c7).
+**Package:** private prerelease `playable-main-6cc4f254` (batch W), `Builds\for-ryan\TriadDrift_6cc4f254_Shipping.zip`, 876 MB, cook 0 errors 0 warnings, six maps. Checked in Shipping only to the start of wave 1; audio, flight input and everything later are NOT verified in the package. A package of batch Y follows when it passes.
+
+**On main and played by an agent (never by a person):** opening, hold-to-skip, tutorial, Aftermath hold when boosting into Verdance, natural Verdance entry and glide, Verdance on foot through orbit, Continue after relaunch, 13 mid-action ship switches (all instant, worst frame 15 ms), the Dominion assault, docking with all three ships, the interior from the hangar to the Warden.
+**On main, tests only:** Cinder magma route over the new bridge, wreck-core trim, six travel barks, world and on-foot barks, subtitles setting, interception/docking/assault story lines, journey keep-outs in the space field.
+**Not played by anyone:** reactor conduits and heart, escape run and flight, victory, credits, the space-reactor fallback, Cinder after the magma fix.
+
+**Not finished, and why:**
+- Interior (ENG-30) has bugs: dying in the Warden fight skipped the Warden; the Heavy's guard never broke; the arena had no mercy tiers (17-38 takes for the scripted player). Fixes are in batch Y, tests only.
+- Docking crawled (38-44 s); fixed and re-flown by T1 at 12-13.5 s; in batch Y.
+- Effects not accepted: enemy engine plumes, region beacon, region haze, tractor beam (do not read at distance). Their slots are empty or unchanged.
+- Verdance wreck scar reads from above but weakly from the landing approach.
+- Lancer is nearly lost against the cyan part of the nebula (Yaw 166, Pitch -10); a contrast fix is with T1.
+- The ship builder agent hit the model usage limit at about 07:00 and stopped; the Lead session was also stalled from about 07:00 to 08:30.
+- features.md: item headings 0 todo / 45 in progress / 24 built / 2 done / 1 bugs; checklist 36 in progress, 1 bugs. Nothing is "done" without your play.
+
+**Decisions made for you (overrule any):** ENG-38 smallest complete glide (8-10 s); cloud deck fitted to the glide corridor; opening rebuilt from the approved O_* lines behind `td.Intro.Lines`; Warden shield re-rigged to the forearm; BP_Wreck stays cooked; never-cook rules applied; no package from batches S, T, V, X; Shipping compile checked per batch; corridor keeps the Verdance bearing with a jump-point waypoint; wreck-core fight trimmed (ambush two Grunts, site Grunt + Trooper, Heavy moved to the relay, mercy from take 2); crew bodies stay 30 s; geyser row moved off the bridge exit; Heavy guard opens after 6 quick slashes (was 9); docking targets (full speed to 600 m, about 12 s); one shared rendering slot outside T7; declined OS-level input injection on your desktop; T6's branch re-cut without unaccepted effects; shard fine-grid mesh change not requested.
+**Held for you:** DirectX 11 shader set removal (36fd0fac); `MI_TD_DominionGlowRed` 20 to about 6 (truer red, dimmer docking cue); Bastion cockpit design; pilot foot IK; precompiled PSO cache; T3's stash "t3-failed-merge-lead-int-u-0921"; the ENG-38 left-for-Ryan list; whether a boosting player should be made to use the one hyperdrive jump into Verdance; the ENG-47 decision due 20:00.
+
+**Needs your eyes first:** (1) play the package past wave 1 with real controls and sound; (2) one real click on CONTINUE; (3) the interior from the hangar to the Warden once batch Y is packaged; (4) the Cinder bridge crossing; (5) docking feel.
+**Nick's side:** Nicholas came back online at 08:18; his four new board messages are answered (Director card evidence to T3, the "Thirty seconds. Keep going." line to T5; the victory eyebrow is confirmed by him). Still waiting on Nicholas: Wren take (PR #78), music ear approvals and the escape track, closing #49 and the eleven asset issues, words and voices for placeholder lines.
+Trackers: bugs #90, performance #89.
+
+
 ## 2026-11-12 — Parallel presentation source milestone (Nicholas / Codex Lead)
 
 Prompt: develop independent environment, modular VFX, three-ship HUD, and audio plans while protecting Ryan's engineering work. Four specialized native agents worked in isolated branches. Nicholas selected source-files-only and no merge; claims remain in PR #1 pending approval.

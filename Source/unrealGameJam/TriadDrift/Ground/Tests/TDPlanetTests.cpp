@@ -20,6 +20,7 @@
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
+#include "TriadDrift/Ground/TDGroundBarks.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
@@ -1832,6 +1833,23 @@ bool FTDCinderMarkersOffMagma::RunTest(const FString& Parameters)
 	}
 	AddInfo(FString::Printf(TEXT("%d respawn-to-marker legs checked"), Legs));
 
+	// No geyser within 8 m of either ramp foot of the river's bridge (pivot (5600, 4620), yaw 34.7, feet at +-1400).
+	{
+		const FVector Along = FRotator(0.f, 34.7f, 0.f).Vector();
+		const FVector Feet[] = { FVector(5600.f, 4620.f, 0.f) - Along * 1400.f, FVector(5600.f, 4620.f, 0.f) + Along * 1400.f };
+		int32 Geysers = 0;
+		for (TActorIterator<ATDGeyser> It(V.W.GetWorld()); It; ++It)
+		{
+			++Geysers;
+			for (const FVector& Foot : Feet)
+			{
+				const float D = FVector::Dist2D(It->GetActorLocation(), R.Course->GetActorTransform().TransformPosition(Foot));
+				TestTrue(*FString::Printf(TEXT("%s %.1f m from a ramp foot (>= 8)"), *It->GetName(), D / 100.f), D >= 800.f);
+			}
+		}
+		TestTrue(TEXT("the geysers are there"), Geysers >= 3);
+	}
+
 	// Two magma deaths in a row in the river: the far bank.
 	ATDMagmaVolume* River = nullptr;
 	for (ATDMagmaVolume* M : Magma) { if (!River || FVector::Dist2D(M->GetActorLocation(), FVector(5600.f, 4800.f, 0.f)) < FVector::Dist2D(River->GetActorLocation(), FVector(5600.f, 4800.f, 0.f))) { River = M; } }
@@ -1847,6 +1865,32 @@ bool FTDCinderMarkersOffMagma::RunTest(const FString& Parameters)
 	TestFalse(TEXT("a non-magma death resets"), R.Course->ResolveRespawn(Where));
 	R.Course->NoteMagmaDeath(River);
 	TestFalse(TEXT("one again after the reset"), R.Course->ResolveRespawn(Where));
+	return true;
+}
+
+// T2's sweep (Nov 14): Bark_Planet_Arrive_Verdance plays once per run, on the first time on foot there; never again
+// on a retake or on a reload / staged start in the same run.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDVerdanceArriveBark, "TriadDrift.Ground.Barks.PlanetArrivalOncePerRun", TD_TEST_FLAGS)
+bool FTDVerdanceArriveBark::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	UTDGroundBarks* B = UTDGroundBarks::Get(V.W.GetWorld());
+	if (!TestNotNull(TEXT("barks"), B)) { return false; }
+	const FName Arrive(TEXT("Bark_Planet_Arrive_Verdance"));
+	auto Count = [B, Arrive]() { return B->GetSaid().FilterByPredicate([Arrive](const FName& N) { return N == Arrive; }).Num(); };
+	for (float T = 0.f; T < 40.f && Count() == 0; T += 0.5f) { V.W.Advance(0.5f); }
+	TestEqual(TEXT("said on the first time on foot"), Count(), 1);
+	TestEqual(TEXT("by the pilot on foot"), B->GetLastSpeaker(Arrive), ATDFirstPersonCharacter::GetOnFootPilotName(V.W.GetWorld()));
+	TestTrue(TEXT("claimed for the run"), V.GI->HasRunOnceBark(Arrive));
+	// A reload or a staged start in the same run: a fresh bark state, the run remembers.
+	B->ResetForTests();
+	V.W.Advance(10.f);
+	TestFalse(TEXT("not again in the same run"), B->GetSaid().Contains(Arrive));
+	// A new run plays it again.
+	V.GI->StartNewRun();
+	TestFalse(TEXT("a new run forgets it"), V.GI->HasRunOnceBark(Arrive));
 	return true;
 }
 

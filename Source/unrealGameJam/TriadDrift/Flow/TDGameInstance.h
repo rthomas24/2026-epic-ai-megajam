@@ -92,6 +92,11 @@ public:
 	void ForgetTransmission(FName Id);
 	/** This run was resumed with Continue (onboarding's control lessons stay off). A New Game clears it. */
 	bool IsRunFromContinue() const { return bRunFromContinue; }
+	/** A bark played once per run (the first view on a planet), kept across retakes, reloads and staged starts in
+	 *  this session; a new run clears it. True the first time it is claimed. */
+	bool ClaimRunOnceBark(FName BarkId) { bool bAlready = false; RunOnceBarks.Add(BarkId, &bAlready); return !bAlready; }
+	bool HasRunOnceBark(FName BarkId) const { return RunOnceBarks.Contains(BarkId); }
+	TSet<FName> RunOnceBarks;
 #if WITH_DEV_AUTOMATION_TESTS
 	void SetRunFromContinueForTests(bool b) { bRunFromContinue = b; }
 #endif

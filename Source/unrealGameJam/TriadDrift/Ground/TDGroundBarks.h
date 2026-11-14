@@ -20,7 +20,7 @@ class UTDHealthComponent;
 struct FTDDamageInfo;
 
 /** Who says it (dialogs.md's speaker column). */
-enum class ETDFootSpeaker : uint8 { Pilot, Wingman, Kato, Command };
+enum class ETDFootSpeaker : uint8 { Pilot, Wingman, Kato, Command, Moss };
 
 UCLASS()
 class UNREALGAMEJAM_API UTDGroundBarks : public UWorldSubsystem
@@ -45,6 +45,8 @@ public:
 
 	/** Every bark said, in order (tests). */
 	const TArray<FName>& GetSaid() const { return Said; }
+	/** Who said this bark last (tests: N-093's lines name their speaker). */
+	FName GetLastSpeaker(FName BarkId) const { const FName* S = LastSpeaker.Find(BarkId); return S ? *S : NAME_None; }
 	FName SpeakerName(ETDFootSpeaker Who) const;
 
 	/** The polled barks; the course calls it every frame (on foot only: planets and the interior). */
@@ -62,6 +64,7 @@ private:
 	FTDBarkLimiter Limiter;
 	TSet<FName> SaidOnce;
 	TArray<FName> Said;
+	TMap<FName, FName> LastSpeaker;
 	TWeakObjectPtr<ATDFirstPersonCharacter> Bound;
 	float LastHull01 = 1.f;
 	bool bLowArmed = true;

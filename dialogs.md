@@ -123,7 +123,7 @@ Ids marked **(exists)** are fired by the game today; the rest are **(new)**: the
 | `Bark_Dom_Tractor` (new, T4) | The tractor assist takes hold | flown pilot | High | "Something's pulling us in." | "We are being guided. Controls limited." | "Easy. Let it take us." |
 | `Bark_Dom_Boarded` (new, T5) | First step in the hangar | radio | High | "Bring something back." | "We will hold outside." | "Careful in there." |
 | `Bark_Dom_CoreShield` / `_CoreOpen` (new, T5) | A conduit breaks / the heart is exposed | player's pilot | High | "Shield's dropping!" / "There's the heart!" | "Conduit down." / "Core exposed." | "One more like that." / "There it is." |
-| `Bark_Dom_Escape_Start` / `_30` / `_10` (new, T5) | Escape run begins / 30 s / 10 s left | radio | Critical | "Run! Run now!" / "Thirty seconds!" / "Move it!" | "It's coming apart. Ninety seconds." / "Thirty." / "Ten seconds." | "Get out of there!" / "Halfway, keep going." / "Almost, almost!" |
+| `Bark_Dom_Escape_Start` / `_30` / `_10` (new, T5) | Escape run begins / 30 s / 10 s left | radio | Critical | "Run! Run now!" / "Thirty seconds!" / "Move it!" | "It's coming apart. Ninety seconds." / "Thirty." / "Ten seconds." | "Get out of there!" / "Thirty seconds. Keep going." / "Almost, almost!" |
 | `Bark_Dom_EscapeFlight` (new, T4) | Launch from the hangar | a wingman | Critical | "Punch it!" | "Follow my line out." | "Stay with me, stay with me." |
 | `Bark_Dom_Clear` (new, T4) | **Retired (Nov 14):** replaced by the `ClearSpace` roll call (`C9_*`, storyline 31) | a pilot | High | "We're clear! We're clear!" | "Clear of the blast radius." | "Everyone here? Good." |
 

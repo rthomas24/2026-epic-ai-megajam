@@ -11,6 +11,9 @@
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
+#include "TriadDrift/Ground/TDGroundBarks.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Squad/TDBarkLines.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDJourney.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
@@ -566,6 +569,102 @@ bool FTDInteriorHangarStartClear::RunTest(const FString& Parameters)
 			Box.IsInside(A) || FMath::LineBoxIntersection(Box, A, B, B - A));
 	}
 	AddInfo(FString::Printf(TEXT("%d parked parts checked"), Parts));
+	return true;
+}
+
+// N-093 (Nicholas's approved script): at 30 s left of the escape run Moss says "Thirty seconds. Keep going."
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorEscape30, "TriadDrift.Ground.Interior.EscapeThirtySecondsIsMossKeepGoing", TD_TEST_FLAGS)
+bool FTDInteriorEscape30::RunTest(const FString& Parameters)
+{
+	const TArray<FName>& Ids = ATDPlanetCourse::InteriorObjectiveIds();
+	TDInteriorTest::FInterior I({ Ids[0], Ids[1], Ids[2], Ids[3] });
+	if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(I.W, I.Course->GetInteriorStart().GetLocation() + FVector(0.f, 0.f, 95.f));
+	if (!TestNotNull(TEXT("pilot"), P)) { return false; }
+	P->GetHealth()->SetInvulnerable(true);
+	UTDGroundBarks* B = UTDGroundBarks::Get(I.W.GetWorld());
+	if (!TestNotNull(TEXT("barks"), B)) { return false; }
+	B->ResetForTests();
+	TestTrue(TEXT("the escape starts"), I.Course->StartObjectiveAt(Ids[4]));
+	for (float T = 0.f; T < 120.f && I.Course->GetEscapeSecondsLeft() > 28.f; T += 0.5f) { I.W.Advance(0.5f); }
+	I.W.Advance(1.f);
+	TestTrue(*FString::Printf(TEXT("30 s left (%.1f)"), I.Course->GetEscapeSecondsLeft()), I.Course->GetEscapeSecondsLeft() <= 30.f);
+	TestTrue(TEXT("Bark_Dom_Escape_30 said"), B->GetSaid().Contains(FName(TEXT("Bark_Dom_Escape_30"))));
+	TestEqual(TEXT("by Moss"), B->GetLastSpeaker(TEXT("Bark_Dom_Escape_30")), FName(TEXT("Moss")));
+	FTDBarkLines::ResetForTests();
+	FText Line;
+	if (!FTDBarkLines::FindRow(TEXT("Bark_Dom_Escape_30"), TEXT("Moss")))
+	{
+		AddWarning(TEXT("DT_BarksFallback is not imported in this checkout"));
+		return true;
+	}
+	TestTrue(TEXT("a line"), FTDBarkLines::PickLine(I.W.GetWorld(), TEXT("Bark_Dom_Escape_30"), TEXT("Moss"), Line));
+	TestEqual(TEXT("Nicholas's words"), Line.ToString(), FString(TEXT("Thirty seconds. Keep going.")));
+	return true;
+}
+
+// T7 (Nov 14): after each arena retake the pilot died to Trooper bolts within 6-7 s (38 takes): a wave's ring put crew
+// 1-4 m from the retake spot. Every arena spawn point is at least 14 m from the arena's retake spots.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorArenaSpawnsFar, "TriadDrift.Ground.Interior.ArenaWavesSpawnFarFromTheRetakeSpot", TD_TEST_FLAGS)
+bool FTDInteriorArenaSpawnsFar::RunTest(const FString& Parameters)
+{
+	TDInteriorTest::FInterior I;
+	ATDObjective* Arena = I.Obj(1);
+	if (!TestNotNull(TEXT("arena"), Arena)) { return false; }
+	TArray<FVector> Spots;
+	for (const FTDObjectiveStep& S : Arena->Steps) { if (S.bCheckpoint && S.RespawnAt) { Spots.Add(S.RespawnAt->GetActorLocation()); } }
+	TestTrue(TEXT("the arena has retake spots"), Spots.Num() >= 1);
+	int32 Points = 0;
+	for (TActorIterator<ATDEncounterVolume> It(I.W.GetWorld()); It; ++It)
+	{
+		if (It->LinkedObjective != Arena) { continue; }
+		TestTrue(*FString::Printf(TEXT("%s has explicit spawn points"), *It->GetName()), It->SpawnPoints.Num() > 0);
+		for (const FVector& P : It->SpawnPoints)
+		{
+			++Points;
+			const FVector At = It->GetActorTransform().TransformPosition(P);
+			for (const FVector& Spot : Spots)
+			{
+				TestTrue(*FString::Printf(TEXT("%s spawn %s is %.1f m from the retake spot"), *It->GetName(), *At.ToCompactString(), FVector::Dist2D(At, Spot) / 100.f),
+					FVector::Dist2D(At, Spot) >= 1400.f);
+			}
+		}
+	}
+	TestEqual(TEXT("nine spawn points"), Points, 9);
+	return true;
+}
+
+// N-052 (T3's G8 sequences): the reactor room starts with Face to Face for the boarding pilot, and overcoming the room's
+// defenders plays its "overcome" half.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorFaceToFace, "TriadDrift.Ground.Interior.FaceToFaceAtTheReactorAndWhenItsDefendersFall", TD_TEST_FLAGS)
+bool FTDInteriorFaceToFace::RunTest(const FString& Parameters)
+{
+	const TArray<FName>& Ids = ATDPlanetCourse::InteriorObjectiveIds();
+	TDInteriorTest::FInterior I({ Ids[0], Ids[1], Ids[2] });
+	if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(I.W, I.Course->GetInteriorStart().GetLocation() + FVector(0.f, 0.f, 95.f));
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(I.W.GetWorld());
+	if (!TestNotNull(TEXT("pilot"), P) || !TestNotNull(TEXT("story"), Story)) { return false; }
+	P->GetHealth()->SetInvulnerable(true);
+	const ETDShipId Boarder = ATDFirstPersonCharacter::GetOnFootPilotShip(I.W.GetWorld());
+	const FName Entry = UTDStorySubsystem::FaceToFaceSequence(Boarder, false);
+	const FName Over = UTDStorySubsystem::FaceToFaceSequence(Boarder, true);
+	TestTrue(TEXT("the reactor starts"), I.Course->StartObjectiveAt(Ids[3]));
+	I.W.Advance(0.2f);
+	TestTrue(*FString::Printf(TEXT("%s plays as the room starts"), *Entry.ToString()), Story->IsSequencePlaying(Entry));
+	Story->SkipSequence();
+	I.W.Advance(0.2f);
+	// The room's defenders (the drones today): beat them.
+	ATDObjective* Reactor = I.Obj(3);
+	for (TActorIterator<ATDEncounterVolume> It(I.W.GetWorld()); It; ++It)
+	{
+		if (It->LinkedObjective != Reactor) { continue; }
+		It->Activate();
+		for (const TWeakObjectPtr<AActor>& M : It->GetSpawned()) { if (UTDHealthComponent* H = M.IsValid() ? UTDStatics::GetHealth(M.Get()) : nullptr) { H->Kill(P, ETDDamageKind::Melee); } }
+		I.W.Advance(0.2f);
+		TestTrue(TEXT("the defenders are overcome"), It->IsCleared());
+	}
+	TestTrue(*FString::Printf(TEXT("%s plays when they fall"), *Over.ToString()), Story->IsSequencePlaying(Over));
 	return true;
 }
 

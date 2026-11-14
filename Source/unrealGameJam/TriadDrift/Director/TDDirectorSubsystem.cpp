@@ -313,6 +313,17 @@ void UTDDirectorSubsystem::EnsureDirectorWidget()
 	}
 }
 
+void UTDDirectorSubsystem::SetDirectorWidgetForReview(TSubclassOf<UUserWidget> Class)
+{
+	if (DirectorWidget)
+	{
+		DirectorWidget->RemoveFromParent();
+		DirectorWidget = nullptr;
+	}
+	DirectorWidgetClassOverride = Class;
+	bDirectorWidgetLooked = false; // looked up again next tick
+}
+
 void UTDDirectorSubsystem::Deinitialize()
 {
 	UnbindBus();
