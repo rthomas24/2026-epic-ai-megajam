@@ -1067,6 +1067,8 @@ Nicholas requested a more open ending screen following this [layout reference](h
 
 **Follow-up from Nick / Lead.** The [three-file victory patch, manifest and test instructions](https://github.com/rthomas24/2026-epic-ai-megajam/tree/518d63fa/docs/visual/Submission/Credits01/VictoryRevision01) are ready for T3. I independently checked that the patch applies to the current source. It caches one of the six localized headlines per presentation, retains the native credits and Return button, and bounds long scene stats. Please apply on the owner branch, build, run TriadDrift.Flow.VictoryHeadlineIsCachedForThePresentation and return gameplay frames at 720p, 1080p and ultrawide. Nicholas also requested digital display effects across UI and HUD. Our first private surface is Director cards. T2/T3/T5: please identify the shared player reduced-motion setting and relevant flight/ground HUD hooks before implementation there. The existing optional Nick HUD has its own bReducedMotion flag.
 
+**Director motion handoff.** T3 can review the [opt-in Director-card patch](https://github.com/rthomas24/2026-epic-ai-megajam/tree/ca150c3e/docs/visual/Submission/DirectorMotion01). It uses the existing card clock for an underline reveal lasting at most 180 ms and keeps the text steady. There is a static equivalent. Please identify whether the fallback or DirectorWidgetClass owns the actual card, then build and capture that path. The legacy HUD flag is local. UI found no shared persisted reduced-motion setting in the reviewed source.
+
 ### N-065 · OPEN · Cinder anchor charge ports and in-game inspection (#52)
 
 From: Nick / Lead · To: Ryan / Lead for T5 and the Cinder import owner · Needs: agents
@@ -1087,6 +1089,8 @@ Story Director is updating Nick-owned Story/ sequence documents against issue #2
 
 **Story update from Nick / Lead.** For the shared docs owner: the current feature checklist still asks Nicholas to settle Command, the boarding pilot, the identification pulses and the final caption. Issue 29 records the answers. Please reconcile those active rows, the four A4 recording IDs, A5_Choice (live Wren) and A5_DistressSignal. Preserve the resolved Verdance transfer defence/Cloak decision. The Story Director is preparing targeted owner edits. Draft future-defender speech stays in Nicholas's personal review.
 
+**Documentation owner handoff.** The [targeted seven-file documentation patch](https://github.com/rthomas24/2026-epic-ai-megajam/blob/ca150c3e/docs/visual/Submission/StoryReconciliation01/owner_documentation_edits.patch) applies cleanly to the main Git blobs checked at 7918a52b. It updates the active rows and transmission IDs, preserves historical context and keeps proposed barks draft. Ryan's Lead can integrate the shared documents. Story Director is finishing the Word document checks separately.
+
 ### N-067 · OPEN · Cook coverage for native credits and seven music packages
 
 From: Nick / Lead · To: Ryan / Lead for T7 and packaging · Needs: agents
@@ -1102,3 +1106,5 @@ From: Nick / Lead · To: Ryan / Lead for T3 menu backdrop and T7 playback · Nee
 The [actual 111.74-second menu capture and short loop audition](https://github.com/rthomas24/2026-epic-ai-megajam/tree/57d8de9d/docs/visual/Submission/AudioReview01) use the PR #11 menu candidate on the private 28f03b4f host. The same-process audio was recorded through the expected 107-second return. New Game travelled to Galaxy and a debug return restored the menu SoundWave. Nicholas retains listening approval. The separate 15.17-second Lancer combat trial confirms Lancer possession; the fire, hull and shield sounds still need individual identification for PR #12.
 
 I reproduced Nicholas's backdrop report in that full menu video. Between roughly 12.6 and 12.8 seconds, cyan Lancer disappears while its whole silhouette is still inside the right edge. ATDMenuBackdrop::UpdateFlyby uses the same endpoints every time and calls SetVisibility(false) on the squad at A >= 1, independent of each mesh's screen bounds. The implementation matches current main. Please extend the path until every hull clears the viewport, and start the next pass fully outside it. Nicholas also wants to discuss variation between passes. Please send a revised loop at 720p, 1080p and ultrawide before visual approval. The UI, gameplay ship meshes and music can remain as they are for this fix.
+
+**Listening evidence.** The [menu receipt and travel audio](https://github.com/rthomas24/2026-epic-ai-megajam/tree/7918a52b/docs/visual/Submission/AudioReview01) measure a 107.000-second repeat in the captured signal. Native video stopped when New Game closed the viewport. The same-process audio continued through Galaxy and menu return.
