@@ -272,7 +272,7 @@ Current resource checkpoint: Nick stopped the general campaign and revoked all p
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-14 01:00 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-14 03:00 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -297,52 +297,79 @@ Paths are under `Source/unrealGameJam/TriadDrift/` unless they start with `/` (r
 Workers commit only on their own branch and never pull, merge or push; the Lead integrates in
 `.wt/int`, builds, runs the headless suite, then fast-forwards and pushes `main`.
 
-### Current board, Nov 14 02:00 EST (supersedes the in-progress and queued rows of the history table below)
+### Current board, Nov 14 03:00 EST (supersedes the in-progress and queued rows of the history table below)
 
-**Batch M is on main at eb1bf334** (Nov 14, about 01:27; full suite green, 889+ tests); its Shipping package is cooking (`playable-main-eb1bf334`); no agent has played it on main yet (T7's end-to-end playtest is queued). **Batch N** (`lead/int-n`, 52bdaf46) is in its gate. Waiting for the batch after N: T4's escape flight, docking capture, stuck-enemy re-route and clear skip start (648a2816, 0a4e7501) and T6's space regions. **At most two rendering Unreal processes machine-wide** (R-046). Nick's side stopped at 01:16 (N-090); engineering's fallbacks while it is stopped are in R-047 and marked below. Ryan is asleep until about 10:00 EST; his Lead decides overnight. Bugs: issue #90. Performance: issue #89.
+**Batch O is on main at 61404a79** (Nov 14, 02:26; 922 / 922 headless tests), on top of batch N at f39a8372 (908). **No agent has played batch M, N or O end to end** (T7 plays 61404a79 after its performance window) and no human has played batch N or O. **Batch P** (`lead/int-p`, eb5827d9) is in its test gate. The Shipping zip of eb1bf334 is 981,016,363 bytes (`playable-main-eb1bf334`); batch O's package is not built yet. **At most two rendering Unreal processes machine-wide** (R-046). Nick's side stopped at 01:16 (N-090); engineering's fallbacks while it is stopped are in R-047 and marked below. Ryan is asleep until about 10:00 EST; his Lead decides overnight. Bugs: issue #90. Performance: issue #89. "Now" is what each lane had in hand at about 02:35.
 
 | Owner | Now (in progress) | Next (queued, in order) | Shared paths |
 |---|---|---|---|
-| Lead | Batch N gate (52bdaf46), push, then its package; boards; hourly features.md alignment | ENG-47 decision record (the fallback fix 818d592e is on main, awaiting play; due Nov 14 20:00); ENG-38 stage 2 scheduling; the batch after N; PRs #91 and #92 | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
-| T1 | Native music fallback on the bridge for Nicholas's assigned placements (R-047 fallback) | Interior bridge events with T5; `-Audio` listen to the descent and climb-out roar; tutorial hint order by phase | `Core/` (N-082 bridge), `Flight/`, `Input/`, `Travel/` |
-| T2 | Enemy marker shapes per type on the flight HUD (R-047 fallback) | Combat cue list for T7's warm-up, prewarmed projectile pool, idle weapons not ticking; live captures on batch M (generator pips, transponder flicker, a natural award, +BOOST, Lancer tracers) | `Combat/`, `Powers/`, HUD |
-| T3 | The three #29 corrections and the R102 order check (R-047) | #49 captures; ENG-40 played once; a played Continue walk | `Squad/`, `Director/` |
-| T4 | Escape flight and docking played live (648a2816) | ENG-40 halves (Evade volley, gunship hold, withdrawal wait); boundary release; the Verdance-entry and wave-3-start hitches (#89); the pre-empt clue AI (ENG-43) with T3 | `Enemies/`, `Waves/`, `World/` |
-| T5 | Per-type death names and the Warden ragdoll | Interior moments hook and the DA_ReactorCore_FX slots; Cinematic 03 wave hold; per-type action clips; conduit markers, Cinder lava route, interior spawn; Dress lists and placements (#40, #37); defenders trio (N-052); New Game difficulty (ENG-45) | `Flow/`, `Ground/` |
-| T6 | Space composition: the Shepherd Belt (built headless), the Watchline halo, the Quiet Graveyard | Four more regions; field performance numbers; staged large and special breaks | `World/SpaceField/**`, `docs/eng/SPACE-DESIGN.md` |
-| T7 | Performance pass (issue #89): warm-up subsystem, async music, audio buffer A/B in a solo rendering window | End-to-end agent playtest of batch M (main eb1bf334); colour-blind check (ENG-45) if T1 hasn't | `Profile/`, `docs/eng/PLAYTEST-*` |
-| Ship builder 2 | Independent review of the enemy readability materials, with the turret and the hauler | Rift and Lancer minors; Bastion cockpit and accents | squad and fleet visuals |
-| Effects builder | Reactor Exposed / Hit and the break flash judged from a side camera | Glitch tear; drone thruster and StoryFX slots; a distinct engine trail per enemy type | `Gameplay/VFX/**`, `DA_*_FX` |
-| Environment builder | Pass 4: real-tree canopy, Cinder basalt ambient | Realism, then three story zones per planet; scatter instance adds for the entry hitch (#89) | planet and sky materials |
-| Structures builder | Space set pieces r4: light colours | Planet story props: the Verdance field camp, the Cinder mining camp | `Gameplay/Props/Space/**`, `Gameplay/Props/**` |
-| Animation builder | Kill captures on all four crew types | Grok's attacks against the authored ones; Warden ragdoll cases | `Characters/**/Anims/**` |
-| Import builder | The never-cook list, awaiting its proving cook | Asset ledger | `Gameplay/**` visuals, `docs/eng/ASSETS.md` |
-| Packaging agent | Shipping package of eb1bf334 (`playable-main-eb1bf334`) | Evidence captures for issues #37-#42, #51-#54, #63 (R-047); a Development package from T7's sha | isolated `.wt/pkg` |
-| Grok Bot | R-042 queue (PRs #91 and #92 open) | #53 crystal cache; set dressing #40; measured plans and trims (R-043) | `ArtSource/EngAI/**` |
+| Lead | Batch P gate (eb5827d9), push; boards; hourly features.md alignment | Batch O's package; the batch after P; ENG-47 decision record (due Nov 14 20:00); dispatch of the rows queued this hour | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
+| T1 | ENG-38 smallest complete version: glide-lite and mirrored take-off (in batch P's gate); hand-back speed blend, glide cloud pass, exposure-ramp driver | Interior bridge events with T5; tutorial hint order by phase; `-Audio` listen to the descent and climb-out roar; ENG-45 shake and speed-FOV sliders; ENG-43 travel and landing barks | `Core/` (N-082 bridge), `Flight/`, `Input/`, `Travel/` |
+| T2 | Projectile pool and combat warm-up list (5e1013aa: three tests failing, fix coming); ENG-38 descent HUD | Live captures on main 61404a79; the Cinder pending marker (ENG-26); the on-foot HUD in the new style (ENG-36); ENG-43 combat barks | `Combat/`, `Powers/`, HUD |
+| T3 | Wingman rock-avoidance fix (#90) | The Continue-after-relaunch finding; ENG-40 played once; a played Continue walk; the legacy `Intro_N` captions; ENG-45 subtitles on / off; waves 3-4 interception and `C7_*` ids (ENG-42); ENG-18 wording | `Squad/`, `Director/` |
+| T4 | ENG-38 terrain half; async scatter kind loading; ENG-40 lesson gate and softer Evade volley; boundary release call | Escape flight and docking played live; the pre-empt clue AI (ENG-43) with T3; the approach-field rule check (ENG-18); ENG-43 enemy and Dominion barks | `Enemies/`, `Waves/`, `World/` |
+| T5 | Interior music events; Warden slam / contact fixes; Dress pass placements (#40, #37) | Conduit markers, Cinder lava route, interior spawn; Cinematic 03 wave hold; ENG-26 fixed order and ID door; defenders trio (N-052); New Game difficulty (ENG-45); ENG-43 on-foot barks | `Flow/`, `Ground/` |
+| T6 | Seven space regions: four built (eng/t6 fae01308), three in progress (757941fc); break preloading | Field performance numbers on the merged build; staged large and special breaks | `World/SpaceField/**`, `docs/eng/SPACE-DESIGN.md` |
+| T7 | Performance measurement runs (#89) in a solo rendering window; T2's combat list as a warm-up provider | End-to-end agent playtest of main 61404a79 with script 08 | `Profile/`, `docs/eng/PLAYTEST-*` |
+| Ship builder 2 | Rift v14 (in batch P's gate); Bastion glass cockpit stopped (v02 stays; Ryan decides) | Lancer and Rift minors; landing gear and canopy motion with the animation builder | squad and fleet visuals |
+| Effects builder | Asteroid break shatter; ENG-38 exposure ramp, CloudPunch sound, wind layer; per-type enemy engine plumes | Glitch tear and StoryFX slots; approach-field shimmer, shield drop, tractor beam (ENG-37); the *Aftermath* light row with T4 (ART-18) | `Gameplay/VFX/**`, `DA_*_FX` |
+| Environment builder | Verdance canopy and terrain pass; Verdance cliffs and Cinder magma retune (in batch P's gate) | Three story zones per planet; interior alarm and collapse states (ART-13) | planet and sky materials |
+| Structures builder | Relay mast r2, region set pieces r3 (in batch P's gate) | Walkable survey stations and dig cabin fits with T5 (ART-17); the insignia clue decal (ART-18) | `Gameplay/Props/Space/**`, `Gameplay/Props/**` |
+| Animation builder | Warden shield rig fix | Warden ragdoll cases; interact / board clips, foot IK, landing gear (ART-08 must-haves) | `Characters/**/Anims/**` |
+| Import builder | Never-cook rules and Oodle RDO, awaiting a trial cook; asset ledger 2.10 (in batch P's gate) | The cook diff against `CREDITS.md` (ART-02) | `Gameplay/**` visuals, `docs/eng/ASSETS.md` |
+| Packaging agent | (eb1bf334 package published) | Batch O's Shipping package; a Development package for T7's runs; evidence captures for issues #37-#42, #51-#54, #63 (R-047) | isolated `.wt/pkg` |
+| Grok Bot | R-042 queue | #53 crystal cache; set dressing #40; measured plans and trims (R-043) | `ArtSource/EngAI/**` |
 
-Rows opened or closed Nov 14 02:00:
+Rows opened or closed Nov 14 03:00:
 
 | Item | Owner | State | Paths |
 |---|---|---|---|
 | **Integration batch L** (all lanes' work of Nov 13 evening) | Lead | done: main 6fe3e90f, Nov 13 about 23:55 (870/870); Shipping package `playable-main-6fe3e90f` | none |
-| **Integration batch M** (crew ground deaths, reward mount and ability announcement, Heavy guard and "Hold E", space-reactor fallback retune on the r2 hull, Lancer v05 / Bastion v01 / Rift v12, asteroid boost top-up, generator pips and transponder flicker, settings page fit, Aftermath replay and retake fixes, effects data edits, crew readable at 30 m, Nick's two music folders always cooked) | Lead | done: main eb1bf334, Nov 14 01:27 (full suite green, 889+ tests); not yet played by an agent on main; Shipping package cooking | none |
-| **Integration batch N** (`lead/int-n`, 52bdaf46: T1's bridge events, entry hold, boundary rule, climb-out roar; T2's conduit count, escape clock, sensor marker, drone thrusters; T3's tutorial prompts v1, StoryFidelity01 corrections, Continue test, TransmissionStatic cue; per-type crew deaths; space set pieces r1-r3; enemy readability materials) | Lead | in progress (gate) | none |
-| Batch after N: T4's escape flight, docking capture, stuck-enemy re-route, clear skip start (648a2816, 0a4e7501); T6's space regions (Shepherd Belt) | Lead | queued | none |
-| **Fallback under R-024 (R-047), yields to Nick's side:** music playback for the placements Nicholas assigned, through a native fallback in engineering's music director on the bridge events; stands down when Nick's own hookup exists | T1 | in progress | T1's lane (`Core/` N-082 bridge, engineering's music director); none of Nick's plugin, folders or assets |
-| **Fallback under R-024 (R-047), yields to Nick's side:** gameplay evidence captures for issues #37-#42, #51-#54, #63 on main eb1bf334, posted as evidence only; closure stays with Nick's side | Packaging agent | queued (after the eb1bf334 package) | isolated `.wt/pkg`; no repo paths |
-| **Fallback under R-024 (R-047), yields to Nick's side:** enemy marker shapes per type on the flight HUD, native, in the existing HUD style; a HUD styling of Nick's replaces it, flagged for Nicholas's review | T2 | in progress | T2's lane (`Combat/`, the native flight HUD); not `Plugins/TriadDriftHUD/` |
-| The three #29 story corrections recorded by Nick's Story Director in N-090 (R011, R132, R020) and the R102 order check (R-047); the story text stays Nick's | T3 | in progress | `Director/`, `Squad/` |
-| Performance pass: no hitches, steady 60 fps in the Shipping build, per phase (issue #89; baseline 92-193 fps average, 412 audio underruns in 15 min) | T7 (each teammate measures their own area) | in progress | `Profile/`, `docs/eng/**`; `Config/**` through the Lead |
-| End-to-end agent playtest of batch M (main eb1bf334) | T7 | queued | `docs/eng/PLAYTEST-*` |
-| Space composition: seven themed regions, the Shepherd Belt first (ENG-39) | T6 (T4 reviews) | in progress | `Source/unrealGameJam/TriadDrift/World/SpaceField/**`, `docs/eng/SPACE-DESIGN.md` |
-| Space set pieces r1-r3: patrol hull, expedition hulls, survey rig, hollowed rock | Structures builder | in review (in batch N); r4 light colours in progress | `Content/TriadDrift/Gameplay/Props/Space/**` |
-| Enemy readability materials (ART-04) | Ship builder 2 | in review (in batch N; independent review next) | `Content/TriadDrift/Gameplay/Characters/NullFleet/**`, `ArtSource/EngShips/**` |
-| ENG-40 tutorial phase prompts v1 | T3 | in review (in batch N); T4's halves queued | `Director/`, `Squad/` |
-| ENG-47 finale-mode decision record (due Nov 14 20:00) | Lead | queued (the fix is on main eb1bf334; after it is played) | `features.md`, `docs/eng/**` |
-| ENG-35 audio fallback gaps (b8e561cd) and ART-02 asset ledger | Import builder | in review (on main eb1bf334) | `Content/TriadDrift/Gameplay/Audio/**`, `docs/eng/ASSETS.md`, `CREDITS.md` |
+| **Integration batch M** (crew ground deaths, reward mount and ability announcement, Heavy guard and "Hold E", space-reactor fallback retune on the r2 hull, Lancer v05 / Bastion v01 / Rift v12, asteroid boost top-up, generator pips and transponder flicker, settings page fit, Aftermath replay and retake fixes, effects data edits, crew readable at 30 m, Nick's two music folders always cooked) | Lead | done: main eb1bf334, Nov 14 01:27 (889+ tests); Shipping package `playable-main-eb1bf334` (981,016,363 bytes); not yet played end to end by an agent | none |
+| **Integration batch N** (T1's bridge events, entry hold, boundary rule, climb-out roar; T2's conduit count, escape clock, sensor marker, drone thrusters; T3's tutorial prompts v1, StoryFidelity01 corrections, Continue test, TransmissionStatic cue; T4's escape flight, docking capture, clear skip start, blocked-enemy re-route; per-type crew ground deaths; space set pieces r1-r4; enemy readability materials) | Lead | done: main f39a8372, Nov 14 01:51 (908/908); not yet played end to end by an agent | none |
+| **Integration batch O** (T5's per-type crew deaths and attacks, 10 s corpses; T7's warm-up subsystem, async music loading, path cache; T2's enemy marker shapes and combat benchmark; T1's native music fallback; T3's R011 / R132 / R020 decisions, #49 trait line, ENG-40 phase time; Rift v13, Lancer glass v06, Bastion v02; planet landmarks r1 and story camps; far-tier tree clumps, Cinder ambient floor) | Lead | done: main 61404a79, Nov 14 02:26 (922/922); not yet played end to end by an agent; package not built | none |
+| **Integration batch P** (`lead/int-p`, eb5827d9: T1's ENG-38 glide-lite and mirrored take-off, Rift v14, relay mast r2, region set pieces r3, Verdance cliffs and Cinder magma retune, credits rows, asset ledger 2.10) | Lead | in progress (test gate) | none |
+| Batch after P: T4's ENG-38 terrain half, async scatter loading, ENG-40 halves and boundary release; T5's interior music events, slam fixes, Dress placements; T6's space regions; T2's projectile pool (once green) and descent HUD; T3's wingman rock fix; Warden shield rig fix; effects (break shatter, exposure ramp, CloudPunch, wind, engine plumes); Verdance canopy pass | Lead | queued | none |
+| **Fallback under R-024 (R-047), yields to Nick's side:** music playback for the placements Nicholas assigned, through a native fallback (`UTDMusicFallbackSubsystem`, eb6e3275); stands down on any exclusive claim | T1 | in review (on main 61404a79; core chamber and reactor fight wait for T5's interior events; escape empty: Ritual not imported; heard by no one) | T1's lane; none of Nick's plugin, folders or assets |
+| **Fallback under R-024 (R-047), yields to Nick's side:** gameplay evidence captures for issues #37-#42, #51-#54, #63, posted as evidence only; closure stays with Nick's side | Packaging agent | queued | isolated `.wt/pkg`; no repo paths |
+| **Fallback under R-024 (R-047), yields to Nick's side:** enemy marker shapes per type on the flight HUD (ede33e91), flagged for Nicholas's review | T2 | in review (on main 61404a79; awaiting agent play) | T2's lane; not `Plugins/TriadDriftHUD/` |
+| The three #29 story corrections (R011, R132, R020; 0c638c1b) and the R102 order check (R-047); the story text stays Nick's | T3 | in review (on main 61404a79) | `Director/`, `Squad/` |
+| #49 opening pilot cards: names and trait line (3c76874c, 9fe5d373, e234e950), captured live at three resolutions | T3 | in review (on main 61404a79; the issue waits for Nicholas to close) | `Director/` |
+| ENG-38 smallest complete version (Lead's decision, Nov 14 02:10): 8-10 s glide, fog by altitude, scatter ready before the reveal, altimeter and hull-temperature HUD, exposure push, wind layer, mirrored take-off. Left for Ryan: full-length glide, map preload in the gravity well, in-space atmosphere phase, scatter fade-in by distance, canopy droplets and heat haze, full reverse glide, the boom | T1 (lead), T4 (terrain half), T2 (HUD), effects builder | in progress (T1's half in batch P's gate; the rest on branches) | `Travel/`, `World/`, HUD, `Gameplay/VFX/**` |
+| ENG-23 🐞: Warden slam contact mistimed; Warden shield floats off the body (found on main 61404a79) | T5; animation builder | in progress | `Ground/`; `Characters/**/Anims/**`, Warden rig |
+| Wingmen graze rocks inside a pocket (ENG-08, #90) | T3 | in progress | `Squad/` |
+| Continue from the menu after a relaunch started a fresh run in a scripted walk (ENG-19; not confirmed as a game bug) | T3 | in progress (investigation) | `Director/`, with T5 for `Flow/` |
+| Performance pass (issue #89): warm-up, async music and path cache on main 61404a79; measurement runs (A1 / A3, W0 / W1, N) not made yet | T7 (each teammate measures their own area) | in progress | `Profile/`, `docs/eng/**`; `Config/**` through the Lead |
+| Projectile pool prewarmed, idle weapon slots early-out, combat warm-up list (5e1013aa; three tests failing) | T2 | in progress | `Combat/` |
+| First planet entry about 330 ms: async scatter kind loading (#89) | T4 | in progress | `World/` |
+| First asteroid break of each kind 12-19 ms: preload `DA_SpaceField_FX` (#89) | T6 | in progress | `World/SpaceField/**` |
+| End-to-end agent playtest of main 61404a79 (batches M, N and O) with Nick's script 08 | T7 | queued (after its performance window) | `docs/eng/PLAYTEST-*` |
+| Space composition: seven themed regions (ENG-39); four built on eng/t6 fae01308, three in progress | T6 (T4 reviews) | in progress | `Source/unrealGameJam/TriadDrift/World/SpaceField/**`, `docs/eng/SPACE-DESIGN.md` |
+| Space set pieces r1-r4 (patrol hull, expedition hulls, survey rig, hollowed rock) | Structures builder | in review (on main f39a8372 / 61404a79); region set pieces r3 in batch P's gate | `Content/TriadDrift/Gameplay/Props/Space/**` |
+| Planet story props (Verdance field camp, Cinder mining camp) and landmarks r1 (relay mast, Null derrick) | Structures builder | in review (on main 61404a79; builder captures only); relay mast r2 in batch P's gate | `Gameplay/Props/Kit/Story/**` |
+| Enemy readability materials (ART-04) | Ship builder 2 | in review (on main f39a8372; awaiting agent play) | `Content/TriadDrift/Gameplay/Characters/NullFleet/**`, `ArtSource/EngShips/**` |
+| ENG-40 tutorial phase prompts v1 and phase time | T3 | in review (on main 61404a79; awaiting agent play); T4's halves in progress | `Director/`, `Squad/` |
+| T4's escape flight, docking near-field capture, clear skip start, blocked-enemy re-route (0a4e7501) | T4 | in review (on main f39a8372; awaiting a live play) | `Enemies/`, `World/` |
+| ENG-47 finale-mode decision record (due Nov 14 20:00) | Lead | queued (after the fallback is played on main) | `features.md`, `docs/eng/**` |
+| ENG-35 audio fallback gaps (b8e561cd) and ART-02 asset ledger | Import builder | in review (on main eb1bf334; ledger 2.10 in batch P's gate) | `Content/TriadDrift/Gameplay/Audio/**`, `docs/eng/ASSETS.md`, `CREDITS.md` |
+| Never-cook rules and Oodle RDO (ENG-28 size) | Import builder | in progress (unproven until a trial cook) | `Config/**` through the Lead |
+| Batch O Shipping package (61404a79) | Packaging agent | queued | isolated `.wt/pkg` |
 | ART-18 props (survey instruments, ancient artefact; 61d9e778) | Structures builder | in review (on main eb1bf334); placement with T5 | `Gameplay/Props/**` |
-| N-082 reflected music-event bridge (aee545e4) | T1 | in review (on main eb1bf334); extra events in batch N | `Source/unrealGameJam/TriadDrift/Core` |
-| Planets as realistic as possible, three story zones each (Ryan, Nov 14) | Environment builder | queued (after pass 4) | planet and sky materials, `ArtSource/EngEnvironment/**` |
+| N-082 reflected music-event bridge (aee545e4, 9cfa5ec9) | T1 | in review (on main f39a8372) | `Source/unrealGameJam/TriadDrift/Core` |
+| Planets as realistic as possible, three story zones each (Ryan, Nov 14) | Environment builder | in progress (canopy and terrain pass); story zones queued | planet and sky materials, `ArtSource/EngEnvironment/**` |
+| **Queued this hour (had no active owner at 03:00):** ENG-43 remaining bark triggers, one sweep per lane, counted against `dialogs.md` | T1, T2, T4, T5; T3 checks | queued | each lane's folder |
+| ENG-43 pre-empt clue (enemy anticipates a switch or dodge from wave 3; a pilot notices) | T4 (AI), T3 (line) | queued | `Enemies/`, `Squad/` |
+| ENG-45: subtitles on / off; shake and speed-FOV sliders; New Game difficulty | T3; T1; T5 | queued | `Director/`; `Input/`, `Flight/`; `Flow/` |
+| ENG-42: waves 3-4 interception ids and the `C7_*` docking set | T3 (ids), T4 (triggers) | queued | `Director/`, `Waves/`, `World/` |
+| ENG-18: wording pass ("shield", "approach prepared") and the check that the approach field needs Cinder and wave 5 | T4, T3 | queued | `World/`, `Director/` |
+| ENG-26: fixed order, pending approach marker, ID door | T5, T2 (marker) | queued | `Ground/`, HUD |
+| ENG-36: on-foot HUD in the new style | T2 | queued | HUD |
+| ENG-37: approach-field shimmer and opening, shield sections dropping, tractor beam | Effects builder (T4 hooks) | queued | `Gameplay/VFX/**` |
+| ART-18: insignia clue decal; *Aftermath* Dominion light row | Structures builder; effects builder with T4 | queued | `Gameplay/Props/**`; `Gameplay/VFX/**`, `World/` |
+| ART-08 must-haves: interact / board clips, foot IK, landing gear and settle | Animation builder (T5, T1 slots) | queued (after the Warden fixes) | `Characters/**/Anims/**` |
+| ART-13: interior alarm and collapse lighting states; per-level before / after captures | Environment builder | queued | interior-look materials |
+| ART-17: walkable survey stations and dig cabin fitted on both planets | Structures builder, T5 | queued | `Gameplay/Props/**`, `Ground/` |
+| **Held for Ryan (no one works on these):** dropping the DirectX 11 shader set; a glass cockpit for Bastion; the ENG-38 left-for-Ryan list; gate G1 (Ryan plays the packaged build, Nov 14 morning) | Ryan | waiting | - |
 
 ### Tasks: in progress, coming next, done
 History (rows above the current board's date are kept for the record; their in-progress and queued states are superseded):

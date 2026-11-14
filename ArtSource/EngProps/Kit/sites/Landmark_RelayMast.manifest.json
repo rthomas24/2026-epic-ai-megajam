@@ -1,7 +1,7 @@
 {
  "site": "Landmark_RelayMast",
  "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_Landmark_RelayMast",
- "about": "Verdance landmark: a leaning expedition relay mast (63 m) for the research site; collision on its pad only.",
+ "about": "Verdance landmark: a leaning expedition relay mast (about 100 m) for the research site; yaw it so its -X (the dish) faces the landing pad; collision on its pad only.",
  "pieces": [
   {
    "name": "Mast",

@@ -187,15 +187,37 @@ private:
 	float FinalRecordQuiet = 0.f;
 	bool bFinalRecordDone = false;
 	void TickFinalRecord(float DeltaSeconds);
+	void TickCoreChamber();
+	FBox CoreChamberBox = FBox(ForceInit);
+	bool bPlayerInCoreChamber = false;
 	UFUNCTION() void HandleStorySequenceFinished(FName SequenceId, bool bSkipped);
 	int32 ShownPlaybackSecond = -1;
 	bool bFinalRecordSequence = false;
 	UFUNCTION() void HandleConduitDown(class UTDHealthComponent* Health, const struct FTDDamageInfo& Info);
+	UFUNCTION() void HandleHeartHit(class UTDHealthComponent* Health, const struct FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
+	/** DA_ReactorCore_FX (UTDReactorCoreFX): play a slot (logged by name, even when empty: tests, the effects builder). */
+	void PlayReactorFX(FName Slot, const FVector& At, USceneComponent* AttachTo = nullptr, bool bLoop = false);
+	void StopReactorLoop(FName Slot);
+	UPROPERTY(Transient) TMap<FName, TObjectPtr<class UNiagaraComponent>> ReactorLoopFX;
+	UPROPERTY(Transient) TMap<FName, TObjectPtr<class UAudioComponent>> ReactorLoopAudio;
+	UPROPERTY(Transient) TObjectPtr<AActor> ReactorHeart;
+	TArray<FName> ReactorFXLog;
 	void OpenReactorDoor();
 public:
 	/** The final record started (T3 drives the F_* lines from here; the reactor door waits for the queue to end). */
 	DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnFinalRecord, AActor*);
 	static FTDOnFinalRecord OnFinalRecordStarted;
+	/** The interior's music moments (T1's bridge for Nick's score, N-089), each once when it happens: CoreChamberEntered
+	 *  (the on-foot pilot crosses into the core chamber; again after a retake that restarts outside it),
+	 *  ReactorFightStarted (the conduit phase begins), ReactorFightEnded (the heart is destroyed), EscapeStarted (the
+	 *  escape run's hand-off). Source = the course. */
+	DECLARE_MULTICAST_DELEGATE_TwoParams(FTDOnInteriorMoment, FName /*Moment*/, AActor* /*Source*/);
+	static FTDOnInteriorMoment OnInteriorMoment;
+	/** The core chamber's floor box (world), for the CoreChamberEntered crossing (tests). */
+	FBox GetCoreChamberBox() const { return CoreChamberBox; }
+	/** Every DA_ReactorCore_FX slot played, in order (CoreIdle, ConduitBreak, ShieldDrop, HeartHit, CoreDestroyed,
+	 *  EscapeRunLoop), for tests and the effects builder. */
+	const TArray<FName>& GetReactorFXLog() const { return ReactorFXLog; }
 	bool IsFinalRecordDone() const { return bFinalRecordDone; }
 	/** The interior: the boarding pilot's ship on the hangar pad (null when its art is missing). */
 	UStaticMeshComponent* GetParkedShip() const { return ParkedShip; }

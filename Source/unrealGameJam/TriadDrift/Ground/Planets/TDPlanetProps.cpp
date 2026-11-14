@@ -886,6 +886,8 @@ void ATDArchiveTransfer::HandleStepStarted(ATDObjective* Objective, int32 StepIn
 	{
 		bRunning = true;
 		Progress = 0.f;
+		bHolding = !HoldUntilLine.IsNone();
+		HoldElapsed = 0.f;
 		OnTransferStarted.Broadcast();
 		OnAnyTerminalActivated.Broadcast(this);
 		UpdateLine(true);
@@ -913,7 +915,18 @@ void ATDArchiveTransfer::Tick(float DeltaSeconds)
 	if (Step != LinkedStep - 1 && Step != LinkedStep)
 	{
 		bRunning = false; // finished, or the scene was cut
+		bHolding = false;
 		return;
+	}
+	if (bHolding)
+	{
+		HoldElapsed += DeltaSeconds;
+		if (!ShouldRelease())
+		{
+			UpdateLine(false);
+			return; // the cinematic plays: no wave, no progress
+		}
+		bHolding = false;
 	}
 	for (int32 i = 0; i < Waves.Num(); ++i)
 	{
@@ -952,6 +965,26 @@ void ATDArchiveTransfer::Tick(float DeltaSeconds)
 		OnTransferCompleted.Broadcast();
 		LinkedObjective->CompleteStep(Step);
 	}
+}
+
+bool ATDArchiveTransfer::ShouldRelease() const
+{
+	if (HoldUntilLine.IsNone() || HoldElapsed >= HoldMaxSeconds)
+	{
+		return true;
+	}
+	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
+	if (!Story)
+	{
+		return true;
+	}
+	// "Company incoming" has started (T3's HasLineAired: true from the line's start, and through a retake or a reload).
+	if (UTDStorySubsystem::HasLineAired(this, HoldUntilLine))
+	{
+		return true;
+	}
+	// Nothing to wait for: no scene playing a beat after the terminal's own frame (skipped, or none built).
+	return HoldElapsed > 0.3f && !Story->IsSequencePlaying();
 }
 
 void ATDArchiveTransfer::UpdateLine(bool bForce)

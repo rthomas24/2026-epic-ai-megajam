@@ -1,0 +1,414 @@
+{
+ "Grunt_left": {
+  "spawn": {
+   "type": "ETDCrewType::Grunt",
+   "dead": 0,
+   "loc": [
+    1040.5,
+    1005.6,
+    92.1
+   ],
+   "x": [
+    -0.8,
+    -0.601,
+    0.0
+   ],
+   "y": [
+    0.601,
+    -0.8,
+    -0.0
+   ],
+   "pelvis": [
+    1039.6,
+    1006.2,
+    89.6
+   ],
+   "head": [
+    1033.7,
+    999.1,
+    152.9
+   ],
+   "floor": 2.1,
+   "low": 7.2,
+   "clip": "None",
+   "sim": "0"
+  },
+  "end": {
+   "type": "ETDCrewType::Grunt",
+   "dead": 1,
+   "loc": [
+    999.4,
+    974.6,
+    92.1
+   ],
+   "x": [
+    -0.8,
+    -0.601,
+    0.0
+   ],
+   "y": [
+    0.601,
+    -0.8,
+    -0.0
+   ],
+   "pelvis": [
+    1000.6,
+    975.5,
+    37.2
+   ],
+   "head": [
+    1017.0,
+    918.4,
+    17.6
+   ],
+   "floor": 2.1,
+   "low": -46.5,
+   "clip": "A_Crew_Grunt_Death_Left",
+   "sim": "0"
+  },
+  "shots": [
+   [
+    0.3,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_left_00.png"
+   ],
+   [
+    7.84,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_left_01.png"
+   ],
+   [
+    8.23,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_left_02.png"
+   ],
+   [
+    8.61,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_left_03.png"
+   ],
+   [
+    8.99,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_left_04.png"
+   ],
+   [
+    9.39,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_left_05.png"
+   ],
+   [
+    9.78,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_left_06.png"
+   ],
+   [
+    10.17,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_left_07.png"
+   ]
+  ],
+  "trace": []
+ },
+ "Grunt_right": {
+  "spawn": {
+   "type": "ETDCrewType::Grunt",
+   "dead": 0,
+   "loc": [
+    3548.2,
+    790.2,
+    92.2
+   ],
+   "x": [
+    -0.804,
+    0.595,
+    0.0
+   ],
+   "y": [
+    -0.595,
+    -0.804,
+    0.0
+   ],
+   "pelvis": [
+    3536.5,
+    817.3,
+    85.2
+   ],
+   "head": [
+    3526.8,
+    823.1,
+    145.0
+   ],
+   "floor": 2.2,
+   "low": 7.4,
+   "clip": "None",
+   "sim": "0"
+  },
+  "end": {
+   "type": "ETDCrewType::Grunt",
+   "dead": 1,
+   "loc": [
+    3497.7,
+    827.7,
+    92.2
+   ],
+   "x": [
+    -0.804,
+    0.595,
+    0.0
+   ],
+   "y": [
+    -0.595,
+    -0.804,
+    0.0
+   ],
+   "pelvis": [
+    3500.7,
+    832.8,
+    22.7
+   ],
+   "head": [
+    3482.0,
+    893.8,
+    23.4
+   ],
+   "floor": 2.2,
+   "low": -50.8,
+   "clip": "A_Crew_Grunt_Death_Right",
+   "sim": "0"
+  },
+  "shots": [
+   [
+    0.3,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_right_00.png"
+   ],
+   [
+    0.67,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_right_01.png"
+   ],
+   [
+    1.04,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_right_02.png"
+   ],
+   [
+    1.42,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_right_03.png"
+   ],
+   [
+    1.8,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_right_04.png"
+   ],
+   [
+    2.16,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_right_05.png"
+   ],
+   [
+    2.53,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_right_06.png"
+   ],
+   [
+    3.2,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Grunt_right_07.png"
+   ]
+  ],
+  "trace": []
+ },
+ "Heavy_front": {
+  "spawn": {
+   "type": "ETDCrewType::Heavy",
+   "dead": 0,
+   "loc": [
+    3669.2,
+    3400.0,
+    107.2
+   ],
+   "x": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "y": [
+    0.0,
+    -1.0,
+    -0.0
+   ],
+   "pelvis": [
+    3676.9,
+    3400.8,
+    98.7
+   ],
+   "head": [
+    3665.4,
+    3393.5,
+    169.0
+   ],
+   "floor": 2.2,
+   "low": 13.6,
+   "clip": "None",
+   "sim": "0"
+  },
+  "end": {
+   "type": "ETDCrewType::Heavy",
+   "dead": 1,
+   "loc": [
+    3645.3,
+    3400.0,
+    107.2
+   ],
+   "x": [
+    -1.0,
+    -0.0,
+    0.0
+   ],
+   "y": [
+    0.0,
+    -1.0,
+    -0.0
+   ],
+   "pelvis": [
+    3645.0,
+    3397.0,
+    28.9
+   ],
+   "head": [
+    3697.4,
+    3444.3,
+    29.9
+   ],
+   "floor": 2.2,
+   "low": -72.8,
+   "clip": "A_Crew_Heavy_Death_Front",
+   "sim": "0"
+  },
+  "shots": [
+   [
+    0.3,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Heavy_front_00.png"
+   ],
+   [
+    1.52,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Heavy_front_01.png"
+   ],
+   [
+    1.91,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Heavy_front_02.png"
+   ],
+   [
+    2.27,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Heavy_front_03.png"
+   ],
+   [
+    2.65,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Heavy_front_04.png"
+   ],
+   [
+    3.01,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Heavy_front_05.png"
+   ],
+   [
+    3.35,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Heavy_front_06.png"
+   ],
+   [
+    3.73,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Heavy_front_07.png"
+   ]
+  ],
+  "trace": []
+ },
+ "Warden_front": {
+  "spawn": {
+   "type": "ETDCrewType::Warden",
+   "dead": 0,
+   "loc": [
+    -1000.0,
+    900.0,
+    132.2
+   ],
+   "x": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "y": [
+    -0.0,
+    -1.0,
+    0.0
+   ],
+   "pelvis": [
+    -991.2,
+    906.2,
+    142.3
+   ],
+   "head": [
+    -997.0,
+    905.7,
+    215.2
+   ],
+   "floor": 2.2,
+   "low": 23.3,
+   "clip": "None",
+   "sim": "0"
+  },
+  "end": {
+   "type": "ETDCrewType::Warden",
+   "dead": 1,
+   "loc": [
+    -1244.7,
+    900.0,
+    132.2
+   ],
+   "x": [
+    -1.0,
+    0.0,
+    0.0
+   ],
+   "y": [
+    -0.0,
+    -1.0,
+    0.0
+   ],
+   "pelvis": [
+    -1253.0,
+    901.6,
+    77.2
+   ],
+   "head": [
+    -1310.4,
+    857.3,
+    70.9
+   ],
+   "floor": 2.2,
+   "low": -34.9,
+   "clip": "A_Crew_Warden_Death_Front",
+   "sim": "0"
+  },
+  "shots": [
+   [
+    0.32,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Warden_front_00.png"
+   ],
+   [
+    0.72,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Warden_front_01.png"
+   ],
+   [
+    1.08,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Warden_front_02.png"
+   ],
+   [
+    1.45,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Warden_front_03.png"
+   ],
+   [
+    1.82,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Warden_front_04.png"
+   ],
+   [
+    2.17,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Warden_front_05.png"
+   ],
+   [
+    2.53,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Warden_front_06.png"
+   ],
+   [
+    3.2,
+    "ArtSource/EngAnim/PilotFixes/review/kills_r6\\death_Warden_front_07.png"
+   ]
+  ],
+  "trace": []
+ }
+}

@@ -93,6 +93,26 @@
     0.0
    ],
    "yaw_deg": 150.0
+  },
+  {
+   "name": "LampPool",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_LightPool",
+   "location_cm": [
+    -640.0,
+    -40.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "MarkerPole",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_MarkerPole",
+   "location_cm": [
+    200.0,
+    750.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
   }
  ]
 }

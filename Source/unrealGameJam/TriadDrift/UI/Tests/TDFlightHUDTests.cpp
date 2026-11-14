@@ -343,6 +343,52 @@ bool FTDFlightHUDObjective::RunTest(const FString& Parameters)
 // safe frame along the marker's direction; missiles flagged; locked and current carried through.
 // Enemy readability (the ship builder via the Lead): each enemy type has its own marker outline, on and off screen;
 // the heading class reads toward / away / crossing; the marker count is unchanged.
+// ENG-38 descent HUD (T1's readings): the altimeter tape, the hull-temperature bar and ATMOSPHERE only during the
+// descent; ORBIT for a moment after the climb-out reveal; nothing otherwise.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDDescent, "TriadDrift.UI.FlightHUD.DescentAltimeterHeatAndCues", TD_TEST_FLAGS)
+bool FTDFlightHUDDescent::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	auto PaintHas = [&F](const TCHAR* Name)
+	{
+		TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+		return F.HUD->LastBoxes.ContainsByPredicate([Name](const TPair<FName, FBox2D>& B) { return B.Key == FName(Name); });
+	};
+	F.HUD->ForceHeat01 = 0.f;
+	F.HUD->ForceDescent01 = -1.f;
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("outside the descent: hidden"), F.V().bDescent);
+	TestFalse(TEXT("no hull temp outside"), PaintHas(TEXT("hull_temp")));
+
+	F.HUD->ForceHeat01 = .8f;
+	F.Src->Altitude = 2400.f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("entry burn: descent on, heat read"), F.V().bDescent && FMath::IsNearlyEqual(F.V().Heat01, .8f));
+	TestTrue(TEXT("hull temp painted"), PaintHas(TEXT("hull_temp")));
+	TestTrue(TEXT("altimeter tape painted"), PaintHas(TEXT("altimeter")));
+
+	F.HUD->ForceHeat01 = 0.f;
+	F.HUD->ForceDescent01 = .4f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("the glide keeps it up after the heat"), F.V().bDescent);
+	F.HUD->ForceDescent01 = -1.f;
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("landed / clear: hidden again"), F.V().bDescent);
+
+	F.HUD->StartOrbitCue();
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("ORBIT after the climb-out reveal"), F.V().OrbitCue01 > .5f && PaintHas(TEXT("orbit")));
+	F.HUD->Sample(UTDFlightHUDWidget::OrbitCueSeconds);
+	TestEqual(TEXT("then gone"), F.V().OrbitCue01, 0.f);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDKinds, "TriadDrift.UI.FlightHUD.EnemyMarkerShapesPerType", TD_TEST_FLAGS)
 bool FTDFlightHUDKinds::RunTest(const FString& Parameters)
 {

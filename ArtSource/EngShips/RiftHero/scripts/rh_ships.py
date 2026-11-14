@@ -53,6 +53,11 @@ SHIPS = {
         # v13: purple leftovers in the repainted area go too, a dark panel joint sits on the repaint's straight end, and
         # the nose slit is saturated accent paint (index 1 of rh_parts.materials()), it was a pale lilac glow
         repaint_tinted=True, repaint_seams=[(0.944, 0.956, 0.46, 0.0, -0.50, 0.30)], slit_mat=1,
+        # v14 (review: pale blotches and white chips on the lower crescent wings): inside the wing boxes every light,
+        # unsaturated texel becomes the wing's own magenta, the paint there is satin (roughness floor, no metal), and
+        # three dark panel joints cross each wing
+        accent_boxes=[(-2.4, 2.5, 2.2, 1.0, -1.2, -0.2)], accent_rough=0.55,
+        accent_seams=[(-0.706, -0.694, 2.2, 1.0, -1.2, -0.2), (0.394, 0.406, 2.2, 1.0, -1.2, -0.2), (1.394, 1.406, 2.2, 1.0, -1.2, -0.2)],
         repaint_accent=True, repaint_texel=True, repaint_emissive=0,      # index of the box whose emissive texels go too
     ),
     "Lancer": dict(
@@ -70,7 +75,10 @@ SHIPS = {
         # measured on mesh_r1: the dark canopy runs x -0.72 .. 0.46 on the centre line, about 0.24 half-wide, its top
         # about 0.27 above the deck around it (the tub is 0.29 deep so the seat head clears the glass)
         canopy=dict(cockpit=(0.25, 0.0, 0.0), x=(-0.72, 0.46), wmax=0.24, deck=0.31, ox=-0.92, ky=0.74, bows=(-0.14, 0.24),
-                    plan=(0.20, 0.80), dome="super", cutk=1.06, sill_w=0.06, skirt=(0.075, 0.05), seat_head=0, hk=1.2),
+                    plan=(0.20, 0.80), dome="super", cutk=1.06, sill_w=0.06, skirt=(0.075, 0.05), seat_head=1, hk=1.2,
+                    # v07 (Lead, Nov 14: the pilot did not read through the dark glass): a lighter seat shell and side
+                    # consoles, a pale visor band, a thin cyan instrument glow, an accent headrest
+                    seat_mat=3, visor_mat=6, instr=True),
         # the long twin barrel is on Blender +Y (Unreal -Y, Muzzle_0), the short pod on the other side: both go
         guns=dict(kind="lancer", y=0.45, z=-0.59, x0=0.90, tip=1.52, cut_x=1.0),
         # the needle prow: stations (x, top z, bottom z, half width) measured on mesh_r1
@@ -102,6 +110,12 @@ SHIPS = {
         # six-tube launchers. Only the lumpy barrel ends are replaced; the hull maps stay as they are (T.clean flattens
         # white paint, and this hull is mid-grey armour), and its hard edges keep a tighter smoothing angle.
         canopy=None, nose=None, spine=None, sides=None, repaint=[], repaint_accent=False, textures="raw", sharp_deg=30,
+        # A glass cockpit was tried as v03 (Lead, Nov 14: keep the faceted windscreen, no bubble) and stopped in Blender:
+        # the Rodin "windscreen" is not a flush pane. It is a raised cab block standing in a recess, with dark sloped
+        # sides; cutting the dark faces into glass (rh_closeparts._canopy_facets) left the cab block standing inside brown
+        # panes with tub walls around it. A real cockpit here means redesigning that block. To try again:
+        # FACETS = dict(kind="facets", cockpit=(1.20, 0.0, 0.20), x=(1.30, 2.16), wmax=0.40, z=(0.0, 0.58), drop=0.035,
+        #               depth=0.42, seat_x=1.50, head_z=0.22, dash_x=1.88, dash_z=0.06)   as canopy=
         guns=dict(kind="bastion", y=0.43, z=-0.41, x0=2.42, tip=2.62, r=0.068, cut_x=2.49),
         # v02 (review: the cockpit read as a black windscreen with a yellow glowing squiggle inside): the emissive map
         # is textures_r2's with the windscreen's texels cleared, so it reads as dark glass
@@ -114,7 +128,7 @@ SHIPS = {
 def _null(ship, folder, sockets, **kw):
     """Null Armada ships: the Rodin hull, its normals and its maps as they are (dark low-poly armour: nothing to
     flatten or weld), maps capped at 1K in Unreal, no nozzle glow cores; parts as listed."""
-    d = dict(ship=ship, root=os.path.join(KIT, ship + "Hero"), rodin=os.path.join(AI, "NullFleet", folder, "mesh_r1"), heat=None,
+    d = dict(ship=ship, root=os.path.join(KIT, ship + "Hero"), rodin=os.path.join(AI, "NullFleet", folder, kw.pop("rev", "mesh_r1")), heat=None,
              accent="red", ring=False, sockets=sockets, canopy=None, guns=None, nose=None, spine=None, sides=None, repaint=[],
              repaint_accent=False, textures="raw", sharp_deg=30, tex=1024, tri_budget=14000, keep_islands=True, weld=False)
     d.update(kw)
@@ -133,6 +147,16 @@ SHIPS["NullGunship"] = _null("NullGunship", "Gunship", {
     # the four turret barrels, measured on mesh_r1: axes at |y| 2.08 and 2.78, z 2.92, about 0.14 m in radius, tips at x 7.5
     guns=dict(kind="barrels", barrels=[(2.78, 2.92), (2.08, 2.92), (-2.08, 2.92), (-2.78, 2.92)], x0=4.70, tip=7.50, r=0.135,
               cut_x=4.85, cut_y=(1.75, 3.08), cut_z=(2.68, 3.2)))
+
+
+# The interceptor shares the fighter's crescent silhouette (same span to length, three engines): at 150 m the two
+# could not be told apart. Cheapest change, no Rodin geometry cut: a 2.6 m lance forward from each wing tip (the ship
+# reads as a fork, 8.9 m long where the fighter is 5.5 m) and twin canted tail fins (the fighter has one low fin).
+SHIPS["NullInterceptor"] = _null("NullInterceptor", "Interceptor", {
+    "Muzzle_0": (324, -74, -55), "Muzzle_1": (324, 74, -55), "Missile_0": (40, -150, -95), "Missile_1": (40, 150, -95),
+    "Engine_0": (-332, -80, -13), "Engine_1": (-332, 80, -13), "Engine_2": (-332, 0, -15)}, rev="mesh_r2", tri_budget=13000,
+    fins=dict(lances=[(2.30, 5.60, 2.62, -0.98, 0.20, 0.26)],
+              fins=[([(-3.15, 0.05), (-1.55, 0.05), (-2.35, 1.75), (-3.05, 1.95)], 0.95, 0.07, 0.38)]))
 
 
 def get(ship):

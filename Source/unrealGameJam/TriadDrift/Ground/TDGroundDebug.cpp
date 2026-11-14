@@ -194,6 +194,52 @@ namespace TDGroundDebug
 		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.BreakGuard: %d guards broken"), N);
 	}
 
+	/** TD.Ground.CrewHit <damage> [behind]: damage the nearest crew without killing it, from the player's side of it or
+	 *  from behind, so its hit react (front / back) and stagger play (the animation builder's live checks). */
+	static void CrewHit(const TArray<FString>& Args, UWorld* World)
+	{
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		APawn* P = PC ? PC->GetPawn() : nullptr;
+		float Dist = 0.f;
+		ATDCrewCharacter* C = P ? Cast<ATDCrewCharacter>(NearestEnemy(World, P->GetActorLocation(), Dist)) : nullptr;
+		if (!C || !C->GetHealth())
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.CrewHit: no crew"));
+			return;
+		}
+		const bool bBehind = Args.Num() > 1 && Args[1].Equals(TEXT("behind"), ESearchCase::IgnoreCase);
+		const float Want = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 10.f;
+		const float Amount = FMath::Clamp(Want, 0.f, FMath::Max(0.f, C->GetHealth()->GetHull() - 1.f)); // never the kill
+		// Travelling into its back, or from the pilot at its front (the guard: a frontal hit on a Heavy is blocked; use behind).
+		const FVector Dir = bBehind ? C->GetActorForwardVector() : -C->GetActorForwardVector();
+		const FVector At = C->GetActorLocation() - Dir * C->Spec.CapsuleRadius;
+		UTDStatics::ApplyTDDamage(C, Amount, ETDDamageKind::Energy, P, P, At, Dir);
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.CrewHit: %s %.0f from the %s (hull %.0f)"), *C->GetName(), Amount, bBehind ? TEXT("back") : TEXT("front"), C->GetHealth()->GetHull());
+	}
+
+	/** TD.Ground.WardenSummon: the nearest Warden summons now (its clip and its grunts). */
+	static void WardenSummon(const TArray<FString>& Args, UWorld* World)
+	{
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		APawn* P = PC ? PC->GetPawn() : nullptr;
+		for (TActorIterator<ATDCrewCharacter> It(World); World && It; ++It)
+		{
+			if (!It->IsDead() && It->CrewType == ETDCrewType::Warden)
+			{
+				It->CancelAttack();
+				It->SetOpeningGrace(0.f);
+				const bool bOk = It->StartAttack(ETDCrewAttack::Summon, P);
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.WardenSummon: %s %s"), *It->GetName(), bOk ? TEXT("summons") : TEXT("cannot summon now (cooldown, cap or none left)"));
+				return;
+			}
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.WardenSummon: no Warden"));
+	}
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdCrewHit(TEXT("TD.Ground.CrewHit"), TEXT("TD.Ground.CrewHit <damage> [behind]: hurt the nearest crew (never a kill)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&CrewHit));
+	static FAutoConsoleCommandWithWorldAndArgs CmdWardenSummon(TEXT("TD.Ground.WardenSummon"), TEXT("The nearest Warden summons now (dev)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&WardenSummon));
 	static FAutoConsoleCommandWithWorldAndArgs CmdBreakGuard(TEXT("TD.Ground.BreakGuard"), TEXT("Break every live Heavy's guard (dev)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&BreakGuard));
 	static FAutoConsoleCommandWithWorldAndArgs CmdWhere(TEXT("TD.Ground.Where"), TEXT("Log the player position, objective line and nearest enemy."),
