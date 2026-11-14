@@ -369,6 +369,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	TObjectPtr<ATDObjective> LinkedObjective;
 
+	/** For retakes only: the objective step this fight belongs to when it completes no step itself (LinkedStep is
+	 *  INDEX_NONE). A retake from a later checkpoint leaves it down (the anchor's defence during the collapse run). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
+	int32 RetakeStep = INDEX_NONE;
+
 	/** Step completed on clear (INDEX_NONE = none). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	int32 LinkedStep = INDEX_NONE;
