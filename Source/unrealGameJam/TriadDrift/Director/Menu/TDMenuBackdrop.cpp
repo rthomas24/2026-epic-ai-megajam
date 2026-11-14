@@ -36,6 +36,21 @@ static TAutoConsoleVariable<int32> CVarTDMenuBackdrop(
 	ECVF_Default);
 
 const FName ATDMenuBackdrop::MenuSceneTag(TEXT("TD.Menu.Scene"));
+ATDMenuBackdrop::FTDOnVictoryBackdrop ATDMenuBackdrop::OnVictoryBegan;
+ATDMenuBackdrop::FTDOnVictoryBackdrop ATDMenuBackdrop::OnStinger;
+ATDMenuBackdrop::FTDOnVictoryBackdrop ATDMenuBackdrop::OnVictoryEnded;
+
+void ATDMenuBackdrop::FadeStingerCaption()
+{
+	if (CaptionFadeStart <= 0.0)
+	{
+		CaptionFadeStart = FPlatformTime::Seconds();
+		if (Scene == ETDBackdropScene::Victory)
+		{
+			OnVictoryEnded.Broadcast(this); // the menu is up (T7 fades the credits music)
+		}
+	}
+}
 
 namespace TDMenuBackdrop
 {
@@ -200,6 +215,10 @@ void ATDMenuBackdrop::Build()
 	UE_LOG(LogTriadDrift, Log, TEXT("Menu backdrop (%s): sky, Verdance, camera and %d squad ships%s"),
 		Scene == ETDBackdropScene::Victory ? TEXT("victory") : TEXT("menu"), SquadMeshes.Num(),
 		Dominion ? TEXT(", the Dominion breaking up") : TEXT(""));
+	if (Scene == ETDBackdropScene::Victory)
+	{
+		OnVictoryBegan.Broadcast(this); // the victory screen and its credits roll are up (T7's credits music)
+	}
 }
 
 void ATDMenuBackdrop::BuildVictory(UWorld* World)
@@ -286,6 +305,7 @@ float ATDMenuBackdrop::PlayStinger()
 		return 0.f;
 	}
 	bStingerPlayed = true;
+	OnStinger.Broadcast(this);
 
 	if (UTDStorySubsystem* Story = UTDStorySubsystem::Get(this))
 	{

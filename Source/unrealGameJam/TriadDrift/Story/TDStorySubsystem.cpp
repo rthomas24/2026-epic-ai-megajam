@@ -218,12 +218,12 @@ namespace TDStory
 			// The intended warning, recovered locally: NOT the shared "Dont" sound (the fragment is never re-recorded or extended).
 			E(TEXT("F_FutureWren_FullWarning"), S::FutureWren, LOCTEXT("F_FutureWren_FullWarning", "Don't engage the Dominion. You don't understand what happens if you do.")),
 			// Cinematic 08, The Recovered Transmission (storyline.md 28): voices over the sealed threshold, skippable.
-			E(TEXT("C8_RecKato_OneEvent"), S::FutureKato, LOCTEXT("C8_RecKato_OneEvent", "The Origin Core may let us change one event. Before everything was lost."), St::Echo),
+			E(TEXT("C8_RecKato_OneEvent"), S::FutureKato, LOCTEXT("C8_RecKato_OneEvent", "The Origin Core might let us change one moment in the past—before we lost everything."), St::Echo),
 			E(TEXT("C8_RecWren_LastChance"), S::FutureWren, LOCTEXT("C8_RecWren_LastChance", "We believe recovering it can prevent the catastrophe. It's the last chance we have."), St::Echo),
 			E(TEXT("C8_RecMoss_SaveYou"), S::FutureMoss, LOCTEXT("C8_RecMoss_SaveYou", "We came back to save you."), St::Echo),
 			E(TEXT("C8_Kato_NoSafeShutdown"), S::Kato, LOCTEXT("C8_Kato_NoSafeShutdown", "I can't verify a safe shutdown. Continuing could put the whole system at risk.")),
 			E(TEXT("C8_Moss_CantLetThem"), S::Moss, LOCTEXT("C8_Moss_CantLetThem", "Then we can't let them finish.")),
-			E(TEXT("C8_Wren_Order"), S::Boarder, LOCTEXT("C8_Wren_Order", "Take out the reactor. Keep the route to the hangar clear.")),
+			E(TEXT("C8_Wren_Order"), S::Wren, LOCTEXT("C8_Wren_Order", "Take out the reactor. Keep the route to the hangar clear.")), // N-046: Wren, approved
 			// Gameplay 08, The Reactor Fight (storyline.md 29).
 			E(TEXT("G8_Wren_ConduitsFirst"), S::Boarder, LOCTEXT("G8_Wren_ConduitsFirst", "Conduits first. Then the heart.")),
 			E(TEXT("G8_Kato_ConduitDown"), S::Kato, LOCTEXT("G8_Kato_ConduitDown", "Conduit destroyed.")),
@@ -545,6 +545,34 @@ FText UTDStorySubsystem::SpeakerTag(ETDSpeaker Speaker)
 	}
 }
 
+bool UTDStorySubsystem::HasAired(FName Id) const
+{
+	if (Aired.Contains(Id))
+	{
+		return true;
+	}
+	// A reloaded run: played earlier (saved) and not waiting in this world's queue or on air now.
+	return HasPlayed(Id) && !(Current.bActive && Current.Id == Id) && !Queue.ContainsByPredicate([Id](const FTDTransmission& T) { return T.Id == Id; });
+}
+
+FText UTDStorySubsystem::SpeakerTagNow(ETDSpeaker Speaker) const
+{
+	const bool bFinal = HasAired(TEXT("A4_Recording_Core")) || HasAired(TEXT("G7_Kato_Authorisations"));
+	switch (Speaker)
+	{
+	case ETDSpeaker::FutureMoss:
+		return (bFinal || HasAired(TEXT("G7_Moss_MyVoice"))) ? LOCTEXT("TagRecMoss", "MOSS (RECORDED)") : LOCTEXT("TagRecUnknownM", "UNKNOWN");
+	case ETDSpeaker::FutureWren:
+		return bFinal ? LOCTEXT("TagRecWren", "WREN (RECORDED)") : LOCTEXT("TagRecUnknownW", "UNKNOWN");
+	case ETDSpeaker::FutureKato:
+		return bFinal ? LOCTEXT("TagRecKato", "KATO (RECORDED)") : LOCTEXT("TagRecUnknownK", "UNKNOWN");
+	case ETDSpeaker::Unknown:
+		return LOCTEXT("TagRecUnknown", "UNKNOWN");
+	default:
+		return SpeakerTag(Speaker);
+	}
+}
+
 FLinearColor UTDStorySubsystem::SpeakerColor(ETDSpeaker Speaker)
 {
 	switch (Speaker)
@@ -698,7 +726,8 @@ const TArray<FName>& UTDStorySubsystem::SequenceIds(FName SequenceId)
 {
 	// Cinematic 08 (Lead, Nov 13: voices over the sealed threshold, mandatory, skippable): the command deck's five lines
 	// (the same "Dont" sound as the opening), the recovered full warning, the commanders' case, the decision.
-	static const TArray<FName> Cinematic08 = { TEXT("F_FutureKato_Signatures"), TEXT("F_FutureMoss_Where"), TEXT("F_FutureWren_Channel"),
+	// Ryan (Nov 13): voices over the sealed threshold, the player in control: the mandatory final record first.
+	static const TArray<FName> Cinematic08 = { TEXT("A4_Recording_Core"), TEXT("G7_Wren_FullRecord"), TEXT("F_FutureKato_Signatures"), TEXT("F_FutureMoss_Where"), TEXT("F_FutureWren_Channel"),
 		TEXT("F_FutureKato_Interference"), TEXT("F_FutureWren_Dont"), TEXT("F_FutureWren_FullWarning"), TEXT("C8_RecKato_OneEvent"),
 		TEXT("C8_RecWren_LastChance"), TEXT("C8_RecMoss_SaveYou"), TEXT("C8_Kato_NoSafeShutdown"), TEXT("C8_Moss_CantLetThem"),
 		TEXT("C8_Wren_Order") };
@@ -824,7 +853,8 @@ void UTDStorySubsystem::StartNext()
 	Current.bActive = true;
 	Current.Id = OnAir.Id;
 	Current.Speaker = OnAir.Speaker;
-	Current.SpeakerTag = SpeakerTag(OnAir.Speaker);
+	Aired.Add(OnAir.Id); // first: the final record names its own speaker as it plays
+	Current.SpeakerTag = SpeakerTagNow(OnAir.Speaker);
 	Current.Text = OnAir.Text;
 	Current.Style = OnAir.Style;
 	Current.Color = SpeakerColor(OnAir.Speaker);
