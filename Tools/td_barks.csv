@@ -234,7 +234,7 @@ Bark_Dom_Escape_Start__Kato,Bark_Dom_Escape_Start,Kato,Critical,"(""It's coming 
 Bark_Dom_Escape_30__Kato,Bark_Dom_Escape_30,Kato,Critical,"(""Thirty."")"
 Bark_Dom_Escape_10__Kato,Bark_Dom_Escape_10,Kato,Critical,"(""Ten seconds."")"
 Bark_Dom_Escape_Start__Moss,Bark_Dom_Escape_Start,Moss,Critical,"(""Get out of there!"")"
-Bark_Dom_Escape_30__Moss,Bark_Dom_Escape_30,Moss,Critical,"(""Halfway, keep going."")"
+Bark_Dom_Escape_30__Moss,Bark_Dom_Escape_30,Moss,Critical,"(""Thirty seconds. Keep going."")"
 Bark_Dom_Escape_10__Moss,Bark_Dom_Escape_10,Moss,Critical,"(""Almost, almost!"")"
 Bark_Dom_EscapeFlight__Wren,Bark_Dom_EscapeFlight,Wren,Critical,"(""Punch it!"")"
 Bark_Dom_EscapeFlight__Kato,Bark_Dom_EscapeFlight,Kato,Critical,"(""Follow my line out."")"
