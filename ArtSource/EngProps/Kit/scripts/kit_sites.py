@@ -159,6 +159,10 @@ def digsite():
     ps.append(piece("Stair_Base", "SM_Kit_Platform_400", 800, 0))
     ps.append(piece("Stairs_Upper", "SM_Kit_Stairs_400", 800, 0, 100, 180))
     ps.append(piece("Stairs_Lower", "SM_Kit_Stairs_400", 1200, 0, 0, 180))
+    # Grok Bot's drill rig (PR #69, 7.8 x 4.1 x 11 m, a box collision; import builder, ue_import_engai.py) as dressing
+    # beside the cabin, off the +Y side: about 6 m of open ground from the deck edge, nothing in front of the stairs.
+    ps.append(piece("DrillRig", "/Game/TriadDrift/Gameplay/Props/CinderDigSite/SM_CinderDrillRig", -100, 1450, 0, -15,
+                    note="AI mesh as dressing (R-043): not walkable, its box only keeps the pilot out"))
     return {
         "site": "DigSite_Cabin", "actor": K + "Sites/BP_DigSite_Cabin",
         "about": "Cinder dig-site cabin from the kit: raised deck (top Z 200) 1200 x 1200, cabin 400 x 800 at the back (X -600..-200), walkway round it, front stairs X 600..1400.",
@@ -168,7 +172,8 @@ def digsite():
                               [-200, -200, 200, "cabin doorway (Y -280..-120)"], [-430, 0, 200, "console point"], [0, 500, 200, "side walkway"]],
         "walkability_cm": {"deck_top_z": 200, "cabin": {"x": [-585, -215], "y": [-385, 385]}, "door": {"y": [-280, -120], "z": [200, 460]},
                            "stairs": "two Stairs_400 in one flight, 14 deg, Y -100..100, X 600..1400", "railings": "every deck edge but the stairs opening (Y -200..200)"},
-        "placement_rules": ["Pivot on flat ground.", "Keep 3 m clear in front of the stairs (X 1400..1700)."],
+        "placement_rules": ["Pivot on flat ground.", "Keep 3 m clear in front of the stairs (X 1400..1700).",
+                            "The drill rig stands at (-100, 1450): the footprint is X -600..1700, Y -600..1700."],
     }
 
 
