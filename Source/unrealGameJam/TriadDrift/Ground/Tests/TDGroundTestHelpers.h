@@ -8,6 +8,7 @@
 #include "CoreMinimal.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -52,6 +53,9 @@ namespace TDGroundTest
 			// CharacterMovement wouldn't simulate. An AIController drives the same public move API.
 			AAIController* AI = W.Spawn<AAIController>(At);
 			AI->Possess(C);
+			// Unit tests of reach, arcs and damage read a swing's hit on the press; the 0.1 s active-frame delay has its own
+			// test (Ground.Blade.LightHitLandsWithTheHand) and the played tests keep it.
+			if (UTDEnergyBladeComponent* B = C->GetBlade()) { B->HitDelay = 0.f; }
 			if (AController* PC = C->GetController())
 			{
 				PC->SetControlRotation(FRotator::ZeroRotator);

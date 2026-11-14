@@ -247,21 +247,18 @@ void ATDGroundGameMode::HandleConsoleUsed(AActor* Interactable, AActor* Interact
 void ATDGroundGameMode::HandleSceneRestart(FName SceneId, int32 TakeNumber)
 {
 	// A scene of the interior with a checkpoint picks up there (the corridor, the arena's wave, the Warden's door).
+	// A death outside any scene (between rooms) comes back at the next room's door, never the hangar (T7, Nov 14).
 	if (Interior)
 	{
-		if (const ATDObjective* Obj = Interior->FindObjective(SceneId))
+		const FTransform Where = Interior->GetInteriorRetakeSpot(SceneId);
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 		{
-			const AActor* Spot = Obj->GetCheckpointRespawn();
-			const FTransform Where = Spot ? Spot->GetActorTransform() : Interior->GetInteriorStart();
-			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+			if (ATDFirstPersonCharacter* Char = Cast<ATDFirstPersonCharacter>(It->Get() ? It->Get()->GetPawn() : nullptr))
 			{
-				if (ATDFirstPersonCharacter* Char = Cast<ATDFirstPersonCharacter>(It->Get() ? It->Get()->GetPawn() : nullptr))
-				{
-					Char->RespawnAt(Where);
-				}
+				Char->RespawnAt(Where);
 			}
-			return;
 		}
+		return;
 	}
 	RespawnPlayer();
 }

@@ -3,6 +3,7 @@
 // UTDGroundSceneSubsystem resets the scene and the ground mode respawns the player.
 
 #include "Misc/AutomationTest.h"
+#include "GameFramework/DamageType.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -369,7 +370,8 @@ bool FTDRetakeLostWarden::RunTest(const FString& Parameters)
 	{
 		ATDCrewCharacter* Warden = WardenOf();
 		if (!TestNotNull(*FString::Printf(TEXT("a Warden (%d)"), i), Warden)) { return false; }
-		Warden->Destroy(); // fell out of the world, alive
+		if (i % 2 == 0) { Warden->FellOutOfWorld(*GetDefault<UDamageType>()); } // through the kill-Z (T3's path)
+		else { Warden->Destroy(); } // removed alive
 		W.Advance(0.1f);
 		TestFalse(*FString::Printf(TEXT("the room is not cleared (%d)"), i), Room->IsCleared());
 		TestEqual(*FString::Printf(TEXT("the objective stays on step 0 (%d)"), i), O->GetCurrentStepIndex(), 0);
