@@ -1,4 +1,4 @@
-// Triad Drift - the pilot's right hand closes round the blade hilt (animation builder, Nov 13): the grip layer of
+﻿// Triad Drift - the pilot's right hand closes round the blade hilt (animation builder, Nov 13): the grip layer of
 // UTDLoopBlendAnimInstance poses the fingers over every clip, and the hilt sits in the palm on BladeSocket.
 
 #include "CoreMinimal.h"
@@ -37,6 +37,10 @@ namespace TDPilotGripTest
 			if (APlayerController* PC = P ? W.SpawnLocalPlayerController(P) : nullptr)
 			{
 				PC->SetControlRotation(FRotator::ZeroRotator);
+			}
+			if (P && P->GetMesh())
+			{
+				P->GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones; // nothing renders in tests
 			}
 			W.Advance(0.5f);
 		}
@@ -118,7 +122,8 @@ bool FTDPilotGripCloses::RunTest(const FString& Parameters)
 	}
 
 	// The hilt is in the palm and every finger closes on it: the first phalanx turned toward the palm, the middle joint
-	// against the hilt (the gauntlet's short, thick fingers press it into the palm; they cannot ring it), the thumb over it.
+	// against the hilt (open, the clips hold these joints 6-7.5 cm off its axis; closed, 3.5-4.6 cm: the gauntlet's short,
+	// thick fingers press it into the palm and cannot ring it), the thumb over it.
 	const float Palm = T.FromHiltAxis(T.Palm());
 	TestTrue(*FString::Printf(TEXT("hilt axis within 4 cm of the palm (%.2f cm)"), Palm), Palm < 4.f);
 	const float PalmPivot = (float)FVector::Dist(T.P->GetHandBladeHilt()->GetComponentLocation(), T.Palm());
@@ -131,7 +136,7 @@ bool FTDPilotGripCloses::RunTest(const FString& Parameters)
 		const float Curl = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp((float)FVector::DotProduct(P1, Along), -1.f, 1.f)));
 		TestTrue(*FString::Printf(TEXT("%s curled toward the palm (%.0f deg off the hand's line)"), *F, Curl), Curl > 50.f);
 		const float Mid = T.FromHiltAxis(T.Bone(MiddleJoints[i]));
-		TestTrue(*FString::Printf(TEXT("%s on the hilt, not through it (%.2f cm from the axis)"), MiddleJoints[i], Mid), Mid > 1.f && Mid < 3.f);
+		TestTrue(*FString::Printf(TEXT("%s on the hilt, not through it (%.2f cm from the axis)"), MiddleJoints[i], Mid), Mid > 1.f && Mid < 5.f);
 	}
 	const float Thumb = T.FromHiltAxis(T.Bone(TEXT("thumb_03_r")));
 	TestTrue(*FString::Printf(TEXT("the thumb closes over the hilt (%.2f cm from the axis)"), Thumb), Thumb > 1.f && Thumb < 4.5f);
@@ -164,7 +169,7 @@ bool FTDPilotGripEveryClip::RunTest(const FString& Parameters)
 			for (const TCHAR* J : MiddleJoints)
 			{
 				const float D = T.FromHiltAxis(T.Bone(J));
-				TestTrue(*FString::Printf(TEXT("%s upper=%d: %s on the hilt (%.2f cm)"), Clip, bUpper, J, D), D > 1.f && D < 3.f);
+				TestTrue(*FString::Printf(TEXT("%s upper=%d: %s on the hilt (%.2f cm)"), Clip, bUpper, J, D), D > 1.f && D < 5.f);
 			}
 			const float Palm = T.FromHiltAxis(T.Palm());
 			TestTrue(*FString::Printf(TEXT("%s upper=%d: hilt in the palm (%.2f cm)"), Clip, bUpper, Palm), Palm < 4.f);

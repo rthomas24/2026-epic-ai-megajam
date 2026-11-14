@@ -278,8 +278,8 @@ if P.get("curls"):
             segcost += 0.3 * max(0.0, mins[0]) ** 2 + max(0.0, mins[1]) ** 2 + max(0.0, mins[2]) ** 2
         gp = [axial(p, C, A)[1] - hilt_r(axial(p, C, A)[0]) for p in PV if hilt_r(axial(p, C, A)[0]) > 0]
         palm = min(gp) if gp else 6.0
-        pen = max(pen, -palm)
-        cost = 400 * pen * pen + segcost + 0.5 * max(0.0, palm) ** 2
+        pen = max(pen, -palm - P.get("palm_tol_cm", 0.0))   # the armoured palm plate may sink into the hilt (hidden)
+        cost = 400 * pen * pen + segcost + 0.5 * max(0.0, palm) ** 2 + P.get("deep_w", 0.0) * x[3]
         cost += 0.002 * (x[0] - P.get("tilt_pref", 15)) ** 2
         return (cost, gaps, palm) if detail else cost
 
@@ -287,7 +287,7 @@ if P.get("curls"):
     FVfull, PVfull = FV, PV
     FV, PV = FVs, PVfull[::3]
     best = None
-    for tl in (0.0, 10.0, 20.0, 30.0):
+    for tl in P.get("fit_tilts", (0.0, 10.0, 20.0, 30.0)):
         for du in [i * 0.5 for i in range(-8, 3)]:
             for dv in [i * 0.5 for i in range(0, 14)]:
                 for ds in (-2.0, -1.0, 0.0, 1.0, 2.0, 3.0):
@@ -389,15 +389,22 @@ def thumb_eval(a, b, c, f2, f3, fine=False):
                 dd = (p - q).length
                 if dd < 0.35:
                     pen_i = max(pen_i, 0.35 - dd)
-    cost = (tip - target).length ** 2 + 400 * pen * pen + 400 * pen_i * pen_i + 0.0004 * (a * a + b * b + c * c)
+    # the thumb lies on the hilt (its last two segments touch it) and its tip on the index finger
+    tg = []
+    for s_ in (1, 2):
+        g = [axial(p, C, A)[1] - hilt_r(axial(p, C, A)[0]) for p in [deform(co, ws, DD) for co, ws in tverts[s_][::2]] if hilt_r(axial(p, C, A)[0]) > 0]
+        tg.append(min(g) if g else 4.0)
+    cost = (tip - target).length ** 2 + 400 * pen * pen + 400 * pen_i * pen_i + P.get("thumb_reg", 0.0004) * (a * a + b * b + c * c + f2 * f2 + f3 * f3)
+    cost += P.get("thumb_contact_w", 2.0) * sum(max(0.0, g - 0.1) ** 2 for g in tg) + 0.002 * (min(0, f2) ** 2 + min(0, f3) ** 2) * 100
     return cost, ang, tip, pen, pen_i
 
 
+TM = int(P.get("thumb_max", 45))
 for a in range(-40, 131, 10):
-    for b in range(-45, 46, 9):
-        for c in range(-45, 46, 9):
-            for f2 in (10, 30, 50):
-                for f3 in (10, 35, 60):
+    for b in range(-TM, TM + 1, max(9, TM // 6)):
+        for c in range(-TM, TM + 1, max(9, TM // 6)):
+            for f2 in (0, 25, 50, 75):
+                for f3 in (0, 30, 60):
                     cost, ang, tip, pen, _ = thumb_eval(a, b, c, f2, f3)
                     if best is None or cost < best[0]:
                         best = (cost, (a, b, c, f2, f3))
@@ -421,6 +428,8 @@ print("GRIP thumb %s tip->target %.2f cm pen hilt %.2f index %.2f" % ([round(p, 
 
 # ---- contact report on the final pose
 D = deltas(angles)
+print("GRIP joints from the hilt axis (cm): " + " ".join("%s %.2f" % (b, axial(D[PARENT[b]] @ head[b], C, A)[1]) for b in
+      ["index_02_r", "index_03_r", "middle_03_r", "ring_03_r", "pinky_03_r", "thumb_02_r", "thumb_03_r"]))
 for f in FINGERS + ["thumb"]:
     rs = []
     for b in CHAIN[f]:
@@ -469,6 +478,18 @@ if P.get("hand_only", True):
     kidx = {gidx[n] for n in keep if n in gidx}
     drop = [v for v in bm.verts if sum(w for gi, w in v[dl].items() if gi in kidx) < 0.5 * max(1e-6, sum(v[dl].values()))]
     bmesh.ops.delete(bm, geom=drop, context='VERTS')
+    # colour the digits for review: thumb red, index blue (dominant weight of the face's first vertex)
+    if P.get("digit_colours", True):
+        mesh.data.materials.clear()
+        for nm, col in (("skin", (0.75, 0.75, 0.75, 1)), ("thumb", (0.85, 0.15, 0.1, 1)), ("index", (0.15, 0.3, 0.9, 1))):
+            m = bpy.data.materials.new("rv_" + nm)
+            m.diffuse_color = col
+            mesh.data.materials.append(m)
+        inv = {v: k for k, v in gidx.items()}
+        for fc in bm.faces:
+            ws = fc.verts[0][dl]
+            dom = inv.get(max(ws.items(), key=lambda t: t[1])[0], "") if len(ws) else ""
+            fc.material_index = 1 if dom.startswith("thumb") else 2 if dom.startswith("index") else 0
     bm.to_mesh(mesh.data)
     bm.free()
 # landmark markers (small spheres): knuckles red, palm normal tip green, hilt centre blue

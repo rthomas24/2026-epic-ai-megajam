@@ -1,4 +1,4 @@
-# Triad Drift - close-up captures of the pilot's right hand on the blade hilt in a running game.
+﻿# Triad Drift - close-up captures of the pilot's right hand on the blade hilt in a running game.
 # Start the game first:  .\Tools\td-play-mcp.ps1 -Map /Game/TriadDrift/Maps/L_Planet_Verdance -Port 21081 -MaxSeconds 900
 # Then:  python ArtSource\EngAnim\PilotGrip\scripts\grip_capture.py <outdir> <tag> [--before]
 #   --before: the hand as it was (grip layer off, hilt back on hand_r with the old by-eye offset)
@@ -58,7 +58,7 @@ def look_rot(fwd):
     f = norm(fwd)
     yaw = math.degrees(math.atan2(f[1], f[0]))
     pitch = math.degrees(math.asin(max(-1.0, min(1.0, f[2]))))
-    return {"Pitch": pitch, "Yaw": yaw, "Roll": 0.0}
+    return {"pitch": pitch, "yaw": yaw, "roll": 0.0}
 
 
 def main():
@@ -108,10 +108,11 @@ def main():
         return bones
 
     def capture(name, loc, fwd, fov):
-        cam = {"location": {"X": loc[0], "Y": loc[1], "Z": loc[2]}, "rotation": look_rot(fwd), "fOV": fov}
+        cam = {"location": {"x": loc[0], "y": loc[1], "z": loc[2]}, "rotation": look_rot(fwd), "projectionMode": "Perspective",
+               "fOV": fov, "orthoWidth": 512}
         r = call("SceneCaptureToolset.SceneCaptureToolset", "Capture", {
             "world": {"refPath": world}, "camera": cam, "mode": os.environ.get("TD_MODE", "Lit"),
-            "options": {"width": W, "height": H}})
+            "options": {"width": W, "height": H, "screenPercentage": 1.0, "visualizationSubMode": ""}})
         return save(r, name)
 
     cmd("TD.Ground.ThirdPerson 1")
@@ -121,7 +122,7 @@ def main():
         cmd("TD.Ground.GripSocket -9 -3 0 -90 0 0")  # the old HandBladeOffset on hand_r
     else:
         cmd("TD.Ground.Grip 1")
-        cmd("TD.Ground.GripSocket reset")
+        cmd(os.environ.get("TD_SOCKET_CMD", "TD.Ground.GripSocket reset"))
     time.sleep(0.5)
     report = {}
     for name, clip, t01, upper in POSES:
@@ -147,15 +148,19 @@ def main():
             n = mul(n, -1.0)
         side = norm(cross(axis, n))
         centre = add(hilt, mul(axis, 1.0))
+        # views from the body's own axes (what a player sees): outside of the arm, front quarter, over the shoulder
+        F = b["actor"]["x"]
+        R = b["actor"]["y"]
+        U = b["actor"]["z"]
         views = {
-            "back": norm(add(mul(n, -1.0), mul(side, 0.45))),   # from the back of the hand, a little off
-            "palm": norm(add(n, mul(side, -0.45))),             # from the palm side
-            "thumb": norm(add(axis, mul(n, -0.6))),             # down the blade onto the thumb and index
+            "side": norm(add(add(R, mul(F, 0.25)), mul(U, 0.25))),
+            "front": norm(add(add(F, mul(R, 0.6)), mul(U, 0.15))),
+            "behind": norm(add(add(mul(F, -1.0), mul(R, 0.7)), mul(U, 0.6))),
         }
         report[name] = {"bones": b}
         for vname, d in views.items():
-            loc = add(centre, mul(d, 38.0))
-            p = capture("%s_%s_%s" % (tag, name, vname), loc, mul(d, -1.0), 30.0)
+            loc = add(centre, mul(d, float(os.environ.get("TD_CAM_CM", "75"))))
+            p = capture("%s_%s_%s" % (tag, name, vname), loc, mul(d, -1.0), float(os.environ.get("TD_FOV", "32")))
             print(name, vname, p)
         r = call("SceneCaptureToolset.SceneCaptureToolset", "CaptureGameViewport", {"world": {"refPath": world}, "maxResolution": W})
         save(r, "%s_%s_chase" % (tag, name))
