@@ -370,11 +370,15 @@ AActor* ATDPlanetCourse::PlaceOutpost(const FVector& Site, float Yaw, bool bCind
 	return A;
 }
 
+static const FVector OutpostConsoleCentre(-353.f, 0.f, 53.3f);
+static const FVector OutpostConsoleScale(74.f / 60.f, 166.f / 60.f, 106.6f / 120.f);
+
 template <class T>
 T* ATDPlanetCourse::OutpostTerminal(const FVector& Site, float Yaw)
 {
-	// The console stands at site (-19, 81.5, 153), 87 x 260 x 150 cm, pivot bottom-centre; its box centre is 75 cm up.
-	const FVector At = Site + FRotator(0.f, Yaw, 0.f).RotateVector(FVector(-19.f, 81.5f, 153.f + 75.f));
+	// The kit outpost (structures builder, 22f47909; Outpost_Site_*.manifest.json): SM_Kit_Console at site (-360, 0, 0),
+	// its box X -30..44, Y -83..83, Z 0..106.6 (centre (-353, 0, 53.3)); the pilot stands at (-250, 0, 0) facing yaw 180.
+	const FVector At = Site + FRotator(0.f, Yaw, 0.f).RotateVector(OutpostConsoleCentre);
 	T* C = SpawnProp<T>(At, FRotator(0.f, Yaw, 0.f));
 	return C;
 }
@@ -1057,7 +1061,7 @@ void ATDPlanetCourse::BuildVerdance()
 	TDCourseImpl::FinishProp(Terminal);
 	if (VerdOutpost)
 	{
-		Terminal->SetActorScale3D(FVector(87.f / 60.f, 260.f / 60.f, 150.f / 120.f)); // the outpost console's box (the cube is 60 x 60 x 120)
+		Terminal->SetActorScale3D(OutpostConsoleScale); // the kit console's box (the cube is 60 x 60 x 120)
 		Terminal->Mesh->SetHiddenInGame(true); // Grok Bot's console is what the player sees; this is its interact box
 		TerminalScreens.Add(Terminal, VerdConsole);
 		Terminal->OnInteracted.AddUniqueDynamic(this, &ATDPlanetCourse::HandleTerminalScreen);
@@ -1271,7 +1275,7 @@ void ATDPlanetCourse::BuildCinder()
 	TDCourseImpl::FinishProp(Records);
 	if (CindOutpost)
 	{
-		Records->SetActorScale3D(FVector(87.f / 60.f, 260.f / 60.f, 150.f / 120.f));
+		Records->SetActorScale3D(OutpostConsoleScale);
 		Records->Mesh->SetHiddenInGame(true);
 		TerminalScreens.Add(Records, CindConsole);
 		Records->OnInteracted.AddUniqueDynamic(this, &ATDPlanetCourse::HandleTerminalScreen);
