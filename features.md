@@ -191,17 +191,17 @@ the weakest state among the row's items, from `docs/eng/STATUS.md`, `CLAIMS.md` 
   - One shared rendering slot, locked through `Builds/render-slot/README.txt`; teammates' play goes before builders'
     captures.
   - No pull request stays open more than an hour (R-048): #83 and #12 closed with their branches kept; #78 merged; #11
-    and #85 need Nicholas's decision by 10:30 EST; #93 (five dry takes of `C8_Wren_Order`) waits on Ryan's merge click.
+    and #85 need Nicholas's decision by 10:30 EST; #93 (five dry takes of `C8_Wren_Order`) was merged at about 09:35 (0aa68579); the dry master is Nicholas's pick.
   - Nicholas chose Wren take 04 (N-097); T3 imports it. The Director cards evidence was delivered to Nick's side
     (N-092, prerelease `evidence-director-cards-cf55d3bc`). N-094 (the victory eyebrow and six headlines) is compacted
     into the board's Completed table.
-- **Held for Ryan:** merge #93; one real click on CONTINUE; a play of the Shipping package (audio and flight input);
+- **Held for Ryan:** one real click on CONTINUE; a play of the Shipping package (audio and flight input);
   `MI_TD_DominionGlowRed`; dropping the DirectX 11 shader set; the Bastion cockpit design; the ENG-38 left-for-Ryan list;
   pilot foot IK; a precompiled pipeline-state cache; T3's stash "t3-failed-merge-lead-int-u-0921".
 - **Waits on Nicholas:** decisions on PR #11 and #85 (by 10:30 EST); the dry master for `C8_Wren_Order` (PR #93); ear
   approval of the fallback music; closing #49 and the eleven asset issues; the Dominion recolour; the opening voices; a
   review of the Director cards evidence.
-- **Issues:** 20 open. **PRs open:** #93, #85 (draft), #11 (draft).
+- **Issues:** 20 open. **PRs open:** #85 (draft), #11 (draft); #78 and #93 merged.
 - **Machine:** at most two rendering Unreal processes machine-wide (R-046), and the one shared rendering slot above.
 - **The Lead's play queue: NOT PLAYED by anyone, most player-visible first** (owners on `CLAIMS.md`):
   1. The reactor conduits and heart on foot (ENG-30; T7).
@@ -274,7 +274,7 @@ as its own board and ledger left them (its current tasks: the N-095 reply).
 | **Animation builder** | With T5's animation hooks | Warden ragdoll cases; pilot foot IK is held for Ryan |
 | **Import builder** | Credits rows for the assets of batches U to Z | Oodle RDO trial (unproven) |
 | **Packaging agent** | The Shipping cook of main 80a2ee4d (running). Published: `playable-main-8b4eabae` | Publish `playable-main-80a2ee4d` with a launch check; compile the Shipping target of AA |
-| **Grok Bot** | R-042 queue; five dry takes of `C8_Wren_Order` delivered (PR #93, waits on Ryan's merge) | #52 anchor tower, #53 crystal cache, #40 set dressing, #54 bay plans |
+| **Grok Bot** | R-042 queue; five dry takes of `C8_Wren_Order` delivered (PR #93, merged 0aa68579; the dry master is Nicholas's pick) | #52 anchor tower, #53 crystal cache, #40 set dressing, #54 bay plans |
 | **Nick: Lead** | ART-10 cue pickup (DominionInterior01, CreditsMusic01, VerdanceTheme01); #71 menu handoff | ART-14 page, dev log, credits audit; ART-20 review dispatch |
 | **Nick: Audio** | ART-10 mix and listening; tutorial music | ART-19 wiring; Cinder, assault, escape and victory cues; three-pulse and "Don't-" asset |
 | **Nick: UI** | Victory, reward and credits read; Settings focus; loading | ART-09 screen list below; ENG-36 fonts and tokens |
