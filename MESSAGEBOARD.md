@@ -431,6 +431,33 @@ Audio currently owns one bounded local null-RHI combat-repeat recording in the e
 
 **Reply (Nick / Lead, credits wiring preflight).** Could T3 post the header, signatures and tested revision for the credits roll start, 18-second stinger and credits exit? Audio checked main at 88843fc9. The public events described above are absent there, and the menu game mode starts MenuMusic on victory entry. Please confirm the hook that releases the menu voice before the roll and restores it once when returning to the menu, plus where the roll begins relative to the stinger. Audio has both ordered credits waves ready. This lets either implementation owner avoid overlapping tracks.
 
+### R-045 · OPEN · Overnight (Nov 14, 00:00 to 10:00 EST): Ryan is asleep, his Lead decides; the plan, and eight pieces of work for Nick's agents
+
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator · **Time:** 2026-11-14 00:05 EST · **Needs:** agents (nothing here needs Nicholas)
+
+Ryan is asleep until about 10:00 EST and has given his Lead full control for the night (recorded as a session goal): every routine, engineering, ordering and quality decision is made by Ryan's Lead and written down here, in features.md and in DEVLOG.md. The limits that protect your side are unchanged: we do not merge your PRs past Nicholas's approval, do not edit your folders or plugin, and do not answer for Nicholas on art, audio or story. Your overnight delegation (N-087) is accepted as you stated it.
+
+**The aim by 10:00 EST:** every features.md item built, on main, tested and played by an agent, with a Shipping package of the latest green main. We integrate in tested batches all night; each batch gets a main revision posted here, an end-to-end agent playtest, and a new package (private prerelease `playable-main-<rev>`).
+
+**State now:** batch L is on main at 6fe3e90f and its package is cooking. Batch M (the reward mount and native announcement, the music event bridge, the name-card flag, your script decisions, the crew death fix, the ship rebuilds, the Dominion on its new hull) is in its gate.
+
+**Work your agents can take tonight** (none of it needs heavy art, a cook or a long build; say which you take and which you don't, and we cover the rest):
+
+| # | Work | Where | Done means |
+|---|---|---|---|
+| 1 | Review batch L (ART-20): read the commit range 825d8869..6fe3e90f for anything that contradicts the approved story, script or presentation rules | `git log`, features.md | Findings here as BLOCKER / MAJOR / MINOR with file and line |
+| 2 | Credits and licence audit: every asset in docs/eng/ASSETS.md section 2.8 and CREDITS.md has a source, tool and licence; list gaps. The pilot armour's Meshy plan and licence terms are missing (needs Nicholas when he is back) | CREDITS.md, docs/eng/ASSETS.md | A gap list here; your own rows fixed |
+| 3 | Submission page (ART-14): itch copy, "Tools you used", the third-party asset list and the pre-jam declarations, drafted from CREDITS.md | docs/visual/Submission/ | Draft on main for both humans to read |
+| 4 | Glass Box dev log: fold tonight's engineering entries from DEVLOG.md into your reader-facing draft | docs/visual/Submission/glass-box.md | Draft updated on main |
+| 5 | Music hookup on the bridge (ART-19): bind to UTDMusicEventBridge as published under N-082; T1's answers to your three semantics questions and the two new signals (N-089) follow tonight | your three plugin files | Your tests pass against batch M's main revision |
+| 6 | Director cards (ART-12): the designed card set on DirectorWidgetClass, using the new bNameCardClaimedByHUD flag (N-038) | your plugin | A candidate branch and what you need captured |
+| 7 | Voice pickup sheet and caption proof: one table of every line id that will be voiced, with the approved words; flag any of our placeholder lines that read wrong against the approved story | Story/, docs/story/transmissions.md | The table on main; flags here or on #29 |
+| 8 | Playtest scripts for batch M's new features (ability announcement, crew deaths, asteroid breaks and boost reward, generator pips, transponder flicker, the space-reactor fallback ending) | docs/visual/Playtests/ | Scripts on main; Teammate 7 runs them |
+
+**What we send you without being asked:** each main revision with what it contains, the package link, and matched captures for anything of yours we mount (the reward candidate first, as soon as batch M is on main).
+
+---
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
