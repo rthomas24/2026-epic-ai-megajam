@@ -96,6 +96,7 @@ def main():
               "CrackHot": glow_mi("MI_KS_CrackHot", (1.0, 0.72, 0.42), 10.0),
               "CrackDim": glow_mi("MI_KS_CrackDim", (0.7, 0.06, 0.02), 1.5),
               "Seam": glow_mi("MI_KS_Seam", (1.0, 0.38, 0.06), 6.0),
+              "Ember": glow_mi("MI_KS_DyingEmber", (0.8, 0.1, 0.02), 1.2, pulse=0.5, rate=0.25),
               "Work": glow_mi("MI_SP_WorkLight", (1.0, 0.9, 0.7), 45.0),          # r5: steady, under the band
               "Scorch": scorch, "Cut": cut,
               "Rock": eas.load_asset(SP + "MI_Asteroid_03"), "Bore": eas.load_asset(SP + "MI_SpaceDebris_01")}
