@@ -243,6 +243,15 @@ void ATDDockingBay::UpdateBeam(const ATDShip* Ship, float Pull)
 	if (BeamFX)
 	{
 		if (!BeamFX->IsActive()) { BeamFX->Activate(true); }
+		// Played (turns 15 and 18): the cue was active at 0.6-0.96 but never on screen. The system draws its beam along
+		// its own +X for User.Length; attached to the bay's root that axis pointed into the hull. Aim it, every frame,
+		// from the mouth at the held ship.
+		if (Ship)
+		{
+			const FVector Mouth = GetMouth();
+			const FVector To = Ship->GetActorLocation() - Mouth;
+			if (!To.IsNearlyZero()) { BeamFX->SetWorldLocationAndRotation(Mouth, To.Rotation()); }
+		}
 		BeamFX->SetVariableFloat(TEXT("User.Length"), LengthCm);
 		BeamFX->SetVariableFloat(TEXT("User.Intensity"), Intensity);
 	}
