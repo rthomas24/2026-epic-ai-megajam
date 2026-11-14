@@ -5,6 +5,7 @@
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "Components/MeshComponent.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -382,6 +383,8 @@ bool UTDCloakPower::OnActivate()
 			Other->OnPowerActivated.AddDynamic(this, &UTDCloakPower::HandleOtherPower);
 		}
 	}
+	// The hull overlay first, so the placeholder shimmer's own meshes never get it.
+	ApplyHullOverlay();
 	if (FX)
 	{
 		LoopFX = FTDPowerPresentation::RequestCueAttached(TEXT("Ability.Loop"), FX->Loop, Owner->GetRootComponent());
@@ -417,6 +420,13 @@ void UTDCloakPower::OnEnd(bool bInterrupted)
 	{
 		Health->SetTargetable(true);
 	}
+	// Fade the hull back over 0.25 s (TickComponent removes it at 0); a dead or hidden ship loses it at once.
+	OverlayTarget = 0.f;
+	const UTDHealthComponent* OwnerHealth = UTDStatics::GetHealth(Owner);
+	if ((OwnerHealth && OwnerHealth->IsDead()) || Owner->IsHidden())
+	{
+		ClearHullOverlay();
+	}
 	if (Shimmer)
 	{
 		FTDPowerPresentation::DestroyPlaceholder(Shimmer);
@@ -444,6 +454,67 @@ void UTDCloakPower::OnEnd(bool bInterrupted)
 			Other->OnPowerActivated.RemoveAll(this);
 		}
 	}
+}
+
+void UTDCloakPower::ApplyHullOverlay()
+{
+	ClearHullOverlay();
+	AActor* Owner = GetOwner();
+	UMaterialInterface* Base = FX && !FX->HullOverlay.IsNull() ? FX->HullOverlay.LoadSynchronous() : nullptr;
+	if (!Owner || !Base)
+	{
+		return;
+	}
+	OverlayMID = UMaterialInstanceDynamic::Create(Base, this);
+	OverlayMID->SetScalarParameterValue(TEXT("Cloak"), 0.f);
+	OverlayMID->SetVectorParameterValue(TEXT("Tint"), UTDStatics::ShipColor(ETDShipId::Rift));
+	TInlineComponentArray<UMeshComponent*> Meshes(Owner);
+	for (UMeshComponent* Mesh : Meshes)
+	{
+		if (Mesh && Mesh->IsVisible() && !Mesh->IsA<UInstancedStaticMeshComponent>())
+		{
+			OverlaidMeshes.Emplace(Mesh, Mesh->GetOverlayMaterial());
+			Mesh->SetOverlayMaterial(OverlayMID);
+		}
+	}
+	OverlayAlpha = 0.f;
+	OverlayTarget = 1.f;
+}
+
+void UTDCloakPower::ClearHullOverlay()
+{
+	for (const TPair<TWeakObjectPtr<UMeshComponent>, TWeakObjectPtr<UMaterialInterface>>& Entry : OverlaidMeshes)
+	{
+		UMeshComponent* Mesh = Entry.Key.Get();
+		if (Mesh && Mesh->GetOverlayMaterial() == OverlayMID)
+		{
+			Mesh->SetOverlayMaterial(Entry.Value.Get());
+		}
+	}
+	OverlaidMeshes.Reset();
+	OverlayMID = nullptr;
+	OverlayAlpha = OverlayTarget = 0.f;
+}
+
+void UTDCloakPower::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	if (!OverlayMID)
+	{
+		return;
+	}
+	OverlayAlpha = FMath::FInterpConstantTo(OverlayAlpha, OverlayTarget, DeltaTime, 1.f / OverlayFadeSeconds);
+	OverlayMID->SetScalarParameterValue(TEXT("Cloak"), OverlayAlpha);
+	if (OverlayTarget <= 0.f && OverlayAlpha <= 0.f)
+	{
+		ClearHullOverlay();
+	}
+}
+
+void UTDCloakPower::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	ClearHullOverlay();
+	Super::EndPlay(EndPlayReason);
 }
 
 void UTDCloakPower::HandleWeaponFired(ETDWeaponSlot WeaponSlot, FName WeaponId)

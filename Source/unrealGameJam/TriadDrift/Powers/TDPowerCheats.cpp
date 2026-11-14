@@ -13,6 +13,7 @@
 #if !UE_BUILD_SHIPPING
 
 #include "Engine/World.h"
+#include "TimerManager.h"
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Core/TDTypes.h"
@@ -49,6 +50,47 @@ namespace
 		UTDPowerComponent* Power = UTDPowerComponent::FindPower(Pawn, Slot);
 		UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.Use %s on %s: %s (active=%d)"), *Which, *GetNameSafe(Pawn),
 			bRouted ? *GetNameSafe(Power) : TEXT("no power in that slot"), Power && Power->IsPowerActive());
+	}
+
+	ETDPowerInput TDPowerCheatSlot(const FString& Which)
+	{
+		if (Which.Equals(TEXT("Signature2"), ESearchCase::IgnoreCase) || Which == TEXT("2")) { return ETDPowerInput::Signature2; }
+		if (Which.Equals(TEXT("Ability"), ESearchCase::IgnoreCase) || Which.Equals(TEXT("E"), ESearchCase::IgnoreCase)) { return ETDPowerInput::Ability; }
+		return ETDPowerInput::Signature1;
+	}
+
+	// Release a held power (Bastion's missile swarm fires on release with the locks it painted while held).
+	void TDPowerCheatRelease(const TArray<FString>& Args, UWorld* World)
+	{
+		APawn* Pawn = TDPowerCheatPlayerPawn(World);
+		const ETDPowerInput Slot = TDPowerCheatSlot(Args.Num() > 0 ? Args[0] : TEXT("Signature1"));
+		UTDPowerComponent::RoutePowerInput(Pawn, Slot, false);
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.Release %s on %s"), Args.Num() > 0 ? *Args[0] : TEXT("Signature1"), *GetNameSafe(Pawn));
+	}
+
+	// Press, hold for Seconds, release: the hold-to-lock powers in a scripted session (the swarm paints, then fires).
+	void TDPowerCheatHold(const TArray<FString>& Args, UWorld* World)
+	{
+		APawn* Pawn = TDPowerCheatPlayerPawn(World);
+		const FString Which = Args.Num() > 0 ? Args[0] : TEXT("Signature1");
+		const ETDPowerInput Slot = TDPowerCheatSlot(Which);
+		const float Seconds = Args.Num() > 1 ? FMath::Max(.05f, FCString::Atof(*Args[1])) : 1.5f;
+		if (!Pawn || !World)
+		{
+			return;
+		}
+		UTDPowerComponent::RoutePowerInput(Pawn, Slot, true);
+		TWeakObjectPtr<APawn> Weak(Pawn);
+		FTimerHandle Handle;
+		World->GetTimerManager().SetTimer(Handle, [Weak, Slot]()
+		{
+			if (APawn* P = Weak.Get())
+			{
+				UTDPowerComponent::RoutePowerInput(P, Slot, false);
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.Hold: released on %s"), *GetNameSafe(P));
+			}
+		}, Seconds, false);
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.Hold %s on %s for %.1f s"), *Which, *GetNameSafe(Pawn), Seconds);
 	}
 
 	void TDPowerCheatShip(const TArray<FString>& Args, UWorld* World)
@@ -131,6 +173,10 @@ namespace
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDPowerCheatTimeScale));
 	FAutoConsoleCommandWithWorldAndArgs CmdTDPowerUse(TEXT("TD.Power.Use"), TEXT("TD.Power.Use <Signature1|Signature2|Ability>: press a power on the player's ship."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDPowerCheatUse));
+	FAutoConsoleCommandWithWorldAndArgs CmdTDPowerRelease(TEXT("TD.Power.Release"), TEXT("TD.Power.Release <Signature1|Signature2|Ability>: release a held power on the player's ship."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDPowerCheatRelease));
+	FAutoConsoleCommandWithWorldAndArgs CmdTDPowerHold(TEXT("TD.Power.Hold"), TEXT("TD.Power.Hold <Signature1|Signature2|Ability> [seconds=1.5]: press, hold, release (the missile swarm's locks)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDPowerCheatHold));
 	FAutoConsoleCommandWithWorldAndArgs CmdTDPowerShip(TEXT("TD.Power.Ship"), TEXT("TD.Power.Ship <Rift|Lancer|Bastion>: switch ships."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDPowerCheatShip));
 	FAutoConsoleCommandWithWorldAndArgs CmdTDPowerTurn(TEXT("TD.Power.Turn"), TEXT("TD.Power.Turn <yaw> [pitch]: turn the player's ship."),
