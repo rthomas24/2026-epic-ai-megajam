@@ -840,6 +840,8 @@ bool FTDCrewDeathsLand::RunTest(const FString& Parameters)
 			continue;
 		}
 		const FVector At = C->GetActorLocation();
+		const FName StandPelvis = M->GetBoneIndex(TEXT("pelvis")) != INDEX_NONE ? FName(TEXT("pelvis")) : M->GetBoneName(FMath::Min(1, M->GetNumBones() - 1));
+		const float Standing = (float)M->GetBoneLocation(StandPelvis).Z;
 		const UAnimSequenceBase* Clip = C->ChooseDeathClip(FVector(1.f, 0.f, 0.f));
 		C->GetHealth()->Kill(P, ETDDamageKind::Melee);
 		// Sampled after the chosen fall has played out (a ground fall is 2.57 s; a start clip hands off to the ragdoll at 0.5 s).
@@ -848,9 +850,10 @@ bool FTDCrewDeathsLand::RunTest(const FString& Parameters)
 		if (!TestTrue(*FString::Printf(TEXT("%s: the corpse stays"), *TypeName.ToString()), IsValid(C) && !C->IsActorBeingDestroyed())) { continue; }
 		const FName Pelvis = M->GetBoneIndex(TEXT("pelvis")) != INDEX_NONE ? FName(TEXT("pelvis")) : M->GetBoneName(FMath::Min(1, M->GetNumBones() - 1));
 		const float PelvisZ = (float)M->GetBoneLocation(Pelvis).Z;
-		AddInfo(FString::Printf(TEXT("%s: clip %s, ragdoll %d, toppled %d, pelvis %.0f cm up, %.0f cm from where it stood"), *TypeName.ToString(), *GetNameSafe(Clip),
-			C->IsRagdolling(), C->IsToppling(), PelvisZ, FVector::Dist2D(M->GetBoneLocation(Pelvis), At)));
-		TestTrue(*FString::Printf(TEXT("%s: on the ground (pelvis %.0f cm up)"), *TypeName.ToString(), PelvisZ), PelvisZ < 45.f);
+		AddInfo(FString::Printf(TEXT("%s: clip %s, ragdoll %d, toppled %d, pelvis %.0f cm up (standing %.0f), %.0f cm from where it stood"), *TypeName.ToString(), *GetNameSafe(Clip),
+			C->IsRagdolling(), C->IsToppling(), PelvisZ, Standing, FVector::Dist2D(M->GetBoneLocation(Pelvis), At)));
+		// Lying down: the pelvis well under its standing height (a 260 cm Warden on its back shield lies higher than a pilot).
+		TestTrue(*FString::Printf(TEXT("%s: on the ground (pelvis %.0f cm up, standing %.0f)"), *TypeName.ToString(), PelvisZ, Standing), PelvisZ < FMath::Max(45.f, Standing * 0.55f));
 		TestTrue(*FString::Printf(TEXT("%s: where it fell"), *TypeName.ToString()), FVector::Dist2D(M->GetBoneLocation(Pelvis), At) < 200.f);
 	}
 	return true;

@@ -25,6 +25,7 @@
 #include "AssetRegistry/IAssetRegistry.h"
 #include "Animation/AnimInstance.h"
 #include "PhysicsEngine/PhysicsAsset.h"
+#include "Animation/AnimSingleNodeInstance.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "Animation/AnimSequenceBase.h"
 #include "Materials/MaterialInterface.h"
@@ -753,7 +754,7 @@ bool ATDCrewCharacter::StartAttack(ETDCrewAttack Attack, AActor* Target)
 	switch (Attack)
 	{
 	case ETDCrewAttack::Melee:
-		bOwn = Spec.Type == ETDCrewType::Heavy ? PlayTypeClip(TEXT("ShieldBash"), 0.55f, WindupLeft)
+		bOwn = Spec.Type == ETDCrewType::Heavy ? PlayTypeClip(TEXT("ShieldBash"), 0.70f, WindupLeft) // Grok's: impact 0.70 s, the 0.7 s wind-up
 			: Spec.Type == ETDCrewType::Grunt ? PlayTypeClip((MeleeSwings++ % 2) ? TEXT("Melee_03") : TEXT("Melee_02")) : false;
 		break;
 	case ETDCrewAttack::Burst: bOwn = Spec.Type == ETDCrewType::Trooper && PlayTypeClip(TEXT("Fire_Burst"), 0.40f, WindupLeft); break;
@@ -1183,7 +1184,10 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 		Body->AddImpulse(Push, NAME_None, true);
 	}
 	DetachFromControllerPendingDestroy();
-	SetLifeSpan(FMath::Max(0.1f, CorpseSeconds));
+	// The body lies a moment after its fall ends (the per-type falls run 2.6-3.9 s; a 4 s corpse vanished as it landed).
+	const UAnimSequenceBase* Fall = GetMesh() ? Cast<UAnimSequenceBase>(GetMesh()->GetSingleNodeInstance() ? GetMesh()->GetSingleNodeInstance()->GetCurrentAsset() : nullptr) : nullptr;
+	CorpseLeft = FMath::Max3(0.1f, CorpseSeconds, Fall ? Fall->GetPlayLength() + 2.5f : 0.f);
+	SetLifeSpan(CorpseLeft + 0.1f);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -1300,6 +1304,23 @@ void ATDCrewCharacter::StartRagdollOrTopple()
 
 void ATDCrewCharacter::TickTopple(float DeltaSeconds)
 {
+	// The corpse sinks out over its last CorpseSinkSeconds (the mesh and the placeholder block; a ragdoll stops simulating).
+	if (CorpseLeft >= 0.f)
+	{
+		CorpseLeft -= DeltaSeconds;
+		if (CorpseLeft < CorpseSinkSeconds)
+		{
+			const float Sink = 120.f * DeltaSeconds / CorpseSinkSeconds;
+			for (USceneComponent* C : { static_cast<USceneComponent*>(GetMesh()), static_cast<USceneComponent*>(Body.Get()) })
+			{
+				if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(C))
+				{
+					if (Prim->IsSimulatingPhysics()) { Prim->SetSimulatePhysics(false); }
+					Prim->AddWorldOffset(FVector(0.f, 0.f, -Sink));
+				}
+			}
+		}
+	}
 	if (RagdollIn >= 0.f)
 	{
 		RagdollIn -= DeltaSeconds;

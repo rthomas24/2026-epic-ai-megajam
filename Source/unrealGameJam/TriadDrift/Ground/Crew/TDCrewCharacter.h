@@ -48,7 +48,7 @@ public:
 
 	/** Seconds the body stays after death (placeholder ragdoll). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew", meta = (Units = "s"))
-	float CorpseSeconds = 4.f;
+	float CorpseSeconds = 10.f; // the falls run 2.6-3.9 s: the body lies, then sinks out (CorpseSinkSeconds), never pops
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Crew")
 	void InitFromType(ETDCrewType Type);
@@ -247,6 +247,9 @@ private:
 	float RagdollIn = -1.f;
 	/** The chosen death clip ends lying on the ground (no ragdoll hand-off). */
 	mutable bool bGroundDeathClip = false;
+	/** The corpse's last second: it sinks through the floor instead of popping out (Lead, Nov 14). */
+	static constexpr float CorpseSinkSeconds = 1.2f;
+	float CorpseLeft = -1.f;
 	FName LastTypeClip;
 	int32 MeleeSwings = 0;
 	FVector RagdollPush = FVector::ZeroVector;
