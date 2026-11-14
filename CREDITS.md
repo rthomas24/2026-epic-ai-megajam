@@ -238,3 +238,22 @@ AI tools, each marked where its output is AI-generated:
 Other tools: Unreal Engine 5.9 (MegaJam Preview) with its built-in MCP server, Niagara, Interchange and Procedural Vegetation Editor; Blender 5.2 and 4.5.3 (headless Python); Python with NumPy, Pillow, OpenCV, matplotlib; ffmpeg.
 
 Tools on Nicholas's side (OpenAI Codex, Suno, Meshy AI, OpenAI image generation and others) are in his entries above and are not restated here.
+
+### Engineering originals not credited before (asset ledger pass, ART-02) - November 13, 2026
+
+All original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan T: code-built in Blender 5.2 (headless Python) or built in Unreal Engine 5.9 by script. No AI mesh, image or texture generator and no third-party model, texture or scan, except where the row says so.
+
+| Asset | Tool | Licence / provenance | Added by |
+|---|---|---|---|
+| Walkable site kit: `SM_Kit_*` (16 meshes), `MI_Kit_*`, `T_Kit_*` in `Content/TriadDrift/Gameplay/Props/Kit/`, and the site classes built from it (`BP_Relay`, `BP_Relay_Awake`, `BP_Wreck`, `BP_Outpost_Site_Verdance` / `_Cinder`, `BP_DigSite_Cabin`); sources `ArtSource/EngProps/Kit/` | Blender 5.2 code-built hard surface with one trim sheet; classes assembled by Unreal Python. The relay, wreck and drill rig inside those classes are Grok Bot's Rodin meshes, credited above | project-authored | Claude Code (Ryan's side, structures builder) |
+| Scatter kit: `SM_Scatter_*` (14 meshes), `M_TD_Scatter*`, `MI_Scatter_*`, `T_Scatter_Atlas_*` in `Content/TriadDrift/Gameplay/Props/Scatter/`; sources `ArtSource/EngProps/Scatter/` | Blender 5.2 code-built | project-authored | Claude Code (Ryan's side) |
+| Space dressing kit: 20 meshes (ice, metal and crystal asteroids, cargo pods, satellites, trusses, buoy, gate ring) in `Content/TriadDrift/Gameplay/Props/SpaceDressing/`; sources `ArtSource/EngProps/SpaceDressing/` | Blender 5.2 code-built, baked textures | project-authored | Claude Code (Ryan's side) |
+| Nebula sky: `T_TD_NebulaSky` with its mesh and material in `Content/TriadDrift/Gameplay/Props/Sky/`; sources `ArtSource/EngProps/Sky/` | Blender world shader bake, procedural and seeded | project-authored | Claude Code (Ryan's side) |
+| Energy blade in the game: `SM_TD_BladeHilt`, `SM_TD_BladeBeam`, `M_TD_BladeBeam`, `MI_TD_Blade*`, `T_TD_BladeHilt_*` in `Content/TriadDrift/Gameplay/Props/Blade/`; sources `ArtSource/EngProps/Blade/` | Blender 5.2 code-built | project-authored | Claude Code (Ryan's side) |
+| Landing pad: `SM_LandingPad` with its material and textures in `Content/TriadDrift/Gameplay/Props/Planet/`; sources `ArtSource/EngProps/Pad/` | Blender 5.2 code-built | project-authored | Claude Code (Ryan's side) |
+| Null Armada grunt and heavy: `Content/TriadDrift/Gameplay/Characters/{NullGrunt,NullHeavy}/`; sources with the trooper in `ArtSource/EngCharacters/` | Blender 5.2, armour modelled on Epic's UE5 mannequin body and skeleton, the same pipeline and design as the trooper (see the trooper's entry for its concept image) | armour project-authored; body and skeleton: Epic template content, Unreal Engine EULA | Claude Code (Ryan's side) |
+| Planets from space: the Verdance and Cinder globes, atmosphere, ring, `M_TD_Planet`, `M_TD_PlanetAtmosphere`, `M_TD_Ground` and their textures in `Content/TriadDrift/Gameplay/Props/Planets/`; sources `ArtSource/EngProps/Planets/` | Blender (Cycles bake) and NumPy; material graphs by Unreal Python | project-authored | Claude Code (Ryan's side) |
+| `M_TD_TerrainR2` in `Content/TriadDrift/Gameplay/Props/Planets/` | Material graph by Unreal Python (`ArtSource/EngEnvironment/scripts`). Its `T_Terr_*` textures are Grok Bot's PBRgen sets (AI-generated, credited above) | graph project-authored; textures: PBRgen Pro plan | Claude Code (Ryan's side, environment builder) |
+| `M_TD_CloudDeck`, `MI_CloudDeck_*` in `Content/TriadDrift/Gameplay/Props/Sky/` | Material by Unreal Python. Its texture `T_Descent_CloudDeck` is Grok Bot's (AI-generated, fal, credited above) | material project-authored | Claude Code (Ryan's side, environment builder) |
+| `M_DI_AtlasLit` in `Content/TriadDrift/Gameplay/Props/DominionInterior/Materials/` | Material by Unreal Python on the interior kit's own atlas | project-authored | Claude Code (Ryan's side, environment builder) |
+| `M_TD_PortalMembrane`, `M_TD_FlashGlow`, `M_TD_TrailGlow`, `M_TD_SmokePuff` in `Content/TriadDrift/Gameplay/Materials/` | Built by script in Unreal | project-authored | Claude Code (Ryan's side) |
