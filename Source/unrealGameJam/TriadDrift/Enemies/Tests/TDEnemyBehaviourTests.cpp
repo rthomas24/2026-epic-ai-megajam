@@ -15,6 +15,7 @@
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -327,19 +328,43 @@ bool FTDBehUnstick::RunTest(const FString& Parameters)
 	Rock->SetRootComponent(Ball);
 	Ball->RegisterComponent();
 	Rock->SetActorLocation(FVector(8000.f, 0.f, 0.f));
-	ATDEnemyShip* F = TDEnemyBeh_Enemy(W, TDEnemyIds::ShardFighter, FVector::ZeroVector, true);
+	// Nose-on, 15 m from the rock's surface (r 30 m at x 80 m), the target straight behind it.
+	ATDEnemyShip* F = TDEnemyBeh_Enemy(W, TDEnemyIds::ShardFighter, FVector(3500.f, 0.f, 0.f), true);
 	ATDEnemyAIController* AI = TDEnemyBeh_AIOf(F);
 	if (!TestNotNull(TEXT("AI"), AI)) { return false; }
-	float Pinned = 0.f, LongestPinned = 0.f, Run = 0.f;
+	float Pinned = 0.f, LongestPinned = 0.f, Run = 0.f, Closest = 1e9f;
 	for (int32 i = 0; i < 30 * 20; ++i)
 	{
 		W.Tick(1.f / 30.f);
+		Closest = FMath::Min(Closest, (float)FVector::Dist(F->GetActorLocation(), Rock->GetActorLocation()) - 3000.f);
 		const bool bTouching = FVector::Dist(F->GetActorLocation(), Rock->GetActorLocation()) < 3000.f + 600.f;
 		if (bTouching && F->GetVelocity().Size() < 300.f) { Run += 1.f / 30.f; Pinned += 1.f / 30.f; LongestPinned = FMath::Max(LongestPinned, Run); }
 		else { Run = 0.f; }
 	}
-	AddInfo(FString::Printf(TEXT("pinned %.1f s in all, longest %.1f s; %d back-offs"), Pinned, LongestPinned, AI->GetBackOffCount()));
+	AddInfo(FString::Printf(TEXT("closest %.0f cm from the surface; pinned %.1f s in all, longest %.1f s; %d back-offs"), Closest, Pinned, LongestPinned, AI->GetBackOffCount()));
+	TestTrue(*FString::Printf(TEXT("the fighter met the rock (closest %.0f cm)"), Closest), Closest < 600.f);
 	TestTrue(*FString::Printf(TEXT("never pinned against the rock for more than 2 s at a time (%.1f s)"), LongestPinned), LongestPinned <= 2.f);
+
+	// The rule itself, deterministic: held against the rock (as item 866 was) with contacts every frame, the pilot backs
+	// off within ~1 s and leaves along the contact normal once free.
+	const FVector Against = Rock->GetActorLocation() - FVector(3000.f + 250.f, 0.f, 0.f);
+	const int32 Before = AI->GetBackOffCount();
+	FTDFlightImpact Hit;
+	Hit.OtherActor = Rock; Hit.ImpactNormal = FVector(-1.f, 0.f, 0.f); Hit.ImpactSpeed = 60.f; Hit.HeadOn01 = 1.f;
+	bool bBacking = false;
+	F->SetSpeedOverride(0.f, 1.f);	// grinding: the rock eats its speed (item 866 crawled at 0.4-1.5 m/s)
+	for (int32 i = 0; i < 30 * 1.5f && !bBacking; ++i)
+	{
+		F->SetActorLocation(Against);
+		F->GetShipMovement()->OnFlightImpact.Broadcast(Hit);
+		W.Tick(1.f / 30.f);
+		bBacking = AI->IsBackingOff();
+	}
+	TestTrue(TEXT("held against the rock with contacts, the pilot starts backing off within 1.5 s"), bBacking && AI->GetBackOffCount() > Before);
+	F->ClearSpeedOverride();
+	W.Advance(1.2f, 1.f / 30.f);
+	const float Away = (float)(Rock->GetActorLocation() - F->GetActorLocation()).Size() - 3000.f;
+	TestTrue(*FString::Printf(TEXT("and gets clear of it (%.0f cm from the surface)"), Away), Away > 1000.f);
 	return true;
 }
 
