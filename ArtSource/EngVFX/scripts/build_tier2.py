@@ -153,6 +153,33 @@ S2('NS_TD_Debug_HazeSphere', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 3000
 
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
+# ---- round 10 MAJOR (T7's play): Cinder magma kills but does not read as dangerous on foot. A looping hazard layer for
+# each ATDMagmaVolume, attached at its root (the surface; +Z up). User.SizeX / User.SizeY = the footprint in cm (the Size
+# passed to SetSize), User.Intensity 0..1. Every rate scales with the area, clamped, so a 4 x 4 m pool and a 60 x 60 m lake
+# both stay cheap: embers rising (tiny additive points), lava spatter arcing up and falling back (bright blobs with
+# gravity), and a few small rising heat shimmers (additive, small: no big translucent sheets, little overdraw).
+# Spawn positions: a sphere of radius half the shorter side, at the surface (the half below it is hidden by the surface).
+MAREA = '(User.SizeX*User.SizeY/10000.0)'
+MRAD = '(0.5*min(User.SizeX, User.SizeY))'
+
+
+def magma_rate(per_m2, lo, hi):
+    return 'clamp(%s*%s, %s, %s)*User.Intensity' % (MAREA, per_m2, lo, hi)
+
+
+def with_gravity(e, g=-980.0):
+    e['set'] = [x for x in e['set'] if x[1] != 'GravityForce'] + [(PU, 'GravityForce', 'Gravity', (0.0, 0.0, g))]
+    return e
+
+
+S2('NS_TD_Magma_Heat', U((1.0, 0.42, 0.08, 1.0), 1.0, SizeX=800.0, SizeY=800.0, Intensity=1.0), [
+    shed('Embers', 'M_TD_VFX_Glow', 0, (1.2, 2.6), (5, 12), (60, 220), k=2.2, radius=MRAD, drag=0.4, curl=90.0, local=True,
+         rgb=(1.0, 0.45, 0.08), cone=((0.0, 0.0, 1.0), 25.0), rate_expr=magma_rate(0.25, 6.0, 70.0), power=1.4, fade_in=6.0),
+    with_gravity(shed('Spatter', 'M_TD_VFX_Glow', 0, (0.5, 0.9), (14, 30), (300, 650), k=2.6, radius=MRAD, drag=0.1, local=True,
+                      rgb=(1.0, 0.55, 0.12), cone=((0.0, 0.0, 1.0), 30.0), rate_expr=magma_rate(0.03, 1.0, 10.0), power=0.8)),
+    shed('Shimmer', 'M_TD_VFX_Fire', 0, (0.8, 1.4), (90, 180), (60, 140), k=0.35, radius=MRAD, drag=0.6, local=True,
+         cone=((0.0, 0.0, 1.0), 10.0), growth='0.6 + Particles.NormalizedAge*0.8', rate_expr=magma_rate(0.02, 2.0, 12.0), power=1.0, fade_in=4.0)])
+
 # round 10 (Lead, for T6): a set piece's range beacon at its beacon point. One emitter, one particle re-spawned 10 times a
 # second (Init-only size: no persistent sprite, no Update ScaleColor). About 0.8 degrees across (core), held between 300 m
 # and 3 km from the camera (closer it stops shrinking with distance, so it never covers the piece); 0.4 Hz pulse in size
