@@ -164,6 +164,8 @@ namespace TDSquad
 	float GetSpeed01(const ATDShip* Ship);
 	bool IsOutOfBounds(const ATDShip* Ship);
 	AActor* GetCurrentTarget(const ATDShip* Ship);
+	/** What an enemy (ship or turret) was attacking: its AI controller's target; null for anything else. */
+	AActor* GetEnemyTarget(const AActor* Enemy);
 	void GetLockedTargets(const ATDShip* Ship, TArray<AActor*>& Out);
 	void GetTargetMarkers(const ATDShip* Ship, TArray<FTDTargetMarker>& Out);
 	ETDMissileWarning GetMissileWarning(const ATDShip* Ship);
