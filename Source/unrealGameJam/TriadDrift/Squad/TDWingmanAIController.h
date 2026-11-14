@@ -89,6 +89,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation", meta = (Units = "cm"))
 	float CatchUpBoostDistance = 8000.f;
 
+	/** #201: further than this from its slot a wingman flies straight at it, boosting (no parallel formation flight). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation", meta = (Units = "cm"))
+	float FarReturnDistance = 9000.f;
+
 	/** Formation throttle may reach the leader's speed x this (T1 SetThrottleTopSpeed), so slow ships keep up. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Formation", meta = (ClampMin = "1"))
 	float CatchUpSpeedRatio = 1.25f;

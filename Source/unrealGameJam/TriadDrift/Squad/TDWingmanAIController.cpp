@@ -376,7 +376,11 @@ void ATDWingmanAIController::UpdateFormation(float DeltaSeconds, ATDShip* Ship, 
 	const double T = Now();
 
 	// Look for a fight, unless we're forming up for a hyperdrive jump.
-	if (T >= NextTargetEvalTime && !bHyperdriveFormUp)
+	// #201 (played: wingmen flipped Engage / break-off for minutes while outside the leash): a shadowing wingman that
+	// is still outside the leash comes back first and only then picks a fight (a focus order is still obeyed).
+	const bool bOutsideShadowLeash = IsShadowMode() && Leader && !(Squad.IsValid() && Squad->GetFocusTarget())
+		&& FVector::DistSquared(Ship->GetActorLocation(), Leader->GetActorLocation()) > FMath::Square(GetLeash());
+	if (T >= NextTargetEvalTime && !bHyperdriveFormUp && !bOutsideShadowLeash)
 	{
 		NextTargetEvalTime = T + TargetReevaluateInterval;
 		AActor* Target = PickTarget(Ship, Leader);
@@ -438,7 +442,9 @@ void ATDWingmanAIController::FlyToPoint(ATDShip* Ship, const FVector& Point, con
 	float TargetSpeed;
 	bool bBoost = false;
 
-	if (bLeaderMoving && (bAligned || Dist < FormationHoldRadius * 3.f))
+	// #201 (played: with a turning leader a wingman 300-500 m out never got back, because the parallel branch slows to
+	// minimum speed whenever the slot is "behind" along the leader's heading): far from the slot, fly straight at it.
+	if (bLeaderMoving && (bAligned || Dist < FormationHoldRadius * 3.f) && Dist < FarReturnDistance)
 	{
 		// Formation flight: fly parallel to the leader, steer out the lateral error and fix the
 		// along-track error with SPEED only. Overshooting the slot means easing off, never a U-turn.
