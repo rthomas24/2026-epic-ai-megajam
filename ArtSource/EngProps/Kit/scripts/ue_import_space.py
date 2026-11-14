@@ -63,8 +63,8 @@ def main():
     research = trim_mi("MI_SP_ResearchHull", 0.35, 0.3, (0.95, 0.93, 0.88), 0.2)        # older civilian: weathered off-white
     research2 = trim_mi("MI_SP_ResearchHull2", 0.45, 0.3, (0.6, 0.58, 0.55), 0.2)      # and a warm mid-grey
     scorch = trim_mi("MI_SP_Scorch", 1.0, 0.4, (0.12, 0.1, 0.09), 0.02)              # burnt plates and frames
-    hulk = trim_mi("MI_KS_HulkDark", 0.7, 0.35, (0.42, 0.42, 0.45), 0.08)            # region: the cut-up cruiser, dark
-    hulk2 = trim_mi("MI_KS_HulkDark2", 0.8, 0.35, (0.28, 0.28, 0.3), 0.06)
+    hulk = trim_mi("MI_KS_HulkDark", 0.4, 0.3, (0.62, 0.62, 0.66), 0.14)              # r4: mid-grey hull (was near-black)
+    hulk2 = trim_mi("MI_KS_HulkDark2", 0.6, 0.35, (0.3, 0.3, 0.33), 0.08)             # and its dark panels
     strata = trim_mi("MI_KS_Strata", 0.5, 0.3, (0.5, 0.45, 0.4), 0.05, stem="T_KitS_Trim")      # r3: subtle strata (about 25 %)
     strata2 = trim_mi("MI_KS_Strata2", 0.45, 0.3, (0.64, 0.58, 0.51), 0.05, stem="T_KitS_Trim")
     rim = trim_mi("MI_KS_FractureRim", 0.3, 0.3, (0.9, 0.86, 0.78), 0.08, stem="T_KitS_Trim")    # the pale band along the break
@@ -90,7 +90,8 @@ def main():
               "Nav": glow_mi("MI_SP_NavAmber", (0.55, 0.9, 0.15), 25.0, pulse=0.0, rate=0.4),          # r4: green-amber, steady
               "Stripe": stripe, "BoreEnd": scorch,
               "CyanRun": glow_mi("MI_SP_CyanRun", (0.0, 0.85, 1.0), 8.0),
-              "Cold": glow_mi("MI_KS_ColdRun", (0.45, 0.65, 1.0), 25.0),
+              "Cold": glow_mi("MI_KS_ColdRun", (0.65, 0.82, 1.0), 30.0),           # r4: cold blue-white
+              "RimLight": glow_mi("MI_KS_RimLight", (0.7, 0.85, 1.0), 4.0),
               "Strata": strata, "Strata2": strata2, "Rim": rim, "DomRaw": eas.load_asset(KT + "Dominion/MI_KitD_Trim"),
               "CrackHot": glow_mi("MI_KS_CrackHot", (1.0, 0.72, 0.42), 10.0),
               "CrackDim": glow_mi("MI_KS_CrackDim", (0.7, 0.06, 0.02), 1.5),
@@ -127,6 +128,7 @@ def main():
         if "Hulk" in asset:
             mis["Nav"] = glow_mi("MI_KS_AmberDim", (1.0, 0.5, 0.08), 15.0, pulse=0.5, rate=0.3)
         if "ScarRig" in asset:
+            mis["Beacon"] = glow_mi("MI_KS_NullBeacon", (1.0, 0.04, 0.02), 50.0, pulse=0.6, rate=0.3)
             mis["Work"] = glow_mi("MI_KS_HazardWork", (1.0, 0.75, 0.1), 30.0)
             mis["Strobe"] = glow_mi("MI_KS_WhiteStrobe", (1.0, 1.0, 1.0), 60.0, pulse=1.0, rate=0.4)
         slots = []

@@ -504,15 +504,16 @@ KSP = K + "Space/"
 def region_sites():
     """Capture / grouping classes for the region set pieces (one per region)."""
     one = lambda n, mesh, about, **kw: {"site": n, "actor": KSP + "BP_" + n, "about": about, "pieces": [piece("P", KSP + mesh, 0.0, 0.0, 0.0, 0.0, **kw)]}
-    return {"KS_PicketRing": one("KS_PicketRing", "SM_KS_PicketRing", "Watchline: the broken picket-station ring segment (pivot = the ring centre, 60 m from the arc).", roll_deg=12.0),
+    # r4: captured at the placement scale recommended to T6 (ring and rig 2x, hulks 1.5x, shards 1x)
+    return {"KS_PicketRing": one("KS_PicketRing", "SM_KS_PicketRing", "Watchline: the broken picket-station ring segment at 2x (pivot = the ring centre, 132 m from the arc at 2x).", roll_deg=12.0, scale=[2.0, 2.0, 2.0]),
             "KS_Hulk": {"site": "KS_Hulk", "actor": KSP + "BP_KS_Hulk", "about": "Quiet Graveyard: the cut-up cruiser's three sections drifting apart (about 200 m).",
-                        "pieces": [piece("Fore", KSP + "SM_KS_Hulk_Fore", 6500.0, 800.0, 400.0, 8.0, roll_deg=-12.0),
-                                   piece("Mid", KSP + "SM_KS_Hulk_Mid", 0.0, 0.0, 0.0, 0.0, roll_deg=6.0),
-                                   piece("Aft", KSP + "SM_KS_Hulk_Aft", -6200.0, -900.0, -600.0, -10.0, pitch_deg=5.0, roll_deg=25.0)]},
+                        "pieces": [piece("Fore", KSP + "SM_KS_Hulk_Fore", 9750.0, 1200.0, 600.0, 8.0, roll_deg=-12.0, scale=[1.5, 1.5, 1.5]),
+                                   piece("Mid", KSP + "SM_KS_Hulk_Mid", 0.0, 0.0, 0.0, 0.0, roll_deg=6.0, scale=[1.5, 1.5, 1.5]),
+                                   piece("Aft", KSP + "SM_KS_Hulk_Aft", -9300.0, -1350.0, -900.0, -10.0, pitch_deg=5.0, roll_deg=25.0, scale=[1.5, 1.5, 1.5])]},
             # yaw -128: the canyon (local Y) lies along the capture camera's line at Cinder, so it can be seen into
             "KS_ScarRig":
             {"site": "KS_ScarRig", "actor": KSP + "BP_KS_ScarRig", "about": "Survey Scar: a Null survey rig clamped across a split asteroid (about 90 m); the canyon runs along local Y.",
-             "pieces": [piece("P", KSP + "SM_KS_ScarRig", 0.0, 0.0, 0.0, -128.0)]},
+             "pieces": [piece("P", KSP + "SM_KS_ScarRig", 0.0, 0.0, 0.0, -128.0, scale=[2.0, 2.0, 2.0])]},
             "KS_MoonShards": {"site": "KS_MoonShards", "actor": KSP + "BP_KS_MoonShards", "about": "Shattered Moons: two shards of one moon (300 m and 180 m).",
                               # r2: both fracture faces (+X) turned toward the capture camera at Belt (it looks along (0.89, 0.44))
                               "pieces": [piece("A", KSP + "SM_KS_MoonShard_A", 0.0, 0.0, 0.0, 206.0),
