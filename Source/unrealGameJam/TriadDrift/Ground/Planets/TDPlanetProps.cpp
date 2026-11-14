@@ -930,6 +930,9 @@ AActor* ATDCollapseRun::DropPiece(const FVector& WorldAt, UStaticMesh* Art, floa
 	M->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	Rock->SetRootComponent(M);
 	M->RegisterComponent();
+	// A bare AActor has no root when it spawns, so the spawn transform is dropped: every piece used to appear at the
+	// world origin, which is why no debris was ever seen at the anchor. Place it now that it has a root.
+	Rock->SetActorLocation(WorldAt);
 	FFallingPiece Piece;
 	Piece.Actor = Rock;
 	Piece.Velocity = Velocity;
