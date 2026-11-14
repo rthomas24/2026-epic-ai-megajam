@@ -17,6 +17,15 @@ case $PART in
   python Saved/EngVFX/_side.py ${T}_cloak_side_off
   $P con:"TD.Input.Key E 0.2" sleep:1.0 cap:${T}_cloak_E_a >/dev/null; python Saved/EngVFX/_side.py ${T}_cloak_E_side; $P sleep:0.5 cap:${T}_cloak_E_b >/dev/null
   python ArtSource/EngVFX/scripts/run_editor_py.py $TD_PORT Saved/EngVFX/_cloakq.py 2>&1 | tail -1 | cut -c1-400;;
+ cloak2)   # no rebuild (the system and material are saved): the real E, then the preview, each with the component state
+  C() { (echo "CMD = '$1'"; cat $R/cloak_prev.py) > Saved/EngVFX/_cl.py; python ArtSource/EngVFX/scripts/run_editor_py.py $TD_PORT Saved/EngVFX/_cl.py 2>&1 | tail -1 | cut -c1-120; }
+  bash $G "('pie_start',)" >/dev/null; sleep 25
+  $P con:"TD.Stage Waves1to2" sleep:12 con:"god" con:"TD.KillAll" sleep:2 con:"TD.World.Hold 900 0" con:"TD.Unlock Cloak Rift" sleep:1 >/dev/null
+  $P con:"TD.Input.Key E 0.2" sleep:0.3 >/dev/null; python ArtSource/EngVFX/scripts/run_editor_py.py $TD_PORT Saved/EngVFX/_cloakq.py 2>&1 | tail -1 | cut -c1-400
+  $P sleep:0.6 cap:${T}_cloak_E_a >/dev/null; python Saved/EngVFX/_side.py ${T}_cloak_E_side
+  python ArtSource/EngVFX/scripts/run_editor_py.py $TD_PORT Saved/EngVFX/_cloakq.py 2>&1 | tail -1 | cut -c1-400
+  $P sleep:7 >/dev/null; C on; python ArtSource/EngVFX/scripts/run_editor_py.py $TD_PORT Saved/EngVFX/_cloakq.py 2>&1 | tail -1 | cut -c1-400
+  $P sleep:1 cap:${T}_cloak_prev_a >/dev/null; python Saved/EngVFX/_side.py ${T}_cloak_prev_side; C off;;
  breakup)
   bash $G "('pie_start',)" >/dev/null; sleep 25
   $P con:"TD.Stage ReactorExposed" sleep:14 con:"god" con:"TD.Director.ReactorKill" sleep:1 cap:${T}_breakup_1 sleep:1.5 cap:${T}_breakup_2 sleep:1.5 cap:${T}_breakup_3 sleep:1.5 cap:${T}_breakup_4 sleep:1.5 cap:${T}_breakup_5 sleep:1.5 cap:${T}_breakup_6 sleep:2 cap:${T}_breakup_7 sleep:3 cap:${T}_breakup_8 >/dev/null;;
