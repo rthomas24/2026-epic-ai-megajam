@@ -245,6 +245,8 @@ def dominion_interior():
     for x in (HX1, CX1, AX1, L1X1, WX1, L2X1):
         add("SM_DI_Doorway", x, 0)
     add("SM_DI_Cover_Low", CX1 - 700, -70)
+    # r7: a sealed bulkhead leaf on the core's far wall, so Grok Bot's trident decal (on every SM_DI_Door) is seen in place
+    add("SM_DI_Door", KX1 - 64 - 16.3, 0)
     # r5: work lights that really light (point lights, no shadows), so the rooms read without the course's lights:
     # a grid in every room under the ceiling, one per 800 cm of corridor. Cool white (the red strips stay ambience).
     lights = []

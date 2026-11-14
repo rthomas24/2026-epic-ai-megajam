@@ -1,7 +1,7 @@
 {
   "asset": "SM_DI_Corridor_Straight",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_dominion\\SM_DI_Corridor_Straight.fbx",
-  "tris": 1521,
+  "tris": 1523,
   "size_cm": [
     400.0,
     400.0,
@@ -11,6 +11,7 @@
   "forward": "+X (authoring front +X rotated)",
   "materials": [
     "M_Kit_Trim",
+    "M_Kit_Decal",
     "M_Kit_Glow",
     "M_Kit_Light"
   ],
@@ -27,6 +28,23 @@
         1.0
       ],
       "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Decal",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.45,
+        0.1
+      ],
+      "emission_strength": 0.5
     },
     {
       "name": "M_Kit_Glow",

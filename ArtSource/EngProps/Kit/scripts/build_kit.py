@@ -73,7 +73,7 @@ def make_materials(glow=GLOW_TEAL):
     m.use_backface_culling = True
     mats["Trim"] = m
     for key, col, strength in (("Glow", glow, 6.0), ("Screen", (0.06, 0.4, 0.45), 1.5), ("Light", (0.9, 0.95, 1.0), 8.0),
-                               ("Beacon", glow, 20.0), ("Pillar", glow, 3.0)):
+                               ("Beacon", glow, 20.0), ("Pillar", glow, 3.0), ("Decal", (1.0, 0.45, 0.1), 0.5)):
         g = bpy.data.materials.new("M_Kit_" + key)
         b = next(n for n in g.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
         b.inputs["Base Color"].default_value = (0.02, 0.025, 0.03, 1.0)

@@ -114,6 +114,10 @@ def dominion():
         shot(name, 0, 2)
     tp(1100, -600, 0, 330, settle=1.5)
     shot("06_hangar_doorway", 20, 0)
+    tp(13600, 300, 0, 0, settle=1.5)
+    shot("07_core_bulkhead_trident", 0, 4)
+    tp(1700, 0, 0, 0, settle=1.5)
+    shot("08_corridor_route_arrows", 0, -18)
 
 
 def dock():

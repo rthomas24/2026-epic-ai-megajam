@@ -36,6 +36,81 @@ GLOWS = {   # MI name: (slot key it fills by default, scalars, colour)
 SCREEN_MI = "MI_Kit_Screen"
 SET = {"stem": "T_Kit_Trim", "trim_mi": "MI_Kit_Trim", "export": "export", "prefix": "SM_Kit_", "extras": True}
 PILLAR_MASTER = "/Game/TriadDrift/Gameplay/Props/Kit/Materials/M_Kit_LightPillar"
+DECAL_MASTER = "/Game/TriadDrift/Gameplay/Props/Kit/Materials/M_Kit_Decal"
+DECAL_SRC = os.path.join(os.path.dirname(os.path.dirname(KIT)), "EngAI", "Props", "DominionInterior", "plans_r1", "textures")
+
+
+def ensure_decal(notes):
+    """M_Kit_Decal + MI_KitD_Decal: Grok Bot's decal atlas (PR #82, T_DI_Decals_{BC,N,ORM,E}: trident, Triad mark,
+    hazard frame, route arrow) as a masked material: opacity = BC alpha, emissive = E x DecalEmissive (default 4)."""
+    tasks = []
+    for k in ("BC", "N", "ORM", "E"):
+        t = unreal.AssetImportTask()
+        t.set_editor_property("filename", os.path.join(DECAL_SRC, "T_DI_Decals_%s.png" % k))
+        t.set_editor_property("destination_path", TEX_DEST)
+        t.set_editor_property("automated", True)
+        t.set_editor_property("replace_existing", True)
+        t.set_editor_property("save", False)
+        tasks.append(t)
+    tools.import_asset_tasks(tasks)
+    tex = {}
+    for k in ("BC", "N", "ORM", "E"):
+        t = eas.load_asset("%s/T_DI_Decals_%s" % (TEX_DEST, k))
+        if t is None:
+            notes.append("decal texture missing " + k)
+            return None
+        if k == "N":
+            _set(t, "compression_settings", unreal.TextureCompressionSettings.TC_NORMALMAP, notes)
+            _set(t, "srgb", False, notes)
+        elif k == "ORM":
+            _set(t, "compression_settings", unreal.TextureCompressionSettings.TC_MASKS, notes)
+            _set(t, "srgb", False, notes)
+        eas.save_loaded_asset(t)
+        tex[k] = t
+    ensure_dir("/Game/TriadDrift/Gameplay/Props/Kit/Materials")
+    folder, name = DECAL_MASTER.rsplit("/", 1)
+    mat = eas.load_asset(DECAL_MASTER) if eas.does_asset_exist(DECAL_MASTER) else tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
+    mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_MASKED)
+    mel.delete_all_material_expressions(mat)
+
+    def node(cls, x, y):
+        return mel.create_material_expression(mat, cls, x, y)
+
+    def tp(pname, t, sampler, y):
+        n = node(unreal.MaterialExpressionTextureSampleParameter2D, -900, y)
+        n.set_editor_property("parameter_name", pname)
+        n.set_editor_property("texture", t)
+        n.set_editor_property("sampler_type", sampler)
+        return n
+    S = unreal.MaterialSamplerType
+    bc = tp("DecalBC", tex["BC"], S.SAMPLERTYPE_COLOR, -400)
+    nm = tp("DecalN", tex["N"], S.SAMPLERTYPE_NORMAL, -100)
+    orm = tp("DecalORM", tex["ORM"], S.SAMPLERTYPE_MASKS, 200)
+    em = tp("DecalE", tex["E"], S.SAMPLERTYPE_COLOR, 500)
+    st = node(unreal.MaterialExpressionScalarParameter, -900, 750)
+    st.set_editor_property("parameter_name", "DecalEmissive")
+    st.set_editor_property("default_value", 4.0)
+    m = node(unreal.MaterialExpressionMultiply, -500, 550)
+    ok = True
+    ok &= mel.connect_material_expressions(em, "RGB", m, "A")
+    ok &= mel.connect_material_expressions(st, "", m, "B")
+    ok &= mel.connect_material_property(bc, "RGB", unreal.MaterialProperty.MP_BASE_COLOR)
+    ok &= mel.connect_material_property(bc, "A", unreal.MaterialProperty.MP_OPACITY_MASK)
+    ok &= mel.connect_material_property(nm, "RGB", unreal.MaterialProperty.MP_NORMAL)
+    ok &= mel.connect_material_property(orm, "G", unreal.MaterialProperty.MP_ROUGHNESS)
+    ok &= mel.connect_material_property(orm, "B", unreal.MaterialProperty.MP_METALLIC)
+    ok &= mel.connect_material_property(m, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    if not ok:
+        log("FAILED: could not wire " + DECAL_MASTER)
+        return None
+    try:
+        mel.recompile_material(mat)
+    except Exception:
+        notes.append("M_Kit_Decal compiles on first load")
+    eas.save_asset(DECAL_MASTER, only_if_is_dirty=False)
+    mi = instance("MI_KitD_Decal", mat)
+    eas.save_loaded_asset(mi)
+    return mi
 
 
 def ensure_stone(master_tex, notes):
@@ -141,14 +216,15 @@ def configure_dominion():
     DEST = "/Game/TriadDrift/Gameplay/Props/Kit/Dominion"
     TEX_DEST = DEST + "/Textures"
     PIPELINE = DEST + "/Pipelines/PL_KitD_StaticMesh"
-    SIZE_CHECK = os.path.join(KIT, "review", "size_check_D_r3.json")
+    SIZE_CHECK = os.path.join(KIT, "review", "size_check_D_r4.json")
     # review r1 fix 1: a deep red (renders red, not salmon) at half the strength
     GLOWS = {"MI_KitD_Glow": ("Glow", {"GlowStrength": 3.0, "PulseAmount": 0.0}, (1.0, 0.025, 0.006)),     # #FF2A10 (review r2)
              "MI_KitD_Light": ("Light", {"GlowStrength": 12.0, "PulseAmount": 0.0}, (0.9, 0.95, 1.0))}
     NO_COLLISION = ()
     SCREEN_MI = None
-    SET.update({"stem": "T_KitD_Trim", "trim_mi": "MI_KitD_Trim", "export": "export_dominion", "prefix": "SM_DI_", "extras": False})
-NO_COLLISION = ("SM_Kit_LightStrip_200",)
+    SET.update({"stem": "T_KitD_Trim", "trim_mi": "MI_KitD_Trim", "export": "export_dominion", "prefix": "SM_DI_", "extras": False,
+                "decals": True})
+NO_COLLISION = ("SM_Kit_LightStrip_200", "SM_Kit_LightPillar")
 
 eas = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()
@@ -325,6 +401,12 @@ def main():
         eas.save_loaded_asset(mi)
         if key:
             mis[key] = mi
+    if SET.get("decals"):
+        dmi = ensure_decal(notes)
+        if dmi is None:
+            log("FAILED: decals %s" % notes)
+            return
+        mis["Decal"] = dmi
     if SET.get("extras"):
         if ensure_stone(master_tex, notes) is None:
             log("FAILED: MI_Kit_Stone %s" % notes)

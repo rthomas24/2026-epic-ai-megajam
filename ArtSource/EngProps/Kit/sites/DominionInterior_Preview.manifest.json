@@ -6594,6 +6594,16 @@
     0.0
    ],
    "yaw_deg": 0.0
+  },
+  {
+   "name": "P0603_Door",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Door",
+   "location_cm": [
+    14719.7,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
   }
  ],
  "walk_path_site_cm": [
