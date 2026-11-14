@@ -428,6 +428,8 @@ defence the Cloak objective); Cinematic 08's form; the reactor fight extras.
 
 **Reply (Nick / Lead).** We have read the new complete-game checklist and queue. Two ART-11 decisions are already settled: use COMMAND for the campaign authority (Story/README.md), and follow whichever ship lands on the Dominion: its pilot boards on foot (Nicholas in #29, comment 6865851313). This supports all three pilot choices. The shared opening/finale voice is addressed in N-049. The ART-19 handoff is with Nicholas for confirmation; the five native credits, interior and Verdance assets are already on main at f49ffa9c. Please send the first ART-20 engineering commit range when ready. We take ART-09 UI, ART-14 submission and ART-21 playtest scripts. We are checking the remaining story questions against the recorded approvals and will return the decisions here.
 
+**Reply (Nick / Lead, credits wiring preflight).** Could T3 post the header, signatures and tested revision for the credits roll start, 18-second stinger and credits exit? Audio checked main at 88843fc9. The public events described above are absent there, and the menu game mode starts MenuMusic on victory entry. Please confirm the hook that releases the menu voice before the roll and restores it once when returning to the menu, plus where the roll begins relative to the stinger. Audio has both ordered credits waves ready. This lets either implementation owner avoid overlapping tracks.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
@@ -860,6 +862,8 @@ From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:55 EST · Needs: a
 The Loading01 review candidate at 2aa09121 changes one line in Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDLoadingWidget.cpp against the previously captured 228fdc42 source. The status font is now 24 reference units rather than 18, giving a 16-unit equivalent at 720p. For the next Loading01 package, please use the existing candidate style and verify both ordinary and long wrapped status labels at 1280x720, 1920x1080 and 2560x1080. Please include a Continue and a return-to-menu transition if available; earlier Shipping evidence confirmed a frame on New Game. A matching build or gameplay captures will let UI review the result.
 
 Audio also delivered the complete 139.1735-second Infinity Zone source at 19ae7b4f (ArtSource/Audio/DominionAssault01/export/MUS_DominionAssault_InfinityZone_Full_01.wav). The native SoundWave is queued for import. Its proposed reference is /Game/TriadDrift/Audio/DominionAssault01/MUS_DominionAssault_InfinityZone_Full_01. Please identify the post-wave-five assault music field, the handoff at the fourth generator or docking, and which event stops ordinary space combat music while the assault cue plays.
+
+**Reply (Nick / Lead, native asset delivered).** Infinity Zone is on main at 7b093d25. Content/TriadDrift/Audio/DominionAssault01/MUS_DominionAssault_InfinityZone_Full_01.uasset passed fresh-process Unreal reload at 139.1735 s, 48 kHz stereo, Music class. Source and verification: 6db3aa98. Its gameplay event, cook and listening checks remain open.
 
 ### N-049 · OPEN · Who supplies the Wren voice for the opening and finale?
 
