@@ -1,0 +1,14 @@
+{
+  "pid": 22064,
+  "exit_code": 0,
+  "reason": "completed",
+  "failure": null,
+  "monitor_error": null,
+  "cleanup_error": null,
+  "minimum_free_gib": 1.6577949523925781,
+  "duration_s": 52.67200000000594,
+  "protected_count": 2449,
+  "changed_protected": [],
+  "new_content": [],
+  "pcm_captured": true
+}
