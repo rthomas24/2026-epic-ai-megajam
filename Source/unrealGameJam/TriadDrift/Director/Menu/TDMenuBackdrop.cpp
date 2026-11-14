@@ -326,11 +326,11 @@ void ATDMenuBackdrop::BuildVictory(UWorld* World)
 				D->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 				D->RegisterComponent();
 				// Along the old hull's length (its X), a little off the axis; the sections are 117 to 173 m long.
-				const float Along = (i / 7.f - 0.5f) * 1.5f;
+				const float Along = (i / 7.f - 0.5f) * 2.2f;
 				const FVector PieceAt = FVector(Along, R.FRandRange(-0.25f, 0.25f), R.FRandRange(-0.2f, 0.2f)) * DominionRadius;
 				FWreckPiece W;
 				W.Component = D;
-				W.Start = FTransform(FRotator(R.FRandRange(-35.f, 35.f), R.FRandRange(-50.f, 50.f), R.FRandRange(-60.f, 60.f)), PieceAt, FVector(R.FRandRange(0.45f, 1.1f)));
+				W.Start = FTransform(FRotator(R.FRandRange(-35.f, 35.f), R.FRandRange(-50.f, 50.f), R.FRandRange(-60.f, 60.f)), PieceAt, FVector(R.FRandRange(0.9f, 2.2f))) /* Lead: twice the first size in frame */;
 				W.Drift = (PieceAt.GetSafeNormal() + R.GetUnitVector() * 0.5f).GetSafeNormal() * DominionRadius * R.FRandRange(0.006f, 0.018f);
 				W.Spin = FRotator(R.FRandRange(-2.5f, 2.5f), R.FRandRange(-2.5f, 2.5f), R.FRandRange(-3.5f, 3.5f));
 				W.Head = 8.f;
