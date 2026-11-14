@@ -103,7 +103,23 @@ public:
 		float Health = -1.f;
 		/** Metres. */
 		float Distance = 0.f;
+		/** What it is (KindOf): its marker's outline. */
+		uint8 Kind = 0;
+		/** Its heading relative to the player: 0 crossing, 1 toward, 2 away; HeadingAngle = its nose on screen (radians). */
+		uint8 Heading = 0;
+		float HeadingAngle = 0.f;
+		/** It is attacking the flown ship (its pilot's target): a brighter, heavier outline. */
+		bool bThreat = false;
 	};
+
+	/**
+	 * Enemy marker shapes (the ship builder's readability pass, via the Lead): at chase-camera range the ships are a few
+	 * dozen pixels, so the marker carries the type. 1 fighter = small chevron, 2 interceptor = narrow dart, 3 bomber =
+	 * wide wedge, 4 gunship = heavy diamond, 5 carrier = large bracketed hexagon, 0 anything else = the plain triangle.
+	 */
+	enum : uint8 { KindOther = 0, KindFighter = 1, KindInterceptor = 2, KindBomber = 3, KindGunship = 4, KindCarrier = 5 };
+	static uint8 KindOf(const AActor* Actor);
+	static const TCHAR* KindName(uint8 Kind);
 
 	/** An objective waypoint (planet, gate, generator, landing pad): a white diamond on screen, an edge diamond off screen. */
 	struct FWaypoint
