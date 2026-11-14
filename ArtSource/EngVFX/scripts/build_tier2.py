@@ -256,8 +256,9 @@ S2('NS_TD_Turret_LockTelegraph', U(TLK, 1.0), [
 # fading out over 1.5 s. One shot attached at the ship root; authored for a 6 m ship at Scale 1.
 S2('NS_TD_Ship_SwitchGrace', U((1.0, 0.10, 0.85, 1.0), 1.0), [
     # 10o: 5.2 m read as a big flat bubble from the chase camera: 3.3 m, stronger hex, less fill
-    shell_flash('Hex', 330, 1.5, 'float3(1,1,1)*(1.0 + 0.04*sin(Particles.NormalizedAge*12.566))', k=2.2, mat='M_TD_VFX_DomeHex', power=1.6),
-    shell_flash('Glow', 320, 1.5, 'float3(1,1,1)*(1.0 + 0.02*Particles.NormalizedAge)', k=0.22, power=2.0),
+    # 10p: held to the end of the 1.5 s (fade power 0.3), the hex brighter and the fill lower
+    shell_flash('Hex', 330, 1.5, 'float3(1,1,1)*(1.0 + 0.04*sin(Particles.NormalizedAge*12.566))', k=3.2, mat='M_TD_VFX_DomeHex', power=0.3),
+    shell_flash('Glow', 320, 1.5, 'float3(1,1,1)*(1.0 + 0.02*Particles.NormalizedAge)', k=0.12, power=0.5),
     flash('In', 'M_TD_VFX_Glow', 1000, 0.25, 1.0, growth='0.6 + Particles.NormalizedAge', power=1.2),
     shed('Glints', 'M_TD_VFX_Glow', 0, (0.2, 0.4), (40, 80), (0, 60), k=3.0, radius=320.0, drag=1.0, local=True, burst=40, dur=1.5, power=1.0)])
 
