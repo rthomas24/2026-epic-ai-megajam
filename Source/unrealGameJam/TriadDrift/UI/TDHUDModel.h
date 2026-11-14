@@ -41,6 +41,9 @@ struct UNREALGAMEJAM_API FTDRadarContact
 	float Seconds = 0.f;
 	int32 Count = 0;
 	FName Id;
+	/** Incoming: its warp-in point is known (otherwise Plane is zero: list it, no blip). bNextWave: after the breather. */
+	bool bHasLocation = true;
+	bool bNextWave = false;
 };
 
 struct UNREALGAMEJAM_API FTDSquadStatus
@@ -105,6 +108,11 @@ private:
 
 	float LastHealth[3] = { -1.f, -1.f, -1.f };
 	float GateScanLeft = 0.f;
+	/** T4's ATDWaveDirector::GetPendingGroups (#160), read by name 4 times a second; seconds run down in between. */
+	struct FIncoming { FName Id; int32 Count = 0; float Seconds = 0.f; FVector Location = FVector::ZeroVector; bool bHasLocation = false; bool bNextWave = false; };
+	TArray<FIncoming> Incoming;
+	float IncomingScanLeft = 0.f;
+	void ReadIncoming(const UWorld* World);
 	TArray<TWeakObjectPtr<AActor>> Gates;
 	TArray<AActor*> Scratch;
 	FTransform Frame = FTransform::Identity;
