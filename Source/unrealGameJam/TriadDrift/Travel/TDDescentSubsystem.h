@@ -181,6 +181,16 @@ public:
 	static float FindDeckZ(UWorld* World);
 	void TickGlide(float Dt);
 
+	// ---- ENG-38 stage 2, the mirrored take-off (the Lead, Nov 14): where the squad leaves the planet's ground decides where
+	// it comes out on the galaxy globe (T4's FTDPlanetEntry::GlobeFromDeparture / WorldFromGlobe), not a fixed <Planet>_Orbit.
+	/** The climb out: the flown ship's course-local (pad frame) departure. */
+	void RecordDeparture(ETDDestination Planet, const FTransform& CourseLocalDeparture);
+	bool HasPendingDeparture() const { return bDepartPending; }
+	/** Places the squad outside that planet's atmosphere at the departure's globe point, heading out; false until it can. */
+	bool PlaceDeparture(UWorld* World);
+	/** Distance from the planet's centre the squad comes out at, in atmosphere radii (outside it: no re-entry). */
+	static constexpr float DepartureRadiusScale = 1.3f;
+
 	// ---- Tuning
 	static constexpr float CoverRampSeconds = 0.35f;   // a travel with no entry ramp in front of it (take-off, dev)
 	static constexpr float RevealMinHoldSeconds = 0.5f; // after the destination's first frame
@@ -264,6 +274,10 @@ private:
 	TWeakObjectPtr<UWorld> DestWorld;
 	bool bFirstViewBuilt = false;
 	bool bArrivalSettled = false;
+	bool bDepartPending = false;
+	ETDDestination DepartPlanet = ETDDestination::Verdance;
+	FTDGlobePoint DepartPoint;
+	FVector DepartGlobeDir = FVector::UpVector;
 	TWeakObjectPtr<class ATDShip> GlideShip;
 	float GlideTime = -1.f;
 	float GlideStartZ = 0.f;

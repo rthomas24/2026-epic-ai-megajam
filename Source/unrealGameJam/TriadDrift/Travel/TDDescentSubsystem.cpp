@@ -352,6 +352,7 @@ void UTDDescentSubsystem::TickCover(float Dt)
 			ATDAtmosphereFlightZone* Zone = nullptr;
 			for (TActorIterator<ATDAtmosphereFlightZone> It(World); It; ++It) { Zone = *It; break; }
 			if (Terrain && Zone && !Zone->IsFittedToTerrain()) { bTerrainReady = false; }
+			if (bDepartPending && CoverDestination == ETDDestination::Galaxy) { PlaceDeparture(World); }
 			if (bTerrainReady && !bArrivalSettled && ArrivalWorld.Get() == World && Zone)
 			{
 				bArrivalSettled = true;
@@ -691,6 +692,41 @@ void UTDDescentSubsystem::TickGlide(float Dt)
 		Move->SetPitchHold(0.f, 60.f);
 		if (GlideLevelTime >= GlideHandBackSeconds) { EndGlide(TEXT("handed back")); }
 	}
+}
+
+void UTDDescentSubsystem::RecordDeparture(ETDDestination Planet, const FTransform& CourseLocalDeparture)
+{
+	DepartPlanet = Planet;
+	DepartPoint = FTDPlanetEntry::GlobeFromDeparture(CourseLocalDeparture, DepartGlobeDir);
+	bDepartPending = true;
+	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: departure recorded at lat %.1f lon %.1f"), DepartPoint.LatDeg, DepartPoint.LonDeg);
+}
+
+bool UTDDescentSubsystem::PlaceDeparture(UWorld* World)
+{
+	if (!bDepartPending || !World) { return false; }
+	const ATDPlanetAtmosphere* Atmo = nullptr;
+	for (TActorIterator<ATDPlanetAtmosphere> It(World); It; ++It) { if (It->GetDestination() == DepartPlanet) { Atmo = *It; break; } }
+	APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0);
+	ATDShip* Flown = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
+	if (!Atmo || !Flown) { return false; } // the galaxy's squad isn't up yet: next frame
+	FVector WorldDir = FVector::ForwardVector;
+	const FVector OnShell = FTDPlanetEntry::WorldFromGlobe(Atmo, DepartPoint, DepartGlobeDir, WorldDir);
+	const FVector Centre = Atmo->GetActorLocation();
+	const FVector Out = (OnShell - Centre).GetSafeNormal(UE_SMALL_NUMBER, FVector::UpVector);
+	const FVector At = Centre + Out * Atmo->GetAtmosphereRadius() * DepartureRadiusScale;
+	// Heading: the climb's world direction, never back into the globe.
+	FVector Head = WorldDir.GetSafeNormal(UE_SMALL_NUMBER, Out);
+	if (FVector::DotProduct(Head, Out) < 0.2f) { Head = (Head + Out).GetSafeNormal(UE_SMALL_NUMBER, Out); }
+	const FVector Shift = At - Flown->GetActorLocation();
+	for (TActorIterator<ATDShip> It(World); It; ++It)
+	{
+		if (It->GetTeam() != Flown->GetTeam()) { continue; } // the squad only
+		It->TeleportSpacecraft(It->GetActorLocation() + Shift, Head.Rotation(), /*bKeepSpeed*/ true);
+	}
+	bDepartPending = false;
+	Mark(*FString::Printf(TEXT("departure placed at lat %.1f lon %.1f, %.0f m from the planet"), DepartPoint.LatDeg, DepartPoint.LonDeg, (At - Centre).Size() / 100.f));
+	return true;
 }
 
 bool UTDDescentSubsystem::IsDirectorShotEnabled() { return CVarTDDescentDirectorShot.GetValueOnGameThread() != 0; }

@@ -11,6 +11,7 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/World/TDPlanetAtmosphere.h"
 
 namespace TDT1Glide
 {
@@ -96,6 +97,46 @@ bool FTDT1GlideRetake::RunTest(const FString& Parameters)
 	TestTrue(TEXT("a retake ends it: override, pitch hold and invulnerability gone"), !D->IsGliding() && !Move->HasSpeedOverrideFor(UTDDescentSubsystem::GlideOverride)
 		&& !Move->IsPitchHeld() && !Ship->GetHealth()->IsInvulnerable());
 	TestEqual(TEXT("Descent01 is -1 again"), UTDDescentSubsystem::GetDescent01(Ship), -1.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1Departure, "TriadDrift.Travel.Descent.TakeOffComesOutWhereItLeft", TD_TEST_FLAGS)
+bool FTDT1Departure::RunTest(const FString& Parameters)
+{
+	// ENG-38 2.9: leave from two different places on the ground, come out above two different parts of the globe, outside
+	// the atmosphere (no re-entry), heading away from the planet.
+	TArray<FVector> Outs;
+	for (const FTransform& Departure : { FTransform(FRotator(0.f, 0.f, 0.f), FVector(150000.f, 0.f, 120000.f)),
+		FTransform(FRotator(0.f, 180.f, 0.f), FVector(-150000.f, 100000.f, 120000.f)) })
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		const FVector Centre(400000.f, 0.f, 0.f);
+		ATDPlanetAtmosphere* Planet = W.GetWorld()->SpawnActorDeferred<ATDPlanetAtmosphere>(ATDPlanetAtmosphere::StaticClass(), FTransform(Centre),
+			nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AlwaysSpawn);
+		if (!TestNotNull(TEXT("planet"), Planet)) { return false; }
+		Planet->Configure(ETDDestination::Verdance, NAME_None, 30000.f, 66000.f, FLinearColor::Green);
+		Planet->SetAutoTravel(false);
+		Planet->FinishSpawning(FTransform(Centre));
+		ATDShip* Ship = W.Spawn<ATDShip>(FVector::ZeroVector);
+		UTDDescentSubsystem* D = UTDDescentSubsystem::Get(W.GetWorld());
+		if (!TestNotNull(TEXT("ship"), Ship) || !TestNotNull(TEXT("descent"), D)) { return false; }
+		Ship->SetPlayerControlled(true);
+		W.SpawnLocalPlayerController(Ship);
+		W.Advance(0.1f);
+		D->RecordDeparture(ETDDestination::Verdance, Departure);
+		TestTrue(TEXT("placed"), D->PlaceDeparture(W.GetWorld()) && !D->HasPendingDeparture());
+		const FVector L = Ship->GetActorLocation();
+		const float Dist = FVector::Dist(L, Centre);
+		TestTrue(*FString::Printf(TEXT("outside the atmosphere (%.0f vs %.0f)"), Dist, Planet->GetAtmosphereRadius()), Dist > Planet->GetAtmosphereRadius() * 1.1f);
+		TestTrue(TEXT("heading away from the planet"), FVector::DotProduct(Ship->GetActorForwardVector(), (L - Centre).GetSafeNormal()) > 0.15f);
+		Outs.Add((L - Centre).GetSafeNormal());
+	}
+	if (Outs.Num() == 2)
+	{
+		const float Deg = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(Outs[0], Outs[1]), -1.f, 1.f)));
+		AddInfo(FString::Printf(TEXT("the two departures come out %.1f deg apart on the globe"), Deg));
+		TestTrue(TEXT("two places on the ground: two places on the globe"), Deg > 5.f);
+	}
 	return true;
 }
 
