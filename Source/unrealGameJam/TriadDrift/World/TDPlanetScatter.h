@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "Engine/StreamableManager.h"
 #include "TDPlanetScatter.generated.h"
 
 class FTDTerrainField;
@@ -27,6 +28,8 @@ struct FTDScatterKind
 	bool bBlocksOnFoot = false;	// trunks and boulders near the course block the pilot (never ships)
 	bool bTumble = false;		// rocks: random tilt; everything else stands up (a slight lean with the slope)
 	bool bShadow = true;
+	float ZScale = 1.f;			// height relative to the scale (the merged canopy clumps spread wide but stay tree height)
+	float ContactRadiusCm = 0.f;	// > 0: seated on the lowest ground within this radius x scale (no crown floats off a slope)
 };
 
 /** The scatter's result: per kind, the transforms (course-local), split into "near the course" and the rest. */
@@ -72,6 +75,14 @@ struct UNREALGAMEJAM_API FTDScatterPlan
 	float NearCell = 5000.f, NearRadius = 15000.f;
 	float NearMaxHeightCm = 25000.f;	// the near ring only while the camera is this low over the ground
 	int32 InstanceBudget = 25000;
+	/** Story (environment builder, s6): Verdance's wreck scar, a burned strip through the forest from the research site
+	 *  outward (course-local cm), ScarHalfA wide at A widening to ScarHalfB at B; 0 = none. Inside it the forest is gone:
+	 *  charred trunks and scorch marks only. */
+	FVector2D ScarA = FVector2D::ZeroVector, ScarB = FVector2D::ZeroVector;
+	float ScarHalfA = 0.f, ScarHalfB = 0.f;
+	int32 ScorchKind = INDEX_NONE;
+	/** 0 outside the scar, 1 on its centre line. */
+	float ScarWeight(float X, float Y) const;
 	/** The course's keep-outs in course-local space (copied on the game thread before any generation). */
 	TArray<FTDCourseKeepOut> KeepOuts;
 
@@ -132,6 +143,31 @@ public:
 	void BuildRingsNowAt(const FVector& CourseLocal);
 
 	bool IsBuilt() const { return bBuilt; }
+
+	/**
+	 * The zone layer reaches the scene a few components per frame (issue #89: one 109-330 ms apply at the atmosphere
+	 * entry), near tier first. True once every near-tier piece is in: whoever lifts the entry cover can wait for it.
+	 */
+	bool IsNearApplied() const { return bNearApplied; }
+	/** Every kind's mesh and material is in memory (requested async with Generate; apply waits for it). */
+	bool AreKindsLoaded() const { return bKindsLoaded; }
+	/** Loads that happened on the game thread while applying (0 on the async path; T7's 330 ms first entry). */
+	int32 GetSyncKindLoads() const { return SyncKindLoads; }
+	/** ENG-38: stream the rings round this world point instead of the camera, until the camera comes within 1 km of it. */
+	void SetFocusOverride(const FVector& WorldPoint);
+	/** The mid ring is centred on, and complete round, this world point. */
+	bool IsReadyAround(const FVector& WorldPoint) const;
+	int32 GetPendingApplyJobs() const { return ApplyJobs.Num(); }
+	/** The most game-thread time one frame spent applying the zone layer (ms). */
+	double GetMaxApplyFrameMs() const { return MaxApplyFrameMs; }
+	/** Game-thread budget per frame for applying the zone layer (ms); at least one job runs per frame. */
+	float ApplyBudgetMs = 4.f;
+	/** Never wait longer than this (s) for the kinds' async load once the apply is queued: then load what is missing. */
+	float KindLoadTimeoutSeconds = 5.f;
+	/** Instances per component job (a big kind is split so no single job blows the frame). */
+	int32 ApplyChunk = 1000;
+	/** Tests: run queued apply jobs now within BudgetMs (<= 0: all of them). */
+	void ApplyQueued(double BudgetMs);
 	int32 GetInstanceCount() const { return InstanceCount; }
 	int32 GetRingInstanceCount() const { return RingInstances[0] + RingInstances[1]; }
 	int32 GetTotalInstanceCount() const { return InstanceCount + GetRingInstanceCount(); }
@@ -177,6 +213,26 @@ protected:
 	TSharedPtr<FTDTerrainField, ESPMode::ThreadSafe> RingField;
 	bool bBuilt = false;
 	bool bBuilding = false;
+	bool bFocusOverride = false;
+	bool bKindsLoaded = false;
+	float KindWaitSeconds = 0.f;
+	mutable int32 SyncKindLoads = 0;
+	TSharedPtr<FStreamableHandle> KindLoadHandle;
+	UMaterialInterface* ResolveKindMaterial(int32 Kind) const;
+	void RequestKindLoads();
+	bool AreKindPathsResolved() const;
+	FVector FocusLocal = FVector::ZeroVector;
+	struct FApplyJob
+	{
+		int32 Kind = 0;
+		bool bNear = true;
+		TArray<FTransform> Xfs;
+	};
+	TArray<FApplyJob> ApplyJobs;	// front first
+	int32 ApplyJobHead = 0;
+	bool bNearApplied = false;
+	double MaxApplyFrameMs = 0.0;
+	double ApplyTotalMs = 0.0;
 	int32 InstanceCount = 0;
 	int32 RingInstances[2] = { 0, 0 };
 	double GenerateMs = 0.0;

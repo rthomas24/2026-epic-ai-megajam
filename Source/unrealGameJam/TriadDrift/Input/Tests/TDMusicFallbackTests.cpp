@@ -16,6 +16,7 @@
 #include "HAL/IConsoleManager.h"
 #include "Misc/ScopeExit.h"
 #include "Sound/SoundBase.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 
 namespace TDT1Fallback
 {
@@ -119,17 +120,22 @@ bool FTDT1FallbackInterior::RunTest(const FString& Parameters)
 {
 	TDT1Fallback::FRig R;
 	if (!R.F) { return false; }
-	R.Emit(TEXT("CoreChamberEntered"));
-	TestEqual(TEXT("the core chamber: Cathedral Pulse"), R.F->GetPlayingPlacement(), ETDMusicPlacement::CoreChamber);
+	// T5's real hook: the interior course's moment reaches the bridge and the fallback.
+	ATDPlanetCourse::OnInteriorMoment.Broadcast(UTDMusicEventBridge::CoreChamberEntered, nullptr);
+	R.W.Advance(0.1f);
+	TestEqual(TEXT("the core chamber (from ATDPlanetCourse::OnInteriorMoment): Cathedral Pulse"), R.F->GetPlayingPlacement(), ETDMusicPlacement::CoreChamber);
 	TestTrue(TEXT("... DominionCore01"), R.F->GetPlayingTrack().ToString().Contains(TEXT("MUS_DominionCore_CathedralPulse_Full_01")));
 	R.Emit(TEXT("RevealEnded"));
 	TestEqual(TEXT("the reveal plays inside the chamber's track"), R.F->GetPlayingPlacement(), ETDMusicPlacement::CoreChamber);
-	R.Emit(TEXT("ReactorFightStarted"));
+	ATDPlanetCourse::OnInteriorMoment.Broadcast(UTDMusicEventBridge::ReactorFightStarted, nullptr);
+	R.W.Advance(0.1f);
 	TestEqual(TEXT("the reactor fight: Infinity Zone"), R.F->GetPlayingPlacement(), ETDMusicPlacement::ReactorFight);
 	TestTrue(TEXT("... DominionAssault01"), R.F->GetPlayingTrack().ToString().Contains(TEXT("MUS_DominionAssault_InfinityZone_Full_01")));
-	R.Emit(TEXT("ReactorFightEnded"));
+	ATDPlanetCourse::OnInteriorMoment.Broadcast(UTDMusicEventBridge::ReactorFightEnded, nullptr);
+	R.W.Advance(0.1f);
 	TestEqual(TEXT("the heart is destroyed: the fight's track ends"), R.F->GetPlayingPlacement(), ETDMusicPlacement::None);
-	R.Emit(TEXT("EscapeStarted"));
+	ATDPlanetCourse::OnInteriorMoment.Broadcast(UTDMusicEventBridge::EscapeStarted, nullptr);
+	R.W.Advance(0.1f);
 	TestEqual(TEXT("the escape is wanted"), R.F->GetWantedPlacement(), ETDMusicPlacement::Escape);
 	TestEqual(TEXT("... but Ritual isn't imported: nothing plays (the beds carry on)"), R.F->GetPlayingPlacement(), ETDMusicPlacement::None);
 	return true;

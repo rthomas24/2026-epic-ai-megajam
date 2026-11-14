@@ -31,6 +31,9 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Story/TDTutorialPhases.h"
 #include "TriadDrift/Profile/TDProfileSubsystem.h"
 
 #define LOCTEXT_NAMESPACE "TDWaveDirector"
@@ -250,6 +253,7 @@ void ATDWaveDirector::BeginPlay()
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
 		Bus->OnTakeStarted.AddUniqueDynamic(this, &ATDWaveDirector::HandleTakeStarted);
+		Bus->OnPhaseChanged.AddUniqueDynamic(this, &ATDWaveDirector::HandleGamePhaseChanged);
 		Bus->OnSceneCut.AddUniqueDynamic(this, &ATDWaveDirector::HandleSceneCut);
 	}
 
@@ -265,7 +269,9 @@ void ATDWaveDirector::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		Bus->OnTakeStarted.RemoveDynamic(this, &ATDWaveDirector::HandleTakeStarted);
 		Bus->OnSceneCut.RemoveDynamic(this, &ATDWaveDirector::HandleSceneCut);
+		Bus->OnPhaseChanged.RemoveDynamic(this, &ATDWaveDirector::HandleGamePhaseChanged);
 	}
+	SetSquadBoundaryRelease(false);	// never leave the edge off
 	for (const TWeakObjectPtr<AActor>& Weak : Living)
 	{
 		if (AActor* A = Weak.Get())
@@ -969,7 +975,7 @@ void ATDWaveDirector::CheckWaveCleared()
 		if (IsTutorialWithdrawalWave() && TutorialPhase != ETDTutorialPhase::Escaped)
 		{
 			// Every enemy down is not the end of the tutorial (Nicholas): Command orders the withdrawal instead.
-			if (TutorialPhase == ETDTutorialPhase::Battle) { BeginWithdrawal(); }
+			if (TutorialPhase == ETDTutorialPhase::Battle) { RequestWithdrawal(); }
 			return;
 		}
 		FinishWave();
@@ -1176,6 +1182,10 @@ void ATDWaveDirector::ResetTutorial()
 	if (AActor* M = EscapeMarker.Get()) { M->Destroy(); }
 	EscapeMarker.Reset();
 	TutorialPhase = ETDTutorialPhase::Battle;
+	TutorialClock = 0.f;
+	WithdrawalWait = 0.f;
+	bWithdrawalRequested = false;
+	SetSquadBoundaryRelease(false);	// a retake or a new wave: the edge applies again
 	HeavyContact.Reset();
 	bHeavySeen = false;
 	bHeavyEngaged = false;
@@ -1236,6 +1246,7 @@ void ATDWaveDirector::BeginWithdrawal()
 		EscapeMarker = M;
 	}
 	UTDStorySubsystem::Fire(this, TEXT("TB_Command_FallBack"));
+	SetSquadBoundaryRelease(true);	// T1's switch: the escape corridor runs past the zone edge (T7's playtest)
 	OnTutorialWithdrawalOrdered.Broadcast();
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Waves: tutorial withdrawal ordered - escape boundary %.0f m out toward Verdance"), Distance / 100.f);
 }
@@ -1270,9 +1281,65 @@ void ATDWaveDirector::CompleteEscape()
 	FinishWave();
 }
 
+bool ATDWaveDirector::IsTeachingSquad() const
+{
+	if (!bWaitForLessons) { return false; }
+	const ETDTeachPhase Teach = UTDTutorialPhases::GetTeachPhase(this);
+	return Teach != ETDTeachPhase::None && Teach != ETDTeachPhase::Done;
+}
+
+void ATDWaveDirector::RequestWithdrawal()
+{
+	if (TutorialPhase != ETDTutorialPhase::Battle) { return; }
+	if (!IsTeachingSquad()) { BeginWithdrawal(); return; }
+	bWithdrawalRequested = true;
+}
+
+void ATDWaveDirector::UpdateTeachPressure()
+{
+	// Wave 1 under EVASIVE MANEUVERS: a readable volley, not yet a fight (full pressure from TARGET AND FIRE on).
+	const bool bEvade = CurrentWave == 0 && UTDTutorialPhases::GetTeachPhase(this) == ETDTeachPhase::Evade;
+	for (const TWeakObjectPtr<AActor>& W : Living)
+	{
+		if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(W.Get()))
+		{
+			if (UTDWeaponComponent* Wp = Craft->GetWeapons()) { Wp->SetOutgoingDamageMultiplier(TEXT("TeachEvade"), bEvade ? EvadeDamageScale : 1.f); }
+		}
+	}
+}
+
+void ATDWaveDirector::SetSquadBoundaryRelease(bool bRelease)
+{
+	if (bBoundaryReleased == bRelease) { return; }
+	bBoundaryReleased = bRelease;
+	if (const ATDSquadManager* Squad = ATDSquadManager::Get(this))
+	{
+		for (const ETDShipId Id : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+		{
+			if (ATDShip* Ship = Squad->GetShip(Id))
+			{
+				if (UTDShipMovementComponent* Move = Ship->GetShipMovement()) { Move->SetBoundaryReleaseFor(TEXT("Withdrawal"), bRelease); }
+			}
+		}
+	}
+}
+
+void ATDWaveDirector::HandleGamePhaseChanged(ETDGamePhase Phase)
+{
+	if (Phase != ETDGamePhase::Waves1to2) { SetSquadBoundaryRelease(false); }	// the jump to Verdance ends the corridor
+}
+
 void ATDWaveDirector::TickTutorial(float DeltaSeconds)
 {
 	const AActor* Flown = GetSpawnAnchor();
+	TutorialClock += DeltaSeconds;
+	if (TutorialPhase == ETDTutorialPhase::Battle && bWithdrawalRequested)
+	{
+		// Command calls it only after the squad lesson (T3's phase 03), or after the cap so it never locks.
+		WithdrawalWait += DeltaSeconds;
+		if (!IsTeachingSquad() || WithdrawalWait >= WithdrawalWaitCapSeconds) { BeginWithdrawal(); }
+		return;
+	}
 	if (TutorialPhase == ETDTutorialPhase::Battle)
 	{
 		// Phase 04 -> 05: the heavy contact engaged long enough, worn down to half, or destroyed.
@@ -1290,7 +1357,7 @@ void ATDWaveDirector::TickTutorial(float DeltaSeconds)
 		}
 		if (bDown || H->GetHull01() <= HeavyHullTrigger || (bHeavyEngaged && HeavyTime >= HeavyEngagedSeconds))
 		{
-			BeginWithdrawal();
+			RequestWithdrawal();
 		}
 		return;
 	}
@@ -1329,6 +1396,10 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 	if ((State == ETDWaveState::WarpingIn || State == ETDWaveState::Active) && IsTutorialWithdrawalWave())
 	{
 		TickTutorial(DeltaSeconds);
+	}
+	if (CurrentWave == 0 && (State == ETDWaveState::WarpingIn || State == ETDWaveState::Active))
+	{
+		UpdateTeachPressure();
 	}
 
 	if (bOpeningGrace)
@@ -1372,6 +1443,12 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 		for (int32 i = Pending.Num() - 1; i >= 0; --i)
 		{
 			FPendingGroup& P = Pending[i];
+			if (P.Group.EnemyId == TDEnemyIds::WallGunship && IsTutorialWithdrawalWave() && IsTeachingSquad() && TutorialClock < GunshipHoldCapSeconds)
+			{
+				// The heavy contact follows the squad lesson (T3's phase 03), at most GunshipHoldCapSeconds into the wave.
+				P.Remaining = FMath::Max(P.Remaining - DeltaSeconds, WarpInSeconds + 0.5f);	// its delay still runs; it waits just short of the warp-in
+				continue;
+			}
 			P.Remaining -= DeltaSeconds;
 			if (!P.bWarpAnnounced && P.Remaining <= WarpInSeconds)
 			{

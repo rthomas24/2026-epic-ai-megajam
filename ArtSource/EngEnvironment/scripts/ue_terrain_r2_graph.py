@@ -54,7 +54,7 @@ SCALARS = {
     "RoughVar": (0.12, 0.1),
     # thresholds (metres / slope) and their breakup
     "HeightBreakM": (140.0, 140.0), "BiomeBreakM": (260.0, 120.0), "SlopeBreak": (0.14, 0.07),
-    "RockSlopeStart": (0.15, 0.15), "RockSlopeRange": (0.2, 0.12),     # s6: a wider, broken cliff foot on Verdance (hard seam)
+    "RockSlopeStart": (0.21, 0.15), "RockSlopeRange": (0.2, 0.12),     # s6/s7: broken cliff foot; s7 moss up to ~38 deg (hills were bare brown cones)
     "PeakStartM": (1450.0, 1300.0), "PeakRangeM": (550.0, 700.0), "PeakSlopeMax": (0.4, 0.36), "PeakSlopeRange": (0.3, 0.28),
     "LowTopM": (-260.0, 10.0), "LowFadeM": (130.0, 120.0), "LowAmount": (0.85, 0.7),
     # scatter v2: the patch (Verdance grove / Cinder obsidian) is a rule on the terrain's own masks, the same numbers as
@@ -78,6 +78,14 @@ SCALARS = {
     # pass 4: a minimum ambient (emissive = albedo x floor x the sky's colour) so Cinder's self-shadowed basalt slopes
     # never go to black under the low sun; proportional to the albedo, so nothing lights up on its own. Off on Verdance.
     "AmbientFloor": (0.0, 0.45),
+    # s7: biome patches at 200-500 m (meadow / moss / dark forest floor) so the ground from the air is not one green noise
+    "MacroBiomeScale": (42000.0, 42000.0), "MacroBiomeAmount": (0.85, 0.35),
+    # s7: a dark wet-rock band where the rock meets the ground (cliff feet, seeps)
+    "WetRockDark": (0.45, 0.7),
+    # s7 story: Verdance's wreck scar (the same segment as FTDScatterPlan::ScarA/B, course-local = world on the planet
+    # maps): charred black ground with ember specks, narrow at the research site, wide outward. Off on Cinder.
+    "ScarAX": (13000.0, 0.0), "ScarAY": (8200.0, 0.0), "ScarBX": (57000.0, 0.0), "ScarBY": (41000.0, 0.0),
+    "ScarHalfA": (1500.0, 0.0), "ScarHalfB": (6000.0, 0.0), "ScarEmber": (6.0, 0.0),
 }
 VECTORS = {
     # R3 (Verdance): A = teal moss, B = bright yellow-green moss (open meadow side), C = blue-teal glade
@@ -287,6 +295,12 @@ def build_graph(b, t, means):
     flat_t = lerp(flat_t, Vp("JungleTint"), jungle_w)
     flat_t = lerp(flat_t, Vp("UplandTint"), upland_w)
     flat_t = lerp(flat_t, Vp("LowlandTint"), lowland_w)
+    # s7: 200-500 m biome patches, at every distance (the 37 m / 230 m noises only act near)
+    nB = noise(-13.0, "MacroBiomeScale", (0.37, 0.91))
+    mb = S("MacroBiomeAmount")
+    flat_t = lerp(flat_t, Vp("JungleTint"), mul(ramp(c(nB, "R"), 0.56, 0.12), mb))
+    flat_t = lerp(flat_t, Vp("FlatTintB"), mul(inv(ramp(c(nB, "G"), 0.3, 0.12)), mul(mb, 0.7)))
+    flat_t = lerp(flat_t, Vp("FlatTintC"), mul(ramp(c(nB, "B"), 0.62, 0.1), mul(mb, 0.6)))
     flat_c = mul(flat_t, flat_d)
     patch_c = mul(Vp("PatchTint"), patch_d)
     low_c = mul(Vp("LowTint"), low_d)
@@ -320,6 +334,9 @@ def build_graph(b, t, means):
     strata = tex("MacroNoiseTex", "T_Ground_MacroNoise", ST.SAMPLERTYPE_MASKS, uv_st)
     rsel = sat(add(mul(sub(add(mul(c(strata, "R"), 0.7), mul(c(nL, "G"), 0.3)), 0.5), mul(S("StrataContrast"), inv(wtop))), 0.5))
     rock_c = mul(lerp(Vp("RockTintA"), Vp("RockTintB"), rsel), rock_d)
+    # s7: wet dark band at the rock's foot (where the slope just turned to rock), wider where the fine mask is low
+    wetband = sat(mul(rock_w, mul(inv(rock_w), 4.0)))
+    rock_c = mul(rock_c, lerp(1.0, S("WetRockDark"), wetband))
 
     # ---------------------------------------------------------------- river / pool band: flow, heat
     time = b.e(E.MaterialExpressionTime)
@@ -335,6 +352,15 @@ def build_graph(b, t, means):
     base = mul(base, lerp(1.0, S("WetDarken"), wet))
     base = lerp(lerp(base, rock_c, rock_w), peak_c, peak_w)
     base = lerp(mul(base, val), Vp("MoltenBase"), molten)
+    # s7 story: the wreck scar (distance to the segment, a ragged edge from the 37 m / 230 m noises)
+    sa = app(S("ScarAX"), S("ScarAY"))
+    sd = sub(app(S("ScarBX"), S("ScarBY")), sa)
+    st = sat(div(dot(sub(xy, sa), sd), add(dot(sd, sd), 1.0)))
+    sv = sub(xy, add(sa, mul(sd, st)))
+    sdist = un(E.MaterialExpressionSquareRoot, dot(sv, sv))
+    shalf = mul(lerp(S("ScarHalfA"), S("ScarHalfB"), st), add(0.75, mul(add(mul(c(nS, "R"), 0.4), mul(c(nM, "G"), 0.6)), 0.5)))
+    scar_w = mul(sat(div(sub(shalf, sdist), mul(shalf, 0.35))), mul(ramp(st, 0.0, 0.03), inv(ramp(st, 0.97, 0.03))))
+    base = lerp(base, mul(b.const3(0.014, 0.011, 0.009), add(0.6, mul(c(nS, "B"), 0.8))), mul(scar_w, 0.92))
     rough = lerp(lerp(S("FlatRoughness"), S("PatchRoughness"), patch_w), S("LowRoughness"), low_w)
     rough = lerp(rough, S("WetRoughness"), mul(wet, c(nS, "R")))
     rough = lerp(lerp(rough, S("RockRoughness"), rock_w), S("PeakRoughness"), peak_w)
@@ -372,4 +398,6 @@ def build_graph(b, t, means):
                 mul(add(0.6, mul(c(flow, "R"), 0.8)), S("ValleyEmissive")))
     e_pk = mul(peak_c, mul(peak_w, S("PeakGlow")))
     e_amb = mul(mul(base, Vp("AmbientTint")), mul(S("AmbientFloor"), inv(molten)))
+    ember = mul(sat(mul(sub(c(nS, "B"), 0.83), 12.0)), mul(scar_w, S("ScarEmber")))
+    e_amb = add(e_amb, mul(b.const3(1.0, 0.28, 0.04), ember))
     b.out(add(add(add(e_vein, e_patch), add(e_val, e_pk)), e_amb), "", MP.MP_EMISSIVE_COLOR)
