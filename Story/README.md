@@ -160,3 +160,18 @@ The chain remains: reconnaissance and withdrawal → Verdance device and relay a
 Tutorial gameplay is mandatory on the first playthrough, with replay or skip offered on later playthroughs. The solo player switches among three ships with AI wingmen. Use Command consistently for the campaign authority in story text, subtitle speaker labels and voice direction. Nicholas approved a 49-second opening cinematic. Within that time, preserve the reconnaissance orders, the reveal of the Dominion at scale, the interrupted warning and the direct handoff to tutorial flight control. Nicholas also approved withdrawal without destroying the gunship: its destruction is optional. After the starting combat lessons, Command orders withdrawal regardless of gunship health; crossing the marked escape boundary completes the tutorial and triggers Aftermath. First Contact’s expanded outline is a staging reference within the approved 49-second production target; its former 2-minute-20-second timing is superseded.
 
 This review establishes readiness of the campaign narrative draft for implementation and production coordination. Final dialogue performances, staging, encounter tuning, integration and human/Shipping validation remain separate. The future catastrophe, exact Core mechanics, older commanders' fate and causal outcome intentionally remain unresolved. The original master and game code were not changed.
+
+## Nicholas's victory wording decision — November 14, 2026
+
+Nicholas explicitly confirmed the victory eyebrow **MISSION COMPLETE // OPERATION PARADOX**, with the large message selected randomly from six strings. This is an approved post-ending operation label; it does not rename the game or add a public subtitle. It supersedes the pending eyebrow question in issue #29 comment 6873641374 and the removal recommendation recorded during the resumed Story review.
+
+The existing six headline strings are preserved:
+
+- A FUTURE RECLAIMED
+- BALANCE RESTORED
+- TOMORROW IS OURS
+- THE WORLDS ENDURE
+- A NEW DAWN
+- AGAINST ALL ODDS
+
+Choose one when the victory presentation opens and keep it stable during that presentation; a later victory may select again, including the same string. Current TDFrontEndGameModes.cpp already contains the eyebrow, six-choice pool and cached selection. This records Nicholas's wording/direction approval, not a new code change, new test execution or final appearance/gameplay acceptance. T3 retains runtime ownership; actual current-build presentation still needs verification.

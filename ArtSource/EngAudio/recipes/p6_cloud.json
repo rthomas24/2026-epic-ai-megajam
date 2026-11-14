@@ -1,0 +1,24 @@
+{
+ "about": "Triad Drift ENG-38 cloud pass sounds (effects builder, Nov 14): the punch through the cloud deck and the wind under the planet glide. Original synthesis (scripts/td_synth.py), no samples; engineering fallbacks in the same family as Travel_DescentRoar. Nicholas's sound at the slot replaces them. db = level relative to the anchor (Lancer primary fire), mix-standard.md section 4. A sound with an empty slots list has no data slot yet: its asset path is handed to the code owner.",
+ "sounds": [
+  {"name": "Travel_CloudPunch", "group": "Travel", "cat": "sfx", "takes": 3, "pitch": {"r": [0.93, 1.07]},
+   "note": "ENG-38: the ship punches through the cloud deck (either direction). A muffled rush that swells, a soft air-pressure thump as the ship breaks through, then the sound opens up bright with a fading vapour hiss. Played by TDDescentSubsystem at the ship (DA_Travel_FX.CloudPunch), 3D.",
+   "layers": [
+    {"type": "noise", "lo0": 110, "hi0": 800, "lo1": 350, "hi1": 7500, "dur": 0.95, "a": 0.28, "d": 0.62, "gain": 1.0},
+    {"type": "noise", "lo0": 60, "hi0": 400, "dur": 0.55, "a": 0.2, "d": 0.33, "gain": 0.6},
+    {"type": "tone", "wave": "sine", "f0": 68, "f1": 34, "dur": 0.4, "a": 0.006, "d": 0.38, "gain": 0.85, "start": 0.24},
+    {"type": "noise", "lo0": 2500, "hi0": 9000, "lo1": 1800, "hi1": 6000, "dur": 1.2, "a": 0.03, "d": 1.15, "start": 0.27, "trem_rate": {"r": [11, 17]}, "trem_depth": 0.5, "gain": 0.3}],
+   "post": {"drive": 0.35, "hp": 28, "reverb": {"time": 0.7, "mix": 0.16, "lo": 120, "hi": 5000}}, "fade_out": 0.08,
+   "ue": {"att": "Ground_Medium", "con": "Impact", "cls": "SFX", "db": -3}, "slots": ["DA_Travel_FX.CloudPunch"]},
+
+  {"name": "Travel_GlideWind", "group": "Travel", "cat": "loop", "kind": "loop", "dur": 8.0,
+   "note": "ENG-38: the wind under the 8-10 s planet glide, rising as the descent roar thins. 2D mono loop: airy mid-high wind in slow gusts with a faint whistle, no low rumble (the roar owns the lows). Needs a slot whose volume T1 drives against the roar (CloudWisps plays its sound with no handle kept, so it would never stop).",
+   "layers": [
+    {"type": "pnoise", "lo": 350, "hi": 6500, "tilt": -0.8, "am_rate": 0.25, "am_depth": 0.55, "am2_rate": 0.75, "am2_depth": 0.3, "gain": 1.0},
+    {"type": "pnoise", "lo": 900, "hi": 1150, "tilt": 0.0, "am_rate": 0.375, "am_depth": 0.8, "am2_rate": 1.25, "am2_depth": 0.3, "gain": 0.22},
+    {"type": "pnoise", "lo": 1700, "hi": 2000, "tilt": 0.0, "am_rate": 0.125, "am_depth": 0.9, "gain": 0.12},
+    {"type": "pnoise", "lo": 140, "hi": 450, "tilt": -1.0, "am_rate": 0.5, "am_depth": 0.5, "gain": 0.25}],
+   "post": {"hp": 90},
+   "ue": {"att": null, "con": null, "cls": "SFX", "db": -9}, "slots": []}
+ ]
+}

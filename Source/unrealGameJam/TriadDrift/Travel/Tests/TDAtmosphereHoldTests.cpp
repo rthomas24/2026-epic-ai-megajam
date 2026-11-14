@@ -94,4 +94,37 @@ bool FTDT1AtmoHoldCommitsAfter::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1AtmoHoldTail, "TriadDrift.Travel.Atmosphere.HoldWaitsForTheLineOnAirThenCommits", TD_TEST_FLAGS)
+bool FTDT1AtmoHoldTail::RunTest(const FString& Parameters)
+{
+	// T7's play: the sequence ended 2 s into A1_TrailToVerdance and the entry cut it. The hold now waits for the line on air
+	// (or queued next) after the sequence, at most StoryTailCapSeconds.
+	using namespace TDT1AtmoHold;
+	FTDTestWorld W;
+	UTDAtmosphereEntryComponent* Entry = nullptr;
+	ATDShip* Ship = Setup(W, Entry);
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!Ship || !Entry || !TestNotNull(TEXT("story"), Story)) { return false; }
+	Story->ResetPlayed();
+	UTDStorySubsystem::PlaySequence(W.GetWorld(), Seq);
+	Entry->BeginEntry(ETDDestination::Verdance, TEXT("Verdance_Orbit"), FVector(-200000.f, 0.f, 0.f));
+	TestTrue(TEXT("held"), Entry->IsHoldingForStory());
+	// The line that follows the sequence (as A1_TrailToVerdance does), queued while the sequence still plays.
+	UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A1_TrailToVerdance"));
+	float T = 0.f, SeqEnd = -1.f, Commit = -1.f;
+	for (; T < 60.f && Commit < 0.f; T += 0.1f)
+	{
+		W.Advance(0.1f, 1.f / 30.f);
+		if (SeqEnd < 0.f && !Story->IsSequencePlaying(Seq)) { SeqEnd = T; }
+		if (Commit < 0.f && Entry->IsEntering()) { Commit = T; }
+	}
+	const bool bA1Aired = Story->HasAired(TEXT("A1_TrailToVerdance"));
+	AddInfo(FString::Printf(TEXT("sequence ended at %.1f s, entry committed at %.1f s (%.1f s later); A1 aired %d"), SeqEnd, Commit, Commit - SeqEnd, bA1Aired ? 1 : 0));
+	TestTrue(TEXT("the sequence ended and the entry committed"), SeqEnd >= 0.f && Commit >= 0.f);
+	TestTrue(TEXT("the line after the sequence aired before the commit"), bA1Aired);
+	TestTrue(*FString::Printf(TEXT("not before the line's end (A1 is ~4.8 s): %.1f s after the sequence"), Commit - SeqEnd), Commit - SeqEnd >= 3.f);
+	TestTrue(*FString::Printf(TEXT("never past the %.0f s cap (+ a tick): %.1f s"), Entry->StoryTailCapSeconds, Commit - SeqEnd), Commit - SeqEnd <= Entry->StoryTailCapSeconds + 0.3f);
+	return true;
+}
+
 #endif

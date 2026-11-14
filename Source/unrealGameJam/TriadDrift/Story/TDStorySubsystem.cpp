@@ -571,6 +571,11 @@ void UTDStorySubsystem::HandleLineOnAir(FName Id)
 			}
 		}
 	}
+	// Verdance's orbital clue (storyline §14 phase 1): Wren answers Kato's convoy scan.
+	if (Id == TEXT("A2_ConvoyScanned"))
+	{
+		FireTransmission(TEXT("G2_Wren_Geology"));
+	}
 	if (Id == TEXT("C3_Kato_Artificial")) { Stage = 1; }
 	else if (Id == TEXT("C3_Kato_Beneath")) { Stage = 2; }
 	else if (Id == TEXT("C3_Kato_CinderMatch")) { Stage = 3; }
@@ -861,7 +866,8 @@ bool UTDStorySubsystem::IsRetired(FName Id)
 	// Kept in the table for the record (N-087, #29), never aired. A caller that still fires one is swallowed quietly.
 	static const TSet<FName> Retired = { TEXT("TB_Escaped"), TEXT("C4_Moss_Volcanoes"), TEXT("C4_Wren_SetCourse"),
 		TEXT("C4_Wren_WhatConnects"), TEXT("C4_Kato_SameSignature"), TEXT("C4_Moss_Trouble"), TEXT("C6_Moss_SamplesAboard"),
-		TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Wren_Understood") };
+		TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Wren_Understood"),
+		TEXT("A4_GeneratorDown1") }; // Nov 14 (T4): the first generator is the screenplay's G6_Kato_ShieldWeakening
 	return Retired.Contains(Id);
 }
 

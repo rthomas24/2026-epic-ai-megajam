@@ -1,0 +1,13 @@
+{
+ "folder": "/Game/TriadDrift/Gameplay/Characters/FX",
+ "create": {},
+ "slots": [
+  {
+   "asset": "DA_Travel_FX",
+   "field": "CloudPunch",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/MSS_Travel_CloudPunch"
+  }
+ ],
+ "keep": []
+}

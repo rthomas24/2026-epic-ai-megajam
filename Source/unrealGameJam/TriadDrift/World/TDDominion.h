@@ -438,6 +438,23 @@ protected:
 	bool bEscapeClear = false;
 	bool bEscapeFailReported = false;
 	bool bEscapeBarkSaid = false;
+	// ART-18: the Aftermath light row.
+	UPROPERTY(Transient)
+	TObjectPtr<class UNiagaraComponent> LightRowFX;
+	UPROPERTY(Transient)
+	TObjectPtr<USceneComponent> LightRowAnchor;
+	bool bLightRowOn = false;
+	void HandleAftermathBegins(bool bSkippedTutorial);
+	UFUNCTION()
+	void HandleHyperdriveForLightRow(ETDHyperdriveState NewState);
+public:
+	/** ART-18: start the light row at the hull point nearest WorldPoint (the escape line, or the start on a skip). */
+	void StartAftermathLightRow(const FVector& WorldPoint);
+	void StopAftermathLightRow();
+	bool IsAftermathLightRowActive() const;
+	/** Where the row sits (hull-local) and faces, for tests. */
+	FTransform GetAftermathLightRowTransform() const;
+protected:
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AActor>> EscapeDebris;
 	bool bPlaceholderBreakup = false;

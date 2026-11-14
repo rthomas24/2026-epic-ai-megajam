@@ -130,6 +130,8 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 		HeldPlanetCenter = PlanetCenter;
 		HeldSurfaceRadius = PlanetSurfaceRadius;
 		HeldStartDistance = (float)FVector::Dist(Craft->GetActorLocation(), PlanetCenter);
+		StoryEndedAt = -1.0;
+		bLoggedTailWait = false;
 		UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: held - a story sequence is playing (awaiting orders)"));
 		// Stopped at the edge, not a silent wall: the ship slows to a crawl (still steerable) and the HUD says AWAITING ORDERS.
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement()) { Move->SetSpeedOverrideFor(StoryHoldOverride, StoryHoldSpeed, 1.f, 30000.f); }
@@ -283,6 +285,24 @@ void UTDAtmosphereEntryComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 
 const FName UTDAtmosphereEntryComponent::StoryHoldOverride(TEXT("StoryHold"));
 
+bool UTDAtmosphereEntryComponent::WaitsForLineOnAir()
+{
+	const UWorld* World = GetWorld();
+	const double Now = World ? World->GetTimeSeconds() : 0.0;
+	if (StoryEndedAt < 0.0) { StoryEndedAt = Now; }
+	if (Now - StoryEndedAt >= StoryTailCapSeconds) { return false; } // the cap: never hang
+	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
+	// On air, or queued to air next (the story's short gap between lines): A1_TrailToVerdance right after the sequence.
+	const bool bOnAir = Story && (Story->GetCurrentTransmission().bActive || Story->GetQueueLength() > 0);
+	if (bOnAir && !bLoggedTailWait)
+	{
+		bLoggedTailWait = true;
+		UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: the sequence ended - waiting for the line on air (%s, at most %.0f s)"),
+			Story->GetCurrentTransmission().bActive ? *Story->GetCurrentTransmission().Id.ToString() : TEXT("queued"), StoryTailCapSeconds);
+	}
+	return bOnAir;
+}
+
 void UTDAtmosphereEntryComponent::EndStoryHold()
 {
 	if (const ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner()))
@@ -363,7 +383,16 @@ void UTDAtmosphereEntryComponent::TickComponent(float DeltaTime, ELevelTick Tick
 			EndStoryHold();
 			UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: hold dropped (left the atmosphere or not flown)"));
 		}
-		else if (!IsStoryHoldingEntry())
+		else if (IsStoryHoldingEntry())
+		{
+			StoryEndedAt = -1.0; // still in the sequence
+		}
+		else if (WaitsForLineOnAir())
+		{
+			// T7's play: the sequence ended 2 s into A1_TrailToVerdance (4.8 s), which then played over the white. Let the line
+			// on air finish first, at most StoryTailCapSeconds after the sequence's end, so the entry can never hang.
+		}
+		else
 		{
 			EntryState = ETDAtmosphereEntryState::Idle;
 			EndStoryHold();

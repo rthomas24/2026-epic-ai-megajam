@@ -1,0 +1,318 @@
+{
+ "site": "Bridge_Magma",
+ "origin": [
+  -3000.0,
+  -3000.0,
+  0.0
+ ],
+ "steps": [
+  {
+   "teleport": [
+    -1600.0,
+    0.0,
+    0.0
+   ],
+   "feet": [
+    -1600,
+    0,
+    2,
+    0
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Bridge_Magma\\01_ramp_foot.png"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    -1227,
+    0,
+    46,
+    0
+   ],
+   "at": "span 0"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    -851,
+    0,
+    52,
+    0
+   ],
+   "at": "span 1"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    -478,
+    0,
+    52,
+    0
+   ],
+   "at": "span 2"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    -103,
+    0,
+    52,
+    0
+   ],
+   "at": "span 3"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    272,
+    0,
+    52,
+    0
+   ],
+   "at": "span 4"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    649,
+    0,
+    52,
+    0
+   ],
+   "at": "span 5"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    1030,
+    0,
+    52,
+    0
+   ],
+   "at": "span 6"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    1408,
+    0,
+    2,
+    0
+   ],
+   "at": "span 7"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    1778,
+    0,
+    2,
+    0
+   ],
+   "at": "span 8"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    2156,
+    0,
+    2,
+    0
+   ],
+   "at": "span 9"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    2530,
+    0,
+    2,
+    0
+   ],
+   "at": "span 10"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    2904,
+    0,
+    2,
+    0
+   ],
+   "at": "span 11"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    3274,
+    0,
+    2,
+    0
+   ],
+   "at": "span 12"
+  },
+  {
+   "walk": [
+    0.0,
+    0.6
+   ],
+   "feet": [
+    3649,
+    0,
+    2,
+    0
+   ],
+   "at": "span 13"
+  },
+  {
+   "teleport": [
+    0.0,
+    0.0,
+    50.0
+   ],
+   "feet": [
+    0,
+    0,
+    52,
+    90
+   ]
+  },
+  {
+   "walk": [
+    90.0,
+    0.6
+   ],
+   "feet": [
+    0,
+    110,
+    52,
+    90
+   ],
+   "at": "into the +Y rail 0 (must stay on the deck)"
+  },
+  {
+   "walk": [
+    90.0,
+    0.6
+   ],
+   "feet": [
+    0,
+    110,
+    52,
+    90
+   ],
+   "at": "into the +Y rail 1 (must stay on the deck)"
+  },
+  {
+   "teleport": [
+    0.0,
+    0.0,
+    50.0
+   ],
+   "feet": [
+    0,
+    0,
+    52,
+    270
+   ]
+  },
+  {
+   "walk": [
+    270.0,
+    0.6
+   ],
+   "feet": [
+    0,
+    -110,
+    52,
+    270
+   ],
+   "at": "into the -Y rail 0 (must stay on the deck)"
+  },
+  {
+   "walk": [
+    270.0,
+    0.6
+   ],
+   "feet": [
+    0,
+    -110,
+    52,
+    270
+   ],
+   "at": "into the -Y rail 1 (must stay on the deck)"
+  },
+  {
+   "teleport": [
+    0.0,
+    0.0,
+    50.0
+   ],
+   "feet": [
+    0,
+    0,
+    52,
+    0
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Bridge_Magma\\02_mid_deck.png"
+  },
+  {
+   "teleport": [
+    -1500.0,
+    -1100.0,
+    0.0
+   ],
+   "feet": [
+    -1500,
+    -1100,
+    2,
+    36
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Bridge_Magma\\03_15m.png"
+  }
+ ]
+}
