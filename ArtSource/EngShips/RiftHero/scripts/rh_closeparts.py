@@ -26,7 +26,7 @@ BLACK, ACCENT, GUN, STEEL, GLOW, WHITE, HOT, DIM = range(8)      # rh_parts.mate
 COCKPIT = (0.60, 0.0, 0.0)                                         # socket Cockpit (Unreal 60, 0, 0)
 CANOPY_X = (0.30, 1.50)              # the Rodin canopy's dark glass, measured from above (y up to +-0.33)
 GUN_Y, GUN_Z = 0.37, -0.565
-NOSE_X = (1.45, 2.40)
+NOSE_X = (1.45, 2.44)
 SPINE_X = (-0.92, 0.27)
 
 
@@ -227,7 +227,11 @@ def build_nose(mats, body, bvh):
         x = min(x, tip)
         # v08: the last 25 cm taper to the Rodin's low, pointed tip (v07 ended in a blunt block)
         k = 1.0 if x <= tip - 0.25 else max(0.0, (tip - x) / 0.25) ** 0.85
-        zt, zb, w = tf(x) + grow, bf(x) - grow, (hf(x) + grow) * k
+        zt, zb = tf(min(x, 2.30)) + grow, bf(min(x, 2.30)) - grow
+        if x > 2.30:                                             # v09: past the Rodin tip, close to a solid point
+            zm = (zt + zb) / 2
+            zt, zb = zm + (zt - zm) * k, zm - (zm - zb) * k
+        w = min(hf(x) * 1.32, 0.27) * k + grow                   # v09: wide enough to cover the cheek shards
         zc = (zt + zb) / 2
         hz = max((zt - zb) / 2, 0.01) * (0.25 + 0.75 * k)
         c, s = math.cos(u), math.sin(u)
@@ -235,8 +239,8 @@ def build_nose(mats, body, bvh):
         return (x, math.copysign(abs(c) ** (2 / n), c) * w, zc + math.copysign(abs(s) ** (2 / n), s) * hz)
     # panel lines as recessed pockets: a seam ring at two stations, the glowing nose slit on the top
     v_lo, v_hi = NOSE_X[0], tip
-    pockets = [{"u0": PI / 2 - 0.42, "u1": PI / 2 + 0.42, "v0": 1.98, "v1": 2.12, "depth": 0.007, "eu": 0.03, "ev": 0.012,
-                "mat": HOT}]                                      # the glowing nose slit, recessed, white-hot core
+    pockets = [{"u0": PI / 2 - 0.10, "u1": PI / 2 + 0.10, "v0": 1.95, "v1": 2.24, "depth": 0.008, "eu": 0.025, "ev": 0.02,
+                "mat": HOT}]                                      # v09: one long, narrow glowing slit along the top
     seams = ((1.72, 1.728), (1.90, 1.908), (2.20, 2.208))        # panel seams: clean dark bands
 
     def mat_fn(u, v):
@@ -245,16 +249,17 @@ def build_nose(mats, body, bvh):
             return BLACK
         if s < -0.25:
             return GUN                                           # dark chin
-        if abs(math.cos(u)) < 0.10 and s > 0 and v < 2.05:
-            return ACCENT                                        # magenta centre stripe over the top
+        if abs(math.cos(u)) < 0.10 and s > 0 and v < 1.90:
+            return ACCENT                                        # magenta centre stripe, ending before the slit
         return WHITE
     nose = G.grid_surface("NS_Nose", lambda u, v: sec(v, u), list(np.linspace(0, 2 * PI, 73)[:-1]),
                           sorted(set(list(np.linspace(v_lo, v_hi, 34)) + [v for ab in seams for v in ab])), mats, pockets=pockets, closed_u=True, cap0="none",
                           cap1="point", mat_fn=mat_fn, smooth_deg=34.0)
     G.bevel(nose, width=0.003, segments=2, angle_deg=34.0)
     # the Rodin nose under the shell goes (remove_hidden takes the rest)
-    cut = _cut(body, lambda c: NOSE_X[0] + 0.05 < c.x and abs(c.y) < hf(min(c.x, xs[-1])) * 0.95 and
-               bf(min(c.x, xs[-1])) + 0.02 < c.z < tf(min(c.x, xs[-1])) - 0.02 and math.hypot(abs(c.y) - GUN_Y, c.z - GUN_Z) > 0.16)
+    cut = _cut(body, lambda c: (NOSE_X[0] + 0.05 < c.x and abs(c.y) < min(hf(min(c.x, xs[-1])) * 1.32, 0.27) * 0.97 and
+               bf(min(c.x, xs[-1])) - 0.01 < c.z < tf(min(c.x, xs[-1])) + 0.01 and math.hypot(abs(c.y) - GUN_Y, c.z - GUN_Z) > 0.13)
+               or (c.x > 2.22 and abs(c.y) < 0.30 and c.z > -0.85 and math.hypot(abs(c.y) - GUN_Y, c.z - GUN_Z) > 0.10))
     return [nose], cut
 
 
@@ -301,7 +306,9 @@ def denoise_sides(body):
             idx.append(v.index)
     vg.add(idx, 1.0, "REPLACE")
     co, tris, pairs, me = D._arrays(body)
-    return D.denoise(body, sigma_s=1.6 * me, sigma_r=0.30, normal_iters=14, vertex_iters=20, mask_group="CP_Sides")
+    # v09 (Lead: "a strong side-panel pass"): flatter panels, wider spatial reach; the cap on vertex travel keeps the form
+    return D.denoise(body, sigma_s=2.6 * me, sigma_r=0.42, normal_iters=40, vertex_iters=40, mask_group="CP_Sides",
+                     max_move=0.03)
 
 
 def build(mats, body):
@@ -353,7 +360,7 @@ def _paint_mask(body, shape, test):
     return mask
 
 
-def clean_livery(path, crack_px=4, smooth_px=10, body=None):
+def clean_livery(path, crack_px=6, smooth_px=10, body=None):
     """In place: fill the AI's jagged dark 'crack' lines inside white / magenta paint with the surrounding paint, and
     calm the streaks in the paint (within each paint class, blend towards its local smoothed colour)."""
     import rh_textures as T
@@ -363,7 +370,7 @@ def clean_livery(path, crack_px=4, smooth_px=10, body=None):
     sat = (mx - mn) / np.maximum(mx, 1e-4)
     white = (lum > 0.32) & (sat < 0.22)
     magenta = (sat > 0.45) & (a[..., 0] > a[..., 1] * 2.0) & (a[..., 2] > a[..., 1] * 1.3) & (lum > 0.05)
-    dark = lum < 0.13
+    dark = lum < 0.20
 
     def box(m, r):
         k = 2 * r + 1
@@ -371,8 +378,8 @@ def clean_livery(path, crack_px=4, smooth_px=10, body=None):
         return (c[k:, k:] - c[:-k, k:] - c[k:, :-k] + c[:-k, :-k]) / (k * k)
 
     fw, fm = box(white, crack_px), box(magenta, crack_px)
-    crack_w = dark & (fw > 0.42)
-    crack_m = dark & (fm > 0.42) & ~crack_w
+    crack_w = dark & (fw > 0.38)
+    crack_m = dark & (fm > 0.25) & ~crack_w           # v09: blade-edge smears
     out = a.copy()
     for cls, crack in ((white, crack_w), (magenta, crack_m)):
         m = cls.astype(np.float64)[..., None]
@@ -388,7 +395,7 @@ def clean_livery(path, crack_px=4, smooth_px=10, body=None):
         region = _paint_mask(body, lum.shape, test)
         region = region[::-1] if False else region
         paint_white = np.median(a[white], axis=0) if white.any() else np.array([0.8, 0.8, 0.82])
-        rp = region & (lum < 0.30)
+        rp = region & ((lum < 0.30) | magenta)                 # v09: the ragged magenta sill stripe goes white too
         out[rp] = paint_white
         repaint_px = int(rp.sum())
     T.save(out, path, True)
@@ -410,7 +417,7 @@ def clean_livery(path, crack_px=4, smooth_px=10, body=None):
         pm = box(paint, 2)[..., None]
         v = nm * 2.0 - 1.0
         soft = np.stack([box(v[..., c] * paint, 6) for c in range(2)], -1) / np.maximum(box(paint, 6)[..., None], 1e-4)
-        xy = v[..., :2] * (1.0 - 0.8 * pm) + soft * 0.8 * pm
+        xy = v[..., :2] * (1.0 - 0.95 * pm) + soft * 0.95 * pm   # v09: cracks carved into the normal map go
         z = np.sqrt(np.clip(1.0 - (xy ** 2).sum(-1), 0.0, 1.0))
         outn = np.concatenate([xy, z[..., None]], -1) * 0.5 + 0.5
         h, w = outn.shape[:2]
