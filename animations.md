@@ -123,6 +123,24 @@ State values: `none`, `placeholder` (works, not good enough), `source in`, `in g
 | Menu backdrop fly-by, victory scene | code | in game | C | T3 |
 | UI motion (HUD pulses, slate, name card, onboarding ticks) | code-drawn | in game | C | T2 / T3; Nick designs the cards |
 
+### 5.5 Crew and pilot: state at the end of the night of Nov 13-14 (animation builder)
+
+What the game plays today per type (T5's lookup `A_Crew_<Type>_<Action>`, a clip on the mesh's own skeleton), and how far each was checked. "Live" = seen in a running fight; "held" = the clip frozen in the running game; "log" = `td.Crew.LogHits`.
+
+| Who | Clips in the game | Checked | Open |
+|---|---|---|---|
+| Grunt | `Charge` (run loop, 0.97 s), `Melee_02` (contact 0.45 s) and `Melee_03` (a kick, 0.48 s) alternating, `HitReact_01`, `Death_Front` (hips tipped down), `_Back`, `_Left` (= Back fall), `_Right` (the Trooper's fall) | deaths on real kills; melee live and log | damage lands 0.43-0.57 s into the clip, not at the pose every time (T5: the damage instant varies) |
+| Trooper | `Idle_Aim`, `Fire_Burst` (0.40 s), `HitReact_Front` / `_Back`, `Death_Front/_Back/_Left/_Right` (in place, settled) | deaths on real kills; fire and hit reacts live | the front hit react is small (a step); the mesh has no rifle; `Reload_Rifle`, `Cover_*`, `Alert` have no AI state |
+| Heavy | `ShieldBash` (1.83 s, contact 0.70 s, torso raised at the hit, planted slide 3 / 7 cm), `Stagger`, `Death_Front` (after a guard break), `_Back`, `_Left` and `_Right` (= Back fall) | bash live and log (0.71-0.75 s); deaths on real kills | the shield leads at shoulder height, tilted up |
+| Warden | `Guard`, `Walk`, `Fire_01` (0.50 s), `Summon_01` (authored on the guard pose, arm up at 0.50 s), `Slam` (2.03 s, contact 1.30 s), `Stagger`, `Death_*` (one fall for all four sides, 2.77 s). Shield rigid on `lowerarm_l` | guard, walk, fire, summon live; slam log (1.303 s); death held | no stagger seen on a hit (what triggers it is T5's); the death's shield rests on edge by the head; the walk carries the shield low |
+| Pilot | grip layer and `BladeSocket`; `Idle3_v2`, `Walk_v2`, `Light1/2/3_v2`, `Heavy_v3`, `AirSlam_Land_v2`; made with no code slot: `A_Pilot_Interact` (1.13 s, left-hand press by arm IK, blade arm and facing constant), `Board_Ship` (1.10 s), `Exit_Ship` (0.63 s), `Blade_Death1_v2/2_v2` | swings and grip in game; interact, board and exit held | slots for interact, board, exit and the deaths (T5); thumb skin spikes on the grip |
+
+**Left for Ryan (not started):**
+- Pilot foot IK on slopes: the body runs on the native `UTDLoopBlendAnimInstance`, so it needs per-foot ground traces and a two-bone solve in that proxy (T5's file); about half a day.
+- Landing gear: the three ship meshes have no gear geometry, sockets or bones; gear must be modelled and attached per ship, with a hook on `ETDLandingStep::GearDown / GearUp`.
+- Tools made this night, for whoever continues: `ArtSource/EngAnim/PilotFixes/scripts/ue_pilot_fixes.py` (copies, retimes, splices, pose borrowing), `ue_body_tool.py` (body shift, leg and arm IK, chest yaw and pitch, foot cap, retime on an existing clip), `ue_crew_author.py` (authored moves on a base clip), `death_capture.py`, `crew_capture.py`, `fight_capture.py` (real kills, held frames, live fights with timed commands and a close camera).
+
+
 ## 6. Order of work (Nov 13-14)
 1. **Audit what exists** (animation builder, now): a capture strip of every pilot and crew move from both cameras,
    scored against §4, the worst five named. This decides which Grok Bot clips are needed first.
