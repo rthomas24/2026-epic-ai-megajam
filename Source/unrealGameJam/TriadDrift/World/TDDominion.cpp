@@ -400,7 +400,7 @@ FTransform ATDDominion::GetEscapeStart() const
 
 float ATDDominion::GetEscapeExitRadius() const
 {
-	return FMath::Max(GetLocalHullBounds().GetExtent().Size() * EscapeExitHullRadii, ShieldRadius * 2.f);
+	return FMath::Max3((float)GetLocalHullBounds().GetExtent().Size() * EscapeExitHullRadii, ShieldRadius * 2.f, EscapeExitDistance);
 }
 
 // ------------------------------------------------------------------------------------------ escape flight
@@ -430,7 +430,9 @@ void ATDDominion::BeginEscapeFlight()
 		GI->BeginScene(EscapeSceneId);
 		GI->SaveCheckpoint();
 	}
-	UTDStorySubsystem::Fire(this, TEXT("A5_Escape"));	// once per run: T5's escape run usually played it already
+	// A5_Escape ("Ninety seconds. Move!") is the ON-FOOT run's line and clock (storyline 29, T5's 90 s): the flight is
+	// its own beat with its own clock, so it never repeats that number (T7's playtest: "Ninety seconds" over a 60 s flight).
+	UTDStorySubsystem::Fire(this, TEXT("G9_Wren_PullAway"));	// "Triad, pull away. Follow the clear vector."
 	UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: escape flight - %.0f s to get %.0f m clear"), EscapeSeconds, GetEscapeExitRadius() / 100.f);
 }
 

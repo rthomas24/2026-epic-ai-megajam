@@ -21,6 +21,8 @@
 #include "TriadDrift/Tests/TDTestWorld.h"
 
 #include "EngineUtils.h"
+#include "Engine/StaticMesh.h"
+#include "Components/StaticMeshComponent.h"
 
 namespace
 {
@@ -305,6 +307,39 @@ bool FTDBehPowers::RunTest(const FString& Parameters)
 	TestFalse(TEXT("Gravity Well: can't fire inside"), G->TryStartAttack(ETDEnemyAttack::MissileSalvo, T));
 	W.Advance(2.1f);
 	TestTrue(TEXT("Gravity Well: fires again after"), G->TryStartAttack(ETDEnemyAttack::MissileSalvo, T));
+	return true;
+}
+
+
+// T6's field, Nov 14 (Lead's rule): an enemy blocked by something it did not see coming (here a 60 m sphere that is not a
+// registered obstacle, the worst case) backs off and re-routes after ~1 s instead of grinding against it for seconds.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBehUnstick, "TriadDrift.Enemies.Behaviour.BlockedEnemyBacksOffAndReroutes", TD_TEST_FLAGS)
+bool FTDBehUnstick::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDEnemyBeh_SquadShip(W, FVector(30000.f, 0.f, 0.f));
+	AActor* Rock = W.Spawn<AActor>(FVector(8000.f, 0.f, 0.f));
+	UStaticMeshComponent* Ball = NewObject<UStaticMeshComponent>(Rock, TEXT("Ball"));
+	Ball->SetMobility(EComponentMobility::Movable);
+	Ball->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere")));
+	Ball->SetWorldScale3D(FVector(60.f));
+	Ball->SetCollisionProfileName(TEXT("BlockAll"));
+	Rock->SetRootComponent(Ball);
+	Ball->RegisterComponent();
+	Rock->SetActorLocation(FVector(8000.f, 0.f, 0.f));
+	ATDEnemyShip* F = TDEnemyBeh_Enemy(W, TDEnemyIds::ShardFighter, FVector::ZeroVector, true);
+	ATDEnemyAIController* AI = TDEnemyBeh_AIOf(F);
+	if (!TestNotNull(TEXT("AI"), AI)) { return false; }
+	float Pinned = 0.f, LongestPinned = 0.f, Run = 0.f;
+	for (int32 i = 0; i < 30 * 20; ++i)
+	{
+		W.Tick(1.f / 30.f);
+		const bool bTouching = FVector::Dist(F->GetActorLocation(), Rock->GetActorLocation()) < 3000.f + 600.f;
+		if (bTouching && F->GetVelocity().Size() < 300.f) { Run += 1.f / 30.f; Pinned += 1.f / 30.f; LongestPinned = FMath::Max(LongestPinned, Run); }
+		else { Run = 0.f; }
+	}
+	AddInfo(FString::Printf(TEXT("pinned %.1f s in all, longest %.1f s; %d back-offs"), Pinned, LongestPinned, AI->GetBackOffCount()));
+	TestTrue(*FString::Printf(TEXT("never pinned against the rock for more than 2 s at a time (%.1f s)"), LongestPinned), LongestPinned <= 2.f);
 	return true;
 }
 
