@@ -1370,10 +1370,14 @@ void UTDFlightHUDWidget::LayoutChips()
 static TAutoConsoleVariable<int32> CVarTDUIMinimalHUD(
 	TEXT("TD.UI.MinimalHUD"), 0, TEXT("1 = the ENG-36 flight HUD (small squad chips, no squad panel or radar); 0 = the #160 HUD."));
 
+static TAutoConsoleVariable<float> CVarTDUISubtitleScale(
+	TEXT("TD.UI.SubtitleScale"), 0.f, TEXT("Dev, captures: force the flight subtitle scale (0.8 Small, 1 Medium, 1.3 Large); 0 = the player's setting."));
+
 void UTDFlightHUDWidget::UpdateSquadCards(float Dt)
 {
 	View.bSquadPanel = CVarTDUIMinimalHUD.GetValueOnGameThread() == 0;
-	View.SubtitleScale = FMath::Clamp(UTDSettingsSubsystem::GetSubtitleScale(this), .5f, 2.f);
+	const float ForcedScale = CVarTDUISubtitleScale.GetValueOnGameThread();
+	View.SubtitleScale = FMath::Clamp(ForcedScale > 0.f ? ForcedScale : UTDSettingsSubsystem::GetSubtitleScale(this), .5f, 2.f);
 	// Below 900 px of height the design frame would shrink the text under its 1080 size: the cards go to 85% and the
 	// text keeps its 1080 pixels instead (Lead's rule for #160).
 	const float Scale = FMath::Min(ViewportSize.X / 1920.f, ViewportSize.Y / 1080.f);
