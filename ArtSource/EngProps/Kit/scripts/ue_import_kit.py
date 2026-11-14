@@ -399,6 +399,15 @@ def configure_dominion():
                 "decals": True})
 NO_COLLISION = ("SM_Kit_LightStrip_200", "SM_Kit_LightPillar")
 
+
+def configure_bridge():
+    """Walkable crossings (export_bridge: SM_Kit_MagmaBridge): the planet trim in Props/Kit, no screen, no extras;
+    only the bridge's own manifest is imported, its report in review/ue_import_bridge.json."""
+    global SIZE_CHECK, SCREEN_MI
+    SIZE_CHECK = os.path.join(KIT, "review", "size_check_B_r1.json")
+    SCREEN_MI = None
+    SET.update({"export": "export_bridge", "extras": False, "report": "ue_import_bridge.json"})
+
 eas = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()
 mel = unreal.MaterialEditingLibrary
@@ -702,7 +711,7 @@ def main():
                "hulls": hulls, "asymmetric_side": side, "notes": n}
         rows.append(row)
         log(json.dumps(row))
-    out = os.path.join(KIT, "review", "ue_import_report.json")
+    out = os.path.join(KIT, "review", SET.get("report", "ue_import_report.json"))
     with open(out, "w", encoding="utf-8") as fh:
         json.dump(rows, fh, indent=1)
     log("report: %s; notes %s" % (out, notes))
@@ -716,4 +725,6 @@ def main():
 if __name__ == "__main__":
     if os.environ.get("TD_KIT_SET") == "dominion":
         configure_dominion()
+    elif os.environ.get("TD_KIT_SET") == "bridge":
+        configure_bridge()
     main()

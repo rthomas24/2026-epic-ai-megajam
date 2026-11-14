@@ -601,6 +601,20 @@ def ship_gear():
     return out
 
 
+def magma_bridge():
+    """Cinder: the magma bridge on the conduit route (T7's play: the route crosses the magma river). SM_Kit_MagmaBridge
+    is one mesh: pivot on the bank ground at the span centre, +X along the span; 200 cm ramps (14 degrees) at both ends
+    up to a 2400 cm deck, walk top 50 (the magma trigger ends 10 cm above the surface), 300 cm between the rails."""
+    return {"Bridge_Magma": {"site": "Bridge_Magma", "actor": K + "Sites/BP_MagmaBridge",
+            "about": "Cinder magma bridge (walkable kit, exact collision): 2800 x 370 cm overall, deck top 50 cm, walk width 300 cm.",
+            "pieces": [piece("Bridge", "SM_Kit_MagmaBridge", 0.0, 0.0, 0.0)],
+            "footprint_cm": {"x": [-1400, 1400], "y": [-185, 185]}, "deck_top_z": 50, "walk_width_cm": 300,
+            "ramp_feet_site_cm": [[-1400, 0, 0], [1400, 0, 0]], "deck_x_cm": [-1200, 1200],
+            "placement_rules": ["Pivot at the river's centre line on the conduit route, Z = the bank ground; yaw so +X runs along the route.",
+                                "Both ramp feet (x +-1400) on dry ground: the magma channel must lie within x -1200..1200 (24 m deck).",
+                                "The piers (x +-400, down to -150) stand in the magma; nothing else under the deck."]}}
+
+
 def main():
     out = os.path.join(KIT, "sites")
     os.makedirs(out, exist_ok=True)
@@ -615,6 +629,7 @@ def main():
     sites.update(region_sites())
     sites.update(survey_stations())
     sites.update(ship_gear())
+    sites.update(magma_bridge())
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)

@@ -1,0 +1,945 @@
+{
+ "status": "ok",
+ "scene_units": {
+  "system": "METRIC",
+  "scale_length": 1.0,
+  "length_unit": "METERS"
+ },
+ "objects": [
+  {
+   "name": "SM_Kit_MagmaBridge",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    2800.0,
+    370.0,
+    310.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 2448,
+   "faces": 2326,
+   "tris": 4728,
+   "quads": 2310,
+   "ngons": 12,
+   "boundary_edges": 120,
+   "non_manifold_edges": 114,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 0.997,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 2326
+   },
+   "local_bbox_min": [
+    -14.0,
+    -1.85,
+    -1.5
+   ],
+   "local_bbox_max": [
+    14.0,
+    1.85,
+    1.6
+   ],
+   "origin_placement": "center"
+  },
+  {
+   "name": "UCX_SM_Kit_MagmaBridge_00",
+   "type": "MESH",
+   "parent": "SM_Kit_MagmaBridge",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    2400.0,
+    300.0,
+    20.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -12.0,
+    -1.5,
+    0.3
+   ],
+   "local_bbox_max": [
+    12.0,
+    1.5,
+    0.5
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_MagmaBridge_01",
+   "type": "MESH",
+   "parent": "SM_Kit_MagmaBridge",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    200.0,
+    300.0,
+    50.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 6,
+   "faces": 8,
+   "tris": 8,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 8
+   },
+   "local_bbox_min": [
+    -14.0,
+    -1.5,
+    0.0
+   ],
+   "local_bbox_max": [
+    -12.0,
+    1.5,
+    0.5
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_MagmaBridge_02",
+   "type": "MESH",
+   "parent": "SM_Kit_MagmaBridge",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    200.0,
+    350.0,
+    50.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -12.0,
+    -1.75,
+    -0.2
+   ],
+   "local_bbox_max": [
+    -10.0,
+    1.75,
+    0.3
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_MagmaBridge_03",
+   "type": "MESH",
+   "parent": "SM_Kit_MagmaBridge",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    200.0,
+    300.0,
+    50.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 6,
+   "faces": 8,
+   "tris": 8,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 8
+   },
+   "local_bbox_min": [
+    12.0,
+    -1.5,
+    0.0
+   ],
+   "local_bbox_max": [
+    14.0,
+    1.5,
+    0.5
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_MagmaBridge_04",
+   "type": "MESH",
+   "parent": "SM_Kit_MagmaBridge",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    200.0,
+    350.0,
+    50.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    10.0,
+    -1.75,
+    -0.2
+   ],
+   "local_bbox_max": [
+    12.0,
+    1.75,
+    0.3
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_MagmaBridge_05",
+   "type": "MESH",
+   "parent": "SM_Kit_MagmaBridge",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    2400.0,
+    31.0,
+    200.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -12.0,
+    -1.75,
+    -0.4
+   ],
+   "local_bbox_max": [
+    12.0,
+    -1.44,
+    1.6
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_MagmaBridge_06",
+   "type": "MESH",
+   "parent": "SM_Kit_MagmaBridge",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    200.0,
+    6.0,
+    160.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -14.0,
+    -1.5,
+    0.0
+   ],
+   "local_bbox_max": [
+    -12.0,
+    -1.44,
+    1.6
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_MagmaBridge_07",
+   "type": "MESH",
+   "parent": "SM_Kit_MagmaBridge",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    200.0,
+    6.0,
+    160.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    12.0,
+    -1.5,
+    0.0
+   ],
+   "local_bbox_max": [
+    14.0,
+    -1.44,
+    1.6
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_MagmaBridge_08",
+   "type": "MESH",
+   "parent": "SM_Kit_MagmaBridge",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    2400.0,
+    31.0,
+    200.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -12.0,
+    1.44,
+    -0.4
+   ],
+   "local_bbox_max": [
+    12.0,
+    1.75,
+    1.6
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_MagmaBridge_09",
+   "type": "MESH",
+   "parent": "SM_Kit_MagmaBridge",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    200.0,
+    6.0,
+    160.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -14.0,
+    1.44,
+    0.0
+   ],
+   "local_bbox_max": [
+    -12.0,
+    1.5,
+    1.6
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_MagmaBridge_10",
+   "type": "MESH",
+   "parent": "SM_Kit_MagmaBridge",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    200.0,
+    6.0,
+    160.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    12.0,
+    1.44,
+    0.0
+   ],
+   "local_bbox_max": [
+    14.0,
+    1.5,
+    1.6
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_MagmaBridge_11",
+   "type": "MESH",
+   "parent": "SM_Kit_MagmaBridge",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    120.0,
+    370.0,
+    110.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -4.6,
+    -1.85,
+    -1.5
+   ],
+   "local_bbox_max": [
+    -3.4,
+    1.85,
+    -0.4
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_MagmaBridge_12",
+   "type": "MESH",
+   "parent": "SM_Kit_MagmaBridge",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    120.0,
+    370.0,
+    110.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    3.4,
+    -1.85,
+    -1.5
+   ],
+   "local_bbox_max": [
+    4.6,
+    1.85,
+    -0.4
+   ],
+   "origin_placement": "custom"
+  }
+ ],
+ "totals": {
+  "objects": 14,
+  "tris": 4876,
+  "errors": 0,
+  "warnings": 1
+ },
+ "issues": [
+  {
+   "severity": "warn",
+   "object": "SM_Kit_MagmaBridge",
+   "message": "114 non-manifold edges (edges shared by 3+ faces)"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_MagmaBridge",
+   "message": "12 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_MagmaBridge",
+   "message": "120 open boundary edges (mesh is not closed); OK for planes/cards"
+  }
+ ]
+}
