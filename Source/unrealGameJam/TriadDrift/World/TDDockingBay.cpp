@@ -433,7 +433,10 @@ void ATDDockingBay::Tick(float DeltaSeconds)
 		// The beam runs for the whole pull-in at full intensity. A staged or scripted approach starts inside the mouth and
 		// goes straight to the glide, so the tractor phase (the only caller of UpdateBeam before) never ran and the cue was
 		// never created (effects builder, Nov 14).
-		UpdateBeam(Ship, 1.f);
+		// Played (Nov 14): at intensity 1 all the way in, the camera sat inside the column and the screen went white in
+		// the bay. The beam fades from 1 at the commit to 0 at the mouth: it reads on the approach and is gone inside.
+		const float AlongMouth = (float)FVector::DotProduct(Ship->GetActorLocation() - GetMouth(), GetOutward());
+		UpdateBeam(Ship, FMath::Clamp(AlongMouth / FMath::Max(MouthDistance, 1.f), 0.f, 1.f));
 		if (T >= 1.f)
 		{
 			// T1 (live, Nov 14): commit to load is now ~5 s, which cut the Docking lines (G6 cover-the-bay, C7 way-out).
