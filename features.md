@@ -504,6 +504,17 @@ complete, so none is a build item; do them only when every row of the complete-g
 28. The galaxy map screen (ART-09, ENG-02; its key is hidden today).
 29. Persistent battle damage on the ships after Verdance (Gameplay 03 asks "if possible").
 30. Second skins and damage variants beyond the insignia clue (ART-18).
+31. **Three genuinely different endings** (Nicholas's idea, N-052; **Ryan, Nov 13 20:55: "Yes, if time allows"**). This is
+    the first optional extra to take once the checklist rows are 🟢. The current ending stays the submission baseline
+    until all three are built, tested and played.
+    - **Design:** Nicholas decides what differs (the choice, the outcome, the final lines, the caption). Ryan's Lead
+      proposes cheap levers: the boarding pilot, the reactor-fight result and the escape outcome.
+    - **Owners:**
+      - T3: the ending sequences, captions and lines by id;
+      - T5: the choice hook and the state that decides the ending;
+      - Nick's Story Director: the words.
+    - **Done when:** each ending is reachable in a normal play, has its own sequence and caption, saves and Continues
+      correctly, and the journey test covers all three.
 
 ---
 
