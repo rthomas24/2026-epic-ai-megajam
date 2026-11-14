@@ -288,3 +288,14 @@ Fourteen more fallback sounds (27 takes) in `Content/TriadDrift/Gameplay/Audio/`
 | Dominion escape alarm (loop) | `Dominion/SW_Dominion_EscapeAlarm_01` | same | project-authored | same |
 | Space-field breaks: small, medium, large, special | `Field/MSS_Field_Break_{Small,Medium,Large,Special}` (4, 3, 2, 2 takes) | same; MetaSound one-shots built with Unreal's MetaSound toolset | project-authored | same |
 | Ship impact thuds: light and heavy | `Impacts/MSS_Ship_Impact_Thud`, `Impacts/MSS_Ship_Impact_Heavy` (3 takes each) | same | project-authored | same |
+
+### Engineering originals added in batch M (asset ledger pass) - November 14, 2026
+
+Original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan T, in Blender 5.2 (headless Python) or in Unreal Engine 5.9 by script. No AI mesh, image or texture generator and no third-party asset, except the Hyper3D Rodin hulls they are built onto (credited above).
+
+| Asset | Tool | Licence / provenance | Added by |
+|---|---|---|---|
+| Lancer hybrid: `SM_Lancer` (designed cannons and cockpit), `SM_Lancer_Canopy`, `MI_Lancer_Parts`, `MI_Lancer_Canopy`, `T_Lancer_Parts_BC/N/ORM/E/HeatMask` in `Content/TriadDrift/Gameplay/Ships/Lancer/` | Blender 5.2: parts modelled and baked on the Hyper3D Rodin Lancer hull (`ArtSource/EngShips`) | project-authored over the Rodin output (Hyper3D terms, paid Business plan) | Claude Code (Ryan's side, ship builder) |
+| Bastion parts: `MI_Bastion_Parts`, `T_Bastion_Parts_BC/N/ORM/E/HeatMask` in `Content/TriadDrift/Gameplay/Ships/Bastion/` | Blender 5.2, parts modelled and baked on the Rodin Bastion hull | same | same |
+| Ship canopies: `SM_Rift_Canopy`, `MI_Rift_Canopy` in `Ships/Rift/`, `SM_Lancer_Canopy` above, and the glass master `M_TD_ShipGlass` in `Ships/Materials/` | Blender 5.2 (canopy meshes); material built by script in Unreal | project-authored | same |
+| Planet sea: `M_TD_PlanetSea`, `MI_PlanetSea_Verdance`, `MI_PlanetSea_Cinder` in `Content/TriadDrift/Gameplay/Props/Planets/` | Material built in Unreal by script (procedural: no textures from outside) | project-authored | Claude Code (Ryan's side, environment builder) |
