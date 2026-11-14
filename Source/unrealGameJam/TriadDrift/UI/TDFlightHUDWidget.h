@@ -197,6 +197,13 @@ public:
 		FVector2D Size = FVector2D::ZeroVector;
 		/** Cached texts, rebuilt only when their number changes (no per-frame formatting). */
 		FString HullText, ShieldText, DownText, Key;
+		/** Ability cooldown in whole seconds ("7"), empty when ready; overcharge seconds ("OVERCHARGE 6.2"). */
+		FString AbilitySecondsText, OverchargeText;
+		/** Status flags (step 2): shown as tags above the card, in priority order. */
+		bool bCloaked = false;
+		bool bDomeUp = false;
+		bool bAfterburn = false;
+		bool bOvercharge = false;
 	};
 
 	struct FView
@@ -586,6 +593,8 @@ private:
 	int32 CardHullShown[3] = { -1, -1, -1 };
 	int32 CardShieldShown[3] = { -1, -1, -1 };
 	int32 CardDownShown[3] = { -2, -2, -2 };
+	int32 CardAbilitySecShown[3] = { -1, -1, -1 };
+	int32 CardOverShown[3] = { -1, -1, -1 };
 	FTDWaveInfo FrameWave;
 	/** #154: the subtitle's wrap, cached per text / size / width (NativePaint is const). */
 	mutable FString SubWrapText;
