@@ -16,10 +16,10 @@ ACCENTS = {
     "magenta": dict(paint=(0.80, 0.03, 0.46), glow=(0.55, 0.05, 0.42), glow_e=(1.0, 0.10, 0.78),
                     hot=(0.8, 0.5, 0.75), hot_e=(1.0, 0.72, 0.95), dim=(0.2, 0.02, 0.15), dim_e=(0.13, 0.008, 0.095),
                     glass=(0.03, 0.02, 0.06)),
-    "cyan": dict(paint=(0.035, 0.50, 0.80), glow=(0.08, 0.42, 0.55), glow_e=(0.25, 0.91, 1.0),
+    "cyan": dict(paint=(0.03, 0.52, 0.82), accent_e=(0.006, 0.10, 0.16), glow=(0.08, 0.42, 0.55), glow_e=(0.25, 0.91, 1.0),
                  hot=(0.55, 0.78, 0.82), hot_e=(0.72, 0.97, 1.0), dim=(0.02, 0.14, 0.2), dim_e=(0.02, 0.09, 0.13),
                  glass=(0.015, 0.045, 0.06)),
-    "amber": dict(paint=(0.85, 0.40, 0.03), glow=(0.55, 0.33, 0.05), glow_e=(1.0, 0.70, 0.12),
+    "amber": dict(paint=(0.85, 0.40, 0.03), accent_e=(0.17, 0.08, 0.006), glow=(0.55, 0.33, 0.05), glow_e=(1.0, 0.70, 0.12),
                   hot=(0.82, 0.74, 0.5), hot_e=(1.0, 0.90, 0.6), dim=(0.2, 0.11, 0.02), dim_e=(0.13, 0.07, 0.01),
                   glass=(0.06, 0.04, 0.015)),
 }
@@ -61,18 +61,21 @@ SHIPS = {
         # measured on mesh_r1: the dark canopy runs x -0.72 .. 0.46 on the centre line, about 0.24 half-wide, its top
         # about 0.27 above the deck around it (the tub is 0.29 deep so the seat head clears the glass)
         canopy=dict(cockpit=(0.25, 0.0, 0.0), x=(-0.72, 0.46), wmax=0.24, deck=0.31, ox=-0.92, ky=0.74, bows=(-0.14, 0.24),
-                    plan=(0.20, 0.80), dome="super", cutk=1.06, sill_w=0.06, skirt=(0.075, 0.05)),
+                    plan=(0.20, 0.80), dome="super", cutk=1.06, sill_w=0.06, skirt=(0.075, 0.05), seat_head=0, hk=1.2),
         # the long twin barrel is on Blender +Y (Unreal -Y, Muzzle_0), the short pod on the other side: both go
-        guns=dict(kind="lancer", y=0.45, z=-0.59, x0=0.84, tip=1.52, cut_x=1.0),
+        guns=dict(kind="lancer", y=0.45, z=-0.59, x0=0.90, tip=1.52, cut_x=1.0),
         # the needle prow: stations (x, top z, bottom z, half width) measured on mesh_r1
-        nose=dict(kind="needle", table=[
+        # Two fresh-eyes reviews judged the modelled prow (kind "needle", v01-v03) a regression: a smooth shell out of
+        # style with the panelled hull. The Rodin prow stays (its maps cleaned like the rest of the hull); the needle
+        # builder and these stations stay for a later, better-detailed attempt: nose=NEEDLE.
+        nose=None, spine=None, needle=dict(kind="needle", table=[
             (1.20, -0.283, -0.620, 0.193), (1.30, -0.302, -0.604, 0.188), (1.40, -0.330, -0.588, 0.173),
             (1.50, -0.357, -0.573, 0.151), (1.60, -0.378, -0.563, 0.113), (1.70, -0.401, -0.551, 0.087),
             (1.80, -0.422, -0.548, 0.071), (1.90, -0.444, -0.543, 0.045), (2.00, -0.464, -0.546, 0.034),
             (2.10, -0.484, -0.552, 0.028), (2.20, -0.502, -0.552, 0.024), (2.30, -0.521, -0.558, 0.019),
             (2.40, -0.539, -0.562, 0.015), (2.50, -0.553, -0.573, 0.012), (2.62, -0.570, -0.578, 0.004)],
             x0=1.24, gun_y=0.45, gun_z=-0.59),
-        spine=dict(x=(0.60, 1.20), edges=[0.60, 0.90, 1.20], hcap=0.20, hdef=0.18, tdef=-0.2),
+        deck=dict(x=(0.60, 1.20), edges=[0.60, 0.90, 1.20], hcap=0.20, hdef=0.18, tdef=-0.2),    # v01-v03 deck plates, unused
         sides=None,
         repaint=[(-0.82, 0.58, 0.31, 0.0, -0.10, 0.30)], repaint_accent=False,
     ),

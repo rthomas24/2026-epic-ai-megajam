@@ -81,13 +81,29 @@ SHIPS = {
                  # close-range parts (rh_closeparts.py, v07): the canopy glass is its own non-Nanite part at Cockpit
                  parts=(("Portal", "SM_Rift_PortalDisc", "Portal"), ("Canopy", "SM_Rift_Canopy", "Cockpit"))),
     "Lancer": dict(da=(SQUAD, "DA_Lancer_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Lancer", old_mi=None, squad=True, glow=SQUAD_GLOW["Lancer"],
-                   emissive=6.0, base_tint=(1.0, 1.0, 1.0), rough=1.45, self_light=0.08, detail=0.55, trail_scale=0.7, glow_strength=1.0,
+                   emissive=6.0, base_tint=(1.0, 1.0, 1.0), self_light=0.08, detail=0.55, trail_scale=0.7, glow_strength=1.0,
                    # boost_scale=0.55 would set BoostLoop / BoostStart VFXScale, but the Lancer's boost cues have no VFX: the
                    # boost plume is the EngineTrail system's own "Boost" parameter (ATDShip::UpdateExhaustParams), so a
                    # boost-only size needs a per-ship parameter in that system (effects builder), not this data asset.
                    # close-range pass: 370 texels per metre at 2K, UV 0..1 spans about 5.5 m: tiling 7 = 0.8 m tiles
-                   squad_detail=True, tex_r2=("BC", "E"), mi_params={"MetallicScale": 0.25, "RoughnessMin": 0.36, "DetailTiling": 7.0,
-                                                 "DetailStrength": 0.5, "DetailAO": 0.6, "DetailRough": 0.25}),
+                   squad_detail=True, mi_params={"MetallicScale": 0.25, "RoughnessMin": 0.36, "DetailTiling": 7.0,
+                                                 "DetailStrength": 0.5, "DetailAO": 0.6, "DetailRough": 0.25},
+                   # The HYBRID (second ship builder, Nov 13 night; rh_hybrid.py --ship Lancer, ArtSource/EngShips/LancerHero):
+                   # the Rodin hull with cleaned maps (roughness evened: scale 1), a second slot M_Lancer_Parts (canopy
+                   # frame, tub, seat and pilot, the symmetric cannons, the needle prow, deck plates) and the tinted
+                   # canopy glass as its own non-Nanite part at Cockpit. TD_RODIN_PLAIN=Lancer imports the plain Rodin
+                   # Lancer of ArtSource/EngShips/Lancer again (the "plain" values replace these).
+                   # the parts keep their own darks (no BaseFloor, tint 1: on the Rift the ring and engines read as black
+                   # chrome, here the lifted gunmetal read as pale grey plastic on the pad)
+                   rough=1.0, kit=os.path.join("LancerHero", "export"), parts_emissive=2.2,
+                   parts_rough=1.1, parts_tint=(1.0, 1.0, 1.0), parts_floor=0.0, parts_metal=0.45, parts_self_light=0.06,
+                   parts_params={"MetallicScale": 0.45, "RoughnessMin": 0.24, "DetailTiling": 8.0, "DetailStrength": 0.35},
+                   parts=(("Canopy", "SM_Lancer_Canopy", "Cockpit"),),
+                   # (review: on the planet pad the glass went milky white: lit translucency picks up the bright fogged sky as a
+                   # metallic mirror. Non-metal, a weak sheen, more opaque and darker: the pilot reads on foot too)
+                   glass={"Tint": (0.008, 0.05, 0.085), "SheenColor": (0.45, 0.75, 0.85), "Opacity": 0.91, "SheenStrength": 0.12,
+                          "Metallic": 0.0, "Specular": 0.3, "Roughness": 0.08, "TintGlow": 0.12},
+                   plain=dict(rough=1.45, tex_r2=("BC", "E"), kit=None, parts=())),
     "Bastion": dict(da=(SQUAD, "DA_Bastion_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Bastion", old_mi=None, squad=True, glow=SQUAD_GLOW["Bastion"],
                     emissive=6.0, base_tint=(1.5, 1.5, 1.5), rough=1.25, self_light=0.12, detail=0.55, trail_scale=0.7,
                     glow_strength=0.55,
@@ -234,9 +250,10 @@ def detail_set(ship, dest, notes, mi_only):
         p = os.path.join(SQUAD_DETAIL, "T_%s_Detail_%s.png" % (ship, tag))
         if os.path.isfile(p):
             files[suffix] = p
-    if not files:
+    have = all(eas.does_asset_exist("%s/T_%s_Detail_%s" % (dest, ship, t)) for t in ("N", "RM"))
+    if not files and not have:
         return {}
-    if mi_only and all(eas.does_asset_exist("%s/T_%s_Detail_%s" % (dest, ship, t)) for t in ("N", "RM")):
+    if not files or mi_only and have:      # (no source files here: SquadDetail_r1 not merged into this checkout; the imported maps are used)
         return {s_: eas.load_asset("%s/T_%s_Detail_%s" % (dest, ship, s_[6:])) for s_ in ("DetailN", "DetailRM")}
     got = import_textures(files, dest, 1024, notes)
     for t in got.values():
@@ -883,8 +900,13 @@ def main():
     sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
     master = None
     order = [s for s in SHIPS if not only or s in only]
+    plain = [s.strip() for s in os.environ.get("TD_RODIN_PLAIN", "").split(",") if s.strip()]
     for ship in order:
         cfg = SHIPS[ship]
+        if ship in plain and cfg.get("plain"):      # back to the plain Rodin ship (no hybrid kit, no attached parts)
+            cfg = dict(cfg, **cfg["plain"])
+            for k in [k for k, v in cfg.items() if v is None]:
+                del cfg[k]
         notes = []
         mi_only = mi_env == "1" or ship in mi_list
         if ship in revert:
@@ -899,7 +921,7 @@ def main():
             bad += 0 if got else 1
             continue
         asset = "SM_" + ship
-        folder = os.path.join(KIT, cfg.get("kit", ship))
+        folder = os.path.join(KIT, cfg.get("kit") or ship)
         man_path = os.path.join(folder, asset + ".manifest.json")
         fbx = os.path.join(folder, asset + ".fbx")
         if not (os.path.isfile(man_path) and os.path.isfile(fbx)):
@@ -1096,6 +1118,11 @@ def main():
                 "MI_%s_%s" % (ship, part_name), dest, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
             if part_name == "Canopy":
                 mel.set_material_instance_parent(pmi, ensure_glass())
+                for pname, value in cfg.get("glass", {}).items():       # per-ship tint (the master's default is the Rift's)
+                    if isinstance(value, tuple):
+                        mel.set_material_instance_vector_parameter_value(pmi, pname, unreal.LinearColor(value[0], value[1], value[2], 1.0))
+                    else:
+                        mel.set_material_instance_scalar_parameter_value(pmi, pname, value)
                 eas.save_loaded_asset(pmi)
                 for i in range(len(pmesh.static_materials)):
                     pmesh.set_material(i, pmi)

@@ -27,7 +27,8 @@ def materials(accent=None):
                        hot=(0.8, 0.5, 0.75), hot_e=(1.0, 0.72, 0.95), dim=(0.2, 0.02, 0.15), dim_e=(0.13, 0.008, 0.095))
     return [
         G.mat("MP_Black", (0.012, 0.012, 0.016), metallic=0.6, roughness=0.62),
-        G.mat("MP_Accent", a["paint"], metallic=0.25, roughness=0.32),
+        # accent_e: a little self-light, where the Rodin hull's own accent paint is in its emissive map (Lancer, Bastion)
+        G.mat("MP_Accent", a["paint"], metallic=0.25, roughness=0.32, emission=a.get("accent_e"), strength=3.0 if a.get("accent_e") else 0.0),
         G.mat("MP_Gunmetal", (0.085, 0.09, 0.105), metallic=0.92, roughness=0.36),
         G.mat("MP_Steel", (0.30, 0.31, 0.34), metallic=0.95, roughness=0.30),
         G.mat("MP_Glow", a["glow"], roughness=0.5, emission=a["glow_e"], strength=3.0),

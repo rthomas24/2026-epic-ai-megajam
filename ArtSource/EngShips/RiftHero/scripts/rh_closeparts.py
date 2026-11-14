@@ -233,6 +233,10 @@ def build_canopy(mats, body, bvh):
         pts = [(x, sy * plan_w(x), zdome(x, sy * plan_w(x), 0.014)) for x in np.linspace(CANOPY_X[0] + 0.03, CANOPY_X[1] - 0.03, 30)]
         parts.append(sweep_rect("CP_Sill_%d" % sy, pts, ca.get("sill_w", 0.052), 0.024, mats, WHITE))
     if ca.get("skirt"):
+        # (one-sided in Unreal: the tub's floor must face up and its walls inwards; the Rift's build is left as it was)
+        _face(parts[0], (0, 0, 1))
+        _face(parts[1], (0, -1, 0))
+        _face(parts[2], (0, 1, 0))
         # a coaming around the canopy: from the sill out and down into the hull (covers the ragged edge of the cut),
         # and a turtle-deck behind the glass that closes its open rear arch and fades into the hull
         out, drop = ca["skirt"]
@@ -268,7 +272,8 @@ def build_canopy(mats, body, bvh):
     # seat, pilot and dash, seen through the tinted glass
     zd = deck_z(0.60 + ox)
     parts.append(G.box("CP_SeatBack", (0.40 + ox, -0.09 * ky, zd), (0.47 + ox, 0.09 * ky, zd + 0.21), mats, BLACK))
-    parts.append(G.box("CP_SeatHead", (0.41 + ox, -0.06 * ky, zd + 0.21), (0.46 + ox, 0.06 * ky, zd + 0.27), mats, ACCENT))
+    parts.append(G.box("CP_SeatHead", (0.41 + ox, -0.06 * ky, zd + 0.21), (0.46 + ox, 0.06 * ky, zd + 0.27), mats,
+                       ca.get("seat_head", ACCENT)))
     parts.append(G.box("CP_Shoulders", (0.47 + ox, -0.105 * ky, zd + 0.06), (0.60 + ox, 0.105 * ky, zd + 0.15), mats, WHITE))
     parts.append(G.box("CP_Dash", (0.98 + ox, -0.16 * ky, deck_z(1.0 + ox)), (1.12 + ox, 0.16 * ky, deck_z(1.0 + ox) + 0.10), mats, GUN,
                        taper=(1.0, 0.4)))
@@ -287,32 +292,35 @@ def build_guns(mats, body):
 
 def _guns_lancer(mats, body):
     """A clean symmetric pair of rapid cannons (Lead, Nov 13 night: the Rodin mesh had a long twin barrel on one side
-    and a short pod on the other). Each: a collar pod set into the front of the Rodin gun housing, the main barrel on
-    the muzzle socket's axis, a shorter upper barrel and a clamp."""
+    and a short pod on the other). v04, after two fresh-eyes reviews (collar pods on pylons read as oversized, splayed
+    blockout parts): the Rodin gun's own layout, slim and tucked under the housing - a small receiver set into the
+    housing front, two parallel barrels (the lower one on the muzzle socket's axis), a clamp."""
     g = K["guns"]
     gy, gz, x0, tip = g["y"], g["z"], g["x0"], g["tip"]
     cut = _slice(body, lambda c: c.x > g["cut_x"] - 0.15 and 0.385 < abs(c.y) < 0.62 and c.z < -0.40, g["cut_x"])
     parts = []
     for sy in (1, -1):
         y = sy * gy
-        pod = [(0.0, 0.0), (0.0, 0.060), (0.03, 0.088), (0.10, 0.088), (0.10, 0.082), (0.112, 0.082), (0.112, 0.088),
-               (0.20, 0.088), (0.20, 0.093), (0.235, 0.093), (0.235, 0.088), (0.27, 0.088), (0.30, 0.078), (0.33, 0.060),
-               (0.345, 0.040), (0.345, 0.0)]
-        pidx = [GUN, GUN, GUN, BLACK, BLACK, BLACK, GUN, STEEL, ACCENT, STEEL, GUN, GUN, GUN, GUN, GUN, GUN]
-        parts.append(G.lathe_x("GN_Pod_%d" % sy, pod, (x0, y, gz), mats, segments=32, mat_idx=pidx))
-        bx = x0 + 0.32
-        ln = tip - bx
-        barrel = [(0.0, 0.0), (0.0, 0.030), (ln - 0.24, 0.030), (ln - 0.24, 0.037), (ln - 0.21, 0.037), (ln - 0.21, 0.030),
-                  (ln - 0.09, 0.030), (ln - 0.09, 0.040), (ln, 0.040), (ln, 0.022), (ln - 0.03, 0.022), (ln - 0.03, 0.0)]
-        bidx = [GUN, STEEL, STEEL, GUN, STEEL, STEEL, GUN, GUN, BLACK, GLOW, DIM, BLACK]
-        parts.append(G.lathe_x("GN_Barrel_%d" % sy, barrel, (bx, y, gz), mats, segments=24, mat_idx=bidx))
-        up = [(0.0, 0.0), (0.0, 0.019), (0.20, 0.019), (0.20, 0.025), (0.25, 0.025), (0.25, 0.013), (0.23, 0.013), (0.23, 0.0)]
-        uidx = [GUN, STEEL, GUN, GUN, BLACK, DIM, BLACK, BLACK]
-        parts.append(G.lathe_x("GN_Upper_%d" % sy, up, (bx - 0.01, y, gz + 0.058), mats, segments=20, mat_idx=uidx))
-        parts.append(G.box("GN_Clamp_%d" % sy, (bx + 0.09, y - 0.042, gz - 0.042), (bx + 0.125, y + 0.042, gz + 0.088), mats, GUN))
-        for k in range(2):                                       # cooling slots on the collar's top
-            vx = x0 + 0.125 + k * 0.038
-            parts.append(G.box("GN_Vent_%d_%d" % (sy, k), (vx, y - 0.030, gz + 0.066), (vx + 0.024, y + 0.030, gz + 0.092), mats, BLACK))
+        zu = gz + 0.085                                          # the upper barrel
+        # receiver: dark block with a white cover plate and an accent stripe on the outboard face
+        parts.append(G.box("GN_Recv_%d" % sy, (x0, y - 0.050, gz - 0.045), (x0 + 0.20, y + 0.050, zu + 0.045), mats, GUN, taper=(0.86, 0.9)))
+        yo = y + sy * 0.050
+        ya, yb = sorted((yo, yo + sy * 0.006))
+        parts.append(G.box("GN_Cover_%d" % sy, (x0 + 0.02, ya, gz - 0.02), (x0 + 0.15, yb, zu + 0.02), mats, WHITE))
+        ya, yb = sorted((yo, yo + sy * 0.008))
+        parts.append(G.box("GN_Stripe_%d" % sy, (x0 + 0.06, ya, gz + 0.03), (x0 + 0.13, yb, gz + 0.055), mats, ACCENT))
+        for k in range(3):                                       # cooling slots on top
+            vx = x0 + 0.04 + k * 0.04
+            parts.append(G.box("GN_Vent_%d_%d" % (sy, k), (vx, y - 0.030, zu + 0.040), (vx + 0.022, y + 0.030, zu + 0.050), mats, BLACK))
+        for name, zc, end, r in (("Lower", gz, tip, 0.024), ("Upper", zu, tip - 0.07, 0.021)):
+            bx = x0 + 0.16
+            ln = end - bx
+            prof = [(0.0, 0.0), (0.0, r * 1.45), (0.07, r * 1.45), (0.07, r), (ln - 0.20, r), (ln - 0.20, r * 1.3), (ln - 0.17, r * 1.3),
+                    (ln - 0.17, r), (ln - 0.07, r), (ln - 0.07, r * 1.5), (ln, r * 1.5), (ln, r * 0.8), (ln - 0.03, r * 0.8), (ln - 0.03, 0.0)]
+            idx = [GUN, GUN, GUN, STEEL, STEEL, GUN, STEEL, STEEL, GUN, GUN, BLACK, GLOW, DIM, BLACK]     # v05: dark muzzle caps, the glow in the bore only
+            parts.append(G.lathe_x("GN_%s_%d" % (name, sy), prof, (bx, y, zc), mats, segments=20, mat_idx=idx))
+        cx = x0 + 0.36
+        parts.append(G.box("GN_Clamp_%d" % sy, (cx, y - 0.036, gz - 0.034), (cx + 0.028, y + 0.036, zu + 0.032), mats, GUN))
     for p in parts:
         G.bevel(p, width=0.004, segments=2, angle_deg=30.0)
     return parts, cut
@@ -361,7 +369,7 @@ def _nose_needle(mats, body, bvh):
     x0, tip = n["x0"], float(xs[-1])
 
     def sec(x, u):
-        grow = 0.006 + 0.006 * max(0.0, 1.0 - (x - x0) / 0.04)   # a raised collar where the shell meets the hull
+        grow = 0.006
         zt, zb, w = tf(x) + grow, bf(x) - grow, hf(x) + grow
         zch = zb + 0.30 * (zt - zb)                               # the chine
         c, s = math.cos(u), math.sin(u)
@@ -369,26 +377,37 @@ def _nose_needle(mats, body, bvh):
             return (x, math.copysign(abs(c) ** (2 / 1.7), c) * w, zch + abs(s) ** (2 / 1.7) * (zt - zch))
         return (x, math.copysign(abs(c) ** (2 / 2.6), c) * w, zch - abs(s) ** (2 / 2.6) * (zch - zb))
 
-    seams = ((1.47, 1.476), (1.80, 1.806), (2.10, 2.105))
-    pockets = [{"u0": a, "u1": b, "v0": 1.52, "v1": 1.76, "depth": 0.005, "eu": 0.015, "ev": 0.012, "mat": GLOW, "wall_mat": BLACK}
-               for a, b in ((0.16, 0.26), (PI - 0.26, PI - 0.16))]      # a thin glow strip low on each flank
-    pockets.append({"u0": PI / 2 - 0.20, "u1": PI / 2 + 0.20, "v0": x0 + 0.09, "v1": 2.20, "depth": 0.006, "eu": 0.04, "ev": 0.02,
-                    "mat": GUN, "wall_mat": BLACK})                 # the dark band along the top, as on the Rodin nose, recessed
+    # v03 (fresh-eyes review: "a featureless cone, out of style with the hull"): the Rodin prow's own language - panel
+    # breaks, a dark recessed band along the top, dark inset panels on the flanks, glowing edge strips above the chine
+    seams = ((1.36, 1.366), (1.50, 1.506), (1.66, 1.666), (1.84, 1.846), (2.02, 2.025), (2.16, 2.165))
+    pockets = [{"u0": PI / 2 - 0.20, "u1": PI / 2 + 0.20, "v0": x0 + 0.06, "v1": 2.14, "depth": 0.007, "eu": 0.04, "ev": 0.02,
+                "mat": GUN, "wall_mat": BLACK}]
+    for sgn in (1, -1):
+        def span(a, b, sgn=sgn):
+            return (a, b) if sgn > 0 else (PI - b, PI - a)
+        for v0, v1 in ((x0 + 0.05, 1.35), (1.38, 1.49), (1.52, 1.65), (1.68, 1.83), (1.86, 2.01), (2.04, 2.15)):   # glow edge strips
+            u0, u1 = span(0.035, 0.150)
+            pockets.append({"u0": u0, "u1": u1, "v0": v0, "v1": v1, "depth": 0.004, "eu": 0.012, "ev": 0.008, "mat": HOT, "wall_mat": GLOW})
+        for v0, v1, ua, ub in ((1.385, 1.485, 0.66, 1.06), (1.69, 1.82, 0.60, 1.00)):                             # dark inset panels
+            u0, u1 = span(ua, ub)
+            pockets.append({"u0": u0, "u1": u1, "v0": v0, "v1": v1, "depth": 0.007, "eu": 0.03, "ev": 0.012, "mat": GUN, "wall_mat": BLACK})
 
     def mat_fn(u, v):
         c, s = math.cos(u), math.sin(u)
-        if v < x0 + 0.035:
-            return GUN                                           # the collar
         if any(a <= v <= b for a, b in seams):
             return BLACK
-        if v > 2.24:
+        if v > 2.26:
             return STEEL                                         # the ram spike
+        if v > 2.19:
+            return GLOW                                          # a glowing collar behind the spike
         if s < -0.03:
             return GUN                                           # dark underside
-        if 0.48 < abs(c) < 0.80 and x0 + 0.07 < v < 2.10:
-            return ACCENT                                        # a long accent flash down each flank; it tapers with the nose
+        if 0.30 < abs(c) < 0.56 and 1.52 < v < 2.16:
+            return ACCENT                                        # an accent flash down each flank; it tapers with the nose
+        if 0.70 < abs(c) < 0.985 and x0 + 0.05 < v < 1.35:
+            return ACCENT                                        # accent cheeks at the root, like the hull beside them
         return WHITE
-    vs = sorted(set(list(np.linspace(x0, tip, 40)) + [v for ab in seams for v in ab] + [x0 + 0.035, x0 + 0.07, 2.24]))
+    vs = sorted(set(list(np.linspace(x0, tip, 40)) + [v for ab in seams for v in ab] + [2.19, 2.26]))
     nose = G.grid_surface("NS_Nose", lambda u, v: sec(v, u), list(np.linspace(0, 2 * PI, 49)[:-1]), vs, mats, pockets=pockets,
                           closed_u=True, cap0="ngon", cap1="point", mat_fn=mat_fn, smooth_deg=34.0)
     G.bevel(nose, width=0.003, segments=2, angle_deg=34.0)

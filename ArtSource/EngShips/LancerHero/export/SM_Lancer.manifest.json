@@ -1,7 +1,7 @@
 {
   "asset": "SM_Lancer",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\LancerHero\\export\\SM_Lancer.fbx",
-  "tris": 65269,
+  "tris": 58035,
   "size_cm": [
     524.0,
     269.5,
@@ -81,7 +81,7 @@
     "SOCKET_WingTip_L",
     "SOCKET_WingTip_R"
   ],
-  "welded_verts": 275,
+  "welded_verts": 217,
   "nanite_recommended": true,
   "unreal_import": {
     "uniform_scale": 1.0,
