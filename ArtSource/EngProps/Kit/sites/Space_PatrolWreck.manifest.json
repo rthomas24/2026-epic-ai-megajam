@@ -1,7 +1,7 @@
 {
  "site": "Space_PatrolWreck",
  "actor": "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/BP_SP_PatrolWreck",
- "about": "The Watchline halo: the lost patrol's hull in four pieces drifting apart (about 55 m spread).",
+ "about": "The Watchline halo: the lost patrol's hull in four pieces drifting apart (about 90 m across).",
  "pieces": [
   {
    "name": "Mid",
@@ -18,9 +18,9 @@
    "name": "Bow",
    "mesh": "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/SM_SP_Patrol_Bow",
    "location_cm": [
-    2100.0,
-    450.0,
-    350.0
+    3600.0,
+    900.0,
+    650.0
    ],
    "yaw_deg": 12.0,
    "pitch_deg": -9.0,
@@ -30,9 +30,9 @@
    "name": "Aft",
    "mesh": "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/SM_SP_Patrol_Aft",
    "location_cm": [
-    -2300.0,
-    -500.0,
-    -420.0
+    -3900.0,
+    -1000.0,
+    -800.0
    ],
    "yaw_deg": -14.0,
    "pitch_deg": 6.0,
@@ -42,9 +42,9 @@
    "name": "Wing",
    "mesh": "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/SM_SP_Patrol_Wing",
    "location_cm": [
-    400.0,
-    1500.0,
-    900.0
+    600.0,
+    2800.0,
+    1700.0
    ],
    "yaw_deg": 35.0,
    "pitch_deg": 20.0,

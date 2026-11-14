@@ -292,6 +292,16 @@ public:
 		FVector2D TransponderPos = FVector2D::ZeroVector;
 		bool bTransponderVerified = false;
 		float TransponderMetres = 0.f;
+		/**
+		 * The escape flight (T4's ATDDominion in EscapeFlight: GetEscapeTimeLeft, EscapeSeconds, GetEscapeExitRadius):
+		 * the clock under the objective, and "CLEAR" where the way out is (straight away from the hull, at the radius).
+		 */
+		bool bEscapeFlight = false;
+		float EscapeLeft = 0.f;
+		float EscapeTotal = 0.f;
+		bool bClearOnScreen = false;
+		FVector2D ClearPos = FVector2D::ZeroVector;
+		float ClearMetres = 0.f;
 		/** 0 collapsed .. 1 expanded (for ObjectiveExpandSeconds after the text changes, eased over 0.3 s). */
 		float ObjectiveExpand = 0.f;
 		bool bUsingGamepad = false;
@@ -492,6 +502,11 @@ public:
 	/** Tests: >= 0 forces the generator count (total, down) without a Dominion. */
 	int32 ForceGeneratorsTotal = -1;
 	int32 ForceGeneratorsDown = 0;
+	/** Tests: >= 0 forces an escape flight (seconds left of total) clear of a hull at ForceEscapeCentre, radius cm. */
+	float ForceEscapeLeft = -1.f;
+	float ForceEscapeTotal = 60.f;
+	FVector ForceEscapeCentre = FVector::ZeroVector;
+	float ForceEscapeRadius = 100000.f;
 private:
 	FDelegateHandle FieldHitHandle;
 	void HandleFieldHit(AActor* Field, const FVector& Where) { FieldHitLeft = FieldHitSeconds; }

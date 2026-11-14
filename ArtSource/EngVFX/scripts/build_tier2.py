@@ -686,9 +686,10 @@ CRYSTAL = (0.45, 0.55, 1.0, 1.0)   # the belt's blue-violet crystals: clear of t
 def rock_break(n_chunks, n_dust, n_grit):
     # Round 9g (T6's live capture: a dull dark-grey puff against bright ice rocks): a short bright white-blue flash, ice
     # shards and glints thrown out, the rock chunks, and only a faint pale mist instead of grey smoke.
-    return [flash('Flash', 'M_TD_VFX_Flare', 900, 0.14, 1.6, growth='0.5 + Particles.NormalizedAge*0.9'),
-            spin(shed('Mist', 'M_TD_VFX_Smoke', 0, (0.6, 1.1), (200, 380), (100, 500), radius=100.0, drag=2.2, rgb=(0.78, 0.86, 0.92), alpha=0.30,
-                      burst=n_dust, dur=1.2, power=0.9, growth='0.6 + Particles.NormalizedAge*1.2', sort=True)),
+    # 9k: flash about 2x and a soft glow under it so a break reads at 80 m from the chase camera; both under 0.2 s
+    return [flash('Flash', 'M_TD_VFX_Flare', 1800, 0.16, 1.8, growth='0.5 + Particles.NormalizedAge*0.9'),
+            flash('Glow', 'M_TD_VFX_Glow', 2200, 0.18, 0.9, growth='0.6 + Particles.NormalizedAge*0.6', power=1.6),
+            # 9i: the mist is gone (a pale 0.30 puff still read grey over dark space in play); flash, chunks and shards carry it
             chunks('Chunks', 'SM_TD_VFX_Shard_C', n_chunks, (0.8, 1.6), (0.35, 0.9), (500, 2000), drag=0.6, radius=90.0, dur=1.8, spin=(0.8, 3.0)),
             shed('Shards', 'M_TD_VFX_Spark', 0, (0.3, 0.8), (7, 14), (1500, 4800), k=1.8, radius=60.0, drag=1.8, stretch=9, rgb=(0.80, 0.93, 1.0),
                  burst=n_grit, dur=0.9, power=1.2)]

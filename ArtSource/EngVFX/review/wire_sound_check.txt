@@ -1485,3 +1485,12 @@ Dominion/DA_Dominion_Visuals | shield_section_down.sound | before=<Object '/Game
 Dominion/DA_Dominion_Visuals | warp_in.sound | before=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_WarpIn_01.SW_Dominion_WarpIn_01' (0x000001F0D77DF000) Class 'SoundWave'> | after=<Object '/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_WarpIn_01.SW_Dominion_WarpIn_01' (0x000001F0D77DF000) Class 'SoundWave'> | SAME
 ==== independent check (sound_check.py): audio asset paths in each data asset changed since HEAD: 1 files changed, 0 differ
 Content/TriadDrift/Gameplay/Characters/Dominion/DA_Dominion_Visuals.uasset | audio asset paths before=9 after=9 | SAME
+==== independent check (sound_check.py): audio asset paths in each data asset changed since HEAD: 6 files changed, 1 differ
+Content/TriadDrift/Gameplay/Characters/FX/DA_CrewBlaster_FX.uasset | new file
+Content/TriadDrift/Gameplay/Characters/FX/DA_Enemy_HomingMissile_FX.uasset | audio asset paths before=6 after=6 | SAME
+Content/TriadDrift/Gameplay/Characters/FX/DA_Enemy_SalvoMissile_FX.uasset | audio asset paths before=6 after=6 | SAME
+Content/TriadDrift/Gameplay/Characters/FX/DA_MissileSwarm_FX.uasset | audio asset paths before=6 after=6 | SAME
+Content/TriadDrift/Gameplay/Characters/FX/DA_SpikeRockets_FX.uasset | audio asset paths before=6 after=6 | SAME
+Content/TriadDrift/Gameplay/Characters/FX/DA_Travel_FX.uasset | audio asset paths before=12 after=13 | DIFFERENT {b'/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_DescentRoar_01'}
+==== independent check (sound_check.py): audio asset paths in each data asset changed since HEAD: 1 files changed, 1 differ
+Content/TriadDrift/Gameplay/Characters/FX/DA_SpaceField_FX.uasset | audio asset paths before=0 after=4 | DIFFERENT {b'/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Special', b'/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Medium', b'/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Large', b'/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Small'}

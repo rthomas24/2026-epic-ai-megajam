@@ -352,6 +352,9 @@ protected:
 	void SyncHyperdriveLock();
 	UFUNCTION()
 	void HandleTakeStarted(FName SceneId, int32 TakeNumber);
+
+	UFUNCTION()
+	void HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind);
 	/** A new take of the assault scene: see docs/eng/world.md (what stays, what restarts). */
 	void ResetForNewTake();
 	/** Victory phase reached without the breakup (won save, TD.Stage Victory): gone, silent, unlocked. */

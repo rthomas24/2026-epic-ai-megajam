@@ -1,0 +1,27 @@
+{
+ "_note": "The Warden's four in-place deaths on SKEL_Warden, from Grok's EnemyDeaths r1 (A_Crew_Warden_DeathRM_<Side>). Shield rule: Front is the Back fall and Left is the Right fall (Grok's Front and Left end with the shield standing up).",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+ "clips": [
+  {
+   "src": "A_Crew_Warden_DeathRM_Back",
+   "dst": "A_Crew_Warden_Death_Front",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden"
+  },
+  {
+   "src": "A_Crew_Warden_DeathRM_Back",
+   "dst": "A_Crew_Warden_Death_Back",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden"
+  },
+  {
+   "src": "A_Crew_Warden_DeathRM_Right",
+   "dst": "A_Crew_Warden_Death_Left",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden"
+  },
+  {
+   "src": "A_Crew_Warden_DeathRM_Right",
+   "dst": "A_Crew_Warden_Death_Right",
+   "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden"
+  }
+ ]
+}
