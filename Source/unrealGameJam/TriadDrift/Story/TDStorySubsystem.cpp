@@ -500,6 +500,10 @@ void UTDStorySubsystem::HandleRelayConnected(AActor* Terminal)
 			break;
 		}
 	}
+	if (HasPlayedAll(TEXT("Cinematic03")))
+	{
+		return; // a retake after it was heard: nothing to replay (Lead, live walk)
+	}
 	PlaySequence(this, TEXT("Cinematic03"));
 }
 
@@ -510,6 +514,7 @@ void UTDStorySubsystem::HandleAftermathBegins(bool /*bSkippedTutorial*/)
 		Profile->ConsumeAftermathPending(); // taken
 	}
 	bAftermathChecked = true;
+	MarkPlayed(FName(AftermathStartedId)); // this run's Aftermath has begun: a cut one resumes on the next galaxy load
 	if (PlaySequence(this, TEXT("Aftermath")))
 	{
 		UTDUIHostSubsystem::ShowTacticalDisplay(this, 30.f); // the lanes toward the planets (T2)
@@ -522,6 +527,10 @@ void UTDStorySubsystem::HandleSurveyRecords(AActor* Terminal)
 	{
 		return;
 	}
+	if (HasPlayedAll(TEXT("Cinematic05")))
+	{
+		return;
+	}
 	PlaySequence(this, TEXT("Cinematic05"));
 }
 
@@ -530,8 +539,11 @@ void UTDStorySubsystem::HandleLineOnAir(FName Id)
 	// T2's scan monitor, keyed to the lines: Verdance's structure, the scan sites, the Cinder correlation (C03); the
 	// Cinder overlay, then the cache and anchor markers (C05).
 	int32 Stage = 0;
-	// Aftermath: "Heading planetside": the navigation pulse flickers toward Verdance (T2), like sensor noise.
-	if (Id == TEXT("S2_Kato_Planetside"))
+	// T2's navigation pulse, like sensor noise: toward Verdance in Aftermath ("Heading planetside"), toward Cinder on the
+	// Verdance departure ("Proceed to Cinder").
+	const ETDDestination PulseTo = Id == TEXT("S2_Kato_Planetside") ? ETDDestination::Verdance
+		: (Id == TEXT("C4_Command_Proceed") ? ETDDestination::Cinder : ETDDestination::Galaxy);
+	if (PulseTo != ETDDestination::Galaxy)
 	{
 		const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
 		const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
@@ -539,7 +551,7 @@ void UTDStorySubsystem::HandleLineOnAir(FName Id)
 		if (Pawn && Galaxy)
 		{
 			const FTDGalaxyLayoutData& L = Galaxy->GetLayout();
-			const FTDPlanetSpec* V = L.Planets.FindByPredicate([](const FTDPlanetSpec& P) { return P.Destination == ETDDestination::Verdance; });
+			const FTDPlanetSpec* V = L.Planets.FindByPredicate([PulseTo](const FTDPlanetSpec& P) { return P.Destination == PulseTo; });
 			if (V)
 			{
 				const FVector From = Pawn->GetActorLocation() + Pawn->GetActorForwardVector() * 1000.f;
@@ -685,6 +697,31 @@ FText UTDStorySubsystem::SpeakerTag(ETDSpeaker Speaker)
 	case ETDSpeaker::Boarder: return LOCTEXT("TagBoarder", "BOARDING PILOT");
 	default: return LOCTEXT("TagControl", "CONTROL");
 	}
+}
+
+bool UTDStorySubsystem::HasPlayedAll(FName SequenceId) const
+{
+	const TArray<FName>& Ids = SequenceIds(SequenceId);
+	for (const FName& Id : Ids)
+	{
+		if (!IsRetired(Id) && !HasPlayed(Id))
+		{
+			return false;
+		}
+	}
+	return Ids.Num() > 0;
+}
+
+bool UTDStorySubsystem::IsMustHearSequencePlaying(const UObject* WorldContext)
+{
+	const UTDStorySubsystem* S = Get(WorldContext);
+	return S && S->IsSequencePlaying(TEXT("Aftermath"));
+}
+
+bool UTDStorySubsystem::HasLineAired(const UObject* WorldContext, FName Id)
+{
+	const UTDStorySubsystem* S = Get(WorldContext);
+	return S && S->HasAired(Id);
 }
 
 bool UTDStorySubsystem::HasAired(FName Id) const
@@ -977,7 +1014,9 @@ bool UTDStorySubsystem::IsSequencePlaying(FName SequenceId) const
 
 bool UTDStorySubsystem::IsRequiredLine(FName Id)
 {
-	return Id.ToString().StartsWith(TEXT("A4_Recording_")) || SequenceIds(TEXT("Cinematic08")).Contains(Id);
+	// Lead (live walk): Aftermath too: a descent can cut it, and its unheard lines replay on the next galaxy load.
+	return Id.ToString().StartsWith(TEXT("A4_Recording_")) || SequenceIds(TEXT("Cinematic08")).Contains(Id)
+		|| SequenceIds(TEXT("Aftermath")).Contains(Id);
 }
 
 bool UTDStorySubsystem::CanSkipSequence() const
@@ -1122,6 +1161,19 @@ void UTDStorySubsystem::Tick(float DeltaTime)
 		if (UTDProfileSubsystem* Profile = UTDProfileSubsystem::Get(this); Profile && Profile->IsAftermathPending())
 		{
 			HandleAftermathBegins(false);
+		}
+	}
+	if (!bAftermathResumeChecked && ATDGalaxyLayout::Get(this))
+	{
+		// Lead (live walk): Aftermath was begun this run but a descent cut it: its unheard lines play again here.
+		bAftermathResumeChecked = true;
+		if (bAftermathChecked && ActiveSequence.IsNone() && HasPlayed(FName(AftermathStartedId)) && !HasPlayedAll(TEXT("Aftermath")))
+		{
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: Aftermath was cut short; resuming its unheard lines"));
+			if (PlaySequence(this, TEXT("Aftermath")))
+			{
+				UTDUIHostSubsystem::ShowTacticalDisplay(this, 30.f);
+			}
 		}
 	}
 	if (!Current.bActive && Queue.Num() > 0 && Now >= NextAllowed && !IsHeld())
