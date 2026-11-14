@@ -261,6 +261,7 @@ private:
 	void PlayNarrationVoice(int32 Line);
 	int32 LastOpeningLine = -1;
 	bool bHandOffLinesFired = false;
+	bool bDominionStingPlayed = false;
 	void FireHandOffLines();
 	void EnsureWidget();
 	void RemoveWidget();
