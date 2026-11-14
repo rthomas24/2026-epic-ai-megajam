@@ -537,6 +537,8 @@ void ATDPlanetCourse::BuildInterior()
 				Self->FinishSpawning(SelfAt);
 				Spawned.Add(Self);
 				FutureSelf = Self;
+				UE_LOG(LogTriadDrift, Display, TEXT("Reactor room: %s's future self at %s; defenders %s"), *Boarder.ToString(), *Self->GetActorLocation().ToCompactString(),
+					*FString::JoinBy(TDFutureCrew::OthersThan(Boarder), TEXT(", "), [](const FName& N) { return N.ToString(); }));
 			}
 		}
 	}
