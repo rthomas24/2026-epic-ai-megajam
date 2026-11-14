@@ -16,6 +16,7 @@
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Profile/TDProfileSubsystem.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 
@@ -574,6 +575,38 @@ bool FTDStoryC3C5::RunTest(const FString& Parameters)
 		}
 		TestTrue(FString::Printf(TEXT("%s: every line in order"), C.Seq), Heard == Ids);
 	}
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryAftermath, "TriadDrift.Story.Transmissions.AftermathOnTheTutorialsEnd", TD_TEST_FLAGS)
+bool FTDStoryAftermath::RunTest(const FString& Parameters)
+{
+	// ENG-42: T7's OnAftermathBegins (the real escape, or a skipped tutorial) plays Aftermath's S2 lines in order; a
+	// story subsystem that starts after it was armed takes it from ConsumeAftermathPending.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	UTDProfileSubsystem* Profile = UTDProfileSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("story"), Story) || !TestNotNull(TEXT("profile"), Profile))
+	{
+		return false;
+	}
+	Profile->OnAftermathBegins.Broadcast(false);
+	W.Tick();
+	const TArray<FName>& Ids = UTDStorySubsystem::SequenceIds(TEXT("Aftermath"));
+	TestEqual(TEXT("fifteen lines"), Ids.Num(), 15);
+	TestTrue(TEXT("Aftermath plays"), Story->IsSequencePlaying(TEXT("Aftermath")) && Story->GetCurrentTransmission().Id == Ids[0]);
+	TArray<FName> Heard;
+	for (int32 i = 0; i < 20 * 200 && Story->IsSequencePlaying(); ++i)
+	{
+		const FName Now = Story->GetCurrentTransmission().Id;
+		if (Story->GetCurrentTransmission().bActive && (Heard.Num() == 0 || Heard.Last() != Now)) { Heard.Add(Now); }
+		W.Tick(1.f / 20.f);
+	}
+	TestTrue(TEXT("every line in order"), Heard == Ids);
+	FTDTransmission E;
+	TestTrue(TEXT("T4's escape line exists"), UTDStorySubsystem::FindEntry(TEXT("TB_Escaped"), E) && !E.Text.IsEmpty());
 	return true;
 }
 #endif
