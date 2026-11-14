@@ -284,8 +284,10 @@ S2('NS_TD_ShieldDome', U(BASTION), [
 # mesh particle with the rim-lit additive field material in Rift magenta: the silhouette glows and shimmer cells crawl over
 # it, attached at the ship root like the hull (zero rotation, scale 1). Glints were 8-20 cm: invisible at the chase camera.
 def cloak_hull():
-    return engine_mesh(mesh_single('Hull', 'SM_TD_VFX_Disc', 'M_TD_VFX_Field', '1.03, 1.03, 1.03', 0.9, None,
-                                   live_scale='float3(1,1,1)*(1.0 + 0.006*sin(Engine.Time*9.0))'), '/Game/TriadDrift/Gameplay/Ships/Rift/SM_Rift')
+    # 10h: SM_TD_VFX_RiftCloakShell = a non-Nanite copy of SM_Rift (Niagara mesh particles drew nothing with the Nanite
+    # hull), and M_TD_VFX_CloakOverlay on it: translucent, a deep magenta inside (the hull reads darker) and a magenta rim.
+    return mesh_single('Hull', 'SM_TD_VFX_RiftCloakShell', 'M_TD_VFX_CloakOverlay', '1.03, 1.03, 1.03', 1.0, None,
+                       live_scale='float3(1,1,1)*(1.0 + 0.006*sin(Engine.Time*9.0))')
 
 
 S2('NS_TD_Cloak_Shimmer', U((1.0, 0.12, 0.85, 1.0)), [
