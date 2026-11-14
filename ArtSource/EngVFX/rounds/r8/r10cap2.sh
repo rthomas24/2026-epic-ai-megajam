@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # r10cap2.sh <tag>: round 10 Dominion and region captures (editor up on $TD_PORT): approach field, shield drop, tractor
 # beam, Aftermath light row, region beacon (300 m, 1.5 km), region haze (outside 500 m, inside), L break at 200 m.
-cd /c/Users/ryant/Documents/myRepos/game-jam/.wt/vfx; export MSYS_NO_PATHCONV=1
+cd /c/Users/ryant/Documents/myRepos/game-jam/.wt/vfx; export MSYS_NO_PATHCONV=1; export TD_PORT=${TD_PORT:-21031}
 R=ArtSource/EngVFX/rounds/r8; G=$R/gpy.sh; P="python ArtSource/EngVFX/scripts/play.py ${TD_PORT:-21031} Saved/EngVFX/r8/spawn"; T=${1:-u}; SC="python $R/spawncap.py"
 bash $G "('pie_start',)" >/dev/null; sleep 25
 $P con:"TD.Stage Waves1to2" sleep:12 con:"god" con:"TD.KillAll" sleep:2 con:"TD.World.Hold 900 0" >/dev/null
