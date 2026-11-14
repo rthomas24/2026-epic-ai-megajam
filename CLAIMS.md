@@ -290,7 +290,7 @@ Current resource checkpoint: Nick stopped the general campaign and revoked all p
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-14 10:30 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-14 11:30 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -314,6 +314,52 @@ Paths are under `Source/unrealGameJam/TriadDrift/` unless they start with `/` (r
 
 Workers commit only on their own branch and never pull, merge or push; the Lead integrates in
 `.wt/int`, builds, runs the headless suite, then fast-forwards and pushes `main`.
+
+### Current board, Nov 14 11:30 EST (supersedes the in-progress and queued rows of the 10:30 board below)
+
+**Main is b82ed996 (batch AM)**, on top of AL 90a132aa and AK e154cf11 (compile-only gate). **Batch AN** (T4's bay mouth hook c94f1795, T5's interior doorway markers 128a5907) is compiling. **Newest package:** `playable-main-80a2ee4d`; next hourly cook 12:00. Lock turns of 15 minutes, quickest to close first. Every Ryan-side item that is 🟨, 🟢 or 🐞 in features.md has a row here.
+
+| Owner | Now (in progress) | Next (queued, in order) | Items | Shared paths |
+|---|---|---|---|---|
+| Lead | Batch AN gate; boards; hourly features.md alignment | Push AN; ENG-47 decision record (due 20:00); the defenders tuning call with T5; offer Ryan the #161 retest | ENG-47, ENG-28 (integration) | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
+| T1 | #161: the player's bounce, turn-away and atmosphere burn at a closed planet (no commit yet) | Verdance and waves 3-5 music confirmed in play; shake and speed-FOV sliders; the C7 lines heard to the end | ENG-38 (🐞), ENG-35, ENG-45, ENG-29 | `Travel/`, `Flight/` |
+| T2 | The new flight HUD's squad panel (#160, Concept A) | Status flags, boost arc, pickup toast; #157 / #159 / #155 (the flight HUD's story-lane scale); the docking plates, pips, escape clock, *Aftermath* lanes, transponder flicker (#103); a portal fly-through and returned missile (#100); Cloak in a fight (#102); the combat bark list (#122) | ENG-36, ENG-09, ENG-12, ENG-43 | `Combat/`, `Powers/`, HUD |
+| T3 | The #154 / #155 retake (capture frames) | Subtitles off (#94); the credits roll, RETURN TO MENU, no CONTINUE after victory (#95); a money shot in slow motion (#97); menu music in the log; the `dialogs.md` count (#122); Skip through the difficulty page | ENG-32, ENG-44, C-03, ENG-43, ENG-45 | `Squad/`, `Director/` |
+| T4 | Lock turn: bomber mines (#109); the space ending through the breakup and the generators by hand (#112, #113); the tractor beam in docking (#110, #128); the bay mouth hook (#126, in AN) | The C4, C6, C7, interception and C9 lines (#96); the pre-empt clue seen in waves 3-4 | ENG-13, ENG-18, ENG-47, ENG-29, ENG-37, ART-15, ENG-42 | `Enemies/`, `Waves/`, `World/` |
+| T5 | The console recordings, the final record, Cinematic 08, its skip and the Dont voice (#96) | #117 Cinder past the gate (with T7); the defenders at 200 health with a guard and their look captured (ENG-30 polish) | ENG-42, ENG-26 | `Flow/`, `Ground/` |
+| T6 | #153: the death / CUT hitch measured in the zone | The new flight HUD's radar (#160) | ENG-28, ENG-36 | `World/SpaceField/**`, HUD radar files agreed with T2 |
+| T7 | #129 leftovers: the Warden to the reveal replay on AN | #117: the Cinder gate fight by hand through the cache; a start-to-end run (#131, #152) | ENG-26, ENG-46 | `docs/eng/PLAYTEST-*` |
+| Effects builder | The Cloak effect's last pass (#102) | #111 boarding and escape effects (a trailer-quality breakup); #105 | ENG-12 (effect), ART-16, ART-07, ENG-37 | `Gameplay/VFX/**`, `DA_*_FX` |
+| Environment builder | #145, #148, #158 (fixes on main AL, to be seen); the bay exposure | Per-level before / after | ART-13, ART-15 (exposure) | planet and sky materials |
+| Structures builder | #119: the collapse pieces seen from the shore | #126: bay mouth captures once T4's hook lands | ART-18, ART-15 | `Gameplay/Props/**` |
+| Animation builder | (no dispatch this hour) | A visual verdict on the pilot and crew animation set (#124); Warden ragdoll cases | ART-08 | `Characters/**/Anims/**` |
+| Packaging agent | The hourly cook of the newest main (next 12:00) | Publish each with a launch check | ENG-28 | isolated `.wt/pkg` |
+| Ship builder | Stopped (usage limit) | Restart only on the Lead's dispatch | - | squad and fleet visuals |
+| Character builder (to be started by the Lead) | - | Game-ready pilot meshes (#149; waits on an approved look from Nicholas) | polish (B1-9) | `ArtSource/EngCharacters/**` |
+| Grok Bot | R-042 queue | - | - | `ArtSource/EngAI/**` |
+
+Rows opened or closed Nov 14 11:30 (they supersede the same items' rows of 10:30 below):
+
+| Item | Owner | State | Paths |
+|---|---|---|---|
+| **Integration batch AK** (New Game difficulty d82e682c; menu fly-by plumes cf28153e; intro blur and warp-in sounds c2340d05; Settings over pause ef34a7a7; power hint 4076a658; Cinder gate retake 3445cc64; docking glide release 06816116) | Lead | done: main e154cf11, Nov 14 (compile-only gate) | none |
+| **Integration batch AL** (planets as avoidance obstacles 45d5652c; bay mouth frame and guide light bffb1036; bay look, ring, opening shot, canopy undersides 60974009; HUD data model 4d8e8b39; `GetPendingGroups` and the pre-empt clue 0e740f77; conduits in game 64475a67; captures b8e175b4; unused effects removed 4f94870b) | Lead | done: main 90a132aa, Nov 14 | none |
+| **Integration batch AM** (story overlay wrap and size 3c5e68f6; flight HUD concept docs f4b2962e) | Lead | done: main b82ed996, Nov 14 | none |
+| **Integration batch AN** (T4 c94f1795 bay hook; T5 128a5907 doorway markers) | Lead | in progress (compiling) | none |
+| ENG-05 Rift and Bastion primaries, ENG-06 swarm locks, ENG-11 missile swarm (#98, #99, #101) | T2 | done: played good, on main (10:51 EST) | none |
+| ENG-15 hyperdrive jump (#104), ENG-16 ring centred and gate transit (#106, 498a9081 in AG efdf4284), ENG-17 one transit (#107) | T1 | done: played good, on main efdf4284 (10:52 EST) | none |
+| ENG-25 Verdance to Cloak (#116) | T7, T5 | done: played good on main 9155a6dc (10:57 EST) | none |
+| ENG-30 interior and reactor fight with the defenders (#129) | T7, T5 | done: played good on main (11:29 EST); polish leftovers with T5 | none |
+| ENG-39 / ART-05 Ice Drift and Outer Dark (#114, #115) | T6 | done: accepted on main b0198c5e (10:51 EST) | none |
+| ART-02 credits rows U to AG (#123) | Import builder, T6 | done: main c63633a6 (10:58 EST) | none |
+| ART-03 Lancer contrast (#108) | T1 | done: closed as shipped, main efdf4284 (707937a8; 10:53 EST); the boost plume rebuild is polish | none |
+| ART-06 Cinder conduit art (#118) | Structures builder | done: seen in game on main (11:13 EST) | none |
+| ART-17 natural docking into the hangar (#120) | T7 | done: played good on main 473543fb (11:17 EST) | none |
+| The anchor charges cannot be planted (ENG-26 MAJOR) | T5; T7 replayed | done: played good by T7 on main 9155a6dc (10:51 EST) | none |
+| Nicholas's findings 1, 3, 4, 7, 10 (#141, #143, #144, #147, #150) | Environment builder, T3, effects builder | done: seen on main (c0ea8682, a2436be7, cf28153e, c2340d05; 10:53 to 11:25 EST) | none |
+| New Game difficulty choice (ENG-45 part, #127) | T3, T5 | done: seen good on main e154cf11 (11:08 EST) | none |
+| #161 ship stuck against a planet (ENG-38 🐞) | T1 (player), T4 (avoidance) | in progress: T4's half done on main 90a132aa; T1's bounce and burn not committed | `Travel/`, `World/` |
+| #160 flight HUD redesign (ENG-36 sub-point) | T2 (squad panel, flags, boost arc, toast), T6 (radar) | in progress: Concept A chosen and approved, data model on main 90a132aa; nothing drawn yet | HUD |
 
 ### Current board, Nov 14 10:30 EST (supersedes the in-progress and queued rows of the 09:30 board below)
 
