@@ -49,7 +49,7 @@ namespace TDHUDRadar
 		{
 			TArray<FVector2D>& Pts = Scratch();
 			for (const FVector2D& Q : Local) { Pts.Add(Px(At + Q)); }
-			if (bClose && Pts.Num() > 0) { Pts.Add(Pts[0]); }
+			if (bClose && Pts.Num() > 0) { const FVector2D First = Pts[0]; Pts.Add(First); } // never Add an element of the array itself by reference (asserts, or reads freed memory in Shipping)
 			Lines(Pts, Col, Width);
 		}
 		void Circle(const FVector2D& At, float Rad, FLinearColor Col, float Width, int32 Segments = 40) const

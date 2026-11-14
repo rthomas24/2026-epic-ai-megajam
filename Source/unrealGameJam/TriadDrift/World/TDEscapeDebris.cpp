@@ -73,9 +73,9 @@ void ATDEscapeDebris::Tick(float DeltaSeconds)
 	}
 	AddActorWorldOffset(Velocity * DeltaSeconds);
 	AddActorLocalRotation(Spin * DeltaSeconds);
-	if (bHit)
+	if (bHit || Damage <= 0.f)
 	{
-		return;
+		return;	// already hit, or a harmless piece (the Dominion's breakup chunks): it never bursts on a ship
 	}
 	const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this);
 	if (!Registry)

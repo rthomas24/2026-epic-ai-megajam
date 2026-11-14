@@ -340,7 +340,7 @@ FTransform ATDDominion::GetStageStart(bool bTrench) const
 
 void ATDDominion::TickPlaceholderBreakup(float DeltaSeconds)
 {
-	const float FinalAt = FMath::Max(1.f, BreakupSeconds - 1.5f);
+	const float FinalAt = FMath::Max(1.f, BreakupSeconds - BreakupAfterBlastSeconds);
 	if (!bBreakupFinalBlast)
 	{
 		// Explosions walk from the reactor outward, faster and bigger as the breakup builds.
@@ -355,6 +355,23 @@ void ATDDominion::TickPlaceholderBreakup(float DeltaSeconds)
 		if (StateTime >= FinalAt)
 		{
 			PlayFinalBlast();
+		}
+	}
+	else
+	{
+		// The chunks burn as they drift apart.
+		ChunkFireTimer -= DeltaSeconds;
+		if (ChunkFireTimer <= 0.f && BreakupChunkActors.Num() > 0)
+		{
+			ChunkFireTimer = 0.12f;
+			const ATDEscapeDebris* Chunk = BreakupChunkActors[FMath::RandRange(0, BreakupChunkActors.Num() - 1)].Get();
+			UTDProjectileSubsystem* Booms = UTDProjectileSubsystem::Get(this);
+			if (Chunk && Booms)
+			{
+				FVector Origin, Extent;
+				Chunk->GetActorBounds(false, Origin, Extent);
+				Booms->PlayPlaceholderExplosion(Origin + FMath::VRand() * (float)Extent.GetMax() * 0.5f, (float)Extent.GetMax() * 0.6f, FLinearColor(1.f, 0.5f, 0.12f), 3);
+			}
 		}
 	}
 }
@@ -400,6 +417,13 @@ void ATDDominion::PlayFinalBlast()
 	// The ship is gone in the flash, and so is everything on it (M6 played, Nov 14: the hull turrets stayed targetable
 	// after VICTORY, ~10 red markers on the screen edges).
 	RetireDefenses();
+	// Lead (Nov 14): a full-screen flash, then the hull is seen to come apart: large dark chunks tumble out from its
+	// centre and burn (TickPlaceholderBreakup) while the outside camera holds.
+	if (APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr)
+	{
+		if (PC->PlayerCameraManager) { PC->PlayerCameraManager->StartCameraFade(1.f, 0.f, 0.45f, FLinearColor(1.f, 0.96f, 0.88f), false, false); }
+	}
+	SpawnBreakupChunks();
 }
 
 FTransform ATDDominion::GetEscapeStart() const
@@ -1702,6 +1726,7 @@ void ATDDominion::BeginBreakupCamera()
 	BreakupCamera->SetActorLocationAndRotation(Loc, (Centre - Loc).Rotation());
 	PC->SetViewTarget(BreakupCamera);	// a hard cut, like the director's
 	UTDUIHostSubsystem::PushHUDFocus(this, TDBreakupCamera::HUDHold, 0.f, /*bHideCombat*/ true);
+	UTDDirectorSubsystem::HoldShotLetterbox(this, TDBreakupCamera::HUDHold);	// T3's bars, held over the cut (Lead: yes, no skip)
 	bBreakupCameraOn = true;
 	UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: breakup camera on, %.0f m off the hull"), Dist / 100.f);
 }
@@ -1722,5 +1747,48 @@ void ATDDominion::EndBreakupCamera()
 		}
 	}
 	UTDUIHostSubsystem::PopHUDFocus(this, TDBreakupCamera::HUDHold);
+	UTDDirectorSubsystem::ReleaseShotLetterbox(this, TDBreakupCamera::HUDHold);
 	UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: breakup camera off"));
+}
+
+void ATDDominion::SpawnBreakupChunks()
+{
+	UWorld* World = GetWorld();
+	if (!World || BreakupChunks <= 0)
+	{
+		return;
+	}
+	const FBox B = GetLocalHullBounds();
+	const FTransform D = GetActorTransform();
+	const FVector Ext = B.GetExtent();
+	const float Long = (float)Ext.GetMax() * 2.f;	// the hull's length
+	FRandomStream R(0x0D0A1A);
+	for (int32 i = 0; i < BreakupChunks; ++i)
+	{
+		// Along the hull's length, so the pieces read as the hull's own sections coming apart.
+		const float Along = BreakupChunks > 1 ? (float)i / (float)(BreakupChunks - 1) : 0.5f;
+		const FVector Local(FMath::Lerp(B.Min.X, B.Max.X, Along) * 0.85f, R.FRandRange(-Ext.Y, Ext.Y) * 0.5f, B.GetCenter().Z + R.FRandRange(-Ext.Z, Ext.Z) * 0.5f);
+		const FVector Where = D.TransformPosition(Local);
+		const FVector Out = (Where - D.TransformPosition(B.GetCenter())).GetSafeNormal();
+		const FVector Dir = (Out + R.VRand() * 0.45f).GetSafeNormal();
+		FActorSpawnParameters P;
+		P.Owner = this;
+		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ATDEscapeDebris* Chunk = World->SpawnActor<ATDEscapeDebris>(ATDEscapeDebris::StaticClass(), Where, R.GetUnitVector().Rotation(), P);
+		if (!Chunk) { continue; }
+		const float Size = Long * R.FRandRange(0.16f, 0.3f);
+		Chunk->MaxArtSizeCm = Size;	// hull-sized pieces (the escape flight caps its own at 28 m)
+		Chunk->Damage = 0.f;
+		Chunk->LifeSeconds = BreakupAfterBlastSeconds + 14.f;
+		Chunk->Launch(Size, Dir * R.FRandRange(5000.f, 12000.f), FRotator(R.FRandRange(-14.f, 14.f), R.FRandRange(-14.f, 14.f), R.FRandRange(-10.f, 10.f)));
+		BreakupChunkActors.Add(Chunk);
+	}
+	UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: final blast - %d hull chunks thrown (hull %.0f m long)"), BreakupChunkActors.Num(), Long / 100.f);
+}
+
+int32 ATDDominion::GetBreakupChunksAlive() const
+{
+	int32 N = 0;
+	for (const TWeakObjectPtr<ATDEscapeDebris>& C : BreakupChunkActors) { if (C.IsValid()) { ++N; } }
+	return N;
 }

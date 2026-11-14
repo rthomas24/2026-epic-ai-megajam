@@ -797,6 +797,34 @@ void ATDEncounterVolume::Activate()
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	const FVector Center = GetActorLocation();
+	// Never on top of the pilot (T7's Cinder play, Nov 14: crew 1.2 m from the retake spot, 24 CUTs in 8 minutes): a
+	// point closer than MinSpawnDistance moves straight away from the pilot, kept inside the volume; if the volume is too
+	// small for that, its corner farthest from the pilot.
+	if (Player && MinSpawnDistance > 0.f && Box)
+	{
+		const FVector Ext = Box->GetScaledBoxExtent();
+		const FVector PL = GetActorTransform().InverseTransformPosition(Player->GetActorLocation());
+		for (FVector& P : Points)
+		{
+			const FVector2D D(P.X - PL.X, P.Y - PL.Y);
+			if (D.Size() >= MinSpawnDistance)
+			{
+				continue;
+			}
+			const FVector2D Dir = D.IsNearlyZero() ? FVector2D(1.f, 0.f) : D.GetSafeNormal();
+			FVector2D Want(PL.X + Dir.X * MinSpawnDistance, PL.Y + Dir.Y * MinSpawnDistance);
+			Want.X = FMath::Clamp(Want.X, -Ext.X + 100.f, Ext.X - 100.f);
+			Want.Y = FMath::Clamp(Want.Y, -Ext.Y + 100.f, Ext.Y - 100.f);
+			if (FVector2D::Distance(Want, FVector2D(PL.X, PL.Y)) < MinSpawnDistance * 0.7f)
+			{
+				Want = FVector2D(PL.X > 0.f ? -Ext.X + 100.f : Ext.X - 100.f, PL.Y > 0.f ? -Ext.Y + 100.f : Ext.Y - 100.f);
+			}
+			P.X = Want.X;
+			P.Y = Want.Y;
+		}
+	}
+	// A retake gives the pilot a longer beat before the first shot.
+	const float Grace = Take >= 2 ? FMath::Max(OpeningGraceSeconds, RetakeGraceSeconds) : OpeningGraceSeconds;
 	for (int32 i = 0; i < Points.Num(); ++i)
 	{
 		const FVector Loc = GetActorTransform().TransformPosition(Points[i]);
@@ -821,7 +849,7 @@ void ATDEncounterVolume::Activate()
 			{
 				Crew->ApplyMercy(Mercy->HealthScale, Mercy->MaxSummons);
 			}
-			Crew->SetOpeningGrace(OpeningGraceSeconds);
+			Crew->SetOpeningGrace(Grace);
 		}
 		// The fight starts now: everyone already knows where the player is.
 		if (ATDCrewAIController* AI = Cast<ATDCrewAIController>(Cast<APawn>(Member) ? Cast<APawn>(Member)->GetController() : nullptr))

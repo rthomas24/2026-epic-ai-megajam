@@ -580,6 +580,14 @@ void UTDCutPresentation::Tick(double RealNow)
 	const float ShotA = CardAlpha(RealNow, ShotStart, ShotSeconds + Tuning.ShotLetterboxEaseSeconds, Tuning.ShotLetterboxEaseSeconds);
 	S.Letterbox = FMath::Max(S.Letterbox, Tuning.ShotLetterbox * ShotA);
 	Card(C.MoneyShot, ShotStart, ShotSeconds + Tuning.ShotLetterboxEaseSeconds, ShotA, FText::GetEmpty());
+	// Held bars (HoldShotLetterbox): the same height and ease, no card.
+	{
+		const float Dt = LastHoldTick > 0.0 ? FMath::Clamp(static_cast<float>(RealNow - LastHoldTick), 0.f, 0.1f) : 0.f;
+		LastHoldTick = RealNow;
+		const float Step = Dt / FMath::Max(Tuning.ShotLetterboxEaseSeconds, 0.01f);
+		HeldLetterboxA = FMath::Clamp(HeldLetterboxA + (LetterboxHolds.Num() > 0 ? Step : -Step), 0.f, 1.f);
+		S.Letterbox = FMath::Max(S.Letterbox, Tuning.ShotLetterbox * HeldLetterboxA);
+	}
 	C.MoneyShot.SubText = ShotKindName;
 
 	// "CUT!" with full bars.
