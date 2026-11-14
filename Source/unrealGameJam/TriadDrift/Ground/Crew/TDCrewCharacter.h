@@ -259,6 +259,10 @@ private:
 	static constexpr float CorpseSinkSeconds = 1.2f;
 	float CorpseLeft = -1.f;
 	FName LastTypeClip;
+	float LastTypeClipStart = 0.f;
+	float LastTypeClipRate = 1.f;
+	/** td.Crew.LogHits: one line per enemy damage instant (type, action, clip, clip time) for the animation builder. */
+	void LogHitInstant(const TCHAR* What) const;
 	int32 MeleeSwings = 0;
 	FVector RagdollPush = FVector::ZeroVector;
 	FVector ToppleAway = FVector::ForwardVector;

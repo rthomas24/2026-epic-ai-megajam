@@ -77,7 +77,8 @@ for i in range(3):
     p = o + (d * 0.4 + up * 0.9) * max(e.x, e.y, e.z) * 0.8 + unreal.Vector(0, (i - 1) * 400, 0)
     tag(NFL.spawn_system_at_location(world, unreal.load_asset(SYS + 'NS_TD_Reactor_Hit'), p, ML.make_rot_from_x(up), unreal.Vector(1, 1, 1), True, True, unreal.NCPoolMethod.NONE, True))
 "hits"''')
-    burst('hitup_%dm' % arg, cam)
+    if os.environ.get('SKIP_HIT') != '1':
+        burst('hitup_%dm' % arg, cam)
     con('slomo 1'); time.sleep(1.5); con('slomo 0.1')
     py(SETUP + '''
 clear()
@@ -105,6 +106,6 @@ elif mode == 'hyper':   # 9p: two fixed cameras: 200 m to the side of the spool 
     cams = py(SETUP + '''
 o = pawn.get_actor_location(); f = pawn.get_actor_forward_vector(); rt = pawn.get_actor_right_vector()
 json.dumps({'side': look(o + rt * 20000 + unreal.Vector(0, 0, 2000), o + f * 3000), 'ahead': look(o + f * 30000 + rt * 2500 + unreal.Vector(0, 0, 1500), o)})''')
-    con('TD.Input.Key H 1.6'); time.sleep(0.3)
+    con('TD.KillAll'); con('TD.Input.Key H 1.6'); con('TD.KillAll'); time.sleep(0.3)
     burst('hyper_side', cams['side'], fov=60, n=8)
     burst('hyper_ahead', cams['ahead'], fov=60, n=8)

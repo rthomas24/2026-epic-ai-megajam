@@ -293,6 +293,74 @@ bool FTDInteriorParkedParts::RunTest(const FString& Parameters)
 	return true;
 }
 
+// T1's music bridge (N-089): the interior fires its four moments once each, when they happen.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorMoments, "TriadDrift.Ground.Interior.MusicMomentsFireOnceWhenTheyHappen", TD_TEST_FLAGS)
+bool FTDInteriorMoments::RunTest(const FString& Parameters)
+{
+	const TArray<FName>& Ids = ATDPlanetCourse::InteriorObjectiveIds();
+	TDInteriorTest::FInterior I({ Ids[0], Ids[1], Ids[2] });
+	if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
+	TArray<FName> Heard;
+	const FDelegateHandle H = ATDPlanetCourse::OnInteriorMoment.AddLambda([&Heard](FName M, AActor*) { Heard.Add(M); });
+	ATDFirstPersonCharacter* Pilot = TDGroundTest::SpawnPlayer(I.W, FVector(9000.f, 0.f, 95.f)); // the link before the chamber
+	I.W.Advance(0.3f);
+	TestFalse(TEXT("not in the chamber yet"), Heard.Contains(FName(TEXT("CoreChamberEntered"))));
+	const FBox Box = I.Course->GetCoreChamberBox();
+	if (Pilot && Box.IsValid)
+	{
+		Pilot->SetActorLocation(FVector(Box.Min.X + 600.f, 0.f, 95.f), false, nullptr, ETeleportType::TeleportPhysics);
+		I.W.Advance(0.3f);
+		I.W.Advance(0.3f);
+		AddInfo(FString::Printf(TEXT("pilot %s at %s (controlled %d, dead %d), box %s"), *GetNameSafe(Pilot), *Pilot->GetActorLocation().ToCompactString(),
+			Pilot->IsPlayerControlled(), Pilot->IsDead(), *Box.ToString()));
+	}
+	TestEqual(TEXT("CoreChamberEntered once on the crossing"), Heard.FilterByPredicate([](const FName& M) { return M == TEXT("CoreChamberEntered"); }).Num(), 1);
+	TestTrue(TEXT("Core starts"), I.Course->StartObjectiveAt(Ids[3]));
+	I.W.Advance(0.2f);
+	TestTrue(TEXT("ReactorFightStarted"), Heard.Contains(FName(TEXT("ReactorFightStarted"))));
+	TestFalse(TEXT("not ended yet"), Heard.Contains(FName(TEXT("ReactorFightEnded"))));
+	I.Finish(I.Obj(3));
+	TestEqual(TEXT("ReactorFightEnded once"), Heard.FilterByPredicate([](const FName& M) { return M == TEXT("ReactorFightEnded"); }).Num(), 1);
+	I.Course->StartObjectiveAt(Ids[4]);
+	I.W.Advance(0.2f);
+	TestTrue(TEXT("EscapeStarted"), Heard.Contains(FName(TEXT("EscapeStarted"))));
+	ATDPlanetCourse::OnInteriorMoment.Remove(H);
+	AddInfo(FString::Printf(TEXT("heard: %s"), *FString::JoinBy(Heard, TEXT(", "), [](const FName& N) { return N.ToString(); })));
+	return true;
+}
+
+// DA_ReactorCore_FX (the effects builder fills it): each slot fires at its event in the real reactor fight. Empty slots
+// play nothing (today's behaviour); the course logs every slot either way.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorReactorFX, "TriadDrift.Ground.Interior.ReactorFXSlotsFireAtTheirEvents", TD_TEST_FLAGS)
+bool FTDInteriorReactorFX::RunTest(const FString& Parameters)
+{
+	const TArray<FName>& Ids = ATDPlanetCourse::InteriorObjectiveIds();
+	TDInteriorTest::FInterior I({ Ids[0], Ids[1], Ids[2] });
+	if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
+	auto Count = [&I](const TCHAR* Slot) { return I.Course->GetReactorFXLog().FilterByPredicate([Slot](const FName& N) { return N == Slot; }).Num(); };
+	TestEqual(TEXT("CoreIdle from the start"), Count(TEXT("CoreIdle")), 1);
+	TestTrue(TEXT("Core starts"), I.Course->StartObjectiveAt(Ids[3]));
+	I.W.Advance(0.2f);
+	TArray<ATDShatterCrystal*> Breakables;
+	for (TActorIterator<ATDShatterCrystal> It(I.W.GetWorld()); It; ++It) { if (It->LinkedObjective == I.Obj(3)) { Breakables.Add(*It); } }
+	for (ATDShatterCrystal* C : Breakables) { if (C->LinkedStep == 0) { UTDStatics::ApplyTDDamage(C, 500.f, ETDDamageKind::Melee, nullptr, nullptr); } }
+	I.W.Advance(0.3f);
+	TestEqual(TEXT("ConduitBreak at each conduit"), Count(TEXT("ConduitBreak")), 4);
+	TestEqual(TEXT("ShieldDrop once"), Count(TEXT("ShieldDrop")), 1);
+	for (ATDShatterCrystal* C : Breakables) { if (C->LinkedStep == 1) { UTDStatics::ApplyTDDamage(C, 40.f, ETDDamageKind::Melee, nullptr, nullptr); } }
+	I.W.Advance(0.1f);
+	TestTrue(TEXT("HeartHit on a hit"), Count(TEXT("HeartHit")) >= 1);
+	TestEqual(TEXT("not destroyed yet"), Count(TEXT("CoreDestroyed")), 0);
+	for (ATDShatterCrystal* C : Breakables) { if (C->LinkedStep == 1) { UTDStatics::ApplyTDDamage(C, 500.f, ETDDamageKind::Melee, nullptr, nullptr); } }
+	I.W.Advance(0.3f);
+	TestEqual(TEXT("CoreDestroyed once"), Count(TEXT("CoreDestroyed")), 1);
+	TestTrue(TEXT("Escape starts"), I.Course->StartObjectiveAt(Ids[4]));
+	I.W.Advance(0.2f);
+	TestEqual(TEXT("EscapeRunLoop once"), Count(TEXT("EscapeRunLoop")), 1);
+	AddInfo(FString::Printf(TEXT("log: %s"), *FString::JoinBy(I.Course->GetReactorFXLog(), TEXT(", "), [](const FName& N) { return N.ToString(); })));
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorFlags, "TriadDrift.Flow.Boarding.PhaseSetsFlagsAndStagesExist", TD_TEST_FLAGS)
 bool FTDInteriorFlags::RunTest(const FString& Parameters)
 {

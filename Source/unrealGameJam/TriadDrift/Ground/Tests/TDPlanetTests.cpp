@@ -22,6 +22,7 @@
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Ground/Crew/TDCrewAIController.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
@@ -367,10 +368,21 @@ namespace TDCourseTest
 			}
 		}
 		/** Verdance's relay: the device connected (step 1), its transfer halves (steps 2 and 3), then back to the ship (4). */
-		void ConnectAtRelay(const ATDObjective* Relay)
+		void ConnectAtRelay(const ATDObjective* Relay, bool bSkipCinematic = true)
 		{
 			TeleportTo(Props<ATDStepTrigger>(Relay, 0)[0], 60.f);
 			UseTerminal(Relay, 1);
+			if (bSkipCinematic) { SkipCinematic(); }
+		}
+		/** Skip Cinematic 03 (it holds the transfer's first wave until "company incoming"), as a player may. */
+		void SkipCinematic()
+		{
+			if (UTDStorySubsystem* Story = UTDStorySubsystem::Get(V.W.GetWorld()))
+			{
+				Story->SkipAllowedAfterSeconds = 0.f; // a player who waited the scene's first ten seconds (N-060)
+				for (int32 i = 0; i < 4 && Story->IsSequencePlaying(); ++i) { Story->SkipSequence(); Tick(0.1f); }
+			}
+			Tick(0.5f);
 		}
 		void RunTransfer(const ATDObjective* Obj, float MaxSeconds = 140.f)
 		{
@@ -471,6 +483,7 @@ bool FTDVerdanceEndToEnd::RunTest(const FString& Parameters)
 	const FDelegateHandle Hook = ATDArchiveTransfer::OnAnyTerminalActivated.AddLambda([&Hooked](AActor*) { ++Hooked; });
 	R.UseTerminal(Relay, 1);
 	ATDArchiveTransfer::OnAnyTerminalActivated.Remove(Hook);
+	R.SkipCinematic();
 	TestEqual(TEXT("Cinematic 03's hook fires once"), Hooked, 1);
 	TestEqual(TEXT("console -> the transfer"), R.Step(Relay), 2);
 	float P01 = -1.f; bool bPaused = true; FText Label;
@@ -615,6 +628,39 @@ bool FTDCourseRetake::RunTest(const FString& Parameters)
 	R.FP->RespawnAt(FTransform(FVector(300.f, 0.f, 120.f)));
 	R.Tick(0.5f);
 	TestTrue(TEXT("finished on take 2"), Relay->IsComplete());
+	return true;
+}
+
+// T3's live walk (Nov 13): Cinematic 03 talked over the fight. The first wave waits for "company incoming"; the meter holds
+// still meanwhile; skipping the scene starts it at once; a retake (the line already heard) doesn't wait.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDArchiveTransferHold, "TriadDrift.Ground.Course.RelayTransferWaitsForCompanyIncoming", TD_TEST_FLAGS)
+bool FTDArchiveTransferHold::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDObjective* Relay = R.Course->FindObjective(TEXT("Obj_Relay"));
+	if (!R.StartAt(TEXT("Obj_Relay"))) { return false; }
+	R.ConnectAtRelay(Relay, false);
+	ATDArchiveTransfer* X = R.Transfer();
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(V.W.GetWorld());
+	if (!TestNotNull(TEXT("transfer"), X) || !TestNotNull(TEXT("story"), Story)) { return false; }
+	if (!Story->IsSequencePlaying())
+	{
+		AddInfo(TEXT("no Cinematic 03 in this checkout: the transfer starts at once"));
+		R.Tick(1.f);
+		TestFalse(TEXT("not held without a scene"), X->IsHolding());
+		return true;
+	}
+	R.Tick(5.f);
+	TestTrue(TEXT("held while the scene talks"), X->IsHolding());
+	TestEqual(TEXT("the meter holds still"), X->GetProgress01(), 0.f, 0.001f);
+	TestFalse(TEXT("no wave yet"), X->Waves[0] && (X->Waves[0]->IsActive() || X->Waves[0]->IsCleared()));
+	float P01 = -1.f; bool bPaused = false; FText Label;
+	TestTrue(TEXT("T2's meter still shows the transfer"), ATDArchiveTransfer::GetArchiveTransfer(V.W.GetWorld(), P01, bPaused, Label));
+	R.SkipCinematic();
+	TestFalse(TEXT("skipping starts it"), X->IsHolding());
+	TestTrue(TEXT("the first wave drops"), X->Waves[0] && X->Waves[0]->IsActive());
 	return true;
 }
 
