@@ -7,6 +7,7 @@
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
+#include "TriadDrift/World/TDCloudDeck.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -153,6 +154,7 @@ void UTDDescentSubsystem::Tick(float DeltaTime)
 {
 	TickCover(FMath::Min(DeltaTime, 0.1f));
 	TickHeat(FMath::Min(DeltaTime, 0.1f));
+	TickCloudDeck();
 	if (!IsTiming()) { return; }
 	const double Now = FPlatformTime::Seconds();
 	LongestFrame = FMath::Max(LongestFrame, Now - LastTickTime);
@@ -416,6 +418,44 @@ bool UTDDescentSubsystem::ConsumeSquadCarry(UWorld* World, FTDSquadCarry& Out, b
 	SquadCarryWorld = World;
 	Out = SquadCarry;
 	return true;
+}
+
+void UTDDescentSubsystem::TickCloudDeck()
+{
+	UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
+	const ATDCloudDeck* Deck = nullptr;
+	if (World) { for (TActorIterator<ATDCloudDeck> It(World); It; ++It) { Deck = *It; break; } }
+	APlayerController* PC = World ? UGameplayStatics::GetPlayerController(World, 0) : nullptr;
+	ATDShip* Ship = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
+	if (!Deck || !Ship)
+	{
+		if (UNiagaraComponent* W = CloudWisps.Get()) { W->Deactivate(); }
+		CloudWisps.Reset();
+		LastShipDeckSide = 0.f;
+		return;
+	}
+	const UTDTravelFX* FX = UTDTravelSubsystem::GetDefaultTravelFX(World);
+	const float Rel = Ship->GetActorLocation().Z - Deck->GetActorLocation().Z;
+	const float Side = FMath::Sign(Rel);
+	// Through the deck, either way (entry glide, climb out, or just flying through it): one punch.
+	if (LastDeckShip.Get() == Ship && LastShipDeckSide != 0.f && Side != 0.f && Side != LastShipDeckSide && FX)
+	{
+		++CloudPunches;
+		UTDStatics::PlayCue(World, FX->CloudPunch, Ship->GetActorLocation(), Ship->GetActorRotation());
+	}
+	LastShipDeckSide = Side;
+	LastDeckShip = Ship;
+	const bool bNear = FMath::Abs(Rel) < CloudDeckBand;
+	if (bNear && !CloudWisps.IsValid() && FX)
+	{
+		UAudioComponent* NoAudio = nullptr;
+		CloudWisps = UTDStatics::PlayCueAttachedLoop(FX->CloudWisps, Ship->GetRootComponent(), NAME_None, NoAudio);
+	}
+	else if (!bNear && CloudWisps.IsValid())
+	{
+		CloudWisps->Deactivate();
+		CloudWisps.Reset();
+	}
 }
 
 void UTDDescentSubsystem::SetEntryHeat(float Heat01)
