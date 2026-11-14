@@ -1,31 +1,51 @@
 {
- "_note": "The Warden's four in-place deaths on SKEL_Warden, from Grok's EnemyDeaths r1 (A_Crew_Warden_DeathRM_<Side>). Shield rule: Front is the Back fall and Left is the Right fall (Grok's Front and Left end with the shield standing up). Rate 1.4 (2.8 s): the corpse is removed 4 s after death (CorpseSeconds), and at 3.93 s the body vanished as it landed. r3 (Lead, Nov 14): every side is the Back fall. r4: written to A_Crew_Warden_DeathPre_<Side>; ue_body_tool.py (body_warden_death.json) adds the knee buckle, torso twist, shield-arm drop and settle bounce.",
+ "_note": "Warden deaths, r6 (Lead, Nov 14): base = the Trooper's in-place Back fall (A_Crew_Death_Back) on SKEL_Warden, 2.76 s (rate 0.93); the Back fall from EnemyDeaths r1 is dropped (it flips, legs above the torso, at 1.3-1.5 s). Frame 0 is the Guard pose and the fall blends in over 0.35 s. Written to A_Crew_Warden_DeathPre_<Side>; body_warden_death.json adds the buckle. All four sides share it.",
  "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
  "skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
  "clips": [
   {
-   "src": "A_Crew_Warden_DeathRM_Back",
+   "src": "A_Crew_Death_Back",
    "dst": "A_Crew_Warden_DeathPre_Front",
    "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
-   "rate": 1.4
+   "rate": 0.93,
+   "blend_ends": {
+    "src": "A_Crew_Warden_Guard",
+    "in": 0.35,
+    "out": 0
+   }
   },
   {
-   "src": "A_Crew_Warden_DeathRM_Back",
+   "src": "A_Crew_Death_Back",
    "dst": "A_Crew_Warden_DeathPre_Back",
    "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
-   "rate": 1.4
+   "rate": 0.93,
+   "blend_ends": {
+    "src": "A_Crew_Warden_Guard",
+    "in": 0.35,
+    "out": 0
+   }
   },
   {
-   "src": "A_Crew_Warden_DeathRM_Back",
+   "src": "A_Crew_Death_Back",
    "dst": "A_Crew_Warden_DeathPre_Left",
    "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
-   "rate": 1.4
+   "rate": 0.93,
+   "blend_ends": {
+    "src": "A_Crew_Warden_Guard",
+    "in": 0.35,
+    "out": 0
+   }
   },
   {
-   "src": "A_Crew_Warden_DeathRM_Back",
+   "src": "A_Crew_Death_Back",
    "dst": "A_Crew_Warden_DeathPre_Right",
    "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
-   "rate": 1.4
+   "rate": 0.93,
+   "blend_ends": {
+    "src": "A_Crew_Warden_Guard",
+    "in": 0.35,
+    "out": 0
+   }
   }
  ]
 }

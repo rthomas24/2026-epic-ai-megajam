@@ -1,0 +1,12 @@
+{
+ "_note": "Pilot interact (ART-08, Nov 14): one clip for console / relay / device, 1.33 s, from A_Pilot_Interact_Shoulder at rate 1.25: the LEFT hand reaches about 50 cm forward at chest height at about 1.04 s, so the blade hand is not involved.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims",
+ "skeleton": "/Game/TriadDrift/Gameplay/Characters/Pilot/SKEL_Pilot",
+ "clips": [
+  {
+   "src": "A_Pilot_Interact_Shoulder",
+   "dst": "A_Pilot_Interact",
+   "rate": 1.25
+  }
+ ]
+}
