@@ -15,6 +15,8 @@
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Pawn.h"
 
 #define LOCTEXT_NAMESPACE "TDObjectiveText"
 
@@ -314,6 +316,13 @@ void FTDObjectiveText::ComputeMarkers(UWorld* World, const FTDProgress& Progress
 		{
 			FText Unused;
 			Interior->GetIdleLine(Unused, Out); // the next room's door
+		}
+		// Through each doorway square-on: the marker is the next door between the pilot and the target.
+		const APlayerController* PC = World->GetFirstPlayerController();
+		const APawn* Pilot = PC ? PC->GetPawn() : nullptr;
+		if (Interior && Interior->IsInterior() && Pilot)
+		{
+			for (AActor*& M : Out) { M = Interior->RouteThroughDoors(Pilot->GetActorLocation(), M); }
 		}
 	}
 }
