@@ -212,7 +212,10 @@ bool FTDDominionStoryBeats::RunTest(const FString&)
 	ATDDominion* D = TDDockingTest::DefensesDown(W, ETDBoardingMode::ForceOff);
 	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(D);
 	if (!TestNotNull(TEXT("story subsystem"), Story)) { return false; }
-	for (int32 i = 1; i <= 4; ++i)
+	// Nov 14 (T3 / T4): the first generator speaks the screenplay's G6_Kato_ShieldWeakening; A4_GeneratorDown1 is retired.
+	TestTrue(TEXT("G6_Kato_ShieldWeakening played (first generator)"), Story->HasPlayed(TEXT("G6_Kato_ShieldWeakening")));
+	TestFalse(TEXT("A4_GeneratorDown1 retired"), Story->HasPlayed(TEXT("A4_GeneratorDown1")));
+	for (int32 i = 2; i <= 4; ++i)
 	{
 		const FName Id(*FString::Printf(TEXT("A4_GeneratorDown%d"), i));
 		TestTrue(*FString::Printf(TEXT("%s played"), *Id.ToString()), Story->HasPlayed(Id));
