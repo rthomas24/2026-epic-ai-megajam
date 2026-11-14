@@ -8,6 +8,16 @@ This folder contains the official narrative development documents for Triad Drif
 
 This is the current **review draft**, not a final recording lock. Previously approved lines and decisions remain in force; circulation does not approve every revised line. Flag any voice or asset work already underway from the first draft to both Leads. The original narrative, previous scripts and Nicholas's editable working copy are preserved.
 
+## Approved update after the second draft
+
+Nicholas approved this replacement for Wren's post-battle line, S2_Wren_WelcomeParty:
+
+> Is it over? I think I blacked out...
+
+**Delivery:** sarcastic; a dry, deadpan comment. Preserve the exact wording and trailing three-dot ellipsis.
+
+This supersedes the prior hold and the second draft's "Give me a second. My hands are still shaking." for this line only. Other proposed second-draft changes remain subject to Nicholas's review. Ryan's team owns runtime and shared dialogue-record implementation; this approval does not claim that it is already in the game. [Approval sent to Ryan in issue 29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6871262780). The circulated second-draft DOCX remains unchanged.
+
 ## Narrative overview
 
 [Nicholas’s first draft for Ryan’s team, November 13 at 8:45 p.m. Eastern](Triad_Drift_Complete_Dialogue_FIRST_DRAFT_20261113_204517.docx) is preserved as the earlier review snapshot. Use the second draft above for current script review. Dialogue, timing and proposed additions can change. Previously approved decisions stand; new wording and optional ending variations await approval before recording or implementation.
