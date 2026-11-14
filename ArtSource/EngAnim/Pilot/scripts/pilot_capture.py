@@ -48,6 +48,11 @@ MOVES = {
     "deflect": (0.25, 7.0, [(0.0, "TD.Key RightMouseButton 1.6")], []),
     "flinch":  (0.3, 5.0, [(0.0, "TD.God"), (4.0, "TD.God")], []),
     "dash":    (0.2, 3.0, [(0.0, "TD.Key Q")], []),
+    # sequences at about 10 game fps (2 views) with every-frame foot positions in the log (TD.Pilot.FootTrace)
+    "seq_walk_run_stop": (0.6, 6.5, [(0.0, "TD.Pilot.FootTrace 3.8"), (0.0, "TD.Pilot.Drive 150 1.2"), (2.0, "TD.Key W 1.2")], []),
+    "seq_light_moving": (0.6, 5.5, [(0.0, "TD.Pilot.FootTrace 3.2"), (0.0, "TD.Key W 2.8"), (0.6, "TD.Key LeftMouseButton"), (1.2, "TD.Key LeftMouseButton"), (1.8, "TD.Key LeftMouseButton")], []),
+    "seq_sprint": (0.6, 4.5, [(0.0, "TD.Pilot.FootTrace 2.6"), (0.0, "TD.Key W 2.0"), (0.0, "TD.Key LeftShift 2.0")], []),
+    "seq_guard_strafe": (0.6, 4.5, [(0.0, "TD.Pilot.FootTrace 2.6"), (0.0, "TD.Key RightMouseButton 2.2"), (0.05, "TD.Pilot.Drive 0 2.0 -300")], []),
     "slide":   (0.25, 4.0, [(0.0, "TD.Key LeftShift 1.0"), (0.0, "TD.Key W 1.0"), (0.5, "TD.Key LeftControl")], []),
     "slope_ik_on": (1.0, 2.0, [], [("TD.Pilot.FootIK 1", 0.5)]),
     "slope_ik_off": (1.0, 2.0, [], [("TD.Pilot.FootIK 0", 0.5)]),

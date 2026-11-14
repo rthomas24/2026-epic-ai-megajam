@@ -717,7 +717,8 @@ UAnimSequenceBase* ATDFirstPersonCharacter::LoadPilotAnim(FName Anim) const
 		static const FName NewMoves[] = { TEXT("A_Pilot_Light1_v3"), TEXT("A_Pilot_Light2_v3"), TEXT("A_Pilot_Light3_v3"), TEXT("A_Pilot_Heavy_v4"),
 			TEXT("A_Pilot_AirSlam_Fall_v2"), TEXT("A_Pilot_AirSlam_Land_v3"), TEXT("A_Pilot_AirSlam_Land_v2"), TEXT("A_Pilot_Block_v2"), TEXT("A_Pilot_Blade_DeflectFlick_v2"),
 			TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_Blade_Idle_v2"), TEXT("A_Pilot_Run_v2"), TEXT("A_Pilot_Run_v3"),
-			TEXT("A_Pilot_FallLoop_v2"), TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_JumpStart_v2") };
+			TEXT("A_Pilot_FallLoop_v2"), TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_JumpStart_v2"),
+			TEXT("A_Pilot_Block_v3"), TEXT("A_Pilot_Blade_DeflectFlick_v3") };
 		for (const FName& N : NewMoves)
 		{
 			if (Anim == N)
@@ -752,7 +753,7 @@ void ATDFirstPersonCharacter::HandleBladeDeflect(AActor* Projectile, bool bPerfe
 	// The animation builder's flick (0.97 s, the flick at 0.13 s): upper body, so the legs keep their move.
 	if (!IsDead())
 	{
-		PlayFirstBodyAction({ TEXT("A_Pilot_Blade_DeflectFlick_v2"), TEXT("A_Pilot_Blade_DeflectFlick") }, 1.f, true);
+		PlayFirstBodyAction({ TEXT("A_Pilot_Blade_DeflectFlick_v3"), TEXT("A_Pilot_Blade_DeflectFlick_v2"), TEXT("A_Pilot_Blade_DeflectFlick") }, 1.f, true);
 	}
 }
 
@@ -925,7 +926,8 @@ void ATDFirstPersonCharacter::UpdateBodyActions()
 	}
 	// The guard is held on the upper body for as long as the block is.
 	// v2 (animation builder, Nov 14): the blade diagonal across the front of the chest, not tipped back over the shoulder.
-	UAnimSequenceBase* Guard = State == ETDBladeState::Blocking ? LoadPilotAnim(TEXT("A_Pilot_Block_v2")) : nullptr;
+	UAnimSequenceBase* Guard = State == ETDBladeState::Blocking ? LoadPilotAnim(TEXT("A_Pilot_Block_v3")) : nullptr; // v3: up the centre line, tipped toward the aim
+	Guard = Guard || State != ETDBladeState::Blocking ? Guard : LoadPilotAnim(TEXT("A_Pilot_Block_v2"));
 	Loops->SetUpperLoop(State == ETDBladeState::Blocking ? (Guard ? Guard : LoadPilotAnim(TEXT("A_Pilot_Block"))) : nullptr);
 	if (bDashing && !bLastBodyDashing && !Blade->IsAttacking())
 	{
