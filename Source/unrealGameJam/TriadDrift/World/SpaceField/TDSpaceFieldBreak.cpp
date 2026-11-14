@@ -16,6 +16,11 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
+#include "TriadDrift/Combat/TDFieldDamageable.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Powers/TDRamPower.h"
 
 namespace TDSpaceFieldBreak
 {
@@ -226,18 +231,33 @@ void ATDSpaceField::PlayBreakCue(const FVector& At, float Size, uint8 SizeClass,
 			FX = UTDStatics::LoadPresentation<UTDSpaceFieldFX>(TEXT("DA_SpaceField_FX"));
 		}
 	}
+	// The effects builder's breaks (eng/vfx 7a7c0023) are the defaults; a DA_SpaceField_FX cue with a VFX wins.
+	static const TCHAR* DefaultVFX[] = {
+		TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_S.NS_TD_Asteroid_Break_S"),
+		TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_M.NS_TD_Asteroid_Break_M"),
+		TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_L.NS_TD_Asteroid_Break_L"),
+		TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_Crystal.NS_TD_Asteroid_Break_Crystal") };
+	static const float DefaultScale[] = { 1.f, 2.2f, 4.5f, 2.2f };	// the systems' authored User.Scale per class
+	const int32 Slot = bSpecial ? 3 : FMath::Min<int32>(SizeClass, 2);
+	FTDFXCue Cue;
 	if (FX)
 	{
-		const FTDFXCue& Cue = bSpecial ? FX->BreakSpecial : (SizeClass == 0 ? FX->BreakSmall : (SizeClass == 1 ? FX->BreakMedium : FX->BreakLarge));
-		if (!Cue.VFX.IsNull())
+		Cue = bSpecial ? FX->BreakSpecial : (SizeClass == 0 ? FX->BreakSmall : (SizeClass == 1 ? FX->BreakMedium : FX->BreakLarge));
+	}
+	const bool bAuthored = !Cue.VFX.IsNull();
+	if (!bAuthored)
+	{
+		Cue.VFX = TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(DefaultVFX[Slot]));
+	}
+	if (UNiagaraComponent* NC = UTDStatics::PlayCue(this, Cue, At, FRotator::ZeroRotator))
+	{
+		if (!bAuthored)
 		{
-			UTDStatics::PlayCue(this, Cue, At, FRotator::ZeroRotator);
-			return;
+			// Bigger pieces of a class read bigger: the authored scale times the piece's size against the class middle.
+			static const float ClassMiddle[] = { 500.f, 2500.f, 8000.f, 2500.f };
+			NC->SetVariableFloat(TEXT("User.Scale"), DefaultScale[Slot] * FMath::Clamp(Size / ClassMiddle[Slot], 0.6f, 2.f));
 		}
-		if (!Cue.IsEmpty())
-		{
-			UTDStatics::PlayCue(this, Cue, At, FRotator::ZeroRotator);	// sound or shake only: still show the burst below
-		}
+		return;
 	}
 	// Placeholder: T2's explosion read (core, shell, debris), dusty orange for rock, teal for a special.
 	if (UTDProjectileSubsystem* Sub = UTDProjectileSubsystem::Get(this))
@@ -352,4 +372,33 @@ bool ATDSpaceField::ShipImpact(const UPrimitiveComponent* Component, int32 Item,
 	const float MetresPerSecond = NormalSpeed / 100.f;
 	const bool bBroke = DamagePiece(Piece, ShipImpactDamageScale * MetresPerSecond * MetresPerSecond * FMath::Clamp(HeadOn01, 0.1f, 1.f), Ship);
 	return bBroke && Class == 0;
+}
+
+// --------------------------------------------------------------------------------- ITDFieldDamageable (T2)
+
+void ATDSpaceField::ReceiveProjectileHit(const FHitResult& Hit, float Damage, AActor* InInstigator, ETDDamageKind Kind)
+{
+	const int32 Piece = PieceForHit(Hit.GetComponent(), Hit.Item);
+	if (Piece != INDEX_NONE)
+	{
+		DamagePiece(Piece, Damage, InInstigator);
+	}
+}
+
+bool ATDSpaceField::ReceiveRamSweep(const FVector& From, const FVector& To, float Radius, AActor* InInstigator, FVector& OutBlock)
+{
+	return RamSweep(From, To, Radius, InInstigator, OutBlock);
+}
+
+void ATDSpaceField::ReceiveSplash(const FVector& Center, float Radius, float Damage, AActor* InInstigator)
+{
+	Splash(Center, Radius, Damage, InInstigator);
+}
+
+// ------------------------------------------------------------------------------- ITDShipImpactReceiver (T1)
+
+bool ATDSpaceField::ReceiveShipImpact(UPrimitiveComponent* HitComponent, int32 Item, const FVector& ImpactPoint, float NormalSpeed, float HeadOn01, ATDShip* Ship)
+{
+	const UTDRamPower* Ram = Ship ? Ship->FindComponentByClass<UTDRamPower>() : nullptr;
+	return ShipImpact(HitComponent, Item, NormalSpeed, HeadOn01, Ship, Ram && Ram->IsPowerActive());
 }

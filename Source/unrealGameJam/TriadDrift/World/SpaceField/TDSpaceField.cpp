@@ -83,6 +83,7 @@ void ATDSpaceField::BeginPlay()
 		Layout = ATDGalaxyLayout::Get(this);
 	}
 	Build();
+	FTDFieldDamage::Register(this);	// Lancer's ram and explosions find the field without searching the world
 	// Caches: four per debris field, the types in turn (one use each per run).
 	Caches.Reset();
 	const TArray<FVector> Spots = GetCacheSpots(this);
@@ -712,4 +713,10 @@ int32 ATDSpaceField::GetCachesAlive() const
 	int32 N = 0;
 	for (const FCache& C : Caches) { N += C.Pickup.IsValid() ? 1 : 0; }
 	return N;
+}
+
+void ATDSpaceField::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	FTDFieldDamage::Unregister(this);
+	Super::EndPlay(EndPlayReason);
 }
