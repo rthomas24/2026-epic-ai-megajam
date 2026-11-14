@@ -114,6 +114,17 @@ void UTDProjectileSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		Bus->OnTakeStarted.AddUniqueDynamic(this, &UTDProjectileSubsystem::HandleTakeStarted);
 		Bus->OnActorKilled.AddUniqueDynamic(this, &UTDProjectileSubsystem::HandleActorKilled);
 	}
+	// Issue #89: the pool is filled before the first shot (each spawn is an actor plus components: a hitch mid-fight).
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Params.ObjectFlags |= RF_Transient;
+	for (int32 I = Pool.Num(); I < FMath::Min(PrewarmProjectiles, MaxPooled); ++I)
+	{
+		if (ATDProjectile* P = InWorld.SpawnActor<ATDProjectile>(ATDProjectile::StaticClass(), FTransform::Identity, Params))
+		{
+			Pool.Add(P);
+		}
+	}
 }
 
 bool UTDProjectileSubsystem::IsBigKill(const AActor* Victim) const

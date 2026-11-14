@@ -93,6 +93,9 @@ public:
 	/** Pool size cap; beyond it, released projectiles are destroyed. */
 	UPROPERTY(EditAnywhere, Category = "TriadDrift|Combat")
 	int32 MaxPooled = 256;
+	/** Projectiles spawned into the pool at world start (a wave-5 fight peaks near 30 live): no actor spawn mid-fight. */
+	UPROPERTY(EditAnywhere, Category = "TriadDrift|Combat")
+	int32 PrewarmProjectiles = 48;
 	/** Pool misses (a new projectile / flash actor spawned) since the world began: the perf benchmark wants 0 in steady fire. */
 	int32 GetSpawnedProjectiles() const { return SpawnedProjectiles; }
 	int32 GetSpawnedFlashes() const { return SpawnedFlashes; }
