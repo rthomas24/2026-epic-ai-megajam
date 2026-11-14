@@ -1,0 +1,19 @@
+{
+ "name": "VerdanceStump",
+ "source_tris": 16814,
+ "size_cm": [
+  128.0,
+  139.8,
+  36.2
+ ],
+ "stood_up_from_axis": "Z",
+ "tris": 4000,
+ "source_mean_luma": 0.3,
+ "moss_share": 0.039,
+ "normal": "OpenGL, flipped (-0.330)",
+ "orm_mean": [
+  0.64,
+  0.893,
+  0.0
+ ]
+}
