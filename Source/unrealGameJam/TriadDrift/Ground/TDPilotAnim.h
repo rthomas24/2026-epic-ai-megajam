@@ -54,6 +54,26 @@ public:
 	bool bLegsWanted = false;
 	float LegBlendSeconds = 0.15f;
 
+	/**
+	 * Starts and stops (no clips on disk): the owner says which gait it is in (0 idle, 1 walk, 2 run, -1 air); from
+	 * idle into a move the body leans into the first step (StartSeconds), from a move into idle it plants, rocks back
+	 * and settles (StopSeconds). Procedural on spine_01 (pitch) and the pelvis (drop), over whatever loop is playing.
+	 */
+	void SetGait(int32 Gait);
+	int32 Gait = 0;
+	float StartLeft = 0.f;
+	float StopLeft = 0.f;
+	float StartSeconds = 0.3f;
+	float StopSeconds = 0.4f;
+	/** Peak forward lean into a start / back-rock of a stop (deg) and the pelvis dip (cm). */
+	float StartLeanDeg = 11.f;
+	float StopLeanDeg = 9.f;
+	float StartDropCm = 3.f;
+	float StopDropCm = 6.f;
+	/** Now (read by the proxy): degrees forward (+) / back (-) on spine_01, cm the pelvis is lowered. */
+	float GaitLean = 0.f;
+	float GaitDrop = 0.f;
+
 	/** Loop on the upper body only (the block guard) over whatever the legs do; null fades it back out (0.12 s). */
 	void SetUpperLoop(UAnimSequenceBase* Loop);
 	UAnimSequenceBase* GetUpperLoop() const { return bUpperWanted ? Upper.Get() : nullptr; }

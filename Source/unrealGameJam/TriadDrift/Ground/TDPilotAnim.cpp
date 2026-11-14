@@ -47,6 +47,8 @@ namespace TDLoopBlend
 		FVector ForwardCS = FVector(0.f, 1.f, 0.f);
 		double ShotTime = 0.0;
 		float ShotAlpha = 0.f;
+		float GaitLean = 0.f;
+		float GaitDrop = 0.f;
 		const UAnimSequenceBase* Legs = nullptr;
 		double LegTime = 0.0;
 		float LegAlpha = 0.f;
@@ -74,6 +76,8 @@ namespace TDLoopBlend
 			ShotTime = A->ShotTime;
 			ShotAlpha = A->ShotAlpha;
 			bShotUpper = A->bShotUpper;
+			GaitLean = A->GaitLean;
+			GaitDrop = A->GaitDrop;
 			Legs = A->Legs;
 			LegTime = A->LegTime;
 			LegAlpha = A->LegAlpha;
@@ -276,6 +280,19 @@ namespace TDLoopBlend
 				Legs->GetAnimationPose(StepData, FAnimExtractContext(LegTime, false, {}, true));
 				BlendLower(Output, Step, LegAlpha);
 			}
+			// Start / stop: lean into the first step, rock back and settle on a stop (spine_01 pitch about the body's
+			// right axis, mesh space: forward +Y, right -X), the pelvis dipping with it.
+			if (!FMath::IsNearlyZero(GaitLean) || !FMath::IsNearlyZero(GaitDrop))
+			{
+				const FReferenceSkeleton& Ref = Output.Pose.GetBoneContainer().GetReferenceSkeleton();
+				RotateCS(Output.Pose, Ref, UpperRoot, FQuat(FVector(-1.f, 0.f, 0.f), FMath::DegreesToRadians(GaitLean)));
+				const int32 PelvisMesh = Ref.FindBoneIndex(TEXT("pelvis"));
+				const FCompactPoseBoneIndex Pelvis = PelvisMesh != INDEX_NONE ? Output.Pose.GetBoneContainer().MakeCompactPoseIndex(FMeshPoseBoneIndex(PelvisMesh)) : FCompactPoseBoneIndex(INDEX_NONE);
+				if (Pelvis.IsValid())
+				{
+					Output.Pose[Pelvis].AddToTranslation(FVector(0.f, 0.f, -GaitDrop));
+				}
+			}
 			if (Upper && UpperAlpha > 0.f)
 			{
 				FPoseContext Guard(this);
@@ -346,6 +363,28 @@ void UTDLoopBlendAnimInstance::SetLoop(UAnimSequenceBase* Loop, float Rate)
 	Current = Loop;
 	CurrentTime = Current ? Phase * Current->GetPlayLength() : 0.0;
 	Alpha = Previous ? 0.f : 1.f;
+}
+
+void UTDLoopBlendAnimInstance::SetGait(int32 NewGait)
+{
+	if (NewGait == Gait)
+	{
+		return;
+	}
+	if (TDPilotMeleePassOn())
+	{
+		if (Gait == 0 && NewGait > 0)
+		{
+			StartLeft = StartSeconds;
+			StopLeft = 0.f;
+		}
+		else if (Gait > 0 && NewGait == 0)
+		{
+			StopLeft = StopSeconds;
+			StartLeft = 0.f;
+		}
+	}
+	Gait = NewGait;
 }
 
 void UTDLoopBlendAnimInstance::SetLegLoop(UAnimSequenceBase* Loop, float Rate)
@@ -446,6 +485,23 @@ void UTDLoopBlendAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		}
 	};
 	Advance(Current, CurrentTime);
+	GaitLean = GaitDrop = 0.f;
+	if (StartLeft > 0.f)
+	{
+		StartLeft = FMath::Max(0.f, StartLeft - DeltaSeconds);
+		const float U = 1.f - StartLeft / FMath::Max(StartSeconds, 0.01f);
+		const float Bump = FMath::Sin(PI * U);
+		GaitLean = StartLeanDeg * Bump;
+		GaitDrop = StartDropCm * Bump;
+	}
+	else if (StopLeft > 0.f)
+	{
+		StopLeft = FMath::Max(0.f, StopLeft - DeltaSeconds);
+		const float U = 1.f - StopLeft / FMath::Max(StopSeconds, 0.01f);
+		const float Bump = FMath::Sin(PI * U);
+		GaitLean = -StopLeanDeg * Bump * (1.f - 0.5f * U);
+		GaitDrop = StopDropCm * Bump;
+	}
 	if (Legs)
 	{
 		const float Length = Legs->GetPlayLength();

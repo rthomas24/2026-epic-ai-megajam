@@ -302,7 +302,11 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		// Run v2 (animation builder, Nov 14): the blade held out and down beside the leg, not swept across the head.
 		if (Loop && Want == 2 && Loop->GetFName() == TEXT("A_Pilot_Run") && TDPilotMeleePassOn())
 		{
-			if (UAnimSequenceBase* Run2 = LoadPilotAnim(TEXT("A_Pilot_Run_v2")))
+			// v3: the turn split between a forearm roll (at most 90 deg) and the wrist (at most 70), the blade trailing
+			// back and down; v2 bent the wrist alone up to 150 deg.
+			UAnimSequenceBase* Run2 = LoadPilotAnim(TEXT("A_Pilot_Run_v3"));
+			Run2 = Run2 ? Run2 : LoadPilotAnim(TEXT("A_Pilot_Run_v2"));
+			if (Run2)
 			{
 				Loop = Run2;
 			}
@@ -311,6 +315,7 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		const float Ref = Want == 1 ? BodyWalkSpeed : Want == 2 ? BodyRunSpeed : 0.f;
 		const float Rate = Fall ? 1.f : bAir ? 0.4f : (Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.7f) : 1.f); // in the air: the fall loop, else the last loop slowed
 		Loops->SetLoop(Loop, Rate);
+		Loops->SetGait(bAir ? -1 : Want); // start lean / stop settle (animation builder, Nov 14)
 		// Legs follow the direction of travel when the body faces elsewhere (a swing or the guard turns it to the camera):
 		// a strafe or backpedal loop on the legs only, at its own measured speed, so the feet stop sliding sideways.
 		UAnimSequenceBase* Legs = nullptr;
@@ -672,7 +677,7 @@ UAnimSequenceBase* ATDFirstPersonCharacter::LoadPilotAnim(FName Anim) const
 	{
 		static const FName NewMoves[] = { TEXT("A_Pilot_Light1_v3"), TEXT("A_Pilot_Light2_v3"), TEXT("A_Pilot_Light3_v3"), TEXT("A_Pilot_Heavy_v4"),
 			TEXT("A_Pilot_AirSlam_Fall_v2"), TEXT("A_Pilot_AirSlam_Land_v3"), TEXT("A_Pilot_AirSlam_Land_v2"), TEXT("A_Pilot_Block_v2"), TEXT("A_Pilot_Blade_DeflectFlick_v2"),
-			TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_Blade_Idle_v2"), TEXT("A_Pilot_Run_v2") };
+			TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_Blade_Idle_v2"), TEXT("A_Pilot_Run_v2"), TEXT("A_Pilot_Run_v3") };
 		for (const FName& N : NewMoves)
 		{
 			if (Anim == N)

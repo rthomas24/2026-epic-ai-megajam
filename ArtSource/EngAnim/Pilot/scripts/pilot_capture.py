@@ -36,6 +36,17 @@ MOVES = {
     "block":   (0.2, 4.0, [(0.0, "TD.Key RightMouseButton 0.7")], []),
     "block_move": (0.3, 4.0, [(0.0, "TD.Key RightMouseButton 1.1"), (0.1, "TD.Key A 1.0")], []),
     "hitreact": (0.3, 8.0, [], [("TD.Ground.Spawn Trooper 900", 2.0)]),
+    # round 2 (Nov 14): analog speeds through TD.Pilot.Drive, a Trooper at sword range for the guard, its bolts for the
+    # flick and (god mode off for 2 s) the flinch; "heavy_follow" re-aims the cameras at the pilot every frame.
+    "walk_slow": (0.4, 3.0, [(0.0, "TD.Pilot.Drive 150 1.4")], []),
+    "start":   (0.25, 2.5, [(0.3, "TD.Key W 0.6")], []),
+    "stop2":   (0.25, 3.0, [(0.0, "TD.Key W 0.15")], [("TD.Key W 1.2", 1.0)]),
+    "guard_strafe": (0.3, 4.0, [(0.0, "TD.Key RightMouseButton 1.2"), (0.05, "TD.Pilot.Drive 0 1.1 -300")], []),
+    "guard_back": (0.3, 4.0, [(0.0, "TD.Key RightMouseButton 1.2"), (0.05, "TD.Pilot.Drive -300 1.1")], []),
+    "heavy_follow": (0.06, 9.0, [(0.0, "TD.Key LeftMouseButton 0.45")], []),
+    "combat_idle": (0.5, 3.0, [], [("TD.Ground.Spawn Trooper 380", 2.5)]),
+    "deflect": (0.25, 7.0, [(0.0, "TD.Key RightMouseButton 1.6")], []),
+    "flinch":  (0.3, 5.0, [(0.0, "TD.God"), (4.0, "TD.God")], []),
 }
 
 
@@ -112,6 +123,10 @@ def main():
         while time.time() - t0 < secs:
             while todo and time.time() - t0 >= todo[0][0]:
                 cmd(todo.pop(0)[1])
+            if name.endswith("_follow"):
+                q = where()
+                if q:
+                    cams = {v: camera(q, 0.0, v) for v in views}
             for v in views:
                 r = call("SceneCaptureToolset.SceneCaptureToolset", "Capture", {"world": {"refPath": world}, "camera": cams[v], "mode": "Lit",
                          "options": {"width": W, "height": H, "screenPercentage": 1.0, "visualizationSubMode": ""}})

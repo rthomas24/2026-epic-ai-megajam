@@ -1,26 +1,14 @@
 {
- "A_Pilot_HitReact_Front_v3": {
+ "A_Pilot_Run_v3": {
   "hilt": {
-   "gap": 16.1,
-   "part": "forearm_l",
-   "t": 1.03
+   "gap": 8.8,
+   "part": "thigh_r",
+   "t": 0.17
   },
   "beam": {
-   "gap": 22.9,
-   "part": "forearm_l",
-   "t": 0.0
-  }
- },
- "A_Pilot_HitReact_Back_v3": {
-  "hilt": {
-   "gap": 18.0,
-   "part": "belly",
-   "t": 0.0
-  },
-  "beam": {
-   "gap": 31.9,
-   "part": "chest",
-   "t": 0.77
+   "gap": 8.4,
+   "part": "thigh_r",
+   "t": 0.17
   }
  }
 }
