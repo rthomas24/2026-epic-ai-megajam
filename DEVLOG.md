@@ -286,3 +286,5 @@ Nov 13, presentation team. The 139.2-second combat track reopened with its loop 
 Nov 13, music integration. Added the five previously reloaded Unreal packages for Dominion boarding, the two credits tracks and Verdance. Their bytes match the published Audio checkpoint 52f84e54. The music class is present on main. T7 owns the gameplay events listed in N-045. Hearing the tracks in a matching playable build remains pending.
 
 Nov 13, Dominion assault. Infinity Zone passed a fresh Unreal process reload as a 48 kHz stereo SoundWave in the Music class. Only its new package changed during import. Native checkpoint 70987397, verification 6db3aa98. Listening in the four-generator assault is still pending.
+
+Nov 13, Dominion assault music. Published the full 144.68-second Push The Attack cue with its original ending and return, the preparation source and an eight-second loop sample. A fresh Unreal process reopened the SoundWave with looping enabled, the Music class and volume 0.5. The post-wave-five handoff, exclusive playback through the four generators, actual sequence-end stop and packaged listening check remain open.
