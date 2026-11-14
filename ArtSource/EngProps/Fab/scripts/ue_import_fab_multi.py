@@ -17,6 +17,11 @@ MESHES = {
     # asset: (export dir, destination, {slot material name: (texture part, EmissiveStrength)})
     "PipeBeam": (os.path.join(FAB, "PipeBeam", "export"), "/Game/TriadDrift/Gameplay/Props/Fab/PipeBeam",
                  {"M_Fab_PipeBeam_Truss": ("Truss", 6.0), "M_Fab_PipeBeam_Cable": ("Cable", 0.0)}),
+    # single-slot Quixel dressing meshes: part "" -> T_Fab_<Asset>_BC / MI_Fab_<Asset>
+    "CinderRock": (os.path.join(FAB, "CinderRock", "export"), "/Game/TriadDrift/Gameplay/Props/Fab/CinderRock",
+                   {"M_Fab_CinderRock": ("", 0.0)}),
+    "VerdanceStump": (os.path.join(FAB, "VerdanceStump", "export"), "/Game/TriadDrift/Gameplay/Props/Fab/VerdanceStump",
+                      {"M_Fab_VerdanceStump": ("", 0.0)}),
 }
 TEXSETS = {
     # set: (export dir, destination, max size)
@@ -25,6 +30,7 @@ TEXSETS = {
     "StoneTileFloor": (os.path.join(FAB, "Textures", "StoneTileFloor", "export"), "/Game/TriadDrift/Gameplay/Props/Fab/Textures/StoneTileFloor", 4096),
     # source files already at 2048 (BC) and 1024 (N, ORM)
     "TundraVolcanic": (os.path.join(FAB, "Textures", "TundraVolcanic", "export"), "/Game/TriadDrift/Gameplay/Props/Fab/Textures/TundraVolcanic", 2048),
+    "TundraSulfur": (os.path.join(FAB, "Textures", "TundraSulfur", "export"), "/Game/TriadDrift/Gameplay/Props/Fab/Textures/TundraSulfur", 2048),
 }
 eas = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()
@@ -93,8 +99,9 @@ def mesh_asset(name, cfg):
     src, dest, slots = cfg
     mis = {}
     for slot, (part, em) in slots.items():
-        tex = textures(src, dest, "T_Fab_%s_%s" % (name, part), 2048)
-        mis[slot] = make_mi(dest, "MI_Fab_%s_%s" % (name, part), tex, em)
+        tag = "%s_%s" % (name, part) if part else name
+        tex = textures(src, dest, "T_Fab_" + tag, 2048)
+        mis[slot] = make_mi(dest, "MI_Fab_" + tag, tex, em)
     params = unreal.ImportAssetParameters()
     params.is_automated = True
     params.replace_existing = True

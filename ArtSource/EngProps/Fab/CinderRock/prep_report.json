@@ -1,0 +1,22 @@
+{
+ "name": "CinderRock",
+ "source_tris": 28753,
+ "size_cm": [
+  418.0,
+  455.6,
+  171.8
+ ],
+ "stood_up_from_axis": "Z",
+ "tris": 3999,
+ "source_mean_luma": 0.274,
+ "basalt": {
+  "target_mean_luma": 0.172,
+  "scale": 0.647
+ },
+ "normal": "OpenGL, flipped (-0.663)",
+ "orm_mean": [
+  0.785,
+  0.915,
+  0.0
+ ]
+}

@@ -690,6 +690,12 @@ void ATDFirstPersonCharacter::UpdateBladePose(float DeltaSeconds)
 
 void ATDFirstPersonCharacter::HandleBladeRetract(bool bRetracted)
 {
+	// The ignite / put-away move on the upper body (about 0.5 s), unless a whole-body clip owns the arms right now
+	// (boarding or leaving the ship, the console reach, death).
+	if (!IsDead() && !bShipTransition && InteractRetractLeft <= 0.f && HasBody() && BodyActionName != TEXT("A_Pilot_Interact_Console"))
+	{
+		PlayFirstBodyAction({ bRetracted ? TEXT("A_Pilot_Blade_Retract") : TEXT("A_Pilot_Blade_Ignite") }, 1.f, true);
+	}
 	const bool bShow = !bRetracted && !IsThirdPersonView();
 	BladePlaceholder->SetVisibility(bShow);
 	BladeHilt->SetVisibility(bShow && !bBladeMeshFromArt);
@@ -726,6 +732,9 @@ void ATDFirstPersonCharacter::HandleCameraModeChanged(ETDOnFootCamera NewMode)
 	ApplyViewState();
 }
 
+static TAutoConsoleVariable<int32> CVarCameraBladeGuard(TEXT("TD.Pilot.CameraBladeGuard"), 1,
+	TEXT("1: the camera-rig (first-person) blade is kept hidden in third person every frame; 0: as before (A/B)"));
+
 void ATDFirstPersonCharacter::ApplyViewState()
 {
 	const bool bThird = IsThirdPersonView();
@@ -734,6 +743,15 @@ void ATDFirstPersonCharacter::ApplyViewState()
 	{
 		BladeGrip->SetVisibility(!bThird, false);
 		HandleBladeRetract(Blade ? Blade->IsRetracted() : false); // the camera-rig blade only in first person
+	}
+	// The camera-rig blade's own meshes too, every frame (animation builder, Nov 14): BladeGrip's visibility does not
+	// propagate, and an ignite while the view was briefly not third person (the ship-exit ignite under a director shot)
+	// showed BladePlaceholder in third person: the first-person blade stood up behind the helmet in a run or sprint
+	// (T7's Shipping run, ship5/G3, L3).
+	static IConsoleVariable* Guard = IConsoleManager::Get().FindConsoleVariable(TEXT("TD.Pilot.CameraBladeGuard"));
+	if (bThird && (!Guard || Guard->GetInt() != 0) && BladePlaceholder && (BladePlaceholder->IsVisible() || (BladeHilt && BladeHilt->IsVisible())))
+	{
+		HandleBladeRetract(Blade ? Blade->IsRetracted() : false);
 	}
 	UpdateBody(0.f);       // head shown / hidden, body placed for the view
 	UpdateHandBlade(0.f);  // the hand blade shows with the whole body
@@ -953,7 +971,10 @@ void ATDFirstPersonCharacter::HandleBladeDeflect(AActor* Projectile, bool bPerfe
 	// The animation builder's flick (0.97 s, the flick at 0.13 s): upper body, so the legs keep their move.
 	if (!IsDead())
 	{
-		PlayFirstBodyAction({ TEXT("A_Pilot_Blade_DeflectFlick_v3"), TEXT("A_Pilot_Blade_DeflectFlick_v2"), TEXT("A_Pilot_Blade_DeflectFlick") }, 1.f, true);
+		if (!bPerfect || !PlayFirstBodyAction({ TEXT("A_Pilot_Blade_Flourish_v2") }, 1.f, true)) // a perfect deflect: the flourish, ends in the side guard
+		{
+			PlayFirstBodyAction({ TEXT("A_Pilot_Blade_DeflectFlick_v3"), TEXT("A_Pilot_Blade_DeflectFlick_v2"), TEXT("A_Pilot_Blade_DeflectFlick") }, 1.f, true);
+		}
 	}
 }
 
@@ -1866,6 +1887,15 @@ void ATDFirstPersonCharacter::ReturnToSafeGround()
 void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 {
 	TipLeft = FMath::Max(0.f, TipLeft - DeltaSeconds);
+	// A press whose release never arrived (paused, a menu over the game, focus lost) must not ripen into a heavy.
+	if (Blade && Blade->IsAttackHeld())
+	{
+		const APlayerController* PC = Cast<APlayerController>(GetController());
+		if (PC && !PC->IsInputKeyDown(EKeys::LeftMouseButton) && !PC->IsInputKeyDown(EKeys::Gamepad_RightTrigger))
+		{
+			Blade->DropHeldAttack();
+		}
+	}
 #if !UE_BUILD_SHIPPING
 	// TD.God (dev): the pilot on foot too, whenever it was spawned or handed over (the structures builder, Nov 14: it
 	// only covered the pawn present at the toggle).
@@ -2129,6 +2159,12 @@ void ATDFirstPersonCharacter::OnLookStick(const FInputActionValue& Value)
 
 void ATDFirstPersonCharacter::OnAttackPressed()
 {
+	// T7's Shipping run: a swing with no button pressed. The click on the menu's CONTINUE (or on any screen before the
+	// pilot exists) can reach the new pawn as a press: the first 0.3 s of a pawn's life takes no attack.
+	if (GetGameTimeSinceCreation() < 0.3f)
+	{
+		return;
+	}
 	if (Blade && !bCarrying && !IsDead())
 	{
 		Blade->PressAttack();

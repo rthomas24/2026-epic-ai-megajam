@@ -30,6 +30,8 @@
 #include "TriadDrift/Combat/TDWeaponLibrary.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Core/TDCombatRegistry.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -398,6 +400,32 @@ namespace TDWorldDebug
 		}));
 	FAutoConsoleCommandWithWorldAndArgs CmdGoto(TEXT("TD.World.Goto"), TEXT("Teleport the player's ship to Dominion|Reactor|Verdance|Cinder|Gate|Belt|Start."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Goto));
 	FAutoConsoleCommandWithWorldAndArgs CmdSpawn(TEXT("TD.World.SpawnEnemy"), TEXT("Spawn an enemy in front of the player: <Id> [distance] [pilot 0/1]."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&SpawnEnemy));
+	// Lead (Nov 14): enemy SHIPS alive, apart from carrier parts (turrets, bays) that the registry also counts.
+	//   TD.World.EnemyCount   logs "TD.World.EnemyCount: ships N (carrier fighters F) | parts P | by type ..."
+	FAutoConsoleCommandWithWorldAndArgs CmdEnemyCount(TEXT("TD.World.EnemyCount"), TEXT("Log enemy ships alive (by type, carrier fighters apart) and enemy parts (turrets, bays) separately."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
+		{
+			if (!World) { return; }
+			TMap<FName, int32> ByType;
+			int32 Ships = 0;
+			for (TActorIterator<ATDEnemyShip> It(World); It; ++It)
+			{
+				if (!It->IsAliveEnemy() || It->IsDying()) { continue; }
+				++Ships;
+				ByType.FindOrAdd(It->GetSpec().Id)++;
+			}
+			int32 Parts = 0;
+			if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(World))
+			{
+				TArray<AActor*> Enemies;
+				Registry->GetActorsOfTeam(ETDTeam::Enemy, Enemies, false);
+				for (const AActor* E : Enemies) { if (IsValid(E) && !Cast<ATDEnemyShip>(E)) { ++Parts; } }
+			}
+			FString Types;
+			for (const TPair<FName, int32>& P : ByType) { Types += FString::Printf(TEXT(" %s %d"), *P.Key.ToString(), P.Value); }
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.World.EnemyCount: ships %d (carrier fighters %d) | parts %d | by type%s"),
+				Ships, ATDEnemyShip::CountCarrierFightersAlive(World), Parts, *Types);
+		}));
 	// Play the withdrawal without waiting for the lessons and the heavy contact: TD.Waves.OrderWithdrawal (wave 2).
 	FAutoConsoleCommandWithWorldAndArgs CmdOrderWithdrawal(TEXT("TD.Waves.OrderWithdrawal"), TEXT("Tutorial wave 2: Command orders the withdrawal now (then fly it with TD.World.AimAt Escape)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
@@ -416,6 +444,8 @@ namespace TDWorldDebug
 			const float Metres = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 60.f;
 			FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyPlasmaMines).Projectile;
 			Spec.FuseArmDelay = FMath::Max(Spec.FuseArmDelay, 10.f);
+			// The mine's real look (DA_<Weapon>_FX), as the bomber's weapon component equips it (effects builder, Nov 14).
+			if (!Spec.FX) { Spec.FX = FTDPowerPresentation::LoadWeaponFX(TDWeaponIds::EnemyPlasmaMines); }
 			Spec.bInheritShooterVelocity = false;
 			const FVector At = Pawn->GetActorLocation() + Pawn->GetActorForwardVector() * Metres * 100.f;
 			ATDProjectile* Mine = ATDProjectile::Spawn(World, Spec, FTransform(Pawn->GetActorRotation(), At), nullptr, ETDTeam::Enemy);

@@ -306,7 +306,7 @@ Current resource checkpoint: Nick stopped the general campaign and revoked all p
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-14 15:30 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-14 16:30 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -330,6 +330,46 @@ Paths are under `Source/unrealGameJam/TriadDrift/` unless they start with `/` (r
 
 Workers commit only on their own branch and never pull, merge or push; the Lead integrates in
 `.wt/int`, builds, runs the headless suite, then fast-forwards and pushes `main`.
+
+### Current board, Nov 14 16:30 EST (supersedes the in-progress and queued rows of the 15:30 board below)
+
+**Main is 28c2fb05** (batches BQ a9c635de, BR 99d489e7, BS c8eef9a5, 761877e2 the volcanic texture, BU 685d8bea, BV 28c2fb05; compile-only gate). **Batch BV** brought T1's planet band 150 m, the "VERDANCE · COMPLETE" line and the menu hover fix, both huts kits (Verdance d55fdc15, Cinder fbda8372) and the sulfur set (#195). **On branches for the next batch:** T2's portal missile return, director-shot HUD hide and reactor header (seen GOOD); T3's Face to Face lines ad1694fa and once per run 9c7b3050 (#96 natural route played GOOD); T4's wave 5 carrier cap. **Newest package:** TriadDrift_8d62d14a_Shipping.zip launch-checked (0.90 GB) and played by T7 with real input; next cook from 99d489e7 or later with the size check. **Top focus since 16:15 (Ryan, #194): the planets filled on foot.** Every Ryan-side item that is 🟨 or 🟢 in features.md has an owner here: ENG-09 (T2), ENG-28 (Lead, packaging agent, T6), ENG-36 (T2, T1), ENG-37 (effects builder, T4), ENG-39 (#194: T4, environment, structures and effects builders, T6, T7, T1), ENG-42 (T3, T5), ENG-46 (T7), ART-07 and ART-16 (effects builder, T4), ART-08 (T5, animation builder).
+
+| Owner | Now (in progress) | Next (queued, in order) | Items | Shared paths |
+|---|---|---|---|---|
+| Lead | Boards after batch BV (28c2fb05); hourly features.md alignment | The next batch with T2's and T3's branches; route #194 and the intake issues #195 to #200 | ENG-28 (integration), ENG-46 | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
+| T1 | The planet band and the VERDANCE · COMPLETE line (on main 28c2fb05); #159 the hint cards with T2 | #194 descent and take-off checked on the new terrain; the #138 check cases (bffd905a) to main | ENG-36 (hints), ENG-39 (#194 descent), ART-09 (menu, by offer) | `Flight/`, `Travel/`, `Flow/TDFrontEndGameModes.*`; `DA_UI_Style` read-only |
+| T2 | #103's last three: the low-hull card tint, the pause-menu hover, the lock glyph on a finished planet | #192 mild tracking on the Rift and Lancer regular attacks (Bastion unchanged); #159; #133 the reward captures | ENG-09, ENG-36, balance | `Combat/`, `Powers/`, HUD |
+| T3 | #96 the Face to Face lines and once per run on the branch (natural route played GOOD) | `Bark_Wipe`; the victory recap names and camera fade seen | ENG-42, ENG-44 (polish) | `Squad/`, `Director/`, `Story/` |
+| T4 | #194 terrain relief (divots, craters, holes, mounds) and the mountain ring on both planets; the wave 5 carrier cap (branch) | The tractor beam visible in a real docking and the `SpawnMine` effect (with the effects builder, #105); the two take-offs flown with their lines (#96); the breakup seen at the escape clear; the turret telegraph seen in a frame | ENG-39, ENG-37, ENG-42, ART-07, ART-16 | `Enemies/`, `Waves/`, `World/` (`World/TDTerrainField.*`, `TDPlanetTerrain.*`) |
+| T5 | The hooks for the clips on main: blade ignite / retract, the perfect-deflect flourish, heavy-hit reactions, the Grunt fighting idle (#124) | Drone tilt / look / tumble; a possible stray attack after CONTINUE by mouse click; the flat orange placeholder disc near Grunts in first person; the defenders frame | ART-08, ENG-42 | `Flow/` (except `TDFrontEndGameModes.*`), `Ground/` |
+| T6 | #194 the frame-rate check on the filled planets | Performance on each new package | ENG-28, ENG-39 (perf) | `World/SpaceField/**`, HUD radar files agreed with T2 |
+| T7 | #194 baseline frames on both planets; #149 the real-speed intro check | #194 after frames and the verdict; #142 the remaining menu checks (arrows / pad, deliberate confirm, Skip Tutorial guard, Esc on difficulty, three resolutions) in the next package; #152 a package start to end | ENG-46, ENG-28, ENG-39 (verdict) | `docs/eng/PLAYTEST-*` |
+| Effects builder | The tractor beam v2 and the mine effect with T4's fixes; #194 ambient effects (spores, mist, vents, embers) | The hull-scale explosions on the breakup (#111) | ENG-37, ART-07, ART-16, ENG-39 | `Gameplay/VFX/**`, `DA_*_FX` |
+| Environment builder | #194 density on both planets: trees, rocks, placement of the huts and the Fab assets | The new texture sets once imported (#193, #195 to #200) | ENG-39 | planet and sky materials; dressing code |
+| Structures builder (eng/struct) | #194 both huts kits on main 28c2fb05 (Verdance d55fdc15, Cinder fbda8372); more pieces as the environment builder asks | The story console look (#96) | ENG-39, polish | `ArtSource/EngProps/{Kit,Outpost}/**`, `Content/TriadDrift/Gameplay/Props/Huts/**` |
+| Animation builder | The sprint frame with the blade behind the helmet (reproducing) | Clips for T5's hooks as asked (#124) | ART-08 | `ArtSource/EngAnim/**`, `Characters/*/Anims/**` |
+| Blade effects builder | Idle: #128's blade light fix is on main 685d8bea | Polish (AAA list), on the Lead's dispatch | - | `.wt/blade`, eng/blade |
+| Intake builder (`.wt/imp`, eng/import) | #195 sulfur, #196 volcanic rock, #197 mossy pine stump, #198 to #200 painted metal sets | Credits rows for every new Fab and Quixel folder | asset intake | `Content/TriadDrift/Gameplay/Props/Fab/**`, `ArtSource/EngProps/Fab/**`, `CREDITS.md` |
+| Packaging agent | The next cook from 99d489e7 or later with the size check and boot-to-menu timed | A package every 30 minutes, launch-checked and handed to T7 | ENG-28 | isolated `.wt/pkg` |
+| Ship builder | Stopped (usage limit) | Restart only on the Lead's dispatch | - | squad and fleet visuals |
+| Character builder (not started) | - | Game-ready pilot meshes (#149, beyond the canopies; waits on an approved look) | polish (B1-9) | `ArtSource/EngCharacters/**` |
+| Grok Bot | No asks open (R-042) | Ask 5 (instanced set pieces) once its brief is posted | - | `ArtSource/EngAI/**` |
+
+Rows opened or closed Nov 14 16:30 (they supersede the same items' rows of 15:30 below):
+
+| Item | Owner | State | Paths |
+|---|---|---|---|
+| **Integration batches BQ to BV** (BQ a9c635de, BR 99d489e7, BS c8eef9a5, 761877e2, BU 685d8bea, BV 28c2fb05) | Lead | done: on main by 16:35 EST (compile-only gate) | none |
+| **#146 intro opening bed** (hand-off from Nick's Lead on Nicholas's behalf, issue #146, Nov 14 16:53 EST) | T3 | in progress since 17:10 | NEW `Content/TriadDrift/Audio/IntroAmbient01/MUS_IntroAmbient_HerosWake_01.uasset`; `Content/TriadDrift/Presentation/DA_UI_Style.uasset` (the live style; ONLY the new `IntroOpeningBed` field is set, every other property read back unchanged or the save is refused); new C++ field `UTDUIStyle::IntroOpeningBed` in `Core/TDPresentation.h`; `Director/Intro/TDIntroDirector.*`; `CREDITS.md`; `Tools/td-import-intro-bed.py` |
+| **#194 the planets filled on foot** (Ryan's top focus, 16:15; ENG-39) | T4, environment, structures and effects builders, T6, T7, T1 | in progress since 16:15 | `World/TDTerrainField.*`, `World/TDPlanetTerrain.*`, planet materials and dressing, `Content/TriadDrift/Gameplay/Props/Huts/**`, `Gameplay/VFX/**` |
+| #96 Continue restoring the final-record step | T5 | done: on main c8eef9a5 (ccaaf4d4) | none |
+| #96 Face to Face lines and once per run | T3 | in review: on the branch, natural route played GOOD; next batch | `Story/` |
+| #128 the blade light washing enemies | Blade builder | done: on main 685d8bea | none |
+| **Intro cockpit canopies (#149)** | Structures builder | done: all three on main (Nick's Lead accepted); T7's real-speed intro check queued | none |
+| #100 portal missile return; #103 HUD hide and reactor header | T2 | in review: seen GOOD on the branch; next batch | `Combat/`, `Powers/`, HUD |
+| #192 mild tracking on the Rift and Lancer regular attacks | T2 | queued (decided by the Lead under delegation; the issue says Ryan agreed) | `Combat/` |
+| Fab and Quixel intake (#180, #182, #185, #186, #189, #190, #193) | Intake builder | done: on main | none |
 
 ### Current board, Nov 14 15:30 EST (supersedes the in-progress and queued rows of the 14:35 board below)
 

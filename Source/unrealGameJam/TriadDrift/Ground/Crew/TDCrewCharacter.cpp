@@ -180,7 +180,13 @@ void ATDCrewCharacter::UpdateFallbackLoop()
 				Own = Fwd < -0.6f ? TEXT("Backpedal_Aim") : Right > 0.6f ? TEXT("StrafeRight_Aim") : Right < -0.6f ? TEXT("StrafeLeft_Aim") : nullptr;
 			}
 			break;
-		case ETDCrewType::Grunt: Own = Want == 2 ? TEXT("Charge") : nullptr; break;
+		case ETDCrewType::Grunt:
+		{
+			// Standing with the pilot found: Nicholas's fists-up stance (A_Crew_Grunt_Idle_Fight; the combo ends in it).
+			const ATDCrewAIController* AI = Cast<ATDCrewAIController>(GetController());
+			Own = Want == 2 ? TEXT("Charge") : (Want == 0 && AI && AI->GetTarget()) ? TEXT("Idle_Fight") : nullptr;
+			break;
+		}
 		case ETDCrewType::Heavy: Own = Want == 0 ? TEXT("Idle_Guard") : TEXT("Walk_Fwd"); break;
 		case ETDCrewType::Warden: Own = Want == 0 ? TEXT("Guard") : TEXT("Walk"); break;
 		default: break;
@@ -756,7 +762,10 @@ void ATDCrewCharacter::UpdateTell()
 		return;
 	}
 	const bool bArtTell = Visuals && !Visuals->Telegraph.IsEmpty();
-	const bool bShow = !bArtTell && !IsDead() && IsTelegraphing();
+	// Ranged attacks only: on a melee wind-up the placeholder was a flat orange disc in the pilot's face at 1 m (blade
+	// builder's frames, Nov 14) and told nothing the swing does not. The art Telegraph cue, when set, replaces it.
+	const bool bRangedTell = CurrentAttack == ETDCrewAttack::Burst || CurrentAttack == ETDCrewAttack::Shotgun || CurrentAttack == ETDCrewAttack::BoltFan;
+	const bool bShow = !bArtTell && !IsDead() && IsTelegraphing() && bRangedTell;
 	if (!bShow)
 	{
 		TellGlow->SetHiddenInGame(true);
@@ -1238,7 +1247,20 @@ void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDama
 			}
 			const bool bFromBehind = !Info.HitDirection.IsNearlyZero() && FVector::DotProduct(-Info.HitDirection.GetSafeNormal2D(), GetActorForwardVector()) < 0.f;
 			bool bOwn = false;
-			if (Spec.Type == ETDCrewType::Trooper)
+			// A hit of the heavy blade's weight that it survives: the heavy hit react (the animation builder's
+			// A_Crew_<Type>_HeavyHit, about 0.6 s) in place of the flinch; no attack starts while it plays.
+			const ATDProjectile* Returned = Cast<ATDProjectile>(Info.Causer);
+			const bool bReturnedBolt = Returned && Returned->WasDeflected(); // a bolt the pilot's blade sent back
+			if ((Spec.Type == ETDCrewType::Grunt || Spec.Type == ETDCrewType::Trooper) && (ShieldDamage + HullDamage >= HeavyHitThreshold || bReturnedBolt))
+			{
+				if (UAnimSequenceBase* Heavy = TypeClip(TEXT("HeavyHit")))
+				{
+					bOwn = PlayTypeClip(TEXT("HeavyHit"));
+					HitReactLeft = FMath::Max(HitReactLeft, Heavy->GetPlayLength());
+				}
+			}
+			if (bOwn) {}
+			else if (Spec.Type == ETDCrewType::Trooper)
 			{
 				// Scaled with the hit: a chip plays quicker (rate up to 1.5), a quarter of its hull or more at full length.
 				const float Weight = FMath::Clamp(HullDamage / FMath::Max(1.f, Health->MaxHull * 0.25f), 0.f, 1.f);
@@ -1262,6 +1284,15 @@ void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDama
 			{
 				PlayFallbackAnim(TDCrewAnims::Hit); // flinch (attacks keep their own animation)
 			}
+		}
+	}
+	if (Spec.Type == ETDCrewType::Heavy && !IsDead() && !IsStaggered())
+	{
+		const ATDProjectile* Returned = Cast<ATDProjectile>(Info.Causer);
+		if (Returned && Returned->WasDeflected())
+		{
+			const UAnimSequenceBase* Clip = TypeClip(TEXT("Stagger"));
+			ApplyStagger(Clip ? Clip->GetPlayLength() : 0.8f, Info.Instigator); // its own bolt back: the Heavy reels
 		}
 	}
 	if (Spec.Type == ETDCrewType::Warden && !IsDead() && WardenStaggerCooldownLeft <= 0.f && !IsStaggered())
@@ -1352,6 +1383,19 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 		{
 			Grunt->GetHealth()->Kill(KillingBlow.Instigator, ETDDamageKind::Environmental);
 		}
+	}
+	if (Spec.Type == ETDCrewType::Drone)
+	{
+		// A drone tumbles for a beat, then explodes (TickDroneMotion), instead of bursting on the hit.
+		DroneTumbleLeft = 0.6f;
+		DroneTumbleSpin = FRotator(FMath::FRandRange(300.f, 500.f), FMath::FRandRange(-200.f, 200.f), FMath::FRandRange(400.f, 700.f));
+		DroneTumbleFall = (KillingBlow.HitDirection.IsNearlyZero() ? FVector::ZeroVector : KillingBlow.HitDirection.GetSafeNormal2D() * 250.f) + FVector(0.f, 0.f, -150.f);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetCharacterMovement()->StopMovementImmediately();
+		GetCharacterMovement()->DisableMovement();
+		DetachFromControllerPendingDestroy();
+		SetLifeSpan(1.2f);
+		return;
 	}
 	PlayCrewCue(TEXT("Death"), Visuals ? Visuals->Death : FTDFXCue(), false, GetActorLocation());
 
@@ -1576,10 +1620,63 @@ void ATDCrewCharacter::TickTopple(float DeltaSeconds)
 	}
 }
 
+USceneComponent* ATDCrewCharacter::DroneLook() const
+{
+	if (GetMesh() && GetMesh()->IsVisible() && GetMesh()->GetSkeletalMeshAsset()) { return GetMesh(); }
+	return Body && Body->IsVisible() ? Body.Get() : nullptr;
+}
+
+void ATDCrewCharacter::TickDroneMotion(float DeltaSeconds)
+{
+	USceneComponent* Look = DroneLook();
+	if (!Look)
+	{
+		return;
+	}
+	if (!bDroneBaseSet)
+	{
+		bDroneBaseSet = true;
+		DroneBaseRotation = Look->GetRelativeRotation();
+	}
+	if (IsDead())
+	{
+		if (DroneTumbleLeft > 0.f)
+		{
+			DroneTumbleLeft -= DeltaSeconds;
+			Look->AddLocalRotation(DroneTumbleSpin * DeltaSeconds);
+			AddActorWorldOffset(DroneTumbleFall * DeltaSeconds);
+			if (DroneTumbleLeft <= 0.f)
+			{
+				PlayCrewCue(TEXT("Death"), Visuals ? Visuals->Death : FTDFXCue(), false, Look->GetComponentLocation());
+				Look->SetVisibility(false, true);
+				if (Eyes) { Eyes->SetVisibility(false); }
+			}
+		}
+		return;
+	}
+	// Alive: lean into the way it moves (up to 15 degrees) and turn its eye toward the pilot.
+	const FVector V = GetVelocity();
+	const float MaxSpeed = GetCharacterMovement() ? FMath::Max(GetCharacterMovement()->GetMaxSpeed(), 1.f) : 600.f;
+	const float Fwd = FVector::DotProduct(V, GetActorForwardVector()) / MaxSpeed;
+	const float Side = FVector::DotProduct(V, GetActorRightVector()) / MaxSpeed;
+	float LookYaw = 0.f;
+	if (const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr; PC && PC->GetPawn())
+	{
+		const FVector To = PC->GetPawn()->GetActorLocation() - GetActorLocation();
+		LookYaw = FMath::Clamp(FMath::FindDeltaAngleDegrees(GetActorRotation().Yaw, (float)To.Rotation().Yaw), -60.f, 60.f);
+	}
+	const FRotator Want(DroneBaseRotation.Pitch - FMath::Clamp(Fwd, -1.f, 1.f) * 15.f, DroneBaseRotation.Yaw + LookYaw, DroneBaseRotation.Roll + FMath::Clamp(Side, -1.f, 1.f) * 15.f);
+	Look->SetRelativeRotation(FMath::RInterpTo(Look->GetRelativeRotation(), Want, DeltaSeconds, 6.f));
+}
+
 void ATDCrewCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	TickTopple(DeltaSeconds);
+	if (Spec.Type == ETDCrewType::Drone)
+	{
+		TickDroneMotion(DeltaSeconds);
+	}
 	OpeningGraceLeft = FMath::Max(0.f, OpeningGraceLeft - DeltaSeconds);
 	if (DroneThrusters.Num() > 0)
 	{

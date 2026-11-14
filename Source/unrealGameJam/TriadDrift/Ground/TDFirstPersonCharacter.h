@@ -233,6 +233,8 @@ public:
 	bool IsInShipTransition() const { return bShipTransition; }
 	/** Dev (TD.Pilot.Act, animation builder): play a body clip by name as the game would. */
 	void DebugPlayBodyAction(FName Anim, float Rate, bool bUpperOnly) { PlayBodyAction(Anim, Rate, bUpperOnly); }
+	/** Dev (TD.Pilot.Act ShowCameraBlade): the state T7 hit: the camera-rig blade meshes shown in third person. */
+	void DebugShowCameraBlade() { if (BladePlaceholder) { BladePlaceholder->SetVisibility(true); } if (BladeHilt) { BladeHilt->SetVisibility(true); } }
 	USceneComponent* GetBladeGrip() const { return BladeGrip; }
 
 	/** Applies the blade's UTDBladeFX: BladeMesh if set, otherwise the placeholder tinted with BladeColor. */
