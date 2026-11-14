@@ -3,6 +3,23 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Misc/AutomationTest.h"
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDVerdanceDucking, "TriadDrift.Audio.Verdance.OverlappingDuckReasons", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FTDVerdanceDucking::RunTest(const FString& Parameters)
+{
+	FTDVerdanceDuckState State;
+	State.bCombat = true;
+	TestEqual(TEXT("combat entry uses one minus-six-dB gain"), State.Gain(), 0.5011872f);
+	State.bDialogue = true;
+	State.bCombat = false;
+	TestEqual(TEXT("combat end cannot unduck active dialogue"), State.Gain(), 0.5011872f);
+	State.bDialogue = false;
+	TestEqual(TEXT("last reason ends at full gain"), State.Gain(), 1.f);
+	State.bCombat = true;
+	State.bDialogue = true;
+	TestEqual(TEXT("overlapping reasons do not compound attenuation"), State.Gain(), 0.5011872f);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBoardingLifecycle, "TriadDrift.Audio.Boarding.EndAndReentry", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FTDBoardingLifecycle::RunTest(const FString& Parameters)
 {

@@ -10,6 +10,14 @@ class UWorld;
 struct FWorldContext;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDBoardingMusicOwnership, bool, bHolding);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDVerdanceMusicOwnership, bool, bHolding);
+
+struct FTDVerdanceDuckState
+{
+	bool bDialogue = false;
+	bool bCombat = false;
+	float Gain() const { return (bDialogue || bCombat) ? 0.5011872f : 1.f; }
+};
 
 struct FTDBoardingMusicState
 {
@@ -76,6 +84,21 @@ public:
 	UPROPERTY(BlueprintAssignable, Category="Triad Drift|Music")
 	FTDBoardingMusicOwnership OnBoardingMusicOwnershipChanged;
 
+	/** Confirmed Verdance reveal-complete entry. Caller supplies the approved fade duration. */
+	UFUNCTION(BlueprintCallable, Category="Triad Drift|Music")
+	void StartVerdanceMusic(float FadeInSeconds);
+	/** Call on the player's accepted take-off, not every wingman's landing event. */
+	UFUNCTION(BlueprintCallable, Category="Triad Drift|Music")
+	void EndVerdanceMusic(float FadeOutSeconds);
+	UFUNCTION(BlueprintCallable, Category="Triad Drift|Music")
+	void SetVerdanceDialogueActive(bool bPlaying);
+	UFUNCTION(BlueprintCallable, Category="Triad Drift|Music")
+	void SetVerdanceCombatActive(bool bInCombat);
+	UFUNCTION(BlueprintPure, Category="Triad Drift|Music")
+	bool IsVerdanceMusicHolding() const { return VerdanceState.bActive; }
+	UPROPERTY(BlueprintAssignable, Category="Triad Drift|Music")
+	FTDVerdanceMusicOwnership OnVerdanceMusicOwnershipChanged;
+
 private:
 	void PlayCurrentTrack();
 	void ReleaseVoice();
@@ -84,6 +107,9 @@ private:
 	void HandleWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources);
 	void ReleaseBoardingVoice();
 	void HandleBoardingFinished(UAudioComponent* FinishedVoice, uint64 CallbackGeneration);
+	void ReleaseVerdanceVoice();
+	void HandleVerdanceFinished(UAudioComponent* FinishedVoice, uint64 CallbackGeneration);
+	void TryPendingCredits();
 
 	// Explicit soft references for inspection. Shipping cook must include these packages
 	// through an AlwaysCook presentation asset/rule; native defaults alone are no cook proof.
@@ -94,6 +120,14 @@ private:
 	TWeakObjectPtr<UWorld> BoardingWorld;
 	FTDBoardingMusicState BoardingState;
 	bool bBoardingCombatActive = false;
+	UPROPERTY() TSoftObjectPtr<USoundBase> VerdanceMusic;
+	UPROPERTY(Transient) TObjectPtr<UAudioComponent> VerdanceVoice;
+	TWeakObjectPtr<UWorld> VerdanceWorld;
+	FTDBoardingMusicState VerdanceState;
+	FTDVerdanceDuckState VerdanceDuck;
+	double VerdanceFadeEndAt = 0.0;
+	float VerdanceFadeDuration = 0.f;
+	float VerdanceFadeStartGain = 1.f;
 	FTDPresentationPlaylistState Playlist;
 	bool bCreditsRollActive = false;
 	bool bCreditsStartPending = false;

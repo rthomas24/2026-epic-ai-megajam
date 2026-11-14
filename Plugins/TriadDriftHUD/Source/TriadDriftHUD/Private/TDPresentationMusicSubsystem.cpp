@@ -9,6 +9,7 @@
 
 UTDPresentationMusicSubsystem::UTDPresentationMusicSubsystem()
 {
+	VerdanceMusic = TSoftObjectPtr<USoundBase>(FSoftObjectPath(TEXT("/Game/TriadDrift/Audio/VerdanceTheme01/MUS_Verdance_Main_Full_01.MUS_Verdance_Main_Full_01")));
 	BoardingMusic = TSoftObjectPtr<USoundBase>(FSoftObjectPath(TEXT("/Game/TriadDrift/Audio/DominionInterior01/MS_TD_DominionInteriorMusic.MS_TD_DominionInteriorMusic")));
 	CreditsTracks.Add(TSoftObjectPtr<USoundBase>(FSoftObjectPath(TEXT("/Game/TriadDrift/Audio/CreditsMusic01/MUS_Credits_CathedralPulse_Full_01.MUS_Credits_CathedralPulse_Full_01"))));
 	CreditsTracks.Add(TSoftObjectPtr<USoundBase>(FSoftObjectPath(TEXT("/Game/TriadDrift/Audio/CreditsMusic01/MUS_Credits_EtherealPulseRemix_Full_02.MUS_Credits_EtherealPulseRemix_Full_02"))));
@@ -27,6 +28,7 @@ void UTDPresentationMusicSubsystem::Deinitialize()
 	FWorldDelegates::OnWorldCleanup.Remove(WorldCleanupHandle);
 	StopCreditsMusic();
 	ReleaseBoardingVoice();
+	ReleaseVerdanceVoice();
 	Super::Deinitialize();
 }
 
@@ -35,10 +37,10 @@ void UTDPresentationMusicSubsystem::StartCreditsMusic()
 	if (bCreditsRollActive) return;
 	UWorld* World = GetWorld();
 	if (!World || !World->IsGameWorld()) return;
-	if (BoardingState.bActive)
+	if (BoardingState.bActive || VerdanceState.bActive)
 	{
 		// Preserve a one-shot roll entry while the required boarding fade owns the voice.
-		if (BoardingState.bEnding) { bCreditsStartPending = true; PendingCreditsWorld = World; }
+		if (BoardingState.bEnding || VerdanceState.bEnding) { bCreditsStartPending = true; PendingCreditsWorld = World; }
 		return;
 	}
 	bCreditsStartPending = false;
@@ -106,17 +108,19 @@ void UTDPresentationMusicSubsystem::HandlePreLoadMap(const FWorldContext& Contex
 	StopCreditsMusic();
 	// Confirmed end owns a persistent fade. Unexpected travel aborts; it is not a guessed sequence end.
 	if (!BoardingState.bEnding) ReleaseBoardingVoice();
+	if (!VerdanceState.bEnding) ReleaseVerdanceVoice();
 }
 
 void UTDPresentationMusicSubsystem::HandleWorldCleanup(UWorld* World, bool bSessionEnded, bool bCleanupResources)
 {
 	if ((Voice && Voice->GetWorld() == World) || GetWorld() == World) StopCreditsMusic();
 	if (BoardingWorld.Get() == World && !BoardingState.bEnding) ReleaseBoardingVoice();
+	if (VerdanceWorld.Get() == World && !VerdanceState.bEnding) ReleaseVerdanceVoice();
 }
 
 void UTDPresentationMusicSubsystem::StartBoardingMusic()
 {
-	if (BoardingState.bActive || bCreditsRollActive) return;
+	if (BoardingState.bActive || VerdanceState.bActive || bCreditsRollActive) return;
 	UWorld* World = GetWorld();
 	if (!World || !World->IsGameWorld()) return;
 	USoundBase* Sound = BoardingMusic.LoadSynchronous();
@@ -132,8 +136,18 @@ void UTDPresentationMusicSubsystem::StartBoardingMusic()
 	BoardingState.Begin();
 	BoardingWorld = World;
 	BoardingVoice->OnAudioFinishedNative.AddUObject(this, &UTDPresentationMusicSubsystem::HandleBoardingFinished, BoardingState.Generation);
+	UAudioComponent* StartingVoice = BoardingVoice;
+	const uint64 StartingGeneration = BoardingState.Generation;
 	OnBoardingMusicOwnershipChanged.Broadcast(true);
 	// Ownership listeners can synchronously cancel playback during travel/shutdown.
+	if (BoardingVoice != StartingVoice || BoardingState.Generation != StartingGeneration) return;
+	if (BoardingState.bEnding)
+	{
+		// End arrived before any audio started: nothing to fade, and no completion is guaranteed.
+		ReleaseBoardingVoice();
+		TryPendingCredits();
+		return;
+	}
 	// One gain layer: base multiplier remains 1, ducking uses only ComponentVolumeFader.
 	if (BoardingState.bActive && BoardingVoice && !BoardingState.bEnding)
 		BoardingVoice->FadeIn(0.f, bBoardingCombatActive ? 0.5f : 1.f, 0.f);
@@ -176,5 +190,114 @@ void UTDPresentationMusicSubsystem::HandleBoardingFinished(UAudioComponent* Fini
 	if (FinishedVoice != BoardingVoice || CallbackGeneration != BoardingState.Generation) return;
 	ReleaseBoardingVoice();
 	// Stop/exit/travel clears the pending request. Never revive an old world's roll.
-	if (bCreditsStartPending && PendingCreditsWorld.IsValid() && PendingCreditsWorld.Get() == GetWorld()) StartCreditsMusic();
+	TryPendingCredits();
+}
+
+void UTDPresentationMusicSubsystem::TryPendingCredits()
+{
+	if (bCreditsStartPending && !BoardingState.bActive && !VerdanceState.bActive &&
+		PendingCreditsWorld.IsValid() && PendingCreditsWorld.Get() == GetWorld()) StartCreditsMusic();
+}
+
+void UTDPresentationMusicSubsystem::StartVerdanceMusic(float FadeInSeconds)
+{
+	if (VerdanceState.bActive || BoardingState.bActive || bCreditsRollActive) return;
+	UWorld* World = GetWorld();
+	if (!World || !World->IsGameWorld() || !FMath::IsFinite(FadeInSeconds) || FadeInSeconds < 0.f) return;
+	USoundBase* Sound = VerdanceMusic.LoadSynchronous();
+	if (!Sound)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TD Verdance music unavailable; check cooked full theme and Music class"));
+		return;
+	}
+	VerdanceVoice = UGameplayStatics::CreateSound2D(World, Sound, 1.f, 1.f, 0.f, nullptr, true, false);
+	if (!VerdanceVoice) return;
+	VerdanceState.Begin();
+	VerdanceWorld = World;
+	VerdanceVoice->OnAudioFinishedNative.AddUObject(this, &UTDPresentationMusicSubsystem::HandleVerdanceFinished, VerdanceState.Generation);
+	UAudioComponent* StartingVoice = VerdanceVoice;
+	const uint64 StartingGeneration = VerdanceState.Generation;
+	OnVerdanceMusicOwnershipChanged.Broadcast(true);
+	if (VerdanceVoice != StartingVoice || VerdanceState.Generation != StartingGeneration) return;
+	if (VerdanceState.bEnding)
+	{
+		ReleaseVerdanceVoice();
+		TryPendingCredits();
+		return;
+	}
+	if (VerdanceVoice && VerdanceState.bActive && !VerdanceState.bEnding)
+		VerdanceVoice->FadeIn(FadeInSeconds, VerdanceDuck.Gain(), 0.f);
+}
+
+void UTDPresentationMusicSubsystem::EndVerdanceMusic(float FadeOutSeconds)
+{
+	if (!FMath::IsFinite(FadeOutSeconds) || FadeOutSeconds < 0.f) return;
+	if (VerdanceVoice && VerdanceState.End())
+	{
+		VerdanceFadeDuration = FadeOutSeconds;
+		VerdanceFadeStartGain = VerdanceDuck.Gain();
+		VerdanceFadeEndAt = FPlatformTime::Seconds() + FadeOutSeconds;
+		VerdanceVoice->FadeOut(FadeOutSeconds, 0.f);
+	}
+}
+
+void UTDPresentationMusicSubsystem::SetVerdanceDialogueActive(bool bPlaying)
+{
+	if (VerdanceDuck.bDialogue == bPlaying) return;
+	VerdanceDuck.bDialogue = bPlaying;
+	if (VerdanceVoice && VerdanceState.bActive && !VerdanceState.bEnding)
+		VerdanceVoice->AdjustVolume(bPlaying ? 0.08f : 0.35f, VerdanceDuck.Gain());
+}
+
+void UTDPresentationMusicSubsystem::SetVerdanceCombatActive(bool bInCombat)
+{
+	if (VerdanceDuck.bCombat == bInCombat) return;
+	VerdanceDuck.bCombat = bInCombat;
+	if (VerdanceVoice && VerdanceState.bActive && !VerdanceState.bEnding)
+		VerdanceVoice->AdjustVolume(bInCombat ? 0.08f : 0.35f, VerdanceDuck.Gain());
+}
+
+void UTDPresentationMusicSubsystem::ReleaseVerdanceVoice()
+{
+	const bool bWasHolding = VerdanceState.bActive;
+	VerdanceState.Reset();
+	VerdanceWorld.Reset();
+	VerdanceDuck = FTDVerdanceDuckState();
+	VerdanceFadeEndAt = 0.0;
+	if (VerdanceVoice)
+	{
+		UAudioComponent* OldVoice = VerdanceVoice;
+		VerdanceVoice = nullptr;
+		OldVoice->OnAudioFinishedNative.RemoveAll(this);
+		OldVoice->Stop();
+		OldVoice->DestroyComponent();
+	}
+	if (bWasHolding) OnVerdanceMusicOwnershipChanged.Broadcast(false);
+}
+
+void UTDPresentationMusicSubsystem::HandleVerdanceFinished(UAudioComponent* FinishedVoice, uint64 CallbackGeneration)
+{
+	if (FinishedVoice != VerdanceVoice || CallbackGeneration != VerdanceState.Generation) return;
+	const float RemainingFade = FMath::Max(0.f, float(VerdanceFadeEndAt - FPlatformTime::Seconds()));
+	if (VerdanceState.bEnding && RemainingFade <= 0.f)
+	{
+		ReleaseVerdanceVoice();
+		TryPendingCredits();
+	}
+	else
+	{
+		// Keep coverage using the full original, without editing or replacing the native Wave.
+		++VerdanceState.Generation;
+		VerdanceVoice->OnAudioFinishedNative.RemoveAll(this);
+		VerdanceVoice->OnAudioFinishedNative.AddUObject(this, &UTDPresentationMusicSubsystem::HandleVerdanceFinished, VerdanceState.Generation);
+		if (VerdanceState.bEnding)
+		{
+			// A natural track end must not shorten the requested take-off fade.
+			// Restart at the remaining envelope level and keep the original deadline.
+			const float Gain = VerdanceFadeStartGain * FMath::Clamp(RemainingFade / FMath::Max(VerdanceFadeDuration, SMALL_NUMBER), 0.f, 1.f);
+			VerdanceVoice->FadeIn(0.f, Gain, 0.f);
+			VerdanceVoice->FadeOut(RemainingFade, 0.f);
+		}
+		else VerdanceVoice->FadeIn(0.f, VerdanceDuck.Gain(), 0.f);
+	}
 }
