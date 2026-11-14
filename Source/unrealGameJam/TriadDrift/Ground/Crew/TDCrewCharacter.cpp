@@ -1130,7 +1130,8 @@ bool ATDCrewCharacter::IsInShieldArc(const FVector& WorldLocation) const
 
 float ATDCrewCharacter::FilterDamage(const FTDDamageInfo& Info)
 {
-	if (!Spec.bFrontalShield || IsGuardBroken() || Info.Kind != ETDDamageKind::Melee)
+	// A stagger (a parried swing, a perfect deflect) opens the guard too, while it lasts.
+	if (!Spec.bFrontalShield || IsGuardBroken() || IsStaggered() || Info.Kind != ETDDamageKind::Melee)
 	{
 		return Info.Amount;
 	}
