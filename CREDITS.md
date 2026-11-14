@@ -206,3 +206,35 @@ Nicholas Tosti supplied the Verdance theme. For the loop revision, the Lead used
 |---|---|---|---|
 | `SM_Outpost_{CargoCrate,SupplyCrate,FieldTerminal,DataKiosk,CommAntenna,CommsDish,Floodlight,BollardLight,Generator,PowerJunction}`, `T_OutpostProps_BC/N/ORM/E`, `MI_OutpostProps` in `Content/TriadDrift/Gameplay/Props/OutpostDressing/` (PR #79) | Blender 4.5.3, procedural hard-surface by Grok Bot after Nicholas's landing-pad board (`ArtSource/EngAI/Props/OutpostSetDressing/mesh_r1/SOURCE.md`); no AI 3D generator | project-authored | Grok Bot; import by Claude Code (Ryan's side) |
 | `SM_CrystalCacheCrystal` r2, `T_CrystalCacheCrystal_*` in `Content/TriadDrift/Gameplay/Props/CrystalCache/` (PR #80) | Blender 4.5.3, procedural bmesh by Grok Bot (`ArtSource/EngAI/Props/CrystalCache/mesh_r2/SOURCE.md`); no AI 3D generator | project-authored | same |
+
+### Grok Bot deliveries not credited before (asset ledger pass, ART-02) - November 13, 2026
+
+Made during the jam by Grok Bot (Ryan's asset-generation agent) on Ryan's own paid accounts. The facts below are copied from each folder's `SOURCE.md`; states and use are in `docs/eng/ASSETS.md` 2.8.
+
+| Asset | Tool | Licence / plan | Added by |
+|---|---|---|---|
+| Effect flipbooks `T_TD_VFX_Grok_*` in `Content/TriadDrift/Gameplay/VFX/Textures/` (explosion, smoke, fire, engine exhaust, shockwave, debris; sources `ArtSource/EngAI/VFX/**`) | **AI-generated video**: fal.ai, Alibaba Wan 3.0 Prime text-to-video (`alibaba/wan-3.0-prime/text-to-video`), frames packed locally with ffmpeg, Pillow and NumPy. Electric arc, glow, plasma bolt, shield hex ripple and spark are procedural (Python, NumPy, Pillow; no generator) | fal terms: content generated through the fal API is cleared for commercial projects (each `r1/SOURCE.md`); Ryan's paid fal.ai account | Grok Bot; imported and wired by Claude Code (Ryan's side, effects builder) |
+| Descent textures (PR #33): `T_Descent_CloudDeck` in `Content/TriadDrift/Gameplay/Props/Sky/` (in the game); cloud wisp, cloud punch, plasma sheath, heat streak, shock cone in `ArtSource/EngAI/Descent/**` | **AI-generated**: fal.ai, Nano Banana 2 (`fal-ai/nano-banana-2`) for the cloud deck, made tileable locally; Alibaba Wan 3.0 Prime text-to-video for the flipbooks; heat streak and shock cone procedural (no generator) | fal terms, cleared for commercial projects; Ryan's paid fal.ai account | Grok Bot; cloud deck material by Claude Code (Ryan's side, environment builder) |
+| `SM_CrystalCacheCradle`, `T_CrystalCacheCradle_BC/N/ORM/E`, `MI_CrystalCacheCradle` in `Content/TriadDrift/Gameplay/Props/CrystalCache/` (PR #75) | **Hyper3D Rodin** image-to-3D from Nicholas's crystal-cache board, then Blender 4.5.3 polish (`ArtSource/EngAI/Props/CrystalCache/mesh_r1/SOURCE.md`). The r1 hero crystal in the same PR was procedural Blender, no generator | Hyper3D terms, paid Business plan, commercial use | Grok Bot; import by Claude Code (Ryan's side) |
+| Energy blade concept (PR #26) and mesh `SM_EnergyBlade_Deployed` / `_Folded` (PR #47) in `ArtSource/EngAI/Weapons/EnergyBlade/**`. Source only: not in the game | Concept: **AI-generated image**, fal.ai, Google Nano Banana 2.1. Mesh: **Hyper3D Rodin Gen-2.5** image-to-3D | fal terms; Hyper3D terms, paid Business plan, commercial use | Grok Bot |
+| Dominion mothership concept v3 (PR #65) in `ArtSource/EngAI/Ships/DominionMothership/concept_r1/`. Concept only, the design input of the hull | **AI-generated image**: fal.ai, Google Nano Banana 2.1 (text-to-image and edit) | fal terms, cleared for commercial projects | Grok Bot; picked by Nicholas |
+| Dominion hull mesh_r1 (PR #70) in `ArtSource/EngAI/Ships/DominionMothership/mesh_r1/`. Source only: superseded by mesh_r2 | Blender 4.5.3 procedural hard-surface, NumPy textures; no AI 3D generator | project-authored | Grok Bot |
+| Dominion docking bay plans, blockout, `SM_DominionBay_Door_L/R`, `SM_DominionBay_TractorEmitter`, `T_DominionBay_Trim_*` (PR #77) in `ArtSource/EngAI/Props/DominionDockingBay/plans_r1/`. Source only | Blender 4.5.3, matplotlib, NumPy; no AI generator | project-authored | Grok Bot |
+| Dominion interior plans, sections, trim sheet and decal atlas (PR #82) in `ArtSource/EngAI/Props/DominionInterior/plans_r1/`. Source only | Blender 4.5.3, matplotlib, NumPy; no AI generator | project-authored | Grok Bot |
+| Rift mesh_r2 (PR #67) in `ArtSource/EngAI/Ships/Rift/mesh_r2/`. Source only | Blender 4.5.3 (Python / bmesh), OpenCV and NumPy for textures; no generator | project-authored over the Rodin output | Grok Bot |
+| Anchor tower plinth collision in `SM_CinderAnchorTower` (`ArtSource/EngImport/CinderAnchor/`) | Blender 5.2 headless: one convex hull refitted on Grok Bot's Rodin tower | project-authored | Claude Code (Ryan's side, import builder) |
+
+Held, not in the game: a voice audition for Wren (PR #78, not merged) made with **xAI text-to-speech through fal.ai** (AI-generated voice). If a take ships, it is credited here as AI-generated with the terms in its `SOURCE.md`.
+
+### Tools used on Ryan's side, in one list (for the submission's "Tools you used")
+
+AI tools, each marked where its output is AI-generated:
+- **Claude Code** (Anthropic): engineering lead, teammates and builders; all gameplay code, tools, imports and docs.
+- **Grok Bot** (xAI Grok, Ryan's asset-generation agent): runs the generators below and the Blender builds in `ArtSource/EngAI/**`.
+- **Hyper3D Rodin** Gen-2.5 (image-to-3D, AI-generated meshes and textures): squad ships, Null fleet, hauler, drone, Warden, anchor tower, drill rig, crystal cradle, relay, wreck, outpost, energy blade mesh. List it for the Rodin prize pool.
+- **fal.ai** hosted models (AI-generated): OpenAI GPT Image 2 / 2.6 Edit and Google Nano Banana 2 / 2.1 (concept images, cloud deck texture); Alibaba Wan 3.0 Prime text-to-video (effect and descent flipbooks); HY-Motion 1.0 / Hunyuan Motion (pilot blade animation); xAI text-to-speech (voice audition, held, not shipped).
+- **PBRgen** (AI-generated PBR terrain sets; start textures from Nano Banana 2).
+
+Other tools: Unreal Engine 5.9 (MegaJam Preview) with its built-in MCP server, Niagara, Interchange and Procedural Vegetation Editor; Blender 5.2 and 4.5.3 (headless Python); Python with NumPy, Pillow, OpenCV, matplotlib; ffmpeg.
+
+Tools on Nicholas's side (OpenAI Codex, Suno, Meshy AI, OpenAI image generation and others) are in his entries above and are not restated here.
