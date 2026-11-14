@@ -1,6 +1,9 @@
 // Triad Drift - planetary descent (ENG-38 stage 1). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
+#include "TriadDrift/Travel/TDLandingComponent.h"
+#include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -36,6 +39,9 @@
 // ------------------------------------------------------------------------------------------------ cover widget
 
 static int32 GTDCoverPaints = 0;
+
+static TAutoConsoleVariable<int32> CVarTDDescentDirectorShot(TEXT("td.Descent.DirectorShot"), 1,
+	TEXT("ENG-38: 1 = the atmosphere entry and climb out are filmed by the director camera (three-quarter front, under the white the cut back); 0 = the chase camera throughout."));
 
 static TAutoConsoleVariable<int32> CVarTDDescentLegacy(TEXT("td.Descent.Legacy"), 0,
 	TEXT("ENG-38: 1 = planet entry and exit use today's 0.6 s fade to black and the L_Transition loading screen; 0 = the white cover straight to the map (default)."));
@@ -113,6 +119,7 @@ void UTDDescentSubsystem::Mark(const TCHAR* Step)
 
 void UTDDescentSubsystem::HandlePreLoadMap(const FString& MapName)
 {
+	EndBurnShot(); // the cover is full white here: the cut back to the chase camera is hidden
 	if (CoverPhase == ETDDescentCover::RampIn || CoverPhase == ETDDescentCover::Held)
 	{
 		SetCoverAlpha(1.f); // the last galaxy frame is full white
@@ -282,6 +289,7 @@ void UTDDescentSubsystem::AbortCover(const TCHAR* Why)
 {
 	if (CoverPhase == ETDDescentCover::Off && CoverAlpha <= 0.f && !Roar) { return; } // the entry ramp may be up with phase Off
 	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: cover dropped (%s)"), Why);
+	EndBurnShot();
 	CoverPhase = ETDDescentCover::Aborting;
 	StopRoar(0.3f);
 }
@@ -555,6 +563,43 @@ void UTDDescentSubsystem::TickHeat(float Dt)
 	}
 	if (Heat <= 0.f) { StopBurnFX(); }
 	AppliedHeat = Heat;
+}
+
+bool UTDDescentSubsystem::IsDirectorShotEnabled() { return CVarTDDescentDirectorShot.GetValueOnGameThread() != 0; }
+
+FTransform UTDDescentSubsystem::BurnShotCamera(const ATDShip* Ship, bool bExit, float Alpha, bool bReducedMotion)
+{
+	// Scaled to the hull (the squad ships are being rebuilt; bounds, not a fixed size): 25 m ahead, 18 m to the side,
+	// 6 m below for a ship ~14 m long. The climb out mirrors it (the other side, above, the sky behind).
+	const FBox Hull = UTDLandingComponent::VisibleHullBoxLocal(Ship);
+	const float Scale = Hull.IsValid ? FMath::Clamp((float)Hull.GetExtent().Size() / 700.f, 0.6f, 3.f) : 1.f;
+	const FVector Base = bExit ? FVector(2500.f, -1800.f, 600.f) : FVector(2500.f, 1800.f, -600.f);
+	const float Push = bReducedMotion ? 1.f : FMath::Lerp(1.f, 0.85f, FMath::Clamp(Alpha, 0.f, 1.f)); // slow push-in
+	const FVector Loc = Base * Scale * Push;
+	const FVector Look = (Hull.IsValid ? Hull.GetCenter() : FVector::ZeroVector) - Loc;
+	return FTransform(Look.Rotation(), Loc);
+}
+
+bool UTDDescentSubsystem::BeginBurnShot(ATDShip* Ship, bool bExit, float Seconds)
+{
+	if (!Ship || !IsDirectorShotEnabled()) { return false; }
+	const bool bReduced = UTDSettingsSubsystem::IsReduceMotion(Ship);
+	TWeakObjectPtr<ATDShip> Weak = Ship;
+	const bool bOk = UTDDirectorSubsystem::RequestAtmosphereShot(Ship, Ship, bExit, Seconds,
+		[Weak, bExit, bReduced](float Alpha) { return BurnShotCamera(Weak.Get(), bExit, Alpha, bReduced); });
+	bBurnShot = bOk;
+	if (bOk) { Mark(bExit ? TEXT("director shot (climb out)") : TEXT("director shot (entry)")); }
+	return bOk;
+}
+
+void UTDDescentSubsystem::EndBurnShot()
+{
+	if (!bBurnShot) { return; }
+	bBurnShot = false;
+	if (UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr)
+	{
+		if (UTDDirectorSubsystem::IsAtmosphereShotActive(World)) { UTDDirectorSubsystem::EndAtmosphereShot(World, true); }
+	}
 }
 
 void UTDDescentSubsystem::RecordEntry(ETDDestination Planet, const ATDPlanetAtmosphere* Atmosphere, const FVector& WorldPoint, const FVector& WorldVelocity)

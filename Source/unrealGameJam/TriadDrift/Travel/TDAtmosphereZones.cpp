@@ -176,6 +176,8 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 			if (D < Best) { Best = D; Atmo = *It; }
 		}
 		Descent->RecordEntry(Destination, Atmo, Craft->GetActorLocation(), Craft->GetVelocity());
+		// The Director's Cut shot of the burn (ends at the level change, under the white; the planet side reveals in chase).
+		if (bCoveredEntry) { Descent->BeginBurnShot(Cast<ATDShip>(Craft), false, EntrySeconds + 1.f); }
 		Descent->RecordSquad(GetWorld()); // the flown ship and the hulls go down with the squad
 	}
 	OnEntryStarted.Broadcast(this);
@@ -600,7 +602,12 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 					ExitClimbShip = Ship;
 					if (UTDShipMovementComponent* Move = Ship->GetShipMovement()) { Move->SetSpeedOverrideFor(TEXT("TDExitClimb"), ExitClimbSpeed, 0.35f); }
 					if (UTDHealthComponent* Health = Ship->GetHealth()) { Health->SetInvulnerable(true); }
-					if (Descent) { Descent->SetBurnIsExit(true); Descent->BeginTiming(TEXT("climb out")); }
+					if (Descent)
+					{
+						Descent->SetBurnIsExit(true);
+						Descent->BeginTiming(TEXT("climb out"));
+						Descent->BeginBurnShot(Ship, true, ExitClimbSeconds + 1.f);
+					}
 				}
 				else
 				{
