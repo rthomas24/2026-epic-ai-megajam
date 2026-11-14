@@ -240,7 +240,10 @@ def main():
     sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
     mgr = unreal.InterchangeManager.get_interchange_manager_scripted()
     rows = []
+    only = [o for o in os.environ.get("TD_SPACE_ONLY_ASSETS", "").split(",") if o]      # re-import just these meshes
     for man_path in sorted(glob.glob(os.path.join(KIT, EXPORT, PREFIX + "*.manifest.json"))):
+        if only and os.path.basename(man_path).split(".")[0] not in only:
+            continue
         with open(man_path, encoding="utf-8") as fh:
             man = json.load(fh)
         asset = man["asset"]

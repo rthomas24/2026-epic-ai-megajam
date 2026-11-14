@@ -1,0 +1,27 @@
+{
+ "site": "ConduitCheck",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_ConduitCheck",
+ "about": "Capture only: SM_Kit_NullConduit and its stump.",
+ "pieces": [
+  {
+   "name": "Intact",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_NullConduit",
+   "location_cm": [
+    0.0,
+    -125.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Broken",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_NullConduitBroken",
+   "location_cm": [
+    0.0,
+    125.0,
+    0.0
+   ],
+   "yaw_deg": 30.0
+  }
+ ]
+}

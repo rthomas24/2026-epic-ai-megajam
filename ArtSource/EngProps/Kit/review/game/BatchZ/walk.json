@@ -1,0 +1,574 @@
+[
+ {
+  "teleport": [
+   6586.572849236885,
+   5303.135428117013,
+   60.0
+  ],
+  "feet": [
+   6587,
+   5303,
+   52,
+   35
+  ]
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   6895,
+   5516,
+   2,
+   35
+  ],
+  "at": "off the far ramp 0"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   7207,
+   5732,
+   2,
+   35
+  ],
+  "at": "off the far ramp 1"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   7519,
+   5949,
+   2,
+   35
+  ],
+  "at": "off the far ramp 2"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   7826,
+   6161,
+   2,
+   35
+  ],
+  "at": "off the far ramp 3"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   0,
+   397,
+   42,
+   0
+  ],
+  "at": "off the far ramp 4"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   310,
+   612,
+   2,
+   35
+  ],
+  "at": "off the far ramp 5"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   615,
+   823,
+   2,
+   35
+  ],
+  "at": "off the far ramp 6"
+ },
+ {
+  "walk": [
+   34.7,
+   0.6
+  ],
+  "feet": [
+   922,
+   1035,
+   2,
+   35
+  ],
+  "at": "off the far ramp 7"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchZ\\bridge_far_side.png"
+ },
+ {
+  "interactables": []
+ },
+ {
+  "teleport": [
+   4900.0,
+   -9500.0,
+   0.0
+  ],
+  "feet": [
+   4900,
+   -9500,
+   2,
+   36
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchZ\\collapse_pieces_15m.png"
+ },
+ {
+  "teleport": [
+   5800.0,
+   -8700.0,
+   0.0
+  ],
+  "feet": [
+   5800,
+   -8700,
+   2,
+   30
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchZ\\collapse_pieces_6m.png"
+ },
+ {
+  "teleport": [
+   5300.0,
+   -8650.0,
+   0.0
+  ],
+  "feet": [
+   5300,
+   -8650,
+   2,
+   0
+  ]
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   5676,
+   -8650,
+   2,
+   0
+  ],
+  "at": "escape run between A and B 0"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   6053,
+   -8650,
+   2,
+   0
+  ],
+  "at": "escape run between A and B 1"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   6429,
+   -8650,
+   2,
+   0
+  ],
+  "at": "escape run between A and B 2"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   6803,
+   -8650,
+   32,
+   0
+  ],
+  "at": "escape run between A and B 3"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   7174,
+   -8650,
+   32,
+   0
+  ],
+  "at": "escape run between A and B 4"
+ },
+ {
+  "teleport": [
+   5300.0,
+   -8180.0,
+   0.0
+  ],
+  "feet": [
+   5300,
+   -8180,
+   2,
+   0
+  ]
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   5676,
+   -8180,
+   2,
+   0
+  ],
+  "at": "escape run between B and C 0"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   5908,
+   -8100,
+   2,
+   0
+  ],
+  "at": "escape run between B and C 1"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   6280,
+   -8093,
+   2,
+   0
+  ],
+  "at": "escape run between B and C 2"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   6568,
+   -8193,
+   10,
+   0
+  ],
+  "at": "escape run between B and C 3"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   6946,
+   -8193,
+   32,
+   0
+  ],
+  "at": "escape run between B and C 4"
+ },
+ {
+  "teleport": [
+   6700.0,
+   -8400.0,
+   400.0
+  ],
+  "feet": [
+   6700,
+   -8400,
+   187,
+   0
+  ]
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   7075,
+   -8400,
+   32,
+   0
+  ],
+  "at": "off the top of Section B yaw 0"
+ },
+ {
+  "walk": [
+   90.0,
+   0.6
+  ],
+  "feet": [
+   7075,
+   -8027,
+   32,
+   90
+  ],
+  "at": "off the top of Section B yaw 90"
+ },
+ {
+  "walk": [
+   180.0,
+   0.6
+  ],
+  "feet": [
+   6717,
+   -8031,
+   32,
+   180
+  ],
+  "at": "off the top of Section B yaw 180"
+ },
+ {
+  "walk": [
+   270.0,
+   0.6
+  ],
+  "feet": [
+   6757,
+   -8301,
+   32,
+   270
+  ],
+  "at": "off the top of Section B yaw 270"
+ },
+ {
+  "hangar_start": [
+   -600,
+   0,
+   3,
+   0
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchZ\\hangar_start.png"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 0"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 1"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 2"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 3"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 4"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 5"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 6"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 7"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 8"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 9"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 10"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 11"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 12"
+ },
+ {
+  "walk": [
+   0.0,
+   0.6
+  ],
+  "feet": [
+   -484,
+   0,
+   3,
+   0
+  ],
+  "at": "hangar to door 13"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchZ\\hangar_door_reached.png"
+ }
+]
