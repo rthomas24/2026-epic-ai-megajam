@@ -1,0 +1,18 @@
+{
+ "site": "Space_HollowRock",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/BP_SP_HollowRock",
+ "about": "Survey Scar: a mined-out rock (70 m).",
+ "pieces": [
+  {
+   "name": "Rock",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/SM_SP_HollowRock",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0,
+   "pitch_deg": -10.0
+  }
+ ]
+}

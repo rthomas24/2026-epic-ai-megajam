@@ -75,6 +75,9 @@ SCALARS = {
     "VeinSharpNear": (40.0, 34.0), "VeinSharpFar": (9.0, 14.0), "VeinStrength": (0.45, 1.6), "VeinFarBoost": (0.55, 1.8),
     "VeinTopM": (500.0, 250.0), "VeinFadeM": (400.0, 200.0), "PatchGlow": (0.10, 0.0), "PeakGlow": (0.04, 0.0),
     "VeinPatchiness": (1.0, 1.0),
+    # pass 4: a minimum ambient (emissive = albedo x floor x the sky's colour) so Cinder's self-shadowed basalt slopes
+    # never go to black under the low sun; proportional to the albedo, so nothing lights up on its own. Off on Verdance.
+    "AmbientFloor": (0.0, 0.45),
 }
 VECTORS = {
     # R3 (Verdance): A = teal moss, B = bright yellow-green moss (open meadow side), C = blue-teal glade
@@ -95,6 +98,7 @@ VECTORS = {
     "MoltenBase": ((0.004, 0.022, 0.028), (0.12, 0.025, 0.005)),
     "VeinColorA": ((0.05, 0.9, 1.0), (1.0, 0.22, 0.02)),
     "VeinColorB": ((0.38, 0.20, 1.0), (0.9, 0.07, 0.008)),
+    "AmbientTint": ((0.6, 0.9, 1.0), (1.0, 0.62, 0.48)),             # the sky colour (Cinder: smoky ember haze)
 }
 # layer slot -> (Verdance set, Cinder set)
 LAYERS = {
@@ -367,4 +371,5 @@ def build_graph(b, t, means):
     e_val = mul(mul(lerp(Vp("ValleyEdgeColor"), Vp("ValleyCoreColor"), mul(heat, heat)), heat),
                 mul(add(0.6, mul(c(flow, "R"), 0.8)), S("ValleyEmissive")))
     e_pk = mul(peak_c, mul(peak_w, S("PeakGlow")))
-    b.out(add(add(e_vein, e_patch), add(e_val, e_pk)), "", MP.MP_EMISSIVE_COLOR)
+    e_amb = mul(mul(base, Vp("AmbientTint")), mul(S("AmbientFloor"), inv(molten)))
+    b.out(add(add(add(e_vein, e_patch), add(e_val, e_pk)), e_amb), "", MP.MP_EMISSIVE_COLOR)

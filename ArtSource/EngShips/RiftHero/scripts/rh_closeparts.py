@@ -39,7 +39,7 @@ def configure(cfg):
     if cfg.get("canopy"):
         COCKPIT, CANOPY_X = cfg["canopy"]["cockpit"], cfg["canopy"]["x"]
     if cfg.get("guns"):
-        GUN_Y, GUN_Z = cfg["guns"]["y"], cfg["guns"]["z"]
+        GUN_Y, GUN_Z = cfg["guns"].get("y", GUN_Y), cfg["guns"].get("z", GUN_Z)
     if cfg.get("nose") and "x" in cfg["nose"]:
         NOSE_X = cfg["nose"]["x"]
     if cfg.get("spine"):
@@ -88,7 +88,7 @@ def _cut(body, pred):
     return n
 
 
-def _slice(body, pred, x):
+def _slice(body, pred, x, ahead=True):
     """Cut the body with the plane X = x and drop what lies ahead of it, among the faces whose centre passes pred
     (pred must also take the faces the plane crosses). Unlike _cut (whole faces by their centre: a ragged edge) the
     hull ends in a straight section, which a new part's collar hides."""
@@ -101,7 +101,7 @@ def _slice(body, pred, x):
         geom.update(f.edges)
         geom.update(f.verts)
     bmesh.ops.bisect_plane(bm, geom=list(geom), dist=1e-5, plane_co=(x, 0.0, 0.0), plane_no=(1.0, 0.0, 0.0),
-                           clear_outer=True, clear_inner=False)
+                           clear_outer=ahead, clear_inner=not ahead)      # ahead=False: what lies behind the plane goes
     bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
     n = n0 - len(bm.faces)
     bm.to_mesh(body.data)
@@ -287,7 +287,46 @@ def build_canopy(mats, body, bvh):
 
 # ---------------------------------------------------------------------------------------------------- guns
 def build_guns(mats, body):
-    return {"rift": _guns_rift, "lancer": _guns_lancer, "bastion": _guns_bastion}[K["guns"]["kind"]](mats, body)
+    return {"rift": _guns_rift, "lancer": _guns_lancer, "bastion": _guns_bastion, "barrels": _guns_barrels}[K["guns"]["kind"]](mats, body)
+
+
+def _guns_barrels(mats, body):
+    """Long turret barrels (Null gunship): the Rodin tubes ahead of cut_x go, each becomes a clean lathed barrel with a
+    base sleeve, a mid ring and a muzzle brake with a glowing bore. guns["barrels"] = [(y, z), ...] (both signs listed)."""
+    g = K["guns"]
+    x0, tip, r = g["x0"], g["tip"], g["r"]
+    (y0, y1), (z0, z1) = g["cut_y"], g["cut_z"]
+    cut = _slice(body, lambda c: c.x > g["cut_x"] - 0.4 and y0 < abs(c.y) < y1 and z0 < c.z < z1, g["cut_x"])
+    ln = tip - x0
+    parts = []
+    for i, (y, z) in enumerate(g["barrels"]):
+        prof = [(0.0, 0.0), (0.0, r * 1.35), (ln * 0.16, r * 1.35), (ln * 0.16, r), (ln * 0.50, r), (ln * 0.50, r * 1.18), (ln * 0.54, r * 1.18),
+                (ln * 0.54, r), (ln - 0.38, r), (ln - 0.38, r * 1.4), (ln, r * 1.4), (ln, r * 0.7), (ln - 0.10, r * 0.7), (ln - 0.10, r * 0.58),
+                (ln - 0.30, r * 0.58), (ln - 0.30, 0.0)]
+        idx = [GUN, GUN, BLACK, GUN, STEEL, GUN, STEEL, GUN, STEEL, GUN, GUN, BLACK, GLOW, BLACK, BLACK, BLACK]
+        parts.append(G.lathe_x("GN_Barrel_%d" % i, prof, (x0, y, z), mats, segments=20, mat_idx=idx))
+    for p in parts:
+        G.bevel(p, width=0.008, segments=2, angle_deg=30.0)
+    return parts, cut
+
+
+def build_engines(mats, body):
+    """Clean engine nozzles on the Rodin bells (Null fighter): the last part of each bell goes (a straight cut), a
+    lathed nozzle takes its place: a collar the width of the bell, a cone to the exit, a dark lip, a glowing inner
+    ring, a dim throat and a hot core. engines["nozzles"] = [(y, z), ...]."""
+    e = K["engines"]
+    x0, xe, rc, re_ = e["x0"], e["exit"], e["r_collar"], e["r_exit"]
+    cut = _slice(body, lambda c: c.x < e["cut_x"] + 0.4 and any(math.hypot(c.y - y, c.z - z) < rc * 1.25 for y, z in e["nozzles"]), e["cut_x"], ahead=False)
+    ln = x0 - xe
+    parts = []
+    for i, (y, z) in enumerate(e["nozzles"]):
+        prof = [(0.0, 0.0), (0.0, rc), (-0.06, rc), (-0.06, rc * 0.93), (-ln * 0.6, (rc + re_) / 2), (-ln, re_), (-ln, re_ * 0.86),
+                (-ln * 0.7, re_ * 0.86), (-ln * 0.7, re_ * 0.74), (-ln * 0.3, re_ * 0.6), (-ln * 0.3, 0.0)]
+        idx = [GUN, STEEL, BLACK, GUN, GUN, STEEL, GLOW, BLACK, DIM, HOT, BLACK]
+        parts.append(G.lathe_x("EN_Nozzle_%d" % i, prof, (x0, y, z), mats, segments=28, mat_idx=idx))
+    for p in parts:
+        G.bevel(p, width=0.006, segments=2, angle_deg=30.0)
+    return parts, cut
 
 
 def _guns_bastion(mats, body):
@@ -466,7 +505,7 @@ def _nose_rift(mats, body, bvh):
     # v09: one long, narrow glowing slit along the top. v12 (review MINOR: "a hard white rectangle", "the nose lost its
     # magenta accent"): the slit glows in the accent colour between dark walls, where it was white-hot
     pockets = [{"u0": PI / 2 - 0.10, "u1": PI / 2 + 0.10, "v0": 1.95, "v1": 2.24, "depth": 0.008, "eu": 0.025, "ev": 0.02,
-                "mat": GLOW, "wall_mat": BLACK}]
+                "mat": K.get("slit_mat", GLOW), "wall_mat": BLACK}]
     seams = ((1.72, 1.728), (1.90, 1.908), (2.20, 2.208))        # panel seams: clean dark bands
 
     def mat_fn(u, v):
@@ -665,6 +704,9 @@ def build(mats, body):
         nose, res["cut_nose"] = build_nose(mats, body, bvh)
     if K.get("spine"):
         spine = build_spine(mats, body, bvh)
+    if K.get("engines"):
+        eng, res["cut_engines"] = build_engines(mats, body)
+        guns = guns + eng
     # v10's side plates failed the toy-like gate (Lead, decision A): built only with TD_RIFT_PLATES=1; v11 = v09 sides
     if os.environ.get("TD_RIFT_PLATES"):
         plates = build_side_plates(mats, body, bvh)
@@ -771,8 +813,19 @@ def clean_livery(path, crack_px=6, smooth_px=10, body=None):
         region = region[::-1] if False else region
         paint_white = np.median(a[white], axis=0) if white.any() else np.array([0.8, 0.8, 0.82])
         rp = region & ((lum < 0.30) | (magenta & K["repaint_accent"]))   # v09: the ragged magenta sill stripe goes white too
+        if K.get("repaint_tinted"):
+            # v13 (review of v12: lilac specks left in the repainted area): leftover purple chrome texels that are
+            # neither dark nor the accent paint go white too
+            rp |= region & (a[..., 2] > a[..., 1] * 1.12) & (sat > 0.12)
         out[rp] = paint_white
         repaint_px = int(rp.sum())
+        seam = None
+        if K.get("repaint_seams"):
+            # v13 (review of v12: the straight end of the repaint read as a texture seam with a stair-stepped edge):
+            # a dark panel joint a centimetre wide along it, so the change of paint sits on a seam
+            seam = _paint_mask(body, lum.shape, None, K["repaint_seams"])
+            out[seam] = (0.035, 0.035, 0.04)
+            rp = rp | seam
     T.save(out, path, True)
     res = {"white_px": int(white.sum()), "magenta_px": int(magenta.sum()), "cracks_filled": int(crack_w.sum() + crack_m.sum())}
     # the cracks are carved into the normal map too: inside the paint, the normal map's fine band is mostly removed

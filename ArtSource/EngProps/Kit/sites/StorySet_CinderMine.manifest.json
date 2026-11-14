@@ -1,0 +1,98 @@
+{
+ "site": "StorySet_CinderMine",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_StorySet_CinderMine",
+ "about": "Cinder: a mining camp (ore carts on a rail stub, one tipped, a cable reel, a cracked heat-shield wall, warning beacons, a collapsed gantry, scorch lines).",
+ "pieces": [
+  {
+   "name": "Rail",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_RailStub",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Cart",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_OreCart",
+   "location_cm": [
+    -180.0,
+    0.0,
+    22.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "CartTipped",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_OreCart",
+   "location_cm": [
+    550.0,
+    380.0,
+    60.0
+   ],
+   "yaw_deg": 35.0,
+   "roll_deg": 95.0
+  },
+  {
+   "name": "Reel",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_CableReel",
+   "location_cm": [
+    250.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 70.0
+  },
+  {
+   "name": "Shield",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_HeatShieldCracked",
+   "location_cm": [
+    -150.0,
+    520.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "BeaconA",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_WarningBeacon",
+   "location_cm": [
+    650.0,
+    -250.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "BeaconB",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_WarningBeacon",
+   "location_cm": [
+    -550.0,
+    -350.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Gantry",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_GantryCollapsed",
+   "location_cm": [
+    -950.0,
+    -150.0,
+    0.0
+   ],
+   "yaw_deg": 20.0
+  },
+  {
+   "name": "Scorch",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_ScorchLines",
+   "location_cm": [
+    -700.0,
+    450.0,
+    0.0
+   ],
+   "yaw_deg": 150.0
+  }
+ ]
+}
