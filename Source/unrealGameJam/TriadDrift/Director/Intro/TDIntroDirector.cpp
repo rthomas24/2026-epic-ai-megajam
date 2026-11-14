@@ -374,7 +374,7 @@ namespace TDIntro
 			if (S.SkipHintAlpha > 0.f)
 			{
 				const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), FMath::RoundToInt(16.f * Scale));
-				const FText T = LOCTEXT("HoldToSkip", "HOLD TO SKIP");
+				const FText T = LOCTEXT("HoldToSkip", "HOLD SPACE TO SKIP");
 				const FVector2D TS = Measure->Measure(T, Font);
 				const FVector2D C(Size.X - 70.f * Scale - TS.X * 0.5f, Size.Y - FMath::Max(Bar * 0.5f, 40.f * Scale));
 				Text(T, Font, C, FLinearColor(1.f, 1.f, 1.f, 0.85f * S.SkipHintAlpha), 6);
@@ -583,7 +583,7 @@ FTDIntroCardLayout UTDIntroDirector::LayoutNameCard(const FVector2D& Size, const
 	// HOLD TO SKIP, bottom right (same placement as OnPaint).
 	{
 		const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), FMath::RoundToInt(16.f * Scale));
-		const FVector2D TS = Measure(LOCTEXT("HoldToSkip", "HOLD TO SKIP"), Font);
+		const FVector2D TS = Measure(LOCTEXT("HoldToSkip", "HOLD SPACE TO SKIP"), Font);
 		const FVector2D C(Size.X - 70.f * Scale - TS.X * 0.5f, Size.Y - FMath::Max(BarFull * 0.5f, 40.f * Scale));
 		L.Skip = FBox2D(C - TS * 0.5f, C + FVector2D(TS.X * 0.5f, TS.Y * 0.6f + 3.f * Scale));
 	}
@@ -1872,8 +1872,9 @@ bool UTDIntroDirector::IsSkipKey(const FKey& Key)
 	{
 		return false;
 	}
-	const FString Name = Key.GetFName().ToString();
-	return !Name.Contains(TEXT("Stick_")) && !Name.Contains(TEXT("MouseScroll")) && !Name.Contains(TEXT("MouseWheel"));
+	// T1's first-ten-minutes play: a pilot resting on W (or a mouse button) through the opening lost it at 11 s. Only the
+	// keys nobody holds by accident skip: Space, Enter, Escape, the pad's bottom face button.
+	return Key == EKeys::SpaceBar || Key == EKeys::Enter || Key == EKeys::Escape || Key == EKeys::Gamepad_FaceButton_Bottom;
 }
 
 void UTDIntroDirector::HandleSkipPressed(FKey Key)

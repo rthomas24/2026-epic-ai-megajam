@@ -35,6 +35,72 @@ static FAutoConsoleCommandWithWorldAndArgs GTDPlanetHideCmd(
 		UE_LOG(LogTemp, Display, TEXT("TD.Env.PlanetHide %d on %d planets"), Mask, Planets);
 	}));
 
+// Fab dressing captures: stand the player D m from the Nth static mesh whose mesh name contains <Sub> (on the side the player
+// came from), facing it.   TD.Env.GotoMesh <Sub> [N] [D m = 5] [side yaw offset deg = 0]
+static FAutoConsoleCommandWithWorldAndArgs GTDGotoMeshCmd(
+	TEXT("TD.Env.GotoMesh"),
+	TEXT("Dev: stand the player D m (default 5) from the Nth mesh whose name contains <Sub>, facing it. [N] [D] [yaw offset]"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+		if (!Pawn || Args.Num() < 1) { return; }
+		const int32 Nth = Args.Num() > 1 ? FCString::Atoi(*Args[1]) : 0;
+		const float D = (Args.Num() > 2 ? FCString::Atof(*Args[2]) : 5.f) * 100.f;
+		const float Off = Args.Num() > 3 ? FCString::Atof(*Args[3]) : 0.f;
+		TArray<UStaticMeshComponent*> Found;
+		for (TActorIterator<AActor> It(World); It; ++It)
+		{
+			TInlineComponentArray<UStaticMeshComponent*> Comps(*It);
+			for (UStaticMeshComponent* C : Comps)
+			{
+				if (C && !C->IsA<UInstancedStaticMeshComponent>() && C->GetStaticMesh() && C->GetStaticMesh()->GetName().Contains(Args[0])) { Found.Add(C); }
+			}
+		}
+		if (!Found.IsValidIndex(Nth)) { UE_LOG(LogTemp, Warning, TEXT("TD.Env.GotoMesh %s: %d found"), *Args[0], Found.Num()); return; }
+		const FVector At = Found[Nth]->Bounds.Origin;
+		FVector Dir = (Pawn->GetActorLocation() - At).GetSafeNormal2D();
+		if (Dir.IsNearlyZero()) { Dir = FVector::ForwardVector; }
+		Dir = Dir.RotateAngleAxis(Off, FVector::UpVector);
+		// The first of 8 directions (from the one the player came from) with a clear line to the prop and a floor under it:
+		// in a room, never outside its wall.
+		FHitResult Hit;
+		FCollisionQueryParams Q(TEXT("TDGotoMesh"), false, Pawn);
+		Q.AddIgnoredComponent(Found[Nth]);
+		FVector P = At + Dir * D;
+		for (int32 k = 0; k < 8; ++k)
+		{
+			const FVector Try = At + Dir.RotateAngleAxis(45.f * k, FVector::UpVector) * D;
+			FHitResult Floor;
+			const bool bFloor = World->LineTraceSingleByChannel(Floor, Try + FVector(0, 0, 150.f), Try - FVector(0, 0, 3000.f), ECC_Visibility, Q);
+			const bool bBlocked = World->LineTraceTestByChannel(At + FVector(0, 0, 60.f), Try + FVector(0, 0, 60.f), ECC_Visibility, Q);
+			if (bFloor && !bBlocked) { P = Try; break; }
+		}
+		if (World->LineTraceSingleByChannel(Hit, P + FVector(0, 0, 150.f), P - FVector(0, 0, 3000.f), ECC_Visibility, Q)) { P.Z = Hit.ImpactPoint.Z; }
+		Pawn->SetActorLocation(P + FVector(0, 0, Pawn->GetSimpleCollisionHalfHeight() + 5.f), false, nullptr, ETeleportType::TeleportPhysics);
+		const FRotator Face = (At - P).Rotation();
+		PC->SetControlRotation(FRotator(-14.f, Face.Yaw + 22.f, 0.f));	// a little to the side: the pilot does not hide the prop
+		UE_LOG(LogTemp, Display, TEXT("TD.Env.GotoMesh %s #%d of %d at %s (owner %s)"), *Args[0], Nth, Found.Num(), *At.ToCompactString(), *GetNameSafe(Found[Nth]->GetOwner()));
+	}));
+
+// Route captures: stand the player on the ground at world X Y (cm), facing Yaw.   TD.Env.GroundAt X Y Yaw [Pitch]
+static FAutoConsoleCommandWithWorldAndArgs GTDGroundAtCmd(
+	TEXT("TD.Env.GroundAt"),
+	TEXT("Dev: stand the player on the ground at world X Y (cm), facing Yaw [Pitch = -8]."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+		if (!Pawn || Args.Num() < 3) { return; }
+		FVector P(FCString::Atof(*Args[0]), FCString::Atof(*Args[1]), 0.f);
+		FHitResult Hit;
+		FCollisionQueryParams Q(TEXT("TDGroundAt"), false, Pawn);
+		if (World->LineTraceSingleByChannel(Hit, P + FVector(0, 0, 200000.f), P - FVector(0, 0, 200000.f), ECC_Visibility, Q)) { P.Z = Hit.ImpactPoint.Z; }
+		Pawn->SetActorLocation(P + FVector(0, 0, Pawn->GetSimpleCollisionHalfHeight() + 5.f), false, nullptr, ETeleportType::TeleportPhysics);
+		PC->SetControlRotation(FRotator(Args.Num() > 3 ? FCString::Atof(*Args[3]) : -8.f, FCString::Atof(*Args[2]), 0.f));
+		UE_LOG(LogTemp, Display, TEXT("TD.Env.GroundAt %s (hit %s)"), *P.ToCompactString(), *GetNameSafe(Hit.GetActor()));
+	}));
+
 // Issue #158 (B2-05): stand the player under the nearest canopy clump (Nth nearest with an argument), looking up at its
 // underside from eye height.   TD.Env.UnderClump [N] [Pitch]
 static FAutoConsoleCommandWithWorldAndArgs GTDUnderClumpCmd(

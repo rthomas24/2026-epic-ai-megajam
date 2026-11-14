@@ -19,8 +19,48 @@ $buildBat = Join-Path $engine "Engine\Build\BatchFiles\Build.bat"
 
 $editor = Get-Process UnrealEditor -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowTitle -and $_.Path }
 $sw = [Diagnostics.Stopwatch]::StartNew()
-$output = & $buildBat $Target Win64 $Configuration "-Project=$project" -WaitMutex -NoHotReload 2>&1 | ForEach-Object { "$_" }
-$code = $LASTEXITCODE
+# Two compiles at once on Ryan's machine (Lead, Nov 14 14:50): the engine's single machine-wide build lock made every agent
+# wait 10-20 minutes. A second compile in another worktree was measured safe (282 s, both succeeded), so where the slot
+# folder exists the script takes one of two slots and runs with -NoMutex; anywhere else it keeps -WaitMutex.
+$slotRoot = "C:\Users\ryant\Documents\myRepos\game-jam\Builds\compile-slot"
+$slot = $null
+$mutexArg = "-WaitMutex"
+if (Test-Path $slotRoot) {
+    while (-not $slot) {
+        foreach ($n in 1, 2) {
+            $dir = Join-Path $slotRoot "C$n"
+            if (Test-Path $dir) {
+                $ownerFile = Join-Path $dir "pid.txt"
+                $ownerPid = if (Test-Path $ownerFile) { (Get-Content $ownerFile -ErrorAction SilentlyContinue | Select-Object -First 1) } else { $null }
+                $age = ((Get-Date) - (Get-Item $dir).CreationTime).TotalSeconds
+                if (($ownerPid -and -not (Get-Process -Id $ownerPid -ErrorAction SilentlyContinue)) -or (-not $ownerPid -and $age -gt 30)) {
+                    Remove-Item -Recurse -Force $dir -ErrorAction SilentlyContinue   # its owner is gone
+                }
+            }
+            if (-not (Test-Path $dir)) {
+                try { New-Item -ItemType Directory -Path $dir -ErrorAction Stop | Out-Null; Set-Content -Path (Join-Path $dir "pid.txt") -Value $PID; $slot = $dir; break } catch { }
+            }
+        }
+        if (-not $slot) { Start-Sleep -Seconds 5 }
+    }
+    $mutexArg = "-NoMutex"
+}
+try {
+    if ($slot) {
+        # Build.bat holds its own lock file for its whole run, so two of them still queue (seen 15:45: a slot holder sat in
+        # its ping loop for five minutes). With a slot, run UnrealBuildTool directly, as Build.bat does after its lock.
+        $ubtDll = Join-Path $engine "Engine/Binaries/DotNET/UnrealBuildTool/UnrealBuildTool.dll"
+        $getDotnet = Join-Path $engine "Engine/Build/BatchFiles/GetDotnetPath.bat"
+        $cmdLine = "call `"$getDotnet`" && dotnet `"$ubtDll`" $Target Win64 $Configuration `"-Project=$project`" -NoMutex -NoHotReload"
+        Push-Location (Join-Path $engine "Engine/Source")
+        try { $output = & cmd.exe /c $cmdLine 2>&1 | ForEach-Object { "$_" } } finally { Pop-Location }
+    } else {
+        $output = & $buildBat $Target Win64 $Configuration "-Project=$project" $mutexArg -NoHotReload 2>&1 | ForEach-Object { "$_" }
+    }
+    $code = $LASTEXITCODE
+} finally {
+    if ($slot) { Remove-Item -Recurse -Force $slot -ErrorAction SilentlyContinue }
+}
 
 $errors = $output | Where-Object { $_ -match '(: error |: fatal error |error C\d+|error LNK\d+|Error: |ERROR: )' }
 $warnings = $output | Where-Object { $_ -match '(: warning |warning C\d+)' -and $_ -notmatch 'Engine\\Source' }

@@ -204,6 +204,11 @@ public:
 	static bool ShowBarkCaption(const UObject* WorldContext, FName Speaker, const FString& Line, float Seconds);
 	/** The caption to draw now (bActive false when none, or a transmission is on air). */
 	FTDTransmissionView GetBarkCaption() const;
+	/**
+	 * True once a story sequence has finished or been skipped in this run (kept with the run's progress, so a checkpoint
+	 * taken before it restores "not yet"). T5's reactor door asks this about Cinematic08 (#96).
+	 */
+	static bool IsSequenceDoneOrSkipped(const UObject* WorldContext, FName SequenceId);
 	/** Drop every line waiting to cross a travel (the menu; a run boundary). */
 	static void ClearCarriedLines();
 	static int32 NumCarriedLines();

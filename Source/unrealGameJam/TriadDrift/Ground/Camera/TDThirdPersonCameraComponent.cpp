@@ -5,6 +5,8 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/PrimitiveComponent.h"
+#include "Components/InstancedStaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "Components/ShapeComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Character.h"
@@ -61,6 +63,7 @@ void UTDThirdPersonCameraComponent::BeginPlay()
 void UTDThirdPersonCameraComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	SetBodyHidden(false);
+	RestoreOccluders(true);
 	if (Camera && (bThirdPersonActive || bBlendingOut))
 	{
 		Camera->Deactivate();
@@ -364,6 +367,7 @@ void UTDThirdPersonCameraComponent::TickComponent(float DeltaTime, ELevelTick Ti
 	if (!bThirdPersonActive && !bBlendingOut)
 	{
 		SetBodyHidden(false);
+		RestoreOccluders(true);
 		return;
 	}
 
@@ -387,6 +391,7 @@ void UTDThirdPersonCameraComponent::TickComponent(float DeltaTime, ELevelTick Ti
 		CombatBlend = bCloseCombat ? 1.f : 0.f;
 	}
 	UpdateChase(DeltaTime, false);
+	UpdateOccluders();
 	FVector TargetLocation = ChaseLocation;
 	FQuat TargetRotation = LaggedRotation.Quaternion();
 	float TargetFOV = FieldOfView;
@@ -484,5 +489,114 @@ void UTDThirdPersonCameraComponent::SetBodyHidden(bool bHide)
 			Prim->SetHiddenInGame(true);
 			HiddenByUs.Add(Prim);
 		}
+	}
+}
+
+void UTDThirdPersonCameraComponent::UpdateOccluders()
+{
+	UWorld* World = GetWorld();
+	const AActor* Owner = GetOwner();
+	if (!World || !Owner || !Camera)
+	{
+		return;
+	}
+	const double Now = World->GetRealTimeSeconds();
+	if (bThirdPersonActive && !bBlendingOut && IsViewOurs())
+	{
+		// From the lens to the pilot's chest: everything static or dynamic on the way (a channel trace would stop at the
+		// first blocker; an object query returns them all).
+		const FVector Lens = ChaseLocation;
+		const FVector Chest = GetComponentLocation();
+		FCollisionObjectQueryParams Objects;
+		Objects.AddObjectTypesToQuery(ECC_WorldStatic);
+		Objects.AddObjectTypesToQuery(ECC_WorldDynamic);
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDCameraOccluders), true, Owner);
+		TArray<FHitResult> Hits;
+		World->LineTraceMultiByObjectType(Hits, Lens, Chest, Objects, Params);
+		for (const FHitResult& Hit : Hits)
+		{
+			UPrimitiveComponent* C = Hit.GetComponent();
+			// Only dressing: something that lets the camera through (a wall or rock blocks the Camera channel and the arm
+			// has already pulled in for it), that is not a pawn, and that is small.
+			if (!C || C->GetOwner() == Owner || Cast<APawn>(C->GetOwner()) || C->GetCollisionResponseToChannel(ECC_Camera) == ECR_Block)
+			{
+				continue;
+			}
+			UInstancedStaticMeshComponent* ISM = Cast<UInstancedStaticMeshComponent>(C);
+			const int32 Instance = (ISM && ISM->IsValidInstance(Hit.Item)) ? Hit.Item : INDEX_NONE;
+			float Radius = C->Bounds.SphereRadius;
+			FTransform Was = FTransform::Identity;
+			if (ISM && Instance != INDEX_NONE)
+			{
+				ISM->GetInstanceTransform(Instance, Was, /*bWorldSpace*/ false);
+				const UStaticMesh* Mesh = ISM->GetStaticMesh();
+				Radius = (Mesh ? Mesh->GetBounds().SphereRadius : 100.f) * Was.GetScale3D().GetAbsMax() * ISM->GetComponentScale().GetAbsMax();
+			}
+			else if (ISM)
+			{
+				continue; // an instanced mesh with no instance index: never hide the whole field
+			}
+			if (Radius > MaxOccluderRadius)
+			{
+				continue;
+			}
+			FHiddenOccluder* Known = Occluders.FindByPredicate([C, Instance](const FHiddenOccluder& O) { return O.Component == C && O.Instance == Instance; });
+			if (Known)
+			{
+				Known->LastHit = Now;
+				continue;
+			}
+			FHiddenOccluder O;
+			O.Component = C;
+			O.Instance = Instance;
+			O.InstanceWas = Was;
+			O.LastHit = Now;
+			if (ISM && Instance != INDEX_NONE)
+			{
+				FTransform Gone = Was;
+				Gone.SetScale3D(FVector(KINDA_SMALL_NUMBER));
+				ISM->UpdateInstanceTransform(Instance, Gone, false, /*bMarkRenderStateDirty*/ true, /*bTeleport*/ true);
+			}
+			else
+			{
+				if (C->bHiddenInGame)
+				{
+					continue; // hidden by someone else: not ours to show again
+				}
+				C->SetHiddenInGame(true);
+			}
+			Occluders.Add(O);
+		}
+	}
+	RestoreOccluders(false);
+}
+
+void UTDThirdPersonCameraComponent::RestoreOccluders(bool bAll)
+{
+	const UWorld* World = GetWorld();
+	const double Now = World ? World->GetRealTimeSeconds() : 0.0;
+	for (int32 i = Occluders.Num() - 1; i >= 0; --i)
+	{
+		const FHiddenOccluder& O = Occluders[i];
+		if (!bAll && Now - O.LastHit < OccluderRestoreSeconds)
+		{
+			continue;
+		}
+		if (UPrimitiveComponent* C = O.Component.Get())
+		{
+			UInstancedStaticMeshComponent* ISM = Cast<UInstancedStaticMeshComponent>(C);
+			if (ISM && O.Instance != INDEX_NONE)
+			{
+				if (ISM->IsValidInstance(O.Instance))
+				{
+					ISM->UpdateInstanceTransform(O.Instance, O.InstanceWas, false, true, true);
+				}
+			}
+			else
+			{
+				C->SetHiddenInGame(false);
+			}
+		}
+		Occluders.RemoveAtSwap(i);
 	}
 }

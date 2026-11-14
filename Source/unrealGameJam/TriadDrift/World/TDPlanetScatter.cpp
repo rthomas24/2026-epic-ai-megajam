@@ -150,20 +150,20 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		P.ScorchKind = Add(TDScatter_Path(TEXT("Kit/Story"), TEXT("SM_Kit_ScorchLines")), 4.f, 6.5f, 0.f, 180000.f, 240000.f, 1200.f, false, false, false);
 		for (int32 i = 1; i <= 3; ++i)
 		{
-			R.Rocks.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Rock_%02d"), i)), 1.5f, 4.5f, 60.f, 100000.f, 140000.f, 500.f, true, true, true));
+			R.Rocks.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Rock_%02d"), i)), 1.5f, 4.5f, 60.f, 60000.f, 80000.f, 500.f, true, true, true));
 		}
 		for (int32 i = 1; i <= 4; ++i)
 		{
-			R.CliffRocks.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Any_Boulder_%02d"), i)), 0.8f, 1.6f, 80.f, 140000.f, 180000.f, 900.f, true, true, true));
+			R.CliffRocks.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Any_Boulder_%02d"), i)), 0.8f, 1.6f, 80.f, 90000.f, 120000.f, 900.f, true, true, true));
 		}
 		// Glowing groves: giant mushrooms (3-8x) and big glow plants where the ground is painted as a grove.
 		for (int32 i = 1; i <= 3; ++i)
 		{
-			R.Grove.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Mushroom_%02d"), i)), i == 3 ? 3.f : 4.f, i == 3 ? 6.f : 8.f, 40.f, 120000.f, 160000.f, 1200.f, true, false, true));
+			R.Grove.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Mushroom_%02d"), i)), i == 3 ? 3.f : 4.f, i == 3 ? 6.f : 8.f, 40.f, 80000.f, 100000.f, 1200.f, true, false, true));
 		}
 		for (int32 i = 1; i <= 2; ++i)
 		{
-			R.GroveGlow.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_GlowPlant_%02d"), i)), 2.f, 3.5f, 10.f, 50000.f, 70000.f, 400.f, false, false, false));
+			R.GroveGlow.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_GlowPlant_%02d"), i)), 2.f, 3.5f, 10.f, 30000.f, 40000.f, 400.f, false, false, false));
 		}
 		// Ground cover (near ring): no shadows, gone by ~150 m.
 		R.Ground.Add(Add(TDScatter_Path(TEXT("Scatter"), TEXT("SM_Scatter_Verd_Grass_01")), 0.8f, 1.4f, 5.f, 11000.f, 15000.f, 100.f, false, false, false));
@@ -194,16 +194,16 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		}
 		for (int32 i = 1; i <= 2; ++i)
 		{
-			R.CharTrees.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 0.9f, 1.6f, 30.f, 100000.f, 140000.f, 300.f, true, false, true));
+			R.CharTrees.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 0.9f, 1.6f, 30.f, 70000.f, 90000.f, 300.f, true, false, true));
 		}
 		// Crystal spires: the big landmarks on the obsidian patches, read from the air.
 		R.Spires.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Crystal_04")), 4.f, 6.5f, 80.f, 260000.f, 320000.f, 1500.f, true, false, true));
 		R.Spires.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Crystal_03")), 4.f, 7.f, 60.f, 220000.f, 280000.f, 1200.f, true, false, true));
 		for (int32 i = 1; i <= 4; ++i)
 		{
-			R.CliffRocks.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Any_Boulder_%02d"), i)), 0.8f, 1.8f, 80.f, 140000.f, 180000.f, 900.f, true, true, true, RockMat));
+			R.CliffRocks.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Any_Boulder_%02d"), i)), 0.8f, 1.8f, 80.f, 90000.f, 120000.f, 900.f, true, true, true, RockMat));
 		}
-		R.Rocks.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_03")), 1.5f, 3.5f, 30.f, 100000.f, 140000.f, 600.f, true, true, true));
+		R.Rocks.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_03")), 1.5f, 3.5f, 30.f, 60000.f, 80000.f, 600.f, true, true, true));
 		R.Rocks.Add(Add(TDScatter_Path(TEXT("Planet"), TEXT("SM_Cind_ChokeRock_A")), 0.8f, 1.3f, 60.f, 180000.f, 240000.f, 1000.f, true, false, true));
 		R.Rocks.Add(Add(TDScatter_Path(TEXT("Planet"), TEXT("SM_Cind_ChokeRock_B")), 0.8f, 1.3f, 60.f, 180000.f, 240000.f, 1000.f, true, false, true));
 		for (int32 i = 1; i <= 4; ++i)
@@ -958,10 +958,16 @@ void ATDPlanetScatter::Tick(float DeltaSeconds)
 	if (bFocusOverride && bView && FVector2D::Distance(FVector2D(Local), FVector2D(FocusLocal)) < 100000.f) { bFocusOverride = false; }
 	if (bFocusOverride) { Local = FocusLocal; }
 	else if (!bView) { return; }
-	UpdateRing(ETDScatterRing::Mid, Local, false);
 	// The near ring (ground cover, culled at ~150 m) only while the camera is low over the ground.
 	const ATDPlanetTerrain* Terrain = Cast<ATDPlanetTerrain>(GetOwner());
 	const float Over = Terrain ? GetActorTransform().TransformPosition(Local).Z - Terrain->GetHeightAt(GetActorTransform().TransformPosition(Local)) : 0.f;
+	// T6's take-off profile (Nov 14): re-centring the mid ring every 200 m cleared and re-added thousands of instances while
+	// the ship climbed (render thread 31 ms). Flying (camera over RingFreezeHeightCm), the rings stay where they are; on
+	// foot and for the arrival's focus point they follow as before.
+	if (bFocusOverride || Over < RingFreezeHeightCm)
+	{
+		UpdateRing(ETDScatterRing::Mid, Local, false);
+	}
 	FRingState& NearRing = Rings[int32(ETDScatterRing::Near)];
 	const bool bWantNear = Over < Plan.NearMaxHeightCm;
 	if (bWantNear != NearRing.bVisible)

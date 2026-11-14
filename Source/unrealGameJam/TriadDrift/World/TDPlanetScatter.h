@@ -168,6 +168,8 @@ public:
 	float KindLoadTimeoutSeconds = 5.f;
 	/** Instances per component job (a big kind is split so no single job blows the frame). */
 	int32 ApplyChunk = 1000;
+	/** Rings stop following the camera above this height over the ground (flight; T6's take-off profile). */
+	float RingFreezeHeightCm = 4000.f;
 	/** Tests: run queued apply jobs now within BudgetMs (<= 0: all of them). */
 	void ApplyQueued(double BudgetMs);
 	int32 GetInstanceCount() const { return InstanceCount; }

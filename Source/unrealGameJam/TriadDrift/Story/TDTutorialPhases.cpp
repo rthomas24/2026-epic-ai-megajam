@@ -11,6 +11,7 @@
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
 
 #define LOCTEXT_NAMESPACE "TDTutorialPhases"
@@ -51,6 +52,13 @@ bool UTDTutorialPhases::GetPrompt(const UObject* WorldContext, FName& OutId, FTe
 	if (!S)
 	{
 		return false;
+	}
+	if (S->bFireOwed && S->Phase == ETDTeachPhase::Done)
+	{
+		// The firing lesson carried forward (#140): one kill of the player's own ends it.
+		OutId = TEXT("Tutorial_TargetAndFire");
+		OutText = FText::Format(LOCTEXT("TargetAndFire", "TARGET AND FIRE  {0} / {1}"), 0, 1);
+		return true;
 	}
 	switch (S->Phase)
 	{
@@ -184,7 +192,7 @@ void UTDTutorialPhases::HandleWaveStarted(int32 WaveNumber, float /*Intensity01*
 
 void UTDTutorialPhases::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind /*Kind*/)
 {
-	if (Phase != ETDTeachPhase::TargetAndFire || !Killer)
+	if ((Phase != ETDTeachPhase::TargetAndFire && !bFireOwed) || !Killer)
 	{
 		return;
 	}
@@ -192,12 +200,39 @@ void UTDTutorialPhases::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDam
 	if (Pawn && (Killer == Pawn || Killer->GetOwner() == Pawn || Killer->GetInstigator() == Pawn))
 	{
 		++Kills;
+		if (bFireOwed)
+		{
+			bFireOwed = false; // fired and scored once: the carried lesson is done
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Tutorial: the firing lesson owed from wave 1 is done"));
+			OnTeachPhaseChanged.Broadcast(Phase);
+		}
 	}
+}
+
+bool UTDTutorialPhases::IsFireLessonOwed(const UObject* WorldContext)
+{
+	const UTDTutorialPhases* S = Get(WorldContext);
+	return S && S->bFireOwed;
 }
 
 void UTDTutorialPhases::HandleShipSwitched(ETDShipId /*NewShip*/, ETDShipId /*OldShip*/)
 {
-	if (Phase == ETDTeachPhase::SquadSystems) { bSwitched = true; }
+	if (Phase != ETDTeachPhase::SquadSystems)
+	{
+		return;
+	}
+	// #140: only the player's own switch teaches it. The cut to a survivor when the flown ship dies (AutoOnDeath) and a
+	// respawn rescue are not the player's action.
+	const ATDSquadManager* Squad = ATDSquadManager::Get(this);
+	const ETDSwitchCause Cause = Squad ? Squad->GetLastSwitchCause() : ETDSwitchCause::Manual;
+	if (Cause == ETDSwitchCause::Manual || Cause == ETDSwitchCause::Buffered)
+	{
+		bSwitched = true;
+	}
+	else
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Tutorial: a switch that was not the player's (cause %d) does not count"), static_cast<int32>(Cause));
+	}
 }
 
 void UTDTutorialPhases::HandlePowerUsed(ETDShipId /*Ship*/, FName /*PowerName*/)
@@ -252,15 +287,37 @@ void UTDTutorialPhases::Tick(float DeltaTime)
 		const bool bWaveOneOver = D && D->GetWaveInfo().WaveNumber >= 2;
 		if (Kills >= KillsToTeach || bWaveOneOver)
 		{
+			// #140: the wingmen cleared wave 1 and the player never scored: no lock, but the firing lesson is owed and
+			// its line returns after the squad lesson.
+			bFireOwed = Kills == 0;
+			if (bFireOwed)
+			{
+				UE_LOG(LogTriadDrift, Log, TEXT("TD.Tutorial: wave 1 ended with no kill by the player: the firing lesson is carried forward"));
+			}
 			SetPhase(ETDTeachPhase::SquadSystems);
 		}
 		break;
 	}
 	case ETDTeachPhase::SquadSystems:
-		if ((bSwitched && bPowerUsed) || PhaseSeconds >= SquadSubstituteSeconds)
+	{
+		// T1's first-ten-minutes play (Lead: a lesson must not pass silently): SWITCH SHIPS stood for 62 s, no switch made,
+		// then went to Done on its timer. It ends only on the real actions now. The timer stays for the one case with no
+		// way to do them: no other squad ship alive to switch to (never a hard lock).
+		bool bCanSwitch = false;
+		if (const ATDSquadManager* Squad = ATDSquadManager::Get(this))
+		{
+			for (ETDShipId Id : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+			{
+				bCanSwitch |= Id != Squad->GetActiveShipId() && Squad->IsShipAlive(Id);
+			}
+		}
+		if ((bSwitched && bPowerUsed) || (!bCanSwitch && PhaseSeconds >= SquadSubstituteSeconds))
 		{
 			SetPhase(ETDTeachPhase::Done);
 		}
+		break;
+	}
+	case ETDTeachPhase::Done:
 		break;
 	default:
 		break;

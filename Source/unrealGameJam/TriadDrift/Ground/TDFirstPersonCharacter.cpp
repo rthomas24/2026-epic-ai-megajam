@@ -312,7 +312,9 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		// (Idle3_v2 pointed it forward-down: a short stub from behind, the rest hidden or in the ground).
 		else if (Loop && Want == 0 && !Fall && Loop->GetFName() == TEXT("A_Pilot_Idle3_v2") && TDPilotMeleePassOn())
 		{
-			if (UAnimSequenceBase* Idle3 = LoadPilotAnim(TEXT("A_Pilot_Idle3_v3")))
+			UAnimSequenceBase* Idle3 = LoadPilotAnim(TEXT("A_Pilot_Idle3_v4")); // v4: the walk / run side guard, so the blends never swing the blade down
+			Idle3 = Idle3 ? Idle3 : LoadPilotAnim(TEXT("A_Pilot_Idle3_v3"));
+			if (Idle3)
 			{
 				Loop = Idle3;
 			}
@@ -320,7 +322,8 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		// Walk v3: the same blade-out-to-the-right carriage through the stride.
 		if (Loop && Want == 1 && !Fall && Loop->GetFName() == TEXT("A_Pilot_Walk_v2") && TDPilotMeleePassOn())
 		{
-			UAnimSequenceBase* Walk3 = LoadPilotAnim(TEXT("A_Pilot_Walk_v4")); // v4: low side guard, tip 59-67 cm off the floor (v3 dragged it behind)
+			UAnimSequenceBase* Walk3 = LoadPilotAnim(TEXT("A_Pilot_Walk_v5")); // v5: hand 3 cm out (hilt clear of the thigh), tip 65-73 cm
+			Walk3 = Walk3 ? Walk3 : LoadPilotAnim(TEXT("A_Pilot_Walk_v4")); // v4: low side guard, tip 59-67 cm off the floor (v3 dragged it behind)
 			Walk3 = Walk3 ? Walk3 : LoadPilotAnim(TEXT("A_Pilot_Walk_v3"));
 			if (Walk3)
 			{
@@ -332,7 +335,8 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		{
 			// v3: the turn split between a forearm roll (at most 90 deg) and the wrist (at most 70), the blade trailing
 			// back and down; v2 bent the wrist alone up to 150 deg.
-			UAnimSequenceBase* Run2 = LoadPilotAnim(TEXT("A_Pilot_Run_v4")); // v4: low side guard, tip 67-78 cm off the floor, seen from behind
+			UAnimSequenceBase* Run2 = LoadPilotAnim(TEXT("A_Pilot_Run_v5")); // v5: hand 3 cm out
+			Run2 = Run2 ? Run2 : LoadPilotAnim(TEXT("A_Pilot_Run_v4")); // v4: low side guard, tip 67-78 cm off the floor, seen from behind
 			Run2 = Run2 ? Run2 : LoadPilotAnim(TEXT("A_Pilot_Run_v3"));
 			Run2 = Run2 ? Run2 : LoadPilotAnim(TEXT("A_Pilot_Run_v2"));
 			if (Run2)
@@ -343,7 +347,17 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		const float Speed = (float)GetVelocity().Size2D();
 		// The clips' authored speeds are for the unscaled skeleton: the body is drawn MeshScale bigger, so its stride is too.
 		const float BodyScale = FMath::Max(0.01f, (float)GetMesh()->GetComponentScale().X);
-		const float Ref = (Want == 1 ? BodyWalkSpeed : Want == 2 ? BodyRunSpeed : 0.f) * BodyScale;
+		float Ref = (Want == 1 ? BodyWalkSpeed : Want == 2 ? BodyRunSpeed : 0.f) * BodyScale;
+		// Sprint (animation builder, Nov 14): above 760 cm/s the long-stride run (657 cm/s authored), so the sprint's feet
+		// stop sliding where the run would need more than 1.5x.
+		if (Want == 2 && !bAir && Speed > 760.f && TDPilotMeleePassOn())
+		{
+			if (UAnimSequenceBase* Sprint = LoadPilotAnim(TEXT("A_Pilot_Sprint")))
+			{
+				Loop = Sprint;
+				Ref = 680.f * BodyScale; // 657 measured in the clip; 680 from the in-game trace (the planted foot slid back 33 cm/s at 657)
+			}
+		}
 		const float Rate = Fall ? 1.f : bAir ? 0.4f : (Ref > 0.f ? (Want == 1 ? FMath::Clamp(Speed / Ref, 0.25f, 2.f) : FMath::Clamp(Speed / Ref, 0.5f, 1.9f)) : 1.f);
 		Loops->BlendSeconds = TDPilotMeleePassOn() ? 0.12f : 0.2f; // gait changes blend quickly (the feet step at once) // in the air: the fall loop, else the last loop slowed
 		Loops->SetLoop(Loop, Rate);
@@ -901,7 +915,8 @@ UAnimSequenceBase* ATDFirstPersonCharacter::LoadPilotAnim(FName Anim) const
 			TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_Blade_Idle_v2"), TEXT("A_Pilot_Run_v2"), TEXT("A_Pilot_Run_v3"),
 			TEXT("A_Pilot_FallLoop_v2"), TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_JumpStart_v2"),
 			TEXT("A_Pilot_Block_v3"), TEXT("A_Pilot_Blade_DeflectFlick_v3"),
-			TEXT("A_Pilot_Idle3_v3"), TEXT("A_Pilot_Blade_Idle_v3"), TEXT("A_Pilot_Walk_v3"), TEXT("A_Pilot_Walk_v4"), TEXT("A_Pilot_Run_v4") };
+			TEXT("A_Pilot_Idle3_v3"), TEXT("A_Pilot_Blade_Idle_v3"), TEXT("A_Pilot_Walk_v3"), TEXT("A_Pilot_Walk_v4"), TEXT("A_Pilot_Run_v4"),
+			TEXT("A_Pilot_Idle3_v4"), TEXT("A_Pilot_Walk_v5"), TEXT("A_Pilot_Run_v5"), TEXT("A_Pilot_Land_v2"), TEXT("A_Pilot_Sprint") };
 		for (const FName& N : NewMoves)
 		{
 			if (Anim == N)
@@ -1658,6 +1673,12 @@ void ATDFirstPersonCharacter::FellOutOfWorld(const UDamageType& DmgType)
 void ATDFirstPersonCharacter::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
+	// A jump landed standing (not an air slam, not running on): the crouch with the blade held in the side guard
+	// (animation builder, Nov 14). Running landings keep the run.
+	if (JumpsUsed > 0 && !IsDead() && Blade && Blade->GetBladeState() != ETDBladeState::AirSlam && GetVelocity().Size2D() < 150.f && TDPilotMeleePassOn())
+	{
+		PlayBodyAction(TEXT("A_Pilot_Land_v2"), 1.3f, false);
+	}
 	JumpsUsed = 0;
 	StepDistance = 0.f; // the landing is the step
 	PlayFootSound(LandSound, TEXT("Land"));

@@ -37,6 +37,7 @@
 #include "NiagaraComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
+#include "TriadDrift/Story/TDTutorialPhases.h"
 #include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/Story/TDStoryFX.h"
 
@@ -486,6 +487,11 @@ bool UTDStorySubsystem::FindEntry(FName Id, FTDTransmission& Out)
 		{
 			Out.Sound = TSoftObjectPtr<USoundBase>(EngineeringSharedSound(Out.SharedSound));
 		}
+	}
+	// #135: a line's own engineering master (by its id), when the presentation table gives it no sound.
+	if (bFound && Out.Sound.IsNull())
+	{
+		Out.Sound = TSoftObjectPtr<USoundBase>(EngineeringSharedSound(Out.Id));
 	}
 	return bFound;
 }
@@ -995,6 +1001,13 @@ bool UTDStorySubsystem::FireTransmission(FName Id)
 		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Story: no transmission '%s'"), *Id.ToString());
 		return false;
 	}
+	// Lead: a line still carrying placeholder words never reaches the air or the screen (the fifteen Face to Face lines
+	// aired "[PLACEHOLDER] ..." in a play). Its sequence plays on without it; real words in the table bring it back.
+	if (Entry.Text.ToString().StartsWith(TEXT("[PLACEHOLDER]")))
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %s has placeholder words, not aired"), *Id.ToString());
+		return false;
+	}
 	const bool bQueued = Queue.ContainsByPredicate([Id](const FTDTransmission& T) { return T.Id == Id; });
 	if (!Entry.bRepeatable && (HasPlayed(Id) || bQueued || (Current.bActive && Current.Id == Id)))
 	{
@@ -1133,14 +1146,50 @@ bool UTDStorySubsystem::PlaySequence(const UObject* WorldContext, FName Sequence
 	{
 		Story->FinishSequence(false); // one at a time: the earlier one is done as far as its gate is concerned
 	}
+	TArray<FTDTransmission> Deferred;
+	if (SequenceId == TEXT("Docking"))
+	{
+		// #110 (T4's play): the shield came down seconds before the docking and up to seven assault lines sat ahead of the
+		// two docking lines, which then reached the air only as the level loaded. The docking is the scene now: assault
+		// lines still waiting are stale and are dropped (unclaimed, so nothing counts as heard that was not); a must-hear
+		// one waits until after the docking lines; the line on air is cut so the first docking line starts at once.
+		UTDGameInstance* GI = UTDGameInstance::Get(Story);
+		int32 Dropped = 0;
+		for (const FTDTransmission& T : Story->Queue)
+		{
+			if (Ids.Contains(T.Id)) { continue; }
+			if (IsRequiredLine(T.Id)) { Deferred.Add(T); continue; }
+			if (GI && !T.bRepeatable && !Story->Aired.Contains(T.Id)) { GI->ForgetTransmission(T.Id); }
+			++Dropped;
+		}
+		Story->Queue.RemoveAll([&Ids](const FTDTransmission& T) { return !Ids.Contains(T.Id); });
+		if (Story->Current.bActive && !Ids.Contains(Story->Current.Id) && !IsRequiredLine(Story->Current.Id))
+		{
+			if (Story->Voice) { Story->Voice->FadeOut(0.15f, 0.f); }
+			Story->Voice = nullptr;
+			const FName Cut = Story->Current.Id;
+			Story->Current = FTDTransmissionView();
+			Story->NextAllowed = Story->RealNow() + 0.15;
+			Story->OnTransmissionEnded.Broadcast(Cut, false);
+			++Dropped;
+		}
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: docking begins: %d assault line(s) dropped, %d must-hear line(s) moved after it"), Dropped, Deferred.Num());
+	}
 	for (const FName& Id : Ids)
 	{
 		Story->FireTransmission(Id);
 	}
+	Story->Queue.Append(Deferred);
 	Story->ActiveSequence = SequenceId;
 	Story->SequenceStart = Story->RealNow();
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: sequence %s"), *SequenceId.ToString());
 	return true;
+}
+
+bool UTDStorySubsystem::IsSequenceDoneOrSkipped(const UObject* WorldContext, FName SequenceId)
+{
+	const UTDStorySubsystem* Story = Get(WorldContext);
+	return Story && !SequenceId.IsNone() && Story->HasPlayed(FName(*(TEXT("Seq_Done_") + SequenceId.ToString())));
 }
 
 bool UTDStorySubsystem::IsSequencePlaying(FName SequenceId) const
@@ -1195,6 +1244,10 @@ void UTDStorySubsystem::FinishSequence(bool bSkipped)
 		bMonitorUp = false;
 	}
 	ActiveSequence = NAME_None;
+	if (!Done.IsNone())
+	{
+		MarkPlayed(FName(*(TEXT("Seq_Done_") + Done.ToString()))); // IsSequenceDoneOrSkipped; saved with the run
+	}
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: sequence %s %s"), *Done.ToString(), bSkipped ? TEXT("skipped") : TEXT("finished"));
 	OnSequenceFinished.Broadcast(Done, bSkipped);
 }
@@ -1282,6 +1335,8 @@ FSoftObjectPath UTDStorySubsystem::EngineeringSharedSound(FName Key)
 	// Only an asset that exists: before the import the line stays subtitle-only, with no load warning.
 	static const TMap<FName, FString> Paths = {
 		{ TEXT("Dont"), TEXT("/Game/TriadDrift/Gameplay/Audio/VO/SW_VO_FutureWren_Dont_04.SW_VO_FutureWren_Dont_04") },
+		// #135: by line id. Take 03, dry (no radio effect), selected for C8_Wren_Order; Tools/td-import-vo-wren-order.py.
+		{ TEXT("C8_Wren_Order"), TEXT("/Game/TriadDrift/Gameplay/Audio/VO/SW_VO_PresentWren_Order_03.SW_VO_PresentWren_Order_03") },
 	};
 	const FString* P = Paths.Find(Key);
 	if (!P || !FPackageName::DoesPackageExist(FSoftObjectPath(*P).GetLongPackageName()))
@@ -1383,6 +1438,21 @@ void UTDStorySubsystem::Tick(float DeltaTime)
 			{
 				UTDUIHostSubsystem::ShowTacticalDisplay(this, 30.f);
 			}
+		}
+	}
+	if (!Current.bActive && Queue.Num() > 0 && Now >= NextAllowed && !IsHeld())
+	{
+		// A line whose moment has passed is dropped, not aired late: the opening's "Evade now!" once the evade lesson is
+		// over (it waits behind three other hand-off lines).
+		while (Queue.Num() > 0 && Queue[0].Id == TEXT("O_Command_Evade"))
+		{
+			const UTDTutorialPhases* Teach = UTDTutorialPhases::Get(this);
+			if (!Teach || Teach->GetPhase() == ETDTeachPhase::None || Teach->GetPhase() == ETDTeachPhase::Evade)
+			{
+				break; // still its moment
+			}
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %s dropped (its lesson is over)"), *Queue[0].Id.ToString());
+			Queue.RemoveAt(0);
 		}
 	}
 	if (!Current.bActive && Queue.Num() > 0 && Now >= NextAllowed && !IsHeld())

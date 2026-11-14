@@ -88,6 +88,18 @@ public:
 	void CancelDifficultyChoice();
 	bool IsChoosingDifficulty() const { return bChoosingDifficulty; }
 
+	/**
+	 * #142: NEW GAME / SKIP THE TUTORIAL from the menu. With a saved run it first asks "START A NEW GAME? YOUR SAVED RUN
+	 * WILL BE REPLACED." (BACK focused; a fresh press is needed); without one it goes straight on. Nothing is saved or
+	 * cleared here: what a new game does to the save is unchanged.
+	 */
+	void RequestNewGame(bool bSkipTutorial);
+	void ConfirmNewGame();
+	void CancelNewGameConfirm();
+	bool IsConfirmingNewGame() const { return bConfirmingNewGame; }
+	/** Esc / Backspace / pad B on a sub-page: BACK. */
+	void MenuBack();
+
 	/** From the victory screen back to the main menu. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Menu")
 	void ReturnToMenu();
@@ -103,6 +115,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Menu")
 	FText GetVictoryHeadline() const { return VictoryHeadline; }
 	static const TArray<FText>& VictoryHeadlineChoices();
+	/** A scene id as the recap shows it: the objective's title, else a tidy upper-case form; never the raw id. */
+	static FString SceneDisplayName(FName SceneId);
 
 	/** True while the code-built placeholder menu is up (no widget assigned in DA_UI_Style). */
 	bool IsPlaceholderShown() const { return Placeholder.IsValid(); }
@@ -156,6 +170,10 @@ private:
 	bool bShowingVictory = false;
 	bool bChoosingDifficulty = false;
 	bool bDifficultyThenSkipTutorial = false;
+	bool bConfirmingNewGame = false;
+	bool bConfirmSkipTutorial = false;
+	double ConfirmShownAt = 0.0;
+	double MenuShownAt = 0.0;
 	FText VictoryHeadline;
 	bool bReturnPending = false; // the stinger plays before the menu comes back
 	bool bMusicStarted = false;
