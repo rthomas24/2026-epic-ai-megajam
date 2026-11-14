@@ -339,8 +339,10 @@ def cloak_hull():
                        live_scale='float3(1,1,1)*(1.0 + 0.006*sin(Engine.Time*9.0))')
 
 
+# 10l (cloak2 turn): with the hull shell emitter (SM_TD_VFX_RiftCloakShell) the whole system reports INACTIVE right after
+# spawning, through the ability and through a plain spawn, so nothing drew. The shell is left out (cloak_hull() kept for a
+# later fix); the cloak ships as the glints and motes, which ran and read in r10g.
 S2('NS_TD_Cloak_Shimmer', U((1.0, 0.12, 0.85, 1.0)), [
-    cloak_hull(),
     shed('Glints', 'M_TD_VFX_Glow', 0, (0.15, 0.35), (40, 90), (0, 40), k=4.0, radius=330.0, drag=2.0, local=True, power=1.2, rate_expr='70.0'),
     shed('Motes', 'M_TD_VFX_Glow', 18.0, (0.4, 0.9), (5, 12), (0, 160), k=1.2, radius=360.0, drag=1.0, curl=500.0, local=True, power=1.5, fade_in=5.0)])
 # Slot: UTDAbilityFX.Loop of DA_Ability_GravityWell_FX (looping, at the well). Authored for a 40 m pull radius.
