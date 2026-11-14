@@ -4,18 +4,18 @@
  "rule": {
   "region_m": {
    "x": [
-    1.2,
-    2.3
+    1.28,
+    2.24
    ],
-   "y_half": 0.36
+   "y_half": 0.3
   },
   "shell": "dome over the region: row base = highest hull point under the row + 1.2 cm, 8.5 cm bulge across, tapered ends"
  },
  "faces": 288,
  "size_cm": [
-  110.0,
-  72.0,
-  89.0
+  96.0,
+  60.0,
+  60.9
  ],
  "pivot": "the hull's origin (attach at the root, identity transform)"
 }

@@ -102,7 +102,8 @@ def instance(ship, parent):
     if ship == "Bastion":
         # r4 (in game the hull-hugging shell read as a flat dark patch): more sheen and a stronger amber edge, so the
         # wide glazing shows its curvature
-        for k, v in (("ReflectStrength", 0.3), ("EdgeGlow", 0.8), ("EdgeExponent", 3.0), ("Roughness", 0.1), ("Specular", 0.6)):
+        # r5 (the Lead: it read light): as dark and glossy as the Lancer's, amber only as a thin edge
+        for k, v in (("ReflectStrength", 0.04), ("EdgeGlow", 0.35), ("EdgeExponent", 6.0), ("Roughness", 0.2), ("Specular", 0.35)):
             mel.set_material_instance_scalar_parameter_value(mi, k, v)
     eas.save_asset(path, only_if_is_dirty=False)
     return mi
