@@ -5,6 +5,7 @@
 #include "TriadDrift/UI/TDUIPaint.h"
 #include "TriadDrift/Combat/Pickups/TDPickup.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
+#include "HAL/IConsoleManager.h"
 
 namespace TDHUDRadar
 {
@@ -169,6 +170,19 @@ namespace TDHUDRadar
 		D.Shape(Tip, { Dir * 7.f + Side * 5.f, FVector2D::ZeroVector, Dir * 7.f - Side * 5.f }, Col, 1.8f, false);
 	}
 
+	/** What the last paint drew, by contact type (TD.Radar.Stats; dev captures: "was a missile on the scope in that frame"). */
+	static int32 GDrawn[8] = { 0 };
+	static int32 GDrawnFrame[8] = { 0 };
+#if !UE_BUILD_SHIPPING
+	static FAutoConsoleCommand CmdRadarStats(TEXT("TD.Radar.Stats"),
+		TEXT("Log what the radar drew on its last paint, by type: enemies, missiles, wingmen, objectives, pickups, gates, warp-ins, incoming groups"),
+		FConsoleCommandDelegate::CreateLambda([]()
+		{
+			UE_LOG(LogTemp, Display, TEXT("TD.Radar.Stats: enemies %d, missiles %d, wingmen %d, objectives %d, pickups %d, gates %d, warp-ins %d, incoming %d"),
+				GDrawn[0], GDrawn[1], GDrawn[2], GDrawn[3], GDrawn[4], GDrawn[5], GDrawn[6], GDrawn[7]);
+		}));
+#endif
+
 	/** Strings rebuilt only when what they show changes. */
 	struct FCache
 	{
@@ -246,8 +260,12 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 	const float Pulse2 = .5f + .5f * FMath::Sin(In.Time * 2.f * 2.f * PI);		// warp-ins: 2 Hz
 	const float Pulse1 = .5f + .5f * FMath::Sin(In.Time * 2.f * PI);			// trouble ring: 1 Hz
 	const float Level = 50.f;	// within 50 m up or down: no stem
+	for (int32& N : GDrawnFrame) { N = 0; }
+	// Two passes: everything else first, missiles last and on the top layer, so one is never lost under enemy blips.
+	for (int32 Pass = 0; Pass < 2; ++Pass)
 	for (const FTDRadarContact& Ct : Model.Contacts)
 	{
+		if ((Ct.Type == ETDRadarType::Missile) != (Pass == 1)) { continue; }
 		const float Flat = (float)Ct.Plane.Size();
 		const float Bearing = FMath::Atan2((float)Ct.Plane.X, (float)Ct.Plane.Y);	// 0 = forward (up), clockwise
 		const FVector2D Dir(FMath::Sin(Bearing), -FMath::Cos(Bearing));
@@ -275,6 +293,7 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 			D.Seg(At, Blip, Pal::Muted().CopyWithNewOpacity(.5f * Bright), 1.f);
 			D.Dot(At, 1.6f, Pal::Muted().CopyWithNewOpacity(.7f * Bright));	// the foot on your plane
 		}
+		++GDrawnFrame[FMath::Clamp((int32)Ct.Type, 0, 7)];
 		const float Hollow = Ct.bBeyond ? .6f : 1.f;	// pinned to the rim: drawn fainter, hollow shapes
 		switch (Ct.Type)
 		{
@@ -283,9 +302,21 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 			// No ring on attackers: in a close fight the rings merged into a blob over the player's dart (played, Nov 14).
 			break;
 		case ETDRadarType::Missile:
-			D.Dot(Blip, 4.f * S, Pal::Ink().CopyWithNewOpacity(Flash * Bright));
-			D.Shape(Blip, { { -3.5f * S, -3.5f * S }, { 3.5f * S, -3.5f * S }, { 3.5f * S, 3.5f * S }, { -3.5f * S, 3.5f * S } }, Pal::Hostile().CopyWithNewOpacity(Flash * Bright), 1.2f, true);
-			D.Seg(Blip, Blip + (Blip - C).GetSafeNormal() * 7.f * S, Pal::Hostile().CopyWithNewOpacity(.4f * Flash * Bright), 1.2f);	// a short trail
+		{
+			// A white core (nested squares, the top layer), a red box, a flashing ring and a short trail: bigger than any
+			// fighter blip (played, Nov 14: the 4 px dot was lost in a close fight).
+			auto Square = [&D, &Blip](float H, FLinearColor Col, float Width)
+			{
+				TArray<FVector2D>& Pts = Scratch();
+				for (const FVector2D Q : { FVector2D(-H, -H), FVector2D(H, -H), FVector2D(H, H), FVector2D(-H, H), FVector2D(-H, -H) }) { Pts.Add(D.Px(Blip + Q)); }
+				D.Lines(Pts, Col, Width, 2);
+			};
+			Square(1.2f * S, Pal::Ink().CopyWithNewOpacity(Flash), 2.4f);
+			Square(2.6f * S, Pal::Ink().CopyWithNewOpacity(Flash), 1.6f);
+			Square(5.f * S, Pal::Hostile().CopyWithNewOpacity(Flash), 1.6f);
+			D.Circle(Blip, 10.f * S, Pal::Hostile().CopyWithNewOpacity(.75f * Flash), 1.4f, 16);
+			D.Seg(Blip, Blip + (Blip - C).GetSafeNormal() * 12.f * S, Pal::Hostile().CopyWithNewOpacity(.5f * Flash), 1.4f);	// a short trail
+		}
 			break;
 		case ETDRadarType::Wingman:
 		{
@@ -318,10 +349,14 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 		}
 	}
 
+	for (int32 I = 0; I < 8; ++I) { GDrawn[I] = GDrawnFrame[I]; }
+
 	// ---- the range label, after the contacts and on its own small plate so a rim blip never covers it
 	{
 		const float LW = 66.f * D.FontK, LH = 16.f * D.FontK, LY = C.Y + R - 22.f * D.FontK;
-		P.Box(C.X - LW * .5f, LY, LW, LH, Pal::Panel().CopyWithNewOpacity(.92f));
+		// On the top layer (the blips' lines are one layer above the plate's): nothing draws over the label.
+		FSlateDrawElement::MakeBox(P.List, P.Layer + 2, P.Geo({ C.X - LW * .5f, LY }, { LW, LH }), FCoreStyle::Get().GetBrush("WhiteBrush"), ESlateDrawEffect::None,
+			P.Faded(Pal::Panel().CopyWithNewOpacity(.95f)));
 		D.Text(C.X, LY + 1.f * D.FontK, K.RangeText, 12, Pal::Muted().CopyWithNewOpacity(.9f), "Mono", .5f);
 	}
 
