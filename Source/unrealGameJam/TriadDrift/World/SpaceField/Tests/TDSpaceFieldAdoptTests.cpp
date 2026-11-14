@@ -49,7 +49,8 @@ bool FTDSpaceFieldAdopt::RunTest(const FString& Parameters)
 		const FVector L = T.GetLocation();
 		Missing += At.Contains(FIntVector(FMath::RoundToInt(L.X), FMath::RoundToInt(L.Y), FMath::RoundToInt(L.Z))) ? 0 : 1;
 	}
-	TestEqual(TEXT("each one in exactly the same place"), Missing, 0);
+	// Except those the journey moved to its corridor edges (Lead, Nov 14): exactly those, and the rest untouched.
+	TestEqual(TEXT("each one in exactly the same place, except those moved out of the journey"), Missing, Field->GetAdoptedMovedOffJourney());
 	AddInfo(FString::Printf(TEXT("%d adopted, %d cover rocks with x%.0f health"), Adopted, Cover, Field->CoverHealthScale));
 	TestTrue(TEXT("the combat zone keeps cover rocks that take many hits"), Cover >= 10);
 

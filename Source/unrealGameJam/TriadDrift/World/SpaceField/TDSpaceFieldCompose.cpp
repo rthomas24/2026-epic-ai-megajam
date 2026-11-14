@@ -226,6 +226,28 @@ namespace TDSpaceFieldCompose
 			GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f 2"), Facing.Yaw, Facing.Pitch));
 			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.ViewRegion %d %d: from %s facing %s"), Region, Range, *From.ToCompactString(), *Facing.ToCompactString());
 		}));
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdJourneyCheck(TEXT("TD.SpaceField.JourneyCheck"),
+		TEXT("Log, for each of T4's journey keep-outs and routes, the rocks, set pieces and other obstacles that sit inside it (live)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (const ATDSpaceField* Field = ATDSpaceField::Get(World)) { Field->LogJourneyCheck(); }
+		}));
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdJourneyStep(TEXT("TD.SpaceField.JourneyStep"),
+		TEXT("Captures: park the flown ship on journey route <index> at fraction <t 0-1>, facing along it: TD.SpaceField.JourneyStep <index> <t>"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const ATDSpaceField* Field = ATDSpaceField::Get(World);
+			ATDSpacecraft* Ship = World ? Cast<ATDSpacecraft>(UGameplayStatics::GetPlayerPawn(World, 0)) : nullptr;
+			const int32 Index = Args.Num() > 0 ? FCString::Atoi(*Args[0]) : 0;
+			const float T = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 0.f;
+			FVector From; FRotator Facing; FName Id;
+			if (!Field || !Ship || !Field->JourneyPose(Index, T, From, Facing, Id)) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.JourneyStep: no field / ship / route %d"), Index); return; }
+			Ship->TeleportSpacecraft(From, Facing, /*bKeepSpeed*/ false);
+			GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f 2"), Facing.Yaw, Facing.Pitch));
+			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.JourneyStep %d (%s) %.2f: from %s facing %s"), Index, *Id.ToString(), T, *From.ToCompactString(), *Facing.ToCompactString());
+		}));
 }
 
 // ------------------------------------------------------------------------------ structures (indestructible set pieces)
@@ -684,6 +706,73 @@ void ATDSpaceField::LogRouteReport() const
 		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.RouteReport: %d %s, centre %.1f km from the zone, biggest piece %.0f m, nearest route %.1f km%s"), R, Names[R],
 			FVector::Dist(*C, BeltCenter) / 100000.f, Big / 100.f, Nearest / 100000.f, *Line);
 	}
+}
+
+int32 ATDSpaceField::LogJourneyCheck() const
+{
+	if (!Layout) { return 0; }
+	TArray<FTDJourneyKeyPoint> Journey;
+	Layout->GetJourneyKeyPoints(Journey);
+	const UTDWorldSubsystem* WS = UTDWorldSubsystem::Get(this);
+	int32 Total = 0, RouteIdx = 0;
+	for (const FTDJourneyKeyPoint& K : Journey)
+	{
+		if (K.Kind == ETDJourneyPointKind::Pocket) { continue; }
+		// A piece inside a pocket (the combat zone, the kill zone) is sparse cover by design: not counted.
+		auto InPocket = [&Journey](const FVector& P)
+		{
+			for (const FTDJourneyKeyPoint& Q : Journey) { if (Q.Kind == ETDJourneyPointKind::Pocket && Q.DistanceTo(P) < 0.f) { return true; } }
+			return false;
+		};
+		int32 Field = 0, Adopted = 0, Sets = 0, Other = 0;
+		FString First;
+		for (const FTDSpaceFieldPiece& P : Pieces)
+		{
+			if (K.DistanceTo(P.Location) < P.Size * 0.5f && !InPocket(P.Location))
+			{
+				++(P.bAdopted ? Adopted : Field);
+				if (First.IsEmpty()) { First = FString::Printf(TEXT("%s rock %.0f m at %s"), P.bAdopted ? TEXT("adopted") : TEXT("field"), P.Size / 100.f, *P.Location.ToCompactString()); }
+			}
+		}
+		for (const FTDSpaceFieldPiece& S : Structures)
+		{
+			if (K.DistanceTo(S.Location) < S.Size * 0.5f && !InPocket(S.Location)) { ++Sets; if (First.IsEmpty()) { First = FString::Printf(TEXT("set piece %.0f m at %s"), S.Size / 100.f, *S.Location.ToCompactString()); } }
+		}
+		if (WS)
+		{
+			// Every obstacle sphere in the galaxy (the field's own are counted above too; this catches ruins, wrecks, the layout's).
+			for (const FSphere& O : WS->GetObstacles())
+			{
+				if (O.W >= 0.f && K.DistanceTo(O.Center) < O.W && !InPocket(O.Center)) { ++Other; if (First.IsEmpty()) { First = FString::Printf(TEXT("obstacle r %.0f m at %s"), O.W / 100.f, *O.Center.ToCompactString()); } }
+			}
+		}
+		const bool bRoute = K.Kind == ETDJourneyPointKind::Route;
+		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.JourneyCheck: %s%s %s (r %.0f m%s): field %d, adopted %d, set pieces %d, obstacles %d%s%s"),
+			bRoute ? *FString::Printf(TEXT("route %d "), RouteIdx) : TEXT(""), bRoute ? TEXT("") : TEXT("keep-out"), *K.Id.ToString(), K.Radius / 100.f,
+			bRoute ? *FString::Printf(TEXT(", %.1f km"), K.Length / 100000.f) : TEXT(""), Field, Adopted, Sets, Other, First.IsEmpty() ? TEXT("") : TEXT(" | first: "), *First);
+		Total += Field + Adopted + Sets;
+		RouteIdx += bRoute ? 1 : 0;
+	}
+	UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.JourneyCheck: %d rocks and set pieces inside the journey outside its pockets"), Total);
+	return Total;
+}
+
+bool ATDSpaceField::JourneyPose(int32 Index, float T, FVector& OutFrom, FRotator& OutFacing, FName& OutId) const
+{
+	if (!Layout) { return false; }
+	TArray<FTDJourneyKeyPoint> Journey;
+	Layout->GetJourneyKeyPoints(Journey);
+	int32 N = 0;
+	for (const FTDJourneyKeyPoint& K : Journey)
+	{
+		if (K.Kind != ETDJourneyPointKind::Route) { continue; }
+		if (N++ != Index) { continue; }
+		OutFrom = K.Location + K.Direction * K.Length * FMath::Clamp(T, 0.f, 1.f);
+		OutFacing = K.Direction.Rotation();
+		OutId = K.Id;
+		return true;
+	}
+	return false;
 }
 
 bool ATDSpaceField::IsInDockingCone(const FVector& P, float Radius) const
