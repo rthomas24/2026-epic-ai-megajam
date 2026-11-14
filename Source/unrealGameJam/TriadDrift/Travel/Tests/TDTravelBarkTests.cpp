@@ -111,10 +111,15 @@ bool FTDT1BarkLanding::RunTest(const FString& Parameters)
 	UTDLandingComponent* Land = Ship->GetLanding();
 	for (int32 i = 0; i < 10; ++i) { W.Tick(); }
 	TestEqual(TEXT("3 km out: no Bark_Land_Ready"), N(TDBarkIdsT1::LandReady), 0);
-	Ship->TeleportSpacecraft(PadXf.TransformPosition(FVector(-10000.f, 0.f, 3000.f)), FRotator::ZeroRotator, false);
-	Move->SetForwardSpeedImmediate(Move->GetCruiseCapSpeed() * 0.5f);
-	for (int32 i = 0; i < 10; ++i) { W.Tick(); }
+	auto Near = [&]()
+	{
+		Ship->TeleportSpacecraft(PadXf.TransformPosition(FVector(-10000.f, 0.f, 3000.f)), FRotator::ZeroRotator, false);
+		Move->SetForwardSpeedImmediate(Move->GetCruiseCapSpeed() * 0.5f);
+	};
+	Near();
+	W.Tick();
 	TestEqual(TEXT("the pad in range: Bark_Land_Ready once"), N(TDBarkIdsT1::LandReady), 1);
+	Near(); // as the landing tests do: 100 m out, slow
 	TestTrue(TEXT("land"), Land->RequestLand());
 	for (int32 i = 0; i < 60 * 12 && Land->GetLandingState() != ETDLandingState::Landed; ++i) { W.Tick(1.f / 60.f); }
 	TestEqual(TEXT("landed"), Land->GetLandingState(), ETDLandingState::Landed);
