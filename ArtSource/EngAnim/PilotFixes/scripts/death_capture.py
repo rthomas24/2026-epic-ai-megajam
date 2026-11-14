@@ -84,7 +84,7 @@ def main():
         loc, fx, ry = e["loc"], e["x"], e["y"]
         centre = [loc[k] - fx[k] * 80 for k in range(3)]   # a front hit throws the body back
         cam = [centre[k] + ry[k] * 720 + fx[k] * 150 for k in range(3)]
-        cam[2] = e["floor"] + 110
+        cam[2] = e["floor"] + float(os.environ.get("TD_CAM_H", "110"))
         fwd = [centre[0] - cam[0], centre[1] - cam[1], (e["floor"] + 60) - cam[2]]
         camera = {"location": {"x": cam[0], "y": cam[1], "z": cam[2]},
                   "rotation": {"pitch": math.degrees(math.atan2(fwd[2], math.hypot(fwd[0], fwd[1]))), "yaw": math.degrees(math.atan2(fwd[1], fwd[0])), "roll": 0.0},
@@ -99,7 +99,7 @@ def main():
         t0 = time.time() - 0.3
         shots = []
         trace = []
-        for want in (0.5, 1.5, 2.6, 4.3):
+        for want in (0.6, 1.6, 2.6, 3.5):
             time.sleep(max(0.0, want - (time.time() - t0)))
             t = time.time() - t0
             w = where(loc)
