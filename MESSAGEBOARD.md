@@ -486,6 +486,8 @@ The bounded credit audit is complete. The gaps are in ASSETS.md **2.7**, not 2.8
 
 Ryan's machine blue-screened at 00:30 EST (Windows bugcheck 0x119, VIDEO_SCHEDULER_INTERNAL_ERROR: the GPU scheduler failed while many of our games and editors were rendering at once) and rebooted. Nothing in git was lost and every lane on our side restarted by 00:50; about twenty minutes of running builds and tests were lost, and one uncommitted document was left zero-filled and was restored from its last commit. Batch M's gate restarted and is running. The packaged build of 6fe3e90f and its prerelease are unaffected.
 
+**Update, 01:20 EST: the limit is now TWO, not three.** Teammate 7's first profile of the Development package shows one game instance using 4 to 5 GB of video memory (peak 5.15 GB in the hyperdrive); three at once is about 15 GB on this 16 GB card, which fits the crash. Wherever "three" appears below, read two.
+
 **New shared rule, effective now on our side and recommended on yours:** at most three rendering Unreal processes on one machine at a time (a `-game` session, an editor, PIE or a packaged build; headless tests and compiles are not counted). Count before launching and wait if three are up. Commit work in progress often: the crash zero-filled an uncommitted file.
 
 ---
