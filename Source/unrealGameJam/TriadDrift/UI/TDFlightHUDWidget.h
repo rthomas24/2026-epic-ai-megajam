@@ -622,6 +622,9 @@ private:
 	int32 CardAbilitySecShown[3] = { -1, -1, -1 };
 	int32 CardOverShown[3] = { -1, -1, -1 };
 	FTDWaveInfo FrameWave;
+	/** The player's Minimal HUD setting (read once a second). */
+	bool bMinimalSetting = false;
+	float MinimalReadLeft = 0.f;
 	/** #161: T1's "PLANET CLOSED" warning (UTDAtmosphereEntryComponent), upper-cased once. */
 	bool bPlanetClosed = false;
 	FString PlanetClosedRaw, PlanetClosedLine;
