@@ -176,6 +176,8 @@ public:
 	// ------------------------------------------------------------------ input (the character routes these)
 	/** Attack button down: the light / air-slam / dash-strike lands on the press; holding 0.35 s with no hit becomes a heavy lunge. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Blade")
+	/** Press from rest: a tap is a light (on release), a hold past HeavyHoldSeconds is the heavy, never a light first.
+	 *  A press during a light queues the next light; still held when that light ends, the heavy follows ([1, 2, heavy]). */
 	void PressAttack();
 
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Blade")

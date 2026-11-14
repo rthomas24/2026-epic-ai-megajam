@@ -1238,7 +1238,18 @@ void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDama
 			}
 			const bool bFromBehind = !Info.HitDirection.IsNearlyZero() && FVector::DotProduct(-Info.HitDirection.GetSafeNormal2D(), GetActorForwardVector()) < 0.f;
 			bool bOwn = false;
-			if (Spec.Type == ETDCrewType::Trooper)
+			// A hit of the heavy blade's weight that it survives: the heavy hit react (the animation builder's
+			// A_Crew_<Type>_HeavyHit, about 0.6 s) in place of the flinch; no attack starts while it plays.
+			if ((Spec.Type == ETDCrewType::Grunt || Spec.Type == ETDCrewType::Trooper) && ShieldDamage + HullDamage >= HeavyHitThreshold)
+			{
+				if (UAnimSequenceBase* Heavy = TypeClip(TEXT("HeavyHit")))
+				{
+					bOwn = PlayTypeClip(TEXT("HeavyHit"));
+					HitReactLeft = FMath::Max(HitReactLeft, Heavy->GetPlayLength());
+				}
+			}
+			if (bOwn) {}
+			else if (Spec.Type == ETDCrewType::Trooper)
 			{
 				// Scaled with the hit: a chip plays quicker (rate up to 1.5), a quarter of its hull or more at full length.
 				const float Weight = FMath::Clamp(HullDamage / FMath::Max(1.f, Health->MaxHull * 0.25f), 0.f, 1.f);
