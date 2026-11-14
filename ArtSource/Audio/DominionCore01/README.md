@@ -14,4 +14,6 @@ Source receipt: Nicholas's local `C:/Users/nicho/OneDrive/Desktop/GameJam/Muisc/
 
 ## Handoff
 
-Stage: **source prepared**, not Unreal-imported or gameplay-verified. A later claimed native task should import the complete master, reload it, compare frame count and PCM, and establish the core scene's real entry/exit events with Ryan's lead. Looping and exact playback timing remain undecided. Do not activate a default or claim Shipping coverage from this source delivery. Actual gameplay listening and final acceptance remain with Nicholas.
+Stage: **native import and fresh reload verified** in the compatible private 28f03b4f host. The package is `/Game/TriadDrift/Audio/DominionCore01/MUS_DominionCore_CathedralPulse_Full_01`, SHA-256 `e43a39a8c3a49480779da9c38728ff3dd8fc6b48bb1078d1c92436a7ba4229a4`. It uses the existing Music sound class, unity asset volume/pitch, no loop, and PLAY_WHEN_SILENT virtualization. Export after import and after a fresh process reload preserved all frames; maximum PCM difference is one 16-bit rounding step, and both exports match exactly.
+
+`native-checks/` contains the two data checks and process guards: both exited 0, no protected files changed, and no unexpected Content files appeared. Minimum free RAM was 2.883 GiB for import and 3.297 GiB for reload. This verifies native data only, not playback. Establish the core scene's entry/exit events with Ryan's lead; looping remains undecided. No map/style/default is activated and no cook, Shipping or gameplay listening approval is claimed.
