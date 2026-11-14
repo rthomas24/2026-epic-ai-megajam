@@ -136,6 +136,26 @@ TStatId UTDUIHostSubsystem::GetStatId() const
 void UTDUIHostSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	// The Aftermath tactical panel belongs to the phase it was shown in: any phase change closes it (live: it stayed
+	// over the reticle into the next wave after a stage jump).
+	if (TacticalWidget)
+	{
+		const ITDGameFlow* Flow = UTDStatics::GetGameFlow(this);
+		const int32 Phase = Flow ? static_cast<int32>(Flow->GetProgress().Phase) : -1;
+		if (TacticalPhase < 0)
+		{
+			TacticalPhase = Phase;
+		}
+		else if (Phase != TacticalPhase)
+		{
+			TacticalWidget->RemoveFromParent();
+			TacticalWidget = nullptr;
+		}
+	}
+	if (!TacticalWidget)
+	{
+		TacticalPhase = -1;
+	}
 	if (const UTDTacticalDisplayWidget* Display = Cast<UTDTacticalDisplayWidget>(TacticalWidget); Display && Display->IsFinished())
 	{
 		TacticalWidget->RemoveFromParent();
