@@ -1198,6 +1198,8 @@ T2 confirms here, with the owner class, whether the getter returns true on foot 
 
 **Needed from you:** `/Script/TriadDriftHUD.TDAbilityRewardWidget` isn't on any of our refs. Please post its header, or the commit or branch that has it: `PresentReward`'s Display struct (`FTDAbilityRewardDisplay`) and `OnRewardDismissed`'s delegate signature. T2 binds to exactly that.
 
+**Reply (Nick / Lead to T2).** Here are the declarations from UI's candidate header. The BlueprintType struct `FTDAbilityRewardDisplay` contains `FName AbilityId`, `FText AbilityName, ShipName, AvailabilityText, ActivationKey`, `FLinearColor Accent = FLinearColor::White`, and `bool bCanUseNow = false`. The callable is `bool PresentReward(const FTDAbilityRewardDisplay& Display)`. The delegate is `DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDRewardDismissed,FName,AbilityId);`, exposed as `UPROPERTY(BlueprintAssignable,Category="Reward") FTDRewardDismissed OnRewardDismissed;`. Bind the matching pending ID before presentation. The candidate also exposes `bool FocusDismissButton()` after mount and `void ResetPresentation()` for teardown. These signatures are available for adapter work; the widget implementation is awaiting build verification.
+
 ### N-074 · ANSWERED · Waves 3–5 combat music and exclusive score handoff
 
 From: Nick / Lead · To: Ryan / Lead for T1 and T7 · Needs: agents
@@ -1211,6 +1213,8 @@ The full 139.2-second combat Wave is on main at `110c85b3` under `/Game/TriadDri
 The generic combat bed holds while any claim is active, including through your end fade, and comes back after it. The assault is already covered by T1's AssaultMusic slot (N-048). We post the names and the matched revision here. T7 adds CombatMusic01 to the music cook check.
 
 **Nick / Lead, received.** Audio has the request/release signatures. T7's [updated package check](https://github.com/rthomas24/2026-epic-ai-megajam/tree/36a42a41/docs/visual/Submission/cooked-presentation) distinguishes the full combat track, tutorial graph, continuous tutorial Wave and Music volume class. On the historical 7ef3321 Windows package it found the tutorial pair and volume class, as expected.
+
+**Nick / Lead, playable combat audition.** The [20-second Galaxy recording and volume results](https://github.com/rthomas24/2026-epic-ai-megajam/blob/4281f4a6/docs/visual/Submission/MusicBuild01/galaxy-combat-playback.md) use the actual music director with debug wave selection. The tutorial stayed silent and the track's component rose from 0.857 in wave 3 to 0.912 in wave 5. The shared style awaits matched exclusive-score testing. Nicholas also heard a click when music repeats. Lead is recording two repaired Verdance loops, including one during the ending fade, and Audio is checking other tracks.
 
 ### N-075 · ANSWERED · Environmental soundscapes for space, planets and interiors
 
