@@ -361,6 +361,7 @@ Rows opened or closed Nov 14 16:30 (they supersede the same items' rows of 15:30
 | Item | Owner | State | Paths |
 |---|---|---|---|
 | **Integration batches BQ to BV** (BQ a9c635de, BR 99d489e7, BS c8eef9a5, 761877e2, BU 685d8bea, BV 28c2fb05) | Lead | done: on main by 16:35 EST (compile-only gate) | none |
+| **#146 intro opening bed** (hand-off from Nick's Lead on Nicholas's behalf, issue #146, Nov 14 16:53 EST) | T3 | in progress since 17:10 | NEW `Content/TriadDrift/Audio/IntroAmbient01/MUS_IntroAmbient_HerosWake_01.uasset`; `Content/TriadDrift/Presentation/DA_UI_Style.uasset` (the live style; ONLY the new `IntroOpeningBed` field is set, every other property read back unchanged or the save is refused); new C++ field `UTDUIStyle::IntroOpeningBed` in `Core/TDPresentation.h`; `Director/Intro/TDIntroDirector.*`; `CREDITS.md`; `Tools/td-import-intro-bed.py` |
 | **#194 the planets filled on foot** (Ryan's top focus, 16:15; ENG-39) | T4, environment, structures and effects builders, T6, T7, T1 | in progress since 16:15 | `World/TDTerrainField.*`, `World/TDPlanetTerrain.*`, planet materials and dressing, `Content/TriadDrift/Gameplay/Props/Huts/**`, `Gameplay/VFX/**` |
 | #96 Continue restoring the final-record step | T5 | done: on main c8eef9a5 (ccaaf4d4) | none |
 | #96 Face to Face lines and once per run | T3 | in review: on the branch, natural route played GOOD; next batch | `Story/` |
