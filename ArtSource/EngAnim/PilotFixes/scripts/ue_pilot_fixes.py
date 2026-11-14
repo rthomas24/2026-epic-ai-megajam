@@ -341,6 +341,40 @@ for sw in CFG.get("swing", []):
     log("%s -> %s (%.2f s, x%.1f): %s" % (sw["src"], sw["dst"], L, rate, " | ".join(log_lines)))
     write(sw["dst"], frs)
 
+for st in CFG.get("stride", []):
+    # Longer stride (a sprint from a run): each leg bone's local rotation swings further from its own average over the
+    # clip (quaternion power about the mean by "scale"), the pelvis leans forward by "lean" deg about the body's right
+    # axis (component -X), and the pelvis drops "drop" cm. In place; the loop stays closed (every frame scales the same).
+    src = find(st["src"])
+    frs = frames_of(src)
+    k = st.get("scale", 1.3)
+    legs = [b for b in ALL if b.startswith(("thigh_", "calf_", "foot_", "ball_"))]
+    for b in legs:
+        qs = [tq(fr[b][1]) for fr in frs]
+        ref = qs[0]
+        acc = [0.0, 0.0, 0.0, 0.0]
+        for q in qs:
+            sgn = 1.0 if sum(a * c for a, c in zip(q, ref)) >= 0 else -1.0
+            acc = [a + sgn * c for a, c in zip(acc, q)]
+        n = math.sqrt(sum(c * c for c in acc)); mean = tuple(c / n for c in acc)
+        for fr in frs:
+            q = tq(fr[b][1])
+            d = pmul(qinv(mean), q)                     # deviation from the mean
+            if d[3] < 0: d = tuple(-c for c in d)
+            ang = 2 * math.acos(max(-1.0, min(1.0, d[3])))
+            if ang > 1e-5:
+                sa = math.sin(ang / 2)
+                axis = (d[0] / sa, d[1] / sa, d[2] / sa)
+                na = ang * k
+                d = (axis[0] * math.sin(na / 2), axis[1] * math.sin(na / 2), axis[2] * math.sin(na / 2), math.cos(na / 2))
+            fr[b] = (fr[b][0], unreal.Quat(*pmul(mean, d)))
+    lean = st.get("lean", 0.0); drop = st.get("drop", 0.0)
+    for fr in frs:
+        loc, rot = fr["pelvis"]
+        fr["pelvis"] = (unreal.Vector(loc.x, loc.y, loc.z - drop), unreal.Quat(*pmul(tq(qaxis((-1.0, 0.0, 0.0), lean)), tq(rot))))
+    log("%s -> %s: leg swing x%.2f, lean %.0f deg, drop %.0f cm" % (st["src"], st["dst"], k, lean, drop))
+    write(st["dst"], frs)
+
 for d in CFG.get("drop", []):
     src = find(d["src"])
     n = max(2, int(round(src.get_play_length() * FPS)) + 1)
