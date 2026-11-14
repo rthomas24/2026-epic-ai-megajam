@@ -237,6 +237,104 @@ void UTDAtmosphereEntryComponent::FinishEntry()
 	}
 }
 
+void UTDAtmosphereEntryComponent::TickClosedPlanetGuard(float DeltaTime)
+{
+	ATDShip* Ship = Cast<ATDShip>(GetOwner());
+	UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
+	UWorld* World = GetWorld();
+	if (!Move || !World)
+	{
+		return;
+	}
+	const bool bPlayer = Ship->IsPlayerFlown();
+	UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this);
+	auto StandDown = [&]()
+	{
+		Move->ClearKeepOutSphere();
+		ClosedPlanet01 = 0.f;
+		bGuardLogged = false;
+		if (bGuardRoar) { bGuardRoar = false; if (Descent) { Descent->StopRoar(0.6f); } }
+	};
+	if (EntryState != ETDAtmosphereEntryState::Idle || Move->IsInAtmosphere())
+	{
+		StandDown(); // this ship's own entry is under way (or it is on a planet): nothing to keep out of
+		return;
+	}
+	GuardRefresh -= DeltaTime;
+	if (GuardRefresh <= 0.f)
+	{
+		GuardRefresh = 1.f;
+		GuardPlanets.Reset();
+		for (TActorIterator<ATDPlanetAtmosphere> It(World); It; ++It) { GuardPlanets.Add(*It); }
+	}
+	// The nearest planet that does not take this ship: a closed one for the flown ship, any for a wingman.
+	const ATDPlanetAtmosphere* Planet = nullptr;
+	float Best = TNumericLimits<float>::Max();
+	const FVector At = Ship->GetActorLocation();
+	for (const TWeakObjectPtr<ATDPlanetAtmosphere>& W : GuardPlanets)
+	{
+		const ATDPlanetAtmosphere* P = W.Get();
+		if (!P || (bPlayer && P->IsOpen())) { continue; }
+		const float D = (float)FVector::Dist(At, P->GetPlanetCenter()) - P->GetAtmosphereRadius();
+		if (D < Best) { Best = D; Planet = P; }
+	}
+	if (!Planet || Best > ClosedPlanetBand * 3.f)
+	{
+		StandDown();
+		return;
+	}
+	Move->SetKeepOutSphere(Planet->GetPlanetCenter(), Planet->GetAtmosphereRadius() * 1.02f, ClosedPlanetBand);
+	ClosedPlanet01 = Move->GetKeepOut01(); // last step's depth
+	if (ClosedPlanet01 > 0.f && bPlayer)
+	{
+		const UTDGameInstance* GI = Cast<UTDGameInstance>(World->GetGameInstance());
+		const ETDGamePhase Phase = GI ? GI->GetProgressRef().Phase : ETDGamePhase::Waves1to2;
+		const bool bDone = (int32)Phase > (int32)ATDPlanetAtmosphere::PhaseFor(Planet->GetDestination());
+		ClosedPlanetText = bDone ? NSLOCTEXT("TDTravel", "PlanetDone", "PLANET CLOSED  Â·  NOTHING LEFT HERE")
+			: NSLOCTEXT("TDTravel", "PlanetNotYet", "PLANET CLOSED  Â·  CLEAR THE AREA FIRST");
+		if (Descent)
+		{
+			Descent->SetBurnIsExit(false);
+			Descent->SetEntryHeat(FMath::Clamp(ClosedPlanet01 * 1.4f, 0.f, 1.f)); // the hull burn and the HUD's heat bar
+			if (ClosedPlanet01 > 0.2f && !bGuardRoar)
+			{
+				if (USoundBase* Roar = UTDDescentSubsystem::ResolveRoar(TravelFX, false)) { Descent->StartRoar(Roar); bGuardRoar = true; }
+			}
+		}
+		if (!bGuardLogged)
+		{
+			bGuardLogged = true;
+			UE_LOG(LogTriadDrift, Log, TEXT("Closed planet: %s turned away from %s (%s), %.0f m from its atmosphere, %.0f m/s"), *Ship->GetName(),
+				*UEnum::GetValueAsString(Planet->GetDestination()), *ClosedPlanetText.ToString(), Best / 100.f, Ship->GetVelocity().Size() / 100.f);
+		}
+	}
+	if (ClosedPlanet01 <= 0.f)
+	{
+		bGuardLogged = false;
+		if (bGuardRoar) { bGuardRoar = false; if (Descent) { Descent->StopRoar(0.6f); } }
+	}
+	// Contact: a bounce. Flash (the entry cue's effect at the nose) and a small hull hit, not more than once per cooldown.
+	if (Move->WasKeepOutContact() && World->GetTimeSeconds() - LastClosedHit >= ClosedPlanetHitCooldown)
+	{
+		LastClosedHit = World->GetTimeSeconds();
+		const FVector Out = (At - Planet->GetPlanetCenter()).GetSafeNormal();
+		if (TravelFX) { UTDStatics::PlayCue(this, TravelFX->ExitBreakaway, At - Out * 300.f, Out.Rotation()); }
+		if (UTDHealthComponent* Health = Ship->GetHealth())
+		{
+			if (!Health->IsDead() && !Health->IsInvulnerable() && ClosedPlanetHitHull > 0.f)
+			{
+				FTDDamageInfo Info;
+				Info.Amount = Health->MaxHull * ClosedPlanetHitHull;
+				Info.Kind = ETDDamageKind::Environmental;
+				Info.HitLocation = At;
+				Info.HitDirection = -Out;
+				Health->ApplyDamage(Info);
+			}
+		}
+		UE_LOG(LogTriadDrift, Log, TEXT("Closed planet: %s bounced off %s's atmosphere (held out along the normal)"), *Ship->GetName(), *UEnum::GetValueAsString(Planet->GetDestination()));
+	}
+}
+
 void UTDAtmosphereEntryComponent::StopEntryCue()
 {
 	if (UNiagaraComponent* FX = EntryFX.Get()) { FX->Deactivate(); }
@@ -347,6 +445,7 @@ void UTDAtmosphereEntryComponent::HandleOwnerDeath(UTDHealthComponent* HealthCom
 void UTDAtmosphereEntryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	TickClosedPlanetGuard(DeltaTime);
 	if (EntryState == ETDAtmosphereEntryState::Entering)
 	{
 		EntryTime += DeltaTime;
