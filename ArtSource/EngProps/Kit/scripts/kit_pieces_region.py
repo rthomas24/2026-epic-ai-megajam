@@ -70,6 +70,9 @@ def picket_ring():
     with p.at(rotz(5.0)):
         p.box((R_ - 60.0, -60.0, Hh), (R_ + 60.0, 60.0, 1400.0), reg="pillar")
         p.box((R_ - 160.0, -160.0, 1400.0), (R_ + 160.0, 160.0, 1720.0), mat="Nav")
+        # r4: the distance cue - an 8 m amber panel and a squad-cyan panel on the outer face
+        p.box((R_ + T, -400.0, -350.0), (R_ + T + 40.0, 400.0, 50.0), mat="Nav")
+        p.box((R_ + T, -400.0, 80.0), (R_ + T + 40.0, 400.0, 330.0), mat="CyanRun")
     with p.at(rotz(52.0)):                                       # the failing light: a flickering lamp on a bracket
         p.box((R_ + T, -40.0, 300.0), (R_ + T + 300.0, 40.0, 360.0), reg="frame")
         p.box((R_ + T + 220.0, -90.0, 360.0), (R_ + T + 380.0, 90.0, 520.0), mat="Flicker")
@@ -104,10 +107,19 @@ def _slits(p, x0, x1, k=1.0):
             x = x0
             while x < x1:
                 w = rnd.uniform(180.0, 320.0)
-                lit = rnd.random() < 0.08
+                lit = rnd.random() < 0.13
                 p.poly([(x, y, zc - 22.0), (x + w, y, zc - 22.0), (x + w, y, zc + 22.0), (x, y, zc + 22.0)],
                        "sw_black", mat="Light" if lit else "Trim", n=(0, s_, 0), uv=[(0.5, 0.5)] * 4)
                 x += w + rnd.uniform(60.0, 160.0)
+
+
+def _hulk_cues(p, x0, x1, ztop):
+    """r4: a 7 m cold blue-white beacon panel on the dorsal (the 1.5 km cue) and rim-lit edge trim along both upper edges."""
+    xm = (x0 + x1) * 0.5
+    p.box((xm - 350.0, -60.0, ztop), (xm + 350.0, 60.0, ztop + 350.0), mat="Cold")
+    for s_ in (-1.0, 1.0):
+        y = s_ * (W2 * 0.36 + 8.0)
+        p.poly([(x0, y, H2 * 0.43), (x1, y, H2 * 0.43), (x1, y, H2 * 0.45), (x0, y, H2 * 0.45)], mat="RimLight", n=(0, s_, 0.5))
 
 
 def hulk_fore():
@@ -120,6 +132,7 @@ def hulk_fore():
     _slits(p, 300.0, 3800.0, 1.0)
     p.box((6300.0, -80.0, -80.0), (6460.0, 80.0, 80.0), mat="Cold")
     p.box((2400.0, -120.0, H2 * 0.45 + 450.0), (2640.0, 120.0, H2 * 0.45 + 690.0), mat="Nav")
+    _hulk_cues(p, 600.0, 3600.0, H2 * 0.45 + 450.0)
     p.chull([(x, y, z) for x in (-700.0, 6500.0) for y, z in hull_prof(W2, H2, 1.0 if x < 0 else 0.1)] +
             [(x, y, H2 * 0.45 + 450.0) for x in (1500.0, 3500.0) for y in (-500.0, 500.0)])
     return p
@@ -139,12 +152,13 @@ def hulk_mid():
     _torn_end(p, 2200.0, 1.0)
     _slits(p, -2000.0, 2000.0, 1.0)
     # the hull breach: a torn hole on the +Y flank glowing cold, scorch round it
-    p.poly([(-600.0, W2 / 2 + 12.0, -300.0), (500.0, W2 / 2 + 12.0, -250.0), (350.0, W2 / 2 + 12.0, 300.0), (-450.0, W2 / 2 + 12.0, 250.0)],
+    p.poly([(-600.0, W2 / 2 + 12.0, -450.0), (600.0, W2 / 2 + 12.0, -400.0), (450.0, W2 / 2 + 12.0, 400.0), (-500.0, W2 / 2 + 12.0, 380.0)],
            mat="Breach", n=(0, 1, 0))
     p.poly([(-1000.0, W2 / 2 + 6.0, -600.0), (900.0, W2 / 2 + 6.0, -550.0), (750.0, W2 / 2 + 6.0, 600.0), (-850.0, W2 / 2 + 6.0, 550.0)],
            "wall", mat="Scorch", n=(0, 1, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
     p.box((-80.0, W2 / 2 - 10.0, H2 * 0.2), (80.0, W2 / 2 + 150.0, H2 * 0.2 + 160.0), mat="Cold")
     p.box((-200.0, -120.0, H2 * 0.45 + 300.0), (40.0, 120.0, H2 * 0.45 + 540.0), mat="Nav")
+    _hulk_cues(p, -2000.0, 2000.0, H2 * 0.45 + 300.0)
     p.chull([(x, y, z) for x in (-2900.0, 2900.0) for y, z in prof] + [(x, 0.0, H2 * 0.45 + 300.0) for x in (-2200.0, 900.0)])
     return p
 
@@ -160,6 +174,7 @@ def hulk_aft():
                  14, regs=["sw_gun", "frame", "sw_dark", "sw_black", "sw_black"], mat="Trim2")
     p.box((-2100.0, -80.0, H2 * 0.4), (-1940.0, 80.0, H2 * 0.4 + 160.0), mat="Cold")
     p.box((0.0, -120.0, H2 * 0.5), (240.0, 120.0, H2 * 0.5 + 240.0), mat="Nav")
+    _hulk_cues(p, -1600.0, 1200.0, H2 * 0.45)
     p.chull([(x, y, z) for x in (-3300.0, 2200.0) for y in (-W2 / 2, W2 / 2) for z in (-H2 * 0.6, H2 * 0.5)])
     return p
 
@@ -199,9 +214,12 @@ def scar_rig():
     for (nx, ny) in ((1, 0), (-1, 0), (0, 1), (0, -1)):            # the white eye ring on the drill head
         for t in (-300.0, 0.0, 300.0):
             cx_, cy_ = nx * 602.0 + (0 if nx else t), ny * 602.0 + (0 if ny else t)
-            ex, ey = (0.0, 70.0) if nx else (70.0, 0.0)
-            p.poly([(cx_ - ex, cy_ - ey, G + 1320.0), (cx_ + ex, cy_ + ey, G + 1320.0), (cx_ + ex, cy_ + ey, G + 1420.0), (cx_ - ex, cy_ - ey, G + 1420.0)],
+            ex, ey = (0.0, 120.0) if nx else (120.0, 0.0)           # r4: 3x the eye area
+            p.poly([(cx_ - ex, cy_ - ey, G + 1260.0), (cx_ + ex, cy_ + ey, G + 1260.0), (cx_ + ex, cy_ + ey, G + 1480.0), (cx_ - ex, cy_ - ey, G + 1480.0)],
                    mat="Eye", n=(nx, ny, 0))
+    # r4: the distance cue - a Null red lamp cluster (8 m) on a mast over the drill head
+    p.box((-80.0, -80.0, G + 1550.0), (80.0, 80.0, G + 2200.0), reg="frame", mat="Dom")
+    p.box((-400.0, -400.0, G + 2200.0), (400.0, 400.0, G + 2600.0), mat="Beacon")
     _tube(p, (0.0, 0.0, G), (0.0, 0.0, -1800.0), 260.0, reg="frame", mat="Dom")
     p.box((-400.0, -400.0, -2200.0), (400.0, 400.0, -1800.0), reg="hazard", mat="Dom")
     p.box((-140.0, -140.0, 200.0), (140.0, 140.0, 480.0), mat="Strobe")          # the slow white strobe on the drill arm
@@ -273,7 +291,7 @@ def _shard(name, R, seed, seams, band=1100.0):
         ang = 2 * math.pi * k / seams + rnd.uniform(-0.3, 0.3)
         crack(iy, iz, ang, min(R[1], R[2]) * rnd.uniform(0.7, 0.95), 520.0, 40.0, 0)
     # the hot heart of the impact
-    hs = 700.0
+    hs = 1400.0                                               # r4: twice the hot heart
     p.poly([(xc(iy, iz) + 35.0, iy - hs, iz - hs), (xc(iy, iz) + 35.0, iy + hs, iz - hs), (xc(iy, iz) + 35.0, iy + hs, iz + hs),
             (xc(iy, iz) + 35.0, iy - hs, iz + hs)], mat="CrackHot", n=(1, 0, 0))
     return p, XC0

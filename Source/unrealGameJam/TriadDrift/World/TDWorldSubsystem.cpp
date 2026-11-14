@@ -155,6 +155,34 @@ bool UTDWorldSubsystem::IsInsideObstacle(const FVector& Point, float Margin) con
 	return false;
 }
 
+bool UTDWorldSubsystem::FindNearestObstacle(const FVector& Point, float Range, FSphere& OutObstacle) const
+{
+	if (Obstacles.Num() == 0)
+	{
+		return false;
+	}
+	TArray<int32, TInlineAllocator<256>> Candidates;
+	Gather(Point - FVector(Range), Point + FVector(Range), Candidates);
+	float Best = Range;
+	bool bFound = false;
+	for (const int32 Handle : Candidates)
+	{
+		const FSphere& S = Obstacles[Handle];
+		if (S.W < 0.f)
+		{
+			continue;
+		}
+		const float Surface = FVector::Dist(Point, S.Center) - S.W;
+		if (Surface < Best)
+		{
+			Best = Surface;
+			OutObstacle = S;
+			bFound = true;
+		}
+	}
+	return bFound;
+}
+
 void UTDWorldSubsystem::SetPlayBounds(const FVector& Center, float Radius)
 {
 	BoundsCenter = Center;

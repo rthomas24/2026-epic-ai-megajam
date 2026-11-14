@@ -19,6 +19,9 @@
 #include "TriadDrift/UI/TDUIPaint.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDVerdanceApproach.h"
+#include "TriadDrift/Travel/TDDescentSubsystem.h"
+#include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Enemies/TDEnemyAIController.h"
@@ -859,6 +862,45 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		const bool bB = Project(NavWorldTo, B, DirB);
 		View.NavFrom = bA ? A : FVector2D(CenterX, 760.f);
 		View.NavTo = bB ? B : OnSafeFrame(bA ? DirB : FVector2D(.8f, -.35f));
+	}
+
+	// ENG-38 descent readings (T1): by name, so this builds with or without T1's statics; GetHeat() before them.
+	{
+		auto ReadStatic = [this](const TCHAR* Name, float Fallback) -> float
+		{
+			UFunction* F = UTDDescentSubsystem::StaticClass()->FindFunctionByName(FName(Name));
+			if (!F || F->ParmsSize <= 0)
+			{
+				return Fallback;
+			}
+			uint8* Buf = static_cast<uint8*>(FMemory_Alloca(F->ParmsSize));
+			FMemory::Memzero(Buf, F->ParmsSize);
+			if (const FObjectPropertyBase* Ctx = CastField<FObjectPropertyBase>(F->PropertyLink); Ctx && !Ctx->HasAnyPropertyFlags(CPF_ReturnParm))
+			{
+				Ctx->SetObjectPropertyValue_InContainer(Buf, const_cast<UTDFlightHUDWidget*>(this));
+			}
+			UTDDescentSubsystem::StaticClass()->GetDefaultObject()->ProcessEvent(F, Buf);
+			const FFloatProperty* Ret = CastField<FFloatProperty>(F->GetReturnProperty());
+			return Ret ? Ret->GetPropertyValue_InContainer(Buf) : Fallback;
+		};
+		const UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this);
+		View.Heat01 = ForceHeat01 >= 0.f ? ForceHeat01 : FMath::Clamp(ReadStatic(TEXT("GetEntryHeat01"), Descent ? Descent->GetHeat() : 0.f), 0.f, 1.f);
+		View.Descent01 = ForceDescent01 > -2.f ? ForceDescent01 : ReadStatic(TEXT("GetDescent01"), -1.f);
+		const APawn* Ship = PC ? PC->GetPawn() : nullptr;
+		const ATDShip* AsShip = Cast<ATDShip>(Ship);
+		const bool bEntering = AsShip && AsShip->GetAtmosphereEntry() && AsShip->GetAtmosphereEntry()->IsEntering();
+		View.bDescent = View.Heat01 > .01f || View.Descent01 >= 0.f || bEntering;
+		// ORBIT: the descent cover ending on the galaxy map is the climb-out's reveal (the HUD is rebuilt after the travel,
+		// so the edge is watched here rather than only through OnRevealed).
+		const bool bCovered = Descent && Descent->GetCoverPhase() != ETDDescentCover::Off;
+		const UWorld* World = GetWorld();
+		if (bCoverSeen && !bCovered && World && World->GetMapName().Contains(TEXT("Galaxy")))
+		{
+			StartOrbitCue();
+		}
+		bCoverSeen = bCovered;
+		OrbitCueLeft = FMath::Max(0.f, OrbitCueLeft - Dt);
+		View.OrbitCue01 = OrbitCueLeft / OrbitCueSeconds;
 	}
 
 	// The escape flight (ENG-31, T4's timing): the clock, and the way out straight away from the hull at the exit radius.
@@ -1734,7 +1776,49 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		P.Words(AmmoX, C.Y + PipOffsetY - 10.f, FString::FromInt(View.Ammo), 15, T::Neutral().CopyWithNewOpacity(View.Ammo > 0 ? .9f : .4f), "Bold", 0.f, 0);
 		Rec(TEXT("ammo"), AmmoX, C.Y + PipOffsetY - 10.f, 24.f, 18.f);
 	}
-	if (View.Altitude >= 0.f)
+	// ---- ENG-38 descent: an altimeter tape right of the reticle (100 m ticks, a number every 500 m, the reading in a
+	// box), a HULL TEMP bar under it (amber, red above 70%), "ATMOSPHERE" over it; squad-neutral tokens.
+	if (View.bDescent)
+	{
+		const float TX = C.X + 190.f, TY = C.Y - 100.f, TH = 200.f;
+		const float Alt = FMath::Max(0.f, View.Altitude);
+		P.Words(TX - 4.f, TY - 26.f, TEXT("ATMOSPHERE"), 12, T::Shield(), "Bold", 0.f, 160);
+		if (View.Altitude >= 0.f)
+		{
+			// 200 px = 1000 m: 0.2 px per metre, centred on the current altitude.
+			P.Line({ TX, TY }, { TX, TY + TH }, T::Dim().CopyWithNewOpacity(.6f), 1.5f);
+			const int32 First = FMath::FloorToInt((Alt - 500.f) / 100.f) * 100;
+			for (int32 M = First; M <= Alt + 500.f; M += 100)
+			{
+				if (M < 0) { continue; }
+				const float Y = TY + TH * .5f - (M - Alt) * .2f;
+				if (Y < TY || Y > TY + TH) { continue; }
+				const bool bMajor = M % 500 == 0;
+				P.Line({ TX, Y }, { TX + (bMajor ? 12.f : 6.f), Y }, T::Neutral().CopyWithNewOpacity(bMajor ? .8f : .45f), 1.5f);
+				if (bMajor)
+				{
+					P.Words(TX + 16.f, Y - 7.f, FString::Printf(TEXT("%d"), M), 11, T::Dim(), "Bold", 0.f, 20);
+				}
+			}
+			const float BY = TY + TH * .5f;
+			P.Plate(TX - 84.f, BY - 13.f, 76.f, 26.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
+			P.Words(TX - 14.f, BY - 9.f, FString::Printf(TEXT("%.0f m"), Alt), 15, Alt < 60.f ? T::Bastion() : T::Neutral(), "Bold", 1.f, 20);
+			Rec(TEXT("altimeter"), TX - 84.f, TY, 130.f, TH);
+		}
+		const float HY = TY + TH + 16.f;
+		P.Words(TX - 4.f, HY, TEXT("HULL TEMP"), 11, T::Dim(), "Bold", 0.f, 140);
+		P.Box(TX - 4.f, HY + 18.f, 120.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
+		const FLinearColor HeatC = View.Heat01 > .7f ? T::Danger() : T::Bastion();
+		P.Box(TX - 4.f, HY + 18.f, 120.f * View.Heat01, 6.f, HeatC);
+		Rec(TEXT("hull_temp"), TX - 4.f, HY, 120.f, 24.f);
+	}
+	if (View.OrbitCue01 > 0.f)
+	{
+		const float Fade = FMath::Min(1.f, View.OrbitCue01 * 3.f);
+		P.Words(C.X, C.Y - 170.f, TEXT("ORBIT"), 22, T::Shield().CopyWithNewOpacity(.9f * Fade), "Bold", .5f, 300);
+		Rec(TEXT("orbit"), C.X - 60.f, C.Y - 170.f, 120.f, 26.f);
+	}
+	if (View.Altitude >= 0.f && !View.bDescent)
 	{
 		P.Words(C.X - 110.f, C.Y - 5.f, FString::Printf(TEXT("ALT %.0f m"), View.Altitude), 15, View.Altitude < 60.f ? T::Bastion() : T::Neutral(),
 			"Bold", 1.f, 20);

@@ -366,6 +366,13 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 	// Death, blocks ending, etc. (never fires a charge: only a pilot release does).
 	UpdateEffectiveTrigger(Slot, false);
 
+	// Idle (issue #89: most of a wave's weapons, most of the time): nothing to regenerate, cool, charge or fire.
+	if (!S.bTriggerHeld && !S.bOverheated && S.SalvoRemaining <= 0 && S.ChargeHeld <= 0.f && S.Heat <= 0.f && S.RefireTimer <= 0.f
+		&& (Spec->Resource != ETDWeaponResource::Ammo || S.Ammo >= Spec->MaxAmmo))
+	{
+		return;
+	}
+
 	// Ammo regeneration.
 	if (Spec->Resource == ETDWeaponResource::Ammo && Spec->AmmoRegenSeconds > 0.f)
 	{

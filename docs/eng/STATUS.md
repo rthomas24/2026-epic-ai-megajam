@@ -1,5 +1,7 @@
 # Engineering status ledger (Lead-owned)
 
+> **Stale below (last full pass: Nov 13, 12:30 EST).** The live state of every item is in [`/features.md`](../../features.md) (markers, the hourly alignment block and each item's dated state notes) and who is working on what is in [`/CLAIMS.md`](../../CLAIMS.md). Read those first; use this file for test filters and the review history only. (Note added Nov 14 04:00 EST.)
+
 The Lead updates this after every review and merge. An item is DONE only when it is merged to
 `main`, the build is clean, its automation tests pass headless on `main`, and review findings are closed.
 The short cross-team view (in progress / coming next / done) is the board in `/CLAIMS.md`.

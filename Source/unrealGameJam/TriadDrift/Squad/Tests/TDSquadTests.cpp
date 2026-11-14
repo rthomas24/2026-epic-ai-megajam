@@ -37,6 +37,7 @@
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "NiagaraComponent.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Enemies/TDArmadaForesight.h"
 #include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
 #include "TriadDrift/Squad/TDSquadBarks.h"
@@ -1460,6 +1461,20 @@ bool FTDSquadBarksEng43::RunTest(const FString& Parameters)
 		for (const TPair<FName, FName>& B : L->Barks) { if (B.Key == FName(Id)) { ++N; if (OutSpeaker) { *OutSpeaker = B.Value; } } }
 		return N;
 	};
+	// storyline §6 clue: T4's foresight fires OnAnticipated; a wingman notices.
+	{
+		FSquadFixture F;
+		F.W.Advance(0.5f);
+		UTDArmadaForesight* Foresight = UTDArmadaForesight::Get(F.W.GetWorld());
+		if (TestNotNull(TEXT("foresight subsystem"), Foresight))
+		{
+			Foresight->OnAnticipated.Broadcast(nullptr, UTDArmadaForesight::KindSwitch);
+			F.W.Tick();
+			FName Speaker;
+			TestEqual(TEXT("a wingman notices the pre-empt"), Count(F.Events, TEXT("Bark_Anticipated"), &Speaker), 1);
+			TestTrue(TEXT("not the flown pilot"), Speaker != FName(TDBarkIds::SpeakerFor(F.Squad->GetActiveShipId())));
+		}
+	}
 	// The player's kill (1 in 3; here always), then three inside 4 s is a multi-kill.
 	{
 		FSquadFixture F;
@@ -3315,3 +3330,72 @@ bool FTDSquadStrikeAndFocusFeedback::RunTest(const FString& Parameters)
 
 #endif // WITH_DEV_AUTOMATION_TESTS
 
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadEngageInPocket, "TriadDrift.Squad.Wingmen.EngageInsideARockPocketWithoutHittingIt", TD_TEST_FLAGS)
+bool FTDSquadEngageInPocket::RunTest(const FString& Parameters)
+{
+	// T6's live log: wingmen hit pocket and flank rocks at 30-100 m/s while engaging, not in formation. An enemy sits in a
+	// pocket ringed by rocks, with more on the way in; both wingmen fight it for 20 s and never touch a rock.
+	FSquadFixture F;
+	UTDWorldSubsystem* WorldSub = F.W.GetWorld()->GetSubsystem<UTDWorldSubsystem>();
+	if (!TestNotNull(TEXT("world subsystem"), WorldSub))
+	{
+		return false;
+	}
+	const FVector Pocket(14000.f, 3000.f, 0.f);
+	TArray<FSphere> Rocks;
+	for (int32 i = 0; i < 8; ++i)
+	{
+		const float A = i * PI / 4.f;
+		Rocks.Add(FSphere(Pocket + FVector(FMath::Cos(A) * 3200.f, FMath::Sin(A) * 3200.f, (i % 2 ? 600.f : -600.f)), 900.f));
+	}
+	Rocks.Add(FSphere(FVector(7000.f, 1500.f, 0.f), 1000.f)); // on the way in
+	Rocks.Add(FSphere(FVector(9500.f, -1600.f, 200.f), 800.f));
+	for (const FSphere& R : Rocks)
+	{
+		WorldSub->AddObstacle(R.Center, R.W);
+	}
+	F.SpawnEnemy(Pocket, 1.0e7f);
+	float WorstGap = TNumericLimits<float>::Max();
+	FString Worst;
+	// Jitter: a wingman's nose snapping back and forth near a rock (Lead: say so rather than ship it).
+	TMap<ETDShipId, FVector> LastFwd, LastTurn;
+	int32 Reversals = 0;
+	for (int32 i = 0; i < 60 * 20; ++i)
+	{
+		F.W.Tick();
+		for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+		{
+			const FVector Fwd = F.Ship(Id)->GetActorForwardVector();
+			if (const FVector* Prev = LastFwd.Find(Id))
+			{
+				const FVector Turn = FVector::CrossProduct(*Prev, Fwd);
+				const FVector* PrevTurn = LastTurn.Find(Id);
+				// A fast turn (> 3 deg in one 60 Hz frame) straight after an opposite fast turn.
+				if (PrevTurn && Turn.Size() > 0.052f && PrevTurn->Size() > 0.052f && FVector::DotProduct(Turn, *PrevTurn) < 0.f)
+				{
+					++Reversals;
+				}
+				LastTurn.Add(Id, Turn);
+			}
+			LastFwd.Add(Id, Fwd);
+		}
+		for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+		{
+			const ATDShip* S = F.Ship(Id);
+			for (const FSphere& R : Rocks)
+			{
+				const float Gap = FVector::Dist(S->GetActorLocation(), R.Center) - R.W;
+				if (Gap < WorstGap)
+				{
+					WorstGap = Gap;
+					Worst = FString::Printf(TEXT("%d at %.1f s"), (int32)Id, i / 60.f);
+				}
+			}
+		}
+	}
+	TestTrue(FString::Printf(TEXT("no wingman touches a rock while engaging (worst surface gap %.0f cm, ship %s)"), WorstGap, *Worst), WorstGap > 220.f); // the hull's collision sphere is 220 cm
+	AddInfo(FString::Printf(TEXT("worst surface gap %.0f cm; nose snap-backs %d"), WorstGap, Reversals));
+	TestTrue(FString::Printf(TEXT("no jitter: fast snap-backs %d"), Reversals), Reversals <= 3);
+	return true;
+}

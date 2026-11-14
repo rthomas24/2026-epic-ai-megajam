@@ -78,6 +78,33 @@ public:
 	/** Clusters per shell; three shells (ClusterShells: inner and outer distance pairs, cm) so every bearing has one near and one far. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 Clusters = 30;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") TArray<FVector2D> ClusterShells = { FVector2D(220000.f, 420000.f), FVector2D(420000.f, 620000.f), FVector2D(620000.f, 820000.f) };
+	// ---- The Shepherd Belt (region 2): one thin ring round the zone ----
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltInner = 200000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltOuter = 260000.f;
+	/** Standard deviation across the plane (cm): about +-60 m. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltThickness = 3000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltTiltDeg = 8.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") int32 ShepherdRocks = 1800;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") int32 BeltLandmarks = 40;
+	/** Half width of the gap where a route crosses (cm); the Verdance gap is wider (T4: the tutorial escape crosses it). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltGapHalf = 25000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltVerdanceGapHalf = 50000.f;
+	// ---- The Watchline halo (region 1) and the Quiet Graveyard (region 4) ----
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 HaloWrecks = 3;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 HaloDebris = 220;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 GraveyardHulls = 5;
+	/** Region 7, the Outer Dark: lone rocks with gravel from this distance (cm) to the play bounds. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 OuterDarkRocks = 500;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 IceDriftRocks = 600;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRocks = 320;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRubble = 220;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 MoonShards = 8;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float OuterDarkInner = 600000.f;
+
+	/** Shepherd moonlets at the Verdance and Dominion gap edges (bounding diameter, cm). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float MoonletMinSize = 25000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float MoonletMaxSize = 40000.f;
+
 	/** Big rocks per cluster (60-150 m, they collide) so a cluster reads from 2 km away, not only as specks. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 LandmarksPerCluster = 3;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 RocksPerCluster = 32;
@@ -195,7 +222,21 @@ protected:
 private:
 	void Build();
 	void BuildBelts(FRandomStream& Rng);
-	void BuildClusters(FRandomStream& Rng);
+	void BuildClusters(FRandomStream& Rng, int32 FirstShell = 0);
+	// Composed regions (TDSpaceFieldCompose.cpp; docs/eng/SPACE-DESIGN.md).
+	bool UseComposedRegions() const;
+	void BuildShepherdBelt(FRandomStream& Rng);
+	void BuildWatchlineHalo(FRandomStream& Rng);
+	void BuildQuietGraveyard(FRandomStream& Rng);
+	void BuildOuterDark(FRandomStream& Rng);
+	void BuildIceDrift(FRandomStream& Rng);
+	void BuildSurveyScar(FRandomStream& Rng);
+	void BuildShatteredMoons(FRandomStream& Rng);
+	void PlaceRegionCentrepieces(FRandomStream& Rng);
+	bool AddStructure(UStaticMesh* Mesh, const FTransform& T);
+	void ScatterDebris(const FVector& Centre, float Radius, int32 Count, float MaxSize, FRandomStream& Rng);
+	/** Indestructible set pieces placed (for tests and keep-out checks). */
+	TArray<FTDSpaceFieldPiece> Structures;
 	void BuildDebrisFields(FRandomStream& Rng);
 	void BuildBuoys();
 
@@ -226,7 +267,7 @@ private:
 
 	// Tumblers: movable instanced components (one per mesh), every instance rotates about its own axis.
 	UPROPERTY(Transient) TMap<TObjectPtr<UStaticMesh>, TObjectPtr<UInstancedStaticMeshComponent>> TumbleComponents;
-	struct FTumbler { TObjectPtr<UInstancedStaticMeshComponent> Comp; FTransform Home; FVector Axis; float RadPerSec; };
+	struct FTumbler { TObjectPtr<UInstancedStaticMeshComponent> Comp; FTransform Home; FVector Axis; float RadPerSec; int32 Instance = INDEX_NONE; };
 	TArray<FTumbler> Tumblers;
 	FRandomStream TumbleRng;
 	TArray<FTransform> TumbleScratch;
@@ -241,6 +282,12 @@ private:
 
 public:
 	int32 GetTumblerCount() const { return Tumblers.Num(); }
+	const TArray<FTDSpaceFieldPiece>& GetStructures() const { return Structures; }
+	/** Each built region's centre (world), by its number in docs/eng/SPACE-DESIGN.md (captures, tests). */
+	TMap<int32, FVector> RegionCentres;
+	/** The Shepherd Belt's plane normal and centre (world), once built. */
+	FVector BeltNormal = FVector::UpVector;
+	FVector BeltCenter = FVector::ZeroVector;
 	TArray<UInstancedStaticMeshComponent*> GetTumbleComponents() const
 	{
 		TArray<UInstancedStaticMeshComponent*> Out;
@@ -285,7 +332,13 @@ private:
 	int32 RegisterPiece(UInstancedStaticMeshComponent* Visual, int32 Instance, UStaticMesh* Mesh, float Size, bool bSpecial, int32 Tumbler, int32 Wreck);
 	int32 AddCollider(const FVector& At, float Size);
 	void BreakPiece(int32 Piece, AActor* ByWhom);
+	void BreakPieceInner(int32 Piece, AActor* ByWhom);
 	void SpawnFragment(UStaticMesh* Mesh, const FVector& At, float Size);
+	UInstancedStaticMeshComponent* FragmentComponentFor(UStaticMesh* Mesh);
+	void PreloadBreakCues();
+	UPROPERTY(Transient) TMap<TObjectPtr<UStaticMesh>, TObjectPtr<UInstancedStaticMeshComponent>> FragmentComponents;
+	UPROPERTY(Transient) TArray<TObjectPtr<UObject>> PreloadedCueAssets;
+	TSet<UInstancedStaticMeshComponent*> DirtyVisuals;
 	void PlayBreakCue(const FVector& At, float Size, uint8 SizeClass, bool bSpecial);
 	uint8 SizeClassFor(float Size) const { return Size < MediumFromSize ? 0 : (Size < LargeFromSize ? 1 : 2); }
 	float HealthFor(float Size, bool bWreck) const;
@@ -302,6 +355,21 @@ private:
 	bool bAdoptAtLoad = true;
 	bool bWarnedToggle = false;
 	int32 PendingObstacle = INDEX_NONE;
+
+	// Performance (Lead / Ryan, Nov 14: zero lag). TD.SpaceField.Perf prints them.
+	double AnimAccum = 0.0;
+	double PerfTickMsSum = 0.0, PerfTickMsMax = 0.0;
+	int64 PerfTickFrames = 0;
+	double PerfBreakMsSum = 0.0, PerfBreakMsMax = 0.0;
+	int64 PerfBreaks = 0;
+	double PerfFrameBreakMs = 0.0, PerfFrameBreakMsMax = 0.0;
+	int32 PerfBreakDepth = 0;
+	int32 PerfAnimated = 0;
+public:
+	void PerfReport(bool bReset);
+	/** Dev: break the Count live pieces nearest Where in one call (one frame); returns the ms it took. */
+	double BreakChain(const FVector& Where, int32 Count, AActor* ByWhom);
+private:
 
 	int32 ObstaclesAdded = 0;
 	bool bEnabled = true;

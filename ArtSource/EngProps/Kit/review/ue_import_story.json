@@ -68,6 +68,32 @@
   ]
  },
  {
+  "asset": "SM_Kit_InsigniaHull",
+  "size_cm": [
+   0,
+   320,
+   320
+  ],
+  "tris": 2,
+  "hulls": 0,
+  "slots": [
+   "0:Insignia"
+  ]
+ },
+ {
+  "asset": "SM_Kit_InsigniaPanel",
+  "size_cm": [
+   0,
+   90,
+   90
+  ],
+  "tris": 2,
+  "hulls": 0,
+  "slots": [
+   "0:Insignia"
+  ]
+ },
+ {
   "asset": "SM_Kit_LampPostDead",
   "size_cm": [
    115,
