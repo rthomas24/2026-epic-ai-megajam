@@ -180,7 +180,9 @@ bool ATDFirstPersonCharacter::HasBody() const
 
 int32 ATDFirstPersonCharacter::ChooseBodyLoop(float GroundSpeed)
 {
-	return GroundSpeed < 60.f ? 0 : GroundSpeed < 520.f ? 1 : 2; // run speed is 650, sprint 950
+	// Run speed is 650, sprint 950, blocking 325. The walk loop covers 130 cm/s: past about 200 its feet would slide
+	// (it can only be sped up so far), so the run loop takes over there (animation builder, Nov 14).
+	return GroundSpeed < 60.f ? 0 : GroundSpeed < 200.f ? 1 : 2;
 }
 
 void ATDFirstPersonCharacter::ApplyPilotVisuals()
@@ -288,10 +290,42 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		{
 			Loop = V->Idle.LoadSynchronous(); // a look with fewer loops still moves
 		}
+		// Run v2 (animation builder, Nov 14): the blade held out and down beside the leg, not swept across the head.
+		if (Loop && Want == 2 && Loop->GetFName() == TEXT("A_Pilot_Run") && TDPilotMeleePassOn())
+		{
+			if (UAnimSequenceBase* Run2 = LoadPilotAnim(TEXT("A_Pilot_Run_v2")))
+			{
+				Loop = Run2;
+			}
+		}
 		const float Speed = (float)GetVelocity().Size2D();
 		const float Ref = Want == 1 ? BodyWalkSpeed : Want == 2 ? BodyRunSpeed : 0.f;
-		const float Rate = Fall ? 1.f : bAir ? 0.4f : (Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.5f) : 1.f); // in the air: the fall loop, else the last loop slowed
+		const float Rate = Fall ? 1.f : bAir ? 0.4f : (Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.7f) : 1.f); // in the air: the fall loop, else the last loop slowed
 		Loops->SetLoop(Loop, Rate);
+		// Legs follow the direction of travel when the body faces elsewhere (a swing or the guard turns it to the camera):
+		// a strafe or backpedal loop on the legs only, at its own measured speed, so the feet stop sliding sideways.
+		UAnimSequenceBase* Legs = nullptr;
+		float LegRate = 1.f;
+		if (!bAir && (Want == 1 || Want == 2) && TDPilotMeleePassOn())
+		{
+			const FVector Local = GetActorRotation().UnrotateVector(GetVelocity().GetSafeNormal2D());
+			const float Angle = FMath::RadiansToDegrees(FMath::Atan2(Local.Y, Local.X)); // 0 ahead, +90 to the right
+			const bool bRun = Want == 2;
+			struct FDir { const TCHAR* Walk; const TCHAR* Jog; float WalkSpeed; float JogSpeed; };
+			const FDir* D = nullptr;
+			static const FDir Right = { TEXT("A_Pilot_Walk_Right"), TEXT("A_Pilot_Jog_Right"), 179.f, 529.f };
+			static const FDir Left = { TEXT("A_Pilot_Walk_Left"), TEXT("A_Pilot_Jog_Left"), 251.f, 511.f };
+			static const FDir Back = { TEXT("A_Pilot_Walk_Bwd"), TEXT("A_Pilot_Jog_Bwd"), 202.f, 498.f };
+			if (FMath::Abs(Angle) > 125.f) { D = &Back; }
+			else if (Angle > 50.f) { D = &Right; }
+			else if (Angle < -50.f) { D = &Left; }
+			if (D)
+			{
+				Legs = LoadPilotAnim(bRun ? D->Jog : D->Walk);
+				LegRate = FMath::Clamp(Speed / (bRun ? D->JogSpeed : D->WalkSpeed), 0.6f, 1.7f);
+			}
+		}
+		Loops->SetLegLoop(Legs, LegRate);
 	}
 }
 
@@ -601,11 +635,33 @@ void ATDFirstPersonCharacter::UpdateHandBlade(float DeltaSeconds)
 	}
 }
 
+// The animation builder's Nov 14 melee pass, switchable for before / after captures in one session (0 = as before:
+// the old clip names, no strafe legs, no chained-swing blend).
+static TAutoConsoleVariable<int32> CVarPilotMeleePass(TEXT("TD.Pilot.MeleePass"), 1,
+	TEXT("1: the Nov 14 pilot melee clips, strafe legs and chained-swing blend; 0: as before (A/B captures)."));
+
+bool TDPilotMeleePassOn()
+{
+	return CVarPilotMeleePass.GetValueOnGameThread() != 0;
+}
+
 UAnimSequenceBase* ATDFirstPersonCharacter::LoadPilotAnim(FName Anim) const
 {
 	if (Anim.IsNone())
 	{
 		return nullptr;
+	}
+	if (!TDPilotMeleePassOn())
+	{
+		static const FName NewMoves[] = { TEXT("A_Pilot_Light1_v3"), TEXT("A_Pilot_Light2_v3"), TEXT("A_Pilot_Light3_v3"), TEXT("A_Pilot_Heavy_v4"),
+			TEXT("A_Pilot_AirSlam_Fall_v2"), TEXT("A_Pilot_AirSlam_Land_v3"), TEXT("A_Pilot_AirSlam_Land_v2"), TEXT("A_Pilot_Block_v2"), TEXT("A_Pilot_Blade_DeflectFlick_v2") };
+		for (const FName& N : NewMoves)
+		{
+			if (Anim == N)
+			{
+				return nullptr;
+			}
+		}
 	}
 	const FString Name = Anim.ToString();
 	const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/%s"), *Name);
@@ -633,7 +689,7 @@ void ATDFirstPersonCharacter::HandleBladeDeflect(AActor* Projectile, bool bPerfe
 	// The animation builder's flick (0.97 s, the flick at 0.13 s): upper body, so the legs keep their move.
 	if (!IsDead())
 	{
-		PlayBodyAction(TEXT("A_Pilot_Blade_DeflectFlick"), 1.f, true);
+		PlayFirstBodyAction({ TEXT("A_Pilot_Blade_DeflectFlick_v2"), TEXT("A_Pilot_Blade_DeflectFlick") }, 1.f, true);
 	}
 }
 
@@ -785,19 +841,29 @@ void ATDFirstPersonCharacter::UpdateBodyActions()
 	{
 		switch (State)
 		{
-		case ETDBladeState::Light1: PlayBodyAction(TEXT("A_Pilot_Light1"), 1.6f, bMoving); break;
-		case ETDBladeState::Light2: PlayBodyAction(TEXT("A_Pilot_Light2"), 1.6f, bMoving); break;
-		case ETDBladeState::Light3: PlayBodyAction(TEXT("A_Pilot_Light3"), 1.5f, bMoving); break;
+		// v3 (animation builder, Nov 14): three arcs that hand off (forehand diagonal, back-hand flat, overhead),
+		// contact at 0.10 s, recovery held to the lockout so a chained press starts where the last cut ended.
+		case ETDBladeState::Light1: PlayFirstBodyAction({ TEXT("A_Pilot_Light1_v3"), TEXT("A_Pilot_Light1") }, 1.6f, bMoving); break;
+		case ETDBladeState::Light2: PlayFirstBodyAction({ TEXT("A_Pilot_Light2_v3"), TEXT("A_Pilot_Light2") }, 1.6f, bMoving); break;
+		case ETDBladeState::Light3: PlayFirstBodyAction({ TEXT("A_Pilot_Light3_v3"), TEXT("A_Pilot_Light3") }, 1.5f, bMoving); break;
 		case ETDBladeState::HeavyLunge:
-		case ETDBladeState::DashStrike: PlayFirstBodyAction({ TEXT("A_Pilot_Heavy_v3"), TEXT("A_Pilot_Heavy") }, 1.4f, false); break; // v3: the blade along the forearm
-		case ETDBladeState::AirSlam: PlayBodyAction(TEXT("A_Pilot_Light3"), 1.2f, false); break;
+		case ETDBladeState::DashStrike: PlayFirstBodyAction({ TEXT("A_Pilot_Heavy_v4"), TEXT("A_Pilot_Heavy_v3"), TEXT("A_Pilot_Heavy") }, 1.4f, false); break; // v4: coil, thrust at 0.13 s, held through the lunge
+		// Air slam (animation builder, Nov 14): a plunge, the blade point down, held while falling; on landing the
+		// hard-landing crouch with the blade driven into the ground in front.
+		case ETDBladeState::AirSlam: PlayFirstBodyAction({ TEXT("A_Pilot_AirSlam_Fall_v2"), TEXT("A_Pilot_Light3") }, 1.f, false); break;
 		case ETDBladeState::GuardBroken: PlayBodyAction(TEXT("A_Pilot_HitReact_Front"), 1.f, true); break;
 		default: break;
+		}
+		if (LastBodyBladeState == ETDBladeState::AirSlam && State == ETDBladeState::Idle)
+		{
+			PlayFirstBodyAction({ TEXT("A_Pilot_AirSlam_Land_v3"), TEXT("A_Pilot_AirSlam_Land_v2") }, 1.f, false);
 		}
 		LastBodyBladeState = State;
 	}
 	// The guard is held on the upper body for as long as the block is.
-	Loops->SetUpperLoop(State == ETDBladeState::Blocking ? LoadPilotAnim(TEXT("A_Pilot_Block")) : nullptr);
+	// v2 (animation builder, Nov 14): the blade diagonal across the front of the chest, not tipped back over the shoulder.
+	UAnimSequenceBase* Guard = State == ETDBladeState::Blocking ? LoadPilotAnim(TEXT("A_Pilot_Block_v2")) : nullptr;
+	Loops->SetUpperLoop(State == ETDBladeState::Blocking ? (Guard ? Guard : LoadPilotAnim(TEXT("A_Pilot_Block"))) : nullptr);
 	if (bDashing && !bLastBodyDashing && !Blade->IsAttacking())
 	{
 		PlayBodyAction(TEXT("A_Pilot_Dash"), 1.8f, false);

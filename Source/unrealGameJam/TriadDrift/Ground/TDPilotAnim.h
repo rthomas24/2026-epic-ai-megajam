@@ -17,6 +17,8 @@ class UAnimSequenceBase;
  */
 UNREALGAMEJAM_API UAnimSequenceBase* TDLoadPlayableAnim(const FSoftObjectPath& Path);
 UNREALGAMEJAM_API UAnimSequenceBase* TDMakePlayable(UAnimSequenceBase* Anim);
+/** TD.Pilot.MeleePass (TDFirstPersonCharacter.cpp): the Nov 14 pilot melee pass on (default) or off for A/B captures. */
+UNREALGAMEJAM_API bool TDPilotMeleePassOn();
 
 UCLASS(Transient, NotBlueprintable)
 class UNREALGAMEJAM_API UTDLoopBlendAnimInstance : public UAnimInstance
@@ -35,9 +37,22 @@ public:
 	 * frame until StopOneShot or another shot (a pose held on purpose, not a montage left playing).
 	 */
 	void PlayOneShot(UAnimSequenceBase* Shot, float Rate = 1.f, bool bUpperBodyOnly = false, bool bHold = false);
-	void StopOneShot() { Shot = nullptr; ShotAlpha = 0.f; bShotHold = false; }
+	void StopOneShot() { Shot = nullptr; ShotAlpha = 0.f; bShotHold = false; PrevShot = nullptr; PrevShotAlpha = 0.f; }
 	UAnimSequenceBase* GetOneShot() const { return Shot; }
 	bool IsOneShotUpperBody() const { return bShotUpper; }
+
+	/**
+	 * Loop on the legs only (every bone outside UpperRootBone's subtree: root, pelvis, legs) over the main loop: a
+	 * strafe or backpedal under a body that faces the camera. Null fades it out. A different clip fades in afresh.
+	 */
+	void SetLegLoop(UAnimSequenceBase* Loop, float Rate = 1.f);
+	UAnimSequenceBase* GetLegLoop() const { return bLegsWanted ? Legs.Get() : nullptr; }
+	UPROPERTY(Transient) TObjectPtr<UAnimSequenceBase> Legs;
+	double LegTime = 0.0;
+	float LegRate = 1.f;
+	float LegAlpha = 0.f;
+	bool bLegsWanted = false;
+	float LegBlendSeconds = 0.15f;
 
 	/** Loop on the upper body only (the block guard) over whatever the legs do; null fades it back out (0.12 s). */
 	void SetUpperLoop(UAnimSequenceBase* Loop);
@@ -97,6 +112,14 @@ public:
 	double ShotTime = 0.0;
 	float ShotRate = 1.f;
 	float ShotAlpha = 0.f;
+	/** A shot replaced while showing (a chained combo hit): held under the new one until that is fully in. */
+	UPROPERTY(Transient) TObjectPtr<UAnimSequenceBase> PrevShot;
+	double PrevShotTime = 0.0;
+	float PrevShotRate = 1.f;
+	float PrevShotAlpha = 0.f;
+	bool bPrevShotUpper = false;
+	/** Fade-in of a shot that replaces another one (the chained swing). */
+	float ChainBlendSeconds = 0.08f;
 	bool bShotUpper = false;
 	bool bShotHold = false;
 	double UpperTime = 0.0;
