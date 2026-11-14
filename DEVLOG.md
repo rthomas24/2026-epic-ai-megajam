@@ -288,3 +288,5 @@ Nov 13, music integration. Added the five previously reloaded Unreal packages fo
 Nov 13, Dominion assault. Infinity Zone passed a fresh Unreal process reload as a 48 kHz stereo SoundWave in the Music class. Only its new package changed during import. Native checkpoint 70987397, verification 6db3aa98. Listening in the four-generator assault is still pending.
 
 Nov 13, Dominion assault music. Published the full 144.68-second Push The Attack cue with its original ending and return, the preparation source and an eight-second loop sample. A fresh Unreal process reopened the SoundWave with looping enabled, the Music class and volume 0.5. The post-wave-five handoff, exclusive playback through the four generators, actual sequence-end stop and packaged listening check remain open.
+
+Nov 13, survey terminals. Both approved 1920x1080 scan graphics reopened as native Unreal Texture2D assets in a second editor process, with their UI colour settings, clamped edges and no mipmaps. The next check is reading the buried structure on the Verdance terminal and the cyan/amber overlay on Cinder during the actual scenes.
