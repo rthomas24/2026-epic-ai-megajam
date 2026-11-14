@@ -53,7 +53,7 @@ public:
 
 	/** Holding attack this long turns it into a heavy lunge. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Heavy", meta = (Units = "s"))
-	float HeavyHoldSeconds = 0.35f;
+	float HeavyHoldSeconds = 0.25f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Heavy")
 	float HeavyDamage = 70.f;
@@ -68,6 +68,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Heavy", meta = (Units = "s"))
 	float HeavyLungeDuration = 0.2f;
+
+	/** The lunge's stab lands at the clip's thrust (A_Pilot_Heavy_v4: full extension 0.13 s at x1.4), not on its first frame. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Heavy", meta = (Units = "s", ClampMin = "0"))
+	float HeavyHitDelay = 0.13f;
 
 	/** Sweep radius of the lunge's stab. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Heavy", meta = (Units = "cm"))
@@ -300,6 +304,11 @@ private:
 	bool bHeavyFiredThisPress = false;
 	/** A press from rest waits: released before HeavyHoldSeconds it is a light swing, held it goes straight to the heavy. */
 	bool bLightDeferred = false;
+	/** The heavy's chosen victim, stabbed when HeavyHitDelay runs out (if the lunge is still on). */
+	TWeakObjectPtr<AActor> PendingHeavyTarget;
+	float PendingHeavyLeft = -1.f;
+	FVector PendingHeavyDir = FVector::ForwardVector;
+	void ApplyHeavyHit(AActor* Target, const FVector& Dir);
 	bool bBlockHeld = false;
 	float BlockTime = 0.f;
 	float Stamina = 3.f;

@@ -385,17 +385,35 @@ bool UTDEnergyBladeComponent::HeavyLunge()
 	{
 		// Stop just short of the victim instead of ploughing through it.
 		TravelDistance = FMath::Clamp(BestAlong - TDBlade::ActorRadius(Best) - 40.f, 0.f, HeavyLungeDistance);
-		if (ITDStaggerable* Guarded = Cast<ITDStaggerable>(Best))
+		if (HeavyHitDelay > 0.f)
 		{
-			Guarded->BreakGuard(Owner);
+			PendingHeavyTarget = Best;
+			PendingHeavyDir = Dir;
+			PendingHeavyLeft = HeavyHitDelay;
 		}
-		HitActor(Best, HeavyDamage, Best->GetActorLocation(), Dir, 0.f);
+		else
+		{
+			ApplyHeavyHit(Best, Dir);
+		}
 	}
 	if (ATDFirstPersonCharacter* FPC = Cast<ATDFirstPersonCharacter>(Owner))
 	{
 		FPC->StartForcedMove(Dir * (TravelDistance / FMath::Max(HeavyLungeDuration, 0.01f)), HeavyLungeDuration, 0.f);
 	}
 	return true;
+}
+
+void UTDEnergyBladeComponent::ApplyHeavyHit(AActor* Target, const FVector& Dir)
+{
+	if (!Target)
+	{
+		return;
+	}
+	if (ITDStaggerable* Guarded = Cast<ITDStaggerable>(Target))
+	{
+		Guarded->BreakGuard(GetOwner());
+	}
+	HitActor(Target, HeavyDamage, Target->GetActorLocation(), Dir, 0.f);
 }
 
 bool UTDEnergyBladeComponent::AirSlam()
@@ -787,6 +805,8 @@ void UTDEnergyBladeComponent::CancelAll()
 	bLightDeferred = false;
 	bBlockHeld = false;
 	PendingHitLeft = -1.f;
+	PendingHeavyLeft = -1.f;
+	PendingHeavyTarget.Reset();
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -802,6 +822,17 @@ void UTDEnergyBladeComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	}
 
 	HeavyCooldownLeft = FMath::Max(0.f, HeavyCooldownLeft - DeltaTime);
+	if (PendingHeavyLeft >= 0.f)
+	{
+		PendingHeavyLeft -= DeltaTime;
+		if (PendingHeavyLeft < 0.f)
+		{
+			PendingHeavyLeft = -1.f;
+			AActor* Target = PendingHeavyTarget.Get();
+			PendingHeavyTarget.Reset();
+			if (State == ETDBladeState::HeavyLunge && !bRetracted) { ApplyHeavyHit(Target, PendingHeavyDir); }
+		}
+	}
 	if (PendingHitLeft >= 0.f)
 	{
 		PendingHitLeft -= DeltaTime;
