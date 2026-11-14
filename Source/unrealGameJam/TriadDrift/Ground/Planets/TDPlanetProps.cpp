@@ -779,8 +779,10 @@ void ATDCollapseRun::ApplyCollapse(float A)
 	{
 		const float Side = SectionsDropped % 2 ? 1.f : -1.f;
 		const FVector Out = FRotator(0.f, 60.f * SectionsDropped, 0.f).Vector();
+		bDroppingSection = true;
 		DropPiece(TowerHome + Out * 400.f + FVector(0.f, 0.f, 2200.f - SectionsDropped * 500.f), TDPropArt::Load(SectionMeshes[SectionsDropped]), 1.f,
 			Out * 500.f + FVector(0.f, Side * 150.f, -600.f));
+		bDroppingSection = false;
 		++SectionsDropped;
 	}
 }
@@ -863,7 +865,7 @@ void ATDCollapseRun::DropDebris()
 {
 	const FVector Local(FMath::FRandRange(-DebrisExtent.X, DebrisExtent.X), FMath::FRandRange(-DebrisExtent.Y, DebrisExtent.Y), 2500.f);
 	const TSoftObjectPtr<UStaticMesh>& Art = DebrisMeshes.Num() > 0 ? DebrisMeshes[FMath::RandRange(0, DebrisMeshes.Num() - 1)] : DebrisMesh;
-	DropPiece(GetActorTransform().TransformPosition(Local), TDPropArt::Load(Art), FMath::FRandRange(1.f, 2.2f), FVector(0.f, 0.f, -1500.f));
+	DropPiece(GetActorTransform().TransformPosition(Local), TDPropArt::Load(Art), (DebrisMeshes.Num() > 0 || !DebrisMesh.IsNull()) ? FMath::FRandRange(0.85f, 1.15f) : FMath::FRandRange(1.f, 2.2f), FVector(0.f, 0.f, -1500.f));
 }
 
 AActor* ATDCollapseRun::DropPiece(const FVector& WorldAt, UStaticMesh* Art, float Scale, const FVector& Velocity)
@@ -875,19 +877,43 @@ AActor* ATDCollapseRun::DropPiece(const FVector& WorldAt, UStaticMesh* Art, floa
 	{
 		return nullptr;
 	}
+	// The physics body is the engine cube sized to the art's bounds; the art rides on it at its native size (a 7 m
+	// anchor section stays 7 m: fitting it inside the 1 m cube made it a pebble).
+	const FBox Bounds = Art ? Art->GetBoundingBox() : FBox(FVector(-50.f), FVector(50.f));
+	const FVector Size = Bounds.GetSize().ComponentMax(FVector(20.f)) * Scale;
 	UStaticMeshComponent* M = NewObject<UStaticMeshComponent>(Rock, TEXT("Rock"));
 	M->SetStaticMesh(TDPlanetPropsImpl::Shape(TDPlanetPropsImpl::CubePath));
 	M->SetMobility(EComponentMobility::Movable);
-	M->SetWorldScale3D(FVector(Scale));
+	M->SetWorldScale3D(Size / 100.f);
 	M->SetCollisionProfileName(TEXT("PhysicsActor"));
-	M->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore); // falling rocks are scenery, never a trap
+	M->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);   // falling pieces are scenery, never a trap or a wall on the run
+	M->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore); // nor something the chase camera bumps into
 	Rock->SetRootComponent(M);
 	M->RegisterComponent();
 	M->SetSimulatePhysics(true);
 	M->SetPhysicsLinearVelocity(Velocity);
-	UTDStatics::TintPlaceholder(M, FLinearColor(0.5f, 0.2f, 0.9f), 0.8f);
-	TDPropArt::Dress(M, Art);
-	Rock->SetLifeSpan(6.f);
+	if (Art)
+	{
+		M->SetVisibility(false);
+		UStaticMeshComponent* Look = NewObject<UStaticMeshComponent>(Rock, TEXT("Art"));
+		Look->SetStaticMesh(Art);
+		Look->SetMobility(EComponentMobility::Movable);
+		Look->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Look->SetupAttachment(M);
+		Look->SetAbsolute(false, false, true);
+		Look->SetWorldScale3D(FVector(Scale));
+		Look->SetRelativeLocation(-Bounds.GetCenter() * Scale / (Size / 100.f)); // the art's centre on the box's
+		Look->RegisterComponent();
+	}
+	else
+	{
+		UTDStatics::TintPlaceholder(M, FLinearColor(0.5f, 0.2f, 0.9f), 0.8f);
+	}
+	// Sections lie on as wreckage until a retake (ResetProp clears them); small debris clears after a while.
+	if (!bDroppingSection)
+	{
+		Rock->SetLifeSpan(12.f);
+	}
 	Debris.Add(Rock);
 	return Rock;
 }
