@@ -53,11 +53,17 @@ Restore a whole snapshot in a separate checkout: `git worktree add ../old art/mo
 | | plain Rodin Rift with code-built ring band, masked portal and glow cores | `17d3ce3` / `d551cd3` | same folders |
 | | r7 colour blocking (code-built engineering ships) | `3270de4` | `Content/TriadDrift/Gameplay/Characters/Squad`, `ArtSource/EngShips/Squad` |
 | | r6, mostly white hulls | `b96f8bd` (+ `86256b2` socket fix) | same |
-| Dominion exterior | glow strengths for the running game (current) | `3a6c3ff` (+ Trim `bf5394b`) | `Content/TriadDrift/Gameplay/Props/Dominion`, `ArtSource/EngShips/Dominion` |
+| Dominion exterior | Grok Bot's hull r2 (PR #72, 600 m, 131,670 tris, 121 UCX, 12 sockets on the gameplay contract), `MI_DominionMothership` on `M_TD_Ship` (current; import builder, `eng/import`) | import builder's commit | `Content/TriadDrift/Gameplay/Ships/DominionMothership`, `ArtSource/EngAI/Ships/DominionMothership/mesh_r2`, script `ArtSource/EngImport/scripts/ue_import_engai.py`. Only `HullMesh` (new), `BridgeMesh` and `TrenchMesh` (cleared: the r2 hull carries its own) of `DA_Dominion_Visuals` changed; the r9 meshes stay in `Props/Dominion`. Switch back: `TD_IMPORT_REVERT=Dominion` + that script, or the DA from `fc0980c5` |
+| | glow strengths for the running game | `3a6c3ff` (+ Trim `bf5394b`) | `Content/TriadDrift/Gameplay/Props/Dominion`, `ArtSource/EngShips/Dominion` |
 | | r9 glow pass | `688c979` | same |
 | | r8 silhouette pass | `31e6121` | same |
 | | first kit (slab-like) | `f98124f` | same |
-| Dominion generator, reactor | first version (current) | `c9f541a` | same |
+| Dominion shield generator | Grok Bot's pylon + cyan core (PR #74, 14.9 x 19.7 m, 43 UCX), `MI_DominionShieldGenerator{,Core}` on `M_TD_Ship` (current; import builder) | import builder's commit | `Content/TriadDrift/Gameplay/Ships/DominionShieldGenerator`, `ArtSource/EngAI/Ships/DominionShieldGenerator/mesh_r1`. Only `GeneratorMesh` / `GeneratorCoreMesh` of `DA_Dominion_Visuals` changed. Switch back: `TD_IMPORT_REVERT=Generator` + `ue_import_engai.py` |
+| Dominion generator, reactor | first version (reactor current) | `c9f541a` | same |
+| Cinder field anchor tower | Grok Bot's Rodin tower + emitter (PR #73), its UCX collision, charge sites on its `Charge_0..2` sockets (current; import builder, code in `TDPlanetCourse.cpp` for T5) | import builder's commits | `Content/TriadDrift/Gameplay/Props/CinderAnchor`, `ArtSource/EngAI/Props/CinderFieldAnchor/mesh_r1`. The planet kit's `SM_Cind_JammerTower` is untouched and comes back by itself when `SM_CinderAnchorTower` is missing (or drop the `CinderAnchor` lines from `PropPaths`) |
+| | planet kit jammer tower | `a94988cc` | `Content/TriadDrift/Gameplay/Props/Planet/SM_Cind_JammerTower` |
+| Null hauler (Verdance convoys) | Grok Bot's Rodin hauler (PR #68) through the new `DA_Enemy_Hauler_Visuals` (current; import builder, code in `TDVerdanceApproach.cpp` for T4) | import builder's commits | `Content/TriadDrift/Gameplay/Ships/NullHauler`; delete or empty `DA_Enemy_Hauler_Visuals` for the code-built box with two lit pods |
+| Cinder dig site `BP_DigSite_Cabin` | + Grok Bot's Rodin drill rig (PR #69) as dressing at (-100, 1450) (current; import builder) | import builder's commit | `ArtSource/EngProps/Kit/sites/DigSite_Cabin.manifest.json` piece `DrillRig`; without it: the class from `22f47909` |
 | Dominion turrets | Null Armada turret mesh (current) | `bf5394b` | `Content/TriadDrift/Gameplay/Characters/Dominion` |
 | Planet set-piece kit | round 2 + altar + prototype console (current) | `db8d405` | `Content/TriadDrift/Gameplay/Props/Planet`, `ArtSource/EngProps/PlanetKit` |
 | | round 1 (26 pieces) | `a94988c` | same |

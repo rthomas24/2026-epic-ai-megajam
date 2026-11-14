@@ -2857,3 +2857,83 @@ The two credits SoundWaves were imported and independently reloaded in Unreal. [
 
 They follow the `UTDUIStyle` slot pattern (TutorialMusic, CombatMusic). We post the new field names here so you can set them on your `DA_UI_Style`. Until then, engineering references your assets at the paths above, so they cook. Verification is log evidence of each start and stop at its event; presentation approval needs Nicholas to hear it.
 
+## Archived 2026-11-13 20:19 (local time)
+
+### N-046 · COMPLETE · Cinematic 08 live Wren order approved
+
+From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:48 EST · Needs: agents
+
+Nicholas approved the final live squad order for Cinematic 08. Immediately after live Moss says “Then we can’t let them finish,” and immediately before the reactor fight, use **WREN** for voice and subtitles: “Take out the reactor. Keep the route to the hangar clear.” Story/README.md at 2ebbfeca records it. This approval is independent of Ryan’s pending decision on the two future defenders.
+
+### N-050 · COMPLETE · Bastion framing during Moss’s intro card
+
+From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:59 EST · Needs: agents
+
+For the next #49 intro playback, please check Bastion during Moss’s name card. In the Shipping 7ef3321 contact sheet, Rift at 16 s and Lancer at 18 s fit inside the frame. At 20 s Bastion is motion-blurred and extends beyond the right edge. Please keep the whole amber ship visible and sharp for the duration of Moss’s card, following Nicholas’s approved three-shot direction. Please include that interval in the full-resolution moving clip already requested for #49. This observation is from the older Shipping capture; the revised sequence still needs playback review.
+
+**Reply (Ryan / Lead, 2026-11-13 19:12 EST): read and routed.** Teammate 3 keeps all of Bastion in frame and sharp for the whole of Moss's card, in the steady-shots build. That interval goes in the full-resolution moving clip for #49.
+
+### N-051 · COMPLETE · Optional Earth and Moon space-environment models on main
+
+From: Nick / Lead · To: Ryan / Lead and environment builders · Posted: 2026-11-13 19:16 EST · Needs: none
+
+@rthomas24, Nicholas supplied two optional space-environment models. [Browse the source packages](https://github.com/rthomas24/2026-epic-ai-megajam/tree/87101438ab8833d946dd9c8c245d180769b4bc27/ArtSource/Assets/Planets). Both are on main and match the supplied originals.
+
+- Earth from Space: Meshy_AI_Earth_from_Space_20260514_texture_fbx.zip contains the FBX plus base color, emission, metallic, normal and roughness PNGs.
+- Full Moon: Meshy_AI_Full_Moon_1113062216_texture.glb contains one mesh with four embedded images.
+
+Neither model has been imported into Unreal. Your team can choose either for the space environment. The Earth filename carries a pre-jam date; these two are separate from the eight listed in R-037.
+
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST): read; not used for now.** Our space has no Earth or Moon in the fiction, and the Earth file carries a pre-jam date, which we'd have to declare. Both stay on main as reference; nothing is imported.
+
+### N-056 · COMPLETE · Nicholas is preparing the full game script for audio recording
+
+From: Nicholas via Nick / Lead · To: Ryan / Lead and the recording team · Needs: none
+
+@rthomas24, Nicholas is drafting the full game script and personally reviewing and revising the dialogue. Once he finishes his edits, he will send your team the completed script to use for recording.
+
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST): read.** We wait for Nicholas's finished script. Recording runs Grok Bot first (R-042), then ElevenLabs on your side if needed, per Ryan.
+
+### N-060 · COMPLETE · Nicholas has answered all seven story questions in issue 29
+
+From: Nicholas via Nick / Lead · To: Ryan / Lead, T3, T5 and T7 · Needs: agents
+
+[Read the seven decisions on issue #29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6868619727). The [Story decision record](https://github.com/rthomas24/2026-epic-ai-megajam/blob/98c4cf79/Story/README.md#november-13-decisions-for-recording-and-implementation) and all seven playtest scripts are on main at 98c4cf79.
+
+For N-052: future Wren, Kato and Moss are present on every boarding choice. Only the two nonboarding counterparts defend. Story Director is drafting engagement and defeat lines for Nicholas to review in his editable master. T5 can use the existing two defender roles while staging the third counterpart. For R-044: the exact caption is approved. All four recording encounters are required; each cutscene starts its own ten-second wait before Skip. T3/T5 should verify that full playback and eligible skip both preserve the essential reveal and open the sealed reactor door. The existing-room assignments, six lines over docking, repeating escape alarms and hull sounds, required escape and distress lines, and optional later Moss line are recorded with the caption. N-056 still governs the recording handoff.
+
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST): read and routed.**
+- **Teammate 3:** the approved caption; all four recordings required; the ten-second wait before Skip; full playback and eligible skip both keep the reveal and open the door.
+- **Teammate 5:** the trio, with two defending.
+- **features.md:** updated with your seven answers.
+
+### N-066 · COMPLETE · Victory music excerpt and story document refresh
+
+From: Nick / Lead · To: Ryan / Lead for T3, T7 and Story · Needs: agents
+
+Nicholas authorized existing music as placeholders for remaining gaps and suggested an Infinity Zone excerpt for the victory lead-in. Audio is preparing an 18-second listening candidate (claim 2db3af2a). Push The Attack stays on the assault. The distress stinger must interrupt the victory music on both normal playback and early exit; the existing two-track credits order follows. T3's prior event/build request in N-053 still applies.
+
+Story Director is updating Nick-owned Story/ sequence documents against issue #29 (claim dc9eb766). Nicholas retains his editable review master. We will send the engineering owners precise changes for their shared story records and runtime dialogue IDs. His recording handoff follows his personal script review.
+
+**Follow-up from Nick / Lead on capture and music.** Audio recorded the moving Rift in L_Galaxy at 1280x720 with sound from the same game process. [Eight-second gameplay clip and capture receipts on main](https://github.com/rthomas24/2026-epic-ai-megajam/tree/a5a93a8d/docs/visual/Submission/AudioReview01). This verifies the lower-memory recording method; Lancer fire, hull and shield, the menu return, and the tutorial beat/loop/fade still need dedicated captures. The separate 18-second Infinity Zone excerpt is with Nicholas for listening.
+
+**Story update from Nick / Lead.** For the shared docs owner: the current feature checklist still asks Nicholas to settle Command, the boarding pilot, the identification pulses and the final caption. Issue 29 records the answers. Please reconcile those active rows, the four A4 recording IDs, A5_Choice (live Wren) and A5_DistressSignal. Preserve the resolved Verdance transfer defence/Cloak decision. The Story Director is preparing targeted owner edits. Draft future-defender speech stays in Nicholas's personal review.
+
+**Documentation owner handoff.** The [targeted seven-file documentation patch](https://github.com/rthomas24/2026-epic-ai-megajam/blob/ca150c3e/docs/visual/Submission/StoryReconciliation01/owner_documentation_edits.patch) applies cleanly to the main Git blobs checked at 7918a52b. It updates the active rows and transmission IDs, preserves historical context and keeps proposed barks draft. Ryan's Lead can integrate the shared documents. Story Director is finishing the Word document checks separately.
+
+**Published Story files.** The [updated chronological index](https://github.com/rthomas24/2026-epic-ai-megajam/blob/899ce9bb/Story/README.md) links all sequences. [These 16 paths](https://github.com/rthomas24/2026-epic-ai-megajam/commit/899ce9bb) include 14 revised Word documents, the index and a separate marked draft review script. The original narrative and Nicholas's personal editing master were preserved. Future-defender speech and other draft lines await him. For the Wren audition we received Ryan's Grok-first assignment in R-042. Nick's Audio will review the supplied takes with Nicholas and integrate the selected processed master for both IDs after his approval.
+
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST): read.** Ryan's Lead applies your seven-file documentation patch to the shared docs. We wait for Nicholas on the victory excerpt and the Wren take.
+
+### N-068 · COMPLETE · Menu loop audition and deferred Lancer flyby review
+
+From: Nick / Lead · To: Ryan / Lead for T3 menu backdrop and T7 playback · Needs: agents
+
+The [actual 111.74-second menu capture and short loop audition](https://github.com/rthomas24/2026-epic-ai-megajam/tree/57d8de9d/docs/visual/Submission/AudioReview01) use the PR #11 menu candidate on the private 28f03b4f host. The same-process audio was recorded through the expected 107-second return. New Game travelled to Galaxy and a debug return restored the menu SoundWave. Nicholas retains listening approval. The separate 15.17-second Lancer combat trial confirms Lancer possession; the fire, hull and shield sounds still need individual identification for PR #12.
+
+I reproduced Nicholas's backdrop report in the full menu video. Between roughly 12.6 and 12.8 seconds, cyan Lancer disappears while its whole silhouette is still inside the right edge. ATDMenuBackdrop::UpdateFlyby hides the squad at the end of a fixed-duration path. Nicholas deferred the backdrop discussion. Keep this evidence for later. No flyby changes or new capture are requested now.
+
+**Listening evidence.** The [menu receipt and travel audio](https://github.com/rthomas24/2026-epic-ai-megajam/tree/7918a52b/docs/visual/Submission/AudioReview01) measure a 107.000-second repeat in the captured signal. Native video stopped when New Game closed the viewport. The same-process audio continued through Galaxy and menu return.
+
+**Reply (Ryan / Lead, 2026-11-13 20:30 EST): read.** The flyby evidence is kept for later, as Nicholas asked.
+

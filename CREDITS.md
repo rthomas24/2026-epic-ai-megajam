@@ -181,3 +181,15 @@ Nicholas Tosti supplied and selected **Push The Attack** for the Dominion space 
 The Verdance buried-structure scan and the Cinder comparison overlay were created during the jam by Nicholas Tosti’s UI team using OpenAI image generation. The Cinder scan used the Verdance original as its only image reference. No third-party stock images or fonts were used. [Originals, prompts and preparation](https://github.com/rthomas24/2026-epic-ai-megajam/tree/b4086108/ArtSource/UI/TriadHUD/Unreal/SurveyTerminals01).
 
 Nicholas Tosti supplied Ambient1 for quiet space flight. Audio used FFmpeg to decode the full stereo track and the Unreal Engine 5.9 editor Python API to import and reload its SoundWave. [Source and tool record](ArtSource/Audio/IdleAmbient01/source_manifest.json).
+
+### Grok Bot deliveries imported by the import builder (Dominion hull r2, shield generator, Cinder anchor, Null hauler, drill rig) - November 13, 2026
+
+| Asset | Tool | Licence / plan | Added by |
+|---|---|---|---|
+| `SM_DominionMothership`, `T_DominionMothership_BC/N/ORM/E/Detail_N/Detail_ORM`, `MI_DominionMothership` in `Content/TriadDrift/Gameplay/Ships/DominionMothership/` (PR #72) | Blender 4.5.3, procedural hard-surface build and NumPy textures by Grok Bot from the approved fal concept v3 (`ArtSource/EngAI/Ships/DominionMothership/mesh_r2/SOURCE.md`); no AI 3D generator | project-authored (concept licence in `concept_r1/SOURCE.md`) | Grok Bot; import, material and wiring by Claude Code (Ryan's side) |
+| `SM_DominionShieldGenerator`, `SM_DominionShieldGeneratorCore`, their `T_*_BC/N/ORM/E`, `MI_*` in `Content/TriadDrift/Gameplay/Ships/DominionShieldGenerator/` (PR #74) | Blender 4.5.3, procedural hard-surface by Grok Bot (`ArtSource/EngAI/Ships/DominionShieldGenerator/mesh_r1/SOURCE.md`); no AI 3D generator | project-authored | same |
+| `SM_CinderAnchorTower`, `SM_CinderAnchorEmitter`, their `T_*_BC/N/ORM/E`, `MI_*` in `Content/TriadDrift/Gameplay/Props/CinderAnchor/` (PR #73) | **Hyper3D Rodin Gen-2.5** image-to-3D from a cleaned fal concept of Nicholas's modelling reference, Blender 4.5.3 polish (`ArtSource/EngAI/Props/CinderFieldAnchor/mesh_r1/SOURCE.md`) | Hyper3D terms, paid Business plan, commercial use | same |
+| `SM_NullHauler`, `T_NullHauler_BC/N/ORM/E`, `MI_NullHauler` in `Content/TriadDrift/Gameplay/Ships/NullHauler/`, `DA_Enemy_Hauler_Visuals` in `Gameplay/Characters/NullFleet/` (PR #68) | **Hyper3D Rodin Gen-2.5** image-to-3D from Nicholas's four-view board; emissive map authored in Blender (`ArtSource/EngAI/Ships/NullHauler/mesh_r1/SOURCE.md`) | Hyper3D terms, paid Business plan, commercial use | same |
+| `SM_CinderDrillRig`, `T_CinderDrillRig_BC/N/ORM/E`, `MI_CinderDrillRig` in `Content/TriadDrift/Gameplay/Props/CinderDigSite/`, placed in `BP_DigSite_Cabin` (PR #69) | **Hyper3D Rodin Gen-2.5** image-to-3D from a cleaned fal concept of Nicholas's dig-site board, Blender 4.5.3 clean-up (`ArtSource/EngAI/Props/CinderDigSite/mesh_r1/SOURCE.md`) | Hyper3D terms, paid Business plan, commercial use | same |
+
+Tools used: **Hyper3D Rodin** (list it in the submission for the Rodin prize pool), fal.ai, Blender 4.5.3, Claude Code.

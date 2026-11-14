@@ -72,29 +72,58 @@ def shot(name, yaw=None, pitch=None):
 
 
 def relay():
-    tp(1450, 0, 0, 180)
-    shot("01_front_ramp_foot", 180, -10)
-    for i in range(5):
-        walk(180, 0.45, "front ramp / deck %d" % i)
-    tp(190, 0, 100, 180, settle=2.0)
-    shot("02_device_point", 180, 15)
-    tp(200, 1450, 0, 270)
-    for i in range(4):
+    tp(-1800, -800, 0, 0)
+    shot("01_west_ramp", 0, -6)
+    for i in range(3):
+        walk(0, 0.45, "west ramp onto the deck %d" % i)
+    tp(-890, 0, 50, 180, settle=2.0)
+    shot("02_device_point", 180, -8)
+    tp(-890, 0, 50, 0, settle=1.0)
+    shot("03_device_point_view_east", 0, -4)
+    tp(-600, 1800, 0, 270)
+    for i in range(3):
         walk(270, 0.45, "north ramp %d" % i)
-    tp(200, -1450, 0, 90)
-    for i in range(4):
+    tp(-600, -1800, 0, 90)
+    for i in range(3):
         walk(90, 0.45, "south ramp %d" % i)
-    tp(700, 700, 100, 225, settle=2.0)
-    shot("03_deck_covers", 225, -12)
-    tp(420, -460, 100, 90, settle=2.0)
-    walk(90, 0.4, "into cover (blocked)")
-    shot("04_behind_cover", 90, -5)
-    tp(2000, -1400, 0, 145, settle=2.0)
-    shot("05_15m", 145, 3)
+    tp(-200, 0, 50, 0)
+    for i in range(4):
+        walk(0, 0.6, "into the relay plinth (must stay on the deck) %d" % i)
+    tp(-1700, -1700, 600, 45, settle=0.4)
+    shot("04_deck_overview", 45, -25)
+    tp(-2900, -1900, 0, 33, settle=2.0)
+    shot("05_15m", 33, 6)
     G.cmd("TD.Ground.ThirdPerson 0")
-    tp(29000, 0, 5800, 180, pitch=-11, settle=0.3)
-    shot("06_300m", 180, -11)
+    tp(-29000, 0, 5800, 0, pitch=-8, settle=0.3)
+    shot("06_300m", 0, -8)
     G.cmd("TD.Ground.ThirdPerson 1")
+
+
+def dominion():
+    tp(-600, 0, 0, 0)
+    shot("01_hangar", 0, -4)
+    xs = []
+    for i in range(30):
+        f = walk(0, 0.8, "east %d" % i)
+        if f:
+            xs.append(f[0])
+        if len(xs) > 2 and abs(xs[-1] - xs[-2]) < 5:
+            break
+    for (name, x) in (("02_corridor", 3000), ("03_arena", 6200), ("04_warden", 9200), ("05_core", 12000)):
+        tp(x, 0, 0, 0, settle=1.5)
+        shot(name, 0, 2)
+    tp(1100, -600, 0, 330, settle=1.5)
+    shot("06_hangar_doorway", 20, 0)
+
+
+def dock():
+    """The bay is spawned 1750 up so its floor is the ground; the pilot stands in it for scale."""
+    tp(1800, 0, -1750, 180, settle=2.0)
+    shot("01_mouth_from_outside", 180, 4)
+    tp(-1000, 0, -1750, 180, settle=2.0)
+    shot("02_inside_to_the_back", 180, 8)
+    tp(-5200, 1500, -1750, 15, settle=2.0)
+    shot("03_inside_to_the_mouth", 15, 6)
 
 
 def wreck():
@@ -150,7 +179,7 @@ def main():
     G.cmd("TD.Dev.SpawnClass %s KitWalk %.0f %.0f %.0f" % (cls, O[0], O[1], O[2]))
     time.sleep(3.0)
     print(G.log_tail("TDDevSpawn", 1))
-    {"Relay_Site": relay, "Relay_Site_Awake": relay, "Wreck_Site": wreck, "Outpost_Site_Verdance": outpost,
+    {"DockingBay_Interior": dock, "DominionInterior_Preview": dominion, "Relay_Site": relay, "Relay_Site_Awake": relay, "Wreck_Site": wreck, "Outpost_Site_Verdance": outpost,
      "Outpost_Site_Cinder": outpost, "DigSite_Cabin": digsite}[SITE]()
     G.cmd("TD.Input.ReleaseAll")
     with open(os.path.join(OUT, "walk.json"), "w", encoding="utf-8") as fh:

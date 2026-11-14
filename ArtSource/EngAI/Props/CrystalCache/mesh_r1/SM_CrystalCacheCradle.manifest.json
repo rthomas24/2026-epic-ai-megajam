@@ -1,0 +1,58 @@
+{
+  "asset": "SM_CrystalCacheCradle",
+  "fbx": "SM_CrystalCacheCradle.fbx",
+  "tris": 50376,
+  "size_cm": [
+    200.0,
+    360.0,
+    180.0
+  ],
+  "pivot": "ground-base centre of the asset (min Z = 0, XY centred)",
+  "forward": "+X (emblem side of the cradle)",
+  "materials": [
+    "M_CrystalCacheCradle"
+  ],
+  "material_params": [
+    {
+      "name": "M_CrystalCacheCradle",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.4
+    }
+  ],
+  "textures": [
+    "T_CrystalCacheCradle_BC.png",
+    "T_CrystalCacheCradle_E.png",
+    "T_CrystalCacheCradle_N.png",
+    "T_CrystalCacheCradle_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_CrystalCacheCradle_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [
+    "SOCKET_Crystal"
+  ],
+  "welded_verts": 1364,
+  "nanite_recommended": true,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": true,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}
