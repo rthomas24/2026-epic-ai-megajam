@@ -1,6 +1,13 @@
 // Triad Drift - story transmissions (see header and storyline.md). Owner: Teammate 3.
 
 #include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "EngineUtils.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/PointLightComponent.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDTypes.h"
@@ -447,6 +454,85 @@ void UTDStorySubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		Bus->OnWaveStarted.AddUniqueDynamic(this, &UTDStorySubsystem::HandleWaveStarted);
 		Bus->OnWaveCleared.AddUniqueDynamic(this, &UTDStorySubsystem::HandleWaveCleared);
 	}
+	RelayHandle = ATDArchiveTransfer::OnAnyTerminalActivated.AddUObject(this, &UTDStorySubsystem::HandleRelayConnected);
+	SurveyHandle = ATDSurveyTerminal::OnAnySurveyRecordsAccessed.AddUObject(this, &UTDStorySubsystem::HandleSurveyRecords);
+}
+
+void UTDStorySubsystem::HandleRelayConnected(AActor* Terminal)
+{
+	if (Terminal && Terminal->GetWorld() != GetWorld())
+	{
+		return; // another world's terminal (the delegate is static)
+	}
+	// The drone that wakes: T5's dormant drone on the relay deck (ATDPlanetCourse::GetDormantDrone).
+	for (TActorIterator<ATDPlanetCourse> It(GetWorld()); It; ++It)
+	{
+		if (UStaticMeshComponent* Drone = It->GetDormantDrone())
+		{
+			PulseDrone = Drone;
+			break;
+		}
+	}
+	PlaySequence(this, TEXT("Cinematic03"));
+}
+
+void UTDStorySubsystem::HandleSurveyRecords(AActor* Terminal)
+{
+	if (Terminal && Terminal->GetWorld() != GetWorld())
+	{
+		return;
+	}
+	PlaySequence(this, TEXT("Cinematic05"));
+}
+
+void UTDStorySubsystem::HandleLineOnAir(FName Id)
+{
+	// T2's scan monitor, keyed to the lines: Verdance's structure, the scan sites, the Cinder correlation (C03); the
+	// Cinder overlay, then the cache and anchor markers (C05).
+	int32 Stage = 0;
+	if (Id == TEXT("C3_Kato_Artificial")) { Stage = 1; }
+	else if (Id == TEXT("C3_Kato_Beneath")) { Stage = 2; }
+	else if (Id == TEXT("C3_Kato_CinderMatch")) { Stage = 3; }
+	else if (Id == TEXT("C5_Kato_SameConstruction")) { Stage = 4; }
+	else if (Id == TEXT("C5_Kato_Anchor")) { Stage = 5; }
+	if (Stage > 0)
+	{
+		bMonitorUp = UTDUIHostSubsystem::ShowScanMonitor(this, Stage, 0.f) || bMonitorUp;
+	}
+	// The three pulses: the drone answers ("Did we just answer that thing?" follows it).
+	if (Id == TEXT("C3_Wren_Answered") && PulseDrone.IsValid())
+	{
+		UStaticMeshComponent* Drone = PulseDrone.Get();
+		if (!PulseLight.IsValid())
+		{
+			UPointLightComponent* L = NewObject<UPointLightComponent>(Drone->GetOwner());
+			L->SetupAttachment(Drone);
+			L->SetLightColor(FLinearColor(0.2f, 0.55f, 1.f));
+			L->SetAttenuationRadius(2500.f);
+			L->SetIntensity(0.f);
+			L->RegisterComponent();
+			PulseLight = L;
+		}
+		PulseStart = RealNow();
+		if (const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style")))
+		{
+			UTDStatics::PlayCue(this, Style->ThreePulse, Drone->GetComponentLocation());
+		}
+	}
+}
+
+void UTDStorySubsystem::UpdateDronePulses(double Now)
+{
+	UPointLightComponent* L = PulseLight.Get();
+	if (!L || PulseStart < 0.0)
+	{
+		return;
+	}
+	// Three pulses (0.25 s on, 0.35 s apart), then the optic stays a steady blue.
+	const float T = static_cast<float>(Now - PulseStart);
+	const float Cycle = 0.6f;
+	const bool bOn = T >= 3.f * Cycle || FMath::Fmod(T, Cycle) < 0.25f;
+	L->SetIntensity(T >= 3.f * Cycle ? 2500.f : (bOn ? 12000.f : 0.f));
 }
 
 void UTDStorySubsystem::HandleWaveStarted(int32 WaveNumber, float /*Intensity01*/)
@@ -738,7 +824,17 @@ const TArray<FName>& UTDStorySubsystem::SequenceIds(FName SequenceId)
 	static const TArray<FName> FirstDoor = { TEXT("A4_DoorsKnowUs"), TEXT("C7_Kato_Archive"), TEXT("C7_Wren_Record") };
 	// Cinematic 09 at the escape radius.
 	static const TArray<FName> ClearSpace = { TEXT("C9_Kato_Clear"), TEXT("C9_Moss_Clear"), TEXT("C9_Wren_Clear") };
+	// Cinematic 03, Beneath the Surface (storyline 15, 25): the relay connected; voices, the monitor, the drone's pulses.
+	static const TArray<FName> Cinematic03 = { TEXT("C3_Moss_NoBodies"), TEXT("C3_Wren_Survey"), TEXT("C3_Kato_Artificial"), TEXT("A2_Voices"),
+		TEXT("C3_Wren_NotThePlanet"), TEXT("C3_Kato_Beneath"), TEXT("C3_Wren_Answered"), TEXT("C3_Kato_DidntSend"), TEXT("C3_Kato_CinderMatch"),
+		TEXT("C3_Moss_Company"), TEXT("C3_Wren_HoldThem") };
+	// Cinematic 05, The Pattern (storyline 20, 25): at the Cinder survey terminal; the one echo, the Origin Core, the targets.
+	static const TArray<FName> Cinematic05 = { TEXT("C5_Kato_SameConstruction"), TEXT("C5_Unknown_SameConstruction"), TEXT("C5_Kato_Feedback"),
+		TEXT("C5_Kato_OriginCore"), TEXT("C5_Moss_Sample"), TEXT("C5_Wren_Guarding"), TEXT("C5_Kato_Anchor"), TEXT("C5_Command_Recover"),
+		TEXT("C5_Wren_Route") };
 	static const TArray<FName> None;
+	if (SequenceId == TEXT("Cinematic03")) { return Cinematic03; }
+	if (SequenceId == TEXT("Cinematic05")) { return Cinematic05; }
 	if (SequenceId == TEXT("Cinematic08")) { return Cinematic08; }
 	if (SequenceId == TEXT("Docking")) { return Docking; }
 	if (SequenceId == TEXT("HangarArrival")) { return HangarArrival; }
@@ -817,6 +913,11 @@ bool UTDStorySubsystem::SkipSequence()
 void UTDStorySubsystem::FinishSequence(bool bSkipped)
 {
 	const FName Done = ActiveSequence;
+	if (bMonitorUp && (Done == TEXT("Cinematic03") || Done == TEXT("Cinematic05")))
+	{
+		UTDUIHostSubsystem::HideScanMonitor(this);
+		bMonitorUp = false;
+	}
 	ActiveSequence = NAME_None;
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: sequence %s %s"), *Done.ToString(), bSkipped ? TEXT("skipped") : TEXT("finished"));
 	OnSequenceFinished.Broadcast(Done, bSkipped);
@@ -875,6 +976,7 @@ void UTDStorySubsystem::StartNext()
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: on air %s [%s] \"%s\" (%.1f s)"), *OnAir.Id.ToString(), *Current.SpeakerTag.ToString(),
 		*OnAir.Text.ToString(), OnAirSeconds);
 	OnTransmission.Broadcast(Current);
+	HandleLineOnAir(Current.Id);
 }
 
 void UTDStorySubsystem::Tick(float DeltaTime)
@@ -904,6 +1006,7 @@ void UTDStorySubsystem::Tick(float DeltaTime)
 		}
 	}
 	UpdateSequence();
+	UpdateDronePulses(Now);
 	if (!Current.bActive && Queue.Num() > 0 && Now >= NextAllowed && !IsHeld())
 	{
 		StartNext();
@@ -942,6 +1045,8 @@ void UTDStorySubsystem::Deinitialize()
 		Bus->OnWaveCleared.RemoveDynamic(this, &UTDStorySubsystem::HandleWaveCleared);
 	}
 	RemoveOverlay();
+	ATDArchiveTransfer::OnAnyTerminalActivated.Remove(RelayHandle);
+	ATDSurveyTerminal::OnAnySurveyRecordsAccessed.Remove(SurveyHandle);
 	Super::Deinitialize();
 }
 

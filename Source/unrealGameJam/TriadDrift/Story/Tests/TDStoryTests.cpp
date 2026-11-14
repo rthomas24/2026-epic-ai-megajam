@@ -16,6 +16,7 @@
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryTable, "TriadDrift.Story.Transmissions.EveryBeatHasAPlaceholderAndNoEarlyTwist", TD_TEST_FLAGS)
@@ -541,6 +542,38 @@ bool FTDStorySkipSaves::RunTest(const FString& Parameters)
 	bool bAll = true;
 	for (const FName& Id : UTDStorySubsystem::SequenceIds(TEXT("Cinematic08"))) { bAll &= GI->HasPlayedTransmission(Id); }
 	TestTrue(TEXT("the reveal is kept: every line of it saved"), bAll);
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryC3C5, "TriadDrift.Story.Transmissions.Cinematics03And05OnTheTerminals", TD_TEST_FLAGS)
+bool FTDStoryC3C5::RunTest(const FString& Parameters)
+{
+	// ENG-42: T5's relay console plays Cinematic 03 and the Cinder survey terminal Cinematic 05, as voice over the
+	// room, in order (the monitor and the drone's pulses are presentation on top).
+	struct FCase { const TCHAR* Seq; TFunction<void(AActor*)> Fire; };
+	const FCase Cases[] = {
+		{ TEXT("Cinematic03"), [](AActor* A) { ATDArchiveTransfer::OnAnyTerminalActivated.Broadcast(A); } },
+		{ TEXT("Cinematic05"), [](AActor* A) { ATDSurveyTerminal::OnAnySurveyRecordsAccessed.Broadcast(A); } } };
+	for (const FCase& C : Cases)
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		AActor* Terminal = W.Spawn<AActor>(FVector::ZeroVector);
+		C.Fire(Terminal);
+		W.Tick();
+		const TArray<FName>& Ids = UTDStorySubsystem::SequenceIds(C.Seq);
+		TestTrue(FString::Printf(TEXT("%s plays from its terminal"), C.Seq), Story->IsSequencePlaying(C.Seq) && Story->GetCurrentTransmission().Id == Ids[0]);
+		TArray<FName> Heard;
+		for (int32 i = 0; i < 20 * 120 && Story->IsSequencePlaying(); ++i)
+		{
+			const FName Now = Story->GetCurrentTransmission().Id;
+			if (Story->GetCurrentTransmission().bActive && (Heard.Num() == 0 || Heard.Last() != Now)) { Heard.Add(Now); }
+			W.Tick(1.f / 20.f);
+		}
+		TestTrue(FString::Printf(TEXT("%s: every line in order"), C.Seq), Heard == Ids);
+	}
 	return true;
 }
 #endif
