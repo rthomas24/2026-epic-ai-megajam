@@ -102,6 +102,7 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 			M->bUseAsyncCooking = true;	// refreshed chunks cook off the game thread: no hitch
 			M->SetCollisionProfileName(TEXT("BlockAll"));
 			M->SetCastShadow(true);
+			M->ShadowCacheInvalidationBehavior = EShadowCacheInvalidationBehavior::Static;	// rebuilt in place, never moved
 			M->RegisterComponent();
 			AddInstanceComponent(M);
 			ChunkMeshes.Add(M);
@@ -596,6 +597,9 @@ void ATDPlanetTerrain::BuildDetailGround()
 	DetailGround->bUseAsyncCooking = false;	// built under the arrival cover; the ground must collide on the first frame
 	DetailGround->SetCollisionProfileName(TEXT("BlockAll"));	// the pawn and every Visibility trace (crew, pads)
 	DetailGround->SetCastShadow(true);
+	// Lead / T6 (Nov 14): with the relief on, the screen showed "VSM Non-Nanite Marking Job Queue overflow". The patch
+	// never moves once built: the virtual shadow map caches its pages instead of re-marking them every frame.
+	DetailGround->ShadowCacheInvalidationBehavior = EShadowCacheInvalidationBehavior::Static;
 	DetailGround->RegisterComponent();
 	AddInstanceComponent(DetailGround);
 	const FBox2D Rg = Field->GetStyle().MicroRegion;
