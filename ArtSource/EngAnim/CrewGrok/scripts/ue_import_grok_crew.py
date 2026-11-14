@@ -24,6 +24,49 @@ tools = unreal.AssetToolsHelpers.get_asset_tools()
 def log(m): unreal.log("TDPY: " + str(m))
 
 
+def normalise(seq, skel):
+    """Rewrite the clip in the crew set's own convention: every scale 1, bone offsets in centimetres at the skeleton's
+    reference lengths. The trooper FBX comes in with root scale 100 and offsets in metres (UnitScaleFactor 100); the
+    Warden FBX carries the 260 cm body's bone lengths, while SKEL_Warden's reference pose (and every clip the Warden
+    plays) has the crew's, so its pelvis rode about 1.5x too high. Rotations are kept as they are."""
+    ref = X.get_reference_pose(skel)
+    names = [str(n) for n in X.get_bone_names(ref)]
+    L = unreal.AnimPoseSpaces.LOCAL
+    n = int(round(seq.get_play_length() * 30)) + 1
+    opts = unreal.AnimPoseEvaluationOptions()
+    p0 = X.get_anim_pose_at_time(seq, 0.0, opts)
+    root_scale = X.get_bone_pose(p0, "root", L).scale3d.x
+    thigh_ref = X.get_ref_bone_pose(ref, "calf_l", L).translation.x
+    thigh_now = X.get_bone_pose(p0, "calf_l", L).translation.x * root_scale
+    k = thigh_ref / thigh_now if abs(thigh_now) > 1e-6 else 1.0   # body size of the clip against the skeleton's
+    keys = {b: ([], []) for b in names}
+    for i in range(n):
+        pose = X.get_anim_pose_at_time(seq, min(seq.get_play_length(), i / 30.0), opts)
+        for b in names:
+            t = X.get_bone_pose(pose, b, L)
+            if b == "root":
+                loc = unreal.Vector(t.translation.x * k, t.translation.y * k, t.translation.z * k)
+            elif b == "pelvis":
+                loc = unreal.Vector(t.translation.x * root_scale * k, t.translation.y * root_scale * k, t.translation.z * root_scale * k)
+            else:
+                loc = X.get_ref_bone_pose(ref, b, L).translation
+            keys[b][0].append(loc)
+            keys[b][1].append(t.rotation)
+    c = seq.get_editor_property("controller")
+    c.open_bracket(unreal.Text("Crew convention"), False)
+    c.set_frame_rate(unreal.FrameRate(30, 1), False)
+    c.set_number_of_frames(unreal.FrameNumber(n - 1), False)
+    one = unreal.Vector(1, 1, 1)
+    for b in names:
+        try:
+            c.add_bone_curve(b, False)
+        except Exception:
+            pass
+        c.set_bone_track_keys(b, keys[b][0], keys[b][1], [one] * n, False)
+    c.close_bracket(False)
+    log("%s: normalised (root scale was %.0f, body size factor %.3f)" % (seq.get_name(), root_scale, k))
+
+
 bad = 0
 for folder, fbx, name, skel in CLIPS:
     ui = unreal.FbxImportUI()
@@ -44,6 +87,7 @@ for folder, fbx, name, skel in CLIPS:
         log("FAILED %s (%s)" % (name, [str(p) for p in t.get_editor_property("imported_object_paths")])); bad += 1
         continue
     seq.set_editor_property("enable_root_motion", False)
+    normalise(seq, skel)
     unreal.EditorAssetLibrary.save_loaded_asset(seq, False)
     L = seq.get_play_length()
     opts = unreal.AnimPoseEvaluationOptions()
