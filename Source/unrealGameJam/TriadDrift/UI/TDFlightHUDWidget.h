@@ -276,6 +276,22 @@ public:
 		FString Counter;
 		/** Second line of the expanded objective ("WAVE 3 OF 5"). */
 		FString ObjectiveDetail;
+		/**
+		 * The Dominion assault (storyline.md Gameplay 06 step 3, a persistent count 0/4 to 4/4): one pip per shield
+		 * generator under the objective line, filled when it is down; GeneratorFlash01 1..0 after each one falls.
+		 */
+		int32 GeneratorsTotal = 0;
+		int32 GeneratorsDown = 0;
+		float GeneratorFlash01 = 0.f;
+		/**
+		 * The transponder off Verdance (T4's ATDTransponderBeacon; storyline.md §18): a sensor marker on it labelled
+		 * "UNKNOWN", that reads "VERIFIED" for a moment once, then resets. Nobody explains it.
+		 */
+		bool bTransponder = false;
+		bool bTransponderOnScreen = false;
+		FVector2D TransponderPos = FVector2D::ZeroVector;
+		bool bTransponderVerified = false;
+		float TransponderMetres = 0.f;
 		/** 0 collapsed .. 1 expanded (for ObjectiveExpandSeconds after the text changes, eased over 0.3 s). */
 		float ObjectiveExpand = 0.f;
 		bool bUsingGamepad = false;
@@ -459,6 +475,24 @@ private:
 	int32 PickupSeen[5] = {}; // TDPickupTypeCount (static_assert in the .cpp)
 	/** The quiet field-hit tick (FTDFieldDamage::OnPlayerFieldHit): its clock and the binding. */
 	float FieldHitLeft = 0.f;
+	/** Generator pips: the down count last seen (a rise flashes) and the flash clock. */
+	int32 GeneratorsDownSeen = -1;
+	float GeneratorFlashLeft = 0.f;
+	/** The transponder marker: the beacon (re-found every 2 s), and how long since it was first sighted. */
+	TWeakObjectPtr<AActor> TransponderBeacon;
+	float TransponderScanLeft = 0.f;
+	float TransponderSeenFor = -1.f;
+public:
+	/** Seconds after the first sighting when the label reads VERIFIED (twice, briefly), then UNKNOWN for good. */
+	static constexpr float TransponderVerifiedAt = 1.4f;
+	static constexpr float TransponderVerifiedFor = .45f;
+	/** Tests: >= 0 sets the seconds since the sighting (no beacon needed with ForceTransponderAt). */
+	float ForceTransponderAge = -1.f;
+	TOptional<FVector> ForceTransponderAt;
+	/** Tests: >= 0 forces the generator count (total, down) without a Dominion. */
+	int32 ForceGeneratorsTotal = -1;
+	int32 ForceGeneratorsDown = 0;
+private:
 	FDelegateHandle FieldHitHandle;
 	void HandleFieldHit(AActor* Field, const FVector& Where) { FieldHitLeft = FieldHitSeconds; }
 	static constexpr float FieldHitSeconds = .12f;
