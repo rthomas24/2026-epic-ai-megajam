@@ -11,6 +11,14 @@
 //   PhaseChanged    (the ETDGamePhase name, e.g. Waves1to2, DominionAssault, false)   UTDEventBus::OnPhaseChanged
 //   TransmissionStarted (the transmission id, false)     UTDStorySubsystem::OnTransmission
 //   TransmissionEnded   (the transmission id, bCompleted) UTDStorySubsystem::OnTransmissionEnded
+//   VictoryStingerDone  (None, bCompleted)   the stinger's last line has ended: A5_DistressSignal then C9_Kato_Identifiers,
+//                       C9_Wren_Source, C9_Kato_Decades (UTDMusicEventBridge::StingerLines). bCompleted false = it was cut short
+//                       (the victory screen closed first). Always after VictoryStinger, always before VictoryEnded, once per stinger.
+//   GroundCombat        (Verdance | Cinder, false)   on foot on a planet: a crew encounter has started (ATDEncounterVolume active)
+//   GroundAllClear      (Verdance | Cinder, false)   ... and every active encounter is cleared again (exploration)
+//   RevealEnded         (None, bCompleted)  the final record (story sequence Cinematic08) has finished; bCompleted false = skipped
+// Order in a victory: VictoryBegan -> (C9_Moss_TakeThat) -> VictoryStinger -> TransmissionStarted/Ended A5 -> ... the three C9
+// lines ... -> VictoryStingerDone -> VictoryEnded (when the player leaves the victory screen).
 // WorldContext is the world the event came from: reject events whose world isn't the one you are playing in.
 
 #pragma once
@@ -44,6 +52,14 @@ struct UNREALGAMEJAM_API FTDMusicBridgeState
 	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Music") FName Transmission;
 	/** Verdance / Cinder / Galaxy / MainMenu ... (the game instance's current destination). */
 	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Music") FName Destination;
+	/** The white cover has lifted on this map (PlanetRevealed fired here); false during the descent cover. Cleared at every level change. */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Music") bool bPlanetRevealed = false;
+	/** The flown ship is parked on a pad (landing state Landed .. CanopyClosing); false again from take-off (Takeoff fires). */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Music") bool bLanded = false;
+	/** The stinger's lines have all ended (VictoryStingerDone fired); false between VictoryStinger and then. */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Music") bool bVictoryStingerDone = false;
+	/** On foot on a planet with a crew encounter running (between GroundCombat and GroundAllClear). */
+	UPROPERTY(BlueprintReadOnly, Category = "TriadDrift|Music") bool bGroundCombat = false;
 };
 
 UCLASS()
@@ -61,6 +77,13 @@ public:
 	static const FName PhaseChanged;
 	static const FName TransmissionStarted;
 	static const FName TransmissionEnded;
+	static const FName VictoryStingerDone;
+	static const FName GroundCombat;
+	static const FName GroundAllClear;
+	static const FName RevealEnded;
+
+	/** The stinger's lines, in the order they air (ATDMenuBackdrop::PlayStinger). */
+	static const TArray<FName>& StingerLines();
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
@@ -94,8 +117,20 @@ private:
 	UFUNCTION() void HandlePhase(ETDGamePhase Phase);
 	UFUNCTION() void HandleTransmission(const FTDTransmissionView& Transmission);
 	UFUNCTION() void HandleTransmissionEnded(FName Id, bool bCompleted);
+	UFUNCTION() void HandleSequenceFinished(FName SequenceId, bool bSkipped);
 	UFUNCTION() void HandleLandingState(UTDLandingComponent* Landing, ETDLandingState NewState);
 	UWorld* CurrentWorld() const;
+	void HandlePreLoadMap(const FString& MapName);
+	void FinishStinger(bool bCompleted);
+	void TickStinger(UWorld* World);
+	void TickGround(UWorld* World);
+	bool bGroundFight = false;
+	FDelegateHandle PreLoadHandle;
+	TArray<FName> StingerPending;
+	bool bStingerWaiting = false;
+	bool bStingerDone = false;
+	bool bRevealed = false;
+	bool bParked = false;
 
 	FDelegateHandle VictoryBeganHandle, StingerHandle, VictoryEndedHandle, RevealedHandle;
 	TWeakObjectPtr<UWorld> BoundWorld;

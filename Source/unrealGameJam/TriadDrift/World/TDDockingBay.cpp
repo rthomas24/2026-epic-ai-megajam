@@ -85,6 +85,7 @@ void ATDDockingBay::Open(ATDDominion* InDominion, bool bPlayCues)
 	DockingState = ETDDockingState::Open;
 	DoorTime = bPlayCues ? 0.f : DoorOpenSeconds;	// a resumed save / retake finds the doors already open
 	GuideLights->SetVisibility(true);
+	ShowApproachMarker(true);
 	if (bPlayCues && InDominion && InDominion->Visuals)
 	{
 		UTDStatics::PlayCue(this, InDominion->Visuals->DockingBayOpen, GetActorLocation(), GetActorRotation());
@@ -120,7 +121,8 @@ float ATDDockingBay::GetTractorStrength(const FVector& WorldPoint) const
 		return 0.f;
 	}
 	const float Lateral = (D - Along * GetOutward()).Size();
-	if (FMath::RadiansToDegrees(FMath::Atan2(Lateral, Along)) > ConeHalfAngleDeg)
+	const float MaxAngle = D.Size() <= CaptureRadius ? FMath::Max(ConeHalfAngleDeg, CaptureHalfAngleDeg) : ConeHalfAngleDeg;
+	if (FMath::RadiansToDegrees(FMath::Atan2(Lateral, Along)) > MaxAngle)
 	{
 		return 0.f;
 	}
@@ -158,6 +160,36 @@ void ATDDockingBay::ReleaseShip()
 	CurrentPull = 0.f;
 }
 
+void ATDDockingBay::ShowApproachMarker(bool bShow)
+{
+	if (!bShow)
+	{
+		if (IsValid(ApproachMarker)) { ApproachMarker->Destroy(); }
+		ApproachMarker = nullptr;
+		return;
+	}
+	if (IsValid(ApproachMarker) || !GetWorld() || ApproachMarkerDistance <= 0.f)
+	{
+		return;
+	}
+	FActorSpawnParameters P;
+	P.Owner = this;
+	P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	const FVector At = GetMouth() + GetOutward() * ApproachMarkerDistance;
+	if (AActor* M = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), At, (-GetOutward()).Rotation(), P))
+	{
+		USceneComponent* MRoot = NewObject<USceneComponent>(M, TEXT("Root"));
+		MRoot->SetMobility(EComponentMobility::Movable);
+		M->SetRootComponent(MRoot);
+		MRoot->RegisterComponent();
+		M->SetActorLocationAndRotation(At, (-GetOutward()).Rotation());
+		M->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);	// rides the Dominion
+		M->Tags.Add(TDTags::ObjectiveMarker);
+		M->Tags.Add(TEXT("TD.Docking.Approach"));
+		ApproachMarker = M;
+	}
+}
+
 void ATDDockingBay::BeginGlide(ATDShip* Ship)
 {
 	DockingState = ETDDockingState::Gliding;
@@ -166,6 +198,7 @@ void ATDDockingBay::BeginGlide(ATDShip* Ship)
 	GlideFromRot = Ship->GetActorQuat();
 	Ship->ClearSpeedOverrideFor(TractorOverride);
 	Ship->SetFlightParked(true);	// controls locked: the bay has the ship now
+	ShowApproachMarker(false);
 	UTDStorySubsystem::Fire(this, TEXT("G6_Wren_CoverTheBay"));	// the docking commit (once per run)
 	if (UTDHealthComponent* H = UTDStatics::GetHealth(Ship)) { H->SetInvulnerable(true); }
 	Held = Ship;

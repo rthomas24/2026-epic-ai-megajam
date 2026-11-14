@@ -1,0 +1,19 @@
+{
+ "site": "Space_ResearchB",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/BP_SP_ResearchB",
+ "about": "Quiet Graveyard hull B (108 m).",
+ "pieces": [
+  {
+   "name": "Hull",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/SM_SP_Research_B",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0,
+   "roll_deg": -20.0,
+   "pitch_deg": 4.0
+  }
+ ]
+}

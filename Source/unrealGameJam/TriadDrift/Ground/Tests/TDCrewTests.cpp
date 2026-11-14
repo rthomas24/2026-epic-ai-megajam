@@ -232,6 +232,46 @@ bool FTDCrewDeflect::RunTest(const FString& Parameters)
 }
 
 // ------------------------------------------------------------------------------------------------
+// T7's Verdance playtest (Nov 13): ~32 quick slashes at the Heavy's guard did nothing, nothing taught the lunge, and the
+// transfer drained through three retakes. A blocked slash clangs, the first one (and every 5th after) shows the lunge tip,
+// and GuardChipsToBreak quick slashes in a row stagger the guard open.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewHeavyGuardChip, "TriadDrift.Ground.Crew.HeavyGuardClangsTeachesTheLungeAndChipsOpen", TD_TEST_FLAGS)
+bool FTDCrewHeavyGuardChip::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W);
+	ATDCrewCharacter* H = TDCrewTest::SpawnCrew(W, ETDCrewType::Heavy, FVector(170.f, 0.f, 110.f), FRotator(0.f, 180.f, 0.f));
+	if (!TestNotNull(TEXT("heavy"), H) || !TestNotNull(TEXT("pilot"), P)) { return false; }
+	P->GetHealth()->SetInvulnerable(true);
+	W.Advance(0.3f);
+	UTDEnergyBladeComponent* B = P->GetBlade();
+	int32 ShieldCues = 0;
+	H->OnCueRequested.AddLambda([&ShieldCues](ATDCrewCharacter*, FName Cue) { ShieldCues += Cue == TEXT("ShieldHit") ? 1 : 0; });
+	B->LightAttack();
+	TestEqual(TEXT("blocked"), TDGroundTest::Hull(H), 200.f, 0.1f);
+	// The look's ShieldHit cue (the effects builder's slot), or with an empty slot the engineering clang and spark.
+	TestTrue(TEXT("the guard clangs"), ShieldCues == 1 && (H->Visuals && !H->Visuals->ShieldHit.IsEmpty() ? true : H->GetSoundEvents().Contains(FName(TEXT("GuardClang")))));
+	TestTrue(*FString::Printf(TEXT("the lunge tip shows ('%s')"), *P->GetInteractPrompt().ToString()), P->GetInteractPrompt().ToString().Contains(TEXT("LUNGE")));
+	W.Advance(4.5f);
+	TestTrue(TEXT("the tip goes after 4 s"), P->GetTip().IsEmpty());
+	// Quick slashes, one every 0.45 s (a player's light chain), the hint returning on the 6th.
+	int32 Slashes = 1;
+	bool bTipAgain = false;
+	for (; Slashes < 12 && !H->IsGuardBroken(); ++Slashes)
+	{
+		B->LightAttack();
+		bTipAgain |= Slashes == 5 && P->GetInteractPrompt().ToString().Contains(TEXT("LUNGE"));
+		W.Advance(0.45f);
+	}
+	TestTrue(TEXT("the tip again after 5 more blocked hits"), bTipAgain);
+	TestTrue(*FString::Printf(TEXT("quick slashes chip the guard open (after %d)"), Slashes), H->IsGuardBroken() && Slashes <= ATDCrewCharacter::GuardChipsToBreak + 1);
+	const float Before = TDGroundTest::Hull(H);
+	B->LightAttack();
+	TestTrue(TEXT("then a slash lands"), TDGroundTest::Hull(H) < Before);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewHeavy, "TriadDrift.Ground.Crew.HeavyShieldBashAndShotgun", TD_TEST_FLAGS)
 bool FTDCrewHeavy::RunTest(const FString& Parameters)
 {
@@ -802,7 +842,9 @@ bool FTDCrewDeathsLand::RunTest(const FString& Parameters)
 		const FVector At = C->GetActorLocation();
 		const UAnimSequenceBase* Clip = C->ChooseDeathClip(FVector(1.f, 0.f, 0.f));
 		C->GetHealth()->Kill(P, ETDDamageKind::Melee);
-		for (int32 i = 0; i < 200; ++i) { W.Tick(1.f / 60.f); } // past a 2.57 s ground fall
+		// Sampled after the chosen fall has played out (a ground fall is 2.57 s; a start clip hands off to the ragdoll at 0.5 s).
+		const float Wait = (Clip ? FMath::Max(Clip->GetPlayLength(), ATDCrewCharacter::DeathClipSeconds) : 0.f) + 1.f;
+		for (float T = 0.f; T < Wait; T += 1.f / 60.f) { W.Tick(1.f / 60.f); }
 		if (!TestTrue(*FString::Printf(TEXT("%s: the corpse stays"), *TypeName.ToString()), IsValid(C) && !C->IsActorBeingDestroyed())) { continue; }
 		const FName Pelvis = M->GetBoneIndex(TEXT("pelvis")) != INDEX_NONE ? FName(TEXT("pelvis")) : M->GetBoneName(FMath::Min(1, M->GetNumBones() - 1));
 		const float PelvisZ = (float)M->GetBoneLocation(Pelvis).Z;

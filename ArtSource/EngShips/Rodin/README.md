@@ -192,3 +192,43 @@ plain next to the textured hull and no longer catch amber light at the tip.
 
 `ue_import_rodin_ships.py` also sets `CollisionScrape.VFX` = `NS_TD_Ship_ImpactScrape` (VFXScale 1, sound untouched) on the
 three squad visuals **once that system is in the checkout** (it prints "CollisionScrape NOT set" until then).
+
+## Enemy fleet at close range (Nov 14): fighter and gunship v01
+
+Same pipeline (`rh_hybrid.py --ship NullFighter | NullGunship`, config `_null()` in `rh_ships.py`): the low-poly Rodin
+hulls stay exactly as they are (not welded: welding the fighter wound faces against their neighbours; Rodin's normals
+and maps kept), only the lumpy parts are rebuilt: the fighter's three nozzle ends (`build_engines`), the gunship's
+four turret barrels (`_guns_barrels`). Second slot `MI_Null*_Parts` takes the hull's emissive tint and range boost.
+Sizes and sockets unchanged (gunship length 1500.0 cm, it was 1497.4: the new barrels end exactly on the old tips).
+
+**Honest result** (fresh-eyes review, sheets `Builds/for-ryan/ships/fleet_{fighter,gunship}_before_after_*.png`): no
+BLOCKER or MAJOR, both REPLACE, but the change is not visible from the chase camera at 20-80 m. What hurts the fleet
+at that range is not lumpy geometry: (1) the engine flame sprite covers the nozzles from every rear angle; (2) the
+fighter's seams break into flecks and no white eye shows from behind or the side; (3) the gunship hull is near pure
+black with mirror-like reflections, its eyes show only from the front 3/4 and its accents are sparse for its size.
+The next pass should be material and emissive work (rim / seam glow, roughness up, eye placement), not more modelling.
+
+## Null fleet readability pass (Nov 14)
+
+Materials and emissive maps only, for all five types. `M_TD_Ship` (rebuilt in place, `TD_RODIN_REBUILD=Master`; run it
+with a squad ship first in `TD_RODIN_ONLY`, the master's defaults need a heat mask) has three new blocks, default off:
+`PanelSteps` x `PanelCell` (value steps per cell of the pixel's local position), `RimStrength` x `RimColor` (fresnel,
+added to emissive), `GlowSpread` (the emissive map sampled four mips down and added from `RangeStart` on).
+Per type (`_read()` in the import script): RoughnessMin 0.42, MetallicScale 0.5, BaseFloor 0.012-0.016, PanelSteps
+0.35 with cells of 0.9 m (fighter) to 5.2 m (carrier), RimStrength 0.07 small ships / 0.025 gunship and carrier,
+GlowSpread 0.5 / 0.4 / 0.22 / 0.18, RangeStart 30 m, RangeEnd 240 m.
+`rs_fleet_lights.py` writes `ArtSource/EngShips/FleetLights/T_<Ship>_E.png`: Rodin's emissive map with seams dilated by
+2 texels at half strength (not the carrier) and dim white (0.55) running lights painted wherever the surface lies in
+small boxes placed by rule on the hull's extremes (rear corners, rear top, flank stations, tail top, keel).
+`TD_FLEET_READ=0` imports the old values and maps.
+
+What two rounds taught (values above are the third set): rim 0.5-0.9 and floor 0.05-0.07 turned the hulls pale
+grey-blue; rim 0.13-0.16 still read slate from behind and laid a blue sheet on the gunship's flat keel; lights of 1.3-2 %
+of the hull length at full white were blown-out blobs brighter than the eyes; a spread of 0.9-2.2 washed the gunship
+tan at 50-130 m.
+
+Open (fresh-eyes review of the second set; the third set was only self-checked): from the chase camera at real
+combat range the enemies are a few dozen pixels and are found by the HUD markers, so none of this changes the read
+there; fighter, interceptor and bomber cannot be told apart at that size; the carrier's Rodin maps are copper / cream
+rather than black (its base colour was halved, little visible change); carrier and gunship look alike in size in
+isolated views. Hull art cannot fix type and facing at range: that needs HUD or silhouette work.
