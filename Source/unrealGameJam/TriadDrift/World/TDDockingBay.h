@@ -192,6 +192,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Docking")
 	TObjectPtr<UInstancedStaticMeshComponent> FrameBars;
 
+	/** The engine cube and sphere the placeholders fall back to when the bay art is missing. */
+	UPROPERTY(Transient)
+	TObjectPtr<class UStaticMesh> FallbackCube;
+	UPROPERTY(Transient)
+	TObjectPtr<class UStaticMesh> FallbackSphere;
+	bool bArtFrame = false;
+
 	TWeakObjectPtr<ATDDominion> Dominion;
 	TWeakObjectPtr<ATDShip> ShipOverride;
 	TWeakObjectPtr<ATDShip> Held;	// the ship the tractor holds now
