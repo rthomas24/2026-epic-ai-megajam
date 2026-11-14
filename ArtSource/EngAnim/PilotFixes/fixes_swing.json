@@ -1,0 +1,189 @@
+{
+ "_note": "Light1 / Light2 right-arm re-author. hand = (forward, right, up) cm from the right shoulder in the chest frame; blade = direction in that frame; yaw = torso turn (deg, + = to the right); t = game seconds at the code's play rate (hit lands at 0.10 s). r2 (review): blade canted toward the far side at the hit, wind-up held clear of the chest, finish 8 cm higher.",
+ "swing": [
+  {
+   "src": "A_Pilot_Light1",
+   "dst": "A_Pilot_Light1_v2",
+   "rate": 1.6,
+   "max_yaw": 90,
+   "keys": [
+    {
+     "t": 0.0,
+     "hand": [
+      32,
+      2,
+      -18
+     ],
+     "blade": [
+      0.55,
+      -0.15,
+      0.82
+     ],
+     "yaw": 0
+    },
+    {
+     "t": 0.04,
+     "hand": [
+      26,
+      22,
+      8
+     ],
+     "blade": [
+      -0.1,
+      0.45,
+      0.9
+     ],
+     "yaw": 15
+    },
+    {
+     "t": 0.1,
+     "hand": [
+      48,
+      -14,
+      -14
+     ],
+     "blade": [
+      0.82,
+      -0.45,
+      -0.3
+     ],
+     "yaw": 0
+    },
+    {
+     "t": 0.2,
+     "hand": [
+      32,
+      -42,
+      -26
+     ],
+     "blade": [
+      0.35,
+      -0.65,
+      -0.6
+     ],
+     "yaw": -25
+    },
+    {
+     "t": 0.3,
+     "hand": [
+      30,
+      -40,
+      -26
+     ],
+     "blade": [
+      0.35,
+      -0.65,
+      -0.6
+     ],
+     "yaw": -22
+    },
+    {
+     "t": "end",
+     "hand": [
+      32,
+      2,
+      -18
+     ],
+     "blade": [
+      0.55,
+      -0.15,
+      0.82
+     ],
+     "yaw": 0
+    }
+   ]
+  },
+  {
+   "src": "A_Pilot_Light2",
+   "dst": "A_Pilot_Light2_v2",
+   "rate": 1.6,
+   "max_yaw": 90,
+   "keys": [
+    {
+     "t": 0.0,
+     "hand": [
+      32,
+      2,
+      -18
+     ],
+     "blade": [
+      0.55,
+      -0.15,
+      0.82
+     ],
+     "yaw": 0
+    },
+    {
+     "t": 0.04,
+     "hand": [
+      34,
+      -28,
+      4
+     ],
+     "blade": [
+      0.1,
+      -0.55,
+      0.83
+     ],
+     "yaw": -20
+    },
+    {
+     "t": 0.1,
+     "hand": [
+      48,
+      6,
+      -14
+     ],
+     "blade": [
+      0.82,
+      0.45,
+      -0.3
+     ],
+     "yaw": 0
+    },
+    {
+     "t": 0.2,
+     "hand": [
+      28,
+      34,
+      -26
+     ],
+     "blade": [
+      0.35,
+      0.65,
+      -0.6
+     ],
+     "yaw": 25
+    },
+    {
+     "t": 0.3,
+     "hand": [
+      26,
+      32,
+      -26
+     ],
+     "blade": [
+      0.35,
+      0.65,
+      -0.6
+     ],
+     "yaw": 22
+    },
+    {
+     "t": "end",
+     "hand": [
+      32,
+      2,
+      -18
+     ],
+     "blade": [
+      0.55,
+      -0.15,
+      0.82
+     ],
+     "yaw": 0
+    }
+   ]
+  }
+ ]
+}

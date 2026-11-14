@@ -1,0 +1,158 @@
+{
+ "sounds": {
+  "Pickup_Collect_Hull": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Hull_01",
+   "att": "Space_Near",
+   "con": "Power",
+   "cls": "SFX",
+   "looping": false
+  },
+  "Pickup_Collect_Shield": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Shield_01",
+   "att": "Space_Near",
+   "con": "Power",
+   "cls": "SFX",
+   "looping": false
+  },
+  "Pickup_Collect_Power": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Power_01",
+   "att": "Space_Near",
+   "con": "Power",
+   "cls": "SFX",
+   "looping": false
+  },
+  "Pickup_Collect_Overcharge": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Overcharge_01",
+   "att": "Space_Near",
+   "con": "Power",
+   "cls": "SFX",
+   "looping": false
+  },
+  "Pickup_Drop": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/MSS_Pickup_Drop",
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "looping": false
+  },
+  "Travel_DescentRoar": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_DescentRoar_01",
+   "att": null,
+   "con": null,
+   "cls": "SFX",
+   "looping": true
+  },
+  "Story_ThreePulse": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Story/SW_Story_ThreePulse_01",
+   "att": "Ground_Medium",
+   "con": "Impact",
+   "cls": "SFX",
+   "looping": false
+  },
+  "Dominion_EscapeAlarm": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_EscapeAlarm_01",
+   "att": null,
+   "con": null,
+   "cls": "SFX",
+   "looping": true
+  },
+  "Field_Break_Small": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Small",
+   "att": "Space_Medium",
+   "con": "Impact",
+   "cls": "SFX",
+   "looping": false
+  },
+  "Field_Break_Medium": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Medium",
+   "att": "Space_Medium",
+   "con": "Explosion",
+   "cls": "SFX",
+   "looping": false
+  },
+  "Field_Break_Large": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Large",
+   "att": "Space_Far",
+   "con": "Explosion",
+   "cls": "SFX",
+   "looping": false
+  },
+  "Field_Break_Special": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Special",
+   "att": "Space_Medium",
+   "con": "Explosion",
+   "cls": "SFX",
+   "looping": false
+  },
+  "Ship_Impact_Thud": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Ship_Impact_Thud",
+   "att": "Space_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "looping": false
+  },
+  "Ship_Impact_Heavy": {
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Ship_Impact_Heavy",
+   "att": "Space_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "looping": false
+  }
+ },
+ "slots": [
+  {
+   "asset": "DA_Pickup_Visuals",
+   "field": "Hull.Collect",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Hull_01"
+  },
+  {
+   "asset": "DA_Pickup_Visuals",
+   "field": "Shield.Collect",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Shield_01"
+  },
+  {
+   "asset": "DA_Pickup_Visuals",
+   "field": "Power.Collect",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Power_01"
+  },
+  {
+   "asset": "DA_Pickup_Visuals",
+   "field": "Overcharge.Collect",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Overcharge_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "DescentRoar",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_DescentRoar_01"
+  },
+  {
+   "asset": "DA_SpaceField_FX",
+   "field": "BreakSmall",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Small"
+  },
+  {
+   "asset": "DA_SpaceField_FX",
+   "field": "BreakMedium",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Medium"
+  },
+  {
+   "asset": "DA_SpaceField_FX",
+   "field": "BreakLarge",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Large"
+  },
+  {
+   "asset": "DA_SpaceField_FX",
+   "field": "BreakSpecial",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Special"
+  }
+ ]
+}

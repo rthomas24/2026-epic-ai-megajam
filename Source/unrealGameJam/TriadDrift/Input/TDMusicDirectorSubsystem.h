@@ -50,6 +50,9 @@ public:
 	virtual bool IsTickableWhenPaused() const override { return true; }
 
 	static UTDMusicDirectorSubsystem* Get(const UObject* WorldContextObject);
+	/** N-082: the music director of a world, for callers that use reflection (Nick's audio plugin). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music", meta = (WorldContext = "WorldContext"))
+	static UTDMusicDirectorSubsystem* GetMusicDirector(const UObject* WorldContext) { return Get(WorldContext); }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music")
 	ETDCombatMusicState GetMusicState() const { return MusicState; }
@@ -118,8 +121,10 @@ public:
 	bool IsExclusiveScoreHeld() const { return ExclusiveClaims.Num() > 0; }
 
 	/** True while the quiet-flight score plays (UTDUIStyle::IdleSpaceMusic). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music")
 	bool IsIdleMusicPlaying() const { return IdleVoice != nullptr || bIdleLogical; }
 	/** N-063: quiet flight in the galaxy right now (out of the tutorial, no fight, not the assault, no travel, no menu). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music")
 	bool IsQuietFlight() const { return bQuietFlight; }
 	void SetIdleMusicForTests(USoundBase* Sound, float DelaySeconds) { IdleOverride = Sound; bIdleOverride = true; IdleDelayOverride = DelaySeconds; }
 	/** Tests: this sound as AssaultMusic (null = the style's). */

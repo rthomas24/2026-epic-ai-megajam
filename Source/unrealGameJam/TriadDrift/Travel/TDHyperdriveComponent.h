@@ -270,6 +270,7 @@ private:
 	ETDHyperdriveEndCause LastEndCause = ETDHyperdriveEndCause::None;
 	FVector LastLocation = FVector::ZeroVector;
 	TWeakObjectPtr<UNiagaraComponent> LoopFX;
+	TWeakObjectPtr<UNiagaraComponent> StreaksFX; // HyperdriveStreaks, for the jump
 
 	// ---- The current jump's destination (none: a free jump, as before).
 	bool bHasDestination = false;

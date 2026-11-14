@@ -1,0 +1,571 @@
+{
+ "_note": "Authored crew moves (see ue_crew_author.py for the key format). Contact: Heavy shield bash 0.55 s, Warden slam 1.10 s. r2 (review): the slam is driven lower (deeper crouch and lean, hands to shin height); the bash steps the left foot forward 0.38 leg lengths and extends the shield arm. r3: slam keeps the chest turned (shield in front) through the wind-up; Grunt charge rebuilt on the jog (grounded) with a lean and a dropped lead shoulder.",
+ "moves": [
+  {
+   "src": "A_Crew_Heavy_Idle_Guard",
+   "dst": "A_Crew_Heavy_ShieldBash",
+   "length": 1.2,
+   "axis_rest": {
+    "l": [
+     0.72,
+     0.66,
+     0.22
+    ]
+   },
+   "keys": [
+    {
+     "t": 0.0,
+     "yaw": 10,
+     "pitch": 0,
+     "pelvis": [
+      0,
+      0
+     ],
+     "arms": {
+      "l": {
+       "hand": [
+        0.55,
+        0.15,
+        0.05
+       ],
+       "face": [
+        1,
+        0,
+        0
+       ]
+      }
+     },
+     "feet": {
+      "l": [
+       0,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "t": 0.3,
+     "yaw": -22,
+     "pitch": -4,
+     "pelvis": [
+      -0.07,
+      -0.04
+     ],
+     "arms": {
+      "l": {
+       "hand": [
+        0.3,
+        0.0,
+        0.0
+       ],
+       "face": [
+        0.9,
+        -0.4,
+        0
+       ]
+      }
+     },
+     "feet": {
+      "l": [
+       0.0,
+       0,
+       0.0
+      ]
+     }
+    },
+    {
+     "t": 0.44,
+     "yaw": 5,
+     "pitch": 6,
+     "pelvis": [
+      0.12,
+      -0.05
+     ],
+     "feet": {
+      "l": [
+       0.22,
+       0,
+       0.09
+      ]
+     },
+     "arms": {
+      "l": {
+       "hand": [
+        0.55,
+        0.1,
+        0.12
+       ],
+       "face": [
+        1,
+        0,
+        0
+       ]
+      }
+     }
+    },
+    {
+     "t": 0.55,
+     "yaw": 32,
+     "pitch": 14,
+     "pelvis": [
+      0.34,
+      -0.1
+     ],
+     "arms": {
+      "l": {
+       "hand": [
+        0.82,
+        0.2,
+        0.2
+       ],
+       "face": [
+        1,
+        0,
+        0
+       ]
+      }
+     },
+     "feet": {
+      "l": [
+       0.38,
+       0,
+       0.0
+      ]
+     }
+    },
+    {
+     "t": 0.75,
+     "yaw": 30,
+     "pitch": 12,
+     "pelvis": [
+      0.34,
+      -0.1
+     ],
+     "arms": {
+      "l": {
+       "hand": [
+        0.82,
+        0.2,
+        0.2
+       ],
+       "face": [
+        1,
+        0,
+        0
+       ]
+      }
+     },
+     "feet": {
+      "l": [
+       0.38,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "t": "end",
+     "yaw": 10,
+     "pitch": 0,
+     "pelvis": [
+      0,
+      0
+     ],
+     "arms": {
+      "l": {
+       "hand": [
+        0.55,
+        0.15,
+        0.05
+       ],
+       "face": [
+        1,
+        0,
+        0
+       ]
+      }
+     },
+     "feet": {
+      "l": [
+       0,
+       0,
+       0
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "src": "MF_Rifle_Idle_ADS",
+   "dst": "A_Crew_Warden_Slam",
+   "length": 1.83,
+   "keys": [
+    {
+     "t": 0.0,
+     "yaw": 0,
+     "pitch": 0,
+     "pelvis": [
+      0,
+      0
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.6,
+        0.0,
+        -0.3
+       ]
+      },
+      "l": {
+       "hand": [
+        0.55,
+        0.1,
+        -0.3
+       ]
+      }
+     }
+    },
+    {
+     "t": 0.3,
+     "yaw": 40,
+     "pitch": -8,
+     "pelvis": [
+      -0.03,
+      0.0
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.35,
+        0.0,
+        0.6
+       ]
+      },
+      "l": {
+       "hand": [
+        0.35,
+        0.1,
+        0.6
+       ]
+      }
+     }
+    },
+    {
+     "t": 0.65,
+     "yaw": 42,
+     "pitch": -16,
+     "pelvis": [
+      -0.06,
+      0.02
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.0,
+        -0.05,
+        0.95
+       ]
+      },
+      "l": {
+       "hand": [
+        0.0,
+        0.2,
+        0.95
+       ]
+      }
+     }
+    },
+    {
+     "t": 0.95,
+     "yaw": 42,
+     "pitch": -16,
+     "pelvis": [
+      -0.06,
+      0.02
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        -0.05,
+        -0.05,
+        0.95
+       ]
+      },
+      "l": {
+       "hand": [
+        -0.05,
+        0.2,
+        0.95
+       ]
+      }
+     }
+    },
+    {
+     "t": 1.1,
+     "yaw": 8,
+     "pitch": 46,
+     "pelvis": [
+      0.2,
+      -0.32
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.62,
+        -0.15,
+        -0.95
+       ]
+      },
+      "l": {
+       "hand": [
+        0.62,
+        0.3,
+        -0.95
+       ]
+      }
+     }
+    },
+    {
+     "t": 1.4,
+     "yaw": 8,
+     "pitch": 46,
+     "pelvis": [
+      0.2,
+      -0.32
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.62,
+        -0.15,
+        -0.95
+       ]
+      },
+      "l": {
+       "hand": [
+        0.62,
+        0.3,
+        -0.95
+       ]
+      }
+     }
+    },
+    {
+     "t": "end",
+     "yaw": 0,
+     "pitch": 0,
+     "pelvis": [
+      0,
+      0
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.6,
+        0.0,
+        -0.3
+       ]
+      },
+      "l": {
+       "hand": [
+        0.55,
+        0.1,
+        -0.3
+       ]
+      }
+     }
+    }
+   ]
+  },
+  {
+   "src": "A_Crew_Hit_Front_Hvy_01",
+   "dst": "A_Crew_Heavy_Stagger",
+   "length": 1.0,
+   "base_loops": false,
+   "keys": [
+    {
+     "t": 0.0,
+     "pitch": 0,
+     "pelvis": [
+      0,
+      0
+     ],
+     "feet": {
+      "r": [
+       0,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "t": 0.15,
+     "pitch": -16,
+     "pelvis": [
+      -0.1,
+      -0.02
+     ],
+     "feet": {
+      "r": [
+       -0.05,
+       0,
+       0.06
+      ]
+     }
+    },
+    {
+     "t": 0.38,
+     "pitch": -20,
+     "pelvis": [
+      -0.24,
+      -0.06
+     ],
+     "feet": {
+      "r": [
+       -0.4,
+       0,
+       0.0
+      ]
+     }
+    },
+    {
+     "t": 0.65,
+     "pitch": -8,
+     "pelvis": [
+      -0.22,
+      -0.05
+     ],
+     "feet": {
+      "r": [
+       -0.4,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "t": "end",
+     "pitch": 0,
+     "pelvis": [
+      -0.2,
+      0
+     ],
+     "feet": {
+      "r": [
+       -0.4,
+       0,
+       0
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "src": "MF_Unarmed_Jog_Fwd",
+   "dst": "A_Crew_Grunt_Charge",
+   "length": 0.97,
+   "keys": [
+    {
+     "t": 0.0,
+     "yaw": 0,
+     "pitch": 6,
+     "pelvis": [
+      0,
+      0
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.3,
+        -0.1,
+        -0.5
+       ]
+      },
+      "l": {
+       "hand": [
+        0.3,
+        0.1,
+        -0.5
+       ]
+      }
+     }
+    },
+    {
+     "t": 0.2,
+     "yaw": 18,
+     "pitch": 26,
+     "pelvis": [
+      0.0,
+      -0.06
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.35,
+        -0.35,
+        -0.25
+       ]
+      },
+      "l": {
+       "hand": [
+        0.5,
+        0.25,
+        -0.05
+       ]
+      }
+     }
+    },
+    {
+     "t": 0.8,
+     "yaw": 18,
+     "pitch": 26,
+     "pelvis": [
+      0.0,
+      -0.06
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.35,
+        -0.35,
+        -0.25
+       ]
+      },
+      "l": {
+       "hand": [
+        0.5,
+        0.25,
+        -0.05
+       ]
+      }
+     }
+    },
+    {
+     "t": "end",
+     "yaw": 8,
+     "pitch": 10,
+     "pelvis": [
+      0,
+      0
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.3,
+        -0.1,
+        -0.5
+       ]
+      },
+      "l": {
+       "hand": [
+        0.3,
+        0.1,
+        -0.5
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,4092 @@
+{
+ "status": "ok",
+ "scene_units": {
+  "system": "METRIC",
+  "scale_length": 1.0,
+  "length_unit": "METERS"
+ },
+ "objects": [
+  {
+   "name": "SM_Kit_Floor_400",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    400.0,
+    20.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 56,
+   "faces": 54,
+   "tris": 108,
+   "quads": 54,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 54
+   },
+   "local_bbox_min": [
+    -2.0,
+    -2.0,
+    -0.2
+   ],
+   "local_bbox_max": [
+    2.0,
+    2.0,
+    0.0
+   ],
+   "origin_placement": "center"
+  },
+  {
+   "name": "UCX_SM_Kit_Floor_400_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Floor_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    400.0,
+    20.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.0,
+    -2.0,
+    -0.2
+   ],
+   "local_bbox_max": [
+    2.0,
+    2.0,
+    0.0
+   ],
+   "origin_placement": "center"
+  },
+  {
+   "name": "SM_Kit_Platform_400",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    400.0,
+    100.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 134,
+   "faces": 122,
+   "tris": 236,
+   "quads": 102,
+   "ngons": 4,
+   "boundary_edges": 72,
+   "non_manifold_edges": 21,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 122
+   },
+   "local_bbox_min": [
+    -2.0,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    2.0,
+    1.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_Platform_400_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Platform_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    400.0,
+    100.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.0,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    2.0,
+    1.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_Platform_400x200",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    400.0,
+    200.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 134,
+   "faces": 122,
+   "tris": 236,
+   "quads": 102,
+   "ngons": 4,
+   "boundary_edges": 72,
+   "non_manifold_edges": 21,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 122
+   },
+   "local_bbox_min": [
+    -2.0,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    2.0,
+    2.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_Platform_400x200_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Platform_400x200",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    400.0,
+    200.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.0,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    2.0,
+    2.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_Platform_400x50",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    400.0,
+    50.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 68,
+   "faces": 67,
+   "tris": 142,
+   "quads": 66,
+   "ngons": 1,
+   "boundary_edges": 0,
+   "non_manifold_edges": 12,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 67
+   },
+   "local_bbox_min": [
+    -2.0,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    2.0,
+    0.5
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_Platform_400x50_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Platform_400x50",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    400.0,
+    50.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.0,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    2.0,
+    0.5
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_RampLow_400",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    199.13,
+    400.0,
+    49.64
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 42,
+   "faces": 41,
+   "tris": 80,
+   "quads": 39,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 41
+   },
+   "local_bbox_min": [
+    -0.99134,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    1.0,
+    2.0,
+    0.49636
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_RampLow_400_00",
+   "type": "MESH",
+   "parent": "SM_Kit_RampLow_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    200.0,
+    400.0,
+    50.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 6,
+   "faces": 8,
+   "tris": 8,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 8
+   },
+   "local_bbox_min": [
+    -1.0,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    1.0,
+    2.0,
+    0.5
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_Wall_400",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    30.0,
+    400.0,
+    300.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Glow"
+   ],
+   "verts": 404,
+   "faces": 392,
+   "tris": 800,
+   "quads": 388,
+   "ngons": 4,
+   "boundary_edges": 16,
+   "non_manifold_edges": 18,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 32.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 308,
+    "1": 84
+   },
+   "local_bbox_min": [
+    -0.15,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.15,
+    2.0,
+    3.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_Wall_400_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Wall_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    20.0,
+    400.0,
+    300.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.1,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.1,
+    2.0,
+    3.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_Wall_400_Window",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    32.0,
+    400.0,
+    300.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Glow"
+   ],
+   "verts": 662,
+   "faces": 646,
+   "tris": 1384,
+   "quads": 612,
+   "ngons": 30,
+   "boundary_edges": 74,
+   "non_manifold_edges": 102,
+   "wire_edges": 0,
+   "flipped_winding_edges": 1,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 0.947,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 562,
+    "1": 84
+   },
+   "local_bbox_min": [
+    -0.16,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.16,
+    2.0,
+    3.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_Wall_400_Window_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Wall_400_Window",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    20.0,
+    400.0,
+    300.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.1,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.1,
+    2.0,
+    3.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_DoorFrame_400",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    39.0,
+    400.0,
+    300.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Glow"
+   ],
+   "verts": 1093,
+   "faces": 1069,
+   "tris": 2218,
+   "quads": 1047,
+   "ngons": 21,
+   "boundary_edges": 75,
+   "non_manifold_edges": 97,
+   "wire_edges": 0,
+   "flipped_winding_edges": 1,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 0.973,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 769,
+    "1": 300
+   },
+   "local_bbox_min": [
+    -0.195,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.195,
+    2.0,
+    3.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_DoorFrame_400_00",
+   "type": "MESH",
+   "parent": "SM_Kit_DoorFrame_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    20.0,
+    120.0,
+    300.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.1,
+    0.8,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.1,
+    2.0,
+    3.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_DoorFrame_400_01",
+   "type": "MESH",
+   "parent": "SM_Kit_DoorFrame_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    20.0,
+    120.0,
+    300.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.1,
+    -2.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.1,
+    -0.8,
+    3.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_DoorFrame_400_02",
+   "type": "MESH",
+   "parent": "SM_Kit_DoorFrame_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    20.0,
+    160.0,
+    40.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.1,
+    -0.8,
+    2.6
+   ],
+   "local_bbox_max": [
+    0.1,
+    0.8,
+    3.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_DoorFrame_400_03",
+   "type": "MESH",
+   "parent": "SM_Kit_DoorFrame_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    36.0,
+    12.0,
+    272.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.18,
+    0.8,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.18,
+    0.92,
+    2.72
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_DoorFrame_400_04",
+   "type": "MESH",
+   "parent": "SM_Kit_DoorFrame_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    36.0,
+    12.0,
+    272.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.18,
+    -0.92,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.18,
+    -0.8,
+    2.72
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_Kit_Ramp_400",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    200.0,
+    209.64
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 832,
+   "faces": 802,
+   "tris": 1604,
+   "quads": 802,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 802
+   },
+   "local_bbox_min": [
+    -2.0,
+    -1.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    1.0,
+    2.09636
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_Ramp_400_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Ramp_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    188.0,
+    100.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 6,
+   "faces": 8,
+   "tris": 8,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 8
+   },
+   "local_bbox_min": [
+    -2.0,
+    -0.94,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    0.94,
+    1.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_Ramp_400_01",
+   "type": "MESH",
+   "parent": "SM_Kit_Ramp_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    6.0,
+    210.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.0,
+    -1.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    -0.94,
+    2.1
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_Ramp_400_02",
+   "type": "MESH",
+   "parent": "SM_Kit_Ramp_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    6.0,
+    210.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.0,
+    0.94,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    1.0,
+    2.1
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_Kit_Stairs_400",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    216.0,
+    220.14
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 1486,
+   "faces": 1342,
+   "tris": 2720,
+   "quads": 1303,
+   "ngons": 36,
+   "boundary_edges": 197,
+   "non_manifold_edges": 5,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 0.999,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 1342
+   },
+   "local_bbox_min": [
+    -2.0,
+    -1.08,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    1.08,
+    2.20136
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_Stairs_400_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Stairs_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    425.0,
+    200.0,
+    110.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 10,
+   "faces": 16,
+   "tris": 16,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 16
+   },
+   "local_bbox_min": [
+    -2.25,
+    -1.0,
+    -0.1
+   ],
+   "local_bbox_max": [
+    2.0,
+    1.0,
+    1.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_Stairs_400_01",
+   "type": "MESH",
+   "parent": "SM_Kit_Stairs_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    360.0,
+    8.0,
+    220.5
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.0,
+    -1.08,
+    0.0
+   ],
+   "local_bbox_max": [
+    1.6,
+    -1.0,
+    2.205
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_Stairs_400_02",
+   "type": "MESH",
+   "parent": "SM_Kit_Stairs_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    360.0,
+    8.0,
+    220.5
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.0,
+    1.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    1.6,
+    1.08,
+    2.205
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_Kit_Catwalk_400",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    200.0,
+    155.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 1230,
+   "faces": 1200,
+   "tris": 2413,
+   "quads": 1180,
+   "ngons": 9,
+   "boundary_edges": 34,
+   "non_manifold_edges": 29,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 0.988,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 1200
+   },
+   "local_bbox_min": [
+    -2.0,
+    -1.0,
+    -0.45
+   ],
+   "local_bbox_max": [
+    2.0,
+    1.0,
+    1.1
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_Catwalk_400_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Catwalk_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    200.0,
+    15.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.0,
+    -1.0,
+    -0.15
+   ],
+   "local_bbox_max": [
+    2.0,
+    1.0,
+    0.0
+   ],
+   "origin_placement": "center"
+  },
+  {
+   "name": "UCX_SM_Kit_Catwalk_400_01",
+   "type": "MESH",
+   "parent": "SM_Kit_Catwalk_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    8.0,
+    110.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.0,
+    -1.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    -0.92,
+    1.1
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_Catwalk_400_02",
+   "type": "MESH",
+   "parent": "SM_Kit_Catwalk_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    8.0,
+    110.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.0,
+    0.92,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    1.0,
+    1.1
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_Kit_Railing_400",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    6.0,
+    110.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 448,
+   "faces": 432,
+   "tris": 864,
+   "quads": 432,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 36.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 432
+   },
+   "local_bbox_min": [
+    -2.0,
+    -0.06,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    0.0,
+    1.1
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_Railing_400_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Railing_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    6.0,
+    110.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.0,
+    -0.06,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    -0.0,
+    1.1
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_Cover_200",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    200.0,
+    42.0,
+    110.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 140,
+   "faces": 122,
+   "tris": 248,
+   "quads": 120,
+   "ngons": 2,
+   "boundary_edges": 16,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 122
+   },
+   "local_bbox_min": [
+    -1.0,
+    -0.21,
+    0.0
+   ],
+   "local_bbox_max": [
+    1.0,
+    0.21,
+    1.1
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_Cover_200_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Cover_200",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    200.0,
+    40.0,
+    110.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -1.0,
+    -0.2,
+    0.0
+   ],
+   "local_bbox_max": [
+    1.0,
+    0.2,
+    1.1
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_BeaconMast",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    160.0,
+    160.0,
+    1730.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Beacon",
+    "M_Kit_Glow"
+   ],
+   "verts": 820,
+   "faces": 784,
+   "tris": 1576,
+   "quads": 750,
+   "ngons": 10,
+   "boundary_edges": 116,
+   "non_manifold_edges": 40,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 0.967,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 710,
+    "1": 54,
+    "2": 20
+   },
+   "local_bbox_min": [
+    -0.8,
+    -0.8,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.8,
+    0.8,
+    17.3
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_BeaconMast_00",
+   "type": "MESH",
+   "parent": "SM_Kit_BeaconMast",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    120.0,
+    120.0,
+    60.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.6,
+    -0.6,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.6,
+    0.6,
+    0.6
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_BeaconMast_01",
+   "type": "MESH",
+   "parent": "SM_Kit_BeaconMast",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    52.0,
+    52.0,
+    1540.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.26,
+    -0.26,
+    0.6
+   ],
+   "local_bbox_max": [
+    0.26,
+    0.26,
+    16.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_BeaconMast_02",
+   "type": "MESH",
+   "parent": "SM_Kit_BeaconMast",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    160.0,
+    160.0,
+    130.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.8,
+    -0.8,
+    16.0
+   ],
+   "local_bbox_max": [
+    0.8,
+    0.8,
+    17.3
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_Kit_LightPillar",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    140.0,
+    140.0,
+    6000.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Pillar"
+   ],
+   "verts": 32,
+   "faces": 16,
+   "tris": 32,
+   "quads": 16,
+   "ngons": 0,
+   "boundary_edges": 32,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 16
+   },
+   "local_bbox_min": [
+    -0.7,
+    -0.7,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.7,
+    0.7,
+    60.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_Pillar",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    50.0,
+    50.0,
+    300.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 192,
+   "faces": 174,
+   "tris": 348,
+   "quads": 174,
+   "ngons": 0,
+   "boundary_edges": 24,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 174
+   },
+   "local_bbox_min": [
+    -0.25,
+    -0.25,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.25,
+    0.25,
+    3.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_Pillar_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Pillar",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    50.0,
+    50.0,
+    300.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.25,
+    -0.25,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.25,
+    0.25,
+    3.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_Corner",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    40.0,
+    40.0,
+    300.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Glow"
+   ],
+   "verts": 228,
+   "faces": 215,
+   "tris": 438,
+   "quads": 213,
+   "ngons": 2,
+   "boundary_edges": 4,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 214,
+    "1": 1
+   },
+   "local_bbox_min": [
+    -0.2,
+    -0.2,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.2,
+    0.2,
+    3.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_Corner_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Corner",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    40.0,
+    40.0,
+    300.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.2,
+    -0.2,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.2,
+    0.2,
+    3.0
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_Roof_400",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    400.0,
+    24.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Glow"
+   ],
+   "verts": 162,
+   "faces": 150,
+   "tris": 316,
+   "quads": 146,
+   "ngons": 4,
+   "boundary_edges": 24,
+   "non_manifold_edges": 29,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 84,
+    "1": 66
+   },
+   "local_bbox_min": [
+    -2.0,
+    -2.0,
+    2.96
+   ],
+   "local_bbox_max": [
+    2.0,
+    2.0,
+    3.2
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_Roof_400_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Roof_400",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    400.0,
+    400.0,
+    20.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.0,
+    -2.0,
+    3.0
+   ],
+   "local_bbox_max": [
+    2.0,
+    2.0,
+    3.2
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_Kit_Console",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    74.0,
+    166.0,
+    106.56
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Screen"
+   ],
+   "verts": 452,
+   "faces": 445,
+   "tris": 916,
+   "quads": 433,
+   "ngons": 11,
+   "boundary_edges": 52,
+   "non_manifold_edges": 39,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 0.973,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 444,
+    "1": 1
+   },
+   "local_bbox_min": [
+    -0.3,
+    -0.83,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.44,
+    0.83,
+    1.06562
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_Console_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Console",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    60.0,
+    160.0,
+    105.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.3,
+    -0.8,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.3,
+    0.8,
+    1.05
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_LightStrip_200",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    200.0,
+    10.0,
+    6.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Glow"
+   ],
+   "verts": 96,
+   "faces": 87,
+   "tris": 174,
+   "quads": 87,
+   "ngons": 0,
+   "boundary_edges": 12,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 54,
+    "1": 33
+   },
+   "local_bbox_min": [
+    -1.0,
+    -0.05,
+    0.0
+   ],
+   "local_bbox_max": [
+    1.0,
+    0.05,
+    0.06
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_SurveyTripod",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    96.1,
+    110.45,
+    172.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Glow"
+   ],
+   "verts": 525,
+   "faces": 501,
+   "tris": 990,
+   "quads": 489,
+   "ngons": 0,
+   "boundary_edges": 24,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 472,
+    "1": 29
+   },
+   "local_bbox_min": [
+    -0.35096,
+    -0.55227,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.61,
+    0.55227,
+    1.72
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Kit_SurveyTripod_00",
+   "type": "MESH",
+   "parent": "SM_Kit_SurveyTripod",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    82.5,
+    95.26,
+    200.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 11,
+   "faces": 10,
+   "tris": 10,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 4,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 10
+   },
+   "local_bbox_min": [
+    -0.275,
+    -0.47631,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.55,
+    0.47631,
+    2.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_Kit_SurveyProbe",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    24.0,
+    28.0,
+    110.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Glow"
+   ],
+   "verts": 156,
+   "faces": 142,
+   "tris": 284,
+   "quads": 142,
+   "ngons": 0,
+   "boundary_edges": 16,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 141,
+    "1": 1
+   },
+   "local_bbox_min": [
+    -0.12,
+    -0.14,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.12,
+    0.14,
+    1.1
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_SurveyProbe_00",
+   "type": "MESH",
+   "parent": "SM_Kit_SurveyProbe",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    24.0,
+    28.0,
+    110.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.12,
+    -0.14,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.12,
+    0.14,
+    1.1
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_SeismicPod",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    60.0,
+    60.0,
+    90.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Glow"
+   ],
+   "verts": 170,
+   "faces": 164,
+   "tris": 312,
+   "quads": 148,
+   "ngons": 0,
+   "boundary_edges": 24,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 148,
+    "1": 16
+   },
+   "local_bbox_min": [
+    -0.3,
+    -0.3,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.3,
+    0.3,
+    0.9
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_SeismicPod_00",
+   "type": "MESH",
+   "parent": "SM_Kit_SeismicPod",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    60.0,
+    60.0,
+    30.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -0.3,
+    -0.3,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.3,
+    0.3,
+    0.3
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Kit_Artefact",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    183.12,
+    159.35,
+    262.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Glow",
+    "M_Kit_Stone"
+   ],
+   "verts": 398,
+   "faces": 368,
+   "tris": 722,
+   "quads": 354,
+   "ngons": 0,
+   "boundary_edges": 48,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 30.667,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 3,
+    "1": 365
+   },
+   "local_bbox_min": [
+    -0.91561,
+    -0.79674,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.91561,
+    0.79674,
+    2.62
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Kit_Artefact_00",
+   "type": "MESH",
+   "parent": "SM_Kit_Artefact",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    184.0,
+    159.35,
+    262.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Glow"
+   ],
+   "verts": 15,
+   "faces": 26,
+   "tris": 26,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 26
+   },
+   "local_bbox_min": [
+    -0.92,
+    -0.79674,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.92,
+    0.79674,
+    2.62
+   ],
+   "origin_placement": "bottom_center"
+  }
+ ],
+ "totals": {
+  "objects": 58,
+  "tris": 19577,
+  "errors": 2,
+  "warnings": 12
+ },
+ "issues": [
+  {
+   "severity": "warn",
+   "object": "SM_Kit_Platform_400",
+   "message": "21 non-manifold edges (edges shared by 3+ faces)"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Platform_400",
+   "message": "4 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Platform_400",
+   "message": "72 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "warn",
+   "object": "SM_Kit_Platform_400x200",
+   "message": "21 non-manifold edges (edges shared by 3+ faces)"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Platform_400x200",
+   "message": "4 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Platform_400x200",
+   "message": "72 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "warn",
+   "object": "SM_Kit_Platform_400x50",
+   "message": "12 non-manifold edges (edges shared by 3+ faces)"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Platform_400x50",
+   "message": "1 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "warn",
+   "object": "SM_Kit_Wall_400",
+   "message": "18 non-manifold edges (edges shared by 3+ faces)"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Wall_400",
+   "message": "4 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Wall_400",
+   "message": "16 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "warn",
+   "object": "SM_Kit_Wall_400_Window",
+   "message": "102 non-manifold edges (edges shared by 3+ faces)"
+  },
+  {
+   "severity": "error",
+   "object": "SM_Kit_Wall_400_Window",
+   "message": "1 edges between faces with opposite winding; recalculate normals outside"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Wall_400_Window",
+   "message": "30 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Wall_400_Window",
+   "message": "74 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "warn",
+   "object": "SM_Kit_DoorFrame_400",
+   "message": "97 non-manifold edges (edges shared by 3+ faces)"
+  },
+  {
+   "severity": "error",
+   "object": "SM_Kit_DoorFrame_400",
+   "message": "1 edges between faces with opposite winding; recalculate normals outside"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_DoorFrame_400",
+   "message": "21 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_DoorFrame_400",
+   "message": "75 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "warn",
+   "object": "SM_Kit_Stairs_400",
+   "message": "5 non-manifold edges (edges shared by 3+ faces)"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Stairs_400",
+   "message": "36 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Stairs_400",
+   "message": "197 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "warn",
+   "object": "SM_Kit_Catwalk_400",
+   "message": "29 non-manifold edges (edges shared by 3+ faces)"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Catwalk_400",
+   "message": "9 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Catwalk_400",
+   "message": "34 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Cover_200",
+   "message": "2 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Cover_200",
+   "message": "16 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "warn",
+   "object": "SM_Kit_BeaconMast",
+   "message": "40 non-manifold edges (edges shared by 3+ faces)"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_BeaconMast",
+   "message": "10 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_BeaconMast",
+   "message": "116 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_LightPillar",
+   "message": "32 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Pillar",
+   "message": "24 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Corner",
+   "message": "2 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Corner",
+   "message": "4 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "warn",
+   "object": "SM_Kit_Roof_400",
+   "message": "29 non-manifold edges (edges shared by 3+ faces)"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Roof_400",
+   "message": "4 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Roof_400",
+   "message": "24 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "warn",
+   "object": "SM_Kit_Console",
+   "message": "39 non-manifold edges (edges shared by 3+ faces)"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Console",
+   "message": "11 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Console",
+   "message": "52 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_LightStrip_200",
+   "message": "12 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_SurveyTripod",
+   "message": "24 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "warn",
+   "object": "UCX_SM_Kit_SurveyTripod_00",
+   "message": "Loose geometry: 4 verts, 0 wire edges; delete loose"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_SurveyProbe",
+   "message": "16 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_SeismicPod",
+   "message": "24 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Kit_Artefact",
+   "message": "48 open boundary edges (mesh is not closed); OK for planes/cards"
+  }
+ ]
+}

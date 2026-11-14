@@ -1,0 +1,79 @@
+{
+ "_note": "r2: Grunt hit react keeps its facing; Warden guard = the chest (which carries the rigid shield, spine_05) turned 45 deg so the shield covers the front, head and gun arm turned back toward the target. Measured: the Grunt hit react's root yaw is 0.0 deg for the whole clip (pelvis twists 13 deg, part of the flinch, kept).",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "clips": [
+  {
+   "src": "A_Crew_Hit_Front_Lgt_03",
+   "dst": "A_Crew_Grunt_HitReact_01",
+   "zero_root_yaw": true
+  },
+  {
+   "src": "A_Crew_Heavy_Idle_Guard",
+   "dst": "A_Crew_Warden_Guard",
+   "loop": true,
+   "loop_s": 0.2,
+   "twist": [
+    {
+     "bone": "spine_03",
+     "parent": "spine_02",
+     "deg": 45,
+     "ramp": [
+      0,
+      0
+     ]
+    },
+    {
+     "bone": "neck_01",
+     "parent": "spine_05",
+     "deg": -35,
+     "ramp": [
+      0,
+      0
+     ]
+    },
+    {
+     "bone": "clavicle_r",
+     "parent": "spine_05",
+     "deg": -40,
+     "ramp": [
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  {
+   "src": "A_Crew_Heavy_GuardRaise",
+   "dst": "A_Crew_Warden_GuardRaise",
+   "twist": [
+    {
+     "bone": "spine_03",
+     "parent": "spine_02",
+     "deg": 45,
+     "ramp": [
+      0.1,
+      0.6
+     ]
+    },
+    {
+     "bone": "neck_01",
+     "parent": "spine_05",
+     "deg": -35,
+     "ramp": [
+      0.1,
+      0.6
+     ]
+    },
+    {
+     "bone": "clavicle_r",
+     "parent": "spine_05",
+     "deg": -40,
+     "ramp": [
+      0.1,
+      0.6
+     ]
+    }
+   ]
+  }
+ ]
+}

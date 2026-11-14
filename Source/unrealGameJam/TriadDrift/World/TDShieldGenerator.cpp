@@ -20,8 +20,11 @@ ATDShieldGenerator::ATDShieldGenerator()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
 
+	// A scene root at the pylon's centre: everything aims at the actor location, and the art pylon's own pivot is its
+	// base (it seats on the hull's plinth socket), so the mesh hangs below the root by its centre height (Init).
+	SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("Root")));
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Pylon"));
-	SetRootComponent(Mesh);
+	Mesh->SetupAttachment(GetRootComponent());
 	Mesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
 	Mesh->SetRelativeScale3D(FVector(12.f, 12.f, 20.f));	// 12 m wide, 20 m tall
 	if (Cylinder.Succeeded()) { Mesh->SetStaticMesh(Cylinder.Object); }
@@ -52,6 +55,8 @@ void ATDShieldGenerator::Init(float Hull, int32 InSectionIndex)
 		{
 			Mesh->SetStaticMesh(Custom);
 			Mesh->SetRelativeScale3D(FVector::OneVector);
+			ArtCentreHeight = Custom->GetBoundingBox().GetCenter().Z;
+			Mesh->SetRelativeLocation(FVector(0.f, 0.f, -ArtCentreHeight));
 			Core->SetVisibility(false);
 		}
 	}

@@ -1,0 +1,61 @@
+{
+ "folder": "/Game/TriadDrift/Gameplay/Characters/FX",
+ "create": {},
+ "slots": [
+  {
+   "asset": "DA_Pickup_Visuals",
+   "field": "Hull.Collect",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Hull_01"
+  },
+  {
+   "asset": "DA_Pickup_Visuals",
+   "field": "Shield.Collect",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Shield_01"
+  },
+  {
+   "asset": "DA_Pickup_Visuals",
+   "field": "Power.Collect",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Power_01"
+  },
+  {
+   "asset": "DA_Pickup_Visuals",
+   "field": "Overcharge.Collect",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Overcharge_01"
+  },
+  {
+   "asset": "DA_Travel_FX",
+   "field": "DescentRoar",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_DescentRoar_01"
+  },
+  {
+   "asset": "DA_SpaceField_FX",
+   "field": "BreakSmall",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Small"
+  },
+  {
+   "asset": "DA_SpaceField_FX",
+   "field": "BreakMedium",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Medium"
+  },
+  {
+   "asset": "DA_SpaceField_FX",
+   "field": "BreakLarge",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Large"
+  },
+  {
+   "asset": "DA_SpaceField_FX",
+   "field": "BreakSpecial",
+   "soft": false,
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Special"
+  }
+ ],
+ "keep": []
+}

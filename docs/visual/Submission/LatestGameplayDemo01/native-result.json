@@ -1,0 +1,11 @@
+{
+  "revision": "6fe3e90f",
+  "pid": 28632,
+  "game_exit_code": 1,
+  "reason": "completed",
+  "failure": null,
+  "minimum_free_gib": 3.499786376953125,
+  "duration_s": 346.1559999999954,
+  "changed_protected": [],
+  "stage": "Actual Shipping capture; acceptance requires media inspection"
+}

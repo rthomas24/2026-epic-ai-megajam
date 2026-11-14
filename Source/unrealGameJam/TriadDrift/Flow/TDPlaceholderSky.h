@@ -12,6 +12,7 @@ class UPostProcessComponent;
 class UExponentialHeightFogComponent;
 class UStaticMeshComponent;
 class USkyAtmosphereComponent;
+class UNiagaraComponent;
 
 UENUM()
 enum class ETDPlaceholderSkyStyle : uint8
@@ -102,9 +103,18 @@ public:
 	float GetDescentFogScale() const { return DescentFogScale; }
 	float GetBaseFogDensity() const { return BaseFogDensity; }
 	ETDPlaceholderSkyStyle GetAppliedStyle() const { return AppliedStyle; }
+	/** ART-13: the planet's ambient particles (pollen and spores / ash and embers) on the player's camera, from the
+	 *  PlanetAmbientVerdance / PlanetAmbientCinder slots of DA_Travel_FX (found by name: empty or missing = nothing). */
+	void TickAmbient(float DeltaSeconds);
+	UNiagaraComponent* GetAmbientFX() const { return AmbientFX; }
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 	void TickDescentFog();
 
 protected:
+	UPROPERTY(Transient) TObjectPtr<UNiagaraComponent> AmbientFX;
+	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> AmbientAudio;
+	TWeakObjectPtr<USceneComponent> AmbientParent;
+	float AmbientRetry = 0.f;
 	float BaseFogDensity = 0.f;
 	float DescentFogScale = 1.f;
 	TWeakObjectPtr<class ATDPlanetTerrain> FogTerrain;

@@ -364,4 +364,6 @@ def light_strip_200():
 
 BUILDERS = [floor_400, platform_400, platform_400x200, platform_400x50, ramp_low_400, wall_400, wall_400_window, doorframe_400, ramp_400, stairs_400, catwalk_400,
             railing_400, cover_200, beacon_mast, light_pillar, pillar, corner, roof_400, console_base, light_strip_200]
+import kit_pieces_art18  # noqa: E402  (ART-18 story props, same kit style)
+BUILDERS += kit_pieces_art18.BUILDERS
 NO_COLLISION = ("SM_Kit_LightStrip_200", "SM_Kit_LightPillar")

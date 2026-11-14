@@ -756,7 +756,13 @@ FText ATDFirstPersonCharacter::GetInteractPrompt() const
 			return I->GetPrompt();
 		}
 	}
-	return FText::GetEmpty();
+	return GetTip();
+}
+
+void ATDFirstPersonCharacter::ShowTip(const FText& Text, float Seconds)
+{
+	Tip = Text;
+	TipLeft = Seconds;
 }
 
 TArray<AActor*> ATDFirstPersonCharacter::GetObjectiveMarkers() const
@@ -1362,6 +1368,7 @@ void ATDFirstPersonCharacter::ReturnToSafeGround()
 
 void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 {
+	TipLeft = FMath::Max(0.f, TipLeft - DeltaSeconds);
 	Super::Tick(DeltaSeconds);
 	if (DeltaSeconds <= 0.f)
 	{

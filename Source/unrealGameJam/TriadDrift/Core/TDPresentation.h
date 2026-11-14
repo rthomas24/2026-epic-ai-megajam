@@ -474,6 +474,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hyperdrive")
 	FTDFXCue HyperdriveTunnel;
 
+	/** The jump's speed streaks (NS_TD_Hyperdrive_Streaks): an attached loop on the ship for the whole jump, beside the
+	 *  tunnel, stopped at the drop-out. User.JumpSpeed (cm/s) and User.TunnelSeconds as on the tunnel. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hyperdrive")
+	FTDFXCue HyperdriveStreaks;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hyperdrive")
 	FTDFXCue HyperdriveDropOut;
 
@@ -607,6 +612,15 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
 	TSoftClassPtr<UUserWidget> PauseWidgetClass;
+
+	/**
+	 * The ability-unlock reward screen (board N-070 / N-072), mounted by UTDUIHostSubsystem for each award pending in
+	 * UTDAbilityRewardSubsystem. Nick's UTDAbilityRewardWidget contract, called by name: PresentReward(Display) -> bool,
+	 * FocusDismissButton(), IsRewardActive(), OnRewardDismissed(FName AbilityId). Empty: /Script/TriadDriftHUD.TDAbilityRewardWidget
+	 * when that class exists; otherwise no reward screen (the flight hint still comes).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Front End")
+	TSoftClassPtr<UUserWidget> AbilityRewardWidgetClass;
 
 	/**
 	 * Shown on the menu map after a won run INSTEAD of MainMenuWidgetClass (optional). Empty = the code-built

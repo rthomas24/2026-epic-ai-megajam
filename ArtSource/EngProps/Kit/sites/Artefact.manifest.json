@@ -1,0 +1,59 @@
+{
+ "site": "Artefact",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_Kit_Artefact",
+ "about": "ART-18: the same ancient artefact on both planets and in the core chamber (clue, storyline section 6).",
+ "pieces": [
+  {
+   "name": "Artefact",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Artefact",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  }
+ ],
+ "lights": [
+  {
+   "name": "L_Artefact",
+   "location_cm": [
+    0.0,
+    0.0,
+    330.0
+   ],
+   "intensity": 250.0,
+   "radius": 700.0,
+   "color": [
+    0.1,
+    1.0,
+    0.85
+   ]
+  }
+ ],
+ "placement_rules": [
+  "1.84 x 1.6 m footprint (hexagonal plinth r 92), 2.62 m tall; keep 1.5 m clear around it.",
+  "Same class in all three places (Verdance, Cinder, the core chamber)."
+ ],
+ "core_chamber": {
+  "relative_to": "T5's CoreAt = ((L2X1 + KX1) / 2, 0, 0) = (13000, 0, 0) in TDDominionInteriorCourse",
+  "location_cm": [
+   1250.0,
+   1350.0,
+   0.0
+  ],
+  "yaw_deg": 225.0,
+  "course_cm": [
+   14250.0,
+   1350.0,
+   0.0
+  ],
+  "why": [
+   "r = 1838 from the core: outside the N-052 clear ring r 700..1500 (mismatches.json #7)",
+   "1.5 m clear to the +Y wall (inner face 1740) and the far wall (14740)",
+   "seen from the core door (11200, 0): the sight line passes the core at r 778, outside the shield (r 640)",
+   "away from the heart (core + (-760, 0)), the conduits (core +-778) and the bulkhead (far wall, y 0)"
+  ],
+  "light": "BP_Kit_Artefact carries its own soft teal light (250 cd, 7 m)"
+ }
+}

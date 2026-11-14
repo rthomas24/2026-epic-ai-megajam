@@ -1,0 +1,21 @@
+{
+ "created": [],
+ "set": [
+  "DA_Pickup_Visuals.Hull.Collect = SW_Pickup_Collect_Hull_01",
+  "DA_Pickup_Visuals.Shield.Collect = SW_Pickup_Collect_Shield_01",
+  "DA_Pickup_Visuals.Power.Collect = SW_Pickup_Collect_Power_01",
+  "DA_Pickup_Visuals.Overcharge.Collect = SW_Pickup_Collect_Overcharge_01",
+  "DA_Travel_FX.DescentRoar = SW_Travel_DescentRoar_01"
+ ],
+ "skipped": [
+  "DA_SpaceField_FX.BreakSmall (no such asset)",
+  "DA_SpaceField_FX.BreakMedium (no such asset)",
+  "DA_SpaceField_FX.BreakLarge (no such asset)",
+  "DA_SpaceField_FX.BreakSpecial (no such asset)"
+ ],
+ "errors": [],
+ "assets": [
+  "/Game/TriadDrift/Gameplay/Characters/FX/DA_Pickup_Visuals",
+  "/Game/TriadDrift/Gameplay/Characters/FX/DA_Travel_FX"
+ ]
+}
