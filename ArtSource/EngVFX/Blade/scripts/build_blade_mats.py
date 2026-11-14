@@ -179,7 +179,7 @@ return float4(c*Intensity, PC.a);
 '''
 
 BEAM_PARAMS_CORE = {'BladeColor': (1.0, 0.17, 0.84), 'Intensity': 1.0, 'SatPow': 1.8, 'CoreW': 0.16, 'BodyK': 1.5, 'WhiteK': 2.2, 'EdgeK': 1.2, 'BaseHeat': 1.0}
-BEAM_PARAMS_GLOW = {'BladeColor': (1.0, 0.17, 0.84), 'Intensity': 1.0, 'SatPow': 1.8, 'GlowK': 2.2, 'GlowA': 0.55, 'GlowFalloff': 1.8, 'BaseHeat': 1.0}
+BEAM_PARAMS_GLOW = {'BladeColor': (1.0, 0.17, 0.84), 'Intensity': 1.0, 'SatPow': 1.8, 'GlowK': 2.2, 'GlowA': 0.7, 'GlowFalloff': 1.8, 'BaseHeat': 1.0}
 
 mats = {}
 for _nm, _args in (('M_TD_BladeBeamCore_V2', (BLADE, 'translucent', False, CORE, BEAM_PARAMS_CORE)),

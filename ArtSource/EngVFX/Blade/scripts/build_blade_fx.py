@@ -23,7 +23,11 @@ def UA(**kw):
 
 
 # moving: 0 still .. 1 a fast swing (the tip at 2,100 cm/s); walking with the blade is about 0.05-0.15
-MOVE = 'pow(saturate((User.TipSpeed - 420.0)/1700.0), 1.25)'
+MOVE = 'pow(saturate((User.TipSpeed - 300.0)/1700.0), 1.25)'
+# round 3: the sheet is full on every swing (light 1 was faint); SWING is for the sparks, quiet while walking
+SHEET = 'saturate(%s*2.4)' % MOVE
+SWING = 'pow(saturate((User.TipSpeed - 700.0)/1500.0), 1.3)'
+WALK = 'saturate((User.TipSpeed - 250.0)/500.0)'
 
 
 def along(e, lo, hi, thick=1.5):
@@ -52,7 +56,7 @@ def sweep(name, at, width, life, k, power=1.3, rate=150.0):
     e['mat'] = 'M_TD_VFX_BladeSweep'
     e['set'] = [x for x in e['set'] if x[2] not in ('Ribbon Width', 'Color')]
     e['set'] += [(PS, INIT, 'Ribbon Width', X('User.Length*%s' % width)),
-                 (PS, INIT, 'Color', X('float4(User.Color.rgb*%s, %s)' % (k, MOVE))),
+                 (PS, INIT, 'Color', X('float4(User.Color.rgb*%s, %s)' % (k, SHEET))),
                  (PS, INIT, 'UsePositionOffset', True), (PS, INIT, 'Position Offset Coordinate Space', E('Local')),
                  (PS, INIT, 'Position Offset', X('float3(User.Length*%s, 0.0, 0.0)' % at)),
                  (PS, INIT, 'Ribbon Facing Mode', E('Direct Set')),
@@ -80,14 +84,16 @@ def whiten(e, f=0.85, k=2.0):
 
 # ------------------------------------------------------------------------------------------------ the aura (always on)
 SB('NS_TD_Blade_Aura', UA(), [
-    persistent_light('Light', 380, 4.5, at=0.45, flick=31.4),
-    single('HiltGlow', 'M_TD_VFX_Glow', 13, 0.9, 113.1, offset=(1.5, 0, 0)),
+    persistent_light('Light', 420, 6.0, at=0.45, flick=31.4),
+    single('HiltGlow', 'M_TD_VFX_Glow', 20, 1.0, 113.1, offset=(1.5, 0, 0)),
     along(shed('Embers', 'M_TD_VFX_BladeEmber', 26.0, (0.4, 0.9), (0.8, 1.7), (5, 25), k=1.8, radius=0.0, drag=1.5, curl=260.0, power=1.4), 0.05, 0.95, 3.0),
     along(spin(shed('Arcs', 'M_TD_VFX_FlipArc', 7.0, (0.07, 0.15), (5, 11), (0, 0), k=1.3, radius=0.0, drag=0.0, local=True, power=0.6)), 0.08, 0.92, 0.5),
     sweep('Sweep', 0.56, 0.86, 0.22, 1.0),
     sweep('SweepTip', 0.92, 0.18, 0.14, 1.0, power=1.6),
-    thrown('Sparks', 'M_TD_VFX_Spark', '700.0*%s' % MOVE, (0.25, 0.55), (1.4, 2.6), (0.35, 0.9), 380.0, 3.0, stretch=11),
-    thrown('Motes', 'M_TD_VFX_BladeEmber', '160.0*%s' % MOVE, (0.5, 1.1), (1.6, 3.2), (0.08, 0.3), 110.0, 2.0, grav=-120.0, drag=2.0, curl=300.0, lo=0.2),
+    thrown('Sparks', 'M_TD_VFX_Spark', '1400.0*%s' % SWING, (0.25, 0.55), (2.6, 4.8), (0.35, 0.95), 420.0, 3.4, stretch=10, rgb_white=0.12),
+    thrown('Motes', 'M_TD_VFX_BladeEmber', '80.0*%s' % SWING, (0.6, 1.0), (1.8, 3.6), (0.1, 0.35), 140.0, 2.2, grav=-260.0, drag=1.6, curl=250.0, lo=0.2, rgb_white=0.15),
+    thrown('Trickle', 'M_TD_VFX_BladeEmber', '16.0*%s' % WALK, (0.4, 0.8), (1.2, 2.2), (0.05, 0.15), 60.0, 2.0, grav=-200.0, drag=1.5, curl=200.0, lo=0.85, rgb_white=0.2),
+    single('Halo', 'M_TD_VFX_Glow', 46, 0.32, 23.7, offset=(46.0, 0, 0)),   # camera-facing: the blade reads from behind when it points at the camera
 ])
 
 # ------------------------------------------------------------------------------------------------ ignite / retract
