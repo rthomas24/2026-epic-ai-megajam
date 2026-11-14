@@ -82,6 +82,8 @@ void ATDSpaceField::BeginPlay()
 	{
 		Layout = ATDGalaxyLayout::Get(this);
 	}
+	// td.SpaceField 0 at load: never take over the layout's rocks, so the galaxy is exactly today's by construction.
+	bAdoptAtLoad = bAdoptLayoutRocks && TDSpaceFieldImpl::GEnabled != 0;
 	Build();
 	FTDFieldDamage::Register(this);	// Lancer's ram and explosions find the field without searching the world
 	// Caches: four per debris field, the types in turn (one use each per run).
@@ -189,7 +191,7 @@ void ATDSpaceField::Build()
 	BuildClusters(Rng);
 	BuildDebrisFields(Rng);
 	BuildBuoys();
-	AdoptLayoutRocks();
+	if (bAdoptAtLoad) { AdoptLayoutRocks(); }
 	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: %d pieces, %d components, %d obstacles, %d cache spots"), Pieces.Num(), Components.Num(), ObstaclesAdded,
 		GetCacheSpots(this).Num());
 }
@@ -563,7 +565,11 @@ TArray<FVector> ATDSpaceField::GetCacheSpots(const UObject* WorldContextObject)
 void ATDSpaceField::SetFieldEnabled(bool bOn)
 {
 	bEnabled = bOn;
-	ShowLayoutRocks(!bOn);	// off: the galaxy layout's own rocks, exactly as today
+	if (bOn && bAdoptLayoutRocks && AdoptedLayoutComps.Num() == 0 && States.Num() > 0)
+	{
+		AdoptLayoutRocks();	// started with td.SpaceField 0, switched on later
+	}
+	ShowLayoutRocks(!bOn);	// off at runtime: show the layout's own rocks again (best effort; td.SpaceField 0 at load is the exact fallback)
 	for (const TPair<FString, TObjectPtr<UHierarchicalInstancedStaticMeshComponent>>& C : Components)
 	{
 		if (C.Value) { C.Value->SetVisibility(bOn); }

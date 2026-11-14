@@ -25,7 +25,7 @@ namespace TDSpaceFieldAdopt
 void ATDSpaceField::AdoptLayoutRocks()
 {
 	using namespace TDSpaceFieldAdopt;
-	if (!Layout || !bAdoptLayoutRocks)
+	if (!Layout || !bAdoptLayoutRocks || AdoptedLayoutComps.Num() > 0)
 	{
 		return;
 	}
@@ -110,12 +110,22 @@ void ATDSpaceField::AdoptLayoutRocks()
 void ATDSpaceField::ShowLayoutRocks(bool bLayoutOwnsThem)
 {
 	// The field on = the layout's rocks hidden and not solid (the field's copies are); off = the layout exactly as today.
+	// The layout's look components are Static and (T4's pre-existing warning) not attached to its root: flip both hidden
+	// flags and rebuild their render state, or a re-shown Static instanced component may not come back on screen.
+	int32 Shown = 0, Instances = 0;
 	for (const TWeakObjectPtr<UInstancedStaticMeshComponent>& C : AdoptedLayoutComps)
 	{
-		if (C.IsValid()) { C->SetVisibility(bLayoutOwnsThem); }
+		if (!C.IsValid()) { continue; }
+		C->SetHiddenInGame(!bLayoutOwnsThem);
+		C->SetVisibility(bLayoutOwnsThem);
+		C->MarkRenderStateDirty();
+		Shown += C->IsVisible() && !C->bHiddenInGame ? 1 : 0;
+		Instances += C->GetInstanceCount();
 	}
 	if (LayoutCollision && AdoptedLayoutComps.Num() > 0)
 	{
 		LayoutCollision->SetCollisionEnabled(bLayoutOwnsThem ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
 	}
+	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: layout rocks %s: %d of %d components shown, %d instances, layout collision %d"), bLayoutOwnsThem ? TEXT("restored") : TEXT("taken over"),
+		Shown, AdoptedLayoutComps.Num(), Instances, LayoutCollision ? (int32)LayoutCollision->IsCollisionEnabled() : -1);
 }

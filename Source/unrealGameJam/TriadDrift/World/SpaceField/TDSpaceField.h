@@ -292,6 +292,8 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInstancedStaticMeshComponent> LayoutCollision;
 	/** For the next RegisterPiece: an exact collision radius (> 0), and an obstacle handle to reuse (>= 0) or none (-2). */
 	float PendingColliderRadius = -1.f;
+	/** Adopt during Build (false when td.SpaceField was 0 at load). */
+	bool bAdoptAtLoad = true;
 	int32 PendingObstacle = INDEX_NONE;
 
 	int32 ObstaclesAdded = 0;
