@@ -104,6 +104,9 @@ SHIPS = {
                    # metallic mirror. Non-metal, a weak sheen, more opaque and darker: the pilot reads on foot too)
                    glass={"Tint": (0.008, 0.05, 0.085), "SheenColor": (0.45, 0.75, 0.85), "Opacity": 0.91, "SheenStrength": 0.12,
                           "Metallic": 0.0, "Specular": 0.3, "Roughness": 0.08, "TintGlow": 0.12},
+                   # Lead, Nov 14 (batch M): the ram streak of the effects builder on PowerActive (sound kept), and the boost
+                   # plume at 0.6 (T7's UTDShipVisuals::ExhaustBoostScale: the boost plumes swamped this small hull)
+                   power_vfx="/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Ram_Streak.NS_TD_Ram_Streak", exhaust_boost=0.6,
                    plain=dict(rough=1.45, tex_r2=("BC", "E"), kit=None, parts=())),
     "Bastion": dict(da=(SQUAD, "DA_Bastion_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Bastion", old_mi=None, squad=True, glow=SQUAD_GLOW["Bastion"],
                     emissive=6.0, base_tint=(1.5, 1.5, 1.5), rough=1.25, self_light=0.12, detail=0.55, trail_scale=0.7,
@@ -1194,6 +1197,17 @@ def main():
                     c2 = da0.get_editor_property("power2_active")
                     notes.append("Power2Active VFX %s (sound %s)" % (c2.get_editor_property("vfx"),
                                  "SAME" if str(c2.get_editor_property("sound")) == snd else "CHANGED"))
+                if cfg.get("power_vfx"):
+                    cue = da0.get_editor_property("power_active")
+                    snd = str(cue.get_editor_property("sound"))
+                    cue.set_editor_property("vfx", unreal.load_asset(cfg["power_vfx"]))
+                    da0.set_editor_property("power_active", cue)
+                    c2 = da0.get_editor_property("power_active")
+                    notes.append("PowerActive VFX %s (sound %s)" % (c2.get_editor_property("vfx"),
+                                 "SAME" if str(c2.get_editor_property("sound")) == snd else "CHANGED"))
+                if "exhaust_boost" in cfg:
+                    if _set(da0, "exhaust_boost_scale", cfg["exhaust_boost"], notes):
+                        notes.append("ExhaustBoostScale %.2f" % da0.get_editor_property("exhaust_boost_scale"))
                 # the hull-scrape sparks (effects builder, batch L; Lead, Nov 13 night): CollisionScrape.VFX on the three
                 # squad visuals, VFXScale 1, the sound left alone. Skipped with a note while the system is not in the checkout.
                 if cfg.get("squad") and eas.does_asset_exist(SCRAPE_VFX):
