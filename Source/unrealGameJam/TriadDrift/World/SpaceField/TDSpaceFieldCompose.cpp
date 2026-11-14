@@ -565,6 +565,7 @@ void ATDSpaceField::BuildIceDrift(FRandomStream& Rng)
 	const FVector Head = Zone + VDir * (BeltOuter + 25000.f) + Side * S * 40000.f;
 	const FVector Tail = VLoc - VDir * (VAtmo * 1.5f + 30000.f) + Side * S * 50000.f + FVector(0.f, 0.f, -15000.f);
 	const FVector Ctrl = (Head + Tail) * 0.5f + Side * S * 40000.f;
+	TGuardValue<bool> IceLook(bIceDriftPlacement, true);	// its own components, the ice glow raised
 	int32 Placed = 0;
 	for (int32 Try = 0; Placed < IceDriftRocks && Try < IceDriftRocks * 6; ++Try)
 	{

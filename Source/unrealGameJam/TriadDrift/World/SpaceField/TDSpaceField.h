@@ -98,6 +98,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 OuterDarkRocks = 500;
 	/** The Outer Dark's watch: big lone rocks on the Dominion run-in, before the Shattered Moons (Lead, Nov 14). */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 OuterWatchRocks = 12;
+	/** The Ice Drift's ice glow: the ice material's EmissiveStrength times this, on that region's rocks only. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float IceDriftGlowScale = 4.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 IceDriftRocks = 900;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRocks = 500;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRubble = 400;
@@ -397,6 +399,8 @@ private:
 	/** For the next RegisterPiece: an exact collision radius (> 0), and an obstacle handle to reuse (>= 0) or none (-2). */
 	float PendingColliderRadius = -1.f;
 	bool bMoonPlacement = false;
+	/** While true, new rock components are the Ice Drift's own (raised ice glow). */
+	bool bIceDriftPlacement = false;
 	/** T4's journey key points (ATDGalaxyLayout::GetJourneyKeyPoints), read at Build: keep-outs and routes stay clear. */
 	TArray<FTDJourneyKeyPoint> JourneyPoints;
 	int32 AdoptedMovedOffJourney = 0;
