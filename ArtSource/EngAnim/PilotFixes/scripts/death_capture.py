@@ -58,7 +58,7 @@ def main():
         with open(LOG, "r", errors="replace") as f:
             f.seek(size)
             text = f.read()
-        return sorted(set(re.findall(r"TDCrewCharacter\S*CurrentAsset = \S*?\.(\w+)'?", text)))
+        return sorted(set(re.findall(r"TDCrewCharacter\S*CurrentAsset = \S*/(\w+)\.", text)))
 
     world = None
     for b in td_mcp.unwrap(call("SceneCaptureToolset.SceneCaptureToolset", "ListWorlds"))["content"]:
@@ -68,11 +68,12 @@ def main():
                     world = w["world"]["refPath"]
     report = {}
     for i, item in enumerate(types):
-        typ, _, how = item.partition(":")   # Type or Type:behind
+        typ, _, how = item.partition(":")   # Type, Type:behind or Type:front:<spot index>
+        how, _, spot_i = how.partition(":")
         if not how and os.environ.get("TD_KILL_BEHIND"):
             how = "behind"
         behind = how
-        spot = SPOTS[i % len(SPOTS)]
+        spot = SPOTS[(int(spot_i) if spot_i else i) % len(SPOTS)]
         cmd("TD.Ground.Teleport %d %d 300" % spot)
         time.sleep(1.0)
         cmd("TD.Ground.Spawn %s 600" % typ)
@@ -83,12 +84,15 @@ def main():
             continue
         loc, fx, ry = e["loc"], e["x"], e["y"]
         centre = [loc[k] - fx[k] * 80 for k in range(3)]   # a front hit throws the body back
-        cam = [centre[k] + ry[k] * 720 + fx[k] * 150 for k in range(3)]
-        cam[2] = e["floor"] + 110
+        cam = [centre[k] + ry[k] * float(os.environ.get("TD_CAM_SIDE", "720")) + fx[k] * float(os.environ.get("TD_CAM_FWD", "150")) for k in range(3)]
+        cam[2] = e["floor"] + float(os.environ.get("TD_CAM_H", "110"))
         fwd = [centre[0] - cam[0], centre[1] - cam[1], (e["floor"] + 60) - cam[2]]
         camera = {"location": {"x": cam[0], "y": cam[1], "z": cam[2]},
                   "rotation": {"pitch": math.degrees(math.atan2(fwd[2], math.hypot(fwd[0], fwd[1]))), "yaw": math.degrees(math.atan2(fwd[1], fwd[0])), "roll": 0.0},
                   "projectionMode": "Perspective", "fOV": 45.0, "orthoWidth": 512}
+        if how == "front" and typ == "Heavy":
+            cmd("TD.Ground.BreakGuard")   # T5's dev command: a Heavy dies from the front only with its guard broken
+            time.sleep(0.1)
         for attempt in range(10):   # a shielded Heavy takes several hits (the first ones break its guard)
             cmd("TD.Ground.CrewKill" + (" " + how if how else ""))
             time.sleep(0.15)
@@ -99,17 +103,17 @@ def main():
         t0 = time.time() - 0.3
         shots = []
         trace = []
-        for want in (0.5, 1.5, 2.6, 4.0):
+        for want in [float(x) for x in os.environ.get("TD_TIMES", "0.6,1.6,2.6,3.5").split(",")]:
             time.sleep(max(0.0, want - (time.time() - t0)))
             t = time.time() - t0
-            w = where(loc)
+            w = None if os.environ.get("TD_NOTRACE") else where(loc)
             if w:
                 trace.append([round(t, 2), round(w["pelvis"][2] - e["floor"], 1), round(w["head"][2] - e["floor"], 1), w["clip"], w["sim"], playing()])
             r = call("SceneCaptureToolset.SceneCaptureToolset", "Capture", {"world": {"refPath": world}, "camera": camera, "mode": "Lit",
                      "options": {"width": 1600, "height": 900, "screenPercentage": 1.0, "visualizationSubMode": ""}})
             for blk in r.get("content", []) or []:
                 if blk.get("type") == "image" and blk.get("data"):
-                    p = os.path.join(out, "death_%s_%s_%d.png" % (typ, how or "pilot", len(shots)))
+                    p = os.path.join(out, "death_%s_%s_%02d.png" % (typ, how or "pilot", len(shots)))
                     open(p, "wb").write(base64.b64decode(blk["data"]))
                     shots.append([round(t, 2), p])
         end = where(loc) or where(loc)

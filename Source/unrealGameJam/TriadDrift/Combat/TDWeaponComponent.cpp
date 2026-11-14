@@ -1,6 +1,7 @@
 // Triad Drift - Combat (Teammate 2). Weapon slots: fire rate, heat, ammo, charge, salvos, spread, aim assist.
 
 #include "TriadDrift/Combat/TDWeaponComponent.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 #include "TriadDrift/Combat/TDCombatCueLog.h"
 #include "TriadDrift/Combat/TDCombatBarks.h"
 #include "GameFramework/MovementComponent.h"
@@ -346,6 +347,7 @@ void UTDWeaponComponent::ResetWeapons()
 
 void UTDWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
+	TD_COMBAT_PERF(Weapons);
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	TickSlot(ETDWeaponSlot::Primary, DeltaTime);
 	TickSlot(ETDWeaponSlot::Secondary, DeltaTime);
@@ -363,6 +365,13 @@ void UTDWeaponComponent::TickSlot(ETDWeaponSlot Slot, float DeltaTime)
 
 	// Death, blocks ending, etc. (never fires a charge: only a pilot release does).
 	UpdateEffectiveTrigger(Slot, false);
+
+	// Idle (issue #89: most of a wave's weapons, most of the time): nothing to regenerate, cool, charge or fire.
+	if (!S.bTriggerHeld && !S.bOverheated && S.SalvoRemaining <= 0 && S.ChargeHeld <= 0.f && S.Heat <= 0.f && S.RefireTimer <= 0.f
+		&& (Spec->Resource != ETDWeaponResource::Ammo || S.Ammo >= Spec->MaxAmmo))
+	{
+		return;
+	}
 
 	// Ammo regeneration.
 	if (Spec->Resource == ETDWeaponResource::Ammo && Spec->AmmoRegenSeconds > 0.f)
