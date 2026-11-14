@@ -724,6 +724,9 @@ void ATDFirstPersonCharacter::HandleCameraModeChanged(ETDOnFootCamera NewMode)
 	ApplyViewState();
 }
 
+static TAutoConsoleVariable<int32> CVarCameraBladeGuard(TEXT("TD.Pilot.CameraBladeGuard"), 1,
+	TEXT("1: the camera-rig (first-person) blade is kept hidden in third person every frame; 0: as before (A/B)"));
+
 void ATDFirstPersonCharacter::ApplyViewState()
 {
 	const bool bThird = IsThirdPersonView();
@@ -732,6 +735,15 @@ void ATDFirstPersonCharacter::ApplyViewState()
 	{
 		BladeGrip->SetVisibility(!bThird, false);
 		HandleBladeRetract(Blade ? Blade->IsRetracted() : false); // the camera-rig blade only in first person
+	}
+	// The camera-rig blade's own meshes too, every frame (animation builder, Nov 14): BladeGrip's visibility does not
+	// propagate, and an ignite while the view was briefly not third person (the ship-exit ignite under a director shot)
+	// showed BladePlaceholder in third person: the first-person blade stood up behind the helmet in a run or sprint
+	// (T7's Shipping run, ship5/G3, L3).
+	static IConsoleVariable* Guard = IConsoleManager::Get().FindConsoleVariable(TEXT("TD.Pilot.CameraBladeGuard"));
+	if (bThird && (!Guard || Guard->GetInt() != 0) && BladePlaceholder && (BladePlaceholder->IsVisible() || (BladeHilt && BladeHilt->IsVisible())))
+	{
+		HandleBladeRetract(Blade ? Blade->IsRetracted() : false);
 	}
 	UpdateBody(0.f);       // head shown / hidden, body placed for the view
 	UpdateHandBlade(0.f);  // the hand blade shows with the whole body

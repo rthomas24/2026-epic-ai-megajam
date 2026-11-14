@@ -164,6 +164,7 @@ namespace TDPilotAnimDebug
 		else if (What.Equals(TEXT("Board"), ESearchCase::IgnoreCase)) { Len = P->StartShipTransition(true, Hatch); }
 		else if (What.Equals(TEXT("Interact"), ESearchCase::IgnoreCase)) { P->DebugPlayBodyAction(TEXT("A_Pilot_Interact_Console"), 1.f, true); }
 		else if (What.Equals(TEXT("Clip"), ESearchCase::IgnoreCase) && Args.Num() > 1) { P->DebugPlayBodyAction(FName(*Args[1]), 1.f, false); }
+		else if (What.Equals(TEXT("ShowCameraBlade"), ESearchCase::IgnoreCase)) { P->DebugShowCameraBlade(); }
 		else if (What.Equals(TEXT("Die"), ESearchCase::IgnoreCase))
 		{
 			UTDStatics::ApplyTDDamage(P, 100000.f, ETDDamageKind::Energy, nullptr, nullptr, P->GetActorLocation() + P->GetActorForwardVector() * 50.f, -P->GetActorForwardVector());
