@@ -58,7 +58,7 @@ def main():
         with open(LOG, "r", errors="replace") as f:
             f.seek(size)
             text = f.read()
-        return sorted(set(re.findall(r"TDCrewCharacter\S*CurrentAsset = \S*?\.(\w+)'?", text)))
+        return sorted(set(re.findall(r"TDCrewCharacter\S*CurrentAsset = \S*/(\w+)\.", text)))
 
     world = None
     for b in td_mcp.unwrap(call("SceneCaptureToolset.SceneCaptureToolset", "ListWorlds"))["content"]:
@@ -99,7 +99,7 @@ def main():
         t0 = time.time() - 0.3
         shots = []
         trace = []
-        for want in (0.5, 1.5, 2.6, 4.0):
+        for want in (0.5, 1.5, 2.6, 4.3):
             time.sleep(max(0.0, want - (time.time() - t0)))
             t = time.time() - t0
             w = where(loc)

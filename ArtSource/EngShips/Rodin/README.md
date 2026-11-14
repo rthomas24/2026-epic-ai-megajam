@@ -183,7 +183,7 @@ and helmet shape, no face or visor detail; the gun receivers are plain next to t
 is tested per texel; the stray glowing sliver ahead of it cleared; the nose slit glows in the accent colour). Not
 re-reviewed by a fresh agent (in-game sheet `Builds/for-ryan/ships/rift_v12_before_after.png`).
 
-**Bastion v01** (524.0 x 472.3 x 139.1 cm as before; 51,535 triangles; slots `M_Bastion`, `M_Bastion_Glow`,
+**Bastion v01** (524.0 x 472.3 x 139.1 cm as before; 52,208 triangles (51,535 was the first build, before the muzzle bore was reshaped); slots `M_Bastion`, `M_Bastion_Glow`,
 `M_Bastion_Parts`; 3 auto convex hulls; sockets unchanged). The Rodin Bastion is the soundest of the three (blocky
 armour, a symmetric pair of cannons, six-tube launchers), so only the two lumpy barrel ends were replaced by clean
 muzzles on the same axes; the hull keeps its maps (`textures="raw"`; in the game base colour and emissive stay Grok
@@ -232,3 +232,27 @@ combat range the enemies are a few dozen pixels and are found by the HUD markers
 there; fighter, interceptor and bomber cannot be told apart at that size; the carrier's Rodin maps are copper / cream
 rather than black (its base colour was halved, little visible change); carrier and gunship look alike in size in
 isolated views. Hull art cannot fix type and facing at range: that needs HUD or silhouette work.
+
+## Squad follow-ups and the master check (Nov 14)
+
+- **Master rebuilt, squad unchanged:** the three squad ships captured at one fixed spot (`TD.World.Goto Start`, speed 0,
+  same free cameras) with the old `M_TD_Ship` (`6fea15a3`) and the rebuilt one are the same picture
+  (`Builds/for-ryan/ships/master_old_vs_new_fixed_spot.png`). A reviewer's "maroon band" on the Bastion in an earlier pair
+  was the light of a different place in the level. The Dominion mothership renders with its panels and amber lines; the
+  hauler convoy was not in frame in the one planet-approach capture.
+- **Rift v13**, **Lancer glass v06**, **Bastion v02**: see `docs/eng/ART-HISTORY.md`. A fresh-eyes review saw Rift v13 and
+  the Lancer glass (slit fixed, specks reduced, glass now dark tinted glass; pilot still hard to read); Bastion v02 was
+  made after that review and is self-checked only.
+- **Bastion still lags on one point** (review): its cockpit is an opaque dark windscreen with no glass depth, seat or
+  pilot, where the Rift and Lancer have them. Its hard surfaces are the crispest of the three. A designed canopy was not
+  attempted: the windscreen is faceted and flush with the armour, and a bubble like the Lancer's would change the design.
+
+- **Rift v14** (crescent wings): see `docs/eng/ART-HISTORY.md`; fixed-spot and on-foot pairs in
+  `Builds/for-ryan/ships/rift_v14_before_after.png`. Self-checked only.
+- **Bastion glass cockpit, tried as v03 and stopped in Blender** (kept: v02). The Rodin "windscreen" is not a flush
+  pane: it is a raised cab block standing in a recess with dark sloped sides. `_canopy_facets` (in `rh_closeparts.py`,
+  unused) cut the dark faces into a glass part over a tub; the cab block stayed standing inside brown panes
+  (`Builds/for-ryan/ships/bastion_v03_cockpit_attempt_blender.png`). A real cockpit means redesigning that block.
+- **Hauler and Dominion turrets on the rebuilt master:** the convoy (`TD.World.ApproachView 1`) renders textured and lit
+  (`hauler_convoy_check.png`, at a distance); the Dominion's eight turrets use `SM_NullTurret` / `MI_NullTurret`
+  (`TD.World.DominionParts`), the same mesh and instance as on the carrier; they were not captured close.

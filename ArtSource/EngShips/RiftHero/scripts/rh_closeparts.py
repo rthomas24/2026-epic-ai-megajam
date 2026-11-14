@@ -150,9 +150,155 @@ def sweep_rect(name, pts, w, h, mats, mat_idx, up=(0, 0, 1), parent=None):
 
 
 # ---------------------------------------------------------------------------------------------------- canopy
+def _canopy_facets(mats, body, bvh):
+    """A faceted, flush windscreen kept exactly as designed (Bastion; Lead, Nov 14: no bubble). The Rodin windscreen
+    faces (dark texels inside the canopy box) leave the hull and come back as the glass part, 3.5 cm lower, so the
+    panes sit below the armour frame; a dark tub hangs from the opening's own boundary (walls straight down from every
+    boundary edge, a floor), and a seat back, headrest, helmeted pilot bust and a thin accent instrument strip go
+    inside."""
+    import rh_textures as T
+    import rh_common as C
+    ca = K["canopy"]
+    (x0, x1), wmax, (z0, z1) = ca["x"], ca["wmax"], ca["z"]
+    bc = T.load(os.path.join(C.RODIN, "T_%s_BC.png" % K["ship"]))
+    hh, ww = bc.shape[:2]
+    lum = bc @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+    bm = bmesh.new()
+    bm.from_mesh(body.data)
+    uvl = bm.loops.layers.uv.active
+
+    def dark(f):
+        v = []
+        for l in f.loops:
+            u = l[uvl].uv
+            v.append(lum[min(hh - 1, max(0, int(u.y * hh))), min(ww - 1, max(0, int(u.x * ww)))])
+        c = sum((l[uvl].uv for l in f.loops), Vector((0.0, 0.0))) / len(f.loops)
+        v.append(lum[min(hh - 1, max(0, int(c.y * hh))), min(ww - 1, max(0, int(c.x * ww)))])
+        return float(np.median(v)) < ca.get("dark", 0.16)
+    sel = []
+    for f in bm.faces:
+        c = f.calc_center_median()
+        if x0 < c.x < x1 and abs(c.y) < wmax and z0 < c.z < z1 and f.normal.z > -0.1 and dark(f):
+            sel.append(f)
+    # keep the main connected patch only (stray dark faces elsewhere in the box stay on the hull), then fill the holes:
+    # faces enclosed by the patch (frame bars, glints) go with it
+    selset = set(sel)
+    seen, best = set(), []
+    for f in sel:
+        if f in seen:
+            continue
+        comp, stack = [], [f]
+        seen.add(f)
+        while stack:
+            g = stack.pop()
+            comp.append(g)
+            for e in g.edges:
+                for h in e.link_faces:
+                    if h in selset and h not in seen:
+                        seen.add(h)
+                        stack.append(h)
+        if len(comp) > len(best):
+            best = comp
+    sel = best
+    # fill: a face in the box that has patch faces before and behind it and to both sides (seen from above, 3 cm
+    # cells) is inside the windscreen: bright frame bars, glints and the old squiggle's faces go with the patch
+    cell = 0.03
+    rows, cols = {}, {}
+    for f in sel:
+        c = f.calc_center_median()
+        i, j = int(c.x // cell), int(c.y // cell)
+        a = rows.setdefault(j, [i, i]); a[0] = min(a[0], i); a[1] = max(a[1], i)
+        b = cols.setdefault(i, [j, j]); b[0] = min(b[0], j); b[1] = max(b[1], j)
+    inpatch = set(sel)
+    for f in bm.faces:
+        if f in inpatch:
+            continue
+        c = f.calc_center_median()
+        if not (x0 < c.x < x1 and abs(c.y) < wmax and z0 < c.z < z1):
+            continue
+        i, j = int(c.x // cell), int(c.y // cell)
+        if j in rows and i in cols and rows[j][0] < i < rows[j][1] and cols[i][0] < j < cols[i][1]:
+            sel.append(f)
+    gm = G.mat("M_%s_Glass" % K["ship"], rh_ships.ACCENTS[K["accent"]]["glass"], roughness=0.05)
+    drop = Vector((0.0, 0.0, -ca.get("drop", 0.035)))
+    gb = bmesh.new()
+    guv = gb.loops.layers.uv.new("UVMap")
+    vmap = {}
+    for f in sel:
+        vs = []
+        for v in f.verts:
+            if v not in vmap:
+                vmap[v] = gb.verts.new(v.co + drop - Vector(COCKPIT))
+            vs.append(vmap[v])
+        try:
+            nf = gb.faces.new(vs)
+        except ValueError:
+            continue
+        for l, ol in zip(nf.loops, f.loops):
+            l[guv].uv = ol[uvl].uv
+    glass = G._finish("SM_%s_Canopy" % K["ship"], gb, [gm], 20.0)
+    glass.location = COCKPIT
+    # the tub: walls straight down from the opening's boundary, and a floor
+    selset = set(sel)
+    floor_z = min(v.co.z for v in vmap) - ca.get("depth", 0.42)
+    tb = bmesh.new()
+    tuv = tb.loops.layers.uv.new("UVMap")
+    cx = sum(v.co.x for v in vmap) / len(vmap)
+    lo = Vector((min(v.co.x for v in vmap), min(v.co.y for v in vmap), floor_z))
+    hi = Vector((max(v.co.x for v in vmap), max(v.co.y for v in vmap), floor_z))
+    for f in sel:
+        for e in f.edges:
+            if sum(1 for h in e.link_faces if h in selset) != 1:
+                continue
+            a, b = e.verts[0].co, e.verts[1].co
+            q = [tb.verts.new(a), tb.verts.new(b), tb.verts.new((b.x, b.y, floor_z)), tb.verts.new((a.x, a.y, floor_z))]
+            nf = tb.faces.new(q)
+            nf.normal_update()
+            mid = (a + b) / 2
+            if nf.normal.dot(Vector((cx - mid.x, -mid.y, 0.0))) < 0:      # walls face the inside of the tub
+                nf.normal_flip()
+            nf.material_index = BLACK
+    fl = tb.faces.new([tb.verts.new((lo.x - 0.05, lo.y - 0.05, floor_z)), tb.verts.new((hi.x + 0.05, lo.y - 0.05, floor_z)),
+                       tb.verts.new((hi.x + 0.05, hi.y + 0.05, floor_z)), tb.verts.new((lo.x - 0.05, hi.y + 0.05, floor_z))])
+    fl.normal_update()
+    if fl.normal.z < 0:
+        fl.normal_flip()
+    fl.material_index = BLACK
+    me = bpy.data.meshes.new("CP_Tub")
+    tb.to_mesh(me)
+    tb.free()
+    for m in mats:
+        me.materials.append(m)
+    tub = bpy.data.objects.new("CP_Tub", me)
+    G.collection().objects.link(tub)
+    cut = len(sel)
+    bmesh.ops.delete(bm, geom=sel, context="FACES")
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
+    bm.to_mesh(body.data)
+    bm.free()
+    body.data.update()
+    # seat, pilot bust and instruments (positions from the config: seat x, head height)
+    sx, hz, zd = ca["seat_x"], ca["head_z"], floor_z
+    parts = [tub]
+    parts.append(G.box("CP_SeatBack", (sx - 0.08, -0.13, zd), (sx, 0.13, hz - 0.04), mats, GUN))
+    parts.append(G.box("CP_SeatHead", (sx - 0.07, -0.07, hz - 0.04), (sx - 0.01, 0.07, hz + 0.07), mats, BLACK))
+    parts.append(G.box("CP_Shoulders", (sx, -0.16, hz - 0.20), (sx + 0.14, 0.16, hz - 0.09), mats, WHITE))
+    parts.append(G.lathe_x("CP_Helmet", [(0.0, 0.0), (0.012, 0.05), (0.05, 0.08), (0.11, 0.082), (0.16, 0.066), (0.185, 0.0)],
+                           (sx + 0.01, 0.0, hz), mats, segments=24, mat_idx=[WHITE] * 6))
+    parts.append(G.box("CP_Visor", (sx + 0.15, -0.045, hz - 0.012), (sx + 0.168, 0.045, hz + 0.028), mats, BLACK))
+    dx = ca["dash_x"]
+    parts.append(G.box("CP_Dash", (dx, -0.20, zd), (dx + 0.14, 0.20, ca["dash_z"]), mats, GUN, taper=(1.0, 0.5)))
+    parts.append(G.box("CP_Instr", (dx - 0.006, -0.12, ca["dash_z"] - 0.035), (dx, 0.12, ca["dash_z"] - 0.012), mats, GLOW))
+    for p in parts[1:]:
+        G.bevel(p, width=0.004, segments=2, angle_deg=30.0)
+    return parts, glass, cut
+
+
 def build_canopy(mats, body, bvh):
     """The glass follows the Rodin dome (rays from above, an even polynomial fitted per station: one clean, smooth
     pane), 8 mm above it; the Rodin dome under it is cut and a dark cockpit deck, seat, pilot and dash go inside."""
+    if K["canopy"].get("kind") == "facets":
+        return _canopy_facets(mats, body, bvh)
     L = CANOPY_X[1] - CANOPY_X[0]
     ca = K["canopy"]
     ox, ky = ca["ox"], ca["ky"]          # where the seat, pilot and dash sit (designed on the Rift: 0, 1)
@@ -505,7 +651,7 @@ def _nose_rift(mats, body, bvh):
     # v09: one long, narrow glowing slit along the top. v12 (review MINOR: "a hard white rectangle", "the nose lost its
     # magenta accent"): the slit glows in the accent colour between dark walls, where it was white-hot
     pockets = [{"u0": PI / 2 - 0.10, "u1": PI / 2 + 0.10, "v0": 1.95, "v1": 2.24, "depth": 0.008, "eu": 0.025, "ev": 0.02,
-                "mat": GLOW, "wall_mat": BLACK}]
+                "mat": K.get("slit_mat", GLOW), "wall_mat": BLACK}]
     seams = ((1.72, 1.728), (1.90, 1.908), (2.20, 2.208))        # panel seams: clean dark bands
 
     def mat_fn(u, v):
@@ -813,8 +959,28 @@ def clean_livery(path, crack_px=6, smooth_px=10, body=None):
         region = region[::-1] if False else region
         paint_white = np.median(a[white], axis=0) if white.any() else np.array([0.8, 0.8, 0.82])
         rp = region & ((lum < 0.30) | (magenta & K["repaint_accent"]))   # v09: the ragged magenta sill stripe goes white too
+        if K.get("repaint_tinted"):
+            # v13 (review of v12: lilac specks left in the repainted area): leftover purple chrome texels that are
+            # neither dark nor the accent paint go white too
+            rp |= region & (a[..., 2] > a[..., 1] * 1.12) & (sat > 0.12)
         out[rp] = paint_white
         repaint_px = int(rp.sum())
+        wing = None
+        if K.get("accent_boxes"):
+            wing = _paint_mask(body, lum.shape, None, K["accent_boxes"])
+            paint_accent = np.median(a[magenta], axis=0) if magenta.any() else np.array([0.8, 0.03, 0.46])
+            chips = wing & ~magenta & (lum > 0.16)
+            out[chips] = paint_accent
+            if K.get("accent_seams"):
+                out[_paint_mask(body, lum.shape, None, K["accent_seams"])] = (0.035, 0.035, 0.04)
+            repaint_px += int(chips.sum())
+        seam = None
+        if K.get("repaint_seams"):
+            # v13 (review of v12: the straight end of the repaint read as a texture seam with a stair-stepped edge):
+            # a dark panel joint a centimetre wide along it, so the change of paint sits on a seam
+            seam = _paint_mask(body, lum.shape, None, K["repaint_seams"])
+            out[seam] = (0.035, 0.035, 0.04)
+            rp = rp | seam
     T.save(out, path, True)
     res = {"white_px": int(white.sum()), "magenta_px": int(magenta.sum()), "cracks_filled": int(crack_w.sum() + crack_m.sum())}
     # the cracks are carved into the normal map too: inside the paint, the normal map's fine band is mostly removed
@@ -857,6 +1023,8 @@ def clean_livery(path, crack_px=6, smooth_px=10, body=None):
             e = T.load(epath)
             res["emissive_cleared_px"] = int((emask & (e.max(-1) > 0.02)).sum())
             e[emask] = 0.0
+            if K.get("accent_boxes"):                           # v14: the patchy glow on the crescent wings, to a quarter
+                e[wing] *= K.get("accent_glow", 0.25)
             T.save(e, epath, True)
         opath = path.replace("_BC.png", "_ORM.png")
         if os.path.isfile(opath):
@@ -868,6 +1036,9 @@ def clean_livery(path, crack_px=6, smooth_px=10, body=None):
             o = buf.reshape(h, w, 4)
             o[rp, 1] = 0.45
             o[rp, 2] = 0.0
+            if K.get("accent_boxes"):
+                o[wing, 1] = np.maximum(o[wing, 1], K.get("accent_rough", 0.55))
+                o[wing, 2] = 0.0
             im.pixels.foreach_set(o.ravel())
             im.filepath_raw = opath
             im.file_format = "PNG"

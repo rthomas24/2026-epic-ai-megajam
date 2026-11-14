@@ -53,8 +53,8 @@ SCALARS = {
     "ValueVar": (0.55, 0.5), "HueContrast": (2.2, 2.0), "TintCThreshold": (0.68, 0.62), "TintCSoft": (0.18, 0.2),
     "RoughVar": (0.12, 0.1),
     # thresholds (metres / slope) and their breakup
-    "HeightBreakM": (140.0, 140.0), "BiomeBreakM": (260.0, 120.0), "SlopeBreak": (0.08, 0.07),
-    "RockSlopeStart": (0.17, 0.15), "RockSlopeRange": (0.13, 0.12),
+    "HeightBreakM": (140.0, 140.0), "BiomeBreakM": (260.0, 120.0), "SlopeBreak": (0.14, 0.07),
+    "RockSlopeStart": (0.15, 0.15), "RockSlopeRange": (0.2, 0.12),     # s6: a wider, broken cliff foot on Verdance (hard seam)
     "PeakStartM": (1450.0, 1300.0), "PeakRangeM": (550.0, 700.0), "PeakSlopeMax": (0.4, 0.36), "PeakSlopeRange": (0.3, 0.28),
     "LowTopM": (-260.0, 10.0), "LowFadeM": (130.0, 120.0), "LowAmount": (0.85, 0.7),
     # scatter v2: the patch (Verdance grove / Cinder obsidian) is a rule on the terrain's own masks, the same numbers as
@@ -64,7 +64,7 @@ SCALARS = {
     # roughness / specular / normal
     "FlatRoughness": (0.86, 0.9), "PatchRoughness": (0.7, 0.22), "LowRoughness": (0.9, 0.8), "RockRoughness": (0.82, 0.78),
     "PeakRoughness": (0.7, 0.95), "Specular": (0.15, 0.25), "NormalStrength": (1.0, 1.2),
-    "RockTile": (1400.0, 1100.0), "RockFarScale": (9.0, 11.0), "RockNormalStrength": (1.1, 1.4),
+    "RockTile": (900.0, 1100.0), "RockFarScale": (4.0, 11.0), "RockNormalStrength": (1.1, 1.4),   # s6: Verdance cliffs were blurry sheets from the pad
     # river / pool band
     "ValleyCenter": (0.5, 0.5), "ValleyWidth": (0.035, 0.3), "ValleyBreak": (0.02, 0.012),
     "ValleySlopeMax": (0.05, 0.10), "ValleyTopM": (220.0, 2100.0), "ValleyFadeM": (200.0, 500.0),
@@ -75,6 +75,9 @@ SCALARS = {
     "VeinSharpNear": (40.0, 34.0), "VeinSharpFar": (9.0, 14.0), "VeinStrength": (0.45, 1.6), "VeinFarBoost": (0.55, 1.8),
     "VeinTopM": (500.0, 250.0), "VeinFadeM": (400.0, 200.0), "PatchGlow": (0.10, 0.0), "PeakGlow": (0.04, 0.0),
     "VeinPatchiness": (1.0, 1.0),
+    # pass 4: a minimum ambient (emissive = albedo x floor x the sky's colour) so Cinder's self-shadowed basalt slopes
+    # never go to black under the low sun; proportional to the albedo, so nothing lights up on its own. Off on Verdance.
+    "AmbientFloor": (0.0, 0.45),
 }
 VECTORS = {
     # R3 (Verdance): A = teal moss, B = bright yellow-green moss (open meadow side), C = blue-teal glade
@@ -95,6 +98,7 @@ VECTORS = {
     "MoltenBase": ((0.004, 0.022, 0.028), (0.12, 0.025, 0.005)),
     "VeinColorA": ((0.05, 0.9, 1.0), (1.0, 0.22, 0.02)),
     "VeinColorB": ((0.38, 0.20, 1.0), (0.9, 0.07, 0.008)),
+    "AmbientTint": ((0.6, 0.9, 1.0), (1.0, 0.62, 0.48)),             # the sky colour (Cinder: smoky ember haze)
 }
 # layer slot -> (Verdance set, Cinder set)
 LAYERS = {
@@ -367,4 +371,5 @@ def build_graph(b, t, means):
     e_val = mul(mul(lerp(Vp("ValleyEdgeColor"), Vp("ValleyCoreColor"), mul(heat, heat)), heat),
                 mul(add(0.6, mul(c(flow, "R"), 0.8)), S("ValleyEmissive")))
     e_pk = mul(peak_c, mul(peak_w, S("PeakGlow")))
-    b.out(add(add(e_vein, e_patch), add(e_val, e_pk)), "", MP.MP_EMISSIVE_COLOR)
+    e_amb = mul(mul(base, Vp("AmbientTint")), mul(S("AmbientFloor"), inv(molten)))
+    b.out(add(add(add(e_vein, e_patch), add(e_val, e_pk)), e_amb), "", MP.MP_EMISSIVE_COLOR)

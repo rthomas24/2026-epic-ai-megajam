@@ -1494,3 +1494,5 @@ Content/TriadDrift/Gameplay/Characters/FX/DA_SpikeRockets_FX.uasset | audio asse
 Content/TriadDrift/Gameplay/Characters/FX/DA_Travel_FX.uasset | audio asset paths before=12 after=13 | DIFFERENT {b'/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_DescentRoar_01'}
 ==== independent check (sound_check.py): audio asset paths in each data asset changed since HEAD: 1 files changed, 1 differ
 Content/TriadDrift/Gameplay/Characters/FX/DA_SpaceField_FX.uasset | audio asset paths before=0 after=4 | DIFFERENT {b'/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Special', b'/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Medium', b'/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Large', b'/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Small'}
+==== independent check (sound_check.py): audio asset paths in each data asset changed since HEAD: 1 files changed, 0 differ
+Content/TriadDrift/Gameplay/Characters/FX/DA_StoryFX.uasset | new file

@@ -260,6 +260,95 @@ for these (`grep NS_TD_ Source` gives one comment).
 3. `Content/TriadDrift/Dev/EngAnim/PilotBlade` (18 retarget sources) is outside every cooked folder: correct, but
    nothing else should reference it.
 
+### 2.9 Update: batch M (`lead/int-m` `fd6ed5bc`, Nov 14 00:40, import builder)
+
+**How this was taken.** Files added or changed under `Content/TriadDrift/Gameplay` between `90b384ed` and
+`fd6ed5bc`, by folder and name prefix, read against the commit that added them, the builders' READMEs and
+`CREDITS.md`; references by the same path-string scan as 2.8. Text only: nothing was launched. Nicholas's additions
+(`Content/TriadDrift/Audio/DominionCore01` and his other folders) are his to record.
+
+| Set | What it is, where it is used | Source and tool | Licence as recorded | Files | State | In `CREDITS.md` |
+|---|---|---|---|---|---|---|
+| Dominion interior and docking bay kit ("KitD") | The boarding finale's rooms and the bay, rebuilt on the DominionInterior piece names; route arrow and trident decals | Engineering (structures builder), Blender 5.2 code-built; `T_KitD_Trim_*` recomposed from Grok Bot's `T_DI_InteriorTrim` bands and `T_DI_Decals_*` imported from Grok Bot's interior plans (PR #82: Blender / NumPy, no generator) | project-authored | `ArtSource/EngProps/Kit` → `Gameplay/Props/Kit/Dominion` (8 SM, 5 MI, 7 T, 1 PL) and `Kit/Materials` (`M_KitD_Trim`, `M_Kit_Decal`, `M_Kit_LightPillar`, `M_Kit_Screen`); classes `BP_DockingBay_Course`, `BP_DockingBay_Interior`, `BP_DockingBay_GalaxyTest`, `BP_KitD_InteriorPreview` | **in game**: T5's interior spawns no class; it places the `SM_DI_*` meshes by name, from `Props/Kit/Dominion` first, else `Props/DominionInterior` (`Ground/Interior/TDDominionInteriorCourse.inl:61-70`; the door at `:169`, the console still from `Props/DominionInterior` at `:209`). The bay pocket is `BP_DockingBay_Interior`, loaded by `World/TDDominion.cpp:1297`. Named by nothing: `BP_DockingBay_Course`, and the walk-test classes `BP_KitD_InteriorPreview` and `BP_DockingBay_GalaxyTest` | kit yes (site kit line); Grok's plans yes |
+| Site kit r10 additions | 8 more `SM_Kit_*` pieces, beacon / light / light-pillar / stone instances, `T_KitS_Trim_*` (stone), `T_Kit_ScreenDefault`; `BP_Kit_Artefact` (the ancient artefact), `BP_SurveyLine_Verdance` | Engineering (structures builder), Blender 5.2 | project-authored | `Gameplay/Props/Kit` (8 SM, 6 MI, 4 T), `Kit/Sites` (2 BP); 16 existing pieces and the site classes re-saved | **in game** through the site classes; the artefact and survey line: placement not traced | yes (site kit line) |
+| Crew clips, Grok set | 13 trooper rifle clips and 4 Warden fire / summon clips, plus grounded grunt and death variants made from them (42 new `A_Crew_*`) | Grok Bot, HY-Motion 1.0 on fal.ai (AI-generated motion); retargeted and cleaned in Unreal (animation builder) | fal "Commercial use" | `ArtSource/EngAI/Animations/{CrewTrooper,Warden}/r1` → `Gameplay/Characters/Crew/Anims` | **in game** by name where `TDCrewCharacter` asks for them; per-clip state in `animations.md` | yes (added with the batch) |
+| Pilot clips | 8 new `A_Pilot_*`: board / exit ship, air-slam landing, grounded deaths, `_v2` / `_v3` re-times; `A_Pilot_Grip_R` and the light combo changed | Engineering (animation builder) on the HY-Motion set and the template clips | as their sources | `Gameplay/Characters/Pilot/Anims` | per clip in `animations.md` | covered by the existing animation lines |
+| Squad ships: Lancer hybrid v05, Bastion parts, canopies | Lancer and Rift tinted-glass canopies as their own parts, Lancer cannons, Bastion and Lancer part sets, `M_TD_ShipGlass` | Engineering (ship builder), Blender 5.2 on the Rodin hulls | project-authored over the Rodin output | `ArtSource/EngShips` → `Gameplay/Ships/{Lancer,Bastion,Rift,Materials}` (2 SM, 4 MI, 10 T, 1 M new; hulls, instances and `M_TD_Ship` re-saved) | **in game** through `DA_{Rift,Lancer,Bastion}_Visuals` (changed in the batch) | yes (`77268612`) |
+| Carrier bay | `SM_Null_CarrierBay` and its textures re-made | Engineering (ship builder), Blender 5.2 | project-authored | `Gameplay/Characters/NullFleet` (6 files changed) | **in game** (`DA_Enemy_Carrier_Visuals.BayMesh`) | covered by the Null fleet line |
+| Planet sea | `M_TD_PlanetSea`, `MI_PlanetSea_{Verdance,Cinder}` | Engineering (environment builder), Unreal Python | project-authored | `Gameplay/Props/Planets` | **in game**: `World/TDPlanetTerrain.cpp:122-123` loads `MI_PlanetSea_Cinder` / `MI_PlanetSea_Verdance` by path for the terrain's sea plane | yes |
+| Far-tier canopy stands | `SM_Scatter_Verd_CanopyStand_01..03` (60-80 tris), `M_TD_CanopyStand`, 2 MI | Engineering (environment builder), Blender 5.2 code-built | project-authored | `Gameplay/Props/Scatter` | **in game**: `World/TDPlanetScatter.cpp:117` adds `SM_Scatter_Verd_CanopyStand_01..03` to Verdance's canopy tier | covered by the scatter kit line |
+| Hyperdrive effects r8 | `NS_TD_Hyperdrive_{Spool,Tunnel,DropOut}`, `M_TD_VFX_HyperRift`, `M_TD_VFX_HyperRing` | Engineering (effects builder), Niagara | project-authored | `Gameplay/VFX/Hyperdrive` | **in game**: all three named by `DA_Travel_FX` | covered by the ENG-37 line |
+| More Niagara systems | `NS_TD_Ambient_{Verdance,Cinder}`, `Blade_SwingTrail`, `Dominion_DockOpen`, `Escape_{RunLoop,FlightLoop}`, `Reactor_{Exposed,Hit}`; `M_TD_VFX_Diamond`, `M_TD_VFX_DomeHex` | Engineering (effects builder) | project-authored | `Gameplay/VFX/Systems`, `VFX/Materials` | **unwired** (waiting on a slot; kept in the cook on the Lead's decision) | covered by the ENG-37 line |
+| `DA_SpaceField_FX` | The space-field break cues | Engineering (effects builder) | project-authored | `Gameplay/Characters/FX` | **in game**: names `NS_TD_Asteroid_Break_{S,M,L,Crystal}`. **Its four Sound fields are empty** in batch M's copy (no `/Audio/` path in the asset): to set, `BreakSmall.Sound` = `/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Small`, `BreakMedium.Sound` = `.../MSS_Field_Break_Medium`, `BreakLarge.Sound` = `.../MSS_Field_Break_Large`, `BreakSpecial.Sound` = `.../MSS_Field_Break_Special` (or run `ue_wire.py` with `ArtSource/EngAudio/build/spec_gaps_wire.json`) | - |
+| Fallback sounds, the gaps | 14 sounds (ENG-35), see `CREDITS.md` | Engineering, original synthesis | project-authored | `Gameplay/Audio/{Pickups,Field,Story,Impacts,Travel,Dominion}` | pickup Collect x4 **wired** (`DA_Pickup_Visuals` holds the four paths). `DA_Travel_FX.DescentRoar` is **empty** in batch M's copy (the effects builder's version won the merge; `SW_Travel_DescentRoar_01` is not named in it). Three-pulse, escape alarm, impact thuds and reward drop wait for a slot | yes |
+
+**Wiring now (the 62 `NS_TD_*` added since the first ledger, `VFX/Systems` only):** 34 named by a data asset or code,
+28 not. Newly wired in batch M: the four `Asteroid_Break_*` (`DA_SpaceField_FX`), `Entry_CloudPunch`, `Entry_CloudWisps`,
+`Exit`, `Exit_Breakaway` (`DA_Travel_FX`), `Hyperdrive_Streaks` (code). So the cloud punch and cloud wisp flipbooks of
+2.8 are in use now.
+
+**Never cooked (Config/DefaultGame.ini, `2229c130`, `17855ca5`, `d49ced2b`; NOT YET PROVEN BY A COOK).** 35 packages, 34.1 MB of editor files,
+all superseded and named by no other asset and no code (scan at `fd6ed5bc`). Nothing is deleted or moved; removing a
+line ships the asset again.
+
+| MB | Packages | Rule |
+|---|---|---|
+| 16.0 | Rodin outpost cabin and console: `Props/Outpost/SM_Outpost_{Cabin,Console}`, `MI_Outpost_{Cabin,Console}_{Verdance,Cinder}`, `Materials/M_Outpost`, 10 `Textures/T_Outpost_*` | one line per package (the folder also holds `BP_Outpost_Site_*`, which ship) |
+| 6.7 | `VFX/Probe/NS_TD_Probe_{P1..P6,Q1..Q4}` | the folder |
+| 5.4 | `VFX/Textures/T_TD_VFX_Grok_Fire_8x8` | one line |
+| 4.6 | `VFX/Systems/NS_TD_Entry_{BowShock,Debris,HeatStreaks,PlasmaSheath,ShockCone}` (superseded by the combined `NS_TD_Entry`) | one line each |
+| 1.3 | `VFX/Systems/NS_TD_Blade_Swing`, `NS_TD_Rift_RingIdle` | one line each |
+| 1.4 | Walk-test classes `Props/Kit/Dominion/BP_KitD_InteriorPreview`, `BP_DockingBay_GalaxyTest` (`17855ca5`): named by no asset and no code | one line each |
+| 0.7 | The 13 `PL_*` Interchange pipelines (`d49ced2b`, its own commit so it can be dropped alone): each IS named by the import data of the meshes imported through it. Import data is editor-only, so the cook should not follow it; only the cook can say | one line each |
+
+How it works: `DirectoriesToNeverCook` entries become a path tree and every package whose path is at or under an entry
+is skipped (`UCookOnTheFlyServer::GetNeverCookPackageNames`, engine source), so an entry may name one package; the
+match is by whole path component, so `NS_TD_Blade_Swing` does not catch `NS_TD_Blade_SwingArc`. Never-cook wins over
+always-cook. The trap (Epic's `unreal-trim` skill): if kept content references a never-cooked package the cook fails
+with "Content is missing from cook", so the list must be cooked once before it is trusted, and re-checked whenever one
+of these is wired again. Kept in the cook on purpose (waiting on a slot): `Core_*`, `Escape_*`, `Drone_Thruster`,
+`Glitch_Tear`, `Ambient_*`, `Crew_Bolt*`, `Missile_Trail*`, `Ram_Streak`, `Ship_ImpactScrape`, the drill rig and
+`BP_DigSite_Cabin`.
+
+**Findings (batch M, Nov 14 01:20).**
+1. `DA_SpaceField_FX` has no sounds and `DA_Travel_FX.DescentRoar` is empty in batch M (rows above): the break and
+   descent-roar fallbacks exist but do not play until those five Sound fields are set.
+2. `BP_DockingBay_Course` (`Props/Kit/Dominion`) is named by nothing either; it is not on the never-cook list because
+   it is not a test class: the structures builder or T4 should say whether it is still wanted.
+3. Credits: the Lancer and Bastion parts, canopies and the planet sea now have lines (`77268612`).
+
+### 2.10 Update: batches N and O (`f39a8372`, `lead/int-o` `364aabb3`; Nov 14 04:15, import builder)
+
+**How this was taken.** Files added under `Content/TriadDrift` from `fd6ed5bc` to `f39a8372` (batch N) and from
+`f39a8372` to `lead/int-o` `364aabb3` (batch O, not on `main` yet), by folder and name prefix; references by the
+path-string scan, for batch O read from the branch's objects. Text only. Tools and licences are as each builder's
+earlier sets unless the row says otherwise; rows marked "not read" were not checked against a README.
+
+| Set | Batch | What it is | Source and tool | Files | State | In `CREDITS.md` |
+|---|---|---|---|---|---|---|
+| Space set pieces | N (+1 in O) | Five landmark classes for the space field: `BP_SP_HollowRock`, `_NullRig`, `_PatrolWreck`, `_ResearchA`, `_ResearchB` | Engineering (Claude Code builder), Blender code-built: not read | `Gameplay/Props/Space/SetPieces` (5 BP, 9 SM, 17 MI, 1 PL) | cooked by the `Gameplay/Props` rule; which code places them was not traced | **no line found** |
+| Crew clips, second set | N | 31 more `A_Crew_*` (grunt charge from the Grok set, root-motion deaths and more) | Animation builder on the HY-Motion set and the template clips | `Gameplay/Characters/Crew/Anims` | per clip in `animations.md` | covered by the animation lines |
+| Crew blaster cues | N | `DA_CrewBlaster_FX` | Engineering | `Gameplay/Characters/FX` | data asset, found by name | - |
+| Enemy ship parts | N | `MI_NullFighter_Parts`, `MI_NullGunship_Parts` with `T_*_Parts_BC/N/ORM/E` | Ship builder, Blender on the Rodin hulls | `Gameplay/Ships/{NullFighter,NullGunship}` (2 MI, 8 T) | in game through the enemy visuals (changed in the batch) | **no line found** (same kind as the Lancer / Bastion parts line) |
+| Corridor look | N | `MI_KitD_Glow_Corridor`, `MI_KitD_Trim_Corridor` | Structures builder | `Gameplay/Props/Kit/Dominion` | - | covered by the site kit line |
+| Cinder music | N | `MUS_Cinder_Combat_Fall_Full_01`, `MUS_Cinder_Exploration_World_Full_01` | **Nicholas's** (his folder, his record) | `Content/TriadDrift/Audio/CinderMusic01` | always-cook line added on `main` | his entry |
+| Story sets and landmarks | O | `BP_StorySet_VerdanceCamp`, `BP_StorySet_CinderMine`, `BP_Landmark_RelayMast`, `BP_Landmark_NullDerrick` and the Story kit pieces (canopy, flag, drag marks, scorch lines, relay nav, derrick beacon) | Structures builder, Blender code-built: not read | `Gameplay/Props/Kit/Sites` (4 BP), `Kit/Story` (15 SM, 7 MI, 8 T, 1 PL) | new; cooked by the `Gameplay/Props` rule; loaded by T5's course by path | **no line found** |
+| Scatter additions | O | `SM_Scatter_Verd_TreeClump_01..04`, `M_TD_ScatterColumn`, 2 MI | Environment builder | `Gameplay/Props/Scatter` | not traced | covered by the scatter kit line |
+
+Changed, not added: 75 `Gameplay` files in batch N and 64 in batch O (ships, kit pieces, site classes, terrain
+material, effects), not listed one by one.
+
+**Cook rules as of this update** (details in `docs/eng/BUILD-SIZE.md` 6.1, 6.8, 6.9): 175 never-cook lines on
+`eng/import` (the 35 + 2 + 13 of 2.9, plus 134 packages of old ships, unplaced planet-kit pieces, old Dominion
+pieces, two flipbooks and unused scatter meshes), all waiting for the packaging agent's trial cook. The Rodin wreck
+set is **not** on the list any more (`ee3437f3`): T5 places `BP_Wreck`, which uses `SM_Wreck` as sunk dressing. The
+`PL_Space_StaticMesh` and `PL_Story_StaticMesh` pipelines are new and not on the list.
+
+**Findings.**
+1. No `CREDITS.md` line found for the space set pieces, the Story kit and the enemy ship part sets. Engineering
+   originals by their paths and commits; a line each is paperwork for their builders' Lead.
+2. Two new `PL_*` pipeline assets sit in always-cooked folders, like the 13 before them.
+
 ## 3. Nicholas's supplied models: review for use
 Done on Nov 13: **`docs/eng/ASSET-INTAKE-REVIEW.md`** has one row for each of the 14 imported assets, the 5 weapons
 and the 36 sources, with measured triangle counts, the fit to the story, the proposed use, the cost and a decision,

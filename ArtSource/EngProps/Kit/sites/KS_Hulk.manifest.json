@@ -1,0 +1,41 @@
+{
+ "site": "KS_Hulk",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Space/BP_KS_Hulk",
+ "about": "Quiet Graveyard: the cut-up cruiser's three sections drifting apart (about 200 m).",
+ "pieces": [
+  {
+   "name": "Fore",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_Hulk_Fore",
+   "location_cm": [
+    6500.0,
+    800.0,
+    400.0
+   ],
+   "yaw_deg": 8.0,
+   "roll_deg": -12.0
+  },
+  {
+   "name": "Mid",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_Hulk_Mid",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0,
+   "roll_deg": 6.0
+  },
+  {
+   "name": "Aft",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_Hulk_Aft",
+   "location_cm": [
+    -6200.0,
+    -900.0,
+    -600.0
+   ],
+   "yaw_deg": -10.0,
+   "pitch_deg": 5.0,
+   "roll_deg": 25.0
+  }
+ ]
+}

@@ -93,6 +93,11 @@ public:
 	/** Pool size cap; beyond it, released projectiles are destroyed. */
 	UPROPERTY(EditAnywhere, Category = "TriadDrift|Combat")
 	int32 MaxPooled = 256;
+	/** Pool misses (a new projectile / flash actor spawned) since the world began: the perf benchmark wants 0 in steady fire. */
+	int32 GetSpawnedProjectiles() const { return SpawnedProjectiles; }
+	int32 GetSpawnedFlashes() const { return SpawnedFlashes; }
+	int32 SpawnedProjectiles = 0;
+	int32 SpawnedFlashes = 0;
 
 	// ---- hit feel (Lead's polish list, Nov 13): a brief hit-stop when the player kills something big
 	/** A kill counts as big when the victim's bounds reach this radius (gunships, carriers, Dominion parts). */

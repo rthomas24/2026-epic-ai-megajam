@@ -1,6 +1,7 @@
 // Triad Drift - Combat (Teammate 2). Placeholder streaks and flashes.
 
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
@@ -396,6 +397,7 @@ void ATDCombatFlash::Stop()
 
 void ATDCombatFlash::Tick(float DeltaSeconds)
 {
+	TD_COMBAT_PERF(Flashes);
 	Super::Tick(DeltaSeconds);
 	if (!bPlaying)
 	{
