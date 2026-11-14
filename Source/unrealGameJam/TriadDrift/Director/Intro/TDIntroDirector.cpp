@@ -1111,6 +1111,9 @@ void UTDIntroDirector::BeginShot(int32 Index)
 		// well under it so the night side reads as a silhouette, with the lens flare down (its ghosts sat on the disc).
 		const bool bEclipse = S.Id == TEXT("Eclipse");
 		PP.LensFlareIntensity = bEclipse ? 0.f : 1.6f;
+		// N-071: the three hero frames are locked to their ship; motion blur only smeared the hull's edges and lights (the
+		// ship drifts and banks a little inside the frame). Off there, on everywhere else.
+		PP.MotionBlurAmount = S.Id == TEXT("Squad") ? 0.f : 0.6f;
 		PP.AutoExposureBias = S.Id == TEXT("Title") ? 1.5f : (S.Id.ToString().StartsWith(TEXT("Threat")) ? 0.7f : (bEclipse ? EclipseExposureEV100() : 0.f));
 	}
 	if (S.Id == TEXT("Title"))

@@ -134,7 +134,7 @@ namespace TDStory
 			E(TEXT("G3_DataSecured"), S::Kato, LOCTEXT("G3_DataSecured", "Device and recordings secured. I've got the Cinder coordinates. Let's move.")),
 			E(TEXT("G3_Moss_NobodyNear"), S::Moss, LOCTEXT("G3_Moss_NobodyNear", "Then nobody gets near the station.")),
 			E(TEXT("G3_Wren_LeftApproach"), S::Wren, LOCTEXT("G3_Wren_LeftApproach", "Left approach! Keep them off Kato.")),
-			E(TEXT("G3_Kato_AlmostThere"), S::Kato, LOCTEXT("G3_Kato_AlmostThere", "Archive almost complete. Keep them off the station.")),
+			E(TEXT("G3_Kato_AlmostThere"), S::Kato, LOCTEXT("G3_Kato_AlmostThere", "Archive almost complete. Keep them back.")),
 			E(TEXT("G3_Command_Extraction"), S::Command, LOCTEXT("G3_Command_Extraction", "Triad, extraction corridor is open. Return with the archive intact.")),
 			// Cinematic 04, Verdance Departure (§17, §25: transmissions over the take-off; no shielding).
 			E(TEXT("C4_Moss_Trouble"), S::Moss, LOCTEXT("C4_Moss_Trouble", "All that for a recorder full of voices. None of them answering.")),

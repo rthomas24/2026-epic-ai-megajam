@@ -164,7 +164,8 @@ bool FTDIntroShotList::RunTest(const FString& Parameters)
 	const UCameraComponent* Cam = F.Intro->GetShotCamera()->GetCameraComponent();
 	TestNearlyEqual(TEXT("35 mm field of view"), Cam->FieldOfView, 39.1f, 0.5f);
 	TestTrue(TEXT("depth of field set"), Cam->PostProcessSettings.bOverride_DepthOfFieldFstop && Cam->PostProcessSettings.DepthOfFieldFstop <= 2.8f);
-	TestTrue(TEXT("motion blur, bloom, flare, grain"), Cam->PostProcessSettings.MotionBlurAmount > 0.f && Cam->PostProcessSettings.BloomIntensity > 0.f
+	TestEqual(TEXT("N-071: no motion blur in the steady hero frames"), Cam->PostProcessSettings.MotionBlurAmount, 0.f);
+	TestTrue(TEXT("bloom, flare, grain"), Cam->PostProcessSettings.BloomIntensity > 0.f
 		&& Cam->PostProcessSettings.LensFlareIntensity > 0.f && Cam->PostProcessSettings.FilmGrainIntensity > 0.f);
 	TestEqual(TEXT("2.39 bars"), F.Intro->GetOverlay().Bars, 1.f);
 
