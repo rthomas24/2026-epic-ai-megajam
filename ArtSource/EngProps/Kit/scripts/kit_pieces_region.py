@@ -315,3 +315,97 @@ def moon_shard_b():
 
 
 BUILDERS = [picket_ring, hulk_fore, hulk_mid, hulk_aft, scar_rig, moon_shard_a, moon_shard_b]
+
+
+# ------------------------------------------------------------------------------------------------ Dominion debris (escape flight)
+def _plate(name, L, W, T, seed, holes=3):
+    """A torn Null hull plate (L x W, T thick): a ragged polygon outline, Null black armour, a red seam glowing along the
+    torn edge (it reads while tumbling at speed), a few rib stubs on the back."""
+    p = Piece(name, None)
+    rnd = random.Random(seed)
+    n = 14
+    pts = []
+    for k in range(n):
+        a = 2 * math.pi * k / n
+        r = 1.0 if k % 3 else rnd.uniform(0.62, 0.85)
+        pts.append((math.cos(a) * L / 2 * r, math.sin(a) * W / 2 * r))
+    p.prism(pts, "xy", -T / 2, T / 2, regs="wallB", cap_reg="wall", mat="Dom")
+    for k in range(n):                                      # red seam on the torn edge, both faces
+        (x0, y0), (x1, y1) = pts[k], pts[(k + 1) % n]
+        if k % 3 == 0 or k % 3 == 2:
+            for z in (T / 2 + 2.0, -T / 2 - 2.0):
+                ix0, iy0, ix1, iy1 = x0 * 0.93, y0 * 0.93, x1 * 0.93, y1 * 0.93
+                p.poly([(x0, y0, z), (x1, y1, z), (ix1, iy1, z), (ix0, iy0, z)], mat="Glow", n=(0, 0, 1 if z > 0 else -1))
+    for k in range(3):
+        x = -L * 0.3 + k * L * 0.3
+        p.box((x - 40.0, -W * 0.35, -T / 2 - 120.0), (x + 40.0, W * 0.35, -T / 2), reg="frame", mat="Dom")
+    p.chull([(x, y, z) for x, y in pts for z in (-T / 2 - 120.0, T / 2)])
+    return p
+
+
+def debris_plate_a():
+    """Torn hull plate, 22 x 14 m."""
+    return _plate("SM_KS_DomDebris_PlateA", 2200.0, 1400.0, 120.0, 51)
+
+
+def debris_plate_b():
+    """Torn hull plate, 38 x 18 m (the largest piece)."""
+    return _plate("SM_KS_DomDebris_PlateB", 3800.0, 1800.0, 160.0, 53)
+
+
+def debris_plate_c():
+    """Torn hull plate, 9 x 7 m (the small fast one)."""
+    return _plate("SM_KS_DomDebris_PlateC", 900.0, 700.0, 80.0, 57)
+
+
+def debris_truss():
+    """Broken truss section, 26 m: two box chords and their diagonals, one end snapped and bent, red seam on the chords."""
+    p = Piece("SM_KS_DomDebris_Truss", None)
+    for y in (-200.0, 200.0):
+        for z in (-200.0, 200.0):
+            _tube(p, (-1300.0, y, z), (900.0, y, z), 45.0, reg="frame", mat="Dom")
+            _tube(p, (900.0, y, z), (1300.0, y * 1.5, z + 300.0), 45.0, reg="frame", mat="Dom")
+    for x in range(-1300, 900, 440):
+        for y in (-200.0, 200.0):
+            _tube(p, (float(x), y, -200.0), (float(x) + 220.0, y, 200.0), 25.0, reg="sw_gun", mat="Dom")
+        _tube(p, (float(x), -200.0, 200.0), (float(x), 200.0, 200.0), 25.0, reg="sw_gun", mat="Dom")
+    for z in (-247.0, 247.0):
+        p.poly([(-1300.0, -40.0, z), (900.0, -40.0, z), (900.0, 40.0, z), (-1300.0, 40.0, z)], mat="Glow", n=(0, 0, 1 if z > 0 else -1))
+    p.chull([(x, y, z) for x in (-1350.0, 1350.0) for y in (-350.0, 350.0) for z in (-250.0, 550.0)])
+    return p
+
+
+def debris_turret():
+    """A turret base torn off the hull, 12 m: an octagonal ring mount and the stump of a barrel housing, red seam round
+    the ring, white eye sensor dead dark."""
+    p = Piece("SM_KS_DomDebris_Turret", None)
+    p.lathe([(0.0, -150.0), (600.0, -150.0), (600.0, 100.0), (450.0, 250.0), (0.0, 250.0)], 8,
+            regs=["sw_dark", "wallB", "frame", "roof"], mat="Dom")
+    p.lathe([(602.0, -20.0), (602.0, 40.0)], 8, regs="sw_dark", mat="Glow")
+    p.box((-250.0, -220.0, 250.0), (250.0, 220.0, 600.0), regs={"Z": "roof"}, reg="wallB", mat="Dom")
+    _tube(p, (150.0, 0.0, 450.0), (700.0, 0.0, 520.0), 70.0, reg="frame", mat="Dom")
+    p.chull([(x, y, z) for x in (-600.0, 750.0) for y in (-600.0, 600.0) for z in (-150.0, 600.0)])
+    return p
+
+
+def debris_shroud():
+    """A reactor shroud fragment, 30 m: a curved armour shell (a 100-degree slice of a 30 m cylinder) with its inner face
+    still glowing a dying ember and red seams on the cut edges."""
+    p = Piece("SM_KS_DomDebris_Shroud", None)
+    with p.at(Matrix.Rotation(math.radians(90.0), 4, "Y")):
+        p.lathe([(1500.0, -900.0), (1500.0, 900.0)], 16, regs="wallB", mat="Dom", a0=0.0, a1=100.0)
+        p.lathe([(1350.0, 900.0), (1350.0, -900.0)], 16, regs="sw_dark", mat="Ember", a0=0.0, a1=100.0)
+        p.lathe([(1350.0, -900.0), (1500.0, -900.0)], 16, regs="frame", mat="Glow", a0=0.0, a1=100.0)
+        p.lathe([(1500.0, 900.0), (1350.0, 900.0)], 16, regs="frame", mat="Glow", a0=0.0, a1=100.0)
+    pts = []
+    for k in range(9):
+        a = math.radians(100.0 * k / 8)
+        for r in (1350.0, 1500.0):
+            for x in (-900.0, 900.0):
+                pts.append((-x, r * math.sin(a), r * math.cos(a)))
+    p.chull(pts)
+    return p
+
+
+DEBRIS = [debris_plate_a, debris_plate_b, debris_plate_c, debris_truss, debris_turret, debris_shroud]
+BUILDERS = BUILDERS + DEBRIS
