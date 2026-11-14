@@ -276,7 +276,7 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 		Sun->SetWorldRotation(FRotator(-20.f, 200.f, 0.f));
 		Sun->SetIntensity(8.f);
 		Sun->SetLightColor(FLinearColor(1.f, 0.86f, 0.82f));
-		Atmosphere->SetRayleighScattering(FLinearColor(0.0038f, 0.022f, 0.032f));
+		Atmosphere->SetRayleighScattering(FLinearColor(0.0025f, 0.022f, 0.032f));	// r3: red 0.0038 -> 0.0025, upper sky teal-grey, not lilac
 		Atmosphere->SetAerialPespectiveViewDistanceScale(1.f);
 		Atmosphere->SetMieScatteringScale(0.0025f);
 		if (Fill) { Fill->SetWorldRotation(FRotator(-35.f, 20.f, 0.f)); Fill->SetLightColor(FLinearColor(0.30f, 0.80f, 0.90f)); Fill->SetIntensity(5.f); }
