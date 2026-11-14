@@ -17,7 +17,7 @@ def SB(name, user, emitters):
 
 
 def UA(**kw):
-    d = {'Color': MAGENTA, 'Scale': 1.0, 'Length': 95.0, 'TipVelocity': (0.0, 0.0, 0.0), 'TipSpeed': 0.0}
+    d = {'Color': MAGENTA, 'Scale': 1.0, 'Length': 95.0, 'TipVelocity': (0.0, 0.0, 0.0), 'TipSpeed': 0.0, 'Swing': 0.0}
     d.update(kw)
     return d
 
@@ -25,9 +25,9 @@ def UA(**kw):
 # moving: 0 still .. 1 a fast swing (the tip at 2,100 cm/s); walking with the blade is about 0.05-0.15
 MOVE = 'pow(saturate((User.TipSpeed - 300.0)/1700.0), 1.25)'
 # round 3: the sheet is full on every swing (light 1 was faint); SWING is for the sparks, quiet while walking
-SHEET = 'saturate((User.TipSpeed - 550.0)/650.0)'   # r3b: running arms reached the old threshold
-SWING = 'pow(saturate((User.TipSpeed - 900.0)/1500.0), 1.3)'
-WALK = 'saturate((User.TipSpeed - 200.0)/400.0)'
+SHEET = 'saturate((User.TipSpeed - 550.0)/650.0)*User.Swing'   # T7: only while fighting (User.Swing from the code)   # r3b: running arms reached the old threshold
+SWING = 'pow(saturate((User.TipSpeed - 900.0)/1500.0), 1.3)*User.Swing'
+WALK = 'saturate((User.TipSpeed - 200.0)/400.0)*(1.0 - User.Swing)'
 
 
 def along(e, lo, hi, thick=1.5):
@@ -92,7 +92,7 @@ SB('NS_TD_Blade_Aura', UA(), [
     sweep('SweepTip', 0.92, 0.18, 0.14, 1.0, power=1.6),
     thrown('Sparks', 'M_TD_VFX_Spark', '1400.0*%s' % SWING, (0.25, 0.55), (2.6, 4.8), (0.35, 0.95), 420.0, 3.4, stretch=10, rgb_white=0.12),
     thrown('Motes', 'M_TD_VFX_BladeEmber', '80.0*%s' % SWING, (0.6, 1.0), (1.8, 3.6), (0.1, 0.35), 140.0, 2.2, grav=-260.0, drag=1.6, curl=250.0, lo=0.2, rgb_white=0.15),
-    thrown('Trickle', 'M_TD_VFX_BladeEmber', '16.0*%s' % WALK, (0.4, 0.8), (1.2, 2.2), (0.05, 0.15), 60.0, 2.0, grav=-200.0, drag=1.5, curl=200.0, lo=0.85, rgb_white=0.2),
+    thrown('Trickle', 'M_TD_VFX_BladeEmber', '8.0*%s' % WALK, (0.15, 0.3), (0.8, 1.5), (0.0, 0.05), 30.0, 1.6, grav=0.0, drag=3.0, curl=150.0, lo=0.85, rgb_white=0.2),   # a faint tip shimmer, never reaches the ground
     single('Halo', 'M_TD_VFX_Glow', 72, 0.45, 23.7, offset=(46.0, 0, 0)),   # camera-facing: the blade reads from behind when it points at the camera
 ])
 
@@ -116,20 +116,22 @@ SB('NS_TD_Blade_Retract', U(MAGENTA, Length=95.0), [
 
 # ------------------------------------------------------------------------------------------------ hit (world point, +X = the pilot's facing)
 SB('NS_TD_Blade_Hit', U(MAGENTA), [
-    whiten(flash('Flash', 'M_TD_VFX_Flare', 150, 0.10, 1.6, growth='0.5 + Particles.NormalizedAge'), 0.8, 2.6),   # r4: a hot white contact flash
-    flash('Glow', 'M_TD_VFX_Glow', 220, 0.18, 0.8),
+    whiten(flash('Flash', 'M_TD_VFX_Flare', 260, 0.11, 1.6, growth='0.5 + Particles.NormalizedAge'), 0.8, 3.2),   # r7: bigger, brighter contact flash
+    flash('Glow', 'M_TD_VFX_Glow', 380, 0.20, 0.9),
+    # r7: a 0.05 s snap of long white-hot streaks: reads in the single frame a hit-stop holds
+    whiten(shed('Snap', 'M_TD_VFX_Spark', 0, (0.05, 0.10), (4.0, 6.5), (2600, 4200), k=4.0, radius=2.0, drag=1.0, stretch=14, cone=((1.0, 0.0, 0.0), 40.0), burst=26, dur=0.2), 0.7, 4.0),
     shed('Sparks', 'M_TD_VFX_Spark', 0, (0.18, 0.5), (2.0, 3.8), (600, 2400), k=2.6, radius=4.0, drag=2.2, stretch=12, cone=((1.0, 0.0, 0.0), 60.0), burst=60, dur=0.6),
     shed('Hot', 'M_TD_VFX_Spark', 0, (0.08, 0.18), (1.6, 2.8), (900, 2600), k=2.4, radius=2.0, drag=3.0, stretch=18, cone=((1.0, 0.0, 0.0), 30.0), burst=10, dur=0.3),
     shed('Embers', 'M_TD_VFX_BladeEmber', 0, (0.35, 0.8), (1.0, 2.2), (120, 520), k=1.5, radius=6.0, drag=2.0, curl=300.0, cone=((1.0, 0.0, 0.0), 80.0), burst=14, dur=0.9),
     spin(shed('Smoke', 'M_TD_VFX_Smoke', 0, (0.5, 0.9), (16, 30), (20, 80), radius=4.0, drag=1.6, rgb=(0.32, 0.30, 0.32), alpha=0.45, cone=((1.0, 0.0, 0.0), 60.0),
               burst=3, dur=1.0, power=0.8, growth='0.8 + Particles.NormalizedAge*1.3', sort=True)),
-    light('Light', 380, 0.14, k=5.0, rgb=(1.0, 0.75, 0.9)),
+    light('Light', 520, 0.16, k=5.0, rgb=(1.0, 0.75, 0.9)),
 ])
 # set the light's colour from User.Color for the hit (light() takes a fixed rgb)
 for _n, _u, _ems in SYSTEMS_B:
     for _e in _ems:
         if _e['name'] == 'Light' and _e.get('rclass', '').endswith('LightRendererProperties') and _n != 'NS_TD_Blade_Aura':
-            _e['set'] = [x for x in _e['set'] if x[2] != 'Color'] + [(PS, INIT, 'Color', X('float4(lerp(User.Color.rgb, float3(1,1,1), 0.35)*5.0, 1.0)'))]
+            _e['set'] = [x for x in _e['set'] if x[2] != 'Color'] + [(PS, INIT, 'Color', X('float4(lerp(User.Color.rgb, float3(1,1,1), 0.35)*%s, 1.0)' % (9.0 if _n == 'NS_TD_Blade_Hit' else 5.0)))]
 
 # ------------------------------------------------------------------------------------------------ deflect / perfect deflect / air slam (V2)
 SB('NS_TD_Blade_Deflect_V2', U(MAGENTA), [

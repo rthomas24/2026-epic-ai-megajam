@@ -9,6 +9,8 @@
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Core/TDEventBus.h"
 
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 
@@ -48,6 +50,20 @@ void UTDArmadaForesight::Deinitialize()
 
 void UTDArmadaForesight::Tick(float DeltaSeconds)
 {
+	if (FlashLeft > 0.f)
+	{
+		FlashLeft -= DeltaSeconds;
+		FlashTimer -= DeltaSeconds;
+		const ATDEnemyShip* Enemy = FlashEnemy.Get();
+		UTDProjectileSubsystem* Fx = UTDProjectileSubsystem::Get(GetWorld());
+		if (Enemy && Fx && FlashTimer <= 0.f)
+		{
+			FlashTimer = 0.1f;
+			FVector Origin, Extent;
+			Enemy->GetActorBounds(true, Origin, Extent);
+			Fx->PlayPlaceholderExplosion(Origin + Enemy->GetActorForwardVector() * (float)Extent.GetMax(), TellFlashRadius, FLinearColor(0.85f, 0.95f, 1.f), 1);
+		}
+	}
 	// Listen to every squad ship's dodges (ships respawn and change; the handler only acts for the flown one).
 	BindTimer -= DeltaSeconds;
 	if (BindTimer > 0.f)
@@ -98,6 +114,21 @@ ATDEnemyShip* UTDArmadaForesight::PickEnemy(const FVector& Near, const FVector* 
 {
 	ATDEnemyShip* Best = nullptr;
 	float BestD = Range;
+	// Lead (Nov 14, #122): the tell must be seen. An enemy inside the camera's view cone wins, the one nearest the
+	// reticle first; with none in view, the nearest as before.
+	ATDEnemyShip* BestInView = nullptr;
+	float BestViewDot = FMath::Cos(FMath::DegreesToRadians(ViewConeHalfAngleDeg));
+	FVector CamLoc = FVector::ZeroVector, CamFwd = FVector::ForwardVector;
+	bool bCam = false;
+	if (const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr)
+	{
+		if (PC->PlayerCameraManager)
+		{
+			CamLoc = PC->PlayerCameraManager->GetCameraLocation();
+			CamFwd = PC->PlayerCameraManager->GetCameraRotation().Vector();
+			bCam = true;
+		}
+	}
 	for (TActorIterator<ATDEnemyShip> It(GetWorld()); It; ++It)
 	{
 		ATDEnemyShip* E = *It;
@@ -112,13 +143,26 @@ ATDEnemyShip* UTDArmadaForesight::PickEnemy(const FVector& Near, const FVector* 
 		{
 			continue;
 		}
+		if (D >= Range)
+		{
+			continue;
+		}
+		if (bCam)
+		{
+			const float ViewDot = (float)FVector::DotProduct(CamFwd, (E->GetActorLocation() - CamLoc).GetSafeNormal());
+			if (ViewDot > BestViewDot)
+			{
+				BestViewDot = ViewDot;
+				BestInView = E;
+			}
+		}
 		if (D < BestD)
 		{
 			BestD = D;
 			Best = E;
 		}
 	}
-	return Best;
+	return BestInView ? BestInView : Best;
 }
 
 void UTDArmadaForesight::Tell(ATDEnemyShip* Enemy, const FVector& AimPoint, AActor* Target, FName Kind)
@@ -129,16 +173,10 @@ void UTDArmadaForesight::Tell(ATDEnemyShip* Enemy, const FVector& AimPoint, AAct
 	++TellsThisWave;
 	// The tell the player can see: the enemy's white "eyes" flare for a moment as it turns (a small pale flash at its
 	// nose; placeholder until the effects builder has a cue for it).
-	if (TellFlashRadius > 0.f)
-	{
-		if (UTDProjectileSubsystem* Fx = UTDProjectileSubsystem::Get(World))
-		{
-			FVector Origin, Extent;
-			Enemy->GetActorBounds(true, Origin, Extent);
-			const FVector Dir = (AimPoint - Enemy->GetActorLocation()).GetSafeNormal();
-			Fx->PlayPlaceholderExplosion(Origin + Dir * (float)Extent.GetMax(), TellFlashRadius, FLinearColor(0.85f, 0.95f, 1.f), 1);
-		}
-	}
+	// It is held for TellFlashSeconds (a burst every 0.1 s from Tick) so it reads.
+	FlashEnemy = Enemy;
+	FlashLeft = TellFlashRadius > 0.f ? TellFlashSeconds : 0.f;
+	FlashTimer = 0.f;
 	// No reaction time: the nose is already there and the guns are already on.
 	Enemy->SetActorRotation((AimPoint - Enemy->GetActorLocation()).Rotation());
 	if (ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(Enemy->GetController()))

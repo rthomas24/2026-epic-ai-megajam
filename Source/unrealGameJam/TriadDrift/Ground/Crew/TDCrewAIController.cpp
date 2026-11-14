@@ -188,6 +188,11 @@ void ATDCrewAIController::ChooseAttack(ATDCrewCharacter* Crew, float Distance)
 		break;
 	case ETDCrewType::Trooper:
 	case ETDCrewType::Drone:
+		// No shot within 0.6 s of a melee hit landing: a hit and a burst in the same breath read as unfair.
+		if (const UTDCrewTokenSubsystem* Tokens = UTDCrewTokenSubsystem::Get(this); Tokens && GetWorld() && GetWorld()->GetTimeSeconds() - Tokens->LastMeleeHitSeconds < 0.6)
+		{
+			break;
+		}
 		if (bHasLOS && Distance <= S.RangedMaxRange)
 		{
 			Crew->StartAttack(ETDCrewAttack::Burst, T);

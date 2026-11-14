@@ -189,6 +189,8 @@ public:
 	 * landing site stays put under the descent mapping. `td.PlanetGlobeBake 0` keeps the old art look.
 	 */
 	bool IsGlobeBaked() const { return bGlobeBaked; }
+	/** True while any planet in the world is still baking its globe off-thread (issue #89: hold the cover on it). */
+	static bool AreGlobeBakesRunning(const UObject* WorldContext);
 	class UTexture2D* GetGlobeBaseTexture() const { return GlobeBase; }
 
 	/** Calibration of the sphere mesh's UVs against the globe frame: yaw (deg) of the surface, and mirrored U. */

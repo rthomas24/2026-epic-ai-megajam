@@ -220,7 +220,7 @@ public:
 	float BreakupSeconds = 9.2f;	// the final blast at BreakupSeconds - BreakupAfterBlastSeconds; the outside camera holds to the end
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "1"))
-	float GeneratorHull = 400.f;	// Lead (Nov 14): about 15 s of focused fire from the flown ship alone at Normal (800 took ~30 s)
+	float GeneratorHull = 300.f;	// Lead (Nov 14): 800 -> 400 -> 250 -> 300 (at 250 T7 took two in 88 s with 0 deaths: a notch easy)
 
 	/** Turrets guarding each generator (2 x 4 = 8) plus ExtraTurrets on the hull: 8-12 total. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
@@ -250,6 +250,18 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
 	int32 MaxLaunchedAlive = 10;
+
+	/** While the generators stand (ShieldsUp) the fighter screen is capped at this many alive, one fewer per generator
+	 *  destroyed (Lead, Nov 14: T7 without god mode lost a ship every 20 s on the approach). 0 = no assault cap. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
+	int32 AssaultFighterCap = 6;
+
+	/** Damage of the hull's turrets, as a factor of the difficulty's enemy damage (Lead, Nov 14: -40 %). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
+	float HullTurretDamageScale = 0.6f;
+
+	/** The launched-alive cap in force now (the assault cap while the generators stand). */
+	int32 GetLaunchCapNow() const;
 
 	/** Hull half-extents (cm). Shapes, generator pylons and the trench are laid out from this. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Dominion")
@@ -470,12 +482,33 @@ public:
 	float ReactorHoldMinClosing = 0.5f;
 	/** True while the hold has the flown ship (T2's HUD cue: "REACTOR IN RANGE · HOLD FIRE ON THE CORE"). */
 	bool IsReactorHoldActive() const { return ReactorHeld.IsValid(); }
+	/** A pass on a generator: inside this distance (cm) of it; it ends beyond 1.5 x this. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
+	float GeneratorPassDistance = 30000.f;
+	/** Moss's dome hint is said when the flown ship first comes this close (cm) to a live generator. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
+	float DomeHintDistance = 120000.f;
+	int32 GetFastGeneratorPasses() const { return FastPasses; }
+	bool WasThrottleHintSaid() const { return bThrottleHintSaid; }
 	/** Tests: the ship the hold treats as flown (else the squad's active ship). */
 	void SetFlownShipOverride(class ATDShip* Ship);
 	/** Distance (cm) from WorldPoint to the reactor's surface (its bounds sphere); a large value without a reactor. */
 	float GetReactorSurfaceDistance(const FVector& WorldPoint) const;
 protected:
+	UFUNCTION()
+	void HandleTurretTelegraph(class ATDEnemyTurret* Turret);
+	/** The effects builder's NS_TD_Turret_LockTelegraph (class default: a hard reference, so it cooks). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion")
+	TObjectPtr<class UNiagaraSystem> TurretLockFX;
 	void TickReactorHold(float DeltaSeconds);
+	// Lead (Nov 14, T7 killed all four by hand: throttling down was what made it work): after two fast passes on a
+	// generator that did not kill it, a wingman says to throttle back, once.
+	void TickGeneratorPassHint(float DeltaSeconds);
+	TWeakObjectPtr<class ATDShieldGenerator> PassGenerator;
+	float PassMinSpeed = 0.f;
+	int32 FastPasses = 0;
+	bool bThrottleHintSaid = false;
+	bool bDomeHintSaid = false;
 	/** The hull, its turrets, generators, reactor and bay leave the fight: hidden, no collision, not targetable. */
 	void RetireDefenses();
 

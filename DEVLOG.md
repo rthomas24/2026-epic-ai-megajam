@@ -1,5 +1,14 @@
 # Triad Drift dev log
 
+## 2026-11-14 - Nicholas Lead team attribution text
+
+Ryan Lead already corrected DA_Credits in94ea8edc under Ryan's instruction. Preserved that binary; synchronized the source TEAM Ryan name/role and role-detail line to its stored strings, added both full team roles to the itch draft, and specified final-video attribution. JSON parsing and exact diff checks passed. Stored-string comparison is not an Unreal reload or packaged-roll verification; those remain required. Historical survey-credits-reload.json is unchanged. No native process or video render was run, and specialists remain paused. The former #181 returned410 (deleted); ongoing submission coordination remains #137.
+
+## 2026-11-14 - Nicholas Lead historical credits reconciliation (#137)
+
+Applied the existing Auditor/Issue Coordinator corrections to Nicholas's preparation entries: scoped historical Space Foundation and audition status; distinguished the unused standalone combat asset from tutorial/credits composition uses; restored precise tutorial attribution; retained Infinity Zone's reactor placement and original source/tool history. Added a separately qualified owner-reported Shipping f40a39c3 inventory note ([source](https://github.com/rthomas24/2026-epic-ai-megajam/issues/137#issuecomment-6882860191)), limited to its four folders. Ryan engineering/source entries and the prior menu correction remain intact. Reviewed the exact patch, current-main delta, source-receipt references and owner inventory; patch applicability and whitespace checks passed. No native/build work was needed for this documentation-only change. No final inclusion, rights expansion, playback, listening or appearance acceptance. #137 remains open for final submission evidence; #181 asset/name work is separate. Existing specialists remain paused.
+
+
 ## 2026-11-14 - Nicholas Lead offscreen playtest and feedback batches
 
 Played editor-game baseline **8b4eabae**, 1280x720, private user/save directory, engine MCP real input with steering assistance. Fresh start: intro hold-skip, tutorial phases, firing, ship switching/power, Pause/Settings, withdrawal/Aftermath, hold-H hyperdrive and Verdance entry. Continue restored the isolated checkpoint; hold-F landing and on-foot walking worked. No teleports, kill cheats or progression skips were used to reach Verdance. The final subtitle test deliberately staged C4_Command_Proceed with Story.Fire/Reset, not a natural departure playthrough.
@@ -459,3 +468,7 @@ Nicholas approved the written art guide only (#132). Lead accepted Bastion tap/h
 ## November 14 — Nick Lead: historical menu credit status clarified
 
 CREDITS.md now distinguishes the November 12 menu-music preparation checkpoint from Ryan's reported ddc50a2f package inclusion, with the original source URL and authorship/Pro-at-generation record preserved. The new scoped note does not apply ddc inclusion/exclusion to later packages or qualify Ryan's separately dated entries. No loop-join/mix approval, PR11/style merge, final-container claim or asset change. Reused the stopped Auditor's ResumeCredits01 and Issue Coordinator's Submission137 delta at91a70782; no repeated inventory audit. Verified exact diff/whitespace and retained source attribution. Remaining credit-row corrections and final package inventory stay open in #137.
+### Nov 14, 14:40 - Pilot animation round 2 (animation builder, eng/anim)
+- Measured, not assumed: a per-frame foot trace in the running game (TD.Pilot.FootTrace) showed planted feet sliding 72-83 cm/s at walk / run; the reference speeds ignored the body's 1.04 mesh scale and the walk / run switch sat too high. After the fix: 10-15 cm/s steady, 18-19 in the start, 29-32 at sprint.
+- The blade carry was re-posed three times from T7's chase-camera playtests (stub at idle, tip in the ground behind the walk, hidden in the run) until the whole beam reads from behind in idle, walk and run.
+- Deflect proven by the log (flick clip playing on a returned bolt); foot IK proven by numbers on a found 14 deg slope.

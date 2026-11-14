@@ -1,0 +1,16 @@
+{
+ "notes": [],
+ "source_tris": 11280,
+ "size_cm": [
+  900.4,
+  110.1,
+  110.4
+ ],
+ "tris": 11280,
+ "normal": "DirectX (green vs height slope 0.555)",
+ "truss_paint_share": 0.884,
+ "slots": [
+  "M_Fab_PipeBeam_Truss",
+  "M_Fab_PipeBeam_Cable"
+ ]
+}
