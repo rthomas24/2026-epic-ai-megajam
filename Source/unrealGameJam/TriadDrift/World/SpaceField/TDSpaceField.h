@@ -98,7 +98,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 IceDriftRocks = 600;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRocks = 320;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRubble = 220;
-	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 MoonShards = 8;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 MoonShards = 14;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float OuterDarkInner = 600000.f;
 
 	/** Shepherd moonlets at the Verdance and Dominion gap edges (bounding diameter, cm). */

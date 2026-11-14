@@ -144,7 +144,7 @@ namespace TDSpaceFieldCompose
 			const FVector C = Found ? *Found : (Region == 1 ? FVector(170000.f, 0.f, 0.f) : (Region == 4 ? FVector(300000.f, 150000.f, 20000.f) : FVector(600000.f, 0.f, 0.f)));
 			FVector Out = C.GetSafeNormal2D();
 			if (Out.IsNearlyZero()) { Out = FVector::ForwardVector; }
-			if (Region == 7) { Out = -Out; }	// the Outer Dark is seen from the zone side, looking out (5 km beyond it is outside the play bounds)
+			if (Region == 7 || Region == 6) { Out = -Out; }	// seen from the zone side (the Moons: along the route to the Dominion)	// the Outer Dark is seen from the zone side, looking out (5 km beyond it is outside the play bounds)
 			const FVector Dir = (Out * FMath::Cos(FMath::DegreesToRadians(25.f)) + FVector::UpVector * FMath::Sin(FMath::DegreesToRadians(25.f))).GetSafeNormal();
 			const float D = Range == 0 ? 500000.f : (Range == 1 ? 100000.f : 15000.f);
 			OutAt = C;
