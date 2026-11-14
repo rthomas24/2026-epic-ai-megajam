@@ -115,7 +115,7 @@ def corridor_straight():
     p.box((-190, -6, 596), (-16, 6, 600), mat="Light", faces="xXyYz")
     p.box((16, -6, 596), (190, 6, 600), mat="Light", faces="xXyYz")
     # Grok Bot's route arrow (ROUTE_ARROW cell, 200 cm, chevrons pointing +X = deeper into the ship), 2 mm proud
-    p.poly([(-100.0, -100.0, 0.2), (100.0, -100.0, 0.2), (100.0, 100.0, 0.2), (-100.0, 100.0, 0.2)], mat="Decal", n=(0, 0, 1),
+    p.poly([(-100.0, -100.0, 0.2), (100.0, -100.0, 0.2), (100.0, 100.0, 0.2), (-100.0, 100.0, 0.2)], mat="Route", n=(0, 0, 1),
            uv=[(0.5, 0.0), (1.0, 0.0), (1.0, 0.5), (0.5, 0.5)])
     p.cbox((-200, -200, -20), (200, 200, 0))
     p.cbox((-200, -200, 600), (200, 200, 620))
@@ -181,8 +181,8 @@ def door():
         p.box((xa, -140, 186), (xb, 140, 192), mat="Glow")
         # Grok Bot's trident emblem (T_DI_Decals, the TRIDENT cell), 160 cm, upright for a viewer on this side
         x = s * 16.3
-        yl, yr = (-80.0, 80.0) if s > 0 else (80.0, -80.0)
-        p.poly([(x, yl, 220.0), (x, yr, 220.0), (x, yr, 380.0), (x, yl, 380.0)], mat="Decal", n=(s, 0, 0),
+        yl, yr = (-130.0, 130.0) if s > 0 else (130.0, -130.0)          # r8: 260 cm (review r3: read the mark)
+        p.poly([(x, yl, 115.0), (x, yr, 115.0), (x, yr, 375.0), (x, yl, 375.0)], mat="Decal", n=(s, 0, 0),
                uv=[(0.0, 0.5), (0.5, 0.5), (0.5, 1.0), (0.0, 1.0)])
     p.cbox((-15, -150, 0), (15, 150, 400))
     return p

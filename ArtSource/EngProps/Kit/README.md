@@ -99,6 +99,17 @@ sRGB; saturated crimson / hazard keep their value), so the ribs and the lighting
 against `plans_r1/interior_layout.json`: they match T5's constants exactly. The preview has one sealed bulkhead leaf on
 the core's far wall to show the trident. Captures: `review/game/r7_sheet.jpg`.
 
+**r8 (review round 3, the Lead's decisions).** The Dominion trim has its own master `Materials/M_KitD_Trim` (same
+texture parameter names as `M_TD_PropTextured`) with a world-position value and grime variation, no new textures: two
+Noise nodes (about 9 m blotches and 1.5 m mottling) darken the base colour by up to `GrimeAmount` 0.45 and add up to
+`GrimeRough` 0.2 roughness. The trident is 260 cm on each door face. The route chevrons have their own slot (`Route`)
+and `MI_KitD_Decal_Route` (`M_Kit_Decal` now has `DecalTint` / `TintAmount`: crimson (2, 0.05, 0.02) at 1, emissive 6).
+Preview lights: the white work lights at 35 % and warm (1, 0.9, 0.78); the reactor (DominionInterior's `SM_DI_Core` and
+both rings at T5's `CoreAt`) carries the core with a warm light at +1500 (6000 cd) and two low red fills; a crimson light
+(900 cd) above the bulkhead. **For T5's course lights:** white room / corridor lights at 35 % of the r6 preview values
+(hangar 630 cd, arena / Warden 315, corridor 315, core 630 under 1200 spacing) in (1, 0.9, 0.78), the reactor's light as
+above. Captures: `review/game/r8_sheet.jpg`.
+
 The reactor pieces (core, rings, shield, conduit) are not walked on and stay the DominionInterior ones.
 `BP_KitD_InteriorPreview` (walk test only) lays the set out with T5's own constants (hangar, deflect corridor, arena,
 links, Warden room, core chamber).

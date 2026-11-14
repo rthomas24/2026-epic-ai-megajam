@@ -37,7 +37,87 @@ SCREEN_MI = "MI_Kit_Screen"
 SET = {"stem": "T_Kit_Trim", "trim_mi": "MI_Kit_Trim", "export": "export", "prefix": "SM_Kit_", "extras": True}
 PILLAR_MASTER = "/Game/TriadDrift/Gameplay/Props/Kit/Materials/M_Kit_LightPillar"
 DECAL_MASTER = "/Game/TriadDrift/Gameplay/Props/Kit/Materials/M_Kit_Decal"
+TRIMD_MASTER = "/Game/TriadDrift/Gameplay/Props/Kit/Materials/M_KitD_Trim"
+
+
+def ensure_trim_grime(tex, notes):
+    """M_KitD_Trim (r8, review r3: the walls read as wallpaper): the textured trim (BaseColorTex / NormalTex / ORMTex,
+    the same parameter names as M_TD_PropTextured) times a world-position value and grime variation, no new textures:
+    two Noise nodes on the world position (about 9 m blotches and 1.5 m mottling) darken the base colour by up to
+    GrimeAmount (default 0.45) and raise the roughness by up to GrimeRough (default 0.2)."""
+    ensure_dir("/Game/TriadDrift/Gameplay/Props/Kit/Materials")
+    folder, name = TRIMD_MASTER.rsplit("/", 1)
+    mat = eas.load_asset(TRIMD_MASTER) if eas.does_asset_exist(TRIMD_MASTER) else tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
+    mel.delete_all_material_expressions(mat)
+
+    def node(cls, x, y):
+        return mel.create_material_expression(mat, cls, x, y)
+
+    def tp(pname, t, sampler, y):
+        n = node(unreal.MaterialExpressionTextureSampleParameter2D, -1200, y)
+        n.set_editor_property("parameter_name", pname)
+        n.set_editor_property("texture", t)
+        n.set_editor_property("sampler_type", sampler)
+        return n
+
+    def sp(pname, v, y):
+        n = node(unreal.MaterialExpressionScalarParameter, -1200, y)
+        n.set_editor_property("parameter_name", pname)
+        n.set_editor_property("default_value", v)
+        return n
+
+    def noise(scale, y):
+        n = node(unreal.MaterialExpressionNoise, -1200, y)
+        for k, v in (("scale", scale), ("levels", 3), ("output_min", 0.0), ("output_max", 1.0), ("quality", 1)):
+            _set(n, k, v, notes)
+        return n
+    S = unreal.MaterialSamplerType
+    bc = tp("BaseColorTex", tex["BC"], S.SAMPLERTYPE_COLOR, -600)
+    nm = tp("NormalTex", tex["N"], S.SAMPLERTYPE_NORMAL, -300)
+    orm = tp("ORMTex", tex["ORM"], S.SAMPLERTYPE_MASKS, 0)
+    n1, n2 = noise(0.0011, 300), noise(0.0065, 500)
+    amt, rgh = sp("GrimeAmount", 0.45, 700), sp("GrimeRough", 0.2, 800)
+    g = node(unreal.MaterialExpressionMultiply, -900, 400)           # 0..1 grime mask = n1 * n2
+    inv = node(unreal.MaterialExpressionOneMinus, -750, 400)
+    lerp = node(unreal.MaterialExpressionLinearInterpolate, -600, 400)   # value = lerp(1 - amt, 1, 1 - mask)
+    one_m_amt = node(unreal.MaterialExpressionOneMinus, -900, 700)
+    one = node(unreal.MaterialExpressionConstant, -750, 650)
+    one.set_editor_property("r", 1.0)
+    bco = node(unreal.MaterialExpressionMultiply, -400, -500)
+    gr = node(unreal.MaterialExpressionMultiply, -600, 800)           # roughness add = mask * GrimeRough
+    ro = node(unreal.MaterialExpressionAdd, -400, 100)
+    ok = True
+    ok &= mel.connect_material_expressions(n1, "", g, "A")
+    ok &= mel.connect_material_expressions(n2, "", g, "B")
+    ok &= mel.connect_material_expressions(g, "", inv, "")
+    ok &= mel.connect_material_expressions(amt, "", one_m_amt, "")
+    ok &= mel.connect_material_expressions(one_m_amt, "", lerp, "A")
+    ok &= mel.connect_material_expressions(one, "", lerp, "B")
+    ok &= mel.connect_material_expressions(inv, "", lerp, "Alpha")
+    ok &= mel.connect_material_expressions(bc, "RGB", bco, "A")
+    ok &= mel.connect_material_expressions(lerp, "", bco, "B")
+    ok &= mel.connect_material_expressions(g, "", gr, "A")
+    ok &= mel.connect_material_expressions(rgh, "", gr, "B")
+    ok &= mel.connect_material_expressions(orm, "G", ro, "A")
+    ok &= mel.connect_material_expressions(gr, "", ro, "B")
+    ok &= mel.connect_material_property(bco, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    ok &= mel.connect_material_property(nm, "RGB", unreal.MaterialProperty.MP_NORMAL)
+    ok &= mel.connect_material_property(orm, "R", unreal.MaterialProperty.MP_AMBIENT_OCCLUSION)
+    ok &= mel.connect_material_property(ro, "", unreal.MaterialProperty.MP_ROUGHNESS)
+    ok &= mel.connect_material_property(orm, "B", unreal.MaterialProperty.MP_METALLIC)
+    if not ok:
+        log("FAILED: could not wire " + TRIMD_MASTER)
+        return None
+    try:
+        mel.recompile_material(mat)
+    except Exception:
+        notes.append("M_KitD_Trim compiles on first load")
+    eas.save_asset(TRIMD_MASTER, only_if_is_dirty=False)
+    return mat
 DECAL_SRC = os.path.join(os.path.dirname(os.path.dirname(KIT)), "EngAI", "Props", "DominionInterior", "plans_r1", "textures")
+
+
+ROUTE_MI = [None]
 
 
 def ensure_decal(notes):
@@ -91,10 +171,31 @@ def ensure_decal(notes):
     st.set_editor_property("parameter_name", "DecalEmissive")
     st.set_editor_property("default_value", 4.0)
     m = node(unreal.MaterialExpressionMultiply, -500, 550)
-    ok = True
-    ok &= mel.connect_material_expressions(em, "RGB", m, "A")
+    tint = node(unreal.MaterialExpressionVectorParameter, -900, 900)
+    tint.set_editor_property("parameter_name", "DecalTint")
+    tint.set_editor_property("default_value", unreal.LinearColor(1, 1, 1, 1))
+    ta = node(unreal.MaterialExpressionScalarParameter, -900, 1050)
+    ta.set_editor_property("parameter_name", "TintAmount")
+    ta.set_editor_property("default_value", 0.0)
+
+    def tinted(src, out, y):
+        d = node(unreal.MaterialExpressionDesaturation, -700, y)
+        mm = node(unreal.MaterialExpressionMultiply, -600, y)
+        lp = node(unreal.MaterialExpressionLinearInterpolate, -450, y)
+        r = True
+        r &= mel.connect_material_expressions(src, out, d, "")
+        r &= mel.connect_material_expressions(d, "", mm, "A")
+        r &= mel.connect_material_expressions(tint, "", mm, "B")
+        r &= mel.connect_material_expressions(src, out, lp, "A")
+        r &= mel.connect_material_expressions(mm, "", lp, "B")
+        r &= mel.connect_material_expressions(ta, "", lp, "Alpha")
+        return lp, r
+    bct, ok1 = tinted(bc, "RGB", -250)
+    emt, ok2 = tinted(em, "RGB", 650)
+    ok = ok1 and ok2
+    ok &= mel.connect_material_expressions(emt, "", m, "A")
     ok &= mel.connect_material_expressions(st, "", m, "B")
-    ok &= mel.connect_material_property(bc, "RGB", unreal.MaterialProperty.MP_BASE_COLOR)
+    ok &= mel.connect_material_property(bct, "", unreal.MaterialProperty.MP_BASE_COLOR)
     ok &= mel.connect_material_property(bc, "A", unreal.MaterialProperty.MP_OPACITY_MASK)
     ok &= mel.connect_material_property(nm, "RGB", unreal.MaterialProperty.MP_NORMAL)
     ok &= mel.connect_material_property(orm, "G", unreal.MaterialProperty.MP_ROUGHNESS)
@@ -110,6 +211,12 @@ def ensure_decal(notes):
     eas.save_asset(DECAL_MASTER, only_if_is_dirty=False)
     mi = instance("MI_KitD_Decal", mat)
     eas.save_loaded_asset(mi)
+    route = instance("MI_KitD_Decal_Route", mat)          # r8: the route chevrons in Dominion crimson (review r3)
+    mel.set_material_instance_vector_parameter_value(route, "DecalTint", unreal.LinearColor(2.0, 0.05, 0.02, 1.0))
+    mel.set_material_instance_scalar_parameter_value(route, "TintAmount", 1.0)
+    mel.set_material_instance_scalar_parameter_value(route, "DecalEmissive", 6.0)
+    eas.save_loaded_asset(route)
+    ROUTE_MI[0] = route
     return mi
 
 
@@ -216,7 +323,7 @@ def configure_dominion():
     DEST = "/Game/TriadDrift/Gameplay/Props/Kit/Dominion"
     TEX_DEST = DEST + "/Textures"
     PIPELINE = DEST + "/Pipelines/PL_KitD_StaticMesh"
-    SIZE_CHECK = os.path.join(KIT, "review", "size_check_D_r4.json")
+    SIZE_CHECK = os.path.join(KIT, "review", "size_check_D_r5.json")
     # review r1 fix 1: a deep red (renders red, not salmon) at half the strength
     GLOWS = {"MI_KitD_Glow": ("Glow", {"GlowStrength": 3.0, "PulseAmount": 0.0}, (1.0, 0.025, 0.006)),     # #FF2A10 (review r2)
              "MI_KitD_Light": ("Light", {"GlowStrength": 12.0, "PulseAmount": 0.0}, (0.9, 0.95, 1.0))}
@@ -386,7 +493,12 @@ def main():
         log("FAILED: atlas textures %s %s" % (sorted(tex), notes))
         return
     mis = {}
-    atlas = instance(SET["trim_mi"], master_tex)
+    trim_parent = master_tex
+    if SET.get("decals"):                          # the Dominion set: its own trim master with the grime variation
+        trim_parent = ensure_trim_grime(tex, notes)
+        if trim_parent is None:
+            return
+    atlas = instance(SET["trim_mi"], trim_parent)
     mel.set_material_instance_texture_parameter_value(atlas, "BaseColorTex", tex["BC"])
     mel.set_material_instance_texture_parameter_value(atlas, "ORMTex", tex["ORM"])
     mel.set_material_instance_texture_parameter_value(atlas, "NormalTex", tex["N"])
@@ -407,6 +519,7 @@ def main():
             log("FAILED: decals %s" % notes)
             return
         mis["Decal"] = dmi
+        mis["Route"] = ROUTE_MI[0]
     if SET.get("extras"):
         if ensure_stone(master_tex, notes) is None:
             log("FAILED: MI_Kit_Stone %s" % notes)

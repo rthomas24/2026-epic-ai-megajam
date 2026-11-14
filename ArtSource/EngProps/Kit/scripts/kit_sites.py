@@ -247,6 +247,15 @@ def dominion_interior():
     add("SM_DI_Cover_Low", CX1 - 700, -70)
     # r7: a sealed bulkhead leaf on the core's far wall, so Grok Bot's trident decal (on every SM_DI_Door) is seen in place
     add("SM_DI_Door", KX1 - 64 - 16.3, 0)
+    # r8: the reactor at T5's CoreAt ((L2X1 + KX1) / 2, 0, 0) with its rings at +600, DominionInterior's own pieces
+    # and materials (the core glows), so the core chamber is lit by its reactor and not by work lights
+    DI = "/Game/TriadDrift/Gameplay/Props/DominionInterior/"
+    core_x = (L2X1 + KX1) * 0.5
+    n[0] += 1
+    ps.append(piece("P%04d_Core" % n[0], DI + "SM_DI_Core", core_x, 0, 0, 0))
+    for rn in ("SM_DI_Core_Ring_A", "SM_DI_Core_Ring_B"):
+        n[0] += 1
+        ps.append(piece("P%04d_%s" % (n[0], rn.replace("SM_DI_", "")), DI + rn, core_x, 0, 600, 0))
     # r5: work lights that really light (point lights, no shadows), so the rooms read without the course's lights:
     # a grid in every room under the ceiling, one per 800 cm of corridor. Cool white (the red strips stay ambience).
     lights = []
@@ -268,6 +277,18 @@ def dominion_interior():
     grid(L2X1, KX1, KY, 1650.0, 1200.0)
     for x in [HX1 + 400 + 800 * k for k in range(5)] + [AX1 + 400, WX1 + 400]:
         lights.append({"name": "L%03d" % len(lights), "location_cm": [x, 0.0, 540.0], "intensity": 900.0, "radius": 1000.0, "color": [0.8, 0.88, 1.0]})
+    # r8 (review r3, Lead): the white work lights at 35 % and slightly warm; the strips keep their budget
+    for lt in lights:
+        lt["intensity"] = round(lt["intensity"] * 0.35, 1)
+        lt["color"] = [1.0, 0.9, 0.78]
+    core_x = (L2X1 + KX1) * 0.5
+    lights.append({"name": "L%03d_Reactor" % len(lights), "location_cm": [core_x, 0.0, 1500.0], "intensity": 6000.0, "radius": 2600.0,
+                   "color": [1.0, 0.55, 0.3]})
+    for yy in (-900.0, 900.0):
+        lights.append({"name": "L%03d_ReactorFill" % len(lights), "location_cm": [core_x, yy, 300.0], "intensity": 1500.0,
+                       "radius": 1400.0, "color": [1.0, 0.12, 0.05]})
+    lights.append({"name": "L%03d_Bulkhead" % len(lights), "location_cm": [KX1 - 64 - 180.0, 0.0, 470.0], "intensity": 900.0,
+                   "radius": 700.0, "color": [1.0, 0.05, 0.03]})
     return {"site": "DominionInterior_Preview", "lights": lights, "actor": KD + "BP_KitD_InteriorPreview",
             "about": "Walk-test preview of T5's interior shell in the Dominion set (not used by the game).",
             "pieces": ps,
