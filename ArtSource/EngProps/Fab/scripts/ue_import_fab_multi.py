@@ -22,6 +22,8 @@ MESHES = {
                    {"M_Fab_CinderRock": ("", 0.0)}),
     "VerdanceStump": (os.path.join(FAB, "VerdanceStump", "export"), "/Game/TriadDrift/Gameplay/Props/Fab/VerdanceStump",
                       {"M_Fab_VerdanceStump": ("", 0.0)}),
+    "VerdanceRockCluster": (os.path.join(FAB, "VerdanceRockCluster", "export"), "/Game/TriadDrift/Gameplay/Props/Fab/VerdanceRockCluster",
+                            {"M_Fab_VerdanceRockCluster": ("", 0.0)}),
 }
 TEXSETS = {
     # set: (export dir, destination, max size)

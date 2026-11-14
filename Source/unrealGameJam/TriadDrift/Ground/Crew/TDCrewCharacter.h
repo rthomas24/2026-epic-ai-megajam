@@ -308,8 +308,8 @@ private:
 	FRotator DroneTumbleSpin = FRotator::ZeroRotator;
 	FVector DroneTumbleFall = FVector::ZeroVector;
 public:
-	/** A surviving hit at least this big plays the heavy hit react (the heavy blade's 70). */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew") float HeavyHitThreshold = 70.f;
+	/** A surviving hit of at least this share of max hull plays the heavy hit react (Lead, Nov 14). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew", meta = (ClampMin = "0", ClampMax = "1")) float HeavyHitFraction = 0.6f;
 private:
 	FVector RagdollPush = FVector::ZeroVector;
 	FVector ToppleAway = FVector::ForwardVector;

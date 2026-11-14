@@ -263,6 +263,109 @@ S2('NS_TD_Ship_SwitchGrace', U((1.0, 0.10, 0.85, 1.0), 1.0), [
     flash('In', 'M_TD_VFX_Glow', 1000, 0.25, 1.0, growth='0.6 + Particles.NormalizedAge', power=1.2),
     shed('Glints', 'M_TD_VFX_Glow', 0, (0.2, 0.4), (40, 80), (0, 60), k=3.0, radius=320.0, drag=1.0, local=True, burst=40, dur=1.5, power=1.0)])
 
+# ---- round 12 (#194, Ryan: the planets feel empty on foot): ambient life, placed by the environment builder's Dress()/scatter.
+# Self-contained loops under /Game/TriadDrift/Gameplay/VFX/Systems/Ambient/ (always cooked: /Gameplay/VFX is in
+# DirectoriesToAlwaysCook). +Z up, origin on the ground. Volumes are authored for 20 m; small sprites, low counts, GPU where
+# there are many; the environment builder sets a 60 m cull distance on every spawned component.
+UP = ((0.0, 0.0, 1.0), 25.0)
+WIND = ((1.0, 0.0, 0.25), 35.0)
+VER_TEAL, VER_FIRE, CIN_EMBER = (0.35, 1.0, 0.75), (0.85, 1.0, 0.35), (1.0, 0.45, 0.08)
+AMB_BLINK = '(0.15 + 0.85*step(0.82, frac(Engine.Time*1.0)))'
+def _amb_gravity(e, g=-980.0):
+    e['set'] = [x for x in e['set'] if x[1] != 'GravityForce'] + [(PU, 'GravityForce', 'Gravity', (0.0, 0.0, g))]
+    return e
+
+
+# Verdance (12b, Lead: too subtle in daylight): spores bigger and slower in soft light shafts, a few bright ones; fireflies 3x
+# with a halo (the big soft Glow sprite at low power is the halo, its core the firefly); mist denser, lower and teal.
+S2('NS_TD_Amb_Verdance_Spores', U((0.6, 1.0, 0.8, 1.0)), [
+    offset(shed('Spores', 'M_TD_VFX_Glow', 0, (10.0, 16.0), (16, 30), (4, 16), k=2.2, radius=1000.0, drag=0.3, curl=25.0, local=True,
+                cone=UP, rate_expr='26.0', power=0.8, fade_in=4.0, gpu=True, rgb=VER_TEAL), 0, 0, 300),
+    offset(shed('Bright', 'M_TD_VFX_Glow', 0, (8.0, 12.0), (45, 70), (4, 12), k=5.0, radius=900.0, drag=0.3, curl=25.0, local=True,
+                cone=UP, rate_expr='1.5', power=0.6, fade_in=3.0, gpu=True, rgb=(0.7, 1.0, 0.85)), 0, 0, 300),
+    offset(shed('Shafts', 'M_TD_VFX_CloudVeil', 0, (9.0, 12.0), (160, 260), (2, 4), radius=800.0, drag=0.0, local=True, alpha=0.07,
+                cone=((0.0, 0.0, -1.0), 2.0), rate_expr='0.45', power=1.0, fade_in=3.0, sort=True, stretch=5, rgb=(0.75, 1.0, 0.85)), 0, 0, 450)])
+S2('NS_TD_Amb_Verdance_Fireflies', U((0.85, 1.0, 0.35, 1.0)), [
+    offset(shed('Fireflies', 'M_TD_VFX_Glow', 0, (4.0, 7.0), (45, 75), (20, 80), k=6.0, radius=1000.0, drag=0.6, curl=180.0, local=True,
+                cone=UP, rate_expr='18.0', power=0.5, fade_in=6.0, gpu=True, rgb=VER_FIRE), 0, 0, 150)])
+S2('NS_TD_Amb_Verdance_GroundMist', U((0.3, 0.85, 0.75, 1.0)), [
+    offset(shed('Mist', 'M_TD_VFX_CloudVeil', 0, (8.0, 12.0), (1100, 1900), (5, 25), radius=1400.0, drag=0.2, local=True, alpha=0.34,
+                cone=((1.0, 0.0, 0.0), 85.0), rate_expr='3.0', power=0.8, fade_in=3.0, sort=True, rgb=(0.3, 0.85, 0.75),
+                growth='0.8 + 0.4*Particles.NormalizedAge'), 0, 0, 30)])
+S2('NS_TD_Amb_Verdance_MushroomPulse', U((0.3, 0.9, 1.0, 1.0)), [
+    shed('Pulse', 'M_TD_VFX_Glow', 0, (0.3, 0.3), ('(260.0*(0.7 + 0.3*sin(Engine.Time*1.3)))',) * 2, (0, 0), k=1.2, radius=0.0, drag=0.0,
+         local=True, power=0.6, rate_expr='8.0'),
+    shed('Drips', 'M_TD_VFX_Glow', 0, (1.0, 1.4), (8, 14), (0, 10), k=3.0, radius=120.0, drag=0.0, local=True, cone=((0.0, 0.0, -1.0), 5.0),
+         rate_expr='0.8', power=0.4)])
+S2('NS_TD_Amb_Verdance_Insects', U((0.6, 0.9, 0.5, 1.0)), [
+    offset(shed('Insects', 'M_TD_VFX_Glow', 0, (2.0, 4.0), (3, 6), (40, 120), k=1.2, radius=150.0, drag=1.5, curl=900.0, local=True,
+                rate_expr='5.0', power=0.6, fade_in=6.0, rgb=(0.7, 0.95, 0.5)), 0, 0, 100)])
+
+S2('NS_TD_Amb_Verdance_FallingLeaves', U((0.75, 0.5, 1.0, 1.0)), [   # glowing petals drifting down under trees (spawn 6 m up)
+    offset(shed('Petals', 'M_TD_VFX_Glow', 0, (9.0, 13.0), (14, 24), (25, 50), k=3.0, radius=500.0, drag=0.5, curl=120.0, local=True,
+                cone=((0.15, 0.0, -1.0), 25.0), rate_expr='5.0', power=0.6, fade_in=6.0, gpu=True, rgb=(0.75, 0.5, 1.0)), 0, 0, 600)])
+S2('NS_TD_Amb_Verdance_GlowPollen', U((0.9, 1.0, 0.45, 1.0)), [   # a puff from a plant every ~3.3 s (pulsed spawn rate)
+    shed('Pollen', 'M_TD_VFX_Glow', 0, (2.0, 3.5), (10, 20), (60, 160), k=4.0, radius=60.0, drag=1.2, curl=150.0, local=True,
+         cone=((0.0, 0.0, 1.0), 40.0), rate_expr='(90.0*step(0.9, frac(Engine.Time*0.3)))', power=0.6, rgb=(0.9, 1.0, 0.45)),
+    shed('Puff', 'M_TD_VFX_Glow', 0, (0.5, 0.7), (120, 160), (0, 0), k=1.2, radius=0.0, drag=0.0, local=True, power=0.6,
+         rate_expr='(4.0*step(0.9, frac(Engine.Time*0.3)))', rgb=(0.9, 1.0, 0.45))])
+
+# Cinder
+def cinder_vent():
+    return [shed('Smoke', 'M_TD_VFX_Smoke', 0, (3.0, 5.0), (60, 120), (120, 260), radius=40.0, drag=0.4, curl=60.0, local=False, alpha=0.6,
+                 rgb=(0.22, 0.2, 0.19), cone=((0.0, 0.0, 1.0), 10.0), rate_expr='5.0', power=0.8, fade_in=5.0, sort=True,
+                 growth='0.6 + 2.2*Particles.NormalizedAge'),
+            shed('Steam', 'M_TD_VFX_Smoke', 0, (1.5, 2.5), (40, 90), (200, 380), radius=25.0, drag=0.6, local=False, alpha=0.4,
+                 rgb=(0.85, 0.82, 0.8), cone=((0.0, 0.0, 1.0), 8.0), rate_expr='4.0', power=1.0, fade_in=5.0, sort=True,
+                 growth='0.6 + 1.8*Particles.NormalizedAge'),
+            shed('Glow', 'M_TD_VFX_Glow', 0, (0.4, 0.4), (180, 220), (0, 0), k=0.5, radius=0.0, drag=0.0, local=True, power=0.6,
+                 rate_expr='4.0', rgb=CIN_EMBER)]
+
+
+for _n, _s in (('S', 1.0), ('M', 2.0), ('L', 3.5)):
+    S2('NS_TD_Amb_Cinder_Vent_' + _n, U((1.0, 0.45, 0.1, 1.0), _s), cinder_vent())
+S2('NS_TD_Amb_Cinder_EmberDrift', U(CIN_EMBER + (1.0,)), [
+    offset(shed('Embers', 'M_TD_VFX_Glow', 0, (4.0, 7.0), (5, 12), (60, 200), k=2.4, radius=1000.0, drag=0.2, curl=120.0, local=True,
+                cone=WIND, rate_expr='25.0', power=0.8, fade_in=5.0, gpu=True, rgb=CIN_EMBER), 0, 0, 200)])
+S2('NS_TD_Amb_Cinder_HeatShimmer', U((1.0, 0.5, 0.15, 1.0)), [
+    shed('Shimmer', 'M_TD_VFX_HeatStreak', 0, (1.0, 1.6), (80, 160), (80, 160), k=0.3, radius=200.0, drag=0.3, local=True,
+         cone=((0.0, 0.0, 1.0), 6.0), rate_expr='6.0', power=1.0, fade_in=4.0, growth='0.6 + 0.8*Particles.NormalizedAge')])
+S2('NS_TD_Amb_Cinder_LavaPop', U(CIN_EMBER + (1.0,)), [
+    _amb_gravity(shed('Pops', 'M_TD_VFX_Spark', 0, (0.5, 0.9), (10, 20), (250, 550), k=3.0, radius=150.0, drag=0.1, local=True, stretch=3,
+                      rgb=(1.0, 0.5, 0.1), cone=((0.0, 0.0, 1.0), 25.0), rate_expr='5.0', power=0.8)),
+    shed('Flash', 'M_TD_VFX_Glow', 0, (0.25, 0.4), (60, 120), (0, 0), k=1.8, radius=150.0, drag=0.0, local=True, power=1.2,
+         rate_expr='1.5', rgb=(1.0, 0.55, 0.12))])
+S2('NS_TD_Amb_Cinder_FallingAsh', U((0.3, 0.29, 0.28, 1.0)), [
+    offset(shed('Ash', 'M_TD_VFX_Smoke', 0, (7.0, 10.0), (6, 12), (40, 90), radius=1000.0, drag=0.2, curl=60.0, local=True, alpha=0.7,
+                rgb=(0.3, 0.29, 0.28), cone=((0.2, 0.0, -1.0), 20.0), rate_expr='20.0', power=0.6, fade_in=5.0, gpu=True), 0, 0, 900)])
+S2('NS_TD_Amb_Cinder_SulfurFumes', U((0.75, 0.7, 0.2, 1.0)), [
+    shed('Fumes', 'M_TD_VFX_Smoke', 0, (4.0, 6.0), (150, 300), (20, 60), radius=300.0, drag=0.4, curl=40.0, local=False, alpha=0.28,
+         rgb=(0.78, 0.72, 0.22), cone=((0.0, 0.0, 1.0), 30.0), rate_expr='2.0', power=0.8, fade_in=3.0, sort=True,
+         growth='0.6 + 1.4*Particles.NormalizedAge')])
+# Both planets
+S2('NS_TD_Amb_Shared_PadDust', U((0.7, 0.62, 0.5, 1.0)), [
+    shed('Dust', 'M_TD_VFX_Smoke', 0, (2.5, 4.0), (120, 260), (60, 160), radius=800.0, drag=0.6, curl=80.0, local=False, alpha=0.3,
+         rgb=(0.7, 0.62, 0.5), cone=((1.0, 0.0, 0.1), 80.0), rate_expr='4.0', power=0.8, fade_in=3.0, sort=True,
+         growth='0.6 + 1.2*Particles.NormalizedAge')])
+S2('NS_TD_Amb_Shared_HutChimney', U((0.5, 0.48, 0.46, 1.0)), [
+    shed('Wisp', 'M_TD_VFX_Smoke', 0, (3.0, 4.5), (40, 80), (90, 160), radius=15.0, drag=0.3, curl=50.0, local=False, alpha=0.45,
+         rgb=(0.5, 0.48, 0.46), cone=((0.15, 0.0, 1.0), 8.0), rate_expr='3.0', power=0.8, fade_in=4.0, sort=True,
+         growth='0.6 + 2.5*Particles.NormalizedAge')])
+S2('NS_TD_Amb_Shared_HutBeacon', U((1.0, 0.15, 0.05, 1.0)), [
+    shed('Light', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(90.0*%s)' % AMB_BLINK,) * 2, (0, 0), k=4.0, radius=0.0, drag=0.0, local=True, power=0.6,
+         rate_expr='20.0'),
+    shed('Halo', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(260.0*%s)' % AMB_BLINK,) * 2, (0, 0), k=0.8, radius=0.0, drag=0.0, local=True, power=0.6,
+         rate_expr='20.0')])
+
+# ---- round 12 (T5): the crew Grunt's melee wind-up (DA_Crew_Grunt_Visuals.Telegraph; attached at the root, the capsule
+# centre about 0.9 m up, +X = facing). Under 0.4 s: a red-orange ground ring snapping in under the feet, a hot glow
+# in front of the chest that swells, and a white flare at the end (the swing comes). Reads in first and third person.
+S2('NS_TD_Crew_MeleeWindup', U((1.0, 0.22, 0.05, 1.0)), [
+    offset(flat_ring('Ring', 380, 0.38, 3.5, growth='0.35 + pow(Particles.NormalizedAge, 0.6)*0.65', mat='M_TD_VFX_Shock', power=1.0), 0, 0, -84),   # v2: 380 cm, k 3.5
+    offset(flash('Pool', 'M_TD_VFX_Glow', 320, 0.38, 1.4, growth='0.5 + 0.6*Particles.NormalizedAge', power=0.5), 0, 0, -70),   # v2: ground glow (reads at grazing angles)
+    offset(flash('Glow', 'M_TD_VFX_Glow', 240, 0.35, 4.0, growth='0.4 + 0.8*Particles.NormalizedAge', power=0.4), 60, 0, 20),
+    offset(flash('Flare', 'M_TD_VFX_Flare', 200, 0.08, 4.0, growth='0.6 + Particles.NormalizedAge', delay=0.3), 60, 0, 20)])
+
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
 # ---- round 10 MAJOR (T7's play): Cinder magma kills but does not read as dangerous on foot. A looping hazard layer for
@@ -990,7 +1093,9 @@ S2('NS_TD_Blade_SwingArc_Heavy', U(BLADE), swing(320, 1.9))
 fx2 = tdvfx.Builder(call_tool)
 CHUNK = globals().get('CHUNK')   # (start, end): build only those emitters of each selected system (see tdvfx.system)
 for _name, _user, _emitters in SYSTEMS2:
-    _sys = await fx2.system(_name, _emitters, user=_user, chunk=CHUNK)
+    _amb = _name.startswith('NS_TD_Amb_')
+    _sys = await fx2.system(_name, _emitters, user=_user, chunk=CHUNK, folder=(tdvfx.ROOT + '/Systems/Ambient') if _amb else None,
+                            props=None)   # cull: the environment builder sets 60 m on each spawned component
     for _e in _emitters:
         if _e.get('verbose_dump'):
             try:
