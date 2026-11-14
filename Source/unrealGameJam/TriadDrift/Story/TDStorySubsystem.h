@@ -153,6 +153,8 @@ public:
 	static TFunction<ETDShipId(const UObject*)> BoardingShipResolver;
 	/** N-087: a line whose speaker depends on who boarded (G9 escape radio: Wren when Moss boarded, else Moss). */
 	static FName RouteForBoarder(const UObject* WorldContext, FName Id);
+	/** Every id RouteForBoarder can turn Id into (sequences, the audit). */
+	static TArray<FName> RouteForBoarderAll(FName Id);
 
 	/** Cinematic 04 (Verdance done) and Cinematic 06 (Cinder done): the transmission sets, in order. */
 	static const TArray<FName>& DepartureSet(ETDDestination Planet);
