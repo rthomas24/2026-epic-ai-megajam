@@ -29,6 +29,7 @@
 
 #include "TriadDrift/Combat/TDWeaponLibrary.h"
 #include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -397,6 +398,14 @@ namespace TDWorldDebug
 		}));
 	FAutoConsoleCommandWithWorldAndArgs CmdGoto(TEXT("TD.World.Goto"), TEXT("Teleport the player's ship to Dominion|Reactor|Verdance|Cinder|Gate|Belt|Start."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Goto));
 	FAutoConsoleCommandWithWorldAndArgs CmdSpawn(TEXT("TD.World.SpawnEnemy"), TEXT("Spawn an enemy in front of the player: <Id> [distance] [pilot 0/1]."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&SpawnEnemy));
+	// Play the withdrawal without waiting for the lessons and the heavy contact: TD.Waves.OrderWithdrawal (wave 2).
+	FAutoConsoleCommandWithWorldAndArgs CmdOrderWithdrawal(TEXT("TD.Waves.OrderWithdrawal"), TEXT("Tutorial wave 2: Command orders the withdrawal now (then fly it with TD.World.AimAt Escape)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
+		{
+			ATDWaveDirector* D = ATDWaveDirector::Get(World);
+			const bool bOk = D && D->DevOrderWithdrawal();
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Waves.OrderWithdrawal: %s"), bOk ? TEXT("ordered") : TEXT("not in the tutorial's battle (use TD.Stage Wave2 first)"));
+		}));
 	// Effects builder (through the Lead, Nov 14): one bomber mine ahead of the flown ship, its fuse unarmed for 10 s, so
 	// the mine body can be captured.   TD.Dev.SpawnMine [metres ahead = 60]
 	FAutoConsoleCommandWithWorldAndArgs CmdSpawnMine(TEXT("TD.Dev.SpawnMine"), TEXT("Drop one bomber plasma mine ahead of the flown ship, unarmed for 10 s (captures): [metres ahead = 60]."),

@@ -1334,6 +1334,17 @@ void ATDWaveDirector::BeginWithdrawal()
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Waves: tutorial withdrawal ordered - escape boundary %.0f m out toward Verdance"), Distance / 100.f);
 }
 
+bool ATDWaveDirector::DevOrderWithdrawal()
+{
+	if (!IsTutorialWithdrawalWave() || TutorialPhase != ETDTutorialPhase::Battle)
+	{
+		return false;
+	}
+	bWaitForLessons = false;
+	BeginWithdrawal();
+	return TutorialPhase == ETDTutorialPhase::Withdrawal;
+}
+
 void ATDWaveDirector::CompleteEscape()
 {
 	if (TutorialPhase == ETDTutorialPhase::Escaped)

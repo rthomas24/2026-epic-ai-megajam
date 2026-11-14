@@ -401,6 +401,8 @@ public:
 	/** Command's withdrawal waits for the squad lesson (Done), at most this long after it was due (never locks). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
 	float WithdrawalWaitCapSeconds = 45.f;
+	/** Dev (not for gameplay code): Command orders the withdrawal now, skipping the lesson gate. False outside the tutorial's battle. */
+	bool DevOrderWithdrawal();
 protected:
 	void RequestWithdrawal();
 	void UpdateTeachPressure();
