@@ -1438,8 +1438,15 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	// ---- hostiles: tick above each, the bracket + health + distance on the current target, chevrons off screen
 	const FLinearColor Enemy = T::Danger();
 	const float Pulse25 = .55f + .45f * FMath::Sin(Now * 2.5f * 2.f * PI); // under 3 Hz
+	// The docking plate (drawn later) keeps its words clear: no hostile tick or bracket inside it (live: a turret's tick
+	// sat on "LOCKED" in the bay).
+	const FBox2D DockPlate(FVector2D(CenterX - 200.f, C.Y - 180.f), FVector2D(CenterX + 200.f, C.Y - 116.f));
 	for (const FMark& M : View.Marks)
 	{
+		if (View.Docking > 0 && M.bOnScreen && DockPlate.IsInside(M.Pos))
+		{
+			continue;
+		}
 		// A kind's outline at At, rotated (0 = pointing down), brighter and heavier on a threat to the flown ship.
 		auto Shape = [&P, &Enemy](const FMark& Mk, FVector2D At, float Rot, float Alpha)
 		{

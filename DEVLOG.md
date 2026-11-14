@@ -1,5 +1,14 @@
 # Triad Drift dev log
 
+## 2026-11-14 - Nicholas Lead offscreen playtest and feedback batches
+
+Played editor-game baseline **8b4eabae**, 1280x720, private user/save directory, engine MCP real input with steering assistance. Fresh start: intro hold-skip, tutorial phases, firing, ship switching/power, Pause/Settings, withdrawal/Aftermath, hold-H hyperdrive and Verdance entry. Continue restored the isolated checkpoint; hold-F landing and on-foot walking worked. No teleports, kill cheats or progression skips were used to reach Verdance. The final subtitle test deliberately staged C4_Command_Proceed with Story.Fire/Reset, not a natural departure playthrough.
+
+Observed: story line clipped at both viewport edges and Small/Large did not change this overlay; Pause labels showed through Settings in flight and on foot. Additional captured observations: transponder edge clipping and fragmented-looking canopy undersides. Generic power hint needs clearer wording (suggestion). Known missing ground waypoint and already-fixed ability hint issues were excluded as new tickets. No subjective audio/performance or full campaign pass claimed. Source comparison through 9155a6dc supports triage only; newer main still needs play.
+
+[Batch 2 PDF and original media](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/evidence-agent-feedback-batch2-20261114), [owner handoff #90](https://github.com/rthomas24/2026-epic-ai-megajam/issues/90#issuecomment-6879961986). [Batch 1 human menu/intro report](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/evidence-manual-feedback-batch1-20261114) was also sent and acknowledged. No code/assets changed. Session 1 hit its configured 960-second watchdog bound (no game-thread stall reported); session 2 exited cleanly with code 0. Original human save hashes unchanged; no Unreal processes left. Existing specialists remain paused.
+
+
 ## WAKE-UP REPORT for Ryan: overnight Nov 13-14 (Ryan's Lead, written 08:50 EST Nov 14)
 
 **Update 10:00:** main is batch Z (`80a2ee4d`, gate 1005/1005) plus documents; newest package `playable-main-80a2ee4d`. Ryan's new bar (09:15): agent-played and judged good = done. Played and good since the report below: the Warden fight, the reactor conduits and heart, the escape run and flight, victory, stinger and credits music (T7); landing and take-off on both planets and drift (T1); the reward screen, portal blaster, ram, EMP Pulse, shield dome, Gravity Well and boost pickup (T2). Open from play: no on-foot marker on the "head to" legs, the Cloak effect, the hangar start, the ability hint card, enemies left after the space-reactor victory. PRs: #78 and #93 merged, #83 and #12 closed, #11 and #85 wait on Nicholas until 10:30.

@@ -14,6 +14,7 @@
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
+#include "TriadDrift/Ground/Crew/TDFutureCrew.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Ground/TDGroundScene.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"

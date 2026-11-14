@@ -13,7 +13,9 @@ enum class ETDCrewType : uint8
 	Trooper,
 	Heavy,
 	Drone,
-	Warden
+	Warden,
+	/** The reactor room's defenders (N-052): a future pilot with a blade, melee like a grunt, tougher. */
+	FutureCrew
 };
 
 /** AI state (features.md ENG-23: Idle/Patrol -> Alert -> Engage -> Stagger -> Dead). */
