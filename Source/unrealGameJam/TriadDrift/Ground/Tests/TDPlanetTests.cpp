@@ -571,6 +571,16 @@ bool FTDCinderEndToEnd::RunTest(const FString& Parameters)
 	R.Use(Cache, Cache->HoldTime);
 	TestTrue(TEXT("excavation secured"), Outpost->IsComplete());
 	TestEqual(TEXT("EMP on Lancer"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::EMPPulse), ETDShipId::Lancer);
+	// ENG-26 step 6: one door at the dig opened to the pilot's ID (storyline section 6), exactly once; no other door did.
+	int32 Knowing = 0, Greeted = 0;
+	for (TActorIterator<ATDDoor> It(V.W.GetWorld()); It; ++It)
+	{
+		Knowing += It->bRecognisesPilot ? 1 : 0;
+		Greeted += It->GetAccessGreetings();
+	}
+	TestEqual(TEXT("one dig door knows the pilot"), Knowing, 1);
+	TestEqual(TEXT("it greeted the pilot once"), Greeted, 1);
+	TestFalse(TEXT("no pending marker before the anchor"), ATDPlanetCourse::IsFieldAnchorDisabled(V.W.GetWorld()));
 
 	// The anchor, then the run to extraction.
 	int32 AnchorDown = 0;
@@ -590,6 +600,7 @@ bool FTDCinderEndToEnd::RunTest(const FString& Parameters)
 	ATDPlanetCourse::OnFieldAnchorDisabled.Remove(Anchor);
 	TestTrue(TEXT("anchor disabled"), Jammer->IsComplete());
 	TestEqual(TEXT("T2's pending-marker event once"), AnchorDown, 1);
+	TestTrue(TEXT("T2's pending-marker state (saved)"), ATDPlanetCourse::IsFieldAnchorDisabled(V.W.GetWorld()));
 
 	R.Tick(0.5f);
 	R.LeaveForOrbit(TEXT("Cinder"));
