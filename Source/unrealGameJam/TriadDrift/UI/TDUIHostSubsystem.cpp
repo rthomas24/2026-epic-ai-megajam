@@ -610,7 +610,8 @@ namespace TDRewardMount
 
 	FText UpperName(const UEnum* E, int64 Value)
 	{
-		return FText::FromString(E->GetDisplayNameTextByValue(Value).ToString().ToUpper());
+		// "EMPPulse" -> "EMP PULSE", "GravityWell" -> "GRAVITY WELL" (the enum's display name ran the acronym in: live).
+		return FText::FromString(FName::NameToDisplayString(E->GetNameStringByValue(Value), false).ToUpper());
 	}
 }
 
