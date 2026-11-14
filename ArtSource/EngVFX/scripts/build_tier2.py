@@ -687,12 +687,14 @@ ROCK = (0.85, 0.93, 1.0, 1.0)   # 9g: the flash tint is ice white-blue (was dust
 CRYSTAL = (0.45, 0.55, 1.0, 1.0)   # the belt's blue-violet crystals: clear of the squad's cyan and magenta
 
 
-def rock_break(n_chunks, n_dust, n_grit):
+def rock_break(n_chunks, n_dust, n_grit, fl=1800):
     # Round 9g (T6's live capture: a dull dark-grey puff against bright ice rocks): a short bright white-blue flash, ice
     # shards and glints thrown out, the rock chunks, and only a faint pale mist instead of grey smoke.
     # 9k: flash about 2x and a soft glow under it so a break reads at 80 m from the chase camera; both under 0.2 s
-    return [flash('Flash', 'M_TD_VFX_Flare', 1800, 0.16, 1.8, growth='0.5 + Particles.NormalizedAge*0.9'),
-            flash('Glow', 'M_TD_VFX_Glow', 2200, 0.18, 0.9, growth='0.6 + Particles.NormalizedAge*0.6', power=1.6),
+    # 9n, seen from a side camera at 80 m: at Scale 2.2 / 4.5 the M and L flashes (40 / 81 m) swallowed the frame; the flash
+    # base now shrinks with the class so the flash is about the rock's size (S 18 m, M 22 m, L 30 m), 0.12 s
+    return [flash('Flash', 'M_TD_VFX_Flare', fl, 0.12, 1.8, growth='0.5 + Particles.NormalizedAge*0.9'),
+            flash('Glow', 'M_TD_VFX_Glow', fl * 1.1, 0.14, 0.9, growth='0.6 + Particles.NormalizedAge*0.6', power=1.6),
             # 9i: the mist is gone (a pale 0.30 puff still read grey over dark space in play); flash, chunks and shards carry it
             chunks('Chunks', 'SM_TD_VFX_Shard_C', n_chunks, (0.8, 1.6), (0.35, 0.9), (500, 2000), drag=0.6, radius=90.0, dur=1.8, spin=(0.8, 3.0)),
             shed('Shards', 'M_TD_VFX_Spark', 0, (0.3, 0.8), (7, 14), (1500, 4800), k=1.8, radius=60.0, drag=1.8, stretch=9, rgb=(0.80, 0.93, 1.0),
@@ -700,8 +702,8 @@ def rock_break(n_chunks, n_dust, n_grit):
 
 
 S2('NS_TD_Asteroid_Break_S', U(ROCK, 1.0), rock_break(5, 2, 18))
-S2('NS_TD_Asteroid_Break_M', U(ROCK, 2.2), rock_break(7, 2, 24))
-S2('NS_TD_Asteroid_Break_L', U(ROCK, 4.5), rock_break(9, 3, 32))
+S2('NS_TD_Asteroid_Break_M', U(ROCK, 2.2), rock_break(7, 2, 24, fl=1000))
+S2('NS_TD_Asteroid_Break_L', U(ROCK, 4.5), rock_break(9, 3, 32, fl=670))
 # Crystal-veined rock: the crystals shatter in light. A flare, glowing shards streaking out, slow glints, a few rock chunks.
 S2('NS_TD_Asteroid_Break_Crystal', U(CRYSTAL, 2.2), [
     flash('Flash', 'M_TD_VFX_Flare', 900, 0.16, 1.4, growth='0.4 + Particles.NormalizedAge*0.9'),
