@@ -18,6 +18,7 @@
 #include "GameFramework/Actor.h"
 #include "TriadDrift/Combat/TDFieldDamageable.h"
 #include "TriadDrift/Flight/TDShipImpactReceiver.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TDSpaceField.generated.h"
 
 class ATDGalaxyLayout;
@@ -384,6 +385,12 @@ private:
 	/** For the next RegisterPiece: an exact collision radius (> 0), and an obstacle handle to reuse (>= 0) or none (-2). */
 	float PendingColliderRadius = -1.f;
 	bool bMoonPlacement = false;
+	/** T4's journey key points (ATDGalaxyLayout::GetJourneyKeyPoints), read at Build: keep-outs and routes stay clear. */
+	TArray<FTDJourneyKeyPoint> JourneyPoints;
+public:
+	/** The first keep-out or route a piece of this size at P would sit on (NAME_None when clear). Pockets allow sparse cover. */
+	FName JourneyBlockerAt(const FVector& WorldPoint, float Size, bool bCollides) const;
+private:
 	/** Adopt during Build (false when td.SpaceField was 0 at load). */
 	bool bAdoptAtLoad = true;
 	bool bWarnedToggle = false;

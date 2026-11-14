@@ -334,6 +334,34 @@ bool FTDSpaceFieldStructuresKeepOut::RunTest(const FString& Parameters)
 	AddInfo(FString::Printf(TEXT("Shattered Moons shards %d, Quiet Graveyard hulls %d"), Shards, Hulls));
 	TestTrue(TEXT("the Shattered Moons line the Dominion route (10+ shards)"), Shards >= 10);
 	TestTrue(TEXT("the Quiet Graveyard has its hulls (4+)"), Hulls >= 4);
+	// T4's journey: no set piece and no hittable rock of 10 m or more on a keep-out or a route (pockets allow sparse cover).
+	{
+		TArray<FTDJourneyKeyPoint> Journey;
+		F.Layout->GetJourneyKeyPoints(Journey);
+		TestTrue(TEXT("the layout names its journey (keep-outs and routes)"), Journey.Num() >= 8);
+		auto OnJourney = [&Journey](const FTDSpaceFieldPiece& S, float Need) -> FName
+		{
+			for (const FTDJourneyKeyPoint& K : Journey) { if (K.Kind != ETDJourneyPointKind::Pocket && K.DistanceTo(S.Location) < Need) { return K.Id; } }
+			return NAME_None;
+		};
+		int32 SetOn = 0, RockOn = 0, Rocks = 0;
+		FString FirstOn;
+		for (const FTDSpaceFieldPiece& S : Fd->GetStructures())
+		{
+			const FName K = OnJourney(S, S.Size * 0.5f);
+			if (!K.IsNone()) { ++SetOn; if (FirstOn.IsEmpty()) { FirstOn = FString::Printf(TEXT("set piece %.0f m on %s"), S.Size / 100.f, *K.ToString()); } }
+		}
+		for (const FTDSpaceFieldPiece& S : Fd->GetPieces())
+		{
+			if (S.bAdopted || !S.bCollides || S.Size < 1000.f) { continue; }
+			++Rocks;
+			const FName K = OnJourney(S, S.Size * 0.5f);
+			if (!K.IsNone()) { ++RockOn; if (FirstOn.IsEmpty()) { FirstOn = FString::Printf(TEXT("rock %.0f m on %s"), S.Size / 100.f, *K.ToString()); } }
+		}
+		AddInfo(FString::Printf(TEXT("journey: %d key points; on it: %d set pieces, %d of %d hittable rocks 10 m+ (%s)"), Journey.Num(), SetOn, RockOn, Rocks, *FirstOn));
+		TestEqual(TEXT("no region set piece on the journey's keep-outs or routes"), SetOn, 0);
+		TestEqual(TEXT("no hittable rock of 10 m or more on the journey's keep-outs or routes"), RockOn, 0);
+	}
 	// The region dressing (the effects builder's beacon and haze): one beacon per region set piece, a haze per region.
 	AddInfo(FString::Printf(TEXT("region dressing: %d beacon points, %d haze volumes"), Fd->GetRegionBeaconPointCount(), Fd->GetRegionHazeCount()));
 	TestTrue(TEXT("a beacon point on each region set piece (ring, 3 hulk sections, rig, 10+ shards)"), Fd->GetRegionBeaconPointCount() >= 15);	// headless: no Niagara components

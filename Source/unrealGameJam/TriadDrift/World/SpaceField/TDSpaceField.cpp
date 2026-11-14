@@ -135,6 +135,7 @@ void ATDSpaceField::Build()
 	{
 		return;
 	}
+	Layout->GetJourneyKeyPoints(JourneyPoints);	// T4: the journey's keep-outs and routes
 	// The kit: the classic rocks and the space dressing (all real-scale meshes, normalised by their bounds).
 	Families.SetNum(6);
 	auto Fill = [this](int32 F, std::initializer_list<const TCHAR*> Paths)
@@ -304,6 +305,11 @@ bool ATDSpaceField::IsPlacementAllowed(const FVector& P, float Size, bool bColli
 	{
 		return false;
 	}
+	// T4's journey key points: nothing on a keep-out or a route (a hittable piece keeps 50 m more clear).
+	if (!JourneyBlockerAt(P, Size, bCollides).IsNone())
+	{
+		return false;
+	}
 	if (const FTransform* Exit = L.ReturnPoints.Find(TDReturnPoints::DominionHangarExit))
 	{
 		if (FVector::Dist(P, Xf.TransformPosition(Exit->GetLocation())) < (bMoonPlacement ? MoonDominionClear : DominionKeepOut) + Half)
@@ -312,6 +318,16 @@ bool ATDSpaceField::IsPlacementAllowed(const FVector& P, float Size, bool bColli
 		}
 	}
 	return true;
+}
+
+FName ATDSpaceField::JourneyBlockerAt(const FVector& P, float Size, bool bCollides) const
+{
+	const float Need = Size * 0.5f + (bCollides ? 5000.f : 0.f);	// its own radius clear, 50 m more when it can be hit
+	for (const FTDJourneyKeyPoint& K : JourneyPoints)
+	{
+		if (K.Kind != ETDJourneyPointKind::Pocket && K.DistanceTo(P) < Need) { return K.Id; }
+	}
+	return NAME_None;
 }
 
 float ATDSpaceField::NormFor(UStaticMesh* Mesh) const
