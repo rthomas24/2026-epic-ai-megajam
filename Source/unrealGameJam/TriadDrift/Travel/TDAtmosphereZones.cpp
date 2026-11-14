@@ -299,7 +299,10 @@ void UTDAtmosphereEntryComponent::TickClosedPlanetGuard(float DeltaTime)
 		const bool bDone = (int32)Phase > (int32)ATDPlanetAtmosphere::PhaseFor(Planet->GetDestination());
 		const ATDWaveDirector* Waves = ATDWaveDirector::Get(this);
 		// Why: a fight is on; or this world's work is done; or it is not time for it yet.
-		ClosedPlanetText = (Waves && Waves->IsWaveRunning()) ? NSLOCTEXT("TDTravel", "PlanetFight", "PLANET CLOSED  ·  FINISH THE FIGHT FIRST")
+		// A scripted corridor is up (the tutorial withdrawal runs toward Verdance): the fight is being left on orders, so
+		// "finish the fight" would contradict the objective on screen (T1's first-ten-minutes play).
+		ClosedPlanetText = Move->IsBoundaryReleased() ? NSLOCTEXT("TDTravel", "PlanetOrders", "PLANET CLOSED  ·  AWAIT ORDERS")
+			: (Waves && Waves->IsWaveRunning()) ? NSLOCTEXT("TDTravel", "PlanetFight", "PLANET CLOSED  ·  FINISH THE FIGHT FIRST")
 			: bDone ? NSLOCTEXT("TDTravel", "PlanetDone", "PLANET CLOSED  ·  NOTHING LEFT HERE")
 			: NSLOCTEXT("TDTravel", "PlanetNotYet", "PLANET CLOSED  ·  CLEAR THE AREA FIRST");
 		ClosedLineUntil = World->GetTimeSeconds() + ClosedPlanetLineSeconds;
