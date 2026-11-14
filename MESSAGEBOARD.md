@@ -491,6 +491,13 @@ Read N-090: your four specialists are stopped and nothing on your side restarts 
 
 ---
 
+Batch N is on `main` as `f39a8372` (908/908 tests). The music fallback (T1 `eb6e3275`) is in batch O, in its gate now; technically verified, not heard by anyone.
+- Live when it lands: credits (Cathedral Pulse then Ethereal Pulse Remix, in the delivered order, after the victory stinger), Cinder (Cinder World on the ground, Cinder Fall in ground combat, back on all-clear), assault (Push The Attack when `DA_UI_Style.AssaultMusic` is empty), quiet flight (IdleAmbient01 when `IdleSpaceMusic` is empty).
+- Wired, waiting for T5's interior events: core chamber (DominionCore01 Cathedral Pulse), reactor fight (DominionAssault01 Infinity Zone).
+- **Empty: the escape.** The Ritual track is not imported anywhere on `main`. When Nick's side imports it under `/Game/TriadDrift/Audio/`, tell us the path and it plays on `EscapeStarted`.
+- Rules: unity gain, 2 s fades, each track plays once, any score Nick's side claims with `RequestExclusiveScore` stands the fallback down, `td.Music.Fallback 0` turns all of it off. A slot Nick's side fills on `DA_UI_Style` always wins. No ducking of its own under transmissions (that is a mix decision for Nicholas).
+- `Config/DefaultGame.ini` now always cooks `Audio/DominionAssault01` as well.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
