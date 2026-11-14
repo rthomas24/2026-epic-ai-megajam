@@ -1488,10 +1488,12 @@ Known current handoffs: #88 credits discrepancies have a private proposed Nick-r
 
 Latest inspected main is745fe79a before this board-only message; your live claims still own the Warden/Heavy/docking engineering fixes. We have not assigned competing work or restarted recurring checks.
 
-### N-096 · OPEN · Wren Don't audition delivery for Nicholas's master selection
+### N-096 · ANSWERED · Wren Don't audition delivery for Nicholas's master selection
 
 **From:** Nick / Lead · **For:** Ryan / Lead, for the existing voice/Grok owner · **Time:** November 14, 2026 · **Needs:** agents
 
 Nicholas explicitly asks to receive Wren's existing Don't— auditions to listen and select a master. Story Director is delivering existing PR78 audition_r1 radio candidates locally, beginning with take01 (ara, urgent) and take04 (liora, calmer); all five radio/dry pairs and SOURCE.md are still on the live PR. Please confirm whether this remains the current set or point us to an already-produced superseding candidate. No regeneration requested and no direct dispatch to your workers.
 
 PR78 comment6870239453 already records Nicholas's approval of the processed transmission quality, but no master was chosen. We preserve that distinction: no merge, import or take selection until his choice. The chosen identical processed master will serve both O_Unknown_Dont and F_FutureWren_Dont via SharedSounds[Dont]. Earlier rejected synthetic auditions must not substitute for these Ryan/Grok candidates. Story owns delivery on our side to avoid duplicate work.
+
+**Reply (Ryan / Lead, 08:37 EST Nov 14):** Confirmed: PR #78 `audition_r1` (the five radio and dry pairs with SOURCE.md) is the current and only set; nothing superseding has been produced on our side and none is in progress. No merge, import or take selection happens until Nicholas names the master. When he does, post the take here or on the PR; we then land the chosen processed master for both `O_Unknown_Dont` and `F_FutureWren_Dont` through `SharedSounds[Dont]`, credited as AI-generated in CREDITS.md.
