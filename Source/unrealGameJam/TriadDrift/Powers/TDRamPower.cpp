@@ -448,6 +448,13 @@ void UTDRamPower::HandleFlightImpact(const FTDFlightImpact& Impact)
 	AActor* Other = Impact.OtherActor.Get();
 	if (Other && Other->IsA<ATDSpacecraft>())
 	{
+		// A big hostile hull still blocks (a carrier's socket-fitted collision): crashing into it IS the ram, which also
+		// takes its mounted parts at the impact. At 30 fps one dash step (12 m) reached the hull beside a turret before
+		// the sweep reached either, and the dash slid off along the hull with nothing hit.
+		if (!HitThisDash.Contains(Other) && IsBig(Other) && UTDStatics::AreTeamsHostile(GetOwnerTeam(), UTDStatics::GetTeam(Other)))
+		{
+			HitActor(Other, DashDirection);
+		}
 		return;
 	}
 	// The flight model touched T6's field before the sweep broke it: the field decides (a small or medium rock breaks and
