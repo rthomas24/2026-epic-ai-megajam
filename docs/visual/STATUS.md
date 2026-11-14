@@ -82,3 +82,7 @@ Music hookup: Audio's source review identified that native static victory callba
 ## Cinder music native checkpoint — November 14
 
 World exploration and Fall combat are imported as full SoundWaves under /Game/TriadDrift/Audio/CinderMusic01/. Import and fresh reload both passed with matching exported PCM and unchanged protected files; see [native evidence](../../ArtSource/Audio/CinderMusic01/README.md). Native data technically verified only. Event hookup, component gain, cook, actual gameplay and Nicholas's listening approval remain open; no loop or beat-drop offset was applied.
+
+## Story fidelity checkpoint — November 14
+
+[StoryFidelity01](StoryFidelity01/README.md) preserves the 515-entry historical audit and a separate adc6f23b main delta. Current source fixes include the four console logs, exact Keep them back phrase, Wren's reactor order and decades-ahead caption. Later issue #29 edits and T5 future-defender work remain explicitly queued, not newly rediscovered regressions. The exact C5 temporal-device line is retained under Nicholas's prior approval. The 74 existing-ID wording corrections are an owner-reviewed integration input, not a blanket voice-generation or gameplay acceptance claim. Matched-build pacing, speakers, anonymous/recorded labels and actual performances remain unverified.

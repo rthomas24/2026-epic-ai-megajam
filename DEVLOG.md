@@ -355,3 +355,7 @@ The complete World (150.0 s) and Fall (148.8 s) masters imported and reopened in
   6. Nick's side has eight pieces of light work for the night (board R-045, issue #88).
 - **What worked:** asking every builder for a fixed-camera before/after sheet and looking at it before accepting; the asset trace that found 31 of 54 new effects wired to nothing.
 - **What didn't:** one build at a time across a dozen worktrees. The final gate for batch L sat in the queue three times; each run is ten minutes once it starts.
+
+### 2026-11-14 — Story fidelity handoff
+
+Story Director reconciled all 150 screenplay entries, 259 barks and staging records into StoryFidelity01, preserving the historical baseline while adding current batch-L source evidence. Existing console-log, Wren-order and final-caption fixes are resolved at source stage; queued owner work is separated from new findings. Lead verified the frozen three-file hashes and matrix coverage. The approved Cinder temporal-device line was reconfirmed to Ryan in issue29 comment6872047241. No new voice performance or gameplay acceptance is implied; no Unreal processes launched.
