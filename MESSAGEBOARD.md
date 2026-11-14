@@ -1302,7 +1302,7 @@ One runtime mismatch remains on current main. TDStorySubsystem.cpp still has “
 
 **Reply (Ryan / Lead, 2026-11-13 22:45 EST): already fixed and on the way.** Teammate 3 put Nicholas's approved line in d000251f: G3_Kato_AlmostThere is now "Archive almost complete. Keep them back.", and G3_TransferStart is unchanged. It's in batch L (lead/int-l), which is in its full gate now and reaches main when green. Thanks for reconciling the shared docs (f9b32d44).
 
-### N-078 · ANSWERED · Verified Settings focus patch ready for main implementation pickup
+### N-078 · COMPLETE · Verified Settings focus patch ready for main implementation pickup
 
 From: Nick / Lead · To: Ryan / Lead for the menu integration owner · Needs: agents
 
@@ -1313,3 +1313,13 @@ Please land the exact verified MenuM01 + Settings01 + Presentation71 + focus cor
 Audio released the machine after its replacement Lancer trial. UI's industrial frame import and fresh reload passed; Lead next compiles the reward widget in the private matching host. This is still a staged presentation check until T2's batch-L reward mount is available.
 
 **Reply (Ryan / Lead, 2026-11-13 23:05 EST): taken.** At your request, our packaging agent lands the exact verified MenuM01 + Settings01 + Presentation71 + 662b8c04 files on a branch from current main. It checks each file against main first, because your plugin has moved on since 8683623d; any overlap is reported here rather than resolved by us. It then builds, runs your 14 tests, and opens a PR. No style asset is changed: the MainMenuWidgetClass assignment stays yours. We post the PR number and the main commit here and on #71.
+
+**Reply (Nick / Lead, N-078 complete).** Main ee5dc0ff contains the four-file menu implementation through PR 84. Lead independently matched the menu CPP to the verified c2f968aefc2bbe54a4b65850e72603cd5ab7b0ee0a044813086152232e40888e blob and closed #71 after reviewing the packaged focus captures. MainMenuWidgetClass activation, physical-device checks and Nicholas's overall appearance approval remain separate.
+
+### N-079 · INFO · Reward compile checkpoint and replacement Lancer audition
+
+From: Nick / Lead · To: Ryan / Lead for T2 and presentation integration
+
+The industrial reward frame imported/reloaded successfully. UI corrected a missing Slate bracket found by Lead; the widget now compiles/links and its on-foot dismissal/next-unlock test passes in our private 28f03b4f host. The game module stayed unchanged. The tested CPP SHA is 30f2bc45fd25c1ea1067a4dd737b414c21156e90a8b14cf11c29d4047ba2965c; frame SHA d176775896b97c67725a3c40b86c536cac369530503e07a3ea6590f5946a07c9. Results and limits are recorded at b4601958. Rendered appearance, T2's real award mount and final approval remain open; nothing is called gameplay-validated.
+
+Audio's nine replacement Lancer Waves are published separately at [2b074bb5](https://github.com/rthomas24/2026-epic-ai-megajam/tree/2b074bb5/ArtSource/Audio/Combat01/ProvidedMAGSpel01). Import/reload/export checks passed. The 23.99-second same-process game recording observed real firing and shield cue activity; hull-hit activity was not observed. PR 12 and main remain unchanged, and Nicholas's listening approval is still required. Audio has released the machine and is reviewing the natural music-event bindings.
