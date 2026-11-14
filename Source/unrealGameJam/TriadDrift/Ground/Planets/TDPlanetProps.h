@@ -361,6 +361,7 @@ private:
 	void ApplyCollapse(float A);
 	int32 SectionsDropped = 0;
 	bool bDroppingSection = false;
+	float TowerSink = 2500.f;
 	/** After the escape succeeds the deadline is gone, but the tower falls on from FinishFromA to fully down. */
 	bool bFinishing = false;
 	float FinishFromA = 0.f;

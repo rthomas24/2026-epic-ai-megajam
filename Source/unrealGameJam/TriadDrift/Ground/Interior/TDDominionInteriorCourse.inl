@@ -462,7 +462,7 @@ void ATDPlanetCourse::BuildInterior()
 	Checkpoint(Lesson, 0, FVector(HX1 - 300.f, 0.f, 0.f), 0.f);
 	FinishObjective(Lesson, { LOCTEXT("DIC0", "RETURN THEIR FIRE · BLOCK [RMB] AS IT HITS"), LOCTEXT("DIC1", "GO THROUGH") }, { nullptr, IntoArena });
 	// No entry for the corridor: a Continue before it starts on the hangar floor.
-	StoryConsole(FVector(-900.f, 900.f, 0.f), 180.f, TEXT("Hangar"));
+	StoryConsole(FVector(-900.f, 900.f, 0.f), -70.f, TEXT("Hangar")); // its screen (+X) toward the walk from the ship
 	StoryConsole(FVector(CX1 + 250.f, -AY + 300.f, 0.f), 180.f, TEXT("Corridor")); // just inside the arena: the lane stays clear
 
 	// 2. The arena: three waves, one new threat each.

@@ -749,6 +749,10 @@ void ATDCollapseRun::BeginPlay()
 	if (Tower)
 	{
 		TowerHome = Tower->GetActorLocation();
+		// Fully destroyed means gone: the whole tower goes under (its height plus a margin), not 25 m of a 36 m tower.
+		FVector Origin, Extent;
+		Tower->GetActorBounds(false, Origin, Extent);
+		TowerSink = FMath::Max(2500.f, (float)Extent.Z * 2.f + 300.f);
 	}
 }
 
@@ -771,7 +775,7 @@ void ATDCollapseRun::ApplyCollapse(float A)
 	{
 		return;
 	}
-	Tower->SetActorLocation(TowerHome + FVector(0.f, 0.f, -A * 2500.f));
+	Tower->SetActorLocation(TowerHome + FVector(0.f, 0.f, -A * TowerSink));
 	Tower->SetActorRotation(FRotator(A * 12.f, 0.f, A * 6.f));
 	// Its sections break off in turn (the structures builder's AnchorSection_A/B/C): out and down from its top.
 	const int32 Sections = SectionMeshes.Num();
@@ -914,6 +918,7 @@ AActor* ATDCollapseRun::DropPiece(const FVector& WorldAt, UStaticMesh* Art, floa
 	{
 		Rock->SetLifeSpan(12.f);
 	}
+	UE_LOG(LogTriadDrift, Display, TEXT("TD.Collapse: dropped %s (%s) at %s size %s"), bDroppingSection ? TEXT("section") : TEXT("debris"), *GetNameSafe(Art), *WorldAt.ToCompactString(), *Size.ToCompactString());
 	Debris.Add(Rock);
 	return Rock;
 }

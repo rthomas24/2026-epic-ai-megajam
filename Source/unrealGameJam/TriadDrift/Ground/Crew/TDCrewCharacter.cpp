@@ -984,6 +984,7 @@ void ATDCrewCharacter::DoMelee()
 		const FVector Dir = To.GetSafeNormal();
 		LogHitInstant(TEXT("Melee"));
 		LastMeleeLandedAt = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+		if (UTDCrewTokenSubsystem* Tokens = UTDCrewTokenSubsystem::Get(this)) { Tokens->LastMeleeHitSeconds = LastMeleeLandedAt; }
 		UTDStatics::ApplyTDDamage(T, Spec.MeleeDamage, ETDDamageKind::Melee, this, this, T->GetActorLocation() - Dir * 40.f, Dir);
 	}
 }
@@ -1586,7 +1587,7 @@ void ATDCrewCharacter::Tick(float DeltaSeconds)
 			if (D < MinPilotSeparation && Dz < 180.f)
 			{
 				const FVector Dir = D > 1.f ? Away / D : Pilot->GetActorForwardVector().GetSafeNormal2D();
-				AddActorWorldOffset(Dir * FMath::Min(MinPilotSeparation - D, 600.f * DeltaSeconds), true);
+				AddActorWorldOffset(Dir * (MinPilotSeparation - D), true); // all of it at once: a lunge moves the pilot 30 m/s
 			}
 		}
 	}
