@@ -1,0 +1,116 @@
+[
+ {
+  "gate_conduits": [
+   [
+    9300.0,
+    5350.0,
+    150.0
+   ],
+   [
+    9300.0,
+    6650.0,
+    150.0
+   ]
+  ]
+ },
+ {
+  "teleport": [
+   8600.0,
+   6000.0,
+   0.0
+  ],
+  "feet": [
+   8600,
+   6000,
+   32,
+   0
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\gate_conduits_7m.png"
+ },
+ {
+  "teleport": [
+   8850.0,
+   5350.0,
+   0.0
+  ],
+  "feet": [
+   8850,
+   5350,
+   2,
+   0
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\gate_conduit_4m.png"
+ },
+ {
+  "charge_sites": [
+   [
+    12173.71,
+    -4591.14,
+    425.45
+   ],
+   [
+    12173.71,
+    -4591.14,
+    425.45
+   ],
+   [
+    12190.57,
+    -5429.83,
+    420.9
+   ]
+  ]
+ },
+ {
+  "teleport": [
+   11957.19781235674,
+   -4383.480488775664,
+   0.0
+  ],
+  "feet": [
+   11957,
+   -4383,
+   2,
+   316
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\charge_on_face_3m.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\collapse_01s.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\collapse_04s.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\collapse_08s.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\collapse_11s.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\collapse_15s.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\collapse_18s.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\collapse_22s.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\bay_mouth_0.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\bay_mouth_1.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\bay_mouth_2.png"
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchAC\\bay_mouth_3.png"
+ }
+]
