@@ -505,6 +505,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue CloudWisps;
 
+	/** Planet ambience (the effects builder's; ATDPlaceholderSky spawns it attached to the camera and drives User.Fade).
+	 *  No gameplay code plays these. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue PlanetAmbientVerdance;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue PlanetAmbientCinder;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue LandingDust;
 
