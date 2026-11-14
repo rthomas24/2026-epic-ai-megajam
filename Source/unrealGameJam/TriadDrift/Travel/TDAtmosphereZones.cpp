@@ -17,6 +17,7 @@
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -237,6 +238,12 @@ void UTDAtmosphereEntryComponent::FinishEntry()
 	}
 }
 
+bool UTDAtmosphereEntryComponent::IsPlanetClosedWarning() const
+{
+	const UWorld* World = GetWorld();
+	return ClosedPlanet01 > 0.02f || (World && World->GetTimeSeconds() < ClosedLineUntil);
+}
+
 void UTDAtmosphereEntryComponent::TickClosedPlanetGuard(float DeltaTime)
 {
 	ATDShip* Ship = Cast<ATDShip>(GetOwner());
@@ -290,12 +297,24 @@ void UTDAtmosphereEntryComponent::TickClosedPlanetGuard(float DeltaTime)
 		const UTDGameInstance* GI = Cast<UTDGameInstance>(World->GetGameInstance());
 		const ETDGamePhase Phase = GI ? GI->GetProgressRef().Phase : ETDGamePhase::Waves1to2;
 		const bool bDone = (int32)Phase > (int32)ATDPlanetAtmosphere::PhaseFor(Planet->GetDestination());
-		ClosedPlanetText = bDone ? NSLOCTEXT("TDTravel", "PlanetDone", "PLANET CLOSED  Â·  NOTHING LEFT HERE")
-			: NSLOCTEXT("TDTravel", "PlanetNotYet", "PLANET CLOSED  Â·  CLEAR THE AREA FIRST");
+		const ATDWaveDirector* Waves = ATDWaveDirector::Get(this);
+		// Why: a fight is on; or this world's work is done; or it is not time for it yet.
+		ClosedPlanetText = (Waves && Waves->IsWaveRunning()) ? NSLOCTEXT("TDTravel", "PlanetFight", "PLANET CLOSED  ·  FINISH THE FIGHT FIRST")
+			: bDone ? NSLOCTEXT("TDTravel", "PlanetDone", "PLANET CLOSED  ·  NOTHING LEFT HERE")
+			: NSLOCTEXT("TDTravel", "PlanetNotYet", "PLANET CLOSED  ·  CLEAR THE AREA FIRST");
+		ClosedLineUntil = World->GetTimeSeconds() + ClosedPlanetLineSeconds;
 		if (Descent)
 		{
 			Descent->SetBurnIsExit(false);
-			Descent->SetEntryHeat(FMath::Clamp(ClosedPlanet01 * 1.4f, 0.f, 1.f)); // the hull burn and the HUD's heat bar
+			Descent->SetEntryHeat(FMath::Clamp(0.35f + ClosedPlanet01 * 2.5f, 0.f, 1.f)); // the hull burn and the HUD's heat bar: seen from the band's edge
+			if (ClosedPlanet01 > 0.25f && !bGuardFlashed)
+			{
+				// Skipping off the atmosphere: the flash, once per approach (a real contact also costs hull, below).
+				bGuardFlashed = true;
+				const FVector N = (At - Planet->GetPlanetCenter()).GetSafeNormal();
+				if (TravelFX) { UTDStatics::PlayCue(this, TravelFX->ExitBreakaway, At - N * 300.f, N.Rotation()); }
+				UE_LOG(LogTriadDrift, Log, TEXT("Closed planet: %s skips off the atmosphere (flash, heat %.2f)"), *Ship->GetName(), FMath::Clamp(0.35f + ClosedPlanet01 * 2.5f, 0.f, 1.f));
+			}
 			if (ClosedPlanet01 > 0.2f && !bGuardRoar)
 			{
 				if (USoundBase* Roar = UTDDescentSubsystem::ResolveRoar(TravelFX, false)) { Descent->StartRoar(Roar); bGuardRoar = true; }
@@ -311,6 +330,7 @@ void UTDAtmosphereEntryComponent::TickClosedPlanetGuard(float DeltaTime)
 	if (ClosedPlanet01 <= 0.f)
 	{
 		bGuardLogged = false;
+		bGuardFlashed = false;
 		if (bGuardRoar) { bGuardRoar = false; if (Descent) { Descent->StopRoar(0.6f); } }
 	}
 	// Contact: a bounce. Flash (the entry cue's effect at the nose) and a small hull hit, not more than once per cooldown.

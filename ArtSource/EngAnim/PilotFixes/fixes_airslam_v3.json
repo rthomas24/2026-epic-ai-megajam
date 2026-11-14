@@ -1,0 +1,23 @@
+{
+ "_note": "Air slam v3 (Nov 14, melee pass). Fall: a quick raise (0.06 s) into a plunge, the blade point down in front of the chest, held while falling (base: the fall loop). Land: the hard-landing crouch (A_Pilot_Land, pelvis down to 70 cm at 0.07 s) with the blade driven point-first into the ground in front at the impact, held 0.3 s, then back to the guard. Same key format as fixes_swing.json (rate 1: clip seconds).",
+ "swing": [
+  {
+   "src": "A_Pilot_FallLoop", "dst": "A_Pilot_AirSlam_Fall_v2", "rate": 1.0, "max_yaw": 30,
+   "keys": [
+    {"t": 0.0,  "hand": [18, 4, 30],   "blade": [-0.25, 0.0, 0.97], "yaw": 5},
+    {"t": 0.07, "hand": [34, -4, -14], "blade": [0.15, -0.05, -0.99], "yaw": 0},
+    {"t": "end", "hand": [34, -4, -16], "blade": [0.15, -0.05, -0.99], "yaw": 0}
+   ]
+  },
+  {
+   "src": "A_Pilot_Land", "dst": "A_Pilot_AirSlam_Land_v3", "rate": 1.0, "max_yaw": 30,
+   "keys": [
+    {"t": 0.0,  "hand": [36, -4, -24], "blade": [0.25, -0.05, -0.97], "yaw": 0},
+    {"t": 0.08, "hand": [46, -6, -50], "blade": [0.3, -0.05, -0.95], "yaw": -4},
+    {"t": 0.38, "hand": [46, -6, -48], "blade": [0.32, -0.05, -0.94], "yaw": -4},
+    {"t": 0.62, "hand": [34, 4, -26],  "blade": [0.6, 0.05, 0.6],    "yaw": 0},
+    {"t": "end", "hand": [30, 8, -22], "blade": [0.6, 0.05, 0.75],   "yaw": 0}
+   ]
+  }
+ ]
+}
