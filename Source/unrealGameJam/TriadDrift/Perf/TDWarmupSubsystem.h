@@ -9,6 +9,7 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "Subsystems/GameInstanceSubsystem.h"
 #include "UObject/SoftObjectPath.h"
 #include "TDWarmupSubsystem.generated.h"
 
@@ -25,6 +26,24 @@ enum class ETDWarmupStage : uint8
 	LoadingContent,  // what they point at (effects, sounds, meshes, materials, animations)
 	Activating,      // each effect once, a few per frame
 	Done
+};
+
+/**
+ * Keeps what the warm-up loaded in memory for the whole run (T6, #89). The world subsystem below is rebuilt on every level
+ * load and released its assets with the level, so every return to the galaxy streamed the same 240 assets again (3.4 s
+ * if blocked on, or nine flushes in the first seconds of play if not). Held here, the next warm-up finds them resident.
+ */
+UCLASS()
+class UNREALGAMEJAM_API UTDWarmupKeep : public UGameInstanceSubsystem
+{
+	GENERATED_BODY()
+
+public:
+	void Keep(const TArray<TObjectPtr<UObject>>& Assets);
+	int32 GetKeptCount() const { return Kept.Num(); }
+
+private:
+	UPROPERTY(Transient) TSet<TObjectPtr<UObject>> Kept;
 };
 
 UCLASS()

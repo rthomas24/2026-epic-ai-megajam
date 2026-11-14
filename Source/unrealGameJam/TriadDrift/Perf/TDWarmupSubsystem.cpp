@@ -10,6 +10,7 @@
 #include "Engine/DataAsset.h"
 #include "Engine/StreamableManager.h"
 #include "Engine/World.h"
+#include "Engine/GameInstance.h"
 #include "HAL/IConsoleManager.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
@@ -206,6 +207,14 @@ void UTDWarmupSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	WaitLeft = StartDelaySeconds;
 }
 
+void UTDWarmupKeep::Keep(const TArray<TObjectPtr<UObject>>& Assets)
+{
+	for (UObject* Asset : Assets)
+	{
+		if (Asset) { Kept.Add(Asset); }
+	}
+}
+
 void UTDWarmupSubsystem::HurryUnderCover()
 {
 	if (Stage == ETDWarmupStage::Waiting)
@@ -327,6 +336,18 @@ void UTDWarmupSubsystem::OnContentLoaded()
 	UE_LOG(LogTriadDrift, Log, TEXT("TD warmup: %d of %d referenced assets loaded at %.2f s; warming %d effects"),
 		Loaded, ContentPaths.Num(), FPlatformTime::Seconds() - StartSeconds, ToActivate.Num());
 	Stage = ETDWarmupStage::Activating;
+	// For the rest of the run (the next level's warm-up finds these already in memory).
+	if (const UWorld* World = GetWorld())
+	{
+		if (UGameInstance* GI = World->GetGameInstance())
+		{
+			if (UTDWarmupKeep* KeepSub = GI->GetSubsystem<UTDWarmupKeep>())
+			{
+				KeepSub->Keep(Held);
+				UE_LOG(LogTriadDrift, Log, TEXT("TD warmup: %d assets kept for the run"), KeepSub->GetKeptCount());
+			}
+		}
+	}
 }
 
 void UTDWarmupSubsystem::Tick(float DeltaTime)
