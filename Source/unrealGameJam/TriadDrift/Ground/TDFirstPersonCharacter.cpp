@@ -184,7 +184,9 @@ int32 ATDFirstPersonCharacter::ChooseBodyLoop(float GroundSpeed)
 {
 	// Run speed is 650, sprint 950, blocking 325. The walk loop covers 130 cm/s: past about 200 its feet would slide
 	// (it can only be sped up so far), so the run loop takes over there (animation builder, Nov 14).
-	return GroundSpeed < 60.f ? 0 : GroundSpeed < 200.f ? 1 : 2;
+	// Round 2 (foot slide measured with TD.Pilot.FootTrace): idle only below 30 cm/s so the feet step as soon as the
+	// capsule moves; walk to 260 cm/s at up to 2x, the run above it (its rate tracks the speed from 0.5x).
+	return GroundSpeed < 30.f ? 0 : GroundSpeed < 260.f ? 1 : 2;
 }
 
 void ATDFirstPersonCharacter::ApplyPilotVisuals()
@@ -337,8 +339,11 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 			}
 		}
 		const float Speed = (float)GetVelocity().Size2D();
-		const float Ref = Want == 1 ? BodyWalkSpeed : Want == 2 ? BodyRunSpeed : 0.f;
-		const float Rate = Fall ? 1.f : bAir ? 0.4f : (Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.7f) : 1.f); // in the air: the fall loop, else the last loop slowed
+		// The clips' authored speeds are for the unscaled skeleton: the body is drawn MeshScale bigger, so its stride is too.
+		const float BodyScale = FMath::Max(0.01f, (float)GetMesh()->GetComponentScale().X);
+		const float Ref = (Want == 1 ? BodyWalkSpeed : Want == 2 ? BodyRunSpeed : 0.f) * BodyScale;
+		const float Rate = Fall ? 1.f : bAir ? 0.4f : (Ref > 0.f ? (Want == 1 ? FMath::Clamp(Speed / Ref, 0.25f, 2.f) : FMath::Clamp(Speed / Ref, 0.5f, 1.9f)) : 1.f);
+		Loops->BlendSeconds = TDPilotMeleePassOn() ? 0.12f : 0.2f; // gait changes blend quickly (the feet step at once) // in the air: the fall loop, else the last loop slowed
 		Loops->SetLoop(Loop, Rate);
 		Loops->SetGait(bAir ? -1 : Want); // start lean / stop settle (animation builder, Nov 14)
 		// Legs follow the direction of travel when the body faces elsewhere (a swing or the guard turns it to the camera):
@@ -361,7 +366,7 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 			if (D)
 			{
 				Legs = LoadPilotAnim(bRun ? D->Jog : D->Walk);
-				LegRate = FMath::Clamp(Speed / (bRun ? D->JogSpeed : D->WalkSpeed), 0.6f, 1.7f);
+				LegRate = FMath::Clamp(Speed / ((bRun ? D->JogSpeed : D->WalkSpeed) * BodyScale), 0.3f, 1.9f);
 			}
 		}
 		// Turn in place (standing, the body swinging round to the camera): small side steps on the legs instead of the
