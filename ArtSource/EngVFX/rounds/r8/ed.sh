@@ -5,6 +5,8 @@ export UE_SKIP_UBT_SDK_SETUP=1   # Lead, Nov 13: launches otherwise queue behind
 case $1 in
  stop) powershell -File Tools/td-play-mcp.ps1 -Port ${TD_PORT:-21031} -Stop | tail -1; powershell -File Tools/td-play-mcp.ps1 -Port 21032 -Stop | tail -1; sleep 4;;
  start) bash $0 stop
+   # Lead, Nov 14: a stop always reaches a running script: touch Saved/EngVFX/STOP and no further launch happens
+   [ -f Saved/EngVFX/STOP ] && { echo "STOP file present: not launching"; exit 1; }
    if [ "$NULLRHI" = "1" ]; then   # Lead, Nov 14: script-only builds run without rendering (no slot needed)
      powershell -File Tools/td-play-mcp.ps1 -Port ${TD_PORT:-21031} -Editor -ExtraArgs "-nullrhi" | grep -c "SESSION READY"
      for i in $(seq 1 40); do python ArtSource/EngVFX/scripts/run_editor_py.py ${TD_PORT:-21031} ArtSource/EngVFX/scripts/ping.py 2>/dev/null | grep -q pong && break; sleep 5; done

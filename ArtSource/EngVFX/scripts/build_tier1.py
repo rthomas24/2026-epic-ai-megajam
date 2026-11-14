@@ -419,7 +419,9 @@ def plume_beacon(name, size, k, rate=40.0, life=(0.08, 0.12), flicker=True, puls
     `size`; the cue's VFXScale is cancelled, so a carrier's beacon is not five times a fighter's. The type reads at range
     by count, flicker and pulse (fighter 1 flickering, interceptor 2 steady, gunship 1 big, bomber 1 throbbing,
     carrier 4 steady)."""
-    s = '(150.0 + 0.02*clamp(Engine.Owner.LODDistance, 0.0, 80000.0))*%s/max(%s, 0.05)' % (size, SCL) + ('*%s' % pulse if pulse else '')
+    # 10c (seen from behind against the nebula: still faint): 1.6x bigger and 2.5x brighter
+    s = '(240.0 + 0.032*clamp(Engine.Owner.LODDistance, 0.0, 80000.0))*%s/max(%s, 0.05)' % (size, SCL) + ('*%s' % pulse if pulse else '')
+    rgb = tuple(c * 2.5 for c in rgb) if rgb else rgb
     lo, hi = ('(%s)*0.85' % s, '(%s)*1.10' % s) if flicker else ('(%s)' % s, '(%s)' % s)
     return offset(shed(name, 'M_TD_VFX_Glow', 0, life, (lo, hi), (0, 0), k=k, radius=0.0, drag=0.0, local=True, power=0.6,
                        rate_expr='%s*(0.5 + 0.5*User.Throttle + User.Boost)' % rate, rgb=rgb), -20.0, y, z)

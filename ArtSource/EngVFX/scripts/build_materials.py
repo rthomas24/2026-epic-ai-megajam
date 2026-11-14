@@ -437,6 +437,21 @@ float a = edge*(0.35 + 0.65*pow(f, 2.0) + 1.2*sweep) + rim*1.4;
 float3 c = PC.rgb*a + lerp(PC.rgb, float3(1,1,1), 0.6)*(rim*0.6 + edge*sweep*0.5);
 return float4(c*Intensity, PC.a);""", {}),
 
+    # 10c (Lead: the wall reads but is too heavy): a new asset (rebuilding a loaded material in place can assert): thinner
+    # hex lines (edge band 0.45-0.48 instead of 0.40-0.48) and about 40% less light, so the nebula and ships behind read.
+    'M_TD_VFX_FieldHex2': ('additive', False, 1, 1, (0, 0), (0, 0), 0, """
+float f = saturate(Fres);
+float2 q = UV*float2(64.0, 32.0); float2 s = float2(1.0, 1.7320508);
+float2 a2 = fmod(q, s) - s*0.5; float2 b2 = fmod(q + s*0.5, s) - s*0.5;
+float2 g = abs(dot(a2, a2) < dot(b2, b2) ? a2 : b2);
+float d = max(dot(g, s*0.5), g.x);
+float edge = smoothstep(0.45, 0.48, d)*smoothstep(0.50, 0.485, d);
+float sweep = pow(saturate(1.0 - abs(frac(UV.y*1.0 - Tm*0.05) - 0.5)*6.0), 2.0);
+float rim = pow(f, 5.0)*smoothstep(1.0, 0.975, f)*1.4;
+float a = (edge*(0.35 + 0.65*pow(f, 2.0) + 1.2*sweep) + rim*1.4)*0.6;
+float3 c = PC.rgb*a + lerp(PC.rgb, float3(1,1,1), 0.6)*(rim*0.6 + edge*sweep*0.5)*0.6;
+return float4(c*Intensity, PC.a);""", {}),
+
     # round 10: a set piece's range beacon (NS_TD_Region_Beacon): soft round core, a short thin horizontal streak, a white
     # pin-point centre. Camera-facing sprite, additive.
     'M_TD_VFX_Beacon': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''

@@ -37,7 +37,8 @@ PLAN_R9B = {   # round 9 (ART-16, T4's answer): one-shots at world points; Break
                                      'docking_bay_open': ('NS_TD_Dominion_DockOpen', 1.0)},
 }
 PLAN_R10 = {   # round 10 (Lead accepted r10_shielddrop): the 4th generator's shield drop
-    'Dominion/DA_Dominion_Visuals': {'shield_collapse': ('NS_TD_Dominion_ShieldDrop', 0.46)},
+    'Dominion/DA_Dominion_Visuals': {'shield_collapse': ('NS_TD_Dominion_ShieldDrop', 0.46),
+                                     'distortion_field_idle': ('NS_TD_Dominion_ApproachField', 1.0)},   # 10c: Lead accepted the wall
 }
 PLAN_R10_PLUMES = {   # round 10, only once the Lead accepts the plume sheets: EngineTrail VFX; VFXScale left as it is
     'NullFleet/DA_Enemy_%s_Visuals' % t: {'engine_trail': 'NS_TD_Plume_Enemy_%s' % t} for t in ('Fighter', 'Interceptor', 'Gunship', 'Bomber', 'Carrier')
