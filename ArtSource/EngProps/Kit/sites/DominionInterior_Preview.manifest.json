@@ -1,5 +1,667 @@
 {
  "site": "DominionInterior_Preview",
+ "lights": [
+  {
+   "name": "L000",
+   "location_cm": [
+    -800.0,
+    -1000.0,
+    1100.0
+   ],
+   "intensity": 630.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L001",
+   "location_cm": [
+    -800.0,
+    -200.0,
+    1100.0
+   ],
+   "intensity": 630.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L002",
+   "location_cm": [
+    -800.0,
+    600.0,
+    1100.0
+   ],
+   "intensity": 630.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L003",
+   "location_cm": [
+    0.0,
+    -1000.0,
+    1100.0
+   ],
+   "intensity": 630.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L004",
+   "location_cm": [
+    0.0,
+    -200.0,
+    1100.0
+   ],
+   "intensity": 630.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L005",
+   "location_cm": [
+    0.0,
+    600.0,
+    1100.0
+   ],
+   "intensity": 630.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L006",
+   "location_cm": [
+    800.0,
+    -1000.0,
+    1100.0
+   ],
+   "intensity": 630.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L007",
+   "location_cm": [
+    800.0,
+    -200.0,
+    1100.0
+   ],
+   "intensity": 630.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L008",
+   "location_cm": [
+    800.0,
+    600.0,
+    1100.0
+   ],
+   "intensity": 630.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L009",
+   "location_cm": [
+    5600.0,
+    -1000.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L010",
+   "location_cm": [
+    5600.0,
+    -200.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L011",
+   "location_cm": [
+    5600.0,
+    600.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L012",
+   "location_cm": [
+    6400.0,
+    -1000.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L013",
+   "location_cm": [
+    6400.0,
+    -200.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L014",
+   "location_cm": [
+    6400.0,
+    600.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L015",
+   "location_cm": [
+    7200.0,
+    -1000.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L016",
+   "location_cm": [
+    7200.0,
+    -200.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L017",
+   "location_cm": [
+    7200.0,
+    600.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L018",
+   "location_cm": [
+    8800.0,
+    -600.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L019",
+   "location_cm": [
+    8800.0,
+    200.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L020",
+   "location_cm": [
+    9600.0,
+    -600.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L021",
+   "location_cm": [
+    9600.0,
+    200.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1600.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L022",
+   "location_cm": [
+    11800.0,
+    -1200.0,
+    1650.0
+   ],
+   "intensity": 1100.0,
+   "radius": 1800.0,
+   "color": [
+    0.82,
+    0.88,
+    1.0
+   ]
+  },
+  {
+   "name": "L023",
+   "location_cm": [
+    11800.0,
+    0.0,
+    1650.0
+   ],
+   "intensity": 1100.0,
+   "radius": 1800.0,
+   "color": [
+    0.82,
+    0.88,
+    1.0
+   ]
+  },
+  {
+   "name": "L024",
+   "location_cm": [
+    11800.0,
+    1200.0,
+    1650.0
+   ],
+   "intensity": 1100.0,
+   "radius": 1800.0,
+   "color": [
+    0.82,
+    0.88,
+    1.0
+   ]
+  },
+  {
+   "name": "L025",
+   "location_cm": [
+    13000.0,
+    -1200.0,
+    1650.0
+   ],
+   "intensity": 1100.0,
+   "radius": 1800.0,
+   "color": [
+    0.82,
+    0.88,
+    1.0
+   ]
+  },
+  {
+   "name": "L026",
+   "location_cm": [
+    13000.0,
+    0.0,
+    1650.0
+   ],
+   "intensity": 1100.0,
+   "radius": 1800.0,
+   "color": [
+    0.82,
+    0.88,
+    1.0
+   ]
+  },
+  {
+   "name": "L027",
+   "location_cm": [
+    13000.0,
+    1200.0,
+    1650.0
+   ],
+   "intensity": 1100.0,
+   "radius": 1800.0,
+   "color": [
+    0.82,
+    0.88,
+    1.0
+   ]
+  },
+  {
+   "name": "L028",
+   "location_cm": [
+    14200.0,
+    -1200.0,
+    1650.0
+   ],
+   "intensity": 1100.0,
+   "radius": 1800.0,
+   "color": [
+    0.82,
+    0.88,
+    1.0
+   ]
+  },
+  {
+   "name": "L029",
+   "location_cm": [
+    14200.0,
+    0.0,
+    1650.0
+   ],
+   "intensity": 1100.0,
+   "radius": 1800.0,
+   "color": [
+    0.82,
+    0.88,
+    1.0
+   ]
+  },
+  {
+   "name": "L030",
+   "location_cm": [
+    14200.0,
+    1200.0,
+    1650.0
+   ],
+   "intensity": 1100.0,
+   "radius": 1800.0,
+   "color": [
+    0.82,
+    0.88,
+    1.0
+   ]
+  },
+  {
+   "name": "L031",
+   "location_cm": [
+    1600.0,
+    0.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1000.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L032",
+   "location_cm": [
+    2400.0,
+    0.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1000.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L033",
+   "location_cm": [
+    3200.0,
+    0.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1000.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L034",
+   "location_cm": [
+    4000.0,
+    0.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1000.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L035",
+   "location_cm": [
+    4800.0,
+    0.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1000.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L036",
+   "location_cm": [
+    8000.0,
+    0.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1000.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L037",
+   "location_cm": [
+    10800.0,
+    0.0,
+    540.0
+   ],
+   "intensity": 315.0,
+   "radius": 1000.0,
+   "color": [
+    1.0,
+    0.9,
+    0.78
+   ]
+  },
+  {
+   "name": "L038_ReactorGlow",
+   "location_cm": [
+    13000.0,
+    0.0,
+    250.0
+   ],
+   "intensity": 1800.0,
+   "radius": 800.0,
+   "color": [
+    1.0,
+    0.1,
+    0.04
+   ]
+  },
+  {
+   "name": "L039_CoreRim",
+   "location_cm": [
+    11500.0,
+    -1500.0,
+    1000.0
+   ],
+   "intensity": 700.0,
+   "radius": 2200.0,
+   "color": [
+    0.7,
+    0.82,
+    1.0
+   ]
+  },
+  {
+   "name": "L040_CoreRim",
+   "location_cm": [
+    11500.0,
+    1500.0,
+    1000.0
+   ],
+   "intensity": 700.0,
+   "radius": 2200.0,
+   "color": [
+    0.7,
+    0.82,
+    1.0
+   ]
+  },
+  {
+   "name": "L041_CoreRim",
+   "location_cm": [
+    14500.0,
+    -1500.0,
+    1000.0
+   ],
+   "intensity": 700.0,
+   "radius": 2200.0,
+   "color": [
+    0.7,
+    0.82,
+    1.0
+   ]
+  },
+  {
+   "name": "L042_CoreRim",
+   "location_cm": [
+    14500.0,
+    1500.0,
+    1000.0
+   ],
+   "intensity": 700.0,
+   "radius": 2200.0,
+   "color": [
+    0.7,
+    0.82,
+    1.0
+   ]
+  },
+  {
+   "name": "L043_Bulkhead",
+   "location_cm": [
+    14556.0,
+    0.0,
+    470.0
+   ],
+   "intensity": 350.0,
+   "radius": 700.0,
+   "color": [
+    1.0,
+    0.05,
+    0.03
+   ]
+  }
+ ],
  "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/BP_KitD_InteriorPreview",
  "about": "Walk-test preview of T5's interior shell in the Dominion set (not used by the game).",
  "pieces": [
@@ -6022,6 +6684,56 @@
     0.0
    ],
    "yaw_deg": 0.0
+  },
+  {
+   "name": "P0603_Door",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Door",
+   "location_cm": [
+    14719.7,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0604_Core",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Core",
+   "location_cm": [
+    13000.0,
+    0,
+    0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0605_Artefact",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Artefact",
+   "location_cm": [
+    14250.0,
+    1350.0,
+    0
+   ],
+   "yaw_deg": 225.0
+  },
+  {
+   "name": "P0606_Core_Ring_A",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Core_Ring_A",
+   "location_cm": [
+    13000.0,
+    0,
+    600
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0607_Core_Ring_B",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Core_Ring_B",
+   "location_cm": [
+    13000.0,
+    0,
+    600
+   ],
+   "yaw_deg": 0
   }
  ],
  "walk_path_site_cm": [

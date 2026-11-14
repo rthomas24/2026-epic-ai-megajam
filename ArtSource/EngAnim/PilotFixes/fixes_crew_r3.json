@@ -1,0 +1,22 @@
+{
+ "_note": "Guard raise ends in the guard loop's first pose (cross-fade over its last 0.3 s), so the hand-off does not pop.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "compose": [
+  {
+   "dst": "A_Crew_Warden_GuardRaise",
+   "segments": [
+    [
+     "A_Crew_Warden_GuardRaise",
+     0.0,
+     1.0
+    ],
+    [
+     "A_Crew_Warden_Guard",
+     0.0,
+     0.4
+    ]
+   ],
+   "blend": 0.3
+  }
+ ]
+}

@@ -21,11 +21,15 @@
 #include "GameFramework/Pawn.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "NiagaraSystem.h"
 #include "TriadDrift/Combat/TDFieldDamageable.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Combat/TDWeaponLibrary.h"
 #include "TriadDrift/Powers/TDRamPower.h"
 
 namespace TDSpaceFieldBreak
@@ -43,7 +47,8 @@ int32 ATDSpaceField::AddCollider(const FVector& At, float Size)
 	{
 		return INDEX_NONE;
 	}
-	const FTransform T(FRotator::ZeroRotator, At, FVector(FMath::Max(Size * ColliderShare, 10.f) / 50.f));
+	const float Radius = PendingColliderRadius > 0.f ? PendingColliderRadius : FMath::Max(Size * ColliderShare, 10.f);
+	const FTransform T(FRotator::ZeroRotator, At, FVector(Radius / 50.f));
 	if (FreeColliders.Num() > 0)
 	{
 		const int32 Index = FreeColliders.Pop(EAllowShrinking::No);
@@ -89,7 +94,11 @@ int32 ATDSpaceField::RegisterPiece(UInstancedStaticMeshComponent* Visual, int32 
 	}
 	Grid.FindOrAdd(CellOf(Pieces[Index].Location)).Add(Index);
 	// Wingmen and enemies steer round everything 10 m and up (FindAvoidance, gridded): smalls only shatter on a ship.
-	if (S.SizeClass >= 1)
+	if (PendingObstacle >= 0)
+	{
+		States[Index].Obstacle = PendingObstacle;	// an adopted layout rock: its own obstacle, removed when it breaks
+	}
+	else if (S.SizeClass >= 1 && PendingObstacle != -2)
 	{
 		if (UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this))
 		{
@@ -267,9 +276,13 @@ void ATDSpaceField::PlayBreakCue(const FVector& At, float Size, uint8 SizeClass,
 	const bool bAuthored = !Cue.VFX.IsNull();
 	if (!bAuthored)
 	{
-		Cue.VFX = TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(DefaultVFX[Slot]));
+		UNiagaraSystem* Default = DefaultBreakVFX.IsValidIndex(Slot) ? DefaultBreakVFX[Slot].Get() : nullptr;
+		Cue.VFX = Default ? TSoftObjectPtr<UNiagaraSystem>(Default) : TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(DefaultVFX[Slot]));
 	}
-	if (UNiagaraComponent* NC = UTDStatics::PlayCue(this, Cue, At, FRotator::ZeroRotator))
+	UNiagaraComponent* Played = UTDStatics::PlayCue(this, Cue, At, FRotator::ZeroRotator);
+	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: break class %d special %d size %.0f m at %s: %s %s"), SizeClass, bSpecial, Size / 100.f, *At.ToCompactString(),
+		*GetNameSafe(Cue.VFX.Get()), Played ? TEXT("playing") : TEXT("NOT PLAYED (placeholder burst)"));
+	if (UNiagaraComponent* NC = Played)
 	{
 		if (!bAuthored)
 		{
@@ -495,8 +508,87 @@ namespace TDSpaceFieldDev
 				if (bClear) { Best = i; BestD = D; BestAt = At; }
 			}
 			if (Best == INDEX_NONE) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.Stage: no clear piece of class %d"), Want); return; }
-			Ship->TeleportSpacecraft(BestAt, (P[Best].Location - BestAt).Rotation(), /*bKeepSpeed*/ false);
+			const FRotator Facing = (P[Best].Location - BestAt).Rotation();
+			Ship->TeleportSpacecraft(BestAt, Facing, /*bKeepSpeed*/ false);
+			// The flight stick is a virtual joystick that survives a teleport: hold the new bearing through the real input
+			// (it centres the stick once on bearing), or the ship swings back to its old heading.
+			GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f 3"), Facing.Yaw, Facing.Pitch));
 			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.Stage: piece %d class %d size %.0f m special %d, ship %.0f m from its surface"), Best, Field->GetPieceSizeClass(Best),
 				P[Best].Size / 100.f, Field->IsPieceSpecial(Best), Standoff / 100.f);
+		}));
+}
+
+namespace TDSpaceFieldDev
+{
+	static FAutoConsoleCommandWithWorldAndArgs CmdShootAhead(TEXT("TD.SpaceField.ShootAhead"),
+		TEXT("Captures: if a live field piece is under the crosshair (6 deg cone, 30-600 m), hold fire for <Seconds> (real input) and log it: TD.SpaceField.ShootAhead [Seconds=1.5]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDSpaceField* Field = ATDSpaceField::Get(World);
+			APlayerController* PC = World ? UGameplayStatics::GetPlayerController(World, 0) : nullptr;
+			if (!Field || !PC || !PC->PlayerCameraManager) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.ShootAhead: no field or camera")); return; }
+			const float Secs = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 1.5f;
+			const FVector Eye = PC->PlayerCameraManager->GetCameraLocation();
+			const FVector Fwd = PC->PlayerCameraManager->GetCameraRotation().Vector();
+			const float CosCone = FMath::Cos(FMath::DegreesToRadians(6.f));
+			int32 Best = INDEX_NONE;
+			float BestD = 60000.f;
+			for (int32 i = 0; i < Field->GetPieces().Num(); ++i)
+			{
+				if (!Field->IsPieceAlive(i)) { continue; }
+				const FVector To = Field->GetPieces()[i].Location - Eye;
+				const float D = (float)To.Size();
+				if (D > 3000.f && D < BestD && FVector::DotProduct(To / D, Fwd) > CosCone) { Best = i; BestD = D; }
+			}
+			if (Best == INDEX_NONE) { UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.ShootAhead: nothing under the crosshair")); return; }
+			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.ShootAhead: piece %d class %d special %d size %.0f m at %.0f m: firing %.1f s"), Best, Field->GetPieceSizeClass(Best),
+				Field->IsPieceSpecial(Best), Field->GetPieces()[Best].Size / 100.f, BestD / 100.f, Secs);
+			GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.Key LeftMouseButton %.2f"), Secs));
+		}));
+}
+
+namespace TDSpaceFieldDev
+{
+	static FAutoConsoleCommandWithWorldAndArgs CmdTestShot(TEXT("TD.SpaceField.TestShot"),
+		TEXT("Captures: put the flown ship 80 m from the nearest lone live piece of a class, facing it, and in the same frame launch <Shots> real player laser bolts from its nose at it: TD.SpaceField.TestShot <class 0|1|2|3 special> [Shots=10]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDSpaceField* Field = ATDSpaceField::Get(World);
+			ATDSpacecraft* Ship = World ? Cast<ATDSpacecraft>(UGameplayStatics::GetPlayerPawn(World, 0)) : nullptr;
+			if (!Field || !Ship) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.TestShot: no field or no flown ship")); return; }
+			const int32 Want = Args.Num() > 0 ? FCString::Atoi(*Args[0]) : 1;
+			const int32 Shots = Args.Num() > 1 ? FMath::Clamp(FCString::Atoi(*Args[1]), 1, 60) : 10;
+			const TArray<FTDSpaceFieldPiece>& P = Field->GetPieces();
+			const FVector From = Ship->GetActorLocation();
+			int32 Best = INDEX_NONE;
+			float BestD = TNumericLimits<float>::Max();
+			for (int32 i = 0; i < P.Num(); ++i)
+			{
+				if (!Field->IsPieceAlive(i) || P[i].Kind == ETDSpaceFieldKind::Wreck) { continue; }
+				const bool bMatch = Want == 3 ? Field->IsPieceSpecial(i) : (Field->GetPieceSizeClass(i) == Want && !Field->IsPieceSpecial(i));
+				const float D = (float)FVector::Dist(From, P[i].Location);
+				if (!bMatch || D >= BestD) { continue; }
+				bool bLone = true;	// nothing else (field or layout rock) within 80 m of the line
+				const FVector Stand = P[i].Location + (From - P[i].Location).GetSafeNormal() * (P[i].Size * 0.4f + 8000.f);
+				for (int32 j = 0; j < P.Num() && bLone; ++j)
+				{
+					bLone = j == i || !Field->IsPieceAlive(j) || FMath::PointDistToSegment(P[j].Location, Stand, P[i].Location) > P[j].Size * 0.4f + 1500.f;
+				}
+				if (bLone && UTDWorldSubsystem::Get(World) && !UTDWorldSubsystem::Get(World)->IsInsideObstacle(Stand, 3000.f)) { Best = i; BestD = D; }
+			}
+			if (Best == INDEX_NONE) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.TestShot: no lone piece of class %d"), Want); return; }
+			const FVector Target = P[Best].Location;
+			const FVector Stand = Target + (From - Target).GetSafeNormal() * (P[Best].Size * 0.4f + 8000.f);
+			const FRotator Facing = (Target - Stand).Rotation();
+			Ship->TeleportSpacecraft(Stand, Facing, /*bKeepSpeed*/ false);
+			const FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::PhasePulseLasers).Projectile;
+			const FVector Nose = Stand + Facing.Vector() * 600.f;
+			for (int32 s = 0; s < Shots; ++s)
+			{
+				// Spread along the line so each bolt arrives on its own frame (not one stacked hit).
+				ATDProjectile::Launch(World, Spec, FTransform(Facing, Nose - Facing.Vector() * (s * 400.f)), Ship, ETDTeam::Player, nullptr, FVector::ZeroVector, 1.f, true);
+			}
+			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.TestShot: piece %d class %d special %d size %.0f m health %.0f, %d bolts of %.0f from 80 m"), Best,
+				Field->GetPieceSizeClass(Best), Field->IsPieceSpecial(Best), P[Best].Size / 100.f, Field->GetPieceHealth(Best), Shots, Spec.Damage);
 		}));
 }

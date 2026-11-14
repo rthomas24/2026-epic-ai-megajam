@@ -61,9 +61,19 @@ void ATDPlanetCourse::BuildInterior()
 	// The kit (lead/int 9e54fb8, ArtSource/EngProps/DominionInterior/README.md) is placed BY PIVOT at scale 1 with its own
 	// collision: floor top at z = 0, 600 cm per storey, walls centred on their plane and tiling along their Y. A piece
 	// whose mesh is missing falls back to a placeholder block of its size, so the layout always plays.
+	// The walkable rebuild from the Blender kit (structures builder, eng/struct 8ce5c3fb: Props/Kit/Dominion, same names,
+	// sizes, pivots and openings) wins; the earlier pieces in Props/DominionInterior (the reactor's among them) otherwise.
 	auto KitMesh = [](const TCHAR* Name) -> UStaticMesh*
 	{
-		return TDPropArt::Load(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/%s.%s"), Name, Name))));
+		for (const TCHAR* Folder : { TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion"), TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior") })
+		{
+			const FString Package = FString::Printf(TEXT("%s/%s"), Folder, Name);
+			if (FindPackage(nullptr, *Package) || FPackageName::DoesPackageExist(Package))
+			{
+				if (UStaticMesh* M = TDPropArt::Load(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(TEXT("%s.%s"), *Package, Name))))) { return M; }
+			}
+		}
+		return nullptr;
 	};
 	// Box: the piece's bounds from its pivot (README table), for the placeholder.
 	auto Kit = [this, KitMesh](const TCHAR* Name, const FVector& At, float Yaw, const FBox& Box, bool bCollide = true) -> UStaticMeshComponent*
@@ -156,7 +166,8 @@ void ATDPlanetCourse::BuildInterior()
 		{
 			D->OpenHeight = 400.f;
 			D->bRecognisesPilot = bRecognise;
-			D->DoorMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Door.SM_DI_Door")));
+			D->DoorMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Door"))
+				? TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Door.SM_DI_Door") : TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Door.SM_DI_Door")));
 			D->Mesh->SetRelativeScale3D(FVector(0.3f, 3.f, 4.f)); // the kit door's box, 30 x 300 x 400 (fitted exactly), before BeginPlay
 			D->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 200.f));
 			TDCourseImpl::FinishProp(D);

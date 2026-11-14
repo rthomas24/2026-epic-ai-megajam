@@ -1,9 +1,13 @@
 # SPDX-License-Identifier: MIT
 # Triad Drift - RiftHero HYBRID: the Rodin fuselage, canopy, wings, guns and fins (cleaned, same UVs) with the
 # ring, engines and belly tail replaced by designed hard-surface parts (rh_parts.py).
-#   blender --background --factory-startup --python rh_hybrid.py -- [--tag v01] [--no-bake] [--no-export] [--no-sheets]
+#   blender --background --factory-startup --python rh_hybrid.py -- [--ship Rift] [--tag v01] [--close] [--no-bake]
+#                                                                    [--no-export] [--no-sheets] [--out-root <dir>]
 # Writes Rift_hybrid_<tag>.blend, export/T_Rift_* (corrected Rodin maps), export/T_Rift_Parts_* (baked),
 # review sheets, and (unless --no-export) export/SM_Rift.fbx, SM_Rift_PortalDisc.fbx and manifests.
+# --ship Lancer | Bastion (rh_ships.py): the same pass for another squad ship, into ArtSource/EngShips/<Ship>Hero/:
+# no ring or engine parts, the close-range parts of its config, its nozzle glow cores (rs_extras.py) kept.
+# --out-root <dir>: write everything there instead (a check run that leaves the repo alone).
 import json
 import math
 import os
@@ -24,17 +28,17 @@ import rh_parts as P
 import rh_shots as S
 import rh_textures as T
 import rh_closeparts as CP
+import rh_ships
 
 ARGS = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 TAG = ARGS[ARGS.index("--tag") + 1] if "--tag" in ARGS else "v01"
-HEAT = os.path.join(C.REPO, "ArtSource", "EngAI", "Ships", "Rift", "heatmask_r1", "T_Rift_HeatMask.png")
-
-SOCKETS_UE = {   # Unreal cm, unchanged from the ship builder's export (ArtSource/EngShips/Rodin/scripts/rs_prep.py)
-    "Muzzle_0": (252, -37, -60), "Muzzle_1": (252, 37, -60),
-    "Engine": (-252, 0, -34), "Engine_0": (-252, -64, -34), "Engine_1": (-252, 64, -34),
-    "Portal": (-170, 0, 55), "Cockpit": (60, 0, 0),
-    "WingTip_L": (238, -176, -109), "WingTip_R": (238, 176, -109),
-}
+SHIP = ARGS[ARGS.index("--ship") + 1] if "--ship" in ARGS else "Rift"
+CFG = rh_ships.get(SHIP)
+C.use(CFG, ARGS[ARGS.index("--out-root") + 1] if "--out-root" in ARGS else None)
+CP.configure(CFG)
+HEAT = CFG["heat"]
+SOCKETS_UE = CFG["sockets"]            # Unreal cm
+SM = "SM_" + SHIP
 
 
 def islands(bm):
@@ -62,16 +66,17 @@ def clean_body(ob):
     st = {}
     me = ob.data
     st["tris_in"] = len(me.polygons)
-    st["cut_faces"] = P.cut_rodin(ob)
+    ring = CFG["ring"]                 # the Rift: its Rodin ring and engine block go (rh_parts.py replaces them)
+    st["cut_faces"] = P.cut_rodin(ob) if ring else 0
     bm = bmesh.new()
     bm.from_mesh(me)
     # leftovers of the Rodin ring supports between the new ring and the fins: purple glassy shards. They are
     # told from the (magenta) fins by their texture colour.
-    bc = T.load(os.path.join(C.RODIN, "T_Rift_BC.png"))
-    hh, ww = bc.shape[:2]
+    bc = T.load(os.path.join(C.RODIN, "T_%s_BC.png" % SHIP)) if ring else None
+    hh, ww = bc.shape[:2] if ring else (0, 0)
     uvl = bm.loops.layers.uv.active
     shards = []
-    for f in bm.faces:
+    for f in (bm.faces if ring else ()):
         c = f.calc_center_median()
         if -2.15 <= c.x <= -1.20 and 0.34 <= abs(c.y) <= 0.80 and c.z > 0.02 and                 math.hypot(c.y, c.z - P.RING_C[2]) < 0.92:
             u = sum(l[uvl].uv.x for l in f.loops) / len(f.loops)
@@ -95,7 +100,7 @@ def clean_body(ob):
         lo = Vector((min(v.co.x for v in vs), min(v.co.y for v in vs), min(v.co.z for v in vs)))
         hi = Vector((max(v.co.x for v in vs), max(v.co.y for v in vs), max(v.co.z for v in vs)))
         diag = (hi - lo).length
-        in_ring_zone = lo.x > -2.15 and hi.x < -1.15 and max(abs(lo.y), abs(hi.y)) < 0.74 and lo.z > 0.02 \
+        in_ring_zone = ring and lo.x > -2.15 and hi.x < -1.15 and max(abs(lo.y), abs(hi.y)) < 0.74 and lo.z > 0.02 \
             and diag < 0.9
         if (len(comp) < 16 and diag < 0.06) or len(comp) < 3:
             kill += comp
@@ -238,10 +243,14 @@ def main():
     os.makedirs(C.EXPORT, exist_ok=True)
 
     # ---------------- body
-    body = C.import_rodin("SM_Rift")
+    res["ship"] = SHIP
+    body = C.import_rodin(SM)
     body.data.materials.clear()
     res["body"] = clean_body(body)
-    mats, parts, disc = P.build_all()
+    if CFG["ring"]:
+        mats, parts, disc = P.build_all()
+    else:
+        mats, parts, disc = P.materials(rh_ships.ACCENTS[CFG["accent"]]), [], None
     glass = None
     if "--close" in ARGS:                       # close-range parts: canopy, guns, nose, spine (rh_closeparts.py)
         extra, glass, res["close"] = CP.build(mats, body)
@@ -249,39 +258,50 @@ def main():
     bpy.context.view_layer.update()
     res["body"]["hidden_faces_removed"] = remove_hidden(body, parts)
     body.data.shade_smooth()
-    body.data.set_sharp_from_angle(angle=math.radians(42))
+    body.data.set_sharp_from_angle(angle=math.radians(CFG.get("sharp_deg", 42)))
     wn = body.modifiers.new("WeightedNormal", "WEIGHTED_NORMAL")
     wn.keep_sharp = True
     wn.weight = 50
     res["body"]["tris_out"] = G.tri_count([body])
 
     # ---------------- textures of the kept Rodin set
-    res["textures"] = T.clean(C.RODIN, C.EXPORT, "Rift")
-    shutil.copyfile(HEAT, os.path.join(C.EXPORT, "T_Rift_HeatMask.png"))
-    if "--close" in ARGS:
-        res["livery"] = CP.clean_livery(os.path.join(C.EXPORT, "T_Rift_BC.png"))
-    body.data.materials.append(image_material("M_Rift", os.path.join(C.EXPORT, "T_Rift_"), 2.0))
+    raw = CFG.get("textures") == "raw"     # the Rodin maps as they are (Bastion: grey armour, not white paint to flatten)
+    if raw:
+        for suffix in ("BC", "N", "ORM", "E"):
+            shutil.copyfile(os.path.join(C.RODIN, "T_%s_%s.png" % (SHIP, suffix)), os.path.join(C.EXPORT, "T_%s_%s.png" % (SHIP, suffix)))
+        res["textures"] = "source maps, unchanged"
+    else:
+        res["textures"] = T.clean(C.RODIN, C.EXPORT, SHIP, CFG["accent"])
+    shutil.copyfile(HEAT, os.path.join(C.EXPORT, "T_%s_HeatMask.png" % SHIP))
+    if "--close" in ARGS and not raw:
+        res["livery"] = CP.clean_livery(os.path.join(C.EXPORT, "T_%s_BC.png" % SHIP), body=body)
+    body.data.materials.append(image_material("M_" + SHIP, os.path.join(C.EXPORT, "T_%s_" % SHIP), 2.0))
 
     # ---------------- new parts: one mesh, one texture set
     res["parts_tris"] = {p.name: G.tri_count([p]) for p in parts}
-    part = join(parts, "SM_Rift_Parts")
+    part = join(parts, SM + "_Parts")
     smart_uv(part)
     if "--no-bake" not in ARGS:
         bk = C.skill("blender-texturing/scripts/bake_texture_set.py")
-        b = bk["main"](target=part.name, out_dir=C.EXPORT, asset_name="Rift_Parts", size=2048, samples=8,
+        b = bk["main"](target=part.name, out_dir=C.EXPORT, asset_name=SHIP + "_Parts", size=2048, samples=8,
                        ao_samples=48, margin=8, build_preview_material=False)
         res["bake"] = {k: b.get(k) for k in ("emission_strength", "seconds", "normal_convention")}
-        stem = os.path.join(C.EXPORT, "T_Rift_Parts_")
+        stem = os.path.join(C.EXPORT, "T_%s_Parts_" % SHIP)
         bc, orm = T.load(stem + "BC.png"), T.load(stem + "ORM.png")
         ao = orm[..., 0:1]
         T.save(bc * (0.50 + 0.50 * ao ** 1.2), stem + "BC.png", True)          # grime in the recesses
         heat = np.zeros((64, 64, 3), np.float32)                                 # leeward parts: no entry heating
         T.save(heat, stem + "HeatMask.png", False)
         part.data.materials.clear()
-        part.data.materials.append(image_material("M_Rift_Parts", stem, float(b.get("emission_strength") or 3.0)))
+        part.data.materials.append(image_material("M_%s_Parts" % SHIP, stem, float(b.get("emission_strength") or 3.0)))
         for poly in part.data.polygons:
             poly.material_index = 0
     part.parent = body
+    glow = None
+    if CFG.get("nozzle_glow"):         # the glow cores in the nozzles of the plain Rodin ship (slot M_<Ship>_Glow)
+        sys.path.insert(0, os.path.join(rh_ships.KIT, "Rodin", "scripts"))
+        import rs_extras
+        glow = rs_extras.nozzle_glow(SHIP, body)
     for name, p in SOCKETS_UE.items():
         e = bpy.data.objects.new("SOCKET_" + name, None)
         e.empty_display_size = 0.1
@@ -291,7 +311,7 @@ def main():
     bpy.context.view_layer.update()
 
     # ---------------- numbers
-    names = [body.name, part.name]
+    names = [body.name, part.name] + ([glow.name] if glow else [])
     rep = C.skill("blender-mcp/scripts/asset_report.py")["main"](targets=names, tri_budget=65000)
     asm = C.skill("blender-mcp/scripts/assembly_check.py")["main"](targets=names, min_island_tris=1)
     res["report"] = {"totals": rep["totals"], "issues": [i for i in rep["issues"] if i["severity"] != "info"][:12]}
@@ -309,7 +329,7 @@ def main():
 
     # ---------------- sheets: original | hybrid
     if "--no-sheets" not in ARGS:
-        src = C.import_rodin("SRC_RiftRodin", textured=True)
+        src = C.import_rodin("SRC_%sRodin" % SHIP, textured=True)
         cams = ["chase", "chase_3q", "foot_rear_8m", "foot_3q_8m", "rear_close"]
         res["sheets"] = {}
         for mode in ("material", "clay"):
@@ -324,14 +344,14 @@ def main():
                                                  mode="material", views=C.VIEWS, resolution=800).get("sheet")
         bpy.data.objects.remove(src)
 
-    blend = os.path.join(C.ROOT, "Rift_hybrid_%s.blend" % TAG)
+    blend = os.path.join(C.ROOT, "%s_hybrid_%s.blend" % (SHIP, TAG))
     bpy.ops.wm.save_as_mainfile(filepath=blend, compress=True)
     res["blend"] = blend
 
     # ---------------- export
     if "--no-export" not in ARGS:
         ex = C.skill("blender-unreal-export/scripts/export_for_unreal.py")
-        for root, coll in ((body.name, "auto"), (disc.name, "none")) + (((glass.name, "none"),) if glass else ()):
+        for root, coll in ((body.name, "auto"),) + (((disc.name, "none"),) if disc else ()) + (((glass.name, "none"),) if glass else ()):
             for stale in (root + ".fbx", root + ".manifest.json"):
                 if os.path.isfile(os.path.join(C.EXPORT, stale)):
                     os.remove(os.path.join(C.EXPORT, stale))
@@ -339,18 +359,20 @@ def main():
                 ex["main"](root=root, out_dir=C.EXPORT, front_axis="+X", collision=coll)
             except AttributeError as error:
                 res.setdefault("export_notes", []).append("%s: exporter cleanup: %s" % (root, error))
-        man_path = os.path.join(C.EXPORT, "SM_Rift.manifest.json")
+        man_path = os.path.join(C.EXPORT, SM + ".manifest.json")
         if os.path.isfile(man_path):
             with open(man_path, encoding="utf-8") as fh:
                 man = json.load(fh)
             man["ue_sockets"] = [{"name": n, "ue_cm": list(p)} for n, p in SOCKETS_UE.items()]
-            man["slots"] = {"M_Rift": "kept Rodin hull, corrected set T_Rift_BC/N/ORM/E + T_Rift_HeatMask",
-                            "M_Rift_Parts": "new ring / engines / tail, baked set T_Rift_Parts_BC/N/ORM/E + T_Rift_Parts_HeatMask"}
+            man["slots"] = {"M_%s" % SHIP: "kept Rodin hull, corrected set T_%s_BC/N/ORM/E + T_%s_HeatMask" % (SHIP, SHIP),
+                            "M_%s_Parts" % SHIP: "new %s, baked set T_%s_Parts_BC/N/ORM/E + T_%s_Parts_HeatMask"
+                            % ("ring / engines / tail" if disc else "canopy interior and frame / guns / nose / spine", SHIP, SHIP)}
             if glass:
-                man["canopy"] = {"fbx": "SM_Rift_Canopy.fbx", "attach_socket": "Cockpit", "slot": "M_Rift_Glass",
-                                 "note": "tinted canopy glass (translucent, not Nanite); seat, pilot, frame and deck are in SM_Rift_Parts"}
-            man["portal_disc"] = {"fbx": "SM_Rift_PortalDisc.fbx", "attach_socket": "Portal", "slot": "M_Rift_Portal",
-                                  "radius_cm": 44.0, "uv": "radial: centre (0.5, 0.5), rim at radius 0.5"}
+                man["canopy"] = {"fbx": "SM_%s_Canopy.fbx" % SHIP, "attach_socket": "Cockpit", "slot": "M_%s_Glass" % SHIP,
+                                 "note": "tinted canopy glass (translucent, not Nanite); seat, pilot, frame and deck are in SM_%s_Parts" % SHIP}
+            if disc:
+                man["portal_disc"] = {"fbx": "SM_Rift_PortalDisc.fbx", "attach_socket": "Portal", "slot": "M_Rift_Portal",
+                                      "radius_cm": 44.0, "uv": "radial: centre (0.5, 0.5), rim at radius 0.5"}
             with open(man_path, "w", encoding="utf-8") as fh:
                 json.dump(man, fh, indent=2)
             res["export"] = {k: man.get(k) for k in ("tris", "size_cm", "materials", "collision", "sockets",

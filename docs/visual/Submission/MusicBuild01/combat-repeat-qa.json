@@ -1,0 +1,135 @@
+{
+  "guard": {
+    "pid": 30124,
+    "exit_code": 0,
+    "reason": "completed",
+    "failure": null,
+    "monitor_error": null,
+    "cleanup_error": null,
+    "minimum_free_gib": 2.827007293701172,
+    "duration_s": 215.7713178999984,
+    "protected_count": 2457,
+    "changed_protected": [],
+    "new_content": [],
+    "pcm_captured": true
+  },
+  "source_sha256": "a705d8a00948cbf96bb4bbd33911cffa35e1cad102c7abaa1a839739df2a44a5",
+  "audio_qa": {
+    "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\lead-music-build-1113\\Saved\\CombatScore01\\DirectorRepeat02\\game_pid_audio.wav",
+    "codec": "pcm_s16le",
+    "sample_rate": 48000,
+    "channels": 2,
+    "bits": 16,
+    "duration": 179.98,
+    "loudness_lufs": -26.9,
+    "loudness_kind": "integrated",
+    "integrated_lufs": -26.9,
+    "ungated_lufs": null,
+    "lra_lu": 10.3,
+    "true_peak_dbtp": -6.5,
+    "sample_peak_dbfs": -6.541415,
+    "rms_dbfs": -28.384703,
+    "lead_silence_s": 0.0313,
+    "tail_silence_s": 0.0,
+    "dc_offset": -9e-06,
+    "flat_factor": 2.922561,
+    "peak_count": 2,
+    "clipped": false,
+    "silent": false,
+    "seam_jump_db": null,
+    "seam_level_db": null
+  },
+  "first_cycle_source_matches": [
+    {
+      "capture_s": 5.022,
+      "correlation": 0.900126518397091,
+      "gain": 0.3075035103002853,
+      "source_s": 8,
+      "inferred_source_zero_s": -2.9779999999999998
+    },
+    {
+      "capture_s": 11.022,
+      "correlation": 0.9968658928134455,
+      "gain": 0.3025852177654321,
+      "source_s": 14,
+      "inferred_source_zero_s": -2.9779999999999998
+    },
+    {
+      "capture_s": 17.022,
+      "correlation": 0.9983288667022987,
+      "gain": 0.3030864906755878,
+      "source_s": 20,
+      "inferred_source_zero_s": -2.9780000000000015
+    },
+    {
+      "capture_s": 37.022,
+      "correlation": 0.9989261815928491,
+      "gain": 0.301950193805181,
+      "source_s": 40,
+      "inferred_source_zero_s": -2.9780000000000015
+    },
+    {
+      "capture_s": 87.06475,
+      "correlation": 0.9629096188283333,
+      "gain": 0.2902749858944952,
+      "source_s": 90,
+      "inferred_source_zero_s": -2.9352499999999964
+    },
+    {
+      "capture_s": 122.06475,
+      "correlation": 0.9797702435527476,
+      "gain": 0.2946888599475982,
+      "source_s": 125,
+      "inferred_source_zero_s": -2.9352499999999964
+    },
+    {
+      "capture_s": 129.06475,
+      "correlation": 0.9824532135463924,
+      "gain": 0.29530275011641244,
+      "source_s": 132,
+      "inferred_source_zero_s": -2.9352499999999964
+    }
+  ],
+  "second_cycle_source_matches": [
+    {
+      "capture_s": 144.26475,
+      "correlation": 0.9881585492345202,
+      "gain": 0.2973148844613303,
+      "source_s": 8,
+      "inferred_second_source_zero_s": 136.26475,
+      "period_s": 139.24275,
+      "extra_over_source_period_s": 0.04275000000001228
+    },
+    {
+      "capture_s": 150.26475,
+      "correlation": 0.9716305092824703,
+      "gain": 0.2918502516023965,
+      "source_s": 14,
+      "inferred_second_source_zero_s": 136.26475,
+      "period_s": 139.24275,
+      "extra_over_source_period_s": 0.04275000000001228
+    }
+  ],
+  "natural_boundary_capture_s": 136.26475,
+  "source_period_s": 139.2,
+  "matching_resolution_s": 0.00025,
+  "excerpts": {
+    "ActualGame_NaturalCombatReturn_14s": {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\lead-music-build-1113\\Saved\\CombatScore01\\DirectorRepeat02\\ActualGame_NaturalCombatReturn_14s.wav",
+      "capture_range_s": [
+        129.26475,
+        143.26475
+      ]
+    },
+    "ActualGame_MenuTravelAndCleanup_22s": {
+      "file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\lead-music-build-1113\\Saved\\CombatScore01\\DirectorRepeat02\\ActualGame_MenuTravelAndCleanup_22s.wav",
+      "capture_range_s": [
+        158.0,
+        179.98
+      ]
+    }
+  },
+  "recorder": "CAPTURE_START pid=30124 include_target_tree=1 rate=48000 channels=2\nCAPTURE_FIRST_PACKET qpc100ns=429410776418 device_frame=0 utc_seconds=1794627673.230715990 timestamp_error=0 flags=0\nCAPTURE_DONE pid=30124 hr=0x00000000 bytes=34556160 duration=179.980000 discontinuities=0\n",
+  "combat_start_log_count": 1,
+  "scope": "Actual Galaxy director Wave3; native139.2s full-track return, menu travel after160s. Older game host; no batchL/exclusive/idle/assault/visual claims. Correlation is evidence, not a subjective seamlessness verdict."
+}

@@ -1,0 +1,34 @@
+{
+  "stage": "source prepared; not imported, connected, loop-approved or gameplay verified",
+  "selection": "Original Cathedral Pulse for the core chamber; not Cathedral Pulse (1) used for credits",
+  "source": {
+    "path": "source/Cathedral Pulse.mp3",
+    "sha256": "4bec6bc4b5921ff65449701ddfb2560ed15e2b100f9c22798ad252bacc49307f",
+    "bytes": 1648672
+  },
+  "master": {
+    "path": "export/MUS_DominionCore_CathedralPulse_Full_01.wav",
+    "sha256": "2403b8b0b80ccb861c85964fb326c907144d98d3eb74a23d5d6f4a91ec18bdc4",
+    "pcm_sha256": "2e6e174095bf640611f81ae05bdf814bdfb6a95251da69058441dd7436bc8618",
+    "frames": 3338880,
+    "sample_rate": 48000,
+    "channels": 2,
+    "bits_per_sample": 16,
+    "duration_seconds": 69.56
+  },
+  "processing": {
+    "trim": false,
+    "loop": false,
+    "crossfade": false,
+    "gain_db": 0,
+    "description": "Full audio stream decoded to stereo 48 kHz PCM16 with triangular dither; embedded cover image excluded.",
+    "ffmpeg_version": "ffmpeg version n8.0.1-64-g15504610b0 Copyright (c) 2000-2025 the FFmpeg developers"
+  },
+  "pending": [
+    "native import and reload",
+    "core entry/exit timing agreement",
+    "loop decision if needed",
+    "actual gameplay listening approval",
+    "cook and Shipping validation"
+  ]
+}

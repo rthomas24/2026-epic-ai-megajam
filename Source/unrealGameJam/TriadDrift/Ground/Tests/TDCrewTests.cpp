@@ -612,7 +612,7 @@ bool FTDCrewLookSkeletalOnly::RunTest(const FString& Parameters)
 	Tr->GetHealth()->Kill(P, ETDDamageKind::Melee);
 	W.Tick(1.f / 60.f);
 	TestTrue(TEXT("dies visibly: the crew set's death animation, else it topples over"),
-		Tr->GetMesh()->GetAnimationMode() == EAnimationMode::AnimationSingleNode || Tr->IsToppling());
+		Tr->GetMesh()->GetAnimationMode() == EAnimationMode::AnimationSingleNode || Tr->IsToppling() || Tr->IsRagdolling());
 	const FVector FeetBefore = Tr->GetMesh()->GetComponentLocation();
 	for (int32 i = 0; i < 60; ++i) { W.Tick(1.f / 60.f); }
 	const float Tilt = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(Tr->GetMesh()->GetUpVector(), FVector::UpVector)));
@@ -774,6 +774,42 @@ bool FTDCrewCorpseStays::RunTest(const FString& Parameters)
 	if (Weak.IsValid())
 	{
 		TestTrue(TEXT("where it fell"), FVector::Dist2D(Weak->GetMesh()->GetComponentLocation(), At) < 150.f);
+	}
+	return true;
+}
+
+// The animation builder (Nov 13, crew_deaths_as_played): deaths held the last frame of a 1.1 s clip that is only the start
+// of a fall (a Grunt crouched with the pelvis 54 cm up, the Warden squatting at 108) and slid 1.5 m off the capsule. Now
+// an in-place clip, then the ragdoll (or a topple): every body ends on the ground, where it fell.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewDeathsLand, "TriadDrift.Ground.Crew.DeathsEndOnTheGroundWhereTheyFell", TD_TEST_FLAGS)
+bool FTDCrewDeathsLand::RunTest(const FString& Parameters)
+{
+	for (const ETDCrewType Type : { ETDCrewType::Grunt, ETDCrewType::Trooper, ETDCrewType::Heavy, ETDCrewType::Warden })
+	{
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(-900.f, 0.f, 95.f));
+		ATDCrewCharacter* C = TDCrewTest::SpawnCrew(W, Type, FVector(0.f, 0.f, 140.f));
+		if (!TestNotNull(TEXT("crew"), C)) { return false; }
+		for (int32 i = 0; i < 30; ++i) { W.Tick(1.f / 60.f); }
+		USkeletalMeshComponent* M = C->GetMesh();
+		const FName TypeName = FTDCrewLibrary::TypeName(Type);
+		if (!M || !M->IsVisible() || !M->GetSkeletalMeshAsset())
+		{
+			AddInfo(FString::Printf(TEXT("%s: no skeletal look in this checkout (the block tumbles)"), *TypeName.ToString()));
+			continue;
+		}
+		const FVector At = C->GetActorLocation();
+		const UAnimSequenceBase* Clip = C->ChooseDeathClip(FVector(1.f, 0.f, 0.f));
+		C->GetHealth()->Kill(P, ETDDamageKind::Melee);
+		for (int32 i = 0; i < 200; ++i) { W.Tick(1.f / 60.f); } // past a 2.57 s ground fall
+		if (!TestTrue(*FString::Printf(TEXT("%s: the corpse stays"), *TypeName.ToString()), IsValid(C) && !C->IsActorBeingDestroyed())) { continue; }
+		const FName Pelvis = M->GetBoneIndex(TEXT("pelvis")) != INDEX_NONE ? FName(TEXT("pelvis")) : M->GetBoneName(FMath::Min(1, M->GetNumBones() - 1));
+		const float PelvisZ = (float)M->GetBoneLocation(Pelvis).Z;
+		AddInfo(FString::Printf(TEXT("%s: clip %s, ragdoll %d, toppled %d, pelvis %.0f cm up, %.0f cm from where it stood"), *TypeName.ToString(), *GetNameSafe(Clip),
+			C->IsRagdolling(), C->IsToppling(), PelvisZ, FVector::Dist2D(M->GetBoneLocation(Pelvis), At)));
+		TestTrue(*FString::Printf(TEXT("%s: on the ground (pelvis %.0f cm up)"), *TypeName.ToString(), PelvisZ), PelvisZ < 45.f);
+		TestTrue(*FString::Printf(TEXT("%s: where it fell"), *TypeName.ToString()), FVector::Dist2D(M->GetBoneLocation(Pelvis), At) < 200.f);
 	}
 	return true;
 }

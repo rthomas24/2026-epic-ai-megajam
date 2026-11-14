@@ -62,7 +62,7 @@ bool FTDSpaceFieldEveryPieceSolid::RunTest(const FString& Parameters)
 		NoHealth += F.Field->GetPieceHealth(i) > 0.f ? 0 : 1;
 		Specials += F.Field->IsPieceSpecial(i) ? 1 : 0;
 		const ETDSpaceFieldKind K = F.Field->GetPieces()[i].Kind;
-		Eligible += (K == ETDSpaceFieldKind::Belt || K == ETDSpaceFieldKind::Cluster) && F.Field->GetPieceSizeClass(i) >= 1 ? 1 : 0;
+		Eligible += (K == ETDSpaceFieldKind::Belt || K == ETDSpaceFieldKind::Cluster) && F.Field->GetPieceSizeClass(i) >= 1 && !F.Field->GetPieces()[i].bAdopted ? 1 : 0;
 	}
 	TestEqual(TEXT("every piece has a collision sphere"), NoCollider, 0);
 	TestEqual(TEXT("every piece has health"), NoHealth, 0);

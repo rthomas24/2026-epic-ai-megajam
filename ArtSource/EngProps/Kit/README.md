@@ -83,12 +83,32 @@ The walkable shell of the Dominion interior rebuilt with the kit's construction,
 |---|---|---|
 | `SM_DI_Room_Floor` | (-200,-200,-20) .. (200,200,0) | |
 | `SM_DI_Room_Ceiling` | (-200,-200,596) .. (200,200,620) | at the floor's transform; white work light at 596..600 |
-| `SM_DI_Room_Wall` | (-30,-200,0) .. (30,200,600) | same both faces; red strips at 236 and 536 |
-| `SM_DI_Corridor_Straight` | (-200,-200,-20) .. (200,200,620) | inner faces at +-170, portal rib at X 0, 4 hulls |
-| `SM_DI_Doorway` | (-32,-200,0) .. (32,200,600) | clear opening exactly 300 x 400, 3 hulls |
-| `SM_DI_Door` | (-16,-150,0) .. (16,150,400) | slides +Z by 400 |
+| `SM_DI_Room_Wall` | (-64,-200,0) .. (64,200,600) | same both faces; ribs, plinth, cornice, one red strip at 236..244, eye pair on the centre rib |
+| `SM_DI_Corridor_Straight` | (-200,-200,-20) .. (200,200,620) | inner faces at +-170, portal rib at X 0, 6 hulls; Grok Bot's route arrow (200 cm, points +X) on the floor |
+| `SM_DI_Doorway` | (-34,-200,0) .. (34,200,600) | clear opening exactly 300 x 400, 3 hulls, 1.7 m eye with a red ring above |
+| `SM_DI_Door` | (-16.3,-150,0) .. (16.3,150,400) | slides +Z by 400; Grok Bot's trident decal (160 cm) on both faces |
 | `SM_DI_Cover_Low` | (-30.8,-100,0) .. (30.8,100,110) | |
 | `SM_DI_Hangar_Pad` | (-600,-600,-40) .. (600,600,0.3) | collision top exactly 0 |
+
+**r7 (Grok Bot's interior plans, PR #82).** `T_KitD_Trim_*` is now recomposed from Grok Bot's `T_DI_InteriorTrim`
+bands into the kit's region layout (`scripts/kit_atlas_from_grok.py`: wall = cap / panel / crimson band / panel / kick;
+no hazard rows on walls), with the BC graded in linear light back to the kit's dark values (wall ~0.13, floor ~0.15
+sRGB; saturated crimson / hazard keep their value), so the ribs and the lighting budget stay as they were. Decals:
+`M_Kit_Decal` (masked, opacity = BC alpha, emissive = E x `DecalEmissive` 4) with `MI_KitD_Decal` on Grok Bot's
+`T_DI_Decals_*` (imported to `Dominion/Textures/`); a `Decal` slot on the door and the corridor. Room sizes checked
+against `plans_r1/interior_layout.json`: they match T5's constants exactly. The preview has one sealed bulkhead leaf on
+the core's far wall to show the trident. Captures: `review/game/r7_sheet.jpg`.
+
+**r8 (review round 3, the Lead's decisions).** The Dominion trim has its own master `Materials/M_KitD_Trim` (same
+texture parameter names as `M_TD_PropTextured`) with a world-position value and grime variation, no new textures: two
+Noise nodes (about 9 m blotches and 1.5 m mottling) darken the base colour by up to `GrimeAmount` 0.45 and add up to
+`GrimeRough` 0.2 roughness. The trident is 260 cm on each door face. The route chevrons have their own slot (`Route`)
+and `MI_KitD_Decal_Route` (`M_Kit_Decal` now has `DecalTint` / `TintAmount`: crimson (2, 0.05, 0.02) at 1, emissive 6).
+Preview lights: the white work lights at 35 % and warm (1, 0.9, 0.78); the reactor (DominionInterior's `SM_DI_Core` and
+both rings at T5's `CoreAt`) carries the core with a warm light at +1500 (6000 cd) and two low red fills; a crimson light
+(900 cd) above the bulkhead. **For T5's course lights:** white room / corridor lights at 35 % of the r6 preview values
+(hangar 630 cd, arena / Warden 315, corridor 315, core 630 under 1200 spacing) in (1, 0.9, 0.78), the reactor's light as
+above. Captures: `review/game/r8_sheet.jpg`.
 
 The reactor pieces (core, rings, shield, conduit) are not walked on and stay the DominionInterior ones.
 `BP_KitD_InteriorPreview` (walk test only) lays the set out with T5's own constants (hangar, deflect corridor, arena,

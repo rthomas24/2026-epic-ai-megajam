@@ -99,7 +99,8 @@ bool FTDDominionArtCollision::RunTest(const FString&)
 	for (ATDShieldGenerator* G : D->GetGenerators())
 	{
 		const FString In = Inside(Prims, G->GetActorLocation(), 200.f);
-		TestTrue(*FString::Printf(TEXT("%s is not buried (inside %s)"), *G->GetName(), *In), In.IsEmpty());
+		TestTrue(*FString::Printf(TEXT("%s at %s (art centre %.0f) is not buried (inside %s)"), *G->GetName(),
+			*D->GetActorTransform().InverseTransformPosition(G->GetActorLocation()).ToCompactString(), G->GetArtCentreHeight(), *In), In.IsEmpty());
 		// An attack run comes in from outside: the 300 m line from open space straight to the generator is open.
 		FVector Out = G->GetActorLocation() - D->GetActorLocation();
 		Out.Z = 0.f;
