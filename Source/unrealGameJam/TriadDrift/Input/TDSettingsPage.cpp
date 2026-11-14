@@ -402,7 +402,12 @@ void STDSettingsPage::FocusPage()
 float STDSettingsPage::GetRowListMaxHeight() const
 {
 	// Before the first layout (no height yet) the list may take its full size.
-	return PageHeight > 0.f ? FMath::Max(120.f, PageHeight - FixedPartsHeight) : 100000.f;
+	if (PageHeight <= 0.f) { return 100000.f; }
+	// Whole rows only (the Lead, from the Shipping package: "Subtitle size" was cut in half by the Back bar): the list's
+	// height snaps down to a multiple of one row, so the last row shown always clears the bar; the rest scrolls.
+	const float Room = FMath::Max(120.f, PageHeight - FixedPartsHeight);
+	const float RowH = (RowWidgets.Num() > 0 && RowWidgets[0].IsValid()) ? RowWidgets[0]->GetDesiredSize().Y + 4.f : 0.f;
+	return RowH > 1.f ? FMath::Max(RowH * 3.f, FMath::FloorToFloat(Room / RowH) * RowH) : Room;
 }
 
 bool STDSettingsPage::IsRowInScrollList(ETDSettingsRow Row) const
@@ -420,7 +425,7 @@ void STDSettingsPage::Tick(const FGeometry& AllottedGeometry, const double InCur
 		LastScrolledRow = Model->GetSelected();
 		if (IsRowInScrollList(Model->GetSelectedRow()))
 		{
-			RowScroll->ScrollDescendantIntoView(RowWidgets[LastScrolledRow], /*bInAnimateScroll*/ true, EDescendantScrollDestination::IntoView, 8.f);
+			RowScroll->ScrollDescendantIntoView(RowWidgets[LastScrolledRow], /*bInAnimateScroll*/ true, EDescendantScrollDestination::IntoView, 2.f);
 		}
 	}
 	if (!FSlateApplication::IsInitialized())

@@ -227,6 +227,10 @@ void ATDDockingBay::UpdateBeam(const ATDShip* Ship, float Pull)
 	if (!BeamFX && D && D->Visuals && !D->Visuals->TractorBeam.IsEmpty())
 	{
 		BeamFX = UTDStatics::PlayCueAttached(D->Visuals->TractorBeam, GetRootComponent());
+		// Effects builder (Nov 14): the cue never appeared in the staged docking. One line when it is created.
+		UE_LOG(LogTriadDrift, Log, TEXT("ATDDockingBay: tractor beam cue %s (pull %.2f, length %.0f m, state %d)"),
+			BeamFX ? TEXT("created") : TEXT("NOT created (no Niagara component)"), Pull,
+			Ship ? FVector::Dist(Ship->GetActorLocation(), GetMouth()) / 100.f : 0.f, (int32)DockingState);
 	}
 	if (BeamFX)
 	{
@@ -426,6 +430,13 @@ void ATDDockingBay::Tick(float DeltaSeconds)
 		Ship->SetActorLocationAndRotation(FMath::Lerp(GlideFrom, To, E), FQuat::Slerp(GlideFromRot, (-GetOutward()).ToOrientationQuat(), E));
 		LastGlideLoc = Ship->GetActorLocation();
 		bGlideLocSet = true;
+		// The beam runs for the whole pull-in at full intensity. A staged or scripted approach starts inside the mouth and
+		// goes straight to the glide, so the tractor phase (the only caller of UpdateBeam before) never ran and the cue was
+		// never created (effects builder, Nov 14).
+		// Played (Nov 14): at intensity 1 all the way in, the camera sat inside the column and the screen went white in
+		// the bay. The beam fades from 1 at the commit to 0 at the mouth: it reads on the approach and is gone inside.
+		const float AlongMouth = (float)FVector::DotProduct(Ship->GetActorLocation() - GetMouth(), GetOutward());
+		UpdateBeam(Ship, FMath::Clamp(AlongMouth / FMath::Max(MouthDistance, 1.f), 0.f, 1.f));
 		if (T >= 1.f)
 		{
 			// T1 (live, Nov 14): commit to load is now ~5 s, which cut the Docking lines (G6 cover-the-bay, C7 way-out).

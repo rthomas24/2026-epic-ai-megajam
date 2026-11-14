@@ -42,7 +42,7 @@ agent commit to this same repo at the same time.**
 
 | Human | GitHub | Role (features.md §1) | AI assistant |
 |---|---|---|---|
-| Ryan T | [`rthomas24`](https://github.com/rthomas24) | **Gameplay & Engineering Lead**: systems, C++, AI, combat, game loop, levels' gameplay, packaging (`ENG-xx`) | Claude Code |
+| Ryan Thomas | [`rthomas24`](https://github.com/rthomas24) | **Gameplay & Engineering Lead**: systems, C++, AI, combat, game loop, levels' gameplay, packaging (`ENG-xx`) | Claude Code |
 | Nicholas Tosti | [`nicholastosti-tech`](https://github.com/nicholastosti-tech) | **Player Experience Lead** (since Nov 13 afternoon): UI and menus, audio and music, voice and the story's words, Director's Cut presentation design, submission (`ART-01, 09, 10, 11, 12, 14`). Environment, VFX and asset management moved to Ryan's side | OpenAI Codex |
 
 **Delegation (Nov 12).** Both humans have told their Lead agent to decide routine things without asking:
@@ -633,8 +633,9 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   leave an uncommitted file zero-filled.
 - **On Ryan's machine, since Nov 14 13:25 (Ryan: "spin up instances faster and more often", without overloading the PC):** the
   two-renderer rule above is replaced by a measured guard. Three render slots (`Builds/render-slot/LOCK`, `LOCK2`, `LOCK3`)
-  plus T7's play session; before every rendering launch an agent runs `bash Builds/render-slot/can_launch.sh`, which refuses
-  at 10,000 MiB of video memory in use (16 GB card; one capture instance measured about 3 GB), at four rendering processes,
+  shared with T7's play session; before every rendering launch an agent runs `bash Builds/render-slot/can_launch.sh`, which refuses
+  at 9,500 MiB of video memory in use (16 GB card; three capture sessions at once measured 12.5 GB), at three rendering
+  processes machine-wide (T7's session included; corrected at 13:28 after that measurement),
   or under 12 GB of free system memory. Turns aim for 5 minutes (cap 10); headless work is done before a slot is taken; the
   top three lines of `Builds/render-slot/NEXT.txt` may go. Rules: `Builds/render-slot/README.txt`. Other machines keep the
   two-renderer rule unless they measure their own.

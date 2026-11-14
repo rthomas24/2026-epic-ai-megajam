@@ -5,6 +5,7 @@
 #include "TriadDrift/UI/TDUIPaint.h"
 #include "TriadDrift/Combat/Pickups/TDPickup.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
+#include "HAL/IConsoleManager.h"
 
 namespace TDHUDRadar
 {
@@ -169,12 +170,29 @@ namespace TDHUDRadar
 		D.Shape(Tip, { Dir * 7.f + Side * 5.f, FVector2D::ZeroVector, Dir * 7.f - Side * 5.f }, Col, 1.8f, false);
 	}
 
+	/** What the last paint drew, by contact type (TD.Radar.Stats; dev captures: "was a missile on the scope in that frame"). */
+	static int32 GDrawn[8] = { 0 };
+	static int32 GDrawnFrame[8] = { 0 };
+#if !UE_BUILD_SHIPPING
+	static FAutoConsoleCommand CmdRadarStats(TEXT("TD.Radar.Stats"),
+		TEXT("Log what the radar drew on its last paint, by type: enemies, missiles, wingmen, objectives, pickups, gates, warp-ins, incoming groups"),
+		FConsoleCommandDelegate::CreateLambda([]()
+		{
+			UE_LOG(LogTemp, Display, TEXT("TD.Radar.Stats: enemies %d, missiles %d, wingmen %d, objectives %d, pickups %d, gates %d, warp-ins %d, incoming %d"),
+				GDrawn[0], GDrawn[1], GDrawn[2], GDrawn[3], GDrawn[4], GDrawn[5], GDrawn[6], GDrawn[7]);
+		}));
+#endif
+
 	/** Strings rebuilt only when what they show changes. */
 	struct FCache
 	{
+		bool bNextWave = false;
 		int32 Wave = -1, Count = -1, Next = -1, NextIn = -1, Breather = -1;
 		float Range = -1.f;
-		FString WaveText, NextText, BreatherText, RangeText;
+		FString WaveText, NextText, BreatherText, RangeText, GenText;
+		int32 GenDown = -1, GenTotal = -1;
+		bool bGenReactor = false;
+		int32 GenPhase = -1;
 	};
 	static FCache& Cache()
 	{
@@ -236,15 +254,18 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 		K.Range = Range;
 		K.RangeText = Range >= 1000.f ? FString::Printf(TEXT("%.1f KM"), Range / 1000.f) : FString::Printf(TEXT("%.0f M"), Range);
 	}
-	D.Text(C.X, C.Y + R - 20.f * D.FontK, K.RangeText, 12, Pal::Muted().CopyWithNewOpacity(.8f), "Mono", .5f);
 
 	// ---- contacts (the model holds at most MaxContacts, nearest first after the must-shows)
 	const float Flash = FMath::Fmod(In.Time * 2.5f, 1.f) < .55f ? 1.f : .25f;	// missiles: 2.5 Hz
 	const float Pulse2 = .5f + .5f * FMath::Sin(In.Time * 2.f * 2.f * PI);		// warp-ins: 2 Hz
 	const float Pulse1 = .5f + .5f * FMath::Sin(In.Time * 2.f * PI);			// trouble ring: 1 Hz
 	const float Level = 50.f;	// within 50 m up or down: no stem
+	for (int32& N : GDrawnFrame) { N = 0; }
+	// Two passes: everything else first, missiles last and on the top layer, so one is never lost under enemy blips.
+	for (int32 Pass = 0; Pass < 2; ++Pass)
 	for (const FTDRadarContact& Ct : Model.Contacts)
 	{
+		if ((Ct.Type == ETDRadarType::Missile) != (Pass == 1)) { continue; }
 		const float Flat = (float)Ct.Plane.Size();
 		const float Bearing = FMath::Atan2((float)Ct.Plane.X, (float)Ct.Plane.Y);	// 0 = forward (up), clockwise
 		const FVector2D Dir(FMath::Sin(Bearing), -FMath::Cos(Bearing));
@@ -259,7 +280,8 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 			RimArc(D, Bearing, Pulse2, Ct.Type == ETDRadarType::Incoming);	// announced arrivals only: the model lists nothing else
 			if (Ct.bBeyond || Ct.Type == ETDRadarType::Incoming) { continue; }
 		}
-		const float Rad = Ct.bBeyond ? R - 8.f : RadiusFor(Flat, Range, R);
+		// Never on the player's dart: anything closer than about 150 m sits on a small ring round it, at its bearing.
+		const float Rad = Ct.bBeyond ? R - 8.f : FMath::Max(RadiusFor(Flat, Range, R), 20.f * S);
 		const FVector2D At = C + Dir * Rad;
 		// Height: above = full brightness, stem hangs down to the foot; below = dimmed, stem rises; level: none.
 		const bool bAbove = Ct.Up > Level, bBelow = Ct.Up < -Level;
@@ -271,17 +293,30 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 			D.Seg(At, Blip, Pal::Muted().CopyWithNewOpacity(.5f * Bright), 1.f);
 			D.Dot(At, 1.6f, Pal::Muted().CopyWithNewOpacity(.7f * Bright));	// the foot on your plane
 		}
+		++GDrawnFrame[FMath::Clamp((int32)Ct.Type, 0, 7)];
 		const float Hollow = Ct.bBeyond ? .6f : 1.f;	// pinned to the rim: drawn fainter, hollow shapes
 		switch (Ct.Type)
 		{
 		case ETDRadarType::Enemy:
 			Enemy(D, Blip, Ct.Kind, Pal::Hostile().CopyWithNewOpacity(Bright * Hollow), S);
-			if (Ct.bThreat && !Ct.bBeyond) { D.Circle(Blip, 9.f * S, Pal::Hostile().CopyWithNewOpacity(.55f * Bright), 1.f, 16); }	// attacking you
+			// No ring on attackers: in a close fight the rings merged into a blob over the player's dart (played, Nov 14).
 			break;
 		case ETDRadarType::Missile:
-			D.Dot(Blip, 4.f * S, Pal::Ink().CopyWithNewOpacity(Flash * Bright));
-			D.Shape(Blip, { { -3.5f * S, -3.5f * S }, { 3.5f * S, -3.5f * S }, { 3.5f * S, 3.5f * S }, { -3.5f * S, 3.5f * S } }, Pal::Hostile().CopyWithNewOpacity(Flash * Bright), 1.2f, true);
-			D.Seg(Blip, Blip + (Blip - C).GetSafeNormal() * 7.f * S, Pal::Hostile().CopyWithNewOpacity(.4f * Flash * Bright), 1.2f);	// a short trail
+		{
+			// A white core (nested squares, the top layer), a red box, a flashing ring and a short trail: bigger than any
+			// fighter blip (played, Nov 14: the 4 px dot was lost in a close fight).
+			auto Square = [&D, &Blip](float H, FLinearColor Col, float Width)
+			{
+				TArray<FVector2D>& Pts = Scratch();
+				for (const FVector2D Q : { FVector2D(-H, -H), FVector2D(H, -H), FVector2D(H, H), FVector2D(-H, H), FVector2D(-H, -H) }) { Pts.Add(D.Px(Blip + Q)); }
+				D.Lines(Pts, Col, Width, 2);
+			};
+			Square(1.2f * S, Pal::Ink().CopyWithNewOpacity(Flash), 2.4f);
+			Square(2.6f * S, Pal::Ink().CopyWithNewOpacity(Flash), 1.6f);
+			Square(5.f * S, Pal::Hostile().CopyWithNewOpacity(Flash), 1.6f);
+			D.Circle(Blip, 10.f * S, Pal::Hostile().CopyWithNewOpacity(.75f * Flash), 1.4f, 16);
+			D.Seg(Blip, Blip + (Blip - C).GetSafeNormal() * 12.f * S, Pal::Hostile().CopyWithNewOpacity(.5f * Flash), 1.4f);	// a short trail
+		}
 			break;
 		case ETDRadarType::Wingman:
 		{
@@ -314,6 +349,17 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 		}
 	}
 
+	for (int32 I = 0; I < 8; ++I) { GDrawn[I] = GDrawnFrame[I]; }
+
+	// ---- the range label, after the contacts and on its own small plate so a rim blip never covers it
+	{
+		const float LW = 66.f * D.FontK, LH = 16.f * D.FontK, LY = C.Y + R - 22.f * D.FontK;
+		// On the top layer (the blips' lines are one layer above the plate's): nothing draws over the label.
+		FSlateDrawElement::MakeBox(P.List, P.Layer + 2, P.Geo({ C.X - LW * .5f, LY }, { LW, LH }), FCoreStyle::Get().GetBrush("WhiteBrush"), ESlateDrawEffect::None,
+			P.Faded(Pal::Panel().CopyWithNewOpacity(.95f)));
+		D.Text(C.X, LY + 1.f * D.FontK, K.RangeText, 12, Pal::Muted().CopyWithNewOpacity(.9f), "Mono", .5f);
+	}
+
 	// ---- you: a filled dart at the centre in the flown ship's colour, with a soft glow
 	if (In.bHasFlown)
 	{
@@ -327,30 +373,57 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 	}
 
 	// ---- wave header above the radar: WAVE n / N, a pip per wave, the next group (+count, seconds) or NEXT WAVE
-	if (In.Wave.WaveCount > 0)
+	// Only during a wave or its breather (after wave 5 the director reports wave 0: it read "WAVE 1 / 5", #103).
+	const bool bWaves = In.Wave.WaveCount > 0 && In.Wave.WaveNumber > 0 && (In.Wave.bWaveActive || In.Wave.bInBreather);
+	if (!bWaves && (In.GeneratorsTotal > 0 || In.bReactorExposed))
+	{
+		// The Dominion assault: GENERATORS n / N with a pip each (down = filled), then REACTOR.
+		const float HH = HeaderH * D.FontK;
+		const float HX = C.X - R, HY = C.Y - R - HeaderGap - HH, HW = 2.f * R;
+		P.Box(HX, HY, HW, HH, Pal::Panel().CopyWithNewOpacity(.88f));
+		D.Seg(FVector2D(HX, HY + HH), FVector2D(HX + HW * .4f, HY + HH), Pal::Hostile().CopyWithNewOpacity(.55f), 1.5f);
+		const bool bReactor = In.bReactorExposed || In.GeneratorsDown >= In.GeneratorsTotal;
+		if (K.GenDown != In.GeneratorsDown || K.GenTotal != In.GeneratorsTotal || K.bGenReactor != bReactor || K.GenPhase != In.ReactorPhase)
+		{
+			K.bGenReactor = bReactor;
+			K.GenDown = In.GeneratorsDown;
+			K.GenTotal = In.GeneratorsTotal;
+			K.GenPhase = In.ReactorPhase;
+			K.GenText = !bReactor ? FString::Printf(TEXT("GENERATORS %d / %d"), K.GenDown, K.GenTotal)
+				: In.ReactorPhases > 0 && In.ReactorPhase > 0 && In.ReactorPhase <= In.ReactorPhases ? FString::Printf(TEXT("REACTOR  %d / %d"), In.ReactorPhase, In.ReactorPhases)
+				: FString(TEXT("REACTOR"));
+		}
+		D.Text(HX + 10.f, HY + 7.f * D.FontK, K.GenText, 14, bReactor ? Pal::Hostile() : Pal::Ink(), "Bold", 0.f);
+		if (!bReactor)
+		{
+			const int32 Pips = FMath::Min(In.GeneratorsTotal, 8);
+			for (int32 I = 0; I < Pips; ++I)
+			{
+				const FVector2D Pip(HX + HW - 14.f * S - (Pips - 1 - I) * 13.f * S, HY + HH * .5f);
+				if (I < In.GeneratorsDown) { D.Dot(Pip, 7.f * S, Pal::Ink().CopyWithNewOpacity(.85f)); }
+				else { D.Shape(Pip, { { 0, -4.5f * S }, { 4.5f * S, 0 }, { 0, 4.5f * S }, { -4.5f * S, 0 } }, Pal::Hostile(), 1.4f, true); }	// still up: a hollow diamond
+			}
+		}
+	}
+	if (bWaves)
 	{
 		const float HH = HeaderH * D.FontK;	// the header grows with its text
 		const float HX = C.X - R, HY = C.Y - R - HeaderGap - HH, HW = 2.f * R;
 		P.Box(HX, HY, HW, HH, Pal::Panel().CopyWithNewOpacity(.88f));
 		D.Seg(FVector2D(HX, HY + HH), FVector2D(HX + HW * .4f, HY + HH), Pal::Hostile().CopyWithNewOpacity(.55f), 1.5f);
-		if (K.Wave != In.Wave.WaveNumber || K.Count != In.Wave.WaveCount)
+		// In a breather the header names the wave that is coming, as the objective line does (Shipping check, Nov 14: it
+		// kept "WAVE 1 / 5" while the objective read "Wave 2 incoming").
+		const bool bNext = In.Wave.bInBreather && In.Wave.WaveNumber < In.Wave.WaveCount;
+		const int32 Shown = bNext ? In.Wave.WaveNumber + 1 : In.Wave.WaveNumber;
+		if (K.Wave != Shown || K.Count != In.Wave.WaveCount || K.bNextWave != bNext)
 		{
-			K.Wave = In.Wave.WaveNumber;
+			K.Wave = Shown;
 			K.Count = In.Wave.WaveCount;
-			K.WaveText = FString::Printf(TEXT("WAVE %d / %d"), FMath::Max(1, K.Wave), K.Count);
+			K.bNextWave = bNext;
+			K.WaveText = bNext ? FString::Printf(TEXT("NEXT WAVE %d / %d"), Shown, K.Count) : FString::Printf(TEXT("WAVE %d / %d"), Shown, K.Count);
 		}
 		D.Text(HX + 10.f, HY + 7.f * D.FontK, K.WaveText, 14, Pal::Ink(), "Bold", 0.f);
-		// Pips: cleared = filled ink, current = hostile, to come = hollow.
-		const int32 Pips = FMath::Min(In.Wave.WaveCount, 8);
-		const float PipX0 = HX + HW * .44f;
-		for (int32 I = 0; I < Pips; ++I)
-		{
-			const FVector2D Pip(PipX0 + I * 11.f * S, HY + HH * .5f);
-			const int32 Number = I + 1;
-			if (Number < In.Wave.WaveNumber) { D.Dot(Pip, 6.f * S, Pal::Ink().CopyWithNewOpacity(.85f)); }
-			else if (Number == In.Wave.WaveNumber) { D.Dot(Pip, 7.f * S, Pal::Hostile()); }
-			else { D.Shape(Pip, { { -3 * S, -3 * S }, { 3 * S, -3 * S }, { 3 * S, 3 * S }, { -3 * S, 3 * S } }, Pal::Muted().CopyWithNewOpacity(.7f), 1.f, true); }
-		}
+		const FString* TimerText = nullptr;
 		// The next group from T4's GetPendingGroups (Incoming contacts), soonest first.
 		const FTDRadarContact* Next = nullptr;
 		for (const FTDRadarContact& Ct : Model.Contacts)
@@ -360,14 +433,32 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 		if (In.Wave.bInBreather && !Next)
 		{
 			const int32 Secs = FMath::CeilToInt(FMath::Max(0.f, In.Wave.BreatherRemaining));
-			if (K.Breather != Secs) { K.Breather = Secs; K.BreatherText = FString::Printf(TEXT("NEXT WAVE %d:%02d"), Secs / 60, Secs % 60); }
+			if (K.Breather != Secs) { K.Breather = Secs; K.BreatherText = FString::Printf(TEXT("%d:%02d"), Secs / 60, Secs % 60); }
 			D.Text(HX + HW - 10.f, HY + 8.f * D.FontK, K.BreatherText, 12, Pal::Muted(), "Mono", 1.f);
+			TimerText = &K.BreatherText;
 		}
 		else if (Next)
 		{
 			const int32 Secs = FMath::CeilToInt(FMath::Max(0.f, Next->Seconds));
 			if (K.Next != Next->Count || K.NextIn != Secs) { K.Next = Next->Count; K.NextIn = Secs; K.NextText = FString::Printf(TEXT("+%d %d:%02d"), Next->Count, Secs / 60, Secs % 60); }
 			D.Text(HX + HW - 10.f, HY + 8.f * D.FontK, K.NextText, 12, Pal::Hostile(), "Mono", 1.f);
+			TimerText = &K.NextText;
+		}
+		const float TimerW = TimerText ? P.Measure(*TimerText, FTDUIPainter::MakeFont("Mono", FMath::Max(1, FMath::RoundToInt(12 * D.FontK)), P.Scale, 20)) + 18.f : 0.f;
+		// Pips: cleared = filled ink, current = hostile, to come = hollow.
+		const int32 Pips = FMath::Min(In.Wave.WaveCount, 8);
+		// After the wave text, wherever it ends (it is larger on small screens).
+		const float PipX0 = HX + 10.f + FMath::Max(HW * .34f, P.Measure(K.WaveText, FTDUIPainter::MakeFont("Bold", FMath::Max(1, FMath::RoundToInt(14 * D.FontK)), P.Scale, 20))) + 14.f * S;
+		// The pips give way to the timer when the header is too narrow for both (720p, "NEXT WAVE", a long timer).
+		const bool bPipsFit = PipX0 + Pips * 11.f * S <= HX + HW - 10.f - TimerW;
+		for (int32 I = 0; bPipsFit && I < Pips; ++I)
+		{
+			const FVector2D Pip(PipX0 + I * 11.f * S, HY + HH * .5f);
+			const int32 Number = I + 1;
+			if (Number < Shown) { D.Dot(Pip, 6.f * S, Pal::Ink().CopyWithNewOpacity(.85f)); }
+			else if (Number == Shown && !bNext) { D.Dot(Pip, 7.f * S, Pal::Hostile()); }
+			else if (Number == Shown) { D.Shape(Pip, { { -3.5f * S, -3.5f * S }, { 3.5f * S, -3.5f * S }, { 3.5f * S, 3.5f * S }, { -3.5f * S, 3.5f * S } }, Pal::Hostile(), 1.4f, true); }	// coming: hollow, hostile
+			else { D.Shape(Pip, { { -3 * S, -3 * S }, { 3 * S, -3 * S }, { 3 * S, 3 * S }, { -3 * S, 3 * S } }, Pal::Muted().CopyWithNewOpacity(.7f), 1.f, true); }
 		}
 	}
 }

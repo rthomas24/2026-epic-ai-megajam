@@ -463,6 +463,16 @@ float a = saturate((0.50 + 0.45*rim + 0.15*bands)*Cloak);
 float3 c = Tint.rgb*(0.06 + rim*2.6 + bands*0.9*(0.3 + rim)) + float3(1,1,1)*pow(rim, 6.0)*0.6;
 return float4(c*Intensity, a);""", {'Tint': (1.0, 0.10, 0.85), 'Cloak': 1.0}),
 
+    # 10i (Lead: side-on the cloak changed nothing): a new asset for the cloak shell (no in-place rebuild): the hull reads at
+    # about 35% (a dense deep-magenta veil over it) and a strong magenta edge shimmer that reads at 25 m side-on.
+    'M_TD_VFX_CloakShell2': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, """
+float f = saturate(Fres);
+float rim = pow(f, 1.6);
+float bands = pow(0.5 + 0.5*sin(Tm*7.0 + (UV.x*37.0 + UV.y*23.0)), 4.0);
+float a = saturate((0.22 + 0.55*rim + 0.06*bands)*Cloak);   // 10q (T2's real cloak read as a near-white solid): far more see-through
+float3 c = Tint.rgb*(0.02 + rim*4.0 + bands*0.5*(0.2 + rim)) + float3(1,1,1)*pow(rim, 6.0)*0.5;
+return float4(c*Intensity, a);""", {'Tint': (1.0, 0.10, 0.85), 'Cloak': 1.0}),
+
     # round 10: a set piece's range beacon (NS_TD_Region_Beacon): soft round core, a short thin horizontal streak, a white
     # pin-point centre. Camera-facing sprite, additive.
     'M_TD_VFX_Beacon': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''

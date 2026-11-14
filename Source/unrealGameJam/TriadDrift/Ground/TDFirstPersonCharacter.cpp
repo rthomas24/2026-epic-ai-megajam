@@ -42,6 +42,7 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "NiagaraComponent.h"
 #include "NiagaraSystem.h"
+#include "Components/PointLightComponent.h"
 
 ATDFirstPersonCharacter::ATDFirstPersonCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -149,6 +150,7 @@ void ATDFirstPersonCharacter::BeginPlay()
 	ApplyPilotVisuals();
 	Blade->OnRetractChanged.AddUObject(this, &ATDFirstPersonCharacter::HandleBladeRetract);
 	Blade->OnDeflect.AddUObject(this, &ATDFirstPersonCharacter::HandleBladeDeflect);
+	Blade->OnCueRequested.AddUObject(this, &ATDFirstPersonCharacter::HandleBladeCue); // #163: the cast light pulses
 
 	ThirdPersonRig->SetFirstPersonCamera(Camera);
 	// Almost no motion blur on foot (the Rodin drone smeared under the planet volume's 0.2): both views.
@@ -475,9 +477,56 @@ UStaticMeshComponent* ATDFirstPersonCharacter::GetVisibleBladeBeam() const
 	return nullptr;
 }
 
+void ATDFirstPersonCharacter::HandleBladeCue(FName CueName)
+{
+	if (CueName == TEXT("Hit") || CueName == TEXT("PerfectDeflect") || CueName == TEXT("AirSlam"))
+	{
+		BladeLightPulse = 1.f;
+	}
+	else if (CueName == TEXT("Deflect") || CueName == TEXT("Ignite"))
+	{
+		BladeLightPulse = FMath::Max(BladeLightPulse, 0.6f);
+	}
+}
+
 void ATDFirstPersonCharacter::UpdateBladeAura(float DeltaSeconds)
 {
 	UStaticMeshComponent* Beam = GetVisibleBladeBeam();
+	// #163: the blade lights the pilot and the floor round it in its colour: one point light half way up the beam,
+	// no shadows, 2.8 m reach; brighter while fighting and in a short pulse on a hit, a perfect deflect or a slam.
+	BladeLightPulse = FMath::Max(0.f, BladeLightPulse - DeltaSeconds * 5.f);
+	if (Beam && !IsDead())
+	{
+		if (!BladeLight)
+		{
+			BladeLight = NewObject<UPointLightComponent>(this, TEXT("BladeLight"));
+			BladeLight->SetCastShadows(false);
+			BladeLight->SetIntensityUnits(ELightUnits::Candelas);
+			BladeLight->SetAttenuationRadius(280.f);
+			BladeLight->SetSourceRadius(4.f);
+			BladeLight->SetSourceLength(60.f);
+			BladeLight->bAffectTranslucentLighting = false;
+			BladeLight->SetupAttachment(Beam);
+			BladeLight->RegisterComponent();
+		}
+		if (BladeLight->GetAttachParent() != Beam)
+		{
+			BladeLight->AttachToComponent(Beam, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		}
+		const FTransform BT = Beam->GetComponentTransform();
+		const UStaticMesh* BM = Beam->GetStaticMesh();
+		const float Len = (BM ? (float)BM->GetBoundingBox().Max.X : 100.f) * (float)BT.GetScale3D().X;
+		BladeLight->SetWorldLocationAndRotation(BT.GetLocation() + BT.GetUnitAxis(EAxis::X) * Len * 0.5f, BT.Rotator());
+		BladeLight->SetSourceLength(FMath::Max(1.f, Len * 0.8f));
+		const float Fight = BladeAuraSwingHold > 0.f ? 1.f : 0.f;
+		BladeLight->SetLightColor(GetBladeColor());
+		BladeLight->SetIntensity(BladeLightCandelas * (1.f + 0.6f * Fight + 2.5f * BladeLightPulse));
+		BladeLight->SetVisibility(true);
+	}
+	else if (BladeLight)
+	{
+		BladeLight->SetVisibility(false);
+	}
 	if (!Beam || IsDead())
 	{
 		if (BladeAura && BladeAura->IsActive())
@@ -522,12 +571,21 @@ void ATDFirstPersonCharacter::UpdateBladeAura(float DeltaSeconds)
 	}
 	BladeAuraPrevTip = TipNow;
 	bBladeAuraPrevTip = true;
-	// A little smoothing on the speed only (one frame spikes at low frame rates); the direction stays raw.
-	BladeAuraSpeed = FMath::FInterpTo(BladeAuraSpeed, (float)TipVelocity.Size(), DeltaSeconds, 30.f);
+	// TipSpeed drives the sheet and the spark rate: the tip's speed RELATIVE to the pilot (running alone must not light the
+	// sheet), and none while the beam crawls in or out (its tip moves fast then but nothing swings). TipVelocity stays the
+	// world velocity, so thrown sparks still carry the pilot's motion. A little smoothing on the speed only.
+	const bool bCrawling = Beam == HandBladeBeam && HandBladeExtend < 0.999f;
+	const float Relative = bCrawling ? 0.f : (float)(TipVelocity - GetVelocity()).Size();
+	BladeAuraSpeed = FMath::FInterpTo(BladeAuraSpeed, Relative, DeltaSeconds, 30.f);
 	BladeAura->SetVariableLinearColor(TEXT("Color"), GetBladeColor());
 	BladeAura->SetVariableFloat(TEXT("Length"), FMath::Max(1.f, Length));
 	BladeAura->SetVariableVec3(TEXT("TipVelocity"), TipVelocity);
 	BladeAura->SetVariableFloat(TEXT("TipSpeed"), BladeAuraSpeed);
+	// User.Swing 1 while the blade fights (attack, block / deflect, dash), held 0.25 s after: the swing sheet and the
+	// thrown sparks only emit then (T7 on main: walking drew a lit streak and ground sparks behind the pilot).
+	const bool bFighting = (Blade && (Blade->IsAttacking() || Blade->IsBlocking() || Blade->IsGuardBroken())) || bDashing;
+	BladeAuraSwingHold = bFighting ? 0.25f : FMath::Max(0.f, BladeAuraSwingHold - DeltaSeconds);
+	BladeAura->SetVariableFloat(TEXT("Swing"), BladeAuraSwingHold > 0.f ? 1.f : 0.f);
 	if (!BladeAura->IsActive())
 	{
 		BladeAura->Activate(true);

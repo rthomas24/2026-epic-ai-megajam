@@ -11,8 +11,10 @@ eal = unreal.EditorAssetLibrary
 mel = unreal.MaterialEditingLibrary
 D = "/Game/TriadDrift/Gameplay/Props/Planets/"
 VALUES = {   # #148 (second pass, Lead: "still a hole"): the planet must read as a world in the eclipse shot
-    "MI_Planet_Verdance": {"NightAmbient": 0.3, "EmissiveStrength": 11.0, "SurfaceRimStrength": 1.4, "NightGlowStart": 0.0},
-    "MI_PlanetAtmo_Verdance": {"SunMaskAmount": 0.3, "AtmoIntensity": 4.5, "RimPower": 3.2},
+    "MI_Planet_Verdance": {"NightAmbient": 0.2, "EmissiveStrength": 7.0, "SurfaceRimStrength": 1.4, "NightGlowStart": 0.0},
+    # ART-13 a13 (third pass): 4.5 / 3.2 washed the globe in flat teal haze close up (2.2 and 1.6 radii in the galaxy);
+    # back to the c0ea8682 strength and the default rim falloff, keeping the rim round the night side (0.3)
+    "MI_PlanetAtmo_Verdance": {"SunMaskAmount": 0.3, "AtmoIntensity": 3.4, "RimPower": 4.0},
     "MI_PlanetRing_Verdance": {"Brightness": 2.0},
 }
 bad = []

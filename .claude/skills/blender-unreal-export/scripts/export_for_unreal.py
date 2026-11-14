@@ -312,8 +312,12 @@ def main(root, out_dir, front_axis="-Y", collision="auto", max_hulls=6, triangul
                 pass
         for item, old_name in renamed:
             item.name = old_name
+        # The temporary collection was just removed; without an update the view layer can still list a removed
+        # object as None (seen headless on 5.2.2), which raised here after an export that had succeeded.
+        vl.update()
         for o in vl.objects:
-            o.select_set(False)
+            if o is not None:
+                o.select_set(False)
         for o in prev_sel:
             if o.name in vl.objects:
                 o.select_set(True)
