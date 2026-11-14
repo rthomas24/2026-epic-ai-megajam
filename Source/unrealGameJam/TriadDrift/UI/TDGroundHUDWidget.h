@@ -101,6 +101,8 @@ public:
 	float ForceEscapeLeft = -1.f;
 	float ForceEscapeTotal = 90.f;
 	TOptional<FVector> ForceExitAt;
+	/** Tests: a marker actor standing in for the objective's first waypoint (destroy it: the marker must go). */
+	TWeakObjectPtr<AActor> ForceMarkerActor;
 	/** Where the bar marks the phase change (T5: Phase2HealthFraction 0.5). */
 	static constexpr float BossPhase2At = .5f;
 	/** The objective panel grows to fit its line up to this width (design px), then wraps to two lines. */
@@ -129,6 +131,8 @@ public:
 	bool bCoversDamageIndicators = true;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
 	bool bCoversInteractPrompt = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversObjectiveMarkers = true;
 
 protected:
 	virtual void NativeConstruct() override;
