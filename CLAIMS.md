@@ -332,7 +332,7 @@ Workers commit only on their own branch and never pull, merge or push; the Lead 
 | Animation builder | With T5's animation hooks (ART-08) | Warden ragdoll cases; pilot foot IK held for Ryan | `Characters/**/Anims/**` |
 | Import builder | Credits rows for the assets of batches U to Z (ART-02) | The Oodle RDO trial (unproven) | `Gameplay/**` visuals, `docs/eng/ASSETS.md`, `CREDITS.md` |
 | Packaging agent | The Shipping cook of main 80a2ee4d (ENG-28) | Publish `playable-main-80a2ee4d` with a launch check; compile the Shipping target of AA | isolated `.wt/pkg` |
-| Grok Bot | R-042 queue; five dry takes of `C8_Wren_Order` (PR #93, waits on Ryan's merge) | #52 anchor tower, #53 crystal cache, #40 set dressing, #54 bay plans | `ArtSource/EngAI/**` |
+| Grok Bot | R-042 queue; five dry takes of `C8_Wren_Order` (PR #93, merged 0aa68579; the dry master is Nicholas's pick) | #52 anchor tower, #53 crystal cache, #40 set dressing, #54 bay plans | `ArtSource/EngAI/**` |
 
 Rows opened or closed Nov 14 09:30 (they supersede the same items' rows of 06:30 below):
 
@@ -366,9 +366,9 @@ Rows opened or closed Nov 14 09:30 (they supersede the same items' rows of 06:30
 | ENG-30, 31, 44 the reactor, the reveal, the escape run, reboard, victory, credits | T7 (T5, T3) | in progress (T7 next: the reactor) | `docs/eng/PLAYTEST-*` |
 | Future-pilot defenders (ENG-30; decision at 14:00, drones the fallback) | T5 | queued (after the animation hooks) | `Ground/` |
 | ART-04 enemy and Dominion visuals: the hauler repaint; the Dominion recolour waits for Nicholas | Lead (dispatches the ship builder when its usage limit resets) | queued | fleet visuals |
-| Pull requests within the hour (R-048) | Lead | #83, #12 closed (branches kept); #78 merged; #11 and #85: Nicholas decides by 10:30 EST; #93 waits on Ryan's merge click | none |
+| Pull requests within the hour (R-048) | Lead | #83, #12 closed (branches kept); #78 merged; #11 and #85: Nicholas decides by 10:30 EST; #93 merged (0aa68579) | none |
 | One shared rendering slot (`Builds/render-slot/README.txt`); teammates' play before builders' captures | Lead | done (in force) | `Builds/` (not in git) |
-| **Held for Ryan:** merge #93; one real click on CONTINUE; a play of the Shipping package; `MI_TD_DominionGlowRed`; the DirectX 11 shader set; the Bastion cockpit; the ENG-38 left-for-Ryan list; pilot foot IK; a precompiled pipeline-state cache; T3's stash "t3-failed-merge-lead-int-u-0921" | Ryan | waiting | - |
+| **Held for Ryan:** one real click on CONTINUE; a play of the Shipping package; `MI_TD_DominionGlowRed`; the DirectX 11 shader set; the Bastion cockpit; the ENG-38 left-for-Ryan list; pilot foot IK; a precompiled pipeline-state cache; T3's stash "t3-failed-merge-lead-int-u-0921" | Ryan | waiting | - |
 
 Rows opened or closed Nov 14 06:30:
 
