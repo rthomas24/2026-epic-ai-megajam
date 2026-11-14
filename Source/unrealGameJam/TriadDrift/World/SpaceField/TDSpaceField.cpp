@@ -189,6 +189,7 @@ void ATDSpaceField::Build()
 	BuildClusters(Rng);
 	BuildDebrisFields(Rng);
 	BuildBuoys();
+	AdoptLayoutRocks();
 	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: %d pieces, %d components, %d obstacles, %d cache spots"), Pieces.Num(), Components.Num(), ObstaclesAdded,
 		GetCacheSpots(this).Num());
 }
@@ -562,6 +563,7 @@ TArray<FVector> ATDSpaceField::GetCacheSpots(const UObject* WorldContextObject)
 void ATDSpaceField::SetFieldEnabled(bool bOn)
 {
 	bEnabled = bOn;
+	ShowLayoutRocks(!bOn);	// off: the galaxy layout's own rocks, exactly as today
 	for (const TPair<FString, TObjectPtr<UHierarchicalInstancedStaticMeshComponent>>& C : Components)
 	{
 		if (C.Value) { C.Value->SetVisibility(bOn); }
