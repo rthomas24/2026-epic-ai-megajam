@@ -42,7 +42,7 @@ SCALARS = {
     "BroadHue": (2.2, 0.3), "FarVar": (0.7, 0.6),
     "UplandStartM": (420.0, 500.0), "UplandRangeM": (520.0, 500.0), "UplandAmount": (0.8, 0.55),
     "LowlandTopM": (60.0, 40.0), "LowlandFadeM": (160.0, 120.0), "LowlandAmount": (0.75, 0.5),
-    "JungleBroad": (0.55, 2.0), "JungleSoft": (0.12, 0.1), "JungleAmount": (0.85, 0.0),
+    "JungleBroad": (0.475, 2.0), "JungleSoft": (0.08, 0.1), "JungleAmount": (0.85, 0.0),
     "StrataScaleM": (90.0, 70.0), "StrataAlongM": (700.0, 600.0), "StrataContrast": (1.15, 1.3),
     "HueKeep": (0.12, 0.45),               # R3: the moss mean has almost no blue, so its blue-ish pixels turned into cyan cells near the pad                # how much of the texture's own hue variation survives the retint
     "DetailContrast": (1.0, 1.0),
@@ -54,7 +54,9 @@ SCALARS = {
     "RockSlopeStart": (0.17, 0.15), "RockSlopeRange": (0.13, 0.12),
     "PeakStartM": (1450.0, 1300.0), "PeakRangeM": (550.0, 700.0), "PeakSlopeMax": (0.4, 0.36), "PeakSlopeRange": (0.3, 0.28),
     "LowTopM": (-260.0, 10.0), "LowFadeM": (130.0, 120.0), "LowAmount": (0.85, 0.7),
-    "PatchThreshold": (0.79, 0.66), "PatchSoft": (0.06, 0.08), "PatchTopM": (700.0, 900.0), "PatchFadeM": (300.0, 300.0),
+    # scatter v2: the patch (Verdance grove / Cinder obsidian) is a rule on the terrain's own masks, the same numbers as
+    # FTDScatterPlan::GroveBroadMax / GroveFineMin / ObsidianFineMin (TDPlanetScatter.h), so groves and crystals stand on it
+    "PatchFineMin": (0.62, 0.7), "PatchBroadMax": (0.3, 2.0), "PatchSoft": (0.04, 0.04), "PatchTopM": (700.0, 900.0), "PatchFadeM": (300.0, 300.0),
     "WetDarken": (0.6, 0.85), "WetRoughness": (0.7, 0.6),
     # roughness / specular / normal
     "FlatRoughness": (0.86, 0.9), "PatchRoughness": (0.7, 0.22), "LowRoughness": (0.9, 0.8), "RockRoughness": (0.82, 0.78),
@@ -234,9 +236,10 @@ def build_graph(b, t, means):
     upland_w = mul(ramp(hj, S("UplandStartM"), S("UplandRangeM")), S("UplandAmount"))
     lowland_w = mul(inv(ramp(hj, S("LowlandTopM"), S("LowlandFadeM"))), S("LowlandAmount"))
     # glowing groves: R3 uses the 1.9 km and 7.3 km noises (patches of a few hundred metres, not 230 m blobs)
-    patch_n = add(add(add(mul(c(nL, "B"), 0.5), mul(c(nXL, "B"), 0.25)), mul(mul(c(nM, "B"), 0.25), sn)),
-                  add(mul(j, 0.12), mul(mul(sub(0.5, broad), 0.2), inv(sn))))
-    patch_w = mul(ramp(patch_n, S("PatchThreshold"), S("PatchSoft")), inv(ramp(hj, S("PatchTopM"), S("PatchFadeM"))))
+    ps = S("PatchSoft")
+    fine_ok = ramp(add(fine, mul(sub(c(nS, "G"), 0.5), mul(sn, 0.03))), sub(S("PatchFineMin"), mul(ps, 0.5)), ps)
+    broad_ok = inv(ramp(broad, sub(S("PatchBroadMax"), mul(ps, 0.5)), ps))
+    patch_w = mul(mul(fine_ok, broad_ok), inv(ramp(hj, S("PatchTopM"), S("PatchFadeM"))))
     band = sat(inv(div(vabs(sub(add(broad, mul(j, S("ValleyBreak"))), S("ValleyCenter"))), S("ValleyWidth"))))
     valley_w = mul(mul(band, inv(ramp(slope, 0.0, S("ValleySlopeMax")))),
                    mul(inv(ramp(hm, S("ValleyTopM"), S("ValleyFadeM"))), ramp(vabs(hm), S("ValleyMinM"), S("ValleyMinFadeM"))))

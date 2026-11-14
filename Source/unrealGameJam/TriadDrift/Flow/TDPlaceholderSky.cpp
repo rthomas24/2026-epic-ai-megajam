@@ -22,6 +22,12 @@
 #include "UObject/UObjectIterator.h"
 #include "Components/ExponentialHeightFogComponent.h"
 #include "TriadDrift/World/TDSkySphere.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
+#include "NiagaraComponent.h"
+#include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 const FName ATDPlaceholderSky::PresentationSkyTag(TEXT("TD.Presentation.Sky"));
 const FName ATDPlaceholderSky::PlaceholderTag(TEXT("TD.Placeholder.Sky"));
@@ -535,6 +541,77 @@ void ATDPlaceholderSky::Tick(float DeltaSeconds)
 		Refresh(); // a sky streamed in or spawned late takes over
 	}
 	TickDescentFog();
+	TickAmbient(DeltaSeconds);
+}
+
+void ATDPlaceholderSky::TickAmbient(float DeltaSeconds)
+{
+	const bool bVerdance = AppliedStyle == ETDPlaceholderSkyStyle::Verdance;
+	if (!bVerdance && AppliedStyle != ETDPlaceholderSkyStyle::Cinder)
+	{
+		return;
+	}
+	APlayerCameraManager* Cam = UGameplayStatics::GetPlayerCameraManager(this, 0);
+	USceneComponent* Parent = Cam ? Cam->GetTransformComponent() : nullptr;
+	if (!Parent)
+	{
+		return;
+	}
+	if (AmbientFX && AmbientParent.Get() != Parent)
+	{
+		AmbientFX->DestroyComponent();	// a new camera manager (travel): start again on it
+		AmbientFX = nullptr;
+		if (AmbientAudio) { AmbientAudio->Stop(); AmbientAudio = nullptr; }
+	}
+	if (!AmbientFX)
+	{
+		AmbientRetry -= DeltaSeconds;
+		if (AmbientRetry > 0.f)
+		{
+			return;
+		}
+		AmbientRetry = 2.f;
+		const UTDTravelFX* FX = UTDStatics::LoadPresentation<UTDTravelFX>(TEXT("DA_Travel_FX"));
+		const FName Slot = bVerdance ? FName(TEXT("PlanetAmbientVerdance")) : FName(TEXT("PlanetAmbientCinder"));
+		const FStructProperty* Prop = FX ? CastField<FStructProperty>(UTDTravelFX::StaticClass()->FindPropertyByName(Slot)) : nullptr;
+		const FTDFXCue* Cue = (Prop && Prop->Struct == FTDFXCue::StaticStruct()) ? Prop->ContainerPtrToValuePtr<FTDFXCue>(FX) : nullptr;
+		if (!Cue || Cue->VFX.IsNull())
+		{
+			return;
+		}
+		UAudioComponent* Audio = nullptr;
+		AmbientFX = UTDStatics::PlayCueAttachedLoop(*Cue, Parent, NAME_None, Audio);
+		AmbientAudio = Audio;
+		AmbientParent = Parent;
+		if (!AmbientFX)
+		{
+			return;
+		}
+	}
+	// Full on foot and in low flight; fades out between 450 m and 600 m over the ground.
+	float Fade = 1.f;
+	const APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (Cast<ATDSpacecraft>(Pawn))
+	{
+		if (!FogTerrain.IsValid())
+		{
+			for (TActorIterator<ATDPlanetTerrain> It(GetWorld()); It; ++It) { FogTerrain = *It; break; }
+		}
+		if (const ATDPlanetTerrain* T = FogTerrain.Get())
+		{
+			const FVector At = Cam->GetCameraLocation();
+			Fade = 1.f - FMath::SmoothStep(45000.f, 60000.f, float(At.Z - T->GetHeightAt(At)));
+		}
+	}
+	AmbientFX->SetVariableFloat(FName(TEXT("User.Fade")), Fade);
+}
+
+void ATDPlaceholderSky::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// Travel and retakes rebuild the sky; the camera manager can outlive it, so the ambient goes with the sky.
+	if (AmbientFX) { AmbientFX->DestroyComponent(); AmbientFX = nullptr; }
+	if (AmbientAudio) { AmbientAudio->Stop(); AmbientAudio = nullptr; }
+	Super::EndPlay(EndPlayReason);
 }
 
 void ATDPlaceholderSky::TickDescentFog()
