@@ -429,6 +429,33 @@ def artefact():
                              "light": "BP_Kit_Artefact carries its own soft teal light (250 cd, 7 m)"}}
 
 
+# ------------------------------------------------------------------------------------------------ space set pieces (T6)
+SPS = "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/"
+
+
+def space_sites():
+    """Capture / placement classes for T6's set pieces (docs/eng/SPACE-DESIGN.md). Each mesh also stands alone in
+    Props/Space/SetPieces/ for the space field; these classes show the intended grouping."""
+    out = {}
+    out["Space_PatrolWreck"] = {"site": "Space_PatrolWreck", "actor": SPS + "BP_SP_PatrolWreck",
+        "about": "The Watchline halo: the lost patrol's hull in four pieces drifting apart (about 55 m spread).",
+        "pieces": [piece("Mid", SPS + "SM_SP_Patrol_Mid", 0.0, 0.0, 0.0, 0.0, roll_deg=18.0),
+                   piece("Bow", SPS + "SM_SP_Patrol_Bow", 2100.0, 450.0, 350.0, 12.0, pitch_deg=-9.0, roll_deg=-25.0),
+                   piece("Aft", SPS + "SM_SP_Patrol_Aft", -2300.0, -500.0, -420.0, -14.0, pitch_deg=6.0, roll_deg=40.0),
+                   piece("Wing", SPS + "SM_SP_Patrol_Wing", 400.0, 1500.0, 900.0, 35.0, pitch_deg=20.0, roll_deg=55.0)]}
+    out["Space_ResearchA"] = {"site": "Space_ResearchA", "actor": SPS + "BP_SP_ResearchA", "about": "Quiet Graveyard hull A (158 m).",
+                              "pieces": [piece("Hull", SPS + "SM_SP_Research_A", 0.0, 0.0, 0.0, 0.0, roll_deg=12.0)]}
+    out["Space_ResearchB"] = {"site": "Space_ResearchB", "actor": SPS + "BP_SP_ResearchB", "about": "Quiet Graveyard hull B (108 m).",
+                              "pieces": [piece("Hull", SPS + "SM_SP_Research_B", 0.0, 0.0, 0.0, 0.0, roll_deg=-20.0, pitch_deg=4.0)]}
+    out["Space_NullRig"] = {"site": "Space_NullRig", "actor": SPS + "BP_SP_NullRig",
+        "about": "Survey Scar: a Null survey rig clamped to a rock (SM_Asteroid_03 at scale 80, about 78 m).",
+        "pieces": [piece("Rock", "/Game/TriadDrift/Gameplay/Props/Space/SM_Asteroid_03", 0.0, 0.0, -3300.0, 0.0, scale=[80.0, 80.0, 80.0]),
+                   piece("Rig", SPS + "SM_SP_NullRig", 0.0, 0.0, 0.0, 0.0)]}
+    out["Space_HollowRock"] = {"site": "Space_HollowRock", "actor": SPS + "BP_SP_HollowRock", "about": "Survey Scar: a mined-out rock (70 m).",
+                               "pieces": [piece("Rock", SPS + "SM_SP_HollowRock", 0.0, 0.0, 0.0, 200.0, pitch_deg=-10.0)]}
+    return out
+
+
 def main():
     out = os.path.join(KIT, "sites")
     os.makedirs(out, exist_ok=True)
@@ -437,6 +464,7 @@ def main():
              "DominionInterior_Preview": dominion_interior(), "DockingBay_Interior": docking_bay(),
              "DockingBay_GalaxyTest": docking_bay_galaxy_test(), "DockingBay_Course": docking_bay_course(),
              "SurveyLine_Verdance": survey_line(), "Artefact": artefact()}
+    sites.update(space_sites())
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)

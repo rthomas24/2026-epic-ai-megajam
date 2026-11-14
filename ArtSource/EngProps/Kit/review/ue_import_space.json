@@ -1,0 +1,120 @@
+[
+ {
+  "asset": "SM_SP_HollowRock",
+  "size_m": [
+   69.1,
+   73.4,
+   67.2
+  ],
+  "tris_lod0": 4909,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Bore",
+   "1:Cut",
+   "2:Rock"
+  ]
+ },
+ {
+  "asset": "SM_SP_NullRig",
+  "size_m": [
+   36.6,
+   36.6,
+   56.0
+  ],
+  "tris_lod0": 1588,
+  "lods": 3,
+  "hulls": 2,
+  "slots": [
+   "0:Dom",
+   "1:Eye",
+   "2:Glow"
+  ]
+ },
+ {
+  "asset": "SM_SP_Patrol_Aft",
+  "size_m": [
+   15.7,
+   10.8,
+   4.2
+  ],
+  "tris_lod0": 1162,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Trim"
+  ]
+ },
+ {
+  "asset": "SM_SP_Patrol_Bow",
+  "size_m": [
+   18.8,
+   7.2,
+   4.4
+  ],
+  "tris_lod0": 1164,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Trim"
+  ]
+ },
+ {
+  "asset": "SM_SP_Patrol_Mid",
+  "size_m": [
+   18.0,
+   6.9,
+   4.2
+  ],
+  "tris_lod0": 1994,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Trim"
+  ]
+ },
+ {
+  "asset": "SM_SP_Patrol_Wing",
+  "size_m": [
+   11.5,
+   12.6,
+   0.9
+  ],
+  "tris_lod0": 284,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Trim"
+  ]
+ },
+ {
+  "asset": "SM_SP_Research_A",
+  "size_m": [
+   158.0,
+   44.0,
+   44.0
+  ],
+  "tris_lod0": 4906,
+  "lods": 3,
+  "hulls": 2,
+  "slots": [
+   "0:Trim",
+   "1:Light"
+  ]
+ },
+ {
+  "asset": "SM_SP_Research_B",
+  "size_m": [
+   108.0,
+   17.2,
+   36.3
+  ],
+  "tris_lod0": 1668,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Light"
+  ]
+ }
+]
