@@ -1959,7 +1959,7 @@ the mix, lighting and look, menus and the Director's Cut presentation, voice, th
 | ART-11 barks, voice | ⬜ | Text barks | **Priority 4** |
 | ART-12 cinematics, Director's Cut look | 🟨 | Fallback slate, CUT, name card, letterbox; ENG-33 intro | **Priority 3:** design them as a set |
 | ART-13 lighting, post-process | 🟨 | **🟦 Ryan** (moved to §5, Nov 13 afternoon) | None |
-| ART-14 submission | ⬜ | Trailer capture pipeline, `CREDITS.md`, `DEVLOG.md` | **Priority 5** |
+| ART-14 submission | 🟨 itch copy and evidence-linked Glass Box draft on main; final public page/video pending | Trailer capture pipeline, `CREDITS.md`, `DEVLOG.md` | **Priority 5** |
 | ART-15, 16 boarding | 🟨 WANTED (Ryan, Nov 13) | Engineering builders make the interior kit as a fallback; effects builder for the collapse | Lighting and alarm states of the interior; the recordings' voices (ART-11) |
 | ART-19 music and cue playback wiring | 🟨 credits, boarding and Verdance player on main 844064f1; map recordings published; natural event hookup and Shipping checks pending | T1/T3 event contracts; T7 packaging and fallback | **Assigned to Nick's side by Ryan's Lead (Ryan, Nov 13)**; ambience player assigned under N-075 |
 | ART-20 independent reviews of Ryan's lanes | ⬜ | Ryan's Lead's reviewer sub-agents | **Assigned to Nick's side by Ryan's Lead (Ryan, Nov 13)** |
