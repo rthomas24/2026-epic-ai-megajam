@@ -511,8 +511,9 @@ def region_sites():
                                    piece("Aft", KSP + "SM_KS_Hulk_Aft", -6200.0, -900.0, -600.0, -10.0, pitch_deg=5.0, roll_deg=25.0)]},
             "KS_ScarRig": one("KS_ScarRig", "SM_KS_ScarRig", "Survey Scar: a Null survey rig clamped across a split asteroid (about 90 m)."),
             "KS_MoonShards": {"site": "KS_MoonShards", "actor": KSP + "BP_KS_MoonShards", "about": "Shattered Moons: two shards of one moon (300 m and 180 m).",
-                              "pieces": [piece("A", KSP + "SM_KS_MoonShard_A", 0.0, 0.0, 0.0, 0.0),
-                                         piece("B", KSP + "SM_KS_MoonShard_B", 9000.0, 26000.0, 6000.0, 140.0, pitch_deg=20.0)]}}
+                              # r2: both fracture faces (+X) turned toward the capture camera at Belt (yaw 35)
+                              "pieces": [piece("A", KSP + "SM_KS_MoonShard_A", 0.0, 0.0, 0.0, 35.0),
+                                         piece("B", KSP + "SM_KS_MoonShard_B", -8000.0, 26000.0, 6000.0, 20.0, pitch_deg=10.0)]}}
 
 
 def main():

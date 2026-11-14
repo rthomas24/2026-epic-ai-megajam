@@ -1,16 +1,17 @@
 {
   "asset": "SM_KS_PicketRing",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_PicketRing.fbx",
-  "tris": 5588,
+  "tris": 6008,
   "size_cm": [
-    7064.8,
-    12202.2,
-    1320.0
+    8459.0,
+    13290.0,
+    2120.0
   ],
   "pivot": "root object origin (SM_KS_PicketRing~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
     "M_Kit_Trim",
+    "M_Kit_Light",
     "M_Kit_Nav",
     "M_Kit_Scorch",
     "M_Kit_Trim2"
@@ -28,6 +29,23 @@
         1.0
       ],
       "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Light",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.9,
+        0.95,
+        1.0
+      ],
+      "emission_strength": 8.0
     },
     {
       "name": "M_Kit_Nav",
