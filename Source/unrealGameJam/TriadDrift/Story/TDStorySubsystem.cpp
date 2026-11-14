@@ -19,6 +19,7 @@
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
+#include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "Components/AudioComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
@@ -481,6 +482,8 @@ FText UTDStorySubsystem::PilotTrait(ETDShipId Ship)
 void UTDStorySubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
+	CarryResumeAt = InWorld.GetRealTimeSeconds() + CarryResumeDelaySeconds;
+	bCarryTaken = false;
 	if (UTDEventBus* Bus = UTDEventBus::Get(&InWorld))
 	{
 		Bus->OnWaveStarted.AddUniqueDynamic(this, &UTDStorySubsystem::HandleWaveStarted);
@@ -1214,6 +1217,11 @@ void UTDStorySubsystem::Tick(float DeltaTime)
 		}
 	}
 	UpdateSequence();
+	if (!bCarryTaken && Now >= CarryResumeAt)
+	{
+		bCarryTaken = true; // the arrival has settled (descent, docking, retake): the carried radio resumes
+		TakeCarriedLines();
+	}
 	UpdateDronePulses(Now);
 	if (!bAftermathChecked)
 	{
@@ -1267,6 +1275,73 @@ void UTDStorySubsystem::RemoveOverlay()
 	Overlay.Reset();
 }
 
+namespace TDStoryCarry
+{
+	// Lines a map travel cut off, waiting for the next gameplay world (process-wide: the story subsystem is per world).
+	static TArray<FName> Pending;
+	static TWeakObjectPtr<const UGameInstance> Owner;
+}
+
+void UTDStorySubsystem::CarryAcrossTravel()
+{
+	// Lead (T7's end-to-end play): a travel mid-queue lost every line and left ambient ones marked played without airing.
+	// Now must-hear lines (IsRequiredLine) carry to the far side in order; ordinary ones are dropped and unclaimed, so
+	// nothing counts as aired that did not air (HasLineAired gates rely on it). A line cut off on air counts as unheard.
+	TArray<FName> Lines;
+	if (Current.bActive && !Current.Id.IsNone())
+	{
+		Lines.Add(Current.Id);
+	}
+	for (const FTDTransmission& T : Queue)
+	{
+		Lines.Add(T.Id);
+	}
+	UTDGameInstance* GI = UTDGameInstance::Get(this);
+	TArray<FName> Carry;
+	for (const FName& Id : Lines)
+	{
+		if (IsRequiredLine(Id))
+		{
+			if (!HasPlayed(Id)) { Carry.AddUnique(Id); }
+		}
+		else if (GI && !Aired.Contains(Id))
+		{
+			FTDTransmission E;
+			if (FindEntry(Id, E) && !E.bRepeatable) { GI->ForgetTransmission(Id); }
+		}
+	}
+	if (Carry.Num() > 0)
+	{
+		TDStoryCarry::Pending = Carry;
+		TDStoryCarry::Owner = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %d must-hear line(s) carried across the travel"), Carry.Num());
+	}
+	Queue.Reset();
+	Current = FTDTransmissionView();
+}
+
+void UTDStorySubsystem::TakeCarriedLines()
+{
+	if (TDStoryCarry::Pending.Num() == 0)
+	{
+		return;
+	}
+	const UWorld* World = GetWorld();
+	const UGameInstance* GI = World ? World->GetGameInstance() : nullptr;
+	const bool bSameRun = TDStoryCarry::Owner.Get() == GI || bCarryAcrossInstancesForTests;
+	if (!bSameRun || (World && World->GetAuthGameMode<ATDMenuGameMode>()))
+	{
+		TDStoryCarry::Pending.Reset(); // a menu, or another run: never replay the last run's radio
+		return;
+	}
+	for (const FName& Id : TDStoryCarry::Pending)
+	{
+		FireTransmission(Id);
+	}
+	UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %d carried line(s) resume after the arrival"), TDStoryCarry::Pending.Num());
+	TDStoryCarry::Pending.Reset();
+}
+
 void UTDStorySubsystem::Deinitialize()
 {
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
@@ -1274,6 +1349,7 @@ void UTDStorySubsystem::Deinitialize()
 		Bus->OnWaveStarted.RemoveDynamic(this, &UTDStorySubsystem::HandleWaveStarted);
 		Bus->OnWaveCleared.RemoveDynamic(this, &UTDStorySubsystem::HandleWaveCleared);
 	}
+	CarryAcrossTravel();
 	RemoveOverlay();
 	ATDArchiveTransfer::OnAnyTerminalActivated.Remove(RelayHandle);
 	ATDSurveyTerminal::OnAnySurveyRecordsAccessed.Remove(SurveyHandle);

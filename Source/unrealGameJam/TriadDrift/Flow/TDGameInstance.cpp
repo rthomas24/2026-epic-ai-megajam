@@ -751,6 +751,12 @@ void UTDGameInstance::MarkTransmissionPlayed(FName Id)
 	}
 }
 
+void UTDGameInstance::ForgetTransmission(FName Id)
+{
+	Progress.StoryTransmissions.Remove(Id);
+	LastCheckpoint.Progress.StoryTransmissions.Remove(Id);
+}
+
 void UTDGameInstance::ForgetPlayedTransmissions()
 {
 	Progress.StoryTransmissions.Reset();

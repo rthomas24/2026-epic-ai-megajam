@@ -901,3 +901,47 @@ bool FTDStoryNoLateDeparture::RunTest(const FString& Parameters)
 	return true;
 }
 #endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryCarry, "TriadDrift.Story.Transmissions.MustHearLinesSurviveAMapTravel", TD_TEST_FLAGS)
+bool FTDStoryCarry::RunTest(const FString& Parameters)
+{
+	// Lead (T7's play): a travel mid-queue lost every line and left ambient ones claimed unheard. Must-hear lines resume in
+	// order after the arrival; ambient ones are dropped and unclaimed; a line cut off on air counts as unheard.
+	UTDStorySubsystem::bCarryAcrossInstancesForTests = true;
+	ON_SCOPE_EXIT { UTDStorySubsystem::bCarryAcrossInstancesForTests = false; };
+	const FName Must[] = { TEXT("A4_Recording_Hangar"), TEXT("A4_Recording_Corridor"), TEXT("A4_Recording_Barracks") };
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("story"), Story))
+		{
+			return false;
+		}
+		for (const FName& Id : Must) { TestTrue(TEXT("queued"), UTDStorySubsystem::Fire(W.GetWorld(), Id)); }
+		TestTrue(TEXT("an ambient line queued too"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A2_TransponderSighted")));
+		TestTrue(TEXT("ambient: claimed at queue time"), GI->HasPlayedTransmission(TEXT("A2_TransponderSighted")));
+		W.Advance(3.f, 1.f / 30.f); // the first recording goes on air, then the travel cuts it off
+		TestTrue(TEXT("the first is on air"), Story->GetCurrentTransmission().bActive && Story->GetCurrentTransmission().Id == Must[0]);
+		Story->SimulateTravelForTests();
+		TestFalse(TEXT("nothing claimed that did not air"), GI->HasPlayedTransmission(TEXT("A2_TransponderSighted")));
+		TestFalse(TEXT("the recording cut off on air is unheard"), GI->HasPlayedTransmission(Must[0]));
+	}
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("story on the far side"), Story))
+	{
+		return false;
+	}
+	TArray<FName> Heard;
+	for (int32 i = 0; i < 30 * 60; ++i)
+	{
+		const FTDTransmissionView V = Story->GetCurrentTransmission();
+		if (V.bActive && (Heard.Num() == 0 || Heard.Last() != V.Id)) { Heard.Add(V.Id); }
+		W.Tick(1.f / 30.f);
+	}
+	TestTrue(TEXT("the three must-hear lines air after the arrival, in order, and nothing else"), Heard == TArray<FName>({ Must[0], Must[1], Must[2] }));
+	return true;
+}
+#endif
