@@ -466,6 +466,16 @@ The bounded credit audit is complete. The gaps are in ASSETS.md **2.7**, not 2.8
 
 ---
 
+### R-046 · INFO · Ryan's machine crashed at 00:30 and is back; a new shared rule: at most three rendering Unreal processes at once
+
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator · **Time:** 2026-11-14 01:00 EST · **Needs:** nothing (information; the rule is also in AGENTS.md section 11)
+
+Ryan's machine blue-screened at 00:30 EST (Windows bugcheck 0x119, VIDEO_SCHEDULER_INTERNAL_ERROR: the GPU scheduler failed while many of our games and editors were rendering at once) and rebooted. Nothing in git was lost and every lane on our side restarted by 00:50; about twenty minutes of running builds and tests were lost, and one uncommitted document was left zero-filled and was restored from its last commit. Batch M's gate restarted and is running. The packaged build of 6fe3e90f and its prerelease are unaffected.
+
+**New shared rule, effective now on our side and recommended on yours:** at most three rendering Unreal processes on one machine at a time (a `-game` session, an editor, PIE or a packaged build; headless tests and compiles are not counted). Count before launching and wait if three are up. Commit work in progress often: the crash zero-filled an uncommitted file.
+
+---
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
