@@ -2107,7 +2107,40 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	}
 
 	// ---- the collect toast, just above the squad strip: the pickup's word in its colour, rising a little, then fading
-	if (!View.PickupToast.IsEmpty() && View.Chips.Num() > 0)
+	if (!View.PickupToast.IsEmpty() && View.bSquadPanel)
+	{
+		// #160 step 3: a plate right of the reticle cluster: a bar and a turned square in the pickup's colour, its word
+		// (and the seconds for Overcharge); after 70% of its time it slides toward the squad panel and fades, where a timed
+		// one lands as a flag on the flown card.
+		const float A = View.PickupToast01;
+		const float Out = FMath::Clamp((A - .7f) / .3f, 0.f, 1.f);
+		const float Fade = 1.f - Out;
+		const float K = View.PanelK, F = View.PanelFont;
+		const bool bOver = View.PickupToast == TEXT("OVERCHARGE");
+		const float W = 214.f * K, H = (bOver ? 44.f : 32.f) * K;
+		const float X = C.X + 102.f - 28.f * Out, Y = C.Y - H * .5f + 28.f * Out;
+		const FLinearColor Col = View.PickupToastColor;
+		P.Box(X, Y, W, H, FTDUIPalette::Panel().CopyWithNewOpacity(.9f * Fade));
+		P.Box(X, Y, 3.f, H, Col.CopyWithNewOpacity(Fade));
+		P.Poly(FVector2D(X + 20.f * K, Y + H * .5f), { { 0, -8 }, { 8, 0 }, { 0, 8 }, { -8, 0 }, { 0, -8 } }, Col.CopyWithNewOpacity(Fade), 2.f, K);
+		const int32 Px = FMath::RoundToInt(16 * F);
+		P.Words(X + 38.f * K, Y + (bOver ? 5.f * K : H * .5f - Px * .68f), View.PickupToast, Px, Col.CopyWithNewOpacity(Fade), "Bold", 0.f, 80);
+		if (bOver)
+		{
+			static FString Detail;
+			static int32 DetailSeconds = -1;
+			const int32 Seconds = FMath::CeilToInt(View.OverchargeSeconds);
+			if (Seconds != DetailSeconds)
+			{
+				DetailSeconds = Seconds;
+				Detail = FString::Printf(TEXT("Damage up  ·  %d s"), Seconds);
+			}
+			P.Words(X + 38.f * K, Y + 5.f * K + Px * 1.25f, Detail, FMath::RoundToInt(12 * F), FTDUIPalette::Ink().CopyWithNewOpacity(.9f * Fade), "Medium", 0.f, 20);
+		}
+		Rec(TEXT("pickup_toast"), X, Y, W, H);
+		Area += W * H;
+	}
+	else if (!View.PickupToast.IsEmpty() && View.Chips.Num() > 0)
 	{
 		const float A = View.PickupToast01;
 		const float Fade = FMath::Clamp((1.f - A) / .3f, 0.f, 1.f);
@@ -2361,7 +2394,31 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	}
 
 	// ---- boost (with the dodge notch) and hyperdrive bars, under the ship
-	if (View.bShowBoost)
+	if (View.bShowBoost && View.bSquadPanel)
+	{
+		// #160 step 3: the boost meter is an arc under the reticle (r 70, the bottom 56 degrees), read where the eye is;
+		// it fills left to right, the dodge notch is a tick at its right end, "+BOOST" ticks beside it on a top-up.
+		const float ArcHalf = FMath::DegreesToRadians(28.f), R = 70.f;
+		const float ArcLeft = PI * .5f + ArcHalf;
+		P.ArcSpan(C, R, ArcLeft, -2.f * ArcHalf, T::Dim().CopyWithNewOpacity(.35f), 5.f);
+		if (View.Boost > .01f)
+		{
+			P.ArcSpan(C, R, ArcLeft, -2.f * ArcHalf * View.Boost, Accent.CopyWithNewOpacity(.95f), 5.f);
+		}
+		const float NotchA = PI * .5f - ArcHalf - .07f;
+		const FVector2D N(FMath::Cos(NotchA), FMath::Sin(NotchA));
+		P.Line(C + N * (R - 5.f), C + N * (R + 5.f), (View.bDodgeReady ? T::Neutral() : T::Dim()).CopyWithNewOpacity(View.bDodgeReady ? .95f : .4f), 2.5f);
+		Rec(TEXT("boost"), C.X - 40.f, C.Y + 56.f, 84.f, 20.f);
+		if (View.BreakBoostAge < .9f)
+		{
+			const float Fade = FMath::Clamp((.9f - View.BreakBoostAge) / .4f, 0.f, 1.f);
+			static const FString Plus(TEXT("+BOOST"));
+			P.ArcSpan(C, R, ArcLeft, -2.f * ArcHalf * View.Boost, T::Neutral().CopyWithNewOpacity(.5f * Fade), 5.f);
+			P.Words(C.X + 46.f, C.Y + 58.f, Plus, FMath::RoundToInt(12 * View.PanelFont), Accent.CopyWithNewOpacity(.9f * Fade), "Bold", 0.f, 60);
+			Rec(TEXT("break_boost"), C.X + 46.f, C.Y + 58.f, 60.f, 16.f);
+		}
+	}
+	else if (View.bShowBoost)
 	{
 		P.Bar(CenterX - 80.f, 792.f, 160.f, 6.f, View.Boost, Accent, .9f);
 		Rec(TEXT("boost"), CenterX - 80.f, 791.f, 168.f, 8.f);
