@@ -4,6 +4,8 @@ This folder contains the official narrative development documents for Triad Drif
 
 ## Narrative overview
 
+[Nicholas’s first draft for Ryan’s team, November 13 at 8:45 p.m. Eastern](Triad_Drift_Complete_Dialogue_FIRST_DRAFT_20261113_204517.docx) is a snapshot of the script he is still editing. Use it for reference and review. Dialogue, timing and proposed additions can change. Previously approved decisions stand; new wording and optional ending variations await approval before recording or implementation.
+
 [The Paradox Narrative](Triad_Drift_The_Paradox_Narrative.docx) covers the main storyline, the pilots, the Dominion mystery, and the future-self reveal.
 
 Use that original narrative and Nicholas's explicitly approved decisions as the reference for every new or revised sequence. Check characterisation, discovery order, carried evidence, ability progression and reveal timing before publication; proposed additions must not silently become established lore.
