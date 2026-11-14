@@ -190,6 +190,10 @@ public:
 		FString PickupToast;
 		FLinearColor PickupToastColor = FLinearColor::White;
 		float PickupToast01 = 0.f;
+		/** T6's field: pieces the squad broke this scene, seconds since the last (the DEBRIS tick), a field-hit tick 0..1. */
+		int32 DebrisCount = 0;
+		float DebrisAge = 1e9f;
+		float FieldHit01 = 0.f;
 		/** Overcharge time left 0..1 (the timer ring) and in seconds. */
 		float Overcharge01 = 0.f;
 		float OverchargeSeconds = 0.f;
@@ -450,7 +454,13 @@ private:
 	float NavLeft = 0.f;
 	/** Approach marker: the reveal seen last sample (an edge opens the 8 s "open" state), its countdown, first-sample guard. */
 	/** Pickups: the collected counts last seen (a change = a toast) and the toast's clock. */
-	int32 PickupSeen[4] = { 0, 0, 0, 0 };
+	int32 PickupSeen[5] = {}; // TDPickupTypeCount (static_assert in the .cpp)
+	/** The quiet field-hit tick (FTDFieldDamage::OnPlayerFieldHit): its clock and the binding. */
+	float FieldHitLeft = 0.f;
+	FDelegateHandle FieldHitHandle;
+	void HandleFieldHit(AActor* Field, const FVector& Where) { FieldHitLeft = FieldHitSeconds; }
+	static constexpr float FieldHitSeconds = .12f;
+	static constexpr float DebrisShowSeconds = 2.5f;
 	float PickupToastLeft = 0.f;
 	bool bApproachWasRevealed = false;
 	bool bApproachSeeded = false;

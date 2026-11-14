@@ -7,6 +7,8 @@
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
 #include "TriadDrift/Combat/Pickups/TDPickupVisuals.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "UObject/StrongObjectPtr.h"
 #include "Misc/ScopeExit.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
@@ -281,6 +283,55 @@ bool FTDPickupLookSlot::RunTest(const FString& Parameters)
 		TestTrue(*FString::Printf(TEXT("type %d: spawned, primitive look"), T), P && !P->HasArtLook());
 		TestTrue(*FString::Printf(TEXT("type %d: collected with an empty look"), T), F.Pickups->Collect(P, F.Flown));
 	}
+	return true;
+}
+
+// Ryan's asteroid rewards (T6's OnFieldObjectDestroyed): every squad break counts toward "Debris cleared" (scene and run);
+// a special rock drops a boost refill (or another pickup) where it broke; a non-squad break counts for nothing; the boost
+// refill puts half the meter back on the flown ship.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPickupFieldRewards, "TriadDrift.Combat.Pickups.AsteroidRewardsAndBoost", TD_TEST_FLAGS)
+bool FTDPickupFieldRewards::RunTest(const FString& Parameters)
+{
+	FFixture F;
+	if (!F.Init(*this))
+	{
+		return false;
+	}
+	UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
+	if (!TestNotNull(TEXT("bus"), Bus))
+	{
+		return false;
+	}
+	const FVector Far = F.Flown->GetActorLocation() + FVector(300000.f, 0.f, 0.f); // never pulled in
+	F.Pickups->Tuning.SpecialBoostChance = 1.f;
+	Bus->BroadcastFieldObjectDestroyed(Far, 0, false, F.Flown);
+	Bus->BroadcastFieldObjectDestroyed(Far, 1, false, F.Flown);
+	TestEqual(TEXT("two plain breaks: debris 2"), F.Pickups->GetDebrisThisScene(), 2);
+	TestEqual(TEXT("plain rocks drop nothing"), F.Pickups->GetPickups().Num(), 0);
+	TestTrue(TEXT("the HUD tick is fresh"), F.Pickups->GetSecondsSinceDebris() < .5f);
+	Bus->BroadcastFieldObjectDestroyed(Far, 0, true, F.Flown);
+	TestTrue(TEXT("a special rock drops a boost refill"), F.Pickups->GetPickups().Num() == 1 && F.Pickups->GetPickups()[0]->GetType() == ETDPickupType::Boost);
+	Bus->BroadcastFieldObjectDestroyed(Far, 0, true, nullptr);
+	Bus->BroadcastFieldObjectDestroyed(Far, 0, true, F.Enemy());
+	TestEqual(TEXT("breaks that aren't the squad's count for nothing"), F.Pickups->GetDebrisThisScene(), 3);
+	TestEqual(TEXT("...and drop nothing"), F.Pickups->GetPickups().Num(), 1);
+	if (UTDGameInstance* GI = Cast<UTDGameInstance>(F.W.GetWorld()->GetGameInstance()))
+	{
+		TestEqual(TEXT("run stat DebrisCleared"), GI->GetProgressRef().Stats.DebrisCleared, 3);
+	}
+
+	// Boost: half the meter back on the flown ship.
+	UTDShipMovementComponent* Move = F.Flown->GetShipMovement();
+	if (TestNotNull(TEXT("movement"), Move))
+	{
+		Move->AddBoost01(-1.f);
+		TestTrue(TEXT("boost refill applied"), F.Pickups->ApplyEffect(ETDPickupType::Boost, F.Flown));
+		TestTrue(FString::Printf(TEXT("boost at half (%.2f)"), Move->GetBoost01()), FMath::IsNearlyEqual(Move->GetBoost01(), .5f, .01f));
+	}
+
+	// A new take: the scene count starts again.
+	Bus->OnTakeStarted.Broadcast(TEXT("Wave1"), 2);
+	TestEqual(TEXT("new take: debris 0"), F.Pickups->GetDebrisThisScene(), 0);
 	return true;
 }
 

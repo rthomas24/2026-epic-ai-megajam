@@ -15,8 +15,12 @@ enum class ETDPickupType : uint8
 	Hull,		// +hull on the flown ship (green, a plus)
 	Shield,		// full shield on the flown ship, half on the wingmen (white-blue, a disc)
 	Power,		// signature power ready now (violet, a double point)
-	Overcharge	// weapon damage up for a few seconds (gold-white, a turned cube)
+	Overcharge,	// weapon damage up for a few seconds (gold-white, a turned cube)
+	Boost		// a chunk of the boost meter (white, an arrowhead): special asteroids only, never a ship kill
 };
+
+/** Number of pickup types (arrays indexed by ETDPickupType). */
+inline constexpr int32 TDPickupTypeCount = 5;
 
 /**
  * A pickup floating in space: a glowing shape per type from engine primitives and the placeholder glow material (the
