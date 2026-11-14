@@ -476,6 +476,8 @@ public:
 	float GetReactorSurfaceDistance(const FVector& WorldPoint) const;
 protected:
 	void TickReactorHold(float DeltaSeconds);
+	/** The hull, its turrets, generators, reactor and bay leave the fight: hidden, no collision, not targetable. */
+	void RetireDefenses();
 	void ReleaseReactorHold();
 	TWeakObjectPtr<class ATDShip> ReactorHeld;
 	TWeakObjectPtr<class ATDShip> FlownShipOverride;
