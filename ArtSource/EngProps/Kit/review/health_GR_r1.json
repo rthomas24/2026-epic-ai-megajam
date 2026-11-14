@@ -1,0 +1,2216 @@
+{
+ "status": "ok",
+ "scene_units": {
+  "system": "METRIC",
+  "scale_length": 1.0,
+  "length_unit": "METERS"
+ },
+ "objects": [
+  {
+   "name": "SM_Site_Verdance_RootArch",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    888.51,
+    269.88,
+    514.08
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Bark",
+    "M_Kit_Glow",
+    "M_Kit_Stone"
+   ],
+   "verts": 1928,
+   "faces": 1082,
+   "tris": 2160,
+   "quads": 1057,
+   "ngons": 10,
+   "boundary_edges": 1752,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 5,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 624,
+    "1": 192,
+    "2": 266
+   },
+   "local_bbox_min": [
+    -4.39976,
+    -1.30581,
+    -0.36453
+   ],
+   "local_bbox_max": [
+    4.48531,
+    1.39303,
+    4.77626
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_RootArch_00",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_RootArch",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    160.0,
+    180.0,
+    300.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Bark"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -3.8,
+    -0.9,
+    0.0
+   ],
+   "local_bbox_max": [
+    -2.2,
+    0.9,
+    3.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_RootArch_01",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_RootArch",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    160.0,
+    180.0,
+    300.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Bark"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    2.2,
+    -0.9,
+    0.0
+   ],
+   "local_bbox_max": [
+    3.8,
+    0.9,
+    3.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_RootArch_02",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_RootArch",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    440.0,
+    140.0,
+    120.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Bark"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.2,
+    -0.7,
+    3.6
+   ],
+   "local_bbox_max": [
+    2.2,
+    0.7,
+    4.8
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_Site_Verdance_FallenTrunk",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    1020.18,
+    277.16,
+    396.57
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Bark",
+    "M_Kit_Glow",
+    "M_Kit_Stone"
+   ],
+   "verts": 1091,
+   "faces": 821,
+   "tris": 1610,
+   "quads": 751,
+   "ngons": 16,
+   "boundary_edges": 556,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 370,
+    "1": 162,
+    "2": 289
+   },
+   "local_bbox_min": [
+    -4.7,
+    -1.38582,
+    -0.27984
+   ],
+   "local_bbox_max": [
+    5.50184,
+    1.38582,
+    3.68582
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_FallenTrunk_00",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_FallenTrunk",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    940.0,
+    170.0,
+    180.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Bark"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -4.7,
+    -0.85,
+    1.6
+   ],
+   "local_bbox_max": [
+    4.7,
+    0.85,
+    3.4
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_FallenTrunk_01",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_FallenTrunk",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    240.0,
+    240.0,
+    170.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Bark"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -3.8,
+    -1.2,
+    0.0
+   ],
+   "local_bbox_max": [
+    -1.4,
+    1.2,
+    1.7
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_FallenTrunk_02",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_FallenTrunk",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    260.0,
+    260.0,
+    180.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Bark"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    1.7,
+    -1.3,
+    0.0
+   ],
+   "local_bbox_max": [
+    4.3,
+    1.3,
+    1.8
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_Site_Verdance_StoneRing",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    739.34,
+    728.54,
+    264.48
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Glow",
+    "M_Kit_Stone"
+   ],
+   "verts": 1012,
+   "faces": 970,
+   "tris": 1948,
+   "quads": 968,
+   "ngons": 2,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 378,
+    "1": 592
+   },
+   "local_bbox_min": [
+    -3.71932,
+    -3.67226,
+    -0.03301
+   ],
+   "local_bbox_max": [
+    3.6741,
+    3.61312,
+    2.6118
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_StoneRing_00",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_StoneRing",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    80.0,
+    80.0,
+    200.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Glow"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    2.9,
+    -0.4,
+    0.0
+   ],
+   "local_bbox_max": [
+    3.7,
+    0.4,
+    2.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_StoneRing_01",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_StoneRing",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    80.0,
+    80.0,
+    200.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Glow"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    2.12795,
+    -2.5212,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.92795,
+    -1.7212,
+    2.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_StoneRing_02",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_StoneRing",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    80.0,
+    80.0,
+    200.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Glow"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    0.17304,
+    -3.64987,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.97304,
+    -2.84987,
+    2.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_StoneRing_03",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_StoneRing",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    80.0,
+    80.0,
+    200.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Glow"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.05,
+    -3.25788,
+    0.0
+   ],
+   "local_bbox_max": [
+    -1.25,
+    -2.45788,
+    2.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_StoneRing_04",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_StoneRing",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    80.0,
+    80.0,
+    200.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Glow"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -3.50099,
+    -1.52867,
+    0.0
+   ],
+   "local_bbox_max": [
+    -2.70099,
+    -0.72867,
+    2.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_StoneRing_05",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_StoneRing",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    80.0,
+    80.0,
+    200.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Glow"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -3.50099,
+    0.72867,
+    0.0
+   ],
+   "local_bbox_max": [
+    -2.70099,
+    1.52867,
+    2.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_StoneRing_06",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_StoneRing",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    80.0,
+    80.0,
+    200.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Glow"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -2.05,
+    2.45788,
+    0.0
+   ],
+   "local_bbox_max": [
+    -1.25,
+    3.25788,
+    2.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_StoneRing_07",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_StoneRing",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    80.0,
+    80.0,
+    200.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Glow"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    0.17304,
+    2.84987,
+    0.0
+   ],
+   "local_bbox_max": [
+    0.97304,
+    3.64987,
+    2.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_StoneRing_08",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_StoneRing",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    80.0,
+    80.0,
+    200.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Glow"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    2.12795,
+    1.7212,
+    0.0
+   ],
+   "local_bbox_max": [
+    2.92795,
+    2.5212,
+    2.0
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_StoneRing_09",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_StoneRing",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    220.0,
+    220.0,
+    30.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Glow"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -1.1,
+    -1.1,
+    0.0
+   ],
+   "local_bbox_max": [
+    1.1,
+    1.1,
+    0.3
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Site_Verdance_OvergrownPylon",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    283.55,
+    168.47,
+    715.38
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Bark",
+    "M_Kit_Glow",
+    "M_Kit_Stone"
+   ],
+   "verts": 2311,
+   "faces": 1355,
+   "tris": 2687,
+   "quads": 1309,
+   "ngons": 8,
+   "boundary_edges": 1951,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 4,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 268,
+    "1": 864,
+    "2": 96,
+    "3": 127
+   },
+   "local_bbox_min": [
+    -1.29625,
+    -0.89591,
+    -0.35168
+   ],
+   "local_bbox_max": [
+    1.53921,
+    0.78882,
+    6.80208
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Verdance_OvergrownPylon_00",
+   "type": "MESH",
+   "parent": "SM_Site_Verdance_OvergrownPylon",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    200.0,
+    140.0,
+    680.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 12,
+   "faces": 20,
+   "tris": 20,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 20
+   },
+   "local_bbox_min": [
+    -0.7,
+    -0.7,
+    0.0
+   ],
+   "local_bbox_max": [
+    1.3,
+    0.7,
+    6.8
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_Site_Cinder_BasaltArch",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    779.96,
+    251.78,
+    500.59
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Ember",
+    "M_Kit_Stone"
+   ],
+   "verts": 1516,
+   "faces": 1444,
+   "tris": 2956,
+   "quads": 1410,
+   "ngons": 34,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 84,
+    "1": 1360
+   },
+   "local_bbox_min": [
+    -3.8,
+    -1.18853,
+    0.0
+   ],
+   "local_bbox_max": [
+    3.99956,
+    1.32923,
+    5.00594
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Site_Cinder_BasaltArch_00",
+   "type": "MESH",
+   "parent": "SM_Site_Cinder_BasaltArch",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    160.0,
+    300.0,
+    470.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Ember"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -3.8,
+    -1.5,
+    0.0
+   ],
+   "local_bbox_max": [
+    -2.2,
+    1.5,
+    4.7
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Cinder_BasaltArch_01",
+   "type": "MESH",
+   "parent": "SM_Site_Cinder_BasaltArch",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    160.0,
+    300.0,
+    470.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Ember"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    2.2,
+    -1.5,
+    0.0
+   ],
+   "local_bbox_max": [
+    3.8,
+    1.5,
+    4.7
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Cinder_BasaltArch_02",
+   "type": "MESH",
+   "parent": "SM_Site_Cinder_BasaltArch",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    720.0,
+    200.0,
+    130.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Ember"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -3.6,
+    -1.0,
+    3.9
+   ],
+   "local_bbox_max": [
+    3.6,
+    1.0,
+    5.2
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_Site_Cinder_CollapsedGantry",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    1001.54,
+    220.0,
+    463.25
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 1904,
+   "faces": 1836,
+   "tris": 3672,
+   "quads": 1836,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 1836
+   },
+   "local_bbox_min": [
+    -5.40889,
+    -1.1,
+    0.0
+   ],
+   "local_bbox_max": [
+    4.60648,
+    1.1,
+    4.63247
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Cinder_CollapsedGantry_00",
+   "type": "MESH",
+   "parent": "SM_Site_Cinder_CollapsedGantry",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    980.0,
+    180.0,
+    450.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -5.0,
+    -0.9,
+    0.0
+   ],
+   "local_bbox_max": [
+    4.8,
+    0.9,
+    4.5
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "UCX_SM_Site_Cinder_CollapsedGantry_01",
+   "type": "MESH",
+   "parent": "SM_Site_Cinder_CollapsedGantry",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    60.0,
+    220.0,
+    330.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Trim"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    3.8,
+    -1.1,
+    0.0
+   ],
+   "local_bbox_max": [
+    4.4,
+    1.1,
+    3.3
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "SM_Site_Cinder_VentChimney",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    443.52,
+    376.12,
+    495.0
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Ember",
+    "M_Kit_Stone"
+   ],
+   "verts": 618,
+   "faces": 606,
+   "tris": 1190,
+   "quads": 580,
+   "ngons": 2,
+   "boundary_edges": 46,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 3,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 138,
+    "1": 468
+   },
+   "local_bbox_min": [
+    -1.89366,
+    -1.95767,
+    -0.15434
+   ],
+   "local_bbox_max": [
+    2.54158,
+    1.80354,
+    4.79568
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Cinder_VentChimney_00",
+   "type": "MESH",
+   "parent": "SM_Site_Cinder_VentChimney",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    340.0,
+    340.0,
+    480.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Ember"
+   ],
+   "verts": 16,
+   "faces": 28,
+   "tris": 28,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 28
+   },
+   "local_bbox_min": [
+    -1.7,
+    -1.7,
+    0.0
+   ],
+   "local_bbox_max": [
+    1.7,
+    1.7,
+    4.8
+   ],
+   "origin_placement": "bottom_center"
+  },
+  {
+   "name": "SM_Site_Cinder_SlagHeap",
+   "type": "MESH",
+   "parent": null,
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    890.52,
+    616.67,
+    283.78
+   ],
+   "hide_render": false,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Ember",
+    "M_Kit_Stone"
+   ],
+   "verts": 1161,
+   "faces": 1064,
+   "tris": 2121,
+   "quads": 1023,
+   "ngons": 17,
+   "boundary_edges": 227,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 6,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": false,
+   "inside_out": false,
+   "smooth_face_ratio": 1.0,
+   "has_custom_normals": true,
+   "uv_layers": [
+    "UVMap"
+   ],
+   "faces_per_material_index": {
+    "0": 378,
+    "1": 686
+   },
+   "local_bbox_min": [
+    -4.31723,
+    -3.22842,
+    -0.63859
+   ],
+   "local_bbox_max": [
+    4.58801,
+    2.93825,
+    2.19916
+   ],
+   "origin_placement": "custom"
+  },
+  {
+   "name": "UCX_SM_Site_Cinder_SlagHeap_00",
+   "type": "MESH",
+   "parent": "SM_Site_Cinder_SlagHeap",
+   "collections": [
+    "Kit"
+   ],
+   "location": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation_mode": "XYZ",
+   "rotation_euler_deg": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "scale": [
+    1.0,
+    1.0,
+    1.0
+   ],
+   "dimensions_cm": [
+    840.0,
+    600.0,
+    240.0
+   ],
+   "hide_render": true,
+   "modifiers": [],
+   "materials": [
+    "M_Kit_Ember"
+   ],
+   "verts": 8,
+   "faces": 12,
+   "tris": 12,
+   "quads": 0,
+   "ngons": 0,
+   "boundary_edges": 0,
+   "non_manifold_edges": 0,
+   "wire_edges": 0,
+   "flipped_winding_edges": 0,
+   "loose_verts": 0,
+   "zero_area_faces": 0,
+   "duplicate_verts": 0,
+   "closed": true,
+   "inside_out": false,
+   "smooth_face_ratio": 0.0,
+   "has_custom_normals": false,
+   "uv_layers": [],
+   "faces_per_material_index": {
+    "0": 12
+   },
+   "local_bbox_min": [
+    -4.2,
+    -3.0,
+    0.0
+   ],
+   "local_bbox_max": [
+    4.2,
+    3.0,
+    2.4
+   ],
+   "origin_placement": "bottom_center"
+  }
+ ],
+ "totals": {
+  "objects": 32,
+  "tris": 18656,
+  "errors": 4,
+  "warnings": 0
+ },
+ "issues": [
+  {
+   "severity": "error",
+   "object": "SM_Site_Verdance_RootArch",
+   "message": "5 edges between faces with opposite winding; recalculate normals outside"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Site_Verdance_RootArch",
+   "message": "10 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Site_Verdance_RootArch",
+   "message": "1752 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Site_Verdance_FallenTrunk",
+   "message": "16 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Site_Verdance_FallenTrunk",
+   "message": "556 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Site_Verdance_StoneRing",
+   "message": "2 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "error",
+   "object": "SM_Site_Verdance_OvergrownPylon",
+   "message": "4 edges between faces with opposite winding; recalculate normals outside"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Site_Verdance_OvergrownPylon",
+   "message": "8 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Site_Verdance_OvergrownPylon",
+   "message": "1951 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Site_Cinder_BasaltArch",
+   "message": "34 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "error",
+   "object": "SM_Site_Cinder_VentChimney",
+   "message": "3 edges between faces with opposite winding; recalculate normals outside"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Site_Cinder_VentChimney",
+   "message": "2 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Site_Cinder_VentChimney",
+   "message": "46 open boundary edges (mesh is not closed); OK for planes/cards"
+  },
+  {
+   "severity": "error",
+   "object": "SM_Site_Cinder_SlagHeap",
+   "message": "6 edges between faces with opposite winding; recalculate normals outside"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Site_Cinder_SlagHeap",
+   "message": "17 n-gons; fine if planar, they get triangulated on export"
+  },
+  {
+   "severity": "info",
+   "object": "SM_Site_Cinder_SlagHeap",
+   "message": "227 open boundary edges (mesh is not closed); OK for planes/cards"
+  }
+ ]
+}

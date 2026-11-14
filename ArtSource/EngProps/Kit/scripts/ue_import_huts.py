@@ -56,6 +56,40 @@ def window_light(planet):
     return mi
 
 
+def stone(planet):
+    """The planet's stone: the ancient-stone trim, cool grey-green on Verdance, near-black basalt on Cinder."""
+    mi = K.instance("MI_Site_%s_Stone" % planet, eas.load_asset(KT + "Materials/M_KitD_Trim"))
+    for p_, t in (("BaseColorTex", "T_KitS_Trim_BC"), ("ORMTex", "T_KitS_Trim_ORM"), ("NormalTex", "T_KitS_Trim_N")):
+        mel.set_material_instance_texture_parameter_value(mi, p_, eas.load_asset(KT + "Textures/" + t))
+    tint, illum = ((0.75, 0.9, 0.8), 0.12) if planet == "Verdance" else ((0.42, 0.38, 0.36), 0.12)
+    mel.set_material_instance_vector_parameter_value(mi, "BaseTint", unreal.LinearColor(tint[0], tint[1], tint[2], 1.0))
+    mel.set_material_instance_scalar_parameter_value(mi, "GrimeAmount", 0.5)
+    mel.set_material_instance_scalar_parameter_value(mi, "SelfIllum", illum)
+    eas.save_loaded_asset(mi)
+    return mi
+
+
+def bark():
+    mi = K.instance("MI_Site_Verdance_Bark", eas.load_asset(KT + "Materials/M_KitD_Trim"))
+    for p_, t in (("BaseColorTex", "T_KitS_Trim_BC"), ("ORMTex", "T_KitS_Trim_ORM"), ("NormalTex", "T_KitS_Trim_N")):
+        mel.set_material_instance_texture_parameter_value(mi, p_, eas.load_asset(KT + "Textures/" + t))
+    mel.set_material_instance_vector_parameter_value(mi, "BaseTint", unreal.LinearColor(0.55, 0.36, 0.24, 1.0))
+    mel.set_material_instance_scalar_parameter_value(mi, "GrimeAmount", 0.6)
+    mel.set_material_instance_scalar_parameter_value(mi, "SelfIllum", 0.12)
+    eas.save_loaded_asset(mi)
+    return mi
+
+
+def ember():
+    mi = K.instance("MI_Site_Cinder_Ember", eas.load_asset(K.MASTER_GLOW))
+    mel.set_material_instance_scalar_parameter_value(mi, "GlowStrength", 4.0)
+    mel.set_material_instance_scalar_parameter_value(mi, "PulseAmount", 0.3)
+    mel.set_material_instance_scalar_parameter_value(mi, "PulseRate", 0.4)
+    mel.set_material_instance_vector_parameter_value(mi, "GlowColor", unreal.LinearColor(1.0, 0.28, 0.04, 1.0))
+    eas.save_loaded_asset(mi)
+    return mi
+
+
 def main():
     only = os.environ.get("TD_HUTS_ONLY", "")
     notes, rows = [], []
@@ -70,15 +104,20 @@ def main():
         K.PIPELINE = dest + "/Pipelines/PL_Hut_%s" % planet
         pipe = K.ensure_pipeline(notes)
         mis = {"Trim": trim(planet), "Light": window_light(planet), "Glow": eas.load_asset(KT + "MI_Kit_Glow_%s" % planet),
-               "Beacon": eas.load_asset(KT + "MI_Kit_Beacon_%s" % planet)}
-        for man in sorted(glob.glob(os.path.join(KIT, "export_huts", "SM_Hut_%s_*.manifest.json" % planet))):
+               "Beacon": eas.load_asset(KT + "MI_Kit_Beacon_%s" % planet), "Stone": stone(planet), "Bark": bark(),
+               "Ember": ember()}
+        # #194 r2: the huts, the camp perimeter (SM_Hut_*) and the ground-break pieces (SM_Site_*) all land here
+        mans = []
+        for exp, prefix in (("export_huts", "SM_Hut_"), ("export_perimeter", "SM_Hut_"), ("export_ground", "SM_Site_")):
+            mans += [(exp, m) for m in sorted(glob.glob(os.path.join(KIT, exp, "%s%s_*.manifest.json" % (prefix, planet))))]
+        for exp, man in mans:
             with open(man, encoding="utf-8") as fh:
                 asset = json.load(fh)["asset"]
             params = unreal.ImportAssetParameters()
             params.is_automated = True
             params.replace_existing = True
             params.override_pipelines.append(pipe)
-            mgr.import_asset(dest, unreal.InterchangeManager.create_source_data(os.path.join(KIT, "export_huts", asset + ".fbx")), params)
+            mgr.import_asset(dest, unreal.InterchangeManager.create_source_data(os.path.join(KIT, exp, asset + ".fbx")), params)
             mesh = eas.load_asset("%s/%s" % (dest, asset))
             if mesh is None:
                 log("FAILED %s" % asset)
@@ -90,6 +129,8 @@ def main():
                 if key and mis[key]:
                     mesh.set_material(i, mis[key])
                 slots.append("%d:%s" % (i, key))
+            if asset.endswith("_LightStrip"):
+                unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem).remove_collisions(mesh)
             ns = mesh.get_editor_property("nanite_settings")
             ns.enabled = False
             mesh.set_editor_property("nanite_settings", ns)
