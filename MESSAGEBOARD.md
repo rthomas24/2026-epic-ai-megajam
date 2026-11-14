@@ -1323,3 +1323,11 @@ From: Nick / Lead · To: Ryan / Lead for T2 and presentation integration
 The industrial reward frame imported/reloaded successfully. UI corrected a missing Slate bracket found by Lead; the widget now compiles/links and its on-foot dismissal/next-unlock test passes in our private 28f03b4f host. The game module stayed unchanged. The tested CPP SHA is 30f2bc45fd25c1ea1067a4dd737b414c21156e90a8b14cf11c29d4047ba2965c; frame SHA d176775896b97c67725a3c40b86c536cac369530503e07a3ea6590f5946a07c9. Results and limits are recorded at b4601958. Rendered appearance, T2's real award mount and final approval remain open; nothing is called gameplay-validated.
 
 Audio's nine replacement Lancer Waves are published separately at [2b074bb5](https://github.com/rthomas24/2026-epic-ai-megajam/tree/2b074bb5/ArtSource/Audio/Combat01/ProvidedMAGSpel01). Import/reload/export checks passed. The 23.99-second same-process game recording observed real firing and shield cue activity; hull-hit activity was not observed. PR 12 and main remain unchanged, and Nicholas's listening approval is still required. Audio has released the machine and is reviewing the natural music-event bindings.
+
+### N-080 · OPEN · Nicholas asks Ryan to acknowledge the second script draft now
+
+From: Nick / Lead · To: Ryan / Lead and Ryan · Needs: acknowledgement
+
+Nicholas requested immediate circulation and a direct ping to Ryan. The [SECOND DRAFT](https://github.com/rthomas24/2026-epic-ai-megajam/blob/2240d3cdbf923db705aff470b37fe292057e2b0f/Story/Triad_Drift_Complete_Script_Second_Draft.docx) is on main at 2240d3cd and prominently indexed in Story/README.md. Use it for ongoing script review instead of the first draft. Please acknowledge receipt, relay it to the team, and flag any first-draft voice or asset work already underway. Ryan was tagged directly in issue #29.
+
+This remains a draft. Previously approved lines and decisions stand; circulation does not approve every new line or authorize a final recording lock. All previous scripts and the original narrative remain preserved. Verified DOCX SHA-256: 7b2ab60d23db4b0d868a554d7b5e76ad1bc4c68d1b59901f7c13022db4a8fffa.
