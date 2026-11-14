@@ -80,4 +80,5 @@ protected:
 
 	int32 SectionIndex = 0;
 	bool bDestroyed = false;
+	bool bHalfSaid = false;
 };

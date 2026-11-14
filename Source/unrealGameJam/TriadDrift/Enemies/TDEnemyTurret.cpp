@@ -1,5 +1,6 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Enemies/TDEnemyTurret.h"
+#include "TriadDrift/World/TDWorldBarks.h"
 
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -216,6 +217,11 @@ void ATDEnemyTurret::Tick(float DeltaSeconds)
 			BurstRemaining = BurstSeconds;
 			++BurstCount;
 			Weapons->SetTriggerHeld(ETDWeaponSlot::Primary, true);
+			if (GetAttachParentActor() && FTDCombatBarks::IsPlayerFlown(Target.Get()))
+			{
+				// dialogs.md Bark_Dom_Turrets: the Dominion's turret fire first comes at the flown ship.
+				FTDWorldBarks::Say(this, TDWorldBarkIds::DomTurrets, ETDBarkPriority::High, FTDWorldBarks::EWho::Wingman, 600.f);
+			}
 		}
 		return;
 	}

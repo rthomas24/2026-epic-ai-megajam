@@ -186,6 +186,7 @@ protected:
 	FQuat GlideFromRot = FQuat::Identity;
 	float CurrentPull = 0.f;
 	int32 TravelRequests = 0;
+	bool bTractorSaid = false;
 	float DoorHalfWidth = 2500.f;
 
 	/** The approach waypoint (TDTags::ObjectiveMarker) on the axis while the bay is open. */

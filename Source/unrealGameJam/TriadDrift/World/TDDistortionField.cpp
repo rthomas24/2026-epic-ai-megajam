@@ -1,5 +1,6 @@
 // Triad Drift - World (Teammate 4). Story Act 1: the distortion field around the far-off Dominion.
 #include "TriadDrift/World/TDDistortionField.h"
+#include "TriadDrift/World/TDWorldBarks.h"
 
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
@@ -215,6 +216,11 @@ void ATDDistortionField::Tick(float DeltaSeconds)
 			}
 			// Inside the shell: back out to it, the inward part of the velocity gone and a push outward.
 			Craft->SetActorLocation(C + Out * FieldRadius * 1.002f);
+			if (FTDCombatBarks::IsPlayerFlown(Craft))
+			{
+				// dialogs.md Bark_FieldBlocked: the player tries to approach before the passage is open (Kato).
+				FTDWorldBarks::Say(this, TDWorldBarkIds::FieldBlocked, ETDBarkPriority::High, FTDWorldBarks::EWho::Kato, 15.f);
+			}
 			if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
 			{
 				const FVector Vel = Move->Velocity;
