@@ -85,7 +85,9 @@ SCALARS = {
     # s7 story: Verdance's wreck scar (the same segment as FTDScatterPlan::ScarA/B, course-local = world on the planet
     # maps): charred black ground with ember specks, narrow at the research site, wide outward. Off on Cinder.
     # s9: it starts beyond the basin wall (on the wall behind the research site it stood up as a glowing pillar), wider
-    "ScarAX": (24000.0, 0.0), "ScarAY": (15500.0, 0.0), "ScarBX": (60000.0, 0.0), "ScarBY": (43000.0, 0.0),
+    # s17: re-aimed at bearing 150 from the research site (61 % gentle ground, mean slope 0.09; the old line ran down the
+    # Rift canyon, all walls): 200-700 m out, toward the site, left of the landing approach
+    "ScarAX": (-5800.0, 0.0), "ScarAY": (17200.0, 0.0), "ScarBX": (-49100.0, 0.0), "ScarBY": (42200.0, 0.0),
     "ScarHalfA": (5000.0, 0.0), "ScarHalfB": (14000.0, 0.0), "ScarEmber": (4.0, 0.0),   # s15: from 340 m up it read as a thin line
 }
 VECTORS = {
