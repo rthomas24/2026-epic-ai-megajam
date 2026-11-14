@@ -299,13 +299,13 @@ bool ATDSpaceField::IsPlacementAllowed(const FVector& P, float Size, bool bColli
 			return false;
 		}
 	}
-	if (FVector::Dist(P, Xf.TransformPosition(L.Dominion.GetLocation())) < DominionKeepOut + Half)
+	if (FVector::Dist(P, Xf.TransformPosition(L.Dominion.GetLocation())) < (bMoonPlacement ? MoonDominionClear : DominionKeepOut) + Half)
 	{
 		return false;
 	}
 	if (const FTransform* Exit = L.ReturnPoints.Find(TDReturnPoints::DominionHangarExit))
 	{
-		if (FVector::Dist(P, Xf.TransformPosition(Exit->GetLocation())) < DominionKeepOut + Half)
+		if (FVector::Dist(P, Xf.TransformPosition(Exit->GetLocation())) < (bMoonPlacement ? MoonDominionClear : DominionKeepOut) + Half)
 		{
 			return false;
 		}

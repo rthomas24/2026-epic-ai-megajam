@@ -1,0 +1,53 @@
+{
+ "Rift": {
+  "min": [
+   -250.0,
+   -208.67520141601562,
+   -112.99560546875
+  ],
+  "max": [
+   250.0,
+   208.22573852539062,
+   112.83331298828125
+  ],
+  "sockets": [
+   "StaticMesh: Property 'Sockets' for attribute 'sockets' on 'StaticMesh' is protected and cannot be read"
+  ],
+  "da": {},
+  "tris": 6729
+ },
+ "Lancer": {
+  "min": [
+   -262.0,
+   -134.75143432617188,
+   -74.96707916259766
+  ],
+  "max": [
+   262.0,
+   134.75144958496094,
+   74.96707916259766
+  ],
+  "sockets": [
+   "StaticMesh: Property 'Sockets' for attribute 'sockets' on 'StaticMesh' is protected and cannot be read"
+  ],
+  "da": {},
+  "tris": 6197
+ },
+ "Bastion": {
+  "min": [
+   -262.0,
+   -236.13111877441406,
+   -69.55900573730469
+  ],
+  "max": [
+   262.0,
+   236.13111877441406,
+   69.55902862548828
+  ],
+  "sockets": [
+   "StaticMesh: Property 'Sockets' for attribute 'sockets' on 'StaticMesh' is protected and cannot be read"
+  ],
+  "da": {},
+  "tris": 16337
+ }
+}

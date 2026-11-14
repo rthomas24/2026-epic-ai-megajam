@@ -182,6 +182,22 @@ private:
 	bool bAftermathChecked = false;
 	bool bAftermathResumeChecked = false;
 	void PlayStaticTear(FName Id);
+	/** A map travel: must-hear lines carry to the next gameplay world, the rest are dropped and unclaimed. */
+	void CarryAcrossTravel();
+	void TakeCarriedLines();
+	double CarryResumeAt = 0.0;
+	bool bCarryTaken = false;
+public:
+	/** Seconds after a world begins before carried lines resume (the arrival settles first). */
+	float CarryResumeDelaySeconds = 2.5f;
+#if WITH_DEV_AUTOMATION_TESTS
+	/** Test worlds each have their own game instance: let a carry cross them. */
+	static inline bool bCarryAcrossInstancesForTests = false;
+	void SimulateTravelForTests() { CarryAcrossTravel(); }
+#else
+	static constexpr bool bCarryAcrossInstancesForTests = false;
+#endif
+private:
 	/** A run marker (never a line): this run's Aftermath has begun. */
 	static constexpr const TCHAR* AftermathStartedId = TEXT("Seq_AftermathStarted");
 	void HandleSurveyRecords(AActor* Terminal);
