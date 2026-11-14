@@ -1527,9 +1527,9 @@ namespace TDFlightHUD
 				P.ArcSpan(At, R, I * PI * .25f, PI * .14f, FTDUIPalette::Muted().CopyWithNewOpacity(.7f * O), 1.5f);
 			}
 			// Padlock: a body and a shackle.
-			const float B = R * .42f;
-			P.Box(At.X - B, At.Y - B * .2f, 2 * B, B * 1.3f, FTDUIPalette::Muted().CopyWithNewOpacity(.85f * O));
-			P.ArcSpan(At + FVector2D(0, -B * .2f), B * .65f, PI, PI, FTDUIPalette::Muted().CopyWithNewOpacity(.85f * O), 1.5f);
+			const float B = R * .55f;
+			P.Box(At.X - B, At.Y - B * .15f, 2 * B, B * 1.25f, FTDUIPalette::Muted().CopyWithNewOpacity(.95f * O));
+			P.ArcSpan(At + FVector2D(0, -B * .15f), B * .68f, PI, PI, FTDUIPalette::Muted().CopyWithNewOpacity(.95f * O), 2.f);
 			return;
 		}
 		// ACTIVE: a filled disc with a second ring pulsing outward. READY: a filled, lit disc with its key in dark ink.
@@ -1540,6 +1540,13 @@ namespace TDFlightHUD
 			const float Pulse = FMath::Fmod(Time * 2.f, 1.f);
 			P.Plate(At.X - R, At.Y - R, 2 * R, 2 * R, R, FTDUIPalette::Ink().CopyWithNewOpacity(O));
 			P.Arc(At, R + 2.f + 5.f * Pulse, 1.f, FTDUIPalette::Ink().CopyWithNewOpacity((1.f - Pulse) * O), 2.f);
+			// Four ticks radiating from the disc: ACTIVE differs from READY by shape, not only by the pulse.
+			for (int32 I = 0; I < 4; ++I)
+			{
+				const float A = PI * .25f + I * PI * .5f;
+				const FVector2D D(FMath::Cos(A), FMath::Sin(A));
+				P.Line(At + D * (R + 3.f), At + D * (R + 8.f), FTDUIPalette::Ink().CopyWithNewOpacity(O), 2.5f);
+			}
 		}
 		else if (bReady)
 		{
