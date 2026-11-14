@@ -65,7 +65,13 @@ public:
 	int32 MaxLaunches = 0;
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Carrier")
-	bool IsSpent() const { return MaxLaunches > 0 && LaunchCount >= MaxLaunches; }
+	bool IsSpent() const;
+	/** Every carrier pauses launching while this many carrier fighters are alive, and resumes under ResumeBelow. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Carrier", meta = (ClampMin = "0"))
+	int32 ScreenFullAt = 16;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Carrier", meta = (ClampMin = "0"))
+	int32 ResumeBelow = 12;
+	bool IsScreenHeld() const { return bScreenHeld; }
 
 	/** Half depth along the bay's outward (+X) axis, for mounting outside the hull (cm). */
 	float GetHalfExtent() const;
@@ -112,5 +118,7 @@ protected:
 	bool bTelegraphing = false;
 	bool bDoorsBroken = false;
 	bool bPaused = false;
+	bool bScreenHeld = false;
+	float ScreenCheckTimer = 0.f;
 	bool bDestroyed = false;
 };
