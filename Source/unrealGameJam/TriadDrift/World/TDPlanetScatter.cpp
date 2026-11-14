@@ -256,7 +256,7 @@ bool FTDScatterPlan::IsCourseClear(float X, float Y, float Radius) const
 	return true;
 }
 
-float FTDScatterPlan::ScarWeight(float X, float Y) const
+float FTDScatterPlan::ScarWeight(float X, float Y, float Margin) const
 {
 	if (ScarHalfB <= 0.f) { return 0.f; }
 	const FVector2D P(X, Y), D = ScarB - ScarA;
@@ -265,7 +265,7 @@ float FTDScatterPlan::ScarWeight(float X, float Y) const
 	if (T < 0.f || T > 1.f) { return 0.f; }
 	const float Half = FMath::Lerp(ScarHalfA, ScarHalfB, T);
 	// a ragged edge: the half width breathes with a slow noise along the strip
-	const float Edge = Half * (0.8f + 0.4f * (FTDTerrainField::Noise2D(T * 18.f, 3.1f, 4411) * 0.5f + 0.5f));
+	const float Edge = Half * (0.8f + 0.4f * (FTDTerrainField::Noise2D(T * 18.f, 3.1f, 4411) * 0.5f + 0.5f)) + Margin;
 	const float Dist = FVector2D::Distance(P, ScarA + D * T);
 	return FMath::Clamp(1.f - Dist / FMath::Max(Edge, 1.f), 0.f, 1.f) * FMath::Clamp(T * 20.f, 0.f, 1.f);
 }
@@ -313,7 +313,7 @@ int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM
 			// (s6 sheet: that left the hills bare; now ~34 degrees, Slope 0.17) nor on the heights; RunLayer's contact check
 			// drops any clump whose footprint spans a ridge edge, so no crown overhangs a cliff top.
 			const float Valley = FMath::Clamp(1.f - HeightM / 300.f, 0.f, 1.f);
-			const float Threshold = 0.04f - 0.3f * Moist - 0.15f * Valley;	// s8: s7 still left ~20 % canopy
+			const float Threshold = 0.09f - 0.3f * Moist - 0.15f * Valley;	// s8: measured 58 % at 0.04 (coverage test), target 35-45 %
 			if (Stand < Threshold) { return INDEX_NONE; }
 			const float Density = FMath::Clamp((Stand - Threshold) * 12.f, 0.f, 1.f) * FMath::Clamp((0.17f - Sm.Slope) / 0.04f, 0.f, 1.f)
 				* FMath::Clamp(1.f - (HeightM - 900.f) / 500.f, 0.f, 1.f);
@@ -423,7 +423,8 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 			if (Zone <= 0.f || TDScatter_Hash01(Seed, ix, iy, Salt + 2) > Zone || IsKeptOut(Field, X, Y)) { continue; }
 			if (ScarHalfB > 0.f && (Mode == ModeFar || Mode == ModeDense || Mode == ModeCanopy))
 			{
-				const float Scar = ScarWeight(X, Y);
+				// a canopy clump is kept out by its whole footprint (its centre can sit 90 m from the scar and still cover it)
+				const float Scar = ScarWeight(X, Y, Mode == ModeCanopy ? 9000.f : 0.f);
 				if (Scar > 0.f)
 				{
 					// Inside the scar: no living forest; on the far-tree grid, a charred trunk now and then

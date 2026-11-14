@@ -84,6 +84,62 @@ bool FTDScatterOnTheTerrain::RunTest(const FString&)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDScatterCanopyCover, "TriadDrift.World.Scatter.VerdanceCanopyCoversALargeShareOfTheLowland", TD_TEST_FLAGS)
+bool FTDScatterCanopyCover::RunTest(const FString&)
+{
+	// s8 (environment builder): continuous forest from the air means the merged canopy clumps cover roughly 35-45 % of the
+	// vegetated lowland (below 900 m over the pad, gentler than the rock slope, not sea), and none of the wreck scar.
+	const FTDTerrainField F(FTDTerrainStyle::ForPlanet(ETDDestination::Verdance));
+	const FTDScatterPlan P = FTDScatterPlan::ForPlanet(ETDDestination::Verdance);
+	FTDScatterResult R;
+	P.Generate(F, R);
+	TArray<FVector4> Crowns;	// x, y, radius
+	for (int32 k = 0; k < P.Kinds.Num(); ++k)
+	{
+		if (!P.Kinds[k].MeshPath.Contains(TEXT("TreeClump"))) { continue; }
+		for (const TArray<FTransform>* L : { &R.Near[k], &R.Far[k] })
+		{
+			for (const FTransform& X : *L) { Crowns.Add(FVector4(X.GetLocation().X, X.GetLocation().Y, 2400.f * X.GetScale3D().X, 0.f)); }
+		}
+	}
+	const float Cell = 20000.f;
+	TMap<FIntPoint, TArray<int32>> Grid;
+	for (int32 i = 0; i < Crowns.Num(); ++i) { Grid.FindOrAdd(FIntPoint(FMath::FloorToInt(Crowns[i].X / Cell), FMath::FloorToInt(Crowns[i].Y / Cell))).Add(i); }
+	int32 Land = 0, Covered = 0, Scar = 0, ScarCovered = 0;
+	const FTDTerrainStyle& S = F.GetStyle();
+	for (float Y = -300000.f; Y <= 300000.f; Y += 5000.f)
+	{
+		for (float X = -300000.f; X <= 300000.f; X += 5000.f)
+		{
+			if (P.IsKeptOut(F, X, Y)) { continue; }
+			const FTDTerrainSample Sm = F.Sample(X, Y, 1750.f);
+			const bool bScar = P.ScarWeight(X, Y) > 0.5f;
+			if (!bScar && (Sm.Height < S.SeaLevel + 1000.f || (Sm.Height - S.BasinFloor) > 90000.f || Sm.Slope > 0.17f || P.IsPatch(Sm))) { continue; }
+			bool bIn = false;
+			const FIntPoint C(FMath::FloorToInt(X / Cell), FMath::FloorToInt(Y / Cell));
+			for (int32 dy = -1; dy <= 1 && !bIn; ++dy)
+			{
+				for (int32 dx = -1; dx <= 1 && !bIn; ++dx)
+				{
+					if (const TArray<int32>* L = Grid.Find(C + FIntPoint(dx, dy)))
+					{
+						for (int32 i : *L) { if (FVector2D::Distance(FVector2D(X, Y), FVector2D(Crowns[i].X, Crowns[i].Y)) < Crowns[i].Z) { bIn = true; break; } }
+					}
+				}
+			}
+			if (bScar) { ++Scar; ScarCovered += bIn ? 1 : 0; continue; }
+			++Land;
+			Covered += bIn ? 1 : 0;
+		}
+	}
+	const float Share = Land > 0 ? float(Covered) / Land : 0.f;
+	AddInfo(FString::Printf(TEXT("Verdance canopy: %d clumps cover %.0f %% of %d lowland samples (50 m grid, 3 km); wreck scar %d / %d covered"),
+		Crowns.Num(), Share * 100.f, Land, ScarCovered, Scar));
+	TestTrue(*FString::Printf(TEXT("canopy covers 30-55 %% of the vegetated lowland (%.0f %%)"), Share * 100.f), Share > 0.3f && Share < 0.55f);
+	TestTrue(TEXT("the wreck scar is open ground"), Scar > 0 && ScarCovered * 10 <= Scar);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDScatterV2Cinder, "TriadDrift.World.Scatter.CinderHasItsZoneCrystalsOnTheObsidianNoneInTheRivers", TD_TEST_FLAGS)
 bool FTDScatterV2Cinder::RunTest(const FString&)
 {
