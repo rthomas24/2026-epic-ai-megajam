@@ -660,9 +660,9 @@ bool UTDStorySubsystem::FireTransmission(FName Id)
 	{
 		return false; // once per run
 	}
-	if (!Entry.bRepeatable)
+	if (!Entry.bRepeatable && !IsRequiredLine(Id))
 	{
-		MarkPlayed(Id); // claimed now: a Continue before it airs never replays it
+		MarkPlayed(Id); // ambient: claimed now, a Continue before it airs never replays it
 	}
 	Queue.Add(Entry);
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %s queued (%d waiting)"), *Id.ToString(), Queue.Num());
@@ -768,6 +768,7 @@ bool UTDStorySubsystem::PlaySequence(const UObject* WorldContext, FName Sequence
 		Story->FireTransmission(Id);
 	}
 	Story->ActiveSequence = SequenceId;
+	Story->SequenceStart = Story->RealNow();
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: sequence %s"), *SequenceId.ToString());
 	return true;
 }
@@ -777,11 +778,21 @@ bool UTDStorySubsystem::IsSequencePlaying(FName SequenceId) const
 	return !ActiveSequence.IsNone() && (SequenceId.IsNone() || ActiveSequence == SequenceId);
 }
 
+bool UTDStorySubsystem::IsRequiredLine(FName Id)
+{
+	return Id.ToString().StartsWith(TEXT("A4_Recording_")) || SequenceIds(TEXT("Cinematic08")).Contains(Id);
+}
+
+bool UTDStorySubsystem::CanSkipSequence() const
+{
+	return !ActiveSequence.IsNone() && RealNow() - SequenceStart >= SkipAllowedAfterSeconds;
+}
+
 bool UTDStorySubsystem::SkipSequence()
 {
-	if (ActiveSequence.IsNone())
+	if (!CanSkipSequence())
 	{
-		return false;
+		return false; // nothing playing, or not yet (N-060: ten seconds before Skip)
 	}
 	const TArray<FName>& Ids = SequenceIds(ActiveSequence);
 	// Its discoveries are kept: every line counts as heard (and saved), none plays again.
@@ -794,8 +805,10 @@ bool UTDStorySubsystem::SkipSequence()
 	{
 		if (Voice) { Voice->Stop(); }
 		Voice = nullptr;
+		const FName Cut = Current.Id;
 		Current = FTDTransmissionView();
 		NextAllowed = RealNow() + GapSeconds;
+		OnTransmissionEnded.Broadcast(Cut, false);
 	}
 	FinishSequence(true);
 	return true;
@@ -879,9 +892,15 @@ void UTDStorySubsystem::Tick(float DeltaTime)
 		Current.Alpha = FMath::Min(FMath::Clamp(T / 0.2f, 0.f, 1.f), FMath::Clamp(Current.TimeLeft / 0.3f, 0.f, 1.f));
 		if (T >= OnAirSeconds)
 		{
+			const FName Done = Current.Id;
 			Current = FTDTransmissionView();
 			Voice = nullptr;
 			NextAllowed = Now + GapSeconds;
+			if (IsRequiredLine(Done))
+			{
+				MarkPlayed(Done); // heard in full: now it is saved (N-062)
+			}
+			OnTransmissionEnded.Broadcast(Done, true);
 		}
 	}
 	UpdateSequence();

@@ -432,6 +432,18 @@ namespace TDIntro
 	};
 }
 
+namespace TDIntroSkip
+{
+	static TAutoConsoleVariable<float> CVarSkipLock(TEXT("td.Intro.SkipLockSeconds"), -1.f,
+		TEXT("Seconds before the intro can be skipped. -1: 10 s (N-060), or 1 s inside automation tests."));
+}
+
+float UTDIntroDirector::GetSkipLockSeconds()
+{
+	const float V = TDIntroSkip::CVarSkipLock.GetValueOnGameThread();
+	return V >= 0.f ? V : (GIsAutomationTesting ? 1.f : 10.f);
+}
+
 UTDIntroDirector* UTDIntroDirector::Get(const UObject* WorldContext)
 {
 	const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
@@ -1147,7 +1159,7 @@ void UTDIntroDirector::DebugJumpToShot(int32 Index)
 	{
 		Start += Shots[i].Duration;
 	}
-	Elapsed = FMath::Max(Start, SkipLockSeconds);
+	Elapsed = FMath::Max(Start, GetSkipLockSeconds());
 	BeginShot(Index);
 }
 
@@ -1723,7 +1735,7 @@ void UTDIntroDirector::UpdateSkip(float RealDelta)
 	if (bSkipHeld)
 	{
 		Overlay.SkipHintAlpha = FMath::Min(1.f, Overlay.SkipHintAlpha + RealDelta * 6.f);
-		if (Elapsed >= SkipLockSeconds)
+		if (Elapsed >= GetSkipLockSeconds())
 		{
 			SkipHeldFor += RealDelta;
 		}
@@ -1742,7 +1754,7 @@ void UTDIntroDirector::UpdateSkip(float RealDelta)
 
 bool UTDIntroDirector::Skip()
 {
-	if (!bPlaying || Elapsed < SkipLockSeconds)
+	if (!bPlaying || Elapsed < GetSkipLockSeconds())
 	{
 		return false;
 	}

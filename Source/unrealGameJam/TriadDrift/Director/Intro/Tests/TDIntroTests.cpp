@@ -3,6 +3,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "Misc/AutomationTest.h"
+#include "Misc/ScopeExit.h"
 #include "Engine/Engine.h"
 #include "Rendering/SlateRenderer.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
@@ -428,6 +429,31 @@ bool FTDIntroCardFits::RunTest(const FString& Parameters)
 			TestTrue(At + TEXT(": readable sizes"), L.NameFontSize >= 12 && L.RoleFontSize >= 8);
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroSkipTen, "TriadDrift.Director.Intro.SkipOnlyAfterTenSeconds", TD_TEST_FLAGS)
+bool FTDIntroSkipTen::RunTest(const FString& Parameters)
+{
+	// N-060 (Nicholas): every cutscene waits ten seconds before Skip. The game's default; tests elsewhere use 1 s.
+	IConsoleVariable* Lock = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Intro.SkipLockSeconds"));
+	if (!TestNotNull(TEXT("td.Intro.SkipLockSeconds"), Lock))
+	{
+		return false;
+	}
+	Lock->Set(-1.f, ECVF_SetByCode);
+	ON_SCOPE_EXIT { Lock->Set(-1.f, ECVF_SetByCode); };
+	TestEqual(TEXT("1 s inside automation by default"), UTDIntroDirector::GetSkipLockSeconds(), 1.f);
+	Lock->Set(10.f, ECVF_SetByCode); // what the game uses
+	TDIntroTest::FIntroWorld F;
+	if (!TestTrue(TEXT("squad and player"), F.Init()) || !TestTrue(TEXT("plays"), F.Play()))
+	{
+		return false;
+	}
+	F.Run(5.f);
+	TestFalse(TEXT("no skip at 5 s"), F.Intro->Skip());
+	F.Run(5.5f);
+	TestTrue(TEXT("skip after 10 s"), F.Intro->Skip());
 	return true;
 }
 
