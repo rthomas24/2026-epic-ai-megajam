@@ -22,6 +22,9 @@ OPTS = unreal.AnimPoseEvaluationOptions()
 LOCAL = unreal.AnimPoseSpaces.LOCAL
 WORLD = unreal.AnimPoseSpaces.WORLD
 FPS = 30
+if CFG.get("folder"):  # crew / Warden work: clips live in another folder, on another skeleton
+    ANIMS = PILOT = CFG["folder"]
+    SKEL = unreal.load_asset(CFG.get("skeleton", "/Game/TriadDrift/Gameplay/Characters/Crew/SKEL_NullCrew"))
 
 
 def log(m):
@@ -153,7 +156,8 @@ def from_to(a, b, max_deg):
     return tq(q), ang
 
 
-SOCKET = unreal.load_asset(PILOT + "/SK_Pilot").find_socket("BladeSocket")
+_PILOT_MESH = unreal.load_asset("/Game/TriadDrift/Gameplay/Characters/Pilot/SK_Pilot")
+SOCKET = _PILOT_MESH.find_socket("BladeSocket") if _PILOT_MESH else None
 SOCK_Q = tq(SOCKET.relative_rotation.quaternion()) if SOCKET else (0, 0, 0, 1)
 
 for a in CFG.get("aim", []):
@@ -356,6 +360,41 @@ for cl in CFG.get("clips", []):
         loc, rot = fr["root"]
         travel = max(travel, math.hypot(loc.x - root0.x, loc.y - root0.y))
         fr["root"] = (unreal.Vector(0, 0, loc.z), rot) if cl.get("in_place", True) else (loc, rot)
+    # root and pelvis facing over the clip (degrees about Z), and the optional fix: the root keeps its first rotation
+    def yaw_of(q):
+        fwd = prot(tq(q), (0.0, 1.0, 0.0))
+        return math.degrees(math.atan2(-fwd[0], fwd[1]))
+    ry = [yaw_of(fr["root"][1]) for fr in frs]
+    py = [yaw_of(fr["pelvis"][1]) for fr in frs]
+    log("%s: root yaw %.1f..%.1f deg, pelvis local yaw %.1f..%.1f deg" % (cl["src"], min(ry), max(ry), min(py), max(py)))
+    if cl.get("zero_root_yaw"):
+        r0 = frs[0]["root"][1]
+        for fr in frs:
+            fr["root"] = (fr["root"][0], r0)
+    if cl.get("lock_pelvis_yaw"):
+        # the body's facing drifts in the pelvis: turn the pelvis back about Z so it faces as in frame 0
+        for fr, y in zip(frs, py):
+            loc, rot = fr["pelvis"]
+            fr["pelvis"] = (loc, qmul(qaxis((0.0, 0.0, 1.0), -(y - py[0])), rot))
+    # component-space twists (e.g. the Warden's chest, which carries its shield), in order; each later bone is taken
+    # to be a descendant of the earlier ones unless "independent"
+    for ti, fr in enumerate(frs):
+        if not cl.get("twist"):
+            break
+        t = min(t1, t0 + ti * rate / float(FPS))
+        pose = unreal.AnimPoseExtensions.get_anim_pose_at_time(src, t, OPTS)
+        acc = (0.0, 0.0, 0.0, 1.0)
+        for tw in cl["twist"]:
+            a, b = tw.get("ramp", [0.0, 0.0])
+            frac = ti / float(max(1, n - 1))
+            w = 1.0 if b <= a else min(1.0, max(0.0, (frac - a) / (b - a)))
+            w = w * w * (3 - 2 * w)
+            q = tq(qaxis(tuple(tw.get("axis", [0.0, 0.0, 1.0])), tw["deg"] * w))
+            pw = tq(unreal.AnimPoseExtensions.get_bone_pose(pose, tw["parent"], WORLD).rotation)
+            pw2 = pmul(acc, pw)
+            loc, rot = fr[tw["bone"]]
+            fr[tw["bone"]] = (loc, qmul(unreal.Quat(*pmul(pmul(qinv(pw2), q), pw2)), rot))
+            acc = pmul(q, acc)
     seam = 0.0
     if cl.get("loop"):
         k = max(1, int(round(cl.get("loop_s", 0.25) * FPS)))
