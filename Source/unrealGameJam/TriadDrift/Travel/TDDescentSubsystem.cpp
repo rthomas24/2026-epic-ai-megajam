@@ -505,8 +505,9 @@ void UTDDescentSubsystem::TickCloudDeck()
 		}
 		CloudWisps = UTDStatics::PlayCueAttachedLoop(FX->CloudWisps, Attach, NAME_None, NoAudio);
 		if (UNiagaraComponent* W = CloudWisps.Get()) { W->SetVariableFloat(TEXT("User.Planet"), Deck->GetPlanet() == ETDDestination::Cinder ? 1.f : 0.f); }
-		if (bGlidePass) { ++GlideDeckPasses; }
 	}
+	if (bGlidePass && bNear && !bInGlideDeckPass) { ++GlideDeckPasses; } // entering the deck's band during the glide
+	bInGlideDeckPass = bGlidePass && bNear;
 	if (UNiagaraComponent* W = CloudWisps.Get()) { W->SetVariableFloat(TEXT("User.Inside01"), FMath::Clamp(1.f - FMath::Abs(Rel) / Band, 0.f, 1.f)); }
 	else if (!bNear && CloudWisps.IsValid())
 	{
@@ -766,6 +767,12 @@ void UTDDescentSubsystem::TickExposureRamp()
 	if (!ExposureMID)
 	{
 		UMaterialInterface* Mat = FX && !FX->DescentWhitePP.IsNull() ? FX->DescentWhitePP.LoadSynchronous() : nullptr;
+		if (!Mat)
+		{
+			// The effects builder's material (eng/vfx 71e34a27) while DA_Travel_FX leaves the slot empty; null-safe.
+			static const FSoftObjectPath Default(TEXT("/Game/TriadDrift/Gameplay/VFX/Materials/M_TD_PP_DescentWhite.M_TD_PP_DescentWhite"));
+			Mat = Cast<UMaterialInterface>(Default.TryLoad());
+		}
 		if (!Mat) { ExposureWeight = Want; return; } // no material yet: the weight is still reported (tests, the log)
 		ExposureMID = UMaterialInstanceDynamic::Create(Mat, this);
 	}

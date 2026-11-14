@@ -294,6 +294,7 @@ private:
 	float ExposureWeight = 0.f;
 public:
 	int32 GlideDeckPasses = 0; // tests and the timing log
+	bool bInGlideDeckPass = false;
 private:
 	TWeakObjectPtr<class UCameraComponent> ExposureCamera;
 	UPROPERTY(Transient) TObjectPtr<class UMaterialInstanceDynamic> ExposureMID;

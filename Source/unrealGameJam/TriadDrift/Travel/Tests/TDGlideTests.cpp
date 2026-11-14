@@ -45,6 +45,7 @@ namespace TDT1Glide
 			D->Tick(Dt); // the game instance's tickables don't run in a test world (glide, cloud deck, exposure)
 			R.MaxStepDrop = FMath::Max(R.MaxStepDrop, LastSpeed - Move->GetSpeed());
 			LastSpeed = Move->GetSpeed();
+			R.EndSpeed = Move->GetSpeed(); // the last gliding frame: the speed handed back
 			if (!D->IsGliding()) { break; }
 			R.MinZ = FMath::Min(R.MinZ, (float)Ship->GetActorLocation().Z);
 			R.bHeldWarning &= Move->IsBoundaryWarningHeld();
@@ -56,7 +57,6 @@ namespace TDT1Glide
 		R.bOverrideCleared = !Move->HasSpeedOverrideFor(UTDDescentSubsystem::GlideOverride) && !Move->IsPitchHeld();
 		R.bVulnerableAgain = Ship->GetHealth() && !Ship->GetHealth()->IsInvulnerable();
 		for (int32 i = 0; i < 10; ++i) { W.Tick(Dt); R.MaxStepDrop = FMath::Max(R.MaxStepDrop, LastSpeed - Move->GetSpeed()); LastSpeed = Move->GetSpeed(); }
-		R.EndSpeed = Move->GetSpeed();
 		R.DeckPasses = D->GlideDeckPasses - Passes0;
 		R.EndZ = Ship->GetActorLocation().Z;
 		R.EndPitch = Ship->GetActorRotation().Pitch;
@@ -85,7 +85,7 @@ bool FTDT1GlideEndsLevel::RunTest(const FString& Parameters)
 			TestTrue(*FString::Printf(TEXT("%s: invulnerable and no edge warning while gliding"), *Tag), R.bInvulnerable && R.bHeldWarning);
 			TestTrue(*FString::Printf(TEXT("%s: Descent01 0..1 while gliding, -1 after"), *Tag), R.bDescent01InRange && R.bHandedBack);
 			TestTrue(*FString::Printf(TEXT("%s: override and pitch hold cleared, vulnerable again"), *Tag), R.bOverrideCleared && R.bVulnerableAgain);
-			TestTrue(*FString::Printf(TEXT("%s: no speed drop at the hand-back (largest step %.0f cm/s, end %.0f, cruise %.0f)"), *Tag, R.MaxStepDrop, R.EndSpeed, R.Cruise),
+			TestTrue(*FString::Printf(TEXT("%s: no speed drop at the hand-back (largest step %.0f cm/s, at hand-back %.0f, cruise %.0f)"), *Tag, R.MaxStepDrop, R.EndSpeed, R.Cruise),
 				R.MaxStepDrop <= 600.f && FMath::Abs(R.EndSpeed - R.Cruise) <= R.Cruise * 0.15f);
 		}
 	}
