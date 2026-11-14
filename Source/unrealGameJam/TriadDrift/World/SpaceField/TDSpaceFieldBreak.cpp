@@ -27,6 +27,7 @@
 #include "NiagaraSystem.h"
 #include "TriadDrift/Combat/TDFieldDamageable.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
+#include "TriadDrift/Perf/TDWarmupSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Combat/TDProjectile.h"
@@ -732,4 +733,23 @@ void ATDSpaceField::PreloadBreakCues()
 			if (!Cue->Sound.IsNull()) { PreloadedCueAssets.Add(Cue->Sound.LoadSynchronous()); }
 		}
 	}
+}
+
+namespace TDSpaceFieldWarm
+{
+	// T7's warm-up (#89) streams DA_SpaceField_FX and everything it names; the field's own default break systems are
+	// hard references on the class defaults (loaded) but would otherwise first activate on the first break.
+	static struct FRegister
+	{
+		FRegister()
+		{
+			UTDWarmupSubsystem::RegisterProvider(TEXT("SpaceField"), [](const UWorld& World, TArray<FSoftObjectPath>& Out)
+			{
+				Out.Add(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_S.NS_TD_Asteroid_Break_S")));
+				Out.Add(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_M.NS_TD_Asteroid_Break_M")));
+				Out.Add(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_L.NS_TD_Asteroid_Break_L")));
+				Out.Add(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_Crystal.NS_TD_Asteroid_Break_Crystal")));
+			});
+		}
+	} GRegister;
 }

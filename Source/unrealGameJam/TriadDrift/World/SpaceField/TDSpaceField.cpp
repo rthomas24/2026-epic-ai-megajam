@@ -109,8 +109,7 @@ void ATDSpaceField::BeginPlay()
 	// td.SpaceField 0 at load: never take over the layout's rocks, so the galaxy is exactly today's by construction.
 	bAdoptAtLoad = bAdoptLayoutRocks && TDSpaceFieldImpl::GEnabled != 0;
 	Build();
-	FTDFieldDamage::Register(this);
-	PreloadBreakCues();	// Lancer's ram and explosions find the field without searching the world
+	FTDFieldDamage::Register(this);	// (DA_SpaceField_FX is warmed by T7's UTDWarmupSubsystem; the defaults register below)	// Lancer's ram and explosions find the field without searching the world
 	// Caches: four per debris field, the types in turn (one use each per run).
 	Caches.Reset();
 	const TArray<FVector> Spots = GetCacheSpots(this);
