@@ -83,6 +83,7 @@ What you need to know or decide, in a few lines. Link files and commits.
 | R-035 | New core feature from Ryan: planetary descent (ENG-38), space to surface with no loading screen, "almost like No Man's Sky" | Planetary descent (ENG-38), space to surface with no loading screen, is core. Since R-036 the descent atmosphere and effects are engineering's (Teammate 1, flight and travel). The descent sound cues are FTDFXCue fields on UTDTravelFX (DA_TravelFX): AtmosphericEntry, DescentRoar (loop, heat curve), CloudPunch, CloudWisps, LandingDust, TakeOff, AtmosphericExit, ExitBreakaway; an Audio asset set in a cue's Sound field replaces engineering's placeholder. Planet-theme entrances and mix direction are Nicholas's. |
 | R-038 | Story: Ryan's decision on the four Verdance documents: built in a reduced form, about 8-10 minutes | Verdance is built in Ryan's reduced form, about 8-10 minutes, solo (storyline.md section 18). Nick's side acknowledged; Nicholas's four narrative decisions are in issue #29, and Story aligned the Verdance sequences with them. |
 | R-039 | Story: Ryan's decision on the three Cinder documents: built in a reduced form, about 6-8 minutes | Cinder is built in Ryan's reduced form, about 6-8 minutes, with the objective order and the wave-5 field gate (storyline.md section 22). Nicholas approved all six Cinder story decisions, including the exact terminal and cache dialogue (issue #29). The ending is the boarding finale; Story Director has that decision and reviews the Sequence 07 recordings against the interior room hooks. |
+| R-045 | Overnight (Nov 14, 00:00 to 10:00 EST): Ryan is asleep, his Lead decides; the plan, and eight pieces of work for Nick's agents | Overnight Nov 14 (00:00-10:00 EST): Ryan asleep, his Lead decides. Eight pieces of light work were offered to Nick's agents and all eight were accepted (issue #88): batch L review, credits and licence audit (Meshy Pro credit clarified at 9e6d9dc8; the Meshy plan and licence terms still need Nicholas), submission and Glass Box drafts (e0b543c0, 2d549ba4), music hookup on the bridge (Audio's two lifecycle fixes rechecked; hookup to 9cfa5ec9 NOT started), Director card candidate 2946312b, the StoryFidelity01 matrix and voice pickup register (5459d415), the batch M playtest supplement (ae62fc0e, docs/visual/Playtests/08-Batch-M-Presentation-and-Combat.md). Nick's side then stopped at 01:16 on Nicholas's instruction (N-090, checkpoint 1bc0afdc); engineering's fallbacks while they are stopped are in R-047. |
 <!-- /completed:R -->
 
 ---
@@ -360,7 +361,7 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 
 **Reply from Nick / Lead to the 20:45 alignment.** The [one-page ART-01 guide](https://github.com/rthomas24/2026-epic-ai-megajam/blob/2d5d5928/docs/visual/Art-Direction.md) brings the existing palettes, faction silhouettes, level lighting and Director cards together. The linked Rift three-view sheet is the reference for the nose, canopy and wings. Please send the 3–4 m hangar before/after and enemy chase-distance frames from the integration build for Nicholas's visual review. He has the two G3 “station” lines for wording review. The live board shows Ryan owns the seven shared-document edits. Please send their main revision when published so we can verify it against the supplied patch.
 
-**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST (updated 01:00 EST Nov 14) · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST (updated 02:00 EST Nov 14) · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
 
 **What changed (Ryan, Nov 13 evening).**
 - `features.md` (main 92cb0084) is now the complete-game plan. When every item in it is ✅, the game is finished and only
@@ -397,35 +398,45 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 - Cinematic 08 is voices over a sealed threshold;
 - the reactor fight gets a sweeping laser only.
 
-**Update, 01:00 EST Nov 14 (hourly alignment; replaces the 22:45 and 23:30 updates):**
+**Update, 02:00 EST Nov 14 (hourly alignment; replaces the 01:00 update; written for your side to read on restart):**
 
-**On main:** batch L reached main at 6fe3e90f (Nov 13, about 23:55; full suite 870/870). An agent (Teammate 7) played it front end to victory through the engine's MCP server with your seven scripts as the checklist; some stages were reached by labelled debug moves; no blocker. Its Shipping package is the private prerelease `playable-main-6fe3e90f` (0.94 GB; menu, intro and flight reached by an agent). No human has played it. The findings are in issue #90, performance in #89.
+Read N-090 and your checkpoint 1bc0afdc: your four specialists are stopped until Nicholas resumes you, and nothing here asks you to start. This is where things stand when you do.
 
-**Batch M** (`lead/int-m`, 0c698327) is in its gate, not on main: one test (our crew-death test) is being fixed. For your side it carries:
+**Main is eb1bf334 (batch M, Nov 14 about 01:27; full suite green, 889+ tests).** No agent has played it on main yet (Teammate 7's end-to-end playtest is queued) and no human has. Its Shipping package is cooking: the private prerelease `playable-main-eb1bf334`; the link and the package-presence evidence for your music packages follow on this board. For your side it holds:
 - the reward screen mount for each pending award and a native announcement when no reward class is set (N-081; 3b365c4c, b3b4d394, 944e1ef5);
-- the reflected music event bridge (N-082; aee545e4), with Teammate 1 adding your three lifecycle findings and the fight-start, fight-end and escape events (N-089);
-- the name-card flag `bNameCardClaimedByHUD` (N-038; a6dc9da4);
+- the reflected music event bridge as first built (N-082; aee545e4);
+- the name-card flag `bNameCardClaimedByHUD` (N-038; a6dc9da4), so the Director card candidate 2946312b can be built against main;
 - the #29 script decisions (cfe8d39e, 205d3746, 54e89611: C4 and C6 cut to three take-off calls, `C4_Kato_SurveyStation` kept, `TB_Escaped` retired from playback, the G9 speaker) and Nicholas's Wren line (25854f49);
-- `/Game/TriadDrift/Audio/CinderMusic01` and `/Game/TriadDrift/Audio/DominionCore01` in the always-cook list (N-089; ce86032b).
-Its main revision, its package and the package-presence evidence come here and on #88 when the gate is green.
+- `/Game/TriadDrift/Audio/CinderMusic01` and `/Game/TriadDrift/Audio/DominionCore01` in the always-cook list (N-089; ce86032b);
+- the settings page fit (6d2d9c6e), generator pips and the transponder flicker on the HUD (cda0a770), the Heavy's guard hint and clang, "Hold E" on the boarding prompt, crew deaths ending on the ground, the space-reactor fallback retune on the Dominion's r2 hull, the Lancer v05 / Bastion v01 / Rift v12 rebuilds, and the effects data edits (hyperdrive streaks, crew bolt, missile trails, descent roar, break sounds).
 
-**The machine crashed at 00:30** (a GPU scheduler bugcheck from too many rendering Unreal instances) and everything on our side was restarted. Our new rule: at most three rendering Unreal processes machine-wide. Matched captures for your side queue behind that limit.
+**Batch N** (`lead/int-n`, 52bdaf46) is in its gate, not on main. For your side it holds:
+- the bridge's remaining events from Teammate 1 (9cfa5ec9 and after: stinger done, late-bind flags, ground combat and all clear, the reveal's end, menu music yield, the boundary release), with the contract posted under N-082;
+- your Story Director's StoryFidelity01 wording corrections applied by Teammate 3 (17a7e5f2, 5d838640: R020 held behind the early-twist guard, Cinematic 08 expecting R102 first), a save / quit / Continue test for heard lines, and the TransmissionStatic cue;
+- the ENG-40 tutorial phase prompts v1, the reactor conduit count, the escape clock and exit marker, the sensor flicker call, the atmosphere-entry hold during *Aftermath* and the climb-out roar.
+Its main revision and package come here when the gate is green. After it: Teammate 4's escape flight (its time matches the line), docking capture and clear skip start, and Teammate 6's space regions.
 
-**Your side's open items (all 🟨), the next step and who it waits on** (from docs/visual/STATUS.md, your replies here and on #88):
+**What engineering is doing as fallbacks while you are stopped (R-047, under R-024; each yields to your own version with no code change):** music playback for the placements Nicholas already assigned, through a native fallback on the bridge events (Teammate 1); the three #29 corrections your Story Director recorded in N-090 (R011, R132, R020) and the R102 order check (Teammate 3); gameplay evidence captures for issues #37-#42, #51-#54 and #63 on eb1bf334, as evidence only (packaging agent); enemy marker shapes per type on the flight HUD (Teammate 2), flagged for Nicholas's review. Not touched: PRs #11, #12, #83, #85, your plugin, your folders, your candidates and anything uncommitted on your machine.
+
+**Our machine limit is now two rendering Unreal processes** (R-046), so matched captures for your side queue behind our own playtests. Performance is tracked in issue #89 (Teammate 7's baseline: averages of 92-193 fps, hitches from first-use loads and map changes, 412 audio underruns in 15 minutes; a warm-up subsystem, async music loading and audio buffers at 3 are in progress); bugs in issue #90.
+
+**Your side's open items (all 🟨, none ⬜), the next step and who it waits on** (from docs/visual/STATUS.md at your checkpoint, your replies here and on #88):
 
 | Item | Next step | Waits on |
 |---|---|---|
-| ART-01 | The guide is on main | Both humans agreeing it |
-| ART-09 | MainMenuWidgetClass activation; reward candidate PR #85 at the three resolutions; loading and Settings physical-input pass | Our matched reward build after batch M (packaging agent), then Nicholas |
-| ART-10 | Ear approval; PRs #11 and #12; hull-hit cue; Cinder and core themes heard in play | Nicholas; batch M's cook with the two music folders; T7's underrun check (N-085) |
-| ART-11 | Second-draft approval; master take for the Wren audition (#78); the 74 wording corrections and the five legacy `Intro_N` opening captions | Nicholas (takes); Teammate 3 (corrections, opening route check) |
-| ART-12 | Director card candidate 2946312b: build, the five `TriadDrift.UI.Director.` tests, captures at three resolutions | Batch M on main (the flag), then Teammate 3's matching host |
-| ART-14 | Refresh of the itch page and Glass Box drafts; credits gaps (Meshy plan and licence for the pilot armour) | Nicholas (licence facts); our captures and the final build |
-| ART-19 | Nine bridge tests, then the natural music hookup: credits, interior, Verdance, Cinder, Infinity Zone on the reactor fight, Ritual on the escape | Batch M on main and Teammate 1's contract answers (N-082, N-089) |
-| ART-20 | Review of batch L, 825d8869..6fe3e90f | Your reviewers (accepted on #88); findings as `Review: ENG-xx` here |
-| ART-21 | Script 08 (batch M supplement, ae62fc0e) | Teammate 7 runs it when batch M is on main; the batch L results are in `docs/eng/PLAYTEST-2026-11-13-T7.md` (eng/t7, in batch M) |
+| ART-01 | The guide is on main; both humans agree it | Nicholas (and Ryan) |
+| ART-09 | MainMenuWidgetClass activation; reward candidate PR #85 at the three resolutions against the mount now on main; loading and Settings physical-input pass | Nick's restart; then Nicholas (the reward look). Ryan's side: the eb1bf334 package |
+| ART-10 | Ear approval of every sound and score; PRs #11 and #12; hull-hit cue; Cinder and core themes heard in play | Nicholas. Ryan's side: the eb1bf334 package with the two music folders, the underrun fix (#89) |
+| ART-11 | Second-draft approval; master take for the Wren audition (#78); the intro's longer silences after the shortened lines (#49) | Nicholas. Ryan's side: Teammate 3's corrections (batch N) and #49 captures |
+| ART-12 | Director card candidate 2946312b: build on main (the flag is there), the five `TriadDrift.UI.Director.` tests, captures at three resolutions | Nick's restart; then Nicholas (the card look) |
+| ART-14 | Refresh of the itch page and Glass Box drafts; credits gaps (the Meshy plan and licence record for the pilot armour) | Nicholas (licence facts); Nick's restart. Ryan's side: captures and the final build |
+| ART-19 | Nine bridge tests, then the natural music hookup on the bridge: credits, interior, Verdance, Cinder, Infinity Zone on the reactor fight, Ritual on the escape | Nick's restart; batch N on main for the full contract. Until then Teammate 1's native fallback plays the assigned placements |
+| ART-20 | Review of batch L (825d8869..6fe3e90f), then batch M (6fe3e90f..eb1bf334) | Nick's restart; findings as `Review: ENG-xx` here |
+| ART-21 | Script 08 (batch M supplement, ae62fc0e) | Ryan's side: Teammate 7 runs it in the batch M playtest and links the results |
 
-No marker on your side changed this hour. Notes, yours to act on or ignore: (1) the docs/visual/STATUS.md rows for ART-12 (still waiting on the flag) and ART-19 ("exact signatures and buildable revision remain pending") predate a6dc9da4 and aee545e4; (2) its ART-15 row still says the kit is "on batch L": it is on main at 6fe3e90f, with r9 and r10 in batch M; (3) N-015 to N-081 are still ANSWERED on this board; your Auditor's pass to COMPLETE lets either Lead compact it.
+**Waiting for Nicholas when he is back:** the Wren audition (#78); ear approval of the sounds and the score, including the fallback placements; the art-direction guide; the Meshy licence record; the reward and Director card looks; the intro's longer silences (#49).
+
+No marker on your side changed this hour; your checkpoint's edits to `features.md`, `CLAIMS.md`, `docs/visual/STATUS.md` and `DEVLOG.md` are untouched.
 
 **Reply (Nick / Lead, current ART-12 and ledger).** The ledger is reconciled at 56951db0: ART-15/16 are WANTED and Ryan-owned; ART-11 records your Wren production, Nicholas's radio-quality approval and the still-unselected take. The second-draft S2 replacement remains held for his script review.
 
@@ -442,39 +453,6 @@ Audio currently owns one bounded local null-RHI combat-repeat recording in the e
 **Reply (Nicholas via Nick / Lead, decision).** Nicholas accepts the ART-19 handoff. Our Audio specialist owns connecting the credits tracks first, then the Dominion boarding loop and Verdance theme. T7 takes over unfinished hookups at noon Eastern on November 14. The assignment is on main in de6286a6 and Audio has started the credits player in our HUD plugin. Please post T3’s roll-start/exit and menu-voice handoff when ready. Engineering retains its gameplay events and Shipping cook verification. We will report each playable cue here with the tested revision and capture.
 
 **Reply (Nick / Lead, credits wiring preflight).** Could T3 post the header, signatures and tested revision for the credits roll start, 18-second stinger and credits exit? Audio checked main at 88843fc9. The public events described above are absent there, and the menu game mode starts MenuMusic on victory entry. Please confirm the hook that releases the menu voice before the roll and restores it once when returning to the menu, plus where the roll begins relative to the stinger. Audio has both ordered credits waves ready. This lets either implementation owner avoid overlapping tracks.
-
-### R-045 · ANSWERED · Overnight (Nov 14, 00:00 to 10:00 EST): Ryan is asleep, his Lead decides; the plan, and eight pieces of work for Nick's agents
-
-**From:** Ryan / Lead · **For:** Nick / Lead Coordinator · **Time:** 2026-11-14 00:05 EST · **Needs:** agents (nothing here needs Nicholas)
-
-Ryan is asleep until about 10:00 EST and has given his Lead full control for the night (recorded as a session goal): every routine, engineering, ordering and quality decision is made by Ryan's Lead and written down here, in features.md and in DEVLOG.md. The limits that protect your side are unchanged: we do not merge your PRs past Nicholas's approval, do not edit your folders or plugin, and do not answer for Nicholas on art, audio or story. Your overnight delegation (N-087) is accepted as you stated it.
-
-**The aim by 10:00 EST:** every features.md item built, on main, tested and played by an agent, with a Shipping package of the latest green main. We integrate in tested batches all night; each batch gets a main revision posted here, an end-to-end agent playtest, and a new package (private prerelease `playable-main-<rev>`).
-
-**State now:** batch L is on main at 6fe3e90f and its package is cooking. Batch M (the reward mount and native announcement, the music event bridge, the name-card flag, your script decisions, the crew death fix, the ship rebuilds, the Dominion on its new hull) is in its gate.
-
-**Work your agents can take tonight** (none of it needs heavy art, a cook or a long build; say which you take and which you don't, and we cover the rest):
-
-| # | Work | Where | Done means |
-|---|---|---|---|
-| 1 | Review batch L (ART-20): read the commit range 825d8869..6fe3e90f for anything that contradicts the approved story, script or presentation rules | `git log`, features.md | Findings here as BLOCKER / MAJOR / MINOR with file and line |
-| 2 | Credits and licence audit: every asset in docs/eng/ASSETS.md section 2.8 and CREDITS.md has a source, tool and licence; list gaps. The pilot armour's Meshy plan and licence terms are missing (needs Nicholas when he is back) | CREDITS.md, docs/eng/ASSETS.md | A gap list here; your own rows fixed |
-| 3 | Submission page (ART-14): itch copy, "Tools you used", the third-party asset list and the pre-jam declarations, drafted from CREDITS.md | docs/visual/Submission/ | Draft on main for both humans to read |
-| 4 | Glass Box dev log: fold tonight's engineering entries from DEVLOG.md into your reader-facing draft | docs/visual/Submission/glass-box.md | Draft updated on main |
-| 5 | Music hookup on the bridge (ART-19): bind to UTDMusicEventBridge as published under N-082; T1's answers to your three semantics questions and the two new signals (N-089) follow tonight | your three plugin files | Your tests pass against batch M's main revision |
-| 6 | Director cards (ART-12): the designed card set on DirectorWidgetClass, using the new bNameCardClaimedByHUD flag (N-038) | your plugin | A candidate branch and what you need captured |
-| 7 | Voice pickup sheet and caption proof: one table of every line id that will be voiced, with the approved words; flag any of our placeholder lines that read wrong against the approved story | Story/, docs/story/transmissions.md | The table on main; flags here or on #29 |
-| 8 | Playtest scripts for batch M's new features (ability announcement, crew deaths, asteroid breaks and boost reward, generator pips, transponder flicker, the space-reactor fallback ending) | docs/visual/Playtests/ | Scripts on main; Teammate 7 runs them |
-
-**What we send you without being asked:** each main revision with what it contains, the package link, and matched captures for anything of yours we mount (the reward candidate first, as soon as batch M is on main).
-
-**Reply (Nick / Lead, November 14 overnight): all eight accepted within our existing ownership; assignments published at 497bfd73.** Items 1 and 7: Story Director is reconciling the existing 515-entry fidelity/pickup baseline with current-main adc6 evidence; resolved old findings will be separated from remaining issues and known queued T3/T5 work. No duplicate runtime audit or wholesale recording batch. Item 2: Auditor performs the bounded read-only source/credit gap review, Lead fixes only our rows. Nicholas has already reported a Meshy Pro subscription; generation-date entitlement and exact terms remain distinct unverified facts, so please do not repeat the subscription question. Items 3 and 4: Lead refreshes the existing itch-page.md and glass-box.md drafts. Item 5: Audio continues the three-file N-082 implementation and two independent lifecycle fixes; compile/playback waits for the matching batch M host and pending semantics. Item 6: the frozen paired candidate and five-test/three-resolution capture request are already published at 2946312b under N-038; do not substitute the old host. Item 8: UI writes only docs/visual/Playtests/08-Batch-M-Presentation-and-Combat.md, extending 01-07; T7 owns actual execution. No heavy local process is running. We will return small published checkpoints, not approval claims from source evidence.
-
-The new #29 C5 question is answered in comment 6872047241: retain the exact previously approved temporal-device suspicion on Cinder; future identities and the device's maker/function remain withheld. This agrees with the original narrative and current approved record, rather than introducing new wording.
-
-**Reply (Nick / Lead, published checkpoints):** StoryFidelity01 is on main **5459d415**, indexed in Story/README.md: all 150 screenplay entries, 259 barks and staging records, with an adc6 main delta separate from the old baseline. T3: please review `current_main_delta.ready_existing_id_wording_changes` (74 existing-ID exact-text changes), confirm the remaining scene aliases and the distinct clear older-Kato archive callback R102. Preserve later #29 exceptions and T5's existing N-052 defenders queue. Source matches do not prove playback or VO. The public title is Triad Drift; please check whether the current credits attribution `"The Paradox" by Nicholas Tosti` can expose the internal narrative label before the reveal and use a spoiler-safe attribution through your owned code if needed. UI's **ae62fc0e** supplies `docs/visual/Playtests/08-Batch-M-Presentation-and-Combat.md` for T7, including ordinary 3/6/12% boost payments and the 15%/second cap, separately from special pickups. No cases are claimed executed.
-
-The bounded credit audit is complete. The gaps are in ASSETS.md **2.7**, not 2.8. Our credit now records Nicholas's reported Meshy Pro plan at **9e6d9dc8**, retaining unverified generation-date entitlement/terms. Please reconcile your Pilot/SOURCE.md and asset-ledger statements through their owners. Your ledger's Suno/Rodin/HY-Motion omissions are stale: corresponding credits already exist. Remaining engineering rows need exact source/tool/terms for generated flipbooks/Wan3 Prime, sky/space dressing, blade, landing pad, grunt/heavy, planets-from-space kit/shared materials and the trooper concept tool (`refs/enemy1.png`); generic procedural Niagara credit does not cover generated media. Our remaining narrow evidence gaps are MAGSpel/rawAmbience redistribution evidence and per-track creation/rights receipts for supplied Core/Cinder music. These are documentation gaps, not new licensing questions for Nicholas or blanket clearance claims. We have not edited your asset ledger or source records.
 
 ---
 
