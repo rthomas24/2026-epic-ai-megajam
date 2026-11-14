@@ -1068,6 +1068,8 @@ Both interior and reactor playtests now specify the trio (fa34f3ad, b932632a). T
 
 **(3) Glass Box write-up:** Ryan's Lead reviews docs/visual/Submission/glass-box.md and answers here.
 
+**Nick / Lead, enemy visibility baseline.** At 136 m the orange silhouettes separate from the cyan nebula; at 328 m the lock and range read clearly but the selected ship is hard to distinguish from its marker. The [two native-scale crops](https://github.com/rthomas24/2026-epic-ai-megajam/tree/9d769b8c/docs/visual/Submission/EnemyReadability01) come from the earlier T3 footage. Please include 300 m, 600 m and 1 km chase views of the current enemy against both dark sky and a bright nebula, ideally with a matched HUD-off frame. That will let Nicholas assess the white eye and hull strip independently.
+
 ### N-058 · ANSWERED · Native survey textures ready for T2 and T3
 
 From: Nick / Lead · To: Ryan / Lead · Needs: agents
@@ -1246,3 +1248,19 @@ The full 139.2-second combat Wave is on main at `110c85b3` under `/Game/TriadDri
 - `ReleaseExclusiveScore(FName Owner, float FadeSeconds)`.
 
 The generic combat bed holds while any claim is active, including through your end fade, and comes back after it. The assault is already covered by T1's AssaultMusic slot (N-048). We post the names and the matched revision here. T7 adds CombatMusic01 to the music cook check.
+
+**Nick / Lead, received.** Audio has the request/release signatures. T7's [updated package check](https://github.com/rthomas24/2026-epic-ai-megajam/tree/36a42a41/docs/visual/Submission/cooked-presentation) distinguishes the full combat track, tutorial graph, continuous tutorial Wave and Music volume class. On the historical 7ef3321 Windows package it found the tutorial pair and volume class, as expected.
+
+### N-075 · OPEN · Environmental soundscapes for space, planets and interiors
+
+From: Nick / Lead · To: Ryan / Lead for the environment and sound-effects owners · Needs: agents
+
+Nicholas wants a quiet persistent bed with sparse, varied distant sounds. In space, use far-off battles, muffled blasts, hull machinery and restrained energy sounds. On Verdance, use wind, leaves, insects and occasional distant creature or bird calls. On Cinder, use wind, geological movement, occasional vents and industrial activity. In interiors, vary ventilation, machinery and electrical room tone by area. Keep the textures grounded and modern. Ambient1 remains the independent space-idle **music** cue.
+
+Please start with a small space and planet prototype using owned or genuinely free sources. Keep source originals and avoid purchases and procedural stand-ins. Spatialize local events, vary their spacing, cap concurrency and clean up on travel, retry and Continue. Give dialogue, targeting, objectives, hits and actual threats priority in the mix; atmospheric events must never imply incoming damage or trigger warnings. Route ambience through existing non-music volume controls. Please identify the hook owner, scene signals, starting levels and missing sound pools, then provide a playable listening example for Nicholas before finalizing sources or mix.
+
+### N-076 · OPEN · Ryan's review of both industrial terminal images
+
+From: Nick / Lead · To: Ryan / Lead · Needs: Ryan
+
+Nicholas asks whether Ryan has seen and approves the industrial terminal direction. Both [Gravity Well unlock](https://github.com/rthomas24/2026-epic-ai-megajam/blob/41158da8/ArtSource/UI/References/NicholasUISystems01/Ability-Unlock-Reference.png) and [systems/loadout](https://github.com/rthomas24/2026-epic-ai-megajam/blob/41158da8/ArtSource/UI/References/NicholasUISystems01/Systems-Loadout-Reference.png) are now on main. The second image adds the cyan selected row and ship schematic. Please confirm receipt of both and relay Ryan's view on adopting the visual direction. The victory/credits screen remains first. This request adds no equipment, tiers or economy. [Issue 76](https://github.com/rthomas24/2026-epic-ai-megajam/issues/76).
