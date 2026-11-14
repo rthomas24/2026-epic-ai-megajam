@@ -89,6 +89,10 @@ The ship actually landed determines who boards. Dialogue or interactions can cha
 - **Final on-screen caption, approved verbatim.** “DISTRESS SIGNAL · TRIAD: WREN, KATO, MOSS · DATED DECADES AHEAD”
 - **Authority and authentication.** Use Command in prose and COMMAND in speaker labels. The authentication cue has three short, evenly spaced pulses. Nicholas will audition the final sound and exact timing.
 
+## Approved Verdance transfer wording
+
+Kato begins the transfer with “Transfer's moving. If they destroy this station, we lose everything.” (`G3_TransferStart`). As the archive nears completion, Kato says “Archive almost complete. Keep them back.” (`G3_Kato_AlmostThere`). Use both for subtitles and recording. The defense takes place at the survey station's relay. [Nicholas's wording in issue #29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6869573615)
+
 ## Approved Cinder decisions
 
 Nicholas approved [all six decisions in issue 29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6863767143). The fixed sequence is **terminal → excavation and crystal cache → field anchor → extraction**.
