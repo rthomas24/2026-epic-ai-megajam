@@ -18,6 +18,10 @@
 #include "TriadDrift/UI/TDUIPaint.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
+#include "TriadDrift/Combat/TDFieldDamageable.h"
+#include "TriadDrift/Combat/Pickups/TDPickup.h"
+
+static_assert(TDPickupTypeCount == 5, "UTDFlightHUDWidget::PickupSeen holds one count per pickup type");
 
 namespace TDFlightHUD
 {
@@ -252,6 +256,8 @@ void UTDFlightHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 
 void UTDFlightHUDWidget::NativeDestruct()
 {
+	FTDFieldDamage::OnPlayerFieldHit.Remove(FieldHitHandle);
+	FieldHitHandle.Reset();
 	if (ATDSpacePlayerController* PC = BoundPC.Get())
 	{
 		PC->OnHyperdriveInput.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHyperdriveInput);
@@ -710,6 +716,14 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		}
 	}
 
+	// T6's field: the quiet hit tick (a player shot into a rock).
+	if (!FieldHitHandle.IsValid())
+	{
+		FieldHitHandle = FTDFieldDamage::OnPlayerFieldHit.AddUObject(this, &UTDFlightHUDWidget::HandleFieldHit);
+	}
+	FieldHitLeft = FMath::Max(0.f, FieldHitLeft - Dt);
+	View.FieldHit01 = FieldHitLeft / FieldHitSeconds;
+
 	// Space pickups: a marker for each within 800 m, a toast when one is taken, the overcharge timer.
 	View.Pickups.Reset();
 	View.Overcharge01 = View.OverchargeSeconds = 0.f;
@@ -734,7 +748,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 			}
 			M.Distance = FVector::Dist(From, Pk->GetActorLocation()) / 100.f;
 		}
-		for (int32 I = 0; I < 4; ++I)
+		for (int32 I = 0; I < TDPickupTypeCount; ++I)
 		{
 			const int32 N = Pickups->GetCollected(static_cast<ETDPickupType>(I));
 			if (N > PickupSeen[I])
@@ -746,6 +760,8 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 			}
 			PickupSeen[I] = N;
 		}
+		View.DebrisCount = Pickups->GetDebrisThisScene();
+		View.DebrisAge = Pickups->GetSecondsSinceDebris();
 		const float Total = Pickups->GetOverchargeSeconds();
 		View.OverchargeSeconds = Pickups->GetOverchargeRemaining();
 		View.Overcharge01 = Total > 0.f ? FMath::Clamp(View.OverchargeSeconds / Total, 0.f, 1.f) : 0.f;
@@ -1310,6 +1326,27 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		P.ArcSpan(C, RingR, -PI * .5f, 2.f * PI * View.Overcharge01, Gold, 2.5f);
 		P.BackedWords(C.X, C.Y - RingR - 22.f, FString::FromInt(FMath::CeilToInt(View.OverchargeSeconds)), 13, Gold, .5f, 20);
 		Rec(TEXT("overcharge"), C.X - RingR, C.Y - RingR, 2.f * RingR, 2.f * RingR);
+	}
+
+	// ---- T6's field, kept quiet: a faint, small tick at the reticle per rock hit (no sound; ships get the bold one), and
+	// "DEBRIS n" above the squad strip for a moment after each break, brighter for its first 0.3 s.
+	if (View.FieldHit01 > 0.f)
+	{
+		const FLinearColor Tick = T::Neutral().CopyWithNewOpacity(.45f * View.FieldHit01);
+		for (const FVector2D D : { FVector2D(.707f, .707f), FVector2D(-.707f, .707f), FVector2D(.707f, -.707f), FVector2D(-.707f, -.707f) })
+		{
+			P.Line(C + D * 6.f, C + D * 10.f, Tick, 1.5f);
+		}
+		Rec(TEXT("field_hit"), C.X - 10.f, C.Y - 10.f, 20.f, 20.f);
+	}
+	if (View.DebrisCount > 0 && View.DebrisAge < DebrisShowSeconds && View.Chips.Num() > 0)
+	{
+		const float Fresh = FMath::Clamp(1.f - View.DebrisAge / .3f, 0.f, 1.f);
+		const float Fade = FMath::Clamp((DebrisShowSeconds - View.DebrisAge) / .5f, 0.f, 1.f);
+		const FVector2D Chip = View.Chips[0].Pos;
+		const FLinearColor DebrisInk = FMath::Lerp(T::Dim(), T::Neutral(), Fresh).CopyWithNewOpacity(.85f * Fade);
+		P.BackedWords(Chip.X + 6.f, Chip.Y - 74.f, FString::Printf(TEXT("DEBRIS  %d"), View.DebrisCount), 13, DebrisInk, 0.f, 80);
+		Rec(TEXT("debris"), Chip.X, Chip.Y - 78.f, 140.f, 22.f);
 	}
 
 	// ---- the collect toast, just above the squad strip: the pickup's word in its colour, rising a little, then fading
