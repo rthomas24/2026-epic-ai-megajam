@@ -299,7 +299,7 @@ bool ATDSpaceField::IsPlacementAllowed(const FVector& P, float Size, bool bColli
 			return false;
 		}
 	}
-	if (FVector::Dist(P, Xf.TransformPosition(L.Dominion.GetLocation())) < DominionKeepOut + Half)
+	if (FVector::Dist(P, Xf.TransformPosition(L.Dominion.GetLocation())) < (bMoonPlacement ? MoonDominionClear : DominionKeepOut) + Half)
 	{
 		return false;
 	}

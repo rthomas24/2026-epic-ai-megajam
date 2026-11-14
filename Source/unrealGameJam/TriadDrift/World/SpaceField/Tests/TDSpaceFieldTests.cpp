@@ -69,7 +69,7 @@ bool FTDSpaceFieldFills::RunTest(const FString& Parameters)
 			bOk &= FVector::Dist(P.Location, Zone) >= 150000.f + Half * 0.f;
 			bOk &= !F.Layout->IsInKeepOut(Xf.InverseTransformPosition(P.Location), 20000.f);
 			for (const FTDPlanetSpec& Pl : L.Planets) { bOk &= FVector::Dist(P.Location, Xf.TransformPosition(Pl.Location)) > Pl.AtmosphereRadius * 1.3f; }
-			bOk &= FVector::Dist(P.Location, Xf.TransformPosition(L.Dominion.GetLocation())) > 350000.f; // T4: Dominion, field, generators, docking cone, escape
+			bOk &= FVector::Dist(P.Location, Xf.TransformPosition(L.Dominion.GetLocation())) > 180000.f; // T4: the Dominion core (the Moons sit closer; the rest keep 3.5 km)
 				for (const FTDPlanetSpec& Pl : L.Planets)
 				{
 					// The Verdance convoys (Dominion -> Verdance, offsets up to 900 m).
@@ -313,7 +313,7 @@ bool FTDSpaceFieldStructuresKeepOut::RunTest(const FString& Parameters)
 	{
 		const float Half = S.Size * 0.5f;
 		bool bOk = FVector::Dist(S.Location, Zone) >= 150000.f;
-		bOk &= FVector::Dist(S.Location, DLoc) >= 350000.f;
+		bOk &= FVector::Dist(S.Location, DLoc) >= 180000.f;	// the Moons: T4 finer keep-outs (core, bow tube, stage start)
 		for (const FVector& E : Ends) { bOk &= FVector::Dist(S.Location, FMath::ClosestPointOnSegment(S.Location, Zone, E)) > 15000.f + Half * 0.5f; }
 		bOk &= FVector::Dist(S.Location, FMath::ClosestPointOnSegment(S.Location, DLoc, DLoc + Bow * 500000.f)) > 40000.f;	// T4: the escape corridor
 		if (!bOk) { ++Bad; if (First.IsEmpty()) { First = FString::Printf(TEXT("%s size %.0f m"), *S.Location.ToCompactString(), S.Size / 100.f); } }
