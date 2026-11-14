@@ -768,6 +768,7 @@ void UTDGameInstance::ResetRunState()
 	Progress = FTDProgress();
 	LastCheckpoint = FTDCheckpoint();
 	SceneOrder.Reset();
+	RunOnceBarks.Reset();
 	LastObjective = FTDObjectiveLine();
 	VictoryTravelLeft = -1.f;
 	CurrentSceneId = NAME_None;

@@ -12,6 +12,7 @@
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Ground/TDGroundBarks.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Squad/TDBarkLines.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDJourney.h"
@@ -630,6 +631,40 @@ bool FTDInteriorArenaSpawnsFar::RunTest(const FString& Parameters)
 		}
 	}
 	TestEqual(TEXT("nine spawn points"), Points, 9);
+	return true;
+}
+
+// N-052 (T3's G8 sequences): the reactor room starts with Face to Face for the boarding pilot, and overcoming the room's
+// defenders plays its "overcome" half.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorFaceToFace, "TriadDrift.Ground.Interior.FaceToFaceAtTheReactorAndWhenItsDefendersFall", TD_TEST_FLAGS)
+bool FTDInteriorFaceToFace::RunTest(const FString& Parameters)
+{
+	const TArray<FName>& Ids = ATDPlanetCourse::InteriorObjectiveIds();
+	TDInteriorTest::FInterior I({ Ids[0], Ids[1], Ids[2] });
+	if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(I.W, I.Course->GetInteriorStart().GetLocation() + FVector(0.f, 0.f, 95.f));
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(I.W.GetWorld());
+	if (!TestNotNull(TEXT("pilot"), P) || !TestNotNull(TEXT("story"), Story)) { return false; }
+	P->GetHealth()->SetInvulnerable(true);
+	const ETDShipId Boarder = ATDFirstPersonCharacter::GetOnFootPilotShip(I.W.GetWorld());
+	const FName Entry = UTDStorySubsystem::FaceToFaceSequence(Boarder, false);
+	const FName Over = UTDStorySubsystem::FaceToFaceSequence(Boarder, true);
+	TestTrue(TEXT("the reactor starts"), I.Course->StartObjectiveAt(Ids[3]));
+	I.W.Advance(0.2f);
+	TestTrue(*FString::Printf(TEXT("%s plays as the room starts"), *Entry.ToString()), Story->IsSequencePlaying(Entry));
+	Story->SkipSequence();
+	I.W.Advance(0.2f);
+	// The room's defenders (the drones today): beat them.
+	ATDObjective* Reactor = I.Obj(3);
+	for (TActorIterator<ATDEncounterVolume> It(I.W.GetWorld()); It; ++It)
+	{
+		if (It->LinkedObjective != Reactor) { continue; }
+		It->Activate();
+		for (const TWeakObjectPtr<AActor>& M : It->GetSpawned()) { if (UTDHealthComponent* H = M.IsValid() ? UTDStatics::GetHealth(M.Get()) : nullptr) { H->Kill(P, ETDDamageKind::Melee); } }
+		I.W.Advance(0.2f);
+		TestTrue(TEXT("the defenders are overcome"), It->IsCleared());
+	}
+	TestTrue(*FString::Printf(TEXT("%s plays when they fall"), *Over.ToString()), Story->IsSequencePlaying(Over));
 	return true;
 }
 
