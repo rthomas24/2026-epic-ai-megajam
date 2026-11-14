@@ -515,6 +515,40 @@ void ATDPlanetCourse::BuildInterior()
 	FinishObjective(Run, { LOCTEXT("DIE0", "GET BACK TO YOUR SHIP") }, { Ship });
 	Entry(Escape, FVector(L2X1 + 300.f, 0.f, 0.f), 180.f);
 	Routes.Add({ FVector(-600.f, 0.f, 0.f), CoreAt });
+
+	// Emergency strips (environment builder's UTDInteriorLightSubsystem, Lead Nov 14): every kit piece with a strip slot
+	// (MI_KitD_Glow*, parent M_TD_DominionGlow) is tagged TD.EmergencyStrip and gets its own instance on that slot, so
+	// the alarm can drive the strip glow per component. The parent has no EmergencyPulse parameter yet (a binary material
+	// edit): its scalars today are GlowStrength (the glow, read the base from the instance) and PulseAmount.
+	{
+		// The kit pieces on the dressing actor, and the doors (SM_DI_Door's strip is its slot 1).
+		TArray<UStaticMeshComponent*> Pieces;
+		for (AActor* A : Spawned)
+		{
+			TArray<UStaticMeshComponent*> Own;
+			if (A) { A->GetComponents(Own); Pieces.Append(Own); }
+		}
+		int32 Strips = 0;
+		for (UStaticMeshComponent* C : Pieces)
+		{
+			bool bStrip = false;
+			for (int32 i = 0; C && i < C->GetNumMaterials(); ++i)
+			{
+				const UMaterialInterface* M = C->GetMaterial(i);
+				if (M && M->GetName().StartsWith(TEXT("MI_KitD_Glow")))
+				{
+					C->CreateDynamicMaterialInstance(i);
+					bStrip = true;
+				}
+			}
+			if (bStrip)
+			{
+				C->ComponentTags.AddUnique(EmergencyStripTag);
+				++Strips;
+			}
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("Dominion interior: %d kit pieces carry emergency strips (%s)"), Strips, EmergencyStripTag);
+	}
 }
 
 void ATDPlanetCourse::HandleInteriorObjectiveCompleted(ATDObjective* Objective)
@@ -650,7 +684,17 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 	// starts, the disruption, data secured and the way home.
 	if (Id == TEXT("Obj_Relay") && StepIndex == 2) { Beat(TEXT("G3_TransferStart")); }
 	else if (Id == TEXT("Obj_Relay") && StepIndex == 3) { Beat(TEXT("G3_Disruption")); }
-	else if (Id == TEXT("Obj_Relay") && StepIndex == 4) { Beat(TEXT("G3_DataSecured")); Beat(TEXT("G3_Command_Extraction")); }
+	else if (Id == TEXT("Obj_Relay") && StepIndex == 4)
+	{
+		Beat(TEXT("G3_DataSecured"));
+		Beat(TEXT("G3_Command_Extraction"));
+		// Cloak with the data secured, not at the pad 4 minutes later (T7's play, Nov 14; script 02). The objective's own
+		// completion at the ship then finds it unlocked and does not announce it again.
+		if (UTDGameInstance* GI = UTDGameInstance::Get(this); GI && !GI->IsRetakePending())
+		{
+			GI->UnlockAbility(Objective->RewardAbility, Objective->RewardShip);
+		}
+	}
 	// Cinder (T3's ids): no echo on the route (story alignment a5 / a7); the only echo is in Cinematic 05 at the terminal.
 	else if (Id == TEXT("Obj_Survey") && StepIndex == 1) { Beat(TEXT("G4_Kato_TerminalAhead")); }
 	else if (Id == TEXT("Obj_Outpost") && StepIndex == 0) { Beat(TEXT("G5_Wren_ClearRoute")); }
@@ -667,6 +711,7 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 	else if (Id == Core && StepIndex == 1)
 	{
 		Beat(TEXT("G8_Kato_HeartExposed"));
+		if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->NotifyCoreExposed(); }
 		PlayReactorFX(TEXT("ShieldDrop"), CoreShield ? CoreShield->GetComponentLocation() : (ReactorHeart ? ReactorHeart->GetActorLocation() : GetActorLocation()));
 	}
 	else if (Id == Escape && StepIndex == 0) { Beat(TEXT("A5_Escape")); Beat(TEXT("G9_Moss_HoldingWayOut")); OnInteriorMoment.Broadcast(TEXT("EscapeStarted"), this);
@@ -849,6 +894,7 @@ void ATDPlanetCourse::StopReactorLoop(FName Slot)
 void ATDPlanetCourse::HandleConduitDown(UTDHealthComponent* Health, const FTDDamageInfo& Info)
 {
 	++ConduitsDown;
+	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->NotifyConduitDown(); }
 	PlayReactorFX(TEXT("ConduitBreak"), Health && Health->GetOwner() ? Health->GetOwner()->GetActorLocation() : GetActorLocation());
 	UTDStorySubsystem::Fire(this, ConduitsDown == 1 ? TEXT("G8_Kato_ConduitDown") : TEXT("G8_Moss_KeepMoving")); // T3: the first, then the second
 }
