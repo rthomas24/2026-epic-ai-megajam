@@ -159,5 +159,14 @@ SHIPS["NullInterceptor"] = _null("NullInterceptor", "Interceptor", {
               fins=[([(-3.15, 0.05), (-1.55, 0.05), (-2.35, 1.75), (-3.05, 1.95)], 0.95, 0.07, 0.38)]))
 
 
+# From behind the bomber was the fighter's recipe at twice the size (flat wedge, three engines in a row): it gets a
+# twin-boom tail, two booms running 2.6 m aft of the engines with a fin on each (Lead, Nov 14).
+SHIPS["NullBomber"] = _null("NullBomber", "Bomber", {
+    "Muzzle_0": (-100, 0, -105), "Engine_0": (-563, -165, -10), "Engine_1": (-563, 165, -10), "Engine_2": (-592, 0, 15)},
+    tri_budget=13000,
+    fins=dict(lances=[(-8.5, -3.0, 3.3, 0.05, 0.34, 0.30)],
+              fins=[([(-8.5, 0.15), (-6.9, 0.15), (-7.7, 1.9), (-8.5, 2.1)], 3.3, 0.09, 0.0)]))
+
+
 def get(ship):
     return SHIPS[ship]
