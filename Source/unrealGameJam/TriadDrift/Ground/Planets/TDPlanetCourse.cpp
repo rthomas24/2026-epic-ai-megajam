@@ -482,6 +482,31 @@ void ATDPlanetCourse::DressOutpost(const FVector& Site, float Yaw, FName Tag)
 		{ Out, TEXT("SM_Outpost_BollardLight"), FVector(760.f, 260.f, 0.f), 0.f, 1.f, true },
 		{ Out, TEXT("SM_Outpost_BollardLight"), FVector(760.f, -260.f, 0.f), 0.f, 1.f, true },
 	}, Site, Yaw, Tag);
+	// Nicholas's recoloured Fab props (batch BJ; environment builder): dressing at 1.0 against the outpost's sides, away from
+	// the ramp (+X between the bollards) and the door; one blocking hull each, never stood on.
+	const TCHAR* Crate = TEXT("Fab/CrateStack");
+	const TCHAR* Barrel = TEXT("Fab/OilBarrel");
+	const TCHAR* Core = TEXT("Fab/PowerCore");
+	if (Tag == TEXT("CinderOutpost"))
+	{
+		Dress({
+			{ Crate, TEXT("SM_Fab_CrateStack"), FVector(300.f, 600.f, 0.f), 8.f, 1.f, true },
+			{ Crate, TEXT("SM_Fab_CrateStack"), FVector(110.f, 650.f, 0.f), -12.f, 1.f, true },
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-660.f, -170.f, 0.f), 0.f, 1.f, true },	// by the generator and the junction
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-720.f, -250.f, 0.f), 40.f, 1.f, true },
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-650.f, -320.f, 0.f), 75.f, 1.f, true },
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-610.f, -540.f, 0.f), 15.f, 1.f, true },
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-530.f, -600.f, 0.f), 60.f, 1.f, true },
+			{ Core, TEXT("SM_Fab_PowerCore"), FVector(-330.f, -540.f, 0.f), 90.f, 1.f, true },
+		}, Site, Yaw, Tag);
+	}
+	else if (Tag == TEXT("VerdanceOutpost"))
+	{
+		Dress({
+			{ Crate, TEXT("SM_Fab_CrateStack"), FVector(300.f, 600.f, 0.f), 8.f, 1.f, true },
+			{ Core, TEXT("SM_Fab_PowerCore"), FVector(-660.f, -330.f, 0.f), 90.f, 1.f, true },
+		}, Site, Yaw, Tag);
+	}
 }
 
 void ATDPlanetCourse::DressPad(FName Tag)
