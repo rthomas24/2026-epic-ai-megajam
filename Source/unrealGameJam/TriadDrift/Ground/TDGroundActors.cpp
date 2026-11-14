@@ -781,7 +781,7 @@ void ATDEncounterVolume::Activate()
 	}
 	// ENG-45: the difficulty's crew count, as the Armada's pack sizes (a lone boss stays alone; named crews, the
 	// reactor's future pilots, will be exempt when they land).
-	if (Points.Num() > 1)
+	if (Points.Num() > 1 && MemberNames.Num() == 0) // named crews (the reactor's future pilots) are exactly who they are
 	{
 		const int32 Want = UTDDifficultySettings::ScaleCount(Points.Num(), UTDDifficultySettings::GetScale().WaveSize);
 		const int32 Base = Points.Num();
@@ -809,6 +809,10 @@ void ATDEncounterVolume::Activate()
 		if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member))
 		{
 			Crew->CrewType = CrewMix.Num() > 0 ? CrewMix[i % CrewMix.Num()] : ETDCrewType::Grunt;
+			if (MemberNames.Num() > 0)
+			{
+				Crew->FuturePilot = MemberNames[i % MemberNames.Num()];
+			}
 		}
 		Member->FinishSpawning(Xf);
 		if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member))
