@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Enemies/TDArmadaForesight.h"
+#include "TriadDrift/Enemies/TDEnemyAIController.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
@@ -927,6 +928,13 @@ namespace TDSquad
 	{
 		const UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
 		return Move ? Move->GetBoundaryWarningText() : FText::GetEmpty();
+	}
+
+	AActor* GetEnemyTarget(const AActor* Enemy)
+	{
+		const APawn* Pawn = Cast<APawn>(Enemy);
+		const ATDEnemyAIController* AI = Pawn ? Cast<ATDEnemyAIController>(Pawn->GetController()) : nullptr;
+		return AI ? AI->GetTarget() : nullptr;
 	}
 
 	AActor* GetCurrentTarget(const ATDShip* Ship)

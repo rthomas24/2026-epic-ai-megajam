@@ -413,6 +413,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Barks", meta = (ClampMin = "0", Units = "s"))
 	float ShipDownBarkGapSeconds = 10.f;
 	double LastShipDownBarkTime = -1000.0;
+	/** Bark_Swarm_Saved (dialogs.md): Moss, when a swarm missile kills an enemy that was on a hurt wingman. */
+	double LastSwarmSavedBarkTime = -1000.0;
 
 	/** A wingman just entered a fight: it calls where it is, seen from the player's camera. */
 	void NotifyWingmanEngaged(ETDShipId Ship);
