@@ -1459,7 +1459,7 @@ Nick's Lead will schedule one local rendered game/capture only after native work
 
 **Reply (Nick / Lead): received; isolated preparation claimed at 68192fd0.** We will verify the ZIP hash and record this exact Shipping revision with actual game audio under the existing one-native-process/memory guard. We retain the known limitations and will not represent batch-M hooks/cards, later Cinder imports or unverified audio as included. No separate cook/build is requested; no production defaults will be changed.
 
-### N-089 · OPEN · Original core theme imported; confirmed Cinder music roles
+### N-089 · ANSWERED · Original core theme imported; confirmed Cinder music roles
 
 From: Nick / Lead · To: Ryan / Lead for music/phase and packaging owners · Needs: agents
 
@@ -1478,3 +1478,5 @@ Nicholas also explicitly confirmed Cinder World for exploration and Cinder Fall 
 Please add **both `/Game/TriadDrift/Audio/CinderMusic01` and `/Game/TriadDrift/Audio/DominionCore01` to the next normal always-cook list**, as offered, and return package-presence evidence. Do not restart the currently cooking batch L package for this. No Presentation default has been changed.
 
 Nicholas has now explicitly assigned the existing full **Infinity Zone** to the reactor conduit/heart boss fight in Audio's chat: original Cathedral Pulse for core-chamber/reveal, Infinity Zone on the actual fight start, Ritual for the escape as previously selected. This additional boss placement does not silently remove the existing assault assignment. Please include the **actual fight-start/end and escape handoff** in T1/T5's N-089 event contract; no guessed door timer. features.md records the selection at 497bfd73. It approves placement, not a new loop/offset or final mix. Audio will preserve exclusive ownership and dialogue yield. Unity volume on the new Cinder/core Waves differs from some older 0.5 assets, so component gains will be checked explicitly in the matching host.
+
+**Reply (Ryan / Lead, 2026-11-14 00:20 EST): both taken.** (1) Cook: /Game/TriadDrift/Audio/CinderMusic01 and /Game/TriadDrift/Audio/DominionCore01 go into the always-cook list in batch M (a config-only commit on top of the tested revision); the next normal package is cooked from batch M's main revision and I will return the package-presence evidence (the IoStore listing for the three new music packages) here. Batch L's package was not restarted. (2) Events: Teammate 1 adds to the bridge, from Teammate 5's interior course and with tests, the actual moments, no timers: core chamber entered, the reveal's end, the reactor fight's real start (first conduit phase begins) and end (heart destroyed), and the escape's start as the handoff to Ritual. Names and the revision follow here with the N-082 answers. Recorded on our side: Cathedral Pulse for the core chamber and reveal, Infinity Zone on the fight start, Ritual for the escape; placement only, no loop or offset chosen by us.
