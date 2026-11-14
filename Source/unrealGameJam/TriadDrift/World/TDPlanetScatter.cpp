@@ -95,7 +95,7 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 	};
 	if (Planet == ETDDestination::Verdance)
 	{
-		P.CanopySpacing = 5000.f;	// pass 3: ~2-3x the clumps inside a stand (none in the gaps), so a stand reads as forest
+		P.CanopySpacing = 7000.f;	// s6: larger clumps on a wider grid (same instance count), overlapping inside a stand
 		R.Trees = P.Kinds.Num();
 		for (const FTDScatterSpecies& S : GTDScatterTrees)
 		{
@@ -112,11 +112,32 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		// forest stands (MI_Scatter_Canopy_Forest), with the bioluminescent pink / cyan clumps kept as accents (~12 %).
 		// pass 3: the forest stands are SM_Scatter_Verd_CanopyStand_01..03 (environment builder, Blender: lumpy crown masses,
 		// dark concave underside in vertex colour, 60-80 tris, 30-42 m; M_TD_CanopyStand dithers them out nearer ~0.75 km).
-		for (int32 i = 1; i <= 3; ++i)
+		// pass 4: the stands are SM_Scatter_Verd_TreeClump_01..04 instead: 5-9 of the real PVE trees (Kapok, Brazil nut)
+		// merged per clump, trunks dropped, each crown reduced to its lumpy hull (558-578 tris, 35-65 m wide);
+		// MI_TreeClump_Verdance fades them in from ~0.4 km, where the mid ring's real trees end. Sunk so the crown undersides
+		// (the trunks are gone) meet the forest floor: 18 m per unit of scale (s5: at 9 m they floated over the ridges seen
+		// from the pad); 1.3-2.0x so neighbouring clumps close into one canopy at 300-900 m with the same instance count.
+		for (int32 i = 1; i <= 4; ++i)
 		{
-			R.Canopy.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Verd_CanopyStand_%02d"), i)), 1.4f, 2.2f, 300.f, 420000.f, 460000.f, 2200.f, false, false, false));
+			// s6: 1.9-2.7x across but 0.6 of that in height (a clump spans ~70-170 m, crowns ~25-60 m high), sunk 18 m per
+			// unit of height scale and seated on the lowest ground under its footprint (25 m x scale)
+			const int32 Ci = Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Verd_TreeClump_%02d"), i)), 1.9f, 2.7f, 1800.f, 420000.f, 460000.f, 2200.f, false, false, false);
+			P.Kinds[Ci].ZScale = 0.6f;
+			P.Kinds[Ci].ContactRadiusCm = 2500.f;
+			R.Canopy.Add(Ci);
 		}
 		R.CanopyAccent.Add(Add(TDScatter_Path(TEXT("Scatter"), TEXT("SM_Scatter_Verd_Canopy_02")), 1.0f, 1.5f, 400.f, 420000.f, 460000.f, 4000.f, false, false, false));
+		// s6 story: the wreck scar. Something came down on the research site from the north-east: a 550 m strip of burned
+		// forest, narrow at the site and widening outward, readable from the landing approach (charred trunks, scorch).
+		P.ScarA = FVector2D(13000.f, 8200.f);
+		P.ScarB = FVector2D(57000.f, 41000.f);
+		P.ScarHalfA = 1500.f;
+		P.ScarHalfB = 6000.f;
+		for (int32 i = 1; i <= 2; ++i)
+		{
+			R.CharTrees.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.4f, 2.4f, 30.f, 180000.f, 240000.f, 300.f, true, false, true));
+		}
+		P.ScorchKind = Add(TDScatter_Path(TEXT("Kit/Story"), TEXT("SM_Kit_ScorchLines")), 4.f, 6.5f, 0.f, 180000.f, 240000.f, 1200.f, false, false, false);
 		for (int32 i = 1; i <= 3; ++i)
 		{
 			R.Rocks.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Rock_%02d"), i)), 1.5f, 4.5f, 60.f, 100000.f, 140000.f, 500.f, true, true, true));
@@ -155,9 +176,11 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		P.GroveSpacing = 3500.f;	// crystal clusters: the obsidian patches cover a larger share of Cinder than groves do of Verdance
 		P.CanopySpacing = 6000.f;	// spires
 		const FString RockMat = FString::Printf(TEXT("%s/Scatter/MI_Scatter_Rock_Cinder.MI_Scatter_Rock_Cinder"), GProps);
+		const FString ColumnMat = FString::Printf(TEXT("%s/Scatter/MI_Scatter_Column_Cinder.MI_Scatter_Column_Cinder"), GProps);
 		for (int32 i = 1; i <= 2; ++i)
 		{
-			R.Columns.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_BasaltColumn_%02d"), i)), 3.f, 7.f, 80.f, 260000.f, 320000.f, 900.f, true, false, true));
+			// pass 4: M_TD_ScatterColumn (near-black base, weathered grey up the shaft, pale ash tops) so they read from the air
+			R.Columns.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_BasaltColumn_%02d"), i)), 3.f, 7.f, 80.f, 260000.f, 320000.f, 900.f, true, false, true, ColumnMat));
 		}
 		for (int32 i = 1; i <= 2; ++i)
 		{
@@ -233,6 +256,20 @@ bool FTDScatterPlan::IsCourseClear(float X, float Y, float Radius) const
 	return true;
 }
 
+float FTDScatterPlan::ScarWeight(float X, float Y) const
+{
+	if (ScarHalfB <= 0.f) { return 0.f; }
+	const FVector2D P(X, Y), D = ScarB - ScarA;
+	const float Len2 = FMath::Max(D.SizeSquared(), 1.f);
+	const float T = FVector2D::DotProduct(P - ScarA, D) / Len2;
+	if (T < 0.f || T > 1.f) { return 0.f; }
+	const float Half = FMath::Lerp(ScarHalfA, ScarHalfB, T);
+	// a ragged edge: the half width breathes with a slow noise along the strip
+	const float Edge = Half * (0.8f + 0.4f * (FTDTerrainField::Noise2D(T * 18.f, 3.1f, 4411) * 0.5f + 0.5f));
+	const float Dist = FVector2D::Distance(P, ScarA + D * T);
+	return FMath::Clamp(1.f - Dist / FMath::Max(Edge, 1.f), 0.f, 1.f) * FMath::Clamp(T * 20.f, 0.f, 1.f);
+}
+
 bool FTDScatterPlan::IsPatch(const FTDTerrainSample& Sm) const
 {
 	return Planet == ETDDestination::Cinder ? Sm.FineMask > ObsidianFineMin
@@ -270,9 +307,15 @@ int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM
 		}
 		case ModeCanopy:
 		{
-			// Stands with gaps: only where the stand noise is up (about 45 % of the forest), denser in rainforest.
-			if (Stand < 0.1f) { return INDEX_NONE; }
-			const float Density = (Moist > RainforestBroad ? 0.9f : (Moist > MixedBroad ? 0.5f : 0.f)) * FMath::Clamp(1.f - (Sm.Slope - 0.25f) * 3.f, 0.f, 1.f)
+			// s6: continuous stands over ~35-45 % of the vegetated lowland, with clearings: the stand noise against a threshold
+			// that drops with moisture (rainforest ~50 %, open meadow ~30 %) and in the low ground (valleys and drainage, the
+			// bottom 300 m over the pad), full density inside a stand so crowns overlap; none on slopes over ~25 degrees
+			// (s6 sheet: that left the hills bare; now ~34 degrees, Slope 0.17) nor on the heights; RunLayer's contact check
+			// drops any clump whose footprint spans a ridge edge, so no crown overhangs a cliff top.
+			const float Valley = FMath::Clamp(1.f - HeightM / 300.f, 0.f, 1.f);
+			const float Threshold = 0.12f - 0.3f * Moist - 0.15f * Valley;
+			if (Stand < Threshold) { return INDEX_NONE; }
+			const float Density = FMath::Clamp((Stand - Threshold) * 12.f, 0.f, 1.f) * FMath::Clamp((0.17f - Sm.Slope) / 0.04f, 0.f, 1.f)
 				* FMath::Clamp(1.f - (HeightM - 900.f) / 500.f, 0.f, 1.f);
 			if (Rnd >= Density) { return INDEX_NONE; }
 			const float Pk = Rnd / FMath::Max(Density, 0.01f);
@@ -282,10 +325,13 @@ int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM
 		{
 			// Boulders sparse everywhere; big boulders at cliff feet (moderate slopes under steep ones) and on the heights.
 			const float Cliff = FMath::Clamp((Sm.Slope - 0.28f) * 4.f, 0.f, 1.f) * FMath::Clamp((0.65f - Sm.Slope) * 6.f, 0.f, 1.f);
-			const float Density = 0.05f + 0.45f * Cliff + 0.12f * FMath::Clamp((HeightM - 700.f) / 600.f, 0.f, 1.f);
+			// s6: a scree skirt where the meadow meets a cliff (the 15-35 degree band under the walls), so the cliff no
+			// longer meets the grass at a hard seam
+			const float Foot = FMath::Clamp((Sm.Slope - 0.035f) * 20.f, 0.f, 1.f) * FMath::Clamp((0.2f - Sm.Slope) * 10.f, 0.f, 1.f);
+			const float Density = 0.05f + 0.45f * Cliff + 0.22f * Foot + 0.12f * FMath::Clamp((HeightM - 700.f) / 600.f, 0.f, 1.f);
 			if (Rnd > Density) { return INDEX_NONE; }
 			const float Pk = Rnd / FMath::Max(Density, 0.01f);
-			return Cliff > 0.3f ? TDScatter_OneOf(R.CliffRocks, Pk) : TDScatter_OneOf(R.Rocks, Pk);
+			return (Cliff > 0.3f || Foot > 0.5f) ? TDScatter_OneOf(R.CliffRocks, Pk) : TDScatter_OneOf(R.Rocks, Pk);
 		}
 		case ModeGrove:
 		{
@@ -375,6 +421,24 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 			if (X < Rect.Min.X || X >= Rect.Max.X || Y < Rect.Min.Y || Y >= Rect.Max.Y) { continue; }
 			const float Zone = ZoneWeight(X, Y);
 			if (Zone <= 0.f || TDScatter_Hash01(Seed, ix, iy, Salt + 2) > Zone || IsKeptOut(Field, X, Y)) { continue; }
+			if (ScarHalfB > 0.f && (Mode == ModeFar || Mode == ModeDense || Mode == ModeCanopy))
+			{
+				const float Scar = ScarWeight(X, Y);
+				if (Scar > 0.f)
+				{
+					// Inside the scar: no living forest; on the far-tree grid, a charred trunk now and then
+					const TArray<int32>& Char = TDScatter_Ranges(Planet).CharTrees;
+					if (Mode == ModeDense || Char.Num() == 0 || TDScatter_Hash01(Seed, ix, iy, Salt + 9) > 0.9f * Scar) { continue; }
+					const int32 Ck = TDScatter_OneOf(Char, TDScatter_Hash01(Seed, ix, iy, Salt + 10));
+					const FTDScatterKind& K = Kinds[Ck];
+					if (!IsCourseClear(X, Y, K.ClearRadiusCm * K.MaxScale)) { continue; }
+					const float Sc = FMath::Lerp(K.MinScale, K.MaxScale, TDScatter_Hash01(Seed, ix, iy, Salt + 4));
+					const FTransform Xf(FRotator(TDScatter_Hash01(Seed, ix, iy, Salt + 6) * 16.f - 8.f, TDScatter_Hash01(Seed, ix, iy, Salt + 5) * 360.f, 0.f),
+						FVector(X, Y, Field.Height(X, Y) - K.SinkCm * Sc), FVector(Sc));
+					(IsNearCourse(Field, X, Y) ? Row.Near : Row.Far)[Ck].Add(Xf);
+					continue;
+				}
+			}
 			const bool bNearCourse = IsNearCourse(Field, X, Y);
 			// The dense forest: the zone layer carries it around the course, the mid ring everywhere else.
 			if (Mode == ModeDense && (Salt == 301) != bNearCourse) { continue; }
@@ -389,7 +453,21 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 			const float Yaw = TDScatter_Hash01(Seed, ix, iy, Salt + 5) * 360.f;
 			const FRotator Rot = K.bTumble ? FRotator(TDScatter_Hash01(Seed, ix, iy, Salt + 6) * 40.f - 20.f, Yaw, TDScatter_Hash01(Seed, ix, iy, Salt + 7) * 40.f - 20.f)
 				: FRotator(Sm.Normal.Y * 8.f, Yaw, -Sm.Normal.X * 8.f);
-			const FTransform Xf(Rot, FVector(X, Y, Sm.Height - K.SinkCm * Scale), FVector(Scale));
+			float Ground = Sm.Height;
+			if (K.ContactRadiusCm > 0.f)
+			{
+				// Seat it on the lowest ground under its footprint (four points around the centre)
+				const float Rr = K.ContactRadiusCm * Scale;
+				float High = Sm.Height;
+				for (const FVector2D& D : { FVector2D(Rr, 0.f), FVector2D(-Rr, 0.f), FVector2D(0.f, Rr), FVector2D(0.f, -Rr) })
+				{
+					const float H = Field.Height(X + D.X, Y + D.Y);
+					Ground = FMath::Min(Ground, H);
+					High = FMath::Max(High, H);
+				}
+				if (High - Ground > 0.6f * Rr) { continue; }	// its footprint spans a ridge or a cliff edge: it would overhang
+			}
+			const FTransform Xf(Rot, FVector(X, Y, Ground - K.SinkCm * Scale * K.ZScale), FVector(Scale, Scale, Scale * K.ZScale));
 			(bNearCourse ? Row.Near : Row.Far)[Kind].Add(Xf);
 		}
 	};
@@ -425,6 +503,27 @@ void FTDScatterPlan::Generate(const FTDTerrainField& Field, FTDScatterResult& Ou
 		RunLayer(Field, DenseTreeSpacing, 301, Around, ModeDense, true, Out.Near, Out.Far);
 	}
 	RunLayer(Field, CanopySpacing, 401, Zone, ModeCanopy, true, Out.Near, Out.Far);
+	if (ScorchKind != INDEX_NONE && ScarHalfB > 0.f)
+	{
+		// Scorch marks down the scar's centre line every ~22 m, jittered across it and laid on the slope.
+		const FVector2D Dir = (ScarB - ScarA).GetSafeNormal();
+		const FVector2D Side(-Dir.Y, Dir.X);
+		const float Len = FVector2D::Distance(ScarA, ScarB);
+		const FTDScatterKind& K = Kinds[ScorchKind];
+		int32 i = 0;
+		for (float T = 0.f; T < Len; T += 1400.f, ++i)
+		{
+			const float A = T / Len;
+			const float Half = FMath::Lerp(ScarHalfA, ScarHalfB, A);
+			const FVector2D P = ScarA + Dir * T + Side * ((TDScatter_Hash01(977, i, 0, 3) - 0.5f) * Half);
+			if (IsKeptOut(Field, P.X, P.Y) || !IsCourseClear(P.X, P.Y, K.ClearRadiusCm)) { continue; }
+			const FTDTerrainSample Sm = Field.Sample(P.X, P.Y, 800.f);
+			const float Sc = FMath::Lerp(K.MinScale, K.MaxScale, TDScatter_Hash01(977, i, 0, 4)) * FMath::Lerp(0.8f, 1.4f, A);
+			const FVector Fwd = FVector(FVector2D(Dir.X, Dir.Y).GetRotated((TDScatter_Hash01(977, i, 0, 5) - 0.5f) * 30.f), 0.f);
+			const FRotator Rot = FRotationMatrix::MakeFromZX(Sm.Normal, Fwd).Rotator();
+			Out.Far[ScorchKind].Add(FTransform(Rot, FVector(P.X, P.Y, Sm.Height + 15.f), FVector(Sc, Sc, 1.f)));
+		}
+	}
 	RunLayer(Field, RockSpacing, 211, Zone, ModeRock, true, Out.Near, Out.Far);
 	RunLayer(Field, GroveSpacing, 501, Zone, ModeGrove, true, Out.Near, Out.Far);
 }

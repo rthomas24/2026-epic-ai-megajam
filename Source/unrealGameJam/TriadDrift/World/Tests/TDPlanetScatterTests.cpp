@@ -74,7 +74,9 @@ bool FTDScatterOnTheTerrain::RunTest(const FString&)
 			H->GetInstanceTransform(i, X, /*bWorldSpace*/ true);
 			const float Ground = T->GetHeightAt(X.GetLocation());
 			++Checked;
-			Off += (FVector2D(X.GetLocation() - Origin).Size() > 500000.f || FMath::Abs(X.GetLocation().Z - Ground) > 3000.f) ? 1 : 0;
+			// the far canopy clumps are sunk ~18 m per unit of height scale and seated on the lowest ground under them (s6)
+			const float Tol = H->GetStaticMesh() && H->GetStaticMesh()->GetName().Contains(TEXT("TreeClump")) ? 8000.f : 3000.f;
+			Off += (FVector2D(X.GetLocation() - Origin).Size() > 500000.f || FMath::Abs(X.GetLocation().Z - Ground) > Tol) ? 1 : 0;
 		}
 	}
 	TestTrue(TEXT("checked some"), Checked > 10);
