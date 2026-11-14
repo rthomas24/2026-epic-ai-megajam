@@ -1,0 +1,15 @@
+trace 0: 0.55 s, 18 frames, speed 0..650 cm/s, loops ['A_Pilot_Idle3_v3', 'A_Pilot_Run_v4'], legs ['None'], shots ['None']
+  foot L: planted 0.41 s, slid 17.8 cm (43 cm/s average while planted); worst 6266 cm/s at t=17.43 loop=A_Pilot_Run_v4 legs=None shot=None
+  foot R: planted 0.06 s, slid 1.2 cm (21 cm/s average while planted); worst 24 cm/s at t=17.48 loop=A_Pilot_Run_v4 legs=None shot=None
+trace 1: 3.82 s, 175 frames, speed 0..650 cm/s, loops ['A_Pilot_Idle3_v3', 'A_Pilot_Run_v4', 'A_Pilot_Walk_v4'], legs ['None'], shots ['None']
+  foot L: planted 1.62 s, slid 23.5 cm (15 cm/s average while planted); worst 1297 cm/s at t=19.93 loop=A_Pilot_Walk_v4 legs=None shot=None
+  foot R: planted 1.38 s, slid 14.0 cm (10 cm/s average while planted); worst 1335 cm/s at t=19.93 loop=A_Pilot_Walk_v4 legs=None shot=None
+trace 2: 2.62 s, 124 frames, speed 0..950 cm/s, loops ['A_Pilot_Idle3_v3', 'A_Pilot_Run_v4'], legs ['None'], shots ['None']
+  foot L: planted 0.51 s, slid 16.3 cm (32 cm/s average while planted); worst 7226 cm/s at t=25.92 loop=A_Pilot_Run_v4 legs=None shot=None
+  foot R: planted 0.63 s, slid 18.0 cm (29 cm/s average while planted); worst 7273 cm/s at t=25.92 loop=A_Pilot_Run_v4 legs=None shot=None
+trace 3: 1.80 s, 220 frames, speed 0..0 cm/s, loops ['A_Pilot_Blade_Idle_v3', 'A_Pilot_Idle3_v3'], legs ['None'], shots ['None']
+  foot L: planted 1.01 s, slid 5.8 cm (6 cm/s average while planted); worst 1000 cm/s at t=31.75 loop=A_Pilot_Blade_Idle_v3 legs=None shot=None
+  foot R: planted 1.46 s, slid 9.1 cm (6 cm/s average while planted); worst 1342 cm/s at t=31.75 loop=A_Pilot_Blade_Idle_v3 legs=None shot=None
+trace 4: 0.60 s, 333 frames, speed 0..6667 cm/s, loops ['A_Pilot_FallLoop_v2', 'A_Pilot_Idle3_v3', 'A_Pilot_Run_v4', 'A_Pilot_Walk_v4'], legs ['None'], shots ['A_Pilot_Dash_v3', 'None']
+  foot L: planted 0.18 s, slid 12.3 cm (70 cm/s average while planted); worst 6199 cm/s at t=34.43 loop=A_Pilot_Run_v4 legs=None shot=A_Pilot_Dash_v3
+  foot R: planted 0.18 s, slid 0.8 cm (5 cm/s average while planted); worst 280 cm/s at t=34.85 loop=A_Pilot_Idle3_v3 legs=None shot=None

@@ -331,6 +331,7 @@ protected:
 	FVector BladeAuraPrevTip = FVector::ZeroVector;
 	bool bBladeAuraPrevTip = false;
 	float BladeAuraSpeed = 0.f;
+	float BladeAuraSwingHold = 0.f;
 
 private:
 	FText Tip;
