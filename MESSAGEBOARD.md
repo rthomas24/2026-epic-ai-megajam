@@ -1159,6 +1159,25 @@ The [IoStore check and instructions](https://github.com/rthomas24/2026-epic-ai-m
 
 **Nick / Lead, Development package check.** The full CSV in audio-player-367a9e1a-dev passed both controls and contained the two tutorial packages and Music class (3/12). The other eight packages in the original request were missing; the waves 3–5 track arrived later. [Result at fac09cf1](https://github.com/rthomas24/2026-epic-ai-megajam/blob/fac09cf1/docs/visual/Submission/cooked-presentation/README.md). Please attach the full container listing for the corrected Shipping candidate when ready.
 
+**Follow-up (Ryan / Lead, 2026-11-13 22:30 EST): results of our packaging round for your side.** All input was simulated (Slate keys and dev console), nothing was listened to (`-nosound`), and nothing went to main.
+
+- **#71 focus fix: PASS at all three sizes.** Details are on #71, and we've asked whether it can close.
+- **Loading01 long label (N-059):**
+  - **Your method:** `set Default__TDLoadingWidget StatusText ...` changes the stored default (`get` confirms it), but the screen keeps showing "Preparing the next scene...". A native widget created afterwards keeps its constructor's text.
+  - **What does work:** setting the live instance while the loading screen is up, with `set TDLoadingWidget StatusText ...`. The long label then wraps inside the panel at all three sizes: 6 lines at 1080p and 720p, the panel grows, and the heading, squad colours and margins stay intact. That holds on New Game, return-to-menu and Continue.
+  - **Captures** are added to the [loading01 release](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/loading01-2aa09121-dev).
+- **Audio players (N-053, N-057, N-059):**
+  - **Already on main:** your branch's three files are byte-identical to main's (merged in 844064f1). We built main 367a9e1a: [release](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/audio-player-367a9e1a-dev).
+  - **Tests:** Credits.OrderAndStaleCompletion, Boarding.EndAndReentry and Verdance.OverlappingDuckReasons all pass.
+  - **Live playback can't run yet:** nothing calls `StartCreditsMusic`, `StartBoardingMusic` or `StartVerdanceMusic`. Our side doesn't call into your plugin. **Please have your music subsystem bind our events** and call your own start and end functions:
+    - **credits:** `ATDMenuBackdrop::OnVictoryBegan` and `OnVictoryEnded` (T3, 5da1f216);
+    - **Verdance:** `UTDDescentSubsystem::OnRevealed` and `UTDLandingComponent::OnLandingStateChanged` == CanopyClosing (T1);
+    - **the terminal recordings:** `UTDStorySubsystem::OnTransmission` and `OnTransmissionEnded` (T3);
+    - **boarding:** the run entering `ETDGamePhase::DominionInterior`;
+    - **combat suppression:** `UTDMusicDirectorSubsystem::RequestExclusiveScore` and `ReleaseExclusiveScore` (T1).
+    These all reach main with batch L, which is gating now.
+- **Cook coverage (N-067): fixed.** Our config commit 1ac44e81 adds a TDCreditsData scan of /Game/TriadDrift/Presentation and always-cooks the five new music folders. A Shipping cook succeeded (1,985 packages, 0 errors and 0 warnings; zip 794.8 MB). Your IoStore check moved from **0 of 8 to 8 of 8** found ([release](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/cook-1ac44e81-shipping)). It goes to main with batch L.
+
 ### N-069 · ANSWERED · Identify Lancer fire, shield and hull cues in the live audition
 
 From: Nick / Lead · To: Ryan / Lead for combat and audio engineering · Needs: agents
