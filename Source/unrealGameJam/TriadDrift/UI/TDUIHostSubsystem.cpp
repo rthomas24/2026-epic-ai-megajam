@@ -25,6 +25,7 @@
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDTacticalDisplayWidget.h"
 #include "TriadDrift/UI/TDScanMonitorWidget.h"
+#include "TriadDrift/UI/TDRewardAnnouncementWidget.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "Components/MeshComponent.h"
 #include "Engine/Texture2D.h"
@@ -624,7 +625,18 @@ UClass* UTDUIHostSubsystem::ResolveRewardWidgetClass() const
 		return Class;
 	}
 	UClass* Nick = FindObject<UClass>(nullptr, TEXT("/Script/TriadDriftHUD.TDAbilityRewardWidget"));
-	return Nick && Nick->IsChildOf(UUserWidget::StaticClass()) ? Nick : nullptr;
+	if (Nick && Nick->IsChildOf(UUserWidget::StaticClass()))
+	{
+		return Nick;
+	}
+	// No reward screen anywhere: engineering's native announcement, so an award is never silent (T7's Verdance playtest).
+	static bool bSaid = false;
+	if (!bSaid)
+	{
+		bSaid = true;
+		UE_LOG(LogTemp, Display, TEXT("TD reward: no AbilityRewardWidgetClass and no TriadDriftHUD reward widget: the native announcement shows (UTDRewardAnnouncementWidget)."));
+	}
+	return UTDRewardAnnouncementWidget::StaticClass();
 }
 
 void UTDUIHostSubsystem::UpdateAbilityReward()
@@ -1224,6 +1236,33 @@ namespace TDUIHost
 			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.GroundStatus: widget %s boss=%d hull=%.2f phase=%d ghost=%.2f | direct boss=%d hull=%.2f phase=%d"),
 				*GetNameSafe(Ground), Ground && Ground->GetView().bBoss ? 1 : 0, Ground ? Ground->GetView().Boss01 : -1.f,
 				Ground ? Ground->GetView().BossPhase : -1, Ground ? Ground->GetBossGhost01() : -1.f, bBoss ? 1 : 0, Hull, Phase);
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdTDUIReward(TEXT("TD.UI.Reward"),
+		TEXT("TD.UI.Reward <GravityWell|Cloak|EMPPulse> [Rift|Lancer|Bastion] | dismiss: STAGED - an award on the reward screen only (the bus's ")
+		TEXT("OnAbilityUnlocked; no progression), or dismiss the one on screen. The real path is the objective's UnlockAbility."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(World);
+			if (Args.Num() > 0 && Args[0] == TEXT("dismiss"))
+			{
+				if (Host && Host->GetRewardWidget())
+				{
+					if (UFunction* F = Host->GetRewardWidget()->FindFunction(TEXT("RequestDismiss"))) { Host->GetRewardWidget()->ProcessEvent(F, nullptr); }
+				}
+				return;
+			}
+			const int64 A = Args.Num() > 0 ? StaticEnum<ETDAbilityId>()->GetValueByNameString(Args[0]) : INDEX_NONE;
+			const int64 S = Args.Num() > 1 ? StaticEnum<ETDShipId>()->GetValueByNameString(Args[1]) : static_cast<int64>(ETDShipId::Bastion);
+			UTDEventBus* Bus = UTDEventBus::Get(World);
+			if (A == INDEX_NONE || S == INDEX_NONE || !Bus)
+			{
+				UE_LOG(LogTDUIHost, Warning, TEXT("TD.UI.Reward <GravityWell|Cloak|EMPPulse> [Rift|Lancer|Bastion] | dismiss"));
+				return;
+			}
+			Bus->BroadcastAbilityUnlocked(static_cast<ETDAbilityId>(A), static_cast<ETDShipId>(S));
+			if (Host) { Host->UpdateAbilityReward(); }
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.UI.Reward: STAGED award %s for %s."), *Args[0], Args.Num() > 1 ? *Args[1] : TEXT("Bastion"));
 		}));
 
 	FAutoConsoleCommandWithWorldAndArgs CmdTDUIScanTexture(TEXT("TD.UI.ScanTexture"),

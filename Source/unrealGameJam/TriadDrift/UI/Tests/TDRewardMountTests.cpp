@@ -13,6 +13,7 @@
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/UI/Tests/TDRewardStandInWidget.h"
+#include "TriadDrift/UI/TDRewardAnnouncementWidget.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRewardMount, "TriadDrift.UI.Reward.HostMountsPendingAwards", TD_TEST_FLAGS)
 bool FTDRewardMount::RunTest(const FString& Parameters)
@@ -72,6 +73,56 @@ bool FTDRewardMount::RunTest(const FString& Parameters)
 	Screen->RequestDismiss();
 	TestFalse(TEXT("all acknowledged"), Rewards->GetPendingAbilityReward(A, S, bNow, W.GetWorld()));
 	TestEqual(TEXT("host idle"), Host->GetPresentedReward(), ETDAbilityId::None);
+	Rewards->ResetRewards();
+	return true;
+}
+
+// No reward screen class anywhere: the native announcement shows the award (name, ship, no key on foot), dismisses
+// itself after 4 s and acknowledges it, and the next award follows.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRewardFallback, "TriadDrift.UI.Reward.NativeAnnouncementWhenNoWidget", TD_TEST_FLAGS)
+bool FTDRewardFallback::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	W.SpawnLocalPlayerController(nullptr, ATDSpacePlayerController::StaticClass());
+	UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(W.GetWorld());
+	UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld());
+	UTDAbilityRewardSubsystem* Rewards = UTDAbilityRewardSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("host"), Host) || !TestNotNull(TEXT("bus"), Bus) || !TestNotNull(TEXT("rewards"), Rewards))
+	{
+		return false;
+	}
+	Rewards->ResetRewards();
+	Host->bAddToViewport = false;
+	Host->RewardWidgetClassOverride = nullptr;
+	Bus->BroadcastAbilityUnlocked(ETDAbilityId::GravityWell, ETDShipId::Bastion);
+	Bus->BroadcastAbilityUnlocked(ETDAbilityId::Cloak, ETDShipId::Rift);
+	Host->UpdateAbilityReward();
+	UTDRewardAnnouncementWidget* Note = Cast<UTDRewardAnnouncementWidget>(Host->GetRewardWidget());
+	if (!FindObject<UClass>(nullptr, TEXT("/Script/TriadDriftHUD.TDAbilityRewardWidget")))
+	{
+		if (!TestNotNull(TEXT("no widget class: the native announcement"), Note))
+		{
+			return false;
+		}
+	}
+	else if (!Note)
+	{
+		AddInfo(TEXT("Nick's TDAbilityRewardWidget is present: his screen is mounted instead (correct)."));
+		Rewards->ResetRewards();
+		return true;
+	}
+	TestTrue(TEXT("Gravity Well on screen"), Note->IsRewardActive() && Note->GetDisplay().AbilityId == FName(TEXT("GravityWell")));
+	TestFalse(TEXT("on foot: no key line"), Note->GetDisplay().bCanUseNow);
+	Note->Advance(UTDRewardAnnouncementWidget::ShowSeconds - .1f);
+	TestTrue(TEXT("still up just before 4 s"), Note->IsRewardActive());
+	Note->Advance(.2f);
+	ETDAbilityId A;
+	ETDShipId S;
+	bool bNow;
+	TestTrue(TEXT("after 4 s: acknowledged, Cloak next"), Rewards->GetPendingAbilityReward(A, S, bNow, W.GetWorld()) && A == ETDAbilityId::Cloak);
+	TestTrue(TEXT("Cloak announced at once"), Note->IsRewardActive() && Note->GetDisplay().AbilityId == FName(TEXT("Cloak")));
+	Note->Advance(UTDRewardAnnouncementWidget::ShowSeconds + .1f);
+	TestFalse(TEXT("all acknowledged"), Rewards->GetPendingAbilityReward(A, S, bNow, W.GetWorld()));
 	Rewards->ResetRewards();
 	return true;
 }
