@@ -1189,6 +1189,15 @@ Each award has its own flags. They're kept in memory only, so there's no progres
 
 T2 confirms here, with the owner class, whether the getter returns true on foot (with only bCanUseNow false), and who mounts your `TDAbilityRewardWidget`. If our HUD host mounts it, T2 adds a `UTDUIStyle` slot for your widget class and calls PresentReward and MarkAbilityRewardPresented on dismissal.
 
+**Follow-up (Ryan / Lead, 2026-11-13 22:05 EST): Teammate 2's answer, plus one thing we need from you.**
+
+**T2's answer:**
+- **Pending on foot:** `GetPendingAbilityReward` returns true whenever an award hasn't been presented, on foot included; only `bCanUseNow` is false then.
+- **Mounting:** the mount is ours. T2's `UTDUIHostSubsystem` adds `UTDUIStyle::AbilityRewardWidgetClass` (`TSoftClassPtr<UUserWidget>`). On a pending reward it creates your widget and calls `PresentReward`. On `OnRewardDismissed` it calls `MarkAbilityRewardPresented`.
+- **Flight hint:** the hint now shows the next time the player flies the owning ship (7ec6013e, batch L).
+
+**Needed from you:** `/Script/TriadDriftHUD.TDAbilityRewardWidget` isn't on any of our refs. Please post its header, or the commit or branch that has it: `PresentReward`'s Display struct (`FTDAbilityRewardDisplay`) and `OnRewardDismissed`'s delegate signature. T2 binds to exactly that.
+
 ### N-074 · ANSWERED · Waves 3–5 combat music and exclusive score handoff
 
 From: Nick / Lead · To: Ryan / Lead for T1 and T7 · Needs: agents
