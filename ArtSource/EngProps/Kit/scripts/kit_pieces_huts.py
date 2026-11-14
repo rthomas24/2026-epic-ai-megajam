@@ -43,6 +43,9 @@ def _window(p, side, c, z0, z1, w, depth_axis="y"):
             p.box((e, y0, z0), (e + 8, y1, z1), reg="frame")
         g0, g1 = sorted((wall + side * 1.0, wall + side * 2.0))
         p.box((u - w / 2, g0, z0), (u + w / 2, g1, z1), mat="Light")
+        m0, m1 = sorted((wall + side * 2.0, wall + side * 4.0))          # a faint cross mullion: a lit room, not a panel
+        p.box((u - 2.5, m0, z0), (u + 2.5, m1, z1), reg="frame")
+        p.box((u - w / 2, m0, (z0 + z1) / 2 - 2.5), (u + w / 2, m1, (z0 + z1) / 2 + 2.5), reg="frame")
     else:
         x = wall + side * 6.0
         x0, x1 = sorted((wall, x))
@@ -52,6 +55,9 @@ def _window(p, side, c, z0, z1, w, depth_axis="y"):
             p.box((x0, e, z0), (x1, e + 8, z1), reg="frame")
         g0, g1 = sorted((wall + side * 1.0, wall + side * 2.0))
         p.box((g0, u - w / 2, z0), (g1, u + w / 2, z1), mat="Light")
+        m0, m1 = sorted((wall + side * 2.0, wall + side * 4.0))
+        p.box((m0, u - 2.5, z0), (m1, u + 2.5, z1), reg="frame")
+        p.box((m0, u - w / 2, (z0 + z1) / 2 - 2.5), (m1, u + w / 2, (z0 + z1) / 2 + 2.5), reg="frame")
 
 
 def _door(p, xwall, z0, w=100.0, h=210.0, shutter=False):
@@ -326,4 +332,69 @@ def c_flood_mast():
 
 VERDANCE = [v_prefab, v_lab, v_dome, v_water_tank, v_mast, v_fence, v_walkway]
 CINDER = [c_shack, c_workshop, c_pump_house, c_ore_hopper, c_drill_rig, c_pipe_run, c_flood_mast]
+BUILDERS = VERDANCE + CINDER
+
+# ------------------------------------------------------------------------------------------------ shared small pieces (r2)
+def _supply_stack(name, seed, awning_tilt):
+    """A stack of supply crates under a tarp awning on four poles: six crates of two sizes, hazard-strapped, one lid
+    open-ish (lifted), the awning sloping to one side."""
+    import random
+    rnd = random.Random(seed)
+    p = Piece(name, None)
+    crates = [(-90.0, -50.0, 0.0, 80.0, 60.0, 60.0), (-5.0, -55.0, 0.0, 80.0, 60.0, 60.0), (80.0, -45.0, 0.0, 70.0, 55.0, 50.0),
+              (-60.0, 30.0, 0.0, 90.0, 70.0, 70.0), (-50.0, -50.0, 60.0, 80.0, 60.0, 55.0), (40.0, 35.0, 0.0, 60.0, 50.0, 45.0)]
+    for (x, y, z, w, d, h) in crates:
+        yaw = rnd.uniform(-8.0, 8.0)
+        with p.at(Matrix.Translation((x, y, z)) @ Matrix.Rotation(math.radians(yaw), 4, "Z")):
+            p.box((-w / 2, -d / 2, 0.0), (w / 2, d / 2, h), regs={"Z": "hatch", "x": "frame", "X": "frame", "y": "wallB", "Y": "wallB"})
+            p.box((-w / 2 - 1, -d / 2 - 1, h * 0.62), (w / 2 + 1, d / 2 + 1, h * 0.7), reg="hazard")
+    for (x, y) in ((-160.0, -110.0), (160.0, -110.0), (-160.0, 110.0), (160.0, 110.0)):
+        p.box((x - 4, y - 4, 0.0), (x + 4, y + 4, 230.0 - (awning_tilt if y > 0 else 0.0)), reg="pillar")
+    q = [(-170.0, -120.0, 232.0), (170.0, -120.0, 232.0), (170.0, 120.0, 232.0 - awning_tilt), (-170.0, 120.0, 232.0 - awning_tilt)]
+    p.poly(q, "wall", uv=[(0, 0), (1, 0), (1, 1), (0, 1)], n=(0, 0.2, 1))
+    p.poly(q, "sw_dark", uv=[(0, 0), (1, 0), (1, 1), (0, 1)], n=(0, -0.2, -1))
+    p.cbox((-135, -90, 0), (125, 70, 115))
+    return p
+
+
+def _generator(name):
+    """A small generator on skids with a cable run: a boxy genset with grilles, an exhaust stub, a status lamp, a fuel
+    can, and a cable snaking off on the ground in four segments."""
+    p = Piece(name, None)
+    p.box((-90.0, -55.0, 0.0), (90.0, 55.0, 12.0), reg="sw_dark")
+    p.box((-80.0, -45.0, 12.0), (80.0, 45.0, 110.0), regs={"y": "console", "Y": "console", "x": "frame", "X": "frame", "Z": "hatch"})
+    for x in (-50.0, 0.0, 50.0):
+        p.box((x - 16.0, -47.0, 40.0), (x + 16.0, -45.0, 90.0), reg="grate")
+    _tube(p, (-55.0, 20.0, 110.0), (-55.0, 20.0, 160.0), 6.0, reg="sw_dark")
+    p.box((80.0, -10.0, 85.0), (82.0, 10.0, 95.0), mat="Glow")
+    p.box((95.0, 20.0, 0.0), (125.0, 45.0, 40.0), reg="hazard")
+    pts = [(82.0, 0.0, 30.0), (150.0, -10.0, 4.0), (240.0, 30.0, 4.0), (320.0, -20.0, 4.0), (400.0, 10.0, 4.0)]
+    for a, b in zip(pts, pts[1:]):
+        _tube(p, a, b, 2.5, reg="sw_dark")
+    p.cbox((-90, -55, 0), (90, 55, 110))
+    return p
+
+
+def v_supply():
+    """Verdance supply crates under a tarp awning."""
+    return _supply_stack("SM_Hut_Verdance_Supplies", 61, 30.0)
+
+
+def v_generator():
+    """Verdance generator with a cable run."""
+    return _generator("SM_Hut_Verdance_Generator")
+
+
+def c_supply():
+    """Cinder supply crates under an awning."""
+    return _supply_stack("SM_Hut_Cinder_Supplies", 67, 45.0)
+
+
+def c_generator():
+    """Cinder generator with a cable run."""
+    return _generator("SM_Hut_Cinder_Generator")
+
+
+VERDANCE += [v_supply, v_generator]
+CINDER += [c_supply, c_generator]
 BUILDERS = VERDANCE + CINDER

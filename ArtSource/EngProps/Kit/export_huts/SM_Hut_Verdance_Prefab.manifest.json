@@ -1,7 +1,7 @@
 {
   "asset": "SM_Hut_Verdance_Prefab",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_huts\\SM_Hut_Verdance_Prefab.fbx",
-  "tris": 3044,
+  "tris": 3908,
   "size_cm": [
     505.0,
     430.0,
@@ -56,9 +56,9 @@
       "metallic": 0.0,
       "roughness": 0.15,
       "emission_color": [
-        0.9,
-        0.95,
-        1.0
+        1.0,
+        0.72,
+        0.42
       ],
       "emission_strength": 8.0
     }
