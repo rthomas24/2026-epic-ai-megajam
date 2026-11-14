@@ -245,6 +245,15 @@ float UTDDescentSubsystem::BeginCoveredTravel(ETDDestination To)
 	CoverDestination = To;
 	bDestLoaded = false;
 	DestWorld.Reset();
+	if (ClimbHoldSeconds > 0.f)
+	{
+		// The climb out drives the cover (SetEntryCover); the level change waits for the climb.
+		const float Hold = ClimbHoldSeconds;
+		ClimbHoldSeconds = 0.f;
+		CoverPhase = ETDDescentCover::RampIn;
+		CoverRampRate = 0.f;
+		return Hold;
+	}
 	if (CoverAlpha >= 1.f)
 	{
 		CoverPhase = ETDDescentCover::Held;
@@ -354,6 +363,7 @@ void UTDDescentSubsystem::TickCover(float Dt)
 			UE_LOG(LogTriadDrift, Log, TEXT("TD descent: reveal (%s)"), Why);
 			CoverPhase = ETDDescentCover::Revealing;
 			StopRoar(1.f);
+			OnRevealed.Broadcast(CoverDestination);
 		}
 		break;
 	}
