@@ -313,18 +313,27 @@ void FTDScatterPlan::RunCourseGround(const FTDTerrainField& Field, FTDScatterRes
 		}
 		return Best;	// beyond the route's walking half width
 	};
-	const float Base = Planet == ETDDestination::Verdance ? 0.6f : 0.4f;
+	const float Base = Planet == ETDDestination::Verdance ? 0.85f : 0.5f;
 	for (int32 iy = FMath::FloorToInt(Lo.Y / Spacing); iy <= FMath::CeilToInt(Hi.Y / Spacing); ++iy)
 	{
 		for (int32 ix = FMath::FloorToInt(Lo.X / Spacing); ix <= FMath::CeilToInt(Hi.X / Spacing); ++ix)
 		{
 			const float X = (ix + TDScatter_Hash01(Seed, ix, iy, 1)) * Spacing;
 			const float Y = (iy + TDScatter_Hash01(Seed, ix, iy, 2)) * Spacing;
-			if (X < Lo.X || X > Hi.X || Y < Lo.Y || Y > Hi.Y || !IsCourseClear(X, Y, 150.f)) { continue; }
-			// trodden: nothing on the route itself (the keep-out), sparse for 6 m beside it, full beyond ~10 m
-			const float Trodden = FMath::SmoothStep(100.f, 1000.f, RouteDistance(X, Y));
+			if (X < Lo.X || X > Hi.X || Y < Lo.Y || Y > Hi.Y) { continue; }
+			// every keep-out except the routes (sites, encounters, spawn rings, triggers, structures, the bridge, the pad);
+			// the routes themselves get sparse non-colliding cover so the walked line reads trodden, not bare
+			bool bClear = true;
+			for (const FTDCourseKeepOut& K : KeepOuts)
+			{
+				if (K.Kind == TEXT("Route") || !K.Box.IsValid) { continue; }
+				if (X > K.Box.Min.X - 150.f && X < K.Box.Max.X + 150.f && Y > K.Box.Min.Y - 150.f && Y < K.Box.Max.Y + 150.f) { bClear = false; break; }
+			}
+			if (!bClear) { continue; }
+			// trodden: 15 % on the walked centre line (distance -700), rising to full ~4 m beyond the route's edge
+			const float Trodden = FMath::Lerp(0.15f, 1.f, FMath::SmoothStep(-500.f, 400.f, RouteDistance(X, Y)));
 			// clumps, not an even carpet: the 30 m noise gathers the cover into patches with bare ground between
-			const float Patch = FMath::Clamp(0.35f + 0.9f * FTDTerrainField::Noise2D(X / 3000.f, Y / 3000.f, S.Seed + 777), 0.f, 1.f);
+			const float Patch = FMath::Clamp(0.55f + 0.8f * FTDTerrainField::Noise2D(X / 3000.f, Y / 3000.f, S.Seed + 777), 0.f, 1.f);
 			const float Roll = TDScatter_Hash01(Seed, ix, iy, 3);
 			if (Roll > Base * Trodden * Patch + 0.06f) { continue; }	// a few stones even on the trodden edges
 			const float Pk = TDScatter_Hash01(Seed, ix, iy, 4);

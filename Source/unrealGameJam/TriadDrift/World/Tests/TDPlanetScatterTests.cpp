@@ -142,10 +142,10 @@ bool FTDScatterCanopyCover::RunTest(const FString&)
 	return true;
 }
 
-IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDScatterCourseGround, "TriadDrift.World.Scatter.CourseGroundDetailOffTheRoutesAndNeverColliding", TD_TEST_FLAGS)
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDScatterCourseGround, "TriadDrift.World.Scatter.CourseGroundDetailSparseOnTheRoutesAndNeverColliding", TD_TEST_FLAGS)
 bool FTDScatterCourseGround::RunTest(const FString&)
 {
-	// s20: ground detail inside the course: present, off every keep-out (a route here), thinning beside it, no collision.
+	// s20: ground detail inside the course: present, sparse on the walked routes (trodden), no collision.
 	for (const ETDDestination P : { ETDDestination::Verdance, ETDDestination::Cinder })
 	{
 		const FTDTerrainField F(FTDTerrainStyle::ForPlanet(P));
@@ -175,7 +175,7 @@ bool FTDScatterCourseGround::RunTest(const FString&)
 		}
 		AddInfo(FString::Printf(TEXT("planet %d: %d course detail instances, %d within 6 m of the route's edge"), (int32)P, Inside, Beside - OnRoute));
 		TestTrue(TEXT("the course gets ground detail"), Inside > 300);
-		TestEqual(TEXT("nothing on the route"), OnRoute, 0);
+		TestTrue(*FString::Printf(TEXT("sparse on the route (%d of %d)"), OnRoute, Inside), OnRoute * 8 < Inside);
 		TestEqual(TEXT("nothing that blocks the pilot"), Blocking, 0);
 	}
 	return true;
