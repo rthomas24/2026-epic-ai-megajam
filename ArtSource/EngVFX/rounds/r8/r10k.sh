@@ -2,15 +2,17 @@
 # r10k.sh: 10e. (1) a short RENDERING session for the range-glow material (materials cannot compile under -nullrhi);
 # (2) the systems headless; (3) the capture session. Stop at any point: touch Saved/EngVFX/STOP
 cd /c/Users/ryant/Documents/myRepos/game-jam/.wt/vfx; export MSYS_NO_PATHCONV=1; export TD_PORT=${TD_PORT:-21031}; R=ArtSource/EngVFX/rounds/r8
-unset NULLRHI; echo "== material $(date +%H:%M)"; bash $R/ed.sh start >/dev/null || exit 1
+trap 'bash $R/ed.sh unlock' EXIT   # the render-slot lock is always released, whatever happens
+unset NULLRHI; bash $R/ed.sh lock "range-glow material (2 min)" || exit 1
+echo "== material $(date +%H:%M)"; bash $R/ed.sh start >/dev/null || exit 1
 python ArtSource/EngVFX/scripts/run_editor_py.py $TD_PORT ArtSource/EngVFX/scripts/build_rangeglow.py 2>&1 | tail -3 | cut -c1-200
-bash $R/ed.sh stop >/dev/null
+bash $R/ed.sh unlock
 export NULLRHI=1; echo "== systems $(date +%H:%M)"
 for s in "NS_TD_Region_Beacon 0:1" "NS_TD_Magma_Heat 0:3" "NS_TD_Dominion_TractorBeam 0:4"; do
   bash $R/chunk_list.sh ${s%% *} "${s#* }" 2>&1 | grep "chunk\|UpToDate\|STOP\|rror" | cut -c1-160 || true; done
 for s in "NS_TD_Plume_Enemy_Fighter 3:4" "NS_TD_Plume_Enemy_Interceptor 4:6" "NS_TD_Plume_Enemy_Gunship 3:4" "NS_TD_Plume_Enemy_Bomber 2:3" "NS_TD_Plume_Enemy_Carrier 4:8"; do
   bash $R/chunk_list1.sh ${s%% *} "${s#* }" 2>&1 | grep "chunk\|UpToDate\|STOP\|rror" | cut -c1-160 || true; done
-unset NULLRHI; echo "== capture $(date +%H:%M)"
+unset NULLRHI; bash $R/ed.sh lock "effects capture (about 12 min)" || exit 1; echo "== capture $(date +%H:%M)"
 G=$R/gpy.sh; P="python ArtSource/EngVFX/scripts/play.py $TD_PORT Saved/EngVFX/r8"; T=${1:-k}; SC="python $R/spawncap.py"
 bash $R/ed.sh start >/dev/null || exit 1
 bash $G "('pie_start',)" >/dev/null; sleep 25
@@ -33,4 +35,4 @@ for spot in "5m 4300 4300 0 -12" "20m 2800 4300 0 -5"; do set -- $spot
   M on;  $P sleep:3 cap:${T}_magma_$1_on_a sleep:0.5 cap:${T}_magma_$1_on_b >/dev/null
 done
 M off; bash $G "('pie_stop',)" >/dev/null
-bash $R/ed.sh stop >/dev/null; echo "== closed $(date +%H:%M)"
+bash $R/ed.sh unlock; echo "== closed $(date +%H:%M)"
