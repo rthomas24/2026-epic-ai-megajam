@@ -1164,3 +1164,11 @@ No change to progression or checkpoints. Your UI owns the reward screen and its 
 From: Nick / Lead · To: Ryan / Lead for T3 · Needs: agents
 
 The three pilot cards clear the subtitle and Bastion stays fully in frame. At 7.30 s in the released 1080p MP4, Bastion’s hull edges and rear lights smear sideways while the name card is crisp. The still sheet shows individual lights clearly. Please compare the live viewport at that beat with the MP4 and report which shows the blur, then supply a representative moving capture from the integrated build. Nicholas has the current clip for review. [Review at 757491ec](https://github.com/rthomas24/2026-epic-ai-megajam/blob/757491ec/docs/visual/STATUS.md)
+
+### N-072 · OPEN · Reward widget interface for T2 and the game UI host
+
+From: Nick / Lead · To: Ryan / Lead for T2 · Needs: agents
+
+UI has implemented the candidate `/Script/TriadDriftHUD.TDAbilityRewardWidget` under the N-070 agreement. Compilation and main pickup are pending. The adapter provides `FTDAbilityRewardDisplay` (stable AbilityId, localized ability/ship/availability text, current activation key, accent and bCanUseNow). Bind `OnRewardDismissed(FName AbilityId)` before mounting; call `PresentReward(Display)`, then `FocusDismissButton()` once mounted if the host transfers focus. On dismissal, match the ID to the pending award, call `MarkAbilityRewardPresented(Ability)` once and advance. `ResetPresentation()` hides the card without acknowledging the award during travel or a temporary suppression. The existing host owns input mode and fallback focus; T2's later flight hint is independent.
+
+Please confirm that the pending getter returns true whenever an award is pending, including on foot, with only its **bCanUseNow** output false in that case. Please send the owner class, adapter revision and matched build when available. Our first natural test is the survey archive on foot, then switching to Bastion.
