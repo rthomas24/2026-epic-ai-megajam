@@ -1,0 +1,104 @@
+{
+  "A_Warden_Stagger": {
+    "frames": 54,
+    "seconds": 1.767,
+    "n_bones": 88,
+    "unit_scale_factor": 100,
+    "fps": 30,
+    "slide_in_contact_cm": {
+      "l": 0.0,
+      "r": 0.0
+    },
+    "minz_cm": [
+      -1.2,
+      11.7
+    ],
+    "root_end_cm": [
+      -22.5,
+      55.4
+    ],
+    "loop_seam_max_bone_cm": null,
+    "pelvis_end_z_cm": 129.8,
+    "contacts_l": [
+      [
+        8,
+        11
+      ],
+      [
+        32,
+        36
+      ],
+      [
+        39,
+        42
+      ],
+      [
+        45,
+        51
+      ]
+    ],
+    "contacts_r": [
+      [
+        32,
+        34
+      ],
+      [
+        44,
+        51
+      ]
+    ]
+  },
+  "A_Warden_EnragedRoar": {
+    "frames": 78,
+    "seconds": 2.567,
+    "n_bones": 88,
+    "unit_scale_factor": 100,
+    "fps": 30,
+    "slide_in_contact_cm": {
+      "l": 0.0,
+      "r": 0.0
+    },
+    "minz_cm": [
+      -1.0,
+      11.6
+    ],
+    "root_end_cm": [
+      0.0,
+      0.0
+    ],
+    "loop_seam_max_bone_cm": null,
+    "pelvis_end_z_cm": 137.1,
+    "contacts_l": [
+      [
+        10,
+        26
+      ],
+      [
+        28,
+        34
+      ],
+      [
+        39,
+        42
+      ],
+      [
+        51,
+        77
+      ]
+    ],
+    "contacts_r": [
+      [
+        10,
+        35
+      ],
+      [
+        39,
+        42
+      ],
+      [
+        52,
+        74
+      ]
+    ]
+  }
+}
