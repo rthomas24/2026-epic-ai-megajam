@@ -688,15 +688,13 @@ CRYSTAL = (0.45, 0.55, 1.0, 1.0)   # the belt's blue-violet crystals: clear of t
 
 
 def rock_break(n_chunks, n_dust, n_grit, fl=1800):
-    # Round 9g (T6's live capture: a dull dark-grey puff against bright ice rocks): a short bright white-blue flash, ice
-    # shards and glints thrown out, the rock chunks, and only a faint pale mist instead of grey smoke.
-    # 9k: flash about 2x and a soft glow under it so a break reads at 80 m from the chase camera; both under 0.2 s
-    # 9n, seen from a side camera at 80 m: at Scale 2.2 / 4.5 the M and L flashes (40 / 81 m) swallowed the frame; the flash
-    # base now shrinks with the class so the flash is about the rock's size (S 18 m, M 22 m, L 30 m), 0.12 s
-    return [spin(flash('Flash', 'M_TD_VFX_IceBurst', fl, 0.12, 1.8, growth='0.5 + Particles.NormalizedAge*0.9')),   # 9p: uneven ice burst (was the 8-point flare)
-            flash('Glow', 'M_TD_VFX_Glow', fl * 1.1, 0.14, 0.9, growth='0.6 + Particles.NormalizedAge*0.6', power=1.6),
-            # 9i: the mist is gone (a pale 0.30 puff still read grey over dark space in play); flash, chunks and shards carry it
+    # 9q (Lead: still a light switching on): a smaller burst with short rays and a pale cyan-white core, and the read moved
+    # into 8 tumbling ice shards and a quick pale dust puff flying outward, so a break looks like something shattering.
+    return [spin(flash('Flash', 'M_TD_VFX_IceBurst', fl * 0.6, 0.10, 1.4, growth='0.5 + Particles.NormalizedAge*0.9')),
+            chunks('Ice', 'SM_TD_VFX_Shard_A', 8, (0.7, 1.3), (0.25, 0.6), (900, 2600), drag=0.7, radius=60.0, dur=1.4, spin=(1.5, 5.0)),
             chunks('Chunks', 'SM_TD_VFX_Shard_C', n_chunks, (0.8, 1.6), (0.35, 0.9), (500, 2000), drag=0.6, radius=90.0, dur=1.8, spin=(0.8, 3.0)),
+            spin(shed('Puff', 'M_TD_VFX_Smoke', 0, (0.35, 0.6), (120, 220), (600, 1400), radius=80.0, drag=3.0, rgb=(0.80, 0.88, 0.95), alpha=0.45,
+                      burst=6, dur=0.7, power=0.9, growth='0.6 + Particles.NormalizedAge*1.4', sort=True)),
             shed('Shards', 'M_TD_VFX_Spark', 0, (0.3, 0.8), (7, 14), (1500, 4800), k=1.8, radius=60.0, drag=1.8, stretch=9, rgb=(0.80, 0.93, 1.0),
                  burst=n_grit, dur=0.9, power=1.2)]
 
