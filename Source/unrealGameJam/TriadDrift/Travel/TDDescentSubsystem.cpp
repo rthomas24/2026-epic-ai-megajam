@@ -455,10 +455,22 @@ void UTDDescentSubsystem::TickCover(float Dt)
 			UE_LOG(LogTriadDrift, Log, TEXT("TD descent: reveal (%s)"), Why);
 			CoverPhase = ETDDescentCover::Revealing;
 			StopRoar(1.f);
+			bool bGlideBegan = false;
 			if (IsGlideEnabled() && CoverDestination != ETDDestination::Galaxy && World && bArrivedOverDeck) // never from a spawn height
 			{
 				APlayerController* GlidePC = UGameplayStatics::GetPlayerController(World, 0);
-				if (ATDShip* Flown = GlidePC ? Cast<ATDShip>(GlidePC->GetPawn()) : nullptr) { BeginGlide(Flown); }
+				if (ATDShip* Flown = GlidePC ? Cast<ATDShip>(GlidePC->GetPawn()) : nullptr) { bGlideBegan = BeginGlide(Flown); }
+			}
+			// #139 (Nick's review; T6 with the Lead's leave): the over-deck placement released every ship from the zone
+			// boundary for the glide. When no glide begins (td.Descent.Glide turned off under the cover, no flown ship,
+			// a refused BeginGlide) nothing would ever undo it: give the squad back to the zone here.
+			if (!bGlideBegan && World && !IsGliding())
+			{
+				for (TActorIterator<ATDShip> It(World); It; ++It)
+				{
+					if (UTDShipMovementComponent* M = It->GetShipMovement()) { M->SetBoundaryReleaseFor(GlideOverride, false); }
+				}
+				if (bArrivedOverDeck) { UE_LOG(LogTriadDrift, Log, TEXT("TD descent: no glide at the reveal: the boundary release is undone on every ship")); }
 			}
 			OnRevealed.Broadcast(CoverDestination);
 		}
