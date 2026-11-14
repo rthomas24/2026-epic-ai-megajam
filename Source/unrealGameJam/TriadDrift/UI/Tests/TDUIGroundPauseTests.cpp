@@ -253,6 +253,17 @@ bool FTDUIGroundStoryStates::RunTest(const FString& Parameters)
 	HUD->Sample(.1f);
 	TestTrue(TEXT("both gone after"), !HUD->GetView().bEscape && HUD->GetView().StepRequired == 0 && !HUD->GetView().bExitMarker);
 
+	HUD->ForceApproachPending = 0;
+	HUD->Sample(.1f);
+	TestFalse(TEXT("ENG-26: no anchor down: no approach line"), HUD->GetView().bApproachPending);
+	HUD->ForceApproachPending = 1;
+	HUD->Sample(.1f);
+	Paint();
+	TestTrue(TEXT("ENG-26: anchor down, passage closed: the pending line, painted"), HUD->GetView().bApproachPending && Box(TEXT("approach_pending")).bIsValid);
+	HUD->ForceApproachPending = -1;
+	HUD->Sample(.1f);
+	TestFalse(TEXT("ENG-26: the test world's saved state: anchor not down"), HUD->GetView().bApproachPending);
+
 	TestTrue(TEXT("host sensor flicker"), UTDUIHostSubsystem::ShowSensorFlicker(W.GetWorld(), FVector(3000.f, 0.f, 150.f), 6.f));
 	HUD->Sample(.1f);
 	TestTrue(TEXT("sensor: UNKNOWN first"), HUD->GetView().bSensor && !HUD->GetView().bSensorVerified);

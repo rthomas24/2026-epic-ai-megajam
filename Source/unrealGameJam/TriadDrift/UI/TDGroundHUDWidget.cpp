@@ -15,6 +15,7 @@
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/UI/TDUIPaint.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
@@ -329,6 +330,20 @@ void UTDGroundHUDWidget::Sample(float DeltaSeconds)
 			ExitWorld = At.GetValue();
 		}
 	}
+	// ENG-26: the prepared-but-blocked approach after Cinder's anchor (wording a placeholder for Nicholas).
+	if (ForceApproachPending >= 0)
+	{
+		View.bApproachPending = ForceApproachPending > 0;
+	}
+	else
+	{
+		bool bRevealed = false;
+		if (const ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+		{
+			bRevealed = Flow->GetProgress().bDominionRevealed;
+		}
+		View.bApproachPending = ATDPlanetCourse::IsFieldAnchorDisabled(this) && !bRevealed;
+	}
 	// The sensor marker flicker (host): "UNKNOWN", "VERIFIED" for a moment once, then "UNKNOWN".
 	View.bSensor = false;
 	if (const UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(this))
@@ -561,6 +576,27 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 		Clock.Title(X + 20.f, Y + 24.f, FString::Printf(TEXT("%d:%02d"), Secs / 60, Secs % 60), 30, Ink);
 		Clock.Box(X + 130.f, Y + 40.f, (W - 150.f) * FMath::Clamp(View.EscapeLeft / View.EscapeTotal, 0.f, 1.f), 8.f, Col);
 		LastBoxes.Emplace(TEXT("escape"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
+		Stack += H + 10.f;
+	}
+	// The approach after the anchor: a dashed amber diamond and the line, under the stack.
+	if (View.bApproachPending)
+	{
+		const FString Line = TEXT("APPROACH PREPARED  ·  PASSAGE STILL BLOCKED");
+		const float TW = FMath::Max(P.MeasureText(Line, 14, true), Line.Len() * 8.f);
+		const float W = TW + 64.f, H = 34.f, X = 960.f - W * .5f, Y = Stack;
+		const FLinearColor Amber = FTDUIPalette::Bastion();
+		P.Glass(X, Y, W, H, Amber);
+		FTDUIPainter Top = P;
+		Top.Layer = P.Layer + 2;
+		const FVector2D D(X + 22.f, Y + H * .5f);
+		for (int32 S = 0; S < 4; ++S) // dashed: half of each edge
+		{
+			const FVector2D A = D + FVector2D(FMath::Cos(S * HALF_PI), FMath::Sin(S * HALF_PI)) * 8.f;
+			const FVector2D B = D + FVector2D(FMath::Cos((S + 1) * HALF_PI), FMath::Sin((S + 1) * HALF_PI)) * 8.f;
+			Top.Line(A, FMath::Lerp(A, B, .5f), Amber, 2.f);
+		}
+		Top.Text(X + 42.f, Y + 8.f, Line, 14, Ink, true);
+		LastBoxes.Emplace(TEXT("approach_pending"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
 		Stack += H + 10.f;
 	}
 	// The way out: an amber diamond with "EXIT" and the range on screen; off screen, a chevron on the frame edge.
