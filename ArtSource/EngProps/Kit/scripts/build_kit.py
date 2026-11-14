@@ -86,7 +86,7 @@ def make_materials(glow=GLOW_TEAL):
         wm = m.copy()
         wm.name = "M_Kit_Worn"
         mats["Worn"] = wm
-        for key, col in (("Canopy", (0.42, 0.38, 0.28)), ("Flag", (0.9, 0.35, 0.05)), ("Decal", (0.05, 0.04, 0.03)), ("Decal2", (0.02, 0.02, 0.02)), ("Pool", (1.0, 0.7, 0.35))):
+        for key, col in (("Canopy", (0.42, 0.38, 0.28)), ("Flag", (0.9, 0.35, 0.05)), ("Decal", (0.05, 0.04, 0.03)), ("Decal2", (0.02, 0.02, 0.02)), ("Pool", (1.0, 0.7, 0.35)), ("Insignia", (0.6, 0.6, 0.6))):
             c_ = bpy.data.materials.new("M_Kit_" + key)
             b_ = next(n for n in c_.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
             b_.inputs["Base Color"].default_value = (col[0], col[1], col[2], 1.0)

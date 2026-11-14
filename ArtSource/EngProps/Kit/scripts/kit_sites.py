@@ -128,15 +128,22 @@ def outpost(variant):
         ps.append(piece("Corner_%d_%d" % (x, y), "SM_Kit_Corner", x, y, 0, yaw, slots=g))
     ps.append(piece("Console", "SM_Kit_Console", -360, 0, 0, 0, slots={"Screen": K + "MI_Kit_Screen"}))
     ps.append(piece("Lamp_Door", "SM_Kit_LightStrip_200", 425, 0, 296, 90, slots=g))
+    # ART-17 (Lead, 03:00 audit): the room sits 3 cm above the ground so uneven terrain does not show through the floor
+    # (evidence-eb1bf334/raw/42_console_c.png showed Verdance's ground as the outpost floor). The 20 cm slab still reaches
+    # 17 cm below the pivot, and every piece (walls, door, console) moves with it; the floor's collision top is the visual top.
+    LIFT = 3.0
+    for pc in ps:
+        pc["location_cm"][2] += LIFT
     return {
         "site": "Outpost_Site", "actor": "/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_" + variant,
         "about": "Survey outpost rebuilt from the kit: one 800 x 400 room, 300 to the roof, floor flush with the ground, doorway (160 x 260) on +X.",
         "pieces": ps,
-        "console_interact": {"stand_at_site_cm": [-250.0, 0.0, 0.0], "pilot_faces_yaw_deg": 180.0, "console_site_cm": [-360.0, 0.0, 0.0],
+        "console_interact": {"stand_at_site_cm": [-250.0, 0.0, 3.0], "pilot_faces_yaw_deg": 180.0, "console_site_cm": [-360.0, 0.0, 3.0],
                              "clear_in_front_cm": 316.0, "moved_from": "(76, 81.5, 153) yaw 180 on the Rodin cabin's bay floor"},
         "walk_path_site_cm": [[700, 0, 0, "ground in front of the door"], [400, 0, 0, "doorway, 160 x 260 clear"], [0, 0, 0, "room centre"], [-250, 0, 0, "console point"]],
-        "walkability_cm": {"floor_top_z": 0, "room": {"x": [-390, 390], "y": [-190, 190]}, "door": {"y": [-80, 80], "z": [0, 260]}, "roof_underside_z": 296},
-        "placement_rules": ["Put the pivot on flat ground: the floor top IS the ground (the 20 cm slab is buried).", "Keep 3 m clear in front of the door (X 400..700)."],
+        "walkability_cm": {"floor_top_z": 3, "room": {"x": [-390, 390], "y": [-190, 190]}, "door": {"y": [-80, 80], "z": [3, 263]}, "roof_underside_z": 299},
+        "placement_rules": ["Put the pivot on the ground: the floor top is 3 cm above it (a 3 cm step at the door, well under the pawn's 45 cm step); the slab reaches 17 cm below the pivot, so keep terrain bumps under 15 cm inside the footprint.",
+                            "Keep 3 m clear in front of the door (X 400..700)."],
     }
 
 
