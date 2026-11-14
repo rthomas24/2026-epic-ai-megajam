@@ -30,7 +30,7 @@ PIECES = [("BP_SP_PatrolWreck", os.environ.get("TD_SPACE_PATROL", "Gate"), 15000
 if os.environ.get("TD_SPACE_SET") == "region":          # the region set pieces: (class, place, near distance, dz)
     SPS = "/Game/TriadDrift/Gameplay/Props/Kit/Space/"
     # r3: the near shot stands off so the whole piece is in frame (the 261 m shard at 600 m)
-    PIECES = [("BP_KS_PicketRing", "Gate", 30000, 0), ("BP_KS_Hulk", "Verdance", 35000, 0), ("BP_KS_ScarRig", "Cinder", 30000, 0),
+    PIECES = [("BP_KS_PicketRing", "Gate", 30000, 0), ("BP_KS_Hulk", "Start", 35000, 0), ("BP_KS_ScarRig", "Cinder", 30000, 0),
               ("BP_KS_MoonShards", "Belt", 60000, 0)]
 AIM = {"BP_KS_PicketRing": (6600.0, 0.0)}
 PLACE = os.environ.get("TD_SPACE_PLACE")          # one place for every piece (a run per piece: a fresh session each)
@@ -69,8 +69,9 @@ for cls, place, near, dz in PIECES:
         # beside and above the ship, so the player's own hull does not hide the piece (about 14 deg right, 7 up)
         rx, ry = -f[1], f[0]
         ax, ay = AIM.get(cls, (0.0, 0.0))                # aim at the piece, not its pivot (the picket ring's arc is 66 m out)
-        G.cmd("TD.Dev.SpawnClass %s%s Space %.0f %.0f %.0f" % (SPS, cls, x + f[0] * d + rx * d * 0.25 - ax, y + f[1] * d + ry * d * 0.25 - ay,
-                                                                 z + f[2] * d + dz + d * 0.12))
+        lat, up = (0.1, 0.05) if os.environ.get("TD_SPACE_SET") == "region" else (0.25, 0.12)    # region: nearly dead ahead, just above the ship
+        G.cmd("TD.Dev.SpawnClass %s%s Space %.0f %.0f %.0f" % (SPS, cls, x + f[0] * d + rx * d * lat - ax, y + f[1] * d + ry * d * lat - ay,
+                                                                 z + f[2] * d + dz + d * up))
         time.sleep(3.0)
         print(G.shot("%s_%s" % (cls.replace("BP_SP_", "").replace("BP_", ""), tag)))
         if os.environ.get("TD_SPACE_PHASES"):        # the strobe's other phase: let half a period (0.38 s) run, shoot again
