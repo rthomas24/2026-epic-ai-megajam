@@ -22,6 +22,43 @@ namespace TDTerrainFieldImpl
 	}
 }
 
+namespace TDTerrainFieldFlats
+{
+	FCriticalSection& Lock() { static FCriticalSection L; return L; }
+	TMap<uint8, TSharedPtr<const FTDCourseFlats, ESPMode::ThreadSafe>>& Map() { static TMap<uint8, TSharedPtr<const FTDCourseFlats, ESPMode::ThreadSafe>> M; return M; }
+}
+
+void FTDTerrainStyle::RegisterCourseFlats(ETDDestination Planet, const FTDCourseFlats& InFlats)
+{
+	FScopeLock Guard(&TDTerrainFieldFlats::Lock());
+	TDTerrainFieldFlats::Map().Add((uint8)Planet, MakeShared<const FTDCourseFlats, ESPMode::ThreadSafe>(InFlats));
+}
+
+void FTDTerrainStyle::ClearCourseFlats(ETDDestination Planet)
+{
+	FScopeLock Guard(&TDTerrainFieldFlats::Lock());
+	TDTerrainFieldFlats::Map().Remove((uint8)Planet);
+}
+
+float FTDCourseFlats::DistanceTo(float X, float Y) const
+{
+	const FVector2D P(X, Y);
+	float Best = BIG_NUMBER;
+	for (const FBox2D& B : Boxes)
+	{
+		const float DX = FMath::Max3((float)B.Min.X - X, 0.f, X - (float)B.Max.X), DY = FMath::Max3((float)B.Min.Y - Y, 0.f, Y - (float)B.Max.Y);
+		Best = FMath::Min(Best, FMath::Sqrt(DX * DX + DY * DY));
+	}
+	for (const FSeg& S : Segs)
+	{
+		const FVector2D AB = S.B - S.A;
+		const float L2 = (float)AB.SizeSquared();
+		const float T = L2 > 1.f ? FMath::Clamp((float)FVector2D::DotProduct(P - S.A, AB) / L2, 0.f, 1.f) : 0.f;
+		Best = FMath::Min(Best, FMath::Max(0.f, (float)FVector2D::Distance(P, S.A + AB * T) - S.HalfWidth));
+	}
+	return Best;
+}
+
 FTDTerrainStyle FTDTerrainStyle::ForPlanet(ETDDestination Planet)
 {
 	FTDTerrainStyle S;
@@ -72,6 +109,19 @@ FTDTerrainStyle FTDTerrainStyle::ForPlanet(ETDDestination Planet)
 		S.RiftBearing = 110.f; S.MesaBearing = 200.f; S.BasinBearing = 290.f; S.PlateauBearing = 20.f;
 		S.SeaLevel = -14000.f;
 		S.HorizonRise = 300000.f;
+	}
+	// Ryan (#194): mountains all around the pad, close and tall, and relief underfoot once the course has said where
+	// its walked ground is.
+	S.bCinderGround = Planet == ETDDestination::Cinder;
+	S.RingRidgeHeight = S.bCinderGround ? 32000.f : 26000.f;	// x (0.4..1.25) crest: about 100-400 m (Lead: 150-400 m)
+	{
+		FScopeLock Guard(&TDTerrainFieldFlats::Lock());
+		if (const TSharedPtr<const FTDCourseFlats, ESPMode::ThreadSafe>* F = TDTerrainFieldFlats::Map().Find((uint8)Planet))
+		{
+			S.Flats = *F;
+			const FVector2D Half = FVector2D(S.BasinHalfExtent) + FVector2D(S.MicroMargin, S.MicroMargin);
+			S.MicroRegion = FBox2D(FVector2D(S.BasinCentre) - Half, FVector2D(S.BasinCentre) + Half);
+		}
 	}
 	return S;
 }
@@ -369,7 +419,7 @@ FVector2D FTDTerrainField::SeaCentre() const
 float FTDTerrainField::Height(float X, float Y) const
 {
 	const float W = BasinWeight(X, Y);
-	if (W <= 0.f) { return Style.BasinFloor; }
+	if (W <= 0.f) { return Style.BasinFloor + (Style.HasMicroRelief() ? MicroRelief(X, Y) : 0.f); }
 	// Never below the course floor near the course: the course slab's edge would show as a raised table (Verdance
 	// from 5 km). Depressions (seas, canyons) only start well beyond the blend.
 	const float Raw = RawHeight(X, Y);
@@ -378,6 +428,19 @@ float FTDTerrainField::Height(float X, float Y) const
 	const float Near = 1.f - FMath::SmoothStep(250000.f, 450000.f, FMath::Sqrt(DX * DX + DY * DY));	// floored to 2.5 km beyond, gone by 4.5
 	const float Floored = FMath::Lerp(Raw, FMath::Max(Raw, Style.BasinFloor + 300.f * W), Near);
 	float H = FMath::Lerp(Style.BasinFloor, Floored, W);
+	// Ryan (#194): a ring of ridgelines close around the pad (rising from RingInner, tallest about RingPeak, gone by
+	// RingOuter), so every view from the pad is framed by peaks. The valley clamps below still cut the arrival notch
+	// (-X) and the hero sightline.
+	if (Style.RingRidgeHeight > 0.f)
+	{
+		const float R = FMath::Sqrt(X * X + Y * Y);
+		const float Rise = FMath::SmoothStep(Style.RingInner, Style.RingPeak, R) * (1.f - FMath::SmoothStep(Style.RingPeak + 15000.f, Style.RingOuter, R));
+		if (Rise > 0.f)
+		{
+			const float Crest = 0.4f + 0.85f * Ridged(X / 32000.f, Y / 32000.f, 4, Style.Seed + 301, Style.Sharpness);
+			H += Rise * Style.RingRidgeHeight * Crest;
+		}
+	}
 	// A valley that frames the hero peak from the pad: toward it, the ground stays under the sightline to its summit.
 	{
 		const FVector2D Q(X, Y);
@@ -407,6 +470,11 @@ float FTDTerrainField::Height(float X, float Y) const
 			H = FMath::Lerp(H, FMath::Min(H, FMath::Max(Glide, Style.BasinFloor)), Edge);
 		}
 	}
+	// Ryan (#194): relief underfoot (zero on the course's walked ground and outside the region).
+	if (Style.HasMicroRelief())
+	{
+		H += MicroRelief(X, Y);
+	}
 	return H;
 }
 
@@ -426,5 +494,91 @@ FTDTerrainSample FTDTerrainField::Sample(float X, float Y, float Step) const
 		? FMath::Clamp(0.5f + RiverNoise(X, Y) * 4.5f, 0.f, 1.f)
 		: Fbm(X / 400000.f, Y / 400000.f, 3, Style.Seed + 71) * 0.5f + 0.5f;
 	S.FineMask = Noise2D(X / 6000.f, Y / 6000.f, Style.Seed + 73) * 0.5f + 0.5f;
+	// Cinder (#194): the cracks in the course ground are lava for the material (the river-bed mask's 0.5 band).
+	if (Style.bCinderGround && Style.HasMicroRelief())
+	{
+		float Crack = 0.f;
+		MicroRelief(X, Y, &Crack);
+		if (Crack > 0.05f) { S.BroadMask = FMath::Lerp(S.BroadMask, 0.5f, FMath::Clamp(Crack * 1.4f, 0.f, 1.f)); }
+	}
 	return S;
+}
+
+float FTDTerrainField::MicroWeight(float X, float Y) const
+{
+	if (!Style.HasMicroRelief()) { return 0.f; }
+	const FBox2D& R = Style.MicroRegion;
+	const float In = FMath::Min(FMath::Min(X - (float)R.Min.X, (float)R.Max.X - X), FMath::Min(Y - (float)R.Min.Y, (float)R.Max.Y - Y));
+	return FMath::SmoothStep(0.f, 4000.f, In);	// fades to 0 over the region's outer 40 m (meets the coarse chunks)
+}
+
+float FTDTerrainField::MicroRelief(float X, float Y, float* OutCrack) const
+{
+	if (OutCrack) { *OutCrack = 0.f; }
+	const float Edge = MicroWeight(X, Y);
+	if (Edge <= 0.f) { return 0.f; }
+	// Flat on the course's walked ground (pad, routes at walking width, sites, structures, spawns), rising over 6 m.
+	const float Flat = FMath::SmoothStep(0.f, 600.f, Style.Flats->DistanceTo(X, Y));
+	if (Flat <= 0.f) { return 0.f; }
+	const int32 S = Style.Seed + 5001;
+	float H = 0.f;
+	// Rolling ground: never one plane.
+	H += Fbm(X / 2600.f, Y / 2600.f, 3, S + 1) * 55.f + Fbm(X / 9000.f, Y / 9000.f, 2, S + 2) * 140.f;
+	// Low ridges and gullies (ridged noise about 60 m across, +-1.3 m).
+	H += (Ridged(X / 6000.f, Y / 6000.f, 2, S + 3, Style.bCinderGround ? 0.8f : 0.4f) - 0.5f) * 260.f;
+	// Features on a 25 m grid: craters / root hollows (with a rim), mounds, pits / sinkholes.
+	const float Cell = 4500.f;	// a feature is at most 40 m across: the 3 x 3 neighbourhood covers it
+	const int32 CX = FMath::FloorToInt32(X / Cell), CY = FMath::FloorToInt32(Y / Cell);
+	for (int32 dy = -1; dy <= 1; ++dy)
+	{
+		for (int32 dx = -1; dx <= 1; ++dx)
+		{
+			const uint32 Hash = HashCombine(GetTypeHash(CX + dx), HashCombine(GetTypeHash(CY + dy), GetTypeHash(S)));
+			FRandomStream R((int32)Hash);
+			const float Kind = R.FRand();
+			if (Kind > 0.82f) { continue; }	// some cells are just ground
+			const FVector2D Ctr((CX + dx + R.FRandRange(0.15f, 0.85f)) * Cell, (CY + dy + R.FRandRange(0.15f, 0.85f)) * Cell);
+			const float D = (float)FVector2D::Distance(FVector2D(X, Y), Ctr);
+			if (Kind < 0.42f)
+			{
+				// Crater / root hollow (Lead): 15-40 m across, 2-6 m deep, with a raised lip; a few small divots too.
+				const bool bSmall = R.FRand() < 0.35f;
+				const float Rad = bSmall ? R.FRandRange(150.f, 600.f) : R.FRandRange(750.f, 2000.f);
+				const float Depth = bSmall ? R.FRandRange(50.f, 150.f) : FMath::Lerp(200.f, 600.f, (Rad - 750.f) / 1250.f) * R.FRandRange(0.8f, 1.f);
+				const float U = D / Rad;
+				if (U < 1.f) { H -= Depth * (1.f - U * U); }
+				H += Depth * 0.22f * FMath::Exp(-FMath::Square((U - 1.08f) / 0.22f));
+			}
+			else if (Kind < 0.70f)
+			{
+				// Mound / outcrop: 10-36 m across, 1-4 m tall.
+				const float Rad = R.FRandRange(500.f, 1800.f), Tall = R.FRandRange(100.f, 400.f);
+				const float U = D / Rad;
+				if (U < 1.f) { H += Tall * FMath::Square(1.f - U * U); }
+			}
+			else if (Kind < 0.78f)
+			{
+				// Pit / sinkhole: narrow and deep (3-7 m across, 3-6 m deep), steep walls.
+				const float Rad = R.FRandRange(150.f, 350.f), Depth = R.FRandRange(300.f, 600.f);
+				const float U = D / Rad;
+				if (U < 1.f) { H -= Depth * (1.f - FMath::Pow(U, 4.f)); }
+			}
+			// else: a cell with only the rolling ground
+		}
+	}
+	// Verdance: soft terraces on the rises. Cinder: cracks along a noise contour (lava, see Sample).
+	if (!Style.bCinderGround)
+	{
+		const float Step = 120.f;
+		const float T = H / Step, Base = FMath::FloorToFloat(T);
+		H = FMath::Lerp(H, (Base + FMath::SmoothStep(0.6f, 0.95f, T - Base)) * Step, 0.45f);
+	}
+	else
+	{
+		const float N = Noise2D(X / 3500.f, Y / 3500.f, S + 9) + 0.5f * Noise2D(X / 1200.f, Y / 1200.f, S + 10);
+		const float Crack = FMath::Exp(-FMath::Square(N * 14.f));
+		H -= Crack * 110.f;
+		if (OutCrack) { *OutCrack = Crack * Flat * Edge; }
+	}
+	return H * Flat * Edge * Style.MicroAmount;
 }
