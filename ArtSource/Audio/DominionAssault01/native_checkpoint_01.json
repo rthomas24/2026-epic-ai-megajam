@@ -1,0 +1,12 @@
+{
+  "utc": "2026-11-13T23:57:41.447588+00:00",
+  "claim": "2a8ac468",
+  "native_launched": false,
+  "stage": "Prepared; final prelaunch idle_guard blocked below4GiB",
+  "available_gib": 3.8244781494140625,
+  "required_gib": 4.0,
+  "native_host_head": "52f84e5497f62e14871e5f73972be259cc26cea1",
+  "source_head": "19ae7b4f90db0556584b4832aa811a9d12127d18",
+  "retry": "Fresh suffixed evidence directory required; preserve ImportGuard01 preflight snapshot",
+  "original_and_prepared_audio_unchanged": true
+}

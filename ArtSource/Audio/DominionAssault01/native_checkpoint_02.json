@@ -1,0 +1,53 @@
+{
+  "stage": "Native import and fresh-process reload verified; playback, cook and gameplay binding pending",
+  "claim": "2a8ac468",
+  "utc": "2026-11-14T00:00:51.453181+00:00",
+  "import": {
+    "pid": 25956,
+    "exit_code": 0,
+    "reason": "completed",
+    "error": null,
+    "duration_s": 48.09299999999712,
+    "minimum_free_gib": 1.7986335754394531,
+    "protected_count": 2056,
+    "changed_protected": [],
+    "new_content": {
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-dominion-interior-ecc2dc9\\Content\\TriadDrift\\Audio\\DominionAssault01\\MUS_DominionAssault_InfinityZone_Full_01.uasset": "03c80c92235cbd13624216f49c622de20f2e3951c89891cca8b1d843477c35f0"
+    }
+  },
+  "reload": {
+    "pid": 4200,
+    "exit_code": 0,
+    "reason": "completed",
+    "error": null,
+    "duration_s": 13.718000000000757,
+    "minimum_free_gib": 2.407794952392578,
+    "protected_count": 2057,
+    "changed_protected": [],
+    "new_content": {}
+  },
+  "native_readback": {
+    "stage": "Full Infinity Zone Wave verified; runtime assault hook pending",
+    "mode": "reload",
+    "ordered_assets": [
+      {
+        "order": 1,
+        "asset": "/Game/TriadDrift/Audio/DominionAssault01/MUS_DominionAssault_InfinityZone_Full_01.MUS_DominionAssault_InfinityZone_Full_01",
+        "sha256": "03c80c92235cbd13624216f49c622de20f2e3951c89891cca8b1d843477c35f0",
+        "bytes": 17566144,
+        "decoded_duration_s": 139.1735,
+        "looping": false,
+        "volume": 0.5,
+        "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music"
+      }
+    ],
+    "source_order_preserved": true,
+    "crossfade_or_repeat": "Not specified or implemented",
+    "runtime_binding_performed": false
+  },
+  "source_sha256": "1aad26c362efbf62df65d07b301cdab0485363b84360046369e776e86369ba79",
+  "prepared_wav_sha256": "4a4c04b10350133aee17a8f3a8423e78dc9150670f9256c7991dad5ad0379650",
+  "native_script_sha256": "e4f820c2c51a209ca503f188eb2f2a31d387104895b605e1eb73e7985d68a959",
+  "runtime_binding_performed": false,
+  "heavy_processes_released": true
+}
