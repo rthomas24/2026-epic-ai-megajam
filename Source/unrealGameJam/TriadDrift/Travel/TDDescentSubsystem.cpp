@@ -170,6 +170,7 @@ void UTDDescentSubsystem::Tick(float DeltaTime)
 	TickCloudDeck();
 	TickGlide(FMath::Min(DeltaTime, 0.1f));
 	TickExposureRamp();
+	TickGlideWind(FMath::Min(DeltaTime, 0.1f));
 	if (!IsTiming()) { return; }
 	const double Now = FPlatformTime::Seconds();
 	LongestFrame = FMath::Max(LongestFrame, Now - LastTickTime);
@@ -482,38 +483,50 @@ void UTDDescentSubsystem::TickCloudDeck()
 	const UTDTravelFX* FX = UTDTravelSubsystem::GetDefaultTravelFX(World);
 	const float Rel = Ship->GetActorLocation().Z - Deck->GetActorLocation().Z;
 	const float Side = FMath::Sign(Rel);
-	// Through the deck, either way (entry glide, climb out, or just flying through it): one punch.
+	const bool bGlidePass = IsGliding() && GlideShip.Get() == Ship;
+	// Through the deck, either way: one punch. During the glide only its sound (the in-cloud layer replaces the puffs).
 	if (LastDeckShip.Get() == Ship && LastShipDeckSide != 0.f && Side != 0.f && Side != LastShipDeckSide && FX)
 	{
 		++CloudPunches;
-		UTDStatics::PlayCue(World, FX->CloudPunch, Ship->GetActorLocation(), Ship->GetActorRotation());
+		FTDFXCue Punch = FX->CloudPunch;
+		if (bGlidePass) { Punch.VFX.Reset(); }
+		UTDStatics::PlayCue(World, Punch, Ship->GetActorLocation(), Ship->GetActorRotation());
 	}
 	LastShipDeckSide = Side;
 	LastDeckShip = Ship;
-	// The glide's pass through the deck (the Lead, Nov 14): 1-2 s inside cloud - the wisps ride the camera (full screen),
-	// with User.Inside01 (1 at the deck's middle) and User.Planet (0 Verdance, 1 Cinder) for the look (the effects builder's).
-	const bool bGlidePass = IsGliding() && GlideShip.Get() == Ship;
-	const float Band = bGlidePass ? GlideDeckPassBand : CloudDeckBand;
-	const bool bNear = FMath::Abs(Rel) < Band;
-	if (bNear && !CloudWisps.IsValid() && FX)
+	// The in-cloud layer (NS_TD_Entry_CloudWisps, the effects builder's contract): attached to the flown ship; User.Intensity
+	// 0 -> 1 -> 0 across the deck, peaking at its height, over about 1.5-2 s of the glide (the band follows the ship's
+	// vertical speed); User.Color / User.Embers per planet; capped at 0.5 under reduced motion; deactivated outside the band.
+	float Band = CloudDeckBand;
+	if (bGlidePass)
 	{
-		UAudioComponent* NoAudio = nullptr;
-		USceneComponent* Attach = Ship->GetRootComponent();
-		if (bGlidePass)
-		{
-			if (UCameraComponent* Cam = Ship->FindComponentByClass<UCameraComponent>()) { Attach = Cam; }
-		}
-		CloudWisps = UTDStatics::PlayCueAttachedLoop(FX->CloudWisps, Attach, NAME_None, NoAudio);
-		if (UNiagaraComponent* W = CloudWisps.Get()) { W->SetVariableFloat(TEXT("User.Planet"), Deck->GetPlanet() == ETDDestination::Cinder ? 1.f : 0.f); }
+		const float Vz = FMath::Abs((float)Ship->GetVelocity().Z);
+		Band = FMath::Clamp(Vz * 0.9f, 1500.f, GlideDeckPassBand * 2.f); // +-0.9 s of vertical travel
 	}
+	const bool bNear = FMath::Abs(Rel) < Band;
 	if (bGlidePass && bNear && !bInGlideDeckPass) { ++GlideDeckPasses; } // entering the deck's band during the glide
 	bInGlideDeckPass = bGlidePass && bNear;
-	if (UNiagaraComponent* W = CloudWisps.Get()) { W->SetVariableFloat(TEXT("User.Inside01"), FMath::Clamp(1.f - FMath::Abs(Rel) / Band, 0.f, 1.f)); }
-	else if (!bNear && CloudWisps.IsValid())
+	if (!bNear)
 	{
-		CloudWisps->Deactivate();
+		if (UNiagaraComponent* W = CloudWisps.Get()) { W->Deactivate(); }
 		CloudWisps.Reset();
+		CloudIntensity = 0.f;
+		return;
 	}
+	if (!CloudWisps.IsValid() && FX)
+	{
+		UAudioComponent* NoAudio = nullptr;
+		CloudWisps = UTDStatics::PlayCueAttachedLoop(FX->CloudWisps, Ship->GetRootComponent(), NAME_None, NoAudio);
+		if (UNiagaraComponent* W = CloudWisps.Get())
+		{
+			const bool bCinder = Deck->GetPlanet() == ETDDestination::Cinder;
+			W->SetVariableLinearColor(TEXT("User.Color"), bCinder ? FLinearColor(0.45f, 0.36f, 0.30f, 1.f) : FLinearColor(0.78f, 0.92f, 0.92f, 1.f));
+			W->SetVariableFloat(TEXT("User.Embers"), bCinder ? 1.f : 0.f);
+		}
+	}
+	CloudIntensity = FMath::Clamp(1.f - FMath::Abs(Rel) / Band, 0.f, 1.f);
+	if (UTDSettingsSubsystem::IsReduceMotion(Ship)) { CloudIntensity = FMath::Min(CloudIntensity, 0.5f); }
+	if (UNiagaraComponent* W = CloudWisps.Get()) { W->SetVariableFloat(TEXT("User.Intensity"), CloudIntensity); }
 }
 
 void UTDDescentSubsystem::SetEntryHeat(float Heat01)
@@ -745,6 +758,34 @@ bool UTDDescentSubsystem::PlaceDeparture(UWorld* World)
 	bDepartPending = false;
 	Mark(*FString::Printf(TEXT("departure placed at lat %.1f lon %.1f, %.0f m from the planet"), DepartPoint.LatDeg, DepartPoint.LonDeg, (At - Centre).Size() / 100.f));
 	return true;
+}
+
+void UTDDescentSubsystem::TickGlideWind(float Dt)
+{
+	// In over 1 s as the roar fades at the reveal (the roar's own 1 s fade), out over the level-off: the two hand over.
+	const float Want = IsGliding() ? (bGlideLevelling ? 1.f - FMath::Clamp(GlideLevelTime / GlideHandBackSeconds, 0.f, 1.f) : FMath::Clamp(GlideTime / 1.f, 0.f, 1.f)) : 0.f;
+	GlideWindVolume = Want;
+	if (Want <= 0.f)
+	{
+		if (GlideWind) { GlideWind->FadeOut(0.3f, 0.f); GlideWind = nullptr; }
+		return;
+	}
+	if (!GlideWind)
+	{
+		UWorld* World = GlideShip.IsValid() ? GlideShip->GetWorld() : nullptr;
+		const UTDTravelFX* FX = UTDTravelSubsystem::GetDefaultTravelFX(World);
+		USoundBase* Sound = FX && !FX->GlideWind.Sound.IsNull() ? FX->GlideWind.Sound.LoadSynchronous() : nullptr;
+		if (!Sound)
+		{
+			// The effects builder's loop while DA_Travel_FX leaves the slot empty; null-safe.
+			static const FSoftObjectPath Default(TEXT("/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_GlideWind_01.SW_Travel_GlideWind_01"));
+			Sound = Cast<USoundBase>(Default.TryLoad());
+		}
+		if (!Sound || !World) { return; }
+		GlideWind = UGameplayStatics::CreateSound2D(World, Sound, 1.f, 1.f, 0.f, nullptr, false, false);
+		if (GlideWind) { GlideWind->Play(); }
+	}
+	if (GlideWind) { GlideWind->SetVolumeMultiplier(FMath::Max(Want, 0.001f)); }
 }
 
 void UTDDescentSubsystem::TickExposureRamp()

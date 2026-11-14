@@ -294,9 +294,17 @@ private:
 	float ExposureWeight = 0.f;
 public:
 	int32 GlideDeckPasses = 0; // tests and the timing log
+	float GetCloudIntensity() const { return CloudIntensity; }
+	float GetGlideWindVolume() const { return GlideWindVolume; }
 	bool bInGlideDeckPass = false;
+	/** The in-cloud layer's User.Intensity now (0 outside the deck's band). */
+	float CloudIntensity = 0.f;
+	/** The glide's wind loop (DA_Travel_FX.GlideWind): its volume now (0 when not gliding). */
+	float GlideWindVolume = 0.f;
 private:
 	TWeakObjectPtr<class UCameraComponent> ExposureCamera;
+	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> GlideWind;
+	void TickGlideWind(float Dt);
 	UPROPERTY(Transient) TObjectPtr<class UMaterialInstanceDynamic> ExposureMID;
 	float GlideLevelTime = 0.f;
 

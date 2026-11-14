@@ -18,7 +18,8 @@ namespace TDT1Glide
 {
 	struct FRun { float EndZ = 0.f; float EndPitch = 0.f; float MinZ = 1e9f; bool bHeldWarning = true; bool bInvulnerable = true; bool bDescent01InRange = true;
 		bool bHandedBack = false; bool bOverrideCleared = false; bool bVulnerableAgain = false; float Seconds = 0.f;
-		float MaxStepDrop = 0.f; float EndSpeed = 0.f; float Cruise = 0.f; int32 DeckPasses = 0; };
+		float MaxStepDrop = 0.f; float EndSpeed = 0.f; float Cruise = 0.f; int32 DeckPasses = 0;
+		float MaxCloud = 0.f; float CloudSeconds = 0.f; float MaxWind = 0.f; float EndWind = -1.f; };
 
 	FRun Fly(ETDShipId Id, float Fps, float StartZ, float GroundZ, bool bDeck = false)
 	{
@@ -46,6 +47,9 @@ namespace TDT1Glide
 			R.MaxStepDrop = FMath::Max(R.MaxStepDrop, LastSpeed - Move->GetSpeed());
 			LastSpeed = Move->GetSpeed();
 			R.EndSpeed = Move->GetSpeed(); // the last gliding frame: the speed handed back
+			R.MaxCloud = FMath::Max(R.MaxCloud, D->GetCloudIntensity());
+			R.CloudSeconds += D->GetCloudIntensity() > 0.f ? Dt : 0.f;
+			R.MaxWind = FMath::Max(R.MaxWind, D->GetGlideWindVolume());
 			if (!D->IsGliding()) { break; }
 			R.MinZ = FMath::Min(R.MinZ, (float)Ship->GetActorLocation().Z);
 			R.bHeldWarning &= Move->IsBoundaryWarningHeld();
@@ -58,6 +62,8 @@ namespace TDT1Glide
 		R.bVulnerableAgain = Ship->GetHealth() && !Ship->GetHealth()->IsInvulnerable();
 		for (int32 i = 0; i < 10; ++i) { W.Tick(Dt); R.MaxStepDrop = FMath::Max(R.MaxStepDrop, LastSpeed - Move->GetSpeed()); LastSpeed = Move->GetSpeed(); }
 		R.DeckPasses = D->GlideDeckPasses - Passes0;
+		D->Tick(Dt);
+		R.EndWind = D->GetGlideWindVolume();
 		R.EndZ = Ship->GetActorLocation().Z;
 		R.EndPitch = Ship->GetActorRotation().Pitch;
 		return R;
@@ -160,6 +166,10 @@ bool FTDT1GlideDeckPass::RunTest(const FString& Parameters)
 	const TDT1Glide::FRun R = TDT1Glide::Fly(ETDShipId::Lancer, 60.f, 115000.f + UTDDescentSubsystem::GlideAboveDeckCm, 0.f, true);
 	AddInfo(FString::Printf(TEXT("deck passes %d, end %.0f m"), R.DeckPasses, R.EndZ / 100.f));
 	TestEqual(TEXT("one pass through the deck"), R.DeckPasses, 1);
+	AddInfo(FString::Printf(TEXT("in-cloud layer: peak %.2f, %.1f s inside; wind peak %.2f, after %.2f"), R.MaxCloud, R.CloudSeconds, R.MaxWind, R.EndWind));
+	TestTrue(TEXT("the in-cloud layer peaks at the deck"), R.MaxCloud >= 0.85f);
+	TestTrue(*FString::Printf(TEXT("inside cloud for about 1.5-2 s (%.1f s)"), R.CloudSeconds), R.CloudSeconds >= 1.f && R.CloudSeconds <= 3.f);
+	TestTrue(TEXT("the glide wind plays through the glide and is gone after"), R.MaxWind >= 0.9f && R.EndWind == 0.f);
 	TestTrue(TEXT("handed back"), R.bHandedBack);
 	return true;
 }

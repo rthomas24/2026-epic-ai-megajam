@@ -485,6 +485,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Descent")
 	TSoftObjectPtr<class UMaterialInterface> DescentWhitePP;
 
+	/** ENG-38 glide wind (SW_Travel_GlideWind_01, the effects builder): a 2D loop through the post-reveal glide, in as the
+	 *  roar fades, out over the level-off. Only the Sound is used. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Descent")
+	FTDFXCue GlideWind;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hyperdrive")
 	FTDFXCue HyperdriveDropOut;
 

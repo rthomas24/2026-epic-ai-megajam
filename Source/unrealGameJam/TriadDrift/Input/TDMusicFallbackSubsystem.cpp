@@ -89,10 +89,10 @@ void UTDMusicFallbackSubsystem::HandleBridgeEvent(FName EventId, UObject* WorldC
 	else if (EventId == UTDMusicEventBridge::VictoryEnded) { if (EventPlacement == ETDMusicPlacement::Credits) { EventPlacement = ETDMusicPlacement::None; } }
 	else if (EventId == UTDMusicEventBridge::GroundCombat) { bGroundFight = true; }
 	else if (EventId == UTDMusicEventBridge::GroundAllClear) { bGroundFight = false; }
-	else if (EventId == FName(TEXT("CoreChamberEntered"))) { EventPlacement = ETDMusicPlacement::CoreChamber; }
-	else if (EventId == FName(TEXT("ReactorFightStarted"))) { EventPlacement = ETDMusicPlacement::ReactorFight; }
-	else if (EventId == FName(TEXT("ReactorFightEnded"))) { if (EventPlacement == ETDMusicPlacement::ReactorFight) { EventPlacement = ETDMusicPlacement::None; } }
-	else if (EventId == FName(TEXT("EscapeStarted"))) { EventPlacement = ETDMusicPlacement::Escape; }
+	else if (EventId == UTDMusicEventBridge::CoreChamberEntered) { EventPlacement = ETDMusicPlacement::CoreChamber; }
+	else if (EventId == UTDMusicEventBridge::ReactorFightStarted) { EventPlacement = ETDMusicPlacement::ReactorFight; }
+	else if (EventId == UTDMusicEventBridge::ReactorFightEnded) { if (EventPlacement == ETDMusicPlacement::ReactorFight) { EventPlacement = ETDMusicPlacement::None; } }
+	else if (EventId == UTDMusicEventBridge::EscapeStarted) { EventPlacement = ETDMusicPlacement::Escape; }
 }
 
 ETDMusicPlacement UTDMusicFallbackSubsystem::ComputeWanted() const
