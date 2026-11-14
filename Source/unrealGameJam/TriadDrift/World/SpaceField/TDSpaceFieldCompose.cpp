@@ -367,13 +367,18 @@ void ATDSpaceField::BuildQuietGraveyard(FRandomStream& Rng)
 	for (int32 i = 0; i < GraveyardHulls; ++i)
 	{
 		const float T = GraveyardHulls > 1 ? float(i) / (GraveyardHulls - 1) : 0.5f;
-		const FVector P = FMath::Lerp(A, B, T) + FVector(Rng.GetUnitVector()) * 9000.f;
-		// Lying roughly along the line, each a little turned and rolled: a fleet that went quiet in formation.
+		// Lying roughly along the line, each a little turned and rolled: a fleet that went quiet in formation. Up to eight
+		// nearby spots per hull (a little along the line, a little further from the route) before giving up.
 		const FRotator R = FRotator(Rng.FRandRange(-15.f, 15.f), (B - A).Rotation().Yaw + Rng.FRandRange(-30.f, 30.f), Rng.FRandRange(-60.f, 60.f));
-		if (AddStructure(Hulls[i % 2], FTransform(R, P)))
+		for (int32 Try = 0; Try < 8; ++Try)
 		{
-			++Placed;
-			ScatterDebris(P, 12000.f, 35, 1500.f, Rng);
+			const FVector P = FMath::Lerp(A, B, FMath::Clamp(T + Rng.FRandRange(-0.08f, 0.08f), -0.1f, 1.1f)) + Side * Sign * (Try * 5000.f) + FVector(Rng.GetUnitVector()) * 6000.f;
+			if (AddStructure(Hulls[i % 2], FTransform(R, P)))
+			{
+				++Placed;
+				ScatterDebris(P, 12000.f, 35, 1500.f, Rng);
+				break;
+			}
 		}
 	}
 	// The fleet's debris along its line: hull fragments and trails, thicker near each hull (150-300 pieces).

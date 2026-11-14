@@ -321,6 +321,17 @@ bool FTDSpaceFieldStructuresKeepOut::RunTest(const FString& Parameters)
 	}
 	AddInfo(FString::Printf(TEXT("%d set pieces placed"), Fd->GetStructures().Num()));
 	TestTrue(TEXT("set pieces placed in the regions"), Fd->GetStructures().Num() >= 20);
+	auto CountNear = [Fd](int32 Region, float Radius, float MinSize)
+	{
+		const FVector* C = Fd->RegionCentres.Find(Region);
+		int32 N = 0;
+		for (const FTDSpaceFieldPiece& S : Fd->GetStructures()) { N += C && S.Size >= MinSize && FVector::Dist(S.Location, *C) < Radius ? 1 : 0; }
+		return N;
+	};
+	const int32 Shards = CountNear(6, 200000.f, 20000.f), Hulls = CountNear(4, 120000.f, 10000.f);
+	AddInfo(FString::Printf(TEXT("Shattered Moons shards %d, Quiet Graveyard hulls %d"), Shards, Hulls));
+	TestTrue(TEXT("the Shattered Moons line the Dominion route (10+ shards)"), Shards >= 10);
+	TestTrue(TEXT("the Quiet Graveyard has its hulls (4+)"), Hulls >= 4);
 	TestEqual(*FString::Printf(TEXT("no set piece in a route, the Dominion sphere or the escape corridor (first: %s)"), *First), Bad, 0);
 	return true;
 }
