@@ -1,5 +1,5 @@
 {
- "_note": "Live Warden slam = Grok's two-handed wind-up (0-0.9 s) into the authored impact and recovery, shifted 0.20 s: contact at 1.30 s; ends in a crouch and rises.",
+ "_note": "Live Warden slam = Grok's two-handed wind-up (0-0.9 s) into the authored impact and recovery, shifted 0.20 s: contact at 1.30 s; ends in a crouch and rises. r3: the off (left) arm keeps the guard pose behind the chest-mounted shield for the whole move, so the shield never hangs unheld; the slam is the gun arm's.",
  "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
  "skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
  "clips": [
@@ -14,7 +14,27 @@
      1.1
     ]
    },
-   "report_feet": true
+   "report_feet": true,
+   "copy_pose": {
+    "src": "A_Crew_Warden_Guard",
+    "t": 0.0,
+    "bones": [
+     "clavicle",
+     "upperarm",
+     "lowerarm",
+     "hand",
+     "index",
+     "middle",
+     "ring",
+     "pinky",
+     "thumb"
+    ],
+    "side": "_l",
+    "ramp": [
+     0.0,
+     0.0
+    ]
+   }
   }
  ]
 }

@@ -383,7 +383,9 @@ for cl in CFG.get("clips", []):
                 w = min(w, (end - tt) / be["out"])
             w = max(0.0, min(1.0, w)); w = w * w * (3 - 2 * w)
             if w < 1.0:
-                frs[i] = {b: (lerpv(g[b][0], frs[i][b][0], w), nlerp(g[b][1], frs[i][b][1], w)) for b in ALL}
+                # "upper": only the upper body takes the other pose (pelvis and legs keep their own steps: no foot slide)
+                up = lambda b: not be.get("upper") or (b not in ("root", "pelvis") and not b.startswith(("thigh", "calf", "foot", "ball", "ik_")))
+                frs[i] = {b: ((lerpv(g[b][0], frs[i][b][0], w), nlerp(g[b][1], frs[i][b][1], w)) if up(b) else frs[i][b]) for b in ALL}
         log("%s: starts from / returns to %s frame 0 (in %.2f s, out %.2f s)" % (cl["dst"], be["src"], be.get("in", 0), be.get("out", 0)))
     travel = 0.0
     root0 = frs[0]["root"][0]

@@ -1,29 +1,29 @@
 {
- "_note": "The Warden's four in-place deaths on SKEL_Warden, from Grok's EnemyDeaths r1 (A_Crew_Warden_DeathRM_<Side>). Shield rule: Front is the Back fall and Left is the Right fall (Grok's Front and Left end with the shield standing up). Rate 1.4 (2.8 s): the corpse is removed 4 s after death (CorpseSeconds), and at 3.93 s the body vanished as it landed. r3 (Lead, Nov 14): every side is the Back fall.",
+ "_note": "The Warden's four in-place deaths on SKEL_Warden, from Grok's EnemyDeaths r1 (A_Crew_Warden_DeathRM_<Side>). Shield rule: Front is the Back fall and Left is the Right fall (Grok's Front and Left end with the shield standing up). Rate 1.4 (2.8 s): the corpse is removed 4 s after death (CorpseSeconds), and at 3.93 s the body vanished as it landed. r3 (Lead, Nov 14): every side is the Back fall. r4: written to A_Crew_Warden_DeathPre_<Side>; ue_body_tool.py (body_warden_death.json) adds the knee buckle, torso twist, shield-arm drop and settle bounce.",
  "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
  "skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
  "clips": [
   {
    "src": "A_Crew_Warden_DeathRM_Back",
-   "dst": "A_Crew_Warden_Death_Front",
+   "dst": "A_Crew_Warden_DeathPre_Front",
    "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
    "rate": 1.4
   },
   {
    "src": "A_Crew_Warden_DeathRM_Back",
-   "dst": "A_Crew_Warden_Death_Back",
+   "dst": "A_Crew_Warden_DeathPre_Back",
    "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
    "rate": 1.4
   },
   {
    "src": "A_Crew_Warden_DeathRM_Back",
-   "dst": "A_Crew_Warden_Death_Left",
+   "dst": "A_Crew_Warden_DeathPre_Left",
    "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
    "rate": 1.4
   },
   {
    "src": "A_Crew_Warden_DeathRM_Back",
-   "dst": "A_Crew_Warden_Death_Right",
+   "dst": "A_Crew_Warden_DeathPre_Right",
    "dst_skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
    "rate": 1.4
   }
