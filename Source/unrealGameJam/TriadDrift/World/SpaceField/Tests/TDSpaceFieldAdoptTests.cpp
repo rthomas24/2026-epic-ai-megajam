@@ -8,6 +8,8 @@
 #include "TriadDrift/World/SpaceField/TDSpaceField.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "HAL/IConsoleManager.h"
+#include "Misc/ScopeExit.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSpaceFieldAdopt, "TriadDrift.World.SpaceField.Break.AdoptsTheLayoutRocksExactlyAndOffRestoresThem", TD_TEST_FLAGS)
 bool FTDSpaceFieldAdopt::RunTest(const FString& Parameters)
@@ -70,6 +72,30 @@ bool FTDSpaceFieldAdopt::RunTest(const FString& Parameters)
 	TestTrue(TEXT("off: the layout's rock collision is back"), Layout->GetAsteroidCollision()->IsCollisionEnabled());
 	TestEqual(TEXT("off: every layout rock exactly as before"), Same, Before.Num());
 	Field->SetFieldEnabled(true);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSpaceFieldOffAtLoad, "TriadDrift.World.SpaceField.Break.OffAtLoadLeavesTheLayoutUntouched", TD_TEST_FLAGS)
+bool FTDSpaceFieldOffAtLoad::RunTest(const FString& Parameters)
+{
+	IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("td.SpaceField"));
+	if (!TestNotNull(TEXT("td.SpaceField"), CVar)) { return false; }
+	const int32 Was = CVar->GetInt();
+	CVar->Set(0, ECVF_SetByCode);
+	ON_SCOPE_EXIT { CVar->Set(Was, ECVF_SetByCode); };
+	FTDTestWorld W;
+	ATDGalaxyLayout* Layout = ATDGalaxyLayout::SpawnDefaultGalaxy(W.GetWorld());
+	W.Advance(0.1f);
+	ATDSpaceField* Field = ATDSpaceField::SpawnFor(Layout);
+	W.Advance(0.1f);
+	if (!TestNotNull(TEXT("field"), Field)) { return false; }
+	int32 Adopted = 0;
+	for (const FTDSpaceFieldPiece& P : Field->GetPieces()) { Adopted += P.bAdopted ? 1 : 0; }
+	TestEqual(TEXT("td.SpaceField 0 at load: nothing taken over"), Adopted, 0);
+	bool bAllVisible = true;
+	for (UInstancedStaticMeshComponent* C : Layout->GetAsteroidLooks()) { bAllVisible &= C->IsVisible(); }
+	TestTrue(TEXT("the layout's rocks are shown"), bAllVisible);
+	TestTrue(TEXT("and solid"), Layout->GetAsteroidCollision()->IsCollisionEnabled());
 	return true;
 }
 
