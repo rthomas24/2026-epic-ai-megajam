@@ -62,6 +62,8 @@ def rot(q, v):
     return q.rotate_vector(unreal.Vector(*v))
 
 
+for n_ in ONLY:
+    CLIPS.setdefault(n_, 1.0)
 for name, rate in CLIPS.items():
     if ONLY and name not in ONLY:
         continue

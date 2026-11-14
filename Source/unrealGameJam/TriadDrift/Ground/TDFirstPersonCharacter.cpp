@@ -286,7 +286,8 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		const UCharacterMovementComponent* Move = GetCharacterMovement();
 		const bool bAir = Move && Move->IsFalling();
 		const int32 Want = bAir && Loops->GetLoop() ? -1 : ChooseBodyLoop((float)GetVelocity().Size2D());
-		UAnimSequenceBase* Fall = bAir && !bMantling ? LoadPilotAnim(TEXT("A_Pilot_FallLoop")) : nullptr;
+		UAnimSequenceBase* Fall = bAir && !bMantling ? LoadPilotAnim(TEXT("A_Pilot_FallLoop_v2")) : nullptr; // v2: blade clear of the chest
+		Fall = Fall || !bAir || bMantling ? Fall : LoadPilotAnim(TEXT("A_Pilot_FallLoop"));
 		UAnimSequenceBase* Loop = Fall ? Fall : Want == 0 ? V->Idle.LoadSynchronous() : Want == 1 ? V->Walk.LoadSynchronous() : Want == 2 ? V->Run.LoadSynchronous() : Loops->GetLoop();
 		if (!Loop)
 		{
@@ -296,15 +297,38 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		// start and end on (weight shifting, blade forward and up), instead of the exploring idle.
 		if (Loop && Want == 0 && !Fall && bLastCloseCombat && TDPilotMeleePassOn())
 		{
-			if (UAnimSequenceBase* Guard = LoadPilotAnim(TEXT("A_Pilot_Blade_Idle_v2")))
+			UAnimSequenceBase* Guard = LoadPilotAnim(TEXT("A_Pilot_Blade_Idle_v3")); // v3: blade out right, 35 deg down
+			Guard = Guard ? Guard : LoadPilotAnim(TEXT("A_Pilot_Blade_Idle_v2"));
+			if (Guard)
 			{
 				Loop = Guard;
+			}
+		}
+		// Idle v3 (round 2): the blade hangs out to the right side, 35 deg down, so it reads whole from the chase camera
+		// (Idle3_v2 pointed it forward-down: a short stub from behind, the rest hidden or in the ground).
+		else if (Loop && Want == 0 && !Fall && Loop->GetFName() == TEXT("A_Pilot_Idle3_v2") && TDPilotMeleePassOn())
+		{
+			if (UAnimSequenceBase* Idle3 = LoadPilotAnim(TEXT("A_Pilot_Idle3_v3")))
+			{
+				Loop = Idle3;
+			}
+		}
+		// Walk v3: the same blade-out-to-the-right carriage through the stride.
+		if (Loop && Want == 1 && !Fall && Loop->GetFName() == TEXT("A_Pilot_Walk_v2") && TDPilotMeleePassOn())
+		{
+			if (UAnimSequenceBase* Walk3 = LoadPilotAnim(TEXT("A_Pilot_Walk_v3")))
+			{
+				Loop = Walk3;
 			}
 		}
 		// Run v2 (animation builder, Nov 14): the blade held out and down beside the leg, not swept across the head.
 		if (Loop && Want == 2 && Loop->GetFName() == TEXT("A_Pilot_Run") && TDPilotMeleePassOn())
 		{
-			if (UAnimSequenceBase* Run2 = LoadPilotAnim(TEXT("A_Pilot_Run_v2")))
+			// v3: the turn split between a forearm roll (at most 90 deg) and the wrist (at most 70), the blade trailing
+			// back and down; v2 bent the wrist alone up to 150 deg.
+			UAnimSequenceBase* Run2 = LoadPilotAnim(TEXT("A_Pilot_Run_v3"));
+			Run2 = Run2 ? Run2 : LoadPilotAnim(TEXT("A_Pilot_Run_v2"));
+			if (Run2)
 			{
 				Loop = Run2;
 			}
@@ -313,6 +337,7 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		const float Ref = Want == 1 ? BodyWalkSpeed : Want == 2 ? BodyRunSpeed : 0.f;
 		const float Rate = Fall ? 1.f : bAir ? 0.4f : (Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.7f) : 1.f); // in the air: the fall loop, else the last loop slowed
 		Loops->SetLoop(Loop, Rate);
+		Loops->SetGait(bAir ? -1 : Want); // start lean / stop settle (animation builder, Nov 14)
 		// Legs follow the direction of travel when the body faces elsewhere (a swing or the guard turns it to the camera):
 		// a strafe or backpedal loop on the legs only, at its own measured speed, so the feet stop sliding sideways.
 		UAnimSequenceBase* Legs = nullptr;
@@ -345,7 +370,45 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 			LegRate = 1.2f;
 		}
 		Loops->SetLegLoop(Legs, LegRate);
+		UpdateFootIK(Loops, DeltaSeconds);
 	}
+}
+
+static TAutoConsoleVariable<int32> CVarPilotFootIK(TEXT("TD.Pilot.FootIK"), 1,
+	TEXT("1: the pilot's feet find uneven ground (two traces, pelvis down, two-bone legs); 0: off."));
+
+void ATDFirstPersonCharacter::UpdateFootIK(UTDLoopBlendAnimInstance* Loops, float DeltaSeconds)
+{
+	// Animation builder, Nov 14: a trace under each foot from the capsule's floor; the lower ground brings the pelvis
+	// down, each foot is lifted onto its own ground. Only standing or moving on the ground; eased in and out.
+	USkeletalMeshComponent* Body = GetMesh();
+	const UCharacterMovementComponent* Move = GetCharacterMovement();
+	const bool bOn = Body && Move && Move->IsMovingOnGround() && !IsDead() && !bMantling && !bShipTransition
+		&& CVarPilotFootIK.GetValueOnGameThread() != 0 && TDPilotMeleePassOn();
+	float WantL = 0.f, WantR = 0.f;
+	const float Scale = Body ? FMath::Max(0.01f, (float)Body->GetComponentScale().Z) : 1.f;
+	if (bOn && GetWorld())
+	{
+		const float Floor = (float)(GetActorLocation().Z - GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDPilotFootIK), false, this);
+		auto Ground = [&](FName Bone)
+		{
+			const FVector At = Body->GetSocketLocation(Bone);
+			FHitResult Hit;
+			if (GetWorld()->LineTraceSingleByChannel(Hit, FVector(At.X, At.Y, Floor + 50.f), FVector(At.X, At.Y, Floor - 60.f), ECC_Visibility, Params))
+			{
+				return FMath::Clamp((float)(Hit.ImpactPoint.Z - Floor), -45.f, 45.f);
+			}
+			return 0.f;
+		};
+		WantL = Ground(TEXT("foot_l"));
+		WantR = Ground(TEXT("foot_r"));
+	}
+	const float Speed = 14.f;
+	FootIKL = FMath::FInterpTo(FootIKL, WantL, DeltaSeconds, Speed);
+	FootIKR = FMath::FInterpTo(FootIKR, WantR, DeltaSeconds, Speed);
+	const float Down = FMath::Max(0.f, -FMath::Min(FootIKL, FootIKR));
+	Loops->SetFootIK((FootIKL + Down) / Scale, (FootIKR + Down) / Scale, Down / Scale);
 }
 
 // #163: the energy blade's beam. SM_TD_BladeBeam_V2 (core + glow shell, two slots) when it exists, else the first beam.
@@ -773,7 +836,10 @@ UAnimSequenceBase* ATDFirstPersonCharacter::LoadPilotAnim(FName Anim) const
 	{
 		static const FName NewMoves[] = { TEXT("A_Pilot_Light1_v3"), TEXT("A_Pilot_Light2_v3"), TEXT("A_Pilot_Light3_v3"), TEXT("A_Pilot_Heavy_v4"),
 			TEXT("A_Pilot_AirSlam_Fall_v2"), TEXT("A_Pilot_AirSlam_Land_v3"), TEXT("A_Pilot_AirSlam_Land_v2"), TEXT("A_Pilot_Block_v2"), TEXT("A_Pilot_Blade_DeflectFlick_v2"),
-			TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_Blade_Idle_v2"), TEXT("A_Pilot_Run_v2") };
+			TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_Blade_Idle_v2"), TEXT("A_Pilot_Run_v2"), TEXT("A_Pilot_Run_v3"),
+			TEXT("A_Pilot_FallLoop_v2"), TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_JumpStart_v2"),
+			TEXT("A_Pilot_Block_v3"), TEXT("A_Pilot_Blade_DeflectFlick_v3"),
+			TEXT("A_Pilot_Idle3_v3"), TEXT("A_Pilot_Blade_Idle_v3"), TEXT("A_Pilot_Walk_v3") };
 		for (const FName& N : NewMoves)
 		{
 			if (Anim == N)
@@ -808,7 +874,7 @@ void ATDFirstPersonCharacter::HandleBladeDeflect(AActor* Projectile, bool bPerfe
 	// The animation builder's flick (0.97 s, the flick at 0.13 s): upper body, so the legs keep their move.
 	if (!IsDead())
 	{
-		PlayFirstBodyAction({ TEXT("A_Pilot_Blade_DeflectFlick_v2"), TEXT("A_Pilot_Blade_DeflectFlick") }, 1.f, true);
+		PlayFirstBodyAction({ TEXT("A_Pilot_Blade_DeflectFlick_v3"), TEXT("A_Pilot_Blade_DeflectFlick_v2"), TEXT("A_Pilot_Blade_DeflectFlick") }, 1.f, true);
 	}
 }
 
@@ -1001,19 +1067,20 @@ void ATDFirstPersonCharacter::UpdateBodyActions()
 	}
 	// The guard is held on the upper body for as long as the block is.
 	// v2 (animation builder, Nov 14): the blade diagonal across the front of the chest, not tipped back over the shoulder.
-	UAnimSequenceBase* Guard = State == ETDBladeState::Blocking ? LoadPilotAnim(TEXT("A_Pilot_Block_v2")) : nullptr;
+	UAnimSequenceBase* Guard = State == ETDBladeState::Blocking ? LoadPilotAnim(TEXT("A_Pilot_Block_v3")) : nullptr; // v3: up the centre line, tipped toward the aim
+	Guard = Guard || State != ETDBladeState::Blocking ? Guard : LoadPilotAnim(TEXT("A_Pilot_Block_v2"));
 	Loops->SetUpperLoop(State == ETDBladeState::Blocking ? (Guard ? Guard : LoadPilotAnim(TEXT("A_Pilot_Block"))) : nullptr);
 	if (bDashing && !bLastBodyDashing && !Blade->IsAttacking())
 	{
-		PlayBodyAction(TEXT("A_Pilot_Dash"), 1.8f, false);
+		PlayFirstBodyAction({ TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_Dash") }, 1.8f, false); // v3: blade trailing, clear of the legs
 	}
 	if (bSliding && !bLastBodySliding)
 	{
-		PlayBodyAction(TEXT("A_Pilot_Dash"), 0.8f, false);
+		PlayFirstBodyAction({ TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_Dash") }, 0.8f, false);
 	}
 	if (bMantling && !bLastBodyMantling)
 	{
-		PlayBodyAction(TEXT("A_Pilot_JumpStart"), 1.4f, false);
+		PlayFirstBodyAction({ TEXT("A_Pilot_JumpStart_v2"), TEXT("A_Pilot_JumpStart") }, 1.4f, false);
 	}
 	bLastBodyDashing = bDashing;
 	bLastBodySliding = bSliding;
