@@ -263,6 +263,23 @@ S2('NS_TD_Core_Destroyed', U(FIRE, 2.2), [
     spin(shed('Smoke', 'M_TD_VFX_SmokeRim', 0, (1.6, 2.8), (420, 640), (250, 1100), radius=200.0, drag=2.0, curl=500.0, rgb=(0.34, 0.30, 0.28), alpha=0.8,
               burst=8, dur=3.0, power=0.7, fade_in=6.0, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.2', sort=True))])
 
+# ---- round 9 (ART-06, environment audit): planet ambient particles, attached to the camera, world-space GPU sprites
+# spawned in a 25 m sphere round it (so they parallax as the camera moves). Cheap and bounded (rates, short lives,
+# fixed bounds). User.Fade 0..1: the spawning code sets it from the height above ground (1 below 450 m, 0 above 600 m).
+# Slots wanted: UTDTravelFX.PlanetAmbientVerdance / PlanetAmbientCinder (FTDFXCue), played attached to the player's
+# camera by the planet's look code (ATDPlaceholderSky, which knows the planet style), User.Fade set every tick.
+AMB = '(User.Fade)'
+S2('NS_TD_Ambient_Verdance', U((0.75, 1.0, 0.55, 1.0), 1.0, Fade=1.0), [
+    shed('Pollen', 'M_TD_VFX_Glow', 0, (4.0, 7.0), (2.5, 5.0), (5, 30), k=0.7, radius=2500.0, drag=0.4, curl=60.0, rgb=(1.0, 0.95, 0.70), alpha=0.8,
+         rate_expr='40.0*' + AMB, power=0.8, fade_in=3.0, gpu=True),
+    shed('Spores', 'M_TD_VFX_Glow', 0, (3.0, 6.0), (6, 14), (10, 50), k=1.6, radius=2200.0, drag=0.3, curl=90.0, rgb=(0.35, 1.0, 0.85), alpha=1.0,
+         rate_expr='9.0*' + AMB, power=1.2, fade_in=4.0, gpu=True)])
+S2('NS_TD_Ambient_Cinder', U((1.0, 0.45, 0.12, 1.0), 1.0, Fade=1.0), [
+    shed('Ash', 'M_TD_VFX_Smoke', 0, (3.0, 6.0), (4, 9), (60, 160), radius=2500.0, drag=0.2, curl=40.0, rgb=(0.20, 0.19, 0.19), alpha=0.85,
+         cone=((0.0, 0.0, -1.0), 25.0), rate_expr='60.0*' + AMB, power=0.6, fade_in=3.0, gpu=True),
+    shed('Embers', 'M_TD_VFX_Glow', 0, (2.0, 4.0), (3, 7), (80, 240), k=1.8, radius=2200.0, drag=0.3, curl=120.0, rgb=(1.0, 0.45, 0.10),
+         cone=((0.0, 0.0, 1.0), 30.0), rate_expr='16.0*' + AMB, power=1.4, fade_in=4.0, gpu=True)])
+
 # ---- round 9 (ART-16, T4): the Dominion's one-shots, all SpawnSystemAtLocation at a world point.
 # ReactorExposed: once, when the 4th generator falls, at the reactor (its rotation): the core uncovered. Authored for a
 # 25 m reactor at Scale 1: a white flare, a red heat bloom, the shell falling apart, arcs and a shock ring.
