@@ -85,7 +85,7 @@ void UTDInteriorLightSubsystem::Gather()
 					R.Intensity = L->Intensity;
 					R.Color = L->GetLightColor();
 					const float Roll = Rng.FRand();
-					R.Role = Roll < 0.4f ? ERole::Dead : (Roll < 0.7f ? ERole::Flicker : ERole::Dim);
+					R.Role = Roll < 0.2f ? ERole::Dead : (Roll < 0.5f ? ERole::Flicker : ERole::Dim);	// a13: 40 % dead read near-black
 					Lights.Add(R);
 				}
 			}
@@ -107,6 +107,13 @@ void UTDInteriorLightSubsystem::Gather()
 			}
 		}
 	}
+	// a13c: a room is lit by a few big lights (the arena has 7); a dead or stuttering key light left it near-black. The
+	// brightest ~40 % (at least one) only brown out, so the floor, cover and exit stay readable; the rest roll as before.
+	TArray<int32> Order;
+	for (int32 i = 0; i < Lights.Num(); ++i) { Order.Add(i); }
+	Order.Sort([this](int32 A, int32 B) { return Lights[A].Intensity > Lights[B].Intensity; });
+	const int32 Keep = Lights.Num() > 0 ? FMath::Max(1, FMath::RoundToInt(Lights.Num() * 0.4f)) : 0;
+	for (int32 k = 0; k < Keep; ++k) { Lights[Order[k]].Role = ERole::Dim; }
 }
 
 void UTDInteriorLightSubsystem::Step(float DeltaTime)
@@ -154,7 +161,7 @@ void UTDInteriorLightSubsystem::Apply(float Pulse, float Late, float DeltaTime)
 			switch (R.Role)
 			{
 			case ERole::Dead: Mul = 0.f; break;
-			case ERole::Dim: Mul = 0.22f * (1.f - 0.5f * Late); break;
+			case ERole::Dim: Mul = 0.45f * (1.f - 0.3f * Late); break;	// a13: browned out, but the floor and cover still read
 			case ERole::Flicker:
 				R.Hold -= DeltaTime;
 				if (R.Hold <= 0.f)
@@ -171,7 +178,7 @@ void UTDInteriorLightSubsystem::Apply(float Pulse, float Late, float DeltaTime)
 		L->SetLightColor(FMath::Lerp(R.Color, AlarmColor, bCollapse && R.Role == ERole::Flicker ? 0.35f : AlarmTint));
 	}
 	// The emergency strips: pulsing with the alarm; in the collapse the steady main light, a little brighter.
-	const float StripMul = bCollapse ? 1.8f : FMath::Lerp(0.5f, 1.6f, Pulse);
+	const float StripMul = bCollapse ? 2.4f : FMath::Lerp(0.5f, 1.6f, Pulse);
 	for (const FStripRef& S : Strips)
 	{
 		if (UMaterialInstanceDynamic* M = S.Mid.Get()) { M->SetScalarParameterValue(StripParam, S.Base * StripMul); }

@@ -1,0 +1,1 @@
+{"status": "ok", "ok": false, "tolerance_m": 0.00191, "objects": ["SM_Fab_PowerCore"], "islands": 36, "groups": 2, "main_body_tris": 950, "floating": [{"object": "SM_Fab_PowerCore", "island": 26, "tris": 4, "center": [-0.217, -0.248, 0.349], "gap_m": 0.0185}], "hint": "Connect each floating island to the body (strut, pylon, overlap it slightly) or delete it."}

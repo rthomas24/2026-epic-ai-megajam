@@ -11,6 +11,7 @@
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
 
 #define LOCTEXT_NAMESPACE "TDTutorialPhases"
@@ -257,10 +258,25 @@ void UTDTutorialPhases::Tick(float DeltaTime)
 		break;
 	}
 	case ETDTeachPhase::SquadSystems:
-		if ((bSwitched && bPowerUsed) || PhaseSeconds >= SquadSubstituteSeconds)
+	{
+		// T1's first-ten-minutes play (Lead: a lesson must not pass silently): SWITCH SHIPS stood for 62 s, no switch made,
+		// then went to Done on its timer. It ends only on the real actions now. The timer stays for the one case with no
+		// way to do them: no other squad ship alive to switch to (never a hard lock).
+		bool bCanSwitch = false;
+		if (const ATDSquadManager* Squad = ATDSquadManager::Get(this))
+		{
+			for (ETDShipId Id : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+			{
+				bCanSwitch |= Id != Squad->GetActiveShipId() && Squad->IsShipAlive(Id);
+			}
+		}
+		if ((bSwitched && bPowerUsed) || (!bCanSwitch && PhaseSeconds >= SquadSubstituteSeconds))
 		{
 			SetPhase(ETDTeachPhase::Done);
 		}
+		break;
+	}
+	case ETDTeachPhase::Done:
 		break;
 	default:
 		break;

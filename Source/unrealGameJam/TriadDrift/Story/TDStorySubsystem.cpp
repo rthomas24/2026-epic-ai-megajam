@@ -1133,14 +1133,50 @@ bool UTDStorySubsystem::PlaySequence(const UObject* WorldContext, FName Sequence
 	{
 		Story->FinishSequence(false); // one at a time: the earlier one is done as far as its gate is concerned
 	}
+	TArray<FTDTransmission> Deferred;
+	if (SequenceId == TEXT("Docking"))
+	{
+		// #110 (T4's play): the shield came down seconds before the docking and up to seven assault lines sat ahead of the
+		// two docking lines, which then reached the air only as the level loaded. The docking is the scene now: assault
+		// lines still waiting are stale and are dropped (unclaimed, so nothing counts as heard that was not); a must-hear
+		// one waits until after the docking lines; the line on air is cut so the first docking line starts at once.
+		UTDGameInstance* GI = UTDGameInstance::Get(Story);
+		int32 Dropped = 0;
+		for (const FTDTransmission& T : Story->Queue)
+		{
+			if (Ids.Contains(T.Id)) { continue; }
+			if (IsRequiredLine(T.Id)) { Deferred.Add(T); continue; }
+			if (GI && !T.bRepeatable && !Story->Aired.Contains(T.Id)) { GI->ForgetTransmission(T.Id); }
+			++Dropped;
+		}
+		Story->Queue.RemoveAll([&Ids](const FTDTransmission& T) { return !Ids.Contains(T.Id); });
+		if (Story->Current.bActive && !Ids.Contains(Story->Current.Id) && !IsRequiredLine(Story->Current.Id))
+		{
+			if (Story->Voice) { Story->Voice->FadeOut(0.15f, 0.f); }
+			Story->Voice = nullptr;
+			const FName Cut = Story->Current.Id;
+			Story->Current = FTDTransmissionView();
+			Story->NextAllowed = Story->RealNow() + 0.15;
+			Story->OnTransmissionEnded.Broadcast(Cut, false);
+			++Dropped;
+		}
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: docking begins: %d assault line(s) dropped, %d must-hear line(s) moved after it"), Dropped, Deferred.Num());
+	}
 	for (const FName& Id : Ids)
 	{
 		Story->FireTransmission(Id);
 	}
+	Story->Queue.Append(Deferred);
 	Story->ActiveSequence = SequenceId;
 	Story->SequenceStart = Story->RealNow();
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: sequence %s"), *SequenceId.ToString());
 	return true;
+}
+
+bool UTDStorySubsystem::IsSequenceDoneOrSkipped(const UObject* WorldContext, FName SequenceId)
+{
+	const UTDStorySubsystem* Story = Get(WorldContext);
+	return Story && !SequenceId.IsNone() && Story->HasPlayed(FName(*(TEXT("Seq_Done_") + SequenceId.ToString())));
 }
 
 bool UTDStorySubsystem::IsSequencePlaying(FName SequenceId) const
@@ -1195,6 +1231,10 @@ void UTDStorySubsystem::FinishSequence(bool bSkipped)
 		bMonitorUp = false;
 	}
 	ActiveSequence = NAME_None;
+	if (!Done.IsNone())
+	{
+		MarkPlayed(FName(*(TEXT("Seq_Done_") + Done.ToString()))); // IsSequenceDoneOrSkipped; saved with the run
+	}
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: sequence %s %s"), *Done.ToString(), bSkipped ? TEXT("skipped") : TEXT("finished"));
 	OnSequenceFinished.Broadcast(Done, bSkipped);
 }

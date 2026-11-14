@@ -92,6 +92,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew", meta = (WorldContext = "WorldContextObject"))
 	static bool GetActiveBoss(const UObject* WorldContextObject, float& OutHull01, int32& OutPhase, FText& OutName);
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsCharging() const { return ChargeTimeLeft > 0.f; }
+	/** Crew never stand closer than this to the pilot, centre to centre (pushed back out if they do). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew", meta = (Units = "cm")) float MinPilotSeparation = 120.f;
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") float GetCooldownLeft(ETDCrewAttack Attack) const;
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsPlaceholderVisible() const;
 	/** The placeholder wind-up tell (muzzle glow + aim line) is up: only while telegraphing and only when the visuals
@@ -346,7 +348,9 @@ class UNREALGAMEJAM_API UTDCrewTokenSubsystem : public UWorldSubsystem
 public:
 	static UTDCrewTokenSubsystem* Get(const UObject* WorldContext);
 
-	int32 MaxMeleeAttackers = 2;
+	int32 MaxMeleeAttackers = 1; // T7 (Nov 14): two Grunts and a Trooper took a pilot from 100 to 21 in one wind-up; one commits, the others circle
+	/** When a crew melee hit last landed on its target (world seconds): ranged crew hold fire for a moment after it. */
+	double LastMeleeHitSeconds = -100.0;
 
 	bool TryAcquire(AActor* Attacker);
 	void Release(AActor* Attacker);

@@ -631,6 +631,25 @@ SCL = '(User.Scale*Engine.Owner.Scale.x*min(1.0, Engine.Owner.LODDistance/(1200.
 S('NS_TD_Explosion_FinalBlast', U(FIRE, 55.0), explosion_cheap(True))
 SCL = _SCL_STD
 
+# ---- round 10k (#105 / #112, T4's outside camera shows the whole 2 km hull from about 1.8 km: the hull sections read as small
+# sparks). New versions, the old ones kept: the hull-section burst authored about 3x larger (each fireball tens of metres at
+# the cue's scale), with a lingering glow and a slow smoke column; the final blast with a white-hot core, a second wider
+# shockwave ring, radial debris streaks and a slow fading ember cloud.
+def linger(name, size, life, k=0.7, delay=0.15):
+    return flash(name, 'M_TD_VFX_Glow', size, life, k, growth='0.7 + 0.5*Particles.NormalizedAge', power=1.8, delay=delay)
+
+
+S('NS_TD_Explosion_HullSection2', U(FIRE, 16.0), explosion_hull() + [linger('Linger', 2600, 4.5)])
+_SCL_STD = SCL
+SCL = '(User.Scale*Engine.Owner.Scale.x*min(1.0, Engine.Owner.LODDistance/(1200.0*User.Scale*Engine.Owner.Scale.x + 1.0)))'
+S('NS_TD_Explosion_FinalBlast2', U(FIRE, 110.0), explosion_cheap(True) + [
+    flash('Core', 'M_TD_VFX_Flare', 2400, 0.6, 2.4, growth='0.4 + Particles.NormalizedAge*0.9', power=0.8),
+    flash('Ring2', 'M_TD_VFX_FlipRing', 9000, 1.6, 1.0, growth='0.04 + pow(Particles.NormalizedAge, 0.55)*0.96', power=1.2, delay=0.2),
+    shed('Debris', 'M_TD_VFX_Spark', 0, (1.2, 2.4), (30, 60), (5000, 14000), k=1.6, radius=200.0, drag=0.6, stretch=30, burst=60, dur=2.6, power=1.2),
+    shed('Embers', 'M_TD_VFX_Glow', 0, (5.0, 9.0), (40, 110), (300, 1600), k=1.5, radius=900.0, drag=0.5, curl=200.0, burst=90, dur=9.5, power=1.6,
+         rgb=(1.0, 0.42, 0.10))])
+SCL = _SCL_STD
+
 fx = tdvfx.Builder(call_tool)
 for _name, _user, _emitters in SYSTEMS:
     await fx.system(_name, _emitters, user=_user, chunk=globals().get('CHUNK1'))   # CHUNK1 = (start, end): see tdvfx.system

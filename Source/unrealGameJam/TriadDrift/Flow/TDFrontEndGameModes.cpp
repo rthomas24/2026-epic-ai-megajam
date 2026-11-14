@@ -432,6 +432,41 @@ void ATDMenuGameMode::ReturnToMenu()
 	ShowMenuUI();
 }
 
+FString ATDMenuGameMode::SceneDisplayName(FName SceneId)
+{
+	// The recap showed raw ids ("Obj_WreckCore", Nick's Lead's play). The objectives' own titles (the course builders'
+	// words; those actors are not in the menu world, so the names are kept here), then a tidy form of the id.
+	static const TMap<FName, FString> Names = {
+		{ TEXT("Obj_WreckCore"), TEXT("RECOVER THE SIGNAL-ANALYSIS DEVICE") },
+		{ TEXT("Obj_Relay"), TEXT("WAKE THE RELAY") },
+		{ TEXT("Obj_Survey"), TEXT("ACCESS THE SURVEY RECORDS") },
+		{ TEXT("Obj_Outpost"), TEXT("SECURE THE EXCAVATION") },
+		{ TEXT("Obj_Jammer"), TEXT("DISABLE THE FIELD ANCHOR") },
+		{ TEXT("Obj_DI_Corridor"), TEXT("REACH THE COMMAND ARCHIVE") },
+		{ TEXT("Obj_DI_Arena"), TEXT("HOLD THE DECK") },
+		{ TEXT("Obj_DI_Warden"), TEXT("THE WARDEN'S GATE") },
+		{ TEXT("Obj_DI_Core"), TEXT("THE REACTOR") },
+		{ TEXT("Obj_DI_Escape"), TEXT("GET OUT") },
+	};
+	if (const FString* Known = Names.Find(SceneId))
+	{
+		return *Known;
+	}
+	FString Id = SceneId.ToString();
+	Id.RemoveFromStart(TEXT("Obj_"));
+	Id.RemoveFromStart(TEXT("DI_"));
+	Id.ReplaceInline(TEXT("_"), TEXT(" "));
+	FString Out;
+	for (int32 i = 0; i < Id.Len(); ++i)
+	{
+		const TCHAR C = Id[i];
+		const bool bBoundary = i > 0 && Id[i - 1] != TEXT(' ') && ((FChar::IsDigit(C) && !FChar::IsDigit(Id[i - 1])) || (FChar::IsUpper(C) && FChar::IsLower(Id[i - 1])));
+		if (bBoundary) { Out.AppendChar(TEXT(' ')); }
+		Out.AppendChar(C);
+	}
+	return Out.ToUpper();
+}
+
 void ATDMenuGameMode::HidePlaceholder()
 {
 	LastMenuFocus.Reset(); // a new screen starts on its first button
@@ -519,7 +554,7 @@ void ATDMenuGameMode::ShowPlaceholder()
 		{
 			SceneList->AddSlot().HAlign(HAlign_Center)
 			[
-				SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("SCENE %d  %s  -  %d %s"), Row.SceneNumber, *Row.SceneId.ToString(), Row.Takes, Row.Takes == 1 ? TEXT("TAKE") : TEXT("TAKES"))))
+				SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("SCENE %d  %s  -  %d %s"), Row.SceneNumber, *SceneDisplayName(Row.SceneId), Row.Takes, Row.Takes == 1 ? TEXT("TAKE") : TEXT("TAKES"))))
 				.WrapTextAt(1160).Justification(ETextJustify::Center)
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 18)).ColorAndOpacity(Ink)
 			];

@@ -115,6 +115,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Menu")
 	FText GetVictoryHeadline() const { return VictoryHeadline; }
 	static const TArray<FText>& VictoryHeadlineChoices();
+	/** A scene id as the recap shows it: the objective's title, else a tidy upper-case form; never the raw id. */
+	static FString SceneDisplayName(FName SceneId);
 
 	/** True while the code-built placeholder menu is up (no widget assigned in DA_UI_Style). */
 	bool IsPlaceholderShown() const { return Placeholder.IsValid(); }

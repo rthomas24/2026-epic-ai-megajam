@@ -361,6 +361,16 @@ private:
 	void ApplyCollapse(float A);
 	int32 SectionsDropped = 0;
 	bool bDroppingSection = false;
+	struct FFallingPiece
+	{
+		TWeakObjectPtr<AActor> Actor;
+		FVector Velocity = FVector::ZeroVector;
+		FRotator Spin = FRotator::ZeroRotator;
+		float HalfThickness = 50.f;
+	};
+	TArray<FFallingPiece> Pieces;
+	void TickPieces(float DeltaSeconds);
+	float TowerSink = 2500.f;
 	/** After the escape succeeds the deadline is gone, but the tower falls on from FinishFromA to fully down. */
 	bool bFinishing = false;
 	float FinishFromA = 0.f;
@@ -374,6 +384,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s")) float StartDelay = 1.5f;
 	/** Once the player has made it out, how long the rest of the fall takes (seen while running to the ship). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s", ClampMin = "0.5")) float FinishSeconds = 6.f;
+	/** World yaw the first section falls toward (the next ones 50 deg further round): the side the escape route sees. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") float SectionYaw = 200.f;
 private:
 	int32 LastShownSecond = -1;
 	FVector TowerHome = FVector::ZeroVector;
