@@ -412,8 +412,9 @@ void ATDMenuGameMode::ShowPlaceholder()
 		[
 			SNew(SBox).WidthOverride(1320).HeightOverride(48)
 			[SNew(SScaleBox).Stretch(EStretch::ScaleToFit)
-				[SNew(STextBlock).Text(FText::Format(NSLOCTEXT("TDMenu", "VictoryStats", "RUN TIME {0}   |   KILLS {1}   |   SHIPS LOST {2}   |   CUTS {3}"),
-					FText::FromString(FString::Printf(TEXT("%d:%02d"), Seconds / 60, Seconds % 60)), FText::AsNumber(P.Stats.Kills), FText::AsNumber(P.Stats.Deaths), FText::AsNumber(Cuts)))
+				[SNew(STextBlock).Text(FText::Format(NSLOCTEXT("TDMenu", "VictoryStats", "RUN TIME {0}   |   KILLS {1}   |   SHIPS LOST {2}   |   CUTS {3}   |   DEBRIS CLEARED {4}"),
+					FText::FromString(FString::Printf(TEXT("%d:%02d"), Seconds / 60, Seconds % 60)), FText::AsNumber(P.Stats.Kills), FText::AsNumber(P.Stats.Deaths), FText::AsNumber(Cuts),
+					FText::AsNumber(P.Stats.DebrisCleared)))
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 28)).ColorAndOpacity(Cyan)]]
 		];
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0, 24, 0, 18)
