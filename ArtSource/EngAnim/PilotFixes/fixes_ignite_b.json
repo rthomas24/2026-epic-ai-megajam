@@ -1,0 +1,17 @@
+{"_note": "Blade ignite (0.5 s) and retract (0.45 s) gestures, upper body (Nov 14): ignite brings the hilt up in front of the chest, emitter up, by 0.18 s (the beam grows), then drops into the side guard by 0.5 s; retract flicks the blade up a little at 0.15 s, then lets the hilt hang by the hip, emitter down. Same key format as fixes_swing.json (rate 1).",
+ "swing": [
+  {"src": "A_Pilot_Idle3_Short", "dst": "A_Pilot_Blade_Ignite", "rate": 1.0, "max_yaw": 15,
+   "keys": [
+    {"t": 0.0,  "hand": [10, 22, -42], "blade": [0.2, 0.2, -0.95], "yaw": 0},
+    {"t": 0.18, "hand": [30, 4, -12],  "blade": [0.45, -0.05, 0.89], "yaw": 6},
+    {"t": 0.3,  "hand": [24, 14, -26], "blade": [0.6, 0.45, 0.4], "yaw": 4},
+    {"t": "end", "hand": [14, 23, -38], "blade": [0.55, 0.69, -0.32], "yaw": 3}
+   ]},
+  {"src": "A_Pilot_Idle3_Short", "dst": "A_Pilot_Blade_Retract", "rate": 1.0, "max_yaw": 15,
+   "keys": [
+    {"t": 0.0,  "hand": [14, 23, -38], "blade": [0.55, 0.69, -0.32], "yaw": 3},
+    {"t": 0.15, "hand": [24, 12, -22], "blade": [0.6, 0.3, 0.74], "yaw": 5},
+    {"t": 0.3,  "hand": [14, 20, -36], "blade": [0.35, 0.3, -0.89], "yaw": 2},
+    {"t": "end", "hand": [10, 22, -42], "blade": [0.2, 0.2, -0.95], "yaw": 0}
+   ]}
+ ]}
