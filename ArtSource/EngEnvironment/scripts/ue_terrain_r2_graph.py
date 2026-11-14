@@ -72,7 +72,7 @@ SCALARS = {
     "ValleyHeatGain": (3.0, 2.2), "ValleyCrust": (0.0, 1.15), "ValleyBaseBlend": (1.0, 1.0), "ValleyRoughness": (0.05, 0.35),
     "FlowTile": (9000.0, 6000.0), "FlowX": (0.0, 35.0), "FlowY": (12.0, 60.0),
     # veins and glows
-    "VeinSharpNear": (40.0, 34.0), "VeinSharpFar": (9.0, 9.0), "VeinStrength": (0.45, 1.6), "VeinFarBoost": (0.55, 3.0),   # Cinder s9: a crack network read from 900 m
+    "VeinSharpNear": (40.0, 34.0), "VeinSharpFar": (9.0, 16.0), "VeinStrength": (0.45, 1.6), "VeinFarBoost": (0.55, 3.0),   # Cinder s9: a crack network read from 900 m; s10 sharper (9 smeared into orange blobs at 120-300 m)
     "VeinTopM": (500.0, 600.0), "VeinFadeM": (400.0, 300.0), "PatchGlow": (0.10, 0.0), "PeakGlow": (0.04, 0.0),   # Cinder s9: veins over more ground
     "VeinPatchiness": (1.0, 1.0),
     # pass 4: a minimum ambient (emissive = albedo x floor x the sky's colour) so Cinder's self-shadowed basalt slopes
