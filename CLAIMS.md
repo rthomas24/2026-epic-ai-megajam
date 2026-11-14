@@ -290,7 +290,7 @@ Current resource checkpoint: Nick stopped the general campaign and revoked all p
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-14 11:30 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-14 12:30 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -314,6 +314,51 @@ Paths are under `Source/unrealGameJam/TriadDrift/` unless they start with `/` (r
 
 Workers commit only on their own branch and never pull, merge or push; the Lead integrates in
 `.wt/int`, builds, runs the headless suite, then fast-forwards and pushes `main`.
+
+### Current board, Nov 14 12:30 EST (supersedes the in-progress and queued rows of the 11:30 board below)
+
+**Main is a14bf410 (batch AV, the pilot animation round 1)**, on top of AU ebe073ad, AT 74567456, AS 04dae969, AR c58285f5, the hotfix adc75bc5, AQ 92c94f81, AP 99969023, AO eda69a29 and AN 50a7866c (compile-only gate). **Newest package:** Shipping of adc75bc5 built (0 cook warnings), launch check pending; next hourly cook 13:00. Lock turns of 15 minutes, quickest to close first. Every Ryan-side item that is 🟨, 🟢 or 🐞 in features.md has a row here.
+
+| Owner | Now (in progress) | Next (queued, in order) | Items | Shared paths |
+|---|---|---|---|---|
+| Lead | Gate and push the next batch; boards; hourly features.md alignment; #171 routing with Nick's Lead | Offer Ryan the #161 retest; record Ryan's answer on the art-direction guide (#132); reopen #163 (auto-closed by PR #172's merge) | ENG-47, ENG-28 (integration), ENG-46 | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
+| T1 | #161: frames of the notice, heat bar, hull glow and flash at a closed planet (83ea90cf on main AT) | #156 Settings over the pause screen seen; shake and speed-FOV sliders | ENG-38 (🐞), ENG-45 | `Travel/`, `Flight/` |
+| T2 | #160: frames of the new HUD at 1080p and native 720p (fixes on main AU); the C4 Large / radar overlap (MINOR from Nick's side) | #100 a missile returned through a portal; #116 / #103 the VERIFIED flicker and the tractor plate; #159 power hint seen; the combat bark list (#122) | ENG-36, ENG-09, ENG-43 | `Combat/`, `Powers/`, HUD |
+| T3 | #97 the slow-motion log line on a money shot; #94 subtitles off in combat and on foot | #95 the credits roll, RETURN TO MENU, no CONTINUE after victory; flight subtitle captures (#155); #96 Face to Face and Cinematic 08 replayed in order; the story-carry MAJOR from #139 (an old run's recording into a fast New Game); menu music in the log; the `dialogs.md` count (#122); Skip through the difficulty page | C-03, ENG-32, ENG-44, ENG-42, ENG-43, ENG-45 | `Squad/`, `Director/`, `Story/` |
+| T4 | #112 / #113: the generators by real fire and the breakup on screen (AQ 92c94f81) | #96 the Verdance and Cinder take-offs flown into the galaxy; #126 the guide lights up close; #122 the pre-empt flash in a frame and the Anticipated bark; #110 the tractor beam in docking once the effects builder's cone lands | ENG-18, ENG-47, ENG-42, ART-15, ENG-29, ENG-37 | `Enemies/`, `Waves/`, `World/` |
+| T5 | #119: the anchor collapse seen from the shore after a fast escape (5158b170 on main AU) | The Cinematic 08 skip re-checked (#96); the defenders frame and their 200 health with a guard; the tiny on-foot text line | ART-18, ENG-42 | `Flow/`, `Ground/` |
+| T6 | #153: the death / CUT hitch measured | The radar's plate contrast over bright nebula and its frames (#160) | ENG-28, ENG-36 | `World/SpaceField/**`, HUD radar files agreed with T2 |
+| T7 | #152: the newest package played with audio and input | Cloak in a fight (#102); the music log check (Verdance, waves 3-5; #121); a start-to-end run (#131) | ENG-28, ENG-46, ENG-12, ENG-35 | `docs/eng/PLAYTEST-*` |
+| Effects builder | The breakup explosions at hull scale (#111) | The tractor beam cone and motes, the mine look (#105); the Cloak's last pass (#102); the *Aftermath* light row seen | ART-16, ART-07, ENG-37, ENG-12 (effect) | `Gameplay/VFX/**`, `DA_*_FX` |
+| Blade effects builder | #163 round 2: the energy blade beam, Niagara trail and sparks (first frames judged NOT GOOD yet) | Seen on foot at gameplay distance in every move and judged good by the Lead | ART-08 (blade) | see the #163 row below |
+| Environment builder | #145 the teal patch (atmosphere shell and cloud layer one at a time) | #148 recapture at the eclipse shot's new time; #158 a frame from under a clump; #125 per-level before / after | ART-13 | planet and sky materials |
+| Structures builder | #119 the collapse pieces from the shore (after T5's fix) | #126 bay mouth captures; the console box look (#96, polish) | ART-18, ART-15 | `Gameplay/Props/**` |
+| Animation builder | #164 round 2: captures of heavy thrust, deflect flick, hit reacts, combat idle, strafe legs, slow walk; the run wrist, starts and stops | Foot IK; then the crew and Warden clips from Grok Bot's PRs #165 and #166 (#124) | ART-08 (animation) | see the #164 row below |
+| Packaging agent | The launch check of the adc75bc5 package | The hourly cook of the newest main (13:00), each published with a launch check | ENG-28 | isolated `.wt/pkg` |
+| Ship builder | Stopped (usage limit) | Restart only on the Lead's dispatch | - | squad and fleet visuals |
+| Character builder (to be started by the Lead) | - | Game-ready pilot meshes (#149; waits on an approved look from Nicholas) | polish (B1-9) | `ArtSource/EngCharacters/**` |
+| Grok Bot | No asks open (R-042) | The next ask is posted on R-042 when there is one | - | `ArtSource/EngAI/**` |
+
+Rows opened or closed Nov 14 12:30 (they supersede the same items' rows of 11:30 below):
+
+| Item | Owner | State | Paths |
+|---|---|---|---|
+| **Integration batches AN to AU** (AN 50a7866c, AO eda69a29, AP 99969023, AQ 92c94f81, hotfix adc75bc5, AR c58285f5, AS 04dae969, AT 74567456, AU ebe073ad) | Lead | done: on main 11:43 to 12:26 EST (compile-only gate) | none |
+| **Integration batch AV** (eng/anim through 8b32f082, the pilot animation round 1) | Lead | done: main a14bf410 (12:28 EST), not yet seen on main | none |
+| Radar crash on the first flight HUD paint (BLOCKER on 99969023, found by T7) | T2 | done: main adc75bc5 (12:10 EST) | none |
+| ENG-13 bomber mines (#109) | T4 | done: played good on c94f1795, closed 11:34 EST (main 50a7866c) | none |
+| ENG-26 Cinder from the gate to the field anchor (#117) | T7, T5 | done: played good on main adc75bc5, closed 12:24 EST | none |
+| ENG-30 interior and reactor fight (#129) | T7, T5 | done: closed 11:29 EST (recorded at 11:30); polish with T5 | none |
+| #157 B2-04 transponder name at the right edge (ENG-36) | T2 | done: played good on main 90a132aa (4d8e8b39), closed 11:32 EST | none |
+| #154 B2-01 story line past the screen edge in flight | T2, T3 | done: closed by Nick's side 12:30 EST on main c58285f5 (eb911f4b); #155 and the Large / radar overlap stay open with T2 | none |
+| The Dominion interior console recordings (checklist row) | T5 | done: seen good on main (12:06 EST, #96) | none |
+| ENG-47 decision record | Lead | done: DEVLOG.md 9286fc82 (11:45 EST); #113 stays open until the fallback is seen good (T4) | none |
+| #161 ship stuck against a planet (ENG-38 🐞) | T1 (player), T4 (avoidance) | in review: the turn-away played GOOD by T7 and T1 on main (6483b56a, AN); the notice and burn (83ea90cf, AT) not yet seen in a frame | `Travel/`, `World/` |
+| #160 flight HUD redesign (ENG-36 sub-point) | T2 (squad panel, flags, boost arc, toast), T6 (radar) | in review: drawn on main AP to AU; first read good with a fix list; T2's fixes on main AU; frames at 1080p and 720p not judged | HUD |
+| #119 anchor collapse freeze on a fast escape (found by Nick's side) | T5 | in review: 5158b170 on main AU, not yet seen from the shore | `Ground/`, `Gameplay/Props/**` |
+| Story carry MAJOR from Nick's side's review (#139) | T3 | queued: invalidate the carried lines at a new run or menu boundary | `Story/` |
+| **#163 energy blade remake** (Ryan's focus; under ART-08) | Blade effects builder (`.wt/blade`, eng/blade); T5 hooks code | in progress: round 2 (round 1 frames NOT GOOD yet); the issue was auto-closed by PR #172 and must be reopened | `Content/TriadDrift/Gameplay/Props/Blade/**`, `Content/TriadDrift/Gameplay/VFX/**`, the blade files in `Source/unrealGameJam/TriadDrift/Ground/` (`TDEnergyBladeComponent.*`) |
+| **#164 pilot animation** (Ryan's focus; under ART-08) | Animation builder (`.wt/anim`, eng/anim) | in progress: round 1 on main a14bf410 (light combo, block, air-slam landing judged good on the branch); round 2 queued | `Content/TriadDrift/Gameplay/Characters/Pilot/Anims/**`, `Source/unrealGameJam/TriadDrift/Ground/TDFirstPersonCharacter.*`, `Source/unrealGameJam/TriadDrift/Ground/TDPilotAnim.*` |
 
 ### Current board, Nov 14 11:30 EST (supersedes the in-progress and queued rows of the 10:30 board below)
 

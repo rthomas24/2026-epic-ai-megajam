@@ -561,6 +561,8 @@ private:
 	void BindController();
 
 	FVector2D ViewportSize = FVector2D(1920, 1080);
+	/** Screen pixels per local unit (UMG's DPI scale: at 1280x720 the widget is still about 1080 units tall). */
+	float PixelScale = 1.f;
 	/** Written by NativePaint (const): what the last frame drew. */
 	mutable float LastCoverage01 = 0.f;
 public:

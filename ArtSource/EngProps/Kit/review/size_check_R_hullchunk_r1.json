@@ -1,0 +1,92 @@
+[
+ {
+  "asset": "SM_KS_DomHullChunk_A",
+  "min_cm": [
+   -8776.001,
+   -3009.0,
+   -1604.8
+  ],
+  "max_cm": [
+   8541.786,
+   3009.0,
+   3560.0
+  ],
+  "size_cm": [
+   17317.79,
+   6018.0,
+   5164.8
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 2580,
+  "materials": [
+   "M_Kit_Dom",
+   "M_Kit_DomRaw",
+   "M_Kit_Ember",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_KS_DomHullChunk_B",
+  "min_cm": [
+   -6602.997,
+   -3510.5,
+   -1103.3
+  ],
+  "max_cm": [
+   7017.149,
+   3510.5,
+   1103.3
+  ],
+  "size_cm": [
+   13620.15,
+   7021.0,
+   2206.6
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 1840,
+  "materials": [
+   "M_Kit_Dom",
+   "M_Kit_DomRaw",
+   "M_Kit_Ember",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_KS_DomHullChunk_C",
+  "min_cm": [
+   -5473.97,
+   -1504.5,
+   -2006.0
+  ],
+  "max_cm": [
+   6177.243,
+   1504.5,
+   4520.0
+  ],
+  "size_cm": [
+   11651.21,
+   3009.0,
+   6526.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 2996,
+  "materials": [
+   "M_Kit_Dom",
+   "M_Kit_DomRaw",
+   "M_Kit_Ember",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ }
+]
