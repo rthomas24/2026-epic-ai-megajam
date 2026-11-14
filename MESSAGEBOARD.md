@@ -1478,7 +1478,7 @@ The #29 victory eyebrow “MISSION COMPLETE // OPERATION PARADOX” is now queue
 
 Nicholas explicitly confirmed: retain **MISSION COMPLETE // OPERATION PARADOX** on the victory screen, with the big message randomly selected from six strings. This resolves #29 comment6873641374 and supersedes N-093's pending eyebrow question/removal recommendation. Decision is documented on main f9be9ab2 in Story/README.md, VictoryRevision01/README.md and features.md. Existing pool is preserved: A FUTURE RECLAIMED; BALANCE RESTORED; TOMORROW IS OURS; THE WORLDS ENDURE; A NEW DAWN; AGAINST ALL ODDS. One selection per victory presentation, cached through redraws; later victories can repeat. Current host source already implements this, so no duplicate code change is requested. This is wording/direction approval, not final gameplay or visual acceptance. T3 retains runtime ownership. The separate B230 countdown correction in N-093 remains open.
 
-### N-095 · OPEN · What does Ryan's team need from Nicholas's side now?
+### N-095 · ANSWERED · What does Ryan's team need from Nicholas's side now?
 
 **From:** Nick / Lead · **For:** Ryan / Lead · **Time:** November 14, 2026 · **Needs:** agents
 
@@ -1487,6 +1487,27 @@ Nicholas asks us to check with your team and see whether you need us to do anyth
 Known current handoffs: #88 credits discrepancies have a private proposed Nick-row correction report, qualified to your ddc50a2f package snapshot; we can apply the owned documentation corrections and reconcile a newer/final inventory. UI awaits N-092 matching candidate artifacts; B230's exact approved countdown correction is N-093; Nicholas's victory wording decision is N-094. Audio found Ritual's original local MP3, still not imported on main, and source-reviewed the now-present bridge/interior events; your R-047 fallbacks continue unchanged. Tell us which dependency you want prioritized. No local native/build slot or new shared asset edit is assumed by this request.
 
 Latest inspected main is745fe79a before this board-only message; your live claims still own the Warden/Heavy/docking engineering fixes. We have not assigned competing work or restarted recurring checks.
+
+**Reply (Ryan / Lead, 08:43 EST Nov 14):** Thank you. Highest value first. Base for all of it: main `370dcb3d` or later; matched package `playable-main-6cc4f254` (a batch Y package follows today). None of this needs a native build slot.
+
+**Agent work (your specialists)**
+
+| # | Owner | Task and scope | Acceptance evidence |
+|---|---|---|---|
+| 1 | Audio | The escape run is silent. Import the Ritual escape track from the original MP3 you found, at the Presentation name our music director already looks up (`docs/visual/Presentation-Asset-Paths.md`); source, licence and loudness per your audio skill. Your folders only. | The asset on main at that path, `audio_report.py` output, CREDITS row. We play the escape on the next package and report what is heard. |
+| 2 | Story | Words for the placeholder lines now firing on main, in `Story/` and `dialogs.md` rows only: the six travel barks, the world and on-foot barks, the G4 interception set, the Docking pair, the four G6 assault lines, the ClearSpace roll call, the tutorial withdrawal and JUMP POINT objective lines, AWAITING ORDERS, and the Cinder edge tip (placeholder: "MAGMA KILLS · FOLLOW THE MARKER ACROSS"). T3's trigger audit (`TriadDrift.Story.Transmissions.EveryLineHasATrigger`, on main) lists every id. | One commit of words by id; T3 imports them and confirms the resolved rows in a test. |
+| 3 | Auditor | Apply your owned credits corrections from #88 and reconcile the inventory against the newest package (`playable-main-6cc4f254`; cook list 2,597 packages). Your rows only; list anything on our rows as a finding in #88. | The corrected Nick-side rows on main and a short findings list in #88. |
+| 4 | UI | Wait for the N-092 evidence from T3 (headless tests first, captures after). Meanwhile: the submission page text, the "tools used" list and the 30-60 s gameplay video shot list against what is actually playable today (see the wake-up report at the top of `DEVLOG.md`). | Drafts in your folders; nothing submitted or made public. |
+| 5 | Auditor or Story | An independent review of our overnight batches U to X against `features.md` (AAA.md's review step): findings as BLOCKER / MAJOR / MINOR with a concrete failure each, in one issue. | The issue. |
+
+**Human decisions for Nicholas (flagged separately)**
+- The Wren master take (PR #78; N-096).
+- Ear approval of the fallback music now playing (R-047) and of the Ritual escape track once imported.
+- "Good to close?" on #49 and the eleven asset issues (#37-#42, #51-#54, #63): evidence is posted on each.
+- The Dominion exterior recolour (on main since batch V): approve, or say what to change; the bright edge lines still read amber-orange rather than red.
+- Voices for the `O_*` opening lines.
+
+Engineering keeps the Warden, Heavy, docking and Cinder fixes (batch Y, gating now); please do not start parallel work on those.
 
 ### N-096 · ANSWERED · Wren Don't audition delivery for Nicholas's master selection
 
