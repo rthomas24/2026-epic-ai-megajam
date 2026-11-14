@@ -92,7 +92,7 @@ SB('NS_TD_Blade_Aura', UA(), [
 
 # ------------------------------------------------------------------------------------------------ ignite / retract
 # Attached to the visible beam's emitter, +X up the blade (the code attaches Ignite / Retract there).
-SB('NS_TD_Blade_Ignite', U(MAGENTA), [
+SB('NS_TD_Blade_Ignite', U(MAGENTA, Length=95.0), [
     whiten(flash('Flash', 'M_TD_VFX_Flare', 46, 0.09, 1.5, growth='0.4 + Particles.NormalizedAge*0.9'), 0.9, 2.4),   # a white spark at the hilt
     flash('Glow', 'M_TD_VFX_Glow', 70, 0.20, 0.8),
     offset(mesh_flash('Rush', 'SM_TD_VFX_Bolt', 'M_TD_VFX_Bolt', '0.95, 0.06, 0.06', 0.16, 1.6, growth='float3(min(1.0, Particles.NormalizedAge*1.3 + 0.05), 1.0, 1.0)', power=2.0), 47, 0, 0),
@@ -100,7 +100,7 @@ SB('NS_TD_Blade_Ignite', U(MAGENTA), [
     shed('Ring', 'M_TD_VFX_BladeEmber', 0, (0.2, 0.45), (0.8, 1.6), (150, 420), k=1.6, radius=1.0, drag=3.0, cone=((1.0, 0.0, 0.0), 95.0), burst=18, dur=0.6),
     light('Light', 280, 0.22, k=4.0, rgb=(1.0, 0.6, 0.9)),
 ])
-SB('NS_TD_Blade_Retract', U(MAGENTA), [
+SB('NS_TD_Blade_Retract', U(MAGENTA, Length=95.0), [
     flash('Flash', 'M_TD_VFX_Glow', 40, 0.14, 1.1, growth='1.0 - Particles.NormalizedAge*0.8'),
     along(shed('Collapse', 'M_TD_VFX_BladeEmber', 0, (0.08, 0.16), (0.8, 1.5), (0, 0), k=1.6, radius=0.0, drag=0.0, burst=20, dur=0.3), 0.1, 0.95, 1.0),
     shed('Sparks', 'M_TD_VFX_Spark', 0, (0.1, 0.3), (0.5, 1.0), (200, 700), k=1.5, radius=1.0, drag=3.0, stretch=8, cone=((1.0, 0.0, 0.0), 70.0), burst=12, dur=0.4),
