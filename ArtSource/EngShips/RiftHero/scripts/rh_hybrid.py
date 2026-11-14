@@ -259,7 +259,7 @@ def main():
     res["textures"] = T.clean(C.RODIN, C.EXPORT, "Rift")
     shutil.copyfile(HEAT, os.path.join(C.EXPORT, "T_Rift_HeatMask.png"))
     if "--close" in ARGS:
-        res["livery"] = CP.clean_livery(os.path.join(C.EXPORT, "T_Rift_BC.png"))
+        res["livery"] = CP.clean_livery(os.path.join(C.EXPORT, "T_Rift_BC.png"), body=body)
     body.data.materials.append(image_material("M_Rift", os.path.join(C.EXPORT, "T_Rift_"), 2.0))
 
     # ---------------- new parts: one mesh, one texture set

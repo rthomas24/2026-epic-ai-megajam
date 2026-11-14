@@ -26,7 +26,7 @@ BLACK, ACCENT, GUN, STEEL, GLOW, WHITE, HOT, DIM = range(8)      # rh_parts.mate
 COCKPIT = (0.60, 0.0, 0.0)                                         # socket Cockpit (Unreal 60, 0, 0)
 CANOPY_X = (0.30, 1.50)              # the Rodin canopy's dark glass, measured from above (y up to +-0.33)
 GUN_Y, GUN_Z = 0.37, -0.565
-NOSE_X = (1.45, 2.37)
+NOSE_X = (1.45, 2.44)
 SPINE_X = (-0.92, 0.27)
 
 
@@ -172,9 +172,11 @@ def build_canopy(mats, body, bvh):
     parts.append(G.box("CP_SeatHead", (0.41, -0.06, zd + 0.21), (0.46, 0.06, zd + 0.27), mats, ACCENT))
     parts.append(G.box("CP_Shoulders", (0.47, -0.105, zd + 0.06), (0.60, 0.105, zd + 0.15), mats, WHITE))
     parts.append(G.box("CP_Dash", (0.98, -0.16, deck_z(1.0)), (1.12, 0.16, deck_z(1.0) + 0.10), mats, GUN, taper=(1.0, 0.4)))
-    parts.append(G.lathe_x("CP_Helmet", [(0.0, 0.0), (0.012, 0.042), (0.045, 0.066), (0.095, 0.068), (0.14, 0.055), (0.16, 0.0)],
-                           (0.47, 0.0, zd + 0.215), mats, segments=24, mat_idx=[WHITE] * 6))
-    parts.append(G.box("CP_Visor", (0.605, -0.045, zd + 0.20), (0.625, 0.045, zd + 0.24), mats, GLOW))
+    hk = 0.78                                                   # v08: smaller, lower (review: large, sits high)
+    parts.append(G.lathe_x("CP_Helmet", [(0.0, 0.0), (0.012 * hk, 0.042 * hk), (0.045 * hk, 0.066 * hk), (0.095 * hk, 0.068 * hk),
+                                         (0.14 * hk, 0.055 * hk), (0.16 * hk, 0.0)],
+                           (0.49, 0.0, zd + 0.18), mats, segments=24, mat_idx=[WHITE] * 6))
+    parts.append(G.box("CP_Visor", (0.49 + 0.115, -0.035, zd + 0.17), (0.49 + 0.13, 0.035, zd + 0.20), mats, GLOW))
     return parts, glass, cut
 
 
@@ -184,14 +186,21 @@ def build_guns(mats, body):
     cut = _cut(body, lambda c: 1.40 < c.x < 2.62 and math.hypot(abs(c.y) - GUN_Y, c.z - GUN_Z) < 0.15)
     for sy in (1, -1):
         y = sy * GUN_Y
-        pod = [(1.42, 0.0), (1.42, 0.075), (1.48, 0.108), (1.70, 0.108), (1.70, 0.114), (1.745, 0.114), (1.745, 0.108),
-               (1.93, 0.108), (1.97, 0.098), (2.04, 0.078), (2.06, 0.05), (2.06, 0.0)]
-        pidx = [GUN, WHITE, WHITE, STEEL, ACCENT, STEEL, WHITE, WHITE, GUN, GUN, GUN, GUN]
+        # v08: slimmer (review: oversized), with seam grooves and a vented front collar
+        pod = [(1.42, 0.0), (1.42, 0.068), (1.48, 0.095), (1.585, 0.095), (1.585, 0.089), (1.597, 0.089), (1.597, 0.095),
+               (1.70, 0.095), (1.70, 0.100), (1.745, 0.100), (1.745, 0.095), (1.86, 0.095), (1.86, 0.089), (1.872, 0.089),
+               (1.872, 0.095), (1.93, 0.095), (1.97, 0.086), (2.04, 0.070), (2.06, 0.045), (2.06, 0.0)]
+        pidx = [GUN, WHITE, WHITE, BLACK, BLACK, BLACK, WHITE, STEEL, ACCENT, STEEL, WHITE, BLACK, BLACK, BLACK, WHITE, GUN,
+                GUN, GUN, GUN, GUN]
         parts.append(G.lathe_x("GN_Pod_%d" % sy, [(x - 1.42, r) for x, r in pod], (1.42, y, GUN_Z), mats, segments=32, mat_idx=pidx))
         barrel = [(2.04, 0.0), (2.04, 0.030), (2.22, 0.030), (2.22, 0.038), (2.26, 0.038), (2.26, 0.030), (2.42, 0.030),
                   (2.42, 0.041), (2.50, 0.041), (2.50, 0.022), (2.47, 0.022), (2.47, 0.0)]
         bidx = [GUN, STEEL, STEEL, GUN, STEEL, STEEL, GUN, GUN, BLACK, BLACK, BLACK, BLACK]
         parts.append(G.lathe_x("GN_Barrel_%d" % sy, [(x - 2.04, r) for x, r in barrel], (2.04, y, GUN_Z), mats, segments=24, mat_idx=bidx))
+        # cooling vents: a row of dark slots on the pod's upper flank
+        for k in range(4):
+            vx = 1.62 + k * 0.055
+            parts.append(G.box("GN_Vent_%d_%d" % (sy, k), (vx, y - 0.035, GUN_Z + 0.072), (vx + 0.03, y + 0.035, GUN_Z + 0.098), mats, BLACK))
         # the mount that ties the pod to the hull
         parts.append(G.box("GN_Mount_%d" % sy, (1.50, y - sy * 0.10 - 0.025, GUN_Z + 0.02), (1.90, y - sy * 0.10 + 0.025, GUN_Z + 0.11),
                            mats, GUN))
@@ -206,44 +215,63 @@ def build_nose(mats, body, bvh):
     top, bot, half = [], [], []
     for x in xs:
         t, b = _ray(bvh, (x, 0, 5), (0, 0, -1)), _ray(bvh, (x, 0, -5), (0, 0, 1))
-        zt, zb = (t.z if t else -0.3), (b.z if b else -0.7)
+        zt = t.z if t else (top[-1] if top else -0.3)
+        zb = b.z if (b and b.z < zt - 0.01) else zt - 0.02          # past the Rodin tip top and bottom meet: a point, not a block
         s = _ray(bvh, (x, 0.6, zt - 0.06), (0, -1, 0))          # from inside the gun gap, above the pods
         top.append(zt); bot.append(zb); half.append(min(abs(s.y) * 1.04, 0.24) if s else 0.15)
     top, bot, half = _smooth(top, 1), _smooth(bot, 1), _smooth(half, 1)
     tf, bf, hf = _interp(xs, top), _interp(xs, bot), _interp(xs, half)
     tip = NOSE_X[1]
 
-    def sec(x, u, grow=0.007):
+    def sec(x, u, grow=0.005):
         x = min(x, tip)
-        k = 1.0 if x <= xs[-1] else max(0.0, (tip - x) / (tip - xs[-1]))
-        zt, zb, w = tf(x) + grow, bf(x) - grow, (hf(x) + grow) * k
+        # v08: the last 25 cm taper to the Rodin's low, pointed tip (v07 ended in a blunt block)
+        k = 1.0 if x <= tip - 0.25 else max(0.0, (tip - x) / 0.25) ** 0.85
+        zt, zb = tf(min(x, 2.30)) + grow, bf(min(x, 2.30)) - grow
+        if x > 2.30:                                             # v09: past the Rodin tip, close to a solid point
+            zm = (zt + zb) / 2
+            zt, zb = zm + (zt - zm) * k, zm - (zm - zb) * k
+        w = min(hf(x) * 1.32, 0.27) * k + grow                   # v09: wide enough to cover the cheek shards
         zc = (zt + zb) / 2
-        hz = (zt - zb) / 2 * (0.35 + 0.65 * k)
+        hz = max((zt - zb) / 2, 0.01) * (0.25 + 0.75 * k)
         c, s = math.cos(u), math.sin(u)
-        n = 3.2                                                  # boxy-round: crisp chines, flat panels
+        n = 2.6                                                  # rounder than v07's 3.2: sleek, still with chines
         return (x, math.copysign(abs(c) ** (2 / n), c) * w, zc + math.copysign(abs(s) ** (2 / n), s) * hz)
     # panel lines as recessed pockets: a seam ring at two stations, the glowing nose slit on the top
     v_lo, v_hi = NOSE_X[0], tip
-    pockets = [{"u0": PI / 2 - 0.30, "u1": PI / 2 + 0.30, "v0": 2.13, "v1": 2.20, "depth": 0.006, "eu": 0.02, "ev": 0.008,
-                "mat": GLOW}]                                     # the glowing nose slit, recessed
-    seams = ((1.80, 1.81), (2.07, 2.08))                          # painted panel lines as clean dark bands
+    pockets = [{"u0": PI / 2 - 0.10, "u1": PI / 2 + 0.10, "v0": 1.95, "v1": 2.24, "depth": 0.008, "eu": 0.025, "ev": 0.02,
+                "mat": HOT}]                                      # v09: one long, narrow glowing slit along the top
+    seams = ((1.72, 1.728), (1.90, 1.908), (2.20, 2.208))        # panel seams: clean dark bands
 
     def mat_fn(u, v):
         s = math.sin(u)
-        if any(a <= v <= b for a, b in seams):
+        if any(a <= v <= b for a, b in seams) or abs(s + 0.22) < 0.035:   # station seams and the chine seam
             return BLACK
         if s < -0.25:
             return GUN                                           # dark chin
-        if abs(math.cos(u)) < 0.10 and s > 0 and v < 2.05:
-            return ACCENT                                        # magenta centre stripe over the top
+        if abs(math.cos(u)) < 0.10 and s > 0 and v < 1.90:
+            return ACCENT                                        # magenta centre stripe, ending before the slit
         return WHITE
-    nose = G.grid_surface("NS_Nose", lambda u, v: sec(v, u), list(np.linspace(0, 2 * PI, 49)[:-1]),
-                          sorted(set(list(np.linspace(v_lo, v_hi, 26)) + [1.80, 1.81, 2.07, 2.08])), mats, pockets=pockets, closed_u=True, cap0="none",
+    nose = G.grid_surface("NS_Nose", lambda u, v: sec(v, u), list(np.linspace(0, 2 * PI, 73)[:-1]),
+                          sorted(set(list(np.linspace(v_lo, v_hi, 34)) + [v for ab in seams for v in ab])), mats, pockets=pockets, closed_u=True, cap0="none",
                           cap1="point", mat_fn=mat_fn, smooth_deg=34.0)
     G.bevel(nose, width=0.003, segments=2, angle_deg=34.0)
     # the Rodin nose under the shell goes (remove_hidden takes the rest)
-    cut = _cut(body, lambda c: NOSE_X[0] + 0.05 < c.x and abs(c.y) < hf(min(c.x, xs[-1])) * 0.95 and
-               bf(min(c.x, xs[-1])) + 0.02 < c.z < tf(min(c.x, xs[-1])) - 0.02 and math.hypot(abs(c.y) - GUN_Y, c.z - GUN_Z) > 0.16)
+    cut = _cut(body, lambda c: (NOSE_X[0] + 0.05 < c.x and abs(c.y) < min(hf(min(c.x, xs[-1])) * 1.32, 0.27) * 0.97 and
+               bf(min(c.x, xs[-1])) - 0.01 < c.z < tf(min(c.x, xs[-1])) + 0.01 and math.hypot(abs(c.y) - GUN_Y, c.z - GUN_Z) > 0.13)
+               or (c.x > 2.22 and abs(c.y) < 0.30 and c.z > -0.85 and math.hypot(abs(c.y) - GUN_Y, c.z - GUN_Z) > 0.10))
+    # v11: whatever of the Rodin nose still pokes out of the shell goes: spikes above it (canopy front, top) and the
+    # shards under its lip (the chin between the gun pods), the guns kept
+    def poke(c):
+        if not (NOSE_X[0] - 0.03 < c.x < NOSE_X[1] + 0.06) or math.hypot(abs(c.y) - GUN_Y, c.z - GUN_Z) < 0.12:
+            return False
+        xx = min(c.x, xs[-1])
+        w = min(hf(xx) * 1.32, 0.27)
+        above = abs(c.y) < w * 1.05 and c.z > tf(xx) + 0.004
+        below = c.x > 1.95 and abs(c.y) < 0.30 and c.z < bf(xx) + 0.02
+        tip = c.x > 2.28 and abs(c.y) < 0.32
+        return above or below or tip
+    cut += _cut(body, poke)
     return [nose], cut
 
 
@@ -278,6 +306,125 @@ def build_spine(mats, body, bvh):
     return parts
 
 
+# ---------------------------------------------------------------------------------------------------- side plates
+# v10 (Lead GO, Nov 13 night): the fuselage sides are the last thing that reads "melted" at 3 m. Denoise and paint
+# passes could not fix them (the lumps are the Rodin shape itself), so clean armour plates go over them, built on
+# the measured side surface (rays from inside the body outwards: the skin, not the wings or pods), smoothed and laid a
+# few millimetres outside, with real gaps over a dark backing (inset seams), varied sizes, access panels, vents and
+# bolts. Bands: UPPER (under the canopy sill and spine, the whole length) and MID (the side pods ahead of the wing).
+UPPER = dict(x=[-0.60, -0.31, -0.03, 0.29, 0.56, 0.87, 1.08], z=(-0.29, -0.02), split={2: -0.12, 4: -0.10})
+MID = dict(x=[0.22, 0.51, 0.79, 1.05, 1.29, 1.52], z=(-0.62, -0.29), split={1: -0.47, 3: -0.45})
+GAP = 0.006
+
+
+def _side_field(bvh, xs, zs, sy):
+    Y = np.full((len(xs), len(zs)), np.nan)
+    for i, x in enumerate(xs):
+        for j, z in enumerate(zs):
+            h = bvh.ray_cast(Vector((x, 0.0, z)), Vector((0, sy, 0)), 1.2)
+            if h[0] is not None and abs(h[0].y) < 0.62:
+                Y[i, j] = abs(h[0].y)
+    for i in range(len(xs)):                                    # per station: outliers (holes, pods poking in) -> median
+        col = Y[i]
+        med = np.nanmedian(col) if np.isfinite(col).any() else 0.35
+        bad = ~np.isfinite(col) | (np.abs(col - med) > 0.10)
+        col[bad] = med
+    lift = np.maximum.reduce([np.roll(Y, k, a) for a in (0, 1) for k in (-1, 0, 1)])   # cover the lumps
+    sm = lift.copy()
+    for _ in range(6):                                          # then smooth: clean, continuous panels
+        p = np.pad(sm, 1, mode="edge")
+        sm = (p[1:-1, 1:-1] * 4 + p[:-2, 1:-1] + p[2:, 1:-1] + p[1:-1, :-2] + p[1:-1, 2:]) / 8.0
+    return sm
+
+
+def _plates_band(mats, bvh, band, sy, name, mat_of, extras):
+    xs = np.linspace(band["x"][0] - 0.02, band["x"][-1] + 0.02, 48)
+    zs = np.linspace(band["z"][0] - 0.02, band["z"][1] + 0.02, 18)
+    field = _side_field(bvh, xs, zs, sy)
+
+    def yat(x, z, off):
+        fi = float(np.interp(x, xs, np.arange(len(xs))))
+        fj = float(np.interp(z, zs, np.arange(len(zs))))
+        i0, j0 = int(min(fi, len(xs) - 2)), int(min(fj, len(zs) - 2))
+        a, b = fi - i0, fj - j0
+        v = (field[i0, j0] * (1 - a) * (1 - b) + field[i0 + 1, j0] * a * (1 - b) + field[i0, j0 + 1] * (1 - a) * b
+             + field[i0 + 1, j0 + 1] * a * b)
+        return sy * (v + off)
+
+    def box_out(nm, cx, cz, w, h, depth, mat):
+        y = yat(cx, cz, 0.027)
+        return G.box(nm, (cx - w / 2, min(y, y + sy * depth), cz - h / 2), (cx + w / 2, max(y, y + sy * depth), cz + h / 2), mats, mat)
+
+    out = []
+
+    def back_f(u, v):                                           # dark backing: the gaps read as inset seams
+        z = band["z"][0] + u * (band["z"][1] - band["z"][0])
+        return (v, yat(v, z, 0.004), z)
+    out.append(G.grid_surface("%s_Back" % name, back_f, list(np.linspace(0, 1, 8)), list(np.linspace(band["x"][0], band["x"][-1], 30)),
+                              mats, closed_u=False, cap0="none", cap1="none", mat_fn=lambda u, v: GUN, flip=(sy < 0)))
+    for k in range(len(band["x"]) - 1):
+        x0, x1 = band["x"][k] + GAP / 2, band["x"][k + 1] - GAP / 2
+        rows = [(band["z"][0], band["split"][k]), (band["split"][k], band["z"][1])] if k in band["split"] else [band["z"]]
+        for r, (z0, z1) in enumerate(rows):
+            z0, z1 = z0 + GAP / 2, z1 - GAP / 2
+            m = mat_of(k, r)
+
+            def f(u, v, z0=z0, z1=z1):
+                z = z0 + u * (z1 - z0)
+                return (v, yat(v, z, 0.016), z)
+            pl = G.grid_surface("%s_P%d%d" % (name, k, r), f, list(np.linspace(0, 1, 7)), list(np.linspace(x0, x1, 9)), mats,
+                                closed_u=False, cap0="none", cap1="none", mat_fn=lambda u, v, m=m: m, flip=(sy < 0), smooth_deg=40.0)
+            sol = pl.modifiers.new("Thick", "SOLIDIFY")
+            sol.thickness = 0.011
+            sol.offset = -1.0
+            G.bevel(pl, width=0.0025, segments=2, angle_deg=40.0)
+            out.append(pl)
+            for kind, fx, fz, w, h in extras.get((k, r), ()):     # details on this plate, in plate-local fractions
+                cx, cz = x0 + fx * (x1 - x0), z0 + fz * (z1 - z0)
+                if kind == "access":                             # raised access panel
+                    out.append(box_out("%s_A%d%d" % (name, k, r), cx, cz, w, h, -0.010, GUN))
+                elif kind == "vent":                             # louvre: dark slots
+                    for q in range(5):
+                        qz = cz - h / 2 + (q + 0.5) * h / 5
+                        out.append(box_out("%s_V%d%d_%d" % (name, k, r, q), cx, qz, w, h / 7, -0.009, BLACK))
+                elif kind == "bolts":
+                    for bx in (-0.5, 0.5):
+                        for bz in (-0.5, 0.5):
+                            out.append(box_out("%s_B%d%d" % (name, k, r), cx + bx * w, cz + bz * h, 0.014, 0.014, -0.007, STEEL))
+    return out
+
+
+def build_side_plates(mats, body, bvh):
+    parts = []
+    for sy in (1, -1):
+        up_mat = lambda k, r: WHITE                                  # v10b: white armour; colour stays in the hull livery
+        mid_mat = lambda k, r: WHITE
+        up_x = {(1, 0): (("access", 0.45, 0.5, 0.12, 0.08),), (3, 0): (("vent", 0.3, 0.5, 0.07, 0.12), ("bolts", 0.5, 0.5, 0.20, 0.14)),
+                (5, 0): (("access", 0.6, 0.45, 0.10, 0.06),)}
+        mid_x = {(0, 0): (("vent", 0.5, 0.5, 0.12, 0.10),), (1, 1): (("access", 0.5, 0.5, 0.14, 0.07),),
+                 (3, 0): (("vent", 0.4, 0.5, 0.09, 0.09),), (4, 0): (("bolts", 0.5, 0.5, 0.14, 0.18),)}
+        parts += _plates_band(mats, bvh, UPPER, sy, "SPU%+d" % sy, up_mat, up_x)
+        parts += _plates_band(mats, bvh, MID, sy, "SPM%+d" % sy, mid_mat, mid_x)
+    return parts
+
+
+def denoise_sides(body):
+    """v08: the cracks left on the fuselage sides are carved into the Rodin geometry. A mild, masked feature-preserving
+    denoise (rh_denoise.py) on the side panels only (the full-hull v06 pass smeared steps and showed facets)."""
+    import rh_denoise as D
+    vg = body.vertex_groups.get("CP_Sides") or body.vertex_groups.new(name="CP_Sides")
+    idx = []
+    for v in body.data.vertices:
+        c = v.co
+        if -0.6 < c.x < 1.6 and -0.78 < c.z < 0.10 and abs(c.y) > 0.14:
+            idx.append(v.index)
+    vg.add(idx, 1.0, "REPLACE")
+    co, tris, pairs, me = D._arrays(body)
+    # v09 (Lead: "a strong side-panel pass"): flatter panels, wider spatial reach; the cap on vertex travel keeps the form
+    return D.denoise(body, sigma_s=2.6 * me, sigma_r=0.42, normal_iters=40, vertex_iters=40, mask_group="CP_Sides",
+                     max_move=0.03)
+
+
 def build(mats, body):
     bvh = _bvh(body)                 # measured once, on the untouched hull
     res = {}
@@ -285,12 +432,55 @@ def build(mats, body):
     guns, res["cut_guns"] = build_guns(mats, body)
     nose, res["cut_nose"] = build_nose(mats, body, bvh)
     spine = build_spine(mats, body, bvh)
-    res["parts"] = len(canopy) + len(guns) + len(nose) + len(spine)
-    return canopy + guns + nose + spine, glass, res
+    # v10's side plates failed the toy-like gate (Lead, decision A): built only with TD_RIFT_PLATES=1; v11 = v09 sides
+    if os.environ.get("TD_RIFT_PLATES"):
+        plates = build_side_plates(mats, body, bvh)
+    else:
+        plates = []
+        res["side_denoise"] = denoise_sides(body)
+    res["side_plates"] = len(plates)
+    res["parts"] = len(canopy) + len(guns) + len(nose) + len(spine) + len(plates)
+    return canopy + guns + nose + spine + plates, glass, res
 
 
 # ---------------------------------------------------------------------------------------------------- livery
-def clean_livery(path, crack_px=4, smooth_px=10):
+REPAINT = [  # (x0, x1, |y| max, |y| min, z0, z1): leftover Rodin chrome under the canopy sill and beside the nose
+    (0.95, 1.75, 0.42, 0.0, -0.42, 0.30),
+    (1.40, 1.95, 0.36, 0.12, -0.48, -0.08),
+]
+
+
+def _paint_mask(body, shape, test):
+    """Texels (h, w) covered by the UV triangles of the body faces whose centre passes test(c)."""
+    h, w = shape
+    mask = np.zeros((h, w), bool)
+    me = body.data
+    uvl = me.uv_layers.active.data
+    for poly in me.polygons:
+        c = poly.center
+        if not test(c):
+            continue
+        uv = [uvl[li].uv for li in poly.loop_indices]
+        for k in range(1, len(uv) - 1):
+            tri = np.array([[uv[0].x, uv[0].y], [uv[k].x, uv[k].y], [uv[k + 1].x, uv[k + 1].y]]) * [w, h]
+            x0, y0 = np.floor(tri.min(0)).astype(int)
+            x1, y1 = np.ceil(tri.max(0)).astype(int)
+            x0, y0, x1, y1 = max(x0, 0), max(y0, 0), min(x1, w - 1), min(y1, h - 1)
+            if x1 < x0 or y1 < y0:
+                continue
+            gx, gy = np.meshgrid(np.arange(x0, x1 + 1) + 0.5, np.arange(y0, y1 + 1) + 0.5)
+            a, b, cc = tri
+            d = (b[1] - cc[1]) * (a[0] - cc[0]) + (cc[0] - b[0]) * (a[1] - cc[1])
+            if abs(d) < 1e-12:
+                continue
+            l1 = ((b[1] - cc[1]) * (gx - cc[0]) + (cc[0] - b[0]) * (gy - cc[1])) / d
+            l2 = ((cc[1] - a[1]) * (gx - cc[0]) + (a[0] - cc[0]) * (gy - cc[1])) / d
+            inside = (l1 >= -0.02) & (l2 >= -0.02) & (1 - l1 - l2 >= -0.02)
+            mask[y0:y1 + 1, x0:x1 + 1] |= inside
+    return mask
+
+
+def clean_livery(path, crack_px=6, smooth_px=10, body=None):
     """In place: fill the AI's jagged dark 'crack' lines inside white / magenta paint with the surrounding paint, and
     calm the streaks in the paint (within each paint class, blend towards its local smoothed colour)."""
     import rh_textures as T
@@ -300,7 +490,7 @@ def clean_livery(path, crack_px=4, smooth_px=10):
     sat = (mx - mn) / np.maximum(mx, 1e-4)
     white = (lum > 0.32) & (sat < 0.22)
     magenta = (sat > 0.45) & (a[..., 0] > a[..., 1] * 2.0) & (a[..., 2] > a[..., 1] * 1.3) & (lum > 0.05)
-    dark = lum < 0.13
+    dark = lum < 0.20
 
     def box(m, r):
         k = 2 * r + 1
@@ -308,15 +498,26 @@ def clean_livery(path, crack_px=4, smooth_px=10):
         return (c[k:, k:] - c[:-k, k:] - c[k:, :-k] + c[:-k, :-k]) / (k * k)
 
     fw, fm = box(white, crack_px), box(magenta, crack_px)
-    crack_w = dark & (fw > 0.42)
-    crack_m = dark & (fm > 0.42) & ~crack_w
+    crack_w = dark & (fw > 0.38)
+    crack_m = dark & (fm > 0.25) & ~crack_w           # v09: blade-edge smears
     out = a.copy()
     for cls, crack in ((white, crack_w), (magenta, crack_m)):
         m = cls.astype(np.float64)[..., None]
         local = np.stack([box(a[..., c] * cls, smooth_px) for c in range(3)], -1) / np.maximum(box(cls, smooth_px)[..., None], 1e-4)
         out = np.where(crack[..., None], local, out)
         keep = cls[..., None]
-        out = np.where(keep, a * 0.45 + local * 0.55, out)       # streaks calmed, the paint's real shading kept
+        k_local = 0.85 if cls is magenta else 0.55               # v08: the magenta blades were still streaky
+        out = np.where(keep, a * (1 - k_local) + local * k_local, out)   # streaks calmed, some real shading kept
+    if body is not None:
+        # leftover chrome around the new canopy and nose: dark texels there become white paint (and non-metal below)
+        def test(c):
+            return any(x0 < c.x < x1 and ymin <= abs(c.y) < ymax and z0 < c.z < z1 for x0, x1, ymax, ymin, z0, z1 in REPAINT)
+        region = _paint_mask(body, lum.shape, test)
+        region = region[::-1] if False else region
+        paint_white = np.median(a[white], axis=0) if white.any() else np.array([0.8, 0.8, 0.82])
+        rp = region & ((lum < 0.30) | magenta)                 # v09: the ragged magenta sill stripe goes white too
+        out[rp] = paint_white
+        repaint_px = int(rp.sum())
     T.save(out, path, True)
     res = {"white_px": int(white.sum()), "magenta_px": int(magenta.sum()), "cracks_filled": int(crack_w.sum() + crack_m.sum())}
     # the cracks are carved into the normal map too: inside the paint, the normal map's fine band is mostly removed
@@ -336,7 +537,7 @@ def clean_livery(path, crack_px=4, smooth_px=10):
         pm = box(paint, 2)[..., None]
         v = nm * 2.0 - 1.0
         soft = np.stack([box(v[..., c] * paint, 6) for c in range(2)], -1) / np.maximum(box(paint, 6)[..., None], 1e-4)
-        xy = v[..., :2] * (1.0 - 0.8 * pm) + soft * 0.8 * pm
+        xy = v[..., :2] * (1.0 - 0.95 * pm) + soft * 0.95 * pm   # v09: cracks carved into the normal map go
         z = np.sqrt(np.clip(1.0 - (xy ** 2).sum(-1), 0.0, 1.0))
         outn = np.concatenate([xy, z[..., None]], -1) * 0.5 + 0.5
         h, w = outn.shape[:2]
@@ -350,4 +551,21 @@ def clean_livery(path, crack_px=4, smooth_px=10):
         im.save()
         bpy.data.images.remove(im)
         res["normal_paint_softened_frac"] = round(float(pm.mean()), 3)
+    if body is not None:
+        res["repainted_px"] = repaint_px
+        opath = path.replace("_BC.png", "_ORM.png")
+        if os.path.isfile(opath):
+            im = bpy.data.images.load(opath, check_existing=False)
+            im.colorspace_settings.name = "Non-Color"
+            w, h = im.size
+            buf = np.empty(w * h * 4, np.float32)
+            im.pixels.foreach_get(buf)
+            o = buf.reshape(h, w, 4)
+            o[rp, 1] = 0.45
+            o[rp, 2] = 0.0
+            im.pixels.foreach_set(o.ravel())
+            im.filepath_raw = opath
+            im.file_format = "PNG"
+            im.save()
+            bpy.data.images.remove(im)
     return res
