@@ -202,11 +202,13 @@ def artefact_site():
 
 
 def story_set():
-    """Story sets: the pilot 5 m and 30 m from the set, third person, looking at it."""
+    """Story sets: 5 m and 30 m from the set, first person from the pilot's eye height, looking at it."""
+    G.cmd("TD.Ground.ThirdPerson 0")
     tp(-700.0, -650.0, 0.0, 40.0, settle=2.0)
     shot("01_5m", 40.0, -6.0)
     tp(-2600.0, -1900.0, 0.0, 37.0, settle=2.0)
     shot("02_30m", 37.0, -2.0)
+    G.cmd("TD.Ground.ThirdPerson 1")
 
 
 def main():

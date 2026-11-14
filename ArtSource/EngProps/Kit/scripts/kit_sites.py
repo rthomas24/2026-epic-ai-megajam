@@ -458,6 +458,7 @@ def space_sites():
 
 # ------------------------------------------------------------------------------------------------ planet story sets
 ST = K + "Story/"
+STORY_LM = {}
 
 
 def story_sets():
@@ -480,6 +481,13 @@ def story_sets():
             piece("BeaconB", ST + "SM_Kit_WarningBeacon", -550.0, -350.0, 0.0, 0.0),
             piece("Gantry", ST + "SM_Kit_GantryCollapsed", -950.0, -150.0, 0.0, 20.0),
             piece("Scorch", ST + "SM_Kit_ScorchLines", -700.0, 450.0, 0.0, 150.0)]
+    lm = {"Landmark_RelayMast": {"site": "Landmark_RelayMast", "actor": K + "Sites/BP_Landmark_RelayMast",
+                                 "about": "Verdance landmark: a leaning expedition relay mast (63 m) for the research site; collision on its pad only.",
+                                 "pieces": [piece("Mast", ST + "SM_Kit_RelayMast", 0.0, 0.0, 0.0, 0.0)]},
+          "Landmark_NullDerrick": {"site": "Landmark_NullDerrick", "actor": K + "Sites/BP_Landmark_NullDerrick",
+                                   "about": "Cinder landmark: a Null excavation derrick (87 m) over the dig; cables run below its pivot into the pit; collision on its feet only.",
+                                   "pieces": [piece("Derrick", ST + "SM_Kit_NullDerrick", 0.0, 0.0, 0.0, 0.0)]}}
+    STORY_LM.update(lm)
     return {"StorySet_VerdanceCamp": {"site": "StorySet_VerdanceCamp", "actor": K + "Sites/BP_StorySet_VerdanceCamp",
                                       "about": "Verdance: an abandoned field camp (shelters with torn canopies, a dead lamp, sample cases, a toppled antenna, survey stakes, a drag mark leading away).",
                                       "pieces": camp},
@@ -498,6 +506,7 @@ def main():
              "SurveyLine_Verdance": survey_line(), "Artefact": artefact()}
     sites.update(space_sites())
     sites.update(story_sets())
+    sites.update(STORY_LM)
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)

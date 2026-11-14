@@ -10,23 +10,10 @@
   "pivot": "root object origin (SM_Kit_HeatShieldCracked~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
-    "M_Kit_Trim",
-    "M_Kit_Glow"
+    "M_Kit_Glow",
+    "M_Kit_Worn"
   ],
   "material_params": [
-    {
-      "name": "M_Kit_Trim",
-      "textured": true,
-      "base_color": null,
-      "metallic": null,
-      "roughness": null,
-      "emission_color": [
-        1.0,
-        1.0,
-        1.0
-      ],
-      "emission_strength": 0.0
-    },
     {
       "name": "M_Kit_Glow",
       "textured": false,
@@ -43,6 +30,19 @@
         0.75
       ],
       "emission_strength": 6.0
+    },
+    {
+      "name": "M_Kit_Worn",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
     }
   ],
   "textures": [],

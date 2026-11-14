@@ -144,6 +144,10 @@ def ore_cart():
         cx, cy = rnd.uniform(-60.0, 60.0), rnd.uniform(-35.0, 35.0)
         r = rnd.uniform(18.0, 30.0)
         p.box((cx - r, cy - r * 0.8, 100.0), (cx + r, cy + r * 0.8, 112.0 + rnd.random() * 18.0), reg="sw_black")
+    for i in range(4):                                       # hazard-yellow rim, one ember strip on the long side
+        b0, b1 = top[i], top[(i + 1) % 4]
+        p.box((min(b0[0], b1[0]) - 2, min(b0[1], b1[1]) - 2, 116.0), (max(b0[0], b1[0]) + 2, max(b0[1], b1[1]) + 2, 124.0), reg="hazard")
+    p.poly([(-70.0, -57.0, 70.0), (70.0, -57.0, 70.0), (70.0, -59.0, 76.0), (-70.0, -59.0, 76.0)], mat="Glow", n=(0, -1, 0.3))
     p.chull([(x, y, z) for x in (-95.0, 95.0) for y in (-62.0, 62.0) for z in (0.0, 130.0)])
     return p
 
@@ -152,7 +156,7 @@ def rail_stub():
     """A short rail stub (800 x 150): two rails on sleepers, the far end bent up where it was torn."""
     p = Piece("SM_Kit_RailStub", None)
     for x in range(-380, 400, 80):
-        p.box((x - 12.0, -75.0, 0.0), (x + 12.0, 75.0, 10.0), reg="sw_dark")
+        p.box((x - 12.0, -75.0, 0.0), (x + 12.0, 75.0, 10.0), reg="hazard" if x % 160 == 20 else "sw_dark")
     for y in (-45.0, 45.0):
         p.box((-400.0, y - 4.0, 10.0), (250.0, y + 4.0, 22.0), reg="sw_gun")
         _tube(p, (250.0, y, 16.0), (400.0, y * 1.3, 70.0), 5.0, reg="sw_gun")
@@ -219,6 +223,12 @@ def gantry_collapsed():
                 _tube(p, (float(x), y, 20.0), (float(x) + 42.0, y, 160.0), 4.0, reg="sw_gun")
             _tube(p, (float(x), -100.0, 160.0), (float(x), 100.0, 160.0), 4.0, reg="sw_gun")
         p.box((-340.0, -100.0, 160.0), (40.0, 100.0, 166.0), reg="tread")
+        p.box((-340.0, -106.0, 150.0), (340.0, -100.0, 170.0), reg="hazard")
+        p.box((-340.0, 100.0, 150.0), (340.0, 106.0, 170.0), reg="hazard")
+        p.poly([(-300.0, -107.0, 40.0), (300.0, -107.0, 40.0), (300.0, -107.0, 48.0), (-300.0, -107.0, 48.0)], mat="Glow", n=(0, -1, 0))
+        # the one working lamp, still lit on the raised end
+        p.box((330.0, -20.0, 170.0), (346.0, 20.0, 230.0), reg="frame")
+        p.box((322.0, -40.0, 230.0), (360.0, 40.0, 262.0), mat="Light")
     _tube(p, (300.0, -100.0, 0.0), (330.0, -100.0, 100.0), 6.0)
     p.chull([(x, y, z) for x in (-360.0, 360.0) for y in (-106.0, 106.0) for z in (0.0, 260.0 if x > 0 else 120.0)])
     return p
@@ -232,7 +242,83 @@ def scorch_lines():
     return p
 
 
+def _worn(fn):
+    """Cinder pieces: every Trim face becomes slot Worn (lighter worn steel, a little self-lit: Cinder's lighting is dark)."""
+    def wrapped():
+        p = fn()
+        p.faces = [(v, u, "Worn" if m == "Trim" else m) for v, u, m in p.faces]
+        return p
+    wrapped.__name__ = fn.__name__
+    return wrapped
+
+
+# ------------------------------------------------------------------------------------------------ landmarks
+def relay_mast():
+    """Verdance landmark: a leaning expedition relay mast (about 60 m, 6 degrees off vertical): a lattice tower on a
+    concrete pad, four guy lines (one snapped and hanging), a dead dish two thirds up, a blinking green-amber light at the
+    top. Seen from the landing approach it marks the research site. Collision: the pad only."""
+    p = Piece("SM_Kit_RelayMast", None)
+    H = 6000.0
+    p.box((-300.0, -300.0, 0.0), (300.0, 300.0, 60.0), reg="floor")
+    with p.at(Matrix.Rotation(math.radians(6.0), 4, "Y")):
+        for (x, y) in ((-90.0, -90.0), (90.0, -90.0), (90.0, 90.0), (-90.0, 90.0)):
+            _tube(p, (x * 1.6, y * 1.6, 60.0), (x * 0.5, y * 0.5, H), 9.0)
+        z = 60.0
+        k = 0
+        while z < H - 300:
+            t0, t1 = z / H, (z + 300.0) / H
+            w0, w1 = 144.0 - 99.0 * t0, 144.0 - 99.0 * t1
+            for (ya, yb) in ((-1, 1),):
+                _tube(p, (-w0, -w0, z), (w1, w1, z + 300.0), 4.0, reg="sw_gun")
+                _tube(p, (w0, -w0, z), (-w1, w1, z + 300.0), 4.0, reg="sw_gun")
+            _tube(p, (-w1, -w1, z + 300.0), (w1, -w1, z + 300.0), 4.0, reg="sw_gun")
+            _tube(p, (-w1, w1, z + 300.0), (w1, w1, z + 300.0), 4.0, reg="sw_gun")
+            z += 300.0
+            k += 1
+        # the dead dish, two thirds up
+        with p.at(Matrix.Translation((60.0, 0.0, H * 0.66)) @ Matrix.Rotation(math.radians(80.0), 4, "Y")):
+            p.lathe([(0.0, 0.0), (150.0, 30.0), (420.0, 120.0)], 16, regs=["sw_gun", "wallB"], a0=0.0, a1=360.0)
+            p.lathe([(420.0, 122.0), (150.0, 32.0), (0.0, 2.0)], 16, regs=["sw_dark", "sw_dark"], a0=0.0, a1=360.0)
+        p.box((-60.0, -60.0, H), (60.0, 60.0, H + 120.0), reg="frame")
+        p.box((-90.0, -90.0, H + 120.0), (90.0, 90.0, H + 300.0), mat="Nav")
+    # guy lines (one snapped)
+    top = (H * math.sin(math.radians(6.0)) * 0.8, 0.0, H * 0.8)
+    for (gx, gy, snapped) in ((2600.0, 0.0, False), (-2400.0, 300.0, False), (0.0, 2500.0, False), (200.0, -2500.0, True)):
+        if snapped:
+            _tube(p, top, (top[0] * 0.95, top[1] - 120.0, top[2] - 1800.0), 3.0, reg="sw_dark")
+            _tube(p, (gx, gy, 0.0), (gx * 0.6, gy * 0.6, 300.0), 3.0, reg="sw_dark")
+        else:
+            _tube(p, top, (gx, gy, 0.0), 3.0, reg="sw_dark")
+        p.box((gx - 40.0, gy - 40.0, 0.0), (gx + 40.0, gy + 40.0, 40.0), reg="frame")
+    p.cbox((-300.0, -300.0, 0.0), (300.0, 300.0, 400.0))
+    return p
+
+
+def null_derrick():
+    """Cinder landmark: a Null excavation derrick (about 80 m): a black A-frame tower over the pit on four splayed legs,
+    a crown block with a red beacon, red seams up the legs, heavy cables running from the crown down into the pit (below
+    the pivot, Z < 0). It marks the dig from the landing approach. Collision: the four leg feet only."""
+    p = Piece("SM_Kit_NullDerrick", None)
+    H = 8000.0
+    for (x, y) in ((-1200.0, -1200.0), (1200.0, -1200.0), (1200.0, 1200.0), (-1200.0, 1200.0)):
+        _tube(p, (x, y, 0.0), (x * 0.12, y * 0.12, H), 85.0, reg="wallB", mat="Dom")
+        p.box((x - 160.0, y - 160.0, 0.0), (x + 160.0, y + 160.0, 120.0), reg="frame", mat="Dom")
+        _tube(p, (x * 0.9, y * 0.9, 300.0), (x * 0.25, y * 0.25, H * 0.75), 14.0, mat="Glow")
+    for z in (2000.0, 4000.0, 6000.0):
+        w = 1200.0 * (1.0 - 0.88 * z / H)
+        for (a, b) in (((-w, -w), (w, -w)), ((w, -w), (w, w)), ((w, w), (-w, w)), ((-w, w), (-w, -w))):
+            _tube(p, (a[0], a[1], z), (b[0], b[1], z), 45.0, reg="frame", mat="Dom")
+    p.box((-260.0, -260.0, H), (260.0, 260.0, H + 400.0), reg="wallB", mat="Dom")
+    p.box((-160.0, -160.0, H + 400.0), (160.0, 160.0, H + 700.0), mat="Beacon")
+    for (dx, dy) in ((-80.0, 0.0), (80.0, 0.0), (0.0, 80.0)):
+        _tube(p, (dx, dy, H), (dx * 3.0, dy * 3.0, -2500.0), 12.0, reg="sw_black", mat="Dom")
+    for (x, y) in ((-1200.0, -1200.0), (1200.0, -1200.0), (1200.0, 1200.0), (-1200.0, 1200.0)):
+        p.cbox((x - 160.0, y - 160.0, 0.0), (x + 160.0, y + 160.0, 600.0))
+    return p
+
+
 VERDANCE = [shelter_frame, lamp_post_dead, sample_cases, antenna_toppled, survey_stake_flag, drag_mark]
-CINDER = [ore_cart, rail_stub, cable_reel, heat_shield_cracked, warning_beacon, gantry_collapsed, scorch_lines]
-BUILDERS = VERDANCE + CINDER
+CINDER = [_worn(f) for f in (ore_cart, rail_stub, cable_reel, heat_shield_cracked, warning_beacon, gantry_collapsed, scorch_lines)]
+LANDMARKS = [relay_mast, null_derrick]
+BUILDERS = VERDANCE + CINDER + LANDMARKS
 NO_COLLISION = ("SM_Kit_SurveyStakeFlag", "SM_Kit_DragMark", "SM_Kit_ScorchLines")

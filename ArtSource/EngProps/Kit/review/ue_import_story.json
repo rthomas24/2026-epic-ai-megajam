@@ -22,7 +22,7 @@
   "tris": 1656,
   "hulls": 1,
   "slots": [
-   "0:Trim"
+   "0:Worn"
   ]
  },
  {
@@ -42,13 +42,15 @@
   "asset": "SM_Kit_GantryCollapsed",
   "size_cm": [
    709,
-   212,
-   316
+   213,
+   409
   ],
-  "tris": 3564,
+  "tris": 3998,
   "hulls": 1,
   "slots": [
-   "0:Trim"
+   "0:Glow",
+   "1:Light",
+   "2:Worn"
   ]
  },
  {
@@ -61,7 +63,7 @@
   "tris": 616,
   "hulls": 1,
   "slots": [
-   "0:Trim",
+   "0:Worn",
    "1:Glow"
   ]
  },
@@ -79,16 +81,32 @@
   ]
  },
  {
+  "asset": "SM_Kit_NullDerrick",
+  "size_cm": [
+   2720,
+   2720,
+   11200
+  ],
+  "tris": 3132,
+  "hulls": 4,
+  "slots": [
+   "0:Beacon",
+   "1:Dom",
+   "2:Glow"
+  ]
+ },
+ {
   "asset": "SM_Kit_OreCart",
   "size_cm": [
-   190,
+   194,
    158,
    130
   ],
-  "tris": 1760,
+  "tris": 2159,
   "hulls": 1,
   "slots": [
-   "0:Trim"
+   "0:Glow",
+   "1:Worn"
   ]
  },
  {
@@ -101,7 +119,21 @@
   "tris": 1512,
   "hulls": 1,
   "slots": [
-   "0:Trim"
+   "0:Worn"
+  ]
+ },
+ {
+  "asset": "SM_Kit_RelayMast",
+  "size_cm": [
+   5080,
+   5080,
+   6277
+  ],
+  "tris": 10032,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Nav"
   ]
  },
  {
@@ -168,7 +200,7 @@
   "tris": 324,
   "hulls": 1,
   "slots": [
-   "0:Trim",
+   "0:Worn",
    "1:Beacon"
   ]
  }

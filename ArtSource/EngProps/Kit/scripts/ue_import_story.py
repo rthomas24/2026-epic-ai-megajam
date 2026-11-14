@@ -27,12 +27,23 @@ def log(m):
     unreal.log("TDPY: " + m)
 
 
-def tinted(name, tint, grime):
+def glow(name, rgb, strength, pulse=0.0, rate=1.0):
+    mi = K.instance(name, eas.load_asset(K.MASTER_GLOW))
+    mel.set_material_instance_scalar_parameter_value(mi, "GlowStrength", strength)
+    mel.set_material_instance_scalar_parameter_value(mi, "PulseAmount", pulse)
+    mel.set_material_instance_scalar_parameter_value(mi, "PulseRate", rate)
+    mel.set_material_instance_vector_parameter_value(mi, "GlowColor", unreal.LinearColor(rgb[0], rgb[1], rgb[2], 1.0))
+    eas.save_loaded_asset(mi)
+    return mi
+
+
+def tinted(name, tint, grime, self_illum=0.0):
     mi = K.instance(name, eas.load_asset(KT + "Materials/M_KitD_Trim"))
     for p_, t in (("BaseColorTex", "T_Kit_Trim_BC"), ("ORMTex", "T_Kit_Trim_ORM"), ("NormalTex", "T_Kit_Trim_N")):
         mel.set_material_instance_texture_parameter_value(mi, p_, eas.load_asset(KT + "Textures/" + t))
     mel.set_material_instance_scalar_parameter_value(mi, "GrimeAmount", grime)
     mel.set_material_instance_vector_parameter_value(mi, "BaseTint", unreal.LinearColor(tint[0], tint[1], tint[2], 1.0))
+    mel.set_material_instance_scalar_parameter_value(mi, "SelfIllum", self_illum)
     eas.save_loaded_asset(mi)
     return mi
 
@@ -71,7 +82,13 @@ def main():
     mis = {"Trim": eas.load_asset(KT + "MI_Kit_Trim"), "Glow": eas.load_asset(KT + "MI_Kit_Glow_Cinder"),
            "Beacon": eas.load_asset(KT + "MI_Kit_Beacon_Cinder"),
            "Canopy": tinted("MI_Kit_Canopy", (0.62, 0.56, 0.42), 0.7), "Flag": tinted("MI_Kit_Flag", (1.0, 0.42, 0.08), 0.5),
-           "Decal": decal_mi("MI_Kit_DragMark", "T_Kit_DragMark", notes), "Decal2": decal_mi("MI_Kit_ScorchLines", "T_Kit_ScorchLines", notes)}
+           "Decal": decal_mi("MI_Kit_DragMark", "T_Kit_DragMark", notes), "Decal2": decal_mi("MI_Kit_ScorchLines", "T_Kit_ScorchLines", notes),
+           # r2: Cinder's camp in lighter worn steel, a little self-lit (Cinder's lighting is dark); the landmarks' lights
+           "Worn": tinted("MI_Kit_StoryWorn", (1.0, 0.95, 0.86), 0.35, 0.12), "Light": eas.load_asset(KT + "MI_Kit_Light"),
+           "Dom": eas.load_asset(KT + "Dominion/MI_KitD_Trim"),
+           "Nav": glow("MI_Kit_RelayNav", (0.55, 0.9, 0.15), 40.0, pulse=1.0, rate=0.5)}
+    derrick = {"Beacon": glow("MI_Kit_DerrickBeacon", (1.0, 0.05, 0.02), 70.0, pulse=0.9, rate=0.3),
+               "Glow": eas.load_asset(KT + "Dominion/MI_KitD_Glow")}
     pipe = K.ensure_pipeline(notes)
     sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
     mgr = unreal.InterchangeManager.get_interchange_manager_scripted()
@@ -95,7 +112,7 @@ def main():
             slot = re.sub(r"_\d+$", "", slot)          # Blender's duplicate-name suffix (M_Kit_Decal.001 -> M_Kit_Decal_001)
             key = next((k for k in sorted(mis, key=len, reverse=True) if slot.endswith("_" + k) or slot == k), None)
             if key:
-                mesh.set_material(i, mis[key])
+                mesh.set_material(i, (derrick if asset == "SM_Kit_NullDerrick" and key in derrick else mis)[key])
             slots.append("%d:%s" % (i, key))
         if asset in NO_COL:
             try:

@@ -71,6 +71,7 @@ def main():
               "Strobe": glow_mi("MI_SP_DistressStrobe", (0.0, 0.85, 1.0), 70.0, pulse=1.0, rate=1.3),      # r4: squad cyan, not enemy-eye white
               "Nav": glow_mi("MI_SP_NavAmber", (0.55, 0.9, 0.15), 25.0, pulse=0.0, rate=0.4),          # r4: green-amber, steady
               "Stripe": stripe, "BoreEnd": scorch,
+              "CyanRun": glow_mi("MI_SP_CyanRun", (0.0, 0.85, 1.0), 8.0),          # r5: steady, under the band
               "Scorch": scorch, "Cut": cut,
               "Rock": eas.load_asset(SP + "MI_Asteroid_03"), "Bore": eas.load_asset(SP + "MI_SpaceDebris_01")}
     pipe = K.ensure_pipeline(notes)

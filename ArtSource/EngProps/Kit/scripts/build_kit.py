@@ -75,6 +75,16 @@ def make_materials(glow=GLOW_TEAL):
     m.use_backface_culling = True
     mats["Trim"] = m
     if SET == "story":
+        dm = m.copy()
+        dm.name = "M_Kit_Dom"
+        for nd in dm.node_tree.nodes:
+            if nd.type == "TEX_IMAGE" and nd.image and nd.image.name.startswith("T_Kit_Trim"):
+                nd.image = bpy.data.images.load(os.path.join(TEX, nd.image.name.replace("T_Kit_Trim", "T_KitD_Trim")), check_existing=True)
+                nd.image.colorspace_settings.name = "sRGB" if "_BC" in nd.image.name else "Non-Color"
+        mats["Dom"] = dm
+        wm = m.copy()
+        wm.name = "M_Kit_Worn"
+        mats["Worn"] = wm
         for key, col in (("Canopy", (0.42, 0.38, 0.28)), ("Flag", (0.9, 0.35, 0.05)), ("Decal", (0.05, 0.04, 0.03)), ("Decal2", (0.02, 0.02, 0.02))):
             c_ = bpy.data.materials.new("M_Kit_" + key)
             b_ = next(n for n in c_.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
@@ -121,7 +131,7 @@ def make_materials(glow=GLOW_TEAL):
                                ("Beacon", glow, 20.0), ("Pillar", glow, 3.0), ("Decal", (1.0, 0.45, 0.1), 0.5), ("Route", (1.0, 0.05, 0.03), 0.5),
                                ("Eye", (1.0, 1.0, 1.0), 12.0), ("Breach", (0.2, 0.5, 1.0), 6.0), ("Run", (1.0, 0.2, 0.15), 6.0),
                                ("Flicker", (1.0, 0.72, 0.42), 4.0), ("Work", (1.0, 0.9, 0.7), 8.0),
-                               ("Strobe", (0.6, 0.85, 1.0), 20.0), ("Nav", (1.0, 0.55, 0.1), 10.0)):
+                               ("Strobe", (0.6, 0.85, 1.0), 20.0), ("Nav", (1.0, 0.55, 0.1), 10.0), ("CyanRun", (0.0, 0.85, 1.0), 4.0)):
         g = bpy.data.materials.new("M_Kit_" + key)
         b = next(n for n in g.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
         b.inputs["Base Color"].default_value = (0.02, 0.025, 0.03, 1.0)

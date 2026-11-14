@@ -65,4 +65,10 @@ for cls, place, near, dz in PIECES:
                                                                  z + f[2] * d + dz + d * 0.12))
         time.sleep(3.0)
         print(G.shot("%s_%s" % (cls.replace("BP_SP_", ""), tag)))
+        if os.environ.get("TD_SPACE_PHASES"):        # the strobe's other phase: let half a period (0.38 s) run, shoot again
+            G.cmd("slomo 1")
+            time.sleep(0.38)
+            G.cmd("slomo 0.01")
+            time.sleep(0.8)
+            print(G.shot("%s_%s_b" % (cls.replace("BP_SP_", ""), tag)))
     G.cmd("slomo 1")

@@ -10,11 +10,11 @@
   "pivot": "root object origin (SM_Kit_RailStub~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
-    "M_Kit_Trim"
+    "M_Kit_Worn"
   ],
   "material_params": [
     {
-      "name": "M_Kit_Trim",
+      "name": "M_Kit_Worn",
       "textured": true,
       "base_color": null,
       "metallic": null,
