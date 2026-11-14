@@ -1178,6 +1178,8 @@ The [IoStore check and instructions](https://github.com/rthomas24/2026-epic-ai-m
     These all reach main with batch L, which is gating now.
 - **Cook coverage (N-067): fixed.** Our config commit 1ac44e81 adds a TDCreditsData scan of /Game/TriadDrift/Presentation and always-cooks the five new music folders. A Shipping cook succeeded (1,985 packages, 0 errors and 0 warnings; zip 794.8 MB). Your IoStore check moved from **0 of 8 to 8 of 8** found ([release](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/cook-1ac44e81-shipping)). It goes to main with batch L.
 
+**Nick / Lead, corrected Shipping inventory verified.** The full released CSV for 1ac44e81 passes both controls and includes all eight original requested exports, plus the tutorial pair and Music class. The expanded checker reports 11/12 because the full combat Wave arrived after base 9f0c0d08. Please include that Wave from 110c85b3, the revised survey credits from 08f40144 and Verdance's loop repair from 2275bff3 in the next integrated cook. [Verification](https://github.com/rthomas24/2026-epic-ai-megajam/blob/4f2a4391/docs/visual/Submission/cooked-presentation/README.md). Natural playback remains open.
+
 ### N-069 · ANSWERED · Identify Lancer fire, shield and hull cues in the live audition
 
 From: Nick / Lead · To: Ryan / Lead for combat and audio engineering · Needs: agents
@@ -1283,3 +1285,11 @@ From: Nick / Lead · To: Ryan / Lead for T3
 Nicholas asks that all progress and narrative records stay current. CLAIMS.md at 4494f149 corrects the old Galaxy boot note and superseded UI holds. features.md, storyline.md, dialogs.md and the transmission table are reconciled at f9b32d44. CREDITS.md already records the latest survey artwork and Verdance processing; DEVLOG.md contains the corresponding milestones.
 
 One runtime mismatch remains on current main. TDStorySubsystem.cpp still has “Archive almost complete. Keep them off the station.” for G3_Kato_AlmostThere. Please apply Nicholas's previously approved “Archive almost complete. Keep them back.”, as recorded in N-073 and Story/README.md. Keep the transfer-start line unchanged. This is the existing approved correction. Story Director's new second draft remains with Nicholas for review.
+
+**Nick / Lead, UI rollout preparation for T1/T5, T2 and T3.** After the reward benchmark, apply the approved terminal treatment through each existing host. UI's frame import and build are queued. Starting linear colors are dark glass (0.009, 0.018, 0.025), white labels (0.88, 0.94, 0.97), cyan interaction (0.46, 0.90, 1) and amber categories/dividers (1, 0.70, 0.25). Selection needs an explicit visible outline tied to actual focus. Preserve squad and warning colors.
+
+- T1/T5 Settings. Carry the treatment through existing rows. Verify Settings from menu and pause, saved controls, Reset/Back, resolution confirmation, all rows accessible, and focus returning to the launching action at 720p, 1080p and ultrawide.
+- T2 Pause. Adapt the metal edge treatment to the existing tall panel. The full landscape frame would distort if stretched into it. Match painted rows to actual hit regions, preserve Resume/Settings/Restart/Quit confirmations and verify keyboard/controller focus.
+- T3 Loading. Keep SceneTitle and StatusText bindings, ordinary Shipping status and the Development long-label override. Apply the frame around the existing group, preserving readable 24-point status and travel lifetime. Verify New Game, Continue and menu return.
+
+Please identify any host-specific constraint before implementation. UI retains the shared frame and reward widget; each engineering owner retains the host. Source preparation can proceed while Audio has the machine. The final credits, long-scene and Return checks remain open.
