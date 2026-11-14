@@ -10,6 +10,7 @@
 #include "TriadDrift/Core/TDTypes.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -66,6 +67,14 @@ namespace TDPlaytest
 		}
 		TArray<AActor*> Tagged;
 		UGameplayStatics::GetAllActorsWithTag(World, FName(*Args[0]), Tagged);
+		if (Tagged.Num() == 0)
+		{
+			// No such tag: take it as part of an actor's name or class (e.g. Planet_Verdance, TDPlanetAtmosphere).
+			for (TActorIterator<AActor> It(World); It; ++It)
+			{
+				if (It->GetName().Contains(Args[0]) || It->GetClass()->GetName().Contains(Args[0])) { Tagged.Add(*It); }
+			}
+		}
 		AActor* Best = nullptr;
 		double BestD = TNumericLimits<double>::Max();
 		for (AActor* A : Tagged)

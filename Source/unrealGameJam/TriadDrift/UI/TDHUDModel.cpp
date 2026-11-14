@@ -20,6 +20,8 @@
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/Waves/TDWarpInMarker.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
+#include "UObject/UnrealType.h"
 #include "TriadDrift/World/TDPortalGate.h"
 
 int32 FTDHUDModel::CountOf(ETDRadarType Type) const
@@ -217,6 +219,36 @@ void FTDHUDModel::UpdateContacts(const UWorld* World, const TArray<FTDTargetMark
 		Contacts.Last().bThreat = true;
 	}
 
+	// Incoming groups (T4's wave director): a blip at the warp-in point once it is known, otherwise listed with no blip.
+	IncomingScanLeft -= Dt;
+	if (IncomingScanLeft <= 0.f)
+	{
+		IncomingScanLeft = .25f;
+		ReadIncoming(World);
+	}
+	for (FIncoming& G : Incoming)
+	{
+		G.Seconds = FMath::Max(0.f, G.Seconds - Dt);
+		if (G.bHasLocation)
+		{
+			Add(ETDRadarType::Incoming, G.Location);
+		}
+		else
+		{
+			FTDRadarContact& C = Contacts.AddDefaulted_GetRef();
+			C.Type = ETDRadarType::Incoming;
+			C.Range = 1e9f;
+			C.bBeyond = true;
+		}
+		FTDRadarContact& C = Contacts.Last();
+		C.Id = G.Id;
+		C.Count = G.Count;
+		C.Seconds = G.Seconds;
+		C.bHasLocation = G.bHasLocation;
+		C.bNextWave = G.bNextWave;
+		C.bThreat = !G.bNextWave;
+	}
+
 	// The must-shows first (missiles, warp-ins, objectives, gates), then the nearest; cap at MaxContacts.
 	if (Contacts.Num() > MaxContacts)
 	{
@@ -238,6 +270,52 @@ void FTDHUDModel::UpdateContacts(const UWorld* World, const TArray<FTDTargetMark
 			return RA != RB ? RA < RB : A.Range < B.Range;
 		});
 		Contacts.SetNum(MaxContacts, EAllowShrinking::No);
+	}
+}
+
+void FTDHUDModel::ReadIncoming(const UWorld* World)
+{
+	Incoming.Reset();
+	const ATDWaveDirector* Director = ATDWaveDirector::Get(World);
+	UFunction* F = Director ? Director->FindFunction(TEXT("GetPendingGroups")) : nullptr;
+	const FArrayProperty* Out = F ? CastField<FArrayProperty>(F->FindPropertyByName(TEXT("OutGroups"))) : nullptr;
+	const FStructProperty* Inner = Out ? CastField<FStructProperty>(Out->Inner) : nullptr;
+	if (!Inner)
+	{
+		return; // not on this build yet
+	}
+	const UScriptStruct* S = Inner->Struct;
+	const FNameProperty* PId = FindFProperty<FNameProperty>(S, TEXT("EnemyId"));
+	const FIntProperty* PCount = FindFProperty<FIntProperty>(S, TEXT("Count"));
+	const FFloatProperty* PSec = FindFProperty<FFloatProperty>(S, TEXT("SecondsUntilSpawn"));
+	const FStructProperty* PLoc = FindFProperty<FStructProperty>(S, TEXT("Location"));
+	const FBoolProperty* PHas = FindFProperty<FBoolProperty>(S, TEXT("bHasLocation"));
+	const FBoolProperty* PNext = FindFProperty<FBoolProperty>(S, TEXT("bNextWave"));
+	uint8* Buf = static_cast<uint8*>(FMemory_Alloca(F->ParmsSize));
+	FMemory::Memzero(Buf, F->ParmsSize);
+	for (TFieldIterator<FProperty> It(F); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+	{
+		It->InitializeValue_InContainer(Buf);
+	}
+	const_cast<ATDWaveDirector*>(Director)->ProcessEvent(F, Buf);
+	FScriptArrayHelper Arr(Out, Out->ContainerPtrToValuePtr<void>(Buf));
+	for (int32 i = 0; i < Arr.Num(); ++i)
+	{
+		const uint8* E = Arr.GetRawPtr(i);
+		FIncoming& G = Incoming.AddDefaulted_GetRef();
+		G.Id = PId ? PId->GetPropertyValue_InContainer(E) : NAME_None;
+		G.Count = PCount ? PCount->GetPropertyValue_InContainer(E) : 0;
+		G.Seconds = PSec ? PSec->GetPropertyValue_InContainer(E) : 0.f;
+		if (PLoc && PLoc->Struct == TBaseStructure<FVector>::Get())
+		{
+			G.Location = *PLoc->ContainerPtrToValuePtr<FVector>(E);
+		}
+		G.bHasLocation = PHas && PHas->GetPropertyValue_InContainer(E);
+		G.bNextWave = PNext && PNext->GetPropertyValue_InContainer(E);
+	}
+	for (TFieldIterator<FProperty> It(F); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+	{
+		It->DestroyValue_InContainer(Buf);
 	}
 }
 
@@ -282,10 +360,13 @@ namespace TDHUDModelDebug
 			UE_LOG(LogTemp, Display, TEXT("TD.UI.Radar contacts %d (enemy %d, missile %d, wingman %d, objective %d, pickup %d, gate %d, warp-in %d)"),
 				M.Contacts.Num(), M.CountOf(ETDRadarType::Enemy), M.CountOf(ETDRadarType::Missile), M.CountOf(ETDRadarType::Wingman),
 				M.CountOf(ETDRadarType::Objective), M.CountOf(ETDRadarType::Pickup), M.CountOf(ETDRadarType::Gate), M.CountOf(ETDRadarType::WarpIn));
+			UE_LOG(LogTemp, Display, TEXT("TD.UI.Radar incoming %d"), M.CountOf(ETDRadarType::Incoming));
 			for (const FTDRadarContact& C : M.Contacts)
 			{
-				UE_LOG(LogTemp, Display, TEXT("  %-9s kind=%d right=%.0f fwd=%.0f up=%.0f range=%.0f%s%s"), TypeName(C.Type), C.Kind, C.Plane.X, C.Plane.Y,
-					C.Up, C.Range, C.bBeyond ? TEXT(" rim") : TEXT(""), C.bThreat ? TEXT(" THREAT") : TEXT(""));
+				UE_LOG(LogTemp, Display, TEXT("  %-9s kind=%d right=%.0f fwd=%.0f up=%.0f range=%.0f%s%s%s"), TypeName(C.Type), C.Kind, C.Plane.X, C.Plane.Y,
+					C.Up, C.Range, C.bBeyond ? TEXT(" rim") : TEXT(""), C.bThreat ? TEXT(" THREAT") : TEXT(""),
+					C.Type == ETDRadarType::Incoming ? *FString::Printf(TEXT(" %s x%d in %.1fs%s%s"), *C.Id.ToString(), C.Count, C.Seconds,
+						C.bHasLocation ? TEXT("") : TEXT(" (no point yet)"), C.bNextWave ? TEXT(" next wave") : TEXT("")) : TEXT(""));
 			}
 		}));
 }

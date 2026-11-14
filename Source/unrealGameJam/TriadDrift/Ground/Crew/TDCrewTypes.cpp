@@ -66,7 +66,8 @@ namespace TDCrewSpecs
 		// a little flank. Their look is the pilot rig (ATDCrewCharacter::ApplyVisuals), tinted by FuturePilot.
 		FTDCrewSpec& F = T[(int32)ETDCrewType::FutureCrew];
 		F.Type = ETDCrewType::FutureCrew; F.VisualsId = TEXT("FutureCrew");
-		F.MaxHealth = 150.f; F.MoveSpeed = 500.f;
+		F.MaxHealth = 200.f; F.MoveSpeed = 500.f; // the reveal's peak (Lead, Nov 14: they fell in one exchange at 150)
+		F.bFrontalShield = true; F.ShieldArcDeg = 120.f; // the Heavy's guard: a guard break (lunge, chips) or a parry opens it
 		F.SightRange = 5000.f; F.AlertSeconds = 0.8f;
 		F.PreferredRangeMin = 0.f; F.PreferredRangeMax = 170.f; F.FlankAngle = 25.f;
 		F.MeleeDamage = 20.f; F.MeleeRange = 200.f; F.MeleeWindup = 0.6f; F.MeleeCooldown = 1.5f; F.bNeedsAttackToken = false;

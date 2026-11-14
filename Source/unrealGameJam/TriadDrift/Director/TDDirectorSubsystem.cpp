@@ -191,6 +191,26 @@ bool UTDDirectorSubsystem::RequestAtmosphereShot(const UObject* WorldContext, AT
 	return true;
 }
 
+void UTDDirectorSubsystem::HoldShotLetterbox(const UObject* WorldContext, FName Key)
+{
+	UTDDirectorSubsystem* D = Get(WorldContext);
+	if (D && D->CutPresentation && !Key.IsNone())
+	{
+		D->CutPresentation->HoldShotLetterbox(Key);
+		UE_LOG(LogTriadDrift, Log, TEXT("Director: shot letterbox held by %s"), *Key.ToString());
+	}
+}
+
+void UTDDirectorSubsystem::ReleaseShotLetterbox(const UObject* WorldContext, FName Key)
+{
+	UTDDirectorSubsystem* D = Get(WorldContext);
+	if (D && D->CutPresentation && D->CutPresentation->LetterboxHolds.Contains(Key))
+	{
+		D->CutPresentation->ReleaseShotLetterbox(Key);
+		UE_LOG(LogTriadDrift, Log, TEXT("Director: shot letterbox released by %s"), *Key.ToString());
+	}
+}
+
 void UTDDirectorSubsystem::EndAtmosphereShot(const UObject* WorldContext, bool bCut)
 {
 	UTDDirectorSubsystem* D = Get(WorldContext);

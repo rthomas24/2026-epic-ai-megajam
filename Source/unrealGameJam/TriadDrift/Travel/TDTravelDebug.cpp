@@ -79,11 +79,14 @@ namespace TDTravelDebug
 			const FVector Center = It->GetPlanetCenter();
 			FVector Out = (Ship->GetActorLocation() - Center).GetSafeNormal();
 			if (Out.IsNearlyZero()) { Out = FVector::BackwardVector; }
-			const FVector Start = Center + Out * (It->GetAtmosphereRadius() + 1500.f);
+			// [m outside the atmosphere = 15] [open 1|0 = 1]: "0" leaves the planet as the journey has it (#161: a closed planet).
+			const float OutM = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 15.f;
+			const bool bOpenIt = Args.Num() > 2 ? FCString::Atoi(*Args[2]) != 0 : true;
+			const FVector Start = Center + Out * (It->GetAtmosphereRadius() + OutM * 100.f);
 			if (UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive()) { Hyper->ResetHyperdrive(); }
-			It->SetOpen(true); // the marker would be up by now in the real journey
+			if (bOpenIt) { It->SetOpen(true); } // the marker would be up by now in the real journey
 			Ship->TeleportSpacecraft(Start, (-Out).Rotation(), false);
-			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.ToPlanet: %s at %s, entering"), *Name, *Start.ToString());
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.ToPlanet: %s at %s, %.0f m outside the atmosphere, planet %s"), *Name, *Start.ToString(), OutM, It->IsOpen() ? TEXT("open: entering") : TEXT("CLOSED"));
 			return;
 		}
 		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.ToPlanet: no planet atmosphere named %s"), *Want);
