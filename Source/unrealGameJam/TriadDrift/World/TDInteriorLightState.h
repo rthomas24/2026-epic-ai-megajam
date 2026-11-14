@@ -25,7 +25,7 @@ class UNREALGAMEJAM_API UTDInteriorLightSubsystem : public UTickableWorldSubsyst
 public:
 	static const FName LightTag;	// TD.InteriorLight
 	static const FName StripTag;	// TD.EmergencyStrip
-	static const FName StripParam;	// EmergencyPulse (0..1 on the strip material)
+	static const FName StripParam;	// GlowStrength on the strip's dynamic instance (scaled from its own base value)
 
 	/** The collapse window at the escape's end (T5's ATDPlanetCourse::GetEscapeSecondsLeft(); when the moment's source is
 	 *  not a course, a timer from EscapeStarted with EscapeSeconds, the storyline's 90 s run). */
@@ -52,11 +52,20 @@ public:
 	/** Dev / captures (TD.Env.InteriorLight <Normal|Alarm|Collapse>): jump straight to a state. */
 	void ForceMode(ETDInteriorLightMode NewMode);
 	int32 GetLightCount() const { return Lights.Num(); }
+	int32 GetStripCount() const { return Strips.Num(); }
 
 private:
-	struct FLightRef { TWeakObjectPtr<ULightComponent> Light; float Intensity = 0.f; FLinearColor Color = FLinearColor::White; };
+	/** Collapse roles (s11: in a still the collapse must differ from the alarm): dead, flickering on its own, or dim. */
+	enum class ERole : uint8 { Dead, Flicker, Dim };
+	struct FLightRef
+	{
+		TWeakObjectPtr<ULightComponent> Light; float Intensity = 0.f; FLinearColor Color = FLinearColor::White;
+		ERole Role = ERole::Dim; float Hold = 0.f; float Level = 1.f;
+	};
+	/** An emergency strip: a dynamic material instance on a tagged mesh and its own GlowStrength (T5's M_TD_DominionGlow). */
+	struct FStripRef { TWeakObjectPtr<class UMaterialInstanceDynamic> Mid; float Base = 1.f; };
 	void Gather();
-	void Apply(float Pulse, float Flicker);
+	void Apply(float Pulse, float Flicker, float DeltaTime);
 	void Restore();
 
 	ETDInteriorLightMode Mode = ETDInteriorLightMode::Normal;
@@ -64,9 +73,9 @@ private:
 	float Time = 0.f;
 	float SinceEscape = -1.f;
 	TArray<FLightRef> Lights;
-	TArray<TWeakObjectPtr<UMeshComponent>> Strips;
+	TArray<FStripRef> Strips;
 	FDelegateHandle MomentHandle;
 	TWeakObjectPtr<class ATDPlanetCourse> Course;	// the source of the moments: its GetEscapeSecondsLeft() drives the collapse
 	FRandomStream Rng = FRandomStream(4517);
-	float FlickerHold = 0.f, FlickerValue = 1.f;
+
 };

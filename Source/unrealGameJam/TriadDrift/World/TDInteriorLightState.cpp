@@ -4,13 +4,14 @@
 
 #include "Components/LightComponent.h"
 #include "Components/MeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "EngineUtils.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 
 const FName UTDInteriorLightSubsystem::LightTag(ATDPlanetCourse::InteriorLightTag);	// T5's tag on the interior's lights
 const FName UTDInteriorLightSubsystem::StripTag(TEXT("TD.EmergencyStrip"));
-const FName UTDInteriorLightSubsystem::StripParam(TEXT("EmergencyPulse"));
+const FName UTDInteriorLightSubsystem::StripParam(TEXT("GlowStrength"));
 
 void UTDInteriorLightSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -83,12 +84,26 @@ void UTDInteriorLightSubsystem::Gather()
 					R.Light = L;
 					R.Intensity = L->Intensity;
 					R.Color = L->GetLightColor();
+					const float Roll = Rng.FRand();
+					R.Role = Roll < 0.4f ? ERole::Dead : (Roll < 0.7f ? ERole::Flicker : ERole::Dim);
 					Lights.Add(R);
 				}
 			}
 			else if (UMeshComponent* P = Cast<UMeshComponent>(C))
 			{
-				if (P->ComponentHasTag(StripTag) || It->ActorHasTag(StripTag)) { Strips.Add(P); }
+				if (P->ComponentHasTag(StripTag) || It->ActorHasTag(StripTag))
+				{
+					for (int32 m = 0; m < P->GetNumMaterials(); ++m)
+					{
+						UMaterialInstanceDynamic* Mid = Cast<UMaterialInstanceDynamic>(P->GetMaterial(m));
+						float Base = 0.f;
+						if (Mid && Mid->GetScalarParameterValue(FHashedMaterialParameterInfo(StripParam), Base))
+						{
+							FStripRef S; S.Mid = Mid; S.Base = Base;
+							Strips.Add(S);
+						}
+					}
+				}
 			}
 		}
 	}
@@ -109,23 +124,14 @@ void UTDInteriorLightSubsystem::Step(float DeltaTime)
 		if (Left >= 0.f ? Left <= CollapseSeconds : SinceEscape >= EscapeSeconds - CollapseSeconds) { Mode = ETDInteriorLightMode::Collapse; }
 	}
 	const float Pulse = 0.5f + 0.5f * FMath::Sin(Time * 2.f * PI * PulseHz);
-	float Flicker = 1.f;
+	float Late = 0.f;
 	if (Mode == ETDInteriorLightMode::Collapse)
 	{
-		// Brown-outs and dropouts: hold a random level for 40-250 ms, deeper and more often as the end nears.
-		FlickerHold -= DeltaTime;
-		if (FlickerHold <= 0.f)
-		{
-			const float Left = Course.IsValid() ? Course->GetEscapeSecondsLeft() : -1.f;
-			const float Late = Left >= 0.f ? FMath::Clamp(1.f - Left / FMath::Max(CollapseSeconds, 1.f), 0.f, 1.f)
-				: FMath::Clamp((SinceEscape - (EscapeSeconds - CollapseSeconds)) / FMath::Max(CollapseSeconds, 1.f), 0.f, 1.f);
-			const float R = Rng.FRand();
-			FlickerValue = R < 0.12f + 0.2f * Late ? Rng.FRandRange(0.f, 0.15f) : (R < 0.45f ? Rng.FRandRange(0.4f, 0.8f) : 1.f);
-			FlickerHold = Rng.FRandRange(0.04f, 0.25f);
-		}
-		Flicker = FlickerValue;
+		const float Left = Course.IsValid() ? Course->GetEscapeSecondsLeft() : -1.f;
+		Late = Left >= 0.f ? FMath::Clamp(1.f - Left / FMath::Max(CollapseSeconds, 1.f), 0.f, 1.f)
+			: FMath::Clamp((SinceEscape - (EscapeSeconds - CollapseSeconds)) / FMath::Max(CollapseSeconds, 1.f), 0.f, 1.f);
 	}
-	Apply(Pulse, Flicker);
+	Apply(Pulse, Late, DeltaTime);
 }
 
 void UTDInteriorLightSubsystem::Tick(float DeltaTime)
@@ -133,20 +139,42 @@ void UTDInteriorLightSubsystem::Tick(float DeltaTime)
 	Step(DeltaTime);
 }
 
-void UTDInteriorLightSubsystem::Apply(float Pulse, float Flicker)
+void UTDInteriorLightSubsystem::Apply(float Pulse, float Late, float DeltaTime)
 {
-	const float Mul = FMath::Lerp(PulseMin, 1.2f, Pulse) * Flicker;
-	for (const FLightRef& R : Lights)
+	const bool bCollapse = Mode == ETDInteriorLightMode::Collapse;
+	const float AlarmMul = FMath::Lerp(PulseMin, 1.2f, Pulse);
+	for (FLightRef& R : Lights)
 	{
-		if (ULightComponent* L = R.Light.Get())
+		ULightComponent* L = R.Light.Get();
+		if (!L) { continue; }
+		float Mul = AlarmMul;
+		if (bCollapse)
 		{
-			L->SetIntensity(R.Intensity * Mul);
-			L->SetLightColor(FMath::Lerp(R.Color, AlarmColor, AlarmTint));
+			// Sections dead, some lights stuttering on their own, the rest browned out: darker overall, never in step.
+			switch (R.Role)
+			{
+			case ERole::Dead: Mul = 0.f; break;
+			case ERole::Dim: Mul = 0.22f * (1.f - 0.5f * Late); break;
+			case ERole::Flicker:
+				R.Hold -= DeltaTime;
+				if (R.Hold <= 0.f)
+				{
+					const float Roll = Rng.FRand();
+					R.Level = Roll < 0.35f + 0.25f * Late ? 0.f : (Roll < 0.7f ? Rng.FRandRange(0.15f, 0.5f) : Rng.FRandRange(0.8f, 1.3f));
+					R.Hold = Rng.FRandRange(0.03f, 0.22f);
+				}
+				Mul = R.Level;
+				break;
+			}
 		}
+		L->SetIntensity(R.Intensity * Mul);
+		L->SetLightColor(FMath::Lerp(R.Color, AlarmColor, bCollapse && R.Role == ERole::Flicker ? 0.35f : AlarmTint));
 	}
-	for (const TWeakObjectPtr<UMeshComponent>& S : Strips)
+	// The emergency strips: pulsing with the alarm; in the collapse the steady main light, a little brighter.
+	const float StripMul = bCollapse ? 1.8f : FMath::Lerp(0.5f, 1.6f, Pulse);
+	for (const FStripRef& S : Strips)
 	{
-		if (UMeshComponent* P = S.Get()) { P->SetScalarParameterValueOnMaterials(StripParam, Pulse * Flicker); }
+		if (UMaterialInstanceDynamic* M = S.Mid.Get()) { M->SetScalarParameterValue(StripParam, S.Base * StripMul); }
 	}
 	bRestorePending = true;
 }
@@ -161,9 +189,9 @@ void UTDInteriorLightSubsystem::Restore()
 			L->SetLightColor(R.Color);
 		}
 	}
-	for (const TWeakObjectPtr<UMeshComponent>& S : Strips)
+	for (const FStripRef& S : Strips)
 	{
-		if (UMeshComponent* P = S.Get()) { P->SetScalarParameterValueOnMaterials(StripParam, 0.f); }
+		if (UMaterialInstanceDynamic* M = S.Mid.Get()) { M->SetScalarParameterValue(StripParam, S.Base); }
 	}
 	Lights.Reset();
 	Strips.Reset();

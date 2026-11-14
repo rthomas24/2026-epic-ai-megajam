@@ -135,7 +135,12 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		P.ScarHalfB = 9000.f;
 		for (int32 i = 1; i <= 2; ++i)
 		{
-			R.CharTrees.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.0f, 1.6f, 30.f, 180000.f, 240000.f, 300.f, true, false, true));
+			// s11: snapped charred stumps, not whole glowing trunks (from above their ember material read as a grid of
+			// yellow dots): a quarter of the height, with the dark basalt-column material (no glow, ash on top)
+			const int32 Ck = Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.0f, 1.6f, 30.f, 180000.f, 240000.f, 300.f, true, false, true,
+				FString::Printf(TEXT("%s/Scatter/MI_Scatter_Column_Cinder.MI_Scatter_Column_Cinder"), GProps));
+			P.Kinds[Ck].ZScale = 0.28f;
+			R.CharTrees.Add(Ck);
 		}
 		P.ScorchKind = Add(TDScatter_Path(TEXT("Kit/Story"), TEXT("SM_Kit_ScorchLines")), 4.f, 6.5f, 0.f, 180000.f, 240000.f, 1200.f, false, false, false);
 		for (int32 i = 1; i <= 3; ++i)
@@ -442,7 +447,7 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 					if (!IsCourseClear(X, Y, K.ClearRadiusCm * K.MaxScale)) { continue; }
 					const float Sc = FMath::Lerp(K.MinScale, K.MaxScale, TDScatter_Hash01(Seed, ix, iy, Salt + 4));
 					const FTransform Xf(FRotator(TDScatter_Hash01(Seed, ix, iy, Salt + 6) * 16.f - 8.f, TDScatter_Hash01(Seed, ix, iy, Salt + 5) * 360.f, 0.f),
-						FVector(X, Y, Field.Height(X, Y) - K.SinkCm * Sc), FVector(Sc));
+						FVector(X, Y, Field.Height(X, Y) - K.SinkCm * Sc), FVector(Sc, Sc, Sc * K.ZScale));
 					Row.Far[Ck].Add(Xf);
 					continue;
 				}

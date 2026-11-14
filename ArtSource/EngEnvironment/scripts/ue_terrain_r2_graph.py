@@ -369,10 +369,13 @@ def build_graph(b, t, means):
     sv = sub(lxy, add(sa, mul(sd, st)))
     sdist = un(E.MaterialExpressionSquareRoot, dot(sv, sv))
     shalf = mul(lerp(S("ScarHalfA"), S("ScarHalfB"), st), add(0.75, mul(add(mul(c(nS, "R"), 0.4), mul(c(nM, "G"), 0.6)), 0.5)))
-    scar_w = mul(sat(div(sub(shalf, sdist), mul(shalf, 0.35))), mul(ramp(st, 0.0, 0.03), inv(ramp(st, 0.97, 0.03))))
+    scar_w = mul(sat(div(sub(shalf, sdist), mul(shalf, 0.6))), mul(ramp(st, 0.0, 0.06), inv(ramp(st, 0.9, 0.1))))   # s11: soft edges into the forest
     # s10: only on the ground, never up a wall (on the basin wall behind the research site it stood up as a glowing pillar)
-    scar_w = mul(scar_w, inv(ramp(sj, 0.12, 0.08)))
-    base = lerp(base, mul(b.const3(0.014, 0.011, 0.009), add(0.6, mul(c(nS, "B"), 0.8))), mul(scar_w, 0.92))
+    scar_w = mul(scar_w, inv(ramp(sj, 0.24, 0.12)))
+    # s11: burnt ground, not a slab: black char and grey ash patches by two noises, the char strongest on the centre line
+    ash = ramp(add(mul(c(nM, "B"), 0.6), mul(c(nS, "G"), 0.4)), 0.55, 0.15)
+    burnt = lerp(mul(b.const3(0.012, 0.010, 0.009), add(0.5, mul(c(nS, "B"), 1.0))), b.const3(0.09, 0.085, 0.08), mul(ash, 0.7))
+    base = lerp(base, burnt, mul(un(E.MaterialExpressionSquareRoot, scar_w), 0.95))
     rough = lerp(lerp(S("FlatRoughness"), S("PatchRoughness"), patch_w), S("LowRoughness"), low_w)
     rough = lerp(rough, S("WetRoughness"), mul(wet, c(nS, "R")))
     rough = lerp(lerp(rough, S("RockRoughness"), rock_w), S("PeakRoughness"), peak_w)
@@ -402,6 +405,7 @@ def build_graph(b, t, means):
     # only in some regions (the 230 m and 1.9 km noise), never on rock, peaks, water or high ground
     region = lerp(1.0, sat(mul(sub(add(mul(c(nL, "G"), 0.6), mul(lerp(c(nXL, "R"), c(nM, "R"), sn), 0.4)), 0.42), 5.0)), S("VeinPatchiness"))
     vmask = mul(mul(mul(inv(rock_w), inv(peak_w)), mul(inv(molten), region)), inv(ramp(hj, S("VeinTopM"), S("VeinFadeM"))))
+    vmask = mul(vmask, inv(ramp(sj, 0.08, 0.08)))   # s11: no glowing veins on slopes (they read as orange blobs on the hillsides)
     vcol = lerp(Vp("VeinColorA"), Vp("VeinColorB"), sat(mul(sub(c(nXL, "B"), 0.45), 4.0)))
     e_vein = mul(vcol, mul(mul(vein, vmask), mul(S("VeinStrength"), add(0.55, mul(c(nS, "R"), 0.9)))))
     plum = mul(dot(patch_d, lumw), add(0.4, mul(c(nS, "R"), 1.2)))   # the texture near, the 37 m noise far: never a flat glow
@@ -410,6 +414,7 @@ def build_graph(b, t, means):
                 mul(add(0.6, mul(c(flow, "R"), 0.8)), S("ValleyEmissive")))
     e_pk = mul(peak_c, mul(peak_w, S("PeakGlow")))
     e_amb = mul(mul(base, Vp("AmbientTint")), mul(S("AmbientFloor"), inv(molten)))
-    ember = mul(sat(mul(sub(c(nS, "B"), 0.83), 12.0)), mul(scar_w, S("ScarEmber")))
+    # s11: irregular embers: two noises at different scales, sparse at the edges (scar_w squared), none in the ash
+    ember = mul(sat(mul(sub(add(mul(c(nS, "B"), 0.55), mul(c(nM, "R"), 0.45)), 0.74), 9.0)), mul(mul(mul(scar_w, scar_w), inv(ash)), S("ScarEmber")))
     e_amb = add(e_amb, mul(b.const3(1.0, 0.28, 0.04), ember))
     b.out(add(add(add(e_vein, e_patch), add(e_val, e_pk)), e_amb), "", MP.MP_EMISSIVE_COLOR)
