@@ -1,0 +1,232 @@
+{
+ "_chars": {
+  "grunt": {
+   "tgt": "<repo>/ArtSource/EngCharacters/Crew/export/NullGrunt/SK_NullGrunt.fbx",
+   "tmesh": "SK_NullGrunt",
+   "speed": 1.0,
+   "fist": true
+  },
+  "heavy": {
+   "tgt": "<repo>/ArtSource/EngCharacters/Crew/export/NullHeavy/SK_NullHeavy.fbx",
+   "tmesh": "SK_NullHeavy",
+   "speed": 0.9
+  },
+  "warden": {
+   "tgt": "<repo>/ArtSource/EngCharacters/Warden/export/SK_Warden.fbx",
+   "tmesh": "SK_Warden",
+   "speed": 0.85
+  }
+ },
+ "A_Grunt_Death_Front": {
+  "char": "grunt",
+  "src": "grunt_front2-s4111",
+  "travel": 0.5,
+  "settle": {
+   "from": 24,
+   "to": 42,
+   "parts": [
+    "core",
+    "legs"
+   ],
+   "core_amount": 0.8,
+   "rest_mix": {
+    "legs": 0.6
+   }
+  },
+  "hold": 60,
+  "usf1": false
+ },
+ "A_Grunt_Death_Back": {
+  "char": "grunt",
+  "src": "grunt_back-s4202",
+  "travel": 0.7,
+  "settle": {
+   "from": 28,
+   "to": 50,
+   "parts": [
+    "legs"
+   ]
+  },
+  "hold": 62,
+  "usf1": false
+ },
+ "A_Grunt_Death_Left": {
+  "char": "grunt",
+  "src": "grunt_left-s4301",
+  "travel": 0.65,
+  "settle": {
+   "from": 24,
+   "to": 44,
+   "parts": [
+    "legs"
+   ]
+  },
+  "hold": 60,
+  "usf1": false
+ },
+ "A_Grunt_Death_Right": {
+  "char": "grunt",
+  "src": "grunt_right-s4402",
+  "travel": 0.5,
+  "settle": {
+   "from": 22,
+   "to": 42,
+   "parts": [
+    "legs"
+   ]
+  },
+  "hold": 60,
+  "usf1": false
+ },
+ "A_Heavy_Death_Front": {
+  "char": "heavy",
+  "src": "heavy_front-s5102",
+  "travel": 0.7,
+  "settle": {
+   "from": 34,
+   "to": 58,
+   "parts": [
+    "core",
+    "legs"
+   ],
+   "core_amount": 0.8,
+   "rest_mix": {
+    "legs": 0.6
+   }
+  },
+  "hold": 80,
+  "usf1": false
+ },
+ "A_Heavy_Death_Back": {
+  "char": "heavy",
+  "src": "heavy_back-s5201",
+  "travel": 0.85,
+  "settle": {
+   "from": 46,
+   "to": 72,
+   "parts": [
+    "legs"
+   ]
+  },
+  "hold": 84,
+  "usf1": false
+ },
+ "A_Heavy_Death_Left": {
+  "char": "heavy",
+  "src": "heavy_left-s5302",
+  "travel": 0.45,
+  "settle": {
+   "from": 36,
+   "to": 60,
+   "parts": [
+    "core",
+    "legs"
+   ],
+   "core_amount": 0.8,
+   "rest_mix": {
+    "legs": 0.4
+   }
+  },
+  "hold": 84,
+  "usf1": false
+ },
+ "A_Heavy_Death_Right": {
+  "char": "heavy",
+  "src": "heavy_right-s5401",
+  "travel": 0.85,
+  "settle": {
+   "from": 30,
+   "to": 56,
+   "parts": [
+    "legs"
+   ]
+  },
+  "hold": 80,
+  "usf1": false
+ },
+ "A_Warden_Death_Front": {
+  "char": "warden",
+  "src": "warden_front-s6102",
+  "travel": 0.45,
+  "settle": {
+   "from": 58,
+   "to": 86,
+   "parts": [
+    "legs"
+   ]
+  },
+  "hold": 100,
+  "usf1": false
+ },
+ "A_Warden_Death_Back": {
+  "char": "warden",
+  "src": "warden_back2-s6212",
+  "travel": 0.6,
+  "settle": [
+   {
+    "from": 0,
+    "to": 6,
+    "parts": [
+     "core",
+     "arms"
+    ],
+    "core_amount": 0.85,
+    "ref": 34,
+    "amount": 0.8,
+    "release": [
+     34,
+     52
+    ]
+   },
+   {
+    "from": 50,
+    "to": 80,
+    "parts": [
+     "legs",
+     "arms"
+    ],
+    "amount": 0.7
+   }
+  ],
+  "hold": 100,
+  "usf1": false
+ },
+ "A_Warden_Death_Left": {
+  "char": "warden",
+  "src": "warden_left2-s6311",
+  "travel": 0.75,
+  "settle": {
+   "from": 44,
+   "to": 76,
+   "parts": [
+    "legs"
+   ]
+  },
+  "hold": 96,
+  "roll": [
+   50,
+   76,
+   50
+  ],
+  "usf1": false
+ },
+ "A_Warden_Death_Right": {
+  "char": "warden",
+  "src": "warden_right-s6402",
+  "travel": 0.65,
+  "settle": {
+   "from": 58,
+   "to": 86,
+   "parts": [
+    "legs"
+   ]
+  },
+  "hold": 104,
+  "roll": [
+   66,
+   92,
+   -50
+  ],
+  "usf1": false
+ }
+}

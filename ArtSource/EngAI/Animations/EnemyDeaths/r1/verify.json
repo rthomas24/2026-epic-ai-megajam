@@ -1,0 +1,434 @@
+{
+ "A_Grunt_Death_Back.fbx": {
+  "UnitScaleFactor": 100.0,
+  "fps_scene": 30,
+  "fbx_CustomFrameRate": 30.0,
+  "bones": 88,
+  "ref_bones": 88,
+  "missing": [],
+  "extra": [],
+  "bone_offset_max_err_cm": 0.0,
+  "posed_bone_offset_max_err_cm": 0.0,
+  "hierarchy_matches": true,
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "frames": 78,
+  "first": 2,
+  "last": 79,
+  "seconds": 2.567,
+  "pelvis_z_cm": [
+   19.0,
+   95.2
+  ],
+  "pelvis_end_z_cm": 19.5,
+  "head_end_z_cm": 24.3,
+  "root_end_cm": [
+   -63.8,
+   -55.8,
+   0.0
+  ],
+  "root_end_dist_cm": 84.8,
+  "root_max_dist_cm": 84.8,
+  "foot_slide_standing_cm": {
+   "l": 0.0,
+   "r": 5.35
+  },
+  "still_from_frame": 72
+ },
+ "A_Grunt_Death_Front.fbx": {
+  "UnitScaleFactor": 100.0,
+  "fps_scene": 30,
+  "fbx_CustomFrameRate": 30.0,
+  "bones": 88,
+  "ref_bones": 88,
+  "missing": [],
+  "extra": [],
+  "bone_offset_max_err_cm": 0.0,
+  "posed_bone_offset_max_err_cm": 0.0,
+  "hierarchy_matches": true,
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "frames": 78,
+  "first": 2,
+  "last": 79,
+  "seconds": 2.567,
+  "pelvis_z_cm": [
+   20.4,
+   91.6
+  ],
+  "pelvis_end_z_cm": 42.1,
+  "head_end_z_cm": 28.1,
+  "root_end_cm": [
+   -16.8,
+   77.7,
+   0.0
+  ],
+  "root_end_dist_cm": 79.5,
+  "root_max_dist_cm": 80.7,
+  "foot_slide_standing_cm": {
+   "l": 3.86,
+   "r": 0.0
+  },
+  "still_from_frame": 70
+ },
+ "A_Grunt_Death_Left.fbx": {
+  "UnitScaleFactor": 100.0,
+  "fps_scene": 30,
+  "fbx_CustomFrameRate": 30.0,
+  "bones": 88,
+  "ref_bones": 88,
+  "missing": [],
+  "extra": [],
+  "bone_offset_max_err_cm": 0.0,
+  "posed_bone_offset_max_err_cm": 0.0,
+  "hierarchy_matches": true,
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "frames": 78,
+  "first": 2,
+  "last": 79,
+  "seconds": 2.567,
+  "pelvis_z_cm": [
+   19.5,
+   84.5
+  ],
+  "pelvis_end_z_cm": 33.6,
+  "head_end_z_cm": 25.1,
+  "root_end_cm": [
+   -85.9,
+   6.9,
+   0.0
+  ],
+  "root_end_dist_cm": 86.2,
+  "root_max_dist_cm": 89.4,
+  "foot_slide_standing_cm": {
+   "l": 0.0,
+   "r": 2.87
+  },
+  "still_from_frame": 70
+ },
+ "A_Grunt_Death_Right.fbx": {
+  "UnitScaleFactor": 100.0,
+  "fps_scene": 30,
+  "fbx_CustomFrameRate": 30.0,
+  "bones": 88,
+  "ref_bones": 88,
+  "missing": [],
+  "extra": [],
+  "bone_offset_max_err_cm": 0.0,
+  "posed_bone_offset_max_err_cm": 0.0,
+  "hierarchy_matches": true,
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "frames": 78,
+  "first": 2,
+  "last": 79,
+  "seconds": 2.567,
+  "pelvis_z_cm": [
+   25.2,
+   84.2
+  ],
+  "pelvis_end_z_cm": 53.1,
+  "head_end_z_cm": 29.1,
+  "root_end_cm": [
+   67.3,
+   37.5,
+   0.0
+  ],
+  "root_end_dist_cm": 77.0,
+  "root_max_dist_cm": 79.5,
+  "foot_slide_standing_cm": {
+   "l": 0.0,
+   "r": 0.0
+  },
+  "still_from_frame": 70
+ },
+ "A_Heavy_Death_Back.fbx": {
+  "UnitScaleFactor": 100.0,
+  "fps_scene": 30,
+  "fbx_CustomFrameRate": 30.0,
+  "bones": 88,
+  "ref_bones": 88,
+  "missing": [],
+  "extra": [],
+  "bone_offset_max_err_cm": 0.0,
+  "posed_bone_offset_max_err_cm": 0.0,
+  "hierarchy_matches": true,
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "frames": 99,
+  "first": 2,
+  "last": 100,
+  "seconds": 3.267,
+  "pelvis_z_cm": [
+   18.4,
+   97.2
+  ],
+  "pelvis_end_z_cm": 18.5,
+  "head_end_z_cm": 26.1,
+  "root_end_cm": [
+   22.2,
+   -88.8,
+   0.0
+  ],
+  "root_end_dist_cm": 91.5,
+  "root_max_dist_cm": 91.8,
+  "foot_slide_standing_cm": {
+   "l": 0.0,
+   "r": 0.0
+  },
+  "still_from_frame": 94
+ },
+ "A_Heavy_Death_Front.fbx": {
+  "UnitScaleFactor": 100.0,
+  "fps_scene": 30,
+  "fbx_CustomFrameRate": 30.0,
+  "bones": 88,
+  "ref_bones": 88,
+  "missing": [],
+  "extra": [],
+  "bone_offset_max_err_cm": 0.0,
+  "posed_bone_offset_max_err_cm": 0.0,
+  "hierarchy_matches": true,
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "frames": 99,
+  "first": 2,
+  "last": 100,
+  "seconds": 3.267,
+  "pelvis_z_cm": [
+   16.5,
+   94.3
+  ],
+  "pelvis_end_z_cm": 45.0,
+  "head_end_z_cm": 25.7,
+  "root_end_cm": [
+   55.3,
+   65.7,
+   0.0
+  ],
+  "root_end_dist_cm": 85.9,
+  "root_max_dist_cm": 93.9,
+  "foot_slide_standing_cm": {
+   "l": 0.0,
+   "r": 3.16
+  },
+  "still_from_frame": 90
+ },
+ "A_Heavy_Death_Left.fbx": {
+  "UnitScaleFactor": 100.0,
+  "fps_scene": 30,
+  "fbx_CustomFrameRate": 30.0,
+  "bones": 88,
+  "ref_bones": 88,
+  "missing": [],
+  "extra": [],
+  "bone_offset_max_err_cm": 0.0,
+  "posed_bone_offset_max_err_cm": 0.0,
+  "hierarchy_matches": true,
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "frames": 99,
+  "first": 2,
+  "last": 100,
+  "seconds": 3.267,
+  "pelvis_z_cm": [
+   22.9,
+   95.9
+  ],
+  "pelvis_end_z_cm": 43.7,
+  "head_end_z_cm": 35.8,
+  "root_end_cm": [
+   -92.1,
+   28.1,
+   0.0
+  ],
+  "root_end_dist_cm": 96.3,
+  "root_max_dist_cm": 96.4,
+  "foot_slide_standing_cm": {
+   "l": 0.83,
+   "r": 0.15
+  },
+  "still_from_frame": 93
+ },
+ "A_Heavy_Death_Right.fbx": {
+  "UnitScaleFactor": 100.0,
+  "fps_scene": 30,
+  "fbx_CustomFrameRate": 30.0,
+  "bones": 88,
+  "ref_bones": 88,
+  "missing": [],
+  "extra": [],
+  "bone_offset_max_err_cm": 0.0,
+  "posed_bone_offset_max_err_cm": 0.0,
+  "hierarchy_matches": true,
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "frames": 99,
+  "first": 2,
+  "last": 100,
+  "seconds": 3.267,
+  "pelvis_z_cm": [
+   22.6,
+   98.9
+  ],
+  "pelvis_end_z_cm": 36.7,
+  "head_end_z_cm": 28.5,
+  "root_end_cm": [
+   88.5,
+   -14.6,
+   0.0
+  ],
+  "root_end_dist_cm": 89.7,
+  "root_max_dist_cm": 95.0,
+  "foot_slide_standing_cm": {
+   "l": 0.0,
+   "r": 0.61
+  },
+  "still_from_frame": 89
+ },
+ "A_Warden_Death_Back.fbx": {
+  "UnitScaleFactor": 100.0,
+  "fps_scene": 30,
+  "fbx_CustomFrameRate": 30.0,
+  "bones": 88,
+  "ref_bones": 88,
+  "missing": [],
+  "extra": [],
+  "bone_offset_max_err_cm": 0.0,
+  "posed_bone_offset_max_err_cm": 0.0,
+  "hierarchy_matches": true,
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "frames": 119,
+  "first": 2,
+  "last": 120,
+  "seconds": 3.933,
+  "pelvis_z_cm": [
+   66.7,
+   146.7
+  ],
+  "pelvis_end_z_cm": 70.0,
+  "head_end_z_cm": 64.5,
+  "root_end_cm": [
+   -62.5,
+   -78.2,
+   0.0
+  ],
+  "root_end_dist_cm": 100.2,
+  "root_max_dist_cm": 102.8,
+  "foot_slide_standing_cm": {
+   "l": 0.0,
+   "r": 0.0
+  },
+  "still_from_frame": 108
+ },
+ "A_Warden_Death_Front.fbx": {
+  "UnitScaleFactor": 100.0,
+  "fps_scene": 30,
+  "fbx_CustomFrameRate": 30.0,
+  "bones": 88,
+  "ref_bones": 88,
+  "missing": [],
+  "extra": [],
+  "bone_offset_max_err_cm": 0.0,
+  "posed_bone_offset_max_err_cm": 0.0,
+  "hierarchy_matches": true,
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "frames": 119,
+  "first": 2,
+  "last": 120,
+  "seconds": 3.933,
+  "pelvis_z_cm": [
+   45.2,
+   153.6
+  ],
+  "pelvis_end_z_cm": 71.5,
+  "head_end_z_cm": 51.0,
+  "root_end_cm": [
+   39.2,
+   92.8,
+   0.0
+  ],
+  "root_end_dist_cm": 100.8,
+  "root_max_dist_cm": 102.4,
+  "foot_slide_standing_cm": {
+   "l": 0.0,
+   "r": 0.36
+  },
+  "still_from_frame": 110
+ },
+ "A_Warden_Death_Left.fbx": {
+  "UnitScaleFactor": 100.0,
+  "fps_scene": 30,
+  "fbx_CustomFrameRate": 30.0,
+  "bones": 88,
+  "ref_bones": 88,
+  "missing": [],
+  "extra": [],
+  "bone_offset_max_err_cm": 0.0,
+  "posed_bone_offset_max_err_cm": 0.0,
+  "hierarchy_matches": true,
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "frames": 119,
+  "first": 2,
+  "last": 120,
+  "seconds": 3.933,
+  "pelvis_z_cm": [
+   41.6,
+   151.4
+  ],
+  "pelvis_end_z_cm": 41.9,
+  "head_end_z_cm": 27.5,
+  "root_end_cm": [
+   -99.3,
+   10.2,
+   0.0
+  ],
+  "root_end_dist_cm": 99.9,
+  "root_max_dist_cm": 100.2,
+  "foot_slide_standing_cm": {
+   "l": 0.0,
+   "r": 0.0
+  },
+  "still_from_frame": 106
+ },
+ "A_Warden_Death_Right.fbx": {
+  "UnitScaleFactor": 100.0,
+  "fps_scene": 30,
+  "fbx_CustomFrameRate": 30.0,
+  "bones": 88,
+  "ref_bones": 88,
+  "missing": [],
+  "extra": [],
+  "bone_offset_max_err_cm": 0.0,
+  "posed_bone_offset_max_err_cm": 0.0,
+  "hierarchy_matches": true,
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "frames": 119,
+  "first": 2,
+  "last": 120,
+  "seconds": 3.933,
+  "pelvis_z_cm": [
+   40.6,
+   153.6
+  ],
+  "pelvis_end_z_cm": 42.1,
+  "head_end_z_cm": 22.5,
+  "root_end_cm": [
+   89.7,
+   41.7,
+   0.0
+  ],
+  "root_end_dist_cm": 98.9,
+  "root_max_dist_cm": 99.1,
+  "foot_slide_standing_cm": {
+   "l": 0.0,
+   "r": 0.0
+  },
+  "still_from_frame": 114
+ }
+}

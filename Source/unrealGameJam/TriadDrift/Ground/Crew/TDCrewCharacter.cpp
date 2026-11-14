@@ -25,6 +25,7 @@
 #include "AssetRegistry/IAssetRegistry.h"
 #include "Animation/AnimInstance.h"
 #include "PhysicsEngine/PhysicsAsset.h"
+#include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "Animation/AnimSequenceBase.h"
 #include "Materials/MaterialInterface.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
@@ -187,6 +188,7 @@ ATDCrewCharacter::ATDCrewCharacter(const FObjectInitializer& ObjectInitializer)
 	PrimaryActorTick.bCanEverTick = true;
 	GetCapsuleComponent()->InitCapsuleSize(40.f, 90.f);
 	RifleShotSound = TDGroundAudio::Default(TEXT("Crew/MSS_Crew_RifleShot"));
+	GuardClangSound = TDGroundAudio::Default(TEXT("Crew/MSS_Crew_ShieldHit"));
 	DroneHumSound = TDGroundAudio::Default(TEXT("Crew/SW_Drone_Hum_01"));
 
 	Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
@@ -978,8 +980,53 @@ float ATDCrewCharacter::FilterDamage(const FTDDamageInfo& Info)
 	{
 		return Info.Amount;
 	}
-	PlayCrewCue(TEXT("ShieldHit"), Visuals ? Visuals->ShieldHit : FTDFXCue(), false, Info.HitLocation);
+	PlayGuardClang(Info.HitLocation.IsNearlyZero() ? GetActorLocation() + GetActorForwardVector() * Spec.CapsuleRadius : Info.HitLocation);
+	// Quick slashes chip the guard: GuardChipsToBreak in a row stagger it open (the held lunge still breaks it at once).
+	GuardChips = GuardChipAge <= GuardChipWindow ? GuardChips + 1 : 1;
+	GuardChipAge = 0.f;
+	// Teach the lunge: on the first blocked hit, and again every 5 more (the on-foot prompt line, 4 s).
+	if (ATDFirstPersonCharacter* Pilot = Cast<ATDFirstPersonCharacter>(Info.Instigator))
+	{
+		const int32 Blocked = Pilot->CountGuardedHit();
+		if (Blocked == 1 || (Blocked - 1) % 5 == 0)
+		{
+			Pilot->ShowTip(NSLOCTEXT("TriadDrift", "GuardTip", "HOLD ATTACK: LUNGE BREAKS GUARDS"), 4.f);
+		}
+	}
+	if (GuardChips >= GuardChipsToBreak)
+	{
+		GuardChips = 0;
+		BreakGuard(Info.Instigator);
+	}
 	return 0.f; // the shield takes the slash
+}
+
+void ATDCrewCharacter::PlayGuardClang(const FVector& At)
+{
+	// Nick's look cue first; the ground cue GuardClang (effects builder) or the engineering clang sound; and a hot spark.
+	const bool bArt = Visuals && !Visuals->ShieldHit.IsEmpty();
+	PlayCrewCue(TEXT("ShieldHit"), Visuals ? Visuals->ShieldHit : FTDFXCue(), false, At);
+	if (!bArt)
+	{
+		TDGroundAudio::Play(this, GuardClangSound, At, false, SoundEvents, TEXT("GuardClang"));
+		if (!GuardFlash)
+		{
+			GuardFlash = NewObject<UStaticMeshComponent>(this, TEXT("GuardFlash"));
+			GuardFlash->SetStaticMesh(TellGlow ? TellGlow->GetStaticMesh() : nullptr);
+			GuardFlash->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+			GuardFlash->SetCastShadow(false);
+			GuardFlash->SetUsingAbsoluteLocation(true);
+			GuardFlash->SetUsingAbsoluteScale(true);
+			GuardFlash->SetupAttachment(GetRootComponent());
+			GuardFlash->RegisterComponent();
+			UTDStatics::TintPlaceholder(GuardFlash, FLinearColor(1.f, 0.85f, 0.5f), 12.f);
+		}
+		GuardFlash->SetWorldLocation(At);
+		GuardFlash->SetWorldScale3D(FVector(0.45f));
+		GuardFlash->SetHiddenInGame(false);
+		GuardFlash->SetVisibility(true);
+		GuardFlashLeft = 0.12f;
+	}
 }
 
 void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDamageInfo& Info, float ShieldDamage, float HullDamage)
@@ -1078,6 +1125,8 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 		// physics asset), so every body lands on the ground (animation builder's sheet crew_deaths_as_played, Nov 13).
 		if (UAnimSequenceBase* DeathAnim = ChooseDeathClip(KillingBlow.HitDirection))
 		{
+			// The fall plays whether or not the body is on screen (a corpse behind the camera must still land; headless tests).
+			GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 			GetMesh()->PlayAnimation(DeathAnim, false);
 			RagdollIn = bGroundDeathClip ? -1.f : DeathClipSeconds; // a fall that ends lying down plays out and holds
 		}
@@ -1120,8 +1169,13 @@ UAnimSequenceBase* ATDCrewCharacter::ChooseDeathClip(const FVector& HitDirection
 	//    per-type A_Crew_<Type>_Death_<Side> when one exists), picked by the side the killing blow came from.
 	const FString Template(FallbackDeathAnim(HitDirection));
 	const TCHAR* Side = Template.Contains(TEXT("Back")) ? TEXT("Back") : Template.Contains(TEXT("Left")) ? TEXT("Left") : Template.Contains(TEXT("Right")) ? TEXT("Right") : TEXT("Front");
+	// The animation builder's captures (Nov 13): the Heavy's shield stands on edge in the Front fall (a frontal kill
+	// falls Left), and the Warden's chest shield stands up in every fall but Back.
+	if (Spec.Type == ETDCrewType::Heavy && FCString::Strcmp(Side, TEXT("Front")) == 0) { Side = TEXT("Left"); }
+	if (Spec.Type == ETDCrewType::Warden) { Side = TEXT("Back"); }
 	bGroundDeathClip = false;
-	for (const FString& N : { FString::Printf(TEXT("A_Crew_%s_Death_%s"), *Type, Side), FString::Printf(TEXT("A_Crew_Death_%s"), Side) })
+	// Only the in-place set: A_Crew_Trooper_Death_<Side> is Grok's source with 77-166 cm of root travel (Lead, Nov 14).
+	for (const FString& N : { FString::Printf(TEXT("A_Crew_Death_%s"), Side) })
 	{
 		if (UAnimSequenceBase* A = Fits(Load(N))) { bGroundDeathClip = true; return TDMakePlayable(A); }
 	}
@@ -1217,6 +1271,12 @@ void ATDCrewCharacter::Tick(float DeltaSeconds)
 	}
 	StaggerLeft = FMath::Max(0.f, StaggerLeft - DeltaSeconds);
 	GuardBrokenLeft = FMath::Max(0.f, GuardBrokenLeft - DeltaSeconds);
+	GuardChipAge += DeltaSeconds;
+	if (GuardFlashLeft > 0.f)
+	{
+		GuardFlashLeft -= DeltaSeconds;
+		if (GuardFlashLeft <= 0.f && GuardFlash) { GuardFlash->SetVisibility(false); }
+	}
 	for (TPair<ETDCrewAttack, float>& C : Cooldowns)
 	{
 		C.Value = FMath::Max(0.f, C.Value - DeltaSeconds);
