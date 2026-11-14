@@ -1,0 +1,107 @@
+{
+ "site": "StorySet_VerdanceCamp",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_StorySet_VerdanceCamp",
+ "about": "Verdance: an abandoned field camp (shelters with torn canopies, a dead lamp, sample cases, a toppled antenna, survey stakes, a drag mark leading away).",
+ "pieces": [
+  {
+   "name": "ShelterA",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_ShelterFrame",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "ShelterB",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_ShelterFrame",
+   "location_cm": [
+    650.0,
+    500.0,
+    0.0
+   ],
+   "yaw_deg": 28.0
+  },
+  {
+   "name": "Lamp",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_LampPostDead",
+   "location_cm": [
+    -380.0,
+    -320.0,
+    0.0
+   ],
+   "yaw_deg": 30.0
+  },
+  {
+   "name": "Cases",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_SampleCases",
+   "location_cm": [
+    280.0,
+    -300.0,
+    0.0
+   ],
+   "yaw_deg": -15.0
+  },
+  {
+   "name": "Antenna",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_AntennaToppled",
+   "location_cm": [
+    -500.0,
+    600.0,
+    0.0
+   ],
+   "yaw_deg": 160.0
+  },
+  {
+   "name": "Drag",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_DragMark",
+   "location_cm": [
+    1100.0,
+    -150.0,
+    0.0
+   ],
+   "yaw_deg": 12.0
+  },
+  {
+   "name": "Stake0",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_SurveyStakeFlag",
+   "location_cm": [
+    500.0,
+    -750.0,
+    0.0
+   ],
+   "yaw_deg": 90.0
+  },
+  {
+   "name": "Stake1",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_SurveyStakeFlag",
+   "location_cm": [
+    900.0,
+    -790.0,
+    0.0
+   ],
+   "yaw_deg": 90.0
+  },
+  {
+   "name": "Stake2",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_SurveyStakeFlag",
+   "location_cm": [
+    1300.0,
+    -830.0,
+    0.0
+   ],
+   "yaw_deg": 90.0
+  },
+  {
+   "name": "Stake3",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_SurveyStakeFlag",
+   "location_cm": [
+    1700.0,
+    -870.0,
+    0.0
+   ],
+   "yaw_deg": 90.0
+  }
+ ]
+}
