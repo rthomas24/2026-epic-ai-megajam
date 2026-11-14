@@ -437,8 +437,12 @@ void ATDFirstPersonCharacter::UpdateBladeAura(float DeltaSeconds)
 	}
 	BladeAuraPrevTip = TipNow;
 	bBladeAuraPrevTip = true;
-	// A little smoothing on the speed only (one frame spikes at low frame rates); the direction stays raw.
-	BladeAuraSpeed = FMath::FInterpTo(BladeAuraSpeed, (float)TipVelocity.Size(), DeltaSeconds, 30.f);
+	// TipSpeed drives the sheet and the spark rate: the tip's speed RELATIVE to the pilot (running alone must not light the
+	// sheet), and none while the beam crawls in or out (its tip moves fast then but nothing swings). TipVelocity stays the
+	// world velocity, so thrown sparks still carry the pilot's motion. A little smoothing on the speed only.
+	const bool bCrawling = Beam == HandBladeBeam && HandBladeExtend < 0.999f;
+	const float Relative = bCrawling ? 0.f : (float)(TipVelocity - GetVelocity()).Size();
+	BladeAuraSpeed = FMath::FInterpTo(BladeAuraSpeed, Relative, DeltaSeconds, 30.f);
 	BladeAura->SetVariableLinearColor(TEXT("Color"), GetBladeColor());
 	BladeAura->SetVariableFloat(TEXT("Length"), FMath::Max(1.f, Length));
 	BladeAura->SetVariableVec3(TEXT("TipVelocity"), TipVelocity);
