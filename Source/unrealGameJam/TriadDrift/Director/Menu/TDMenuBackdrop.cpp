@@ -303,6 +303,7 @@ void ATDMenuBackdrop::BuildVictory(UWorld* World)
 			W.Drift = bHull ? FVector::ZeroVector : R.GetUnitVector() * DominionRadius * R.FRandRange(0.02f, 0.05f);
 			W.Spin = bHull ? FRotator::ZeroRotator : FRotator(R.FRandRange(-4.f, 4.f), R.FRandRange(-4.f, 4.f), R.FRandRange(-6.f, 6.f));
 			W.Head = bHull ? 0.f : 8.f; // seconds of breakup already behind it at the first frame
+			if (bHull) { C->SetVisibility(false); } // Lead: the whole hull read as the ship still intact; only its wreckage is left
 			Wreck.Add(W);
 		}
 		if (UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube")))

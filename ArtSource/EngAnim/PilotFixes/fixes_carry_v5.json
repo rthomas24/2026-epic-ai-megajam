@@ -1,0 +1,35 @@
+{
+ "_note": "Carry v5 (Nov 14, round 3, Lead's review of the walk side view): the idle takes the same low side guard as the walk and run so the walk-to-idle blend never swings the blade through straight down; the hand sits 3 cm further out (the hilt brushed the thigh armour by 2-6 cm); the walk's blade is 3 deg higher so the tip clears the ground at the back of the stride. Same key format as fixes_swing.json (rate 1 = clip seconds).",
+ "swing": [
+  {
+   "src": "A_Pilot_Idle3", "dst": "A_Pilot_Idle3_v4", "rate": 1.0, "max_yaw": 15,
+   "keys": [
+    {"t": 0.0,  "hand": [14, 23, -38], "blade": [0.55, 0.69, -0.32], "yaw": 3},
+    {"t": 2.5,  "hand": [15, 23, -36], "blade": [0.56, 0.68, -0.31], "yaw": 4},
+    {"t": 5.0,  "hand": [14, 23, -38], "blade": [0.55, 0.69, -0.32], "yaw": 3},
+    {"t": 7.5,  "hand": [13, 23, -37], "blade": [0.54, 0.70, -0.32], "yaw": 2},
+    {"t": "end", "hand": [14, 23, -38], "blade": [0.55, 0.69, -0.32], "yaw": 3}
+   ]
+  },
+  {
+   "src": "A_Pilot_Walk", "dst": "A_Pilot_Walk_v5", "rate": 1.0, "max_yaw": 15,
+   "keys": [
+    {"t": 0.0,   "hand": [14, 23, -38], "blade": [0.55, 0.70, -0.29], "yaw": 3},
+    {"t": 0.26,  "hand": [19, 23, -37], "blade": [0.57, 0.69, -0.28], "yaw": 5},
+    {"t": 0.52,  "hand": [14, 23, -38], "blade": [0.55, 0.70, -0.29], "yaw": 3},
+    {"t": 0.77,  "hand": [10, 23, -37], "blade": [0.53, 0.71, -0.27], "yaw": 1},
+    {"t": "end", "hand": [14, 23, -38], "blade": [0.55, 0.70, -0.29], "yaw": 3}
+   ]
+  },
+  {
+   "src": "A_Pilot_Run", "dst": "A_Pilot_Run_v5", "rate": 1.0, "max_yaw": 15,
+   "keys": [
+    {"t": 0.0,   "hand": [18, 21, -34], "blade": [0.6, 0.66, -0.29], "yaw": 4},
+    {"t": 0.16,  "hand": [24, 21, -32], "blade": [0.62, 0.65, -0.28], "yaw": 6},
+    {"t": 0.32,  "hand": [18, 21, -34], "blade": [0.6, 0.66, -0.29], "yaw": 4},
+    {"t": 0.47,  "hand": [12, 21, -33], "blade": [0.58, 0.67, -0.29], "yaw": 2},
+    {"t": "end", "hand": [18, 21, -34], "blade": [0.6, 0.66, -0.29], "yaw": 4}
+   ]
+  }
+ ]
+}

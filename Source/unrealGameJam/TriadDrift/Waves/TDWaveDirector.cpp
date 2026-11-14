@@ -1271,6 +1271,8 @@ void ATDWaveDirector::BeginWithdrawal()
 		return;
 	}
 	TutorialPhase = ETDTutorialPhase::Withdrawal;
+	WithdrawTime = 0.f; WithdrawGrowingTime = 0.f; WithdrawLastDist = -1.f; WithdrawStartDist = -1.f;
+	WithdrawSinceNag = 1e9f; WithdrawSinceTurn = 1e9f; WithdrawNags = 0; WithdrawLeashTurns = 0;
 	// The boundary: EscapeBoundaryDistance ahead of where the flown ship is when Command calls it, on the bearing to
 	// Verdance - the way the fleet is heading and the story goes next. Measured from the ship, not the combat zone: the
 	// battle drifts, and a squad already 2.5 km out toward Verdance crossed a zone-centred plane on the order's frame
@@ -1295,6 +1297,15 @@ void ATDWaveDirector::BeginWithdrawal()
 			if (P && P->GetDestination() == ETDDestination::Verdance)
 			{
 				Toward = (P->GetPlanetCenter() - Centre).GetSafeNormal();
+				// Lead (Nov 14, T1's first ten minutes): the corridor led straight at Verdance, so Aftermath began with the
+				// ship pressed against the planet. It now aims at a point EscapeAimOffsetRadii planet radii to one side of
+				// the centre: the planet is framed to one side and flying on past the marker stays in open space.
+				if (EscapeAimOffsetRadii > 0.f)
+				{
+					FVector Side = FVector::CrossProduct(Toward, FVector::UpVector).GetSafeNormal();
+					if (Side.IsNearlyZero()) { Side = FVector::RightVector; }
+					Toward = (P->GetPlanetCenter() + Side * P->GetPlanetRadius() * EscapeAimOffsetRadii - Centre).GetSafeNormal();
+				}
 				// The line must sit in open space short of Verdance's atmosphere, which the squad cannot enter before the
 				// Verdance phase (live run, Nov 13: the plane landed 768 m inside the shell and the ship was held at it).
 				const float Room = FVector::Dist(P->GetPlanetCenter(), Centre) - P->GetAtmosphereRadius() - EscapeAtmosphereMargin;
@@ -1321,6 +1332,17 @@ void ATDWaveDirector::BeginWithdrawal()
 	SetSquadBoundaryRelease(true);	// T1's switch: the escape corridor runs past the zone edge (T7's playtest)
 	OnTutorialWithdrawalOrdered.Broadcast();
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Waves: tutorial withdrawal ordered - escape boundary %.0f m out toward Verdance"), Distance / 100.f);
+}
+
+bool ATDWaveDirector::DevOrderWithdrawal()
+{
+	if (!IsTutorialWithdrawalWave() || TutorialPhase != ETDTutorialPhase::Battle)
+	{
+		return false;
+	}
+	bWaitForLessons = false;
+	BeginWithdrawal();
+	return TutorialPhase == ETDTutorialPhase::Withdrawal;
 }
 
 void ATDWaveDirector::CompleteEscape()
@@ -1516,6 +1538,53 @@ void ATDWaveDirector::TickTutorial(float DeltaSeconds)
 	if (Flown && FVector::DotProduct(Flown->GetActorLocation() - EscapePoint, EscapeNormal) > 0.f)
 	{
 		CompleteEscape();
+		return;
+	}
+	TickWithdrawalReminder(Flown, DeltaSeconds);
+}
+
+void ATDWaveDirector::TickWithdrawalReminder(const AActor* Flown, float DeltaSeconds)
+{
+	if (!Flown)
+	{
+		return;
+	}
+	const float Dist = (float)FVector::Dist(Flown->GetActorLocation(), EscapePoint);
+	if (WithdrawStartDist < 0.f) { WithdrawStartDist = Dist; WithdrawLastDist = Dist; }
+	WithdrawTime += DeltaSeconds;
+	WithdrawSinceNag += DeltaSeconds;
+	WithdrawSinceTurn += DeltaSeconds;
+	// Growing: farther than a moment ago (a 1 m dead band so a hover does not flicker).
+	WithdrawGrowingTime = Dist > WithdrawLastDist + 0.5f ? WithdrawGrowingTime + DeltaSeconds : (Dist < WithdrawLastDist - 0.5f ? 0.f : WithdrawGrowingTime);
+	WithdrawLastDist = Dist;
+	const bool bGrowing = WithdrawGrowingTime >= WithdrawNagGrowingSeconds;
+	const bool bNotClosing = WithdrawTime >= WithdrawNagNotClosingSeconds && Dist >= WithdrawStartDist - 5000.f;
+	const FVector ToMarker = (EscapePoint - Flown->GetActorLocation()).GetSafeNormal();
+	const bool bFacingAway = FVector::DotProduct(Flown->GetActorForwardVector(), ToMarker) < 0.2f;
+	// The leash: far out and still flying away, the ship is turned back toward the marker (T1's teleport in place, as
+	// the closed atmosphere does), and Command says so.
+	bool bTurned = false;
+	if (WithdrawLeashDistance > 0.f && Dist > WithdrawLeashDistance && bFacingAway && WithdrawSinceTurn >= 4.f)
+	{
+		if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(const_cast<AActor*>(Flown)))
+		{
+			Craft->TeleportSpacecraft(Craft->GetActorLocation(), ToMarker.Rotation(), /*bKeepSpeed*/ true);
+			WithdrawSinceTurn = 0.f;
+			++WithdrawLeashTurns;
+			bTurned = true;
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Waves: withdrawal leash - ship turned back at %.0f m from the marker"), Dist / 100.f);
+		}
+	}
+	if ((bGrowing || bNotClosing || bTurned) && (WithdrawSinceNag >= WithdrawNagIntervalSeconds || (bTurned && WithdrawSinceNag >= 6.f)))
+	{
+		WithdrawSinceNag = 0.f;
+		WithdrawGrowingTime = 0.f;
+		++WithdrawNags;
+		// dialogs.md Bark_Cmd_Retreat (Command): "Marker is behind you, Triad. Come about."
+		if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this)) { Flow->RequestBark(TEXT("Bark_Cmd_Retreat"), TEXT("Command")); }
+		else if (UTDEventBus* Bus = UTDEventBus::Get(this)) { Bus->BroadcastBarkRequested(TEXT("Bark_Cmd_Retreat"), TEXT("Command")); }
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Waves: withdrawal reminder %d (marker %.0f m, %s)"), WithdrawNags, Dist / 100.f,
+			bTurned ? TEXT("leash") : (bGrowing ? TEXT("flying away") : TEXT("not closing")));
 	}
 }
 
