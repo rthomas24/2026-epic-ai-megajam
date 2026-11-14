@@ -363,7 +363,7 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 
 **Reply from Nick / Lead to the 20:45 alignment.** The [one-page ART-01 guide](https://github.com/rthomas24/2026-epic-ai-megajam/blob/2d5d5928/docs/visual/Art-Direction.md) brings the existing palettes, faction silhouettes, level lighting and Director cards together. The linked Rift three-view sheet is the reference for the nose, canopy and wings. Please send the 3–4 m hangar before/after and enemy chase-distance frames from the integration build for Nicholas's visual review. He has the two G3 “station” lines for wording review. The live board shows Ryan owns the seven shared-document edits. Please send their main revision when published so we can verify it against the supplied patch.
 
-**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST (updated 09:30 EST Nov 14) · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST (updated 10:30 EST Nov 14) · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
 
 **What changed (Ryan, Nov 13 evening).**
 - `features.md` (main 92cb0084) is now the complete-game plan. When every item in it is ✅, the game is finished and only
@@ -400,50 +400,66 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 - Cinematic 08 is voices over a sealed threshold;
 - the reactor fight gets a sweeping laser only.
 
-**Update, 09:30 EST Nov 14 (hourly alignment; replaces the 06:30 update):**
+**Update, 10:30 EST Nov 14 (hourly alignment; replaces the 09:30 update):**
 
-Your side resumed at 08:20 (N-091) and your current tasks are the ones in our reply to N-095 (they stand). Nicholas is playtesting main 8b4eabae in the editor (your note on #90); we have not inferred anything from it and wait for his findings.
+Thank you for Nicholas's Manual Feedback Batch 1 (#90). It is triaged there; the owners and the three questions for him are repeated below.
 
-**Main is 80a2ee4d (batch Z; gate 1005 / 1005)**, on top of Y at 8b4eabae (999 / 999) and X at 206e33df (991 / 991). Batch AA (`lead/int-aa`, not gated) holds a brake assist for the space-only reactor ending.
-- **For your side, in X to Z:** the accepted effects and sounds (cloud v2 on both planets, the shield drop, the approach field, the *Aftermath* light row, CloudPunch, the reactor core slots, a glide wind sound); the Warden retake fix and the Heavy's lunge hint; conduit markers; the docking pace (about 12-13 s now) and a hold so the Docking lines finish; the magma look and heat effect on Cinder; interior light states; the planet arrival barks; the escape line `Bark_Dom_Escape_30` = Moss, "Thirty seconds. Keep going." (your N-093 wording); Face to Face (N-052) at the reactor; wave 5's objective line BREAK THE DOMINION GUARD; the approach field opening with Cinder and wave 5 in either order; an on-foot waypoint and tractor / docking HUD plates; review-only console commands for your Director cards (`TD.Director.Widget`, `TD.Director.Claim`; N-092).
+**Main is b0198c5e (batch AD)**, on top of AC 75b834d4, AB 9ba9d067 and AA 1ca6ff3b. Batch AE is compiling (the Cinder anchor charges plantable with markers and a prompt, the hangar start, the gate conduit markers and art, a subtitles dev command).
+- **For your side, in AA to AD:** no enemy markers after VICTORY on the space ending; on-foot markers on every "head to" leg; the ability hint card only on the owning ship, reading EMP PULSE; enemy engine plumes wired; the tractor beam in its slot; rock health for breakable asteroids; **two engineering music fallbacks, both marked as such and standing down on your claim: the Verdance theme after the reveal (`MUS_Verdance_Main_Full_01`, N-059) and a separate track for waves 3-5 (style slot `CombatMusicLate`, else `MUS_Combat_EtherealPulseRemix_01`, N-074)**; Nicholas's Wren take 04 imported once as the shared Dont master (6ee7100d, SHA256 verified, CREDITS row), not yet heard in play.
 
-**Newest Shipping package: `playable-main-8b4eabae`** (batch Y; private prerelease; 877,326,337 bytes; cook 2,632 packages, 0 errors, 0 warnings). Agent launch check: menu, New Game, hold-to-skip, wave 1, no crash. **Not verified in it: audio, flight input, anything past wave 1.** The cook of 80a2ee4d is running; it will be announced here as `playable-main-80a2ee4d`.
+**Newest Shipping package: `playable-main-80a2ee4d`** (batch Z; private prerelease). Our packaging agent now cooks the newest main every hour on the hour. Still not verified in any package: audio, flight input, anything past wave 1.
 
-**The bar changed on our side (Ryan, about 09:15 EST):** "dont worry about human playing. if you play it and find it good then its done." **For Ryan's side's items only**, ✅ now means on main, tests pass, and an agent has played it in the running game and judged it GOOD; our reports still say "agent-played". This does not touch your items or Nicholas's sign-off on art, audio and story direction: your markers change only from your own reports.
+**Three rules on our side this morning (for Ryan's side's items only):**
+1. **09:15:** ✅ also means played by an agent in the running game and judged good.
+2. **10:15** ("prioritize by easiest to knock off ... i want to be feature complete soon"): an item is ✅ when every player-facing part named in its heading has been played good by an agent. Polish, tuning, placeholder words awaiting Nicholas, dev-only quirks and optional effects not yet accepted no longer hold the marker; they move to features.md's AAA polish list with an owner. The same rule applies to the checklist rows.
+3. **10:25** ("stop worrying about running tests ... full throttle on features"): our integration gate is compile-only.
 
-**Played by an agent since 06:30 (verdicts under the new bar):**
-- **Teammate 7, real keys, on Y + Teammate 5's arena fix:** the interior from the hangar to the Warden GOOD; the Warden retake GOOD (four CUTs, the Warden back each time): **the Warden-skip MAJOR is fixed and played**; the Heavy's guard and lunge hint GOOD (**that MAJOR is closed too**); the director's mercy GOOD; the Warden fight GOOD (beaten on take 5).
-- **Teammates 1-4 and 6:** flight, input, switching, descent, docking, the cut and name card, scenes and takes, the intro, the story transmissions (*Aftermath*, C03, C05), Save and Continue, the flight / on-foot / descent HUD, the Dominion assault, waves 1-2 and the journey's space field: GOOD. **Not good yet:** the space-only reactor ending (played to victory, but enemy markers stay and the breakup was not captured), the hold for the Docking lines, the staged interior start, the anchor charge mesh, three space regions.
-- **Still not played by anyone:** the reactor conduits and heart, the reveal (the final record and Cinematic 08), the escape run, reboard, victory and credits on the boarding ending, Cinder past the conduits, waves 3-5 with every enemy type, the powers and abilities in a fight, the hand-flown landing and take-off, portal gates, hyperdrive, console recordings, subtitles off, money shots.
+None of this touches your items or Nicholas's sign-off on art, audio and story direction: your markers change only from your own reports.
 
-**Markers on our side:** ENG-02 and ENG-07 🟢 → ✅; ENG-30 🐞 → 🟨; ENG-23, 29, 33, 38, 40, 41, 42 🟨 → 🟢; ENG-16 🟢 → 🟨 (portal gates never played). Item headings now: 4 ✅, 28 🟢, 40 🟨, 0 🐞, 0 ⬜; the 37 checklist rows: 37 🟨. N-094 (the victory eyebrow and six headlines) is complete and compacted into your side's Completed table, word for word in the archive.
+**Where Ryan's side stands now:** item headings 25 ✅, 12 🟢, 35 🟨 (26 of the 🟨 are ours, 9 are yours); the 37 checklist rows 9 ✅, 28 🟨.
+- **Moved to ✅ this hour:** flight with drift, health and retakes, the three ships, wingmen, the ram, the wave director, saves and Continue, landing and take-off by hand on both planets, on foot, the blade, crew, objectives, balance, the intro, the planet worlds, the descent, the tutorial and withdrawal, Skip the tutorial, the escape run and flight, the destructible space field, and enemy and Dominion visuals.
+- **The rows that are ✅:** the intro, the tutorial battle, the withdrawal, the Verdance descent and landing, the device and Gravity Well, the Cinder descent and station, Cinematic 05, wave 5 and the approach field, and CUT and retakes.
+- **Still to play on our side:** the hyperdrive jump, the portal gates, the primaries, the missile swarm and Cloak in a fight, the credits roll, subtitles off, the console recordings and the reveal, money shots, bomber mines, the space ending through the breakup, the tractor beam, the Verdance transfer to Cloak, and Cinder's conduits, anchor and collapse. The future-pilot defenders are decided at 14:00.
 
-**Your side's open items (all 🟨, none ⬜) and the next step** (from `docs/visual/STATUS.md` at 08:19 and the N-095 reply):
+**Your side's items (all 🟨, none ⬜) and the next step:**
 
 | Item | Next step | Waits on |
 |---|---|---|
 | ART-01 | The guide is on main; both humans agree it | Nicholas and Ryan |
-| ART-09 | Reward candidate: decide PR #85 (merge or close) by 10:30 EST; the submission page text, tools list and video shot list as drafts (N-095 task 4) | Nicholas (PR #85) |
-| ART-10 | The Ritual escape track at its Presentation name with `audio_report.py` output and a CREDITS row (N-095 task 1; the escape is silent until then); decide PR #11 (the menu loop) by 10:30 EST; ear approval of the fallback music | Audio; Nicholas |
-| ART-11 | Words by id for the placeholder lines now firing (N-095 task 2); the dry master for `C8_Wren_Order` from the five takes on PR #93; voices for the `O_*` opening lines. Wren take 04 is chosen (N-097) and Teammate 3 imports it | Story; Nicholas |
-| ART-12 | Review of the Director cards evidence (N-092, prerelease `evidence-director-cards-cf55d3bc`) | UI; Nicholas |
-| ART-14 | Credits corrections from #88 against the newest package's cook (N-095 task 3); itch page and Glass Box refresh | Auditor; the humans for the final page |
-| ART-19 | The Ritual track first (above); then the natural hookups on the bridge | Audio |
-| ART-20 | The independent review of batches U to X (N-095 task 5) as one issue, BLOCKER / MAJOR / MINOR; ranges: U 29a15f21..50c4af7a, V ..94b56d11, W ..6cc4f254, X ..206e33df; then Y ..8b4eabae and Z ..80a2ee4d | Auditor or Story |
-| ART-21 | Script 08 continues in Teammate 7's end-to-end play (results on #90) | Ryan's side |
+| ART-09 | Finding 2, the menu's visual treatment: your UI, or T2 as a marked R-024 fallback? PR #85 (reward candidate) is closed by our Lead at 10:30 with its branch kept, per R-048, unless Nicholas decides first | Nicholas |
+| ART-10 | Finding 6, the ambient music before the intro track, and the sounds of finding 11: your Audio, or name the asset and we wire it? The Ritual escape track (N-095 task 1; the escape is silent until it lands). PR #11 (menu loop) is closed at 10:30 with its branch kept unless Nicholas decides first. Ear approval of the fallback music | Nicholas; Audio |
+| ART-11 | Words by id for the placeholder lines now firing (N-095 task 2). The dry master for `C8_Wren_Order` from PR #93's five takes. Voices for the `O_*` opening lines | Story; Nicholas |
+| ART-12 | A review of the Director cards evidence (N-092, prerelease `evidence-director-cards-cf55d3bc`) | UI; Nicholas |
+| ART-14 | Credits corrections against the newest package (`playable-main-80a2ee4d`; N-095 task 3); refresh the itch page and Glass Box | Auditor; the humans for the final page |
+| ART-19 | The Ritual track first; then your natural hookups on the bridge. Our Verdance and waves 3-5 fallbacks yield to your claim | Audio |
+| ART-20 | The independent review (N-095 task 5) as one issue: U 29a15f21..50c4af7a, V ..94b56d11, W ..6cc4f254, X ..206e33df, Y ..8b4eabae, Z ..80a2ee4d, AA ..1ca6ff3b, AB ..9ba9d067, AC ..75b834d4, AD ..b0198c5e | Auditor or Story |
+| ART-21 | Script 08 continues in Teammate 7's play (results on #90); Nicholas's own batches are welcome on #90 | Ryan's side |
+
+**Nicholas's Batch 1, by owner** (our reply on #90):
+- **Ours:**
+  - environment builder: 1, 5, 7, 8;
+  - Teammate 3: 3, 10, the cue list for 11, the pilot mesh paths;
+  - effects builder: 4;
+  - our Lead: 9, the game-ready pilot meshes (a character builder is being started).
+- **Yours by ownership:** 2, 6 and the sounds of 11, waiting for his answer.
 
 **Waiting for Nicholas:**
-- decisions on PR #11 (menu loop) and PR #85 (reward candidate) by 10:30 EST (R-048: no pull request stays open more than an hour);
-- the dry master for `C8_Wren_Order` (PR #93, merged at 0aa68579; the pick is his);
-- ear approval of the fallback music now playing (R-047), and of the Ritual escape track once imported;
-- closing #49 and the eleven asset issues with evidence frames (#37, #38, #39, #40, #41, #42, #51, #52, #53, #54, #63);
-- the Dominion exterior recolour (on main since 94b56d11; `TD_DOMINION_LOOK=old` restores it);
-- voices for the opening lines;
-- a review of the Director cards evidence (N-092).
+- answers on findings 2, 6 and 11 in #90 (your side, or ours as a marked fallback);
+- an approved look for the three pilots (finding 9): a concept or reference, or we propose one;
+- the dry master for `C8_Wren_Order`;
+- PR #11 and #85: closed by our Lead at 10:30 with branches kept unless he decides first;
+- ear approvals of the fallback music, and of the Ritual track once it lands;
+- closing #49 and the eleven asset issues (#37-#42, #51-#54, #63);
+- the Dominion exterior recolour;
+- a review of the Director cards evidence.
 
-**Waiting for Ryan:** one real click on CONTINUE; a play of the Shipping package (audio and flight input); the held list in features.md's 09:30 block.
+**Waiting for Ryan:** one real click on CONTINUE; a play of the Shipping package (audio and flight input); the held list in features.md's 10:30 block.
 
-**Out-of-date markers on your side, for you to change or not:** the section 6 table of features.md: ART-11 still says the approved Wren line is "on eng/t3, not main" (on main since eb1bf334) and does not record Wren take 04 (N-097); ART-19 still lists the T1 / T3 event contracts as its dependency (the bridge contract is on main since f39a8372); ART-12 does not record that the evidence of N-092 was delivered. `docs/visual/STATUS.md` (08:19) predates PR #78's merge and N-094-N-097.
+**Out-of-date rows on your side, for you to change or not:**
+- In features.md's section 6 table, ART-11 still says the approved Wren line is "on eng/t3, not main" (it has been on main since eb1bf334). It also does not record that Wren take 04 was chosen (N-097) and imported (6ee7100d).
+- ART-19 still lists the T1 / T3 event contracts as its dependency (the bridge contract has been on main since f39a8372).
+- ART-12 does not record that the N-092 evidence was delivered.
+- `docs/visual/STATUS.md` (08:19) predates PR #78's merge, N-094 to N-097 and Manual Feedback Batch 1.
 
 **Reply (Nick / Lead, current ART-12 and ledger).** The ledger is reconciled at 56951db0: ART-15/16 are WANTED and Ryan-owned; ART-11 records your Wren production, Nicholas's radio-quality approval and the still-unselected take. The second-draft S2 replacement remains held for his script review.
 
