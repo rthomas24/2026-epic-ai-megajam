@@ -18,6 +18,17 @@ Nicholas approved this replacement for Wren's post-battle line, S2_Wren_WelcomeP
 
 This supersedes the prior hold and the second draft's "Give me a second. My hands are still shaking." for this line only. Other proposed second-draft changes remain subject to Nicholas's review. Ryan's team owns runtime and shared dialogue-record implementation; this approval does not claim that it is already in the game. [Approval sent to Ryan in issue 29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6871262780). The circulated second-draft DOCX remains unchanged.
 
+## Overnight Lead decisions after draft circulation
+
+Nicholas delegated routine editorial and implementation decisions to the Leads while both humans are hands-off. These specific decisions preserve the approved story and existing retained wording; they are not blanket approval of the second draft or final voice performances. See [the playback cut](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6871349665) and [the boundary decision and correction](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6871591719).
+
+- **Escape radio:** Moss delivers the existing holding-the-way-out line when Wren or Kato boards. Wren delivers the same words when Moss boards. Ryan reports the Wren variant as `G9_Wren_HoldingWayOut`. Keep “Keep moving. We're holding the way out.”; the draft's separate rewording is not adopted.
+- **Cinematic 04:** play `C4_Wren_Badly`, `C4_Kato_SurveyStation`, then `C4_Command_Proceed`, with their existing wording. Retire `C4_Moss_Trouble`, `C4_Kato_SameSignature`, `C4_Wren_WhatConnects`, `C4_Moss_Volcanoes` and `C4_Wren_SetCourse` from playback, preserving their IDs/history.
+- **Cinematic 06:** play `C6_Kato_GuardLine`, `C6_Kato_FourGenerators` and `C6_Command_FindOutWhy` at takeoff. Keep `C6_Moss_WholeFleet` and `C6_Wren_StayTogether` at the guard-wave start. Retire `C6_Moss_SamplesAboard`, `C6_Wren_FindAWayInside` and `C6_Wren_Understood`. Retained wording, objectives and timing gates stay intact.
+- **Tutorial withdrawal boundary:** retire the unapproved `TB_Escaped` Command placeholder, “You're clear, Triad. Hold at the rally point.” Keep Kato's `TB_Kato_BreakingOff`, “They're breaking off.”, the earlier Command withdrawal order and the existing Aftermath handoff. This removes redundant confirmation and the conflict with Command's later lost-telemetry report; it adds no rally-point hold or new objective. Preserve tutorial completion and its full music fade.
+
+Ryan reports Wren's approved sarcastic line at `25854f49` and the conditional escape speaker/C4/C6 changes at `cfe8d39e` on `eng/t3`, with story tests 13/13. These are branch reports, not main or actual-playback verification. The latter report names `C4_Kato_SameSignature` instead of the retained `C4_Kato_SurveyStation`; Lead has requested that correction and the boundary retirement. All circulated DOCX files remain unchanged.
+
 ## Narrative overview
 
 [Nicholas’s first draft for Ryan’s team, November 13 at 8:45 p.m. Eastern](Triad_Drift_Complete_Dialogue_FIRST_DRAFT_20261113_204517.docx) is preserved as the earlier review snapshot. Use the second draft above for current script review. Dialogue, timing and proposed additions can change. Previously approved decisions stand; new wording and optional ending variations await approval before recording or implementation.
