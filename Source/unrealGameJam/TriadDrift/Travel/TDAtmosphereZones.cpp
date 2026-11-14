@@ -170,8 +170,7 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 		if (Descent) { Descent->SetBurnIsExit(false); }
 		if (bCoveredEntry)
 		{
-			USoundBase* RoarSound = !TravelFX->DescentRoar.Sound.IsNull() ? TravelFX->DescentRoar.Sound.LoadSynchronous() : Cue.Sound.LoadSynchronous();
-			Descent->StartRoar(RoarSound);
+			Descent->StartRoar(UTDDescentSubsystem::ResolveRoar(TravelFX, false));
 			Cue.Sound.Reset();
 		}
 		UAudioComponent* Audio = nullptr;
@@ -652,6 +651,9 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 					{
 						Descent->SetBurnIsExit(true);
 						Descent->BeginTiming(TEXT("climb out"));
+						// The climb out roars too (AtmosphericExit's sound, else the entry roar); it persists over the load
+						// and fades at the galaxy reveal, as the entry's does on the planet.
+						Descent->StartRoar(UTDDescentSubsystem::ResolveRoar(UTDTravelSubsystem::GetDefaultTravelFX(GetWorld()), true));
 						Descent->BeginBurnShot(Ship, true, ExitClimbSeconds + 1.f);
 					}
 				}
