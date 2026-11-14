@@ -377,7 +377,8 @@ bool FTDSpaceFieldStructuresKeepOut::RunTest(const FString& Parameters)
 			}
 			FString Per;
 			for (const TPair<FName, int32>& KV : ByPoint) { Per += FString::Printf(TEXT(" %s %d"), *KV.Key.ToString(), KV.Value); }
-			AddInfo(FString::Printf(TEXT("journey: adopted layout rocks %d, on the journey outside its pockets %d:%s"), Adopted, AdoptedOn, *Per));
+			AddInfo(FString::Printf(TEXT("journey: adopted layout rocks %d (%d moved to the corridor edges), on the journey outside its pockets %d:%s"), Adopted, Fd->GetAdoptedMovedOffJourney(), AdoptedOn, *Per));
+			TestEqual(TEXT("no adopted layout rock inside a journey route or keep-out (outside its pockets)"), AdoptedOn, 0);
 		}
 		TestEqual(TEXT("no region set piece on the journey's keep-outs or routes"), SetOn, 0);
 		TestEqual(TEXT("no hittable rock of 10 m or more on the journey's keep-outs or routes"), RockOn, 0);

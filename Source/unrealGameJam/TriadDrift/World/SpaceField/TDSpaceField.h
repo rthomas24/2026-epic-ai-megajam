@@ -319,6 +319,8 @@ public:
 	/** Live check of T4's journey: for each keep-out and route, the field pieces (adopted included), set pieces and other
 	 *  obstacles (UTDWorldSubsystem) that sit inside it (TD.SpaceField.JourneyCheck). Returns the total inside. */
 	int32 LogJourneyCheck() const;
+	/** Layout rocks the adoption moved out of the journey (to its corridor edges). */
+	int32 GetAdoptedMovedOffJourney() const { return AdoptedMovedOffJourney; }
 	/** A pose along journey route Index (only Route points, in GetJourneyKeyPoints order) at fraction T, facing along it. */
 	bool JourneyPose(int32 Index, float T, FVector& OutFrom, FRotator& OutFacing, FName& OutId) const;
 	/** The routes the player flies (zone to each planet, the Dominion and each gate end), world space. */
@@ -392,6 +394,7 @@ private:
 	bool bMoonPlacement = false;
 	/** T4's journey key points (ATDGalaxyLayout::GetJourneyKeyPoints), read at Build: keep-outs and routes stay clear. */
 	TArray<FTDJourneyKeyPoint> JourneyPoints;
+	int32 AdoptedMovedOffJourney = 0;
 public:
 	/** The first keep-out or route a piece of this size at P would sit on (NAME_None when clear). Pockets allow sparse cover. */
 	FName JourneyBlockerAt(const FVector& WorldPoint, float Size, bool bCollides) const;
