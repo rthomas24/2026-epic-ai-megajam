@@ -285,6 +285,8 @@ public:
 	const TArray<FTDSpaceFieldPiece>& GetStructures() const { return Structures; }
 	/** Each built region's centre (world), by its number in docs/eng/SPACE-DESIGN.md (captures, tests). */
 	TMap<int32, FVector> RegionCentres;
+	/** Dev: each region's nearest approach from the player's routes (TD.SpaceField.RouteReport). */
+	void LogRouteReport() const;
 	/** The Shepherd Belt's plane normal and centre (world), once built. */
 	FVector BeltNormal = FVector::UpVector;
 	FVector BeltCenter = FVector::ZeroVector;

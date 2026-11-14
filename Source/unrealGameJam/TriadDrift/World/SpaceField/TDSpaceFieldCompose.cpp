@@ -576,3 +576,40 @@ void ATDSpaceField::PlaceRegionCentrepieces(FRandomStream& Rng)
 		}
 	}
 }
+
+namespace TDSpaceFieldCompose
+{
+	static FAutoConsoleCommandWithWorldAndArgs CmdRouteReport(TEXT("TD.SpaceField.RouteReport"),
+		TEXT("Log, for each region, its nearest approach from every route the player flies (zone to each planet, the Dominion and each gate end), and how large its biggest set piece looks from there"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const ATDSpaceField* Field = ATDSpaceField::Get(World);
+			if (!Field) { return; }
+			Field->LogRouteReport();
+		}));
+}
+
+void ATDSpaceField::LogRouteReport() const
+{
+	static const TCHAR* Names[] = { TEXT(""), TEXT("Watchline halo"), TEXT("Shepherd Belt"), TEXT("Ice Drift"), TEXT("Quiet Graveyard"), TEXT("Survey Scar"), TEXT("Shattered Moons"), TEXT("Outer Dark") };
+	static const TCHAR* Routes[] = { TEXT("zone->Verdance"), TEXT("zone->Cinder"), TEXT("zone->Dominion") };
+	for (int32 R = 1; R <= 7; ++R)
+	{
+		const FVector* C = RegionCentres.Find(R);
+		if (!C) { UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.RouteReport: %d %s not built"), R, Names[R]); continue; }
+		// The region's biggest set piece within 1.2 km of its centre (its silhouette), else 100 m.
+		float Big = 10000.f;
+		for (const FTDSpaceFieldPiece& S : Structures) { if (FVector::Dist(S.Location, *C) < 120000.f) { Big = FMath::Max(Big, S.Size); } }
+		FString Line;
+		float Nearest = TNumericLimits<float>::Max();
+		for (int32 L = 0; L < BuoyLanes && L < Lanes.Num(); ++L)
+		{
+			const FVector P = FMath::ClosestPointOnSegment(*C, Lanes[L][0], Lanes[L][1]);
+			const float D = (float)FVector::Dist(P, *C);
+			Nearest = FMath::Min(Nearest, D);
+			if (L < 3) { Line += FString::Printf(TEXT(" | %s %.1f km (%.1f deg)"), Routes[L], D / 100000.f, FMath::RadiansToDegrees(2.f * FMath::Atan(Big * 0.5f / FMath::Max(D, 1.f)))); }
+		}
+		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.RouteReport: %d %s, centre %.1f km from the zone, biggest piece %.0f m, nearest route %.1f km%s"), R, Names[R],
+			FVector::Dist(*C, BeltCenter) / 100000.f, Big / 100.f, Nearest / 100000.f, *Line);
+	}
+}
