@@ -770,7 +770,14 @@ def rock_break(n_chunks, n_dust, n_grit, fl=1800):
 
 S2('NS_TD_Asteroid_Break_S', U(ROCK, 1.0), rock_break(5, 2, 18))
 S2('NS_TD_Asteroid_Break_M', U(ROCK, 2.2), rock_break(7, 2, 24, fl=1000))
-S2('NS_TD_Asteroid_Break_L', U(ROCK, 4.5), rock_break(9, 3, 32, fl=670))
+def late_ring(e, delay):
+    e['set'].append((EU, 'SpawnBurst_Instantaneous', 'Spawn Time', float(delay)))
+    return e
+
+
+# 10 (Lead MINOR): the L break carries more weight at 200 m - a second, slightly later ring of 5 bigger, slower ice shards.
+S2('NS_TD_Asteroid_Break_L', U(ROCK, 4.5), rock_break(9, 3, 32, fl=670) + [
+    late_ring(chunks('IceBig', 'SM_TD_VFX_Shard_A', 5, (1.2, 2.0), (0.6, 1.0), (500, 1300), drag=0.5, radius=90.0, dur=2.2, spin=(0.6, 2.0)), 0.12)])
 # Crystal-veined rock: the crystals shatter in light. A flare, glowing shards streaking out, slow glints, a few rock chunks.
 S2('NS_TD_Asteroid_Break_Crystal', U(CRYSTAL, 2.2), [
     flash('Flash', 'M_TD_VFX_Flare', 900, 0.16, 1.4, growth='0.4 + Particles.NormalizedAge*0.9'),
