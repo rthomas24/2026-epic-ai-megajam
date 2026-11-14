@@ -110,7 +110,7 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPilotBodyLoops, "TriadDrift.Ground.PilotBody
 bool FTDPilotBodyLoops::RunTest(const FString& Parameters)
 {
 	TestEqual(TEXT("standing: idle"), ATDFirstPersonCharacter::ChooseBodyLoop(0.f), 0);
-	TestEqual(TEXT("slow: walk"), ATDFirstPersonCharacter::ChooseBodyLoop(300.f), 1);
+	TestEqual(TEXT("slow: walk"), ATDFirstPersonCharacter::ChooseBodyLoop(150.f), 1);
 	TestEqual(TEXT("run speed (650): run"), ATDFirstPersonCharacter::ChooseBodyLoop(650.f), 2);
 	TestEqual(TEXT("sprint (950): run"), ATDFirstPersonCharacter::ChooseBodyLoop(950.f), 2);
 
