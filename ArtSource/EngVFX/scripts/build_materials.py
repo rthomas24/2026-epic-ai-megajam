@@ -491,7 +491,7 @@ float d = max(dot(g, s*0.5), g.x);
 float edge = smoothstep(0.40, 0.48, d);
 float shim = 0.55 + 0.45*sin(Tm*1.7 - UV.y*31.0 + UV.x*13.0);
 float body = pow(f, 3.6);   // the first build (2.2) drew the lattice over the whole view from inside
-float rim = pow(f, 7.0)*smoothstep(1.0, 0.93, f);
+float rim = pow(f, 5.0)*smoothstep(1.0, 0.975, f)*1.4;   // 9e: brighter and closer to the silhouette, so the line where the dome crosses the screen reads (Lead)
 float a = edge*(0.02 + 0.98*body)*shim + rim*1.6 + body*0.05;
 float3 c = PC.rgb*a + lerp(PC.rgb, float3(1,1,1), 0.7)*rim*0.8;
 return float4(c*Intensity, PC.a);""", {}),
