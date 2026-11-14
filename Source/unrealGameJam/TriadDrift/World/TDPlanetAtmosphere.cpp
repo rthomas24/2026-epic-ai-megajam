@@ -192,6 +192,34 @@ FQuat ATDPlanetAtmosphere::GetGlobeQuat() const
 	return bGlobeFacing ? GlobeQuat : GetActorQuat();
 }
 
+namespace
+{
+	// Issue #89 (T6, Nov 14): both globes were baked again on every return to the galaxy, in the open, right after the
+	// cover lifted (30-70 ms frames). A bake depends only on the planet and the bake settings, so the first one of a
+	// run is kept and reused. Game thread only.
+	struct FTDGlobeBakeCacheEntry { TArray<FColor> Base, Emissive; int32 W = 0, H = 0; };
+	TMap<uint32, TSharedPtr<FTDGlobeBakeCacheEntry>>& TDGlobeBakeCache()
+	{
+		static TMap<uint32, TSharedPtr<FTDGlobeBakeCacheEntry>> Cache;
+		return Cache;
+	}
+	uint32 TDGlobeBakeKey(ETDDestination Planet, int32 W, bool bMirror, bool bMarks)
+	{
+		return ((uint32)Planet << 20) | ((uint32)W << 2) | (bMirror ? 2u : 0u) | (bMarks ? 1u : 0u);
+	}
+}
+
+bool ATDPlanetAtmosphere::AreGlobeBakesRunning(const UObject* WorldContext)
+{
+	const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+	if (!World) { return false; }
+	for (TActorIterator<ATDPlanetAtmosphere> It(World); It; ++It)
+	{
+		if (It->bGlobeBaking) { return true; }
+	}
+	return false;
+}
+
 void ATDPlanetAtmosphere::StartGlobeBake()
 {
 	if (bGlobeBaked || bGlobeBaking || !bArtLook || CVarTDPlanetGlobeBake.GetValueOnGameThread() == 0
@@ -216,8 +244,17 @@ void ATDPlanetAtmosphere::StartGlobeBake()
 	const ETDDestination Planet = Destination;
 	const bool bMirror = bGlobeMirrorU;
 	const bool bMarks = CVarTDPlanetGlobeMarks.GetValueOnGameThread() != 0;
+	const uint32 Key = TDGlobeBakeKey(Planet, W, bMirror, bMarks);
+	if (const TSharedPtr<FTDGlobeBakeCacheEntry>* Hit = TDGlobeBakeCache().Find(Key))
+	{
+		// Already baked this run: apply it now (two texture uploads), no bake.
+		TArray<FColor> Base = (*Hit)->Base, Emissive = (*Hit)->Emissive;
+		ApplyGlobeBake(MoveTemp(Base), MoveTemp(Emissive), (*Hit)->W, (*Hit)->H);
+		UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetAtmosphere: %s globe from this run's bake (no rebake)"), *GetName());
+		return;
+	}
 	TWeakObjectPtr<ATDPlanetAtmosphere> Weak(this);
-	Async(EAsyncExecution::ThreadPool, [Weak, Planet, W, H, bMirror, bMarks]()
+	Async(EAsyncExecution::ThreadPool, [Weak, Planet, W, H, bMirror, bMarks, Key]()
 	{
 		TArray<FColor> Base, Emissive;
 		FTDGlobeBake::Bake(Planet, W, H, Base, Emissive, bMarks);
@@ -232,8 +269,14 @@ void ATDPlanetAtmosphere::StartGlobeBake()
 				}
 			}
 		}
-		AsyncTask(ENamedThreads::GameThread, [Weak, W, H, Base = MoveTemp(Base), Emissive = MoveTemp(Emissive)]() mutable
+		AsyncTask(ENamedThreads::GameThread, [Weak, W, H, Key, Base = MoveTemp(Base), Emissive = MoveTemp(Emissive)]() mutable
 		{
+			if (!TDGlobeBakeCache().Contains(Key))
+			{
+				TSharedPtr<FTDGlobeBakeCacheEntry> Entry = MakeShared<FTDGlobeBakeCacheEntry>();
+				Entry->Base = Base; Entry->Emissive = Emissive; Entry->W = W; Entry->H = H;
+				TDGlobeBakeCache().Add(Key, Entry);
+			}
 			if (ATDPlanetAtmosphere* Self = Weak.Get())
 			{
 				Self->ApplyGlobeBake(MoveTemp(Base), MoveTemp(Emissive), W, H);
