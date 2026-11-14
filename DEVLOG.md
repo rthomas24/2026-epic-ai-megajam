@@ -318,3 +318,8 @@ Nick's Lead reviewed Ryan''s i71-focus-662b8c04-dev contact sheets at 1280x720, 
 ### Nov 13 — reward build checkpoint and Lancer replacement audition
 
 The industrial reward frame passed import and reload. The first widget build exposed a missing Slate bracket; UI corrected it and Lead rebuilt successfully, then passed the existing dismissal/next-unlock lifecycle test with 2,434 protected files unchanged. Actual rendered appearance remains queued for memory. Audio published the nine supplied-recording replacements on its isolated branch at 2b074bb5; its actual game capture observed fire and shield cues, but not a hull-hit event. Neither result is a final appearance/listening approval or a main asset integration.
+
+
+### Nov 13 — second script circulated and reward review unblocked remotely
+
+At Nicholas's request, Lead published the exact reviewed second script draft at 2240d3cd, preserved all earlier documents, and directly tagged Ryan in issue 29 with an acknowledgement request (N-080). Current script review now uses draft two; prior explicit approvals stand and final recording remains unlocked. The industrial reward candidate is published at 59ec2f79 / draft PR 85. N-081 requests matching T2 captures while local rendered work is memory-queued. Nicholas selected Audio's supplied-recording previews; the existing PR 12 candidate was fast-forwarded to 2b074bb5 without merging to main or claiming final in-game mix approval.

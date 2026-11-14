@@ -176,3 +176,6 @@ Nicholas Tosti supplied the Verdance theme. For the loop revision, the Lead used
 
 
 Candidate audio, not merged to the game: Nicholas supplied five Magic Spell Impact recordings whose embedded metadata identifies rawAmbience. Audio used Python, FFmpeg, Unreal Engine 5.9 and Windows process audio capture to prepare and audition nine Lancer replacements. Source receipts, processing and the unresolved exact acquisition/redistribution record are preserved at https://github.com/rthomas24/2026-epic-ai-megajam/tree/2b074bb5/ArtSource/Audio/Combat01/ProvidedMAGSpel01 . Standalone supplied/derived WAVs remain private and excluded from that branch. This entry records provenance; it does not assert verified licensing or final selection.
+
+
+Industrial reward candidate (59ec2f79, draft PR 85): Nicholas supplied the industrial UI direction. The UI specialist used OpenAI image generation to create the original text-free terminal bezel, and Unreal Engine 5.9 for the native texture and Slate presentation. The unchanged generated PNG, generation prompt and source/tool provenance are preserved in ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01 on that candidate branch. No third-party stock imagery or fonts were incorporated into the bezel. Appearance and Shipping approval remain pending.
