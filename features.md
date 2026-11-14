@@ -217,7 +217,7 @@ as its own board and ledger left them, not current work.
 
 | Owner | Now | Next (in order) |
 |---|---|---|
-| **Lead** (Ryan's) | The batch with T4's relief (f6c1853f) and T3's cold-Continue fix (77ad713e); hourly features.md alignment; boards | The next batch; #201 dispatch to the wingman builder; AGENTS.md section 2 squad line |
+| **Lead** (Ryan's) | The batch with T4's relief (f6c1853f) and T3's cold-Continue fix (77ad713e); hourly features.md alignment; boards | The next batch; #201 integration from eng/wing when the wingman builder reports; AGENTS.md section 2 squad line |
 | **T1** flight feel, hints, Settings, music bridge, descent | #194 descent and take-off on the new terrain; #159 the hint cards with T2 | The #138 check cases (bffd905a) to main |
 | **T2** combat, powers, HUD, switching | The measured HUD layout pass from Ryan's review (squad cards overlapping and off-centre, the Q ring; #103) | #201 / #192 aim assist on all three ships with a HUD indicator; the pause-menu hover; #159; #133 the reward captures |
 | **T3** story, intro, ending, camera, tutorial | #96 the cold-Continue fix (77ad713e, compiling); #146 the opening bed (skip fade) | `Bark_Wipe`; the victory recap names and camera fade seen |
