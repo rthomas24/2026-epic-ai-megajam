@@ -611,7 +611,21 @@ namespace TDRewardMount
 	FText UpperName(const UEnum* E, int64 Value)
 	{
 		// "EMPPulse" -> "EMP PULSE", "GravityWell" -> "GRAVITY WELL" (the enum's display name ran the acronym in: live).
-		return FText::FromString(FName::NameToDisplayString(E->GetNameStringByValue(Value), false).ToUpper());
+		// Words split at a lower->Upper step and before the last capital of an acronym ("EMPPulse" -> "EMP PULSE").
+		const FString N = E->GetNameStringByValue(Value);
+		FString Out;
+		for (int32 I = 0; I < N.Len(); ++I)
+		{
+			const bool bUpper = FChar::IsUpper(N[I]);
+			const bool bAfterLower = I > 0 && FChar::IsLower(N[I - 1]);
+			const bool bAcronymEnd = I > 0 && FChar::IsUpper(N[I - 1]) && I + 1 < N.Len() && FChar::IsLower(N[I + 1]);
+			if (bUpper && (bAfterLower || bAcronymEnd))
+			{
+				Out.AppendChar(TEXT(' '));
+			}
+			Out.AppendChar(N[I]);
+		}
+		return FText::FromString(Out.ToUpper());
 	}
 }
 

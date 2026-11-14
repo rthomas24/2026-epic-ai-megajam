@@ -122,6 +122,10 @@ bool FTDRewardFallback::RunTest(const FString& Parameters)
 	TestTrue(TEXT("after 4 s: acknowledged, Cloak next"), Rewards->GetPendingAbilityReward(A, S, bNow, W.GetWorld()) && A == ETDAbilityId::Cloak);
 	TestTrue(TEXT("Cloak announced at once"), Note->IsRewardActive() && Note->GetDisplay().AbilityId == FName(TEXT("Cloak")));
 	Note->Advance(UTDRewardAnnouncementWidget::ShowSeconds + .1f);
+	Bus->BroadcastAbilityUnlocked(ETDAbilityId::EMPPulse, ETDShipId::Lancer);
+	Host->UpdateAbilityReward();
+	TestEqual(TEXT("acronym split: EMP PULSE"), Note->GetDisplay().AbilityName.ToString(), FString(TEXT("EMP PULSE")));
+	Note->Advance(UTDRewardAnnouncementWidget::ShowSeconds + .1f);
 	TestFalse(TEXT("all acknowledged"), Rewards->GetPendingAbilityReward(A, S, bNow, W.GetWorld()));
 	Rewards->ResetRewards();
 	return true;
