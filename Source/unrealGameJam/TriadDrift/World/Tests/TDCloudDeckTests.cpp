@@ -48,8 +48,8 @@ bool FTDCloudDeckOnPlanetsOnly::RunTest(const FString&)
 		for (TActorIterator<ATDPlanetTerrain> It(W.GetWorld()); It; ++It) { T = *It; }
 		const float PadZ = T ? T->GetActorLocation().Z : 0.f;
 		const float Up = D[0]->GetActorLocation().Z - PadZ;
-		TestTrue(*FString::Printf(TEXT("%s: deck %.0f m over the pad, at the zone's highest ground + clearance"), *Name, Up / 100.f),
-			T && FMath::IsNearlyEqual(D[0]->GetActorLocation().Z, T->GetCloudDeckZ(), 1.f) && Up > 50000.f);
+		TestTrue(*FString::Printf(TEXT("%s: deck %.0f m over the pad, the pad corridor's rule, inside 1.1-1.6 km"), *Name, Up / 100.f),
+			T && FMath::IsNearlyEqual(D[0]->GetActorLocation().Z, T->GetCloudDeckZ(), 1.f) && Up >= T->DeckMinAbovePad - 1.f && Up <= T->DeckMaxAbovePad + 1.f);
 		// The edge bends down with the terrain's far ring (never a visible lip over the horizon).
 		if (M && M->GetNumSections() == 1)
 		{
