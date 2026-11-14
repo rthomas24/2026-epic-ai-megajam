@@ -32,7 +32,11 @@ PLAN_R9 = {   # round 9: T1's entry / exit set (lead/int-k b35bf640). CloudPunch
     'FX/DA_Travel_FX': {'atmospheric_exit': ('NS_TD_Exit', 1.0), 'exit_breakaway': ('NS_TD_Exit_Breakaway', 1.0),
                         'cloud_punch': ('NS_TD_Entry_CloudPunch', 1.0), 'cloud_wisps': ('NS_TD_Entry_CloudWisps', 1.0)},
 }
-PLAN = globals().get('PLAN') or PLAN_R9
+PLAN_R9B = {   # round 9 (ART-16, T4's answer): one-shots at world points; BreakupSequence stays EMPTY (T4's chain plays the art)
+    'Dominion/DA_Dominion_Visuals': {'reactor_exposed': ('NS_TD_Reactor_Exposed', 1.0), 'reactor_hit': ('NS_TD_Reactor_Hit', 1.0),
+                                     'docking_bay_open': ('NS_TD_Dominion_DockOpen', 1.0)},
+}
+PLAN = globals().get('PLAN') or PLAN_R9B
 PLAN_R5 = {
     'NullFleet/DA_Enemy_Fighter_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},
     'NullFleet/DA_Enemy_Interceptor_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},

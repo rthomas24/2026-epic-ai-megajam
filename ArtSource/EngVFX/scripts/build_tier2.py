@@ -263,6 +263,66 @@ S2('NS_TD_Core_Destroyed', U(FIRE, 2.2), [
     spin(shed('Smoke', 'M_TD_VFX_SmokeRim', 0, (1.6, 2.8), (420, 640), (250, 1100), radius=200.0, drag=2.0, curl=500.0, rgb=(0.34, 0.30, 0.28), alpha=0.8,
               burst=8, dur=3.0, power=0.7, fade_in=6.0, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.2', sort=True))])
 
+# ---- round 9 (ART-16, T4): the Dominion's one-shots, all SpawnSystemAtLocation at a world point.
+# ReactorExposed: once, when the 4th generator falls, at the reactor (its rotation): the core uncovered. Authored for a
+# 25 m reactor at Scale 1: a white flare, a red heat bloom, the shell falling apart, arcs and a shock ring.
+S2('NS_TD_Reactor_Exposed', U(CORE, 1.0), [
+    flash('Flare', 'M_TD_VFX_Flare', 7000, 0.18, 1.4, growth='0.4 + Particles.NormalizedAge'),
+    flash('Bloom', 'M_TD_VFX_Glow', 9000, 1.2, 0.9, growth='0.5 + Particles.NormalizedAge*0.6', power=1.4),
+    shell_flash('Shell', 2500, 0.9, 'float3(1,1,1)*(1.0 + 0.6*pow(Particles.NormalizedAge, 0.6))', k=1.4, power=1.6),
+    arcs('Arcs', 0, (1200, 2600), 2500, life=(0.15, 0.5), k=1.5, burst=24, dur=1.0, local=False),
+    flash('Ring', 'M_TD_VFX_FlipRing', 16000, 0.6, 0.9, growth='0.06 + pow(Particles.NormalizedAge, 0.5)*0.95', power=1.4)])
+# ReactorHit: every hull hit on the exposed reactor (a high rate): under 0.5 s and cheap, three emitters.
+S2('NS_TD_Reactor_Hit', U(CORE, 1.0), [
+    flash('Flash', 'M_TD_VFX_Flare', 700, 0.08, 1.5, growth='0.5 + Particles.NormalizedAge'),
+    flash('Glow', 'M_TD_VFX_Glow', 1100, 0.18, 0.8),
+    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.2, 0.45), (5, 11), (1200, 4200), k=1.8, radius=40.0, drag=2.2, stretch=14, burst=16, dur=0.5, power=1.3)])
+# DockingBayOpen: once when the bay opens (the doors take 2.5 s), at the bay actor, +X out of the mouth. Authored for a
+# 60 m mouth: steam venting out of it for 2.5 s, the bay's lights coming on, a tractor glow building in the mouth.
+DOCK = (0.75, 0.88, 1.0, 1.0)
+
+
+def timed(e, secs):
+    """A rate emitter that runs once for secs (then the system ends)."""
+    e['set'] = [x for x in e['set'] if x[2] not in ('Loop Behavior',)] + [(EU, 'EmitterState', 'Loop Behavior', E('Once')), (EU, 'EmitterState', 'Loop Duration', float(secs))]
+    return e
+
+
+S2('NS_TD_Dominion_DockOpen', U(DOCK, 1.0), [
+    timed(spin(shed('Steam', 'M_TD_VFX_SmokeRim', 0, (1.6, 2.6), (300, 800), (800, 2200), radius=2600.0, drag=0.9, curl=300.0, rgb=(0.80, 0.84, 0.88), alpha=0.5,
+                    cone=((1.0, 0.0, 0.0), 25.0), rate_expr='34.0', power=0.8, fade_in=5.0, growth='0.6 + Particles.NormalizedAge*1.6', sort=True)), 2.5),
+    shed('Lights', 'M_TD_VFX_Glow', 0, (2.6, 3.2), (90, 160), (0, 0), k=2.0, radius=3200.0, drag=0.0, rgb=(1.0, 0.82, 0.55), burst=26, dur=3.2, power=0.4, fade_in=3.0),
+    flash('Tractor', 'M_TD_VFX_Glow', 6500, 3.0, 0.45, growth='0.3 + Particles.NormalizedAge*0.7', power=0.35),
+    shed('Vents', 'M_TD_VFX_Spark', 0, (0.3, 0.7), (6, 12), (900, 2600), k=1.5, radius=2400.0, drag=1.6, stretch=12, cone=((1.0, 0.0, 0.0), 30.0), burst=30, dur=1.0)])
+
+# ---- round 9 (ART-16): the escape. Slots wanted from T5 (DA_ReactorCore_FX): EscapeRunLoop, attached to the on-foot pawn
+# for the 90 s run (+X = the pawn's facing); EscapeFlightLoop, attached to the flown ship's root for the escape flight
+# (+X = the nose). Both read User.Intensity 0..1 (default 1) for the code to ramp the collapse up. Only spawning emitters.
+ESC = '(User.Intensity)'
+S2('NS_TD_Escape_RunLoop', U((1.0, 0.55, 0.22, 1.0), 1.0, Intensity=1.0), [
+    # a rain of sparks from the ceiling, ahead of and around the runner
+    offset(shed('SparkRain', 'M_TD_VFX_Spark', 0, (0.5, 1.1), (2.5, 5.0), (600, 1500), k=1.8, radius=1400.0, drag=0.4, local=False, stretch=16,
+                cone=((0.0, 0.0, -1.0), 14.0), rate_expr='70.0*' + ESC, fade_in=6.0), 700, 0, 900),
+    # embers drifting through the corridor
+    offset(shed('Embers', 'M_TD_VFX_Glow', 0, (0.8, 1.8), (4, 10), (40, 220), k=1.4, radius=1200.0, drag=0.6, curl=700.0, local=False,
+                rate_expr='45.0*' + ESC, power=1.6, fade_in=4.0), 500, 0, 200),
+    # dark falling debris streaks
+    offset(shed('Debris', 'M_TD_VFX_Smoke', 0, (0.5, 0.9), (8, 18), (700, 1600), radius=1300.0, drag=0.2, local=False, stretch=6, rgb=(0.06, 0.05, 0.05), alpha=0.9,
+                cone=((0.0, 0.0, -1.0), 10.0), rate_expr='22.0*' + ESC, power=0.6, fade_in=6.0), 600, 0, 900),
+    # hot smoke haze rolling along the corridor
+    offset(spin(shed('Haze', 'M_TD_VFX_SmokeRim', 0, (2.0, 3.4), (300, 620), (60, 260), radius=900.0, drag=0.8, curl=200.0, local=False, rgb=(0.36, 0.30, 0.28), alpha=0.35,
+                     rate_expr='3.0*' + ESC, power=0.8, fade_in=5.0, growth='0.7 + Particles.NormalizedAge*0.8', sort=True)), 900, 0, 150)])
+S2('NS_TD_Escape_FlightLoop', U((1.0, 0.50, 0.18, 1.0), 1.0, Intensity=1.0), [
+    # burning wreckage streaming past the cockpit: born far ahead, flying back past the ship
+    offset(spin(shed('Fire', 'M_TD_VFX_Fireball', 0, (0.5, 0.9), (260, 620), (9000, 15000), radius=3000.0, drag=0.0, curl=900.0, local=True, rgb=(1.0, 0.62, 0.34),
+                     cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='14.0*' + ESC, growth='0.6 + Particles.NormalizedAge*1.4')), 4000),
+    offset(shed('Embers', 'M_TD_VFX_Spark', 0, (0.3, 0.6), (8, 16), (10000, 18000), k=1.7, radius=3200.0, drag=0.0, local=True, stretch=16,
+                cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='110.0*' + ESC, fade_in=6.0), 4000),
+    offset(shed('Ash', 'M_TD_VFX_Smoke', 0, (0.35, 0.6), (16, 34), (9000, 15000), radius=3200.0, drag=0.0, local=True, stretch=6, rgb=(0.05, 0.04, 0.04), alpha=0.9,
+                cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='60.0*' + ESC, power=0.6, fade_in=6.0), 4000),
+    offset(spin(shed('Smoke', 'M_TD_VFX_SmokeRim', 0, (0.6, 1.1), (600, 1200), (8000, 13000), radius=3600.0, drag=0.0, local=True, rgb=(0.30, 0.26, 0.24), alpha=0.5,
+                     cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='6.0*' + ESC, power=0.8, fade_in=5.0, growth='0.8 + Particles.NormalizedAge*1.2', sort=True)), 4500)])
+
 # ============================================================================================= planetary descent (ENG-38, round 6)
 # Grok Bot's descent textures (ArtSource/EngAI/Descent). Everything is attached at the ship's origin, +X forward.
 # User.Intensity (0..1, default 1) is for T1's entry curve; until code sets it the systems ramp themselves in over

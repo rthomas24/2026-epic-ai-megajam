@@ -531,7 +531,17 @@ def explosion_cheap(final=False):
 
 # Dominion break-up (fields arrive with T4's commit): HullSectionExplosion is authored for a 50 m radius (gameplay scales
 # 0.5x-1.7x, about 20 in a chain); BreakupFinalBlast for a 500 m radius. At Scale 1 the blast sprite has a 9 m radius.
-S('NS_TD_Explosion_HullSection', U(FIRE, 5.5), explosion_cheap())
+# Round 9 (ART-16, T4's chain): the hull sections burst every 0.45 s down to 0.12 s over 6.5 s at random points of the hull,
+# 25-70 m radius (scale = VFXScale x radius / 50 m). Trailer quality: the cheap six plus tumbling hull debris, two
+# secondary flashes off-centre, and burning trails thrown out (spark trails). 11 emitters: build in chunks.
+def explosion_hull():
+    return explosion_cheap() + [
+        chunks('Debris', 'SM_TD_VFX_Shard_B', 10, (1.4, 2.6), (0.5, 1.2), (900, 3400), radius=120.0, spin=(0.6, 2.4)),
+        offset(flash('Second', 'M_TD_VFX_Glow', 1100, 0.18, 1.0, growth='0.5 + Particles.NormalizedAge*0.8', delay=0.25), 180, 120, 60),
+        offset(flash('Third', 'M_TD_VFX_Flare', 900, 0.12, 1.2, growth='0.5 + Particles.NormalizedAge', delay=0.5), -150, -90, 100)] +         spark_trails(10, (2000, 7000), life=1.2, size=(20, 34), trail_life=0.7)
+
+
+S('NS_TD_Explosion_HullSection', U(FIRE, 5.5), explosion_hull())
 # Round 8: the final blast's screen contribution is capped: closer to the camera than about 1.2x its authored size, every
 # sprite (and speed) shrinks with the distance, so the 1 km blast never fills the whole view with white.
 _SCL_STD = SCL
