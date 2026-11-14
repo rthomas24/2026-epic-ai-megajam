@@ -1,10 +1,10 @@
 {
   "asset": "SM_KS_Hulk_Fore",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_Hulk_Fore.fbx",
-  "tris": 1578,
+  "tris": 3094,
   "size_cm": [
-    7200.0,
-    2408.0,
+    7302.8,
+    2537.1,
     2416.0
   ],
   "pivot": "root object origin (SM_KS_Hulk_Fore~exp)",
