@@ -1,0 +1,257 @@
+[
+ {
+  "asset": "SM_Hut_Verdance_Dome",
+  "size_cm": [
+   320,
+   320,
+   236
+  ],
+  "tris": 4708,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Glow",
+   "2:Light"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_Fence",
+  "size_cm": [
+   410,
+   10,
+   140
+  ],
+  "tris": 840,
+  "hulls": 1,
+  "slots": [
+   "0:Trim"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_Generator",
+  "size_cm": [
+   491,
+   110,
+   160
+  ],
+  "tris": 1200,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_Lab",
+  "size_cm": [
+   790,
+   420,
+   728
+  ],
+  "tris": 7234,
+  "hulls": 2,
+  "slots": [
+   "0:Trim",
+   "1:Glow",
+   "2:Light"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_Mast",
+  "size_cm": [
+   160,
+   246,
+   630
+  ],
+  "tris": 948,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Beacon",
+   "2:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_Prefab",
+  "size_cm": [
+   505,
+   430,
+   350
+  ],
+  "tris": 3908,
+  "hulls": 2,
+  "slots": [
+   "0:Trim",
+   "1:Glow",
+   "2:Light"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_Supplies",
+  "size_cm": [
+   340,
+   240,
+   232
+  ],
+  "tris": 1730,
+  "hulls": 1,
+  "slots": [
+   "0:Trim"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_Walkway",
+  "size_cm": [
+   400,
+   150,
+   17
+  ],
+  "tris": 274,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Verdance_WaterTank",
+  "size_cm": [
+   249,
+   240,
+   471
+  ],
+  "tris": 2988,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Cinder_DrillRig",
+  "size_cm": [
+   500,
+   500,
+   864
+  ],
+  "tris": 4736,
+  "hulls": 5,
+  "slots": [
+   "0:Trim",
+   "1:Beacon",
+   "2:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Cinder_FloodMast",
+  "size_cm": [
+   120,
+   200,
+   700
+  ],
+  "tris": 816,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Light"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Cinder_Generator",
+  "size_cm": [
+   491,
+   110,
+   160
+  ],
+  "tris": 1200,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Cinder_OreHopper",
+  "size_cm": [
+   410,
+   408,
+   500
+  ],
+  "tris": 856,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Cinder_PipeRun",
+  "size_cm": [
+   600,
+   120,
+   100
+  ],
+  "tris": 1080,
+  "hulls": 1,
+  "slots": [
+   "0:Trim"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Cinder_PumpHouse",
+  "size_cm": [
+   326,
+   668,
+   400
+  ],
+  "tris": 1920,
+  "hulls": 3,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Cinder_Shack",
+  "size_cm": [
+   410,
+   410,
+   262
+  ],
+  "tris": 3228,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Glow",
+   "2:Light"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Cinder_Supplies",
+  "size_cm": [
+   340,
+   240,
+   232
+  ],
+  "tris": 1730,
+  "hulls": 1,
+  "slots": [
+   "0:Trim"
+  ]
+ },
+ {
+  "asset": "SM_Hut_Cinder_Workshop",
+  "size_cm": [
+   632,
+   420,
+   390
+  ],
+  "tris": 6576,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Glow",
+   "2:Light"
+  ]
+ }
+]

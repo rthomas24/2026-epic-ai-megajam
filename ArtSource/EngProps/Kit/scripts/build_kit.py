@@ -25,6 +25,7 @@ sys.path.insert(0, HERE)
 import kit_lib  # noqa: E402
 import kit_pieces  # noqa: E402
 import kit_pieces_bridge  # noqa: E402
+import kit_pieces_huts  # noqa: E402
 import kit_pieces_d  # noqa: E402
 import kit_pieces_space  # noqa: E402
 import kit_pieces_story  # noqa: E402
@@ -139,7 +140,7 @@ def make_materials(glow=GLOW_TEAL):
                 nd.image = bpy.data.images.load(os.path.join(TEX, nd.image.name.replace("T_Kit_Trim", "T_KitS_Trim")), check_existing=True)
                 nd.image.colorspace_settings.name = "sRGB" if "_BC" in nd.image.name else "Non-Color"
         mats["Stone"] = st
-    for key, col, strength in (("Glow", glow, 6.0), ("Screen", (0.06, 0.4, 0.45), 1.5), ("Light", (0.9, 0.95, 1.0), 8.0),
+    for key, col, strength in (("Glow", glow, 6.0), ("Screen", (0.06, 0.4, 0.45), 1.5), ("Light", (1.0, 0.72, 0.42) if SET == "huts" else (0.9, 0.95, 1.0), 8.0),
                                ("Beacon", glow, 20.0), ("Pillar", glow, 3.0), ("Decal", (1.0, 0.45, 0.1), 0.5), ("Route", (1.0, 0.05, 0.03), 0.5),
                                ("Eye", (1.0, 1.0, 1.0), 12.0), ("Breach", (0.2, 0.5, 1.0), 6.0), ("Run", (1.0, 0.2, 0.15), 6.0),
                                ("Flicker", (1.0, 0.72, 0.42), 4.0), ("Work", (1.0, 0.9, 0.7), 8.0),
@@ -166,7 +167,7 @@ def build_all():
     rows, objs, pieces = [], {}, {}
     for fn in {"dominion": kit_pieces_d.BUILDERS, "space": kit_pieces_space.BUILDERS, "story": kit_pieces_story.BUILDERS,
                 "region": kit_pieces_region.BUILDERS,
-                "gear": kit_pieces_gear.BUILDERS, "bridge": kit_pieces_bridge.BUILDERS}.get(SET, kit_pieces.BUILDERS):
+                "gear": kit_pieces_gear.BUILDERS, "bridge": kit_pieces_bridge.BUILDERS, "huts": kit_pieces_huts.BUILDERS}.get(SET, kit_pieces.BUILDERS):
         p = fn()
         if ONLY and p.name not in ONLY:
             continue
@@ -512,7 +513,7 @@ def main():
     ap.add_argument("--tag", default="r0")
     ap.add_argument("--render", action="store_true")
     ap.add_argument("--export", action="store_true")
-    ap.add_argument("--set", default="planet", choices=("planet", "dominion", "space", "story", "region", "gear", "bridge"))
+    ap.add_argument("--set", default="planet", choices=("planet", "dominion", "space", "story", "region", "gear", "bridge", "huts"))
     ap.add_argument("--only", default="")
     a = ap.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     global SET, EXPORT, ONLY
@@ -524,6 +525,9 @@ def main():
     elif SET == "region":
         EXPORT = os.path.join(KIT, "export_region")
         a.tag = "R_" + a.tag
+    elif SET == "huts":                          # #194 camp buildings (planet trim), their own export
+        EXPORT = os.path.join(KIT, "export_huts")
+        a.tag = "H_" + a.tag
     elif SET == "bridge":                       # walkable crossings (planet trim), their own export so the planet kit is untouched
         EXPORT = os.path.join(KIT, "export_bridge")
         a.tag = "B_" + a.tag
@@ -568,7 +572,7 @@ def main():
             o.location = (0, x + w / 2, 0)
             x += w + 1.0
         if not ONLY:
-            bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, {"dominion": "KitDominion.blend", "space": "KitSpace.blend", "story": "KitStory.blend", "region": "KitRegion.blend", "gear": "KitGear.blend", "bridge": "KitBridge.blend"}.get(SET, "Kit.blend")), compress=True)
+            bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, {"dominion": "KitDominion.blend", "space": "KitSpace.blend", "story": "KitStory.blend", "region": "KitRegion.blend", "gear": "KitGear.blend", "bridge": "KitBridge.blend", "huts": "KitHuts.blend"}.get(SET, "Kit.blend")), compress=True)
     print("__RESULT__ done")
 
 
