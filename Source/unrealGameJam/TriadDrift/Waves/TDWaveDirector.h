@@ -299,6 +299,10 @@ public:
 	/** The corridor marker (tags TD.Objective.Marker and TD.Tutorial.Escape) while the withdrawal is on. */
 	AActor* GetEscapeMarker() const { return EscapeMarker.Get(); }
 	AActor* GetHeavyContact() const { return HeavyContact.Get(); }
+	AActor* GetJumpPoint() const { return JumpPointMarker.Get(); }
+	/** The JUMP POINT sits this far (cm) past the escape line, on its bearing. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float JumpPointPastLine = 30000.f;
 	/** Spawn points re-picked because they fell inside an obstacle, and those pushed out as a last resort (tests). */
 	int32 GetSpawnPointRetries() const { return SpawnPointRetries; }
 	int32 GetSpawnPointsPushedOut() const { return SpawnPointsPushedOut; }
@@ -347,6 +351,12 @@ protected:
 
 	UFUNCTION()
 	void HandleGamePhaseChanged(ETDGamePhase Phase);
+
+	UFUNCTION()
+	void HandleHyperdriveState(ETDHyperdriveState NewState);
+	void ClearJumpPoint();
+	/** The tutorial's JUMP POINT waypoint (TD.Objective.Marker, TD.Tutorial.JumpPoint) after the crossing. */
+	TWeakObjectPtr<AActor> JumpPointMarker;
 
 public:
 	// ENG-40 with T3's UTDTutorialPhases (agreed Nov 14): the lessons gate the pressure.

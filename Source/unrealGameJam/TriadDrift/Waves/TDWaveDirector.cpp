@@ -257,6 +257,7 @@ void ATDWaveDirector::BeginPlay()
 	{
 		Bus->OnTakeStarted.AddUniqueDynamic(this, &ATDWaveDirector::HandleTakeStarted);
 		Bus->OnPhaseChanged.AddUniqueDynamic(this, &ATDWaveDirector::HandleGamePhaseChanged);
+		Bus->OnHyperdriveState.AddUniqueDynamic(this, &ATDWaveDirector::HandleHyperdriveState);
 		Bus->OnSceneCut.AddUniqueDynamic(this, &ATDWaveDirector::HandleSceneCut);
 	}
 
@@ -273,6 +274,7 @@ void ATDWaveDirector::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		Bus->OnTakeStarted.RemoveDynamic(this, &ATDWaveDirector::HandleTakeStarted);
 		Bus->OnSceneCut.RemoveDynamic(this, &ATDWaveDirector::HandleSceneCut);
 		Bus->OnPhaseChanged.RemoveDynamic(this, &ATDWaveDirector::HandleGamePhaseChanged);
+		Bus->OnHyperdriveState.RemoveDynamic(this, &ATDWaveDirector::HandleHyperdriveState);
 	}
 	SetSquadBoundaryRelease(false);	// never leave the edge off
 	for (const TWeakObjectPtr<AActor>& Weak : Living)
@@ -1233,6 +1235,7 @@ void ATDWaveDirector::ResetTutorial()
 	HeldPursuers.Reset();
 	if (AActor* M = EscapeMarker.Get()) { M->Destroy(); }
 	EscapeMarker.Reset();
+	ClearJumpPoint();
 	TutorialPhase = ETDTutorialPhase::Battle;
 	bIncomingSaid = false;
 	PickedSpawnPoints.Reset();
@@ -1315,6 +1318,24 @@ void ATDWaveDirector::CompleteEscape()
 	if (AActor* M = EscapeMarker.Get()) { M->Destroy(); }
 	EscapeMarker.Reset();
 	HeldPursuers.Reset();
+	// The beat ends with the hyperdrive jump, not a flight into the planet (T7, Lead, Nov 14): a JUMP POINT waypoint
+	// 300 m past the line on the same bearing; Verdance's atmosphere is still 1.2-2.1 km beyond it.
+	if (UWorld* World = GetWorld())
+	{
+		FActorSpawnParameters P;
+		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		const FVector At = EscapePoint + EscapeNormal * JumpPointPastLine;
+		if (AActor* M = World->SpawnActor<AActor>(AActor::StaticClass(), FTransform(EscapeNormal.Rotation(), At), P))
+		{
+			USceneComponent* Root = NewObject<USceneComponent>(M, TEXT("Root"));
+			M->SetRootComponent(Root);
+			Root->RegisterComponent();
+			M->SetActorLocationAndRotation(At, EscapeNormal.Rotation());
+			M->Tags.Add(TDTags::ObjectiveMarker);
+			M->Tags.Add(TEXT("TD.Tutorial.JumpPoint"));
+			JumpPointMarker = M;
+		}
+	}
 	UTDStorySubsystem::Fire(this, TEXT("TB_Kato_BreakingOff"));
 	UTDStorySubsystem::Fire(this, TEXT("TB_Escaped"));
 	OnTutorialEscaped.Broadcast();
@@ -1405,7 +1426,22 @@ void ATDWaveDirector::SetSquadBoundaryRelease(bool bRelease)
 
 void ATDWaveDirector::HandleGamePhaseChanged(ETDGamePhase Phase)
 {
-	if (Phase != ETDGamePhase::Waves1to2) { SetSquadBoundaryRelease(false); }	// the jump to Verdance ends the corridor
+	if (Phase != ETDGamePhase::Waves1to2)
+	{
+		SetSquadBoundaryRelease(false);	// the jump to Verdance ends the corridor
+		ClearJumpPoint();
+	}
+}
+
+void ATDWaveDirector::HandleHyperdriveState(ETDHyperdriveState NewState)
+{
+	if (NewState == ETDHyperdriveState::Jumping) { ClearJumpPoint(); }
+}
+
+void ATDWaveDirector::ClearJumpPoint()
+{
+	if (AActor* M = JumpPointMarker.Get()) { M->Destroy(); }
+	JumpPointMarker.Reset();
 }
 
 void ATDWaveDirector::TickTutorial(float DeltaSeconds)

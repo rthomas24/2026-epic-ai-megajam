@@ -510,6 +510,16 @@ bool FTDWavesTutorialGunshipAlive::RunTest(const FString& Parameters)
 	TestEqual(TEXT("escaped with the gunship alive"), (int32)D->GetTutorialPhase(), (int32)ETDTutorialPhase::Escaped);
 	TestTrue(TEXT("wave 2 cleared"), GI->ReportedWaves.Contains(2));
 	TestEqual(TEXT("the rest stood down"), D->GetEnemiesAlive(), 0);
+	// The JUMP POINT: 300 m past the line on its bearing, an objective marker, until the hyperdrive jump.
+	const AActor* Jump = D->GetJumpPoint();
+	if (TestNotNull(TEXT("a JUMP POINT waypoint after the crossing"), Jump))
+	{
+		TestTrue(TEXT("an objective marker tagged TD.Tutorial.JumpPoint"), Jump->ActorHasTag(TDTags::ObjectiveMarker) && Jump->ActorHasTag(TEXT("TD.Tutorial.JumpPoint")));
+		TestTrue(*FString::Printf(TEXT("300 m past the line (%.0f m)"), FVector::DotProduct(Jump->GetActorLocation() - P, N) / 100.f),
+			FMath::IsNearlyEqual((float)FVector::DotProduct(Jump->GetActorLocation() - P, N), D->JumpPointPastLine, 100.f));
+	}
+	if (UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld())) { Bus->OnHyperdriveState.Broadcast(ETDHyperdriveState::Jumping); }
+	TestNull(TEXT("gone at the hyperdrive jump"), D->GetJumpPoint());
 	return true;
 }
 
