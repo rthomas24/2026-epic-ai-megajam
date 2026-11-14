@@ -414,17 +414,16 @@ PDIST = 'clamp(Engine.Owner.LODDistance/5000.0, 1.0, 6.0)'   # 1 up to 50 m, 6 a
 
 
 def plume_beacon(name, size, k, rate=40.0, life=(0.08, 0.12), flicker=True, pulse=None, y=0.0, z=0.0, rgb=None):
-    """Camera-facing glow, re-spawned all the time. 10b (captured from behind: at 60-300 m the plumes were a few pixels):
-    an ABSOLUTE size, 1.5 m + 2% of the camera distance up to 800 m (about 1.4 degrees at 300 m), times the type factor
-    `size`; the cue's VFXScale is cancelled, so a carrier's beacon is not five times a fighter's. The type reads at range
-    by count, flicker and pulse (fighter 1 flickering, interceptor 2 steady, gunship 1 big, bomber 1 throbbing,
-    carrier 4 steady)."""
-    # 10c (seen from behind against the nebula: still faint): 1.6x bigger and 2.5x brighter
-    s = '(240.0 + 0.032*clamp(Engine.Owner.LODDistance, 0.0, 80000.0))*%s/max(%s, 0.05)' % (size, SCL) + ('*%s' % pulse if pulse else '')
-    rgb = tuple(c * 8.0 for c in rgb) if rgb else rgb   # 10d: additive glows vanish against the HDR nebula: x8 (was x2.5)
-    lo, hi = ('(%s)*0.85' % s, '(%s)*1.10' % s) if flicker else ('(%s)' % s, '(%s)' % s)
-    return offset(shed(name, 'M_TD_VFX_Glow', 0, life, (lo, hi), (0, 0), k=k, radius=0.0, drag=0.0, local=True, power=0.6,
-                       rate_expr='%s*(0.5 + 0.5*User.Throttle + User.Boost)' % rate, rgb=rgb), -20.0, y, z)
+    """Camera-facing range glow. 10e (Engine.Owner.LODDistance read 0 for these systems, so a size grown with it never
+    grew): a FIXED sprite (15.2 m x the type factor `size`, the cue's VFXScale cancelled) drawn with MI_TD_VFX_RangeGlow_Plume,
+    whose material keeps the glow about 1.1 degrees across at any distance up to 800 m. The type reads at range by count,
+    flicker and pulse (fighter 1 flickering, interceptor 2 steady, gunship 1 large, bomber 1 throbbing, carrier 4 steady);
+    flicker and pulse are in the particle alpha, which the material multiplies."""
+    s = '1520.0*%s/max(%s, 0.05)' % (size, SCL)
+    a = pulse if pulse else ('(0.80 + 0.35*frac(sin(Engine.Time*37.3)*43758.5))' if flicker else '1.0')
+    rgb = tuple(c * 8.0 for c in rgb) if rgb else rgb   # 10d: additive glows vanish against the HDR nebula
+    return offset(shed(name, 'MI_TD_VFX_RangeGlow_Plume', 0, life, (s, s), (0, 0), k=k, radius=0.0, drag=0.0, local=True, power=0.01,
+                       rate_expr='%s*(0.5 + 0.5*User.Throttle + User.Boost)' % rate, rgb=rgb, alpha=a), -20.0, y, z)
 
 
 def plume_flame(name, lm, wm, k, flk=61.3, y=0.0, z=0.0, live=None):

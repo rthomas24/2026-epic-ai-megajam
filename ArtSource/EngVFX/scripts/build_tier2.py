@@ -141,7 +141,10 @@ def row_light(i, n=12, length=40000.0):
 S2('NS_TD_Dominion_TractorBeam', U((0.35, 0.65, 1.0, 1.0), 1.0, Length=20000.0, Intensity=1.0), [
     # 10d: the flame-mesh cone read as a white exhaust jet; the beam is now a column of big soft blue glows streaming from
     # the ship's end into the bay (reads as a pull), the motes, and the glow in the mouth.
-    offset(shed('Stream', 'M_TD_VFX_Glow', 0, (2.5, 4.0), (1400, 2600), (3500, 5000), k=1.6, radius=600.0, drag=0.0, local=True,
+    # 10e: the column itself (the tapered flame mesh with the rim-lit field material: a soft blue tube, no white core)
+    mesh_single('Column', 'SM_TD_VFX_Flame', 'M_TD_VFX_Field', '1.0, 30.0, 30.0', 1.2, None,
+                live_scale='float3(User.Length/(100.0*User.Scale), 1.0, 1.0)*User.Intensity'),
+    offset(shed('Stream', 'M_TD_VFX_Glow', 0, (2.5, 4.0), (1400, 2600), (3500, 5000), k=4.0, radius=600.0, drag=0.0, local=True,
                 cone=((-1.0, 0.0, 0.0), 2.0), rate_expr='40.0*User.Intensity', power=0.7, fade_in=5.0), 'User.Length/User.Scale'),
     offset(shed('Motes', 'M_TD_VFX_Glow', 0, (1.2, 2.4), (60, 140), (4000, 7000), k=1.4, radius=900.0, drag=0.0, local=True, stretch=None,
                 cone=((-1.0, 0.0, 0.0), 6.0), rate_expr='70.0*User.Intensity', power=0.8, fade_in=4.0), 'User.Length/User.Scale'),
@@ -189,8 +192,9 @@ S2('NS_TD_Magma_Heat', U((1.0, 0.42, 0.08, 1.0), 1.0, SizeX=800.0, SizeY=800.0, 
     # 10d (captured on foot at 5 and 20 m: off and on looked identical against the bright lava): 3-4x larger, HDR-bright
     shed('Embers', 'M_TD_VFX_Glow', 0, (1.2, 2.6), (20, 45), (80, 260), k=2.2, radius=MRAD, drag=0.4, curl=90.0, local=True,
          rgb=(9.0, 3.6, 0.6), cone=((0.0, 0.0, 1.0), 25.0), rate_expr=magma_rate(0.25, 6.0, 70.0), power=1.4, fade_in=6.0),
-    with_gravity(shed('Spatter', 'M_TD_VFX_Spark', 0, (0.6, 1.0), (40, 80), (450, 900), k=2.6, radius=MRAD, drag=0.1, local=True, stretch=4,
-                      rgb=(12.0, 5.0, 0.8), cone=((0.0, 0.0, 1.0), 30.0), rate_expr=magma_rate(0.06, 3.0, 24.0), power=0.8)),
+    # 10e (Lead: at 5 m the streaks crossed the whole view): size and count about 40% down, still arcs at 20 m
+    with_gravity(shed('Spatter', 'M_TD_VFX_Spark', 0, (0.6, 1.0), (24, 48), (450, 900), k=2.6, radius=MRAD, drag=0.1, local=True, stretch=4,
+                      rgb=(12.0, 5.0, 0.8), cone=((0.0, 0.0, 1.0), 30.0), rate_expr=magma_rate(0.036, 2.0, 14.0), power=0.8)),
     shed('Shimmer', 'M_TD_VFX_Fire', 0, (0.8, 1.4), (90, 180), (60, 140), k=0.35, radius=MRAD, drag=0.6, local=True,
          cone=((0.0, 0.0, 1.0), 10.0), growth='0.6 + Particles.NormalizedAge*0.8', rate_expr=magma_rate(0.02, 2.0, 12.0), power=1.0, fade_in=4.0)])
 
@@ -200,10 +204,10 @@ S2('NS_TD_Magma_Heat', U((1.0, 0.42, 0.08, 1.0), 1.0, SizeX=800.0, SizeY=800.0, 
 # and brightness. User.Color per region: Watchline amber (1.0, 0.62, 0.18), Quiet Graveyard (0.70, 0.85, 1.0), Survey
 # Scar Null red (1.0, 0.10, 0.04), Shattered Moons ember orange (1.0, 0.38, 0.08).
 BPULSE = '(0.80 + 0.20*sin(Engine.Time*2.5133))'
-BSIZE = '(0.028*clamp(Engine.Owner.LODDistance, 30000.0, 300000.0)*%s)' % BPULSE
+BSIZE = '4200.0'   # 10e: fixed; MI_TD_VFX_RangeGlow_Beacon keeps the disc 0.8 degrees across up to 3 km (LODDistance read 0)
 S2('NS_TD_Region_Beacon', U((1.0, 0.62, 0.18, 1.0), 1.0), [
-    shed('Beacon', 'M_TD_VFX_Glow', 0, (0.1, 0.1), (BSIZE, BSIZE), (0, 0), radius=0.0, drag=0.0, local=True, power=0.01,   # 10c: Glow (M_TD_VFX_Beacon never showed)
-         k=12.0, rate_expr='20.0')])   # 10d: k 12 (an additive glow at k 2.5 vanished against the nebula), rate 20   # 10b: User.Color via the standard colour (the per-channel expression did not render)
+    shed('Beacon', 'MI_TD_VFX_RangeGlow_Beacon', 0, (0.1, 0.1), (BSIZE, BSIZE), (0, 0), radius=0.0, drag=0.0, local=True, power=0.01,
+         k=10.0, alpha=BPULSE, rate_expr='20.0')])   # 10e: the 0.4 Hz pulse is in the alpha (the material multiplies it)
 
 # Slot: none yet (code hook wanted: T3's transmissions, the escape sequence, a hit of "static"). A one-shot, camera-facing
 # tear of chromatic bars, 0.3 s; spawn it attached in front of the camera (authored 12 m wide) or at a world point.
