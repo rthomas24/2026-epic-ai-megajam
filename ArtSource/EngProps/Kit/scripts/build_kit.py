@@ -28,6 +28,7 @@ import kit_pieces_d  # noqa: E402
 import kit_pieces_space  # noqa: E402
 import kit_pieces_story  # noqa: E402
 import kit_pieces_region  # noqa: E402
+import kit_pieces_gear  # noqa: E402
 
 SET = "planet"          # --set dominion: the Dominion shell (kit_pieces_d), T_KitD_Trim, red strips
 
@@ -75,6 +76,11 @@ def make_materials(glow=GLOW_TEAL):
     nt.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
     m.use_backface_culling = True
     mats["Trim"] = m
+    if SET == "gear":
+        for key, col in (("Accent", (0.9, 0.9, 0.9)), ("Pad", (0.02, 0.02, 0.025))):
+            g_ = bpy.data.materials.new("M_Kit_" + key)
+            next(n for n in g_.node_tree.nodes if n.type == "BSDF_PRINCIPLED").inputs["Base Color"].default_value = (col[0], col[1], col[2], 1.0)
+            mats[key] = g_
     if SET == "story":
         dm = m.copy()
         dm.name = "M_Kit_Dom"
@@ -86,7 +92,7 @@ def make_materials(glow=GLOW_TEAL):
         wm = m.copy()
         wm.name = "M_Kit_Worn"
         mats["Worn"] = wm
-        for key, col in (("Canopy", (0.42, 0.38, 0.28)), ("Flag", (0.9, 0.35, 0.05)), ("Decal", (0.05, 0.04, 0.03)), ("Decal2", (0.02, 0.02, 0.02)), ("Pool", (1.0, 0.7, 0.35)), ("Insignia", (0.6, 0.6, 0.6))):
+        for key, col in (("Canopy", (0.42, 0.5, 0.5)), ("CanopyStripe", (0.1, 0.7, 0.85)), ("Flag", (0.9, 0.35, 0.05)), ("Decal", (0.05, 0.04, 0.03)), ("Decal2", (0.02, 0.02, 0.02)), ("Pool", (1.0, 0.7, 0.35)), ("Insignia", (0.6, 0.6, 0.6))):
             c_ = bpy.data.materials.new("M_Kit_" + key)
             b_ = next(n for n in c_.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
             b_.inputs["Base Color"].default_value = (col[0], col[1], col[2], 1.0)
@@ -157,7 +163,8 @@ def build_all():
     mats = make_materials()
     rows, objs, pieces = [], {}, {}
     for fn in {"dominion": kit_pieces_d.BUILDERS, "space": kit_pieces_space.BUILDERS, "story": kit_pieces_story.BUILDERS,
-                "region": kit_pieces_region.BUILDERS}.get(SET, kit_pieces.BUILDERS):
+                "region": kit_pieces_region.BUILDERS,
+                "gear": kit_pieces_gear.BUILDERS}.get(SET, kit_pieces.BUILDERS):
         p = fn()
         lo, hi = p.bounds()
         size = tuple(round(hi[i] - lo[i], 2) for i in range(3))
@@ -168,6 +175,13 @@ def build_all():
         else:
             kit_lib.finish(obj, clamp=p.name not in getattr(kit_pieces_d, "NO_CLAMP", ()))
         clamped = kit_lib.bake_and_clamp(obj, lo, hi)
+        for sname, (sx, sy, sz) in getattr(p, "sockets", []):          # SOCKET_* empties (blender-unreal-export)
+            e = bpy.data.objects.new("SOCKET_" + sname, None)
+            coll.objects.link(e)
+            e.parent = obj
+            e.location = (sx * 0.01, -sy * 0.01, sz * 0.01)
+        if getattr(p, "meta", None):
+            print("META", p.name, json.dumps(p.meta))
         objs[p.name], pieces[p.name] = obj, p
         dg = bpy.context.evaluated_depsgraph_get()
         ev = obj.evaluated_get(dg)
@@ -295,7 +309,7 @@ def contact_sheet(objs, tag, clay, cell=420, cols=5):
     for i, a in enumerate(cells):
         r, cc = divmod(i, cols)
         sheet[r * cell:(r + 1) * cell, cc * cell:(cc + 1) * cell] = a
-    out = os.path.join(REVIEW, "kit%s_%s_%s.png" % ({"dominion": "D", "space": "S", "story": "P", "region": "R"}.get(SET, ""), tag, "clay" if clay else "material"))
+    out = os.path.join(REVIEW, "kit%s_%s_%s.png" % ({"dominion": "D", "space": "S", "story": "P", "region": "R", "gear": "G"}.get(SET, ""), tag, "clay" if clay else "material"))
     save_px(sheet, out)
     if os.path.exists(tmp):
         os.remove(tmp)
@@ -494,7 +508,7 @@ def main():
     ap.add_argument("--tag", default="r0")
     ap.add_argument("--render", action="store_true")
     ap.add_argument("--export", action="store_true")
-    ap.add_argument("--set", default="planet", choices=("planet", "dominion", "space", "story", "region"))
+    ap.add_argument("--set", default="planet", choices=("planet", "dominion", "space", "story", "region", "gear"))
     a = ap.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     global SET, EXPORT
     SET = a.set
@@ -504,6 +518,9 @@ def main():
     elif SET == "region":
         EXPORT = os.path.join(KIT, "export_region")
         a.tag = "R_" + a.tag
+    elif SET == "gear":
+        EXPORT = os.path.join(KIT, "export_gear")
+        a.tag = "G_" + a.tag
     elif SET == "space":
         EXPORT = os.path.join(KIT, "export_space")
         a.tag = "S_" + a.tag
@@ -531,7 +548,7 @@ def main():
         os.makedirs(EXPORT, exist_ok=True)
         for name in objs:
             try:
-                r = ex(root=name, out_dir=EXPORT, front_axis="+X", collision="auto" if name not in kit_pieces.NO_COLLISION + kit_pieces_story.NO_COLLISION else "none")
+                r = ex(root=name, out_dir=EXPORT, front_axis="+X", collision="auto" if name not in kit_pieces.NO_COLLISION + kit_pieces_story.NO_COLLISION + kit_pieces_gear.NO_COLLISION else "none")
             except AttributeError:
                 with open(os.path.join(EXPORT, name + ".manifest.json")) as fh:
                     r = json.load(fh)
@@ -541,7 +558,7 @@ def main():
             w = o.dimensions.y
             o.location = (0, x + w / 2, 0)
             x += w + 1.0
-        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, {"dominion": "KitDominion.blend", "space": "KitSpace.blend", "story": "KitStory.blend", "region": "KitRegion.blend"}.get(SET, "Kit.blend")), compress=True)
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, {"dominion": "KitDominion.blend", "space": "KitSpace.blend", "story": "KitStory.blend", "region": "KitRegion.blend", "gear": "KitGear.blend"}.get(SET, "Kit.blend")), compress=True)
     print("__RESULT__ done")
 
 
