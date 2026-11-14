@@ -2648,7 +2648,13 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 
 	// ---- squad strip, bottom-left of the safe frame, order 1 2 3
 	const float Pulse1Hz = .75f + .25f * FMath::Sin(Time * 2.f * PI);
-	if (View.bSquadPanel)
+	// The squad panel and the radar leave with the combat HUD: while docking (controls locked), under a focus hold that
+	// hides combat (director shots, letterboxed sequences, T4's breakup camera), and they fade out with a money shot.
+	const float PanelAlpha = (View.Docking > 0 || View.bCombatHeld) ? 0.f : 1.f - FMath::Clamp(View.MoneyShot * 2.f, 0.f, 1.f);
+	FPaint PanelP = P;
+	PanelP.Alpha *= PanelAlpha;
+	const bool bPanelShown = View.bSquadPanel && PanelP.Alpha > .01f;
+	if (bPanelShown)
 	{
 		float Left = 1e9f, Top = 1e9f, Right = 0.f;
 		static const FString PadAbilityKey(TEXT("Y")), KeyAbilityKey(TEXT("E"));
@@ -2658,7 +2664,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			const FSquadCard& Card = View.Cards[static_cast<int32>(Chip.Ship)];
 			if (Card.bValid)
 			{
-				SquadCard(P, Card, View.PanelK, View.PanelFont, Time, View.PowerGlyph, AbilityKey);
+				SquadCard(PanelP, Card, View.PanelK, View.PanelFont, Time, View.PowerGlyph, AbilityKey);
 				Rec(TEXT("chip"), Card.Pos.X, Card.Pos.Y, Card.Size.X, Card.Size.Y);
 				Area += Card.Size.X * Card.Size.Y;
 				Left = FMath::Min(Left, float(Card.Pos.X));
@@ -2673,10 +2679,10 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	}
 #if __has_include("TriadDrift/UI/TDHUDRadarPaint.h")
 	// T6's radar (#160): bottom-right, from the HUD model.
-	if (View.bSquadPanel)
+	if (bPanelShown)
 	{
-		TDPaintHUDRadar(P, HUDModel, FTDHUDRadarInput{ View.Flown, View.bHasFlown, FrameWave, Time });
-		const FBox2D RadarBox = TDHUDRadarBox(P);
+		TDPaintHUDRadar(PanelP, HUDModel, FTDHUDRadarInput{ View.Flown, View.bHasFlown, FrameWave, Time });
+		const FBox2D RadarBox = TDHUDRadarBox(PanelP);
 		Rec(TEXT("radar"), RadarBox.Min.X, RadarBox.Min.Y, RadarBox.GetSize().X, RadarBox.GetSize().Y);
 	}
 #endif
