@@ -482,6 +482,31 @@ void ATDPlanetCourse::DressOutpost(const FVector& Site, float Yaw, FName Tag)
 		{ Out, TEXT("SM_Outpost_BollardLight"), FVector(760.f, 260.f, 0.f), 0.f, 1.f, true },
 		{ Out, TEXT("SM_Outpost_BollardLight"), FVector(760.f, -260.f, 0.f), 0.f, 1.f, true },
 	}, Site, Yaw, Tag);
+	// Nicholas's recoloured Fab props (batch BJ; environment builder): dressing at 1.0 against the outpost's sides, away from
+	// the ramp (+X between the bollards) and the door; one blocking hull each, never stood on.
+	const TCHAR* Crate = TEXT("Fab/CrateStack");
+	const TCHAR* Barrel = TEXT("Fab/OilBarrel");
+	const TCHAR* Core = TEXT("Fab/PowerCore");
+	if (Tag == TEXT("CinderOutpost"))
+	{
+		Dress({
+			{ Crate, TEXT("SM_Fab_CrateStack"), FVector(300.f, 600.f, 0.f), 8.f, 1.f, true },
+			{ Crate, TEXT("SM_Fab_CrateStack"), FVector(110.f, 650.f, 0.f), -12.f, 1.f, true },
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-660.f, -170.f, 0.f), 0.f, 1.f, true },	// by the generator and the junction
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-720.f, -250.f, 0.f), 40.f, 1.f, true },
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-650.f, -320.f, 0.f), 75.f, 1.f, true },
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-610.f, -540.f, 0.f), 15.f, 1.f, true },
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-530.f, -600.f, 0.f), 60.f, 1.f, true },
+			{ Core, TEXT("SM_Fab_PowerCore"), FVector(-330.f, -540.f, 0.f), 90.f, 1.f, true },
+		}, Site, Yaw, Tag);
+	}
+	else if (Tag == TEXT("VerdanceOutpost"))
+	{
+		Dress({
+			{ Crate, TEXT("SM_Fab_CrateStack"), FVector(300.f, 600.f, 0.f), 8.f, 1.f, true },
+			{ Core, TEXT("SM_Fab_PowerCore"), FVector(-660.f, -330.f, 0.f), 90.f, 1.f, true },
+		}, Site, Yaw, Tag);
+	}
 }
 
 void ATDPlanetCourse::DressPad(FName Tag)
@@ -1900,6 +1925,20 @@ void ATDPlanetCourse::BuildCinder()
 	// Rock walls either side of the crystal choke so it can't be walked round.
 	Block(EShape::Cube, FVector(4600.f, -3200.f, 300.f), FVector(400.f, 1200.f, 600.f), Basalt, 0.f, FRotator(0.f, -30.f, 0.f), true, TEXT("SM_Cind_ChokeRock_A"));
 	Block(EShape::Cube, FVector(5100.f, -5400.f, 300.f), FVector(400.f, 1400.f, 600.f), Basalt, 0.f, FRotator(0.f, -30.f, 0.f), true, TEXT("SM_Cind_ChokeRock_B"));
+
+	// #140: from the approach the bridge marker pointed straight through the rock wall. The wall band is a hazard to
+	// route round, its safe chain the crystal choke (registered before the lake's crossing: the first match wins).
+	if (UTDObjectiveSubsystem* Routes140 = UTDObjectiveSubsystem::Get(this))
+	{
+		FBox ChokeWall(ForceInit);
+		for (const FVector& Corner : { FVector(4350.f, -7200.f, -500.f), FVector(5350.f, -7200.f, -500.f), FVector(4350.f, -1800.f, 1500.f), FVector(5350.f, -1800.f, 1500.f) })
+		{
+			ChokeWall += W(Corner);
+		}
+		TArray<AActor*> Choke;
+		for (const FVector& L : { FVector(4150.f, -4250.f, 100.f), FVector(4820.f, -4400.f, 100.f), FVector(5550.f, -4550.f, 100.f) }) { Choke.Add(Marker(L)); }
+		Routes140->AddCrossing(ChokeWall, Jammer, 0, Choke);
+	}
 
 	// The magma lake and the collapsing crystal bridge: one continuous walkway of slabs (no jumps), each
 	// falling 1.1 s after you step on it: keep running.

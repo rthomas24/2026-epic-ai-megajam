@@ -111,7 +111,27 @@ void ATDSpaceField::BeginPlay()
 	}
 	// td.SpaceField 0 at load: never take over the layout's rocks, so the galaxy is exactly today's by construction.
 	bAdoptAtLoad = bAdoptLayoutRocks && TDSpaceFieldImpl::GEnabled != 0;
+	// One tree build per component at the end, not one per added instance (the galaxy load's long frame, Lead, Nov 14).
+	const double BuildStart = FPlatformTime::Seconds();
+	bBuildingField = true;
+	PendingColliderBase = Collision ? Collision->GetInstanceCount() : 0;
+	PendingColliderXf.Reset();
 	Build();
+	bBuildingField = false;
+	if (Collision && PendingColliderXf.Num() > 0)
+	{
+		Collision->AddInstances(PendingColliderXf, /*bShouldReturnIndices*/ false, /*bWorldSpace*/ true);
+	}
+	PendingColliderXf.Empty();
+	for (const TPair<FString, TObjectPtr<UHierarchicalInstancedStaticMeshComponent>>& KV : Components)
+	{
+		if (UHierarchicalInstancedStaticMeshComponent* C = KV.Value)
+		{
+			C->bAutoRebuildTreeOnInstanceChanges = true;
+			C->BuildTreeIfOutdated(/*Async*/ false, /*ForceUpdate*/ true);
+		}
+	}
+	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: built in %.0f ms"), (FPlatformTime::Seconds() - BuildStart) * 1000.0);
 	FTDFieldDamage::Register(this);	// (DA_SpaceField_FX is warmed by T7's UTDWarmupSubsystem; the defaults register below)
 	// Look the effects asset up now (T7's warm-up has streamed it): on the first break the lookup cost 26 ms.
 	if (!FX) { FX = UTDStatics::LoadPresentation<UTDSpaceFieldFX>(TEXT("DA_SpaceField_FX")); }
@@ -370,6 +390,7 @@ UHierarchicalInstancedStaticMeshComponent* ATDSpaceField::ComponentFor(UStaticMe
 			}
 		}
 	}
+	C->bAutoRebuildTreeOnInstanceChanges = !bBuildingField;	// during Build: one tree build at the end
 	C->RegisterComponent();
 	Components.Add(Key, C);
 	return C;

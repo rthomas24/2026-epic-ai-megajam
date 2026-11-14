@@ -140,6 +140,11 @@ public:
 	/** Queue a contextual hint now (also driven by the event bus: tips, ability unlocks, wave 1). */
 	void Offer(ETDHint Hint);
 
+	/** Dev (TD.Hints.Show / TD.Hints.Next, captures): this hint is the one on screen until cleared with None, whatever
+	 *  the queue, the teach phase or the suppression say. Nothing is saved. */
+	void DebugPinHint(ETDHint Hint) { DebugPinned = Hint; }
+	ETDHint GetDebugPinnedHint() const { return DebugPinned; }
+
 	/** The wording of a hint for a device (tests and docs). */
 	static FText TextFor(ETDHint Hint, bool bGamepad, ETDAbilityId Ability);
 
@@ -166,7 +171,8 @@ public:
 
 	/** Seconds of steering (aim input over 25%) that complete the Fly hint. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Hints", meta = (ClampMin = "0"))
-	float FlySecondsToComplete = 1.f;
+	float FlySecondsToComplete = 0.7f;
+	ETDHint DebugPinned = ETDHint::None;
 
 private:
 	ATDSpacePlayerController* GetPC() const;

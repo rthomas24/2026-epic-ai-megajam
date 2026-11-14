@@ -1,0 +1,25 @@
+{
+ "_note": "Walk v4 and run v4 (Nov 14, round 2, after T7's pt20: the walk tip touched the ground behind the pilot and the run hid the blade behind the leg). The blade arm is held in a low side guard instead of swinging with the stride: hand beside the right hip, a little forward, a small pump with the stride (+-5 cm); the blade forward and out to the right, 20 deg (walk) / 17 deg (run) below horizontal, so the tip stays 55-65 cm above the floor and the whole beam reads from the chase camera. Same key format as fixes_swing.json (rate 1 = clip seconds). Walk 1.03 s, run 0.63 s (one stride cycle each; first key = last key).",
+ "swing": [
+  {
+   "src": "A_Pilot_Walk", "dst": "A_Pilot_Walk_v4", "rate": 1.0, "max_yaw": 15,
+   "keys": [
+    {"t": 0.0,   "hand": [14, 20, -38], "blade": [0.55, 0.68, -0.34], "yaw": 3},
+    {"t": 0.26,  "hand": [19, 20, -37], "blade": [0.57, 0.67, -0.33], "yaw": 5},
+    {"t": 0.52,  "hand": [14, 20, -38], "blade": [0.55, 0.68, -0.34], "yaw": 3},
+    {"t": 0.77,  "hand": [9, 20, -37],  "blade": [0.53, 0.69, -0.34], "yaw": 1},
+    {"t": "end", "hand": [14, 20, -38], "blade": [0.55, 0.68, -0.34], "yaw": 3}
+   ]
+  },
+  {
+   "src": "A_Pilot_Run", "dst": "A_Pilot_Run_v4", "rate": 1.0, "max_yaw": 15,
+   "keys": [
+    {"t": 0.0,   "hand": [18, 18, -34], "blade": [0.6, 0.66, -0.29], "yaw": 4},
+    {"t": 0.16,  "hand": [24, 18, -32], "blade": [0.62, 0.65, -0.28], "yaw": 6},
+    {"t": 0.32,  "hand": [18, 18, -34], "blade": [0.6, 0.66, -0.29], "yaw": 4},
+    {"t": 0.47,  "hand": [12, 18, -33], "blade": [0.58, 0.67, -0.29], "yaw": 2},
+    {"t": "end", "hand": [18, 18, -34], "blade": [0.6, 0.66, -0.29], "yaw": 4}
+   ]
+  }
+ ]
+}

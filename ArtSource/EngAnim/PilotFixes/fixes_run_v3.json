@@ -1,0 +1,6 @@
+{
+ "_note": "Run v3 (Nov 14, melee pass round 2): the blade trails back and down beside the right leg through the arm pump. The turn the source hand needs is split: a forearm roll (pronation, at most 90 deg) and a wrist bend (at most 70 deg); Run_v2 bent the wrist alone, up to 150 deg. Mesh space: forward +Y, right -X, up +Z.",
+ "aim": [
+  {"src": "A_Pilot_Run", "dst": "A_Pilot_Run_v3", "dir": [-0.3, -0.4, -0.87], "max_deg": 70, "twist": true, "twist_max": 90}
+ ]
+}

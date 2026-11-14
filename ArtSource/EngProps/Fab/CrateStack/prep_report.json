@@ -1,0 +1,27 @@
+{
+ "asset": "SM_Fab_CrateStack",
+ "source": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\Builds\\intake\\FreeCrates\\src\\Free_Crates-ef859200\\additional-files\\crates_extracted\\crates.blend",
+ "notes": [],
+ "source_objects": [
+  "mesh"
+ ],
+ "tris_before": 14942,
+ "maps": {
+  "BC": "texture_pbr_20250901 4096x4096 chNone",
+  "R": "texture_pbr_20250901_metallic-texture_pbr_20250901_roughness 4096x4096 ch1",
+  "M": "texture_pbr_20250901_metallic-texture_pbr_20250901_roughness 4096x4096 ch2",
+  "N": "texture_pbr_20250901_normal 4096x4096 chNone"
+ },
+ "tris_after": 14942,
+ "size_cm": [
+  165.9,
+  162.5,
+  145.1
+ ],
+ "normal_source": "OpenGL, green flipped to DirectX (Blender Normal Map node source (OpenGL))",
+ "orm_means": [
+  1.0,
+  0.391,
+  0.022
+ ]
+}

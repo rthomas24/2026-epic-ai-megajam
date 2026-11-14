@@ -132,9 +132,11 @@ bool UTDMusicDirectorSubsystem::IsLateWavePhase() const
 
 USoundBase* UTDMusicDirectorSubsystem::ResolveLateMusic() const
 {
+	// #139: the switch is read before the cache - a cached engineering fallback is not returned with td.Music.Fallback 0
+	// (an explicit CombatMusicLate style track is not a fallback and is unaffected).
 	if (CachedLateMusic)
 	{
-		return CachedLateMusic;
+		return (bLateFallback && !UTDMusicFallbackSubsystem::IsEnabled()) ? nullptr : CachedLateMusic.Get();
 	}
 	// The style's own waves 3-5 slot (by name: optional, Nick's to add); empty or absent, Nick's handed-off waves 3-5
 	// track (N-074) as the engineering fallback - marked as one until Nicholas approves it by ear.
@@ -492,7 +494,11 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 	const bool bExclusiveHolds = IsExclusiveScoreHeld() || IsFallbackScorePlaying();
 	TickAssault(World, bAssaultPhase && !bTravelling && !bVictory && !bMenuMap && !bExclusiveHolds && ResolveAssaultMusic() != nullptr);
 	const bool bAssaultHolds = IsAssaultMusicPlaying();
-	const bool bBlocked = bTravelling || bVictory || bMenuMap || bTutorialHolds || bAssaultHolds || bExclusiveHolds || (MusicState == ETDCombatMusicState::Silent && !ResolveMusic());
+	// #139: the waves 3-5 engineering fallback playing when the fallback is switched off: stop it (and it does not restart).
+	const bool bLateFallbackOff = !bUseOverride && bLateFallback && CachedLateMusic && Audio && Audio->Sound == CachedLateMusic
+		&& MusicState != ETDCombatMusicState::Silent && !UTDMusicFallbackSubsystem::IsEnabled();
+	const bool bBlocked = bTravelling || bVictory || bMenuMap || bTutorialHolds || bAssaultHolds || bExclusiveHolds || bLateFallbackOff
+		|| (MusicState == ETDCombatMusicState::Silent && !ResolveMusic());
 	bool bCombat = !bBlocked && IsCombatNow();
 	if (bWaitForTake && !bCombat)
 	{

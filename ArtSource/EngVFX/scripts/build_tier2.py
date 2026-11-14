@@ -177,6 +177,91 @@ S2('NS_TD_Debug_GlowOffset', U((1.0, 0.62, 0.18, 1.0), 1.0), [offset(dbg_beacon(
 S2('NS_TD_Debug_RangeA', U((1.0, 0.62, 0.18, 1.0), 1.0), [fixed_bounds(shed('Beacon', 'MI_TD_VFX_RangeGlow_Plume', 0, (0.1, 0.1), (1520.0, 1520.0), (0, 0), radius=0.0, drag=0.0, local=True, power=0.01, k=8.0, rate_expr='20.0'))])
 S2('NS_TD_Debug_Haze2', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='M_TD_RegionHaze2'), keepalive()])
 
+# ---- round 10j (T4's play, #105 / #111): the tractor beam seen from BEHIND the ship (the chase camera looks down the beam,
+# so v1 read as a faint ring at the bay mouth). v2, new asset (v1 kept): a wide cone opening toward the player (the tapered
+# mesh placed at the ship end, pointing back into the bay), bright motes and streaks spawned around the ship streaming past
+# the camera into the bay, rings travelling down the cone and shrinking with it, and a soft blue tint around the ship.
+# Same slot and parameters (UTDDominionVisuals.TractorBeam, +X out of the bay, User.Length cm, User.Intensity).
+TB2 = (0.40, 0.75, 1.0, 1.0)
+
+
+def tb_ring():
+    e = shed('Rings', 'M_TD_VFX_Ring', 0, (2.6, 2.6), (1, 1), (3800, 3800), k=1.6, radius=0.0, drag=0.0, local=True,
+             cone=((-1.0, 0.0, 0.0), 0.0), rate_expr='1.4*(0.45 + 0.55*User.Intensity)', power=0.8, fade_in=6.0)
+    meshed(e, 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring')
+    e['set'] += [(PS, INIT, 'Mesh Scale Mode', E('Non-Uniform')), (PS, INIT, 'Mesh Scale', X('float3(1.0, 46.0, 46.0)*User.Scale')),
+                 (PU, 'ScaleMeshSize', 'Scale Factor', X('float3(1.0, 1.0, 1.0)*(1.0 - 0.75*Particles.NormalizedAge)'))]
+    e['add'] = e.get('add', []) + [(PU, 'Update/Size/ScaleMeshSize')]
+    return offset(e, 'User.Length/User.Scale')
+
+
+# 10m (dock capture: v2 did not show): TDDockingBay::UpdateBeam attaches the cue at the bay root (the mouth, +X outward,
+# world scale 1) and sets User.Length (ship to mouth, cm) and User.Intensity = the PULL, which is low until the ship is
+# close; so every part now runs at (0.45 + 0.55 x Intensity), the cone uses the flame material (glows through its body,
+# readable from inside it; the rim-lit field material vanished end-on), and the streaks and motes are 3-4x larger.
+TBI = '(0.45 + 0.55*User.Intensity)'
+S2('NS_TD_Dominion_TractorBeam2', U(TB2, 1.0, Length=20000.0, Intensity=1.0), [
+    offset(mesh_single('Cone', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '1.0, 55.0, 55.0', 0.32, None,
+                       live_scale='float3(-User.Length/(100.0*User.Scale), 1.0, 1.0)*' + TBI), 'User.Length/User.Scale'),
+    tb_ring(),
+    offset(shed('Streaks', 'M_TD_VFX_Spark', 0, (0.5, 0.9), (60, 110), (7000, 11000), k=3.0, radius=2400.0, drag=0.0, local=True, stretch=20,
+                rgb=(0.7, 0.9, 1.0), cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='70.0*' + TBI, fade_in=6.0), 'User.Length/User.Scale + 1500.0'),
+    offset(shed('Motes', 'M_TD_VFX_Glow', 0, (1.2, 2.2), (300, 600), (4000, 7000), k=2.4, radius=2800.0, drag=0.0, local=True,
+                cone=((-1.0, 0.0, 0.0), 5.0), rate_expr='45.0*' + TBI, power=0.8, fade_in=4.0), 'User.Length/User.Scale + 1000.0'),
+    offset(shed('Tint', 'M_TD_VFX_Glow', 0, (0.4, 0.4), (5500, 6500), (0, 0), k=0.3, radius=0.0, drag=0.0, local=True, power=0.5,
+                rate_expr='8.0*' + TBI), 'User.Length/User.Scale'),
+    shed('Mouth', 'M_TD_VFX_Glow', 0, (0.3, 0.3), (5000, 6000), (0, 0), k=0.8, radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='12.0*' + TBI)])
+
+# ---- round 10j (T4's play): the Maul bomber's plasma mine (was the placeholder disc). Slot: the Tracer of
+# DA_Enemy_PlasmaMines_FX (a persistent system on each pooled mine; with a Tracer and no ProjectileMesh the placeholder hides).
+# A dark spiked core (six tumbling shards in the cooling-debris material, near black with red edges), a red light pulsing
+# with a double arming blink every 1.2 s, and a halo that grows with the camera distance so a mine reads at 300 m.
+MINE = (1.0, 0.12, 0.03, 1.0)
+MBLINK = '(0.25 + 0.75*saturate(1.0 - abs(frac(Engine.Time/1.2)*1.2 - 0.06)/0.05) + 0.75*saturate(1.0 - abs(frac(Engine.Time/1.2)*1.2 - 0.24)/0.05))'
+
+
+def mine_spike(i):
+    d = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)][i]
+    return mesh_single('Spike%d' % i, 'SM_TD_VFX_Shard_A', 'M_TD_VFX_Debris', '1.4, 0.7, 0.7', 1.0, None, offset=(70.0 * d[0], 70.0 * d[1], 70.0 * d[2]))
+
+
+S2('NS_TD_Mine_Plasma', U(MINE, 1.0), [
+    single('Core', 'M_TD_VFX_Glow', 260, 0.35, None),
+    shed('Light', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(240.0*%s)' % MBLINK,) * 2, (0, 0), k=3.0, radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='20.0'),
+    shed('Halo', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(500.0 + 0.03*clamp(Engine.Owner.LODDistance, 0.0, 60000.0))*%s' % MBLINK,) * 2, (0, 0), k=1.6,
+         radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='20.0')] + [mine_spike(i) for i in range(6)])
+
+# ---- round 10n (Lead): (a) the Dominion turret's 1.0 s lock telegraph before each burst (T4 adds the timing; slot:
+# the turret's telegraph cue, e.g. UTDEnemyVisuals.TurretTelegraph / T4's field). One shot at the muzzle, +X = the aim:
+# a red-orange glint that charges up over 1.0 s and snaps white at the end, with a dashed aim line racing out along +X.
+TLK = (1.0, 0.28, 0.06, 1.0)
+TDIST = 'clamp(Engine.Owner.LODDistance/6000.0, 1.0, 4.0)'   # 10o: the head-on read grows with distance (x4 by 240 m)
+
+
+def tele_line():
+    e = shed('AimLine', 'M_TD_VFX_Spark', 0, (0.12, 0.18), (22, 34), (30000, 36000), k=2.6, radius=0.0, drag=0.0, local=True, stretch=40,
+             cone=((1.0, 0.0, 0.0), 0.3), rate_expr='26.0')
+    e['set'] = [x for x in e['set'] if x[2] != 'Loop Behavior'] + [(EU, 'EmitterState', 'Loop Behavior', E('Once')), (EU, 'EmitterState', 'Loop Duration', 1.0)]
+    return e
+
+
+S2('NS_TD_Turret_LockTelegraph', U(TLK, 1.0), [
+    flash('Charge', 'M_TD_VFX_Glow', '(1200.0*%s)' % TDIST, 1.0, 2.2, growth='0.25 + 0.75*pow(Particles.NormalizedAge, 1.5)', power=0.2),
+    flash('Core', 'M_TD_VFX_Flare', '(520.0*%s)' % TDIST, 1.0, 2.6, growth='0.2 + 0.8*Particles.NormalizedAge', power=0.3),
+    flash('Snap', 'M_TD_VFX_Flare', '(1400.0*%s)' % TDIST, 0.12, 2.8, growth='0.6 + Particles.NormalizedAge', delay=0.95),
+    tele_line()])
+
+# (b) the "switch grace" after an auto-switch on death (T2 adds the 1.5 s grace): a hex shield shimmer wrapped round the
+# squad ship in the pilot's colour (User.Color: Rift magenta, Lancer cyan, Bastion amber), flashing in, pulsing twice and
+# fading out over 1.5 s. One shot attached at the ship root; authored for a 6 m ship at Scale 1.
+S2('NS_TD_Ship_SwitchGrace', U((1.0, 0.10, 0.85, 1.0), 1.0), [
+    # 10o: 5.2 m read as a big flat bubble from the chase camera: 3.3 m, stronger hex, less fill
+    # 10p: held to the end of the 1.5 s (fade power 0.3), the hex brighter and the fill lower
+    shell_flash('Hex', 330, 1.5, 'float3(1,1,1)*(1.0 + 0.04*sin(Particles.NormalizedAge*12.566))', k=3.2, mat='M_TD_VFX_DomeHex', power=0.3),
+    shell_flash('Glow', 320, 1.5, 'float3(1,1,1)*(1.0 + 0.02*Particles.NormalizedAge)', k=0.12, power=0.5),
+    flash('In', 'M_TD_VFX_Glow', 1000, 0.25, 1.0, growth='0.6 + Particles.NormalizedAge', power=1.2),
+    shed('Glints', 'M_TD_VFX_Glow', 0, (0.2, 0.4), (40, 80), (0, 60), k=3.0, radius=320.0, drag=1.0, local=True, burst=40, dur=1.5, power=1.0)])
+
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
 # ---- round 10 MAJOR (T7's play): Cinder magma kills but does not read as dangerous on foot. A looping hazard layer for
@@ -284,12 +369,16 @@ S2('NS_TD_ShieldDome', U(BASTION), [
 # mesh particle with the rim-lit additive field material in Rift magenta: the silhouette glows and shimmer cells crawl over
 # it, attached at the ship root like the hull (zero rotation, scale 1). Glints were 8-20 cm: invisible at the chase camera.
 def cloak_hull():
-    return engine_mesh(mesh_single('Hull', 'SM_TD_VFX_Disc', 'M_TD_VFX_Field', '1.03, 1.03, 1.03', 0.9, None,
-                                   live_scale='float3(1,1,1)*(1.0 + 0.006*sin(Engine.Time*9.0))'), '/Game/TriadDrift/Gameplay/Ships/Rift/SM_Rift')
+    # 10h: SM_TD_VFX_RiftCloakShell = a non-Nanite copy of SM_Rift (Niagara mesh particles drew nothing with the Nanite
+    # hull), and M_TD_VFX_CloakOverlay on it: translucent, a deep magenta inside (the hull reads darker) and a magenta rim.
+    return mesh_single('Hull', 'SM_TD_VFX_RiftCloakShell', 'M_TD_VFX_CloakShell2', '1.06, 1.06, 1.06', 1.0, None,   # 10i: stronger rim, denser veil, 1.06
+                       live_scale='float3(1,1,1)*(1.0 + 0.006*sin(Engine.Time*9.0))')
 
 
+# 10l (cloak2 turn): with the hull shell emitter (SM_TD_VFX_RiftCloakShell) the whole system reports INACTIVE right after
+# spawning, through the ability and through a plain spawn, so nothing drew. The shell is left out (cloak_hull() kept for a
+# later fix); the cloak ships as the glints and motes, which ran and read in r10g.
 S2('NS_TD_Cloak_Shimmer', U((1.0, 0.12, 0.85, 1.0)), [
-    cloak_hull(),
     shed('Glints', 'M_TD_VFX_Glow', 0, (0.15, 0.35), (40, 90), (0, 40), k=4.0, radius=330.0, drag=2.0, local=True, power=1.2, rate_expr='70.0'),
     shed('Motes', 'M_TD_VFX_Glow', 18.0, (0.4, 0.9), (5, 12), (0, 160), k=1.2, radius=360.0, drag=1.0, curl=500.0, local=True, power=1.5, fade_in=5.0)])
 # Slot: UTDAbilityFX.Loop of DA_Ability_GravityWell_FX (looping, at the well). Authored for a 40 m pull radius.
