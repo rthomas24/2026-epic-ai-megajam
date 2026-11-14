@@ -1,0 +1,248 @@
+--- a/Source/unrealGameJam/TriadDrift/Flow/TDFrontEndGameModes.h
++++ b/Source/unrealGameJam/TriadDrift/Flow/TDFrontEndGameModes.h
+@@ -74,6 +74,11 @@
+ 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Menu")
+ 	bool IsShowingVictory() const { return bShowingVictory; }
+ 
++	/** Chosen once for this victory presentation; reads and UI rebuilds never reroll it. */
++	UFUNCTION(BlueprintPure, Category = "TriadDrift|Menu")
++	FText GetVictoryHeadline() const { return VictoryHeadline; }
++	static const TArray<FText>& VictoryHeadlineChoices();
++
+ 	/** True while the code-built placeholder menu is up (no widget assigned in DA_UI_Style). */
+ 	bool IsPlaceholderShown() const { return Placeholder.IsValid(); }
+ 	/** The code-built menu is used (no widget class resolved), whether or not a viewport exists to show it. */
+@@ -117,6 +122,7 @@
+ 	static TSharedPtr<class SWidget> ChooseRefocus(const TSharedPtr<class SWidget>& LastFocused, const TSharedPtr<class SWidget>& First);
+ private:
+ 	bool bShowingVictory = false;
++	FText VictoryHeadline;
+ 	bool bMusicStarted = false;
+ 	bool bPlaceholderWanted = false;
+ 	bool bMusicFading = false;
+--- a/Source/unrealGameJam/TriadDrift/Flow/TDFrontEndGameModes.cpp
++++ b/Source/unrealGameJam/TriadDrift/Flow/TDFrontEndGameModes.cpp
+@@ -20,6 +20,11 @@
+ #include "Widgets/SBoxPanel.h"
+ #include "Widgets/Layout/SBorder.h"
+ #include "Widgets/Layout/SBox.h"
++#include "Widgets/Layout/SScaleBox.h"
++#include "Widgets/Layout/SScrollBox.h"
++#include "Widgets/SOverlay.h"
++#include "Widgets/SLeafWidget.h"
++#include "Rendering/DrawElements.h"
+ #include "Widgets/Input/SButton.h"
+ #include "TriadDrift/Flow/TDFrontEndStyle.h"
+ #include "Widgets/Text/STextBlock.h"
+@@ -48,6 +53,41 @@
+ 
+ namespace TDFrontEnd
+ {
++	/** Restrained, texture-free screen graphics; no scene capture, timer or input. */
++	class SVictoryLinework : public SLeafWidget
++	{
++	public:
++		SLATE_BEGIN_ARGS(SVictoryLinework) {} SLATE_END_ARGS()
++		void Construct(const FArguments&) { SetVisibility(EVisibility::HitTestInvisible); }
++		virtual FVector2D ComputeDesiredSize(float) const override { return FVector2D(1920,1080); }
++		virtual int32 OnPaint(const FPaintArgs&,const FGeometry& G,const FSlateRect&,FSlateWindowElementList& Out,int32 Layer,const FWidgetStyle&,bool) const override
++		{
++			const FLinearColor Cyan(.35f,.76f,.83f,.12f);
++			auto Line=[&](TArray<FVector2f> Points)
++			{
++				FSlateDrawElement::MakeLines(Out,Layer,G.ToPaintGeometry(),Points,ESlateDrawEffect::None,Cyan,true,1.f);
++			};
++			for(const float Radius:{450.f,600.f,860.f})
++			{
++				TArray<FVector2f> Arc;
++				for(int32 I=0;I<=96;++I)
++				{
++					const float A=2.f*PI*I/96.f;
++					Arc.Add(FVector2f(960.f+Radius*FMath::Cos(A),540.f+Radius*FMath::Sin(A)));
++				}
++				Line(MoveTemp(Arc));
++			}
++			Line({FVector2f(520,110),FVector2f(1400,110),FVector2f(1400,970),FVector2f(520,970),FVector2f(520,110)});
++			Line({FVector2f(280,0),FVector2f(1380,1080)});
++			Line({FVector2f(1640,0),FVector2f(540,1080)});
++			for(const FVector2f P:{FVector2f(960,52),FVector2f(310,540),FVector2f(1610,540)})
++			{
++				Line({P-FVector2f(12,0),P+FVector2f(12,0)});
++				Line({P-FVector2f(0,12),P+FVector2f(0,12)});
++			}
++			return Layer+1;
++		}
++	};
+ 	static UUserWidget* ShowWidget(UWorld* World, UClass* Class, bool bCursor)
+ 	{
+ 		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+@@ -134,6 +174,12 @@
+ 
+ void ATDMenuGameMode::ShowMenuUI()
+ {
++	// Cache in the presentation lifecycle, never in Paint/Tick or a text attribute.
++	if(bShowingVictory && VictoryHeadline.IsEmpty())
++	{
++		const TArray<FText>& Choices=VictoryHeadlineChoices();
++		VictoryHeadline=Choices[FMath::RandHelper(Choices.Num())];
++	}
+ 	// Whatever is up goes first (a return to the menu from the victory screen comes through here too, N-033).
+ 	if (ShownWidget)
+ 	{
+@@ -250,6 +296,7 @@
+ void ATDMenuGameMode::ReturnToMenu()
+ {
+ 	bShowingVictory = false;
++	VictoryHeadline=FText::GetEmpty();
+ 	// Re-resolve, as at start-up: Nick's main-menu widget comes back after the victory screen (N-033), or the
+ 	// code-built menu when none is assigned.
+ 	ShowMenuUI();
+@@ -296,9 +343,17 @@
+ 	const UTDGameInstance* GI = UTDGameInstance::Get(this);
+ 	if (bShowingVictory && GI)
+ 	{
++		const FLinearColor Ink(.88f,.95f,1.f), Cyan(.40f,.75f,.81f);
+ 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 0.f, 0.f, 8.f)
+ 		[
+-			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "Wrap", "THAT'S A WRAP")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 54)).ColorAndOpacity(FLinearColor(1.f, 0.85f, 0.4f))
++			SNew(STextBlock).Text(NSLOCTEXT("TDMenu","VictoryEyebrow","MISSION COMPLETE // OPERATION PARADOX"))
++			.Font(FCoreStyle::GetDefaultFontStyle("Regular",24)).ColorAndOpacity(Cyan)
++		];
++		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)
++		[
++			SNew(SBox).WidthOverride(1320).HeightOverride(112)
++			[SNew(SScaleBox).Stretch(EStretch::ScaleToFit)
++				[SNew(STextBlock).Text(VictoryHeadline).Font(FCoreStyle::GetDefaultFontStyle("Bold",72)).ColorAndOpacity(Ink)]]
+ 		];
+ 		const FTDProgress& P = GI->GetProgressRef();
+ 		const int32 Seconds = FMath::RoundToInt(P.RunTimeSeconds);
+@@ -309,20 +364,51 @@
+ 		}
+ 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 4.f)
+ 		[
+-			SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("RUN TIME %d:%02d   KILLS %d   SHIPS LOST %d   CUTS %d"), Seconds / 60, Seconds % 60, P.Stats.Kills, P.Stats.Deaths, Cuts)))
+-			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 18))
++			SNew(SBox).WidthOverride(1320).HeightOverride(48)
++			[SNew(SScaleBox).Stretch(EStretch::ScaleToFit)
++				[SNew(STextBlock).Text(FText::Format(NSLOCTEXT("TDMenu","VictoryStats","RUN TIME {0}   |   KILLS {1}   |   SHIPS LOST {2}   |   CUTS {3}"),
++					FText::FromString(FString::Printf(TEXT("%d:%02d"),Seconds/60,Seconds%60)),FText::AsNumber(P.Stats.Kills),FText::AsNumber(P.Stats.Deaths),FText::AsNumber(Cuts)))
++				.Font(FCoreStyle::GetDefaultFontStyle("Regular",28)).ColorAndOpacity(Cyan)]]
+ 		];
++		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0,24,0,18)
++		[SNew(SBox).WidthOverride(1040).HeightOverride(1)
++			[SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(.4f,.75f,.81f,.5f)).Padding(0)]];
++		TSharedRef<SVerticalBox> Scenes=SNew(SVerticalBox);
+ 		for (const FTDSceneTakes& Row : GI->GetSceneTakes())
+ 		{
+-			Box->AddSlot().AutoHeight().HAlign(HAlign_Center)
++			Scenes->AddSlot().AutoHeight().HAlign(HAlign_Center)
+ 			[
+ 				SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("SCENE %d  %s  -  %d %s"), Row.SceneNumber, *Row.SceneId.ToString(), Row.Takes, Row.Takes == 1 ? TEXT("TAKE") : TEXT("TAKES"))))
+-				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 14)).ColorAndOpacity(FLinearColor(0.8f, 0.85f, 0.95f))
++				.WrapTextAt(1160).Justification(ETextJustify::Center)
++				.Font(FCoreStyle::GetDefaultFontStyle("Regular",18)).ColorAndOpacity(Ink)
+ 			];
+ 		}
++		if(GI->GetSceneTakes().Num()>0)
++		{
++			Box->AddSlot().AutoHeight().HAlign(HAlign_Center)
++			[SNew(SBox).WidthOverride(1200).MaxDesiredHeight(90)
++				[SNew(SScrollBox).AllowOverscroll(EAllowOverscroll::No)
++					+SScrollBox::Slot()[Scenes]]];
++		}
+ 		// T3: the credits roll (DA_Credits, else the CREDITS.md fallback), inside this panel: it goes with it.
+-		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 14.f, 0.f, 0.f)[FTDCredits::MakeRoll()];
+-		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 18.f, 0.f, 0.f)[Button(TEXT("RETURN TO MENU"), [](ATDMenuGameMode* M) { M->ReturnToMenu(); }, true)];
++		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0,24,0,0)
++		[SNew(SBox).WidthOverride(1008).HeightOverride(280)
++			[SNew(SScaleBox).Stretch(EStretch::ScaleToFit)[FTDCredits::MakeRoll(720,200)]]];
++		// Reference-like open composition; preserve the real return action/focus, no invented shortcut hints.
++		Placeholder=SNew(SOverlay)
++			+SOverlay::Slot()[SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(.005f,.012f,.025f,.38f))]
++			+SOverlay::Slot()[SNew(SScaleBox).Stretch(EStretch::ScaleToFit)
++				[SNew(SBox).WidthOverride(1920).HeightOverride(1080)
++					[SNew(SOverlay)
++						+SOverlay::Slot()[SNew(TDFrontEnd::SVictoryLinework)]
++						+SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Top).Padding(0,188,0,0)[Box]
++						+SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Bottom).Padding(56,0,0,44)
++							[Button(TEXT("RETURN TO MENU"),[](ATDMenuGameMode* M){M->ReturnToMenu();},true)]
++					]]];
++		GEngine->GameViewport->AddViewportWidgetContent(Placeholder.ToSharedRef(),10);
++		FocusButton=FirstButton;
++		KeepMenuFocus();
++		return; // leave the normal menu's existing card, focus, Settings and music path untouched
+ 	}
+ 	else
+ 	{
+@@ -355,6 +441,19 @@
+ 	KeepMenuFocus();
+ }
+ 
++const TArray<FText>& ATDMenuGameMode::VictoryHeadlineChoices()
++{
++	static const TArray<FText> Choices={
++		NSLOCTEXT("TDMenu","VictoryFuture","A FUTURE RECLAIMED"),
++		NSLOCTEXT("TDMenu","VictoryBalance","BALANCE RESTORED"),
++		NSLOCTEXT("TDMenu","VictoryTomorrow","TOMORROW IS OURS"),
++		NSLOCTEXT("TDMenu","VictoryWorlds","THE WORLDS ENDURE"),
++		NSLOCTEXT("TDMenu","VictoryDawn","A NEW DAWN"),
++		NSLOCTEXT("TDMenu","VictoryOdds","AGAINST ALL ODDS")
++	};
++	return Choices;
++}
++
+ void ATDMenuGameMode::PostLogin(APlayerController* NewPlayer)
+ {
+ 	Super::PostLogin(NewPlayer);
+--- a/Source/unrealGameJam/TriadDrift/Flow/Tests/TDFlowTests.cpp
++++ b/Source/unrealGameJam/TriadDrift/Flow/Tests/TDFlowTests.cpp
+@@ -1213,6 +1213,49 @@
+ // ------------------------------------------------------------------------------------------------
+ // The front end: New Game / Continue / Quit from the menu mode (Nick's widget or the placeholder), the win
+ // travelling to the victory screen, and the victory screen returning to the menu.
++IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDVictoryHeadlineLifetime, "TriadDrift.Flow.VictoryHeadlineIsCachedForThePresentation", TDFlowTest::TestFlags)
++bool FTDVictoryHeadlineLifetime::RunTest(const FString&)
++{
++	const TArray<FText>& Choices=ATDMenuGameMode::VictoryHeadlineChoices();
++	TestEqual(TEXT("all six approved localized headlines are available"),Choices.Num(),6);
++	for(const FText& Choice:Choices)
++	{
++		TestFalse(TEXT("headline is not empty"),Choice.IsEmpty());
++		TestFalse(TEXT("headline retains localization identity"),Choice.IsCultureInvariant());
++	}
++	for(const bool bWon:{false,true})
++	{
++		FTDTestWorld W(UTDGameInstance::StaticClass());
++		UTDGameInstance* GI=Cast<UTDGameInstance>(W.GetGameInstance());
++		GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationVictoryHeadline"));
++		ON_SCOPE_EXIT { GI->SetSaveSlotOverride(FString()); };
++		GI->GetMutableProgress().Phase=bWon?ETDGamePhase::Victory:ETDGamePhase::Intro;
++		ATDMenuGameMode* Menu=W.GetWorld()->SpawnActorDeferred<ATDMenuGameMode>(ATDMenuGameMode::StaticClass(),FTransform::Identity);
++		// No production asset/music dependency: this test exercises the actual host lifecycle.
++		Menu->StyleOverride=NewObject<UTDUIStyle>(GetTransientPackage());
++		Menu->FinishSpawning(FTransform::Identity);
++		Menu->StartPlay();
++		const FText Selected=Menu->GetVictoryHeadline();
++		if(bWon)
++		{
++			TestTrue(TEXT("victory selects a member of the approved pool"),Choices.ContainsByPredicate([&](const FText& T){return T.EqualTo(Selected);}));
++			for(int32 I=0;I<60;++I)
++			{
++				Menu->Tick(1.f/60.f);
++				TestTrue(TEXT("frame updates and repeated reads do not reroll"),Menu->GetVictoryHeadline().EqualTo(Selected));
++			}
++			Menu->ReturnToMenu();
++			TestTrue(TEXT("leaving victory releases its cached headline"),Menu->GetVictoryHeadline().IsEmpty());
++			TestFalse(TEXT("normal menu restored"),Menu->IsShowingVictory());
++		}
++		else
++		{
++			TestTrue(TEXT("ordinary menu does not choose a victory headline"),Selected.IsEmpty());
++		}
++	}
++	return true;
++}
++
+ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlowMenuJourney, "TriadDrift.Flow.MenuNewGameContinueVictoryAndBack", TDFlowTest::TestFlags)
+ bool FTDFlowMenuJourney::RunTest(const FString& Parameters)
+ {

@@ -1,0 +1,55 @@
+{
+  "stage": "prepared source patch only; not applied to any source worktree or compiled",
+  "base_commit": "fc074b84394db611a2530d1f2ba91c776c969efa",
+  "claim": "4d54513e88b155a06aeb8f8ba92601a63a88cdb9",
+  "files": [
+    {
+      "path": "Source/unrealGameJam/TriadDrift/Flow/TDFrontEndGameModes.h",
+      "before_sha256": "056963a6ca6d0adda80bfceeeeb8e861ed562cee1cce35c78c4de265e62324d6",
+      "after_sha256": "bb378fd26a9f2abe05af20e487164b2b2b0184f98f0c1341ce9a0f2b6f419ce3"
+    },
+    {
+      "path": "Source/unrealGameJam/TriadDrift/Flow/TDFrontEndGameModes.cpp",
+      "before_sha256": "febbf93a252a0b49252b77161bea31755972aa085672f23b4cd8dc6899855633",
+      "after_sha256": "2fd0a21f703ee04bad8cdc46d611b3f3c652d0a91d50542769e6a47e05598605"
+    },
+    {
+      "path": "Source/unrealGameJam/TriadDrift/Flow/Tests/TDFlowTests.cpp",
+      "before_sha256": "e8c3080dc0ae345ab7a335eb033ee07781929cac8aeb9b72c55e372035e5e4e1",
+      "after_sha256": "f8222bdf2ffff5b43564d9649af3e6e5cad2e7981e9578b08d7460331fcb8ab6"
+    }
+  ],
+  "patch_bytes": 12109,
+  "patch_sha256": "d1c2c9eee63bd6f88c8a357962a9ce58753ad90cfc81c26349da74c2bfdc2725",
+  "git_apply_check_passed": true,
+  "patch_applied": false,
+  "original_blobs_unchanged": true,
+  "protected_functions_unchanged": [
+    "ATDMenuGameMode::KeepMenuFocus()",
+    "ATDMenuGameMode::ChooseRefocus(",
+    "ATDMenuGameMode::StartPlay()",
+    "ATDMenuGameMode::StartMusic()",
+    "ATDMenuGameMode::HandleMusicFinished()",
+    "ATDMenuGameMode::FadeOutMusic()",
+    "ATDMenuGameMode::EndPlay(",
+    "ATDMenuGameMode::NewGame()",
+    "ATDMenuGameMode::ContinueGame()",
+    "ATDMenuGameMode::CanContinue()",
+    "ATDMenuGameMode::QuitGame()",
+    "ATDTransitionGameMode::StartPlay()"
+  ],
+  "normal_menu_presentation_unchanged": true,
+  "random_draw_sites": 1,
+  "approved_headlines": [
+    "A FUTURE RECLAIMED",
+    "BALANCE RESTORED",
+    "TOMORROW IS OURS",
+    "THE WORLDS ENDURE",
+    "A NEW DAWN",
+    "AGAINST ALL ODDS"
+  ],
+  "native_build_verified": false,
+  "focused_test_executed": false,
+  "visual_verified": false,
+  "performance_measured": false
+}
