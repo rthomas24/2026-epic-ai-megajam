@@ -2,6 +2,9 @@
 // Run: .\Tools\td-test.ps1 -Filter TriadDrift.Director.Camera
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "Camera/CameraActor.h"
+#include "GameFramework/WorldSettings.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -288,6 +291,40 @@ bool FTDDirectorCamSafe::RunTest(const FString& Parameters)
 			TestFalse(TEXT("and the protection is off"), F.Director->IsProtectingPlayer());
 		}
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDirectorCamAtmo, "TriadDrift.Director.Camera.AtmosphereShotForT1", TD_TEST_FLAGS)
+bool FTDDirectorCamAtmo::RunTest(const FString& Parameters)
+{
+	// T1's entry and exit: the director's camera at the ship-local transform T1 gives, real time, the ship safe, combat
+	// presentation held, no money shot meanwhile; a hard cut back to the pawn at the end.
+	FCamFixture F;
+	ATDShip* Ship = F.Player();
+	const FVector Offset(2500.f, 1800.f, -600.f);
+	const bool bOk = UTDDirectorSubsystem::RequestAtmosphereShot(F.W.GetWorld(), Ship, false, 3.f,
+		[Offset](float A) { return FTransform((-Offset).Rotation(), Offset * (1.f - 0.2f * A)); });
+	if (!TestTrue(TEXT("accepted"), bOk))
+	{
+		return false;
+	}
+	F.W.Advance(0.5f);
+	ACameraActor* Cam = F.Director->GetAtmosphereCamera();
+	TestTrue(TEXT("the view is the director's camera"), Cam && F.PC->GetViewTarget() == Cam);
+	const FVector Want = Ship->GetActorTransform().TransformPosition(Offset * (1.f - 0.2f * FMath::Clamp(0.5f / 3.f, 0.f, 1.f)));
+	TestTrue(FString::Printf(TEXT("placed from T1's function (%.0f cm off)"), Cam ? FVector::Dist(Cam->GetActorLocation(), Want) : -1.f),
+		Cam && FVector::Dist(Cam->GetActorLocation(), Want) < 300.f);
+	TestTrue(TEXT("the ship is safe"), F.Director->IsProtectingPlayer());
+	TestTrue(TEXT("combat presentation held"), UTDUIHostSubsystem::IsCombatPresentationHeld(F.W.GetWorld()));
+	TestFalse(TEXT("no money shot during it"), F.Director->ReportHighlight(ETDHighlightKind::CarrierKill, Ship, 1.f));
+	TestEqual(TEXT("no slow motion"), F.W.GetWorld()->GetWorldSettings()->GetEffectiveTimeDilation(), 1.f);
+	UTDDirectorSubsystem::EndAtmosphereShot(F.W.GetWorld(), true);
+	TestTrue(TEXT("a hard cut back to the ship"), F.ViewIsPawn() && !UTDDirectorSubsystem::IsAtmosphereShotActive(F.W.GetWorld()));
+	TestFalse(TEXT("the hold is released"), UTDUIHostSubsystem::IsCombatPresentationHeld(F.W.GetWorld()));
+	// Never ended by T1: it lets go by itself after Seconds + 1 s.
+	UTDDirectorSubsystem::RequestAtmosphereShot(F.W.GetWorld(), Ship, true, 0.5f, [](float) { return FTransform(FVector(3000.f, 0.f, 0.f)); });
+	F.W.Advance(2.f);
+	TestTrue(TEXT("ends itself"), !UTDDirectorSubsystem::IsAtmosphereShotActive(F.W.GetWorld()) && F.ViewIsPawn());
 	return true;
 }
 

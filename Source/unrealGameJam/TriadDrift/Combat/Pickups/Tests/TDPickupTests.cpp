@@ -6,6 +6,9 @@
 
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
+#include "TriadDrift/Combat/Pickups/TDPickupVisuals.h"
+#include "UObject/StrongObjectPtr.h"
+#include "Misc/ScopeExit.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -256,6 +259,28 @@ bool FTDPickupCollect::RunTest(const FString& Parameters)
 	TestEqual(TEXT("CUT: no pickups"), F.Pickups->GetPickups().Num(), 0);
 	TestEqual(TEXT("CUT: no overcharge"), F.Pickups->GetOverchargeRemaining(), 0.f);
 	TestTrue(TEXT("CUT: multiplier back"), FMath::IsNearlyEqual(F.Flown->FindComponentByClass<UTDWeaponComponent>()->GetOutgoingDamageMultiplier(), 1.f, .3f));
+	return true;
+}
+
+// The effects builder's look slot (DA_Pickup_Visuals): an asset with empty cues keeps the primitive shapes and collects
+// cleanly (null-safe); no asset at all does the same.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPickupLookSlot, "TriadDrift.Combat.Pickups.LookSlotNullSafe", TD_TEST_FLAGS)
+bool FTDPickupLookSlot::RunTest(const FString& Parameters)
+{
+	FFixture F;
+	if (!F.Init(*this))
+	{
+		return false;
+	}
+	const TStrongObjectPtr<UTDPickupVisuals> Empty(NewObject<UTDPickupVisuals>(GetTransientPackage()));
+	UTDPickupVisuals::SetOverrideForTests(Empty.Get());
+	ON_SCOPE_EXIT { UTDPickupVisuals::SetOverrideForTests(nullptr); };
+	for (int32 T = 0; T < 4; ++T)
+	{
+		ATDPickup* P = UTDPickupSubsystem::SpawnPickup(F.W.GetWorld(), static_cast<ETDPickupType>(T), F.Flown->GetActorLocation() + FVector(300000.f, 0.f, 0.f));
+		TestTrue(*FString::Printf(TEXT("type %d: spawned, primitive look"), T), P && !P->HasArtLook());
+		TestTrue(*FString::Printf(TEXT("type %d: collected with an empty look"), T), F.Pickups->Collect(P, F.Flown));
+	}
 	return true;
 }
 

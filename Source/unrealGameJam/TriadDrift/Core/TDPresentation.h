@@ -490,6 +490,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue DescentRoar;
 
+	// ENG-38 entry / exit set (the effects builder's systems; every one has a User.Intensity 0..1 float that T1's
+	// descent curve drives each frame; ship-local, +X = nose). All optional.
+	/** Attached loop on each squad ship's root during the climb out (the mirror of AtmosphericEntry). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue AtmosphericExit;
+	/** One shot at the ship as it leaves the atmosphere (ship rotation). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue ExitBreakaway;
+	/** One shot at the ship when it crosses the cloud deck, either direction. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue CloudPunch;
+	/** Attached loop while under the cloud deck, planet side. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue CloudWisps;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue LandingDust;
 
@@ -599,11 +614,33 @@ public:
 	TSoftClassPtr<UUserWidget> GroundHUDWidgetClass;
 
 	/**
+	 * The survey scan graphics (optional, issue #62; Nicholas's 1920x1080 art). ScanVerdance: the buried-structure scan
+	 * on the Verdance terminal (Cinematic 03, "Beneath the Surface"); ScanCinder: the Verdance / Cinder match on the Cinder
+	 * terminal (Cinematic 05, "The Pattern"). When set, engineering's scan monitor shows the image instead of its
+	 * code-drawn placeholder, and the terminal's in-world screen shows the same texture
+	 * (UTDUIHostSubsystem::ShowScanOnScreen). Empty = the placeholder.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Story Scans")
+	TSoftObjectPtr<UTexture2D> ScanVerdance;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Story Scans")
+	TSoftObjectPtr<UTexture2D> ScanCinder;
+
+	/**
 	 * Combat music (optional; N-029): played by engineering's music director while a fight is on (space waves,
 	 * the Dominion assault, active on-foot encounters), faded in and out; the sound's own class and volume apply.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Music")
 	TSoftObjectPtr<USoundBase> CombatMusic;
+
+	/**
+	 * The Dominion assault's own score (Nick's Audio, ART-19; board N-048), optional. Plays from wave 5's clear (the run
+	 * enters ETDGamePhase::DominionAssault) through the four shield generators and the exposed reactor, with CombatMusic
+	 * held meanwhile; fades out (3 s) on docking (DominionInterior), on the reactor's end (Victory) or any travel. The
+	 * asset carries its own looping, class and volume. Empty: CombatMusic plays in the assault as before.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Music")
+	TSoftObjectPtr<USoundBase> AssaultMusic;
 
 	/**
 	 * Combat feedback sounds (optional): played as 2D UI sounds by the HUD host when a squad shot lands
@@ -646,6 +683,15 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director")
 	TSoftClassPtr<UUserWidget> DirectorWidgetClass;
+
+	/** Issue #49 (concept A): the pilot insignia on the opening's name cards, white on transparent (tinted by the
+	 *  ship's colour). Empty: the code draws a crescent, a lance chevron and a hexagon. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director")
+	TSoftObjectPtr<UTexture2D> InsigniaRift;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director")
+	TSoftObjectPtr<UTexture2D> InsigniaLancer;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director")
+	TSoftObjectPtr<UTexture2D> InsigniaBastion;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
 	FTDFXCue SlateClap;

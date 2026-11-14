@@ -57,12 +57,13 @@ SOCKETS = {
         "Engine_0": (-1514, -805, 50), "Engine_1": (-1514, 805, 50),
         "Engine_2": (-370, -1040, -290), "Engine_3": (-370, 1040, -290),
         # Mounts read by ATDEnemyShip::MountPart (socket +X = out of the hull; axes in SOCKET_AXES).
-        # Bays are 300 deep (X) x 600 (Y) x 400 (Z) boxes with the pivot at the centre: 150 + 10 off the skin.
-        "Bay_0": (940, -430, -230), "Bay_1": (940, 430, -230),          # over the forward hangar openings
-        "Bay_2": (0, 0, 61),                                             # dorsal, on the flat deck ahead of the tower
-        # Turrets are 112 tall with the pivot at the centre: 56 above the skin.
-        "Turret_0": (1100, -170, -79), "Turret_1": (1100, 170, -79),    # fore deck
-        "Turret_2": (-1300, -805, 202), "Turret_3": (-1300, 805, 202),  # on the rear outrigger pods
+        # Since Nov 13 evening (Lead / T4) every mount sits ON the hull skin (ray-cast in Blender against this
+        # mesh) and gameplay pushes the part out by its own half extent; before, the sockets were the part
+        # centres, 160 cm (bays) and 56 cm (turrets) off the skin.
+        "Bay_0": (940, -326, -280), "Bay_1": (940, 326, -280),          # forward flank walls (vertical), by the hangar openings
+        "Bay_2": (0, 0, -99),                                            # dorsal, on the flat deck ahead of the tower
+        "Turret_0": (1100, -170, -137), "Turret_1": (1100, 170, -137),  # fore deck (normal up)
+        "Turret_2": (-1300, -805, 146), "Turret_3": (-1300, 805, 146),  # tops of the rear outrigger pods (normal up)
     },
     "NullTurret": {
         "Muzzle_0": (110, -11, 9), "Muzzle_1": (108, 23, 12),
@@ -79,6 +80,7 @@ SOCKET_AXES = {
     "NullCarrier": {
         "Bay_0": ((0, -1, 0), (1, 0, 0)), "Bay_1": ((0, 1, 0), (-1, 0, 0)),
         "Bay_2": ((0, 0, 1), (1, 0, 0)),          # opens upward, its 600 side along the ship
+        # turrets: +X faces outboard, +Z is the deck normal (up) so the turret stands upright on its hard point
         "Turret_0": ((0, -1, 0), (1, 0, 0)), "Turret_1": ((0, 1, 0), (-1, 0, 0)),
         "Turret_2": ((0, -1, 0), (1, 0, 0)), "Turret_3": ((0, 1, 0), (-1, 0, 0)),
     },
@@ -97,12 +99,15 @@ def carrier_collision(ob, ex):
     groups = {}
     for v in pts:
         x, y, z = cm(v)
+        # slices short enough that no convex hull bridges a gap: one hull over the fore pods, their struts and the
+        # flank bulges stood up to 4.4 m proud of the visible hull (Nov 13 check: sb_ucx in the ship builder's notes)
         if abs(y) > 480 and x < 1500:
-            key = ("pod", "aft" if (x < -700 and abs(y) < 930) else "fore", "L" if y > 0 else "R")
+            side = "aft" if (x < -700 and abs(y) < 930) else "fore"
+            key = ("pod", side, "L" if y > 0 else "R") + ((min(3, max(0, int((x + 700) // 550))),) if side == "fore" else ())
         elif z > 200 and -1250 < x < -400:
             key = ("tower",)
         else:
-            key = ("body", min(4, max(0, int((x + 2300) // 920))))
+            key = ("body", min(6, max(0, int((x + 2300) // 660))))
         groups.setdefault(key, []).append(v)
     made = []
     for i, (key, vs) in enumerate(sorted(groups.items(), key=lambda kv: str(kv[0]))):

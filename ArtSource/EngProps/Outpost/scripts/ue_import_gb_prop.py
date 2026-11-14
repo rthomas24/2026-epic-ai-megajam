@@ -8,11 +8,13 @@
 #   fbx, manifest absolute paths of the exported FBX and its manifest
 #   textures      {suffix: (file, "color" | "normal" | "masks")}; BC, N, ORM required, E optional
 #   power_param   name of the scalar that scales the emissive (e.g. RelayPower); None if the prop has no emissive
+#   power_squared True: emissive x power^2 instead of x power (a clearer dormant / awake contrast)
 #   instances     {MI name: {"scalars": {...}, "vectors": {...}}}; the first is assigned to the mesh
 #   actors        {BP name: MI name}: an actor class with the mesh and that instance (for TD.Dev.SpawnClass and for sites)
 #   report        absolute path of the JSON report
 # Master material M_<name>: BaseColorTex x Tint, NormalTex (DirectX), ORMTex (R AO, G roughness x RoughnessScale,
-# B metallic), and when there is an E map: emissive = EmissiveTex x GlowColor x GlowStrength x <power_param>.
+# B metallic), and when there is an E map: emissive = EmissiveTex x GlowColor x GlowStrength x <power_param> (squared
+# when power_squared).
 import json
 import os
 
@@ -126,7 +128,11 @@ def build_master(cfg, tex):
         emi = tex_param("EmissiveTex", tex["E"], S.SAMPLERTYPE_COLOR, 450)
         g1 = mul(emi, "RGB", vector("GlowColor", (1, 1, 1), -900, 600), "", -650, 500)
         g2 = mul(g1, "", scalar("GlowStrength", 10.0, -650, 650), "", -450, 520)
-        g3 = mul(g2, "", scalar(cfg["power_param"], 1.0, -450, 700), "", -250, 540)
+        pw = scalar(cfg["power_param"], 1.0, -650, 760)
+        if cfg.get("power_squared"):
+            # emissive follows power^2: a dormant 0.15 is 2 % of awake, not 15 % (the 15 % read as lit in the game)
+            pw = mul(pw, "", pw, "", -450, 760)
+        g3 = mul(g2, "", pw, "", -250, 540)
         pairs.append((g3, "", P.MP_EMISSIVE_COLOR))
     for n, out_name, prop in pairs:
         ok[0] &= bool(mel.connect_material_property(n, out_name, prop))
@@ -169,21 +175,34 @@ def ensure_pipeline(cfg, notes):
 
 def make_actor(cfg, bp_name, mesh, mi):
     path = "%s/%s" % (cfg["dest"], bp_name)
-    if eas.does_asset_exist(path):
-        eas.delete_asset(path)
-    factory = unreal.BlueprintFactory()
-    factory.set_editor_property("parent_class", unreal.Actor)
-    bp = tools.create_asset(bp_name, cfg["dest"], unreal.Blueprint, factory)
     sds = unreal.get_engine_subsystem(unreal.SubobjectDataSubsystem)
     lib = unreal.SubobjectDataBlueprintFunctionLibrary
-    handles = sds.k2_gather_subobject_data_for_blueprint(bp)
-    params = unreal.AddNewSubobjectParams(parent_handle=handles[0], new_class=unreal.StaticMeshComponent, blueprint_context=bp)
-    handle, fail = sds.add_new_subobject(params)
-    if not lib.is_handle_valid(handle):
-        log("FAILED: add component to %s (%s)" % (bp_name, fail))
+    comp = None
+    if eas.does_asset_exist(path):
+        # re-import: keep the existing actor class (deleting it fails headless while anything references it) and
+        # refresh its mesh component
+        bp = eas.load_asset(path)
+        for h in sds.k2_gather_subobject_data_for_blueprint(bp):
+            obj = lib.get_object_for_blueprint(lib.get_data(h), bp)
+            if isinstance(obj, unreal.StaticMeshComponent):
+                comp = obj
+                break
+    else:
+        factory = unreal.BlueprintFactory()
+        factory.set_editor_property("parent_class", unreal.Actor)
+        bp = tools.create_asset(bp_name, cfg["dest"], unreal.Blueprint, factory)
+    if bp is None:
+        log("FAILED: no actor class %s" % path)
         return False
-    sds.rename_subobject(handle, unreal.Text("Mesh"))
-    comp = lib.get_object_for_blueprint(lib.get_data(handle), bp)
+    if comp is None:
+        handles = sds.k2_gather_subobject_data_for_blueprint(bp)
+        params = unreal.AddNewSubobjectParams(parent_handle=handles[0], new_class=unreal.StaticMeshComponent, blueprint_context=bp)
+        handle, fail = sds.add_new_subobject(params)
+        if not lib.is_handle_valid(handle):
+            log("FAILED: add component to %s (%s)" % (bp_name, fail))
+            return False
+        sds.rename_subobject(handle, unreal.Text("Mesh"))
+        comp = lib.get_object_for_blueprint(lib.get_data(handle), bp)
     comp.set_static_mesh(mesh)
     comp.set_material(0, mi)
     comp.set_editor_property("mobility", unreal.ComponentMobility.MOVABLE)

@@ -16,6 +16,9 @@
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Flight/TDFlightFeedbackComponent.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "Camera/CameraComponent.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -350,6 +353,49 @@ bool FTDT1DescentSquadCarry::RunTest(const FString& Parameters)
 	W.Advance(0.5f);
 	D->RecordSquad(W.GetWorld());
 	TestEqual(TEXT("recorded: the flown ship"), GI ? GI->GetProgressRef().LastShip : ETDShipId::Rift, Squad->GetActiveShipId());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1DescentBurnFeel, "TriadDrift.Travel.Descent.BurnFeelAndHUDHoldOnTheCurve", TD_TEST_FLAGS)
+bool FTDT1DescentBurnFeel::RunTest(const FString& Parameters)
+{
+	// The burn: FOV push, shake and motion blur on the descent curve (scaled by the motion sliders), the HUD held.
+	using FB = UTDFlightFeedbackComponent;
+	const float OldShake = FB::UserShakeScale, OldSpeed = FB::UserSpeedFOVScale;
+	ON_SCOPE_EXIT { FB::UserShakeScale = OldShake; FB::UserSpeedFOVScale = OldSpeed; FB::DescentIntensity = 0.f; };
+	struct FOut { float FOV = 0.f, Blur = 0.f, Shake = 0.f; bool bHeld = false; };
+	auto Run = [](float Intensity, float Motion)
+	{
+		FOut O;
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 20000.f));
+		if (!Ship) { return O; }
+		Ship->SetPlayerControlled(true);
+		FB::UserShakeScale = Motion; FB::UserSpeedFOVScale = Motion; // after the world starts (the settings apply then)
+		UTDDescentSubsystem* D = UTDDescentSubsystem::Get(W.GetWorld());
+		FB::ComposedPeaks = FB::FComposedPeaks();
+		for (int32 i = 0; i < 90; ++i)
+		{
+			if (D && Intensity > 0.f) { D->SetEntryHeat(Intensity); }
+			if (D) { D->Tick(1.f / 60.f); } // the engine ticks game-instance tickables in the game; the test world does not
+			W.Tick();
+			O.FOV = FMath::Max(O.FOV, Ship->GetChaseCamera()->FieldOfView);
+			O.Blur = FMath::Max(O.Blur, Ship->GetChaseCamera()->PostProcessSettings.MotionBlurAmount);
+			O.bHeld = O.bHeld || UTDUIHostSubsystem::IsCombatPresentationHeld(W.GetWorld());
+		}
+		O.Shake = FB::ComposedPeaks.Shake;
+		if (D) { D->ClearHeat(); }
+		return O;
+	};
+	const FOut Calm = Run(0.f, 1.f), Burn = Run(1.f, 1.f), Reduced = Run(1.f, 0.f);
+	AddInfo(FString::Printf(TEXT("FOV %.1f -> %.1f (reduced %.1f); blur %.3f -> %.3f (reduced %.3f); shake %.2f -> %.2f (reduced %.2f)"),
+		Calm.FOV, Burn.FOV, Reduced.FOV, Calm.Blur, Burn.Blur, Reduced.Blur, Calm.Shake, Burn.Shake, Reduced.Shake));
+	TestTrue(TEXT("the burn pushes the FOV"), Burn.FOV > Calm.FOV + 3.f);
+	TestTrue(TEXT("the burn blurs"), Burn.Blur > 0.2f);
+	TestTrue(TEXT("the burn shakes"), Burn.Shake > Calm.Shake + 0.3f);
+	TestTrue(TEXT("reduced motion: no FOV push, blur or shake"), Reduced.FOV <= Calm.FOV + 0.1f && Reduced.Blur < 0.001f && Reduced.Shake < 0.001f);
+	TestTrue(TEXT("the HUD is held (dimmed, combat away) through the burn"), Burn.bHeld);
+	TestFalse(TEXT("... and not without it"), Calm.bHeld);
 	return true;
 }
 

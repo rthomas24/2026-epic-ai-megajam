@@ -1,0 +1,11 @@
+# Escape, distress stinger and credits
+
+Start at the reactor kill in a named save. Allow 12–18 minutes to include the full credits pair and early-exit branch. Record build, settings, flown ship and input device.
+
+1. Start a timer on heart destruction. Record the escape hit and A5_Escape about 2.5 seconds later, then the start of the 90-second run. Follow the route to the parked ship. Verify door access, footing and objective visibility. Listen for repeating alarms and hull sounds conveying temporal instability, with dialogue still audible. Visual afterimages are optional.
+2. Intentionally time out once. Retake at the reactor exit with the full countdown. After an available save, quit and Continue; verify the checkpoint, timer and ship remain usable. On a successful run, board early if possible. Watch for a dropped or duplicated escape cue on the transition back to flight.
+3. Capture all three escape confirmations and all three distress-signal lines. Moss’s “All three. I’ll take that.” is optional. At the 18-second stinger, compare the on-screen caption verbatim with “DISTRESS SIGNAL · TRIAD: WREN, KATO, MOSS · DATED DECADES AHEAD”. Record its duration. Test an early exit on a separate run and verify the stinger plays once. For a cutscene skip, verify its own ten-second wait before Skip becomes available.
+4. On the victory panel use a long scene/take list. Check Return to Menu stays visible, focusable and operable with pad and keyboard. Record at 720p, 1080p and ultrawide when available. Check the squad colours, readable credits, wrapping and the last row at gameplay distance.
+5. Listen from the actual credits-roll start: full Cathedral Pulse (1), then full Ethereal Pulse (Remix). Mark both starts and the transition. Check the Music slider applies, and listen for unexpected menu, victory or combat music under the pair. Exit during a track, return to the menu and re-enter via a later victory; verify one menu voice and a fresh credits start. Report explicitly if the playable build lacks the hook.
+
+Record measured timings and what was heard, plus the build, capture IDs, save state and actual time in docs/eng/PLAYTEST-*.md. Keep early-exit and uninterrupted-playback evidence distinct.

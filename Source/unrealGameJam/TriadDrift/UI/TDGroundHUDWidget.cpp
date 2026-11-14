@@ -15,6 +15,7 @@
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
+#include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/UI/TDUIPaint.h"
 
 void UTDGroundHUDWidget::NativeConstruct()
@@ -122,6 +123,10 @@ void UTDGroundHUDWidget::Sample(float DeltaSeconds)
 		View.Objective = Data->GetObjectiveText().ToString();
 		View.Prompt = Data->GetInteractPrompt().ToString();
 	}
+	if (!ForceObjective.IsEmpty())
+	{
+		View.Objective = ForceObjective;
+	}
 	if (const ATDFirstPersonCharacter* Character = Cast<ATDFirstPersonCharacter>(Pawn))
 	{
 		View.DashMax = FMath::Max(1, Character->Tuning.DashCharges);
@@ -185,6 +190,50 @@ void UTDGroundHUDWidget::Sample(float DeltaSeconds)
 	View.Transfer01 = FMath::Clamp(Progress, 0.f, 1.f);
 	View.bTransferPaused = View.bTransfer && bPaused;
 	SmoothTransfer = !bWasTransfer ? View.Transfer01 : FMath::Lerp(SmoothTransfer, View.Transfer01, Alpha);
+
+	// The Warden's bar (T5). Mercy tiers start it lower; phase 2 from half hull.
+	const bool bWasBoss = View.bBoss;
+	float BossHull = 0.f;
+	int32 Phase = 1;
+	FText BossName;
+	if (ForceBoss01 >= 0.f)
+	{
+		View.bBoss = true;
+		BossHull = ForceBoss01;
+		Phase = ForceBoss01 <= BossPhase2At ? 2 : 1;
+		BossName = FText::FromString(TEXT("WARDEN"));
+	}
+	else
+	{
+		View.bBoss = ATDCrewCharacter::GetActiveBoss(this, BossHull, Phase, BossName);
+	}
+	View.Boss01 = FMath::Clamp(BossHull, 0.f, 1.f);
+	View.BossPhase = Phase;
+	View.BossName = BossName.ToString().ToUpper();
+	if (!bWasBoss)
+	{
+		SmoothBoss = GhostBoss = LastBoss = View.Boss01;
+		GhostHold = 0.f;
+	}
+	SmoothBoss = FMath::Lerp(SmoothBoss, View.Boss01, Alpha);
+	if (View.Boss01 >= GhostBoss)
+	{
+		GhostBoss = View.Boss01; // healed or untouched: no ghost
+		GhostHold = 0.f;
+	}
+	else
+	{
+		if (View.Boss01 < LastBoss - .001f)
+		{
+			GhostHold = .6f; // a new hit: hold the ghost where it is a moment longer
+		}
+		GhostHold -= DeltaSeconds;
+		if (GhostHold <= 0.f)
+		{
+			GhostBoss = FMath::Max(View.Boss01, GhostBoss - DeltaSeconds * .5f);
+		}
+	}
+	LastBoss = View.Boss01;
 }
 
 // ------------------------------------------------------------------------------------------ paint
@@ -215,25 +264,64 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 		P.Gradient(1800, 0, 120, 1080, Hostile.CopyWithNewOpacity(0), Hostile.CopyWithNewOpacity(A));
 	}
 
-	// Objective panel, top-centre (the space HUD's).
+	// Objective panel, top-centre (the space HUD's). It grows to fit its line (506 to 1000 px, centred) and wraps to two
+	// lines beyond that (T7's playtest: "HEAD TO A SIGNAL · THE RESEARCH SITE OR THE RELAY" ran past a fixed 506 px panel,
+	// and anything over 62 characters was cut).
+	LastBoxes.Reset();
+	float PanelBottom = 145.f;
 	if (!View.Objective.IsEmpty())
 	{
-		P.Glass(707, 53, 506, 92, Accent);
-		for (int32 I = 0; I < 11; ++I)
+		const FString Line = View.Objective.ToUpper();
+		auto Width = [&P](const FString& S) { const float M = P.MeasureTitle(S, 20); return M > 0.f ? M : S.Len() * 11.5f; };
+		FString Line1 = Line, Line2;
+		float TextW = Width(Line);
+		if (TextW + 40.f > ObjectiveMaxWidth)
 		{
-			P.Line({ 721.f + I * 46, 136 }, { 729.f + I * 44, 143 }, Accent.CopyWithNewOpacity(.09f), .6f);
+			// Split at the space nearest the middle.
+			int32 Split = INDEX_NONE;
+			for (int32 D = 0; D < Line.Len() / 2 && Split == INDEX_NONE; ++D)
+			{
+				for (const int32 I : { Line.Len() / 2 + D, Line.Len() / 2 - D })
+				{
+					if (Line.IsValidIndex(I) && Line[I] == TEXT(' '))
+					{
+						Split = I;
+						break;
+					}
+				}
+			}
+			if (Split != INDEX_NONE)
+			{
+				Line1 = Line.Left(Split);
+				Line2 = Line.Mid(Split + 1);
+				TextW = FMath::Max(Width(Line1), Width(Line2));
+			}
 		}
-		P.Label(727, 66, TEXT("OBJECTIVE"), 11, Accent, 150);
-		P.Title(727, 90, View.Objective.ToUpper().Left(62), 20, Ink);
-		P.Line({ 727, 128 }, { 1193, 128 }, Accent.CopyWithNewOpacity(.2f));
+		const float W = FMath::Clamp(TextW + 40.f, 506.f, ObjectiveMaxWidth);
+		const float H = Line2.IsEmpty() ? 92.f : 118.f;
+		const float X = 960.f - W * .5f, Y = 53.f;
+		P.Glass(X, Y, W, H, Accent);
+		for (int32 I = 0; I < int32(W / 46.f); ++I)
+		{
+			P.Line({ X + 14.f + I * 46, Y + H - 9.f }, { X + 22.f + I * 44, Y + H - 2.f }, Accent.CopyWithNewOpacity(.09f), .6f);
+		}
+		P.Label(X + 20.f, Y + 13.f, TEXT("OBJECTIVE"), 11, Accent, 150);
+		P.Title(X + 20.f, Y + 37.f, Line1, 20, Ink);
+		if (!Line2.IsEmpty())
+		{
+			P.Title(X + 20.f, Y + 63.f, Line2, 20, Ink);
+		}
+		P.Line({ X + 20.f, Y + H - 17.f }, { X + W - 20.f, Y + H - 17.f }, Accent.CopyWithNewOpacity(.2f));
+		LastBoxes.Emplace(TEXT("objective"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
+		PanelBottom = Y + H;
 	}
 
 	// Archive transfer meter, under the objective panel: "ARCHIVE TRANSFER 63%", a 360 x 10 bar with the checkpoint tick
 	// at 50%; paused, the bar and its line pulse amber with the reason (a crewman at the terminal).
-	LastBoxes.Reset();
+	const float BelowPanel = PanelBottom + 11.f;
 	if (View.bTransfer)
 	{
-		const float X = 760.f, Y = 156.f, W = 400.f, H = 62.f;
+		const float X = 760.f, Y = BelowPanel, W = 400.f, H = 62.f;
 		const FLinearColor Amber = FTDUIPalette::Bastion();
 		const float Pulse = .55f + .45f * FMath::Abs(FMath::Sin(Time * PI * 1.6f));
 		const FLinearColor C = View.bTransferPaused ? Amber.CopyWithNewOpacity(Pulse) : Accent;
@@ -247,6 +335,34 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 		P.Meter(X + 20, Y + 32, 360, SmoothTransfer, C, 10);
 		P.Line({ X + 20 + 180, Y + 28 }, { X + 20 + 180, Y + 46 }, Ink.CopyWithNewOpacity(View.Transfer01 >= .5f ? .9f : .4f), 1.5f);
 		// Paused: the plate and bar pulse amber only; the objective panel above carries the reason (the Lead, Nov 13).
+	}
+
+	// The Warden's bar, under the objective panel (and under the transfer meter if both are up): name left, phase right,
+	// a 600 px hull bar in the hostile colour with a tick at the phase-2 threshold and a pale ghost of recent damage.
+	if (View.bBoss)
+	{
+		const float W = 640.f, H = 58.f, X = 960.f - W * .5f;
+		const float Y = View.bTransfer ? BelowPanel + 62.f + 10.f : BelowPanel;
+		const bool bPhase2 = View.BossPhase >= 2;
+		const FLinearColor Edge = bPhase2 ? Hostile : Hostile.CopyWithNewOpacity(.7f);
+		P.Glass(X, Y, W, H, Edge, bPhase2);
+		LastBoxes.Emplace(TEXT("boss"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
+		P.Label(X + 20.f, Y + 9.f, View.BossName.IsEmpty() ? TEXT("WARDEN") : View.BossName, 13, Hostile, 160);
+		const FString PhaseText = bPhase2 ? TEXT("PHASE 2") : TEXT("PHASE 1");
+		const float PhaseW = P.MeasureText(PhaseText, 12, true);
+		P.Text(X + W - 20.f - (PhaseW > 0 ? PhaseW : 60.f), Y + 8.f, PhaseText, 12, bPhase2 ? Hostile : Dim, true);
+		// The bar on layers above the glass: same-layer boxes were batched under the glass's gradients, so a full-hull
+		// Warden showed an empty bar live (the test only read the values).
+		FTDUIPainter Bar = P;
+		Bar.Layer = P.Layer + 2;
+		const float BarX = X + 20.f, BarY = Y + 34.f, BarW = W - 40.f;
+		Bar.Box(BarX, BarY, BarW, 10.f, FLinearColor(.05f, .06f, .08f, .95f));
+		Bar.Layer = P.Layer + 3;
+		Bar.Box(BarX, BarY, BarW * FMath::Clamp(GhostBoss, 0.f, 1.f), 10.f, FLinearColor(1.f, .85f, .8f, .55f)); // recent damage
+		Bar.Layer = P.Layer + 4;
+		Bar.Box(BarX, BarY, BarW * FMath::Clamp(SmoothBoss, 0.f, 1.f), 10.f, Hostile);
+		const float TickX = BarX + BarW * BossPhase2At;
+		Bar.Line({ TickX, BarY - 4.f }, { TickX, BarY + 14.f }, Ink.CopyWithNewOpacity(bPhase2 ? .35f : .85f), 2.f);
 	}
 
 	// Reticle.

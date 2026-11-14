@@ -9,6 +9,7 @@
 
 class UUserWidget;
 class APlayerController;
+class UMeshComponent;
 
 /**
  * The HUD surfaces the fallback (dev) HUD can draw on top of the native space HUD until Nick's widget shows them.
@@ -191,6 +192,15 @@ public:
 	static void HideScanMonitor(const UObject* WorldContext);
 
 	UUserWidget* GetScanMonitor() const { return ScanWidget; }
+
+	/**
+	 * The terminal's in-world screen shows the same scan (issue #62): a dynamic instance on Mesh's material slot
+	 * ScreenSlot (by name; None = slot 0) gets texture parameter "ScreenTexture" = UTDUIStyle::ScanVerdance or
+	 * ScanCinder and scalar "ScreenPower" = Power (the structures builder's console material). False when there is no
+	 * mesh, no such slot or no scan texture (the screen keeps its own look). Call when the terminal is used (T5 / T3).
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI")
+	static bool ShowScanOnScreen(UMeshComponent* Mesh, FName ScreenSlot, bool bCinder, float Power = 1.f);
 
 	/** The tactical display while it plays (tests). */
 	UUserWidget* GetTacticalDisplay() const { return TacticalWidget; }

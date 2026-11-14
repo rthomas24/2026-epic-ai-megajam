@@ -1,0 +1,73 @@
+{
+  "asset": "SM_Kit_Console",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\export\\SM_Kit_Console.fbx",
+  "tris": 916,
+  "size_cm": [
+    74.0,
+    166.0,
+    106.6
+  ],
+  "pivot": "root object origin (SM_Kit_Console~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_Kit_Trim",
+    "M_Kit_Screen"
+  ],
+  "material_params": [
+    {
+      "name": "M_Kit_Trim",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Screen",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.06,
+        0.4,
+        0.45
+      ],
+      "emission_strength": 1.5
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_Kit_Console_00"
+  ],
+  "collision_source": "authored",
+  "sockets": [],
+  "welded_verts": 30,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}

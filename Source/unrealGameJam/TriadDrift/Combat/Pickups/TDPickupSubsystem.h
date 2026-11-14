@@ -120,6 +120,9 @@ private:
 	float OverchargeLeft = 0.f;
 	int32 DropsThisWave[4] = { 0, 0, 0, 0 };
 	int32 Collected[4] = { 0, 0, 0, 0 };
+	int32 CollectedThisWave[4] = { 0, 0, 0, 0 };
+	int32 CurrentWave = 0;
+	void LogWaveSummary() const;
 	bool bSafetyUsedThisScene = false;
 	bool bSafetyArmed = false;
 	double LastRepairDropTime = -1e9;
