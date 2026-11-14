@@ -75,7 +75,7 @@ SHIPS = {
         # measured on mesh_r1: the dark canopy runs x -0.72 .. 0.46 on the centre line, about 0.24 half-wide, its top
         # about 0.27 above the deck around it (the tub is 0.29 deep so the seat head clears the glass)
         canopy=dict(cockpit=(0.25, 0.0, 0.0), x=(-0.72, 0.46), wmax=0.24, deck=0.31, ox=-0.92, ky=0.74, bows=(-0.14, 0.24),
-                    plan=(0.20, 0.80), dome="super", cutk=1.06, sill_w=0.06, skirt=(0.075, 0.05), seat_head=1, hk=1.2,
+                    plan=(0.20, 0.80), dome="super", cutk=1.06, sill_w=0.06, skirt=(0.075, 0.05), seat_head=3, hk=1.2, soft=0.022,      # v08: the headrest in the shell's own value (the accent block read as a stray cube)
                     # v07 (Lead, Nov 14: the pilot did not read through the dark glass): a lighter seat shell and side
                     # consoles, a pale visor band, a thin cyan instrument glow, an accent headrest
                     seat_mat=3, visor_mat=6, instr=True),
