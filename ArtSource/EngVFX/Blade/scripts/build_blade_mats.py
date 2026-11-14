@@ -122,45 +122,52 @@ def material(folder, name, blend, two_sided, body, params, mesh=True, particle=F
     return mat
 
 
-# Shared: facing (1 facing the camera, 0 at the silhouette), the travelling energy, the flicker, the hot base.
+# Shared: facing (1 facing the camera, 0 at the silhouette), the travelling energy, the flicker, the hot base, and the
+# squad colour pushed to full saturation (Lead, round 2: saturated at the edge, never pastel).
+# Round 2: TRANSLUCENT, not additive, so the colour holds against a bright sky as well as in the dark.
 COMMON = '''
 float facing = saturate(abs(dot(normalize(NW), normalize(CV))));
 float u = saturate(UV.x);
 float n = NA.r*0.55 + NB.g*0.45;
 float fl = 0.95 + 0.035*sin(T*175.93) + 0.025*sin(T*238.76 + 1.3);
 float basek = 1.0 + BaseHeat*exp(-u*24.0);
-float3 col = max(BladeColor.rgb, 0.0);
+float3 col = pow(max(BladeColor.rgb, 0.0001), SatPow);
 '''
 
+# The wedge's V runs round its section: |sin(2 pi V)| is 0 at mid-depth on both faces and 1 at the edge and the spine.
+# Near-white only in the inner third of the depth; saturated colour out to the edge; a fresnel rim in colour.
 CORE = COMMON + '''
-float core = pow(facing, CoreSharp);
-float body = pow(facing, 0.5);
-float edge = pow(1.0 - facing, 2.0);
-float energy = 0.78 + 0.44*n;
-float3 c = col*BodyK*body*energy + lerp(col, float3(0.94,0.96,1.0), 0.88)*WhiteK*core*(0.92 + 0.16*n) + col*EdgeK*edge*energy;
+float d = abs(sin(UV.y*6.2831853));
+float coreMask = (1.0 - smoothstep(CoreW, CoreW + 0.28, d))*(0.75 + 0.25*facing);
+float energy = 0.80 + 0.40*n;
+float3 body = col*BodyK*energy*(1.0 + EdgeK*pow(1.0 - facing, 2.0));
+float3 white = float3(0.97, 0.98, 1.0)*WhiteK*(0.94 + 0.12*n);
+float3 c = lerp(body, white, coreMask);
 return float4(c*fl*basek*Intensity, 1.0);
 '''
 
 GLOW = COMMON + '''
 float g = pow(facing, GlowFalloff);
-float streak = 0.62 + 0.76*n;
-float3 c = col*GlowK*g*streak;
-return float4(c*fl*(1.0 + 0.5*(basek - 1.0))*Intensity, 1.0);
+float streak = 0.70 + 0.60*n;
+float a = saturate(GlowA*g*streak*(1.0 + 0.6*(basek - 1.0)));
+return float4(col*GlowK*fl*Intensity, a);
 '''
 
-# The swing sheet: a ribbon whose width runs from the hilt side to the tip side. Bright and white at the tip edge,
-# saturated colour in the middle, gone at the hilt; streaks of noise along its length; particle alpha fades it.
+# The swing sheet: a ribbon whose width runs from the hilt side to the tip side. A hot crescent: saturated colour,
+# strongest at the tip edge with a near-white line on it, gone towards the hilt; particle alpha (tip speed at the
+# moment it was laid down, faded over its 0.2 s life) fades it. Translucent so it stays saturated against the sky.
 SWEEP = '''
 float v = FlipV > 0.5 ? 1.0 - UV.y : UV.y;
 float n = NA.r*0.55 + NB.g*0.45;
-float tipEdge = pow(saturate(v), 2.2);
-float outer = 1.0 - smoothstep(0.90, 1.0, v);
-float inner = smoothstep(0.0, 0.35, v);
-float tail = pow(saturate(1.0 - UV.x), 0.7);
-float streak = 0.55 + 0.9*n;
-float3 col = max(PC.rgb, 0.0);
-float3 c = col*(0.30 + 1.3*tipEdge)*streak*outer*inner*tail + lerp(col, float3(1,1,1), 0.8)*pow(saturate(v), 14.0)*outer*1.1*tail;
-return float4(c*Intensity, PC.a);
+float tipEdge = pow(saturate(v), 2.0);
+float outer = 1.0 - smoothstep(0.92, 1.0, v);
+float inner = smoothstep(0.05, 0.45, v);
+float streak = 0.6 + 0.8*n;
+float3 col = pow(max(PC.rgb, 0.0001), 1.8);
+float hot = pow(saturate(v), 18.0)*outer;
+float3 c = lerp(col*Bright, float3(0.97, 0.98, 1.0)*Bright*0.9, hot*0.8);
+float a = saturate((tipEdge*streak*inner*outer*OpacK + hot*0.6)*PC.a);
+return float4(c*Intensity, a);
 '''
 
 EMBER = '''
@@ -171,13 +178,13 @@ float3 c = col*m*m*0.9 + lerp(col, float3(1,1,1), 0.75)*hot*1.4;
 return float4(c*Intensity, PC.a);
 '''
 
-BEAM_PARAMS_CORE = {'BladeColor': (1.0, 0.17, 0.84), 'Intensity': 1.0, 'CoreSharp': 2.6, 'BodyK': 1.7, 'WhiteK': 2.1, 'EdgeK': 2.8, 'BaseHeat': 1.2}
-BEAM_PARAMS_GLOW = {'BladeColor': (1.0, 0.17, 0.84), 'Intensity': 1.0, 'GlowK': 1.7, 'GlowFalloff': 1.3, 'BaseHeat': 1.2}
+BEAM_PARAMS_CORE = {'BladeColor': (1.0, 0.17, 0.84), 'Intensity': 1.0, 'SatPow': 1.8, 'CoreW': 0.16, 'BodyK': 1.5, 'WhiteK': 2.2, 'EdgeK': 1.2, 'BaseHeat': 1.0}
+BEAM_PARAMS_GLOW = {'BladeColor': (1.0, 0.17, 0.84), 'Intensity': 1.0, 'SatPow': 1.8, 'GlowK': 2.2, 'GlowA': 0.55, 'GlowFalloff': 1.8, 'BaseHeat': 1.0}
 
 mats = {}
-for _nm, _args in (('M_TD_BladeBeamCore_V2', (BLADE, 'additive', False, CORE, BEAM_PARAMS_CORE)),
-                   ('M_TD_BladeBeamGlow_V2', (BLADE, 'additive', False, GLOW, BEAM_PARAMS_GLOW)),
-                   ('M_TD_VFX_BladeSweep', (VMAT, 'additive', True, SWEEP, {'Intensity': 1.0, 'FlipV': 0.0})),
+for _nm, _args in (('M_TD_BladeBeamCore_V2', (BLADE, 'translucent', False, CORE, BEAM_PARAMS_CORE)),
+                   ('M_TD_BladeBeamGlow_V2', (BLADE, 'translucent', False, GLOW, BEAM_PARAMS_GLOW)),
+                   ('M_TD_VFX_BladeSweep', (VMAT, 'translucent', True, SWEEP, {'Intensity': 1.0, 'FlipV': 0.0, 'Bright': 2.4, 'OpacK': 1.1})),
                    ('M_TD_VFX_BladeEmber', (VMAT, 'additive', True, EMBER, {'Intensity': 1.0}))):
     if ONLY_MATS and _nm not in ONLY_MATS:
         continue

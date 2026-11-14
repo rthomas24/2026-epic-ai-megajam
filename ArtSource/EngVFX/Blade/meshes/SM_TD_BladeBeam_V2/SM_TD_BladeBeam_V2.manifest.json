@@ -4,18 +4,18 @@
   "tris": 4128,
   "size_cm": [
     100.0,
-    4.4,
-    8.0
+    6.3,
+    15.0
   ],
   "pivot": "root object origin (SM_TD_BladeBeam_V2~exp)",
   "forward": "+X (authoring front -Y rotated)",
   "materials": [
-    "BladeCore",
-    "BladeGlow"
+    "BladeGlow",
+    "BladeCore"
   ],
   "material_params": [
     {
-      "name": "BladeCore",
+      "name": "BladeGlow",
       "textured": false,
       "base_color": [
         0.8,
@@ -32,7 +32,7 @@
       "emission_strength": 0.0
     },
     {
-      "name": "BladeGlow",
+      "name": "BladeCore",
       "textured": false,
       "base_color": [
         0.8,

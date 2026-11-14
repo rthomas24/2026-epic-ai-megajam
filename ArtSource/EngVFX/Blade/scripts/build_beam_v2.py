@@ -54,19 +54,19 @@ def core_radius(s):
 # Concept r1 (issue #163): the energy is a thin single-edged wedge, not a tube. Depth along Unreal Z (spine at +Z, the
 # cutting edge at -Z), thickness along Unreal Y: 0.9 cm at the spine to a sharp edge. The tip is cut on a slant from the
 # edge up to the spine (the depth closes towards the spine over the last 14%).
-W_H = 0.017      # half depth (m)
-W_T = 0.0045     # half thickness at the spine (m)
+W_H = 0.0275     # half depth (m): 5.5 cm edge to spine at the base (Lead, round 2)
+W_T = 0.0055     # half thickness at the spine (m)
 W_TIP0, W_TIP1 = 0.84, 0.975
 
 
 def wedge(s, a):
     swell = 1.0 + 0.18 * math.exp(-((s - 0.02) / 0.025) ** 2)          # a short swell out of the emitter
     base = min(1.0, 0.55 + s / 0.02 * 0.45) if s < 0.02 else 1.0       # narrower right at the emitter face
-    h, zc = W_H * swell * base, 0.0
+    h, zc = W_H * swell * base * (1.0 - 0.2 * min(1.0, s / W_TIP0)), 0.0
     if s > W_TIP0:
         t = min(1.0, (s - W_TIP0) / (W_TIP1 - W_TIP0))
-        h = W_H * (1.0 - t) + 0.0006
-        zc = W_H * t * 0.92                                                 # the slant rises to the spine
+        h = W_H * 0.8 * (1.0 - t) + 0.0006
+        zc = W_H * 0.8 * t * 0.92                                                 # the slant rises to the spine
     z = zc + h * math.sin(a)
     k = (z - (zc - h)) / max(1e-6, 2.0 * h)                             # 0 at the edge .. 1 at the spine
     half = W_T * swell * base * (0.12 + 0.88 * k ** 0.8)
@@ -76,13 +76,14 @@ def wedge(s, a):
 
 
 def glow_radius(s):
-    tip0, tip1 = 0.80, 1.0
-    if s < 0.02:
-        return 0.022 + (0.040 - 0.022) * s / 0.02
+    """Half depth (m) of the glow sheath: about 3x the wedge, rounded past the tip."""
+    tip0, tip1 = 0.78, 1.0
+    if s < 0.03:
+        return 0.040 + (0.075 - 0.040) * s / 0.03
     if s < tip0:
-        return 0.040 - 0.004 * (s - 0.02) / (tip0 - 0.02)
+        return 0.075 - 0.015 * (s - 0.03) / (tip0 - 0.03)
     t = min(1.0, (s - tip0) / (tip1 - tip0))
-    return 0.036 * math.sqrt(max(0.0, 1.0 - t * t))
+    return 0.060 * math.sqrt(max(0.0, 1.0 - t * t))
 
 
 def stations(tip1, n_body=26, n_tip=12, tip0=0.84):
@@ -134,9 +135,9 @@ def build():
     coll = L.ensure_collection("BladeBeamV2")
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new("UVMap")
-    tube(bm, uvl, core_radius, W_TIP1, 0.65, 0, W_TIP0, section=wedge, tip_z=W_H * 0.92)
-    # the glow sheath: a soft flattened shell round the wedge (wider in depth than in thickness)
-    tube(bm, uvl, glow_radius, 1.0, 1.0, 1, 0.80, section=lambda s, a: (0.55 * glow_radius(s) * math.cos(a), 0.003 + glow_radius(s) * math.sin(a)), tip_z=0.006)
+    # slot 0 = the glow sheath (drawn first), slot 1 = the core on top of it (both translucent)
+    tube(bm, uvl, glow_radius, 1.0, 1.0, 0, 0.78, section=lambda s, a: (0.42 * glow_radius(s) * math.cos(a), 0.004 + glow_radius(s) * math.sin(a)), tip_z=0.012)
+    tube(bm, uvl, core_radius, W_TIP1, 0.65, 1, W_TIP0, section=wedge, tip_z=W_H * 0.8 * 0.92)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6)
     bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
     me = bpy.data.meshes.new("SM_TD_BladeBeam_V2")
@@ -144,7 +145,7 @@ def build():
     bm.free()
     for p in me.polygons:
         p.use_smooth = True
-    for nm, rgb in (("BladeCore", (1.0, 1.0, 1.0, 1.0)), ("BladeGlow", (1.0, 0.2, 0.85, 1.0))):
+    for nm, rgb in (("BladeGlow", (1.0, 0.2, 0.85, 1.0)), ("BladeCore", (1.0, 1.0, 1.0, 1.0))):
         m = bpy.data.materials.new(nm)
         m.diffuse_color = rgb
         me.materials.append(m)

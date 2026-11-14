@@ -73,22 +73,27 @@ def thrown(name, mat, rate_expr, life, size, inherit, spread, k, grav=-650.0, dr
     return e
 
 
+def whiten(e, f=0.85, k=2.0):
+    e['set'] = [x for x in e['set'] if not (x[1] == INIT and x[2] == 'Color')] + [(PS, INIT, 'Color', X('float4(lerp(User.Color.rgb, float3(1,1,1), %s)*%s, 1.0)' % (f, k)))]
+    return e
+
+
 # ------------------------------------------------------------------------------------------------ the aura (always on)
 SB('NS_TD_Blade_Aura', UA(), [
-    persistent_light('Light', 300, 2.2, at=0.45, flick=31.4),
+    persistent_light('Light', 380, 4.5, at=0.45, flick=31.4),
     single('HiltGlow', 'M_TD_VFX_Glow', 13, 0.9, 113.1, offset=(1.5, 0, 0)),
-    along(shed('Embers', 'M_TD_VFX_BladeEmber', 26.0, (0.35, 0.8), (0.5, 1.2), (5, 25), k=1.5, radius=0.0, drag=1.5, curl=260.0, power=1.4), 0.05, 0.95, 2.5),
+    along(shed('Embers', 'M_TD_VFX_BladeEmber', 26.0, (0.4, 0.9), (0.8, 1.7), (5, 25), k=1.8, radius=0.0, drag=1.5, curl=260.0, power=1.4), 0.05, 0.95, 3.0),
     along(spin(shed('Arcs', 'M_TD_VFX_FlipArc', 7.0, (0.07, 0.15), (5, 11), (0, 0), k=1.3, radius=0.0, drag=0.0, local=True, power=0.6)), 0.08, 0.92, 0.5),
-    sweep('Sweep', 0.56, 0.86, 0.20, 1.4),
-    sweep('SweepTip', 0.93, 0.16, 0.12, 2.2, power=1.6),
-    thrown('Sparks', 'M_TD_VFX_Spark', '460.0*%s' % MOVE, (0.3, 0.6), (0.5, 1.1), (0.3, 0.8), 260.0, 1.8, stretch=9),
-    thrown('Motes', 'M_TD_VFX_BladeEmber', '120.0*%s' % MOVE, (0.35, 0.7), (1.0, 2.4), (0.08, 0.25), 90.0, 1.5, grav=-120.0, drag=2.0, curl=300.0, lo=0.2),
+    sweep('Sweep', 0.56, 0.86, 0.22, 1.0),
+    sweep('SweepTip', 0.92, 0.18, 0.14, 1.0, power=1.6),
+    thrown('Sparks', 'M_TD_VFX_Spark', '700.0*%s' % MOVE, (0.25, 0.55), (1.4, 2.6), (0.35, 0.9), 380.0, 3.0, stretch=11),
+    thrown('Motes', 'M_TD_VFX_BladeEmber', '160.0*%s' % MOVE, (0.5, 1.1), (1.6, 3.2), (0.08, 0.3), 110.0, 2.0, grav=-120.0, drag=2.0, curl=300.0, lo=0.2),
 ])
 
 # ------------------------------------------------------------------------------------------------ ignite / retract
 # Attached to the visible beam's emitter, +X up the blade (the code attaches Ignite / Retract there).
 SB('NS_TD_Blade_Ignite', U(MAGENTA), [
-    flash('Flash', 'M_TD_VFX_Flare', 46, 0.09, 1.5, growth='0.4 + Particles.NormalizedAge*0.9'),
+    whiten(flash('Flash', 'M_TD_VFX_Flare', 46, 0.09, 1.5, growth='0.4 + Particles.NormalizedAge*0.9'), 0.9, 2.4),   # a white spark at the hilt
     flash('Glow', 'M_TD_VFX_Glow', 70, 0.20, 0.8),
     offset(mesh_flash('Rush', 'SM_TD_VFX_Bolt', 'M_TD_VFX_Bolt', '0.95, 0.06, 0.06', 0.16, 1.6, growth='float3(min(1.0, Particles.NormalizedAge*1.3 + 0.05), 1.0, 1.0)', power=2.0), 47, 0, 0),
     shed('Sparks', 'M_TD_VFX_Spark', 0, (0.15, 0.4), (0.6, 1.2), (300, 1300), k=1.8, radius=1.5, drag=2.4, stretch=10, cone=((1.0, 0.0, 0.0), 35.0), burst=26, dur=0.5),
