@@ -5,6 +5,8 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/PrimitiveComponent.h"
+#include "HAL/IConsoleManager.h"
+#include "TriadDrift/Core/TDTypes.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Components/ShapeComponent.h"
@@ -492,6 +494,9 @@ void UTDThirdPersonCameraComponent::SetBodyHidden(bool bHide)
 	}
 }
 
+static TAutoConsoleVariable<int32> CVarTDCameraHideDressing(TEXT("td.Camera.HideDressing"), 1,
+	TEXT("On foot, third person: hide small dressing between the lens and the pilot (1, default) or leave it (0, captures)."));
+
 void UTDThirdPersonCameraComponent::UpdateOccluders()
 {
 	UWorld* World = GetWorld();
@@ -501,7 +506,7 @@ void UTDThirdPersonCameraComponent::UpdateOccluders()
 		return;
 	}
 	const double Now = World->GetRealTimeSeconds();
-	if (bThirdPersonActive && !bBlendingOut && IsViewOurs())
+	if (bThirdPersonActive && !bBlendingOut && IsViewOurs() && CVarTDCameraHideDressing.GetValueOnGameThread() != 0)
 	{
 		// From the lens to the pilot's chest: everything static or dynamic on the way (a channel trace would stop at the
 		// first blocker; an object query returns them all).
@@ -566,6 +571,8 @@ void UTDThirdPersonCameraComponent::UpdateOccluders()
 				C->SetHiddenInGame(true);
 			}
 			Occluders.Add(O);
+			UE_LOG(LogTriadDrift, Log, TEXT("TD camera: hid %s%s (radius %.0f cm) between the lens and the pilot"), *GetNameSafe(C->GetOwner()),
+				Instance != INDEX_NONE ? *FString::Printf(TEXT(" instance %d"), Instance) : TEXT(""), Radius);
 		}
 	}
 	RestoreOccluders(false);
@@ -600,3 +607,16 @@ void UTDThirdPersonCameraComponent::RestoreOccluders(bool bAll)
 		Occluders.RemoveAtSwap(i);
 	}
 }
+
+// Captures: turn the pilot's view by <deg> (yaw), so dressing in front can be put between the chase lens and the pilot.
+static FAutoConsoleCommandWithWorldAndArgs GTDCameraTurnCmd(TEXT("TD.Camera.Turn"),
+	TEXT("TD.Camera.Turn <yaw deg> [pitch deg]: turn the player's view (dev, captures)."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		if (!PC || Args.Num() < 1) { return; }
+		FRotator R = PC->GetControlRotation();
+		R.Yaw += FCString::Atof(*Args[0]);
+		if (Args.Num() > 1) { R.Pitch = FCString::Atof(*Args[1]); }
+		PC->SetControlRotation(R);
+	}));

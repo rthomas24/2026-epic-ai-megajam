@@ -1,0 +1,3 @@
+{"_note": "The Grunt's fists-up fighting idle from Fab (A_Fab_FightingIdle, Fab Standard licence, retargeted to SKEL_NullCrew) under the slot name T5 would read: A_Crew_Grunt_Idle_Fight (1.07 s loop, in place). Its stance matches the end of the Grunt's MeleeCombo; today the Grunt stands in the template's relaxed MM_Idle.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims", "skeleton": "/Game/TriadDrift/Gameplay/Characters/Crew/SKEL_NullCrew",
+ "compose": [{"dst": "A_Crew_Grunt_Idle_Fight", "segments": [["A_Crew_Grunt_FightingIdle_Fab", 0.0, 1.067]], "blend": 0.0}]}

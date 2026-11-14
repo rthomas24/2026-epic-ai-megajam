@@ -404,8 +404,19 @@ namespace TDGroundDebug
 		else if (A == TEXT("block")) { B->SetBlockHeld(true); }
 		else if (A == TEXT("unblock")) { B->SetBlockHeld(false); }
 		else if (A == TEXT("retract")) { B->Retract(); }
+		else if (A == TEXT("perfect")) { B->OnDeflect.Broadcast(nullptr, true); } // the pilot's perfect-deflect reaction, no bolt (captures)
 		else if (A == TEXT("ignite")) { B->Ignite(); }
 		else if (A == TEXT("jump")) { P->Jump(); }
+		else if (A == TEXT("pilot") && Args.Num() > 1)
+		{
+			// TD.Ground.Blade pilot rift|lancer|bastion: the on-foot pilot (blade colour) for captures of all three.
+			if (UTDGameInstance* GI = UTDGameInstance::Get(P))
+			{
+				const FString& W = Args[1];
+				GI->SetLastShip(W.Equals(TEXT("lancer"), ESearchCase::IgnoreCase) ? ETDShipId::Lancer : W.Equals(TEXT("bastion"), ESearchCase::IgnoreCase) ? ETDShipId::Bastion : ETDShipId::Rift);
+				P->ApplyBladeVisuals();
+			}
+		}
 		else if (A == TEXT("walk") || A == TEXT("run"))
 		{
 			// TD.Ground.Blade walk|run [seconds]: hold forward for a while (walk = half input), for captures of the
@@ -559,7 +570,7 @@ namespace TDGroundDebug
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Art));
 	static FAutoConsoleCommandWithWorldAndArgs CmdThird(TEXT("TD.Ground.ThirdPerson"), TEXT("TD.Ground.ThirdPerson [0|1]: switch the on-foot camera (not saved)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&ThirdPerson));
-	static FAutoConsoleCommandWithWorldAndArgs CmdBladeDo(TEXT("TD.Ground.Blade"), TEXT("TD.Ground.Blade <light|heavy|slam|block|unblock|retract|ignite|jump|walk|run> [seconds]: drive the pilot's blade (dev, agent captures)."),
+	static FAutoConsoleCommandWithWorldAndArgs CmdBladeDo(TEXT("TD.Ground.Blade"), TEXT("TD.Ground.Blade <light|heavy|slam|block|unblock|retract|ignite|jump|walk|run [s]|pilot rift|lancer|bastion>: drive the pilot's blade (dev, agent captures)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&BladeDo));
 	static FAutoConsoleCommandWithWorldAndArgs CmdHandBlade(TEXT("TD.Ground.HandBlade"), TEXT("TD.Ground.HandBlade [X Y Z Pitch Yaw Roll]: place / report the hand blade."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&HandBlade));

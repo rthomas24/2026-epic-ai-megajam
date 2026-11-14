@@ -299,6 +299,18 @@ private:
 	float ComboSecondLeft = 0.f;
 	/** The Warden's phase-change roar: no damage taken while it lasts. */
 	float RoarLeft = 0.f;
+	/** Drones: lean, look and the death tumble (code only). */
+	void TickDroneMotion(float DeltaSeconds);
+	USceneComponent* DroneLook() const;
+	bool bDroneBaseSet = false;
+	FRotator DroneBaseRotation = FRotator::ZeroRotator;
+	float DroneTumbleLeft = 0.f;
+	FRotator DroneTumbleSpin = FRotator::ZeroRotator;
+	FVector DroneTumbleFall = FVector::ZeroVector;
+public:
+	/** A surviving hit of at least this share of max hull plays the heavy hit react (Lead, Nov 14). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew", meta = (ClampMin = "0", ClampMax = "1")) float HeavyHitFraction = 0.6f;
+private:
 	FVector RagdollPush = FVector::ZeroVector;
 	FVector ToppleAway = FVector::ForwardVector;
 	void StartRagdollOrTopple();
