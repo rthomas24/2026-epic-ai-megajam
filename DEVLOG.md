@@ -359,3 +359,7 @@ The complete World (150.0 s) and Fall (148.8 s) masters imported and reopened in
 ### 2026-11-14 — Story fidelity handoff
 
 Story Director reconciled all 150 screenplay entries, 259 barks and staging records into StoryFidelity01, preserving the historical baseline while adding current batch-L source evidence. Existing console-log, Wren-order and final-caption fixes are resolved at source stage; queued owner work is separated from new findings. Lead verified the frozen three-file hashes and matrix coverage. The approved Cinder temporal-device line was reconfirmed to Ryan in issue29 comment6872047241. No new voice performance or gameplay acceptance is implied; no Unreal processes launched.
+
+### 2026-11-14 — Actual Shipping demonstration, including a failed capture method
+
+The verified 6fe3e90f package ran locally with game audio. HWND-only GDI recording misleadingly retained the menu surface while the game progressed, so that take was rejected. A second bounded run captured the foreground game client rectangle and same-PID WASAPI audio, yielding 200 seconds of opening and early combat. The review copy preserves the actual soundtrack; no music was replaced. Raw evidence and the 70 ms packet-timestamp limitation are recorded in docs/visual/Submission/LatestGameplayDemo01. Full tutorial-loop/fade and later campaign checks remain open. The isolated game/profile were closed after capture; protected build files were unchanged. No Unreal processes left.

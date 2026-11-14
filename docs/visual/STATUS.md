@@ -86,3 +86,7 @@ World exploration and Fall combat are imported as full SoundWaves under /Game/Tr
 ## Story fidelity checkpoint — November 14
 
 [StoryFidelity01](StoryFidelity01/README.md) preserves the 515-entry historical audit and a separate adc6f23b main delta. Current source fixes include the four console logs, exact Keep them back phrase, Wren's reactor order and decades-ahead caption. Later issue #29 edits and T5 future-defender work remain explicitly queued, not newly rediscovered regressions. The exact C5 temporal-device line is retained under Nicholas's prior approval. The 74 existing-ID wording corrections are an owner-reviewed integration input, not a blanket voice-generation or gameplay acceptance claim. Matched-build pacing, speakers, anonymous/recorded labels and actual performances remain unverified.
+
+## Actual Shipping demonstration — November 14
+
+[The 200-second 6fe3e90f recording](Submission/LatestGameplayDemo01/README.md) shows the opening and early combat with recorded game audio. This verifies the captured slice only, not final look/sound, physical controls, the full tutorial fade or the later campaign. Matching batch M UI/music hooks remain pending. Native processes are closed and protected build files unchanged.

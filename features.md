@@ -2098,6 +2098,7 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
   trailer re-capture. Heavy capture and rendering stay on Ryan's side (T3's `Tools/td-trailer.ps1`).
 
 #### ART-14 · Submission presentation · `🟨`
+- **November 14 demonstration:** [actual Shipping 6fe3e90f footage](docs/visual/Submission/LatestGameplayDemo01/README.md) contains 200 seconds of opening and early combat with game-process audio. Captured slice only; batch M, full tutorial-fade proof and human acceptance remain pending. This demonstration does not replace the required 30–60-second submission trailer with gameplay in its first five seconds.
 - **Gameplay video (30–60 s):** gameplay in the first 5 seconds. Dogfight → switch "cut" → portal
   missile return → ram → planet landing → blade deflect → Dominion reactor.
 - **itch.io page:** cover art, 5+ screenshots and a GIF, the description, controls, credits and
