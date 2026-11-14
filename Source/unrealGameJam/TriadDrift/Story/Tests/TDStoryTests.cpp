@@ -425,7 +425,7 @@ bool FTDStorySequence::RunTest(const FString& Parameters)
 	// T5's threshold console plays Cinematic 08 and opens the reactor door when it ends or is skipped. The five command
 	// deck lines (the "Dont" payoff) finally play in the game, in order, then the full warning and the case.
 	const TArray<FName>& Ids = UTDStorySubsystem::SequenceIds(TEXT("Cinematic08"));
-	TestTrue(TEXT("starts with the final record, then the command deck; ends with the order"), Ids.Num() >= 12 && Ids[0] == FName(TEXT("A4_Recording_Core")) && Ids[2] == FName(TEXT("F_FutureKato_Signatures"))
+	TestTrue(TEXT("R102 then the final record, then the command deck; ends with the order"), Ids.Num() >= 13 && Ids[0] == FName(TEXT("G7_RecKato_SameConstruction")) && Ids[1] == FName(TEXT("A4_Recording_Core")) && Ids[3] == FName(TEXT("F_FutureKato_Signatures"))
 		&& Ids.Contains(FName(TEXT("F_FutureWren_Dont"))) && Ids.Contains(FName(TEXT("F_FutureWren_FullWarning"))));
 	{
 		FTDTestWorld W(UTDGameInstance::StaticClass());
