@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Triad Drift - import builder: bring Grok Bot's merged deliveries (ArtSource/EngAI/**) into the game. Headless:
 #   powershell -File Tools\td-python.ps1 -Script ArtSource\EngImport\scripts\ue_import_engai.py
-# TD_IMPORT_ONLY=Dominion,Generator,Anchor,Hauler,DrillRig,CrystalCache limits the run; TD_IMPORT_MI_ONLY=1 keeps meshes and
+# TD_IMPORT_ONLY=Dominion,Generator,Anchor,Hauler,DrillRig,CrystalCache,OutpostDressing limits the run; TD_IMPORT_MI_ONLY=1 keeps meshes and
 # textures and only rewrites the material instances and the data assets (tuning).
 #
 # Follows ArtSource/EngShips/Rodin/scripts/ue_import_rodin_ships.py (the squad / Null fleet import):
@@ -80,9 +80,18 @@ ITEMS = {
     "CrystalCache": [
         dict(asset="SM_CrystalCacheCradle", src="Props/CrystalCache/mesh_r1", dest=PROPS + "/CrystalCache", master="prop",
              never_stream=False, scalars={"EmissiveStrength": 4.0}),
-        dict(asset="SM_CrystalCacheCrystal", src="Props/CrystalCache/mesh_r1", dest=PROPS + "/CrystalCache", master="prop",
+        # r2 (#80): the denser hero cluster, 14 cyan + 5 amber crystals, 15 UCX; r1 is mesh_r1 (see ART-HISTORY)
+        dict(asset="SM_CrystalCacheCrystal", src="Props/CrystalCache/mesh_r2", dest=PROPS + "/CrystalCache", master="prop",
              never_stream=False, scalars={"EmissiveStrength": 8.0})],
+    # #79 (#40): ten small set-dressing props on one shared 1K trim (T_OutpostProps_*, one MI_OutpostProps). Import only:
+    # the environment builder places them around the outposts and pads.
+    "OutpostDressing": [dict(asset="SM_Outpost_" + n, src="Props/OutpostSetDressing/mesh_r1", dest=PROPS + "/OutpostDressing",
+                             master="prop", never_stream=False, tex_prefix="OutpostProps", mi_name="OutpostProps",
+                             scalars={"EmissiveStrength": 4.0})
+                        for n in ("CargoCrate", "SupplyCrate", "FieldTerminal", "DataKiosk", "CommAntenna", "CommsDish",
+                                  "Floodlight", "BollardLight", "Generator", "PowerJunction")],
 }
+TEX_DONE = {}      # (dest, prefix) -> textures, so a shared trim is imported once per run
 
 eas = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()
@@ -215,7 +224,7 @@ def check_sockets(mesh, wanted, notes):
 
 def build_mi(cfg, tex, notes):
     dest = cfg["dest"]
-    short = cfg["asset"][3:]
+    short = cfg.get("mi_name", cfg["asset"][3:])
     master = eas.load_asset(SHIP_MASTER if cfg["master"] == "ship" else PROP_MASTER)
     if master is None:
         notes.append("master missing")
@@ -250,11 +259,14 @@ def import_one(cfg, mi_only):
         return None
     ensure_dir(dest)
     files = {}
+    prefix = cfg.get("tex_prefix", short)
     for suffix in ("BC", "N", "ORM", "E") + tuple(cfg.get("detail", ())):
-        p = os.path.join(folder, "T_%s_%s.png" % (short, suffix))
+        p = os.path.join(folder, "T_%s_%s.png" % (prefix, suffix))
         if os.path.isfile(p):
             files[suffix] = p
-    if mi_only:
+    if (dest, prefix) in TEX_DONE:
+        tex = TEX_DONE[(dest, prefix)]
+    elif mi_only:
         tex = {}
         for suffix, p in files.items():
             t = eas.load_asset("%s/%s" % (dest, os.path.splitext(os.path.basename(p))[0]))
@@ -262,6 +274,7 @@ def import_one(cfg, mi_only):
                 tex[suffix] = t
     else:
         tex = import_textures(files, dest, notes)
+    TEX_DONE[(dest, prefix)] = tex
     for suffix, t in tex.items():
         if cfg.get("never_stream"):
             _set(t, "never_stream", True, notes)
