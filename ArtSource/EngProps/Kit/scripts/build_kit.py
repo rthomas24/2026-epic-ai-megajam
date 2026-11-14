@@ -114,7 +114,7 @@ def make_materials(glow=GLOW_TEAL):
             t2.node_tree.links.new(mix.outputs["Result"], bs.inputs["Base Color"])
             mats[key] = t2
         for key, col, rough in (("Rock", (0.16, 0.14, 0.13), 0.9), ("Cut", (0.24, 0.23, 0.22), 0.6), ("Bore", (0.03, 0.03, 0.035), 0.9),
-                                ("BoreEnd", (0.005, 0.005, 0.006), 0.95), ("Strata", (0.35, 0.3, 0.27), 0.9), ("Strata2", (0.55, 0.5, 0.44), 0.9)):
+                                ("BoreEnd", (0.005, 0.005, 0.006), 0.95), ("Strata", (0.35, 0.3, 0.27), 0.9), ("Strata2", (0.55, 0.5, 0.44), 0.9), ("Rim", (0.7, 0.68, 0.62), 0.9), ("DomRaw", (0.03, 0.03, 0.035), 0.5)):
             r_ = bpy.data.materials.new("M_Kit_" + key)
             b_ = next(n for n in r_.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
             b_.inputs["Base Color"].default_value = (col[0], col[1], col[2], 1.0)
@@ -132,7 +132,7 @@ def make_materials(glow=GLOW_TEAL):
                                ("Beacon", glow, 20.0), ("Pillar", glow, 3.0), ("Decal", (1.0, 0.45, 0.1), 0.5), ("Route", (1.0, 0.05, 0.03), 0.5),
                                ("Eye", (1.0, 1.0, 1.0), 12.0), ("Breach", (0.2, 0.5, 1.0), 6.0), ("Run", (1.0, 0.2, 0.15), 6.0),
                                ("Flicker", (1.0, 0.72, 0.42), 4.0), ("Work", (1.0, 0.9, 0.7), 8.0),
-                               ("Strobe", (0.6, 0.85, 1.0), 20.0), ("Nav", (1.0, 0.55, 0.1), 10.0), ("CyanRun", (0.0, 0.85, 1.0), 4.0), ("Band", (0.55, 0.9, 0.15), 6.0), ("Cold", (0.45, 0.65, 1.0), 6.0), ("Seam", (1.0, 0.4, 0.08), 8.0)):
+                               ("Strobe", (0.6, 0.85, 1.0), 20.0), ("Nav", (1.0, 0.55, 0.1), 10.0), ("CyanRun", (0.0, 0.85, 1.0), 4.0), ("Band", (0.55, 0.9, 0.15), 6.0), ("Cold", (0.45, 0.65, 1.0), 6.0), ("Seam", (1.0, 0.4, 0.08), 8.0), ("CrackHot", (1.0, 0.75, 0.45), 20.0), ("CrackDim", (0.6, 0.05, 0.02), 3.0)):
         g = bpy.data.materials.new("M_Kit_" + key)
         b = next(n for n in g.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
         b.inputs["Base Color"].default_value = (0.02, 0.025, 0.03, 1.0)

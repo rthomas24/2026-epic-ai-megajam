@@ -42,9 +42,25 @@ def picket_ring():
                 for zc in (-150.0, 150.0):
                     p.poly([(R_ + T + 2.0, -seg * 0.8, zc - 35.0), (R_ + T + 2.0, seg * 0.8, zc - 35.0),
                             (R_ + T + 2.0, seg * 0.8, zc + 35.0), (R_ + T + 2.0, -seg * 0.8, zc + 35.0)], mat="Light", n=(1, 0, 0))
+            if not torn:                                         # the squad's cyan stripe and a steady cyan running glow
+                p.poly([(R_ + T + 3.0, -seg, -300.0), (R_ + T + 3.0, seg, -300.0), (R_ + T + 3.0, seg, -230.0), (R_ + T + 3.0, -seg, -230.0)],
+                       "frame", mat="Stripe", n=(1, 0, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+                p.poly([(R_ + T + 4.0, -seg, -330.0), (R_ + T + 4.0, seg, -330.0), (R_ + T + 4.0, seg, -310.0), (R_ + T + 4.0, -seg, -310.0)],
+                       mat="CyanRun", n=(1, 0, 0))
             if k == N - 1:
                 for (z0, z1, ext) in ((240.0, 400.0, 1000.0), (-400.0, -240.0, 650.0), (-80.0, 80.0, 380.0)):
                     p.box((R_ - T, seg * 0.2, z0), (R_ + T, seg * 0.2 + ext, z1), reg="wall", mat="Scorch")
+                # the breach: the open end glows cold, bent ribs stick out of it
+                p.poly([(R_ - T + 20.0, seg * 0.2 + 2.0, -Hh + 20.0), (R_ + T - 20.0, seg * 0.2 + 2.0, -Hh + 20.0),
+                        (R_ + T - 20.0, seg * 0.2 + 2.0, Hh - 20.0), (R_ - T + 20.0, seg * 0.2 + 2.0, Hh - 20.0)], mat="Breach", n=(0, 1, 0))
+                rnd_ = random.Random(3)
+                for j in range(6):
+                    z = -Hh + 120.0 + j * (2 * Hh - 240.0) / 5.0
+                    xr = R_ - T + 80.0 + rnd_.random() * (2 * T - 160.0)
+                    mid = (xr + rnd_.uniform(-200, 200), seg * 0.2 + 500.0 + rnd_.uniform(0, 400), z + rnd_.uniform(-150, 150))
+                    tip = (mid[0] + rnd_.uniform(-500, 500), mid[1] + rnd_.uniform(300, 800), mid[2] + rnd_.uniform(-400, 400))
+                    _tube(p, (xr, seg * 0.2, z), mid, 30.0, reg="frame", mat="Scorch")
+                    _tube(p, mid, tip, 22.0, reg="frame", mat="Scorch")
     for (a_, L, bend) in ((-35.0, 4500.0, 0.0), (30.0, 3800.0, 35.0)):
         with p.at(rotz(a_)):
             end = (R_ + T + L * math.cos(math.radians(bend)), L * math.sin(math.radians(bend)) * 0.4, 0.0)
@@ -54,6 +70,9 @@ def picket_ring():
     with p.at(rotz(5.0)):
         p.box((R_ - 60.0, -60.0, Hh), (R_ + 60.0, 60.0, 1400.0), reg="pillar")
         p.box((R_ - 160.0, -160.0, 1400.0), (R_ + 160.0, 160.0, 1720.0), mat="Nav")
+    with p.at(rotz(52.0)):                                       # the failing light: a flickering lamp on a bracket
+        p.box((R_ + T, -40.0, 300.0), (R_ + T + 300.0, 40.0, 360.0), reg="frame")
+        p.box((R_ + T + 220.0, -90.0, 360.0), (R_ + T + 380.0, 90.0, 520.0), mat="Flicker")
     pts = []
     for a_ in (A0, 0.0, A1):
         for rr in (R_ - T, R_ + T + 4500.0 * (abs(a_) < 40)):
@@ -100,6 +119,7 @@ def hulk_fore():
     _torn_end(p, 0.0, -1.0)
     _slits(p, 300.0, 3800.0, 1.0)
     p.box((6300.0, -80.0, -80.0), (6460.0, 80.0, 80.0), mat="Cold")
+    p.box((2400.0, -120.0, H2 * 0.45 + 450.0), (2640.0, 120.0, H2 * 0.45 + 690.0), mat="Nav")
     p.chull([(x, y, z) for x in (-700.0, 6500.0) for y, z in hull_prof(W2, H2, 1.0 if x < 0 else 0.1)] +
             [(x, y, H2 * 0.45 + 450.0) for x in (1500.0, 3500.0) for y in (-500.0, 500.0)])
     return p
@@ -124,6 +144,7 @@ def hulk_mid():
     p.poly([(-1000.0, W2 / 2 + 6.0, -600.0), (900.0, W2 / 2 + 6.0, -550.0), (750.0, W2 / 2 + 6.0, 600.0), (-850.0, W2 / 2 + 6.0, 550.0)],
            "wall", mat="Scorch", n=(0, 1, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
     p.box((-80.0, W2 / 2 - 10.0, H2 * 0.2), (80.0, W2 / 2 + 150.0, H2 * 0.2 + 160.0), mat="Cold")
+    p.box((-200.0, -120.0, H2 * 0.45 + 300.0), (40.0, 120.0, H2 * 0.45 + 540.0), mat="Nav")
     p.chull([(x, y, z) for x in (-2900.0, 2900.0) for y, z in prof] + [(x, 0.0, H2 * 0.45 + 300.0) for x in (-2200.0, 900.0)])
     return p
 
@@ -138,6 +159,7 @@ def hulk_aft():
         _lathe_x(p, -2000.0, y, z, [(330.0, 0.0), (420.0, -400.0), (650.0, -1200.0), (600.0, -1200.0), (360.0, -400.0), (260.0, 0.0)],
                  14, regs=["sw_gun", "frame", "sw_dark", "sw_black", "sw_black"], mat="Trim2")
     p.box((-2100.0, -80.0, H2 * 0.4), (-1940.0, 80.0, H2 * 0.4 + 160.0), mat="Cold")
+    p.box((0.0, -120.0, H2 * 0.5), (240.0, 120.0, H2 * 0.5 + 240.0), mat="Nav")
     p.chull([(x, y, z) for x in (-3300.0, 2200.0) for y in (-W2 / 2, W2 / 2) for z in (-H2 * 0.6, H2 * 0.5)])
     return p
 
@@ -155,10 +177,10 @@ def scar_rig():
         with p.at(Matrix.Translation((dx, 0.0, 0.0)) @ rotz(yaw)):
             _rock(p, R, seed, XC=0.0, BR=1.0, BD=0.0, NU=56, NV=30)
             # lit rim strips round the machined face (on the face plane, just proud)
-            for (y0, y1, z0, z1) in ((-2600.0, 2600.0, 2300.0, 2360.0), (-2600.0, 2600.0, -2360.0, -2300.0),
-                                     (-2700.0, -2640.0, -2200.0, 2200.0), (2640.0, 2700.0, -2200.0, 2200.0)):
-                p.poly([(5.0, y0, z0), (5.0, y1, z0), (5.0, y1, z1), (5.0, y0, z1)], mat="Work", n=(1, 0, 0))
-    p.faces = [(v, u, "Bore" if m == "Cut" else m) for v, u, m in p.faces]          # the canyon walls: dark
+            for (y0, y1, z0, z1) in ((-2600.0, 2600.0, 2300.0, 2400.0), (-2600.0, 2600.0, -2400.0, -2300.0),
+                                     (-2720.0, -2620.0, -2200.0, 2200.0), (2620.0, 2720.0, -2200.0, 2200.0)):
+                p.poly([(5.0, y0, z0), (5.0, y1, z0), (5.0, y1, z1), (5.0, y0, z1)], mat="Glow", n=(1, 0, 0))     # red edge seams
+    p.faces = [(v, u, "DomRaw" if m == "Cut" else m) for v, u, m in p.faces]        # the canyon walls: Null black trim
     p.smooth_deg = 22.0
     G = 3000.0
     for y in (-800.0, 800.0):
@@ -168,12 +190,18 @@ def scar_rig():
             _tube(p, (float(x), y, G), (float(x) + 450.0, y, G + 650.0), 45.0, reg="sw_gun", mat="Dom")
             _tube(p, (float(x), -800.0, G + 650.0), (float(x), 800.0, G + 650.0), 45.0, reg="sw_gun", mat="Dom")
         for x in (-2200.0, -900.0, 900.0, 2200.0):                  # hazard-yellow work lights along the gantry
-            p.box((x - 70.0, y - 70.0, G - 200.0), (x + 70.0, y + 70.0, G - 90.0), mat="Work")
+            p.box((x - 210.0, y - 210.0, G - 420.0), (x + 210.0, y + 210.0, G - 90.0), mat="Work")
     for (x, y) in ((-2700.0, -800.0), (2700.0, -800.0), (-2700.0, 800.0), (2700.0, 800.0)):
         _tube(p, (x, y, G), (x * 1.05, y * 1.4, G - 1500.0), 90.0, reg="frame", mat="Dom")
         p.box((x * 1.05 - 220.0, y * 1.4 - 220.0, G - 1750.0), (x * 1.05 + 220.0, y * 1.4 + 220.0, G - 1450.0), reg="hazard", mat="Dom")
     p.box((-600.0, -600.0, G + 650.0), (600.0, 600.0, G + 1550.0), regs={"Z": "roof"}, reg="wallB", mat="Dom")
     p.box((-620.0, -620.0, G + 1150.0), (620.0, 620.0, G + 1230.0), reg="hazard", mat="Dom")
+    for (nx, ny) in ((1, 0), (-1, 0), (0, 1), (0, -1)):            # the white eye ring on the drill head
+        for t in (-300.0, 0.0, 300.0):
+            cx_, cy_ = nx * 602.0 + (0 if nx else t), ny * 602.0 + (0 if ny else t)
+            ex, ey = (0.0, 70.0) if nx else (70.0, 0.0)
+            p.poly([(cx_ - ex, cy_ - ey, G + 1320.0), (cx_ + ex, cy_ + ey, G + 1320.0), (cx_ + ex, cy_ + ey, G + 1420.0), (cx_ - ex, cy_ - ey, G + 1420.0)],
+                   mat="Eye", n=(nx, ny, 0))
     _tube(p, (0.0, 0.0, G), (0.0, 0.0, -1800.0), 260.0, reg="frame", mat="Dom")
     p.box((-400.0, -400.0, -2200.0), (400.0, 400.0, -1800.0), reg="hazard", mat="Dom")
     p.box((-140.0, -140.0, 200.0), (140.0, 140.0, 480.0), mat="Strobe")          # the slow white strobe on the drill arm
@@ -190,40 +218,71 @@ def scar_rig():
 
 # ------------------------------------------------------------------------------------------------ Shattered Moons
 def _shard(name, R, seed, seams, band=1100.0):
-    """A moon shard: a hard-faceted rock (no smoothing across facets) cut by one planar fracture face (+X). The face is
-    banded with strata (alternating Strata / Strata2 rows about 11 m thick) and crossed by ember seams (Seam, under 5 %
-    of the face). Rock UVs tile 16 x 8 so the texture holds at 300 m."""
+    """A moon shard: a hard-faceted rock broken by an uneven stepped fracture (+X): 5 offset plates 4-10 m apart round
+    an impact point, so the break has shadow; subtle strata bands (Strata / Strata2, about 25 % apart); a pale rim band
+    along the break's edge (Rim); and a crack network radiating from the impact point - wide and hot orange-white at the
+    centre (CrackHot), orange further out (Seam), thinning to dark-red hairlines at the edges (CrackDim), each crack laid
+    over a wider dim underglow (CrackDim) for a soft falloff. Rock UVs tile 16 x 8."""
     p = Piece(name, None)
-    XC = R[0] * 0.35
-    _rock(p, R, seed, XC=XC, BR=1.0, BD=0.0, NU=96, NV=60)
+    XC0 = R[0] * 0.35
+    rnd = random.Random(seed + 1)
+    iy, iz = R[1] * 0.08, -R[2] * 0.06                      # the impact point on the face
+    steps = [0.0, -450.0, -900.0, -300.0, -700.0, -1000.0]
+
+    def plate(y, z):
+        a_ = (math.degrees(math.atan2(z - iz, y - iy)) + 360.0) % 360.0
+        r_ = math.hypot(y - iy, z - iz)
+        if r_ < R[1] * 0.12:
+            return 0
+        return 1 + int(a_ // 72.0)
+
+    def xc(y, z):
+        return XC0 + steps[plate(y, z)]
+    _rock(p, R, seed, XC=xc, BR=1.0, BD=0.0, NU=96, NV=60, rim=True)
     out = []
     for v, u, m in p.faces:
         if m == "Cut":
             zc = sum(q.z for q in v) / len(v)
             m = "Strata" if int((zc + 100000.0) // band) % 2 == 0 else "Strata2"
             u = [(q.y / 3000.0, q.z / 1200.0) for q in v]
-        elif m == "Rock":
+        elif m in ("Rock", "Rim"):
             u = [(a_ * 4.0, b_ * 4.0) for a_, b_ in u]
         out.append((v, u, m))
     p.faces = out
-    p.smooth_deg = 18.0                                   # hard-shade the large facets and the break
-    rnd = random.Random(seed + 1)
-    for k in range(seams):
-        z = -R[2] * 0.45 + R[2] * 0.9 * (k + 0.5) / seams + rnd.uniform(-300, 300)
-        y = -R[1] * 0.55
-        while y < R[1] * 0.55:
-            y1 = y + rnd.uniform(1500, 3000)
-            z1 = z + rnd.uniform(-600, 600)
-            p.poly([(XC + 30.0, y, z - 90.0), (XC + 30.0, y1, z1 - 90.0), (XC + 30.0, y1, z1 + 90.0), (XC + 30.0, y, z + 90.0)],
-                   mat="Seam", n=(1, 0, 0))
+    p.smooth_deg = 18.0
+
+    def crack(y0, z0, ang, length, w0, w1, depth):
+        """One crack from (y0, z0): short segments that follow the stepped face, tapering width, hot to dim."""
+        y, z, d = y0, z0, 0.0
+        n = max(4, int(length / 350.0))
+        for i in range(n):
+            t0, t1 = i / n, (i + 1) / n
+            ang += rnd.uniform(-0.35, 0.35)
+            y1, z1 = y + math.cos(ang) * length / n, z + math.sin(ang) * length / n
+            for (wmul, mat, lift) in ((2.6, "CrackDim", 15.0), (1.0, "CrackHot" if t0 < 0.25 and depth == 0 else ("Seam" if t0 < 0.6 else "CrackDim"), 30.0)):
+                wa, wb = (w0 + (w1 - w0) * t0) * wmul / 2.0, (w0 + (w1 - w0) * t1) * wmul / 2.0
+                nx_, nz_ = -(z1 - z), (y1 - y)
+                ln = math.hypot(nx_, nz_) or 1.0
+                nx_, nz_ = nx_ / ln, nz_ / ln
+                pts = [(y - nx_ * wa, z - nz_ * wa), (y1 - nx_ * wb, z1 - nz_ * wb), (y1 + nx_ * wb, z1 + nz_ * wb), (y + nx_ * wa, z + nz_ * wa)]
+                p.poly([(xc(py, pz) + lift, py, pz) for py, pz in pts], mat=mat, n=(1, 0, 0))
+            if depth < 2 and rnd.random() < 0.18:
+                crack(y1, z1, ang + rnd.choice((-1, 1)) * rnd.uniform(0.5, 0.9), length * (1.0 - t1) * 0.7, (w0 + (w1 - w0) * t1) * 0.6, w1 * 0.5, depth + 1)
             y, z = y1, z1
-    return p, XC
+    for k in range(seams):
+        ang = 2 * math.pi * k / seams + rnd.uniform(-0.3, 0.3)
+        crack(iy, iz, ang, min(R[1], R[2]) * rnd.uniform(0.7, 0.95), 520.0, 40.0, 0)
+    # the hot heart of the impact
+    hs = 700.0
+    p.poly([(xc(iy, iz) + 35.0, iy - hs, iz - hs), (xc(iy, iz) + 35.0, iy + hs, iz - hs), (xc(iy, iz) + 35.0, iy + hs, iz + hs),
+            (xc(iy, iz) + 35.0, iy - hs, iz + hs)], mat="CrackHot", n=(1, 0, 0))
+    return p, XC0
 
 
 def moon_shard_a():
     """Moon shard A (about 300 m): a huge broken slab of moon, its fracture face flat and banded with exposed strata,
     ember seams glowing in the cracks - whatever stood near the Dominion was broken and swept aside."""
-    p, XC = _shard("SM_KS_MoonShard_A", (18000.0, 15000.0, 9000.0), 41, 5)
+    p, XC = _shard("SM_KS_MoonShard_A", (18000.0, 15000.0, 9000.0), 41, 7)
     p.chull([(-18000.0, y, z) for y in (-15000.0, 15000.0) for z in (-9000.0, 9000.0)] +
             [(XC, y, z) for y in (-15000.0, 15000.0) for z in (-9000.0, 9000.0)])
     return p
@@ -231,7 +290,7 @@ def moon_shard_a():
 
 def moon_shard_b():
     """Moon shard B (about 180 m): a smaller, chunkier shard from the same moon, the same strata and glowing fracture."""
-    p, XC = _shard("SM_KS_MoonShard_B", (10000.0, 8000.0, 7000.0), 47, 4)
+    p, XC = _shard("SM_KS_MoonShard_B", (10000.0, 8000.0, 7000.0), 47, 6)
     p.chull([(-10000.0, y, z) for y in (-8000.0, 8000.0) for z in (-7000.0, 7000.0)] +
             [(XC, y, z) for y in (-8000.0, 8000.0) for z in (-7000.0, 7000.0)])
     return p

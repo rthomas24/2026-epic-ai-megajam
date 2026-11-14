@@ -1,21 +1,75 @@
 {
   "asset": "SM_KS_MoonShard_B",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_MoonShard_B.fbx",
-  "tris": 21139,
+  "tris": 23905,
   "size_cm": [
-    14297.1,
-    16943.5,
+    14302.1,
+    16943.4,
     15543.1
   ],
   "pivot": "root object origin (SM_KS_MoonShard_B~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
+    "M_Kit_CrackDim",
+    "M_Kit_CrackHot",
+    "M_Kit_Rim",
     "M_Kit_Rock",
     "M_Kit_Seam",
     "M_Kit_Strata",
     "M_Kit_Strata2"
   ],
   "material_params": [
+    {
+      "name": "M_Kit_CrackDim",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.6,
+        0.05,
+        0.02
+      ],
+      "emission_strength": 3.0
+    },
+    {
+      "name": "M_Kit_CrackHot",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.75,
+        0.45
+      ],
+      "emission_strength": 20.0
+    },
+    {
+      "name": "M_Kit_Rim",
+      "textured": false,
+      "base_color": [
+        0.7,
+        0.68,
+        0.62
+      ],
+      "metallic": 0.0,
+      "roughness": 0.9,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
     {
       "name": "M_Kit_Rock",
       "textured": false,

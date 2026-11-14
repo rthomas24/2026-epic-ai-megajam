@@ -6,7 +6,7 @@
    25.6,
    19.9
   ],
-  "tris_lod0": 1952,
+  "tris_lod0": 2060,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -14,7 +14,8 @@
    "1:Cold",
    "2:Scorch",
    "3:Trim2",
-   "4:Light"
+   "4:Light",
+   "5:Nav"
   ]
  },
  {
@@ -22,9 +23,9 @@
   "size_m": [
    72.0,
    24.1,
-   20.7
+   23.1
   ],
-  "tris_lod0": 1358,
+  "tris_lod0": 1466,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -32,7 +33,8 @@
    "1:Cold",
    "2:Scorch",
    "3:Trim2",
-   "4:Light"
+   "4:Light",
+   "5:Nav"
   ]
  },
  {
@@ -40,9 +42,9 @@
   "size_m": [
    58.0,
    25.6,
-   19.2
+   21.6
   ],
-  "tris_lod0": 2760,
+  "tris_lod0": 2868,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -51,24 +53,28 @@
    "2:Scorch",
    "3:Trim2",
    "4:Breach",
-   "5:Light"
+   "5:Light",
+   "6:Nav"
   ]
  },
  {
   "asset": "SM_KS_MoonShard_A",
   "size_m": [
-   260.6,
+   260.7,
    329.5,
    210.7
   ],
-  "tris_lod0": 20406,
+  "tris_lod0": 23012,
   "lods": 3,
   "hulls": 1,
   "slots": [
    "0:Seam",
    "1:Rock",
    "2:Strata",
-   "3:Strata2"
+   "3:Strata2",
+   "4:CrackDim",
+   "5:CrackHot",
+   "6:Rim"
   ]
  },
  {
@@ -78,24 +84,27 @@
    169.4,
    155.4
   ],
-  "tris_lod0": 21139,
+  "tris_lod0": 23905,
   "lods": 3,
   "hulls": 1,
   "slots": [
    "0:Seam",
    "1:Rock",
    "2:Strata",
-   "3:Strata2"
+   "3:Strata2",
+   "4:CrackDim",
+   "5:CrackHot",
+   "6:Rim"
   ]
  },
  {
   "asset": "SM_KS_PicketRing",
   "size_m": [
-   84.6,
+   89.8,
    132.9,
-   21.2
+   23.7
   ],
-  "tris_lod0": 6008,
+  "tris_lod0": 7626,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -103,7 +112,11 @@
    "1:Nav",
    "2:Scorch",
    "3:Trim2",
-   "4:Light"
+   "4:Light",
+   "5:Breach",
+   "6:CyanRun",
+   "7:Flicker",
+   "8:Stripe"
   ]
  },
  {
@@ -113,15 +126,17 @@
    82.8,
    81.6
   ],
-  "tris_lod0": 15880,
+  "tris_lod0": 15904,
   "lods": 3,
   "hulls": 1,
   "slots": [
-   "0:Bore",
+   "0:DomRaw",
    "1:Dom",
    "2:Rock",
    "3:Strobe",
-   "4:Work"
+   "4:Work",
+   "5:Eye",
+   "6:Glow"
   ]
  }
 ]
