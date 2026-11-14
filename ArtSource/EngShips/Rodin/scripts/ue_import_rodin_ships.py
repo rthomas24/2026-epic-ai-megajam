@@ -80,6 +80,9 @@ SHIPS = {
                  parts=(("Portal", "SM_Rift_PortalDisc", "Portal"),)),
     "Lancer": dict(da=(SQUAD, "DA_Lancer_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Lancer", old_mi=None, squad=True, glow=SQUAD_GLOW["Lancer"],
                    emissive=6.0, base_tint=(1.0, 1.0, 1.0), rough=1.45, self_light=0.08, detail=0.55, trail_scale=0.7, glow_strength=1.0,
+                   # boost_scale=0.55 would set BoostLoop / BoostStart VFXScale, but the Lancer's boost cues have no VFX: the
+                   # boost plume is the EngineTrail system's own "Boost" parameter (ATDShip::UpdateExhaustParams), so a
+                   # boost-only size needs a per-ship parameter in that system (effects builder), not this data asset.
                    # close-range pass: 370 texels per metre at 2K, UV 0..1 spans about 5.5 m: tiling 7 = 0.8 m tiles
                    squad_detail=True, tex_r2=("BC", "E"), mi_params={"MetallicScale": 0.25, "RoughnessMin": 0.36, "DetailTiling": 7.0,
                                                  "DetailStrength": 0.5, "DetailAO": 0.6, "DetailRough": 0.25}),
@@ -87,8 +90,12 @@ SHIPS = {
                     emissive=6.0, base_tint=(1.5, 1.5, 1.5), rough=1.25, self_light=0.12, detail=0.55, trail_scale=0.7,
                     glow_strength=0.55,
                     # close-range pass: 193 texels per metre at 2K, UV 0..1 spans about 10.6 m: tiling 13 = 0.8 m tiles
+                    # the shield dome (effects builder, eng/vfx 037c17c6): replaces the code's placeholder lattice
+                    power2_vfx="/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_ShieldDome.NS_TD_ShieldDome",
                     squad_detail=True, tex_r2=("BC", "E"), mi_params={"MetallicScale": 0.3, "RoughnessMin": 0.36, "DetailTiling": 13.0,
                                                   "DetailStrength": 0.5, "DetailAO": 0.6, "DetailRough": 0.25}),
+    # range_boost / eye_mul (Nov 13 evening, Lead: the fleet were specks at 1 km): the emissive map is multiplied by
+    # range_boost at distance (M_TD_Ship RangeBoost, 60 m -> 600 m) and the white eyes by eye_mul everywhere.
     # Null Armada: the Rodin albedo came out light silver; the brief is near-black armour, red-orange glow,
     # white eyes. BaseTint multiplies the albedo down; the emissive map keeps its own colours.
     "NullFighter": dict(da=(FLEET, "DA_Enemy_Fighter_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Fighter",
@@ -96,31 +103,31 @@ SHIPS = {
                         # its seams are a pale peach in the texture: a sharper white test keeps them orange and
                         # leaves only the really neutral texels (the nose chevron eye) white
                         # The fighter is the RED one of the pair (the interceptor is amber): see NullInterceptor.
-                        emissive_tint=(1.0, 0.26, 0.12), eye_boost=1.4, white_sharp=22.0),
+                        emissive_tint=(1.0, 0.26, 0.12), eye_boost=1.4, white_sharp=22.0, range_boost=6.0, eye_mul=1.6),
     "NullGunship": dict(da=(FLEET, "DA_Enemy_Gunship_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Gunship",
                         old_mi=FLEET + "/MI_Null_Gunship", emissive=8.0, base_tint=(0.6, 0.57, 0.57),
-                        emissive_tint=ENEMY_GLOW, eye_boost=1.6),
+                        emissive_tint=ENEMY_GLOW, eye_boost=1.6, range_boost=5.0, eye_mul=1.6),
     # Fleet r3 (Grok Bot, Nov 13): these came out properly dark with clean orange seams: no BaseTint darkening.
     "NullInterceptor": dict(da=(FLEET, "DA_Enemy_Interceptor_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Interceptor",
                             old_mi=FLEET + "/MI_Null_Interceptor", emissive=14.0, base_tint=(1.0, 1.0, 1.0),
                             # Same silhouette as the fighter, so the accent tells them apart: hotter yellow-amber
                             # seams and a much brighter white eye here, deep red on the fighter.
-                            emissive_tint=(1.0, 0.78, 0.22), eye_boost=5.0),
+                            emissive_tint=(1.0, 0.78, 0.22), eye_boost=5.0, range_boost=6.0, eye_mul=1.6),
     "NullBomber": dict(da=(FLEET, "DA_Enemy_Bomber_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Bomber",
                        old_mi=FLEET + "/MI_Null_Bomber", emissive=9.0, base_tint=(1.0, 1.0, 1.0),
-                       emissive_tint=ENEMY_GLOW, eye_boost=2.0),
+                       emissive_tint=ENEMY_GLOW, eye_boost=2.0, range_boost=5.0, eye_mul=1.6),
     "NullCarrier": dict(da=(FLEET, "DA_Enemy_Carrier_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Carrier",
                         old_mi=FLEET + "/MI_Null_Carrier", emissive=3.0, base_tint=(1.0, 1.0, 1.0),
                         emissive_tint=ENEMY_GLOW, eye_boost=2.0,
                         # Wired since T4's socket mounts (7b57d0a): the bays and turrets snap to Bay_0..2 and
                         # Turret_0..3 on this mesh, and its UCX hulls answer projectiles. wire=False keeps
                         # SM_Null_Carrier (whose parts use the old sphere placement).
-                        wire=True),
+                        wire=True, range_boost=4.0, eye_mul=1.6),
     # The turret has no visuals of its own: it is the TurretMesh field of the carrier visuals and of the
     # Dominion turret visuals (ATDEnemyTurret::ApplyLook empties the override materials itself).
     "NullTurret": dict(slots=((FLEET, "DA_Enemy_Carrier_Visuals"), (DOMINION, "DA_DominionTurret_Visuals")),
                        slot_prop="turret_mesh", old=FLEET + "/SM_Null_Turret",
-                       emissive=9.0, base_tint=(1.0, 1.0, 1.0), emissive_tint=ENEMY_GLOW, eye_boost=1.6),
+                       emissive=9.0, base_tint=(1.0, 1.0, 1.0), emissive_tint=ENEMY_GLOW, eye_boost=1.6, range_boost=3.0, eye_mul=1.6),
 }
 SUFFIX_PARAM = (("BaseColorTex", "BC"), ("ORMTex", "ORM"), ("NormalTex", "N"), ("EmissiveTex", "E"),
                 ("HeatMaskTex", "HeatMask"))
@@ -657,7 +664,23 @@ def ensure_master(defaults):
     h2, k = mul(hstr, "", hglow, "", -800, 1700); ok &= k
     h3, k = mul(h1, "", h2, "", -600, 1400); ok &= k
     add0 = mel.create_material_expression(mat, E.MaterialExpressionAdd, -400, 1000)
-    ok &= mel.connect_material_expressions(e2, "", add0, "A")
+    # Readability at range (Lead, Nov 13 evening: the Null fleet were specks at 1 km): the emissive map (eyes, seams,
+    # engines) is multiplied by RangeBoost at distance, ramping in from RangeStart to RangeEnd (cm). Default 1 = off,
+    # so close-up looks never change.
+    rboost = scalar("RangeBoost", 1.0, -1200, 1300)
+    rstart = scalar("RangeStart", 6000.0, -1200, 1350)
+    rend = scalar("RangeEnd", 60000.0, -1200, 1400)
+    rdepth = mel.create_material_expression(mat, E.MaterialExpressionPixelDepth, -1100, 1450)
+    rd0, k = node(E.MaterialExpressionSubtract, -1000, 1450, A=(rdepth, ""), B=(rstart, "")); ok &= k
+    rspan, k = node(E.MaterialExpressionSubtract, -1000, 1500, A=(rend, ""), B=(rstart, "")); ok &= k
+    rd1, k = node(E.MaterialExpressionDivide, -900, 1450, A=(rd0, ""), B=(rspan, "")); ok &= k
+    rd2 = mel.create_material_expression(mat, E.MaterialExpressionSaturate, -800, 1450)
+    ok &= mel.connect_material_expressions(rd1, "", rd2, "")
+    one_r = mel.create_material_expression(mat, E.MaterialExpressionConstant, -800, 1500)
+    one_r.set_editor_property("r", 1.0)
+    rk, k = node(E.MaterialExpressionLinearInterpolate, -700, 1450, A=(one_r, ""), B=(rboost, ""), Alpha=(rd2, "")); ok &= k
+    e2r, k = mul(e2, "", rk, "", -550, 900); ok &= k
+    ok &= mel.connect_material_expressions(e2r, "", add0, "A")
     ok &= mel.connect_material_expressions(h3, "", add0, "B")
     sl, k = mul(bc, "", selfl, "", -600, 1900); ok &= k
     add = mel.create_material_expression(mat, E.MaterialExpressionAdd, -200, 1100)
@@ -926,7 +949,8 @@ def main():
         mel.set_material_instance_scalar_parameter_value(mi, "RoughnessScale", cfg.get("rough", 1.0))
         mel.set_material_instance_scalar_parameter_value(mi, "HeatGlow", 0.0)
         mel.set_material_instance_scalar_parameter_value(mi, "SelfLight", cfg.get("self_light", 0.0))
-        mel.set_material_instance_scalar_parameter_value(mi, "EyeBoost", cfg.get("eye_boost", 1.0))
+        mel.set_material_instance_scalar_parameter_value(mi, "EyeBoost", cfg.get("eye_boost", 1.0) * cfg.get("eye_mul", 1.0))
+        mel.set_material_instance_scalar_parameter_value(mi, "RangeBoost", cfg.get("range_boost", 1.0))
         mel.set_material_instance_scalar_parameter_value(mi, "DetailStrength", cfg.get("detail", 0.0))
         mel.set_material_instance_scalar_parameter_value(mi, "WhiteSharpness", cfg.get("white_sharp", 4.0))
         mel.set_material_instance_scalar_parameter_value(mi, "BaseFloor", cfg.get("base_floor", 0.0))
@@ -1055,6 +1079,30 @@ def main():
                     c2 = da0.get_editor_property("engine_trail")
                     notes.append("EngineTrail VFXScale %.2f (sound %s)" % (
                         c2.get_editor_property("vfx_scale").x, "SAME" if str(c2.get_editor_property("sound")) == snd else "CHANGED"))
+                if cfg.get("power2_vfx"):
+                    cue = da0.get_editor_property("power2_active")
+                    snd = str(cue.get_editor_property("sound"))
+                    cue.set_editor_property("vfx", unreal.load_asset(cfg["power2_vfx"]))
+                    cue.set_editor_property("vfx_scale", unreal.Vector(1.0, 1.0, 1.0))
+                    da0.set_editor_property("power2_active", cue)
+                    c2 = da0.get_editor_property("power2_active")
+                    notes.append("Power2Active VFX %s (sound %s)" % (c2.get_editor_property("vfx"),
+                                 "SAME" if str(c2.get_editor_property("sound")) == snd else "CHANGED"))
+                # boost-only plume scale (BoostLoop / BoostStart cues): the Lancer's boost plumes swamped its small hull
+                for field in ("boost_loop", "boost_start"):
+                    if "boost_scale" not in cfg:
+                        break
+                    cue = da0.get_editor_property(field)
+                    snd = str(cue.get_editor_property("sound"))
+                    was = cue.get_editor_property("vfx_scale")
+                    k = cfg["boost_scale"]
+                    cue.set_editor_property("vfx_scale", unreal.Vector(k, k, k))
+                    da0.set_editor_property(field, cue)
+                    c2 = da0.get_editor_property(field)
+                    notes.append("%s VFX %s VFXScale %.2f -> %.2f (sound %s)" % (
+                        field, str(c2.get_editor_property("vfx")).split("'")[1] if "'" in str(c2.get_editor_property("vfx")) else c2.get_editor_property("vfx"),
+                        was.x, c2.get_editor_property("vfx_scale").x,
+                        "SAME" if str(c2.get_editor_property("sound")) == snd else "CHANGED"))
                 eas.save_loaded_asset(da0)
                 notes.append("visuals parts: %s" % [str(sp.get_editor_property("part_name")) for sp in part_specs])
         if not cfg.get("wire", True):
