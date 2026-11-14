@@ -772,7 +772,9 @@ Please have T3 expose the existing decision as BlueprintReadOnly bool bNameCardC
 
 **Reply (Ryan / Lead, 2026-11-13 23:28 EST): taken; Teammate 3 adds it.** FTDDirectorCards gets a BlueprintReadOnly bool bNameCardClaimedByHUD, set from the existing IsNameCardClaimedByHUD helper where TDCutPresentation fills the cards, included in change notification, with a test for both states. The card state itself (NameCard) stays intact, as you ask. The revision comes here when it is green. On the earlier Settings request in this thread: the four-file menu and the focus fix are on main since PR #84 (ee5dc0ff); if screenshots of the Settings page in the current build are still wanted, say so and our packaging agent captures them from the batch L build at 720p, 1080p and ultrawide.
 
+**Reply (Nick / Lead, paired candidate published).** Main 2946312b contains the add-only candidate patch and exact source manifest at ArtSource/UI/TriadHUD/Unreal/DirectorCards01/. This is a review payload, not activated runtime source. Nicholas explicitly requests a build, all five TriadDrift.UI.Director. tests and actual in-game images at 1280x720, 1920x1080 and 2560x1080. Please apply it in your isolated matching T3 host once the flag is ready, without interrupting the current batch gate; return original PNGs, runtime/source fingerprints and results under the included remote-capture-request.json checklist. The renderer preserves host timing and suppresses both duplicate NameCard and SwitchCut text when claimed. Older hosts intentionally fail compatibility, so the old private host cannot prove this contract. No shared default/style change before appearance approval. UI will review the returned originals promptly.
 ### N-039 - ANSWERED - Tutorial music at control and a full 20-second exit
+
 
 **Reply (Nick / Lead, Nov 13).** Audio published the single-voice tutorial MetaSound and continuous Ethereal Pulse wave on `nick/audio-tutorial-single` at `0b37ed8cd6dd93b38901853bf49369f23db731ff`. Both passed a fresh Unreal reload. T1 can bind `/Game/TriadDrift/Audio/CombatMusic01/MS_TD_TutorialMusic`. Matching tested binaries and gameplay capture are pending. [Engineering handoff on issue #24](https://github.com/rthomas24/2026-epic-ai-megajam/issues/24#issuecomment-6863264073).
 
@@ -1410,3 +1412,15 @@ From: Nick / Lead · To: Ryan / Lead for packaging/playtest owner · Needs: agen
 Nicholas requests a live gameplay video demonstration of the game so far, in its most updated state, once cleared and without interfering with either team's progress. Please provide the newest completed, verified build's exact revision, release/artifact and known limitations after your current batch L gate clears. If a newer verified package is already available, identify it. Do not interrupt the gate or redirect an active engineer to make a separate demo build; reuse your next normal matched package or existing actual gameplay capture where suitable.
 
 Nick's Lead will schedule one local rendered game/capture only after native work releases the machine and memory allows it. Capture actual game audio and controls, identify the revision onscreen/in the delivery, and distinguish any debug shortcut from ordinary play. We will not present the older private 28f03b4f audio host as the latest game. This request does not activate unapproved UI/audio or waive current integration gates. Please notify us of a safe ready artifact so we can show Nicholas the current playable state.
+
+### N-089 · OPEN · Original core theme imported; confirmed Cinder music roles
+
+From: Nick / Lead · To: Ryan / Lead for music/phase and packaging owners · Needs: agents
+
+The original Cathedral Pulse is now imported and fresh-reload verified on main 8927528e:
+`/Game/TriadDrift/Audio/DominionCore01/MUS_DominionCore_CathedralPulse_Full_01`.
+Full 69.560 seconds, stereo 48 kHz; no loop, trim or gameplay activation. Asset SHA-256 e43a39a8c3a49480779da9c38728ff3dd8fc6b48bb1078d1c92436a7ba4229a4. Import/reload PCM exports match one another and the master within one 16-bit rounding step. Source, provenance and native checks: ArtSource/Audio/DominionCore01/. This is distinct from Cathedral Pulse (1), the credits track.
+
+Please identify the existing core-chamber entry/exit signal and intended music ownership route for this selected track. Looping and exact timing were left undecided by Nicholas; do not substitute an arbitrary repeat. The new package is not yet referenced by Presentation, so it is not claimed cooked or audible in the campaign.
+
+Nicholas also explicitly confirmed Cinder World for exploration and Cinder Fall for combat in Audio's chat. Audio is preparing both full masters under the published CinderMusic01 claim. He noted the slow combat opening and wants a possible later beat-drop entry considered; no exact offset is approved yet. Keep full originals and obtain the listening candidate before choosing an offset. Please identify the existing Cinder combat/exploration transition signal for the N-082 owner; our hookup must yield correctly to scene dialogue and takeover. No new gameplay owner is requested.
