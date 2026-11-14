@@ -13,6 +13,8 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimInstance.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
+#include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Core/TDStatics.h"
 
 namespace TDPilotAnimDebug
 {
@@ -143,4 +145,33 @@ namespace TDPilotAnimDebug
 	static FAutoConsoleCommandWithWorldAndArgs CmdFindSlope(TEXT("TD.Pilot.FindSlope"),
 		TEXT("TD.Pilot.FindSlope [Radius] [MinDeg] [MaxDeg] [MinRadius]: teleport the pilot onto sloping ground, side-on to the slope."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&FindSlope));
+
+	// TD.Pilot.Act <Exit|Board|Interact|Die|Clip> [ClipName]: run the pilot's real hooks for captures: the ship exit /
+	// boarding transition (hatch 2 m ahead), the console reach, lethal damage (god mode must be off), or any body clip.
+	static void Act(const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		ATDFirstPersonCharacter* P = PC ? Cast<ATDFirstPersonCharacter>(PC->GetPawn()) : nullptr;
+		if (!P || Args.Num() < 1)
+		{
+			UE_LOG(LogTemp, Display, TEXT("TD.Pilot.Act <Exit|Board|Interact|Die|Clip> [ClipName]"));
+			return;
+		}
+		const FString What = Args[0];
+		const FVector Hatch = P->GetActorLocation() + P->GetActorForwardVector() * 200.f;
+		float Len = 0.f;
+		if (What.Equals(TEXT("Exit"), ESearchCase::IgnoreCase)) { Len = P->StartShipTransition(false, Hatch); }
+		else if (What.Equals(TEXT("Board"), ESearchCase::IgnoreCase)) { Len = P->StartShipTransition(true, Hatch); }
+		else if (What.Equals(TEXT("Interact"), ESearchCase::IgnoreCase)) { P->DebugPlayBodyAction(TEXT("A_Pilot_Interact_Console"), 1.f, true); }
+		else if (What.Equals(TEXT("Clip"), ESearchCase::IgnoreCase) && Args.Num() > 1) { P->DebugPlayBodyAction(FName(*Args[1]), 1.f, false); }
+		else if (What.Equals(TEXT("Die"), ESearchCase::IgnoreCase))
+		{
+			UTDStatics::ApplyTDDamage(P, 100000.f, ETDDamageKind::Energy, nullptr, nullptr, P->GetActorLocation() + P->GetActorForwardVector() * 50.f, -P->GetActorForwardVector());
+		}
+		UE_LOG(LogTemp, Display, TEXT("TD.Pilot.Act %s (%.2f s)"), *What, Len);
+	}
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdAct(TEXT("TD.Pilot.Act"),
+		TEXT("TD.Pilot.Act <Exit|Board|Interact|Die|Clip> [ClipName]: run a pilot hook for an animation capture."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Act));
 }
