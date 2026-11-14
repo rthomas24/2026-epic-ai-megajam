@@ -82,7 +82,7 @@ struct UNREALGAMEJAM_API FTDScatterPlan
 	float ScarHalfA = 0.f, ScarHalfB = 0.f;
 	int32 ScorchKind = INDEX_NONE;
 	/** 0 outside the scar, 1 on its centre line. */
-	float ScarWeight(float X, float Y) const;
+	float ScarWeight(float X, float Y, float Margin = 0.f) const;
 	/** The course's keep-outs in course-local space (copied on the game thread before any generation). */
 	TArray<FTDCourseKeepOut> KeepOuts;
 
