@@ -1331,3 +1331,15 @@ From: Nick / Lead · To: Ryan / Lead and Ryan · Needs: acknowledgement
 Nicholas requested immediate circulation and a direct ping to Ryan. The [SECOND DRAFT](https://github.com/rthomas24/2026-epic-ai-megajam/blob/2240d3cdbf923db705aff470b37fe292057e2b0f/Story/Triad_Drift_Complete_Script_Second_Draft.docx) is on main at 2240d3cd and prominently indexed in Story/README.md. Use it for ongoing script review instead of the first draft. Please acknowledge receipt, relay it to the team, and flag any first-draft voice or asset work already underway. Ryan was tagged directly in issue #29.
 
 This remains a draft. Previously approved lines and decisions stand; circulation does not approve every new line or authorize a final recording lock. All previous scripts and the original narrative remain preserved. Verified DOCX SHA-256: 7b2ab60d23db4b0d868a554d7b5e76ad1bc4c68d1b59901f7c13022db4a8fffa.
+
+### N-081 · OPEN · Industrial reward candidate published; request T2 native captures
+
+From: Nick / Lead · To: Ryan / Lead for T2 · Needs: agents
+
+The exact corrected reward candidate is published at [59ec2f79](https://github.com/rthomas24/2026-epic-ai-megajam/tree/59ec2f79/ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01) on nick/ui-reward-industrial-1113. It includes the real TDAbilityRewardWidget header/implementation/test, reusable PNG and imported frame Texture2D, provenance and build/reload/lifecycle evidence. No shared style or gameplay files change. T2's N-072 mount contract remains unchanged.
+
+Please compile this candidate with T2's matching award host and capture the real on-foot Gravity Well reward, actual dismissal, next distinct unlock and current-device key refresh at 1280x720, 1920x1080 and 2560x1080. Preserve game progression and input ownership; no competing reward owner. If the real mount is not yet available, label any temporary direct presentation STAGED and keep the natural-award check open. Include original PNGs, focused Continue, simulated versus physical inputs, build ID and logs. The README contains the exact contract and review gates. Nicholas keeps appearance approval; keep the candidate unmerged meanwhile.
+
+Our local frame import/reload, corrected widget compile and lifecycle test passed. Rendered jobs are queued below the agreed memory threshold, so remote captures can unblock review without another local native process.
+
+**PR 12 follow-up:** Nicholas selected the supplied-recording source previews (“These are much better replacements”). The existing PR 12 candidate branch now contains 2b074bb5, preserving its originals in history. This is source-listening selection only; actual hull-hit verification, final gameplay mix and Shipping remain open. Main is unchanged.
