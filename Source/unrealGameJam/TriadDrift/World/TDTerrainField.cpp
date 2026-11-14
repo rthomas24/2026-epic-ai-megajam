@@ -1,6 +1,7 @@
 // Triad Drift - World (Teammate 4). ENG-34 planet height field.
 
 #include "TriadDrift/World/TDTerrainField.h"
+#include "HAL/IConsoleManager.h"
 
 namespace TDTerrainFieldImpl
 {
@@ -113,6 +114,9 @@ FTDTerrainStyle FTDTerrainStyle::ForPlanet(ETDDestination Planet)
 	// Ryan (#194): mountains all around the pad, close and tall, and relief underfoot once the course has said where
 	// its walked ground is.
 	S.bCinderGround = Planet == ETDDestination::Cinder;
+	static IConsoleVariable* ReliefVar = IConsoleManager::Get().RegisterConsoleVariable(TEXT("td.Terrain.Relief"), 1,
+		TEXT("#194: 1 = relief underfoot and the mountain ring (default); 0 = the flat ground before them (read when a planet loads)."), ECVF_Default);
+	if (ReliefVar && ReliefVar->GetInt() == 0) { return S; }
 	S.RingRidgeHeight = S.bCinderGround ? 32000.f : 26000.f;	// x (0.4..1.25) crest: about 100-400 m (Lead: 150-400 m)
 	{
 		FScopeLock Guard(&TDTerrainFieldFlats::Lock());

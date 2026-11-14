@@ -32,6 +32,7 @@
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Powers/TDPowerPresentation.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -290,6 +291,36 @@ namespace TDWorldDebug
 			P.Z = T->GetHeightAt(P) + FCString::Atof(*Args[2]) * 100.f;
 			const FRotator R(Args.Num() > 4 ? FCString::Atof(*Args[4]) : 0.f, Args.Num() > 3 ? FCString::Atof(*Args[3]) : 0.f, 0.f);
 			PlaceFacing(Pawn, P, R);
+		}));
+
+	// #194: stand on a course route (the course's "Route" keep-outs): TD.World.RouteView <route index> <0..1 along> [m up] [look 0 along | 1 back]
+	FAutoConsoleCommandWithWorldAndArgs CmdRouteView(TEXT("TD.World.RouteView"), TEXT("On a planet: stand on route <i> at fraction <t> of its length, facing along it: <i> <t> [m above ground = 2] [1 = face back]."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const ATDPlanetCourse* Course = ATDPlanetCourse::Get(World);
+			ATDPlanetTerrain* T = nullptr;
+			for (TActorIterator<ATDPlanetTerrain> It(World); It && !T; ++It) { T = *It; }
+			APawn* Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
+			if (!Course || !T || !Pawn || Args.Num() < 2) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.World.RouteView <i> <t>: needs a course, a terrain and a pawn")); return; }
+			TArray<const FTDCourseKeepOut*> Routes;
+			for (const FTDCourseKeepOut& K : Course->GetKeepOuts()) { if (K.Kind == TEXT("Route") && K.Points.Num() > 1) { Routes.Add(&K); } }
+			const int32 I = FCString::Atoi(*Args[0]);
+			if (!Routes.IsValidIndex(I)) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.World.RouteView: %d routes"), Routes.Num()); return; }
+			const TArray<FVector>& P = Routes[I]->Points;
+			float Total = 0.f;
+			for (int32 k = 0; k + 1 < P.Num(); ++k) { Total += (float)FVector::Dist2D(P[k], P[k + 1]); }
+			float Want = FMath::Clamp(FCString::Atof(*Args[1]), 0.f, 1.f) * Total;
+			FVector At = P.Last(), Dir = (P.Last() - P[P.Num() - 2]).GetSafeNormal2D();
+			for (int32 k = 0; k + 1 < P.Num(); ++k)
+			{
+				const float L = (float)FVector::Dist2D(P[k], P[k + 1]);
+				if (Want <= L) { At = FMath::Lerp(P[k], P[k + 1], L > 0.f ? Want / L : 0.f); Dir = (P[k + 1] - P[k]).GetSafeNormal2D(); break; }
+				Want -= L;
+			}
+			if (Args.Num() > 3 && FCString::Atoi(*Args[3]) != 0) { Dir = -Dir; }
+			At.Z = T->GetHeightAt(At) + (Args.Num() > 2 ? FCString::Atof(*Args[2]) : 2.f) * 100.f;
+			PlaceFacing(Pawn, At, FRotator(0.f, Dir.Rotation().Yaw, 0.f));
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.World.RouteView: route %d of %d (%.0f m long) at %s, yaw %.0f"), I, Routes.Num(), Total / 100.f, *At.ToCompactString(), Dir.Rotation().Yaw);
 		}));
 
 	FAutoConsoleCommandWithWorldAndArgs CmdPlanetView(TEXT("TD.World.PlanetView"), TEXT("Look at a planet's globe: <Verdance|Cinder> <x> <y> <z> (direction in the planet's frame) [radii out = 3]."),
