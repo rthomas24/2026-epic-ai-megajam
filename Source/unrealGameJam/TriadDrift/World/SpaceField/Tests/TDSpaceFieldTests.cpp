@@ -10,6 +10,7 @@
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "HAL/PlatformTime.h"
 #include "HAL/IConsoleManager.h"
+#include "Materials/MaterialInterface.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/Combat/Pickups/TDPickup.h"
 #include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
@@ -345,10 +346,14 @@ bool FTDSpaceFieldStructuresKeepOut::RunTest(const FString& Parameters)
 		{
 			const int32 Was = CVar->GetInt();
 			CVar->Set(1, ECVF_SetByCode);
-			Fd->EnsureRegionDressing();
-			TestEqual(TEXT("dressing on: a haze per hazed region (Graveyard, Scar, Ice Drift, Outer Dark)"), Fd->GetRegionHazeCount(), 4);
-			Fd->EnsureRegionDressing();
-			TestEqual(TEXT("dressing builds once"), Fd->GetRegionHazeCount(), 4);
+			// The haze material is the effects builder's (eng/vfx); until it is on main the dressing builds nothing, null-safe.
+			const bool bHazeAsset = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/TriadDrift/Gameplay/VFX/Materials/M_TD_RegionHaze.M_TD_RegionHaze"), nullptr, LOAD_Quiet | LOAD_NoWarn) != nullptr;
+			const int32 Want = bHazeAsset ? 4 : 0;
+			AddInfo(FString::Printf(TEXT("haze material %s"), bHazeAsset ? TEXT("present") : TEXT("missing (dressing builds nothing)")));
+			F.Field->EnsureRegionDressing();
+			TestEqual(TEXT("dressing on: a haze per hazed region (Graveyard, Scar, Ice Drift, Outer Dark) when the material exists"), Fd->GetRegionHazeCount(), Want);
+			F.Field->EnsureRegionDressing();
+			TestEqual(TEXT("dressing builds once"), Fd->GetRegionHazeCount(), Want);
 			CVar->Set(Was, ECVF_SetByCode);
 		}
 	}
