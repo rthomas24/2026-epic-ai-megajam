@@ -229,6 +229,22 @@ private:
 	float ToppleAlpha = 0.f;
 	FVector ToppleAxis = FVector::RightVector;
 	FQuat ToppleStart = FQuat::Identity;
+	/** Death: the in-place clip plays this long, then the body goes to ragdoll (animation builder, Nov 13: the 1.1 s
+	 *  clips are only the start of a fall and held their last frame standing). < 0 = no hand-off pending. */
+	float RagdollIn = -1.f;
+	/** The chosen death clip ends lying on the ground (no ragdoll hand-off). */
+	mutable bool bGroundDeathClip = false;
+	FVector RagdollPush = FVector::ZeroVector;
+	FVector ToppleAway = FVector::ForwardVector;
+	void StartRagdollOrTopple();
+public:
+	/** The death clip chosen for a skeletal look (tests): per-type in-place first, then the shared in-place copies, then
+	 *  the template set; only clips on the look's own skeleton. Null when none fits. */
+	class UAnimSequenceBase* ChooseDeathClip(const FVector& HitDirection) const;
+	/** Seconds of death clip before the ragdoll / topple hand-off. */
+	static constexpr float DeathClipSeconds = 0.5f;
+	bool IsRagdolling() const;
+private:
 public:
 	bool IsToppling() const { return bToppling; }
 private:

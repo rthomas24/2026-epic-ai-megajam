@@ -11,6 +11,7 @@
 #include "TriadDrift/Flow/TDSpaceGameMode.h"
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "Kismet/GameplayStatics.h"
 #include "Misc/ScopeExit.h"
@@ -100,8 +101,18 @@ bool FTDProfilePersists::RunTest(const FString& Parameters)
 		TestTrue(TEXT("complete after leaving the tutorial"), P->IsTutorialComplete());
 		TestEqual(TEXT("Aftermath fired once"), Fired, 1);
 		TestFalse(TEXT("Aftermath: not a skip"), bSkippedArg);
-		TestTrue(TEXT("Aftermath pending for a late director"), P->ConsumeAftermathPending());
-		TestFalse(TEXT("consumed"), P->ConsumeAftermathPending());
+		// Exactly once: a story director alive in this world (T3's UTDStorySubsystem binds OnAftermathBegins) takes it
+		// as it fires, so nothing stays pending; with no director yet, it waits for a late one (T3's story test covers
+		// the late binder playing it from IsAftermathPending).
+		if (UTDStorySubsystem::Get(W.GetWorld()))
+		{
+			TestFalse(TEXT("the live story director took Aftermath (nothing left pending)"), P->IsAftermathPending());
+		}
+		else
+		{
+			TestTrue(TEXT("no director yet: Aftermath pending for a late one"), P->ConsumeAftermathPending());
+		}
+		TestFalse(TEXT("taken once: nothing left"), P->ConsumeAftermathPending());
 
 		P->NotifyTutorialCompleted(TEXT("T4's escape event, later the same run"));
 		TestEqual(TEXT("once per run"), Fired, 1);

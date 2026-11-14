@@ -14,4 +14,16 @@ Ryan’s engineering team used Claude Code for gameplay and builds. Nicholas’s
 
 The music handoff exposed a different gap. Nicholas chose *Push The Attack* for the Dominion space assault. We preserved the complete 144.68-second track and its quiet ending. A second Unreal process reopened it and confirmed looping and the Music sound class. That check can establish what the file contains. Listening through the generator battle will establish whether the general combat track yields, where the loop returns, and whether it stops when the assault ends. [Audio verification record](../../../ArtSource/Audio/DominionAssault02/native_checkpoint_01.json)
 
+## The click between repeats
+
+Nicholas heard a small click when the music restarted. We recorded the Verdance theme across its repeat and compared the game recording with the source. The old restart left a 32-millisecond gap. The source also ended at a different sample value from where it began.
+
+The repair kept the whole track. We brought its two edges smoothly to zero over four milliseconds and let Unreal's audio renderer loop the Wave. A second editor reopened the asset. Then we recorded more than six minutes on the Verdance map, including a repeat during an ending fade. Both joins aligned without the old gap. The arrival and departure were triggered for the test; the natural campaign handoff still needs its own check. [Hear the two recorded joins](MusicBuild01/music-loop-check.md).
+
+## When focus existed but could not be seen
+
+The menu passed its input tests: closing Settings returned focus to the right button, and pressing Enter reopened it with the changed volume intact. The screenshots showed a different result. Every button had the same blue outline, even the disabled Continue action. The player could not see which action was selected.
+
+UI changed the outline drawing. Engineering captured the packaged game immediately after Escape and a simulated controller B press, before any further navigation. At 720p, 1080p and ultrawide, only Settings was outlined. It stayed selected, cleared behind the reopened Settings page, and skipped disabled Continue. We checked those images alongside the passing tests before the implementation reached main. The production menu assignment and physical-device playtest remain separate steps. [Packaged review images](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/i71-focus-662b8c04-dev).
+
 Drafted November 13 from the [team development log](../../../DEVLOG.md). The full campaign playthrough and final submission build are still ahead of this account.

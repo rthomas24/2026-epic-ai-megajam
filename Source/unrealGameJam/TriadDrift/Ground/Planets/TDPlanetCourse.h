@@ -223,6 +223,8 @@ public:
 	AActor* GetOutpost() const { return SiteOutpost; }
 private:
 	UPROPERTY(Transient) TObjectPtr<AActor> SiteOutpost;
+	/** The kit relay (BP_Relay) when placed: woken (RelayPower) when Obj_Relay completes. */
+	UPROPERTY(Transient) TObjectPtr<AActor> RelayWake;
 public:
 	class ATDArchiveTransfer* GetArchiveTransfer() const { return ArchiveTransfer; }
 	class ATDSurveyTerminal* GetSurveyTerminal() const { return SurveyTerminal; }

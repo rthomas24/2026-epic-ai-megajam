@@ -1,5 +1,9 @@
 # Windows Shipping presentation check
 
+The [corrected Shipping package](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/cook-1ac44e81-shipping), built from packaging commit 1ac44e81 on base 9f0c0d08, passes both controls and contains 11 of the 12 requested exports. All eight originally missing packages are present. The sole missing export is the full waves 3–5 combat Wave, which was added after this build's base. Its full CSV has SHA-256 `ef228d1de76c5ec02f3d74386c9a51a159ab296198f84dbd15018a818104a9fd`.
+
+The packaging change is awaiting batch-L integration into main. This archive also predates the revised survey credits at 08f40144 and Verdance loop repair at 2275bff3. The next build must include those revisions and the full combat Wave. A container listing proves package presence; campaign playback and final listening remain open.
+
 Use the project containers from the actual submission candidate. Run UnrealPak once for each project .utoc, writing a separate CSV for each. For example, in PowerShell:
 
 ```powershell

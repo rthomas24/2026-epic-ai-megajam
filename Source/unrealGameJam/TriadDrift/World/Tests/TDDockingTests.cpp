@@ -85,7 +85,16 @@ bool FTDDockingOpens::RunTest(const FString&)
 	TestTrue(TEXT("the reactor stays shielded (the core fight is inside)"), !D->GetReactor() || !D->GetReactor()->IsExposed());
 	// The mouth is on the bow face, pointing out along the Dominion's nose.
 	const FVector Local = D->GetActorTransform().InverseTransformPosition(Bay->GetMouth());
-	TestTrue(*FString::Printf(TEXT("mouth on the bow (x %.0f vs hull max %.0f)"), Local.X, D->GetLocalHullBounds().Max.X), FMath::IsNearlyEqual(Local.X, D->GetLocalHullBounds().Max.X, 10.f));
+	if (D->GetHullMesh() && D->GetHullMesh()->DoesSocketExist(D->BaySocket))
+	{
+		// An art hull with a Bay socket (r2): the mouth is where the art says.
+		const FVector Sock = D->GetActorTransform().InverseTransformPosition(D->GetHullMesh()->GetSocketLocation(D->BaySocket));
+		TestTrue(*FString::Printf(TEXT("mouth on the Bay socket (%s vs %s)"), *Local.ToCompactString(), *Sock.ToCompactString()), Local.Equals(Sock, 10.f));
+	}
+	else
+	{
+		TestTrue(*FString::Printf(TEXT("mouth on the bow (x %.0f vs hull max %.0f)"), Local.X, D->GetLocalHullBounds().Max.X), FMath::IsNearlyEqual(Local.X, D->GetLocalHullBounds().Max.X, 10.f));
+	}
 	TestTrue(TEXT("faces out of the bow"), FVector::DotProduct(Bay->GetOutward(), D->GetActorForwardVector()) > 0.99f);
 	// The approach stays a fight: launches and the hyperdrive lock carry on.
 	TestTrue(TEXT("still a hot approach (stage 1)"), D->GetStage() == 1);

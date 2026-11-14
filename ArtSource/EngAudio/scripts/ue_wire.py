@@ -63,6 +63,13 @@ for item in SPEC["slots"] + SPEC.get("keep", []):
             raise RuntimeError("sound missing: %s" % item["sound"])
         if item["soft"]:
             asset.set_editor_property(item["field"], sound)
+        elif "." in item["field"]:     # "Hull.Collect": a cue inside a struct field (FTDPickupLook)
+            outer_name, cue_name = item["field"].split(".", 1)
+            outer = asset.get_editor_property(outer_name)
+            cue = outer.get_editor_property(cue_name)
+            cue.set_editor_property("Sound", sound)
+            outer.set_editor_property(cue_name, cue)
+            asset.set_editor_property(outer_name, outer)
         else:
             cue = asset.get_editor_property(item["field"])
             cue.set_editor_property("Sound", sound)

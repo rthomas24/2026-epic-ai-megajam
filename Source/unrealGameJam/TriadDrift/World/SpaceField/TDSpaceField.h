@@ -48,6 +48,11 @@ struct FTDSpaceFieldPiece
 	UPROPERTY() float Size = 0.f;
 	UPROPERTY() bool bCollides = false;
 	UPROPERTY() ETDSpaceFieldKind Kind = ETDSpaceFieldKind::Belt;
+	/** Taken over from the galaxy layout (its belt, flank and approach fields, debris and lane rocks), not placed by the field.
+	 *  Every piece is solid (a hidden collision sphere); bCollides marks the big ones the stricter keep-outs apply to.
+	 *  Note: hiding the field at runtime (SetFieldEnabled false) shows the layout's rocks again, but obstacles of rocks
+	 *  already broken stay removed; td.SpaceField 0 at load is the exact fallback. */
+	UPROPERTY() bool bAdopted = false;
 };
 
 UCLASS()
@@ -119,6 +124,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float ShipImpactDamageScale = 0.02f;
 	/** Break cues (effects builder): /Game/TriadDrift/Presentation/DA_SpaceField_FX. Empty = engineering placeholder burst. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") TObjectPtr<UTDSpaceFieldFX> FX;
+	/** The effects builder's NS_TD_Asteroid_Break_S / _M / _L / _Crystal (hard-referenced defaults). */
+	UPROPERTY(VisibleAnywhere, Category = "SpaceField|Break") TArray<TObjectPtr<class UNiagaraSystem>> DefaultBreakVFX;
 
 	/** The piece behind a hit (the hidden collision component and the hit's Item), or INDEX_NONE. */
 	int32 PieceForHit(const UPrimitiveComponent* Component, int32 Item) const;
@@ -141,6 +148,13 @@ public:
 	/** The world transform of a piece's hidden collision sphere (tests). */
 	bool GetColliderTransform(int32 Piece, FTransform& Out) const;
 
+	/** Take over the galaxy layout's rocks (same meshes, transforms and collision), so they break too (Lead, Nov 14). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") bool bAdoptLayoutRocks = true;
+	/** Cover in the combat zone: adopted rocks this big (cm) within CoverRadius of the zone take CoverHealthScale x health. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float CoverMinSize = 2000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float CoverRadius = 100000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float CoverHealthScale = 5.f;
+
 	/** Pickup caches: spawned when the flown ship comes this close, once per run each (collected = gone). */
 	UPROPERTY(EditAnywhere, Category = "SpaceField") float CacheSpawnDistance = 80000.f;
 
@@ -159,7 +173,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|SpaceField", meta = (WorldContext = "WorldContextObject"))
 	static TArray<FVector> GetCacheSpots(const UObject* WorldContextObject);
 
-	/** td.SpaceField 0 / 1: hide or show (and switch the collision off / on). */
+	/** Hide or show the field (and its collision); the layout's rocks come back when hidden. Tests and internal use: the
+	 *  td.SpaceField console variable is read at level load only. */
 	void SetFieldEnabled(bool bOn);
 	bool IsFieldEnabled() const { return bEnabled; }
 
@@ -275,6 +290,18 @@ private:
 	uint8 SizeClassFor(float Size) const { return Size < MediumFromSize ? 0 : (Size < LargeFromSize ? 1 : 2); }
 	float HealthFor(float Size, bool bWreck) const;
 	void GatherNear(const FVector& Min, const FVector& Max, TArray<int32>& Out) const;
+
+	// Adopting the layout's rocks (TDSpaceFieldAdopt.cpp).
+	void AdoptLayoutRocks();
+	void ShowLayoutRocks(bool bLayoutOwnsThem);
+	TArray<TWeakObjectPtr<UInstancedStaticMeshComponent>> AdoptedLayoutComps;
+	UPROPERTY(Transient) TObjectPtr<UInstancedStaticMeshComponent> LayoutCollision;
+	/** For the next RegisterPiece: an exact collision radius (> 0), and an obstacle handle to reuse (>= 0) or none (-2). */
+	float PendingColliderRadius = -1.f;
+	/** Adopt during Build (false when td.SpaceField was 0 at load). */
+	bool bAdoptAtLoad = true;
+	bool bWarnedToggle = false;
+	int32 PendingObstacle = INDEX_NONE;
 
 	int32 ObstaclesAdded = 0;
 	bool bEnabled = true;

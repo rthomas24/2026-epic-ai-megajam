@@ -1,0 +1,71 @@
+{
+ "_note": "Enemy sets (ART-08): clean, in-place, named copies on SKEL_NullCrew; loops closed. Sources are the retargeted crew set.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "clips": [
+  {
+   "src": "A_Crew_Heavy_Walk_Fwd",
+   "dst": "A_Crew_Warden_Walk",
+   "loop": true,
+   "loop_s": 0.12
+  },
+  {
+   "src": "A_Crew_Heavy_Idle_Guard",
+   "dst": "A_Crew_Warden_Guard",
+   "loop": true,
+   "loop_s": 0.2
+  },
+  {
+   "src": "A_Crew_Heavy_GuardRaise",
+   "dst": "A_Crew_Warden_GuardRaise"
+  },
+  {
+   "src": "MM_Rifle_Fire",
+   "dst": "A_Crew_Warden_Fire"
+  },
+  {
+   "src": "MM_ChargedAttack",
+   "dst": "A_Crew_Warden_Summon"
+  },
+  {
+   "src": "A_Crew_Hit_Front_Hvy_01",
+   "dst": "A_Crew_Warden_Stagger",
+   "rate": 0.7
+  },
+  {
+   "src": "MM_Death_Back_01",
+   "dst": "A_Crew_Warden_Death"
+  },
+  {
+   "src": "MM_Rifle_Fire",
+   "dst": "A_Crew_Trooper_Fire"
+  },
+  {
+   "src": "A_Crew_Hit_Front_Med_01",
+   "dst": "A_Crew_Trooper_HitReact_01"
+  },
+  {
+   "src": "A_Crew_Hit_Front_Lgt_02",
+   "dst": "A_Crew_Trooper_HitReact_02"
+  },
+  {
+   "src": "A_Crew_Death_Front_02",
+   "dst": "A_Crew_Trooper_Death_01"
+  },
+  {
+   "src": "MM_Death_Back_01",
+   "dst": "A_Crew_Trooper_Death_02"
+  },
+  {
+   "src": "A_Crew_Grunt_Attack_01",
+   "dst": "A_Crew_Grunt_Melee"
+  },
+  {
+   "src": "A_Crew_Hit_Front_Lgt_03",
+   "dst": "A_Crew_Grunt_HitReact_01"
+  },
+  {
+   "src": "A_Crew_Death_Front_03",
+   "dst": "A_Crew_Grunt_Death_01"
+  }
+ ]
+}

@@ -1,0 +1,99 @@
+{
+  "assets": [
+    "SM_CrystalCacheCrystal"
+  ],
+  "issue": 53,
+  "revision": "r2 (replaces mesh_r1/SM_CrystalCacheCrystal on import; same asset name; cradle unchanged)",
+  "request": "MESSAGEBOARD R-042 reply 2026-11-13 20:50 EST (PR #75 merge note) + queue item 4: a denser hero cluster, 10-15 cyan crystals with amber at the base, as in the reference",
+  "units": "cm in Unreal via FBX UnitScaleFactor 100; Blender source is metres",
+  "pivot": "base centre of the nest (min Z = 0, XY centred) = attach point for SOCKET_Crystal (0, 0, 30.05 cm) on SM_CrystalCacheCradle",
+  "forward": "+X",
+  "up": "+Z",
+  "prefer": "FBX (UnitScaleFactor 100, Unreal uniform scale 1.0). GLB is glTF in metres.",
+  "blender": "4.5.3 LTS",
+  "route": "Route C: procedural bmesh (scripts/cluster_r2.py), no generated geometry, no fal/Rodin",
+  "counts": {
+    "cyan_crystals": 14,
+    "amber_crystals": 5,
+    "basalt_chunks": 19
+  },
+  "fbx": "SM_CrystalCacheCrystal.fbx",
+  "blend": "SM_CrystalCacheCrystal.blend",
+  "glb": "SM_CrystalCacheCrystal.glb",
+  "tris": 3574,
+  "tris_r1": 1384,
+  "size_cm": [
+    88.7,
+    140.9,
+    130.4
+  ],
+  "modifiers_unapplied": {
+    "SM_CrystalCacheCrystal": "Bevel (width 0.25 cm, 1 segment, angle 52 deg, harden normals, hardsurface.add_bevel) + WeightedNormal (keep_sharp, weight 50, FACE_AREA)"
+  },
+  "src_hidden": [
+    "SRC_CrystalCacheCrystal"
+  ],
+  "collision": [
+    "UCX_SM_CrystalCacheCrystal_00",
+    "UCX_SM_CrystalCacheCrystal_01",
+    "UCX_SM_CrystalCacheCrystal_02",
+    "UCX_SM_CrystalCacheCrystal_03",
+    "UCX_SM_CrystalCacheCrystal_04",
+    "UCX_SM_CrystalCacheCrystal_05",
+    "UCX_SM_CrystalCacheCrystal_06",
+    "UCX_SM_CrystalCacheCrystal_07",
+    "UCX_SM_CrystalCacheCrystal_08",
+    "UCX_SM_CrystalCacheCrystal_09",
+    "UCX_SM_CrystalCacheCrystal_10",
+    "UCX_SM_CrystalCacheCrystal_11",
+    "UCX_SM_CrystalCacheCrystal_12",
+    "UCX_SM_CrystalCacheCrystal_13",
+    "UCX_SM_CrystalCacheCrystal_14"
+  ],
+  "collision_note": "UCX_00 = basalt nest + amber crystals; UCX_01..14 = one convex hull per cyan crystal (above 10 cm)",
+  "material": "M_CrystalCacheCrystal (emission strength 2.2 in the Blender preview)",
+  "textures": {
+    "T_CrystalCacheCrystal_BC.png": "sRGB",
+    "T_CrystalCacheCrystal_N.png": "Normalmap, DirectX (green flipped) - do NOT flip again",
+    "T_CrystalCacheCrystal_ORM.png": "linear, R=AO G=roughness B=metal",
+    "T_CrystalCacheCrystal_E.png": "sRGB emissive"
+  },
+  "fit_in_r1_cradle": {
+    "socket_z_cm": 30.05,
+    "top_assembled_cm": 160.4,
+    "cage_top_cm": 180.0,
+    "rail_underside_cm": 167.8,
+    "room_under_rails_cm": 7.4,
+    "tip_xy_cm": [
+      4.8,
+      2.8
+    ],
+    "open_above_tip": true,
+    "min_clearance_to_cradle_cm": 2.6,
+    "min_clearance_at_m": [
+      -0.032,
+      0.44,
+      0.359
+    ],
+    "face_overlaps_above_floor": 3,
+    "min_clearance_crystals_above_20cm_cm": 17.9,
+    "min_clearance_crystals_at_m": [
+      -0.216,
+      -0.352,
+      0.505
+    ],
+    "assembled_bbox_cm": [
+      [
+        -46.0,
+        -67.5,
+        30.1
+      ],
+      [
+        42.7,
+        73.4,
+        160.4
+      ]
+    ]
+  },
+  "contact_sheet": "contact_sheet.png"
+}

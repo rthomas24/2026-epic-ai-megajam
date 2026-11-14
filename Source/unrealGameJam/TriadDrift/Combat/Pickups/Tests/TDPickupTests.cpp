@@ -335,6 +335,49 @@ bool FTDPickupFieldRewards::RunTest(const FString& Parameters)
 	return true;
 }
 
+// Every squad break tops up the flown ship's boost meter straight away (Ryan via the Lead): small 3%, medium 6%, large
+// 12%, at most 15% of the meter in any one second (no farming into permanent boost); nobody else's breaks pay.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPickupBreakBoost, "TriadDrift.Combat.Pickups.BreakBoostTopUpAndCap", TD_TEST_FLAGS)
+bool FTDPickupBreakBoost::RunTest(const FString& Parameters)
+{
+	FFixture F;
+	if (!F.Init(*this))
+	{
+		return false;
+	}
+	UTDEventBus* Bus = UTDEventBus::Get(F.W.GetWorld());
+	UTDShipMovementComponent* Move = F.Flown->GetShipMovement();
+	if (!TestNotNull(TEXT("bus"), Bus) || !TestNotNull(TEXT("movement"), Move))
+	{
+		return false;
+	}
+	const FVector Far = F.Flown->GetActorLocation() + FVector(300000.f, 0.f, 0.f);
+	TestEqual(TEXT("small pays 3%"), F.Pickups->BreakBoostFor(0), .03f);
+	TestEqual(TEXT("medium pays 6%"), F.Pickups->BreakBoostFor(1), .06f);
+	TestEqual(TEXT("large pays 12%"), F.Pickups->BreakBoostFor(2), .12f);
+	F.W.Advance(1.1f); // a fresh cap window
+	Move->AddBoost01(-1.f);
+	Bus->BroadcastFieldObjectDestroyed(Far, 0, false, F.Flown);
+	TestTrue(FString::Printf(TEXT("a small rock: +3%% (%.3f)"), Move->GetBoost01()), FMath::IsNearlyEqual(Move->GetBoost01(), .03f, .005f));
+	TestTrue(TEXT("the HUD tick is fresh"), F.Pickups->GetSecondsSinceBreakBoost() < .1f);
+	Bus->BroadcastFieldObjectDestroyed(Far, 1, false, F.Flown);
+	Bus->BroadcastFieldObjectDestroyed(Far, 2, false, F.Flown);
+	TestTrue(FString::Printf(TEXT("same second: capped at 15%% (%.3f)"), Move->GetBoost01()), FMath::IsNearlyEqual(Move->GetBoost01(), .15f, .005f));
+	Bus->BroadcastFieldObjectDestroyed(Far, 2, false, F.Flown);
+	TestTrue(TEXT("still capped"), FMath::IsNearlyEqual(Move->GetBoost01(), .15f, .005f));
+	F.W.Advance(1.1f);
+	const float Before = Move->GetBoost01();
+	Bus->BroadcastFieldObjectDestroyed(Far, 2, false, F.Wingman()); // a wingman's break pays the flown ship too
+	TestTrue(FString::Printf(TEXT("next second, a wingman's large break: +12%% (%.3f -> %.3f)"), Before, Move->GetBoost01()),
+		FMath::IsNearlyEqual(Move->GetBoost01() - Before, .12f, .01f));
+	F.W.Advance(1.1f);
+	const float Before2 = Move->GetBoost01();
+	Bus->BroadcastFieldObjectDestroyed(Far, 2, false, F.Enemy());
+	Bus->BroadcastFieldObjectDestroyed(Far, 2, false, nullptr);
+	TestTrue(TEXT("not the squad's: nothing"), FMath::IsNearlyEqual(Move->GetBoost01(), Before2, .001f));
+	return true;
+}
+
 // td.Pickups 0: nothing spawns, kills drop nothing, and pickups already out are cleared on the next tick.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPickupSwitch, "TriadDrift.Combat.Pickups.SwitchOffIsTodaysGame", TD_TEST_FLAGS)
 bool FTDPickupSwitch::RunTest(const FString& Parameters)

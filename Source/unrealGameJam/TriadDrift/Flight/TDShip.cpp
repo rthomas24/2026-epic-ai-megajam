@@ -382,6 +382,22 @@ bool ATDShip::SetExhaustParamIfExposed(UNiagaraComponent* FX, FName Param, float
 	return true;
 }
 
+#if WITH_DEV_AUTOMATION_TESTS
+void ATDShip::SetEngineTrailEffectForTests(UNiagaraComponent* FX)
+{
+	EngineTrailFX = FX;
+}
+#endif
+
+float ATDShip::GetExhaustBoostValue() const
+{
+	if (!bExhaustBoost)
+	{
+		return 0.f;
+	}
+	return Visuals ? FMath::Max(0.f, Visuals->ExhaustBoostScale) : 1.f;
+}
+
 void ATDShip::UpdateExhaustParams()
 {
 	ExhaustThrottle01 = ShipMovement ? FMath::Clamp((float)GetVelocity().Size() / FMath::Max(ShipMovement->GetCruiseCapSpeed(), 1.f), 0.f, 1.f) : 0.f;
@@ -392,10 +408,11 @@ void ATDShip::UpdateExhaustParams()
 		ExhaustThrottle01 = 0.f; // engines off (dead, parked, gear down): the exhaust idles out
 		bExhaustBoost = false;
 	}
-	auto Feed = [this](UNiagaraComponent* FX)
+	const float BoostValue = GetExhaustBoostValue(); // T7: scaled per hull (Lancer's plume swamped its small hull)
+	auto Feed = [this, BoostValue](UNiagaraComponent* FX)
 	{
 		SetExhaustParamIfExposed(FX, TEXT("Throttle"), ExhaustThrottle01);
-		SetExhaustParamIfExposed(FX, TEXT("Boost"), bExhaustBoost ? 1.f : 0.f);
+		SetExhaustParamIfExposed(FX, TEXT("Boost"), BoostValue);
 	};
 	Feed(EngineTrailFX.Get());
 	for (const TWeakObjectPtr<UNiagaraComponent>& FX : ExtraExhaustFX) { Feed(FX.Get()); }

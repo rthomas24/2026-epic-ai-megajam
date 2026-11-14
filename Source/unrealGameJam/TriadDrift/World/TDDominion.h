@@ -280,6 +280,11 @@ public:
 
 	/** The docking bay (null until the boarding finale opens it). */
 	ATDDockingBay* GetDockingBay() const { return DockingBay; }
+	UStaticMeshComponent* GetHullMesh() const { return HullMesh; }
+
+	/** Hull socket the docking bay and its interior sit on (art hull r2: hull-local (30000, 0, -2000), +X out). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion")
+	FName BaySocket = TEXT("Bay");
 
 	// --- Presentation (all optional) ------------------------------------------------------------
 
@@ -328,8 +333,16 @@ protected:
 	/** ENG-29: opens the docking bay on the bow (bPlayCues false when resuming a save or a retake). */
 	virtual void BeginDockingFinale(bool bPlayCues = true);
 
+	/** The hull's Bay socket in world space, yaw only (+X out, the Dominion's up). */
+	FTransform BaySocketWorld() const;
+
 	UPROPERTY(Transient)
 	TObjectPtr<ATDDockingBay> DockingBay;
+
+	/** The structures builder's bay pocket (BP_DockingBay_Interior) on the art hull's Bay socket, with the bay. */
+	UPROPERTY(Transient)
+	TObjectPtr<AActor> DockingInterior;
+
 
 	UPROPERTY(Transient)
 	TObjectPtr<ATDDistortionField> DistortionField;

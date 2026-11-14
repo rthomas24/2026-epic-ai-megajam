@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
+#include "TriadDrift/Core/TDTypes.h"
 #include "TDUIHostSubsystem.generated.h"
 
 class UUserWidget;
@@ -234,6 +235,19 @@ public:
 	UFUNCTION()
 	void HandlePauseChanged(bool bPaused);
 
+	/** The reward screen's OnRewardDismissed: acknowledge that award, then present the next pending one at once. */
+	UFUNCTION()
+	void HandleRewardDismissed(FName AbilityId);
+
+	/** The mounted ability reward screen, and the award it shows (None when idle). */
+	UUserWidget* GetRewardWidget() const { return RewardWidget; }
+	ETDAbilityId GetPresentedReward() const { return PresentedReward; }
+	/** Tests: mount this class instead of DA_UI_Style's / Nick's (a stand-in with the same functions and fields). */
+	UPROPERTY(Transient)
+	TObjectPtr<UClass> RewardWidgetClassOverride;
+	/** Present / refresh / mount the pending award now (also run on every host check). */
+	void UpdateAbilityReward();
+
 private:
 	APlayerController* FindLocalController() const;
 	bool WantsSpaceHUD(APlayerController*& OutController, UObject*& OutSource) const;
@@ -264,6 +278,13 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> ScanWidget;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UUserWidget> RewardWidget;
+	ETDAbilityId PresentedReward = ETDAbilityId::None;
+	bool bRewardShownGamepad = false;
+	bool bRewardShownUsable = false;
+	UClass* ResolveRewardWidgetClass() const;
 
 	struct FTDHUDFocus
 	{

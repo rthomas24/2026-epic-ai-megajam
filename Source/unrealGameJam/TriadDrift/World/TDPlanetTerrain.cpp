@@ -117,7 +117,18 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 		Sea->SetRelativeLocation(FVector(SC.X, SC.Y, S.SeaLevel));
 		Sea->SetRelativeScale3D(FVector(SR * 2.f / 100.f, SR * 2.f / 100.f, 0.02f));
 		Sea->SetVisibility(true);
-		UTDStatics::TintPlaceholder(Sea, S.bLavaSea ? FLinearColor(1.f, 0.35f, 0.06f) : FLinearColor(0.05f, 0.25f, 0.3f), S.bLavaSea ? 4.f : 0.6f);
+		// The environment builder's sea (Gameplay/Props/Planets, always cooked); the tinted placeholder if it is missing.
+		UMaterialInterface* SeaMat = LoadObject<UMaterialInterface>(nullptr, S.bLavaSea
+			? TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_PlanetSea_Cinder.MI_PlanetSea_Cinder")
+			: TEXT("/Game/TriadDrift/Gameplay/Props/Planets/MI_PlanetSea_Verdance.MI_PlanetSea_Verdance"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+		if (SeaMat)
+		{
+			Sea->SetMaterial(0, SeaMat);
+		}
+		else
+		{
+			UTDStatics::TintPlaceholder(Sea, S.bLavaSea ? FLinearColor(1.f, 0.35f, 0.06f) : FLinearColor(0.05f, 0.25f, 0.3f), S.bLavaSea ? 4.f : 0.6f);
+		}
 		if (S.bVolcano)
 		{
 			const float FloorZ = Field->Height(S.HeroCentre.X, S.HeroCentre.Y) + 800.f;
