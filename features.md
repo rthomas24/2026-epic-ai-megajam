@@ -127,7 +127,7 @@ the weakest state among the row's items, from `docs/eng/STATUS.md`, `CLAIMS.md` 
   played good = ✅, polish moves to the AAA list; 10:25 compile-only gate. Nick-side items move only on Nick's side's own
   reports; Nicholas's sign-off on his art, audio and story direction stands.
 - **How we work, new at 13:25 (Ryan):** three render slots behind a measured launch guard on Ryan's machine (AGENTS.md §11,
-  `Builds/render-slot/README.txt`; refused at 10,000 MiB of video memory, four rendering processes or under 12 GB free), render
+  `Builds/render-slot/README.txt`; refused at 9,500 MiB of video memory, three rendering processes machine-wide with T7's session, or under 12 GB free; corrected at 13:28), render
   turns of about 5 minutes (cap 10), and a package every 30 minutes.
 - **On main since 12:30** (compile-only gate): batches AV a14bf410 (the pilot animation round 1), AW 7c7af25d, AX b5d1549c,
   AY d1ae9b18, AZ 618921ef, BA 5e6ef16f, BB 6c7521b8, BC 8dce9161, BD 26bda51a, BE 98c96926, BF de4e53bf, BG f9574191 and
