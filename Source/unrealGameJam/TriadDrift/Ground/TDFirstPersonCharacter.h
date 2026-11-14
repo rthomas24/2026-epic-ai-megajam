@@ -163,7 +163,7 @@ public:
 	float HandBladeLength = 95.f;
 	/** #163: the blade's cast light at rest (candelas); x1.6 while fighting, up to x3.5 in a hit / slam pulse. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (ClampMin = "0"))
-	float BladeLightCandelas = 60.f;
+	float BladeLightCandelas = 35.f; // r7: 60 tinted the whole suit pink at rest in the hangar
 	/** Where the hilt sits on the hand bone when the mesh has no BladeSocket (set by eye on SK_Pilot). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body")
 	FTransform HandBladeOffset;
