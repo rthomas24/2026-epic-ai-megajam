@@ -1,6 +1,8 @@
 // Automation tests for Squad (ENG-04, ENG-07, ENG-08). Run: .\Tools\td-test.ps1 -Filter TriadDrift.Squad
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
+#include "TriadDrift/World/SpaceField/TDSpaceField.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -1367,6 +1369,80 @@ bool FTDSquadAvoidObstacle::RunTest(const FString& Parameters)
 	TestTrue(FString::Printf(TEXT("Lancer steered around the asteroid (closest %.0f cm, radius %.0f)"), Closest, RockRadius), Closest > RockRadius);
 	const float SlotDist = FVector::Dist(F.Ship(ETDShipId::Lancer)->GetActorLocation(), F.Squad->GetFormationSlotLocation(ETDShipId::Lancer));
 	TestTrue(TEXT("and rejoined formation afterwards"), SlotDist < 3000.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadAvoidRealField, "TriadDrift.Squad.Wingmen.NeverFlyIntoTheSpaceField", TD_TEST_FLAGS)
+bool FTDSquadAvoidRealField::RunTest(const FString& Parameters)
+{
+	// ENG-48: T6's real field (solid, breakable). The squad flies straight past a real belt rock with the Lancer
+	// wingman's slot right on it; neither wingman ever touches a field piece, and both are back in formation after.
+	FSquadFixture F(/*bSpawnSquad*/ false);
+	ATDGalaxyLayout* Layout = ATDGalaxyLayout::SpawnDefaultGalaxy(F.W.GetWorld());
+	F.W.Advance(0.1f);
+	ATDSpaceField* Field = Layout ? ATDSpaceField::SpawnFor(Layout) : nullptr;
+	F.W.Advance(0.1f);
+	if (!TestNotNull(TEXT("the space field"), Field))
+	{
+		return false;
+	}
+	// A solid belt rock small enough for the leader to pass 1600 cm beside it, with clear space before it.
+	const TArray<FTDSpaceFieldPiece>& Pieces = Field->GetPieces();
+	const FTDSpaceFieldPiece* Rock = nullptr;
+	for (const FTDSpaceFieldPiece& P : Pieces)
+	{
+		if (!P.bCollides || P.Kind != ETDSpaceFieldKind::Belt || P.Size < 800.f || P.Size > 2200.f)
+		{
+			continue;
+		}
+		bool bClear = true; // nothing else within the leader's corridor
+		for (const FTDSpaceFieldPiece& Q : Pieces)
+		{
+			if (&Q != &P && Q.bCollides)
+			{
+				const FVector D = Q.Location - P.Location;
+				if (D.X > -20000.f && D.X < 15000.f && FMath::Abs(D.Y - 1600.f) < Q.Size * 0.5f + 900.f && FMath::Abs(D.Z) < Q.Size * 0.5f + 900.f)
+				{
+					bClear = false;
+					break;
+				}
+			}
+		}
+		if (bClear)
+		{
+			Rock = &P;
+			break;
+		}
+	}
+	if (!Rock)
+	{
+		AddWarning(TEXT("no isolated belt rock found in the default field"));
+		return true;
+	}
+	// The leader 1600 cm to the rock's side; the Lancer's slot (y = -1600 from the leader) is on the rock's line.
+	F.Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, Rock->Location + FVector(-15000.f, 1600.f, 0.f)));
+	F.W.Tick();
+	TArray<const FTDSpaceFieldPiece*> Near;
+	for (const FTDSpaceFieldPiece& Q : Pieces)
+	{
+		if (Q.bCollides && FVector::Dist(Q.Location, Rock->Location) < 40000.f) { Near.Add(&Q); }
+	}
+	float WorstGap = TNumericLimits<float>::Max();
+	for (int32 i = 0; i < 600; ++i)
+	{
+		F.W.Tick();
+		for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+		{
+			const FVector At = F.Ship(Id)->GetActorLocation();
+			for (const FTDSpaceFieldPiece* Q : Near)
+			{
+				WorstGap = FMath::Min(WorstGap, FVector::Dist(At, Q->Location) - Q->Size * 0.5f - 220.f);
+			}
+		}
+	}
+	TestTrue(FString::Printf(TEXT("no wingman touches a field piece (closest surface gap %.0f cm)"), WorstGap), WorstGap > 0.f);
+	TestTrue(TEXT("and the Lancer is back by its slot"),
+		FVector::Dist(F.Ship(ETDShipId::Lancer)->GetActorLocation(), F.Squad->GetFormationSlotLocation(ETDShipId::Lancer)) < 3000.f);
 	return true;
 }
 
