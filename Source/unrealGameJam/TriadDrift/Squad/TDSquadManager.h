@@ -357,6 +357,13 @@ public:
 	/** The player's own ship: seconds the camera holds on its explosion before the auto-switch cut. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Death", meta = (ClampMin = "0", Units = "s"))
 	float DeathExplosionHoldSeconds = 0.35f;
+
+	/** After an auto-switch on death or a respawn rescue the newly flown ship takes no damage for this long (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Squad", meta = (ClampMin = "0"))
+	float AutoSwitchGraceSeconds = 1.5f;
+	/** The 1.5 s shield shimmer played on the ship for the grace (User.Color = the pilot's colour). A class default, so it cooks. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Squad")
+	TSoftObjectPtr<class UNiagaraSystem> SwitchGraceFX = TSoftObjectPtr<class UNiagaraSystem>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Ship_SwitchGrace.NS_TD_Ship_SwitchGrace")));
 	double PendingAutoSwitchAt = -1.0;
 	void RunPendingAutoSwitch();
 

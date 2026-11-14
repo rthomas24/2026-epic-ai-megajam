@@ -6,6 +6,8 @@
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Components/MeshComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Powers/TDPowerSubsystem.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -385,6 +387,11 @@ bool UTDCloakPower::OnActivate()
 	}
 	// The hull overlay first, so the placeholder shimmer's own meshes never get it.
 	ApplyHullOverlay();
+	// #102: on the player's Rift the hull is swapped for the translucent shell (the Nanite hull takes no overlay).
+	if (IsOwnerPlayerControlled() || !bRequirePlayerControl)
+	{
+		ShowCloakShell();
+	}
 	if (FX)
 	{
 		LoopFX = FTDPowerPresentation::RequestCueAttached(TEXT("Ability.Loop"), FX->Loop, Owner->GetRootComponent());
@@ -420,12 +427,20 @@ void UTDCloakPower::OnEnd(bool bInterrupted)
 	{
 		Health->SetTargetable(true);
 	}
+	// The hull comes back at once; the shell fades out on top of it over 0.25 s (TickComponent removes it at 0).
+	if (UStaticMeshComponent* Hull = HiddenHull.Get())
+	{
+		Hull->SetVisibility(true, false);
+	}
+	HiddenHull = nullptr;
+	ShellTarget = 0.f;
 	// Fade the hull back over 0.25 s (TickComponent removes it at 0); a dead or hidden ship loses it at once.
 	OverlayTarget = 0.f;
 	const UTDHealthComponent* OwnerHealth = UTDStatics::GetHealth(Owner);
 	if ((OwnerHealth && OwnerHealth->IsDead()) || Owner->IsHidden())
 	{
 		ClearHullOverlay();
+		RemoveCloakShell();
 	}
 	if (Shimmer)
 	{
@@ -496,9 +511,69 @@ void UTDCloakPower::ClearHullOverlay()
 	OverlayAlpha = OverlayTarget = 0.f;
 }
 
+void UTDCloakPower::ShowCloakShell()
+{
+	RemoveCloakShell();
+	ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner());
+	UStaticMeshComponent* Hull = Craft ? Craft->GetHullMesh() : nullptr;
+	UStaticMesh* Mesh = ShellMesh.IsNull() ? nullptr : ShellMesh.LoadSynchronous();
+	UMaterialInterface* Material = ShellMaterial.IsNull() ? nullptr : ShellMaterial.LoadSynchronous();
+	if (!Hull || !Mesh || !Material || !Hull->IsVisible())
+	{
+		return; // a missing asset (or no hull to stand in for): the hull stays as it is
+	}
+	ShellComponent = NewObject<UStaticMeshComponent>(Craft, TEXT("CloakShell"));
+	ShellComponent->SetStaticMesh(Mesh);
+	ShellComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ShellComponent->SetCastShadow(false);
+	ShellComponent->SetupAttachment(Hull->GetAttachParent() ? Hull->GetAttachParent() : Craft->GetRootComponent());
+	ShellComponent->SetRelativeTransform(Hull->GetRelativeTransform());
+	ShellComponent->RegisterComponent();
+	ShellMIDs.Reset();
+	for (int32 MaterialSlot = 0; MaterialSlot < FMath::Max(1, ShellComponent->GetNumMaterials()); ++MaterialSlot)
+	{
+		UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(Material, this);
+		MID->SetScalarParameterValue(TEXT("Cloak"), 0.f);
+		ShellComponent->SetMaterial(MaterialSlot, MID);
+		ShellMIDs.Add(MID);
+	}
+	Hull->SetVisibility(false, false); // the hull only: its children (engine glow, effects) and collision stay
+	HiddenHull = Hull;
+	ShellAlpha = 0.f;
+	ShellTarget = 1.f;
+}
+
+void UTDCloakPower::RemoveCloakShell()
+{
+	if (UStaticMeshComponent* Hull = HiddenHull.Get())
+	{
+		Hull->SetVisibility(true, false);
+	}
+	HiddenHull = nullptr;
+	if (ShellComponent)
+	{
+		ShellComponent->DestroyComponent();
+		ShellComponent = nullptr;
+	}
+	ShellMIDs.Reset();
+	ShellAlpha = ShellTarget = 0.f;
+}
+
 void UTDCloakPower::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	if (ShellComponent)
+	{
+		ShellAlpha = FMath::FInterpConstantTo(ShellAlpha, ShellTarget, DeltaTime, 1.f / OverlayFadeSeconds);
+		for (UMaterialInstanceDynamic* MID : ShellMIDs)
+		{
+			if (MID) { MID->SetScalarParameterValue(TEXT("Cloak"), ShellAlpha); }
+		}
+		if (ShellTarget <= 0.f && ShellAlpha <= 0.f)
+		{
+			RemoveCloakShell();
+		}
+	}
 	if (!OverlayMID)
 	{
 		return;
@@ -514,6 +589,7 @@ void UTDCloakPower::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 void UTDCloakPower::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	ClearHullOverlay();
+	RemoveCloakShell();
 	Super::EndPlay(EndPlayReason);
 }
 
