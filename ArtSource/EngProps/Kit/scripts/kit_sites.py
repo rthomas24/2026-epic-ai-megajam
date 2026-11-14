@@ -245,7 +245,26 @@ def dominion_interior():
     for x in (HX1, CX1, AX1, L1X1, WX1, L2X1):
         add("SM_DI_Doorway", x, 0)
     add("SM_DI_Cover_Low", CX1 - 700, -70)
-    return {"site": "DominionInterior_Preview", "actor": KD + "BP_KitD_InteriorPreview",
+    # r5: work lights that really light (point lights, no shadows), so the rooms read without the course's lights:
+    # a grid in every room under the ceiling, one per 800 cm of corridor. Cool white (the red strips stay ambience).
+    lights = []
+
+    def grid(x0, x1, hy, z, step=800.0):
+        x = x0 + step / 2
+        while x < x1:
+            y = -hy + step / 2
+            while y < hy:
+                lights.append({"name": "L%03d" % len(lights), "location_cm": [x, y, z], "intensity": 1800.0, "radius": 1600.0,
+                               "color": [0.8, 0.88, 1.0]})
+                y += step
+            x += step
+    grid(HX0, HX1, HY, 1100.0)
+    grid(CX1, AX1, AY, 540.0)
+    grid(L1X1, WX1, WY, 540.0)
+    grid(L2X1, KX1, KY, 1650.0, 1200.0)
+    for x in [HX1 + 400 + 800 * k for k in range(5)] + [AX1 + 400, WX1 + 400]:
+        lights.append({"name": "L%03d" % len(lights), "location_cm": [x, 0.0, 540.0], "intensity": 900.0, "radius": 1000.0, "color": [0.8, 0.88, 1.0]})
+    return {"site": "DominionInterior_Preview", "lights": lights, "actor": KD + "BP_KitD_InteriorPreview",
             "about": "Walk-test preview of T5's interior shell in the Dominion set (not used by the game).",
             "pieces": ps,
             "walk_path_site_cm": [[-600, 0, 0, "hangar start"], [1200, 0, 0, "hangar doorway"], [3200, 0, 0, "deflect corridor"], [6400, 0, 0, "arena"],
@@ -253,42 +272,59 @@ def dominion_interior():
 
 
 # ------------------------------------------------------------------------------------------------ docking bay
-def docking_bay():
-    """The bow docking bay's inside (#54): the pocket behind the 5000 x 3500 bay mouth, 6000 deep. Pivot = the centre
-    of the bay mouth (hull-local (hull max X, 0, -2000), i.e. the pocket X 24000..30000, Z -3750..-250 on the r1
-    hull); the pocket runs toward -X. Flown into, not walked: the Dominion set is placed at scale 2.5 (floor and
-    ceiling tiles 10 m, walls 10 m x 17.5 m in two rows), so it reads at ship speed. Collision stays on (BlockAll)."""
-    KD = K + "Dominion/"
-    S = 2.5
-    ps = []
-    n = [0]
+# r5: Grok Bot's measured plan (PR #77, ArtSource/EngAI/Props/DominionDockingBay/plans_r1/dockbay_layout.json: 799 kit
+# placements on the 400 grid in T5's course frame) replaces my r4 scale-2.5 shell: it is walkable at scale 1, joins
+# the hangar, has the pads and the gantry, and its pocket matches the r2 hull exactly (hull = (22800 - x, -y, z - 3750)).
+# The pieces it names come from the kit's Dominion set where the set has them, else from DominionInterior.
+DOMINION_SET = ("SM_DI_Room_Floor", "SM_DI_Room_Ceiling", "SM_DI_Room_Wall", "SM_DI_Corridor_Straight", "SM_DI_Doorway",
+                "SM_DI_Door", "SM_DI_Cover_Low", "SM_DI_Hangar_Pad")
+BAY_PLAN = os.path.join(os.path.dirname(os.path.dirname(KIT)), "EngAI", "Props", "DominionDockingBay", "plans_r1", "dockbay_layout.json")
 
-    def add(mesh, x, y, z, yaw=0.0, scale=(S, S, S)):
-        n[0] += 1
-        ps.append(piece("B%03d_%s" % (n[0], mesh.replace("SM_DI_", "")), KD + mesh, x, y, z, yaw, scale=list(scale)))
-    FZ, CZ, HY, DX = -1750.0, 1750.0, 2500.0, 6000.0
-    for i in range(6):                      # floor and ceiling, 10 m tiles
-        x = -500.0 - 1000.0 * i
-        for j in range(5):
-            y = -2000.0 + 1000.0 * j
-            add("SM_DI_Room_Floor", x, y, FZ)
-            add("SM_DI_Room_Ceiling", x, y, CZ - 600.0 * S)
-    wz = (S, S, (CZ - FZ) / 2.0 / 600.0)   # two rows of 1750
-    for row in range(2):
-        z = FZ + row * (CZ - FZ) / 2.0
-        for i in range(6):
-            x = -500.0 - 1000.0 * i
-            add("SM_DI_Room_Wall", x, -HY, z, 90, wz)
-            add("SM_DI_Room_Wall", x, HY, z, 90, wz)
-        for j in range(5):
-            add("SM_DI_Room_Wall", -DX, -2000.0 + 1000.0 * j, z, 0, wz)
-    add("SM_DI_Hangar_Pad", -4600.0, 0.0, FZ + 1.0, 0, (2.0, 2.0, 1.0))
-    return {"site": "DockingBay_Interior", "actor": KD + "BP_DockingBay_Interior",
-            "about": "The inside of the Dominion's bow docking bay: a 6000 x 5000 x 3500 pocket behind the bay mouth, Dominion set at scale 2.5.",
-            "pieces": ps,
-            "attach": {"to": "the Dominion hull actor", "hull_local_cm": ["hull max X (30000 on r1)", 0, -2000], "yaw_deg": 0,
-                       "note": "the pivot is the centre of the bay mouth; the pocket extends 6000 toward -X. Floor top Z -1750, ceiling underside +1750, walls at Y +-2500 (inner faces +-2425), back wall X -6000. A 24 m landing pad at X -4600 (the glide ends 6000 inside)."},
-            "inner_clear_cm": {"x": [-5925, 0], "y": [-2425, 2425], "z": [-1750, 1750]}}
+
+def _bay_pieces(to_hull):
+    with open(BAY_PLAN, encoding="utf-8") as fh:
+        plan = json.load(fh)
+    ps = []
+    for i, pl in enumerate(plan["placements"]):
+        if pl["group"] == "hangar":
+            continue                     # T5's hangar, built by the course
+        if pl["group"] == "pads" and abs(pl["x"] + 200) < 1 and abs(pl["y"]) < 1:
+            continue                     # pad A is T5's, in the hangar
+        mesh = pl["mesh"]
+        path = (K + "Dominion/" + mesh) if mesh in DOMINION_SET else ("/Game/TriadDrift/Gameplay/Props/DominionInterior/" + mesh)
+        x, y, z, yaw = float(pl["x"]), float(pl["y"]), float(pl["z"]), float(pl.get("yaw", 0.0))
+        if to_hull:                      # pivot = SOCKET_Bay (hull 30000, 0, -2000), +X out of the mouth
+            x, y, z, yaw = -7200.0 - x, -y, z - 1750.0, (yaw + 180.0) % 360.0
+        ps.append(piece("%s_%03d_%s" % (pl["group"], i, mesh.replace("SM_DI_", "")), path, x, y, z, yaw))
+    # work lights under the pocket's ceiling (r5): a 1200 grid at 3300, cool white, no shadows
+    lights = []
+    for x in (-6600.0, -5400.0, -4200.0, -3000.0, -1800.0):
+        for y in (-1800.0, -600.0, 600.0, 1800.0):
+            lx, ly, lz = (-7200.0 - x, -y, 3300.0 - 1750.0) if to_hull else (x, y, 3300.0)
+            lights.append({"name": "BL%02d" % len(lights), "location_cm": [lx, ly, lz], "intensity": 6000.0, "radius": 3000.0, "color": [0.8, 0.88, 1.0]})
+    return plan, ps, lights
+
+
+def docking_bay():
+    """The bow docking bay's inside for the hull (space): pivot = the hull's SOCKET_Bay, the pocket toward -X."""
+    plan, ps, lights = _bay_pieces(True)
+    return {"site": "DockingBay_Interior", "actor": K + "Dominion/BP_DockingBay_Interior",
+            "about": "The Dominion bow docking bay's pocket from Grok Bot's measured plan r1 (6000 deep x 5200 x 3600, six storeys of the Dominion set at scale 1, two dressing pads, the gantry).",
+            "pieces": ps, "lights": lights,
+            "attach": {"to": "the Dominion hull mesh's SOCKET_Bay (hull-local (30000, 0, -2000)), no extra rotation",
+                       "note": "the pocket extends 6000 toward -X; floor top Z -1750 (the mouth sill), 3600 clear; the doors and tractor emitter are Grok Bot's exterior meshes (T4); ATDDominion spawns ATDDockingBay at (Bounds.Max.X, 0, ...) = (33400, 0, -2933) on hull r2, 34 m in front of the mouth: use SOCKET_Bay (plan SOURCE.md, mismatch 1)"},
+            "plan": {"source": "ArtSource/EngAI/Props/DominionDockingBay/plans_r1", "pocket": plan["pocket"], "mouth": plan["mouth"]}}
+
+
+def docking_bay_course():
+    """The same pocket in T5's interior course frame (L_Dominion_Interior): place at the course origin, yaw 0. It opens
+    onto the hangar once the course drops the hangar's X0 end wall (plan: hangar_opening 2800 x 1200)."""
+    plan, ps, lights = _bay_pieces(False)
+    return {"site": "DockingBay_Course", "actor": K + "Dominion/BP_DockingBay_Course",
+            "about": "Grok Bot's docking bay pocket (plan r1) in T5's course frame: x -7200..-1200, floor z 0; spawn at the course origin.",
+            "pieces": ps, "lights": lights,
+            "for_T5": {"place_at": "the course actor's transform", "hangar_change": plan["hangar"]["note"], "force_field": plan["force_field"],
+                       "glide_end_recommended": plan["glide"]["end_recommended"], "pads_B_C": [plan["pads"]["B"], plan["pads"]["C"]]}}
 
 
 def docking_bay_galaxy_test():
@@ -296,6 +332,9 @@ def docking_bay_galaxy_test():
     zone centre), so it can be spawned with no rotation at the hull's Bay socket. The hull's -2.2 deg pitch is ignored."""
     import math
     d = docking_bay()
+    for lt in d.get("lights", []):
+        x, y, z = lt["location_cm"]
+        lt["location_cm"] = [-y, x, z]
     for pc in d["pieces"]:
         x, y, z = pc["location_cm"]
         pc["location_cm"] = [-y, x, z]
@@ -311,7 +350,7 @@ def main():
     sites = {"Relay_Site": relay(False), "Relay_Site_Awake": relay(True), "Wreck_Site": wreck(),
              "Outpost_Site_Verdance": outpost("Verdance"), "Outpost_Site_Cinder": outpost("Cinder"), "DigSite_Cabin": digsite(),
              "DominionInterior_Preview": dominion_interior(), "DockingBay_Interior": docking_bay(),
-             "DockingBay_GalaxyTest": docking_bay_galaxy_test()}
+             "DockingBay_GalaxyTest": docking_bay_galaxy_test(), "DockingBay_Course": docking_bay_course()}
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)

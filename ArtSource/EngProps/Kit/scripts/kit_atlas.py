@@ -382,8 +382,8 @@ def save(arr, path, srgb):
 
 # The Dominion variant (KIT_PALETTE=dominion): the same layout in the Null Armada palette (gloss black armour, dark
 # gunmetal, red / orange marks), so the same pieces read as the mothership's interior. Written as T_KitD_Trim_*.
-DOMINION = {"WHITE": (0.075, 0.078, 0.092), "WHITE_D": (0.055, 0.057, 0.068), "GUN": (0.13, 0.15, 0.19),
-            "GUN_D": (0.085, 0.088, 0.1), "FLOOR_R": 0.86, "FLOOR_M": 0.2, "FLOOR": (0.11, 0.115, 0.13), "FLOOR_D": (0.075, 0.078, 0.09),
+DOMINION = {"WHITE": (0.10, 0.104, 0.12), "WHITE_D": (0.075, 0.078, 0.092), "GUN": (0.13, 0.15, 0.19),
+            "GUN_D": (0.085, 0.088, 0.1), "FLOOR_R": 0.86, "FLOOR_M": 0.2, "FLOOR": (0.14, 0.145, 0.16), "FLOOR_D": (0.10, 0.104, 0.115),
             "YEL": (0.72, 0.16, 0.04), "TEAL_P": (0.34, 0.035, 0.045), "STEN": (0.42, 0.43, 0.42)}
 
 
