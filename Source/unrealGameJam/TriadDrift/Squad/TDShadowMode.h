@@ -17,6 +17,8 @@ namespace TDShadow
 	UNREALGAMEJAM_API float ShadowLeash();
 	/** Shadow ON: only enemies within this distance of the player's ship are picked (cm). */
 	UNREALGAMEJAM_API float ShadowEngageRange();
+	/** Shadow ON: a wingman in a chase drops its target and returns at ShadowLeash x this. */
+	UNREALGAMEJAM_API float ShadowBreakOffScale();
 	/** Shadow OFF: the leash (cm): ShadowLeash x td.Squad.Solo.LeashScale, never above the hard cap or the radar's edge. */
 	UNREALGAMEJAM_API float SoloLeash();
 	/** Shadow OFF: a wingman looks for its own targets within this distance of ITSELF (cm), inside the solo leash. */

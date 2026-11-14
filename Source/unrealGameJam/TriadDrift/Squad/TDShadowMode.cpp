@@ -18,8 +18,10 @@ namespace TDShadowPrivate
 	// --- Shadow ON ---
 	static TAutoConsoleVariable<float> CVarLeash(TEXT("td.Squad.Shadow.Leash"), 18000.f,
 		TEXT("Shadow ON: a wingman further than this from the player's ship (cm) breaks off and returns. Default 18000 (180 m)."), ECVF_Default);
-	static TAutoConsoleVariable<float> CVarEngage(TEXT("td.Squad.Shadow.EngageRange"), 22000.f,
-		TEXT("Shadow ON: wingmen pick only enemies within this distance of the player's ship (cm). Default 22000 (guns reach 200 m)."), ECVF_Default);
+	static TAutoConsoleVariable<float> CVarEngage(TEXT("td.Squad.Shadow.EngageRange"), 18000.f,
+		TEXT("Shadow ON: wingmen pick only enemies within this distance of the player's ship (cm). Default 18000: inside the leash, so a target never drags them over it."), ECVF_Default);
+	static TAutoConsoleVariable<float> CVarBreakOff(TEXT("td.Squad.Shadow.BreakOffScale"), 1.25f,
+		TEXT("Shadow ON: a wingman chasing a target drops it and returns at the leash times this (room to overshoot a pass). Default 1.25."), ECVF_Default);
 
 	// --- Shadow OFF ---
 	static TAutoConsoleVariable<float> CVarSoloScale(TEXT("td.Squad.Solo.LeashScale"), 3.f,
@@ -132,6 +134,8 @@ namespace TDShadow
 {
 	float ShadowLeash() { return FMath::Max(2000.f, TDShadowPrivate::CVarLeash.GetValueOnGameThread()); }
 	float ShadowEngageRange() { return FMath::Max(2000.f, TDShadowPrivate::CVarEngage.GetValueOnGameThread()); }
+
+	float ShadowBreakOffScale() { return FMath::Clamp(TDShadowPrivate::CVarBreakOff.GetValueOnGameThread(), 1.f, 2.f); }
 
 	float SoloLeash()
 	{

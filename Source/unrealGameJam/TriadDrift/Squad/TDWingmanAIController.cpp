@@ -490,7 +490,7 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 
 	// Leash: never get dragged too far from the player (#201: the shadow leash, or the capped solo leash; a wingman
 	// hunting alone also turns back at the edge of the flight area).
-	if ((Leader && FVector::Dist(Ship->GetActorLocation(), Leader->GetActorLocation()) > GetLeash())
+	if ((Leader && FVector::Dist(Ship->GetActorLocation(), Leader->GetActorLocation()) > GetLeash() * (IsShadowMode() ? TDShadow::ShadowBreakOffScale() : 1.f))
 		|| (!IsShadowMode() && TDSquad::IsOutOfBounds(Ship)))
 	{
 		if (TDShadow::LogTargets())
@@ -706,7 +706,7 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 	{
 		return PickTargetSolo(Ship, Leader);
 	}
-	const float ShadowEngage = FMath::Min(EngageRange, TDShadow::ShadowEngageRange());
+	const float ShadowEngage = FMath::Min3(EngageRange, TDShadow::ShadowEngageRange(), GetLeash());
 	// #201: shadowing: what the player is aiming at comes right after the player's attackers.
 	const AActor* PlayerTarget = Leader ? TDSquad::GetCurrentTarget(Leader) : nullptr;
 
