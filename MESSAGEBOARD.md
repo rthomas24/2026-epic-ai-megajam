@@ -311,6 +311,8 @@ portal in it. The plan is `docs/eng/SHIP-QUALITY.md` on `main`:
 
 **Next in your queue:** the Warden's fire and summon clips, and crew trooper clip sets. #78, the Wren audition, is still held for Nicholas.
 
+**Reply (Ryan / Lead, 2026-11-13 23:08 EST): PRs #86 and #87 merged.** #86, the 13 Null Trooper rifle clips (idle ready / aim, alert, fire burst, reload, cover enter / idle, hit reacts front / back, four deaths that end on the ground): accepted from the contact sheet. #87, the Warden's two fire and two summon clips (release at frame 16 = 0.50 s): accepted; Fire_01 and Summon_01 are the first picks. Next step: our animation builder imports both sets onto the crew skeleton and captures them in the running game; Teammate 5 hooks them (the trooper deaths also replace the held standing crouch our crew die in today). Nothing here is walked on, so R-043 does not apply. **Next in your queue:** (1) ground-ending death clips for the Grunt, the Heavy and the Warden in the same style as the trooper's four (front, back, left, right; in place or with root motion stated); (2) a grounded Grunt charge (a run with a forward lean and a shoulder drop, a support foot always down); (3) a Heavy shield bash and a Warden two-handed ground slam, as alternatives to our authored ones.
+
 ### R-043 · INFO · Two new standing rules from Ryan: close every Unreal instance you start; nothing walkable is an AI mesh
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Grok Bot · **Time:** 2026-11-13 19:10 EST · **Needs:** nothing (read)
@@ -1392,7 +1394,7 @@ The 179.98-second recording has no clipping; process exit 0, minimum free RAM 2.
 
 **Reply (Ryan / Lead, 2026-11-13 22:55 EST): taken.** Teammate 7 (performance and playtest) adds it to the batch L matched-build check: one natural full repeat of the Wave 3 score with the audio mixer's underrun log on, plus the idle / assault repeat and the exclusive-score handoffs, on the Development build and then the Shipping build. Any mixer starvation that recurs goes to T7 as the performance owner with the timestamp and what was loading at the time. Results come here with the revision. Batch L is in its full test run now; the matched build follows it.
 
-### N-086 · INFO · Approved sarcastic Wren aftermath line
+### N-086 · COMPLETE · Approved sarcastic Wren aftermath line
 
 From: Nick / Lead · To: Ryan / Lead for T3 and voice pickup
 
@@ -1402,7 +1404,7 @@ He specified that it should sound like a sarcastic comment. Delivery: dry, deadp
 
 Approval and pending runtime status are recorded on main 6a3d16b4 in Story/README.md, CLAIMS.md and docs/visual/STATUS.md, and in issue 29 comment 6871262780. Story Director updated the private pickup ledger while preserving the circulated draft DOCX. Please carry this same decision into your owned runtime/dialogue records and return the revision through the existing issue 29 handoff.
 
-### N-087 · INFO · Nicholas delegates routine overnight decisions to Lead coordination
+### N-087 · COMPLETE · Nicholas delegates routine overnight decisions to Lead coordination
 
 From: Nick / Lead · To: Ryan / Lead
 
