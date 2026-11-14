@@ -16,6 +16,7 @@ class UTDHealthComponent;
 class UTDEnergyBladeComponent;
 class UTDThirdPersonCameraComponent;
 class UAnimSequenceBase;
+class UTDLoopBlendAnimInstance;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
@@ -232,6 +233,12 @@ public:
 	/** Applies the blade's UTDBladeFX: BladeMesh if set, otherwise the placeholder tinted with BladeColor. */
 	void ApplyBladeVisuals();
 	bool IsBladeMeshFromArt() const { return bBladeMeshFromArt; }
+	/** #163: the blade's colour, the squad colour of the pilot on foot (Wren magenta, Kato cyan, Moss amber). */
+	FLinearColor GetBladeColor() const;
+	/** #163: the beam the player sees now (the hand blade in third person, the camera blade in first), or null. */
+	UStaticMeshComponent* GetVisibleBladeBeam() const;
+	/** #163: the always-on blade effect (embers, arcs, light, swing sheet, sparks thrown by the tip), when lit. */
+	class UNiagaraComponent* GetBladeAura() const { return BladeAura; }
 
 	FTDOnInteractCompleted OnInteractCompleted;
 
@@ -275,6 +282,10 @@ public:
 
 protected:
 	void UpdateBody(float DeltaSeconds);
+	/** Foot IK on uneven ground (animation builder, Nov 14): traces under the feet, eased offsets to the anim instance. */
+	void UpdateFootIK(UTDLoopBlendAnimInstance* Loops, float DeltaSeconds);
+	float FootIKL = 0.f;
+	float FootIKR = 0.f;
 	void PlaceBody();
 	bool bBodyFirstPerson = false;
 	bool bBodyViewKnown = false;
@@ -311,6 +322,16 @@ protected:
 	TObjectPtr<UStaticMeshComponent> HandBladeHilt;
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Body")
 	TObjectPtr<UStaticMeshComponent> HandBladeBeam;
+
+	/** #163: NS_TD_Blade_Aura on the visible beam's emitter. It reads User.Color, User.Length (cm),
+	 *  User.TipVelocity (world cm/s) and User.TipSpeed, set here each frame. */
+	UPROPERTY(Transient)
+	TObjectPtr<class UNiagaraComponent> BladeAura;
+	void UpdateBladeAura(float DeltaSeconds);
+	FVector BladeAuraPrevTip = FVector::ZeroVector;
+	bool bBladeAuraPrevTip = false;
+	float BladeAuraSpeed = 0.f;
+	float BladeAuraSwingHold = 0.f;
 
 private:
 	FText Tip;

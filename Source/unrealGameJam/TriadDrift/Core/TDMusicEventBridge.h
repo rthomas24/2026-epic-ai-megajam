@@ -128,6 +128,7 @@ private:
 	void HandlePreLoadMap(const FString& MapName);
 	void HandleInteriorMoment(FName Moment, AActor* Source);
 	FDelegateHandle InteriorHandle;
+	bool IsOurBackdrop(const class ATDMenuBackdrop* Backdrop) const;
 	void FinishStinger(bool bCompleted);
 	void TickStinger(UWorld* World);
 	void TickGround(UWorld* World);

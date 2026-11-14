@@ -32,8 +32,10 @@ namespace
 		{
 			if (bSea)
 			{
-				Base = FLinearColor(0.02f, 0.13f, 0.16f);
-				Glow = FLinearColor(0.f, 0.06f, 0.05f);	// the bioluminescent shallows, faint
+				// #145 (B1-5): at 0.06 the shallows glowed as a flat, sharp-edged teal patch on the menu planet's limb (it
+				// stays with the ring and the atmosphere hidden, and goes with the surface): a deep, darker sea, barely lit.
+				Base = FLinearColor(0.015f, 0.07f, 0.09f);
+				Glow = FLinearColor(0.f, 0.012f, 0.01f);	// the bioluminescent shallows, faint
 				return;
 			}
 			const FLinearColor Jungle(0.04f, 0.24f, 0.08f), Moss(0.16f, 0.32f, 0.12f), Rock(0.46f, 0.47f, 0.5f), Snow(0.88f, 0.92f, 0.96f);

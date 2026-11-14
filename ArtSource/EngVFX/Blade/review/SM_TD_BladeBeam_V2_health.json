@@ -1,0 +1,41 @@
+{
+  "tris": 4128,
+  "slots": [
+    "BladeGlow",
+    "BladeCore"
+  ],
+  "bbox_min_m": [
+    -0.0315,
+    -1.0,
+    -0.071
+  ],
+  "bbox_max_m": [
+    0.0315,
+    -0.0,
+    0.079
+  ],
+  "asset_report": {
+    "objects": 1,
+    "tris": 4128,
+    "errors": 0,
+    "warnings": 1
+  },
+  "issues": [
+    {
+      "severity": "warn",
+      "object": "SM_TD_BladeBeam_V2",
+      "message": "3 duplicate vertices within 0.0001 m; merge by distance"
+    }
+  ],
+  "export": {
+    "status": "ok",
+    "tris": 4128,
+    "size_cm": [
+      100.0,
+      6.3,
+      15.0
+    ],
+    "warnings": [],
+    "errors": []
+  }
+}

@@ -79,7 +79,7 @@ namespace TDFlightHUD
 		void Outline(float X, float Y, float W, float H, float Radius, float Width, FLinearColor C) const
 		{
 			const float R = FMath::Min(Radius, FMath::Min(W, H) * .5f);
-			TArray<FVector2D> Points;
+			TArray<FVector2D>& Points = ScratchPoints();
 			const FVector2D Corners[4] = { { X + W - R, Y + R }, { X + W - R, Y + H - R }, { X + R, Y + H - R }, { X + R, Y + R } };
 			for (int32 Corner = 0; Corner < 4; ++Corner)
 			{
@@ -126,7 +126,7 @@ namespace TDFlightHUD
 		}
 		void Poly(const FVector2D& At, std::initializer_list<FVector2D> Local, FLinearColor C, float Width, float Size = 1.f) const
 		{
-			TArray<FVector2D> Points;
+			TArray<FVector2D>& Points = ScratchPoints();
 			for (const FVector2D& Q : Local)
 			{
 				Points.Add((At + Q * Size) * Scale + Origin);
@@ -157,7 +157,7 @@ namespace TDFlightHUD
 			}
 			else
 			{
-				TArray<FVector2D> Hex;
+				TArray<FVector2D>& Hex = ScratchPoints();
 				for (int32 I = 0; I <= 6; ++I)
 				{
 					const float A = PI / 6.f + I * PI / 3.f;
@@ -183,7 +183,7 @@ namespace TDFlightHUD
 					Line(Tip, FMath::Lerp(L, R, T), Color, 2.5f);
 				}
 			}
-			TArray<FVector2D> Points;
+			TArray<FVector2D>& Points = ScratchPoints();
 			for (const FVector2D& Q : { Tip, L, Notch, R, Tip })
 			{
 				Points.Add(Q * Scale + Origin);
@@ -527,7 +527,7 @@ void UTDFlightHUDWidget::SampleDirector(float Dt)
 	const float RealDt = World && World->GetWorldSettings() ? Dt / FMath::Max(World->GetWorldSettings()->GetEffectiveTimeDilation(), .01f) : Dt;
 	View.MoneyShot = FMath::FInterpConstantTo(View.MoneyShot, bMoney ? 1.f : 0.f, RealDt, 1.f / MoneyShotEaseSeconds);
 	const float Target = FMath::Min(View.bInCut ? 0.f : View.bInSlate ? SlateOpacity : View.bPaused ? PauseOpacity : 1.f,
-		FMath::Clamp(FocusOpacity, 0.f, 1.f));
+		FMath::Clamp(bPlanetClosed ? 1.f : FocusOpacity, 0.f, 1.f)); // #161: the closed-planet warning is never dimmed
 	View.bCombatHeld = bFocusHideCombat;
 	// Off at once on a cut; everything else eases (the fade back in after CUT is the 250 ms the spec asks for).
 	View.HUDOpacity = View.bInCut ? 0.f : FMath::FInterpConstantTo(View.HUDOpacity, Target, RealDt, 1.f / CutFadeInSeconds);
@@ -900,7 +900,20 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		const APawn* Ship = PC ? PC->GetPawn() : nullptr;
 		const ATDShip* AsShip = Cast<ATDShip>(Ship);
 		const bool bEntering = AsShip && AsShip->GetAtmosphereEntry() && AsShip->GetAtmosphereEntry()->IsEntering();
-		View.bDescent = View.Heat01 > .01f || View.Descent01 >= 0.f || bEntering;
+		// #161 (T1): a closed planet burns the hull through the entry heat, but it is not a descent: no ATMOSPHERE panel,
+		// and its warning line shows in the prompt lane for as long as the entry component reports it.
+		const bool bClosed = AsShip && AsShip->GetAtmosphereEntry() && AsShip->GetAtmosphereEntry()->IsPlanetClosedWarning();
+		View.bDescent = !bClosed && (View.Heat01 > .01f || View.Descent01 >= 0.f || bEntering);
+		if (bClosed)
+		{
+			const FString Raw = AsShip->GetAtmosphereEntry()->GetPlanetClosedText().ToString();
+			if (Raw != PlanetClosedRaw)
+			{
+				PlanetClosedRaw = Raw;
+				PlanetClosedLine = Raw.ToUpper();
+			}
+		}
+		bPlanetClosed = bClosed && !PlanetClosedLine.IsEmpty();
 		// ORBIT: the descent cover ending on the galaxy map is the climb-out's reveal (the HUD is rebuilt after the travel,
 		// so the edge is watched here rather than only through OnRevealed).
 		const bool bCovered = Descent && Descent->GetCoverPhase() != ETDDescentCover::Off;
@@ -947,6 +960,8 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		const ATDDockingBay* Bay = Cast<ATDDockingBay>(DockingBay.Get());
 		const ETDDockingState State = Bay ? Bay->GetDockingState() : ETDDockingState::Closed;
 		View.TractorPull01 = Bay ? FMath::Clamp(Bay->GetCurrentPull(), 0.f, 1.f) : 0.f;
+		const ATDDominion* HoldDom = ATDDominion::Get(this);
+		View.bReactorHold = HoldDom && HoldDom->IsReactorHoldActive();
 		View.Docking = State == ETDDockingState::Gliding || State == ETDDockingState::Docked ? 2 : (State == ETDDockingState::Open && View.TractorPull01 > .01f ? 1 : 0);
 	}
 
@@ -1102,6 +1117,11 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		View.Lane = ELane::Prompt;
 		View.LaneText = Prompt.ToUpper();
 	}
+	else if (bPlanetClosed)
+	{
+		View.Lane = ELane::HyperdriveBlocked; // the same warning look: amber words with the padlock
+		View.LaneText = PlanetClosedLine;
+	}
 	else if (BlockedLeft > 0.f && !Blocked.IsEmpty())
 	{
 		View.Lane = ELane::HyperdriveBlocked;
@@ -1143,6 +1163,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 
 void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 {
+	FTDHUDCostScope CostScope(SampleCost);
 	TD_COMBAT_PERF(FlightHUD);
 	const float Dt = FMath::Max(0.f, DeltaSeconds);
 	Time += Dt;
@@ -1368,6 +1389,27 @@ void UTDFlightHUDWidget::LayoutChips()
 
 // ------------------------------------------------------------------------------------------ squad panel (#160)
 
+#if !UE_BUILD_SHIPPING
+// TD.UI.Cost: the flight HUD's game-thread cost since the last call (sample = reading the game, paint = drawing), in
+// ms per frame: average and worst. Budget (#160): under 0.5 ms for both together.
+static FAutoConsoleCommandWithWorld CmdTDUICost(TEXT("TD.UI.Cost"), TEXT("TD.UI.Cost: log the flight HUD's sample + paint cost (ms per frame, average and worst) since the last call."),
+	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World)
+	{
+		const UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(World);
+		UTDFlightHUDWidget* HUD = Host ? Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD()) : nullptr;
+		if (!HUD)
+		{
+			UE_LOG(LogTemp, Display, TEXT("TD.UI.Cost: no flight HUD"));
+			return;
+		}
+		const FTDHUDCost S = HUD->SampleCost, P = HUD->PaintCost;
+		UE_LOG(LogTemp, Display, TEXT("TD.UI.Cost: %d frames; sample %.3f ms avg, %.3f worst; paint %.3f ms avg, %.3f worst; together %.3f ms avg (budget 0.5)"),
+			P.Frames, S.AverageMs(), S.WorstMs(), P.AverageMs(), P.WorstMs(), S.AverageMs() + P.AverageMs());
+		HUD->SampleCost = FTDHUDCost();
+		HUD->PaintCost = FTDHUDCost();
+	}));
+#endif
+
 static TAutoConsoleVariable<int32> CVarTDUIMinimalHUD(
 	TEXT("TD.UI.MinimalHUD"), 0, TEXT("1 = the ENG-36 flight HUD (small squad chips, no squad panel or radar); 0 = the #160 HUD."));
 
@@ -1376,7 +1418,31 @@ static TAutoConsoleVariable<float> CVarTDUISubtitleScale(
 
 void UTDFlightHUDWidget::UpdateSquadCards(float Dt)
 {
-	View.bSquadPanel = CVarTDUIMinimalHUD.GetValueOnGameThread() == 0;
+	// Minimal HUD: the player's setting (T1's UTDSettingsSubsystem::IsMinimalHUD, read by name once a second: off until
+	// it exists), or the dev override TD.UI.MinimalHUD 1.
+	MinimalReadLeft -= Dt;
+	if (MinimalReadLeft <= 0.f)
+	{
+		MinimalReadLeft = 1.f;
+		bMinimalSetting = false;
+		static UClass* Settings = FindObject<UClass>(nullptr, TEXT("/Script/unrealGameJam.TDSettingsSubsystem"));
+		UFunction* F = Settings ? Settings->FindFunctionByName(TEXT("IsMinimalHUD")) : nullptr;
+		if (F && F->ParmsSize > 0)
+		{
+			uint8* Buf = static_cast<uint8*>(FMemory_Alloca(F->ParmsSize));
+			FMemory::Memzero(Buf, F->ParmsSize);
+			if (const FObjectPropertyBase* Ctx = CastField<FObjectPropertyBase>(F->PropertyLink); Ctx && !Ctx->HasAnyPropertyFlags(CPF_ReturnParm))
+			{
+				Ctx->SetObjectPropertyValue_InContainer(Buf, this);
+			}
+			Settings->GetDefaultObject()->ProcessEvent(F, Buf);
+			if (const FBoolProperty* Ret = CastField<FBoolProperty>(F->GetReturnProperty()))
+			{
+				bMinimalSetting = Ret->GetPropertyValue_InContainer(Buf);
+			}
+		}
+	}
+	View.bSquadPanel = CVarTDUIMinimalHUD.GetValueOnGameThread() == 0 && !bMinimalSetting;
 	const float ForcedScale = CVarTDUISubtitleScale.GetValueOnGameThread();
 	View.SubtitleScale = FMath::Clamp(ForcedScale > 0.f ? ForcedScale : UTDSettingsSubsystem::GetSubtitleScale(this), .5f, 2.f);
 	// Below 900 px of height the design frame would shrink the text under its 1080 size: the cards go to 85% and the
@@ -1527,9 +1593,9 @@ namespace TDFlightHUD
 				P.ArcSpan(At, R, I * PI * .25f, PI * .14f, FTDUIPalette::Muted().CopyWithNewOpacity(.7f * O), 1.5f);
 			}
 			// Padlock: a body and a shackle.
-			const float B = R * .42f;
-			P.Box(At.X - B, At.Y - B * .2f, 2 * B, B * 1.3f, FTDUIPalette::Muted().CopyWithNewOpacity(.85f * O));
-			P.ArcSpan(At + FVector2D(0, -B * .2f), B * .65f, PI, PI, FTDUIPalette::Muted().CopyWithNewOpacity(.85f * O), 1.5f);
+			const float B = R * .55f;
+			P.Box(At.X - B, At.Y - B * .15f, 2 * B, B * 1.25f, FTDUIPalette::Muted().CopyWithNewOpacity(.95f * O));
+			P.ArcSpan(At + FVector2D(0, -B * .15f), B * .68f, PI, PI, FTDUIPalette::Muted().CopyWithNewOpacity(.95f * O), 2.f);
 			return;
 		}
 		// ACTIVE: a filled disc with a second ring pulsing outward. READY: a filled, lit disc with its key in dark ink.
@@ -1540,6 +1606,13 @@ namespace TDFlightHUD
 			const float Pulse = FMath::Fmod(Time * 2.f, 1.f);
 			P.Plate(At.X - R, At.Y - R, 2 * R, 2 * R, R, FTDUIPalette::Ink().CopyWithNewOpacity(O));
 			P.Arc(At, R + 2.f + 5.f * Pulse, 1.f, FTDUIPalette::Ink().CopyWithNewOpacity((1.f - Pulse) * O), 2.f);
+			// Four ticks radiating from the disc: ACTIVE differs from READY by shape, not only by the pulse.
+			for (int32 I = 0; I < 4; ++I)
+			{
+				const float A = PI * .25f + I * PI * .5f;
+				const FVector2D D(FMath::Cos(A), FMath::Sin(A));
+				P.Line(At + D * (R + 3.f), At + D * (R + 8.f), FTDUIPalette::Ink().CopyWithNewOpacity(O), 2.5f);
+			}
 		}
 		else if (bReady)
 		{
@@ -1565,7 +1638,8 @@ namespace TDFlightHUD
 		const bool bBig = Card.Grow > .5f;
 		const FLinearColor Ship = PanelShip(Card.Ship);
 		const FLinearColor Ink = FTDUIPalette::Ink(), Muted = FTDUIPalette::Muted();
-		const float O = Card.bAlive ? 1.f : .8f;
+		// Cloaked: the card's contents drop to 60% (the concept), with the CLOAKED flag above it.
+		const float O = (Card.bAlive ? 1.f : .8f) * (Card.bCloaked ? .6f : 1.f);
 		auto Sz = [F](float Px) { return FMath::RoundToInt(Px * F); };
 
 		// Plate (dark red when down), the cut top-right corner, the border and the ship-colour top bar.
@@ -1713,7 +1787,7 @@ namespace TDFlightHUD
 		}
 		static const FString Shd(TEXT("SHD")), Hul(TEXT("HUL"));
 		const float TagW = bBig ? Sz(11) * 3.2f : 0.f;
-		const float NumW = bBig ? Sz(14) * 2.3f : 0.f;
+		const float NumW = bBig ? Sz(14) * 3.f : 0.f;
 		const float BarX = X + Pad + TagW;
 		const float BarRight = (bBig ? X + W - 60.f * K : X + W - Pad) - NumW;
 		const float BarW = FMath::Max(20.f, BarRight - BarX);
@@ -1743,6 +1817,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
 {
 	using namespace TDFlightHUD;
+	FTDHUDCostScope CostScope(PaintCost);
 	const int32 Base = Super::NativePaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
 	if (!View.bHasData)
 	{
@@ -1862,7 +1937,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		// A kind's outline at At, rotated (0 = pointing down), brighter and heavier on a threat to the flown ship.
 		auto Shape = [&P, &Enemy](const FMark& Mk, FVector2D At, float Rot, float Alpha)
 		{
-			TArray<FVector2D> Pts;
+			static TArray<FVector2D> Pts; // its own buffer: P.Line below reuses the shared one
+			Pts.Reset();
 			float Width = 2.f;
 			TDFlightHUDShapes::Points(Mk.Kind, Pts, Width);
 			const FLinearColor C = (Mk.bThreat ? FMath::Lerp(Enemy, FLinearColor::White, .35f) : Enemy).CopyWithNewOpacity(Alpha);
@@ -2365,6 +2441,16 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		}
 		Rec(bGlide ? TEXT("docking_locked") : TEXT("tractor"), X, Y, W, H);
 	}
+	// ---- the reactor hold (T4's ATDDominion::IsReactorHoldActive: the ship is slowed in front of the exposed core):
+	// one calm amber line in the same place and style as the tractor plate.
+	if (View.bReactorHold && View.Docking == 0)
+	{
+		static const FString Hold(TEXT("REACTOR IN RANGE  ·  HOLD FIRE ON THE CORE"));
+		const float W = 520.f, H = 34.f, X = CenterX - W * .5f, Y = C.Y - 170.f;
+		P.Plate(X, Y, W, H, 12.f, T::Plate().CopyWithNewOpacity(.8f));
+		P.Words(CenterX, Y + 8.f, Hold, 15, T::Warning(), "Bold", .5f, 120);
+		Rec(TEXT("reactor_hold"), X, Y, W, H);
+	}
 	if (View.OrbitCue01 > 0.f)
 	{
 		const float Fade = FMath::Min(1.f, View.OrbitCue01 * 3.f);
@@ -2481,18 +2567,22 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	else if (View.Lane != ELane::None && !View.LaneText.IsEmpty())
 	{
 		const FLinearColor LaneC = View.Lane == ELane::HyperdriveBlocked ? T::Warning() : T::Neutral();
-		const float LaneW = FMath::Clamp(P.Measure(View.LaneText, P.Font("Bold", 17, 50)) + 48.f, 240.f, 760.f);
-		Area += LaneW * 36.f;
-		P.Plate(CenterX - LaneW * .5f, 838.f, LaneW, 36.f, 8.f, T::Plate().CopyWithNewOpacity(View.Lane == ELane::Hint ? .5f : .65f));
-		Rec(TEXT("lane"), CenterX - LaneW * .5f, 838.f, LaneW, 36.f);
+		// #161: the closed-planet warning is the one large line (24 px on a taller plate, at full strength).
+		const bool bBigLane = bPlanetClosed && View.Lane == ELane::HyperdriveBlocked;
+		const int32 LanePx = bBigLane ? 24 : 17;
+		const float LaneH = bBigLane ? 50.f : 36.f, LaneY = bBigLane ? 826.f : 838.f;
+		const float LaneW = FMath::Clamp(P.Measure(View.LaneText, P.Font("Bold", LanePx, 50)) + 56.f, 240.f, bBigLane ? 1100.f : 760.f);
+		Area += LaneW * LaneH;
+		P.Plate(CenterX - LaneW * .5f, LaneY, LaneW, LaneH, 8.f, T::Plate().CopyWithNewOpacity(View.Lane == ELane::Hint ? .5f : bBigLane ? .85f : .65f));
+		Rec(TEXT("lane"), CenterX - LaneW * .5f, LaneY, LaneW, LaneH);
 		if (View.Lane == ELane::HyperdriveBlocked)
 		{
 			// A padlock: shackle arc + body.
-			const FVector2D L(CenterX - LaneW * .5f + 20.f, 858.f);
+			const FVector2D L(CenterX - LaneW * .5f + 20.f, LaneY + LaneH * .5f + 2.f);
 			P.ArcSpan(L + FVector2D(0, -4), 5.f, PI, PI, LaneC, 2.f);
 			P.Outline(L.X - 7.f, L.Y - 4.f, 14.f, 10.f, 2.f, 1.5f, LaneC);
 		}
-		P.Words(CenterX + (View.Lane == ELane::HyperdriveBlocked ? 10.f : 0.f), 845.f, View.LaneText, 17, LaneC, "Bold", .5f, 50);
+		P.Words(CenterX + (View.Lane == ELane::HyperdriveBlocked ? 10.f : 0.f), LaneY + LaneH * .5f - LanePx * .66f, View.LaneText, LanePx, LaneC, "Bold", .5f, 50);
 	}
 
 	// ---- subtitles / story transmissions: centred under the lower lane, speaker tag in the pilot's colour, 2 lines max.
@@ -2555,7 +2645,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			}
 		}
 		const int32 Lines = FMath::Max(1, SubWrapLines.Num());
-		const float LineH = 26.f * Sc;
+		// Slate font sizes are points (a 29 pt Large line is about 39 px tall): the line step follows the font, not a fixed 26.
+		const float LineH = BodyPx * 1.45f;
 		const float H = 12.f * Sc + Lines * LineH;
 		// Above the squad panel and its flag row (#160), growing upward.
 		const float SubY = View.SubtitleBottom - H;
@@ -2593,16 +2684,23 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 
 	// ---- squad strip, bottom-left of the safe frame, order 1 2 3
 	const float Pulse1Hz = .75f + .25f * FMath::Sin(Time * 2.f * PI);
-	if (View.bSquadPanel)
+	// The squad panel and the radar leave with the combat HUD: while docking (controls locked), under a focus hold that
+	// hides combat (director shots, letterboxed sequences, T4's breakup camera), and they fade out with a money shot.
+	const float PanelAlpha = (View.Docking > 0 || View.bCombatHeld) ? 0.f : 1.f - FMath::Clamp(View.MoneyShot * 2.f, 0.f, 1.f);
+	FPaint PanelP = P;
+	PanelP.Alpha *= PanelAlpha;
+	const bool bPanelShown = View.bSquadPanel && PanelP.Alpha > .01f;
+	if (bPanelShown)
 	{
 		float Left = 1e9f, Top = 1e9f, Right = 0.f;
-		const FString AbilityKey = View.bUsingGamepad ? TEXT("Y") : TEXT("E");
+		static const FString PadAbilityKey(TEXT("Y")), KeyAbilityKey(TEXT("E"));
+		const FString& AbilityKey = View.bUsingGamepad ? PadAbilityKey : KeyAbilityKey;
 		for (const FChip& Chip : View.Chips)
 		{
 			const FSquadCard& Card = View.Cards[static_cast<int32>(Chip.Ship)];
 			if (Card.bValid)
 			{
-				SquadCard(P, Card, View.PanelK, View.PanelFont, Time, View.PowerGlyph, AbilityKey);
+				SquadCard(PanelP, Card, View.PanelK, View.PanelFont, Time, View.PowerGlyph, AbilityKey);
 				Rec(TEXT("chip"), Card.Pos.X, Card.Pos.Y, Card.Size.X, Card.Size.Y);
 				Area += Card.Size.X * Card.Size.Y;
 				Left = FMath::Min(Left, float(Card.Pos.X));
@@ -2617,10 +2715,10 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	}
 #if __has_include("TriadDrift/UI/TDHUDRadarPaint.h")
 	// T6's radar (#160): bottom-right, from the HUD model.
-	if (View.bSquadPanel)
+	if (bPanelShown)
 	{
-		TDPaintHUDRadar(P, HUDModel, FTDHUDRadarInput{ View.Flown, View.bHasFlown, FrameWave, Time });
-		const FBox2D RadarBox = TDHUDRadarBox(P);
+		TDPaintHUDRadar(PanelP, HUDModel, FTDHUDRadarInput{ View.Flown, View.bHasFlown, FrameWave, Time });
+		const FBox2D RadarBox = TDHUDRadarBox(PanelP);
 		Rec(TEXT("radar"), RadarBox.Min.X, RadarBox.Min.Y, RadarBox.GetSize().X, RadarBox.GetSize().Y);
 	}
 #endif

@@ -1,0 +1,60 @@
+{
+  "asset": "SM_Fab_OilBarrel",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\imp\\ArtSource\\EngProps\\Fab\\OilBarrel\\export\\SM_Fab_OilBarrel.fbx",
+  "tris": 5066,
+  "size_cm": [
+    58.8,
+    58.7,
+    81.3
+  ],
+  "pivot": "root object origin (SM_Fab_OilBarrel~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Fab_OilBarrel"
+  ],
+  "material_params": [
+    {
+      "name": "M_Fab_OilBarrel",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    }
+  ],
+  "textures": [
+    "T_Fab_OilBarrel_BC.png",
+    "T_Fab_OilBarrel_BC_orig.png",
+    "T_Fab_OilBarrel_N.png",
+    "T_Fab_OilBarrel_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_Fab_OilBarrel_00"
+  ],
+  "collision_source": "auto convex hulls",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}

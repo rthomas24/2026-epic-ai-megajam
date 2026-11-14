@@ -40,6 +40,8 @@
 #include "TriadDrift/Ground/TDGroundAudio.h"
 #include "Engine/StaticMeshSocket.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "NiagaraComponent.h"
+#include "NiagaraSystem.h"
 
 ATDFirstPersonCharacter::ATDFirstPersonCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -182,7 +184,9 @@ int32 ATDFirstPersonCharacter::ChooseBodyLoop(float GroundSpeed)
 {
 	// Run speed is 650, sprint 950, blocking 325. The walk loop covers 130 cm/s: past about 200 its feet would slide
 	// (it can only be sped up so far), so the run loop takes over there (animation builder, Nov 14).
-	return GroundSpeed < 60.f ? 0 : GroundSpeed < 200.f ? 1 : 2;
+	// Round 2 (foot slide measured with TD.Pilot.FootTrace): idle only below 30 cm/s so the feet step as soon as the
+	// capsule moves; walk to 260 cm/s at up to 2x, the run above it (its rate tracks the speed from 0.5x).
+	return GroundSpeed < 30.f ? 0 : GroundSpeed < 260.f ? 1 : 2;
 }
 
 void ATDFirstPersonCharacter::ApplyPilotVisuals()
@@ -284,7 +288,8 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		const UCharacterMovementComponent* Move = GetCharacterMovement();
 		const bool bAir = Move && Move->IsFalling();
 		const int32 Want = bAir && Loops->GetLoop() ? -1 : ChooseBodyLoop((float)GetVelocity().Size2D());
-		UAnimSequenceBase* Fall = bAir && !bMantling ? LoadPilotAnim(TEXT("A_Pilot_FallLoop")) : nullptr;
+		UAnimSequenceBase* Fall = bAir && !bMantling ? LoadPilotAnim(TEXT("A_Pilot_FallLoop_v2")) : nullptr; // v2: blade clear of the chest
+		Fall = Fall || !bAir || bMantling ? Fall : LoadPilotAnim(TEXT("A_Pilot_FallLoop"));
 		UAnimSequenceBase* Loop = Fall ? Fall : Want == 0 ? V->Idle.LoadSynchronous() : Want == 1 ? V->Walk.LoadSynchronous() : Want == 2 ? V->Run.LoadSynchronous() : Loops->GetLoop();
 		if (!Loop)
 		{
@@ -294,23 +299,53 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		// start and end on (weight shifting, blade forward and up), instead of the exploring idle.
 		if (Loop && Want == 0 && !Fall && bLastCloseCombat && TDPilotMeleePassOn())
 		{
-			if (UAnimSequenceBase* Guard = LoadPilotAnim(TEXT("A_Pilot_Blade_Idle_v2")))
+			UAnimSequenceBase* Guard = LoadPilotAnim(TEXT("A_Pilot_Blade_Idle_v3")); // v3: blade out right, 35 deg down
+			Guard = Guard ? Guard : LoadPilotAnim(TEXT("A_Pilot_Blade_Idle_v2"));
+			if (Guard)
 			{
 				Loop = Guard;
+			}
+		}
+		// Idle v3 (round 2): the blade hangs out to the right side, 35 deg down, so it reads whole from the chase camera
+		// (Idle3_v2 pointed it forward-down: a short stub from behind, the rest hidden or in the ground).
+		else if (Loop && Want == 0 && !Fall && Loop->GetFName() == TEXT("A_Pilot_Idle3_v2") && TDPilotMeleePassOn())
+		{
+			if (UAnimSequenceBase* Idle3 = LoadPilotAnim(TEXT("A_Pilot_Idle3_v3")))
+			{
+				Loop = Idle3;
+			}
+		}
+		// Walk v3: the same blade-out-to-the-right carriage through the stride.
+		if (Loop && Want == 1 && !Fall && Loop->GetFName() == TEXT("A_Pilot_Walk_v2") && TDPilotMeleePassOn())
+		{
+			UAnimSequenceBase* Walk3 = LoadPilotAnim(TEXT("A_Pilot_Walk_v4")); // v4: low side guard, tip 59-67 cm off the floor (v3 dragged it behind)
+			Walk3 = Walk3 ? Walk3 : LoadPilotAnim(TEXT("A_Pilot_Walk_v3"));
+			if (Walk3)
+			{
+				Loop = Walk3;
 			}
 		}
 		// Run v2 (animation builder, Nov 14): the blade held out and down beside the leg, not swept across the head.
 		if (Loop && Want == 2 && Loop->GetFName() == TEXT("A_Pilot_Run") && TDPilotMeleePassOn())
 		{
-			if (UAnimSequenceBase* Run2 = LoadPilotAnim(TEXT("A_Pilot_Run_v2")))
+			// v3: the turn split between a forearm roll (at most 90 deg) and the wrist (at most 70), the blade trailing
+			// back and down; v2 bent the wrist alone up to 150 deg.
+			UAnimSequenceBase* Run2 = LoadPilotAnim(TEXT("A_Pilot_Run_v4")); // v4: low side guard, tip 67-78 cm off the floor, seen from behind
+			Run2 = Run2 ? Run2 : LoadPilotAnim(TEXT("A_Pilot_Run_v3"));
+			Run2 = Run2 ? Run2 : LoadPilotAnim(TEXT("A_Pilot_Run_v2"));
+			if (Run2)
 			{
 				Loop = Run2;
 			}
 		}
 		const float Speed = (float)GetVelocity().Size2D();
-		const float Ref = Want == 1 ? BodyWalkSpeed : Want == 2 ? BodyRunSpeed : 0.f;
-		const float Rate = Fall ? 1.f : bAir ? 0.4f : (Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.7f) : 1.f); // in the air: the fall loop, else the last loop slowed
+		// The clips' authored speeds are for the unscaled skeleton: the body is drawn MeshScale bigger, so its stride is too.
+		const float BodyScale = FMath::Max(0.01f, (float)GetMesh()->GetComponentScale().X);
+		const float Ref = (Want == 1 ? BodyWalkSpeed : Want == 2 ? BodyRunSpeed : 0.f) * BodyScale;
+		const float Rate = Fall ? 1.f : bAir ? 0.4f : (Ref > 0.f ? (Want == 1 ? FMath::Clamp(Speed / Ref, 0.25f, 2.f) : FMath::Clamp(Speed / Ref, 0.5f, 1.9f)) : 1.f);
+		Loops->BlendSeconds = TDPilotMeleePassOn() ? 0.12f : 0.2f; // gait changes blend quickly (the feet step at once) // in the air: the fall loop, else the last loop slowed
 		Loops->SetLoop(Loop, Rate);
+		Loops->SetGait(bAir ? -1 : Want); // start lean / stop settle (animation builder, Nov 14)
 		// Legs follow the direction of travel when the body faces elsewhere (a swing or the guard turns it to the camera):
 		// a strafe or backpedal loop on the legs only, at its own measured speed, so the feet stop sliding sideways.
 		UAnimSequenceBase* Legs = nullptr;
@@ -331,7 +366,7 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 			if (D)
 			{
 				Legs = LoadPilotAnim(bRun ? D->Jog : D->Walk);
-				LegRate = FMath::Clamp(Speed / (bRun ? D->JogSpeed : D->WalkSpeed), 0.6f, 1.7f);
+				LegRate = FMath::Clamp(Speed / ((bRun ? D->JogSpeed : D->WalkSpeed) * BodyScale), 0.3f, 1.9f);
 			}
 		}
 		// Turn in place (standing, the body swinging round to the camera): small side steps on the legs instead of the
@@ -343,6 +378,154 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 			LegRate = 1.2f;
 		}
 		Loops->SetLegLoop(Legs, LegRate);
+		UpdateFootIK(Loops, DeltaSeconds);
+	}
+}
+
+static TAutoConsoleVariable<int32> CVarPilotFootIK(TEXT("TD.Pilot.FootIK"), 1,
+	TEXT("1: the pilot's feet find uneven ground (two traces, pelvis down, two-bone legs); 0: off."));
+
+void ATDFirstPersonCharacter::UpdateFootIK(UTDLoopBlendAnimInstance* Loops, float DeltaSeconds)
+{
+	// Animation builder, Nov 14: a trace under each foot from the capsule's floor; the lower ground brings the pelvis
+	// down, each foot is lifted onto its own ground. Only standing or moving on the ground; eased in and out.
+	USkeletalMeshComponent* Body = GetMesh();
+	const UCharacterMovementComponent* Move = GetCharacterMovement();
+	const bool bOn = Body && Move && Move->IsMovingOnGround() && !IsDead() && !bMantling && !bShipTransition
+		&& CVarPilotFootIK.GetValueOnGameThread() != 0 && TDPilotMeleePassOn();
+	float WantL = 0.f, WantR = 0.f;
+	const float Scale = Body ? FMath::Max(0.01f, (float)Body->GetComponentScale().Z) : 1.f;
+	if (bOn && GetWorld())
+	{
+		const float Floor = (float)(GetActorLocation().Z - GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDPilotFootIK), false, this);
+		auto Ground = [&](FName Bone)
+		{
+			const FVector At = Body->GetSocketLocation(Bone);
+			FHitResult Hit;
+			if (GetWorld()->LineTraceSingleByChannel(Hit, FVector(At.X, At.Y, Floor + 50.f), FVector(At.X, At.Y, Floor - 60.f), ECC_Visibility, Params))
+			{
+				return FMath::Clamp((float)(Hit.ImpactPoint.Z - Floor), -45.f, 45.f);
+			}
+			return 0.f;
+		};
+		WantL = Ground(TEXT("foot_l"));
+		WantR = Ground(TEXT("foot_r"));
+	}
+	const float Speed = 14.f;
+	FootIKL = FMath::FInterpTo(FootIKL, WantL, DeltaSeconds, Speed);
+	FootIKR = FMath::FInterpTo(FootIKR, WantR, DeltaSeconds, Speed);
+	const float Down = FMath::Max(0.f, -FMath::Min(FootIKL, FootIKR));
+	Loops->SetFootIK((FootIKL + Down) / Scale, (FootIKR + Down) / Scale, Down / Scale);
+}
+
+// #163: the energy blade's beam. SM_TD_BladeBeam_V2 (core + glow shell, two slots) when it exists, else the first beam.
+// Both have their origin at the emitter and run 100 cm along +X.
+static UStaticMesh* TDBladeBeamArt()
+{
+	UStaticMesh* V2 = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeBeam_V2.SM_TD_BladeBeam_V2"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+	return V2 ? V2 : LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeBeam.SM_TD_BladeBeam"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+}
+
+static bool TDIsBladeBeamArt(const UStaticMesh* Beam)
+{
+	return Beam && Beam->GetName().StartsWith(TEXT("SM_TD_BladeBeam"));
+}
+
+static void TDTintBladeBeam(UStaticMeshComponent* Beam, const FLinearColor& Color)
+{
+	for (int32 i = 0; Beam && i < Beam->GetNumMaterials(); ++i)
+	{
+		if (UMaterialInstanceDynamic* MID = Beam->CreateDynamicMaterialInstance(i))
+		{
+			MID->SetVectorParameterValue(TEXT("BladeColor"), Color);
+		}
+	}
+}
+
+FLinearColor ATDFirstPersonCharacter::GetBladeColor() const
+{
+	return UTDStatics::ShipColor(GetOnFootPilotShip(this));
+}
+
+UStaticMeshComponent* ATDFirstPersonCharacter::GetVisibleBladeBeam() const
+{
+	if (HandBladeBeam && HandBladeBeam->IsVisible() && TDIsBladeBeamArt(HandBladeBeam->GetStaticMesh()))
+	{
+		return HandBladeBeam;
+	}
+	if (BladePlaceholder && BladePlaceholder->IsVisible() && BladeGrip && BladeGrip->IsVisible() && TDIsBladeBeamArt(BladePlaceholder->GetStaticMesh()))
+	{
+		return BladePlaceholder;
+	}
+	return nullptr;
+}
+
+void ATDFirstPersonCharacter::UpdateBladeAura(float DeltaSeconds)
+{
+	UStaticMeshComponent* Beam = GetVisibleBladeBeam();
+	if (!Beam || IsDead())
+	{
+		if (BladeAura && BladeAura->IsActive())
+		{
+			BladeAura->Deactivate(); // the system lets its live particles finish
+		}
+		bBladeAuraPrevTip = false;
+		return;
+	}
+	if (!BladeAura)
+	{
+		UNiagaraSystem* System = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Blade_Aura.NS_TD_Blade_Aura"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+		if (!System)
+		{
+			return;
+		}
+		BladeAura = NewObject<UNiagaraComponent>(this, TEXT("BladeAura"));
+		BladeAura->SetAsset(System);
+		BladeAura->SetAutoActivate(false);
+		BladeAura->SetUsingAbsoluteScale(true); // the beam is scaled along X by its length; the effect is not
+		BladeAura->SetupAttachment(Beam);
+		BladeAura->RegisterComponent();
+	}
+	if (BladeAura->GetAttachParent() != Beam)
+	{
+		BladeAura->AttachToComponent(Beam, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		bBladeAuraPrevTip = false;
+	}
+	// The tip's world velocity drives the sheet and the sparks (a still blade throws almost nothing).
+	const FTransform T = Beam->GetComponentTransform();
+	const UStaticMesh* BeamMesh = Beam->GetStaticMesh();
+	const float Length = (BeamMesh ? (float)BeamMesh->GetBoundingBox().Max.X : 100.f) * (float)T.GetScale3D().X;
+	const FVector TipNow = T.GetLocation() + T.GetUnitAxis(EAxis::X) * Length;
+	FVector TipVelocity = FVector::ZeroVector;
+	if (bBladeAuraPrevTip && DeltaSeconds > KINDA_SMALL_NUMBER)
+	{
+		TipVelocity = (TipNow - BladeAuraPrevTip) / DeltaSeconds;
+		if (TipVelocity.SizeSquared() > FMath::Square(9000.f))
+		{
+			TipVelocity = FVector::ZeroVector; // a teleport (respawn, a cut), not a swing
+		}
+	}
+	BladeAuraPrevTip = TipNow;
+	bBladeAuraPrevTip = true;
+	// TipSpeed drives the sheet and the spark rate: the tip's speed RELATIVE to the pilot (running alone must not light the
+	// sheet), and none while the beam crawls in or out (its tip moves fast then but nothing swings). TipVelocity stays the
+	// world velocity, so thrown sparks still carry the pilot's motion. A little smoothing on the speed only.
+	const bool bCrawling = Beam == HandBladeBeam && HandBladeExtend < 0.999f;
+	const float Relative = bCrawling ? 0.f : (float)(TipVelocity - GetVelocity()).Size();
+	BladeAuraSpeed = FMath::FInterpTo(BladeAuraSpeed, Relative, DeltaSeconds, 30.f);
+	BladeAura->SetVariableLinearColor(TEXT("Color"), GetBladeColor());
+	BladeAura->SetVariableFloat(TEXT("Length"), FMath::Max(1.f, Length));
+	BladeAura->SetVariableVec3(TEXT("TipVelocity"), TipVelocity);
+	BladeAura->SetVariableFloat(TEXT("TipSpeed"), BladeAuraSpeed);
+	// User.Swing 1 while the blade fights (attack, block / deflect, dash), held 0.25 s after: the swing sheet and the
+	// thrown sparks only emit then (T7 on main: walking drew a lit streak and ground sparks behind the pilot).
+	const bool bFighting = (Blade && (Blade->IsAttacking() || Blade->IsBlocking() || Blade->IsGuardBroken())) || bDashing;
+	BladeAuraSwingHold = bFighting ? 0.25f : FMath::Max(0.f, BladeAuraSwingHold - DeltaSeconds);
+	BladeAura->SetVariableFloat(TEXT("Swing"), BladeAuraSwingHold > 0.f ? 1.f : 0.f);
+	if (!BladeAura->IsActive())
+	{
+		BladeAura->Activate(true);
 	}
 }
 
@@ -366,11 +549,11 @@ void ATDFirstPersonCharacter::ApplyBladeVisuals()
 		}
 	}
 	bBladeMeshFromArt = false;
-	const FLinearColor Color = FX ? FX->BladeColor : FLinearColor(0.1f, 0.65f, 1.f);
+	const FLinearColor Color = GetBladeColor(); // #163: the pilot's squad colour
 	// Engineering's blade (Gameplay/Props/Blade): the sculpted hilt in the grip and the two-layer beam out of its
 	// emitter, 70 cm, the same pair the body holds in third person. The engine cubes only if the art is missing.
 	UStaticMesh* HiltArt = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeHilt.SM_TD_BladeHilt"), nullptr, LOAD_Quiet | LOAD_NoWarn);
-	UStaticMesh* BeamArt = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeBeam.SM_TD_BladeBeam"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UStaticMesh* BeamArt = TDBladeBeamArt();
 	if (HiltArt && BeamArt)
 	{
 		BladeHilt->SetStaticMesh(HiltArt);
@@ -381,10 +564,7 @@ void ATDFirstPersonCharacter::ApplyBladeVisuals()
 		BladePlaceholder->AttachToComponent(BladeHilt, FAttachmentTransformRules::SnapToTargetNotIncludingScale, bEmitter ? FName(TEXT("BladeEmitter")) : NAME_None);
 		BladePlaceholder->SetRelativeLocationAndRotation(bEmitter ? FVector::ZeroVector : FVector(19.3f, 0.f, 0.f), FRotator::ZeroRotator);
 		BladePlaceholder->SetRelativeScale3D(FVector(0.7f, 1.f, 1.f));
-		if (UMaterialInstanceDynamic* MID = BladePlaceholder->CreateDynamicMaterialInstance(0))
-		{
-			MID->SetVectorParameterValue(TEXT("BladeColor"), Color);
-		}
+		TDTintBladeBeam(BladePlaceholder, Color);
 		return;
 	}
 	UTDStatics::TintPlaceholder(BladePlaceholder, Color, 1.4f);
@@ -590,9 +770,8 @@ void ATDFirstPersonCharacter::ApplyHandBladeVisuals()
 		}
 	}
 	static const TCHAR* HiltPath = TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeHilt.SM_TD_BladeHilt");
-	static const TCHAR* BeamPath = TEXT("/Game/TriadDrift/Gameplay/Props/Blade/SM_TD_BladeBeam.SM_TD_BladeBeam");
 	UStaticMesh* Hilt = LoadObject<UStaticMesh>(nullptr, HiltPath, nullptr, LOAD_Quiet | LOAD_NoWarn);
-	UStaticMesh* Beam = LoadObject<UStaticMesh>(nullptr, BeamPath, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UStaticMesh* Beam = TDBladeBeamArt();
 	if (!Beam)
 	{
 		Beam = BladePlaceholder ? BladePlaceholder->GetStaticMesh() : nullptr; // no art: the engine cube, as in first person
@@ -605,13 +784,10 @@ void ATDFirstPersonCharacter::ApplyHandBladeVisuals()
 	{
 		HandBladeBeam->SetRelativeLocation(FVector(Hilt ? 19.3f : 6.f, 0.f, 0.f));
 	}
-	const FLinearColor Color = FX ? FX->BladeColor : FLinearColor(0.1f, 0.65f, 1.f);
-	if (Beam && Beam->GetName() == TEXT("SM_TD_BladeBeam"))
+	const FLinearColor Color = GetBladeColor(); // #163: the pilot's squad colour
+	if (TDIsBladeBeamArt(Beam))
 	{
-		if (UMaterialInstanceDynamic* MID = HandBladeBeam->CreateDynamicMaterialInstance(0))
-		{
-			MID->SetVectorParameterValue(TEXT("BladeColor"), Color);
-		}
+		TDTintBladeBeam(HandBladeBeam, Color);
 	}
 	else
 	{
@@ -639,7 +815,7 @@ void ATDFirstPersonCharacter::UpdateHandBlade(float DeltaSeconds)
 		return;
 	}
 	const float Authored = Beam ? FMath::Max(1.f, (float)Beam->GetBoundingBox().GetSize().X) : 100.f;
-	const bool bArtBeam = Beam && Beam->GetName() == TEXT("SM_TD_BladeBeam");
+	const bool bArtBeam = TDIsBladeBeamArt(Beam);
 	const float Length = HandBladeLength * FMath::Max(HandBladeExtend, 0.001f);
 	if (bArtBeam)
 	{
@@ -673,7 +849,10 @@ UAnimSequenceBase* ATDFirstPersonCharacter::LoadPilotAnim(FName Anim) const
 	{
 		static const FName NewMoves[] = { TEXT("A_Pilot_Light1_v3"), TEXT("A_Pilot_Light2_v3"), TEXT("A_Pilot_Light3_v3"), TEXT("A_Pilot_Heavy_v4"),
 			TEXT("A_Pilot_AirSlam_Fall_v2"), TEXT("A_Pilot_AirSlam_Land_v3"), TEXT("A_Pilot_AirSlam_Land_v2"), TEXT("A_Pilot_Block_v2"), TEXT("A_Pilot_Blade_DeflectFlick_v2"),
-			TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_Blade_Idle_v2"), TEXT("A_Pilot_Run_v2") };
+			TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_Blade_Idle_v2"), TEXT("A_Pilot_Run_v2"), TEXT("A_Pilot_Run_v3"),
+			TEXT("A_Pilot_FallLoop_v2"), TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_JumpStart_v2"),
+			TEXT("A_Pilot_Block_v3"), TEXT("A_Pilot_Blade_DeflectFlick_v3"),
+			TEXT("A_Pilot_Idle3_v3"), TEXT("A_Pilot_Blade_Idle_v3"), TEXT("A_Pilot_Walk_v3"), TEXT("A_Pilot_Walk_v4"), TEXT("A_Pilot_Run_v4") };
 		for (const FName& N : NewMoves)
 		{
 			if (Anim == N)
@@ -708,7 +887,7 @@ void ATDFirstPersonCharacter::HandleBladeDeflect(AActor* Projectile, bool bPerfe
 	// The animation builder's flick (0.97 s, the flick at 0.13 s): upper body, so the legs keep their move.
 	if (!IsDead())
 	{
-		PlayFirstBodyAction({ TEXT("A_Pilot_Blade_DeflectFlick_v2"), TEXT("A_Pilot_Blade_DeflectFlick") }, 1.f, true);
+		PlayFirstBodyAction({ TEXT("A_Pilot_Blade_DeflectFlick_v3"), TEXT("A_Pilot_Blade_DeflectFlick_v2"), TEXT("A_Pilot_Blade_DeflectFlick") }, 1.f, true);
 	}
 }
 
@@ -901,19 +1080,20 @@ void ATDFirstPersonCharacter::UpdateBodyActions()
 	}
 	// The guard is held on the upper body for as long as the block is.
 	// v2 (animation builder, Nov 14): the blade diagonal across the front of the chest, not tipped back over the shoulder.
-	UAnimSequenceBase* Guard = State == ETDBladeState::Blocking ? LoadPilotAnim(TEXT("A_Pilot_Block_v2")) : nullptr;
+	UAnimSequenceBase* Guard = State == ETDBladeState::Blocking ? LoadPilotAnim(TEXT("A_Pilot_Block_v3")) : nullptr; // v3: up the centre line, tipped toward the aim
+	Guard = Guard || State != ETDBladeState::Blocking ? Guard : LoadPilotAnim(TEXT("A_Pilot_Block_v2"));
 	Loops->SetUpperLoop(State == ETDBladeState::Blocking ? (Guard ? Guard : LoadPilotAnim(TEXT("A_Pilot_Block"))) : nullptr);
 	if (bDashing && !bLastBodyDashing && !Blade->IsAttacking())
 	{
-		PlayBodyAction(TEXT("A_Pilot_Dash"), 1.8f, false);
+		PlayFirstBodyAction({ TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_Dash") }, 1.8f, false); // v3: blade trailing, clear of the legs
 	}
 	if (bSliding && !bLastBodySliding)
 	{
-		PlayBodyAction(TEXT("A_Pilot_Dash"), 0.8f, false);
+		PlayFirstBodyAction({ TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_Dash") }, 0.8f, false);
 	}
 	if (bMantling && !bLastBodyMantling)
 	{
-		PlayBodyAction(TEXT("A_Pilot_JumpStart"), 1.4f, false);
+		PlayFirstBodyAction({ TEXT("A_Pilot_JumpStart_v2"), TEXT("A_Pilot_JumpStart") }, 1.4f, false);
 	}
 	bLastBodyDashing = bDashing;
 	bLastBodySliding = bSliding;
@@ -1669,6 +1849,7 @@ void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 	// Mirror state for animation and HUD.
 	BladeState = GetBladeState();
 	UpdateBladePose(DeltaSeconds);
+	UpdateBladeAura(DeltaSeconds); // after both blades have their pose for this frame
 	bBlocking = Blade && Blade->IsBlocking();
 	const float Horizontal = GetVelocity().Size2D();
 	Speed01 = FMath::Clamp(Horizontal / FMath::Max(Tuning.SprintSpeed, 1.f), 0.f, 1.f);

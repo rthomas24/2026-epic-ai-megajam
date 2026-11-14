@@ -1,0 +1,69 @@
+{
+ "_note": "Idle v3 and combat idle v3 (Nov 14, round 2, after T5 / T7: from the chase camera the idle blade pointed forward-down and read as a 30 cm stub, the rest hidden by the body or in the ground). The blade now hangs out to the right side, 35 deg below horizontal (idle: mostly sideways; combat idle: further forward, ready), so its whole length reads from behind; tip about 45 cm above the floor. Forearm roll at most 90 deg + wrist at most 70 (as Run_v3). Mesh space: forward +Y, right -X, up +Z. Combat idle: Grok's guard loop lifts the hand to 145 cm, so its arm is re-keyed instead (swing): hand beside the right hip, blade out right and forward, 35 deg down, with a 2 cm breath.",
+ "aim": [
+  {
+   "src": "A_Pilot_Idle3",
+   "dst": "A_Pilot_Idle3_v3",
+   "dir": [
+    -0.75,
+    0.33,
+    -0.57
+   ],
+   "max_deg": 70,
+   "twist": true,
+   "twist_max": 90
+  }
+ ],
+ "swing": [
+  {
+   "src": "A_Pilot_Blade_Idle",
+   "dst": "A_Pilot_Blade_Idle_v3",
+   "rate": 1.0,
+   "max_yaw": 20,
+   "keys": [
+    {
+     "t": 0.0,
+     "hand": [
+      14,
+      20,
+      -40
+     ],
+     "blade": [
+      0.45,
+      0.68,
+      -0.57
+     ],
+     "yaw": 6
+    },
+    {
+     "t": 1.5,
+     "hand": [
+      15,
+      20,
+      -38
+     ],
+     "blade": [
+      0.46,
+      0.67,
+      -0.56
+     ],
+     "yaw": 7
+    },
+    {
+     "t": "end",
+     "hand": [
+      14,
+      20,
+      -40
+     ],
+     "blade": [
+      0.45,
+      0.68,
+      -0.57
+     ],
+     "yaw": 6
+    }
+   ]
+  }
+ ]
+}
