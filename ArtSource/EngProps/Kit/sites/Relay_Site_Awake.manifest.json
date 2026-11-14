@@ -541,7 +541,10 @@
     -600,
     0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_400_-600_hi",
@@ -551,7 +554,10 @@
     -600,
     100
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_400_-200_lo",
@@ -561,7 +567,10 @@
     -200,
     0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_400_-200_hi",
@@ -571,7 +580,10 @@
     -200,
     100
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_400_200_lo",
@@ -581,7 +593,10 @@
     200,
     0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_400_200_hi",
@@ -591,7 +606,10 @@
     200,
     100
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_400_600_lo",
@@ -601,7 +619,10 @@
     600,
     0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_400_600_hi",
@@ -611,7 +632,10 @@
     600,
     100
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_800_-600_lo",
@@ -621,7 +645,10 @@
     -600,
     0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_800_-600_hi",
@@ -631,7 +658,10 @@
     -600,
     100
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_800_-200_lo",
@@ -641,7 +671,10 @@
     -200,
     0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_800_-200_hi",
@@ -651,7 +684,10 @@
     -200,
     100
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_800_200_lo",
@@ -661,7 +697,10 @@
     200,
     0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_800_200_hi",
@@ -671,7 +710,10 @@
     200,
     100
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_800_600_lo",
@@ -681,7 +723,10 @@
     600,
     0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_800_600_hi",
@@ -691,7 +736,10 @@
     600,
     100
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_1200_-600_lo",
@@ -701,7 +749,10 @@
     -600,
     0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_1200_-600_hi",
@@ -711,7 +762,10 @@
     -600,
     100
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_1200_-200_lo",
@@ -721,7 +775,10 @@
     -200,
     0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_1200_-200_hi",
@@ -731,7 +788,10 @@
     -200,
     100
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_1200_200_lo",
@@ -741,7 +801,10 @@
     200,
     0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_1200_200_hi",
@@ -751,7 +814,10 @@
     200,
     100
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_1200_600_lo",
@@ -761,7 +827,10 @@
     600,
     0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Plinth_1200_600_hi",
@@ -771,7 +840,10 @@
     600,
     100
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Stone"
+   }
   },
   {
    "name": "Relay",
@@ -800,6 +872,20 @@
     "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance",
     "Beacon": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Beacon_Verdance"
    }
+  },
+  {
+   "name": "Beacon_Pillar",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_LightPillar",
+   "location_cm": [
+    1250,
+    -750,
+    2030
+   ],
+   "yaw_deg": 0,
+   "slots": {
+    "Pillar": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_LightPillar_Verdance"
+   },
+   "note": "a 60 m soft light beam from the lamp head, so the site reads from the approach (no Niagara)"
   },
   {
    "name": "Device_Console",

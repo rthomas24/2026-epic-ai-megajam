@@ -23,7 +23,7 @@ TEX_DEST = DEST + "/Textures"
 PIPELINE = DEST + "/Pipelines/PL_Kit_StaticMesh"
 MASTER_TEX = "/Game/TriadDrift/Gameplay/Materials/M_TD_PropTextured"
 MASTER_GLOW = "/Game/TriadDrift/Gameplay/Props/Dominion/M_TD_DominionGlow"
-SIZE_CHECK = os.path.join(KIT, "review", "size_check_r4.json")
+SIZE_CHECK = os.path.join(KIT, "review", "size_check_r4b.json")
 
 GLOWS = {   # MI name: (slot key it fills by default, scalars, colour)
     # strips at 4 (r4; 8 flooded the outpost room), the beacon lamp at 60 (reads from the approach)
@@ -34,7 +34,104 @@ GLOWS = {   # MI name: (slot key it fills by default, scalars, colour)
     "MI_Kit_Beacon_Cinder": (None, {"GlowStrength": 60.0, "PulseAmount": 0.25, "PulseRate": 0.8}, (1.0, 0.4, 0.08)),
 }
 SCREEN_MI = "MI_Kit_Screen"
-SET = {"stem": "T_Kit_Trim", "trim_mi": "MI_Kit_Trim", "export": "export", "prefix": "SM_Kit_"}
+SET = {"stem": "T_Kit_Trim", "trim_mi": "MI_Kit_Trim", "export": "export", "prefix": "SM_Kit_", "extras": True}
+PILLAR_MASTER = "/Game/TriadDrift/Gameplay/Props/Kit/Materials/M_Kit_LightPillar"
+
+
+def ensure_stone(master_tex, notes):
+    """MI_Kit_Stone: the same pieces in the ancient-stone trim (T_KitS_Trim_*), for the relay's plinth."""
+    tasks = []
+    for p in sorted(glob.glob(os.path.join(KIT, "textures", "T_KitS_Trim_*.png"))):
+        t = unreal.AssetImportTask()
+        t.set_editor_property("filename", p)
+        t.set_editor_property("destination_path", TEX_DEST)
+        t.set_editor_property("automated", True)
+        t.set_editor_property("replace_existing", True)
+        t.set_editor_property("save", False)
+        tasks.append(t)
+    tools.import_asset_tasks(tasks)
+    tex = {}
+    for suffix in ("BC", "N", "ORM"):
+        t = eas.load_asset("%s/T_KitS_Trim_%s" % (TEX_DEST, suffix))
+        if t is None:
+            notes.append("stone texture missing " + suffix)
+            return None
+        if suffix == "N":
+            _set(t, "compression_settings", unreal.TextureCompressionSettings.TC_NORMALMAP, notes)
+            _set(t, "srgb", False, notes)
+        elif suffix == "ORM":
+            _set(t, "compression_settings", unreal.TextureCompressionSettings.TC_MASKS, notes)
+            _set(t, "srgb", False, notes)
+        eas.save_loaded_asset(t)
+        tex[suffix] = t
+    mi = instance("MI_Kit_Stone", master_tex)
+    mel.set_material_instance_texture_parameter_value(mi, "BaseColorTex", tex["BC"])
+    mel.set_material_instance_texture_parameter_value(mi, "ORMTex", tex["ORM"])
+    mel.set_material_instance_texture_parameter_value(mi, "NormalTex", tex["N"])
+    mel.set_material_instance_scalar_parameter_value(mi, "EmissiveStrength", 0.0)
+    eas.save_loaded_asset(mi)
+    return mi
+
+
+def ensure_pillar(notes):
+    """M_Kit_LightPillar + MI_Kit_LightPillar_Verdance / _Cinder: additive, unlit, two-sided. Emissive = PillarColor x
+    PillarStrength x V^PillarFalloff (bright at the base, V = 1 there in Unreal) x (1 - Fresnel) (soft silhouette)."""
+    ensure_dir(DEST + "/Materials")
+    folder, name = PILLAR_MASTER.rsplit("/", 1)
+    mat = eas.load_asset(PILLAR_MASTER) if eas.does_asset_exist(PILLAR_MASTER) else tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
+    mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_ADDITIVE)
+    mat.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
+    mat.set_editor_property("two_sided", True)
+    mel.delete_all_material_expressions(mat)
+
+    def node(cls, x, y):
+        return mel.create_material_expression(mat, cls, x, y)
+    uv = node(unreal.MaterialExpressionTextureCoordinate, -1200, 0)
+    mask = node(unreal.MaterialExpressionComponentMask, -1000, 0)
+    mask.set_editor_property("r", False)
+    mask.set_editor_property("g", True)
+    fall = node(unreal.MaterialExpressionScalarParameter, -1000, 150)
+    fall.set_editor_property("parameter_name", "PillarFalloff")
+    fall.set_editor_property("default_value", 1.6)
+    pw = node(unreal.MaterialExpressionPower, -800, 50)
+    fres = node(unreal.MaterialExpressionFresnel, -1000, 300)
+    one_minus = node(unreal.MaterialExpressionOneMinus, -800, 300)
+    col = node(unreal.MaterialExpressionVectorParameter, -800, -200)
+    col.set_editor_property("parameter_name", "PillarColor")
+    col.set_editor_property("default_value", unreal.LinearColor(0.1, 1.0, 0.85, 1))
+    st = node(unreal.MaterialExpressionScalarParameter, -800, -50)
+    st.set_editor_property("parameter_name", "PillarStrength")
+    st.set_editor_property("default_value", 6.0)
+    m1 = node(unreal.MaterialExpressionMultiply, -600, 0)
+    m2 = node(unreal.MaterialExpressionMultiply, -450, 100)
+    m3 = node(unreal.MaterialExpressionMultiply, -300, 0)
+    ok = True
+    ok &= mel.connect_material_expressions(uv, "", mask, "")
+    ok &= mel.connect_material_expressions(mask, "", pw, "Base")
+    ok &= mel.connect_material_expressions(fall, "", pw, "Exp")
+    ok &= mel.connect_material_expressions(fres, "", one_minus, "")
+    ok &= mel.connect_material_expressions(pw, "", m1, "A")
+    ok &= mel.connect_material_expressions(one_minus, "", m1, "B")
+    ok &= mel.connect_material_expressions(m1, "", m2, "A")
+    ok &= mel.connect_material_expressions(st, "", m2, "B")
+    ok &= mel.connect_material_expressions(m2, "", m3, "A")
+    ok &= mel.connect_material_expressions(col, "", m3, "B")
+    ok &= mel.connect_material_property(m3, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    if not ok:
+        log("FAILED: could not wire " + PILLAR_MASTER)
+        return None
+    try:
+        mel.recompile_material(mat)
+    except Exception:
+        notes.append("M_Kit_LightPillar compiles on first load")
+    eas.save_asset(PILLAR_MASTER, only_if_is_dirty=False)
+    out = {}
+    for nm, rgb in (("MI_Kit_LightPillar_Verdance", (0.1, 1.0, 0.85)), ("MI_Kit_LightPillar_Cinder", (1.0, 0.4, 0.08))):
+        mi = instance(nm, mat)
+        mel.set_material_instance_vector_parameter_value(mi, "PillarColor", unreal.LinearColor(rgb[0], rgb[1], rgb[2], 1.0))
+        eas.save_loaded_asset(mi)
+        out[nm] = mi
+    return out["MI_Kit_LightPillar_Verdance"]
 
 
 def configure_dominion():
@@ -44,12 +141,13 @@ def configure_dominion():
     DEST = "/Game/TriadDrift/Gameplay/Props/Kit/Dominion"
     TEX_DEST = DEST + "/Textures"
     PIPELINE = DEST + "/Pipelines/PL_KitD_StaticMesh"
-    SIZE_CHECK = os.path.join(KIT, "review", "size_check_D_r1.json")
-    GLOWS = {"MI_KitD_Glow": ("Glow", {"GlowStrength": 6.0, "PulseAmount": 0.0}, (1.0, 0.1, 0.03)),
+    SIZE_CHECK = os.path.join(KIT, "review", "size_check_D_r2.json")
+    # review r1 fix 1: a deep red (renders red, not salmon) at half the strength
+    GLOWS = {"MI_KitD_Glow": ("Glow", {"GlowStrength": 3.0, "PulseAmount": 0.0}, (1.0, 0.08, 0.02)),
              "MI_KitD_Light": ("Light", {"GlowStrength": 12.0, "PulseAmount": 0.0}, (0.9, 0.95, 1.0))}
     NO_COLLISION = ()
     SCREEN_MI = None
-    SET.update({"stem": "T_KitD_Trim", "trim_mi": "MI_KitD_Trim", "export": "export_dominion", "prefix": "SM_DI_"})
+    SET.update({"stem": "T_KitD_Trim", "trim_mi": "MI_KitD_Trim", "export": "export_dominion", "prefix": "SM_DI_", "extras": False})
 NO_COLLISION = ("SM_Kit_LightStrip_200",)
 
 eas = unreal.EditorAssetLibrary
@@ -227,6 +325,14 @@ def main():
         eas.save_loaded_asset(mi)
         if key:
             mis[key] = mi
+    if SET.get("extras"):
+        if ensure_stone(master_tex, notes) is None:
+            log("FAILED: MI_Kit_Stone %s" % notes)
+            return
+        pil = ensure_pillar(notes)
+        if pil is None:
+            return
+        mis["Pillar"] = pil
     if SCREEN_MI:
         scr = ensure_screen_master(notes)
         if scr is None:

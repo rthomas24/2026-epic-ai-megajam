@@ -29,6 +29,8 @@ TEAL_P = (0.10, 0.36, 0.38)      # painted accent band (not emissive)
 STEN = (0.20, 0.21, 0.22)
 HOLE = (0.025, 0.026, 0.03)
 RUB = (0.07, 0.072, 0.078)
+FLOOR_R, FLOOR_M = 0.72, 0.35
+ROUGH_ADD, METAL_MUL = 0.0, 1.0
 
 
 def pnoise(h, w, fmax=6, n=40):
@@ -160,7 +162,7 @@ def r_wall(name):
 
 def r_floor():
     """400 x 400 cm: four 200 cm plates, tread dots, a darker worn lane through the middle."""
-    r = Reg("floor", FLOOR, 0.72, 0.35)
+    r = Reg("floor", FLOOR, FLOOR_R, FLOOR_M)
     for i in range(2):
         for j in range(2):
             x, y = i * 512, j * 512
@@ -351,7 +353,7 @@ def finish(r):
     c = c + (0.08 * r.wear) * (edge * np.clip(0.4 + fine, 0, 1))[..., None]       # worn bright edges
     grime = np.clip(pnoise(h, w, 30, 60) - 0.5, 0, 1) * 1.6 * r.wear
     c = c * (1.0 - 0.18 * grime[..., None])                                          # grime streaks
-    rough = np.clip(r.R + 0.06 * wear + 0.05 * fine + 0.2 * grime + 0.15 * cav, 0.04, 1.0)
+    rough = np.clip(r.R + ROUGH_ADD + 0.06 * wear + 0.05 * fine + 0.2 * grime + 0.15 * cav, 0.04, 1.0)
     dx = (np.roll(r.H, -1, 1) - np.roll(r.H, 1, 1)) * 0.5
     dy = (np.roll(r.H, -1, 0) - np.roll(r.H, 1, 0)) * 0.5
     dx += 0.05 * (np.roll(fine, -1, 1) - np.roll(fine, 1, 1)) * 2.0 + 0.02 * np.roll(grain, 1, 1)
@@ -360,7 +362,7 @@ def finish(r):
     nx, ny, nz = -dx * k, -dy * k, np.ones_like(dx)      # DirectX: +G points down the image
     ln = np.sqrt(nx * nx + ny * ny + nz * nz)
     nrm = np.stack([nx / ln, ny / ln, nz / ln], -1) * 0.5 + 0.5
-    orm = np.stack([ao, rough, np.clip(r.M, 0, 1)], -1)
+    orm = np.stack([ao, rough, np.clip(r.M * METAL_MUL, 0, 1)], -1)
     return np.clip(c, 0.0, 1.0), nrm, orm
 
 
@@ -380,9 +382,16 @@ def save(arr, path, srgb):
 
 # The Dominion variant (KIT_PALETTE=dominion): the same layout in the Null Armada palette (gloss black armour, dark
 # gunmetal, red / orange marks), so the same pieces read as the mothership's interior. Written as T_KitD_Trim_*.
-DOMINION = {"WHITE": (0.075, 0.078, 0.092), "WHITE_D": (0.055, 0.057, 0.068), "GUN": (0.15, 0.155, 0.17),
-            "GUN_D": (0.085, 0.088, 0.1), "FLOOR": (0.11, 0.115, 0.13), "FLOOR_D": (0.075, 0.078, 0.09),
+DOMINION = {"WHITE": (0.075, 0.078, 0.092), "WHITE_D": (0.055, 0.057, 0.068), "GUN": (0.13, 0.15, 0.19),
+            "GUN_D": (0.085, 0.088, 0.1), "FLOOR_R": 0.86, "FLOOR_M": 0.2, "FLOOR": (0.11, 0.115, 0.13), "FLOOR_D": (0.075, 0.078, 0.09),
             "YEL": (0.72, 0.16, 0.04), "TEAL_P": (0.34, 0.035, 0.045), "STEN": (0.42, 0.43, 0.42)}
+
+
+# The ancient-stone variant (KIT_PALETTE=stone): warm grey-green stone, darker joints, moss in place of the hazard
+# yellow, a cyan rune band; rough, no metal. For the relay's plinth (review r1 fix 3). Written as T_KitS_Trim_*.
+STONE = {"WHITE": (0.40, 0.42, 0.37), "WHITE_D": (0.31, 0.33, 0.29), "GUN": (0.25, 0.26, 0.23), "GUN_D": (0.17, 0.18, 0.16),
+         "FLOOR": (0.34, 0.35, 0.31), "FLOOR_D": (0.27, 0.29, 0.25), "YEL": (0.20, 0.28, 0.17), "TEAL_P": (0.08, 0.42, 0.42),
+         "STEN": (0.22, 0.24, 0.21), "ROUGH_ADD": 0.35, "METAL_MUL": 0.0}
 
 
 def main():
@@ -392,6 +401,9 @@ def main():
     if os.environ.get("KIT_PALETTE", "") == "dominion":
         globals().update(DOMINION)
         stem = "T_KitD_Trim"
+    elif os.environ.get("KIT_PALETTE", "") == "stone":
+        globals().update(STONE)
+        stem = "T_KitS_Trim"
     bc, nm, orm = build()
     save(bc, os.path.join(out, stem + "_BC.png"), True)
     save(nm, os.path.join(out, stem + "_N.png"), False)

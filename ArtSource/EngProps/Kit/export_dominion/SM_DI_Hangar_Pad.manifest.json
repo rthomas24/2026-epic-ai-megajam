@@ -10,8 +10,7 @@
   "pivot": "root object origin (SM_DI_Hangar_Pad~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
-    "M_Kit_Trim",
-    "M_Kit_Glow"
+    "M_Kit_Trim"
   ],
   "material_params": [
     {
@@ -26,23 +25,6 @@
         1.0
       ],
       "emission_strength": 0.0
-    },
-    {
-      "name": "M_Kit_Glow",
-      "textured": false,
-      "base_color": [
-        0.02,
-        0.025,
-        0.03
-      ],
-      "metallic": 0.0,
-      "roughness": 0.15,
-      "emission_color": [
-        1.0,
-        0.1,
-        0.03
-      ],
-      "emission_strength": 6.0
     }
   ],
   "textures": [],

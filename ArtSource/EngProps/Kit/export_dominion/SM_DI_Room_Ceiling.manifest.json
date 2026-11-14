@@ -1,11 +1,11 @@
 {
   "asset": "SM_DI_Room_Ceiling",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_dominion\\SM_DI_Room_Ceiling.fbx",
-  "tris": 250,
+  "tris": 424,
   "size_cm": [
     400.0,
     400.0,
-    24.0
+    55.0
   ],
   "pivot": "root object origin (SM_DI_Room_Ceiling~exp)",
   "forward": "+X (authoring front +X rotated)",

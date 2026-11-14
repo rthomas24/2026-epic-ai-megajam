@@ -18,13 +18,13 @@
    640.0
   ],
   "bounds_match": "same",
-  "tris": 1401,
+  "tris": 1521,
   "slots": [
    "0:Trim",
    "1:Glow",
    "2:Light"
   ],
-  "hulls": 4,
+  "hulls": 6,
   "asymmetric_side": null,
   "notes": []
  },
@@ -88,25 +88,26 @@
   "asset": "SM_DI_Doorway",
   "ok": true,
   "min_cm": [
-   -32.0,
+   -34.0,
    -200.0,
    -0.0
   ],
   "max_cm": [
-   32.0,
+   34.0,
    200.0,
    600.0
   ],
   "size_cm": [
-   64.0,
+   68.0,
    400.0,
    600.0
   ],
   "bounds_match": "same",
-  "tris": 812,
+  "tris": 1172,
   "slots": [
    "0:Trim",
-   "1:Glow"
+   "1:Glow",
+   "2:Light"
   ],
   "hulls": 3,
   "asymmetric_side": null,
@@ -133,8 +134,7 @@
   "bounds_match": "same",
   "tris": 444,
   "slots": [
-   "0:Trim",
-   "1:Glow"
+   "0:Trim"
   ],
   "hulls": 1,
   "asymmetric_side": null,
@@ -146,7 +146,7 @@
   "min_cm": [
    -200.0,
    -200.0,
-   596.0
+   565.0
   ],
   "max_cm": [
    200.0,
@@ -156,10 +156,10 @@
   "size_cm": [
    400.0,
    400.0,
-   24.0
+   55.0
   ],
   "bounds_match": "same",
-  "tris": 250,
+  "tris": 424,
   "slots": [
    "0:Trim",
    "1:Light"
@@ -199,27 +199,27 @@
   "asset": "SM_DI_Room_Wall",
   "ok": true,
   "min_cm": [
-   -30.0,
+   -60.0,
    -200.0,
    -0.0
   ],
   "max_cm": [
-   30.0,
+   60.0,
    200.0,
    600.0
   ],
   "size_cm": [
-   60.0,
+   120.0,
    400.0,
    600.0
   ],
   "bounds_match": "same",
-  "tris": 1134,
+  "tris": 1782,
   "slots": [
    "0:Trim",
    "1:Glow"
   ],
-  "hulls": 1,
+  "hulls": 9,
   "asymmetric_side": null,
   "notes": []
  }

@@ -39,11 +39,13 @@ def relay(awake):
     # the relay's plinth on the east side: 3 x 4 columns of 100 + 200 blocks, top at 300 (250 above the deck)
     for x in (400, 800, 1200):
         for y in (-600, -200, 200, 600):
-            ps.append(piece("Plinth_%d_%d_lo" % (x, y), "SM_Kit_Platform_400", x, y, 0))
-            ps.append(piece("Plinth_%d_%d_hi" % (x, y), "SM_Kit_Platform_400x200", x, y, 100))
+            ps.append(piece("Plinth_%d_%d_lo" % (x, y), "SM_Kit_Platform_400", x, y, 0, slots={"Trim": K + "MI_Kit_Stone"}))
+            ps.append(piece("Plinth_%d_%d_hi" % (x, y), "SM_Kit_Platform_400x200", x, y, 100, slots={"Trim": K + "MI_Kit_Stone"}))
     ps.append(piece("Relay", R + "SM_Relay", 800, 0, 300 - 90, 90, materials={"0": R + ("MI_Relay_Awake" if awake else "MI_Relay")},
                     note="Grok Bot's Rodin relay on the plinth, turned so its stairs face north (they stay over the plinth); its tier sits 90 cm into the plinth top. Not walkable: the plinth top is 250 above the deck (the pilot mantles at most 180)."))
     ps.append(piece("Beacon", "SM_Kit_BeaconMast", 1250, -750, 300, 0, slots={"Glow": GLOW_V, "Beacon": K + "MI_Kit_Beacon_Verdance"}))
+    ps.append(piece("Beacon_Pillar", "SM_Kit_LightPillar", 1250, -750, 300 + 1730, 0, slots={"Pillar": K + "MI_Kit_LightPillar_Verdance"},
+                    note="a 60 m soft light beam from the lamp head, so the site reads from the approach (no Niagara)"))
     # the device console: screen faces east, the pilot stands east of it facing west
     ps.append(piece("Device_Console", "SM_Kit_Console", -1000, 0, D, 0, slots={"Screen": K + "MI_Kit_Screen"}))
     # five covers off the ramp lanes (west Y +-800 at X < -1000; north / south X -800..-400)

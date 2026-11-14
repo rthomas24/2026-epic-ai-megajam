@@ -1,11 +1,11 @@
 {
   "asset": "SM_Kit_BeaconMast",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export\\SM_Kit_BeaconMast.fbx",
-  "tris": 1036,
+  "tris": 1576,
   "size_cm": [
-    120.0,
-    120.0,
-    1660.0
+    160.0,
+    160.0,
+    1730.0
   ],
   "pivot": "root object origin (SM_Kit_BeaconMast~exp)",
   "forward": "+X (authoring front +X rotated)",
@@ -66,7 +66,8 @@
   "textures": [],
   "collision": [
     "UCX_SM_Kit_BeaconMast_00",
-    "UCX_SM_Kit_BeaconMast_01"
+    "UCX_SM_Kit_BeaconMast_01",
+    "UCX_SM_Kit_BeaconMast_02"
   ],
   "collision_source": "authored",
   "sockets": [],

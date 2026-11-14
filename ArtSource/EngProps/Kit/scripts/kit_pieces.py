@@ -244,7 +244,7 @@ def beacon_mast():
     """A 16 m light mast so a site reads from the approach: a 40 cm lattice-look pole on a 120 cm footing, glow strips
     up two faces (Glow) and a lamp head (Beacon slot, much brighter). Collision: footing and pole."""
     H = 1600.0
-    p = Piece("SM_Kit_BeaconMast", ((-60, -60, 0), (60, 60, H + 60)))
+    p = Piece("SM_Kit_BeaconMast", ((-80, -80, 0), (80, 80, H + 130)))
     p.box((-60, -60, 0), (60, 60, 30), reg="frame")
     p.box((-40, -40, 30), (40, 40, 60), reg="hazard", uvo={f: (("y" if f in "xX" else "x", -40, 40), ("z", 30, 60)) for f in "xXyY"})
     p.box((-20, -20, 60), (20, 20, H), reg="pillar", faces="xXyY",
@@ -254,10 +254,24 @@ def beacon_mast():
     for s_ in (-1.0, 1.0):
         xa, xb = sorted((s_ * 20.0, s_ * 21.5))
         p.box((xa, -5, 120), (xb, 5, H - 40), mat="Glow", faces="xXyY")
-    p.box((-34, -34, H), (34, 34, H + 12), reg="frame")
-    p.box((-26, -26, H + 12), (26, 26, H + 60), mat="Beacon")
+    # lamp head (r4b: 1.4 m lantern, was 0.5 m): a gunmetal cradle, the lamp block, a cap
+    p.box((-80, -80, H), (80, 80, H + 14), reg="frame")
+    p.box((-70, -70, H + 14), (70, 70, H + 116), mat="Beacon")
+    p.box((-80, -80, H + 116), (80, 80, H + 130), reg="frame")
+    for (x, y) in ((-74, -74), (74, -74), (-74, 74), (74, 74)):
+        p.box((x - 6, y - 6, H + 14), (x + 6, y + 6, H + 116), reg="frame")
     p.cbox((-60, -60, 0), (60, 60, 60))
-    p.cbox((-26, -26, 60), (26, 26, H + 60))
+    p.cbox((-26, -26, 60), (26, 26, H))
+    p.cbox((-80, -80, H), (80, 80, H + 130))
+    return p
+
+
+def light_pillar():
+    """A soft beam of light for reading a site from far away (no Niagara): an open cylinder 140 wide, 60 m tall, slot
+    Pillar (M_Kit_LightPillar: additive, unlit, two-sided; brightest at the base, fading up, soft at the silhouette).
+    UV V runs along the height. No collision."""
+    p = Piece("SM_Kit_LightPillar", ((-70, -70, 0), (70, 70, 6000)))
+    p.lathe([(70.0, 0.0), (70.0, 6000.0)], 16, mat="Pillar")
     return p
 
 
@@ -349,5 +363,5 @@ def light_strip_200():
 
 
 BUILDERS = [floor_400, platform_400, platform_400x200, platform_400x50, ramp_low_400, wall_400, wall_400_window, doorframe_400, ramp_400, stairs_400, catwalk_400,
-            railing_400, cover_200, beacon_mast, pillar, corner, roof_400, console_base, light_strip_200]
-NO_COLLISION = ("SM_Kit_LightStrip_200",)
+            railing_400, cover_200, beacon_mast, light_pillar, pillar, corner, roof_400, console_base, light_strip_200]
+NO_COLLISION = ("SM_Kit_LightStrip_200", "SM_Kit_LightPillar")

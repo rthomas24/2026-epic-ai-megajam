@@ -1,7 +1,7 @@
 {
   "asset": "SM_DI_Corridor_Straight",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_dominion\\SM_DI_Corridor_Straight.fbx",
-  "tris": 1401,
+  "tris": 1521,
   "size_cm": [
     400.0,
     400.0,
@@ -68,7 +68,9 @@
     "UCX_SM_DI_Corridor_Straight_00",
     "UCX_SM_DI_Corridor_Straight_01",
     "UCX_SM_DI_Corridor_Straight_02",
-    "UCX_SM_DI_Corridor_Straight_03"
+    "UCX_SM_DI_Corridor_Straight_03",
+    "UCX_SM_DI_Corridor_Straight_04",
+    "UCX_SM_DI_Corridor_Straight_05"
   ],
   "collision_source": "authored",
   "sockets": [],

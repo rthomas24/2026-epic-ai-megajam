@@ -1,9 +1,9 @@
 {
   "asset": "SM_DI_Room_Wall",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_dominion\\SM_DI_Room_Wall.fbx",
-  "tris": 1134,
+  "tris": 1782,
   "size_cm": [
-    60.0,
+    120.0,
     400.0,
     600.0
   ],
@@ -47,7 +47,15 @@
   ],
   "textures": [],
   "collision": [
-    "UCX_SM_DI_Room_Wall_00"
+    "UCX_SM_DI_Room_Wall_00",
+    "UCX_SM_DI_Room_Wall_01",
+    "UCX_SM_DI_Room_Wall_02",
+    "UCX_SM_DI_Room_Wall_03",
+    "UCX_SM_DI_Room_Wall_04",
+    "UCX_SM_DI_Room_Wall_05",
+    "UCX_SM_DI_Room_Wall_06",
+    "UCX_SM_DI_Room_Wall_07",
+    "UCX_SM_DI_Room_Wall_08"
   ],
   "collision_source": "authored",
   "sockets": [],
