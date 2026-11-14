@@ -1086,9 +1086,20 @@ void ATDPlanetCourse::TickCoreChamber()
 	{
 		bInside = !It->IsDead() && CoreChamberBox.IsInsideXY(It->GetActorLocation()); // the on-foot pilot (crew are not first-person characters)
 	}
+	// #139: not during the escape. Walking back into the chamber with the reactor gone must not restore normal lights or
+	// the chamber's music; a retake to before the reactor resets the escape objective and the moment fires again.
+	const ATDObjective* Run = FindObjective(TDInteriorImpl::Escape);
+	const bool bEscaping = Run && (Run->IsActive() || Run->IsComplete());
 	if (bInside && !bPlayerInCoreChamber)
 	{
-		OnInteriorMoment.Broadcast(TEXT("CoreChamberEntered"), this); // once per crossing in; a retake outside re-arms it
+		if (bEscaping)
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("#139: back in the core chamber during the escape: no CoreChamberEntered"));
+		}
+		else
+		{
+			OnInteriorMoment.Broadcast(TEXT("CoreChamberEntered"), this); // once per crossing in; a retake outside re-arms it
+		}
 	}
 	bPlayerInCoreChamber = bInside;
 }
