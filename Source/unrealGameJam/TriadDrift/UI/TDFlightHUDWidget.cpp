@@ -762,6 +762,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		}
 		View.DebrisCount = Pickups->GetDebrisThisScene();
 		View.DebrisAge = Pickups->GetSecondsSinceDebris();
+		View.BreakBoostAge = Pickups->GetSecondsSinceBreakBoost();
 		const float Total = Pickups->GetOverchargeSeconds();
 		View.OverchargeSeconds = Pickups->GetOverchargeRemaining();
 		View.Overcharge01 = Total > 0.f ? FMath::Clamp(View.OverchargeSeconds / Total, 0.f, 1.f) : 0.f;
@@ -1541,6 +1542,16 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		P.Bar(CenterX - 80.f, 792.f, 160.f, 6.f, View.Boost, Accent, .9f);
 		Rec(TEXT("boost"), CenterX - 80.f, 791.f, 168.f, 8.f);
+		// A break's top-up: "+BOOST" beside the bar and a short brightening of the bar (0.9 s).
+		if (View.BreakBoostAge < .9f)
+		{
+			const float Fade = FMath::Clamp((.9f - View.BreakBoostAge) / .4f, 0.f, 1.f);
+			auto Tick = P;
+			Tick.Layer = P.Layer + 2;
+			Tick.Box(CenterX - 80.f, 792.f, 160.f * View.Boost, 6.f, T::Neutral().CopyWithNewOpacity(.35f * Fade));
+			Tick.Words(CenterX + 92.f, 784.f, TEXT("+BOOST"), 12, Accent.CopyWithNewOpacity(.9f * Fade), "Bold", 0.f, 60);
+			Rec(TEXT("break_boost"), CenterX + 92.f, 784.f, 60.f, 16.f);
+		}
 		P.Box(CenterX + 84.f, 791.f, 2.f, 8.f, (View.bDodgeReady ? T::Neutral() : T::Dim()).CopyWithNewOpacity(View.bDodgeReady ? .95f : .4f));
 	}
 	if (View.Hyperdrive > 0.f)

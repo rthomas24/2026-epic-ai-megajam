@@ -193,6 +193,8 @@ public:
 		/** T6's field: pieces the squad broke this scene, seconds since the last (the DEBRIS tick), a field-hit tick 0..1. */
 		int32 DebrisCount = 0;
 		float DebrisAge = 1e9f;
+		/** A broken asteroid / wreck topped up the boost meter this long ago (the "+BOOST" tick by the boost bar). */
+		float BreakBoostAge = 1e9f;
 		float FieldHit01 = 0.f;
 		/** Overcharge time left 0..1 (the timer ring) and in seconds. */
 		float Overcharge01 = 0.f;
