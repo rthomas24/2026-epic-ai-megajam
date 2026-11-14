@@ -896,9 +896,11 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 	else if (Id == Warden && StepIndex == 1)
 	{
 		// The Warden is down: the record next. Already played (or skipped): the step is done at once.
-		if (bFinalRecordDone)
+		// T3's story state is saved with the run: a Continue from a checkpoint taken after the record reads true, one
+		// taken before it (the Warden checkpoint) reads false and asks for the record.
+		if (bFinalRecordDone || UTDStorySubsystem::IsSequenceDoneOrSkipped(this, TEXT("Cinematic08")))
 		{
-			GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this, [this]() { CompleteFinalRecordStep(); }));
+			GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this, [this]() { OpenReactorDoor(); CompleteFinalRecordStep(); }));
 		}
 		else if (WardenExitDoor)
 		{

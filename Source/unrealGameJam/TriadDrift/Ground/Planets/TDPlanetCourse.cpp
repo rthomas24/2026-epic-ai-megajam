@@ -1266,6 +1266,11 @@ void ATDPlanetCourse::MarkCompletedFromProgress()
 	{
 		Scene->ApplyCompletedState(); // rooms cleared, doors open, crystals gone
 	}
+	// #96: a checkpoint taken after the final record (T3's saved story state) keeps the reactor door open.
+	if (IsInterior() && UTDStorySubsystem::IsSequenceDoneOrSkipped(this, TEXT("Cinematic08")))
+	{
+		OpenReactorDoor();
+	}
 }
 
 // ------------------------------------------------------------------------------------------------
