@@ -897,9 +897,7 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 		}
 		LastBoxes.Emplace(TEXT("vitals"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
 	}
-	if (bLow)
-	{
-		P.CenteredText(960, 714, TEXT("LOW HEALTH  /  BLOCK AND FALL BACK"), 17, Hostile, true);
-	}
+	// (The centre "LOW HEALTH / BLOCK AND FALL BACK" line is gone: it sat across the pilot's legs in the chase view, and
+	// the card's LOW HEALTH tab and red hull bar say it.)
 	return Base + 3;
 }
