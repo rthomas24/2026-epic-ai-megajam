@@ -313,7 +313,7 @@ int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM
 			// (s6 sheet: that left the hills bare; now ~34 degrees, Slope 0.17) nor on the heights; RunLayer's contact check
 			// drops any clump whose footprint spans a ridge edge, so no crown overhangs a cliff top.
 			const float Valley = FMath::Clamp(1.f - HeightM / 300.f, 0.f, 1.f);
-			const float Threshold = 0.09f - 0.3f * Moist - 0.15f * Valley;	// s8: measured 58 % at 0.04 (coverage test), target 35-45 %
+			const float Threshold = 0.24f - 0.3f * Moist - 0.15f * Valley;	// s8: coverage test 58 % at 0.04, 54 % at 0.09, 51 % at 0.13, 40 % at 0.24 (1475 clumps)
 			if (Stand < Threshold) { return INDEX_NONE; }
 			const float Density = FMath::Clamp((Stand - Threshold) * 12.f, 0.f, 1.f) * FMath::Clamp((0.17f - Sm.Slope) / 0.04f, 0.f, 1.f)
 				* FMath::Clamp(1.f - (HeightM - 900.f) / 500.f, 0.f, 1.f);

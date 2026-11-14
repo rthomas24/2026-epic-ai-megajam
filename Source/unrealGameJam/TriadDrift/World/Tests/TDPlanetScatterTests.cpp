@@ -135,7 +135,7 @@ bool FTDScatterCanopyCover::RunTest(const FString&)
 	const float Share = Land > 0 ? float(Covered) / Land : 0.f;
 	AddInfo(FString::Printf(TEXT("Verdance canopy: %d clumps cover %.0f %% of %d lowland samples (50 m grid, 3 km); wreck scar %d / %d covered"),
 		Crowns.Num(), Share * 100.f, Land, ScarCovered, Scar));
-	TestTrue(*FString::Printf(TEXT("canopy covers 30-55 %% of the vegetated lowland (%.0f %%)"), Share * 100.f), Share > 0.3f && Share < 0.55f);
+	TestTrue(*FString::Printf(TEXT("canopy covers 30-50 %% of the vegetated lowland (%.0f %%)"), Share * 100.f), Share > 0.3f && Share < 0.5f);
 	TestTrue(TEXT("the wreck scar is open ground"), Scar > 0 && ScarCovered * 10 <= Scar);
 	return true;
 }
