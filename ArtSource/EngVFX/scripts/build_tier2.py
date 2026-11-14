@@ -286,16 +286,17 @@ S2('NS_TD_Ambient_Cinder', U((1.0, 0.45, 0.12, 1.0), 1.0, Fade=1.0), [
 # ReactorExposed: once, when the 4th generator falls, at the reactor (its rotation): the core uncovered. Authored for a
 # 25 m reactor at Scale 1: a white flare, a red heat bloom, the shell falling apart, arcs and a shock ring.
 S2('NS_TD_Reactor_Exposed', U(CORE, 1.0), [
-    flash('Flare', 'M_TD_VFX_Flare', 7000, 0.18, 1.4, growth='0.4 + Particles.NormalizedAge'),
-    flash('Bloom', 'M_TD_VFX_Glow', 9000, 1.2, 0.9, growth='0.5 + Particles.NormalizedAge*0.6', power=1.4),
+    flash('Flare', 'M_TD_VFX_Flare', 14000, 0.22, 1.6, growth='0.4 + Particles.NormalizedAge'),
+    flash('Bloom', 'M_TD_VFX_Glow', 18000, 1.4, 1.0, growth='0.5 + Particles.NormalizedAge*0.6', power=1.4),
     shell_flash('Shell', 2500, 0.9, 'float3(1,1,1)*(1.0 + 0.6*pow(Particles.NormalizedAge, 0.6))', k=1.4, power=1.6),
     arcs('Arcs', 0, (1200, 2600), 2500, life=(0.15, 0.5), k=1.5, burst=24, dur=1.0, local=False),
-    flash('Ring', 'M_TD_VFX_FlipRing', 16000, 0.6, 0.9, growth='0.06 + pow(Particles.NormalizedAge, 0.5)*0.95', power=1.4)])
+    flash('Ring', 'M_TD_VFX_FlipRing', 32000, 0.8, 1.0, growth='0.06 + pow(Particles.NormalizedAge, 0.5)*0.95', power=1.4)])
+# Round 9f, seen at real scale (25 m reactor, 160 m away in T4's stage): the flare read small; both doubled.
 # ReactorHit: every hull hit on the exposed reactor (a high rate): under 0.5 s and cheap, three emitters.
 S2('NS_TD_Reactor_Hit', U(CORE, 1.0), [
-    flash('Flash', 'M_TD_VFX_Flare', 700, 0.08, 1.5, growth='0.5 + Particles.NormalizedAge'),
-    flash('Glow', 'M_TD_VFX_Glow', 1100, 0.18, 0.8),
-    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.2, 0.45), (5, 11), (1200, 4200), k=1.8, radius=40.0, drag=2.2, stretch=14, burst=16, dur=0.5, power=1.3)])
+    flash('Flash', 'M_TD_VFX_Flare', 1500, 0.08, 1.6, growth='0.5 + Particles.NormalizedAge'),
+    flash('Glow', 'M_TD_VFX_Glow', 2400, 0.18, 0.9),
+    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.2, 0.45), (10, 22), (1800, 6000), k=1.8, radius=80.0, drag=2.2, stretch=14, burst=16, dur=0.5, power=1.3)])
 # DockingBayOpen: once when the bay opens (the doors take 2.5 s), at the bay actor, +X out of the mouth. Authored for a
 # 60 m mouth: steam venting out of it for 2.5 s, the bay's lights coming on, a tractor glow building in the mouth.
 DOCK = (0.75, 0.88, 1.0, 1.0)
