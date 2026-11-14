@@ -80,7 +80,9 @@ bool FTDStoryTable::RunTest(const FString& Parameters)
 		TestFalse(FString::Printf(TEXT("%s: no future speaker before the reveal"), *Id),
 			E.Speaker == ETDSpeaker::FutureWren || E.Speaker == ETDSpeaker::FutureKato || E.Speaker == ETDSpeaker::FutureMoss);
 		TestFalse(FString::Printf(TEXT("%s: never says 'future' or 'time' before the reveal"), *Id), Line.Contains(TEXT("future")) || Line.Contains(TEXT(" time")));
-		TestFalse(FString::Printf(TEXT("%s: never says 'us' as the enemy before the reveal"), *Id), Line.Contains(TEXT("it's us")));
+		// R020 (Story Director's decision, #29): Kato's "Doesn't look like it's us." means "not after us"; that exact line only.
+		const bool bR020 = Id == TEXT("S2_Kato_Planetside") && E.Text.ToString() == TEXT("They're after something. Doesn't look like it's us.");
+		TestFalse(FString::Printf(TEXT("%s: never says 'us' as the enemy before the reveal"), *Id), !bR020 && Line.Contains(TEXT("it's us")));
 		for (const TCHAR* Word : { TEXT("older"), TEXT("ourselves"), TEXT("our own voice"), TEXT("years from") })
 		{
 			TestFalse(FString::Printf(TEXT("%s: never says '%s' before the reveal"), *Id, Word), Line.Contains(Word));
@@ -831,6 +833,41 @@ bool FTDStoryStaticTear::RunTest(const FString& Parameters)
 	TestTrue(TEXT("fires"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("G6_Clue1")));
 	W.Tick();
 	TestTrue(TEXT("on air without the asset (null-safe)"), Story && Story->GetCurrentTransmission().Id == FName(TEXT("G6_Clue1")));
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryR102Order, "TriadDrift.Story.Transmissions.ArchiveKatoAirsBeforeTheCoreRecord", TD_TEST_FLAGS)
+bool FTDStoryR102Order::RunTest(const FString& Parameters)
+{
+	// StoryFidelity01 order R099 -> R100 -> R101 -> R102 -> R103: the authorisations (T5's interior), then the clear
+	// recorded Kato "Same construction." (identified: KATO (RECORDED)), then the final Core record. Played, not listed.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("story"), Story))
+	{
+		return false;
+	}
+	TestTrue(TEXT("authorisations"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("G7_Kato_Authorisations")));
+	TestTrue(TEXT("Cinematic08"), UTDStorySubsystem::PlaySequence(W.GetWorld(), TEXT("Cinematic08")));
+	TArray<FName> Heard;
+	FString R102Tag;
+	for (int32 i = 0; i < 20 * 120 && Heard.Num() < 4; ++i)
+	{
+		const FTDTransmissionView V = Story->GetCurrentTransmission();
+		if (V.bActive && (Heard.Num() == 0 || Heard.Last() != V.Id))
+		{
+			Heard.Add(V.Id);
+			if (V.Id == FName(TEXT("G7_RecKato_SameConstruction"))) { R102Tag = V.SpeakerTag.ToString(); }
+		}
+		W.Tick(1.f / 20.f);
+	}
+	TestTrue(TEXT("R101, R102, then R103"), Heard.Num() >= 3 && Heard[0] == FName(TEXT("G7_Kato_Authorisations"))
+		&& Heard[1] == FName(TEXT("G7_RecKato_SameConstruction")) && Heard[2] == FName(TEXT("A4_Recording_Core")));
+	TestEqual(TEXT("R102 reads as recorded Kato"), R102Tag, FString(TEXT("KATO (RECORDED)")));
+	FTDTransmission E;
+	TestTrue(TEXT("R102 is not the Cinder echo"), UTDStorySubsystem::FindEntry(TEXT("G7_RecKato_SameConstruction"), E) && E.Speaker == ETDSpeaker::FutureKato);
 	return true;
 }
 #endif
