@@ -277,9 +277,12 @@ S2('NS_TD_ShieldDome', U(BASTION), [
              'lerp(0.35, 1.0, saturate((Engine.Owner.LODDistance - 2850.0*User.Scale*Engine.Owner.Scale.x)/(300.0*User.Scale*Engine.Owner.Scale.x)))'),
     shed('Motes', 'M_TD_VFX_Glow', 14.0, (0.8, 1.6), (12, 26), (0, 90), k=0.8, radius=2900.0, drag=0.5, curl=300.0, local=True, power=1.5, fade_in=5.0)])
 # Slot: UTDAbilityFX.Loop of DA_Ability_Cloak_FX (looping, attached; the ship itself is faded by code). 6 m shimmer.
-S2('NS_TD_Cloak_Shimmer', U((0.55, 0.85, 1.0, 1.0)), [
-    shell('Shimmer', 600, 0.035, pulse='float3(1.25, 1.0, 0.45)*(1.0 + 0.03*sin(Engine.Time*5.0))'),   # 0.16 and 0.09 read as a frosted grey saucer in play
-    shed('Motes', 'M_TD_VFX_Glow', 26.0, (0.4, 0.9), (5, 12), (0, 160), k=0.8, radius=420.0, drag=1.0, curl=500.0, local=True, power=1.5, fade_in=5.0)])
+# 10f (T2's play: the flattened shell drew a grey-white "saucer" round the ship): no shell any more. The hull itself is
+# carried by M_TD_VFX_CloakOverlay (an overlay material T2 sets on the ship's meshes while cloaked); this system only adds
+# magenta glints flickering close to the hull and a few motes trailing off it. Rift magenta.
+S2('NS_TD_Cloak_Shimmer', U((1.0, 0.12, 0.85, 1.0)), [
+    shed('Glints', 'M_TD_VFX_Glow', 0, (0.15, 0.35), (8, 20), (0, 40), k=4.0, radius=330.0, drag=2.0, local=True, power=1.2, rate_expr='70.0'),
+    shed('Motes', 'M_TD_VFX_Glow', 18.0, (0.4, 0.9), (5, 12), (0, 160), k=1.2, radius=360.0, drag=1.0, curl=500.0, local=True, power=1.5, fade_in=5.0)])
 # Slot: UTDAbilityFX.Loop of DA_Ability_GravityWell_FX (looping, at the well). Authored for a 40 m pull radius.
 # Round 8, seen in play: the Bastion drops the well about 9 m away, so from the chase camera (26 m from it) the 70 m swirl
 # sprites covered the whole screen in violet. The swirls and the core now fade as the camera comes inside 50 m.
