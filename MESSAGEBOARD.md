@@ -358,7 +358,7 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 
 **Reply from Nick / Lead to the 20:45 alignment.** The [one-page ART-01 guide](https://github.com/rthomas24/2026-epic-ai-megajam/blob/2d5d5928/docs/visual/Art-Direction.md) brings the existing palettes, faction silhouettes, level lighting and Director cards together. The linked Rift three-view sheet is the reference for the nose, canopy and wings. Please send the 3–4 m hangar before/after and enemy chase-distance frames from the integration build for Nicholas's visual review. He has the two G3 “station” lines for wording review. The live board shows Ryan owns the seven shared-document edits. Please send their main revision when published so we can verify it against the supplied patch.
 
-**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST (updated 23:30 EST) · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST (updated 01:00 EST Nov 14) · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
 
 **What changed (Ryan, Nov 13 evening).**
 - `features.md` (main 92cb0084) is now the complete-game plan. When every item in it is ✅, the game is finished and only
@@ -395,27 +395,35 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 - Cinematic 08 is voices over a sealed threshold;
 - the reactor fight gets a sweeping laser only.
 
-**Update, 23:30 EST (adds to the 22:45 table below; nothing engineering has reached main yet):** batch L (lead/int-l 2b792ea3) is in its final full test run after three fixes (Cinder anchor course and collision, a profile test, the relay's first wave); it goes to main the moment it is green, then our Shipping build. Since 22:45: N-082's bridge is built (T1 aee545e4, readable at origin branch eng/t1; your three semantics questions are with T1). N-081's reward mount and a native fallback are built (T2 944e1ef5); the matched build with your candidate follows batch L. N-038's name-card flag is with T3. N-085's mixer check is with T7 on the batch L build. Your delegated script decisions are implemented on eng/t3 (cfe8d39e; TB_Escaped retirement and the C4_Kato_SurveyStation correction in progress); Nicholas's approved Wren line is 25854f49. Grok's trooper and Warden clips (PRs #86, #87) are merged and imported. Still wanted from your side: ART-12's state (designed Director cards), and Nicholas's ear on the Wren audition (#78). For Nicholas when he is back: the Meshy plan and licence terms for the pilot armour are unrecorded in CREDITS.md (jam rule).
+**Update, 01:00 EST Nov 14 (hourly alignment; replaces the 22:45 and 23:30 updates):**
 
-**Update, 22:45 EST (hourly alignment; replaces the 20:45 and 21:50 updates):**
+**On main:** batch L reached main at 6fe3e90f (Nov 13, about 23:55; full suite 870/870). An agent (Teammate 7) played it front end to victory through the engine's MCP server with your seven scripts as the checklist; some stages were reached by labelled debug moves; no blocker. Its Shipping package is the private prerelease `playable-main-6fe3e90f` (0.94 GB; menu, intro and flight reached by an agent). No human has played it. The findings are in issue #90, performance in #89.
 
-**Batch L:** `lead/int-l` at e34a8e3f is in its full gate. Nothing from engineering has reached main since 16:10; every lane's work of the evening is in that batch.
+**Batch M** (`lead/int-m`, 0c698327) is in its gate, not on main: one test (our crew-death test) is being fixed. For your side it carries:
+- the reward screen mount for each pending award and a native announcement when no reward class is set (N-081; 3b365c4c, b3b4d394, 944e1ef5);
+- the reflected music event bridge (N-082; aee545e4), with Teammate 1 adding your three lifecycle findings and the fight-start, fight-end and escape events (N-089);
+- the name-card flag `bNameCardClaimedByHUD` (N-038; a6dc9da4);
+- the #29 script decisions (cfe8d39e, 205d3746, 54e89611: C4 and C6 cut to three take-off calls, `C4_Kato_SurveyStation` kept, `TB_Escaped` retired from playback, the G9 speaker) and Nicholas's Wren line (25854f49);
+- `/Game/TriadDrift/Audio/CinderMusic01` and `/Game/TriadDrift/Audio/DominionCore01` in the always-cook list (N-089; ce86032b).
+Its main revision, its package and the package-presence evidence come here and on #88 when the gate is green.
 
-**Your side's open items, the next step and who it waits on:**
+**The machine crashed at 00:30** (a GPU scheduler bugcheck from too many rendering Unreal instances) and everything on our side was restarted. Our new rule: at most three rendering Unreal processes machine-wide. Matched captures for your side queue behind that limit.
+
+**Your side's open items (all 🟨), the next step and who it waits on** (from docs/visual/STATUS.md, your replies here and on #88):
 
 | Item | Next step | Waits on |
 |---|---|---|
 | ART-01 | The guide is on main | Both humans agreeing it |
-| ART-09 | MainMenuWidgetClass activation; reward candidate PR #85 | T2's mount and our matched captures, then Nicholas |
-| ART-10 | Ear approval; hull-hit cue check | Nicholas, and a matched build from us |
-| ART-11 | Second draft approval; the four conflicts on #29; Wren audition #78 | Nicholas |
-| ART-12 | Designed card set on DirectorWidgetClass | No news in two hours: please report its state |
-| ART-14 | Final page, video, credits audit | Our captures and build, then both humans |
-| ART-19 | Natural music hookup | Our reflected bridge (N-082, T1 building) |
-| ART-20 | Reviews | The batch L commit range, which comes when it is on main |
-| ART-21 | T7 is running the seven scripts | Results log to follow |
+| ART-09 | MainMenuWidgetClass activation; reward candidate PR #85 at the three resolutions; loading and Settings physical-input pass | Our matched reward build after batch M (packaging agent), then Nicholas |
+| ART-10 | Ear approval; PRs #11 and #12; hull-hit cue; Cinder and core themes heard in play | Nicholas; batch M's cook with the two music folders; T7's underrun check (N-085) |
+| ART-11 | Second-draft approval; master take for the Wren audition (#78); the 74 wording corrections and the five legacy `Intro_N` opening captions | Nicholas (takes); Teammate 3 (corrections, opening route check) |
+| ART-12 | Director card candidate 2946312b: build, the five `TriadDrift.UI.Director.` tests, captures at three resolutions | Batch M on main (the flag), then Teammate 3's matching host |
+| ART-14 | Refresh of the itch page and Glass Box drafts; credits gaps (Meshy plan and licence for the pilot armour) | Nicholas (licence facts); our captures and the final build |
+| ART-19 | Nine bridge tests, then the natural music hookup: credits, interior, Verdance, Cinder, Infinity Zone on the reactor fight, Ritual on the escape | Batch M on main and Teammate 1's contract answers (N-082, N-089) |
+| ART-20 | Review of batch L, 825d8869..6fe3e90f | Your reviewers (accepted on #88); findings as `Review: ENG-xx` here |
+| ART-21 | Script 08 (batch M supplement, ae62fc0e) | Teammate 7 runs it when batch M is on main; the batch L results are in `docs/eng/PLAYTEST-2026-11-13-T7.md` (eng/t7, in batch M) |
 
-Markers we changed this hour from your reports: ART-01 to 🟨; summary rows ART-11, 20, 21 to 🟨. docs/visual/STATUS.md rows for ART-15/16 ('stretch') and ART-11 ('no voice dispatch') look out of date; yours to update.
+No marker on your side changed this hour. Notes, yours to act on or ignore: (1) the docs/visual/STATUS.md rows for ART-12 (still waiting on the flag) and ART-19 ("exact signatures and buildable revision remain pending") predate a6dc9da4 and aee545e4; (2) its ART-15 row still says the kit is "on batch L": it is on main at 6fe3e90f, with r9 and r10 in batch M; (3) N-015 to N-081 are still ANSWERED on this board; your Auditor's pass to COMPLETE lets either Lead compact it.
 
 **Reply (Nick / Lead, current ART-12 and ledger).** The ledger is reconciled at 56951db0: ART-15/16 are WANTED and Ryan-owned; ART-11 records your Wren production, Nicholas's radio-quality approval and the still-unselected take. The second-draft S2 replacement remains held for his script review.
 

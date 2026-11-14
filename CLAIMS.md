@@ -267,7 +267,7 @@ Current resource checkpoint: Nick stopped the general campaign and revoked all p
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-13 20:45 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-14 01:00 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -292,38 +292,45 @@ Paths are under `Source/unrealGameJam/TriadDrift/` unless they start with `/` (r
 Workers commit only on their own branch and never pull, merge or push; the Lead integrates in
 `.wt/int`, builds, runs the headless suite, then fast-forwards and pushes `main`.
 
-### Current board, Nov 13 22:45 EST (supersedes the in-progress and queued rows of the history table below)
+### Current board, Nov 14 01:00 EST (supersedes the in-progress and queued rows of the history table below)
 
-Nothing from engineering has reached main since 16:10; **batch L** (`lead/int-l`, e34a8e3f, all lanes) is in its full gate. Then Ryan's Shipping build.
+**Batch L is on main at 6fe3e90f** (Nov 13, about 23:55; full suite 870/870), played front end to victory by an agent (T7), and published as the private prerelease `playable-main-6fe3e90f` (0.94 GB). **Batch M** (`lead/int-m`, 0c698327) is in its gate: one test failure (T5's crew-death test) is being fixed. The machine crashed at 00:30 (too many rendering Unreal instances) and everything was restarted: **at most three rendering Unreal processes machine-wide.** Ryan is asleep until about 10:00 EST; his Lead decides overnight. Bugs: issue #90. Performance: issue #89.
 
 | Owner | Now (in progress) | Next (queued, in order) | Shared paths |
 |---|---|---|---|
-| Lead | Batch L gate (e34a8e3f), push, then Ryan's Shipping build; boards; hourly features.md alignment | ENG-47 decision record (due Nov 14 20:00); staff ENG-35 and ART-02 after batch L | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
-| T1 | Reflected music-event bridge for Nick's audio plugin (N-082) | Director block live strip; colour-blind check (ENG-45) | `Core/` (N-082 bridge), `Flight/`, `Input/`, `Travel/` |
-| T2 | Reward widget mount against Nick's header (N-081) and captures | ENG-36 story states (generator 0/4, transponder flicker, nav pulse, on-foot HUD); #62 captures; `Bark_MissileEvaded` | `Combat/`, `Powers/`, HUD |
-| T3 | *Aftermath* live run on batch L | `G8_Self_<Pilot>` id scheme to T5; second-draft line changes after Nicholas answers on #29; Debris cleared stats row; #49 clip | `Squad/`, `Director/`; `ShowPlaceholder` victory with T5 |
-| T4 | Dominion hull r2 switch (generator placement) | Sea line c40bcdbb in batch L; pre-empt clue AI (ENG-43) with T3's line | `Enemies/`, `Waves/`, `World/` |
-| T5 | Crew death ragdoll hand-off (BLOCKER) | Cinder anchor course fix; withdrawal objective line (`TDObjectiveText.cpp:112` with T4's state); defenders trio (N-052); sweeping laser; ENG-25 / 26 rows; New Game difficulty (ENG-45); per-type crew clip lookup; dressing-prop Dress list | `Flow/`, `Ground/` |
-| T6 | Destructible field (ENG-48): play by real input | Obstacles for lane rocks and debris; reward drop seen | `World/SpaceField/**` |
-| T7 | Playtest 2 with Nick's seven scripts (ART-21) and the PLAYTEST log | Settings page scroll; ENG-41 review after main | `Profile/`, `docs/eng/PLAYTEST-*` |
-| Ship builder 2 | Lancer and Bastion close-range pass | Bastion dome slot | squad and fleet visuals |
-| Effects builder | Hyperdrive jump capture; reactor at scale | Dome rim; Cinder ash smaller; ART-16 | `Gameplay/VFX/**`, `DA_*_FX` |
-| Environment builder | Scatter v2 | Dressing table to T5 | planet and sky materials |
-| Structures builder | r8 re-captures under the new lighting; fresh-eyes review | ART-18 props: survey instruments and the ancient artefact | `Gameplay/Props/**` |
-| Animation builder | Heavy shield bash and Warden slam authored | Warden off hand; Heavy death | `Characters/**/Anims/**` |
-| Import builder | Cinder anchor tower collision hull | Next Grok deliveries | `Gameplay/**` visuals |
-| Packaging agent | Waiting on batch L | Shipping build after batch L; reward matched build | isolated `.wt/pkg` |
-| Grok Bot | Wren voice audition "Don't—" (R-042) | #53 crystal cache; set dressing #40; measured plans and trims (R-043) | `ArtSource/EngAI/**` |
+| Lead | Batch M gate (0c698327), push, then its Shipping package; boards; hourly features.md alignment | ENG-47 decision record (the space-reactor fallback is finishable with T4's 818d592e, in batch M; due Nov 14 20:00); PRs #91 and #92 | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
+| T1 | Bridge answers and extra events for Nick's audio (N-082, N-089: fight start and end, escape) | Hold the atmosphere entry during Aftermath; `-Audio` check of the descent roar; boundary-warning suppression | `Core/` (N-082 bridge), `Flight/`, `Input/`, `Travel/` |
+| T2 | Reactor conduit count (CONDUITS n / 4) | Escape clock and direction marker; drone thruster playback; live captures of the generator pips and the transponder flicker | `Combat/`, `Powers/`, HUD |
+| T3 | ENG-40 tutorial phase prompts | The Story Director's wording corrections; #49 capture check; a played Continue test; the TransmissionStatic cue | `Squad/`, `Director/` |
+| T4 | Escape flight (its time matches the line) | Docking cone; skip-start overlap; stuck-enemy re-route; space design review (T6) | `Enemies/`, `Waves/`, `World/` |
+| T5 | Crew-death test fix (blocks batch M) | Heavy guard hint, clang and chip-through; Cinematic 03 wave hold; conduit markers; Cinder lava route; defenders trio (N-052); dressing Dress lists; artefact and survey line placement | `Flow/`, `Ground/` |
+| T6 | Space composition, seven regions (the Shepherd Belt first) | Rock field performance budget; staged large and special breaks | `World/SpaceField/**`, `docs/eng/SPACE-DESIGN.md` |
+| T7 | Performance pass (issue #89) and the N-085 audio underrun check | Nick's batch M playtest supplement (script 08) | `Profile/`, `docs/eng/PLAYTEST-*` |
+| Ship builder 2 | Enemy fleet close-range pass | - | squad and fleet visuals |
+| Effects builder | Ice breaks seen on real rocks | First-ten-minutes effects review; reactor effects | `Gameplay/VFX/**`, `DA_*_FX` |
+| Environment builder | Pass 4: real tree canopy, Cinder slope | Realism, then three story zones per planet | planet and sky materials |
+| Structures builder | Space set pieces: patrol hull, expedition hulls, survey rig, hollowed rock | - | `Gameplay/Props/Space/**` |
+| Animation builder | Side-camera kill captures | Warden ragdoll cases; trooper rifle clips in a fight | `Characters/**/Anims/**` |
+| Import builder | The never-cook list, proven by a cook | Asset ledger | `Gameplay/**` visuals, `docs/eng/ASSETS.md` |
+| Packaging agent | Shipping package after each batch (6fe3e90f published) | Matched reward build for N-081, after batch M | isolated `.wt/pkg` |
+| Grok Bot | R-042 queue (PRs #91 and #92 open) | #53 crystal cache; set dressing #40; measured plans and trims (R-043) | `ArtSource/EngAI/**` |
 
-Queued rows added Nov 13 22:45:
+Rows opened or closed Nov 14 01:00:
 
 | Item | Owner | State | Paths |
 |---|---|---|---|
-| ENG-47 finale-mode decision record (due Nov 14 20:00) | Lead | queued | `features.md`, `docs/eng/**` |
-| ENG-35 audio fallbacks | unassigned, Lead to staff after batch L | queued | `Content/TriadDrift/Gameplay/Audio/**` |
-| ART-02 asset ledger | unassigned, Lead to staff after batch L | queued | `docs/eng/ASSETS.md`, `CREDITS.md` |
-| ART-18 props (survey instruments, ancient artefact) | Structures builder | queued | `Gameplay/Props/**` |
-| N-082 reflected music-event bridge | T1 | in progress | `Source/unrealGameJam/TriadDrift/Core` |
+| **Integration batch L** (all lanes' work of Nov 13 evening) | Lead | done: main 6fe3e90f, Nov 13 about 23:55 (870/870); Shipping package `playable-main-6fe3e90f` | none |
+| **Integration batch M** (`lead/int-m`, 0c698327) | Lead | in progress (gate: one test fix pending, T5's crew-death test) | none |
+| Performance pass: no hitches, steady 60 fps in the Shipping build, per phase (issue #89) | T7 (each teammate measures their own area) | in progress | `Profile/`, `docs/eng/**`; `Config/**` through the Lead |
+| Space composition: seven themed regions, the Shepherd Belt first (ENG-39) | T6 (T4 reviews) | in progress | `Source/unrealGameJam/TriadDrift/World/SpaceField/**`, `docs/eng/SPACE-DESIGN.md` |
+| Space set pieces: patrol hull, expedition hulls, survey rig, hollowed rock | Structures builder | in progress | `Content/TriadDrift/Gameplay/Props/Space/**` |
+| Enemy fleet close-range pass (ART-04) | Ship builder 2 | in progress | `Content/TriadDrift/Gameplay/Characters/NullFleet/**`, `ArtSource/EngShips/**` |
+| ENG-40 tutorial phase prompts | T3 | in progress | `Director/`, `Squad/` |
+| ENG-47 finale-mode decision record (due Nov 14 20:00) | Lead | queued (after batch M is on main) | `features.md`, `docs/eng/**` |
+| ENG-35 audio fallback gaps (b8e561cd) and ART-02 asset ledger | Import builder | in review (in batch M) | `Content/TriadDrift/Gameplay/Audio/**`, `docs/eng/ASSETS.md`, `CREDITS.md` |
+| ART-18 props (survey instruments, ancient artefact; 61d9e778) | Structures builder | in review (in batch M); placement with T5 | `Gameplay/Props/**` |
+| N-082 reflected music-event bridge (aee545e4) | T1 | in review (in batch M); answers and extra events in progress | `Source/unrealGameJam/TriadDrift/Core` |
+| Planets as realistic as possible, three story zones each (Ryan, Nov 14) | Environment builder | queued (after pass 4) | planet and sky materials, `ArtSource/EngEnvironment/**` |
 
 ### Tasks: in progress, coming next, done
 History (rows above the current board's date are kept for the record; their in-progress and queued states are superseded):
