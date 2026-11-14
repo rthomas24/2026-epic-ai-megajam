@@ -521,6 +521,11 @@ def region_sites():
             "KS_ScarRig":
             {"site": "KS_ScarRig", "actor": KSP + "BP_KS_ScarRig", "about": "Survey Scar: a Null survey rig clamped across a split asteroid (about 90 m); the canyon runs along local Y.",
              "pieces": [piece("P", KSP + "SM_KS_ScarRig", 0.0, 0.0, 0.0, -128.0, scale=[2.0, 2.0, 2.0])]},
+            "KS_DomDebris": {"site": "KS_DomDebris", "actor": KSP + "BP_KS_DomDebris",
+                             "about": "Capture group: three of the Dominion escape debris pieces tumbling apart (T4 swaps the meshes in for its blocks).",
+                             "pieces": [piece("PlateB", KSP + "SM_KS_DomDebris_PlateB", 0.0, -2600.0, 0.0, 20.0, pitch_deg=35.0, roll_deg=-20.0),
+                                        piece("Truss", KSP + "SM_KS_DomDebris_Truss", 600.0, 1200.0, 900.0, -40.0, pitch_deg=-25.0, roll_deg=50.0),
+                                        piece("Shroud", KSP + "SM_KS_DomDebris_Shroud", -500.0, 2800.0, -700.0, 120.0, pitch_deg=15.0, roll_deg=70.0)]},
             "KS_MoonShards": {"site": "KS_MoonShards", "actor": KSP + "BP_KS_MoonShards", "about": "Shattered Moons: two shards of one moon (300 m and 180 m).",
                               # r2: both fracture faces (+X) turned toward the capture camera at Belt (it looks along (0.89, 0.44))
                               "pieces": [piece("A", KSP + "SM_KS_MoonShard_A", 0.0, 0.0, 0.0, 206.0),

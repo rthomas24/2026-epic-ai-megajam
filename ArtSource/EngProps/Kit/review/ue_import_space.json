@@ -1,5 +1,96 @@
 [
  {
+  "asset": "SM_KS_DomDebris_PlateA",
+  "size_m": [
+   20.9,
+   13.6,
+   2.4
+  ],
+  "tris_lod0": 716,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_KS_DomDebris_PlateB",
+  "size_m": [
+   36.1,
+   17.5,
+   2.8
+  ],
+  "tris_lod0": 652,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_KS_DomDebris_PlateC",
+  "size_m": [
+   8.6,
+   6.8,
+   2.0
+  ],
+  "tris_lod0": 716,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_KS_DomDebris_Shroud",
+  "size_m": [
+   18.0,
+   15.0,
+   17.6
+  ],
+  "tris_lod0": 384,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Ember",
+   "2:Glow"
+  ]
+ },
+ {
+  "asset": "SM_KS_DomDebris_Truss",
+  "size_m": [
+   26.5,
+   6.9,
+   7.8
+  ],
+  "tris_lod0": 2488,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_KS_DomDebris_Turret",
+  "size_m": [
+   13.1,
+   12.0,
+   7.5
+  ],
+  "tris_lod0": 632,
+  "lods": 3,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Glow"
+  ]
+ },
+ {
   "asset": "SM_KS_Hulk_Aft",
   "size_m": [
    43.0,
