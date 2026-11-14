@@ -173,7 +173,7 @@ for a in CFG.get("aim", []):
         if a.get("mode") == "thrust":
             fa = [h - l for h, l in zip(tv(hand_w.translation), tv(low_w.translation))]
             nf = math.sqrt(sum(c * c for c in fa)); fa = [c / nf for c in fa]
-            want = (fa[0], fa[1], fa[2] - 0.15)
+            want = (fa[0], fa[1], fa[2] - a.get("down", 0.15))
             weight = min(1.0, max(0.0, (fa[1] - 0.6) / 0.25))
         else:
             want = tuple(a["dir"])
@@ -333,6 +333,44 @@ for cmp_ in CFG.get("compose", []):
         loc, rot = fr["root"]
         fr["root"] = (unreal.Vector(0, 0, loc.z), rot)
     write(cmp_["dst"], out)
+
+# ---- crew / Warden clips: clean, named copies on SKEL_NullCrew (the Warden's skeleton lists it as compatible)
+if CFG.get("clips"):
+    ANIMS = CFG.get("folder", "/Game/TriadDrift/Gameplay/Characters/Crew/Anims")
+    PILOT = ANIMS
+    SKEL = unreal.load_asset(CFG.get("skeleton", "/Game/TriadDrift/Gameplay/Characters/Crew/SKEL_NullCrew"))
+    ALL = bones()
+for cl in CFG.get("clips", []):
+    # in place (root keeps only its height), optional loop closing (the last loop_s seconds ease into frame 0),
+    # optional trim [t0, t1] and play-rate bake; logs the root travel removed and the loop seam left
+    src = find(cl["src"])
+    L = src.get_play_length()
+    t0, t1 = cl.get("trim", [0.0, L])
+    t1 = min(t1, L)
+    rate = cl.get("rate", 1.0)
+    n = max(2, int(round((t1 - t0) / rate * FPS)) + 1)
+    frs = [sample(src, min(t1, t0 + i * rate / float(FPS)))[0] for i in range(n)]
+    travel = 0.0
+    root0 = frs[0]["root"][0]
+    for fr in frs:
+        loc, rot = fr["root"]
+        travel = max(travel, math.hypot(loc.x - root0.x, loc.y - root0.y))
+        fr["root"] = (unreal.Vector(0, 0, loc.z), rot) if cl.get("in_place", True) else (loc, rot)
+    seam = 0.0
+    if cl.get("loop"):
+        k = max(1, int(round(cl.get("loop_s", 0.25) * FPS)))
+        first = frs[0]
+        for j in range(k):
+            w = (j + 1) / float(k)
+            w = w * w * (3 - 2 * w)
+            fr = frs[n - k + j - 1] if n - k + j - 1 >= 0 else frs[-1]
+            frs[n - k + j - 1] = {b: (lerpv(fr[b][0], first[b][0], w), nlerp(fr[b][1], first[b][1], w)) for b in ALL}
+        frs[-1] = dict(first)
+        seam = max(math.degrees(2 * math.acos(min(1.0, abs(frs[-2][b][1].x * first[b][1].x + frs[-2][b][1].y * first[b][1].y
+                                                          + frs[-2][b][1].z * first[b][1].z + frs[-2][b][1].w * first[b][1].w))))
+                   for b in ALL)
+    log("%s -> %s: %.2f s, root travel removed %.0f cm, loop %s (last step %.1f deg)" % (cl["src"], cl["dst"], (n - 1) / float(FPS), travel, bool(cl.get("loop")), seam))
+    write(cl["dst"], frs)
 
 for v in CFG.get("visuals", []):
     da = unreal.load_asset(PILOT + "/DA_Pilot_Visuals")
