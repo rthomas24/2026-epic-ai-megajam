@@ -259,7 +259,8 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 			RimArc(D, Bearing, Pulse2, Ct.Type == ETDRadarType::Incoming);	// announced arrivals only: the model lists nothing else
 			if (Ct.bBeyond || Ct.Type == ETDRadarType::Incoming) { continue; }
 		}
-		const float Rad = Ct.bBeyond ? R - 8.f : RadiusFor(Flat, Range, R);
+		// Never on the player's dart: anything closer than about 150 m sits on a small ring round it, at its bearing.
+		const float Rad = Ct.bBeyond ? R - 8.f : FMath::Max(RadiusFor(Flat, Range, R), 20.f * S);
 		const FVector2D At = C + Dir * Rad;
 		// Height: above = full brightness, stem hangs down to the foot; below = dimmed, stem rises; level: none.
 		const bool bAbove = Ct.Up > Level, bBelow = Ct.Up < -Level;
@@ -276,7 +277,7 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 		{
 		case ETDRadarType::Enemy:
 			Enemy(D, Blip, Ct.Kind, Pal::Hostile().CopyWithNewOpacity(Bright * Hollow), S);
-			if (Ct.bThreat && !Ct.bBeyond) { D.Circle(Blip, 9.f * S, Pal::Hostile().CopyWithNewOpacity(.55f * Bright), 1.f, 16); }	// attacking you
+			// No ring on attackers: in a close fight the rings merged into a blob over the player's dart (played, Nov 14).
 			break;
 		case ETDRadarType::Missile:
 			D.Dot(Blip, 4.f * S, Pal::Ink().CopyWithNewOpacity(Flash * Bright));
@@ -342,7 +343,8 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 		D.Text(HX + 10.f, HY + 7.f * D.FontK, K.WaveText, 14, Pal::Ink(), "Bold", 0.f);
 		// Pips: cleared = filled ink, current = hostile, to come = hollow.
 		const int32 Pips = FMath::Min(In.Wave.WaveCount, 8);
-		const float PipX0 = HX + HW * .44f;
+		// After the wave text, wherever it ends (it is larger on small screens).
+		const float PipX0 = HX + 10.f + FMath::Max(HW * .34f, P.Measure(K.WaveText, FTDUIPainter::MakeFont("Bold", FMath::Max(1, FMath::RoundToInt(14 * D.FontK)), P.Scale, 20))) + 14.f * S;
 		for (int32 I = 0; I < Pips; ++I)
 		{
 			const FVector2D Pip(PipX0 + I * 11.f * S, HY + HH * .5f);
