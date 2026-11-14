@@ -295,6 +295,7 @@ private:
 	bool BeginLanding(ATDLandingPad* InPad);
 
 	ETDLandingState State = ETDLandingState::Flying;
+	bool bLandReadySaid = false; // ENG-43: the pad-in-range bark, once per approach
 	float StateTime = 0.f;
 	TWeakObjectPtr<ATDLandingPad> Pad;
 	FVector SegmentStart = FVector::ZeroVector;

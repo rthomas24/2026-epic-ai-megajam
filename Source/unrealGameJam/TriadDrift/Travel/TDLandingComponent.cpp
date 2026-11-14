@@ -1,6 +1,8 @@
 // Triad Drift - auto-landing and take-off (ENG-20). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDLandingComponent.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Travel/TDTravelBarks.h"
 #include "TriadDrift/Travel/TDLandingPad.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
@@ -719,6 +721,7 @@ void UTDLandingComponent::SetState(ETDLandingState NewState)
 	{
 	case ETDLandingState::GearDown: bGearDown = true; break;
 	case ETDLandingState::Touchdown:
+		FTDCombatBarks::SayAsPilot(GetOwner(), TDBarkIdsT1::LandDown, ETDBarkPriority::Normal); // ENG-43 Bark_Land_Down
 		if (TravelFX)
 		{
 			UTDStatics::PlayCue(this, TravelFX->LandingDust, Pad.IsValid() ? Pad->GetBeaconLocation() : SegmentStart);
@@ -780,6 +783,13 @@ void UTDLandingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	UpdatePadMarker();
+	// ENG-43 Bark_Land_Ready: a pad comes in range (the landing prompt appears) - once per approach.
+	if (State == ETDLandingState::Flying)
+	{
+		const bool bReady = GetAvailablePad() != nullptr || GetAssistPad() != nullptr;
+		if (bReady && !bLandReadySaid) { FTDCombatBarks::SayAsPilot(GetOwner(), TDBarkIdsT1::LandReady, ETDBarkPriority::Normal); }
+		bLandReadySaid = bReady;
+	}
 	if (State == ETDLandingState::Flying && (AssistPad.IsValid() || AssistPad.IsStale()) && DeltaTime > 0.f)
 	{
 		TickApproachAssist(DeltaTime);
