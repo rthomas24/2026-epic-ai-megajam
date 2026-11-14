@@ -36,6 +36,9 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
+#include "TriadDrift/Input/TDHintComponent.h"
+#include "TriadDrift/Powers/TDAbilityRewards.h"
+#include "Framework/Application/SlateApplication.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogTDUIHost, Log, All);
 
@@ -84,6 +87,12 @@ void UTDUIHostSubsystem::Deinitialize()
 		ScanWidget->RemoveFromParent();
 		ScanWidget = nullptr;
 	}
+	if (RewardWidget)
+	{
+		RewardWidget->RemoveFromParent(); // teardown without acknowledgment: the award stays pending, re-presented later
+		RewardWidget = nullptr;
+		PresentedReward = ETDAbilityId::None;
+	}
 	if (TacticalWidget)
 	{
 		TacticalWidget->RemoveFromParent();
@@ -121,6 +130,7 @@ void UTDUIHostSubsystem::Tick(float DeltaTime)
 	}
 	TimeUntilCheck = TDUIHost::CheckInterval;
 	Evaluate();
+	UpdateAbilityReward();
 }
 
 void UTDUIHostSubsystem::ApplyFocus()
@@ -506,6 +516,201 @@ namespace TDUIHost
 		const FSoftObjectPtr& Ptr = Slot->GetPropertyValue_InContainer(Style);
 		UClass* Class = Cast<UClass>(Ptr.IsNull() ? nullptr : Ptr.LoadSynchronous());
 		return Class && Class->IsChildOf(UUserWidget::StaticClass()) ? Class : nullptr;
+	}
+}
+
+// ---- The ability reward screen (board N-070 / N-072). Nick's UTDAbilityRewardWidget lives in the TriadDriftHUD plugin,
+// which this module does not link: its contract is called by name (README, IndustrialTerminal01).
+namespace TDRewardMount
+{
+	/** Calls a no-argument function; OutBool gets a bool return value when there is one. */
+	bool CallNoArgs(UObject* Target, FName Name, bool* OutBool = nullptr)
+	{
+		UFunction* F = Target ? Target->FindFunction(Name) : nullptr;
+		if (!F)
+		{
+			return false;
+		}
+		const int32 Size = FMath::Max<int32>(F->ParmsSize, 1);
+		uint8* Buf = static_cast<uint8*>(FMemory_Alloca(Size));
+		FMemory::Memzero(Buf, Size);
+		Target->ProcessEvent(F, Buf);
+		if (const FBoolProperty* Ret = CastField<FBoolProperty>(F->GetReturnProperty()); Ret && OutBool)
+		{
+			*OutBool = Ret->GetPropertyValue_InContainer(Buf);
+		}
+		return true;
+	}
+
+	template <typename TProp, typename TValue>
+	void SetField(const UScriptStruct* S, void* Data, const TCHAR* Name, const TValue& Value)
+	{
+		if (const TProp* P = FindFProperty<TProp>(S, Name))
+		{
+			P->SetPropertyValue_InContainer(Data, Value);
+		}
+	}
+
+	struct FDisplay
+	{
+		FName AbilityId;
+		FText AbilityName, ShipName, AvailabilityText, ActivationKey;
+		FLinearColor Accent = FLinearColor::White;
+		bool bCanUseNow = false;
+	};
+
+	/** PresentReward(const FTDAbilityRewardDisplay&) -> bool, the struct filled field by field by name. */
+	bool Present(UObject* Widget, const FDisplay& D, bool& bAccepted)
+	{
+		bAccepted = false;
+		UFunction* F = Widget ? Widget->FindFunction(TEXT("PresentReward")) : nullptr;
+		if (!F)
+		{
+			return false;
+		}
+		const int32 Size = FMath::Max<int32>(F->ParmsSize, 1);
+		uint8* Buf = static_cast<uint8*>(FMemory_Alloca(Size));
+		FMemory::Memzero(Buf, Size);
+		const FStructProperty* Arg = nullptr;
+		for (TFieldIterator<FProperty> It(F); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+		{
+			It->InitializeValue_InContainer(Buf);
+			if (!Arg && !It->HasAnyPropertyFlags(CPF_ReturnParm))
+			{
+				Arg = CastField<FStructProperty>(*It);
+			}
+		}
+		if (Arg)
+		{
+			const UScriptStruct* S = Arg->Struct;
+			void* Data = Arg->ContainerPtrToValuePtr<void>(Buf);
+			SetField<FNameProperty>(S, Data, TEXT("AbilityId"), D.AbilityId);
+			SetField<FTextProperty>(S, Data, TEXT("AbilityName"), D.AbilityName);
+			SetField<FTextProperty>(S, Data, TEXT("ShipName"), D.ShipName);
+			SetField<FTextProperty>(S, Data, TEXT("AvailabilityText"), D.AvailabilityText);
+			SetField<FTextProperty>(S, Data, TEXT("ActivationKey"), D.ActivationKey);
+			SetField<FBoolProperty>(S, Data, TEXT("bCanUseNow"), D.bCanUseNow);
+			if (const FStructProperty* Accent = FindFProperty<FStructProperty>(S, TEXT("Accent")); Accent && Accent->Struct == TBaseStructure<FLinearColor>::Get())
+			{
+				*Accent->ContainerPtrToValuePtr<FLinearColor>(Data) = D.Accent;
+			}
+			Widget->ProcessEvent(F, Buf);
+			if (const FBoolProperty* Ret = CastField<FBoolProperty>(F->GetReturnProperty()))
+			{
+				bAccepted = Ret->GetPropertyValue_InContainer(Buf);
+			}
+		}
+		for (TFieldIterator<FProperty> It(F); It && It->HasAnyPropertyFlags(CPF_Parm); ++It)
+		{
+			It->DestroyValue_InContainer(Buf);
+		}
+		return Arg != nullptr;
+	}
+
+	FText UpperName(const UEnum* E, int64 Value)
+	{
+		return FText::FromString(E->GetDisplayNameTextByValue(Value).ToString().ToUpper());
+	}
+}
+
+UClass* UTDUIHostSubsystem::ResolveRewardWidgetClass() const
+{
+	if (RewardWidgetClassOverride && RewardWidgetClassOverride->IsChildOf(UUserWidget::StaticClass()))
+	{
+		return RewardWidgetClassOverride;
+	}
+	if (UClass* Class = TDUIHost::LoadStyleClass(TEXT("AbilityRewardWidgetClass")))
+	{
+		return Class;
+	}
+	UClass* Nick = FindObject<UClass>(nullptr, TEXT("/Script/TriadDriftHUD.TDAbilityRewardWidget"));
+	return Nick && Nick->IsChildOf(UUserWidget::StaticClass()) ? Nick : nullptr;
+}
+
+void UTDUIHostSubsystem::UpdateAbilityReward()
+{
+	UTDAbilityRewardSubsystem* Rewards = UTDAbilityRewardSubsystem::Get(this);
+	APlayerController* PC = FindLocalController();
+	if (!Rewards || !PC || bCinematicHidden)
+	{
+		return;
+	}
+	ETDAbilityId Ability = ETDAbilityId::None;
+	ETDShipId Ship = ETDShipId::Rift;
+	bool bCanUseNow = false;
+	if (!Rewards->GetPendingAbilityReward(Ability, Ship, bCanUseNow, this))
+	{
+		return;
+	}
+	const ATDSpacePlayerController* SpacePC = Cast<ATDSpacePlayerController>(PC);
+	const bool bGamepad = SpacePC && SpacePC->IsUsingGamepad();
+	if (PresentedReward == Ability && bRewardShownGamepad == bGamepad && bRewardShownUsable == bCanUseNow)
+	{
+		return; // on screen and current
+	}
+	if (!RewardWidget)
+	{
+		UClass* Class = ResolveRewardWidgetClass();
+		RewardWidget = Class ? CreateWidget<UUserWidget>(PC, Class) : nullptr;
+		if (!RewardWidget)
+		{
+			return;
+		}
+		// Bound before mounting (the contract): the widget broadcasts exactly once per dismissal.
+		if (const FMulticastDelegateProperty* Dismissed = FindFProperty<FMulticastDelegateProperty>(RewardWidget->GetClass(), TEXT("OnRewardDismissed")))
+		{
+			FScriptDelegate D;
+			D.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UTDUIHostSubsystem, HandleRewardDismissed));
+			Dismissed->AddDelegate(MoveTemp(D), RewardWidget);
+		}
+	}
+	TDRewardMount::FDisplay D;
+	D.AbilityId = FName(*StaticEnum<ETDAbilityId>()->GetNameStringByValue(static_cast<int64>(Ability)));
+	D.AbilityName = TDRewardMount::UpperName(StaticEnum<ETDAbilityId>(), static_cast<int64>(Ability));
+	D.ShipName = TDRewardMount::UpperName(StaticEnum<ETDShipId>(), static_cast<int64>(Ship));
+	D.AvailabilityText = bCanUseNow ? NSLOCTEXT("TDUIHost", "RewardReady", "READY NOW")
+		: FText::Format(NSLOCTEXT("TDUIHost", "RewardLater", "READY WHEN YOU FLY {0}"), D.ShipName);
+	D.ActivationKey = UTDHintComponent::KeyFor(ETDHint::Ability, bGamepad);
+	D.Accent = UTDStatics::ShipColor(Ship);
+	D.bCanUseNow = bCanUseNow;
+	bool bAccepted = false;
+	if (!TDRewardMount::Present(RewardWidget, D, bAccepted) || !bAccepted)
+	{
+		return; // refused (another award still up, or bad data): tried again on the next check
+	}
+	const bool bFirstShow = PresentedReward != Ability;
+	PresentedReward = Ability;
+	bRewardShownGamepad = bGamepad;
+	bRewardShownUsable = bCanUseNow;
+	if (bAddToViewport && !RewardWidget->IsInViewport())
+	{
+		RewardWidget->AddToViewport(60);
+	}
+	if (bFirstShow)
+	{
+		TDRewardMount::CallNoArgs(RewardWidget, TEXT("FocusDismissButton"));
+	}
+	UE_LOG(LogTemp, Log, TEXT("TD reward: presented %s (ship %s, usable now %d, key %s, %s)"), *D.AbilityId.ToString(), *D.ShipName.ToString(),
+		bCanUseNow, *D.ActivationKey.ToString(), *RewardWidget->GetClass()->GetName());
+}
+
+void UTDUIHostSubsystem::HandleRewardDismissed(FName AbilityId)
+{
+	const int64 Value = StaticEnum<ETDAbilityId>()->GetValueByNameString(AbilityId.ToString());
+	const ETDAbilityId Ability = Value == INDEX_NONE ? ETDAbilityId::None : static_cast<ETDAbilityId>(Value);
+	if (Ability == ETDAbilityId::None || Ability != PresentedReward)
+	{
+		return; // only the award on screen is acknowledged
+	}
+	if (UTDAbilityRewardSubsystem* Rewards = UTDAbilityRewardSubsystem::Get(this))
+	{
+		Rewards->MarkAbilityRewardPresented(Ability);
+	}
+	PresentedReward = ETDAbilityId::None;
+	UpdateAbilityReward(); // the next pending award, at once
+	if (PresentedReward == ETDAbilityId::None && FSlateApplication::IsInitialized())
+	{
+		FSlateApplication::Get().SetAllUserFocusToGameViewport(); // back to play (the previous focus may be gone)
 	}
 }
 
