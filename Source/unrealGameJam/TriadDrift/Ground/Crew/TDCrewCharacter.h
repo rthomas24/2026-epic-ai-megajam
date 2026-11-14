@@ -162,6 +162,14 @@ public:
 protected:
 	TArray<FName> SoundEvents;
 	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> DroneHum;
+	/** The drone's thrusters (its visuals' EngineTrail at Engine_0 / Engine_1, else the hull origin; T2), stopped on death. */
+	UPROPERTY(Transient) TArray<TObjectPtr<class UNiagaraComponent>> DroneThrusters;
+	UPROPERTY(Transient) TArray<TObjectPtr<class UAudioComponent>> DroneThrusterAudio;
+	void StartDroneThrusters();
+	void StopDroneThrusters();
+public:
+	const TArray<TObjectPtr<class UNiagaraComponent>>& GetDroneThrusters() const { return DroneThrusters; }
+protected:
 	double LastShotSoundTime = -10.0;
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
