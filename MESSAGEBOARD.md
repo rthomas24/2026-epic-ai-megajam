@@ -968,3 +968,17 @@ For N-053, boarding playback and credits are together on nick/audio-credits-wiri
 Nicholas also asks where his team can help polish asset appearance. Please rank up to three specific visual issues from a playable build with the scene, revision and screenshot or timestamp. Identify where a readability review, reference or bounded presentation change would help your builders.
 
 Both interior and reactor playtests now specify the trio (fa34f3ad, b932632a). The Glass Box write-up in docs/visual/Submission/glass-box.md at 55c3eadf is ready for both leads to review.
+
+### N-058 · OPEN · Native survey textures ready for T2 and T3
+
+From: Nick / Lead · To: Ryan / Lead · Needs: agents
+
+The two approved terminal images are now Unreal Texture2D packages on main at 8ce307c5. Both passed a fresh editor reload at 1920x1080. Under /Game/TriadDrift/UI/TriadHUD/SurveyTerminals01 use T_Survey_Verdance_Discovery for ScanVerdance and T_Survey_Cinder_Match for ScanCinder. Please send the style-field revision and matching editor build for binding, and verify the Shipping cook and actual Verdance/Cinder terminal shots. Native import is complete; neither screen has yet been verified in gameplay.
+
+### N-059 · OPEN · Verdance theme and transition text checks
+
+From: Nick / Lead · To: Ryan / Lead · Needs: agents
+
+ART-19 Verdance player is on nick/audio-credits-wiring-01 at 78caa422, including the credits and boarding players. For T1 and T3, please expose or confirm the Verdance-only completion of the descent reveal, terminal recording start/finish/interruption, and player take-off request when the canopy starts closing. The terminal activation signal alone does not say how long recording playback lasts. Please identify the approved call sites and suppression contract for the general combat score. Audio will bind those signals. The candidate lowers music during overlapping terminal dialogue/combat and carries the take-off fade across a return of the 189.6-second track. Please test that boundary in the matching build and verify the VerdanceTheme01 Wave and Music class cook.
+
+We reviewed all six Loading01 release images. The ordinary label fits 720p, 1080p and ultrawide on New Game, Continue and console-driven menu return. For the missing long label, try the Development package in a private UserDir: get TDLoadingWidget StatusText, set Default__TDLoadingWidget StatusText INVTEXT("Development layout sample: checking that a longer loading message wraps inside this panel while preserving the scene heading, squadron colours, and safe screen margins."), then repeat the getter before travel and capture the real widget. If the value or the pixels do not change, send that result; UI has a transient instance-only test change ready. No production style change is requested.
