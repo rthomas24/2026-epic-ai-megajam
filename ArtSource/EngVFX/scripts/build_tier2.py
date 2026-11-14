@@ -286,7 +286,7 @@ S2('NS_TD_ShieldDome', U(BASTION), [
 def cloak_hull():
     # 10h: SM_TD_VFX_RiftCloakShell = a non-Nanite copy of SM_Rift (Niagara mesh particles drew nothing with the Nanite
     # hull), and M_TD_VFX_CloakOverlay on it: translucent, a deep magenta inside (the hull reads darker) and a magenta rim.
-    return mesh_single('Hull', 'SM_TD_VFX_RiftCloakShell', 'M_TD_VFX_CloakOverlay', '1.03, 1.03, 1.03', 1.0, None,
+    return mesh_single('Hull', 'SM_TD_VFX_RiftCloakShell', 'M_TD_VFX_CloakShell2', '1.06, 1.06, 1.06', 1.0, None,   # 10i: stronger rim, denser veil, 1.06
                        live_scale='float3(1,1,1)*(1.0 + 0.006*sin(Engine.Time*9.0))')
 
 
