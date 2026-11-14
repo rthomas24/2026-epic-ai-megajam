@@ -338,6 +338,10 @@ struct FTDWaveInfo
 	/** Director's Cut scene id for this wave, e.g. "Wave3". */
 	UPROPERTY(BlueprintReadWrite, Category = "TriadDrift|Waves")
 	FName SceneId = NAME_None;
+
+	/** This wave's own objective line while it is active (wave 5: "BREAK THE DOMINION GUARD"); empty = the generic line. */
+	UPROPERTY(BlueprintReadWrite, Category = "TriadDrift|Waves")
+	FText ObjectiveText;
 };
 
 /** Everything a damage receiver needs to know about one hit. */
