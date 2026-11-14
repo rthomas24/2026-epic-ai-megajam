@@ -96,6 +96,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 GraveyardHulls = 5;
 	/** Region 7, the Outer Dark: lone rocks with gravel from this distance (cm) to the play bounds. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 OuterDarkRocks = 500;
+	/** The Outer Dark's watch: big lone rocks on the Dominion run-in, before the Shattered Moons (Lead, Nov 14). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 OuterWatchRocks = 12;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 IceDriftRocks = 900;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRocks = 500;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRubble = 400;
