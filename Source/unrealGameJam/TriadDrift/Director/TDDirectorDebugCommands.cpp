@@ -467,6 +467,33 @@ namespace TDDirectorDebug
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Switch));
 	static FAutoConsoleCommandWithWorldAndArgs CmdWipe(TEXT("TD.Squad.Wipe"), TEXT("TD.Squad.Wipe: kill all three squad ships (CUT! + retake)"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Wipe));
+	static FAutoConsoleCommandWithWorldAndArgs CmdShot(TEXT("TD.Director.Shot"),
+		TEXT("TD.Director.Shot [RamKill|MissileReturn|MultiKill|GeneratorKill|ReactorKill|PerfectDeflect|SwitchStrikeKill|AbilityCombo|CarrierKill]: a director shot of that kind on the flown ship, no kill needed (dev, captures)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			UTDDirectorSubsystem* D = World ? UTDDirectorSubsystem::Get(World) : nullptr;
+			const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+			AActor* Ship = PC ? PC->GetPawn() : nullptr;
+			if (!D || !Ship)
+			{
+				UE_LOG(LogTriadDrift, Warning, TEXT("TD.Director.Shot: no director or no flown ship"));
+				return;
+			}
+			ETDHighlightKind Kind = ETDHighlightKind::RamKill;
+			if (Args.Num() > 0)
+			{
+				const int64 V = StaticEnum<ETDHighlightKind>()->GetValueByNameString(Args[0]);
+				if (V == INDEX_NONE)
+				{
+					UE_LOG(LogTriadDrift, Warning, TEXT("TD.Director.Shot: no kind %s"), *Args[0]);
+					return;
+				}
+				Kind = static_cast<ETDHighlightKind>(V);
+			}
+			const bool bStarted = D->ReportHighlight(Kind, Ship, 1.f);
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Director.Shot %s on %s: %s"), *UEnum::GetValueAsString(Kind), *Ship->GetName(),
+				bStarted ? TEXT("started") : TEXT("refused (cooldown, a held view, or the director is off)"));
+		}));
 	static FAutoConsoleCommandWithWorldAndArgs CmdRam(TEXT("TD.Director.RamKill"), TEXT("TD.Director.RamKill: Lancer rams a real fighter"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&RamKill));
 	static FAutoConsoleCommandWithWorldAndArgs CmdReveal(TEXT("TD.Director.RevealDominion"), TEXT("TD.Director.RevealDominion: reveal the Dominion"),
