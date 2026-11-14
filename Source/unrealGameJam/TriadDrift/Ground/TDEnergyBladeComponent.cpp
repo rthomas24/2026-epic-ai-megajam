@@ -16,6 +16,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/World.h"
 #include "Misc/PackageName.h"
+#include "NiagaraComponent.h"
 #include "HAL/IConsoleManager.h"
 
 static TAutoConsoleVariable<int32> CVarBladeLogHits(TEXT("td.Blade.LogHits"), 0,
@@ -100,13 +101,25 @@ void UTDEnergyBladeComponent::PlayBladeCue(FName Name, const FTDFXCue* Cue, bool
 	{
 		return;
 	}
+	// #163: ignite and retract play on the visible blade's emitter (+X up the beam); everything else as before.
+	const ATDFirstPersonCharacter* Pilot = Cast<ATDFirstPersonCharacter>(GetOwner());
+	USceneComponent* Beam = Pilot && (Name == TEXT("Ignite") || Name == TEXT("Retract")) ? Pilot->GetVisibleBladeBeam() : nullptr;
+	UNiagaraComponent* FX = nullptr;
 	if (bAttached)
 	{
-		UTDStatics::PlayCueAttached(*Cue, GetOwner()->GetRootComponent());
+		FX = UTDStatics::PlayCueAttached(*Cue, Beam ? Beam : GetOwner()->GetRootComponent());
+		if (FX && Beam)
+		{
+			FX->SetUsingAbsoluteScale(true); // the beam is scaled along X by its length
+		}
 	}
 	else
 	{
-		UTDStatics::PlayCue(this, *Cue, Location, Rotation ? *Rotation : GetOwner()->GetActorRotation());
+		FX = UTDStatics::PlayCue(this, *Cue, Location, Rotation ? *Rotation : GetOwner()->GetActorRotation());
+	}
+	if (FX && Pilot)
+	{
+		FX->SetVariableLinearColor(TEXT("Color"), Pilot->GetBladeColor()); // the pilot's squad colour (#163)
 	}
 }
 

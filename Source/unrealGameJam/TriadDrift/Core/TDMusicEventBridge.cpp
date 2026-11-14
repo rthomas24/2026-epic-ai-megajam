@@ -97,6 +97,21 @@ void UTDMusicEventBridge::Deinitialize()
 	{
 		Descent->OnRevealed.Remove(RevealedHandle);
 	}
+	// #138 (2): the dynamic subscriptions too (the story of the bound world, the event bus, the flown ship's landing).
+	if (UTDStorySubsystem* Story = BoundStory.Get())
+	{
+		Story->OnTransmission.RemoveDynamic(this, &UTDMusicEventBridge::HandleTransmission);
+		Story->OnTransmissionEnded.RemoveDynamic(this, &UTDMusicEventBridge::HandleTransmissionEnded);
+		Story->OnSequenceFinished.RemoveDynamic(this, &UTDMusicEventBridge::HandleSequenceFinished);
+	}
+	BoundStory.Reset();
+	if (UTDLandingComponent* Landing = BoundLanding.Get()) { Landing->OnLandingStateChanged.RemoveDynamic(this, &UTDMusicEventBridge::HandleLandingState); }
+	BoundLanding.Reset();
+	if (bPhaseBound)
+	{
+		if (UTDEventBus* Bus = GetGameInstance() ? GetGameInstance()->GetSubsystem<UTDEventBus>() : nullptr) { Bus->OnPhaseChanged.RemoveDynamic(this, &UTDMusicEventBridge::HandlePhase); }
+		bPhaseBound = false;
+	}
 	Super::Deinitialize();
 }
 
@@ -137,8 +152,16 @@ FTDMusicBridgeState UTDMusicEventBridge::GetMusicState() const
 	return S;
 }
 
+bool UTDMusicEventBridge::IsOurBackdrop(const ATDMenuBackdrop* Backdrop) const
+{
+	// #138 (1): the backdrop's delegates are static; a backdrop of another game instance (a second PIE world) is not ours.
+	const UWorld* World = Backdrop ? Backdrop->GetWorld() : nullptr;
+	return !Backdrop || (World && World->GetGameInstance() == GetGameInstance());
+}
+
 void UTDMusicEventBridge::HandleVictoryBegan(ATDMenuBackdrop* Backdrop)
 {
+	if (!IsOurBackdrop(Backdrop)) { return; } // check first, mutate after
 	bVictory = true;
 	bStinger = false;
 	bStingerDone = false;
@@ -149,6 +172,7 @@ void UTDMusicEventBridge::HandleVictoryBegan(ATDMenuBackdrop* Backdrop)
 
 void UTDMusicEventBridge::HandleStinger(ATDMenuBackdrop* Backdrop)
 {
+	if (!IsOurBackdrop(Backdrop)) { return; }
 	bStinger = true;
 	bStingerDone = false;
 	StingerPending = StingerLines();
@@ -158,6 +182,7 @@ void UTDMusicEventBridge::HandleStinger(ATDMenuBackdrop* Backdrop)
 
 void UTDMusicEventBridge::HandleVictoryEnded(ATDMenuBackdrop* Backdrop)
 {
+	if (!IsOurBackdrop(Backdrop)) { return; }
 	if (bStingerWaiting) { FinishStinger(false); } // the screen closed before the last line: done, cut short
 	bVictory = false;
 	Emit(VictoryEnded, Backdrop ? (UObject*)Backdrop->GetWorld() : (UObject*)CurrentWorld(), NAME_None, false);
@@ -267,6 +292,10 @@ void UTDMusicEventBridge::Tick(float DeltaTime)
 			Story->OnTransmissionEnded.AddUniqueDynamic(this, &UTDMusicEventBridge::HandleTransmissionEnded);
 			Story->OnSequenceFinished.AddUniqueDynamic(this, &UTDMusicEventBridge::HandleSequenceFinished);
 			BoundStory = Story;
+			// #138 (3): a late bind catches up - the line on air now is the snapshot's transmission (no event: it began before).
+			const FTDTransmissionView Now = Story->GetCurrentTransmission();
+			bTransmission = Now.bActive;
+			Transmission = Now.bActive ? Now.Id : NAME_None;
 		}
 	}
 	TickStinger(World);
@@ -280,5 +309,6 @@ void UTDMusicEventBridge::Tick(float DeltaTime)
 		if (UTDLandingComponent* Old = BoundLanding.Get()) { Old->OnLandingStateChanged.RemoveDynamic(this, &UTDMusicEventBridge::HandleLandingState); }
 		if (Landing) { Landing->OnLandingStateChanged.AddUniqueDynamic(this, &UTDMusicEventBridge::HandleLandingState); }
 		BoundLanding = Landing;
+		if (Landing && Ship->IsPlayerFlown()) { bParked = Landing->IsLanded(); } // #138 (3): seeded from the ship's state now
 	}
 }

@@ -771,6 +771,23 @@ void ATDSquadManager::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamag
 	// The player scored: sometimes a wingman reacts; three in 4 s is a multi-kill (ENG-43).
 	if (const ATDShip* Player = GetActiveShip(); Player && Killer == Player && UTDStatics::AreHostile(Killer, Victim))
 	{
+		// Bark_Swarm_Saved: the player flies Bastion and an explosive kill (the missile swarm) takes an enemy off a
+		// wingman that was in trouble (under half hull). Read at the kill, so the attacker was on it to the end. At most
+		// one every 20 s; it stands in for the usual kill reaction.
+		if (ActiveShipId == ETDShipId::Bastion && Kind == ETDDamageKind::Explosive && RealNow() - LastSwarmSavedBarkTime > 20.0)
+		{
+			const AActor* Hunted = TDSquad::GetEnemyTarget(Victim);
+			for (const FTDSquadSlot& Slot : Slots)
+			{
+				if (Slot.Ship && Slot.Ship == Hunted && Slot.ShipId != ActiveShipId && Slot.State == ETDSquadSlotState::Alive
+					&& TDSquad::GetHull01(Slot.Ship) < 0.5f)
+				{
+					LastSwarmSavedBarkTime = RealNow();
+					RequestSquadBark(FName(TEXT("Bark_Swarm_Saved")), ETDShipId::Bastion);
+					return;
+				}
+			}
+		}
 		NotePlayerKill();
 		return;
 	}

@@ -456,3 +456,90 @@ def debris_shroud():
 
 DEBRIS = [debris_plate_a, debris_plate_b, debris_plate_c, debris_truss, debris_turret, debris_shroud]
 BUILDERS = BUILDERS + DEBRIS
+
+
+# ------------------------------------------------------------------------------------------------ Dominion hull chunks (breakup)
+def _hull_chunk(name, L, prof, seed, decks, tower=None):
+    """batch AE (#breakup): a section of the Dominion's hull for the final blast, 90-140 m long so T4's breakup scales it
+    near 1 (it throws chunks 16-30 % of the hull's length). The outer armour shell runs along X; both ends are torn open
+    (ragged plating teeth), 6 m inside each end a black bulkhead, and between them the exposed deck slabs with dying-ember
+    edges; red seams near the tears; a dorsal superstructure block on the long one."""
+    p = Piece(name, None)
+    rnd = random.Random(seed)
+    n = len(prof)
+    xa, xb = -L / 2.0, L / 2.0
+    lip = 600.0
+    # per-corner tear lengths at each end (0 = cut flush, up to 18 m of plating running on)
+    TEAR = {(s_, k): (rnd.uniform(400.0, 1800.0) if rnd.random() < 0.55 else rnd.uniform(0.0, 150.0)) for s_ in (-1.0, 1.0) for k in range(n)}
+    # the outer shell, open at both ends
+    p.prism(prof, "yz", xa, xb, regs=["wallB", "wall", "wallB", "wall", "wallB", "wall"][:n], cap_reg="wall", caps=False, mat="Dom")
+    cy = sum(q[0] for q in prof) / n
+    cz = sum(q[1] for q in prof) / n
+    inner = [(cy + (y - cy) * 0.94, cz + (z - cz) * 0.94) for (y, z) in prof]
+    for (x0, x1, s) in ((xa, xa + lip, -1.0), (xb - lip, xb, 1.0)):
+        for k in range(n):
+            (ya, za), (yb, zb) = inner[k], inner[(k + 1) % n]
+            (oya, oza), (oyb, ozb) = prof[k], prof[(k + 1) % n]
+            nrm = (0.0, -((ya + yb) / 2 - cy), -((za + zb) / 2 - cz))
+            p.poly([(x0, ya, za), (x1, ya, za), (x1, yb, zb), (x0, yb, zb)], "sw_dark", uv=[(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)], mat="DomRaw", n=nrm)
+            # the shell's cut edge (its thickness) at the very end
+            xe = x0 if s < 0 else x1
+            p.poly([(xe, oya, oza), (xe, oyb, ozb), (xe, yb, zb), (xe, ya, za)], "frame", uv=[(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)], mat="Dom", n=(s, 0.0, 0.0))
+            # torn plating past the end: the rim runs on to a different length at every corner (a ragged edge),
+            # outer and inner faces
+            ta, tb = TEAR[(s, k)], TEAR[(s, (k + 1) % n)]
+            if ta + tb > 60.0:
+                q = [(xe, oya, oza), (xe, oyb, ozb), (xe + s * tb, oyb, ozb), (xe + s * ta, oya, oza)]
+                on = (0.0, (oya + oyb) / 2 - cy, (oza + ozb) / 2 - cz)
+                p.poly(q, "wall", uv=[(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)], mat="Dom", n=on)
+                p.poly(q, "sw_dark", uv=[(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)], mat="DomRaw", n=(0.0, -on[1], -on[2]))
+            # a red seam just inside the tear on the outer plating
+            if k % 2 == 1:
+                xs0, xs1 = sorted((xe - s * 250.0, xe - s * 450.0))
+                p.poly([(xs0, oya * 1.003, oza * 1.003), (xs1, oya * 1.003, oza * 1.003), (xs1, oyb * 1.003, ozb * 1.003), (xs0, oyb * 1.003, ozb * 1.003)],
+                       mat="Glow", n=(0.0, (oya + oyb) / 2 - cy, (oza + ozb) / 2 - cz))
+        # the bulkhead set back inside the end
+        xbk = x1 if s < 0 else x0
+        p.prism(inner, "yz", min(xbk, xbk - s * 80.0), max(xbk, xbk - s * 80.0), regs="sw_dark", cap_reg="sw_black", mat="DomRaw")
+    # exposed decks between the bulkhead and the tear, each with an ember edge
+    zmin = min(z for _, z in inner)
+    zmax = max(z for _, z in inner)
+    for d in range(1, decks + 1):
+        z = zmin + (zmax - zmin) * d / (decks + 1)
+        ys = [y for (y, zz) in inner]
+        w = (max(ys) - min(ys)) * 0.42
+        for (x0, x1, s) in ((xa + lip * 0.15, xa + lip, -1.0), (xb - lip, xb - lip * 0.15, 1.0)):
+            p.box((x0, cy - w, z - 60.0), (x1, cy + w, z), regs={"Z": "grate", "z": "sw_dark"}, reg="frame", mat="Dom")
+            xe = x0 if s < 0 else x1
+            xe0, xe1 = sorted((xe, xe - s * 40.0))
+            p.box((xe0, cy - w, z - 60.0), (xe1, cy + w, z - 20.0), mat="Ember")
+    if tower:
+        tx, tw, th = tower
+        ztop = max(z for _, z in prof)
+        p.box((tx - tw, -tw * 0.6, ztop - 50.0), (tx + tw, tw * 0.6, ztop + th), regs={"Z": "roof", "x": "wall", "X": "wall"}, reg="wallB", mat="Dom")
+        p.box((tx - tw * 0.6, -tw * 0.4, ztop + th), (tx + tw * 0.6, tw * 0.4, ztop + th * 1.4), regs={"Z": "roof"}, reg="wall", mat="Dom")
+        p.box((tx + tw - 2.0, -tw * 0.5, ztop + th * 0.55), (tx + tw + 4.0, tw * 0.5, ztop + th * 0.62), mat="Glow")
+    pts = [(x, y, z) for (y, z) in prof for x in (xa - 1400.0, xb + 1400.0)]
+    p.chull(pts)
+    return p
+
+
+def hull_chunk_a():
+    """The long mid-hull section: 140 m, a 60 x 32 m hexagonal armour shell, four exposed decks, a dorsal block."""
+    prof = [(-3000.0, -400.0), (-2200.0, -1600.0), (2200.0, -1600.0), (3000.0, -400.0), (2200.0, 1600.0), (-2200.0, 1600.0)]
+    return _hull_chunk("SM_KS_DomHullChunk_A", 14000.0, prof, 71, 4, tower=(1800.0, 1600.0, 1400.0))
+
+
+def hull_chunk_b():
+    """A flat flank section: 110 m, 70 x 22 m, three decks."""
+    prof = [(-3500.0, -200.0), (-3000.0, -1100.0), (3000.0, -1100.0), (3500.0, -200.0), (2600.0, 1100.0), (-2600.0, 1100.0)]
+    return _hull_chunk("SM_KS_DomHullChunk_B", 11000.0, prof, 73, 3)
+
+
+def hull_chunk_c():
+    """A keel / spine block: 90 m, a deep narrow 30 x 40 m shell, five decks, a dorsal fin stub."""
+    prof = [(-1500.0, -1200.0), (-900.0, -2000.0), (900.0, -2000.0), (1500.0, -1200.0), (900.0, 2000.0), (-900.0, 2000.0)]
+    return _hull_chunk("SM_KS_DomHullChunk_C", 9000.0, prof, 79, 5, tower=(-1500.0, 900.0, 1800.0))
+
+
+BUILDERS = BUILDERS + [hull_chunk_a, hull_chunk_b, hull_chunk_c]
