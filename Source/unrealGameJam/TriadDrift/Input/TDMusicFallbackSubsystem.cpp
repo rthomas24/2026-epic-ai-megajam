@@ -87,6 +87,8 @@ void UTDMusicFallbackSubsystem::HandleBridgeEvent(FName EventId, UObject* WorldC
 	if (EventId == UTDMusicEventBridge::VictoryBegan) { EventPlacement = ETDMusicPlacement::None; }
 	else if (EventId == UTDMusicEventBridge::VictoryStingerDone) { EventPlacement = ETDMusicPlacement::Credits; }
 	else if (EventId == UTDMusicEventBridge::VictoryEnded) { if (EventPlacement == ETDMusicPlacement::Credits) { EventPlacement = ETDMusicPlacement::None; } }
+	else if (EventId == UTDMusicEventBridge::GroundCombat) { bGroundFight = true; }
+	else if (EventId == UTDMusicEventBridge::GroundAllClear) { bGroundFight = false; }
 	else if (EventId == FName(TEXT("CoreChamberEntered"))) { EventPlacement = ETDMusicPlacement::CoreChamber; }
 	else if (EventId == FName(TEXT("ReactorFightStarted"))) { EventPlacement = ETDMusicPlacement::ReactorFight; }
 	else if (EventId == FName(TEXT("ReactorFightEnded"))) { if (EventPlacement == ETDMusicPlacement::ReactorFight) { EventPlacement = ETDMusicPlacement::None; } }
@@ -102,7 +104,7 @@ ETDMusicPlacement UTDMusicFallbackSubsystem::ComputeWanted() const
 		const FTDMusicBridgeState S = Bridge->GetMusicState();
 		if (S.Destination == FName(TEXT("Cinder")) && S.bPlanetRevealed)
 		{
-			return S.bGroundCombat ? ETDMusicPlacement::CinderCombat : ETDMusicPlacement::CinderExplore;
+			return (S.bGroundCombat || bGroundFight) ? ETDMusicPlacement::CinderCombat : ETDMusicPlacement::CinderExplore;
 		}
 	}
 	return ETDMusicPlacement::None;

@@ -99,18 +99,12 @@ bool FTDT1FallbackCinder::RunTest(const FString& Parameters)
 	TestEqual(TEXT("revealed: Cinder World (exploration)"), R.F->GetPlayingPlacement(), ETDMusicPlacement::CinderExplore);
 	TestTrue(TEXT("the director's beds hold meanwhile"), R.D->IsFallbackScorePlaying());
 
-	ATDEncounterVolume* E = R.W.Spawn<ATDEncounterVolume>(FVector(0.f, 0.f, 150.f));
-	if (!TestNotNull(TEXT("encounter"), E)) { return false; }
-	E->Count = 2;
-	E->bTriggerOnOverlap = false;
-	R.W.Advance(0.1f);
-	E->Activate();
+	// On foot: a crew encounter starts and clears (the bridge's GroundCombat / GroundAllClear from ATDEncounterVolume).
+	R.B->Emit(UTDMusicEventBridge::GroundCombat, R.W.GetWorld(), TEXT("Cinder"), false);
 	R.W.Advance(0.2f);
 	TestEqual(TEXT("a crew encounter: Cinder Fall (combat)"), R.F->GetPlayingPlacement(), ETDMusicPlacement::CinderCombat);
-	for (const TWeakObjectPtr<AActor>& M : E->GetSpawned())
-	{
-		if (UTDHealthComponent* H = M.IsValid() ? UTDStatics::GetHealth(M.Get()) : nullptr) { H->Kill(nullptr, ETDDamageKind::Melee); }
-	}
+	TestTrue(TEXT("... MUS_Cinder_Combat_Fall_Full_01"), R.F->GetPlayingTrack().ToString().Contains(TEXT("MUS_Cinder_Combat_Fall_Full_01")));
+	R.B->Emit(UTDMusicEventBridge::GroundAllClear, R.W.GetWorld(), TEXT("Cinder"), false);
 	R.W.Advance(0.2f);
 	TestEqual(TEXT("all clear: exploration again"), R.F->GetPlayingPlacement(), ETDMusicPlacement::CinderExplore);
 
