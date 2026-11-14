@@ -1,5 +1,7 @@
 # Triad Drift: Feature Spec & Work Split (Ryan × Nick)
 
+**Nick-side resumed November 14, 08:20 EST:** Nicholas authorized resumption (N-091). Current bounded specialist reconciliation tasks are in Nick-side CLAIMS.md. This supersedes the stopped notice below; historical queues do not restart automatically. Engineering fallbacks and owners continue; no local native job or subjective approval granted.
+
 **Nick-side availability, November 14 at01:16EST:** Nicholas explicitly stopped his Codex agents at safe checkpoints. Lead, Story, UI/HUD, Audio and Auditor are stopped; Lead's goal and the recurring issue check are paused. Existing features and acceptance gates remain unchanged. No Nick-side queued row authorizes restart before Nicholas resumes the team. Ryan's development continues under its existing authority. See CLAIMS.md and MESSAGEBOARD N-090.
 
 > **Working title:** Triad Drift · **Jam:** 2026 Epic AI MegaJam · **Engine:** UE 5.9 (MegaJam Preview), project `unrealGameJam`

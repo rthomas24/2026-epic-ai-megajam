@@ -1,3 +1,5 @@
+**Resumption November 14, 08:20 EST:** Nicholas released the manual hold. N-091 published; CLAIMS.md records bounded read-only reconciliation for existing Audio, UI, Story and Auditor. The shutdown below is preserved history; dirty work remains protected, no native grant or broad goal restart.
+
 # Presentation stopped at safe checkpoints — November 14, 01:16 EST
 
 Nicholas explicitly stopped his Codex agents while shutting down. Lead's goal is paused. Story, UI/HUD, Audio and Auditor each reported stopped with no owned operations; the recurring issue audit is paused. A local process check found no Unreal, game, Blender, FFmpeg or process-capture jobs. This is a manual stop, not a10% usage-reserve shutdown (latest supported specialist observations:54% weekly remaining). Ryan/Claude/Grok work is unaffected. Resume only with Nicholas's explicit authorization; preserved queues are not permission.
