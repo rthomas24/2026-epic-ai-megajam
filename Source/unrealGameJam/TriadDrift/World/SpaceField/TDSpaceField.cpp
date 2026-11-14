@@ -114,8 +114,15 @@ void ATDSpaceField::BeginPlay()
 	// One tree build per component at the end, not one per added instance (the galaxy load's long frame, Lead, Nov 14).
 	const double BuildStart = FPlatformTime::Seconds();
 	bBuildingField = true;
+	PendingColliderBase = Collision ? Collision->GetInstanceCount() : 0;
+	PendingColliderXf.Reset();
 	Build();
 	bBuildingField = false;
+	if (Collision && PendingColliderXf.Num() > 0)
+	{
+		Collision->AddInstances(PendingColliderXf, /*bShouldReturnIndices*/ false, /*bWorldSpace*/ true);
+	}
+	PendingColliderXf.Empty();
 	for (const TPair<FString, TObjectPtr<UHierarchicalInstancedStaticMeshComponent>>& KV : Components)
 	{
 		if (UHierarchicalInstancedStaticMeshComponent* C = KV.Value)

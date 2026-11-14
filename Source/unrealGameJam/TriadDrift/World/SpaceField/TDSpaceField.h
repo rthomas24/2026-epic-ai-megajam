@@ -402,6 +402,9 @@ private:
 	bool bMoonPlacement = false;
 	/** True inside Build(): the instanced components skip their per-instance tree rebuild (one build at the end). */
 	bool bBuildingField = false;
+	/** Collision spheres collected during Build and added in one batch (their indices are handed out ahead). */
+	TArray<FTransform> PendingColliderXf;
+	int32 PendingColliderBase = 0;
 	/** While true, new rock components are the Ice Drift's own (raised ice glow). */
 	bool bIceDriftPlacement = false;
 	/** T4's journey key points (ATDGalaxyLayout::GetJourneyKeyPoints), read at Build: keep-outs and routes stay clear. */

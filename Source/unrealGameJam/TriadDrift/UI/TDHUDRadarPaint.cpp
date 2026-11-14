@@ -388,19 +388,7 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 			K.WaveText = bNext ? FString::Printf(TEXT("NEXT WAVE %d / %d"), Shown, K.Count) : FString::Printf(TEXT("WAVE %d / %d"), Shown, K.Count);
 		}
 		D.Text(HX + 10.f, HY + 7.f * D.FontK, K.WaveText, 14, Pal::Ink(), "Bold", 0.f);
-		// Pips: cleared = filled ink, current = hostile, to come = hollow.
-		const int32 Pips = FMath::Min(In.Wave.WaveCount, 8);
-		// After the wave text, wherever it ends (it is larger on small screens).
-		const float PipX0 = HX + 10.f + FMath::Max(HW * .34f, P.Measure(K.WaveText, FTDUIPainter::MakeFont("Bold", FMath::Max(1, FMath::RoundToInt(14 * D.FontK)), P.Scale, 20))) + 14.f * S;
-		for (int32 I = 0; I < Pips; ++I)
-		{
-			const FVector2D Pip(PipX0 + I * 11.f * S, HY + HH * .5f);
-			const int32 Number = I + 1;
-			if (Number < Shown) { D.Dot(Pip, 6.f * S, Pal::Ink().CopyWithNewOpacity(.85f)); }
-			else if (Number == Shown && !bNext) { D.Dot(Pip, 7.f * S, Pal::Hostile()); }
-			else if (Number == Shown) { D.Shape(Pip, { { -3.5f * S, -3.5f * S }, { 3.5f * S, -3.5f * S }, { 3.5f * S, 3.5f * S }, { -3.5f * S, 3.5f * S } }, Pal::Hostile(), 1.4f, true); }	// coming: hollow, hostile
-			else { D.Shape(Pip, { { -3 * S, -3 * S }, { 3 * S, -3 * S }, { 3 * S, 3 * S }, { -3 * S, 3 * S } }, Pal::Muted().CopyWithNewOpacity(.7f), 1.f, true); }
-		}
+		const FString* TimerText = nullptr;
 		// The next group from T4's GetPendingGroups (Incoming contacts), soonest first.
 		const FTDRadarContact* Next = nullptr;
 		for (const FTDRadarContact& Ct : Model.Contacts)
@@ -412,12 +400,30 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 			const int32 Secs = FMath::CeilToInt(FMath::Max(0.f, In.Wave.BreatherRemaining));
 			if (K.Breather != Secs) { K.Breather = Secs; K.BreatherText = FString::Printf(TEXT("%d:%02d"), Secs / 60, Secs % 60); }
 			D.Text(HX + HW - 10.f, HY + 8.f * D.FontK, K.BreatherText, 12, Pal::Muted(), "Mono", 1.f);
+			TimerText = &K.BreatherText;
 		}
 		else if (Next)
 		{
 			const int32 Secs = FMath::CeilToInt(FMath::Max(0.f, Next->Seconds));
 			if (K.Next != Next->Count || K.NextIn != Secs) { K.Next = Next->Count; K.NextIn = Secs; K.NextText = FString::Printf(TEXT("+%d %d:%02d"), Next->Count, Secs / 60, Secs % 60); }
 			D.Text(HX + HW - 10.f, HY + 8.f * D.FontK, K.NextText, 12, Pal::Hostile(), "Mono", 1.f);
+			TimerText = &K.NextText;
+		}
+		const float TimerW = TimerText ? P.Measure(*TimerText, FTDUIPainter::MakeFont("Mono", FMath::Max(1, FMath::RoundToInt(12 * D.FontK)), P.Scale, 20)) + 18.f : 0.f;
+		// Pips: cleared = filled ink, current = hostile, to come = hollow.
+		const int32 Pips = FMath::Min(In.Wave.WaveCount, 8);
+		// After the wave text, wherever it ends (it is larger on small screens).
+		const float PipX0 = HX + 10.f + FMath::Max(HW * .34f, P.Measure(K.WaveText, FTDUIPainter::MakeFont("Bold", FMath::Max(1, FMath::RoundToInt(14 * D.FontK)), P.Scale, 20))) + 14.f * S;
+		// The pips give way to the timer when the header is too narrow for both (720p, "NEXT WAVE", a long timer).
+		const bool bPipsFit = PipX0 + Pips * 11.f * S <= HX + HW - 10.f - TimerW;
+		for (int32 I = 0; bPipsFit && I < Pips; ++I)
+		{
+			const FVector2D Pip(PipX0 + I * 11.f * S, HY + HH * .5f);
+			const int32 Number = I + 1;
+			if (Number < Shown) { D.Dot(Pip, 6.f * S, Pal::Ink().CopyWithNewOpacity(.85f)); }
+			else if (Number == Shown && !bNext) { D.Dot(Pip, 7.f * S, Pal::Hostile()); }
+			else if (Number == Shown) { D.Shape(Pip, { { -3.5f * S, -3.5f * S }, { 3.5f * S, -3.5f * S }, { 3.5f * S, 3.5f * S }, { -3.5f * S, 3.5f * S } }, Pal::Hostile(), 1.4f, true); }	// coming: hollow, hostile
+			else { D.Shape(Pip, { { -3 * S, -3 * S }, { 3 * S, -3 * S }, { 3 * S, 3 * S }, { -3 * S, 3 * S } }, Pal::Muted().CopyWithNewOpacity(.7f), 1.f, true); }
 		}
 	}
 }
