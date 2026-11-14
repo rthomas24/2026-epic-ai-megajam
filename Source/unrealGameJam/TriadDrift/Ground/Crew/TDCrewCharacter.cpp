@@ -1009,6 +1009,8 @@ void ATDCrewCharacter::DoMelee()
 
 void ATDCrewCharacter::FireBolt(const FVector& Direction, float Damage, float Speed, float Radius)
 {
+	LogHitInstant(TEXT("Fire")); // td.Crew.LogHits: shot times, to read the no-shot-after-a-melee-hit rule
+
 	UWorld* World = GetWorld();
 	if (!World || Direction.IsNearlyZero())
 	{
