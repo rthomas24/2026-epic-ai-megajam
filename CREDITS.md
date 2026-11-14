@@ -196,6 +196,8 @@ The Verdance buried-structure scan and the Cinder comparison overlay were create
 
 Nicholas Tosti supplied Ambient1 for quiet space flight. Audio used FFmpeg to decode the full stereo track and the Unreal Engine 5.9 editor Python API to import and reload its SoundWave. [Source and tool record](ArtSource/Audio/IdleAmbient01/source_manifest.json).
 
+Hero's Wake / Ambient1, intro opening bed (#146): `MUS_IntroAmbient_HerosWake_01` in `Content/TriadDrift/Audio/IntroAmbient01/`, the Candidate01 export Nicholas approved for in-game audition (a 20 s seamless loop prepared by Nicholas's audio team from his supplied Hero's Wake track, SHA256 `0633e5eb…72c8`). Imported and bound to `DA_UI_Style.IntroOpeningBed` by Claude Code / Teammate 3 with the Unreal Engine 5.9 editor Python API (`Tools/td-import-intro-bed.py`); no new music generated.
+
 Credits playlist implementation and verification: Nicholas Tosti supplied the music; the presentation team used OpenAI Codex, Unreal Engine 5.9, Windows WASAPI process capture, FFmpeg and Python for playback, lossless excerpting and source comparison. [Listen to the game recording](docs/visual/Submission/MusicBuild01/credits-playback.md).
 
 Ethereal Pulse (Remix): see the canonical **Combat music candidate** entry above for the standalone combat asset and distinct tutorial/credits uses, qualified to reported ddc50a2f. Original Suno attribution and FFmpeg/Python/Unreal Engine 5.9 preparation history: [track provenance and preparation](https://github.com/rthomas24/2026-epic-ai-megajam/blob/nick/audio-prototype-v1/ArtSource/Audio/CombatMusic01/CREDITS.md).
