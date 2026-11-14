@@ -87,6 +87,11 @@ def ensure_trim_grime(tex, notes):
     orm = tp("ORMTex", tex["ORM"], S.SAMPLERTYPE_MASKS, 0)
     n1, n2 = noise(0.0011, 300), noise(0.0065, 500)
     amt, rgh = sp("GrimeAmount", 0.45, 700), sp("GrimeRough", 0.2, 800)
+    # batch W: GrimeScale (default 1 = unchanged) scales the noise position, so a huge piece (the 261 m moon shards'
+    # strata) can take 100+ m value blotches that break the trim sheet's repeat at 1 km
+    wp = node(unreal.MaterialExpressionWorldPosition, -1500, 400)
+    gs = sp("GrimeScale", 1.0, 900)
+    wps = node(unreal.MaterialExpressionMultiply, -1350, 400)
     g = node(unreal.MaterialExpressionMultiply, -900, 400)           # 0..1 grime mask = n1 * n2
     inv = node(unreal.MaterialExpressionOneMinus, -750, 400)
     lerp = node(unreal.MaterialExpressionLinearInterpolate, -600, 400)   # value = lerp(1 - amt, 1, 1 - mask)
@@ -97,6 +102,10 @@ def ensure_trim_grime(tex, notes):
     gr = node(unreal.MaterialExpressionMultiply, -600, 800)           # roughness add = mask * GrimeRough
     ro = node(unreal.MaterialExpressionAdd, -400, 100)
     ok = True
+    ok &= mel.connect_material_expressions(wp, "", wps, "A")
+    ok &= mel.connect_material_expressions(gs, "", wps, "B")
+    ok &= mel.connect_material_expressions(wps, "", n1, "World Position")
+    ok &= mel.connect_material_expressions(wps, "", n2, "World Position")
     ok &= mel.connect_material_expressions(n1, "", g, "A")
     ok &= mel.connect_material_expressions(n2, "", g, "B")
     ok &= mel.connect_material_expressions(g, "", inv, "")

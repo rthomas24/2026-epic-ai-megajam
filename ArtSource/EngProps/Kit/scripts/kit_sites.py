@@ -571,7 +571,9 @@ def survey_stations():
         c.append(piece("Shield_%d" % x, ST + "SM_Kit_HeatShieldCracked", x, -230.0, 100.0 + L, 0.0, slots=gc))
         c.append(piece("Rail_%d" % x, "SM_Kit_Railing_400", x, 200.0, 100.0 + L, 180.0))
     c.append(piece("Rail_back", "SM_Kit_Railing_400", -400.0, 0.0, 100.0 + L, 90.0))
-    c.append(piece("Rack", ST + "SM_Kit_SampleCases", -300.0, 120.0, 100.0 + L, 90.0))
+    # batch W (walk test: the pawn climbed the rack at the back rail and went over it): the rack stands on the ground
+    # beside the +Y side, 1.3 m clear of the deck rail, nothing on the deck to climb
+    c.append(piece("Rack", ST + "SM_Kit_SampleCases", 150.0, 360.0, L, 0.0))
     c.append(piece("Console", "SM_Kit_Console", -330.0, -80.0, 100.0 + L, 0.0, slots={"Screen": K + "MI_Kit_Screen"}))
     c.append(piece("Beacon", ST + "SM_Kit_WarningBeacon", 150.0, -170.0, 100.0 + L, 0.0, slots={"Beacon": K + "MI_Kit_Beacon_Cinder"}))
     return {"SurveyStation_Verdance": {"site": "SurveyStation_Verdance", "actor": K + "Sites/BP_SurveyStation_Verdance",
@@ -585,7 +587,9 @@ def survey_stations():
                 "pieces": c,
                 "footprint_cm": {"x": [-400, 1000], "y": [-280, 200]}, "deck_top_z": 103,
                 "stair_foot_site_cm": [1000, 0, 3], "console_stand_site_cm": [[-220, -80, 103, 180]],
-                "placement_rules": ["Pivot on flat ground; the shield wall (-Y) faces the lava; keep 3 m clear past the ramp foot (+X)."]}}
+                "tested_site_world_cm": [-3500, 2000, 2], "footprint_with_rack_cm": {"x": [-400, 1000], "y": [-280, 420]},
+                "placement_rules": ["Pivot on flat ground; the shield wall (-Y) faces the lava; keep 3 m clear past the ramp foot (+X).",
+                                    "Not inside the course keep-outs (the magma river is X 4500..6700, Y 1100..8500); walk-tested at (-3500, 2000)."]}}
 
 
 def ship_gear():
