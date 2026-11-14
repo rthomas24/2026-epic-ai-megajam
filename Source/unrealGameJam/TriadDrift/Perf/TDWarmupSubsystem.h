@@ -35,6 +35,15 @@ class UNREALGAMEJAM_API UTDWarmupSubsystem : public UTickableWorldSubsystem
 public:
 	static UTDWarmupSubsystem* Get(const UObject* WorldContextObject);
 
+	/** True until what the data assets point at is in memory (waiting, loading the data, loading the content). */
+	bool IsLoading() const { return Stage == ETDWarmupStage::Waiting || Stage == ETDWarmupStage::LoadingData || Stage == ETDWarmupStage::LoadingContent; }
+	/**
+	 * Under a full-screen cover (the white of a planet climb-out, T6 for #89): start now and block on the async loads,
+	 * one flush per call, so the stream is finished before the player sees the level. Left to run in the open, the
+	 * first enemy to warp in forced nine FlushAsyncLoading calls on 445 pending packages in the first 6 s (239 ms worst).
+	 */
+	void HurryUnderCover();
+
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;

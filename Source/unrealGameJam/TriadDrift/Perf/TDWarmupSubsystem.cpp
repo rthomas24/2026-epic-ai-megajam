@@ -206,6 +206,19 @@ void UTDWarmupSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	WaitLeft = StartDelaySeconds;
 }
 
+void UTDWarmupSubsystem::HurryUnderCover()
+{
+	if (Stage == ETDWarmupStage::Waiting)
+	{
+		WaitLeft = 0.f;
+		StartDataLoad();
+	}
+	if (Stage == ETDWarmupStage::LoadingData || Stage == ETDWarmupStage::LoadingContent)
+	{
+		FlushAsyncLoading();	// the stream's own callbacks move the stage on
+	}
+}
+
 void UTDWarmupSubsystem::StartDataLoad()
 {
 	IAssetRegistry* Registry = IAssetRegistry::Get();
