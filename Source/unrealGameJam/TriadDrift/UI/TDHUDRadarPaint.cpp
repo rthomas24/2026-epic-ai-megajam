@@ -23,13 +23,25 @@ namespace TDHUDRadar
 		return Points;
 	}
 
+	/** T2's small-screen rule (the squad panel's, 3f6b57c3), from the painter's own geometry: real pixels per design unit =
+	 *  the frame fit times UMG's DPI scale. Under 900 / 1080 the radar draws at 85% of its 1080 pixel size and its text at
+	 *  the 1080 pixel size; otherwise 1. */
+	static void Fit(const FTDUIPainter& P, float& OutK, float& OutFont)
+	{
+		const float Real = P.Scale * FMath::Max(.01f, P.G.GetAccumulatedLayoutTransform().GetScale());
+		const bool bSmall = Real > 0.f && Real < 900.f / 1080.f;
+		OutK = bSmall ? .85f / Real : 1.f;
+		OutFont = bSmall ? 1.f / Real : 1.f;
+	}
+
 	struct FRadarPaint
 	{
 		const FTDUIPainter& P;
 		FVector2D C;
 		float R;
-		/** Small screens (under 900 px tall): the radar at 85%, text never under 12 px on screen. */
+		/** Design-unit multiplier for sizes (T2's rule, see Fit) and for font sizes. */
 		float Shrink;
+		float FontK = 1.f;
 
 		FVector2D Px(const FVector2D& D) const { return D * P.Scale + P.Origin; }
 		void Lines(const TArray<FVector2D>& Pts, FLinearColor Col, float Width, int32 LayerAdd = 1) const
@@ -84,7 +96,7 @@ namespace TDHUDRadar
 		/** Text at design (X, Y), Align 0 left / .5 centre / 1 right; at least 12 px on screen. */
 		void Text(float X, float Y, const FString& S, int32 Size, FLinearColor Col, const ANSICHAR* Face, float Align) const
 		{
-			const int32 Design = FMath::Max(Size, FMath::CeilToInt(12.f / FMath::Max(P.Scale, .01f)));
+			const int32 Design = FMath::Max(1, FMath::RoundToInt(Size * FontK));
 			const FSlateFontInfo Font = FTDUIPainter::MakeFont(Face, Design, P.Scale, 20);
 			const float W = Align > 0.f ? P.Measure(S, Font) : 0.f;
 			FSlateDrawElement::MakeText(P.List, P.Layer + 2, P.Geo({ X - W * Align, Y }, { 1, 1 }), S, Font, ESlateDrawEffect::None, P.Faded(Col));
@@ -174,18 +186,20 @@ namespace TDHUDRadar
 FBox2D TDHUDRadarBox(const FTDUIPainter& P)
 {
 	using namespace TDHUDRadar;
-	const float Shrink = 1.f;	// full size at every resolution (Lead, Nov 14: it read small at 720p); text is floored at 12 px on screen
-	const float R = Radius * Shrink;
-	const FVector2D C(CX + (Radius - R), CY + (Radius - R));	// shrinks into the bottom-right corner, away from the subtitles
-	return FBox2D(FVector2D(C.X - R, C.Y - R - HeaderGap - HeaderH), FVector2D(C.X + R, C.Y + R));
+	float K = 1.f, Font = 1.f;
+	Fit(P, K, Font);
+	const float R = Radius * K;
+	const FVector2D C(CX + Radius - R, CY + Radius - R);	// anchored to the bottom-right corner of the safe frame
+	return FBox2D(FVector2D(C.X - R, C.Y - R - HeaderGap - HeaderH * Font), FVector2D(C.X + R, C.Y + R));
 }
 
 void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDHUDRadarInput& In)
 {
 	using namespace TDHUDRadar;
-	const float Shrink = 1.f;	// full size at every resolution (Lead, Nov 14: it read small at 720p); text is floored at 12 px on screen
+	float Shrink = 1.f, FontK = 1.f;
+	Fit(P, Shrink, FontK);
 	const float R = Radius * Shrink;
-	const FRadarPaint D{ P, FVector2D(CX + (Radius - R), CY + (Radius - R)), R, Shrink };
+	const FRadarPaint D{ P, FVector2D(CX + Radius - R, CY + Radius - R), R, Shrink, FontK };	// anchored to the bottom-right of the safe frame
 	const FVector2D& C = D.C;
 	const float S = Shrink;	// glyph scale
 	const float Range = FMath::Max(Model.RadarRange, 1.f);
@@ -222,7 +236,7 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 		K.Range = Range;
 		K.RangeText = Range >= 1000.f ? FString::Printf(TEXT("%.1f KM"), Range / 1000.f) : FString::Printf(TEXT("%.0f M"), Range);
 	}
-	D.Text(C.X, C.Y + R - 20.f, K.RangeText, 12, Pal::Muted().CopyWithNewOpacity(.8f), "Mono", .5f);
+	D.Text(C.X, C.Y + R - 20.f * D.FontK, K.RangeText, 12, Pal::Muted().CopyWithNewOpacity(.8f), "Mono", .5f);
 
 	// ---- contacts (the model holds at most MaxContacts, nearest first after the must-shows)
 	const float Flash = FMath::Fmod(In.Time * 2.5f, 1.f) < .55f ? 1.f : .25f;	// missiles: 2.5 Hz
@@ -315,22 +329,23 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 	// ---- wave header above the radar: WAVE n / N, a pip per wave, the next group (+count, seconds) or NEXT WAVE
 	if (In.Wave.WaveCount > 0)
 	{
-		const float HX = C.X - R, HY = C.Y - R - HeaderGap - HeaderH, HW = 2.f * R;
-		P.Box(HX, HY, HW, HeaderH, Pal::Panel().CopyWithNewOpacity(.88f));
-		D.Seg(FVector2D(HX, HY + HeaderH), FVector2D(HX + HW * .4f, HY + HeaderH), Pal::Hostile().CopyWithNewOpacity(.55f), 1.5f);
+		const float HH = HeaderH * D.FontK;	// the header grows with its text
+		const float HX = C.X - R, HY = C.Y - R - HeaderGap - HH, HW = 2.f * R;
+		P.Box(HX, HY, HW, HH, Pal::Panel().CopyWithNewOpacity(.88f));
+		D.Seg(FVector2D(HX, HY + HH), FVector2D(HX + HW * .4f, HY + HH), Pal::Hostile().CopyWithNewOpacity(.55f), 1.5f);
 		if (K.Wave != In.Wave.WaveNumber || K.Count != In.Wave.WaveCount)
 		{
 			K.Wave = In.Wave.WaveNumber;
 			K.Count = In.Wave.WaveCount;
 			K.WaveText = FString::Printf(TEXT("WAVE %d / %d"), FMath::Max(1, K.Wave), K.Count);
 		}
-		D.Text(HX + 10.f, HY + 7.f, K.WaveText, 14, Pal::Ink(), "Bold", 0.f);
+		D.Text(HX + 10.f, HY + 7.f * D.FontK, K.WaveText, 14, Pal::Ink(), "Bold", 0.f);
 		// Pips: cleared = filled ink, current = hostile, to come = hollow.
 		const int32 Pips = FMath::Min(In.Wave.WaveCount, 8);
 		const float PipX0 = HX + HW * .44f;
 		for (int32 I = 0; I < Pips; ++I)
 		{
-			const FVector2D Pip(PipX0 + I * 11.f * S, HY + HeaderH * .5f);
+			const FVector2D Pip(PipX0 + I * 11.f * S, HY + HH * .5f);
 			const int32 Number = I + 1;
 			if (Number < In.Wave.WaveNumber) { D.Dot(Pip, 6.f * S, Pal::Ink().CopyWithNewOpacity(.85f)); }
 			else if (Number == In.Wave.WaveNumber) { D.Dot(Pip, 7.f * S, Pal::Hostile()); }
@@ -346,13 +361,13 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 		{
 			const int32 Secs = FMath::CeilToInt(FMath::Max(0.f, In.Wave.BreatherRemaining));
 			if (K.Breather != Secs) { K.Breather = Secs; K.BreatherText = FString::Printf(TEXT("NEXT WAVE %d:%02d"), Secs / 60, Secs % 60); }
-			D.Text(HX + HW - 10.f, HY + 8.f, K.BreatherText, 12, Pal::Muted(), "Mono", 1.f);
+			D.Text(HX + HW - 10.f, HY + 8.f * D.FontK, K.BreatherText, 12, Pal::Muted(), "Mono", 1.f);
 		}
 		else if (Next)
 		{
 			const int32 Secs = FMath::CeilToInt(FMath::Max(0.f, Next->Seconds));
 			if (K.Next != Next->Count || K.NextIn != Secs) { K.Next = Next->Count; K.NextIn = Secs; K.NextText = FString::Printf(TEXT("+%d %d:%02d"), Next->Count, Secs / 60, Secs % 60); }
-			D.Text(HX + HW - 10.f, HY + 8.f, K.NextText, 12, Pal::Hostile(), "Mono", 1.f);
+			D.Text(HX + HW - 10.f, HY + 8.f * D.FontK, K.NextText, 12, Pal::Hostile(), "Mono", 1.f);
 		}
 	}
 }
