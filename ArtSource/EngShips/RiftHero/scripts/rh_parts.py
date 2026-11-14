@@ -21,16 +21,19 @@ RING_RM, RING_A, RING_B, RING_RC = 0.497, 0.15, 0.075, 0.03       # mid radius, 
 SEGS = 10
 
 
-def materials():
+def materials(accent=None):
+    """accent: an entry of rh_ships.ACCENTS (None = the Rift's magenta, the values this kit was designed with)."""
+    a = accent or dict(paint=(0.80, 0.03, 0.46), glow=(0.55, 0.05, 0.42), glow_e=(1.0, 0.10, 0.78),
+                       hot=(0.8, 0.5, 0.75), hot_e=(1.0, 0.72, 0.95), dim=(0.2, 0.02, 0.15), dim_e=(0.13, 0.008, 0.095))
     return [
         G.mat("MP_Black", (0.012, 0.012, 0.016), metallic=0.6, roughness=0.62),
-        G.mat("MP_Accent", (0.80, 0.03, 0.46), metallic=0.25, roughness=0.32),
+        G.mat("MP_Accent", a["paint"], metallic=0.25, roughness=0.32),
         G.mat("MP_Gunmetal", (0.085, 0.09, 0.105), metallic=0.92, roughness=0.36),
         G.mat("MP_Steel", (0.30, 0.31, 0.34), metallic=0.95, roughness=0.30),
-        G.mat("MP_Glow", (0.55, 0.05, 0.42), roughness=0.5, emission=(1.0, 0.10, 0.78), strength=3.0),
+        G.mat("MP_Glow", a["glow"], roughness=0.5, emission=a["glow_e"], strength=3.0),
         G.mat("MP_White", (0.72, 0.73, 0.76), metallic=0.0, roughness=0.45),
-        G.mat("MP_GlowHot", (0.8, 0.5, 0.75), roughness=0.5, emission=(1.0, 0.72, 0.95), strength=3.0),
-        G.mat("MP_GlowDim", (0.2, 0.02, 0.15), roughness=0.6, emission=(0.13, 0.008, 0.095), strength=3.0),
+        G.mat("MP_GlowHot", a["hot"], roughness=0.5, emission=a["hot_e"], strength=3.0),
+        G.mat("MP_GlowDim", a["dim"], roughness=0.6, emission=a["dim_e"], strength=3.0),
     ]
 
 

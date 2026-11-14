@@ -13,6 +13,8 @@ import numpy as np
 
 WHITE = np.array([0.86, 0.865, 0.885], np.float32)        # sRGB-encoded
 MAGENTA = np.array([0.90, 0.045, 0.56], np.float32)
+ACCENT_TARGET = {"magenta": MAGENTA, "cyan": np.array([0.17, 0.76, 0.93], np.float32),
+                 "amber": np.array([0.95, 0.62, 0.12], np.float32)}
 
 
 def load(path):
@@ -60,12 +62,26 @@ def sstep(x, a, b):
     return t * t * (3 - 2 * t)
 
 
-def masks(bc):
+def _accent_other(bc, accent):
     r, g, b = bc[..., 0], bc[..., 1], bc[..., 2]
     mx, mn = bc.max(-1), bc.min(-1)
     sat = (mx - mn) / (mx + 1e-5)
-    mag = sstep(sat, 0.30, 0.50) * sstep(r - g, 0.12, 0.28) * sstep(b - g, 0.02, 0.12) * sstep(mx, 0.30, 0.50) \
-        * sstep(r - 0.85 * b, 0.0, 0.08)
+    if accent == "cyan":
+        return sstep(sat, 0.30, 0.50) * sstep(b - r, 0.15, 0.30) * sstep(g - r, 0.10, 0.25) * sstep(mx, 0.30, 0.50)
+    return sstep(sat, 0.35, 0.55) * sstep(r - b, 0.20, 0.35) * sstep(g - b, 0.06, 0.18) * sstep(r - g, 0.04, 0.14) \
+        * sstep(mx, 0.30, 0.50)                                   # amber
+
+
+def masks(bc, accent="magenta"):
+    """(white paint, accent paint) soft masks. The accent mask is called mag: the Rift's magenta came first."""
+    r, g, b = bc[..., 0], bc[..., 1], bc[..., 2]
+    mx, mn = bc.max(-1), bc.min(-1)
+    sat = (mx - mn) / (mx + 1e-5)
+    if accent != "magenta":
+        mag = _accent_other(bc, accent)
+    else:
+        mag = sstep(sat, 0.30, 0.50) * sstep(r - g, 0.12, 0.28) * sstep(b - g, 0.02, 0.12) * sstep(mx, 0.30, 0.50) \
+            * sstep(r - 0.85 * b, 0.0, 0.08)
     wht = (1.0 - sstep(sat, 0.14, 0.26)) * sstep(mx, 0.42, 0.58)
     # soften the mask edges a little so the flattening has no hard border
     mag = np.clip(blur(mag, 1), 0, 1)
@@ -73,19 +89,19 @@ def masks(bc):
     return wht, mag
 
 
-def clean(src_dir, out_dir, stem="Rift"):
+def clean(src_dir, out_dir, stem="Rift", accent="magenta"):
     bc = load(os.path.join(src_dir, "T_%s_BC.png" % stem))
     orm = load(os.path.join(src_dir, "T_%s_ORM.png" % stem))
     nrm = load(os.path.join(src_dir, "T_%s_N.png" % stem))
     em = load(os.path.join(src_dir, "T_%s_E.png" % stem))
-    wht, mag = masks(bc)
+    wht, mag = masks(bc, accent)
     stats = {"white_frac": float(wht.mean()), "magenta_frac": float(mag.mean())}
 
     # ---- base colour
     lum = bc.max(-1)
     out = bc.copy()
     stats["magenta_mean_before"] = [round(float(x), 3) for x in bc[mag > 0.8].mean(0)]
-    for m, target, keep, lo_clip, power in ((wht, WHITE, 0.10, 0.50, 0.85), (mag, MAGENTA, 0.05, 0.72, 0.45)):
+    for m, target, keep, lo_clip, power in ((wht, WHITE, 0.10, 0.50, 0.85), (mag, ACCENT_TARGET[accent], 0.05, 0.72, 0.45)):
         low = blur(lum * m, 28) / (blur(m, 28) + 1e-4)
         detail = np.clip(lum / (low + 1e-4), lo_clip, 1.06) ** power        # panel lines / edge wear stay (fainter on magenta)
         flat = target[None, None, :] * detail[..., None]
