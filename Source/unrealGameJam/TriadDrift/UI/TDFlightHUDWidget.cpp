@@ -1795,13 +1795,22 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	// box), a HULL TEMP bar under it (amber, red above 70%), "ATMOSPHERE" over it; squad-neutral tokens.
 	if (View.bDescent)
 	{
+		// Readable over a bright sky (the Lead, live at 720p): its own dark plate, full-white text, and never below 80%
+		// while the HUD is up (the director's exit shot fades the rest; a CUT still hides it).
+		FPaint D = P;
+		if (View.HUDOpacity > .05f && !View.bInCut)
+		{
+			D.Alpha = FMath::Max(D.Alpha, .8f);
+		}
 		const float TX = C.X + 190.f, TY = C.Y - 100.f, TH = 200.f;
+		D.Plate(TX - 96.f, TY - 34.f, 196.f, TH + 84.f, 12.f, T::Plate().CopyWithNewOpacity(.78f));
+		D.Layer = P.Layer + 2; // everything else above its plate (same-layer boxes batch under rounded brushes)
 		const float Alt = FMath::Max(0.f, View.Altitude);
-		P.Words(TX - 4.f, TY - 26.f, TEXT("ATMOSPHERE"), 12, T::Shield(), "Bold", 0.f, 160);
+		D.Words(TX - 4.f, TY - 26.f, TEXT("ATMOSPHERE"), 13, T::Shield(), "Bold", 0.f, 160);
 		if (View.Altitude >= 0.f)
 		{
 			// 200 px = 1000 m: 0.2 px per metre, centred on the current altitude.
-			P.Line({ TX, TY }, { TX, TY + TH }, T::Dim().CopyWithNewOpacity(.6f), 1.5f);
+			D.Line({ TX, TY }, { TX, TY + TH }, T::Neutral().CopyWithNewOpacity(.7f), 1.5f);
 			const int32 First = FMath::FloorToInt((Alt - 500.f) / 100.f) * 100;
 			for (int32 M = First; M <= Alt + 500.f; M += 100)
 			{
@@ -1809,22 +1818,22 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 				const float Y = TY + TH * .5f - (M - Alt) * .2f;
 				if (Y < TY || Y > TY + TH) { continue; }
 				const bool bMajor = M % 500 == 0;
-				P.Line({ TX, Y }, { TX + (bMajor ? 12.f : 6.f), Y }, T::Neutral().CopyWithNewOpacity(bMajor ? .8f : .45f), 1.5f);
+				D.Line({ TX, Y }, { TX + (bMajor ? 12.f : 6.f), Y }, T::Neutral().CopyWithNewOpacity(bMajor ? .8f : .45f), 1.5f);
 				if (bMajor)
 				{
-					P.Words(TX + 16.f, Y - 7.f, FString::Printf(TEXT("%d"), M), 11, T::Dim(), "Bold", 0.f, 20);
+					D.Words(TX + 16.f, Y - 7.f, FString::Printf(TEXT("%d"), M), 12, T::Neutral(), "Bold", 0.f, 20);
 				}
 			}
 			const float BY = TY + TH * .5f;
-			P.Plate(TX - 84.f, BY - 13.f, 76.f, 26.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
-			P.Words(TX - 14.f, BY - 9.f, FString::Printf(TEXT("%.0f m"), Alt), 15, Alt < 60.f ? T::Bastion() : T::Neutral(), "Bold", 1.f, 20);
+			D.Plate(TX - 84.f, BY - 13.f, 76.f, 26.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
+			D.Words(TX - 14.f, BY - 9.f, FString::Printf(TEXT("%.0f m"), Alt), 15, Alt < 60.f ? T::Bastion() : T::Neutral(), "Bold", 1.f, 20);
 			Rec(TEXT("altimeter"), TX - 84.f, TY, 130.f, TH);
 		}
 		const float HY = TY + TH + 16.f;
-		P.Words(TX - 4.f, HY, TEXT("HULL TEMP"), 11, T::Dim(), "Bold", 0.f, 140);
-		P.Box(TX - 4.f, HY + 18.f, 120.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
+		D.Words(TX - 4.f, HY, TEXT("HULL TEMP"), 12, T::Neutral(), "Bold", 0.f, 140);
+		D.Box(TX - 4.f, HY + 18.f, 120.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
 		const FLinearColor HeatC = View.Heat01 > .7f ? T::Danger() : T::Bastion();
-		P.Box(TX - 4.f, HY + 18.f, 120.f * View.Heat01, 6.f, HeatC);
+		D.Box(TX - 4.f, HY + 18.f, 120.f * View.Heat01, 6.f, HeatC);
 		Rec(TEXT("hull_temp"), TX - 4.f, HY, 120.f, 24.f);
 	}
 	if (View.OrbitCue01 > 0.f)
