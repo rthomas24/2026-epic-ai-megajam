@@ -17,6 +17,7 @@
 #include "TriadDrift/Flow/TDFrontEndStyle.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
+#include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Text/STextBlock.h"
 
@@ -88,12 +89,15 @@ void FTDSettingsPageModel::AdjustRow(ETDSettingsRow Row, int32 Direction)
 	case ETDSettingsRow::Hints: S->SetHintsEnabled(!P.bHintsEnabled); break;
 	case ETDSettingsRow::CameraShake: S->SetCameraShake(TDSettingsPage::Step(P.CameraShake, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::SpeedFOV: S->SetSpeedFOV(TDSettingsPage::Step(P.SpeedFOV, 0.1f * D, 0.f, 1.f)); break;
+	case ETDSettingsRow::ReduceMotion: S->SetReduceMotion(!P.bReduceMotion); break;
 	case ETDSettingsRow::Difficulty:
 		S->SetDifficulty((ETDDifficulty)FMath::Clamp((int32)UTDSettingsSubsystem::GetDifficultyInPlay() + (Direction > 0 ? 1 : -1), 0, (int32)ETDDifficulty::Ace));
 		break;
 	case ETDSettingsRow::MasterVolume: S->SetMasterVolume(TDSettingsPage::Step(P.MasterVolume, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::MusicVolume: S->SetMusicVolume(TDSettingsPage::Step(P.MusicVolume, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::EffectsVolume: S->SetEffectsVolume(TDSettingsPage::Step(P.EffectsVolume, 0.1f * D, 0.f, 1.f)); break;
+	case ETDSettingsRow::SubtitleSize: S->SetSubtitleSize((ETDSubtitleSize)FMath::Clamp((int32)P.SubtitleSize + (Direction > 0 ? 1 : -1), 0, (int32)ETDSubtitleSize::Large)); break;
+	case ETDSettingsRow::GraphicsPreset: S->SetGraphicsPreset((ETDGraphicsPreset)FMath::Clamp((int32)P.GraphicsPreset + (Direction > 0 ? 1 : -1), 0, (int32)ETDGraphicsPreset::Epic)); break;
 	case ETDSettingsRow::WindowMode:
 	{
 		const int32 M = (((int32)P.WindowMode + (Direction > 0 ? 1 : -1)) % 3 + 3) % 3;
@@ -171,9 +175,12 @@ FText FTDSettingsPageModel::RowLabel(ETDSettingsRow Row)
 	case ETDSettingsRow::Difficulty: return LOCTEXT("Difficulty", "Difficulty");
 	case ETDSettingsRow::CameraShake: return LOCTEXT("CameraShake", "Camera shake");
 	case ETDSettingsRow::SpeedFOV: return LOCTEXT("SpeedFOV", "Speed effects (FOV, blur)");
+	case ETDSettingsRow::ReduceMotion: return LOCTEXT("ReduceMotion", "Reduce motion");
 	case ETDSettingsRow::MasterVolume: return LOCTEXT("Master", "Master volume");
 	case ETDSettingsRow::MusicVolume: return LOCTEXT("Music", "Music volume");
 	case ETDSettingsRow::EffectsVolume: return LOCTEXT("Effects", "Effects volume");
+	case ETDSettingsRow::SubtitleSize: return LOCTEXT("SubtitleSize", "Subtitle size");
+	case ETDSettingsRow::GraphicsPreset: return LOCTEXT("Graphics", "Graphics quality");
 	case ETDSettingsRow::WindowMode: return LOCTEXT("Window", "Window mode");
 	case ETDSettingsRow::Resolution: return LOCTEXT("Resolution", "Resolution");
 	case ETDSettingsRow::Reset: return LOCTEXT("Reset", "Reset to defaults");
@@ -184,6 +191,10 @@ FText FTDSettingsPageModel::RowLabel(ETDSettingsRow Row)
 
 FText FTDSettingsPageModel::SelectedRowHint() const
 {
+	if (GetSelectedRow() == ETDSettingsRow::ReduceMotion)
+	{
+		return LOCTEXT("ReduceMotionHint", "No camera shake, speed widening or motion blur; menus and cards animate less.");
+	}
 	return GetSelectedRow() == ETDSettingsRow::Difficulty
 		? UTDSettingsSubsystem::DifficultyDescription(UTDSettingsSubsystem::GetDifficultyInPlay()) : FText::GetEmpty();
 }
@@ -208,10 +219,18 @@ FText FTDSettingsPageModel::RowValue(ETDSettingsRow Row) const
 	case ETDSettingsRow::Hints: return TDSettingsPage::OnOff(P.bHintsEnabled);
 	case ETDSettingsRow::CameraShake: return TDSettingsPage::Percent(P.CameraShake);
 	case ETDSettingsRow::SpeedFOV: return TDSettingsPage::Percent(P.SpeedFOV);
+	case ETDSettingsRow::ReduceMotion: return TDSettingsPage::OnOff(P.bReduceMotion);
 	case ETDSettingsRow::Difficulty: return UTDSettingsSubsystem::DifficultyName(UTDSettingsSubsystem::GetDifficultyInPlay()); // the run's, after a Continue
 	case ETDSettingsRow::MasterVolume: return TDSettingsPage::Percent(P.MasterVolume);
 	case ETDSettingsRow::MusicVolume: return TDSettingsPage::Percent(P.MusicVolume);
 	case ETDSettingsRow::EffectsVolume: return TDSettingsPage::Percent(P.EffectsVolume);
+	case ETDSettingsRow::SubtitleSize:
+		return P.SubtitleSize == ETDSubtitleSize::Small ? LOCTEXT("SubSmall", "Small") : P.SubtitleSize == ETDSubtitleSize::Large ? LOCTEXT("SubLarge", "Large") : LOCTEXT("SubMedium", "Medium");
+	case ETDSettingsRow::GraphicsPreset:
+	{
+		static const FText Names[] = { LOCTEXT("GfxLow", "Low"), LOCTEXT("GfxMedium", "Medium"), LOCTEXT("GfxHigh", "High"), LOCTEXT("GfxEpic", "Epic") };
+		return Names[FMath::Clamp((int32)P.GraphicsPreset, 0, 3)]; // before a choice: the preset the engine detected
+	}
 	case ETDSettingsRow::WindowMode:
 		return P.WindowMode == ETDWindowMode::Fullscreen ? LOCTEXT("Full", "Fullscreen")
 			: P.WindowMode == ETDWindowMode::Windowed ? LOCTEXT("Windowed", "Windowed") : LOCTEXT("Borderless", "Windowed fullscreen");
@@ -234,9 +253,25 @@ void STDSettingsPage::Construct(const FArguments& InArgs)
 	[
 		SNew(STextBlock).Text(LOCTEXT("Title", "SETTINGS")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 40)).ColorAndOpacity(FLinearColor(0.4f, 0.9f, 1.f))
 	];
+	// T7: every option row scrolls inside the space the screen has; Back stays below the list, always visible.
+	RowScroll = SNew(SScrollBox).ScrollBarAlwaysVisible(false).AnimateWheelScrolling(true);
+	RowWidgets.SetNum(Model->NumRows());
+	TSharedPtr<SWidget> BackRow;
 	for (int32 i = 0; i < Model->NumRows(); ++i)
 	{
-		Rows->AddSlot().AutoHeight().Padding(0.f, 2.f)[ MakeRow((ETDSettingsRow)i) ];
+		const TSharedRef<SWidget> W = MakeRow((ETDSettingsRow)i);
+		RowWidgets[i] = W;
+		if ((ETDSettingsRow)i == ETDSettingsRow::Back)
+		{
+			BackRow = W;
+			continue;
+		}
+		RowScroll->AddSlot().Padding(0.f, 2.f)[ W ];
+	}
+	Rows->AddSlot().AutoHeight().MaxHeight(TAttribute<float>::CreateSP(this, &STDSettingsPage::GetRowListMaxHeight))[ RowScroll.ToSharedRef() ];
+	if (BackRow.IsValid())
+	{
+		Rows->AddSlot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ BackRow.ToSharedRef() ];
 	}
 	// What the selected row does, when it needs saying (difficulty: what each preset changes, and when it applies).
 	Rows->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 10.f, 0.f, 0.f)
@@ -360,9 +395,30 @@ void STDSettingsPage::FocusPage()
 	}
 }
 
+float STDSettingsPage::GetRowListMaxHeight() const
+{
+	// Before the first layout (no height yet) the list may take its full size.
+	return PageHeight > 0.f ? FMath::Max(120.f, PageHeight - FixedPartsHeight) : 100000.f;
+}
+
+bool STDSettingsPage::IsRowInScrollList(ETDSettingsRow Row) const
+{
+	return Row != ETDSettingsRow::Back && RowWidgets.IsValidIndex((int32)Row) && RowWidgets[(int32)Row].IsValid();
+}
+
 void STDSettingsPage::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
 	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+	PageHeight = AllottedGeometry.GetLocalSize().Y;
+	// T7: the list follows the selection (keys, pad, mouse) so the selected row is never off screen.
+	if (Model && RowScroll.IsValid() && Model->GetSelected() != LastScrolledRow)
+	{
+		LastScrolledRow = Model->GetSelected();
+		if (IsRowInScrollList(Model->GetSelectedRow()))
+		{
+			RowScroll->ScrollDescendantIntoView(RowWidgets[LastScrolledRow], /*bInAnimateScroll*/ true, EDescendantScrollDestination::IntoView, 8.f);
+		}
+	}
 	if (!FSlateApplication::IsInitialized())
 	{
 		return;

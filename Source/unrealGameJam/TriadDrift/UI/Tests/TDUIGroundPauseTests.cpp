@@ -195,6 +195,79 @@ bool FTDUIGroundBossBar::RunTest(const FString& Parameters)
 
 // T7's playtest: the objective panel grows to fit the longest line we have (50 characters) instead of running past its
 // edge, stays centred, wraps a line too long for 1000 px to two lines, and pushes the meter and the boss bar below it.
+// ENG-36 on-foot story states: a counted step's pips under the objective (the reactor conduits 0/4 -> 4/4, a flash on
+// each), the escape clock (T5's EscapeSeconds, not hard-coded) with the exit marker, and the host's sensor flicker
+// (UNKNOWN, VERIFIED for a moment, UNKNOWN).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDUIGroundStoryStates, "TriadDrift.UI.GroundHUD.StepsEscapeAndSensor", TD_TEST_FLAGS)
+bool FTDUIGroundStoryStates::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDFirstPersonCharacter* Walker = W.Spawn<ATDFirstPersonCharacter>(FVector(0.f, 0.f, 95.f));
+	APlayerController* PC = W.SpawnLocalPlayerController(Walker, ATDSpacePlayerController::StaticClass());
+	const TStrongObjectPtr<UTDGroundHUDWidget> Keep(PC ? CreateWidget<UTDGroundHUDWidget>(PC, UTDGroundHUDWidget::StaticClass()) : nullptr);
+	UTDGroundHUDWidget* HUD = Keep.Get();
+	if (!TestNotNull(TEXT("ground HUD"), HUD))
+	{
+		return false;
+	}
+	auto Paint = [&]()
+	{
+		TSharedRef<SWidget> Slate = HUD->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	};
+	auto Box = [&](const TCHAR* Name) { const TPair<FName, FBox2D>* B = HUD->LastBoxes.FindByPredicate([Name](const TPair<FName, FBox2D>& X) { return X.Key == FName(Name); }); return B ? B->Value : FBox2D(ForceInit); };
+	HUD->ForceObjective = TEXT("Break the reactor conduits");
+
+	HUD->Sample(.1f);
+	TestEqual(TEXT("no counted step: no pips"), HUD->GetView().StepRequired, 0);
+	HUD->ForceStepRequired = 4;
+	HUD->ForceStepCount = 0;
+	HUD->ForceStepNoun = TEXT("CONDUITS");
+	HUD->Sample(.1f);
+	TestTrue(TEXT("CONDUITS 0 / 4"), HUD->GetView().StepRequired == 4 && HUD->GetView().StepCount == 0 && HUD->GetView().StepNoun == TEXT("CONDUITS"));
+	HUD->ForceStepCount = 1;
+	HUD->Sample(.1f);
+	TestTrue(TEXT("one down: 1 / 4 and a flash"), HUD->GetView().StepCount == 1 && HUD->GetView().StepFlash01 > .5f);
+	Paint();
+	const FBox2D Steps = Box(TEXT("steps"));
+	const FBox2D Obj = Box(TEXT("objective"));
+	TestTrue(TEXT("pips painted under the objective panel, centred"), Steps.bIsValid && Obj.bIsValid && Steps.Min.Y >= Obj.Max.Y && FMath::IsNearlyEqual(Steps.GetCenter().X, 960.f, 1.f));
+
+	HUD->ForceEscapeLeft = 72.f;
+	HUD->ForceEscapeTotal = 90.f;
+	HUD->ForceExitAt = FVector(5000.f, 0.f, 95.f);
+	HUD->Sample(.1f);
+	TestTrue(TEXT("escape: the clock reads T5's time"), HUD->GetView().bEscape && FMath::IsNearlyEqual(HUD->GetView().EscapeLeft, 72.f) && FMath::IsNearlyEqual(HUD->GetView().EscapeTotal, 90.f));
+	TestTrue(TEXT("the exit marker, with a range"), HUD->GetView().bExitMarker && HUD->GetView().ExitMetres > 40.f);
+	Paint();
+	const FBox2D Esc = Box(TEXT("escape"));
+	TestTrue(TEXT("the clock under the pips"), Esc.bIsValid && Steps.bIsValid && Esc.Min.Y >= Box(TEXT("steps")).Max.Y);
+	TestTrue(TEXT("exit marker painted inside the frame"), Box(TEXT("exit")).bIsValid && Box(TEXT("exit")).Min.X >= 0.f && Box(TEXT("exit")).Max.X <= 1920.f);
+	HUD->ForceEscapeLeft = -1.f;
+	HUD->ForceStepRequired = -1;
+	HUD->Sample(.1f);
+	TestTrue(TEXT("both gone after"), !HUD->GetView().bEscape && HUD->GetView().StepRequired == 0 && !HUD->GetView().bExitMarker);
+
+	TestTrue(TEXT("host sensor flicker"), UTDUIHostSubsystem::ShowSensorFlicker(W.GetWorld(), FVector(3000.f, 0.f, 150.f), 6.f));
+	HUD->Sample(.1f);
+	TestTrue(TEXT("sensor: UNKNOWN first"), HUD->GetView().bSensor && !HUD->GetView().bSensorVerified);
+	W.Advance(UTDUIHostSubsystem::SensorVerifiedAt + .2f);
+	HUD->Sample(.1f);
+	TestTrue(TEXT("then VERIFIED for a moment"), HUD->GetView().bSensorVerified);
+	W.Advance(1.f);
+	HUD->Sample(.1f);
+	TestTrue(TEXT("then UNKNOWN again"), HUD->GetView().bSensor && !HUD->GetView().bSensorVerified);
+	W.Advance(6.f);
+	HUD->Sample(.1f);
+	TestFalse(TEXT("gone after its seconds"), HUD->GetView().bSensor);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDUIGroundObjectiveFits, "TriadDrift.UI.GroundHUD.ObjectivePanelFitsItsLine", TD_TEST_FLAGS)
 bool FTDUIGroundObjectiveFits::RunTest(const FString& Parameters)
 {

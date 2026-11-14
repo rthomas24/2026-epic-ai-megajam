@@ -352,7 +352,16 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	const FVector StartLocation = State.Location;
 
 	MeasureGroundClearance();
-	TDFlightSim::Advance(State, Input, Tuning, Context, DeltaTime);
+	if (BoundaryReleases.Num() > 0)
+	{
+		FTDFlightContext Released = Context; // a scripted corridor past the edge (SetBoundaryReleaseFor): no containment
+		Released.bBoundaryEnabled = false;
+		TDFlightSim::Advance(State, Input, Tuning, Released, DeltaTime);
+	}
+	else
+	{
+		TDFlightSim::Advance(State, Input, Tuning, Context, DeltaTime);
+	}
 
 	const FVector Delta = State.Location - StartLocation;
 	State.Location = StartLocation;
@@ -567,9 +576,12 @@ bool UTDShipMovementComponent::HandleShipImpact(const FHitResult& Hit, float Del
 	}
 	// The world (asteroids, wrecks, debris) is told first and may break (T6's field: Lancer's ram, tiny pieces).
 	const bool bWorld = !Cast<APawn>(Hit.GetActor());
+	ITDShipImpactReceiver* Receiver = bWorld ? Cast<ITDShipImpactReceiver>(Hit.GetActor()) : nullptr;
+	UE_LOG(LogTriadDrift, Verbose, TEXT("TD flight: %s hit %s / %s item %d at %.1f m/s into it (receiver %d, scrape below %.0f m/s)"),
+		*GetNameSafe(GetOwner()), *GetNameSafe(Hit.GetActor()), *GetNameSafe(Hit.GetComponent()), Hit.Item, Into / 100.f, Receiver ? 1 : 0, Tuning.WorldScrapeSpeed / 100.f);
 	if (bWorld && Into >= Tuning.WorldScrapeSpeed)
 	{
-		if (ITDShipImpactReceiver* Receiver = Cast<ITDShipImpactReceiver>(Hit.GetActor()))
+		if (Receiver)
 		{
 			if (Receiver->ReceiveShipImpact(Hit.GetComponent(), Hit.Item, Hit.ImpactPoint, Into, FMath::Clamp(Into / Speed, 0.f, 1.f), Cast<ATDShip>(GetOwner())))
 			{
@@ -688,10 +700,12 @@ void UTDShipMovementComponent::BroadcastStateChanges(const FTDFlightState& Befor
 		OnDriftReleased.Broadcast(State.bDriftBurstThisStep);
 	}
 	const ETDBoundaryState WasBoundary = Before.bOutOfBounds ? ETDBoundaryState::Outside : (Before.bNearBoundary ? ETDBoundaryState::Warning : ETDBoundaryState::Inside);
-	if (GetBoundaryState() != WasBoundary)
+	const bool bHeld = IsBoundaryWarningHeld();
+	if (!bHeld && (GetBoundaryState() != WasBoundary || (bBoundaryHeldLastStep && GetBoundaryState() != ETDBoundaryState::Inside)))
 	{
-		OnBoundaryStateChanged.Broadcast(GetBoundaryState());
+		OnBoundaryStateChanged.Broadcast(GetBoundaryState()); // a change, or the hold just ended near / past the edge
 	}
+	bBoundaryHeldLastStep = bHeld;
 }
 
 bool UTDShipMovementComponent::CanDodge() const
@@ -713,8 +727,32 @@ bool UTDShipMovementComponent::RequestDodge(float Direction)
 	return true;
 }
 
+void UTDShipMovementComponent::SetBoundaryWarningHoldFor(FName Owner, bool bHold)
+{
+	if (bHold) { BoundaryWarningHolds.Add(Owner); }
+	else { BoundaryWarningHolds.Remove(Owner); }
+}
+
+void UTDShipMovementComponent::SetBoundaryReleaseFor(FName Owner, bool bRelease)
+{
+	if (bRelease) { BoundaryReleases.Add(Owner); }
+	else { BoundaryReleases.Remove(Owner); }
+}
+
+bool UTDShipMovementComponent::IsBoundaryWarningHeld() const
+{
+	if (BoundaryWarningHolds.Num() > 0 || BoundaryReleases.Num() > 0) { return true; }
+	static const FName SequenceOwners[] = { FName(TEXT("AtmosphereEntry")), FName(TEXT("TDExitClimb")), FName(TEXT("Hyperdrive")), FName(TEXT("LandingAssist")) };
+	for (const FSpeedOverrideRequest& R : OverrideStack)
+	{
+		for (const FName& N : SequenceOwners) { if (R.Owner == N) { return true; } }
+	}
+	return false;
+}
+
 FText UTDShipMovementComponent::GetBoundaryWarningText() const
 {
+	if (IsBoundaryWarningHeld()) { return FText::GetEmpty(); }
 	const bool bZone = Context.bBoxBoundary;
 	switch (GetBoundaryState())
 	{

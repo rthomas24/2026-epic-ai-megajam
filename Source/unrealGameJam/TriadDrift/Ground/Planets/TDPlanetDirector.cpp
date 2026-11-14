@@ -24,7 +24,7 @@
 
 ATDBoardShipInteractable::ATDBoardShipInteractable()
 {
-	Prompt = NSLOCTEXT("TriadDrift", "BoardShip", "Board ship");
+	Prompt = NSLOCTEXT("TriadDrift", "BoardShip", "Hold E: board ship"); // a held E (T7's playtest: the prompt didn't say so)
 	ConsoleMesh = TDPropArt::Default(TEXT("SM_BoardPoint"));
 	HoldTime = 0.5f;
 	bSingleUse = false;

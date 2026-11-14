@@ -304,3 +304,80 @@ November 13, presentation music. A private UE 5.9 Windows Editor build compiled 
 November 13, credits playback. The Windows game played Cathedral Pulse (1) through its natural end and started Ethereal Pulse (Remix) on the next audio component. A repeat start left the first track running. An early stop and restart returned to track one. The published 13-second excerpt preserves the captured samples across the change. The tested presentation player also exposes the Dominion boarding and Verdance controls for the gameplay owners. The victory entry, stinger, shaped screen and Shipping playback still need a matched build.
 
 November 13, combat music. The full Ethereal Pulse (Remix) SoundWave from f5d9cf9d is available beside the tutorial assets for waves 3–5. The current presentation style serializes the tutorial reference. Connecting the independent combat field and hearing its intensity changes in a live wave remain pending.
+
+November 13, victory credits. The authored roll now credits Nicholas Tosti’s UI team and OpenAI image generation for the Verdance and Cinder survey scans. A fresh Unreal Editor process read back eight sections and 31 lines, including the 28 existing lines. The revised victory screen and Shipping roll still require a gameplay check.
+
+November 13, music loop repair. Nicholas noticed a click when music restarted. A Verdance map recording revealed a 32 ms restart gap. The revised SoundWave loops in the audio renderer with smoothed endpoints. Both recorded repeats aligned at the same sample on either side of the join, including one during the takeoff fade. [Listen to both loops](docs/visual/Submission/MusicBuild01/music-loop-check.md).
+
+
+### Nov 13 — Settings focus correction verified in packaged candidate
+
+Nick's Lead reviewed Ryan''s i71-focus-662b8c04-dev contact sheets at 1280x720, 1920x1080 and 2560x1080, the outline report and the raw 14/14 passing tests. The selected Settings outline returns immediately after Esc or simulated pad B, stays visible without navigation, skips disabled Continue and clears behind Settings. Volume remains 90% after reopening. This is technical verification of the released candidate, not a main integration or human approval claim. Main pickup requested in #71. No local Unreal process was launched for this review.
+
+
+### Nov 13 — reward build checkpoint and Lancer replacement audition
+
+The industrial reward frame passed import and reload. The first widget build exposed a missing Slate bracket; UI corrected it and Lead rebuilt successfully, then passed the existing dismissal/next-unlock lifecycle test with 2,434 protected files unchanged. Actual rendered appearance remains queued for memory. Audio published the nine supplied-recording replacements on its isolated branch at 2b074bb5; its actual game capture observed fire and shield cues, but not a hull-hit event. Neither result is a final appearance/listening approval or a main asset integration.
+
+
+### Nov 13 — second script circulated and reward review unblocked remotely
+
+At Nicholas's request, Lead published the exact reviewed second script draft at 2240d3cd, preserved all earlier documents, and directly tagged Ryan in issue 29 with an acknowledgement request (N-080). Current script review now uses draft two; prior explicit approvals stand and final recording remains unlocked. The industrial reward candidate is published at 59ec2f79 / draft PR 85. N-081 requests matching T2 captures while local rendered work is memory-queued. Nicholas selected Audio's supplied-recording previews; the existing PR 12 candidate was fast-forwarded to 2b074bb5 without merging to main or claiming final in-game mix approval.
+
+### November 13 — separating a loop seam from a runtime interruption
+
+Nick's Audio recorded a natural 139.2-second combat-track return on the actual Galaxy music director in the preserved 28f03b4f test host. Comparing late-first-cycle and second-cycle source matches found no added loop delay at 0.25 ms resolution. A separate 42.75 ms timing shift occurred earlier, near a logged mixer underrun; the recorder itself reported zero discontinuities. We kept the master unchanged and routed the runtime finding separately. The process exited normally with all 2,457 protected files unchanged; debug menu travel left only menu music active. This is an older-host audio check, not a current campaign or Shipping pass. The actual excerpt and measurements are in docs/visual/Submission/MusicBuild01/music-loop-check.md.
+
+### November 13 — preserve the separate core theme while native work queues
+
+Audio continued the reflected gameplay-event subscriptions while Lead prepared Nicholas's original Cathedral Pulse for the core chamber. We preserved the MP3 and all 3,338,880 decoded frames, producing a 69.560-second stereo master with Python and FFmpeg. The music file check passed at -14.7 LUFS and -2.7 dBTP without clipping. This prevents confusing the core selection with Cathedral Pulse (1), already used for credits. Looping, native import, real scene timing and listening approval remain open; no Unreal process was launched for this preparation. Sources, reproducible preparation and measurements are in ArtSource/Audio/DominionCore01.
+
+Follow-up: the scoped core SoundWave import and independent fresh-process reload both exited 0. Native exports matched one another exactly and differed from the master by at most one 16-bit rounding step, with all 3,338,880 frames preserved. All 2,458 pre-existing protected files stayed unchanged during import; reload protected the new asset as well. No style, map, gameplay trigger or looping behavior was changed. Both Unreal processes exited; native data is verified, while actual gameplay and Shipping remain pending.
+
+### November 13 — two confirmed Cinder music roles
+
+Nicholas assigned Cinder World to exploration and Cinder Fall to combat. Audio preserved both originals and prepared complete 150.000-second and 148.800-second stereo masters with Python and FFmpeg. Both passed the music-category file checks without gain changes: World -14.4 LUFS/-2.2 dBTP; Fall -15.0 LUFS/-2.3 dBTP. Lead verified all original/master hashes for publication. A later combat beat-drop entry is being auditioned separately; the full masters are untrimmed, and no offset, loop or native gameplay integration is claimed here.
+
+### 2026-11-14 — Cinder music native data verification
+
+The complete World (150.0 s) and Fall (148.8 s) masters imported and reopened in separate guarded Unreal processes. Both exited cleanly; exported PCM matched across runs and the masters within one 16-bit step. Protected files remained unchanged. Verified packages transferred to the integration checkout; reports under ArtSource/Audio/CinderMusic01/native-checks. No loop, offset or gameplay binding was guessed. Next: T1/T5 event contract, Audio hookup, cook and in-game listening. No Unreal processes left.
+
+## 2026-11-14 00:10 EST: overnight run begins (Ryan asleep; decisions by Ryan's Lead)
+
+- **Batch L on main, 6fe3e90f** (full suite 870 of 870 with Nick's menu plugin and audio merged). First engineering batch since 16:10 on Nov 13. The gate caught three real problems on the way: Cinder could not be finished (the anchor tower's collision box swallowed the charge points and blocked the walk back), a profile test that assumed no story listener, and the relay transfer's first wave arriving in 3 s. All fixed by their owners before the push. Shipping package cooking from this revision.
+- **Playtest of batch L (Teammate 7, agent-driven over MCP, some stages by labelled debug moves):** front end to victory with no blocker. Findings sent to owners: silent ability awards, crew dying in a standing crouch, the Heavy's guard with no lunge hint, unmarked reactor conduits, an escape that says ninety seconds and takes six.
+- **Decisions made for Ryan tonight** (he can overrule any of them):
+  1. Every destroyed rock or junk piece pays a small boost top-up (3 / 6 / 12% by size, capped at 15% per second); specials keep their pickup drop. From his instruction that destroying asteroids should be rewarded.
+  2. The Aftermath sequence may not be lost: atmosphere entry is held while it plays (T1) and a cut Aftermath replays on the next galaxy load (T3).
+  3. The relay's first wave waits until "Company incoming" airs, so Cinematic 03 does not play over a fight (T5).
+  4. Dominion interior: hangar, arena and corridor keep their value (enemy contrast over black gunmetal); the reactor room lost its red floor wash; crew read at 30 m through their materials.
+  5. Asset overlaps between our own builders in batch M: the r2 Dominion data asset and the refitted anchor tower from the import builder; DA_Travel_FX from the effects builder.
+  6. Nick's side has eight pieces of light work for the night (board R-045, issue #88).
+- **What worked:** asking every builder for a fixed-camera before/after sheet and looking at it before accepting; the asset trace that found 31 of 54 new effects wired to nothing.
+- **What didn't:** one build at a time across a dozen worktrees. The final gate for batch L sat in the queue three times; each run is ten minutes once it starts.
+
+### 2026-11-14 — Story fidelity handoff
+
+Story Director reconciled all 150 screenplay entries, 259 barks and staging records into StoryFidelity01, preserving the historical baseline while adding current batch-L source evidence. Existing console-log, Wren-order and final-caption fixes are resolved at source stage; queued owner work is separated from new findings. Lead verified the frozen three-file hashes and matrix coverage. The approved Cinder temporal-device line was reconfirmed to Ryan in issue29 comment6872047241. No new voice performance or gameplay acceptance is implied; no Unreal processes launched.
+
+### 2026-11-14 — Actual Shipping demonstration, including a failed capture method
+
+The verified 6fe3e90f package ran locally with game audio. HWND-only GDI recording misleadingly retained the menu surface while the game progressed, so that take was rejected. A second bounded run captured the foreground game client rectangle and same-PID WASAPI audio, yielding 200 seconds of opening and early combat. The review copy preserves the actual soundtrack; no music was replaced. Raw evidence and the 70 ms packet-timestamp limitation are recorded in docs/visual/Submission/LatestGameplayDemo01. Full tutorial-loop/fade and later campaign checks remain open. The isolated game/profile were closed after capture; protected build files were unchanged. No Unreal processes left.
+
+### November 14 — submission drafts and an opening-route finding
+
+The itch draft now names the actual Windows launcher and includes the boarding route without revealing the ending. Glass Box distinguishes engineering traversal, package launch checks and the actual 200-second recording, including the failed capture method. Story's bounded video review confirmed that five legacy Intro_N captions still play in the opening; the timestamped finding went to T3 through N-088 at 091ac013. No new story wording, final trailer, public page or human acceptance is claimed. Native music import evidence remains separate from the pending scene-event hookups and listening checks.
+
+## 2026-11-14 01:00 EST: the machine crashed, and what we changed
+
+- At 00:30 Ryan's machine blue-screened (bugcheck 0x119, VIDEO_SCHEDULER_INTERNAL_ERROR) with seven teammates, six builders, a cook and a test run all using the GPU. It rebooted; git was intact; every agent's uncommitted work survived except one document that came back zero-filled (restored from its last commit). All lanes were running again by 00:50.
+- New rule (AGENTS.md section 11, board R-046): at most three rendering Unreal processes on the machine at a time; count before launching. Commit work in progress often.
+- Earlier the same hour the one-at-a-time compile queue had nine builds waiting; binaries for a commit are now copied from whichever worktree built it first instead of being compiled again in each.
+
+### November 14 — gameplay-first trailer rough cut
+
+The existing Shipping recording yielded a 50-second edit that starts directly in Rift combat, shows the actual Lancer switch and then later Lancer/Bastion action. The matching recorded game audio was retained, with only brief fades at edit edges. Full audio/video decode passed; reviewed interval frames show gameplay from the first frame. The exact three source intervals, hashes and checks are in docs/visual/Submission/Trailer01. This is a review draft of 6fe3e90f, not the final submission or proof of the tutorial's full fade. No native game/editor process or new build was needed; final-build planet/on-foot/finale footage and Nicholas's acceptance remain open.
+
+### November 14, 01:16 EST — Nicholas's Codex team stops safely
+
+Nicholas requested shutdown at safe checkpoints. Lead paused its goal; Story, UI/HUD, Audio and Auditor preserved their existing files and reported no owned operations. The recurring issue check was paused. Normal01 tutorial capture failed its recorder-duration bound; Normal02 stopped before recording when the game was not foreground, followed by physical Escape. Neither proves tutorial timing; both preserved package hashes and closed the owned processes. Story's three held-line review and Auditor's exact-opacity review finished without production edits. CLAIMS.md and docs/visual/STATUS.md record unfinished files and restart conditions; N-090 notifies Ryan. Ryan's agents remain unaffected. No automatic restart is authorized.

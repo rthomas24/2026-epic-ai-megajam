@@ -4,9 +4,9 @@
    "src": "A_Pilot_Idle3",
    "dst": "A_Pilot_Idle3_v2",
    "dir": [
-    -0.25,
-    0.75,
-    -0.6
+    -0.12,
+    0.85,
+    -0.5
    ],
    "max_deg": 70
   },
@@ -14,9 +14,9 @@
    "src": "A_Pilot_Walk",
    "dst": "A_Pilot_Walk_v2",
    "dir": [
-    -0.25,
-    0.75,
-    -0.6
+    -0.12,
+    0.85,
+    -0.5
    ],
    "max_deg": 60
   },
@@ -24,7 +24,8 @@
    "src": "A_Pilot_Heavy",
    "dst": "A_Pilot_Heavy_v3",
    "mode": "thrust",
-   "max_deg": 60
+   "max_deg": 75,
+   "down": 0.0
   }
  ],
  "drop": [
@@ -54,7 +55,7 @@
   {
    "src": "A_Pilot_Blade_Death2",
    "dst": "A_Pilot_Blade_Death2_v2",
-   "floor_cm": 4.0,
+   "floor_cm": 10.0,
    "bones": [
     "pelvis",
     "spine_01",
@@ -118,5 +119,6 @@
    "slot": "walk",
    "clip": "A_Pilot_Walk_v2"
   }
- ]
+ ],
+ "_note": "r2 (review m3/m4): idle and walk hang more forward than out; the heavy thrust follows the forearm line (no downward bias)."
 }

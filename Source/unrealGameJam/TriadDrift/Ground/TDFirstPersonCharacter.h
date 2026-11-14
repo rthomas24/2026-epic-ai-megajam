@@ -251,6 +251,11 @@ public:
 	virtual float GetBlockStamina01() const override;
 	virtual int32 GetDashCharges() const override { return DashCharges; }
 	virtual FText GetInteractPrompt() const override;
+	/** A short tip on the on-foot prompt line (the guard's lunge hint), shown when nothing interactable is in view. */
+	void ShowTip(const FText& Text, float Seconds);
+	FText GetTip() const { return TipLeft > 0.f ? Tip : FText::GetEmpty(); }
+	/** Blocked slashes on a guard this run (the lunge hint repeats every 5). Returns the new count. */
+	int32 CountGuardedHit() { return ++GuardedHits; }
 	virtual TArray<AActor*> GetObjectiveMarkers() const override;
 	/** The current objective line (the flow keeps the last one anyone broadcast). */
 	virtual FText GetObjectiveText() const override;
@@ -304,6 +309,9 @@ protected:
 	TObjectPtr<UStaticMeshComponent> HandBladeBeam;
 
 private:
+	FText Tip;
+	float TipLeft = 0.f;
+	int32 GuardedHits = 0;
 	void UpdateMoveSpeed();
 	void TickDash(float DeltaSeconds);
 	void TickForcedMove(float DeltaSeconds);

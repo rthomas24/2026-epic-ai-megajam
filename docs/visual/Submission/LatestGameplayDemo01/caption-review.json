@@ -1,0 +1,127 @@
+{
+  "task": "Bounded visible caption/knowledge-order review only; cleared broader goal not resumed",
+  "reviewed_utc": "2026-11-14T05:42:24.270121+00:00",
+  "build": "Shipping6fe3e90f",
+  "video": "TriadDrift_6fe3e90f_review.mp4",
+  "video_sha256": "7e7e7a8cffd6b08939a1b60fd3606ded422eea3d68fa66c9e061f256c905d73b",
+  "duration_seconds": 200,
+  "method": "100 two-second-bin caption-region samples across entire clip plus exact timestamp seeks and full frames. Positive observations below are exact seeks; sampling does not prove no brief line appeared between samples.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "classification": "Existing source-fidelity gap now confirmed in released playback, not a new batch-M regression",
+      "timestamps": [
+        "00:12",
+        "00:18",
+        "00:24",
+        "00:31",
+        "00:44"
+      ],
+      "references": [
+        "EXTRA001",
+        "EXTRA002",
+        "EXTRA003",
+        "EXTRA004",
+        "EXTRA005",
+        "R000-R009"
+      ],
+      "observed": [
+        "A ship appeared without warning. It answers nothing.",
+        "Its machines descend on our worlds, searching for something.",
+        "Triad is deployed. Wren. Kato. Moss.",
+        "Identify the ship. Learn what it wants. Report back.",
+        "And out of the dark... the Null Armada."
+      ],
+      "finding": "Opening caption track visibly uses five legacy Intro_N narrator entries rather than the second-draft First Contact dialogue route. This is a played routing/selection discrepancy, beyond updating the unused O_* table words alone. Recon-only/Do not engage and the interrupted shared-word setup were not evidenced in this inspected opening caption track; no claim about unheard audio or absolute absence between samples.",
+      "owner_action": "T3 reconcile actual opening presentation selection with approved49s/D2 First Contact and protect shared Dont setup; confirm whether already covered by current branch before duplicating work."
+    },
+    {
+      "severity": "MINOR",
+      "classification": "Known queued wording alignment, not a new regression",
+      "timestamps": [
+        "02:20",
+        "03:00"
+      ],
+      "references": [
+        "R012",
+        "R013"
+      ],
+      "observed": [
+        "WREN: That one's bigger. Focus it together!",
+        "COMMAND: Triad, disengage. Fall back to the marked corridor."
+      ],
+      "expected": [
+        "WREN: Gunship. Don't sit in front of it!",
+        "COMMAND: Triad, withdraw. Take the marked corridor."
+      ],
+      "finding": "Correct named speakers and heavy-contact-before-withdrawal order are visible; exact words remain the older lines already tracked for T3."
+    },
+    {
+      "severity": "MINOR",
+      "classification": "Known bark-source alignment, not a new regression",
+      "timestamp": "02:00",
+      "reference": "B002",
+      "observed": "KATO: Contact right. Engaging.",
+      "expected_variants": [
+        "Target right. I have a line.",
+        "I've got the contact right."
+      ],
+      "finding": "Directional token expands to right and actual KATO label is visible. Runtime is still using the older bark words, consistent with the existing259-row bark comparison; do not invent another casting/speaker defect."
+    }
+  ],
+  "matches": [
+    {
+      "timestamp": "00:00",
+      "finding": "Main menu shows TRIAD DRIFT with no Paradox subtitle. This does not clear credits or other screens."
+    },
+    {
+      "timestamps": [
+        "00:12",
+        "00:18",
+        "00:24",
+        "00:31",
+        "00:44"
+      ],
+      "finding": "Inspected narrator captions fit within the letterbox and remain readable at review resolution1280x720; this is not final typography approval."
+    },
+    {
+      "timestamps": [
+        "01:04",
+        "01:52"
+      ],
+      "finding": "Kato says hails receive nothing; Moss observes machines scan/sweep/move on. These visible observations preserve the search-operation mystery and do not name future identities or settle temporal causality."
+    },
+    {
+      "timestamps": [
+        "02:20",
+        "03:00",
+        "03:10"
+      ],
+      "finding": "Wren heavy-contact warning precedes Command withdrawal; full frame03:10 still shows1LEFT. This supports that the withdrawal call is not waiting for all displayed hostiles to die, but does not prove live-gunship boundary completion."
+    },
+    {
+      "timestamps": [
+        "01:52",
+        "02:00",
+        "02:20",
+        "03:00"
+      ],
+      "finding": "Inspected gameplay captions retain named live-crew labels, fit the viewport and stay separate from tutorial hints; no clipping/overlap in those exact samples."
+    }
+  ],
+  "limits": [
+    "No listening/voice-performance judgment made.",
+    "No physical-input, full campaign, later acts, boundary crossing, Aftermath, credits, complete tutorial fade or replay/skip acceptance.",
+    "No Unreal/editor/game launch, Git mutation, repository documentation edit or new goal created.",
+    "No blanket new defect asserted for the old package's known batch-M omissions.",
+    "Opening shared Dont playback is not verified by this sampled visual review."
+  ],
+  "private_evidence": [
+    "exact-timestamps.jpg",
+    "combat-exact.jpg",
+    "menu000.png",
+    "frame60.png",
+    "frame100.png",
+    "frame190.png"
+  ]
+}

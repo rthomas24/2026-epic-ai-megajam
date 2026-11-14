@@ -1,9 +1,9 @@
 {
  "site": "DominionInterior_Preview",
  "origin": [
-  -2000.0,
-  9000.0,
-  3000.0
+  0.0,
+  30000.0,
+  0.0
  ],
  "steps": [
   {
@@ -28,7 +28,7 @@
     0.8
    ],
    "feet": [
-    -90,
+    -105,
     0,
     3,
     0
@@ -41,9 +41,9 @@
     0.8
    ],
    "feet": [
-    417,
+    400,
     0,
-    2,
+    3,
     0
    ],
    "at": "east 1"
@@ -54,12 +54,324 @@
     0.8
    ],
    "feet": [
-    417,
+    901,
     0,
     2,
     0
    ],
    "at": "east 2"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    1450,
+    0,
+    2,
+    0
+   ],
+   "at": "east 3"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    1959,
+    0,
+    2,
+    0
+   ],
+   "at": "east 4"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    2476,
+    0,
+    2,
+    0
+   ],
+   "at": "east 5"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    2978,
+    0,
+    2,
+    0
+   ],
+   "at": "east 6"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    3491,
+    0,
+    2,
+    0
+   ],
+   "at": "east 7"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    3994,
+    0,
+    2,
+    0
+   ],
+   "at": "east 8"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    4510,
+    0,
+    112,
+    0
+   ],
+   "at": "east 9"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    5021,
+    0,
+    2,
+    0
+   ],
+   "at": "east 10"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    5523,
+    0,
+    2,
+    0
+   ],
+   "at": "east 11"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    6032,
+    0,
+    2,
+    0
+   ],
+   "at": "east 12"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    6538,
+    0,
+    2,
+    0
+   ],
+   "at": "east 13"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    7037,
+    0,
+    2,
+    0
+   ],
+   "at": "east 14"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    7556,
+    0,
+    2,
+    0
+   ],
+   "at": "east 15"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    8087,
+    0,
+    2,
+    0
+   ],
+   "at": "east 16"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    8596,
+    0,
+    2,
+    0
+   ],
+   "at": "east 17"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    9111,
+    0,
+    2,
+    0
+   ],
+   "at": "east 18"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    9616,
+    0,
+    2,
+    0
+   ],
+   "at": "east 19"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    10128,
+    0,
+    2,
+    0
+   ],
+   "at": "east 20"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    10640,
+    0,
+    2,
+    0
+   ],
+   "at": "east 21"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    11131,
+    0,
+    2,
+    0
+   ],
+   "at": "east 22"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    11633,
+    0,
+    2,
+    0
+   ],
+   "at": "east 23"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    12149,
+    0,
+    2,
+    0
+   ],
+   "at": "east 24"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    12566,
+    0,
+    2,
+    0
+   ],
+   "at": "east 25"
+  },
+  {
+   "walk": [
+    0,
+    0.8
+   ],
+   "feet": [
+    12566,
+    0,
+    2,
+    0
+   ],
+   "at": "east 26"
   },
   {
    "teleport": [
@@ -140,6 +452,38 @@
   },
   {
    "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DominionInterior_Preview\\06_hangar_doorway.png"
+  },
+  {
+   "teleport": [
+    13600,
+    300,
+    0
+   ],
+   "feet": [
+    13600,
+    300,
+    2,
+    0
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DominionInterior_Preview\\07_core_bulkhead_trident.png"
+  },
+  {
+   "teleport": [
+    1700,
+    0,
+    0
+   ],
+   "feet": [
+    1700,
+    0,
+    2,
+    0
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DominionInterior_Preview\\08_corridor_route_arrows.png"
   }
  ]
 }

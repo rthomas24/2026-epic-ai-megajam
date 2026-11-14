@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Triad Drift - import builder: bring Grok Bot's merged deliveries (ArtSource/EngAI/**) into the game. Headless:
 #   powershell -File Tools\td-python.ps1 -Script ArtSource\EngImport\scripts\ue_import_engai.py
-# TD_IMPORT_ONLY=Dominion,Generator,Anchor,Hauler,DrillRig,CrystalCache limits the run; TD_IMPORT_MI_ONLY=1 keeps meshes and
+# TD_IMPORT_ONLY=Dominion,Generator,Anchor,Hauler,DrillRig,CrystalCache,OutpostDressing limits the run; TD_IMPORT_MI_ONLY=1 keeps meshes and
 # textures and only rewrites the material instances and the data assets (tuning).
 #
 # Follows ArtSource/EngShips/Rodin/scripts/ue_import_rodin_ships.py (the squad / Null fleet import):
@@ -21,6 +21,7 @@
 #   Anchor, DrillRig: meshes only (the course code and the dig-site class place them).
 # TD_IMPORT_REVERT=Dominion,Generator puts the previous meshes back in DA_Dominion_Visuals.
 import json
+import math
 import os
 
 import unreal
@@ -63,8 +64,11 @@ ITEMS = {
                       "DetailStrength": 0.0, "HeatGlow": 0.0},
              vectors={"EmissiveTint": (1.0, 1.0, 1.0), "BaseTint": (1.0, 1.0, 1.0)})],
     "Anchor": [
+        # fbx: Grok Bot's mesh and sockets with the plinth hull refitted by anchor_collision.py (his UCX_00 was a 13.8 m
+        # box that buried the charge sockets and stood up to 2.2 m outside the visible octagon)
         dict(asset="SM_CinderAnchorTower", src="Props/CinderFieldAnchor/mesh_r1", dest=PROPS + "/CinderAnchor",
-             master="prop", never_stream=False, scalars={"EmissiveStrength": 6.0}),
+             master="prop", never_stream=False, scalars={"EmissiveStrength": 6.0},
+             fbx=os.path.join(REPO, "ArtSource", "EngImport", "CinderAnchor", "SM_CinderAnchorTower.fbx")),
         dict(asset="SM_CinderAnchorEmitter", src="Props/CinderFieldAnchor/mesh_r1", dest=PROPS + "/CinderAnchor",
              master="prop", never_stream=False, scalars={"EmissiveStrength": 10.0})],
     "Hauler": [dict(
@@ -80,9 +84,18 @@ ITEMS = {
     "CrystalCache": [
         dict(asset="SM_CrystalCacheCradle", src="Props/CrystalCache/mesh_r1", dest=PROPS + "/CrystalCache", master="prop",
              never_stream=False, scalars={"EmissiveStrength": 4.0}),
-        dict(asset="SM_CrystalCacheCrystal", src="Props/CrystalCache/mesh_r1", dest=PROPS + "/CrystalCache", master="prop",
+        # r2 (#80): the denser hero cluster, 14 cyan + 5 amber crystals, 15 UCX; r1 is mesh_r1 (see ART-HISTORY)
+        dict(asset="SM_CrystalCacheCrystal", src="Props/CrystalCache/mesh_r2", dest=PROPS + "/CrystalCache", master="prop",
              never_stream=False, scalars={"EmissiveStrength": 8.0})],
+    # #79 (#40): ten small set-dressing props on one shared 1K trim (T_OutpostProps_*, one MI_OutpostProps). Import only:
+    # the environment builder places them around the outposts and pads.
+    "OutpostDressing": [dict(asset="SM_Outpost_" + n, src="Props/OutpostSetDressing/mesh_r1", dest=PROPS + "/OutpostDressing",
+                             master="prop", never_stream=False, tex_prefix="OutpostProps", mi_name="OutpostProps",
+                             scalars={"EmissiveStrength": 4.0})
+                        for n in ("CargoCrate", "SupplyCrate", "FieldTerminal", "DataKiosk", "CommAntenna", "CommsDish",
+                                  "Floodlight", "BollardLight", "Generator", "PowerJunction")],
 }
+TEX_DONE = {}      # (dest, prefix) -> textures, so a shared trim is imported once per run
 
 eas = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()
@@ -175,8 +188,8 @@ def manifest_sockets(folder, asset):
             m = json.load(fh)
         if isinstance(m.get("ue_sockets"), list):
             out = [(s["name"], tuple(s["ue_cm"])) for s in m["ue_sockets"]]
-        elif isinstance(m.get("sockets"), dict):                      # the Dominion hull
-            out = [(k, tuple(v["ue_cm"])) for k, v in m["sockets"].items()]
+        elif isinstance(m.get("sockets"), dict):                      # the Dominion hull: position and yaw
+            out = [(k, tuple(v["ue_cm"]), v.get("ue_yaw_deg")) for k, v in m["sockets"].items()]
         elif asset == "SM_CinderAnchorTower" and "tower" in m:
             out = [(s["name"], tuple(s["pos_cm"])) for s in m["tower"]["sockets"]]
         elif asset == "SM_CrystalCacheCradle" and "cradle" in m:
@@ -192,7 +205,9 @@ def check_sockets(mesh, wanted, notes):
     """Each delivered socket must exist where the manifest says (within 2 cm). Interchange may keep or strip the
     SOCKET_ prefix; the name it gave is kept (gameplay is told the exact names)."""
     report = []
-    for name, pos in wanted:
+    for entry in wanted:
+        name, pos = entry[0], entry[1]
+        want_yaw = entry[2] if len(entry) > 2 else None
         bare = name[7:] if name.startswith("SOCKET_") else name
         sock = mesh.find_socket(name) or mesh.find_socket(bare)
         if sock is None:
@@ -208,14 +223,37 @@ def check_sockets(mesh, wanted, notes):
             # manifest lists the charge ports in Blender's Y (mirrored), the FBX puts ports and sockets at -Y together.
             notes.append("socket %s at (%.0f,%.0f,%.0f) differs from the manifest (%.0f,%.0f,%.0f): kept as imported" % (
                 sock.get_editor_property("socket_name"), loc.x, loc.y, loc.z, pos[0], pos[1], pos[2]))
+        # Upright: the FBX empties come through Interchange with the Blender-to-Unreal axis turn left in their rotation
+        # (found by T4 on the r2 hull: +X right, but Z along the ring tangent, a 90 degree roll). Every delivered
+        # socket is specified as a position and a heading with Z up, so keep the heading (the manifest's yaw when it
+        # gives one, else where the imported +X points in the horizontal plane) and set pitch and roll to zero.
         rot = sock.get_editor_property("relative_rotation")
-        report.append("%s(%.0f,%.0f,%.0f yaw %.0f)" % (sock.get_editor_property("socket_name"), loc.x, loc.y, loc.z, rot.yaw))
+        fwd = unreal.MathLibrary.get_forward_vector(rot)
+        up = unreal.MathLibrary.get_up_vector(rot)
+        if want_yaw is not None:
+            yaw = ((float(want_yaw) + 180.0) % 360.0) - 180.0
+        elif abs(fwd.z) < 0.9:
+            yaw = math.degrees(math.atan2(fwd.y, fwd.x))
+        else:
+            yaw = None
+            notes.append("socket %s: +X is vertical, rotation left as imported" % name)
+        if yaw is not None:
+            if up.z < 0.99985 or abs((((rot.yaw - yaw) + 180.0) % 360.0) - 180.0) > 0.5:
+                notes.append("socket %s: rotation (p %.0f y %.0f r %.0f, up %.2f %.2f %.2f) set upright, yaw %.1f" % (
+                    sock.get_editor_property("socket_name"), rot.pitch, rot.yaw, rot.roll, up.x, up.y, up.z, yaw))
+            sock.set_editor_property("relative_rotation", unreal.Rotator(roll=0.0, pitch=0.0, yaw=yaw))
+            rot = sock.get_editor_property("relative_rotation")
+        up = unreal.MathLibrary.get_up_vector(rot)
+        tilt = math.degrees(math.acos(max(-1.0, min(1.0, up.z))))
+        if tilt > 1.0:
+            notes.append("socket %s: up is %.1f degrees off the mesh's up" % (name, tilt))
+        report.append("%s(%.0f,%.0f,%.0f yaw %.0f up-tilt %.1f)" % (sock.get_editor_property("socket_name"), loc.x, loc.y, loc.z, rot.yaw, tilt))
     return report
 
 
 def build_mi(cfg, tex, notes):
     dest = cfg["dest"]
-    short = cfg["asset"][3:]
+    short = cfg.get("mi_name", cfg["asset"][3:])
     master = eas.load_asset(SHIP_MASTER if cfg["master"] == "ship" else PROP_MASTER)
     if master is None:
         notes.append("master missing")
@@ -244,17 +282,20 @@ def import_one(cfg, mi_only):
     notes = []
     folder = os.path.join(AI, *cfg["src"].split("/"))
     asset, dest, short = cfg["asset"], cfg["dest"], cfg["asset"][3:]
-    fbx = os.path.join(folder, asset + ".fbx")
+    fbx = cfg.get("fbx") or os.path.join(folder, asset + ".fbx")
     if not os.path.isfile(fbx):
         log("FAILED %s: no FBX at %s" % (asset, fbx))
         return None
     ensure_dir(dest)
     files = {}
+    prefix = cfg.get("tex_prefix", short)
     for suffix in ("BC", "N", "ORM", "E") + tuple(cfg.get("detail", ())):
-        p = os.path.join(folder, "T_%s_%s.png" % (short, suffix))
+        p = os.path.join(folder, "T_%s_%s.png" % (prefix, suffix))
         if os.path.isfile(p):
             files[suffix] = p
-    if mi_only:
+    if (dest, prefix) in TEX_DONE:
+        tex = TEX_DONE[(dest, prefix)]
+    elif mi_only:
         tex = {}
         for suffix, p in files.items():
             t = eas.load_asset("%s/%s" % (dest, os.path.splitext(os.path.basename(p))[0]))
@@ -262,6 +303,7 @@ def import_one(cfg, mi_only):
                 tex[suffix] = t
     else:
         tex = import_textures(files, dest, notes)
+    TEX_DONE[(dest, prefix)] = tex
     for suffix, t in tex.items():
         if cfg.get("never_stream"):
             _set(t, "never_stream", True, notes)
@@ -368,6 +410,24 @@ def main():
         log("FAILED: pipeline %s missing (run ue_import_rodin_ships.py once)" % PIPELINE)
         return
     rows, bad = [], 0
+    if os.environ.get("TD_IMPORT_SOCKETS_ONLY", "") == "1":
+        # Re-check and correct the sockets of meshes that are already imported: nothing is re-imported, no material,
+        # texture or data asset is touched, only the static meshes with sockets are saved.
+        for item, meshes in ITEMS.items():
+            if only and item not in only:
+                continue
+            for cfg in meshes:
+                wanted = manifest_sockets(os.path.join(AI, *cfg["src"].split("/")), cfg["asset"])
+                mesh = eas.load_asset("%s/%s" % (cfg["dest"], cfg["asset"]))
+                if not wanted or mesh is None:
+                    continue
+                notes = []
+                report = check_sockets(mesh, wanted, notes)
+                save_loaded(mesh)
+                log("%s sockets: %s%s" % (cfg["asset"], report, ("  NOTES: " + "; ".join(notes)) if notes else ""))
+                bad += sum(1 for n in notes if "degrees off" in n)
+        log("OK" if not bad and not SAVE_FAILURES else "FAILED: sockets")
+        return
     if revert:
         fields = {}
         if "Dominion" in revert:

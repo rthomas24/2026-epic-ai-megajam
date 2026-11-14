@@ -1,0 +1,88 @@
+{
+ "render": [
+  {
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Hull_01",
+   "name": "gaps_Pickup_Collect_Hull",
+   "plays": 1,
+   "gap_seconds": 0.9,
+   "tail_seconds": 1.0
+  },
+  {
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Shield_01",
+   "name": "gaps_Pickup_Collect_Shield",
+   "plays": 1,
+   "gap_seconds": 0.9,
+   "tail_seconds": 1.0
+  },
+  {
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Power_01",
+   "name": "gaps_Pickup_Collect_Power",
+   "plays": 1,
+   "gap_seconds": 0.9,
+   "tail_seconds": 1.0
+  },
+  {
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Overcharge_01",
+   "name": "gaps_Pickup_Collect_Overcharge",
+   "plays": 1,
+   "gap_seconds": 0.9,
+   "tail_seconds": 1.0
+  },
+  {
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Pickups/MSS_Pickup_Drop",
+   "name": "gaps_Pickup_Drop",
+   "plays": 4,
+   "gap_seconds": 0.9,
+   "tail_seconds": 1.0
+  },
+  {
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Story/SW_Story_ThreePulse_01",
+   "name": "gaps_Story_ThreePulse",
+   "plays": 1,
+   "gap_seconds": 0.9,
+   "tail_seconds": 1.0
+  },
+  {
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Small",
+   "name": "gaps_Field_Break_Small",
+   "plays": 4,
+   "gap_seconds": 0.9,
+   "tail_seconds": 1.0
+  },
+  {
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Medium",
+   "name": "gaps_Field_Break_Medium",
+   "plays": 4,
+   "gap_seconds": 0.9,
+   "tail_seconds": 1.0
+  },
+  {
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Large",
+   "name": "gaps_Field_Break_Large",
+   "plays": 4,
+   "gap_seconds": 0.9,
+   "tail_seconds": 1.0
+  },
+  {
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Special",
+   "name": "gaps_Field_Break_Special",
+   "plays": 4,
+   "gap_seconds": 0.9,
+   "tail_seconds": 1.0
+  },
+  {
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Ship_Impact_Thud",
+   "name": "gaps_Ship_Impact_Thud",
+   "plays": 4,
+   "gap_seconds": 0.9,
+   "tail_seconds": 1.0
+  },
+  {
+   "sound": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Ship_Impact_Heavy",
+   "name": "gaps_Ship_Impact_Heavy",
+   "plays": 4,
+   "gap_seconds": 0.9,
+   "tail_seconds": 1.0
+  }
+ ]
+}

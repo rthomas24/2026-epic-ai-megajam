@@ -769,6 +769,82 @@ bool FTDFlightHUDApproach::RunTest(const FString& Parameters)
 	return true;
 }
 
+// ENG-36 story states (storyline.md): the Dominion's generator count as pips under the objective (0/4 to 4/4, a flash
+// and "GENERATOR DOWN" after each, no "N LEFT" beside it), and the transponder off Verdance ("UNKNOWN", "VERIFIED" for a
+// moment once, then "UNKNOWN" for good).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDStoryStates, "TriadDrift.UI.FlightHUD.StoryStatesGeneratorsAndTransponder", TD_TEST_FLAGS)
+bool FTDFlightHUDStoryStates::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	auto PaintBoxes = [&F]()
+	{
+		TSharedRef<SWidget> Slate = F.HUD->TakeWidget();
+		TSharedRef<SWindow> Window = SNew(SWindow).ClientSize(FVector2D(1920, 1080));
+		FSlateWindowElementList List(Window);
+		FHittestGrid Grid;
+		Slate->SlatePrepass(1.f);
+		Slate->Paint(FPaintArgs(nullptr, Grid, FVector2D::ZeroVector, FPlatformTime::Seconds(), .016f), FGeometry::MakeRoot(FVector2D(1920, 1080), FSlateLayoutTransform()),
+			FSlateRect(0, 0, 1920, 1080), List, 0, FWidgetStyle(), true);
+	};
+	auto Has = [&F](const TCHAR* Name) { return F.HUD->LastBoxes.ContainsByPredicate([Name](const TPair<FName, FBox2D>& B) { return B.Key == FName(Name); }); };
+
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("no Dominion: no generator pips"), F.V().GeneratorsTotal, 0);
+	F.HUD->ForceGeneratorsTotal = 4;
+	F.HUD->ForceGeneratorsDown = 0;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("assault: 0 / 4"), F.V().GeneratorsTotal == 4 && F.V().GeneratorsDown == 0 && F.V().GeneratorFlash01 == 0.f);
+	TestTrue(TEXT("no wave counter beside the pips"), F.V().Counter.IsEmpty());
+	PaintBoxes();
+	TestTrue(TEXT("pips painted"), Has(TEXT("generators")));
+	F.HUD->ForceGeneratorsDown = 1;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("one down: 1 / 4 and a flash"), F.V().GeneratorsDown == 1 && F.V().GeneratorFlash01 > .5f);
+	F.HUD->Sample(1.3f);
+	TestEqual(TEXT("the flash fades"), F.V().GeneratorFlash01, 0.f);
+	F.HUD->ForceGeneratorsDown = 4;
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("4 / 4"), F.V().GeneratorsDown, 4);
+	F.HUD->ForceGeneratorsTotal = -1;
+	F.HUD->Sample(.1f);
+	TestEqual(TEXT("off when the assault ends"), F.V().GeneratorsTotal, 0);
+
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("no beacon: no transponder"), F.V().bTransponder);
+	F.HUD->ForceTransponderAt = FVector(400000.f, 0.f, 0.f);
+	F.HUD->ForceTransponderAge = .5f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("sighted: UNKNOWN"), F.V().bTransponder && !F.V().bTransponderVerified);
+	TestTrue(TEXT("a range"), F.V().TransponderMetres > 0.f);
+	F.HUD->ForceTransponderAge = UTDFlightHUDWidget::TransponderVerifiedAt + .2f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("a moment later: VERIFIED"), F.V().bTransponderVerified);
+	PaintBoxes();
+	TestTrue(TEXT("verified label painted"), Has(TEXT("transponder_verified")));
+	F.HUD->ForceTransponderAge = UTDFlightHUDWidget::TransponderVerifiedAt + 2.f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("then UNKNOWN for good"), F.V().bTransponder && !F.V().bTransponderVerified);
+	F.HUD->ForceTransponderAt.Reset();
+	F.HUD->ForceTransponderAge = -1.f;
+
+	// The escape flight: T4's clock and the way out (straight away from the hull at the exit radius).
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("no escape: no clock"), F.V().bEscapeFlight);
+	F.HUD->ForceEscapeLeft = 42.f;
+	F.HUD->ForceEscapeTotal = 60.f;
+	F.HUD->ForceEscapeCentre = FVector(-200000.f, 0.f, 0.f);
+	F.HUD->ForceEscapeRadius = 300000.f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("escape: 42 s of 60 (T4's numbers)"), F.V().bEscapeFlight && FMath::IsNearlyEqual(F.V().EscapeLeft, 42.f) && FMath::IsNearlyEqual(F.V().EscapeTotal, 60.f));
+	TestTrue(FString::Printf(TEXT("still to fly (%.0f m)"), F.V().ClearMetres), F.V().ClearMetres > 0.f);
+	PaintBoxes();
+	TestTrue(TEXT("clock and CLEAR painted"), Has(TEXT("escape")) && Has(TEXT("clear")));
+	F.HUD->ForceEscapeLeft = -1.f;
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("off after"), F.V().bEscapeFlight);
+	return true;
+}
+
 // Cinematic 03 / 05 scan monitor: through the host (its own widget), stages add layers that draw in, the markers sit
 // on the structure's outline and inside the panel, a higher stage advances in place, Hide fades it and the host
 // removes it.

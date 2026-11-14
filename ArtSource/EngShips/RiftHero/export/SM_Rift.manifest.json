@@ -1,10 +1,10 @@
 {
   "asset": "SM_Rift",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\RiftHero\\export\\SM_Rift.fbx",
-  "tris": 73395,
+  "tris": 78279,
   "size_cm": [
     500.0,
-    417.4,
+    416.9,
     225.8
   ],
   "pivot": "root object origin (SM_Rift~exp)",

@@ -62,6 +62,9 @@ public:
 
 	// ---- Roar (2D, persists across the level change).
 	void StartRoar(USoundBase* Sound);
+	/** The roar for a leg (the Lead, Nov 14): entry = DescentRoar, else AtmosphericEntry's sound; climb out = AtmosphericExit's
+	 *  sound, else the entry roar, so both legs always have sound. Loads it; null when nothing is assigned. */
+	static USoundBase* ResolveRoar(const class UTDTravelFX* FX, bool bExit);
 	void StopRoar(float FadeSeconds = 0.5f);
 	bool IsRoarPlaying() const;
 
@@ -138,6 +141,18 @@ public:
 	static const FName IntensityParam; // "User.Intensity"
 	void StopBurnFX();
 
+	// ---- The Director's Cut shot of the burn (ENG-38; the Lead, Nov 13): T3's director camera ahead of, beside and below
+	// the ship, looking back at it in three-quarter front profile (the bow shock side-on, the planet's limb and black space
+	// behind), a slow push-in; the cut back to the chase camera happens under the full white. td.Descent.DirectorShot 0
+	// keeps the chase camera. Reduced motion: no push-in.
+	/** Starts the shot for this ship (entry or climb out); false when the director camera is off, there's no player, or the cvar. */
+	bool BeginBurnShot(class ATDShip* Ship, bool bExit, float Seconds);
+	/** Ends it (a hard cut back to the pawn), if it runs. */
+	void EndBurnShot();
+	/** The camera, in the ship's own frame, Alpha 0..1 through the shot (also for tests and the effects builder). */
+	static FTransform BurnShotCamera(const class ATDShip* Ship, bool bExit, float Alpha, bool bReducedMotion);
+	static bool IsDirectorShotEnabled();
+
 	// ---- Tuning
 	static constexpr float CoverRampSeconds = 0.35f;   // a travel with no entry ramp in front of it (take-off, dev)
 	static constexpr float RevealMinHoldSeconds = 0.5f; // after the destination's first frame
@@ -200,6 +215,10 @@ private:
 	float AppliedHeat = -1.f;
 	float HeatFedLeft = 0.f;
 	bool bBurnExit = false;
+	bool bBurnShot = false;
+public:
+	bool IsBurnShotRunning() const { return bBurnShot; }
+private:
 	float ClimbHoldSeconds = 0.f;
 	bool bHUDHeld = false;
 	TMap<TWeakObjectPtr<class ATDShip>, TWeakObjectPtr<class UNiagaraComponent>> BurnFX;

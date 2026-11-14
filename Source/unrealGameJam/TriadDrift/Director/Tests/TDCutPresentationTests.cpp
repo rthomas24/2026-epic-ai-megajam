@@ -348,3 +348,34 @@ bool FTDCutPresCleanup::RunTest(const FString& Parameters)
 }
 
 #endif // WITH_DEV_AUTOMATION_TESTS
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCutPresNameCardClaim, "TriadDrift.Director.CutPresentation.CardsCarryTheHUDsNameCardClaim", TD_TEST_FLAGS)
+bool FTDCutPresNameCardClaim::RunTest(const FString& Parameters)
+{
+	// N-038: an external card renderer reads the name-card policy from the cards; the card itself stays filled.
+	ON_SCOPE_EXIT { UTDCutPresentation::NameCardClaimOverrideForTests.Reset(); };
+	FFixture F;
+	UTDCutPresentation* Pres = F.Director->GetCutPresentation();
+	if (!TestNotNull(TEXT("presentation"), Pres)) { return false; }
+	int32 Changes = 0;
+	bool bLastClaim = false;
+	const FDelegateHandle H = Pres->OnCardsChanged.AddLambda([&](const FTDDirectorCards& C) { ++Changes; bLastClaim = C.bNameCardClaimedByHUD; });
+	ON_SCOPE_EXIT { Pres->OnCardsChanged.Remove(H); };
+
+	UTDCutPresentation::NameCardClaimOverrideForTests = false;
+	TestTrue(TEXT("switch"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	for (int32 i = 0; i < 20; ++i) { F.W.Tick(); }
+	TestTrue(TEXT("unclaimed: the name card is up"), Pres->GetCards().NameCard.bActive && !Pres->GetCards().NameCard.Text.IsEmpty());
+	TestFalse(TEXT("unclaimed: the flag says ours"), Pres->GetCards().bNameCardClaimedByHUD);
+
+	const int32 Before = Changes;
+	UTDCutPresentation::NameCardClaimOverrideForTests = true;
+	F.W.Tick();
+	TestTrue(TEXT("claimed: the flag says the HUD's"), Pres->GetCards().bNameCardClaimedByHUD);
+	TestTrue(TEXT("claimed: NameCard itself stays intact"), Pres->GetCards().NameCard.bActive && !Pres->GetCards().NameCard.Text.IsEmpty());
+	TestTrue(TEXT("claimed: a change notification carries it"), Changes > Before && bLastClaim);
+	TestEqual(TEXT("claimed: our fallback card yields"), F.S().NameCardAlpha, 0.f);
+	return true;
+}
+#endif

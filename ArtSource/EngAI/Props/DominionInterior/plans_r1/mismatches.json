@@ -1,0 +1,12 @@
+[
+ "Hangar X0 wall: C++ Room(HX0, HX1, HY, 2, false, true) closes the hangar at x -1200; PR #77 (merged) opens it 2800 x 1200 onto the 60 m glide pocket (x -7200..-1200). The interior map has no pocket yet: builders add it per PR #77 or keep the wall.",
+ "Deflect-corridor cover (line 287, y -70): it spans y -170..30, leaving 130 cm to the +Y kick plate (|y| 160) - the only way past, under R-042's 140. Recommended y -100: gap 0..160 = 160 cm (a one-number change for the code owner).",
+ "No ship in the hangar: the escape goal is a trigger on Pad A (-200, 0) ('GET BACK TO YOUR SHIP') but nothing spawns the boarding pilot's ship there. The 524 x 488 x 230 footprint fits (970 cm headroom, 1126 cm wing-to-wall).",
+ "Header comment (line 7) says hangar 24 x 24 m and core 32 x 32 m; the code builds 24 x 28 m (HY 1400) and 36 x 36 m (KY 1800). The plans follow the code.",
+ "Escape debris lane |y| <= 150 (line 409) covers the corridor cover: one 150 cm SM_DI_Debris_A landing at y ~ +95 near x 4500 closes the 130 cm gap (if debris collides). Keep debris out of x 4300..4700 or move the cover.",
+ "Core chamber: from the core door the two far conduits (13778, +-778) hide behind the core body; only the near two are in view. Not a bug: the HUD/trailhead must point round the ring.",
+ "Heart at core + (-760, 0), r 80, sits at r 680..840: outside the shield shell (r 640), so it reads as outside the shield even while it is up (it only takes damage in step 1).",
+ "N-052 trio (future Wren, Kato, Moss) has no encounter volume in the core chamber yet; the plan keeps the ring r 700..1500 round the core clear for it.",
+ "Brief vs kit: corridors are 400 x 400 x 640 BOUNDS (-20..620); the clear height is 600 (586 under the portal ribs). Ramps: R-042 says <= 20 deg (the brief said 30); the plan uses 20.",
+ "Hull mapping (PR #77 frame hull = 22800 - x): the core chamber lands at hull X ~9800, Z -3750..-1950, not at the exterior Reactor socket (16500, 0, 6500). Separate level, so info only."
+]

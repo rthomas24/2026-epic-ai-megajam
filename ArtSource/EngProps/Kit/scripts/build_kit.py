@@ -25,6 +25,7 @@ sys.path.insert(0, HERE)
 import kit_lib  # noqa: E402
 import kit_pieces  # noqa: E402
 import kit_pieces_d  # noqa: E402
+import kit_pieces_space  # noqa: E402
 
 SET = "planet"          # --set dominion: the Dominion shell (kit_pieces_d), T_KitD_Trim, red strips
 
@@ -39,7 +40,7 @@ GLOW_EMBER = (1.0, 0.36, 0.06)
 def make_materials(glow=GLOW_TEAL):
     mats = {}
     stem = "T_KitD_Trim" if SET == "dominion" else "T_Kit_Trim"
-    if SET == "dominion":
+    if SET in ("dominion", "space"):
         glow = (1.0, 0.1, 0.03)
     m = bpy.data.materials.new("M_Kit_Trim")
     nt = m.node_tree
@@ -72,8 +73,47 @@ def make_materials(glow=GLOW_TEAL):
     nt.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
     m.use_backface_culling = True
     mats["Trim"] = m
+    if SET == "space":                          # the rig's Dominion trim, the rock, the eyes
+        d = m.copy()
+        d.name = "M_Kit_Dom"
+        for nd in d.node_tree.nodes:
+            if nd.type == "TEX_IMAGE" and nd.image and nd.image.name.startswith("T_Kit_Trim"):
+                nd.image = bpy.data.images.load(os.path.join(TEX, nd.image.name.replace("T_Kit_Trim", "T_KitD_Trim")), check_existing=True)
+                nd.image.colorspace_settings.name = "sRGB" if "_BC" in nd.image.name else "Non-Color"
+        mats["Dom"] = d
+        for key, tint in (("Trim2", (0.55, 0.56, 0.6)), ("Scorch", (0.08, 0.06, 0.05)), ("Stripe", (0.35, 0.75, 0.8))):
+            t2 = m.copy()
+            t2.name = "M_Kit_" + key
+            bs = next(n for n in t2.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+            mix = t2.node_tree.nodes.new("ShaderNodeMix")
+            mix.data_type = "RGBA"
+            mix.blend_type = "MULTIPLY"
+            mix.inputs["Factor"].default_value = 1.0
+            src = bs.inputs["Base Color"].links[0].from_socket
+            t2.node_tree.links.new(src, mix.inputs["A"])
+            mix.inputs["B"].default_value = (tint[0], tint[1], tint[2], 1.0)
+            t2.node_tree.links.new(mix.outputs["Result"], bs.inputs["Base Color"])
+            mats[key] = t2
+        for key, col, rough in (("Rock", (0.16, 0.14, 0.13), 0.9), ("Cut", (0.24, 0.23, 0.22), 0.6), ("Bore", (0.03, 0.03, 0.035), 0.9),
+                                ("BoreEnd", (0.005, 0.005, 0.006), 0.95)):
+            r_ = bpy.data.materials.new("M_Kit_" + key)
+            b_ = next(n for n in r_.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+            b_.inputs["Base Color"].default_value = (col[0], col[1], col[2], 1.0)
+            b_.inputs["Roughness"].default_value = rough
+            mats[key] = r_
+    if SET != "dominion":                       # ART-18: the artefact's ancient stone (T_KitS_Trim, same regions)
+        st = m.copy()
+        st.name = "M_Kit_Stone"
+        for nd in st.node_tree.nodes:
+            if nd.type == "TEX_IMAGE" and nd.image and nd.image.name.startswith("T_Kit_Trim"):
+                nd.image = bpy.data.images.load(os.path.join(TEX, nd.image.name.replace("T_Kit_Trim", "T_KitS_Trim")), check_existing=True)
+                nd.image.colorspace_settings.name = "sRGB" if "_BC" in nd.image.name else "Non-Color"
+        mats["Stone"] = st
     for key, col, strength in (("Glow", glow, 6.0), ("Screen", (0.06, 0.4, 0.45), 1.5), ("Light", (0.9, 0.95, 1.0), 8.0),
-                               ("Beacon", glow, 20.0), ("Pillar", glow, 3.0)):
+                               ("Beacon", glow, 20.0), ("Pillar", glow, 3.0), ("Decal", (1.0, 0.45, 0.1), 0.5), ("Route", (1.0, 0.05, 0.03), 0.5),
+                               ("Eye", (1.0, 1.0, 1.0), 12.0), ("Breach", (0.2, 0.5, 1.0), 6.0), ("Run", (1.0, 0.2, 0.15), 6.0),
+                               ("Flicker", (1.0, 0.72, 0.42), 4.0), ("Work", (1.0, 0.9, 0.7), 8.0),
+                               ("Strobe", (0.6, 0.85, 1.0), 20.0), ("Nav", (1.0, 0.55, 0.1), 10.0)):
         g = bpy.data.materials.new("M_Kit_" + key)
         b = next(n for n in g.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
         b.inputs["Base Color"].default_value = (0.02, 0.025, 0.03, 1.0)
@@ -92,13 +132,16 @@ def build_all():
     bpy.context.scene.collection.children.link(coll)
     mats = make_materials()
     rows, objs, pieces = [], {}, {}
-    for fn in (kit_pieces_d.BUILDERS if SET == "dominion" else kit_pieces.BUILDERS):
+    for fn in {"dominion": kit_pieces_d.BUILDERS, "space": kit_pieces_space.BUILDERS}.get(SET, kit_pieces.BUILDERS):
         p = fn()
         lo, hi = p.bounds()
         size = tuple(round(hi[i] - lo[i], 2) for i in range(3))
         ok = all(abs(lo[i] - p.expect[0][i]) < 0.6 and abs(hi[i] - p.expect[1][i]) < 0.6 for i in range(3)) if p.expect else True
         obj = p.build(mats, coll)
-        kit_lib.finish(obj, clamp=p.name not in getattr(kit_pieces_d, "NO_CLAMP", ()))
+        if SET == "space":                       # seen from 50 m to 2 km: a 15 cm bevel, no global clamp
+            kit_lib.finish(obj, bevel_cm=15.0, clamp=False)
+        else:
+            kit_lib.finish(obj, clamp=p.name not in getattr(kit_pieces_d, "NO_CLAMP", ()))
         clamped = kit_lib.bake_and_clamp(obj, lo, hi)
         objs[p.name], pieces[p.name] = obj, p
         dg = bpy.context.evaluated_depsgraph_get()
@@ -227,7 +270,7 @@ def contact_sheet(objs, tag, clay, cell=420, cols=5):
     for i, a in enumerate(cells):
         r, cc = divmod(i, cols)
         sheet[r * cell:(r + 1) * cell, cc * cell:(cc + 1) * cell] = a
-    out = os.path.join(REVIEW, "kit%s_%s_%s.png" % ("D" if SET == "dominion" else "", tag, "clay" if clay else "material"))
+    out = os.path.join(REVIEW, "kit%s_%s_%s.png" % ({"dominion": "D", "space": "S"}.get(SET, ""), tag, "clay" if clay else "material"))
     save_px(sheet, out)
     if os.path.exists(tmp):
         os.remove(tmp)
@@ -426,13 +469,16 @@ def main():
     ap.add_argument("--tag", default="r0")
     ap.add_argument("--render", action="store_true")
     ap.add_argument("--export", action="store_true")
-    ap.add_argument("--set", default="planet", choices=("planet", "dominion"))
+    ap.add_argument("--set", default="planet", choices=("planet", "dominion", "space"))
     a = ap.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     global SET, EXPORT
     SET = a.set
     if SET == "dominion":
         EXPORT = os.path.join(KIT, "export_dominion")
         a.tag = "D_" + a.tag
+    elif SET == "space":
+        EXPORT = os.path.join(KIT, "export_space")
+        a.tag = "S_" + a.tag
     os.makedirs(REVIEW, exist_ok=True)
     objs, rows, mats, pieces = build_all()
     with open(os.path.join(REVIEW, "size_check_%s.json" % a.tag), "w", encoding="utf-8") as fh:
@@ -444,7 +490,7 @@ def main():
         contact_sheet(objs, a.tag, False)
         if SET == "planet":
             assembly(objs, a.tag)
-        else:
+        elif SET == "dominion":
             assembly_d(objs, a.tag)
     if a.export and not fails:
         rep = runpy.run_path(os.path.join(SKILLS, "blender-mcp", "scripts", "asset_report.py"))["main"](targets=list(objs))
@@ -464,7 +510,7 @@ def main():
             w = o.dimensions.y
             o.location = (0, x + w / 2, 0)
             x += w + 1.0
-        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, "KitDominion.blend" if SET == "dominion" else "Kit.blend"), compress=True)
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, {"dominion": "KitDominion.blend", "space": "KitSpace.blend"}.get(SET, "Kit.blend")), compress=True)
     print("__RESULT__ done")
 
 

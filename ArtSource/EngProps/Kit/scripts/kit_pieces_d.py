@@ -112,6 +112,9 @@ def corridor_straight():
     _ceiling(p)
     p.box((-190, -6, 596), (-16, 6, 600), mat="Light", faces="xXyYz")
     p.box((16, -6, 596), (190, 6, 600), mat="Light", faces="xXyYz")
+    # Grok Bot's route arrow (ROUTE_ARROW cell, 200 cm, chevrons pointing +X = deeper into the ship), 2 mm proud
+    p.poly([(-100.0, -100.0, 0.2), (100.0, -100.0, 0.2), (100.0, 100.0, 0.2), (-100.0, 100.0, 0.2)], mat="Route", n=(0, 0, 1),
+           uv=[(0.5, 0.0), (1.0, 0.0), (1.0, 0.5), (0.5, 0.5)])
     p.cbox((-200, -200, -20), (200, 200, 0))
     p.cbox((-200, -200, 600), (200, 200, 620))
     p.cbox((-200, 170, 0), (200, 200, 600))
@@ -119,22 +122,28 @@ def corridor_straight():
     return p
 
 
-def _eye(p, s, zc, r_lens=35.0, r_bezel=45.0):
+def _eye(p, s, zc, r_lens=35.0, r_bezel=45.0, yc=0.0, x_face=30.0, ring=True, lens_mat="Light"):
     """A round lens on the face X = s*30, centred (Y 0, Z zc): a black bezel ring 4 cm proud, the white lens 2 cm proud."""
     import math
-    n = 20
-    x0 = s * 30.0
+    n = 24
+    x0 = s * x_face
+    f1, f2 = x_face + 4.0, x_face + 2.0
+    r_ring = r_lens + 0.35 * (r_bezel - r_lens)
     for i in range(n):
         a0, a1 = 2 * math.pi * i / n, 2 * math.pi * (i + 1) / n
         c0, s0, c1, s1 = math.cos(a0), math.sin(a0), math.cos(a1), math.sin(a1)
-        p.poly([(s * 34.0, r_lens * c0, zc + r_lens * s0), (s * 34.0, r_bezel * c0, zc + r_bezel * s0),
-                (s * 34.0, r_bezel * c1, zc + r_bezel * s1), (s * 34.0, r_lens * c1, zc + r_lens * s1)], "sw_black", n=(s, 0, 0),
+        Y = lambda r, c: yc + r * c
+        p.poly([(s * f1, Y(r_ring, c0), zc + r_ring * s0), (s * f1, Y(r_bezel, c0), zc + r_bezel * s0),
+                (s * f1, Y(r_bezel, c1), zc + r_bezel * s1), (s * f1, Y(r_ring, c1), zc + r_ring * s1)], "sw_black", n=(s, 0, 0),
                uv=[(0.5, 0.5)] * 4)
-        p.poly([(x0, r_bezel * c0, zc + r_bezel * s0), (s * 34.0, r_bezel * c0, zc + r_bezel * s0),
-                (s * 34.0, r_bezel * c1, zc + r_bezel * s1), (x0, r_bezel * c1, zc + r_bezel * s1)], "sw_black",
+        p.poly([(s * f1, Y(r_lens, c0), zc + r_lens * s0), (s * f1, Y(r_ring, c0), zc + r_ring * s0),
+                (s * f1, Y(r_ring, c1), zc + r_ring * s1), (s * f1, Y(r_lens, c1), zc + r_lens * s1)],
+               "sw_black" if not ring else None, mat="Trim" if not ring else "Glow", n=(s, 0, 0), uv=[(0.5, 0.5)] * 4)
+        p.poly([(x0, Y(r_bezel, c0), zc + r_bezel * s0), (s * f1, Y(r_bezel, c0), zc + r_bezel * s0),
+                (s * f1, Y(r_bezel, c1), zc + r_bezel * s1), (x0, Y(r_bezel, c1), zc + r_bezel * s1)], "sw_black",
                n=(0, (c0 + c1) * 0.5, (s0 + s1) * 0.5), uv=[(0.5, 0.5)] * 4)
-        p.poly([(s * 32.0, 0.0, zc), (s * 32.0, r_lens * c0, zc + r_lens * s0), (s * 32.0, r_lens * c1, zc + r_lens * s1)],
-               mat="Light", n=(s, 0, 0))
+        p.poly([(s * f2, yc, zc), (s * f2, Y(r_lens, c0), zc + r_lens * s0), (s * f2, Y(r_lens, c1), zc + r_lens * s1)],
+               mat=lens_mat, n=(s, 0, 0))
 
 
 def doorway():
@@ -152,7 +161,8 @@ def doorway():
         p.box((xa, -140, 408), (xb, 140, 416), mat="Glow")
         p.box((xa, -192, 520), (xb, -184, 560), mat="Glow")         # 40 cm caps (review fix 1)
         p.box((xa, 184, 520), (xb, 192, 560), mat="Glow")
-        _eye(p, s, 500.0)                                          # white = exits, red = ambience
+        # r9 (review r4): a 1.7 m black eye with a 44 cm red pupil instead of the white disc (read as a debug lamp)
+        _eye(p, s, 500.0, r_lens=22.0, r_bezel=84.0, ring=False, lens_mat="Glow")
     p.cbox((-30, -200, 0), (30, -150, 600))
     p.cbox((-30, 150, 0), (30, 200, 600))
     p.cbox((-30, -150, 400), (30, 150, 600))
@@ -161,13 +171,18 @@ def doorway():
 
 def door():
     """The door leaf at the doorway's transform: 30 x 300 x 400. Gameplay slides it +Z by 400."""
-    p = Piece("SM_DI_Door", ((-16, -150, 0), (16, 150, 400)))
+    p = Piece("SM_DI_Door", ((-16.3, -150, 0), (16.3, 150, 400)))
     p.box((-15, -150, 0), (15, 150, 400), reg="frame", regs={"x": "wallB", "X": "wallB"},
           uvo={f: (("y", -150, 150), ("z", 0, 400)) for f in "xX"})
     for s in (-1.0, 1.0):
         xa, xb = sorted((s * 15, s * 16))
         p.box((xa, -3, 20), (xb, 3, 380), mat="Glow")
         p.box((xa, -140, 186), (xb, 140, 192), mat="Glow")
+        # Grok Bot's trident emblem (T_DI_Decals, the TRIDENT cell), 160 cm, upright for a viewer on this side
+        x = s * 16.3
+        yl, yr = (-130.0, 130.0) if s > 0 else (130.0, -130.0)          # r8: 260 cm (review r3: read the mark)
+        p.poly([(x, yl, 115.0), (x, yr, 115.0), (x, yr, 375.0), (x, yl, 375.0)], mat="Decal", n=(s, 0, 0),
+               uv=[(0.0, 0.5), (0.5, 0.5), (0.5, 1.0), (0.0, 1.0)])
     p.cbox((-15, -150, 0), (15, 150, 400))
     return p
 

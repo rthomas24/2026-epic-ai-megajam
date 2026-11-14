@@ -1,0 +1,431 @@
+{
+ "A_CrewTrooper_Alert.fbx": {
+  "UnitScaleFactor": 100.0,
+  "bones": 88,
+  "missing_vs_SK": [],
+  "extra": [],
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "fps": 30,
+  "frames": 48,
+  "first": 2,
+  "last": 49,
+  "seconds": 1.567,
+  "pelvis_z_cm": [
+   73.6,
+   91.8
+  ],
+  "head_z0_cm": 157.9,
+  "root_end_cm": [
+   -28.9,
+   -40.4,
+   0.0
+  ],
+  "ball_min_cm": 1.0,
+  "foot_slide_cm": {
+   "l": 7.35,
+   "r": 8.62
+  },
+  "first_last_max_bone_delta_cm": 99.74,
+  "hand_gap_cm": [
+   18.4,
+   27.6
+  ]
+ },
+ "A_CrewTrooper_Cover_Enter.fbx": {
+  "UnitScaleFactor": 100.0,
+  "bones": 88,
+  "missing_vs_SK": [],
+  "extra": [],
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "fps": 30,
+  "frames": 39,
+  "first": 2,
+  "last": 40,
+  "seconds": 1.267,
+  "pelvis_z_cm": [
+   37.9,
+   93.8
+  ],
+  "head_z0_cm": 158.3,
+  "root_end_cm": [
+   3.0,
+   6.8,
+   0.0
+  ],
+  "ball_min_cm": -2.3,
+  "foot_slide_cm": {
+   "l": 2.37,
+   "r": 1.3
+  },
+  "first_last_max_bone_delta_cm": 66.77,
+  "hand_gap_cm": [
+   17.8,
+   27.6
+  ]
+ },
+ "A_CrewTrooper_Cover_Idle.fbx": {
+  "UnitScaleFactor": 100.0,
+  "bones": 88,
+  "missing_vs_SK": [],
+  "extra": [],
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "fps": 30,
+  "frames": 90,
+  "first": 2,
+  "last": 91,
+  "seconds": 2.967,
+  "pelvis_z_cm": [
+   55.6,
+   55.9
+  ],
+  "head_z0_cm": 116.9,
+  "root_end_cm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ball_min_cm": 1.2,
+  "foot_slide_cm": {
+   "l": 0.0,
+   "r": 0.0
+  },
+  "first_last_max_bone_delta_cm": 0.03,
+  "hand_gap_cm": [
+   27.6,
+   27.6
+  ]
+ },
+ "A_CrewTrooper_Death_Back.fbx": {
+  "UnitScaleFactor": 100.0,
+  "bones": 88,
+  "missing_vs_SK": [],
+  "extra": [],
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "fps": 30,
+  "frames": 78,
+  "first": 2,
+  "last": 79,
+  "seconds": 2.567,
+  "pelvis_z_cm": [
+   19.5,
+   97.9
+  ],
+  "head_z0_cm": 161.8,
+  "root_end_cm": [
+   -39.0,
+   -100.1,
+   0.0
+  ],
+  "ball_min_cm": 0.0,
+  "foot_slide_cm": {
+   "l": 0.0,
+   "r": 0.0
+  },
+  "first_last_max_bone_delta_cm": 227.16,
+  "hand_gap_cm": [
+   20.5,
+   67.3
+  ]
+ },
+ "A_CrewTrooper_Death_Front.fbx": {
+  "UnitScaleFactor": 100.0,
+  "bones": 88,
+  "missing_vs_SK": [],
+  "extra": [],
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "fps": 30,
+  "frames": 78,
+  "first": 2,
+  "last": 79,
+  "seconds": 2.567,
+  "pelvis_z_cm": [
+   14.3,
+   96.8
+  ],
+  "head_z0_cm": 160.8,
+  "root_end_cm": [
+   -90.2,
+   87.2,
+   0.0
+  ],
+  "ball_min_cm": 0.8,
+  "foot_slide_cm": {
+   "l": 0.93,
+   "r": 0.61
+  },
+  "first_last_max_bone_delta_cm": 259.53,
+  "hand_gap_cm": [
+   17.6,
+   140.8
+  ]
+ },
+ "A_CrewTrooper_Death_Left.fbx": {
+  "UnitScaleFactor": 100.0,
+  "bones": 88,
+  "missing_vs_SK": [],
+  "extra": [],
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "fps": 30,
+  "frames": 78,
+  "first": 2,
+  "last": 79,
+  "seconds": 2.567,
+  "pelvis_z_cm": [
+   19.3,
+   98.4
+  ],
+  "head_z0_cm": 160.4,
+  "root_end_cm": [
+   -77.0,
+   5.0,
+   0.0
+  ],
+  "ball_min_cm": 0.7,
+  "foot_slide_cm": {
+   "l": 0.0,
+   "r": 5.74
+  },
+  "first_last_max_bone_delta_cm": 198.54,
+  "hand_gap_cm": [
+   19.9,
+   107.9
+  ]
+ },
+ "A_CrewTrooper_Death_Right.fbx": {
+  "UnitScaleFactor": 100.0,
+  "bones": 88,
+  "missing_vs_SK": [],
+  "extra": [],
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "fps": 30,
+  "frames": 78,
+  "first": 2,
+  "last": 79,
+  "seconds": 2.567,
+  "pelvis_z_cm": [
+   33.9,
+   91.2
+  ],
+  "head_z0_cm": 155.4,
+  "root_end_cm": [
+   106.8,
+   -127.4,
+   0.0
+  ],
+  "ball_min_cm": -1.7,
+  "foot_slide_cm": {
+   "l": 2.59,
+   "r": 0.0
+  },
+  "first_last_max_bone_delta_cm": 279.47,
+  "hand_gap_cm": [
+   17.7,
+   61.1
+  ]
+ },
+ "A_CrewTrooper_Fire_Burst.fbx": {
+  "UnitScaleFactor": 100.0,
+  "bones": 88,
+  "missing_vs_SK": [],
+  "extra": [],
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "fps": 30,
+  "frames": 48,
+  "first": 2,
+  "last": 49,
+  "seconds": 1.567,
+  "pelvis_z_cm": [
+   88.7,
+   90.0
+  ],
+  "head_z0_cm": 154.0,
+  "root_end_cm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ball_min_cm": 1.2,
+  "foot_slide_cm": {
+   "l": 0.0,
+   "r": 0.0
+  },
+  "first_last_max_bone_delta_cm": 4.16,
+  "hand_gap_cm": [
+   21.2,
+   23.7
+  ]
+ },
+ "A_CrewTrooper_HitReact_Back.fbx": {
+  "UnitScaleFactor": 100.0,
+  "bones": 88,
+  "missing_vs_SK": [],
+  "extra": [],
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "fps": 30,
+  "frames": 33,
+  "first": 2,
+  "last": 34,
+  "seconds": 1.067,
+  "pelvis_z_cm": [
+   98.3,
+   101.2
+  ],
+  "head_z0_cm": 163.0,
+  "root_end_cm": [
+   0.8,
+   -13.8,
+   0.0
+  ],
+  "ball_min_cm": 1.5,
+  "foot_slide_cm": {
+   "l": 0.2,
+   "r": 0.0
+  },
+  "first_last_max_bone_delta_cm": 11.85,
+  "hand_gap_cm": [
+   18.4,
+   19.5
+  ]
+ },
+ "A_CrewTrooper_HitReact_Front.fbx": {
+  "UnitScaleFactor": 100.0,
+  "bones": 88,
+  "missing_vs_SK": [],
+  "extra": [],
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "fps": 30,
+  "frames": 33,
+  "first": 2,
+  "last": 34,
+  "seconds": 1.067,
+  "pelvis_z_cm": [
+   97.3,
+   98.5
+  ],
+  "head_z0_cm": 158.7,
+  "root_end_cm": [
+   -15.0,
+   1.0,
+   0.0
+  ],
+  "ball_min_cm": 1.7,
+  "foot_slide_cm": {
+   "l": 0.34,
+   "r": 0.37
+  },
+  "first_last_max_bone_delta_cm": 21.13,
+  "hand_gap_cm": [
+   18.5,
+   20.9
+  ]
+ },
+ "A_CrewTrooper_Idle_Aim.fbx": {
+  "UnitScaleFactor": 100.0,
+  "bones": 88,
+  "missing_vs_SK": [],
+  "extra": [],
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "fps": 30,
+  "frames": 90,
+  "first": 2,
+  "last": 91,
+  "seconds": 2.967,
+  "pelvis_z_cm": [
+   88.7,
+   90.0
+  ],
+  "head_z0_cm": 154.0,
+  "root_end_cm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ball_min_cm": 1.2,
+  "foot_slide_cm": {
+   "l": 0.0,
+   "r": 0.0
+  },
+  "first_last_max_bone_delta_cm": 0.12,
+  "hand_gap_cm": [
+   21.2,
+   21.5
+  ]
+ },
+ "A_CrewTrooper_Idle_Ready.fbx": {
+  "UnitScaleFactor": 100.0,
+  "bones": 88,
+  "missing_vs_SK": [],
+  "extra": [],
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "fps": 30,
+  "frames": 90,
+  "first": 2,
+  "last": 91,
+  "seconds": 2.967,
+  "pelvis_z_cm": [
+   94.1,
+   94.3
+  ],
+  "head_z0_cm": 159.9,
+  "root_end_cm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ball_min_cm": 1.5,
+  "foot_slide_cm": {
+   "l": 0.0,
+   "r": 0.01
+  },
+  "first_last_max_bone_delta_cm": 0.27,
+  "hand_gap_cm": [
+   19.5,
+   19.6
+  ]
+ },
+ "A_CrewTrooper_Reload.fbx": {
+  "UnitScaleFactor": 100.0,
+  "bones": 88,
+  "missing_vs_SK": [],
+  "extra": [],
+  "armature_obj": "root",
+  "obj_scale": 1.0,
+  "fps": 30,
+  "frames": 78,
+  "first": 2,
+  "last": 79,
+  "seconds": 2.567,
+  "pelvis_z_cm": [
+   97.3,
+   98.1
+  ],
+  "head_z0_cm": 163.1,
+  "root_end_cm": [
+   0.0,
+   0.0,
+   0.0
+  ],
+  "ball_min_cm": 1.1,
+  "foot_slide_cm": {
+   "l": 0.13,
+   "r": 0.13
+  },
+  "first_last_max_bone_delta_cm": 11.45,
+  "hand_gap_cm": [
+   15.4,
+   71.4
+  ]
+ }
+}

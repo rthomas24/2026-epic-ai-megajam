@@ -1,0 +1,166 @@
+{
+ "sounds": {
+  "Pickup_Collect_Hull": {
+   "asset": "SW_Pickup_Collect_Hull_01",
+   "type": "SoundWave",
+   "class": "SC_TDE_SFX",
+   "attenuation": "ATT_TDE_Space_Near",
+   "concurrency": [
+    "SCON_TDE_Power"
+   ],
+   "looping": false,
+   "volume": 0.316
+  },
+  "Pickup_Collect_Shield": {
+   "asset": "SW_Pickup_Collect_Shield_01",
+   "type": "SoundWave",
+   "class": "SC_TDE_SFX",
+   "attenuation": "ATT_TDE_Space_Near",
+   "concurrency": [
+    "SCON_TDE_Power"
+   ],
+   "looping": false,
+   "volume": 0.282
+  },
+  "Pickup_Collect_Power": {
+   "asset": "SW_Pickup_Collect_Power_01",
+   "type": "SoundWave",
+   "class": "SC_TDE_SFX",
+   "attenuation": "ATT_TDE_Space_Near",
+   "concurrency": [
+    "SCON_TDE_Power"
+   ],
+   "looping": false,
+   "volume": 0.316
+  },
+  "Pickup_Collect_Overcharge": {
+   "asset": "SW_Pickup_Collect_Overcharge_01",
+   "type": "SoundWave",
+   "class": "SC_TDE_SFX",
+   "attenuation": "ATT_TDE_Space_Near",
+   "concurrency": [
+    "SCON_TDE_Power"
+   ],
+   "looping": false,
+   "volume": 0.398
+  },
+  "Pickup_Drop": {
+   "asset": "MSS_Pickup_Drop",
+   "type": "MetaSoundSource",
+   "class": "SC_TDE_SFX",
+   "attenuation": "ATT_TDE_Space_Medium",
+   "concurrency": [
+    "SCON_TDE_Power"
+   ],
+   "looping": false,
+   "volume": 1.0
+  },
+  "Travel_DescentRoar": {
+   "asset": "SW_Travel_DescentRoar_01",
+   "type": "SoundWave",
+   "class": "SC_TDE_SFX",
+   "attenuation": null,
+   "concurrency": [],
+   "looping": true,
+   "volume": 0.447
+  },
+  "Story_ThreePulse": {
+   "asset": "SW_Story_ThreePulse_01",
+   "type": "SoundWave",
+   "class": "SC_TDE_SFX",
+   "attenuation": "ATT_TDE_Ground_Medium",
+   "concurrency": [
+    "SCON_TDE_Impact"
+   ],
+   "looping": false,
+   "volume": 0.398
+  },
+  "Dominion_EscapeAlarm": {
+   "asset": "SW_Dominion_EscapeAlarm_01",
+   "type": "SoundWave",
+   "class": "SC_TDE_SFX",
+   "attenuation": null,
+   "concurrency": [],
+   "looping": true,
+   "volume": 0.282
+  },
+  "Field_Break_Small": {
+   "asset": "MSS_Field_Break_Small",
+   "type": "MetaSoundSource",
+   "class": "SC_TDE_SFX",
+   "attenuation": "ATT_TDE_Space_Medium",
+   "concurrency": [
+    "SCON_TDE_Impact"
+   ],
+   "looping": false,
+   "volume": 1.0
+  },
+  "Field_Break_Medium": {
+   "asset": "MSS_Field_Break_Medium",
+   "type": "MetaSoundSource",
+   "class": "SC_TDE_SFX",
+   "attenuation": "ATT_TDE_Space_Medium",
+   "concurrency": [
+    "SCON_TDE_Explosion"
+   ],
+   "looping": false,
+   "volume": 1.0
+  },
+  "Field_Break_Large": {
+   "asset": "MSS_Field_Break_Large",
+   "type": "MetaSoundSource",
+   "class": "SC_TDE_SFX",
+   "attenuation": "ATT_TDE_Space_Far",
+   "concurrency": [
+    "SCON_TDE_Explosion"
+   ],
+   "looping": false,
+   "volume": 1.0
+  },
+  "Field_Break_Special": {
+   "asset": "MSS_Field_Break_Special",
+   "type": "MetaSoundSource",
+   "class": "SC_TDE_SFX",
+   "attenuation": "ATT_TDE_Space_Medium",
+   "concurrency": [
+    "SCON_TDE_Explosion"
+   ],
+   "looping": false,
+   "volume": 1.0
+  },
+  "Ship_Impact_Thud": {
+   "asset": "MSS_Ship_Impact_Thud",
+   "type": "MetaSoundSource",
+   "class": "SC_TDE_SFX",
+   "attenuation": "ATT_TDE_Space_Near",
+   "concurrency": [
+    "SCON_TDE_Impact"
+   ],
+   "looping": false,
+   "volume": 1.0
+  },
+  "Ship_Impact_Heavy": {
+   "asset": "MSS_Ship_Impact_Heavy",
+   "type": "MetaSoundSource",
+   "class": "SC_TDE_SFX",
+   "attenuation": "ATT_TDE_Space_Near",
+   "concurrency": [
+    "SCON_TDE_Impact"
+   ],
+   "looping": false,
+   "volume": 1.0
+  }
+ },
+ "slots": {
+  "DA_Pickup_Visuals.Hull.Collect": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Hull_01",
+  "DA_Pickup_Visuals.Shield.Collect": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Shield_01",
+  "DA_Pickup_Visuals.Power.Collect": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Power_01",
+  "DA_Pickup_Visuals.Overcharge.Collect": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Overcharge_01",
+  "DA_Travel_FX.DescentRoar": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_DescentRoar_01",
+  "DA_SpaceField_FX.BreakSmall": "NO SUCH ASSET (slot not set)",
+  "DA_SpaceField_FX.BreakMedium": "NO SUCH ASSET (slot not set)",
+  "DA_SpaceField_FX.BreakLarge": "NO SUCH ASSET (slot not set)",
+  "DA_SpaceField_FX.BreakSpecial": "NO SUCH ASSET (slot not set)"
+ },
+ "errors": []
+}

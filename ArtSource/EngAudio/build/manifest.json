@@ -999,6 +999,141 @@
    "file": "wav/Ambience/AMB_Ambience_Cinder_01.wav",
    "path": "/Game/TriadDrift/Gameplay/Audio/Ambience/SW_Ambience_Cinder_01",
    "cat": "ambience"
+  },
+  {
+   "file": "wav/Pickups/SFX_Pickup_Collect_Hull_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Hull_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Pickups/SFX_Pickup_Collect_Shield_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Shield_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Pickups/SFX_Pickup_Collect_Power_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Power_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Pickups/SFX_Pickup_Collect_Overcharge_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Overcharge_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Pickups/SFX_Pickup_Drop_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Drop_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Pickups/SFX_Pickup_Drop_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Drop_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Pickups/SFX_Pickup_Drop_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Drop_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Travel/SFX_Travel_DescentRoar_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_DescentRoar_01",
+   "cat": "loop"
+  },
+  {
+   "file": "wav/Story/SFX_Story_ThreePulse_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Story/SW_Story_ThreePulse_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Dominion/SFX_Dominion_EscapeAlarm_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_EscapeAlarm_01",
+   "cat": "loop"
+  },
+  {
+   "file": "wav/Field/SFX_Field_Break_Small_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Small_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Field/SFX_Field_Break_Small_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Small_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Field/SFX_Field_Break_Small_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Small_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Field/SFX_Field_Break_Small_04.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Small_04",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Field/SFX_Field_Break_Medium_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Medium_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Field/SFX_Field_Break_Medium_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Medium_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Field/SFX_Field_Break_Medium_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Medium_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Field/SFX_Field_Break_Large_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Large_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Field/SFX_Field_Break_Large_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Large_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Field/SFX_Field_Break_Special_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Special_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Field/SFX_Field_Break_Special_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Special_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Ship_Impact_Thud_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Thud_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Ship_Impact_Thud_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Thud_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Ship_Impact_Thud_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Thud_03",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Ship_Impact_Heavy_01.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Heavy_01",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Ship_Impact_Heavy_02.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Heavy_02",
+   "cat": "sfx"
+  },
+  {
+   "file": "wav/Impacts/SFX_Ship_Impact_Heavy_03.wav",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Heavy_03",
+   "cat": "sfx"
   }
  ],
  "assets": [
@@ -1823,7 +1958,7 @@
     "DA_Lancer_Visuals.LowHullLoop",
     "DA_Bastion_Visuals.LowHullLoop"
    ],
-   "note": "Low-hull warning: two soft notes every half second over a quiet bed. NOT wired: ATDShip never plays LowHullLoop (and would have to gate and stop it)."
+   "note": "Low-hull warning: two soft notes every half second over a quiet bed. 2D, SFX class (stops when the game pauses). Wired once gameplay starts and stops LowHullLoop."
   },
   {
    "name": "Shield_Break",
@@ -3270,6 +3405,261 @@
    "cls": "Ambience",
    "slots": [],
    "note": "Cinder, volcanic: a deep rumble, hot wind, lava pops and crackle. NOT wired."
+  },
+  {
+   "name": "Pickup_Collect_Hull",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Hull_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Hull_01"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Pickup_Visuals.Hull.Collect"
+   ],
+   "note": "Hull repair pickup taken: a warm low knock and two rising bell notes (E4, B4). One take: a tonal signal the player learns."
+  },
+  {
+   "name": "Pickup_Collect_Shield",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Shield_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Shield_01"
+   ],
+   "volume_db": -11.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Pickup_Visuals.Shield.Collect"
+   ],
+   "note": "Shield pickup taken: a glassy rising shimmer (C6, G6) over a soft whoosh."
+  },
+  {
+   "name": "Pickup_Collect_Power",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Power_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Power_01"
+   ],
+   "volume_db": -10.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Pickup_Visuals.Power.Collect"
+   ],
+   "note": "Power charge pickup taken: a fast charging sweep and three rising notes (A4, E5, A5)."
+  },
+  {
+   "name": "Pickup_Collect_Overcharge",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Overcharge_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Collect_Overcharge_01"
+   ],
+   "volume_db": -8.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [
+    "DA_Pickup_Visuals.Overcharge.Collect"
+   ],
+   "note": "Overcharge pickup taken, the rare one: a sub hit, a rising major chord (A4, C#5, E5, A5) and a bright burst."
+  },
+  {
+   "name": "Pickup_Drop",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Pickups/MSS_Pickup_Drop",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Drop_01",
+    "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Drop_02",
+    "/Game/TriadDrift/Gameplay/Audio/Pickups/SW_Pickup_Drop_03"
+   ],
+   "volume_db": -13.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Power",
+   "cls": "SFX",
+   "slots": [],
+   "note": "A reward drops out of a wreck or a special asteroid: a short falling sparkle and a tick. No data slot yet (a pickup has Loop and Collect only): for T2's spawn."
+  },
+  {
+   "name": "Travel_DescentRoar",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_DescentRoar_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_DescentRoar_01"
+   ],
+   "volume_db": -7.0,
+   "looping": true,
+   "att": null,
+   "con": null,
+   "cls": "SFX",
+   "slots": [
+    "DA_Travel_FX.DescentRoar"
+   ],
+   "note": "ENG-38 planet descent: the roar that carries across the planet load under the white cover. 2D mono loop: a low rumble, buffeting wind and a thin hiss of plasma. Deeper and heavier than Travel_AtmosphericEntry, which stood in for it."
+  },
+  {
+   "name": "Story_ThreePulse",
+   "cat": "sfx",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Story/SW_Story_ThreePulse_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Story/SW_Story_ThreePulse_01"
+   ],
+   "volume_db": -8.0,
+   "looping": false,
+   "att": "Ground_Medium",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [],
+   "note": "The three-pulse signal (storyline: the pattern the pilot half-recognises): three even low pulses, 0.45 s apart, the third held longer. Played at the door that recognises the pilot (ATDDoor.AccessSound, set in code: no data slot) and wherever else the pattern sounds. One take: it is a signature."
+  },
+  {
+   "name": "Dominion_EscapeAlarm",
+   "cat": "loop",
+   "kind": "wave",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_EscapeAlarm_01",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Dominion/SW_Dominion_EscapeAlarm_01"
+   ],
+   "volume_db": -11.0,
+   "looping": true,
+   "att": null,
+   "con": null,
+   "cls": "SFX",
+   "slots": [],
+   "note": "The escape (run and flight out of the Dominion): a rising two-voice klaxon every 1.2 s over a low unstable rumble. 2D loop, SFX class (stops with pause). No data slot yet: for T5 (interior escape run) and T4 (escape flight)."
+  },
+  {
+   "name": "Field_Break_Small",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Small",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Small_01",
+    "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Small_02",
+    "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Small_03",
+    "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Small_04"
+   ],
+   "volume_db": -12.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [
+    "DA_SpaceField_FX.BreakSmall"
+   ],
+   "note": "ENG-48: a small piece of the space field breaks (1-10 m: pebble, panel, pod). A dry crack and a short gritty body."
+  },
+  {
+   "name": "Field_Break_Medium",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Medium",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Medium_01",
+    "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Medium_02",
+    "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Medium_03"
+   ],
+   "volume_db": -9.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_SpaceField_FX.BreakMedium"
+   ],
+   "note": "ENG-48: a medium rock splits into smalls (10-40 m). Crack, a falling stony body, a low thud, rattling debris."
+  },
+  {
+   "name": "Field_Break_Large",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Large",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Large_01",
+    "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Large_02"
+   ],
+   "volume_db": -5.0,
+   "looping": false,
+   "att": "Space_Far",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_SpaceField_FX.BreakLarge"
+   ],
+   "note": "ENG-48: a large rock or a wreck splits into mediums (40 m and up). A deep double crack, a long rumble and a tail of debris."
+  },
+  {
+   "name": "Field_Break_Special",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Field/MSS_Field_Break_Special",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Special_01",
+    "/Game/TriadDrift/Gameplay/Audio/Field/SW_Field_Break_Special_02"
+   ],
+   "volume_db": -8.0,
+   "looping": false,
+   "att": "Space_Medium",
+   "con": "Explosion",
+   "cls": "SFX",
+   "slots": [
+    "DA_SpaceField_FX.BreakSpecial"
+   ],
+   "note": "ENG-48: a special (crystal-veined) asteroid breaks and drops its reward. The medium break with a ringing crystal chime on top, so the ear knows this one paid out."
+  },
+  {
+   "name": "Ship_Impact_Thud",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Ship_Impact_Thud",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Thud_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Thud_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Thud_03"
+   ],
+   "volume_db": -8.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [],
+   "note": "ENG-48: the player's ship strikes something solid (rock, wreck, hull) and bounces: a dull hull thud, a click and a short metal ring. Beside Collision_Scrape (the glancing hit). No data slot yet: for T1 (UTDShipMovementComponent::HandleShipImpact)."
+  },
+  {
+   "name": "Ship_Impact_Heavy",
+   "cat": "sfx",
+   "kind": "metasound",
+   "path": "/Game/TriadDrift/Gameplay/Audio/Impacts/MSS_Ship_Impact_Heavy",
+   "waves": [
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Heavy_01",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Heavy_02",
+    "/Game/TriadDrift/Gameplay/Audio/Impacts/SW_Ship_Impact_Heavy_03"
+   ],
+   "volume_db": -6.0,
+   "looping": false,
+   "att": "Space_Near",
+   "con": "Impact",
+   "cls": "SFX",
+   "slots": [],
+   "note": "ENG-48: a hard, near head-on strike: a deeper longer thud, two ringing hull tones and a rattle. No data slot yet: for T1."
   }
  ]
 }

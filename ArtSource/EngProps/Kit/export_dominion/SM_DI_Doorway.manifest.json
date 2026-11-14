@@ -1,7 +1,7 @@
 {
   "asset": "SM_DI_Doorway",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_dominion\\SM_DI_Doorway.fbx",
-  "tris": 1172,
+  "tris": 1340,
   "size_cm": [
     68.0,
     400.0,
@@ -11,8 +11,7 @@
   "forward": "+X (authoring front +X rotated)",
   "materials": [
     "M_Kit_Trim",
-    "M_Kit_Glow",
-    "M_Kit_Light"
+    "M_Kit_Glow"
   ],
   "material_params": [
     {
@@ -44,23 +43,6 @@
         0.03
       ],
       "emission_strength": 6.0
-    },
-    {
-      "name": "M_Kit_Light",
-      "textured": false,
-      "base_color": [
-        0.02,
-        0.025,
-        0.03
-      ],
-      "metallic": 0.0,
-      "roughness": 0.15,
-      "emission_color": [
-        0.9,
-        0.95,
-        1.0
-      ],
-      "emission_strength": 8.0
     }
   ],
   "textures": [],

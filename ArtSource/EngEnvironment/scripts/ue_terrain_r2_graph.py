@@ -42,10 +42,13 @@ SCALARS = {
     "BroadHue": (2.2, 0.3), "FarVar": (0.7, 0.6),
     "UplandStartM": (420.0, 500.0), "UplandRangeM": (520.0, 500.0), "UplandAmount": (0.8, 0.55),
     "LowlandTopM": (60.0, 40.0), "LowlandFadeM": (160.0, 120.0), "LowlandAmount": (0.75, 0.5),
-    "JungleBroad": (0.55, 2.0), "JungleSoft": (0.12, 0.1), "JungleAmount": (0.85, 0.0),
-    "StrataScaleM": (90.0, 70.0), "StrataAlongM": (700.0, 600.0), "StrataContrast": (1.15, 1.3),
+    "JungleBroad": (0.475, 2.0), "JungleSoft": (0.08, 0.1), "JungleAmount": (0.85, 0.0),
+    "StrataScaleM": (90.0, 70.0), "StrataAlongM": (700.0, 600.0), "StrataContrast": (0.75, 1.1), "TriTop": (1.5, 1.5),
     "HueKeep": (0.12, 0.45),               # R3: the moss mean has almost no blue, so its blue-ish pixels turned into cyan cells near the pad                # how much of the texture's own hue variation survives the retint
     "DetailContrast": (1.0, 1.0),
+    "MacroTileA": (6000.0, 6000.0), "MacroTileB": (24000.0, 24000.0), "MacroMixStart": (40000.0, 40000.0),
+    "MacroMixRange": (80000.0, 80000.0), "MacroContrast": (0.55, 0.45), "MacroFarStart": (180000.0, 180000.0),
+    "MacroFarRange": (150000.0, 150000.0), "MacroNormal": (0.6, 0.6),
     "NoiseS": (3700.0, 3700.0), "NoiseM": (23000.0, 23000.0), "NoiseL": (190000.0, 190000.0), "NoiseXL": (730000.0, 730000.0),
     "ValueVar": (0.55, 0.5), "HueContrast": (2.2, 2.0), "TintCThreshold": (0.68, 0.62), "TintCSoft": (0.18, 0.2),
     "RoughVar": (0.12, 0.1),
@@ -54,7 +57,9 @@ SCALARS = {
     "RockSlopeStart": (0.17, 0.15), "RockSlopeRange": (0.13, 0.12),
     "PeakStartM": (1450.0, 1300.0), "PeakRangeM": (550.0, 700.0), "PeakSlopeMax": (0.4, 0.36), "PeakSlopeRange": (0.3, 0.28),
     "LowTopM": (-260.0, 10.0), "LowFadeM": (130.0, 120.0), "LowAmount": (0.85, 0.7),
-    "PatchThreshold": (0.79, 0.66), "PatchSoft": (0.06, 0.08), "PatchTopM": (700.0, 900.0), "PatchFadeM": (300.0, 300.0),
+    # scatter v2: the patch (Verdance grove / Cinder obsidian) is a rule on the terrain's own masks, the same numbers as
+    # FTDScatterPlan::GroveBroadMax / GroveFineMin / ObsidianFineMin (TDPlanetScatter.h), so groves and crystals stand on it
+    "PatchFineMin": (0.62, 0.7), "PatchBroadMax": (0.3, 2.0), "PatchSoft": (0.04, 0.04), "PatchTopM": (700.0, 900.0), "PatchFadeM": (300.0, 300.0),
     "WetDarken": (0.6, 0.85), "WetRoughness": (0.7, 0.6),
     # roughness / specular / normal
     "FlatRoughness": (0.86, 0.9), "PatchRoughness": (0.7, 0.22), "LowRoughness": (0.9, 0.8), "RockRoughness": (0.82, 0.78),
@@ -82,8 +87,8 @@ VECTORS = {
     "PatchTint": ((0.016, 0.060, 0.075), (0.008, 0.008, 0.012)),
     "PatchGlowColor": ((0.10, 0.85, 1.00), (0.0, 0.0, 0.0)),
     "LowTint": ((0.020, 0.019, 0.016), (0.018, 0.014, 0.013)),
-    "RockTintA": ((0.035, 0.040, 0.060), (0.024, 0.020, 0.020)),
-    "RockTintB": ((0.095, 0.105, 0.135), (0.085, 0.050, 0.032)),
+    "RockTintA": ((0.040, 0.046, 0.050), (0.024, 0.020, 0.020)),
+    "RockTintB": ((0.100, 0.110, 0.112), (0.085, 0.050, 0.032)),
     "PeakTint": ((0.200, 0.330, 0.310), (0.210, 0.180, 0.160)),
     "ValleyCoreColor": ((0.25, 1.0, 0.9), (1.0, 0.36, 0.04)),
     "ValleyEdgeColor": ((0.05, 0.45, 0.6), (0.80, 0.05, 0.008)),
@@ -234,9 +239,10 @@ def build_graph(b, t, means):
     upland_w = mul(ramp(hj, S("UplandStartM"), S("UplandRangeM")), S("UplandAmount"))
     lowland_w = mul(inv(ramp(hj, S("LowlandTopM"), S("LowlandFadeM"))), S("LowlandAmount"))
     # glowing groves: R3 uses the 1.9 km and 7.3 km noises (patches of a few hundred metres, not 230 m blobs)
-    patch_n = add(add(add(mul(c(nL, "B"), 0.5), mul(c(nXL, "B"), 0.25)), mul(mul(c(nM, "B"), 0.25), sn)),
-                  add(mul(j, 0.12), mul(mul(sub(0.5, broad), 0.2), inv(sn))))
-    patch_w = mul(ramp(patch_n, S("PatchThreshold"), S("PatchSoft")), inv(ramp(hj, S("PatchTopM"), S("PatchFadeM"))))
+    ps = S("PatchSoft")
+    fine_ok = ramp(add(fine, mul(sub(c(nS, "G"), 0.5), mul(sn, 0.03))), sub(S("PatchFineMin"), mul(ps, 0.5)), ps)
+    broad_ok = inv(ramp(broad, sub(S("PatchBroadMax"), mul(ps, 0.5)), ps))
+    patch_w = mul(mul(fine_ok, broad_ok), inv(ramp(hj, S("PatchTopM"), S("PatchFadeM"))))
     band = sat(inv(div(vabs(sub(add(broad, mul(j, S("ValleyBreak"))), S("ValleyCenter"))), S("ValleyWidth"))))
     valley_w = mul(mul(band, inv(ramp(slope, 0.0, S("ValleySlopeMax")))),
                    mul(inv(ramp(hm, S("ValleyTopM"), S("ValleyFadeM"))), ramp(vabs(hm), S("ValleyMinM"), S("ValleyMinFadeM"))))
@@ -257,6 +263,19 @@ def build_graph(b, t, means):
         d = detail(tex(slot + "BC", bc, ST.SAMPLERTYPE_COLOR, uvn), tex(slot + "BC", bc, ST.SAMPLERTYPE_COLOR, uvf), slot)
         return d, rgb(tex(slot + "N", nr, ST.SAMPLERTYPE_NORMAL, uvn))
     flat_d, flat_n = top("Flat")
+    # R3 pass 4 (flight distances): where the near / far texture tiles have faded to the plain mean (beyond ~0.5 km), the
+    # flat layer gets a macro tile instead: the same moss set at two big rotated scales (60 m and 240 m) cross-faded by
+    # camera distance, luminance only, so the ground keeps crisp structure from 120 m to ~2 km; gone by MacroFarEnd.
+    fbc, fnr = "T_Terr_%s_BC" % LAYERS["Flat"][0], "T_Terr_%s_N" % LAYERS["Flat"][0]
+    uvm1 = rot_uv(11.0, S("MacroTileA"), (0.41, 0.13))
+    uvm2 = rot_uv(-37.0, S("MacroTileB"), (0.07, 0.59))
+    mmix = ramp(depth, S("MacroMixStart"), S("MacroMixRange"))
+    mlum = div(dot(lerp(rgb(tex("FlatBC", fbc, ST.SAMPLERTYPE_COLOR, uvm1)), rgb(tex("FlatBC", fbc, ST.SAMPLERTYPE_COLOR, uvm2)), mmix), lumw),
+               dot(Vp("FlatMean"), lumw))
+    mfar = inv(ramp(depth, S("MacroFarStart"), S("MacroFarRange")))
+    macro_d = add(1.0, mul(sub(mlum, 1.0), mul(S("MacroContrast"), mfar)))
+    flat_d = lerp(flat_d, macro_d, fm)        # flat_d was exactly 1 where fm = 1
+    macro_n = rgb(tex("FlatN", fnr, ST.SAMPLERTYPE_NORMAL, uvm1))
     patch_d, patch_n_ = top("Patch")
     low_d, low_n = top("Low")
     peak_d, peak_n = top("Peak")
@@ -279,8 +298,15 @@ def build_graph(b, t, means):
     rfar = mul(rtile, S("RockFarScale"))
     uvf_x, uvf_y = div(app(wy, nz), rfar), div(app(wx, nz), rfar)
     rbc, rnr = "T_Terr_%s_BC" % LAYERS["Rock"][0], "T_Terr_%s_N" % LAYERS["Rock"][0]
-    r_near = lerp(rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uv_y)), rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uv_x)), wsel)
-    r_far = lerp(rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uvf_y)), rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uvf_x)), wsel)
+    # R3 pass 3: triplanar - the top projection joins the two side ones by the squared normal, so the 25-45 degree
+    # slopes (between "flat" and "cliff") no longer show the side projections stretched into streaks
+    nz2 = mul(mask(nv, bl=True), mask(nv, bl=True))
+    wtop = sat(div(mul(nz2, S("TriTop")), add(add(nx2, ny2), add(mul(nz2, S("TriTop")), 0.0001))))
+    uv_z, uvf_z = div(xy, rtile), div(xy, rfar)
+    r_near = lerp(lerp(rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uv_y)), rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uv_x)), wsel),
+                  rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uv_z)), wtop)
+    r_far = lerp(lerp(rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uvf_y)), rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uvf_x)), wsel),
+                 rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uvf_z)), wtop)
     r_nrm = lerp(rgb(tex("RockN", rnr, ST.SAMPLERTYPE_NORMAL, uv_y)), rgb(tex("RockN", rnr, ST.SAMPLERTYPE_NORMAL, uv_x)), wsel)
     rock_d = detail(r_near, r_far, "Rock")
     # R3: cliff colour from horizontal strata (a noise stretched along the ground, squeezed in height) instead of the
@@ -288,7 +314,7 @@ def build_graph(b, t, means):
     along = mul(add(wx, wy), 0.7071)
     uv_st = app(div(along, mul(S("StrataAlongM"), 100.0)), div(wz, mul(S("StrataScaleM"), 100.0)))
     strata = tex("MacroNoiseTex", "T_Ground_MacroNoise", ST.SAMPLERTYPE_MASKS, uv_st)
-    rsel = sat(add(mul(sub(add(mul(c(strata, "R"), 0.7), mul(c(nL, "G"), 0.3)), 0.5), S("StrataContrast")), 0.5))
+    rsel = sat(add(mul(sub(add(mul(c(strata, "R"), 0.7), mul(c(nL, "G"), 0.3)), 0.5), mul(S("StrataContrast"), inv(wtop))), 0.5))
     rock_c = mul(lerp(Vp("RockTintA"), Vp("RockTintB"), rsel), rock_d)
 
     # ---------------------------------------------------------------- river / pool band: flow, heat
@@ -317,8 +343,9 @@ def build_graph(b, t, means):
     # world-space normal: vertex normal * tangent z + the projected tangent xy; detail fades with distance and on water
     top_n = lerp(lerp(lerp(flat_n, patch_n_, patch_w), low_n, low_w), peak_n, peak_w)
     keep = mul(mul(lerp(1.0, 0.35, fa), inv(fm)), inv(molten))
-    p_top = mul(app(mask(top_n, r=True, g=True), 0.0), mul(S("NormalStrength"), keep))
-    rs = mul(S("RockNormalStrength"), mul(lerp(1.0, 0.35, fa), inv(fm)))
+    p_top = add(mul(app(mask(top_n, r=True, g=True), 0.0), mul(S("NormalStrength"), keep)),
+                mul(app(mask(macro_n, r=True, g=True), 0.0), mul(mul(S("MacroNormal"), fm), mul(mfar, inv(molten)))))
+    rs = mul(mul(S("RockNormalStrength"), mul(lerp(1.0, 0.35, fa), inv(fm))), inv(wtop))
     rx = mul(mask(r_nrm, r=True), rs)
     p_rock = app(app(mul(rx, inv(wsel)), mul(rx, wsel)), mul(mask(r_nrm, g=True), mul(rs, -1.0)))
     b.out(b.norm(add(nv, lerp(p_top, p_rock, rock_w))), "", MP.MP_NORMAL)

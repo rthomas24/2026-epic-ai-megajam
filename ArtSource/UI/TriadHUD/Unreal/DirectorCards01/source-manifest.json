@@ -1,0 +1,36 @@
+{
+  "stage": "Paired strict name-ownership contract revision; current compile/tests pending updated T3 host",
+  "branch": "nick/ui-director-cards-1113",
+  "base": "9af1978e",
+  "files": [
+    {
+      "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDDirectorCardsWidget.h",
+      "bytes": 3103,
+      "sha256": "9de4f43e337c4877f0607515c068698fb9ac1ccab88d85db1681f84cc77d8dfe",
+      "canonical_lf_sha256": "9de4f43e337c4877f0607515c068698fb9ac1ccab88d85db1681f84cc77d8dfe"
+    },
+    {
+      "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDDirectorCardsWidget.cpp",
+      "bytes": 19465,
+      "sha256": "4e8d0e6dea426d6fa25a0b34ec22de9a098347510c495299ec1949ce97c87d5b",
+      "canonical_lf_sha256": "4e8d0e6dea426d6fa25a0b34ec22de9a098347510c495299ec1949ce97c87d5b"
+    },
+    {
+      "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDDirectorCardsWidgetTests.cpp",
+      "bytes": 12487,
+      "sha256": "d34d3d6c4d63e4866a951ba312fe62aaca2686c069dfa863b635403db894e968",
+      "canonical_lf_sha256": "d34d3d6c4d63e4866a951ba312fe62aaca2686c069dfa863b635403db894e968"
+    }
+  ],
+  "delimiter_check": true,
+  "game_module_includes": false,
+  "parallel_clock_or_delegate_cast": false,
+  "default_or_style_edits": false,
+  "native_tests_prepared": 5,
+  "native_tests_executed": 0,
+  "test_flags_fix_only": false,
+  "source_frozen": true,
+  "required_host_field": "FTDDirectorCards.bNameCardClaimedByHUD (single FBoolProperty)",
+  "older_host_behavior": "incompatible/blank, diagnostic BlueprintPure getter and one warning per live widget",
+  "hash_note": "sha256 is frozen Windows source bytes; canonical_lf_sha256 normalizes CRLF to LF for cross-platform verification."
+}
