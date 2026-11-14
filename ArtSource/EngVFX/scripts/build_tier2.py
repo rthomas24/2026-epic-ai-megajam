@@ -266,7 +266,7 @@ S2('NS_TD_Ship_SwitchGrace', U((1.0, 0.10, 0.85, 1.0), 1.0), [
 # ---- round 12 (#194, Ryan: the planets feel empty on foot): ambient life, placed by the environment builder's Dress()/scatter.
 # Self-contained loops under /Game/TriadDrift/Gameplay/VFX/Systems/Ambient/ (always cooked: /Gameplay/VFX is in
 # DirectoriesToAlwaysCook). +Z up, origin on the ground. Volumes are authored for 20 m; small sprites, low counts, GPU where
-# there are many; every system culls past AMB_CULL (system scalability override, set by the build loop below).
+# there are many; the environment builder sets a 60 m cull distance on every spawned component.
 UP = ((0.0, 0.0, 1.0), 25.0)
 WIND = ((1.0, 0.0, 0.25), 35.0)
 VER_TEAL, VER_FIRE, CIN_EMBER = (0.35, 1.0, 0.75), (0.85, 1.0, 0.35), (1.0, 0.45, 0.08)
@@ -276,17 +276,22 @@ def _amb_gravity(e, g=-980.0):
     return e
 
 
-# Verdance
+# Verdance (12b, Lead: too subtle in daylight): spores bigger and slower in soft light shafts, a few bright ones; fireflies 3x
+# with a halo (the big soft Glow sprite at low power is the halo, its core the firefly); mist denser, lower and teal.
 S2('NS_TD_Amb_Verdance_Spores', U((0.6, 1.0, 0.8, 1.0)), [
-    offset(shed('Spores', 'M_TD_VFX_Glow', 0, (6.0, 10.0), (6, 14), (10, 40), k=1.6, radius=1000.0, drag=0.3, curl=40.0, local=True,
-                cone=UP, rate_expr='30.0', power=0.8, fade_in=4.0, gpu=True, rgb=VER_TEAL), 0, 0, 300)])
+    offset(shed('Spores', 'M_TD_VFX_Glow', 0, (10.0, 16.0), (16, 30), (4, 16), k=2.2, radius=1000.0, drag=0.3, curl=25.0, local=True,
+                cone=UP, rate_expr='26.0', power=0.8, fade_in=4.0, gpu=True, rgb=VER_TEAL), 0, 0, 300),
+    offset(shed('Bright', 'M_TD_VFX_Glow', 0, (8.0, 12.0), (45, 70), (4, 12), k=5.0, radius=900.0, drag=0.3, curl=25.0, local=True,
+                cone=UP, rate_expr='1.5', power=0.6, fade_in=3.0, gpu=True, rgb=(0.7, 1.0, 0.85)), 0, 0, 300),
+    offset(shed('Shafts', 'M_TD_VFX_CloudVeil', 0, (9.0, 12.0), (160, 260), (2, 4), radius=800.0, drag=0.0, local=True, alpha=0.07,
+                cone=((0.0, 0.0, -1.0), 2.0), rate_expr='0.45', power=1.0, fade_in=3.0, sort=True, stretch=5, rgb=(0.75, 1.0, 0.85)), 0, 0, 450)])
 S2('NS_TD_Amb_Verdance_Fireflies', U((0.85, 1.0, 0.35, 1.0)), [
-    offset(shed('Fireflies', 'M_TD_VFX_Glow', 0, (4.0, 7.0), (12, 22), (20, 80), k=3.5, radius=1000.0, drag=0.6, curl=180.0, local=True,
-                cone=UP, rate_expr='6.0', power=0.5, fade_in=6.0, gpu=True, rgb=VER_FIRE), 0, 0, 150)])
-S2('NS_TD_Amb_Verdance_GroundMist', U((0.55, 0.85, 0.8, 1.0)), [
-    offset(shed('Mist', 'M_TD_VFX_CloudVeil', 0, (8.0, 12.0), (700, 1300), (10, 40), radius=1400.0, drag=0.2, local=True, alpha=0.16,
-                cone=((1.0, 0.0, 0.0), 80.0), rate_expr='3.0', power=0.8, fade_in=3.0, sort=True, rgb=(0.55, 0.85, 0.8),
-                growth='0.8 + 0.4*Particles.NormalizedAge'), 0, 0, 80)])
+    offset(shed('Fireflies', 'M_TD_VFX_Glow', 0, (4.0, 7.0), (45, 75), (20, 80), k=6.0, radius=1000.0, drag=0.6, curl=180.0, local=True,
+                cone=UP, rate_expr='18.0', power=0.5, fade_in=6.0, gpu=True, rgb=VER_FIRE), 0, 0, 150)])
+S2('NS_TD_Amb_Verdance_GroundMist', U((0.3, 0.85, 0.75, 1.0)), [
+    offset(shed('Mist', 'M_TD_VFX_CloudVeil', 0, (8.0, 12.0), (1100, 1900), (5, 25), radius=1400.0, drag=0.2, local=True, alpha=0.34,
+                cone=((1.0, 0.0, 0.0), 85.0), rate_expr='3.0', power=0.8, fade_in=3.0, sort=True, rgb=(0.3, 0.85, 0.75),
+                growth='0.8 + 0.4*Particles.NormalizedAge'), 0, 0, 30)])
 S2('NS_TD_Amb_Verdance_MushroomPulse', U((0.3, 0.9, 1.0, 1.0)), [
     shed('Pulse', 'M_TD_VFX_Glow', 0, (0.3, 0.3), ('(260.0*(0.7 + 0.3*sin(Engine.Time*1.3)))',) * 2, (0, 0), k=1.2, radius=0.0, drag=0.0,
          local=True, power=0.6, rate_expr='8.0'),
@@ -296,6 +301,14 @@ S2('NS_TD_Amb_Verdance_Insects', U((0.6, 0.9, 0.5, 1.0)), [
     offset(shed('Insects', 'M_TD_VFX_Glow', 0, (2.0, 4.0), (3, 6), (40, 120), k=1.2, radius=150.0, drag=1.5, curl=900.0, local=True,
                 rate_expr='5.0', power=0.6, fade_in=6.0, rgb=(0.7, 0.95, 0.5)), 0, 0, 100)])
 
+S2('NS_TD_Amb_Verdance_FallingLeaves', U((0.75, 0.5, 1.0, 1.0)), [   # glowing petals drifting down under trees (spawn 6 m up)
+    offset(shed('Petals', 'M_TD_VFX_Glow', 0, (9.0, 13.0), (14, 24), (25, 50), k=3.0, radius=500.0, drag=0.5, curl=120.0, local=True,
+                cone=((0.15, 0.0, -1.0), 25.0), rate_expr='5.0', power=0.6, fade_in=6.0, gpu=True, rgb=(0.75, 0.5, 1.0)), 0, 0, 600)])
+S2('NS_TD_Amb_Verdance_GlowPollen', U((0.9, 1.0, 0.45, 1.0)), [   # a puff from a plant every ~3.3 s (pulsed spawn rate)
+    shed('Pollen', 'M_TD_VFX_Glow', 0, (2.0, 3.5), (10, 20), (60, 160), k=4.0, radius=60.0, drag=1.2, curl=150.0, local=True,
+         cone=((0.0, 0.0, 1.0), 40.0), rate_expr='(90.0*step(0.9, frac(Engine.Time*0.3)))', power=0.6, rgb=(0.9, 1.0, 0.45)),
+    shed('Puff', 'M_TD_VFX_Glow', 0, (0.5, 0.7), (120, 160), (0, 0), k=1.2, radius=0.0, drag=0.0, local=True, power=0.6,
+         rate_expr='(4.0*step(0.9, frac(Engine.Time*0.3)))', rgb=(0.9, 1.0, 0.45))])
 
 # Cinder
 def cinder_vent():
@@ -348,9 +361,10 @@ S2('NS_TD_Amb_Shared_HutBeacon', U((1.0, 0.15, 0.05, 1.0)), [
 # centre about 0.9 m up, +X = facing). Under 0.4 s: a red-orange ground ring snapping in under the feet, a hot glow
 # in front of the chest that swells, and a white flare at the end (the swing comes). Reads in first and third person.
 S2('NS_TD_Crew_MeleeWindup', U((1.0, 0.22, 0.05, 1.0)), [
-    offset(flat_ring('Ring', 260, 0.35, 1.6, growth='0.35 + pow(Particles.NormalizedAge, 0.6)*0.65', mat='M_TD_VFX_Shock', power=1.2), 0, 0, -88),
-    offset(flash('Glow', 'M_TD_VFX_Glow', 140, 0.35, 2.6, growth='0.4 + 0.8*Particles.NormalizedAge', power=0.4), 60, 0, 20),
-    offset(flash('Flare', 'M_TD_VFX_Flare', 120, 0.08, 3.0, growth='0.6 + Particles.NormalizedAge', delay=0.3), 60, 0, 20)])
+    offset(flat_ring('Ring', 380, 0.38, 3.5, growth='0.35 + pow(Particles.NormalizedAge, 0.6)*0.65', mat='M_TD_VFX_Shock', power=1.0), 0, 0, -84),   # v2: 380 cm, k 3.5
+    offset(flash('Pool', 'M_TD_VFX_Glow', 320, 0.38, 1.4, growth='0.5 + 0.6*Particles.NormalizedAge', power=0.5), 0, 0, -70),   # v2: ground glow (reads at grazing angles)
+    offset(flash('Glow', 'M_TD_VFX_Glow', 240, 0.35, 4.0, growth='0.4 + 0.8*Particles.NormalizedAge', power=0.4), 60, 0, 20),
+    offset(flash('Flare', 'M_TD_VFX_Flare', 200, 0.08, 4.0, growth='0.6 + Particles.NormalizedAge', delay=0.3), 60, 0, 20)])
 
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
@@ -1078,11 +1092,10 @@ S2('NS_TD_Blade_SwingArc_Heavy', U(BLADE), swing(320, 1.9))
 
 fx2 = tdvfx.Builder(call_tool)
 CHUNK = globals().get('CHUNK')   # (start, end): build only those emitters of each selected system (see tdvfx.system)
-AMB_CULL = 6000.0   # round 12: ambient systems cull past 60 m from the camera (system scalability override)
 for _name, _user, _emitters in SYSTEMS2:
     _amb = _name.startswith('NS_TD_Amb_')
     _sys = await fx2.system(_name, _emitters, user=_user, chunk=CHUNK, folder=(tdvfx.ROOT + '/Systems/Ambient') if _amb else None,
-                            props=None)   # the scalability-override write is refused by the toolset; culling is set after the build (amb_cull.py)
+                            props=None)   # cull: the environment builder sets 60 m on each spawned component
     for _e in _emitters:
         if _e.get('verbose_dump'):
             try:

@@ -1,0 +1,11 @@
+Begin Object Class=/Script/unrealGameJam.TDEnemyVisuals Name="DA_Enemy_Fighter_Visuals" ExportPath="/Script/unrealGameJam.TDEnemyVisuals'/Game/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Fighter_Visuals.DA_Enemy_Fighter_Visuals'"
+   Mesh="/Game/TriadDrift/Gameplay/Ships/NullFighter/SM_NullFighter.SM_NullFighter"
+   MaterialOverrides(0)="/Game/TriadDrift/Gameplay/Ships/NullFighter/MI_NullFighter.MI_NullFighter"
+   EngineTrail=(VFX="/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Plume_Enemy_Fighter.NS_TD_Plume_Enemy_Fighter",Sound="/Game/TriadDrift/Gameplay/Audio/Engines/EnemyEngines01/CUE_EnemyEngine_Fighter.CUE_EnemyEngine_Fighter",VFXScale=(X=0.600000,Y=0.600000,Z=0.600000))
+   Telegraph=(Sound="/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_Telegraph.MSS_Enemy_Telegraph")
+   ShieldHit=(VFX="/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Ship_ShieldHit.NS_TD_Ship_ShieldHit")
+   HullHit=(VFX="/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Ship_HullHit.NS_TD_Ship_HullHit")
+   Stunned=(Sound="/Game/TriadDrift/Gameplay/Audio/Enemies/SW_Enemy_Stunned_01.SW_Enemy_Stunned_01")
+   Explosion=(VFX="/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Explosion_Small.NS_TD_Explosion_Small",Sound="/Game/TriadDrift/Gameplay/Audio/Explosions/MSS_Explosion_Small.MSS_Explosion_Small")
+   DeathTumble=(Sound="/Game/TriadDrift/Gameplay/Audio/Enemies/MSS_Enemy_DeathTumble.MSS_Enemy_DeathTumble")
+End Object
