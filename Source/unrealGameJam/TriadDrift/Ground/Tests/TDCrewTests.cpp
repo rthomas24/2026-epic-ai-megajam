@@ -937,6 +937,158 @@ bool FTDCrewDifficulty::RunTest(const FString& Parameters)
 	return true;
 }
 
+// The animation builder's contact checks (Nov 14): a melee hit lands at the clip's contact time, a fixed time after the
+// wind-up starts, swing after swing (the Grunt's varied 0.48-0.57 s against 0.45). Damage instant minus attack start.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewContactTiming, "TriadDrift.Ground.Crew.MeleeLandsAtAFixedTimeAfterTheWindupStarts", TD_TEST_FLAGS)
+bool FTDCrewContactTiming::RunTest(const FString& Parameters)
+{
+	for (const ETDCrewType Type : { ETDCrewType::Grunt, ETDCrewType::Heavy })
+	{
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(0.f, 0.f, 95.f));
+		ATDCrewCharacter* C = TDCrewTest::SpawnCrew(W, Type, FVector(150.f, 0.f, 120.f), FRotator(0.f, 180.f, 0.f));
+		if (!TestNotNull(TEXT("crew"), C) || !P) { return false; }
+		P->GetHealth()->SetInvulnerable(true);
+		C->SetOpeningGrace(0.f);
+		double Started = -1.0;
+		TArray<double> Gaps;
+		C->OnAttackStarted.AddLambda([&Started, &W](ATDCrewCharacter*, ETDCrewAttack A) { if (A == ETDCrewAttack::Melee) { Started = W.GetWorld()->GetTimeSeconds(); } });
+		for (int32 i = 0; i < 60 * 12 && Gaps.Num() < 4; ++i)
+		{
+			W.Tick(1.f / 60.f);
+			if (C->GetLastMeleeLandedAt() > 0.0 && Started >= 0.0)
+			{
+				Gaps.Add(C->GetLastMeleeLandedAt() - Started);
+				Started = -1.0;
+				C->ClearLastMeleeLanded();
+			}
+		}
+		const FString Name = FTDCrewLibrary::TypeName(Type).ToString();
+		FString List;
+		for (double G : Gaps) { List += FString::Printf(TEXT("%.3f "), G); }
+		AddInfo(FString::Printf(TEXT("%s: wind-up %.2f s, hits after %s"), *Name, C->Spec.MeleeWindup, *List));
+		TestTrue(*FString::Printf(TEXT("%s swung"), *Name), Gaps.Num() >= 2);
+		for (double G : Gaps)
+		{
+			TestEqual(*FString::Printf(TEXT("%s hit lands at the wind-up's end"), *Name), (float)G, C->Spec.MeleeWindup, 1.f / 60.f + 0.001f);
+		}
+	}
+	return true;
+}
+
+// Every per-type clip the crew code looks up resolves on that type's own skeleton (Nov 14: five Warden clips were on
+// SKEL_NullCrew and fell back to the template silently). A clip that does not exist yet is fine; one on the wrong rig fails.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewClipsOnOwnRig, "TriadDrift.Ground.Crew.EveryLookedUpClipIsOnItsTypesOwnSkeleton", TD_TEST_FLAGS)
+bool FTDCrewClipsOnOwnRig::RunTest(const FString& Parameters)
+{
+	struct FUse { ETDCrewType Type; TArray<const TCHAR*> Actions; };
+	const TArray<FUse> Uses = {
+		{ ETDCrewType::Grunt, { TEXT("Melee_02"), TEXT("Melee_03"), TEXT("HitReact_01"), TEXT("Charge"), TEXT("Death_Front"), TEXT("Death_Back"), TEXT("Death_Left"), TEXT("Death_Right") } },
+		{ ETDCrewType::Trooper, { TEXT("Fire_Burst"), TEXT("HitReact_Front"), TEXT("HitReact_Back"), TEXT("Idle_Aim"), TEXT("Death_Front"), TEXT("Death_Back"), TEXT("Death_Left"), TEXT("Death_Right") } },
+		{ ETDCrewType::Heavy, { TEXT("ShieldBash"), TEXT("Stagger"), TEXT("Idle_Guard"), TEXT("Walk_Fwd"), TEXT("Death_Back"), TEXT("Death_Left"), TEXT("Death_Right") } },
+		{ ETDCrewType::Warden, { TEXT("Fire_01"), TEXT("Slam"), TEXT("GroundSlam"), TEXT("Summon_01"), TEXT("Stagger"), TEXT("Guard"), TEXT("Walk"), TEXT("Death_Back") } },
+	};
+	for (const FUse& U : Uses)
+	{
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		ATDCrewCharacter* C = TDCrewTest::SpawnCrew(W, U.Type, FVector(0.f, 0.f, 140.f));
+		if (!TestNotNull(TEXT("crew"), C)) { return false; }
+		const FString Type = FTDCrewLibrary::TypeName(U.Type).ToString();
+		if (!C->GetMesh() || !C->GetMesh()->GetSkeletalMeshAsset())
+		{
+			AddInfo(FString::Printf(TEXT("%s: no skeletal look here"), *Type));
+			continue;
+		}
+		int32 Present = 0;
+		for (const TCHAR* Action : U.Actions)
+		{
+			const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/A_Crew_%s_%s"), *Type, Action);
+			if (!FPackageName::DoesPackageExist(Package)) { continue; }
+			++Present;
+			TestNotNull(*FString::Printf(TEXT("A_Crew_%s_%s resolves on the %s rig"), *Type, Action, *Type), C->TypeClip(Action));
+		}
+		AddInfo(FString::Printf(TEXT("%s: %d looked-up clips present"), *Type, Present));
+	}
+	return true;
+}
+
+// The animation builder's close-camera check (Nov 14): a front hit on a firing Trooper showed nothing and it kept
+// firing. A hit from either side stops the burst, plays that side's react and holds it still for the react's length.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewTrooperReact, "TriadDrift.Ground.Crew.TrooperHitReactInterruptsTheBurst", TD_TEST_FLAGS)
+bool FTDCrewTrooperReact::RunTest(const FString& Parameters)
+{
+	for (const bool bBehind : { false, true })
+	{
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(-600.f, 0.f, 95.f));
+		ATDCrewCharacter* C = TDCrewTest::SpawnCrew(W, ETDCrewType::Trooper, FVector(0.f, 0.f, 140.f), FRotator(0.f, 180.f, 0.f));
+		if (!TestNotNull(TEXT("crew"), C) || !P) { return false; }
+		P->GetHealth()->SetInvulnerable(true);
+		W.Advance(0.3f);
+		C->SetOpeningGrace(0.f);
+		TestTrue(TEXT("burst starts"), C->StartAttack(ETDCrewAttack::Burst, P));
+		W.Advance(0.1f);
+		// Travelling into its face (it faces the pilot) or into its back.
+		const FVector Dir = bBehind ? C->GetActorForwardVector() : -C->GetActorForwardVector();
+		UTDStatics::ApplyTDDamage(C, 5.f, ETDDamageKind::Melee, P, P, C->GetActorLocation() - Dir * 40.f, Dir);
+		const TCHAR* Side = bBehind ? TEXT("back") : TEXT("front");
+		TestFalse(*FString::Printf(TEXT("%s hit: the burst stops"), Side), C->IsAttacking());
+		TestTrue(*FString::Printf(TEXT("%s hit: reacting"), Side), C->IsReacting());
+		TestFalse(*FString::Printf(TEXT("%s hit: no attack during the react"), Side), C->StartAttack(ETDCrewAttack::Burst, P));
+		const FString Want = FString::Printf(TEXT("A_Crew_Trooper_HitReact_%s"), bBehind ? TEXT("Back") : TEXT("Front"));
+		if (C->TypeClip(bBehind ? TEXT("HitReact_Back") : TEXT("HitReact_Front")))
+		{
+			TestEqual(*FString::Printf(TEXT("%s hit plays %s"), Side, *Want), C->GetLastTypeClip(), FName(*Want));
+		}
+		else
+		{
+			AddInfo(FString::Printf(TEXT("%s not on this checkout's Trooper"), *Want));
+		}
+		W.Advance(2.5f);
+		TestFalse(*FString::Printf(TEXT("%s hit: the react ends"), Side), C->IsReacting());
+	}
+	return true;
+}
+
+// Lead (Nov 14): a heavy blade hit staggers the Warden for its Stagger clip's length, then not again for the cooldown;
+// light hits never do.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewWardenStagger, "TriadDrift.Ground.Crew.WardenStaggersOnAHeavyHitWithACooldown", TD_TEST_FLAGS)
+bool FTDCrewWardenStagger::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(-300.f, 0.f, 95.f));
+	ATDCrewCharacter* C = TDCrewTest::SpawnCrew(W, ETDCrewType::Warden, FVector(0.f, 0.f, 140.f), FRotator(0.f, 180.f, 0.f));
+	if (!TestNotNull(TEXT("warden"), C) || !P) { return false; }
+	P->GetHealth()->SetInvulnerable(true);
+	W.Advance(0.3f);
+	const FVector Dir = -C->GetActorForwardVector();
+	auto Hit = [&](float Amount) { UTDStatics::ApplyTDDamage(C, Amount, ETDDamageKind::Melee, P, P, C->GetActorLocation() - Dir * 60.f, Dir); };
+	Hit(20.f);
+	TestFalse(TEXT("a light hit does not stagger"), C->IsStaggered());
+	Hit(C->WardenHeavyHitDamage + 5.f);
+	TestTrue(TEXT("a heavy hit staggers"), C->IsStaggered());
+	const UAnimSequenceBase* Clip = C->TypeClip(TEXT("Stagger"));
+	const float Want = Clip ? Clip->GetPlayLength() : 1.2f;
+	AddInfo(FString::Printf(TEXT("stagger %.2f s (%s)"), Want, Clip ? *Clip->GetName() : TEXT("no clip: 1.2 s")));
+	W.Advance(Want - 0.1f);
+	TestTrue(TEXT("still staggered near the clip's end"), C->IsStaggered());
+	W.Advance(0.25f);
+	TestFalse(TEXT("free after the clip"), C->IsStaggered());
+	Hit(C->WardenHeavyHitDamage + 5.f);
+	TestFalse(TEXT("not again inside the cooldown"), C->IsStaggered());
+	W.Advance(C->WardenStaggerCooldown);
+	if (!C->IsDead())
+	{
+		Hit(C->WardenHeavyHitDamage + 5.f);
+		TestTrue(TEXT("again after the cooldown"), C->IsStaggered() || C->IsDead());
+	}
+	return true;
+}
+
 // The Rodin drone (Lead, Nov 13): its 79 x 90 x 88 cm look is what the blade and deflected bolts must hit, and a static-mesh
 // look's Muzzle socket is where its shots start.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDroneLookAndMuzzle, "TriadDrift.Ground.Crew.DroneCapsuleCoversItsLookAndShootsFromItsMuzzle", TD_TEST_FLAGS)
