@@ -10,6 +10,7 @@
 
 #include "TriadDrift/World/SpaceField/TDSpaceField.h"
 #include "EngineUtils.h"
+#include "UObject/UObjectIterator.h"
 #include "Containers/Ticker.h"
 #include "TriadDrift/World/SpaceField/TDSpaceFieldFX.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -510,6 +511,50 @@ bool ATDSpaceField::ReceiveShipImpact(UPrimitiveComponent* HitComponent, int32 I
 
 namespace TDSpaceFieldDev
 {
+	// #89 / #194 (T6): what the render thread is drawing. Every instanced static mesh component in the world, grouped by mesh:
+	// components, instances, Nanite or not, shadow casting, cull distance; and the totals per owning actor class.
+	static FAutoConsoleCommandWithWorldAndArgs CmdInstanceReport(TEXT("TD.Perf.Instances"),
+		TEXT("Log every instanced mesh in the world by mesh (components, instances, Nanite, shadows, cull end) and per owner class, the top N [N=40]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (!World) { return; }
+			const int32 Top = Args.Num() > 0 ? FMath::Max(1, FCString::Atoi(*Args[0])) : 40;
+			struct FRow { int32 Comps = 0; int64 Instances = 0; int64 Shadowed = 0; bool bNanite = false; int32 CullEnd = 0; FString Owner; };
+			TMap<FString, FRow> ByMesh;
+			TMap<FString, int64> ByOwner;
+			int64 Total = 0, TotalShadowed = 0, TotalNonNanite = 0;
+			for (TObjectIterator<UInstancedStaticMeshComponent> It; It; ++It)
+			{
+				UInstancedStaticMeshComponent* C = *It;
+				if (!C || C->GetWorld() != World || !C->IsRegistered() || !C->IsVisible() || C->GetInstanceCount() == 0) { continue; }
+				UStaticMesh* M = C->GetStaticMesh();
+				const int32 N = C->GetInstanceCount();
+				FRow& R = ByMesh.FindOrAdd(M ? M->GetName() : FString(TEXT("(none)")));
+				++R.Comps; R.Instances += N;
+				if (C->CastShadow) { R.Shadowed += N; TotalShadowed += N; }
+				const bool bNanite = M && M->IsNaniteEnabled();
+				R.bNanite = bNanite;
+				if (!bNanite) { TotalNonNanite += N; }
+				R.CullEnd = FMath::Max(R.CullEnd, C->InstanceEndCullDistance);
+				const FString OwnerClass = C->GetOwner() ? C->GetOwner()->GetClass()->GetName() : FString(TEXT("(none)"));
+				R.Owner = OwnerClass;
+				ByOwner.FindOrAdd(OwnerClass) += N;
+				Total += N;
+			}
+			ByMesh.ValueSort([](const FRow& A, const FRow& B) { return A.Instances > B.Instances; });
+			ByOwner.ValueSort([](int64 A, int64 B) { return A > B; });
+			UE_LOG(LogTemp, Display, TEXT("TD.Perf.Instances: %lld instances in %d meshes; %lld cast shadows; %lld not Nanite"), Total, ByMesh.Num(), TotalShadowed, TotalNonNanite);
+			for (const TPair<FString, int64>& KV : ByOwner) { UE_LOG(LogTemp, Display, TEXT("TD.Perf.Instances: owner %s: %lld"), *KV.Key, KV.Value); }
+			int32 Shown = 0;
+			for (const TPair<FString, FRow>& KV : ByMesh)
+			{
+				if (Shown++ >= Top) { break; }
+				const FRow& R = KV.Value;
+				UE_LOG(LogTemp, Display, TEXT("TD.Perf.Instances: %-40s %7lld inst in %3d comps, %s, shadows %lld, cull end %d m, owner %s"), *KV.Key, R.Instances, R.Comps,
+					R.bNanite ? TEXT("Nanite") : TEXT("not Nanite"), R.Shadowed, R.CullEnd / 100, *R.Owner);
+			}
+		}));
+
 	static FAutoConsoleCommandWithWorldAndArgs CmdWingCheck(TEXT("TD.SpaceField.WingCheck"),
 		TEXT("Log each squad ship's speed and its distance to the nearest obstacle surface (wingman rock avoidance watch)"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
