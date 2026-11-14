@@ -18,6 +18,7 @@
 #include "GameFramework/Actor.h"
 #include "TriadDrift/Combat/TDFieldDamageable.h"
 #include "TriadDrift/Flight/TDShipImpactReceiver.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TDSpaceField.generated.h"
 
 class ATDGalaxyLayout;
@@ -237,7 +238,27 @@ private:
 	void BuildSurveyScar(FRandomStream& Rng);
 	void BuildShatteredMoons(FRandomStream& Rng);
 	void PlaceRegionCentrepieces(FRandomStream& Rng);
-	bool AddStructure(UStaticMesh* Mesh, const FTransform& T);
+	bool AddStructure(UStaticMesh* Mesh, const FTransform& T, int32 BeaconRegion = 0);
+	// Region dressing (TDSpaceFieldDressing.cpp): the effects builder's beacons and haze, soft and null-safe.
+	struct FBeaconPoint { FVector Location; int32 Region; };
+	TArray<FBeaconPoint> BeaconPoints;
+	UPROPERTY(Transient) TArray<TObjectPtr<class UNiagaraComponent>> RegionBeacons;
+	UPROPERTY(Transient) TArray<TObjectPtr<class UStaticMeshComponent>> RegionHazes;
+	bool bDressingShown = false;
+	bool bDressingBuilt = false;
+	void BuildRegionDressing();
+	static bool IsDressingWanted();
+public:
+	void SetRegionDressingVisible(bool bOn);
+	/** Builds the beacons and haze once (only when td.SpaceField.Dressing is 1: off by default, nothing loaded or spawned). */
+	void EnsureRegionDressing();
+	int32 GetRegionBeaconCount() const { return RegionBeacons.Num(); }
+	/** Beacon points placed (headless runs spawn no Niagara components, so tests count these). */
+	int32 GetRegionBeaconPointCount() const { return BeaconPoints.Num(); }
+	int32 GetRegionHazeCount() const { return RegionHazes.Num(); }
+	/** Haze density (the effects builder: start at 0.15 and measure). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Dressing") float HazeDensity = 0.15f;
+private:
 	/** T4: the Dominion docking bay's tractor cone and near-field capture (no set piece inside). */
 public:
 	bool IsInDockingCone(const FVector& WorldPoint, float Radius) const;
@@ -364,6 +385,12 @@ private:
 	/** For the next RegisterPiece: an exact collision radius (> 0), and an obstacle handle to reuse (>= 0) or none (-2). */
 	float PendingColliderRadius = -1.f;
 	bool bMoonPlacement = false;
+	/** T4's journey key points (ATDGalaxyLayout::GetJourneyKeyPoints), read at Build: keep-outs and routes stay clear. */
+	TArray<FTDJourneyKeyPoint> JourneyPoints;
+public:
+	/** The first keep-out or route a piece of this size at P would sit on (NAME_None when clear). Pockets allow sparse cover. */
+	FName JourneyBlockerAt(const FVector& WorldPoint, float Size, bool bCollides) const;
+private:
 	/** Adopt during Build (false when td.SpaceField was 0 at load). */
 	bool bAdoptAtLoad = true;
 	bool bWarnedToggle = false;
