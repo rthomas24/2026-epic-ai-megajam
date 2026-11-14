@@ -38,6 +38,13 @@ private:
 
 	UFUNCTION()
 	void HandleBarkRequested(FName BarkId, FName Speaker);
+public:
+	/**
+	 * Where a bark's line is shown when something better than this HUD's plain caption exists (T3's story subtitle
+	 * strip: speaker tag in the pilot colour, the plate, the subtitle size setting). True = taken, draw nothing here.
+	 */
+	static bool (*BarkCaptionSink)(const UObject* WorldContext, FName Speaker, const FString& Line, float Seconds);
+private:
 	void DrawCrosshair();
 	void DrawFlight();
 	void DrawFull();
