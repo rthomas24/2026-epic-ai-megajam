@@ -250,10 +250,16 @@ def build_panel(textures):
 
 
 def build_glow():
+    # TD_DOMINION_REBUILD=Glow rebuilds the graph in place (same asset, every instance keeps its parent)
+    rebuild = "Glow" in os.environ.get("TD_DOMINION_REBUILD", "")
     if eas.does_asset_exist(GLOW):
-        return eas.load_asset(GLOW)
-    folder, name = GLOW.rsplit("/", 1)
-    mat = tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
+        mat = eas.load_asset(GLOW)
+        if not rebuild:
+            return mat
+        mel.delete_all_material_expressions(mat)
+    else:
+        folder, name = GLOW.rsplit("/", 1)
+        mat = tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
     for flag in ("used_with_nanite", "used_with_instanced_static_meshes"):
         _set(mat, flag, True)
     errors = []
@@ -283,8 +289,31 @@ def build_glow():
     _connect(col, "", bc, "A", errors)
     _connect(base, "", bc, "B", errors)
     mp = unreal.MaterialProperty
+    # KeepFraction (default 1 = every light on): only the lights whose cell (KeepCellCm, local position) hashes below
+    # it stay lit, the rest go dark: rows of window squares become sparse "eye" slits without touching the mesh
+    wp = _expr(mat, unreal.MaterialExpressionWorldPosition, -1300, 400)
+    tp = _expr(mat, unreal.MaterialExpressionTransformPosition, -1100, 400)
+    _set(tp, "transform_source_type", _enum("MaterialPositionTransformSource", "TRANSFORMPOSSOURCE_WORLD"))
+    _set(tp, "transform_type", _enum("MaterialPositionTransformSource", "TRANSFORMPOSSOURCE_LOCAL"))
+    _connect(wp, "", tp, "", errors)
+    keep = _scalar(mat, "KeepFraction", 1.0, -1300, 520)
+    cell = _scalar(mat, "KeepCellCm", 400.0, -1300, 600)
+
+    def cin(n):
+        c = unreal.CustomInput()
+        c.set_editor_property("input_name", n)
+        return c
+    cu = _expr(mat, unreal.MaterialExpressionCustom, -800, 450, output_type=_enum("CustomMaterialOutputType", "CMOT_FLOAT1"),
+               code="float3 c = floor(P / max(C, 1.0)); float h = frac(sin(dot(c, float3(12.9898, 78.233, 37.719))) * 43758.5453); return (K >= 0.999) ? 1.0 : step(h, K);",
+               description="sparse lights", inputs=[cin("P"), cin("K"), cin("C")])
+    _connect(tp, "", cu, "P", errors)
+    _connect(keep, "", cu, "K", errors)
+    _connect(cell, "", cu, "C", errors)
+    em2 = _expr(mat, unreal.MaterialExpressionMultiply, -250, 100)
+    _connect(em, "", em2, "A", errors)
+    _connect(cu, "", em2, "B", errors)
     _prop(bc, "", mp.MP_BASE_COLOR, errors)
-    _prop(em, "", mp.MP_EMISSIVE_COLOR, errors)
+    _prop(em2, "", mp.MP_EMISSIVE_COLOR, errors)
     rough = _expr(mat, unreal.MaterialExpressionConstant, -400, 100, r=0.3)
     _prop(rough, "", mp.MP_ROUGHNESS, errors)
     if errors:
@@ -314,6 +343,32 @@ INSTANCES = {
     "MI_TD_DominionGlowEngine": ("glow", {"GlowStrength": 45.0, "PulseAmount": 0.08, "PulseRate": 7.0},
                                  {"GlowColor": (1.0, 0.3, 0.05)}),
 }
+# The exterior in the Null code (second ship builder, Nov 14; Lead: it read violet-blue with rows of bright white window
+# squares and a light-grey superstructure). Parameters only: armour near-black with a slight warm tint, less metal and
+# more roughness (the magenta / blue sky no longer lies on it as a violet sheen), the light-grey superstructure down
+# to the same value, red-orange seam light along the armour's major panel breaks, the white window rows cut to a third
+# and dimmed. The red bay (GlowRed) and the trench guide lines are not touched. TD_DOMINION_LOOK=old keeps the values above.
+if os.environ.get("TD_DOMINION_LOOK", "") != "old":
+    # second set (review of the first: seams amber like the Bastion and the guide lines, white lights half-cut and
+    # patchy, the warm tint brown under the nebula): seams a true red at a lower strength (a strong emissive tone-maps
+    # to yellow), lights kept or dropped by 15 m cells (whole clusters), armour neutral near-black
+    RED = (1.0, 0.045, 0.012)
+    INSTANCES["MI_TD_DominionPanel"] = ("panel", {"LightStrength": 5.0, "Metallic": 0.3, "Roughness": 0.6},
+                                         {"LightColor": RED, "ColorDark": (0.0080, 0.0077, 0.0075), "ColorLight": (0.022, 0.021, 0.0205)})
+    INSTANCES["MI_TD_DominionTrim"] = ("panel", {"TileCm": 1200.0, "MacroTileCm": 9600.0, "Metallic": 0.3, "Roughness": 0.62,
+                                                 "MacroStrength": 0.35, "LightStrength": 0.0, "NormalStrength": 0.8},
+                                        {"ColorDark": (0.0058, 0.0056, 0.0054), "ColorLight": (0.014, 0.0135, 0.013)})
+    INSTANCES["MI_TD_DominionArmor"] = ("panel", {"TileCm": 6400.0, "MacroTileCm": 38400.0, "Metallic": 0.3, "Roughness": 0.6,
+                                                  "MacroStrength": 0.3, "LightStrength": 4.0, "NormalStrength": 0.6},
+                                         {"ColorDark": (0.0095, 0.0092, 0.0089), "ColorLight": (0.024, 0.023, 0.0224), "LightColor": RED})
+    INSTANCES["MI_TD_DominionGlowWhite"] = ("glow", {"GlowStrength": 16.0, "PulseAmount": 0.06, "PulseRate": 0.8,
+                                                      "KeepFraction": 0.4, "KeepCellCm": 1500.0},
+                                             {"GlowColor": (1.0, 1.0, 1.0)})
+else:
+    INSTANCES["MI_TD_DominionPanel"][1].update({"Metallic": 0.55, "Roughness": 0.42})
+    INSTANCES["MI_TD_DominionPanel"][2].update({"ColorDark": (0.011, 0.012, 0.014), "ColorLight": (0.034, 0.036, 0.042)})
+    INSTANCES["MI_TD_DominionArmor"][2].update({"LightColor": (1.0, 0.14, 0.02)})
+    INSTANCES["MI_TD_DominionGlowWhite"][1].update({"KeepFraction": 1.0, "KeepCellCm": 400.0})
 SLOT_TO_MI = {"Panel": "MI_TD_DominionPanel", "Armor": "MI_TD_DominionArmor", "Trim": "MI_TD_DominionTrim", "GlowRed": "MI_TD_DominionGlowRed",
               "GlowWhite": "MI_TD_DominionGlowWhite", "GlowEngine": "MI_TD_DominionGlowEngine"}
 
