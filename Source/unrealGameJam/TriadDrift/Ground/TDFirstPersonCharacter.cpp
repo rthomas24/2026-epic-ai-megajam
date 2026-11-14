@@ -505,7 +505,9 @@ void ATDFirstPersonCharacter::UpdateBladeAura(float DeltaSeconds)
 		BladeLight->SetWorldLocationAndRotation(BT.GetLocation() + BT.GetUnitAxis(EAxis::X) * Len * 0.5f, BT.Rotator());
 		BladeLight->SetSourceLength(FMath::Max(1.f, Len * 0.8f));
 		const float Fight = BladeAuraSwingHold > 0.f ? 1.f : 0.f;
-		BladeLight->SetLightColor(GetBladeColor());
+		// #128: a light in the full squad colour at arm's reach repainted the enemy's black / red armour (gold with Moss):
+		// partly desaturated, the floor and the pilot still take the colour while an enemy keeps its own colour code.
+		BladeLight->SetLightColor(FMath::Lerp(GetBladeColor(), FLinearColor::White, 0.4f));
 		BladeLight->SetIntensity(BladeLightCandelas * (1.f + 0.4f * Fight + 2.5f * BladeLightPulse));
 		BladeLight->SetVisibility(true);
 	}
