@@ -620,3 +620,66 @@ static FAutoConsoleCommandWithWorldAndArgs GTDCameraTurnCmd(TEXT("TD.Camera.Turn
 		if (Args.Num() > 1) { R.Pitch = FCString::Atof(*Args[1]); }
 		PC->SetControlRotation(R);
 	}));
+
+// Captures: stand the pilot just in front of the nearest small piece of dressing that does not block the Camera channel
+// (instanced foliage included), facing away from it, so it sits between the chase lens and the pilot.
+static FAutoConsoleCommandWithWorldAndArgs GTDCameraOccluderCmd(TEXT("TD.Camera.StandBeforeDressing"),
+	TEXT("TD.Camera.StandBeforeDressing [distance cm = 150]: the pilot in front of the nearest camera-transparent dressing, facing away (dev)."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+		if (!Pawn) { return; }
+		const float Gap = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 150.f;
+		const FVector From = Pawn->GetActorLocation();
+		float Best = TNumericLimits<float>::Max();
+		FVector BestAt = FVector::ZeroVector;
+		FString BestName;
+		for (TObjectIterator<UStaticMeshComponent> It; It; ++It)
+		{
+			UStaticMeshComponent* C = *It;
+			if (!C || C->GetWorld() != World || !C->IsVisible() || C->GetOwner() == Pawn || !C->GetStaticMesh()
+				|| C->GetCollisionEnabled() == ECollisionEnabled::NoCollision || C->GetCollisionResponseToChannel(ECC_Camera) == ECR_Block)
+			{
+				continue;
+			}
+			const float MeshRadius = C->GetStaticMesh()->GetBounds().SphereRadius;
+			auto Consider = [&](const FTransform& T)
+			{
+				const float R = MeshRadius * T.GetScale3D().GetAbsMax();
+				if (R < 60.f || R > 600.f) { return; }
+				const FVector At = T.GetLocation() + FVector(0.f, 0.f, R * 0.5f);
+				const float D = FVector::DistSquared(At, From);
+				if (D < Best) { Best = D; BestAt = At; BestName = C->GetStaticMesh()->GetName(); }
+			};
+			if (UInstancedStaticMeshComponent* ISM = Cast<UInstancedStaticMeshComponent>(C))
+			{
+				for (int32 i = 0; i < ISM->GetInstanceCount(); ++i)
+				{
+					FTransform T;
+					if (ISM->GetInstanceTransform(i, T, true)) { Consider(T); }
+				}
+			}
+			else
+			{
+				Consider(C->GetComponentTransform());
+			}
+		}
+		if (BestName.IsEmpty())
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.Camera.StandBeforeDressing: no camera-transparent dressing found"));
+			return;
+		}
+		FVector Dir = (From - BestAt).GetSafeNormal2D();
+		if (Dir.IsNearlyZero()) { Dir = FVector::ForwardVector; }
+		FVector P = BestAt + Dir * Gap;
+		FHitResult Floor;
+		FCollisionQueryParams Q(TEXT("TDStandBefore"), false, Pawn);
+		if (World->LineTraceSingleByChannel(Floor, P + FVector(0.f, 0.f, 400.f), P - FVector(0.f, 0.f, 3000.f), ECC_Visibility, Q))
+		{
+			P.Z = Floor.ImpactPoint.Z;
+		}
+		Pawn->SetActorLocation(P + FVector(0.f, 0.f, Pawn->GetSimpleCollisionHalfHeight() + 5.f), false, nullptr, ETeleportType::TeleportPhysics);
+		PC->SetControlRotation(FRotator(-10.f, Dir.Rotation().Yaw, 0.f)); // facing away: the dressing is behind the pilot
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Camera.StandBeforeDressing: %s at %s, pilot %.0f cm in front"), *BestName, *BestAt.ToCompactString(), Gap);
+	}));
