@@ -107,6 +107,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
 	FTDFXCue EngineTrail;
 
+	/**
+	 * Size of this hull's boost plume (T7, Nov 14): while boosting the EngineTrail effects get "Boost" = this instead of 1,
+	 * so a small hull keeps its plume in proportion (Lancer about 0.6). 1 = as authored; 0 = no boost growth.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight", meta = (ClampMin = "0", ClampMax = "2"))
+	float ExhaustBoostScale = 1.f;
+
 	/** Dodge: a short side-thruster burst, attached at the engine (player ship only). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
 	FTDFXCue Dodge;
@@ -505,6 +512,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue CloudWisps;
 
+	/** Planet ambience (the effects builder's; ATDPlaceholderSky spawns it attached to the camera and drives User.Fade).
+	 *  No gameplay code plays these. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue PlanetAmbientVerdance;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue PlanetAmbientCinder;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue LandingDust;
 
@@ -707,6 +721,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
 	FTDFXCue SlateClap;
+
+	/** Cinematic 03: the dormant drone's three pulses as it wakes blue (the motif; Nicholas's sound). Played at the drone. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue ThreePulse;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
 	FTDFXCue CutSting;

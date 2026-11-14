@@ -60,6 +60,7 @@ bool FTDSpaceFieldFills::RunTest(const FString& Parameters)
 	FString FirstBad;
 	for (const FTDSpaceFieldPiece& P : Pieces)
 	{
+		if (P.bAdopted) { continue; }	// the layout's own rocks keep the layout's rules (cover in the pocket)
 		const float Half = P.Size * 0.5f;
 		bool bOk = FVector::Dist(P.Location, Zone) >= 120000.f;
 		if (P.bCollides)
