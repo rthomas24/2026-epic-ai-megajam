@@ -342,4 +342,49 @@ bool FTDRetakeOpeningGrace::RunTest(const FString& Parameters)
 	return true;
 }
 
+// T7 (Nov 14, with T3's lead): after a CUT the Warden's room came back cleared and the scene complete, no Warden.
+// A boss destroyed while alive (a fall, kill-Z) is put back, so its room can only clear by killing it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRetakeLostWarden, "TriadDrift.Ground.Retake.AWardenThatLeavesTheWorldAliveIsPutBack", TD_TEST_FLAGS)
+bool FTDRetakeLostWarden::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(-900.f, 0.f, 95.f));
+	ATDObjective* O = TDRetakeTest::MakeObjective(W, TEXT("Obj_Gate"), 2);
+	ATDEncounterVolume* Room = TDRetakeTest::MakeRoom(W, FVector(0.f, 0.f, 150.f), O, 0, 1);
+	Room->CrewMix = { ETDCrewType::Warden };
+	O->StartObjective();
+	W.Advance(0.1f);
+	Room->Activate();
+	auto WardenOf = [Room]() -> ATDCrewCharacter*
+	{
+		for (const TWeakObjectPtr<AActor>& M : Room->GetSpawned())
+		{
+			ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get());
+			if (C && !C->IsActorBeingDestroyed() && C->Spec.Type == ETDCrewType::Warden && !C->IsDead()) { return C; }
+		}
+		return nullptr;
+	};
+	for (int32 i = 0; i < ATDEncounterVolume::MaxBossReturns; ++i)
+	{
+		ATDCrewCharacter* Warden = WardenOf();
+		if (!TestNotNull(*FString::Printf(TEXT("a Warden (%d)"), i), Warden)) { return false; }
+		Warden->Destroy(); // fell out of the world, alive
+		W.Advance(0.1f);
+		TestFalse(*FString::Printf(TEXT("the room is not cleared (%d)"), i), Room->IsCleared());
+		TestEqual(*FString::Printf(TEXT("the objective stays on step 0 (%d)"), i), O->GetCurrentStepIndex(), 0);
+		ATDCrewCharacter* Back = WardenOf();
+		if (TestNotNull(*FString::Printf(TEXT("put back (%d)"), i), Back))
+		{
+			TestEqual(TEXT("at full health"), Back->GetHealth()->GetHull(), Back->GetHealth()->MaxHull);
+		}
+	}
+	// Killing it clears the room as ever.
+	if (ATDCrewCharacter* Warden = WardenOf()) { Warden->GetHealth()->Kill(P, ETDDamageKind::Melee); }
+	W.Advance(0.1f);
+	TestTrue(TEXT("killed: the room clears"), Room->IsCleared());
+	TestEqual(TEXT("killed: the step completes"), O->GetCurrentStepIndex(), 1);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
