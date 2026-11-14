@@ -597,7 +597,7 @@ limit**. Those are the Lead's figures; the breakdown below is measured by me fro
 | Normal maps (BC5) | 244.6 | 124 |
 | Static and skeletal meshes | 115.2 | 257 |
 | Shader code | 90.1 | |
-| Audio (43.95 MB of it is Nicholas's music, 11 tracks) | 49.8 | 319 |
+| Audio (43.95 MB of it is Nicholas's music, 12 tracks) | 49.8 | 319 |
 | Engine and plugin content | 14.3 | 501 |
 | Animation | 5.7 | 420 |
 | Other game packages (blueprints, materials, data assets, maps) | 2.9 | 505 |
