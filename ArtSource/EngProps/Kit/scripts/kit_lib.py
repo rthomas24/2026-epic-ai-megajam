@@ -16,7 +16,8 @@ from kit_regions import ATLAS, REGIONS  # noqa: E402
 
 AX = {"x": 0, "y": 1, "z": 2}
 INSET = 1.0     # px kept clear inside every region (mip bleed)
-GLOW = ("Glow", "Screen")
+GLOW = ("Glow", "Screen", "Light", "Beacon", "Pillar")
+RAW_UV = ("Screen", "Pillar", "Decal", "Route")       # these keep the 0..1 UVs given to poly() (the screen shows a whole image)
 
 
 def rotz(deg):
@@ -73,6 +74,7 @@ class Piece:
         """vs: points (cm). U / V: (axis, c0, c1[, t0, t1]) maps that coordinate range onto the region (or a
         sub-range t0..t1 of it). uv: explicit region-normalised pairs. n: wanted normal (winding is fixed to it)."""
         vs = [Vector(v) for v in vs]
+        raw = mat in RAW_UV and uv is not None
         if mat in GLOW:
             reg = None
         if uv is None and reg is not None:
@@ -95,6 +97,9 @@ class Piece:
         out = [self.M @ v for v in vs]
         if self.M.determinant() < 0:
             out, uv = out[::-1], uv[::-1]
+        if raw:
+            self.faces.append((out, [tuple(t) for t in uv], mat))
+            return
         self.faces.append((out, [self._uv(reg, a, b) for a, b in uv], mat))
 
     def box(self, lo, hi, reg="sw_gun", faces="xXyYzZ", regs=None, uvo=None, mat="Trim", mats=None, top_along="x"):
@@ -256,16 +261,37 @@ class Piece:
         return sum(len(f[0]) - 2 for f in self.faces)
 
 
-def finish(obj, bevel_cm=1.5, segments=2, angle_deg=30.0):
+def finish(obj, bevel_cm=1.5, segments=2, angle_deg=30.0, clamp=True):
     """The kit's edge treatment: a 1.5 cm, 2-segment bevel on every edge sharper than 30 degrees (hardened normals,
     clamped so thin parts never collapse), then weighted normals so big faces stay flat. Applied at export."""
+    # Boxes that touch leave coincident internal faces (both sides of a shared wall); with them the clamped bevel
+    # collapses to zero width along every touching edge (found on the Dominion corridor: 600 of 712 faces were
+    # zero-area bevels). Remove each pair of coincident faces first, then degenerate leftovers.
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bmesh.ops.remove_doubles(bm, verts=list(bm.verts), dist=1e-4)
+    seen = {}
+    doomed = set()
+    for f in bm.faces:
+        key = frozenset(v.index for v in f.verts)
+        if key in seen:
+            doomed.add(f)
+            doomed.add(seen[key])
+        else:
+            seen[key] = f
+    if doomed:
+        bmesh.ops.delete(bm, geom=list(doomed), context="FACES")
+    bmesh.ops.dissolve_degenerate(bm, edges=list(bm.edges), dist=1e-4)
+    bm.to_mesh(obj.data)
+    bm.free()
+    obj.data.update()
     obj.data.set_sharp_from_angle(angle=math.radians(angle_deg))
     b = obj.modifiers.new("Bevel", "BEVEL")
     b.width = bevel_cm / 100.0
     b.segments = segments
     b.limit_method = "ANGLE"
     b.angle_limit = math.radians(angle_deg)
-    b.use_clamp_overlap = True
+    b.use_clamp_overlap = clamp    # Blender clamps globally: one tiny edge zeroes every bevel (the Dominion corridor)
     b.harden_normals = True
     b.miter_outer = "MITER_SHARP"
     w = obj.modifiers.new("WeightedNormal", "WEIGHTED_NORMAL")
@@ -295,5 +321,13 @@ def bake_and_clamp(obj, lo_cm, hi_cm):
         if (c - v.co).length > 1e-6:
             v.co = c
             moved += 1
+    me.update()
+    # drop the zero-area faces a clamped bevel can leave, so the counts and the exported mesh agree
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    bmesh.ops.remove_doubles(bm, verts=list(bm.verts), dist=1e-4)
+    bmesh.ops.dissolve_degenerate(bm, edges=list(bm.edges), dist=1e-4)
+    bm.to_mesh(me)
+    bm.free()
     me.update()
     return moved

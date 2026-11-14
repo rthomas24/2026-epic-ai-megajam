@@ -8,6 +8,7 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "EngineUtils.h"
@@ -23,6 +24,7 @@
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetRegistry/IAssetRegistry.h"
 #include "Animation/AnimInstance.h"
+#include "PhysicsEngine/PhysicsAsset.h"
 #include "Animation/AnimSequenceBase.h"
 #include "Materials/MaterialInterface.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
@@ -840,6 +842,7 @@ void ATDCrewCharacter::FireBolt(const FVector& Direction, float Damage, float Sp
 	P.Range = Spec.RangedMaxRange * 1.5f;
 	P.CollisionRadius = Radius;
 	P.bInheritShooterVelocity = false;
+	P.FX = FTDPowerPresentation::LoadWeaponFX(TEXT("CrewBlaster")); // DA_CrewBlaster_FX (Gameplay/Characters/FX fallback; T2): tracer and impacts, else the placeholder bolt
 	const FVector Muzzle = GetMuzzleLocation(Direction);
 	ATDProjectile::Launch(World, P, FTransform(Direction.Rotation(), Muzzle), this, ETDTeam::Enemy, nullptr, FVector::ZeroVector, 1.f, false);
 	if (World->GetTimeSeconds() - LastShotSoundTime > 0.05) // a shotgun's pellets or a fan of bolts is one shot
@@ -1067,26 +1070,21 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 
 	// Ragdoll: the skeletal mesh if Nick's art has a physics asset, otherwise the placeholder block tumbles.
 	const FVector Push = (KillingBlow.HitDirection.IsNearlyZero() ? -GetActorForwardVector() : KillingBlow.HitDirection.GetSafeNormal()) * 450.f + FVector(0.f, 0.f, 250.f);
-	const FString DeathPath = bFallbackAnim ? CrewAnimPath(FallbackDeathAnim(KillingBlow.HitDirection)) : FString();
-	UAnimSequenceBase* DeathAnim = DeathPath.IsEmpty() ? nullptr : TDMakePlayable(LoadObject<UAnimSequenceBase>(nullptr, *DeathPath, nullptr, LOAD_Quiet | LOAD_NoWarn));
-	if (GetMesh()->IsVisible() && DeathAnim)
+	RagdollPush = Push * 0.35f;
+	ToppleAway = (KillingBlow.HitDirection.IsNearlyZero() ? -GetActorForwardVector() : KillingBlow.HitDirection).GetSafeNormal2D();
+	if (GetMesh()->IsVisible() && GetMesh()->GetSkeletalMeshAsset())
 	{
-		GetMesh()->PlayAnimation(DeathAnim, false); // falls the way the killing shot came from, then holds
-	}
-	else if (GetMesh()->IsVisible() && GetMesh()->GetSkeletalMeshAsset())
-	{
-		// No death animation for this look yet: topple over about the feet, away from the killing shot.
-		const FVector Away = (KillingBlow.HitDirection.IsNearlyZero() ? -GetActorForwardVector() : KillingBlow.HitDirection).GetSafeNormal2D();
-		ToppleAxis = FVector::CrossProduct(FVector::UpVector, Away).GetSafeNormal();
-		ToppleStart = GetMesh()->GetComponentQuat();
-		ToppleAlpha = 0.f;
-		bToppling = !ToppleAxis.IsNearlyZero();
-	}
-	else if (GetMesh()->IsVisible() && GetMesh()->GetPhysicsAsset())
-	{
-		GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
-		GetMesh()->SetSimulatePhysics(true);
-		GetMesh()->AddImpulse(Push, NAME_None, true);
+		// The fall starts in the death clip (in place, no root travel) and ends in the ragdoll (or a topple without a
+		// physics asset), so every body lands on the ground (animation builder's sheet crew_deaths_as_played, Nov 13).
+		if (UAnimSequenceBase* DeathAnim = ChooseDeathClip(KillingBlow.HitDirection))
+		{
+			GetMesh()->PlayAnimation(DeathAnim, false);
+			RagdollIn = bGroundDeathClip ? -1.f : DeathClipSeconds; // a fall that ends lying down plays out and holds
+		}
+		else
+		{
+			StartRagdollOrTopple();
+		}
 	}
 	else if (Body->IsVisible())
 	{
@@ -1102,8 +1100,92 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 
 // ------------------------------------------------------------------------------------------------
 
+UAnimSequenceBase* ATDCrewCharacter::ChooseDeathClip(const FVector& HitDirection) const
+{
+	const USkeletalMesh* SK = GetMesh() ? GetMesh()->GetSkeletalMeshAsset() : nullptr;
+	if (!SK)
+	{
+		return nullptr;
+	}
+	auto Fits = [SK](UAnimSequenceBase* A) { return A && A->GetSkeleton() == SK->GetSkeleton() ? A : nullptr; };
+	auto Load = [](const FString& Name) -> UAnimSequenceBase*
+	{
+		const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/%s"), *Name);
+		if (!FindPackage(nullptr, *Package) && !FPackageName::DoesPackageExist(Package)) { return nullptr; }
+		return LoadObject<UAnimSequenceBase>(nullptr, *(Package + TEXT(".") + Name), nullptr, LOAD_Quiet | LOAD_NoWarn);
+	};
+	const bool bFromBehind = !HitDirection.IsNearlyZero() && FVector::DotProduct(-HitDirection.GetSafeNormal2D(), GetActorForwardVector()) < 0.f;
+	const FString Type = Spec.VisualsId.ToString();
+	// 1. Falls that end lying on the ground (Grok's set, made in place by the animation builder: A_Crew_Death_<Side>, and a
+	//    per-type A_Crew_<Type>_Death_<Side> when one exists), picked by the side the killing blow came from.
+	const FString Template(FallbackDeathAnim(HitDirection));
+	const TCHAR* Side = Template.Contains(TEXT("Back")) ? TEXT("Back") : Template.Contains(TEXT("Left")) ? TEXT("Left") : Template.Contains(TEXT("Right")) ? TEXT("Right") : TEXT("Front");
+	bGroundDeathClip = false;
+	for (const FString& N : { FString::Printf(TEXT("A_Crew_%s_Death_%s"), *Type, Side), FString::Printf(TEXT("A_Crew_Death_%s"), Side) })
+	{
+		if (UAnimSequenceBase* A = Fits(Load(N))) { bGroundDeathClip = true; return TDMakePlayable(A); }
+	}
+	// 2. Falls that only start (today's): the ragdoll ends them.
+	TArray<FString> Names = {
+		FString::Printf(TEXT("A_Crew_%s_Death_%s"), *Type, bFromBehind ? TEXT("02") : TEXT("01")),
+		FString::Printf(TEXT("A_Crew_%s_Death_01"), *Type),
+		FString::Printf(TEXT("A_Crew_%s_Death"), *Type),
+		bFromBehind ? TEXT("A_Crew_Death_Front_03") : TEXT("A_Crew_Death_Front_02"),
+		TEXT("A_Crew_Death_Front_02") };
+	for (const FString& N : Names)
+	{
+		if (UAnimSequenceBase* A = Fits(Load(N))) { return TDMakePlayable(A); }
+	}
+	// The template set (root travel and a held crouch: only when nothing else fits; the ragdoll ends it anyway).
+	const FString Path = bFallbackAnim ? CrewAnimPath(FallbackDeathAnim(HitDirection)) : FString();
+	return Path.IsEmpty() ? nullptr : Fits(TDMakePlayable(LoadObject<UAnimSequenceBase>(nullptr, *Path, nullptr, LOAD_Quiet | LOAD_NoWarn)));
+}
+
+bool ATDCrewCharacter::IsRagdolling() const
+{
+	return GetMesh() && GetMesh()->IsSimulatingPhysics();
+}
+
+void ATDCrewCharacter::StartRagdollOrTopple()
+{
+	RagdollIn = -1.f;
+	USkeletalMeshComponent* M = GetMesh();
+	if (!M || !M->GetSkeletalMeshAsset())
+	{
+		return;
+	}
+	// Only our own crew ragdoll (PA_NullCrew, on its rig): the template PA_Mannequin on our meshes exploded the body 15 m in
+	// 0.4 s (Nov 13 live), and PA_Warden launched the Warden 3 m (DeathsEndOnTheGroundWhereTheyFell, Nov 13): those topple.
+	UPhysicsAsset* Ours = Spec.Type == ETDCrewType::Warden ? nullptr
+		: LoadObject<UPhysicsAsset>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/PA_NullCrew.PA_NullCrew"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+	if (Ours && Ours->GetPreviewMesh() && Ours->GetPreviewMesh()->GetSkeleton() == M->GetSkeletalMeshAsset()->GetSkeleton())
+	{
+		if (M->GetPhysicsAsset() != Ours) { M->SetPhysicsAsset(Ours, true); }
+		M->SetCollisionProfileName(TEXT("Ragdoll"));
+		M->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		M->SetAllBodiesSimulatePhysics(true);
+		M->SetSimulatePhysics(true);
+		M->WakeAllRigidBodies();
+		M->AddImpulse(RagdollPush, NAME_None, true);
+		return;
+	}
+	// No ragdoll for this look: topple over about the feet, away from the killing shot, from the pose it is in.
+	ToppleAxis = FVector::CrossProduct(FVector::UpVector, ToppleAway).GetSafeNormal();
+	ToppleStart = M->GetComponentQuat();
+	ToppleAlpha = 0.f;
+	bToppling = !ToppleAxis.IsNearlyZero();
+}
+
 void ATDCrewCharacter::TickTopple(float DeltaSeconds)
 {
+	if (RagdollIn >= 0.f)
+	{
+		RagdollIn -= DeltaSeconds;
+		if (RagdollIn < 0.f)
+		{
+			StartRagdollOrTopple();
+		}
+	}
 	if (!bToppling || !GetMesh())
 	{
 		return;

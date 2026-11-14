@@ -1,0 +1,124 @@
+{
+ "aim": [
+  {
+   "src": "A_Pilot_Idle3",
+   "dst": "A_Pilot_Idle3_v2",
+   "dir": [
+    -0.12,
+    0.85,
+    -0.5
+   ],
+   "max_deg": 70
+  },
+  {
+   "src": "A_Pilot_Walk",
+   "dst": "A_Pilot_Walk_v2",
+   "dir": [
+    -0.12,
+    0.85,
+    -0.5
+   ],
+   "max_deg": 60
+  },
+  {
+   "src": "A_Pilot_Heavy",
+   "dst": "A_Pilot_Heavy_v3",
+   "mode": "thrust",
+   "max_deg": 75,
+   "down": 0.0
+  }
+ ],
+ "drop": [
+  {
+   "src": "A_Pilot_Blade_Death1",
+   "dst": "A_Pilot_Blade_Death1_v2",
+   "floor_cm": 4.0,
+   "bones": [
+    "pelvis",
+    "spine_01",
+    "spine_02",
+    "spine_03",
+    "neck_01",
+    "head",
+    "hand_r",
+    "hand_l",
+    "lowerarm_r",
+    "lowerarm_l",
+    "foot_r",
+    "foot_l",
+    "calf_r",
+    "calf_l",
+    "ball_r",
+    "ball_l"
+   ]
+  },
+  {
+   "src": "A_Pilot_Blade_Death2",
+   "dst": "A_Pilot_Blade_Death2_v2",
+   "floor_cm": 10.0,
+   "bones": [
+    "pelvis",
+    "spine_01",
+    "spine_02",
+    "spine_03",
+    "neck_01",
+    "head",
+    "hand_r",
+    "hand_l",
+    "lowerarm_r",
+    "lowerarm_l",
+    "foot_r",
+    "foot_l",
+    "calf_r",
+    "calf_l",
+    "ball_r",
+    "ball_l"
+   ]
+  }
+ ],
+ "compose": [
+  {
+   "dst": "A_Pilot_Board_Ship",
+   "segments": [
+    [
+     "A_Pilot_JumpStart",
+     0.0,
+     9.0
+    ],
+    [
+     "A_Pilot_FallLoop",
+     0.0,
+     0.35
+    ]
+   ],
+   "blend": 0.12
+  },
+  {
+   "dst": "A_Pilot_Exit_Ship",
+   "segments": [
+    [
+     "A_Pilot_FallLoop",
+     0.0,
+     0.3
+    ],
+    [
+     "A_Pilot_Land_Hard",
+     0.0,
+     9.0
+    ]
+   ],
+   "blend": 0.1
+  }
+ ],
+ "visuals": [
+  {
+   "slot": "idle",
+   "clip": "A_Pilot_Idle3_v2"
+  },
+  {
+   "slot": "walk",
+   "clip": "A_Pilot_Walk_v2"
+  }
+ ],
+ "_note": "r2 (review m3/m4): idle and walk hang more forward than out; the heavy thrust follows the forearm line (no downward bias)."
+}

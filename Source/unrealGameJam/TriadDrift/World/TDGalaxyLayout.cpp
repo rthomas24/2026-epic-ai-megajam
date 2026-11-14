@@ -79,8 +79,10 @@ ATDGalaxyLayout::ATDGalaxyLayout()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Debris1(TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_SpaceDebris_01.SM_SpaceDebris_01"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Debris2(TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_SpaceDebris_02.SM_SpaceDebris_02"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Debris3(TEXT("/Game/TriadDrift/Gameplay/Props/Space/SM_SpaceDebris_03.SM_SpaceDebris_03"));
-	// Rendering headroom (T1's 1080p profile): Static mobility (the belt never moves, so no per-frame primitive
-	// updates) and per-instance cull distances; debris skips shadows and ray tracing.
+	// Rendering headroom (T1's 1080p profile): per-instance cull distances; debris skips shadows and ray tracing.
+	// Movable like the root: a Static component under the movable root aborts its attach (32 "cannot attach ... which
+	// is static" warnings) and only lined up with the collision because the layout sits at the origin. Nothing moves
+	// these, so Movable costs no per-frame updates.
 	auto MakeLook = [this](const FName Name, UStaticMesh* Mesh, float CullStart, float CullEnd, bool bDetail) -> UInstancedStaticMeshComponent*
 	{
 		// Plain instancing: the belt is ~155 rocks + debris in 7 components, too small for HISM's clusters to pay
@@ -89,7 +91,7 @@ ATDGalaxyLayout::ATDGalaxyLayout()
 		Look->SetupAttachment(GetRootComponent());
 		Look->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		Look->SetGenerateOverlapEvents(false);
-		Look->SetMobility(EComponentMobility::Static);
+		Look->SetMobility(EComponentMobility::Movable);
 		Look->SetStaticMesh(Mesh);
 		Look->InstanceStartCullDistance = static_cast<int32>(CullStart);
 		Look->InstanceEndCullDistance = static_cast<int32>(CullEnd);

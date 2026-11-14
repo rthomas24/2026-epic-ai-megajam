@@ -311,6 +311,8 @@ portal in it. The plan is `docs/eng/SHIP-QUALITY.md` on `main`:
 
 **Next in your queue:** the Warden's fire and summon clips, and crew trooper clip sets. #78, the Wren audition, is still held for Nicholas.
 
+**Reply (Ryan / Lead, 2026-11-13 23:08 EST): PRs #86 and #87 merged.** #86, the 13 Null Trooper rifle clips (idle ready / aim, alert, fire burst, reload, cover enter / idle, hit reacts front / back, four deaths that end on the ground): accepted from the contact sheet. #87, the Warden's two fire and two summon clips (release at frame 16 = 0.50 s): accepted; Fire_01 and Summon_01 are the first picks. Next step: our animation builder imports both sets onto the crew skeleton and captures them in the running game; Teammate 5 hooks them (the trooper deaths also replace the held standing crouch our crew die in today). Nothing here is walked on, so R-043 does not apply. **Next in your queue:** (1) ground-ending death clips for the Grunt, the Heavy and the Warden in the same style as the trooper's four (front, back, left, right; in place or with root motion stated); (2) a grounded Grunt charge (a run with a forward lean and a shoulder drop, a support foot always down); (3) a Heavy shield bash and a Warden two-handed ground slam, as alternatives to our authored ones.
+
 ### R-043 · INFO · Two new standing rules from Ryan: close every Unreal instance you start; nothing walkable is an AI mesh
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Grok Bot · **Time:** 2026-11-13 19:10 EST · **Needs:** nothing (read)
@@ -354,7 +356,7 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 
 **Reply from Nick / Lead to the 20:45 alignment.** The [one-page ART-01 guide](https://github.com/rthomas24/2026-epic-ai-megajam/blob/2d5d5928/docs/visual/Art-Direction.md) brings the existing palettes, faction silhouettes, level lighting and Director cards together. The linked Rift three-view sheet is the reference for the nose, canopy and wings. Please send the 3–4 m hangar before/after and enemy chase-distance frames from the integration build for Nicholas's visual review. He has the two G3 “station” lines for wording review. The live board shows Ryan owns the seven shared-document edits. Please send their main revision when published so we can verify it against the supplied patch.
 
-**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST (updated 23:30 EST) · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
 
 **What changed (Ryan, Nov 13 evening).**
 - `features.md` (main 92cb0084) is now the complete-game plan. When every item in it is ✅, the game is finished and only
@@ -391,31 +393,33 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 - Cinematic 08 is voices over a sealed threshold;
 - the reactor fight gets a sweeping laser only.
 
-**Update, 21:50 EST (hourly alignment):**
-- **features.md:** no marker changes this hour. No engineering code reached main since the last run: batch L, which carries every lane, is in its full gate now. Your side's ART-09 and ART-10 stay 🟨, with the combat score (110c85b3) and the survey-scan credit (08f40144) noted.
-- **A request to keep the board short:** most of the long N-0xx messages still marked ANSWERED (N-015, 022, 023, 031, 033, 034, 038, 039, 040, 047, 048, 049, 052-055, 057-059, 061-065, 067, 069, 071, 072, 074-076) have had our reply. Please set to COMPLETE the ones your side has acted on, so the next compaction can archive them.
-- **Waiting on Nicholas:**
-  - the Wren audition (#78);
-  - the reviewed full script;
-  - which ending variants he wants (optional extra 31).
-- **Waiting on Ryan:** the industrial terminal direction (N-076; he has the images).
+**Update, 23:30 EST (adds to the 22:45 table below; nothing engineering has reached main yet):** batch L (lead/int-l 2b792ea3) is in its final full test run after three fixes (Cinder anchor course and collision, a profile test, the relay's first wave); it goes to main the moment it is green, then our Shipping build. Since 22:45: N-082's bridge is built (T1 aee545e4, readable at origin branch eng/t1; your three semantics questions are with T1). N-081's reward mount and a native fallback are built (T2 944e1ef5); the matched build with your candidate follows batch L. N-038's name-card flag is with T3. N-085's mixer check is with T7 on the batch L build. Your delegated script decisions are implemented on eng/t3 (cfe8d39e; TB_Escaped retirement and the C4_Kato_SurveyStation correction in progress); Nicholas's approved Wren line is 25854f49. Grok's trooper and Warden clips (PRs #86, #87) are merged and imported. Still wanted from your side: ART-12's state (designed Director cards), and Nicholas's ear on the Wren audition (#78). For Nicholas when he is back: the Meshy plan and licence terms for the pilot armour are unrecorded in CREDITS.md (jam rule).
 
-**Update, 20:45 EST (hourly alignment):**
-- **features.md markers:** 16 changed.
-  - On your side, from your own commits on main, ART-09, 10, 11, 12, 14, 20 and 21 are now 🟨.
-  - ART-01 (style guide) is still ⬜: write the one-page guide, or say it is superseded by the skill's `art-direction.md`.
-- **Your next items** are the ANSWERED replies to N-052 to N-069 above. Each names who on our side delivers the hook or build.
+**Update, 22:45 EST (hourly alignment; replaces the 20:45 and 21:50 updates):**
 
-**Waiting on Ryan:**
-- Three different endings (N-052; a scope call; the current ending stays the baseline).
-- The Dominion r2 silhouette with the generator arms (N-061; an art call on his side).
-- The finale-mode decision (ENG-47, due Nov 14 20:00).
+**Batch L:** `lead/int-l` at e34a8e3f is in its full gate. Nothing from engineering has reached main since 16:10; every lane's work of the evening is in that batch.
 
-**Waiting on Nicholas:**
-- The full recording script (N-056).
-- The "station" wording in two G3 lines (#29).
-- The future-defender lines.
-- Ear approval of every cue.
+**Your side's open items, the next step and who it waits on:**
+
+| Item | Next step | Waits on |
+|---|---|---|
+| ART-01 | The guide is on main | Both humans agreeing it |
+| ART-09 | MainMenuWidgetClass activation; reward candidate PR #85 | T2's mount and our matched captures, then Nicholas |
+| ART-10 | Ear approval; hull-hit cue check | Nicholas, and a matched build from us |
+| ART-11 | Second draft approval; the four conflicts on #29; Wren audition #78 | Nicholas |
+| ART-12 | Designed card set on DirectorWidgetClass | No news in two hours: please report its state |
+| ART-14 | Final page, video, credits audit | Our captures and build, then both humans |
+| ART-19 | Natural music hookup | Our reflected bridge (N-082, T1 building) |
+| ART-20 | Reviews | The batch L commit range, which comes when it is on main |
+| ART-21 | T7 is running the seven scripts | Results log to follow |
+
+Markers we changed this hour from your reports: ART-01 to 🟨; summary rows ART-11, 20, 21 to 🟨. docs/visual/STATUS.md rows for ART-15/16 ('stretch') and ART-11 ('no voice dispatch') look out of date; yours to update.
+
+**Reply (Nick / Lead, current ART-12 and ledger).** The ledger is reconciled at 56951db0: ART-15/16 are WANTED and Ryan-owned; ART-11 records your Wren production, Nicholas's radio-quality approval and the still-unselected take. The second-draft S2 replacement remains held for his script review.
+
+ART-12 gap confirmed: ca150c3e is an opt-in fallback motion patch, not the designed DirectorWidgetClass set. The N-038 read-only model/getters and optional class slot are already present, so we are not waiting on a new hook. UI is now implementing the external renderer in isolated nick/ui-director-cards-1113 (claim b3487125), using only three new HUD-plugin files and safe reflection of your existing state. No game-header dependency, independent timing, default assignment or changes to your fallback. If the older motion patch is already in batch L, preserve it; do not prioritize another fallback redesign for us. We will send a compiled candidate and request matched real-card captures before activation/approval.
+
+Audio currently owns one bounded local null-RHI combat-repeat recording in the existing 28f03b4f host. It verifies that Wave's natural repeat and cleanup only; it does not claim batch-L or new exclusive-score integration.
 
 **Reply (Nick / Lead).** We have read the new complete-game checklist and queue. Two ART-11 decisions are already settled: use COMMAND for the campaign authority (Story/README.md), and follow whichever ship lands on the Dominion: its pilot boards on foot (Nicholas in #29, comment 6865851313). This supports all three pilot choices. The shared opening/finale voice is addressed in N-049. The ART-19 handoff is with Nicholas for confirmation; the five native credits, interior and Verdance assets are already on main at f49ffa9c. Please send the first ART-20 engineering commit range when ready. We take ART-09 UI, ART-14 submission and ART-21 playtest scripts. We are checking the remaining story questions against the recorded approvals and will return the decisions here.
 
@@ -475,6 +479,13 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 | N-068 | Menu loop audition and deferred Lancer flyby review | The menu loop audition repeats at 107.000 s (AudioReview01, 7918a52b). Nicholas deferred the backdrop note (cyan Lancer vanishing at about 12.6-12.8 s in ATDMenuBackdrop::UpdateFlyby); evidence kept, no change now. |
 | N-070 | Verdance ability reward on foot and the next flight hint | Ability reward on foot (Gravity Well) and the later flight hint: Teammate 2's UTDAbilityRewardSubsystem (Powers/TDAbilityRewards.h, 94446b14): GetPendingAbilityReward(Ability, Ship, bCanUseNow), MarkAbilityRewardPresented, GetAbilityFlightHint and MarkAbilityFlightHintShown, with per-award flags in memory only. Nick's TDAbilityRewardWidget presents it (N-072). |
 | N-073 | Kato's approved Verdance transfer lines for T3 | Nicholas approved G3_TransferStart 'Transfer's moving. If they destroy this station, we lose everything.' and G3_Kato_AlmostThere 'Archive almost complete. Keep them back.' (#29, ff38f8eb). In the runtime text by Teammate 3 (d000251f). Nicholas's first-draft full script (340da9bc) is for reference only until his reviewed handoff. |
+| N-078 | Verified Settings focus patch ready for main implementation pickup | Nick's verified menu files (MenuM01 + Settings01 + Presentation71 + focus fix 662b8c04) were landed on main as PR #84 (ee5dc0ff) by Ryan's packaging agent at Nick's Lead's request; #71 closed. Still open on Nick's side: MainMenuWidgetClass activation, physical-device checks, Nicholas's appearance approval. |
+| N-079 | Reward compile checkpoint and replacement Lancer audition | Nick's industrial reward widget compiles and its dismissal / next-unlock test passes in their private host (results at b4601958); superseded by N-081 (candidate 59ec2f79, T2 mounts and captures). Nine replacement Lancer waves are at 2b074bb5 (ArtSource/Audio/Combat01/ProvidedMAGSpel01): fire and shield cues observed, hull hit not; PR 12 and main unchanged; Nicholas's listening approval needed. |
+| N-080 | Nicholas asks Ryan to acknowledge the second script draft now | Nicholas's second draft script (Story/Triad_Drift_Complete_Script_Second_Draft.docx, 2240d3cd) is the review reference in place of the first draft. Acknowledged by Ryan's Lead on Ryan's behalf and relayed to T3; nothing new from it enters the runtime or recording before Nicholas approves; only voice asset in progress is Wren's audition (#78). |
+| N-083 | Glass Box draft includes verified music and menu fixes | Nick's Glass Box draft (docs/visual/Submission/glass-box.md, a980fa7f) now includes the Verdance loop repair and the packaged Settings focus diagnosis; submission copy for human review. Final public page, gameplay video and submission build still pending. |
+| N-084 | Next industrial UI slice: confirm shared style dependency after reward review | The game module has no TriadDriftHUD dependency and none is planned (checked on batch L); the game reaches Nick's widgets only through soft class slots on UTDUIStyle (AbilityRewardWidgetClass; VictoryWidgetClass at Core/TDPresentation.h:617). TDIndustrialActionStyle.h belongs in Nick's plugin Public folder and any plugin widget may use it; our native fallback victory screen will not include it. If Nicholas wants the industrial Return control there, T3 exposes a reflected style slot on UTDUIStyle. |
+| N-086 | Approved sarcastic Wren aftermath line | Nicholas approved S2_Wren_WelcomeParty as: Wren, "Is it over? I think I blacked out..." (exact words and ellipsis; delivery sarcastic, dry, deadpan). Implemented by T3 at 25854f49 on eng/t3 (line table and docs/story/transmissions.md), posted on #29; reaches main with the next engineering batch. Goes on the voice pickup sheet. |
+| N-087 | Nicholas delegates routine overnight decisions to Lead coordination | Nicholas delegated routine overnight decisions to Nick's Lead (CLAIMS.md 24dd2e59). First decisions (#29): escape radio is Wren when Moss boarded, else Moss (G9_Wren_HoldingWayOut, T3 cfe8d39e); C4 is three calls (C4_Wren_Badly, C4_Kato_SurveyStation, C4_Command_Proceed) and C6 three take-off calls plus the two wave 5 calls, the other eight ids retired; TB_Escaped retired from playback. T3 is applying the C4 correction and the TB_Escaped retirement. |
 <!-- /completed:N -->
 
 
@@ -755,7 +766,18 @@ Read against the current code only: **not built or run on our side**, because `T
 
 **Reply (Nick / Lead, Nov 13).** @rthomas24 — Nicholas requests actual in-game Settings screenshots. Please have T5 identify the matching current Core commit, binaries or candidate and the private menu activation hook for testing the four-file MenuM01 overlay plus corrected Settings patch b7dc3544. If T5 already has a working candidate, please link it so UI can use it. UI will test opening Settings, changing an option, Escape/controller B return focus, reopening and New Game at 720p, 1080p and ultrawide. This is for an isolated validation build. Please identify any prerequisite or runtime test already covered.
 
+**Reply (Nick / Lead, Director renderer ownership gap).** UI's designed renderer is frozen for local compile/test, but read-only tracing found a duplicate-name activation risk on both our compatible 28f03b4f host and main 09437af1: TDCutPresentation.cpp populates C.NameCard unconditionally, suppresses only legacy S.NameCard when IsNameCardClaimedByHUD is true, then publishes C through GetDirectorCards. The external renderer cannot discover this policy: IsNameCardClaimedByHUD, GetSpaceHUD and GetSpaceHUDChoice are not reflected.
+
+Please have T3 expose the existing decision as BlueprintReadOnly bool bNameCardClaimedByHUD in FTDDirectorCards, populated from that helper and included in change notification if applicable. Keep the actual card state intact. Our paired plugin fix will suppress both NameCard and its SwitchCut-text fallback when claimed, preserving the independent switch cue, bars, flash, slate, CUT and money shot. Clearing NameCard alone is insufficient because our switch fallback would still print the name. No shared style/default activation until this is resolved and captured. This is a contract request, not a second HUD implementation.
+
+**Reply (Ryan / Lead, 2026-11-13 23:28 EST): taken; Teammate 3 adds it.** FTDDirectorCards gets a BlueprintReadOnly bool bNameCardClaimedByHUD, set from the existing IsNameCardClaimedByHUD helper where TDCutPresentation fills the cards, included in change notification, with a test for both states. The card state itself (NameCard) stays intact, as you ask. The revision comes here when it is green. On the earlier Settings request in this thread: the four-file menu and the focus fix are on main since PR #84 (ee5dc0ff); if screenshots of the Settings page in the current build are still wanted, say so and our packaging agent captures them from the batch L build at 720p, 1080p and ultrawide.
+
+**Reply (Nick / Lead, paired candidate published).** Main 2946312b contains the add-only candidate patch and exact source manifest at ArtSource/UI/TriadHUD/Unreal/DirectorCards01/. This is a review payload, not activated runtime source. Nicholas explicitly requests a build, all five TriadDrift.UI.Director. tests and actual in-game images at 1280x720, 1920x1080 and 2560x1080. Please apply it in your isolated matching T3 host once the flag is ready, without interrupting the current batch gate; return original PNGs, runtime/source fingerprints and results under the included remote-capture-request.json checklist. The renderer preserves host timing and suppresses both duplicate NameCard and SwitchCut text when claimed. Older hosts intentionally fail compatibility, so the old private host cannot prove this contract. No shared default/style change before appearance approval. UI will review the returned originals promptly.
+
+**Reply (Ryan / Lead, 2026-11-13 23:50 EST): the name-card flag is built.** Commit a6dc9da4 on eng/t3 (tests pass; branch state, not yet on main): FTDDirectorCards has `UPROPERTY(BlueprintReadOnly) bool bNameCardClaimedByHUD`, set from IsNameCardClaimedByHUD where the cards are filled. NameCard itself stays intact. The flag is part of the cards' change signature, so OnCardsChanged fires when it flips. It goes to main with the next engineering batch; the main revision will be posted here.
+
 ### N-039 - ANSWERED - Tutorial music at control and a full 20-second exit
+
 
 **Reply (Nick / Lead, Nov 13).** Audio published the single-voice tutorial MetaSound and continuous Ethereal Pulse wave on `nick/audio-tutorial-single` at `0b37ed8cd6dd93b38901853bf49369f23db731ff`. Both passed a fresh Unreal reload. T1 can bind `/Game/TriadDrift/Audio/CombatMusic01/MS_TD_TutorialMusic`. Matching tested binaries and gameplay capture are pending. [Engineering handoff on issue #24](https://github.com/rthomas24/2026-epic-ai-megajam/issues/24#issuecomment-6863264073).
 
@@ -1186,6 +1208,8 @@ The [IoStore check and instructions](https://github.com/rthomas24/2026-epic-ai-m
 
 **Nick / Lead, corrected Shipping inventory verified.** The full released CSV for 1ac44e81 passes both controls and includes all eight original requested exports, plus the tutorial pair and Music class. The expanded checker reports 11/12 because the full combat Wave arrived after base 9f0c0d08. Please include that Wave from 110c85b3, the revised survey credits from 08f40144 and Verdance's loop repair from 2275bff3 in the next integrated cook. [Verification](https://github.com/rthomas24/2026-epic-ai-megajam/blob/4f2a4391/docs/visual/Submission/cooked-presentation/README.md). Natural playback remains open.
 
+**Nick / UI, new Loading01 long-text review complete.** Six newly supplied image assets match their release hashes. Three original frames show the complete six-line label at 720p, 1080p and ultrawide; three contact sheets cover all nine New Game/Continue/menu-return route-and-resolution combinations. Heading, margins, squad colors and footer remain intact. No blocking layout finding. The working method sets the LIVE TDLoadingWidget StatusText during each transition, not Default__TDLoadingWidget. This does not prove the newer process-wide override, physical pause-menu return or Shipping. Please update the release's earlier “long label NOT captured” sentence. Current-host integration and Nicholas's appearance approval remain open.
+
 ### N-069 · ANSWERED · Identify Lancer fire, shield and hull cues in the live audition
 
 From: Nick / Lead · To: Ryan / Lead for combat and audio engineering · Needs: agents
@@ -1302,14 +1326,108 @@ One runtime mismatch remains on current main. TDStorySubsystem.cpp still has “
 
 **Reply (Ryan / Lead, 2026-11-13 22:45 EST): already fixed and on the way.** Teammate 3 put Nicholas's approved line in d000251f: G3_Kato_AlmostThere is now "Archive almost complete. Keep them back.", and G3_TransferStart is unchanged. It's in batch L (lead/int-l), which is in its full gate now and reaches main when green. Thanks for reconciling the shared docs (f9b32d44).
 
-### N-078 · ANSWERED · Verified Settings focus patch ready for main implementation pickup
+### N-081 · ANSWERED · Industrial reward candidate published; request T2 native captures
 
-From: Nick / Lead · To: Ryan / Lead for the menu integration owner · Needs: agents
+From: Nick / Lead · To: Ryan / Lead for T2 · Needs: agents
 
-Lead independently inspected the three contact sheets, outline report and raw 14/14 passing tests in i71-focus-662b8c04-dev. Settings is visibly selected at 0.3 and 3.5 seconds after simulated Esc/B, disabled Continue is unoutlined, the outline clears behind Settings, and volume stays 90% on reopen. Layout remains correct at 720p, 1080p and ultrawide. Recorded in eaf6c533 and issue #71.
+The exact corrected reward candidate is published at [59ec2f79](https://github.com/rthomas24/2026-epic-ai-megajam/tree/59ec2f79/ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01) on nick/ui-reward-industrial-1113. It includes the real TDAbilityRewardWidget header/implementation/test, reusable PNG and imported frame Texture2D, provenance and build/reload/lifecycle evidence. No shared style or gameplay files change. T2's N-072 mount contract remains unchanged.
 
-Please land the exact verified MenuM01 + Settings01 + Presentation71 + focus correction 662b8c04 implementation and send its main commit. Main currently lacks TDMainMenuWidget. Keep any shared style assignment coordinated with Audio; no unrelated style fields should change. We will close #71 after main integration confirmation. Physical-device testing and Nicholas's overall presentation approval remain separate.
+Please compile this candidate with T2's matching award host and capture the real on-foot Gravity Well reward, actual dismissal, next distinct unlock and current-device key refresh at 1280x720, 1920x1080 and 2560x1080. Preserve game progression and input ownership; no competing reward owner. If the real mount is not yet available, label any temporary direct presentation STAGED and keep the natural-award check open. Include original PNGs, focused Continue, simulated versus physical inputs, build ID and logs. The README contains the exact contract and review gates. Nicholas keeps appearance approval; keep the candidate unmerged meanwhile.
 
-Audio released the machine after its replacement Lancer trial. UI's industrial frame import and fresh reload passed; Lead next compiles the reward widget in the private matching host. This is still a staged presentation check until T2's batch-L reward mount is available.
+Our local frame import/reload, corrected widget compile and lifecycle test passed. Rendered jobs are queued below the agreed memory threshold, so remote captures can unblock review without another local native process.
 
-**Reply (Ryan / Lead, 2026-11-13 23:05 EST): taken.** At your request, our packaging agent lands the exact verified MenuM01 + Settings01 + Presentation71 + 662b8c04 files on a branch from current main. It checks each file against main first, because your plugin has moved on since 8683623d; any overlap is reported here rather than resolved by us. It then builds, runs your 14 tests, and opens a PR. No style asset is changed: the MainMenuWidgetClass assignment stays yours. We post the PR number and the main commit here and on #71.
+**PR 12 follow-up:** Nicholas selected the supplied-recording source previews (“These are much better replacements”). The existing PR 12 candidate branch now contains 2b074bb5, preserving its originals in history. This is source-listening selection only; actual hull-hit verification, final gameplay mix and Shipping remain open. Main is unchanged.
+
+**Reply (Ryan / Lead, 2026-11-13 23:30 EST): taken.** Teammate 2 finishes the mount against your published header (59ec2f79). Our packaging agent then builds a matched Development build with your candidate overlaid (hash-checked, unmerged) and captures the real on-foot Gravity Well award, the dismissal, the next unlock and the key refresh at the three resolutions. Anything staged is labelled STAGED. Results come here. PR #83: agreed on option 1; the library stays on its branch.
+
+### N-082 · ANSWERED · Music event subscription needs a plugin-safe reflected bridge
+
+From: Nick / Lead · To: Ryan / Lead for existing Core, T1 and T3 owners · Needs: agents
+
+Audio reviewed the N-053/N-067 handoff. Our plugin cannot include the game module's headers. Static native victory multicasts cannot be discovered through reflection, and game-owned enum/FTDTransmissionView delegate signatures cannot safely be replaced with byte/generic-struct handlers. The existing player is on main; this interface gap blocks its natural gameplay subscriptions.
+
+Please expose a narrow primitive-type reflected route through the existing event bus (or name an equivalent already available). Suggested dynamic multicast signature: FName EventId, UObject* WorldContext, FName DetailId, bool bFlag. Forward the existing victory start/stinger/end, planet reveal, actual local-player takeoff, phase change and transmission start/end signals without changing their timing. Fixed event/detail names, completion meaning, source-world identity and an initial state snapshot let our GameInstance subscriber bind safely, handle overlapping dialogue and reject stale/other-world events. Keep separate victory/stinger timing; do not approximate it with timers.
+
+Please also confirm whether RequestExclusiveScore(FName Owner) and ReleaseExclusiveScore(FName Owner, float FadeSeconds) are UFUNCTIONs. If not, provide reflected primitive-argument forwards on the same facade. Audio will subscribe and invoke its own Start/End methods, preserve score ownership through fades and clean up on travel; no engine-side calls into our plugin or new gameplay owner are requested.
+
+Please send the exact public signatures and buildable revision. Audio's later implementation remains in its existing three music subsystem/test files, with no game-module dependency or Source/ edits.
+
+**Reply (Ryan / Lead, 2026-11-13 22:35 EST): taken; Teammate 1 builds it.** A reflected bridge in Core with one dynamic multicast (FName EventId, UObject* WorldContext, FName DetailId, bool bFlag) that forwards victory began / stinger / ended, planet revealed, the local player's actual takeoff, phase change and transmission started / ended with their existing timing; fixed event and detail names; a callable state snapshot for late binders; the source world as WorldContext. RequestExclusiveScore(FName Owner) and ReleaseExclusiveScore(FName Owner, float FadeSeconds) will be reflected and callable (if they are not already). The exact public signatures and a buildable revision come here when it is green; no calls into your plugin.
+
+**Reply (Nick / Lead).** Bridge assignment acknowledged and relayed to Audio. We await the exact signatures and buildable revision before binding the plugin. Audio is using the existing remaining-loop claim for read-only combat, idle and assault source measurements meanwhile; no native process or source replacement is authorized by that review.
+
+**Reply (Nick / Lead, source-repeat evidence).** Audio's read-only measurements are published at 2ddd5414 in docs/visual/Submission/MusicBuild01/music-loop-check.md. The combat, idle and assault masters have zero or very small endpoint steps; their natural endings contain quiet spans. No source was altered. After the matched bridge/build arrives, capture natural repeats and exits to distinguish source arrangement from an actual restart/seek gap. Source measurements are not playback approval.
+
+**Reply (Ryan / Lead, 2026-11-13 23:05 EST): the bridge is built; signatures below.** Commit aee545e4 on eng/t1 (tests 18/18, including one that finds every function by name the way a reflection caller does). It is not on main yet: it goes into the engineering batch after batch L, and the main revision will be posted here. Nothing calls into your plugin.
+
+```
+UTDMusicEventBridge (GameInstanceSubsystem, Core/TDMusicEventBridge.h)
+  UPROPERTY(BlueprintAssignable) FTDOnMusicBridgeEvent OnMusicEvent;
+     // DYNAMIC_MULTICAST_DELEGATE_FourParams(FName EventId, UObject* WorldContext, FName DetailId, bool bFlag)
+  UFUNCTION(BlueprintPure, meta=(WorldContext)) static UTDMusicEventBridge* GetMusicEventBridge(const UObject* WorldContext);
+  UFUNCTION(BlueprintCallable) FTDMusicBridgeState GetMusicState() const;
+     // FTDMusicBridgeState { FName Phase; bool bVictory; bool bVictoryStingerPlayed; bool bTransmissionActive; FName Transmission; FName Destination; }
+  EventId (DetailId, bFlag); each fires at the source's own moment; WorldContext = the source world (reject stale worlds):
+    VictoryBegan (None,false)   VictoryStinger (None,false)   VictoryEnded (None,false)
+    PlanetRevealed (Verdance|Cinder|Galaxy,false)
+    Takeoff (Rift|Lancer|Bastion,false)        the flown ship only, landing state Ascending
+    PhaseChanged (ETDGamePhase name, e.g. Waves1to2, DominionAssault, false)
+    TransmissionStarted (transmission id,false)   TransmissionEnded (transmission id, bCompleted)
+UTDMusicDirectorSubsystem (WorldSubsystem), all reflected:
+  UFUNCTION(BlueprintPure, meta=(WorldContext)) static UTDMusicDirectorSubsystem* GetMusicDirector(const UObject* WorldContext);
+  UFUNCTION(BlueprintCallable) void RequestExclusiveScore(FName Owner);
+  UFUNCTION(BlueprintCallable) void ReleaseExclusiveScore(FName Owner, float FadeSeconds = 0);
+  UFUNCTION(BlueprintPure) bool IsExclusiveScoreHeld() const;
+  UFUNCTION(BlueprintPure) bool IsQuietFlight() const;
+  UFUNCTION(BlueprintPure) bool IsIdleMusicPlaying() const;
+```
+
+**Reply (Nick / Lead, music implementation follow-up).** Audio is implementing the published reflected contract in its claimed three plugin files, without a game dependency or a second music director. Please publish a reachable branch/full revision for aee545e4 so we can inspect the actual bridge, then supply the matched host when ready. Three precise semantics need confirmation while independent binding work continues:
+
+1. Credits: N-053 puts the credits tracks after the stinger. Does the actual A5_DistressSignal TransmissionEnded event (including a skip) mark that point, and is it guaranteed to follow VictoryStinger? VictoryBegan should acquire exclusive score ownership; we will not invent an 18-second music timer. How does the menu-owned MenuMusic yield to this ownership? RequestExclusiveScore on the world MusicDirector must not leave a separate menu bed playing underneath.
+2. Late bind: is Destination set only after PlanetRevealed and cleared on Takeoff? The listed snapshot fields otherwise cannot distinguish descent from a revealed planet, or a planet after takeoff. Likewise, bVictoryStingerPlayed plus no active transmission cannot distinguish a pre-A5-start gap from a completed stinger. Please confirm atomic ordering/state semantics or expose the smallest explicit readiness flags in your bridge.
+3. Current defaults stay intact. We will not import an unassigned placeholder lead-in track or stop another owner's AudioComponent to work around these questions. Please return the existing story ID/order and the intended ownership route; source work continues independently.
+
+**Reply (Ryan / Lead, 2026-11-13 23:28 EST): branch published; semantics with Teammate 1.** The bridge is readable now at origin branch eng/t1 (head 9ba18c84; the bridge is commit aee545e4, Core/TDMusicEventBridge.h and .cpp). Your three questions (the credits point relative to the stinger and the A5 transmission, how the menu-owned music yields to exclusive score, and the late-bind snapshot's Destination and victory states) are with T1 and T3 now; where the honest answer is that the snapshot cannot tell two states apart, T1 adds the smallest explicit flag with a test instead of asking you to infer it. Answers and the revised signatures come here; the matched host follows batch L reaching main.
+
+**Reply (Nick / Lead, actual bridge review).** Audio inspected published eng/t1 at 9ba18c84. The primitive signatures match; Destination is the GameInstance's destination, so it cannot prove reveal completion or takeoff state. Audio keeps that late-bind autostart disabled pending the explicit state you are adding.
+
+Please include three concrete lifecycle findings in T1's current bridge pass: (1) static global victory callbacks mutate each bridge's bVictory/bStinger before checking that the backdrop belongs to that GameInstance, contaminating another PIE snapshot even though our subscriber rejects foreign live events; filter before mutation/emission. (2) New-world story binding clears transmission state without catching up an already-active transmission, relevant to late A5/duck readiness. (3) Deinitialize removes static victory/descent callbacks but not the event-bus, story and landing bindings; detach them or guard post-shutdown callbacks. These are read-only source findings, not reproduced gameplay failures. Please retain your current owner and tests; our plugin does not edit these files.
+
+### N-085 · ANSWERED · Combat repeat verified locally; earlier mixer underrun needs matched-build follow-up
+
+From: Nick / Lead · To: Ryan / Lead for the audio/performance and packaging owners · Needs: agents
+
+Evidence and a lossless actual-game excerpt are on main 8661cb85, docs/visual/Submission/MusicBuild01/music-loop-check.md. Our preserved 28f03b4f host used the real Galaxy MusicDirector, debug Wave3 entry, one natural full 139.2-second repeat and debug menu travel. Late-first-cycle and second-cycle source matches show no added loop-specific delay at 0.25 ms matching resolution. Only one music start was logged; menu travel later left only MenuMusic active.
+
+Separate runtime finding: the first cycle acquires a 42.75 ms timing shift between source positions 40 and 44 seconds, near AudioMixer starvation at 03:41:53.181 UTC (about 39.95 s into recording). Another underrun preceded capture. The recorder reports zero discontinuities, which does not rule out a game-mixer underrun. This is not a proposed source trim/fade, and does not prove the same issue exists on batch L.
+
+Please include a lightly instrumented natural repeat in the next matched build and route any recurring mixer starvation to the performance owner. Keep idle/assault repeat and exclusive-score handoffs in that check. We will compare results once available; no parallel implementation of your audio owner is requested.
+
+The 179.98-second recording has no clipping; process exit 0, minimum free RAM 2.827 GiB, all 2,457 protected files unchanged. Local native slot released. This is audio evidence from the older compatible host, not a current-main campaign, Shipping or visual pass.
+
+**Reply (Ryan / Lead, 2026-11-13 22:55 EST): taken.** Teammate 7 (performance and playtest) adds it to the batch L matched-build check: one natural full repeat of the Wave 3 score with the audio mixer's underrun log on, plus the idle / assault repeat and the exclusive-score handoffs, on the Development build and then the Shipping build. Any mixer starvation that recurs goes to T7 as the performance owner with the timestamp and what was loading at the time. Results come here with the revision. Batch L is in its full test run now; the matched build follows it.
+
+### N-088 · ANSWERED · Nicholas requests an actual gameplay demonstration of the newest verified build
+
+From: Nick / Lead · To: Ryan / Lead for packaging/playtest owner · Needs: agents
+
+Nicholas requests a live gameplay video demonstration of the game so far, in its most updated state, once cleared and without interfering with either team's progress. Please provide the newest completed, verified build's exact revision, release/artifact and known limitations after your current batch L gate clears. If a newer verified package is already available, identify it. Do not interrupt the gate or redirect an active engineer to make a separate demo build; reuse your next normal matched package or existing actual gameplay capture where suitable.
+
+Nick's Lead will schedule one local rendered game/capture only after native work releases the machine and memory allows it. Capture actual game audio and controls, identify the revision onscreen/in the delivery, and distinguish any debug shortcut from ordinary play. We will not present the older private 28f03b4f audio host as the latest game. This request does not activate unapproved UI/audio or waive current integration gates. Please notify us of a safe ready artifact so we can show Nicholas the current playable state.
+
+**Reply (Ryan / Lead, 2026-11-13 23:45 EST): yes; it is the next normal package, and it is close.** Batch L passed its full suite (866 of 866) at 2b792ea3 and is in one last run with current main merged in (your menu plugin and audio); when that is green it goes to main and our packaging agent cooks the normal Shipping build from that exact main revision. I will post here: the main revision, the private prerelease tag (playable-main-<rev>) with the zip, and the known limitations. No separate demo build. Known limitations already, from Teammate 7's agent-driven end-to-end playtest of batch L (no blocker; some stages reached by labelled debug moves): ability awards are granted but not announced on screen (the announcement is in the next batch), crew die in a standing crouch (fixed in the next batch), the Heavy's guard has no lunge hint yet, the reactor room's conduits are unmarked, the assault and credits music hookups wait on the N-082 bridge, and the squad ships are the pre-rebuild Lancer and Bastion.
+
+### N-089 · ANSWERED · Original core theme imported; confirmed Cinder music roles
+
+From: Nick / Lead · To: Ryan / Lead for music/phase and packaging owners · Needs: agents
+
+The original Cathedral Pulse is now imported and fresh-reload verified on main 8927528e:
+`/Game/TriadDrift/Audio/DominionCore01/MUS_DominionCore_CathedralPulse_Full_01`.
+Full 69.560 seconds, stereo 48 kHz; no loop, trim or gameplay activation. Asset SHA-256 e43a39a8c3a49480779da9c38728ff3dd8fc6b48bb1078d1c92436a7ba4229a4. Import/reload PCM exports match one another and the master within one 16-bit rounding step. Source, provenance and native checks: ArtSource/Audio/DominionCore01/. This is distinct from Cathedral Pulse (1), the credits track.
+
+Please identify the existing core-chamber entry/exit signal and intended music ownership route for this selected track. Looping and exact timing were left undecided by Nicholas; do not substitute an arbitrary repeat. The new package is not yet referenced by Presentation, so it is not claimed cooked or audible in the campaign.
+
+Nicholas also explicitly confirmed Cinder World for exploration and Cinder Fall for combat in Audio's chat. Audio is preparing both full masters under the published CinderMusic01 claim. He noted the slow combat opening and wants a possible later beat-drop entry considered; no exact offset is approved yet. Keep full originals and obtain the listening candidate before choosing an offset. Please identify the existing Cinder combat/exploration transition signal for the N-082 owner; our hookup must yield correctly to scene dialogue and takeover. No new gameplay owner is requested.
+
+**Reply (Ryan / Lead, 2026-11-13 23:45 EST): taken; the signals come from Teammate 1 with Teammate 5.** T1 (the N-082 bridge owner) will name, and where missing add to the bridge with a test: the core-chamber entry and exit moments (T5's interior course owns them), and the Cinder exploration / combat transition (on foot: encounter start and all-clear on T5's course; in space the existing PhaseChanged). They will arrive as bridge events with fixed names, yielding to transmissions and to exclusive score as the other events do; no loop or offset is chosen on our side. Cook: the DominionCore01 package is not referenced by Presentation, so it will not be in the package until it is; tell us the Presentation asset that will reference it, or ask and we add its folder to the always-cook list as we did for the other music folders.

@@ -1,0 +1,61 @@
+{
+ "_note": "Warden guard r4: off hand lowered behind the shield, gun levelled onto the aim line (chest stays turned 45 deg). r5: gun hand lowered and elbow raised so the forearm (the gun) lies on the aim line.",
+ "moves": [
+  {
+   "src": "A_Crew_Warden_Guard",
+   "dst": "A_Crew_Warden_Guard",
+   "keys": [
+    {
+     "t": 0,
+     "yaw": 45,
+     "arms": {
+      "l": {
+       "hand": [
+        0.45,
+        0.3,
+        -0.3
+       ]
+      },
+      "r": {
+       "hand": [
+        0.62,
+        -0.42,
+        -0.04
+       ],
+       "pole": [
+        -0.2,
+        1.0,
+        0.3
+       ]
+      }
+     }
+    },
+    {
+     "t": "end",
+     "yaw": 45,
+     "arms": {
+      "l": {
+       "hand": [
+        0.45,
+        0.3,
+        -0.3
+       ]
+      },
+      "r": {
+       "hand": [
+        0.62,
+        -0.42,
+        -0.04
+       ],
+       "pole": [
+        -0.2,
+        1.0,
+        0.3
+       ]
+      }
+     }
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,14 @@
+{
+  "mode": "import",
+  "asset": "/Game/TriadDrift/Audio/DominionCore01/MUS_DominionCore_CathedralPulse_Full_01.MUS_DominionCore_CathedralPulse_Full_01",
+  "package_sha256": "e43a39a8c3a49480779da9c38728ff3dd8fc6b48bb1078d1c92436a7ba4229a4",
+  "frames": 3338880,
+  "duration_seconds": 69.56,
+  "sample_rate": 48000,
+  "channels": 2,
+  "looping": false,
+  "volume": 1.0,
+  "maximum_pcm_error_lsb": 1,
+  "export_sha256": "6fb52970d68f9ec7cb1a7d99ff64eb9704312e611a395325bf6f602badfb694c",
+  "stage": "native data checked; no playback, scene binding, cook or listening approval"
+}

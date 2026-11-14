@@ -16,6 +16,8 @@
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Profile/TDProfileSubsystem.h"
+#include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryTable, "TriadDrift.Story.Transmissions.EveryBeatHasAPlaceholderAndNoEarlyTwist", TD_TEST_FLAGS)
@@ -35,7 +37,7 @@ bool FTDStoryTable::RunTest(const FString& Parameters)
 		TEXT("S2_Moss_Accounted"), TEXT("S2_Kato_NotPursuing"), TEXT("S2_Command_Orders"), TEXT("S2_Kato_Recorders"),
 		TEXT("TB_Kato_Marking"), TEXT("TB_Command_FallBack"), TEXT("TB_Kato_BreakingOff"),
 		TEXT("A2_ConvoyScanned"), TEXT("A2_TransponderSighted"), TEXT("G2_Command_Archive"), TEXT("C3_Kato_Artificial"),
-		TEXT("C3_Wren_Answered"), TEXT("G3_TransferStart"), TEXT("G3_Disruption"), TEXT("G3_DataSecured"), TEXT("C4_Command_Proceed"), TEXT("C4_Wren_SetCourse"),
+		TEXT("C3_Wren_Answered"), TEXT("G3_TransferStart"), TEXT("G3_Disruption"), TEXT("G3_DataSecured"), TEXT("C4_Command_Proceed"),
 		TEXT("G4_Kato_Transports"), TEXT("C5_Kato_SameConstruction"), TEXT("C5_Unknown_SameConstruction"), TEXT("C5_Kato_Feedback"),
 		TEXT("C5_Kato_OriginCore"), TEXT("G5_Wren_ClearRoute"), TEXT("C6_Command_FindOutWhy"), TEXT("C6_Wren_StayTogether"),
 		TEXT("G6_Kato_MarkingTargets"), TEXT("G6_Command_ShieldCollapsed"), TEXT("G6_Clue1"), TEXT("G6_Clue2"),
@@ -43,7 +45,7 @@ bool FTDStoryTable::RunTest(const FString& Parameters)
 		TEXT("G7_Kato_Authorisations"), TEXT("G7_Wren_FullRecord"), TEXT("F_FutureWren_FullWarning"), TEXT("C8_RecKato_OneEvent"),
 		TEXT("C8_RecWren_LastChance"), TEXT("C8_RecMoss_SaveYou"), TEXT("C8_Kato_NoSafeShutdown"), TEXT("C8_Moss_CantLetThem"),
 		TEXT("C8_Wren_Order"), TEXT("G8_Wren_ConduitsFirst"), TEXT("G8_Kato_ConduitDown"), TEXT("G8_Moss_KeepMoving"),
-		TEXT("G8_Kato_HeartExposed"), TEXT("G8_Command_ReactorLost"), TEXT("G9_Moss_HoldingWayOut"), TEXT("G9_Kato_HangarConfirmed"),
+		TEXT("G8_Kato_HeartExposed"), TEXT("G8_Command_ReactorLost"), TEXT("G9_Moss_HoldingWayOut"), TEXT("G9_Wren_HoldingWayOut"), TEXT("G9_Kato_HangarConfirmed"),
 		TEXT("G9_Wren_PullAway"), TEXT("C9_Kato_Clear"), TEXT("C9_Moss_Clear"), TEXT("C9_Wren_Clear"), TEXT("C9_Moss_TakeThat"),
 		TEXT("C9_Kato_Identifiers"), TEXT("C9_Wren_Source"), TEXT("C9_Kato_Decades") };
 	for (const TCHAR* Gone : { TEXT("A3_EchoWren"), TEXT("A3_EchoKato"), TEXT("A3_EchoMoss") })
@@ -340,12 +342,25 @@ bool FTDStoryDepartures::RunTest(const FString& Parameters)
 		TestEqual(Case + TEXT(": the rest queued, in order"), Story->GetQueueLength(), Set.Num() - 1);
 		if (C.bCinder)
 		{
-			TestFalse(TEXT("Cinder done: Verdance's departure is not replayed late"), Story->HasPlayed(TEXT("C4_Moss_Trouble")));
+			TestFalse(TEXT("Cinder done: Verdance's departure is not replayed late"), Story->HasPlayed(TEXT("C4_Wren_Badly")));
 			if (UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld()))
 			{
 				Bus->BroadcastWaveStarted(5, 1.f);
 			}
 			TestEqual(TEXT("wave 5 adds the guard-line pair"), Story->GetQueueLength(), Set.Num() - 1 + 2);
+		}
+		TestEqual(Case + TEXT(": N-087, three take-off calls"), Set.Num(), 3);
+		if (C.Expect == ETDDestination::Verdance)
+		{
+			TestTrue(TEXT("N-087: C4 is Badly, SurveyStation, Proceed"), Set == TArray<FName>({ TEXT("C4_Wren_Badly"), TEXT("C4_Kato_SurveyStation"), TEXT("C4_Command_Proceed") }));
+		}
+		for (const FName& Id : Set)
+		{
+			for (const TCHAR* Retired : { TEXT("C4_Moss_Volcanoes"), TEXT("C4_Wren_SetCourse"), TEXT("C4_Wren_WhatConnects"), TEXT("C4_Kato_SameSignature"),
+				TEXT("C4_Moss_Trouble"), TEXT("C6_Moss_SamplesAboard"), TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Wren_Understood") })
+			{
+				TestNotEqual(TEXT("a retired id is never fired"), Id, FName(Retired));
+			}
 		}
 	}
 	return true;
@@ -378,6 +393,16 @@ bool FTDStoryBoarder::RunTest(const FString& Parameters)
 					UTDStorySubsystem::ResolveSpeaker(nullptr, E.Speaker), P.Value);
 			}
 		}
+	}
+	// N-087: the escape radio is Moss's unless Moss boarded; then Wren's.
+	for (const TPair<ETDShipId, FName>& R : { TPair<ETDShipId, FName>(ETDShipId::Rift, TEXT("G9_Moss_HoldingWayOut")),
+		TPair<ETDShipId, FName>(ETDShipId::Lancer, TEXT("G9_Moss_HoldingWayOut")), TPair<ETDShipId, FName>(ETDShipId::Bastion, TEXT("G9_Wren_HoldingWayOut")) })
+	{
+		const ETDShipId Ship = R.Key;
+		UTDStorySubsystem::BoardingShipResolver = [Ship](const UObject*) { return Ship; };
+		FTDTransmission Routed;
+		TestEqual(FString::Printf(TEXT("escape radio for ship %d"), (int32)Ship), UTDStorySubsystem::RouteForBoarder(nullptr, TEXT("G9_Moss_HoldingWayOut")), R.Value);
+		TestTrue(TEXT("the routed line exists"), UTDStorySubsystem::FindEntry(R.Value, Routed) && Routed.Speaker == (Ship == ETDShipId::Bastion ? ETDSpeaker::Wren : ETDSpeaker::Moss));
 	}
 	// Nothing else is changed by the resolver.
 	TestEqual(TEXT("Kato stays Kato"), UTDStorySubsystem::ResolveSpeaker(nullptr, ETDSpeaker::Kato), ETDSpeaker::Kato);
@@ -425,6 +450,8 @@ bool FTDStorySequence::RunTest(const FString& Parameters)
 		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
 		UTDStorySubsystem::PlaySequence(W.GetWorld(), TEXT("Cinematic08"));
 		W.Advance(1.f, 1.f / 30.f);
+		TestFalse(TEXT("N-060: no skip in the first ten seconds"), Story->SkipSequence());
+		W.Advance(Story->SkipAllowedAfterSeconds, 1.f / 30.f);
 		TestTrue(TEXT("skip"), Story->SkipSequence());
 		TestFalse(TEXT("skipped: over at once"), Story->IsSequencePlaying());
 		TestEqual(TEXT("nothing left queued"), Story->GetQueueLength(), 0);
@@ -482,6 +509,164 @@ bool FTDStoryRecordedLabels::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Cinematic 08: recorded Moss"), Play(TEXT("C8_RecMoss_SaveYou")), FString(TEXT("MOSS (RECORDED)")));
 	TestEqual(TEXT("present-day Moss's answer: live label"), Play(TEXT("C8_Moss_CantLetThem")), FString(TEXT("MOSS")));
 	TestEqual(TEXT("then Wren's order (N-046), live"), Play(TEXT("C8_Wren_Order")), FString(TEXT("WREN")));
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryRequiredSaved, "TriadDrift.Story.Transmissions.RequiredLinesSavedOnlyWhenHeard", TD_TEST_FLAGS)
+bool FTDStoryRequiredSaved::RunTest(const FString& Parameters)
+{
+	// N-062 (Nick's review): a required console recording queued behind another line, or cut off mid-air, must not be
+	// saved as played; a Continue must hear it. Once heard in full it is saved and never replays. Ambient lines keep
+	// their old rule (saved when fired).
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("story"), Story))
+	{
+		return false;
+	}
+	TestTrue(TEXT("a recording is required"), UTDStorySubsystem::IsRequiredLine(TEXT("A4_Recording_Barracks")));
+	TestFalse(TEXT("a radio line is ambient"), UTDStorySubsystem::IsRequiredLine(TEXT("A1_TheySearch")));
+	// 1. Queued behind another line: not saved yet, and never queued twice.
+	UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A1_TheySearch"));
+	TestTrue(TEXT("the recording queues"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A4_Recording_Barracks")));
+	TestTrue(TEXT("the ambient line is saved at once (unchanged)"), GI->HasPlayedTransmission(TEXT("A1_TheySearch")));
+	TestFalse(TEXT("the queued recording is NOT saved (a Continue now would hear it)"), GI->HasPlayedTransmission(TEXT("A4_Recording_Barracks")));
+	TestFalse(TEXT("no duplicate while queued"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A4_Recording_Barracks")));
+	// 2. On air, interrupted: still not saved.
+	for (int32 i = 0; i < 900 && Story->GetCurrentTransmission().Id != FName(TEXT("A4_Recording_Barracks")); ++i) { W.Tick(1.f / 30.f); }
+	TestTrue(TEXT("on air"), Story->GetCurrentTransmission().Id == FName(TEXT("A4_Recording_Barracks")));
+	TestFalse(TEXT("on air, not yet saved (leaving now loses nothing)"), GI->HasPlayedTransmission(TEXT("A4_Recording_Barracks")));
+	TestFalse(TEXT("no duplicate while on air"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A4_Recording_Barracks")));
+	// 3. Heard in full: saved, and it never replays.
+	for (int32 i = 0; i < 900 && Story->GetCurrentTransmission().bActive; ++i) { W.Tick(1.f / 30.f); }
+	TestTrue(TEXT("heard in full: saved"), GI->HasPlayedTransmission(TEXT("A4_Recording_Barracks")));
+	TestFalse(TEXT("never replays"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A4_Recording_Barracks")));
+	// 4. A fresh run (Continue) that never heard the final record plays it; the sealed door's sequence still finishes.
+	TestFalse(TEXT("the final record is not saved before it plays"), GI->HasPlayedTransmission(TEXT("A4_Recording_Core")));
+	UTDStorySubsystem::PlaySequence(W.GetWorld(), TEXT("Cinematic08"));
+	for (int32 i = 0; i < 900 && Story->GetCurrentTransmission().Id != FName(TEXT("A4_Recording_Core")); ++i) { W.Tick(1.f / 30.f); }
+	TestTrue(TEXT("the threshold opens with the final record"), Story->GetCurrentTransmission().Id == FName(TEXT("A4_Recording_Core")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStorySkipSaves, "TriadDrift.Story.Transmissions.SkipAfterTenSecondsKeepsTheReveal", TD_TEST_FLAGS)
+bool FTDStorySkipSaves::RunTest(const FString& Parameters)
+{
+	// N-060: an eligible skip (after 10 s) keeps the reveal (every line saved) and finishes the sequence (the door).
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	UTDStorySubsystem::PlaySequence(W.GetWorld(), TEXT("Cinematic08"));
+	W.Advance(Story->SkipAllowedAfterSeconds + 0.5f, 1.f / 30.f);
+	TestTrue(TEXT("skips after ten seconds"), Story->SkipSequence());
+	TestFalse(TEXT("the door's sequence is finished"), Story->IsSequencePlaying());
+	bool bAll = true;
+	for (const FName& Id : UTDStorySubsystem::SequenceIds(TEXT("Cinematic08"))) { bAll &= GI->HasPlayedTransmission(Id); }
+	TestTrue(TEXT("the reveal is kept: every line of it saved"), bAll);
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryC3C5, "TriadDrift.Story.Transmissions.Cinematics03And05OnTheTerminals", TD_TEST_FLAGS)
+bool FTDStoryC3C5::RunTest(const FString& Parameters)
+{
+	// ENG-42: T5's relay console plays Cinematic 03 and the Cinder survey terminal Cinematic 05, as voice over the
+	// room, in order (the monitor and the drone's pulses are presentation on top).
+	struct FCase { const TCHAR* Seq; TFunction<void(AActor*)> Fire; };
+	const FCase Cases[] = {
+		{ TEXT("Cinematic03"), [](AActor* A) { ATDArchiveTransfer::OnAnyTerminalActivated.Broadcast(A); } },
+		{ TEXT("Cinematic05"), [](AActor* A) { ATDSurveyTerminal::OnAnySurveyRecordsAccessed.Broadcast(A); } } };
+	for (const FCase& C : Cases)
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		AActor* Terminal = W.Spawn<AActor>(FVector::ZeroVector);
+		C.Fire(Terminal);
+		W.Tick();
+		const TArray<FName>& Ids = UTDStorySubsystem::SequenceIds(C.Seq);
+		TestTrue(FString::Printf(TEXT("%s plays from its terminal"), C.Seq), Story->IsSequencePlaying(C.Seq) && Story->GetCurrentTransmission().Id == Ids[0]);
+		TArray<FName> Heard;
+		for (int32 i = 0; i < 20 * 120 && Story->IsSequencePlaying(); ++i)
+		{
+			const FName Now = Story->GetCurrentTransmission().Id;
+			if (Story->GetCurrentTransmission().bActive && (Heard.Num() == 0 || Heard.Last() != Now)) { Heard.Add(Now); }
+			W.Tick(1.f / 20.f);
+		}
+		TestTrue(FString::Printf(TEXT("%s: every line in order"), C.Seq), Heard == Ids);
+	}
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryAftermath, "TriadDrift.Story.Transmissions.AftermathOnTheTutorialsEnd", TD_TEST_FLAGS)
+bool FTDStoryAftermath::RunTest(const FString& Parameters)
+{
+	// ENG-42: T7's OnAftermathBegins (the real escape, or a skipped tutorial) plays Aftermath's S2 lines in order; a
+	// story subsystem that starts after it was armed takes it from ConsumeAftermathPending.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	UTDProfileSubsystem* Profile = UTDProfileSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("story"), Story) || !TestNotNull(TEXT("profile"), Profile))
+	{
+		return false;
+	}
+	Profile->OnAftermathBegins.Broadcast(false);
+	W.Tick();
+	const TArray<FName>& Ids = UTDStorySubsystem::SequenceIds(TEXT("Aftermath"));
+	TestEqual(TEXT("fifteen lines"), Ids.Num(), 15);
+	TestTrue(TEXT("Aftermath plays"), Story->IsSequencePlaying(TEXT("Aftermath")) && Story->GetCurrentTransmission().Id == Ids[0]);
+	TArray<FName> Heard;
+	for (int32 i = 0; i < 20 * 200 && Story->IsSequencePlaying(); ++i)
+	{
+		const FName Now = Story->GetCurrentTransmission().Id;
+		if (Story->GetCurrentTransmission().bActive && (Heard.Num() == 0 || Heard.Last() != Now)) { Heard.Add(Now); }
+		W.Tick(1.f / 20.f);
+	}
+	TestTrue(TEXT("every line in order"), Heard == Ids);
+	FTDTransmission E;
+	TestTrue(TEXT("TB_Escaped stays in the table for the record"), UTDStorySubsystem::FindEntry(TEXT("TB_Escaped"), E) && !E.Text.IsEmpty());
+	{
+		// #29 (Nick's Lead): retired from playback; T4's CompleteEscape may still fire it, and it is swallowed.
+		FTDTestWorld RW(UTDGameInstance::StaticClass());
+		UTDStorySubsystem* RS = UTDStorySubsystem::Get(RW.GetWorld());
+		TestTrue(TEXT("TB_Escaped is retired"), UTDStorySubsystem::IsRetired(TEXT("TB_Escaped")));
+		TestFalse(TEXT("firing TB_Escaped airs nothing"), UTDStorySubsystem::Fire(RW.GetWorld(), TEXT("TB_Escaped")));
+		TestTrue(TEXT("TB_Kato_BreakingOff still airs"), UTDStorySubsystem::Fire(RW.GetWorld(), TEXT("TB_Kato_BreakingOff")));
+		TestTrue(TEXT("only Kato's line is queued"), RS && RS->GetQueueLength() == 1);
+	}
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryFaceToFace, "TriadDrift.Story.Transmissions.FaceToFacePerBoardingPilot", TD_TEST_FLAGS)
+bool FTDStoryFaceToFace::RunTest(const FString& Parameters)
+{
+	// N-052: whichever pilot boards, the two other future pilots defend and the boarder's future self speaks to them.
+	for (const ETDShipId B : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		const TArray<FName>& Entry = UTDStorySubsystem::SequenceIds(UTDStorySubsystem::FaceToFaceSequence(B, false));
+		const TArray<FName>& Over = UTDStorySubsystem::SequenceIds(UTDStorySubsystem::FaceToFaceSequence(B, true));
+		TestTrue(TEXT("an entry exchange and an overcome pair"), Entry.Num() == 3 && Over.Num() == 2);
+		const ETDSpeaker Self = B == ETDShipId::Lancer ? ETDSpeaker::FutureKato : (B == ETDShipId::Bastion ? ETDSpeaker::FutureMoss : ETDSpeaker::FutureWren);
+		for (const FName& Id : Entry)
+		{
+			FTDTransmission E;
+			TestTrue(FString::Printf(TEXT("%s exists"), *Id.ToString()), UTDStorySubsystem::FindEntry(Id, E) && !E.Text.IsEmpty());
+		}
+		FTDTransmission Defender, Future, Over1, Over2;
+		UTDStorySubsystem::FindEntry(Entry[0], Defender);
+		UTDStorySubsystem::FindEntry(Entry[1], Future);
+		UTDStorySubsystem::FindEntry(Over[0], Over1);
+		UTDStorySubsystem::FindEntry(Over[1], Over2);
+		TestTrue(TEXT("the boarder's future self speaks to them"), Future.Speaker == Self);
+		TestTrue(TEXT("the defenders are the other two"), Defender.Speaker != Self && Over1.Speaker != Self && Over2.Speaker != Self && Over1.Speaker != Over2.Speaker);
+	}
 	return true;
 }
 #endif

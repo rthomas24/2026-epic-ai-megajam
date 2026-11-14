@@ -1,0 +1,322 @@
+[
+ {
+  "asset": "SM_DI_Room_Floor",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   0.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   20.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    -20
+   ],
+   [
+    200,
+    200,
+    0
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 108,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Room_Ceiling",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   565.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   620.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   55.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    565
+   ],
+   [
+    200,
+    200,
+    620
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 424,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Light"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Room_Wall",
+  "min_cm": [
+   -64.0,
+   -200.0,
+   0.0
+  ],
+  "max_cm": [
+   64.0,
+   200.0,
+   600.0
+  ],
+  "size_cm": [
+   128.0,
+   400.0,
+   600.0
+  ],
+  "expected": [
+   [
+    -64,
+    -200,
+    0
+   ],
+   [
+    64,
+    200,
+    600
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 2838,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow",
+   "M_Kit_Light"
+  ],
+  "collision_hulls": 9,
+  "bevel_verts_clamped": 18,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Corridor_Straight",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   620.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   640.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    -20
+   ],
+   [
+    200,
+    200,
+    620
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 1523,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Decal",
+   "M_Kit_Glow",
+   "M_Kit_Light"
+  ],
+  "collision_hulls": 6,
+  "bevel_verts_clamped": 25,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Doorway",
+  "min_cm": [
+   -34.0,
+   -200.0,
+   0.0
+  ],
+  "max_cm": [
+   34.0,
+   200.0,
+   600.0
+  ],
+  "size_cm": [
+   68.0,
+   400.0,
+   600.0
+  ],
+  "expected": [
+   [
+    -34,
+    -200,
+    0
+   ],
+   [
+    34,
+    200,
+    600
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 1340,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow",
+   "M_Kit_Light"
+  ],
+  "collision_hulls": 3,
+  "bevel_verts_clamped": 2,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Door",
+  "min_cm": [
+   -16.3,
+   -150.0,
+   0.0
+  ],
+  "max_cm": [
+   16.3,
+   150.0,
+   400.0
+  ],
+  "size_cm": [
+   32.6,
+   300.0,
+   400.0
+  ],
+  "expected": [
+   [
+    -16.3,
+    -150,
+    0
+   ],
+   [
+    16.3,
+    150,
+    400
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 448,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Decal",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Cover_Low",
+  "min_cm": [
+   -30.8,
+   -100.0,
+   0.0
+  ],
+  "max_cm": [
+   30.8,
+   100.0,
+   110.0
+  ],
+  "size_cm": [
+   61.6,
+   200.0,
+   110.0
+  ],
+  "expected": [
+   [
+    -30.8,
+    -100,
+    0
+   ],
+   [
+    30.8,
+    100,
+    110
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 408,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_DI_Hangar_Pad",
+  "min_cm": [
+   -600.0,
+   -600.0,
+   -40.0
+  ],
+  "max_cm": [
+   600.0,
+   600.0,
+   0.3
+  ],
+  "size_cm": [
+   1200.0,
+   1200.0,
+   40.3
+  ],
+  "expected": [
+   [
+    -600,
+    -600,
+    -40
+   ],
+   [
+    600,
+    600,
+    0.3
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 444,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": [
+   "uv outside kick: -1.000 0.000",
+   "uv outside kick: -1.000 1.000",
+   "uv outside kick: 2.000 0.000",
+   "uv outside kick: 2.000 1.000"
+  ]
+ }
+]

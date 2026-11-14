@@ -308,7 +308,25 @@ S('NS_TD_Tracer_Bastion', U(BASTION), tracer(420, 115, sheath=3.2, rib_life=0.10
     spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 40.0, (0.5, 0.9), (130, 200), (10, 90), radius=12.0, drag=1.0, curl=500.0, power=0.8, rgb=(0.32, 0.28, 0.27), alpha=0.6,
               growth='0.8 + Particles.NormalizedAge*1.6', sort=True))]))
 # Enemy: a red-orange ball of plasma, short and round where the squad's shots are long needles; dimmer core.
-S('NS_TD_Tracer_Enemy', U(ENEMY), tracer(230, 125, sheath=3.0, rib_life=0.07, spark_rate=30.0, flick=47.1, hot=0.7, needle_core=False))
+# Round 9 (T7's colour-blind check, Lead): under deuteranopia the enemy's red-orange bolt and Bastion's amber shell were
+# the same colour (dE 9.3). The enemy bolt now differs by shape: a fat hollow diamond (M_TD_VFX_Diamond, hot rim, dark
+# core over the dark body) followed by two smaller diamonds, a segmented pulse, and a very short trail; no white-hot
+# ball, no needle. The squad's long thin needles are unchanged.
+def enemy_tracer():
+    shadow = mesh_single('Shadow', 'SM_TD_VFX_Bolt', 'M_TD_VFX_BoltShadow', '2.6, 1.9, 1.9', 1.0, None, offset=(-60, 0, 0), live_scale='float3(1,1,1)*' + DIST)
+    shadow['rend']['SortOrderHint'] = -10
+    out = [shadow]
+    for nm, size, back, k in (('Diamond', 156, 0, 2.1), ('Pulse2', 102, -120, 1.5), ('Pulse3', 66, -205, 1.1)):   # 60% (Lead: as big as the crosshair bracket at 60 m)
+        d = single(nm, 'M_TD_VFX_Diamond', size, k, None, offset=(back, 0, 0) if back else None)
+        d['add'].append((PU, 'Update/Size/ScaleSpriteSize'))
+        d['set'] += [(PU, 'ScaleSpriteSize', 'Scale Sprite Size Mode', E('Uniform')), (PU, 'ScaleSpriteSize', 'Uniform Scale Factor', X(DIST))]
+        out.append(d)
+    return out + [trail('Trail', 70, 0.05, 1.0),
+                  shed('Sparks', 'M_TD_VFX_Glow', 20.0, (0.15, 0.35), (12, 30), (40, 300), k=1.2, radius=30.0, drag=1.5, curl=900.0)]
+
+
+ENEMY_TRACER_V2 = True
+S('NS_TD_Tracer_Enemy', U(ENEMY), enemy_tracer() if ENEMY_TRACER_V2 else tracer(230, 125, sheath=3.0, rib_life=0.07, spark_rate=30.0, flick=47.1, hot=0.7, needle_core=False))
 
 # --------------------------------------------------------------------------------------------- muzzle flashes
 # Directional: a short flame cone along +X, a spiked star seen down the barrel, a few forward sparks. 2-3 frames.
@@ -359,16 +377,33 @@ def engine(boost_only=False, kk=1.0, lm=1.0, wm=1.0):
     return [outer, inner, boost, glow, hot, wisps, embers, after]
 
 
+# OFF: added to the three enemy engines (a persistent sprite with an Update ScaleColor), the systems compiled clean and
+# never activated again (check_active.py), so the Null fleet lost its exhaust: round 3's trap. Removed the same day.
+RANGE_BEACON = False
+
+
+def range_beacon(k=3.0):
+    """Round 9 (ART-04 / ENG-37, Lead): the Null fleet must read at 300 m to 1 km. A camera-facing glow at the nozzle that
+    keeps a constant on-screen size (about 28 px of soft glow at 1600 x 900) and fades in beyond 120 m, so close up the exhaust is
+    unchanged. Its size cancels the cue's scale: the same beacon on a fighter and a carrier."""
+    D = 'Engine.Owner.LODDistance'
+    e = single('Beacon', 'M_TD_VFX_Glow', '(%s*0.030/max(User.Scale*Engine.Owner.Scale.x, 0.05))' % D, k, None)   # 0.013 read as a 4 px speck at 1 km (soft glow edge)
+    e['add'].append((PU, 'Update/Color/ScaleColor'))
+    e['set'] += [(PU, 'ScaleColor', 'ScaleRGB', False), (PU, 'ScaleColor', 'ScaleA', True),
+                 (PU, 'ScaleColor', 'Scale Alpha', X('saturate((%s - 12000.0)/18000.0)' % D))]
+    return e
+
+
 for _n, _c in (('Rift', RIFT), ('Lancer', LANCER), ('Bastion', BASTION), ('Enemy', ENEMY)):
     _kk = 0.62 if _n == 'Enemy' else 1.0
     _c = (1.0, 0.10, 0.015, 1.0) if _n == 'Enemy' else _c
-    S('NS_TD_Engine_' + _n, U(_c, 1.0, Throttle=0.6, Boost=0.0), engine(kk=_kk))
+    S('NS_TD_Engine_' + _n, U(_c, 1.0, Throttle=0.6, Boost=0.0), engine(kk=_kk) + ([range_beacon()] if (_n == 'Enemy' and RANGE_BEACON) else []))
     # the afterburner alone, always on: for the BoostLoop cue slot, which is a separate attached loop
     S('NS_TD_EngineBoost_' + _n, U(_c, 1.0, Throttle=1.0, Boost=1.0), engine(True))
 
 # Round 7: the interceptor and the fighter must be told apart by their exhaust alone.
-S('NS_TD_Engine_Enemy_Interceptor', U((1.0, 0.80, 0.30, 1.0), 1.0, Throttle=0.6, Boost=0.0), engine(kk=1.0, lm=2.1, wm=0.55))   # long, thin, hot white-yellow
-S('NS_TD_Engine_Enemy_Fighter', U((1.0, 0.05, 0.015, 1.0), 1.0, Throttle=0.6, Boost=0.0), engine(kk=0.55, lm=0.55, wm=1.0))    # short, red
+S('NS_TD_Engine_Enemy_Interceptor', U((1.0, 0.80, 0.30, 1.0), 1.0, Throttle=0.6, Boost=0.0), engine(kk=1.0, lm=2.1, wm=0.55) + ([range_beacon(2.6)] if RANGE_BEACON else []))   # long, thin, hot white-yellow
+S('NS_TD_Engine_Enemy_Fighter', U((1.0, 0.05, 0.015, 1.0), 1.0, Throttle=0.6, Boost=0.0), engine(kk=0.55, lm=0.55, wm=1.0) + ([range_beacon(3.2)] if RANGE_BEACON else []))    # short, red
 
 # --------------------------------------------------------------------------------------------- impacts
 # +X of the system is the surface normal (gameplay passes ImpactNormal.Rotation()).
@@ -514,7 +549,17 @@ def explosion_cheap(final=False):
 
 # Dominion break-up (fields arrive with T4's commit): HullSectionExplosion is authored for a 50 m radius (gameplay scales
 # 0.5x-1.7x, about 20 in a chain); BreakupFinalBlast for a 500 m radius. At Scale 1 the blast sprite has a 9 m radius.
-S('NS_TD_Explosion_HullSection', U(FIRE, 5.5), explosion_cheap())
+# Round 9 (ART-16, T4's chain): the hull sections burst every 0.45 s down to 0.12 s over 6.5 s at random points of the hull,
+# 25-70 m radius (scale = VFXScale x radius / 50 m). Trailer quality: the cheap six plus tumbling hull debris, two
+# secondary flashes off-centre, and burning trails thrown out (spark trails). 11 emitters: build in chunks.
+def explosion_hull():
+    return explosion_cheap() + [
+        chunks('Debris', 'SM_TD_VFX_Shard_B', 10, (1.4, 2.6), (0.5, 1.2), (900, 3400), radius=120.0, spin=(0.6, 2.4)),
+        offset(flash('Second', 'M_TD_VFX_Glow', 1100, 0.18, 1.0, growth='0.5 + Particles.NormalizedAge*0.8', delay=0.25), 180, 120, 60),
+        offset(flash('Third', 'M_TD_VFX_Flare', 900, 0.12, 1.2, growth='0.5 + Particles.NormalizedAge', delay=0.5), -150, -90, 100)] +         spark_trails(10, (2000, 7000), life=1.2, size=(20, 34), trail_life=0.7)
+
+
+S('NS_TD_Explosion_HullSection', U(FIRE, 5.5), explosion_hull())
 # Round 8: the final blast's screen contribution is capped: closer to the camera than about 1.2x its authored size, every
 # sprite (and speed) shrinks with the distance, so the 1 km blast never fills the whole view with white.
 _SCL_STD = SCL

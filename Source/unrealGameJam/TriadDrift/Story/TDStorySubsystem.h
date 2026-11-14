@@ -25,6 +25,8 @@ class UAudioComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnTransmission, const FTDTransmissionView&, Transmission);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnStorySequenceFinished, FName, SequenceId, bool, bSkipped);
+/** A line left the air: bCompleted false when it was cut short (a skip, or the world going away mid-line). */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnTransmissionEnded, FName, Id, bool, bCompleted);
 
 UCLASS()
 class UNREALGAMEJAM_API UTDStorySubsystem : public UTickableWorldSubsystem
@@ -101,11 +103,35 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Story", meta = (WorldContext = "WorldContext"))
 	static bool PlaySequence(const UObject* WorldContext, FName SequenceId);
 	static const TArray<FName>& SequenceIds(FName SequenceId);
+	/** N-052: the Face to Face sequence for the boarding pilot ("FaceToFace_<Pilot>" on entry, "FaceToFaceOvercome_<Pilot>"). */
+	static FName FaceToFaceSequence(ETDShipId Boarder, bool bOvercome)
+	{
+		const TCHAR* P = Boarder == ETDShipId::Lancer ? TEXT("Kato") : (Boarder == ETDShipId::Bastion ? TEXT("Moss") : TEXT("Wren"));
+		return FName(*((bOvercome ? FString(TEXT("FaceToFaceOvercome_")) : FString(TEXT("FaceToFace_"))) + P));
+	}
 	/** True while a sequence (or this one) still has a line on air or queued. */
 	bool IsSequencePlaying(FName SequenceId = NAME_None) const;
 	/** Skip the running sequence: its lines count as heard (saved), the rest are dropped, OnSequenceFinished(Id, true). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Story")
 	bool SkipSequence();
+	/** N-053 / N-059 (Nick's audio): every line that leaves the air, completed or interrupted. OnTransmission is the
+	 *  start (its view carries the playback length in TimeLeft). */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Story")
+	FTDOnTransmissionEnded OnTransmissionEnded;
+	/**
+	 * Required lines (the console recordings and Cinematic 08: the reveal and the sealed door depend on them) are saved
+	 * as played only when they finish airing or are eligibly skipped (N-062: a recording queued or cut short before a
+	 * save would otherwise be lost on Continue). Within a world they are never queued twice. Every other line is claimed
+	 * when fired, as before (ambient once-only).
+	 */
+	static bool IsRequiredLine(FName Id);
+	/** Lines kept in the table but never aired (N-087, #29: TB_Escaped and the cut C4/C6 calls). */
+	static bool IsRetired(FName Id);
+	/** Seconds a sequence must have run before it can be skipped (Nicholas, N-060: ten). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Story")
+	float SkipAllowedAfterSeconds = 10.f;
+	bool CanSkipSequence() const;
+
 	/** Once per sequence, when its last line has ended or it was skipped. */
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Story")
 	FTDOnStorySequenceFinished OnSequenceFinished;
@@ -114,6 +140,8 @@ public:
 	static ETDSpeaker ResolveSpeaker(const UObject* WorldContext, ETDSpeaker Speaker);
 	/** T5 sets this to the travel record's docked ship; unset, the run's last flown ship is used. */
 	static TFunction<ETDShipId(const UObject*)> BoardingShipResolver;
+	/** N-087: a line whose speaker depends on who boarded (G9 escape radio: Wren when Moss boarded, else Moss). */
+	static FName RouteForBoarder(const UObject* WorldContext, FName Id);
 
 	/** Cinematic 04 (Verdance done) and Cinematic 06 (Cinder done): the transmission sets, in order. */
 	static const TArray<FName>& DepartureSet(ETDDestination Planet);
@@ -135,8 +163,23 @@ private:
 	UFUNCTION() void HandleWaveCleared(int32 WaveNumber);
 	void UpdateDepartures(double Now);
 	void UpdateSequence();
+	// ENG-42: Cinematics 03 and 05 as voice over the room, on T5's terminal hooks, with T2's scan monitor.
+	void HandleRelayConnected(AActor* Terminal);
+	// ENG-42 Aftermath (Cinematic 02): T7's UTDProfileSubsystem::OnAftermathBegins (the tutorial's escape, or a skipped tutorial).
+	void HandleAftermathBegins(bool bSkippedTutorial);
+	FDelegateHandle AftermathHandle;
+	bool bAftermathChecked = false;
+	void HandleSurveyRecords(AActor* Terminal);
+	void HandleLineOnAir(FName Id);
+	void UpdateDronePulses(double Now);
+	FDelegateHandle RelayHandle, SurveyHandle;
+	TWeakObjectPtr<class UStaticMeshComponent> PulseDrone;
+	TWeakObjectPtr<class UPointLightComponent> PulseLight;
+	double PulseStart = -1.0;
+	bool bMonitorUp = false;
 	void FinishSequence(bool bSkipped);
 	FName ActiveSequence = NAME_None;
+	double SequenceStart = 0.0;
 	double RealNow() const;
 	bool IsHeld() const;
 	void StartNext();

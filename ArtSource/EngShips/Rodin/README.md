@@ -58,6 +58,9 @@ the measured texel density 258 / 370 / 193 texels per metre at 2K) x `DetailStre
 all faded out between `DetailFadeStart` (15 m) and + `DetailFadeRange` (15 m). `M_TD_RiftPortal` r2: three log-spiral
 arms over a dark centre, polar noise, a thin rim, emissive limited by its brightest channel (`MaxEmissive`).
 `M_TD_ShipGlow` r2: nozzle back wall with a dark hub, radial vanes and a groove (`Vanes`, `VaneDepth`, `HubRadius`).
+`RangeBoost` (default 1 = off) multiplies the emissive map at distance, ramping in from `RangeStart` (60 m) to
+`RangeEnd` (600 m): the Null fleet use 3-6 (and EyeBoost x 1.6) so each type still shows its red / orange seams and
+white eyes at 300 m - 1 km; close-up looks do not change.
 
 | Ship | EmissiveStrength | BaseTint | EmissiveTint | SelfLight |
 |---|---|---|---|---|
@@ -154,3 +157,38 @@ freezes them for a set of views.
   tell apart at range. It has no missile pods: it has two muzzles (the chin guns) where the old mesh had four; where its missiles leave from was not checked in play.
 - The fighter's seams are near-white in the Rodin emissive, so they read white-peach, not orange.
 - The review sheets for the Lancer and the fighter were re-rendered with the corrected sockets.
+
+## Hybrids (Nov 13 night): Rift v11, Lancer v05
+
+The close-range pass is one pipeline for the three squad ships: `ArtSource/EngShips/RiftHero/scripts/rh_hybrid.py -- --ship
+<Rift|Lancer|Bastion> --tag <v> --close`, configured in `rh_ships.py` (source, sockets, accent colour, canopy / gun / nose
+measurements). `--out-root <dir>` builds into another folder (a check run: the Rift's result, manifests and textures
+are identical to v11 after the generalization). Outputs: `ArtSource/EngShips/<Ship>Hero/{export,review}` and
+`<Ship>_hybrid_<tag>.blend`.
+
+**Lancer v05** (524.0 x 269.5 x 149.9 cm as before; 58,451 triangles; slots `M_Lancer`, `M_Lancer_Glow`, `M_Lancer_Parts`;
+3 auto convex hulls, 2 before; gameplay uses its own sphere). Sockets as in the table above **except `Muzzle_1`, now
+(152, 45, -59)**: the mirror of `Muzzle_0` (Lead's decision: a clean symmetric pair). New: the canopy (a designed glass
+bubble on the measured crown and hull line, as its own non-Nanite mesh `SM_Lancer_Canopy` at `Cockpit`; sills, three
+bows, a coaming and a rear deck that close the cut; tub, seat, helmeted pilot, dash) and the cannons (a small receiver
+set into each Rodin gun housing, two parallel barrels, the lower one on the muzzle socket's axis). The hull is cut
+along straight sections (`_slice`) where new parts meet it. Kept: the Rodin prow and deck (a modelled prow failed two
+fresh-eyes reviews: "a featureless cone, out of style with the hull"; its builder stays in `rh_closeparts.py`,
+`nose=NEEDLE` data in `rh_ships.py`). `TD_RODIN_PLAIN=Lancer` imports the plain Rodin Lancer again.
+Review (third fresh-eyes round, in-game sheets `Builds/for-ryan/ships/lancer_hybrid_before_after*.png`): REPLACE, no
+BLOCKER or MAJOR. Open MINORs: the glass is paler on the bright planet pad than in space; the pilot reads as a seat
+and helmet shape, no face or visor detail; the gun receivers are plain next to the Rodin belly.
+
+**Rift v12**: v11 with three review MINORs closed (straight end to the magenta side panel under the canopy: the repaint
+is tested per texel; the stray glowing sliver ahead of it cleared; the nose slit glows in the accent colour). Not
+re-reviewed by a fresh agent (in-game sheet `Builds/for-ryan/ships/rift_v12_before_after.png`).
+
+**Bastion v01** (524.0 x 472.3 x 139.1 cm as before; 51,535 triangles; slots `M_Bastion`, `M_Bastion_Glow`,
+`M_Bastion_Parts`; 3 auto convex hulls; sockets unchanged). The Rodin Bastion is the soundest of the three (blocky
+armour, a symmetric pair of cannons, six-tube launchers), so only the two lumpy barrel ends were replaced by clean
+muzzles on the same axes; the hull keeps its maps (`textures="raw"`; in the game base colour and emissive stay Grok
+Bot's `textures_r2` as imported: `keep_tex`). Fresh-eyes review: REPLACE, no BLOCKER or MAJOR; MINORs: the muzzles are
+plain next to the textured hull and no longer catch amber light at the tip.
+
+`ue_import_rodin_ships.py` also sets `CollisionScrape.VFX` = `NS_TD_Ship_ImpactScrape` (VFXScale 1, sound untouched) on the
+three squad visuals **once that system is in the checkout** (it prints "CollisionScrape NOT set" until then).

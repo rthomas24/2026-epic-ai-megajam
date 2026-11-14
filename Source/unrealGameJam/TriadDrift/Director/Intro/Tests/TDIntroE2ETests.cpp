@@ -249,7 +249,7 @@ bool FTDIntroE2E::RunTest(const FString& Parameters)
 		}
 		if (St.PressedAt < 0.0)
 		{
-			if (Intro->GetElapsed() < UTDIntroDirector::SkipLockSeconds + 0.3f)
+			if (Intro->GetElapsed() < UTDIntroDirector::GetSkipLockSeconds() + 0.3f)
 			{
 				return false;
 			}

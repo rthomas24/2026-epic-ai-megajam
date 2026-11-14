@@ -5,6 +5,7 @@ AMB_Ambience_Verdance_01.wav       ambience  20.00  2   -30.0  -18.1    0ms    0
 SFX_Ability_GravityWell_Loop_01.wa loop       4.00  1   -23.0  -11.0    0ms    0ms -160.0    0.7  PASS
 SFX_Alarm_LowHull_01.wav           loop       2.00  1   -23.0  -12.4    0ms    0ms  -90.3    0.2  PASS
 SFX_Boost_Loop_01.wav              loop       3.00  1   -23.0  -14.6    0ms    0ms -160.0    0.6  PASS
+SFX_Dominion_EscapeAlarm_01.wav    loop       2.40  1   -23.0   -7.5    0ms    0ms -160.0    0.1  PASS
 SFX_Drift_Loop_01.wav              loop       2.50  1   -23.0  -11.3    0ms    0ms -160.0    0.1  PASS
 SFX_Drone_Hum_01.wav               loop       3.00  1   -23.0  -10.3    0ms    0ms  -90.3    0.3  PASS
 SFX_Engine_Bastion_01.wav          loop       4.00  1   -23.0  -11.7    0ms    0ms  -90.3    0.5  PASS
@@ -13,6 +14,7 @@ SFX_Engine_Rift_01.wav             loop       4.00  1   -23.0  -13.9    0ms    0
 SFX_Hyperdrive_Tunnel_01.wav       loop       5.00  1   -23.0  -11.8    0ms    0ms -160.0    0.4  PASS
 SFX_Portal_Idle_01.wav             loop       4.00  1   -23.0   -9.0    0ms    0ms  -90.3    0.4  PASS
 SFX_Travel_AtmosphericEntry_01.wav loop       4.00  1   -23.0  -10.3    0ms    0ms  -90.3    0.7  PASS
+SFX_Travel_DescentRoar_01.wav      loop       6.00  1   -23.0   -9.9    0ms    0ms -160.0    0.7  PASS
 MUS_Music_Combat_01.wav            music     60.00  2   -15.0   -3.6    0ms    0ms      -      -  PASS
 MUS_Music_Intro_01.wav             music     40.00  2   -16.9   -1.2   98ms 1763ms      -      -  PASS
 SFX_Ability_Cloak_Off_01.wav       sfx        0.49  1   -14.3   -1.2    0ms    9ms      -      -  PASS
@@ -110,6 +112,17 @@ SFX_Explosion_Small_01.wav         sfx        0.47  1   -17.0   -1.2    0ms    9
 SFX_Explosion_Small_02.wav         sfx        0.47  1   -17.8   -1.2    0ms   10ms      -      -  PASS
 SFX_Explosion_Small_03.wav         sfx        0.50  1   -16.8   -1.4    0ms    9ms      -      -  PASS
 SFX_Explosion_Small_04.wav         sfx        0.48  1   -16.8   -2.2    0ms   11ms      -      -  PASS
+SFX_Field_Break_Large_01.wav       sfx        0.78  1   -18.1   -1.2    0ms    9ms      -      -  PASS
+SFX_Field_Break_Large_02.wav       sfx        0.85  1   -17.1   -1.2    0ms    9ms      -      -  PASS
+SFX_Field_Break_Medium_01.wav      sfx        0.39  1   -16.0   -1.2    0ms   10ms      -      -  PASS
+SFX_Field_Break_Medium_02.wav      sfx        0.37  1   -16.5   -1.2    0ms   10ms      -      -  PASS
+SFX_Field_Break_Medium_03.wav      sfx        0.41  1   -16.3   -1.2    0ms   12ms      -      -  PASS
+SFX_Field_Break_Small_01.wav       sfx        0.17  1   -17.0   -2.2    0ms    9ms      -      -  PASS
+SFX_Field_Break_Small_02.wav       sfx        0.17  1   -17.4   -1.2    0ms    9ms      -      -  PASS
+SFX_Field_Break_Small_03.wav       sfx        0.16  1   -17.8   -1.2    0ms    8ms      -      -  PASS
+SFX_Field_Break_Small_04.wav       sfx        0.16  1   -18.0   -1.2    0ms   10ms      -      -  PASS
+SFX_Field_Break_Special_01.wav     sfx        0.64  1   -15.6   -1.2    0ms   23ms      -      -  PASS
+SFX_Field_Break_Special_02.wav     sfx        0.66  1   -15.4   -1.2    0ms   22ms      -      -  PASS
 SFX_Foot_Dash_01.wav               sfx        0.19  1   -16.8   -2.6    0ms    9ms      -      -  PASS
 SFX_Foot_Dash_02.wav               sfx        0.18  1   -17.8   -1.2    0ms    8ms      -      -  PASS
 SFX_Foot_Jump_01.wav               sfx        0.10  1   -17.6   -1.2    0ms    8ms      -      -  PASS
@@ -135,6 +148,13 @@ SFX_Impact_Shield_04.wav           sfx        0.13  1   -16.4   -1.2    0ms    8
 SFX_Impact_World_01.wav            sfx        0.09  1   -18.5   -1.7    0ms    8ms      -      -  PASS
 SFX_Impact_World_02.wav            sfx        0.09  1   -18.5   -2.1    0ms   11ms      -      -  PASS
 SFX_Impact_World_03.wav            sfx        0.09  1   -19.5   -1.2    0ms    9ms      -      -  PASS
+SFX_Pickup_Collect_Hull_01.wav     sfx        0.39  1   -15.9   -1.2    0ms   16ms      -      -  PASS
+SFX_Pickup_Collect_Overcharge_01.w sfx        0.79  1   -14.1   -1.2    0ms   25ms      -      -  PASS
+SFX_Pickup_Collect_Power_01.wav    sfx        0.51  1   -17.2   -1.2    0ms   16ms      -      -  PASS
+SFX_Pickup_Collect_Shield_01.wav   sfx        0.41  1   -12.6   -1.2    0ms   14ms      -      -  PASS
+SFX_Pickup_Drop_01.wav             sfx        0.43  1   -15.7   -1.2    0ms   14ms      -      -  PASS
+SFX_Pickup_Drop_02.wav             sfx        0.44  1   -15.0   -1.2    0ms   14ms      -      -  PASS
+SFX_Pickup_Drop_03.wav             sfx        0.46  1   -14.7   -2.3    0ms   14ms      -      -  PASS
 SFX_Player_Hurt_01.wav             sfx        0.11  1   -18.1   -1.2    0ms   10ms      -      -  PASS
 SFX_Player_Hurt_02.wav             sfx        0.11  1   -17.1   -1.6    0ms   10ms      -      -  PASS
 SFX_Player_Hurt_03.wav             sfx        0.11  1   -17.6   -1.2    0ms    9ms      -      -  PASS
@@ -152,7 +172,14 @@ SFX_Power_Ram_Windup_01.wav        sfx        0.34  1   -15.1   -1.2    0ms   10
 SFX_Power_Swarm_01.wav             sfx        0.55  1   -13.4   -1.2    0ms    8ms      -      -  PASS
 SFX_Shield_Break_01.wav            sfx        0.37  1   -18.6   -1.2    0ms   10ms      -      -  PASS
 SFX_Shield_Restore_01.wav          sfx        0.56  1   -13.5   -1.2    0ms    9ms      -      -  PASS
+SFX_Ship_Impact_Heavy_01.wav       sfx        0.36  1   -16.0   -1.3    0ms   11ms      -      -  PASS
+SFX_Ship_Impact_Heavy_02.wav       sfx        0.37  1   -16.0   -1.6    0ms   11ms      -      -  PASS
+SFX_Ship_Impact_Heavy_03.wav       sfx        0.36  1   -17.0   -1.2    0ms   10ms      -      -  PASS
+SFX_Ship_Impact_Thud_01.wav        sfx        0.18  1   -15.0   -1.2    0ms   10ms      -      -  PASS
+SFX_Ship_Impact_Thud_02.wav        sfx        0.18  1   -15.9   -1.2    0ms   12ms      -      -  PASS
+SFX_Ship_Impact_Thud_03.wav        sfx        0.19  1   -15.6   -1.2    0ms   13ms      -      -  PASS
 SFX_Squad_RespawnWarpIn_01.wav     sfx        0.98  1   -15.1   -1.2    0ms   10ms      -      -  PASS
+SFX_Story_ThreePulse_01.wav        sfx        1.65  1   -15.3   -1.2    0ms   35ms      -      -  PASS
 SFX_Travel_LandingDust_01.wav      sfx        0.81  1   -18.6   -1.2    0ms    9ms      -      -  PASS
 SFX_Travel_TakeOff_01.wav          sfx        1.29  1   -13.2   -1.2    0ms    9ms      -      -  PASS
 SFX_Weapon_BreakerBlaster_01.wav   sfx        0.24  1   -15.0   -1.2    0ms   10ms      -      -  PASS
@@ -200,4 +227,4 @@ SFX_UI_Move_01.wav                 ui         0.04  1   -15.3   -3.2    0ms    6
 SFX_UI_PauseIn_01.wav              ui         0.16  1   -16.2   -3.2    0ms   11ms      -      -  PASS
 SFX_UI_PauseOut_01.wav             ui         0.16  1   -15.1   -3.2    0ms   11ms      -      -  PASS
 
-200 file(s), 0 failure(s), 41.2 MB of WAV
+227 file(s), 0 failure(s), 43.1 MB of WAV

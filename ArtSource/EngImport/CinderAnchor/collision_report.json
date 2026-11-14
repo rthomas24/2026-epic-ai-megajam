@@ -1,0 +1,92 @@
+{
+ "old_box_half_cm": 691.6,
+ "z_cm": [
+  -286.3,
+  286.3
+ ],
+ "inset_cm": 5.0,
+ "hull_verts": 16,
+ "hull_faces": 28,
+ "hull_max_radius_cm": 764.7,
+ "faces": [
+  {
+   "face_deg": 0,
+   "apothem_cm": 704.7,
+   "port": null
+  },
+  {
+   "face_deg": 45,
+   "apothem_cm": 704.5,
+   "port": null
+  },
+  {
+   "face_deg": 90,
+   "apothem_cm": 708.5,
+   "port": null
+  },
+  {
+   "face_deg": 135,
+   "apothem_cm": 579.9,
+   "port": "SOCKET_Charge_0"
+  },
+  {
+   "face_deg": 180,
+   "apothem_cm": 591.3,
+   "port": "SOCKET_Charge_1"
+  },
+  {
+   "face_deg": 225,
+   "apothem_cm": 577.0,
+   "port": "SOCKET_Charge_2"
+  },
+  {
+   "face_deg": 270,
+   "apothem_cm": 708.5,
+   "port": null
+  },
+  {
+   "face_deg": 315,
+   "apothem_cm": 699.7,
+   "port": null
+  }
+ ],
+ "charge_sockets": {
+  "SOCKET_Charge_0": {
+   "blender_m": [
+    -4.068,
+    4.274,
+    2.709
+   ],
+   "r_cm": 590.1,
+   "outside_cm": 10.0
+  },
+  "SOCKET_Charge_1": {
+   "blender_m": [
+    -6.013,
+    0.038,
+    2.591
+   ],
+   "r_cm": 601.3,
+   "outside_cm": 10.0
+  },
+  "SOCKET_Charge_2": {
+   "blender_m": [
+    -4.239,
+    -4.063,
+    2.754
+   ],
+   "r_cm": 587.1,
+   "outside_cm": 10.0
+  }
+ },
+ "exported": [
+  "SM_CinderAnchorTower",
+  "SOCKET_Charge_0",
+  "SOCKET_Charge_1",
+  "SOCKET_Charge_2",
+  "SOCKET_TopEmitter",
+  "UCX_SM_CinderAnchorTower_00",
+  "UCX_SM_CinderAnchorTower_01",
+  "UCX_SM_CinderAnchorTower_02"
+ ]
+}

@@ -478,6 +478,35 @@ float mask = 1.0 - smoothstep(0.985, 1.0, r);
 float a = mask*saturate(0.92 + rim);
 return float4(c*Intensity*mask, a);""", {'PortalPower': 1.0, 'Tint': (1.0, 1.0, 1.0)}),
 
+    # round 9: Bastion's shield dome (T7's playtest: from inside, the placeholder filled the view). A hex lattice that lives
+    # on the fresnel: almost clear where the shell faces the camera (the middle of the view from inside), the hexes and a
+    # thin hot rim where the shell turns away (its silhouette from outside; where it crosses the screen from inside), a
+    # slow shimmer travelling over the cells. On the engine sphere (lat-long UVs), additive, both sides.
+    'M_TD_VFX_DomeHex': ('additive', False, 1, 1, (0, 0), (0, 0), 0, """
+float f = saturate(Fres);
+float2 q = UV*float2(64.0, 32.0); float2 s = float2(1.0, 1.7320508);
+float2 a2 = fmod(q, s) - s*0.5; float2 b2 = fmod(q + s*0.5, s) - s*0.5;
+float2 g = abs(dot(a2, a2) < dot(b2, b2) ? a2 : b2);
+float d = max(dot(g, s*0.5), g.x);
+float edge = smoothstep(0.40, 0.48, d);
+float shim = 0.55 + 0.45*sin(Tm*1.7 - UV.y*31.0 + UV.x*13.0);
+float body = pow(f, 3.6);   // the first build (2.2) drew the lattice over the whole view from inside
+float rim = pow(f, 5.0)*smoothstep(1.0, 0.975, f)*1.4;   // 9e: brighter and closer to the silhouette, so the line where the dome crosses the screen reads (Lead)
+float a = edge*(0.02 + 0.98*body)*shim + rim*1.6 + body*0.05;
+float3 c = PC.rgb*a + lerp(PC.rgb, float3(1,1,1), 0.7)*rim*0.8;
+return float4(c*Intensity, PC.a);""", {}),
+
+    # round 9 (T7's colour-blind check: under deuteranopia the enemy's red-orange bolts and Bastion's amber shells match):
+    # the enemy bolt reads by SHAPE - a hollow diamond, a hot rim round a dark core, a soft halo. Camera-facing sprite.
+    'M_TD_VFX_Diamond': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
+float2 q = abs(p);
+float d = (q.x + q.y)*0.92 - 0.62;            // < 0 inside the diamond
+float rim = exp(-pow(d/0.075, 2.0));
+float inside = 1.0 - smoothstep(-0.02, 0.02, d);
+float halo = exp(-max(d, 0.0)*7.0)*m;
+float3 c = PC.rgb*(rim*1.8 + inside*0.10 + halo*0.30) + lerp(PC.rgb, float3(1,1,1), 0.35)*pow(rim, 4.0)*0.3;   // keep the rim enemy red-orange (Lead)
+return float4(c*Intensity, PC.a);""", {}),
+
     'M_TD_VFX_Backdrop': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
 return float4(0.0, 0.0, 0.0, saturate(pow(m, 1.4)*Dark*PC.a));""", {'Dark': 0.75}),
 }

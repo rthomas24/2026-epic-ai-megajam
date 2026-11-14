@@ -17,7 +17,13 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/UI/TDUIPaint.h"
 #include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/World/TDVerdanceApproach.h"
+#include "EngineUtils.h"
 #include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
+#include "TriadDrift/Combat/TDFieldDamageable.h"
+#include "TriadDrift/Combat/Pickups/TDPickup.h"
+
+static_assert(TDPickupTypeCount == 5, "UTDFlightHUDWidget::PickupSeen holds one count per pickup type");
 
 namespace TDFlightHUD
 {
@@ -252,6 +258,8 @@ void UTDFlightHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 
 void UTDFlightHUDWidget::NativeDestruct()
 {
+	FTDFieldDamage::OnPlayerFieldHit.Remove(FieldHitHandle);
+	FieldHitHandle.Reset();
 	if (ATDSpacePlayerController* PC = BoundPC.Get())
 	{
 		PC->OnHyperdriveInput.RemoveDynamic(this, &UTDFlightHUDWidget::HandleHyperdriveInput);
@@ -710,6 +718,14 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		}
 	}
 
+	// T6's field: the quiet hit tick (a player shot into a rock).
+	if (!FieldHitHandle.IsValid())
+	{
+		FieldHitHandle = FTDFieldDamage::OnPlayerFieldHit.AddUObject(this, &UTDFlightHUDWidget::HandleFieldHit);
+	}
+	FieldHitLeft = FMath::Max(0.f, FieldHitLeft - Dt);
+	View.FieldHit01 = FieldHitLeft / FieldHitSeconds;
+
 	// Space pickups: a marker for each within 800 m, a toast when one is taken, the overcharge timer.
 	View.Pickups.Reset();
 	View.Overcharge01 = View.OverchargeSeconds = 0.f;
@@ -734,7 +750,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 			}
 			M.Distance = FVector::Dist(From, Pk->GetActorLocation()) / 100.f;
 		}
-		for (int32 I = 0; I < 4; ++I)
+		for (int32 I = 0; I < TDPickupTypeCount; ++I)
 		{
 			const int32 N = Pickups->GetCollected(static_cast<ETDPickupType>(I));
 			if (N > PickupSeen[I])
@@ -746,6 +762,9 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 			}
 			PickupSeen[I] = N;
 		}
+		View.DebrisCount = Pickups->GetDebrisThisScene();
+		View.DebrisAge = Pickups->GetSecondsSinceDebris();
+		View.BreakBoostAge = Pickups->GetSecondsSinceBreakBoost();
 		const float Total = Pickups->GetOverchargeSeconds();
 		View.OverchargeSeconds = Pickups->GetOverchargeRemaining();
 		View.Overcharge01 = Total > 0.f ? FMath::Clamp(View.OverchargeSeconds / Total, 0.f, 1.f) : 0.f;
@@ -767,6 +786,47 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		const bool bB = Project(NavWorldTo, B, DirB);
 		View.NavFrom = bA ? A : FVector2D(CenterX, 760.f);
 		View.NavTo = bB ? B : OnSafeFrame(bA ? DirB : FVector2D(.8f, -.35f));
+	}
+
+	// The transponder off Verdance (storyline.md §18): a marker on T4's beacon once it is sighted, "UNKNOWN", that reads
+	// "VERIFIED" for a moment and resets. Found by iteration every 2 s (one beacon in the galaxy, only in Phase Verdance).
+	{
+		TransponderScanLeft -= Dt;
+		if (TransponderScanLeft <= 0.f && !ForceTransponderAt.IsSet())
+		{
+			TransponderScanLeft = 2.f;
+			TransponderBeacon = nullptr;
+			if (UWorld* World = GetWorld())
+			{
+				for (TActorIterator<ATDTransponderBeacon> It(World); It; ++It)
+				{
+					if (It->IsActive()) { TransponderBeacon = *It; break; }
+				}
+			}
+		}
+		const ATDTransponderBeacon* Beacon = Cast<ATDTransponderBeacon>(TransponderBeacon.Get());
+		const bool bSighted = ForceTransponderAt.IsSet() || (Beacon && Beacon->IsActive() && Beacon->WasSighted());
+		const FVector At = ForceTransponderAt.IsSet() ? ForceTransponderAt.GetValue() : (Beacon ? Beacon->GetActorLocation() : FVector::ZeroVector);
+		const float Metres = FVector::Dist(ViewLoc, At) * .01f;
+		View.bTransponder = bSighted && (ForceTransponderAt.IsSet() || (Beacon && Metres * 100.f <= Beacon->NoticeRadius));
+		if (View.bTransponder)
+		{
+			TransponderSeenFor = ForceTransponderAge >= 0.f ? ForceTransponderAge : FMath::Max(0.f, TransponderSeenFor) + Dt;
+			FVector2D Dir;
+			View.bTransponderOnScreen = Project(At, View.TransponderPos, Dir);
+			if (!View.bTransponderOnScreen)
+			{
+				View.TransponderPos = OnSafeFrame(Dir);
+			}
+			View.TransponderMetres = Metres;
+			const float Since = TransponderSeenFor - TransponderVerifiedAt;
+			// Twice, briefly: on for .45 s, a stutter off, on for .12 s, then UNKNOWN for good.
+			View.bTransponderVerified = (Since >= 0.f && Since < TransponderVerifiedFor) || (Since >= TransponderVerifiedFor + .1f && Since < TransponderVerifiedFor + .22f);
+		}
+		else
+		{
+			View.bTransponderVerified = false;
+		}
 	}
 
 	// Lead indicator (only with a current target).
@@ -1005,6 +1065,33 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 	}
 	const FString& Objective = View.Objective;
 	View.Counter = Wave.bWaveActive ? FString::Printf(TEXT("%d LEFT"), FMath::Max(0, Wave.EnemiesAlive)) : FString();
+	// The Dominion assault: the generator pips are the count (the objective line names it); no "N LEFT" beside them.
+	{
+		int32 Total = 0, Down = 0;
+		if (ForceGeneratorsTotal >= 0)
+		{
+			Total = ForceGeneratorsTotal;
+			Down = FMath::Clamp(ForceGeneratorsDown, 0, Total);
+		}
+		else if (const ATDDominion* Dom = ATDDominion::Get(this); Dom && Dom->GetState() == ETDDominionState::ShieldsUp)
+		{
+			Total = FMath::Max(Dom->GetGenerators().Num(), 4);
+			Down = FMath::Clamp(Total - Dom->GetGeneratorsRemaining(), 0, Total);
+		}
+		if (Total > 0 && GeneratorsDownSeen >= 0 && Down > GeneratorsDownSeen)
+		{
+			GeneratorFlashLeft = 1.2f;
+		}
+		GeneratorsDownSeen = Total > 0 ? Down : -1;
+		GeneratorFlashLeft = FMath::Max(0.f, GeneratorFlashLeft - DeltaSeconds);
+		View.GeneratorsTotal = Total;
+		View.GeneratorsDown = Down;
+		View.GeneratorFlash01 = GeneratorFlashLeft / 1.2f;
+		if (Total > 0)
+		{
+			View.Counter.Reset();
+		}
+	}
 	// The wave line only while a wave is on or about to start (review m11).
 	View.ObjectiveDetail = !bWaveShown ? FString()
 		: Wave.WaveCount > 0 ? FString::Printf(TEXT("WAVE %d OF %d"), Wave.WaveNumber, Wave.WaveCount)
@@ -1227,6 +1314,22 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		Rec(TEXT("navpulse"), FMath::Min(A.X, B.X), FMath::Min(A.Y, B.Y), FMath::Abs(B.X - A.X), FMath::Abs(B.Y - A.Y));
 	}
 
+	// ---- the transponder: a thin sensor bracket and "TRANSPONDER  UNKNOWN" (or, for a moment, "VERIFIED" in the
+	// shield colour with a stutter), the range under it. On the frame edge when off screen.
+	if (View.bTransponder)
+	{
+		const FVector2D TC = View.TransponderPos;
+		const float Stutter = View.bTransponderVerified ? .75f + .25f * FMath::Abs(FMath::Sin(Now * 47.f)) : 1.f;
+		const FLinearColor Col = (View.bTransponderVerified ? T::Shield() : T::Dim()).CopyWithNewOpacity(.85f * Stutter);
+		P.Brackets(TC, 16.f, Col, 6.f);
+		const FString Word = View.bTransponderVerified ? TEXT("VERIFIED") : TEXT("UNKNOWN");
+		P.Words(TC.X + 24.f, TC.Y - 16.f, TEXT("TRANSPONDER"), 11, T::Dim().CopyWithNewOpacity(.8f), "Bold", 0.f, 120);
+		P.Words(TC.X + 24.f, TC.Y - 2.f, Word, 13, Col, "Bold", 0.f, 100);
+		P.Words(TC.X + 24.f, TC.Y + 14.f, View.TransponderMetres >= 1000.f ? FString::Printf(TEXT("%.1f km"), View.TransponderMetres / 1000.f)
+			: FString::Printf(TEXT("%.0f m"), View.TransponderMetres), 11, T::Dim().CopyWithNewOpacity(.7f), "Bold", 0.f, 40);
+		Rec(View.bTransponderVerified ? TEXT("transponder_verified") : TEXT("transponder"), TC.X - 16.f, TC.Y - 16.f, 120.f, 46.f);
+	}
+
 	// ---- objective waypoints: a white diamond + range on screen (health bar on a generator), an edge diamond off screen
 	auto Range = [](float Metres) { return Metres >= 1000.f ? FString::Printf(TEXT("%.1f km"), Metres / 1000.f) : FString::Printf(TEXT("%.0f m"), Metres); };
 	// ---- the Dominion approach: pending = a dashed amber diamond (the route is prepared, the passage still closed), open =
@@ -1310,6 +1413,27 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		P.ArcSpan(C, RingR, -PI * .5f, 2.f * PI * View.Overcharge01, Gold, 2.5f);
 		P.BackedWords(C.X, C.Y - RingR - 22.f, FString::FromInt(FMath::CeilToInt(View.OverchargeSeconds)), 13, Gold, .5f, 20);
 		Rec(TEXT("overcharge"), C.X - RingR, C.Y - RingR, 2.f * RingR, 2.f * RingR);
+	}
+
+	// ---- T6's field, kept quiet: a faint, small tick at the reticle per rock hit (no sound; ships get the bold one), and
+	// "DEBRIS n" above the squad strip for a moment after each break, brighter for its first 0.3 s.
+	if (View.FieldHit01 > 0.f)
+	{
+		const FLinearColor Tick = T::Neutral().CopyWithNewOpacity(.45f * View.FieldHit01);
+		for (const FVector2D D : { FVector2D(.707f, .707f), FVector2D(-.707f, .707f), FVector2D(.707f, -.707f), FVector2D(-.707f, -.707f) })
+		{
+			P.Line(C + D * 6.f, C + D * 10.f, Tick, 1.5f);
+		}
+		Rec(TEXT("field_hit"), C.X - 10.f, C.Y - 10.f, 20.f, 20.f);
+	}
+	if (View.DebrisCount > 0 && View.DebrisAge < DebrisShowSeconds && View.Chips.Num() > 0)
+	{
+		const float Fresh = FMath::Clamp(1.f - View.DebrisAge / .3f, 0.f, 1.f);
+		const float Fade = FMath::Clamp((DebrisShowSeconds - View.DebrisAge) / .5f, 0.f, 1.f);
+		const FVector2D Chip = View.Chips[0].Pos;
+		const FLinearColor DebrisInk = FMath::Lerp(T::Dim(), T::Neutral(), Fresh).CopyWithNewOpacity(.85f * Fade);
+		P.BackedWords(Chip.X + 6.f, Chip.Y - 74.f, FString::Printf(TEXT("DEBRIS  %d"), View.DebrisCount), 13, DebrisInk, 0.f, 80);
+		Rec(TEXT("debris"), Chip.X, Chip.Y - 78.f, 140.f, 22.f);
 	}
 
 	// ---- the collect toast, just above the squad strip: the pickup's word in its colour, rising a little, then fading
@@ -1504,6 +1628,16 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	{
 		P.Bar(CenterX - 80.f, 792.f, 160.f, 6.f, View.Boost, Accent, .9f);
 		Rec(TEXT("boost"), CenterX - 80.f, 791.f, 168.f, 8.f);
+		// A break's top-up: "+BOOST" beside the bar and a short brightening of the bar (0.9 s).
+		if (View.BreakBoostAge < .9f)
+		{
+			const float Fade = FMath::Clamp((.9f - View.BreakBoostAge) / .4f, 0.f, 1.f);
+			auto Tick = P;
+			Tick.Layer = P.Layer + 2;
+			Tick.Box(CenterX - 80.f, 792.f, 160.f * View.Boost, 6.f, T::Neutral().CopyWithNewOpacity(.35f * Fade));
+			Tick.Words(CenterX + 92.f, 784.f, TEXT("+BOOST"), 12, Accent.CopyWithNewOpacity(.9f * Fade), "Bold", 0.f, 60);
+			Rec(TEXT("break_boost"), CenterX + 92.f, 784.f, 60.f, 16.f);
+		}
 		P.Box(CenterX + 84.f, 791.f, 2.f, 8.f, (View.bDodgeReady ? T::Neutral() : T::Dim()).CopyWithNewOpacity(View.bDodgeReady ? .95f : .4f));
 	}
 	if (View.Hyperdrive > 0.f)
@@ -1748,6 +1882,31 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		{
 			P.Words(X + W - 16.f, Y + 5.f, View.Counter, 15, T::Neutral().CopyWithNewOpacity(TextO), "Bold", 1.f, 40);
 		}
+	}
+	// ---- the Dominion's shield generators: one pip each under the objective line, filled amber when down; the newest
+	// down flashes white and the row reads "GENERATOR DOWN" for a moment (storyline.md Gameplay 06: distinct feedback).
+	if (View.GeneratorsTotal > 0)
+	{
+		const float Pip = 14.f, Gap = 10.f;
+		const float RowW = View.GeneratorsTotal * Pip + (View.GeneratorsTotal - 1) * Gap;
+		const float PX = CenterX - RowW * .5f, PY = SafeY + ObjectiveHeight + 12.f;
+		for (int32 G = 0; G < View.GeneratorsTotal; ++G)
+		{
+			const FVector2D PC(PX + G * (Pip + Gap) + Pip * .5f, PY + Pip * .5f);
+			const bool bDown = G < View.GeneratorsDown;
+			const bool bNewest = bDown && G == View.GeneratorsDown - 1 && View.GeneratorFlash01 > 0.f;
+			const FLinearColor Col = bNewest ? FMath::Lerp(T::Warning(), T::Neutral(), View.GeneratorFlash01) : bDown ? T::Bastion() : T::Dim();
+			if (bDown)
+			{
+				P.Box(PC.X - 4.f, PC.Y - 4.f, 8.f, 8.f, Col);
+			}
+			P.Poly(PC, { { 0, -7 }, { 6, -3.5f }, { 6, 3.5f }, { 0, 7 }, { -6, 3.5f }, { -6, -3.5f }, { 0, -7 } }, Col.CopyWithNewOpacity(bDown ? 1.f : .7f), 2.f);
+		}
+		const FString Label = View.GeneratorFlash01 > 0.f ? FString(TEXT("GENERATOR DOWN"))
+			: FString::Printf(TEXT("%d / %d"), View.GeneratorsDown, View.GeneratorsTotal);
+		P.Words(PX + RowW + 14.f, PY - 1.f, Label, 13, (View.GeneratorFlash01 > 0.f ? T::Warning() : T::Neutral()).CopyWithNewOpacity(.9f), "Bold", 0.f, 80);
+		Rec(TEXT("generators"), PX, PY, RowW + 120.f, Pip);
+		Area += (RowW + 120.f) * Pip;
 	}
 	// ---- coverage (spec 3.3: bounding boxes of what was drawn this frame)
 	for (const FChip& Chip : View.Chips)

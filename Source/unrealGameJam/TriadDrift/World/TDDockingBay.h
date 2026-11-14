@@ -116,9 +116,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0.1"))
 	float GlideSeconds = 2.f;
 
-	/** How far inside the mouth (cm) the glide ends. */
+	/** How far inside the mouth (cm) the glide ends: over the pad, 20 m short of the 60 m pocket's back wall. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
-	float GlideDepth = 6000.f;
+	float GlideDepth = 4000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
 	float DoorOpenSeconds = 2.5f;

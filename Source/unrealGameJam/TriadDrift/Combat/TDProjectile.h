@@ -249,6 +249,10 @@ private:
 	TWeakObjectPtr<AActor> HomingTarget;
 	/** Bark_MissileIncoming asked for this launch (once per missile, whatever it re-targets to). */
 	bool bWarnedFlown = false;
+	/** This warned missile reached the flown ship (a hit, or its blast caught it): no Bark_MissileEvaded at the end. */
+	bool bReachedFlown = false;
+	/** dialogs.md Bark_MissileEvaded: a warned missile ends (expired, shot down, returned through a portal) without reaching the flown ship. */
+	void NoteMissileEnded();
 	/** A hostile missile now homes on the ship the player flies: a wingman calls it (dialogs.md, Critical). */
 	void NoteHomingOnFlown();
 	/** A player shot into a gunship's raised frontal shield (dialogs.md Bark_TargetShielded, see the .cpp). */

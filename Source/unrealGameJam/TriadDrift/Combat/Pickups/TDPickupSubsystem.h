@@ -26,6 +26,19 @@ struct FTDPickupTuning
 	/** Overcharge: outgoing weapon damage x this for OverchargeSeconds (a second one refreshes the timer, never stacks). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float OverchargeMultiplier = 1.4f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float OverchargeSeconds = 8.f;
+	/** Boost refill: this much of the boost meter on the flown ship. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float Boost01 = .5f;
+	/** A special (crystal-veined) asteroid broken by the squad drops a Boost refill with this chance, else another pickup. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float SpecialBoostChance = .6f;
+	/**
+	 * Every field object the squad breaks tops up the flown ship's boost meter directly (no pickup actor; Ryan via the
+	 * Lead: "reward people for destroying asteroids and junk"), by size class: small / medium / large (junk counts as small).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float BreakBoostSmall01 = .03f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float BreakBoostMedium01 = .06f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float BreakBoostLarge01 = .12f;
+	/** No farming into permanent boost: at most this much of the meter from breaks in any one second. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float BreakBoostPerSecondCap01 = .15f;
 
 	/** Drop chance per kill by type; carriers drop CarrierDrops. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickups") float FighterChance = .12f;
@@ -89,6 +102,15 @@ public:
 	float GetOverchargeSeconds() const { return Tuning.OverchargeSeconds; }
 	int32 GetDropsThisWave(ETDPickupType Type) const { return DropsThisWave[static_cast<int32>(Type)]; }
 	int32 GetCollected(ETDPickupType Type) const { return Collected[static_cast<int32>(Type)]; }
+	/** Asteroids / wreckage the squad broke this scene ("Debris cleared"; the run total is FTDRunStats::DebrisCleared). */
+	int32 GetDebrisThisScene() const { return DebrisThisScene; }
+	/** Seconds since the squad last broke a piece of the field (HUD tick), large when never. */
+	float GetSecondsSinceDebris() const;
+	/** The last break's boost top-up actually paid (0..1 of the meter) and seconds since (the HUD's "+BOOST" tick). */
+	float GetLastBreakBoost01() const { return LastBreakBoost01; }
+	float GetSecondsSinceBreakBoost() const;
+	/** What a break of this size class pays before the cap (tests, T6). */
+	float BreakBoostFor(uint8 SizeClass) const { return SizeClass >= 2 ? Tuning.BreakBoostLarge01 : SizeClass == 1 ? Tuning.BreakBoostMedium01 : Tuning.BreakBoostSmall01; }
 
 	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Pickups")
 	FTDOnPickupCollected OnPickupCollected;
@@ -107,6 +129,7 @@ private:
 	UFUNCTION() void HandleWaveStarted(int32 WaveNumber, float Intensity01);
 	UFUNCTION() void HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds);
 	UFUNCTION() void HandleTakeStarted(FName SceneId, int32 TakeNumber);
+	UFUNCTION() void HandleFieldObjectDestroyed(FVector Location, uint8 SizeClass, bool bSpecial, AActor* Instigator);
 
 	ATDPickup* SpawnInternal(ETDPickupType Type, const FVector& Location);
 	bool PickDropType(ETDPickupType& Out);
@@ -118,9 +141,18 @@ private:
 	TWeakObjectPtr<ATDShip> OverchargedShip;
 	TWeakObjectPtr<class UTDEventBus> Bus;
 	float OverchargeLeft = 0.f;
-	int32 DropsThisWave[4] = { 0, 0, 0, 0 };
-	int32 Collected[4] = { 0, 0, 0, 0 };
-	int32 CollectedThisWave[4] = { 0, 0, 0, 0 };
+	int32 DropsThisWave[TDPickupTypeCount] = {};
+	int32 Collected[TDPickupTypeCount] = {};
+	int32 CollectedThisWave[TDPickupTypeCount] = {};
+	/** Field breaks by the squad (T6's OnFieldObjectDestroyed): this scene, and when the last one was (HUD tick). */
+	int32 DebrisThisScene = 0;
+	double LastDebrisTime = -1e9;
+	/** The break top-up: the last one paid, when, and the current one-second cap window. */
+	float LastBreakBoost01 = 0.f;
+	double LastBreakBoostTime = -1e9;
+	double BreakBoostWindowStart = -1e9;
+	float BreakBoostInWindow01 = 0.f;
+	void PayBreakBoost(uint8 SizeClass);
 	int32 CurrentWave = 0;
 	void LogWaveSummary() const;
 	bool bSafetyUsedThisScene = false;

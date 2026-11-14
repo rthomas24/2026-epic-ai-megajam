@@ -23,6 +23,12 @@ class UNREALGAMEJAM_API ATDShieldGenerator : public AActor, public ITDTeam
 	GENERATED_BODY()
 
 public:
+	/**
+	 * Height (cm) of the actor (the pylon's centre, where aim assist, lead and the director aim) above the art pylon's
+	 * base, which sits on its plinth socket; 0 for the placeholder, whose pivot is its centre.
+	 */
+	float GetArtCentreHeight() const { return ArtCentreHeight; }
+
 	ATDShieldGenerator();
 
 	void Init(float Hull, int32 InSectionIndex);
@@ -62,6 +68,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")
 	TObjectPtr<UStaticMeshComponent> Mesh;
+
+	/** Art pylon only: its base sits this far (cm) below the actor, which stays at the pylon's centre. */
+	float ArtCentreHeight = 0.f;
 
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Dominion")
 	TObjectPtr<UStaticMeshComponent> Core;

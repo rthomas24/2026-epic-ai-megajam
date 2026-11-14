@@ -49,6 +49,25 @@ enum class ETDWindowMode : uint8
 	Windowed
 };
 
+/** ENG-45 (T7): subtitle and transmission text size. */
+UENUM(BlueprintType)
+enum class ETDSubtitleSize : uint8
+{
+	Small,
+	Medium,
+	Large
+};
+
+/** ENG-45 (T7): one graphics preset, the engine's overall scalability level (0 Low .. 3 Epic). */
+UENUM(BlueprintType)
+enum class ETDGraphicsPreset : uint8
+{
+	Low,
+	Medium,
+	High,
+	Epic
+};
+
 /** Every player option. Sensitivities are multipliers of the shipped tuning (1 = as designed). */
 USTRUCT(BlueprintType)
 struct UNREALGAMEJAM_API FTDPlayerSettings
@@ -86,6 +105,11 @@ struct UNREALGAMEJAM_API FTDPlayerSettings
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Camera", meta = (ClampMin = "0", ClampMax = "1"))
 	float SpeedFOV = 1.f;
 
+	/** Comfort (N-064): one switch for reduced motion. Flight drops shake, FOV push and blur; the HUD and the Director's
+	 *  cards read IsReduceMotion for their own animation. Both camera sliders at 0 count as reduced motion too. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Camera")
+	bool bReduceMotion = false;
+
 	/** The player's chosen difficulty: the default for New Game. A continued run keeps the one saved with it. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Gameplay")
 	ETDDifficulty Difficulty = ETDDifficulty::Standard;
@@ -112,6 +136,19 @@ struct UNREALGAMEJAM_API FTDPlayerSettings
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Video")
 	bool bVideoChosen = false;
+
+	// ---- ENG-45 (T7)
+	/** Subtitle and transmission text size (T3's story widget reads UTDSettingsSubsystem::GetSubtitleScale). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Accessibility")
+	ETDSubtitleSize SubtitleSize = ETDSubtitleSize::Medium;
+
+	/** Graphics preset. Until the player picks one (bGraphicsChosen) it shows the level the engine detected at start-up. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Video")
+	ETDGraphicsPreset GraphicsPreset = ETDGraphicsPreset::High;
+
+	/** The player has chosen a graphics preset; until then the benchmark's choice stands. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Video")
+	bool bGraphicsChosen = false;
 };
 
 UCLASS()
@@ -182,6 +219,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetHintsEnabled(bool bEnabled);
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetCameraShake(float Scale01);
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetSpeedFOV(float Scale01);
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetReduceMotion(bool bReduce);
+	/** N-064: the one persisted reduced-motion answer (the switch, or both camera sliders at 0). For HUD, cards, effects. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContext")) static bool IsReduceMotion(const UObject* WorldContext);
 
 	/**
 	 * Difficulty (features.md Settings; T4's UTDDifficultySettings presets). Saved here as the New Game default and
@@ -223,6 +263,24 @@ public:
 	/** The fullscreen resolutions the display offers (for a menu list). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") TArray<FIntPoint> GetSupportedResolutions() const;
 
+	// ---- Accessibility and graphics (ENG-45, T7)
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetSubtitleSize(ETDSubtitleSize Size);
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings") ETDSubtitleSize GetSubtitleSize() const { return Settings.SubtitleSize; }
+	/** The subtitle text scale for a size: Small 0.8, Medium 1.0, Large 1.3 (multiply the authored font size). */
+	static float SubtitleScaleFor(ETDSubtitleSize Size);
+	/** Subtitle / transmission widgets: the player's text scale (1 when there is no settings subsystem). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings", meta = (WorldContext = "WorldContextObject"))
+	static float GetSubtitleScale(const UObject* WorldContextObject);
+
+	/** Low / Medium / High / Epic: the engine's overall scalability (every group), applied now and saved. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void SetGraphicsPreset(ETDGraphicsPreset Preset);
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Settings") ETDGraphicsPreset GetGraphicsPreset() const { return Settings.GraphicsPreset; }
+	/** Scalability level 0..3 for a preset, and back (a custom mix of levels reads as High). */
+	static int32 ScalabilityLevelFor(ETDGraphicsPreset Preset);
+	static ETDGraphicsPreset PresetForLevel(int32 Level);
+	/** The overall scalability level last applied by this subsystem (-1 = none yet; tests). */
+	int32 GetAppliedScalabilityLevel() const { return AppliedScalability; }
+
 	/** Everything back to the shipped defaults (applied and saved). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Settings") void ResetToDefaults();
 
@@ -252,6 +310,9 @@ private:
 	void ApplyAudio();
 	void ApplyVideo(bool bStartup = false);
 	void ApplyControls();
+	/** ENG-45: the graphics preset. At start-up with no choice yet: the engine's benchmark picks it (shipped game only). */
+	void ApplyGraphics(bool bStartup = false);
+	int32 AppliedScalability = -1;
 
 	FTDPlayerSettings Settings;
 	FString SlotName = DefaultSlot;
