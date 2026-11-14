@@ -1228,7 +1228,9 @@ void ATDDominion::HandleGeneratorDestroyed(ATDShieldGenerator* Generator, AActor
 	// The hostile fragments come through clearer as the shield weakens (T3, story alignment a16 / a19).
 	if (Down == 2) { UTDStorySubsystem::Fire(this, TEXT("G6_Clue1")); }
 	if (Down == 3) { UTDStorySubsystem::Fire(this, TEXT("G6_Clue2")); }
-	if (Remaining == 0) { UTDStorySubsystem::Fire(this, TEXT("G6_Command_ShieldCollapsed")); }
+	// "Shield's down. Docking route marked." belongs to the boarding finale only (played on the space ending, Nov 14:
+	// Command marked a docking route the fallback never opens). The space ending has A4_GeneratorDown4's "The shield is gone."
+	if (Remaining == 0 && UsesBoardingFinale()) { UTDStorySubsystem::Fire(this, TEXT("G6_Command_ShieldCollapsed")); }
 	OnShieldSectionDown.Broadcast(this, Remaining);
 	if (Remaining == 0)
 	{
