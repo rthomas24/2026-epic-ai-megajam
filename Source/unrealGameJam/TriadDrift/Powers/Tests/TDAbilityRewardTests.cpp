@@ -52,22 +52,33 @@ bool FTDAbilityRewardFlow::RunTest(const FString& Parameters)
 	Rewards->MarkAbilityRewardPresented(ETDAbilityId::GravityWell);
 	TestFalse(TEXT("presented once"), Rewards->GetPendingAbilityReward(A, S, bNow, World));
 
-	TestFalse(TEXT("another ship: no flight hint"), Rewards->GetAbilityFlightHint(A, World));
+	auto HintShown = [Rewards](ETDAbilityId Id)
+	{
+		const FTDAbilityReward* R = Rewards->GetRewards().FindByPredicate([Id](const FTDAbilityReward& X) { return X.Ability == Id; });
+		return R && R->bFlightHintShown;
+	};
+	W.Advance(.5f);
+	TestFalse(TEXT("another ship: no flight hint"), Rewards->GetAbilityFlightHint(A, World) || HintShown(ETDAbilityId::GravityWell));
 	Squad->RequestSwitchTo(ETDShipId::Bastion);
 	W.Advance(1.f);
 	TestEqual(TEXT("now flying Bastion"), Squad->GetActiveShipId(), ETDShipId::Bastion);
-	TestTrue(TEXT("Bastion: the flight hint is due"), Rewards->GetAbilityFlightHint(A, World) && A == ETDAbilityId::GravityWell);
+	// The controller's hint component takes a due hint on its next tick (and marks it): either it is due, or it was taken.
+	TestTrue(TEXT("Bastion: the flight hint is due (or the hint component took it)"),
+		(Rewards->GetAbilityFlightHint(A, World) && A == ETDAbilityId::GravityWell) || HintShown(ETDAbilityId::GravityWell));
 	Rewards->MarkAbilityFlightHintShown(ETDAbilityId::GravityWell);
+	W.Advance(.5f);
 	TestFalse(TEXT("the hint shows once"), Rewards->GetAbilityFlightHint(A, World));
 
 	// The next unlock gets its own presentation and its own hint.
 	Bus->BroadcastAbilityUnlocked(ETDAbilityId::Cloak, ETDShipId::Rift);
 	TestTrue(TEXT("Cloak pending"), Rewards->GetPendingAbilityReward(A, S, bNow, World) && A == ETDAbilityId::Cloak && S == ETDShipId::Rift);
 	Rewards->MarkAbilityRewardPresented(ETDAbilityId::Cloak);
-	TestFalse(TEXT("flying Bastion: no Cloak hint"), Rewards->GetAbilityFlightHint(A, World));
+	W.Advance(.5f);
+	TestFalse(TEXT("flying Bastion: no Cloak hint"), Rewards->GetAbilityFlightHint(A, World) || HintShown(ETDAbilityId::Cloak));
 	Squad->RequestSwitchTo(ETDShipId::Rift);
 	W.Advance(1.f);
-	TestTrue(TEXT("Rift: Cloak's own hint (not suppressed by Gravity Well's)"), Rewards->GetAbilityFlightHint(A, World) && A == ETDAbilityId::Cloak);
+	TestTrue(TEXT("Rift: Cloak's own hint (not suppressed by Gravity Well's)"),
+		(Rewards->GetAbilityFlightHint(A, World) && A == ETDAbilityId::Cloak) || HintShown(ETDAbilityId::Cloak));
 
 	// Usable now: a reward collected while flying its ship.
 	Bus->BroadcastAbilityUnlocked(ETDAbilityId::EMPPulse, ETDShipId::Rift);
