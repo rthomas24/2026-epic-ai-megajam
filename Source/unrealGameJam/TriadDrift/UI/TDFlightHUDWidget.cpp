@@ -1803,7 +1803,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			D.Alpha = FMath::Max(D.Alpha, .8f);
 		}
 		const float TX = C.X + 190.f, TY = C.Y - 100.f, TH = 200.f;
-		D.Plate(TX - 96.f, TY - 34.f, 196.f, TH + 84.f, 12.f, T::Plate().CopyWithNewOpacity(.78f));
+		// Wide enough for the reading box on the left (the Lead: it hung half off the plate's edge).
+		D.Plate(TX - 116.f, TY - 34.f, 216.f, TH + 84.f, 12.f, T::Plate().CopyWithNewOpacity(.78f));
 		D.Layer = P.Layer + 2; // everything else above its plate (same-layer boxes batch under rounded brushes)
 		const float Alt = FMath::Max(0.f, View.Altitude);
 		D.Words(TX - 4.f, TY - 26.f, TEXT("ATMOSPHERE"), 13, T::Shield(), "Bold", 0.f, 160);
@@ -1825,7 +1826,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 				}
 			}
 			const float BY = TY + TH * .5f;
-			D.Plate(TX - 84.f, BY - 13.f, 76.f, 26.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
+			D.Plate(TX - 100.f, BY - 13.f, 92.f, 26.f, 6.f, FLinearColor(.02f, .03f, .05f, .95f));
 			D.Words(TX - 14.f, BY - 9.f, FString::Printf(TEXT("%.0f m"), Alt), 15, Alt < 60.f ? T::Bastion() : T::Neutral(), "Bold", 1.f, 20);
 			Rec(TEXT("altimeter"), TX - 84.f, TY, 130.f, TH);
 		}

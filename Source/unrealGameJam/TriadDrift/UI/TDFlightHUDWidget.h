@@ -368,6 +368,12 @@ public:
 	/** A faint corridor From -> To (world) for Seconds; it must read as sensor noise (nobody comments on it). */
 	void ShowNavigationPulse(const FVector& From, const FVector& To, float Seconds = 1.5f);
 	static constexpr float NavPulseSeconds = 1.5f;
+	/** The pulse's envelope now, 0..1 (what the corridor draws with; UTDUIHostSubsystem::GetNavigationPulse01). */
+	float GetNavigationPulseEnvelope() const
+	{
+		const float T01 = NavLeft > 0.f && NavSeconds > 0.f ? 1.f - NavLeft / NavSeconds : 0.f;
+		return T01 <= 0.f ? 0.f : FMath::Clamp(FMath::Min(T01 / .1f, (1.f - T01) / .35f), 0.f, 1.f);
+	}
 
 	// ---- subtitles and story transmissions (T3's transmission system calls UTDUIHostSubsystem::ShowTransmission)
 	/** Shows Line in the subtitle slot for Seconds: speaker tag in the pilot's colour, style per voice. */

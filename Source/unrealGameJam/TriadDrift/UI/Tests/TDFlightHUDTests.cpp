@@ -381,6 +381,14 @@ bool FTDFlightHUDDescent::RunTest(const FString& Parameters)
 	F.HUD->Sample(.1f);
 	TestFalse(TEXT("landed / clear: hidden again"), F.V().bDescent);
 
+	// The navigation pulse's envelope (T4's Dominion light row reads it through the host): 0 off, up, then gone.
+	TestEqual(TEXT("no pulse: 0"), F.HUD->GetNavigationPulseEnvelope(), 0.f);
+	F.HUD->ShowNavigationPulse(FVector::ZeroVector, FVector(100000.f, 0.f, 0.f), 1.5f);
+	F.HUD->Sample(.3f);
+	TestTrue(FString::Printf(TEXT("pulse up and held (%.2f)"), F.HUD->GetNavigationPulseEnvelope()), F.HUD->GetNavigationPulseEnvelope() > .9f);
+	F.HUD->Sample(1.3f);
+	TestEqual(TEXT("pulse over: 0"), F.HUD->GetNavigationPulseEnvelope(), 0.f);
+
 	F.HUD->StartOrbitCue();
 	F.HUD->Sample(.1f);
 	TestTrue(TEXT("ORBIT after the climb-out reveal"), F.V().OrbitCue01 > .5f && PaintHas(TEXT("orbit")));
