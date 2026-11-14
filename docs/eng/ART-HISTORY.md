@@ -38,6 +38,7 @@ Restore a whole snapshot in a separate checkout: `git worktree add ../old art/mo
 | Menu backdrop off | `td.MenuBackdrop 0`. |
 | Intro off | `td.Intro 0`. |
 | Pilot moves before the Nov 14 melee pass (old light combo, heavy v3, block, flick, hit reacts, run; no strafe legs, no chained-swing blend, no combat idle) | `TD.Pilot.MeleePass 0`. Every old clip is still in `Characters/Pilot/Anims` under its old name; the new ones are `*_v3` / `_v4` / `Block_v2` / `Flick_v2` / `Run_v2` / `Blade_Idle_v2` / `AirSlam_*_v2/_v3`. |
+| Crew: the Heavy's template forward walk and authored stagger, the Warden's authored stagger (before Grok's #165 / #166 clips took the live names, Nov 14) | `A_Crew_Heavy_Walk_Fwd_Template`, `A_Crew_Heavy_Stagger_Authored`, `A_Crew_Warden_Stagger_Authored` in `Characters/Crew/Anims`: copy one back over the live name with `ue_pilot_fixes.py` (`compose`, see `fixes_crew_r7_live_*.json`). |
 
 ## Versions by asset (each row's commit contains that version; the row above it is the newer one)
 
