@@ -14,7 +14,7 @@ import os
 import unreal
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CFG = json.load(open(os.path.join(HERE, "..", "fixes.json")))
+CFG = json.load(open(os.environ.get("TD_FIXES") or os.path.join(HERE, "..", "fixes.json")))
 ANIMS = "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims"
 PILOT = "/Game/TriadDrift/Gameplay/Characters/Pilot"
 SKEL = unreal.load_asset(PILOT + "/SKEL_Pilot")
