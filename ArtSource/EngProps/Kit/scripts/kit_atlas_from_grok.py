@@ -51,8 +51,9 @@ def band_strip(img, key, width_cm, height_cm):
 # Grok Bot's sheet is mid-grey (wall BC ~0.34 sRGB); the kit's lighting budget and review round 2 ("gloss black armour")
 # were set on a near-black Dominion (wall ~0.11, floor ~0.19). So the BC is graded back to those values in linear light:
 # neutral pixels take the region's factor, saturated ones (the crimson band, hazard orange) keep most of their value.
-TARGET = {"floor": 0.15, "tread": 0.15, "grate": 0.13, "hazard": None, "rail": None}
-TARGET_DEFAULT = 0.13
+# r10 (Lead): 15-20 % darker than r7-r9 (0.15 / 0.13), no more: enemy contrast matters more than black gunmetal
+TARGET = {"floor": 0.126, "tread": 0.126, "grate": 0.11, "hazard": None, "rail": None}
+TARGET_DEFAULT = 0.109
 SAT_KEEP = 0.6
 
 

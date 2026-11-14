@@ -67,5 +67,19 @@
  "placement_rules": [
   "Pivot on the ground at the line's west end; the line runs along +X.",
   "Each prop's pivot is its ground contact: sink 0-5 cm on slopes, never float."
- ]
+ ],
+ "verdance_course": {
+  "location_cm": [
+   1500.0,
+   1800.0,
+   0.0
+  ],
+  "yaw_deg": 0.0,
+  "frame": "T5's TDPlanetCourse on L_Planet_Verdance (course origin 0, yaw 0; the landing pad at (0, 397))",
+  "why": [
+   "the line runs x 1500..4500 on flat ground (feet z 0 at both ends) beside the pad -> research-site route",
+   "8 m south of the beacon actor at (2600, 2600); ends 2 m short of encounter volume 0 (x 4700..7700, y 3100..6100)",
+   "checked in -game with T5's dressing: no tree or mushroom inside the line; captures review/game/SurveyLine_Verdance/10-11"
+  ]
+ }
 }

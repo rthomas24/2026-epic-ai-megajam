@@ -190,6 +190,9 @@ def digsite():
 
 
 # ------------------------------------------------------------------------------------------------ Dominion interior
+ART_CORE = (1250.0, 1350.0, 225.0)     # the artefact in the core chamber, relative to T5's CoreAt: (x, y, yaw)
+
+
 def dominion_interior():
     """A preview of T5's course shell (TDDominionInteriorCourse.inl: Room / CorridorRun / Doorway, the same constants)
     built from the Dominion set, for the walk test only. The game builds the real interior in code; it switches to
@@ -253,6 +256,9 @@ def dominion_interior():
     core_x = (L2X1 + KX1) * 0.5
     n[0] += 1
     ps.append(piece("P%04d_Core" % n[0], DI + "SM_DI_Core", core_x, 0, 0, 0))
+    # r10: the ancient artefact (ART-18 clue) at its core-chamber contract spot, outside T5's clear ring r 700..1500
+    n[0] += 1
+    ps.append(piece("P%04d_Artefact" % n[0], K + "SM_Kit_Artefact", core_x + ART_CORE[0], ART_CORE[1], 0, ART_CORE[2]))
     for rn in ("SM_DI_Core_Ring_A", "SM_DI_Core_Ring_B"):
         n[0] += 1
         ps.append(piece("P%04d_%s" % (n[0], rn.replace("SM_DI_", "")), DI + rn, core_x, 0, 600, 0))
@@ -274,7 +280,9 @@ def dominion_interior():
     grid(L1X1, WX1, WY, 540.0)
     for lt in lights[9:]:
         lt["intensity"] = 900.0          # arena and Warden: half (review r2: washed out)
+    core0 = len(lights)
     grid(L2X1, KX1, KY, 1650.0, 1200.0)
+    core1 = len(lights)
     for x in [HX1 + 400 + 800 * k for k in range(5)] + [AX1 + 400, WX1 + 400]:
         lights.append({"name": "L%03d" % len(lights), "location_cm": [x, 0.0, 540.0], "intensity": 900.0, "radius": 1000.0, "color": [0.8, 0.88, 1.0]})
     # r8 (review r3, Lead): the white work lights at 35 % and slightly warm; the strips keep their budget
@@ -282,11 +290,15 @@ def dominion_interior():
         lt["intensity"] = round(lt["intensity"] * 0.35, 1)
         lt["color"] = [1.0, 0.9, 0.78]
     core_x = (L2X1 + KX1) * 0.5
-    lights.append({"name": "L%03d_Reactor" % len(lights), "location_cm": [core_x, 0.0, 1500.0], "intensity": 3600.0, "radius": 2600.0,
-                   "color": [1.0, 0.32, 0.16]})          # r9: -40 %, deeper
-    for yy in (-900.0, 900.0):
-        lights.append({"name": "L%03d_ReactorFill" % len(lights), "location_cm": [core_x, yy, 300.0], "intensity": 900.0,
-                       "radius": 1400.0, "color": [0.75, 0.03, 0.015]})
+    # r10 (Lead): the reactor room reads dark steel with a red glow only near the core (falls off within ~8 m), the
+    # characters separated by a neutral top light; the core and rings stay the brightest red things in the room.
+    for lt in lights[core0:core1]:
+        lt["intensity"], lt["radius"], lt["color"] = 1100.0, 1800.0, [0.82, 0.88, 1.0]
+    lights.append({"name": "L%03d_ReactorGlow" % len(lights), "location_cm": [core_x, 0.0, 250.0], "intensity": 1800.0, "radius": 800.0,
+                   "color": [1.0, 0.1, 0.04]})
+    for (rx, ry) in ((-1500.0, -1500.0), (-1500.0, 1500.0), (1500.0, -1500.0), (1500.0, 1500.0)):     # cool rim from the corners, high
+        lights.append({"name": "L%03d_CoreRim" % len(lights), "location_cm": [core_x + rx, ry, 1000.0], "intensity": 700.0,
+                       "radius": 2200.0, "color": [0.7, 0.82, 1.0]})
     lights.append({"name": "L%03d_Bulkhead" % len(lights), "location_cm": [KX1 - 64 - 180.0, 0.0, 470.0], "intensity": 350.0,
                    "radius": 700.0, "color": [1.0, 0.05, 0.03]})   # r9: lower so the door shape reads
     return {"site": "DominionInterior_Preview", "lights": lights, "actor": KD + "BP_KitD_InteriorPreview",
@@ -387,7 +399,12 @@ def survey_line():
     return {"site": "SurveyLine_Verdance", "actor": K + "Sites/BP_SurveyLine_Verdance",
             "about": "ART-18: survey instruments on one buried line (30 m along +X), Verdance route. Not walkable; walk-clear hulls.",
             "pieces": ps, "placement_rules": ["Pivot on the ground at the line's west end; the line runs along +X.",
-                                              "Each prop's pivot is its ground contact: sink 0-5 cm on slopes, never float."]}
+                                              "Each prop's pivot is its ground contact: sink 0-5 cm on slopes, never float."],
+            "verdance_course": {"location_cm": [1500.0, 1800.0, 0.0], "yaw_deg": 0.0,
+                                "frame": "T5's TDPlanetCourse on L_Planet_Verdance (course origin 0, yaw 0; the landing pad at (0, 397))",
+                                "why": ["the line runs x 1500..4500 on flat ground (feet z 0 at both ends) beside the pad -> research-site route",
+                                        "8 m south of the beacon actor at (2600, 2600); ends 2 m short of encounter volume 0 (x 4700..7700, y 3100..6100)",
+                                        "checked in -game with T5's dressing: no tree or mushroom inside the line; captures review/game/SurveyLine_Verdance/10-11"]}}
 
 
 def artefact():
@@ -399,7 +416,15 @@ def artefact():
             "lights": [{"name": "L_Artefact", "location_cm": [0.0, 0.0, 330.0], "intensity": 250.0, "radius": 700.0,
                         "color": [0.1, 1.0, 0.85]}],
             "placement_rules": ["1.84 x 1.6 m footprint (hexagonal plinth r 92), 2.62 m tall; keep 1.5 m clear around it.",
-                                "Same class in all three places; the core chamber's copy may sit on the ring at r 700..1500."]}
+                                "Same class in all three places (Verdance, Cinder, the core chamber)."],
+            "core_chamber": {"relative_to": "T5's CoreAt = ((L2X1 + KX1) / 2, 0, 0) = (13000, 0, 0) in TDDominionInteriorCourse",
+                             "location_cm": [ART_CORE[0], ART_CORE[1], 0.0], "yaw_deg": ART_CORE[2],
+                             "course_cm": [13000.0 + ART_CORE[0], ART_CORE[1], 0.0],
+                             "why": ["r = 1838 from the core: outside the N-052 clear ring r 700..1500 (mismatches.json #7)",
+                                     "1.5 m clear to the +Y wall (inner face 1740) and the far wall (14740)",
+                                     "seen from the core door (11200, 0): the sight line passes the core at r 778, outside the shield (r 640)",
+                                     "away from the heart (core + (-760, 0)), the conduits (core +-778) and the bulkhead (far wall, y 0)"],
+                             "light": "BP_Kit_Artefact carries its own soft teal light (250 cd, 7 m)"}}
 
 
 def main():
