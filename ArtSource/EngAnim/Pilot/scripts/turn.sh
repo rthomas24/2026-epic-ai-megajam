@@ -6,7 +6,7 @@ cd /c/Users/ryant/Documents/myRepos/game-jam/.wt/anim
 OUT=$1; shift
 mkdir -p "$OUT"
 for i in $(seq 1 12); do bash /c/Users/ryant/Documents/myRepos/game-jam/Builds/render-slot/can_launch.sh && break; sleep 10; done
-powershell -NoProfile -Command "Set-Location C:\Users\ryant\Documents\myRepos\game-jam\.wt\anim; .\Tools\td-play-mcp.ps1 -Port 21085 -Map /Game/TriadDrift/Maps/L_Planet_Verdance -MaxSeconds 600" | tail -1
+powershell -NoProfile -Command "Set-Location C:\Users\ryant\Documents\myRepos\game-jam\.wt\anim; .\Tools\td-play-mcp.ps1 -Port 21085 -Map /Game/TriadDrift/Maps/L_Planet_Verdance -MaxSeconds 600 -Offscreen" | tail -1
 python - <<'PY'
 import sys,time
 sys.path.insert(0,"Tools"); import td_mcp
