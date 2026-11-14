@@ -27,6 +27,10 @@ SPS = "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/"
 # r2 (Lead): the patrol wreck away from the station ruins; every piece at 1 km, 400 m and 100 m
 PIECES = [("BP_SP_PatrolWreck", os.environ.get("TD_SPACE_PATROL", "Gate"), 15000, 0), ("BP_SP_ResearchA", os.environ.get("TD_SPACE_RA", "Belt"), 16000, 0), ("BP_SP_ResearchB", os.environ.get("TD_SPACE_RB", "Verdance"), 13000, 0),
           ("BP_SP_NullRig", os.environ.get("TD_SPACE_RIG", "Cinder"), 11000, -1500), ("BP_SP_HollowRock", os.environ.get("TD_SPACE_ROCK", "Reactor"), 12000, 0)]
+if os.environ.get("TD_SPACE_SET") == "region":          # the region set pieces: (class, place, near distance, dz)
+    SPS = "/Game/TriadDrift/Gameplay/Props/Kit/Space/"
+    PIECES = [("BP_KS_PicketRing", "Gate", 30000, 0), ("BP_KS_Hulk", "Verdance", 30000, 0), ("BP_KS_ScarRig", "Cinder", 30000, 0),
+              ("BP_KS_MoonShards", "Belt", 30000, 0)]
 PLACE = os.environ.get("TD_SPACE_PLACE")          # one place for every piece (a run per piece: a fresh session each)
 ONLY = os.environ.get("TD_SPACE_ONLY")
 
@@ -64,7 +68,7 @@ for cls, place, near, dz in PIECES:
         G.cmd("TD.Dev.SpawnClass %s%s Space %.0f %.0f %.0f" % (SPS, cls, x + f[0] * d + rx * d * 0.25, y + f[1] * d + ry * d * 0.25,
                                                                  z + f[2] * d + dz + d * 0.12))
         time.sleep(3.0)
-        print(G.shot("%s_%s" % (cls.replace("BP_SP_", ""), tag)))
+        print(G.shot("%s_%s" % (cls.replace("BP_SP_", "").replace("BP_", ""), tag)))
         if os.environ.get("TD_SPACE_PHASES"):        # the strobe's other phase: let half a period (0.38 s) run, shoot again
             G.cmd("slomo 1")
             time.sleep(0.38)

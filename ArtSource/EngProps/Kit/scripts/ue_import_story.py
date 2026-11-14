@@ -20,7 +20,7 @@ K.TEX_DEST = DEST + "/Textures"
 K.PIPELINE = DEST + "/Pipelines/PL_Story_StaticMesh"
 eas, mel, tools = unreal.EditorAssetLibrary, unreal.MaterialEditingLibrary, unreal.AssetToolsHelpers.get_asset_tools()
 KT = "/Game/TriadDrift/Gameplay/Props/Kit/"
-NO_COL = ("SM_Kit_SurveyStakeFlag", "SM_Kit_DragMark", "SM_Kit_ScorchLines")
+NO_COL = ("SM_Kit_SurveyStakeFlag", "SM_Kit_DragMark", "SM_Kit_ScorchLines", "SM_Kit_LightPool")
 
 
 def log(m):
@@ -86,7 +86,11 @@ def main():
            # r2: Cinder's camp in lighter worn steel, a little self-lit (Cinder's lighting is dark); the landmarks' lights
            "Worn": tinted("MI_Kit_StoryWorn", (1.0, 0.95, 0.86), 0.35, 0.12), "Light": eas.load_asset(KT + "MI_Kit_Light"),
            "Dom": eas.load_asset(KT + "Dominion/MI_KitD_Trim"),
-           "Nav": glow("MI_Kit_RelayNav", (0.55, 0.9, 0.15), 40.0, pulse=1.0, rate=0.5)}
+           "Nav": glow("MI_Kit_RelayNav", (0.55, 0.9, 0.15), 40.0, pulse=1.0, rate=0.5),
+           "Band": glow("MI_Kit_RelayBand", (0.55, 0.9, 0.15), 12.0),
+           "Pool": decal_mi("MI_Kit_LightPool", "T_Kit_LightPool", notes)}
+    mel.set_material_instance_scalar_parameter_value(mis["Pool"], "DecalEmissive", 1.5)
+    eas.save_loaded_asset(mis["Pool"])
     derrick = {"Beacon": glow("MI_Kit_DerrickBeacon", (1.0, 0.05, 0.02), 70.0, pulse=0.9, rate=0.3),
                "Glow": eas.load_asset(KT + "Dominion/MI_KitD_Glow")}
     pipe = K.ensure_pipeline(notes)
