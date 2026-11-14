@@ -137,7 +137,7 @@ float core = pow(facing, CoreSharp);
 float body = pow(facing, 0.5);
 float edge = pow(1.0 - facing, 2.0);
 float energy = 0.78 + 0.44*n;
-float3 c = col*BodyK*body*energy + lerp(col, float3(1,1,1), 0.82)*WhiteK*core*(0.92 + 0.16*n) + col*EdgeK*edge*energy;
+float3 c = col*BodyK*body*energy + lerp(col, float3(0.94,0.96,1.0), 0.88)*WhiteK*core*(0.92 + 0.16*n) + col*EdgeK*edge*energy;
 return float4(c*fl*basek*Intensity, 1.0);
 '''
 
@@ -171,8 +171,8 @@ float3 c = col*m*m*0.9 + lerp(col, float3(1,1,1), 0.75)*hot*1.4;
 return float4(c*Intensity, PC.a);
 '''
 
-BEAM_PARAMS_CORE = {'BladeColor': (1.0, 0.17, 0.84), 'Intensity': 1.0, 'CoreSharp': 5.0, 'BodyK': 2.1, 'WhiteK': 3.2, 'EdgeK': 1.3, 'BaseHeat': 1.4}
-BEAM_PARAMS_GLOW = {'BladeColor': (1.0, 0.17, 0.84), 'Intensity': 1.0, 'GlowK': 0.55, 'GlowFalloff': 2.4, 'BaseHeat': 1.4}
+BEAM_PARAMS_CORE = {'BladeColor': (1.0, 0.17, 0.84), 'Intensity': 1.0, 'CoreSharp': 2.6, 'BodyK': 1.7, 'WhiteK': 2.1, 'EdgeK': 2.8, 'BaseHeat': 1.2}
+BEAM_PARAMS_GLOW = {'BladeColor': (1.0, 0.17, 0.84), 'Intensity': 1.0, 'GlowK': 1.7, 'GlowFalloff': 1.3, 'BaseHeat': 1.2}
 
 mats = {}
 for _nm, _args in (('M_TD_BladeBeamCore_V2', (BLADE, 'additive', False, CORE, BEAM_PARAMS_CORE)),
@@ -183,7 +183,7 @@ for _nm, _args in (('M_TD_BladeBeamCore_V2', (BLADE, 'additive', False, CORE, BE
         continue
     try:
         part = _nm.startswith('M_TD_VFX_')
-        mats[_nm] = material(*_args[:4], params=_args[4], mesh=not part, particle=part,
+        mats[_nm] = material(_args[0], _nm, *_args[1:4], params=_args[4], mesh=not part, particle=part,
                              pan=((1.0, 4.0), (-1.6, 0.0), (2.0, 9.0), (-2.7, 0.0), 0.06) if part else ((3.0, 1.0), (-0.9, 0.0), (7.0, 2.0), (-2.1, 0.13), 0.08))
     except Exception:
         log.append(_nm + ' FAILED ' + traceback.format_exc()[-700:])

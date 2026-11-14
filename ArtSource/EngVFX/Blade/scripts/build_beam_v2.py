@@ -51,6 +51,30 @@ def core_radius(s):
     return 0.0118 * math.sqrt(max(0.0, 1.0 - t * t))   # rounded (elliptic) tip
 
 
+# Concept r1 (issue #163): the energy is a thin single-edged wedge, not a tube. Depth along Unreal Z (spine at +Z, the
+# cutting edge at -Z), thickness along Unreal Y: 0.9 cm at the spine to a sharp edge. The tip is cut on a slant from the
+# edge up to the spine (the depth closes towards the spine over the last 14%).
+W_H = 0.017      # half depth (m)
+W_T = 0.0045     # half thickness at the spine (m)
+W_TIP0, W_TIP1 = 0.84, 0.975
+
+
+def wedge(s, a):
+    swell = 1.0 + 0.18 * math.exp(-((s - 0.02) / 0.025) ** 2)          # a short swell out of the emitter
+    base = min(1.0, 0.55 + s / 0.02 * 0.45) if s < 0.02 else 1.0       # narrower right at the emitter face
+    h, zc = W_H * swell * base, 0.0
+    if s > W_TIP0:
+        t = min(1.0, (s - W_TIP0) / (W_TIP1 - W_TIP0))
+        h = W_H * (1.0 - t) + 0.0006
+        zc = W_H * t * 0.92                                                 # the slant rises to the spine
+    z = zc + h * math.sin(a)
+    k = (z - (zc - h)) / max(1e-6, 2.0 * h)                             # 0 at the edge .. 1 at the spine
+    half = W_T * swell * base * (0.12 + 0.88 * k ** 0.8)
+    if s > W_TIP0:
+        half *= max(0.15, 1.0 - 0.7 * min(1.0, (s - W_TIP0) / (W_TIP1 - W_TIP0)))
+    return half * math.cos(a), z
+
+
 def glow_radius(s):
     tip0, tip1 = 0.80, 1.0
     if s < 0.02:
@@ -71,8 +95,9 @@ def stations(tip1, n_body=26, n_tip=12, tip0=0.84):
     return sorted(set(round(s, 5) for s in out if s < tip1))
 
 
-def tube(bm, uvl, radius, tip1, flat, mat_index, tip0):
-    """A closed tube along Blender -Y. flat = thickness / width ratio of the ellipse. Returns faces."""
+def tube(bm, uvl, radius, tip1, flat, mat_index, tip0, section=None, tip_z=0.0):
+    """A closed tube along Blender -Y. flat = thickness / width ratio of the ellipse; section(s, a) -> (x, z)
+    replaces the ellipse (the wedge). Returns faces."""
     ss = stations(tip1, tip0=tip0)
     rings = []
     for s in ss:
@@ -80,10 +105,11 @@ def tube(bm, uvl, radius, tip1, flat, mat_index, tip0):
         ring = []
         for i in range(SEG + 1):
             a = 2.0 * math.pi * i / SEG
-            # width along Blender X (-> Unreal Y), thickness along Z
-            ring.append((bm.verts.new((r * math.cos(a), -s, flat * r * math.sin(a))), s, i / SEG))
+            x, z = section(s, a) if section else (r * math.cos(a), flat * r * math.sin(a))
+            # thickness along Blender X (-> Unreal Y), depth along Z
+            ring.append((bm.verts.new((x, -s, z)), s, i / SEG))
         rings.append(ring)
-    tip = bm.verts.new((0.0, -tip1, 0.0))
+    tip = bm.verts.new((0.0, -tip1, tip_z))
     base = bm.verts.new((0.0, 0.0, 0.0)) if radius(0.0) > 0 else None
     faces = []
 
@@ -108,8 +134,9 @@ def build():
     coll = L.ensure_collection("BladeBeamV2")
     bm = bmesh.new()
     uvl = bm.loops.layers.uv.new("UVMap")
-    tube(bm, uvl, core_radius, 0.965, 0.65, 0, 0.84)
-    tube(bm, uvl, glow_radius, 1.0, 0.80, 1, 0.80)
+    tube(bm, uvl, core_radius, W_TIP1, 0.65, 0, W_TIP0, section=wedge, tip_z=W_H * 0.92)
+    # the glow sheath: a soft flattened shell round the wedge (wider in depth than in thickness)
+    tube(bm, uvl, glow_radius, 1.0, 1.0, 1, 0.80, section=lambda s, a: (0.55 * glow_radius(s) * math.cos(a), 0.003 + glow_radius(s) * math.sin(a)), tip_z=0.006)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6)
     bmesh.ops.recalc_face_normals(bm, faces=list(bm.faces))
     me = bpy.data.meshes.new("SM_TD_BladeBeam_V2")

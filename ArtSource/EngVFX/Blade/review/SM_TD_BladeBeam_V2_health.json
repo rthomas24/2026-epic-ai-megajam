@@ -5,29 +5,35 @@
     "BladeGlow"
   ],
   "bbox_min_m": [
-    -0.0399,
+    -0.022,
     -1.0,
-    -0.032
+    -0.0369
   ],
   "bbox_max_m": [
-    0.0399,
+    0.022,
     -0.0,
-    0.032
+    0.0429
   ],
   "asset_report": {
     "objects": 1,
     "tris": 4128,
     "errors": 0,
-    "warnings": 0
+    "warnings": 1
   },
-  "issues": [],
+  "issues": [
+    {
+      "severity": "warn",
+      "object": "SM_TD_BladeBeam_V2",
+      "message": "5 duplicate vertices within 0.0001 m; merge by distance"
+    }
+  ],
   "export": {
     "status": "ok",
     "tris": 4128,
     "size_cm": [
       100.0,
-      8.0,
-      6.4
+      4.4,
+      8.0
     ],
     "warnings": [],
     "errors": []

@@ -4,8 +4,8 @@
   "tris": 4128,
   "size_cm": [
     100.0,
-    8.0,
-    6.4
+    4.4,
+    8.0
   ],
   "pivot": "root object origin (SM_TD_BladeBeam_V2~exp)",
   "forward": "+X (authoring front -Y rotated)",

@@ -74,6 +74,27 @@ for step in sys.argv[3:]:
         for i in range(int(n)):
             cap('%s_%02d' % (name, i), 1600)
             time.sleep(float(gap))
+    elif kind == 'close':   # close:<name>[:dist cm[:side deg]]  a fixed camera looking at the pilot's right hand
+        parts = arg.split(':')
+        name, dist, side = parts[0], float(parts[1]) if len(parts) > 1 else 220.0, float(parts[2]) if len(parts) > 2 else 60.0
+        info = py("w = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_game_world(); p = unreal.GameplayStatics.get_player_pawn(w, 0); l = p.get_actor_location(); r = p.get_actor_rotation(); '%f %f %f %f' % (l.x, l.y, l.z, r.yaw)")
+        x, y, z, yaw = [float(v) for v in info.split()]
+        import math
+        a = math.radians(yaw + side)
+        cam = (x + math.cos(a) * dist, y + math.sin(a) * dist, z + 40.0)
+        tgt = (x, y, z + 10.0)
+        f = [tgt[i] - cam[i] for i in range(3)]
+        camera = {'location': {'x': cam[0], 'y': cam[1], 'z': cam[2]},
+                  'rotation': {'pitch': math.degrees(math.atan2(f[2], math.hypot(f[0], f[1]))), 'yaw': math.degrees(math.atan2(f[1], f[0])), 'roll': 0.0},
+                  'projectionMode': 'Perspective', 'fOV': 55.0, 'orthoWidth': 512}
+        r = c.tool('call_tool', {'toolset_name': TS, 'tool_name': 'Capture', 'arguments': {'world': {'refPath': world()}, 'camera': camera, 'mode': 'Lit',
+                   'options': {'width': 1280, 'height': 720, 'screenPercentage': 1.0, 'visualizationSubMode': ''}}})
+        for b in r.get('content', []) or []:
+            if b.get('type') == 'image' and b.get('data'):
+                open(os.path.join(outdir, name + '.png'), 'wb').write(base64.b64decode(b['data']))
+                break
+        else:
+            print('NO CLOSE IMAGE', json.dumps(r)[:300])
     elif kind == 'py':
         print(step, '->', py(open(arg, encoding='utf-8').read()))
 print('done')

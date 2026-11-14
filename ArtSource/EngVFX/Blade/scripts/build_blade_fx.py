@@ -31,7 +31,7 @@ def along(e, lo, hi, thick=1.5):
     e['set'] = [x for x in e['set'] if not (x[1] == 'ShapeLocation')]
     e['set'] += [(PS, 'ShapeLocation', 'Shape Primitive', E('Box / Plane')),
                  (PS, 'ShapeLocation', 'Box Size', X('float3(User.Length*%s, %s, %s)' % (hi - lo, thick, thick))),
-                 (PS, 'ShapeLocation', 'Offset', X('float3(User.Length*%s, 0.0, 0.0)' % ((hi + lo) * 0.5)))]
+                 (PS, 'ShapeLocation', 'Box Midpoint', X('float3(%s, 0.5, 0.5)' % (-lo / (hi - lo))))]
     return e
 
 
@@ -53,12 +53,11 @@ def sweep(name, at, width, life, k, power=1.3, rate=150.0):
     e['set'] = [x for x in e['set'] if x[2] not in ('Ribbon Width', 'Color')]
     e['set'] += [(PS, INIT, 'Ribbon Width', X('User.Length*%s' % width)),
                  (PS, INIT, 'Color', X('float4(User.Color.rgb*%s, %s)' % (k, MOVE))),
-                 (PS, INIT, 'UsePositionOffset', True), (PS, INIT, 'Position Offset', X('float3(User.Length*%s, 0.0, 0.0)' % at))]
-    e['add'] = [(PS, 'Spawn/Velocity/AddVelocity')] + e['add']
-    e['set'] += [(PS, 'AddVelocity', 'Velocity Mode', E('In Cone')), (PS, 'AddVelocity', 'Cone Axis', (1.0, 0.0, 0.0)),
-                 (PS, 'AddVelocity', 'Cone Angle', 0.0), (PS, 'AddVelocity', 'Velocity Speed', 1.0)]
-    e['rend'] = {'UV0Settings': {'distributionMode': 'ScaledUniformly'}, 'FacingMode': 'CustomSideVector',
-                 'RibbonFacingBinding': {'boundVariable': {'name': 'Particles.Velocity'}}}
+                 (PS, INIT, 'UsePositionOffset', True), (PS, INIT, 'Position Offset Coordinate Space', E('Local')),
+                 (PS, INIT, 'Position Offset', X('float3(User.Length*%s, 0.0, 0.0)' % at)),
+                 (PS, INIT, 'Ribbon Facing Mode', E('Direct Set')),
+                 (PS, INIT, 'Ribbon Facing Vector', X('normalize(mul(float4(1.0, 0.0, 0.0, 0.0), Engine.Owner.SystemLocalToWorld).xyz)'))]
+    e['rend'] = {'UV0Settings': {'distributionMode': 'ScaledUniformly'}, 'FacingMode': 'CustomSideVector'}
     return e
 
 
@@ -68,7 +67,7 @@ def thrown(name, mat, rate_expr, life, size, inherit, spread, k, grav=-650.0, dr
     e = along(e, lo, hi)
     e['set'] = [x for x in e['set'] if x[1] != 'AddVelocity' and x[2] != 'Color']
     e['set'] += [(PS, INIT, 'Color', X('float4(lerp(User.Color.rgb, float3(1,1,1), %s)*%s, 1.0)' % (rgb_white, k))),
-                 (PS, 'AddVelocity', 'Velocity Mode', E('Linear')),
+                 (PS, 'AddVelocity', 'Velocity Mode', E('Linear')), (PS, 'AddVelocity', 'Rotation Mode', E('None')),
                  (PS, 'AddVelocity', 'Velocity', X('User.TipVelocity*lerp(%s, %s, Particles.MaterialRandom) + (frac(Particles.MaterialRandom*float3(13.71, 29.37, 47.13)) - 0.5)*%s' % (inherit[0], inherit[1], spread)))]
     e['set'] = [x for x in e['set'] if x[1] != 'GravityForce'] + [(PU, 'GravityForce', 'Gravity', (0.0, 0.0, float(grav)))]
     return e
@@ -77,7 +76,7 @@ def thrown(name, mat, rate_expr, life, size, inherit, spread, k, grav=-650.0, dr
 # ------------------------------------------------------------------------------------------------ the aura (always on)
 SB('NS_TD_Blade_Aura', UA(), [
     persistent_light('Light', 300, 2.2, at=0.45, flick=31.4),
-    single('Emitter', 'M_TD_VFX_Glow', 13, 0.9, 113.1, offset=(1.5, 0, 0)),
+    single('HiltGlow', 'M_TD_VFX_Glow', 13, 0.9, 113.1, offset=(1.5, 0, 0)),
     along(shed('Embers', 'M_TD_VFX_BladeEmber', 26.0, (0.35, 0.8), (0.5, 1.2), (5, 25), k=1.5, radius=0.0, drag=1.5, curl=260.0, power=1.4), 0.05, 0.95, 2.5),
     along(spin(shed('Arcs', 'M_TD_VFX_FlipArc', 7.0, (0.07, 0.15), (5, 11), (0, 0), k=1.3, radius=0.0, drag=0.0, local=True, power=0.6)), 0.08, 0.92, 0.5),
     sweep('Sweep', 0.56, 0.86, 0.20, 1.4),
