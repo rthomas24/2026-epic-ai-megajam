@@ -31,6 +31,7 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
+#include "TriadDrift/Profile/TDProfileSubsystem.h"
 
 #define LOCTEXT_NAMESPACE "TDWaveDirector"
 
@@ -1234,6 +1235,16 @@ void ATDWaveDirector::CompleteEscape()
 	UTDStorySubsystem::Fire(this, TEXT("TB_Kato_BreakingOff"));
 	UTDStorySubsystem::Fire(this, TEXT("TB_Escaped"));
 	OnTutorialEscaped.Broadcast();
+	// T7's profile: the tutorial counts as done, so a later New Game may skip it. Never from a test world (/Temp/), which
+	// would write the player's real profile slot.
+	const UWorld* World = GetWorld();
+	if (World && !World->GetOutermost()->GetName().StartsWith(TEXT("/Temp/")))
+	{
+		if (UTDProfileSubsystem* Profile = UTDProfileSubsystem::Get(this))
+		{
+			Profile->NotifyTutorialCompleted(TEXT("escape boundary"));
+		}
+	}
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Waves: tutorial complete - the flown ship crossed the escape boundary"));
 	// What remains stands down (the gunship may still be alive), then the wave clears the normal way.
 	Pending.Reset();
