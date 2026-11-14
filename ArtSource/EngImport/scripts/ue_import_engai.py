@@ -63,8 +63,11 @@ ITEMS = {
                       "DetailStrength": 0.0, "HeatGlow": 0.0},
              vectors={"EmissiveTint": (1.0, 1.0, 1.0), "BaseTint": (1.0, 1.0, 1.0)})],
     "Anchor": [
+        # fbx: Grok Bot's mesh and sockets with the plinth hull refitted by anchor_collision.py (his UCX_00 was a 13.8 m
+        # box that buried the charge sockets and stood up to 2.2 m outside the visible octagon)
         dict(asset="SM_CinderAnchorTower", src="Props/CinderFieldAnchor/mesh_r1", dest=PROPS + "/CinderAnchor",
-             master="prop", never_stream=False, scalars={"EmissiveStrength": 6.0}),
+             master="prop", never_stream=False, scalars={"EmissiveStrength": 6.0},
+             fbx=os.path.join(REPO, "ArtSource", "EngImport", "CinderAnchor", "SM_CinderAnchorTower.fbx")),
         dict(asset="SM_CinderAnchorEmitter", src="Props/CinderFieldAnchor/mesh_r1", dest=PROPS + "/CinderAnchor",
              master="prop", never_stream=False, scalars={"EmissiveStrength": 10.0})],
     "Hauler": [dict(
@@ -253,7 +256,7 @@ def import_one(cfg, mi_only):
     notes = []
     folder = os.path.join(AI, *cfg["src"].split("/"))
     asset, dest, short = cfg["asset"], cfg["dest"], cfg["asset"][3:]
-    fbx = os.path.join(folder, asset + ".fbx")
+    fbx = cfg.get("fbx") or os.path.join(folder, asset + ".fbx")
     if not os.path.isfile(fbx):
         log("FAILED %s: no FBX at %s" % (asset, fbx))
         return None
