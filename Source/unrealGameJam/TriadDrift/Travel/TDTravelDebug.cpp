@@ -21,6 +21,7 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/World/TDDockingBay.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "TriadDrift/Travel/TDLandingPad.h"
@@ -264,6 +265,25 @@ static FAutoConsoleCommandWithWorldAndArgs GTDTravelJumpFromCmd(TEXT("TD.Travel.
 		}
 		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.JumpFrom: no planet named %s"), *Want);
 #endif
+	}));
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelToDockCmd(TEXT("TD.Travel.ToDock"),
+	TEXT("Captures: put the flown ship <m> out on the Dominion bay's approach axis, <side m> off it, facing the mouth (then fly in by hand): TD.Travel.ToDock [m=1500] [side m=0] [aim 0 = the mouth | 1 = straight along the axis]"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		ATDShip* Ship = TDTravelDebug::GetPlayerShip(World);
+		ATDDockingBay* Bay = nullptr;
+		for (TActorIterator<ATDDockingBay> It(World); It; ++It) { Bay = *It; break; }
+		if (!Ship || !Bay) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.ToDock: %s"), !Ship ? TEXT("no player ship") : TEXT("no docking bay")); return; }
+		const float Out = (Args.Num() > 0 ? FCString::Atof(*Args[0]) : 1500.f) * 100.f;
+		const float Side = (Args.Num() > 1 ? FCString::Atof(*Args[1]) : 0.f) * 100.f;
+		const bool bAlongAxis = Args.Num() > 2 && FCString::Atoi(*Args[2]) == 1;
+		const FVector Axis = Bay->GetOutward();
+		const FVector Right = FVector::CrossProduct(FVector::UpVector, Axis).GetSafeNormal(UE_SMALL_NUMBER, FVector::RightVector);
+		const FVector At = Bay->GetMouth() + Axis * Out + Right * Side;
+		const FRotator Facing = bAlongAxis ? (-Axis).Rotation() : (Bay->GetMouth() - At).Rotation();
+		Ship->TeleportSpacecraft(At, Facing, false);
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.ToDock: %.0f m out, %.0f m off the axis, bay %s"), Out / 100.f, Side / 100.f,
+			*UEnum::GetValueAsString(Bay->GetDockingState()));
 	}));
 static FAutoConsoleCommandWithWorldAndArgs GTDTravelOpenPlanetCmd(TEXT("TD.Travel.OpenPlanet"),
 	TEXT("Captures: open a planet's atmosphere trigger without moving the ship (a natural approach): TD.Travel.OpenPlanet Verdance|Cinder"),

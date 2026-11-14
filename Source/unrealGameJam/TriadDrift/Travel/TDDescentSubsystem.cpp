@@ -132,6 +132,17 @@ void UTDDescentSubsystem::HandlePreLoadMap(const FString& MapName)
 	EndBurnShot(); // the cover is full white here: the cut back to the chase camera is hidden
 	EndGlide(TEXT("level change"));
 	bArrivedOverDeck = false;
+	// The pilot who goes on is the one flying now (docking with Lancer after landing Bastion parked Bastion in the hangar and
+	// put Moss on foot): whenever a level change starts with the player in a ship, that ship's pilot is the last ship.
+	if (UWorld* From = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr)
+	{
+		APlayerController* PC = UGameplayStatics::GetPlayerController(From, 0);
+		const ATDShip* Flown = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
+		if (Flown && Flown->IsPlayerFlown())
+		{
+			if (UTDGameInstance* GI = Cast<UTDGameInstance>(GetGameInstance())) { GI->SetLastShip(Flown->GetShipId()); }
+		}
+	}
 	if (CoverPhase == ETDDescentCover::RampIn || CoverPhase == ETDDescentCover::Held)
 	{
 		SetCoverAlpha(1.f); // the last galaxy frame is full white
