@@ -1,0 +1,29 @@
+{
+ "asset": "SM_Fab_OilBarrel",
+ "source": "C:/Users/ryant/Documents/myRepos/game-jam/Builds/intake/OilBarrel/src/Industrial_Oil_Barrel_-_Game_Ready_PBR-54701df2/fbx/oilbarrel_extracted/OilBarrel//OilBarrel.fbx",
+ "notes": [],
+ "source_objects": [
+  "Lowpoly_pCylinder2"
+ ],
+ "tris_before": 5066,
+ "maps": {
+  "BC": "OilBarrel_BaseColor.png 4096x4096 chNone",
+  "R": "OilBarrel_Roughness.png 4096x4096 ch0",
+  "M": "OilBarrel_Metallic.png 4096x4096 ch0",
+  "N": "OilBarrel_Normal.png 4096x4096 chNone",
+  "AO": "OilBarrel_AmbientOcclusion.png 2048x2048 ch0",
+  "H": "OilBarrel_Height.png 4096x4096 ch0"
+ },
+ "tris_after": 5066,
+ "size_cm": [
+  58.7,
+  58.8,
+  81.3
+ ],
+ "normal_source": "DirectX, kept (height-slope correlation 0.277)",
+ "orm_means": [
+  0.752,
+  0.314,
+  0.194
+ ]
+}
