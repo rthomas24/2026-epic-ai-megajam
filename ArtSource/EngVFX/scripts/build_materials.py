@@ -154,9 +154,11 @@ float s = spikes*pow(m, 1.4); float core = pow(m, 5);
 float3 c = PC.rgb*(s*1.2 + core*1.4 + pow(m, 2.5)*0.3) + lerp(PC.rgb, float3(1,1,1), 0.85)*pow(m, 10)*2.0*max(lum, 0.25);
 return float4(c*Intensity, PC.a);''', {}),
 
+    # round 9r: a NEW asset name - rebuilding M_TD_VFX_IceBurst in place crashed the editor twice
+    # (DeleteAllMaterialExpressions, Assertion failed: !IsRooted()); the old asset stays, unused.
     # round 9p (Lead: the break flare read like a lens flare): an ice burst - 9 rays of uneven length and width from a hash
     # of the ray index and the particle's random, a soft core; only the asteroid breaks use it.
-    'M_TD_VFX_IceBurst': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''
+    'M_TD_VFX_IceShatter': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''
 float ang = atan2(p.y, p.x) + Rnd*6.283;
 float seg = ang/6.2831853*9.0; float id = floor(seg); float f = frac(seg) - 0.5;
 float h = frac(sin(id*12.9898 + Rnd*78.233)*43758.5453);
