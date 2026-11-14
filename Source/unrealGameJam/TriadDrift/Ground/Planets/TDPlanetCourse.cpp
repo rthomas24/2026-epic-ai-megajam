@@ -1849,6 +1849,9 @@ void ATDPlanetCourse::BuildCinder()
 
 	// Every room is a checkpoint: a death costs that room, not the whole compound (machine playtest: the
 	// barracks death sent the pilot back to the gate conduits every time). The Warden too (review N6).
+	// The gate: a CUT there comes back on the far bank, past the river, not at the pad (T5's play, Nov 14: every retake at
+	// the conduits re-walked the whole way over the bridge).
+	Checkpoint(Outpost, 0, FVector(7300.f, 4900.f, 0.f), 25.f);
 	Checkpoint(Outpost, 1, FVector(XGate - 500.f, Y0, 0.f), 0.f);
 	Checkpoint(Outpost, 2, FVector(XBarracks - 500.f, Y0, 0.f), 0.f);
 	Checkpoint(Outpost, 3, FVector(XCommand - 500.f, Y0, 0.f), 0.f);
