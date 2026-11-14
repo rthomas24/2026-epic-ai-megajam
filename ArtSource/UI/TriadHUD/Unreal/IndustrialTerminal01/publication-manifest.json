@@ -1,0 +1,133 @@
+{
+  "agent": "UI/UX & HUD Agent",
+  "claims": [
+    "f67d9fe9",
+    "7cd02860"
+  ],
+  "source_branch": "nick/ui-settings-validation-33bc6d1",
+  "source_worktree": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1",
+  "stage": "Candidate only: frame import/reload and corrected widget compile/lifecycle verified; actual appearance/progression/Shipping pending",
+  "files": [
+    {
+      "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDAbilityRewardWidget.h",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\Plugins\\TriadDriftHUD\\Source\\TriadDriftHUD\\Public\\TDAbilityRewardWidget.h",
+      "bytes": 3353,
+      "sha256": "97e3c8cf0bd0e1a982ccb731a8684908b24710005809f9f871491d78065cdfe2"
+    },
+    {
+      "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDAbilityRewardWidget.cpp",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\Plugins\\TriadDriftHUD\\Source\\TriadDriftHUD\\Private\\TDAbilityRewardWidget.cpp",
+      "bytes": 14386,
+      "sha256": "30f2bc45fd25c1ea1067a4dd737b414c21156e90a8b14cf11c29d4047ba2965c"
+    },
+    {
+      "path": "Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDAbilityRewardWidgetTests.cpp",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\Plugins\\TriadDriftHUD\\Source\\TriadDriftHUD\\Private\\TDAbilityRewardWidgetTests.cpp",
+      "bytes": 2625,
+      "sha256": "5b699c346747255316bc1f28fcdd28b5fbdb083eeb93800a1469905f4dc31969"
+    },
+    {
+      "path": "Content/TriadDrift/UI/TriadHUD/IndustrialTerminal01/T_UI_IndustrialTerminal_Frame01.uasset",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\Content\\TriadDrift\\UI\\TriadHUD\\IndustrialTerminal01\\T_UI_IndustrialTerminal_Frame01.uasset",
+      "bytes": 773060,
+      "sha256": "d176775896b97c67725a3c40b86c536cac369530503e07a3ea6590f5946a07c9"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/terminal-frame-01.png",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\terminal-frame-01.png",
+      "bytes": 795010,
+      "sha256": "d0128c59808fe85a7b4cad83915d2c806bbfa5904ab1df830dd0ff06f5958df5"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/README.md",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\README.md",
+      "bytes": 6176,
+      "sha256": "5ec3b32991fcccae6fc448c9ceb760b46586d47bb8e843354eb8fb64e13d13ee"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/Verification/build02-result.json",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\Verification\\build02-result.json",
+      "bytes": 150,
+      "sha256": "128f0c606b8d4a45d6e75cc025eb5ee1e0e68183791c2ebfa930fb03ffcf8965"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/Verification/build02-source.json",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\Verification\\build02-source.json",
+      "bytes": 286,
+      "sha256": "479215c0a3d08ff004acbd2e997e17921c816d3bf2f5bf1ab9c9cc91f2333a1e"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/Verification/import-engine-summary.json",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\Verification\\import-engine-summary.json",
+      "bytes": 578,
+      "sha256": "377bf7173bff424ecaddfbd47f3a407f59088028d171dfafe482d3fcddc21bc2"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/Verification/import-guard.json",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\Verification\\import-guard.json",
+      "bytes": 218,
+      "sha256": "e4e887a2b061b944110e50bfedf599a339391aa6ec15ef4c504fd0507e2ef271"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/Verification/import-texture.json",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\Verification\\import-texture.json",
+      "bytes": 884,
+      "sha256": "da0349ac05fe45d8908215e17f00fc8fb12613a13ca3f245fc6ad40be5d68826"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/Verification/lifecycle-engine-summary.json",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\Verification\\lifecycle-engine-summary.json",
+      "bytes": 708,
+      "sha256": "a82153489f6e0e20bf22995fc152fc4c0159ac5e9d9b68b91266c4946b3e04b7"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/Verification/lifecycle-log-excerpt.txt",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\Verification\\lifecycle-log-excerpt.txt",
+      "bytes": 537,
+      "sha256": "d2ed99e0ed53f3a768f43653f207b74e353938b9b314773e91f6c716e91b7cd6"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/Verification/reload-engine-summary.json",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\Verification\\reload-engine-summary.json",
+      "bytes": 578,
+      "sha256": "0f7f032e13fc5f6de0fdae9c6d6b35d3c24acee84bc38a0397e1ae19c5b5a9e4"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/Verification/reload-guard.json",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\Verification\\reload-guard.json",
+      "bytes": 220,
+      "sha256": "9245b1bef4d1a5372b5157c73a23bf60001ccfed39224b73bc14505979f1a551"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/Verification/reload-texture.json",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\Verification\\reload-texture.json",
+      "bytes": 884,
+      "sha256": "d206d98294c163c2bda852a93684998247e86e163144416a20a93ad1eea589fb"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/Verification/test01-result.json",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\Verification\\test01-result.json",
+      "bytes": 188,
+      "sha256": "7c8b99b3df87a7e4f12641f5d14275ba0801276109a0945c4dfbf9ecb939ae10"
+    },
+    {
+      "path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/Verification/verification-summary.md",
+      "absolute_path": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\ArtSource\\UI\\TriadHUD\\Unreal\\IndustrialTerminal01\\Verification\\verification-summary.md",
+      "bytes": 1645,
+      "sha256": "e76216f6cc18e4a506ff218b681d23a74c29c5100c3d06d834bd0be1a0f50f0c"
+    }
+  ],
+  "manifest_path": "ArtSource/UI/TriadHUD/Unreal/IndustrialTerminal01/publication-manifest.json",
+  "excluded": [
+    "Saved/**",
+    "TDLocalRewardProbe.cpp",
+    "TDLocalCreditsProbe.cpp",
+    "other private fixtures",
+    "DA_UI_Style.uasset",
+    "Build.cs",
+    "Config/**",
+    "maps",
+    "unrelated UI/character/audio work"
+  ],
+  "note": "Copy exact files only; no worker Git mutation or default activation. Manifest excludes its own hash. Lead creates/publishes isolated candidate branch."
+}

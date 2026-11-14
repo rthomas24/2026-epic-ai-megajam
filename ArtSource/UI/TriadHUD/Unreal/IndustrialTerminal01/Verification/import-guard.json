@@ -1,0 +1,10 @@
+{
+  "min_free_gib": 3.1530532836914062,
+  "duration_s": 18.138603,
+  "pass": true,
+  "failure": null,
+  "start_free_gib": 5.061069488525391,
+  "phase": "import",
+  "exit_code": 0,
+  "protected_changed": []
+}

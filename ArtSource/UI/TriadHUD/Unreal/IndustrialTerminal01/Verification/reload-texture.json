@@ -1,0 +1,21 @@
+{
+  "pass_verified": true,
+  "phase": "reload",
+  "object": "/Game/TriadDrift/UI/TriadHUD/IndustrialTerminal01/T_UI_IndustrialTerminal_Frame01.T_UI_IndustrialTerminal_Frame01",
+  "width": 1672,
+  "height": 941,
+  "properties": {
+    "srgb": "True",
+    "compression_settings": "<TextureCompressionSettings.TC_EDITOR_ICON: 7>",
+    "lod_group": "<TextureGroup.TEXTUREGROUP_UI: 16>",
+    "mip_gen_settings": "<TextureMipGenSettings.TMGS_NO_MIPMAPS: 13>",
+    "never_stream": "True",
+    "address_x": "<TextureAddress.TA_CLAMP: 1>",
+    "address_y": "<TextureAddress.TA_CLAMP: 1>",
+    "filter": "<TextureFilter.TF_BILINEAR: 1>"
+  },
+  "package_bytes": 773060,
+  "package_sha256": "d176775896b97c67725a3c40b86c536cac369530503e07a3ea6590f5946a07c9",
+  "source_sha256": "d0128c59808fe85a7b4cad83915d2c806bbfa5904ab1df830dd0ff06f5958df5",
+  "rendered_in_game": false
+}

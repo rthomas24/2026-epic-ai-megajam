@@ -1,0 +1,15 @@
+{
+  "evidence_type": "Field projection of original Unreal result; not the complete raw result",
+  "original_file": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\ui-settings-validation-33bc6d1\\Saved\\Reward01\\IndustrialTerminal01\\reload-01\\engine-result.json",
+  "original_sha256": "5b9ce51139db07349046371980e8ea2c2f353ba5977b3a6986dad200e0f7764b",
+  "exit_code": 0,
+  "reason": "ok",
+  "exit_request": null,
+  "log": {
+    "errors": 0,
+    "warnings": 0,
+    "errors_by_category": {},
+    "warnings_by_category": {},
+    "first_errors": []
+  }
+}

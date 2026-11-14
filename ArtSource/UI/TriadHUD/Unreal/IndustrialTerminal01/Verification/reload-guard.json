@@ -1,0 +1,10 @@
+{
+  "failure": null,
+  "protected_changed": [],
+  "start_free_gib": 5.0328826904296875,
+  "exit_code": 0,
+  "phase": "reload",
+  "pass": true,
+  "min_free_gib": 3.0846633911132812,
+  "duration_s": 14.1762915
+}

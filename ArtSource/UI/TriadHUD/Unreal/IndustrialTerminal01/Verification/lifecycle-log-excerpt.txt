@@ -1,0 +1,4 @@
+Verbatim selected lines from C:\Users\nicho\OneDrive\Desktop\GameJam\Worktrees\lead-music-build-1113\Saved\IndustrialRewardTest01\engine.log
+[2026.11.14-03.07.36:129][593]LogAutomationController: Display: Test Completed. Result={Success} Name={OnFootDismissAndNextUnlock} Path={TriadDrift.UI.Reward.OnFootDismissAndNextUnlock}
+[2026.11.14-03.07.36:138][594]LogAutomationCommandLine: Display: **** TEST COMPLETE. EXIT CODE: 0 ****
+[2026.11.14-03.07.36:138][594]LogWindows: FPlatformMisc::RequestExitWithStatus(1, 0, <NoCallSiteInfo>)
