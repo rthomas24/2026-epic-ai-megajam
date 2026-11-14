@@ -219,12 +219,14 @@ void UTDEnergyBladeComponent::PressAttack()
 		bHeavyFiredThisPress = true; // a slam never turns into a lunge
 		return;
 	}
-	if (IsBlocking())
+	const bool bOutOfBlock = IsBlocking();
+	if (bOutOfBlock)
 	{
 		SetBlockHeld(false); // attacking out of a block (after a parry) is allowed
 		bBlockHeld = true;   // still held: the guard comes back up after the swing
 	}
-	if (!IsAttacking() && !bRetracted && State != ETDBladeState::GuardBroken)
+	// Out of a held block the riposte comes at once (the guard would come back up under a waiting press).
+	if (!bOutOfBlock && !IsAttacking() && !bRetracted && State != ETDBladeState::GuardBroken)
 	{
 		// From rest the press waits for its release (a light swing) or the hold threshold (straight into the heavy
 		// wind-up), so a held heavy never throws a light first. Mid-combo presses still queue the next light at once.
@@ -252,6 +254,12 @@ void UTDEnergyBladeComponent::SetBlockHeld(bool bHeld)
 	bBlockHeld = bHeld;
 	if (bHeld)
 	{
+		if (bLightDeferred)
+		{
+			// Raising the guard cancels a heavy being wound up, at any moment of the hold (T7: died to bolts mid wind-up).
+			bLightDeferred = false;
+			bHeavyFiredThisPress = true;
+		}
 		if (!bRetracted && !IsAttacking() && State != ETDBladeState::GuardBroken && Stamina > 0.f && State != ETDBladeState::Blocking)
 		{
 			State = ETDBladeState::Blocking;
