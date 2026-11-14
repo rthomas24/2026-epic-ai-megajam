@@ -174,7 +174,7 @@ namespace TDHUDRadar
 FBox2D TDHUDRadarBox(const FTDUIPainter& P)
 {
 	using namespace TDHUDRadar;
-	const float Shrink = P.Scale * 1080.f < 900.f ? .85f : 1.f;
+	const float Shrink = 1.f;	// full size at every resolution (Lead, Nov 14: it read small at 720p); text is floored at 12 px on screen
 	const float R = Radius * Shrink;
 	const FVector2D C(CX + (Radius - R), CY + (Radius - R));	// shrinks into the bottom-right corner, away from the subtitles
 	return FBox2D(FVector2D(C.X - R, C.Y - R - HeaderGap - HeaderH), FVector2D(C.X + R, C.Y + R));
@@ -183,7 +183,7 @@ FBox2D TDHUDRadarBox(const FTDUIPainter& P)
 void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDHUDRadarInput& In)
 {
 	using namespace TDHUDRadar;
-	const float Shrink = P.Scale * 1080.f < 900.f ? .85f : 1.f;
+	const float Shrink = 1.f;	// full size at every resolution (Lead, Nov 14: it read small at 720p); text is floored at 12 px on screen
 	const float R = Radius * Shrink;
 	const FRadarPaint D{ P, FVector2D(CX + (Radius - R), CY + (Radius - R)), R, Shrink };
 	const FVector2D& C = D.C;
@@ -199,7 +199,7 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 		return B;
 	}();
 	FSlateDrawElement::MakeBox(P.List, P.Layer, P.Geo({ C.X - R, C.Y - R }, { 2 * R, 2 * R }), &Disc, ESlateDrawEffect::None,
-		P.Faded(Pal::Panel().CopyWithNewOpacity(.82f)));
+		P.Faded(Pal::Panel().CopyWithNewOpacity(.88f)));	// readable over bright nebula (T7, Lead)
 	const float ConeHalf = FMath::DegreesToRadians(35.f);
 	for (int32 I = 0; I < 6; ++I)	// the cone: a faint fan
 	{
@@ -207,9 +207,9 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 	}
 	D.Seg(C, C + FVector2D(FMath::Sin(-ConeHalf), -FMath::Cos(-ConeHalf)) * R, Pal::Muted().CopyWithNewOpacity(.16f), 1.f);
 	D.Seg(C, C + FVector2D(FMath::Sin(ConeHalf), -FMath::Cos(ConeHalf)) * R, Pal::Muted().CopyWithNewOpacity(.16f), 1.f);
-	D.Circle(C, R * (1.f / 3.f), Pal::Muted().CopyWithNewOpacity(.16f), 1.f);
-	D.Circle(C, R * (2.f / 3.f), Pal::Muted().CopyWithNewOpacity(.20f), 1.f);
-	D.Circle(C, R, Pal::Muted().CopyWithNewOpacity(.38f), 1.5f, 56);
+	D.Circle(C, R * (1.f / 3.f), Pal::Muted().CopyWithNewOpacity(.30f), 1.f);
+	D.Circle(C, R * (2.f / 3.f), Pal::Muted().CopyWithNewOpacity(.34f), 1.f);
+	D.Circle(C, R, Pal::Ink().CopyWithNewOpacity(.55f), 1.5f, 56);	// a thin light rim
 	for (int32 I = 0; I < 4; ++I)
 	{
 		const float A = I * PI * .5f;
@@ -316,7 +316,7 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 	if (In.Wave.WaveCount > 0)
 	{
 		const float HX = C.X - R, HY = C.Y - R - HeaderGap - HeaderH, HW = 2.f * R;
-		P.Box(HX, HY, HW, HeaderH, Pal::Panel().CopyWithNewOpacity(.78f));
+		P.Box(HX, HY, HW, HeaderH, Pal::Panel().CopyWithNewOpacity(.88f));
 		D.Seg(FVector2D(HX, HY + HeaderH), FVector2D(HX + HW * .4f, HY + HeaderH), Pal::Hostile().CopyWithNewOpacity(.55f), 1.5f);
 		if (K.Wave != In.Wave.WaveNumber || K.Count != In.Wave.WaveCount)
 		{
