@@ -1,0 +1,14 @@
+{
+ "_note": "Landing v2 (Nov 14, round 3): the jump landing (A_Pilot_Land's crouch: pelvis to 70 cm at 0.07 s, up by 0.5 s) with the blade arm in the side guard of idle v4, so a landing never swings the blade. Played after a jump when the pilot lands standing (code: Landed).",
+ "swing": [
+  {
+   "src": "A_Pilot_Land", "dst": "A_Pilot_Land_v2", "rate": 1.0, "max_yaw": 15,
+   "keys": [
+    {"t": 0.0,  "hand": [16, 23, -34], "blade": [0.56, 0.69, -0.3], "yaw": 3},
+    {"t": 0.1,  "hand": [18, 24, -40], "blade": [0.56, 0.69, -0.36], "yaw": 3},
+    {"t": 0.5,  "hand": [14, 23, -38], "blade": [0.55, 0.69, -0.32], "yaw": 3},
+    {"t": "end", "hand": [14, 23, -38], "blade": [0.55, 0.69, -0.32], "yaw": 3}
+   ]
+  }
+ ]
+}

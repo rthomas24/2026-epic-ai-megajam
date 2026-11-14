@@ -1,26 +1,14 @@
 {
- "A_Pilot_Walk_v4": {
+ "A_Pilot_Land_v2": {
   "hilt": {
-   "gap": 9.0,
+   "gap": 17.6,
    "part": "thigh_r",
-   "t": 0.93
+   "t": 0.63
   },
   "beam": {
-   "gap": 29.6,
+   "gap": 32.6,
    "part": "thigh_r",
-   "t": 0.57
-  }
- },
- "A_Pilot_Run_v4": {
-  "hilt": {
-   "gap": 12.3,
-   "part": "thigh_r",
-   "t": 0.6
-  },
-  "beam": {
-   "gap": 33.0,
-   "part": "thigh_r",
-   "t": 0.4
+   "t": 0.07
   }
  }
 }
