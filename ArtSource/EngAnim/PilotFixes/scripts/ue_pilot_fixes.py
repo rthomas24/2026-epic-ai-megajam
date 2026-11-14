@@ -101,7 +101,8 @@ def write(dst, frames):
         c.set_bone_track_keys(b, [fr[b][0] for fr in frames], [fr[b][1] for fr in frames], [one] * len(frames), False)
     c.close_bracket(False)
     seq.set_editor_property("enable_root_motion", False)
-    unreal.EditorAssetLibrary.save_loaded_asset(seq, False)
+    if not unreal.EditorAssetLibrary.save_loaded_asset(seq, False):
+        raise RuntimeError("could not save %s (is a running game holding the file?)" % dst)
     log("wrote %s: %d frames (%.2f s)" % (dst, len(frames), (len(frames) - 1) / float(FPS)))
     return seq
 
@@ -185,6 +186,111 @@ for a in CFG.get("aim", []):
         turned.append(ang)
     log("%s -> %s: wrist turned %.0f..%.0f deg (mean %.0f)" % (a["src"], a["dst"], min(turned), max(turned), sum(turned) / len(turned)))
     write(a["dst"], frs)
+
+def vadd(a, b): return tuple(i + j for i, j in zip(a, b))
+def vsub(a, b): return tuple(i - j for i, j in zip(a, b))
+def vmul(a, s): return tuple(i * s for i in a)
+def vdot(a, b): return sum(i * j for i, j in zip(a, b))
+def vlen(a): return math.sqrt(vdot(a, a))
+def vnorm(a):
+    n = vlen(a)
+    return vmul(a, 1.0 / n) if n > 1e-9 else a
+def qinv(q): return (-q[0], -q[1], -q[2], q[3])
+
+
+def catmull(keys, t, index):
+    """keys: [(time, tuple)] sorted; Catmull-Rom through the values (component `index` of each key)."""
+    ts = [k[0] for k in keys]
+    if t <= ts[0]:
+        return keys[0][index]
+    if t >= ts[-1]:
+        return keys[-1][index]
+    i = max(j for j in range(len(ts) - 1) if ts[j] <= t)
+    p0 = keys[max(0, i - 1)][index]; p1 = keys[i][index]; p2 = keys[i + 1][index]; p3 = keys[min(len(keys) - 1, i + 2)][index]
+    u = (t - ts[i]) / (ts[i + 1] - ts[i])
+    u = u * u * (3 - 2 * u) if index == 3 else u  # ease the torso yaw, spline the hand path
+    return tuple(0.5 * ((2 * b) + (-a + c) * u + (2 * a - 5 * b + 4 * c - d) * u * u + (-a + 3 * b - 3 * c + d) * u ** 3)
+                 for a, b, c, d in zip(p0, p1, p2, p3))
+
+
+UPPER_SKIP = ("root", "pelvis", "thigh", "calf", "foot", "ball")
+
+for sw in CFG.get("swing", []):
+    # Re-author the right arm of a blade swing. Lower body kept; the upper body yaws with the swing (spine_01 about
+    # component Z); the hand follows a keyed path in the chest's frame (2-bone IK, elbow down and out) and the wrist
+    # turns the blade (BladeSocket +X) onto a keyed direction. Keys are in GAME seconds at the code's play rate.
+    src = find(sw["src"])
+    rate = sw.get("rate", 1.0)
+    L = src.get_play_length()
+    n = max(2, int(round(L * FPS)) + 1)
+    keys = []
+    for k in sw["keys"]:
+        t = L if k["t"] == "end" else k["t"] * rate
+        keys.append((t, tuple(k["hand"]), tuple(k["blade"]), (k.get("yaw", 0.0),)))
+    frs, log_lines = [], []
+    for i in range(n):
+        t = min(L, i / float(FPS))
+        fr, pose = sample(src, t)
+        W = {}
+        for b in ALL:
+            tr = unreal.AnimPoseExtensions.get_bone_pose(pose, b, WORLD)
+            W[b] = [tv(tr.translation), tq(tr.rotation)]
+        # torso yaw: turn spine_01 so the shoulders' line faces the keyed yaw (component +Y forward, -X right)
+        right = vnorm(vsub(W["upperarm_r"][0], W["upperarm_l"][0]))
+        # a turn of +yaw about +Z takes forward (+Y) toward -X (the pilot's right): right = (-cos, -sin)
+        cur_yaw = math.degrees(math.atan2(-right[1], -right[0]))
+        want_yaw = catmull(keys, t, 3)[0]
+        dyaw = max(-sw.get("max_yaw", 45.0), min(sw.get("max_yaw", 45.0), want_yaw - cur_yaw))
+        dq = tq(qaxis((0.0, 0.0, 1.0), dyaw))
+        pivot = W["spine_01"][0]
+        for b in ALL:
+            if b.startswith(UPPER_SKIP):  # pelvis and legs stay as the clip has them
+                continue
+            W[b][0] = vadd(pivot, prot(dq, vsub(W[b][0], pivot)))
+            W[b][1] = pmul(dq, W[b][1])
+        # chest frame after the yaw
+        yaw = math.radians(cur_yaw + dyaw)
+        R = (-math.cos(yaw), -math.sin(yaw), 0.0)
+        F = (-math.sin(yaw), math.cos(yaw), 0.0)
+        U = (0.0, 0.0, 1.0)
+        S = W["upperarm_r"][0]
+        E0, H0 = W["lowerarm_r"][0], W["hand_r"][0]
+        L1, L2 = vlen(vsub(E0, S)), vlen(vsub(H0, E0))
+        hp = catmull(keys, t, 1)
+        T = vadd(S, vadd(vadd(vmul(F, hp[0]), vmul(R, hp[1])), vmul(U, hp[2])))
+        d = vsub(T, S)
+        dl = min(vlen(d), 0.97 * (L1 + L2))
+        dn = vnorm(d)
+        T = vadd(S, vmul(dn, dl))
+        a_ = (L1 * L1 + dl * dl - L2 * L2) / (2 * dl)
+        h_ = math.sqrt(max(0.0, L1 * L1 - a_ * a_))
+        pole = vadd(vmul(R, 0.55), vmul(U, -0.8))
+        perp = vnorm(vsub(pole, vmul(dn, vdot(pole, dn))))
+        E = vadd(S, vadd(vmul(dn, a_), vmul(perp, h_)))
+        qu, _ = from_to(vsub(E0, S), vsub(E, S), 180.0)
+        W["upperarm_r"][1] = pmul(qu, W["upperarm_r"][1])
+        lower_rot = pmul(qu, W["lowerarm_r"][1])
+        hand_dir = prot(qu, vsub(H0, E0))
+        ql, _ = from_to(hand_dir, vsub(T, E), 180.0)
+        W["lowerarm_r"][1] = pmul(ql, lower_rot)
+        hand_rot = pmul(ql, pmul(qu, W["hand_r"][1]))
+        blade = prot(pmul(hand_rot, SOCK_Q), (1.0, 0.0, 0.0))
+        bk = catmull(keys, t, 2)
+        want = vnorm(vadd(vadd(vmul(F, bk[0]), vmul(R, bk[1])), vmul(U, bk[2])))
+        qh, ang = from_to(blade, want, 180.0)
+        W["hand_r"][1] = pmul(qh, hand_rot)
+        W["lowerarm_r"][0], W["hand_r"][0] = E, T
+        # back to locals for the bones that changed (translations are the clip's own)
+        def local(child, parent):
+            return pmul(qinv(W[parent][1]), W[child][1])
+        for child, parent in (("spine_01", "pelvis"), ("upperarm_r", "clavicle_r"), ("lowerarm_r", "upperarm_r"), ("hand_r", "lowerarm_r")):
+            loc, _ = fr[child]
+            fr[child] = (loc, unreal.Quat(*local(child, parent)))
+        frs.append(fr)
+        if i % 3 == 0:
+            log_lines.append("t%.2f yaw%+.0f hand(F%.0f R%.0f U%.0f) wrist%.0f" % (t, cur_yaw + dyaw, hp[0], hp[1], hp[2], ang))
+    log("%s -> %s (%.2f s, x%.1f): %s" % (sw["src"], sw["dst"], L, rate, " | ".join(log_lines)))
+    write(sw["dst"], frs)
 
 for d in CFG.get("drop", []):
     src = find(d["src"])

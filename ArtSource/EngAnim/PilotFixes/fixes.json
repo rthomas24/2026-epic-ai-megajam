@@ -54,7 +54,7 @@
   {
    "src": "A_Pilot_Blade_Death2",
    "dst": "A_Pilot_Blade_Death2_v2",
-   "floor_cm": 4.0,
+   "floor_cm": 10.0,
    "bones": [
     "pelvis",
     "spine_01",
