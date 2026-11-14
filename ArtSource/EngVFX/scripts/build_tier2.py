@@ -709,6 +709,13 @@ S2('NS_TD_Ship_ImpactScrape', U((1.0, 0.72, 0.42, 1.0), 1.0, Strength=0.5), [
     shed('Embers', 'M_TD_VFX_Glow', 0, (0.3, 0.8), (5, 12), (300, 1500), k=1.4, radius=20.0, drag=1.5, cone=((1.0, 0.0, 0.0), 80.0),
          burst='4.0 + 14.0*User.Strength', dur=0.8, power=1.6)])
 
+# Round 9 (Lead): from the chase camera the blade is hidden behind the body at the hit frame. A short swing trail: a
+# hot thin ribbon and a soft wide one, 0.15 s of life, in the blade's colour. Slot wanted (T5): UTDBladeFX.SwingTrail,
+# attached to the blade mesh at its tip socket, activated when a swing starts and deactivated when it ends.
+S2('NS_TD_Blade_SwingTrail', U(BLADE), [
+    trail('Core', 10, 0.15, 1.8, rate=240.0, taper=0.9, power=1.4),
+    trail('Glow', 46, 0.12, 0.7, rate=240.0, taper=0.8, power=1.6)])
+
 # Slots: UTDBladeFX.SwingLight / SwingHeavy. The code plays these ATTACHED TO THE CHARACTER ROOT (not the blade tip), so
 # a ribbon would trail the body: this is a self-contained crescent in front of the chest instead (camera-facing).
 def swing(size, k):

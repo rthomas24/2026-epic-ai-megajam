@@ -308,7 +308,25 @@ S('NS_TD_Tracer_Bastion', U(BASTION), tracer(420, 115, sheath=3.2, rib_life=0.10
     spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 40.0, (0.5, 0.9), (130, 200), (10, 90), radius=12.0, drag=1.0, curl=500.0, power=0.8, rgb=(0.32, 0.28, 0.27), alpha=0.6,
               growth='0.8 + Particles.NormalizedAge*1.6', sort=True))]))
 # Enemy: a red-orange ball of plasma, short and round where the squad's shots are long needles; dimmer core.
-S('NS_TD_Tracer_Enemy', U(ENEMY), tracer(230, 125, sheath=3.0, rib_life=0.07, spark_rate=30.0, flick=47.1, hot=0.7, needle_core=False))
+# Round 9 (T7's colour-blind check, Lead): under deuteranopia the enemy's red-orange bolt and Bastion's amber shell were
+# the same colour (dE 9.3). The enemy bolt now differs by shape: a fat hollow diamond (M_TD_VFX_Diamond, hot rim, dark
+# core over the dark body) followed by two smaller diamonds, a segmented pulse, and a very short trail; no white-hot
+# ball, no needle. The squad's long thin needles are unchanged.
+def enemy_tracer():
+    shadow = mesh_single('Shadow', 'SM_TD_VFX_Bolt', 'M_TD_VFX_BoltShadow', '2.6, 1.9, 1.9', 1.0, None, offset=(-60, 0, 0), live_scale='float3(1,1,1)*' + DIST)
+    shadow['rend']['SortOrderHint'] = -10
+    out = [shadow]
+    for nm, size, back, k in (('Diamond', 260, 0, 1.9), ('Pulse2', 170, -190, 1.4), ('Pulse3', 110, -330, 1.0)):
+        d = single(nm, 'M_TD_VFX_Diamond', size, k, None, offset=(back, 0, 0) if back else None)
+        d['add'].append((PU, 'Update/Size/ScaleSpriteSize'))
+        d['set'] += [(PU, 'ScaleSpriteSize', 'Scale Sprite Size Mode', E('Uniform')), (PU, 'ScaleSpriteSize', 'Uniform Scale Factor', X(DIST))]
+        out.append(d)
+    return out + [trail('Trail', 70, 0.05, 1.0),
+                  shed('Sparks', 'M_TD_VFX_Glow', 20.0, (0.15, 0.35), (12, 30), (40, 300), k=1.2, radius=30.0, drag=1.5, curl=900.0)]
+
+
+ENEMY_TRACER_V2 = True
+S('NS_TD_Tracer_Enemy', U(ENEMY), enemy_tracer() if ENEMY_TRACER_V2 else tracer(230, 125, sheath=3.0, rib_life=0.07, spark_rate=30.0, flick=47.1, hot=0.7, needle_core=False))
 
 # --------------------------------------------------------------------------------------------- muzzle flashes
 # Directional: a short flame cone along +X, a spiked star seen down the barrel, a few forward sparks. 2-3 frames.

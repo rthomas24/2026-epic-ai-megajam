@@ -496,6 +496,17 @@ float a = edge*(0.02 + 0.98*body)*shim + rim*1.6 + body*0.05;
 float3 c = PC.rgb*a + lerp(PC.rgb, float3(1,1,1), 0.7)*rim*0.8;
 return float4(c*Intensity, PC.a);""", {}),
 
+    # round 9 (T7's colour-blind check: under deuteranopia the enemy's red-orange bolts and Bastion's amber shells match):
+    # the enemy bolt reads by SHAPE - a hollow diamond, a hot rim round a dark core, a soft halo. Camera-facing sprite.
+    'M_TD_VFX_Diamond': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
+float2 q = abs(p);
+float d = (q.x + q.y)*0.92 - 0.62;            // < 0 inside the diamond
+float rim = exp(-pow(d/0.075, 2.0));
+float inside = 1.0 - smoothstep(-0.02, 0.02, d);
+float halo = exp(-max(d, 0.0)*7.0)*m;
+float3 c = PC.rgb*(rim*1.5 + inside*0.10 + halo*0.30) + lerp(PC.rgb, float3(1,1,1), 0.6)*pow(rim, 3.0)*0.6;
+return float4(c*Intensity, PC.a);""", {}),
+
     'M_TD_VFX_Backdrop': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
 return float4(0.0, 0.0, 0.0, saturate(pow(m, 1.4)*Dark*PC.a));""", {'Dark': 0.75}),
 }
