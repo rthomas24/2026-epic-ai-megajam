@@ -335,3 +335,11 @@ The Shipping package of `ddc50a2f` (2,480 cooked packages in its container listi
 
 Epic content in the package (Unreal Engine EULA, not original art): the First Person / Shooter template mannequin (`/Game/Characters/Mannequins/`: `SKM_Manny_Simple`, its textures, rigs and 102 animation clips, the sources of the retargeted `A_Crew_*` / `A_Pilot_*` clips), template input actions and animation blueprints (`/Game/Input`, `/Game/FirstPerson/Anims`, `/Game/Variant_Shooter/Anims`), and engine and plugin content (engine materials and fonts, Niagara, Interchange, Control Rig, Water, Procedural Vegetation Editor defaults). The template folders `LevelPrototyping`, `Variant_Horror`, `Weapons` and the template maps are not shipped.
 
+
+### Shared "Don't-" voice master (N-097) - November 14, 2026
+
+| Asset | Tool | Licence / provenance | Added by |
+|---|---|---|---|
+| `SW_VO_FutureWren_Dont_04` in `Content/TriadDrift/Gameplay/Audio/VO/` (one master for `O_Unknown_Dont` and `F_FutureWren_Dont` via `SharedSounds[Dont]`), imported from `ArtSource/EngAI/Voice/Wren/audition_r1/VO_FutureWren_Dont_04_radio.wav` (SHA256 `e5491da7…abc19a`), take 04 chosen by Nicholas | AI-generated voice: xAI Text to Speech (Grok voice) on fal.ai, endpoint `xai/tts/v1`, voice `liora`; radio treatment built by `tools/build_wren_dont_r1.py` (details in that folder's `SOURCE.md`) | fal.ai model page marked "Commercial use"; fal and xAI terms as summarised in `SOURCE.md` | Grok Bot (generation), Claude Code / Teammate 3 (import) |
+
+Tools used (add to the submission's "Tools you used"): xAI Text to Speech via fal.ai.

@@ -1,0 +1,68 @@
+[
+ {
+  "asset": "SM_KS_MoonShard_A",
+  "min_cm": [
+   -19736.197,
+   -17121.652,
+   -10300.469
+  ],
+  "max_cm": [
+   6335.0,
+   15833.118,
+   10777.536
+  ],
+  "size_cm": [
+   26071.2,
+   32954.77,
+   21078.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 23012,
+  "materials": [
+   "M_Kit_CrackDim",
+   "M_Kit_CrackHot",
+   "M_Kit_Rim",
+   "M_Kit_Rock",
+   "M_Kit_Seam",
+   "M_Kit_Strata",
+   "M_Kit_Strata2"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_KS_MoonShard_B",
+  "min_cm": [
+   -10770.24,
+   -8616.964,
+   -7738.754
+  ],
+  "max_cm": [
+   3535.0,
+   8329.089,
+   7808.218
+  ],
+  "size_cm": [
+   14305.24,
+   16946.05,
+   15546.97
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 23905,
+  "materials": [
+   "M_Kit_CrackDim",
+   "M_Kit_CrackHot",
+   "M_Kit_Rim",
+   "M_Kit_Rock",
+   "M_Kit_Seam",
+   "M_Kit_Strata",
+   "M_Kit_Strata2"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ }
+]

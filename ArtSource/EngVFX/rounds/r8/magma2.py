@@ -3,8 +3,9 @@
 world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_game_world()
 out = []
 for a in unreal.GameplayStatics.get_all_actors_of_class(world, unreal.Actor):
-    for k in a.get_components_by_tag(unreal.NiagaraComponent, 'EngVFXPreview'):
-        k.destroy_component(k)
+    for tg in ('EngVFXPreview', 'TD.MagmaGlow'):   # 10e: main's UTDMagmaLookSubsystem attaches it too (its light stays)
+        for k in a.get_components_by_tag(unreal.NiagaraComponent, tg):
+            k.destroy_component(k)
 if CMD == 'on':
     vs = unreal.GameplayStatics.get_all_actors_of_class(world, unreal.TDMagmaVolume)
     t = unreal.Vector(5600, 4800, 0)

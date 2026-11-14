@@ -14,6 +14,7 @@
 #include "TriadDrift/World/TDEscapeDebris.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Enemies/TDEnemyTurret.h"
@@ -391,10 +392,9 @@ void ATDDominion::PlayFinalBlast()
 	{
 		Booms->PlayPlaceholderExplosion(Where, Radius, FLinearColor(1.f, 0.85f, 0.6f), 16);
 	}
-	if (Reactor) { Reactor->SetActorHiddenInGame(true); }
-	if (DockingBay) { DockingBay->SetActorHiddenInGame(true); }
-	if (DockingInterior) { DockingInterior->SetActorHiddenInGame(true); DockingInterior->SetActorEnableCollision(false); }
-	ShowHull(false);	// the ship is gone in the flash
+	// The ship is gone in the flash, and so is everything on it (M6 played, Nov 14: the hull turrets stayed targetable
+	// after VICTORY, ~10 red markers on the screen edges).
+	RetireDefenses();
 }
 
 FTransform ATDDominion::GetEscapeStart() const
@@ -654,6 +654,7 @@ void ATDDominion::LayoutParts()
 
 void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	ReleaseReactorHold();
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
 		Bus->OnTakeStarted.RemoveDynamic(this, &ATDDominion::HandleTakeStarted);
@@ -680,6 +681,7 @@ void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 void ATDDominion::SetState(ETDDominionState NewState)
 {
+	if (NewState != ETDDominionState::ReactorExposed) { ReleaseReactorHold(); }
 	if (NewState == ETDDominionState::ShieldsUp && State != ETDDominionState::ShieldsUp)
 	{
 		UTDStorySubsystem::Fire(this, TEXT("G6_Kato_MarkingTargets"));	// storyline 24: the generator markers first show
@@ -823,6 +825,12 @@ void ATDDominion::FinishAfterVictory()
 		if (S.IsValid()) { S->Destroy(); }
 	}
 	Launched.Reset();
+	RetireDefenses();
+	SetState(ETDDominionState::Finished);
+}
+
+void ATDDominion::RetireDefenses()
+{
 	auto Retire = [](AActor* A)
 	{
 		if (!A) { return; }
@@ -838,7 +846,6 @@ void ATDDominion::FinishAfterVictory()
 	Retire(DockingBay);
 	if (DockingInterior) { DockingInterior->SetActorHiddenInGame(true); DockingInterior->SetActorEnableCollision(false); }
 	ShowHull(false);
-	SetState(ETDDominionState::Finished);
 }
 
 void ATDDominion::ShowHull(bool bVisible)
@@ -1551,6 +1558,7 @@ void ATDDominion::Tick(float DeltaSeconds)
 		}
 		Launched.RemoveAll([](const TWeakObjectPtr<ATDEnemyShip>& S) { return !S.IsValid(); });
 		TickLaunches(DeltaSeconds);
+		TickReactorHold(DeltaSeconds);
 		break;
 
 	case ETDDominionState::Breakup:
@@ -1578,4 +1586,62 @@ void ATDDominion::Tick(float DeltaSeconds)
 	default:
 		break;
 	}
+}
+
+// ------------------------------------------------------------------------------------------------ reactor hold
+
+namespace TDReactorHold { static const FName Owner(TEXT("ReactorHold")); }
+
+float ATDDominion::GetReactorSurfaceDistance(const FVector& WorldPoint) const
+{
+	if (!Reactor) { return BIG_NUMBER; }
+	FVector Origin, Extent;
+	Reactor->GetActorBounds(/*bOnlyColliding*/ true, Origin, Extent);
+	if (Extent.IsNearlyZero()) { Origin = Reactor->GetActorLocation(); }
+	const float R = (float)Extent.GetMax();	// the largest half-size: conservative, the hold stops short of any face
+	return FMath::Max(0.f, (float)FVector::Dist(WorldPoint, Origin) - R);
+}
+
+void ATDDominion::SetFlownShipOverride(ATDShip* Ship)
+{
+	FlownShipOverride = Ship;
+}
+
+void ATDDominion::ReleaseReactorHold()
+{
+	if (ATDShip* Was = ReactorHeld.Get()) { Was->ClearSpeedOverrideFor(TDReactorHold::Owner); }
+	ReactorHeld.Reset();
+}
+
+void ATDDominion::TickReactorHold(float DeltaSeconds)
+{
+	ATDShip* Ship = FlownShipOverride.Get();
+	if (!Ship)
+	{
+		const ATDSquadManager* Squad = ATDSquadManager::Get(this);
+		Ship = Squad ? Squad->GetActiveShip() : nullptr;
+	}
+	if (ReactorHeld.IsValid() && ReactorHeld.Get() != Ship) { ReleaseReactorHold(); }	// switched ships: the hold follows the flown one
+	const UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
+	if (State != ETDDominionState::ReactorExposed || UsesBoardingFinale() || !Reactor || !Reactor->IsAlive() || !Move || Ship->IsHidden())
+	{
+		ReleaseReactorHold();
+		return;
+	}
+	const float Dist = GetReactorSurfaceDistance(Ship->GetActorLocation());
+	const FVector ToReactor = (Reactor->GetActorLocation() - Ship->GetActorLocation()).GetSafeNormal();
+	const float Closing = (float)FVector::DotProduct(Ship->GetActorForwardVector(), ToReactor);
+	if (Dist > ReactorHoldRadius || Closing < ReactorHoldMinClosing || Move->GetFlightInput().bBoost)
+	{
+		ReleaseReactorHold();	// out of range, turned away or boosting out: the ship is the player's again at once
+		return;
+	}
+	// Cruise at the edge, easing (smoothstep) to ReactorHoldSpeed by half the radius, then to rest at the stand-off.
+	const float Cruise = FMath::Max(Move->GetFlightTuning().CruiseSpeed, ReactorHoldSpeed);
+	const float Half = ReactorHoldRadius * 0.5f;
+	const float Outer = FMath::SmoothStep(Half, ReactorHoldRadius, Dist);
+	const float Inner = FMath::Clamp((Dist - ReactorStandOff) / FMath::Max(Half - ReactorStandOff, 1.f), 0.f, 1.f);
+	const float Speed = FMath::Lerp(ReactorHoldSpeed * Inner, Cruise, Outer);
+	Ship->SetSpeedOverrideFor(TDReactorHold::Owner, Speed, /*SteeringScale*/ 1.f, /*AccelerationCmPerSec2*/ 4000.f);
+	ReactorHeld = Ship;
 }

@@ -1,0 +1,77 @@
+{
+ "site": "AnchorCheck",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_AnchorCheck",
+ "about": "Capture only: the anchor collapse pieces at rest.",
+ "pieces": [
+  {
+   "name": "SectionA",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_AnchorSection_A",
+   "location_cm": [
+    300.0,
+    -500.0,
+    0.0
+   ],
+   "yaw_deg": 10.0
+  },
+  {
+   "name": "SectionB",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_AnchorSection_B",
+   "location_cm": [
+    300.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": -15.0
+  },
+  {
+   "name": "SectionC",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_AnchorSection_C",
+   "location_cm": [
+    250.0,
+    450.0,
+    0.0
+   ],
+   "yaw_deg": 30.0
+  },
+  {
+   "name": "DebrisA",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_AnchorDebris_A",
+   "location_cm": [
+    -400.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 20.0
+  },
+  {
+   "name": "DebrisB",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_AnchorDebris_B",
+   "location_cm": [
+    -500.0,
+    150.0,
+    0.0
+   ],
+   "yaw_deg": 70.0
+  },
+  {
+   "name": "DebrisC",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_AnchorDebris_C",
+   "location_cm": [
+    -350.0,
+    550.0,
+    0.0
+   ],
+   "yaw_deg": 130.0
+  },
+  {
+   "name": "ChargeOnBlock",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_AnchorCharge",
+   "location_cm": [
+    -900.0,
+    0.0,
+    110.0
+   ],
+   "yaw_deg": 180.0
+  }
+ ]
+}

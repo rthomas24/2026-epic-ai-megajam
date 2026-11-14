@@ -96,6 +96,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 GraveyardHulls = 5;
 	/** Region 7, the Outer Dark: lone rocks with gravel from this distance (cm) to the play bounds. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 OuterDarkRocks = 500;
+	/** The Outer Dark's watch: big lone rocks on the Dominion run-in, before the Shattered Moons (Lead, Nov 14). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 OuterWatchRocks = 12;
+	/** The Ice Drift's ice glow: the ice material's EmissiveStrength times this, on that region's rocks only. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float IceDriftGlowScale = 4.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 IceDriftRocks = 900;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRocks = 500;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRubble = 400;
@@ -316,6 +320,16 @@ public:
 	TMap<int32, FVector> RegionCentres;
 	/** Dev: each region's nearest approach from the player's routes (TD.SpaceField.RouteReport). */
 	void LogRouteReport() const;
+	/** Live check of T4's journey: for each keep-out and route, the field pieces (adopted included), set pieces and other
+	 *  obstacles (UTDWorldSubsystem) that sit inside it (TD.SpaceField.JourneyCheck). Returns the total inside. */
+	int32 LogJourneyCheck() const;
+	/** TD.SpaceField.FrameWatch: record this frame (once per frame). */
+	void NoteFrame(float DeltaSeconds);
+	uint64 GFrameNoted = 0;
+	/** Layout rocks the adoption moved out of the journey (to its corridor edges). */
+	int32 GetAdoptedMovedOffJourney() const { return AdoptedMovedOffJourney; }
+	/** A pose along journey route Index (only Route points, in GetJourneyKeyPoints order) at fraction T, facing along it. */
+	bool JourneyPose(int32 Index, float T, FVector& OutFrom, FRotator& OutFacing, FName& OutId) const;
 	/** The routes the player flies (zone to each planet, the Dominion and each gate end), world space. */
 	TArray<TArray<FVector>> GetRouteLanes() const { TArray<TArray<FVector>> Out; for (int32 i = 0; i < BuoyLanes && i < Lanes.Num(); ++i) { Out.Add(Lanes[i]); } return Out; }
 	/** The Shepherd Belt's plane normal and centre (world), once built. */
@@ -385,8 +399,11 @@ private:
 	/** For the next RegisterPiece: an exact collision radius (> 0), and an obstacle handle to reuse (>= 0) or none (-2). */
 	float PendingColliderRadius = -1.f;
 	bool bMoonPlacement = false;
+	/** While true, new rock components are the Ice Drift's own (raised ice glow). */
+	bool bIceDriftPlacement = false;
 	/** T4's journey key points (ATDGalaxyLayout::GetJourneyKeyPoints), read at Build: keep-outs and routes stay clear. */
 	TArray<FTDJourneyKeyPoint> JourneyPoints;
+	int32 AdoptedMovedOffJourney = 0;
 public:
 	/** The first keep-out or route a piece of this size at P would sit on (NAME_None when clear). Pockets allow sparse cover. */
 	FName JourneyBlockerAt(const FVector& WorldPoint, float Size, bool bCollides) const;

@@ -1,0 +1,69 @@
+[
+ {
+  "asset": "SM_Kit_NullConduit",
+  "min_cm": [
+   -50.0,
+   -50.0,
+   0.0
+  ],
+  "max_cm": [
+   50.0,
+   50.0,
+   300.0
+  ],
+  "size_cm": [
+   100.0,
+   100.0,
+   300.0
+  ],
+  "expected": [
+   [
+    -50.0,
+    -50.0,
+    0.0
+   ],
+   [
+    50.0,
+    50.0,
+    300.0
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 2452,
+  "materials": [
+   "M_Kit_Dom",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_NullConduitBroken",
+  "min_cm": [
+   -50.0,
+   -50.0,
+   0.0
+  ],
+  "max_cm": [
+   50.829,
+   50.0,
+   146.333
+  ],
+  "size_cm": [
+   100.83,
+   100.0,
+   146.33
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 2968,
+  "materials": [
+   "M_Kit_Dom",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ }
+]

@@ -452,6 +452,17 @@ float a = (edge*(0.35 + 0.65*pow(f, 2.0) + 1.2*sweep) + rim*1.4)*0.6;
 float3 c = PC.rgb*a + lerp(PC.rgb, float3(1,1,1), 0.6)*(rim*0.6 + edge*sweep*0.5)*0.6;
 return float4(c*Intensity, PC.a);""", {}),
 
+    # 10f (T2's play): the cloaked Rift. An OVERLAY material for the ship's meshes (UMeshComponent::SetOverlayMaterial while
+    # cloaked): the hull darkens to a deep translucent magenta, its silhouette glows magenta, and shimmer bands crawl
+    # over it like refraction. Translucent; Tint is a vector parameter (Rift magenta), Cloak 0..1 fades it in and out.
+    'M_TD_VFX_CloakOverlay': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, """
+float f = saturate(Fres);
+float rim = pow(f, 2.2);
+float bands = pow(0.5 + 0.5*sin(Tm*7.0 + (UV.x*37.0 + UV.y*23.0)), 6.0);
+float a = saturate((0.50 + 0.45*rim + 0.15*bands)*Cloak);
+float3 c = Tint.rgb*(0.06 + rim*2.6 + bands*0.9*(0.3 + rim)) + float3(1,1,1)*pow(rim, 6.0)*0.6;
+return float4(c*Intensity, a);""", {'Tint': (1.0, 0.10, 0.85), 'Cloak': 1.0}),
+
     # round 10: a set piece's range beacon (NS_TD_Region_Beacon): soft round core, a short thin horizontal streak, a white
     # pin-point centre. Camera-facing sprite, additive.
     'M_TD_VFX_Beacon': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''
