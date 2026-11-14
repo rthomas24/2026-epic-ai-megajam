@@ -416,10 +416,13 @@ S2('NS_TD_Entry_CloudPunch', U(WHITE4, 1.0, Intensity=1.0), [
 # and ahead of the ship, streaking back past it. User.Color = the cloud tint (default pale teal-white, Verdance; Cinder:
 # ash-brown (0.45, 0.36, 0.30)); User.Embers 0..1 adds glowing embers (Cinder); User.Intensity 0..1 fades it all.
 S2('NS_TD_Entry_CloudWisps', U((0.78, 0.92, 0.92, 1.0), 1.0, Intensity=1.0, Embers=0.0), [
-    offset(spin(shed('Wisps', 'M_TD_VFX_CloudWisp', 0, (0.45, 0.8), (1400, 3200), (9000, 15000), radius=3800.0, drag=0.0, local=True, alpha=0.6,
-                     cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='70.0*' + RAMP, power=0.9, fade_in=6.0, sort=True)), 2500),
-    offset(spin(shed('Veil', 'M_TD_VFX_CloudWisp', 0, (0.6, 1.0), (4000, 7000), (6000, 9000), radius=2600.0, drag=0.0, local=True, alpha=0.35,
-                     cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='12.0*' + RAMP, power=0.8, fade_in=5.0, sort=True)), 1500),
+    # v2 (Lead): the base is a soft, nearly uniform veil over 70-80% of the frame (big low-contrast blobs, no curl), slow so
+    # it lingers around the chase camera; Cinder (User.Embers 1) gets fewer of them, so the same veil at lower opacity.
+    offset(shed('Veil', 'M_TD_VFX_CloudVeil', 0, (0.9, 1.4), (5000, 9000), (2500, 5000), radius=2200.0, drag=0.0, local=True, alpha=0.30,
+                cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='34.0*(1.0 - 0.45*User.Embers)*' + RAMP, power=0.8, fade_in=8.0, sort=True), 900),
+    # the streaking wisps ride on top for speed: fewer and fainter than v1 so they read as motion, not as smoke
+    offset(spin(shed('Wisps', 'M_TD_VFX_CloudWisp', 0, (0.4, 0.7), (1400, 3200), (11000, 17000), radius=3800.0, drag=0.0, local=True, alpha=0.40,
+                     cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='45.0*' + RAMP, power=0.9, fade_in=6.0, sort=True)), 2500),
     offset(shed('Streaks', 'M_TD_VFX_Spark', 0, (0.25, 0.45), (8, 16), (14000, 24000), k=0.6, radius=3000.0, drag=0.0, local=True, stretch=40,
                 cone=((-1.0, 0.0, 0.0), 2.0), rate_expr='120.0*' + RAMP, fade_in=6.0), 3000),
     offset(shed('Embers', 'M_TD_VFX_Glow', 0, (0.4, 0.8), (14, 34), (8000, 14000), k=1.8, radius=3000.0, drag=0.0, curl=800.0, local=True, rgb=(1.0, 0.45, 0.10),
