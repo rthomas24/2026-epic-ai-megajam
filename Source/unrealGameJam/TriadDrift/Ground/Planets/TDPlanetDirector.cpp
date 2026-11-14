@@ -323,6 +323,10 @@ bool ATDPlanetDirector::HandOverToFoot(ATDShip* Ship)
 	{
 		UTDStorySubsystem::Fire(this, TEXT("G4_Moss_SolidGround")); // T3: on landing (once per run)
 	}
+	else if (PlanetId == TEXT("Verdance"))
+	{
+		UTDStorySubsystem::Fire(this, TEXT("G2_Command_Archive")); // T3's audit (storyline section 14, Gameplay 02): on landing
+	}
 
 	// The re-board prompt stands where the pilot climbed out.
 	if (!BoardPoint)
@@ -435,6 +439,10 @@ void ATDPlanetDirector::HandleSceneRestart(FName SceneId, int32 TakeNumber)
 					Where = Spot->GetActorTransform();
 				}
 			}
+		}
+		if (Course)
+		{
+			Course->ResolveRespawn(Where); // two magma deaths in a row: the far side of it (T7's Cinder play)
 		}
 		FirstPerson->RespawnAt(Where);
 		return;

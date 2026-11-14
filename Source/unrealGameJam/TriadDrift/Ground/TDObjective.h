@@ -139,8 +139,31 @@ public:
 	void Unregister(ATDObjective* Objective);
 
 	void GetActiveObjectives(TArray<ATDObjective*>& Out) const;
+	/** The markers every on-foot drawer points at (T2's HUD, the dev HUD). Where the straight line from the pilot to a
+	 *  step's waypoint crosses a registered hazard (Cinder's magma), the next waypoint of that crossing's safe chain is
+	 *  given instead, until the last leg (T7's play, Nov 14: 21 CUTs following a marker straight over the river). */
 	void GetActiveWaypoints(TArray<AActor*>& Out) const;
+
+	/** A hazard the marker must route around while Objective is on Step (INDEX_NONE: any step): Chain is the safe way
+	 *  across, in order from either side (bank, stones, far bank). */
+	void AddCrossing(const FBox& Hazard, ATDObjective* Objective, int32 Step, const TArray<AActor*>& Chain);
+	/** The marker for a pilot at From heading to Target on Objective's current step: Target, or a chain waypoint. */
+	AActor* RouteWaypoint(const FVector& From, const ATDObjective* Objective, AActor* Target) const;
+	/** The same for a given step (tests walk every step). */
+	AActor* RouteWaypointForStep(const FVector& From, const ATDObjective* Objective, int32 Step, AActor* Target) const;
+	/** The flat line A-B passes over the hazard's footprint (grown by Margin). */
+	static bool SegmentCrosses(const FBox& Hazard, const FVector& A, const FVector& B, float Margin = 50.f);
+	/** Within this of a chain waypoint, the marker moves on to the next one. */
+	static constexpr float CrossingReach = 350.f;
 
 private:
 	TArray<TWeakObjectPtr<ATDObjective>> Active;
+	struct FCrossing
+	{
+		FBox Hazard;
+		TWeakObjectPtr<ATDObjective> Objective;
+		int32 Step = INDEX_NONE;
+		TArray<TWeakObjectPtr<AActor>> Chain;
+	};
+	TArray<FCrossing> Crossings;
 };

@@ -682,7 +682,10 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 	auto Beat = [this](const TCHAR* Beat) { UTDStorySubsystem::Fire(this, FName(Beat)); };
 	// Verdance, the survey archive (storyline.md section 16, reduced form; at the relay since decision 2): the transfer
 	// starts, the disruption, data secured and the way home.
-	if (Id == TEXT("Obj_Relay") && StepIndex == 2) { Beat(TEXT("G3_TransferStart")); }
+	// Gameplay 02 (T3's audit): reaching the research site, and the relay deck before its console.
+	if (Id == TEXT("Obj_WreckCore") && StepIndex == 1) { Beat(TEXT("G2_Kato_OneLine")); }
+	else if (Id == TEXT("Obj_Relay") && StepIndex == 1) { Beat(TEXT("G2_Moss_LightsOn")); }
+	else if (Id == TEXT("Obj_Relay") && StepIndex == 2) { Beat(TEXT("G3_TransferStart")); }
 	else if (Id == TEXT("Obj_Relay") && StepIndex == 3) { Beat(TEXT("G3_Disruption")); }
 	else if (Id == TEXT("Obj_Relay") && StepIndex == 4)
 	{

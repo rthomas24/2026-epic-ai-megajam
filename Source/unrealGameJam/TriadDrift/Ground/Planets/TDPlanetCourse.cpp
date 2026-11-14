@@ -897,6 +897,56 @@ AActor* ATDPlanetCourse::Marker(const FVector& At, float Yaw)
 	return M;
 }
 
+void ATDPlanetCourse::AddMagmaCrossing(const AActor* MagmaActor, ATDObjective* Objective, int32 Step, const TArray<FVector>& Chain, const FVector& RescueAt, float RescueYaw)
+{
+	const ATDMagmaVolume* M = Cast<ATDMagmaVolume>(MagmaActor);
+	UTDObjectiveSubsystem* Markers = UTDObjectiveSubsystem::Get(this);
+	if (!M || !M->Box || !Markers)
+	{
+		return;
+	}
+	TArray<AActor*> Waypoints;
+	for (const FVector& L : Chain) { Waypoints.Add(Marker(L + FVector(0.f, 0.f, 100.f))); }
+	Markers->AddCrossing(M->Box->Bounds.GetBox(), Objective, Step, Waypoints);
+	if (!MagmaRescues.ContainsByPredicate([M](const FMagmaRescue& R) { return R.Magma.Get() == M; }))
+	{
+		MagmaRescues.Add({ M, FTransform(GetActorRotation() + FRotator(0.f, RescueYaw, 0.f), W(RescueAt + FVector(0.f, 0.f, 100.f))) });
+	}
+}
+
+void ATDPlanetCourse::NoteMagmaDeath(const AActor* Magma)
+{
+	PendingMagmaDeath = Magma;
+}
+
+bool ATDPlanetCourse::GetMagmaRescue(const AActor* Magma, FTransform& Out) const
+{
+	for (const FMagmaRescue& R : MagmaRescues)
+	{
+		if (R.Magma.Get() == Magma) { Out = R.Far; return true; }
+	}
+	return false;
+}
+
+bool ATDPlanetCourse::ResolveRespawn(FTransform& InOutWhere)
+{
+	// Count magma deaths in a row in the same magma; any other death starts over.
+	const AActor* Killer = PendingMagmaDeath.Get();
+	PendingMagmaDeath.Reset();
+	MagmaDeathsInRow = (Killer && Killer == LastMagmaDeath.Get()) ? MagmaDeathsInRow + 1 : (Killer ? 1 : 0);
+	LastMagmaDeath = Killer;
+	FTransform Far;
+	if (MagmaDeathsInRow >= MagmaRescueAfterDeaths && GetMagmaRescue(Killer, Far))
+	{
+		UE_LOG(LogTriadDrift, Display, TEXT("%s: %d magma deaths in a row in %s, respawning on the far side"), *GetName(), MagmaDeathsInRow, *GetNameSafe(Killer));
+		MagmaDeathsInRow = 0;
+		LastMagmaDeath.Reset();
+		InOutWhere = Far;
+		return true;
+	}
+	return false;
+}
+
 void ATDPlanetCourse::Checkpoint(ATDObjective* Obj, int32 Step, const FVector& At, float Yaw)
 {
 	if (Obj && Obj->Steps.IsValidIndex(Step))
@@ -1170,11 +1220,12 @@ void ATDPlanetCourse::BuildVerdance()
 		Block(EShape::Cube, L + FVector(0.f, 0.f, 70.f), FVector(500.f, 110.f, 140.f), Trunk, 0.f, FRotator(0.f, 35.f, 0.f), true, TEXT("SM_Verd_Log"));
 	}
 	ATDEncounterVolume* AmbushFight = Encounter(Wreck, INDEX_NONE, Ambush + FVector(0.f, 0.f, 200.f), FVector(1500.f, 1500.f, 600.f),
-		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt }, true, 900.f); // the first fight: one shooter (playtest: 4 crew killed a non-blocker in ~4 s)
-	// Director's mercy (agent journey: 16 takes lost here): take 3 one grunt fewer, take 5 the trooper alone.
-	FTDRetakeMercyTier AmbushMercy3; AmbushMercy3.FromTake = 3; AmbushMercy3.DropCrew = 1;
-	FTDRetakeMercyTier AmbushMercy5; AmbushMercy5.FromTake = 5; AmbushMercy5.DropCrew = 2;
-	AmbushFight->MercyTiers = { AmbushMercy3, AmbushMercy5 };
+		{ ETDCrewType::Grunt, ETDCrewType::Grunt }, true, 900.f); // the first fight, melee only: the blade before the bolts
+	// (T7's Standard play, Nov 14: 5-7 CUTs at the wreck core with a shooter in each of its two fights; Lead's GO.)
+	// Director's mercy: take 2 one grunt, take 3 that grunt at 60 % health.
+	FTDRetakeMercyTier AmbushMercy2; AmbushMercy2.FromTake = 2; AmbushMercy2.DropCrew = 1;
+	FTDRetakeMercyTier AmbushMercy3; AmbushMercy3.FromTake = 3; AmbushMercy3.DropCrew = 1; AmbushMercy3.HealthScale = 0.6f;
+	AmbushFight->MercyTiers = { AmbushMercy2, AmbushMercy3 };
 
 	// The survey station (storyline.md section 18, reduced form): one open-sided station, intact and lit, nobody home. A
 	// roofed deck on four posts with two low equipment walls, the survey terminal in the middle and a dormant drone in a
@@ -1208,13 +1259,13 @@ void ATDPlanetCourse::BuildVerdance()
 
 	// Explicit spawn points clear of the hull (a ring point landed inside it: an unreachable, unkillable grunt).
 	ATDEncounterVolume* SiteFight = Encounter(Wreck, 1, WreckSite + FVector(0.f, 0.f, 200.f), FVector(2600.f, 2600.f, 700.f),
-		{ ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Heavy }, false, 1000.f, // take-1 tuning (journey run 2): 3 crew, about 18 dps standing still; the 4th grunt made it about 25
+		{ ETDCrewType::Grunt, ETDCrewType::Trooper }, false, 1000.f, // the first shooter; the Heavy waits for the relay's transfer (T7's play, Nov 14)
 		{ FVector(1300.f, 200.f, 0.f), FVector(-200.f, -1300.f, 0.f), FVector(1100.f, 1100.f, 0.f) });
 	StepEncounters.Add({ Wreck, 1, SiteFight });
-	// Director's mercy (agent journey: 15 takes lost here): from take 3 the heavy sits it out, from take 5 one grunt.
-	FTDRetakeMercyTier SiteMercy3; SiteMercy3.FromTake = 3; SiteMercy3.DropCrew = 1;
-	FTDRetakeMercyTier SiteMercy5; SiteMercy5.FromTake = 5; SiteMercy5.DropCrew = 2;
-	SiteFight->MercyTiers = { SiteMercy3, SiteMercy5 };
+	// Director's mercy: from take 2 the trooper sits it out, from take 3 the grunt at 60 % health.
+	FTDRetakeMercyTier SiteMercy2; SiteMercy2.FromTake = 2; SiteMercy2.DropCrew = 1;
+	FTDRetakeMercyTier SiteMercy3; SiteMercy3.FromTake = 3; SiteMercy3.DropCrew = 1; SiteMercy3.HealthScale = 0.6f;
+	SiteFight->MercyTiers = { SiteMercy2, SiteMercy3 };
 
 	// The survey console: the signal-analysis device is recovered here (a tap; Gravity Well). Decision 2 (Ryan, Nov 13): the
 	// transfer defence moved to the relay, so the station is the pick-up and nothing is carried.
@@ -1542,11 +1593,33 @@ void ATDPlanetCourse::BuildCinder()
 	Route({ FVector(900.f, 900.f, 0.f), OutHead, FVector(5000.f, 4200.f, 0.f), FVector(7600.f, 6000.f, 0.f), FVector(9200.f, 6000.f, 0.f) }, Ember);
 
 	// The magma river with basalt stepping stones (3 m gaps: a jump).
-	Magma(FVector(5600.f, 4800.f, 0.f), FVector(1600.f, 7000.f, 300.f));
+	const ATDMagmaVolume* River = Magma(FVector(5600.f, 4800.f, 0.f), FVector(1600.f, 7000.f, 300.f));
+	TArray<FVector> RiverChain = { FVector(4450.f, 4250.f, 0.f) }; // the near bank, each stone, the far bank
 	for (int32 i = 0; i < 3; ++i)
 	{
 		Platform(FVector(5050.f + i * 550.f, 4400.f + i * 300.f, 0.f), 60.f, FVector(280.f, 280.f, 160.f), Basalt, 0.f, TEXT("SM_Cind_SteppingStone"));
+		RiverChain.Add(FVector(5050.f + i * 550.f, 4400.f + i * 300.f, 220.f));
 	}
+	RiverChain.Add(FVector(6750.f, 5100.f, 0.f));
+	// The structures builder's walk-tested magma bridge (eng/struct e76ce3bb): pivot on the bank at the span centre, +X
+	// along the span, ramps to the ground at x +-1400, deck top 50 cm (the burn trigger ends 10 cm over the surface).
+	// On the route (5000, 4200) -> (7600, 6000); both ramp feet on dry ground (x 4449 and 6751), the channel under the
+	// deck. It is the marker's way across when it is in the build; the stones otherwise.
+	{
+		const float BridgeYaw = 34.7f;
+		const FVector BridgeAt(5600.f, 4620.f, 0.f);
+		const FVector Along = FRotator(0.f, BridgeYaw, 0.f).Vector();
+		const FVector FootA = BridgeAt - Along * 1400.f, FootB = BridgeAt + Along * 1400.f;
+		const float BankZ = FMath::Max(GroundZAt(FootA), GroundZAt(FootB));
+		if (SpawnKitBP(TEXT("Kit/Sites"), TEXT("BP_MagmaBridge"), FVector(BridgeAt.X, BridgeAt.Y, BankZ), BridgeYaw, 1.f))
+		{
+			SiteClears.Add({ BridgeAt, 1500.f });
+			RiverChain = { FootA - Along * 150.f, FVector(BridgeAt.X, BridgeAt.Y, BankZ + 50.f), FootB + Along * 100.f };
+		}
+	}
+	// The marker crosses from wherever the pilot is (T7: the straight line from the respawn ran over the river); two
+	// magma deaths in a row put the pilot on the far bank (clear of the geyser row), facing the gate.
+	AddMagmaCrossing(River, Outpost, INDEX_NONE, RiverChain, FVector(6900.f, 4900.f, 0.f), 25.f);
 	// A geyser row on the far bank, rippling.
 	for (int32 i = 0; i < 3; ++i)
 	{
@@ -1738,7 +1811,10 @@ void ATDPlanetCourse::BuildCinder()
 	// The magma lake and the collapsing crystal bridge: one continuous walkway of slabs (no jumps), each
 	// falling 1.1 s after you step on it: keep running.
 	const float LakeX0 = 7000.f, LakeX1 = 10400.f, LakeY = -5000.f;
-	Magma(FVector((LakeX0 + LakeX1) * 0.5f, LakeY, 0.f), FVector(LakeX1 - LakeX0, 5000.f, 300.f));
+	const ATDMagmaVolume* Lake = Magma(FVector((LakeX0 + LakeX1) * 0.5f, LakeY, 0.f), FVector(LakeX1 - LakeX0, 5000.f, 300.f));
+	// Out over the bridge (the near and far bank), back by the south shore once it has fallen (the return route).
+	AddMagmaCrossing(Lake, Jammer, 0, { FVector(LakeX0 - 350.f, LakeY, 0.f), FVector(LakeX1 + 350.f, LakeY, 0.f) }, FVector(LakeX1 + 250.f, LakeY, 0.f), 0.f);
+	AddMagmaCrossing(Lake, Jammer, 2, { FVector(LakeX1 + 800.f, LakeY - 3300.f, 0.f) }, FVector(LakeX1 + 250.f, LakeY, 0.f), 0.f);
 	const int32 Segments = 6;
 	for (int32 i = 0; i < Segments; ++i)
 	{
