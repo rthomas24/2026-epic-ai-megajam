@@ -29,6 +29,7 @@
   ],
   "textures": [
     "T_Fab_OilBarrel_BC.png",
+    "T_Fab_OilBarrel_BC_orig.png",
     "T_Fab_OilBarrel_N.png",
     "T_Fab_OilBarrel_ORM.png"
   ],

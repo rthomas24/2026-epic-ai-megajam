@@ -25,7 +25,9 @@
   ],
   "textures": [
     "T_Fab_PowerCore_BC.png",
+    "T_Fab_PowerCore_BC_orig.png",
     "T_Fab_PowerCore_E.png",
+    "T_Fab_PowerCore_E_orig.png",
     "T_Fab_PowerCore_N.png",
     "T_Fab_PowerCore_ORM.png"
   ],

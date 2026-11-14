@@ -29,6 +29,7 @@
   ],
   "textures": [
     "T_Fab_CrateStack_BC.png",
+    "T_Fab_CrateStack_BC_orig.png",
     "T_Fab_CrateStack_N.png",
     "T_Fab_CrateStack_ORM.png"
   ],

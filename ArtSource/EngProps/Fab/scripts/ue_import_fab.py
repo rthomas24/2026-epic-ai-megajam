@@ -2,9 +2,8 @@
 # Triad Drift - asset intake: import Nicholas's three Fab props (prepared by prep_fab.py) into Unreal, headless:
 #   powershell -File Tools\td-python.ps1 -Script ArtSource\EngProps\Fab\scripts\ue_import_fab.py
 #
-# FOR EVALUATION ONLY. The Fab licence of these listings is not yet evidenced (issue #175). The assets land in
-# /Game/TriadDrift/Gameplay/Props/Fab/<Asset>/ and nothing (map, data asset, class, code) may reference them until the
-# licence is recorded in CREDITS.md; that folder is not in any always-cook list, so unreferenced they do not ship.
+# Licences recorded in CREDITS.md (CC BY 4.0 for the crates and the core, Fab Standard for the barrel; issues #175-#177).
+# The textures are the approved recolours (recolour_fab.py); the seller's colours stay in export/*_orig.png.
 #
 # Follows ArtSource/EngImport/scripts/ue_import_engai.py: FBX through Interchange with the pipeline
 # Gameplay/Ships/Pipelines/PL_Ship_StaticMesh (UCX_ collision by name, no lightmap UVs, no materials, Nanite),
