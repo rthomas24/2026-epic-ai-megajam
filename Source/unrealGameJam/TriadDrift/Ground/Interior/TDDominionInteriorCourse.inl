@@ -461,8 +461,38 @@ void ATDPlanetCourse::BuildInterior()
 		}, FVector::ZeroVector, 0.f, TEXT("InteriorFab"));
 		// A warm work light over each crate cluster (env a13 look pass): the black-and-crimson crates sank into the dark
 		// floor; a small amber pool picks out their edges and the barrels' yellow. No shadows, like the rest.
-		Light(FVector(450.f, 1080.f, 260.f), 750.f, FLinearColor(1.f, 0.55f, 0.22f), 420.f);
-		Light(FVector(-1020.f, -1060.f, 260.f), 750.f, FLinearColor(1.f, 0.55f, 0.22f), 380.f);
+		Light(FVector(450.f, 1080.f, 260.f), 750.f, FLinearColor(1.f, 0.55f, 0.22f), 280.f);
+		Light(FVector(-1020.f, -1060.f, 260.f), 750.f, FLinearColor(1.f, 0.55f, 0.22f), 260.f);
+	}
+	// Corridor dressing (environment builder): the three corridors were bare 3.4 m boxes. Wall-mounted kit pieces only, no
+	// collision and almost no floor (each wall gives up 12 cm): a bulkhead rib on both walls at every 4 m seam, a handrail
+	// along both walls, and a floor-edge light strip on both sides of every other cell, so the walk hangar -> arena ->
+	// Warden room reads as a ship's passage. Placed through Dress() (no map save).
+	{
+		const TCHAR* DI = TEXT("DominionInterior");
+		const TCHAR* K = TEXT("Kit");
+		TArray<FDressItem> Items;
+		for (const FVector2D& Run : { FVector2D(HX1, CX1), FVector2D(AX1, L1X1), FVector2D(WX1, L2X1) })
+		{
+			for (float X = Run.X + Grid; X < Run.Y - 1.f; X += Grid)
+			{
+				Items.Add({ DI, TEXT("SM_DI_Bulkhead_Rib"), FVector(X, -158.f, 0.f), 0.f, 1.f, false });
+				Items.Add({ DI, TEXT("SM_DI_Bulkhead_Rib"), FVector(X, 158.f, 0.f), 0.f, 1.f, false });
+			}
+			int32 Cell = 0;
+			for (float X = Run.X + 0.5f * Grid; X < Run.Y; X += Grid, ++Cell)
+			{
+				Items.Add({ K, TEXT("SM_Kit_Railing_400"), FVector(X, -165.f, 0.f), 0.f, 1.f, false });	// on +Y of its line: against the -Y wall
+				Items.Add({ K, TEXT("SM_Kit_Railing_400"), FVector(X, 165.f, 0.f), 180.f, 1.f, false });
+				if (Cell % 2 == 0)
+				{
+					Items.Add({ K, TEXT("SM_Kit_LightStrip_200"), FVector(X, -150.f, 0.f), 0.f, 1.f, false });
+					Items.Add({ K, TEXT("SM_Kit_LightStrip_200"), FVector(X, 150.f, 0.f), 0.f, 1.f, false });
+				}
+			}
+		}
+		const int32 Placed = Dress(Items, FVector::ZeroVector, 0.f, TEXT("InteriorCorridors"));
+		UE_LOG(LogTriadDrift, Display, TEXT("Dominion interior: corridor dressing %d of %d pieces"), Placed, Items.Num());
 	}
 
 	// 1. The deflect lesson: two troopers at the corridor's far end, behind low cover, firing down the lane.
