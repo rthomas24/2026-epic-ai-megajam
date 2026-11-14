@@ -159,3 +159,5 @@ Tools used: **Hyper3D Rodin** (list it in the submission for the Rodin prize poo
 Tools used: **HY-Motion 1.0 (through fal.ai)**, **Hyper3D Rodin** (list both in the submission; Rodin for its prize pool), Blender 5.2.
 
 Nicholas Tosti supplied Calm Loop (Dominion boarding), Cathedral Pulse (1) and Ethereal Pulse (Remix) (credits, in that order), and Verdance (planet theme). The Audio specialist prepared the stereo sources and imported them in Unreal Engine 5.9. Calm Loop uses a MetaSound. Source and tool records are in the audio branch at e7e35cd1, 337606bc and e3826232 respectively.
+
+Nicholas Tosti supplied Infinity Zone for the Dominion space assault. Audio prepared the complete 139.1735-second stereo source and imported the SoundWave with the Unreal Engine editor Python API. The original file receipt is in release issue46-infinity-zone-source. Preparation and native verification are in ArtSource/Audio/DominionAssault01 at 6db3aa98.
