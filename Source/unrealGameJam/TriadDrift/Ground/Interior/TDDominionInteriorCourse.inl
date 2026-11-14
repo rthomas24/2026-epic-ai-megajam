@@ -56,6 +56,34 @@ FTransform ATDPlanetCourse::GetInteriorStart() const
 	return (Hangar ? *Hangar : FTransform(FVector(-600.f, 0.f, 100.f))) * GetActorTransform();
 }
 
+AActor* ATDPlanetCourse::RouteThroughDoors(const FVector& Pilot, AActor* Target) const
+{
+	if (!Target || !IsInterior())
+	{
+		return Target;
+	}
+	const FTransform& Xf = GetActorTransform();
+	const float PX = Xf.InverseTransformPosition(Pilot).X;
+	const float TX = Xf.InverseTransformPosition(Target->GetActorLocation()).X;
+	AActor* Best = nullptr;
+	float BestX = 0.f;
+	for (const TWeakObjectPtr<AActor>& W : InteriorDoorways)
+	{
+		AActor* D = W.Get();
+		if (!D) { continue; }
+		const float DX = Xf.InverseTransformPosition(D->GetActorLocation()).X;
+		// A door ahead of the pilot (more than 1.5 m) and before the target, either way along the rooms.
+		const bool bForward = TX > PX && DX > PX + 150.f && DX < TX;
+		const bool bBack = TX < PX && DX < PX - 150.f && DX > TX;
+		if ((bForward || bBack) && (!Best || FMath::Abs(DX - PX) < FMath::Abs(BestX - PX)))
+		{
+			Best = D;
+			BestX = DX;
+		}
+	}
+	return Best ? Best : Target;
+}
+
 FTransform ATDPlanetCourse::GetInteriorRetakeSpot(FName SceneId) const
 {
 	if (const ATDObjective* Obj = SceneId.IsNone() ? nullptr : FindObjective(SceneId))
@@ -179,6 +207,7 @@ void ATDPlanetCourse::BuildInterior()
 		ATDDoor* D = SpawnProp<ATDDoor>(FVector(X, 0.f, 0.f));
 		if (D)
 		{
+			InteriorDoorways.Add(D);
 			D->OpenHeight = 400.f;
 			D->bRecognisesPilot = bRecognise;
 			D->DoorMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Door"))
