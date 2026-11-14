@@ -196,6 +196,18 @@ namespace TDSpaceFieldCompose
 				OutAt = OutFrom + (Fwd + (*C - P).GetSafeNormal()).GetSafeNormal() * 100000.f;
 			}
 		}
+		if (Best < 30000.f)
+		{
+			// The region sits on the route (the Shattered Moons): look at its nearest set piece instead of straight ahead.
+			float Near = TNumericLimits<float>::Max();
+			FVector Aim = OutAt;
+			for (const FTDSpaceFieldPiece& S : Field->GetStructures())
+			{
+				const float D = (float)FVector::Dist(S.Location, OutFrom);
+				if (FVector::Dist(S.Location, *C) < 200000.f && D > 30000.f && D < Near) { Near = D; Aim = S.Location; }
+			}
+			OutAt = Aim;
+		}
 		return Best < TNumericLimits<float>::Max();
 	}
 
