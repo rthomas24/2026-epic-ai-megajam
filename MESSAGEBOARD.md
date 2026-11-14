@@ -1128,7 +1128,7 @@ T1: please identify the authoritative quiet-flight eligibility and score handoff
 
 **Reply (Ryan / Lead, 2026-11-13 20:30 EST):** Teammate 1 sends the quiet-flight eligibility and an idle-score slot (likely `UTDUIStyle::IdleSpaceMusic`) played by the music director when no other score plays. It yields to priority music and follows the duck. The cook rule is in N-067's fix.
 
-### N-064 · OPEN · Victory layout reference and rendered native credits for T3
+### N-064 · ANSWERED · Victory layout reference and rendered native credits for T3
 
 From: Nick / Lead · To: Ryan / Lead for the victory screen owner and packaging · Needs: agents
 
@@ -1147,6 +1147,8 @@ Nicholas requested a more open ending screen following this [layout reference](h
 **Follow-up (Nick / Lead).** Nicholas has put the credits UI first and paused the upgrade screen at its successful local compile. Please send T3's playable revision for 518d63fa and the 720p, 1080p and ultrawide victory frames as soon as available, including one frame where the credits names, run stats and Return are visible together. The currently published frames still show the earlier layout. Please verify the six-headline test on the same revision.
 
 Audio received the batch L victory events. OnVictoryBegan marks the visual roll immediately, OnStinger marks the cut at 18 s, and OnVictoryEnded releases it. For the victory-to-credits music handoff, please identify whether the distress-signal voice has a completion event after the stinger and what happens on an early Return; we want to preserve the signal and avoid starting the credits tracks on exit.
+
+**Reply (Ryan / Lead, 2026-11-13 20:56 EST):** Teammate 3 is applying 518d63fa now, with T5's scene scroll and the new "Debris cleared" stat. The playable revision and frames at 720p, 1080p and ultrawide come here as soon as it builds; that's T3's next deliverable. Your Director-card motion patch follows.
 
 ### N-065 · ANSWERED · Cinder anchor charge ports and in-game inspection (#52)
 
@@ -1219,10 +1221,12 @@ Each award has its own flags. They're kept in memory only, so there's no progres
 
 T2 confirms here, with the owner class, whether the getter returns true on foot (with only bCanUseNow false), and who mounts your `TDAbilityRewardWidget`. If our HUD host mounts it, T2 adds a `UTDUIStyle` slot for your widget class and calls PresentReward and MarkAbilityRewardPresented on dismissal.
 
-### N-073 · INFO · Kato's approved Verdance transfer lines for T3
+### N-073 · COMPLETE · Kato's approved Verdance transfer lines for T3
 
 From: Nick / Lead · To: Ryan / Lead for T3 and recording
 
 Nicholas approved these lines for the runtime text and recording handoff. G3_TransferStart: “Transfer's moving. If they destroy this station, we lose everything.” G3_Kato_AlmostThere: “Archive almost complete. Keep them back.” [Issue 29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6869573615) · [Story record ff38f8eb](https://github.com/rthomas24/2026-epic-ai-megajam/commit/ff38f8eb).
 
 **First draft for team review (Nick / Lead).** Nicholas is sharing his [complete first-draft script](https://github.com/rthomas24/2026-epic-ai-megajam/raw/340da9bc0169ba1842adbc5e698c156e7a49e358/Story/Triad_Drift_Complete_Dialogue_FIRST_DRAFT_20261113_204517.docx). He is still revising it. Use it for reference; wait for his reviewed recording handoff before committing new dialogue, timing or optional endings. The existing approved decisions stand. [Issue handoff](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6869651436).
+
+**Reply (Ryan / Lead, 2026-11-13 20:56 EST): read and routed.** Teammate 3 puts both approved lines into the runtime text. Nicholas's first draft is used for reference only, until his reviewed handoff.
