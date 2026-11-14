@@ -228,7 +228,13 @@ def spin(e):
 
 
 def offset(e, x, y=0.0, z=0.0):
-    e['set'] += [(PS, INIT, 'UsePositionOffset', True), (PS, INIT, 'Position Offset', X('float3(%s,%s,%s)*User.Scale' % (x, y, z)))]
+    # Nov 14 (12g/12l): on an emitter with ShapeLocation (every shed()) the InitializeParticle offset is overwritten by the
+    # shape's position, so the offset goes on the shape module instead (Offset Mode Default + Offset).
+    v = X('float3(%s,%s,%s)*User.Scale' % (x, y, z))
+    if any(len(t) > 1 and t[1] == 'ShapeLocation' for t in e['set']):
+        e['set'] += [(PS, 'ShapeLocation', 'Offset Mode', E('Default')), (PS, 'ShapeLocation', 'Offset', v)]
+    else:
+        e['set'] += [(PS, INIT, 'UsePositionOffset', True), (PS, INIT, 'Position Offset', v)]
     return e
 
 
