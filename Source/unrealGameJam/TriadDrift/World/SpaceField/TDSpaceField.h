@@ -400,6 +400,8 @@ private:
 	/** For the next RegisterPiece: an exact collision radius (> 0), and an obstacle handle to reuse (>= 0) or none (-2). */
 	float PendingColliderRadius = -1.f;
 	bool bMoonPlacement = false;
+	/** True inside Build(): the instanced components skip their per-instance tree rebuild (one build at the end). */
+	bool bBuildingField = false;
 	/** While true, new rock components are the Ice Drift's own (raised ice glow). */
 	bool bIceDriftPlacement = false;
 	/** T4's journey key points (ATDGalaxyLayout::GetJourneyKeyPoints), read at Build: keep-outs and routes stay clear. */
