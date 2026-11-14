@@ -211,6 +211,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
 	bool IsBlocking() const { return State == ETDBladeState::Blocking; }
+	bool IsAttackHeld() const { return bAttackHeld; }
+	/** The button is not actually down (its release was lost to a pause, a level load or focus): forget the press, fire nothing. */
+	void DropHeldAttack() { bAttackHeld = false; bLightDeferred = false; bHeavyFiredThisPress = true; }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
 	bool IsGuardBroken() const { return State == ETDBladeState::GuardBroken; }
