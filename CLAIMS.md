@@ -28,7 +28,7 @@ Audio has the next exclusive Unreal recording slot once Ryan posts the corrected
 
 | Nick-side owner | Assigned paths and task | Limits |
 |---|---|---|
-| Lead, Nicholas-requested planet source delivery | ArtSource/Assets/Planets/ only. Publish the supplied Earth FBX ZIP and Full Moon GLB unchanged and notify Ryan. | Source handoff only. Ryan retains asset intake, selection and optional Unreal integration. |
+| Lead, planet source delivery complete; claim released (assets 87101438, board N-051 at 3c81c343) | ArtSource/Assets/Planets/ only. Publish the supplied Earth FBX ZIP and Full Moon GLB unchanged and notify Ryan. | Source handoff only. Ryan retains asset intake, selection and optional Unreal integration. |
 | Lead, ART-10 published cue pickup, in progress Nov 13 18:43 ET | Content/TriadDrift/Audio/{DominionInterior01,CreditsMusic01,VerdanceTheme01}/, exact five previously published packages, CREDITS.md and DEVLOG.md. | Verify native hashes and dependencies, integrate the additive packages for T7, then verify in the playable build. |
 | Audio, ART-10 mix and listening, in progress Nov 13 18:43 ET | Read-only PRs 11/12, ArtSource/Audio and released review media. Deliver listening links or generate missing comparison in private Saved/AudioMusic only. | First bring Nicholas the shortest real menu-loop and Lancer listening examples. Next verify T7 music and the tutorial boundary on matching builds. |
 | UI, ART-09/12, in progress Nov 13 18:43 ET | Read current victory, reward and credits implementation and actual available captures. Return one concrete next presentation change and its precise source files in the existing chat. | First establish which live surface needs work; #71 packaged evidence and #62 binding follow as delivered. |
