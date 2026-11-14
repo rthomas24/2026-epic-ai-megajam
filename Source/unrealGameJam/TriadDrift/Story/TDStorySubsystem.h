@@ -190,8 +190,20 @@ private:
 	void CarryAcrossTravel();
 	void TakeCarriedLines();
 	double CarryResumeAt = 0.0;
+	FTDTransmissionView BarkCaption;
+	double BarkCaptionStart = 0.0;
+	double BarkCaptionEnd = 0.0;
 	bool bCarryTaken = false;
 public:
+	/**
+	 * A bark's line in the story subtitle strip (on foot, where no flight HUD draws barks): the pilot's tag in their
+	 * colour, the same plate and wrap, the subtitle size setting. A story transmission on air wins the strip. False when
+	 * the flight HUD is drawing (it has its own bark lane) or there is no story subsystem; true with nothing drawn when
+	 * subtitles are off.
+	 */
+	static bool ShowBarkCaption(const UObject* WorldContext, FName Speaker, const FString& Line, float Seconds);
+	/** The caption to draw now (bActive false when none, or a transmission is on air). */
+	FTDTransmissionView GetBarkCaption() const;
 	/** Drop every line waiting to cross a travel (the menu; a run boundary). */
 	static void ClearCarriedLines();
 	static int32 NumCarriedLines();

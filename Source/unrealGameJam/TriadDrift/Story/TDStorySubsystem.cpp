@@ -37,6 +37,7 @@
 #include "NiagaraComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
+#include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/Story/TDStoryFX.h"
 
 #define LOCTEXT_NAMESPACE "TDStory"
@@ -338,7 +339,11 @@ namespace TDStory
 			{
 				return Layer;
 			}
-			const FTDTransmissionView V = S->GetCurrentTransmission();
+			FTDTransmissionView V = S->GetCurrentTransmission();
+			if (!V.bActive)
+			{
+				V = S->GetBarkCaption(); // a bark, when no story line holds the strip
+			}
 			if (!V.bActive || V.Alpha <= 0.f || !V.bShowSubtitle)
 			{
 				return Layer;
@@ -868,6 +873,48 @@ bool UTDStorySubsystem::Fire(const UObject* WorldContextObject, FName Id)
 	return S && S->FireTransmission(Id);
 }
 
+bool UTDStorySubsystem::ShowBarkCaption(const UObject* WorldContext, FName Speaker, const FString& Line, float Seconds)
+{
+	UTDStorySubsystem* S = Get(WorldContext);
+	const UWorld* World = S ? S->GetWorld() : nullptr;
+	if (!S || !World || S->bDrawnExternally || Line.IsEmpty())
+	{
+		return false;
+	}
+	const FString Who = Speaker.ToString();
+	const ETDSpeaker Pilot = Who.Equals(TEXT("Wren"), ESearchCase::IgnoreCase) || Who.Equals(TEXT("Rift"), ESearchCase::IgnoreCase) ? ETDSpeaker::Wren
+		: (Who.Equals(TEXT("Kato"), ESearchCase::IgnoreCase) || Who.Equals(TEXT("Lancer"), ESearchCase::IgnoreCase) ? ETDSpeaker::Kato
+		: (Who.Equals(TEXT("Moss"), ESearchCase::IgnoreCase) || Who.Equals(TEXT("Bastion"), ESearchCase::IgnoreCase) ? ETDSpeaker::Moss : ETDSpeaker::Control));
+	FTDTransmissionView V;
+	V.bActive = true;
+	V.Text = FText::FromString(Line);
+	V.SpeakerTag = Pilot == ETDSpeaker::Control ? FText::FromString(Who.ToUpper()) : SpeakerTag(Pilot);
+	V.Color = SpeakerColor(Pilot);
+	V.Alpha = 1.f;
+	V.bShowSubtitle = true;
+	S->BarkCaption = V;
+	S->BarkCaptionStart = World->GetRealTimeSeconds();
+	S->BarkCaptionEnd = S->BarkCaptionStart + FMath::Max(Seconds, 0.5f);
+	S->EnsureOverlay();
+	return true;
+}
+
+FTDTransmissionView UTDStorySubsystem::GetBarkCaption() const
+{
+	FTDTransmissionView V;
+	const UWorld* World = GetWorld();
+	const double Now = World ? World->GetRealTimeSeconds() : 0.0;
+	if (!BarkCaption.bActive || Now >= BarkCaptionEnd || Current.bActive)
+	{
+		return V;
+	}
+	V = BarkCaption;
+	// In over 0.12 s, out over the last 0.25 s.
+	V.Alpha = FMath::Clamp(FMath::Min(static_cast<float>(Now - BarkCaptionStart) / 0.12f, static_cast<float>(BarkCaptionEnd - Now) / 0.25f), 0.f, 1.f);
+	V.bShowSubtitle = AreSubtitlesShown(this);
+	return V;
+}
+
 FTDTransmissionView UTDStorySubsystem::GetCurrentTransmissionFor(const UObject* WorldContextObject)
 {
 	const UTDStorySubsystem* S = Get(WorldContextObject);
@@ -1367,6 +1414,12 @@ void UTDStorySubsystem::RemoveOverlay()
 	}
 	Overlay.Reset();
 }
+
+// The dev HUD's plain bark caption goes to the styled strip instead (Lead, T7's on-foot frame).
+static FDelayedAutoRegisterHelper GTDStoryBarkCaptionSink(EDelayedRegisterRunPhase::EndOfEngineInit, []()
+{
+	ATDDebugHUD::BarkCaptionSink = &UTDStorySubsystem::ShowBarkCaption;
+});
 
 namespace TDStoryCarry
 {
