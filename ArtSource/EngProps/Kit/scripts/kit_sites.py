@@ -201,9 +201,9 @@ def dominion_interior():
     ps = []
     n = [0]
 
-    def add(mesh, x, y, z=0.0, yaw=0.0):
+    def add(mesh, x, y, z=0.0, yaw=0.0, **kw):
         n[0] += 1
-        ps.append(piece("P%04d_%s" % (n[0], mesh.replace("SM_DI_", "")), KD + mesh, x, y, z, yaw))
+        ps.append(piece("P%04d_%s" % (n[0], mesh.replace("SM_DI_", "")), KD + mesh, x, y, z, yaw, **kw))
 
     def room(x0, x1, hy, storeys, door0, door1):
         x = x0 + 200
@@ -230,16 +230,18 @@ def dominion_interior():
                     add("SM_DI_Room_Wall", x1, y, z, 0)
                 y += 400
 
-    def corridor(x0, x1):
+    def corridor(x0, x1, deflect=False):
+        # r11: the deflect corridor uses MI_KitD_Trim_Corridor / MI_KitD_Glow_Corridor (red band and strips -30 %, crimson)
+        kw = {"slots": {"Trim": KD + "MI_KitD_Trim_Corridor", "Glow": KD + "MI_KitD_Glow_Corridor"}} if deflect else {}
         x = x0 + 200
         while x < x1:
-            add("SM_DI_Corridor_Straight", x, 0)
+            add("SM_DI_Corridor_Straight", x, 0, **kw)
             x += 400
     HX0, HX1, HY = -1200.0, 1200.0, 1400.0
     CX1, AX1, AY, L1X1, WX1, WY, L2X1, KX1, KY = 5200.0, 7600.0, 1400.0, 8400.0, 10400.0, 1000.0, 11200.0, 14800.0, 1800.0
     room(HX0, HX1, HY, 2, False, True)
     add("SM_DI_Hangar_Pad", -200, 0, 0.5)
-    corridor(HX1, CX1)
+    corridor(HX1, CX1, deflect=True)
     room(CX1, AX1, AY, 1, True, True)
     corridor(AX1, L1X1)
     room(L1X1, WX1, WY, 1, True, True)
