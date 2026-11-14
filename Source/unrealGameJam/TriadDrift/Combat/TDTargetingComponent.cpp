@@ -1,6 +1,7 @@
 // Triad Drift - Combat (Teammate 2). Soft target, cycling, Bastion multi-lock, lead and HUD markers (ENG-06).
 
 #include "TriadDrift/Combat/TDTargetingComponent.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -207,6 +208,7 @@ bool UTDTargetingComponent::GetLeadIndicator(FVector& OutWorldLocation) const
 
 void UTDTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
+	TD_COMBAT_PERF(Targeting);
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	PruneLocks(DeltaTime);

@@ -26,6 +26,7 @@ import kit_lib  # noqa: E402
 import kit_pieces  # noqa: E402
 import kit_pieces_d  # noqa: E402
 import kit_pieces_space  # noqa: E402
+import kit_pieces_story  # noqa: E402
 
 SET = "planet"          # --set dominion: the Dominion shell (kit_pieces_d), T_KitD_Trim, red strips
 
@@ -73,6 +74,23 @@ def make_materials(glow=GLOW_TEAL):
     nt.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
     m.use_backface_culling = True
     mats["Trim"] = m
+    if SET == "story":
+        dm = m.copy()
+        dm.name = "M_Kit_Dom"
+        for nd in dm.node_tree.nodes:
+            if nd.type == "TEX_IMAGE" and nd.image and nd.image.name.startswith("T_Kit_Trim"):
+                nd.image = bpy.data.images.load(os.path.join(TEX, nd.image.name.replace("T_Kit_Trim", "T_KitD_Trim")), check_existing=True)
+                nd.image.colorspace_settings.name = "sRGB" if "_BC" in nd.image.name else "Non-Color"
+        mats["Dom"] = dm
+        wm = m.copy()
+        wm.name = "M_Kit_Worn"
+        mats["Worn"] = wm
+        for key, col in (("Canopy", (0.42, 0.38, 0.28)), ("Flag", (0.9, 0.35, 0.05)), ("Decal", (0.05, 0.04, 0.03)), ("Decal2", (0.02, 0.02, 0.02))):
+            c_ = bpy.data.materials.new("M_Kit_" + key)
+            b_ = next(n for n in c_.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+            b_.inputs["Base Color"].default_value = (col[0], col[1], col[2], 1.0)
+            b_.inputs["Roughness"].default_value = 0.85
+            mats[key] = c_
     if SET == "space":                          # the rig's Dominion trim, the rock, the eyes
         d = m.copy()
         d.name = "M_Kit_Dom"
@@ -113,7 +131,7 @@ def make_materials(glow=GLOW_TEAL):
                                ("Beacon", glow, 20.0), ("Pillar", glow, 3.0), ("Decal", (1.0, 0.45, 0.1), 0.5), ("Route", (1.0, 0.05, 0.03), 0.5),
                                ("Eye", (1.0, 1.0, 1.0), 12.0), ("Breach", (0.2, 0.5, 1.0), 6.0), ("Run", (1.0, 0.2, 0.15), 6.0),
                                ("Flicker", (1.0, 0.72, 0.42), 4.0), ("Work", (1.0, 0.9, 0.7), 8.0),
-                               ("Strobe", (0.6, 0.85, 1.0), 20.0), ("Nav", (1.0, 0.55, 0.1), 10.0)):
+                               ("Strobe", (0.6, 0.85, 1.0), 20.0), ("Nav", (1.0, 0.55, 0.1), 10.0), ("CyanRun", (0.0, 0.85, 1.0), 4.0)):
         g = bpy.data.materials.new("M_Kit_" + key)
         b = next(n for n in g.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
         b.inputs["Base Color"].default_value = (0.02, 0.025, 0.03, 1.0)
@@ -132,7 +150,7 @@ def build_all():
     bpy.context.scene.collection.children.link(coll)
     mats = make_materials()
     rows, objs, pieces = [], {}, {}
-    for fn in {"dominion": kit_pieces_d.BUILDERS, "space": kit_pieces_space.BUILDERS}.get(SET, kit_pieces.BUILDERS):
+    for fn in {"dominion": kit_pieces_d.BUILDERS, "space": kit_pieces_space.BUILDERS, "story": kit_pieces_story.BUILDERS}.get(SET, kit_pieces.BUILDERS):
         p = fn()
         lo, hi = p.bounds()
         size = tuple(round(hi[i] - lo[i], 2) for i in range(3))
@@ -270,7 +288,7 @@ def contact_sheet(objs, tag, clay, cell=420, cols=5):
     for i, a in enumerate(cells):
         r, cc = divmod(i, cols)
         sheet[r * cell:(r + 1) * cell, cc * cell:(cc + 1) * cell] = a
-    out = os.path.join(REVIEW, "kit%s_%s_%s.png" % ({"dominion": "D", "space": "S"}.get(SET, ""), tag, "clay" if clay else "material"))
+    out = os.path.join(REVIEW, "kit%s_%s_%s.png" % ({"dominion": "D", "space": "S", "story": "P"}.get(SET, ""), tag, "clay" if clay else "material"))
     save_px(sheet, out)
     if os.path.exists(tmp):
         os.remove(tmp)
@@ -469,7 +487,7 @@ def main():
     ap.add_argument("--tag", default="r0")
     ap.add_argument("--render", action="store_true")
     ap.add_argument("--export", action="store_true")
-    ap.add_argument("--set", default="planet", choices=("planet", "dominion", "space"))
+    ap.add_argument("--set", default="planet", choices=("planet", "dominion", "space", "story"))
     a = ap.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     global SET, EXPORT
     SET = a.set
@@ -479,6 +497,9 @@ def main():
     elif SET == "space":
         EXPORT = os.path.join(KIT, "export_space")
         a.tag = "S_" + a.tag
+    elif SET == "story":
+        EXPORT = os.path.join(KIT, "export_story")
+        a.tag = "P_" + a.tag
     os.makedirs(REVIEW, exist_ok=True)
     objs, rows, mats, pieces = build_all()
     with open(os.path.join(REVIEW, "size_check_%s.json" % a.tag), "w", encoding="utf-8") as fh:
@@ -500,7 +521,7 @@ def main():
         os.makedirs(EXPORT, exist_ok=True)
         for name in objs:
             try:
-                r = ex(root=name, out_dir=EXPORT, front_axis="+X", collision="auto" if name not in kit_pieces.NO_COLLISION else "none")
+                r = ex(root=name, out_dir=EXPORT, front_axis="+X", collision="auto" if name not in kit_pieces.NO_COLLISION + kit_pieces_story.NO_COLLISION else "none")
             except AttributeError:
                 with open(os.path.join(EXPORT, name + ".manifest.json")) as fh:
                     r = json.load(fh)
@@ -510,7 +531,7 @@ def main():
             w = o.dimensions.y
             o.location = (0, x + w / 2, 0)
             x += w + 1.0
-        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, {"dominion": "KitDominion.blend", "space": "KitSpace.blend"}.get(SET, "Kit.blend")), compress=True)
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, {"dominion": "KitDominion.blend", "space": "KitSpace.blend", "story": "KitStory.blend"}.get(SET, "Kit.blend")), compress=True)
     print("__RESULT__ done")
 
 

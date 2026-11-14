@@ -1,6 +1,7 @@
 // Triad Drift - on-foot Armada crew (ENG-23). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "TriadDrift/Perf/TDAssetCache.h" // T7 perf: path lookups answered once per session
 #include "TriadDrift/Ground/Crew/TDCrewAIController.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -25,6 +26,7 @@
 #include "AssetRegistry/IAssetRegistry.h"
 #include "Animation/AnimInstance.h"
 #include "PhysicsEngine/PhysicsAsset.h"
+#include "Animation/AnimSingleNodeInstance.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "Animation/AnimSequenceBase.h"
 #include "Materials/MaterialInterface.h"
@@ -145,12 +147,30 @@ void ATDCrewCharacter::UpdateFallbackLoop()
 		return;
 	}
 	const int32 Want = Speed < 40.f ? 0 : Speed < 300.f ? 1 : 2;
+	// The type's own loops first (the animation builder's set), else the template copies.
+	{
+		const TCHAR* Own = nullptr;
+		switch (Spec.Type)
+		{
+		case ETDCrewType::Trooper: Own = Want == 0 ? TEXT("Idle_Aim") : nullptr; break;
+		case ETDCrewType::Grunt: Own = Want == 2 ? TEXT("Charge") : nullptr; break;
+		case ETDCrewType::Heavy: Own = Want == 0 ? TEXT("Idle_Guard") : TEXT("Walk_Fwd"); break;
+		case ETDCrewType::Warden: Own = Want == 0 ? TEXT("Guard") : TEXT("Walk"); break;
+		default: break;
+		}
+		if (UAnimSequenceBase* OwnLoop = Own ? TypeClip(Own) : nullptr)
+		{
+			const float OwnRef = Want == 1 ? 200.f : Want == 2 ? 450.f : 0.f;
+			Loops->SetLoop(OwnLoop, OwnRef > 0.f ? FMath::Clamp(Speed / OwnRef, 0.6f, 1.5f) : 1.f);
+			return;
+		}
+	}
 	const FString Path = CrewAnimPath(Spec.Type, Want);
-	UAnimSequenceBase* Loop = Path.IsEmpty() ? nullptr : LoadObject<UAnimSequenceBase>(nullptr, *Path, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UAnimSequenceBase* Loop = Path.IsEmpty() ? nullptr : TDAssetCache::Find<UAnimSequenceBase>(Path);
 	if (!Loop && Want != 0)
 	{
 		const FString IdlePath = CrewAnimPath(Spec.Type, 0);
-		Loop = IdlePath.IsEmpty() ? nullptr : LoadObject<UAnimSequenceBase>(nullptr, *IdlePath, nullptr, LOAD_Quiet | LOAD_NoWarn);
+		Loop = IdlePath.IsEmpty() ? nullptr : TDAssetCache::Find<UAnimSequenceBase>(IdlePath);
 	}
 	if (!Loop)
 	{
@@ -535,7 +555,7 @@ void ATDCrewCharacter::PlayFallbackAnim(const TCHAR* AssetPath, float Rate)
 	}
 	UTDLoopBlendAnimInstance* Loops = Cast<UTDLoopBlendAnimInstance>(GetMesh()->GetAnimInstance());
 	const FString Own = CrewAnimPath(AssetPath);
-	UAnimSequenceBase* Seq = Own.IsEmpty() ? nullptr : LoadObject<UAnimSequenceBase>(nullptr, *Own, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UAnimSequenceBase* Seq = Own.IsEmpty() ? nullptr : TDAssetCache::Find<UAnimSequenceBase>(Own);
 	if (Loops && Seq)
 	{
 		Loops->PlayOneShot(Seq, Rate);
@@ -778,8 +798,25 @@ bool ATDCrewCharacter::StartAttack(ETDCrewAttack Attack, AActor* Target)
 	RecoverLeft = 0.f;
 	ShotsLeft = 0;
 	PlayCrewCue(TEXT("Telegraph"), Visuals ? Visuals->Telegraph : FTDFXCue(), true, GetActorLocation());
-	PlayFallbackAnim(Attack == ETDCrewAttack::Melee ? TDCrewAnims::Melee
-		: (Attack == ETDCrewAttack::ChargeSlam || Attack == ETDCrewAttack::Summon) ? TDCrewAnims::Slam : TDCrewAnims::Fire);
+	// The type's own move, its contact frame on the wind-up's end (the animation builder's times, Nov 13-14), else today's.
+	bool bOwn = false;
+	switch (Attack)
+	{
+	case ETDCrewAttack::Melee:
+		bOwn = Spec.Type == ETDCrewType::Heavy ? PlayTypeClip(TEXT("ShieldBash"), 0.70f, WindupLeft) // Grok's: impact 0.70 s, the 0.7 s wind-up
+			: Spec.Type == ETDCrewType::Grunt ? PlayTypeClip((MeleeSwings++ % 2) ? TEXT("Melee_03") : TEXT("Melee_02")) : false;
+		break;
+	case ETDCrewAttack::Burst: bOwn = Spec.Type == ETDCrewType::Trooper && PlayTypeClip(TEXT("Fire_Burst"), 0.40f, WindupLeft); break;
+	case ETDCrewAttack::BoltFan: bOwn = PlayTypeClip(TEXT("Fire_01"), 0.50f, WindupLeft); break;
+	case ETDCrewAttack::ChargeSlam: bOwn = PlayTypeClip(TEXT("GroundSlam"), 1.10f, WindupLeft) || PlayTypeClip(TEXT("Slam"), 1.10f, WindupLeft); break;
+	case ETDCrewAttack::Summon: bOwn = PlayTypeClip(TEXT("Summon_01"), 0.50f, WindupLeft); break;
+	default: break;
+	}
+	if (!bOwn)
+	{
+		PlayFallbackAnim(Attack == ETDCrewAttack::Melee ? TDCrewAnims::Melee
+			: (Attack == ETDCrewAttack::ChargeSlam || Attack == ETDCrewAttack::Summon) ? TDCrewAnims::Slam : TDCrewAnims::Fire);
+	}
 	OnAttackStarted.Broadcast(this, Attack);
 	return true;
 }
@@ -1088,7 +1125,10 @@ void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDama
 			{
 				Loops->ProcFlinch = 1.f;
 			}
-			if (Spec.Type != ETDCrewType::Grunt) // the hit react holds a rifle: wrong on an unarmed grunt
+			const bool bFromBehind = !Info.HitDirection.IsNearlyZero() && FVector::DotProduct(-Info.HitDirection.GetSafeNormal2D(), GetActorForwardVector()) < 0.f;
+			const bool bOwn = Spec.Type == ETDCrewType::Trooper ? PlayTypeClip(bFromBehind ? TEXT("HitReact_Back") : TEXT("HitReact_Front"))
+				: Spec.Type == ETDCrewType::Grunt ? PlayTypeClip(TEXT("HitReact_01")) : false;
+			if (!bOwn && Spec.Type != ETDCrewType::Grunt) // the template hit react holds a rifle: wrong on an unarmed grunt
 			{
 				PlayFallbackAnim(TDCrewAnims::Hit); // flinch (attacks keep their own animation)
 			}
@@ -1120,6 +1160,7 @@ void ATDCrewCharacter::ApplyStagger(float Seconds, AActor* Source)
 		// Entering the stagger state: Nick's Stagger cue (falls back to the older Stunned slot).
 		const FTDFXCue* Cue = Visuals ? (Visuals->Stagger.IsEmpty() ? &Visuals->Stunned : &Visuals->Stagger) : nullptr;
 		PlayCrewCue(TEXT("Stagger"), Cue ? *Cue : FTDFXCue(), true, GetActorLocation());
+		PlayTypeClip(TEXT("Stagger")); // the Heavy's and the Warden's own (a cue only before)
 	}
 }
 
@@ -1193,7 +1234,10 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 		Body->AddImpulse(Push, NAME_None, true);
 	}
 	DetachFromControllerPendingDestroy();
-	SetLifeSpan(FMath::Max(0.1f, CorpseSeconds));
+	// The body lies a moment after its fall ends (the per-type falls run 2.6-3.9 s; a 4 s corpse vanished as it landed).
+	const UAnimSequenceBase* Fall = GetMesh() ? Cast<UAnimSequenceBase>(GetMesh()->GetSingleNodeInstance() ? GetMesh()->GetSingleNodeInstance()->GetCurrentAsset() : nullptr) : nullptr;
+	CorpseLeft = FMath::Max3(0.1f, CorpseSeconds, Fall ? Fall->GetPlayLength() + 2.5f : 0.f);
+	SetLifeSpan(CorpseLeft + 0.1f);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -1209,8 +1253,7 @@ UAnimSequenceBase* ATDCrewCharacter::ChooseDeathClip(const FVector& HitDirection
 	auto Load = [](const FString& Name) -> UAnimSequenceBase*
 	{
 		const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/%s"), *Name);
-		if (!FindPackage(nullptr, *Package) && !FPackageName::DoesPackageExist(Package)) { return nullptr; }
-		return LoadObject<UAnimSequenceBase>(nullptr, *(Package + TEXT(".") + Name), nullptr, LOAD_Quiet | LOAD_NoWarn);
+		return TDAssetCache::Find<UAnimSequenceBase>(Package + TEXT(".") + Name); // T7 perf: one look per name per session
 	};
 	const bool bFromBehind = !HitDirection.IsNearlyZero() && FVector::DotProduct(-HitDirection.GetSafeNormal2D(), GetActorForwardVector()) < 0.f;
 	const FString Type = Spec.VisualsId.ToString();
@@ -1218,16 +1261,13 @@ UAnimSequenceBase* ATDCrewCharacter::ChooseDeathClip(const FVector& HitDirection
 	//    per-type A_Crew_<Type>_Death_<Side> when one exists), picked by the side the killing blow came from.
 	const FString Template(FallbackDeathAnim(HitDirection));
 	const TCHAR* Side = Template.Contains(TEXT("Back")) ? TEXT("Back") : Template.Contains(TEXT("Left")) ? TEXT("Left") : Template.Contains(TEXT("Right")) ? TEXT("Right") : TEXT("Front");
-	// The animation builder's captures (Nov 13): the Heavy's shield stands on edge in the Front fall (a frontal kill
-	// falls Left), and the Warden's chest shield stands up in every fall but Back.
-	if (Spec.Type == ETDCrewType::Heavy && FCString::Strcmp(Side, TEXT("Front")) == 0) { Side = TEXT("Left"); }
-	if (Spec.Type == ETDCrewType::Warden) { Side = TEXT("Back"); }
 	bGroundDeathClip = false;
-	// Only the in-place set: A_Crew_Trooper_Death_<Side> is Grok's source with 77-166 cm of root travel (Lead, Nov 14).
-	for (const FString& N : { FString::Printf(TEXT("A_Crew_Death_%s"), Side) })
-	{
-		if (UAnimSequenceBase* A = Fits(Load(N))) { bGroundDeathClip = true; return TDMakePlayable(A); }
-	}
+	// The type's own ground falls first (Grok's, made in place: A_Crew_<Type>_Death_<Side>, the Warden on its own rig).
+	if (UAnimSequenceBase* A = Fits(Load(FString::Printf(TEXT("A_Crew_%s_Death_%s"), *Type, Side)))) { bGroundDeathClip = true; return TDMakePlayable(A); }
+	// The shared in-place set. The animation builder's captures (Nov 13): the Heavy's shield stands on edge in its Front
+	// fall (a frontal kill falls Left) and the Warden's chest shield stands up in every fall but Back.
+	const TCHAR* SharedSide = (Spec.Type == ETDCrewType::Heavy && FCString::Strcmp(Side, TEXT("Front")) == 0) ? TEXT("Left") : Spec.Type == ETDCrewType::Warden ? TEXT("Back") : Side;
+	if (UAnimSequenceBase* A = Fits(Load(FString::Printf(TEXT("A_Crew_Death_%s"), SharedSide)))) { bGroundDeathClip = true; return TDMakePlayable(A); }
 	// 2. Falls that only start (today's): the ragdoll ends them.
 	TArray<FString> Names = {
 		FString::Printf(TEXT("A_Crew_%s_Death_%s"), *Type, bFromBehind ? TEXT("02") : TEXT("01")),
@@ -1241,7 +1281,39 @@ UAnimSequenceBase* ATDCrewCharacter::ChooseDeathClip(const FVector& HitDirection
 	}
 	// The template set (root travel and a held crouch: only when nothing else fits; the ragdoll ends it anyway).
 	const FString Path = bFallbackAnim ? CrewAnimPath(FallbackDeathAnim(HitDirection)) : FString();
-	return Path.IsEmpty() ? nullptr : Fits(TDMakePlayable(LoadObject<UAnimSequenceBase>(nullptr, *Path, nullptr, LOAD_Quiet | LOAD_NoWarn)));
+	return Path.IsEmpty() ? nullptr : Fits(TDMakePlayable(TDAssetCache::Find<UAnimSequenceBase>(Path)));
+}
+
+UAnimSequenceBase* ATDCrewCharacter::TypeClip(const TCHAR* Action) const
+{
+	const USkeletalMesh* SK = GetMesh() ? GetMesh()->GetSkeletalMeshAsset() : nullptr;
+	if (!SK || !Action)
+	{
+		return nullptr;
+	}
+	const FString Name = FString::Printf(TEXT("A_Crew_%s_%s"), *Spec.VisualsId.ToString(), Action);
+	const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/%s"), *Name);
+	if (!FindPackage(nullptr, *Package) && !FPackageName::DoesPackageExist(Package))
+	{
+		return nullptr;
+	}
+	UAnimSequenceBase* A = LoadObject<UAnimSequenceBase>(nullptr, *(Package + TEXT(".") + Name), nullptr, LOAD_Quiet | LOAD_NoWarn);
+	return A && A->GetSkeleton() == SK->GetSkeleton() ? TDMakePlayable(A) : nullptr;
+}
+
+bool ATDCrewCharacter::PlayTypeClip(const TCHAR* Action, float Contact, float Windup)
+{
+	UTDLoopBlendAnimInstance* Loops = bFallbackAnim && GetMesh() ? Cast<UTDLoopBlendAnimInstance>(GetMesh()->GetAnimInstance()) : nullptr;
+	UAnimSequenceBase* Clip = Loops ? TypeClip(Action) : nullptr;
+	if (!Clip)
+	{
+		return false;
+	}
+	// The clip's contact frame on the gameplay hit: the damage keeps its timing (and the Heavy guard / deflect windows).
+	const float Rate = (Contact > 0.f && Windup > 0.f) ? FMath::Clamp(Contact / Windup, 0.5f, 2.f) : 1.f;
+	Loops->PlayOneShot(Clip, Rate);
+	LastTypeClip = Clip->GetFName();
+	return true;
 }
 
 bool ATDCrewCharacter::IsRagdolling() const
@@ -1259,8 +1331,8 @@ void ATDCrewCharacter::StartRagdollOrTopple()
 	}
 	// Only our own crew ragdoll (PA_NullCrew, on its rig): the template PA_Mannequin on our meshes exploded the body 15 m in
 	// 0.4 s (Nov 13 live), and PA_Warden launched the Warden 3 m (DeathsEndOnTheGroundWhereTheyFell, Nov 13): those topple.
-	UPhysicsAsset* Ours = Spec.Type == ETDCrewType::Warden ? nullptr
-		: LoadObject<UPhysicsAsset>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/PA_NullCrew.PA_NullCrew"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UPhysicsAsset* Ours = LoadObject<UPhysicsAsset>(nullptr, Spec.Type == ETDCrewType::Warden ? TEXT("/Game/TriadDrift/Gameplay/Characters/Warden/PA_Warden.PA_Warden")
+		: TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/PA_NullCrew.PA_NullCrew"), nullptr, LOAD_Quiet | LOAD_NoWarn); // PA_Warden settles now (Lead, Nov 14)
 	if (Ours && Ours->GetPreviewMesh() && Ours->GetPreviewMesh()->GetSkeleton() == M->GetSkeletalMeshAsset()->GetSkeleton())
 	{
 		if (M->GetPhysicsAsset() != Ours) { M->SetPhysicsAsset(Ours, true); }
@@ -1281,6 +1353,23 @@ void ATDCrewCharacter::StartRagdollOrTopple()
 
 void ATDCrewCharacter::TickTopple(float DeltaSeconds)
 {
+	// The corpse sinks out over its last CorpseSinkSeconds (the mesh and the placeholder block; a ragdoll stops simulating).
+	if (CorpseLeft >= 0.f)
+	{
+		CorpseLeft -= DeltaSeconds;
+		if (CorpseLeft < CorpseSinkSeconds)
+		{
+			const float Sink = 120.f * DeltaSeconds / CorpseSinkSeconds;
+			for (USceneComponent* C : { static_cast<USceneComponent*>(GetMesh()), static_cast<USceneComponent*>(Body.Get()) })
+			{
+				if (UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(C))
+				{
+					if (Prim->IsSimulatingPhysics()) { Prim->SetSimulatePhysics(false); }
+					Prim->AddWorldOffset(FVector(0.f, 0.f, -Sink));
+				}
+			}
+		}
+	}
 	if (RagdollIn >= 0.f)
 	{
 		RagdollIn -= DeltaSeconds;

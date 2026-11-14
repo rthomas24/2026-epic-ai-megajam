@@ -94,10 +94,12 @@ S2('NS_TD_Dominion_FieldCollapse', U(FIELD), [
     shed('Shards', 'M_TD_VFX_Spark', 0, (0.8, 1.8), (500, 1100), (20000, 90000), k=1.6, radius=95000.0, drag=0.8, stretch=22, burst=140, dur=2.0, power=1.2)])
 # Slot: none yet (code hook wanted: T3's transmissions, the escape sequence, a hit of "static"). A one-shot, camera-facing
 # tear of chromatic bars, 0.3 s; spawn it attached in front of the camera (authored 12 m wide) or at a world point.
+# Round 9 (T3's slot, UTDStoryFX.TransmissionStatic): played 60 cm in front of the camera, so sized to the view at that
+# distance (about 120 cm across at the chase camera's FOV): a full-screen tear, all of it over within 0.36 s.
 S2('NS_TD_Glitch_Tear', U(WHITE4), [
-    flash('Tear', 'M_TD_VFX_Glitch', 1200, 0.30, 0.9, power=0.5),
-    flash('Tear2', 'M_TD_VFX_Glitch', 1500, 0.22, 0.5, power=0.5, delay=0.06),
-    flash('Flash', 'M_TD_VFX_Glow', 1600, 0.10, 0.12)])
+    flash('Tear', 'M_TD_VFX_Glitch', 130, 0.30, 0.9, power=0.5),
+    flash('Tear2', 'M_TD_VFX_Glitch', 160, 0.22, 0.5, power=0.5, delay=0.06),
+    flash('Flash', 'M_TD_VFX_Glow', 170, 0.10, 0.12)])
 
 # ============================================================================================= travel and powers
 # Slots: UTDTravelFX.PortalOpen / PortalClose (+X = the portal's facing). Authored for a 6 m portal.
@@ -294,8 +296,10 @@ S2('NS_TD_Reactor_Exposed', U(CORE, 1.0), [
 # Round 9f, seen at real scale (25 m reactor, 160 m away in T4's stage): the flare read small; both doubled.
 # ReactorHit: every hull hit on the exposed reactor (a high rate): under 0.5 s and cheap, three emitters.
 S2('NS_TD_Reactor_Hit', U(CORE, 1.0), [
-    flash('Flash', 'M_TD_VFX_Flare', 1500, 0.08, 1.6, growth='0.5 + Particles.NormalizedAge'),
-    flash('Glow', 'M_TD_VFX_Glow', 2400, 0.18, 0.9),
+    # 9m (Lead): a hit must read on every bolt from 300-400 m behind the Rift: flash and glow 1.5x, plus a short radial spark burst
+    flash('Flash', 'M_TD_VFX_Flare', 2250, 0.08, 1.7, growth='0.5 + Particles.NormalizedAge'),
+    flash('Glow', 'M_TD_VFX_Glow', 3600, 0.18, 0.9),
+    shed('Burst', 'M_TD_VFX_Spark', 0, (0.15, 0.3), (40, 80), (4000, 9000), k=1.9, radius=60.0, drag=2.6, stretch=10, burst=10, dur=0.35, power=1.2),
     shed('Sparks', 'M_TD_VFX_Spark', 0, (0.2, 0.45), (10, 22), (1800, 6000), k=1.8, radius=80.0, drag=2.2, stretch=14, burst=16, dur=0.5, power=1.3)])
 # DockingBayOpen: once when the bay opens (the doors take 2.5 s), at the bay actor, +X out of the mouth. Authored for a
 # 60 m mouth: steam venting out of it for 2.5 s, the bay's lights coming on, a tractor glow building in the mouth.
@@ -683,12 +687,14 @@ ROCK = (0.85, 0.93, 1.0, 1.0)   # 9g: the flash tint is ice white-blue (was dust
 CRYSTAL = (0.45, 0.55, 1.0, 1.0)   # the belt's blue-violet crystals: clear of the squad's cyan and magenta
 
 
-def rock_break(n_chunks, n_dust, n_grit):
+def rock_break(n_chunks, n_dust, n_grit, fl=1800):
     # Round 9g (T6's live capture: a dull dark-grey puff against bright ice rocks): a short bright white-blue flash, ice
     # shards and glints thrown out, the rock chunks, and only a faint pale mist instead of grey smoke.
     # 9k: flash about 2x and a soft glow under it so a break reads at 80 m from the chase camera; both under 0.2 s
-    return [flash('Flash', 'M_TD_VFX_Flare', 1800, 0.16, 1.8, growth='0.5 + Particles.NormalizedAge*0.9'),
-            flash('Glow', 'M_TD_VFX_Glow', 2200, 0.18, 0.9, growth='0.6 + Particles.NormalizedAge*0.6', power=1.6),
+    # 9n, seen from a side camera at 80 m: at Scale 2.2 / 4.5 the M and L flashes (40 / 81 m) swallowed the frame; the flash
+    # base now shrinks with the class so the flash is about the rock's size (S 18 m, M 22 m, L 30 m), 0.12 s
+    return [flash('Flash', 'M_TD_VFX_Flare', fl, 0.12, 1.8, growth='0.5 + Particles.NormalizedAge*0.9'),
+            flash('Glow', 'M_TD_VFX_Glow', fl * 1.1, 0.14, 0.9, growth='0.6 + Particles.NormalizedAge*0.6', power=1.6),
             # 9i: the mist is gone (a pale 0.30 puff still read grey over dark space in play); flash, chunks and shards carry it
             chunks('Chunks', 'SM_TD_VFX_Shard_C', n_chunks, (0.8, 1.6), (0.35, 0.9), (500, 2000), drag=0.6, radius=90.0, dur=1.8, spin=(0.8, 3.0)),
             shed('Shards', 'M_TD_VFX_Spark', 0, (0.3, 0.8), (7, 14), (1500, 4800), k=1.8, radius=60.0, drag=1.8, stretch=9, rgb=(0.80, 0.93, 1.0),
@@ -696,8 +702,8 @@ def rock_break(n_chunks, n_dust, n_grit):
 
 
 S2('NS_TD_Asteroid_Break_S', U(ROCK, 1.0), rock_break(5, 2, 18))
-S2('NS_TD_Asteroid_Break_M', U(ROCK, 2.2), rock_break(7, 2, 24))
-S2('NS_TD_Asteroid_Break_L', U(ROCK, 4.5), rock_break(9, 3, 32))
+S2('NS_TD_Asteroid_Break_M', U(ROCK, 2.2), rock_break(7, 2, 24, fl=1000))
+S2('NS_TD_Asteroid_Break_L', U(ROCK, 4.5), rock_break(9, 3, 32, fl=670))
 # Crystal-veined rock: the crystals shatter in light. A flare, glowing shards streaking out, slow glints, a few rock chunks.
 S2('NS_TD_Asteroid_Break_Crystal', U(CRYSTAL, 2.2), [
     flash('Flash', 'M_TD_VFX_Flare', 900, 0.16, 1.4, growth='0.4 + Particles.NormalizedAge*0.9'),

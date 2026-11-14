@@ -218,6 +218,7 @@ Original Cathedral Pulse core-chamber selection: supplied by Nicholas Tosti, pre
 
 Cinder World and Cinder Fall: supplied by Nicholas Tosti and explicitly assigned by him to Cinder exploration and combat, respectively. Audio used Python and FFmpeg to prepare full-duration stereo PCM16 masters, preserving both original MP3s and applying no gain, trim, loop or crossfade. Source receipts and measurements are in ArtSource/Audio/CinderMusic01. A possible later combat entry is for audition; no gameplay start offset is approved or applied by this source preparation. Native import, playback and mix acceptance remain separate.
 - **Null Trooper rifle clips (13) and Warden fire / summon clips (4)** (`ArtSource/EngAI/Animations/CrewTrooper/r1`, `ArtSource/EngAI/Animations/Warden/r1`; in game as `A_Crew_Trooper_*` and `A_Crew_Warden_*_01/02`): motion generated with HY-Motion 1.0 via fal.ai (AI-generated; commercial use per the fal terms recorded in each SOURCE.md), by Grok Bot for Ryan's side; retargeted in Blender; imported by the animation builder (Claude Code). PRs #86 and #87, Nov 13.
+- **Null Armada crew death clips and attack clips** (`ArtSource/EngAI/Animations/EnemyDeaths/r1`, `ArtSource/EngAI/Animations/EnemyAttacks/r1`; in game as `A_Crew_<Type>_Death_*`, `A_Crew_Heavy_ShieldBash`, `A_Crew_Grunt_Melee_*` / `_Charge`, `A_Crew_Trooper_Fire_Burst` and the `A_Crew_Warden_Slam` blend): motion generated with HY-Motion 1.0 via fal.ai (AI-generated; commercial use per the fal terms recorded in each SOURCE.md), by Grok Bot for Ryan's side; retargeted, cleaned and blended by the animation builder (Claude Code), with hand-authored versions kept as `*_Authored`. Nov 14.
 
 Nicholas Tosti supplied the Verdance theme. For the loop revision, the Lead used Python to smooth its stereo endpoints, Unreal Engine 5.9 for native loop playback, and NumPy and FFmpeg to check and extract the original game recording. The earlier full-length source and asset remain available in project history.
 
@@ -297,3 +298,14 @@ Nicholas Tosti supplied Cinder World (exploration) and Cinder Fall (combat). Ful
 Gameplay demonstration capture (Shipping 6fe3e90f): OpenAI Codex, Unreal Engine 5.9, Windows GDI foreground-client capture and WASAPI process loopback, Python and FFmpeg. The video contains the game's existing assets and audio; no new music or visual asset was generated. Recording and limitations: docs/visual/Submission/LatestGameplayDemo01/README.md.
 
 Submission trailer rough cut 01: OpenAI Codex used FFmpeg to select three excerpts from that same recorded game, with the corresponding game audio and brief edit-edge fades. No replacement music, generated scene or additional artwork was used. The 50-second draft and reproducible edit list are recorded in docs/visual/Submission/Trailer01; final trailer and human listening/appearance approval remain pending.
+
+### Engineering originals added in batch M (asset ledger pass) - November 14, 2026
+
+Original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan T, in Blender 5.2 (headless Python) or in Unreal Engine 5.9 by script. No AI mesh, image or texture generator and no third-party asset, except the Hyper3D Rodin hulls they are built onto (credited above).
+
+| Asset | Tool | Licence / provenance | Added by |
+|---|---|---|---|
+| Lancer hybrid: `SM_Lancer` (designed cannons and cockpit), `SM_Lancer_Canopy`, `MI_Lancer_Parts`, `MI_Lancer_Canopy`, `T_Lancer_Parts_BC/N/ORM/E/HeatMask` in `Content/TriadDrift/Gameplay/Ships/Lancer/` | Blender 5.2: parts modelled and baked on the Hyper3D Rodin Lancer hull (`ArtSource/EngShips`) | project-authored over the Rodin output (Hyper3D terms, paid Business plan) | Claude Code (Ryan's side, ship builder) |
+| Bastion parts: `MI_Bastion_Parts`, `T_Bastion_Parts_BC/N/ORM/E/HeatMask` in `Content/TriadDrift/Gameplay/Ships/Bastion/` | Blender 5.2, parts modelled and baked on the Rodin Bastion hull | same | same |
+| Ship canopies: `SM_Rift_Canopy`, `MI_Rift_Canopy` in `Ships/Rift/`, `SM_Lancer_Canopy` above, and the glass master `M_TD_ShipGlass` in `Ships/Materials/` | Blender 5.2 (canopy meshes); material built by script in Unreal | project-authored | same |
+| Planet sea: `M_TD_PlanetSea`, `MI_PlanetSea_Verdance`, `MI_PlanetSea_Cinder` in `Content/TriadDrift/Gameplay/Props/Planets/` | Material built in Unreal by script (procedural: no textures from outside) | project-authored | Claude Code (Ryan's side, environment builder) |

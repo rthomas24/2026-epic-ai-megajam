@@ -1,0 +1,17 @@
+{
+ "site": "Landmark_NullDerrick",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_Landmark_NullDerrick",
+ "about": "Cinder landmark: a Null excavation derrick (87 m) over the dig; cables run below its pivot into the pit; collision on its feet only.",
+ "pieces": [
+  {
+   "name": "Derrick",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_NullDerrick",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  }
+ ]
+}

@@ -1,0 +1,207 @@
+[
+ {
+  "asset": "SM_Kit_AntennaToppled",
+  "size_cm": [
+   974,
+   190,
+   170
+  ],
+  "tris": 2232,
+  "hulls": 1,
+  "slots": [
+   "0:Trim"
+  ]
+ },
+ {
+  "asset": "SM_Kit_CableReel",
+  "size_cm": [
+   380,
+   130,
+   175
+  ],
+  "tris": 1656,
+  "hulls": 1,
+  "slots": [
+   "0:Worn"
+  ]
+ },
+ {
+  "asset": "SM_Kit_DragMark",
+  "size_cm": [
+   600,
+   189,
+   0
+  ],
+  "tris": 16,
+  "hulls": 0,
+  "slots": [
+   "0:Decal"
+  ]
+ },
+ {
+  "asset": "SM_Kit_GantryCollapsed",
+  "size_cm": [
+   709,
+   213,
+   409
+  ],
+  "tris": 3998,
+  "hulls": 1,
+  "slots": [
+   "0:Glow",
+   "1:Light",
+   "2:Worn"
+  ]
+ },
+ {
+  "asset": "SM_Kit_HeatShieldCracked",
+  "size_cm": [
+   400,
+   90,
+   250
+  ],
+  "tris": 616,
+  "hulls": 1,
+  "slots": [
+   "0:Worn",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Kit_LampPostDead",
+  "size_cm": [
+   115,
+   70,
+   301
+  ],
+  "tris": 534,
+  "hulls": 1,
+  "slots": [
+   "0:Trim"
+  ]
+ },
+ {
+  "asset": "SM_Kit_NullDerrick",
+  "size_cm": [
+   2720,
+   2720,
+   11200
+  ],
+  "tris": 3132,
+  "hulls": 4,
+  "slots": [
+   "0:Beacon",
+   "1:Dom",
+   "2:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Kit_OreCart",
+  "size_cm": [
+   194,
+   158,
+   130
+  ],
+  "tris": 2159,
+  "hulls": 1,
+  "slots": [
+   "0:Glow",
+   "1:Worn"
+  ]
+ },
+ {
+  "asset": "SM_Kit_RailStub",
+  "size_cm": [
+   801,
+   150,
+   74
+  ],
+  "tris": 1512,
+  "hulls": 1,
+  "slots": [
+   "0:Worn"
+  ]
+ },
+ {
+  "asset": "SM_Kit_RelayMast",
+  "size_cm": [
+   5080,
+   5080,
+   6277
+  ],
+  "tris": 10032,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Nav"
+  ]
+ },
+ {
+  "asset": "SM_Kit_SampleCases",
+  "size_cm": [
+   158,
+   88,
+   112
+  ],
+  "tris": 840,
+  "hulls": 1,
+  "slots": [
+   "0:Trim"
+  ]
+ },
+ {
+  "asset": "SM_Kit_ScorchLines",
+  "size_cm": [
+   800,
+   300,
+   0
+  ],
+  "tris": 2,
+  "hulls": 0,
+  "slots": [
+   "0:Decal2"
+  ]
+ },
+ {
+  "asset": "SM_Kit_ShelterFrame",
+  "size_cm": [
+   430,
+   330,
+   244
+  ],
+  "tris": 3396,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Canopy"
+  ]
+ },
+ {
+  "asset": "SM_Kit_SurveyStakeFlag",
+  "size_cm": [
+   4,
+   40,
+   140
+  ],
+  "tris": 111,
+  "hulls": 0,
+  "slots": [
+   "0:Trim",
+   "1:Flag"
+  ]
+ },
+ {
+  "asset": "SM_Kit_WarningBeacon",
+  "size_cm": [
+   60,
+   60,
+   222
+  ],
+  "tris": 324,
+  "hulls": 1,
+  "slots": [
+   "0:Worn",
+   "1:Beacon"
+  ]
+ }
+]

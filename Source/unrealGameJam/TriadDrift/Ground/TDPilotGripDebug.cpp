@@ -5,6 +5,7 @@
 //   TD.Ground.GripWhere                        log hand_r, the hilt and the finger joints in world space (for captures)
 // Console only; nothing here runs in normal play.
 
+#include "Animation/AnimSingleNodeInstance.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
 #include "TriadDrift/Core/TDTypes.h"
@@ -255,8 +256,12 @@ namespace TDPilotGripDebug
 			if (!It->IsDead())
 			{
 				// "behind": the hit travels the way the crew member faces (a blow in the back, past a Heavy's shield)
-				const bool bBehind = Args.Num() > 0 && Args[0] == TEXT("behind");
-				const FVector Dir = bBehind ? It->GetActorForwardVector() : (It->GetActorLocation() - P->GetActorLocation()).GetSafeNormal2D();
+				// "front" / "left" / "right": a blow from that side of the crew member, also with no instigator (past the shield)
+				const FString How = Args.Num() > 0 ? Args[0].ToLower() : FString();
+				const bool bBehind = !How.IsEmpty();
+				const FVector Dir = How == TEXT("behind") ? It->GetActorForwardVector() : How == TEXT("front") ? -It->GetActorForwardVector()
+					: How == TEXT("left") ? It->GetActorRightVector() : How == TEXT("right") ? -It->GetActorRightVector()
+					: (It->GetActorLocation() - P->GetActorLocation()).GetSafeNormal2D();
 				// a Heavy's shield arc is judged from the instigator's position: none here, so the blow counts as coming from behind
 				UTDStatics::ApplyTDDamage(*It, 1000000.f, ETDDamageKind::Melee, bBehind ? nullptr : P, P, It->GetActorLocation(), Dir);
 			}
@@ -282,9 +287,10 @@ namespace TDPilotGripDebug
 			}
 			const FVector A = It->GetActorLocation(), Pel = M->GetBoneLocation(TEXT("pelvis")), Head = M->GetBoneLocation(TEXT("head"));
 			const FVector X = It->GetActorForwardVector(), Y = It->GetActorRightVector();
-			UE_LOG(LogTriadDrift, Display, TEXT("TD.CrewAll %s dead=%d loc=%.1f,%.1f,%.1f x=%.3f,%.3f,%.3f y=%.3f,%.3f,%.3f pelvis=%.1f,%.1f,%.1f head=%.1f,%.1f,%.1f floor=%.1f low=%.1f"),
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.CrewAll %s dead=%d loc=%.1f,%.1f,%.1f x=%.3f,%.3f,%.3f y=%.3f,%.3f,%.3f pelvis=%.1f,%.1f,%.1f head=%.1f,%.1f,%.1f floor=%.1f low=%.1f clip=%s sim=%d"),
 				*UEnum::GetValueAsString(It->CrewType), (int32)It->IsDead(), A.X, A.Y, A.Z, X.X, X.Y, X.Z, Y.X, Y.Y, Y.Z,
-				Pel.X, Pel.Y, Pel.Z, Head.X, Head.Y, Head.Z, Floor, Low);
+				Pel.X, Pel.Y, Pel.Z, Head.X, Head.Y, Head.Z, Floor, Low,
+				*GetNameSafe(M->GetSingleNodeInstance() ? M->GetSingleNodeInstance()->GetAnimationAsset() : nullptr), (int32)M->IsSimulatingPhysics());
 		}
 	}
 	static FAutoConsoleCommandWithWorldAndArgs CmdCrewKill(TEXT("TD.Ground.CrewKill"), TEXT("Kill every live crew member with a melee hit from the pilot."),
@@ -319,7 +325,16 @@ namespace TDPilotGripDebug
 		Best->GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		Best->GetCharacterMovement()->DisableMovement();
 		M->SetCollisionProfileName(TEXT("Ragdoll"));
+		M->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+		M->SetAllBodiesSimulatePhysics(true);
 		M->SetSimulatePhysics(true);
+		M->WakeAllRigidBodies();
+		if (Args.Num() > 0 && Args[0] == TEXT("impulse"))
+		{
+			// the kill push the death code gives a ragdoll: 450 cm/s along the blow (from the pilot) and 250 up
+			const FVector Dir = (Best->GetActorLocation() - P->GetActorLocation()).GetSafeNormal2D();
+			M->AddImpulse(Dir * 450.f + FVector(0.f, 0.f, 250.f), NAME_None, true);
+		}
 		TWeakObjectPtr<USkeletalMeshComponent> Weak(M);
 		const FString Name = GetNameSafe(M->GetPhysicsAsset());
 		TSharedRef<float> Time = MakeShared<float>(0.f);
