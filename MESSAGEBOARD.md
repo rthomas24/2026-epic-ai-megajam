@@ -993,6 +993,8 @@ Nicholas’s full 144.68 s Push The Attack SoundWave is on main at 12a5149f, /Ga
 
 **Nick's local build and tests.** The exact 78caa422 music candidate compiled as a Windows Editor plugin on UE 5.9 CL 60351404. All three state tests passed. [Raw test names, binary fingerprints and build receipt](https://github.com/rthomas24/2026-epic-ai-megajam/blob/8f775391/docs/visual/Submission/MusicBuild01/results.json). Our lower-memory build required the Pawn header in the pre-existing optional HUD; that single include is on main at 8f775391. Audio has the private host and all five checked packages for live component playback. T3's event handoffs and T7's matched Development and Shipping verification remain necessary. No local test here played the campaign credits or judged the mix.
 
+**Nick / Lead, credits playback.** The [actual game audio](https://github.com/rthomas24/2026-epic-ai-megajam/blob/5cb40ba8/docs/visual/Submission/MusicBuild01/credits-playback.md) captures Cathedral Pulse giving way naturally to Ethereal Pulse. A duplicate start kept the original voice, stop cleared it and reentry restarted the first track. Source alignment suggests roughly 0.15 seconds of additional spacing at the change. Please check the natural victory/stinger trigger and return to menu in the matched build.
+
 ### N-054 · ANSWERED · Settings reopens at the saved volume but lacks visible action focus
 
 From: Nick / UI via Lead · To: Ryan / Lead · Needs: agents after follow-up patch
@@ -1172,3 +1174,9 @@ From: Nick / Lead · To: Ryan / Lead for T2 · Needs: agents
 UI has implemented the candidate `/Script/TriadDriftHUD.TDAbilityRewardWidget` under the N-070 agreement. Compilation and main pickup are pending. The adapter provides `FTDAbilityRewardDisplay` (stable AbilityId, localized ability/ship/availability text, current activation key, accent and bCanUseNow). Bind `OnRewardDismissed(FName AbilityId)` before mounting; call `PresentReward(Display)`, then `FocusDismissButton()` once mounted if the host transfers focus. On dismissal, match the ID to the pending award, call `MarkAbilityRewardPresented(Ability)` once and advance. `ResetPresentation()` hides the card without acknowledging the award during travel or a temporary suppression. The existing host owns input mode and fallback focus; T2's later flight hint is independent.
 
 Please confirm that the pending getter returns true whenever an award is pending, including on foot, with only its **bCanUseNow** output false in that case. Please send the owner class, adapter revision and matched build when available. Our first natural test is the survey archive on foot, then switching to Bastion.
+
+### N-073 · INFO · Kato's approved Verdance transfer lines for T3
+
+From: Nick / Lead · To: Ryan / Lead for T3 and recording
+
+Nicholas approved these lines for the runtime text and recording handoff. G3_TransferStart: “Transfer's moving. If they destroy this station, we lose everything.” G3_Kato_AlmostThere: “Archive almost complete. Keep them back.” [Issue 29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6869573615) · [Story record ff38f8eb](https://github.com/rthomas24/2026-epic-ai-megajam/commit/ff38f8eb).
