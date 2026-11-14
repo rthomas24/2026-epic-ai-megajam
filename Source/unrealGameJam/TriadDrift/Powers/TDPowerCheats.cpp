@@ -207,7 +207,10 @@ namespace
 		}
 		FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyHomingMissile).Projectile;
 		Spec.HomingDelay = 2.f;
-		const FVector From = Portal->GetActorLocation() + Portal->GetActorForwardVector() * Metres * 100.f;
+		// From the side of the portal away from the Rift (live: launched on the Rift's side, it hit the Rift before the portal).
+		const FVector Fwd = Portal->GetActorForwardVector();
+		const float Side = FVector::DotProduct(Pawn->GetActorLocation() - Portal->GetActorLocation(), Fwd) >= 0.f ? -1.f : 1.f;
+		const FVector From = Portal->GetActorLocation() + Fwd * Side * Metres * 100.f;
 		const FTransform At((Portal->GetActorLocation() - From).Rotation(), From);
 		ATDProjectile* Missile = ATDProjectile::Launch(World, Spec, At, Owner, ETDTeam::Enemy, Pawn, FVector::ZeroVector, 1.f, false);
 		UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.MissileAtPortal: %s launched %.0f m in front of portal A at it (owner %s, target %s)"),
