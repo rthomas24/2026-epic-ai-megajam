@@ -479,7 +479,7 @@ void ATDFirstPersonCharacter::UpdateBladeAura(float DeltaSeconds)
 {
 	UStaticMeshComponent* Beam = GetVisibleBladeBeam();
 	// #163: the blade lights the pilot and the floor round it in its colour: one point light half way up the beam,
-	// no shadows, 2.8 m reach; brighter while fighting and in a short pulse on a hit, a perfect deflect or a slam.
+	// no shadows, 2.2 m reach; brighter while fighting and in a short pulse on a hit, a perfect deflect or a slam.
 	BladeLightPulse = FMath::Max(0.f, BladeLightPulse - DeltaSeconds * 5.f);
 	if (Beam && !IsDead())
 	{
@@ -488,7 +488,7 @@ void ATDFirstPersonCharacter::UpdateBladeAura(float DeltaSeconds)
 			BladeLight = NewObject<UPointLightComponent>(this, TEXT("BladeLight"));
 			BladeLight->SetCastShadows(false);
 			BladeLight->SetIntensityUnits(ELightUnits::Candelas);
-			BladeLight->SetAttenuationRadius(280.f);
+			BladeLight->SetAttenuationRadius(220.f); // #128: 2.2 m, the floor and the pilot, less of the enemy
 			BladeLight->SetSourceRadius(4.f);
 			BladeLight->SetSourceLength(60.f);
 			BladeLight->bAffectTranslucentLighting = false;
@@ -506,7 +506,7 @@ void ATDFirstPersonCharacter::UpdateBladeAura(float DeltaSeconds)
 		BladeLight->SetSourceLength(FMath::Max(1.f, Len * 0.8f));
 		const float Fight = BladeAuraSwingHold > 0.f ? 1.f : 0.f;
 		BladeLight->SetLightColor(GetBladeColor());
-		BladeLight->SetIntensity(BladeLightCandelas * (1.f + 0.6f * Fight + 2.5f * BladeLightPulse));
+		BladeLight->SetIntensity(BladeLightCandelas * (1.f + 0.4f * Fight + 2.5f * BladeLightPulse));
 		BladeLight->SetVisibility(true);
 	}
 	else if (BladeLight)
