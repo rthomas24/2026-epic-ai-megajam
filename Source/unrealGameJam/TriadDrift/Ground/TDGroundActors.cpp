@@ -887,6 +887,8 @@ void ATDEncounterVolume::CheckCleared()
 		return;
 	}
 	bCleared = true;
+	UE_LOG(LogTriadDrift, Display, TEXT("%s cleared (take %d, %d spawned this take)%s"), *GetName(), Take, Spawned.Num(),
+		LinkedObjective && LinkedStep != INDEX_NONE ? *FString::Printf(TEXT(": completes %s step %d"), *LinkedObjective->ObjectiveId.ToString(), LinkedStep) : TEXT(""));
 	for (ATDDoor* Door : DoorsToOpen)
 	{
 		if (Door) { Door->Open(); }

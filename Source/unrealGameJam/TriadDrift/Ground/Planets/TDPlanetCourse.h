@@ -226,6 +226,15 @@ public:
 	static constexpr const TCHAR* InteriorLightTag = TEXT("TD.InteriorLight");
 	/** Component tag on the interior kit pieces that carry the red strip glow (their strip slot has its own instance). */
 	static constexpr const TCHAR* EmergencyStripTag = TEXT("TD.EmergencyStrip");
+
+	/** Cinder's magma (T7's play, Nov 14): the magma volume that just killed the pilot (ATDMagmaVolume calls it). */
+	void NoteMagmaDeath(const AActor* Magma);
+	/** The director's respawn spot for a CUT on foot: after MagmaRescueAfterDeaths magma deaths in a row in the same
+	 *  magma, the far side of it instead. True when it moved the spot. */
+	bool ResolveRespawn(FTransform& InOutWhere);
+	static constexpr int32 MagmaRescueAfterDeaths = 2;
+	/** Where a magma rescue puts the pilot, per magma volume (tests). */
+	bool GetMagmaRescue(const AActor* Magma, FTransform& Out) const;
 	/** Every DA_ReactorCore_FX slot played, in order (CoreIdle, ConduitBreak, ShieldDrop, HeartHit, CoreDestroyed,
 	 *  EscapeRunLoop), for tests and the effects builder. */
 	const TArray<FName>& GetReactorFXLog() const { return ReactorFXLog; }
@@ -350,6 +359,13 @@ private:
 	void Checkpoint(ATDObjective* Obj, int32 Step, const FVector& At, float Yaw = 0.f);
 	AActor* Marker(const FVector& At, float Yaw = 0.f);
 	FVector W(const FVector& Local) const { return GetActorTransform().TransformPosition(Local); }
+	struct FMagmaRescue { TWeakObjectPtr<const AActor> Magma; FTransform Far; };
+	TArray<FMagmaRescue> MagmaRescues;
+	TWeakObjectPtr<const AActor> PendingMagmaDeath;
+	TWeakObjectPtr<const AActor> LastMagmaDeath;
+	int32 MagmaDeathsInRow = 0;
+	/** A magma the marker routes around (chain of local points, safe way across) and its rescue spot (local, yaw). */
+	void AddMagmaCrossing(const AActor* Magma, ATDObjective* Objective, int32 Step, const TArray<FVector>& Chain, const FVector& RescueAt, float RescueYaw);
 
 	bool IsOnRoute(const FVector& Local, float Clearance) const;
 

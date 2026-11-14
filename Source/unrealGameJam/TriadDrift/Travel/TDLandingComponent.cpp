@@ -406,8 +406,11 @@ bool UTDLandingComponent::SnapLanded(ATDLandingPad* InPad)
 	ATDShip* Ship = GetShip();
 	if (!Ship || !InPad || State != ETDLandingState::Flying || !InPad->Reserve(Ship))
 	{
+		UE_LOG(LogTriadDrift, Warning, TEXT("SnapLanded: %s NOT placed on %s (state %d, pad %s)"), *GetNameSafe(Ship), *GetNameSafe(InPad), (int32)State,
+			InPad ? TEXT("reserved by another ship or missing") : TEXT("none"));
 		return false;
 	}
+	UE_LOG(LogTriadDrift, Display, TEXT("SnapLanded: %s on %s at %s"), *GetNameSafe(Ship), *GetNameSafe(InPad), *InPad->GetActorLocation().ToCompactString());
 	Pad = InPad;
 	PauseFlight(true);
 	if (UTDShipMovementComponent* Move = Ship->GetShipMovement()) { Move->SetMoveAnnounced(true); }

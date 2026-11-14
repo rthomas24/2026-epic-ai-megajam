@@ -10,6 +10,7 @@
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
+#include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDJourney.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
@@ -436,6 +437,60 @@ bool FTDInteriorFlags::RunTest(const FString& Parameters)
 	TestEqual(TEXT("escape: the hangar mouth"), FTDJourney::ReturnPointOf(ETDJourneyStage::EscapeFlight), TDReturnPoints::DominionHangarExit);
 	ETDJourneyStage Parsed;
 	TestTrue(TEXT("TD.Stage DominionInterior parses"), FTDJourney::Parse(TEXT("DominionInterior"), Parsed) && Parsed == ETDJourneyStage::DominionInterior);
+	return true;
+}
+
+// T7's play (Nov 14, main 50c4af7a): dying in the Warden fight came back as take 2 with the objective on the reactor's
+// conduits and no Warden. A retake restarts that scene: the Warden alive at full health and the objective unchanged.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorWardenRetake, "TriadDrift.Ground.Interior.DyingToTheWardenRetakesTheWardenFight", TD_TEST_FLAGS)
+bool FTDInteriorWardenRetake::RunTest(const FString& Parameters)
+{
+	const TArray<FName>& Ids = ATDPlanetCourse::InteriorObjectiveIds();
+	TDInteriorTest::FInterior I({ Ids[0], Ids[1] });
+	if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(I.W, I.Course->GetInteriorStart().GetLocation() + FVector(0.f, 0.f, 95.f));
+	ATDObjective* Gate = I.Obj(2);
+	ATDObjective* Reactor = I.Obj(3);
+	if (!TestNotNull(TEXT("pilot"), P) || !TestNotNull(TEXT("gate"), Gate) || !TestTrue(TEXT("the Warden starts"), I.Course->StartObjectiveAt(Ids[2]))) { return false; }
+	I.W.Advance(0.5f);
+	ATDEncounterVolume* Boss = nullptr;
+	for (TActorIterator<ATDEncounterVolume> It(I.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Gate) { Boss = *It; } }
+	if (!TestNotNull(TEXT("the Warden's room"), Boss)) { return false; }
+	P->SetActorLocation(Boss->GetActorLocation() + FVector(-600.f, 0.f, -100.f));
+	I.W.Advance(1.f);
+	Boss->ActivateIfPlayerInside();
+	ATDCrewCharacter* Warden = nullptr;
+	for (const TWeakObjectPtr<AActor>& M : Boss->GetSpawned()) { if (ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get()); C && C->Spec.Type == ETDCrewType::Warden) { Warden = C; } }
+	if (!TestNotNull(TEXT("the Warden is up"), Warden)) { return false; }
+	Warden->SetOpeningGrace(0.f);
+	Warden->StartAttack(ETDCrewAttack::Summon, P);
+	I.W.Advance(Warden->Spec.BurstWindup + 0.3f);
+	UTDStatics::ApplyTDDamage(Warden, Warden->GetHealth()->MaxHull * 0.4f, ETDDamageKind::Melee, P, P, Warden->GetActorLocation(), FVector(1.f, 0.f, 0.f));
+	AddInfo(FString::Printf(TEXT("take 1: room alive %d, Warden hull %.0f"), Boss->GetAliveCount(), Warden->GetHealth()->GetHull()));
+
+	// Die: CUT, take 2.
+	P->GetHealth()->Kill(nullptr, ETDDamageKind::Environmental);
+	I.GI->TickFlow(UTDFlowSettings::Get()->RetakeDelaySeconds + 0.1f);
+	I.W.Advance(2.f);
+	ATDFirstPersonCharacter* P2 = nullptr;
+	for (TActorIterator<ATDFirstPersonCharacter> It(I.W.GetWorld()); It; ++It) { if (!It->IsDead()) { P2 = *It; } }
+	TestTrue(TEXT("the Warden objective is still the one on"), Gate->IsActive() && !Gate->IsComplete());
+	TestEqual(TEXT("still DEFEAT THE WARDEN (step 0)"), Gate->GetCurrentStepIndex(), 0);
+	TestFalse(TEXT("the reactor has not started"), Reactor && Reactor->IsActive());
+	if (P2 && !Boss->IsActive()) { P2->SetActorLocation(Boss->GetActorLocation() + FVector(-600.f, 0.f, -100.f)); I.W.Advance(1.f); Boss->ActivateIfPlayerInside(); }
+	ATDCrewCharacter* Again = nullptr;
+	int32 Others = 0;
+	for (TActorIterator<ATDCrewCharacter> It(I.W.GetWorld()); It; ++It)
+	{
+		if (It->IsDead()) { continue; }
+		if (It->Spec.Type == ETDCrewType::Warden) { Again = *It; } else { ++Others; }
+	}
+	if (TestNotNull(TEXT("take 2: a Warden"), Again))
+	{
+		TestEqual(TEXT("take 2: at full health"), Again->GetHealth()->GetHull(), Again->GetHealth()->MaxHull);
+		TestTrue(TEXT("take 2: it is a fresh one"), Again != Warden);
+	}
+	TestEqual(TEXT("take 2: no summons left from take 1"), Others, 0);
 	return true;
 }
 

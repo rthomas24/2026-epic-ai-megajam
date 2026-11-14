@@ -72,6 +72,12 @@ private:
 	int32 Kills = 0;
 	float EscapeLastSeconds = -1.f;
 	TSet<TWeakObjectPtr<AActor>> NearMarkers;
+	TSet<TWeakObjectPtr<AActor>> MagmaWarned; // each magma's edge warning, once per visit
+public:
+	/** The edge warning's reach: within this of a magma's footprint the first time, a wingman warns and a tip shows. */
+	static constexpr float MagmaWarnDistance = 600.f;
+	bool HasWarnedAbout(const AActor* Magma) const { return MagmaWarned.Contains(Magma); }
+private:
 	TMap<TWeakObjectPtr<AActor>, bool> DoorWasOpen;
 	float DoorPushSeconds = 0.f;
 };

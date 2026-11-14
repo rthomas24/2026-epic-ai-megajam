@@ -206,6 +206,19 @@ bool FTDPlanetLandedStart::RunTest(const FString& Parameters)
 	TestEqual(TEXT("both wingmen on their side pads"), WingmenLanded, 2);
 	TestTrue(TEXT("pilot on foot"), V.Director->IsOnFoot());
 	TestTrue(TEXT("player is the character"), V.PC->GetPawn() == (APawn*)V.Director->GetFirstPerson());
+	// T7 on TD.Stage VerdanceOnFoot (Nov 14): the wingmen stood on their pads but the flown ship's pad was empty. All
+	// three stay parked, visible and on their pads while the pilot is on foot.
+	V.W.Advance(8.f);
+	for (ATDShip* S : ATDSquadManager::Get(V.W.GetWorld())->GetLivingShips())
+	{
+		const ATDLandingPad* Pad = S->GetLanding() ? S->GetLanding()->GetPad() : nullptr;
+		const FString Name = S->GetName();
+		TestTrue(*FString::Printf(TEXT("%s still landed after 8 s"), *Name), S->GetLanding() && S->GetLanding()->IsLanded());
+		TestFalse(*FString::Printf(TEXT("%s visible"), *Name), S->IsHidden());
+		TestTrue(*FString::Printf(TEXT("%s on its pad (%.0f cm off)"), *Name, Pad ? FVector::Dist2D(S->GetActorLocation(), Pad->GetActorLocation()) : -1.f),
+			Pad && FVector::Dist2D(S->GetActorLocation(), Pad->GetActorLocation()) < 300.f);
+	}
+	TestEqual(TEXT("three ships"), ATDSquadManager::Get(V.W.GetWorld())->GetLivingShips().Num(), 3);
 	return true;
 }
 
@@ -1551,6 +1564,13 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 		}
 	}
 	P.Report(Wreck->IsComplete(), TEXT("signal-analysis device recovered at the survey console"));
+	// The first on-foot fights are cleared in one or two takes on Standard (T7's play, Nov 14: 5-7 CUTs here; Lead).
+	const int32 WreckDeaths = P.Deaths;
+	AddInfo(FString::Printf(TEXT("wreck core: %d deaths"), WreckDeaths));
+	if (UTDDifficultySettings::GetCurrent() != ETDDifficulty::Ace)
+	{
+		TestTrue(*FString::Printf(TEXT("the wreck core in one or two takes (%d deaths)"), WreckDeaths), WreckDeaths <= 1);
+	}
 
 	// --- The relay: run there, connect the device, hold the deck through the transfer, back to the ship. ---
 	bOk = P.RunTo(P.Trailhead(TEXT("Obj_Relay")), 300.f, 60.f);
@@ -1762,6 +1782,71 @@ bool FTDCourseDressing::RunTest(const FString& Parameters)
 		TestTrue(FString::Printf(TEXT("%s: real props in use (%d kinds, %d instances)"), Planet, Kinds, Instances), Kinds >= 9 && Instances > 300);
 		TestEqual(FString::Printf(TEXT("%s: nothing that collides within 8 m of a route"), Planet), Blocking, 0);
 	}
+	return true;
+}
+
+// T7's Cinder play (Nov 14): from the respawn the conduit marker's straight line crossed the magma river (21 CUTs in
+// 4 minutes). From each step's respawn (its checkpoint, else the pad) the marker's first leg stays off every magma, the
+// chain over a crossing leads to the step's own target, and two magma deaths in a row respawn the pilot past it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCinderMarkersOffMagma, "TriadDrift.Ground.Course.CinderMarkersFromEveryRespawnStayOffTheMagma", TD_TEST_FLAGS)
+bool FTDCinderMarkersOffMagma::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V(NAME_None, TEXT("Cinder"));
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	const ATDFirstPersonCharacter* P = V.Director->GetFirstPerson();
+	UTDObjectiveSubsystem* Objectives = UTDObjectiveSubsystem::Get(V.W.GetWorld());
+	if (!TestNotNull(TEXT("pilot"), P) || !TestNotNull(TEXT("objectives"), Objectives)) { return false; }
+	const FVector Pad = P->GetActorLocation();
+	TArray<ATDMagmaVolume*> Magma;
+	for (TActorIterator<ATDMagmaVolume> It(V.W.GetWorld()); It; ++It) { Magma.Add(*It); }
+	TestTrue(TEXT("Cinder has magma"), Magma.Num() >= 2);
+	int32 Legs = 0;
+	for (const TCHAR* Id : { TEXT("Obj_Survey"), TEXT("Obj_Outpost"), TEXT("Obj_Jammer") })
+	{
+		const ATDObjective* Obj = R.Course->FindObjective(Id);
+		if (!TestNotNull(Id, Obj)) { continue; }
+		FVector Respawn = Pad;
+		for (int32 S = 0; S < Obj->Steps.Num(); ++S)
+		{
+			if (Obj->Steps[S].bCheckpoint && Obj->Steps[S].RespawnAt) { Respawn = Obj->Steps[S].RespawnAt->GetActorLocation(); }
+			AActor* Target = Obj->Steps[S].Waypoint;
+			if (!Target) { continue; }
+			AActor* First = Objectives->RouteWaypointForStep(Respawn, Obj, S, Target);
+			for (const ATDMagmaVolume* M : Magma)
+			{
+				TestFalse(*FString::Printf(TEXT("%s step %d: respawn (%.0f, %.0f) -> marker %s crosses %s"), Id, S, Respawn.X, Respawn.Y, *GetNameSafe(First), *M->GetName()),
+					UTDObjectiveSubsystem::SegmentCrosses(M->Box->Bounds.GetBox(), Respawn, First->GetActorLocation(), 0.f));
+			}
+			++Legs;
+			// Walking the markers reaches the step's own target.
+			FVector At = Respawn;
+			AActor* Next = First;
+			for (int32 Hop = 0; Hop < 12 && Next != Target; ++Hop)
+			{
+				At = Next->GetActorLocation();
+				Next = Objectives->RouteWaypointForStep(At, Obj, S, Target);
+			}
+			TestTrue(*FString::Printf(TEXT("%s step %d: the markers lead to its target"), Id, S), Next == Target);
+		}
+	}
+	AddInfo(FString::Printf(TEXT("%d respawn-to-marker legs checked"), Legs));
+
+	// Two magma deaths in a row in the river: the far bank.
+	ATDMagmaVolume* River = nullptr;
+	for (ATDMagmaVolume* M : Magma) { if (!River || FVector::Dist2D(M->GetActorLocation(), FVector(5600.f, 4800.f, 0.f)) < FVector::Dist2D(River->GetActorLocation(), FVector(5600.f, 4800.f, 0.f))) { River = M; } }
+	FTransform Where(Pad);
+	R.Course->NoteMagmaDeath(River);
+	TestFalse(TEXT("one magma death: the usual respawn"), R.Course->ResolveRespawn(Where));
+	R.Course->NoteMagmaDeath(River);
+	TestTrue(TEXT("two in a row: rescued"), R.Course->ResolveRespawn(Where));
+	TestTrue(TEXT("on the far bank"), Where.GetLocation().X > River->Box->Bounds.GetBox().Max.X);
+	Where = FTransform(Pad);
+	R.Course->NoteMagmaDeath(River);
+	R.Course->ResolveRespawn(Where); // another cause between them starts the count over
+	TestFalse(TEXT("a non-magma death resets"), R.Course->ResolveRespawn(Where));
+	R.Course->NoteMagmaDeath(River);
+	TestFalse(TEXT("one again after the reset"), R.Course->ResolveRespawn(Where));
 	return true;
 }
 
