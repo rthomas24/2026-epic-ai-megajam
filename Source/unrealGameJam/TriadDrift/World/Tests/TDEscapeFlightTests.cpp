@@ -74,7 +74,11 @@ bool FTDEscapeStarts::RunTest(const FString&)
 	TestTrue(*FString::Printf(TEXT("60 s on the clock (%.1f)"), D->GetEscapeTimeLeft()), D->GetEscapeTimeLeft() > 58.f);
 	TestTrue(TEXT("the clear line is well beyond the hull"), D->GetEscapeExitRadius() > D->GetLocalHullBounds().GetExtent().Size() * 2.f);
 	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(D);
-	TestTrue(TEXT("A5_Escape played"), Story && Story->HasPlayed(TEXT("A5_Escape")));
+	TestTrue(TEXT("the flight's own line played (G9_Wren_PullAway)"), Story && Story->HasPlayed(TEXT("G9_Wren_PullAway")));
+	TestFalse(TEXT("the flight does not repeat the on-foot run's \"Ninety seconds\" (A5_Escape)"), Story && Story->HasPlayed(TEXT("A5_Escape")));
+	// A real run: from the mouth, the clear line takes well over half the clock at the squad's boost-limited ~80 m/s.
+	const float Run = (D->GetEscapeExitRadius() - FVector::Dist(D->GetEscapeStart().GetLocation(), D->GetActorLocation())) / 8000.f;
+	TestTrue(*FString::Printf(TEXT("clearing takes most of the clock (%.0f s of %.0f s at 80 m/s)"), Run, D->EscapeSeconds), Run > D->EscapeSeconds * 0.5f && Run < D->EscapeSeconds * 0.85f);
 	return true;
 }
 
