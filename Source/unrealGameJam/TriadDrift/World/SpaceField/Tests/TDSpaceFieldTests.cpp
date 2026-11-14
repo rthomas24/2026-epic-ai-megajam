@@ -103,12 +103,12 @@ bool FTDSpaceFieldFills::RunTest(const FString& Parameters)
 		const float R = FMath::Sqrt(1.f - Y * Y);
 		const float Phi = i * PI * (3.f - FMath::Sqrt(5.f));
 		// 7.2 km: the outer regions (the belt sits at 2.0-2.6 km in one plane, tested on its own).
-		const FVector S = Zone + FVector(FMath::Cos(Phi) * R, FMath::Sin(Phi) * R, Y) * 720000.f;
+		const FVector S = Zone + FVector(FMath::Cos(Phi) * R, FMath::Sin(Phi) * R, Y) * 650000.f;
 		// The Dominion's 3.5 km sphere and the planets' approaches are empty by design.
 		if (FVector::Dist(S, Xf.TransformPosition(L.Dominion.GetLocation())) < 350000.f + 100000.f) { continue; }
 		int32 Near = 0;
-		for (const FTDSpaceFieldPiece& P : Pieces) { Near += FVector::DistSquared(P.Location, S) < FMath::Square(150000.f) ? 1 : 0; }
-		if (Near < 20) { ++Thin; ThinList += FString::Printf(TEXT("%d(%d) "), i, Near); }
+		for (const FTDSpaceFieldPiece& P : Pieces) { Near += P.Size >= 2000.f && FVector::DistSquared(P.Location, S) < FMath::Square(200000.f) ? 1 : 0; /* rocks of 20 m+ within 2 km (the Outer Dark: lone giants, not piles) */ }
+		if (Near < 3) { ++Thin; ThinList += FString::Printf(TEXT("%d(%d) "), i, Near); }
 	}
 	TestTrue(*FString::Printf(TEXT("at most 6 of 26 bearings thin (thin: %s)"), *ThinList), Thin <= 6);
 	return true;

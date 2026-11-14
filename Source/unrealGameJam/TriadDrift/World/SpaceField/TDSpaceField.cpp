@@ -213,9 +213,11 @@ void ATDSpaceField::Build()
 	FRandomStream Rng(Seed * 7919 + Layout->GetLayout().AsteroidFields.Num());
 	if (UseComposedRegions())
 	{
-		// The regions of docs/eng/SPACE-DESIGN.md as they land; the outermost cluster shell stands in for the Outer Dark.
+		// The regions of docs/eng/SPACE-DESIGN.md as they land (1, 2, 4, 7 so far).
 		BuildShepherdBelt(Rng);
-		BuildClusters(Rng, FMath::Max(0, ClusterShells.Num() - 1));
+		BuildWatchlineHalo(Rng);
+		BuildQuietGraveyard(Rng);
+		BuildOuterDark(Rng);
 	}
 	else
 	{

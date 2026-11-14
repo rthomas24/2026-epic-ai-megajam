@@ -89,6 +89,14 @@ public:
 	/** Half width of the gap where a route crosses (cm); the Verdance gap is wider (T4: the tutorial escape crosses it). */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltGapHalf = 25000.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltVerdanceGapHalf = 50000.f;
+	// ---- The Watchline halo (region 1) and the Quiet Graveyard (region 4) ----
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 HaloWrecks = 3;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 HaloDebris = 220;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 GraveyardHulls = 5;
+	/** Region 7, the Outer Dark: lone rocks with gravel from this distance (cm) to the play bounds. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 OuterDarkRocks = 500;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float OuterDarkInner = 600000.f;
+
 	/** Shepherd moonlets at the Verdance and Dominion gap edges (bounding diameter, cm). */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float MoonletMinSize = 25000.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float MoonletMaxSize = 40000.f;
@@ -214,6 +222,13 @@ private:
 	// Composed regions (TDSpaceFieldCompose.cpp; docs/eng/SPACE-DESIGN.md).
 	bool UseComposedRegions() const;
 	void BuildShepherdBelt(FRandomStream& Rng);
+	void BuildWatchlineHalo(FRandomStream& Rng);
+	void BuildQuietGraveyard(FRandomStream& Rng);
+	void BuildOuterDark(FRandomStream& Rng);
+	bool AddStructure(UStaticMesh* Mesh, const FTransform& T);
+	void ScatterDebris(const FVector& Centre, float Radius, int32 Count, float MaxSize, FRandomStream& Rng);
+	/** Indestructible set pieces placed (for tests and keep-out checks). */
+	TArray<FTDSpaceFieldPiece> Structures;
 	void BuildDebrisFields(FRandomStream& Rng);
 	void BuildBuoys();
 
@@ -259,6 +274,9 @@ private:
 
 public:
 	int32 GetTumblerCount() const { return Tumblers.Num(); }
+	const TArray<FTDSpaceFieldPiece>& GetStructures() const { return Structures; }
+	/** Each built region's centre (world), by its number in docs/eng/SPACE-DESIGN.md (captures, tests). */
+	TMap<int32, FVector> RegionCentres;
 	/** The Shepherd Belt's plane normal and centre (world), once built. */
 	FVector BeltNormal = FVector::UpVector;
 	FVector BeltCenter = FVector::ZeroVector;
