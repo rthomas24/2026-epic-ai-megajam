@@ -81,7 +81,9 @@ def main():
     K.ensure_dir(DEST)
     mis = {"Trim": eas.load_asset(KT + "MI_Kit_Trim"), "Glow": eas.load_asset(KT + "MI_Kit_Glow_Cinder"),
            "Beacon": eas.load_asset(KT + "MI_Kit_Beacon_Cinder"),
-           "Canopy": tinted("MI_Kit_Canopy", (0.62, 0.56, 0.42), 0.7), "Flag": tinted("MI_Kit_Flag", (1.0, 0.42, 0.08), 0.5),
+           "Canopy": tinted("MI_Kit_Canopy", (0.6, 0.72, 0.72), 0.6),
+           # camp r2: the research team's faded teal-grey fabric with one Triad cyan stripe
+           "CanopyStripe": tinted("MI_Kit_CanopyStripe", (0.15, 0.75, 1.0), 0.45, 0.04), "Flag": tinted("MI_Kit_Flag", (1.0, 0.42, 0.08), 0.5),
            "Decal": decal_mi("MI_Kit_DragMark", "T_Kit_DragMark", notes), "Decal2": decal_mi("MI_Kit_ScorchLines", "T_Kit_ScorchLines", notes),
            # r2: Cinder's camp in lighter worn steel, a little self-lit (Cinder's lighting is dark); the landmarks' lights
            "Worn": tinted("MI_Kit_StoryWorn", (1.0, 0.95, 0.86), 0.35, 0.12), "Light": eas.load_asset(KT + "MI_Kit_Light"),

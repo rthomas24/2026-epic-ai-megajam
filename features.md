@@ -71,102 +71,156 @@ because no item is**. Pure polish is in the [AAA polish list](#the-aaa-polish-li
 
 | Act | Beat (storyline.md) | Delivered by | State | What still stands between today and done |
 |---|---|---|---|---|
-| Front end | Boot to main menu: New Game, Continue, Settings, Quit; menu music | ENG-19, ART-09, ART-10 | 🟨 | Styled menu implementation on main ee5dc0ff; MainMenuWidgetClass activation and a human pass with pad and mouse remain |
-| Front end | New Game: difficulty, first play forces the tutorial, a later New Game offers "Skip the tutorial" | ENG-41, ENG-45, ART-09 | 🟨 | On main 6fe3e90f and played by an agent (T7): the offer shows on a completed profile and Skip lands in the Aftermath state; review open; T4's clear skip start (0a4e7501, #90 no. 10) is on main f39a8372 (batch N), awaiting agent play; New Game difficulty (ENG-45, T5, queued) |
-| Opening | Intro, 49 s (Nicholas kept 49 s, reconciliation 17:15), skippable, hands off to the tutorial | ENG-33, ART-11, ART-12, ART-19 | 🟨 | #49 fixed on main: names no longer clipped (3c76874c / 9fe5d373, main 6fe3e90f) and the trait line no longer repeats the role word (e234e950, main 61404a79); captured live by T3 at 1280x720, 1920x1080 and 2560x1080 (agent-driven); issue #49 stays open for Nicholas to close (the card's look is his). Still to do: the five legacy `Intro_N` captions (N-088, T3; not verified fixed this hour); the longer silences after the shortened lines (Nicholas); the re-shoot once with the final ships and effects; intro score and narration voice |
-| 1 First Contact | Tutorial battle phases 01-04 (evade, return fire, fight as Triad, heavy contact) over waves 1-2, in a destructible, solid field | ENG-40, ENG-13, ENG-14, ENG-36, ENG-42, ENG-48 | 🟨 | Waves 1-2 and the `TB_*` lines on main 6fe3e90f, played by an agent; the phase prompts v1 (EVASIVE MANEUVERS, TARGET AND FIRE, SQUAD SYSTEMS; db27e563) are on main f39a8372 and the phase clock that counts only while the player flies (e36304e8) on main 61404a79, both awaiting agent play; T4's halves (lesson gate, softer Evade volley, gunship hold, withdrawal wait) are in T4's worktree, not on main; three checkpoints, the gunship optional |
-| 1 First Contact | Withdrawal: Command orders it, pursuers stop at a boundary; crossing it ends the tutorial | ENG-40 | 🟨 | On main 6fe3e90f (00e23e85), played by an agent (T7): boundary, marker, pursuers break off, one completion event, music fade on the crossing; the objective still reads CLEAR THE AREA (T5); 'turn back' warning in the corridor (#90 no. 9): T1's boundary rule and release hook (9cfa5ec9) are on main f39a8372, T4's release call is not on main yet |
-| 1 First Contact | *Aftermath* (`S2_*`), tactical lanes, navigation pulse, Dominion light row in rhythm | ENG-42, ENG-36, ART-18 | 🟨 | Fired on the withdrawal event, on main 6fe3e90f (13623956); lost when the player boosts into Verdance (#90 no. 6): T3's replay 2b6be288 (main eb1bf334) and T1's atmosphere-entry hold (main f39a8372) are both on main, awaiting agent play; lanes, pulse and light row still new |
-| 1 to 2 | Jump to Verdance in one hyperdrive jump; convoys that ignore the squad; Dominion visible behind its field; asteroids and junk shootable and solid | ENG-15, ENG-39, ENG-18, ENG-48 | 🟨 | One-jump fix on main 6fe3e90f (030561f9), played by an agent (5.1 km to a 1.7 km stand-off); convoy line on proximity, not a hold; the asteroid boost top-up (f447189e) is on main eb1bf334, awaiting agent play; space composition in seven regions (T6, `docs/eng/SPACE-DESIGN.md`): four regions built on eng/t6 fae01308, three more in progress (757941fc), none on main; their set pieces r1-r4 are on main, r3 of the region pieces in batch P's gate; first break of each kind costs 12-19 ms (#89, T6's preload fix) |
-| 2 Verdance | Descent with no loading screen, arrival from the entry point; landing; step out | ENG-38, ENG-20, ART-13 | 🟨 | ENG-20's parked-ship fix is on main 6fe3e90f (f9f89594, tested), not yet seen again live; the entry hold during *Aftermath* and the climb-out roar (df563569) are on main f39a8372, awaiting agent play; **ENG-38 ships as a smallest complete version** (Lead's decision, Nov 14): T1's 9 s glide-lite and mirrored take-off (616b7a8e, 1e7b1fcb) are in batch P's gate, T4's terrain half and T2's descent HUD are not on main; first planet entry hitches about 330 ms from synchronous scatter mesh loads (#89, T4's async loading in progress); atmosphere look per planet |
-| 2 Verdance | Short route: instruments on one buried line, transponder "verified / unknown" flicker, a patrol | ENG-25, ENG-39, ENG-36, ART-17, ART-18 | 🟨 | Dressed play zone; the transponder flicker is on main eb1bf334 (cda0a770), awaiting a live capture (T2); the Verdance field camp and the relay-mast landmark r1 are on main 61404a79 (captured by the builder, awaiting agent play; the mast is too thin: r2 in batch P's gate); walkable survey station from the kit (R-043) |
+| Front end | Boot to main menu: New Game, Continue, Settings, Quit; menu music | ENG-19, ART-09, ART-10 | 🟨 | Styled menu implementation on main ee5dc0ff; MainMenuWidgetClass activation and a human pass with pad and mouse remain **(05:00)** Played again by an agent (T7, 04:14-04:29, real keys, batch O tree): New Game, Skip the tutorial, Continue disabled with no save, Settings, Quit all work |
+| Front end | New Game: difficulty, first play forces the tutorial, a later New Game offers "Skip the tutorial" | ENG-41, ENG-45, ART-09 | 🟨 | On main 6fe3e90f and played by an agent (T7): the offer shows on a completed profile and Skip lands in the Aftermath state; review open; T4's clear skip start (0a4e7501, #90 no. 10) is on main f39a8372 (batch N), awaiting agent play; New Game difficulty (ENG-45, T5, queued) **(05:00)** T7 used New Game and Skip the tutorial again on the batch O tree; the review (ART-20) is still open, so ENG-41 stays 🟨 |
+| Opening | Intro, 49 s (Nicholas kept 49 s, reconciliation 17:15), skippable, hands off to the tutorial | ENG-33, ART-11, ART-12, ART-19 | 🟨 | #49 fixed on main: names no longer clipped (3c76874c / 9fe5d373, main 6fe3e90f) and the trait line no longer repeats the role word (e234e950, main 61404a79); captured live by T3 at 1280x720, 1920x1080 and 2560x1080 (agent-driven); issue #49 stays open for Nicholas to close (the card's look is his). Still to do: the five legacy `Intro_N` captions still show on main (N-088); T3's rebuild of the opening's words (the 15 approved `O_*` first-contact lines as subtitles over the intro shots, behind `td.Intro.Lines`, 0 = the old captions; 77de9085, Intro / Story / E2E 33 of 33; approved by Ryan's Lead) is on eng/t3, not on main, and removes them; the voice for those lines is Nicholas's; the longer silences after the shortened lines (Nicholas); the re-shoot once with the final ships and effects; intro score and narration voice **(05:00)** T3's rebuild is now in batch U's gate (lead/int-u dea28a8b, not on main): the 15 approved `O_*` lines behind `td.Intro.Lines`, the departure-radio guard, a black hold on the intro's first frames, and a HOLD TO SKIP hint that shows by itself; T3 played the opening's 11 lines at two resolutions on its branch; T7 played the hold-to-skip on the batch O tree |
+| 1 First Contact | Tutorial battle phases 01-04 (evade, return fire, fight as Triad, heavy contact) over waves 1-2, in a destructible, solid field | ENG-40, ENG-13, ENG-14, ENG-36, ENG-42, ENG-48 | 🟨 | Waves 1-2 and the `TB_*` lines on main 6fe3e90f, played by an agent; the phase prompts v1 (EVASIVE MANEUVERS, TARGET AND FIRE, SQUAD SYSTEMS; db27e563) are on main f39a8372 and the phase clock that counts only while the player flies (e36304e8) on main 61404a79, both awaiting agent play; T4's halves (lesson gate, softer Evade volley, gunship hold, withdrawal wait) are in the T1 + T4 combined commit on their branches (for batch T), not on main; T3's wingman rock avoidance is in batch S's gate; three checkpoints, the gunship optional **(05:00)** Played by an agent (T7, batch O tree): the three lessons (evade 18 s, target and fire, squad switch 22 s) with their lines in order, 8 manual switches each honoured with its pilot card, about 4 minutes of combat with no wingman lost to a rock. T3's rock avoidance is on main 4eb57848 (batch S). T4's halves (lesson gate, softer Evade volley) and T1's hints by phase are in batch U's gate, so the tutorial changes again: replay on main pending |
+| 1 First Contact | Withdrawal: Command orders it, pursuers stop at a boundary; crossing it ends the tutorial | ENG-40 | 🟨 | On main 6fe3e90f (00e23e85), played by an agent (T7): boundary, marker, pursuers break off, one completion event, music fade on the crossing; the objective still reads CLEAR THE AREA (T5); 'turn back' warning in the corridor (#90 no. 9): T1's boundary rule and release hook (9cfa5ec9) are on main f39a8372, T4's release call is not on main yet **(05:00)** Played again by T7 (batch O tree) by flying at the marker: works. MINOR: the objective still reads CLEAR THE AREA during the withdraw order (T5's withdrawal objective text is on a branch). T4's boundary release is in batch U's gate. Decided by Ryan's Lead: the corridor keeps its Verdance bearing and gains a jump-point waypoint (T4, branch), no speed cap |
+| 1 First Contact | *Aftermath* (`S2_*`), tactical lanes, navigation pulse, Dominion light row in rhythm | ENG-42, ENG-36, ART-18 | 🐞 | Fired on the withdrawal event, on main 6fe3e90f (13623956); lost when the player boosts into Verdance (#90 no. 6): T3's replay 2b6be288 (main eb1bf334) and T1's atmosphere-entry hold (main f39a8372) are both on main, awaiting agent play; lanes, pulse and light row still new **(05:00)** **🐞 MAJOR, played by T7 on the batch O tree (#90):** a player who keeps boosting after the withdrawal flies into Verdance's atmosphere mid-sequence; the entry was held once, then the game travelled 1.4 s later in the middle of Wren's line; the hyperdrive jump beat and 17 queued story lines never played and the planet arrival was silent. The two fixes named above did not stop it. Owners and fixes, all on branches, none on main: T1 (the entry holds for the whole sequence: a crawl at the atmosphere's edge, AWAITING ORDERS), T4 (jump-point waypoint), T3 (must-hear lines survive a map travel). Decided by Ryan's Lead: the entry commits after *Aftermath* if the player is still at Verdance's edge. Back to 🟨 when the fixes are on main; T2's *Aftermath* HUD lanes are on a branch |
+| 1 to 2 | Jump to Verdance in one hyperdrive jump; convoys that ignore the squad; Dominion visible behind its field; asteroids and junk shootable and solid | ENG-15, ENG-39, ENG-18, ENG-48 | 🟨 | One-jump fix on main 6fe3e90f (030561f9), played by an agent (5.1 km to a 1.7 km stand-off); convoy line on proximity, not a hold; the asteroid boost top-up (f447189e) is on main eb1bf334, awaiting agent play; the space composition in seven regions with 36 set pieces (T6, `docs/eng/SPACE-DESIGN.md`) is on main ddc50a2f (batch R, 934 tests), awaiting agent play; the four default break systems are registered with the warm-up (96e9fdc6) and the asteroid-break rework is on main 6afa3816, the first-break cost not re-measured (#89) **(05:00)** In T7's play the jump beat was skipped by the *Aftermath* bug (row above), so the one-jump path was not replayed. In batch U's gate: T6's first-break fix (first breaks at most 1.22 ms, was 12-19 ms; 4e01e6d1), `td.Hyperdrive.IgnoreLock`, the region set pieces closed out at r4. On branches: T6's regions moved closer to the routes with more pieces; region beacon and haze. The first pickup spawn still costs 25 ms (T2's pre-spawn, branch) |
+| 2 Verdance | Descent with no loading screen, arrival from the entry point; landing; step out | ENG-38, ENG-20, ART-13 | 🟨 | ENG-20's parked-ship fix is on main 6fe3e90f (f9f89594, tested), not yet seen again live; the entry hold during *Aftermath* and the climb-out roar (df563569) are on main f39a8372, awaiting agent play; **ENG-38 ships as a smallest complete version** (Lead's decision, Nov 14): on main and awaiting agent play: T1's 9 s glide-lite and mirrored take-off (616b7a8e, 1e7b1fcb; main 4e894365), T2's descent HUD (altimeter tape, hull temperature, ATMOSPHERE / ORBIT; 46e371c1, main 6afa3816), `M_TD_PP_DescentWhite` and the in-cloud layer v1; on branches for batch T: the glide fitted to the cloud-deck rule (the deck sits at the glide corridor + 300 m, clamped 1,100-1,600 m above the pad, so the glide stays 9-10 s), T4's terrain half and async scatter loading (the 330 ms first entry is still on main, #89), the descent haze, cloud veil v2, CloudPunch and GlideWind; atmosphere look per planet **(05:00)** T7 flew the Verdance atmosphere entry naturally on the batch O tree (white cover, 1.69 s map load); that tree is before the glide of batch P, and the landing was done by a console command, so the glide, the landing by hand and the take-off are still unplayed. In batch U's gate (not on main): the T1 + T4 combined commit (the glide placed over a corridor-fitted cloud deck on every entry path, a 300 m floor for uncovered arrivals, async scatter kind loading at 4 ms per frame, descent haze, glide wind slot, exposure ramp). On branches: cloud veil v2, CloudPunch and GlideWind sounds, T2's descent HUD contrast and ORBIT fix, landing gear meshes for the three ships |
+| 2 Verdance | Short route: instruments on one buried line, transponder "verified / unknown" flicker, a patrol | ENG-25, ENG-39, ENG-36, ART-17, ART-18 | 🟨 | Dressed play zone; the transponder flicker is on main eb1bf334 (cda0a770), awaiting a live capture (T2); the Verdance field camp and the relay-mast landmark r1 are on main 61404a79 (captured by the builder, awaiting agent play), the relay mast r2 on main 4e894365; T5's Dress pass (49 story props on Verdance, the kit `BP_Wreck` at the scar's end; 2767300b) is on main ddc50a2f, awaiting agent play; the outpost floor that showed terrain is lifted 3 cm (f19802f0, main ddc50a2f), walk test pending; walkable survey station from the kit (R-043) **(05:00)** T7 saw the first view on foot with the dressing visible (batch O tree, before the Dress pass of batch R); the objectives on foot are not replayed yet. Walkable survey stations (ART-17) are on the structures branch; the Verdance canopy at about 40% coverage is in batch U's gate; the wreck scar is on the environment branch |
 | 2 Verdance | Recover the signal-analysis device → **Gravity Well**; reward screen | ENG-25, ENG-12, ART-09 | 🟨 | Played by an agent on main 6fe3e90f; the award was silent (#90 no. 2): the native announcement and the mount for Nick's reward screen are on main eb1bf334 (944e1ef5, N-081), awaiting agent play (T2's natural-award capture); Nick's reward screen waits on Nicholas's approval of its look |
-| 2 Verdance | Cinematic 03 *Beneath the Surface*, 40-60 s voice-over: monitor graphic, voices ("Maintain the sequence"), drone wakes blue, three pulses | ENG-42, ART-18, ART-11, ART-19 | 🟨 | Fired, on main 6fe3e90f (cef28834); its dialogue plays over the first relay wave (#90 no. 7: T5 holds the wave, next); monitor graphic (Nick's #44 PNG or T2), drone prop with blue optic, the three-pulse sound |
+| 2 Verdance | Cinematic 03 *Beneath the Surface*, 40-60 s voice-over: monitor graphic, voices ("Maintain the sequence"), drone wakes blue, three pulses | ENG-42, ART-18, ART-11, ART-19 | 🟨 | Fired, on main 6fe3e90f (cef28834); its dialogue played over the first relay wave (#90 no. 7): the wave now waits for `C3_Moss_Company`, the scene's end or 60 s (9f964b30, main 6afa3816), awaiting agent play; monitor graphic (Nick's #44 PNG or T2), drone prop with blue optic, the three-pulse sound |
 | 2 Verdance | Protect the data transfer, 60-90 s, three waves, Heavy disruption → **Cloak**; extraction with the device | ENG-25 | 🟨 | On main 6fe3e90f and played by an agent (transfer, Heavy stalls, secured, extraction); the Heavy's guard hint, clang and chip-through (#90 no. 3, 8e758175) and the Cloak announcement (944e1ef5) are on main eb1bf334, awaiting agent play |
-| 2 Verdance | Take-off; Cinematic 04 as transmissions (`C4_*`); Verdance theme fades | ENG-42, ENG-38, ART-19 | 🟨 | Lines fired on take-off, on main 6fe3e90f (d89a0043); cut to three calls on main eb1bf334 (N-087), awaiting agent play; the mirrored take-off of ENG-38 is in batch P's gate; theme wiring (N-045; Nick's hookup not started; T1's native fallback on main 61404a79 does not cover the Verdance theme) |
-| Between | Waves 3-4 as the interception on the Cinder route (lines only); clue: an enemy pre-empts a manoeuvre; destructible field with special-asteroid boost drops | ENG-14, ENG-42, ENG-43, ENG-48 | 🟨 | Interception lines; the anticipation clue and its bark (storyline §6) |
-| 3 Cinder | Descent, short route past one patrol, survey station on the dig's rim | ENG-26, ENG-38, ART-17, ART-18 | 🟨 | Walkable station and dig cabin from the kit; fixed order terminal → excavation → anchor; the Cinder mining camp and the Null derrick landmark are on main 61404a79 (captured by the builder, awaiting agent play); Cinder World / Fall play through T1's native music fallback (main 61404a79, not heard by anyone) |
+| 2 Verdance | Take-off; Cinematic 04 as transmissions (`C4_*`); Verdance theme fades | ENG-42, ENG-38, ART-19 | 🟨 | Lines fired on take-off, on main 6fe3e90f (d89a0043); cut to three calls on main eb1bf334 (N-087), awaiting agent play; the mirrored take-off of ENG-38 is on main 4e894365, awaiting agent play; theme wiring (N-045; Nick's hookup not started; T1's native fallback on main 61404a79 does not cover the Verdance theme) |
+| Between | Waves 3-4 as the interception on the Cinder route (lines only); clue: an enemy pre-empts a manoeuvre; destructible field with special-asteroid boost drops | ENG-14, ENG-42, ENG-43, ENG-48 | 🟨 | Interception lines; the anticipation clue and its bark (storyline §6) **(05:00)** `Bark_Anticipated` and T3's trigger are on main 4eb57848 (batch S; the words are Nicholas's), not heard in a played run; the waves 3-4 interception ids are still queued (T3) |
+| 3 Cinder | Descent, short route past one patrol, survey station on the dig's rim | ENG-26, ENG-38, ART-17, ART-18 | 🟨 | Walkable station and dig cabin from the kit; fixed order terminal → excavation → anchor; the Cinder mining camp and the Null derrick landmark are on main 61404a79 (captured by the builder, awaiting agent play); Cinder World / Fall play through T1's native music fallback (main 61404a79, not heard by anyone) **(05:00)** T5's Dress pass on Cinder (50 story props, landmarks, the dig cabin; 2767300b) is on main ddc50a2f; the fixed order and the ID door's one greeting (b4d8ed05) are on main 4eb57848 (batch S); none of it played by an agent yet. Cinder from the air is on the environment branch |
 | 3 Cinder | Cinematic 05 *The Pattern*, 40-50 s: the one Kato echo, "Origin Core", "temporal device" | ENG-42, ART-11 | 🟨 | Fired, on main 6fe3e90f (cef28834); approved lines (§25.2) as one queued scene with Cinder overlay |
-| 3 Cinder | Secure the excavation: gate, areas, Warden (mercy tiers), crystal cache → **EMP Pulse** + crystals | ENG-26, ENG-23, ART-04, ART-08, ART-18 | 🐞 | ENG-23 is 🐞: on main 61404a79 the Warden's slam contact is mistimed (T5) and its shield floats off the body (rig fix, animation builder); both fixes are in progress, not on main (#90, comment of 02:30). On main and awaiting agent play: crew deaths ending on the ground (ab2ab66b), per-type deaths and attacks and corpses that lie 10 s (b9bbdb25, 494cbcd7); the conduit marker's bearing crosses lava (#90 no. 11, T5); renames; cache prop (#53); Warden animation set and ragdoll |
-| 3 Cinder | Disable the field anchor: bridges, three charges, run from the collapsing tower; HUD "approach prepared, passage pending" | ENG-26, ENG-36, ART-18 | 🟨 | Anchor tower (#52) and its collapse; pending marker |
+| 3 Cinder | Secure the excavation: gate, areas, Warden (mercy tiers), crystal cache → **EMP Pulse** + crystals | ENG-26, ENG-23, ART-04, ART-08, ART-18 | 🟨 | ENG-23 is 🟨 again (04:00): the Warden's slam contact (1.30 s, on the charge's end; 39810902) and its shield re-rigged to the left forearm (e2e74225) are on main 6afa3816, neither seen in a played run; the Warden death is being rebuilt on a new base (animation builder, branch). An Ace-only bug in batch S (an extra crew member spawning through a wall on Cinder) is fixed on T5's branch and lands in batch T. On main and awaiting agent play: crew deaths ending on the ground (ab2ab66b), per-type deaths and attacks and corpses that lie 10 s (b9bbdb25, 494cbcd7); the conduit marker's bearing crosses lava (#90 no. 11, T5); renames; cache prop (#53); Warden animation set and ragdoll **(05:00)** The Ace-only wall-spawn fix (8e1a4e6d, with a spawn test for every preset) is on main 29a15f21 (batch T). In batch U's gate: the Warden clips moved to `SKEL_Warden` (five had silently fallen back to template clips), the Warden death rebuilt, the Heavy bash raised. On branches: Grunt damage-time jitter, the Warden stagger trigger, live captures of hit reactions, walk and stagger. Not played by an agent |
+| 3 Cinder | Disable the field anchor: bridges, three charges, run from the collapsing tower; HUD "approach prepared, passage pending" | ENG-26, ENG-36, ART-18 | 🟨 | Anchor tower (#52) and its collapse; pending marker **(05:00)** The pending state (`IsFieldAnchorDisabled`, saved; b4d8ed05) is on main 4eb57848 and T2's on-foot line "APPROACH PREPARED · PASSAGE STILL BLOCKED" with its marker (e1cf2fbb; the wording is a placeholder for Nicholas) on main 29a15f21; tested, not played |
 | 3 Cinder | Take-off; Cinematic 06 as transmissions (`C6_*`), objective "Break the Dominion guard" | ENG-42, ENG-18 | 🟨 | Lines fired on take-off, on main 6fe3e90f (d89a0043); cut to three calls on main eb1bf334 (N-087), awaiting agent play; objective line on wave 5 |
-| 4 Assault | Wave 5; the approach field opens only when Cinder is done **and** wave 5 is cleared; debris and junk destructible and solid | ENG-14, ENG-18, ENG-48 | 🟨 | Check the rule really needs both; field-opening effect |
+| 4 Assault | Wave 5; the approach field opens only when Cinder is done **and** wave 5 is cleared; debris and junk destructible and solid | ENG-14, ENG-18, ENG-48 | 🟨 | Check the rule really needs both; field-opening effect **(05:00)** Shield drop and approach-field shimmer effects are on the effects branch; the rule check is still queued (T4, T3) |
 | 4 Assault | Four generators 0/4, "shield" wording, two Unknown clue fragments, one friendly-status flicker; docking marker | ENG-18, ENG-36, ENG-42 | 🟨 | 0/4 to 4/4 with director shots and lines played by an agent on main 6fe3e90f; generator pips on the HUD and the Dominion on the r2 hull's sockets are on main eb1bf334 (cda0a770, b59423d5), awaiting agent play: live captures of the pips and the flicker (T2); wording |
-| 4 Docking | Bay opens, tractor assist, wingmen hold outside, pressure off; Cinematic 07 as six lines | ENG-29, ENG-42, ART-16, ART-18 | 🟨 | Docking not verified by the playtest (35 degree cone, #90 no. 19): T4's near-field capture (80 degrees inside 400 m) and approach waypoint (0a4e7501) are on main f39a8372 with a test, awaiting a live play; `C7_*` lines; bay mouth (#54); docking shot |
+| 4 Docking | Bay opens, tractor assist, wingmen hold outside, pressure off; Cinematic 07 as six lines | ENG-29, ENG-42, ART-16, ART-18 | 🟨 | Docking not verified by the playtest (35 degree cone, #90 no. 19): T4's near-field capture (80 degrees inside 400 m) and approach waypoint (0a4e7501) are on main f39a8372 with a test, awaiting a live play; `C7_*` lines; bay mouth (#54); docking shot **(05:00)** T4 played docking on its own branch (agent-driven); not yet on main's tree. On branches: the tractor beam effect, T6's docking-cone keep-out for the field |
 | 4 Interior | Hangar (access granted), deflect corridor, arena, Warden, consoles climbing from Unknown to the plain statement | ENG-30, ART-15, ART-17 | 🟨 | Played by an agent on main 6fe3e90f; the pilot spawns against the parked Rift's tail (#90 no. 12, T5); crew readable at 30 m (#90 no. 14, 0b36d0e9) and "Hold E" on the boarding prompt (8e758175) are on main eb1bf334, awaiting agent play; console order and speakers; arena consoles quiet in combat |
 | 4 Interior | **The reveal:** mandatory final record at the reactor threshold → Cinematic 08 (five `F_*` lines, full warning, the case, the decision), door sealed, skippable | ENG-30, ENG-42, ART-11, ART-19 | 🟨 | The gate (T5), the queue and skip (T3), the readout line (6c4979f2, 64946350, 6828207b) are on main 6fe3e90f; agent-played on the batch L branch, but T7's run on the merged batch skipped the gate by a debug move: no verdict on the reveal yet |
-| 5 The Choice | Reactor fight: "Break the reactor conduits" 0/4, "Destroy the reactor heart", one source of pressure | ENG-30 | 🟨 | CONDUITS 0/4 and the conduit lines played by an agent on main 6fe3e90f; the conduits carry no world markers (#90 no. 4, T5); T2's conduit count on the HUD (7fb67c3d) is on main f39a8372, awaiting agent play; the core-chamber and reactor-fight music fallbacks are wired on main 61404a79 but wait for T5's interior events (not on main); defenders trio (N-052, T5); `G8_*` lines; pressure in the room |
-| 5 The Choice | Escape run 90 s (2.5 s after the heart), debris, "time failing" in sound; reboard | ENG-31, ART-16, ART-19 | 🟨 | T2's escape clock and exit marker (7fb67c3d) are on main f39a8372, awaiting agent play; `G9_*` lines; alarm and hull sounds; escape music: the fallback slot is empty because the Ritual track is not imported on main (Nicholas / Nick's side) |
-| 5 The Choice | Escape flight 60 s through debris to the radius; three "clear" reports; breakup; debris solid, impact damage by speed | ENG-31, ENG-44, ART-07, ENG-48 | 🟨 | The line says ninety seconds and the flight was cleared in about 6 s (#90 no. 8): T4's escape flight (clear at 3.5 km or more, about 40 of 60 s; 0a4e7501) is on main f39a8372 with tests, awaiting a live play; breakup effects at trailer quality; regroup lines |
+| 5 The Choice | Reactor fight: "Break the reactor conduits" 0/4, "Destroy the reactor heart", one source of pressure | ENG-30 | 🟨 | CONDUITS 0/4 and the conduit lines played by an agent on main 6fe3e90f; the conduits carry no world markers (#90 no. 4, T5); T2's conduit count on the HUD (7fb67c3d) is on main f39a8372, awaiting agent play; the core-chamber and reactor-fight music fallbacks are wired on main 61404a79 and T5's interior events (`ATDPlanetCourse::OnInteriorMoment`, 9f964b30) and the `DA_ReactorCore_FX` slots are on main 6afa3816, but T1's forwarding of them to the music bridge (f88a0bfb) is on eng/t1, so both are still silent on main; defenders trio (N-052, T5); `G8_*` lines; pressure in the room **(05:00)** T1's forwarding of the interior moments to the music bridge is in batch U's gate (not on main), so both are still silent on main |
+| 5 The Choice | Escape run 90 s (2.5 s after the heart), debris, "time failing" in sound; reboard | ENG-31, ART-16, ART-19 | 🟨 | T2's escape clock and exit marker (7fb67c3d) are on main f39a8372, awaiting agent play; `G9_*` lines; alarm and hull sounds; escape music: the fallback slot is empty because the Ritual track is not imported on main (Nicholas / Nick's side) **(05:00)** The Dominion escape debris set (`SM_KS_DomDebris_*`, `BP_KS_DomDebris`; captured at 100 m by its builder) is on main 29a15f21. Interior alarm and collapse lighting (`UTDInteriorLightSubsystem`, on `OnInteriorMoment`) is in batch U's gate, tested headless, not seen live |
+| 5 The Choice | Escape flight 60 s through debris to the radius; three "clear" reports; breakup; debris solid, impact damage by speed | ENG-31, ENG-44, ART-07, ENG-48 | 🟨 | The line says ninety seconds and the flight was cleared in about 6 s (#90 no. 8): T4's escape flight (clear at 3.5 km or more, about 40 of 60 s; 0a4e7501) is on main f39a8372 with tests, awaiting a live play; breakup effects at trailer quality; regroup lines **(05:00)** T4 played the escape flight on its own branch (agent-driven): victory at 41 s of 60; replay on main pending (T7's next session) |
 | Ending | Victory panel (takes per scene), stinger at 18 s "DATED DECADES AHEAD", signal lines, credits roll, back to menu | ENG-44, ART-09, ART-11, ART-19 | 🟨 | Caption and forced stinger on main 6fe3e90f (6c4979f2, 6bfc19fa), seen by an agent with the credits roll and the return to the menu; credits music: T1's native fallback (eb6e3275: Cathedral Pulse (1) then Ethereal Pulse Remix after the stinger) is on main 61404a79, technically verified, not heard by anyone; Nick's own hookup has not started (his side stopped at 01:16) and replaces it on its first claim; the victory eyebrow reads "OPERATION PARADOX" (noted on #29 for Nicholas) |
 | Always | Death → "CUT!" → next take in every scene, never replaying a cutscene | C-03, ENG-19, ENG-46 | 🟨 | ENG-46 is 🟨: retake checked in every scene of the new beats; T3's retake fixes (2b6be288) and the trench retake (818d592e) are on main eb1bf334, awaiting agent play |
 | Always | Save and Continue at every act boundary, including interior and escape; no Continue after victory | ENG-19, ENG-46 | 🟨 | ENG-46 is 🟨: Continue from the interior and the escape played once; T3's save / quit / Continue test (007d9f14) is on main f39a8372; in T3's scripted walk a Continue from the menu after a relaunch started a fresh run (under investigation, not yet confirmed as a game bug; T3) |
 | Always | Fallback ending (`td.Finale.Boarding 0`) still finishable | ENG-47, ENG-18 | 🟨 | ENG-18: the space reactor could not be killed in a played run (#90 no. 5); T4's fix 818d592e (retune, trench retake, r2 hull) is on main eb1bf334 with its tests, awaiting agent play (T7); ENG-47 is 🟨: the decision record is the Lead's (due Nov 14 20:00) |
-| Always | Barks per `dialogs.md`, subtitles, voices | ENG-43, ART-11 | 🟨 | Bark table from the file; ~53 new triggers; voice pickup |
-| Always | Sound for every action; music per act (menu, tutorial, combat rising, Verdance, Cinder, assault, interior, escape, victory, credits) | ENG-35, ART-10, ART-19 | 🟨 | Nick's hookup not started; T1's native fallback for Nicholas's assigned placements is on main 61404a79 (R-047): credits, Cinder, assault and quiet flight live; core chamber and reactor fight wired, waiting for T5's interior events; escape empty (Ritual not imported); nothing heard by a person; Nick's music folders are in the always-cook list; ear approval (Nicholas) |
-| Always | HUD in every state; Settings and accessibility | ENG-36, ENG-32, ENG-45, ART-09 | 🟨 | On-foot HUD in the new style; the settings page fit (6d2d9c6e, main eb1bf334) and enemy marker shapes per type (ede33e91, main 61404a79; a fallback under R-047) await agent play; subtitle size and the graphics preset (20bdfe00) and the enemy-bolt shape for colour-blind players (0c5de65c, from T7's deuteranopia check) are on main; subtitles on / off, shake and speed-FOV sliders, New Game difficulty still open |
+| Always | Barks per `dialogs.md`, subtitles, voices | ENG-43, ART-11 | 🟨 | Counted tonight (ENG-43): 44 bark ids fire in the game and about 55 ids in `dialogs.md` fire nowhere; the lists per lane are with T1, T4 and T5; `Bark_Anticipated` is in batch S's gate; voice pickup (Nicholas) **(05:00)** `Bark_Anticipated` is on main 4eb57848; ENG-43 world barks (T4) and on-foot barks (T5) are on branches; T1's and T2's sweeps not reported |
+| Always | Sound for every action; music per act (menu, tutorial, combat rising, Verdance, Cinder, assault, interior, escape, victory, credits) | ENG-35, ART-10, ART-19 | 🟨 | Nick's hookup not started; T1's native fallback for Nicholas's assigned placements is on main 61404a79 (R-047): credits, Cinder, assault and quiet flight live; core chamber and reactor fight wired, T5's interior events on main 6afa3816 but T1's forwarding (f88a0bfb) still on eng/t1; escape empty (Ritual not imported); nothing heard by a person; Nick's music folders are in the always-cook list; ear approval (Nicholas) **(05:00)** T1's forwarding (core chamber, reactor fight) and the glide wind slot are in batch U's gate; CloudPunch and GlideWind sounds on the effects branch; still nothing heard by a person |
+| Always | HUD in every state; Settings and accessibility | ENG-36, ENG-32, ENG-45, ART-09 | 🟨 | On-foot HUD in the new style: T2's restyle (aa204b7a) is on eng/t2 with passing tests, not seen live; the ENG-38 descent HUD is on main 6afa3816, awaiting agent play; the settings page fit (6d2d9c6e, main eb1bf334) and enemy marker shapes per type (ede33e91, main 61404a79; a fallback under R-047) await agent play; subtitle size and the graphics preset (20bdfe00) and the enemy-bolt shape for colour-blind players (0c5de65c, from T7's deuteranopia check) are on main; the subtitles on / off setting is in the T1 + T4 combined commit (branch) and the ground half of the difficulty (crew health, hits and fight size; 231b9876) in batch S's gate; shake and speed-FOV sliders and the New Game difficulty choice still open **(05:00)** T2's on-foot HUD restyle (aa204b7a) and the Cinder pending marker are on main 29a15f21, tested, not seen live; the enemy marker shapes were seen working by T7 (batch O tree); the ground half of the difficulty is on main 4eb57848 with the Ace fix on 29a15f21; the subtitles setting is in batch U's gate; on T2's branch: descent HUD contrast and the ORBIT fix, a marker placement fix, the *Aftermath* lanes |
 | Always | Ships, fleet, Dominion, crew, props, effects, environment, animation at gameplay distance | ART-03, 04, 05, 06, 07, 08, 13, 17, 18, ENG-34, 37, 39 | 🟨 | Per item below |
-| Ship it | Packaged Shipping build under 1 GB, 60 fps at 1080p, played start to end | ENG-28, ENG-46 | 🟨 | Shipping package of main eb1bf334 published (private prerelease `playable-main-eb1bf334`): the zip is 981,016,363 bytes, 19 MB under the limit; batch O's package (61404a79) is not built yet; performance pass (#89, T7): the warm-up subsystem, async music loading and the path cache are on main 61404a79, the measurement runs (A1 / A3, W0 / W1, N) have not been made; the never-cook rules and Oodle RDO are unproven until a trial cook (import builder); dropping the DirectX 11 shader set is held for Ryan; daily packaged playthrough |
-| Ship it | Independent review of every lane, human playthroughs, submission page, video, dev log, credits | ART-20, ART-21, ENG-46, ART-14 | 🟨 | Batch L range 825d8869..6fe3e90f sent to Nick's side for review (R-045, accepted on #88); T7 ran Nick's seven scripts on batch L; **no agent has played batch M, N or O end to end** (T7 plays main 61404a79 with script 08 after its performance window); Nick's side stopped at 01:16 (N-090), its reviews resume on restart; Glass Box draft on main (a980fa7f); itch page; trailer re-cut |
+| Ship it | Packaged Shipping build under 1 GB, 60 fps at 1080p, played start to end | ENG-28, ENG-46 | 🐞 | Shipping package of main eb1bf334 published (private prerelease `playable-main-eb1bf334`): the zip is 981,016,363 bytes, 19 MB under the limit; it is still the newest finished package; a trial package of main ddc50a2f has been cooking since 03:32, and the never-cook rules (about 120 MB) and Oodle RDO stay unproven until it finishes (import builder); performance pass (#89, T7): audio buffers 1 against 3 measured, inconclusive and not committed; the warm-up off / on and natural first-ten-minutes runs are in progress, so no frame-rate claim is verified; T2's projectile pool fix and combat warm-up list are on main 6afa3816; dropping the DirectX 11 shader set is held for Ryan; daily packaged playthrough **(05:00)** **🐞 The Shipping game target does not compile on main 4eb57848 or 29a15f21** (a squad test sat outside its `WITH_DEV_AUTOMATION_TESTS` guard; found by the packaging agent), so neither can be packaged; the fix (dea28a8b) is in batch U's gate. Back to 🟨 when it is on main. The newest published Shipping zip is main ddc50a2f (batch R): 872,722,389 bytes, 127 MB under the limit, a clean cook with the never-cook rules (134 unreferenced packages; on main 29a15f21), launch check to first combat only; prerelease `playable-main-ddc50a2f`. Oodle RDO is a trial, unproven. Performance (#89): the warm-up removes combat frames over 100 ms (assault worst frame 133 → 51 ms) at +650 MB RAM (per-map lists in progress); tutorial combat had 9 frames over 33 ms in 119 s on a loaded machine (cause unconfirmed); the audio buffer test is inconclusive. Held for Ryan: the DirectX 11 shader set, a precompiled pipeline-state cache |
+| Ship it | Independent review of every lane, human playthroughs, submission page, video, dev log, credits | ART-20, ART-21, ENG-46, ART-14 | 🟨 | Batch L range 825d8869..6fe3e90f sent to Nick's side for review (R-045, accepted on #88); T7 ran Nick's seven scripts on batch L; **no agent has played batches M to R end to end** (T7 plays main with script 08 after its performance window; not started at 03:35); eight evidence frames for Nick's asset issues are published as the prerelease `evidence-main-eb1bf334` and linked on #37, #40, #41, #42, #51, #54 and #63 with a request to close; Nick's side stopped at 01:16 (N-090), its reviews resume on restart; Glass Box draft on main (a980fa7f); itch page; trailer re-cut **(05:00)** **The first end-to-end agent play since batch L has started:** T7, 04:14-04:29, real keys through the engine's MCP server in a `-game` session, on the batch O tree (behind main by batches P-T): menu, intro skip, tutorial, switching, the Bastion dome, wingmen, the withdrawal and the Verdance entry played and working; the *Aftermath* beat broken (MAJOR). Not played: landing by hand, both planets' objectives, the assault, docking, interior, reactor, escape, victory (T7's next session is running). Evidence frames are now on all eleven asset issues (#37-#42, #51-#54, #63) with a close request; nothing closed (Nick's side is stopped) |
 
 
-**Hourly alignment, Nov 14 03:00 EST (Ryan's Lead; state as of about 02:35):**
-- **On main:** batch O at 61404a79 (Nov 14, 02:26; 922 / 922 headless tests), on top of batch N at f39a8372 (908 tests).
-  - Batch N put on main: T1's music bridge events, the atmosphere-entry hold during *Aftermath*, the boundary rule and
-    the climb-out roar; T2's conduit count, escape clock and exit marker, sensor marker and drone thrusters; T3's ENG-40
-    tutorial phase prompts v1, the StoryFidelity01 corrections, the Continue test and the TransmissionStatic cue; T4's
-    escape flight, docking near-field capture, clear skip start and blocked-enemy re-route (0a4e7501); in-place ground
-    deaths for all four crew types; space set pieces r1-r4; the enemy readability materials.
-  - Batch O put on main: T5's per-type crew deaths and attacks and 10 s corpses; T7's warm-up subsystem, async music
-    loading and path cache (#89); T2's enemy marker shapes per type and the combat benchmark; T1's native music
-    fallback (credits, Cinder, assault and quiet flight live; core chamber and reactor fight wired but waiting for T5's
-    interior events; escape empty because the Ritual track is not imported); T3's story decisions R011 / R132 / R020,
-    the #49 trait line and the ENG-40 phase time; Rift v13, Lancer glass v06, Bastion v02; planet landmarks r1 and the
-    story camps; far-tier tree clumps and the Cinder ambient floor.
-- **Played evidence is agent-driven only** (scripted or injected input, captures). T7 has not played batch M, N or O
-  end to end, and **no human has played batch N or O**. So nothing new is 🟢 and nothing is ✅: work in these batches
-  reads "on main, awaiting agent play".
-- **Not on main, batch P** (lead/int-p eb5827d9, in its test gate): T1's ENG-38 glide-lite and mirrored take-off; Rift
-  v14; relay mast r2; space-region set pieces r3; Verdance cliffs and the Cinder magma retune; credits rows.
-- **Only on branches or in worktrees (🟨 at most):** T4's ENG-38 terrain half, async scatter kind loading, the ENG-40
-  lesson gate and softer Evade volley, the boundary release call; T5's interior music events, slam / contact fixes and
-  the Dress pass placements; T6's seven space regions (four built on eng/t6 fae01308, three in progress); T2's
-  projectile pool and combat warm-up list (5e1013aa, three tests failing, fix coming) and the ENG-38 descent HUD; T3's
-  wingman rock-avoidance fix; the Warden shield rig fix (animation builder); effects: asteroid break shatter, the
-  ENG-38 exposure ramp, the CloudPunch sound, a wind layer, per-type enemy engine plumes; the environment builder's
-  Verdance canopy and terrain pass; the import builder's never-cook rules and Oodle RDO (unproven until a trial cook).
+**Hourly alignment, Nov 14 05:00 EST (Ryan's Lead; state as of about 04:35; replaces the 04:00 block):**
+- **On main:** batch T at 29a15f21 (937 headless tests), on top of batch S at 4eb57848 (936) and batch R at ddc50a2f
+  (934).
+  - Batch S put on main: T3's wingman rock avoidance and `Bark_Anticipated`; T5's ENG-26 (fixed order, ID door, the
+    pending-marker state) and the on-foot half of ENG-45's difficulty.
+  - Batch T put on main: T5's Ace-only wall-spawn fix with a spawn test for every preset; T2's ENG-36 on-foot HUD
+    restyle and the ENG-26 pending approach marker; the Dominion escape debris set; the never-cook rules (134
+    unreferenced packages) and the `td-package` change.
+- **🐞 Known defect on main: the Shipping game target does not compile on 4eb57848 or 29a15f21.** A squad test sat
+  after the `#endif` of its `WITH_DEV_AUTOMATION_TESTS` guard, so neither batch can be packaged. Found by the
+  packaging agent; the fix (dea28a8b) is in batch U. The Development and editor targets and the 937 tests are not
+  affected.
+- **Batch U** (lead/int-u dea28a8b, in its gate, **not on main**): the T1 + T4 combined commit (the glide placed over a
+  corridor-fitted cloud deck on every entry path, a 300 m floor for uncovered arrivals, the boundary release during
+  the glide, async scatter kind loading at 4 ms per frame, the ENG-40 lesson gate and softer Evade volley, descent
+  haze, the ENG-45 subtitles setting, interior moments forwarded to the music bridge, the glide wind slot, the
+  exposure ramp, `td.Hyperdrive.IgnoreLock`, hints by phase); T3's opening rebuilt from the 15 approved `O_*` lines
+  (`td.Intro.Lines`), the departure-radio guard, a black hold on the intro's first frames, the HOLD TO SKIP hint
+  shown unprompted; the Warden clips moved to `SKEL_Warden` (five had silently fallen back to template clips), the
+  Warden death rebuilt, the Heavy bash raised; the Verdance canopy at about 40% coverage; `UTDInteriorLightSubsystem`
+  (ART-13 alarm and collapse lighting; tested headless, not seen live); T6's first-break fix (first breaks at most
+  1.22 ms); the space set pieces closed out (moon shards back to r4, the failed flares removed); the Shipping
+  compile fix.
+- **Only on branches (🟨 at most):** T1's *Aftermath* entry-hold fix (a crawl at the atmosphere's edge, AWAITING
+  ORDERS) and a formation fix; T3's must-hear lines surviving a map travel; T4's jump-point waypoint, spawn points
+  that reject obstacles, the flaky scatter test fix and ENG-43 world barks; T5's ENG-43 barks, Grunt damage-time
+  jitter, the Warden stagger trigger, the withdrawal objective text and emergency strip tags; T6's regions moved
+  closer to the routes with more pieces and the docking-cone keep-out; T2's descent HUD contrast and ORBIT fix, a
+  marker placement fix, the pickup pre-spawn and the *Aftermath* HUD lanes; effects: cloud veil v2, CloudPunch and
+  GlideWind sounds, per-type enemy plumes, region beacon and haze, shield drop, approach-field shimmer, tractor beam,
+  the light row; structures: walkable survey stations (ART-17) and landing gear meshes for the three ships;
+  animation: the pilot interact rebuild and live captures of hit reactions, walk and stagger; ship: the hauler
+  repaint, a rear-view review, Lancer v08; environment: Cinder from the air and the wreck scar; import: the Oodle RDO
+  trial (unproven).
+- **Played by an agent: the first end-to-end play evidence since batch L.** T7, 04:14-04:29 EST, real keys through
+  the engine's MCP server in a `-game` session, on a tree that is batch O (364aabb3) + T2's pool fix + T7's
+  performance work, so **behind main by batches P to T**. Not a human playtest.
+  - **Played and working:** the main menu (New Game, Skip the tutorial, Continue disabled, Settings, Quit); the
+    intro's hold-to-skip; the ENG-40 tutorial lessons (evade 18 s, target and fire, squad switch 22 s) with the lines
+    in order; switching (8 manual switches honoured, a pilot card each time); the Bastion dome from inside (ENG-11);
+    wingmen against rocks for about 4 minutes of combat with no wingman death (ENG-08); enemy marker shapes; the
+    withdrawal by flying at the marker; the Verdance atmosphere entry flown naturally; the first view on foot on
+    Verdance with the dressing.
+  - **Played and broken, MAJOR:** the *Aftermath* beat. A player who keeps boosting flies into Verdance
+    mid-sequence; the hyperdrive jump beat and 17 queued story lines are lost. Owners T1, T4, T3; fixes on branches.
+  - **MINOR:** the objective reads CLEAR THE AREA during the withdraw order (T5).
+  - **Not played:** landing by hand, both planets' objectives on foot, the assault, docking, the interior, the
+    reactor, the escape, victory. T7's next session is running now.
+  - Separately, on their own branches: T4 played the escape flight (victory at 41 s of 60) and docking; T3 played a
+    2-minute wingman pocket run (0 rock hits) and the opening's 11 lines at two resolutions.
 - **Markers changed this hour:**
-  - ENG-33 🐞 → 🟨, and the checklist row "Opening": the #49 fixes are on main 61404a79 and T3 captured all three
-    resolutions live with the names and both lines fully on screen. Not 🟢: the re-shoot, the `O_*` lines and the score
-    are still open, and #49 waits for Nicholas to close it.
-  - ENG-23 🟨 → 🐞, and the checklist row "Secure the excavation": on main 61404a79 the Warden's slam contact is
-    mistimed (T5) and its shield floats off the body (animation builder's rig fix); fixes in progress, not on main.
-  - No item moved to 🟢 or ✅.
-- **🐞 now:** ENG-23 only.
-- **Decisions by Ryan's Lead tonight, under Ryan's delegation (Ryan can overrule any):**
-  - **ENG-38 ships as a smallest complete version** (an 8-10 s glide, not 15-20 s); what is left for Ryan is listed in
-    ENG-38.
-  - Dropping the DirectX 11 shader set (about 11 MB, `docs/eng/BUILD-SIZE.md` lever 6) is **held for Ryan**.
-  - The Bastion glass cockpit was attempted and stopped; v02 stays. A design decision for Ryan (ART-03).
-- **Found since batch O, being fixed** (issue #90): the Warden slam and shield (above); wingmen grazing rocks inside a
-  pocket (T3); the first planet entry at about 330 ms from synchronous scatter mesh loads (T4); the first asteroid
-  break of each kind at 12-19 ms (T6). Under investigation: a Continue from the menu after a relaunch started a fresh
-  run in T3's scripted walk (not confirmed as a game bug).
-- **Packages:** the Shipping zip of eb1bf334 is 981,016,363 bytes, 19 MB under 1 GB (private prerelease
-  `playable-main-eb1bf334`). Batch O's package is not built yet.
-- **Performance (issue #89):** two baseline hitches (wave-3 start, Verdance entry) were traced to the stage cheats, not
-  natural play; the measurement runs on the Development package have not been made yet.
+  - **ENG-11 🟨 → 🟢.** The dome-from-inside fix (82d6040d) is on main with its test, no review finding is open on
+    it, and T7 saw the dome from inside in its play (a faint hexagon field, not three yellow lines), on the batch O
+    tree. No source commit in batches P to T touches the Bastion's powers or the dome (checked against `git log
+    61404a79..29a15f21 -- Source`), so the play covers what is on main. This was the condition the 03:00 note set.
+  - **ENG-42 🟨 → 🐞**, and the checklist row "*Aftermath*": the MAJOR above is a defect on main (the two earlier
+    fixes, T3's replay and T1's entry hold, are on main and did not stop it). Back to 🟨 when T1's hold, T4's
+    waypoint and T3's line survival are on main; 🟢 needs it replayed.
+  - **ENG-28 🟨 → 🐞**, and the checklist row "Packaged Shipping build": main's Shipping target does not compile.
+    Back to 🟨 when batch U is on main and its Shipping target has compiled.
+  - **Kept 🟨 although played** ("played on the batch O tree; replay on main pending"): ENG-40 (batch U changes the
+    lessons, and the *Aftermath* hand-off is broken), ENG-41 (review still open), ENG-33 (the rebuild is not on
+    main), ENG-36 (only the marker shapes were seen), ENG-38 and ENG-20 (the entry was flown before the glide
+    existed; the landing was a console command), ENG-48 and ENG-39 (flown before the seven regions of batch R).
+  - **Stay 🟢, with a note:** ENG-07 (8 switches honoured) and ENG-08 (no wingman lost in 4 minutes on the batch O
+    tree, which is before T3's fix; T3's own pocket run with the fix had 0 rock hits).
+  - No item is ✅: no human has played since batch M.
+- **🐞 now:** ENG-42 (the *Aftermath* beat) and ENG-28 (the Shipping compile on main). Open bugs: issue #90.
+- **Decisions by Ryan's Lead since 04:00, under Ryan's delegation (Ryan can overrule any):**
+  - **No package from batches S or T** (the Shipping compile break; fixed in batch U).
+  - **From now on the packaging agent compiles the Shipping target of each batch branch before it is pushed.**
+  - **The withdrawal corridor keeps its Verdance bearing** and gains a jump-point waypoint; no speed cap (ENG-40).
+  - **The atmosphere entry commits after *Aftermath*** if the player is still at Verdance's edge (ENG-38, ENG-42).
+  - **The region set pieces are closed for tonight at r4**; the range flare moves to the effects builder as a
+    Niagara effect (ENG-39, ART-05).
+  - **Landing gear is being modelled as separate meshes** for the three ships (structures builder); it had been
+    listed as not possible tonight (ART-08, ART-03).
+  - **T3's stash "t3-failed-merge-lead-int-u-0921" is left on the shared stash list** for Ryan to see; it holds only
+    partial copies of batch files.
+  - Still standing: ENG-38 ships as a smallest complete version; the opening's words come from the approved `O_*`
+    lines behind `td.Intro.Lines`.
+  - **Held for Ryan:** dropping the DirectX 11 shader set; the Bastion cockpit design; the ENG-38 left-for-Ryan
+    list; pilot foot IK (about half a day); a precompiled pipeline-state cache.
+- **Packages:** the newest published Shipping zip is main ddc50a2f (batch R): 872,722,389 bytes, 127 MB under the
+  1 GB limit, a clean cook with the never-cook rules, launch check to first combat only; prerelease
+  `playable-main-ddc50a2f`. It has not been played end to end.
+- **Performance (issue #89):** with the warm-up on, no combat frame is over 100 ms (assault worst frame 133 → 51 ms),
+  at +650 MB RAM (per-map lists in progress, T7); tutorial combat had 9 frames over 33 ms in 119 s on a loaded
+  machine (cause unconfirmed); the audio buffer test is inconclusive; first asteroid breaks 12-19 ms → about 1.2 ms
+  (the last part in batch U); the first pickup spawn still costs 25 ms (T2, branch). No 60 fps claim is verified in
+  a Shipping build.
+- **Issues:** 20 open. Evidence frames are now posted on all eleven asset issues (#37-#42, #51-#54, #63) with a
+  request to close; #49 has a request to close. Nothing is closed, because closing is Nick's side's and it is
+  stopped. PRs open: #78 (Wren audition, waits for Nicholas), #85, #83, #12, #11 (drafts, Nick's side).
 - **Machine:** at most **two** rendering Unreal processes machine-wide (R-046).
-- **Nick's side stopped at 01:16** on Nicholas's instruction (N-090; checkpoint 1bc0afdc). Every item of theirs is 🟨
-  from their own reports; no marker of theirs changed this hour. Engineering's four fallbacks under R-024 (board R-047)
-  each yield to Nick's own version. The one row of Ryan's realignment table that still showed ART-11 as ⬜ now reads 🟨,
-  from Nick's own ledger (second draft published).
+- **Nick's side stopped at 01:16** on Nicholas's instruction (N-090; checkpoint 1bc0afdc; `docs/visual/STATUS.md`
+  unchanged since). Every item of theirs is 🟨 from their own reports; no marker of theirs changed this hour.
 - **Ryan and Nicholas are both asleep**; Ryan's Lead decides overnight.
-- **Without an active owner at 03:00** (rows queued on `CLAIMS.md` this hour): ENG-43's remaining bark triggers beyond
-  the pre-empt clue; ENG-45's subtitles on / off and the shake and speed-FOV sliders; ENG-42's waves 3-4 interception
-  lines and the `C7_*` set; ENG-18's wording pass and the check that the approach field needs Cinder **and** wave 5;
-  ENG-26's fixed order, pending marker and ID door; ART-18's insignia clue and the Dominion light row; ART-08's
-  interact / board clips, foot IK and landing gear.
+- **Stalled or without an active owner at 05:00** (rows on `CLAIMS.md`):
+  - **The rest of the end-to-end play** (ENG-46; T7): started at 04:14, on a tree five batches behind main. Next:
+    T7's running session covers the planets on foot, the assault, docking, the interior, the reactor, the escape and
+    victory, then replays the first act on main once batch U is in.
+  - **The *Aftermath* fix is split over three branches** (T1, T4, T3) and none is in batch U. Next: the Lead takes
+    all three into batch V together and T7 replays the beat while boosting.
+  - Queued with an owner but not started: ENG-42's waves 3-4 interception ids and the `C7_*` set (T3); ENG-18's
+    wording pass and the approach-field rule check (T4, T3); ENG-45's shake and speed-FOV sliders (T1) and the New
+    Game difficulty choice on the menu (T5, T3); ENG-43's combat barks (T2; no list sent yet) and travel barks (T1);
+    ART-18's insignia decals placed (T5); the walk test of the lifted outpost floors and the survey stations (T5 with
+    the structures builder); a protanopia pass (T7); ART-02's cook diff against `CREDITS.md` (import builder; the
+    ddc50a2f cook is finished, so this can start); the ENG-47 decision record (Lead, after the fallback is played).
+
 
 ### Contradictions that need a human (Ryan or Nicholas)
 1. **Resolved (Ryan, Nov 13 evening): the transfer defence gives Cloak; the relay climb is dropped** (T5, ENG-25; the structures builder rebuilds the relay as a defence platform). Was: **Verdance objective 2.** The build has a separate relay climb with resonance nodes (→ Cloak); the story (§25.1, §25.2
@@ -197,26 +251,26 @@ because no item is**. Pure polish is in the [AAA polish list](#the-aaa-polish-li
 **Ryan (Nov 13 evening): "You are the lead of everything"; Nick's agents may be given more work, not art-heavy** (his
 machine is lighter). Everything heavy (Niagara, Blender, cooks, terrain, big builds) stays on Ryan's side.
 
-Updated Nov 14 03:00 EST (Ryan's Lead; Ryan's side rows only; "now" is what each lane had in hand at about 02:35). Nick's side stopped at 01:16 (N-090); its rows below are
+Updated Nov 14 05:00 EST (Ryan's Lead; Ryan's side rows only; "now" is what each lane had in hand at about 04:35). Nick's side stopped at 01:16 (N-090); its rows below are
 as its checkpoint 1bc0afdc left them.
 
 | Owner | Now | Next (in order) |
 |---|---|---|
-| **Lead** (Ryan's) | Batch P gate (lead/int-p eb5827d9); hourly features.md alignment | Batch O's Shipping package; the batch after P (T4's ENG-38 terrain half and ENG-40 halves, T5's interior events, T6's regions, T2's pool once green); ENG-47 decision record (due Nov 14 20:00); owners for the unowned rows listed in the 03:00 alignment |
-| **T1** flight, input, travel | ENG-38 smallest complete version: glide-lite and mirrored take-off (in batch P's gate); hand-back speed blend, glide cloud pass, exposure-ramp driver (work in progress) | Interior bridge events with T5; tutorial hint order by phase; `-Audio` listen to the descent and climb-out roar; ENG-45 shake and speed-FOV sliders |
-| **T2** combat, powers, HUD | Projectile pool and combat warm-up list (5e1013aa: three tests failing, fix coming); the ENG-38 descent HUD (altimeter, hull temperature) | Live captures on main 61404a79 (enemy marker shapes, generator pips, transponder flicker, a natural award, conduit count, escape clock); the Cinder pending marker |
-| **T3** squad, director, story | Wingman rock-avoidance fix (#90) | The Continue-after-relaunch finding; ENG-40 played once; a played Continue walk; the five legacy `Intro_N` captions; ENG-45 subtitles on / off; the waves 3-4 interception lines and `C7_*` ids |
-| **T4** enemies, waves, world | ENG-38 terrain half; async scatter kind loading (the 330 ms first entry); ENG-40 lesson gate and softer Evade volley; the boundary release call | Escape flight and docking played live; the pre-empt clue AI (ENG-43) with T3; ENG-18 wording and the approach-field rule check |
-| **T5** flow, ground, interior | Interior music events; Warden slam / contact fixes; Dress pass placements (#40, #37) | Conduit markers, the Cinder lava route, the interior spawn; Cinematic 03 holds the first relay wave; ENG-26 fixed order, pending marker and ID door; defenders trio (N-052); New Game difficulty (ENG-45) |
-| **T6** space field | Seven space regions: four built (eng/t6 fae01308), three in progress (757941fc); break preloading (first break 12-19 ms) | Field performance numbers on the merged build; staged large and special breaks |
-| **T7** profile, playtest, performance | Performance measurement runs (#89: A1 / A3, W0 / W1, N) in a solo rendering window; T2's combat list as a warm-up provider | End-to-end agent playtest of main 61404a79 with script 08; a played check of every "awaiting agent play" row |
-| **Ship builder 2** | Rift v14 (in batch P's gate); the Bastion glass cockpit was attempted and stopped (v02 stays; Ryan decides) | Lancer and Rift minors; landing gear and canopy motion with the animation builder |
-| **Effects builder** | Asteroid break shatter; ENG-38 exposure ramp, CloudPunch sound and wind layer; per-type enemy engine plumes | Glitch tear; StoryFX slots; the approach-field shimmer and shield-drop effects (ENG-18) |
-| **Environment builder** | Verdance canopy and terrain pass; Verdance cliffs and the Cinder magma retune (in batch P's gate) | Three story zones per planet; interior alarm and collapse states (ART-13) |
-| **Structures builder** | Relay mast r2 and region set pieces r3 (in batch P's gate) | Walkable survey stations and dig cabin fits with T5 (ART-17); anchor tower collapse pieces |
-| **Animation builder** | Warden shield rig fix | Warden ragdoll cases; interact / board clips; foot IK (ART-08 must-haves) |
-| **Import builder** | Never-cook rules and Oodle RDO, awaiting a trial cook; asset ledger 2.10 (in batch P's gate) | The cook diff against `CREDITS.md` (ART-02) |
-| **Packaging agent** | Shipping package of eb1bf334 published (981,016,363 bytes) | Batch O's package; a Development package for T7's runs; evidence captures for issues #37-#42, #51-#54, #63 (R-047) |
+| **Lead** (Ryan's) | Batch U gate (lead/int-u dea28a8b); hourly features.md alignment | Batch V: the three *Aftermath* fixes together (T1 hold, T4 waypoint, T3 line survival), then the other branches; a Shipping package of batch U once it is on main; ENG-47 decision record (due Nov 14 20:00); gate G1 with Ryan |
+| **T1** flight, input, travel | The *Aftermath* entry-hold fix (a crawl at the atmosphere's edge, AWAITING ORDERS) and a formation fix (branch); its half of the combined commit is in batch U's gate | ENG-43 travel and landing barks (list received); ENG-45 shake and speed-FOV sliders; `-Audio` listen to the descent and climb-out |
+| **T2** combat, powers, HUD | On a branch: descent HUD contrast and the ORBIT fix, a marker placement fix, the pickup pre-spawn (the 25 ms first spawn, #89), the *Aftermath* HUD lanes. On main 29a15f21: the on-foot HUD restyle and the Cinder pending marker | Live captures on main (on-foot HUD, descent HUD, generator pips, transponder flicker, a natural award, conduit count, escape clock); the navigation pulse; ENG-43 combat barks |
+| **T3** squad, director, story | Must-hear lines surviving a map travel (branch; part of the *Aftermath* fix); the opening rebuild is in batch U's gate | The Continue-after-relaunch finding; the waves 3-4 interception and `C7_*` ids; ENG-18 wording; the ENG-43 count against `dialogs.md` |
+| **T4** enemies, waves, world | On a branch: the jump-point waypoint (part of the *Aftermath* fix), spawn points that reject obstacles, the flaky scatter test fix, ENG-43 world barks; its half of the combined commit is in batch U's gate; played the escape flight and docking on its branch | Effects slots (shield drop, approach-field shimmer, tractor beam, light row); the approach-field rule check (ENG-18); the pre-empt clue's AI side |
+| **T5** flow, ground, interior | On a branch: ENG-43 on-foot barks, Grunt damage-time jitter, the Warden stagger trigger, the withdrawal objective text (the CLEAR THE AREA finding), emergency strip tags. On main: ENG-26 and the on-foot difficulty (4eb57848), the Ace fix (29a15f21) | Walk test of the lifted outpost floors and the survey stations; the insignia decals placed (ART-18); conduit markers, the Cinder lava route, the interior spawn; defenders trio (N-052); the New Game difficulty choice with T3 |
+| **T6** space field | The first-break fix (at most 1.22 ms) is in batch U's gate; on a branch: regions moved closer to the routes with more pieces, the docking-cone keep-out | Field performance numbers on the merged build; staged large and special breaks |
+| **T7** profile, playtest, performance | **The end-to-end agent play:** first part done 04:14-04:29 on the batch O tree (#90); the next session is running (planets on foot, assault, docking, interior, reactor, escape, victory) | Replay of the first act on main once batch U is in; per-map warm-up lists (#89); the audio buffer pair on an idle machine; a protanopia pass |
+| **Ship builder 2** | The hauler repaint, a rear-view review and Lancer v08 (branch) | Lancer and Rift minors; canopy motion with the animation builder. The Bastion cockpit design waits for Ryan |
+| **Effects builder** | On a branch: cloud veil v2, CloudPunch and GlideWind sounds, per-type enemy plumes, region beacon and haze, shield drop, approach-field shimmer, tractor beam, the light row | The range flare for the region set pieces (Niagara); glitch tear; StoryFX slots; a trailer-quality breakup |
+| **Environment builder** | In batch U's gate: the Verdance canopy at about 40% coverage and `UTDInteriorLightSubsystem` (alarm and collapse lighting; not seen live). On a branch: Cinder from the air, the wreck scar | Three story zones per planet; per-level before / after captures (ART-13) |
+| **Structures builder** | On a branch: walkable survey stations (ART-17) and landing gear meshes for the three ships. On main 29a15f21: the Dominion escape debris set. In batch U's gate: the region set pieces closed out at r4 | Walk test of the stations with T5; anchor tower collapse pieces |
+| **Animation builder** | In batch U's gate: the Warden clips on `SKEL_Warden`, the Warden death rebuilt, the Heavy bash raised. On a branch: the pilot interact rebuild; live captures of hit reactions, walk and stagger | Warden ragdoll cases; landing gear settle with the structures builder. Pilot foot IK (about half a day) is held for Ryan |
+| **Import builder** | The never-cook rules are on main 29a15f21 (134 unreferenced packages; proven by the ddc50a2f cook); the Oodle RDO trial (branch, unproven) | The cook diff against `CREDITS.md` (ART-02) |
+| **Packaging agent** | Published the Shipping package of ddc50a2f (872,722,389 bytes, `playable-main-ddc50a2f`); found the Shipping compile break on batches S and T; evidence frames on all eleven asset issues | Compile the Shipping target of each batch branch before it is pushed (new rule); a Shipping package of batch U; a Development package for T7's runs |
 | **Grok Bot** | R-042 queue (death and attack motion delivered and credited, 5d94d3ce) | #52 anchor tower, #53 crystal cache, #40 set dressing, #54 bay plans; R-043 measured plans and trim sheets |
 | **Nick: Lead** | ART-10 cue pickup (DominionInterior01, CreditsMusic01, VerdanceTheme01); #71 menu handoff | ART-14 page, dev log, credits audit; ART-20 review dispatch |
 | **Nick: Audio** | ART-10 mix and listening; tutorial music | ART-19 wiring; Cinder, assault, escape and victory cues; three-pulse and "Don't-" asset |
@@ -262,28 +316,28 @@ through the engine's MCP server. **No human has played it yet; that is the large
 **(Nov 13 evening)** Ryan has since played it (a guided tour, a free session, the ship and walkability findings of R-041
 and R-043); Nicholas has not. No full human run start to end exists yet: ENG-46 holds the gates.
 
-**Cells refreshed Nov 14 03:00 EST** (main 61404a79). The group states are the Nov 13 ones; an item inside a 🟢 group can be 🟨 or 🐞 on its own heading (ENG-11, ENG-18, ENG-20, ENG-23, ENG-33 today).
+**Cells refreshed Nov 14 05:00 EST** (main 29a15f21). The group states are the Nov 13 ones; an item inside a 🟢 group can be 🟨 on its own heading (ENG-18, ENG-20, ENG-23, ENG-33 today; ENG-11 is 🟢 again).
 
 | Area | Items | State | What is still missing |
 |---|---|---|---|
-| Flight, input, three ships, switching, wingmen | ENG-01, 02, 03, 04, 07, 08 | 🟢 | A human's judgement of flight feel and switching. Open finding: wingmen graze rocks inside a pocket (#90; T3's fix in progress) |
-| Weapons, targeting, powers, abilities | ENG-05, 06, 09, 10, 11, 12 | 🟢 | ENG-11's dome-from-inside fix is on main, not yet seen again in a running game (🟨). Each ability used live once more after the effects; enemy marker shapes per type on main 61404a79, awaiting agent play |
-| Enemies, waves, balance, difficulty | ENG-13, 14, 27 | 🟢 | A human run on each difficulty. Enemy readability materials are on main f39a8372 and marker shapes on main 61404a79, awaiting agent play: the Null fighter is still only a few pixels tall at fight range |
+| Flight, input, three ships, switching, wingmen | ENG-01, 02, 03, 04, 07, 08 | 🟢 | A human's judgement of flight feel and switching. Switching played by an agent at 04:14 (8 switches honoured, batch O tree). Wingmen grazing rocks (#90): T3's avoidance fix is on main 4eb57848; no wingman was lost in T7's 4 minutes of combat (on the tree before the fix) and T3's own pocket run had 0 rock hits; replay on main pending |
+| Weapons, targeting, powers, abilities | ENG-05, 06, 09, 10, 11, 12 | 🟢 | ENG-11 is 🟢 again: the dome from inside was seen working by T7 (batch O tree; nothing in batches P-T touches it). T2's projectile pool fix and combat warm-up list are on main 6afa3816. Each ability used live once more after the effects; enemy marker shapes per type on main, seen working by T7 |
+| Enemies, waves, balance, difficulty | ENG-13, 14, 27 | 🟢 | A human run on each difficulty. Enemy readability materials, marker shapes and the Null interceptor's new silhouette (main 6afa3816) await agent play; the ground half of the difficulty (ENG-45) is on main 4eb57848, its Ace-only wall-spawn fix on 29a15f21 |
 | Hyperdrive, gates, galaxy, Dominion finale | ENG-15, 16, 17, 18 | 🟢 | ENG-18 is 🟨: the space-reactor fallback retune is on main, awaiting agent play. The whole assault played to victory by a person; the breakup needs real effects |
-| Game flow, saves, landing, on foot, blade, crew, objectives | ENG-19, 20, 21, 22, 23, 24 | 🟢 | ENG-23 is 🐞 (Warden slam contact and shield rig, fixes in progress); ENG-20 is 🟨. Deflect timing judged by a person; a Continue after a relaunch under investigation (T3) |
-| The two planets | ENG-25, 26, 34 | 🟨 | Reduced-form objectives played by an agent on main 6fe3e90f; story camps and landmarks r1 on main 61404a79; canopy, cliffs and the magma retune in batch P or on branches; fixed Cinder order, pending marker and walkable stations still open |
-| Director's Cut (cut, money shots, scenes and takes), intro, third person, Settings | C-03, ENG-32, 33 | 🟢 | ENG-33 is 🟨: #49 fixed on main and captured live; the 49 s re-shoot with the final ships is still to do. A person's eye |
-| Sound | ENG-35 (+ ART-10) | 🟨 | Fallback sounds on main; a native music fallback plays Nicholas's assigned placements (main 61404a79; escape empty, the Ritual track is not imported). Nothing has been approved by ear |
-| HUD | ENG-36 (+ ART-09) | 🟨 | The new flight HUD is the default; story states (pips, conduit count, escape clock, marker shapes) on main, awaiting agent play; on-foot HUD in the same style and the descent HUD still open |
-| Effects | ENG-37 (+ ART-07) | 🟨 | Tiers 1-3 and round 9 on main; asteroid break shatter, per-type engine plumes and the ENG-38 exposure ramp on the effects branch; approach field, shield drop, tractor beam and a trailer-quality breakup still open |
-| Ship, enemy, Dominion, crew, prop art | ART-03, 04, 06, 08 as engineering fallbacks | 🟨 | Rift v13, Lancer glass v06 and Bastion v02 on main 61404a79 (Rift v14 in batch P); the Bastion glass cockpit was stopped (Ryan decides); Dominion on hull r2; per-type crew deaths and attacks on main; Warden shield rig fix in progress |
-| Sky, lighting, look (**Ryan's since Nov 13**) | ART-05, 13 | 🟨 | First lighting passes on main 6fe3e90f; far-tier tree clumps and the Cinder ambient floor on main 61404a79; interior alarm and collapse states and a per-level before / after still open |
+| Game flow, saves, landing, on foot, blade, crew, objectives | ENG-19, 20, 21, 22, 23, 24 | 🟢 | ENG-23 is 🟨 again: the Warden slam contact and shield rig fixes are on main 6afa3816, not seen in a played run; the Warden clips on `SKEL_Warden`, the rebuilt death and the raised Heavy bash are in batch U's gate. ENG-20 is 🟨. Deflect timing judged by a person; a Continue after a relaunch under investigation (T3) |
+| The two planets | ENG-25, 26, 34 | 🟨 | Reduced-form objectives played by an agent on main 6fe3e90f; on main ddc50a2f and unplayed: T5's Dress pass (49 story props on Verdance, 50 on Cinder, the kit wreck, the dig cabin), relay mast r2, Verdance cliffs and the Cinder magma retune, outpost floors lifted 3 cm; ENG-26's fixed order, ID door and pending state on main 4eb57848 (unplayed); the Verdance canopy at about 40% coverage in batch U's gate; T7 saw Verdance on foot only at first view (batch O tree); walkable stations walk-tested still open |
+| Director's Cut (cut, money shots, scenes and takes), intro, third person, Settings | C-03, ENG-32, 33 | 🟢 | ENG-33 is 🟨: #49 fixed on main and captured live; the five legacy captions still show on main, and T3's rebuild from the approved `O_*` lines is in batch U's gate (with a black hold on the first frames and an unprompted HOLD TO SKIP hint); the 49 s re-shoot with the final ships is still to do. A person's eye |
+| Sound | ENG-35 (+ ART-10) | 🟨 | Fallback sounds on main; a native music fallback plays Nicholas's assigned placements (escape empty, the Ritual track is not imported); T5's interior events are on main 6afa3816 but the core-chamber and reactor-fight music stays silent until T1's forwarding lands (batch U's gate). Nothing has been approved by ear |
+| HUD | ENG-36 (+ ART-09) | 🟨 | The new flight HUD is the default; the ENG-38 descent HUD is on main 6afa3816; story states (pips, conduit count, escape clock) on main, awaiting agent play; marker shapes seen working by T7; the on-foot HUD restyle (aa204b7a) and the Cinder pending marker are on main 29a15f21, not seen live; *Aftermath* lanes, descent contrast and the ORBIT fix on T2's branch |
+| Effects | ENG-37 (+ ART-07) | 🟨 | Tiers 1-3, round 9, the asteroid-break rework, `M_TD_PP_DescentWhite` and the in-cloud layer v1 on main 6afa3816; descent haze in batch U's gate; on the effects branch: cloud veil v2, CloudPunch and GlideWind, per-type engine plumes, region beacon and haze, the light row, shield drop, approach-field shimmer, tractor beam; a trailer-quality breakup still open |
+| Ship, enemy, Dominion, crew, prop art | ART-03, 04, 06, 08 as engineering fallbacks | 🟨 | Rift v14, Lancer cockpit v07, Bastion v02 and the Null interceptor's lances and fins on main; Lancer v08, a rear-view review, the hauler repaint and landing gear meshes on branches; the Dominion escape debris set on main 29a15f21; the Bastion cockpit design waits for Ryan; Dominion on hull r2; the Warden shield on the left forearm on main, its clips on `SKEL_Warden` and its rebuilt death in batch U's gate |
+| Sky, lighting, look (**Ryan's since Nov 13**) | ART-05, 13 | 🟨 | First lighting passes on main 6fe3e90f; far-tier tree clumps, the Cinder ambient floor, Verdance cliffs and the magma retune on main; interior alarm and collapse lighting (`UTDInteriorLightSubsystem`, tested headless, not seen live) and the Verdance canopy in batch U's gate; Cinder from the air and the wreck scar on eng/env; a per-level before / after still open |
 | Menus, reward screen, credits, loading | ART-09 | 🟨 | Engineering fallbacks work. Nick's styled menu is on main (ee5dc0ff), its activation pending; the reward mount is on main for his candidate (PR #85, draft) |
 | Barks, voice | ART-11 | 🟨 | From Nick's side's own ledger: second draft published (2240d3cd); StoryFidelity01 corrections applied by T3 on main; Wren audition PR #78 waits for Nicholas to pick a master take; no voice recorded for the rest |
-| Submission (video, page, dev log, credits) | ART-14, ENG-28 | 🟨 | Nick's side: itch page, tools and Glass Box drafts (e0b543c0, 2d549ba4), a 50 s rough cut of batch L footage (2690aad5). Shipping zip of eb1bf334 is 981,016,363 bytes (19 MB under 1 GB); final trailer, public page and both humans' sign-off open |
-| Planetary descent (space to surface, anywhere on the globe) | ENG-38 (+ ENG-20, ENG-34) | 🟨 | The stage 1 entry and climb-out work is on main. **Ships as a smallest complete version** (Lead, Nov 14): T1's 9 s glide-lite and mirrored take-off in batch P's gate; T4's terrain half, T2's descent HUD and the effects layers not on main. Left for Ryan: see ENG-38 |
-| Boarding finale | ENG-29-31, ART-15, 16 | 🟨 WANTED (Ryan, Nov 13) | Built and played end to end by an agent on main 6fe3e90f (the reveal gate not verified on the merged build); T4's docking capture and escape flight on main f39a8372, awaiting a live play; interior music events on T5's branch; the space-only ending stays as the fallback |
-| Story (The Paradox) | `storyline.md`; ENG-18, 25, 26, 29-31, 33; ART-11, 12 | 🟨 | Sequences fired on main; the Story Director's corrections and decisions (R011, R132, R020, R102) applied on main 61404a79; words, voice and the final say with Nicholas; the victory eyebrow "OPERATION PARADOX" is his call (#29) |
+| Submission (video, page, dev log, credits) | ART-14, ENG-28 | 🟨 | Nick's side: itch page, tools and Glass Box drafts (e0b543c0, 2d549ba4), a 50 s rough cut of batch L footage (2690aad5). **ENG-28 is 🐞:** main (4eb57848, 29a15f21) does not compile for Shipping, fix in batch U's gate. The newest published Shipping zip is ddc50a2f: 872,722,389 bytes, 127 MB under 1 GB, launch check to first combat only; final trailer, public page and both humans' sign-off open |
+| Planetary descent (space to surface, anywhere on the globe) | ENG-38 (+ ENG-20, ENG-34) | 🟨 | **Ships as a smallest complete version** (Lead, Nov 14). On main, unplayed: T1's 9 s glide-lite and mirrored take-off (4e894365), T2's descent HUD, the white-out post-process and in-cloud layer v1 (6afa3816). In batch U's gate: the glide placed over a corridor-fitted cloud deck on every entry path (300 m floor for uncovered arrivals), async scatter loading at 4 ms per frame, haze, the wind slot, the exposure ramp. T7 flew the Verdance entry on the batch O tree (before the glide); the landing by hand is unplayed. Left for Ryan: see ENG-38 |
+| Boarding finale | ENG-29-31, ART-15, 16 | 🟨 WANTED (Ryan, Nov 13) | Built and played end to end by an agent on main 6fe3e90f (the reveal gate not verified on a merged build); T4's docking capture and escape flight on main f39a8372, awaiting a live play; interior music events and `DA_ReactorCore_FX` slots on main 6afa3816; T4 played docking and the escape flight on its branch (victory at 41 s of 60); the escape debris set on main 29a15f21; alarm and collapse lighting in batch U's gate; the tractor beam on a branch; the space-only ending stays as the fallback |
+| Story (The Paradox) | `storyline.md`; ENG-18, 25, 26, 29-31, 33; ART-11, 12 | 🟨 | Sequences fired on main; **ENG-42 is 🐞:** the *Aftermath* beat and 17 story lines are lost if the player keeps boosting into Verdance (fixes on branches); the Story Director's corrections and decisions (R011, R132, R020, R102) applied on main 61404a79; words, voice and the final say with Nicholas; the victory eyebrow "OPERATION PARADOX" is his call (#29) |
 
 Judges' categories, our own honest read today: gameplay 3.5, fun 3 (unproven without a human), theme 4,
 ambition 4, level design and progression 3, visuals 3, audio 2. **Today and tomorrow go to visuals, audio and
@@ -987,6 +1041,7 @@ Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lanc
 - **Switch Strike:** switching within 1.5 s of using a power gives +25% damage for 4 s.
 - A power started on one ship finishes after you switch away (portal stays open, dome stays up).
 - Fires `OnShipSwitched`, which drives Nick's "cut" presentation (C-03 #1).
+- **(Nov 14 05:00)** **Played:** T7 made 8 manual switches in its agent play (04:14-04:29, real keys, the batch O tree (364aabb3 + T2's pool fix + T7's performance work; behind main by batches P-T)); each was honoured with its pilot card. No source commit in batches P-T touches switching. Stays 🟢.
 
 #### ENG-08 · Wingman AI (PROTECT) · `🟢`
 - States: Formation → Engage → Evade → Regroup → Downed.
@@ -1009,6 +1064,9 @@ Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lanc
 - **(Nov 14 03:00) Open finding, marker unchanged:** wingmen graze rocks inside a pocket of the space field (#90,
   comment of 02:30; seen by an agent). T3's rock-avoidance fix is in progress, not on main. If a played run on main
   shows wingmen dying on rocks, this item goes to 🐞.
+- **(Nov 14 04:00):** T3's avoidance fix (55ba5156: a heading probe, a close push-out, slowing near rocks) is in
+  batch S's gate (lead/int-s b64aaea7), not on main. Marker unchanged.
+- **(Nov 14 05:00)** **State:** T3's avoidance fix is on main 4eb57848 (batch S, 936 tests). Played evidence: T7 flew about 4 minutes of combat through the asteroid field with no wingman lost to a rock, on the batch O tree, which is before the fix; T3 flew a 2-minute pocket run with the fix on its own branch (0 rock hits). Replay on main pending. On T1's branch: a formation fix. Stays 🟢.
 
 #### ENG-09 · Rift: Portal Blaster · `🟢` ⚠️ highest risk
 - **Placement:** Fire 1 opens portal A where it hits or at max range (12 000 cm); Fire 2 opens B; a
@@ -1029,7 +1087,7 @@ Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lanc
 - Hitting something big stops the dash with a 150-damage shockwave over 1500 cm.
 - 7 s cooldown. Exposes `PowerWindup01` for the wing-fold animation (Nick).
 
-#### ENG-11 · Bastion: Missile Swarm & Shield Dome · `🟨`
+#### ENG-11 · Bastion: Missile Swarm & Shield Dome · `🟢`
 - **Missile Swarm (tap):** 12 micro-missiles split across painted locks (or the soft target),
   18 damage each with a 200 cm splash; 9 s cooldown.
 - **Shield Dome (hold 0.5 s):** a 3000 cm radius for 6 s with a 16 s cooldown.
@@ -1039,6 +1097,7 @@ Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lanc
 - **(Nov 14 03:00) State:** the dome-from-inside fix (T2, 82d6040d: the placeholder rings hide while the camera is
   inside) is on main with its test. Not yet seen again in a running game: T7 looks at it in the end-to-end playtest
   of main 61404a79 (queued after its performance window); 🟢 once it is.
+- **(Nov 14 05:00)** **🟨 → 🟢:** T7 saw the dome from inside in its agent play (a faint hexagon field, not three yellow lines), on the batch O tree (364aabb3 + T2's pool fix + T7's performance work; behind main by batches P-T). That tree holds the fix 82d6040d and its test; no source commit in batches P-T touches the Bastion's powers, so the play covers what is on main 29a15f21. No review finding is open. Not ✅: no human has judged it.
 
 #### ENG-12 · Unlockable abilities (CORE: powers aren't optional) · `🟢`
 One ability slot per ship (`IA_Ability`), filled from `GetProgress().UnlockedAbilities` on spawn
@@ -1115,6 +1174,7 @@ drift, hyperdrive.
 - **(Nov 14 03:00) State:** the one-jump fix (T1, 030561f9) is on main 6fe3e90f and was played by an agent (T7,
   session 2: one jump from the Aftermath point, 5.1 km to a 1.7 km stand-off off Verdance). The attached streak loop
   (9ba18c84, main eb1bf334) has not been seen by an agent on main yet. Waiting for a human.
+- **(Nov 14 05:00)** **State:** in T7's play the jump beat after the withdrawal never happened (the *Aftermath* bug, ENG-42), so the one-jump path was not replayed. `td.Hyperdrive.IgnoreLock` is in batch U's gate; T4's jump-point waypoint is on a branch.
 
 #### ENG-16 · Portal gates (galaxy shortcuts) · `🟢`
 Three permanent `ATDPortalGate` pairs: combat zone ↔ Verdance orbit, combat zone ↔ Cinder orbit, and
@@ -1172,6 +1232,10 @@ through a gate unchanged: only Rift's own portals return enemy missiles.
   6fe3e90f (generators by a labelled director command); docking: see ENG-29. Without an owner until this hour (queued
   on `CLAIMS.md`, T4 with T3): the wording pass ("shield", never "field"; "approach prepared") and the check that the
   approach field needs Cinder **and** wave 5.
+- **(Nov 14 04:00) State:** nothing new on main for the assault; the fallback is still unplayed (T7's end-to-end
+  play has not started). The shield-drop, approach-field shimmer and tractor-beam effects are specs on the effects
+  branch, with slots asked of T4. The wording pass and the approach-rule check are still queued (T4, T3).
+- **(Nov 14 05:00)** **State:** nothing new on main for the assault, and T7's first session did not reach it (its next session is running). T4 played docking and the escape flight on its own branch. Shield drop and approach-field shimmer effects are on the effects branch; the wording pass and the rule check are still queued (T4, T3).
 
 #### ENG-48 · Destructible, solid space field (CORE, added Nov 13 evening by Ryan) · `🟨`
 Ryan: "all things in space, like asteroids and junk, should be destructible ... shoot it and it will explode, and maybe
@@ -1198,6 +1262,7 @@ able to go through them." Applies to everything ENG-39's space field and ENG-17'
   stat, hit feedback), effects builder (break effects, cheap and pooled), **Nick's side (break and impact sounds,
   assigned by Ryan's Lead, Ryan, Nov 13**; ENG-35 fallbacks until then).
 - Depends on ENG-39 (the field and the pickup subsystem), ENG-01 (collisions), ENG-37.
+- **(Nov 14 05:00)** **State:** T6's first-break fix (4e01e6d1: `DA_SpaceField_FX` looked up at BeginPlay) is in batch U's gate; measured first breaks at most 1.22 ms (were 12-19 ms; the session's very first was 26.8 ms). The first reward pickup spawn still costs 25 ms (T2's pre-spawn, branch). T7's 4 minutes of combat in the field were on the batch O tree, before the seven regions: replay on main pending.
 
 ### Game loop & progression
 
@@ -1233,6 +1298,7 @@ See §7.
   prompt (T5, 8e758175, main eb1bf334); the atmosphere-entry hold while *Aftermath* plays (T1, #90 no. 6) and the
   climb-out roar (df563569), both main f39a8372. Open: walking into a parked ship not yet seen live (T7). The arrival
   and take-off themselves are ENG-38.
+- **(Nov 14 05:00)** **State:** the landing by hand is still unplayed (T7 used a console command to land). Landing gear for the three ships is being modelled as separate meshes (structures builder, branch; Lead's decision, it had been listed as not possible tonight). Decided by Ryan's Lead: the atmosphere entry commits after *Aftermath* if the player is still at Verdance's edge.
 
 #### ENG-21 · First-person character (planets: CORE) · `🟢`
 Extends the template's first-person character.
@@ -1264,7 +1330,7 @@ Extends the template's first-person character.
 
 Hit-stop: 50 ms on hit, 120 ms on kill. Visuals and audio: `UTDBladeFX` (Nick).
 
-#### ENG-23 · Crew enemies: AI & combat (CORE, planets) · `🐞`
+#### ENG-23 · Crew enemies: AI & combat (CORE, planets) · `🟨`
 | Enemy | HP | Attacks | Behaviour |
 |---|---|---|---|
 | Grunt | 60 | Telegraphed baton (15) | Groups of 3–5; flanks |
@@ -1287,6 +1353,16 @@ Hit-stop: 50 ms on hit, 120 ms on kill. Visuals and audio: `UTDBladeFX` (Nick).
   dark interior (no. 14; 0b36d0e9); the drone's thrusters (0d767e62). Still open: the reactor conduits carry no world
   markers and the Cinder conduit marker's bearing crosses lava (no. 4, no. 11; T5); the Warden ragdoll (T5, animation
   builder).
+- **(Nov 14 04:00) 🐞 → 🟨:** both fixes are on main 6afa3816 (batch Q, 930 tests): the Warden slam's contact at
+  1.30 s on the charge's end and the Grunt swings' contacts at 0.45 / 0.48 s (T5, 39810902, with `td.Crew.LogHits`),
+  and the Warden shield rigid on the left forearm, checked across guard, walk, stagger, fire, summon, slam and death
+  (animation builder, e2e74225; the old mesh kept as `SK_Warden_ShieldSpine`). No other defect is known on main, so by
+  the rule above the item is 🟨, not 🐞. It is not 🟢: neither fix has been seen in a played run (T7's end-to-end
+  play has not started), and the Warden death is being rebuilt on a new base (animation builder, on a branch, with the
+  Summon pose). If the played run shows the slam or the shield still wrong, back to 🐞. In batch S's gate: the run's
+  difficulty scales crew health, hits and fight size (231b9876); that commit has an Ace-only bug (an extra crew member
+  spawning through a wall on Cinder), fixed on T5's branch, which must land in batch T.
+- **(Nov 14 05:00)** **State:** the Ace-only wall-spawn fix (8e1a4e6d, with a spawn test for every preset) is on main 29a15f21. In batch U's gate: the Warden clips moved to `SKEL_Warden` (five had silently fallen back to template clips), the Warden death rebuilt, the Heavy bash raised. On branches: Grunt damage-time jitter and the Warden stagger trigger (T5); live captures of hit reactions, walk and stagger (animation builder). None of it seen in a played run: stays 🟨.
 
 #### ENG-24 · Objective framework · `🟢`
 `ATDObjective` (Id, steps, waypoint, reward ability and ship) and interactables (tap or hold;
@@ -1325,6 +1401,11 @@ Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its do
   **Decision needed (Ryan):** the built objective 2 is a separate relay climb (resonance nodes, → Cloak). Either it is
   replaced by step 5, or it stays as the route to the relay console and the transfer defence follows it. Until Ryan
   decides, both objectives keep working and keep their rewards.
+- **(Nov 14 04:00) State:** on main and awaiting agent play: the relay's first wave waits for `C3_Moss_Company`, the
+  scene's end or 60 s (9f964b30, main 6afa3816; #90 no. 7); T5's Dress pass (49 story props, the kit `BP_Wreck` at the
+  scar's end, landmarks; 2767300b, main ddc50a2f); relay mast r2 (main 4e894365); the research outpost's floor, which
+  showed terrain, lifted 3 cm (f19802f0, main ddc50a2f; walk test pending, T5).
+- **(Nov 14 05:00)** **State:** T7 reached Verdance on foot (first view, dressing visible) on the batch O tree, before the Dress pass; the objectives were not replayed. The canopy at about 40% coverage is in batch U's gate; the wreck scar is on the environment branch.
 
 #### ENG-26 · Cinder: gameplay layout, hazards & objectives (CORE) · `🟨`
 **Story (act 3, The Pattern):** the outpost is the **mining complex** (objective 3 "Stop the Excavation", which also yields the stabilising crystals); the jammer is the dig's **field anchor** (objective 4 "Destroy the Field Anchor"): destroying it opens the passage through the distortion field instead of "revealing" the Dominion. Transmissions begin to echo the pilots' own voices. One door at the dig opens to the pilot's ID.
@@ -1360,6 +1441,12 @@ Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its do
   camp props and the Null derrick landmark are on main 61404a79 (builder captures only). Not started and queued on
   `CLAIMS.md` this hour (T5, with T2 for the marker): the fixed order (step 3), the pending approach marker (step 5)
   and the ID door (step 6). The Warden fight has open bugs (ENG-23).
+- **(Nov 14 04:00) State:** in batch S's gate, not on main (T5, b4d8ed05): the fixed order (already tested), the ID
+  door that greets the pilot once, and `IsFieldAnchorDisabled` (saved) for the pending approach marker; T2's on-foot
+  line "APPROACH PREPARED · PASSAGE STILL BLOCKED" (e1cf2fbb) is on eng/t2. On main ddc50a2f and awaiting agent play:
+  the Dress pass (50 story props, landmarks, the dig cabin) and the outpost lifted 3 cm; the Cinder magma retune (main
+  4e894365).
+- **(Nov 14 05:00)** **State:** on main 4eb57848 (batch S): the fixed order, the ID door's one greeting and the saved pending state (b4d8ed05); on main 29a15f21 (batch T): T2's pending approach marker and line (e1cf2fbb; wording a placeholder for Nicholas). Tested, not played by an agent. Cinder from the air is on the environment branch.
 
 #### ENG-27 · Balance & tuning · `🟢`
 Play the full run at least twice. Tune enemy counts, HP and cooldowns toward 20–30 minutes. Add a
@@ -1370,7 +1457,7 @@ Play the full run at least twice. Tune enemy counts, HP and cooldowns toward 20�
   1 run in 5 there. Measured in the headless balance run (chance of a ship down and hull lost per minute for
   the active ship) before any tuning.
 
-#### ENG-28 · Integration, performance, packaging & submission build · `🟨`
+#### ENG-28 · Integration, performance, packaging & submission build · `🐞`
 - **Integration and testing:** C++ architecture reviews, profiling (a steady 60 fps target on mid
   hardware), a smoke test after every merge.
 - **Packaging:** Windows Shipping profile with all maps listed, startup map `L_MainMenu`, and the
@@ -1397,6 +1484,12 @@ Play the full run at least twice. Tune enemy counts, HP and cooldowns toward 20�
   Not done: the measurement runs in the packaged build (#89), so no frame-rate claim is verified; the import builder's
   never-cook rules and Oodle RDO are unproven until a trial cook. **Held for Ryan:** dropping the DirectX 11 shader
   set (about 11 MB; the game would then need a DirectX 12 card).
+- **(Nov 14 04:00) State:** the eb1bf334 zip is still the newest finished package. A trial package of main ddc50a2f
+  has been cooking since 03:32; the never-cook rules (about 120 MB) and Oodle RDO are unproven until it is finished and
+  looked at. `BP_Wreck` stays in the cook (Lead: T5 places it on Verdance). T2's projectile pool fix and combat
+  warm-up list are on main 6afa3816. T7 (#89): audio buffers 1 against 3 measured, inconclusive, not committed; the
+  warm-up off / on and natural first-ten-minutes runs are in progress. Still held for Ryan: the DirectX 11 shader set.
+- **(Nov 14 05:00)** **🟨 → 🐞: the Shipping game target does not compile on main 4eb57848 (batch S) or 29a15f21 (batch T).** A squad test (`EngageInsideARockPocketWithoutHittingIt`) sat after the `#endif` of its `WITH_DEV_AUTOMATION_TESTS` guard; found by the packaging agent; fixed by dea28a8b in batch U's gate. Back to 🟨 when batch U is on main and its Shipping target has compiled. **Decided by Ryan's Lead:** no package from batches S or T; from now on the packaging agent compiles the Shipping target of each batch branch before it is pushed. **Package:** the newest published Shipping zip is main ddc50a2f (batch R): **872,722,389 bytes** (127 MB under the limit), a clean cook with the never-cook rules (134 unreferenced packages; the rules and the `td-package` change are on main 29a15f21), launch check to first combat only; prerelease `playable-main-ddc50a2f`; Oodle RDO is still an unproven trial. **Performance (#89):** with the warm-up on no combat frame is over 100 ms (assault worst frame 133 → 51 ms) at +650 MB RAM, over the 400 MB target (per-map lists in progress, T7); tutorial combat had 9 frames over 33 ms in 119 s on a loaded machine (cause unconfirmed); the audio buffer test is inconclusive; first asteroid breaks 12-19 ms → about 1.2 ms; the first pickup spawn still 25 ms (T2). **Held for Ryan:** the DirectX 11 shader set; a precompiled pipeline-state cache.
 
 #### ENG-32 · On-foot third-person camera & the Settings page (CORE, added Nov 12 by Ryan) · `🟢`
 Ryan, Nov 12 (late): "a settings page, and you should be able to switch between first and third person ...
@@ -1448,6 +1541,10 @@ restart, and tests cover the toggle, persistence, camera collision, facing rule 
 The issue stays open for Nicholas to close; the card's look is his. Not 🟢: the re-shoot below, the `O_*` lines, the
 score, the five legacy `Intro_N` captions Nick's side found (N-088, T3; not verified fixed this hour) and the longer
 silences after the shortened lines are all open.
+**(Nov 14 04:00), decided by Ryan's Lead:** the opening's words are rebuilt from the 15 approved `O_*` first-contact
+lines, shown as subtitles over the existing intro shots behind `td.Intro.Lines` (0 = the old captions). T3's build is
+on eng/t3 (0622bf0f, 77de9085; Intro / Story / E2E 33 of 33), approved by the Lead, not on main and not seen live. Until
+it lands, main still shows the five legacy narrator captions. The voice for the lines is Nicholas's.
 **Redo queued (Ryan, Nov 13): the opening is rebuilt to Nicholas's *First Contact* brief** (about 2:20: missing patrol, Triad arrives, the impossible vessel, the first launch with the drone that goes blue and holds fire, the cut-off "Don't-", then straight into the tutorial battle; `storyline.md` §11, `docs/story/First-Contact-Cinematic-Brief.md`). **Done once, after the art it shows is on `main`** (Rodin player ships, the fleet with a space drone, the Dominion with opening hangars, round-4 effects, the new HUD). Until then T3 prepares the shot plan, the dialogue hooks and the drone beat only. Today's 49 s intro stays in the game meanwhile.
 **Story (opening):** the intro shows the premise: the silent Dominion, machines descending on worlds, Triad deployed to identify it and report back. No hint of the truth. Text and narration are Nicholas's through the existing slots.
 **(Nov 13, 17:15, Nicholas's approved opening decision, #29 / #24):** "The opening stays 49 seconds." So the redo is a
@@ -1493,6 +1590,7 @@ Triad Drift's version is **bright and saturated**, not grimdark (AGENTS.md secti
 **Done when:** New Game plays the intro from the menu into wave 1 with a seamless hand-off; skip works by keyboard,
 mouse and pad; Continue and retakes never play it; captures of every shot are reviewed against `AAA.md` by an
 independent reviewer; tests cover play-once, skip, hand-off and that waves start only after it.
+- **(Nov 14 05:00)** **State:** T3's rebuild is in batch U's gate (lead/int-u dea28a8b), not on main: the 15 approved `O_*` lines (`td.Intro.Lines`), the departure-radio guard, a black hold on the intro's first frames, and the HOLD TO SKIP hint shown by itself for 4 s once skipping opens. T3 played the opening's 11 lines at two resolutions on its branch; T7 played the hold-to-skip on the batch O tree. The voice for the lines is Nicholas's.
 
 #### ENG-34 · Planet worlds: large procedural terrain (CORE, added Nov 13 by Ryan) · `🟨`
 Ryan, Nov 13: "building out these worlds ... procedural generation, like mountains ... make it look big, not just
@@ -1549,6 +1647,11 @@ Nick's sounds exist, engineering supplies an original, cohesive fallback set, an
   **the escape is empty** because the Ritual track is not imported on main. It stands down on any exclusive claim by
   Nick's plugin and is off with `td.Music.Fallback 0`. On the effects branch, not main: the CloudPunch sound and a wind
   layer for the descent.
+- **(Nov 14 04:00) State:** T5's interior moments (`ATDPlanetCourse::OnInteriorMoment`: core chamber entered, reactor
+  fight started and ended, escape started; 9f964b30) are on main 6afa3816, but T1's forwarding of them to the music
+  bridge (f88a0bfb) is on eng/t1, so the core-chamber and reactor-fight music is still silent on main. On the effects
+  branch: the CloudPunch and GlideWind sounds. The escape is still empty.
+- **(Nov 14 05:00)** **State:** T1's forwarding of the interior moments to the music bridge and the glide wind slot are in batch U's gate; the CloudPunch and GlideWind sounds are on the effects branch. Core chamber and reactor fight are therefore still silent on main; the escape slot is still empty (Ritual not imported).
 
 #### ENG-36 · HUD redesign: modern, sleek, minimal (CORE, added Nov 13 by Ryan) · `🟨`
 Ryan, Nov 13: "The HUD currently is kind of bulky and it needs to be more modern and sleek, and not taking up as much
@@ -1587,6 +1690,12 @@ it's easy to utilize, and even the beginner gamer can understand it."
   f39a8372); enemy marker shapes per type with a heading tick (ede33e91, main 61404a79; a fallback under R-047, flagged
   for Nicholas). Not on main: the ENG-38 descent HUD (altimeter, hull temperature; T2). Not started: the on-foot HUD
   in the new style, the *Aftermath* lane display and navigation pulse, the Cinder pending marker.
+- **(Nov 14 04:00) State:** the ENG-38 descent HUD (altimeter tape, HULL TEMP bar, ATMOSPHERE during the burn, glide
+  and entry, ORBIT for 3 s after the climb-out; 46e371c1, test `FlightHUD.DescentAltimeterHeatAndCues`) is on main
+  6afa3816, awaiting agent play. On eng/t2, not main: the on-foot HUD in the flight HUD's style (aa204b7a; tests pass,
+  not seen live) and the Cinder pending line (e1cf2fbb). Not started: the *Aftermath* lane display and navigation
+  pulse (T2, queued this hour).
+- **(Nov 14 05:00)** **State:** on main 29a15f21 (batch T): the on-foot HUD restyle (aa204b7a) and the Cinder pending approach marker (e1cf2fbb), tested, not seen live. The enemy marker shapes were seen working in T7's play (batch O tree). On T2's branch: descent HUD contrast and the ORBIT fix, a marker placement fix, the *Aftermath* HUD lanes. Still 🟨: most story states are unplayed.
 
 #### ENG-37 · Projectiles, engines and particle effects at AAA quality (CORE, added Nov 13 by Ryan) · `🟨`
 Ryan, Nov 13: "really focus on projectiles across the entire game, from the blast of the engine to shooting.
@@ -1630,6 +1739,11 @@ coming out and there's movement ... a bunch of particles, and everything that ma
   enemy engine plumes. The reactor Exposed / Hit effects could not be judged (the side camera lands inside the hull);
   an above-trench camera is needed. Still not started: the approach-field shimmer and opening, shield sections
   dropping per generator, the tractor beam.
+- **(Nov 14 04:00) State:** on main 6afa3816: the asteroid break reworked as a shatter (flash, ice shards, a quick
+  pale dust puff), `M_TD_PP_DescentWhite` and the in-cloud layer v1 (`NS_TD_Entry_CloudWisps`). On the effects branch:
+  cloud veil v2, per-type enemy engine plumes, the *Aftermath* light row, shield drop, approach-field shimmer and the
+  tractor beam (specs written, not built; slots asked of T4). Builder captures only.
+- **(Nov 14 05:00)** **State:** the descent haze is in batch U's gate. On the effects branch: cloud veil v2, per-type enemy plumes, region beacon and haze, shield drop, approach-field shimmer, tractor beam, the light row. The range flare for the region set pieces moves here as a Niagara effect (Lead's decision; the mesh flares were removed).
 
 #### ENG-38 · Planetary descent: fly from space into a world, anywhere on the globe (CORE, added Nov 13 by Ryan) · `🟨`
 **Ryan, Nov 13:** flying down into a world must be "super realistic, super high quality, AAA quality, make it almost
@@ -1712,6 +1826,14 @@ and the on-foot hand-over of ENG-20 stay.
   descent HUD, the effects builder's exposure ramp, CloudPunch sound and wind layer. Measured on main: the first planet
   entry hitches about 330 ms from synchronous scatter mesh loads (T4's async loading in progress; over the 100 ms
   bar). Nothing of the glide has been played by an agent on main; only a person can judge the feel.
+- **(Nov 14 04:00) State (🟨):** on main and not yet played by an agent: T1's glide-lite and mirrored take-off (main
+  4e894365), T2's descent HUD, `M_TD_PP_DescentWhite` and the in-cloud layer v1 (main 6afa3816). **Decided by Ryan's
+  Lead:** the cloud deck is fitted to the glide: it sits at the glide corridor + 300 m, clamped to 1,100-1,600 m above
+  the pad, so the glide stays 9-10 s and the climb-out stays short. That fit, T4's terrain half (`GetCloudDeckZ`,
+  `PrepareArrival` / `IsArrivalReady`), async scatter kind loading (the 330 ms first entry is still on main), the
+  descent haze, glide wind and the exposure ramp hook are in the T1 + T4 combined commit on branches, for batch T;
+  cloud veil v2 and the CloudPunch and GlideWind sounds are on the effects branch.
+- **(Nov 14 05:00)** **State (🟨):** in batch U's gate, not on main: the glide placed over a corridor-fitted cloud deck on every entry path, a 300 m floor for uncovered arrivals, the boundary release during the glide, async scatter kind loading at 4 ms per frame, descent haze, the glide wind slot, the exposure ramp. Played: T7 flew the Verdance entry naturally on the batch O tree (white cover, 1.69 s map load), which is before the glide of batch P; the glide, the landing by hand and the take-off are unplayed. Found in that play: the entry hold did not last through *Aftermath* (ENG-42 🐞); T1's fix (a crawl at the atmosphere's edge, AWAITING ORDERS) is on a branch. Decided by Ryan's Lead: the entry commits after *Aftermath* if the player is still at Verdance's edge.
 
 ### Complete-game items (added Nov 13 evening, at Ryan's request)
 Ryan: "make sure it has all the information in order to pretty much complete the entire storyline and the entire game".
@@ -1729,11 +1851,12 @@ Spec: the realignment section "Worlds that read as real places" and `docs/eng/WO
   space, then a streaming ring around the ship, deterministic from a seed (`td.SpaceField`); keep-outs around the combat
   zone, gates, planets and the Dominion; combat lanes stay readable (T6, in progress).
 - **Pickups:** new gameplay; the smallest version is proposed to Ryan on the board **before** it is built (v1 built (a094a440, 23a9f302, 09636062), on main 6fe3e90f).
-- **Space composition (Ryan, Nov 14; T6, T4 reviews):** the flyable space is composed as seven themed regions (the Watchline, the Shepherd Belt, the Ice Drift, the Quiet Graveyard, the Survey Scar, the Shattered Moons, the Outer Dark) per `docs/eng/SPACE-DESIGN.md` (on eng/t6, not on main yet); the Shepherd Belt first, inside a rock-field performance budget, with staged large and special breaks; its set pieces (patrol hull, expedition hulls, survey rig, hollowed rock) come from the structures builder. **(Nov 14 03:00)** Four regions (Shepherd Belt, Watchline halo, Quiet Graveyard, Outer Dark) are built and green on eng/t6 fae01308 and measured cheaper than the old field (5.4-6.7 ms frames); the Ice Drift, Survey Scar and Shattered Moons are in progress (757941fc); none is on main. Space set pieces r1-r4 are on main; region set pieces r3 are in batch P's gate. Planet landmarks r1 (relay mast, Null derrick) and the story camps are on main 61404a79, seen in builder captures only.
-- **Performance (Ryan, Nov 14; T7, issue #89):** no hitches and a steady 60 fps in the Shipping build in every phase, measured per phase with each teammate measuring their own area; targets and findings in #89 and ENG-28. Since the 00:30 crash, at most two rendering Unreal processes run machine-wide (R-046; three until 01:20). T7's baseline (Nov 14 02:00): averages 92-193 fps, hitches from first-use loads and map changes, 412 audio underruns in 15 min; a warm-up subsystem, async music and audio buffers at 3 are in progress. **(Nov 14 03:00)** The warm-up subsystem, async music loading and the path cache are on main 61404a79; T2's projectile pool and combat warm-up list are on eng/t2 5e1013aa with three tests failing. The wave-3 and Verdance-entry hitches of the baseline were traced to the stage cheats; the natural-play runs have not been made. New: first planet entry about 330 ms (T4), first asteroid break of each kind 12-19 ms (T6).
+- **Space composition (Ryan, Nov 14; T6, T4 reviews):** the flyable space is composed as seven themed regions (the Watchline, the Shepherd Belt, the Ice Drift, the Quiet Graveyard, the Survey Scar, the Shattered Moons, the Outer Dark) per `docs/eng/SPACE-DESIGN.md` (on eng/t6, not on main yet); the Shepherd Belt first, inside a rock-field performance budget, with staged large and special breaks; its set pieces (patrol hull, expedition hulls, survey rig, hollowed rock) come from the structures builder. **(Nov 14 03:00)** Four regions (Shepherd Belt, Watchline halo, Quiet Graveyard, Outer Dark) are built and green on eng/t6 fae01308 and measured cheaper than the old field (5.4-6.7 ms frames); the Ice Drift, Survey Scar and Shattered Moons are in progress (757941fc); none is on main. Space set pieces r1-r4 are on main; region set pieces r3 are in batch P's gate. Planet landmarks r1 (relay mast, Null derrick) and the story camps are on main 61404a79, seen in builder captures only. **(Nov 14 04:00)** All seven regions with 36 set pieces are on main ddc50a2f (batch R; T6's 19 region tests green on batch P), awaiting agent play; region set pieces r3 and r4 are on main; the route report (90e30ad6) is on eng/t6. The planet Dress pass is on main ddc50a2f (ENG-25, ENG-26).
+- **Performance (Ryan, Nov 14; T7, issue #89):** no hitches and a steady 60 fps in the Shipping build in every phase, measured per phase with each teammate measuring their own area; targets and findings in #89 and ENG-28. Since the 00:30 crash, at most two rendering Unreal processes run machine-wide (R-046; three until 01:20). T7's baseline (Nov 14 02:00): averages 92-193 fps, hitches from first-use loads and map changes, 412 audio underruns in 15 min; a warm-up subsystem, async music and audio buffers at 3 are in progress. **(Nov 14 03:00)** The warm-up subsystem, async music loading and the path cache are on main 61404a79; T2's projectile pool and combat warm-up list are on eng/t2 5e1013aa with three tests failing. The wave-3 and Verdance-entry hitches of the baseline were traced to the stage cheats; the natural-play runs have not been made. New: first planet entry about 330 ms (T4), first asteroid break of each kind 12-19 ms (T6). **(Nov 14 04:00)** T2's projectile pool fix (6200aa26) and combat warm-up list, and the field's four break systems registered with the warm-up (96e9fdc6), are on main. T7 measured audio buffers 1 against 3: inconclusive, not committed; the warm-up off / on and natural first-ten-minutes runs are in progress. T4's async scatter loading is still on a branch.
 - **Done when:** from five entry points per planet the arrival reads as a place in captures; a 60 s flight in any
   direction in space passes dressing; wave 5 stays inside the ENG-28 frame budget with the field on.
 - Depends on ENG-34, ENG-38, ART-05, ART-06, ART-13.
+- **(Nov 14 05:00)** **State:** decided by Ryan's Lead: the region set pieces are closed for tonight at r4 (moon shards back to r4, the failed flares removed; in batch U's gate), with the range flare moved to the effects builder. On T6's branch: regions moved closer to the routes with more pieces, the docking-cone keep-out. T4's spawn points that reject obstacles are on a branch.
 
 #### ENG-40 · Act 1: the tutorial battle and the withdrawal (CORE) · `🟨`
 `storyline.md` §13 and the reconciliation correction of 17:15 (Nicholas, #29, #24): **one uninterrupted first mission over
@@ -1756,6 +1879,10 @@ waves 1-2**, entered from the intro with no fade.
   on main 61404a79. None of it has been played by an agent on main. Not on main: T4's halves (the lesson gate, a softer
   Evade volley, gunship hold, withdrawal wait) and the boundary release call; T1's tutorial hint order by phase. Then
   played once by T3.
+- **(Nov 14 04:00) State:** T4's halves (lesson gate, softer Evade volley, boundary release) and T1's hints by phase
+  are in the T1 + T4 combined commit on branches, for batch T; nothing of ENG-40 changed on main this hour and none of
+  it has been played by an agent.
+- **(Nov 14 05:00)** **Played (T7, 04:14-04:29, real keys, batch O tree):** the three lessons (evade 18 s, target and fire, squad switch 22 s) with the lines in order, and the withdrawal by flying at the marker: working. Stays 🟨: T4's lesson gate and softer Evade volley and T1's hints by phase are in batch U's gate and change the lessons (replay on main pending); the hand-off into *Aftermath* is broken (ENG-42 🐞); MINOR: the objective reads CLEAR THE AREA during the withdraw order (T5's text is on a branch). **Decided by Ryan's Lead:** the withdrawal corridor keeps its Verdance bearing and gains a jump-point waypoint (T4, branch); no speed cap.
 
 #### ENG-41 · First-play tutorial flag and "Skip the tutorial" (Nicholas, #29) · `🟨`
 - A profile flag (not the run save; a New Game never clears it) is set by ENG-40's completion event.
@@ -1764,8 +1891,9 @@ waves 1-2**, entered from the intro with no fade.
 - The intro's own hold-to-skip is unchanged. Nick's UI styles the prompt (ART-09).
 - **Done when:** first run forces the tutorial; second New Game shows the offer; Skip gives an identical game state to a
   played tutorial (tested); Continue is unaffected. Owner: T7; on main 6fe3e90f (eb02ac51, 80351f1a), played by an agent (T7, session 2: the offer shows on a completed profile and Skip lands in the Aftermath state); review open (ART-20); the skip start overlapped space junk (#90 no. 10): T4's clear skip start (0a4e7501) is on main f39a8372, awaiting agent play; with T3, T5, T1 for their lines.
+- **(Nov 14 05:00)** **Played again:** T7 used the main menu (New Game, Skip the tutorial, Continue disabled) on the batch O tree. Stays 🟨: the independent review (ART-20) is still open, because Nick's side is stopped.
 
-#### ENG-42 · Story sequences as played: transmissions, voice-over scenes, skips (CORE) · `🟨`
+#### ENG-42 · Story sequences as played: transmissions, voice-over scenes, skips (CORE) · `🐞`
 The transmission system exists (ids, speakers, queue, once per run, saved, the story test; `docs/story/transmissions.md`).
 Many sequences have lines in the table that **nothing fires**. Each row is done when a played run shows the lines in
 order, subtitled, once, never replayed on a retake, with a skip that applies the same state, and the story test passes.
@@ -1796,6 +1924,9 @@ order, subtitled, once, never replayed on a retake, with a skip that applies the
   save / quit / Continue test for heard lines (007d9f14), the TransmissionStatic cue, `G9_Wren_PullAway`. No sequence
   has been heard in order by an agent on these batches. Without an owner until this hour (queued on `CLAIMS.md`, T3):
   the waves 3-4 interception ids and the `C7_*` set.
+- **(Nov 14 04:00) State:** on main 6afa3816: Cinematic 03 no longer plays over the relay's first wave (the wave
+  waits for `C3_Moss_Company`; 9f964b30). The waves 3-4 interception ids and the `C7_*` set are still queued (T3).
+- **(Nov 14 05:00)** **🟨 → 🐞 (MAJOR, played by T7 on the batch O tree, #90):** the *Aftermath* beat is lost if the player keeps boosting after the withdrawal. The corridor leads into Verdance's atmosphere; the entry was held once, then the game travelled 1.4 s later in the middle of Wren's line; the hyperdrive jump beat and 17 queued story lines never played, and the arrival was silent. T3's replay (2b6be288) and T1's first entry hold are on main and did not prevent it. Fixes, all on branches: T1 (the entry holds for the whole sequence), T4 (jump-point waypoint), T3 (must-hear lines survive a map travel). Back to 🟨 when all three are on main; 🟢 needs the beat replayed while boosting.
 
 #### ENG-43 · Gameplay barks from `dialogs.md` (CORE) · `🟨`
 - A `Tools/` script turns `dialogs.md`'s tables into `DT_BarksFallback` under `Gameplay/`; Nicholas's `DT_Barks` wins row
@@ -1812,6 +1943,11 @@ order, subtitled, once, never replayed on a retake, with a skip that applies the
   but is queued behind their current work. The remaining new triggers have no one working on them: queued on
   `CLAIMS.md` this hour as one sweep per lane (T1 travel and landing, T2 combat, T4 enemies, T5 on foot), T3 checking
   the count against `dialogs.md`.
+- **(Nov 14 04:00) State:** counted tonight: **44 bark ids fire in the game; about 55 ids in `dialogs.md` fire
+  nowhere.** The missing ids are listed per lane and sent to T1, T4 and T5. `Bark_Anticipated` (the pre-empt clue's
+  line; `DT_BarksFallback` re-imported at 265 rows, b3c04349, with T3's trigger 55ba5156) is in batch S's gate, not on
+  main; its words are Nicholas's to approve.
+- **(Nov 14 05:00)** **State:** `Bark_Anticipated` and its trigger are on main 4eb57848 (words: Nicholas). On branches: T4's world barks and T5's on-foot barks. T1's travel barks are queued; T2 has no list yet. The count of 44 firing ids is not redone.
 
 #### ENG-44 · Ending: regroup, victory, stinger, credits, back to the menu (CORE) · `🟨`
 Exists: the victory backdrop with flybys, the panel with takes per scene, `StingerSeconds = 18`, the 0.35 s fade, the
@@ -1847,6 +1983,11 @@ Owner: T1 (settings backend), T3 (subtitles), T5 (New Game difficulty); Nick's s
   which led to enemy bolts readable by shape (0c5de65c) and the enemy marker shapes (ede33e91). Still open: subtitles
   on / off (T3) and the shake and speed-FOV sliders (T1), both queued on `CLAIMS.md` this hour; New Game difficulty
   (T5, queued); a protanopia pass; each row changed in a played run and kept across a restart.
+- **(Nov 14 04:00) State:** in batch S's gate: the run's difficulty scales crew health, every crew hit and each
+  on-foot fight's size (T5, 231b9876; its Ace-only bug is fixed on T5's branch for batch T). On a branch: the
+  subtitles on / off setting (in the T1 + T4 combined commit). Still open: shake and speed-FOV sliders (T1), the
+  difficulty choice on New Game, a protanopia pass (T7).
+- **(Nov 14 05:00)** **State:** the on-foot half of the difficulty (231b9876) is on main 4eb57848 and its Ace-only wall-spawn fix (8e1a4e6d) on main 29a15f21, with a spawn test for every preset; the subtitles setting is in batch U's gate. Still queued: the shake and speed-FOV sliders (T1), the New Game difficulty choice (T5, T3). Not played.
 
 #### ENG-46 · The whole game, played: end-to-end tests and playtest gates (CORE) · `🟨`
 - **Automated:** one end-to-end test per route, real input where it matters, in a Development build: (a) New Game →
@@ -1866,6 +2007,9 @@ Owner: T1 (settings backend), T3 (subtitles), T5 (New Game difficulty); Nick's s
 - **(Nov 14 03:00) State:** the last end-to-end agent playtest is T7's of batch L (main 6fe3e90f). Batches M, N and O
   have not been played end to end; T7 plays main 61404a79 after its performance window. No gate G1-G4 has been run:
   **G1 (Ryan, packaged build) is due this morning**, on the eb1bf334 package unless batch O's is built first.
+- **(Nov 14 04:00) State:** unchanged and now the main blocker: batches M to R (main ddc50a2f) have not been played
+  end to end by an agent; T7 is still in its performance window. No gate G1-G4 has been run.
+- **(Nov 14 05:00)** **State: the first end-to-end play evidence since batch L.** T7, 04:14-04:29 EST, real keys through the engine's MCP server in a `-game` session, on the batch O tree (364aabb3 + T2's pool fix + T7's performance work), so behind main by batches P-T; not a human playtest. Working: main menu, intro skip, the tutorial lessons, switching, the Bastion dome, wingmen against rocks, marker shapes, the withdrawal, the Verdance entry, the first view on foot. Broken: the *Aftermath* beat (MAJOR, ENG-42). MINOR: CLEAR THE AREA during the withdraw order. Not played: landing by hand, both planets' objectives, the assault, docking, the interior, the reactor, the escape, victory (T7's next session is running). Batches P to T are still unplayed end to end, and the published ddc50a2f package has only a launch check. No gate G1-G4 has been run.
 
 #### ENG-47 · Finale mode decision and the fallback ending (CORE) · `🟨`
 - Boarding is the documented ending (`Story/README.md`: "The confirmed ending boards the Dominion; the existing space-only
@@ -1910,6 +2054,10 @@ sign-off, and an asset of his at the Presentation name replaces ours.
   glowing squiggle in the windscreen cleared, emissive strength 6 → 4). Rift v14 is in batch P's gate. **The Bastion
   glass cockpit was attempted and stopped; v02 stays. Whether Bastion gets a glass cockpit is a design decision for
   Ryan.** Seen in builder captures only; Ryan has not approved any ship at 3-10 m on these versions.
+- **(Nov 14 04:00) State:** on main: Rift v14 (4e894365) and Lancer cockpit v07 (lighter seat and consoles, pale visor
+  band, glass opacity 0.8; dedd9735, main 6afa3816). On a branch: Lancer v08. The Bastion cockpit design is still held
+  for Ryan. Builder captures only.
+- **(Nov 14 05:00)** **State:** on branches: Lancer v08, a rear-view review of the three ships, and landing gear meshes for the three ships (structures builder; Lead's decision to model them as separate meshes). The Bastion cockpit design is still held for Ryan.
 
 #### ART-04 · Enemy & Dominion visuals · `🟨`
 **🟦 Ryan since Nov 13.** Enemy ships, turret, Warden, drone, generator and reactor by Grok Bot (R-027 #2, #5, #6); Dominion exterior and crew by engineering, already in the game; T4 and T5 wire them.
@@ -1929,6 +2077,10 @@ sign-off, and an asset of his at the Presentation name replaces ours.
   f39a8372; per-type engine plumes are on the effects branch. From captures the Null fighter is still only a few
   pixels tall at fight range in the chase camera, so the read is carried by T2's marker shapes (main 61404a79). The
   Warden's shield floats off the body on main (rig fix in progress; ENG-23).
+- **(Nov 14 04:00)** On main 6afa3816: the Null interceptor's silhouette (wing-tip lances and twin canted tail fins,
+  so it no longer reads as the fighter at 60-150 m; 74749d4c), the fleet's range glow retune (0e5ded3f) and the Warden
+  shield on the left forearm. On branches: the hauler repaint, per-type engine plumes. Builder captures only.
+- **(Nov 14 05:00)** On branches: the hauler repaint (#51) and per-type enemy engine plumes. On main 29a15f21: the Dominion escape debris set (`SM_KS_DomDebris_*`). Evidence frames are posted on #41 and #51 with a close request.
 
 #### ART-06 · Planet environments: Verdance & Cinder (CORE) · `🟨`
 **🟦 Ryan since Nov 13.** Terrain, mountains, materials, rocks, trees and set pieces: engineering (ENG-34) with Grok Bot's texture sets and set pieces (R-027 #3, #8). **Lighting, fog, sky and grade on the planets stay with Nick (ART-13).** **(Correction, Nov 13 afternoon, R-036: ART-13 moved to Ryan's side too, so the planets' lighting, fog, sky and grade are the Lead's environment builder's.)** Still missing for the complete game: the dressed play zones (ENG-39), the walkable survey stations and dig cabin (ART-17), the story set pieces (ART-18), and the lighting pass per planet (ART-13).
@@ -1942,6 +2094,10 @@ sign-off, and an asset of his at the Presentation name replaces ours.
   (pass 4), the Verdance field camp and Cinder mining camp, the relay-mast and Null-derrick landmarks r1. In batch P's
   gate: Verdance cliffs, the Cinder magma retune, relay mast r2 (r1 reads too thin). On the environment branch: the
   Verdance canopy and terrain pass (#90 no. 20). Builder captures only; not seen by an agent in a played run.
+- **(Nov 14 04:00) State:** on main: Verdance cliffs, the Cinder magma retune and relay mast r2 (4e894365); the
+  planet Dress pass (ddc50a2f). On eng/env: the Verdance canopy and terrain pass s8 (1,475 clumps over about 40 % of
+  the vegetated lowland, the scar left open; e2830e63). Builder captures only.
+- **(Nov 14 05:00)** **State:** the Verdance canopy at about 40% coverage is in batch U's gate; Cinder from the air and the wreck scar are on the environment branch. T7 saw Verdance's first view on foot on the batch O tree only.
 
 #### ART-07 · Combat & travel VFX (Niagara) · `🟨`
 **🟦 Ryan since Nov 13.** Built as Niagara effects in `Gameplay/VFX` (ENG-37) with Grok Bot's flipbook textures (R-027 #7). Nick's side may hand over its own effect for any cue.
@@ -1957,6 +2113,7 @@ sign-off, and an asset of his at the Presentation name replaces ours.
   tractor beam (stretch).
 - **Readability rule:** nothing important hidden by bloom. Budgets: particle caps and significance
   (ART-13).
+- **(Nov 14 05:00)** **State:** on the effects branch, not on main: cloud veil v2, per-type enemy plumes, region beacon and haze, shield drop, approach-field shimmer, tractor beam, the light row; the range flare is added to this lane.
 
 #### ART-08 · Ground visuals & animation · `🟨`
 **🟦 Ryan since Nov 13.** Crew models and rigs by engineering; blade combat animations by Grok Bot (R-027 #4), hooked up by T5. The pilot body stays Nicholas's Sentinel Armor.
@@ -1988,6 +2145,10 @@ sign-off, and an asset of his at the Presentation name replaces ours.
   (the "death clip then ragdoll" row for crew). Open bug: the Warden's shield floats off the body (rig fix in progress).
   No one is working on interact / board clips, foot IK or landing gear: queued on `CLAIMS.md` this hour (animation
   builder, after the Warden fixes).
+  **(Nov 14 04:00) State:** the Warden shield is on the left forearm on main 6afa3816 (e2e74225). On eng/anim: the
+  Warden death rebuilt on a new base, the Summon pose, a pilot interact clip and board clips (not captured in game).
+  Foot IK and landing gear still queued.
+  - **(Nov 14 05:00)** **State:** in batch U's gate: the Warden clips moved to `SKEL_Warden` (five had silently fallen back to template clips), the Warden death rebuilt, the Heavy bash raised. On eng/anim: the pilot interact rebuild; live captures of hit reactions, walk and stagger. Landing gear: separate meshes, in progress (structures builder). Pilot foot IK (about half a day) is held for Ryan.
 
 #### ART-02 · Visual asset inventory & sourcing plan · `🟨`
 **🟦 Ryan since Nov 13 (asset management moved to Ryan's side).** The inventory of every asset, where it comes from, its licence and its state is kept by Ryan's Lead: `docs/eng/ASSETS.md` (ledger), `CREDITS.md`, `docs/eng/ART-HISTORY.md`. Sourcing is Grok Bot (generation) and engineering builders (code-built, imports). Nick's supplied-model intake (N-041, N-042) is a library Ryan's side selects from.
@@ -2001,6 +2162,7 @@ sign-off, and an asset of his at the Presentation name replaces ours.
   licence, state, who added it); the eight picks from Nick's intake (R-037, `docs/eng/ASSET-INTAKE-REVIEW.md`) imported or
   dropped; every Grok Bot delivery's `SOURCE.md` carried into `CREDITS.md`; Epic's Animation Sample licence logged. Done
   when the asset builder's diff of the cook against `CREDITS.md` finds no unlisted third-party or AI asset (feeds ART-14).
+- **(Nov 14 05:00)** **State:** the never-cook rules (134 unreferenced superseded packages, editor-only `PL_*` pipelines, two walk-test classes; 146cbb65) are on main 29a15f21 and gave a clean cook of ddc50a2f; the Oodle RDO trial is unproven. The cook diff against `CREDITS.md` can start (import builder).
 
 #### ART-05 · Space environment & galaxy dressing · `🟨`
 **🟦 Ryan since Nov 13 (environment moved to Ryan's side).** The space sky, nebulae, galaxy dressing, lighting and post-process of `L_Galaxy` are built by engineering builders with Grok Bot's panoramas and textures, under the Lead. Today: the 8K sky and code-placed dressing are in the game. Nick's Hero sky work is a reference we may adopt, not a dependency.
@@ -2010,6 +2172,7 @@ sign-off, and an asset of his at the Presentation name replaces ours.
   - Nebula volumes, a speed-dust field, asteroid-field kits (`procedural_rocks.py`), station ruins.
 - **Galaxy map:** dress `L_Galaxy` on your own actors (One File Per Actor): lighting, post-process
   and scale cues.
+- **(Nov 14 05:00)** **State:** the region set pieces are closed at r4 for tonight (batch U's gate); region beacon and haze and the range flare are with the effects builder (branch).
 
 #### ART-13 · Lighting, post-process & performance-minded art · `🟨`
 **🟦 Ryan since Nov 13 (environment moved to Ryan's side).** Lighting, fog, sky, atmosphere, colour grade and post-process on every level (galaxy, Verdance, Cinder, the Dominion interior, the menu) are built by engineering under the Lead, including the atmosphere's look for the planetary descent (ENG-38). Performance budgets stay as written.
@@ -2021,6 +2184,9 @@ sign-off, and an asset of his at the Presentation name replaces ours.
   map World Settings claimed first). Done when each of `L_MainMenu`, `L_Galaxy`, both planets (orbit, descent, play zone)
   and `L_Dominion_Interior` (normal, alarm and collapse states) has a before / after capture at gameplay distance, the
   squad / enemy colour code still reads, and the frame rate holds (ENG-28). The scalability preset is wired with ENG-45.
+- **(Nov 14 04:00) State:** the alarm pulse and collapse flicker states for `L_Dominion_Interior` are built on eng/env
+  (142abfa5), not on main and not captured. The descent white-out post-process is on main 6afa3816.
+- **(Nov 14 05:00)** **State:** `UTDInteriorLightSubsystem` (alarm pulse and collapse flicker on `OnInteriorMoment`) and the exposure ramp are in batch U's gate, tested headless, **not seen live**. Per-level before / after captures still queued.
 
 #### ART-17 · Walkable hard-surface structure kit (R-043, Ryan Nov 13 evening) · `🟨`
 **🟦 Ryan.** "Nothing the player walks on, into or through is an AI-generated mesh." Owner: the Lead's **structures
@@ -2037,6 +2203,10 @@ site.
   `docs/eng/ART-HISTORY.md`. The on-foot pawn collides with parked ships (T1, done per R-043).
 - **Done when:** each site is walk-tested with the real pawn in both cameras (no sinking, no snagging, no walking through
   walls), captured, and Ryan has seen it.
+- **(Nov 14 04:00) State:** both outposts sit 3 cm above the ground with every piece lifted with the floor
+  (`BP_Outpost_Site_Verdance` / `_Cinder`; f19802f0, main ddc50a2f), after the Verdance floor showed terrain; the walk
+  test with the real pawn is pending (T5). The dig cabin is placed by the Dress pass. No site has been seen by Ryan.
+- **(Nov 14 05:00)** **State:** walkable survey stations are built on the structures branch, not on main and not walk-tested with the real pawn (T5).
 
 #### ART-18 · Story set pieces and clue props (CORE) · `🟨`
 **🟦 Ryan.** Grok Bot (distant and non-walkable meshes, R-042 queue), ship / structures / effects builders (import,
@@ -2062,6 +2232,10 @@ sockets, effects), T4 and T5 (placement). Each is done when it is seen in a play
 **(Nov 14 03:00)** No one is working on the insignia clue or the *Aftermath* light row: both queued on `CLAIMS.md` this
 hour (structures builder for the insignia decal, effects builder with T4 for the light row). Dress placements for #40
 and #37 are on T5's branch.
+**(Nov 14 04:00)** The insignia clue is built and on main ddc50a2f (`SM_Kit_InsigniaHull`, `SM_Kit_InsigniaPanel`,
+`MI_Kit_InsigniaScorched`; f19802f0) but **not yet placed** (T5). The Dress pass placed 49 story props on Verdance and
+50 on Cinder (2767300b, main ddc50a2f). The *Aftermath* light row is a spec on the effects branch.
+- **(Nov 14 05:00)** The *Aftermath* light row is on the effects branch; the insignia decals are still not placed (T5, queued); T5's emergency strip tags are on a branch.
 
 ### Boarding finale (WANTED since Nov 13, Ryan; story acts 4 and 5; was stretch)
 
@@ -2076,6 +2250,7 @@ and #37 are on T5's branch.
 - **(Nov 14 03:00) State:** T4's near-field capture (80 degrees inside 400 m), the approach waypoint 800 m out on the
   axis and its test (0a4e7501, b6f967d4) are on main f39a8372. Docking has still not been flown by an agent on main
   (#90 no. 19); `C7_*` lines not started.
+- **(Nov 14 05:00)** **State:** T4 played docking on its own branch (agent-driven); T7 has not reached it. On branches: the tractor beam effect; T6's docking-cone keep-out for the field.
 
 #### ENG-30 · Dominion interior encounters & core fight · `🟨` WANTED (Nov 13)
 **Story (act 4, The Truth):** familiar military architecture, doors and consoles keyed to the pilots' identities, and an interactable console with a recording of their older selves in each room (hook with a placeholder line; Nicholas's words and voices). The core fight is the choice of act 5.
@@ -2109,6 +2284,10 @@ and #37 are on T5's branch.
   and attacks. On T5's branch, not main: the interior music events (core chamber and reactor fight, which the music
   fallback is waiting for), slam / contact fixes. Open: conduit world markers, the interior spawn against the Rift's
   tail (#90 no. 4, no. 12), the defenders trio (N-052).
+- **(Nov 14 04:00) State:** on main 6afa3816: the interior music moments and the `DA_ReactorCore_FX` slots at the
+  reactor and escape events (9f964b30); interior lights tagged `TD.InteriorLight` (main ddc50a2f). On branches: T1's
+  forwarding to the music bridge, the alarm and collapse lighting (142abfa5). The reveal gate still has no verdict.
+- **(Nov 14 05:00)** **State:** T1's forwarding of the interior moments to the music bridge and the alarm and collapse lighting are in batch U's gate (the lighting not seen live). Not replayed by an agent since batch L.
 
 #### ENG-31 · Escape run & escape flight · `🟨` WANTED (Nov 13)
 **Story (act 5, The Choice):** the escape plays with time visibly failing (echoes, repeats); after the breakup the victory screen receives the distress signal with the squad's own identifiers.
@@ -2127,6 +2306,7 @@ and #37 are on T5's branch.
 - **(Nov 14 03:00) State:** on main f39a8372, awaiting a live play: the escape flight as a real beat (clear at 3.5 km
   or more, about 40 of 60 s, debris every 0.4 s, `G9_Wren_PullAway`; 0a4e7501) and the escape clock with an EXIT marker
   on the run (7fb67c3d). The escape music slot is empty: the Ritual track Nicholas chose is not imported on main.
+- **(Nov 14 05:00)** **State:** the Dominion escape debris set is on main 29a15f21 (captured at 100 m by its builder). T4 played the escape flight on its own branch: victory at 41 s of 60. Replay on main pending.
 
 ---
 
@@ -2350,6 +2530,8 @@ Reading diffs is light work, and Codex is a reviewer that did not write the code
   eight grid cells); lighting and alarm and collapse states by the environment builder (ART-13); the reactor rings turn
   (ART-08). State: interior played end to end on the engineering kit; kit r4/r4b interior and bay on main 6fe3e90f (8ce5c3fb, 71fefa4b); r8 01832cd7 accepted and r9 / r10 on main eb1bf334 (batch M), awaiting agent play; plans on main (#77, #82) (`🟨`).
   **(Nov 14 03:00)** Still awaiting agent play on main; alarm and collapse lighting states not started.
+  **(Nov 14 04:00)** Alarm and collapse lighting (`UTDInteriorLightSubsystem`, on `OnInteriorMoment`; 142abfa5) is on eng/env, not on main; the tractor beam is a spec on the effects branch.
+  - **(Nov 14 05:00)** Alarm and collapse lighting (`UTDInteriorLightSubsystem`) is in batch U's gate, tested headless, not seen live.
 
 #### ART-16 · Boarding & escape cinematics/VFX · `🟨` WANTED (Nov 13; Ryan's side: effects builder)
 Tractor-beam docking shot, hangar landing, core-destroyed sequence, escape debris and explosion
@@ -2358,6 +2540,7 @@ VFX, and the squad's launch from the hangar.
   the tractor beam, the reactor heart's death, interior collapse and debris, the hangar-mouth launch, and the breakup
   (ENG-37). The docking and core sequences play as the travel plus lines (ENG-42), so no Level Sequence is required.
   State: debris and explosions exist in the escape flight (T4); the rest not started (`🟨`).
+- **(Nov 14 05:00)** The tractor beam is on the effects branch; the escape debris set is on main 29a15f21.
 
 ---
 

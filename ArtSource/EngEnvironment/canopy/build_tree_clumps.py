@@ -25,7 +25,10 @@ CLUMPS = [  # canopy trees only (the trumpet tree and cacao are understory and n
     ("SM_Scatter_Verd_TreeClump_03", 9, ["Kapok70", "Brazil", "Brazil", "Brazil70", "Brazil70", "Kapok70", "Brazil70", "Brazil", "Brazil70"], 0.9),
     ("SM_Scatter_Verd_TreeClump_04", 6, ["Kapok70", "Brazil", "Brazil70", "Brazil70", "Brazil", "Brazil"], 0.6),
 ]
-MAX_TRIS = 600
+MAX_TRIS = 3600	# s7: puffed crowns (Nanite in Unreal); s4 was 600 with one smooth hull per crown
+CORE_TRIS = 60
+PUFFS = 6
+PUFF_TRIS = 120
 
 
 def tris(obj):
@@ -101,6 +104,43 @@ def to_crown_hull(obj, rng):
     obj.data.update()
 
 
+def add_puffs(obj, rng, count):
+    """s7: a crown is a cluster of leafy puffs on its hull (broken, cauliflower silhouette instead of one smooth lump):
+    noise-displaced icospheres (80 tris) seated on the upper hull, each tagged with its own random value in the vertex
+    colour's G channel (per-puff hue jitter in M_TD_CanopyStand)."""
+    import bmesh
+    from mathutils import Vector, noise
+    verts = [obj.matrix_world @ v.co for v in obj.data.vertices]
+    if not verts:
+        return []
+    zs = [v.z for v in verts]
+    zmin, zmax = min(zs), max(zs)
+    xs, ys = [v.x for v in verts], [v.y for v in verts]
+    width = max(max(xs) - min(xs), max(ys) - min(ys))
+    upper = [v for v in verts if v.z > zmin + (zmax - zmin) * 0.35] or verts
+    puffs = []
+    for k in range(count):
+        c = upper[rng.randrange(len(upper))]
+        r = width * rng.uniform(0.2, 0.32)
+        bm = bmesh.new()
+        bmesh.ops.create_icosphere(bm, subdivisions=2, radius=r)
+        seed = Vector((rng.random() * 40, rng.random() * 40, rng.random() * 40))
+        for v in bm.verts:
+            n = noise.noise(v.co / r * 1.7 + seed)
+            v.co *= 1.0 + 0.28 * n
+            if v.co.z < -r * 0.35:
+                v.co.z = -r * 0.35 + (v.co.z + r * 0.35) * 0.4
+        me = bpy.data.meshes.new("puff")
+        bm.to_mesh(me)
+        bm.free()
+        po = bpy.data.objects.new("puff", me)
+        bpy.context.scene.collection.objects.link(po)
+        po.location = c + Vector((0, 0, r * 0.15))
+        po["hue"] = rng.random()
+        puffs.append(po)
+    return puffs
+
+
 def decimate(obj, target):
     t = tris(obj)
     if t > target:
@@ -110,10 +150,28 @@ def decimate(obj, target):
     return tris(obj)
 
 
+def decimate_obj(obj, target):
+    bpy.ops.object.select_all(action="DESELECT")
+    obj.select_set(True)
+    bpy.context.view_layer.objects.active = obj
+    decimate(obj, target)
+
+
+def hue_tag(obj, value=None):
+    """Per-puff hue jitter in a colour attribute "Hue" (copied to the vertex colour's G at the bake)."""
+    me = obj.data
+    v = obj.get("hue", 0.5) if value is None else value
+    a = me.attributes.get("Hue") or me.attributes.new("Hue", "FLOAT", "POINT")
+    for d in a.data:
+        d.value = v
+
+
 def bake_light(obj):
     mesh = obj.data
     while mesh.color_attributes:
         mesh.color_attributes.remove(mesh.color_attributes[0])
+    hue = mesh.attributes.get("Hue")
+    hv = [d.value for d in hue.data] if hue else None
     col = mesh.color_attributes.new("Col", "BYTE_COLOR", "CORNER")
     zs = [v.co.z for v in mesh.vertices]
     zmin, zmax = min(zs), max(zs)
@@ -122,18 +180,25 @@ def bake_light(obj):
             v = mesh.vertices[mesh.loops[li].vertex_index]
             hgt = (v.co.z - zmin) / max(0.01, zmax - zmin)
             light = max(0.15, min(1.0, 0.2 + 0.35 * max(0.0, poly.normal.z) + 0.6 * hgt))
-            col.data[li].color = (light, light, light, 1.0)
+            g = hv[mesh.loops[li].vertex_index] if hv else 0.5
+            col.data[li].color = (light, g, light, 1.0)
 
 
 def build(name, seed, keys, radius):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     rng = random.Random(seed)
-    per = MAX_TRIS // len(keys) - 4
     parts = []
+    extra = []
     for i, key in enumerate(keys):
         obj = load_crown(key)
         to_crown_hull(obj, rng)
-        decimate(obj, per)
+        decimate(obj, CORE_TRIS)
+        for po in add_puffs(obj, rng, PUFFS):
+            decimate_obj(po, PUFF_TRIS)
+            hue_tag(po)
+            po.parent = obj
+            po.matrix_parent_inverse = obj.matrix_world.inverted()
+            extra.append((obj, po))
         a = rng.uniform(0, 2 * math.pi)
         width = max(obj.dimensions.x, obj.dimensions.y)
         if i == 0:
@@ -145,8 +210,15 @@ def build(name, seed, keys, radius):
         sc = rng.uniform(0.85, 1.15)
         obj.scale = (sc, sc, sc)
         parts.append(obj)
-    bpy.ops.object.select_all(action="DESELECT")
+    bpy.context.view_layer.update()
+    for _, po in extra:
+        mw = po.matrix_world.copy()
+        po.parent = None
+        po.matrix_world = mw
     for o in parts:
+        hue_tag(o, 0.5)
+    bpy.ops.object.select_all(action="DESELECT")
+    for o in parts + [po for _, po in extra]:
         o.select_set(True)
     bpy.context.view_layer.objects.active = parts[0]
     bpy.ops.object.join()

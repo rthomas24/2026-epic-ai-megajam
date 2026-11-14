@@ -179,7 +179,13 @@ SHIPS = {
                             plain=dict(kit=None),),
     "NullBomber": dict(da=(FLEET, "DA_Enemy_Bomber_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Bomber",
                        old_mi=FLEET + "/MI_Null_Bomber", emissive=9.0, base_tint=(1.0, 1.0, 1.0),
-                       emissive_tint=ENEMY_GLOW, eye_boost=2.0, range_boost=5.0, eye_mul=1.6),
+                       emissive_tint=ENEMY_GLOW, eye_boost=2.0, range_boost=5.0, eye_mul=1.6,
+                       # The HYBRID (second ship builder, Nov 14; rh_hybrid.py --ship NullBomber): the Rodin hull as it was with a
+                       # twin-boom tail in a second slot, so from behind it no longer reads as a big fighter.
+                       # TD_RODIN_PLAIN=NullBomber imports the plain Rodin ship again.
+                       kit=os.path.join("NullBomberHero", "export"), parts_emissive=5.0, parts_rough=1.1,
+                       parts_tint=(0.6, 0.6, 0.6), parts_metal=0.3, parts_params={"MetallicScale": 0.3, "RoughnessMin": 0.3},
+                       plain=dict(kit=None),),
     "NullCarrier": dict(da=(FLEET, "DA_Enemy_Carrier_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Carrier",
                         old_mi=FLEET + "/MI_Null_Carrier", emissive=3.0, base_tint=(1.0, 1.0, 1.0),
                         emissive_tint=ENEMY_GLOW, eye_boost=2.0,
@@ -203,7 +209,8 @@ SHIPS["NullInterceptor"]["emissive_tint"] = (1.0, 0.48, 0.13)
 SHIPS["NullCarrier"].update(base_tint=(0.5, 0.5, 0.5), emissive=2.0)
 # review at 60 / 150 m (Nov 14): fighter, interceptor and bomber read washed copper, not black armour with accents:
 # their distance boost of the emissive map comes down (6 / 6 / 5 -> 2.5 / 2.5 / 2) and so does the seam spread
-for _ship, _rb in (("NullFighter", 2.5), ("NullInterceptor", 2.5), ("NullBomber", 2.0)):
+SHIPS["NullFighter"]["emissive"] = 7.0       # (review, rear views: the fighter still read washed copper at 60 m; it was 12)
+for _ship, _rb in (("NullFighter", 2.0), ("NullInterceptor", 2.5), ("NullBomber", 2.0)):
     SHIPS[_ship]["range_boost"] = _rb
     SHIPS[_ship]["mi_params"]["GlowSpread"] = 0.2
 SHIPS["NullFighter"]["enemy_trail"] = 0.6
@@ -1021,6 +1028,8 @@ def main():
                 cfg["enemy_trail"] = 1.0
             if ship in ("NullFighter", "NullInterceptor", "NullBomber"):
                 cfg["range_boost"] = 5.0 if ship == "NullBomber" else 6.0
+            if ship == "NullFighter":
+                cfg["emissive"] = 12.0
         if ship in plain and cfg.get("plain"):      # back to the plain Rodin ship (no hybrid kit, no attached parts)
             cfg = dict(cfg, **cfg["plain"])
             for k in [k for k, v in cfg.items() if v is None]:

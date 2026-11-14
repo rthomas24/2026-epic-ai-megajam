@@ -253,6 +253,17 @@ bool FTDUIGroundStoryStates::RunTest(const FString& Parameters)
 	HUD->Sample(.1f);
 	TestTrue(TEXT("both gone after"), !HUD->GetView().bEscape && HUD->GetView().StepRequired == 0 && !HUD->GetView().bExitMarker);
 
+	HUD->ForceApproachPending = 0;
+	HUD->Sample(.1f);
+	TestFalse(TEXT("ENG-26: no anchor down: no approach line"), HUD->GetView().bApproachPending);
+	HUD->ForceApproachPending = 1;
+	HUD->Sample(.1f);
+	Paint();
+	TestTrue(TEXT("ENG-26: anchor down, passage closed: the pending line, painted"), HUD->GetView().bApproachPending && Box(TEXT("approach_pending")).bIsValid);
+	HUD->ForceApproachPending = -1;
+	HUD->Sample(.1f);
+	TestFalse(TEXT("ENG-26: the test world's saved state: anchor not down"), HUD->GetView().bApproachPending);
+
 	TestTrue(TEXT("host sensor flicker"), UTDUIHostSubsystem::ShowSensorFlicker(W.GetWorld(), FVector(3000.f, 0.f, 150.f), 6.f));
 	HUD->Sample(.1f);
 	TestTrue(TEXT("sensor: UNKNOWN first"), HUD->GetView().bSensor && !HUD->GetView().bSensorVerified);
@@ -295,12 +306,12 @@ bool FTDUIGroundObjectiveFits::RunTest(const FString& Parameters)
 	};
 	HUD->ForceObjective = TEXT("Head to a signal · the research site or the relay");
 	const FBox2D Long = PaintAndGet(TEXT("objective"));
-	TestTrue(FString::Printf(TEXT("the 50-character line widens the panel (%.0f px)"), Long.GetSize().X), Long.GetSize().X > 506.f && Long.GetSize().X <= 1000.f);
+	TestTrue(FString::Printf(TEXT("the 50-character line widens the panel (%.0f px)"), Long.GetSize().X), Long.GetSize().X > UTDGroundHUDWidget::ObjectiveMinWidth && Long.GetSize().X <= UTDGroundHUDWidget::ObjectiveMaxWidth);
 	TestTrue(TEXT("centred"), FMath::IsNearlyEqual(Long.GetCenter().X, 960.f, 1.f));
-	TestTrue(TEXT("one line"), FMath::IsNearlyEqual(Long.GetSize().Y, 92.f, 1.f));
+	TestTrue(TEXT("one line (the flight-style pill)"), FMath::IsNearlyEqual(Long.GetSize().Y, UTDGroundHUDWidget::ObjectiveHeight, 1.f));
 	HUD->ForceObjective = TEXT("A very long objective line that keeps going well past anything the panel could hold on a single line at all");
 	const FBox2D Wrapped = PaintAndGet(TEXT("objective"));
-	TestTrue(TEXT("too long: two lines, at most 1000 px"), Wrapped.GetSize().Y > 100.f && Wrapped.GetSize().X <= 1000.f);
+	TestTrue(TEXT("too long: two lines, at most 1000 px"), FMath::IsNearlyEqual(Wrapped.GetSize().Y, UTDGroundHUDWidget::ObjectiveHeight2, 1.f) && Wrapped.GetSize().X <= UTDGroundHUDWidget::ObjectiveMaxWidth);
 	HUD->ForceTransfer01 = .5f;
 	HUD->ForceBoss01 = .8f;
 	const FBox2D Meter = PaintAndGet(TEXT("transfer"));

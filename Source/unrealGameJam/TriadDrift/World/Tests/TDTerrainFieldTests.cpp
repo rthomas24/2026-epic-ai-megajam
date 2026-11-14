@@ -309,28 +309,29 @@ IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTerrainGolden, "TriadDrift.World.Terrain.Gol
 bool FTDTerrainGolden::RunTest(const FString&)
 {
 	// Golden heights: any change to the field shows here (update the numbers deliberately when retuning).
+	// Nov 14 (environment builder, realism pass): retuned for the slope-aligned drainage gullies (ErosionAmount).
 	struct FGold { ETDDestination P; float X, Y; float H; };
 	const FGold Gold[] = {
 		{ ETDDestination::Verdance, 0.f, 0.f, 0.0f },
-		{ ETDDestination::Verdance, 300000.f, 0.f, 73022.9f },
-		{ ETDDestination::Verdance, -300000.f, 200000.f, 33826.7f },
-		{ ETDDestination::Verdance, 0.f, -450000.f, -16330.9f },
-		{ ETDDestination::Verdance, 600000.f, 600000.f, 75810.4f },
-		{ ETDDestination::Verdance, -700000.f, -500000.f, 44000.0f },
-		{ ETDDestination::Verdance, 150000.f, 380000.f, 30056.5f },
-		{ ETDDestination::Verdance, -120000.f, -90000.f, 74889.3f },
-		{ ETDDestination::Verdance, 620000.f, 300000.f, 212453.3f },
-		{ ETDDestination::Verdance, 560000.f, -420000.f, 59940.5f },
+		{ ETDDestination::Verdance, 300000.f, 0.f, 73086.5f },
+		{ ETDDestination::Verdance, -300000.f, 200000.f, 33922.9f },
+		{ ETDDestination::Verdance, 0.f, -450000.f, -15918.5f },
+		{ ETDDestination::Verdance, 600000.f, 600000.f, 79979.8f },
+		{ ETDDestination::Verdance, -700000.f, -500000.f, 45015.0f },
+		{ ETDDestination::Verdance, 150000.f, 380000.f, 31203.3f },
+		{ ETDDestination::Verdance, -120000.f, -90000.f, 78215.7f },
+		{ ETDDestination::Verdance, 620000.f, 300000.f, 212500.4f },
+		{ ETDDestination::Verdance, 560000.f, -420000.f, 61275.7f },
 		{ ETDDestination::Cinder, 0.f, 0.f, 0.0f },
-		{ ETDDestination::Cinder, 300000.f, 0.f, 72404.3f },
-		{ ETDDestination::Cinder, -300000.f, 200000.f, 87428.8f },
-		{ ETDDestination::Cinder, 0.f, -450000.f, 49269.9f },
-		{ ETDDestination::Cinder, 600000.f, 600000.f, 84615.1f },
-		{ ETDDestination::Cinder, -700000.f, -500000.f, 44092.0f },
-		{ ETDDestination::Cinder, 150000.f, 380000.f, 34112.9f },
-		{ ETDDestination::Cinder, -120000.f, -90000.f, 108463.5f },
-		{ ETDDestination::Cinder, 620000.f, 300000.f, 56565.1f },
-		{ ETDDestination::Cinder, 560000.f, -420000.f, 167728.6f } };
+		{ ETDDestination::Cinder, 300000.f, 0.f, 72412.7f },
+		{ ETDDestination::Cinder, -300000.f, 200000.f, 91744.3f },
+		{ ETDDestination::Cinder, 0.f, -450000.f, 49621.5f },
+		{ ETDDestination::Cinder, 600000.f, 600000.f, 87298.4f },
+		{ ETDDestination::Cinder, -700000.f, -500000.f, 45002.0f },
+		{ ETDDestination::Cinder, 150000.f, 380000.f, 34827.2f },
+		{ ETDDestination::Cinder, -120000.f, -90000.f, 113244.1f },
+		{ ETDDestination::Cinder, 620000.f, 300000.f, 58276.7f },
+		{ ETDDestination::Cinder, 560000.f, -420000.f, 167117.0f } };
 	for (const FGold& G : Gold)
 	{
 		const FTDTerrainField F(FTDTerrainStyle::ForPlanet(G.P));

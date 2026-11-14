@@ -193,6 +193,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "cm"))
 	float AvoidanceShipRadius = 500.f;
 
+	/** Obstacle probes are never shorter than this (cm), so a slow, turning wingman still sees a rock in time. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "cm", ClampMin = "0"))
+	float MinAvoidanceProbe = 6000.f;
+
+	/** A rock surface nearer than this (cm, past the ship's radius) pushes the wingman straight away from it, every tick. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "cm", ClampMin = "0"))
+	float CloseAvoidanceRange = 1500.f;
+
+	/** Set by ApplyAvoidance each frame: 1 in open space, down to 0.45 against a rock surface (SteerToward applies it). */
+	float AvoidSpeedScale = 1.f;
+
 	/** Keep at least this far from squadmates. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Wingman|Avoidance", meta = (Units = "cm"))
 	float TeammateSeparation = 1500.f;

@@ -1,0 +1,248 @@
+{
+ "site": "SurveyStation_Verdance",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_SurveyStation_Verdance",
+ "about": "ART-17 Verdance survey station: raised instrument deck (8 x 8 m, top 53 above the pivot), low ramp on +X, mast base, two consoles, railings, overgrown at the feet.",
+ "pieces": [
+  {
+   "name": "Deck_-200_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x50",
+   "location_cm": [
+    -200.0,
+    -200.0,
+    3.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_-200_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x50",
+   "location_cm": [
+    -200.0,
+    200.0,
+    3.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_200_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x50",
+   "location_cm": [
+    200.0,
+    -200.0,
+    3.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_200_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x50",
+   "location_cm": [
+    200.0,
+    200.0,
+    3.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Ramp",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_RampLow_400",
+   "location_cm": [
+    500.0,
+    0.0,
+    3.0
+   ],
+   "yaw_deg": 180.0
+  },
+  {
+   "name": "Rail_-200_-400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -200.0,
+    -400.0,
+    53.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Rail_200_-400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    200.0,
+    -400.0,
+    53.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Rail_-200_400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -200.0,
+    400.0,
+    53.0
+   ],
+   "yaw_deg": 180.0
+  },
+  {
+   "name": "Rail_200_400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    200.0,
+    400.0,
+    53.0
+   ],
+   "yaw_deg": 180.0
+  },
+  {
+   "name": "Rail_back",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -400.0,
+    0.0,
+    53.0
+   ],
+   "yaw_deg": 90.0
+  },
+  {
+   "name": "MastBase",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Pillar",
+   "location_cm": [
+    -280.0,
+    280.0,
+    53.0
+   ],
+   "yaw_deg": 0.0,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  },
+  {
+   "name": "Mast",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_BeaconMast",
+   "location_cm": [
+    -280.0,
+    280.0,
+    353.0
+   ],
+   "yaw_deg": 0.0,
+   "scale": [
+    0.6,
+    0.6,
+    0.5
+   ],
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance",
+    "Beacon": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Beacon_Verdance"
+   }
+  },
+  {
+   "name": "ConsoleA",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Console",
+   "location_cm": [
+    -300.0,
+    -150.0,
+    53.0
+   ],
+   "yaw_deg": 0.0,
+   "slots": {
+    "Screen": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Screen"
+   }
+  },
+  {
+   "name": "ConsoleB",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Console",
+   "location_cm": [
+    -150.0,
+    -300.0,
+    53.0
+   ],
+   "yaw_deg": 90.0,
+   "slots": {
+    "Screen": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Screen"
+   }
+  },
+  {
+   "name": "Cases",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_SampleCases",
+   "location_cm": [
+    150.0,
+    280.0,
+    53.0
+   ],
+   "yaw_deg": 20.0
+  },
+  {
+   "name": "Overgrowth0",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_GlowPlant_01",
+   "location_cm": [
+    420.0,
+    -380.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Overgrowth1",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_GlowPlant_02",
+   "location_cm": [
+    -430.0,
+    330.0,
+    0.0
+   ],
+   "yaw_deg": 37.0
+  },
+  {
+   "name": "Overgrowth2",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_Rock_02",
+   "location_cm": [
+    -420.0,
+    -380.0,
+    0.0
+   ],
+   "yaw_deg": 74.0
+  },
+  {
+   "name": "Overgrowth3",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Verdance/SM_Verd_Mushroom_01",
+   "location_cm": [
+    380.0,
+    420.0,
+    0.0
+   ],
+   "yaw_deg": 111.0
+  }
+ ],
+ "footprint_cm": {
+  "x": [
+   -400,
+   600
+  ],
+  "y": [
+   -400,
+   400
+  ]
+ },
+ "deck_top_z": 53,
+ "stair_foot_site_cm": [
+  600,
+  0,
+  3
+ ],
+ "console_stand_site_cm": [
+  [
+   -190,
+   -150,
+   53,
+   180
+  ],
+  [
+   -150,
+   -190,
+   53,
+   270
+  ]
+ ],
+ "placement_rules": [
+  "Pivot on flat ground (bumps under 15 cm in the footprint); keep 3 m clear past the ramp foot (+X)."
+ ]
+}

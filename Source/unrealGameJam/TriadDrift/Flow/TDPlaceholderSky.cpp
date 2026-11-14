@@ -12,6 +12,7 @@
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/World/TDCloudDeck.h"
+#include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
@@ -614,6 +615,15 @@ void ATDPlaceholderSky::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	Super::EndPlay(EndPlayReason);
 }
 
+float ATDPlaceholderSky::ComputeDescentFogScale(float Descent01, float AltitudeCm, float MaxScale, float LowCm, float HighCm)
+{
+	if (Descent01 >= 0.f)
+	{
+		return FMath::Lerp(MaxScale, 1.f, FMath::SmoothStep(0.f, 1.f, FMath::Clamp(Descent01, 0.f, 1.f)));
+	}
+	return 1.f + (MaxScale - 1.f) * FMath::SmoothStep(LowCm, HighCm, AltitudeCm);
+}
+
 void ATDPlaceholderSky::TickDescentFog()
 {
 	// ENG-38 focus-in: high above the ground the haze is thick (the world below is still a soft shape); it thins to
@@ -666,7 +676,9 @@ void ATDPlaceholderSky::TickDescentFog()
 	}
 	const FVector Cam = PC->PlayerCameraManager->GetCameraLocation();
 	const float Alt = Cam.Z - FogTerrain->GetHeightAt(Cam);
-	DescentFogScale = 1.f + (DescentFogMaxScale - 1.f) * FMath::SmoothStep(DescentFogLowCm, DescentFogHighCm, Alt);
+	// ENG-38 (agreed with T1): during T1's glide the haze follows its progress, thick at the arrival over the deck and
+	// clear at the glide end; otherwise (-1, no glide) the altitude ramp as before.
+	DescentFogScale = ComputeDescentFogScale(UTDDescentSubsystem::GetDescent01(this), Alt, DescentFogMaxScale, DescentFogLowCm, DescentFogHighCm);
 	Fog->SetFogDensity(Base * DescentFogScale);
 	if (!bDescentFogLogged)
 	{

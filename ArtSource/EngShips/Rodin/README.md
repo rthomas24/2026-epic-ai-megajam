@@ -271,3 +271,14 @@ RangeBoost and GlowSpread (self-checked after the change: black hulls with orang
 Still open: bomber vs fighter from behind (the bomber is only wider); the fins are flat untextured plates up close.
 The hauler at 100 m shows flat purple / white blocks and a striped end cap: that is its own Rodin texture set
 (`ArtSource/EngAI/Ships/NullHauler`), not the master; it needs a texture pass or a regenerated source.
+
+**Rear views (Nov 14, later).** Review of all five from behind at 60 m and 150 m (`fleet_rear_views_zoom.png`): fighter /
+interceptor DISTINCT (the twin fins), interceptor / bomber DISTINCT, gunship / carrier DISTINCT; fighter / bomber AT RISK
+(same flat wedge with three engines; only size differed) and the fighter washed copper. Then: the bomber got a
+twin-boom tail (`build_fins`, booms aft of the engines with a fin each) and the fighter's EmissiveStrength went 12 -> 7.
+Self-checked in a recapture: the booms and fins stand clear of the bomber's engines at both distances. The booms are
+plain dark rods and fins; up close they are simple. Lancer cockpit v08: see ART-HISTORY.
+**Correction:** the "hauler" judged FIX in an earlier note was a striped cargo container of the level dressing. Grok Bot's
+contact sheet shows `SM_NullHauler` already black with orange thrusters and white cockpit slits, on `M_TD_Ship`. Two
+attempts to frame a live hauler (`TD.World.ApproachEscort`) and a Dominion turret from the assault start did not put
+either in frame; neither is verified in a capture.

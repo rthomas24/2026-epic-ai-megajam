@@ -1,11 +1,11 @@
 {
   "asset": "SM_KS_Hulk_Mid",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_Hulk_Mid.fbx",
-  "tris": 2980,
+  "tris": 6012,
   "size_cm": [
-    5800.0,
+    5922.6,
     2558.0,
-    2266.0
+    2303.4
   ],
   "pivot": "root object origin (SM_KS_Hulk_Mid~exp)",
   "forward": "+X (authoring front +X rotated)",
