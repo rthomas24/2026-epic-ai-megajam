@@ -24,4 +24,6 @@ Review file: `TriadDrift_6fe3e90f_review.mp4`, 94,871,398 bytes, SHA-256 `7e7e7a
 
 Evidence: [media measurements](media-verification.json), [native guard result](native-result.json), [flight frame](flight.png).
 
+Independent Story review: [timestamped caption findings](caption-review.json). Five legacy Intro_N captions are visible in the opening; this confirms a presentation-route fidelity gap against the approved second draft. Known older combat wording is separated from new regressions. The finding was delivered to T3 through N-088 at 091ac013; broader narrative, voice performance and later-act acceptance remain unverified.
+
 Next: consume the matching batch M bridge/capture package, verify music handoffs and full tutorial fade, and review the designed UI candidates in actual gameplay. Nicholas retains final look/sound approval.

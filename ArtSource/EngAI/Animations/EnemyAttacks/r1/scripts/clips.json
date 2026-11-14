@@ -1,0 +1,128 @@
+{
+ "A_NullHeavy_ShieldBash": {
+  "src": "heavyB_s5201",
+  "tgt": "heavy",
+  "timewarp": [
+   [
+    0,
+    0
+   ],
+   [
+    13,
+    14
+   ],
+   [
+    21,
+    30
+   ],
+   [
+    25,
+    37
+   ],
+   [
+    33,
+    44
+   ],
+   [
+    52,
+    72
+   ],
+   [
+    55,
+    72
+   ]
+  ],
+  "face": "pelvis",
+  "face_offset": 19,
+  "release_out": 21,
+  "drift_fix": false,
+  "fist": 60,
+  "dz_extra": 0.0,
+  "contact_speed": 40,
+  "contact_dz": 6,
+  "pin_first": false,
+  "step_lift": 8,
+  "plant": {
+   "l": [
+    [
+     0,
+     13
+    ],
+    [
+     18,
+     40
+    ],
+    [
+     45,
+     55
+    ]
+   ],
+   "r": [
+    [
+     0,
+     19
+    ],
+    [
+     24,
+     45
+    ],
+    [
+     52,
+     55
+    ]
+   ]
+  },
+  "flat_feet": true
+ },
+ "A_Warden_GroundSlam": {
+  "src": "slamC_s6302",
+  "tgt": "warden",
+  "timewarp": [
+   [
+    0,
+    0
+   ],
+   [
+    33,
+    30
+   ],
+   [
+    39,
+    37
+   ],
+   [
+    47,
+    48
+   ],
+   [
+    60,
+    75
+   ],
+   [
+    62,
+    78
+   ]
+  ],
+  "face": "pelvis",
+  "face_offset": 0,
+  "release_out": 39,
+  "drift_fix": false,
+  "fist": 0,
+  "force_plant": {
+   "l": true,
+   "r": true
+  },
+  "dz_extra": 0.0,
+  "pin_first": false,
+  "flat_feet": true,
+  "shield_guard": {
+   "material": "Shield",
+   "bone": "spine_05",
+   "margin": 3.0,
+   "max_extend": 45
+  },
+  "arm_guard": {
+   "margin": 2.0
+  }
+ }
+}

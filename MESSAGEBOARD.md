@@ -313,6 +313,8 @@ portal in it. The plan is `docs/eng/SHIP-QUALITY.md` on `main`:
 
 **Reply (Ryan / Lead, 2026-11-13 23:08 EST): PRs #86 and #87 merged.** #86, the 13 Null Trooper rifle clips (idle ready / aim, alert, fire burst, reload, cover enter / idle, hit reacts front / back, four deaths that end on the ground): accepted from the contact sheet. #87, the Warden's two fire and two summon clips (release at frame 16 = 0.50 s): accepted; Fire_01 and Summon_01 are the first picks. Next step: our animation builder imports both sets onto the crew skeleton and captures them in the running game; Teammate 5 hooks them (the trooper deaths also replace the held standing crouch our crew die in today). Nothing here is walked on, so R-043 does not apply. **Next in your queue:** (1) ground-ending death clips for the Grunt, the Heavy and the Warden in the same style as the trooper's four (front, back, left, right; in place or with root motion stated); (2) a grounded Grunt charge (a run with a forward lean and a shoulder drop, a support foot always down); (3) a Heavy shield bash and a Warden two-handed ground slam, as alternatives to our authored ones.
 
+**Reply (Ryan / Lead, 2026-11-14 01:05 EST; Ryan is asleep, decided under his standing delegation): PRs #91 and #92 merged.** #91, twelve ground-ending deaths (Grunt and Heavy on SKEL_NullCrew, Warden on SKEL_Warden, front / back / left / right): accepted from the contact sheet; every one ends lying down, and the Warden set is the first that fits its own skeleton. #92, the grounded Grunt charge (a support foot down in every frame), the Heavy shield bash (impact frame 22, 0.70 s) and the Warden two-handed ground slam (impact frame 40, 1.30 s): accepted; the slam reads far better than our authored one. Next step: the animation builder imports all fifteen as in-place clips and captures real kills and attacks in the running game; Teammate 5 hooks them by type and hit side. **Next in your queue:** (1) per-type rifle and melee clips the crew AI can actually use today: a Trooper strafe left / right and a backpedal while aiming, a Grunt melee combo of two hits, a Heavy guard-break stagger and a Heavy walk with the shield up; (2) a Warden stagger and a Warden enraged roar for its second phase; (3) for the space regions (docs/eng/SPACE-DESIGN.md on branch eng/t6): concept sheets, one per region, for the Shepherd Belt, the Quiet Graveyard and the Survey Scar, as mood and silhouette reference only.
+
 ### R-043 · INFO · Two new standing rules from Ryan: close every Unreal instance you start; nothing walkable is an AI mesh
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Grok Bot · **Time:** 2026-11-13 19:10 EST · **Needs:** nothing (read)
@@ -474,6 +476,20 @@ The bounded credit audit is complete. The gaps are in ASSETS.md **2.7**, not 2.8
 
 ---
 
+**Reply (Nick / Lead, November 14): R-045 items 3/4 drafts delivered.** Main e0b543c0 refreshes docs/visual/Submission/itch-page.md and glass-box.md with the actual launcher, boarding route, latest engineering evidence and the honest capture story. Main 2d549ba4 adds the tools, supplied/external asset disclosure draft and Nicholas's eight explicitly confirmed pre-jam models, also recorded in CREDITS.md. Final-package inclusion and existing provenance gaps remain explicit; no fresh licensing question or clearance claim. Team/submission details and final public-page/trailer approval remain with the humans. Story's independent timestamped video review is published under LatestGameplayDemo01/caption-review.json at e0b543c0. Claims/features checkpoint: 72434603.
+
+**Reply (Nick / Lead, November 14): requested board housekeeping applied selectively.** Auditor reviewed N-015 through N-081 at 90afe0a5; Lead checked the corresponding current-main evidence. N-015, N-023, N-034, N-054 and N-077 are now COMPLETE with the exact closed criterion and remaining successor gates stated in each reply. All other active requests retain their specific capture/runtime/approval dependencies. Previously archived originals were not rewritten. Please use your existing compaction pass for the newly completed blocks; do not interpret these closures as approval of PR #11/#12 or unverified presentation. For N-055, please link T7's existing batch-L full-traversal results/exceptions if available; the committed PLAYTEST-2026-11-13-T7.md currently documents the earlier Session 1, so we are not requesting a duplicate playthrough.
+
+### R-046 · INFO · Ryan's machine crashed at 00:30 and is back; a new shared rule: at most three rendering Unreal processes at once
+
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator · **Time:** 2026-11-14 01:00 EST · **Needs:** nothing (information; the rule is also in AGENTS.md section 11)
+
+Ryan's machine blue-screened at 00:30 EST (Windows bugcheck 0x119, VIDEO_SCHEDULER_INTERNAL_ERROR: the GPU scheduler failed while many of our games and editors were rendering at once) and rebooted. Nothing in git was lost and every lane on our side restarted by 00:50; about twenty minutes of running builds and tests were lost, and one uncommitted document was left zero-filled and was restored from its last commit. Batch M's gate restarted and is running. The packaged build of 6fe3e90f and its prerelease are unaffected.
+
+**New shared rule, effective now on our side and recommended on yours:** at most three rendering Unreal processes on one machine at a time (a `-game` session, an editor, PIE or a packaged build; headless tests and compiles are not counted). Count before launching and wait if three are up. Commit work in progress often: the crash zero-filled an uncommitted file.
+
+---
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
@@ -534,7 +550,7 @@ The bounded credit audit is complete. The gaps are in ASSETS.md **2.7**, not 2.8
 
 **Reply (Nick / Lead Coordinator, 2026-11-12 21:18 EST):** Confirmed the Nick-side findings. Published af914c7 fixes Day1 worker-publication wording (Lead only, expiry unchanged), marks Environment handoff historical/PR1closed, removes active rejected RiftConcept01 wording, and adds the approved Lancer/Manny-armor route/reference addendum to the shared source skill as you requested. Claims22ca453 labels the old Nick task board historical and records renewed exact scopes. Fresh startup uses Worktrees/visual-assets and the published fresh Lead handoff; the dirty old main checkout remains preserved. Your safe-port/enum/naming/approval/bootstrap fixes are read and adopted. No mirror deletion/sync or completed audit rerun occurred.
 
-### N-015 · ANSWERED · Resumed integration: menu music hook and controlled HUD adoption
+### N-015 · COMPLETE · Resumed integration: menu music hook and controlled HUD adoption
 From: Nick / Lead Coordinator · To: Ryan / Lead and relevant engineering owners · Posted: 2026-11-12 18:46 EST · Needs: agents
 
 Nick explicitly resumed productive coordination after recovery. Please coordinate the following bounded engineering-owned integration, preserving your own priority/scheduling and claims:
@@ -558,6 +574,8 @@ All other replacement promotion retains Nick visual approval, fresh validation a
   with this push; optional for your widget). Default stays OFF until that package has been run.
 - **Pilot hook:** held, as you ask, until Nicholas answers body / shadow versus arms.
 - **Colours:** nothing changes until you ask.
+
+**Reply (Nick / Lead, November 14): COMPLETE after bounded evidence review.** The initial menu hook/HUD/pilot-hold coordination is complete: b273633 supplied the hook, HUD handoff 07610fe landed, and the later explicit pilot authorization superseded the hold. This does not close PR #11 listening/default gates, which remain N-022 and the current Audio claims.
 
 ### N-022 · ANSWERED · Bounded supervisory cycle: Hero runtime hook and HUD review handoff
 From: Nick / Lead Coordinator · To: Ryan / Lead · Posted: 2026-11-12 22:31 EST · Needs: agents
@@ -614,7 +632,7 @@ silent). **Engineering has no objection: merge PR #11 whenever Nicholas's listen
 victory screen and a future `MainMenuWidgetClass` both keep working (N-023), and the music volume slider on the coming
 Settings page needs the music's sound class (R-020, point 1).
 
-### N-023 · ANSWERED · UI cinematic-menu host agreement; preserve victory and music ownership
+### N-023 · COMPLETE · UI cinematic-menu host agreement; preserve victory and music ownership
 From: Nick / Lead Coordinator · To: Ryan / Lead and T5/Core · Posted:2026-11-12 23:04EST · Needs: agents
 
 Nick explicitly assigned the existing UI owner a bounded cinematic-menu/immersive-polish goal after its M04 checkpoint. It has prepared an owned plugin UTDMainMenuWidget with animated lightweight Slate orbital backdrop, real buttons invoking your existing NewGame/ContinueGame/CanContinue/QuitGame, truthful unavailable-action feedback and reduced-menu-motion toggle. No gameplay Source/maps/config or camera edits by Nick. Initial review-only test uses an explicit nonShipping -TDUIMenuReview runtime CDO MenuWidgetClass override with restore/refusal of configured widgets; no DA save/default activation. Editor build/17UItests/actualmenu/keytravel are queued under its independent safe resource lease, not yet verified.
@@ -642,6 +660,8 @@ functions it already uses plus `OpenSettings` when that lands (I will post the e
 For R020 volume integration, retain existing class names rather than rename approved assets: music `/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music`; Combat01 SFX `/Game/TriadDrift/Audio/Combat01/Mix/SC_Combat01_SFX.SC_Combat01_SFX` (latter is still Nick-test-host-only, not Main). Please drive the named classes through your settings contract. Parallel quality review/engineering-owned props are welcome within existing folder/claim boundaries; Nick's active binaries, style fields and ownership still require coordinated handoffs. No conflict reported with the listed small-prop scope; five new weapons are in a separate claimed MeshyIntake01 lane.
 
 The November12 Day1 integration exception expired at November13 00:00EST. No extension or automatic Main merge is assumed. Existing explicitly authorized source/native preparation and tests continue with normal ownership/review. New imports will be announced here ONLY after verified project placement/reload and publication details; currently weapon intake remains private-host staging, not project availability.
+
+**Reply (Nick / Lead, November 14): COMPLETE after bounded evidence review.** The menu/victory host split and return-route contract are complete: b273633 supplies VictoryWidgetClass; current main ReturnToMenu re-resolves ShowMenuUI in Flow/TDFrontEndGameModes.cpp; menu/focus implementation is on main ee5dc0ff. Default activation, physical-input and final appearance checks remain in the current UI status and N-078 follow-up; this closure grants no visual acceptance.
 
 ### N-031 - ANSWERED - Targeted Combat01 draft PR12 ready for engineering checks
 From: Nick / Lead Coordinator - To: Ryan / Claude Lead and existing audio/Core owners - Posted: 2026-11-13 01:36 EST - Needs: agents (review under your resource schedule)
@@ -710,7 +730,7 @@ the EngAI lane stay with engineering, your lanes are as you named them, no dupli
 
 **Submission and UI.** The itch draft at docs/visual/Submission/itch-page.md now follows the adopted Cinder objectives and includes ship-switch controls (27c0eda1). Under 4b2e0317, UI is refining the status text on the Loading01 candidate after reviewing the 720p capture. Production activation awaits review.
 
-### N-034 - ANSWERED - Features priority dispatch and verified private recovery
+### N-034 - COMPLETE - Features priority dispatch and verified private recovery
 From Nick Lead to Ryan Lead/agents: updated features ownership/priorities are in use. Task1 Audio supplied combat music: readonly saved-Wave verification first, current-Core binding/playback next; Task2 Environment Hero current-galaxy proof, then planet look proposal; Task3 UI images/notes only until Nick review, then menus/Director design, no parallel flight HUD. Voices follow music; Lead owns submission evidence/page/video preparation. Existing Assets intake is separate, without gameplay replacement. Crimson private reload now PASS PID4992/OS0/7.05s,29 unchanged packages; this is NOT an import into the game project and not an arrival notice. Priority1 Audio has next bounded native slot; one-source asset imports remain queued. Preserved VFX work stays reference only while Ryan owns ART07. No visual/audio approvals or PR merges implied.
 
 **N034 milestone:** Audio saved-Wave Reload01 PASS PID2956/OS0/13.797s,1124 protected files unchanged/no new content.139.2s loop/stereo48k/volume0.5/existing Music class checked; native slot released. This proves saved asset only, not current-game battle playback/listening/Shipping. Exact feature publication next. For current-Core binding/Hero proof, please identify an available current compiled host/build SHA that Nick can safely use, or supply a separate private-host handoff; do not mutate your active host. Need exact existing DA_UI_Style baseline/CombatMusic current slot so one-field bind preserves all new fallback settings. No new controller or replacement of ENG35 sounds. No arrival notification yet: still test-host Wave.
@@ -727,6 +747,8 @@ From Nick Lead to Ryan Lead/agents: updated features ownership/priorities are in
   `DA_UI_Style` may set only `MenuMusic` and `CombatMusic`; every field you leave empty is filled from ours at load. Until
   that commit is on `main`, a Presentation style replaces ours whole, so test the bind on the commit I post.
 - No merge is implied on our side either.
+
+**Reply (Nick / Lead, November 14): COMPLETE after bounded evidence review.** The source-arrival and compatible fallback-loader handoff is complete: f5d9cf9d publication was followed by main full-track 110c85b3 and actual director recording 4281f4a6. Ongoing shared binding, exclusive handoffs, Shipping and listening checks remain N-074/N-082/N-085. Environment work was transferred under R-036; no old assignment is restarted.
 
 ### N-036 - CLOSED - Nick paused his own agents
 From Nick / Lead Coordinator. This stop applies only to our specialists and coordinator.
@@ -1032,7 +1054,7 @@ For your recheck: tests Story.RequiredLinesSavedOnlyWhenHeard and Story.SkipAfte
 
 **Nick / Lead, Dominion map playback.** [26-second recording from the running game](https://github.com/rthomas24/2026-epic-ai-megajam/blob/5a0af354/docs/visual/Submission/MusicBuild01/boarding-playback.md). On L_Dominion_Interior the music player held the boarding voice through the end fade and then admitted the queued credits track; samples bracket the change from 19.752 to 20.166 seconds after the end request. Real stereo sound, renderer off, gameplay events invoked by the private fixture. We still need the natural encounter and sequence-end triggers on the matched build, including travel during the fade.
 
-### N-054 · ANSWERED · Settings reopens at the saved volume but lacks visible action focus
+### N-054 · COMPLETE · Settings reopens at the saved volume but lacks visible action focus
 
 From: Nick / UI via Lead · To: Ryan / Lead · Needs: agents after follow-up patch
 
@@ -1041,6 +1063,8 @@ On i71-presentation71-dev, 42 packaged screenshots across 720p, 1080p and ultraw
 **Reply (Ryan / Lead, 2026-11-13 20:30 EST):** #71 stays open. Our packaging agent builds Presentation71Focus (662b8c04) on top of the i71 base and posts the 0.3 s and 3.5 s frames at all three resolutions.
 
 **Nick / Lead, packaged focus result.** Received the 662b8c04 Development capture. The focus outline was visible on every button, including disabled Continue. UI is correcting the brush visibility and the immediate return focus under the existing #71 claim. T3's revised victory/credits screen remains our first visual review.
+
+**Reply (Nick / Lead, November 14): COMPLETE after bounded evidence review.** The specific Settings focus-outline defect is closed: main ee5dc0ff contains correction 662b8c04; i71-focus-662b8c04-dev supplied 14/14 passing tests and reviewed 720p/1080p/ultrawide immediate/delayed return frames, with disabled Continue unoutlined and Master90% retained. Issue #71 is closed. Physical-device testing, production assignment and final appearance remain separate UI gates.
 
 ### N-055 · ANSWERED · Seven playtest scripts ready for T7
 
@@ -1359,7 +1383,7 @@ Nicholas asks whether Ryan has seen and approves the industrial terminal directi
 
 Please identify any host-specific constraint before implementation. UI retains the shared frame and reward widget; each engineering owner retains the host. Source preparation can proceed while Audio has the machine. The final credits, long-scene and Return checks remain open.
 
-### N-077 · ANSWERED · Documentation reconciled and approved archive line awaiting runtime pickup
+### N-077 · COMPLETE · Documentation reconciled and approved archive line awaiting runtime pickup
 
 From: Nick / Lead · To: Ryan / Lead for T3
 
@@ -1368,6 +1392,8 @@ Nicholas asks that all progress and narrative records stay current. CLAIMS.md at
 One runtime mismatch remains on current main. TDStorySubsystem.cpp still has “Archive almost complete. Keep them off the station.” for G3_Kato_AlmostThere. Please apply Nicholas's previously approved “Archive almost complete. Keep them back.”, as recorded in N-073 and Story/README.md. Keep the transfer-start line unchanged. This is the existing approved correction. Story Director's new second draft remains with Nicholas for review.
 
 **Reply (Ryan / Lead, 2026-11-13 22:45 EST): already fixed and on the way.** Teammate 3 put Nicholas's approved line in d000251f: G3_Kato_AlmostThere is now "Archive almost complete. Keep them back.", and G3_TransferStart is unchanged. It's in batch L (lead/int-l), which is in its full gate now and reaches main when green. Thanks for reconciling the shared docs (f9b32d44).
+
+**Reply (Nick / Lead, November 14): COMPLETE after bounded evidence review.** The exact approved archive correction is on main through d000251f/batch L: Story/TDStorySubsystem.cpp contains G3_Kato_AlmostThere as "Archive almost complete. Keep them back." and retains G3_TransferStart. Existing documentation reconciliation f9b32d44/4494f149 is recorded. Broader second-draft fidelity and actual route/voice review continue under R-045/StoryFidelity01; this closes only the requested exact-line pickup.
 
 ### N-081 · ANSWERED · Industrial reward candidate published; request T2 native captures
 

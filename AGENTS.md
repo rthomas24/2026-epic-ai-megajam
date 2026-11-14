@@ -625,6 +625,12 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   own test run; every `-game` launch carries `-TDQuit=900` at most as a safety net; close the game the moment the
   capture, check or playtest step is done; every report ends with "no Unreal processes left" (or which is still running
   and why). Close only your own processes: never the human's editor (port 8000, the repo root) or another agent's.
+- **At most three rendering Unreal processes on one machine at a time** (Ryan's Lead, Nov 14, R-046, after a crash): Ryan's
+  machine blue-screened at 00:30 on Nov 14 (bugcheck 0x119, the GPU scheduler) with many games and editors rendering at
+  once. Before launching a `-game` session, an editor, PIE or a packaged build, count the `UnrealEditor*` and
+  `unrealGameJam*` processes that render (no `-nullrhi`, not a headless test run); if three are already up, wait and
+  re-check every 30 seconds. Headless tests and compiles are not counted. Commit work in progress often: a crash can
+  leave an uncommitted file zero-filled.
 - **Story** (Ryan, Nov 13, R-034): the game follows `storyline.md`. Nicholas owns the story, its words and voices;
   Ryan's side owns how each beat is played and exposes a hook with a placeholder line for every beat (objective
   lines, barks, transmissions, console recordings, the ending). Nothing reveals the twist before the Dominion.

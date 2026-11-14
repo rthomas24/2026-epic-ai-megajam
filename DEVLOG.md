@@ -363,3 +363,13 @@ Story Director reconciled all 150 screenplay entries, 259 barks and staging reco
 ### 2026-11-14 — Actual Shipping demonstration, including a failed capture method
 
 The verified 6fe3e90f package ran locally with game audio. HWND-only GDI recording misleadingly retained the menu surface while the game progressed, so that take was rejected. A second bounded run captured the foreground game client rectangle and same-PID WASAPI audio, yielding 200 seconds of opening and early combat. The review copy preserves the actual soundtrack; no music was replaced. Raw evidence and the 70 ms packet-timestamp limitation are recorded in docs/visual/Submission/LatestGameplayDemo01. Full tutorial-loop/fade and later campaign checks remain open. The isolated game/profile were closed after capture; protected build files were unchanged. No Unreal processes left.
+
+### November 14 — submission drafts and an opening-route finding
+
+The itch draft now names the actual Windows launcher and includes the boarding route without revealing the ending. Glass Box distinguishes engineering traversal, package launch checks and the actual 200-second recording, including the failed capture method. Story's bounded video review confirmed that five legacy Intro_N captions still play in the opening; the timestamped finding went to T3 through N-088 at 091ac013. No new story wording, final trailer, public page or human acceptance is claimed. Native music import evidence remains separate from the pending scene-event hookups and listening checks.
+
+## 2026-11-14 01:00 EST: the machine crashed, and what we changed
+
+- At 00:30 Ryan's machine blue-screened (bugcheck 0x119, VIDEO_SCHEDULER_INTERNAL_ERROR) with seven teammates, six builders, a cook and a test run all using the GPU. It rebooted; git was intact; every agent's uncommitted work survived except one document that came back zero-filled (restored from its last commit). All lanes were running again by 00:50.
+- New rule (AGENTS.md section 11, board R-046): at most three rendering Unreal processes on the machine at a time; count before launching. Commit work in progress often.
+- Earlier the same hour the one-at-a-time compile queue had nine builds waiting; binaries for a commit are now copied from whichever worktree built it first instead of being compiled again in each.
