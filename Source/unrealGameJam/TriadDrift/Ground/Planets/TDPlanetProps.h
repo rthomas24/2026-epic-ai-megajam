@@ -325,6 +325,11 @@ class UNREALGAMEJAM_API ATDCollapseRun : public ATDPlanetProp
 public:
 	/** Art for the falling debris (fitted to each 100-220 cm rock). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> DebrisMesh;
+	/** Debris art picked at random per piece (the structures builder's AnchorDebris_A/B/C); empty = DebrisMesh. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TArray<TSoftObjectPtr<UStaticMesh>> DebrisMeshes;
+	/** The tower's sections (AnchorSection_A/B/C), each breaking off the tower in turn as it comes down. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TArray<TSoftObjectPtr<UStaticMesh>> SectionMeshes;
+	int32 GetSectionsDropped() const { return SectionsDropped; }
 
 	ATDCollapseRun();
 
@@ -346,6 +351,8 @@ protected:
 private:
 	UFUNCTION() void HandleStepStarted(ATDObjective* Objective, int32 StepIndex);
 	void DropDebris();
+	AActor* DropPiece(const FVector& WorldAt, UStaticMesh* Art, float Scale, const FVector& Velocity);
+	int32 SectionsDropped = 0;
 
 	float TimeLeft = -1.f;
 	float DebrisTimer = 0.f;
