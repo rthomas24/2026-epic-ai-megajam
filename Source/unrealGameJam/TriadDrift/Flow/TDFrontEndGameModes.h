@@ -45,6 +45,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu")
 	TSubclassOf<class UUserWidget> MenuWidgetClass;
 
+	/** The victory screen's scene list height cap (px, before DPI): about nine rows, then it scrolls (N-047). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu")
+	float SceneListMaxHeight = 180.f;
+
 	virtual void StartPlay() override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
