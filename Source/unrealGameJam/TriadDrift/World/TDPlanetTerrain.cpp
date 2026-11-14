@@ -594,29 +594,32 @@ void ATDPlanetTerrain::RegisterCourseFlats(ETDDestination Planet)
 	// site and trailhead, and from each trailhead to its objective, are kept flat too.
 	{
 		const float Corridor = 500.f;
-		TArray<FVector2D> Goals;
-		for (const FTDCourseKeepOut& K : Course->GetKeepOuts())
-		{
-			if (K.Kind == TEXT("Site") && K.Box.IsValid)
-			{
-				const FVector C = Xf.InverseTransformPosition(K.Box.GetCenter());
-				Goals.Add(FVector2D(C.X, C.Y));
-			}
-		}
+		// Turn 22: lines between every pair of site boxes made 8143 segments on Cinder (every height sample walks them all).
+		// Pairs only between the few objective points (trailheads and objectives); site boxes get a line from the pad.
+		TArray<FVector2D> Points;
 		for (const FTDTrailhead& T : Course->GetTrailheads())
 		{
 			const FVector M = T.Marker ? Xf.InverseTransformPosition(T.Marker->GetActorLocation()) : FVector::ZeroVector;
-			if (T.Marker) { Goals.Add(FVector2D(M.X, M.Y)); }
-			if (T.Marker && T.Objective)
+			if (T.Marker) { Points.Add(FVector2D(M.X, M.Y)); }
+			if (T.Objective)
 			{
 				const FVector O = Xf.InverseTransformPosition(T.Objective->GetActorLocation());
-				Flats.Segs.Add({ FVector2D(M.X, M.Y), FVector2D(O.X, O.Y), Corridor });
+				Points.Add(FVector2D(O.X, O.Y));
 			}
 		}
-		for (int32 i = 0; i < Goals.Num(); ++i)
+		for (int32 i = 0; i < Points.Num(); ++i)
 		{
-			Flats.Segs.Add({ FVector2D::ZeroVector, Goals[i], Corridor });
-			for (int32 j = i + 1; j < Goals.Num(); ++j) { Flats.Segs.Add({ Goals[i], Goals[j], Corridor }); }
+			Flats.Segs.Add({ FVector2D::ZeroVector, Points[i], Corridor });
+			for (int32 j = i + 1; j < Points.Num(); ++j) { Flats.Segs.Add({ Points[i], Points[j], Corridor }); }
+		}
+		TSet<FIntPoint> SiteCells;	// one pad line per distinct site (boxes within 20 m share one)
+		for (const FTDCourseKeepOut& K : Course->GetKeepOuts())
+		{
+			if (K.Kind != TEXT("Site") || !K.Box.IsValid) { continue; }
+			const FVector C = Xf.InverseTransformPosition(K.Box.GetCenter());
+			bool bNew = false;
+			SiteCells.Add(FIntPoint(FMath::FloorToInt32(C.X / 2000.f), FMath::FloorToInt32(C.Y / 2000.f)), &bNew);
+			if (bNew) { Flats.Segs.Add({ FVector2D::ZeroVector, FVector2D(C.X, C.Y), Corridor }); }
 		}
 	}
 	// The pad is always flat, whatever the course lists.
