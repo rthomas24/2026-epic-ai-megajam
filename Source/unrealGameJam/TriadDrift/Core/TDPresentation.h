@@ -505,6 +505,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue CloudWisps;
 
+	/** Planet ambience (the effects builder's; ATDPlaceholderSky spawns it attached to the camera and drives User.Fade).
+	 *  No gameplay code plays these. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue PlanetAmbientVerdance;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue PlanetAmbientCinder;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue LandingDust;
 
@@ -641,6 +648,18 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Music")
 	TSoftObjectPtr<USoundBase> AssaultMusic;
+
+	/**
+	 * Quiet flight in the galaxy (N-063), optional: plays when no other score does (out of the tutorial, not in a fight,
+	 * not in the Dominion assault, no travel, not the menu) after IdleMusicDelaySeconds of quiet, fading in over 4 s and
+	 * out over 2 s the moment a fight (combat music) or any other score starts. The asset's own class, looping and the
+	 * dialogue duck of its sound class apply.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Music")
+	TSoftObjectPtr<USoundBase> IdleSpaceMusic;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Music", meta = (ClampMin = "0", Units = "s"))
+	float IdleMusicDelaySeconds = 6.f;
 
 	/**
 	 * Combat feedback sounds (optional): played as 2D UI sounds by the HUD host when a squad shot lands

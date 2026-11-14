@@ -16,6 +16,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "TriadDrift/Combat/TDFieldDamageable.h"
+#include "TriadDrift/Flight/TDShipImpactReceiver.h"
 #include "TDSpaceField.generated.h"
 
 class ATDGalaxyLayout;
@@ -49,7 +51,7 @@ struct FTDSpaceFieldPiece
 };
 
 UCLASS()
-class UNREALGAMEJAM_API ATDSpaceField : public AActor
+class UNREALGAMEJAM_API ATDSpaceField : public AActor, public ITDFieldDamageable, public ITDShipImpactReceiver
 {
 	GENERATED_BODY()
 
@@ -163,8 +165,17 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	// ITDFieldDamageable (T2): shots, Lancer's ram and explosions reach the right piece.
+	virtual void ReceiveProjectileHit(const FHitResult& Hit, float Damage, AActor* InInstigator, ETDDamageKind Kind) override;
+	virtual bool ReceiveRamSweep(const FVector& From, const FVector& To, float Radius, AActor* InInstigator, FVector& OutBlock) override;
+	virtual void ReceiveSplash(const FVector& Center, float Radius, float Damage, AActor* InInstigator) override;
+
+	// ITDShipImpactReceiver (T1): a ship hit a piece. True = it broke and the ship flies on.
+	virtual bool ReceiveShipImpact(UPrimitiveComponent* HitComponent, int32 Item, const FVector& ImpactPoint, float NormalSpeed, float HeadOn01, ATDShip* Ship) override;
+
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
 	void Build();
@@ -235,6 +246,7 @@ private:
 		int32 Collider = INDEX_NONE;
 		int32 Tumbler = INDEX_NONE;
 		int32 Wreck = INDEX_NONE;
+		int32 Obstacle = INDEX_NONE;	// UTDWorldSubsystem handle (medium and up), removed when it breaks
 		UStaticMesh* Mesh = nullptr;
 		float Health = 1.f;
 		uint8 SizeClass = 0;

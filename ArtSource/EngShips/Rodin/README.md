@@ -58,6 +58,9 @@ the measured texel density 258 / 370 / 193 texels per metre at 2K) x `DetailStre
 all faded out between `DetailFadeStart` (15 m) and + `DetailFadeRange` (15 m). `M_TD_RiftPortal` r2: three log-spiral
 arms over a dark centre, polar noise, a thin rim, emissive limited by its brightest channel (`MaxEmissive`).
 `M_TD_ShipGlow` r2: nozzle back wall with a dark hub, radial vanes and a groove (`Vanes`, `VaneDepth`, `HubRadius`).
+`RangeBoost` (default 1 = off) multiplies the emissive map at distance, ramping in from `RangeStart` (60 m) to
+`RangeEnd` (600 m): the Null fleet use 3-6 (and EyeBoost x 1.6) so each type still shows its red / orange seams and
+white eyes at 300 m - 1 km; close-up looks do not change.
 
 | Ship | EmissiveStrength | BaseTint | EmissiveTint | SelfLight |
 |---|---|---|---|---|

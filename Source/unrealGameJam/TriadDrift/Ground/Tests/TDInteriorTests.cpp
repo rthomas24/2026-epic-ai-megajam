@@ -18,6 +18,8 @@
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "Components/StaticMeshComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDPresentation.h"
+#include "TriadDrift/Squad/TDShipLibrary.h"
 
 namespace TDInteriorTest
 {
@@ -28,7 +30,8 @@ namespace TDInteriorTest
 		UTDGameInstance* GI = nullptr;
 		ATDPlanetCourse* Course = nullptr;
 
-		explicit FInterior(const TArray<FName>& AlreadyDone = TArray<FName>())
+		/** Docked: the ship the pilot boarded from (Progress.LastShip), or null for the default. */
+		explicit FInterior(const TArray<FName>& AlreadyDone = TArray<FName>(), const ETDShipId* Docked = nullptr)
 			: W(UTDGameInstance::StaticClass())
 		{
 			GI = Cast<UTDGameInstance>(W.GetGameInstance());
@@ -38,6 +41,7 @@ namespace TDInteriorTest
 				GI->NotifyLevelEntered(ETDDestination::DominionInterior);
 				GI->GetMutableProgress().Phase = ETDGamePhase::DominionInterior;
 				for (const FName& Id : AlreadyDone) { GI->GetMutableProgress().CompletedObjectives.Add(Id); }
+				if (Docked) { GI->GetMutableProgress().LastShip = *Docked; }
 			}
 			FActorSpawnParameters Params;
 			Params.bDeferConstruction = true;
@@ -233,6 +237,7 @@ bool FTDInteriorBoardingPilot::RunTest(const FString& Parameters)
 {
 	TDInteriorTest::FInterior I;
 	if (!TestNotNull(TEXT("interior"), I.Course) || !TestNotNull(TEXT("game instance"), I.GI)) { return false; }
+	const ETDShipId Docked = ATDFirstPersonCharacter::GetOnFootPilotShip(I.W.GetWorld()); // the ship parked when the interior loaded
 	for (const ETDShipId Ship : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
 	{
 		I.GI->GetMutableProgress().LastShip = Ship;
@@ -245,10 +250,45 @@ bool FTDInteriorBoardingPilot::RunTest(const FString& Parameters)
 		const FBox B = Parked->Bounds.GetBox();
 		TestTrue(*FString::Printf(TEXT("the ship stands on the pad (bottom z %.0f)"), B.Min.Z), B.Min.Z > -5.f && B.Min.Z < 20.f);
 		TestTrue(TEXT("over the pad"), FMath::Abs(B.GetCenter().X + 200.f) < 400.f && FMath::Abs(B.GetCenter().Y) < 400.f);
+		// Every visual part is parked with it (the Rift's portal ring), as the flying ship builds them.
+		if (const UTDShipVisuals* Art = UTDShipLibrary::LoadVisuals(UTDShipLibrary::Get(Docked)))
+		{
+			int32 Want = 0;
+			for (const FTDShipVisualPart& Spec : Art->Parts) { Want += Spec.Mesh.IsNull() || !Spec.Mesh.LoadSynchronous() ? 0 : 1; }
+			TestEqual(TEXT("every visual part parked"), I.Course->GetParkedParts().Num(), Want);
+			for (const UStaticMeshComponent* Part : I.Course->GetParkedParts())
+			{
+				TestTrue(TEXT("part near the ship"), Part && FVector::Dist(Part->Bounds.Origin, B.GetCenter()) < 2500.f);
+			}
+		}
 	}
 	else
 	{
 		AddInfo(TEXT("no ship art in this checkout: the pad stays empty"));
+	}
+	return true;
+}
+
+// Ryan (Nov 13): the Rift on the hangar pad had an empty portal ring. The parked ship is built like the flying one: the
+// hull plus every visual part, for each of the three boarding ships.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorParkedParts, "TriadDrift.Ground.Interior.ParkedShipHasEveryVisualPart", TD_TEST_FLAGS)
+bool FTDInteriorParkedParts::RunTest(const FString& Parameters)
+{
+	for (const ETDShipId Ship : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		TDInteriorTest::FInterior I(TArray<FName>(), &Ship);
+		if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
+		const UTDShipVisuals* Art = UTDShipLibrary::LoadVisuals(UTDShipLibrary::Get(Ship));
+		if (!Art)
+		{
+			AddInfo(FString::Printf(TEXT("ship %d: no visuals in this checkout"), (int32)Ship));
+			continue;
+		}
+		int32 Want = 0;
+		for (const FTDShipVisualPart& Spec : Art->Parts) { Want += Spec.Mesh.IsNull() || !Spec.Mesh.LoadSynchronous() ? 0 : 1; }
+		TestTrue(*FString::Printf(TEXT("ship %d parked"), (int32)Ship), I.Course->GetParkedShip() != nullptr);
+		TestEqual(*FString::Printf(TEXT("ship %d: every visual part parked"), (int32)Ship), I.Course->GetParkedParts().Num(), Want);
+		AddInfo(FString::Printf(TEXT("ship %d: %d parts parked"), (int32)Ship, I.Course->GetParkedParts().Num()));
 	}
 	return true;
 }

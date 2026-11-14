@@ -14,6 +14,7 @@
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Flight/TDShip.h"
+#include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Powers/TDPowerComponent.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 
@@ -59,6 +60,7 @@ void UTDPickupSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		B->OnWaveStarted.AddUniqueDynamic(this, &UTDPickupSubsystem::HandleWaveStarted);
 		B->OnSceneCut.AddUniqueDynamic(this, &UTDPickupSubsystem::HandleSceneCut);
 		B->OnTakeStarted.AddUniqueDynamic(this, &UTDPickupSubsystem::HandleTakeStarted);
+		B->OnFieldObjectDestroyed.AddUniqueDynamic(this, &UTDPickupSubsystem::HandleFieldObjectDestroyed);
 	}
 }
 
@@ -70,6 +72,7 @@ void UTDPickupSubsystem::Deinitialize()
 		B->OnWaveStarted.RemoveDynamic(this, &UTDPickupSubsystem::HandleWaveStarted);
 		B->OnSceneCut.RemoveDynamic(this, &UTDPickupSubsystem::HandleSceneCut);
 		B->OnTakeStarted.RemoveDynamic(this, &UTDPickupSubsystem::HandleTakeStarted);
+		B->OnFieldObjectDestroyed.RemoveDynamic(this, &UTDPickupSubsystem::HandleFieldObjectDestroyed);
 	}
 	LogWaveSummary();
 	ClearAll();
@@ -88,7 +91,8 @@ FName UTDPickupSubsystem::BarkFor(ETDPickupType Type)
 	case ETDPickupType::Hull: return TEXT("Bark_Pickup_Hull");
 	case ETDPickupType::Shield: return TEXT("Bark_Pickup_Shield");
 	case ETDPickupType::Power: return TEXT("Bark_Pickup_Power");
-	default: return TEXT("Bark_Pickup_Overcharge");
+	case ETDPickupType::Overcharge: return TEXT("Bark_Pickup_Overcharge");
+	default: return TEXT("Bark_Pickup_Boost");
 	}
 }
 
@@ -131,9 +135,10 @@ bool UTDPickupSubsystem::PickDropType(ETDPickupType& Out)
 	const UTDHealthComponent* Health = Flown ? UTDStatics::GetHealth(Flown) : nullptr;
 	const float Hull = Health ? Health->GetHull01() : 1.f;
 	const float Shield = Health ? Health->GetShield01() : 1.f;
-	float Weights[4] = { .5f + 2.f * (1.f - Hull), .5f + 1.f * (1.f - Shield), .6f, .6f };
+	// Boost refills come from special asteroids only, never from a ship kill.
+	float Weights[TDPickupTypeCount] = { .5f + 2.f * (1.f - Hull), .5f + 1.f * (1.f - Shield), .6f, .6f, 0.f };
 	float Total = 0.f;
-	for (int32 I = 0; I < 4; ++I)
+	for (int32 I = 0; I < TDPickupTypeCount; ++I)
 	{
 		if (DropsThisWave[I] >= Tuning.CapPerTypePerWave
 			|| (I == static_cast<int32>(ETDPickupType::Power) && TDPickups::CVarNoPower.GetValueOnGameThread() != 0))
@@ -147,7 +152,7 @@ bool UTDPickupSubsystem::PickDropType(ETDPickupType& Out)
 		return false;
 	}
 	float Roll = Rng.FRand() * Total;
-	for (int32 I = 0; I < 4; ++I)
+	for (int32 I = 0; I < TDPickupTypeCount; ++I)
 	{
 		Roll -= Weights[I];
 		if (Weights[I] > 0.f && Roll <= 0.f)
@@ -227,7 +232,7 @@ void UTDPickupSubsystem::HandleWaveStarted(int32 WaveNumber, float Intensity01)
 {
 	LogWaveSummary();
 	CurrentWave = WaveNumber;
-	for (int32 I = 0; I < 4; ++I)
+	for (int32 I = 0; I < TDPickupTypeCount; ++I)
 	{
 		DropsThisWave[I] = 0;
 		CollectedThisWave[I] = 0;
@@ -239,9 +244,9 @@ void UTDPickupSubsystem::LogWaveSummary() const
 	if (CurrentWave > 0)
 	{
 		// Balance runs read these: what each wave handed the player (drops / collected per type: hull shield power over).
-		UE_LOG(LogTDPickups, Display, TEXT("TD pickup wave %d: dropped %d %d %d %d, collected %d %d %d %d"), CurrentWave,
-			DropsThisWave[0], DropsThisWave[1], DropsThisWave[2], DropsThisWave[3],
-			CollectedThisWave[0], CollectedThisWave[1], CollectedThisWave[2], CollectedThisWave[3]);
+		UE_LOG(LogTDPickups, Display, TEXT("TD pickup wave %d: dropped %d %d %d %d %d, collected %d %d %d %d %d"), CurrentWave,
+			DropsThisWave[0], DropsThisWave[1], DropsThisWave[2], DropsThisWave[3], DropsThisWave[4],
+			CollectedThisWave[0], CollectedThisWave[1], CollectedThisWave[2], CollectedThisWave[3], CollectedThisWave[4]);
 	}
 }
 
@@ -256,10 +261,64 @@ void UTDPickupSubsystem::HandleTakeStarted(FName SceneId, int32 TakeNumber)
 	bSafetyUsedThisScene = false;
 	bSafetyArmed = false;
 	LastRepairDropTime = -1e9; // a new take is a fresh scene
+	DebrisThisScene = 0;
 	for (int32& N : DropsThisWave)
 	{
 		N = 0;
 	}
+}
+
+float UTDPickupSubsystem::GetSecondsSinceDebris() const
+{
+	const UWorld* World = GetWorld();
+	return World ? static_cast<float>(World->GetTimeSeconds() - LastDebrisTime) : 1e9f;
+}
+
+void UTDPickupSubsystem::HandleFieldObjectDestroyed(FVector Location, uint8 SizeClass, bool bSpecial, AActor* Instigator)
+{
+	// T6's field (Ryan: shooting asteroids and junk is rewarding). Only the squad's breaks count; a rock a missile of the
+	// Armada broke, or one the breakup crushed, is nobody's.
+	if (!Instigator || UTDStatics::GetTeam(Instigator) != ETDTeam::Player)
+	{
+		return;
+	}
+	++DebrisThisScene;
+	if (const UWorld* World = GetWorld())
+	{
+		LastDebrisTime = World->GetTimeSeconds();
+	}
+	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+	{
+		Flow->AddStat(TEXT("DebrisCleared"), 1);
+	}
+	// A special (crystal-veined) rock pays out: mostly a boost refill, else a pickup the player needs. Outside the
+	// per-wave caps (they are rare, about 1 in 15) but not with pickups off or during a money shot's slow motion.
+	if (!bSpecial || !IsEnabled())
+	{
+		return;
+	}
+	if (const UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this); Feel && Feel->IsSlowMoActive())
+	{
+		return;
+	}
+	ETDPickupType Type = ETDPickupType::Boost;
+	if (Rng.FRand() >= Tuning.SpecialBoostChance)
+	{
+		const int32 Saved[TDPickupTypeCount] = { DropsThisWave[0], DropsThisWave[1], DropsThisWave[2], DropsThisWave[3], DropsThisWave[4] };
+		for (int32& N : DropsThisWave)
+		{
+			N = 0; // pick by need, ignoring the caps (and leave them as they were)
+		}
+		if (!PickDropType(Type))
+		{
+			Type = ETDPickupType::Boost;
+		}
+		for (int32 I = 0; I < TDPickupTypeCount; ++I)
+		{
+			DropsThisWave[I] = Saved[I];
+		}
+	}
+	SpawnInternal(Type, Location);
 }
 
 void UTDPickupSubsystem::ClearAll()
@@ -325,7 +384,14 @@ bool UTDPickupSubsystem::ApplyEffect(ETDPickupType Type, ATDShip* Ship)
 			}
 		}
 		break;
-	default:
+	case ETDPickupType::Boost:
+		// T1's AddBoost01: a chunk of the meter on the flown ship (it clamps at full).
+		if (UTDShipMovementComponent* Move = Ship->GetShipMovement())
+		{
+			Move->AddBoost01(Tuning.Boost01);
+		}
+		break;
+	case ETDPickupType::Overcharge:
 		// Never stacks: the same key on the same ship; another ship's overcharge moves over.
 		if (OverchargedShip.IsValid() && OverchargedShip.Get() != Ship)
 		{
@@ -446,7 +512,7 @@ namespace TDPickups
 			}
 			const FString& S = Args[0];
 			const ETDPickupType Type = S.StartsWith(TEXT("S")) ? ETDPickupType::Shield : S.StartsWith(TEXT("P")) ? ETDPickupType::Power
-				: S.StartsWith(TEXT("O")) ? ETDPickupType::Overcharge : ETDPickupType::Hull;
+				: S.StartsWith(TEXT("O")) ? ETDPickupType::Overcharge : S.StartsWith(TEXT("B")) ? ETDPickupType::Boost : ETDPickupType::Hull;
 			const float Metres = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 40.f;
 			const float Right = Args.Num() > 2 ? FCString::Atof(*Args[2]) : 0.f;
 			const float Up = Args.Num() > 3 ? FCString::Atof(*Args[3]) : 0.f;

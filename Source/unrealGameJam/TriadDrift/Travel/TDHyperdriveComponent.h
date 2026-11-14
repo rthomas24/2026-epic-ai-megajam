@@ -41,7 +41,8 @@ enum class ETDHyperdriveEndCause : uint8
 	Timeout,
 	Manual,
 	Locked,
-	PilotLoss
+	PilotLoss,
+	Arrived    // a destination jump reached its drop-out point (the marker's stand-off)
 };
 
 /** Defaults are features.md ENG-15. */
@@ -107,6 +108,20 @@ struct UNREALGAMEJAM_API FTDHyperdriveTuning
 	/** Drop out automatically on reaching the play-space boundary's warning band. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hyperdrive")
 	bool bDropOutAtBoundary = true;
+
+	// ---- One jump to a marked destination (Ryan, Nov 13: "gets you to a place really quickly")
+	/** A gravity well (planet, Dominion) or the objective marker within this cone of the nose is the jump's destination. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hyperdrive|Destination", meta = (ClampMin = "0", ClampMax = "60"))
+	float DestinationConeDeg = 20.f;
+	/** The tunnel to a destination lasts at most this long: the jump speed rises with the distance (never below JumpSpeed). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hyperdrive|Destination", meta = (ClampMin = "0.5"))
+	float DestinationMaxTunnelSeconds = 3.5f;
+	/** A jump to the objective marker drops out this far short of it (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hyperdrive|Destination", meta = (ClampMin = "0"))
+	float MarkerStandOff = 150000.f;
+	/** After a destination jump the drop-out burst lasts this long (the boost out the far side). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hyperdrive|Destination", meta = (ClampMin = "0"))
+	float DestinationBoostOutSeconds = 1.5f;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnHyperdriveStateChanged, UTDHyperdriveComponent*, Hyperdrive, ETDHyperdriveState, NewState);
@@ -255,6 +270,21 @@ private:
 	ETDHyperdriveEndCause LastEndCause = ETDHyperdriveEndCause::None;
 	FVector LastLocation = FVector::ZeroVector;
 	TWeakObjectPtr<UNiagaraComponent> LoopFX;
+
+	// ---- The current jump's destination (none: a free jump, as before).
+	bool bHasDestination = false;
+	FVector DestinationPoint = FVector::ZeroVector; // the drop-out point (well edge or marker stand-off)
+	FName DestinationWell = NAME_None;
+	float DestinationJumpSpeed = 0.f;
+	float DestinationTunnelSeconds = 0.f;
+	/** Chooses this jump's destination from the nose (a well, else the objective marker); false = a free jump. */
+	bool PickDestination(const class ATDSpacecraft* Craft);
+public:
+	/** The jump in progress (or the last) had a destination: tests, HUD. */
+	bool HasDestination() const { return bHasDestination; }
+	float GetDestinationJumpSpeed() const { return DestinationJumpSpeed; }
+	float GetDestinationTunnelSeconds() const { return DestinationTunnelSeconds; }
+private:
 	TWeakObjectPtr<class UAudioComponent> LoopAudio;
 	void StartLoopFX(const struct FTDFXCue& Cue);
 

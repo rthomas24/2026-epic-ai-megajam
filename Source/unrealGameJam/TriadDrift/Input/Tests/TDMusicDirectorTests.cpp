@@ -274,4 +274,68 @@ bool FTDMusicAssault::RunTest(const FString& Parameters)
 	return true;
 }
 
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMusicIdle, "TriadDrift.Input.Music.IdleScoreInQuietFlightYieldsToCombat", TD_TEST_FLAGS)
+bool FTDMusicIdle::RunTest(const FString& Parameters)
+{
+	// N-063: in the galaxy, after a few quiet seconds and with no other score, the idle score plays; a fight takes over.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDMusicDirectorSubsystem* M = UTDMusicDirectorSubsystem::Get(W.GetWorld());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	if (!TestNotNull(TEXT("music"), M) || !TestNotNull(TEXT("gi"), GI)) { return false; }
+	USoundWave* Combat = NewObject<USoundWave>(GetTransientPackage(), TEXT("TD_TestIdleCombat"));
+	Combat->Duration = 60.f;
+	USoundWave* Idle = NewObject<USoundWave>(GetTransientPackage(), TEXT("TD_TestIdleScore"));
+	Idle->Duration = 120.f;
+	M->SetMusicForTests(Combat);
+	M->SetIdleMusicForTests(Idle, 6.f);
+	GI->NotifyLevelEntered(ETDDestination::Galaxy);
+	GI->SetPhase(ETDGamePhase::Waves3to4);
+	M->SetCombatOverrideForTests(false);
+	W.Advance(3.f);
+	TestTrue(TEXT("quiet flight"), M->IsQuietFlight());
+	TestFalse(TEXT("not before the quiet delay"), M->IsIdleMusicPlaying());
+	W.Advance(4.f);
+	TestTrue(TEXT("after 6 s of quiet: the idle score"), M->IsIdleMusicPlaying());
+	M->SetCombatOverrideForTests(true);
+	W.Advance(1.f);
+	TestFalse(TEXT("a fight: the idle score yields"), M->IsIdleMusicPlaying());
+	TestTrue(TEXT("... to combat music"), M->GetMusicState() != ETDCombatMusicState::Silent);
+	GI->SetPhase(ETDGamePhase::DominionAssault);
+	M->SetCombatOverrideForTests(false);
+	W.Advance(10.f);
+	TestFalse(TEXT("the assault: never the idle score"), M->IsIdleMusicPlaying());
+	return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMusicExclusive, "TriadDrift.Input.Music.ExclusiveScoreClaimsHoldCombat", TD_TEST_FLAGS)
+bool FTDMusicExclusive::RunTest(const FString& Parameters)
+{
+	// N-074: another score owner claims the music; combat is held until the last claim's release fade ends.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDMusicDirectorSubsystem* M = UTDMusicDirectorSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("music"), M)) { return false; }
+	USoundWave* Combat = NewObject<USoundWave>(GetTransientPackage(), TEXT("TD_TestExclusiveCombat"));
+	Combat->Duration = 60.f;
+	M->SetMusicForTests(Combat);
+	M->RequestExclusiveScore(TEXT("Verdance"));
+	M->SetCombatOverrideForTests(true);
+	W.Advance(2.f);
+	TestEqual(TEXT("claimed: a fight keeps the combat bed silent"), M->GetMusicState(), ETDCombatMusicState::Silent);
+	M->RequestExclusiveScore(TEXT("Credits")); // a second owner overlaps
+	M->ReleaseExclusiveScore(TEXT("Verdance"), 3.f);
+	W.Advance(4.f);
+	TestTrue(TEXT("one owner released, the other still holds"), M->IsExclusiveScoreHeld());
+	TestEqual(TEXT("... combat still held"), M->GetMusicState(), ETDCombatMusicState::Silent);
+	M->ReleaseExclusiveScore(TEXT("Credits"), 2.f);
+	W.Advance(1.f);
+	TestTrue(TEXT("during the last release fade: still held"), M->IsExclusiveScoreHeld());
+	TestEqual(TEXT("... combat still silent"), M->GetMusicState(), ETDCombatMusicState::Silent);
+	W.Advance(2.f);
+	TestFalse(TEXT("after the fade: released"), M->IsExclusiveScoreHeld());
+	TestTrue(TEXT("... and combat music comes back"), M->GetMusicState() != ETDCombatMusicState::Silent);
+	return true;
+}
+
 #endif

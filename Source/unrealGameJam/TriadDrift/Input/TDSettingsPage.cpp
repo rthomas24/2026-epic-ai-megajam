@@ -88,6 +88,7 @@ void FTDSettingsPageModel::AdjustRow(ETDSettingsRow Row, int32 Direction)
 	case ETDSettingsRow::Hints: S->SetHintsEnabled(!P.bHintsEnabled); break;
 	case ETDSettingsRow::CameraShake: S->SetCameraShake(TDSettingsPage::Step(P.CameraShake, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::SpeedFOV: S->SetSpeedFOV(TDSettingsPage::Step(P.SpeedFOV, 0.1f * D, 0.f, 1.f)); break;
+	case ETDSettingsRow::ReduceMotion: S->SetReduceMotion(!P.bReduceMotion); break;
 	case ETDSettingsRow::Difficulty:
 		S->SetDifficulty((ETDDifficulty)FMath::Clamp((int32)UTDSettingsSubsystem::GetDifficultyInPlay() + (Direction > 0 ? 1 : -1), 0, (int32)ETDDifficulty::Ace));
 		break;
@@ -171,6 +172,7 @@ FText FTDSettingsPageModel::RowLabel(ETDSettingsRow Row)
 	case ETDSettingsRow::Difficulty: return LOCTEXT("Difficulty", "Difficulty");
 	case ETDSettingsRow::CameraShake: return LOCTEXT("CameraShake", "Camera shake");
 	case ETDSettingsRow::SpeedFOV: return LOCTEXT("SpeedFOV", "Speed effects (FOV, blur)");
+	case ETDSettingsRow::ReduceMotion: return LOCTEXT("ReduceMotion", "Reduce motion");
 	case ETDSettingsRow::MasterVolume: return LOCTEXT("Master", "Master volume");
 	case ETDSettingsRow::MusicVolume: return LOCTEXT("Music", "Music volume");
 	case ETDSettingsRow::EffectsVolume: return LOCTEXT("Effects", "Effects volume");
@@ -184,6 +186,10 @@ FText FTDSettingsPageModel::RowLabel(ETDSettingsRow Row)
 
 FText FTDSettingsPageModel::SelectedRowHint() const
 {
+	if (GetSelectedRow() == ETDSettingsRow::ReduceMotion)
+	{
+		return LOCTEXT("ReduceMotionHint", "No camera shake, speed widening or motion blur; menus and cards animate less.");
+	}
 	return GetSelectedRow() == ETDSettingsRow::Difficulty
 		? UTDSettingsSubsystem::DifficultyDescription(UTDSettingsSubsystem::GetDifficultyInPlay()) : FText::GetEmpty();
 }
@@ -208,6 +214,7 @@ FText FTDSettingsPageModel::RowValue(ETDSettingsRow Row) const
 	case ETDSettingsRow::Hints: return TDSettingsPage::OnOff(P.bHintsEnabled);
 	case ETDSettingsRow::CameraShake: return TDSettingsPage::Percent(P.CameraShake);
 	case ETDSettingsRow::SpeedFOV: return TDSettingsPage::Percent(P.SpeedFOV);
+	case ETDSettingsRow::ReduceMotion: return TDSettingsPage::OnOff(P.bReduceMotion);
 	case ETDSettingsRow::Difficulty: return UTDSettingsSubsystem::DifficultyName(UTDSettingsSubsystem::GetDifficultyInPlay()); // the run's, after a Continue
 	case ETDSettingsRow::MasterVolume: return TDSettingsPage::Percent(P.MasterVolume);
 	case ETDSettingsRow::MusicVolume: return TDSettingsPage::Percent(P.MusicVolume);

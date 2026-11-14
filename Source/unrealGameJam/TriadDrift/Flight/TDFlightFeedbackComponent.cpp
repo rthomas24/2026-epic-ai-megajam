@@ -585,7 +585,12 @@ void UTDFlightFeedbackComponent::UpdateDust(float DeltaTime)
 	ATDShip* Ship = GetShip();
 	UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
 	const UTDLandingComponent* Landing = Ship ? Ship->GetLanding() : nullptr;
-	const bool bWanted = Ship && Move && Tuning.bSpeedDust && Ship->IsPlayerFlown() && !Ship->IsHidden()
+	// T7's review (Nov 13): at jump speed a mote passing the camera smeared into a huge grey wedge. The hyperdrive's
+	// tunnel effect carries the streaks then, so the dust is off from the jump to the end of the drop-out.
+	const UTDHyperdriveComponent* DustHyper = Ship ? Ship->GetHyperdrive() : nullptr;
+	const ETDHyperdriveState DustHyperState = DustHyper ? DustHyper->GetState() : ETDHyperdriveState::Idle;
+	const bool bJumping = DustHyperState == ETDHyperdriveState::Jumping || DustHyperState == ETDHyperdriveState::DropOut;
+	const bool bWanted = Ship && Move && Tuning.bSpeedDust && Ship->IsPlayerFlown() && !Ship->IsHidden() && !bJumping
 		&& TDFlightFeedback::CVarSpeedDust.GetValueOnGameThread() != 0 && !(Landing && Landing->IsLanded());
 	const float Speed = Move ? Move->Velocity.Size() : 0.f;
 	const float Thick01 = FMath::Clamp((Speed - Tuning.DustMinSpeed) / FMath::Max(1.f, Tuning.DustFullSpeed - Tuning.DustMinSpeed), 0.f, 1.f);
