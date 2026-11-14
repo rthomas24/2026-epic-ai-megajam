@@ -5,6 +5,8 @@
 - Python standard library, browser Canvas/Web Audio and original SVG: source authoring/preview tools.
 - Unreal Engine 5.9 Python API: target API for unexecuted asset builders; no native assets generated in this source-only batch.
 
+**Historical package-status note for Nicholas's preparation entries:** References explicitly qualified as reported Shipping `ddc50a2f` below describe only Ryan's [November 14 inventory report](https://github.com/rthomas24/2026-epic-ai-megajam/issues/88#issuecomment-6875424116). Presence in that package does not establish playback, activation or approval. Preserve development sources, auditions, tools and pre-jam disclosures separately; reconcile inclusion against the actual final submission container. Entries naming other snapshots retain their own scope.
+
 ## Original source assets
 | Asset | Source / author | License / provenance | Added by |
 |---|---|---|---|
@@ -61,7 +63,7 @@ separate-branch/M01-only notes above describe historical checkpoints.
 - HeroM02: original deterministic nebula/star textures and isolated benchmark source by Codex Environment & VFX Agent, existing Python/NumPy/Unreal5.9 toolchain. Branch nick/environment-vfx fc4db83. NASA images were visual references only, not sampled or redistributed. Native build/capture/presentation remain pending.
 - Audio PrototypeV1: existing licensed-cache selections from PlaceHolder Inc's [50 Free Game Sounds Pack](https://www.fab.com/listings/b8cc7270-5e0c-4ef7-a277-6a1d4b69358d), Hove Audio's [Terminal UI LITE](https://www.fab.com/listings/183a6ec7-cbc3-451a-8fa7-08da97c07fcf), and Marika Schanz's [Atmoshpheric Worlds](https://www.fab.com/listings/c9e03a63-9359-4929-9c8a-a680309dbd3f). Exact names/hashes, provenance and outstanding acquisition-license checks: ArtSource/Audio/PrototypeV1/{sources.json,CREDITS_PROTOTYPE.md} on nick/audio-prototype-v1 at0717d9f. All raw/prepared licensed WAV and native audio assets remain local ignored files; these source commits publish only implementation/manifests/QA and review graphs. Nick authorizes prototype audition use, not final in-game quality or media redistribution. No purchases, downloads or AI-audio services. Existing Python/NumPy, Shotcut ffmpeg/ffprobe8.0.1, UE5.9 CL60351404 and Ryan's ue-game-audio skill4096f47 were used; native authoring has not passed.
 
-## Engineering side (Ryan T with Claude Code) - tools and project-authored assets
+## Engineering side (Ryan Thomas with Claude Code) - tools and project-authored assets
 
 - Tools: Claude Code (Anthropic) as lead and five teammate sessions plus review and build sub-agents: all gameplay C++, tests, tools and docs under `Source/`, `Tools/`, `docs/eng/`; Unreal Engine 5.9 built-in MCP server and engine toolsets for agent playtests; Unreal headless Python (`Tools/td-python.ps1`); Blender 5.2 headless with this repo's Blender skills; ffmpeg / ffprobe for the audio skill's measuring scripts. 2026-11-12.
 - `Content/TriadDrift/Gameplay/Materials/M_TD_PlaceholderGlow`: original unlit placeholder material built by script (`Tools/td-make-materials.py`); project-authored, no third-party source. Added by Ryan / Lead (Claude Code).
@@ -89,10 +91,12 @@ Pre-jam disclosure recorded from Nicholas's explicit R-037 answer: **Coilgun Ass
 ## Primary-fire realism M02 — offline review only
 
 Audio & Music agent used existing PlaceHolder Inc 50 Free Game Sounds Pack `Gunshot_1-1` and `Gunshot_7-1`, with Hove Terminal UI LITE recorded hardware actions `MACHAppl_VCRButton_HA_TerminalUI_04/08/13`. These replace the old Sci-Fi_Gun body for one audition; no new purchase/download/AI audio service. Gunshot effects are publisher-described human designs, with actual field-fire provenance unverified; the mechanical layer is recorded hardware, not a claim of a real firearm mechanism. Exact source hashes, selections, recipe, rights limits and credits: `ArtSource/Audio/PrototypeV1/PrimaryRealismM02/{README.md,source_inventory.json,recipe.json}` on nick/audio-prototype-v1 at4b94319. Processed/licensed WAVs stay ignored/local; no asset redistribution or final listening approval asserted.
-## Menu-music preparation checkpoint (November12; not game-integrated)
+## Menu music — November 12 preparation history and reported ddc50a2f inclusion
 
-- **Etherial Pulse**: Nicholas Tosti's selected Suno song, https://suno.com/song/b8ea12f4-b5a1-4bf2-811e-8d94f2acf26c. Nick confirmed authorship and Pro/Premier active at generation. Official MP3 preserved; existing ffmpeg/ffprobe produced an exact107s48kHz stereo16bit cut with ending fade. Audio agent's source/rights/processing record is local ignored Saved/AudioMusic/PrototypeV1/MenuTheme01/checkpoint.json; raw media is not published by this documentation update. No purchase/new generation. Native import, menu playback and in-game acceptance are unfinished. Rejected primary/switch prototypes remain historical references, not approved game audio.
+- **Etherial Pulse**: Nicholas Tosti's selected Suno song, https://suno.com/song/b8ea12f4-b5a1-4bf2-811e-8d94f2acf26c. Nick confirmed authorship and Pro/Premier active at generation. Official MP3 preserved; existing ffmpeg/ffprobe produced an exact107s48kHz stereo16bit cut with ending fade. Audio agent's source/rights/processing record is local ignored Saved/AudioMusic/PrototypeV1/MenuTheme01/checkpoint.json; raw media is not published by this documentation update. No purchase/new generation. At that November 12 preparation checkpoint, native import, menu playback and in-game acceptance were unfinished. Rejected primary/switch prototypes remain historical references, not approved game audio.
 - **Suno** is an AI music tool used by Nicholas for this supplied track; disclose it with other jam tools if the track ships.
+
+**Later reported package status:** Ryan's inventory report linked above identifies `MUS_Menu_EtherialPulse_01` as included in Shipping `ddc50a2f`. This qualifies the older preparation status; it is not evidence for later/final packages or approval of PR #11, its loop join, the mix, or a historical style-asset merge. Final loop-join and mix approval remain separately tracked.
 
 
 ### Custom Triad Drift Sentinel Armor - November12,2026
@@ -132,7 +136,7 @@ Nicholas Tosti supplied his original AI-generated composition **Ethereal Pulse (
 
 ### Dominion interior kit (boarding finale) - November 13, 2026
 
-`SM_DI_*` (22 meshes), `T_DI_Atlas_*`, `MI_DI_*`, `M_DI_Shield` in `Content/TriadDrift/Gameplay/Props/DominionInterior/`: original, code-built in Blender 5.2 (bmesh + a numpy procedural atlas) by Claude Code for Ryan T; no third-party assets. Sources, scripts and review sheets: `ArtSource/EngProps/DominionInterior/`.
+`SM_DI_*` (22 meshes), `T_DI_Atlas_*`, `MI_DI_*`, `M_DI_Shield` in `Content/TriadDrift/Gameplay/Props/DominionInterior/`: original, code-built in Blender 5.2 (bmesh + a numpy procedural atlas) by Claude Code for Ryan Thomas; no third-party assets. Sources, scripts and review sheets: `ArtSource/EngProps/DominionInterior/`.
 
 ### Squad ships and Null Armada fighter / gunship (Rodin models) - November 13, 2026
 
@@ -263,7 +267,7 @@ Tools on Nicholas's side (OpenAI Codex, Suno, Meshy AI, OpenAI image generation 
 
 ### Engineering originals not credited before (asset ledger pass, ART-02) - November 13, 2026
 
-All original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan T: code-built in Blender 5.2 (headless Python) or built in Unreal Engine 5.9 by script. No AI mesh, image or texture generator and no third-party model, texture or scan, except where the row says so.
+All original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan Thomas: code-built in Blender 5.2 (headless Python) or built in Unreal Engine 5.9 by script. No AI mesh, image or texture generator and no third-party model, texture or scan, except where the row says so.
 
 | Asset | Tool | Licence / provenance | Added by |
 |---|---|---|---|
@@ -299,9 +303,10 @@ Gameplay demonstration capture (Shipping 6fe3e90f): OpenAI Codex, Unreal Engine 
 
 Submission trailer rough cut 01: OpenAI Codex used FFmpeg to select three excerpts from that same recorded game, with the corresponding game audio and brief edit-edge fades. No replacement music, generated scene or additional artwork was used. The 50-second draft and reproducible edit list are recorded in docs/visual/Submission/Trailer01; final trailer and human listening/appearance approval remain pending.
 
+
 ### Engineering originals added in batch M (asset ledger pass) - November 14, 2026
 
-Original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan T, in Blender 5.2 (headless Python) or in Unreal Engine 5.9 by script. No AI mesh, image or texture generator and no third-party asset, except the Hyper3D Rodin hulls they are built onto (credited above).
+Original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan Thomas, in Blender 5.2 (headless Python) or in Unreal Engine 5.9 by script. No AI mesh, image or texture generator and no third-party asset, except the Hyper3D Rodin hulls they are built onto (credited above).
 
 | Asset | Tool | Licence / provenance | Added by |
 |---|---|---|---|
@@ -313,7 +318,7 @@ Original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan
 
 ### Engineering originals: space set pieces, story kit, Null ship parts (batches N and O) - November 14, 2026
 
-Made during the jam by Claude Code (Anthropic) sub-agents for Ryan T. Read from the builders' own notes: `ArtSource/EngProps/Kit/brief_space.md` and the headers of `scripts/kit_pieces_space.py`, `kit_pieces_region.py`, `kit_pieces_story.py`, `kit_story_decals.py`, `ue_import_space.py`, `ue_import_story.py` (on `eng/struct` 12a8ec67); `ArtSource/EngShips/RiftHero/scripts/rh_ships.py` and `ArtSource/EngShips/Rodin/scripts/ue_import_rodin_ships.py` (on `lead/int` 2699c13c). "Code-built" means the mesh is written as Blender Python (route C) with no AI mesh, image or texture generator.
+Made during the jam by Claude Code (Anthropic) sub-agents for Ryan Thomas. Read from the builders' own notes: `ArtSource/EngProps/Kit/brief_space.md` and the headers of `scripts/kit_pieces_space.py`, `kit_pieces_region.py`, `kit_pieces_story.py`, `kit_story_decals.py`, `ue_import_space.py`, `ue_import_story.py` (on `eng/struct` 12a8ec67); `ArtSource/EngShips/RiftHero/scripts/rh_ships.py` and `ArtSource/EngShips/Rodin/scripts/ue_import_rodin_ships.py` (on `lead/int` 2699c13c). "Code-built" means the mesh is written as Blender Python (route C) with no AI mesh, image or texture generator.
 
 | Asset | Tool | Licence / provenance | Added by |
 |---|---|---|---|
@@ -347,7 +352,7 @@ Tools used (add to the submission's "Tools you used"): xAI Text to Speech via fa
 
 ### Engineering assets added in batches U to AG, not credited before (ART-02 pass by Teammate 6) - November 14, 2026
 
-Found by listing every file added to `Content/` and `ArtSource/` on `main` since Nov 14 00:00 (`git log --diff-filter=A`) and checking each name against this file. Made during the jam by Claude Code (Anthropic) sub-agents for Ryan T unless a row says otherwise; read from each commit's message and the builders' notes.
+Found by listing every file added to `Content/` and `ArtSource/` on `main` since Nov 14 00:00 (`git log --diff-filter=A`) and checking each name against this file. Made during the jam by Claude Code (Anthropic) sub-agents for Ryan Thomas unless a row says otherwise; read from each commit's message and the builders' notes.
 
 | Asset | Tool | Licence / provenance | Added by |
 |---|---|---|---|
@@ -363,3 +368,14 @@ Found by listing every file added to `Content/` and `ArtSource/` on `main` since
 | Effects, round 10 onward: `NS_TD_Plume_Enemy_Fighter / _Interceptor / _Gunship / _Bomber / _Carrier`, `NS_TD_Dominion_ApproachField / _ShieldDrop / _TractorBeam / _LightRow`, `NS_TD_Magma_Heat`, `NS_TD_Region_Beacon`, materials `M_TD_VFX_CloudVeil`, `M_TD_VFX_FieldHex / 2`, `M_TD_VFX_IceBurst`, `M_TD_VFX_IceShatter`, `M_TD_VFX_CloakOverlay`, `M_TD_VFX_RangeGlow` (+ `MI_*_Beacon / _Plume`), `M_TD_VFX_Beacon`, `M_TD_RegionHaze / 2`, `M_TD_PP_DescentWhite` in `Content/TriadDrift/Gameplay/VFX/`; specs and scripts in `ArtSource/EngVFX/`. The `NS_TD_Debug_*` systems and `MI_TD_RegionHaze_Review` are review aids, not referenced by the game | Niagara systems and materials built by Unreal Python in Unreal 5.9 (procedural; no textures from outside) | project-authored | Claude Code (effects builder) |
 | Effects data: `DA_CrewBlaster_FX`, `DA_ReactorCore_FX`, `DA_StoryFX` in `Content/TriadDrift/Gameplay/Characters/FX/` | Data assets filled by script | project-authored data | Claude Code (Ryan's side) |
 | Source only, not in the game: Wren voice audition r1 for `C8_Wren_Order` (`ArtSource/EngAI/Voice/Wren/present_order_r1/`, five dry takes; record in its `SOURCE.md`) | AI-generated voice: xAI Text to Speech on fal.ai (as the "Don't-" master above) | AI output under the fal.ai / xAI terms; awaiting Nicholas's pick | Grok Bot |
+
+
+### Fab props supplied by Nicholas (third-party, AI-generated per the seller) - November 14, 2026
+
+Supplied by Nicholas Tosti (issues #175, #176, #177); intake by Ryan's side (Claude Code, import builder). All three Fab listings are **marked AI-generated by the seller** ("Generated with AI: yes"). Licences from Nick's side's research on the public Fab listing JSON (issues #175-#177) and Fab's licence documentation (https://dev.epicgames.com/documentation/fab/licenses-and-pricing-in-fab). Recolours approved by Nicholas ("Approve all three adaptations"); the unmodified textures are kept as `*_orig.png`. Details: `ArtSource/EngProps/Fab/<Asset>/SOURCE.md`. List all three in the submission's third-party asset list.
+
+| Asset | Source | Licence / provenance | Added by |
+|---|---|---|---|
+| `SM_Fab_CrateStack`, `MI_Fab_CrateStack`, `T_Fab_CrateStack_BC/N/ORM` in `Content/TriadDrift/Gameplay/Props/Fab/CrateStack/` (a fused stack of five crates) | "Free Crates" by **LapaModels**, https://www.fab.com/listings/ef859200-bcc7-4f44-9718-9059407313c1; marked AI-generated by the seller | **CC BY 4.0** (https://creativecommons.org/licenses/by/4.0/), attribution required; not CC0 (the listing's `isCc0` flag contradicts its CC-BY name). **Modified:** recoloured (Null black, crimson accents), lettering painted out, textures re-packed | supplied by Nicholas, intake by Ryan's side (Claude Code), Nov 14 2026 |
+| `SM_Fab_PowerCore`, `MI_Fab_PowerCore`, `T_Fab_PowerCore_BC/N/ORM/E` in `Content/TriadDrift/Gameplay/Props/Fab/PowerCore/` | "Radiation Core Power Trash For Cyberpunk Map" by **SirHollywood**, https://www.fab.com/listings/4b670731-db2c-44d0-8e99-01d5fb05927a; marked AI-generated by the seller | **CC BY 4.0** (https://creativecommons.org/licenses/by/4.0/), attribution required; not CC0 (same flag conflict). **Modified:** recoloured (red-orange glow, symbol and cables), textures re-packed | supplied by Nicholas, intake by Ryan's side (Claude Code), Nov 14 2026 |
+| `SM_Fab_OilBarrel`, `MI_Fab_OilBarrel`, `T_Fab_OilBarrel_BC/N/ORM` in `Content/TriadDrift/Gameplay/Props/Fab/OilBarrel/` | "Industrial Oil Barrel - Game Ready PBR" by **dplHK**, https://www.fab.com/listings/54701df2-644c-4691-a3d2-e6c2acde4788; marked AI-generated by the seller (its description also says hand-crafted) | **Fab Standard License** (https://www.fab.com/eula); the listing offers free Personal and Professional tiers; **the tier Nicholas acquired is not established**. **Modified:** recoloured to hazard amber, seller logo replaced by a plain hazard band, textures re-packed | supplied by Nicholas, intake by Ryan's side (Claude Code), Nov 14 2026 |

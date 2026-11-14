@@ -1,0 +1,29 @@
+{
+ "asset": "SM_Fab_PowerCore",
+ "source": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\Builds\\intake\\PowerCore\\src\\Radiation_Core_Power_Trash_For_Cyberpunk_Map-4b670731\\blender\\radiation_core_power_trash.blend",
+ "notes": [],
+ "source_objects": [
+  "Mesh_0"
+ ],
+ "tris_before": 954,
+ "maps": {
+  "BC": "Image_0 2048x2048 chNone",
+  "R": "Image_1 2048x2048 ch1",
+  "M": "Image_1 2048x2048 ch2",
+  "N": "Image_2 2048x2048 chNone",
+  "E": "Image_3 2048x2048 chNone"
+ },
+ "tris_after": 954,
+ "size_cm": [
+  100.0,
+  60.9,
+  49.2
+ ],
+ "normal_source": "OpenGL, green flipped to DirectX (Blender Normal Map node source (OpenGL))",
+ "orm_means": [
+  1.0,
+  0.501,
+  0.079
+ ],
+ "source_emission_strength": 1.0
+}

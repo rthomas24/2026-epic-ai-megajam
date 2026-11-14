@@ -87,6 +87,7 @@ void FTDSettingsPageModel::AdjustRow(ETDSettingsRow Row, int32 Direction)
 	case ETDSettingsRow::GamepadDeadzone: S->SetGamepadDeadzone(TDSettingsPage::Step(P.GamepadDeadzone, 0.05f * D, 0.f, 0.5f)); break;
 	case ETDSettingsRow::InvertGamepadY: S->SetInvertGamepadY(!P.bInvertGamepadY); break;
 	case ETDSettingsRow::Hints: S->SetHintsEnabled(!P.bHintsEnabled); break;
+	case ETDSettingsRow::MinimalHUD: S->SetMinimalHUD(!P.bMinimalHUD); break;
 	case ETDSettingsRow::CameraShake: S->SetCameraShake(TDSettingsPage::Step(P.CameraShake, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::SpeedFOV: S->SetSpeedFOV(TDSettingsPage::Step(P.SpeedFOV, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::ReduceMotion: S->SetReduceMotion(!P.bReduceMotion); break;
@@ -172,6 +173,7 @@ FText FTDSettingsPageModel::RowLabel(ETDSettingsRow Row)
 	case ETDSettingsRow::GamepadDeadzone: return LOCTEXT("PadDead", "Gamepad dead zone");
 	case ETDSettingsRow::InvertGamepadY: return LOCTEXT("InvertPad", "Invert gamepad Y");
 	case ETDSettingsRow::Hints: return LOCTEXT("Hints", "Control hints");
+	case ETDSettingsRow::MinimalHUD: return LOCTEXT("MinimalHUD", "Minimal HUD");
 	case ETDSettingsRow::Difficulty: return LOCTEXT("Difficulty", "Difficulty");
 	case ETDSettingsRow::CameraShake: return LOCTEXT("CameraShake", "Camera shake");
 	case ETDSettingsRow::SpeedFOV: return LOCTEXT("SpeedFOV", "Speed effects (FOV, blur)");
@@ -217,6 +219,7 @@ FText FTDSettingsPageModel::RowValue(ETDSettingsRow Row) const
 	case ETDSettingsRow::GamepadDeadzone: return TDSettingsPage::Percent(P.GamepadDeadzone);
 	case ETDSettingsRow::InvertGamepadY: return TDSettingsPage::OnOff(P.bInvertGamepadY);
 	case ETDSettingsRow::Hints: return TDSettingsPage::OnOff(P.bHintsEnabled);
+	case ETDSettingsRow::MinimalHUD: return TDSettingsPage::OnOff(P.bMinimalHUD);
 	case ETDSettingsRow::CameraShake: return TDSettingsPage::Percent(P.CameraShake);
 	case ETDSettingsRow::SpeedFOV: return TDSettingsPage::Percent(P.SpeedFOV);
 	case ETDSettingsRow::ReduceMotion: return TDSettingsPage::OnOff(P.bReduceMotion);
@@ -399,7 +402,12 @@ void STDSettingsPage::FocusPage()
 float STDSettingsPage::GetRowListMaxHeight() const
 {
 	// Before the first layout (no height yet) the list may take its full size.
-	return PageHeight > 0.f ? FMath::Max(120.f, PageHeight - FixedPartsHeight) : 100000.f;
+	if (PageHeight <= 0.f) { return 100000.f; }
+	// Whole rows only (the Lead, from the Shipping package: "Subtitle size" was cut in half by the Back bar): the list's
+	// height snaps down to a multiple of one row, so the last row shown always clears the bar; the rest scrolls.
+	const float Room = FMath::Max(120.f, PageHeight - FixedPartsHeight);
+	const float RowH = (RowWidgets.Num() > 0 && RowWidgets[0].IsValid()) ? RowWidgets[0]->GetDesiredSize().Y + 4.f : 0.f;
+	return RowH > 1.f ? FMath::Max(RowH * 3.f, FMath::FloorToFloat(Room / RowH) * RowH) : Room;
 }
 
 bool STDSettingsPage::IsRowInScrollList(ETDSettingsRow Row) const
@@ -417,7 +425,7 @@ void STDSettingsPage::Tick(const FGeometry& AllottedGeometry, const double InCur
 		LastScrolledRow = Model->GetSelected();
 		if (IsRowInScrollList(Model->GetSelectedRow()))
 		{
-			RowScroll->ScrollDescendantIntoView(RowWidgets[LastScrolledRow], /*bInAnimateScroll*/ true, EDescendantScrollDestination::IntoView, 8.f);
+			RowScroll->ScrollDescendantIntoView(RowWidgets[LastScrolledRow], /*bInAnimateScroll*/ true, EDescendantScrollDestination::IntoView, 2.f);
 		}
 	}
 	if (!FSlateApplication::IsInitialized())

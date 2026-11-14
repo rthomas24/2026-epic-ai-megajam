@@ -66,7 +66,7 @@ static TAutoConsoleVariable<int32> CVarTDIntro(
 	ECVF_Default);
 
 static TAutoConsoleVariable<float> CVarTDIntroEclipseEV(
-	TEXT("td.Intro.EclipseEV"), -3.5f,
+	TEXT("td.Intro.EclipseEV"), -3.0f,
 	TEXT("Intro shot 2 (Verdance in eclipse): the exposure bias (stops; the galaxy's exposure is manual). Lower = darker."),
 	ECVF_Default);
 
