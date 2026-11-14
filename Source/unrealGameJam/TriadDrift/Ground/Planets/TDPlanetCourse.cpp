@@ -1085,9 +1085,42 @@ bool ATDPlanetCourse::GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) c
 	return true;
 }
 
+void ATDPlanetCourse::HandleStoryLine(const FTDTransmissionView& Line)
+{
+	// The drone answers on T3's pulse line (the "three pulses" sound plays from DA_UI_Style there; Nick's slot).
+	if (Line.bActive && Line.Id == TEXT("C3_Wren_Answered") && DormantDrone && DroneWakeStart < 0.0)
+	{
+		DroneWakeStart = GetWorld() ? GetWorld()->GetRealTimeSeconds() : 0.0;
+		UE_LOG(LogTriadDrift, Display, TEXT("Cinematic 03: the relay drone wakes (three pulses, then steady blue)"));
+	}
+}
+
+void ATDPlanetCourse::TickDroneWake()
+{
+	if (DroneWakeStart < 0.0 || !DormantDrone || !GetWorld())
+	{
+		return;
+	}
+	// T3's light timing: three 0.25 s pulses 0.6 s apart, then steady.
+	const float T = (float)(GetWorld()->GetRealTimeSeconds() - DroneWakeStart);
+	const float Cycle = 0.6f;
+	const bool bSteady = T >= 3.f * Cycle;
+	const float Glow = bSteady ? 6.f : (FMath::Fmod(T, Cycle) < 0.25f ? 14.f : 0.4f);
+	if (UMaterialInstanceDynamic* MID = DroneOptic ? Cast<UMaterialInstanceDynamic>(DroneOptic->GetMaterial(0)) : nullptr)
+	{
+		const FLinearColor Blue(0.2f, 0.55f, 1.f);
+		MID->SetVectorParameterValue(TEXT("Color"), Blue * Glow);
+		MID->SetVectorParameterValue(TEXT("EmissiveColor"), Blue * Glow);
+	}
+	// Up off the deck, 40 cm over 2 s, then a slow bob.
+	const float Lift = 40.f * FMath::Clamp(T / 2.f, 0.f, 1.f) + (bSteady ? 6.f * FMath::Sin(T * 1.6f) : 0.f);
+	DormantDrone->SetWorldLocation(DroneHome + FVector(0.f, 0.f, Lift));
+}
+
 void ATDPlanetCourse::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	TickDroneWake();
 	InteriorTime += DeltaSeconds;
 	TickFinalRecord(DeltaSeconds);
 	TickCoreChamber();
@@ -1371,6 +1404,20 @@ void ATDPlanetCourse::BuildVerdance()
 	// The dormant drone (Cinematic 03 wakes it, T3): on the deck north of the plinth, in view from the console.
 	DormantDrone = Block(EShape::Sphere, RelaySite + FVector(700.f, 1100.f, DeckTop + 90.f), FVector(120.f, 120.f, 90.f), FLinearColor(0.32f, 0.36f, 0.4f), 0.f,
 		FRotator(0.f, -135.f, 0.f), false, TEXT("SM_Verd_Station_DormantDrone"));
+	if (DormantDrone)
+	{
+		// Its eye: dark until it wakes (TickDroneWake), facing the console.
+		const FVector Front = FRotator(0.f, -135.f, 0.f).Vector();
+		DroneOptic = Block(EShape::Sphere, RelaySite + FVector(700.f, 1100.f, DeckTop + 100.f) + Front * 62.f, FVector(26.f), FLinearColor(0.02f, 0.03f, 0.05f), 0.05f,
+			FRotator::ZeroRotator, false);
+		if (DroneOptic) { DroneOptic->AttachToComponent(DormantDrone, FAttachmentTransformRules::KeepWorldTransform); }
+		DroneHome = DormantDrone->GetComponentLocation();
+		DroneWakeStart = -1.0;
+		if (UTDStorySubsystem* Story = UTDStorySubsystem::Get(this))
+		{
+			Story->OnTransmission.AddUniqueDynamic(this, &ATDPlanetCourse::HandleStoryLine);
+		}
+	}
 
 	ClearSite(RelaySite, 2400.f); // the deck's corners plus a margin; the 29 m keep-out below keeps the open ground
 	ClearSite(WreckSite, 1500.f); // the research site's hull and walkway
@@ -1802,6 +1849,9 @@ void ATDPlanetCourse::BuildCinder()
 
 	// Every room is a checkpoint: a death costs that room, not the whole compound (machine playtest: the
 	// barracks death sent the pilot back to the gate conduits every time). The Warden too (review N6).
+	// The gate: a CUT there comes back on the far bank, past the river, not at the pad (T5's play, Nov 14: every retake at
+	// the conduits re-walked the whole way over the bridge).
+	Checkpoint(Outpost, 0, FVector(7300.f, 4900.f, 0.f), 25.f);
 	Checkpoint(Outpost, 1, FVector(XGate - 500.f, Y0, 0.f), 0.f);
 	Checkpoint(Outpost, 2, FVector(XBarracks - 500.f, Y0, 0.f), 0.f);
 	Checkpoint(Outpost, 3, FVector(XCommand - 500.f, Y0, 0.f), 0.f);
@@ -2028,7 +2078,7 @@ void ATDPlanetCourse::BuildCinder()
 	ATDCollapseRun* Run = SpawnProp<ATDCollapseRun>(FVector((LakeX0 + LakeX1) * 0.5f + 1500.f, LakeY - 2400.f, 0.f));
 	Run->LinkedObjective = Jammer;
 	Run->LinkedStep = 2;
-	Run->Seconds = 22.f;
+	Run->Seconds = 25.f; // T7 (Nov 14): 20 s was tight from the north charge (the straight line clips the plinth)
 	Run->Tower = TowerActor;
 	Run->DebrisExtent = FVector(3500.f, 1200.f, 0.f);
 	// The anchor's own collapse pieces (structures builder, Kit/Story), each optional.
@@ -2047,6 +2097,10 @@ void ATDPlanetCourse::BuildCinder()
 	Routes.Add({ Tower, FVector(LakeX1 + 800.f, LakeY - 3300.f, 0.f), Exit });
 
 	Checkpoint(Jammer, 1, FVector(LakeX1 + 250.f, LakeY, 0.f), 0.f); // the charges: from the far bank, out of the defence's drop
+	// The collapse run: a CUT keeps the charges planted and the defence down, and the run restarts south of the tower,
+	// on the way out (T7: a CUT reset the charges to 0 / 3).
+	Checkpoint(Jammer, 2, FVector(LakeX1 + 1000.f, LakeY - 1600.f, 0.f), 200.f);
+	if (Defence) { Defence->RetakeStep = 1; }
 	FinishObjective(Jammer,
 		{ LOCTEXT("J0", "CROSS THE CRYSTAL BRIDGE"), LOCTEXT("J1", "PLANT THE CHARGES  0 / 3"), LOCTEXT("J2", "RETURN TO EXTRACTION") },
 		{ FarBank, Charges, Clear });

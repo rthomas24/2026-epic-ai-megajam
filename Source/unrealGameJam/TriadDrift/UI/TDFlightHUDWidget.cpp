@@ -680,7 +680,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 	const AActor* Current = Data.GetCurrentTarget();
 	const AActor* Focus = Data.GetFocusRemaining01() > 0.f ? Data.GetFocusTarget() : nullptr;
 	const float PxPerRadian = 540.f / FMath::Tan(FMath::DegreesToRadians(FMath::Clamp(FovDeg, 20.f, 170.f) * .5f));
-	for (const FTDTargetMarker& M : Data.GetTargetMarkers())
+	for (const FTDTargetMarker& M : FrameMarkers)
 	{
 		FMark& Mark = View.Marks.AddDefaulted_GetRef();
 		Mark.bCurrent = M.bIsCurrentTarget || (Current && M.Actor.Get() == Current);
@@ -739,7 +739,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 	View.Waypoints.Reset();
 	const APawn* Me = PC ? PC->GetPawn() : nullptr;
 	const FVector From = Me ? Me->GetActorLocation() : ViewLoc;
-	for (const AActor* Marker : Data.GetObjectiveMarkers())
+	for (const AActor* Marker : FrameObjectives)
 	{
 		if (!IsValid(Marker) || Marker == Me)
 		{
@@ -1238,7 +1238,10 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 			}
 		}
 	}
+	FrameMarkers = Data->GetTargetMarkers();
+	FrameObjectives = Data->GetObjectiveMarkers();
 	SampleCombat(*Data, Flown, Dt);
+	HUDModel.Update(GetWorld(), Cards, FrameMarkers, FrameObjectives, Dt);
 	ArcAwake = FMath::Max(0.f, ArcAwake - Dt);
 	View.ArcOpacity = (View.Hull < .999f || View.Shield < .999f || ArcAwake > 0.f) ? 1.f : ArcRestOpacity;
 	PulseLeft = FMath::Max(0.f, PulseLeft - Dt);
@@ -1438,8 +1441,15 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	// ---- hostiles: tick above each, the bracket + health + distance on the current target, chevrons off screen
 	const FLinearColor Enemy = T::Danger();
 	const float Pulse25 = .55f + .45f * FMath::Sin(Now * 2.5f * 2.f * PI); // under 3 Hz
+	// The docking plate (drawn later) keeps its words clear: no hostile tick or bracket inside it (live: a turret's tick
+	// sat on "LOCKED" in the bay).
+	const FBox2D DockPlate(FVector2D(CenterX - 200.f, C.Y - 180.f), FVector2D(CenterX + 200.f, C.Y - 116.f));
 	for (const FMark& M : View.Marks)
 	{
+		if (View.Docking > 0 && M.bOnScreen && DockPlate.IsInside(M.Pos))
+		{
+			continue;
+		}
 		// A kind's outline at At, rotated (0 = pointing down), brighter and heavier on a threat to the flown ship.
 		auto Shape = [&P, &Enemy](const FMark& Mk, FVector2D At, float Rot, float Alpha)
 		{
@@ -1566,16 +1576,23 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	// shield colour with a stutter), the range under it. On the frame edge when off screen.
 	if (View.bTransponder)
 	{
-		const FVector2D TC = View.TransponderPos;
+		// B2-04 (Nick's playtest, 720p): the label block never leaves the safe frame. It sits right of the bracket, or
+		// left of it (right-aligned) when there is no room, and the whole block is held inside the frame vertically.
+		const float LabelW = 120.f, BlockTop = 16.f, BlockBottom = 30.f;
+		FVector2D TC = View.TransponderPos;
+		TC.Y = FMath::Clamp(TC.Y, SafeY + BlockTop, 1080.f - SafeY - BlockBottom);
+		const bool bLeft = TC.X + 24.f + LabelW > 1920.f - SafeX;
+		const float LX = bLeft ? TC.X - 24.f : TC.X + 24.f, LA = bLeft ? 1.f : 0.f;
 		const float Stutter = View.bTransponderVerified ? .75f + .25f * FMath::Abs(FMath::Sin(Now * 47.f)) : 1.f;
 		const FLinearColor Col = (View.bTransponderVerified ? T::Shield() : T::Dim()).CopyWithNewOpacity(.85f * Stutter);
 		P.Brackets(TC, 16.f, Col, 6.f);
 		const FString Word = View.bTransponderVerified ? TEXT("VERIFIED") : TEXT("UNKNOWN");
-		P.Words(TC.X + 24.f, TC.Y - 16.f, TEXT("TRANSPONDER"), 11, T::Dim().CopyWithNewOpacity(.8f), "Bold", 0.f, 120);
-		P.Words(TC.X + 24.f, TC.Y - 2.f, Word, 13, Col, "Bold", 0.f, 100);
-		P.Words(TC.X + 24.f, TC.Y + 14.f, View.TransponderMetres >= 1000.f ? FString::Printf(TEXT("%.1f km"), View.TransponderMetres / 1000.f)
-			: FString::Printf(TEXT("%.0f m"), View.TransponderMetres), 11, T::Dim().CopyWithNewOpacity(.7f), "Bold", 0.f, 40);
-		Rec(View.bTransponderVerified ? TEXT("transponder_verified") : TEXT("transponder"), TC.X - 16.f, TC.Y - 16.f, 120.f, 46.f);
+		P.Words(LX, TC.Y - 16.f, TEXT("TRANSPONDER"), 11, T::Dim().CopyWithNewOpacity(.8f), "Bold", LA, 120);
+		P.Words(LX, TC.Y - 2.f, Word, 13, Col, "Bold", LA, 100);
+		P.Words(LX, TC.Y + 14.f, View.TransponderMetres >= 1000.f ? FString::Printf(TEXT("%.1f km"), View.TransponderMetres / 1000.f)
+			: FString::Printf(TEXT("%.0f m"), View.TransponderMetres), 11, T::Dim().CopyWithNewOpacity(.7f), "Bold", LA, 40);
+		const float BoxX = bLeft ? TC.X - 24.f - LabelW : TC.X - 16.f;
+		Rec(View.bTransponderVerified ? TEXT("transponder_verified") : TEXT("transponder"), BoxX, TC.Y - 16.f, LabelW + 40.f, 46.f);
 	}
 
 	// ---- objective waypoints: a white diamond + range on screen (health bar on a generator), an edge diamond off screen

@@ -308,6 +308,13 @@ public:
 	 *  and wave 5 cleared); this never says it is open. */
 	static bool IsFieldAnchorDisabled(const UObject* WorldContextObject);
 	UStaticMeshComponent* GetDormantDrone() const { return DormantDrone; }
+	/** Cinematic 03's drone (features.md row "drone wakes blue, three pulses"): its optic, dark until C3_Wren_Answered,
+	 *  then three blue blinks in step with T3's light and steady blue; the drone lifts off the deck as it wakes. */
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> DroneOptic;
+	FVector DroneHome = FVector::ZeroVector;
+	double DroneWakeStart = -1.0;
+	UFUNCTION() void HandleStoryLine(const struct FTDTransmissionView& Line);
+	void TickDroneWake();
 private:
 	float InteriorTime = 0.f;
 	/** Story beats on objective moments (T3's transmissions, storyline.md §5): planets and interior. */

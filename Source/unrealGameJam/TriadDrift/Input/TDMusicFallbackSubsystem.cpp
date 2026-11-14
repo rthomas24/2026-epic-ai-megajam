@@ -90,6 +90,7 @@ void UTDMusicFallbackSubsystem::HandleBridgeEvent(FName EventId, UObject* WorldC
 	else if (EventId == UTDMusicEventBridge::VictoryStingerDone) { EventPlacement = ETDMusicPlacement::Credits; }
 	else if (EventId == UTDMusicEventBridge::VictoryEnded) { if (EventPlacement == ETDMusicPlacement::Credits) { EventPlacement = ETDMusicPlacement::None; } }
 	else if (EventId == UTDMusicEventBridge::GroundCombat) { bGroundFight = true; }
+	else if (EventId == UTDMusicEventBridge::Takeoff) { bTakenOff = true; }
 	else if (EventId == UTDMusicEventBridge::GroundAllClear) { bGroundFight = false; }
 	else if (EventId == UTDMusicEventBridge::CoreChamberEntered) { EventPlacement = ETDMusicPlacement::CoreChamber; }
 	else if (EventId == UTDMusicEventBridge::ReactorFightStarted) { EventPlacement = ETDMusicPlacement::ReactorFight; }
@@ -109,7 +110,7 @@ ETDMusicPlacement UTDMusicFallbackSubsystem::ComputeWanted() const
 			return (S.bGroundCombat || bGroundFight) ? ETDMusicPlacement::CinderCombat : ETDMusicPlacement::CinderExplore;
 		}
 		// Verdance, after the reveal: Nick's theme (N-059) as a fallback; his own Verdance player's claim stands it down.
-		if (S.Destination == FName(TEXT("Verdance")) && S.bPlanetRevealed)
+		if (S.Destination == FName(TEXT("Verdance")) && S.bPlanetRevealed && !bTakenOff)
 		{
 			return ETDMusicPlacement::VerdanceExplore;
 		}

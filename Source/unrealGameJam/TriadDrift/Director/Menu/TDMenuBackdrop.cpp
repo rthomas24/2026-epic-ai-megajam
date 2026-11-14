@@ -33,6 +33,10 @@
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Director/Intro/TDIntroDirector.h"
 
+static float MenuPlanetOffsetRadii = 3.2f;
+static FAutoConsoleVariableRef CVarTDMenuPlanetOffset(TEXT("td.Menu.PlanetOffset"), MenuPlanetOffsetRadii,
+	TEXT("Menu backdrop: how far right of the frame's centre Verdance sits, in planet radii (read when the menu opens)."));
+
 static TAutoConsoleVariable<int32> CVarTDMenuBackdrop(
 	TEXT("td.MenuBackdrop"), 1,
 	TEXT("Main menu backdrop (sky, Verdance, drifting camera, squad fly-bys): 1 = on (default), 0 = off."),
@@ -155,7 +159,8 @@ void ATDMenuBackdrop::Build()
 	CamBase = PlanetAt + (CamDir + FVector::UpVector * 0.22f).GetSafeNormal() * (PlanetRadius * 14.f);
 	const FVector ToPlanet = (PlanetAt - CamBase).GetSafeNormal();
 	const FVector Right = FVector::CrossProduct(FVector::UpVector, ToPlanet).GetSafeNormal();
-	LookBase = PlanetAt - Right * (PlanetRadius * 2.6f);
+	// Nicholas #90: the planet's body clear of the centred menu panel (ends ~0.66 of the width), through the drift.
+	LookBase = PlanetAt - Right * (PlanetRadius * MenuPlanetOffsetRadii);
 	Camera = World->SpawnActor<ACameraActor>(ACameraActor::StaticClass(), FTransform((LookBase - CamBase).Rotation(), CamBase), Params);
 	if (Camera)
 	{
@@ -202,6 +207,23 @@ void ATDMenuBackdrop::Build()
 			C->SetVisibility(false);
 			C->RegisterComponent();
 			SquadMeshes.Add(C);
+			// The ship's visual parts (canopies): attached, so they fly, bank and hide with the hull.
+			for (const FTDShipVisualPart& PartSpec : Visuals->Parts)
+			{
+				UStaticMesh* PartMesh = PartSpec.Mesh.IsNull() ? nullptr : PartSpec.Mesh.LoadSynchronous();
+				if (!PartMesh) { continue; }
+				UStaticMeshComponent* Part = NewObject<UStaticMeshComponent>(Squad);
+				Part->SetupAttachment(C, C->DoesSocketExist(PartSpec.ParentSocket) ? PartSpec.ParentSocket : NAME_None);
+				Part->SetRelativeTransform(PartSpec.RelativeTransform);
+				Part->SetStaticMesh(PartMesh);
+				Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				for (int32 i = 0; i < PartSpec.MaterialOverrides.Num(); ++i)
+				{
+					if (UMaterialInterface* M = PartSpec.MaterialOverrides[i].LoadSynchronous()) { Part->SetMaterial(i, M); }
+				}
+				Part->SetVisibility(false);
+				Part->RegisterComponent();
+			}
 			// The ship's own thrusters (NS_TD_Engine_<ship>): one per nozzle socket, the hull origin without; no sound
 			// in the menu, a short cruising trail.
 			FTDFXCue Trail = Visuals->EngineTrail;
@@ -218,6 +240,7 @@ void ATDMenuBackdrop::Build()
 					{
 						ATDShip::SetExhaustParamIfExposed(FX, TEXT("Throttle"), 0.8f);
 						ATDShip::SetExhaustParamIfExposed(FX, TEXT("Boost"), 0.25f);
+						FX->SetAutoDestroy(false); // it is switched off between passes: it must survive that
 						FX->Deactivate();
 						FX->SetVisibility(false);
 						SquadTrails.Add(FX);
@@ -543,7 +566,7 @@ void ATDMenuBackdrop::ShowSquad(bool bShow)
 {
 	for (UStaticMeshComponent* C : SquadMeshes)
 	{
-		if (C) { C->SetVisibility(bShow); }
+		if (C) { C->SetVisibility(bShow, true); } // and its parts
 	}
 	bRestartTrails = bShow;
 	if (!bShow)

@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Triad Drift team. Epic AI MegaJam entry.
 #include "TriadDrift/Perf/TDWarmupSubsystem.h"
 
+#include "TriadDrift/Combat/TDCombatAssetList.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -102,6 +103,20 @@ namespace
 	}
 }
 
+namespace
+{
+	// T2's combat list (#89): the combat classes and the assets combat code loads by path, per map (Galaxy: space
+	// combat and the Dominion; elsewhere: on foot). Registered here so the Combat module needs no warm-up code.
+	struct FTDRegisterCombatWarmup
+	{
+		FTDRegisterCombatWarmup()
+		{
+			UTDWarmupSubsystem::RegisterProvider(TEXT("Combat"),
+				[](const UWorld& W, TArray<FSoftObjectPath>& Out) { FTDCombatAssetList::Collect(W, Out); });
+		}
+	} GTDRegisterCombatWarmup;
+}
+
 TMap<FName, UTDWarmupSubsystem::FProvider>& UTDWarmupSubsystem::Providers()
 {
 	static TMap<FName, FProvider> Map;
@@ -140,6 +155,37 @@ TArray<FName> UTDWarmupSubsystem::GetWarmFolders()
 	return { FName(*UTDStatics::GetPresentationFolder()), FName(TEXT("/Game/TriadDrift/Gameplay/Characters")) };
 }
 
+bool UTDWarmupSubsystem::IsWantedForMap(const FString& PackagePath, const FString& MapName)
+{
+	// Per map (#89: warming everything everywhere cost about 650 MB of RAM). The galaxy has no one on foot; the planets
+	// and the Dominion interior have no fleet and no Dominion hull. Shared folders (FX, barks, squad, presentation) are
+	// warmed everywhere. A folder left out is only loaded on first use, as before the warm-up.
+	static const TCHAR* OnFoot[] = { TEXT("/Crew"), TEXT("/Pilot"), TEXT("/NullGrunt"), TEXT("/NullHeavy"), TEXT("/NullTrooper"),
+		TEXT("/NullDrone"), TEXT("/Warden") };
+	static const TCHAR* SpaceOnly[] = { TEXT("/NullFleet"), TEXT("/Dominion") };
+	const bool bGalaxy = MapName.Contains(TEXT("Galaxy"));
+	const FString Characters = TEXT("/Game/TriadDrift/Gameplay/Characters");
+	if (!PackagePath.StartsWith(Characters))
+	{
+		return true;
+	}
+	const FString Rest = PackagePath.Mid(Characters.Len());
+	for (const TCHAR* F : (bGalaxy ? MakeArrayView(OnFoot) : MakeArrayView(SpaceOnly)))
+	{
+		if (Rest.StartsWith(F))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool UTDWarmupSubsystem::IsWantedOnThisMap(const FString& PackagePath) const
+{
+	const UWorld* World = GetWorld();
+	return IsWantedForMap(PackagePath, World ? World->GetMapName() : FString());
+}
+
 void UTDWarmupSubsystem::CollectSoftPaths(const UObject* Object, TArray<FSoftObjectPath>& Out)
 {
 	if (Object)
@@ -176,6 +222,10 @@ void UTDWarmupSubsystem::StartDataLoad()
 		{
 			// Data assets, plus every animation: the pilot's and the crew's moves are looked up by path string the first
 			// time they play (first swing, first death), which was a synchronous load in the middle of a fight.
+			if (!IsWantedOnThisMap(Data.PackagePath.ToString()))
+			{
+				continue;
+			}
 			const FName Class = Data.AssetClassPath.GetAssetName();
 			if (Data.AssetName.ToString().StartsWith(TEXT("DA_")) || Class == TEXT("AnimSequence") || Class == TEXT("AnimMontage")
 				|| Class == TEXT("BlendSpace") || Class == TEXT("BlendSpace1D"))
