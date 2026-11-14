@@ -167,6 +167,16 @@ S2('NS_TD_Debug_BeaconLOD', U((1.0, 0.62, 0.18, 1.0), 1.0), dbg_beacon('(0.028*E
 S2('NS_TD_Debug_HazeField', U((0.70, 0.85, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0)])
 S2('NS_TD_Debug_HazeBase', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='M_TD_RegionHaze'), keepalive()])
 
+# 10f debug (one lock turn): is a lone sprite at the system origin culled by degenerate dynamic bounds? (The light row and
+# the plume beacons sit beside other geometry and show; the region beacon and BeaconFixed, alone at the origin, never did.)
+def fixed_bounds(e, half=5000.0):
+    e['props'].update({'CalculateBoundsMode': 'Fixed', 'FixedBounds': {'min': {'x': -half, 'y': -half, 'z': -half}, 'max': {'x': half, 'y': half, 'z': half}, 'isValid': True}})
+    return e
+S2('NS_TD_Debug_BeaconFixedB', U((1.0, 0.62, 0.18, 1.0), 1.0), [fixed_bounds(dbg_beacon('840.0')[0])])
+S2('NS_TD_Debug_GlowOffset', U((1.0, 0.62, 0.18, 1.0), 1.0), [offset(dbg_beacon('840.0')[0], 300.0)])
+S2('NS_TD_Debug_RangeA', U((1.0, 0.62, 0.18, 1.0), 1.0), [fixed_bounds(shed('Beacon', 'MI_TD_VFX_RangeGlow_Plume', 0, (0.1, 0.1), (1520.0, 1520.0), (0, 0), radius=0.0, drag=0.0, local=True, power=0.01, k=8.0, rate_expr='20.0'))])
+S2('NS_TD_Debug_Haze2', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='M_TD_RegionHaze2'), keepalive()])
+
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
 # ---- round 10 MAJOR (T7's play): Cinder magma kills but does not read as dangerous on foot. A looping hazard layer for
@@ -194,7 +204,7 @@ S2('NS_TD_Magma_Heat', U((1.0, 0.42, 0.08, 1.0), 1.0, SizeX=800.0, SizeY=800.0, 
          rgb=(9.0, 3.6, 0.6), cone=((0.0, 0.0, 1.0), 25.0), rate_expr=magma_rate(0.25, 6.0, 70.0), power=1.4, fade_in=6.0),
     # 10e (Lead: at 5 m the streaks crossed the whole view): size and count about 40% down, still arcs at 20 m
     with_gravity(shed('Spatter', 'M_TD_VFX_Spark', 0, (0.6, 1.0), (24, 48), (450, 900), k=2.6, radius=MRAD, drag=0.1, local=True, stretch=4,
-                      rgb=(12.0, 5.0, 0.8), cone=((0.0, 0.0, 1.0), 30.0), rate_expr=magma_rate(0.036, 2.0, 14.0), power=0.8)),
+                      rgb=(12.0, 5.0, 0.8), cone=((0.0, 0.0, 1.0), 30.0), rate_expr=magma_rate(0.06, 3.0, 24.0), power=0.8)),   # 10f: count back up (size stays) so the arcs read at 20 m
     shed('Shimmer', 'M_TD_VFX_Fire', 0, (0.8, 1.4), (90, 180), (60, 140), k=0.35, radius=MRAD, drag=0.6, local=True,
          cone=((0.0, 0.0, 1.0), 10.0), growth='0.6 + Particles.NormalizedAge*0.8', rate_expr=magma_rate(0.02, 2.0, 12.0), power=1.0, fade_in=4.0)])
 
