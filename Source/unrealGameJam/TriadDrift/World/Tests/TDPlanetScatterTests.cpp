@@ -99,7 +99,7 @@ bool FTDScatterV2Cinder::RunTest(const FString&)
 	int32 Crystals = 0, OffPatch = 0, InRiver = 0, Kept = 0;
 	for (int32 k = 0; k < P.Kinds.Num(); ++k)
 	{
-		const bool bCrystal = P.Kinds[k].MeshPath.Contains(TEXT("Crystal")) && P.Kinds[k].CullEndCm > 15000.f;	// zone crystals and spires, not the near ring's
+		const bool bCrystal = P.Kinds[k].MeshPath.Contains(TEXT("Crystal")) && P.Kinds[k].CullEndCm > 15000.f && P.Kinds[k].CullEndCm < 150000.f;	// the zone crystal clusters (not the spires, a few of which stand on the flats as landmarks, nor the near ring)
 		for (const TArray<TArray<FTransform>>* Set : { &A.Near, &A.Far })
 		{
 			for (const FTransform& X : (*Set)[k])

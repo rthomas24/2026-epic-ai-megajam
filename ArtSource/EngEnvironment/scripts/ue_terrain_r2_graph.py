@@ -46,6 +46,9 @@ SCALARS = {
     "StrataScaleM": (90.0, 70.0), "StrataAlongM": (700.0, 600.0), "StrataContrast": (0.75, 1.1), "TriTop": (1.5, 1.5),
     "HueKeep": (0.12, 0.45),               # R3: the moss mean has almost no blue, so its blue-ish pixels turned into cyan cells near the pad                # how much of the texture's own hue variation survives the retint
     "DetailContrast": (1.0, 1.0),
+    "MacroTileA": (6000.0, 6000.0), "MacroTileB": (24000.0, 24000.0), "MacroMixStart": (40000.0, 40000.0),
+    "MacroMixRange": (80000.0, 80000.0), "MacroContrast": (0.55, 0.45), "MacroFarStart": (180000.0, 180000.0),
+    "MacroFarRange": (150000.0, 150000.0), "MacroNormal": (0.6, 0.6),
     "NoiseS": (3700.0, 3700.0), "NoiseM": (23000.0, 23000.0), "NoiseL": (190000.0, 190000.0), "NoiseXL": (730000.0, 730000.0),
     "ValueVar": (0.55, 0.5), "HueContrast": (2.2, 2.0), "TintCThreshold": (0.68, 0.62), "TintCSoft": (0.18, 0.2),
     "RoughVar": (0.12, 0.1),
@@ -260,6 +263,19 @@ def build_graph(b, t, means):
         d = detail(tex(slot + "BC", bc, ST.SAMPLERTYPE_COLOR, uvn), tex(slot + "BC", bc, ST.SAMPLERTYPE_COLOR, uvf), slot)
         return d, rgb(tex(slot + "N", nr, ST.SAMPLERTYPE_NORMAL, uvn))
     flat_d, flat_n = top("Flat")
+    # R3 pass 4 (flight distances): where the near / far texture tiles have faded to the plain mean (beyond ~0.5 km), the
+    # flat layer gets a macro tile instead: the same moss set at two big rotated scales (60 m and 240 m) cross-faded by
+    # camera distance, luminance only, so the ground keeps crisp structure from 120 m to ~2 km; gone by MacroFarEnd.
+    fbc, fnr = "T_Terr_%s_BC" % LAYERS["Flat"][0], "T_Terr_%s_N" % LAYERS["Flat"][0]
+    uvm1 = rot_uv(11.0, S("MacroTileA"), (0.41, 0.13))
+    uvm2 = rot_uv(-37.0, S("MacroTileB"), (0.07, 0.59))
+    mmix = ramp(depth, S("MacroMixStart"), S("MacroMixRange"))
+    mlum = div(dot(lerp(rgb(tex("FlatBC", fbc, ST.SAMPLERTYPE_COLOR, uvm1)), rgb(tex("FlatBC", fbc, ST.SAMPLERTYPE_COLOR, uvm2)), mmix), lumw),
+               dot(Vp("FlatMean"), lumw))
+    mfar = inv(ramp(depth, S("MacroFarStart"), S("MacroFarRange")))
+    macro_d = add(1.0, mul(sub(mlum, 1.0), mul(S("MacroContrast"), mfar)))
+    flat_d = lerp(flat_d, macro_d, fm)        # flat_d was exactly 1 where fm = 1
+    macro_n = rgb(tex("FlatN", fnr, ST.SAMPLERTYPE_NORMAL, uvm1))
     patch_d, patch_n_ = top("Patch")
     low_d, low_n = top("Low")
     peak_d, peak_n = top("Peak")
@@ -327,7 +343,8 @@ def build_graph(b, t, means):
     # world-space normal: vertex normal * tangent z + the projected tangent xy; detail fades with distance and on water
     top_n = lerp(lerp(lerp(flat_n, patch_n_, patch_w), low_n, low_w), peak_n, peak_w)
     keep = mul(mul(lerp(1.0, 0.35, fa), inv(fm)), inv(molten))
-    p_top = mul(app(mask(top_n, r=True, g=True), 0.0), mul(S("NormalStrength"), keep))
+    p_top = add(mul(app(mask(top_n, r=True, g=True), 0.0), mul(S("NormalStrength"), keep)),
+                mul(app(mask(macro_n, r=True, g=True), 0.0), mul(mul(S("MacroNormal"), fm), mul(mfar, inv(molten)))))
     rs = mul(mul(S("RockNormalStrength"), mul(lerp(1.0, 0.35, fa), inv(fm))), inv(wtop))
     rx = mul(mask(r_nrm, r=True), rs)
     p_rock = app(app(mul(rx, inv(wsel)), mul(rx, wsel)), mul(mask(r_nrm, g=True), mul(rs, -1.0)))

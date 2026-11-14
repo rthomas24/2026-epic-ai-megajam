@@ -309,8 +309,8 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 		Sun->SetLightColor(FLinearColor(1.f, 0.55f, 0.34f));
 		Atmosphere->SetRayleighScattering(FLinearColor(0.035f, 0.01f, 0.004f));
 		Atmosphere->SetMieScatteringScale(0.004f);
-		if (Fill) { Fill->SetWorldRotation(FRotator(-30.f, 310.f, 0.f)); Fill->SetLightColor(FLinearColor(0.8f, 0.45f, 0.35f)); Fill->SetIntensity(2.6f); }
-		SkyLight->SetIntensity(3.5f);
+		if (Fill) { Fill->SetWorldRotation(FRotator(-30.f, 310.f, 0.f)); Fill->SetLightColor(FLinearColor(0.8f, 0.45f, 0.35f)); Fill->SetIntensity(4.f); }	// pass 3: self-shadowed slopes out of near-black (was 2.6)
+		SkyLight->SetIntensity(5.f);	// pass 3 (was 3.5)
 		FPostProcessSettings& S = Exposure->Settings;
 		S.bOverride_AutoExposureMethod = true;
 		S.AutoExposureMethod = EAutoExposureMethod::AEM_Manual;

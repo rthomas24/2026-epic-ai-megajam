@@ -95,6 +95,7 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 	};
 	if (Planet == ETDDestination::Verdance)
 	{
+		P.CanopySpacing = 5000.f;	// pass 3: ~2-3x the clumps inside a stand (none in the gaps), so a stand reads as forest
 		R.Trees = P.Kinds.Num();
 		for (const FTDScatterSpecies& S : GTDScatterTrees)
 		{
@@ -109,10 +110,11 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		}
 		// Far-tier canopy clumps (their material dithers them out nearer than ~0.8 km, where the trees take over): green
 		// forest stands (MI_Scatter_Canopy_Forest), with the bioluminescent pink / cyan clumps kept as accents (~12 %).
-		const FString ForestMat = FString::Printf(TEXT("%s/Scatter/MI_Scatter_Canopy_Forest.MI_Scatter_Canopy_Forest"), GProps);
+		// pass 3: the forest stands are SM_Scatter_Verd_CanopyStand_01..03 (environment builder, Blender: lumpy crown masses,
+		// dark concave underside in vertex colour, 60-80 tris, 30-42 m; M_TD_CanopyStand dithers them out nearer ~0.75 km).
 		for (int32 i = 1; i <= 3; ++i)
 		{
-			R.Canopy.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Verd_Canopy_%02d"), i)), 1.2f, 2.0f, 400.f, 420000.f, 460000.f, 5000.f, false, false, false, ForestMat));
+			R.Canopy.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Verd_CanopyStand_%02d"), i)), 1.4f, 2.2f, 300.f, 420000.f, 460000.f, 2200.f, false, false, false));
 		}
 		R.CanopyAccent.Add(Add(TDScatter_Path(TEXT("Scatter"), TEXT("SM_Scatter_Verd_Canopy_02")), 1.0f, 1.5f, 400.f, 420000.f, 460000.f, 4000.f, false, false, false));
 		for (int32 i = 1; i <= 3; ++i)
@@ -151,11 +153,11 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 	else
 	{
 		P.GroveSpacing = 3500.f;	// crystal clusters: the obsidian patches cover a larger share of Cinder than groves do of Verdance
-		P.CanopySpacing = 9000.f;	// spires
+		P.CanopySpacing = 6000.f;	// spires
 		const FString RockMat = FString::Printf(TEXT("%s/Scatter/MI_Scatter_Rock_Cinder.MI_Scatter_Rock_Cinder"), GProps);
 		for (int32 i = 1; i <= 2; ++i)
 		{
-			R.Columns.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_BasaltColumn_%02d"), i)), 1.5f, 4.f, 60.f, 160000.f, 220000.f, 700.f, true, false, true));
+			R.Columns.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_BasaltColumn_%02d"), i)), 3.f, 7.f, 80.f, 260000.f, 320000.f, 900.f, true, false, true));
 		}
 		for (int32 i = 1; i <= 2; ++i)
 		{
@@ -314,14 +316,15 @@ int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM
 	{
 		// Basalt fields: columns on the flats at mid height, a few charred trees.
 		if (Sm.Slope > 0.3f || HeightM > 1100.f) { return INDEX_NONE; }
-		const float Col = 0.2f * FMath::Clamp(1.f - Sm.Slope * 3.f, 0.f, 1.f);
+		// pass 3: clusters of large columns (they read at 300-900 m): dense where the stand noise is up, none elsewhere.
+		const float Col = (Stand > 0.15f ? 0.55f : 0.04f) * FMath::Clamp(1.f - Sm.Slope * 3.f, 0.f, 1.f);
 		const float Char = 0.06f * FMath::Clamp((HeightM - 50.f) / 200.f, 0.f, 1.f);
 		if (Rnd < Col) { return TDScatter_OneOf(R.Columns, Rnd / FMath::Max(Col, 0.01f)); }
 		if (Rnd < Col + Char) { return TDScatter_OneOf(R.CharTrees, (Rnd - Col) / FMath::Max(Char, 0.01f)); }
 		return INDEX_NONE;
 	}
-	case ModeCanopy:	// crystal spires on the obsidian patches
-		return (bPatch && Sm.Slope < 0.4f && Rnd < 0.5f) ? TDScatter_OneOf(R.Spires, Rnd / 0.5f) : INDEX_NONE;
+	case ModeCanopy:	// crystal spires on the obsidian patches, and a few on the flats as landmarks
+		return (Sm.Slope < 0.4f && Rnd < (bPatch ? 0.7f : 0.04f)) ? TDScatter_OneOf(R.Spires, Rnd / (bPatch ? 0.7f : 0.04f)) : INDEX_NONE;
 	case ModeRock:
 	{
 		const float Cliff = FMath::Clamp((Sm.Slope - 0.25f) * 4.f, 0.f, 1.f) * FMath::Clamp((0.65f - Sm.Slope) * 6.f, 0.f, 1.f);
@@ -619,6 +622,8 @@ void ATDPlanetScatter::Apply(FTDScatterResult&& Result, double Ms)
 			AddInstanceComponent(H);
 			Hisms.Add(H);
 			InstanceCount += Xfs.Num();
+			UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: %s x%d (%s, cull %d-%d, mat %s)"), *Mesh->GetName(), Xfs.Num(), Pass == 0 ? TEXT("near") : TEXT("far"),
+				H->InstanceStartCullDistance, H->InstanceEndCullDistance, H->GetMaterial(0) ? *H->GetMaterial(0)->GetName() : TEXT("none"));
 		}
 	}
 	UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: zone layer %d instances in %d HISMs (generate %.0f ms off-thread, apply %.0f ms)"),
