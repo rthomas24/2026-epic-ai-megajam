@@ -330,7 +330,12 @@ bool FTDReviewCollisionEvents::RunTest(const FString& Parameters)
 	TestFalse(TEXT("40 deg is glancing"), H40);
 	TestTrue(TEXT("90 deg is head-on"), H90);
 	TestTrue(FString::Printf(TEXT("damage grows with angle (20: %.1f, 40: %.1f, 90: %.1f)"), D20, D40, D90), D20 < D40 && D40 < D90);
-	TestEqual(TEXT("head-on at cruise = 60"), D90, 60.f, 6.f);
+	// Ryan's world-impact curve (Nov 13): MaxHull x WorldImpactHullAtBoost x (v^2 - s^2) / (boost^2 - s^2), v = cruise here.
+	{
+		const FTDFlightTuning T;
+		const float K = (FMath::Square(T.CruiseSpeed) - FMath::Square(T.WorldScrapeSpeed)) / (FMath::Square(T.BoostSpeed) - FMath::Square(T.WorldScrapeSpeed));
+		TestEqual(TEXT("head-on at cruise: the squared-speed curve"), D90, 100.f * T.WorldImpactHullAtBoost * K, 4.f);
+	}
 
 	// Cooldown + pinned contact: fly into the wall and keep pushing.
 	{
