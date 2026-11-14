@@ -1,0 +1,27 @@
+[
+  {
+    "take": "01",
+    "raw": "t01_liora.wav",
+    "out": "VO_PresentWren_Order_01_dry.wav"
+  },
+  {
+    "take": "02",
+    "raw": "t02_liora.wav",
+    "out": "VO_PresentWren_Order_02_dry.wav"
+  },
+  {
+    "take": "03",
+    "raw": "t03_liora.wav",
+    "out": "VO_PresentWren_Order_03_dry.wav"
+  },
+  {
+    "take": "04",
+    "raw": "t04_liora.wav",
+    "out": "VO_PresentWren_Order_04_dry.wav"
+  },
+  {
+    "take": "05",
+    "raw": "t05_liora.wav",
+    "out": "VO_PresentWren_Order_05_dry.wav"
+  }
+]

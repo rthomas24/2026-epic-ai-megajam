@@ -2,6 +2,8 @@
 
 ## WAKE-UP REPORT for Ryan: overnight Nov 13-14 (Ryan's Lead, written 08:50 EST Nov 14)
 
+**Update 10:00:** main is batch Z (`80a2ee4d`, gate 1005/1005) plus documents; newest package `playable-main-80a2ee4d`. Ryan's new bar (09:15): agent-played and judged good = done. Played and good since the report below: the Warden fight, the reactor conduits and heart, the escape run and flight, victory, stinger and credits music (T7); landing and take-off on both planets and drift (T1); the reward screen, portal blaster, ram, EMP Pulse, shield dome, Gravity Well and boost pickup (T2). Open from play: no on-foot marker on the "head to" legs, the Cloak effect, the hangar start, the ability hint card, enemies left after the space-reactor victory. PRs: #78 and #93 merged, #83 and #12 closed, #11 and #85 wait on Nicholas until 10:30.
+
 **Update 09:15:** main is now batch Y (`8b4eabae`, gate 999/999); newest package `playable-main-8b4eabae` (zip `TriadDrift_8b4eabae_Shipping.zip` in the for-ryan builds folder, 877 MB, cook 0 errors 0 warnings, checked in Shipping to wave 1 only). Batch Z is gating. PR #78 (Wren take 04, chosen by Nicholas) needs Ryan's merge click.
 
 **Main:** `c8f78e1e` (batch X, gate 991/991). Batch Y is gating (`lead/int-y` 305453c7).
