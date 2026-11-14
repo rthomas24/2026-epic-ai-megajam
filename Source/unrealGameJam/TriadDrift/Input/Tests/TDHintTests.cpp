@@ -171,7 +171,14 @@ bool FTDHintsLater::RunTest(const FString& Parameters)
 	S.Squad->RequestSwitchTo(ETDShipId::Bastion);
 	S.W.Advance(1.f);
 	TestEqual(TEXT("ability hint"), S.WaitForHint(), ETDHint::Ability);
-	TestTrue(*FString::Printf(TEXT("names the ability (%s)"), *S.Hints->GetCurrentText().ToString()), S.Hints->GetCurrentText().ToString().Contains(TEXT("GRAVITY")));
+	TestTrue(*FString::Printf(TEXT("names the ability (%s)"), *S.Hints->GetCurrentText().ToString()), S.Hints->GetCurrentText().ToString().Contains(TEXT("GRAVITY WELL")));
+	// Live (Nov 14): the card stayed up on the wrong ship. Switched away it comes off; back on Bastion it returns.
+	S.Squad->RequestSwitchTo(ETDShipId::Rift);
+	S.W.Advance(1.f);
+	TestNotEqual(TEXT("on Rift: no Gravity Well card"), S.Hints->GetCurrentHint(), ETDHint::Ability);
+	S.Squad->RequestSwitchTo(ETDShipId::Bastion);
+	S.W.Advance(1.f);
+	TestEqual(TEXT("back on Bastion: its card again"), S.WaitForHint(), ETDHint::Ability);
 	S.Press(EKeys::E, 0.05f);
 	TestTrue(TEXT("E completes the ability hint"), S.Hints->IsHintDone(ETDHint::Ability));
 	return true;

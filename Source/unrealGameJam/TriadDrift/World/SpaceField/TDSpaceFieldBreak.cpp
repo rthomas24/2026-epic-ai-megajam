@@ -70,7 +70,7 @@ float ATDSpaceField::HealthFor(float Size, bool bWreck) const
 	{
 	case 0: return SmallHealth;
 	case 1: return MediumHealth;
-	default: return LargeHealthBase + LargeHealthPerMetre * Size / 100.f;
+	default: return FMath::Min(LargeHealthBase + LargeHealthPerMetre * Size / 100.f, LargeHealthMax);	// 14-20 bolts
 	}
 }
 
@@ -149,8 +149,19 @@ bool ATDSpaceField::DamagePiece(int32 Piece, float Damage, AActor* ByWhom)
 	return true;
 }
 
+static int32 GTDLogBreaks = 0;
+static FAutoConsoleVariableRef CVarTDLogBreaks(TEXT("td.SpaceField.LogBreaks"), GTDLogBreaks,
+	TEXT("1: log every field break (piece, class, size, special, who broke it). Live captures and playtests."));
+
 void ATDSpaceField::BreakPiece(int32 Piece, AActor* ByWhom)
 {
+	if (GTDLogBreaks != 0 && Pieces.IsValidIndex(Piece))
+	{
+		const FTDSpaceFieldPiece& P = Pieces[Piece];
+		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.Break: piece %d %s %.0f m%s by %s"), Piece,
+			P.Size < 1000.f ? TEXT("small") : P.Size < 4000.f ? TEXT("medium") : TEXT("large"), P.Size / 100.f,
+			States.IsValidIndex(Piece) && States[Piece].bSpecial ? TEXT(" special") : TEXT(""), *GetNameSafe(ByWhom));
+	}
 	// Timed at the outermost break only (a ram can break several in one call; each is counted inside).
 	const double Start = FPlatformTime::Seconds();
 	++PerfBreakDepth;

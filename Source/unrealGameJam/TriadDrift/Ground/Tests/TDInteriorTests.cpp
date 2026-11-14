@@ -562,6 +562,8 @@ bool FTDInteriorHangarStartClear::RunTest(const FString& Parameters)
 		if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
 		const FTransform Start = I.Course->GetInteriorStart();
 		const FVector A = Start.GetLocation() + FVector(0.f, 0.f, 90.f);
+		const FVector LocalStart = I.Course->GetActorTransform().InverseTransformPosition(Start.GetLocation());
+		TestTrue(*FString::Printf(TEXT("ship %d: 5 m or more off the pad's line (y %.0f)"), (int32)Ship, LocalStart.Y), FMath::Abs(LocalStart.Y) >= 499.f);
 		int32 Parts = 0;
 		for (const TObjectPtr<UStaticMeshComponent>& Part : I.Course->GetParkedParts())
 		{

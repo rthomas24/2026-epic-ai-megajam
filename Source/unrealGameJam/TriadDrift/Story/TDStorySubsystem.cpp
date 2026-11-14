@@ -1147,6 +1147,7 @@ void UTDStorySubsystem::StartNext()
 	{
 		OnAirSeconds = SecondsFor(OnAir);
 		Voice = UGameplayStatics::SpawnSound2D(this, Sound);
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: voice %s plays %s"), *OnAir.Id.ToString(), *Sound->GetPathName());
 	}
 	if (SoundOnly.Contains(OnAir.Id))
 	{

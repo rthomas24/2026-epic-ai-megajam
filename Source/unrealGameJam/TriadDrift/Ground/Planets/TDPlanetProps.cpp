@@ -597,11 +597,35 @@ void ATDShatterCrystal::BeginPlay()
 	TDPropArt::Dress(Mesh, TDPropArt::Load(CrystalMesh));
 }
 
+void ATDShatterCrystal::ShowBroken(bool bShow)
+{
+	UStaticMesh* Art = bShow && !Broken ? TDPropArt::Load(BrokenMesh) : nullptr;
+	if (Art)
+	{
+		Broken = NewObject<UStaticMeshComponent>(this, TEXT("Broken"));
+		Broken->SetStaticMesh(Art);
+		Broken->SetMobility(EComponentMobility::Movable);
+		Broken->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+		Broken->SetupAttachment(GetRootComponent());
+		Broken->SetUsingAbsoluteScale(true);
+		Broken->RegisterComponent();
+		AddInstanceComponent(Broken);
+		Broken->SetWorldLocationAndRotation(GetActorLocation(), GetActorRotation());
+		Broken->SetWorldScale3D(FVector(1.f));
+	}
+	if (Broken)
+	{
+		Broken->SetVisibility(bShow);
+		Broken->SetCollisionEnabled(bShow ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
+	}
+}
+
 void ATDShatterCrystal::HandleDeath(UTDHealthComponent*, const FTDDamageInfo&)
 {
 	bShattered = true;
 	Mesh->SetVisibility(false, true);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ShowBroken(true);
 }
 
 void ATDShatterCrystal::ApplyCompleted()
@@ -609,6 +633,7 @@ void ATDShatterCrystal::ApplyCompleted()
 	bShattered = true;
 	Mesh->SetVisibility(false, true);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ShowBroken(true);
 }
 
 void ATDShatterCrystal::ResetProp()
@@ -622,6 +647,7 @@ void ATDShatterCrystal::ResetProp()
 	Health->InitMaxValues(MaxHealth, 0.f, true);
 	Mesh->SetVisibility(true, true);
 	Mesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	ShowBroken(false);
 }
 
 // ================================================================================================

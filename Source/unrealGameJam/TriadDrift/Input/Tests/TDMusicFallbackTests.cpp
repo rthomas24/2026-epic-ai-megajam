@@ -40,7 +40,7 @@ namespace TDT1Fallback
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1FallbackAssets, "TriadDrift.Input.MusicFallback.EveryAssignedTrackLoads", TD_TEST_FLAGS)
 bool FTDT1FallbackAssets::RunTest(const FString& Parameters)
 {
-	for (const ETDMusicPlacement P : { ETDMusicPlacement::Credits, ETDMusicPlacement::CinderExplore, ETDMusicPlacement::CinderCombat, ETDMusicPlacement::CoreChamber, ETDMusicPlacement::ReactorFight })
+	for (const ETDMusicPlacement P : { ETDMusicPlacement::Credits, ETDMusicPlacement::CinderExplore, ETDMusicPlacement::CinderCombat, ETDMusicPlacement::CoreChamber, ETDMusicPlacement::ReactorFight, ETDMusicPlacement::VerdanceExplore })
 	{
 		const TArray<FSoftObjectPath>& Tracks = UTDMusicFallbackSubsystem::TracksFor(P);
 		TestTrue(*FString::Printf(TEXT("%s has a track"), *UEnum::GetValueAsString(P)), Tracks.Num() > 0);
@@ -53,7 +53,8 @@ bool FTDT1FallbackAssets::RunTest(const FString& Parameters)
 	}
 	TestEqual(TEXT("the escape (Ritual) is not imported: empty, nothing plays"), UTDMusicFallbackSubsystem::TracksFor(ETDMusicPlacement::Escape).Num(), 0);
 	for (const TCHAR* Path : { TEXT("/Game/TriadDrift/Audio/DominionAssault02/MUS_DominionAssault_PushTheAttack_Full_01.MUS_DominionAssault_PushTheAttack_Full_01"),
-		TEXT("/Game/TriadDrift/Audio/IdleAmbient01/MUS_SpaceIdle_Ambient1_Full_01.MUS_SpaceIdle_Ambient1_Full_01") })
+		TEXT("/Game/TriadDrift/Audio/IdleAmbient01/MUS_SpaceIdle_Ambient1_Full_01.MUS_SpaceIdle_Ambient1_Full_01"),
+		TEXT("/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.MUS_Combat_EtherealPulseRemix_01") })
 	{
 		TestNotNull(*FString::Printf(TEXT("director fallback %s loads"), Path), Cast<USoundBase>(FSoftObjectPath(Path).TryLoad()));
 	}
@@ -111,7 +112,66 @@ bool FTDT1FallbackCinder::RunTest(const FString& Parameters)
 
 	GI->NotifyLevelEntered(ETDDestination::Verdance);
 	R.W.Advance(0.2f);
-	TestEqual(TEXT("not Cinder: nothing (Verdance is Nick's own theme)"), R.F->GetPlayingPlacement(), ETDMusicPlacement::None);
+	// (a test world keeps the bridge's reveal flag across this level change: no map load resets it)
+	TestTrue(TEXT("not Cinder any more: no Cinder track"), R.F->GetPlayingPlacement() != ETDMusicPlacement::CinderExplore && R.F->GetPlayingPlacement() != ETDMusicPlacement::CinderCombat);
+	return true;
+}
+
+// Lead (Nov 14, from T1's played check: Verdance had ambience only): Nick's Verdance theme (N-059) after the reveal, as a
+// marked fallback; his own Verdance player's claim stands it down at once.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1FallbackVerdance, "TriadDrift.Input.MusicFallback.VerdanceThemeAfterTheRevealUntilClaimed", TD_TEST_FLAGS)
+bool FTDT1FallbackVerdance::RunTest(const FString& Parameters)
+{
+	TDT1Fallback::FRig R;
+	UTDGameInstance* GI = Cast<UTDGameInstance>(R.W.GetGameInstance());
+	if (!R.F || !R.D || !GI) { return false; }
+	GI->NotifyLevelEntered(ETDDestination::Verdance);
+	R.W.Advance(0.2f);
+	TestEqual(TEXT("under the descent cover: nothing yet"), R.F->GetPlayingPlacement(), ETDMusicPlacement::None);
+	if (UTDDescentSubsystem* Desc = UTDDescentSubsystem::Get(R.W.GetWorld())) { Desc->OnRevealed.Broadcast(ETDDestination::Verdance); }
+	R.W.Advance(0.2f);
+	TestEqual(TEXT("revealed: the Verdance theme"), R.F->GetPlayingPlacement(), ETDMusicPlacement::VerdanceExplore);
+	TestTrue(TEXT("... MUS_Verdance_Main_Full_01"), R.F->GetPlayingTrack().ToString().Contains(TEXT("MUS_Verdance_Main_Full_01")));
+	TestTrue(TEXT("the director's beds hold meanwhile"), R.D->IsFallbackScorePlaying());
+	R.D->RequestExclusiveScore(TEXT("NickVerdance"));
+	R.W.Advance(0.1f);
+	TestEqual(TEXT("Nick's Verdance player claims: the fallback stands down"), R.F->GetPlayingPlacement(), ETDMusicPlacement::None);
+	R.D->ReleaseExclusiveScore(TEXT("NickVerdance"), 0.f);
+	return true;
+}
+
+// Lead (Nov 14): waves 3-5 played the waves 1-2 track. Waves 3-5 take the style's CombatMusicLate slot, else Nick's
+// handed-off waves 3-5 track (N-074) as a marked fallback; waves 1-2 keep CombatMusic.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1LateWaveMusic, "TriadDrift.Input.MusicFallback.WavesThreeToFiveHaveTheirOwnTrack", TD_TEST_FLAGS)
+bool FTDT1LateWaveMusic::RunTest(const FString& Parameters)
+{
+	for (const ETDGamePhase Phase : { ETDGamePhase::Waves3to4, ETDGamePhase::Wave5 })
+	{
+		TDT1Fallback::FRig R;
+		UTDGameInstance* GI = Cast<UTDGameInstance>(R.W.GetGameInstance());
+		if (!R.D || !GI) { return false; }
+		GI->GetMutableProgress().Phase = Phase;
+		USoundBase* Music = nullptr;
+		for (int32 i = 0; i < 50 && !Music; ++i) { FlushAsyncLoading(); Music = R.D->GetResolvedCombatMusic(); R.W.Advance(0.05f); }
+		const FString Name = UEnum::GetValueAsString(Phase);
+		if (!TestNotNull(*(Name + TEXT(": a combat track resolves")), Music)) { continue; }
+		const bool bFallback = R.D->IsLateWaveFallback();
+		TestTrue(*FString::Printf(TEXT("%s: the waves 3-5 track (%s, %s)"), *Name, *Music->GetName(), bFallback ? TEXT("fallback") : TEXT("style slot")),
+			!bFallback || Music->GetPathName() == UTDMusicDirectorSubsystem::LateWaveFallbackPath().ToString());
+		AddInfo(FString::Printf(TEXT("%s -> %s%s"), *Name, *Music->GetName(), bFallback ? TEXT(" (FALLBACK, N-074)") : TEXT("")));
+	}
+	{
+		TDT1Fallback::FRig R;
+		UTDGameInstance* GI = Cast<UTDGameInstance>(R.W.GetGameInstance());
+		if (!R.D || !GI) { return false; }
+		GI->GetMutableProgress().Phase = ETDGamePhase::Waves1to2;
+		R.W.Advance(0.1f);
+		TestFalse(TEXT("waves 1-2: never the waves 3-5 fallback"), R.D->IsLateWaveFallback());
+		USoundBase* Music = nullptr;
+		for (int32 i = 0; i < 50 && !Music; ++i) { FlushAsyncLoading(); Music = R.D->GetResolvedCombatMusic(); R.W.Advance(0.05f); }
+		if (Music) { AddInfo(FString::Printf(TEXT("Waves1to2 -> %s (style CombatMusic)"), *Music->GetName())); }
+		TestTrue(TEXT("waves 1-2: not the waves 3-5 track"), !Music || Music->GetPathName() != UTDMusicDirectorSubsystem::LateWaveFallbackPath().ToString());
+	}
 	return true;
 }
 

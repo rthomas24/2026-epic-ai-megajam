@@ -118,6 +118,30 @@ bool UTDAbilityRewardSubsystem::GetAbilityFlightHint(ETDAbilityId& Ability, cons
 	return false;
 }
 
+void UTDAbilityRewardSubsystem::ReopenFlightHint(ETDAbilityId Ability)
+{
+	for (FTDAbilityReward& R : Rewards)
+	{
+		if (R.Ability == Ability)
+		{
+			R.bFlightHintShown = false;
+		}
+	}
+}
+
+bool UTDAbilityRewardSubsystem::GetAbilityShip(ETDAbilityId Ability, ETDShipId& OutShip) const
+{
+	for (const FTDAbilityReward& R : Rewards)
+	{
+		if (R.Ability == Ability)
+		{
+			OutShip = R.Ship;
+			return true;
+		}
+	}
+	return false;
+}
+
 void UTDAbilityRewardSubsystem::MarkAbilityFlightHintShown(ETDAbilityId Ability)
 {
 	for (FTDAbilityReward& R : Rewards)

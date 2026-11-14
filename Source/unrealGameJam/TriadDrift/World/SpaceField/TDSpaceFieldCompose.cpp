@@ -13,6 +13,7 @@
 #include "Engine/StaticMesh.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/World/TDDominion.h"
+#include "Components/PointLightComponent.h"
 
 namespace TDSpaceFieldCompose
 {
@@ -492,9 +493,9 @@ void ATDSpaceField::BuildOuterDark(FRandomStream& Rng)
 	for (int32 Try = 0; Watch < OuterWatchRocks && Try < OuterWatchRocks * 30; ++Try)
 	{
 		const float Along = Rng.FRandRange(AlongNear, AlongFar);
-		const float Out = Rng.FRandRange(120000.f, 200000.f) * (Rng.FRand() < 0.5f ? -1.f : 1.f);
+		const float Out = Rng.FRandRange(90000.f, 150000.f) * (Rng.FRand() < 0.5f ? -1.f : 1.f);
 		const FVector At = Zone + Route * Along + Side * Out + FVector(0.f, 0.f, Rng.FRandRange(-70000.f, 70000.f));
-		const float HalfMax = 7500.f;
+		const float HalfMax = 11250.f;
 		if (FVector::Dist(At, FMath::ClosestPointOnSegment(At, DLoc, DLoc + Bow * 500000.f)) < 40000.f + HalfMax) { continue; }
 		if (FVector::Dist(At, Stage) < 60000.f + HalfMax) { continue; }
 		if (IsInDockingCone(At, HalfMax)) { continue; }
@@ -502,7 +503,7 @@ void ATDSpaceField::BuildOuterDark(FRandomStream& Rng)
 		bool bLone = true;
 		for (const FTDSpaceFieldPiece& P : Pieces) { if (P.Size >= 5000.f && FVector::DistSquared(P.Location, At) < FMath::Square(45000.f)) { bLone = false; break; } }
 		if (!bLone) { continue; }
-		const float Size = Power(Rng, 5000.f, 15000.f, 1.6f);
+		const float Size = Power(Rng, 7500.f, 22500.f, 1.6f);	// 1.5x (Lead, Nov 14)
 		if (!AddRock(At, Size, ETDSpaceFieldKind::Cluster, Rng, Rng.FRand() < 0.5f ? 0 : 2)) { continue; }
 		++Watch;
 		if (Size > BiggestSize) { BiggestSize = Size; Biggest = At; }
@@ -516,6 +517,22 @@ void ATDSpaceField::BuildOuterDark(FRandomStream& Rng)
 			const FVector OnRoute = FMath::ClosestPointOnSegment(Biggest, Zone, DLoc);
 			const FRotator Face(0.f, (OnRoute - Biggest).Rotation().Yaw, 0.f);
 			bWatcher = AddStructure(Rig, FTransform(Face, Biggest + FVector(0.f, 0.f, BiggestSize * 0.42f), FVector(1.5f)), 7);
+			// Its blinking beacon buoy beside it: the one light out here (the watch is watching).
+			if (BuoyMesh)
+			{
+				AddStructure(BuoyMesh, FTransform(Face, Biggest + FVector(0.f, 0.f, BiggestSize * 0.42f) + Face.RotateVector(FVector(0.f, 3000.f, 1500.f)), FVector(4.f)));
+			}
+			// A red light on the watcher (Lead, Nov 14): it lights its rock Null red, the one warm thing out here.
+			UPointLightComponent* Red = NewObject<UPointLightComponent>(this, TEXT("OuterDarkWatcherLight"));
+			Red->SetupAttachment(RootComponent);
+			Red->SetMobility(EComponentMobility::Movable);
+			Red->SetWorldLocation(Biggest + FVector(0.f, 0.f, BiggestSize * 0.42f + 2500.f) + Face.Vector() * 3000.f);
+			Red->SetLightColor(FLinearColor(1.f, 0.08f, 0.03f));
+			Red->SetIntensityUnits(ELightUnits::Candelas);
+			Red->SetIntensity(2.0e6f);
+			Red->SetAttenuationRadius(BiggestSize * 1.6f + 20000.f);
+			Red->SetCastShadows(false);
+			Red->RegisterComponent();
 		}
 		RegionCentres.Add(7, Biggest);
 	}
@@ -562,9 +579,10 @@ void ATDSpaceField::BuildIceDrift(FRandomStream& Rng)
 	const FVector Side = FVector::CrossProduct(FVector::UpVector, VDir).GetSafeNormal();
 	const float GraveSign = RegionCentres.Contains(4) ? FMath::Sign((float)FVector::DotProduct(RegionCentres[4] - Zone, Side)) : 1.f;
 	const float S = -GraveSign;	// the other side
-	const FVector Head = Zone + VDir * (BeltOuter + 25000.f) + Side * S * 40000.f;
-	const FVector Tail = VLoc - VDir * (VAtmo * 1.5f + 30000.f) + Side * S * 50000.f + FVector(0.f, 0.f, -15000.f);
-	const FVector Ctrl = (Head + Tail) * 0.5f + Side * S * 40000.f;
+	// Lifted above the route plane and brought in (Lead, Nov 14: from the Verdance route it hid behind the ringed planet).
+	const FVector Head = Zone + VDir * (BeltOuter + 25000.f) + Side * S * 32000.f + FVector(0.f, 0.f, 22000.f);
+	const FVector Tail = VLoc - VDir * (VAtmo * 1.5f + 30000.f) + Side * S * 38000.f + FVector(0.f, 0.f, 26000.f);
+	const FVector Ctrl = (Head + Tail) * 0.5f + Side * S * 28000.f + FVector(0.f, 0.f, 18000.f);
 	TGuardValue<bool> IceLook(bIceDriftPlacement, true);	// its own components, the ice glow raised
 	int32 Placed = 0;
 	for (int32 Try = 0; Placed < IceDriftRocks && Try < IceDriftRocks * 6; ++Try)

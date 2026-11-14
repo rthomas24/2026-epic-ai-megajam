@@ -36,7 +36,8 @@ enum class ETDMusicPlacement : uint8
 	CinderCombat,
 	CoreChamber,
 	ReactorFight,
-	Escape
+	Escape,
+	VerdanceExplore	// Lead, Nov 14: Nick's Verdance theme (N-059) after the reveal, until his own player claims the score
 };
 
 UCLASS()

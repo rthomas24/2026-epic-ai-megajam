@@ -686,7 +686,9 @@ bool ATDEncounterVolume::ReturnLostBoss(AActor* Member)
 	const ATDCrewCharacter* Lost = Cast<ATDCrewCharacter>(Member);
 	const UTDHealthComponent* H = Member ? UTDStatics::GetHealth(Member) : nullptr;
 	const FTransform* At = SpawnedAt.Find(Member);
-	if (!bActivated || bCleared || !Lost || Lost->Spec.Type != ETDCrewType::Warden || !H || !H->IsAlive() || !At || BossReturns >= MaxBossReturns || !GetWorld())
+	// Never capped: a room whose boss keeps falling out must not count as won (T3's edge case: after 3 returns the room
+	// cleared); from the second return it comes back at the room's middle.
+	if (!bActivated || bCleared || !Lost || Lost->Spec.Type != ETDCrewType::Warden || !H || !H->IsAlive() || !At || !GetWorld())
 	{
 		return false;
 	}
@@ -707,8 +709,8 @@ bool ATDEncounterVolume::ReturnLostBoss(AActor* Member)
 	Crew->FinishSpawning(Xf);
 	if (const FTDRetakeMercyTier* Mercy = GetActiveMercy()) { Crew->ApplyMercy(Mercy->HealthScale, Mercy->MaxSummons); }
 	Crew->SetOpeningGrace(OpeningGraceSeconds);
-	UE_LOG(LogTriadDrift, Warning, TEXT("%s: the Warden %s left the world alive (at %s); %s put back at %s (%d / %d)"), *GetName(), *Member->GetName(),
-		*Member->GetActorLocation().ToCompactString(), *Crew->GetName(), *Xf.GetLocation().ToCompactString(), BossReturns, MaxBossReturns);
+	UE_LOG(LogTriadDrift, Warning, TEXT("%s: the Warden %s left the world alive (at %s); %s put back at %s (return %d)"), *GetName(), *Member->GetName(),
+		*Member->GetActorLocation().ToCompactString(), *Crew->GetName(), *Xf.GetLocation().ToCompactString(), BossReturns);
 	SpawnedAt.Add(Crew, Xf);
 	AdoptMember(Crew);
 	return true;
