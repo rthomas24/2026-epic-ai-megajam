@@ -94,10 +94,12 @@ S2('NS_TD_Dominion_FieldCollapse', U(FIELD), [
     shed('Shards', 'M_TD_VFX_Spark', 0, (0.8, 1.8), (500, 1100), (20000, 90000), k=1.6, radius=95000.0, drag=0.8, stretch=22, burst=140, dur=2.0, power=1.2)])
 # Slot: none yet (code hook wanted: T3's transmissions, the escape sequence, a hit of "static"). A one-shot, camera-facing
 # tear of chromatic bars, 0.3 s; spawn it attached in front of the camera (authored 12 m wide) or at a world point.
+# Round 9 (T3's slot, UTDStoryFX.TransmissionStatic): played 60 cm in front of the camera, so sized to the view at that
+# distance (about 120 cm across at the chase camera's FOV): a full-screen tear, all of it over within 0.36 s.
 S2('NS_TD_Glitch_Tear', U(WHITE4), [
-    flash('Tear', 'M_TD_VFX_Glitch', 1200, 0.30, 0.9, power=0.5),
-    flash('Tear2', 'M_TD_VFX_Glitch', 1500, 0.22, 0.5, power=0.5, delay=0.06),
-    flash('Flash', 'M_TD_VFX_Glow', 1600, 0.10, 0.12)])
+    flash('Tear', 'M_TD_VFX_Glitch', 130, 0.30, 0.9, power=0.5),
+    flash('Tear2', 'M_TD_VFX_Glitch', 160, 0.22, 0.5, power=0.5, delay=0.06),
+    flash('Flash', 'M_TD_VFX_Glow', 170, 0.10, 0.12)])
 
 # ============================================================================================= travel and powers
 # Slots: UTDTravelFX.PortalOpen / PortalClose (+X = the portal's facing). Authored for a 6 m portal.
