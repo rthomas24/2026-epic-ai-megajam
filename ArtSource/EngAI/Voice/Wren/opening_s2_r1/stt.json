@@ -1,0 +1,1610 @@
+[
+  {
+    "stem": "VO_O_Wren_HowBad_01",
+    "line_id": "O_Wren_HowBad",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Three ships, one mystery. How bad could it be?",
+    "sent_text": "Three ships, one mystery. How bad could it be?",
+    "transcript": "Three, three ships, one missed, how the hell could it be?",
+    "words": [
+      {
+        "word": "Three,",
+        "start": 0.0,
+        "end": 0.28
+      },
+      {
+        "word": "three",
+        "start": 0.36,
+        "end": 0.36
+      },
+      {
+        "word": "ships,",
+        "start": 0.36,
+        "end": 0.58
+      },
+      {
+        "word": "one",
+        "start": 0.92,
+        "end": 0.98
+      },
+      {
+        "word": "missed,",
+        "start": 0.98,
+        "end": 1.18
+      },
+      {
+        "word": "how",
+        "start": 1.8,
+        "end": 2.1
+      },
+      {
+        "word": "the",
+        "start": 2.1,
+        "end": 2.52
+      },
+      {
+        "word": "hell",
+        "start": 2.52,
+        "end": 2.52
+      },
+      {
+        "word": "could",
+        "start": 2.52,
+        "end": 2.52
+      },
+      {
+        "word": "it",
+        "start": 2.52,
+        "end": 2.58
+      },
+      {
+        "word": "be?",
+        "start": 2.58,
+        "end": 2.8
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 166,
+    "f0_p10_hz": 151,
+    "f0_p90_hz": 205,
+    "dry_duration_s": 2.998,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.3,
+    "mid_pause_ms": 392.0,
+    "sha256": {
+      "dry": "fff16a4d031ede6c703fce1a9e6fa89f0e2c730d0fc8362e50cab2717a427d6e",
+      "radio": "71702144ed1224e0378b9bde0eec9c5deb4cb35fa38eec3ea4ec85f2208519bd",
+      "raw": "8e9da40a7c3b18d01caf459a73ce358497b6ef94c0b699c4ce8472ece4e2a1a2"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_O_Wren_HowBad_02",
+    "line_id": "O_Wren_HowBad",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Three ships, one mystery. How bad could it be?",
+    "sent_text": "Three ships, one mystery. How bad could it be?",
+    "transcript": "Three ships, one mystery, how And how bad could it be?",
+    "words": [
+      {
+        "word": "Three",
+        "start": 0.0,
+        "end": 0.26
+      },
+      {
+        "word": "ships,",
+        "start": 0.26,
+        "end": 0.62
+      },
+      {
+        "word": "one",
+        "start": 1.08,
+        "end": 1.18
+      },
+      {
+        "word": "mystery,",
+        "start": 1.18,
+        "end": 1.68
+      },
+      {
+        "word": "how",
+        "start": 2.26,
+        "end": 2.4
+      },
+      {
+        "word": "And",
+        "start": 2.4,
+        "end": 2.4
+      },
+      {
+        "word": "how",
+        "start": 2.4,
+        "end": 2.4
+      },
+      {
+        "word": "bad",
+        "start": 2.4,
+        "end": 2.66
+      },
+      {
+        "word": "could",
+        "start": 2.66,
+        "end": 2.82
+      },
+      {
+        "word": "it",
+        "start": 2.82,
+        "end": 2.92
+      },
+      {
+        "word": "be?",
+        "start": 2.92,
+        "end": 3.12
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 184,
+    "f0_p10_hz": 162,
+    "f0_p90_hz": 232,
+    "dry_duration_s": 3.334,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.3,
+    "mid_pause_ms": 426.0,
+    "sha256": {
+      "dry": "c8b54d96ffe4dc44ef5ebddc115c4f14404f6a1f8af35b6337852775a4fd5e75",
+      "radio": "9db6cb6229943a0edbaf30e5cb28e882ffba9c3842826e0141d20ad155e11574",
+      "raw": "9a89de23c1f1d9ff9f7e28c9395c54bf54c371451c0c5109a5aa77faa9b6087b"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_O_Wren_HowBad_03",
+    "line_id": "O_Wren_HowBad",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Three ships, one mystery. How bad could it be?",
+    "sent_text": "Three ships, one mystery. [pause] How bad could it be?",
+    "transcript": "three ships, one mystery. How bad could it be?",
+    "words": [
+      {
+        "word": "three",
+        "start": 0.0,
+        "end": 0.28
+      },
+      {
+        "word": "ships,",
+        "start": 0.28,
+        "end": 0.7
+      },
+      {
+        "word": "one",
+        "start": 1.14,
+        "end": 1.2
+      },
+      {
+        "word": "mystery.",
+        "start": 1.2,
+        "end": 1.68
+      },
+      {
+        "word": "How",
+        "start": 2.46,
+        "end": 2.64
+      },
+      {
+        "word": "bad",
+        "start": 2.64,
+        "end": 2.92
+      },
+      {
+        "word": "could",
+        "start": 2.92,
+        "end": 3.12
+      },
+      {
+        "word": "it",
+        "start": 3.12,
+        "end": 3.24
+      },
+      {
+        "word": "be?",
+        "start": 3.24,
+        "end": 3.44
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 174,
+    "f0_p10_hz": 96,
+    "f0_p90_hz": 224,
+    "dry_duration_s": 3.626,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 652.0,
+    "sha256": {
+      "dry": "f02d47a9b49a5da64a0bec37e6598296b593111afe3d733acc223a8bb773724c",
+      "radio": "a55498b783efec5f6b6e05a86b0a2c9dd852fc5ccc50c90fe55c5694a43031b3",
+      "raw": "41a5b784b22112b059edd4d27599dbfe2d671c6bba9fd25b6a88f5d5353cde60"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_O_Wren_BigShip_01",
+    "line_id": "O_Wren_BigShip",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "That's all one ship?",
+    "sent_text": "That's all one ship?",
+    "transcript": "That's all, that's all one ship.",
+    "words": [
+      {
+        "word": "That's",
+        "start": 0.0,
+        "end": 0.26
+      },
+      {
+        "word": "all,",
+        "start": 0.26,
+        "end": 0.4
+      },
+      {
+        "word": "that's",
+        "start": 0.52,
+        "end": 0.54
+      },
+      {
+        "word": "all",
+        "start": 0.54,
+        "end": 0.54
+      },
+      {
+        "word": "one",
+        "start": 0.54,
+        "end": 0.6
+      },
+      {
+        "word": "ship.",
+        "start": 0.6,
+        "end": 0.84
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 168,
+    "f0_p10_hz": 162,
+    "f0_p90_hz": 194,
+    "dry_duration_s": 1.094,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.4,
+    "mid_pause_ms": 98.0,
+    "sha256": {
+      "dry": "75de78e99a33728c14b4d8c649895a4bcf265428390dd5f078f4139ae2df173d",
+      "radio": "bc26d08abffb2cec22d4fd6740da60556f6d0a4a9c62c450ec7502bae8d5187d",
+      "raw": "e62da3c63fff17c71a071332c33b94e8a1895812d261c83cd8095840c05c9a20"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_O_Wren_BigShip_02",
+    "line_id": "O_Wren_BigShip",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "That's all one ship?",
+    "sent_text": "That's all one ship?",
+    "transcript": "that's all-ship?",
+    "words": [
+      {
+        "word": "that's",
+        "start": 0.0,
+        "end": 0.3
+      },
+      {
+        "word": "all",
+        "start": 0.3,
+        "end": 0.44
+      },
+      {
+        "word": "-ship?",
+        "start": 0.44,
+        "end": 0.82
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 171,
+    "f0_p10_hz": 88,
+    "f0_p90_hz": 194,
+    "dry_duration_s": 1.112,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.9,
+    "mid_pause_ms": 114.0,
+    "sha256": {
+      "dry": "b0d2a466921e441ee96f1bf0c3b969d13eeebb17d8f08fde7b453bbf58f97a66",
+      "radio": "785948620425421608a6162dc7daef2b489a0f735bc5554a45d7dd8164711b20",
+      "raw": "197c7a3f32d353f193616e1c911da0d561cb5e60419c6b01964653cdec18f3af"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_O_Wren_BigShip_03",
+    "line_id": "O_Wren_BigShip",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "That's all one ship?",
+    "sent_text": "That's all one ship?",
+    "transcript": "That's all one chip.",
+    "words": [
+      {
+        "word": "That's",
+        "start": 0.0,
+        "end": 0.28
+      },
+      {
+        "word": "all",
+        "start": 0.28,
+        "end": 0.44
+      },
+      {
+        "word": "one",
+        "start": 0.44,
+        "end": 0.64
+      },
+      {
+        "word": "chip.",
+        "start": 0.64,
+        "end": 0.9
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 172,
+    "f0_p10_hz": 135,
+    "f0_p90_hz": 209,
+    "dry_duration_s": 1.142,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.6,
+    "mid_pause_ms": 114.0,
+    "sha256": {
+      "dry": "58e4e57fea1b2bbe914a982812cc4da4cbc76552546fa7ed3720efd9118db09f",
+      "radio": "3c85f9fd5ae22f48515f9625a23c7e7baffc7a1a83e52177b2cd56df7df0b771",
+      "raw": "39c0a50e26442937ac5ad888403a02b429b2f285edf132ca7c5d007bb0bca517"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_O_Wren_WhyNotFiring_01",
+    "line_id": "O_Wren_WhyNotFiring",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "What? Why didn't it shoot us?",
+    "sent_text": "What? Why didn't it shoot us?",
+    "transcript": "What? Why didn't it shoot us?",
+    "words": [
+      {
+        "word": "What?",
+        "start": 0.0,
+        "end": 0.28
+      },
+      {
+        "word": "Why",
+        "start": 0.8,
+        "end": 1.0
+      },
+      {
+        "word": "didn't",
+        "start": 1.0,
+        "end": 1.22
+      },
+      {
+        "word": "it",
+        "start": 1.22,
+        "end": 1.34
+      },
+      {
+        "word": "shoot",
+        "start": 1.34,
+        "end": 1.54
+      },
+      {
+        "word": "us?",
+        "start": 1.54,
+        "end": 1.84
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 211,
+    "f0_p10_hz": 175,
+    "f0_p90_hz": 298,
+    "dry_duration_s": 2.176,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.8,
+    "mid_pause_ms": 516.0,
+    "sha256": {
+      "dry": "135c8cd8bb1921fd31bed6fd2934da73cc23342d444306695e50461d6bf7ba76",
+      "radio": "5be84e30c45934a3b83996faf991eb4a288c99aa01afeaee10b7da352c60a995",
+      "raw": "20f1eb233d959ce55e3f05d566fa5967eea4c639ded3a8d9a90b5fdcd539d44d"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_O_Wren_WhyNotFiring_02",
+    "line_id": "O_Wren_WhyNotFiring",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "What? Why didn't it shoot us?",
+    "sent_text": "What? Why didn't it shoot us?",
+    "transcript": "What? Why didn't it shoot us?",
+    "words": [
+      {
+        "word": "What?",
+        "start": 0.0,
+        "end": 0.3
+      },
+      {
+        "word": "Why",
+        "start": 0.76,
+        "end": 0.92
+      },
+      {
+        "word": "didn't",
+        "start": 0.92,
+        "end": 1.18
+      },
+      {
+        "word": "it",
+        "start": 1.18,
+        "end": 1.24
+      },
+      {
+        "word": "shoot",
+        "start": 1.24,
+        "end": 1.4
+      },
+      {
+        "word": "us?",
+        "start": 1.4,
+        "end": 1.66
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 234,
+    "f0_p10_hz": 182,
+    "f0_p90_hz": 274,
+    "dry_duration_s": 1.914,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.7,
+    "mid_pause_ms": 460.0,
+    "sha256": {
+      "dry": "39fdb2ed45feac6dedb8513be73f55a97ce61aa2371be8d9dd461d3820ffb4b2",
+      "radio": "2a068934f96680781837a07957202cd885f32917ca58cb954bdb0f160bdafa0b",
+      "raw": "fc4d2c17e3f59357efd723a7230a482964e5824c1cbce1e1085e81156627ab4e"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_O_Wren_WhyNotFiring_03",
+    "line_id": "O_Wren_WhyNotFiring",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "What? Why didn't it shoot us?",
+    "sent_text": "What? [pause] Why didn't it shoot us?",
+    "transcript": "What?",
+    "words": [
+      {
+        "word": "What?",
+        "start": 0.0,
+        "end": 0.3
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 226,
+    "f0_p10_hz": 169,
+    "f0_p90_hz": 300,
+    "dry_duration_s": 2.634,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.5,
+    "mid_pause_ms": 1150.0,
+    "sha256": {
+      "dry": "f7d86bd683824f17676101a19e2ad9e24a9e03ad54d0a084b562f030cfea142c",
+      "radio": "4beff3b1ebd0a8bce1e25fc2c6a3b5918e473fe2dedc634b08d011e9baaf9444",
+      "raw": "742b3e8a43d7f81f05e2461f20416246100cb05799c1ee179e5901fc84b85fe8"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_O_Wren_Break_01",
+    "line_id": "O_Wren_Break",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Break formation!",
+    "sent_text": "Break formation!",
+    "transcript": "",
+    "words": [],
+    "match": false,
+    "median_f0_hz": 211,
+    "f0_p10_hz": 117,
+    "f0_p90_hz": 247,
+    "dry_duration_s": 1.094,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.9,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "f0255ff7caaa8b9bed7885c4748c53c0d93a7b6b35e27ade3f9d97664159ab70",
+      "radio": "c0fc74d1835281ed45fe37c047024df00f46760953539cb8d925848d41981923",
+      "raw": "6bb587ca09ba053e5da64415b90abd954818018c13b1641c5d7589b4c5936db9"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_O_Wren_Break_02",
+    "line_id": "O_Wren_Break",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Break formation!",
+    "sent_text": "Break formation!",
+    "transcript": "",
+    "words": [],
+    "match": false,
+    "median_f0_hz": 239,
+    "f0_p10_hz": 179,
+    "f0_p90_hz": 331,
+    "dry_duration_s": 1.14,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.4,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "b84f6d98a0b44075f6cbe31c4af3e484b5434a6734023cc3e77b95cbc2583ded",
+      "radio": "927f493a1342ce11ea7a03b4916f12be8dab7fddb7682ea7cfcbc041fb5a2375",
+      "raw": "ca6f275a938eb90c8a569d81a8e88a29286af4ff38b00d3bfd72df0a59e48b8e"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_O_Wren_Break_03",
+    "line_id": "O_Wren_Break",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Break formation!",
+    "sent_text": "Break formation!",
+    "transcript": "",
+    "words": [],
+    "match": false,
+    "median_f0_hz": 208,
+    "f0_p10_hz": 83,
+    "f0_p90_hz": 250,
+    "dry_duration_s": 1.218,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -4.2,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "b7666800c7fa26d8c07ca9de1992b76a6825bac090f8e12d0566e62935c70fa5",
+      "radio": "6bccc51fff8ed062abcdb37560c0d11258d8749d83fe1783820b7c52c0555977",
+      "raw": "6c3172a130e0371dea058aef858551bafd5a4e31e6892a2ad0d197ffdd00c9e7"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_A1_FieldUnreachable_01",
+    "line_id": "A1_FieldUnreachable",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "That shimmer around the ship: some kind of field. We can't get near it.",
+    "sent_text": "That shimmer around the ship: some kind of field. We can't get near it.",
+    "transcript": "r around the ship, some kind of",
+    "words": [
+      {
+        "word": "r",
+        "start": 0.0,
+        "end": 0.2
+      },
+      {
+        "word": "around",
+        "start": 0.2,
+        "end": 0.86
+      },
+      {
+        "word": "the",
+        "start": 0.86,
+        "end": 1.08
+      },
+      {
+        "word": "ship,",
+        "start": 1.08,
+        "end": 1.34
+      },
+      {
+        "word": "some",
+        "start": 1.9,
+        "end": 2.02
+      },
+      {
+        "word": "kind",
+        "start": 2.02,
+        "end": 2.22
+      },
+      {
+        "word": "of",
+        "start": 2.22,
+        "end": 4.26
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 197,
+    "f0_p10_hz": 80,
+    "f0_p90_hz": 229,
+    "dry_duration_s": 4.286,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.9,
+    "mid_pause_ms": 552.0,
+    "sha256": {
+      "dry": "521156e87e73c1d1045b84a38db825542402661a4f9adc03f08ad4f34f96eb67",
+      "radio": "ac547e7645f29d89f14ada562b3e6ae1072f31d4da2497d70332684ab3eb9f90",
+      "raw": "a0b2f90f039cb34905fd62aac32b8fa7587916512bf7f5a308ace204231ae1b4"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_A1_FieldUnreachable_02",
+    "line_id": "A1_FieldUnreachable",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "That shimmer around the ship: some kind of field. We can't get near it.",
+    "sent_text": "That shimmer around the ship: some kind of field. We can't get near it.",
+    "transcript": "some kind of field, we can't get near it.",
+    "words": [
+      {
+        "word": "some",
+        "start": 1.08,
+        "end": 1.52
+      },
+      {
+        "word": "kind",
+        "start": 1.52,
+        "end": 1.96
+      },
+      {
+        "word": "of",
+        "start": 1.96,
+        "end": 2.14
+      },
+      {
+        "word": "field,",
+        "start": 2.14,
+        "end": 2.46
+      },
+      {
+        "word": "we",
+        "start": 2.98,
+        "end": 3.16
+      },
+      {
+        "word": "can't",
+        "start": 3.16,
+        "end": 3.38
+      },
+      {
+        "word": "get",
+        "start": 3.38,
+        "end": 3.5
+      },
+      {
+        "word": "near",
+        "start": 3.5,
+        "end": 3.72
+      },
+      {
+        "word": "it.",
+        "start": 3.72,
+        "end": 3.82
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 180,
+    "f0_p10_hz": 84,
+    "f0_p90_hz": 203,
+    "dry_duration_s": 3.998,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.8,
+    "mid_pause_ms": 496.0,
+    "sha256": {
+      "dry": "b951af9455e64e4671af9e65cc68739e53389c3f1df2848d3a786f37b1d5f62f",
+      "radio": "0b6214e9e41afc502f64dff2d57ce9272d658a4bef90123cb8e3412f50265a3c",
+      "raw": "c76cfc0b9409fc7ebd97bea3b5e1af9a75720f0889151c5ceef855a813eb5c95"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_A1_FieldUnreachable_03",
+    "line_id": "A1_FieldUnreachable",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "That shimmer around the ship: some kind of field. We can't get near it.",
+    "sent_text": "That shimmer around the ship: some kind of field. [pause] We can't get near it.",
+    "transcript": "of field, we, we can't get near it, we can't get near it, we can't get near it.",
+    "words": [
+      {
+        "word": "of",
+        "start": 2.42,
+        "end": 2.78
+      },
+      {
+        "word": "field,",
+        "start": 2.78,
+        "end": 3.14
+      },
+      {
+        "word": "we,",
+        "start": 3.28,
+        "end": 4.5
+      },
+      {
+        "word": "we",
+        "start": 4.68,
+        "end": 4.68
+      },
+      {
+        "word": "can't",
+        "start": 4.68,
+        "end": 4.8
+      },
+      {
+        "word": "get",
+        "start": 4.8,
+        "end": 4.92
+      },
+      {
+        "word": "near",
+        "start": 4.92,
+        "end": 5.1
+      },
+      {
+        "word": "it,",
+        "start": 5.1,
+        "end": 5.1
+      },
+      {
+        "word": "we",
+        "start": 5.1,
+        "end": 5.12
+      },
+      {
+        "word": "can't",
+        "start": 5.12,
+        "end": 5.4
+      },
+      {
+        "word": "get",
+        "start": 5.4,
+        "end": 5.4
+      },
+      {
+        "word": "near",
+        "start": 5.4,
+        "end": 5.4
+      },
+      {
+        "word": "it,",
+        "start": 5.4,
+        "end": 5.4
+      },
+      {
+        "word": "we",
+        "start": 5.4,
+        "end": 5.4
+      },
+      {
+        "word": "can't",
+        "start": 5.4,
+        "end": 5.4
+      },
+      {
+        "word": "get",
+        "start": 5.4,
+        "end": 5.4
+      },
+      {
+        "word": "near",
+        "start": 5.4,
+        "end": 5.4
+      },
+      {
+        "word": "it.",
+        "start": 5.4,
+        "end": 5.4
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 176,
+    "f0_p10_hz": 83,
+    "f0_p90_hz": 212,
+    "dry_duration_s": 5.428,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.7,
+    "mid_pause_ms": 1142.0,
+    "sha256": {
+      "dry": "5fdc6f7a2d6a8cdfc364fbad7d643947dfeb2ace69ddff9a331fe00feee90b02",
+      "radio": "44b9bd79ef684284b40d4f4ab22ce986a559961de0aaeb82bfe0ff5f1cf1967c",
+      "raw": "2a96da1dfd80d78939ad1b816189075b11a77817dd799087c64ef82df9d79ae4"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_S2_Wren_WelcomeParty_01",
+    "line_id": "S2_Wren_WelcomeParty",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Is it over? I think I blacked out...",
+    "sent_text": "Is it over? I think I blacked out...",
+    "transcript": "I think I blacked",
+    "words": [
+      {
+        "word": "I",
+        "start": 0.6,
+        "end": 1.14
+      },
+      {
+        "word": "think",
+        "start": 1.14,
+        "end": 1.28
+      },
+      {
+        "word": "I",
+        "start": 1.28,
+        "end": 1.44
+      },
+      {
+        "word": "blacked",
+        "start": 1.44,
+        "end": 1.82
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 176,
+    "f0_p10_hz": 81,
+    "f0_p90_hz": 242,
+    "dry_duration_s": 2.16,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.6,
+    "mid_pause_ms": 340.0,
+    "sha256": {
+      "dry": "da8e272e717c65278f7ddbb981b46a98bb713c5a08050275b0cb34dbc90f4eb7",
+      "radio": "13dc59d7f965f2aa046de9666ce77b2917b8dab54db582585a18f5c64fc52890",
+      "raw": "5363e9e098927d0614509c3e628b3d481d8b6c7fd371a54208d85502e8807421"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_S2_Wren_WelcomeParty_02",
+    "line_id": "S2_Wren_WelcomeParty",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Is it over? I think I blacked out...",
+    "sent_text": "Is it over? I think I blacked out...",
+    "transcript": "Is it over? I think I blacked out.",
+    "words": [
+      {
+        "word": "Is",
+        "start": 0.0,
+        "end": 0.18
+      },
+      {
+        "word": "it",
+        "start": 0.18,
+        "end": 0.3
+      },
+      {
+        "word": "over?",
+        "start": 0.3,
+        "end": 0.58
+      },
+      {
+        "word": "I",
+        "start": 1.04,
+        "end": 1.22
+      },
+      {
+        "word": "think",
+        "start": 1.22,
+        "end": 1.34
+      },
+      {
+        "word": "I",
+        "start": 1.34,
+        "end": 1.52
+      },
+      {
+        "word": "blacked",
+        "start": 1.52,
+        "end": 1.92
+      },
+      {
+        "word": "out.",
+        "start": 1.92,
+        "end": 2.08
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 184,
+    "f0_p10_hz": 84,
+    "f0_p90_hz": 257,
+    "dry_duration_s": 2.25,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.7,
+    "mid_pause_ms": 326.0,
+    "sha256": {
+      "dry": "a01634ce97bd0e6304390653ea4ab62c56f20966ee9343bb1f230e2d3bd0de35",
+      "radio": "60176228dd17cf3c74af34fef6036aea38a9071b1f73e9782f4e60e5617ac5bd",
+      "raw": "fd4f55c7f3f29b55a96c3546417c84c78d2a73c2e45a6f0a3f6bda605888ce4d"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_S2_Wren_WelcomeParty_03",
+    "line_id": "S2_Wren_WelcomeParty",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Is it over? I think I blacked out...",
+    "sent_text": "Is it over? [pause] I think I blacked out...",
+    "transcript": "Is it over? I think I blacked out.",
+    "words": [
+      {
+        "word": "Is",
+        "start": 0.0,
+        "end": 0.18
+      },
+      {
+        "word": "it",
+        "start": 0.18,
+        "end": 0.3
+      },
+      {
+        "word": "over?",
+        "start": 0.3,
+        "end": 0.58
+      },
+      {
+        "word": "I",
+        "start": 1.4,
+        "end": 1.62
+      },
+      {
+        "word": "think",
+        "start": 1.62,
+        "end": 1.76
+      },
+      {
+        "word": "I",
+        "start": 1.76,
+        "end": 1.92
+      },
+      {
+        "word": "blacked",
+        "start": 1.92,
+        "end": 2.3
+      },
+      {
+        "word": "out.",
+        "start": 2.3,
+        "end": 2.46
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 172,
+    "f0_p10_hz": 85,
+    "f0_p90_hz": 248,
+    "dry_duration_s": 2.618,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.9,
+    "mid_pause_ms": 836.0,
+    "sha256": {
+      "dry": "dea7af73d1998f42a74b495a50248b8b0f44173953d856e13b48b81b1f84860c",
+      "radio": "15b4c28e5c83c4a1c07e5b83348334b5bdbc4658376f614f19d17d0b3e473bcc",
+      "raw": "ce88b9f0d372e8b667fbbc79d2a0afce60d3f29c6729b6f6dcdb0f2a757783a8"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_S2_Wren_WhatDoing_01",
+    "line_id": "S2_Wren_WhatDoing",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Would you rather they had?",
+    "sent_text": "Would you rather they had?",
+    "transcript": "Would you rather they had?",
+    "words": [
+      {
+        "word": "Would",
+        "start": 0.0,
+        "end": 0.2
+      },
+      {
+        "word": "you",
+        "start": 0.2,
+        "end": 0.36
+      },
+      {
+        "word": "rather",
+        "start": 0.36,
+        "end": 0.58
+      },
+      {
+        "word": "they",
+        "start": 0.58,
+        "end": 0.84
+      },
+      {
+        "word": "had?",
+        "start": 0.84,
+        "end": 1.12
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 155,
+    "f0_p10_hz": 75,
+    "f0_p90_hz": 199,
+    "dry_duration_s": 1.376,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.9,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "e586f839b773e037e32c153a354bf22fefd9996d2b295ebcca8da00aa31348e9",
+      "radio": "b753dda0be74860b0e06abcd910dcce616c70d845cf79cd3b2d927ac45eb29e1",
+      "raw": "7b4f197d1c67428fabe7b87f813598420c24ceefd316157cdd95d15c8c59f225"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_S2_Wren_WhatDoing_02",
+    "line_id": "S2_Wren_WhatDoing",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Would you rather they had?",
+    "sent_text": "Would you rather they had?",
+    "transcript": "Would you rather",
+    "words": [
+      {
+        "word": "Would",
+        "start": 0.0,
+        "end": 0.2
+      },
+      {
+        "word": "you",
+        "start": 0.2,
+        "end": 0.36
+      },
+      {
+        "word": "rather",
+        "start": 0.36,
+        "end": 0.56
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 160,
+    "f0_p10_hz": 79,
+    "f0_p90_hz": 207,
+    "dry_duration_s": 1.364,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.2,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "7010e5beae3e82ec54220269bd9045b72f9b6caf2fcf7a225e5c945271b44110",
+      "radio": "0230c42a1a7082323a36dd4ef9a64adbb6c5cc30a3beffdf7e96ff3f77b10938",
+      "raw": "9b19e3aab43567bca818717f3fc8af957383805a3496271b1f921fef4f4794f2"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_S2_Wren_WhatDoing_03",
+    "line_id": "S2_Wren_WhatDoing",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Would you rather they had?",
+    "sent_text": "Would you rather they had?",
+    "transcript": "Would you rather they had?",
+    "words": [
+      {
+        "word": "Would",
+        "start": 0.0,
+        "end": 0.2
+      },
+      {
+        "word": "you",
+        "start": 0.2,
+        "end": 0.32
+      },
+      {
+        "word": "rather",
+        "start": 0.32,
+        "end": 0.52
+      },
+      {
+        "word": "they",
+        "start": 0.52,
+        "end": 0.78
+      },
+      {
+        "word": "had?",
+        "start": 0.78,
+        "end": 1.06
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 164,
+    "f0_p10_hz": 81,
+    "f0_p90_hz": 195,
+    "dry_duration_s": 1.288,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.1,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "b13cd8465824af989af0c3eaa1722d5647deece4d25cb0b7154ef02592f86f7c",
+      "radio": "644ec417fdc4f653ebf2f5fdd55891057fc9480bcabadcf5caf9b55b6338bd2b",
+      "raw": "cd22609c2a8ca378c0e00f81f6fd24e331655b52122414c5f3e0b0abedb12119"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_S2_Wren_Hostile_01",
+    "line_id": "S2_Wren_Hostile",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Fighters. A lot of them. All three of us got out.",
+    "sent_text": "Fighters. A lot of them. All three of us got out.",
+    "transcript": "A lot of them, all three of us got out.",
+    "words": [
+      {
+        "word": "A",
+        "start": 0.82,
+        "end": 1.16
+      },
+      {
+        "word": "lot",
+        "start": 1.16,
+        "end": 1.3
+      },
+      {
+        "word": "of",
+        "start": 1.3,
+        "end": 1.46
+      },
+      {
+        "word": "them,",
+        "start": 1.46,
+        "end": 1.6
+      },
+      {
+        "word": "all",
+        "start": 1.8,
+        "end": 1.98
+      },
+      {
+        "word": "three",
+        "start": 1.98,
+        "end": 2.18
+      },
+      {
+        "word": "of",
+        "start": 2.18,
+        "end": 2.28
+      },
+      {
+        "word": "us",
+        "start": 2.28,
+        "end": 2.46
+      },
+      {
+        "word": "got",
+        "start": 2.46,
+        "end": 2.6
+      },
+      {
+        "word": "out.",
+        "start": 2.6,
+        "end": 2.82
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 163,
+    "f0_p10_hz": 78,
+    "f0_p90_hz": 179,
+    "dry_duration_s": 2.97,
+    "dry_loudness_lufs": -19.24,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 410.0,
+    "sha256": {
+      "dry": "7a2d72bdf26514a3dfed9daca85cd98b534fb76741a0389bea4e767b141a96c0",
+      "radio": "b1e806e2cba7ed84f57f9e963114a053f68a12eb99dae06c87003d10217aa9fe",
+      "raw": "61fac871b88ebb3bc6d5ce0bdf25d6b76208e93658942c2824f01ee60c99dc55"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_S2_Wren_Hostile_02",
+    "line_id": "S2_Wren_Hostile",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Fighters. A lot of them. All three of us got out.",
+    "sent_text": "Fighters. A lot of them. All three of us got out.",
+    "transcript": "fighters, a lot of them, all three of us got out.",
+    "words": [
+      {
+        "word": "fighters,",
+        "start": 0.0,
+        "end": 0.4
+      },
+      {
+        "word": "a",
+        "start": 1.08,
+        "end": 1.2
+      },
+      {
+        "word": "lot",
+        "start": 1.2,
+        "end": 1.3
+      },
+      {
+        "word": "of",
+        "start": 1.3,
+        "end": 1.44
+      },
+      {
+        "word": "them,",
+        "start": 1.44,
+        "end": 1.64
+      },
+      {
+        "word": "all",
+        "start": 1.88,
+        "end": 2.0
+      },
+      {
+        "word": "three",
+        "start": 2.0,
+        "end": 2.2
+      },
+      {
+        "word": "of",
+        "start": 2.2,
+        "end": 2.32
+      },
+      {
+        "word": "us",
+        "start": 2.32,
+        "end": 2.44
+      },
+      {
+        "word": "got",
+        "start": 2.44,
+        "end": 2.64
+      },
+      {
+        "word": "out.",
+        "start": 2.64,
+        "end": 2.88
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 164,
+    "f0_p10_hz": 74,
+    "f0_p90_hz": 182,
+    "dry_duration_s": 3.02,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.6,
+    "mid_pause_ms": 486.0,
+    "sha256": {
+      "dry": "e8fd3d4beaa67cee6b7c8abfe85d663b316444a0fa17a3b206bad97d33323d6d",
+      "radio": "a68ad557d746c52a8f53242c0b8e5048842f4df48ffddce632e909b4c291d0a3",
+      "raw": "82154c161f9dc76961d4b06bd141d3257d4a377d6faf8a746baee5d80dca7a0e"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_S2_Wren_Hostile_03",
+    "line_id": "S2_Wren_Hostile",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Fighters. A lot of them. All three of us got out.",
+    "sent_text": "Fighters. [pause] A lot of them. [pause] All three of us got out.",
+    "transcript": "fighters, a lot of them, all three of us got out.",
+    "words": [
+      {
+        "word": "fighters,",
+        "start": 0.0,
+        "end": 0.4
+      },
+      {
+        "word": "a",
+        "start": 1.04,
+        "end": 1.14
+      },
+      {
+        "word": "lot",
+        "start": 1.14,
+        "end": 1.3
+      },
+      {
+        "word": "of",
+        "start": 1.3,
+        "end": 1.44
+      },
+      {
+        "word": "them,",
+        "start": 1.44,
+        "end": 1.66
+      },
+      {
+        "word": "all",
+        "start": 2.24,
+        "end": 2.4
+      },
+      {
+        "word": "three",
+        "start": 2.4,
+        "end": 2.64
+      },
+      {
+        "word": "of",
+        "start": 2.64,
+        "end": 2.76
+      },
+      {
+        "word": "us",
+        "start": 2.76,
+        "end": 2.9
+      },
+      {
+        "word": "got",
+        "start": 2.9,
+        "end": 3.1
+      },
+      {
+        "word": "out.",
+        "start": 3.1,
+        "end": 3.32
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 156,
+    "f0_p10_hz": 74,
+    "f0_p90_hz": 178,
+    "dry_duration_s": 3.444,
+    "dry_loudness_lufs": -19.8,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 490.0,
+    "sha256": {
+      "dry": "e15127605553e2d07ebe0d14f2c8ef6197746462a9a165254ad1d4a4fa811971",
+      "radio": "43f6954a7aea78fdeb77d25a13f5c661f1e9a7bfdf847622864e5fb13b0b6e7a",
+      "raw": "260d320e1e21b0e22d8cde59be189f3ad06fa50443f5b0a45ba5e9ccfacbeb80"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_S2_Wren_FormUp_01",
+    "line_id": "S2_Wren_FormUp",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "All right. Verdance. Stay on me.",
+    "sent_text": "All right. Verdance. Stay on me.",
+    "transcript": "Alright, verdance. Stay on.",
+    "words": [
+      {
+        "word": "Alright,",
+        "start": 0.0,
+        "end": 0.4
+      },
+      {
+        "word": "verdance.",
+        "start": 0.98,
+        "end": 1.48
+      },
+      {
+        "word": "Stay",
+        "start": 2.12,
+        "end": 2.3
+      },
+      {
+        "word": "on.",
+        "start": 2.3,
+        "end": 2.52
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 168,
+    "f0_p10_hz": 81,
+    "f0_p90_hz": 195,
+    "dry_duration_s": 3.01,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.7,
+    "mid_pause_ms": 532.0,
+    "sha256": {
+      "dry": "0b1cf11dae2924fcaa4f42f7f0b647901a150ce8fe109b3e51de895e949865fd",
+      "radio": "4fa162d25f2c1dc5525a2427d569be981a5b7caefbeb64b900d2bfbc3a04da89",
+      "raw": "bc394949bc3b11afc01ead5085252c141f8a01d1df2db8b7dc022e7a4bf95444"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_S2_Wren_FormUp_02",
+    "line_id": "S2_Wren_FormUp",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "All right. Verdance. Stay on me.",
+    "sent_text": "All right. Verdance. Stay on me.",
+    "transcript": "Alright, verdance, stay on me.",
+    "words": [
+      {
+        "word": "Alright,",
+        "start": 0.0,
+        "end": 0.42
+      },
+      {
+        "word": "verdance,",
+        "start": 0.88,
+        "end": 1.44
+      },
+      {
+        "word": "stay",
+        "start": 1.82,
+        "end": 2.04
+      },
+      {
+        "word": "on",
+        "start": 2.04,
+        "end": 2.24
+      },
+      {
+        "word": "me.",
+        "start": 2.24,
+        "end": 2.44
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 166,
+    "f0_p10_hz": 79,
+    "f0_p90_hz": 207,
+    "dry_duration_s": 2.616,
+    "dry_loudness_lufs": -19.09,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 294.0,
+    "sha256": {
+      "dry": "c7ef68d93a87f3c366a06ef6c0d1c877c809adda72e040cf831101e54c789e28",
+      "radio": "d09575f41c41c63f094b536420d74d0c9b69ee2e47b9755abdc08c81d1aeadcc",
+      "raw": "c79c7f36704e14d35651aea1ee8518e1449b1ecd55cd3bd2f3ef1c635bfcb75f"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_S2_Wren_FormUp_03",
+    "line_id": "S2_Wren_FormUp",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "All right. Verdance. Stay on me.",
+    "sent_text": "All right. [pause] Verdance. [pause] Stay on me.",
+    "transcript": "Alright, verdance Dance, stay on me.",
+    "words": [
+      {
+        "word": "Alright,",
+        "start": 0.0,
+        "end": 0.46
+      },
+      {
+        "word": "verdance",
+        "start": 1.56,
+        "end": 2.16
+      },
+      {
+        "word": "Dance,",
+        "start": 2.16,
+        "end": 2.16
+      },
+      {
+        "word": "stay",
+        "start": 3.06,
+        "end": 3.32
+      },
+      {
+        "word": "on",
+        "start": 3.32,
+        "end": 3.5
+      },
+      {
+        "word": "me.",
+        "start": 3.5,
+        "end": 3.74
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 169,
+    "f0_p10_hz": 87,
+    "f0_p90_hz": 217,
+    "dry_duration_s": 3.92,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.5,
+    "mid_pause_ms": 942.0,
+    "sha256": {
+      "dry": "8d8da9ab4b740d3c20b91871e3a3b5947706311e97e206c5b7049079479b510f",
+      "radio": "0a5265ffe5682785c8189bcfc7a0b6148a660187094dc01c2d2fcc23d3f8c1b4",
+      "raw": "8299bd082c855a48968e8705872880862ea1a7cd2f6d342f87b2896b94bbf20b"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  }
+]
