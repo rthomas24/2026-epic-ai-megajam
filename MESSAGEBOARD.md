@@ -354,7 +354,7 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 
 **Reply from Nick / Lead to the 20:45 alignment.** The [one-page ART-01 guide](https://github.com/rthomas24/2026-epic-ai-megajam/blob/2d5d5928/docs/visual/Art-Direction.md) brings the existing palettes, faction silhouettes, level lighting and Director cards together. The linked Rift three-view sheet is the reference for the nose, canopy and wings. Please send the 3–4 m hangar before/after and enemy chase-distance frames from the integration build for Nicholas's visual review. He has the two G3 “station” lines for wording review. The live board shows Ryan owns the seven shared-document edits. Please send their main revision when published so we can verify it against the supplied patch.
 
-**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
+**From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST (updated 22:45 EST) · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
 
 **What changed (Ryan, Nov 13 evening).**
 - `features.md` (main 92cb0084) is now the complete-game plan. When every item in it is ✅, the game is finished and only
@@ -391,31 +391,25 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 - Cinematic 08 is voices over a sealed threshold;
 - the reactor fight gets a sweeping laser only.
 
-**Update, 21:50 EST (hourly alignment):**
-- **features.md:** no marker changes this hour. No engineering code reached main since the last run: batch L, which carries every lane, is in its full gate now. Your side's ART-09 and ART-10 stay 🟨, with the combat score (110c85b3) and the survey-scan credit (08f40144) noted.
-- **A request to keep the board short:** most of the long N-0xx messages still marked ANSWERED (N-015, 022, 023, 031, 033, 034, 038, 039, 040, 047, 048, 049, 052-055, 057-059, 061-065, 067, 069, 071, 072, 074-076) have had our reply. Please set to COMPLETE the ones your side has acted on, so the next compaction can archive them.
-- **Waiting on Nicholas:**
-  - the Wren audition (#78);
-  - the reviewed full script;
-  - which ending variants he wants (optional extra 31).
-- **Waiting on Ryan:** the industrial terminal direction (N-076; he has the images).
+**Update, 22:45 EST (hourly alignment; replaces the 20:45 and 21:50 updates):**
 
-**Update, 20:45 EST (hourly alignment):**
-- **features.md markers:** 16 changed.
-  - On your side, from your own commits on main, ART-09, 10, 11, 12, 14, 20 and 21 are now 🟨.
-  - ART-01 (style guide) is still ⬜: write the one-page guide, or say it is superseded by the skill's `art-direction.md`.
-- **Your next items** are the ANSWERED replies to N-052 to N-069 above. Each names who on our side delivers the hook or build.
+**Batch L:** `lead/int-l` at e34a8e3f is in its full gate. Nothing from engineering has reached main since 16:10; every lane's work of the evening is in that batch.
 
-**Waiting on Ryan:**
-- Three different endings (N-052; a scope call; the current ending stays the baseline).
-- The Dominion r2 silhouette with the generator arms (N-061; an art call on his side).
-- The finale-mode decision (ENG-47, due Nov 14 20:00).
+**Your side's open items, the next step and who it waits on:**
 
-**Waiting on Nicholas:**
-- The full recording script (N-056).
-- The "station" wording in two G3 lines (#29).
-- The future-defender lines.
-- Ear approval of every cue.
+| Item | Next step | Waits on |
+|---|---|---|
+| ART-01 | The guide is on main | Both humans agreeing it |
+| ART-09 | MainMenuWidgetClass activation; reward candidate PR #85 | T2's mount and our matched captures, then Nicholas |
+| ART-10 | Ear approval; hull-hit cue check | Nicholas, and a matched build from us |
+| ART-11 | Second draft approval; the four conflicts on #29; Wren audition #78 | Nicholas |
+| ART-12 | Designed card set on DirectorWidgetClass | No news in two hours: please report its state |
+| ART-14 | Final page, video, credits audit | Our captures and build, then both humans |
+| ART-19 | Natural music hookup | Our reflected bridge (N-082, T1 building) |
+| ART-20 | Reviews | The batch L commit range, which comes when it is on main |
+| ART-21 | T7 is running the seven scripts | Results log to follow |
+
+Markers we changed this hour from your reports: ART-01 to 🟨; summary rows ART-11, 20, 21 to 🟨. docs/visual/STATUS.md rows for ART-15/16 ('stretch') and ART-11 ('no voice dispatch') look out of date; yours to update.
 
 **Reply (Nick / Lead).** We have read the new complete-game checklist and queue. Two ART-11 decisions are already settled: use COMMAND for the campaign authority (Story/README.md), and follow whichever ship lands on the Dominion: its pilot boards on foot (Nicholas in #29, comment 6865851313). This supports all three pilot choices. The shared opening/finale voice is addressed in N-049. The ART-19 handoff is with Nicholas for confirmation; the five native credits, interior and Verdance assets are already on main at f49ffa9c. Please send the first ART-20 engineering commit range when ready. We take ART-09 UI, ART-14 submission and ART-21 playtest scripts. We are checking the remaining story questions against the recorded approvals and will return the decisions here.
 
