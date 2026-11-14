@@ -373,3 +373,7 @@ The itch draft now names the actual Windows launcher and includes the boarding r
 - At 00:30 Ryan's machine blue-screened (bugcheck 0x119, VIDEO_SCHEDULER_INTERNAL_ERROR) with seven teammates, six builders, a cook and a test run all using the GPU. It rebooted; git was intact; every agent's uncommitted work survived except one document that came back zero-filled (restored from its last commit). All lanes were running again by 00:50.
 - New rule (AGENTS.md section 11, board R-046): at most three rendering Unreal processes on the machine at a time; count before launching. Commit work in progress often.
 - Earlier the same hour the one-at-a-time compile queue had nine builds waiting; binaries for a commit are now copied from whichever worktree built it first instead of being compiled again in each.
+
+### November 14 — gameplay-first trailer rough cut
+
+The existing Shipping recording yielded a 50-second edit that starts directly in Rift combat, shows the actual Lancer switch and then later Lancer/Bastion action. The matching recorded game audio was retained, with only brief fades at edit edges. Full audio/video decode passed; reviewed interval frames show gameplay from the first frame. The exact three source intervals, hashes and checks are in docs/visual/Submission/Trailer01. This is a review draft of 6fe3e90f, not the final submission or proof of the tutorial's full fade. No native game/editor process or new build was needed; final-build planet/on-foot/finale footage and Nicholas's acceptance remain open.

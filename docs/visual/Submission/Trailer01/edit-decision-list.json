@@ -1,0 +1,17 @@
+{
+  "status": "rough cut, awaiting human approval and final-build footage",
+  "build": "6fe3e90f",
+  "source": "TriadDrift_6fe3e90f_review.mp4",
+  "source_sha256": "7e7e7a8cffd6b08939a1b60fd3606ded422eea3d68fa66c9e061f256c905d73b",
+  "source_capture_evidence": "../LatestGameplayDemo01/README.md",
+  "segments": [
+    {"source_start_seconds": 65, "duration_seconds": 15, "output_start_seconds": 0, "description": "Rift combat and actual switch to Lancer", "audio_fade_in_seconds": 0.02, "audio_fade_out_seconds": 0.02},
+    {"source_start_seconds": 95, "duration_seconds": 15, "output_start_seconds": 15, "description": "Lancer flight and combat", "audio_fade_in_seconds": 0.02, "audio_fade_out_seconds": 0.02},
+    {"source_start_seconds": 175, "duration_seconds": 20, "output_start_seconds": 30, "description": "Bastion combat and withdrawal call", "audio_fade_in_seconds": 0.02, "audio_fade_out_seconds": 0.25}
+  ],
+  "editing": {"video_transitions": "hard cuts", "speed": 1, "replacement_audio": false, "overlays_added": false, "color_grade_added": false, "audio_gain_change": false, "note": "Only endpoint fades above; cuts omit elapsed gameplay and are not a continuous playtest or music-loop/fade measurement."},
+  "encoding": {"video": "libx264", "preset": "veryfast", "crf": 20, "threads": 2, "width": 1280, "height": 720, "fps": 30, "audio": "AAC", "audio_bitrate": 192000, "sample_rate": 48000, "channels": 2},
+  "output": {"filename": "TriadDrift_6fe3e90f_trailer_draft01.mp4", "duration_seconds": 50, "bytes": 31911253, "video_frames": 1500, "sha256": "cd2195bcde8e2a20b29735548dd81ab525af6f308c0e8ccd7544b67703e3a801"},
+  "verification": {"full_av_decode_exit": 0, "encode_log_empty": true, "decode_log_empty": true, "mean_volume_dbfs": -26.1, "peak_dbfs": -9.3, "first_frame_gameplay_observed": true, "five_second_interval_sheet_reviewed": true, "human_listening_approval": false, "final_submission_approval": false},
+  "limits": ["Uses the released pre-batch-M ships and presentation.", "No planet, on-foot or finale footage in this cut.", "Source recorder's maximum 70ms packet-timestamp gap remains a limitation.", "Constant30fps encoding does not establish30fps or60fps game performance.", "No claim of physical-device testing or uninterrupted play."]
+}
