@@ -52,6 +52,29 @@ public:
 		float Boss01 = 0.f;
 		int32 BossPhase = 1;
 		FString BossName;
+		/**
+		 * A counted step on foot (T5's ATDStepCounter whose step is current: the reactor conduits 0/4, Cinder's conduits,
+		 * Verdance's nodes): one pip each under the objective panel, "CONDUITS  n / N" (the noun is the counter's last
+		 * word); StepFlash01 1..0 after each one.
+		 */
+		int32 StepCount = 0;
+		int32 StepRequired = 0;
+		FString StepNoun;
+		float StepFlash01 = 0.f;
+		/** The escape run (T5's ATDCollapseRun while it runs; its Seconds is the course's EscapeSeconds): clock and bar. */
+		bool bEscape = false;
+		float EscapeLeft = 0.f;
+		float EscapeTotal = 0.f;
+		/** During the escape, the way out (the pawn's first objective marker): on screen, or on the frame edge. */
+		bool bExitMarker = false;
+		bool bExitOnScreen = false;
+		FVector2D ExitPos = FVector2D::ZeroVector;
+		float ExitMetres = 0.f;
+		/** The sensor marker flicker (UTDUIHostSubsystem::ShowSensorFlicker; storyline.md §18 traverse). */
+		bool bSensor = false;
+		bool bSensorVerified = false;
+		FVector2D SensorPos = FVector2D::ZeroVector;
+		bool bSensorOnScreen = false;
 	};
 	const FView& GetView() const { return View; }
 	/** The boss bar's damage ghost (tests). */
@@ -64,6 +87,13 @@ public:
 	FString ForceObjective;
 	/** Tests: >= 0 forces a Warden at this hull (phase 2 below BossPhase2At); -1 reads the world. */
 	float ForceBoss01 = -1.f;
+	/** Tests: >= 0 forces a counted step (count, required) / a running escape (left, total) / an exit marker spot. */
+	int32 ForceStepRequired = -1;
+	int32 ForceStepCount = 0;
+	FString ForceStepNoun;
+	float ForceEscapeLeft = -1.f;
+	float ForceEscapeTotal = 90.f;
+	TOptional<FVector> ForceExitAt;
 	/** Where the bar marks the phase change (T5: Phase2HealthFraction 0.5). */
 	static constexpr float BossPhase2At = .5f;
 	/** The objective panel grows to fit its line up to this width (design px), then wraps to two lines. */
@@ -115,6 +145,16 @@ private:
 	float GhostHold = 0.f;
 	float LastBoss = 0.f;
 	float Time = 0.f;
+	/** Counted step / escape run: re-found every 0.5 s; the step count last seen (a rise flashes) and the flash clock. */
+	TWeakObjectPtr<AActor> StepCounter;
+	TWeakObjectPtr<AActor> EscapeRun;
+	float PropScanLeft = 0.f;
+	int32 StepCountSeen = -1;
+	float StepFlashLeft = 0.f;
+	/** The exit marker's world spot and direction from the view; the sensor marker's spot. */
+	FVector ExitWorld = FVector::ZeroVector;
+	FVector2D ExitDirection = FVector2D(0.f, -1.f);
+	FVector SensorWorld = FVector::ZeroVector;
 	TArray<FTDGroundHit> Hits;
 	TArray<TWeakObjectPtr<AActor>> Hostiles;
 	TWeakObjectPtr<APawn> BoundPawn;
