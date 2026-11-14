@@ -18,6 +18,14 @@ from kit_pieces_space import _lathe_x, _rock, _ribs, hull_prof, loft
 from kit_pieces_story import _tube
 
 
+def _flare(p, x, y, z, mat):
+    """r5: the range cue - one tiny quad at the beacon; M_Kit_Flare turns it into a camera-facing additive glow with a
+    short horizontal streak about 0.8 degrees tall at any range (world-position offset), so it costs one quad."""
+    h = 1.0
+    p.poly([(x, y - h, z - h), (x, y + h, z - h), (x, y + h, z + h), (x, y - h, z + h)], mat=mat, n=(1, 0, 0),
+           uv=[(0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)])
+
+
 # ------------------------------------------------------------------------------------------------ Watchline
 def picket_ring():
     """A broken picket-station ring segment (about 130 m across): a 140-degree arc of a 60 m ring, 12 x 8 m in section,
@@ -73,6 +81,21 @@ def picket_ring():
         # r4: the distance cue - an 8 m amber panel and a squad-cyan panel on the outer face
         p.box((R_ + T, -400.0, -350.0), (R_ + T + 40.0, 400.0, 50.0), mat="Nav")
         p.box((R_ + T, -400.0, 80.0), (R_ + T + 40.0, 400.0, 330.0), mat="CyanRun")
+    with p.at(rotz(5.0)):
+        _flare(p, R_, 0.0, 1900.0, "FlareAmber")
+    with p.at(rotz(-25.0)):                                      # r5: a scorched squad-cyan stencil block (bars, no numerals)
+        for k, (y0, y1) in enumerate(((-500.0, -380.0), (-330.0, -210.0), (-160.0, 120.0), (170.0, 290.0))):
+            p.poly([(R_ + T + 5.0, y0, -150.0), (R_ + T + 5.0, y1, -150.0), (R_ + T + 5.0, y1, 250.0), (R_ + T + 5.0, y0, 250.0)],
+                   "frame", mat="Stripe", n=(1, 0, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+        p.poly([(R_ + T + 6.0, -620.0, -260.0), (R_ + T + 6.0, -100.0, -300.0), (R_ + T + 6.0, -200.0, 330.0), (R_ + T + 6.0, -650.0, 300.0)],
+               "wall", mat="Scorch", n=(1, 0, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+    with p.at(rotz(40.0)):                                       # r5: a burnt breach with Triad's mark half-hidden beside it
+        p.poly([(R_ + T + 4.0, -250.0, -250.0), (R_ + T + 4.0, 200.0, -280.0), (R_ + T + 4.0, 260.0, 220.0), (R_ + T + 4.0, -220.0, 260.0)],
+               mat="Breach", n=(1, 0, 0))
+        p.poly([(R_ + T + 3.0, -700.0, -380.0), (R_ + T + 3.0, 650.0, -380.0), (R_ + T + 3.0, 650.0, 380.0), (R_ + T + 3.0, -700.0, 380.0)],
+               "wall", mat="Scorch", n=(1, 0, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+        p.poly([(R_ + T + 8.0, 300.0, -380.0), (R_ + T + 8.0, 1060.0, -380.0), (R_ + T + 8.0, 1060.0, 380.0), (R_ + T + 8.0, 300.0, 380.0)],
+               mat="Insignia", n=(1, 0, 0), uv=[(0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)])
     with p.at(rotz(52.0)):                                       # the failing light: a flickering lamp on a bracket
         p.box((R_ + T, -40.0, 300.0), (R_ + T + 300.0, 40.0, 360.0), reg="frame")
         p.box((R_ + T + 220.0, -90.0, 360.0), (R_ + T + 380.0, 90.0, 520.0), mat="Flicker")
@@ -96,6 +119,19 @@ def _torn_end(p, x, sign, w=W2, h=H2):
         xa, xb = sorted((x, x + sign * ext))
         p.box((xa, y0, z0), (xb, y1, z1), reg="wall", mat="Scorch")
     _ribs(p, min(x, x + sign * 500.0), max(x, x + sign * 500.0), 250.0, hull_prof(w * 0.92, h * 0.92), t=60.0)
+    # r5: close the open end - a dark inner bulkhead set back, torn ribs bent out past the cut
+    xb_ = x - sign * 300.0
+    prof = hull_prof(w * 0.9, h * 0.9)
+    p.poly([(xb_, y_, z_) for y_, z_ in prof], "sw_black", mat="Scorch", n=(sign, 0, 0), uv=[(0.5, 0.5)] * len(prof))
+    rnd_ = random.Random(int(x) + 7)
+    for j in range(7):
+        a_ = 2 * math.pi * j / 7 + rnd_.uniform(-0.2, 0.2)
+        r0 = (w * 0.42 * abs(math.cos(a_)) + h * 0.42 * abs(math.sin(a_))) * 0.85
+        base = (x, math.cos(a_) * r0, math.sin(a_) * r0 * (h / w) * 1.4)
+        mid = (x + sign * rnd_.uniform(300.0, 600.0), base[1] * rnd_.uniform(0.9, 1.25), base[2] * rnd_.uniform(0.9, 1.3))
+        tip = (mid[0] + sign * rnd_.uniform(150.0, 400.0), mid[1] + rnd_.uniform(-300, 300), mid[2] + rnd_.uniform(-300, 300))
+        _tube(p, base, mid, 28.0, reg="frame", mat="Scorch")
+        _tube(p, mid, tip, 20.0, reg="frame", mat="Scorch")
 
 
 def _slits(p, x0, x1, k=1.0):
@@ -159,6 +195,7 @@ def hulk_mid():
     p.box((-80.0, W2 / 2 - 10.0, H2 * 0.2), (80.0, W2 / 2 + 150.0, H2 * 0.2 + 160.0), mat="Cold")
     p.box((-200.0, -120.0, H2 * 0.45 + 300.0), (40.0, 120.0, H2 * 0.45 + 540.0), mat="Nav")
     _hulk_cues(p, -2000.0, 2000.0, H2 * 0.45 + 300.0)
+    _flare(p, 0.0, 0.0, H2 * 0.45 + 900.0, "FlareCold")
     p.chull([(x, y, z) for x in (-2900.0, 2900.0) for y, z in prof] + [(x, 0.0, H2 * 0.45 + 300.0) for x in (-2200.0, 900.0)])
     return p
 
@@ -220,6 +257,7 @@ def scar_rig():
     # r4: the distance cue - a Null red lamp cluster (8 m) on a mast over the drill head
     p.box((-80.0, -80.0, G + 1550.0), (80.0, 80.0, G + 2200.0), reg="frame", mat="Dom")
     p.box((-400.0, -400.0, G + 2200.0), (400.0, 400.0, G + 2600.0), mat="Beacon")
+    _flare(p, 0.0, 0.0, G + 2800.0, "FlareRed")
     _tube(p, (0.0, 0.0, G), (0.0, 0.0, -1800.0), 260.0, reg="frame", mat="Dom")
     p.box((-400.0, -400.0, -2200.0), (400.0, 400.0, -1800.0), reg="hazard", mat="Dom")
     p.box((-140.0, -140.0, 200.0), (140.0, 140.0, 480.0), mat="Strobe")          # the slow white strobe on the drill arm
@@ -245,23 +283,31 @@ def _shard(name, R, seed, seams, band=1100.0):
     XC0 = R[0] * 0.35
     rnd = random.Random(seed + 1)
     iy, iz = R[1] * 0.08, -R[2] * 0.06                      # the impact point on the face
-    steps = [0.0, -450.0, -900.0, -300.0, -700.0, -1000.0]
+    # r5: 8 angular facets (Voronoi cells round seed points on the face), each its own tilted plane 2-8 m proud or sunk,
+    # so the break has real relief; the two deepest are recesses that glow
+    seeds = [(iy, iz)] + [(iy + math.cos(2 * math.pi * k / 7 + 0.4) * R[1] * rnd.uniform(0.3, 0.6),
+                           iz + math.sin(2 * math.pi * k / 7 + 0.4) * R[2] * rnd.uniform(0.3, 0.6)) for k in range(7)]
+    offs = [-700.0] + [rnd.choice((-1, 1)) * rnd.uniform(200.0, 800.0) for _ in range(7)]
+    tilts = [(rnd.uniform(-0.18, 0.18), rnd.uniform(-0.18, 0.18)) for _ in range(8)]
+    deep = sorted(range(8), key=lambda i: offs[i])[:2]
 
     def plate(y, z):
-        a_ = (math.degrees(math.atan2(z - iz, y - iy)) + 360.0) % 360.0
-        r_ = math.hypot(y - iy, z - iz)
-        if r_ < R[1] * 0.12:
-            return 0
-        return 1 + int(a_ // 72.0)
+        return min(range(8), key=lambda i: (y - seeds[i][0]) ** 2 + (z - seeds[i][1]) ** 2)
 
     def xc(y, z):
-        return XC0 + steps[plate(y, z)]
+        i = plate(y, z)
+        return XC0 + offs[i] + tilts[i][0] * (y - seeds[i][0]) + tilts[i][1] * (z - seeds[i][1])
     _rock(p, R, seed, XC=xc, BR=1.0, BD=0.0, NU=96, NV=60, rim=True)
     out = []
     for v, u, m in p.faces:
         if m == "Cut":
             zc = sum(q.z for q in v) / len(v)
-            m = "Strata" if int((zc + 100000.0) // band) % 2 == 0 else "Strata2"
+            yc_ = sum(q.y for q in v) / len(v)
+            i_ = plate(yc_, zc)
+            if i_ in deep:
+                m = "Recess"
+            else:                                               # strata follow the facet (its tilt shifts the bands)
+                m = "Strata" if int((zc + tilts[i_][1] * 4000.0 + offs[i_] * 2.0 + 100000.0) // band) % 2 == 0 else "Strata2"
             u = [(q.y / 3000.0, q.z / 1200.0) for q in v]
         elif m in ("Rock", "Rim"):
             u = [(a_ * 4.0, b_ * 4.0) for a_, b_ in u]
@@ -292,6 +338,7 @@ def _shard(name, R, seed, seams, band=1100.0):
         crack(iy, iz, ang, min(R[1], R[2]) * rnd.uniform(0.7, 0.95), 520.0, 40.0, 0)
     # the hot heart of the impact
     hs = 1400.0                                               # r4: twice the hot heart
+    _flare(p, xc(iy, iz) + 300.0, iy, iz, "FlareEmber")
     p.poly([(xc(iy, iz) + 35.0, iy - hs, iz - hs), (xc(iy, iz) + 35.0, iy + hs, iz - hs), (xc(iy, iz) + 35.0, iy + hs, iz + hs),
             (xc(iy, iz) + 35.0, iy - hs, iz + hs)], mat="CrackHot", n=(1, 0, 0))
     return p, XC0

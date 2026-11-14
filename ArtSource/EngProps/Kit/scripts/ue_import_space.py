@@ -54,6 +54,133 @@ def glow_mi(name, rgb, strength, pulse=0.0, rate=1.0):
     return mi
 
 
+FLARE = "/Game/TriadDrift/Gameplay/Props/Kit/Materials/M_Kit_Flare"
+
+
+def ensure_flare(notes):
+    """M_Kit_Flare (r5, the range cue): unlit, additive, two-sided. The flare quad's UV corners drive a world-position
+    offset along the camera right and up vectors, so the quad faces the camera and is FlareAngle (0.0075 rad, about
+    0.86 degrees) of the view tall at any distance, clamped to FlareMin / FlareMax cm; FlareStreak stretches it sideways.
+    Emissive: a soft round core plus a thin horizontal streak, FlareColor x FlareStrength, pulsing at FlarePulse Hz."""
+    K.ensure_dir("/Game/TriadDrift/Gameplay/Props/Kit/Materials")
+    folder, name = FLARE.rsplit("/", 1)
+    tools = unreal.AssetToolsHelpers.get_asset_tools()
+    mat = eas.load_asset(FLARE) if eas.does_asset_exist(FLARE) else tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
+    mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_ADDITIVE)
+    mat.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
+    mat.set_editor_property("two_sided", True)
+    try:
+        mel.set_material_usage(mat, unreal.MaterialUsage.MATUSAGE_INSTANCED_STATIC_MESHES)
+    except Exception as error:
+        notes.append("flare usage %s" % error)
+    mel.delete_all_material_expressions(mat)
+    c = mel.connect_material_expressions
+
+    def node(cls, x, y):
+        return mel.create_material_expression(mat, cls, x, y)
+
+    def sp(n, v, y):
+        e = node(unreal.MaterialExpressionScalarParameter, -1600, y)
+        e.set_editor_property("parameter_name", n)
+        e.set_editor_property("default_value", v)
+        return e
+
+    def const(v, x, y):
+        e = node(unreal.MaterialExpressionConstant, x, y)
+        e.set_editor_property("r", v)
+        return e
+
+    def c3(v, x, y):
+        e = node(unreal.MaterialExpressionConstant3Vector, x, y)
+        e.set_editor_property("constant", unreal.LinearColor(v[0], v[1], v[2], 1.0))
+        return e
+
+    res = [True]
+
+    def mask(src, ch, x, y):
+        e = node(unreal.MaterialExpressionComponentMask, x, y)
+        for c_ in ("r", "g", "b", "a"):
+            e.set_editor_property(c_, c_ == ch)
+        res[0] &= c(src, "", e, "")
+        return e
+
+    def op(cls, a, b, x, y):
+        e = node(cls, x, y)
+        res[0] &= c(a, "", e, "A") and c(b, "", e, "B")
+        return e
+
+    def one_in(cls, a, x, y, pin=""):
+        e = node(cls, x, y)
+        res[0] &= c(a, "", e, pin)
+        return e
+    S = unreal
+    tc = node(S.MaterialExpressionTextureCoordinate, -1600, -400)
+    u2 = op(S.MaterialExpressionMultiply, op(S.MaterialExpressionSubtract, mask(tc, "r", -1400, -450), const(0.5, -1400, -250), -1250, -450),
+            const(2.0, -1400, -200), -1100, -450)
+    v2 = op(S.MaterialExpressionMultiply, op(S.MaterialExpressionSubtract, mask(tc, "g", -1400, -350), const(0.5, -1400, -260), -1250, -350),
+            const(2.0, -1400, -210), -1100, -350)
+    right = node(S.MaterialExpressionTransform, -1250, -100)
+    up = node(S.MaterialExpressionTransform, -1250, 0)
+    for t_, vec in ((right, (1.0, 0.0, 0.0)), (up, (0.0, 1.0, 0.0))):
+        t_.set_editor_property("transform_source_type", S.MaterialVectorCoordTransformSource.TRANSFORMSOURCE_VIEW)
+        t_.set_editor_property("transform_type", S.MaterialVectorCoordTransform.TRANSFORM_WORLD)
+        res[0] &= c(c3(vec, -1400, -100 if vec[0] else 0), "", t_, "")
+    dist = op(S.MaterialExpressionDistance, node(S.MaterialExpressionCameraPositionWS, -1600, 150),
+              node(S.MaterialExpressionObjectPositionWS, -1600, 220), -1400, 180)
+    sz = op(S.MaterialExpressionMultiply, dist, sp("FlareAngle", 0.0075, 300), -1250, 200)
+    cl = node(S.MaterialExpressionClamp, -1100, 250)
+    res[0] &= c(sz, "", cl, "") and c(sp("FlareMin", 250.0, 380), "", cl, "Min") and c(sp("FlareMax", 4500.0, 460), "", cl, "Max")
+    st = sp("FlareStreak", 3.0, 540)
+    ux = op(S.MaterialExpressionMultiply, u2, st, -950, -450)
+    sm = op(S.MaterialExpressionAdd, op(S.MaterialExpressionMultiply, right, ux, -800, -200), op(S.MaterialExpressionMultiply, up, v2, -800, -50), -650, -120)
+    wpo = op(S.MaterialExpressionMultiply, sm, cl, -500, -50)
+    res[0] &= mel.connect_material_property(wpo, "", S.MaterialProperty.MP_WORLD_POSITION_OFFSET)
+    # core: (1 - length(u2 * streak, v2))^3 ; streak: (1 - |v2| * 6) * (1 - |u2|) * 0.5
+    ap = node(S.MaterialExpressionAppendVector, -800, 640)
+    res[0] &= c(op(S.MaterialExpressionMultiply, u2, st, -950, 600), "", ap, "A") and c(v2, "", ap, "B")
+    zero = node(S.MaterialExpressionConstant2Vector, -950, 700)
+    rr = op(S.MaterialExpressionDistance, ap, zero, -650, 660)
+    sat = one_in(S.MaterialExpressionSaturate, op(S.MaterialExpressionSubtract, const(1.0, -650, 760), rr, -500, 660), -380, 660)
+    pw = node(S.MaterialExpressionPower, -260, 660)
+    res[0] &= c(sat, "", pw, "Base") and c(const(3.0, -380, 760), "", pw, "Exp")
+    av = one_in(S.MaterialExpressionAbs, v2, -950, 850)
+    au = one_in(S.MaterialExpressionAbs, u2, -950, 950)
+    sa1 = one_in(S.MaterialExpressionSaturate, op(S.MaterialExpressionSubtract, const(1.0, -650, 800),
+                                                   op(S.MaterialExpressionMultiply, av, const(6.0, -950, 1050), -800, 850), -650, 850), -500, 850)
+    sa2 = one_in(S.MaterialExpressionSaturate, op(S.MaterialExpressionSubtract, const(1.0, -650, 900), au, -650, 950), -500, 950)
+    streak = op(S.MaterialExpressionMultiply, op(S.MaterialExpressionMultiply, sa1, sa2, -380, 900), const(0.5, -380, 1000), -260, 900)
+    shape = op(S.MaterialExpressionAdd, pw, streak, -120, 760)
+    col = node(S.MaterialExpressionVectorParameter, -500, 1150)
+    col.set_editor_property("parameter_name", "FlareColor")
+    col.set_editor_property("default_value", S.LinearColor(1.0, 0.6, 0.2, 1.0))
+    tw = op(S.MaterialExpressionMultiply, op(S.MaterialExpressionMultiply, node(S.MaterialExpressionTime, -1600, 1450), sp("FlarePulse", 0.4, 1350), -1400, 1400),
+            const(6.2832, -1400, 1500), -1250, 1400)
+    sn = node(S.MaterialExpressionSine, -1100, 1400)
+    sn.set_editor_property("period", 6.2832)
+    res[0] &= c(tw, "", sn, "")
+    pul = op(S.MaterialExpressionAdd, op(S.MaterialExpressionMultiply, sn, const(0.3, -1100, 1500), -950, 1400), const(0.75, -950, 1500), -800, 1400)
+    e3 = op(S.MaterialExpressionMultiply, op(S.MaterialExpressionMultiply, op(S.MaterialExpressionMultiply, col, sp("FlareStrength", 8.0, 1250), -350, 1200),
+                                              pul, -200, 1250), shape, -60, 1000)
+    res[0] &= mel.connect_material_property(e3, "", S.MaterialProperty.MP_EMISSIVE_COLOR)
+    if not res[0]:
+        log("FAILED: wiring M_Kit_Flare")
+        return None
+    try:
+        mel.recompile_material(mat)
+    except Exception:
+        notes.append("M_Kit_Flare compiles on first load")
+    eas.save_asset(FLARE, only_if_is_dirty=False)
+    out = {}
+    for key, rgb, strength in (("FlareAmber", (1.0, 0.5, 0.08), 8.0), ("FlareCold", (0.6, 0.8, 1.0), 7.0),
+                               ("FlareRed", (1.0, 0.05, 0.02), 9.0), ("FlareEmber", (1.0, 0.42, 0.12), 8.0)):
+        mi = K.instance("MI_KS_" + key, mat)
+        mel.set_material_instance_vector_parameter_value(mi, "FlareColor", S.LinearColor(rgb[0], rgb[1], rgb[2], 1.0))
+        mel.set_material_instance_scalar_parameter_value(mi, "FlareStrength", strength)
+        eas.save_loaded_asset(mi)
+        out[key] = mi
+    return out
+
+
 def main():
     notes = []
     K.ensure_dir(DEST)
@@ -100,6 +227,12 @@ def main():
               "Work": glow_mi("MI_SP_WorkLight", (1.0, 0.9, 0.7), 45.0),          # r5: steady, under the band
               "Scorch": scorch, "Cut": cut,
               "Rock": eas.load_asset(SP + "MI_Asteroid_03"), "Bore": eas.load_asset(SP + "MI_SpaceDebris_01")}
+    if REGION:
+        fl = ensure_flare(notes)
+        if fl:
+            common.update(fl)
+        common["Recess"] = glow_mi("MI_KS_Recess", (0.9, 0.18, 0.03), 2.0)
+        common["Insignia"] = eas.load_asset(KT + "Story/MI_Kit_InsigniaScorched")
     pipe = K.ensure_pipeline(notes)
     sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
     mgr = unreal.InterchangeManager.get_interchange_manager_scripted()

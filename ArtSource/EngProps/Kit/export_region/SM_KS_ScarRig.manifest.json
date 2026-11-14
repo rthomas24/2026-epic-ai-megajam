@@ -1,11 +1,11 @@
 {
   "asset": "SM_KS_ScarRig",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_ScarRig.fbx",
-  "tris": 16120,
+  "tris": 16122,
   "size_cm": [
     8876.0,
     8276.7,
-    9208.7
+    9409.7
   ],
   "pivot": "root object origin (SM_KS_ScarRig~exp)",
   "forward": "+X (authoring front +X rotated)",
@@ -14,6 +14,7 @@
     "M_Kit_Dom",
     "M_Kit_DomRaw",
     "M_Kit_Eye",
+    "M_Kit_FlareRed",
     "M_Kit_Glow",
     "M_Kit_Rock",
     "M_Kit_Strobe",
@@ -83,6 +84,23 @@
         1.0
       ],
       "emission_strength": 12.0
+    },
+    {
+      "name": "M_Kit_FlareRed",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.05,
+        0.02
+      ],
+      "emission_strength": 2.0
     },
     {
       "name": "M_Kit_Glow",
@@ -176,6 +194,8 @@
     },
     "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
   },
-  "warnings": [],
+  "warnings": [
+    "9 materials = 9 draw calls; consider merging"
+  ],
   "errors": []
 }
