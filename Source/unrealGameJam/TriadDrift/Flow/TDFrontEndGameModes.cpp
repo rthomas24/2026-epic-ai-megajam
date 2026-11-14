@@ -26,6 +26,8 @@
 #include "Widgets/Input/SButton.h"
 #include "TriadDrift/Flow/TDFrontEndStyle.h"
 #include "Widgets/Text/STextBlock.h"
+#include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/Layout/SBox.h"
 #include "Styling/CoreStyle.h"
 #include "Framework/Application/SlateApplication.h"
 #include "HAL/IConsoleManager.h"
@@ -354,12 +356,28 @@ void ATDMenuGameMode::ShowPlaceholder()
 			SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("RUN TIME %d:%02d   KILLS %d   SHIPS LOST %d   CUTS %d"), Seconds / 60, Seconds % 60, P.Stats.Kills, P.Stats.Deaths, Cuts)))
 			.Font(FCoreStyle::GetDefaultFontStyle("Regular", 18))
 		];
-		for (const FTDSceneTakes& Row : GI->GetSceneTakes())
+		// The scene list is bounded (N-047: a long run pushed RETURN TO MENU off a 720p screen): a scroll box at most
+		// SceneListMaxHeight tall (about nine rows), so the credits roll and the button always fit.
+		const TArray<FTDSceneTakes> Scenes = GI->GetSceneTakes();
+		TSharedRef<SScrollBox> SceneList = SNew(SScrollBox).ScrollBarAlwaysVisible(Scenes.Num() > 9);
+		for (const FTDSceneTakes& Row : Scenes)
 		{
-			Box->AddSlot().AutoHeight().HAlign(HAlign_Center)
+			SceneList->AddSlot().HAlign(HAlign_Center)
 			[
 				SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("SCENE %d  %s  -  %d %s"), Row.SceneNumber, *Row.SceneId.ToString(), Row.Takes, Row.Takes == 1 ? TEXT("TAKE") : TEXT("TAKES"))))
 				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 14)).ColorAndOpacity(FLinearColor(0.8f, 0.85f, 0.95f))
+			];
+		}
+		if (Scenes.Num() > 0)
+		{
+			Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 6.f, 0.f, 2.f)
+			[
+				SNew(STextBlock).Text(FText::FromString(FString::Printf(TEXT("SCENES (%d)"), Scenes.Num()))).Font(FCoreStyle::GetDefaultFontStyle("Bold", 13))
+				.ColorAndOpacity(FLinearColor(0.6f, 0.65f, 0.75f))
+			];
+			Box->AddSlot().AutoHeight().HAlign(HAlign_Center)
+			[
+				SNew(SBox).MaxDesiredHeight(SceneListMaxHeight).WidthOverride(560.f)[SceneList]
 			];
 		}
 		// T3: the credits roll (DA_Credits, else the CREDITS.md fallback), inside this panel: it goes with it.
