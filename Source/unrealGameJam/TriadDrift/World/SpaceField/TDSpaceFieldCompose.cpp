@@ -242,7 +242,7 @@ namespace TDSpaceFieldCompose
 	}
 }
 
-bool ATDSpaceField::AddStructure(UStaticMesh* Mesh, const FTransform& T)
+bool ATDSpaceField::AddStructure(UStaticMesh* Mesh, const FTransform& T, int32 BeaconRegion)
 {
 	// The structures builder's set pieces (real scale, 1-2 convex hulls each): solid with their own collision, never
 	// broken (Lead: nothing is passed through; they are landmarks), and a chain of avoidance spheres for the AI.
@@ -283,6 +283,10 @@ bool ATDSpaceField::AddStructure(UStaticMesh* Mesh, const FTransform& T)
 			WorldSys->AddObstacle(Centre + WDir * Along, Mid * 1.1f);
 			++ObstaclesAdded;
 		}
+	}
+	if (BeaconRegion > 0)
+	{
+		BeaconPoints.Add({ T.TransformPosition(Box.GetCenter()) + FVector::UpVector * (Ext.Z + 500.f), BeaconRegion });	// above its top
 	}
 	FTDSpaceFieldPiece P;
 	P.Location = T.GetLocation();
@@ -521,7 +525,7 @@ void ATDSpaceField::BuildSurveyScar(FRandomStream& Rng)
 	RegionCentres.Add(5, Centre);
 	// The centrepiece: the split-rock survey rig.
 	// Scales from the structures builder (Lead, Nov 14): each piece subtends 3+ degrees at 1.5 km.
-	AddStructure(LoadKitPiece(TEXT("SM_KS_ScarRig")), FTransform(FRotator(Rng.FRandRange(-10.f, 10.f), (Zone - Centre).Rotation().Yaw, 0.f), Centre, FVector(2.f)));
+	AddStructure(LoadKitPiece(TEXT("SM_KS_ScarRig")), FTransform(FRotator(Rng.FRandRange(-10.f, 10.f), (Zone - Centre).Rotation().Yaw, 0.f), Centre, FVector(2.f)), 5);
 	// Two Null rigs, each on an anchored host rock (the structures builder pairs SM_Asteroid_03 at scale 80 with the rig).
 	UStaticMesh* Host = Families[0].Num() > 2 ? Families[0][2].Get() : (Families[0].Num() > 0 ? Families[0][0].Get() : nullptr);
 	UStaticMesh* Rig = LoadSetPiece(TEXT("SM_SP_NullRig"));
@@ -605,7 +609,7 @@ void ATDSpaceField::BuildShatteredMoons(FRandomStream& Rng)
 		if (FVector::Dist(At, Stage) < 60000.f + Half) { continue; }
 		const FVector OnRoute = FMath::ClosestPointOnSegment(At, Zone, DLoc);
 		const FRotator Face = (OnRoute - At).Rotation();
-		if (!AddStructure(M, FTransform(FRotator(Face.Pitch, Face.Yaw, Rng.FRandRange(-40.f, 40.f)), At))) { continue; }
+		if (!AddStructure(M, FTransform(FRotator(Face.Pitch, Face.Yaw, Rng.FRandRange(-40.f, 40.f)), At), 6)) { continue; }
 		++Placed;
 		const FVector Lee = At + (At - OnRoute).GetSafeNormal() * (Half + 8000.f);
 		for (int32 g = 0; g < 25; ++g)
@@ -628,7 +632,7 @@ void ATDSpaceField::PlaceRegionCentrepieces(FRandomStream& Rng)
 		// Beside the first patrol wreck, a little further out, its arc facing the zone.
 		const FVector Out = (*Halo - Zone).GetSafeNormal();
 		const FVector At = *Halo + Out * 12000.f + FVector::CrossProduct(FVector::UpVector, Out).GetSafeNormal() * 15000.f;
-		AddStructure(LoadKitPiece(TEXT("SM_KS_PicketRing")), FTransform(FRotator(Rng.FRandRange(-15.f, 15.f), (Zone - At).Rotation().Yaw, Rng.FRandRange(-20.f, 20.f)), At, FVector(2.f)));
+		AddStructure(LoadKitPiece(TEXT("SM_KS_PicketRing")), FTransform(FRotator(Rng.FRandRange(-15.f, 15.f), (Zone - At).Rotation().Yaw, Rng.FRandRange(-20.f, 20.f)), At, FVector(2.f)), 1);
 	}
 	if (const FVector* Grave = RegionCentres.Find(4))
 	{
@@ -640,7 +644,7 @@ void ATDSpaceField::PlaceRegionCentrepieces(FRandomStream& Rng)
 		for (int32 i = 0; i < 3; ++i)
 		{
 			const FVector At = Base + Along * (i - 1) * 30000.f + FVector(Rng.GetUnitVector()) * 3500.f;	// 1.5x: sections and spacing
-			AddStructure(LoadKitPiece(Parts[i]), FTransform(FRotator(Rng.FRandRange(-12.f, 12.f), Along.Rotation().Yaw + Rng.FRandRange(-15.f, 15.f), Rng.FRandRange(-35.f, 35.f)), At, FVector(1.5f)));
+			AddStructure(LoadKitPiece(Parts[i]), FTransform(FRotator(Rng.FRandRange(-12.f, 12.f), Along.Rotation().Yaw + Rng.FRandRange(-15.f, 15.f), Rng.FRandRange(-35.f, 35.f)), At, FVector(1.5f)), 4);
 		}
 	}
 }
