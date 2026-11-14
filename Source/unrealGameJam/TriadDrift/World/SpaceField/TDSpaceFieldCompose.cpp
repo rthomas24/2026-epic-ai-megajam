@@ -44,6 +44,7 @@ void ATDSpaceField::BuildShepherdBelt(FRandomStream& Rng)
 	const FVector N = Tilt.RotateVector(FVector::UpVector);
 	BeltNormal = N;
 	BeltCenter = Zone;
+	RegionCentres.Add(2, Zone);
 
 	// Gaps: every route out of the zone (to the planets, the Dominion, the gate ends), as a bearing in the plane with a
 	// half width. The Verdance bearing is wide (T4: the escape line can start anywhere in the pocket).
