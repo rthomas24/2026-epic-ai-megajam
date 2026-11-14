@@ -249,8 +249,11 @@ namespace TDPilotGripDebug
 		{
 			if (!It->IsDead())
 			{
-				const FVector Dir = (It->GetActorLocation() - P->GetActorLocation()).GetSafeNormal2D();
-				UTDStatics::ApplyTDDamage(*It, 1000000.f, ETDDamageKind::Melee, P, P, It->GetActorLocation(), Dir);
+				// "behind": the hit travels the way the crew member faces (a blow in the back, past a Heavy's shield)
+				const bool bBehind = Args.Num() > 0 && Args[0] == TEXT("behind");
+				const FVector Dir = bBehind ? It->GetActorForwardVector() : (It->GetActorLocation() - P->GetActorLocation()).GetSafeNormal2D();
+				// a Heavy's shield arc is judged from the instigator's position: none here, so the blow counts as coming from behind
+				UTDStatics::ApplyTDDamage(*It, 1000000.f, ETDDamageKind::Melee, bBehind ? nullptr : P, P, It->GetActorLocation(), Dir);
 			}
 		}
 	}

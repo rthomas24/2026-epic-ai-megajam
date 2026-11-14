@@ -76,7 +76,7 @@ def main():
                   "rotation": {"pitch": math.degrees(math.atan2(fwd[2], math.hypot(fwd[0], fwd[1]))), "yaw": math.degrees(math.atan2(fwd[1], fwd[0])), "roll": 0.0},
                   "projectionMode": "Perspective", "fOV": 45.0, "orthoWidth": 512}
         for attempt in range(10):   # a shielded Heavy takes several hits (the first ones break its guard)
-            cmd("TD.Ground.CrewKill")
+            cmd("TD.Ground.CrewKill" + (" behind" if os.environ.get("TD_KILL_BEHIND") else ""))
             time.sleep(0.15)
             chk = where(loc)
             if chk and chk["dead"]:

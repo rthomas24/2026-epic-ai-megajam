@@ -1,5 +1,5 @@
 {
- "_note": "Authored crew moves (see ue_crew_author.py for the key format). Contact: Heavy shield bash 0.55 s, Warden slam 1.10 s. r2 (review): the slam is driven lower (deeper crouch and lean, hands to shin height); the bash steps the left foot forward 0.38 leg lengths and extends the shield arm.",
+ "_note": "Authored crew moves (see ue_crew_author.py for the key format). Contact: Heavy shield bash 0.55 s, Warden slam 1.10 s. r2 (review): the slam is driven lower (deeper crouch and lean, hands to shin height); the bash steps the left foot forward 0.38 leg lengths and extends the shield arm. r3: slam keeps the chest turned (shield in front) through the wind-up; Grunt charge rebuilt on the jog (grounded) with a lean and a dropped lead shoulder.",
  "moves": [
   {
    "src": "A_Crew_Heavy_Idle_Guard",
@@ -227,7 +227,7 @@
     },
     {
      "t": 0.3,
-     "yaw": 0,
+     "yaw": 40,
      "pitch": -8,
      "pelvis": [
       -0.03,
@@ -252,7 +252,7 @@
     },
     {
      "t": 0.65,
-     "yaw": 0,
+     "yaw": 42,
      "pitch": -16,
      "pelvis": [
       -0.06,
@@ -277,7 +277,7 @@
     },
     {
      "t": 0.95,
-     "yaw": 0,
+     "yaw": 42,
      "pitch": -16,
      "pelvis": [
       -0.06,
@@ -302,7 +302,7 @@
     },
     {
      "t": 1.1,
-     "yaw": 0,
+     "yaw": 8,
      "pitch": 46,
      "pelvis": [
       0.2,
@@ -327,7 +327,7 @@
     },
     {
      "t": 1.4,
-     "yaw": 0,
+     "yaw": 8,
      "pitch": 46,
      "pelvis": [
       0.2,
@@ -456,6 +456,113 @@
        0,
        0
       ]
+     }
+    }
+   ]
+  },
+  {
+   "src": "MF_Unarmed_Jog_Fwd",
+   "dst": "A_Crew_Grunt_Charge",
+   "length": 0.97,
+   "keys": [
+    {
+     "t": 0.0,
+     "yaw": 0,
+     "pitch": 6,
+     "pelvis": [
+      0,
+      0
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.3,
+        -0.1,
+        -0.5
+       ]
+      },
+      "l": {
+       "hand": [
+        0.3,
+        0.1,
+        -0.5
+       ]
+      }
+     }
+    },
+    {
+     "t": 0.2,
+     "yaw": 18,
+     "pitch": 26,
+     "pelvis": [
+      0.0,
+      -0.06
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.35,
+        -0.35,
+        -0.25
+       ]
+      },
+      "l": {
+       "hand": [
+        0.5,
+        0.25,
+        -0.05
+       ]
+      }
+     }
+    },
+    {
+     "t": 0.8,
+     "yaw": 18,
+     "pitch": 26,
+     "pelvis": [
+      0.0,
+      -0.06
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.35,
+        -0.35,
+        -0.25
+       ]
+      },
+      "l": {
+       "hand": [
+        0.5,
+        0.25,
+        -0.05
+       ]
+      }
+     }
+    },
+    {
+     "t": "end",
+     "yaw": 8,
+     "pitch": 10,
+     "pelvis": [
+      0,
+      0
+     ],
+     "arms": {
+      "r": {
+       "hand": [
+        0.3,
+        -0.1,
+        -0.5
+       ]
+      },
+      "l": {
+       "hand": [
+        0.3,
+        0.1,
+        -0.5
+       ]
+      }
      }
     }
    ]
