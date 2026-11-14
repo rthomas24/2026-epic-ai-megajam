@@ -207,7 +207,21 @@ are spoken by whoever flew the docked ship (issue #29). `F_FutureWren_FullWarnin
 | `A5_Escape` | Control | The ship is coming apart. Ninety seconds. Move! |
 | `A5_DistressSignal` | Unknown (Static) | DISTRESS SIGNAL  ·  TRIAD: WREN, KATO, MOSS  ·  DATED DECADES AHEAD |
 
-### To be added: Sequence 02, *Aftermath* (Nicholas's brief of Nov 13; ids reserved `S2_*`)
-Moss "All three ships accounted for...", Wren "If that was a welcome party...", Kato "Hold on. They're not pursuing
-us.", the vectors exchange, Command's new orders, Wren "Triad, form up. Verdance it is.", Kato "And keep your recorders
-running." T3 seeds these with the brief's draft lines next.
+### Sequence 02, *Aftermath* (plays on T7's OnAftermathBegins: the tutorial's escape, or a skipped tutorial)
+| Id | Speaker (style) | Line |
+|---|---|---|
+| `S2_Moss_Accounted` | Moss | All three ships accounted for. I'm calling that a win. |
+| `S2_Wren_WelcomeParty` | Wren | Is it over? I think I blacked out... (approved; delivery: sarcastic, dry, deadpan) |
+| `S2_Kato_NotPursuing` | Kato | Hold on. They're not pursuing us. |
+| `S2_Kato_Vectors` | Kato | Look at their vectors. Most of those craft never joined the fight. |
+| `S2_Wren_WhatDoing` | Wren | Then what are they doing? |
+| `S2_Kato_Planetside` | Kato | Heading planetside. Every group. Same destination. |
+| `S2_Moss_InTheWay` | Moss | So we got in the way of something. |
+| `S2_Command_Report` | Command (Static) | Triad, report. We lost your telemetry when you approached the unidentified vessel. |
+| `S2_Wren_Hostile` | Wren | Confirmed hostile. Automated fighters, heavy numbers. We're intact, barely. |
+| `S2_Kato_Coordinated` | Kato | They've launched a coordinated operation toward Verdance. This wasn't a defensive scramble. |
+| `S2_Command_Outpost` | Command | We've received an emergency report from a research outpost there. Unidentified machines landed near a restricted survey zone. The outpost has gone dark. |
+| `S2_Moss_FindOut` | Moss | And you want us to find out why. |
+| `S2_Command_Orders` | Command | Affirmative. Avoid direct engagement with the mothership. Reach Verdance, locate the outpost, and recover its survey data. We need to know what they're looking for. |
+| `S2_Wren_FormUp` | Wren | Triad, form up. Verdance it is. |
+| `S2_Kato_Recorders` | Kato | And keep your recorders running. Nothing about this adds up. |
