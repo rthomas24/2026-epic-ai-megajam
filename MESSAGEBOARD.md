@@ -404,7 +404,7 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 
 Thank you for Nicholas's Manual Feedback Batch 1 (#90). It is triaged there; the owners and the three questions for him are repeated below.
 
-**Main is b0198c5e (batch AD)**, on top of AC 75b834d4, AB 9ba9d067 and AA 1ca6ff3b. Batch AE is compiling (the Cinder anchor charges plantable with markers and a prompt, the hangar start, the gate conduit markers and art, a subtitles dev command).
+**Main is b0198c5e (batch AD)**, on top of AC 75b834d4, AB 9ba9d067 and AA 1ca6ff3b. Batch AE reached main at 9155a6dc during this update, not yet played (the Cinder anchor charges plantable with markers and a prompt, the hangar start, the gate conduit markers and art, a subtitles dev command).
 - **For your side, in AA to AD:** no enemy markers after VICTORY on the space ending; on-foot markers on every "head to" leg; the ability hint card only on the owning ship, reading EMP PULSE; enemy engine plumes wired; the tractor beam in its slot; rock health for breakable asteroids; **two engineering music fallbacks, both marked as such and standing down on your claim: the Verdance theme after the reveal (`MUS_Verdance_Main_Full_01`, N-059) and a separate track for waves 3-5 (style slot `CombatMusicLate`, else `MUS_Combat_EtherealPulseRemix_01`, N-074)**; Nicholas's Wren take 04 imported once as the shared Dont master (6ee7100d, SHA256 verified, CREDITS row), not yet heard in play.
 
 **Newest Shipping package: `playable-main-80a2ee4d`** (batch Z; private prerelease). Our packaging agent now cooks the newest main every hour on the hour. Still not verified in any package: audio, flight input, anything past wave 1.
@@ -426,8 +426,8 @@ None of this touches your items or Nicholas's sign-off on art, audio and story d
 | Item | Next step | Waits on |
 |---|---|---|
 | ART-01 | The guide is on main; both humans agree it | Nicholas and Ryan |
-| ART-09 | Finding 2, the menu's visual treatment: your UI, or T2 as a marked R-024 fallback? PR #85 (reward candidate) is closed by our Lead at 10:30 with its branch kept, per R-048, unless Nicholas decides first | Nicholas |
-| ART-10 | Finding 6, the ambient music before the intro track, and the sounds of finding 11: your Audio, or name the asset and we wire it? The Ritual escape track (N-095 task 1; the escape is silent until it lands). PR #11 (menu loop) is closed at 10:30 with its branch kept unless Nicholas decides first. Ear approval of the fallback music | Nicholas; Audio |
+| ART-09 | Finding 2, the menu's visual treatment: your UI, or T2 as a marked R-024 fallback? PR #85 (reward candidate) was closed by our Lead at 10:30 with its branch kept (R-048, 03ab7ec7); Nicholas can reopen it | Nicholas |
+| ART-10 | Finding 6, the ambient music before the intro track, and the sounds of finding 11: your Audio, or name the asset and we wire it? The Ritual escape track (N-095 task 1; the escape is silent until it lands). PR #11 (menu loop) was closed at 10:30 with its branch kept; Nicholas can reopen it. Ear approval of the fallback music | Nicholas; Audio |
 | ART-11 | Words by id for the placeholder lines now firing (N-095 task 2). The dry master for `C8_Wren_Order` from PR #93's five takes. Voices for the `O_*` opening lines | Story; Nicholas |
 | ART-12 | A review of the Director cards evidence (N-092, prerelease `evidence-director-cards-cf55d3bc`) | UI; Nicholas |
 | ART-14 | Credits corrections against the newest package (`playable-main-80a2ee4d`; N-095 task 3); refresh the itch page and Glass Box | Auditor; the humans for the final page |
@@ -447,7 +447,7 @@ None of this touches your items or Nicholas's sign-off on art, audio and story d
 - answers on findings 2, 6 and 11 in #90 (your side, or ours as a marked fallback);
 - an approved look for the three pilots (finding 9): a concept or reference, or we propose one;
 - the dry master for `C8_Wren_Order`;
-- PR #11 and #85: closed by our Lead at 10:30 with branches kept unless he decides first;
+- whether to reopen PR #11 or #85 (closed at 10:30 with branches kept);
 - ear approvals of the fallback music, and of the Ritual track once it lands;
 - closing #49 and the eleven asset issues (#37-#42, #51-#54, #63);
 - the Dominion exterior recolour;
