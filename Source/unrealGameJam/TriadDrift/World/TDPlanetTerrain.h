@@ -71,6 +71,27 @@ public:
 	/** Tests: the point the LOD follows (otherwise the camera / pawn). */
 	void SetViewOverride(const FVector& WorldPoint) { bViewOverride = true; ViewOverride = WorldPoint; ReplanTimer = 0.f; }
 	bool IsBuilt() const { return Field.IsValid(); }
+
+	// ENG-38 arrival (agreed with T1, Nov 14). T1 places the arrival at GetCloudDeckZ() + 300 m, glides to
+	// GetGroundZAt(under the ship) + 900 m, calls PrepareArrival(glide end) under the cover, and the reveal waits on
+	// IsArrivalReady(glide end).
+	/** The deck sits this far (cm) above the highest ground of the flight zone. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Arrival", meta = (ClampMin = "0"))
+	float DeckClearance = 60000.f;
+	/** Half size (cm) of the square sampled for the highest ground (the flight zone round the course). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Arrival", meta = (ClampMin = "0"))
+	float DeckSampleHalfSize = 500000.f;
+	/** World Z of the cloud deck: the zone's highest ground + DeckClearance (sampled once, cached). */
+	float GetCloudDeckZ() const;
+	/** World Z of the highest ground in the flight zone (cached). */
+	float GetZoneMaxGroundZ() const;
+	/** World Z of the ground under a world point (GetHeightAt). */
+	float GetGroundZAt(const FVector& WorldPoint) const { return GetHeightAt(WorldPoint); }
+	/** Point the scatter's streamed rings at the glide's end now, before the cover lifts. */
+	void PrepareArrival(const FVector& GlideEndWorld);
+	/** Terrain built, the zone layer's near tier in, and the scatter around the glide end complete. */
+	bool IsArrivalReady(const FVector& GlideEndWorld) const;
+	mutable float CachedZoneMaxZ = TNumericLimits<float>::Lowest();
 	int32 GetChunkLodAt(const FVector& WorldPoint) const;
 
 	/**

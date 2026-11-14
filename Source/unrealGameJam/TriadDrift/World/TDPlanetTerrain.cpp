@@ -476,6 +476,43 @@ void ATDPlanetTerrain::Tick(float DeltaSeconds)
 	}
 }
 
+float ATDPlanetTerrain::GetZoneMaxGroundZ() const
+{
+	if (!Field) { return GetActorLocation().Z; }
+	if (CachedZoneMaxZ == TNumericLimits<float>::Lowest())
+	{
+		// A 100 m grid over the flight zone (10,000 field samples, once): the deck clears every summit in it.
+		float Max = -FLT_MAX;
+		const float Step = 10000.f;
+		for (float Y = -DeckSampleHalfSize; Y <= DeckSampleHalfSize; Y += Step)
+		{
+			for (float X = -DeckSampleHalfSize; X <= DeckSampleHalfSize; X += Step)
+			{
+				Max = FMath::Max(Max, Field->Height(X, Y));
+			}
+		}
+		CachedZoneMaxZ = GetActorLocation().Z + Max;
+	}
+	return CachedZoneMaxZ;
+}
+
+float ATDPlanetTerrain::GetCloudDeckZ() const
+{
+	return GetZoneMaxGroundZ() + DeckClearance;
+}
+
+void ATDPlanetTerrain::PrepareArrival(const FVector& GlideEndWorld)
+{
+	if (Scatter) { Scatter->SetFocusOverride(GlideEndWorld); }
+}
+
+bool ATDPlanetTerrain::IsArrivalReady(const FVector& GlideEndWorld) const
+{
+	if (!IsBuilt()) { return false; }
+	if (!Scatter) { return true; }
+	return Scatter->IsNearApplied() && Scatter->IsReadyAround(GlideEndWorld);
+}
+
 float ATDPlanetTerrain::GetHeightAt(const FVector& WorldPoint) const
 {
 	if (!Field) { return GetActorLocation().Z; }
