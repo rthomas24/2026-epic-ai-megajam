@@ -1561,6 +1561,26 @@ void ATDPlanetCourse::BuildVerdance()
 			{ Out, TEXT("SM_Outpost_SupplyCrate"), FVector(3350.f, -900.f, 0.f), 40.f, 1.f, true },
 		}, RelaySite, 0.f, TEXT("Relay"));
 		DressOutpost(OutpostSite, SiteYaw, TEXT("VerdanceOutpost"));
+		// Route dressing (environment builder, Nov 14): the relay path's barest 30 m (bare mossy ground between the route posts
+		// past RelayHead) gets an outcrop, a mushroom stand and ferns on both sides, 6-13 m off the line (local X along the
+		// path, Y across it); nothing with collision within 6 m of the line.
+		{
+			const TCHAR* V = TEXT("Verdance");
+			Dress({
+				{ V, TEXT("SM_Verd_Rock_01"), FVector(-1100.f, 900.f, -40.f), 20.f, 2.6f, true },
+				{ V, TEXT("SM_Verd_Rock_03"), FVector(-700.f, 1150.f, -30.f), 75.f, 1.8f, true },
+				{ V, TEXT("SM_Verd_Rock_02"), FVector(900.f, -1000.f, -40.f), 140.f, 3.2f, true },
+				{ V, TEXT("SM_Verd_Mushroom_02"), FVector(200.f, -1200.f, 0.f), 30.f, 5.0f, true },
+				{ V, TEXT("SM_Verd_Mushroom_03"), FVector(500.f, -1300.f, 0.f), 200.f, 3.6f, true },
+				{ V, TEXT("SM_Verd_Mushroom_01"), FVector(-200.f, -1050.f, 0.f), 110.f, 2.8f, true },
+				{ V, TEXT("SM_Verd_GlowPlant_01"), FVector(-900.f, 700.f, 0.f), 0.f, 2.4f, false },
+				{ V, TEXT("SM_Verd_GlowPlant_02"), FVector(1200.f, -700.f, 0.f), 60.f, 2.2f, false },
+				{ V, TEXT("SM_Verd_Fern_01"), FVector(-400.f, 750.f, 0.f), 10.f, 1.6f, false },
+				{ V, TEXT("SM_Verd_Fern_02"), FVector(0.f, 820.f, 0.f), 150.f, 1.4f, false },
+				{ V, TEXT("SM_Verd_Fern_01"), FVector(700.f, -720.f, 0.f), 260.f, 1.5f, false },
+				{ V, TEXT("SM_Verd_Fern_02"), FVector(1400.f, 800.f, 0.f), 90.f, 1.6f, false },
+			}, FVector(5060.f, -5380.f, 0.f), -47.f, TEXT("RelayRouteDressing"));
+		}
 		DressPad(TEXT("VerdancePad"));
 	}
 
@@ -2207,6 +2227,26 @@ void ATDPlanetCourse::BuildCinder()
 			{ Out, TEXT("SM_Outpost_CommAntenna"), FVector(-200.f, 470.f, 0.f), 0.f, 1.f, true },
 		}, CabinAt, 180.f, TEXT("DigCabin"));
 		DressOutpost(StationAt, 180.f, TEXT("CinderOutpost"));
+		// Route dressing (environment builder, Nov 14): the field anchor path's barest 30 m (an empty basalt flat before the
+		// anchor) gets a crystal outcrop, choke rocks, a burnt tree, debris and an abandoned survey cache (Fab barrels and a
+		// crate, sparingly), 6-14 m off the line; nothing with collision within 6 m of it.
+		{
+			const TCHAR* C = TEXT("Cinder");
+			const TCHAR* Pl = TEXT("Planet");
+			Dress({
+				{ C, TEXT("SM_Cind_Crystal_04"), FVector(-900.f, 1100.f, -40.f), 25.f, 4.5f, true },
+				{ C, TEXT("SM_Cind_Crystal_03"), FVector(-500.f, 1300.f, -30.f), 160.f, 3.5f, true },
+				{ C, TEXT("SM_Cind_Basalt_03"), FVector(1000.f, 950.f, -30.f), 80.f, 2.4f, true },
+				{ Pl, TEXT("SM_Cind_ChokeRock_A"), FVector(-1200.f, -1000.f, -50.f), 300.f, 1.0f, true },
+				{ Pl, TEXT("SM_Cind_ChokeRock_B"), FVector(600.f, -1250.f, -50.f), 40.f, 1.1f, true },
+				{ TEXT("Scatter"), TEXT("SM_Scatter_Cind_CharTree_01"), FVector(1300.f, -900.f, -30.f), 120.f, 1.4f, true },
+				{ Pl, TEXT("SM_Cind_DebrisChunk"), FVector(-200.f, -700.f, -10.f), 70.f, 1.0f, false },
+				{ Pl, TEXT("SM_Cind_DebrisChunk"), FVector(300.f, 680.f, -10.f), 210.f, 0.8f, false },
+				{ TEXT("Fab/OilBarrel"), TEXT("SM_Fab_OilBarrel"), FVector(-100.f, -900.f, 0.f), 0.f, 1.f, true },
+				{ TEXT("Fab/OilBarrel"), TEXT("SM_Fab_OilBarrel"), FVector(-30.f, -980.f, 0.f), 50.f, 1.f, true },
+				{ TEXT("Fab/CrateStack"), TEXT("SM_Fab_CrateStack"), FVector(150.f, -1000.f, 0.f), 15.f, 1.f, true },
+			}, FVector(5620.f, -4180.f, 0.f), -35.f, TEXT("AnchorRouteDressing"));
+		}
 		DressPad(TEXT("CinderPad"));
 	}
 

@@ -13,6 +13,9 @@
 #include "GameFramework/PlayerController.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 #include "TriadDrift/Input/TDHintComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogTDSquad, Log, All);
@@ -537,7 +540,31 @@ bool ATDSquadManager::CycleSwitch(int32 Direction)
 bool ATDSquadManager::SwitchWithCause(ETDShipId Ship, bool bForced, ETDSwitchCause Cause)
 {
 	TGuardValue<ETDSwitchCause> Guard(CurrentSwitchCause, Cause);
-	return SwitchToInternal(Ship, bForced);
+	const bool bSwitched = SwitchToInternal(Ship, bForced);
+	// T7's assault run (22 deaths in 8 minutes): a ship the player is dropped into after a death or a respawn rescue
+	// could be shot in its first second. It takes no damage for 1.5 s. A manual switch is unchanged: instant, no grace.
+	if (bSwitched && (Cause == ETDSwitchCause::AutoOnDeath || Cause == ETDSwitchCause::RespawnRescue))
+	{
+		if (UTDHealthComponent* Health = UTDStatics::GetHealth(GetShip(Ship)))
+		{
+			Health->SetInvulnerableFor(AutoSwitchGraceSeconds);
+			// The effects builder's shield shimmer for the grace, in the pilot's colour (optional: nothing without it).
+			if (UNiagaraSystem* Shimmer = SwitchGraceFX.IsNull() ? nullptr : SwitchGraceFX.LoadSynchronous())
+			{
+				if (AActor* ShipActor = GetShip(Ship))
+				{
+					if (UNiagaraComponent* FX = UNiagaraFunctionLibrary::SpawnSystemAttached(Shimmer, ShipActor->GetRootComponent(), NAME_None, FVector::ZeroVector,
+						FRotator::ZeroRotator, EAttachLocation::KeepRelativeOffset, /*bAutoDestroy*/ true))
+					{
+						const FLinearColor Pilot = Ship == ETDShipId::Rift ? FLinearColor(1.f, .10f, .85f) : Ship == ETDShipId::Lancer ? FLinearColor(.10f, .80f, 1.f) : FLinearColor(1.f, .55f, .08f);
+						FX->SetVariableLinearColor(TEXT("User.Color"), Pilot);
+					}
+				}
+			}
+			UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD auto-switch grace: %s takes no damage for %.1f s"), *UEnum::GetDisplayValueAsText(Ship).ToString(), AutoSwitchGraceSeconds);
+		}
+	}
+	return bSwitched;
 }
 
 void ATDSquadManager::LogSwitch(ETDShipId From, ETDShipId To, ETDSwitchCause Cause) const
@@ -1322,7 +1349,14 @@ bool ATDSquadManager::FindHealthiestLivingShip(ETDShipId Except, ETDShipId& OutS
 		{
 			continue;
 		}
-		const float H = TDSquad::GetHealth01(GetShip(Id));
+		// The most hull among the ships that are not under fire (no hit in the last 1.5 s); a ship under fire is taken
+		// only when every survivor is (T7's assault run: the cut kept landing in the ship being shot).
+		float H = TDSquad::GetHealth01(GetShip(Id));
+		const UTDHealthComponent* Health = UTDStatics::GetHealth(GetShip(Id));
+		if (!Health || Health->GetTimeSinceLastDamage() > 1.5f)
+		{
+			H += 2.f;
+		}
 		if (H > BestHealth)
 		{
 			BestHealth = H;

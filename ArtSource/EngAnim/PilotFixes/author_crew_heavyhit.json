@@ -1,0 +1,245 @@
+{
+ "_note": "Heavy-hit knock-back for the Grunt and the Trooper (Nov 14, Lead's request): 0.6 s, in place. The torso snaps back 22 deg and turns 15 deg at 0.07 s, the right foot steps back a quarter leg length by 0.24 s with the pelvis following, the body recovers and the foot steps back in by 0.6 s, ending in the base combat pose (Grunt: fists-up stance from the combo; Trooper: Idle_Aim) so it blends out cleanly. Key format: ue_crew_author.py.",
+ "moves": [
+  {
+   "src": "A_Crew_Grunt_Stance",
+   "dst": "A_Crew_Grunt_HeavyHit",
+   "length": 0.6,
+   "base_loops": false,
+   "keys": [
+    {
+     "t": 0.0,
+     "yaw": 0,
+     "pitch": 0,
+     "pelvis": [
+      0,
+      0
+     ],
+     "feet": {
+      "r": [
+       0,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "t": 0.07,
+     "yaw": -15,
+     "pitch": -22,
+     "pelvis": [
+      -0.06,
+      -0.02
+     ],
+     "feet": {
+      "r": [
+       0,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "t": 0.13,
+     "yaw": -12,
+     "pitch": -17,
+     "pelvis": [
+      -0.1,
+      -0.03
+     ],
+     "feet": {
+      "r": [
+       -0.13,
+       0,
+       0.07
+      ]
+     }
+    },
+    {
+     "t": 0.24,
+     "yaw": -7,
+     "pitch": -11,
+     "pelvis": [
+      -0.14,
+      -0.05
+     ],
+     "feet": {
+      "r": [
+       -0.26,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "t": 0.42,
+     "yaw": -3,
+     "pitch": -4,
+     "pelvis": [
+      -0.12,
+      -0.03
+     ],
+     "feet": {
+      "r": [
+       -0.26,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "t": 0.52,
+     "yaw": -1,
+     "pitch": -2,
+     "pelvis": [
+      -0.06,
+      -0.01
+     ],
+     "feet": {
+      "r": [
+       -0.12,
+       0,
+       0.06
+      ]
+     }
+    },
+    {
+     "t": 0.6,
+     "yaw": 0,
+     "pitch": 0,
+     "pelvis": [
+      0,
+      0
+     ],
+     "feet": {
+      "r": [
+       0,
+       0,
+       0
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "src": "A_Crew_Trooper_Idle_Aim",
+   "dst": "A_Crew_Trooper_HeavyHit",
+   "length": 0.6,
+   "base_loops": false,
+   "keys": [
+    {
+     "t": 0.0,
+     "yaw": 0,
+     "pitch": 0,
+     "pelvis": [
+      0,
+      0
+     ],
+     "feet": {
+      "r": [
+       0,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "t": 0.07,
+     "yaw": -15,
+     "pitch": -22,
+     "pelvis": [
+      -0.06,
+      -0.02
+     ],
+     "feet": {
+      "r": [
+       0,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "t": 0.13,
+     "yaw": -12,
+     "pitch": -17,
+     "pelvis": [
+      -0.1,
+      -0.03
+     ],
+     "feet": {
+      "r": [
+       -0.13,
+       0,
+       0.07
+      ]
+     }
+    },
+    {
+     "t": 0.24,
+     "yaw": -7,
+     "pitch": -11,
+     "pelvis": [
+      -0.14,
+      -0.05
+     ],
+     "feet": {
+      "r": [
+       -0.26,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "t": 0.42,
+     "yaw": -3,
+     "pitch": -4,
+     "pelvis": [
+      -0.12,
+      -0.03
+     ],
+     "feet": {
+      "r": [
+       -0.26,
+       0,
+       0
+      ]
+     }
+    },
+    {
+     "t": 0.52,
+     "yaw": -1,
+     "pitch": -2,
+     "pelvis": [
+      -0.06,
+      -0.01
+     ],
+     "feet": {
+      "r": [
+       -0.12,
+       0,
+       0.06
+      ]
+     }
+    },
+    {
+     "t": 0.6,
+     "yaw": 0,
+     "pitch": 0,
+     "pelvis": [
+      0,
+      0
+     ],
+     "feet": {
+      "r": [
+       0,
+       0,
+       0
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

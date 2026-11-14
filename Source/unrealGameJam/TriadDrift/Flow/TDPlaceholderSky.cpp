@@ -384,6 +384,9 @@ static void TDEnvLook(const TArray<FString>& Args, UWorld* World)
 		if (K == TEXT("fill") && P->Fill) { P->Fill->SetIntensity(V); }
 		else if (K == TEXT("sky") && P->SkyLight) { P->SkyLight->SetIntensity(V); P->SkyLight->RecaptureSky(); }
 		else if (K == TEXT("fog") && P->HorizonFog) { P->HorizonFog->SetFogDensity(P->GetBaseFogDensity() * V); }
+		else if (K == TEXT("fogbase")) { P->SetBaseFogDensity(V); }	// absolute; the descent ramp applies it next tick
+		else if (K == TEXT("fog2") && P->HorizonFog) { P->HorizonFog->SetSecondFogDensity(V); }	// the aerial haze layer
+		else if (K == TEXT("fogmax")) { P->DescentFogMaxScale = V; }	// the near-ground layer's descent multiplier
 		if (UExponentialHeightFogComponent* F = P->HorizonFog)
 		{
 			FLinearColor In = F->FogInscatteringLuminance, Dir = F->DirectionalInscatteringLuminance;
@@ -482,7 +485,7 @@ void ATDPlaceholderSky::ApplyHorizon(ETDPlaceholderSkyStyle Style)
 		{
 			// Environment pass: the first layer is the valley mist (thins out ~125 m up); the second is the aerial haze
 			// that reaches flight altitude (thins out ~3 km up), so from 5 km the horizon fades instead of ending.
-			HorizonFog->SetSecondFogDensity(bVerdance ? 0.0016f : 0.0012f);
+			HorizonFog->SetSecondFogDensity(bVerdance ? 0.0016f : 0.0008f);	// Cinder 0.0012 -> 0.0008 (a13: heavy at 900 m)
 			HorizonFog->SetSecondFogHeightFalloff(0.003f);
 			HorizonFog->SetSecondFogHeightOffset(0.f);
 		}

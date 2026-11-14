@@ -79,7 +79,7 @@ float FTDGlobeBake::GroundDistanceForAngle(float AngleDeg)
 
 namespace
 {
-	void TDGlobeBake_Texel(const FTDTerrainField& Field, bool bCinder, float LatDeg, float LonDeg, FLinearColor& Base, FLinearColor& Glow)
+	void TDGlobeBake_Texel(const FTDTerrainField& Field, bool bCinder, float LatDeg, float LonDeg, FLinearColor& Base, FLinearColor& Glow, float TexelLatDeg = 0.f, float TexelLonDeg = 0.f)
 	{
 		FTDGlobePoint P;
 		P.LatDeg = LatDeg;
@@ -89,16 +89,33 @@ namespace
 		const float GlobalW = FMath::SmoothStep(TDGlobeBake_BlendFrom, TDGlobeBake_BlendTo, Angle);
 		if (GlobalW < 1.f)
 		{
-			const float D = FTDGlobeBake::GroundDistanceForAngle(Angle);
-			const float Lon = FMath::DegreesToRadians(LonDeg);
-			const float X = FMath::Cos(Lon) * D, Y = FMath::Sin(Lon) * D;
-			const FTDTerrainSample S = Field.Sample(X, Y, 2000.f);
-			TDGlobeBake_Shade(bCinder, (S.Height - Field.GetStyle().BasinFloor) / 100.f, S.Slope, S.BroadMask, S.Height < Field.GetStyle().SeaLevel, LocalBase, LocalGlow);
-			// Close up in a dive the cap fills the frame: fine breakup (the field's own detail mask) in brightness and a
-			// little hue, so it never reads as one flat colour.
-			const float Fine = S.FineMask;
-			LocalBase *= 0.78f + 0.44f * Fine;
-			LocalBase = FMath::Lerp(LocalBase, LocalBase * FLinearColor(1.15f, 0.95f, 0.8f), FMath::Clamp((Fine - 0.6f) * 2.f, 0.f, 1.f) * 0.5f);
+			// Lead (Nov 14, played at 1.6 radii): the cap around the landing zone is the texture's pole. One point sample of
+			// the fine terrain per texel aliased into radial streaks (texels there are long in latitude, thin in
+			// longitude), and the cap was one jungle-teal with no broad structure. Each texel now averages a grid of
+			// samples across its own footprint, the fine breakup is gentler, and the biome mask gives light and dark.
+			const int32 NLat = TexelLatDeg > 0.f ? 4 : 1, NLon = TexelLonDeg > 0.f ? 2 : 1;
+			FLinearColor SumBase = FLinearColor::Black, SumGlow = FLinearColor::Black;
+			for (int32 a = 0; a < NLat; ++a)
+			{
+				for (int32 b = 0; b < NLon; ++b)
+				{
+					FTDGlobePoint Q;
+					Q.LatDeg = LatDeg + (NLat > 1 ? ((a + 0.5f) / NLat - 0.5f) * TexelLatDeg : 0.f);
+					Q.LonDeg = LonDeg + (NLon > 1 ? ((b + 0.5f) / NLon - 0.5f) * TexelLonDeg : 0.f);
+					const float D = FTDGlobeBake::GroundDistanceForAngle(Q.AngleFromPadDeg());
+					const float Lon = FMath::DegreesToRadians(Q.LonDeg);
+					const float X = FMath::Cos(Lon) * D, Y = FMath::Sin(Lon) * D;
+					const FTDTerrainSample S = Field.Sample(X, Y, 2000.f);
+					FLinearColor SB, SG;
+					TDGlobeBake_Shade(bCinder, (S.Height - Field.GetStyle().BasinFloor) / 100.f, S.Slope, S.BroadMask, S.Height < Field.GetStyle().SeaLevel, SB, SG);
+					SB *= 0.9f + 0.2f * S.FineMask;	// fine breakup, gentle (it was 0.78 + 0.44 and aliased)
+					SB *= FMath::Lerp(0.62f, 1.25f, FMath::Clamp(S.BroadMask, 0.f, 1.f));	// broad light and dark by biome
+					SumBase += SB;
+					SumGlow += SG;
+				}
+			}
+			LocalBase = SumBase / (float)(NLat * NLon);
+			LocalGlow = SumGlow / (float)(NLat * NLon);
 		}
 		FLinearColor GlobalBase = FLinearColor::Black, GlobalGlow = FLinearColor::Black;
 		if (GlobalW > 0.f)
@@ -133,7 +150,7 @@ void FTDGlobeBake::Bake(ETDDestination Planet, int32 W, int32 H, TArray<FColor>&
 		{
 			const float Lon = (i + 0.5f) / W * 360.f - 180.f;
 			FLinearColor B, E;
-			TDGlobeBake_Texel(Field, bCinder, Lat, Lon, B, E);
+			TDGlobeBake_Texel(Field, bCinder, Lat, Lon, B, E, 180.f / H, 360.f / W);
 			if (bCalibrationMarks)
 			{
 				// Mesh UV calibration: lon 0 magenta, lon 90 yellow, the equator white.
@@ -143,6 +160,43 @@ void FTDGlobeBake::Bake(ETDDestination Planet, int32 W, int32 H, TArray<FColor>&
 			}
 			OutBase[j * W + i] = B.ToFColor(/*bSRGB*/ true);
 			OutEmissive[j * W + i] = E.ToFColor(true);
+		}
+	});
+	if (bCalibrationMarks)
+	{
+		return;
+	}
+	// Played (Nov 14, 1.6 radii over the landing zone): the texture has one mip, and near a pole a whole row of W texels
+	// wraps a small circle, so per-texel differences along longitude alias into radial streaks. Each row is box-blurred
+	// along longitude over the span that one equator texel covers there (1 / cos(lat) texels, up to a quarter turn): the
+	// cap keeps its rings and patches and loses the streaks.
+	ParallelFor(H, [&](int32 j)
+	{
+		const float Lat = 90.f - (j + 0.5f) / H * 180.f;
+		const float Cos = FMath::Max(FMath::Cos(FMath::DegreesToRadians(Lat)), 1e-3f);
+		const int32 R = FMath::Clamp(FMath::RoundToInt32((1.f / Cos - 1.f) * 0.5f), 0, W / 8);
+		if (R <= 0)
+		{
+			return;
+		}
+		for (TArray<FColor>* Tex : { &OutBase, &OutEmissive })
+		{
+			TArray<FColor> Row;
+			Row.Append(Tex->GetData() + j * W, W);
+			int32 SumR = 0, SumG = 0, SumB = 0;
+			for (int32 k = -R; k <= R; ++k)
+			{
+				const FColor& C = Row[((k % W) + W) % W];
+				SumR += C.R; SumG += C.G; SumB += C.B;
+			}
+			const int32 N = 2 * R + 1;
+			for (int32 i = 0; i < W; ++i)
+			{
+				(*Tex)[j * W + i] = FColor((uint8)(SumR / N), (uint8)(SumG / N), (uint8)(SumB / N), Row[i].A);
+				const FColor& Out = Row[(((i - R) % W) + W) % W];
+				const FColor& In = Row[(i + R + 1) % W];
+				SumR += In.R - Out.R; SumG += In.G - Out.G; SumB += In.B - Out.B;
+			}
 		}
 	});
 }

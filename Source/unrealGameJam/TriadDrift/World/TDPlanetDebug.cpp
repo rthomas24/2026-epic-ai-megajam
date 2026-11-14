@@ -83,6 +83,24 @@ static FAutoConsoleCommandWithWorldAndArgs GTDGotoMeshCmd(
 		UE_LOG(LogTemp, Display, TEXT("TD.Env.GotoMesh %s #%d of %d at %s (owner %s)"), *Args[0], Nth, Found.Num(), *At.ToCompactString(), *GetNameSafe(Found[Nth]->GetOwner()));
 	}));
 
+// Route captures: stand the player on the ground at world X Y (cm), facing Yaw.   TD.Env.GroundAt X Y Yaw [Pitch]
+static FAutoConsoleCommandWithWorldAndArgs GTDGroundAtCmd(
+	TEXT("TD.Env.GroundAt"),
+	TEXT("Dev: stand the player on the ground at world X Y (cm), facing Yaw [Pitch = -8]."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+		if (!Pawn || Args.Num() < 3) { return; }
+		FVector P(FCString::Atof(*Args[0]), FCString::Atof(*Args[1]), 0.f);
+		FHitResult Hit;
+		FCollisionQueryParams Q(TEXT("TDGroundAt"), false, Pawn);
+		if (World->LineTraceSingleByChannel(Hit, P + FVector(0, 0, 200000.f), P - FVector(0, 0, 200000.f), ECC_Visibility, Q)) { P.Z = Hit.ImpactPoint.Z; }
+		Pawn->SetActorLocation(P + FVector(0, 0, Pawn->GetSimpleCollisionHalfHeight() + 5.f), false, nullptr, ETeleportType::TeleportPhysics);
+		PC->SetControlRotation(FRotator(Args.Num() > 3 ? FCString::Atof(*Args[3]) : -8.f, FCString::Atof(*Args[2]), 0.f));
+		UE_LOG(LogTemp, Display, TEXT("TD.Env.GroundAt %s (hit %s)"), *P.ToCompactString(), *GetNameSafe(Hit.GetActor()));
+	}));
+
 // Issue #158 (B2-05): stand the player under the nearest canopy clump (Nth nearest with an argument), looking up at its
 // underside from eye height.   TD.Env.UnderClump [N] [Pitch]
 static FAutoConsoleCommandWithWorldAndArgs GTDUnderClumpCmd(
