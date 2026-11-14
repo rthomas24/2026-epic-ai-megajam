@@ -1,0 +1,38 @@
+{
+ "name": "VerdanceLeatherFern",
+ "kind": "foliage",
+ "normal": "OpenGL, flipped (-0.329)",
+ "green_share": 0.97,
+ "meshes": [
+  {
+   "mesh": "SM_Fab_VerdanceLeatherFern_A",
+   "variant": "A",
+   "tris": 656,
+   "size_cm": [
+    145.4,
+    127.4,
+    50.0
+   ]
+  },
+  {
+   "mesh": "SM_Fab_VerdanceLeatherFern_B",
+   "variant": "C",
+   "tris": 615,
+   "size_cm": [
+    106.9,
+    125.0,
+    33.6
+   ]
+  },
+  {
+   "mesh": "SM_Fab_VerdanceLeatherFern_C",
+   "variant": "D",
+   "tris": 603,
+   "size_cm": [
+    79.2,
+    78.7,
+    18.0
+   ]
+  }
+ ]
+}
