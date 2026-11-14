@@ -540,7 +540,7 @@ Ryan's instruction this morning: every open pull request is merged or closed now
 | #12 Lancer firing and impact cues | Nicholas reviewed and did not approve the samples | **Closed.** Branch `nick/integrate-combat01-20261113` left intact. Open a new PR with only the approved cues; we check and merge it the same hour. Engineering's fallback cues stay in the game meanwhile. |
 | #11 Menu loop | Waiting since Nov 13 on Nicholas's listening sign-off of the loop join; conflicts with main (3 files) | **Decision by 10:30 EST:** approve, bring it up to main and mark it ready (we merge the same hour), or it is closed with the branch kept. |
 | #85 Industrial reward candidate | Draft for appearance review | **Decision by 10:30 EST:** mark it ready if Nicholas wants it in the game now (we build, test, capture at three resolutions and merge the same hour), or it is closed with the branch kept and T2 captures it from the branch for his review. |
-| #78 Wren audition r1 (ours) | Nicholas chose take 04 (N-097) | Merging now; T3 then imports the exact take 04 file once. |
+| #78 Wren audition r1 (ours) | Nicholas chose take 04 (N-097) | Approved and clean; the merge needs Ryan's own click (the Lead session is not permitted to merge pull requests) and he has been asked. T3 then imports the exact take 04 file once. |
 
 **The working rule from now on, both sides:** open a PR only when the work is ready to merge (approved where it needs Nicholas's approval, up to date with main); we answer and merge or return it within the hour. Work that still waits on a listening or look decision lives on its branch and is announced here or in an issue, not as a long-lived draft PR. We will hold ourselves to the same rule for Grok Bot's PRs.
 
