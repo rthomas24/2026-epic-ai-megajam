@@ -238,6 +238,10 @@ private:
 	void BuildShatteredMoons(FRandomStream& Rng);
 	void PlaceRegionCentrepieces(FRandomStream& Rng);
 	bool AddStructure(UStaticMesh* Mesh, const FTransform& T);
+	/** T4: the Dominion docking bay's tractor cone and near-field capture (no set piece inside). */
+public:
+	bool IsInDockingCone(const FVector& WorldPoint, float Radius) const;
+private:
 	void ScatterDebris(const FVector& Centre, float Radius, int32 Count, float MaxSize, FRandomStream& Rng);
 	/** Indestructible set pieces placed (for tests and keep-out checks). */
 	TArray<FTDSpaceFieldPiece> Structures;

@@ -316,6 +316,7 @@ bool FTDSpaceFieldStructuresKeepOut::RunTest(const FString& Parameters)
 		bOk &= FVector::Dist(S.Location, DLoc) >= 180000.f;	// the Moons: T4 finer keep-outs (core, bow tube, stage start)
 		for (const FVector& E : Ends) { bOk &= FVector::Dist(S.Location, FMath::ClosestPointOnSegment(S.Location, Zone, E)) > 15000.f + Half * 0.5f; }
 		bOk &= FVector::Dist(S.Location, FMath::ClosestPointOnSegment(S.Location, DLoc, DLoc + Bow * 500000.f)) > 40000.f;	// T4: the escape corridor
+		bOk &= !Fd->IsInDockingCone(S.Location, S.Size * 0.5f);	// T4: the tractor cone and near-field capture
 		if (!bOk) { ++Bad; if (First.IsEmpty()) { First = FString::Printf(TEXT("%s size %.0f m"), *S.Location.ToCompactString(), S.Size / 100.f); } }
 	}
 	AddInfo(FString::Printf(TEXT("%d set pieces placed"), Fd->GetStructures().Num()));

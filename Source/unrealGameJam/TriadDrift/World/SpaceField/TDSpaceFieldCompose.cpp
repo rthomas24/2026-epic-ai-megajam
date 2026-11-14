@@ -238,6 +238,7 @@ bool ATDSpaceField::AddStructure(UStaticMesh* Mesh, const FTransform& T)
 	const FBox Box = Mesh->GetBoundingBox();
 	const FVector Ext = Box.GetExtent() * T.GetScale3D();
 	if (!IsPlacementAllowed(T.GetLocation(), Ext.Size() * 2.f, true)) { return false; }
+	if (IsInDockingCone(T.GetLocation(), Ext.Size())) { return false; }
 	const FString Key = FString::Printf(TEXT("Struct_%s"), *GetNameSafe(Mesh));
 	TObjectPtr<UHierarchicalInstancedStaticMeshComponent>& C = Components.FindOrAdd(Key);
 	if (!C)
@@ -430,6 +431,7 @@ void ATDSpaceField::BuildOuterDark(FRandomStream& Rng)
 // ------------------------------------------------------------------------------ regions 3, 5, 6 and the region set pieces
 
 #include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/World/TDDockingBay.h"
 
 namespace TDSpaceFieldCompose
 {
@@ -661,4 +663,21 @@ void ATDSpaceField::LogRouteReport() const
 		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.RouteReport: %d %s, centre %.1f km from the zone, biggest piece %.0f m, nearest route %.1f km%s"), R, Names[R],
 			FVector::Dist(*C, BeltCenter) / 100000.f, Big / 100.f, Nearest / 100000.f, *Line);
 	}
+}
+
+bool ATDSpaceField::IsInDockingCone(const FVector& P, float Radius) const
+{
+	// T4: the tractor cone (the bay's +X out of the mouth, ConeHalfAngleDeg out to ConeDepth) and the near-field capture
+	// (up to 80 degrees within 400 m). No set piece in it, so a pilot lining up from the side never meets a shard.
+	const ATDDominion* Dom = ATDDominion::Get(this);
+	const ATDDockingBay* Bay = Dom ? Dom->GetDockingBay() : nullptr;
+	if (!Bay) { return false; }
+	const FVector Mouth = Bay->GetActorLocation();
+	const FVector Fwd = Bay->GetActorForwardVector();
+	const FVector V = P - Mouth;
+	const float Along = (float)FVector::DotProduct(V, Fwd);
+	const float Lateral = (float)(V - Fwd * Along).Size();
+	if (V.Size() < 40000.f + Radius && Along > -Radius && Lateral <= FMath::Tan(FMath::DegreesToRadians(80.f)) * FMath::Max(Along, 0.f) + Radius) { return true; }
+	if (Along < -Radius || Along > Bay->ConeDepth + Radius) { return false; }
+	return Lateral <= FMath::Tan(FMath::DegreesToRadians(Bay->ConeHalfAngleDeg)) * FMath::Max(Along, 0.f) + Radius;
 }
