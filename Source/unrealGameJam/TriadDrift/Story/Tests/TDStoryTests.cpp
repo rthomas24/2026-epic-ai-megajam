@@ -610,3 +610,31 @@ bool FTDStoryAftermath::RunTest(const FString& Parameters)
 	return true;
 }
 #endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryFaceToFace, "TriadDrift.Story.Transmissions.FaceToFacePerBoardingPilot", TD_TEST_FLAGS)
+bool FTDStoryFaceToFace::RunTest(const FString& Parameters)
+{
+	// N-052: whichever pilot boards, the two other future pilots defend and the boarder's future self speaks to them.
+	for (const ETDShipId B : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		const TArray<FName>& Entry = UTDStorySubsystem::SequenceIds(UTDStorySubsystem::FaceToFaceSequence(B, false));
+		const TArray<FName>& Over = UTDStorySubsystem::SequenceIds(UTDStorySubsystem::FaceToFaceSequence(B, true));
+		TestTrue(TEXT("an entry exchange and an overcome pair"), Entry.Num() == 3 && Over.Num() == 2);
+		const ETDSpeaker Self = B == ETDShipId::Lancer ? ETDSpeaker::FutureKato : (B == ETDShipId::Bastion ? ETDSpeaker::FutureMoss : ETDSpeaker::FutureWren);
+		for (const FName& Id : Entry)
+		{
+			FTDTransmission E;
+			TestTrue(FString::Printf(TEXT("%s exists"), *Id.ToString()), UTDStorySubsystem::FindEntry(Id, E) && !E.Text.IsEmpty());
+		}
+		FTDTransmission Defender, Future, Over1, Over2;
+		UTDStorySubsystem::FindEntry(Entry[0], Defender);
+		UTDStorySubsystem::FindEntry(Entry[1], Future);
+		UTDStorySubsystem::FindEntry(Over[0], Over1);
+		UTDStorySubsystem::FindEntry(Over[1], Over2);
+		TestTrue(TEXT("the boarder's future self speaks to them"), Future.Speaker == Self);
+		TestTrue(TEXT("the defenders are the other two"), Defender.Speaker != Self && Over1.Speaker != Self && Over2.Speaker != Self && Over1.Speaker != Over2.Speaker);
+	}
+	return true;
+}
+#endif

@@ -235,6 +235,22 @@ namespace TDStory
 			E(TEXT("C8_Kato_NoSafeShutdown"), S::Kato, LOCTEXT("C8_Kato_NoSafeShutdown", "I can't verify a safe shutdown. Continuing could put the whole system at risk.")),
 			E(TEXT("C8_Moss_CantLetThem"), S::Moss, LOCTEXT("C8_Moss_CantLetThem", "Then we can't let them finish.")),
 			E(TEXT("C8_Wren_Order"), S::Wren, LOCTEXT("C8_Wren_Order", "Take out the reactor. Keep the route to the hangar clear.")), // N-046: Wren, approved
+			// N-052 Face to Face (reactor room), per boarding pilot. PLACEHOLDERS until Nicholas writes them.
+			E(TEXT("G8_Self_Wren_Defender"), S::FutureKato, LOCTEXT("G8_Self_Wren_Defender", "[PLACEHOLDER] Future Kato warns the boarder off.")),
+			E(TEXT("G8_Self_Wren_Future"), S::FutureWren, LOCTEXT("G8_Self_Wren_Future", "[PLACEHOLDER] Future Wren speaks to their younger self.")),
+			E(TEXT("G8_Self_Wren_Present"), S::Boarder, LOCTEXT("G8_Self_Wren_Present", "[PLACEHOLDER] Wren answers their future self.")),
+			E(TEXT("G8_Self_Wren_Overcome1"), S::FutureKato, LOCTEXT("G8_Self_Wren_Overcome1", "[PLACEHOLDER] Future Kato, overcome.")),
+			E(TEXT("G8_Self_Wren_Overcome2"), S::FutureMoss, LOCTEXT("G8_Self_Wren_Overcome2", "[PLACEHOLDER] Future Moss, overcome.")),
+			E(TEXT("G8_Self_Kato_Defender"), S::FutureWren, LOCTEXT("G8_Self_Kato_Defender", "[PLACEHOLDER] Future Wren warns the boarder off.")),
+			E(TEXT("G8_Self_Kato_Future"), S::FutureKato, LOCTEXT("G8_Self_Kato_Future", "[PLACEHOLDER] Future Kato speaks to their younger self.")),
+			E(TEXT("G8_Self_Kato_Present"), S::Boarder, LOCTEXT("G8_Self_Kato_Present", "[PLACEHOLDER] Kato answers their future self.")),
+			E(TEXT("G8_Self_Kato_Overcome1"), S::FutureWren, LOCTEXT("G8_Self_Kato_Overcome1", "[PLACEHOLDER] Future Wren, overcome.")),
+			E(TEXT("G8_Self_Kato_Overcome2"), S::FutureMoss, LOCTEXT("G8_Self_Kato_Overcome2", "[PLACEHOLDER] Future Moss, overcome.")),
+			E(TEXT("G8_Self_Moss_Defender"), S::FutureWren, LOCTEXT("G8_Self_Moss_Defender", "[PLACEHOLDER] Future Wren warns the boarder off.")),
+			E(TEXT("G8_Self_Moss_Future"), S::FutureMoss, LOCTEXT("G8_Self_Moss_Future", "[PLACEHOLDER] Future Moss speaks to their younger self.")),
+			E(TEXT("G8_Self_Moss_Present"), S::Boarder, LOCTEXT("G8_Self_Moss_Present", "[PLACEHOLDER] Moss answers their future self.")),
+			E(TEXT("G8_Self_Moss_Overcome1"), S::FutureWren, LOCTEXT("G8_Self_Moss_Overcome1", "[PLACEHOLDER] Future Wren, overcome.")),
+			E(TEXT("G8_Self_Moss_Overcome2"), S::FutureKato, LOCTEXT("G8_Self_Moss_Overcome2", "[PLACEHOLDER] Future Kato, overcome.")),
 			// Gameplay 08, The Reactor Fight (storyline.md 29).
 			E(TEXT("G8_Wren_ConduitsFirst"), S::Boarder, LOCTEXT("G8_Wren_ConduitsFirst", "Conduits first. Then the heart.")),
 			E(TEXT("G8_Kato_ConduitDown"), S::Kato, LOCTEXT("G8_Kato_ConduitDown", "Conduit destroyed.")),
@@ -876,6 +892,19 @@ const TArray<FName>& UTDStorySubsystem::SequenceIds(FName SequenceId)
 		TEXT("S2_Kato_Vectors"), TEXT("S2_Wren_WhatDoing"), TEXT("S2_Kato_Planetside"), TEXT("S2_Moss_InTheWay"), TEXT("S2_Command_Report"),
 		TEXT("S2_Wren_Hostile"), TEXT("S2_Kato_Coordinated"), TEXT("S2_Command_Outpost"), TEXT("S2_Moss_FindOut"), TEXT("S2_Command_Orders"),
 		TEXT("S2_Wren_FormUp"), TEXT("S2_Kato_Recorders") };
+	// N-052 Face to Face, per boarding pilot: on the reactor room's entry, and as the two defenders are overcome.
+	static const TMap<FName, TArray<FName>> Face = []()
+	{
+		TMap<FName, TArray<FName>> M;
+		for (const TCHAR* B : { TEXT("Wren"), TEXT("Kato"), TEXT("Moss") })
+		{
+			const FString P = FString::Printf(TEXT("G8_Self_%s_"), B);
+			M.Add(FName(*FString::Printf(TEXT("FaceToFace_%s"), B)), { FName(*(P + TEXT("Defender"))), FName(*(P + TEXT("Future"))), FName(*(P + TEXT("Present"))) });
+			M.Add(FName(*FString::Printf(TEXT("FaceToFaceOvercome_%s"), B)), { FName(*(P + TEXT("Overcome1"))), FName(*(P + TEXT("Overcome2"))) });
+		}
+		return M;
+	}();
+	if (const TArray<FName>* F = Face.Find(SequenceId)) { return *F; }
 	static const TArray<FName> None;
 	if (SequenceId == TEXT("Aftermath")) { return Aftermath; }
 	if (SequenceId == TEXT("Cinematic03")) { return Cinematic03; }
@@ -1014,6 +1043,13 @@ void UTDStorySubsystem::StartNext()
 	Current.Speaker = OnAir.Speaker;
 	Aired.Add(OnAir.Id); // first: the final record names its own speaker as it plays
 	Current.SpeakerTag = SpeakerTagNow(OnAir.Speaker);
+	if (OnAir.Id.ToString().StartsWith(TEXT("G8_Self_")) && (OnAir.Speaker == ETDSpeaker::FutureWren || OnAir.Speaker == ETDSpeaker::FutureKato
+		|| OnAir.Speaker == ETDSpeaker::FutureMoss))
+	{
+		// N-052: face to face in the reactor room, not a recording.
+		const FString Name = OnAir.Speaker == ETDSpeaker::FutureWren ? TEXT("WREN") : (OnAir.Speaker == ETDSpeaker::FutureKato ? TEXT("KATO") : TEXT("MOSS"));
+		Current.SpeakerTag = FText::FromString(Name + TEXT(" (FUTURE)"));
+	}
 	Current.Text = OnAir.Text;
 	Current.Style = OnAir.Style;
 	Current.Color = SpeakerColor(OnAir.Speaker);

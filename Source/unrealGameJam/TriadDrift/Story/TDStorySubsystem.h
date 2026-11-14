@@ -103,6 +103,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Story", meta = (WorldContext = "WorldContext"))
 	static bool PlaySequence(const UObject* WorldContext, FName SequenceId);
 	static const TArray<FName>& SequenceIds(FName SequenceId);
+	/** N-052: the Face to Face sequence for the boarding pilot ("FaceToFace_<Pilot>" on entry, "FaceToFaceOvercome_<Pilot>"). */
+	static FName FaceToFaceSequence(ETDShipId Boarder, bool bOvercome)
+	{
+		const TCHAR* P = Boarder == ETDShipId::Lancer ? TEXT("Kato") : (Boarder == ETDShipId::Bastion ? TEXT("Moss") : TEXT("Wren"));
+		return FName(*((bOvercome ? FString(TEXT("FaceToFaceOvercome_")) : FString(TEXT("FaceToFace_"))) + P));
+	}
 	/** True while a sequence (or this one) still has a line on air or queued. */
 	bool IsSequencePlaying(FName SequenceId = NAME_None) const;
 	/** Skip the running sequence: its lines count as heard (saved), the rest are dropped, OnSequenceFinished(Id, true). */
