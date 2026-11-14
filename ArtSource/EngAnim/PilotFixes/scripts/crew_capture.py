@@ -69,7 +69,7 @@ def main():
         h = float(m.group(5))
         centre = [loc[0], loc[1], loc[2]]
         dist = max(480.0, h * 5.5)
-        for vname, d in (("front", [fx[k] * 0.85 + ry[k] * 0.5 for k in range(3)]), ("side", [ry[k] for k in range(3)])):
+        for vname, d in (("front", [fx[k] * 0.85 + ry[k] * 0.5 for k in range(3)]), ("side", [ry[k] for k in range(3)]), ("top", [fx[0] * 0.35, fx[1] * 0.35, 1.0])):
             n = math.sqrt(sum(v * v for v in d)); d = [v / n for v in d]
             cam = [centre[k] + d[k] * dist for k in range(3)]
             cam[2] += h * 0.15
@@ -82,7 +82,7 @@ def main():
                 "mode": "Lit", "options": {"width": 1600, "height": 900, "screenPercentage": 1.0, "visualizationSubMode": ""}})
             for blk in r.get("content", []) or []:
                 if blk.get("type") == "image" and blk.get("data"):
-                    p = os.path.join(out, "%s_%s_%s_%s.png" % (tag, typ, clip, vname))
+                    p = os.path.join(out, "%s_%s_%s_%s_%s.png" % (tag, typ, clip, t01.replace(".", ""), vname))
                     open(p, "wb").write(base64.b64decode(blk["data"]))
                     print(item, vname, p)
         cmd("TD.Ground.CrewHold off")

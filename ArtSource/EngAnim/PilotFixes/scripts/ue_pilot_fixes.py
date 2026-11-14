@@ -407,6 +407,11 @@ for cl in CFG.get("clips", []):
             for bn in names:
                 fr[bn] = (fr[bn][0], nlerp(fr[bn][1], ref[bn][1], w))
         log("%s: %d bones posed from %s: %s" % (cl["dst"], len(names), cp["src"], names[:6]))
+    if cl.get("arc_scale") is not None:   # flatten a jump: the pelvis keeps only part of its rise above the first frame
+        z0 = frs[0]["pelvis"][0].z
+        for fr in frs:
+            loc, rot_ = fr["pelvis"]
+            fr["pelvis"] = (unreal.Vector(loc.x, loc.y, z0 + (loc.z - z0) * (cl["arc_scale"] if loc.z > z0 else 1.0)), rot_)
     seam = 0.0
     if cl.get("loop"):
         k = max(1, int(round(cl.get("loop_s", 0.25) * FPS)))
