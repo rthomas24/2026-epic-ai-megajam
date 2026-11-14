@@ -17,7 +17,7 @@ agent commit to this same repo at the same time.**
   **"Director's Cut"**. Keep `main` playable at all times and package often, so there's always a
   build we could submit.
 - **Scope** (features.md, "Scope"):
-  - **Core:** everything except the boarding finale. That includes flight, three-ship switching,
+  - **Core:** everything in features.md's complete-game checklist. That includes flight, three-ship switching,
     wingmen, combat, enemy waves, hyperdrive and portals, **all powers and unlockable abilities**,
     **both landable planets**, the Dominion space-assault finale, full presentation and packaging.
   - **Wanted since Nov 13 (Ryan; was stretch):** the **boarding finale** (Dominion interior on foot), scoped to
@@ -96,8 +96,9 @@ blade to end the war.
   the mothership's approach.
 - **Verdance:** a bioluminescent jungle planet. Its objectives (recover a wreck's core; wake an ancient
   relay) unlock **Gravity Well** and **Cloak**.
-- **Cinder:** a volcanic world with crystals. Its objectives (clear an enemy outpost; destroy a signal
-  jammer) unlock **EMP Pulse** and **reveal the mothership**.
+- **Cinder:** a volcanic world with crystals. Its objectives (in the reduced form of storyline.md §22: secure the
+  excavation, disable the field anchor) unlock **EMP Pulse** and prepare the passage to the mothership; the approach
+  field opens when Cinder is done and wave 5 is cleared.
 - **Enemy, the Null Armada:**
   - waves that grow in size and variety: swarming fighters, missile-firing interceptors, shielded
     gunships, mine-laying bombers, and carriers that launch more fighters
@@ -550,9 +551,10 @@ Check that a machine's Blender works with the skills:
 
 ## 11. Agent working style for this jam
 
-- **Scope is fixed:** everything core in features.md ships. Planets and powers are core; only the
-  boarding finale is stretch, and only once core is solid. Don't cut or shrink a core feature on your
-  own. If something looks at risk, tell your human and let them decide.
+- **Scope is fixed:** everything in features.md ships; its complete-game checklist is the definition of a finished
+  game (Ryan, Nov 13). Planets, powers and the boarding finale (the ending, wanted since Nov 13) are all in; the
+  space-only reactor ending stays as the fallback. Don't cut or shrink a feature on your own. If something looks at
+  risk, tell your human and let them decide.
 - **Protect the three-ship switching and satisfying combat.** Never ship a change that makes them
   worse.
 - **Stay in your role** (features.md §1 and §2). Ask before touching the other role's systems or
@@ -618,6 +620,11 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   gameplay validation that needs one. Headless is not the same as light: save work and checkpoints first, check free
   RAM and what heavy processes are already running, and on a 16 GB machine run one heavy job at a time, bounded and
   watched. This does not replace the real windowed playtests below.
+- **Close every Unreal instance you start** (Ryan, Nov 13, R-043): before launching, list your own processes (the
+  command line names your worktree) and close the stale ones; at most one game or editor per agent at a time, plus its
+  own test run; every `-game` launch carries `-TDQuit=900` at most as a safety net; close the game the moment the
+  capture, check or playtest step is done; every report ends with "no Unreal processes left" (or which is still running
+  and why). Close only your own processes: never the human's editor (port 8000, the repo root) or another agent's.
 - **Story** (Ryan, Nov 13, R-034): the game follows `storyline.md`. Nicholas owns the story, its words and voices;
   Ryan's side owns how each beat is played and exposes a hook with a placeholder line for every beat (objective
   lines, barks, transmissions, console recordings, the ending). Nothing reveals the twist before the Dominion.
@@ -643,6 +650,13 @@ same push**, so the two sets of agents never drift apart. Current shared protoco
   sign-off, and an animation of his at the Presentation name replaces ours.
 - **Asset questions** (Ryan, Nov 13, R-031): Grok Bot leads high-quality asset generation for Ryan's side; anyone asks
   about an asset with **`Asset:`** in a board message subject, never by importing a parallel version.
+- **Nothing the player walks on, into or through is an AI-generated mesh** (Ryan, Nov 13 evening, R-043): Rodin and
+  other image-to-3D meshes came out soft, lumpy and with floors the pilot sinks into. Walkable structures (relay climb,
+  wreck interior, outposts, dig site, Dominion interior) are built from a Blender modular hard-surface kit on a 50 cm
+  grid with bevelled edges, a trim-sheet material and collision that matches the visual floor exactly, and are walk-tested
+  with the real pawn. AI meshes stay as concept reference, exterior shells out of reach, or distant dressing. Hero ships
+  seen up close get Blender rebuilds of the parts the player sees (crisp edges), a re-packed 4K bake and a tiling detail
+  layer. Grok Bot supplies concepts, measured plans, tiling textures and trim sheets, and distant props.
 - **Presentation asset names** are fixed in `docs/visual/Presentation-Asset-Paths.md`; gameplay looks
   them up by those exact paths, optional and null-safe.
 

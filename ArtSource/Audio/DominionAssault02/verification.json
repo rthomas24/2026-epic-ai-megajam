@@ -1,0 +1,11 @@
+{
+  "source_unchanged": true,
+  "full_decoded_pcm_identical": true,
+  "loop_boundary_step_dbfs": -66.22659904607586,
+  "loop_period_s": 144.68,
+  "original_quiet_lead_s": 0.178,
+  "original_quiet_tail_s": 0.907,
+  "musical_caveat": "Full original natural fade and quiet head retained; click-safe boundary is not a beat-matched musical crossfade. Listen at preview4s. No arrangement edits.",
+  "preview": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\DominionAssault02\\export\\PushTheAttack_FullTrackReturn_8s.wav",
+  "runtime": "Loop whole track; stop at actual sequence end, event pending T1"
+}
