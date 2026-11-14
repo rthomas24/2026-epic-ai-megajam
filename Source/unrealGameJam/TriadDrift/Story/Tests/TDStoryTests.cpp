@@ -20,6 +20,7 @@
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
+#include "TriadDrift/Flow/TDSaveGame.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryTable, "TriadDrift.Story.Transmissions.EveryBeatHasAPlaceholderAndNoEarlyTwist", TD_TEST_FLAGS)
 bool FTDStoryTable::RunTest(const FString& Parameters)
@@ -749,6 +750,64 @@ bool FTDStoryNoRefire::RunTest(const FString& Parameters)
 	ATDArchiveTransfer::OnAnyTerminalActivated.Broadcast(nullptr);
 	TestFalse(TEXT("a retake's relay start does not replay it"), Story->IsSequencePlaying());
 	TestTrue(TEXT("and the line still counts as aired"), UTDStorySubsystem::HasLineAired(W.GetWorld(), TEXT("C3_Moss_Company")));
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryContinue, "TriadDrift.Story.Transmissions.SaveQuitContinueKeepsWhatWasHeard", TD_TEST_FLAGS)
+bool FTDStoryContinue::RunTest(const FString& Parameters)
+{
+	// Lead's queue (N-062): save, quit, Continue: the run lands in the saved phase; lines heard stay heard; a required
+	// line that was queued or cut off when the player quit plays again; a cut Aftermath resumes in the galaxy.
+	static const TCHAR* Slot = TEXT("TD_T3_StoryContinueTest");
+	const TArray<FName>& After = UTDStorySubsystem::SequenceIds(TEXT("Aftermath"));
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("story"), Story))
+		{
+			return false;
+		}
+		GI->OpenLevelOverride = [](const FString&) {};
+		GI->SetSaveSlotOverride(Slot);
+		GI->NotifyLevelEntered(ETDDestination::Galaxy);
+		GI->SetPhase(ETDGamePhase::Verdance);
+		GI->BeginScene(UTDGameInstance::WaveSceneId(2));
+		GI->ReportWaveCleared(2); // a checkpoint
+		TestTrue(TEXT("checkpoint"), GI->GetLastCheckpoint().bValid);
+		// Aftermath begins; two lines are heard in full, then the player quits mid-sequence.
+		GI->MarkTransmissionPlayed(TEXT("Seq_AftermathStarted"));
+		UTDStorySubsystem::PlaySequence(W.GetWorld(), TEXT("Aftermath"));
+		for (int32 i = 0; i < 20 * 60 && !Story->HasAired(After[2]); ++i) { W.Tick(1.f / 20.f); }
+		TestTrue(TEXT("the first two heard"), GI->HasPlayedTransmission(After[0]) && GI->HasPlayedTransmission(After[1]));
+		TestFalse(TEXT("the third is on air, not heard"), GI->HasPlayedTransmission(After[2]));
+		// An ambient line fired and aired before quitting stays played.
+		UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A1_TheySearch"));
+		TestTrue(TEXT("written"), GI->WriteSaveSlot(true));
+	}
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	if (!TestNotNull(TEXT("GI"), GI))
+	{
+		return false;
+	}
+	GI->OpenLevelOverride = [](const FString&) {};
+	GI->SetSaveSlotOverride(Slot);
+	ON_SCOPE_EXIT { GI->DeleteSave(); };
+	UTDSaveGame* Save = nullptr;
+	TestTrue(TEXT("Continue reads the slot"), GI->ReadSaveSlot(Save) && Save && GI->ApplySave(*Save));
+	TestEqual(TEXT("lands in the saved phase"), GI->GetProgressRef().Phase, ETDGamePhase::Verdance);
+	TestTrue(TEXT("heard lines stay heard"), GI->HasPlayedTransmission(After[0]) && GI->HasPlayedTransmission(After[1]));
+	TestTrue(TEXT("the ambient line stays played"), GI->HasPlayedTransmission(TEXT("A1_TheySearch")));
+	TestFalse(TEXT("the cut-off required line is not"), GI->HasPlayedTransmission(After[2]));
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	ATDGalaxyLayout::SpawnDefaultGalaxy(W.GetWorld());
+	W.Tick();
+	W.Tick();
+	TestTrue(TEXT("back in the galaxy, Aftermath resumes"), Story && Story->IsSequencePlaying(TEXT("Aftermath")));
+	TestEqual(TEXT("from the line the player missed"), Story ? Story->GetCurrentTransmission().Id : NAME_None, After[2]);
 	return true;
 }
 #endif
