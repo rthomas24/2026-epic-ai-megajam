@@ -1762,28 +1762,56 @@ void ATDDominion::SpawnBreakupChunks()
 	const FTransform D = GetActorTransform();
 	const FVector Ext = B.GetExtent();
 	const float Long = (float)Ext.GetMax() * 2.f;	// the hull's length
+	// The structures builder's hull sections (Gameplay/Props/Kit/Space: always cooked; A 173 x 60 x 52 m, B 136 x 70 x
+	// 22 m, C 117 x 30 x 65 m; pivot at the section centre, +X along the hull, torn ends). The scaled-up DomDebris
+	// plates read as giant flat plates (Lead, Nov 14): they stay as the small pieces among the big ones, and as the
+	// fallback when the sections are missing.
+	static const TCHAR* SectionPaths[] = {
+		TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomHullChunk_A.SM_KS_DomHullChunk_A"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomHullChunk_B.SM_KS_DomHullChunk_B"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomHullChunk_C.SM_KS_DomHullChunk_C") };
+	TArray<UStaticMesh*> Sections;
+	for (const TCHAR* Path : SectionPaths)
+	{
+		if (UStaticMesh* M = LoadObject<UStaticMesh>(nullptr, Path, nullptr, LOAD_NoWarn | LOAD_Quiet)) { Sections.Add(M); }
+	}
 	FRandomStream R(0x0D0A1A);
+	const int32 Big = Sections.Num() > 0 ? FMath::Max(1, FMath::RoundToInt32(BreakupChunks * 0.65f)) : 0;
 	for (int32 i = 0; i < BreakupChunks; ++i)
 	{
-		// Along the hull's length, so the pieces read as the hull's own sections coming apart.
-		const float Along = BreakupChunks > 1 ? (float)i / (float)(BreakupChunks - 1) : 0.5f;
+		const bool bSection = i < Big;
+		// Sections sit along the hull's length; the small pieces come from anywhere in it.
+		const float Along = bSection ? (Big > 1 ? (float)i / (float)(Big - 1) : 0.5f) : R.FRand();
 		const FVector Local(FMath::Lerp(B.Min.X, B.Max.X, Along) * 0.85f, R.FRandRange(-Ext.Y, Ext.Y) * 0.5f, B.GetCenter().Z + R.FRandRange(-Ext.Z, Ext.Z) * 0.5f);
 		const FVector Where = D.TransformPosition(Local);
 		const FVector Out = (Where - D.TransformPosition(B.GetCenter())).GetSafeNormal();
 		const FVector Dir = (Out + R.VRand() * 0.45f).GetSafeNormal();
+		// A section starts along the hull's own axis (+X), a little off, so it reads as that part of the hull.
+		const FRotator Facing = bSection
+			? (D.GetRotation() * FQuat(FRotator(R.FRandRange(-12.f, 12.f), R.FRandRange(-15.f, 15.f) + (R.FRand() < 0.5f ? 0.f : 180.f), R.FRandRange(-20.f, 20.f)))).Rotator()
+			: R.GetUnitVector().Rotation();
 		FActorSpawnParameters P;
 		P.Owner = this;
 		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-		ATDEscapeDebris* Chunk = World->SpawnActor<ATDEscapeDebris>(ATDEscapeDebris::StaticClass(), Where, R.GetUnitVector().Rotation(), P);
+		ATDEscapeDebris* Chunk = World->SpawnActor<ATDEscapeDebris>(ATDEscapeDebris::StaticClass(), Where, Facing, P);
 		if (!Chunk) { continue; }
-		const float Size = Long * R.FRandRange(0.16f, 0.3f);
-		Chunk->MaxArtSizeCm = Size;	// hull-sized pieces (the escape flight caps its own at 28 m)
 		Chunk->Damage = 0.f;
 		Chunk->LifeSeconds = BreakupAfterBlastSeconds + 14.f;
-		Chunk->Launch(Size, Dir * R.FRandRange(5000.f, 12000.f), FRotator(R.FRandRange(-14.f, 14.f), R.FRandRange(-14.f, 14.f), R.FRandRange(-10.f, 10.f)));
+		if (bSection)
+		{
+			Chunk->LaunchArt(Sections[i % Sections.Num()], R.FRandRange(0.6f, 1.7f), Dir * R.FRandRange(4000.f, 9000.f),
+				FRotator(R.FRandRange(-9.f, 9.f), R.FRandRange(-9.f, 9.f), R.FRandRange(-7.f, 7.f)));
+		}
+		else
+		{
+			const float Size = Sections.Num() > 0 ? R.FRandRange(2500.f, 6000.f) : Long * R.FRandRange(0.16f, 0.3f);
+			Chunk->MaxArtSizeCm = Size;	// (the escape flight caps its own at 28 m)
+			Chunk->Launch(Size, Dir * R.FRandRange(6000.f, 14000.f), FRotator(R.FRandRange(-20.f, 20.f), R.FRandRange(-20.f, 20.f), R.FRandRange(-14.f, 14.f)));
+		}
 		BreakupChunkActors.Add(Chunk);
 	}
-	UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: final blast - %d hull chunks thrown (hull %.0f m long)"), BreakupChunkActors.Num(), Long / 100.f);
+	UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: final blast - %d hull chunks thrown (%d hull sections of %d meshes, hull %.0f m long)"),
+		BreakupChunkActors.Num(), Big, Sections.Num(), Long / 100.f);
 }
 
 int32 ATDDominion::GetBreakupChunksAlive() const
