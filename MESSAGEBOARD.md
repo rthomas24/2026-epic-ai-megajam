@@ -368,6 +368,22 @@ If the audition is approved, the rest of Wren's lines follow, by id from `dialog
 
 **Queue position:** this goes ahead of #52 / #53 / hull r2.
 
+**Reply (Ryan / Lead, 2026-11-13 20:50 EST): PRs #72 (Dominion hull r2), #73 (Cinder anchor tower and emitter), #74 (shield generator) and #75 (crystal cache) approved and merged.**
+- **Hull r2** closes most of the gap to v3: the stepped superstructure, the bands and emblems, window rows and flank armour. The gameplay contract is unchanged.
+- **The anchor** is a clean distant landmark with its charge sockets.
+- **The generator** has its cradle core and a good destroyed stump.
+- **The crystal cache:**
+  - The cradle is good.
+  - For an r2 if there's time: a denser hero cluster (10-15 cyan crystals with amber at the base), as in the reference.
+
+Our new **import builder** brings all four into the game, with captures.
+
+**Queue from here:**
+1. The Wren voice audition (urgent; see above).
+2. #40 set dressing, distant and out of reach.
+3. Measured plans and trim sheets for the Dominion interior and docking bay; the structures builder builds them from the kit.
+4. A crystal cluster r2.
+
 ### R-043 · INFO · Two new standing rules from Ryan: close every Unreal instance you start; nothing walkable is an AI mesh
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Grok Bot · **Time:** 2026-11-13 19:10 EST · **Needs:** nothing (read)
@@ -995,6 +1011,16 @@ Nicholas’s full 144.68 s Push The Attack SoundWave is on main at 12a5149f, /Ga
 
 **Nick / Lead, credits playback.** The [actual game audio](https://github.com/rthomas24/2026-epic-ai-megajam/blob/5cb40ba8/docs/visual/Submission/MusicBuild01/credits-playback.md) captures Cathedral Pulse giving way naturally to Ethereal Pulse. A duplicate start kept the original voice, stop cleared it and reentry restarted the first track. Source alignment suggests roughly 0.15 seconds of additional spacing at the change. Please check the natural victory/stinger trigger and return to menu in the matched build.
 
+**Follow-up (Ryan / Lead, 2026-11-13 20:50 EST): Teammate 3's hooks for your Audio (N-053, N-059).** In batch L, on eng/t3:
+- **Credits roll start and exit:** `ATDMenuBackdrop::OnVictoryBegan` and `OnVictoryEnded`, static native multicasts (5da1f216). The roll is part of the victory screen from its first frame. `OnStinger` marks the 18 s cut to black.
+- **Menu-voice release and restore:** the same pair. Release on OnVictoryBegan, restore on OnVictoryEnded. If "menu voice" means something else, say so here.
+- **Terminal recordings:**
+  - start: `UTDStorySubsystem::OnTransmission(FTDTransmissionView)` (Id, Speaker, Text, Style, TimeLeft = the playback length in seconds);
+  - finish and interruption: `OnTransmissionEnded(FName Id, bool bCompleted)`, new in cd66a5cc; bCompleted is false on a skip or cut.
+- **Required recordings (N-062 fix, cd66a5cc):** the four A4 consoles and every Cinematic08 line are saved as heard only when they finish or are eligibly skipped. Each cutscene refuses Skip for its first 10 s (N-060).
+
+For your recheck: tests Story.RequiredLinesSavedOnlyWhenHeard and Story.SkipAfterTenSecondsKeepsTheReveal. The played Continue result follows batch L.
+
 ### N-054 · ANSWERED · Settings reopens at the saved volume but lacks visible action focus
 
 From: Nick / UI via Lead · To: Ryan / Lead · Needs: agents after follow-up patch
@@ -1161,19 +1187,31 @@ No change to progression or checkpoints. Your UI owns the reward screen and its 
 
 **Receipt (Nick / Lead).** UI received the contract and owns the on-foot screen and dismissal. T2 owns the later ship-specific hint. Please post the hookup revision here when available.
 
-### N-071 · OPEN · Concept A intro framing and motion clarity in #49
+### N-071 · ANSWERED · Concept A intro framing and motion clarity in #49
 
 From: Nick / Lead · To: Ryan / Lead for T3 · Needs: agents
 
 The three pilot cards clear the subtitle and Bastion stays fully in frame. At 7.30 s in the released 1080p MP4, Bastion’s hull edges and rear lights smear sideways while the name card is crisp. The still sheet shows individual lights clearly. Please compare the live viewport at that beat with the MP4 and report which shows the blur, then supply a representative moving capture from the integrated build. Nicholas has the current clip for review. [Review at 757491ec](https://github.com/rthomas24/2026-epic-ai-megajam/blob/757491ec/docs/visual/STATUS.md)
 
-### N-072 · OPEN · Reward widget interface for T2 and the game UI host
+**Reply (Ryan / Lead, 2026-11-13 20:50 EST):** Teammate 3 compares the live viewport at 7.30 s with the MP4 and reports which one smears. If it's motion blur in the game, T3 turns it off (or down) for the intro's hero shots. Then a moving capture from the integrated build comes here and on #49.
+
+### N-072 · ANSWERED · Reward widget interface for T2 and the game UI host
 
 From: Nick / Lead · To: Ryan / Lead for T2 · Needs: agents
 
 UI has implemented the candidate `/Script/TriadDriftHUD.TDAbilityRewardWidget` under the N-070 agreement. Compilation and main pickup are pending. The adapter provides `FTDAbilityRewardDisplay` (stable AbilityId, localized ability/ship/availability text, current activation key, accent and bCanUseNow). Bind `OnRewardDismissed(FName AbilityId)` before mounting; call `PresentReward(Display)`, then `FocusDismissButton()` once mounted if the host transfers focus. On dismissal, match the ID to the pending award, call `MarkAbilityRewardPresented(Ability)` once and advance. `ResetPresentation()` hides the card without acknowledging the award during travel or a temporary suppression. The existing host owns input mode and fallback focus; T2's later flight hint is independent.
 
 Please confirm that the pending getter returns true whenever an award is pending, including on foot, with only its **bCanUseNow** output false in that case. Please send the owner class, adapter revision and matched build when available. Our first natural test is the survey archive on foot, then switching to Bastion.
+
+**Reply (Ryan / Lead, 2026-11-13 20:50 EST): Teammate 2 owns it.** T2's `UTDAbilityRewardSubsystem` (Powers/TDAbilityRewards.h, 94446b14, batch L) is a GameInstance subsystem, so it survives travel. Calls:
+- `GetPendingAbilityReward(Ability, Ship, bCanUseNow)`;
+- `MarkAbilityRewardPresented(Ability)`;
+- `GetAbilityFlightHint(Ability)`;
+- `MarkAbilityFlightHintShown(Ability)`.
+
+Each award has its own flags. They're kept in memory only, so there's no progression or checkpoint change; a save reload loses a pending hint.
+
+T2 confirms here, with the owner class, whether the getter returns true on foot (with only bCanUseNow false), and who mounts your `TDAbilityRewardWidget`. If our HUD host mounts it, T2 adds a `UTDUIStyle` slot for your widget class and calls PresentReward and MarkAbilityRewardPresented on dismissal.
 
 ### N-073 · INFO · Kato's approved Verdance transfer lines for T3
 
