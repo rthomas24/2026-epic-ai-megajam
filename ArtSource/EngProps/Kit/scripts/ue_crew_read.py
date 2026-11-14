@@ -13,16 +13,22 @@ eas = unreal.EditorAssetLibrary
 mel = unreal.MaterialEditingLibrary
 P = "/Game/TriadDrift/Gameplay/Characters/"
 MASTER = P + "NullTrooper/M_NullTrooper"
-DEFAULTS = {"FarStart": 800.0, "FarEnd": 3000.0, "FarBoost": 5.0, "RimExponent": 3.0, "RimStrength": 0.6, "RimNear": 0.3}
+DEFAULTS = {"FarStart": 800.0, "FarEnd": 3000.0, "FarBoost": 5.0, "RimExponent": 3.0, "RimStrength": 0.6, "RimNear": 0.3,
+            "HeadZ": 158.0, "HeadSoft": 8.0, "EyeFarBoost": 8.0, "EyeWhite": 2.2}
+EYE_TINT = (0.8, 0.9, 1.0)
+# r11 (Lead): the eyes. The crew's emissive maps have NO white texels (measured: every lit texel is orange, min(R,G,B) <= 32
+# of 255), so an eye mask cannot come from the colour; it comes from the reference-pose height instead (PreSkinned local
+# Z above HeadZ = the visor / eye glow on the head). Up close the eyes keep their authored colour; with distance they turn
+# a cool white (desaturated x EyeTint x EyeWhite) and take their own EyeFarBoost, so they stand out against red walls.
 RIM = (1.0, 0.28, 0.07)
 # per instance: scalars and the rim colour (the Warden: bigger, brighter marks and a redder, stronger rim)
 MIS = {
     "NullGrunt/MI_NullGrunt": ({"EmissiveStrength": 14.0}, None),
     "NullTrooper/MI_NullTrooper": ({"EmissiveStrength": 14.0}, None),
     "NullHeavy/MI_NullHeavy": ({"EmissiveStrength": 14.0, "RimStrength": 0.7}, None),
-    "Warden/MI_Warden": ({"EmissiveStrength": 16.0, "FarBoost": 6.0, "RimStrength": 0.9}, (1.0, 0.12, 0.04)),
-    "Warden/MI_Warden_GunArm": ({"EmissiveStrength": 12.0, "FarBoost": 6.0, "RimStrength": 0.9}, (1.0, 0.12, 0.04)),
-    "Warden/MI_Warden_Shield": ({"EmissiveStrength": 3.0, "RimStrength": 0.3}, (1.0, 0.12, 0.04)),
+    "Warden/MI_Warden": ({"EmissiveStrength": 16.0, "FarBoost": 6.0, "RimStrength": 0.9, "HeadZ": 222.0, "HeadSoft": 12.0}, (1.0, 0.12, 0.04)),
+    "Warden/MI_Warden_GunArm": ({"EmissiveStrength": 12.0, "FarBoost": 6.0, "RimStrength": 0.9, "HeadZ": 9999.0}, (1.0, 0.12, 0.04)),
+    "Warden/MI_Warden_Shield": ({"EmissiveStrength": 3.0, "RimStrength": 0.3, "HeadZ": 9999.0}, (1.0, 0.12, 0.04)),
 }
 
 
@@ -90,6 +96,22 @@ def main():
     r1, r2, r3 = node(unreal.MaterialExpressionMultiply, -850, 950), node(unreal.MaterialExpressionMultiply, -700, 1000), \
         node(unreal.MaterialExpressionMultiply, -420, 1000)
     add = node(unreal.MaterialExpressionAdd, -250, 400)
+    hz, hs, efb, ew = sp("HeadZ", DEFAULTS["HeadZ"], 1400), sp("HeadSoft", DEFAULTS["HeadSoft"], 1500),         sp("EyeFarBoost", DEFAULTS["EyeFarBoost"], 1600), sp("EyeWhite", DEFAULTS["EyeWhite"], 1700)
+    et = node(unreal.MaterialExpressionVectorParameter, -1400, 1850)
+    et.set_editor_property("parameter_name", "EyeTint")
+    et.set_editor_property("default_value", unreal.LinearColor(EYE_TINT[0], EYE_TINT[1], EYE_TINT[2], 1.0))
+    pos = node(unreal.MaterialExpressionPreSkinnedPosition, -1150, 1450)
+    zm = node(unreal.MaterialExpressionComponentMask, -1000, 1450)
+    for ch, on in (("r", False), ("g", False), ("b", True), ("a", False)):
+        zm.set_editor_property(ch, on)
+    vi = node(unreal.MaterialExpressionVertexInterpolator, -1060, 1450)   # pre-skinned position is vertex-shader only
+    zs, zd, zsat = node(unreal.MaterialExpressionSubtract, -880, 1450), node(unreal.MaterialExpressionDivide, -760, 1450),         node(unreal.MaterialExpressionSaturate, -640, 1450)
+    des = node(unreal.MaterialExpressionDesaturation, -900, 1650)
+    ew1, ew2 = node(unreal.MaterialExpressionMultiply, -760, 1650), node(unreal.MaterialExpressionMultiply, -640, 1650)
+    eyelerp = node(unreal.MaterialExpressionLinearInterpolate, -520, 1600)
+    eyeboost = node(unreal.MaterialExpressionLinearInterpolate, -520, 1750)
+    eyecol = node(unreal.MaterialExpressionMultiply, -400, 1650)
+    pick = node(unreal.MaterialExpressionLinearInterpolate, -320, 300)
     c = mel.connect_material_expressions
     ok = True
     ok &= c(depth, "", sub1, "A") and c(fs, "", sub1, "B")
@@ -103,7 +125,14 @@ def main():
     ok &= c(r1, "", r2, "A") and c(rs, "", r2, "B")
     ok &= c(rn, "", rimfar, "A") and c(one, "", rimfar, "B") and c(far, "", rimfar, "Alpha")
     ok &= c(r2, "", r3, "A") and c(rimfar, "", r3, "B")
-    ok &= c(m2, "", add, "A") and c(r3, "", add, "B")
+    ok &= c(pos, "", zm, "") and c(zm, "", vi, "VS") and c(vi, "", zs, "A") and c(hz, "", zs, "B")
+    ok &= c(zs, "", zd, "A") and c(hs, "", zd, "B") and c(zd, "", zsat, "")
+    ok &= c(m1, "", des, "") and c(des, "", ew1, "A") and c(et, "", ew1, "B") and c(ew1, "", ew2, "A") and c(ew, "", ew2, "B")
+    ok &= c(m1, "", eyelerp, "A") and c(ew2, "", eyelerp, "B") and c(far, "", eyelerp, "Alpha")
+    ok &= c(one, "", eyeboost, "A") and c(efb, "", eyeboost, "B") and c(far, "", eyeboost, "Alpha")
+    ok &= c(eyelerp, "", eyecol, "A") and c(eyeboost, "", eyecol, "B")
+    ok &= c(m2, "", pick, "A") and c(eyecol, "", pick, "B") and c(zsat, "", pick, "Alpha")
+    ok &= c(pick, "", add, "A") and c(r3, "", add, "B")
     P_ = mel.connect_material_property
     ok &= P_(bc, "RGB", S.MP_BASE_COLOR) and P_(orm, "G", S.MP_ROUGHNESS) and P_(orm, "B", S.MP_METALLIC)
     ok &= P_(nm, "RGB", S.MP_NORMAL) and P_(add, "", S.MP_EMISSIVE_COLOR)

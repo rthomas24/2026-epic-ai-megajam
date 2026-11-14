@@ -788,6 +788,31 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		View.NavTo = bB ? B : OnSafeFrame(bA ? DirB : FVector2D(.8f, -.35f));
 	}
 
+	// The escape flight (ENG-31, T4's timing): the clock, and the way out straight away from the hull at the exit radius.
+	{
+		const ATDDominion* Dom = ATDDominion::Get(this);
+		const bool bForced = ForceEscapeLeft >= 0.f;
+		View.bEscapeFlight = bForced || (Dom && Dom->GetState() == ETDDominionState::EscapeFlight && !Dom->IsEscapeClear());
+		if (View.bEscapeFlight)
+		{
+			View.EscapeLeft = bForced ? ForceEscapeLeft : Dom->GetEscapeTimeLeft();
+			View.EscapeTotal = FMath::Max(bForced ? ForceEscapeTotal : Dom->EscapeSeconds, 1.f);
+			const FVector Centre = bForced ? ForceEscapeCentre : Dom->GetActorLocation();
+			const float Radius = bForced ? ForceEscapeRadius : Dom->GetEscapeExitRadius();
+			const APawn* Ship = PC ? PC->GetPawn() : nullptr;
+			const FVector ShipAt = Ship ? Ship->GetActorLocation() : ViewLoc;
+			const FVector Out = (ShipAt - Centre).GetSafeNormal(UE_SMALL_NUMBER, FVector::ForwardVector);
+			const FVector Clear = Centre + Out * Radius;
+			View.ClearMetres = FMath::Max(0.f, Radius - FVector::Dist(ShipAt, Centre)) * .01f;
+			FVector2D Dir;
+			View.bClearOnScreen = Project(Clear, View.ClearPos, Dir);
+			if (!View.bClearOnScreen)
+			{
+				View.ClearPos = OnSafeFrame(Dir);
+			}
+		}
+	}
+
 	// The transponder off Verdance (storyline.md §18): a marker on T4's beacon once it is sighted, "UNKNOWN", that reads
 	// "VERIFIED" for a moment and resets. Found by iteration every 2 s (one beacon in the galaxy, only in Phase Verdance).
 	{
@@ -1883,6 +1908,29 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Words(X + W - 16.f, Y + 5.f, View.Counter, 15, T::Neutral().CopyWithNewOpacity(TextO), "Bold", 1.f, 40);
 		}
 	}
+	// ---- the escape flight: "ESCAPE 0:42" and a draining bar under the objective (red in the last 20 s, pulsing in the
+	// last 10), and an amber "CLEAR" diamond with the distance still to fly where the way out is.
+	if (View.bEscapeFlight)
+	{
+		const float W = 300.f, H = 64.f, X = CenterX - W * .5f, Y = SafeY + ObjectiveHeight + (View.GeneratorsTotal > 0 ? 40.f : 12.f);
+		const bool bLate = View.EscapeLeft <= 20.f;
+		const float Pulse = View.EscapeLeft <= 10.f ? .6f + .4f * FMath::Abs(FMath::Sin(Now * PI * 2.f)) : 1.f;
+		const FLinearColor Col = (bLate ? T::Danger() : T::Bastion()).CopyWithNewOpacity(Pulse);
+		P.Plate(X, Y, W, H, 14.f, T::Plate().CopyWithNewOpacity(.8f));
+		const int32 Secs = FMath::CeilToInt(View.EscapeLeft - KINDA_SMALL_NUMBER);
+		P.Words(X + 18.f, Y + 8.f, TEXT("ESCAPE"), 12, Col, "Bold", 0.f, 160);
+		P.Words(X + 18.f, Y + 24.f, FString::Printf(TEXT("%d:%02d"), Secs / 60, Secs % 60), 28, T::Neutral(), "Bold", 0.f, 40);
+		P.Box(X + 120.f, Y + 38.f, (W - 138.f) * FMath::Clamp(View.EscapeLeft / View.EscapeTotal, 0.f, 1.f), 6.f, Col);
+		Rec(TEXT("escape"), X, Y, W, H);
+		Area += W * H;
+		const FVector2D CP = View.ClearPos;
+		P.Poly(CP, { { 0, -12 }, { 12, 0 }, { 0, 12 }, { -12, 0 }, { 0, -12 } }, T::Bastion(), 2.5f);
+		P.Words(CP.X + 18.f, CP.Y - 16.f, TEXT("CLEAR"), 12, T::Bastion(), "Bold", 0.f, 150);
+		P.Words(CP.X + 18.f, CP.Y, View.ClearMetres >= 1000.f ? FString::Printf(TEXT("%.1f km"), View.ClearMetres / 1000.f)
+			: FString::Printf(TEXT("%.0f m"), View.ClearMetres), 12, T::Neutral().CopyWithNewOpacity(.85f), "Bold", 0.f, 40);
+		Rec(TEXT("clear"), CP.X - 12.f, CP.Y - 12.f, 24.f, 24.f);
+	}
+
 	// ---- the Dominion's shield generators: one pip each under the objective line, filled amber when down; the newest
 	// down flashes white and the row reads "GENERATOR DOWN" for a moment (storyline.md Gameplay 06: distinct feedback).
 	if (View.GeneratorsTotal > 0)

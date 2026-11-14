@@ -1,0 +1,124 @@
+{
+  "asset": "SM_NullFighter",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullFighterHero\\export\\SM_NullFighter.fbx",
+  "tris": 12383,
+  "size_cm": [
+    550.0,
+    502.6,
+    170.5
+  ],
+  "pivot": "root object origin (SM_NullFighter~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_NullFighter",
+    "M_NullFighter_Parts"
+  ],
+  "material_params": [
+    {
+      "name": "M_NullFighter",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    },
+    {
+      "name": "M_NullFighter_Parts",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 3.0
+    }
+  ],
+  "textures": [
+    "T_NullFighter_BC.png",
+    "T_NullFighter_E.png",
+    "T_NullFighter_N.png",
+    "T_NullFighter_ORM.png",
+    "T_NullFighter_Parts_BC.png",
+    "T_NullFighter_Parts_E.png",
+    "T_NullFighter_Parts_N.png",
+    "T_NullFighter_Parts_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_NullFighter_00",
+    "UCX_SM_NullFighter_01"
+  ],
+  "collision_source": "auto convex hulls",
+  "sockets": [
+    "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_Engine_2",
+    "SOCKET_Muzzle_0",
+    "SOCKET_Muzzle_1"
+  ],
+  "welded_verts": 6921,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "ue_cm": [
+        268,
+        -57,
+        -38
+      ]
+    },
+    {
+      "name": "Muzzle_1",
+      "ue_cm": [
+        268,
+        57,
+        -38
+      ]
+    },
+    {
+      "name": "Engine_0",
+      "ue_cm": [
+        -277,
+        -63,
+        -14
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "ue_cm": [
+        -277,
+        63,
+        -14
+      ]
+    },
+    {
+      "name": "Engine_2",
+      "ue_cm": [
+        -275,
+        0,
+        -14
+      ]
+    }
+  ],
+  "max_texture_size": 1024,
+  "slots": {
+    "M_NullFighter": "kept Rodin hull, corrected set T_NullFighter_BC/N/ORM/E + T_NullFighter_HeatMask",
+    "M_NullFighter_Parts": "new canopy interior and frame / guns / nose / spine, baked set T_NullFighter_Parts_BC/N/ORM/E + T_NullFighter_Parts_HeatMask"
+  }
+}

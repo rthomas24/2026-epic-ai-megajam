@@ -711,6 +711,8 @@ void UTDLandingComponent::SetState(ETDLandingState NewState)
 	{
 		SegmentStart = Ship->GetActorLocation();
 		SegmentStartRot = Ship->GetActorQuat();
+		// The landing / take-off sequence owns the ship: no edge nag meanwhile (UTDShipMovementComponent::SetBoundaryWarningHoldFor).
+		if (UTDShipMovementComponent* Move = Ship->GetShipMovement()) { Move->SetBoundaryWarningHoldFor(TEXT("Landing"), NewState != ETDLandingState::Flying); }
 	}
 
 	switch (NewState)

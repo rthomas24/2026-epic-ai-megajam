@@ -62,6 +62,9 @@ public:
 
 	// ---- Roar (2D, persists across the level change).
 	void StartRoar(USoundBase* Sound);
+	/** The roar for a leg (the Lead, Nov 14): entry = DescentRoar, else AtmosphericEntry's sound; climb out = AtmosphericExit's
+	 *  sound, else the entry roar, so both legs always have sound. Loads it; null when nothing is assigned. */
+	static USoundBase* ResolveRoar(const class UTDTravelFX* FX, bool bExit);
 	void StopRoar(float FadeSeconds = 0.5f);
 	bool IsRoarPlaying() const;
 

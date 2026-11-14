@@ -1,0 +1,27 @@
+{
+ "site": "Space_NullRig",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/BP_SP_NullRig",
+ "about": "Survey Scar: a Null survey rig clamped to the levelled pad of its rock (SM_SP_RigRock, about 65 m).",
+ "pieces": [
+  {
+   "name": "Rock",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/SM_SP_RigRock",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Rig",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/SM_SP_NullRig",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  }
+ ]
+}

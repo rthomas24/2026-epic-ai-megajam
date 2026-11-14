@@ -54,6 +54,16 @@ GLOWM = SHARED + "/M_TD_ShipGlow"
 SCRAPE_VFX = "/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Ship_ImpactScrape"
 TRIM = SHARED + "/M_TD_ShipTrim"
 
+
+# Null Armada readability pass (Lead, Nov 14): black armour that is not a mirror (roughness floor, little metal), a
+# faint cool rim, panel value steps, wide seams from RangeStart on, the emissive map of rs_fleet_lights.py (running
+# lights in white on the rear, flanks and tail; dilated seams). Accents scale with the hull.
+def _read(cell, rim=0.07, spread=0.5, steps=0.35, floor=0.012):       # (rim 0.16 still read slate grey-blue from behind: review)      # (first values 0.5 / 1.6 / 0.45 / 0.05 turned the hulls pale grey-blue)
+    return dict(base_floor=floor, lights=True,
+                mi_params={"RoughnessMin": 0.42, "MetallicScale": 0.5, "RimStrength": rim, "GlowSpread": spread,
+                           "PanelSteps": steps, "PanelCell": cell, "RangeStart": 3000.0, "RangeEnd": 24000.0})
+
+
 # ship -> data asset folder, data asset, visuals class, the old mesh (for revert), material instance values
 SHIPS = {
     "Rift": dict(da=(SQUAD, "DA_Rift_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Rift", old_mi=None, squad=True, glow=SQUAD_GLOW["Rift"],
@@ -104,6 +114,9 @@ SHIPS = {
                    # metallic mirror. Non-metal, a weak sheen, more opaque and darker: the pilot reads on foot too)
                    glass={"Tint": (0.008, 0.05, 0.085), "SheenColor": (0.45, 0.75, 0.85), "Opacity": 0.91, "SheenStrength": 0.12,
                           "Metallic": 0.0, "Specular": 0.3, "Roughness": 0.08, "TintGlow": 0.12},
+                   # Lead, Nov 14 (batch M): the ram streak of the effects builder on PowerActive (sound kept), and the boost
+                   # plume at 0.6 (T7's UTDShipVisuals::ExhaustBoostScale: the boost plumes swamped this small hull)
+                   power_vfx="/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Ram_Streak.NS_TD_Ram_Streak", exhaust_boost=0.6,
                    plain=dict(rough=1.45, tex_r2=("BC", "E"), kit=None, parts=())),
     "Bastion": dict(da=(SQUAD, "DA_Bastion_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Bastion", old_mi=None, squad=True, glow=SQUAD_GLOW["Bastion"],
                     emissive=6.0, base_tint=(1.5, 1.5, 1.5), rough=1.25, self_light=0.12, detail=0.55, trail_scale=0.7,
@@ -133,10 +146,20 @@ SHIPS = {
                         # its seams are a pale peach in the texture: a sharper white test keeps them orange and
                         # leaves only the really neutral texels (the nose chevron eye) white
                         # The fighter is the RED one of the pair (the interceptor is amber): see NullInterceptor.
-                        emissive_tint=(1.0, 0.26, 0.12), eye_boost=1.4, white_sharp=22.0, range_boost=6.0, eye_mul=1.6),
+                        emissive_tint=(1.0, 0.26, 0.12), eye_boost=1.4, white_sharp=22.0, range_boost=6.0, eye_mul=1.6,
+                        # The HYBRID (second ship builder, Nov 14; rh_hybrid.py --ship NullFighter): the Rodin hull, normals and maps
+                        # as they were, with clean lathed engine nozzles in a second slot M_NullFighter_Parts.
+                        # TD_RODIN_PLAIN=NullFighter imports the plain Rodin ship again.
+                        kit=os.path.join("NullFighterHero", "export"), parts_emissive=4.0, parts_rough=1.1, parts_tint=(0.6, 0.6, 0.6),
+                        parts_metal=0.3, parts_params={"MetallicScale": 0.3, "RoughnessMin": 0.3}, plain=dict(kit=None),),
     "NullGunship": dict(da=(FLEET, "DA_Enemy_Gunship_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Gunship",
                         old_mi=FLEET + "/MI_Null_Gunship", emissive=8.0, base_tint=(0.6, 0.57, 0.57),
-                        emissive_tint=ENEMY_GLOW, eye_boost=1.6, range_boost=5.0, eye_mul=1.6),
+                        emissive_tint=ENEMY_GLOW, eye_boost=1.6, range_boost=5.0, eye_mul=1.6,
+                        # The HYBRID (second ship builder, Nov 14; rh_hybrid.py --ship NullGunship): the Rodin hull, normals and maps
+                        # as they were, with clean lathed turret barrels in a second slot M_NullGunship_Parts.
+                        # TD_RODIN_PLAIN=NullGunship imports the plain Rodin ship again.
+                        kit=os.path.join("NullGunshipHero", "export"), parts_emissive=4.0, parts_rough=1.1, parts_tint=(0.6, 0.6, 0.6),
+                        parts_metal=0.3, parts_params={"MetallicScale": 0.3, "RoughnessMin": 0.3}, plain=dict(kit=None),),
     # Fleet r3 (Grok Bot, Nov 13): these came out properly dark with clean orange seams: no BaseTint darkening.
     "NullInterceptor": dict(da=(FLEET, "DA_Enemy_Interceptor_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Interceptor",
                             old_mi=FLEET + "/MI_Null_Interceptor", emissive=14.0, base_tint=(1.0, 1.0, 1.0),
@@ -159,6 +182,17 @@ SHIPS = {
                        slot_prop="turret_mesh", old=FLEET + "/SM_Null_Turret",
                        emissive=9.0, base_tint=(1.0, 1.0, 1.0), emissive_tint=ENEMY_GLOW, eye_boost=1.6, range_boost=3.0, eye_mul=1.6),
 }
+for _ship, _kw in (("NullFighter", _read(90.0)), ("NullInterceptor", _read(100.0)), ("NullBomber", _read(160.0, rim=0.06, spread=0.4)),
+                   # (the big hulls carry seams everywhere: a strong spread washed them pale tan at 50-130 m, and a strong rim turned the flat keel blue)
+                   ("NullGunship", _read(240.0, rim=0.025, spread=0.22, floor=0.016)), ("NullCarrier", _read(520.0, rim=0.025, spread=0.18, floor=0.016))):
+    SHIPS[_ship].update(_kw)
+# the engine flame hid the small ships' nozzles from every rear angle (review, Nov 14): EngineTrail VFXScale 1 -> 0.6
+# review: the interceptor's yellow-amber seams sat close to the Bastion's amber; the carrier read copper / cream, not black
+SHIPS["NullInterceptor"]["emissive_tint"] = (1.0, 0.48, 0.13)
+SHIPS["NullCarrier"].update(base_tint=(0.5, 0.5, 0.5), emissive=2.0)
+SHIPS["NullFighter"]["enemy_trail"] = 0.6
+SHIPS["NullInterceptor"]["enemy_trail"] = 0.6
+LIGHTS_DIR = os.path.join(KIT, "FleetLights")
 SUFFIX_PARAM = (("BaseColorTex", "BC"), ("ORMTex", "ORM"), ("NormalTex", "N"), ("EmissiveTex", "E"),
                 ("HeatMaskTex", "HeatMask"))
 
@@ -801,7 +835,52 @@ def ensure_master(defaults):
     rg2, k = node(E.MaterialExpressionMax, -400, 3050, A=(rg1, ""), B=(rmin, "")); ok &= k
     rg = mel.create_material_expression(mat, E.MaterialExpressionSaturate, -350, 3000)
     ok &= mel.connect_material_expressions(rg2, "", rg, "")
-    ok &= mel.connect_material_property(bc, "", mp.MP_BASE_COLOR)
+    # ---- Null Armada readability (Lead, Nov 14; all default 0 = off, so no other ship changes) ----
+    # PanelSteps: value steps between armour plates, a hash of the cell the pixel's LOCAL position falls in (PanelCell
+    # cm), so big black surfaces break into panels that follow the ship's axes.
+    wp = mel.create_material_expression(mat, E.MaterialExpressionWorldPosition, -1400, 3500)
+    lp = mel.create_material_expression(mat, E.MaterialExpressionTransformPosition, -1250, 3500)
+    lp.set_editor_property("transform_source_type", unreal.MaterialPositionTransformSource.TRANSFORMPOSSOURCE_WORLD)
+    lp.set_editor_property("transform_type", unreal.MaterialPositionTransformSource.TRANSFORMPOSSOURCE_LOCAL)
+    ok &= mel.connect_material_expressions(wp, "", lp, "")
+    psteps = scalar("PanelSteps", 0.0, -1250, 3600)
+    pcell = scalar("PanelCell", 150.0, -1250, 3650)
+    pan, k = _custom(mat, -1000, 3550, "float3 c = floor(P / max(C, 1.0)); float h = frac(sin(dot(c, float3(12.9898, 78.233, 37.719))) * 43758.5453); return 1.0 + (h - 0.5) * 2.0 * S;",
+                     {"P": (lp, ""), "S": (psteps, ""), "C": (pcell, "")}, unreal.CustomMaterialOutputType.CMOT_FLOAT1, desc="panel value steps"); ok &= k
+    bc_p, k = mul(bc, "", pan, "", -700, -300); ok &= k
+    # RimStrength x RimColor x fresnel: a faint cool rim so a black hull separates from dark space
+    rim_s = scalar("RimStrength", 0.0, -1250, 3750)
+    rim_c = vector("RimColor", (0.30, 0.45, 0.85), -1250, 3800)
+    fres = mel.create_material_expression(mat, E.MaterialExpressionFresnel, -1250, 4000)
+    fres.set_editor_property("exponent", 3.5)
+    fres.set_editor_property("base_reflect_fraction", 0.0)
+    rim0, k = mul(rim_c, "RGB", fres, "", -1000, 3850); ok &= k
+    rim, k = mul(rim0, "", rim_s, "", -850, 3850); ok &= k
+    # GlowSpread: the emissive map sampled again four mips down (wide, soft seams) and added from RangeStart on, so the
+    # accent lines hold together at dogfight range where the sharp map breaks into flecks
+    emis_w = tex_param("EmissiveTex", defaults["E"], st.SAMPLERTYPE_COLOR, -1250, 4150)
+    try:
+        emis_w.set_editor_property("mip_value_mode", unreal.TextureMipValueMode.TMVM_MIP_BIAS)
+        emis_w.set_editor_property("const_mip_value", 4)
+    except Exception as error:
+        log("note: GlowSpread mip bias (%s)" % error)
+    gspread = scalar("GlowSpread", 0.0, -1250, 4400)
+    gw0, k = mul(emis_w, "RGB", etint, "RGB", -1000, 4200); ok &= k
+    gw1, k = mul(gw0, "", strength, "", -850, 4200); ok &= k
+    gw2, k = mul(gw1, "", gspread, "", -700, 4200); ok &= k
+    rd3 = mel.create_material_expression(mat, E.MaterialExpressionMultiply, -700, 4350)
+    rd3.set_editor_property("const_b", 4.0)
+    ok &= mel.connect_material_expressions(rd2, "", rd3, "A")
+    rd4 = mel.create_material_expression(mat, E.MaterialExpressionSaturate, -600, 4350)
+    ok &= mel.connect_material_expressions(rd3, "", rd4, "")
+    gw, k = mul(gw2, "", rd4, "", -500, 4250); ok &= k
+    ex0 = mel.create_material_expression(mat, E.MaterialExpressionAdd, -350, 4000)
+    ok &= mel.connect_material_expressions(rim, "", ex0, "A")
+    ok &= mel.connect_material_expressions(gw, "", ex0, "B")
+    add_x = mel.create_material_expression(mat, E.MaterialExpressionAdd, -100, 1300)
+    ok &= mel.connect_material_expressions(add, "", add_x, "A")
+    ok &= mel.connect_material_expressions(ex0, "", add_x, "B")
+    ok &= mel.connect_material_property(bc_p, "", mp.MP_BASE_COLOR)
     ok &= mel.connect_material_property(ao, "", mp.MP_AMBIENT_OCCLUSION)
     ok &= mel.connect_material_property(rg, "", mp.MP_ROUGHNESS)
     ok &= mel.connect_material_property(mt, "", mp.MP_METALLIC)
@@ -821,7 +900,7 @@ def ensure_master(defaults):
     nout = mel.create_material_expression(mat, E.MaterialExpressionNormalize, 0, 2450)
     ok &= mel.connect_material_expressions(nsum, "", nout, "VectorInput")
     ok &= mel.connect_material_property(nout, "", mp.MP_NORMAL)
-    ok &= mel.connect_material_property(add, "", mp.MP_EMISSIVE_COLOR)
+    ok &= mel.connect_material_property(add_x, "", mp.MP_EMISSIVE_COLOR)
     if not ok:
         log("FAILED: could not wire " + MASTER)
         return None
@@ -915,6 +994,15 @@ def main():
     plain = [s.strip() for s in os.environ.get("TD_RODIN_PLAIN", "").split(",") if s.strip()]
     for ship in order:
         cfg = SHIPS[ship]
+        if cfg.get("lights") and os.environ.get("TD_FLEET_READ", "1") == "0":
+            cfg = dict(cfg, base_floor=0.0, lights=False, mi_params={"RoughnessMin": 0.0, "MetallicScale": 1.0, "RimStrength": 0.0,
+                       "GlowSpread": 0.0, "PanelSteps": 0.0, "RangeStart": 6000.0, "RangeEnd": 60000.0})
+            if ship == "NullInterceptor":
+                cfg["emissive_tint"] = (1.0, 0.78, 0.22)
+            if ship == "NullCarrier":
+                cfg.update(base_tint=(1.0, 1.0, 1.0), emissive=3.0)
+            if "enemy_trail" in cfg:
+                cfg["enemy_trail"] = 1.0
         if ship in plain and cfg.get("plain"):      # back to the plain Rodin ship (no hybrid kit, no attached parts)
             cfg = dict(cfg, **cfg["plain"])
             for k in [k for k, v in cfg.items() if v is None]:
@@ -956,6 +1044,10 @@ def main():
             files["HeatMask"] = os.path.join(REPO, man["heat_mask"])
         elif os.path.isfile(os.path.join(folder, "T_%s_HeatMask.png" % ship)):
             files["HeatMask"] = os.path.join(folder, "T_%s_HeatMask.png" % ship)
+        lp_ = os.path.join(LIGHTS_DIR, "T_%s_E.png" % ship)
+        if cfg.get("lights") and os.path.isfile(lp_):
+            files["E"] = lp_
+            notes.append("emissive with running lights (FleetLights)")
         parts_files = {}
         for suffix in ("BC", "N", "ORM", "E", "HeatMask"):
             pp = os.path.join(folder, "T_%s_Parts_%s.png" % (ship, suffix))
@@ -1084,6 +1176,11 @@ def main():
                 mel.set_material_instance_scalar_parameter_value(parts_mi, pname, value)
             pt = cfg.get("parts_tint", (1.0, 1.0, 1.0))
             mel.set_material_instance_vector_parameter_value(parts_mi, "BaseTint", unreal.LinearColor(pt[0], pt[1], pt[2], 1.0))
+            if "emissive_tint" in cfg:      # the Null fleet: the parts' glow takes the hull's tint and its boost at range
+                et2 = cfg["emissive_tint"]
+                mel.set_material_instance_vector_parameter_value(parts_mi, "EmissiveTint", unreal.LinearColor(et2[0], et2[1], et2[2], 1.0))
+                mel.set_material_instance_scalar_parameter_value(parts_mi, "RangeBoost", cfg.get("range_boost", 1.0))
+                mel.set_material_instance_scalar_parameter_value(parts_mi, "WhiteSharpness", cfg.get("white_sharp", 4.0))
             eas.save_loaded_asset(parts_mi)
         slot_notes = []
         for i, sm in enumerate(mesh.static_materials):
@@ -1194,6 +1291,17 @@ def main():
                     c2 = da0.get_editor_property("power2_active")
                     notes.append("Power2Active VFX %s (sound %s)" % (c2.get_editor_property("vfx"),
                                  "SAME" if str(c2.get_editor_property("sound")) == snd else "CHANGED"))
+                if cfg.get("power_vfx"):
+                    cue = da0.get_editor_property("power_active")
+                    snd = str(cue.get_editor_property("sound"))
+                    cue.set_editor_property("vfx", unreal.load_asset(cfg["power_vfx"]))
+                    da0.set_editor_property("power_active", cue)
+                    c2 = da0.get_editor_property("power_active")
+                    notes.append("PowerActive VFX %s (sound %s)" % (c2.get_editor_property("vfx"),
+                                 "SAME" if str(c2.get_editor_property("sound")) == snd else "CHANGED"))
+                if "exhaust_boost" in cfg:
+                    if _set(da0, "exhaust_boost_scale", cfg["exhaust_boost"], notes):
+                        notes.append("ExhaustBoostScale %.2f" % da0.get_editor_property("exhaust_boost_scale"))
                 # the hull-scrape sparks (effects builder, batch L; Lead, Nov 13 night): CollisionScrape.VFX on the three
                 # squad visuals, VFXScale 1, the sound left alone. Skipped with a note while the system is not in the checkout.
                 if cfg.get("squad") and eas.does_asset_exist(SCRAPE_VFX):
@@ -1224,6 +1332,17 @@ def main():
                         "SAME" if str(c2.get_editor_property("sound")) == snd else "CHANGED"))
                 eas.save_loaded_asset(da0)
                 notes.append("visuals parts: %s" % [str(sp.get_editor_property("part_name")) for sp in part_specs])
+        if "enemy_trail" in cfg and "da" in cfg:
+            da1 = eas.load_asset("%s/%s" % (cfg["da"][0], cfg["da"][1]))
+            cue = da1.get_editor_property("engine_trail")
+            snd = str(cue.get_editor_property("sound"))
+            k = cfg["enemy_trail"]
+            cue.set_editor_property("vfx_scale", unreal.Vector(k, k, k))
+            da1.set_editor_property("engine_trail", cue)
+            c2 = da1.get_editor_property("engine_trail")
+            notes.append("EngineTrail VFXScale %.2f (sound %s)" % (c2.get_editor_property("vfx_scale").x,
+                         "SAME" if str(c2.get_editor_property("sound")) == snd else "CHANGED"))
+            eas.save_loaded_asset(da1)
         if not cfg.get("wire", True):
             old, old_mi = eas.load_asset(cfg["old"]), eas.load_asset(cfg["old_mi"])
             got = "NOT WIRED, visuals keep %s" % set_visuals_mesh(cfg, old, notes, old_mi)

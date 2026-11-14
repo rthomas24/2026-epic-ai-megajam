@@ -1,0 +1,75 @@
+{
+ "_note": "In-place game deaths per type (T5's first lookup name A_Crew_<Type>_Death_<Side>): Grunt and Heavy from Grok's EnemyDeaths r1 (kept with root travel as A_Crew_<Type>_DeathRM_<Side>); the Trooper's four become the in-place settled falls (its root-motion originals are kept as A_Crew_Trooper_DeathRM_<Side>). Shield rule: Heavy_Death_Left is the Back fall (Grok's Left ends with the shield standing on edge). Drops: bodies that rested above the floor in game.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "clips": [
+  {
+   "src": "A_Crew_Grunt_DeathRM_Front",
+   "dst": "A_Crew_Grunt_Death_Front"
+  },
+  {
+   "src": "A_Crew_Grunt_DeathRM_Back",
+   "dst": "A_Crew_Grunt_Death_Back"
+  },
+  {
+   "src": "A_Crew_Grunt_DeathRM_Left",
+   "dst": "A_Crew_Grunt_Death_Left"
+  },
+  {
+   "src": "A_Crew_Grunt_DeathRM_Right",
+   "dst": "A_Crew_Grunt_Death_Right",
+   "drop": {
+    "cm": 16,
+    "ramp": [
+     1.0,
+     1.9
+    ]
+   }
+  },
+  {
+   "src": "A_Crew_Heavy_DeathRM_Front",
+   "dst": "A_Crew_Heavy_Death_Front",
+   "drop": {
+    "cm": 9,
+    "ramp": [
+     1.2,
+     2.4
+    ]
+   }
+  },
+  {
+   "src": "A_Crew_Heavy_DeathRM_Back",
+   "dst": "A_Crew_Heavy_Death_Back"
+  },
+  {
+   "src": "A_Crew_Heavy_DeathRM_Back",
+   "dst": "A_Crew_Heavy_Death_Left"
+  },
+  {
+   "src": "A_Crew_Heavy_DeathRM_Right",
+   "dst": "A_Crew_Heavy_Death_Right",
+   "drop": {
+    "cm": 8,
+    "ramp": [
+     1.2,
+     2.4
+    ]
+   }
+  },
+  {
+   "src": "A_Crew_Death_Front",
+   "dst": "A_Crew_Trooper_Death_Front"
+  },
+  {
+   "src": "A_Crew_Death_Back",
+   "dst": "A_Crew_Trooper_Death_Back"
+  },
+  {
+   "src": "A_Crew_Death_Left",
+   "dst": "A_Crew_Trooper_Death_Left"
+  },
+  {
+   "src": "A_Crew_Death_Right",
+   "dst": "A_Crew_Trooper_Death_Right"
+  }
+ ]
+}

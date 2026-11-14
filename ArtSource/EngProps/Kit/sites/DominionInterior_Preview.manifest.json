@@ -2033,7 +2033,11 @@
     0,
     0.0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Trim_Corridor",
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Glow_Corridor"
+   }
   },
   {
    "name": "P0138_Corridor_Straight",
@@ -2043,7 +2047,11 @@
     0,
     0.0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Trim_Corridor",
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Glow_Corridor"
+   }
   },
   {
    "name": "P0139_Corridor_Straight",
@@ -2053,7 +2061,11 @@
     0,
     0.0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Trim_Corridor",
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Glow_Corridor"
+   }
   },
   {
    "name": "P0140_Corridor_Straight",
@@ -2063,7 +2075,11 @@
     0,
     0.0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Trim_Corridor",
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Glow_Corridor"
+   }
   },
   {
    "name": "P0141_Corridor_Straight",
@@ -2073,7 +2089,11 @@
     0,
     0.0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Trim_Corridor",
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Glow_Corridor"
+   }
   },
   {
    "name": "P0142_Corridor_Straight",
@@ -2083,7 +2103,11 @@
     0,
     0.0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Trim_Corridor",
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Glow_Corridor"
+   }
   },
   {
    "name": "P0143_Corridor_Straight",
@@ -2093,7 +2117,11 @@
     0,
     0.0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Trim_Corridor",
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Glow_Corridor"
+   }
   },
   {
    "name": "P0144_Corridor_Straight",
@@ -2103,7 +2131,11 @@
     0,
     0.0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Trim_Corridor",
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Glow_Corridor"
+   }
   },
   {
    "name": "P0145_Corridor_Straight",
@@ -2113,7 +2145,11 @@
     0,
     0.0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Trim_Corridor",
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Glow_Corridor"
+   }
   },
   {
    "name": "P0146_Corridor_Straight",
@@ -2123,7 +2159,11 @@
     0,
     0.0
    ],
-   "yaw_deg": 0.0
+   "yaw_deg": 0.0,
+   "slots": {
+    "Trim": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Trim_Corridor",
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Glow_Corridor"
+   }
   },
   {
    "name": "P0147_Room_Floor",
