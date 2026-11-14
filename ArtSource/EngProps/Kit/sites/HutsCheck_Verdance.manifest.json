@@ -1,0 +1,97 @@
+{
+ "site": "HutsCheck_Verdance",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_HutsCheck_Verdance",
+ "about": "Capture only: the Verdance camp pieces in a row.",
+ "pieces": [
+  {
+   "name": "Prefab",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Verdance/SM_Hut_Verdance_Prefab",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "Lab",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Verdance/SM_Hut_Verdance_Lab",
+   "location_cm": [
+    900.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "Dome",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Verdance/SM_Hut_Verdance_Dome",
+   "location_cm": [
+    1800.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "WaterTank",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Verdance/SM_Hut_Verdance_WaterTank",
+   "location_cm": [
+    2700.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "Mast",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Verdance/SM_Hut_Verdance_Mast",
+   "location_cm": [
+    3600.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "Fence",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Verdance/SM_Hut_Verdance_Fence",
+   "location_cm": [
+    4500.0,
+    600.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "Walkway",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Verdance/SM_Hut_Verdance_Walkway",
+   "location_cm": [
+    5400.0,
+    600.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "Supplies",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Verdance/SM_Hut_Verdance_Supplies",
+   "location_cm": [
+    6300.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "Generator",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Verdance/SM_Hut_Verdance_Generator",
+   "location_cm": [
+    7200.0,
+    600.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  }
+ ]
+}

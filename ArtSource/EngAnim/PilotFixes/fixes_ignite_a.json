@@ -1,0 +1,5 @@
+{"_note": "Bases for the blade ignite / retract gestures and the perfect-deflect flourish v2 (Nov 14): a 0.5 s slice of the idle, and Grok's flourish trimmed to its first 0.45 s blended into the idle v4 side guard (0.6 s in all).",
+ "compose": [
+  {"dst": "A_Pilot_Idle3_Short", "segments": [["A_Pilot_Idle3", 0.0, 0.5]], "blend": 0.0},
+  {"dst": "A_Pilot_Blade_Flourish_v2", "segments": [["A_Pilot_Blade_Flourish", 0.0, 0.45], ["A_Pilot_Idle3_v4", 0.0, 0.3]], "blend": 0.15}
+ ]}

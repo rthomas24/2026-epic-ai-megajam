@@ -214,6 +214,8 @@ public:
 		float Ability01 = 1.f;
 		bool bAbilityActive = false;
 		bool bTrouble = false;
+		/** Hull under 25%: red-orange pulsing edge and hull bar (any card). */
+		bool bCritical = false;
 		float UnderFire01 = 0.f;
 		/** 0 = wingman size, 1 = flown size (eased over 120 ms on a switch; the input is never blocked). */
 		float Grow = 0.f;

@@ -22,6 +22,9 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Powers/TDPowerComponent.h"
 #include "TriadDrift/Powers/TDPortalBlasterPower.h"
+#include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Combat/TDWeaponLibrary.h"
+#include "TriadDrift/Core/TDCombatRegistry.h"
 #include "Engine/Engine.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "EngineUtils.h"
@@ -149,7 +152,69 @@ namespace
 		{
 			GEngine->Exec(World, *FString::Printf(TEXT("TD.World.Hold %.1f %.0f"), Seconds, Speed));
 		}
-		UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.ToPortal: portal %d is %.0f m away, flying at it at %.0f m/s for %.1f s"), Index, To.Size() / 100.f, Speed, Seconds);
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.ToPortal: portal %d of %d is %.0f m away, flying at it at %.0f m/s for %.1f s"), Index, Blaster->GetPortals().Num(), To.Size() / 100.f, Speed, Seconds);
+		// A trace of the pass, every 0.1 s for 2 s: the distance to the portal and how far off its axis the ship is, so a
+		// miss (aim) can be told from a crossing that did not register.
+		TWeakObjectPtr<APawn> WeakPawn(Pawn);
+		TWeakObjectPtr<const AActor> WeakPortal(Portal);
+		for (int32 Step = 1; Step <= 20; ++Step)
+		{
+			FTimerHandle H;
+			World->GetTimerManager().SetTimer(H, [WeakPawn, WeakPortal, Step]()
+			{
+				const APawn* P = WeakPawn.Get();
+				const AActor* Q = WeakPortal.Get();
+				if (P && Q)
+				{
+					const FVector D = P->GetActorLocation() - Q->GetActorLocation();
+					const float Along = FVector::DotProduct(D, Q->GetActorForwardVector());
+					UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.ToPortal trace %.1f s: %.0f m from the portal, %.0f m along its axis, %.0f m off it, speed %.0f m/s"),
+						Step * .1f, D.Size() / 100.f, Along / 100.f, (D - Along * Q->GetActorForwardVector()).Size() / 100.f, P->GetVelocity().Size() / 100.f);
+				}
+				else
+				{
+					UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.ToPortal trace %.1f s: %s"), Step * .1f, Q ? TEXT("no pawn") : TEXT("the portal is gone"));
+				}
+			}, Step * .1f, false);
+		}
+	}
+
+	// TD.Power.MissileAtPortal [metres=150]: with both of the Rift's portals open, an enemy homing missile (its target the
+	// Rift, steering held off for 2 s) flies straight at portal A from that far out on its front, so the portal's missile
+	// return can be staged in a capture (#100). The nearest hostile is its owner, so the return has someone to go back to.
+	void TDPowerCheatMissileAtPortal(const TArray<FString>& Args, UWorld* World)
+	{
+		APawn* Pawn = TDPowerCheatPlayerPawn(World);
+		const UTDPortalBlasterPower* Blaster = Pawn ? Pawn->FindComponentByClass<UTDPortalBlasterPower>() : nullptr;
+		const AActor* Portal = Blaster && Blaster->GetPortals().Num() >= 2 ? Cast<AActor>(Blaster->GetPortals()[0].Get()) : nullptr;
+		if (!Portal)
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.MissileAtPortal: open both of the Rift's portals first"));
+			return;
+		}
+		const float Metres = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 150.f;
+		AActor* Owner = nullptr;
+		float Best = TNumericLimits<float>::Max();
+		if (const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(World))
+		{
+			TArray<AActor*> Hostiles;
+			Registry->GetHostilesOf(ETDTeam::Player, Hostiles);
+			for (AActor* H : Hostiles)
+			{
+				const float D = FVector::DistSquared(H->GetActorLocation(), Portal->GetActorLocation());
+				if (H && D < Best) { Best = D; Owner = H; }
+			}
+		}
+		FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyHomingMissile).Projectile;
+		Spec.HomingDelay = 2.f;
+		// From the side of the portal away from the Rift (live: launched on the Rift's side, it hit the Rift before the portal).
+		const FVector Fwd = Portal->GetActorForwardVector();
+		const float Side = FVector::DotProduct(Pawn->GetActorLocation() - Portal->GetActorLocation(), Fwd) >= 0.f ? -1.f : 1.f;
+		const FVector From = Portal->GetActorLocation() + Fwd * Side * Metres * 100.f;
+		const FTransform At((Portal->GetActorLocation() - From).Rotation(), From);
+		ATDProjectile* Missile = ATDProjectile::Launch(World, Spec, At, Owner, ETDTeam::Enemy, Pawn, FVector::ZeroVector, 1.f, false);
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Power.MissileAtPortal: %s launched %.0f m in front of portal A at it (owner %s, target %s)"),
+			*GetNameSafe(Missile), Metres, *GetNameSafe(Owner), *GetNameSafe(Pawn));
 	}
 
 	void TDPowerCheatTargets(const TArray<FString>& Args, UWorld* World)
@@ -210,6 +275,8 @@ namespace
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDPowerCheatHold));
 	FAutoConsoleCommandWithWorldAndArgs CmdTDPowerShip(TEXT("TD.Power.Ship"), TEXT("TD.Power.Ship <Rift|Lancer|Bastion>: switch ships."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDPowerCheatShip));
+	FAutoConsoleCommandWithWorldAndArgs CmdTDPowerMissileAtPortal(TEXT("TD.Power.MissileAtPortal"), TEXT("TD.Power.MissileAtPortal [metres=150]: an enemy missile flies straight at the Rift's portal A (stage a portal return)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDPowerCheatMissileAtPortal));
 	FAutoConsoleCommandWithWorldAndArgs CmdTDPowerToPortal(TEXT("TD.Power.ToPortal"), TEXT("TD.Power.ToPortal [index=0] [speed m/s=300] [seconds=4]: aim the player's Rift at its open portal and hold speed."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDPowerCheatToPortal));
 	FAutoConsoleCommandWithWorldAndArgs CmdTDPowerTurn(TEXT("TD.Power.Turn"), TEXT("TD.Power.Turn <yaw> [pitch]: turn the player's ship."),

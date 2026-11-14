@@ -347,15 +347,25 @@ TSharedRef<SWidget> STDSettingsPage::MakeRow(ETDSettingsRow Row)
 	// grows a little; others keep a faint outline so the layout never jumps. Rows here are never Slate-focused (the
 	// page owns keyboard and pad navigation), so the frame follows the page's own selection, not Slate focus.
 	const float Grow = bAction ? 1.06f : 1.02f;
-	TSharedRef<SButton> Button = SNew(SButton).IsFocusable(false)
+	// One lit row at a time (T7's Shipping pass, Nov 14): the mouse entering a row selects it (W / S then go on from there),
+	// and the stock hover lightening is off, so a row the keys moved away from does not stay lit under a resting mouse.
+	static const FButtonStyle RowStyle = []()
+	{
+		FButtonStyle S = FCoreStyle::Get().GetWidgetStyle<FButtonStyle>("Button");
+		S.SetHovered(S.Normal);
+		return S;
+	}();
+	TSharedRef<SButton> Button = SNew(SButton).IsFocusable(false).ButtonStyle(&RowStyle)
+		.OnHovered_Lambda([WeakModel, Index]() { if (const TSharedPtr<FTDSettingsPageModel> M = WeakModel.Pin()) { if (M->GetSelected() != Index) { M->Select(Index); } } })
 		.ButtonColorAndOpacity_Lambda([Selected]() { return Selected() ? FLinearColor(0.15f, 0.3f, 0.4f, 0.95f) : FLinearColor(0.05f, 0.06f, 0.09f, 0.9f); })
 		.OnClicked_Lambda([this, WeakModel, Index, bAction]()
 		{
 			if (const TSharedPtr<FTDSettingsPageModel> M = WeakModel.Pin())
 			{
-				const bool bWasSelected = M->GetSelected() == Index;
+				// The hover already selected this row, so a click on a value row's body would change it unasked: value rows
+				// change with their < > arrows (or the keys); a click acts only on RESET / BACK.
 				M->Select(Index);
-				if (bAction || bWasSelected)
+				if (bAction)
 				{
 					if (M->Activate()) { OnClose.ExecuteIfBound(); return FReply::Handled(); }
 				}
