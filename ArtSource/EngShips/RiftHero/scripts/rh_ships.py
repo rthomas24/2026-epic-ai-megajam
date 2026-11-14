@@ -24,6 +24,9 @@ ACCENTS = {
                   glass=(0.06, 0.04, 0.015)),
 }
 
+ACCENTS["red"] = dict(paint=(0.70, 0.09, 0.03), glow=(0.6, 0.15, 0.03), glow_e=(1.0, 0.30, 0.08), hot=(0.9, 0.6, 0.4), hot_e=(1.0, 0.72, 0.45),
+                      dim=(0.2, 0.04, 0.01), dim_e=(0.16, 0.035, 0.008), glass=(0.02, 0.0, 0.0))     # the Null Armada
+
 SHIPS = {
     "Rift": dict(
         ship="Rift", root=os.path.join(KIT, "RiftHero"), rodin=os.path.join(AI, "Rift", "mesh_r1"),
@@ -99,6 +102,30 @@ SHIPS = {
         guns=dict(kind="bastion", y=0.43, z=-0.41, x0=2.42, tip=2.62, r=0.068, cut_x=2.49),
     ),
 }
+
+
+def _null(ship, folder, sockets, **kw):
+    """Null Armada ships: the Rodin hull, its normals and its maps as they are (dark low-poly armour: nothing to
+    flatten or weld), maps capped at 1K in Unreal, no nozzle glow cores; parts as listed."""
+    d = dict(ship=ship, root=os.path.join(KIT, ship + "Hero"), rodin=os.path.join(AI, "NullFleet", folder, "mesh_r1"), heat=None,
+             accent="red", ring=False, sockets=sockets, canopy=None, guns=None, nose=None, spine=None, sides=None, repaint=[],
+             repaint_accent=False, textures="raw", sharp_deg=30, tex=1024, tri_budget=14000, keep_islands=True, weld=False)
+    d.update(kw)
+    return d
+
+
+SHIPS["NullFighter"] = _null("NullFighter", "Fighter", {
+    "Muzzle_0": (268, -57, -38), "Muzzle_1": (268, 57, -38),
+    "Engine_0": (-277, -63, -14), "Engine_1": (-277, 63, -14), "Engine_2": (-275, 0, -14)},
+    # the three engine bells, measured on mesh_r1: about 0.36 m in radius 0.3 m ahead of the exit, 0.27 m at the exit
+    engines=dict(nozzles=[(0.63, -0.19), (0.0, -0.19), (-0.63, -0.19)], x0=-2.44, exit=-2.75, r_collar=0.375, r_exit=0.275, cut_x=-2.46))
+SHIPS["NullGunship"] = _null("NullGunship", "Gunship", {
+    "Muzzle_0": (748, -280, 295), "Muzzle_1": (748, -210, 300), "Muzzle_2": (748, 210, 300), "Muzzle_3": (748, 280, 295),
+    "Engine_0": (-740, -270, 421), "Engine_1": (-740, -90, 421), "Engine_2": (-740, 75, 421), "Engine_3": (-740, 255, 421)},
+    tri_budget=26000,
+    # the four turret barrels, measured on mesh_r1: axes at |y| 2.08 and 2.78, z 2.92, about 0.14 m in radius, tips at x 7.5
+    guns=dict(kind="barrels", barrels=[(2.78, 2.92), (2.08, 2.92), (-2.08, 2.92), (-2.78, 2.92)], x0=4.70, tip=7.50, r=0.135,
+              cut_x=4.85, cut_y=(1.75, 3.08), cut_z=(2.68, 3.2)))
 
 
 def get(ship):

@@ -87,8 +87,9 @@ def clean_body(ob):
     st["ring_support_shards_removed"] = len(shards)
     bmesh.ops.delete(bm, geom=shards, context="FACES")
     v0 = len(bm.verts)
-    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0002)
-    bmesh.ops.dissolve_degenerate(bm, dist=1e-6, edges=bm.edges)
+    if CFG.get("weld", True):          # (the Null fleet's low-poly hulls stay as Rodin made them: welding the fighter
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0002)      # left faces wound against their neighbours)
+        bmesh.ops.dissolve_degenerate(bm, dist=1e-6, edges=bm.edges)
     st["welded_verts"] = v0 - len(bm.verts)
     bm.faces.index_update()
     isl = islands(bm)
@@ -102,6 +103,8 @@ def clean_body(ob):
         diag = (hi - lo).length
         in_ring_zone = ring and lo.x > -2.15 and hi.x < -1.15 and max(abs(lo.y), abs(hi.y)) < 0.74 and lo.z > 0.02 \
             and diag < 0.9
+        if CFG.get("keep_islands"):        # low-poly Rodin hulls (the Null fleet) are built of many small separate faces
+            continue
         if (len(comp) < 16 and diag < 0.06) or len(comp) < 3:
             kill += comp
             n_tiny += 1
@@ -257,11 +260,12 @@ def main():
         parts += extra
     bpy.context.view_layer.update()
     res["body"]["hidden_faces_removed"] = remove_hidden(body, parts)
-    body.data.shade_smooth()
-    body.data.set_sharp_from_angle(angle=math.radians(CFG.get("sharp_deg", 42)))
-    wn = body.modifiers.new("WeightedNormal", "WEIGHTED_NORMAL")
-    wn.keep_sharp = True
-    wn.weight = 50
+    if CFG.get("weld", True):          # unwelded hulls keep Rodin's own normals
+        body.data.shade_smooth()
+        body.data.set_sharp_from_angle(angle=math.radians(CFG.get("sharp_deg", 42)))
+        wn = body.modifiers.new("WeightedNormal", "WEIGHTED_NORMAL")
+        wn.keep_sharp = True
+        wn.weight = 50
     res["body"]["tris_out"] = G.tri_count([body])
 
     # ---------------- textures of the kept Rodin set
@@ -272,7 +276,8 @@ def main():
         res["textures"] = "source maps, unchanged"
     else:
         res["textures"] = T.clean(C.RODIN, C.EXPORT, SHIP, CFG["accent"])
-    shutil.copyfile(HEAT, os.path.join(C.EXPORT, "T_%s_HeatMask.png" % SHIP))
+    if HEAT:
+        shutil.copyfile(HEAT, os.path.join(C.EXPORT, "T_%s_HeatMask.png" % SHIP))
     if "--close" in ARGS and not raw:
         res["livery"] = CP.clean_livery(os.path.join(C.EXPORT, "T_%s_BC.png" % SHIP), body=body)
     body.data.materials.append(image_material("M_" + SHIP, os.path.join(C.EXPORT, "T_%s_" % SHIP), 2.0))
@@ -290,8 +295,9 @@ def main():
         bc, orm = T.load(stem + "BC.png"), T.load(stem + "ORM.png")
         ao = orm[..., 0:1]
         T.save(bc * (0.50 + 0.50 * ao ** 1.2), stem + "BC.png", True)          # grime in the recesses
-        heat = np.zeros((64, 64, 3), np.float32)                                 # leeward parts: no entry heating
-        T.save(heat, stem + "HeatMask.png", False)
+        if HEAT:
+            heat = np.zeros((64, 64, 3), np.float32)                             # leeward parts: no entry heating
+            T.save(heat, stem + "HeatMask.png", False)
         part.data.materials.clear()
         part.data.materials.append(image_material("M_%s_Parts" % SHIP, stem, float(b.get("emission_strength") or 3.0)))
         for poly in part.data.polygons:
@@ -312,7 +318,7 @@ def main():
 
     # ---------------- numbers
     names = [body.name, part.name] + ([glow.name] if glow else [])
-    rep = C.skill("blender-mcp/scripts/asset_report.py")["main"](targets=names, tri_budget=65000)
+    rep = C.skill("blender-mcp/scripts/asset_report.py")["main"](targets=names, tri_budget=CFG.get("tri_budget", 65000))
     asm = C.skill("blender-mcp/scripts/assembly_check.py")["main"](targets=names, min_island_tris=1)
     res["report"] = {"totals": rep["totals"], "issues": [i for i in rep["issues"] if i["severity"] != "info"][:12]}
     res["assembly"] = {"ok": asm.get("ok"), "islands": asm.get("islands"), "main_body_tris": asm.get("main_body_tris"),
@@ -364,6 +370,8 @@ def main():
             with open(man_path, encoding="utf-8") as fh:
                 man = json.load(fh)
             man["ue_sockets"] = [{"name": n, "ue_cm": list(p)} for n, p in SOCKETS_UE.items()]
+            if CFG.get("tex"):
+                man["max_texture_size"] = CFG["tex"]       # the Null fleet's maps are capped (1K) in Unreal
             man["slots"] = {"M_%s" % SHIP: "kept Rodin hull, corrected set T_%s_BC/N/ORM/E + T_%s_HeatMask" % (SHIP, SHIP),
                             "M_%s_Parts" % SHIP: "new %s, baked set T_%s_Parts_BC/N/ORM/E + T_%s_Parts_HeatMask"
                             % ("ring / engines / tail" if disc else "canopy interior and frame / guns / nose / spine", SHIP, SHIP)}
