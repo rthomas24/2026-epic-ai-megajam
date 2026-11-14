@@ -83,13 +83,15 @@ def lerpv(a, b, w):
     return unreal.Vector(a.x + (b.x - a.x) * w, a.y + (b.y - a.y) * w, a.z + (b.z - a.z) * w)
 
 
-def write(dst, frames):
+def write(dst, frames, skeleton=None):
     """frames: list of {bone: (loc, rot)}; writes a new sequence (or rewrites dst) at 30 fps."""
     path = "%s/%s" % (ANIMS, dst)
     seq = unreal.load_asset(path) if unreal.EditorAssetLibrary.does_asset_exist(path) else None
+    if seq and skeleton and seq.get_editor_property("skeleton") != skeleton:
+        raise RuntimeError("%s exists on another skeleton" % dst)
     if not seq:
         f = unreal.AnimSequenceFactory()
-        f.set_editor_property("target_skeleton", SKEL)
+        f.set_editor_property("target_skeleton", skeleton or SKEL)
         seq = unreal.AssetToolsHelpers.get_asset_tools().create_asset(dst, ANIMS, unreal.AnimSequence, f)
     c = seq.get_editor_property("controller")
     c.open_bracket(unreal.Text("Pilot fix"), False)
@@ -452,7 +454,7 @@ for cl in CFG.get("clips", []):
                                                           + frs[-2][b][1].z * first[b][1].z + frs[-2][b][1].w * first[b][1].w))))
                    for b in ALL)
     log("%s -> %s: %.2f s, root travel removed %.0f cm, loop %s (last step %.1f deg)" % (cl["src"], cl["dst"], (n - 1) / float(FPS), travel, bool(cl.get("loop")), seam))
-    write(cl["dst"], frs)
+    write(cl["dst"], frs, unreal.load_asset(cl["dst_skeleton"]) if cl.get("dst_skeleton") else None)
 
 for v in CFG.get("visuals", []):
     da = unreal.load_asset(PILOT + "/DA_Pilot_Visuals")
