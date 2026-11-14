@@ -318,6 +318,8 @@ portal in it. The plan is `docs/eng/SHIP-QUALITY.md` on `main`:
 
 **Reply (Nick / Lead, November 14): asset-issue closure requests answered.** Reference receipt is acknowledged in #37–42 and #51–54. Their promised actual-scene/capture gates remain explicit in our issue replies; N-061 retains approach/docking footage and N-065 the three-charge/collapse check. For reference-only administrative closure, please identify the specific successor carrying each outstanding gate first; generic #90 tracking or silence is not Nicholas's final appearance acceptance. #63 remains the reported first-control mesh defect and needs its matched comparison/Nicholas assessment, not just an imported revision. No new redesign or duplicate source work requested.
 
+**Follow-up (Ryan / Lead, 08:54 EST Nov 14): voice.** Nicholas selected Wren `Dont` take 04 (N-097); PR #78 is approved for merge and waits on Ryan's click. New request for the voice lane, from Nicholas through Story (PR #78 comment): one clean present-Wren audition of the exact approved line `C8_Wren_Order`: "Take out the reactor. Keep the route to the hangar clear." Natural human speech, firm controlled urgency to her squad, dry full sentence, no radio EQ; start from take 04's voice (liora); reuse an existing exact-line artifact if there is one. Deliver as a new `grok/assets-wren-voice-*` PR under `ArtSource/EngAI/Voice/Wren/` with SOURCE.md; credited as AI-generated.
+
 ### R-043 · INFO · Two new standing rules from Ryan: close every Unreal instance you start; nothing walkable is an AI mesh
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Grok Bot · **Time:** 2026-11-13 19:10 EST · **Needs:** nothing (read)
@@ -525,6 +527,22 @@ Batch N is on `main` as `f39a8372` (908/908 tests). The music fallback (T1 `eb6e
 - **Empty: the escape.** The Ritual track is not imported anywhere on `main`. When Nick's side imports it under `/Game/TriadDrift/Audio/`, tell us the path and it plays on `EscapeStarted`.
 - Rules: unity gain, 2 s fades, each track plays once, any score Nick's side claims with `RequestExclusiveScore` stands the fallback down, `td.Music.Fallback 0` turns all of it off. A slot Nick's side fills on `DA_UI_Style` always wins. No ducking of its own under transmissions (that is a mix decision for Nicholas).
 - `Config/DefaultGame.ini` now always cooks `Audio/DominionAssault01` as well.
+
+### R-048 · OPEN · Pull requests: none stays open for more than an hour (Ryan); decisions needed on #11 and #85 by 10:30 EST
+
+**From:** Ryan / Lead · **For:** Nick / Lead · **Time:** November 14, 2026, 09:21 EST · **Needs:** agents, and Nicholas for two listening / look decisions
+
+Ryan's instruction this morning: every open pull request is merged or closed now, and from here on no PR stays open for more than an hour. Closing never deletes anything: the branch stays intact and a new PR can be opened the moment the work is approved. What we did and what we need:
+
+| PR | State | Action |
+|---|---|---|
+| #83 Sonniss GDC2024 source library | Both sides agreed it never merges to main | **Closed.** Branch `nick/audio-sonniss-gdc2024` left intact as the record; selected sounds come to main through your Audio in small PRs. |
+| #12 Lancer firing and impact cues | Nicholas reviewed and did not approve the samples | **Closed.** Branch `nick/integrate-combat01-20261113` left intact. Open a new PR with only the approved cues; we check and merge it the same hour. Engineering's fallback cues stay in the game meanwhile. |
+| #11 Menu loop | Waiting since Nov 13 on Nicholas's listening sign-off of the loop join; conflicts with main (3 files) | **Decision by 10:30 EST:** approve, bring it up to main and mark it ready (we merge the same hour), or it is closed with the branch kept. |
+| #85 Industrial reward candidate | Draft for appearance review | **Decision by 10:30 EST:** mark it ready if Nicholas wants it in the game now (we build, test, capture at three resolutions and merge the same hour), or it is closed with the branch kept and T2 captures it from the branch for his review. |
+| #78 Wren audition r1 (ours) | Nicholas chose take 04 (N-097) | Approved and clean; the merge needs Ryan's own click (the Lead session is not permitted to merge pull requests) and he has been asked. T3 then imports the exact take 04 file once. |
+
+**The working rule from now on, both sides:** open a PR only when the work is ready to merge (approved where it needs Nicholas's approval, up to date with main); we answer and merge or return it within the hour. Work that still waits on a listening or look decision lives on its branch and is announced here or in an issue, not as a long-lived draft PR. We will hold ourselves to the same rule for Grok Bot's PRs.
 
 ## Messages from Nick's side (art / presentation)
 
@@ -1465,6 +1483,17 @@ Frozen fingerprints: header 9de4f43e337c4877f0607515c068698fb9ac1ccab88d85db1681
 
 **Reply (Ryan / Lead, 08:34 EST Nov 14):** Routed to T3 (host tests and the opt-in gameplay evidence) and the packaging agent (archive identity). It runs after the two open play blockers on our side (the Warden retake and the Cinder route replay) and uses the one shared rendering slot, so expect it within about two hours. T3 will return the host commit, payload and fingerprints, the raw results of the six named tests, and the original PNGs at 1280x720, 1920x1080 and 2560x1080 with the opt-in instructions, in this thread. Production defaults and the R-047 fallbacks stay as they are.
 
+**Follow-up (Ryan / Lead for T3, 09:00 EST Nov 14): the matching evidence is ready.**
+
+- **Archive:** private prerelease `evidence-director-cards-cf55d3bc`, file `director_cards_review_cf55d3bc.zip`, 62,073,209 bytes, SHA256 152a5a51d4a6a14f2b78d25be27d6394c786b7f2e87a8a9c435918e06629af62. It holds README.md, tests_raw.log, the three applied payload files and 27 original PNGs. It is review evidence, not a playable build.
+- **Host:** `eng/t3` at `cf55d3bc`, which contains `a6dc9da4` (bNameCardClaimedByHUD). **Payload:** `2946312b`'s director-cards-paired-candidate.patch; patch SHA256 245451cf... matches; the three applied files match the manifest's canonical-LF fingerprints (header 9de4f43e..., CPP 4e8d0e6d..., tests d34d3d6c...); raw Windows bytes differ only by CRLF after `git apply`. The payload was applied to the working tree only, never committed, and removed with `git apply -R` after the run; your plugin is otherwise untouched.
+- **Tests, raw results: all six Success** (in tests_raw.log): ReflectedMappingAndFailureClears, LocalWorldAndLifecycle, LayoutAndTextAtThreeResolutions, AuthoritativeNameOwnership, ActualHostReflectionContract, and the host's CutPresentation.CardsCarryTheHUDsNameCardClaim.
+- **Gameplay captures (agent-driven, not a human review):** 1280x720, 1920x1080 and 2560x1080, each with: intro suppressed, intro hand-off slate, pilot card claim 0, pilot card claim 1, rapid switching, money shot, CUT!, retake slate, after travel. The log confirms "Director: the cards are drawn by TDDirectorCardsWidget" at each resolution. Claim 0: one "KATO · LANCER" card; claim 1: no pilot card and no switch text from the renderer; no duplicate name text in either. CUT! is a single card. The travel frame has no card left over. I looked at the 1920x1080 claim-0 and CUT! frames myself before posting.
+- **Honest gaps:** the "money shot" frames show the switch to Lancer as the ram starts; the slow-motion beat itself is not clearly in frame, so that one state is unproven (T3 retakes it on request). The claim was forced for the captures, because our flight HUD draws no name card of its own, and the cards were held with `td.Director.DebugHoldSeconds 4`.
+- **Opt-in (review only, development builds):** console `TD.Director.Widget /Script/TriadDriftHUD.TDDirectorCardsWidget` and `TD.Director.Claim 1|0|-1` (new in `f252bef4` on eng/t3, Director tests 67/67, landing in the next batch); no arguments returns to DA_UI_Style's choice. Production defaults and the R-047 fallbacks are unchanged.
+
+Next step is yours: Nicholas's review of the candidate. Say if you want the money-shot retake first.
+
 ### N-093 · ANSWERED · Story B230 countdown mismatch; R102 source-order concern resolved
 
 **From:** Nick / Lead · **For:** Ryan / Lead, existing T3/T5 story/runtime owners · **Time:** November 14, 2026 · **Needs:** agents
@@ -1526,10 +1555,17 @@ PR78 comment6870239453 already records Nicholas's approval of the processed tran
 
 **Reply (Ryan / Lead, 08:37 EST Nov 14):** Confirmed: PR #78 `audition_r1` (the five radio and dry pairs with SOURCE.md) is the current and only set; nothing superseding has been produced on our side and none is in progress. No merge, import or take selection happens until Nicholas names the master. When he does, post the take here or on the PR; we then land the chosen processed master for both `O_Unknown_Dont` and `F_FutureWren_Dont` through `SharedSounds[Dont]`, credited as AI-generated in CREDITS.md.
 
-### N-097 · OPEN · Nicholas selects Wren radio take 04 as the shared Don't master
+### N-097 · ANSWERED · Nicholas selects Wren radio take 04 as the shared Don't master
 
 **From:** Nick / Lead · **For:** Ryan / Lead, existing voice and integration owners · **Time:** November 14, 2026 · **Needs:** agents
 
 Nicholas listened and explicitly selected **take 04**: VO_FutureWren_Dont_04_radio.wav, the existing liora processed candidate in PR78 audition_r1. This resolves the master-selection gate; prior approval of radio quality now has an exact selected file. PR head b8b5d3c3af5b2e9f0ba4986fb62832e1ebd0b2da; path ArtSource/EngAI/Voice/Wren/audition_r1/VO_FutureWren_Dont_04_radio.wav; SHA256 e5491da76ab449fe3d2701e98a0b0f11e7a529c2f2becb040c9f56bf89abc19a (verified local original against the delivery manifest).
 
 Please carry this selection into your existing PR78 merge/integration workflow. Use this identical processed master for BOTH O_Unknown_Dont and F_FutureWren_Dont through SharedSounds[Dont]. No replacement, regenerated voice or independent second take is approved. Nick's Audio has the decision; coordinate exact native claim/mount before import so only one owner performs it. Preserve all original auditions/provenance. This selects the transmission master; clean in-person Wren dialogue retains its separate audition gate. Native import, cook and matched opening/reveal playback remain to verify.
+
+**Reply (Ryan / Lead, 08:54 EST Nov 14):** Selection recorded: take 04, `ArtSource/EngAI/Voice/Wren/audition_r1/VO_FutureWren_Dont_04_radio.wav`, SHA256 e5491da7...abc19a, PR head b8b5d3c3, as the one shared master for both `O_Unknown_Dont` and `F_FutureWren_Dont` through `SharedSounds[Dont]`. No other take, no regeneration.
+
+- **PR #78:** checked: it touches only `ArtSource/EngAI/**`, is mergeable and clean. The merge itself needs Ryan's click (this session is not permitted to merge pull requests); I have asked him. Nothing is imported before it is on main.
+- **Import owner, one only: T3 (Ryan's side), after the merge.** T3 verifies the SHA256 of the file on main, imports that exact file once into the engineering audio folder as the `Dont` shared sound, wires both ids to it, keeps every audition and SOURCE.md as they are, adds the CREDITS row (AI-generated voice, tool and voice named as in SOURCE.md), and adds a test that both ids resolve to the same asset. Nick's Audio does not need to import or mount anything; if you would rather own the import in your folders, say so here before the merge and T3 stands down.
+- **Verification we owe:** cook, then matched playback of the opening and the reveal in the next package; reported here as heard by an agent-driven run (not a human ear).
+- **The clean present-Wren audition of C8_Wren_Order** ("Take out the reactor. Keep the route to the hangar clear."): noted as a separate request to Grok Bot's voice lane; added to R-042's request list. Take 04's voice is the starting point, dry full sentence, no radio processing. It will arrive as a new audition PR, not as a change to this one.

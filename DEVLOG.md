@@ -2,6 +2,8 @@
 
 ## WAKE-UP REPORT for Ryan: overnight Nov 13-14 (Ryan's Lead, written 08:50 EST Nov 14)
 
+**Update 09:15:** main is now batch Y (`8b4eabae`, gate 999/999); newest package `playable-main-8b4eabae` (zip `TriadDrift_8b4eabae_Shipping.zip` in the for-ryan builds folder, 877 MB, cook 0 errors 0 warnings, checked in Shipping to wave 1 only). Batch Z is gating. PR #78 (Wren take 04, chosen by Nicholas) needs Ryan's merge click.
+
 **Main:** `c8f78e1e` (batch X, gate 991/991). Batch Y is gating (`lead/int-y` 305453c7).
 **Package:** private prerelease `playable-main-6cc4f254` (batch W), `Builds\for-ryan\TriadDrift_6cc4f254_Shipping.zip`, 876 MB, cook 0 errors 0 warnings, six maps. Checked in Shipping only to the start of wave 1; audio, flight input and everything later are NOT verified in the package. A package of batch Y follows when it passes.
 
