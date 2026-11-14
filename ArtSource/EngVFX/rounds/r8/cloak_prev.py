@@ -2,7 +2,7 @@
 # component of the pawn and attaches NS_TD_Cloak_Shimmer (tagged EngVFXPreview); 'off' removes both.
 world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_game_world()
 pawn = unreal.GameplayStatics.get_player_pawn(world, 0)
-ov = unreal.load_asset('/Game/TriadDrift/Gameplay/VFX/Materials/M_TD_VFX_CloakOverlay') if CMD == 'on' else None
+ov = None   # 10g: the Rift hull is Nanite (no overlay); the cloak is now NS_TD_Cloak_Shimmer's hull shell alone
 n = 0
 for m in pawn.get_components_by_class(unreal.MeshComponent):
     if isinstance(m, unreal.NiagaraComponent):
