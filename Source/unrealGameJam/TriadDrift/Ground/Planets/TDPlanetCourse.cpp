@@ -367,9 +367,132 @@ bool ATDPlanetCourse::IsScatterAllowedAt(const UObject* WorldContextObject, cons
 // Grok Bot's survey outpost (the Verdance research site, the Cinder survey station)
 // ------------------------------------------------------------------------------------------------
 
-AActor* ATDPlanetCourse::PlaceOutpost(const FVector& Site, float Yaw, bool bCinder, UStaticMeshComponent*& OutConsole)
+float ATDPlanetCourse::GroundZAt(const FVector& Local) const
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		return 0.f;
+	}
+	FCollisionQueryParams Q(SCENE_QUERY_STAT(TDCourseGround), true);
+	for (const TObjectPtr<AActor>& A : Spawned) { if (A) { Q.AddIgnoredActor(A.Get()); } } // the course's own slab and props
+	Q.AddIgnoredActor(this);
+	FHitResult Hit;
+	const FVector P = W(FVector(Local.X, Local.Y, 0.f));
+	if (World->LineTraceSingleByChannel(Hit, P + FVector(0.f, 0.f, 20000.f), P - FVector(0.f, 0.f, 5000.f), ECC_WorldStatic, Q))
+	{
+		return FMath::Max(0.f, (float)GetActorTransform().InverseTransformPosition(Hit.ImpactPoint).Z);
+	}
+	return 0.f;
+}
+
+AActor* ATDPlanetCourse::SpawnKitBP(const TCHAR* Folder, const TCHAR* Name, const FVector& Local, float Yaw, float Scale)
+{
+	const FString Path = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Props/%s/%s.%s_C"), Folder, Name, Name);
+	UClass* Cls = LoadClass<AActor>(nullptr, *Path, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	if (!Cls || !GetWorld())
+	{
+		return nullptr;
+	}
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AActor* A = GetWorld()->SpawnActor<AActor>(Cls, FTransform(GetActorRotation() + FRotator(0.f, Yaw, 0.f), W(Local), FVector(Scale)), Params);
+	if (A)
+	{
+		Spawned.Add(A);
+	}
+	return A;
+}
+
+int32 ATDPlanetCourse::Dress(const TArray<FDressItem>& Items, const FVector& Origin, float Yaw, FName Site)
+{
+	int32 Placed = 0;
+	const FRotator R(0.f, Yaw, 0.f);
+	for (const FDressItem& It : Items)
+	{
+		FVector L = Origin + R.RotateVector(FVector(It.Local.X, It.Local.Y, 0.f));
+		L.Z = GroundZAt(L) + It.Local.Z + 3.f; // on the ground (2-3 cm over it; decals carry their own small z)
+		const FName Tag(*FString::Printf(TEXT("%s:%s"), *Site.ToString(), It.Name));
+		if (FCString::Strncmp(It.Name, TEXT("BP_"), 3) == 0)
+		{
+			if (AActor* A = SpawnKitBP(It.Folder, It.Name, L, Yaw + It.Yaw, It.Scale))
+			{
+				FVector O, E;
+				A->GetActorBounds(true, O, E);
+				ClearSite(GetActorTransform().InverseTransformPosition(O), FMath::Min(FMath::Max(E.X, E.Y), 3000.f) + 200.f);
+				DressLog.Add(Tag);
+				++Placed;
+			}
+			continue;
+		}
+		const FString Path = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Props/%s/%s"), It.Folder, It.Name);
+		UStaticMesh* M = FPackageName::DoesPackageExist(Path) ? LoadObject<UStaticMesh>(nullptr, *(Path + TEXT(".") + It.Name), nullptr, LOAD_Quiet | LOAD_NoWarn) : nullptr;
+		if (!M || !Dressing)
+		{
+			continue;
+		}
+		UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(Dressing);
+		C->SetMobility(EComponentMobility::Movable);
+		C->SetStaticMesh(M);
+		C->SetupAttachment(Dressing->GetRootComponent());
+		C->SetRelativeTransform(FTransform(FRotator(0.f, Yaw + It.Yaw, 0.f), L, FVector(It.Scale)));
+		if (It.bCollide) { C->SetCollisionProfileName(TEXT("BlockAll")); C->CanCharacterStepUpOn = ECB_No; }
+		else { C->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
+		C->SetCanEverAffectNavigation(false);
+		C->RegisterComponent();
+		Dressing->AddInstanceComponent(C);
+		ClearSite(L, FMath::Min(150.f + (float)M->GetBounds().SphereRadius * It.Scale, 1500.f));
+		DressLog.Add(Tag);
+		++Placed;
+	}
+	return Placed;
+}
+
+void ATDPlanetCourse::DressOutpost(const FVector& Site, float Yaw, FName Tag)
+{
+	const TCHAR* Out = TEXT("OutpostDressing");
+	Dress({
+		{ Out, TEXT("SM_Outpost_CargoCrate"), FVector(520.f, 320.f, 0.f), 12.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_CargoCrate"), FVector(560.f, 395.f, 0.f), -8.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_SupplyCrate"), FVector(470.f, 410.f, 0.f), 30.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_SupplyCrate"), FVector(610.f, 300.f, 0.f), 75.f, 0.9f, true },
+		{ Out, TEXT("SM_Outpost_FieldTerminal"), FVector(640.f, -330.f, 0.f), 90.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_Floodlight"), FVector(450.f, -440.f, 0.f), 150.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_CommAntenna"), FVector(-150.f, 470.f, 0.f), 0.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_CommsDish"), FVector(-320.f, 500.f, 0.f), 200.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_Generator"), FVector(-520.f, -260.f, 0.f), 90.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_PowerJunction"), FVector(-470.f, -400.f, 0.f), 0.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_BollardLight"), FVector(760.f, 260.f, 0.f), 0.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_BollardLight"), FVector(760.f, -260.f, 0.f), 0.f, 1.f, true },
+	}, Site, Yaw, Tag);
+}
+
+void ATDPlanetCourse::DressPad(FName Tag)
+{
+	const TCHAR* Out = TEXT("OutpostDressing");
+	TArray<FDressItem> Items;
+	for (int32 i = 0; i < 8; ++i)
+	{
+		const float A = 22.5f + i * 45.f;
+		Items.Add({ Out, TEXT("SM_Outpost_BollardLight"), FVector(FMath::Cos(FMath::DegreesToRadians(A)), FMath::Sin(FMath::DegreesToRadians(A)), 0.f) * 1550.f, A + 180.f, 1.f, true });
+	}
+	Items.Append({
+		{ Out, TEXT("SM_Outpost_Floodlight"), FVector(-1900.f, 1200.f, 0.f), -35.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_Floodlight"), FVector(-1900.f, -1200.f, 0.f), 35.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_CargoCrate"), FVector(300.f, -1900.f, 0.f), 15.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_SupplyCrate"), FVector(420.f, -2020.f, 0.f), -20.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_Generator"), FVector(-200.f, -2000.f, 0.f), 0.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_PowerJunction"), FVector(-380.f, -1880.f, 0.f), 90.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_CommsDish"), FVector(-1700.f, 1900.f, 0.f), 225.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_CommAntenna"), FVector(-1500.f, 2050.f, 0.f), 0.f, 1.f, true },
+	});
+	Dress(Items, FVector::ZeroVector, 0.f, Tag);
+}
+
+AActor* ATDPlanetCourse::PlaceOutpost(FVector& Site, float Yaw, bool bCinder, UStaticMeshComponent*& OutConsole)
 {
 	OutConsole = nullptr;
+	Site.Z = GroundZAt(Site) > 0.f ? GroundZAt(Site) + 3.f : Site.Z; // over T4's terrain, never under it (#42)
 	ClearSite(Site, TDCourseColors::OutpostClearRadius); // the room (or its placeholder) and its door, whichever is built
 	const TCHAR* Path = bCinder ? TEXT("/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_Cinder.BP_Outpost_Site_Cinder_C")
 		: TEXT("/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_Verdance.BP_Outpost_Site_Verdance_C");
@@ -1056,7 +1179,7 @@ void ATDPlanetCourse::BuildVerdance()
 	// Grok Bot's outpost when it exists (its bay and ramp turned to the beacon the pilot comes from); else the placeholder.
 	// At the fight's edge, not its middle (Played.Verdance: a solid cabin in the middle of the station fight walled the
 	// pilot off from the crew), clear of the spawn points and of the line from the checkpoint.
-	const FVector OutpostSite = WreckSite + FVector(900.f, -1700.f, 0.f);
+	FVector OutpostSite = WreckSite + FVector(900.f, -1700.f, 0.f);
 	const float SiteYaw = FMath::RadiansToDegrees(FMath::Atan2(6300.f - OutpostSite.Y, 9300.f - OutpostSite.X));
 	UStaticMeshComponent* VerdConsole = nullptr;
 	AActor* VerdOutpost = PlaceOutpost(OutpostSite, SiteYaw, false, VerdConsole);
@@ -1245,6 +1368,48 @@ void ATDPlanetCourse::BuildVerdance()
 		  LOCTEXT("R2", "PROTECT THE DATA TRANSFER"), LOCTEXT("R3", "PROTECT THE DATA TRANSFER"), LOCTEXT("R4", "GET BACK TO YOUR SHIP") },
 		{ Reach, RelayConsole, Transfer, Transfer, Ship });
 
+	// Story dressing (the environment builder's table, Nov 14; Kit/Story meshes, Kit/Sites sets, OutpostDressing props):
+	// placed on the ground, each clearing its own footprint of flora.
+	{
+		const TCHAR* Story = TEXT("Kit/Story"); const TCHAR* Sites = TEXT("Kit/Sites"); const TCHAR* Out = TEXT("OutpostDressing");
+		Dress({
+			// A: the research site clearing, an abandoned field camp, and the relay mast pulling the eye from the pad.
+			{ Sites, TEXT("BP_StorySet_VerdanceCamp"), FVector(9400.f, 9000.f, 0.f), 200.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_DragMark"), FVector(10800.f, 9500.f, 2.f), 60.f, 1.5f, false },
+			{ Story, TEXT("SM_Kit_LampPostDead"), FVector(9700.f, 7050.f, 0.f), 0.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_LampPostDead"), FVector(10600.f, 6250.f, 0.f), 180.f, 1.f, true },
+			{ Sites, TEXT("BP_Landmark_RelayMast"), FVector(13200.f, 6800.f, 0.f), 215.f, 1.f, true },
+			// B: the wreck scar's head, and the kit wreck (the walkway through the hull) at the research site.
+			{ Story, TEXT("SM_Kit_AntennaToppled"), FVector(13300.f, 8600.f, 0.f), 35.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_ScorchLines"), FVector(13600.f, 8000.f, 2.f), 36.f, 1.5f, false },
+			{ Story, TEXT("SM_Kit_SampleCases"), FVector(12900.f, 9200.f, 0.f), 80.f, 1.f, true },
+			// The kit wreck at the scar's end, just outside the site fight's box: on its 2 m walkway a pilot would be out of the
+			// melee crew's reach mid-fight (Course.CrewAttackAPilotStandingAtTheWreckCore).
+			{ TEXT("Wreck"), TEXT("BP_Wreck"), WreckSite + FVector(2900.f, 1700.f, 0.f), 36.f, 1.f, true },
+			// ART-18's clue, nothing points at it: a scorched Triad panel in the grass past the wreck's far ramp toe.
+			{ Story, TEXT("SM_Kit_InsigniaPanel"), WreckSite + FVector(2900.f, 1700.f, 0.f) + FRotator(0.f, 36.f, 0.f).RotateVector(FVector(-420.f, 1950.f, 0.f)), 196.f, 1.f, false },
+			// C: the relay's approach.
+			{ Story, TEXT("SM_Kit_SurveyStakeFlag"), FVector(4800.f, -6000.f, 0.f), 120.f, 1.f, false },
+			{ Story, TEXT("SM_Kit_SurveyStakeFlag"), FVector(5300.f, -6800.f, 0.f), 120.f, 1.f, false },
+			{ Story, TEXT("SM_Kit_SurveyStakeFlag"), FVector(5800.f, -7500.f, 0.f), 120.f, 1.f, false },
+			{ Story, TEXT("SM_Kit_ShelterFrame"), FVector(9900.f, -8600.f, 0.f), 300.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_SampleCases"), FVector(9700.f, -4700.f, 0.f), 20.f, 1.f, true },
+			// The survey line beside the pad-to-research-site route.
+			{ Sites, TEXT("BP_SurveyLine_Verdance"), FVector(1500.f, 1800.f, 0.f), 0.f, 1.f, true },
+		}, FVector::ZeroVector, 0.f, TEXT("Verdance"));
+		// The relay deck's service corner (relay frame: +X is the plinth side).
+		Dress({
+			{ Out, TEXT("SM_Outpost_Generator"), FVector(3200.f, 600.f, 0.f), 180.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_PowerJunction"), FVector(3150.f, 250.f, 0.f), 180.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_DataKiosk"), FVector(3300.f, -400.f, 0.f), 180.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_Floodlight"), FVector(3000.f, 1300.f, 0.f), 200.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_Floodlight"), FVector(3000.f, -1300.f, 0.f), 160.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_SupplyCrate"), FVector(3350.f, -900.f, 0.f), 40.f, 1.f, true },
+		}, RelaySite, 0.f, TEXT("Relay"));
+		DressOutpost(OutpostSite, SiteYaw, TEXT("VerdanceOutpost"));
+		DressPad(TEXT("VerdancePad"));
+	}
+
 	// Dressing: engineering's props and trees (the placeholder flora only if they are missing).
 	KeepOuts = {
 		{ WreckSite, FVector(2800.f, 2800.f, 0.f) },
@@ -1319,7 +1484,7 @@ void ATDPlanetCourse::BuildCinder()
 	// from the pad past one patrol to an open-sided survey station at the dig's rim (the Verdance station kit), whose
 	// terminal works once the patrol is dead or left behind; it is Cinematic 05's hook (T3). Then the excavation, then
 	// the anchor, in that order. ----
-	const FVector StationAt(3700.f, 0.f, 0.f);
+	FVector StationAt(3700.f, 0.f, 0.f);
 	ATDObjective* Survey = MakeObjective(TEXT("Obj_Survey"), LOCTEXT("SurveyTitle", "Access the Survey Records"), ETDAbilityId::None, ETDShipId::Rift, 2);
 	AddTrailhead(Survey, FVector(1300.f, 0.f, 0.f), Crystal, LOCTEXT("TheSurvey", "THE SURVEY STATION"));
 	Route({ FVector(700.f, 0.f, 0.f), FVector(2300.f, 0.f, 0.f), StationAt - FVector(900.f, 0.f, 0.f) }, Crystal);
@@ -1732,6 +1897,48 @@ void ATDPlanetCourse::BuildCinder()
 	FinishObjective(Jammer,
 		{ LOCTEXT("J0", "CROSS THE CRYSTAL BRIDGE"), LOCTEXT("J1", "PLANT THE CHARGES  0 / 3"), LOCTEXT("J2", "RETURN TO EXTRACTION") },
 		{ FarBank, Charges, Clear });
+
+	// Story dressing (the environment builder's table, Nov 14).
+	{
+		const TCHAR* Story = TEXT("Kit/Story"); const TCHAR* Sites = TEXT("Kit/Sites");
+		Dress({
+			// A: the excavation (the mine set, the derrick beyond it on the walking line).
+			{ Sites, TEXT("BP_StorySet_CinderMine"), FVector(13500.f, 2400.f, 0.f), 0.f, 1.f, true },
+			{ Sites, TEXT("BP_Landmark_NullDerrick"), FVector(19300.f, 6000.f, 0.f), 270.f, 1.f, true },
+			// ART-18's clue: a destroyed hull plate with Triad's chevrons, behind the mine set, off every route.
+			{ Story, TEXT("SM_Kit_InsigniaHull"), FVector(15300.f, 1200.f, 0.f), 115.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_ScorchLines"), FVector(8600.f, 8400.f, 2.f), 30.f, 1.3f, false },
+			{ Story, TEXT("SM_Kit_WarningBeacon"), FVector(4300.f, 2400.f, 0.f), 0.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_WarningBeacon"), FVector(4400.f, 5800.f, 0.f), 0.f, 1.f, true },
+			// B: the anchor tower's approach.
+			{ Story, TEXT("SM_Kit_WarningBeacon"), FVector(6600.f, -2800.f, 0.f), 0.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_WarningBeacon"), FVector(6600.f, -7200.f, 0.f), 0.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_ScorchLines"), FVector(13800.f, -3600.f, 2.f), 50.f, 1.4f, false },
+			{ Story, TEXT("SM_Kit_ScorchLines"), FVector(11600.f, -6600.f, 2.f), 230.f, 1.2f, false },
+			{ Story, TEXT("SM_Kit_CableReel"), FVector(14200.f, -6200.f, 0.f), 10.f, 1.f, true },
+			// C: the survey station.
+			{ Story, TEXT("SM_Kit_HeatShieldCracked"), FVector(3700.f, 1500.f, 0.f), 0.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_CableReel"), FVector(4900.f, -1300.f, 0.f), 60.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_SurveyStakeFlag"), FVector(5400.f, -300.f, 0.f), 90.f, 1.f, false },
+			{ Story, TEXT("SM_Kit_SurveyStakeFlag"), FVector(6200.f, -200.f, 0.f), 90.f, 1.f, false },
+			{ Story, TEXT("SM_Kit_SurveyStakeFlag"), FVector(7000.f, -100.f, 0.f), 90.f, 1.f, false },
+		}, FVector::ZeroVector, 0.f, TEXT("Cinder"));
+		// The dig-site cabin (ART-17): beside the mine set on cleared ground, its stairs to the pad side (-X), off the
+		// excavation compound's keep-out; its own dressing in its frame.
+		const FVector CabinAt(11800.f, 2200.f, 0.f);
+		Dress({ { Sites, TEXT("BP_DigSite_Cabin"), FVector::ZeroVector, 0.f, 1.f, true } }, CabinAt, 180.f, TEXT("DigCabin"));
+		const TCHAR* Out = TEXT("OutpostDressing");
+		Dress({
+			{ Out, TEXT("SM_Outpost_CargoCrate"), FVector(520.f, 320.f, 0.f), 12.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_SupplyCrate"), FVector(480.f, 410.f, 0.f), 30.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_Floodlight"), FVector(450.f, -440.f, 0.f), 150.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_Generator"), FVector(-520.f, -260.f, 0.f), 90.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_PowerJunction"), FVector(-470.f, -400.f, 0.f), 0.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_CommAntenna"), FVector(-200.f, 470.f, 0.f), 0.f, 1.f, true },
+		}, CabinAt, 180.f, TEXT("DigCabin"));
+		DressOutpost(StationAt, 180.f, TEXT("CinderOutpost"));
+		DressPad(TEXT("CinderPad"));
+	}
 
 	KeepOuts = {
 		{ FVector(5600.f, 4800.f, 0.f), FVector(1100.f, 3700.f, 0.f) },   // the magma river and stones

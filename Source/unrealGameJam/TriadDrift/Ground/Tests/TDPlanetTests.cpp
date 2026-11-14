@@ -715,6 +715,62 @@ bool FTDArchiveTransferPauseAndMidpoint::RunTest(const FString& Parameters)
 // T4's world scatter asks the course where it may place things (WORLD-DENSITY-PLAN): never on a route, the pad, a site, an
 // encounter or a spawn point; and the course's routes stay walkable (every route point is refused for scatter, and
 // open ground off the routes is allowed).
+// The Dress pass (the environment builder's table, Nov 14): story sets, landmarks, the kit wreck and the dig cabin, the
+// outposts' and the pads' props; each piece placed when its asset exists, nothing on the pad's take-off circle.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseDressed, "TriadDrift.Ground.Course.StorySetsAndSitePropsArePlaced", TD_TEST_FLAGS)
+bool FTDCourseDressed::RunTest(const FString& Parameters)
+{
+	struct FWant { const TCHAR* Planet; const TCHAR* Tag; const TCHAR* Package; int32 Count; };
+	const FWant Wants[] = {
+		{ TEXT("Verdance"), TEXT("Verdance:BP_StorySet_VerdanceCamp"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_StorySet_VerdanceCamp"), 1 },
+		{ TEXT("Verdance"), TEXT("Verdance:BP_Landmark_RelayMast"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_Landmark_RelayMast"), 1 },
+		{ TEXT("Verdance"), TEXT("Verdance:BP_Wreck"), TEXT("/Game/TriadDrift/Gameplay/Props/Wreck/BP_Wreck"), 1 },
+		{ TEXT("Verdance"), TEXT("Verdance:BP_SurveyLine_Verdance"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_SurveyLine_Verdance"), 1 },
+		{ TEXT("Verdance"), TEXT("Verdance:SM_Kit_SurveyStakeFlag"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_SurveyStakeFlag"), 3 },
+		{ TEXT("Verdance"), TEXT("VerdancePad:SM_Outpost_BollardLight"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_BollardLight"), 8 },
+		{ TEXT("Verdance"), TEXT("VerdanceOutpost:SM_Outpost_CargoCrate"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_CargoCrate"), 2 },
+		{ TEXT("Verdance"), TEXT("Relay:SM_Outpost_Generator"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_Generator"), 1 },
+		{ TEXT("Cinder"), TEXT("Cinder:BP_StorySet_CinderMine"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_StorySet_CinderMine"), 1 },
+		{ TEXT("Cinder"), TEXT("Cinder:BP_Landmark_NullDerrick"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_Landmark_NullDerrick"), 1 },
+		{ TEXT("Cinder"), TEXT("DigCabin:BP_DigSite_Cabin"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_DigSite_Cabin"), 1 },
+		{ TEXT("Cinder"), TEXT("Cinder:SM_Kit_WarningBeacon"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_WarningBeacon"), 4 },
+		{ TEXT("Cinder"), TEXT("CinderPad:SM_Outpost_BollardLight"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_BollardLight"), 8 },
+		{ TEXT("Cinder"), TEXT("CinderOutpost:SM_Outpost_Generator"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_Generator"), 1 },
+	};
+	for (const TCHAR* Planet : { TEXT("Verdance"), TEXT("Cinder") })
+	{
+		TDPlanetTest::FVisit V(NAME_None, Planet);
+		ATDPlanetCourse* Course = V.Director->GetCourse();
+		if (!TestNotNull(TEXT("course"), Course)) { return false; }
+		const TArray<FName>& Log = Course->GetDressLog();
+		AddInfo(FString::Printf(TEXT("%s: %d dressing pieces placed"), Planet, Log.Num()));
+		for (const FWant& Want : Wants)
+		{
+			if (FCString::Strcmp(Want.Planet, Planet) != 0) { continue; }
+			if (!FPackageName::DoesPackageExist(Want.Package)) { AddInfo(FString::Printf(TEXT("%s not in this checkout"), Want.Package)); continue; }
+			const int32 N = Log.FilterByPredicate([&Want](const FName& T) { return T == FName(Want.Tag); }).Num();
+			TestEqual(*FString::Printf(TEXT("%s placed"), Want.Tag), N, Want.Count);
+		}
+		// The take-off circle stays free of dressing: nothing that collides within 14 m of the pad but the parked squad.
+		const FVector Pad = Course->GetActorLocation();
+		int32 OnPad = 0;
+		if (AActor* Dressing = Course->GetDressingActor())
+		{
+			TInlineComponentArray<UStaticMeshComponent*> Meshes(Dressing);
+			for (const UStaticMeshComponent* M : Meshes)
+			{
+				const FString Mesh = M && M->GetStaticMesh() ? M->GetStaticMesh()->GetName() : FString();
+				if (Mesh.StartsWith(TEXT("SM_Outpost_")) || Mesh.StartsWith(TEXT("SM_Kit_")))
+				{
+					OnPad += FVector::Dist2D(M->GetComponentLocation(), Pad) < 1400.f ? 1 : 0;
+				}
+			}
+		}
+		TestEqual(*FString::Printf(TEXT("%s: nothing on the take-off circle"), Planet), OnPad, 0);
+	}
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseKeepOuts, "TriadDrift.Ground.Course.KeepOutsProtectRoutesSitesAndSpawns", TD_TEST_FLAGS)
 bool FTDCourseKeepOuts::RunTest(const FString& Parameters)
 {
