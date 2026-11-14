@@ -107,7 +107,15 @@ public:
 
 	/** The ship eases toward this speed (cm/s) as the pull grows. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
-	float TractorSpeed = 1500.f;
+	float TractorSpeed = 7500.f;	// was 15 m/s (T1, live: a 40 s crawl)
+
+	/** A ship lined up on the axis is reeled in at this speed (cm/s) until TakeOverDistance. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
+	float ReelSpeed = 30000.f;
+
+	/** From this distance (cm) from the mouth the tractor takes over: it slows the ship to TractorSpeed and shields it. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
+	float TakeOverDistance = 60000.f;
 
 	/** Steering scale at full pull (the ship still answers, at about a third). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0", ClampMax = "1"))
@@ -129,7 +137,11 @@ public:
 	float MouthRadius = 6000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0.1"))
-	float GlideSeconds = 2.f;
+	float GlideSeconds = 6.f;	// the glide's longest (distance / arrival speed, at least 1.5 s; peaks at 4/3 of the arrival speed)
+
+	/** After the glide the ship holds over the pad until the Docking lines have finished, at most this long (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
+	float DockingLinesHoldSeconds = 8.f;
 
 	/** How far inside the mouth (cm) the glide ends: over the pad, 20 m short of the 60 m pocket's back wall. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
@@ -176,12 +188,19 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Docking")
 	TObjectPtr<UInstancedStaticMeshComponent> GuideLights;
 
+	/** The frame's bottom and side bars (Frame is the top bar): the opening stays clear for the glide. */
+	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Docking")
+	TObjectPtr<UInstancedStaticMeshComponent> FrameBars;
+
 	TWeakObjectPtr<ATDDominion> Dominion;
 	TWeakObjectPtr<ATDShip> ShipOverride;
 	TWeakObjectPtr<ATDShip> Held;	// the ship the tractor holds now
 	ETDDockingState DockingState = ETDDockingState::Closed;
 	float DoorTime = 0.f;
 	float GlideTime = 0.f;
+	float GlideDuration = 2.f;	// set at the glide's start from the distance and the arrival speed
+	float GlideStartSlope = 1.f;
+	float HoldTime = 0.f;	// over the pad after the glide, waiting for the Docking lines
 	FVector GlideFrom = FVector::ZeroVector;
 	FQuat GlideFromRot = FQuat::Identity;
 	float CurrentPull = 0.f;
@@ -191,9 +210,12 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<class UNiagaraComponent> BeamFX;
 	bool bBeamOn = false;
+	bool bTractorShielding = false;
 	void UpdateBeam(const class ATDShip* Ship, float Pull);
 public:
 	bool IsBeamActive() const;
+	/** True when no lit frame part crosses the mouth within HalfClearance (cm) of the axis (the glide flies through it). */
+	bool IsMouthClear(float HalfClearance) const;
 protected:
 	float DoorHalfWidth = 2500.f;
 

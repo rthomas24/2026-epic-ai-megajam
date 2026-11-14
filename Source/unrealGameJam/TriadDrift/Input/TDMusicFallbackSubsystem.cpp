@@ -33,6 +33,7 @@ const TArray<FSoftObjectPath>& UTDMusicFallbackSubsystem::TracksFor(ETDMusicPlac
 	static const TArray<FSoftObjectPath> CinderCombat = { P(TEXT("CinderMusic01"), TEXT("MUS_Cinder_Combat_Fall_Full_01")) };
 	static const TArray<FSoftObjectPath> Core = { P(TEXT("DominionCore01"), TEXT("MUS_DominionCore_CathedralPulse_Full_01")) };
 	static const TArray<FSoftObjectPath> Reactor = { P(TEXT("DominionAssault01"), TEXT("MUS_DominionAssault_InfinityZone_Full_01")) };
+	static const TArray<FSoftObjectPath> Verdance = { P(TEXT("VerdanceTheme01"), TEXT("MUS_Verdance_Main_Full_01")) };
 	static const TArray<FSoftObjectPath> None; // the escape's Ritual is not imported yet
 	switch (Placement)
 	{
@@ -41,6 +42,7 @@ const TArray<FSoftObjectPath>& UTDMusicFallbackSubsystem::TracksFor(ETDMusicPlac
 	case ETDMusicPlacement::CinderCombat: return CinderCombat;
 	case ETDMusicPlacement::CoreChamber: return Core;
 	case ETDMusicPlacement::ReactorFight: return Reactor;
+	case ETDMusicPlacement::VerdanceExplore: return Verdance;
 	default: return None;
 	}
 }
@@ -105,6 +107,11 @@ ETDMusicPlacement UTDMusicFallbackSubsystem::ComputeWanted() const
 		if (S.Destination == FName(TEXT("Cinder")) && S.bPlanetRevealed)
 		{
 			return (S.bGroundCombat || bGroundFight) ? ETDMusicPlacement::CinderCombat : ETDMusicPlacement::CinderExplore;
+		}
+		// Verdance, after the reveal: Nick's theme (N-059) as a fallback; his own Verdance player's claim stands it down.
+		if (S.Destination == FName(TEXT("Verdance")) && S.bPlanetRevealed)
+		{
+			return ETDMusicPlacement::VerdanceExplore;
 		}
 	}
 	return ETDMusicPlacement::None;

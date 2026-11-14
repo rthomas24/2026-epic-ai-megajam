@@ -1,3 +1,5 @@
+**Current Nick-side directive, November 14:** Nicholas paused all existing Codex specialists after the morning reconciliation, then authorized Lead-only systematic playtesting, feedback delivery and scoped polish under existing ownership. Story, UI, Audio and Auditor tasks/schedules remain paused; preserved source and queues do not restart automatically. This supersedes the availability notices below. See N-098 and issue #90.
+
 **Resumption November 14, 08:20 EST:** Nicholas released the manual hold. N-091 published; CLAIMS.md records bounded read-only reconciliation for existing Audio, UI, Story and Auditor. The shutdown below is preserved history; dirty work remains protected, no native grant or broad goal restart.
 
 # Presentation stopped at safe checkpoints — November 14, 01:16 EST

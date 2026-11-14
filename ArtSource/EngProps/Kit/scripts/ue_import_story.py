@@ -105,6 +105,8 @@ def main():
     for man_path in sorted(glob.glob(os.path.join(KIT, "export_story", "SM_Kit_*.manifest.json"))):
         with open(man_path, encoding="utf-8") as fh:
             asset = json.load(fh)["asset"]
+        if os.environ.get("TD_STORY_ONLY") and asset not in os.environ["TD_STORY_ONLY"].split(","):
+            continue
         params = unreal.ImportAssetParameters()
         params.is_automated = True
         params.replace_existing = True

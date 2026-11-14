@@ -678,8 +678,47 @@ void ATDEncounterVolume::AdoptMember(AActor* Member)
 	}
 }
 
+bool ATDEncounterVolume::ReturnLostBoss(AActor* Member)
+{
+	// T7 (Nov 14): after a CUT the Warden's room came back cleared with no Warden, completing the scene. A member that
+	// is destroyed while still alive left the world (fell through a gap, kill-Z); for a boss that must never clear the
+	// room, so a fresh one is put back where the first was spawned.
+	const ATDCrewCharacter* Lost = Cast<ATDCrewCharacter>(Member);
+	const UTDHealthComponent* H = Member ? UTDStatics::GetHealth(Member) : nullptr;
+	const FTransform* At = SpawnedAt.Find(Member);
+	// Never capped: a room whose boss keeps falling out must not count as won (T3's edge case: after 3 returns the room
+	// cleared); from the second return it comes back at the room's middle.
+	if (!bActivated || bCleared || !Lost || Lost->Spec.Type != ETDCrewType::Warden || !H || !H->IsAlive() || !At || !GetWorld())
+	{
+		return false;
+	}
+	++BossReturns;
+	// The first time where it was spawned; if it is lost again, the room's middle (its spawn spot may be over a gap).
+	FTransform Xf = *At;
+	if (BossReturns > 1)
+	{
+		Xf.SetLocation(FVector(GetActorLocation().X, GetActorLocation().Y, At->GetLocation().Z + 50.f));
+	}
+	AActor* Fresh = GetWorld()->SpawnActorDeferred<AActor>(Member->GetClass(), Xf, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+	ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Fresh);
+	if (!Crew)
+	{
+		return false;
+	}
+	Crew->CrewType = ETDCrewType::Warden;
+	Crew->FinishSpawning(Xf);
+	if (const FTDRetakeMercyTier* Mercy = GetActiveMercy()) { Crew->ApplyMercy(Mercy->HealthScale, Mercy->MaxSummons); }
+	Crew->SetOpeningGrace(OpeningGraceSeconds);
+	UE_LOG(LogTriadDrift, Warning, TEXT("%s: the Warden %s left the world alive (at %s); %s put back at %s (return %d)"), *GetName(), *Member->GetName(),
+		*Member->GetActorLocation().ToCompactString(), *Crew->GetName(), *Xf.GetLocation().ToCompactString(), BossReturns);
+	SpawnedAt.Add(Crew, Xf);
+	AdoptMember(Crew);
+	return true;
+}
+
 void ATDEncounterVolume::HandleMemberDestroyed(AActor* Member)
 {
+	ReturnLostBoss(Member);
 	Spawned.RemoveAll([Member](const TWeakObjectPtr<AActor>& M) { return !M.IsValid() || M.Get() == Member; });
 	// Still "alive" by its health component while it is being destroyed: it counts as gone.
 	if (bActivated && !bCleared && GetAliveCount() == 0)
@@ -701,6 +740,8 @@ void ATDEncounterVolume::Activate()
 	}
 	bActivated = true;
 	Stragglers.Reset();
+	SpawnedAt.Reset();
+	BossReturns = 0;
 	GetWorldTimerManager().SetTimer(StragglerTimer, FTimerDelegate::CreateWeakLambda(this, [this]() { SweepStragglers(1.f); }), 1.f, true);
 	bCleared = false;
 	++Take;
@@ -740,7 +781,7 @@ void ATDEncounterVolume::Activate()
 	}
 	// ENG-45: the difficulty's crew count, as the Armada's pack sizes (a lone boss stays alone; named crews, the
 	// reactor's future pilots, will be exempt when they land).
-	if (Points.Num() > 1)
+	if (Points.Num() > 1 && MemberNames.Num() == 0) // named crews (the reactor's future pilots) are exactly who they are
 	{
 		const int32 Want = UTDDifficultySettings::ScaleCount(Points.Num(), UTDDifficultySettings::GetScale().WaveSize);
 		const int32 Base = Points.Num();
@@ -768,6 +809,10 @@ void ATDEncounterVolume::Activate()
 		if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member))
 		{
 			Crew->CrewType = CrewMix.Num() > 0 ? CrewMix[i % CrewMix.Num()] : ETDCrewType::Grunt;
+			if (MemberNames.Num() > 0)
+			{
+				Crew->FuturePilot = MemberNames[i % MemberNames.Num()];
+			}
 		}
 		Member->FinishSpawning(Xf);
 		if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member))
@@ -783,8 +828,8 @@ void ATDEncounterVolume::Activate()
 		{
 			AI->SetTarget(Player);
 		}
+		SpawnedAt.Add(Member, Xf);
 		AdoptMember(Member);
-
 	}
 	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->NotifyEncounterStarted(this); } // contact, a new crew type (ENG-43)
 	CheckCleared(); // nothing spawned (bad class) still opens the way rather than soft-locking

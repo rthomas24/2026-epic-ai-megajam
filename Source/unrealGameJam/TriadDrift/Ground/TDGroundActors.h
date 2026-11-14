@@ -340,6 +340,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	TArray<ETDCrewType> CrewMix;
 
+	/** Optional names cycled across the spawned crew like CrewMix (the reactor room's future pilots: FuturePilot). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
+	TArray<FName> MemberNames;
+
 	/** Spawn points relative to the volume. If empty, Count crew are placed in a ring. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (MakeEditWidget))
 	TArray<FVector> SpawnPoints;
@@ -442,7 +446,15 @@ private:
 	bool IsPlayerPawn(const AActor* Actor) const;
 
 	TArray<TWeakObjectPtr<AActor>> Spawned;
+public:
+	/** A boss that leaves the world without dying (kill-Z, a fall) is put back this many times before the room may clear. */
+	static constexpr int32 MaxBossReturns = 3;
+private:
 	struct FStraggler { float Unseen = 0.f; float LastHealth = -1.f; };
+	/** Where each member was spawned (a boss that leaves the world without dying is put back there). */
+	TMap<TWeakObjectPtr<AActor>, FTransform> SpawnedAt;
+	int32 BossReturns = 0;
+	bool ReturnLostBoss(AActor* Member);
 	TMap<TWeakObjectPtr<AActor>, FStraggler> Stragglers;
 	FTimerHandle StragglerTimer;
 	bool bActivated = false;

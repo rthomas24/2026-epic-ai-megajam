@@ -148,7 +148,7 @@ def _eye(p, s, zc, r_lens=35.0, r_bezel=45.0, yc=0.0, x_face=30.0, ring=True, le
 
 def doorway():
     """60 deep frame on the seam between two cells, 400 x 600; clear opening exactly 300 x 400 (Y +-150, Z 0..400)."""
-    p = Piece("SM_DI_Doorway", ((-34, -200, 0), (34, 200, 600)))
+    p = Piece("SM_DI_Doorway", ((-90, -200, 0), (90, 200, 600)))
     for s in (-1.0, 1.0):
         ya, yb = sorted((s * 150, s * 200))
         inner = "y" if s > 0 else "Y"
@@ -163,6 +163,16 @@ def doorway():
         p.box((xa, 184, 520), (xb, 192, 560), mat="Glow")
         # r9 (review r4): a 1.7 m black eye with a 44 cm red pupil instead of the white disc (read as a debug lamp)
         _eye(p, s, 500.0, r_lens=22.0, r_bezel=84.0, ring=False, lens_mat="Glow")
+    # batch X (T7's play: a walker in the 3.4 m corridor caught the 20 cm lip of the jamb beside the 3 m opening):
+    # a 60 cm lead-in chamfer on each jamb, both faces, from the corridor wall line (|y| 170) to the opening (|y| 150),
+    # so a capsule sliding along the wall is turned into the opening instead of stopping on the frame edge
+    for sx in (-1.0, 1.0):
+        for sy in (-1.0, 1.0):
+            prof = [(sx * 30.0, sy * 150.0), (sx * 30.0, sy * 170.0), (sx * 90.0, sy * 170.0)]
+            if sx * sy < 0:
+                prof = prof[::-1]
+            p.prism(prof, "xy", 0.0, 400.0, regs="hazard", cap_reg="frame", fitu=True)
+            p.chull([(x, y, z) for (x, y) in prof for z in (0.0, 400.0)])
     p.cbox((-30, -200, 0), (30, -150, 600))
     p.cbox((-30, 150, 0), (30, 200, 600))
     p.cbox((-30, -150, 400), (30, 150, 600))

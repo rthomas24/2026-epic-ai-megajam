@@ -131,13 +131,20 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		R.CanopyAccent.Add(Add(TDScatter_Path(TEXT("Scatter"), TEXT("SM_Scatter_Verd_Canopy_02")), 1.0f, 1.5f, 400.f, 420000.f, 460000.f, 4000.f, false, false, false));
 		// s6 story: the wreck scar. Something came down on the research site from the north-east: a 550 m strip of burned
 		// forest, narrow at the site and widening outward, readable from the landing approach (charred trunks, scorch).
-		P.ScarA = FVector2D(13000.f, 8200.f);
-		P.ScarB = FVector2D(57000.f, 41000.f);
-		P.ScarHalfA = 1500.f;
-		P.ScarHalfB = 6000.f;
+		// s17: bearing 150 from the research site, 200-700 m out (61 % gentle ground; the old line ran down the Rift canyon's
+		// walls); same numbers as the terrain material's Scar*
+		P.ScarA = FVector2D(-5800.f, 17200.f);
+		P.ScarB = FVector2D(-49100.f, 42200.f);
+		P.ScarHalfA = 7000.f;	// s19: 70-160 m half width (s15's 50-140 m was weak from the approach)
+		P.ScarHalfB = 16000.f;
 		for (int32 i = 1; i <= 2; ++i)
 		{
-			R.CharTrees.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.0f, 1.6f, 30.f, 180000.f, 240000.f, 300.f, true, false, true));
+			// s11: snapped charred stumps, not whole glowing trunks (from above their ember material read as a grid of
+			// yellow dots): a quarter of the height, with the dark basalt-column material (no glow, ash on top)
+			const int32 Ck = Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.5f, 2.4f, 30.f, 180000.f, 240000.f, 300.f, true, false, true,
+				FString::Printf(TEXT("%s/Scatter/MI_Scatter_Column_Cinder.MI_Scatter_Column_Cinder"), GProps));
+			P.Kinds[Ck].ZScale = 0.28f;
+			R.CharTrees.Add(Ck);
 		}
 		P.ScorchKind = Add(TDScatter_Path(TEXT("Kit/Story"), TEXT("SM_Kit_ScorchLines")), 4.f, 6.5f, 0.f, 180000.f, 240000.f, 1200.f, false, false, false);
 		for (int32 i = 1; i <= 3; ++i)
@@ -200,7 +207,8 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		R.Rocks.Add(Add(TDScatter_Path(TEXT("Planet"), TEXT("SM_Cind_ChokeRock_B")), 0.8f, 1.3f, 60.f, 180000.f, 240000.f, 1000.f, true, false, true));
 		for (int32 i = 1; i <= 4; ++i)
 		{
-			R.Crystals.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_Crystal_%02d"), i)), 1.f, 2.5f, 20.f, 90000.f, 130000.f, 400.f, i >= 3, false, true));
+			// s9: 2-4.5x and kept to ~2 km so the obsidian patches read from the air as crystal fields, not specks
+			R.Crystals.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_Crystal_%02d"), i)), 2.f, 4.5f, 20.f, 180000.f, 240000.f, 400.f, i >= 3, false, true));
 		}
 		R.Rubble.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_01")), 0.6f, 1.6f, 10.f, 11000.f, 15000.f, 100.f, false, true, false));
 		R.Rubble.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_02")), 0.5f, 1.2f, 15.f, 11000.f, 15000.f, 150.f, false, true, false));
@@ -383,7 +391,12 @@ int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM
 		return R.Rocks.Num() ? R.Rocks[0] : INDEX_NONE;
 	}
 	case ModeGrove:	// crystal clusters on the obsidian patches
-		return (bPatch && Sm.Slope < 0.45f && Rnd < 0.55f) ? TDScatter_OneOf(R.Crystals, Rnd / 0.55f) : INDEX_NONE;
+	{
+		// s9: denser in a patch's core (fine mask well over the threshold), so the fields cluster instead of sprinkling
+		const float Core = FMath::Clamp((Sm.FineMask - ObsidianFineMin) / 0.12f, 0.f, 1.f);
+		const float D = 0.3f + 0.55f * Core;
+		return (bPatch && Sm.Slope < 0.45f && Rnd < D) ? TDScatter_OneOf(R.Crystals, Rnd / D) : INDEX_NONE;
+	}
 	case ModeGround:
 	{
 		if (Sm.Slope > 0.5f) { return INDEX_NONE; }
@@ -425,8 +438,8 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 			if (Zone <= 0.f || TDScatter_Hash01(Seed, ix, iy, Salt + 2) > Zone || IsKeptOut(Field, X, Y)) { continue; }
 			if (ScarHalfB > 0.f && (Mode == ModeFar || Mode == ModeDense || Mode == ModeCanopy))
 			{
-				// a canopy clump is kept out by its whole footprint (its centre can sit 90 m from the scar and still cover it)
-				const float Scar = ScarWeight(X, Y, Mode == ModeCanopy ? 9000.f : 0.f);
+				// a canopy clump is kept out by its whole footprint (its centre can sit 120 m from the scar and still cover it)
+				const float Scar = ScarWeight(X, Y, Mode == ModeCanopy ? 13000.f : 0.f);	// s14: 2.6-3.6x clumps reach ~120 m
 				if (Scar > 0.f)
 				{
 					// Inside the scar: no living forest; on the far-tree grid, a charred trunk now and then
@@ -438,7 +451,7 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 					if (!IsCourseClear(X, Y, K.ClearRadiusCm * K.MaxScale)) { continue; }
 					const float Sc = FMath::Lerp(K.MinScale, K.MaxScale, TDScatter_Hash01(Seed, ix, iy, Salt + 4));
 					const FTransform Xf(FRotator(TDScatter_Hash01(Seed, ix, iy, Salt + 6) * 16.f - 8.f, TDScatter_Hash01(Seed, ix, iy, Salt + 5) * 360.f, 0.f),
-						FVector(X, Y, Field.Height(X, Y) - K.SinkCm * Sc), FVector(Sc));
+						FVector(X, Y, Field.Height(X, Y) - K.SinkCm * Sc), FVector(Sc, Sc, Sc * K.ZScale));
 					Row.Far[Ck].Add(Xf);
 					continue;
 				}
@@ -522,6 +535,7 @@ void FTDScatterPlan::Generate(const FTDTerrainField& Field, FTDScatterResult& Ou
 			const FVector2D P = ScarA + Dir * T + Side * ((TDScatter_Hash01(977, i, 0, 3) - 0.5f) * Half);
 			if (IsKeptOut(Field, P.X, P.Y) || !IsCourseClear(P.X, P.Y, K.ClearRadiusCm)) { continue; }
 			const FTDTerrainSample Sm = Field.Sample(P.X, P.Y, 800.f);
+			if (Sm.Slope > 0.12f) { continue; }	// a flat decal on a wall stands up as a pillar
 			const float Sc = FMath::Lerp(K.MinScale, K.MaxScale, TDScatter_Hash01(977, i, 0, 4)) * FMath::Lerp(0.8f, 1.4f, A);
 			const FVector Fwd = FVector(FVector2D(Dir.X, Dir.Y).GetRotated((TDScatter_Hash01(977, i, 0, 5) - 0.5f) * 30.f), 0.f);
 			const FRotator Rot = FRotationMatrix::MakeFromZX(Sm.Normal, Fwd).Rotator();

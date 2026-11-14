@@ -251,7 +251,20 @@ bool FTDUIGroundStoryStates::RunTest(const FString& Parameters)
 	HUD->ForceEscapeLeft = -1.f;
 	HUD->ForceStepRequired = -1;
 	HUD->Sample(.1f);
+	HUD->ForceExitAt.Reset();
+	HUD->Sample(.1f);
 	TestTrue(TEXT("both gone after"), !HUD->GetView().bEscape && HUD->GetView().StepRequired == 0 && !HUD->GetView().bExitMarker);
+
+	// The objective waypoint outside the escape too (white, no EXIT label): it follows the first marker and drops a
+	// destroyed one (T5's conduit marker) on the next frame.
+	AActor* Conduit = W.Spawn<AActor>(FVector(3000.f, 500.f, 95.f));
+	HUD->ForceMarkerActor = Conduit;
+	HUD->Sample(.1f);
+	TestTrue(TEXT("waypoint marker without the escape"), HUD->GetView().bExitMarker && !HUD->GetView().bEscape);
+	Conduit->Destroy();
+	HUD->Sample(.1f);
+	TestFalse(TEXT("conduit broken: no stale marker"), HUD->GetView().bExitMarker);
+	HUD->ForceMarkerActor = nullptr;
 
 	HUD->ForceApproachPending = 0;
 	HUD->Sample(.1f);

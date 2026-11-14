@@ -409,4 +409,8 @@ CINDER = [_worn(f) for f in (ore_cart, rail_stub, cable_reel, heat_shield_cracke
                              marker_pole)] + [light_pool]
 LANDMARKS = [relay_mast, null_derrick]
 BUILDERS = VERDANCE + CINDER + LANDMARKS + [insignia_hull, insignia_panel]
+import kit_pieces_anchor  # noqa: E402  (batch X: the Cinder field anchor collapse pieces)
+BUILDERS += kit_pieces_anchor.BUILDERS
+import kit_pieces_conduit  # noqa: E402  (batch AB: the Null power conduit, intact and broken)
+BUILDERS += kit_pieces_conduit.BUILDERS
 NO_COLLISION = ("SM_Kit_SurveyStakeFlag", "SM_Kit_DragMark", "SM_Kit_ScorchLines", "SM_Kit_LightPool", "SM_Kit_InsigniaHull", "SM_Kit_InsigniaPanel")

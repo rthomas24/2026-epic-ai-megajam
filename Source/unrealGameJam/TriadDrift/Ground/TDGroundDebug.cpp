@@ -31,6 +31,8 @@
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "TriadDrift/Ground/TDObjective.h"
+#include "TriadDrift/Ground/TDGroundActors.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInterface.h"
@@ -236,6 +238,90 @@ namespace TDGroundDebug
 		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.WardenSummon: no Warden"));
 	}
 
+	/** TD.Ground.SkipTo <objective> [step]: finish every objective of this course before it (as if played), start it at
+	 *  that step and put the pilot at its door (interior) or its checkpoint / waypoint (planets). Interior: Warden, Arena,
+	 *  Core, Escape; Cinder: Jammer 1 (the charges), Jammer 2 (the collapse run); any id or its suffix works. */
+	static void SkipTo(const TArray<FString>& Args, UWorld* World)
+	{
+		ATDPlanetCourse* Course = World ? ATDPlanetCourse::Get(World) : nullptr;
+		if (!Course || Args.Num() == 0)
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.SkipTo <objective> [step]: needs a course (on foot)"));
+			return;
+		}
+		TArray<ATDObjective*> Order;
+		if (Course->IsInterior())
+		{
+			for (const FName& Id : ATDPlanetCourse::InteriorObjectiveIds()) { if (ATDObjective* O = Course->FindObjective(Id)) { Order.Add(O); } }
+		}
+		else
+		{
+			for (const TObjectPtr<ATDObjective>& O : Course->GetObjectives()) { if (O) { Order.Add(O); } }
+		}
+		int32 Target = INDEX_NONE;
+		for (int32 i = 0; i < Order.Num(); ++i)
+		{
+			const FString Id = Order[i]->ObjectiveId.ToString();
+			if (Id.Equals(Args[0], ESearchCase::IgnoreCase) || Id.EndsWith(TEXT("_") + Args[0], ESearchCase::IgnoreCase)) { Target = i; }
+		}
+		if (Target == INDEX_NONE)
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.SkipTo: no objective '%s' on this course"), *Args[0]);
+			return;
+		}
+		for (int32 i = 0; i < Target; ++i)
+		{
+			ATDObjective* O = Order[i];
+			if (O->IsComplete()) { continue; }
+			if (!O->IsActive()) { Course->StartObjectiveAt(O->ObjectiveId); }
+			if (!O->IsActive()) { O->StartObjective(); }
+			for (int32 Step = 0; Step < 12 && O->IsActive(); ++Step) { O->AdvanceStep(); }
+		}
+		ATDObjective* Goal = Order[Target];
+		const int32 Step = Args.Num() > 1 ? FMath::Max(0, FCString::Atoi(*Args[1])) : 0;
+		if (!Goal->IsActive() && !Goal->IsComplete()) { Course->StartObjectiveAt(Goal->ObjectiveId); }
+		if (!Goal->IsActive() && !Goal->IsComplete()) { Goal->StartObjective(); }
+		for (int32 i = 0; i < 12 && Goal->IsActive() && Goal->GetCurrentStepIndex() < Step; ++i) { Goal->AdvanceStep(); }
+		// Skipped steps were "played": their fights are over (the structures builder: at Jammer 2 the anchor's defence
+		// still stood on the pilot). Fights of the earlier objectives too.
+		if (Step > 0 || Target > 0)
+		{
+			int32 Killed = 0;
+			for (TActorIterator<ATDEncounterVolume> It(World); It; ++It)
+			{
+				const ATDObjective* Of = It->LinkedObjective;
+				const bool bEarlier = Of && Order.IndexOfByKey(Of) != INDEX_NONE && Order.IndexOfByKey(Of) < Target;
+				if (!It->IsActive() || !(bEarlier || (Of == Goal && Step > 0))) { continue; }
+				for (const TWeakObjectPtr<AActor>& M : It->GetSpawned())
+				{
+					if (UTDHealthComponent* H = M.IsValid() ? UTDStatics::GetHealth(M.Get()) : nullptr; H && H->IsAlive()) { H->Kill(nullptr, ETDDamageKind::Environmental); ++Killed; }
+				}
+			}
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.SkipTo: %d crew of the skipped fights put down"), Killed);
+		}
+		const APlayerController* PC = World->GetFirstPlayerController();
+		ATDFirstPersonCharacter* P = PC ? Cast<ATDFirstPersonCharacter>(PC->GetPawn()) : nullptr;
+		if (P)
+		{
+			if (Course->IsInterior())
+			{
+				P->RespawnAt(Course->GetInteriorStart());
+			}
+			else if (const AActor* Spot = Goal->GetCheckpointRespawn())
+			{
+				P->RespawnAt(Spot->GetActorTransform());
+			}
+			else if (const AActor* Way = Goal->GetCurrentWaypoint())
+			{
+				P->RespawnAt(FTransform(Way->GetActorLocation() + FVector(-400.f, 0.f, 150.f)));
+			}
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.SkipTo: %s at step %d (%d objectives before it done); pilot at %s"), *Goal->ObjectiveId.ToString(),
+			Goal->GetCurrentStepIndex(), Target, P ? *P->GetActorLocation().ToCompactString() : TEXT("-"));
+	}
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdSkipTo(TEXT("TD.Ground.SkipTo"), TEXT("TD.Ground.SkipTo <objective> [step]: finish the objectives before it, start it at that step, stand at its spot (dev). Interior: Warden|Arena|Core|Escape; Cinder: Jammer 1 (charges), Jammer 2 (collapse)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&SkipTo));
 	static FAutoConsoleCommandWithWorldAndArgs CmdCrewHit(TEXT("TD.Ground.CrewHit"), TEXT("TD.Ground.CrewHit <damage> [behind]: hurt the nearest crew (never a kill)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&CrewHit));
 	static FAutoConsoleCommandWithWorldAndArgs CmdWardenSummon(TEXT("TD.Ground.WardenSummon"), TEXT("The nearest Warden summons now (dev)."),

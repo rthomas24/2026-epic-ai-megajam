@@ -42,6 +42,8 @@ namespace TDGroundBarkIds
 	static const FName CoreOpen(TEXT("Bark_Dom_CoreOpen"));
 	static const FName EscapeStart(TEXT("Bark_Dom_Escape_Start"));
 	static const FName Escape30(TEXT("Bark_Dom_Escape_30"));
+	static const FName ArriveVerdance(TEXT("Bark_Planet_Arrive_Verdance"));
+	static const FName ArriveCinder(TEXT("Bark_Planet_Arrive_Cinder"));
 	static const FName Escape10(TEXT("Bark_Dom_Escape_10"));
 	static const FName Welcome(TEXT("Bark_Cmd_Welcome"));
 }
@@ -59,6 +61,7 @@ FName UTDGroundBarks::SpeakerName(ETDFootSpeaker Who) const
 	{
 	case ETDFootSpeaker::Pilot: return Pilot;
 	case ETDFootSpeaker::Kato: return TEXT("Kato");
+	case ETDFootSpeaker::Moss: return TEXT("Moss");
 	case ETDFootSpeaker::Command: return TEXT("Command");
 	default: break;
 	}
@@ -96,6 +99,7 @@ bool UTDGroundBarks::Say(FName BarkId, ETDFootSpeaker Who, ETDBarkPriority Prior
 		Flow->RequestBark(BarkId, SpeakerName(Who));
 	}
 	Said.Add(BarkId);
+	LastSpeaker.Add(BarkId, SpeakerName(Who));
 	return true;
 }
 
@@ -244,8 +248,22 @@ void UTDGroundBarks::TickBarks(float DeltaTime)
 	// The first view on foot / the first step in the hangar.
 	if (OnFootSeconds > 3.f && Course)
 	{
-		Course->IsInterior() ? (void)SayOnce(TDGroundBarkIds::Boarded, ETDFootSpeaker::Wingman, ETDBarkPriority::High)
-			: (void)SayOnce(FName(*FString::Printf(TEXT("Bark_Planet_Arrive_%s"), *Course->PlanetId.ToString())), ETDFootSpeaker::Pilot, ETDBarkPriority::Flavour);
+		if (Course->IsInterior())
+		{
+			SayOnce(TDGroundBarkIds::Boarded, ETDFootSpeaker::Wingman, ETDBarkPriority::High);
+		}
+		else
+		{
+			// Bark_Planet_Arrive_Verdance / _Cinder: once per run, on the first time on foot there (never on a retake, a
+			// reload or a staged start after it has played; T2's sweep, Nov 14).
+			const FName Arrive = Course->PlanetId == TEXT("Verdance") ? TDGroundBarkIds::ArriveVerdance
+				: Course->PlanetId == TEXT("Cinder") ? TDGroundBarkIds::ArriveCinder : NAME_None;
+			UTDGameInstance* RunGI = UTDGameInstance::Get(this);
+			if (!Arrive.IsNone() && (!RunGI || !RunGI->HasRunOnceBark(Arrive)) && SayOnce(Arrive, ETDFootSpeaker::Pilot, ETDBarkPriority::Flavour) && RunGI)
+			{
+				RunGI->ClaimRunOnceBark(Arrive);
+			}
+		}
 	}
 	// Health back (a checkpoint's refill or a pickup), and the low-health line re-arms once well above it.
 	if (Health)
@@ -325,7 +343,8 @@ void UTDGroundBarks::TickBarks(float DeltaTime)
 	if (Left >= 0.f)
 	{
 		if (EscapeLastSeconds < 0.f) { Say(TDGroundBarkIds::EscapeStart, ETDFootSpeaker::Wingman, ETDBarkPriority::Critical, 5.f); }
-		if (EscapeLastSeconds > 30.f && Left <= 30.f) { Say(TDGroundBarkIds::Escape30, ETDFootSpeaker::Wingman, ETDBarkPriority::Critical, 5.f); }
+		// N-093 (Nicholas's approved script): Moss, "Thirty seconds. Keep going."
+		if (EscapeLastSeconds > 30.f && Left <= 30.f) { Say(TDGroundBarkIds::Escape30, ETDFootSpeaker::Moss, ETDBarkPriority::Critical, 5.f); }
 		if (EscapeLastSeconds > 10.f && Left <= 10.f) { Say(TDGroundBarkIds::Escape10, ETDFootSpeaker::Wingman, ETDBarkPriority::Critical, 5.f); }
 	}
 	EscapeLastSeconds = Left;

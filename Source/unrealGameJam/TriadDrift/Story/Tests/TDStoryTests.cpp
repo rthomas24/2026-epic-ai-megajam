@@ -1052,15 +1052,7 @@ bool FTDStoryTriggerAudit::RunTest(const FString& Parameters)
 	};
 	// Known gaps: owed triggers, by owner (sent Nov 14). Remove a row when its trigger lands.
 	static const TMap<FString, FString> Gaps = {
-		{ TEXT("G4_Command_FollowCoordinates"), TEXT("T4 wave 3") }, { TEXT("G4_Kato_Transports"), TEXT("T4 wave 3") },
-		{ TEXT("G4_Moss_NotShooting"), TEXT("T4 wave 4") }, { TEXT("G4_Kato_Cargo"), TEXT("T4 wave 4") }, { TEXT("G4_Wren_StartThere"), TEXT("T4 wave 4 cleared") },
-		{ TEXT("G2_Command_Archive"), TEXT("T5 Verdance landing") }, { TEXT("G2_Kato_OneLine"), TEXT("T5 research site") },
-		{ TEXT("G2_Moss_LightsOn"), TEXT("T5 relay deck") },
-		{ TEXT("G6_Wren_ClearCarriers"), TEXT("T4 assault") }, { TEXT("G6_Kato_MarkingTargets"), TEXT("T4 assault") },
-		{ TEXT("G6_Moss_TurretsCharging"), TEXT("T4 assault") }, { TEXT("G6_Kato_ShieldWeakening"), TEXT("T4 assault") },
-		{ TEXT("G8_Self_"), TEXT("T5 Face to Face (N-052)") }, { TEXT("C7_Moss_WayOut"), TEXT("T4 docking: PlaySequence Docking") },
-		{ TEXT("C9_Kato_Clear"), TEXT("T4 escape clear: PlaySequence ClearSpace") }, { TEXT("C9_Moss_Clear"), TEXT("T4 escape clear") },
-		{ TEXT("C9_Wren_Clear"), TEXT("T4 escape clear") },
+		{ TEXT("G8_Self_"), TEXT("T5 Face to Face (N-052)") }, // T4 21040d6b and T5 b3e2f5d8 closed the rest (Nov 14)
 	};
 	auto Lookup = [](const TMap<FString, FString>& Map, const FString& Id) -> const FString*
 	{
@@ -1087,6 +1079,65 @@ bool FTDStoryTriggerAudit::RunTest(const FString& Parameters)
 	}
 	for (const FString& F : Fixed) { AddInfo(FString::Printf(TEXT("gap closed, remove it from the list: %s"), *F)); }
 	TestTrue(FString::Printf(TEXT("every line has a trigger; new orphans: %s"), *FString::Join(NewOrphans, TEXT(", "))), NewOrphans.Num() == 0);
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryDockingSpeakers, "TriadDrift.Story.Transmissions.DockingCallNeverTwoLinesFromOnePilot", TD_TEST_FLAGS)
+bool FTDStoryDockingSpeakers::RunTest(const FString& Parameters)
+{
+	// Lead (T1's docking review): the Docking sequence is the boarder's "cover the bay" then Moss's "way out". When Moss
+	// boards, Kato makes the call, so one pilot never says both; the sequence still finishes.
+	ON_SCOPE_EXIT { UTDStorySubsystem::BoardingShipResolver = nullptr; };
+	for (const ETDShipId Ship : { ETDShipId::Rift, ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		UTDStorySubsystem::BoardingShipResolver = [Ship](const UObject*) { return Ship; };
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		if (!TestNotNull(TEXT("story"), Story) || !TestTrue(TEXT("docking plays"), UTDStorySubsystem::PlaySequence(W.GetWorld(), TEXT("Docking"))))
+		{
+			return false;
+		}
+		TArray<ETDSpeaker> Speakers;
+		FName Last;
+		for (int32 i = 0; i < 30 * 20 && Story->IsSequencePlaying(); ++i)
+		{
+			const FTDTransmissionView V = Story->GetCurrentTransmission();
+			if (V.bActive && V.Id != Last) { Last = V.Id; Speakers.Add(V.Speaker); }
+			W.Tick(1.f / 30.f);
+		}
+		TestFalse(FString::Printf(TEXT("ship %d: the sequence finished"), (int32)Ship), Story->IsSequencePlaying());
+		TestTrue(FString::Printf(TEXT("ship %d: two lines, two pilots"), (int32)Ship), Speakers.Num() == 2 && Speakers[0] != Speakers[1]);
+		if (Ship == ETDShipId::Bastion && Speakers.Num() > 0) { TestEqual(TEXT("Moss boards: Kato calls the bay"), Speakers[0], ETDSpeaker::Kato); }
+	}
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStorySharedDont, "TriadDrift.Story.Transmissions.OpeningAndFinaleDontAreOneSound", TD_TEST_FLAGS)
+bool FTDStorySharedDont::RunTest(const FString& Parameters)
+{
+	// N-097: Nicholas chose one master (Wren take 04, radio) for the opening's "Don't-" and the finale's. Both lines share
+	// the key, so they always resolve to the same asset: Nick's SharedSounds[Dont] if set, else engineering's import.
+	FTDTransmission Opening, Finale;
+	if (!TestTrue(TEXT("both lines exist"), UTDStorySubsystem::FindEntry(TEXT("O_Unknown_Dont"), Opening) && UTDStorySubsystem::FindEntry(TEXT("F_FutureWren_Dont"), Finale)))
+	{
+		return false;
+	}
+	TestEqual(TEXT("one shared key"), Opening.SharedSound, Finale.SharedSound);
+	TestEqual(TEXT("the key is Dont"), Opening.SharedSound, FName(TEXT("Dont")));
+	TestTrue(TEXT("the same asset (or both none before the import)"), Opening.Sound.ToSoftObjectPath() == Finale.Sound.ToSoftObjectPath());
+	if (Opening.Sound.IsNull())
+	{
+		AddInfo(TEXT("no Dont master imported yet: both lines are subtitle-only"));
+	}
+	else
+	{
+		TestNotNull(TEXT("the master loads"), Opening.Sound.LoadSynchronous());
+		AddInfo(FString::Printf(TEXT("Dont master: %s"), *Opening.Sound.ToString()));
+	}
 	return true;
 }
 #endif

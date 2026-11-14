@@ -46,9 +46,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew")
 	TObjectPtr<UTDEnemyVisuals> Visuals;
 
+	/** FutureCrew only: which future pilot this is (Wren, Kato, Moss); set before spawning finishes (the encounter's
+	 *  MemberNames). Tints the blade in that pilot's squad colour. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew")
+	FName FuturePilot;
+	/** The look is the pilot rig played by name (FutureCrew without a DA_Crew_FutureCrew_Visuals). */
+	bool UsesPilotLook() const { return bPilotLook; }
+
 	/** Seconds the body stays after death (placeholder ragdoll). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew", meta = (Units = "s"))
-	float CorpseSeconds = 10.f; // the falls run 2.6-3.9 s: the body lies, then sinks out (CorpseSinkSeconds), never pops
+	float CorpseSeconds = 30.f; // the falls run 2.6-3.9 s: the body lies, then sinks out (CorpseSinkSeconds), never pops (Lead, Nov 14: 30 s)
 
 	/** The Warden staggers for its Stagger clip's length on a heavy blade hit (a pilot melee hit of at least this much:
 	 *  the heavy lunge is 70, a crit finisher 90) or on its own bolt sent back by a perfect deflect; then not again for
@@ -163,7 +170,7 @@ public:
 
 	/** The Heavy's guard (T7's playtest, Nov 13: ~32 quick slashes did nothing and nothing taught the lunge): blocked quick
 	 *  slashes chip it, and this many in a row (each within GuardChipWindow s of the last) stagger it open. */
-	static constexpr int32 GuardChipsToBreak = 9;
+	static constexpr int32 GuardChipsToBreak = 6; // 9 never broke in T7's arena play (Nov 14)
 	static constexpr float GuardChipWindow = 4.f;
 	int32 GetGuardChips() const { return GuardChips; }
 	/** World time the last melee hit landed (tests: the contact timing), or -1. */
@@ -258,6 +265,10 @@ private:
 	int32 BossPhase = 1;
 	int32 SummonsLeft = -1;
 	bool bFallbackAnim = false;
+	bool bPilotLook = false;
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> PilotBlade;
+	/** The pilot clip for a template clip (attacks, hits, deaths) when the look is the pilot rig. */
+	static const TCHAR* PilotClipFor(const TCHAR* TemplatePath);
 	void UpdateFallbackLoop();
 	/** A skeletal look with no death animation topples over about its feet (no physics: PA_Mannequin on our crew
 	 *  meshes exploded the ragdoll 15 m in 0.4 s, Nov 13 live). */

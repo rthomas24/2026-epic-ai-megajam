@@ -1,9 +1,9 @@
 {
   "asset": "SM_DI_Doorway",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_dominion\\SM_DI_Doorway.fbx",
-  "tris": 1340,
+  "tris": 1692,
   "size_cm": [
-    68.0,
+    178.9,
     400.0,
     600.0
   ],
@@ -49,7 +49,11 @@
   "collision": [
     "UCX_SM_DI_Doorway_00",
     "UCX_SM_DI_Doorway_01",
-    "UCX_SM_DI_Doorway_02"
+    "UCX_SM_DI_Doorway_02",
+    "UCX_SM_DI_Doorway_03",
+    "UCX_SM_DI_Doorway_04",
+    "UCX_SM_DI_Doorway_05",
+    "UCX_SM_DI_Doorway_06"
   ],
   "collision_source": "authored",
   "sockets": [],

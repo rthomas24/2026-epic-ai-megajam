@@ -1,5 +1,104 @@
 [
  {
+  "asset": "SM_Kit_AnchorCharge",
+  "size_cm": [
+   29,
+   60,
+   54
+  ],
+  "tris": 624,
+  "hulls": 1,
+  "slots": [
+   "0:Trim",
+   "1:Dom",
+   "2:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Kit_AnchorDebris_A",
+  "size_cm": [
+   192,
+   140,
+   50
+  ],
+  "tris": 292,
+  "hulls": 2,
+  "slots": [
+   "0:Dom",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Kit_AnchorDebris_B",
+  "size_cm": [
+   242,
+   40,
+   50
+  ],
+  "tris": 469,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Kit_AnchorDebris_C",
+  "size_cm": [
+   171,
+   202,
+   68
+  ],
+  "tris": 260,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Kit_AnchorSection_A",
+  "size_cm": [
+   725,
+   170,
+   170
+  ],
+  "tris": 1388,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Kit_AnchorSection_B",
+  "size_cm": [
+   679,
+   188,
+   188
+  ],
+  "tris": 2093,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Glow"
+  ]
+ },
+ {
+  "asset": "SM_Kit_AnchorSection_C",
+  "size_cm": [
+   443,
+   151,
+   151
+  ],
+  "tris": 2042,
+  "hulls": 1,
+  "slots": [
+   "0:Dom",
+   "1:Glow"
+  ]
+ },
+ {
   "asset": "SM_Kit_AntennaToppled",
   "size_cm": [
    974,

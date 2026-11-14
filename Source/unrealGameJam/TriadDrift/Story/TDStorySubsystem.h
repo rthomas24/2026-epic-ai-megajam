@@ -136,6 +136,8 @@ public:
 	static bool IsRetired(FName Id);
 	/** A line delivered as static: plays UTDStoryFX::TransmissionStatic when it goes on air. */
 	static bool HasStaticDelivery(FName Id);
+	/** N-097: engineering's import for a shared voice key ("Dont"), if it exists; empty otherwise. */
+	static FSoftObjectPath EngineeringSharedSound(FName Key);
 	/** ENG-45: the player's subtitles setting (T1's UTDSettingsSubsystem::AreSubtitlesOn once it lands); true without one. */
 	static bool AreSubtitlesShown(const UObject* WorldContext);
 	/** Seconds a sequence must have run before it can be skipped (Nicholas, N-060: ten). */
@@ -153,6 +155,8 @@ public:
 	static TFunction<ETDShipId(const UObject*)> BoardingShipResolver;
 	/** N-087: a line whose speaker depends on who boarded (G9 escape radio: Wren when Moss boarded, else Moss). */
 	static FName RouteForBoarder(const UObject* WorldContext, FName Id);
+	/** Every id RouteForBoarder can turn Id into (sequences, the audit). */
+	static TArray<FName> RouteForBoarderAll(FName Id);
 
 	/** Cinematic 04 (Verdance done) and Cinematic 06 (Cinder done): the transmission sets, in order. */
 	static const TArray<FName>& DepartureSet(ETDDestination Planet);

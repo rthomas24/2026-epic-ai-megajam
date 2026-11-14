@@ -144,6 +144,10 @@ void ATDGroundGameMode::StartPlay()
 	}
 	bWorldBuilt = true;
 	Super::StartPlay();
+	if (Interior)
+	{
+		PlaceInteriorStart(); // the course has built now (its BeginPlay ran inside StartPlay)
+	}
 
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
@@ -211,7 +215,20 @@ void ATDGroundGameMode::SpawnInterior()
 	{
 		Interior->PlanetId = TEXT("DominionInterior");
 		Interior->FinishSpawning(FTransform::Identity);
+		PlaceInteriorStart(); // again after StartPlay: before the world begins play the course has not built yet
+	}
+}
+
+void ATDGroundGameMode::PlaceInteriorStart()
+{
+	// The structures builder / T7 (Nov 14, three reports): in the real map this ran before the course's BeginPlay, so
+	// the course had no rooms yet and GetInteriorStart gave its built-in default (-600, 0), behind the parked ship. It
+	// runs again once the world has begun play, and moves a pilot already standing at the old spot.
+	if (Interior)
+	{
 		PlayerSpawn = Interior->GetInteriorStart(); // the hangar, or the next room after a Continue
+		UE_LOG(LogTriadDrift, Display, TEXT("Interior start %s (world %s play)"), *PlayerSpawn.GetLocation().ToCompactString(),
+			GetWorld() && GetWorld()->HasBegunPlay() ? TEXT("has begun") : TEXT("has not begun"));
 		// The login already picked a start (InitNewPlayer runs before StartPlay) at the default spot, and a player start
 		// is static (it cannot be moved): make a new one here and point every controller at it (live run, Nov 13).
 		FActorSpawnParameters StartParams;
@@ -233,6 +250,16 @@ void ATDGroundGameMode::SpawnInterior()
 		}
 		RespawnTransform = PlayerSpawn;
 		bHasRespawnTransform = true;
+		if (GetWorld() && GetWorld()->HasBegunPlay())
+		{
+			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+			{
+				if (ATDFirstPersonCharacter* Char = Cast<ATDFirstPersonCharacter>(It->Get() ? It->Get()->GetPawn() : nullptr))
+				{
+					Char->RespawnAt(PlayerSpawn);
+				}
+			}
+		}
 	}
 }
 
@@ -247,21 +274,18 @@ void ATDGroundGameMode::HandleConsoleUsed(AActor* Interactable, AActor* Interact
 void ATDGroundGameMode::HandleSceneRestart(FName SceneId, int32 TakeNumber)
 {
 	// A scene of the interior with a checkpoint picks up there (the corridor, the arena's wave, the Warden's door).
+	// A death outside any scene (between rooms) comes back at the next room's door, never the hangar (T7, Nov 14).
 	if (Interior)
 	{
-		if (const ATDObjective* Obj = Interior->FindObjective(SceneId))
+		const FTransform Where = Interior->GetInteriorRetakeSpot(SceneId);
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 		{
-			const AActor* Spot = Obj->GetCheckpointRespawn();
-			const FTransform Where = Spot ? Spot->GetActorTransform() : Interior->GetInteriorStart();
-			for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+			if (ATDFirstPersonCharacter* Char = Cast<ATDFirstPersonCharacter>(It->Get() ? It->Get()->GetPawn() : nullptr))
 			{
-				if (ATDFirstPersonCharacter* Char = Cast<ATDFirstPersonCharacter>(It->Get() ? It->Get()->GetPawn() : nullptr))
-				{
-					Char->RespawnAt(Where);
-				}
+				Char->RespawnAt(Where);
 			}
-			return;
 		}
+		return;
 	}
 	RespawnPlayer();
 }
