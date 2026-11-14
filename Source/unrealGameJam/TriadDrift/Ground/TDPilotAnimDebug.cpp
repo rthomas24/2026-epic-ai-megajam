@@ -92,4 +92,55 @@ namespace TDPilotAnimDebug
 	static FAutoConsoleCommandWithWorldAndArgs CmdFootTrace(TEXT("TD.Pilot.FootTrace"),
 		TEXT("TD.Pilot.FootTrace <GameSeconds>: log both feet's world positions every frame (foot slide measurement)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&FootTrace));
+
+	// TD.Pilot.FindSlope [Radius=6000] [MinDeg=12] [MaxDeg=30]: trace a grid around the pilot for ground that slopes
+	// between MinDeg and MaxDeg across the pilot's stance, teleport there facing across the slope (one foot uphill).
+	static void FindSlope(const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		ACharacter* Char = PC ? Cast<ACharacter>(PC->GetPawn()) : nullptr;
+		if (!Char)
+		{
+			return;
+		}
+		const float Radius = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 6000.f;
+		const float MinDeg = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 12.f;
+		const float MaxDeg = Args.Num() > 2 ? FCString::Atof(*Args[2]) : 30.f;
+		const float MinRadius = Args.Num() > 3 ? FCString::Atof(*Args[3]) : 300.f; // skip the start (pad edges)
+		const FVector Here = Char->GetActorLocation();
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDFindSlope), false, Char);
+		auto Ground = [&](const FVector& XY, FHitResult& Hit)
+		{
+			return World->LineTraceSingleByChannel(Hit, FVector(XY.X, XY.Y, Here.Z + 3000.f), FVector(XY.X, XY.Y, Here.Z - 3000.f), ECC_Visibility, Params);
+		};
+		for (float R = MinRadius; R <= Radius; R += 300.f)
+		{
+			for (int32 A = 0; A < 24; ++A)
+			{
+				const FVector P = Here + FRotator(0.f, A * 15.f, 0.f).Vector() * R;
+				FHitResult Hit;
+				if (!Ground(P, Hit))
+				{
+					continue;
+				}
+				const float Deg = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp((float)Hit.ImpactNormal.Z, -1.f, 1.f)));
+				if (Deg >= MinDeg && Deg <= MaxDeg)
+				{
+					// Face across the slope: the downhill direction is to the pilot's side.
+					const FVector Down = FVector(Hit.ImpactNormal.X, Hit.ImpactNormal.Y, 0.f).GetSafeNormal();
+					const FRotator Face = FRotator(0.f, Down.Rotation().Yaw + 90.f, 0.f);
+					Char->SetActorLocation(Hit.ImpactPoint + FVector(0.f, 0.f, Char->GetSimpleCollisionHalfHeight() + 5.f), false, nullptr, ETeleportType::TeleportPhysics);
+					PC->SetControlRotation(Face);
+					Char->SetActorRotation(Face);
+					UE_LOG(LogTemp, Display, TEXT("TD.Pilot.FindSlope: %.0f deg at %s, facing yaw %.0f"), Deg, *Hit.ImpactPoint.ToCompactString(), Face.Yaw);
+					return;
+				}
+			}
+		}
+		UE_LOG(LogTemp, Display, TEXT("TD.Pilot.FindSlope: none between %.0f and %.0f deg within %.0f cm"), MinDeg, MaxDeg, Radius);
+	}
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdFindSlope(TEXT("TD.Pilot.FindSlope"),
+		TEXT("TD.Pilot.FindSlope [Radius] [MinDeg] [MaxDeg] [MinRadius]: teleport the pilot onto sloping ground, side-on to the slope."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&FindSlope));
 }
