@@ -435,6 +435,38 @@ void ATDPlanetCourse::RetintDressing(const FVector& Local, float RadiusCm, const
 	}
 }
 
+int32 ATDPlanetCourse::DressCamp(const FVector& Around, float MinR, float MaxR, const TArray<FDressItem>& Items, FName Tag)
+{
+	// #194 (environment builder): a group of huts and its yard, placed at the first spot round Around (rings MinR..MaxR,
+	// 16 bearings) where every piece's footprint clears every course keep-out (routes, sites, encounters, the pad) with
+	// a margin, so nothing stands in a 4 m path corridor. Seated on the ground by Dress(). Returns the pieces placed.
+	auto Radius = [](const FDressItem& It)
+	{
+		const FString N(It.Name);
+		return N.Contains(TEXT("Lab")) ? 520.f : (N.Contains(TEXT("Prefab")) || N.Contains(TEXT("Tank")) ? 400.f : (N.Contains(TEXT("Dome")) ? 260.f : 220.f));
+	};
+	for (float R = MinR; R <= MaxR + 1.f; R += 600.f)
+	{
+		for (int32 b = 0; b < 16; ++b)
+		{
+			const float A = FMath::DegreesToRadians(b * 22.5f + R * 0.01f);
+			const FVector C = Around + FVector(FMath::Cos(A), FMath::Sin(A), 0.f) * R;
+			bool bOk = true;
+			for (const FDressItem& It : Items)
+			{
+				const FVector L = C + FVector(It.Local.X, It.Local.Y, 0.f);
+				if (!IsScatterAllowed(W(FVector(L.X, L.Y, GroundZAt(L))), Radius(It) + 150.f)) { bOk = false; break; }
+			}
+			if (!bOk) { continue; }
+			const int32 Placed = Dress(Items, C, 0.f, Tag);
+			UE_LOG(LogTriadDrift, Display, TEXT("Course: camp %s at %s (%d of %d pieces)"), *Tag.ToString(), *C.ToCompactString(), Placed, Items.Num());
+			return Placed;
+		}
+	}
+	UE_LOG(LogTriadDrift, Warning, TEXT("Course: camp %s found no clear spot round %s"), *Tag.ToString(), *Around.ToCompactString());
+	return 0;
+}
+
 int32 ATDPlanetCourse::Dress(const TArray<FDressItem>& Items, const FVector& Origin, float Yaw, FName Site)
 {
 	int32 Placed = 0;
@@ -1620,6 +1652,41 @@ void ATDPlanetCourse::BuildVerdance()
 			}, FVector(5060.f, -5380.f, 0.f), -47.f, TEXT("RelayRouteDressing"));
 		}
 		DressPad(TEXT("VerdancePad"));
+		// #194: the Verdance camp set (structures builder, batch BV): a research camp by the research site (doors on a shared
+		// yard, walkways between them, tank, mast and fences on the outside), a smaller camp by the relay path and lone huts
+		// along both routes; each placed where it clears every keep-out (DressCamp). Missing meshes are skipped by Dress().
+		{
+			const TCHAR* Hut = TEXT("Huts/Verdance");
+			DressCamp(OutpostSite, 2400.f, 6000.f, {
+				{ Hut, TEXT("SM_Hut_Verdance_Lab"), FVector(-950.f, 0.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Prefab"), FVector(900.f, 0.f, 0.f), 180.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Prefab"), FVector(0.f, 950.f, 0.f), 270.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Dome"), FVector(0.f, -800.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_WaterTank"), FVector(-1000.f, 1000.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Mast"), FVector(950.f, -950.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Walkway"), FVector(-450.f, 0.f, 0.f), 0.f, 1.f, false },
+				{ Hut, TEXT("SM_Hut_Verdance_Walkway"), FVector(420.f, 0.f, 0.f), 0.f, 1.f, false },
+				{ Hut, TEXT("SM_Hut_Verdance_Walkway"), FVector(0.f, 440.f, 0.f), 90.f, 1.f, false },
+				{ Hut, TEXT("SM_Hut_Verdance_Fence"), FVector(-1550.f, -300.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Fence"), FVector(-1550.f, -700.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Fence"), FVector(400.f, -1500.f, 0.f), 0.f, 1.f, true },
+				{ TEXT("Fab/CrateStack"), TEXT("SM_Fab_CrateStack"), FVector(-600.f, -1000.f, 0.f), 12.f, 1.f, true },
+				{ TEXT("Fab/OilBarrel"), TEXT("SM_Fab_OilBarrel"), FVector(-300.f, -1100.f, 0.f), 0.f, 1.f, true },
+				{ TEXT("Fab/MechanicBase/Mesh/SM/PROP/MACHINE"), TEXT("SM_ELEVATOR_CONSOLE_01"), FVector(500.f, 700.f, 87.f), 225.f, 1.f, true },
+			}, TEXT("VerdanceResearchCamp"));
+			DressCamp(VerdanceRelaySite + FVector(-3000.f, 1200.f, 0.f), 1200.f, 4200.f, {
+				{ Hut, TEXT("SM_Hut_Verdance_Prefab"), FVector(-700.f, 0.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Dome"), FVector(650.f, 0.f, 0.f), 180.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Prefab"), FVector(0.f, 800.f, 0.f), 270.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Mast"), FVector(0.f, -750.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Walkway"), FVector(-150.f, 0.f, 0.f), 0.f, 1.f, false },
+				{ TEXT("Fab/PowerCore"), TEXT("SM_Fab_PowerCore"), FVector(350.f, 450.f, 0.f), 30.f, 1.f, true },
+			}, TEXT("VerdanceRelayCamp"));
+			// lone huts: one beside each route, about halfway
+			DressCamp(FVector(5200.f, 3700.f, 0.f), 1000.f, 3400.f, { { Hut, TEXT("SM_Hut_Verdance_Prefab"), FVector::ZeroVector, 210.f, 1.f, true },
+				{ TEXT("Fab/OilBarrel"), TEXT("SM_Fab_OilBarrel"), FVector(0.f, 450.f, 0.f), 0.f, 1.f, true } }, TEXT("VerdanceSiteRouteHut"));
+			DressCamp(FVector(3300.f, -3300.f, 0.f), 1000.f, 3400.f, { { Hut, TEXT("SM_Hut_Verdance_Dome"), FVector::ZeroVector, 135.f, 1.f, true } }, TEXT("VerdanceRelayRouteHut"));
+		}
 	}
 
 	// Dressing: engineering's props and trees (the placeholder flora only if they are missing).

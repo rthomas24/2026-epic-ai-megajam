@@ -292,6 +292,7 @@ private:
 	 *  were placed (missing assets are skipped and logged). */
 	int32 Dress(const TArray<FDressItem>& Items, const FVector& Origin, float Yaw, FName Site);
 	void RetintDressing(const FVector& Local, float RadiusCm, const TCHAR* MeshName, const TCHAR* MaterialPath);
+	int32 DressCamp(const FVector& Around, float MinR, float MaxR, const TArray<FDressItem>& Items, FName Tag);
 	AActor* SpawnKitBP(const TCHAR* Folder, const TCHAR* Name, const FVector& Local, float Yaw, float Scale = 1.f);
 	/** The outpost's exterior props in its frame (+X = the door side), clear of the door apron and the room. */
 	void DressOutpost(const FVector& Site, float Yaw, FName Tag);

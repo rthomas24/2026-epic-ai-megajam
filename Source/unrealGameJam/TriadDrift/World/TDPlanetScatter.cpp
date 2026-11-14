@@ -21,6 +21,9 @@
 #include "Materials/MaterialInterface.h"
 #include "Misc/PackageName.h"
 
+static TAutoConsoleVariable<int32> CVarTDScatterCourseFill(TEXT("td.ScatterCourseFill"), 1,
+	TEXT("#194: 1 = the course fill (forest, boulder fields, groves, landmarks inside the course box) and the denser course ground; 0 = as before (before/after captures). Read at level start."));
+
 static TAutoConsoleVariable<int32> CVarTDScatter(
 	TEXT("td.Scatter"), 1,
 	TEXT("World density: 1 = planets get their trees, rocks, groves and ground cover across the play zone; 0 = bare terrain. Read when the planet loads."));
@@ -299,7 +302,8 @@ void FTDScatterPlan::RunCourseGround(const FTDTerrainField& Field, FTDScatterRes
 	}
 	const FTDTerrainStyle& S = Field.GetStyle();
 	const int32 Seed = S.Seed * 3571 + 29;
-	const float Spacing = CourseGroundSpacing;
+	const bool bFill = CVarTDScatterCourseFill.GetValueOnAnyThread() != 0;
+	const float Spacing = bFill ? CourseGroundSpacing : 380.f;
 	const FVector2D Lo = FVector2D(S.BasinCentre) - FVector2D(S.BasinHalfExtent), Hi = FVector2D(S.BasinCentre) + FVector2D(S.BasinHalfExtent);
 	auto RouteDistance = [this](float X, float Y)
 	{
@@ -315,7 +319,7 @@ void FTDScatterPlan::RunCourseGround(const FTDTerrainField& Field, FTDScatterRes
 		}
 		return Best;	// beyond the route's walking half width
 	};
-	const float Base = Planet == ETDDestination::Verdance ? 0.85f : 0.5f;
+	const float Base = Planet == ETDDestination::Verdance ? (bFill ? 1.f : 0.85f) : (bFill ? 0.75f : 0.5f);	// #194: fuller
 	for (int32 iy = FMath::FloorToInt(Lo.Y / Spacing); iy <= FMath::CeilToInt(Hi.Y / Spacing); ++iy)
 	{
 		for (int32 ix = FMath::FloorToInt(Lo.X / Spacing); ix <= FMath::CeilToInt(Hi.X / Spacing); ++ix)
@@ -349,6 +353,101 @@ void FTDScatterPlan::RunCourseGround(const FTDTerrainField& Field, FTDScatterRes
 			Out.Near[Kind].Add(FTransform(Rot, FVector(X, Y, Field.Height(X, Y) - K.SinkCm * Sc), FVector(Sc)));
 		}
 	}
+}
+
+void FTDScatterPlan::RunCourseFill(const FTDTerrainField& Field, FTDScatterResult& Out) const
+{
+	// #194 (Ryan, Nov 14: "way too empty... it should be almost completely filled up"): inside the course's ground box the
+	// zone layer places nothing, so the pad, the sites and the routes stood in open ground. Fill it from the pilot's eye:
+	// forest stands (Verdance) or charred groves, crystal stands and column groups (Cinder) up to the routes' clearance
+	// (IsCourseClear: the route half width plus each kind's clear radius, ~6-8 m from a path's edge for trees), boulder
+	// fields and outcrops, and a landmark rock every ~40 m. Clustered by two noises, not an even sprinkle. Near bucket:
+	// trunks and rocks block on foot like the zone layer's.
+	const FTDScatterRanges& R = TDScatter_Ranges(Planet);
+	if (KeepOuts.Num() == 0) { return; }	// no course: nothing to fill
+	const FTDTerrainStyle& S = Field.GetStyle();
+	const FVector2D Lo = FVector2D(S.BasinCentre) - FVector2D(S.BasinHalfExtent) - FVector2D(KeepOutMargin, KeepOutMargin);
+	const FVector2D Hi = FVector2D(S.BasinCentre) + FVector2D(S.BasinHalfExtent) + FVector2D(KeepOutMargin, KeepOutMargin);
+	const bool bV = Planet == ETDDestination::Verdance;
+	const float Floor = S.BasinFloor;
+	auto Place = [&](int32 Kind, float X, float Y, int32 Seed, int32 ix, int32 iy, float ScaleMul)
+	{
+		if (!Kinds.IsValidIndex(Kind)) { return; }
+		const FTDScatterKind& K = Kinds[Kind];
+		if (!IsCourseClear(X, Y, K.ClearRadiusCm * K.MaxScale * ScaleMul)) { return; }
+		const FTDTerrainSample Sm = Field.Sample(X, Y, 300.f);
+		if (Sm.Slope > 0.6f) { return; }
+		const float Sc = FMath::Lerp(K.MinScale, K.MaxScale, TDScatter_Hash01(Seed, ix, iy, 5)) * ScaleMul;
+		const float Yaw = TDScatter_Hash01(Seed, ix, iy, 6) * 360.f;
+		const FRotator Rot = K.bTumble ? FRotator(TDScatter_Hash01(Seed, ix, iy, 7) * 30.f - 15.f, Yaw, TDScatter_Hash01(Seed, ix, iy, 8) * 30.f - 15.f)
+			: FRotator(Sm.Normal.Y * 6.f, Yaw, -Sm.Normal.X * 6.f);
+		Out.Near[Kind].Add(FTransform(Rot, FVector(X, Y, Sm.Height - K.SinkCm * Sc * K.ZScale), FVector(Sc, Sc, Sc * K.ZScale)));
+	};
+	auto Grid = [&](float Spacing, int32 Salt, TFunctionRef<void(float, float, int32, int32, int32)> Fn)
+	{
+		const int32 Seed = S.Seed * 6007 + Salt;
+		for (int32 iy = FMath::FloorToInt(Lo.Y / Spacing); iy <= FMath::CeilToInt(Hi.Y / Spacing); ++iy)
+		{
+			for (int32 ix = FMath::FloorToInt(Lo.X / Spacing); ix <= FMath::CeilToInt(Hi.X / Spacing); ++ix)
+			{
+				const float X = (ix + TDScatter_Hash01(Seed, ix, iy, 1)) * Spacing;
+				const float Y = (iy + TDScatter_Hash01(Seed, ix, iy, 2)) * Spacing;
+				if (X < Lo.X || X > Hi.X || Y < Lo.Y || Y > Hi.Y) { continue; }
+				Fn(X, Y, ix, iy, Seed);
+			}
+		}
+	};
+	// stands: a 60 m noise (where the forest / groves are) and a 20 m one (their ragged edges)
+	auto Stand = [&](float X, float Y) { return FMath::Clamp(0.5f + 0.75f * FTDTerrainField::Noise2D(X / 6000.f, Y / 6000.f, S.Seed + 1931) + 0.35f * FTDTerrainField::Noise2D(X / 2000.f, Y / 2000.f, S.Seed + 1937), 0.f, 1.f); };
+	// 1. trees / charred groves, crystal stands and columns: 6.5 m grid, dense in the stands, a thinner scatter between
+	Grid(650.f, 11, [&](float X, float Y, int32 ix, int32 iy, int32 Seed)
+	{
+		const float St = Stand(X, Y);
+		const float Roll = TDScatter_Hash01(Seed, ix, iy, 3);
+		if (Roll > (St > 0.55f ? 0.85f : 0.22f)) { return; }
+		const float Pk = TDScatter_Hash01(Seed, ix, iy, 4);
+		if (bV)
+		{
+			if (R.Trees == INDEX_NONE) { return; }
+			const float Moist = Field.Sample(X, Y, 600.f).BroadMask;
+			const int32 Species = Moist > 0.55f ? (Pk < 0.2f ? Kapok : (Pk < 0.45f ? BrazilNut : (Pk < 0.7f ? TrumpetTree : (Pk < 0.85f ? Cacao : TreeFern))))
+				: (Pk < 0.3f ? StiltPalm : (Pk < 0.6f ? TreeFern : (Pk < 0.8f ? Cacao : TrumpetTree)));
+			const float Stage = TDScatter_Hash01(Seed, ix, iy, 9);
+			Place(R.Trees + Species * 3 + (Stage < 0.45f ? 0 : (Stage < 0.85f ? 1 : 2)), X, Y, Seed, ix, iy, FMath::Lerp(0.8f, 1.25f, TDScatter_Hash01(Seed, ix, iy, 10)));
+		}
+		else
+		{
+			// Cinder: charred trees and crystal stands in the stands, column groups where the second noise peaks
+			const float Col = FTDTerrainField::Noise2D(X / 3000.f, Y / 3000.f, S.Seed + 1949);
+			const int32 Kind = Col > 0.35f ? TDScatter_OneOf(R.Columns, Pk) : (Pk < 0.55f ? TDScatter_OneOf(R.CharTrees, Pk / 0.55f) : TDScatter_OneOf(R.Crystals, (Pk - 0.55f) / 0.45f));
+			Place(Kind, X, Y, Seed, ix, iy, Col > 0.35f ? 0.6f : 1.f);
+		}
+	});
+	// 2. boulder fields and outcrops: 4.5 m grid, only where a 30 m noise is up (fields, not a sprinkle)
+	Grid(450.f, 23, [&](float X, float Y, int32 ix, int32 iy, int32 Seed)
+	{
+		const float F = FTDTerrainField::Noise2D(X / 3000.f, Y / 3000.f, S.Seed + 1951);
+		if (F < 0.25f || TDScatter_Hash01(Seed, ix, iy, 3) > 0.55f) { return; }
+		const float Pk = TDScatter_Hash01(Seed, ix, iy, 4);
+		Place(Pk < 0.6f ? TDScatter_OneOf(R.Rocks, Pk / 0.6f) : TDScatter_OneOf(R.CliffRocks, (Pk - 0.6f) / 0.4f), X, Y, Seed, ix, iy, 0.7f);
+	});
+	// 3. groves (Verdance giant mushrooms and glow plants) / crystal clusters (Cinder): 9 m grid in the grove noise
+	Grid(900.f, 37, [&](float X, float Y, int32 ix, int32 iy, int32 Seed)
+	{
+		const float G = FTDTerrainField::Noise2D(X / 2500.f, Y / 2500.f, S.Seed + 1973);
+		if (G < 0.2f || TDScatter_Hash01(Seed, ix, iy, 3) > 0.7f) { return; }
+		const float Pk = TDScatter_Hash01(Seed, ix, iy, 4);
+		const int32 Kind = bV ? (Pk < 0.5f ? TDScatter_OneOf(R.Grove, Pk / 0.5f) : TDScatter_OneOf(R.GroveGlow, (Pk - 0.5f) / 0.5f)) : TDScatter_OneOf(R.Crystals, Pk);
+		Place(Kind, X, Y, Seed, ix, iy, bV ? 0.8f : 1.f);
+	});
+	// 4. landmarks: one big rock or spire per ~40 m cell
+	Grid(4000.f, 41, [&](float X, float Y, int32 ix, int32 iy, int32 Seed)
+	{
+		const float Pk = TDScatter_Hash01(Seed, ix, iy, 4);
+		const int32 Kind = bV ? TDScatter_OneOf(R.Rocks, Pk) : (Pk < 0.5f ? TDScatter_OneOf(R.Spires, Pk / 0.5f) : TDScatter_OneOf(R.CliffRocks, (Pk - 0.5f) / 0.5f));
+		Place(Kind, X, Y, Seed, ix, iy, bV ? 1.6f : 1.f);
+	});
+	(void)Floor;
 }
 
 float FTDScatterPlan::ScarWeight(float X, float Y, float Margin) const
@@ -606,6 +705,7 @@ void FTDScatterPlan::Generate(const FTDTerrainField& Field, FTDScatterResult& Ou
 	}
 	RunLayer(Field, CanopySpacing, 401, Zone, ModeCanopy, true, Out.Near, Out.Far);
 	RunCourseGround(Field, Out);
+	if (CVarTDScatterCourseFill.GetValueOnAnyThread() != 0) { RunCourseFill(Field, Out); }
 	if (ScorchKind != INDEX_NONE && ScarHalfB > 0.f)
 	{
 		// Scorch marks down the scar's centre line every ~22 m, jittered across it and laid on the slope.
