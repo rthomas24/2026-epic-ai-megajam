@@ -8,6 +8,10 @@
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Styling/CoreStyle.h"
+#include "Styling/SlateTypes.h"
+#include "Widgets/SCompoundWidget.h"
+#include "Input/Reply.h"
+#include "InputCoreTypes.h"
 
 namespace TDFrontEndStyle
 {
@@ -43,4 +47,71 @@ namespace TDFrontEndStyle
 				Button
 			];
 	}
+	// ---- #142 (T1, Nov 14; direction from Nick's Lead): the native menu's own look - a restrained dark translucent
+	// button with clear normal / hover-or-focus / pressed / disabled states, the Settings page's colours, no default grey.
+	inline FLinearColor Ink() { return FLinearColor(0.88f, 0.95f, 1.f, 1.f); }
+	inline FLinearColor Cyan() { return FLinearColor(0.40f, 0.75f, 0.81f, 1.f); }
+
+	inline const FButtonStyle& MenuButtonStyle()
+	{
+		static FButtonStyle Style;
+		static bool bBuilt = false;
+		if (!bBuilt)
+		{
+			bBuilt = true;
+			const FSlateBrush* White = FCoreStyle::Get().GetBrush("WhiteBrush");
+			auto Tint = [White](const FLinearColor& C) { FSlateBrush B = *White; B.TintColor = FSlateColor(C); return B; };
+			Style.SetNormal(Tint(FLinearColor(0.05f, 0.06f, 0.09f, 0.72f)));
+			Style.SetHovered(Tint(FLinearColor(0.10f, 0.24f, 0.32f, 0.92f)));
+			Style.SetPressed(Tint(FLinearColor(0.16f, 0.38f, 0.48f, 0.98f)));
+			Style.SetDisabled(Tint(FLinearColor(0.04f, 0.045f, 0.06f, 0.40f)));
+			Style.SetNormalPadding(FMargin(18.f, 9.f));
+			Style.SetPressedPadding(FMargin(18.f, 10.f, 18.f, 8.f));
+		}
+		return Style;
+	}
+
+	/** The label colour of a menu button: white when it is the one Enter / A presses, soft ink otherwise, dim when disabled. */
+	inline FSlateColor MenuLabelColor(const TWeakPtr<SButton>& Weak)
+	{
+		const TSharedPtr<SButton> B = Weak.Pin();
+		if (!B.IsValid() || !B->IsEnabled()) { return FSlateColor(FLinearColor(0.88f, 0.95f, 1.f, 0.32f)); }
+		return IsHighlighted(B) ? FSlateColor(FLinearColor::White) : FSlateColor(FLinearColor(0.80f, 0.90f, 0.97f, 0.92f));
+	}
+
+	/**
+	 * The root of a code-built menu page: W / S move the selection like the arrows (T7's Shipping run), and
+	 * Esc / Backspace / pad B go back when the page has a way back. Everything else reaches the buttons untouched.
+	 */
+	class STDMenuRoot : public SCompoundWidget
+	{
+	public:
+		SLATE_BEGIN_ARGS(STDMenuRoot) {}
+			SLATE_DEFAULT_SLOT(FArguments, Content)
+			SLATE_EVENT(FSimpleDelegate, OnBack)
+		SLATE_END_ARGS()
+
+		void Construct(const FArguments& InArgs)
+		{
+			OnBack = InArgs._OnBack;
+			ChildSlot[ InArgs._Content.Widget ];
+		}
+
+		virtual FReply OnPreviewKeyDown(const FGeometry& MyGeometry, const FKeyEvent& KeyEvent) override
+		{
+			const FKey Key = KeyEvent.GetKey();
+			if (Key == EKeys::W) { return FReply::Handled().SetNavigation(EUINavigation::Up, ENavigationGenesis::Keyboard); }
+			if (Key == EKeys::S) { return FReply::Handled().SetNavigation(EUINavigation::Down, ENavigationGenesis::Keyboard); }
+			if (OnBack.IsBound() && !KeyEvent.IsRepeat()
+				&& (Key == EKeys::Escape || Key == EKeys::BackSpace || Key == EKeys::Gamepad_FaceButton_Right))
+			{
+				OnBack.Execute();
+				return FReply::Handled();
+			}
+			return FReply::Unhandled();
+		}
+
+	private:
+		FSimpleDelegate OnBack;
+	};
 }
