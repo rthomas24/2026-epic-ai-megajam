@@ -26,6 +26,12 @@ powershell -File Tools\td-python.ps1 -Script ArtSource\EngShips\Rodin\scripts\ue
 - `ue_import_rodin_ships.py`: Unreal import, idempotent. `TD_RODIN_MI_ONLY=1` only rewrites the material instances
   and visuals (tuning); `TD_RODIN_REVERT=Rift,NullFighter,...` points a ship's visuals back at the old mesh
   (`OldFleet` also drops the material override from the interceptor, bomber and carrier visuals).
+  Since Nov 13 evening (ship builder): `TD_RODIN_MI_ONLY` also takes a list (`Lancer,Bastion`); `TD_RODIN_ONLY=<Ship>,...`
+  limits the run; `TD_RODIN_REBUILD=Portal,Glow,Master` rebuilds those graphs **in place** (same asset, every instance
+  keeps its parent); every save is checked and a failed save fails the run (`TDPY: FAILED ... could not be saved`): a
+  game of this checkout that has the ships loaded holds their files open (Windows error 32), so close it first.
+  `TD_SQUAD_DETAIL_DIR` / `TD_TEX_R2_ROOT` point at copies of Grok Bot's `SquadDetail_r1` / `textures_r2` taken from
+  `origin/main` before they are merged here.
 
 Textures are imported straight from `ArtSource/EngAI/Ships/**` (no copies here).
 
@@ -44,6 +50,14 @@ Textures are imported straight from `ArtSource/EngAI/Ships/**` (no copies here).
 `HeatColor` x `HeatStrength` (20): the re-entry / afterburner glow, to be driven from code on a dynamic instance;
 `SelfLight`: base colour added to emissive, so the squad colours read on the side facing away from the sun (the
 chase camera mostly sees that side).
+Close-range pass (Nov 13 evening, Ryan in the Dominion hangar at 3-4 m): `BaseFloor` (lifts the darkest albedo to a
+grey floor without blowing out the whites: the Rift's ring and engines read as black chrome), `MetallicScale`,
+`RoughnessMin` (no mirror-like paint), `DetailNormalTex` + `DetailRMTex` (Grok Bot's per-ship `SquadDetail_r1`; RM =
+cavity AO / roughness variation) at `DetailTiling` (UV tiles; about 0.8 m tiles: Rift 10, Lancer 7, Bastion 13 from
+the measured texel density 258 / 370 / 193 texels per metre at 2K) x `DetailStrength` / `DetailAO` / `DetailRough`,
+all faded out between `DetailFadeStart` (15 m) and + `DetailFadeRange` (15 m). `M_TD_RiftPortal` r2: three log-spiral
+arms over a dark centre, polar noise, a thin rim, emissive limited by its brightest channel (`MaxEmissive`).
+`M_TD_ShipGlow` r2: nozzle back wall with a dark hub, radial vanes and a groove (`Vanes`, `VaneDepth`, `HubRadius`).
 
 | Ship | EmissiveStrength | BaseTint | EmissiveTint | SelfLight |
 |---|---|---|---|---|

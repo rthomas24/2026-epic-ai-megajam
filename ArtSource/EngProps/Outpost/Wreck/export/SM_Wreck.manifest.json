@@ -1,10 +1,10 @@
 {
   "asset": "SM_Wreck",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Outpost\\Wreck\\export\\SM_Wreck.fbx",
-  "tris": 27104,
+  "tris": 27212,
   "size_cm": [
     3200.0,
-    1672.6,
+    2012.7,
     1211.7
   ],
   "pivot": "root object origin (SM_Wreck~exp)",
@@ -40,7 +40,10 @@
     "UCX_SM_Wreck_08",
     "UCX_SM_Wreck_09",
     "UCX_SM_Wreck_10",
-    "UCX_SM_Wreck_11"
+    "UCX_SM_Wreck_11",
+    "UCX_SM_Wreck_12",
+    "UCX_SM_Wreck_13",
+    "UCX_SM_Wreck_14"
   ],
   "collision_source": "authored",
   "sockets": [],
