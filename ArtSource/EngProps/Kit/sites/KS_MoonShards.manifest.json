@@ -11,17 +11,17 @@
     0.0,
     0.0
    ],
-   "yaw_deg": 35.0
+   "yaw_deg": 206.0
   },
   {
    "name": "B",
    "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_MoonShard_B",
    "location_cm": [
-    -8000.0,
-    26000.0,
+    8000.0,
+    -26000.0,
     6000.0
    ],
-   "yaw_deg": 20.0,
+   "yaw_deg": 196.0,
    "pitch_deg": 10.0
   }
  ]
