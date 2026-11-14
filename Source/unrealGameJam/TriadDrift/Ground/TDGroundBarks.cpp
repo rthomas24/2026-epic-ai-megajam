@@ -59,6 +59,7 @@ FName UTDGroundBarks::SpeakerName(ETDFootSpeaker Who) const
 	{
 	case ETDFootSpeaker::Pilot: return Pilot;
 	case ETDFootSpeaker::Kato: return TEXT("Kato");
+	case ETDFootSpeaker::Moss: return TEXT("Moss");
 	case ETDFootSpeaker::Command: return TEXT("Command");
 	default: break;
 	}
@@ -96,6 +97,7 @@ bool UTDGroundBarks::Say(FName BarkId, ETDFootSpeaker Who, ETDBarkPriority Prior
 		Flow->RequestBark(BarkId, SpeakerName(Who));
 	}
 	Said.Add(BarkId);
+	LastSpeaker.Add(BarkId, SpeakerName(Who));
 	return true;
 }
 
@@ -325,7 +327,8 @@ void UTDGroundBarks::TickBarks(float DeltaTime)
 	if (Left >= 0.f)
 	{
 		if (EscapeLastSeconds < 0.f) { Say(TDGroundBarkIds::EscapeStart, ETDFootSpeaker::Wingman, ETDBarkPriority::Critical, 5.f); }
-		if (EscapeLastSeconds > 30.f && Left <= 30.f) { Say(TDGroundBarkIds::Escape30, ETDFootSpeaker::Wingman, ETDBarkPriority::Critical, 5.f); }
+		// N-093 (Nicholas's approved script): Moss, "Thirty seconds. Keep going."
+		if (EscapeLastSeconds > 30.f && Left <= 30.f) { Say(TDGroundBarkIds::Escape30, ETDFootSpeaker::Moss, ETDBarkPriority::Critical, 5.f); }
 		if (EscapeLastSeconds > 10.f && Left <= 10.f) { Say(TDGroundBarkIds::Escape10, ETDFootSpeaker::Wingman, ETDBarkPriority::Critical, 5.f); }
 	}
 	EscapeLastSeconds = Left;

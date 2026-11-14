@@ -68,6 +68,21 @@ namespace TDCourseColors
 
 /** A socket of a Grok Bot prop (anchor tower, crystal cradle) in the mesh's own space (Interchange may keep or strip
  *  the SOCKET_ prefix). */
+/** A structures-builder piece in Props/Kit/Story under either of its names, or null when it is not in the build. */
+static UStaticMesh* TDPlanetCourse_KitStory(const TCHAR* Name, const TCHAR* AltName = nullptr)
+{
+	for (const TCHAR* N : { Name, AltName })
+	{
+		if (!N) { continue; }
+		const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/%s"), N);
+		if (FindPackage(nullptr, *Package) || FPackageName::DoesPackageExist(Package))
+		{
+			if (UStaticMesh* M = TDPropArt::Load(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(TEXT("%s.%s"), *Package, N))))) { return M; }
+		}
+	}
+	return nullptr;
+}
+
 static bool TDPlanetCourse_AnchorSocket(const UStaticMesh* Mesh, const TCHAR* Name, FVector& OutLocal)
 {
 	if (!Mesh) { return false; }
@@ -1435,7 +1450,6 @@ void ATDPlanetCourse::BuildVerdance()
 			{ Sites, TEXT("BP_Landmark_RelayMast"), FVector(13200.f, 6800.f, 0.f), 215.f, 1.f, true },
 			// B: the wreck scar's head, and the kit wreck (the walkway through the hull) at the research site.
 			{ Story, TEXT("SM_Kit_AntennaToppled"), FVector(13300.f, 8600.f, 0.f), 35.f, 1.f, true },
-			{ Story, TEXT("SM_Kit_ScorchLines"), FVector(13600.f, 8000.f, 2.f), 36.f, 1.5f, false },
 			{ Story, TEXT("SM_Kit_SampleCases"), FVector(12900.f, 9200.f, 0.f), 80.f, 1.f, true },
 			// The kit wreck at the scar's end, just outside the site fight's box: on its 2 m walkway a pilot would be out of the
 			// melee crew's reach mid-fight (Course.CrewAttackAPilotStandingAtTheWreckCore).
@@ -1620,10 +1634,11 @@ void ATDPlanetCourse::BuildCinder()
 	// The marker crosses from wherever the pilot is (T7: the straight line from the respawn ran over the river); two
 	// magma deaths in a row put the pilot on the far bank (clear of the geyser row), facing the gate.
 	AddMagmaCrossing(River, Outpost, INDEX_NONE, RiverChain, FVector(6900.f, 4900.f, 0.f), 25.f);
-	// A geyser row on the far bank, rippling: 4 m north-east of the bridge's far ramp foot (Lead, Nov 14).
+	// A geyser row on the far bank, rippling, at least 8 m clear of the bridge's ramp feet (the structures builder's
+	// walk, Nov 14: a geyser 3.1 m past the far foot threw the pilot 5-6 m; Course.CinderMarkers... checks it).
 	for (int32 i = 0; i < 3; ++i)
 	{
-		Geyser(FVector(7283.f + i * 450.f, 5883.f + i * 200.f, 0.f), i * 1.2f);
+		Geyser(FVector(7750.f + i * 450.f, 5600.f + i * 200.f, 0.f), i * 1.2f);
 	}
 
 	// The compound along +X: gate wall, yard, barracks, command deck, Warden arena.
@@ -1943,6 +1958,11 @@ void ATDPlanetCourse::BuildCinder()
 		Site->bCompleteLinkedStep = false;
 		TDCourseImpl::FinishProp(Site);
 		UTDStatics::TintPlaceholder(Site->Mesh, FLinearColor(1.f, 0.85f, 0.1f), 2.f);
+		// The structures builder's charge (Kit/Story/SM_Kit_AnchorCharge) on the tinted box when it is in the build.
+		if (UStaticMesh* ChargeArt = TDPlanetCourse_KitStory(TEXT("SM_Kit_AnchorCharge")))
+		{
+			TDPropArt::Dress(Site->Mesh, ChargeArt);
+		}
 		Charges->WatchInteractable(Site);
 	}
 	ATDEncounterVolume* Defence = Encounter(Jammer, INDEX_NONE, Tower + FVector(0.f, 0.f, 200.f), FVector(2000.f, 2000.f, 600.f),
@@ -1969,6 +1989,18 @@ void ATDPlanetCourse::BuildCinder()
 	Run->Seconds = 22.f;
 	Run->Tower = TowerActor;
 	Run->DebrisExtent = FVector(3500.f, 1200.f, 0.f);
+	// The anchor's own collapse pieces (structures builder, Kit/Story), each optional.
+	for (const TCHAR* L : { TEXT("A"), TEXT("B"), TEXT("C") })
+	{
+		if (TDPlanetCourse_KitStory(*FString::Printf(TEXT("SM_Kit_AnchorDebris_%s"), L), *FString::Printf(TEXT("AnchorDebris_%s"), L)))
+		{
+			Run->DebrisMeshes.Add(TSoftObjectPtr<UStaticMesh>(TDPlanetCourse_KitStory(*FString::Printf(TEXT("SM_Kit_AnchorDebris_%s"), L), *FString::Printf(TEXT("AnchorDebris_%s"), L))));
+		}
+		if (UStaticMesh* Section = TDPlanetCourse_KitStory(*FString::Printf(TEXT("SM_Kit_AnchorSection_%s"), L), *FString::Printf(TEXT("AnchorSection_%s"), L)))
+		{
+			Run->SectionMeshes.Add(TSoftObjectPtr<UStaticMesh>(Section));
+		}
+	}
 	TDCourseImpl::FinishProp(Run);
 	Routes.Add({ Tower, FVector(LakeX1 + 800.f, LakeY - 3300.f, 0.f), Exit });
 
