@@ -21,7 +21,7 @@ def _ci(n):
 SPECS = {
     'M_TD_VFX_HyperRift': ('translucent', """
 float2 p = UV*2-1; float ang = atan2(p.y, p.x); float t = Tm;
-float jag = 0.055*sin(ang*7.0 + t*7.0) + 0.035*sin(ang*13.0 - t*11.0) + 0.020*sin(ang*29.0 + t*23.0);
+float jag = 0.035*sin(ang*7.0 + t*7.0) + 0.020*sin(ang*13.0 - t*11.0) + 0.008*sin(ang*29.0 + t*23.0);   // r6: calmer edge (review: read as electric)
 float r = length(p)*(1.0 + jag);
 float open = saturate(PC.a);
 float3 col = PC.rgb*Tint.rgb;
@@ -36,15 +36,16 @@ c += col*(rays*0.55 + rays2*0.35)*depth*inside;   // r5: review: the interior wa
 float rim = exp(-pow((r - 0.87)/0.012, 2.0));
 float band = exp(-pow((r - 0.875)/0.035, 2.0));
 float flick = 0.75 + 0.5*frac(sin(floor(t*30.0)*12.9898 + floor(ang*4.0))*43758.5453);
-c += float3(1,1,1)*rim*10.0*flick + col*band*3.0;
-float halo = exp(-max(r - 0.87, 0.0)*12.0)*(1.0 - inside);
-c += col*halo*0.9;
+// r6 (review MAJOR still open: the rim read near-white): the colour carries the rim, the white line is only its core
+c += lerp(col, float3(1,1,1), 0.5)*rim*5.0*flick + col*band*8.0;
+float halo = exp(-max(r - 0.87, 0.0)*18.0)*(1.0 - inside);
+c += col*halo*0.6;
 float arcs = pow(saturate(0.5 + 0.5*sin(ang*5.0 - t*6.0)), 24.0)*exp(-pow((r - 0.94)/0.05, 2.0));
 arcs += pow(saturate(0.5 + 0.5*sin(ang*3.0 + t*4.3 + 1.7)), 30.0)*exp(-pow((r - 0.91)/0.04, 2.0));
 c += hot*arcs*2.4;
 float mask = 1.0 - smoothstep(0.96, 1.0, length(p));
 float a = saturate(inside*0.9*open + (rim + band*0.6 + arcs)*max(open, 0.7) + halo*0.35*open)*mask;   // r3: the rim stays opaque while it fades
-return float4(c*Intensity*mask*max(open, 0.25), a);""", {'Tint': (1.0, 1.0, 1.0)}),
+return float4(c*Intensity*mask*max(open, 0.25), a);""", {'Tint': (1.25, 0.55, 1.0)}),   # r6: violet (x the systems' blue default)
 
     # r5 (review MAJOR: the tunnel rings were soft blurry donuts): a thin, hard-edged ring with a white core line and a
     # coloured glow just outside it. Additive, for camera-facing sprites. PC.a fades it.
@@ -55,7 +56,7 @@ float core = exp(-pow((r - 0.90)/0.010, 2.0));
 float glow = exp(-pow((r - 0.90)/0.045, 2.0));
 float3 c = float3(1,1,1)*core*2.5 + col*glow*1.2;
 float mask = 1.0 - smoothstep(0.97, 1.0, r);
-return float4(c*Intensity*mask*PC.a, PC.a);""", {'Tint': (1.0, 1.0, 1.0)}),
+return float4(c*Intensity*mask*PC.a, PC.a);""", {'Tint': (1.25, 0.55, 1.0)}),
 }
 
 

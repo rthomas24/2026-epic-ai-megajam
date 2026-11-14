@@ -77,7 +77,7 @@ H('NS_TD_Hyperdrive_Tunnel', U(HYPER), [
 # ---- Drop-out: the ship bursts out of an exit tear (behind it, closing in 0.7 s), a shock ring, a flare, sparks thrown
 # forward with the ship and streaks left behind.
 H('NS_TD_Hyperdrive_DropOut', U(HYPER), [
-    rifted(offset(mesh_flash('ExitTear', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 9.0, 14.0', 0.7, 1.0, power=1.4,
+    rifted(offset(mesh_flash('ExitTear', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 6.5, 10.0', 0.7, 1.0, power=1.4,   # r6: 30% smaller (review)
                              growth='float3(1.0, 1.0 - pow(Particles.NormalizedAge, 1.5), 1.0 - pow(Particles.NormalizedAge, 2.5))'), 1500)),
     # r4: 15 m AHEAD, not behind: behind the ship it sat at the chase camera and was never seen; ahead, the camera sees
     # the ship framed by the closing tear in the first frames, as if it had just burst out of it.
