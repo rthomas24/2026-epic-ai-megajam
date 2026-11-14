@@ -285,6 +285,24 @@ static FAutoConsoleCommandWithWorldAndArgs GTDTravelToDockCmd(TEXT("TD.Travel.To
 		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.ToDock: %.0f m out, %.0f m off the axis, bay %s"), Out / 100.f, Side / 100.f,
 			*UEnum::GetValueAsString(Bay->GetDockingState()));
 	}));
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelAimPadCmd(TEXT("TD.Travel.AimPad"),
+	TEXT("Captures: steer the flown ship's nose at the player pad's beacon through the real input (TD.Input.TurnToward) and log the distance: TD.Travel.AimPad [seconds=1.5] [m above the beacon=60]"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		ATDShip* Ship = TDTravelDebug::GetPlayerShip(World);
+		ATDPlanetTravelRig* Rig = TDTravelDebug::FindFirst<ATDPlanetTravelRig>(World);
+		const ATDLandingPad* Pad = Rig ? Rig->GetPlayerPad() : nullptr;
+		if (!Ship || !Pad) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.AimPad: ship=%d pad=%d"), Ship != nullptr, Pad != nullptr); return; }
+		const float Secs = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 1.5f;
+		const float Above = (Args.Num() > 1 ? FCString::Atof(*Args[1]) : 60.f) * 100.f;
+		const FVector To = Pad->GetBeaconLocation() + FVector(0.f, 0.f, Above) - Ship->GetActorLocation();
+		const FRotator R = To.Rotation();
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.AimPad: %.0f m to the pad (%.0f m flat, %.0f m below), yaw %.1f pitch %.1f, speed %.0f m/s, prompt '%s'"),
+			FVector::Dist(Pad->GetBeaconLocation(), Ship->GetActorLocation()) / 100.f, FVector::Dist2D(Pad->GetBeaconLocation(), Ship->GetActorLocation()) / 100.f,
+			(Ship->GetActorLocation().Z - Pad->GetBeaconLocation().Z) / 100.f, R.Yaw, R.Pitch, Ship->GetVelocity().Size() / 100.f,
+			Ship->GetLanding() ? *Ship->GetLanding()->GetLandPrompt().ToString() : TEXT(""));
+		GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f %.2f"), R.Yaw, R.Pitch, FMath::Max(0.3f, Secs)));
+	}));
 static FAutoConsoleCommandWithWorldAndArgs GTDTravelOpenPlanetCmd(TEXT("TD.Travel.OpenPlanet"),
 	TEXT("Captures: open a planet's atmosphere trigger without moving the ship (a natural approach): TD.Travel.OpenPlanet Verdance|Cinder"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
