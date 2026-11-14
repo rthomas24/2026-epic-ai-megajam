@@ -45,9 +45,10 @@ def trim(planet):
 
 def window_light(planet):
     mi = K.instance("MI_Hut_%s_Window" % planet, eas.load_asset(K.MASTER_GLOW))
-    mel.set_material_instance_scalar_parameter_value(mi, "GlowStrength", 5.0)
+    # r2 (the Lead: lit rooms at night, not flat white): warm amber-white, moderate
+    mel.set_material_instance_scalar_parameter_value(mi, "GlowStrength", 3.0)
     mel.set_material_instance_scalar_parameter_value(mi, "PulseAmount", 0.0)
-    mel.set_material_instance_vector_parameter_value(mi, "GlowColor", unreal.LinearColor(1.0, 0.72, 0.42, 1.0))
+    mel.set_material_instance_vector_parameter_value(mi, "GlowColor", unreal.LinearColor(1.0, 0.62, 0.3, 1.0))
     eas.save_loaded_asset(mi)
     return mi
 
