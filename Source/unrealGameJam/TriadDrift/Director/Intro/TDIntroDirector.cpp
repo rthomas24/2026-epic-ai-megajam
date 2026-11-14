@@ -1992,7 +1992,7 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		HandOffElapsed += RealDt;
 		Overlay.Black = 0.f;
 		Overlay.SubtitleAlpha = 0.f;
-		Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
+		Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(FMath::Clamp(HandOffElapsed / BarsOutSeconds, 0.f, 1.f)); // T7: gone as control returns
 		if (HandOffElapsed >= HandOffSeconds)
 		{
 			Finish();
@@ -2070,7 +2070,7 @@ void UTDIntroDirector::Tick(float DeltaTime)
 			Elapsed = GetTotalDuration();
 			Overlay.Black = 0.f;
 			Overlay.SubtitleAlpha = 0.f;
-			Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
+			Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(FMath::Clamp(HandOffElapsed / BarsOutSeconds, 0.f, 1.f)); // T7: gone as control returns
 			if (bPlaying && HandOffElapsed >= HandOffSeconds)
 			{
 				Finish(); // once: Finish ends play, and a later Tick returns at !bPlaying

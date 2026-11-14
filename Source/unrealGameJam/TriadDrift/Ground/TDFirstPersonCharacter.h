@@ -391,6 +391,8 @@ private:
 	/** Body, head, blades and turning for the current view (Tick, and at once on a mode change, even paused). */
 	void ApplyViewState();
 	ETDBladeState LastBodyBladeState = ETDBladeState::Idle;
+	/** The heavy wind-up is showing for the press being held (A_Pilot_Blade_HeavyWindup). */
+	bool bHeavyWindupShown = false;
 	bool bLastBodyDashing = false;
 	bool bLastBodySliding = false;
 	bool bLastBodyMantling = false;

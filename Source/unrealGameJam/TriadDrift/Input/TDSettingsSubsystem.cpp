@@ -116,6 +116,11 @@ void UTDSettingsSubsystem::Load()
 	// versions share, new fields take their defaults, and everything is clamped to today's ranges. Never drop a
 	// player's options because the layout grew.
 	Settings = TDSettings::Clamped(SaveObj->Settings);
+	if (SaveObj->Version < 2)
+	{
+		// Version 1 saved the old first-person default with every slot, so it says nothing about a choice: third person.
+		Settings.OnFootCameraMode = ETDOnFootCamera::ThirdPerson;
+	}
 	if (SaveObj->Version != UTDSettingsSave::CurrentVersion)
 	{
 		UE_LOG(LogTriadDrift, Log, TEXT("TD settings: migrated options from save version %d to %d"), SaveObj->Version, UTDSettingsSave::CurrentVersion);

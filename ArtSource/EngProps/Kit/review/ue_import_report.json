@@ -1,29 +1,30 @@
 [
  {
-  "asset": "SM_DI_Doorway",
+  "asset": "SM_DI_StoryConsole",
   "ok": true,
   "min_cm": [
-   -89.43,
-   -200.0,
+   -30.0,
+   -62.0,
    -0.0
   ],
   "max_cm": [
-   89.43,
-   200.0,
-   600.0
+   30.61,
+   62.0,
+   130.0
   ],
   "size_cm": [
-   178.86,
-   400.0,
-   600.0
+   60.61,
+   124.0,
+   130.0
   ],
   "bounds_match": "same",
-  "tris": 1692,
+  "tris": 3421,
   "slots": [
    "0:Trim",
-   "1:Glow"
+   "1:Glow",
+   "2:Screen"
   ],
-  "hulls": 7,
+  "hulls": 1,
   "asymmetric_side": null,
   "notes": []
  }

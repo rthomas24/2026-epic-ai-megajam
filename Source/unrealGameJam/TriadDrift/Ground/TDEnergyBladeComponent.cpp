@@ -17,6 +17,10 @@
 #include "Engine/World.h"
 #include "Misc/PackageName.h"
 #include "NiagaraComponent.h"
+#include "HAL/IConsoleManager.h"
+
+static TAutoConsoleVariable<int32> CVarBladeLogHits(TEXT("td.Blade.LogHits"), 0,
+	TEXT("1: log each pilot blade swing start and each hit with its time after the swing started (hit-window checks)."));
 
 namespace TDBlade
 {
@@ -211,6 +215,7 @@ void UTDEnergyBladeComponent::PressAttack()
 	AttackHeldTime = 0.f;
 	bHeavyFiredThisPress = false;
 	bPressSwingLanded = false;
+	bLightDeferred = false;
 	const int32 HitsBefore = HitCounter;
 	if (const ATDFirstPersonCharacter* FPC = Cast<ATDFirstPersonCharacter>(GetOwner()))
 	{
@@ -232,6 +237,13 @@ void UTDEnergyBladeComponent::PressAttack()
 		SetBlockHeld(false); // attacking out of a block (after a parry) is allowed
 		bBlockHeld = true;   // still held: the guard comes back up after the swing
 	}
+	if (!IsAttacking() && !bRetracted && State != ETDBladeState::GuardBroken)
+	{
+		// From rest the press waits for its release (a light swing) or the hold threshold (straight into the heavy
+		// wind-up), so a held heavy never throws a light first. Mid-combo presses still queue the next light at once.
+		bLightDeferred = true;
+		return;
+	}
 	LightAttack();
 	bPressSwingLanded = HitCounter > HitsBefore;
 }
@@ -239,6 +251,14 @@ void UTDEnergyBladeComponent::PressAttack()
 void UTDEnergyBladeComponent::ReleaseAttack()
 {
 	bAttackHeld = false;
+	if (bLightDeferred && !bHeavyFiredThisPress)
+	{
+		bLightDeferred = false;
+		const int32 HitsBefore = HitCounter;
+		LightAttack();
+		bPressSwingLanded = HitCounter > HitsBefore;
+	}
+	bLightDeferred = false;
 }
 void UTDEnergyBladeComponent::SetBlockHeld(bool bHeld)
 {
@@ -297,6 +317,8 @@ void UTDEnergyBladeComponent::StartSwing(int32 Index)
 	ComboTimeLeft = 0.f;
 	bLightQueued = false;
 	OnSwing.Broadcast(State);
+	SwingStartSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	if (CVarBladeLogHits.GetValueOnGameThread() != 0) { UE_LOG(LogTriadDrift, Display, TEXT("td.Blade.LogHits: swing %d starts"), int32(State)); }
 	PlayBladeCue(TEXT("SwingLight"), BladeFX ? &BladeFX->SwingLight : nullptr, true, FVector::ZeroVector);
 	PlaySwingTrail();
 	// The hit lands with the hand, not on the press (the pilot clips reach the target 0.10-0.13 s in).
@@ -347,6 +369,8 @@ bool UTDEnergyBladeComponent::HeavyLunge()
 	ComboIndex = 0;
 	ComboTimeLeft = 0.f;
 	OnSwing.Broadcast(State);
+	SwingStartSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	if (CVarBladeLogHits.GetValueOnGameThread() != 0) { UE_LOG(LogTriadDrift, Display, TEXT("td.Blade.LogHits: swing %d starts"), int32(State)); }
 	PlayBladeCue(TEXT("SwingHeavy"), BladeFX ? &BladeFX->SwingHeavy : nullptr, true, FVector::ZeroVector);
 	PlaySwingTrail();
 
@@ -382,17 +406,35 @@ bool UTDEnergyBladeComponent::HeavyLunge()
 	{
 		// Stop just short of the victim instead of ploughing through it.
 		TravelDistance = FMath::Clamp(BestAlong - TDBlade::ActorRadius(Best) - 40.f, 0.f, HeavyLungeDistance);
-		if (ITDStaggerable* Guarded = Cast<ITDStaggerable>(Best))
+		if (HeavyHitDelay > 0.f)
 		{
-			Guarded->BreakGuard(Owner);
+			PendingHeavyTarget = Best;
+			PendingHeavyDir = Dir;
+			PendingHeavyLeft = HeavyHitDelay;
 		}
-		HitActor(Best, HeavyDamage, Best->GetActorLocation(), Dir, 0.f);
+		else
+		{
+			ApplyHeavyHit(Best, Dir);
+		}
 	}
 	if (ATDFirstPersonCharacter* FPC = Cast<ATDFirstPersonCharacter>(Owner))
 	{
 		FPC->StartForcedMove(Dir * (TravelDistance / FMath::Max(HeavyLungeDuration, 0.01f)), HeavyLungeDuration, 0.f);
 	}
 	return true;
+}
+
+void UTDEnergyBladeComponent::ApplyHeavyHit(AActor* Target, const FVector& Dir)
+{
+	if (!Target)
+	{
+		return;
+	}
+	if (ITDStaggerable* Guarded = Cast<ITDStaggerable>(Target))
+	{
+		Guarded->BreakGuard(GetOwner());
+	}
+	HitActor(Target, HeavyDamage, Target->GetActorLocation(), Dir, 0.f);
 }
 
 bool UTDEnergyBladeComponent::AirSlam()
@@ -405,6 +447,8 @@ bool UTDEnergyBladeComponent::AirSlam()
 	State = ETDBladeState::AirSlam;
 	SwingTimeLeft = AirSlamTimeout; // ends on landing (or times out)
 	OnSwing.Broadcast(State);
+	SwingStartSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	if (CVarBladeLogHits.GetValueOnGameThread() != 0) { UE_LOG(LogTriadDrift, Display, TEXT("td.Blade.LogHits: swing %d starts"), int32(State)); }
 	Char->LaunchCharacter(FVector(0.f, 0.f, -AirSlamSpeed), true, true);
 	return true;
 }
@@ -465,6 +509,8 @@ bool UTDEnergyBladeComponent::DashStrike(FVector Direction, float Distance)
 	SwingTimeLeft = 0.2f;
 	MoveDuration = 0.2f;
 	OnSwing.Broadcast(State);
+	SwingStartSeconds = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0;
+	if (CVarBladeLogHits.GetValueOnGameThread() != 0) { UE_LOG(LogTriadDrift, Display, TEXT("td.Blade.LogHits: swing %d starts"), int32(State)); }
 	PlayBladeCue(TEXT("SwingLight"), BladeFX ? &BladeFX->SwingLight : nullptr, true, FVector::ZeroVector);
 	const FVector Start = Owner->GetActorLocation();
 	const FVector End = Start + Dir * FMath::Max(Distance, 0.f);
@@ -528,6 +574,10 @@ int32 UTDEnergyBladeComponent::HitArc(float Range, float ArcDegrees, float Damag
 
 bool UTDEnergyBladeComponent::HitActor(AActor* Victim, float Damage, const FVector& HitLocation, const FVector& HitDir, float Knockback)
 {
+	if (CVarBladeLogHits.GetValueOnGameThread() != 0 && Victim && GetWorld())
+	{
+		UE_LOG(LogTriadDrift, Display, TEXT("td.Blade.LogHits: swing %d hits %s %.0f at %.3f s"), int32(State), *Victim->GetName(), Damage, GetWorld()->GetTimeSeconds() - SwingStartSeconds);
+	}
 	AActor* Owner = GetOwner();
 	UTDHealthComponent* Health = UTDStatics::GetHealth(Victim);
 	if (!Victim || !Health || !Health->IsAlive())
@@ -781,8 +831,11 @@ void UTDEnergyBladeComponent::CancelAll()
 	ComboTimeLeft = 0.f;
 	bLightQueued = false;
 	bAttackHeld = false;
+	bLightDeferred = false;
 	bBlockHeld = false;
 	PendingHitLeft = -1.f;
+	PendingHeavyLeft = -1.f;
+	PendingHeavyTarget.Reset();
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -798,6 +851,17 @@ void UTDEnergyBladeComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	}
 
 	HeavyCooldownLeft = FMath::Max(0.f, HeavyCooldownLeft - DeltaTime);
+	if (PendingHeavyLeft >= 0.f)
+	{
+		PendingHeavyLeft -= DeltaTime;
+		if (PendingHeavyLeft < 0.f)
+		{
+			PendingHeavyLeft = -1.f;
+			AActor* Target = PendingHeavyTarget.Get();
+			PendingHeavyTarget.Reset();
+			if (State == ETDBladeState::HeavyLunge && !bRetracted) { ApplyHeavyHit(Target, PendingHeavyDir); }
+		}
+	}
 	if (PendingHitLeft >= 0.f)
 	{
 		PendingHitLeft -= DeltaTime;
@@ -817,6 +881,7 @@ void UTDEnergyBladeComponent::TickComponent(float DeltaTime, ELevelTick TickType
 		{
 			// Held: charge into a heavy lunge, unless the press already connected (keep that combo going).
 			bHeavyFiredThisPress = true;
+			bLightDeferred = false;
 			if (!bPressSwingLanded)
 			{
 				bLightQueued = false;

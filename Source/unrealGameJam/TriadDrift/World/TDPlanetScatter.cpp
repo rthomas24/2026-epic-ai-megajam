@@ -834,6 +834,7 @@ void ATDPlanetScatter::SetupComponent(UInstancedStaticMeshComponent* H, int32 Ki
 		H->SetCollisionResponseToAllChannels(ECR_Ignore);
 		H->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 		H->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+		H->SetCollisionResponseToChannel(ECC_Camera, ECR_Block); // the chase camera stops at trunks and branches (T7: it sat inside trees)
 	}
 	else
 	{
