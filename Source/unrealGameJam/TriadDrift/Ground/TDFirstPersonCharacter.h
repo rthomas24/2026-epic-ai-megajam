@@ -389,6 +389,8 @@ private:
 	/** The blade is put away while an interaction clip plays (it sweeps through the body), drawn again after. */
 	float InteractRetractLeft = 0.f;
 	float HandBladeExtend = 1.f;
+	/** How long the hand beam takes to draw back (the retract clip's length when it plays). */
+	float HandBladeRetractSeconds = 0.15f;
 	/** Standing still, the camera went > 60 deg off: keep turning until the body faces it (not just back under 60). */
 	bool bIdleTurnToCamera = false;
 	/** Attacking last frame (third person): a new attack snaps the body to the camera at once. */

@@ -1,0 +1,55 @@
+{
+  "asset": "SM_Fab_CinderCliff_B",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\imp\\ArtSource\\EngProps\\Fab\\CinderCliff\\export\\SM_Fab_CinderCliff_B.fbx",
+  "tris": 3779,
+  "size_cm": [
+    308.8,
+    291.1,
+    290.0
+  ],
+  "pivot": "root object origin (SM_Fab_CinderCliff_B~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Fab_CinderCliff"
+  ],
+  "material_params": [
+    {
+      "name": "M_Fab_CinderCliff",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    }
+  ],
+  "textures": [],
+  "collision": [
+    "UCX_SM_Fab_CinderCliff_B_00"
+  ],
+  "collision_source": "auto convex hulls",
+  "sockets": [],
+  "welded_verts": 228,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}
