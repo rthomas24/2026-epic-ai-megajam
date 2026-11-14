@@ -361,7 +361,7 @@ def engine(boost_only=False, kk=1.0, lm=1.0, wm=1.0):
                         live_scale='float3(%s*%s, %s, %s)' % (LEN, FLK % 61.3, THR, THR))
     inner = mesh_single('Inner', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '%s, %s, %s' % (-2.3 * lm, 0.7 * wm, 0.7 * wm), 1.7 * kk * kk, None,
                         live_scale='float3(%s*%s, %s, %s)' % (LEN, FLK % 97.1, THR, THR))
-    boost = mesh_single('BoostFlame', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame_Boost', '-9.5, 1.0, 1.0', 1.3, None,
+    boost = mesh_single('BoostFlame', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame_Boost', '-9.5, 1.0, 1.0', 1.3 * kk, None,
                         live_scale='float3(1,1,1)*User.Boost*%s' % (FLK % 43.7))
     glow = single('Glow', 'M_TD_VFX_Glow', '(260*%s + 160*User.Boost)' % THR, 0.6, 83.3)
     hot = single('Hot', 'M_TD_VFX_Glow', '(110*%s + 60*User.Boost)' % THR, 1.6 * kk * kk, 57.9)
@@ -395,11 +395,13 @@ def range_beacon(k=3.0):
 
 
 for _n, _c in (('Rift', RIFT), ('Lancer', LANCER), ('Bastion', BASTION), ('Enemy', ENEMY)):
-    _kk = 0.62 if _n == 'Enemy' else 1.0
+    # T1 (Nov 14, the Lead's polish item): the Lancer's plume clipped to white and vanished into the cyan nebula at boost.
+    # kk 0.7 keeps the flames in their own saturated cyan-blue (less white-hot core), as the Null fleet's does for red.
+    _kk = 0.62 if _n == 'Enemy' else (0.7 if _n == 'Lancer' else 1.0)
     _c = (1.0, 0.10, 0.015, 1.0) if _n == 'Enemy' else _c
     S('NS_TD_Engine_' + _n, U(_c, 1.0, Throttle=0.6, Boost=0.0), engine(kk=_kk) + ([range_beacon()] if (_n == 'Enemy' and RANGE_BEACON) else []))
     # the afterburner alone, always on: for the BoostLoop cue slot, which is a separate attached loop
-    S('NS_TD_EngineBoost_' + _n, U(_c, 1.0, Throttle=1.0, Boost=1.0), engine(True))
+    S('NS_TD_EngineBoost_' + _n, U(_c, 1.0, Throttle=1.0, Boost=1.0), engine(True, kk=_kk))
 
 # Round 7: the interceptor and the fighter must be told apart by their exhaust alone.
 S('NS_TD_Engine_Enemy_Interceptor', U((1.0, 0.80, 0.30, 1.0), 1.0, Throttle=0.6, Boost=0.0), engine(kk=1.0, lm=2.1, wm=0.55) + ([range_beacon(2.6)] if RANGE_BEACON else []))   # long, thin, hot white-yellow
