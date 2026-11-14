@@ -344,25 +344,58 @@ namespace TDStory
 				return Layer;
 			}
 			const FVector2D Size = Geo.GetLocalSize();
+			// The layout's scale follows the viewport; the text also follows the player's subtitle size (T1's setting:
+			// Small 0.8, Medium 1, Large 1.3). Agent Feedback Batch 2, B2-02: the size setting changed nothing here.
 			const float Scale = Size.Y / 1080.f;
-			const FSlateFontInfo TagFont = FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), FMath::RoundToInt(17.f * Scale));
-			const FSlateFontInfo LineFont = FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), FMath::RoundToInt(22.f * Scale));
+			const float TextScale = Scale * UTDSettingsSubsystem::GetSubtitleScale(S);
+			const FSlateFontInfo TagFont = FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), FMath::Max(8, FMath::RoundToInt(17.f * TextScale)));
+			const FSlateFontInfo LineFont = FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), FMath::Max(9, FMath::RoundToInt(22.f * TextScale)));
 			const FText TagText = FText::Format(LOCTEXT("TagFmt", "{0}  "), V.SpeakerTag);
-			auto Measure = [](const FText& T, const FSlateFontInfo& F) -> FVector2D
+			auto Measure = [](const FString& T, const FSlateFontInfo& F) -> FVector2D
 			{
 				if (FSlateApplication::IsInitialized())
 				{
 					return FVector2D(FSlateApplication::Get().GetRenderer()->GetFontMeasureService()->Measure(T, F));
 				}
-				return FVector2D(F.Size * 0.6f * T.ToString().Len(), F.Size * 1.3f);
+				return FVector2D(F.Size * 0.6f * T.Len(), F.Size * 1.3f);
 			};
-			const FVector2D TagSize = Measure(TagText, TagFont);
-			const FVector2D LineSize = Measure(V.Text, LineFont);
-			const float W = TagSize.X + LineSize.X;
+			const FVector2D TagSize = Measure(TagText.ToString(), TagFont);
+			// B2-01: a long line ran past both screen edges at 720p. The block (speaker tag + text) stays inside a safe
+			// width of 80% of the screen: the text wraps at word breaks under itself (a hanging indent after the tag).
+			const FVector2D Pad(14.f * Scale, 6.f * Scale);
+			const float SafeW = Size.X * 0.8f - Pad.X * 2.f;
+			const float TextW = FMath::Max(SafeW - TagSize.X, Size.X * 0.3f);
+			TArray<FString> Lines;
+			{
+				TArray<FString> Words;
+				V.Text.ToString().ParseIntoArray(Words, TEXT(" "), true);
+				FString Current;
+				for (const FString& Word : Words)
+				{
+					const FString Try = Current.IsEmpty() ? Word : Current + TEXT(" ") + Word;
+					if (!Current.IsEmpty() && Measure(Try, LineFont).X > TextW)
+					{
+						Lines.Add(Current);
+						Current = Word;
+					}
+					else
+					{
+						Current = Try;
+					}
+				}
+				if (!Current.IsEmpty() || Lines.Num() == 0) { Lines.Add(Current); }
+			}
+			float LinesW = 0.f;
+			const float LineH = Measure(TEXT("Ag"), LineFont).Y;
+			for (const FString& L : Lines) { LinesW = FMath::Max(LinesW, static_cast<float>(Measure(L, LineFont).X)); }
+			const float W = TagSize.X + LinesW;
+			const float H = LineH * Lines.Num();
 			// T2's subtitle spot, under its lower lane (83%, y 900 at 1080p); Nick's HUD fills the bottom with panels, so
-			// under his the line goes just below his objective block at the top.
+			// under his the line goes just below his objective block at the top. A wrapped block grows away from the
+			// screen edge: up from the lower lane's line, down from the upper one's.
 			const bool bNickHUD = UTDUIHostSettings::GetSpaceHUDChoice() == ETDSpaceHUDChoice::Nick;
-			FVector2D Pos(Size.X * 0.5f - W * 0.5f, Size.Y * (bNickHUD ? 0.17f : 0.83f) - LineSize.Y * 0.5f);
+			const float AnchorY = Size.Y * (bNickHUD ? 0.17f : 0.83f);
+			FVector2D Pos(Size.X * 0.5f - W * 0.5f, bNickHUD ? AnchorY - LineH * 0.5f : AnchorY + LineH * 0.5f - H);
 			float A = V.Alpha;
 			if (V.Style == ETDTransmissionStyle::Static)
 			{
@@ -372,23 +405,26 @@ namespace TDStory
 				Pos.X += (Noise - 0.5f) * 3.f * Scale;
 			}
 			const FSlateBrush* White = FCoreStyle::Get().GetBrush(TEXT("WhiteBrush"));
-			const FVector2D Pad(14.f * Scale, 6.f * Scale);
-			FSlateDrawElement::MakeBox(Out, Layer, Geo.ToPaintGeometry(FVector2D(W, LineSize.Y) + Pad * 2.f, FSlateLayoutTransform(Pos - Pad)),
+			FSlateDrawElement::MakeBox(Out, Layer, Geo.ToPaintGeometry(FVector2D(W, H) + Pad * 2.f, FSlateLayoutTransform(Pos - Pad)),
 				White, ESlateDrawEffect::None, FLinearColor(0.f, 0.f, 0.f, 0.55f * A));
 			FLinearColor TagColor = V.Color;
 			TagColor.A = A;
-			const float TagY = Pos.Y + (LineSize.Y - TagSize.Y) * 0.5f;
+			const float TagY = Pos.Y + (LineH - TagSize.Y) * 0.5f;
 			FSlateDrawElement::MakeText(Out, Layer + 1, Geo.ToPaintGeometry(TagSize, FSlateLayoutTransform(FVector2D(Pos.X, TagY))), TagText, TagFont,
 				ESlateDrawEffect::None, TagColor);
-			const FVector2D LinePos(Pos.X + TagSize.X, Pos.Y);
-			if (V.Style == ETDTransmissionStyle::Echo)
+			for (int32 i = 0; i < Lines.Num(); ++i)
 			{
-				// A voice that should not be there: a faint double a few pixels behind.
-				FSlateDrawElement::MakeText(Out, Layer + 1, Geo.ToPaintGeometry(LineSize, FSlateLayoutTransform(LinePos + FVector2D(4.f, 2.f) * Scale)),
-					V.Text, LineFont, ESlateDrawEffect::None, FLinearColor(0.7f, 0.85f, 1.f, 0.35f * A));
+				const FVector2D LinePos(Pos.X + TagSize.X, Pos.Y + LineH * i);
+				const FVector2D LineSize(LinesW, LineH);
+				if (V.Style == ETDTransmissionStyle::Echo)
+				{
+					// A voice that should not be there: a faint double a few pixels behind.
+					FSlateDrawElement::MakeText(Out, Layer + 1, Geo.ToPaintGeometry(LineSize, FSlateLayoutTransform(LinePos + FVector2D(4.f, 2.f) * Scale)),
+						Lines[i], LineFont, ESlateDrawEffect::None, FLinearColor(0.7f, 0.85f, 1.f, 0.35f * A));
+				}
+				FSlateDrawElement::MakeText(Out, Layer + 2, Geo.ToPaintGeometry(LineSize, FSlateLayoutTransform(LinePos)), Lines[i], LineFont,
+					ESlateDrawEffect::None, FLinearColor(1.f, 1.f, 1.f, A));
 			}
-			FSlateDrawElement::MakeText(Out, Layer + 2, Geo.ToPaintGeometry(LineSize, FSlateLayoutTransform(LinePos)), V.Text, LineFont,
-				ESlateDrawEffect::None, FLinearColor(1.f, 1.f, 1.f, A));
 			return Layer + 3;
 		}
 
