@@ -60,7 +60,7 @@ public:
 	int32 PhaseCount = 3;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "TriadDrift|Dominion", meta = (ClampMin = "1"))
-	float PhaseHull = 1200.f;
+	float PhaseHull = 400.f;	// ENG-47 balance (Nov 14): 3 x 400 is ~25-45 s of one ship's real fire (Rift measured ~27 hull/s live), not 2 min
 
 	/** Invulnerability after each phase change (seconds). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
