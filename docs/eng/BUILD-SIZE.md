@@ -582,3 +582,43 @@ The only never-cooked packages that anything kept still names are the `PL_*` imp
 by the import data of the meshes made through them; editor-only data). On `lead/int-o` no kept package and no file in
 `Source/` or `Plugins/` (tests aside) names any other never-cooked package. There is no `BP_KS_*` class in the tree;
 the Story set's classes are the four `BP_StorySet_*` / `BP_Landmark_*` above.
+
+### 6.10 Measured result: the never-cook rules in the `ddc50a2f` package (Nov 14, after batch T)
+
+**Proven.** The Lead's trial cook of `ddc50a2f` with the never-cook rules (on `main` since batch T, `29a15f21`; the
+wreck rule excluded, so the wreck set stays cooked) finished with 2,561 packages, 0 errors, 0 warnings and nothing
+missing. The Shipping zip went from **981.0 MB to 872.7 MB** (108.3 MB less), which leaves **127 MB under the 1 GB
+limit**. Those are the Lead's figures; the breakdown below is measured by me from the container listing of that package
+(`Builds/playable-ddc50a2f/listing.csv`, compressed bytes per file).
+
+| In the container (`unrealGameJam-Windows.ucas`, 773.3 MB on disk) | MB | Packages |
+|---|---|---|
+| Textures that are not normal maps | 246.4 | 354 |
+| Normal maps (BC5) | 244.6 | 124 |
+| Static and skeletal meshes | 115.2 | 257 |
+| Shader code | 90.1 | |
+| Audio (43.95 MB of it is Nicholas's music, 11 tracks) | 49.8 | 319 |
+| Engine and plugin content | 14.3 | 501 |
+| Animation | 5.7 | 420 |
+| Other game packages (blueprints, materials, data assets, maps) | 2.9 | 505 |
+
+Engineering textures by folder, measured (all textures / normal maps, MB): SpaceDressing 90.3 / 54.1; Planets
+(terrain, ground, globes) 70.7 / 43.1; Planet kit 65.1 / 40.2; VFX flipbooks 32.0 / 0; Sky 26.5 / 0; Kit 17.1 / 12.1;
+CinderAnchor 16.6 / 8.4; Warden 14.6 / 7.4; the three squad ships 32.1 / 15.6. Total 481.4 / 242.7.
+
+**No size work is needed for the submission.** The Oodle RDO commits (`75b5098c`, `5dd3f80c`) stay on `eng/import`,
+unmerged and untested; nothing asks for them. The SM5 commit `36fd0fac` stays held for Ryan.
+
+**If another 100 MB is ever needed, in this order.** All figures below are estimates from the measured sizes above;
+none has been cooked.
+
+| Order | Step | Estimated saving | Risk | State |
+|---|---|---|---|---|
+| 1 | Oodle Texture RDO at lambda 10 on world textures, sky and UI groups excluded (section 6.8) | 40 to 70 MB of the 481 MB of engineering textures; most of it from the 243 MB of BC5 normal maps | Needs eyes: possible 4 x 4 steps in smooth gradients. Compare the captures listed in 6.8 | Two commits ready, one trial cook needed |
+| 2 | The same at lambda 20 or 30, if 10 looks clean | 80 to 130 MB in all (not on top of step 1) | Same, stronger | Change one number |
+| 3 | Normal maps of the space dressing and the planet kit at half size (`LODBias 1` on 54.1 + 40.2 MB) | About 70 MB before RDO (three quarters of each); 40 to 55 MB if RDO is already on | Softer surface close up on foot (outpost walls, choke rocks); not visible from a ship | Not written: an editor script on those two folders, then a visual check on Cinder |
+| 4 | Leftovers found in this listing | 5.9 MB: `MUS_DominionAssault_InfinityZone_Full_01` (4.4 MB, superseded by Push The Attack but still cooked: Nicholas's folder, his call) and `T_Null_Bomber_E` / `_ORM` (1.5 MB, old fleet textures still referenced by something kept) | None if nothing plays or shows them; the bomber pair needs its referencer found first | Not applied |
+| 5 | Nebula sky 8192 x 4096 to 4096 x 2048 | 19 MB of its 25.3 | Stars soften at 1440p and above | Not applied: visible |
+
+Steps 1 and 3 together give the 100 MB. Steps 2 and 5 are the reserve. Shader code (90.1 MB) is not on the list:
+its one lever is the held SM5 commit.
