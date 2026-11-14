@@ -28,7 +28,8 @@ bool FTDT1GlideEveryEntryPath::RunTest(const FString& Parameters)
 	if (ATDCloudDeck* Deck = ATDCloudDeck::EnsureForWorld(World, ETDDestination::Verdance)) { Deck->Build(); }
 	const float Ground = Terrain->GetHeightAt(FVector::ZeroVector);
 	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, Ground + 28500.f));
-	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	ATDShip* Wing = W.Spawn<ATDShip>(FVector(3000.f, 3000.f, Ground + 28500.f + 40000.f)); // a wingman 400 m above the flown ship
+	if (!TestNotNull(TEXT("ship"), Ship) || !TestNotNull(TEXT("wingman"), Wing)) { return false; }
 	Ship->SetPlayerControlled(true);
 	W.SpawnLocalPlayerController(Ship);
 	W.Advance(1.2f);
@@ -39,6 +40,7 @@ bool FTDT1GlideEveryEntryPath::RunTest(const FString& Parameters)
 	{
 		const FString V = FString::Printf(TEXT("visit %d (no recorded entry): "), Visit);
 		Ship->TeleportSpacecraft(FVector(0.f, 0.f, Ground + 28500.f), FRotator::ZeroRotator, false); // the spawn height (285 m)
+		Wing->TeleportSpacecraft(FVector(3000.f, 3000.f, Ground + 28500.f + 40000.f), FRotator::ZeroRotator, false);
 		D->SetEntryCover(1.f);
 		D->BeginCoveredTravel(ETDDestination::Verdance);
 		D->NotifyPostLoadForTests(World);
@@ -58,6 +60,8 @@ bool FTDT1GlideEveryEntryPath::RunTest(const FString& Parameters)
 		AddInfo(FString::Printf(TEXT("%sglide starts at %.0f m, deck %.0f m (%.1f s at %.0f m/s)"), *V, StartZ / 100.f, D->GetDescentDeckZ() / 100.f, D->GetGlideSeconds(), D->GetGlideSpeedNow() / 100.f));
 		TestTrue(*FString::Printf(TEXT("%sstarts 300 m over the deck (%.0f vs %.0f m)"), *V, StartZ / 100.f, Want / 100.f), FMath::Abs(StartZ - Want) <= 3000.f);
 		TestTrue(*(V + TEXT("the squad is released from the zone for the glide")), Ship->GetShipMovement()->IsBoundaryReleased());
+		const float Gap = Wing->GetActorLocation().Z - Ship->GetActorLocation().Z;
+		TestTrue(*FString::Printf(TEXT("%sthe wingman keeps its place in the formation (%.0f m above, was 400)"), *V, Gap / 100.f), FMath::Abs(Gap - 40000.f) <= 5000.f);
 		D->EndGlide(TEXT("test"));
 		for (int32 i = 0; i < 120 && D->GetCoverPhase() != ETDDescentCover::Off; ++i) { FPlatformProcess::Sleep(0.005f); D->Tick(1.f / 60.f); } // the reveal's fade ends
 		TestTrue(*(V + TEXT("the zone has the squad back after the glide")), !Ship->GetShipMovement()->IsBoundaryReleased());
