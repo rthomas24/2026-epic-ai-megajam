@@ -187,7 +187,7 @@ TB2 = (0.40, 0.75, 1.0, 1.0)
 
 def tb_ring():
     e = shed('Rings', 'M_TD_VFX_Ring', 0, (2.6, 2.6), (1, 1), (3800, 3800), k=1.6, radius=0.0, drag=0.0, local=True,
-             cone=((-1.0, 0.0, 0.0), 0.0), rate_expr='1.4*User.Intensity', power=0.8, fade_in=6.0)
+             cone=((-1.0, 0.0, 0.0), 0.0), rate_expr='1.4*(0.45 + 0.55*User.Intensity)', power=0.8, fade_in=6.0)
     meshed(e, 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring')
     e['set'] += [(PS, INIT, 'Mesh Scale Mode', E('Non-Uniform')), (PS, INIT, 'Mesh Scale', X('float3(1.0, 46.0, 46.0)*User.Scale')),
                  (PU, 'ScaleMeshSize', 'Scale Factor', X('float3(1.0, 1.0, 1.0)*(1.0 - 0.75*Particles.NormalizedAge)'))]
@@ -195,17 +195,22 @@ def tb_ring():
     return offset(e, 'User.Length/User.Scale')
 
 
+# 10m (dock capture: v2 did not show): TDDockingBay::UpdateBeam attaches the cue at the bay root (the mouth, +X outward,
+# world scale 1) and sets User.Length (ship to mouth, cm) and User.Intensity = the PULL, which is low until the ship is
+# close; so every part now runs at (0.45 + 0.55 x Intensity), the cone uses the flame material (glows through its body,
+# readable from inside it; the rim-lit field material vanished end-on), and the streaks and motes are 3-4x larger.
+TBI = '(0.45 + 0.55*User.Intensity)'
 S2('NS_TD_Dominion_TractorBeam2', U(TB2, 1.0, Length=20000.0, Intensity=1.0), [
-    offset(mesh_single('Cone', 'SM_TD_VFX_Flame', 'M_TD_VFX_Field', '1.0, 55.0, 55.0', 0.9, None,
-                       live_scale='float3(-User.Length/(100.0*User.Scale), 1.0, 1.0)*User.Intensity'), 'User.Length/User.Scale'),
+    offset(mesh_single('Cone', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '1.0, 55.0, 55.0', 0.32, None,
+                       live_scale='float3(-User.Length/(100.0*User.Scale), 1.0, 1.0)*' + TBI), 'User.Length/User.Scale'),
     tb_ring(),
-    offset(shed('Streaks', 'M_TD_VFX_Spark', 0, (0.5, 0.9), (16, 30), (7000, 11000), k=2.4, radius=2200.0, drag=0.0, local=True, stretch=30,
-                rgb=(0.7, 0.9, 1.0), cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='60.0*User.Intensity', fade_in=6.0), 'User.Length/User.Scale + 1500.0'),
-    offset(shed('Motes', 'M_TD_VFX_Glow', 0, (1.2, 2.2), (80, 160), (4000, 7000), k=2.0, radius=2600.0, drag=0.0, local=True,
-                cone=((-1.0, 0.0, 0.0), 5.0), rate_expr='50.0*User.Intensity', power=0.8, fade_in=4.0), 'User.Length/User.Scale + 1000.0'),
-    offset(shed('Tint', 'M_TD_VFX_Glow', 0, (0.4, 0.4), (5500, 6500), (0, 0), k=0.25, radius=0.0, drag=0.0, local=True, power=0.5,
-                rate_expr='8.0*User.Intensity'), 'User.Length/User.Scale'),
-    shed('Mouth', 'M_TD_VFX_Glow', 0, (0.3, 0.3), (5000, 6000), (0, 0), k=0.6, radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='12.0*User.Intensity')])
+    offset(shed('Streaks', 'M_TD_VFX_Spark', 0, (0.5, 0.9), (60, 110), (7000, 11000), k=3.0, radius=2400.0, drag=0.0, local=True, stretch=20,
+                rgb=(0.7, 0.9, 1.0), cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='70.0*' + TBI, fade_in=6.0), 'User.Length/User.Scale + 1500.0'),
+    offset(shed('Motes', 'M_TD_VFX_Glow', 0, (1.2, 2.2), (300, 600), (4000, 7000), k=2.4, radius=2800.0, drag=0.0, local=True,
+                cone=((-1.0, 0.0, 0.0), 5.0), rate_expr='45.0*' + TBI, power=0.8, fade_in=4.0), 'User.Length/User.Scale + 1000.0'),
+    offset(shed('Tint', 'M_TD_VFX_Glow', 0, (0.4, 0.4), (5500, 6500), (0, 0), k=0.3, radius=0.0, drag=0.0, local=True, power=0.5,
+                rate_expr='8.0*' + TBI), 'User.Length/User.Scale'),
+    shed('Mouth', 'M_TD_VFX_Glow', 0, (0.3, 0.3), (5000, 6000), (0, 0), k=0.8, radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='12.0*' + TBI)])
 
 # ---- round 10j (T4's play): the Maul bomber's plasma mine (was the placeholder disc). Slot: the Tracer of
 # DA_Enemy_PlasmaMines_FX (a persistent system on each pooled mine; with a Tracer and no ProjectileMesh the placeholder hides).
