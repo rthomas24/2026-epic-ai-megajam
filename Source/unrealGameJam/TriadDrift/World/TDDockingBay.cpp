@@ -252,6 +252,10 @@ void ATDDockingBay::UpdateBeam(const ATDShip* Ship, float Pull)
 			const FVector To = Ship->GetActorLocation() - Mouth;
 			if (!To.IsNearlyZero()) { BeamFX->SetWorldLocationAndRotation(Mouth, To.Rotation()); }
 		}
+		// Lead (Nov 14): the system divides by User.Scale and tints by User.Color; neither was ever set from code. Set both
+		// so the beam has a size and a colour whatever the asset's defaults are.
+		BeamFX->SetVariableFloat(TEXT("User.Scale"), 1.f);
+		BeamFX->SetVariableLinearColor(TEXT("User.Color"), FLinearColor(0.55f, 0.95f, 1.f, 1.f));	// cyan-white
 		BeamFX->SetVariableFloat(TEXT("User.Length"), LengthCm);
 		BeamFX->SetVariableFloat(TEXT("User.Intensity"), Intensity);
 	}
