@@ -18,7 +18,7 @@ AGENTS.md lifecycle conditions; branch publication alone does not release it.
 
 ## Nick-side current ownership and reservations
 
-**Lead bounded credits correction, November 14:** Nicholas Lead owns only the historical-package scope note and menu-music heading/status in CREDITS.md, plus this claim lifecycle and a dated DEVLOG entry, on nick/lead-playtest-feedback-1114 from91a70782. Reuse Auditor ResumeCredits01 and Issue Coordinator Submission137; no new inventory audit, binary/source asset changes, current-package inclusion claim or appearance/audio approval. Other proposed credits corrections remain pending; Auditor and all specialists stay paused.
+**Lead bounded credits correction completed in this commit, November 14:** Nicholas Lead owns only the historical-package scope note and menu-music heading/status in CREDITS.md, plus this claim lifecycle and a dated DEVLOG entry, on nick/lead-playtest-feedback-1114 from91a70782. Reuse Auditor ResumeCredits01 and Issue Coordinator Submission137; no new inventory audit, binary/source asset changes, current-package inclusion claim or appearance/audio approval. Snapshot scope and menu-history wording corrected and diff-checked; no owned operation remains on these files. Other proposed credits corrections remain pending; Auditor and all specialists stay paused.
 
 
 

@@ -5,6 +5,8 @@
 - Python standard library, browser Canvas/Web Audio and original SVG: source authoring/preview tools.
 - Unreal Engine 5.9 Python API: target API for unexecuted asset builders; no native assets generated in this source-only batch.
 
+**Historical package-status note for Nicholas's preparation entries:** References explicitly qualified as reported Shipping `ddc50a2f` below describe only Ryan's [November 14 inventory report](https://github.com/rthomas24/2026-epic-ai-megajam/issues/88#issuecomment-6875424116). Presence in that package does not establish playback, activation or approval. Preserve development sources, auditions, tools and pre-jam disclosures separately; reconcile inclusion against the actual final submission container. Entries naming other snapshots retain their own scope.
+
 ## Original source assets
 | Asset | Source / author | License / provenance | Added by |
 |---|---|---|---|
@@ -89,10 +91,12 @@ Pre-jam disclosure recorded from Nicholas's explicit R-037 answer: **Coilgun Ass
 ## Primary-fire realism M02 — offline review only
 
 Audio & Music agent used existing PlaceHolder Inc 50 Free Game Sounds Pack `Gunshot_1-1` and `Gunshot_7-1`, with Hove Terminal UI LITE recorded hardware actions `MACHAppl_VCRButton_HA_TerminalUI_04/08/13`. These replace the old Sci-Fi_Gun body for one audition; no new purchase/download/AI audio service. Gunshot effects are publisher-described human designs, with actual field-fire provenance unverified; the mechanical layer is recorded hardware, not a claim of a real firearm mechanism. Exact source hashes, selections, recipe, rights limits and credits: `ArtSource/Audio/PrototypeV1/PrimaryRealismM02/{README.md,source_inventory.json,recipe.json}` on nick/audio-prototype-v1 at4b94319. Processed/licensed WAVs stay ignored/local; no asset redistribution or final listening approval asserted.
-## Menu-music preparation checkpoint (November12; not game-integrated)
+## Menu music — November 12 preparation history and reported ddc50a2f inclusion
 
-- **Etherial Pulse**: Nicholas Tosti's selected Suno song, https://suno.com/song/b8ea12f4-b5a1-4bf2-811e-8d94f2acf26c. Nick confirmed authorship and Pro/Premier active at generation. Official MP3 preserved; existing ffmpeg/ffprobe produced an exact107s48kHz stereo16bit cut with ending fade. Audio agent's source/rights/processing record is local ignored Saved/AudioMusic/PrototypeV1/MenuTheme01/checkpoint.json; raw media is not published by this documentation update. No purchase/new generation. Native import, menu playback and in-game acceptance are unfinished. Rejected primary/switch prototypes remain historical references, not approved game audio.
+- **Etherial Pulse**: Nicholas Tosti's selected Suno song, https://suno.com/song/b8ea12f4-b5a1-4bf2-811e-8d94f2acf26c. Nick confirmed authorship and Pro/Premier active at generation. Official MP3 preserved; existing ffmpeg/ffprobe produced an exact107s48kHz stereo16bit cut with ending fade. Audio agent's source/rights/processing record is local ignored Saved/AudioMusic/PrototypeV1/MenuTheme01/checkpoint.json; raw media is not published by this documentation update. No purchase/new generation. At that November 12 preparation checkpoint, native import, menu playback and in-game acceptance were unfinished. Rejected primary/switch prototypes remain historical references, not approved game audio.
 - **Suno** is an AI music tool used by Nicholas for this supplied track; disclose it with other jam tools if the track ships.
+
+**Later reported package status:** Ryan's inventory report linked above identifies `MUS_Menu_EtherialPulse_01` as included in Shipping `ddc50a2f`. This qualifies the older preparation status; it is not evidence for later/final packages or approval of PR #11, its loop join, the mix, or a historical style-asset merge. Final loop-join and mix approval remain separately tracked.
 
 
 ### Custom Triad Drift Sentinel Armor - November12,2026
