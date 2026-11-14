@@ -3328,7 +3328,6 @@ bool FTDSquadStrikeAndFocusFeedback::RunTest(const FString& Parameters)
 	return true;
 }
 
-#endif // WITH_DEV_AUTOMATION_TESTS
 
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadEngageInPocket, "TriadDrift.Squad.Wingmen.EngageInsideARockPocketWithoutHittingIt", TD_TEST_FLAGS)
@@ -3399,3 +3398,5 @@ bool FTDSquadEngageInPocket::RunTest(const FString& Parameters)
 	TestTrue(FString::Printf(TEXT("no jitter: fast snap-backs %d"), Reversals), Reversals <= 3);
 	return true;
 }
+
+#endif // WITH_DEV_AUTOMATION_TESTS
