@@ -72,14 +72,14 @@ SCALARS = {
     "ValleyHeatGain": (3.0, 2.2), "ValleyCrust": (0.0, 1.15), "ValleyBaseBlend": (1.0, 1.0), "ValleyRoughness": (0.05, 0.35),
     "FlowTile": (9000.0, 6000.0), "FlowX": (0.0, 35.0), "FlowY": (12.0, 60.0),
     # veins and glows
-    "VeinSharpNear": (40.0, 34.0), "VeinSharpFar": (9.0, 14.0), "VeinStrength": (0.45, 1.6), "VeinFarBoost": (0.55, 1.8),
-    "VeinTopM": (500.0, 250.0), "VeinFadeM": (400.0, 200.0), "PatchGlow": (0.10, 0.0), "PeakGlow": (0.04, 0.0),
+    "VeinSharpNear": (40.0, 34.0), "VeinSharpFar": (9.0, 9.0), "VeinStrength": (0.45, 1.6), "VeinFarBoost": (0.55, 3.0),   # Cinder s9: a crack network read from 900 m
+    "VeinTopM": (500.0, 600.0), "VeinFadeM": (400.0, 300.0), "PatchGlow": (0.10, 0.0), "PeakGlow": (0.04, 0.0),   # Cinder s9: veins over more ground
     "VeinPatchiness": (1.0, 1.0),
     # pass 4: a minimum ambient (emissive = albedo x floor x the sky's colour) so Cinder's self-shadowed basalt slopes
     # never go to black under the low sun; proportional to the albedo, so nothing lights up on its own. Off on Verdance.
     "AmbientFloor": (0.0, 0.45),
     # s7: biome patches at 200-500 m (meadow / moss / dark forest floor) so the ground from the air is not one green noise
-    "MacroBiomeScale": (42000.0, 42000.0), "MacroBiomeAmount": (0.85, 0.35),
+    "MacroBiomeScale": (42000.0, 42000.0), "MacroBiomeAmount": (0.85, 0.85),   # s9: Cinder was flat dark ground from the air
     # s7: a dark wet-rock band where the rock meets the ground (cliff feet, seeps)
     "WetRockDark": (0.45, 0.7),
     # s7 story: Verdance's wreck scar (the same segment as FTDScatterPlan::ScarA/B, course-local = world on the planet
@@ -90,9 +90,9 @@ SCALARS = {
 VECTORS = {
     # R3 (Verdance): A = teal moss, B = bright yellow-green moss (open meadow side), C = blue-teal glade
     "FlatTintA": ((0.014, 0.085, 0.060), (0.012, 0.012, 0.015)),
-    "FlatTintB": ((0.050, 0.150, 0.030), (0.030, 0.027, 0.028)),
-    "FlatTintC": ((0.012, 0.060, 0.090), (0.050, 0.022, 0.014)),
-    "JungleTint": ((0.008, 0.042, 0.026), (0.020, 0.020, 0.022)),     # under the rainforest canopy: dark, rich
+    "FlatTintB": ((0.050, 0.150, 0.030), (0.080, 0.072, 0.066)),     # Cinder s9: pale ash flats
+    "FlatTintC": ((0.012, 0.060, 0.090), (0.075, 0.032, 0.016)),     # Cinder s9: rust-stained ground
+    "JungleTint": ((0.008, 0.042, 0.026), (0.007, 0.0065, 0.0075)),   # Verdance: under the canopy; Cinder s9: black flows
     "UplandTint": ((0.075, 0.110, 0.070), (0.060, 0.045, 0.040)),     # paler sage / ash-brown uplands
     "LowlandTint": ((0.012, 0.035, 0.032), (0.016, 0.013, 0.012)),    # wet dark lowlands
     "PatchTint": ((0.016, 0.060, 0.075), (0.008, 0.008, 0.012)),
@@ -242,7 +242,10 @@ def build_graph(b, t, means):
     # ---------------------------------------------------------------- layer weights
     j = add(mul(sub(fine, 0.5), 0.6), mul(mul(sub(c(nS, "G"), 0.5), 0.4), sn))   # -0.5 .. 0.5 breakup
     hj = add(add(hm, mul(j, S("HeightBreakM"))), mul(sub(broad, 0.5), S("BiomeBreakM")))
-    sj = add(slope, mul(j, S("SlopeBreak")))
+    # s8: the vertex colour's slope comes from the field at the chunk's step, so the basin's steep walls read as gentle
+    # and got the flat (top-projected) moss stretched down them: take the steeper of it and the mesh normal's slope
+    nslope = inv(mask(nv, bl=True))
+    sj = add(vmax(slope, nslope), mul(j, S("SlopeBreak")))
     rock_w = ramp(sj, S("RockSlopeStart"), S("RockSlopeRange"))
     peak_w = mul(ramp(hj, S("PeakStartM"), S("PeakRangeM")), inv(ramp(slope, S("PeakSlopeMax"), S("PeakSlopeRange"))))
     low_w = mul(inv(ramp(hj, S("LowTopM"), S("LowFadeM"))), S("LowAmount"))

@@ -198,7 +198,8 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		R.Rocks.Add(Add(TDScatter_Path(TEXT("Planet"), TEXT("SM_Cind_ChokeRock_B")), 0.8f, 1.3f, 60.f, 180000.f, 240000.f, 1000.f, true, false, true));
 		for (int32 i = 1; i <= 4; ++i)
 		{
-			R.Crystals.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_Crystal_%02d"), i)), 1.f, 2.5f, 20.f, 90000.f, 130000.f, 400.f, i >= 3, false, true));
+			// s9: 2-4.5x and kept to ~2 km so the obsidian patches read from the air as crystal fields, not specks
+			R.Crystals.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_Crystal_%02d"), i)), 2.f, 4.5f, 20.f, 180000.f, 240000.f, 400.f, i >= 3, false, true));
 		}
 		R.Rubble.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_01")), 0.6f, 1.6f, 10.f, 11000.f, 15000.f, 100.f, false, true, false));
 		R.Rubble.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_02")), 0.5f, 1.2f, 15.f, 11000.f, 15000.f, 150.f, false, true, false));
@@ -381,7 +382,12 @@ int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM
 		return R.Rocks.Num() ? R.Rocks[0] : INDEX_NONE;
 	}
 	case ModeGrove:	// crystal clusters on the obsidian patches
-		return (bPatch && Sm.Slope < 0.45f && Rnd < 0.55f) ? TDScatter_OneOf(R.Crystals, Rnd / 0.55f) : INDEX_NONE;
+	{
+		// s9: denser in a patch's core (fine mask well over the threshold), so the fields cluster instead of sprinkling
+		const float Core = FMath::Clamp((Sm.FineMask - ObsidianFineMin) / 0.12f, 0.f, 1.f);
+		const float D = 0.3f + 0.55f * Core;
+		return (bPatch && Sm.Slope < 0.45f && Rnd < D) ? TDScatter_OneOf(R.Crystals, Rnd / D) : INDEX_NONE;
+	}
 	case ModeGround:
 	{
 		if (Sm.Slope > 0.5f) { return INDEX_NONE; }
