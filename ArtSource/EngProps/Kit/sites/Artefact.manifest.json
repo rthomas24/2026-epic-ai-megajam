@@ -1,0 +1,38 @@
+{
+ "site": "Artefact",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_Kit_Artefact",
+ "about": "ART-18: the same ancient artefact on both planets and in the core chamber (clue, storyline section 6).",
+ "pieces": [
+  {
+   "name": "Artefact",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Artefact",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  }
+ ],
+ "lights": [
+  {
+   "name": "L_Artefact",
+   "location_cm": [
+    0.0,
+    0.0,
+    330.0
+   ],
+   "intensity": 250.0,
+   "radius": 700.0,
+   "color": [
+    0.1,
+    1.0,
+    0.85
+   ]
+  }
+ ],
+ "placement_rules": [
+  "1.84 x 1.6 m footprint (hexagonal plinth r 92), 2.62 m tall; keep 1.5 m clear around it.",
+  "Same class in all three places; the core chamber's copy may sit on the ring at r 700..1500."
+ ]
+}

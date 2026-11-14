@@ -23,7 +23,7 @@ TEX_DEST = DEST + "/Textures"
 PIPELINE = DEST + "/Pipelines/PL_Kit_StaticMesh"
 MASTER_TEX = "/Game/TriadDrift/Gameplay/Materials/M_TD_PropTextured"
 MASTER_GLOW = "/Game/TriadDrift/Gameplay/Props/Dominion/M_TD_DominionGlow"
-SIZE_CHECK = os.path.join(KIT, "review", "size_check_r4b.json")
+SIZE_CHECK = os.path.join(KIT, "review", "size_check_r5.json")
 
 GLOWS = {   # MI name: (slot key it fills by default, scalars, colour)
     # strips at 4 (r4; 8 flooded the outpost room), the beacon lamp at 60 (reads from the approach)
@@ -526,9 +526,11 @@ def main():
         mis["Decal"] = dmi
         mis["Route"] = ROUTE_MI[0]
     if SET.get("extras"):
-        if ensure_stone(master_tex, notes) is None:
+        stone = ensure_stone(master_tex, notes)
+        if stone is None:
             log("FAILED: MI_Kit_Stone %s" % notes)
             return
+        mis["Stone"] = stone                       # ART-18: the artefact's slot
         pil = ensure_pillar(notes)
         if pil is None:
             return

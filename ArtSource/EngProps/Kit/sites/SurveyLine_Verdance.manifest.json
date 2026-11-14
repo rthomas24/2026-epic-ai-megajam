@@ -1,0 +1,71 @@
+{
+ "site": "SurveyLine_Verdance",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_SurveyLine_Verdance",
+ "about": "ART-18: survey instruments on one buried line (30 m along +X), Verdance route. Not walkable; walk-clear hulls.",
+ "pieces": [
+  {
+   "name": "Inst_00_SurveyProbe",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_SurveyProbe",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Inst_01_SeismicPod",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_SeismicPod",
+   "location_cm": [
+    600.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Inst_02_SurveyTripod",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_SurveyTripod",
+   "location_cm": [
+    1200.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 90.0
+  },
+  {
+   "name": "Inst_03_SeismicPod",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_SeismicPod",
+   "location_cm": [
+    1800.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Inst_04_SurveyProbe",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_SurveyProbe",
+   "location_cm": [
+    2400.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Inst_05_SurveyTripod",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_SurveyTripod",
+   "location_cm": [
+    3000.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 270.0
+  }
+ ],
+ "placement_rules": [
+  "Pivot on the ground at the line's west end; the line runs along +X.",
+  "Each prop's pivot is its ground contact: sink 0-5 cm on slopes, never float."
+ ]
+}

@@ -1,0 +1,110 @@
+{
+ "site": "Artefact",
+ "origin": [
+  4000.0,
+  -3000.0,
+  2.0
+ ],
+ "steps": [
+  {
+   "teleport": [
+    -450,
+    -150,
+    0
+   ],
+   "feet": [
+    -450,
+    -150,
+    0,
+    10
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Artefact\\01_close.png"
+  },
+  {
+   "teleport": [
+    -1800,
+    -900,
+    0
+   ],
+   "feet": [
+    -1800,
+    -900,
+    0,
+    27
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Artefact\\02_20m.png"
+  },
+  {
+   "teleport": [
+    -400,
+    0,
+    0
+   ],
+   "feet": [
+    -400,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "walk": [
+    0,
+    0.45
+   ],
+   "feet": [
+    -124,
+    0,
+    0,
+    0
+   ],
+   "at": "into artefact 0"
+  },
+  {
+   "walk": [
+    0,
+    0.45
+   ],
+   "feet": [
+    -121,
+    0,
+    0,
+    0
+   ],
+   "at": "into artefact 1"
+  },
+  {
+   "walk": [
+    0,
+    0.45
+   ],
+   "feet": [
+    -121,
+    0,
+    0,
+    0
+   ],
+   "at": "into artefact 2"
+  },
+  {
+   "teleport": [
+    400,
+    300,
+    0
+   ],
+   "feet": [
+    400,
+    300,
+    0,
+    200
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Artefact\\03_back.png"
+  }
+ ]
+}

@@ -72,6 +72,14 @@ def make_materials(glow=GLOW_TEAL):
     nt.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
     m.use_backface_culling = True
     mats["Trim"] = m
+    if SET != "dominion":                       # ART-18: the artefact's ancient stone (T_KitS_Trim, same regions)
+        st = m.copy()
+        st.name = "M_Kit_Stone"
+        for nd in st.node_tree.nodes:
+            if nd.type == "TEX_IMAGE" and nd.image and nd.image.name.startswith("T_Kit_Trim"):
+                nd.image = bpy.data.images.load(os.path.join(TEX, nd.image.name.replace("T_Kit_Trim", "T_KitS_Trim")), check_existing=True)
+                nd.image.colorspace_settings.name = "sRGB" if "_BC" in nd.image.name else "Non-Color"
+        mats["Stone"] = st
     for key, col, strength in (("Glow", glow, 6.0), ("Screen", (0.06, 0.4, 0.45), 1.5), ("Light", (0.9, 0.95, 1.0), 8.0),
                                ("Beacon", glow, 20.0), ("Pillar", glow, 3.0), ("Decal", (1.0, 0.45, 0.1), 0.5), ("Route", (1.0, 0.05, 0.03), 0.5)):
         g = bpy.data.materials.new("M_Kit_" + key)

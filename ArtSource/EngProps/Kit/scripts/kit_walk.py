@@ -176,6 +176,31 @@ def digsite():
     shot("04_15m", 148, 4)
 
 
+def survey():
+    tp(-450, 350, 0, -25, settle=2.0)
+    shot("01_line", -25, -6)
+    tp(1200 - 250, -120, 0, 25, settle=2.0)
+    shot("02_tripod_close", 25, -12)
+    tp(300, -500, 0, 90)                       # walk across the line between the probe (0) and the pod (600)
+    for i in range(5):
+        walk(90, 0.45, "across %d" % i)
+    tp(1200, -400, 0, 90)                      # walk straight into the tripod: the hull stops the pilot, no snag
+    for i in range(3):
+        walk(90, 0.45, "into tripod %d" % i)
+
+
+def artefact_site():
+    tp(-450, -150, 0, 10, settle=2.0)
+    shot("01_close", 10, 8)
+    tp(-1800, -900, 0, 27, settle=2.0)
+    shot("02_20m", 27, 4)
+    tp(-400, 0, 0, 0)
+    for i in range(3):
+        walk(0, 0.45, "into artefact %d" % i)
+    tp(400, 300, 0, 200, settle=2.0)
+    shot("03_back", 200, 6)
+
+
 def main():
     G.cmd("TD.Ground.ThirdPerson 1")
     G.cmd("TD.God 1")
@@ -184,7 +209,8 @@ def main():
     time.sleep(3.0)
     print(G.log_tail("TDDevSpawn", 1))
     {"DockingBay_Interior": dock, "DominionInterior_Preview": dominion, "Relay_Site": relay, "Relay_Site_Awake": relay, "Wreck_Site": wreck, "Outpost_Site_Verdance": outpost,
-     "Outpost_Site_Cinder": outpost, "DigSite_Cabin": digsite}[SITE]()
+     "Outpost_Site_Cinder": outpost, "DigSite_Cabin": digsite,
+     "SurveyLine_Verdance": survey, "Artefact": artefact_site}[SITE]()
     G.cmd("TD.Input.ReleaseAll")
     with open(os.path.join(OUT, "walk.json"), "w", encoding="utf-8") as fh:
         json.dump({"site": SITE, "origin": O, "steps": log}, fh, indent=1)

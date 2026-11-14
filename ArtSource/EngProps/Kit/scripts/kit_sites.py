@@ -374,13 +374,42 @@ def docking_bay_galaxy_test():
     return d
 
 
+# ------------------------------------------------------------------------------------------------ ART-18 story props
+def survey_line():
+    """Verdance: the survey instruments on one buried line (features.md ART-18, storyline Act 2): a probe, a seismic pod
+    and a tripod sensor, repeated along +X every 6 m over 30 m, so the route reads as one surveyed line. Each prop has one
+    convex hull; 6 m gaps leave a free walk across the line anywhere. Glow = Verdance teal (the default)."""
+    ps = []
+    order = ("SM_Kit_SurveyProbe", "SM_Kit_SeismicPod", "SM_Kit_SurveyTripod", "SM_Kit_SeismicPod", "SM_Kit_SurveyProbe", "SM_Kit_SurveyTripod")
+    for i, mesh in enumerate(order):
+        yaw = 0.0 if "Tripod" not in mesh else (90.0 if i < 3 else 270.0)
+        ps.append(piece("Inst_%02d_%s" % (i, mesh.replace("SM_Kit_", "")), mesh, i * 600.0, 0.0, 0.0, yaw))
+    return {"site": "SurveyLine_Verdance", "actor": K + "Sites/BP_SurveyLine_Verdance",
+            "about": "ART-18: survey instruments on one buried line (30 m along +X), Verdance route. Not walkable; walk-clear hulls.",
+            "pieces": ps, "placement_rules": ["Pivot on the ground at the line's west end; the line runs along +X.",
+                                              "Each prop's pivot is its ground contact: sink 0-5 cm on slopes, never float."]}
+
+
+def artefact():
+    """The ancient-technology artefact (storyline section 6): ONE class placed on Verdance, on Cinder and in the
+    reactor chamber. Ancient stone (MI_Kit_Stone) with teal glyph channels and a soft teal light so it reads at 20 m."""
+    return {"site": "Artefact", "actor": K + "Sites/BP_Kit_Artefact",
+            "about": "ART-18: the same ancient artefact on both planets and in the core chamber (clue, storyline section 6).",
+            "pieces": [piece("Artefact", "SM_Kit_Artefact", 0.0, 0.0, 0.0, 0.0)],
+            "lights": [{"name": "L_Artefact", "location_cm": [0.0, 0.0, 330.0], "intensity": 250.0, "radius": 700.0,
+                        "color": [0.1, 1.0, 0.85]}],
+            "placement_rules": ["1.84 x 1.6 m footprint (hexagonal plinth r 92), 2.62 m tall; keep 1.5 m clear around it.",
+                                "Same class in all three places; the core chamber's copy may sit on the ring at r 700..1500."]}
+
+
 def main():
     out = os.path.join(KIT, "sites")
     os.makedirs(out, exist_ok=True)
     sites = {"Relay_Site": relay(False), "Relay_Site_Awake": relay(True), "Wreck_Site": wreck(),
              "Outpost_Site_Verdance": outpost("Verdance"), "Outpost_Site_Cinder": outpost("Cinder"), "DigSite_Cabin": digsite(),
              "DominionInterior_Preview": dominion_interior(), "DockingBay_Interior": docking_bay(),
-             "DockingBay_GalaxyTest": docking_bay_galaxy_test(), "DockingBay_Course": docking_bay_course()}
+             "DockingBay_GalaxyTest": docking_bay_galaxy_test(), "DockingBay_Course": docking_bay_course(),
+             "SurveyLine_Verdance": survey_line(), "Artefact": artefact()}
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)
