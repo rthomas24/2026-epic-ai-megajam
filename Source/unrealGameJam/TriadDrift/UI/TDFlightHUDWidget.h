@@ -110,6 +110,8 @@ public:
 		float HeadingAngle = 0.f;
 		/** It is attacking the flown ship (its pilot's target): a brighter, heavier outline. */
 		bool bThreat = false;
+		/** Its projected radius on screen (design px): the marker sits just above the ship's outline. */
+		float ScreenRadius = 0.f;
 	};
 
 	/**
@@ -514,6 +516,7 @@ private:
 	int32 GeneratorsDownSeen = -1;
 	/** The ORBIT cue's clock; the descent cover seen last sample (its end on the galaxy map is the climb-out reveal). */
 	float OrbitCueLeft = 0.f;
+	double OrbitRevealSeen = -1.0;
 	bool bCoverSeen = false;
 	FDelegateHandle RevealHandle;
 	float GeneratorFlashLeft = 0.f;

@@ -26,6 +26,7 @@
 #include "TriadDrift/UI/TDTacticalDisplayWidget.h"
 #include "TriadDrift/UI/TDScanMonitorWidget.h"
 #include "TriadDrift/UI/TDRewardAnnouncementWidget.h"
+#include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "Components/MeshComponent.h"
 #include "Engine/Texture2D.h"
@@ -78,8 +79,30 @@ bool UTDUIHostSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 	return World && World->IsGameWorld();
 }
 
+double UTDUIHostSubsystem::LastGalaxyReveal = -1.0;
+
+void UTDUIHostSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	// The descent cover clears on the galaxy before this world's flight HUD exists: remember the reveal here.
+	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(GetWorld()))
+	{
+		RevealHandle = Descent->OnRevealed.AddLambda([](ETDDestination Destination)
+		{
+			if (Destination == ETDDestination::Galaxy)
+			{
+				LastGalaxyReveal = FPlatformTime::Seconds();
+			}
+		});
+	}
+}
+
 void UTDUIHostSubsystem::Deinitialize()
 {
+	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(GetWorld()))
+	{
+		Descent->OnRevealed.Remove(RevealHandle);
+	}
 	Hide();
 	HideGround();
 	HidePause();
