@@ -286,6 +286,30 @@ public:
 	FText GetBoundaryWarningText() const;
 
 	/**
+	 * One rule for the edge nag (the Lead, Nov 13): while a sequence owns the ship, the boundary WARNING is silent (no
+	 * HUD text, no OnBoundaryStateChanged, no Bark_Boundary); the containment itself is unchanged. A sequence owns the
+	 * ship while one of the sequence speed overrides is on the stack (AtmosphereEntry, TDExitClimb, Hyperdrive,
+	 * LandingAssist) or while any owner holds it here (T4's withdrawal, a docking, a cutscene). When the hold ends and
+	 * the ship is still near or past the edge, OnBoundaryStateChanged fires once with the state now.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetBoundaryWarningHoldFor(FName Owner, bool bHold);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	bool IsBoundaryWarningHeld() const;
+
+	/**
+	 * Releases the play-area containment for a scripted corridor that runs past the edge (T4's ordered withdrawal in wave 2,
+	 * T7's playtest): while any owner holds it, no push-back, no steer-back and no warning. Set it on every squad ship for
+	 * the window; release it when the window ends (the edge applies again from the next step).
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetBoundaryReleaseFor(FName Owner, bool bRelease);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	bool IsBoundaryReleased() const { return BoundaryReleases.Num() > 0; }
+
+	/**
 	 * Terrain for the ground floor, terrain look-ahead and landing paths: anything static, plus large movable
 	 * geometry (a planet course built from movable BlockAll meshes is WorldDynamic). Small movers (projectiles,
 	 * debris) and pawns never count.
@@ -346,6 +370,9 @@ private:
 	};
 	/** Override requests, oldest first; the last one is flown. */
 	TArray<FSpeedOverrideRequest> OverrideStack;
+	TSet<FName> BoundaryWarningHolds;
+	TSet<FName> BoundaryReleases;
+	bool bBoundaryHeldLastStep = false;
 	float LegacyOverrideAcceleration = -1.f;
 	void ApplyOverrideStack();
 

@@ -17,6 +17,7 @@
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "TriadDrift/UI/TDUIPaint.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
 
 void UTDGroundHUDWidget::NativeConstruct()
 {
@@ -234,6 +235,112 @@ void UTDGroundHUDWidget::Sample(float DeltaSeconds)
 		}
 	}
 	LastBoss = View.Boss01;
+
+	// Counted steps and the escape run (T5's props; read, never driven). Re-found twice a second.
+	PropScanLeft -= DeltaSeconds;
+	if (PropScanLeft <= 0.f)
+	{
+		PropScanLeft = .5f;
+		StepCounter = nullptr;
+		EscapeRun = nullptr;
+		if (UWorld* World = GetWorld())
+		{
+			for (TActorIterator<ATDStepCounter> It(World); It; ++It)
+			{
+				if (It->Required > 1 && It->IsLinkedStepCurrent()) { StepCounter = *It; break; }
+			}
+			for (TActorIterator<ATDCollapseRun> It(World); It; ++It)
+			{
+				if (It->IsRunning()) { EscapeRun = *It; break; }
+			}
+		}
+	}
+	{
+		int32 Count = 0, Required = 0;
+		FString Noun;
+		if (ForceStepRequired >= 0)
+		{
+			Required = ForceStepRequired;
+			Count = FMath::Clamp(ForceStepCount, 0, Required);
+			Noun = ForceStepNoun;
+		}
+		else if (const ATDStepCounter* Counter = Cast<ATDStepCounter>(StepCounter.Get()); Counter && Counter->IsLinkedStepCurrent())
+		{
+			Required = Counter->Required;
+			Count = FMath::Clamp(Counter->GetCount(), 0, Required);
+			FString Base = Counter->BaseText.ToString().ToUpper();
+			int32 Space = INDEX_NONE;
+			Base.FindLastChar(TEXT(' '), Space);
+			Noun = Space == INDEX_NONE ? Base : Base.Mid(Space + 1);
+		}
+		if (Required > 0 && StepCountSeen >= 0 && Count > StepCountSeen)
+		{
+			StepFlashLeft = 1.2f;
+		}
+		StepCountSeen = Required > 0 ? Count : -1;
+		StepFlashLeft = FMath::Max(0.f, StepFlashLeft - DeltaSeconds);
+		View.StepCount = Count;
+		View.StepRequired = Required;
+		View.StepNoun = Noun;
+		View.StepFlash01 = StepFlashLeft / 1.2f;
+	}
+	if (ForceEscapeLeft >= 0.f)
+	{
+		View.bEscape = true;
+		View.EscapeLeft = ForceEscapeLeft;
+		View.EscapeTotal = FMath::Max(ForceEscapeTotal, 1.f);
+	}
+	else if (const ATDCollapseRun* Run = Cast<ATDCollapseRun>(EscapeRun.Get()); Run && Run->IsRunning())
+	{
+		View.bEscape = true;
+		View.EscapeLeft = FMath::Max(0.f, Run->GetTimeLeft());
+		View.EscapeTotal = FMath::Max(Run->Seconds, 1.f);
+	}
+	else
+	{
+		View.bEscape = false;
+	}
+	// The way out while the clock runs: the pawn's first objective marker (T5 points it at the exit).
+	View.bExitMarker = false;
+	if (View.bEscape && PC && Pawn)
+	{
+		TOptional<FVector> At = ForceExitAt;
+		if (!At.IsSet() && Data)
+		{
+			for (AActor* Marker : Data->GetObjectiveMarkers())
+			{
+				if (IsValid(Marker)) { At = Marker->GetActorLocation(); break; }
+			}
+		}
+		if (At.IsSet())
+		{
+			View.bExitMarker = true;
+			View.ExitMetres = FVector::Dist(Pawn->GetActorLocation(), At.GetValue()) * .01f;
+			// Off screen (or behind): the direction from the view, on the frame edge.
+			FVector ViewLoc;
+			FRotator ViewRot;
+			PC->GetPlayerViewPoint(ViewLoc, ViewRot);
+			const FVector Local = ViewRot.UnrotateVector(At.GetValue() - ViewLoc);
+			ExitDirection = FVector2D(Local.Y, -Local.Z).GetSafeNormal();
+			if (ExitDirection.IsNearlyZero()) { ExitDirection = FVector2D(0.f, -1.f); }
+			View.bExitOnScreen = Local.X > 0.f;
+			ExitWorld = At.GetValue();
+		}
+	}
+	// The sensor marker flicker (host): "UNKNOWN", "VERIFIED" for a moment once, then "UNKNOWN".
+	View.bSensor = false;
+	if (const UTDUIHostSubsystem* Host = UTDUIHostSubsystem::Get(this))
+	{
+		FVector SensorAt;
+		float SensorAge = 0.f;
+		if (Host->GetSensorFlicker(SensorAt, SensorAge))
+		{
+			View.bSensor = true;
+			const float Since = SensorAge - UTDUIHostSubsystem::SensorVerifiedAt;
+			View.bSensorVerified = (Since >= 0.f && Since < .45f) || (Since >= .55f && Since < .67f);
+			SensorWorld = SensorAt;
+		}
+	}
 }
 
 // ------------------------------------------------------------------------------------------ paint
@@ -363,6 +470,111 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 		Bar.Box(BarX, BarY, BarW * FMath::Clamp(SmoothBoss, 0.f, 1.f), 10.f, Hostile);
 		const float TickX = BarX + BarW * BossPhase2At;
 		Bar.Line({ TickX, BarY - 4.f }, { TickX, BarY + 14.f }, Ink.CopyWithNewOpacity(bPhase2 ? .35f : .85f), 2.f);
+	}
+
+	// Below the panel's stack (transfer meter, Warden bar): the counted step's pips, then the escape clock.
+	float Stack = BelowPanel + (View.bTransfer ? 72.f : 0.f) + (View.bBoss ? 68.f : 0.f);
+	if (View.StepRequired > 0)
+	{
+		const float Pip = 14.f, Gap = 10.f;
+		const float RowW = View.StepRequired * Pip + (View.StepRequired - 1) * Gap;
+		const FString Label = View.StepFlash01 > 0.f && !View.StepNoun.IsEmpty()
+			? FString::Printf(TEXT("%s  %d / %d"), *View.StepNoun, View.StepCount, View.StepRequired)
+			: (View.StepNoun.IsEmpty() ? FString::Printf(TEXT("%d / %d"), View.StepCount, View.StepRequired)
+				: FString::Printf(TEXT("%s  %d / %d"), *View.StepNoun, View.StepCount, View.StepRequired));
+		const float LabelW = FMath::Max(P.MeasureText(Label, 13, true), Label.Len() * 8.f);
+		const float W = RowW + 22.f + LabelW + 40.f, H = 34.f, X = 960.f - W * .5f, Y = Stack;
+		P.Glass(X, Y, W, H, Accent);
+		FTDUIPainter Pips = P;
+		Pips.Layer = P.Layer + 2;
+		for (int32 I = 0; I < View.StepRequired; ++I)
+		{
+			const FVector2D PC2(X + 20.f + I * (Pip + Gap) + Pip * .5f, Y + H * .5f);
+			const bool bDone = I < View.StepCount;
+			const bool bNewest = bDone && I == View.StepCount - 1 && View.StepFlash01 > 0.f;
+			const FLinearColor Col = bNewest ? FMath::Lerp(Accent, Ink, View.StepFlash01) : bDone ? Accent : Dim.CopyWithNewOpacity(.7f);
+			if (bDone)
+			{
+				Pips.Box(PC2.X - 4.f, PC2.Y - 4.f, 8.f, 8.f, Col);
+			}
+			Pips.Line({ PC2.X, PC2.Y - 7.f }, { PC2.X + 6.f, PC2.Y - 3.5f }, Col, 2.f);
+			Pips.Line({ PC2.X + 6.f, PC2.Y - 3.5f }, { PC2.X + 6.f, PC2.Y + 3.5f }, Col, 2.f);
+			Pips.Line({ PC2.X + 6.f, PC2.Y + 3.5f }, { PC2.X, PC2.Y + 7.f }, Col, 2.f);
+			Pips.Line({ PC2.X, PC2.Y + 7.f }, { PC2.X - 6.f, PC2.Y + 3.5f }, Col, 2.f);
+			Pips.Line({ PC2.X - 6.f, PC2.Y + 3.5f }, { PC2.X - 6.f, PC2.Y - 3.5f }, Col, 2.f);
+			Pips.Line({ PC2.X - 6.f, PC2.Y - 3.5f }, { PC2.X, PC2.Y - 7.f }, Col, 2.f);
+		}
+		Pips.Text(X + 20.f + RowW + 22.f, Y + 8.f, Label, 13, View.StepFlash01 > 0.f ? Ink : Ink.CopyWithNewOpacity(.85f), true);
+		LastBoxes.Emplace(TEXT("steps"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
+		Stack += H + 10.f;
+	}
+	if (View.bEscape)
+	{
+		const float W = 300.f, H = 70.f, X = 960.f - W * .5f, Y = Stack;
+		const bool bLate = View.EscapeLeft <= 20.f;
+		const float Pulse = View.EscapeLeft <= 10.f ? .6f + .4f * FMath::Abs(FMath::Sin(Time * PI * 2.f)) : 1.f;
+		const FLinearColor Col = (bLate ? Hostile : FTDUIPalette::Bastion()).CopyWithNewOpacity(Pulse);
+		P.Glass(X, Y, W, H, Col, bLate);
+		const int32 Secs = FMath::CeilToInt(View.EscapeLeft - KINDA_SMALL_NUMBER);
+		P.Label(X + 20.f, Y + 10.f, TEXT("ESCAPE"), 12, Col, 160);
+		FTDUIPainter Clock = P;
+		Clock.Layer = P.Layer + 2;
+		Clock.Title(X + 20.f, Y + 24.f, FString::Printf(TEXT("%d:%02d"), Secs / 60, Secs % 60), 30, Ink);
+		Clock.Box(X + 130.f, Y + 40.f, (W - 150.f) * FMath::Clamp(View.EscapeLeft / View.EscapeTotal, 0.f, 1.f), 8.f, Col);
+		LastBoxes.Emplace(TEXT("escape"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
+		Stack += H + 10.f;
+	}
+	// The way out: an amber diamond with "EXIT" and the range on screen; off screen, a chevron on the frame edge.
+	if (View.bExitMarker)
+	{
+		FVector2D Pos = Center;
+		bool bOn = false;
+		FVector2D UI;
+		if (PC && UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(PC, ExitWorld, UI, true))
+		{
+			Pos = P.ToDesign(UI);
+			bOn = View.bExitOnScreen && Pos.X >= 60.f && Pos.X <= 1860.f && Pos.Y >= 60.f && Pos.Y <= 1020.f;
+		}
+		const FLinearColor Amber = FTDUIPalette::Bastion();
+		if (!bOn)
+		{
+			const FVector2D D = ExitDirection;
+			const float T = FMath::Min(D.X != 0.f ? 860.f / FMath::Abs(D.X) : 1e6f, D.Y != 0.f ? 440.f / FMath::Abs(D.Y) : 1e6f);
+			Pos = Center + D * T;
+			const FVector2D Side(-D.Y, D.X);
+			P.Line(Pos + D * 14.f, Pos - D * 6.f + Side * 12.f, Amber, 3.f);
+			P.Line(Pos + D * 14.f, Pos - D * 6.f - Side * 12.f, Amber, 3.f);
+		}
+		else
+		{
+			P.Line({ Pos.X, Pos.Y - 12.f }, { Pos.X + 12.f, Pos.Y }, Amber, 2.5f);
+			P.Line({ Pos.X + 12.f, Pos.Y }, { Pos.X, Pos.Y + 12.f }, Amber, 2.5f);
+			P.Line({ Pos.X, Pos.Y + 12.f }, { Pos.X - 12.f, Pos.Y }, Amber, 2.5f);
+			P.Line({ Pos.X - 12.f, Pos.Y }, { Pos.X, Pos.Y - 12.f }, Amber, 2.5f);
+		}
+		const FVector2D LabelAt = bOn ? Pos + FVector2D(18.f, -16.f) : Pos - ExitDirection * 40.f + FVector2D(-20.f, -10.f);
+		P.Label(LabelAt.X, LabelAt.Y, TEXT("EXIT"), 12, Amber, 150);
+		P.Text(LabelAt.X, LabelAt.Y + 15.f, FString::Printf(TEXT("%.0f m"), View.ExitMetres), 12, Ink.CopyWithNewOpacity(.85f));
+		LastBoxes.Emplace(TEXT("exit"), FBox2D(Pos - FVector2D(14.f, 14.f), Pos + FVector2D(14.f, 14.f)));
+	}
+	// The sensor marker: thin brackets, "SENSOR / UNKNOWN", for a moment "VERIFIED" in the shield blue.
+	if (View.bSensor)
+	{
+		FVector2D UI;
+		if (PC && UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(PC, SensorWorld, UI, true))
+		{
+			const FVector2D Pos = P.ToDesign(UI);
+			if (Pos.X >= 40.f && Pos.X <= 1880.f && Pos.Y >= 40.f && Pos.Y <= 1040.f)
+			{
+				const FLinearColor Blue = FLinearColor::FromSRGBColor(FColor(0x9F, 0xD8, 0xFF));
+				const float Stutter = View.bSensorVerified ? .75f + .25f * FMath::Abs(FMath::Sin(Time * 47.f)) : 1.f;
+				const FLinearColor Col = (View.bSensorVerified ? Blue : Dim).CopyWithNewOpacity(.9f * Stutter);
+				P.Brackets(Pos, 16.f, Col, 6.f);
+				P.Label(Pos.X + 24.f, Pos.Y - 16.f, TEXT("TRANSPONDER"), 11, Dim, 120);
+				P.Text(Pos.X + 24.f, Pos.Y - 1.f, View.bSensorVerified ? TEXT("VERIFIED") : TEXT("UNKNOWN"), 13, Col, true);
+				LastBoxes.Emplace(View.bSensorVerified ? TEXT("sensor_verified") : TEXT("sensor"), FBox2D(Pos - FVector2D(16.f, 16.f), Pos + FVector2D(110.f, 30.f)));
+			}
+		}
 	}
 
 	// Reticle.

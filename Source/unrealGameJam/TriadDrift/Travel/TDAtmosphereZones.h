@@ -21,7 +21,8 @@ enum class ETDAtmosphereEntryState : uint8
 {
 	Idle,
 	Entering,  // 2.5 s of heat and shake; the ship is committed
-	Travelling // TravelTo was called
+	Travelling, // TravelTo was called
+	Holding     // in the atmosphere but a must-hear story sequence is playing (Aftermath): flying freely, commits when it ends
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnAtmosphereEntry, UTDAtmosphereEntryComponent*, Entry);
@@ -53,7 +54,28 @@ public:
 	ETDAtmosphereEntryState GetEntryState() const { return EntryState; }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
-	bool IsEntering() const { return EntryState != ETDAtmosphereEntryState::Idle; }
+	bool IsEntering() const { return EntryState == ETDAtmosphereEntryState::Entering || EntryState == ETDAtmosphereEntryState::Travelling; }
+
+	/**
+	 * T3's live walk (the Lead, Nov 13): a player boosting toward Verdance right after the tutorial escape entered the
+	 * atmosphere during the Aftermath sequence and the level change cut Command's orders. While one of these story
+	 * sequences plays (UTDStorySubsystem::IsSequencePlaying), entry does not commit: the ship keeps flying (no wall), the
+	 * HUD's travel line says "AWAITING ORDERS", and entry commits the moment the sequence ends if the ship is still in
+	 * the atmosphere (it re-arms on the next pass otherwise).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere")
+	TArray<FName> HoldEntryForSequences = { TEXT("Aftermath") };
+
+	/** The ship is in the atmosphere, waiting for a must-hear sequence to end before it commits. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
+	bool IsHoldingForStory() const { return EntryState == ETDAtmosphereEntryState::Holding; }
+
+	/** A must-hear sequence is playing now (the hold applies). */
+	bool IsStoryHoldingEntry() const;
+
+	/** How far past the hold point (further from the planet) the ship may stray and still commit when the hold ends (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "cm"))
+	float HoldLeaveMargin = 50000.f;
 
 	/** 0..1 through the entry (heat / shake intensity for presentation). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
@@ -125,6 +147,10 @@ private:
 	ETDDestination Destination = ETDDestination::Verdance;
 	FName ReturnPoint = NAME_None;
 	float EntryTime = 0.f;
+	// The held entry's arguments (committed with them when the sequence ends).
+	FVector HeldPlanetCenter = FVector::ZeroVector;
+	float HeldSurfaceRadius = 0.f;
+	float HeldStartDistance = 0.f;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnAtmosphereExit, ATDShip*, Ship);
