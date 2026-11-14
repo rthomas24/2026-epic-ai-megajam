@@ -104,6 +104,11 @@ void UTDEnergyBladeComponent::PlayBladeCue(FName Name, const FTDFXCue* Cue, bool
 	// #163: ignite and retract play on the visible blade's emitter (+X up the beam); everything else as before.
 	const ATDFirstPersonCharacter* Pilot = Cast<ATDFirstPersonCharacter>(GetOwner());
 	USceneComponent* Beam = Pilot && (Name == TEXT("Ignite") || Name == TEXT("Retract")) ? Pilot->GetVisibleBladeBeam() : nullptr;
+	if (!Beam && Pilot && Name == TEXT("Ignite"))
+	{
+		// At ignite the beam is still hidden (it starts its crawl next frame): play on the beam the view will show.
+		Beam = Pilot->IsThirdPersonView() ? static_cast<USceneComponent*>(Pilot->GetHandBladeBeam()) : static_cast<USceneComponent*>(Pilot->GetBladeMesh());
+	}
 	UNiagaraComponent* FX = nullptr;
 	if (bAttached)
 	{
