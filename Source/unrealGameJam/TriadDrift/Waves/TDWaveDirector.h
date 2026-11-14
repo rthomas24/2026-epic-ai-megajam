@@ -266,9 +266,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial")
 	ETDTutorialMode TutorialMode = ETDTutorialMode::Auto;
 
-	/** The escape boundary sits this far (cm) from the battle centre, on the bearing to Verdance. */
+	/** The escape boundary sits this far (cm) ahead of the flown ship when Command orders the withdrawal, on the bearing to Verdance. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
 	float EscapeBoundaryDistance = 250000.f;
+
+	/** ...but never closer than this (cm) to Verdance's atmosphere, which the squad cannot enter yet. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float EscapeAtmosphereMargin = 30000.f;
+
+	/** ...and never nearer the ship than this (cm), so the escape is always a short flight. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float EscapeMinDistance = 80000.f;
 
 	/** Pursuers stop this far (cm) short of the boundary and hold there. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))

@@ -1189,21 +1189,39 @@ void ATDWaveDirector::BeginWithdrawal()
 		return;
 	}
 	TutorialPhase = ETDTutorialPhase::Withdrawal;
-	// The boundary: EscapeBoundaryDistance from the battle centre (the galaxy's combat zone, else where the flown ship
-	// is), on the bearing to Verdance - the way the fleet is heading and the story goes next.
+	// The boundary: EscapeBoundaryDistance ahead of where the flown ship is when Command calls it, on the bearing to
+	// Verdance - the way the fleet is heading and the story goes next. Measured from the ship, not the combat zone: the
+	// battle drifts, and a squad already 2.5 km out toward Verdance crossed a zone-centred plane on the order's frame
+	// (live run, Nov 13). Without a ship, the galaxy's combat zone, else this actor.
 	const AActor* Anchor = GetSpawnAnchor();
-	FVector Centre = Anchor ? Anchor->GetActorLocation() : GetActorLocation();
+	FVector Centre = GetActorLocation();
 	FVector Toward = FVector::ForwardVector;
-	if (const ATDGalaxyLayout* Layout = ATDGalaxyLayout::Get(this))
+	float Distance = EscapeBoundaryDistance;
+	const ATDGalaxyLayout* Layout = ATDGalaxyLayout::Get(this);
+	if (Layout)
 	{
 		Centre = Layout->GetActorTransform().TransformPosition(Layout->Layout.CombatZoneCenter);
+	}
+	if (Anchor)
+	{
+		Centre = Anchor->GetActorLocation();
+	}
+	if (Layout)
+	{
 		for (const ATDPlanetAtmosphere* P : Layout->GetPlanets())
 		{
-			if (P && P->GetDestination() == ETDDestination::Verdance) { Toward = (P->GetPlanetCenter() - Centre).GetSafeNormal(); }
+			if (P && P->GetDestination() == ETDDestination::Verdance)
+			{
+				Toward = (P->GetPlanetCenter() - Centre).GetSafeNormal();
+				// The line must sit in open space short of Verdance's atmosphere, which the squad cannot enter before the
+				// Verdance phase (live run, Nov 13: the plane landed 768 m inside the shell and the ship was held at it).
+				const float Room = FVector::Dist(P->GetPlanetCenter(), Centre) - P->GetAtmosphereRadius() - EscapeAtmosphereMargin;
+				Distance = FMath::Max(EscapeMinDistance, FMath::Min(Distance, Room));
+			}
 		}
 	}
 	EscapeNormal = Toward.IsNearlyZero() ? FVector::ForwardVector : Toward;
-	EscapePoint = Centre + EscapeNormal * EscapeBoundaryDistance;
+	EscapePoint = Centre + EscapeNormal * Distance;
 	// The corridor marker: T2's HUD draws an objective waypoint on TD.Objective.Marker.
 	FActorSpawnParameters P;
 	P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
@@ -1219,7 +1237,7 @@ void ATDWaveDirector::BeginWithdrawal()
 	}
 	UTDStorySubsystem::Fire(this, TEXT("TB_Command_FallBack"));
 	OnTutorialWithdrawalOrdered.Broadcast();
-	UE_LOG(LogTriadDrift, Log, TEXT("TD.Waves: tutorial withdrawal ordered - escape boundary %.0f m out toward Verdance"), EscapeBoundaryDistance / 100.f);
+	UE_LOG(LogTriadDrift, Log, TEXT("TD.Waves: tutorial withdrawal ordered - escape boundary %.0f m out toward Verdance"), Distance / 100.f);
 }
 
 void ATDWaveDirector::CompleteEscape()
