@@ -1,0 +1,465 @@
+{
+  "asset": "OutpostSetDressing",
+  "issue": 40,
+  "round": "mesh_r1",
+  "branch": "grok/assets-outpost-set-dressing-r1",
+  "design": "Ten small Route C set-dressing props for Verdance/Cinder outposts and landing pads, after Nicholas's board (ArtSource/Reference/LandingPadSetDressing). Distant / out-of-reach dressing only (R-043): nothing here is walkable.",
+  "tool": "Blender 4.5.3 LTS headless, procedural hard-surface (source/build_outpost_props.py); no AI 3D generator; no fal spend this round",
+  "units": {
+    "fbx_UnitScaleFactor": 100.0,
+    "unreal_import_uniform_scale": 1.0,
+    "axes": "+X forward (screens/fronts face +X), +Z up, pivot = ground-base centre (min Z = 0)",
+    "fbx_export": "apply_unit_scale=True, apply_scale_options=FBX_SCALE_UNITS, axis_forward=-Z, axis_up=Y, triangulated, tangents, mesh_smooth_type=OFF (custom/weighted normals), modifiers applied on export only",
+    "mapping": "Blender (x,y,z) m -> Unreal (100x, -100y, 100z) cm"
+  },
+  "shading": {
+    "smooth_by_angle_deg": 30,
+    "bevel": "live, unapplied: ANGLE limit 35 deg, 1 segment, width 4.5-6 mm, harden_normals, clamp_overlap",
+    "weighted_normal": "FACE_AREA, weight 50, keep_sharp",
+    "comms_dish_note": "dish bowl and its pale reflector liner are 16 x 5 so they shade-smooth (the 14.7% 1-25 deg dihedral bucket on that prop is the bowl + liner); every other prop keeps 6-sided cylinders for hard 60 deg facets (0% wobble)"
+  },
+  "material": {
+    "name": "M_OutpostProps",
+    "shared_by_all": true,
+    "textures": {
+      "BC": "T_OutpostProps_BC.png",
+      "N": "T_OutpostProps_N.png (DirectX)",
+      "ORM": "T_OutpostProps_ORM.png (R=AO, G=rough, B=metal)",
+      "E": "T_OutpostProps_E.png"
+    },
+    "delivery_res": 1024,
+    "master_res": 2048,
+    "masters": "source/textures_2k/"
+  },
+  "props": [
+    {
+      "name": "SM_Outpost_CargoCrate",
+      "fbx": "SM_Outpost_CargoCrate.fbx",
+      "glb": "SM_Outpost_CargoCrate.glb",
+      "blend": "SM_Outpost_CargoCrate.blend",
+      "size_cm_xyz": [
+        120.0,
+        100.0,
+        100.2
+      ],
+      "target_cm_xyz": [
+        120.0,
+        100.0,
+        100.0
+      ],
+      "bounds_cm_blender": {
+        "min": [
+          -60.0,
+          -50.0,
+          -0.0
+        ],
+        "max": [
+          60.0,
+          50.0,
+          100.2
+        ]
+      },
+      "tris_visual": 1628,
+      "ucx_count": 1,
+      "tris_fbx_incl_ucx": 1640,
+      "nonmanifold": 0,
+      "degenerate": 0,
+      "mesh_report_edge_dihedral_pct": {
+        "flat_<1deg": 27.2,
+        "wobble_1_25deg": 0.0,
+        "hard_>25deg": 72.8
+      },
+      "collision": [
+        "UCX_SM_Outpost_CargoCrate_00"
+      ],
+      "source_object_in_blend": "SRC_SM_Outpost_CargoCrate"
+    },
+    {
+      "name": "SM_Outpost_SupplyCrate",
+      "fbx": "SM_Outpost_SupplyCrate.fbx",
+      "glb": "SM_Outpost_SupplyCrate.glb",
+      "blend": "SM_Outpost_SupplyCrate.blend",
+      "size_cm_xyz": [
+        110.0,
+        90.0,
+        91.0
+      ],
+      "target_cm_xyz": [
+        110.0,
+        90.0,
+        90.0
+      ],
+      "bounds_cm_blender": {
+        "min": [
+          -55.0,
+          -45.0,
+          -0.0
+        ],
+        "max": [
+          55.0,
+          45.0,
+          91.0
+        ]
+      },
+      "tris_visual": 1056,
+      "ucx_count": 1,
+      "tris_fbx_incl_ucx": 1068,
+      "nonmanifold": 0,
+      "degenerate": 0,
+      "mesh_report_edge_dihedral_pct": {
+        "flat_<1deg": 27.3,
+        "wobble_1_25deg": 0.0,
+        "hard_>25deg": 72.7
+      },
+      "collision": [
+        "UCX_SM_Outpost_SupplyCrate_00"
+      ],
+      "source_object_in_blend": "SRC_SM_Outpost_SupplyCrate"
+    },
+    {
+      "name": "SM_Outpost_FieldTerminal",
+      "fbx": "SM_Outpost_FieldTerminal.fbx",
+      "glb": "SM_Outpost_FieldTerminal.glb",
+      "blend": "SM_Outpost_FieldTerminal.blend",
+      "size_cm_xyz": [
+        104.0,
+        72.0,
+        127.1
+      ],
+      "target_cm_xyz": [
+        100.0,
+        70.0,
+        125.0
+      ],
+      "bounds_cm_blender": {
+        "min": [
+          -52.0,
+          -36.0,
+          -0.0
+        ],
+        "max": [
+          52.0,
+          36.0,
+          127.1
+        ]
+      },
+      "tris_visual": 904,
+      "ucx_count": 2,
+      "tris_fbx_incl_ucx": 928,
+      "nonmanifold": 0,
+      "degenerate": 0,
+      "mesh_report_edge_dihedral_pct": {
+        "flat_<1deg": 27.6,
+        "wobble_1_25deg": 0.0,
+        "hard_>25deg": 72.4
+      },
+      "collision": [
+        "UCX_SM_Outpost_FieldTerminal_00",
+        "UCX_SM_Outpost_FieldTerminal_01"
+      ],
+      "source_object_in_blend": "SRC_SM_Outpost_FieldTerminal"
+    },
+    {
+      "name": "SM_Outpost_DataKiosk",
+      "fbx": "SM_Outpost_DataKiosk.fbx",
+      "glb": "SM_Outpost_DataKiosk.glb",
+      "blend": "SM_Outpost_DataKiosk.blend",
+      "size_cm_xyz": [
+        111.0,
+        85.0,
+        146.0
+      ],
+      "target_cm_xyz": [
+        110.0,
+        85.0,
+        145.0
+      ],
+      "bounds_cm_blender": {
+        "min": [
+          -55.5,
+          -42.5,
+          -0.0
+        ],
+        "max": [
+          55.5,
+          42.5,
+          146.0
+        ]
+      },
+      "tris_visual": 1012,
+      "ucx_count": 2,
+      "tris_fbx_incl_ucx": 1036,
+      "nonmanifold": 0,
+      "degenerate": 0,
+      "mesh_report_edge_dihedral_pct": {
+        "flat_<1deg": 27.4,
+        "wobble_1_25deg": 0.0,
+        "hard_>25deg": 72.6
+      },
+      "collision": [
+        "UCX_SM_Outpost_DataKiosk_00",
+        "UCX_SM_Outpost_DataKiosk_01"
+      ],
+      "source_object_in_blend": "SRC_SM_Outpost_DataKiosk"
+    },
+    {
+      "name": "SM_Outpost_CommAntenna",
+      "fbx": "SM_Outpost_CommAntenna.fbx",
+      "glb": "SM_Outpost_CommAntenna.glb",
+      "blend": "SM_Outpost_CommAntenna.blend",
+      "size_cm_xyz": [
+        90.0,
+        90.0,
+        260.0
+      ],
+      "target_cm_xyz": [
+        90.0,
+        90.0,
+        260.0
+      ],
+      "bounds_cm_blender": {
+        "min": [
+          -45.0,
+          -45.0,
+          -0.0
+        ],
+        "max": [
+          45.0,
+          45.0,
+          260.0
+        ]
+      },
+      "tris_visual": 1372,
+      "ucx_count": 3,
+      "tris_fbx_incl_ucx": 1408,
+      "nonmanifold": 0,
+      "degenerate": 0,
+      "mesh_report_edge_dihedral_pct": {
+        "flat_<1deg": 29.0,
+        "wobble_1_25deg": 0.0,
+        "hard_>25deg": 71.0
+      },
+      "collision": [
+        "UCX_SM_Outpost_CommAntenna_00",
+        "UCX_SM_Outpost_CommAntenna_01",
+        "UCX_SM_Outpost_CommAntenna_02"
+      ],
+      "source_object_in_blend": "SRC_SM_Outpost_CommAntenna"
+    },
+    {
+      "name": "SM_Outpost_CommsDish",
+      "fbx": "SM_Outpost_CommsDish.fbx",
+      "glb": "SM_Outpost_CommsDish.glb",
+      "blend": "SM_Outpost_CommsDish.blend",
+      "size_cm_xyz": [
+        174.6,
+        160.0,
+        229.0
+      ],
+      "target_cm_xyz": [
+        160.0,
+        160.0,
+        230.0
+      ],
+      "bounds_cm_blender": {
+        "min": [
+          -84.6,
+          -80.0,
+          -0.0
+        ],
+        "max": [
+          90.0,
+          80.0,
+          229.0
+        ]
+      },
+      "tris_visual": 3308,
+      "ucx_count": 2,
+      "tris_fbx_incl_ucx": 3332,
+      "nonmanifold": 0,
+      "degenerate": 0,
+      "mesh_report_edge_dihedral_pct": {
+        "flat_<1deg": 29.3,
+        "wobble_1_25deg": 14.7,
+        "hard_>25deg": 56.0
+      },
+      "collision": [
+        "UCX_SM_Outpost_CommsDish_00",
+        "UCX_SM_Outpost_CommsDish_01"
+      ],
+      "source_object_in_blend": "SRC_SM_Outpost_CommsDish"
+    },
+    {
+      "name": "SM_Outpost_Floodlight",
+      "fbx": "SM_Outpost_Floodlight.fbx",
+      "glb": "SM_Outpost_Floodlight.glb",
+      "blend": "SM_Outpost_Floodlight.blend",
+      "size_cm_xyz": [
+        95.0,
+        87.4,
+        219.6
+      ],
+      "target_cm_xyz": [
+        95.0,
+        85.0,
+        220.0
+      ],
+      "bounds_cm_blender": {
+        "min": [
+          -47.5,
+          -43.7,
+          -0.0
+        ],
+        "max": [
+          47.5,
+          43.7,
+          219.6
+        ]
+      },
+      "tris_visual": 2036,
+      "ucx_count": 3,
+      "tris_fbx_incl_ucx": 2072,
+      "nonmanifold": 0,
+      "degenerate": 0,
+      "mesh_report_edge_dihedral_pct": {
+        "flat_<1deg": 28.6,
+        "wobble_1_25deg": 0.0,
+        "hard_>25deg": 71.4
+      },
+      "collision": [
+        "UCX_SM_Outpost_Floodlight_00",
+        "UCX_SM_Outpost_Floodlight_01",
+        "UCX_SM_Outpost_Floodlight_02"
+      ],
+      "source_object_in_blend": "SRC_SM_Outpost_Floodlight"
+    },
+    {
+      "name": "SM_Outpost_BollardLight",
+      "fbx": "SM_Outpost_BollardLight.fbx",
+      "glb": "SM_Outpost_BollardLight.glb",
+      "blend": "SM_Outpost_BollardLight.blend",
+      "size_cm_xyz": [
+        45.0,
+        45.0,
+        110.5
+      ],
+      "target_cm_xyz": [
+        45.0,
+        45.0,
+        110.0
+      ],
+      "bounds_cm_blender": {
+        "min": [
+          -22.5,
+          -22.5,
+          -0.0
+        ],
+        "max": [
+          22.5,
+          22.5,
+          110.5
+        ]
+      },
+      "tris_visual": 956,
+      "ucx_count": 1,
+      "tris_fbx_incl_ucx": 968,
+      "nonmanifold": 0,
+      "degenerate": 0,
+      "mesh_report_edge_dihedral_pct": {
+        "flat_<1deg": 28.1,
+        "wobble_1_25deg": 0.0,
+        "hard_>25deg": 71.9
+      },
+      "collision": [
+        "UCX_SM_Outpost_BollardLight_00"
+      ],
+      "source_object_in_blend": "SRC_SM_Outpost_BollardLight"
+    },
+    {
+      "name": "SM_Outpost_Generator",
+      "fbx": "SM_Outpost_Generator.fbx",
+      "glb": "SM_Outpost_Generator.glb",
+      "blend": "SM_Outpost_Generator.blend",
+      "size_cm_xyz": [
+        171.4,
+        112.2,
+        125.0
+      ],
+      "target_cm_xyz": [
+        170.0,
+        110.0,
+        125.0
+      ],
+      "bounds_cm_blender": {
+        "min": [
+          -85.7,
+          -56.1,
+          -0.0
+        ],
+        "max": [
+          85.7,
+          56.1,
+          125.0
+        ]
+      },
+      "tris_visual": 1776,
+      "ucx_count": 1,
+      "tris_fbx_incl_ucx": 1788,
+      "nonmanifold": 0,
+      "degenerate": 0,
+      "mesh_report_edge_dihedral_pct": {
+        "flat_<1deg": 28.9,
+        "wobble_1_25deg": 0.0,
+        "hard_>25deg": 71.1
+      },
+      "collision": [
+        "UCX_SM_Outpost_Generator_00"
+      ],
+      "source_object_in_blend": "SRC_SM_Outpost_Generator"
+    },
+    {
+      "name": "SM_Outpost_PowerJunction",
+      "fbx": "SM_Outpost_PowerJunction.fbx",
+      "glb": "SM_Outpost_PowerJunction.glb",
+      "blend": "SM_Outpost_PowerJunction.blend",
+      "size_cm_xyz": [
+        120.0,
+        75.2,
+        135.0
+      ],
+      "target_cm_xyz": [
+        120.0,
+        75.0,
+        135.0
+      ],
+      "bounds_cm_blender": {
+        "min": [
+          -60.0,
+          -37.6,
+          -0.0
+        ],
+        "max": [
+          60.0,
+          37.6,
+          135.0
+        ]
+      },
+      "tris_visual": 1540,
+      "ucx_count": 1,
+      "tris_fbx_incl_ucx": 1552,
+      "nonmanifold": 0,
+      "degenerate": 0,
+      "mesh_report_edge_dihedral_pct": {
+        "flat_<1deg": 27.3,
+        "wobble_1_25deg": 0.0,
+        "hard_>25deg": 72.7
+      },
+      "collision": [
+        "UCX_SM_Outpost_PowerJunction_00"
+      ],
+      "source_object_in_blend": "SRC_SM_Outpost_PowerJunction"
+    }
+  ],
+  "total_tris_visual": 15588,
+  "contact_sheet": "contact_sheet.png"
+}

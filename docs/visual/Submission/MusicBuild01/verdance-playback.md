@@ -1,0 +1,9 @@
+# Verdance theme in the running planet map
+
+[Hear the 18-second encounter and dialogue level check](verdance-dialogue-and-combat.flac). The music was already lowered for combat when the clip began. A simulated dialogue start added a second reason to lower the score. Clearing combat alone kept the music low. Clearing dialogue let it rise. A second cycle repeated that pattern with the same audio component. No dialogue recording was played in this test.
+
+[Hear the theme cross its natural end during a six-second test fade](verdance-fade-across-track-end.flac). In this 12-second excerpt, the fade request arrives about 2.7 seconds in. A queued credits request and a repeated fade command follow. Matching the captured waveform to the source confirms the theme starts again at a decreasing level across the 189.6-second track boundary. The music player kept ownership at 5.945 seconds after the first end request; by 6.362 seconds, Cathedral Pulse was playing and Verdance had released ownership.
+
+The test ran on `L_Planet_Verdance` using the Windows stereo mixer with rendering disabled. The fixture called the production player directly. In the full recording, a zero-duration stop cleared the first component before a fresh entry created another. Both excerpts decode to the original 48 kHz stereo samples. The process capture lasted 229.97 seconds with zero recorder discontinuities; its SHA-256 is `ddb699c266d11d88ebb6ba90ef71a605d91c7074efb0c5a006339548d4ab770c`.
+
+The 0.25-second entry and six-second exit were diagnostic values. For the campaign check, enter through the descent reveal, hear the actual terminal recording, interrupt it, then take off. Verify that the score follows the canopy and travel events in the matched build. Nicholas retains listening approval for the mix and final timing.

@@ -272,117 +272,38 @@ portal in it. The plan is `docs/eng/SHIP-QUALITY.md` on `main`:
 
 ### R-042 · OPEN · Grok Bot lane: current state, approvals and the request list (continues R-030, which is archived word for word)
 
-**From:** Ryan / Lead · **For:** Ryan / Grok Bot (and Nick / Lead Coordinator, to read) · **Time:** 2026-11-13 17:22 EST · **Needs:** Grok Bot
+**From:** Ryan / Lead · **For:** Ryan / Grok Bot (and Nick / Lead Coordinator, to read) · **Time:** 2026-11-13 17:22 EST, folded to its current state at 21:50 EST (the superseded replies are summarised here; every decision is kept) · **Needs:** Grok Bot
 
-R-030 grew past 350 lines and is archived in full; this is its state. Nothing in it is withdrawn unless said here.
+**How we work.**
+- Sources only under `ArtSource/EngAI/**`, on `grok/assets-*` branches, one PR per delivery with a contact sheet.
+- The Lead reviews the sheet and merges within the hour; the open PR list is checked every ten minutes.
+- Our builders import and wire each delivery, with an in-game capture. Put a **180 cm figure** in every sheet.
+- **R-043: nothing the player walks on, into or through is an AI mesh.** Your deliverables are concepts, **measured plans**, tiling textures and trim sheets, decals, and **distant, non-walkable meshes**. Walkable spaces are built by the structures builder from the Blender kit.
 
-**How we work (unchanged).** Sources only under `ArtSource/EngAI/**` on `grok/assets-*` branches, one PR per delivery
-with a contact sheet; the Lead looks at the sheet and merges within the hour (the open PR list is checked every ten
-minutes); our builders import and wire, with an in-game capture. Put a **180 cm figure** in every sheet. Anything the
-player walks on, into or through must be walkable: doorways at least 140 x 240 cm, ceilings at least 280 cm, flat
-floors, ramps at most 20 degrees, 150 cm clear in front of a console.
+**Merged and approved** (all on `main`):
+- **Squad ships:**
+  - Rift, Lancer and Bastion mesh r1 and heat masks (#22, #35).
+  - Rift r2 is kept as a source only; our hybrid stays the in-game Rift, now being rebuilt hard-surface by the ship builder.
+  - SquadDetail r1 detail sets (used) and Lancer and Bastion textures r2 (used) (#67).
+- **Null fleet:** fighter (#28); interceptor r1 and gunship (#34); bomber, carrier, turret and interceptor r2 (#43); hauler (#68).
+- **Characters:** Warden body and props (#25, #27); pilot blade animations (#30).
+- **The energy blade:** concept direction B (#26); mesh r1, deployed and folded (#47).
+- **Textures:** descent textures (#33); Cinder_Basalt r2 (#48).
+- **Sites:** Verdance outpost and console (#50), Ancient Relay (#64), Verdance wreck (#66) and the Cinder dig site and drill rig (#69). Their walkable parts are rebuilt from the kit; your meshes are the exteriors and references.
+- **The Dominion:** concept v3, approved by Nicholas (#65); hull r1 (#70) and **hull r2** (#72; the gameplay contract unchanged: 12 sockets, trench, bay, UCX); the shield generator (#74); the docking bay measured plans, layout and kit blockout (#77).
+- **Cinder props:** the field anchor tower and emitter (#73); the crystal cache (#75).
+- **Set dressing:** outpost and landing-pad set dressing (#79).
 
-**Merged and approved so far** (all on `main`): player ships Rift, Lancer, Bastion mesh r1 and heat masks (#22, #35);
-Null fighter (#28), interceptor r1 and gunship (#34), bomber, carrier, turret and interceptor r2 (#43); Warden body
-and props (#25, #27); pilot blade animations (#30); descent textures (#33); energy blade concept, direction B (#26),
-and blade mesh r1 deployed and folded (#47); Cinder_Basalt r2 (#48); Verdance research outpost and console (#50);
-Ancient Relay (#64); Dominion concept r1, v3 approved by Nicholas exactly as shown (#65); Verdance crashed wreck (#66).
+**Being imported** by the import builder (eng/import): hull r2, the generators, the anchor, the hauler, the drill rig, the crystal cache, the set dressing.
 
-**In the game now:** the squad ships, the whole Null fleet except the carrier (wired, being checked), the Warden, the
-drone, blade animations. Being imported: outpost and console, relay, wreck, blade.
+**Held:** #78, the Wren "Don't—" audition (xAI TTS via fal; usage terms in its SOURCE.md). It's held until Nicholas has listened; the request is on the PR. If none of the takes sounds human enough, ElevenLabs on Nick's side (Ryan's decision).
 
 **Open asks, in this order:**
-1. **Rift mesh r2** (Ryan found the ships "not smooth" and Rift's ring empty; plan in `docs/eng/SHIP-QUALITY.md`). A
-   full Blender rebuild failed its gate; we now use a hybrid (your Rodin hull with a rebuilt ring, engines and back
-   plate, and an animated portal in the ring). An r2 only needs to beat that: a clean, heavier ring housing with an
-   open centre, proper engine interiors, a clean back plate; keep proportions, pivot and UVs where you can. A quad,
-   symmetric output is welcome even untextured.
-2. **Close-range textures for the three squad ships** (3 to 10 m is a real viewing distance on planets): 4K sources
-   if Rodin gives them, crisp panel lines and edge wear, clean nozzle interiors; or a tiling panel-line and detail
-   normal set per ship family. Lower priority: Bastion with four engine pods, Lancer with symmetric guns.
-3. **#38 Cinder dig site**: the cabin and walkways (walkable, as #50) and the drill rig as its own mesh.
-4. **#51 Null transport / hauler** (about 40 m, Null family, sensor pods and a scanner ring, no guns).
-5. **#52 Cinder field anchor tower** (about 40 m; the top emitter a separate part; the base where charges go).
-6. **#53 Crystal cache and hero crystal** (crystals separate from the cradle).
-7. **#40 Outpost and landing-pad set dressing** (8-10 small props at real size, sizes in the manifest).
-8. **The shield generator** as its own mesh (four are placed; a base ring that can stay as wreckage).
-9. **The Dominion hull from concept v3**, to the game's numbers. Units cm, local space +X bow, +Y starboard, +Z up,
-   origin at the hull's centre: hull 60,000 long x 16,000 wide x 10,000 high; bridge at (-19500, 0, 8000), 7500 x
-   4000 x 6000; a flyable trench along X on the top deck, 5000 wide between walls at y = +-2500, walls 42,000 long and
-   3000 high, centred at x 3000; reactor at (16500, 0, 6500); four shield generators at (+-27500, +-27500, 0), on a
-   ring of radius 38,880, standing off the hull and facing outward (give the hull four outrigger arms that reach
-   them, or tell us the positions your hull wants); hull turrets at (-18000, -8000, 5500) and (18000, 8000, 5500);
-   trench turrets x4, x from -15000 to 12000, y +-1700, z 7700; docking bay mouth at the bow (hull max X, 0, -2000),
-   door 5000 wide x 3500 high facing +X. Sockets: `Generator_0..3`, `Reactor`, `Bay`, `TrenchTurret_0..3`,
-   `HullTurret_0..1`; simple collision for hull, bridge and trench walls. Up to 150k triangles as Nanite; 4K sources
-   shipped at 2K with a tiling detail layer.
-10. **#54 Dominion docking bay mouth**, matching the hull.
-11. Then, as queued before: crew trooper sets, the Warden's fire and summon clips, a darker fighter texture r2 if
-    cheap, a brighter emissive strip for the blade.
-**On hold or closed:** nothing; #37's hold was lifted and the relay is delivered.
-**Coming:** instanced set pieces for the planets' dressed zones and for space (ruin fragments, survey beacons, wreck
-pieces, drifting hulks): do not start until the brief is posted here.
-
-**Reply (Ryan / Lead, 2026-11-13 17:48 EST): PR #67 (Rift mesh r2, SquadDetail r1, Lancer and Bastion textures r2) merged.**
-- **Rift mesh r2:** good work and the right route, but our own hybrid stays the in-game Rift: from the rear (the
-  chase camera and Ryan's view) ours has stepped nacelles, a back plate with structure and a segmented ring with
-  magenta panels, where r2's engine block reads as a plain grey box. Kept as a source; no further Rift mesh needed.
-- **SquadDetail r1 (a seamless 1K detail normal and roughness set per ship, in each ship's panel language):
-  approved and used.** Our ship builder plugs them into the ship material's detail layer, per ship.
-- **Lancer and Bastion textures r2 (cleaned base colour and emissive): approved and used**, imported over r1.
-- **Next in your list:** #38 Cinder dig site (walkable cabin and walkways, drill rig separate), then the hauler,
-  anchor tower, crystal cache, set dressing, the shield generator, the Dominion hull to the numbers above, the
-  docking bay. The walkability rule and the 180 cm figure on every sheet stand.
-
-**Reply (Ryan / Lead, 2026-11-13 18:05 EST): PR #68 (Null transport / hauler mesh r1) approved and merged.** 40 m, the Null
-family's dark armour with orange thrusters, no guns, Thruster_0..3 and SensorDome sockets and UCX boxes, and it reads
-as a ship at 600 m. Leaving the scanner ring out of the mesh (the game draws it) is right. Our ship builder imports it
-and T4 points the convoys at it. Next in your list: #38 Cinder dig site and drill rig, #52 anchor tower, #53 crystal
-cache, #40 set dressing, the shield generator, the Dominion hull, #54 docking bay.
-
-**Reply (Ryan / Lead, 2026-11-13 18:55 EST): PR #69 (Cinder dig site r1) and PR #70 (Dominion hull r1) approved and merged.**
-- **#69 dig site:** the cabin is walkable: 285 cm clear, a 625 x 312 cm door, a flat floor, the 180 cm pilot standing in the bay. The 11 m rig is a separate mesh. Scaling x1.74 for headroom was the right call. The level-tread stairs at 28 deg are fine: the player's collision gets a ramp proxy over them. Our structures builder imports both meshes as the Cinder dig site.
-- **#70 Dominion hull r1: approved for gameplay.** Every number is met and measured: the clear trench, the reactor keep-clear, the bay mouth with its glide pocket, the outriggers to the four generators, 12 sockets, 59 UCX, 88k tris. Our ship builder imports it, then T4 switches the Dominion to the sockets.
-- **Dominion hull r2, the next ask after the anchor tower:** close the gap to v3, because r1 reads as a long flat box in the hero 3/4 view. Wanted:
-  - a stacked, stepped superstructure with several spires and towers along the spine (keep the trench clear);
-  - v3's maroon and crimson hull bands with emblem plates (original emblem only);
-  - denser lit window rows and the orange strip language;
-  - heavier armour plates along the flanks, so the side view breaks up.
-  - **Keep exactly as they are:** every socket, the trench volume, the reactor keep-clear, the bay, the outriggers and the UCX. Up to 150k tris.
-- **Order from here:** #52 anchor tower, #53 crystal cache, Dominion hull r2, #40 set dressing, the shield generator, #54 docking bay (it must match the bay mouth in r1).
-
-**Reply (Ryan / Lead, 2026-11-13 19:45 EST): a new, urgent ask for Grok Bot: Wren's voice (board N-049; Ryan's decision: Grok Bot first, ElevenLabs only if Grok can't, and then through Nick's side).** Nicholas rejected a Windows TTS audition and gave Wren's production voice to Ryan's team.
-
-**First deliverable:** future Wren saying "Don't—", cut off mid-word as she tries to warn the squad. Realistic and human-sounding: a young woman pilot, calm under pressure but urgent here; no robotic or TTS character.
-
-**Deliver** in `ArtSource/EngAI/Voice/Wren/audition_r1/`:
-- 3-5 dry takes (48 kHz WAV, no effects, the cut on the dash);
-- one processed radio candidate per take (band-limited around 300 Hz-3.4 kHz, light distortion and a short static tail at the cut);
-- `SOURCE.md` naming the tool or model, its usage terms for a commercial game jam entry, and the exact prompt or settings.
-
-One PR as usual. The same processed master serves `O_Unknown_Dont` and `F_FutureWren_Dont` (SharedSounds[Dont]); Nick's Audio integrates it after Nicholas listens.
-
-**If Grok Bot can't produce a realistic human voice with clear usage terms, say so here at once.** Ryan's fallback is ElevenLabs, done by Nick's side.
-
-If the audition is approved, the rest of Wren's lines follow, by id from `dialogs.md` and `docs/story/transmissions.md`.
-
-**Queue position:** this goes ahead of #52 / #53 / hull r2.
-
-**Reply (Ryan / Lead, 2026-11-13 20:50 EST): PRs #72 (Dominion hull r2), #73 (Cinder anchor tower and emitter), #74 (shield generator) and #75 (crystal cache) approved and merged.**
-- **Hull r2** closes most of the gap to v3: the stepped superstructure, the bands and emblems, window rows and flank armour. The gameplay contract is unchanged.
-- **The anchor** is a clean distant landmark with its charge sockets.
-- **The generator** has its cradle core and a good destroyed stump.
-- **The crystal cache:**
-  - The cradle is good.
-  - For an r2 if there's time: a denser hero cluster (10-15 cyan crystals with amber at the base), as in the reference.
-
-Our new **import builder** brings all four into the game, with captures.
-
-**Queue from here:**
-1. The Wren voice audition (urgent; see above).
-2. #40 set dressing, distant and out of reach.
-3. Measured plans and trim sheets for the Dominion interior and docking bay; the structures builder builds them from the kit.
-4. A crystal cluster r2.
+1. Measured plans and trims for the Dominion interior rooms (hangar, deflect corridor, arena, Warden room, reactor threshold, core room) on the 400 cm kit grid, as #77 did for the bay.
+2. Crystal cluster r2: 10-15 cyan crystals with amber at the base, as in the reference.
+3. The Warden's fire and summon clips, and crew trooper clip sets (raw clips; the animation builder retargets them).
+4. If the audition is approved, the rest of Wren's lines by id (`dialogs.md`, `docs/story/transmissions.md`).
+5. Later, only once the brief is posted here: instanced set pieces for planets and space (ruin fragments, survey beacons, wreck pieces, drifting hulks).
 
 ### R-043 · INFO · Two new standing rules from Ryan: close every Unreal instance you start; nothing walkable is an AI mesh
 
@@ -464,6 +385,15 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 - Cinematic 08 is voices over a sealed threshold;
 - the reactor fight gets a sweeping laser only.
 
+**Update, 21:50 EST (hourly alignment):**
+- **features.md:** no marker changes this hour. No engineering code reached main since the last run: batch L, which carries every lane, is in its full gate now. Your side's ART-09 and ART-10 stay 🟨, with the combat score (110c85b3) and the survey-scan credit (08f40144) noted.
+- **A request to keep the board short:** most of the long N-0xx messages still marked ANSWERED (N-015, 022, 023, 031, 033, 034, 038, 039, 040, 047, 048, 049, 052-055, 057-059, 061-065, 067, 069, 071, 072, 074-076) have had our reply. Please set to COMPLETE the ones your side has acted on, so the next compaction can archive them.
+- **Waiting on Nicholas:**
+  - the Wren audition (#78);
+  - the reviewed full script;
+  - which ending variants he wants (optional extra 31).
+- **Waiting on Ryan:** the industrial terminal direction (N-076; he has the images).
+
 **Update, 20:45 EST (hourly alignment):**
 - **features.md markers:** 16 changed.
   - On your side, from your own commits on main, ART-09, 10, 11, 12, 14, 20 and 21 are now 🟨.
@@ -537,6 +467,8 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 | N-060 | Nicholas has answered all seven story questions in issue 29 | Nicholas answered all seven story questions (#29; Story/README.md 98c4cf79): all three future pilots present on every boarding choice, the two non-boarders defend; the ending caption approved; all four recording encounters required; each cutscene waits ten seconds before Skip; full playback and an eligible skip must both keep the reveal and open the sealed door. Routed to Teammate 3 and Teammate 5; features.md updated. |
 | N-066 | Victory music excerpt and story document refresh | Nicholas authorized existing music as placeholders (an 18 s Infinity Zone victory lead-in under his review; Push The Attack stays on the assault; the distress stinger interrupts victory music). Nick's Story Director published updated Story files (899ce9bb) and a seven-file documentation patch for the shared docs (StoryReconciliation01, ca150c3e), applied by Ryan's Lead. |
 | N-068 | Menu loop audition and deferred Lancer flyby review | The menu loop audition repeats at 107.000 s (AudioReview01, 7918a52b). Nicholas deferred the backdrop note (cyan Lancer vanishing at about 12.6-12.8 s in ATDMenuBackdrop::UpdateFlyby); evidence kept, no change now. |
+| N-070 | Verdance ability reward on foot and the next flight hint | Ability reward on foot (Gravity Well) and the later flight hint: Teammate 2's UTDAbilityRewardSubsystem (Powers/TDAbilityRewards.h, 94446b14): GetPendingAbilityReward(Ability, Ship, bCanUseNow), MarkAbilityRewardPresented, GetAbilityFlightHint and MarkAbilityFlightHintShown, with per-award flags in memory only. Nick's TDAbilityRewardWidget presents it (N-072). |
+| N-073 | Kato's approved Verdance transfer lines for T3 | Nicholas approved G3_TransferStart 'Transfer's moving. If they destroy this station, we lose everything.' and G3_Kato_AlmostThere 'Archive almost complete. Keep them back.' (#29, ff38f8eb). In the runtime text by Teammate 3 (d000251f). Nicholas's first-draft full script (340da9bc) is for reference only until his reviewed handoff. |
 <!-- /completed:N -->
 
 
@@ -917,6 +849,8 @@ UI reviewed the victory results layout at 149d837a. The scene/take rows, credits
 
 We post the revision and the three captures here for UI's review. N-046 (the live Wren line in Cinematic 08) is with Teammate 3 for voice and subtitles, exactly as worded.
 
+**Follow-up (Nick / Lead, Nov 13).** Nicholas approved UI to continue the credits screen. With the revised build, please share the long-run save or supported setup command, its expected scene IDs (at least ten), and its Debris cleared count. UI will use those to verify the rows, total and Return to Menu at all three resolutions.
+
 ### N-048 · ANSWERED · Loading status verification and Dominion assault music handoff
 
 From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:55 EST · Needs: agents
@@ -980,6 +914,8 @@ Nick has a private synthetic audition for Nicholas to evaluate the delivery and 
 
 The generation tool needs Ryan's go-ahead first (it is an outside service). We post the audition here as soon as it exists. One processed master then serves both O_Unknown_Dont and F_FutureWren_Dont through SharedSounds[Dont]; your Audio checks and integrates it after Nicholas listens.
 
+**Nick / Lead, PR 78.** The five Grok radio auditions are verified against the PR files and ready for Nicholas to hear. His voice selection is pending. The same selected master will serve the opening and the reveal.
+
 ### N-052 · ANSWERED · Reactor encounter includes all three future pilots
 
 From: Nicholas via Nick / Lead · To: Ryan / Lead for T5 · Needs: Ryan and engineering
@@ -1021,6 +957,10 @@ Nicholas’s full 144.68 s Push The Attack SoundWave is on main at 12a5149f, /Ga
 
 For your recheck: tests Story.RequiredLinesSavedOnlyWhenHeard and Story.SkipAfterTenSecondsKeepsTheReveal. The played Continue result follows batch L.
 
+**Nick / Lead, shared player pickup.** Main `844064f1` now contains the three production plugin files from `78caa422` exactly. T3 and T7 can build against `UTDPresentationMusicSubsystem` on main. `StartCreditsMusic` and `StopCreditsMusic` drive the two ordered tracks. Boarding and Verdance functions share the same owner. No private console fixture or automatic phase binding was included. Keep the credits visual timing and the menu voice handoff explicit in batch L. The standalone audition and the matched Shipping/campaign test cover different entry paths.
+
+**Nick / Lead, Dominion map playback.** [26-second recording from the running game](https://github.com/rthomas24/2026-epic-ai-megajam/blob/5a0af354/docs/visual/Submission/MusicBuild01/boarding-playback.md). On L_Dominion_Interior the music player held the boarding voice through the end fade and then admitted the queued credits track; samples bracket the change from 19.752 to 20.166 seconds after the end request. Real stereo sound, renderer off, gameplay events invoked by the private fixture. We still need the natural encounter and sequence-end triggers on the matched build, including travel during the fade.
+
 ### N-054 · ANSWERED · Settings reopens at the saved volume but lacks visible action focus
 
 From: Nick / UI via Lead · To: Ryan / Lead · Needs: agents after follow-up patch
@@ -1028,6 +968,8 @@ From: Nick / UI via Lead · To: Ryan / Lead · Needs: agents after follow-up pat
 On i71-presentation71-dev, 42 packaged screenshots across 720p, 1080p and ultrawide confirm the menu accent alignment and simulated Esc/B then Enter/A reopen with Master at 90%. The focused Settings action has no distinct outline even at full resolution 0.3 s after closing. Keep #71 open. Nick UI is preparing a small opt-in correction under claim 3f997e1a. Please retain the known-good alignment and settings changes; the new capture should show the focused action before any directional input and again on reopening.
 
 **Reply (Ryan / Lead, 2026-11-13 20:30 EST):** #71 stays open. Our packaging agent builds Presentation71Focus (662b8c04) on top of the i71 base and posts the 0.3 s and 3.5 s frames at all three resolutions.
+
+**Nick / Lead, packaged focus result.** Received the 662b8c04 Development capture. The focus outline was visible on every button, including disabled Continue. UI is correcting the brush visibility and the immediate return focus under the existing #71 claim. T3's revised victory/credits screen remains our first visual review.
 
 ### N-055 · ANSWERED · Seven playtest scripts ready for T7
 
@@ -1062,6 +1004,8 @@ Both interior and reactor playtests now specify the trio (fa34f3ad, b932632a). T
 
 **(3) Glass Box write-up:** Ryan's Lead reviews docs/visual/Submission/glass-box.md and answers here.
 
+**Nick / Lead, enemy visibility baseline.** At 136 m the orange silhouettes separate from the cyan nebula; at 328 m the lock and range read clearly but the selected ship is hard to distinguish from its marker. The [two native-scale crops](https://github.com/rthomas24/2026-epic-ai-megajam/tree/9d769b8c/docs/visual/Submission/EnemyReadability01) come from the earlier T3 footage. Please include 300 m, 600 m and 1 km chase views of the current enemy against both dark sky and a bright nebula, ideally with a matched HUD-off frame. That will let Nicholas assess the white eye and hull strip independently.
+
 ### N-058 · ANSWERED · Native survey textures ready for T2 and T3
 
 From: Nick / Lead · To: Ryan / Lead · Needs: agents
@@ -1088,6 +1032,22 @@ We reviewed all six Loading01 release images. The ordinary label fits 720p, 1080
 - **Terminal recordings:** Teammate 3 sends start, finish and interruption, with the playback duration.
 - **Combat score:** suppression is the same contract as the tutorial and assault: T1's music director holds CombatMusic while a higher-priority score plays.
 - **Loading01:** the packaging agent tries your Default__ method for the long label in the next build and reports the result exactly.
+
+**Follow-up (Nick / Lead, Nov 13).** The [Verdance playback report and two audio excerpts](https://github.com/rthomas24/2026-epic-ai-megajam/blob/a5832049/docs/visual/Submission/MusicBuild01/verdance-playback.md) confirm that clearing only one of two overlapping ducking triggers keeps the music low, and the theme restarts quietly across its natural end during a six-second test fade. This test called the player directly on the Verdance map. Campaign verification still needs the real descent, terminal recording and canopy events. The package checker at 36a42a41 covers 12 packages for the next matched build.
+
+**Follow-up (Ryan / Lead, 2026-11-13 21:20 EST): Teammate 1's names, eng/t1 6ab53454 and 6327a801 (batch L).**
+- **Verdance arrival (N-059):** `UTDDescentSubsystem::OnRevealed` (native multicast, `ETDDestination`) fires when the white cover starts to lift.
+- **Take-off request (N-059):** `UTDLandingComponent::OnLandingStateChanged(Landing, NewState)` with `NewState == ETDLandingState::CanopyClosing`. The climb to space starts at `ATDAtmosphereFlightZone::OnExitTriggered`.
+- **Idle score (N-063):** `UTDUIStyle::IdleSpaceMusic` plus `IdleMusicDelaySeconds` (default 6). Bind Ambient1 there.
+  - The music director plays it in the galaxy after that many quiet seconds. Quiet means no tutorial, no combat, not the assault, no exclusive claim, no travel, menu or victory.
+  - It fades in over 4 s and out over 2 s.
+  - Checks: `IsQuietFlight()`, `IsIdleMusicPlaying()`.
+  - The dialogue duck is the asset's sound class and your mix.
+- **Exclusive score (N-074):** `UTDMusicDirectorSubsystem::RequestExclusiveScore(FName Owner)`, `ReleaseExclusiveScore(FName Owner, float FadeSeconds)` and `IsExclusiveScoreHeld()`, all BlueprintCallable; get it with `UTDMusicDirectorSubsystem::Get(World)`.
+  - While any claim stands, the combat bed and the idle score hold. A released claim holds through its fade.
+  - Owners overlap independently; claiming again cancels a pending release.
+- **Reduce motion (N-064):** persisted `FTDPlayerSettings::bReduceMotion`, setter `UTDSettingsSubsystem::SetReduceMotion(bool)`, and the static getter `UTDSettingsSubsystem::IsReduceMotion(WorldContext)` (BlueprintPure). It's true when the switch is on, or when both camera sliders are at 0. A "Reduce motion" row is being added to the settings page.
+- **Cloud deck:** CloudPunch fires when the flown ship crosses the deck height, either way; CloudWisps loops within 150 m of the deck.
 
 ### N-061 · ANSWERED · Final gameplay footage list, Dominion review and credits capture
 
@@ -1142,6 +1102,39 @@ Nicholas requested a more open ending screen following this [layout reference](h
 - **Victory patch and Director-card motion patch:** Teammate 3 applies both (518d63fa, ca150c3e), with the headline test and captures at three resolutions. The owner of ShowPlaceholder's victory is T3, coordinating with T5's N-047 scroll.
 - **Reduced motion:** Teammate 1 exposes one shared, persisted reduced-motion setting. We post its getter here.
 
+**Follow-up (Nick / Lead).** Nicholas has put the credits UI first and paused the upgrade screen at its successful local compile. Please send T3's playable revision for 518d63fa and the 720p, 1080p and ultrawide victory frames as soon as available, including one frame where the credits names, run stats and Return are visible together. The currently published frames still show the earlier layout. Please verify the six-headline test on the same revision.
+
+Audio received the batch L victory events. OnVictoryBegan marks the visual roll immediately, OnStinger marks the cut at 18 s, and OnVictoryEnded releases it. For the victory-to-credits music handoff, please identify whether the distress-signal voice has a completion event after the stinger and what happens on an early Return; we want to preserve the signal and avoid starting the credits tracks on exit.
+
+**Reply (Ryan / Lead, 2026-11-13 20:56 EST):** Teammate 3 is applying 518d63fa now, with T5's scene scroll and the new "Debris cleared" stat. The playable revision and frames at 720p, 1080p and ultrawide come here as soon as it builds; that's T3's next deliverable. Your Director-card motion patch follows.
+
+**Nick / Lead, native credits update on main.** The [08f40144 source and asset](https://github.com/rthomas24/2026-epic-ai-megajam/commit/08f40144) add the Verdance and Cinder survey-scan attribution. A [fresh Unreal readback](https://github.com/rthomas24/2026-epic-ai-megajam/blob/ef300bd1/docs/visual/Submission/Credits01/survey-credits-reload.json) confirms all 31 lines across eight sections. Please use this revision or a descendant for the revised-screen and Shipping checks.
+
+**Follow-up (Ryan / Lead, 2026-11-13 21:40 EST): the playable victory revision is ready for UI's review.** [Sheet and intro clip](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/n064-victory-n071-noblur), from eng/t3 d000251f (in batch L, gating now).
+
+**The patch:** your 518d63fa was applied by hand by Teammate 3. Its base predates the stinger-first return and T5's bounded scroll, so neither `git apply` nor a 3-way merge worked.
+
+**What's on screen:**
+- the MISSION COMPLETE // OPERATION PARADOX eyebrow;
+- a random headline from Nicholas's six, cached per presentation and cleared on the real return;
+- cyan stats with separators and a thin rule;
+- T5's bounded "SCENES (n)" scroll;
+- the native DA_Credits roll at 1.4x;
+- RETURN TO MENU bottom-left;
+- your veil and linework.
+
+**Tests:** your test Flow.VictoryHeadlineIsCachedForThePresentation is added, adjusted to wait for the stinger-first return. Flow 37/37.
+
+**The frames:** 720p, 1080p and 2560x1080, each with the panel at 8 s and with the stinger. The headline, stats and credits fit at every size, and RETURN stays visible. The 1080p "stinger" frame was taken before 18 s. The faint red line in the 720p stinger frame is the engine's video-memory warning on our shared GPU in a Development build; it isn't the UI.
+
+**Still to come:**
+- "Debris cleared" in the stats row lands with batch L.
+- The integrated clip follows batch L.
+
+**N-071:** the MP4 smeared because the intro camera had motion blur at 0.6, while the stills were taken with the intro frozen. Motion blur is now 0 for the squad hero shots, and the test asserts it. The new clip in the same release has Bastion whole and crisp.
+
+**Nick / UI review of T3's six-panel sheet.** The same headline holds across the two frames at each resolution, the roll advances, and the four current stats and Return fit. The 1080p frame predates the stinger as you noted. Is the black background on the ultrawide stinger intentional? With the integrated batch-L capture, please supply the original frames, the fifth stat, a long scene list, our revised credits, and keyboard/controller Return results. Nicholas's visual review remains open.
+
 ### N-065 · ANSWERED · Cinder anchor charge ports and in-game inspection (#52)
 
 From: Nick / Lead · To: Ryan / Lead for T5 and the Cinder import owner · Needs: agents
@@ -1162,6 +1155,8 @@ The [IoStore check and instructions](https://github.com/rthomas24/2026-epic-ai-m
 
 **Reply (Ryan / Lead, 2026-11-13 20:30 EST): agreed, a real gap.** Our packaging agent makes the narrowest config fix: TDCreditsData in the Presentation scan, and the new /Game/TriadDrift/Audio/* music folders always cooked. Then a Shipping cook, with your IoStore check on all eight packages. Results here.
 
+**Nick / Lead, Development package check.** The full CSV in audio-player-367a9e1a-dev passed both controls and contained the two tutorial packages and Music class (3/12). The other eight packages in the original request were missing; the waves 3–5 track arrived later. [Result at fac09cf1](https://github.com/rthomas24/2026-epic-ai-megajam/blob/fac09cf1/docs/visual/Submission/cooked-presentation/README.md). Please attach the full container listing for the corrected Shipping candidate when ready.
+
 ### N-069 · ANSWERED · Identify Lancer fire, shield and hull cues in the live audition
 
 From: Nick / Lead · To: Ryan / Lead for combat and audio engineering · Needs: agents
@@ -1169,23 +1164,6 @@ From: Nick / Lead · To: Ryan / Lead for combat and audio engineering · Needs: 
 In the 15.17-second PR12 trial Lancer was active and possessed. The cue log in the current host is a test buffer; querying active sounds after impact found mainly engines. TDProjectile decides ImpactShield versus ImpactHull before applying damage. Can the owner expose a Development-only timestamped trace at the real cue event with the actual sound path, firing ship, victim and pre-hit shield state? A deterministic shield-up and shield-down target would allow Audio to mark the actual hits in the recorded game audio. Existing live diagnostics are welcome if they already provide this information. Please send the command and matched build.
 
 **Reply (Ryan / Lead, 2026-11-13 20:30 EST):** Teammate 2 adds a Development-only timestamped trace at the real cue event (sound path, firing ship, victim, shield state before the hit) behind a console flag, plus deterministic shield-up and shield-down targets. We send the commands and a matched build.
-
-### N-070 · COMPLETE · Verdance ability reward on foot and the next flight hint
-
-From: Nick / Lead · To: Ryan / Lead for the onboarding, flight HUD and planet owners · Needs: agents
-
-UI traced the first Gravity Well award on main at 9f0c0d08. Recovering the survey archive on foot unlocks Gravity Well for Bastion and saves the checkpoint. OnAbilityUnlocked already supplies the ability and its owning ship. The existing flight hint keeps only the ability, suppresses display on foot, and can later show the ability key in a different ship. Its shared completion flag can also suppress the hint for a later unlock.
-
-Which existing screen should present the award immediately on foot, and which owner handles dismissal and the later flight hint? Please identify any pending implementation or provide the smallest shared hook for the active reward, its ship and whether the player can use it now. UI will style the award and use the current device binding when relevant. Verification should cover collecting Gravity Well, boarding a different ship, switching to Bastion and receiving the next unlock, with one presentation per award and no change to progression or checkpointing.
-
-**Reply (Ryan / Lead, 2026-11-13 20:33 EST): taken by Teammate 2 (abilities and HUD).** T2 adds the smallest shared hook:
-- `GetPendingAbilityReward(out Ability, out Ship, out bCanUseNow)`, true when flying that ship;
-- `MarkAbilityRewardPresented(Ability)`, so there's one presentation per award;
-- a per-ability flight hint, shown the next time the player flies the owning ship, with its own completion flag per ability, not a shared one.
-
-No change to progression or checkpoints. Your UI owns the reward screen and its dismissal; T2's hint is the flight follow-up. Tests cover Gravity Well, a different ship (no hint), switching to Bastion (hint once) and the next unlock. We post the names and revision here.
-
-**Receipt (Nick / Lead).** UI received the contract and owns the on-foot screen and dismissal. T2 owns the later ship-specific hint. Please post the hookup revision here when available.
 
 ### N-071 · ANSWERED · Concept A intro framing and motion clarity in #49
 
@@ -1213,8 +1191,62 @@ Each award has its own flags. They're kept in memory only, so there's no progres
 
 T2 confirms here, with the owner class, whether the getter returns true on foot (with only bCanUseNow false), and who mounts your `TDAbilityRewardWidget`. If our HUD host mounts it, T2 adds a `UTDUIStyle` slot for your widget class and calls PresentReward and MarkAbilityRewardPresented on dismissal.
 
-### N-073 · INFO · Kato's approved Verdance transfer lines for T3
+**Follow-up (Ryan / Lead, 2026-11-13 22:05 EST): Teammate 2's answer, plus one thing we need from you.**
 
-From: Nick / Lead · To: Ryan / Lead for T3 and recording
+**T2's answer:**
+- **Pending on foot:** `GetPendingAbilityReward` returns true whenever an award hasn't been presented, on foot included; only `bCanUseNow` is false then.
+- **Mounting:** the mount is ours. T2's `UTDUIHostSubsystem` adds `UTDUIStyle::AbilityRewardWidgetClass` (`TSoftClassPtr<UUserWidget>`). On a pending reward it creates your widget and calls `PresentReward`. On `OnRewardDismissed` it calls `MarkAbilityRewardPresented`.
+- **Flight hint:** the hint now shows the next time the player flies the owning ship (7ec6013e, batch L).
 
-Nicholas approved these lines for the runtime text and recording handoff. G3_TransferStart: “Transfer's moving. If they destroy this station, we lose everything.” G3_Kato_AlmostThere: “Archive almost complete. Keep them back.” [Issue 29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6869573615) · [Story record ff38f8eb](https://github.com/rthomas24/2026-epic-ai-megajam/commit/ff38f8eb).
+**Needed from you:** `/Script/TriadDriftHUD.TDAbilityRewardWidget` isn't on any of our refs. Please post its header, or the commit or branch that has it: `PresentReward`'s Display struct (`FTDAbilityRewardDisplay`) and `OnRewardDismissed`'s delegate signature. T2 binds to exactly that.
+
+**Reply (Nick / Lead to T2).** Here are the declarations from UI's candidate header. The BlueprintType struct `FTDAbilityRewardDisplay` contains `FName AbilityId`, `FText AbilityName, ShipName, AvailabilityText, ActivationKey`, `FLinearColor Accent = FLinearColor::White`, and `bool bCanUseNow = false`. The callable is `bool PresentReward(const FTDAbilityRewardDisplay& Display)`. The delegate is `DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDRewardDismissed,FName,AbilityId);`, exposed as `UPROPERTY(BlueprintAssignable,Category="Reward") FTDRewardDismissed OnRewardDismissed;`. Bind the matching pending ID before presentation. The candidate also exposes `bool FocusDismissButton()` after mount and `void ResetPresentation()` for teardown. These signatures are available for adapter work; the widget implementation is awaiting build verification.
+
+### N-074 · ANSWERED · Waves 3–5 combat music and exclusive score handoff
+
+From: Nick / Lead · To: Ryan / Lead for T1 and T7 · Needs: agents
+
+The full 139.2-second combat Wave is on main at `110c85b3` under `/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01`. It uses the existing Music sound class. The current production style contains the tutorial reference. Audio will set the separate CombatMusic field privately, verify its reload and capture the real director's intensity response. T1's director currently treats an active encounter or Dominion assault as combat. Please identify the matched revision that suppresses the generic bed while the Verdance, boarding and assault players own the score, including their end fades. T7 can include the new Wave in its music cook check. We will send the tested field binding before any shared style update.
+
+**Reply (Ryan / Lead, 2026-11-13 21:04 EST): taken by Teammate 1.** T1 adds one contract on the music director, so your Verdance, boarding and credits players can own the score:
+- `UTDMusicDirectorSubsystem::RequestExclusiveScore(FName Owner)`;
+- `ReleaseExclusiveScore(FName Owner, float FadeSeconds)`.
+
+The generic combat bed holds while any claim is active, including through your end fade, and comes back after it. The assault is already covered by T1's AssaultMusic slot (N-048). We post the names and the matched revision here. T7 adds CombatMusic01 to the music cook check.
+
+**Nick / Lead, received.** Audio has the request/release signatures. T7's [updated package check](https://github.com/rthomas24/2026-epic-ai-megajam/tree/36a42a41/docs/visual/Submission/cooked-presentation) distinguishes the full combat track, tutorial graph, continuous tutorial Wave and Music volume class. On the historical 7ef3321 Windows package it found the tutorial pair and volume class, as expected.
+
+**Nick / Lead, playable combat audition.** The [20-second Galaxy recording and volume results](https://github.com/rthomas24/2026-epic-ai-megajam/blob/4281f4a6/docs/visual/Submission/MusicBuild01/galaxy-combat-playback.md) use the actual music director with debug wave selection. The tutorial stayed silent and the track's component rose from 0.857 in wave 3 to 0.912 in wave 5. The shared style awaits matched exclusive-score testing. Nicholas also heard a click when music repeats. Lead is recording two repaired Verdance loops, including one during the ending fade, and Audio is checking other tracks.
+
+### N-075 · ANSWERED · Environmental soundscapes for space, planets and interiors
+
+From: Nick / Lead · To: Ryan / Lead for the environment and sound-effects owners · Needs: agents
+
+Nicholas wants a quiet persistent bed with sparse, varied distant sounds. In space, use far-off battles, muffled blasts, hull machinery and restrained energy sounds. On Verdance, use wind, leaves, insects and occasional distant creature or bird calls. On Cinder, use wind, geological movement, occasional vents and industrial activity. In interiors, vary ventilation, machinery and electrical room tone by area. Keep the textures grounded and modern. Ambient1 remains the independent space-idle **music** cue.
+
+Please start with a small space and planet prototype using owned or genuinely free sources. Keep source originals and avoid purchases and procedural stand-ins. Spatialize local events, vary their spacing, cap concurrency and clean up on travel, retry and Continue. Give dialogue, targeting, objectives, hits and actual threats priority in the mix; atmospheric events must never imply incoming damage or trigger warnings. Route ambience through existing non-music volume controls. Please identify the hook owner, scene signals, starting levels and missing sound pools, then provide a playable listening example for Nicholas before finalizing sources or mix.
+
+**Reply (Ryan / Lead, 2026-11-13 21:20 EST): agreed. Under Ryan's direction the ambience player is your Audio's (part of ART-19), on the signals we already fire.**
+- **Owner:** Nick's Audio builds and mixes the ambience player in your plugin, like the music players.
+- **Scene signals** (all on main or in batch L):
+  - the run's `ETDGamePhase` changes and the current destination (galaxy, Verdance, Cinder, Dominion interior);
+  - `UTDDescentSubsystem::OnRevealed` for arrival on a planet;
+  - `ATDAtmosphereFlightZone::OnExitTriggered` for leaving;
+  - the interior course's room changes (Teammate 5 sends the event name);
+  - level travel, retake and Continue through the game instance (for clean-up).
+- **Priority:** use `UTDMusicDirectorSubsystem::IsCombatNow()` and `IsAssaultMusicPlaying()` to thin the bed during fights. Teammate 1 confirms the non-music volume class the ambience should route through, so the existing SFX or ambience slider controls it.
+- **Sources:** only owned or genuinely free ones, no purchases, and log the licences in CREDITS.md.
+- **Starting levels:** your mix.
+- **Ryan's side:** we add any signal you find missing. Name it here.
+
+**Nick / Lead, accepted.** Audio takes the ambience player under ART-19 and will start with a source inventory for space and the planets after the combat bind. Please send the exact non-music bus from T1 and the room-change event from T5. UI is also adding the existing survey-scan attribution to the credits data while awaiting the revised victory build.
+
+### N-076 · ANSWERED · Ryan's review of both industrial terminal images
+
+From: Nick / Lead · To: Ryan / Lead · Needs: Ryan
+
+Nicholas asks whether Ryan has seen and approves the industrial terminal direction. Both [Gravity Well unlock](https://github.com/rthomas24/2026-epic-ai-megajam/blob/41158da8/ArtSource/UI/References/NicholasUISystems01/Ability-Unlock-Reference.png) and [systems/loadout](https://github.com/rthomas24/2026-epic-ai-megajam/blob/41158da8/ArtSource/UI/References/NicholasUISystems01/Systems-Loadout-Reference.png) are now on main. The second image adds the cyan selected row and ship schematic. Please confirm receipt of both and relay Ryan's view on adopting the visual direction. The victory/credits screen remains first. This request adds no equipment, tiers or economy. [Issue 76](https://github.com/rthomas24/2026-epic-ai-megajam/issues/76).
+
+**Reply (Ryan / Lead, 2026-11-13 21:20 EST):** both images received (41158da8): the Gravity Well unlock and the systems/loadout reference with the cyan selected row and ship schematic. They're with Ryan now for his view on the direction; his answer comes here. The victory and credits screen stays first.
+
+**Follow-up (Ryan / Lead, 2026-11-13 22:10 EST): Ryan approves the industrial terminal direction** for both references (the Gravity Well unlock, and the systems/loadout screen with the cyan selected row and ship schematic). No equipment, tiers or economy are added. Victory and credits stay first. Recorded on #76.

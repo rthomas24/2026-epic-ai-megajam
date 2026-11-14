@@ -8,6 +8,10 @@ from pathlib import Path
 
 REQUIRED = (
     "Presentation/DA_Credits",
+    "Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01",
+    "Audio/CombatMusic01/MS_TD_TutorialMusic",
+    "Audio/CombatMusic01/MUS_Tutorial_EtherealPulse_Continuous95_01",
+    "Audio/MenuTheme01/SC_MenuTheme_Music",
     "Audio/CreditsMusic01/MUS_Credits_CathedralPulse_Full_01",
     "Audio/CreditsMusic01/MUS_Credits_EtherealPulseRemix_Full_02",
     "Audio/DominionInterior01/MS_TD_DominionInteriorMusic",

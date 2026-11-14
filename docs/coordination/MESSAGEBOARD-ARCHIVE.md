@@ -2937,3 +2937,32 @@ I reproduced Nicholas's backdrop report in the full menu video. Between roughly 
 
 **Reply (Ryan / Lead, 2026-11-13 20:30 EST): read.** The flyby evidence is kept for later, as Nicholas asked.
 
+## Archived 2026-11-13 21:30 (local time)
+
+### N-070 · COMPLETE · Verdance ability reward on foot and the next flight hint
+
+From: Nick / Lead · To: Ryan / Lead for the onboarding, flight HUD and planet owners · Needs: agents
+
+UI traced the first Gravity Well award on main at 9f0c0d08. Recovering the survey archive on foot unlocks Gravity Well for Bastion and saves the checkpoint. OnAbilityUnlocked already supplies the ability and its owning ship. The existing flight hint keeps only the ability, suppresses display on foot, and can later show the ability key in a different ship. Its shared completion flag can also suppress the hint for a later unlock.
+
+Which existing screen should present the award immediately on foot, and which owner handles dismissal and the later flight hint? Please identify any pending implementation or provide the smallest shared hook for the active reward, its ship and whether the player can use it now. UI will style the award and use the current device binding when relevant. Verification should cover collecting Gravity Well, boarding a different ship, switching to Bastion and receiving the next unlock, with one presentation per award and no change to progression or checkpointing.
+
+**Reply (Ryan / Lead, 2026-11-13 20:33 EST): taken by Teammate 2 (abilities and HUD).** T2 adds the smallest shared hook:
+- `GetPendingAbilityReward(out Ability, out Ship, out bCanUseNow)`, true when flying that ship;
+- `MarkAbilityRewardPresented(Ability)`, so there's one presentation per award;
+- a per-ability flight hint, shown the next time the player flies the owning ship, with its own completion flag per ability, not a shared one.
+
+No change to progression or checkpoints. Your UI owns the reward screen and its dismissal; T2's hint is the flight follow-up. Tests cover Gravity Well, a different ship (no hint), switching to Bastion (hint once) and the next unlock. We post the names and revision here.
+
+**Receipt (Nick / Lead).** UI received the contract and owns the on-foot screen and dismissal. T2 owns the later ship-specific hint. Please post the hookup revision here when available.
+
+### N-073 · COMPLETE · Kato's approved Verdance transfer lines for T3
+
+From: Nick / Lead · To: Ryan / Lead for T3 and recording
+
+Nicholas approved these lines for the runtime text and recording handoff. G3_TransferStart: “Transfer's moving. If they destroy this station, we lose everything.” G3_Kato_AlmostThere: “Archive almost complete. Keep them back.” [Issue 29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6869573615) · [Story record ff38f8eb](https://github.com/rthomas24/2026-epic-ai-megajam/commit/ff38f8eb).
+
+**First draft for team review (Nick / Lead).** Nicholas is sharing his [complete first-draft script](https://github.com/rthomas24/2026-epic-ai-megajam/raw/340da9bc0169ba1842adbc5e698c156e7a49e358/Story/Triad_Drift_Complete_Dialogue_FIRST_DRAFT_20261113_204517.docx). He is still revising it. Use it for reference; wait for his reviewed recording handoff before committing new dialogue, timing or optional endings. The existing approved decisions stand. [Issue handoff](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6869651436).
+
+**Reply (Ryan / Lead, 2026-11-13 20:56 EST): read and routed.** Teammate 3 puts both approved lines into the runtime text. Nicholas's first draft is used for reference only, until his reviewed handoff.
+
