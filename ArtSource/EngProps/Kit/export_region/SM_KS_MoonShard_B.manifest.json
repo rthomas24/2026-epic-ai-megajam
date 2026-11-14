@@ -1,10 +1,10 @@
 {
   "asset": "SM_KS_MoonShard_B",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_MoonShard_B.fbx",
-  "tris": 24103,
+  "tris": 23905,
   "size_cm": [
-    15863.6,
-    16943.5,
+    14302.1,
+    16943.4,
     15543.1
   ],
   "pivot": "root object origin (SM_KS_MoonShard_B~exp)",
@@ -12,8 +12,6 @@
   "materials": [
     "M_Kit_CrackDim",
     "M_Kit_CrackHot",
-    "M_Kit_FlareEmber",
-    "M_Kit_Recess",
     "M_Kit_Rim",
     "M_Kit_Rock",
     "M_Kit_Seam",
@@ -54,40 +52,6 @@
         0.45
       ],
       "emission_strength": 20.0
-    },
-    {
-      "name": "M_Kit_FlareEmber",
-      "textured": false,
-      "base_color": [
-        0.02,
-        0.025,
-        0.03
-      ],
-      "metallic": 0.0,
-      "roughness": 0.15,
-      "emission_color": [
-        1.0,
-        0.45,
-        0.15
-      ],
-      "emission_strength": 2.0
-    },
-    {
-      "name": "M_Kit_Recess",
-      "textured": false,
-      "base_color": [
-        0.02,
-        0.025,
-        0.03
-      ],
-      "metallic": 0.0,
-      "roughness": 0.15,
-      "emission_color": [
-        0.9,
-        0.2,
-        0.04
-      ],
-      "emission_strength": 2.0
     },
     {
       "name": "M_Kit_Rim",
@@ -198,8 +162,6 @@
     },
     "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
   },
-  "warnings": [
-    "9 materials = 9 draw calls; consider merging"
-  ],
+  "warnings": [],
   "errors": []
 }

@@ -1,11 +1,11 @@
 {
   "asset": "SM_KS_Hulk_Mid",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_Hulk_Mid.fbx",
-  "tris": 6014,
+  "tris": 6012,
   "size_cm": [
     5922.6,
     2558.0,
-    2554.4
+    2303.4
   ],
   "pivot": "root object origin (SM_KS_Hulk_Mid~exp)",
   "forward": "+X (authoring front +X rotated)",
@@ -13,7 +13,6 @@
     "M_Kit_Trim",
     "M_Kit_Breach",
     "M_Kit_Cold",
-    "M_Kit_FlareCold",
     "M_Kit_Light",
     "M_Kit_Nav",
     "M_Kit_RimLight",
@@ -67,23 +66,6 @@
         1.0
       ],
       "emission_strength": 6.0
-    },
-    {
-      "name": "M_Kit_FlareCold",
-      "textured": false,
-      "base_color": [
-        0.02,
-        0.025,
-        0.03
-      ],
-      "metallic": 0.0,
-      "roughness": 0.15,
-      "emission_color": [
-        0.65,
-        0.82,
-        1.0
-      ],
-      "emission_strength": 2.0
     },
     {
       "name": "M_Kit_Light",
@@ -186,8 +168,6 @@
     },
     "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
   },
-  "warnings": [
-    "9 materials = 9 draw calls; consider merging"
-  ],
+  "warnings": [],
   "errors": []
 }

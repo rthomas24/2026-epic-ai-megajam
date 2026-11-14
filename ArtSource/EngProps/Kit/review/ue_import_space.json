@@ -51,13 +51,14 @@
    15.0,
    17.6
   ],
-  "tris_lod0": 384,
+  "tris_lod0": 448,
   "lods": 3,
   "hulls": 1,
   "slots": [
    "0:Dom",
    "1:Ember",
-   "2:Glow"
+   "2:Glow",
+   "3:DomRaw"
   ]
  },
  {
@@ -135,9 +136,9 @@
   "size_m": [
    59.2,
    25.6,
-   25.5
+   23.0
   ],
-  "tris_lod0": 6014,
+  "tris_lod0": 6012,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -148,18 +149,17 @@
    "4:Breach",
    "5:Light",
    "6:Nav",
-   "7:RimLight",
-   "8:FlareCold"
+   "7:RimLight"
   ]
  },
  {
   "asset": "SM_KS_MoonShard_A",
   "size_m": [
-   272.6,
+   260.7,
    329.5,
    210.7
   ],
-  "tris_lod0": 24300,
+  "tris_lod0": 23012,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -177,11 +177,11 @@
  {
   "asset": "SM_KS_MoonShard_B",
   "size_m": [
-   158.6,
+   143.0,
    169.4,
    155.4
   ],
-  "tris_lod0": 24103,
+  "tris_lod0": 23905,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -201,9 +201,9 @@
   "size_m": [
    89.8,
    132.9,
-   25.5
+   23.7
   ],
-  "tris_lod0": 7860,
+  "tris_lod0": 7858,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -225,9 +225,9 @@
   "size_m": [
    88.8,
    82.8,
-   94.1
+   92.1
   ],
-  "tris_lod0": 16122,
+  "tris_lod0": 16120,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -238,8 +238,7 @@
    "4:Work",
    "5:Eye",
    "6:Glow",
-   "7:Beacon",
-   "8:FlareRed"
+   "7:Beacon"
   ]
  }
 ]

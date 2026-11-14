@@ -81,8 +81,6 @@ def picket_ring():
         # r4: the distance cue - an 8 m amber panel and a squad-cyan panel on the outer face
         p.box((R_ + T, -400.0, -350.0), (R_ + T + 40.0, 400.0, 50.0), mat="Nav")
         p.box((R_ + T, -400.0, 80.0), (R_ + T + 40.0, 400.0, 330.0), mat="CyanRun")
-    with p.at(rotz(5.0)):
-        _flare(p, R_, 0.0, 1900.0, "FlareAmber")
     with p.at(rotz(-25.0)):                                      # r5: a scorched squad-cyan stencil block (bars, no numerals)
         for k, (y0, y1) in enumerate(((-500.0, -380.0), (-330.0, -210.0), (-160.0, 120.0), (170.0, 290.0))):
             p.poly([(R_ + T + 5.0, y0, -150.0), (R_ + T + 5.0, y1, -150.0), (R_ + T + 5.0, y1, 250.0), (R_ + T + 5.0, y0, 250.0)],
@@ -195,7 +193,6 @@ def hulk_mid():
     p.box((-80.0, W2 / 2 - 10.0, H2 * 0.2), (80.0, W2 / 2 + 150.0, H2 * 0.2 + 160.0), mat="Cold")
     p.box((-200.0, -120.0, H2 * 0.45 + 300.0), (40.0, 120.0, H2 * 0.45 + 540.0), mat="Nav")
     _hulk_cues(p, -2000.0, 2000.0, H2 * 0.45 + 300.0)
-    _flare(p, 0.0, 0.0, H2 * 0.45 + 900.0, "FlareCold")
     p.chull([(x, y, z) for x in (-2900.0, 2900.0) for y, z in prof] + [(x, 0.0, H2 * 0.45 + 300.0) for x in (-2200.0, 900.0)])
     return p
 
@@ -257,7 +254,6 @@ def scar_rig():
     # r4: the distance cue - a Null red lamp cluster (8 m) on a mast over the drill head
     p.box((-80.0, -80.0, G + 1550.0), (80.0, 80.0, G + 2200.0), reg="frame", mat="Dom")
     p.box((-400.0, -400.0, G + 2200.0), (400.0, 400.0, G + 2600.0), mat="Beacon")
-    _flare(p, 0.0, 0.0, G + 2800.0, "FlareRed")
     _tube(p, (0.0, 0.0, G), (0.0, 0.0, -1800.0), 260.0, reg="frame", mat="Dom")
     p.box((-400.0, -400.0, -2200.0), (400.0, 400.0, -1800.0), reg="hazard", mat="Dom")
     p.box((-140.0, -140.0, 200.0), (140.0, 140.0, 480.0), mat="Strobe")          # the slow white strobe on the drill arm
@@ -283,31 +279,23 @@ def _shard(name, R, seed, seams, band=1100.0):
     XC0 = R[0] * 0.35
     rnd = random.Random(seed + 1)
     iy, iz = R[1] * 0.08, -R[2] * 0.06                      # the impact point on the face
-    # r5: 8 angular facets (Voronoi cells round seed points on the face), each its own tilted plane 2-8 m proud or sunk,
-    # so the break has real relief; the two deepest are recesses that glow
-    seeds = [(iy, iz)] + [(iy + math.cos(2 * math.pi * k / 7 + 0.4) * R[1] * rnd.uniform(0.3, 0.6),
-                           iz + math.sin(2 * math.pi * k / 7 + 0.4) * R[2] * rnd.uniform(0.3, 0.6)) for k in range(7)]
-    offs = [-700.0] + [rnd.choice((-1, 1)) * rnd.uniform(200.0, 800.0) for _ in range(7)]
-    tilts = [(rnd.uniform(-0.18, 0.18), rnd.uniform(-0.18, 0.18)) for _ in range(8)]
-    deep = sorted(range(8), key=lambda i: offs[i])[:2]
+    steps = [0.0, -450.0, -900.0, -300.0, -700.0, -1000.0]
 
     def plate(y, z):
-        return min(range(8), key=lambda i: (y - seeds[i][0]) ** 2 + (z - seeds[i][1]) ** 2)
+        a_ = (math.degrees(math.atan2(z - iz, y - iy)) + 360.0) % 360.0
+        r_ = math.hypot(y - iy, z - iz)
+        if r_ < R[1] * 0.12:
+            return 0
+        return 1 + int(a_ // 72.0)
 
     def xc(y, z):
-        i = plate(y, z)
-        return XC0 + offs[i] + tilts[i][0] * (y - seeds[i][0]) + tilts[i][1] * (z - seeds[i][1])
+        return XC0 + steps[plate(y, z)]
     _rock(p, R, seed, XC=xc, BR=1.0, BD=0.0, NU=96, NV=60, rim=True)
     out = []
     for v, u, m in p.faces:
         if m == "Cut":
             zc = sum(q.z for q in v) / len(v)
-            yc_ = sum(q.y for q in v) / len(v)
-            i_ = plate(yc_, zc)
-            if i_ in deep:
-                m = "Recess"
-            else:                                               # strata follow the facet (its tilt shifts the bands)
-                m = "Strata" if int((zc + tilts[i_][1] * 4000.0 + offs[i_] * 2.0 + 100000.0) // band) % 2 == 0 else "Strata2"
+            m = "Strata" if int((zc + 100000.0) // band) % 2 == 0 else "Strata2"
             u = [(q.y / 3000.0, q.z / 1200.0) for q in v]
         elif m in ("Rock", "Rim"):
             u = [(a_ * 4.0, b_ * 4.0) for a_, b_ in u]
@@ -338,7 +326,6 @@ def _shard(name, R, seed, seams, band=1100.0):
         crack(iy, iz, ang, min(R[1], R[2]) * rnd.uniform(0.7, 0.95), 520.0, 40.0, 0)
     # the hot heart of the impact
     hs = 1400.0                                               # r4: twice the hot heart
-    _flare(p, xc(iy, iz) + 300.0, iy, iz, "FlareEmber")
     p.poly([(xc(iy, iz) + 35.0, iy - hs, iz - hs), (xc(iy, iz) + 35.0, iy + hs, iz - hs), (xc(iy, iz) + 35.0, iy + hs, iz + hs),
             (xc(iy, iz) + 35.0, iy - hs, iz + hs)], mat="CrackHot", n=(1, 0, 0))
     return p, XC0
@@ -441,7 +428,9 @@ def debris_shroud():
     p = Piece("SM_KS_DomDebris_Shroud", None)
     with p.at(Matrix.Rotation(math.radians(90.0), 4, "Y")):
         p.lathe([(1500.0, -900.0), (1500.0, 900.0)], 16, regs="wallB", mat="Dom", a0=0.0, a1=100.0)
-        p.lathe([(1350.0, 900.0), (1350.0, -900.0)], 16, regs="sw_dark", mat="Ember", a0=0.0, a1=100.0)
+        p.lathe([(1350.0, 900.0), (1350.0, -900.0)], 16, regs="wallB", mat="DomRaw", a0=0.0, a1=100.0)   # close-out: Null black inside
+        p.lathe([(1349.0, 900.0), (1349.0, 780.0)], 16, regs="sw_dark", mat="Ember", a0=0.0, a1=100.0)    # a thin dying-ember rim
+        p.lathe([(1349.0, -780.0), (1349.0, -900.0)], 16, regs="sw_dark", mat="Ember", a0=0.0, a1=100.0)
         p.lathe([(1350.0, -900.0), (1500.0, -900.0)], 16, regs="frame", mat="Glow", a0=0.0, a1=100.0)
         p.lathe([(1500.0, 900.0), (1350.0, 900.0)], 16, regs="frame", mat="Glow", a0=0.0, a1=100.0)
     pts = []
