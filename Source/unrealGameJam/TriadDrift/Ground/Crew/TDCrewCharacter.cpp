@@ -170,7 +170,16 @@ void ATDCrewCharacter::UpdateFallbackLoop()
 		const TCHAR* Own = nullptr;
 		switch (Spec.Type)
 		{
-		case ETDCrewType::Trooper: Own = Want == 0 ? TEXT("Idle_Aim") : nullptr; break;
+		case ETDCrewType::Trooper:
+			if (Want == 0) { Own = TEXT("Idle_Aim"); }
+			else
+			{
+				// Moving sideways or backward while facing the pilot: Grok's aimed loops (animation builder, Nov 14).
+				const FVector Dir = GetVelocity().GetSafeNormal2D();
+				const float Fwd = FVector::DotProduct(Dir, GetActorForwardVector()), Right = FVector::DotProduct(Dir, GetActorRightVector());
+				Own = Fwd < -0.6f ? TEXT("Backpedal_Aim") : Right > 0.6f ? TEXT("StrafeRight_Aim") : Right < -0.6f ? TEXT("StrafeLeft_Aim") : nullptr;
+			}
+			break;
 		case ETDCrewType::Grunt: Own = Want == 2 ? TEXT("Charge") : nullptr; break;
 		case ETDCrewType::Heavy: Own = Want == 0 ? TEXT("Idle_Guard") : TEXT("Walk_Fwd"); break;
 		case ETDCrewType::Warden: Own = Want == 0 ? TEXT("Guard") : TEXT("Walk"); break;
@@ -874,7 +883,9 @@ bool ATDCrewCharacter::StartAttack(ETDCrewAttack Attack, AActor* Target)
 	{
 	case ETDCrewAttack::Melee:
 		bOwn = Spec.Type == ETDCrewType::Heavy ? PlayTypeClip(TEXT("ShieldBash"), 0.70f, WindupLeft) // Grok's: impact 0.70 s, the 0.7 s wind-up
-			: Spec.Type == ETDCrewType::Grunt ? ((MeleeSwings++ % 2) ? PlayTypeClip(TEXT("Melee_03"), 0.48f, WindupLeft) : PlayTypeClip(TEXT("Melee_02"), 0.45f, WindupLeft)) : false; // contacts measured at 30 fps
+			: Spec.Type == ETDCrewType::Grunt ? ((bComboSwing = PlayTypeClip(TEXT("MeleeCombo"), 0.633f, WindupLeft)) // Grok's two-hit combo: impacts 0.633 s and 0.967 s
+				|| ((MeleeSwings++ % 2) ? PlayTypeClip(TEXT("Melee_03"), 0.48f, WindupLeft) : PlayTypeClip(TEXT("Melee_02"), 0.45f, WindupLeft))) : false; // contacts measured at 30 fps
+		if (Spec.Type != ETDCrewType::Grunt) { bComboSwing = false; }
 		break;
 	case ETDCrewAttack::Burst: bOwn = Spec.Type == ETDCrewType::Trooper && PlayTypeClip(TEXT("Fire_Burst"), 0.40f, WindupLeft); break;
 	case ETDCrewAttack::BoltFan: bOwn = PlayTypeClip(TEXT("Fire_01"), 0.50f, WindupLeft); break;
@@ -902,6 +913,13 @@ void ATDCrewCharacter::ReleaseAttack()
 	case ETDCrewAttack::Melee:
 		DoMelee();
 		RecoverLeft = 0.3f;
+		if (bComboSwing)
+		{
+			// The combo's second impact, 0.334 s of clip later at the rate the clip plays.
+			ComboSecondLeft = 0.334f / FMath::Max(0.5f, LastTypeClipRate);
+			RecoverLeft += ComboSecondLeft;
+			bComboSwing = false;
+		}
 		break;
 	case ETDCrewAttack::Burst:
 		ShotsLeft = Spec.BurstCount;
@@ -991,6 +1009,8 @@ void ATDCrewCharacter::DoMelee()
 
 void ATDCrewCharacter::FireBolt(const FVector& Direction, float Damage, float Speed, float Radius)
 {
+	LogHitInstant(TEXT("Fire")); // td.Crew.LogHits: shot times, to read the no-shot-after-a-melee-hit rule
+
 	UWorld* World = GetWorld();
 	if (!World || Direction.IsNearlyZero())
 	{
@@ -1131,6 +1151,10 @@ bool ATDCrewCharacter::IsInShieldArc(const FVector& WorldLocation) const
 
 float ATDCrewCharacter::FilterDamage(const FTDDamageInfo& Info)
 {
+	if (RoarLeft > 0.f)
+	{
+		return 0.f; // the phase-change roar
+	}
 	// A stagger (a parried swing, a perfect deflect) opens the guard too, while it lasts.
 	if (!Spec.bFrontalShield || IsGuardBroken() || IsStaggered() || Info.Kind != ETDDamageKind::Melee)
 	{
@@ -1262,6 +1286,12 @@ void ATDCrewCharacter::HandleDamaged(UTDHealthComponent* InHealth, const FTDDama
 	{
 		BossPhase = 2;
 		Cooldowns.Reset(); // phase 2 opens with an attack
+		// The roar (Grok's A_Crew_Warden_Roar, 2.57 s): about a second of it, the Warden untouchable and not attacking.
+		if (PlayTypeClip(TEXT("Roar"), 0.f, 0.f))
+		{
+			RoarLeft = 1.0f;
+			HitReactLeft = FMath::Max(HitReactLeft, RoarLeft);
+		}
 		OnBossPhase2.Broadcast(this);
 		if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
 		{
@@ -1592,6 +1622,7 @@ void ATDCrewCharacter::Tick(float DeltaSeconds)
 		}
 	}
 	StaggerLeft = FMath::Max(0.f, StaggerLeft - DeltaSeconds);
+	RoarLeft = FMath::Max(0.f, RoarLeft - DeltaSeconds);
 	HitReactLeft = FMath::Max(0.f, HitReactLeft - DeltaSeconds);
 	WardenStaggerCooldownLeft = FMath::Max(0.f, WardenStaggerCooldownLeft - DeltaSeconds);
 	GuardBrokenLeft = FMath::Max(0.f, GuardBrokenLeft - DeltaSeconds);
@@ -1647,9 +1678,18 @@ void ATDCrewCharacter::Tick(float DeltaSeconds)
 	{
 		return;
 	}
+	if (ComboSecondLeft > 0.f)
+	{
+		ComboSecondLeft -= DeltaSeconds;
+		if (ComboSecondLeft <= 0.f && CurrentAttack == ETDCrewAttack::Melee && !IsStaggered())
+		{
+			DoMelee();
+		}
+	}
 	RecoverLeft -= DeltaSeconds;
 	if (RecoverLeft <= 0.f)
 	{
+		ComboSecondLeft = 0.f;
 		FinishAttack();
 	}
 }

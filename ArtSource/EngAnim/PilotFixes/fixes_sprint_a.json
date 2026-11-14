@@ -1,0 +1,2 @@
+{"_note": "Sprint, step 1 (Nov 14, round 3): the run's legs swing 1.4x further from their average (a longer stride), the pelvis leans 5 deg forward and drops 3 cm. Step 2 (fixes_sprint_b.json) puts the blade arm in the side guard.",
+ "stride": [{"src": "A_Pilot_Run", "dst": "A_Pilot_Sprint_Legs", "scale": 1.4, "lean": 5, "drop": 3}]}

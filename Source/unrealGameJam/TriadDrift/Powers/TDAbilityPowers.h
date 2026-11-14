@@ -13,6 +13,8 @@
 class UTDAbilityFX;
 class UNiagaraComponent;
 class UMeshComponent;
+class UStaticMesh;
+class UStaticMeshComponent;
 class UMaterialInterface;
 class UMaterialInstanceDynamic;
 class ATDSpacecraft;
@@ -155,8 +157,20 @@ protected:
 	virtual bool OnActivate() override;
 	virtual FName GetActivateBark(uint8& OutPriority) const override { OutPriority = static_cast<uint8>(ETDBarkPriority::Normal); return TDBarkIdsT2::CloakOn; }
 	virtual void OnEnd(bool bInterrupted) override;
+	/** A switch away keeps the cloak running on the wingman (review decision) but never leaves a hull hidden: the
+	 *  shell comes off and the hull is shown again at once. */
+	virtual void OnLostPlayerControl() override { RemoveCloakShell(); }
 
 public:
+	/** #102: the cloak's look on a Nanite hull (no translucent overlay can draw on it): the hull is hidden and a
+	 *  non-Nanite copy with the translucent cloak material stands in. Soft paths; a missing asset leaves the hull as is. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Cloak")
+	TSoftObjectPtr<UStaticMesh> ShellMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Meshes/SM_TD_VFX_RiftCloakShell.SM_TD_VFX_RiftCloakShell")));
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Cloak")
+	TSoftObjectPtr<UMaterialInterface> ShellMaterial = TSoftObjectPtr<UMaterialInterface>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Materials/M_TD_VFX_CloakShell2.M_TD_VFX_CloakShell2")));
+	/** The shell is up (the hull is hidden under it). Tests and captures. */
+	bool IsCloakShellShown() const { return ShellComponent != nullptr; }
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
@@ -172,6 +186,8 @@ public:
 private:
 	void ApplyHullOverlay();
 	void ClearHullOverlay();
+	void ShowCloakShell();
+	void RemoveCloakShell();
 
 	UFUNCTION()
 	void HandleWeaponFired(ETDWeaponSlot WeaponSlot, FName WeaponId);
@@ -195,6 +211,15 @@ private:
 	TArray<TPair<TWeakObjectPtr<UMeshComponent>, TWeakObjectPtr<UMaterialInterface>>> OverlaidMeshes;
 	float OverlayAlpha = 0.f;
 	float OverlayTarget = 0.f;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UStaticMeshComponent> ShellComponent;
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<UMaterialInstanceDynamic>> ShellMIDs;
+	/** The hull we hid (shown again when the shell comes off). */
+	TWeakObjectPtr<UStaticMeshComponent> HiddenHull;
+	float ShellAlpha = 0.f;
+	float ShellTarget = 0.f;
 };
 
 /** Lancer (Cinder Obj 3): 6000 cm pulse; stun 3 s, gunship shields down 5 s, missiles fizzle. 14 s. */
