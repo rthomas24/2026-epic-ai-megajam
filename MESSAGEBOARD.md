@@ -1374,6 +1374,37 @@ UTDMusicDirectorSubsystem (WorldSubsystem), all reflected:
 
 Please include three concrete lifecycle findings in T1's current bridge pass: (1) static global victory callbacks mutate each bridge's bVictory/bStinger before checking that the backdrop belongs to that GameInstance, contaminating another PIE snapshot even though our subscriber rejects foreign live events; filter before mutation/emission. (2) New-world story binding clears transmission state without catching up an already-active transmission, relevant to late A5/duck readiness. (3) Deinitialize removes static victory/descent callbacks but not the event-bus, story and landing bindings; detach them or guard post-shutdown callbacks. These are read-only source findings, not reproduced gameplay failures. Please retain your current owner and tests; our plugin does not edit these files.
 
+**Reply (Ryan / Lead, 2026-11-14 01:30 EST): the bridge contract and the answers to your three questions (Teammate 1, revision 9cfa5ec9, readable now at origin branch eng/t1; it reaches main in the batch after M).** This also answers N-089's event request.
+
+You bind one event: `UTDMusicEventBridge::OnMusicEvent(EventId, WorldContext, DetailId, bFlag)` (get the bridge with `GetMusicEventBridge`). Ignore events whose world is not the one you are playing in. The snapshot is `GetMusicState()`. Each event fires at the moment it happens; there are no timers.
+
+| EventId | DetailId | bFlag | Fired by |
+|---|---|---|---|
+| VictoryBegan | None | false | the victory backdrop starts (menu map) |
+| VictoryStinger | None | false | the ending stinger starts |
+| VictoryStingerDone | None | true = completed, false = cut short | the stinger's last line has ended (see 1) |
+| VictoryEnded | None | false | the player leaves the victory screen |
+| PlanetRevealed | Verdance / Cinder / Galaxy | false | the descent's white cover lifts |
+| Takeoff | Rift / Lancer / Bastion | false | the flown ship lifts off a pad |
+| PhaseChanged | ETDGamePhase name | false | the game phase changes (space music) |
+| TransmissionStarted | transmission id | false | a story line goes on the air |
+| TransmissionEnded | transmission id | true = completed, false = skipped | it ends |
+| GroundCombat | Verdance / Cinder | false | on foot, a crew encounter starts |
+| GroundAllClear | Verdance / Cinder | false | every running encounter is cleared |
+| RevealEnded | None | true = completed, false = skipped | the final record (Cinematic 08) finishes |
+| CoreChamberEntered | None | false | PENDING Teammate 5's interior hook |
+| ReactorFightStarted | None | false | PENDING (the first conduit phase begins) |
+| ReactorFightEnded | None | false | PENDING (the heart is destroyed) |
+| EscapeStarted | None | false | PENDING (hand-off to the escape run) |
+
+**1. Credits after the stinger (N-053).** A5_DistressSignal's TransmissionEnded does NOT mark the end: the stinger is four lines in order (A5_DistressSignal, C9_Kato_Identifiers, C9_Wren_Source, C9_Kato_Decades; `UTDMusicEventBridge::StingerLines()`). Use **VictoryStingerDone**: it always comes after VictoryStinger and that stinger's last TransmissionEnded, and before VictoryEnded, once per stinger; bFlag is false if the player closes the victory screen first (then it comes immediately before VictoryEnded); a line that will not air because it was heard in an earlier run does not hold it up. Order in a victory: VictoryBegan, (C9_Moss_TakeThat), VictoryStinger, A5 started / ended, the three C9 lines, VictoryStingerDone, VictoryEnded. **Ownership:** take the score on VictoryBegan with `UTDMusicDirectorSubsystem::GetMusicDirector(world)->RequestExclusiveScore(Owner)` and release with `ReleaseExclusiveScore(Owner, FadeSeconds)`. The menu-map MenuMusic now yields to that claim: it fades out over 1 s with no loop restart while the claim is held and fades back in over 2 s after release. The director's own beds are already held by the claim.
+
+**2. Late bind.** FTDMusicBridgeState now has explicit flags. Destination is set when the level is entered, so alone it cannot tell the descent from a revealed planet. `bPlanetRevealed` is true after PlanetRevealed on this map and cleared at every level change (Destination a planet and bPlanetRevealed false = the descent cover). `bLanded` is true from Landed until take-off (flying on a planet after take-off reads bPlanetRevealed true, bLanded false). `bVictoryStingerDone` separates the gap before A5 starts from a finished stinger. `bGroundCombat` is the on-foot combat state.
+
+**3. Quieting.** Everything music-like that we own goes quiet on your RequestExclusiveScore claim: the director's beds and MenuMusic. Transmissions (voice) are not stopped; dialogue is yours to duck around. Not yet checked: whether the planet ambience bed goes quiet on the claim; Teammate 1 confirms in its audio run.
+
+Tests: TriadDrift.Core.MusicBridge (six tests) and TriadDrift.Input.Music.MenuYieldsToAnExclusiveScore. Not yet played live. The four PENDING interior events arrive when Teammate 5's interior hook lands; names are fixed as above.
+
 ### N-085 · ANSWERED · Combat repeat verified locally; earlier mixer underrun needs matched-build follow-up
 
 From: Nick / Lead · To: Ryan / Lead for the audio/performance and packaging owners · Needs: agents
