@@ -90,6 +90,7 @@ void UTDMusicDirectorSubsystem::PrimeScoreSlots()
 		}
 	}
 	AsyncSound(FSoftObjectPtr(Style->IdleSpaceMusic.ToSoftObjectPath()));
+	if (IsLateWavePhase()) { ResolveLateMusic(); } // stream the waves 3-5 track in ahead of the first wave
 	AsyncSound(FSoftObjectPtr(Style->AssaultMusic.ToSoftObjectPath()));
 }
 
@@ -115,11 +116,53 @@ void UTDMusicDirectorSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
+const FSoftObjectPath& UTDMusicDirectorSubsystem::LateWaveFallbackPath()
+{
+	static const FSoftObjectPath Path(TEXT("/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.MUS_Combat_EtherealPulseRemix_01"));
+	return Path;
+}
+
+bool UTDMusicDirectorSubsystem::IsLateWavePhase() const
+{
+	const UWorld* World = GetWorld();
+	const UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr;
+	const ETDGamePhase Phase = GI ? GI->GetProgressRef().Phase : ETDGamePhase::Waves1to2;
+	return Phase == ETDGamePhase::Waves3to4 || Phase == ETDGamePhase::Wave5;
+}
+
+USoundBase* UTDMusicDirectorSubsystem::ResolveLateMusic() const
+{
+	if (CachedLateMusic)
+	{
+		return CachedLateMusic;
+	}
+	// The style's own waves 3-5 slot (by name: optional, Nick's to add); empty or absent, Nick's handed-off waves 3-5
+	// track (N-074) as the engineering fallback - marked as one until Nicholas approves it by ear.
+	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+	const FSoftObjectProperty* Prop = Style ? CastField<FSoftObjectProperty>(Style->GetClass()->FindPropertyByName(TEXT("CombatMusicLate"))) : nullptr;
+	const bool bSlot = Prop && !Prop->GetPropertyValue_InContainer(Style).IsNull();
+	if (!bSlot && !UTDMusicFallbackSubsystem::IsEnabled())
+	{
+		return nullptr;
+	}
+	USoundBase* Sound = bSlot ? AsyncSound(Prop->GetPropertyValue_InContainer(Style)) : AsyncSound(FSoftObjectPtr(LateWaveFallbackPath()));
+	if (Sound)
+	{
+		CachedLateMusic = Sound;
+		bLateFallback = !bSlot;
+	}
+	return Sound;
+}
+
 USoundBase* UTDMusicDirectorSubsystem::ResolveMusic() const
 {
 	if (bUseOverride)
 	{
 		return MusicOverride;
+	}
+	if (IsLateWavePhase())
+	{
+		return ResolveLateMusic(); // null while it streams in: the music waits for it rather than starting the wrong track
 	}
 	// Review M10: found once and held (UPROPERTY); while missing, looked up again every 2 s, never every frame.
 	if (CachedMusic || MusicRetry > 0.f)
@@ -263,7 +306,8 @@ void UTDMusicDirectorSubsystem::StartPlayback()
 	++StartCount;
 	MusicState = ETDCombatMusicState::FadingIn;
 	StateTime = 0.f;
-	UE_LOG(LogTriadDrift, Log, TEXT("TD music: combat music starts (%s)"), *GetNameSafe(Music));
+	UE_LOG(LogTriadDrift, Log, TEXT("TD music: combat music starts (%s)%s"), *GetNameSafe(Music),
+		(Music == CachedLateMusic && bLateFallback) ? TEXT(" - waves 3-5 FALLBACK (N-074; style slot CombatMusicLate empty)") : TEXT(""));
 }
 
 void UTDMusicDirectorSubsystem::BeginStop(const TCHAR* Why)

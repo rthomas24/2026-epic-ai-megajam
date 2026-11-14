@@ -67,6 +67,13 @@ public:
 
 	/** How many times playback started from the top (tests: a hold or fade-out swell never restarts it). */
 	int32 GetStartCount() const { return StartCount; }
+
+	/** The combat track the director would play now (tests, the played check): waves 3-5 take the style's optional
+	 * CombatMusicLate slot, else Nick's handed-off waves 3-5 track as a marked fallback (N-074); other phases CombatMusic. */
+	USoundBase* GetResolvedCombatMusic() const { return ResolveMusic(); }
+	/** True while the waves 3-5 fallback (not a style slot) is the combat track. */
+	bool IsLateWaveFallback() const { return bLateFallback; }
+	static const FSoftObjectPath& LateWaveFallbackPath();
 	UAudioComponent* GetAudioComponent() const { return Audio; }
 
 	/** Tests: the track instead of the style slot (null = the slot is empty). */
@@ -169,6 +176,11 @@ private:
 	UPROPERTY(Transient) TObjectPtr<USoundBase> AmbienceBed;
 	/** The combat track, held once found (a packaged build would otherwise reload it after every GC). */
 	UPROPERTY(Transient) mutable TObjectPtr<USoundBase> CachedMusic;
+	/** Waves 3-5 (N-074): the style's CombatMusicLate slot or the marked fallback; held once found. */
+	UPROPERTY(Transient) mutable TObjectPtr<USoundBase> CachedLateMusic;
+	mutable bool bLateFallback = false;
+	bool IsLateWavePhase() const;
+	USoundBase* ResolveLateMusic() const;
 	mutable float MusicRetry = 0.f;
 	mutable int32 MusicLookups = 0;
 	bool bUseAmbienceOverride = false;
