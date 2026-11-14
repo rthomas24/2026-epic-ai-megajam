@@ -1,0 +1,86 @@
+[
+  {
+    "capture_s": 41.06475,
+    "correlation": 0.9904594180396599,
+    "gain": 0.30029952723145714,
+    "source_s": 44,
+    "inferred_zero_s": -2.9352500000000035
+  },
+  {
+    "capture_s": 45.06475,
+    "correlation": 0.9830719433357192,
+    "gain": 0.2981244596697498,
+    "source_s": 48,
+    "inferred_zero_s": -2.9352500000000035
+  },
+  {
+    "capture_s": 49.06475,
+    "correlation": 0.9517557799315456,
+    "gain": 0.28823217806615314,
+    "source_s": 52,
+    "inferred_zero_s": -2.9352500000000035
+  },
+  {
+    "capture_s": 53.06475,
+    "correlation": 0.9813709271587878,
+    "gain": 0.29726503070533594,
+    "source_s": 56,
+    "inferred_zero_s": -2.9352500000000035
+  },
+  {
+    "capture_s": 57.06475,
+    "correlation": 0.977096758400062,
+    "gain": 0.29657288090056344,
+    "source_s": 60,
+    "inferred_zero_s": -2.9352500000000035
+  },
+  {
+    "capture_s": 61.06475,
+    "correlation": 0.9745358623199416,
+    "gain": 0.2951756120502438,
+    "source_s": 64,
+    "inferred_zero_s": -2.9352500000000035
+  },
+  {
+    "capture_s": 65.06475,
+    "correlation": 0.9551317112755885,
+    "gain": 0.2890597566145471,
+    "source_s": 68,
+    "inferred_zero_s": -2.9352499999999964
+  },
+  {
+    "capture_s": 69.06475,
+    "correlation": 0.9134212086926294,
+    "gain": 0.27704442018041675,
+    "source_s": 72,
+    "inferred_zero_s": -2.9352499999999964
+  },
+  {
+    "capture_s": 73.06475,
+    "correlation": 0.9841689209702531,
+    "gain": 0.29779732167396394,
+    "source_s": 76,
+    "inferred_zero_s": -2.9352499999999964
+  },
+  {
+    "capture_s": 77.06475,
+    "correlation": 0.9731775066096762,
+    "gain": 0.2952611982832821,
+    "source_s": 80,
+    "inferred_zero_s": -2.9352499999999964
+  },
+  {
+    "capture_s": 81.06475,
+    "correlation": 0.9812835780741495,
+    "gain": 0.29629896147556,
+    "source_s": 84,
+    "inferred_zero_s": -2.9352499999999964
+  },
+  {
+    "capture_s": 85.06475,
+    "correlation": 0.9697680153890049,
+    "gain": 0.2925802974978278,
+    "source_s": 88,
+    "inferred_zero_s": -2.9352499999999964
+  }
+]

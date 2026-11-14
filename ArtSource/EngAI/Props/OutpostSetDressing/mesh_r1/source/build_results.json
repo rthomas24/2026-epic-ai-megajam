@@ -1,0 +1,232 @@
+[
+  {
+    "name": "SM_Outpost_CargoCrate",
+    "size_m": [
+      1.1999999284744263,
+      1.0,
+      1.0019999742507935
+    ],
+    "size_cm": [
+      120.0,
+      100.0,
+      100.2
+    ],
+    "target_cm": [
+      120.0,
+      100.0,
+      100.0
+    ],
+    "tris": 1628,
+    "ucx_count": 1,
+    "blend": "SM_Outpost_CargoCrate.blend",
+    "fbx": "SM_Outpost_CargoCrate.fbx",
+    "glb": "SM_Outpost_CargoCrate.glb"
+  },
+  {
+    "name": "SM_Outpost_SupplyCrate",
+    "size_m": [
+      1.100000023841858,
+      0.9000000357627869,
+      0.9099999666213989
+    ],
+    "size_cm": [
+      110.0,
+      90.0,
+      91.0
+    ],
+    "target_cm": [
+      110.0,
+      90.0,
+      90.0
+    ],
+    "tris": 1056,
+    "ucx_count": 1,
+    "blend": "SM_Outpost_SupplyCrate.blend",
+    "fbx": "SM_Outpost_SupplyCrate.fbx",
+    "glb": "SM_Outpost_SupplyCrate.glb"
+  },
+  {
+    "name": "SM_Outpost_FieldTerminal",
+    "size_m": [
+      1.0399999618530273,
+      0.7200000286102295,
+      1.2727186679840088
+    ],
+    "size_cm": [
+      104.0,
+      72.0,
+      127.3
+    ],
+    "target_cm": [
+      100.0,
+      70.0,
+      125.0
+    ],
+    "tris": 904,
+    "ucx_count": 2,
+    "blend": "SM_Outpost_FieldTerminal.blend",
+    "fbx": "SM_Outpost_FieldTerminal.fbx",
+    "glb": "SM_Outpost_FieldTerminal.glb"
+  },
+  {
+    "name": "SM_Outpost_DataKiosk",
+    "size_m": [
+      1.1099998950958252,
+      0.8500000238418579,
+      1.459999918937683
+    ],
+    "size_cm": [
+      111.0,
+      85.0,
+      146.0
+    ],
+    "target_cm": [
+      110.0,
+      85.0,
+      145.0
+    ],
+    "tris": 1012,
+    "ucx_count": 2,
+    "blend": "SM_Outpost_DataKiosk.blend",
+    "fbx": "SM_Outpost_DataKiosk.fbx",
+    "glb": "SM_Outpost_DataKiosk.glb"
+  },
+  {
+    "name": "SM_Outpost_CommAntenna",
+    "size_m": [
+      0.8999999761581421,
+      0.8999999761581421,
+      2.5999999046325684
+    ],
+    "size_cm": [
+      90.0,
+      90.0,
+      260.0
+    ],
+    "target_cm": [
+      90.0,
+      90.0,
+      260.0
+    ],
+    "tris": 1372,
+    "ucx_count": 3,
+    "blend": "SM_Outpost_CommAntenna.blend",
+    "fbx": "SM_Outpost_CommAntenna.fbx",
+    "glb": "SM_Outpost_CommAntenna.glb"
+  },
+  {
+    "name": "SM_Outpost_CommsDish",
+    "size_m": [
+      1.6911804676055908,
+      1.600000023841858,
+      2.2932262420654297
+    ],
+    "size_cm": [
+      169.1,
+      160.0,
+      229.3
+    ],
+    "target_cm": [
+      160.0,
+      160.0,
+      230.0
+    ],
+    "tris": 3308,
+    "ucx_count": 2,
+    "blend": "SM_Outpost_CommsDish.blend",
+    "fbx": "SM_Outpost_CommsDish.fbx",
+    "glb": "SM_Outpost_CommsDish.glb"
+  },
+  {
+    "name": "SM_Outpost_Floodlight",
+    "size_m": [
+      0.9304987192153931,
+      0.8736436367034912,
+      2.196082592010498
+    ],
+    "size_cm": [
+      93.0,
+      87.4,
+      219.6
+    ],
+    "target_cm": [
+      95.0,
+      85.0,
+      220.0
+    ],
+    "tris": 2036,
+    "ucx_count": 3,
+    "blend": "SM_Outpost_Floodlight.blend",
+    "fbx": "SM_Outpost_Floodlight.fbx",
+    "glb": "SM_Outpost_Floodlight.glb"
+  },
+  {
+    "name": "SM_Outpost_BollardLight",
+    "size_m": [
+      0.4297114312648773,
+      0.45000001788139343,
+      1.1050000190734863
+    ],
+    "size_cm": [
+      43.0,
+      45.0,
+      110.5
+    ],
+    "target_cm": [
+      45.0,
+      45.0,
+      110.0
+    ],
+    "tris": 956,
+    "ucx_count": 1,
+    "blend": "SM_Outpost_BollardLight.blend",
+    "fbx": "SM_Outpost_BollardLight.fbx",
+    "glb": "SM_Outpost_BollardLight.glb"
+  },
+  {
+    "name": "SM_Outpost_Generator",
+    "size_m": [
+      1.713942289352417,
+      1.1260000467300415,
+      1.2500001192092896
+    ],
+    "size_cm": [
+      171.4,
+      112.6,
+      125.0
+    ],
+    "target_cm": [
+      170.0,
+      110.0,
+      125.0
+    ],
+    "tris": 1776,
+    "ucx_count": 1,
+    "blend": "SM_Outpost_Generator.blend",
+    "fbx": "SM_Outpost_Generator.fbx",
+    "glb": "SM_Outpost_Generator.glb"
+  },
+  {
+    "name": "SM_Outpost_PowerJunction",
+    "size_m": [
+      1.2000000476837158,
+      0.751800000667572,
+      1.3410000801086426
+    ],
+    "size_cm": [
+      120.0,
+      75.2,
+      134.1
+    ],
+    "target_cm": [
+      120.0,
+      75.0,
+      135.0
+    ],
+    "tris": 1540,
+    "ucx_count": 1,
+    "blend": "SM_Outpost_PowerJunction.blend",
+    "fbx": "SM_Outpost_PowerJunction.fbx",
+    "glb": "SM_Outpost_PowerJunction.glb"
+  }
+]
