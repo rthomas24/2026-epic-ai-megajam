@@ -1620,10 +1620,10 @@ void ATDPlanetCourse::BuildCinder()
 	// The marker crosses from wherever the pilot is (T7: the straight line from the respawn ran over the river); two
 	// magma deaths in a row put the pilot on the far bank (clear of the geyser row), facing the gate.
 	AddMagmaCrossing(River, Outpost, INDEX_NONE, RiverChain, FVector(6900.f, 4900.f, 0.f), 25.f);
-	// A geyser row on the far bank, rippling.
+	// A geyser row on the far bank, rippling: 4 m north-east of the bridge's far ramp foot (Lead, Nov 14).
 	for (int32 i = 0; i < 3; ++i)
 	{
-		Geyser(FVector(7000.f + i * 450.f, 5600.f + i * 200.f, 0.f), i * 1.2f);
+		Geyser(FVector(7283.f + i * 450.f, 5883.f + i * 200.f, 0.f), i * 1.2f);
 	}
 
 	// The compound along +X: gate wall, yard, barracks, command deck, Warden arena.
