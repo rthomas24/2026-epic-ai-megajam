@@ -681,11 +681,18 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 	const float PillHalf = ObjectiveExpandedWidth * .5f + 14.f;
 	const float PillBottom = SafeY + FMath::Lerp(ObjectiveHeight, ObjectiveExpandedHeight, View.ObjectiveExpand) + 14.f;
 	const bool bPill = !View.Objective.IsEmpty();
-	auto AvoidStrip = [StripRight, StripTop, PillHalf, PillBottom, bPill](FVector2D Pos)
+	// With the #160 squad panel the flag tabs sit above the cards: the arrows keep 16 px clear of them too (Lead's
+	// sweep: a chevron sat just above the flags), and of the SHADOW chip at the row's right end (about 220 px).
+	const float FlagTop = View.bSquadPanel ? StripTop - TDFlightHUD::SquadFlagHeight(View.PanelK, View.PanelFont) - 6.f * View.PanelK : StripTop;
+	const float AvoidRight = View.bSquadPanel ? StripRight + 220.f * View.PanelK : StripRight;
+	View.RowFlagTop = FlagTop;
+	View.RowRight = AvoidRight;
+	auto AvoidStrip = [AvoidRight, FlagTop, PillHalf, PillBottom, bPill](FVector2D Pos)
 	{
-		if (StripRight > 0.f && Pos.X <= StripRight + 14.f && Pos.Y >= StripTop - 14.f)
+		// The arrows are drawn up to about 12 px around their point: 16 px clear of the flags means 28 from the point.
+		if (AvoidRight > 0.f && Pos.X <= AvoidRight + 14.f && Pos.Y >= FlagTop - 28.f)
 		{
-			Pos.Y = StripTop - 16.f;
+			Pos.Y = FlagTop - 28.f;
 		}
 		if (bPill && FMath::Abs(Pos.X - CenterX) <= PillHalf && Pos.Y <= PillBottom)
 		{
@@ -1503,13 +1510,16 @@ static FAutoConsoleCommandWithWorld CmdTDUILayout(TEXT("TD.UI.Layout"), TEXT("TD
 		{
 			for (const TPair<FName, FBox2D>& B : HUD->LastBoxes)
 			{
-				if (B.Key != TEXT("subtitle") && B.Key != TEXT("radar") && B.Key != TEXT("lane") && B.Key != TEXT("card") && B.Key != TEXT("pickup_toast"))
+				// Everything the HUD drew this frame except the row itself; the edge arrows must keep 16 px clear.
+				if (B.Key == TEXT("chip") || B.Key == TEXT("squad") || B.Key == TEXT("shadow"))
 				{
 					continue;
 				}
+				const bool bEdge = B.Key == TEXT("edge") || B.Key == TEXT("missile_edge") || B.Key == TEXT("waypoint_edge") || B.Key == TEXT("wing") || B.Key == TEXT("edge_label");
+				const FBox2D Test = bEdge ? B.Value.ExpandBy(16.f) : B.Value;
 				for (const TDFlightHUD::FCardRect& E : R)
 				{
-					if ((E.Name == TEXT("card") || E.Name == TEXT("flag")) && Overlap(B.Value, E.Box))
+					if ((E.Name == TEXT("card") || E.Name == TEXT("flag")) && Overlap(Test, E.Box))
 					{
 						++Problems;
 						UE_LOG(LogTemp, Warning, TEXT("TD.UI.Layout PROBLEM: %s %s overlaps card %d %s %s"), *B.Key.ToString(), *Str(B.Value), E.Card, *E.Name.ToString(), *Str(E.Box));
@@ -2201,6 +2211,11 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		// Other hostiles: a 14 px hollow triangle, point down, above the ship; a locked one gets a 20 px amber diamond.
 		// Just above the ship's outline (live: a fixed 18 px sat on the hull of a close ship).
 		const FVector2D Tick(M.Pos.X, M.Pos.Y - FMath::Max(18.f, M.ScreenRadius + 16.f));
+		// A ship behind the squad row: no tick over the cards (the 720p sweep put one on Wren's card); the radar still shows it.
+		if (View.RowRight > 0.f && Tick.X - 12.f <= View.RowRight + 16.f && Tick.Y + 12.f > View.RowFlagTop - 16.f)
+		{
+			continue;
+		}
 		Rec(TEXT("tick"), Tick.X - 7.f, Tick.Y - 6.f, 14.f, 12.f);
 		Shape(M, Tick, 0.f, .95f);
 		Rec(*FString::Printf(TEXT("kind_%s"), KindName(M.Kind)), Tick.X - 12.f, Tick.Y - 12.f, 24.f, 24.f);
@@ -2428,6 +2443,16 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 
 	static const TArray<FWaypoint> NoWaypoints;
 	const TArray<FWaypoint>& ShownWaypoints = View.bCombatHeld ? NoWaypoints : View.Waypoints; // a focus hold: none
+	// Distance labels beside edge markers keep 16 px clear of the squad row and its flags (Nick's Lead, 720p: "2.8 km"
+	// ran into the UNDER FIRE tab): a label over the row's span is lifted above it. Recorded for TD.UI.Layout.
+	auto ClearOfRow = [this](FVector2D At, float HalfW, float Up, float Down)
+	{
+		if (View.RowRight > 0.f && At.X - HalfW <= View.RowRight + 16.f && At.Y + Down > View.RowFlagTop - 16.f)
+		{
+			At.Y = View.RowFlagTop - 16.f - Down;
+		}
+		return At;
+	};
 	// A "follow the marker" objective (one waypoint, no wave count, no generators: the withdrawal, a planet, the bay):
 	// the marker is the thing to look at (T1's play: the small edge icon was easy to miss). Off screen it is twice the
 	// size with a slow pulse and an arrow, and it is named from the objective's first word ("WITHDRAW 2.7 KM"); on
@@ -2469,8 +2494,9 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			P.Box(Wp.Pos.X - 2.5f, Wp.Pos.Y - 2.5f, 5.f, 5.f, Lit);
 			P.Chevron(Wp.Pos + F * 30.f, Wp.Angle, 22.f, Lit, true);
 			Rec(TEXT("waypoint_edge"), Wp.Pos.X - 18.f, Wp.Pos.Y - 18.f, 36.f, 36.f);
-			const FVector2D Label = Wp.Pos - F * 110.f;
+			const FVector2D Label = ClearOfRow(Wp.Pos - F * 110.f, 110.f, 10.f, 18.f);
 			P.BackedWords(Label.X, Label.Y - 10.f, (FollowWord.IsEmpty() ? FString() : FollowWord + TEXT("  ")) + Range(Wp.Distance).ToUpper(), 17, Way, .5f, 40);
+			Rec(TEXT("edge_label"), Label.X - 110.f, Label.Y - 11.f, 220.f, 29.f);
 			Area += 220.f * 44.f;
 			continue;
 		}
@@ -2515,8 +2541,9 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			Rec(TEXT("waypoint_edge"), Wp.Pos.X - 9.f, Wp.Pos.Y - 9.f, 18.f, 18.f);
 			P.Line(Wp.Pos + F * 11.f, Wp.Pos + F * 17.f, Way, 2.5f);
 			// The range sits inward of the diamond, clear of it (the planet capture had "5.1 km" over the diamond).
-			const FVector2D Label = Wp.Pos - F * 52.f;
+			const FVector2D Label = ClearOfRow(Wp.Pos - F * 52.f, 40.f, 9.f, 14.f);
 			P.BackedWords(Label.X, Label.Y - 8.f, Range(Wp.Distance), 14, Way, .5f, 20);
+			Rec(TEXT("edge_label"), Label.X - 40.f, Label.Y - 9.f, 80.f, 23.f);
 			Area += 70.f * 40.f;
 		}
 	}
@@ -2872,7 +2899,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			for (const FString& Word : WordList)
 			{
 				const FString Try = Line.IsEmpty() ? Word : Line + TEXT(" ") + Word;
-				if (!Line.IsEmpty() && SubWrapLines.Num() < 2 && LineW(Try) > MaxTextW)
+				if (!Line.IsEmpty() && SubWrapLines.Num() < 3 && LineW(Try) > MaxTextW)
 				{
 					SubWrapWidth = FMath::Max(SubWrapWidth, LineW(Line));
 					SubWrapLines.Add(MoveTemp(Line));
@@ -2885,6 +2912,13 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			}
 			if (!Line.IsEmpty())
 			{
+				// Four lines at most (Large at 720p): a last line that still does not fit is cut with an ellipsis.
+				while (Line.Len() > 4 && LineW(Line) > MaxTextW)
+				{
+					Line.LeftChopInline(Line.EndsWith(TEXT("…")) ? 2 : 1, EAllowShrinking::No);
+					Line.TrimEndInline();
+					Line += TEXT("…");
+				}
 				SubWrapWidth = FMath::Max(SubWrapWidth, LineW(Line));
 				SubWrapLines.Add(MoveTemp(Line));
 			}
@@ -2898,7 +2932,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		// The plate fits the text, centred, inside the safe frame (a third line that is still too long widens it to 80%).
 		const float PlateW = FMath::Clamp(44.f + TagW + SubWrapWidth, 240.f, FMath::Min(1536.f, 1920.f - 2.f * SafeX));
 		const float X = CenterX - PlateW * .5f;
-		P.Plate(X, SubY, PlateW, H, 8.f, T::Plate().CopyWithNewOpacity(.6f * Fade));
+		// 78% (was 60%): the line must read over the bright nebula and over the squad row's colours.
+		P.Plate(X, SubY, PlateW, H, 8.f, T::Plate().CopyWithNewOpacity(.78f * Fade));
 		Rec(TEXT("subtitle"), X, SubY, PlateW, H);
 		Area += PlateW * H;
 		if (bStatic)
