@@ -156,7 +156,7 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		const FString VerdMoss = FString::Printf(TEXT("%s/Fab/Textures/ForestNordicMoss/MI_Fab_ForestNordicMoss.MI_Fab_ForestNordicMoss"), GProps);
 		for (int32 i = 1; i <= 3; ++i)
 		{
-			R.Rocks.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Rock_%02d"), i)), 1.5f, 4.5f, 60.f, 60000.f, 80000.f, 500.f, true, true, true, VerdMoss));
+			R.Rocks.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Rock_%02d"), i)), 1.5f, 4.5f, 60.f, 60000.f, 80000.f, 500.f, true, true, false, VerdMoss));	// T6/VSM: no dynamic shadow
 		}
 		for (int32 i = 1; i <= 4; ++i)
 		{
@@ -165,7 +165,7 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		// Glowing groves: giant mushrooms (3-8x) and big glow plants where the ground is painted as a grove.
 		for (int32 i = 1; i <= 3; ++i)
 		{
-			R.Grove.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Mushroom_%02d"), i)), i == 3 ? 3.f : 4.f, i == 3 ? 6.f : 8.f, 40.f, 80000.f, 100000.f, 1200.f, true, false, true));
+			R.Grove.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Mushroom_%02d"), i)), i == 3 ? 3.f : 4.f, i == 3 ? 6.f : 8.f, 40.f, 80000.f, 100000.f, 1200.f, true, false, false));	// T6/VSM: no dynamic shadow
 		}
 		for (int32 i = 1; i <= 2; ++i)
 		{
@@ -209,13 +209,13 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		{
 			R.CliffRocks.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Any_Boulder_%02d"), i)), 0.8f, 1.8f, 80.f, 90000.f, 120000.f, 900.f, true, true, true, RockMat));
 		}
-		R.Rocks.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_03")), 1.5f, 3.5f, 30.f, 60000.f, 80000.f, 600.f, true, true, true));
+		R.Rocks.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_03")), 1.5f, 3.5f, 30.f, 60000.f, 80000.f, 600.f, true, true, false));	// T6/VSM: no dynamic shadow
 		R.Rocks.Add(Add(TDScatter_Path(TEXT("Planet"), TEXT("SM_Cind_ChokeRock_A")), 0.8f, 1.3f, 60.f, 180000.f, 240000.f, 1000.f, true, false, true));
 		R.Rocks.Add(Add(TDScatter_Path(TEXT("Planet"), TEXT("SM_Cind_ChokeRock_B")), 0.8f, 1.3f, 60.f, 180000.f, 240000.f, 1000.f, true, false, true));
 		for (int32 i = 1; i <= 4; ++i)
 		{
 			// s9: 2-4.5x and kept to ~2 km so the obsidian patches read from the air as crystal fields, not specks
-			R.Crystals.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_Crystal_%02d"), i)), 2.f, 4.5f, 20.f, 180000.f, 240000.f, 400.f, i >= 3, false, true));
+			R.Crystals.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_Crystal_%02d"), i)), 2.f, 4.5f, 20.f, 180000.f, 240000.f, 400.f, i >= 3, false, false));	// T6/VSM: no dynamic shadow
 		}
 		const FString TundraV = FString::Printf(TEXT("%s/Fab/Textures/TundraVolcanic/MI_Fab_TundraVolcanic.MI_Fab_TundraVolcanic"), GProps);	// #194: Cinder ground debris in the Fab tundra basalt
 		R.Rubble.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_01")), 0.6f, 1.6f, 10.f, 11000.f, 15000.f, 100.f, false, true, false, TundraV));
