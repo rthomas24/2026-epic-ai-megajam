@@ -105,6 +105,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
 	bool ContinueRun();
 
+	/** Changes at every run boundary (New Game, Continue, a run reset): anything kept across a map travel is keyed to
+	 *  it, so one run's leftovers never reach another (T3's story carry, #139). */
+	uint32 GetRunSerial() const { return RunSerial; }
+
 	/** The run's difficulty: applied to the balance tables now and kept in the save slot (Continue restores it). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
 	void SetDifficulty(ETDDifficulty Difficulty);
@@ -267,6 +271,7 @@ private:
 	enum class ETravelStage : uint8 { None, FadingOut, OnTransitionMap, Loading };
 
 	void ResetRunState();
+	uint32 RunSerial = 0;
 	void BindEventBus();
 	/** ENG-33: New Game plays the intro once (transient, never saved). */
 	bool bIntroPending = false;

@@ -76,7 +76,7 @@ struct UNREALGAMEJAM_API FTDPlayerSettings
 
 	/** ENG-32: first or third person on foot. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Camera")
-	ETDOnFootCamera OnFootCameraMode = ETDOnFootCamera::FirstPerson;
+	ETDOnFootCamera OnFootCameraMode = ETDOnFootCamera::ThirdPerson; // Ryan, Nov 14: third person on foot everywhere; first person is the Settings option
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, SaveGame, Category = "Controls", meta = (ClampMin = "0.25", ClampMax = "3"))
 	float MouseSensitivity = 1.f;
@@ -165,7 +165,7 @@ class UNREALGAMEJAM_API UTDSettingsSave : public USaveGame
 	GENERATED_BODY()
 
 public:
-	static constexpr int32 CurrentVersion = 1;
+	static constexpr int32 CurrentVersion = 2; // 2: on-foot camera default became third person
 
 	UPROPERTY(SaveGame)
 	int32 Version = CurrentVersion;

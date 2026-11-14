@@ -216,6 +216,9 @@ public:
 	/** True during a swing, lunge or slam: the character shouldn't sprint or slide. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
 	bool IsAttacking() const;
+	/** How long a press from rest has been held toward the heavy (seconds), or -1 when no such press is charging. */
+	float GetHeavyChargeTime() const { return (bLightDeferred && bAttackHeld) ? AttackHeldTime : -1.f; }
+	float GetHeavyHoldSeconds() const { return HeavyHoldSeconds; }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
 	bool IsInPerfectWindow() const { return IsBlocking() && BlockTime <= PerfectWindow; }
@@ -304,6 +307,7 @@ private:
 	bool bHeavyFiredThisPress = false;
 	/** A press from rest waits: released before HeavyHoldSeconds it is a light swing, held it goes straight to the heavy. */
 	bool bLightDeferred = false;
+	double SwingStartSeconds = 0.0;
 	/** The heavy's chosen victim, stabbed when HeavyHitDelay runs out (if the lunge is still on). */
 	TWeakObjectPtr<AActor> PendingHeavyTarget;
 	float PendingHeavyLeft = -1.f;
