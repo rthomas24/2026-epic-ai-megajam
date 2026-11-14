@@ -31,6 +31,11 @@
 #include "Sound/SoundBase.h"
 #include "Styling/CoreStyle.h"
 #include "Widgets/SLeafWidget.h"
+#include "Camera/PlayerCameraManager.h"
+#include "NiagaraComponent.h"
+#include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
+#include "TriadDrift/Story/TDStoryFX.h"
 
 #define LOCTEXT_NAMESPACE "TDStory"
 
@@ -1126,7 +1131,46 @@ void UTDStorySubsystem::StartNext()
 	UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: on air %s [%s] \"%s\" (%.1f s)"), *OnAir.Id.ToString(), *Current.SpeakerTag.ToString(),
 		*OnAir.Text.ToString(), OnAirSeconds);
 	OnTransmission.Broadcast(Current);
+	PlayStaticTear(Current.Id);
 	HandleLineOnAir(Current.Id);
+}
+
+bool UTDStorySubsystem::HasStaticDelivery(FName Id)
+{
+	// The lines whose "[static]" moved from the subtitle into the delivery note (StoryFidelity01).
+	static const TSet<FName> Static = { TEXT("A2_Voices"), TEXT("G6_Clue1"), TEXT("G6_Clue2") };
+	return Static.Contains(Id);
+}
+
+void UTDStorySubsystem::PlayStaticTear(FName Id)
+{
+	if (!HasStaticDelivery(Id) || UTDSettingsSubsystem::IsReduceMotion(this))
+	{
+		return;
+	}
+	const UTDStoryFX* FX = UTDStoryFX::Get();
+	const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+	APlayerCameraManager* Cam = PC ? PC->PlayerCameraManager.Get() : nullptr;
+	if (!FX || !Cam || !Cam->GetRootComponent())
+	{
+		return; // null-safe: no asset yet, or no camera
+	}
+	if (UNiagaraComponent* N = UTDStatics::PlayCueAttached(FX->TransmissionStatic, Cam->GetRootComponent()))
+	{
+		N->SetRelativeLocationAndRotation(FVector(60.f, 0.f, 0.f), FRotator::ZeroRotator); // just in front of the lens, facing it
+	}
+}
+
+const UTDStoryFX* UTDStoryFX::Get()
+{
+	static TWeakObjectPtr<const UTDStoryFX> Cached;
+	static bool bTried = false;
+	if (!Cached.IsValid() && !bTried)
+	{
+		bTried = true;
+		Cached = LoadObject<UTDStoryFX>(nullptr, AssetPath, nullptr, LOAD_NoWarn | LOAD_Quiet);
+	}
+	return Cached.Get();
 }
 
 void UTDStorySubsystem::Tick(float DeltaTime)

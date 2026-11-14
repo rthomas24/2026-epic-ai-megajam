@@ -811,3 +811,26 @@ bool FTDStoryContinue::RunTest(const FString& Parameters)
 	return true;
 }
 #endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryStaticTear, "TriadDrift.Story.Transmissions.StaticLinesCarryTheTearCue", TD_TEST_FLAGS)
+bool FTDStoryStaticTear::RunTest(const FString& Parameters)
+{
+	// Lead: the "[static]" left the subtitles; those three lines keep a static delivery and play the glitch tear
+	// (UTDStoryFX::TransmissionStatic), null-safe while the asset is missing.
+	for (const TCHAR* Id : { TEXT("A2_Voices"), TEXT("G6_Clue1"), TEXT("G6_Clue2") })
+	{
+		FTDTransmission E;
+		TestTrue(FString::Printf(TEXT("%s: static delivery"), Id), UTDStorySubsystem::HasStaticDelivery(FName(Id)));
+		TestTrue(FString::Printf(TEXT("%s: no [static] in the subtitle"), Id), UTDStorySubsystem::FindEntry(FName(Id), E) && !E.Text.ToString().Contains(TEXT("[static]")));
+	}
+	TestFalse(TEXT("a clean line has none"), UTDStorySubsystem::HasStaticDelivery(TEXT("C3_Moss_Company")));
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	W.SpawnPlayerController();
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	TestTrue(TEXT("fires"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("G6_Clue1")));
+	W.Tick();
+	TestTrue(TEXT("on air without the asset (null-safe)"), Story && Story->GetCurrentTransmission().Id == FName(TEXT("G6_Clue1")));
+	return true;
+}
+#endif
