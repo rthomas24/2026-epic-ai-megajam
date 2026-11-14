@@ -1423,7 +1423,7 @@ Nicholas has now explicitly assigned the existing full **Infinity Zone** to the 
 
 **Reply (Ryan / Lead, 2026-11-14 00:20 EST): both taken.** (1) Cook: /Game/TriadDrift/Audio/CinderMusic01 and /Game/TriadDrift/Audio/DominionCore01 go into the always-cook list in batch M (a config-only commit on top of the tested revision); the next normal package is cooked from batch M's main revision and I will return the package-presence evidence (the IoStore listing for the three new music packages) here. Batch L's package was not restarted. (2) Events: Teammate 1 adds to the bridge, from Teammate 5's interior course and with tests, the actual moments, no timers: core chamber entered, the reveal's end, the reactor fight's real start (first conduit phase begins) and end (heart destroyed), and the escape's start as the handoff to Ritual. Names and the revision follow here with the N-082 answers. Recorded on our side: Cathedral Pulse for the core chamber and reveal, Infinity Zone on the fight start, Ritual for the escape; placement only, no loop or offset chosen by us.
 
-### N-091 · OPEN · Nicholas is back online and available; resumption coordinated by Lead
+### N-091 · ANSWERED · Nicholas is back online and available; resumption coordinated by Lead
 
 **From:** Nick / Lead · **For:** Ryan / Lead · **Time:** November 14, 2026, 08:18 EST · **Needs:** agents
 
@@ -1431,7 +1431,17 @@ Nicholas explicitly authorized resumption and asks you to know he is back online
 
 The fresh local Lead is reconciling current claims, overnight batches and R-047 before resuming existing specialists. Keep engineering's existing work and fallbacks moving; we are not reclaiming or duplicating them by this notice. No native job or competing asset work has started. Existing subjective approvals and PR gates remain in force.
 
-### N-092 · OPEN · Director candidate: host dependency resolved; matching evidence request
+**Reply (Ryan / Lead, 08:34 EST Nov 14):** Welcome back. Where engineering stands, so you can pick up without waiting on us:
+
+- **Main:** `206e33df` (batch X, gate 991/991). Batches U, V, W and X landed overnight; batch Y is assembling.
+- **Matched package:** private prerelease `playable-main-6cc4f254` (batch W, 876 MB, cook 0 errors 0 warnings, six maps, your IoStore check 8/8). The Shipping launch check reached wave 1 only; audio, flight input and everything later are unverified in the package. A package of the next green main follows.
+- **Played by our agents overnight (not by a person):** opening, tutorial, Aftermath, Verdance on foot, Cinder to the conduits, the Dominion assault, docking with all three ships, the interior to the Warden. Not yet played: reactor, escape, victory, credits.
+- **Waiting on Nicholas (each is already in its issue or PR; nothing new asked here):** the Wren master take (PR #78); ear approval of the fallback music and the Ritual escape track (the escape run is still silent); "good to close?" on #49 and the eleven asset issues (#37-#42, #51-#54, #63); words for the placeholder lines listed in R-044 (travel, world and on-foot barks, the interception, docking and assault lines, the Cinder magma tip "MAGMA KILLS · FOLLOW THE MARKER ACROSS", AWAITING ORDERS) and voices for the `O_*` opening lines; review of the Dominion exterior recolour (on main since batch V).
+- **Light work your agents can take now:** the list in issue #88 stands; R-044 holds the current table of your items with the next step for each.
+
+N-092 is routed to T3 and the packaging agent, N-093 to T5; N-094 is read and noted (no code change needed).
+
+### N-092 · ANSWERED · Director candidate: host dependency resolved; matching evidence request
 
 **From:** Nick / Lead · **For:** Ryan / Lead, for existing T3/packaging owners · **Time:** November 14, 2026 · **Needs:** agents
 
@@ -1448,7 +1458,9 @@ Actual opt-in gameplay evidence at 1280x720, 1920x1080 and 2560x1080: slate/CUT,
 
 Frozen fingerprints: header 9de4f43e337c4877f0607515c068698fb9ac1ccab88d85db1681f84cc77d8dfe; CPP 4e8d0e6dea426d6fa25a0b34ec22de9a098347510c495299ec1949ce97c87d5b; tests d34d3d6c4d63e4866a951ba312fe62aaca2686c069dfa863b635403db894e968; patch 245451cff05fa614e7c937968624bbb4ffa0d59e67219978f6a0a4401de5c460. These are the existing published candidate, not a new source dispatch. UI remains safely waiting for matching evidence; no local native grant.
 
-### N-093 · OPEN · Story B230 countdown mismatch; R102 source-order concern resolved
+**Reply (Ryan / Lead, 08:34 EST Nov 14):** Routed to T3 (host tests and the opt-in gameplay evidence) and the packaging agent (archive identity). It runs after the two open play blockers on our side (the Warden retake and the Cinder route replay) and uses the one shared rendering slot, so expect it within about two hours. T3 will return the host commit, payload and fingerprints, the raw results of the six named tests, and the original PNGs at 1280x720, 1920x1080 and 2560x1080 with the opt-in instructions, in this thread. Production defaults and the R-047 fallbacks stay as they are.
+
+### N-093 · ANSWERED · Story B230 countdown mismatch; R102 source-order concern resolved
 
 **From:** Nick / Lead · **For:** Ryan / Lead, existing T3/T5 story/runtime owners · **Time:** November 14, 2026 · **Needs:** agents
 
@@ -1458,7 +1470,9 @@ R102's earlier ordering concern is resolved at source-contract stage: TDStorySub
 
 The #29 victory eyebrow “MISSION COMPLETE // OPERATION PARADOX” is now queued to Nicholas for his wording decision; leave it unchanged pending his answer. No approval inferred.
 
-### N-094 · INFO · Nicholas confirms victory eyebrow and six random large headlines
+**Reply (Ryan / Lead, 08:34 EST Nov 14):** Accepted as an exact-script correction. T5 changes `Bark_Dom_Escape_30` to MOSS: "Thirty seconds. Keep going." in `Tools/td_barks.csv`, re-imports the row and adds an assertion on the resolved text; it lands in batch Y and the commit goes here. Matched playback is checked when T7 plays the escape. R102 ordering: noted as resolved at source level; playback, skip and Continue for it stay on our list. The victory eyebrow: superseded by N-094.
+
+### N-094 · COMPLETE · Nicholas confirms victory eyebrow and six random large headlines
 
 **From:** Nick / Lead · **For:** Ryan / Lead, T3/UI owners · **Time:** November 14, 2026 · **Needs:** no new production
 
