@@ -1,0 +1,502 @@
+--- a/features.md
++++ b/features.md
+@@ -80,7 +80,7 @@
+ | 2 Verdance | Short route: instruments on one buried line, transponder "verified / unknown" flicker, a patrol | ENG-25, ENG-39, ENG-36, ART-17, ART-18 | 🟨 | Dressed play zone; flicker on the HUD; walkable survey station from the kit (R-043) |
+ | 2 Verdance | Recover the signal-analysis device → **Gravity Well**; reward screen | ENG-25, ENG-12, ART-09 | 🟨 | Pickup before Cinematic 03 (§25.1 order); Nick's reward screen |
+ | 2 Verdance | Cinematic 03 *Beneath the Surface*, 40-60 s voice-over: monitor graphic, voices ("Maintain the sequence"), drone wakes blue, three pulses | ENG-42, ART-18, ART-11, ART-19 | ⬜ | Monitor graphic (Nick's #44 PNG or T2), drone prop with blue optic, the three-pulse sound |
+-| 2 Verdance | Protect the data transfer, 60-90 s, three waves, Heavy disruption → **Cloak**; extraction with the device | ENG-25 | 🟨 | Reconcile with the built relay climb (contradiction 1 below) |
++| 2 Verdance | Protect the data transfer, 60-90 s, three waves, Heavy disruption → **Cloak**; extraction with the device | ENG-25 | 🟨 | Ryan selected transfer defense and dropped the relay climb; verify the replacement in play |
+ | 2 Verdance | Take-off; Cinematic 04 as transmissions (`C4_*`); Verdance theme fades | ENG-42, ENG-38, ART-19 | ⬜ | Lines fired on take-off; theme wiring (N-045) |
+ | Between | Waves 3-4 as the interception on the Cinder route (lines only); clue: an enemy pre-empts a manoeuvre; destructible field with special-asteroid boost drops | ENG-14, ENG-42, ENG-43, ENG-48 | 🟨 | Interception lines; the anticipation clue and its bark (storyline §6) |
+ | 3 Cinder | Descent, short route past one patrol, survey station on the dig's rim | ENG-26, ENG-38, ART-17, ART-18 | 🟨 | Walkable station and dig cabin from the kit; fixed order terminal → excavation → anchor |
+@@ -111,22 +111,18 @@
+ 1. **Resolved (Ryan, Nov 13 evening): the transfer defence gives Cloak; the relay climb is dropped** (T5, ENG-25; the structures builder rebuilds the relay as a defence platform). Was: **Verdance objective 2.** The build has a separate relay climb with resonance nodes (→ Cloak); the story (§25.1, §25.2
+    18-2) makes the relay the station's relay and the transfer defence its objective (→ Cloak); §18 had put the transfer on
+    objective 1. **Ryan:** keep the climb, or make the transfer the Cloak objective and drop the climb.
+-2. **Opening length.** ENG-33 says "redo to the 2:20 *First Contact* brief"; the reconciliation (17:15, #29, #24) says
+-   "the opening stays 49 seconds". **Ryan:** confirm the redo is a re-shoot of the 49 s with First Contact's content.
++2. **Resolved:** the opening remains 49 seconds. Re-shoot the First Contact beats within that approved target; the expanded 2:20 outline is superseded.
+ 3. **Field and shield.** §0, §5 act 4, ENG-18 and the `A3_PassageOpen` line still treat the generators as the field and
+    the anchor as opening it; §25.2 splits them (approach field opens on Cinder + wave 5; four generators hold a separate
+    shield). Nicholas's documents decided it; corrected below in §0 and ENG-18.
+-4. **COMMAND or Control** as the authority's name; **who boards** (lines written for Wren); the **three-pulse** definition;
+-   the ending **caption** wording. **Nicholas.**
++4. **Resolved by Nicholas:** use Command; the landed ship determines who boards; three short evenly spaced pulses (final sound/timing still needs audition); exact caption **DISTRESS SIGNAL · TRIAD: WREN, KATO, MOSS · DATED DECADES AHEAD**. See [current Story decisions](Story/README.md#november-13-decisions-for-recording-and-implementation).
+ 5. ~~**AGENTS.md**~~ **Resolved (Ryan's Lead, Nov 13):** AGENTS.md §1, §2 and §11 aligned in the same push: the boarding
+    finale is the wanted ending, and Cinder's anchor opens the approach ("passage pending").
+ 6. **ART-15 / ART-16** sat in Nick's section marked STRETCH; §1 lists them as Ryan's since Nov 13. Corrected below.
+ 7. **Music hookups** were T7's (CLAIMS, N-045); Ryan's Lead moved them to Nick's side on Nov 13 evening (ART-19), T7
+    as fallback. **Nicholas** to accept on the board.
+-8. **Escape "changed route"** and the interior's shaft, security and archive rooms are assumed by Nicholas's documents and
+-   not built; reduced forms proposed in `docs/story/story-0708-actions.md` (b1, b17). **Nicholas** to accept.
+-9. **Resolved (Ryan, Nov 13 evening): voices over a sealed threshold (no camera takeover); the reactor fight adds only a telegraphed sweeping laser, with no perfect-deflect gate; future-crew defenders approved (T5; the drones stay as the fallback; #29).** Was: **Cinematic 08 form** (voices over a sealed threshold, or a control-away scene) and **ENG-30's extras** (ring timing,
+-   sweeping laser, acceleration; the documents forbid a perfect-deflect gate). **Ryan.**
++8. **Resolved staging:** use the existing flight deck as barracks, Warden-room door as security and an existing archive console. All four recording encounters are mandatory in order, with safe listening; each cutscene permits Skip after its own ten-second wait. Escape uses repeating alarms and hull sounds, with optional afterimages. Engineering verifies route and delivery; no new rooms are required.
++9. **Resolved:** console audio/subtitles at a sealed threshold with safe movement; completion or eligible skip preserves state and opens the entrance. All three future crew are present and only the two nonboarding counterparts defend before reactor destruction. Four conduits then heart, with a telegraphed sweeping laser; no ring-timing, final acceleration or perfect-deflect gate. New encounter speech remains draft. See Story index for the three pilot mappings.
+ 10. ~~**Power-ups in space**~~ **Resolved (Ryan, Nov 13):** Ryan approved pickups ("yes ... just go now"; T2's
+     `UTDPickupSubsystem` is built) and asked for rewards from destroying asteroids (ENG-48). The galaxy map (ART-09,
+     ENG-02) is not required (decided by Ryan's Lead under Ryan's delegation); no web build.
+--- a/storyline.md
++++ b/storyline.md
+@@ -1,4 +1,6 @@
+ # Triad Drift: The Paradox (storyline)
++
++Current approved direction: [Story index](Story/README.md). Earlier proposals and source snapshots below are historical where superseded; implementation status must be verified separately.
+ 
+ **Adopted by Ryan on Nov 13, 2026.** The story is **Nicholas's** ("Triad Drift: The Paradox, narrative concept
+ brief"); this file is that brief, plus how each beat is played in the game we have. **Every feature, objective name,
+@@ -87,9 +89,9 @@
+ ## 8. Names and words to use
+ - **Triad**: the unit. **Wren / Rift, Kato / Lancer, Moss / Bastion.**
+ - **The Dominion**: the mothership (the authorities' designation). **Null Armada**: its forces, as the squad knows them.
+-- **The distortion field**: what keeps the Dominion unreachable (in play: its four field generators).
++- **Approach distortion field:** opens only after Cinder is complete AND wave 5 is cleared. **Dominion defensive shield:** separate protection sustained by four external generators, all destroyed before docking.
+ - **Signal-analysis device**, **the relay**, **stabilising crystals**, **the mining complex**, **the Origin Core**.
+-- Never say "aliens" as fact. Before act 4 nobody on the squad says "future", "time" or "us".
++- Never say "aliens" as fact or reveal the future-self identity before the Dominion interior. Cinder’s approved exception names the Origin Core as a suspected temporal device; it does not identify the commanders.
+ 
+ ## 9. Open story decisions (Nicholas's to make; none blocks the jam build)
+ Who built the Origin Core; precisely what it changes; what disaster befell the future; whether the catastrophe was
+@@ -109,7 +111,7 @@
+ Full text: [`docs/story/First-Contact-Cinematic-Brief.md`](docs/story/First-Contact-Cinematic-Brief.md). It replaces
+ the opening row of §5 and sharpens acts 1, 4 and 5.
+ 
+-**Opening cinematic, about 2 min 20 s** (today's intro is 49 s and will be rebuilt to this):
++**Opening cinematic: approved 49-second production target.** The expanded timestamps below are historical staging reference, not the current running time.
+ | Time | Beat | Lines (drafts) |
+ |---|---|---|
+ | 0:00-0:25 | **Missing patrol.** Black; a patrol distress call through static; a quiet system and the distant silhouette of something impossibly large; the score is held back | Patrol Seven |
+@@ -152,7 +154,7 @@
+    Lancer's afterburner ram, Bastion's missile swarm and shield dome). Keep that progression?
+ 2. Today's waves 1-2 become the tutorial battle: wave 1 = evasion, weapons, switching; wave 2 = the larger craft and the
+    withdrawal. Is that the split you want, and does the tutorial music (#24) end at the withdrawal?
+-3. The intro grows from 49 s to about 2:20: confirm the length (a skip stays available from the first second).
++3. **Resolved:** the opening stays 49 seconds. Each cinematic permits Skip ten seconds after its own start; first-play tutorial gameplay remains mandatory separately.
+ 
+ ## 12. Sequence 02: *Aftermath* (Nicholas's brief, received Nov 13)
+ Original documents from Nicholas are in [`Story/`](Story/) (the three `.docx` files and his README); readable copies
+@@ -168,7 +170,7 @@
+ |---|---|---|
+ | 0:00-0:20 | Triad regroups beyond a faint boundary of interference; the last drones peel away; alarms settle; the HUD returns to normal | They survived; the mission has changed. Kato: "They're not pursuing us." |
+ | 0:20-0:45 | A tactical display: hostile contacts leaving the Dominion in disciplined lanes toward Verdance; some never targeted Triad. **A faint pulse; the player's navigation display briefly marks the corridor the drones use, then clears. Nobody comments** | The attackers follow an objective. The clue: the Dominion's systems can anticipate Triad |
+-| 0:45-1:10 | Mission Control reconnects through static: a research outpost on Verdance has gone dark near a restricted survey zone | New orders: avoid the mothership, reach Verdance, find the outpost, recover its survey data |
++| 0:45-1:10 | Command reconnects through static: a research outpost on Verdance has gone dark near a restricted survey zone | New orders: avoid the mothership, reach Verdance, find the outpost, recover its survey data |
+ | 1:10-1:30 | Triad plots a course; the camera lingers on the Dominion; **a row of its exterior lights changes in the same rhythm as the pulse on the HUD**; match cut from the jump to Verdance | The connection is visible but unexplained |
+ 
+ **Rules from the brief:** the Dominion never speaks plainly here; the fleet defends its route then resumes its
+@@ -926,17 +928,14 @@
+ §21-7 (the run from the collapsing tower is the pursuit, "No added pursuit wave is required").
+ 
+ **Still unanswered:**
+-1. COMMAND or Control as the one name for the voice of authority (§19-5). Every document says COMMAND; the built
+-   act 1-4 placeholders mostly say Control.
++1. **Resolved:** Command consistently; COMMAND display label. Internal legacy `Control` enums do not authorize the old player-facing name.
+ 2. "Dominion drones / machines" in the documents against "Null Armada" as the squad's word (§8).
+-3. One written definition of the three-pulse rhythm, shared by the opening, Cinematic 03 and the finale (§15-3).
++3. **Resolved structure:** three short, evenly spaced realistic authentication pulses; Nicholas still auditions final sound and exact timing.
+ 4. The outpost's name, the ground enemy types, optional interactables (§14-1, 3, 5); the documents still list them as
+    open. Which crew types play "drones" and "a tougher machine or jamming unit" (§16-2).
+ 5. "Carry forward visible minor battle damage if possible" is still in Gameplay 03 (§16-5); ours: skipped.
+ 6. How the Verdance voices sound beyond the one fragment "Maintain the sequence" (`A2_Voices` placeholder text).
+-7. Everything aboard the Dominion: the README lists as next "the boarding cinematic and interior gameplay, including
+-   the future-Triad identity evidence and the opening-warning payoff", and says "Later reactor motivation, the future
+-   catastrophe, the Core's exact mechanism and the causal paradox remain intentionally unresolved".
++7. **Documented:** the complete boarding-to-ending route is in the Story index. All four ordered recordings, clear archive comparison, six C07 lines, six C08 case/decision lines and ending caption are approved; new master-script speech remains draft. Core mechanics, catastrophe and causal outcome stay unresolved.
+ 8. The space-only fallback's reveal and reactor sequence ("document the reactor sequence separately").
+ 
+ ### 25.3 What this changes in sections 1-10 (to edit when this is appended; *our list*)
+@@ -1114,15 +1113,12 @@
+   test; T2 the subtitle display of recordings, nothing new; T4 the Warden, nothing new; T1 nothing.
+ 
+ **Open questions:**
+-1. Which recording goes on which console, and who speaks the first log (Nicholas)? Our default is the list above.
+-2. The service shaft and a separate security checkpoint and archive room are not built. Is folding them into the
+-   existing rooms acceptable to the story (Nicholas), and is building them wanted before the freeze (Ryan)?
+-3. The Cinder echo comparison: no line is written for it. *Our suggestion:* the archive entry plays the phrase "Same
+-   construction." once more in the clean older-Kato voice, then Kato reacts. Nicholas writes it or drops it.
+-4. The three-pulse authentication motif still has no written definition (§15 question 3, §25 unanswered 3).
++1. **Resolved:** Hangar UNKNOWN (performed as future Kato); Corridor MOSS (RECORDED); Barracks WREN (RECORDED); Core approach after Warden KATO (RECORDED). All four encounters required in that order.
++2. **Resolved:** existing flight deck as barracks, Warden-room door as security, existing archive console; no additional rooms.
++3. **Approved:** clear older Kato “Same construction.” in the archive after identity evidence and before the final record; new binding, not the processed Cinder event or a fifth required encounter.
++4. **Resolved structure:** three short evenly spaced pulses; realistic final sound and exact timing still need Nicholas’s audition.
+ 5. "Preserve it for replay": the game has no recording replay. Subtitles are shown while a line plays. Enough?
+-6. The on-screen tags for the Future voices are "WREN? / KATO? / MOSS?" today. After the final record, should they
+-   change (for example "WREN (RECORDED)")? (Nicholas; T3 small.)
++6. **Approved labels:** UNKNOWN first, then KATO (RECORDED), MOSS (RECORDED), WREN (RECORDED) after identification; live squad radio uses plain pilot names.
+ 7. The length. Built: about 5-8 minutes for the whole interior including the core fight and the run (played). The
+    mandatory record and Cinematic 08 add about 1.5 minutes.
+ 
+@@ -1141,7 +1137,7 @@
+ |---|---|---|
+ | **1 The opening from the other side** | "the future command deck monitoring the same three younger ships from First Contact. Ship positions, attack timing and the transmission collapse match the opening." "The signal collapses as the younger squad breaks formation" | "Reuse these established lines": FUTURE KATO: "All three signatures confirmed. It's us." FUTURE MOSS: "They're exactly where we were." FUTURE WREN: "Open a channel. Now." FUTURE KATO: "Temporal interference. Less than a second." FUTURE WREN: "Don't-" |
+ | **2 The complete intended warning** | "After the link fails, the local record preserves the warning's intended meaning. Present it as locally recovered context, not as words that reached younger Triad." "Hold briefly on present Triad hearing what the original fragment meant" | FUTURE WREN: "Don't engage the Dominion. You don't understand what happens if you do." |
+-| **3 The Origin Core confrontation** | "The archive continues with the future commanders' case. These are new draft lines." "Older voices should sound exhausted and determined, retaining their familiar personalities" | RECORDED KATO: "The Origin Core may let us change one event. Before everything was lost." RECORDED WREN: "We believe recovering it can prevent the catastrophe. It's the last chance we have." RECORDED MOSS: "We came back to save you." |
++| **3 The Origin Core confrontation** | "The archive continues with the future commanders' case. These are new draft lines." "Older voices should sound exhausted and determined, retaining their familiar personalities" | KATO (RECORDED): "The Origin Core might let us change one moment in the past—before we lost everything." RECORDED WREN: "We believe recovering it can prevent the catastrophe. It's the last chance we have." RECORDED MOSS: "We came back to save you." |
+ | **4 The decision** | "Proposed decision staging: the active reactor readout offers no verified safe way to stop the ongoing operation. Kato can identify a possible threat to the system, but cannot prove either the future commanders' promise or the result of destroying their power source" | KATO: "I can't verify a safe shutdown. Continuing could put the whole system at risk." MOSS: "Then we can't let them finish." WREN: "Take out the reactor. Keep the route to the hangar clear." |
+ 
+ **Hand-off:** "Return control at the safe reactor-room entrance with **'Break the reactor conduits.'** The decision is
+@@ -1203,16 +1199,16 @@
+   subtitles and the readout line if it is HUD text; T4 and T1 nothing.
+ 
+ **Open questions:**
+-1. A real scene with control taken away (60-80 s, a command-deck view), or voices over the console with the player
+-   free to move in a sealed threshold? The document permits "monitors and voices". Ryan for scope; Nicholas for
+-   whether the reduced form carries it.
++1. **Resolved:** console audio/subtitles with safe movement near a sealed reactor threshold. Playback completion or eligible skip after ten seconds opens the entrance and preserves essential state.
+ 2. Thirteen lines: which may be cut if the 60-80 s does not hold (Nicholas)?
+-3. The readout's words (Nicholas). *Our placeholder:* "REACTOR · NO VERIFIED SAFE SHUTDOWN".
+-4. Speaker names: the document uses FUTURE for the live command deck and RECORDED for the archive entries. Both map
+-   to our FutureWren / FutureKato / FutureMoss speakers. Different tags or styles wanted (Nicholas)?
+-5. Does `A5_Choice`'s Moss line survive anywhere (Nicholas)?
++3. **Approved screen text:** `REACTOR WARNING: Unverified Safety Shutdown...` (three trailing periods; not a spoken pickup).
++4. **Approved labels:** recorded future crew use KATO (RECORDED), WREN (RECORDED), MOSS (RECORDED); present crew radio uses plain names. UNKNOWN remains on the first Hangar log.
++5. **Resolved:** replace the old `A5_Choice` Moss line with Wren’s approved order, “Take out the reactor. Keep the route to the hangar clear.” Play it last in the C08 decision, without repeating it at fight start.
+ 
+ ## 29. Gameplay Sequence 08: *The Reactor Fight* (Nicholas's proposal, received Nov 13, commit `243e72d`)
++
++**Current encounter direction:** after the recorded case/decision and before reactor destruction, all three future crew are present, only the two nonboarding counterparts defend. Use the three mappings in [Story index](Story/README.md); new engagement/defeat speech remains draft. Four conduits then heart, with one telegraphed sweeping laser; no mandatory ring timing, acceleration or perfect-deflect gate.
++
+ Original: `Story/Triad_Drift_Gameplay_Sequence_08_The_Reactor_Fight.docx`. Status in the document: "narrative gameplay
+ draft; source-level checks do not replace human or Shipping validation." It begins when Cinematic 08 (§28) "returns
+ control at the reactor-room entrance checkpoint, with the interior route cleared and evidence preserved", and ends
+--- a/dialogs.md
++++ b/dialogs.md
+@@ -1,4 +1,6 @@
+ # Triad Drift: gameplay dialogue (barks)
++
++Current approved direction: [Story index](Story/README.md). Earlier proposals and source snapshots below are historical where superseded; implementation status must be verified separately.
+ 
+ The short lines pilots say **during play**: calling targets, taking hits, using powers, switching, landing, fighting
+ on foot. Story dialogue (the intro, transmissions, recordings, the ending) is in [`storyline.md`](storyline.md) and
+@@ -151,3 +153,9 @@
+ - `{dir}`, `{n}` and similar are filled by code. Keep lines short enough for the subtitle line of the HUD (about 48
+   characters).
+ - When a line here and the story disagree, the story wins: tell the Lead.
++
++## Draft bark corrections awaiting Nicholas
++
++- `Bark_Dom_CoreOpen`, Kato: “Core exposed.” → proposed “Reactor heart exposed.” Distinguish the ship reactor from the ancient Origin Core.
++- `Bark_Dom_Escape_30`, Moss: “Halfway, keep going.” → proposed “Thirty seconds. Keep going.” Thirty seconds remaining is not halfway through a ninety-second run.
++- These replacement words remain **DRAFT**. The current master script marks additional dialogue review and voice/delivery gaps. Do not record conflicting generator or bay-cover alternatives together; final cut selection remains draft.
+--- a/docs/story/transmissions.md
++++ b/docs/story/transmissions.md
+@@ -1,4 +1,6 @@
+ # Story transmissions: event ids and placeholder lines
++
++Current approved direction: [Story index](../../Story/README.md). Earlier proposals and source snapshots below are historical where superseded; implementation status must be verified separately.
+ 
+ Every story line the game plays is one **transmission**: an id that gameplay fires at a beat, with a speaker, a
+ placeholder line and a style. **Nicholas writes and voices against these ids**; nothing else is needed to get his words
+@@ -16,13 +18,15 @@
+ - Styles: `Clean`, `Static` (flickers), `Echo` (doubled). Speakers: Command, Control, PatrolSeven, Wren, Kato, Moss,
+   Unknown, FutureWren, FutureKato, FutureMoss.
+ - On-screen speaker tags today: COMMAND, CONTROL, PATROL SEVEN, WREN, KATO, MOSS, UNKNOWN SIGNAL, and **WREN? / KATO? /
+-  MOSS?** for the Future voices (deniable until the reveal). Say if you want a different tag.
++  MOSS?** are historical placeholders. Approved labels are UNKNOWN for the first log, then WREN (RECORDED), KATO (RECORDED), MOSS (RECORDED) after identity evidence; live authority displays COMMAND.
+ - Behaviour: once per run unless repeatable; saved, so Continue never replays a line; one line at a time, queued,
+   held (not dropped) during a money shot or the intro; a transmission wins over a bark.
+ - Try them: console `TD.Story.Fire <Id>`, `TD.Story.List`, `TD.Story.Reset`.
+ - A test guards the twist: nothing before act 4 may have a Future speaker or say "future", "time" or "it's us".
+ 
+-## Ids and placeholder lines (the drafts are yours to rewrite)
++## Transmission targets and remaining placeholders
++
++Rows explicitly marked approved below are target text and labels, not proof that engineering defaults or presentation assets have been updated. Other rows remain draft source references. See the Story index for authority, discovery order and approved exact dialogue.
+ 
+ ### Opening narration (today's 49 s intro subtitles)
+ | Id | Speaker | Line |
+@@ -155,11 +159,11 @@
+ | `A4_GeneratorDown2` | Kato | Two down. The shield is losing shape. |
+ | `A4_GeneratorDown3` | Wren | Three! One more and it's open. |
+ | `A4_GeneratorDown4` | Moss | That's the last one. The shield is gone. |
+-| `A4_DoorsKnowUs` | Wren | The door opened for my ID. Why does it know my ID? |
+-| `A4_Recording_Hangar` | FutureWren (Echo) | If you're hearing this, you came anyway. Of course you did. |
+-| `A4_Recording_Corridor` | FutureKato (Echo) | We ran every number a thousand times. This is the only way. |
+-| `A4_Recording_Barracks` | FutureMoss (Echo) | We were you, once. We know what you'll choose. |
+-| `A4_Recording_Core` | FutureWren (Echo) | The Origin Core can stop it. Don't take that from us. |
++| `A4_DoorsKnowUs` | Wren | They shouldn’t have our access codes. |
++| `A4_Recording_Hangar` | Unknown (performed as future Kato) | Keep the recovery teams on the Core search. |
++| `A4_Recording_Corridor` | MOSS (RECORDED) | Bring every recovery team back. |
++| `A4_Recording_Barracks` | WREN (RECORDED) | Recover the Core. Protect the younger Triad. |
++| `A4_Recording_Core` | KATO (RECORDED) | We are you, from the future. We came back for the Origin Core. |
+ 
+ ### Finale payoff (the future command deck)
+ | Id | Speaker (style) | Line |
+@@ -173,11 +177,19 @@
+ ### Act 5
+ | Id | Speaker (style) | Line |
+ |---|---|---|
+-| `A5_Choice` | Moss | We can't trust them, and we can't let them finish. We end it here. |
+-| `A5_Escape` | Control | The ship is coming apart. Ninety seconds. Move! |
+-| `A5_DistressSignal` | Unknown (Static) | DISTRESS SIGNAL · TRIAD: WREN, KATO, MOSS · DATED FORTY-ONE YEARS FROM TODAY |
++| `A5_Choice` | Wren | Take out the reactor. Keep the route to the hangar clear. |
++| `A5_Escape` | Command | The ship is coming apart. Ninety seconds. Move! |
++| `A5_DistressSignal` | Screen only; no voice | DISTRESS SIGNAL · TRIAD: WREN, KATO, MOSS · DATED DECADES AHEAD |
+ 
+ ### To be added: Sequence 02, *Aftermath* (Nicholas's brief of Nov 13; ids reserved `S2_*`)
+ Moss "All three ships accounted for...", Wren "If that was a welcome party...", Kato "Hold on. They're not pursuing
+ us.", the vectors exchange, Command's new orders, Wren "Triad, form up. Verdance it is.", Kato "And keep your recorders
+ running." T3 seeds these with the brief's draft lines next.
++
++## Approved replacements needing engineering delivery
++
++- The four `A4_Recording_*` rows, `A4_DoorsKnowUs`, `A5_Choice` and `A5_DistressSignal` above use approved targets. `A5_Escape` retains draft escape wording with the correct Command authority. Verify runtime text/speaker replacement rather than assuming this document changes the game.
++- Play all four recording encounters in order. Re-time `A5_Choice` to the end of C08; it must not repeat at combat start.
++- Clear archive KATO (RECORDED) “Same construction.” needs a separate binding after identity evidence, before final confirmation. Do not reuse the processed `C5_Unknown_SameConstruction` event.
++- C08 uses the approved six case/decision lines and exact screen readout in the [Story index](../../Story/README.md#production-status-and-decisions). First future Kato line: “The Origin Core might let us change one moment in the past—before we lost everything.” Keep the six-line order; readout before present Kato.
++- Each cutscene permits Skip after ten seconds from its own start; preserve essential state without bypassing four required encounters. Keep `O_Unknown_Dont` and `F_FutureWren_Dont` on the same processed asset; full intended warning is separate local context.
+--- a/docs/story/story-0708-actions.md
++++ b/docs/story/story-0708-actions.md
+@@ -1,4 +1,6 @@
+ # Story sequences 07, 08 and 09 against the built Dominion finale: actions for the Lead
++
++Current approved direction: [Story index](../../Story/README.md). Earlier proposals and source snapshots below are historical where superseded; implementation status must be verified separately.
+ 
+ Read on `origin/main` (not fetched by me): `Story/README.md` (18 entries), the six Word documents not yet in
+ `storyline.md` (Cinematic 07, Gameplay 07 from commit `63f3863`; Cinematic 08, Gameplay 08 from `243e72d`; Gameplay
+@@ -44,15 +46,15 @@
+ ### Gameplay 07, Inside the Dominion (the reveal)
+ | Line or beat | Hook | Owner, cost |
+ |---|---|---|
+-| First console: filtered command log, speaker not identifiable. RECORDED KATO "Keep the recovery teams on the Core search." | `A4_Recording_Hangar`. **Change the placeholder's speaker from FutureWren to Unknown** (today its tag reads "WREN?" in the first room) | T3, a table edit; Nicholas's entry |
++| First console: filtered future crew Kato, displayed UNKNOWN: “Keep the recovery teams on the Core search.” | `A4_Recording_Hangar`; replace old FutureWren speaker/text | Approved target; T3/T5 verification |
+ | Second recording, Moss's manner in an older voice. RECORDED MOSS "Bring every recovery team back." | `A4_Recording_Corridor` (the console just inside the arena) | Free |
+ | MOSS "That's my voice in those records. Older." | *new* `G7_Moss_MyVoice`, fired by the console handler after that recording | T3 id, T5 0.25 h |
+ | Security system displays authorisations for Wren, Kato and Moss | The Warden-room door's access text (a per-door property): "ACCESS GRANTED · WREN · KATO · MOSS" | T5, a text change |
+-| Three-pulse authentication motif | **Needs a new hook:** a sound slot on that door's open | T5 0.5 h; Nicholas's sound; the motif is still undefined |
++| Three short, evenly spaced realistic authentication pulses | Door sound binding | Structure approved; final sound and exact timing need Nicholas’s audition |
+ | KATO "Those authorisations match all three of us." | *new* `G7_Kato_Authorisations`, fired at `Obj_DI_Warden` step 0 (the door opens) or as that room's start line | Free if the room line is used |
+ | Archive entries pair identities with older voices. RECORDED WREN "Recover the Core. Protect the younger Triad." | `A4_Recording_Barracks` (the console near the arena exit) | Free |
+-| Compare the Cinder echo with its older-Kato source | **Needs a new hook and a line that is not written:** *new* `G7_Archive_Echo`, queued after the archive entry | T3/T5 0.25 h, only if Nicholas writes it |
+-| Final record. RECORDED KATO "We are you, from the future. We came back for the Origin Core." | `A4_Recording_Core`, **made mandatory** (see b2) | T5 1.5-2 h for the gate |
++| Clear archive KATO (RECORDED) “Same construction.” after identity evidence, before final confirmation | New clear source binding; do not reuse the processed Cinder event | Approved wording; T3/T5 delivery verification |
++| Final record, KATO (RECORDED): “We are you, from the future. We came back for the Origin Core.” | `A4_Recording_Core`; all four recording encounters mandatory in route order | Approved target; T5/T3 verification |
+ | WREN "We hear the full record before we touch that reactor." | *new* `G7_Wren_FullRecord`, queued after it, then Cinematic 08 | T3 id |
+ | Unit markings and equipment like Triad's | No hook; dressing | Environment builders, optional |
+ 
+@@ -65,15 +67,15 @@
+ | FUTURE KATO "Temporal interference. Less than a second." | `F_FutureKato_Interference`, same | same call |
+ | FUTURE WREN "Don't-" (the identical asset) | `F_FutureWren_Dont`, shared sound `Dont`; the one-sound test already exists | same call |
+ | FUTURE WREN "Don't engage the Dominion. You don't understand what happens if you do." | **Needs a new id:** `F_FutureWren_FullWarning`. It must **not** use the shared `Dont` sound | T3 0.25 h |
+-| RECORDED KATO "The Origin Core may let us change one event. Before everything was lost." | *new* `C8_RecKato_OneEvent` | T3 |
++| KATO (RECORDED) "The Origin Core might let us change one moment in the past—before we lost everything." | *new* `C8_RecKato_OneEvent` | T3 |
+ | RECORDED WREN "We believe recovering it can prevent the catastrophe. It's the last chance we have." | *new* `C8_RecWren_LastChance` | T3 |
+ | RECORDED MOSS "We came back to save you." | *new* `C8_RecMoss_SaveYou` | T3 |
+-| Reactor readout: no verified safe shutdown | **Needs a new hook:** a line of text on the console screen or under the objective | T5 or T2 0.5 h; Nicholas's wording |
++| Approved screen-only readout: REACTOR WARNING: Unverified Safety Shutdown... | Console display before present Kato; preserve three trailing periods | Approved wording; T5/T2 delivery |
+ | KATO "I can't verify a safe shutdown. Continuing could put the whole system at risk." | *new* `C8_Kato_NoSafeShutdown` | T3 |
+ | MOSS "Then we can't let them finish." | *new* `C8_Moss_CantLetThem`; replaces today's `A5_Choice` text in meaning | T3 |
+ | WREN "Take out the reactor. Keep the route to the hangar clear." | `A5_Choice` (re-timed to the end of the scene instead of the fight's start), or *new* `C8_Wren_Order` | T3/T5 |
+ | The command-deck view (monitors, the three ships) | **No hook.** Optional picture on the console screen or a director letterbox | T3 2-3 h, optional |
+-| Hold combat; return control at the entrance; skip | **Needs new behaviour:** the core door stays shut until the queue ends or is skipped | T5 1 h, T3 skip 1 h |
++| Safe movement, sealed entrance and eligible skip | Open entrance after playback completes or Skip after ten seconds; preserve essential state, grant no defender defeats or reactor damage | T5/T3 verification |
+ | Objective "Break the reactor conduits." | Step line of `Obj_DI_Core` (today "BREAK THE SHIELD CONDUITS 0 / 4") | T5, a text change |
+ 
+ ### Gameplay 08, The Reactor Fight
+@@ -109,7 +111,7 @@
+ | KATO "Lancer clear." MOSS "Bastion clear. Still here." WREN "Rift clear. All three accounted for." (0:00-0:08, crossing into clear space) | **Needs a new hook:** when the ship crosses the escape radius (the code already has that moment and a delay before victory); ids `C9_Kato_Clear`, `C9_Moss_Clear`, `C9_Wren_Clear` | T4 one fire call, T3 ids. 0.5 h |
+ | MOSS "All three. I'll take that." (0:08-0:18) | **Needs a new hook:** a timer in the victory backdrop at about 10 s; id `C9_Moss_TakeThat` | T3 0.25 h |
+ | Breakup completes behind the squad; warmth in the music | Exists (breakup backdrop); music is Nicholas's | Free |
+-| 0:18 distress alert, identifiers of Wren, Kato and Moss, date "Decades ahead" | `A5_DistressSignal` at `StingerSeconds = 18`. **Change the caption**: "DATED FORTY-ONE YEARS FROM TODAY" → "DATED DECADES AHEAD" | T3, a text change. Do it now |
++| 0:18 new distress alert with approved caption | `A5_DistressSignal`: DISTRESS SIGNAL · TRIAD: WREN, KATO, MOSS · DATED DECADES AHEAD | Approved screen text; runtime verification remains |
+ | 0.35 s fade, text readable, panel usable | Exists exactly (a black layer under the panel and the transmission line) | Free |
+ | KATO "A distress signal. Those are our identifiers." WREN "The source?" KATO "It's dated decades ahead." | **Needs a new hook:** three ids queued at the stinger (`C9_Kato_Identifiers`, `C9_Wren_Source`, `C9_Kato_Decades`). The caption must stay on screen under them: today a queued line replaces the one before | T3 1-1.5 h (hold the caption as its own element) |
+ | "Let the final line sit over black and radio noise" | The stinger's sound slot | Nicholas's audio |
+@@ -126,15 +128,15 @@
+ | b1 | **Order of rooms:** hangar and deflection corridor → barracks and service shaft → security checkpoint and command archive → Warden and core approach → reactor | Hangar → deflect corridor → flight deck (three waves) → Warden's gate → core chamber. No service shaft, no checkpoint room, no archive room | **Fits in a reduced form.** The flight deck plays the barracks; the door into the Warden room plays the security checkpoint (three names on its access text, the three-pulse tone); the arena-exit console plays the command archive. No new rooms before the freeze. Needs Nicholas's agreement (it is his proposal's own escape clause: "subject to the existing course") |
+ | b2 | **The reveal's place:** evidence climbs over four recordings; the final record after the Warden is mandatory, on the main route, with combat held, and starts Cinematic 08 | Four optional consoles, all in a Future voice from room 1; the core console is inside the core chamber with the fight already started | **Fits in a reduced form, and is the main engineering change.** Move the core console to the threshold before the core door; keep that door shut until the console is used; then run Cinematic 08 as a queue of lines; then open the door and start the fight. T5 about 2 h, T3 about 1.5 h. The other three consoles can stay optional: the final record and Cinematic 08 alone state the truth in full, which satisfies "no optional collectible may be the only source of the reveal" |
+ | b3 | **Recordings must not compete with combat** | Two consoles stand in the arena where three waves are fought | **Fits in a reduced form:** consoles in the arena answer only once the room is clear (T5, 0.5 h), or move the exit console into the link corridor |
+-| b4 | **Cinematic 07 takes control for 35-45 s** (camera through the hangar) | No scene; a quiet arrival with the player in control | **Fits in a reduced form:** six lines over the docking and the arrival. The document itself asks for "the existing docking and hangar transition". No camera work |
+-| b5 | **Cinematic 08 takes control for 60-80 s** ("while control is unavailable"), with a command-deck view | No scene. The five callback lines are never fired | **Fits in a reduced form:** voices and subtitles over the console in a sealed threshold, player free to move, skippable. The document allows "monitors and voices" and "no new face animation or live future-pilot encounter". A real control-away scene with a command-deck picture **does not fit before the freeze** unless Ryan wants it over other work (T3 4-6 h) |
++| b4 | Four recording encounters required: Hangar → Corridor → Barracks → Core approach after Warden | Earlier optional-console proposal is superseded | Each playback permits Skip after ten seconds; skipping never bypasses an encounter. Safe listening, final record and C08 before reactor fight; preserve essential state |
++| b5 | C08 console audio and subtitles with safe movement near sealed entrance | Camera-takeover proposal is superseded | Finish or eligible skip after ten seconds opens entrance. Physical future crew confrontation follows in G08, before reactor destruction |
+ | b6 | **"Its destruction opens the doors before the escape starts"** | On the heart's death every door in the interior opens at once; the escape objective starts 2.5 s later with 90 s; an escape retake starts at the core exit facing the hangar and never repeats the fight | **Fits as is.** The document was written from this behaviour and quotes the 2.5 s |
+ | b7 | **The Origin Core is distinct from the reactor.** Is there an object or room for it? | No. The only "core" aboard is the reactor. The document does not want one: Cinematic 08 "does not establish that the Origin Core is fully assembled aboard"; Gameplay 08 adds no "Origin Core boss" | **Fits as is, with a wording fix.** Nothing to build. Rename what the player reads: the room marker "THE CORE" → "THE REACTOR"; "The Reactor Core" → "The Reactor"; "BREAK THE SHIELD CONDUITS" → "BREAK THE REACTOR CONDUITS"; "STRIKE THE HEART" → "DESTROY THE REACTOR HEART". The scene id `Obj_DI_Core` can stay (not player-facing). T5 0.25 h. Also keep "the core" out of any bark that means the reactor |
+ | b8 | **A second Warden?** | One Warden, room 4 | **Fits as is.** The document says explicitly it adds no second Warden |
+-| b9 | **No mandatory perfect-deflect gate; ordinary blade combat; "sustain pressure through the existing encounter"; telegraph threats** | Four conduits, then a heart with 150 health, both broken with the blade. I saw no enemy or hazard in the core room in the code I read. A code comment plans orbs, a laser and a "deflect-only heart" | **Fits as is for the gate; pressure is the open point.** Do **not** build the deflect-only heart: it contradicts the document. Ask T5 whether a played run has any threat in the room. If none, one cheap source of pressure (a few drones or two troopers per conduit) is worth more than the ring timing, sweeper and acceleration of ENG-30, which the document treats as unverified. See c3 |
++| b9 | Four conduits, then heart; telegraphed sweeping laser | Ryan selected the laser as added reactor pressure | No mandatory ring timing, final acceleration or perfect-deflect gate; all three future crew present with only two nonboarding counterparts defending |
+ | b10 | **One boarding character, shown arriving in the ship the player flew; other pilots on radio** | One on-foot character; wingmen hold outside. Who the on-foot pilot is in the fiction, and whether the escape craft is the docked ship, were not checked | **Fits as is, with one check** (T4/T5: the ship flown in is the ship flown out). The lines assume Wren boards: a question for Nicholas (d) |
+ | b11 | **Checkpoints:** hangar entry, security approach, before the Warden, reactor entrance; retries never replay Cinematic 07 or 08, the Warden or the fight once won | Checkpoints at the hangar door, in the arena, before the Warden, at the core entrance and at the escape start; transmissions play once per run and are saved | **Fits as is.** Tell Nicholas the fight's reset rule: a death in the reactor fight restarts it from 0 / 4 with the shield up |
+-| b12 | **Skip:** skipping either cinematic keeps its discoveries and starts the next encounter once | No skip for a queue of transmissions that I know of | **Fits in a reduced form:** a skip that empties the queue and marks its lines as played (T3 1 h). Needed only for Cinematic 08's 70 s |
++| b12 | Each cinematic has its own ten-second wait before Skip | Older unrestricted queue-skip proposal is superseded | Preserve essential story state once; never bypass required recording encounters or grant gameplay completion |
+ | b13 | **Replay of recordings** ("preserve it for replay", "through subtitles or record replay") | Subtitles while a line plays; once per run; no replay | **Fits in a reduced form:** subtitles only. A replay log **does not fit before the freeze** and is not needed if b2 is done |
+ | b14 | **New assets:** hangar equipment rack, squadron route stencil, Triad-like unit markings, a scanner, a core-room readout, a command-record display | The kit console lights its screen when played; doors show the access text | **Fits in a reduced form:** the readout as one line of text (b-table of (a)); one stencil decal and one rack in the hangar if an environment builder is free (1-2 h). Everything else is carried by lines |
+ | b15 | **Temporal failure on the escape** (Gameplay 09: "may appear as brief afterimages and repeated alarms or hull sounds, but must not falsify the countdown or reverse player input") | Debris and a clock. I saw no echo or repeat effect in the run or the flight code | **Fits in a reduced form:** sound only (repeated alarms and hull groans, Nicholas's audio on existing events). Afterimages are optional and the first thing to drop |
+@@ -147,74 +149,17 @@
+ | b23 | **"Show or confirm the regrouped present-day trio: Wren in Rift, Kato in Lancer and Moss in Bastion"; no casualty; older commanders' fate left open** | Squad respawn in the flight; ship flybys in the victory backdrop. Not checked that all three ships are shown | **Fits as is if the three ships are visible**; otherwise the three "clear" reports of b19 carry it. Nothing in the victory text should say the future is safe or the older crew died: T3 to read the victory panel's words |
+ | b16 | **COMMAND speaks inside the Dominion** ("Reactor lost. Get back to the hangar.") | `A5_Escape` is Control | **Fits as is** once COMMAND / Control is settled (still open from §25) |
+ 
+-## (c) Scope questions for Ryan (only the ones that change work)
+-
+-1. **Cinematic 08: voices over a sealed threshold, or a real scene?** My recommendation: voices, subtitles, a shut
+-   door and a skip (T5 2 h, T3 2.5 h in all, including firing the `F_*` lines for the first time). A control-away scene
+-   with a command-deck view is 4-6 h more and is the first thing to cut.
+-2. **Make the final record a mandatory gate before the reactor fight?** It adds about 70-80 s of standing and
+-   listening to a 5-8 minute interior. Without it the twist can be missed entirely. My recommendation: yes, with the
+-   skip.
+-3. **The reactor fight: ship "four conduits, then the heart", and spend what time is left on one source of pressure,
+-   not on the ring timing, sweeper, acceleration or a deflect-only heart?** The documents treat those as unverified
+-   and forbid a mandatory perfect-deflect gate. T5 to say what is in the room today.
+-4. **No new rooms** (service shaft, security checkpoint, command archive): accept the folding in b1? If Ryan wants
+-   one new space, the cheapest is a short "archive" alcove off the link corridor before the Warden (T5 1-2 h plus
+-   kit pieces), and it is not needed for the story to work.
+-5. **Hangar dressing for "familiar architecture"** (a rack, a stencil, Triad-like markings): 1-2 h of an environment
+-   builder, or lines only?
+-
+-6. **Leaving the victory screen before 18 s: force the stinger first?** Today the last beat of the story can be
+-   skipped without knowing it exists. My recommendation: yes (T3 0.5-1 h).
+-7. **"Time failing" on the escape: sound only?** The document makes it optional. My recommendation: sound only, no
+-   afterimage effect, no changed route.
+-
+-Not a question any more: the ending. The README now says "The confirmed ending boards the Dominion; the existing
+-space-only route is an emergency fallback, with no alternative writing requested here", which matches Ryan's decision.
+-No fallback reveal will be written; if the fallback is ever used, the twist is carried only by our placeholders.
+-
+-## (d) What Nicholas still has to write, and what he needs from us
+-
+-**Nothing is left to write for the boarding route.** With `c357779` the index has 18 entries and the "Next to
+-document" line is gone; Cinematic 09 says "With Gameplay 09, this closes the main campaign's documented story". The
+-space-only fallback gets no document ("no alternative writing requested here").
+-
+-**What is still his to do:**
+-- Review and approve the draft lines of 07, 08 and 09 (every document says its new dialogue is a draft; only the five
+-  callback lines and the full warning are fixed wording). About 45 lines in all.
+-- Voices and sounds: the recordings and Future voices, the one shared "Don't-" asset, the three-pulse tone, the
+-  collapse hit, the escape music keyed to the run's start, the alarms and hull sounds for "time failing", the warmth
+-  and its interruption at 18 s, the radio noise under the last line.
+-- The stinger's caption with "decades ahead" (or a calendar value he approves).
+-- The readout wording in Cinematic 08.
+-- Answers to the questions below.
+-
+-**What he needs from us (one board message or issue comment titled `Story:`):**
+-- Confirmation of the values his documents quote from the source "for Ryan's validation": the 2.5 s, the 90 s, the
+-  run's retake point and full clock; the flight's 60 s limit, its spawn and retake values (T4); the 18 s and 0.35 s
+-  (T3). Say which were confirmed in a played run and which only in code.
+-- Corrections to two things the documents assume: there is **no changed route** on the run (same rooms, doors open,
+-  debris); there are **no shaft, security-checkpoint or archive rooms** (b1).
+-- The reset rule of the reactor fight (a death restarts it from 0 / 4 with the shield up).
+-- The reduced forms in (b) for his yes or no: b1, b2 (the gate), b4 and b5 (lines instead of scenes), b15 (sound
+-  only), b19 (which ending lines).
+-- The list of ids from (a) once T3 has seeded them, so he can fill `DA_Story_Transmissions` against them.
+-
+-**Questions for Nicholas from the six documents:**
+-1. Who boards? The lines are written for Wren on foot and Moss outside, but the player may dock in any ship. Neutral
+-   lines, a variant per pilot, or always Wren?
+-2. Which recording on which console, and is the first log's speaker Unknown? (Default in (a).)
+-3. `G6_Wren_CoverTheBay` and Cinematic 07's first line are near-duplicates: one of them goes.
+-4. Cinematic 08 has 13 lines for 60-80 s: which may be cut if it runs long?
+-5. The readout's words. Placeholder: "REACTOR · NO VERIFIED SAFE SHUTDOWN".
+-6. The Cinder-echo comparison in the archive: a line, or drop it?
+-7. The three-pulse motif: one definition (rhythm and sound), now needed in three places and on the checkpoint door.
+-8. `A5_Choice` (Moss) and `A5_Escape` (Control): kept, reworded or replaced by Wren's order and Command's "Reactor
+-   lost"? COMMAND or Control?
+-9. Tags for the Future voices after the reveal ("WREN?" today).
+-10. The ending: all seven lines, or only the three at the signal? The exact caption?
+-11. "Wren in Rift, Kato in Lancer and Moss in Bastion" at the end, when the player may have boarded and flown out in
+-    any of the three: is the report order enough, or must the ships be shown?
++## (c) Approved staging and remaining engineering verification
++
++Resolved: console audio/subtitles at a sealed threshold with safe movement; ten-second skip minimum; four mandatory ordered recordings; existing flight deck/door/console staging; all three future crew present, two nonboarding counterparts defending; telegraphed sweeping laser without ring timing, acceleration or perfect-deflect gate. Use the exact pilot mappings in the [Story index](../../Story/README.md#november-13-decisions-for-recording-and-implementation).
++
++Repeating alarms and hull sounds are approved; afterimages optional. Keep all three escape confirmations and all three signal lines, optional Moss relief, exact approved caption. Verify that early exit preserves the essential ending signal. Environment dressing, bindings, checkpoints, voice timing and played validation remain with their owners.
++
++## (d) Remaining dialogue and delivery work
++
++Nicholas's separate master review script is DRAFT, not a recording handoff. Six C07 lines, four ordered recordings, clear archive comparison, six C08 case/decision lines, reactor readout, three escape confirmations, three distress lines and exact caption are approved. New engagement/defeat speech, pilot-specific replies, other barks and shorter proposed cuts remain draft. Do not reopen those approved structural choices as unanswered questions.
++
++Ryan's team creates realistic voices; Nicholas approves actual performances. Engineering verifies IDs, ordered console gates, ten-second skip timing, safe threshold queue/door behavior, defender mapping, event-driven fight/escape calls, 90-second run and separate 60-second flight, ending caption visibility and retry/save behavior. No code execution or playable claim follows from this document update.
+ 
+ ## (e) Twist check: the reveal happens aboard the Dominion, in Gameplay 07
+ 
+--- a/docs/story/story-alignment-actions.md
++++ b/docs/story/story-alignment-actions.md
+@@ -1,4 +1,6 @@
+ # Story alignment (cc8c31d): actions for the Lead
++
++Current approved direction: [Story index](../../Story/README.md). Earlier proposals and source snapshots below are historical where superseded; implementation status must be verified separately.
+ 
+ Source: Nicholas's commit `cc8c31d` on `origin/main` (ten documents revised, two new, `Story/README.md` rewritten),
+ read against `storyline.md` §1-22, `features.md`, `docs/story/*.md`, `dialogs.md` and the story code on `origin/main`.
+@@ -62,7 +64,7 @@
+ | # | Owner | Change |
+ |---|---|---|
+ | a26 | Lead | Append §23-25 to `storyline.md`; edit §5 acts 3 and 4, §6 and §8 as listed in §25.3; update `features.md` ("Cinder in the story": no route echo, pending marker; ENG-18's "the four shield generators are that field"; ENG-26's story line); `docs/story/transmissions.md`; `dialogs.md` |
+-| a27 | Lead | Post on the board / issue #29: the unanswered list of §25.2 (COMMAND or Control; Null Armada; the three-pulse definition; the interior document; the fallback reveal), plus c1 once Ryan has decided |
++| a27 | Lead | COMMAND and three-pulse structure are settled; current room/recording/ending decisions are in the Story index. Post remaining implementation gaps and draft dialogue review, not superseded approval questions |
+ 
+ ## (b) The story test
+ 
+@@ -113,19 +115,8 @@
+ 
+ ## (c) New scope questions for Ryan
+ 
+-### c1. Verdance: where the transfer defence sits, and which reward it gives
+-- **Asks:** device pick-up → Gravity Well; connect to the console → Cinematic 03; the 60-90 s transfer defence is "the
+-  relay copy" → Cloak; extraction.
+-- **Exists:** objective 1 (device; §18 stretched its hold-interact into the transfer defence; Gravity Well; carry
+-  back) and objective 2, a separate climb to an ancient relay with three resonance nodes (Cloak). Both built.
+-- **Cost:** follow Nicholas exactly, dropping the relay climb: 3-5 h (T5) and it throws away built, working content.
+-  Keep both objectives and only re-order the telling: 1-2 h (T5, T3).
+-- **Recommend: fits in a reduced form.** Keep both built objectives. Objective 1: pick up the device (Gravity Well as
+-  now, at the pick-up or at the end of the objective, T5's choice), connect it at the station console, Cinematic 03,
+-  then the transfer defence and carry-back. Objective 2 stays the climb, told as "bringing the station's relay
+-  uplink back so the copy can be sent" (*our wording for Nicholas to replace*), Cloak on completion. Tell Nicholas the
+-  one difference: Cloak comes from the relay climb, not from the defence. If Ryan prefers the documents' order, the
+-  defence moves to the top of the relay climb.
++### c1. Verdance transfer defense resolved
++Ryan selected the document order: device recovery → Gravity Well; connect to station relay → Cinematic 03; 60–90 second, three-wave transfer defense → Cloak; extraction. The separate relay climb is dropped. Rebuild/use the relay as the defense platform; award Cloak once. This direction replaces the earlier recommendation to keep both objectives. T5 owns implementation and playable verification.
+ 
+ ### c2. Cinematic 06: eight lines where "two or three transmissions" were planned
+ - **Asks:** the document itself says transmissions over the take-off, but drafts eight lines in four beats, a tactical
+@@ -138,7 +129,7 @@
+ ### c3. Assault length: 5-7 minutes including wave 5, and the total
+ - **Asks:** a working target, "subject to balance and the full campaign budget".
+ - **Exists:** wave 5 and the assault, not timed end to end (ENG-18: "whole assault to victory not played").
+-- **Sum of the adopted budgets (ours):** opening 2:20, tutorial battle 6-10, Aftermath about 1:30, Verdance 8-10,
++- **Sum of the adopted budgets (ours):** opening 0:49, tutorial battle 6-10, Aftermath about 1:30, Verdance 8-10,
+   waves 3-4, Cinder 6-8, assault 5-7, then the interior, core fight, 90 s run and 60 s flight. That is past 30 minutes
+   before the interior starts.
+ - **Cost:** 0 to decide; 1 h (T4) to time wave 5 plus four generators.
+@@ -191,7 +182,9 @@
+ - **Recommend: fits in a reduced form:** the outer field simply drops when wave 5 clears (with the pending marker
+   turning to "open"); the shield is the per-section effect on the hull. No corridor geometry.
+ 
+-## (d) Contradictions that remain
++## (d) Historical findings and implementation gaps
++
++The story decisions are resolved by the current Story index. Findings below describe the earlier comparison; verify which runtime gaps remain instead of reopening approved choices. In particular, transfer defense replaces the climb, the echo is terminal-only, the anchor prepares passage, generators protect a separate shield, and Command is the authority.
+ 
+ ### With sections 18 and 22
+ 1. **Verdance rewards and order (c1).** §18: the transfer defence is objective 1's and the relay is a separate
+--- a/docs/story/story-reconcile-fbc7240.md
++++ b/docs/story/story-reconcile-fbc7240.md
+@@ -1,4 +1,6 @@
+ # Story reconciliation `fbc7240` against the build and storyline.md: for the Lead
++
++Current approved direction: [Story index](../../Story/README.md). Earlier proposals and source snapshots below are historical where superseded; implementation status must be verified separately.
+ 
+ Compared: each of the eight changed files at `fbc7240~1` and `fbc7240` (text extracted from the Word files, diffed by
+ sentence), and `storyline.md` on `origin/main` (`7ef3321`, which now has §26-32). Code read on `lead/int` (`eb217c7`):
+@@ -112,7 +114,7 @@
+ |---|---|---|---|
+ | e1 | T3 (with T1 for the hint profile) | **New: a profile flag "tutorial completed".** Store it in the profile save (`TD_Hints` is the one that exists, or a small new profile slot), set when the tutorial battle ends (the withdrawal, or wave 1's clear until the withdrawal exists). Not in the run save: a New Game must not clear it | Newly asked. About 1 h |
+ | e2 | T3, T2 for the prompt | **New: on New Game with the flag set, offer "Play the tutorial" or "Skip".** Skip starts the run in the state the tutorial leaves: wave 1 (and whatever else is "the tutorial") cleared, its lines marked played, hints off, then Aftermath or the first free flight. With the flag clear there is no offer and no skip of the gameplay | Newly asked. 2-3 h. Depends on c1 |
+-| e3 | T3 | Leave the opening cinematic's hold-to-skip as it is: the rule is about tutorial **gameplay**; "Cinematic replay and death retries remain separate" | No change |
++| e3 | T3 | Each cutscene permits Skip ten seconds after its own start. First-play tutorial gameplay remains mandatory separately; replay/skip offer only on later runs | Approved direction; verify runtime timing |
+ | e4 | T4 | **Verdance approach: the scan is no longer wanted as an objective.** `ATDArmadaConvoy` has a scannable lead hauler (hold within `ScanRadius` for `ScanSeconds`, ring brightens, fires `A2_ConvoyScanned`). It is already optional, has no HUD mode and gates nothing, so it does not break the new text. Recommended: keep the convoys exactly as they are; make sure nothing presents the hold as a task (no objective line, no prompt, no marker); fire Kato's observation on **proximity or sight** of the convoy instead of a 3 s hold, so every player gets the clue | Built; reduce, do not remove. 0.5 h |
+ | e5 | T3 | Rename or re-describe `A2_ConvoyScanned` ("Scanner assemblies. Extraction rigs. No troops. They're surveying."): the line is fine, the word "scanned" in the id and in `transmissions.md` is now wrong. Keep the id if renaming costs a test; change the description | Text only |
+ | e6 | T4 | **No interception force over the landing zone.** §14 listed it as new work; do not build it. If anything spawns hostile on the Verdance approach or descent, remove it or make sure it is not an "encounter" (the document: "no added orbital interception encounter is required"; resistance stays on the ground route) | Drop from the queue; T4 to confirm nothing was built |
+@@ -239,12 +241,7 @@
+ - **c3. Keep the scannable hauler?** It is built and harmless. My recommendation: keep the convoys, drop the hold
+   (fire the line on proximity), 0.5 h.
+ 
+-**Nicholas (story), still pending by his own README:**
+-- Whether the tutorial gunship must be destroyed before the withdrawal. Engineering should tell him what is built:
+-  wave 2 ends when its enemies are dead, so today the kill is mandatory by construction.
+-- The opening cinematic's length: 49 s (built and tested) or 2 min 20 s (his brief, §11).
+-- The final tutorial run time (his list still has it; ours to supply from a played run).
+-- Unchanged from before: COMMAND or Control; the three-pulse definition; review of every draft line in 07-09.
++**Nicholas's story decisions are settled:** opening 49 seconds; gunship kill optional; Command orders withdrawal after lessons and marked escape boundary completes tutorial; first-play tutorial gameplay required, later replay/skip. Use Command, three short evenly spaced realistic pulses (final sound/timing needs audition), current room mapping, four mandatory ordered recordings and ten-second minimum per cutscene. Approved exact dialogue and caption are in the [Story index](../../Story/README.md). Other script speech and performances remain under review.
+ 
+ **To tell Nicholas (one `Story:` message):** the game has no first-play flag yet and what we propose (c1); the
+ gunship kill is mandatory in the current build; the convoy scan becomes a proximity line; no interception or orbital
