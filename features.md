@@ -69,7 +69,7 @@ because no item is**. Pure polish is in the [AAA polish list](#the-aaa-polish-li
 
 | Act | Beat (storyline.md) | Delivered by | State | What still stands between today and done |
 |---|---|---|---|---|
-| Front end | Boot to main menu: New Game, Continue, Settings, Quit; menu music | ENG-19, ART-09, ART-10 | 🟨 | Nick's styled menu on `main` (#71 handoff); a human pass with pad and mouse |
+| Front end | Boot to main menu: New Game, Continue, Settings, Quit; menu music | ENG-19, ART-09, ART-10 | 🟨 | Styled menu implementation on main ee5dc0ff; MainMenuWidgetClass activation and a human pass with pad and mouse remain |
 | Front end | New Game: difficulty, first play forces the tutorial, a later New Game offers "Skip the tutorial" | ENG-41, ENG-45, ART-09 | 🟨 | T7's flag and offer; skip lands in Aftermath with the tutorial state applied |
 | Opening | Intro, 49 s (Nicholas kept 49 s, reconciliation 17:15), skippable, hands off to the tutorial | ENG-33, ART-11, ART-12, ART-19 | 🟢 | Re-shoot once with the final ships and effects; intro score and narration voice |
 | 1 First Contact | Tutorial battle phases 01-04 (evade, return fire, fight as Triad, heavy contact) over waves 1-2, in a destructible, solid field | ENG-40, ENG-13, ENG-14, ENG-36, ENG-42, ENG-48 | ⬜ | Phases as one mission, `TB_*` lines fired, three checkpoints, the gunship optional |
