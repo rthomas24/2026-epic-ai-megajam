@@ -366,7 +366,8 @@ void UTDDescentSubsystem::TickCover(float Dt)
 					// The glide-lite: the arrival over the cloud tops (inside the ceiling), the squad kept in formation.
 					APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0);
 					ATDShip* Flown = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
-					const float Ceiling = Zone->GetZoneBox().Max.Z - 5000.f;
+					// Over the deck, even above the normal ceiling: the squad is released from the zone until the glide ends.
+					const float Ceiling = TNumericLimits<float>::Max();
 					if (Flown)
 					{
 						const float Ground = Terrain ? Terrain->GetHeightAt(Flown->GetActorLocation()) : 0.f;
@@ -377,6 +378,7 @@ void UTDDescentSubsystem::TickCover(float Dt)
 							FVector L = It->GetActorLocation();
 							L.Z = FMath::Min(Ceiling, L.Z + Shift);
 							It->TeleportSpacecraft(L, It->GetActorRotation(), /*bKeepSpeed*/ true);
+							if (UTDShipMovementComponent* M = It->GetShipMovement()) { M->SetBoundaryReleaseFor(GlideOverride, true); }
 						}
 						Mark(*FString::Printf(TEXT("arrival over the cloud deck (%.0f m above it, shift %.0f m)"), (Want - DeckZ) / 100.f, Shift / 100.f));
 						// T4: build the scatter around where the glide will end, before the reveal (which waits on it).
@@ -697,6 +699,11 @@ bool UTDDescentSubsystem::BeginGlide(ATDShip* Ship, float GroundZFallback)
 void UTDDescentSubsystem::EndGlide(const TCHAR* Why)
 {
 	ATDShip* Ship = GlideShip.Get();
+	// The zone takes the squad back (released since the arrival over the deck), whether or not a glide ran.
+	if (UWorld* W = Ship ? Ship->GetWorld() : (GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr))
+	{
+		for (TActorIterator<ATDShip> It(W); It; ++It) { if (UTDShipMovementComponent* M = It->GetShipMovement()) { M->SetBoundaryReleaseFor(GlideOverride, false); } }
+	}
 	if (Ship && GlideTime >= 0.f)
 	{
 		if (UTDShipMovementComponent* Move = Ship->GetShipMovement())

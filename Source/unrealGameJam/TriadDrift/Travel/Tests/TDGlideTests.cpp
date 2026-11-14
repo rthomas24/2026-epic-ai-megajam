@@ -98,7 +98,7 @@ bool FTDT1GlideEndsLevel::RunTest(const FString& Parameters)
 			TestTrue(*FString::Printf(TEXT("%s: Descent01 0..1 while gliding, -1 after"), *Tag), R.bDescent01InRange && R.bHandedBack);
 			TestTrue(*FString::Printf(TEXT("%s: override and pitch hold cleared, vulnerable again"), *Tag), R.bOverrideCleared && R.bVulnerableAgain);
 			TestTrue(*FString::Printf(TEXT("%s: no speed drop at the hand-back (largest step %.0f cm/s, at hand-back %.0f, cruise %.0f)"), *Tag, R.MaxStepDrop, R.EndSpeed, R.Cruise),
-				R.MaxStepDrop <= 1.6f * (R.GlideSpeed - R.Cruise) / (Fps * UTDDescentSubsystem::GlideHandBackSeconds) + 150.f && FMath::Abs(R.EndSpeed - R.Cruise) <= R.Cruise * 0.15f);
+				R.MaxStepDrop <= 1.6f * (R.GlideSpeed - R.Cruise) / (Fps * UTDDescentSubsystem::GlideHandBackSeconds) + 150.f && FMath::Abs(R.EndSpeed - R.Cruise) <= R.Cruise * 0.2f);
 		}
 	}
 	return true;

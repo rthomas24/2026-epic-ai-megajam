@@ -517,9 +517,6 @@ void ATDAtmosphereFlightZone::FitToTerrain(const ATDPlanetTerrain* Terrain)
 		Box.Max.Y = FMath::Max(Box.Max.Y, O.Y + Half);
 		Box.Max.Z = FMath::Max(Box.Max.Z, MaxZ + TerrainCeilingClearance);
 	}
-	// ENG-38 glide-lite (agreed with T4): the arrival sits 300 m over the cloud deck, so the ceiling clears the deck by 500 m.
-	const float DeckZ = UTDDescentSubsystem::FindDeckZ(GetWorld());
-	if (DeckZ > 0.f && UTDDescentSubsystem::IsGlideEnabled()) { Box.Max.Z = FMath::Max(Box.Max.Z, DeckZ + 50000.f); }
 	SetActorLocation(Box.GetCenter());
 	SetZoneExtent(Box.GetExtent());
 	bFittedToTerrain = true;
@@ -633,6 +630,11 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 		// ENG-38 climb out (the mirror of the entry). Reaching the exit height triggers the exit at once (the return point
 		// and the travel are recorded now, Lead's option b); the level change waits ExitClimbSeconds of forced climb with
 		// the exit burn and hull heat rising and the cover ramping in at the end, then the breakaway.
+		// ENG-38: a ship arriving over the cloud deck (above the normal ceiling) is released from the zone until its glide
+		// ends: no exit, no ceiling tip (the ceiling and the exit height stay as they were for normal flight; the Lead, Nov 14).
+		const UTDShipMovementComponent* ShipMove = Ship->GetShipMovement();
+		const bool bArriving = ShipMove && ShipMove->IsBoundaryReleased();
+		if (bArriving) { continue; }
 		if (bExitOpen && !bLanding && Z >= ExitZ)
 		{
 			// Latched only on a successful request (review minor 6); a refused request retries next frame.
