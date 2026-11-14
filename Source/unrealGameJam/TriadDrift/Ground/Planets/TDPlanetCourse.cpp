@@ -421,6 +421,20 @@ AActor* ATDPlanetCourse::SpawnKitBP(const TCHAR* Folder, const TCHAR* Name, cons
 	return A;
 }
 
+void ATDPlanetCourse::RetintDressing(const FVector& Local, float RadiusCm, const TCHAR* MeshName, const TCHAR* MaterialPath)
+{
+	// Environment builder (Nov 14): give the dressing's copies of one mesh within a radius another material (the Fab
+	// intake's tiling sets on site debris), at runtime: no asset is changed.
+	UMaterialInterface* M = LoadObject<UMaterialInterface>(nullptr, MaterialPath, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	if (!M || !Dressing) { return; }
+	const FVector At = W(Local);
+	TInlineComponentArray<UStaticMeshComponent*> Parts(Dressing.Get());
+	for (UStaticMeshComponent* C : Parts)
+	{
+		if (C && C->GetStaticMesh() && C->GetStaticMesh()->GetName() == MeshName && FVector::Dist2D(C->GetComponentLocation(), At) <= RadiusCm) { C->SetMaterial(0, M); }
+	}
+}
+
 int32 ATDPlanetCourse::Dress(const TArray<FDressItem>& Items, const FVector& Origin, float Yaw, FName Site)
 {
 	int32 Placed = 0;
@@ -498,13 +512,23 @@ void ATDPlanetCourse::DressOutpost(const FVector& Site, float Yaw, FName Tag)
 			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-610.f, -540.f, 0.f), 15.f, 1.f, true },
 			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-530.f, -600.f, 0.f), 60.f, 1.f, true },
 			{ Core, TEXT("SM_Fab_PowerCore"), FVector(-330.f, -540.f, 0.f), 90.f, 1.f, true },
+			// intake (Nov 14): a Mechanic Base generator beyond the barrels, a pillar console by the floodlight, a spare truss
+			// segment lying on the +Y side, and concrete rubble round the generators (retinted below)
+			{ TEXT("Fab/MechanicBase/Mesh/SM/PROP/MACHINE"), TEXT("SM_POWER_GENERATOR_01"), FVector(-950.f, -380.f, 0.f), 90.f, 1.f, true },
+			{ TEXT("Fab/MechanicBase/Mesh/SM/PROP/MACHINE"), TEXT("SM_ELEVATOR_CONSOLE_01"), FVector(560.f, -600.f, 87.f), 200.f, 1.f, true },
+			{ TEXT("Fab/PipeBeam"), TEXT("SM_Fab_PipeBeam"), FVector(-300.f, 950.f, 0.f), 90.f, 1.f, true },
+			{ TEXT("Planet"), TEXT("SM_Cind_DebrisChunk"), FVector(-820.f, -120.f, -10.f), 30.f, 0.9f, false },
+			{ TEXT("Planet"), TEXT("SM_Cind_DebrisChunk"), FVector(-760.f, -660.f, -10.f), 140.f, 0.8f, false },
+			{ TEXT("Planet"), TEXT("SM_Cind_DebrisChunk"), FVector(-430.f, -700.f, -10.f), 250.f, 0.7f, false },
 		}, Site, Yaw, Tag);
+		RetintDressing(Site, 1600.f, TEXT("SM_Cind_DebrisChunk"), TEXT("/Game/TriadDrift/Gameplay/Props/Fab/Textures/ConcreteRubble/MI_Fab_ConcreteRubble.MI_Fab_ConcreteRubble"));
 	}
 	else if (Tag == TEXT("VerdanceOutpost"))
 	{
 		Dress({
 			{ Crate, TEXT("SM_Fab_CrateStack"), FVector(300.f, 600.f, 0.f), 8.f, 1.f, true },
 			{ Core, TEXT("SM_Fab_PowerCore"), FVector(-660.f, -330.f, 0.f), 90.f, 1.f, true },
+			{ TEXT("Fab/MechanicBase/Mesh/SM/PROP/MACHINE"), TEXT("SM_ELEVATOR_CONSOLE_01"), FVector(-500.f, -540.f, 87.f), 160.f, 1.f, true },	// intake
 		}, Site, Yaw, Tag);
 	}
 }
@@ -1406,6 +1430,21 @@ void ATDPlanetCourse::BuildVerdance()
 		RelayArt = GetWorld()->SpawnActor<AActor>(RelayClass, FTransform(GetActorRotation(), W(RelaySite)), RelayParams);
 		FVector O = FVector::ZeroVector, E = FVector::ZeroVector;
 		if (RelayArt) { RelayArt->GetActorBounds(true, O, E); }
+		if (RelayArt)
+		{
+			// intake (Nov 14): the relay plaza in stone tile: the BP's largest flat mesh (its deck), at runtime only
+			UStaticMeshComponent* Best = nullptr;
+			float BestArea = 0.f;
+			TInlineComponentArray<UStaticMeshComponent*> Parts(RelayArt);
+			for (UStaticMeshComponent* C : Parts)
+			{
+				const FBoxSphereBounds B = C->Bounds;
+				const float Area = B.BoxExtent.X * B.BoxExtent.Y;
+				if (B.BoxExtent.Z < 120.f && Area > BestArea) { Best = C; BestArea = Area; }
+			}
+			UMaterialInterface* Tile = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Fab/Textures/StoneTileFloor/MI_Fab_StoneTileFloor.MI_Fab_StoneTileFloor"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+			if (Best && Tile && BestArea > 1000.f * 1000.f) { Best->SetMaterial(0, Tile); UE_LOG(LogTriadDrift, Display, TEXT("Verdance: relay plaza %s in stone tile"), *Best->GetName()); }
+		}
 		if (RelayArt && FMath::Min(E.X, E.Y) < 1300.f)
 		{
 			UE_LOG(LogTriadDrift, Log, TEXT("Verdance: BP_Relay is %.0f x %.0f cm, not the 28 m defence deck yet; the placeholder stands in."), E.X * 2.f, E.Y * 2.f);
@@ -1417,7 +1456,11 @@ void ATDPlanetCourse::BuildVerdance()
 	const float DeckTop = RelayArt ? 50.f : 40.f;
 	if (!RelayArt)
 	{
-	Platform(RelaySite, DeckTop, FVector(2800.f, 2800.f, DeckTop), RelayStone, 0.2f, TEXT("SM_Verd_RelayDeck"));
+	if (UStaticMeshComponent* Deck = Platform(RelaySite, DeckTop, FVector(2800.f, 2800.f, DeckTop), RelayStone, 0.2f, TEXT("SM_Verd_RelayDeck")))
+	{
+		// intake (Nov 14): the relay plaza in stone tile (placeholder deck)
+		if (UMaterialInterface* Tile = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Fab/Textures/StoneTileFloor/MI_Fab_StoneTileFloor.MI_Fab_StoneTileFloor"), nullptr, LOAD_Quiet | LOAD_NoWarn)) { Deck->SetMaterial(0, Tile); }
+	}
 	for (const FVector& R : { FVector(-1550.f, 0.f, 0.f), FVector(0.f, 1550.f, 0.f), FVector(0.f, -1550.f, 0.f) }) // ramps on the west, north and south sides
 	{
 		const bool bX = FMath::Abs(R.X) > 1.f;
@@ -2221,6 +2264,15 @@ void ATDPlanetCourse::BuildCinder()
 			{ Out, TEXT("SM_Outpost_PowerJunction"), FVector(-470.f, -400.f, 0.f), 0.f, 1.f, true },
 			{ Out, TEXT("SM_Outpost_CommAntenna"), FVector(-200.f, 470.f, 0.f), 0.f, 1.f, true },
 		}, CabinAt, 180.f, TEXT("DigCabin"));
+		// intake (Nov 14): two spare truss segments on the ground beside the dig cabin, concrete rubble round them
+		Dress({
+			{ TEXT("Fab/PipeBeam"), TEXT("SM_Fab_PipeBeam"), FVector(-700.f, 950.f, 0.f), 0.f, 1.f, true },
+			{ TEXT("Fab/PipeBeam"), TEXT("SM_Fab_PipeBeam"), FVector(-860.f, 1000.f, 0.f), 4.f, 1.f, true },
+			{ TEXT("Planet"), TEXT("SM_Cind_DebrisChunk"), FVector(-560.f, 600.f, -10.f), 60.f, 0.9f, false },
+			{ TEXT("Planet"), TEXT("SM_Cind_DebrisChunk"), FVector(-980.f, 1450.f, -10.f), 200.f, 0.8f, false },
+			{ TEXT("Planet"), TEXT("SM_Cind_DebrisChunk"), FVector(-620.f, 1500.f, -10.f), 320.f, 0.7f, false },
+		}, CabinAt, 180.f, TEXT("DigCabinIntake"));
+		RetintDressing(CabinAt, 1800.f, TEXT("SM_Cind_DebrisChunk"), TEXT("/Game/TriadDrift/Gameplay/Props/Fab/Textures/ConcreteRubble/MI_Fab_ConcreteRubble.MI_Fab_ConcreteRubble"));
 		DressOutpost(StationAt, 180.f, TEXT("CinderOutpost"));
 		// Route dressing (environment builder, Nov 14): the field anchor path's barest 30 m (an empty basalt flat before the
 		// anchor) gets a crystal outcrop, choke rocks, a burnt tree, debris and an abandoned survey cache (Fab barrels and a

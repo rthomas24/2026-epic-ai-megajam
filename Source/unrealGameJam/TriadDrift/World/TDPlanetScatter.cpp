@@ -148,13 +148,15 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 			R.CharTrees.Add(Ck);
 		}
 		P.ScorchKind = Add(TDScatter_Path(TEXT("Kit/Story"), TEXT("SM_Kit_ScorchLines")), 4.f, 6.5f, 0.f, 180000.f, 240000.f, 1200.f, false, false, false);
+		// Fab intake (Nov 14): ForestNordicMoss on Verdance rocks and cliff boulders
+		const FString VerdMoss = FString::Printf(TEXT("%s/Fab/Textures/ForestNordicMoss/MI_Fab_ForestNordicMoss.MI_Fab_ForestNordicMoss"), GProps);
 		for (int32 i = 1; i <= 3; ++i)
 		{
-			R.Rocks.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Rock_%02d"), i)), 1.5f, 4.5f, 60.f, 60000.f, 80000.f, 500.f, true, true, true));
+			R.Rocks.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Rock_%02d"), i)), 1.5f, 4.5f, 60.f, 60000.f, 80000.f, 500.f, true, true, true, VerdMoss));
 		}
 		for (int32 i = 1; i <= 4; ++i)
 		{
-			R.CliffRocks.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Any_Boulder_%02d"), i)), 0.8f, 1.6f, 80.f, 90000.f, 120000.f, 900.f, true, true, true));
+			R.CliffRocks.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Any_Boulder_%02d"), i)), 0.8f, 1.6f, 80.f, 90000.f, 120000.f, 900.f, true, true, true, VerdMoss));
 		}
 		// Glowing groves: giant mushrooms (3-8x) and big glow plants where the ground is painted as a grove.
 		for (int32 i = 1; i <= 3; ++i)
