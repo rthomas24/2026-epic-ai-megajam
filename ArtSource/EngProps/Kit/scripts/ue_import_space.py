@@ -54,8 +54,9 @@ def glow_mi(name, rgb, strength, pulse=0.0, rate=1.0):
 def main():
     notes = []
     K.ensure_dir(DEST)
-    patrol = trim_mi("MI_SP_PatrolHull", 0.35, 0.25, (1.0, 1.0, 1.0), 0.08)           # the squad's off-white hull
-    patrol2 = trim_mi("MI_SP_PatrolHull2", 0.45, 0.25, (0.62, 0.64, 0.68), 0.08)      # its mid-grey second tone
+    patrol = trim_mi("MI_SP_PatrolHull", 0.2, 0.25, (1.0, 1.0, 1.0), 0.15)            # the squad's off-white hull (r3: lighter)
+    patrol2 = trim_mi("MI_SP_PatrolHull2", 0.3, 0.25, (0.7, 0.72, 0.76), 0.15)        # its mid-grey second tone
+    stripe = trim_mi("MI_SP_PatrolStripe", 0.2, 0.2, (0.3, 0.72, 0.78), 0.25)          # one muted squad-cyan band
     research = trim_mi("MI_SP_ResearchHull", 0.4, 0.3, (0.92, 0.9, 0.84), 0.1)        # older civilian: weathered off-white
     research2 = trim_mi("MI_SP_ResearchHull2", 0.5, 0.3, (0.5, 0.48, 0.45), 0.1)      # and a warm mid-grey
     scorch = trim_mi("MI_SP_Scorch", 1.0, 0.4, (0.12, 0.1, 0.09), 0.02)              # burnt plates and frames
@@ -64,9 +65,12 @@ def main():
               "Eye": glow_mi("MI_SP_NullEye", (1.0, 1.0, 1.0), 25.0), "Light": glow_mi("MI_SP_Window", (1.0, 0.72, 0.42), 14.0),
               "Flicker": glow_mi("MI_SP_WindowFlicker", (1.0, 0.72, 0.42), 10.0, pulse=0.85, rate=3.7),
               "Run": glow_mi("MI_SP_RunLight", (1.0, 0.18, 0.12), 12.0, pulse=0.9, rate=0.5),
-              "Beacon": glow_mi("MI_SP_RigBeacon", (1.0, 0.05, 0.02), 60.0, pulse=0.95, rate=0.35),
+              "Beacon": glow_mi("MI_SP_RigBeacon", (1.0, 0.05, 0.02), 90.0, pulse=0.95, rate=0.35),
               "Breach": glow_mi("MI_SP_Breach", (0.25, 0.55, 1.0), 8.0, pulse=0.25, rate=0.8),
-              "Work": glow_mi("MI_SP_WorkLight", (1.0, 0.9, 0.7), 20.0),
+              "Work": glow_mi("MI_SP_WorkLight", (1.0, 0.9, 0.7), 45.0),
+              "Strobe": glow_mi("MI_SP_DistressStrobe", (0.6, 0.85, 1.0), 70.0, pulse=1.0, rate=1.3),
+              "Nav": glow_mi("MI_SP_NavAmber", (1.0, 0.55, 0.1), 30.0, pulse=0.6, rate=0.4),
+              "Stripe": stripe, "BoreEnd": scorch,
               "Scorch": scorch, "Cut": cut,
               "Rock": eas.load_asset(SP + "MI_Asteroid_03"), "Bore": eas.load_asset(SP + "MI_SpaceDebris_01")}
     pipe = K.ensure_pipeline(notes)

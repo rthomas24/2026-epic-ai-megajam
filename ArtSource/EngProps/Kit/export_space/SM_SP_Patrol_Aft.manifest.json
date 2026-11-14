@@ -1,7 +1,7 @@
 {
   "asset": "SM_SP_Patrol_Aft",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_space\\SM_SP_Patrol_Aft.fbx",
-  "tris": 1162,
+  "tris": 1168,
   "size_cm": [
     1570.0,
     1078.3,
@@ -11,11 +11,43 @@
   "forward": "+X (authoring front +X rotated)",
   "materials": [
     "M_Kit_Trim",
+    "M_Kit_Breach",
+    "M_Kit_Stripe",
     "M_Kit_Trim2"
   ],
   "material_params": [
     {
       "name": "M_Kit_Trim",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Breach",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "emission_strength": 6.0
+    },
+    {
+      "name": "M_Kit_Stripe",
       "textured": true,
       "base_color": null,
       "metallic": null,

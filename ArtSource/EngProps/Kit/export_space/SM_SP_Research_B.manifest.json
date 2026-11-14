@@ -1,7 +1,7 @@
 {
   "asset": "SM_SP_Research_B",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_space\\SM_SP_Research_B.fbx",
-  "tris": 10028,
+  "tris": 10278,
   "size_cm": [
     10800.0,
     2795.5,
@@ -13,6 +13,7 @@
     "M_Kit_Trim",
     "M_Kit_Flicker",
     "M_Kit_Light",
+    "M_Kit_Nav",
     "M_Kit_Run",
     "M_Kit_Scorch",
     "M_Kit_Trim2"
@@ -64,6 +65,23 @@
         1.0
       ],
       "emission_strength": 8.0
+    },
+    {
+      "name": "M_Kit_Nav",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.55,
+        0.1
+      ],
+      "emission_strength": 10.0
     },
     {
       "name": "M_Kit_Run",

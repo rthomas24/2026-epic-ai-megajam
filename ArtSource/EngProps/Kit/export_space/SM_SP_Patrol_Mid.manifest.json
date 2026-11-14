@@ -1,11 +1,11 @@
 {
   "asset": "SM_SP_Patrol_Mid",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_space\\SM_SP_Patrol_Mid.fbx",
-  "tris": 2030,
+  "tris": 2036,
   "size_cm": [
     1800.0,
     693.0,
-    420.0
+    520.0
   ],
   "pivot": "root object origin (SM_SP_Patrol_Mid~exp)",
   "forward": "+X (authoring front +X rotated)",

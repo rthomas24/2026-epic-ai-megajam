@@ -1,11 +1,11 @@
 {
   "asset": "SM_SP_NullRig",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_space\\SM_SP_NullRig.fbx",
-  "tris": 1696,
+  "tris": 1804,
   "size_cm": [
     3664.5,
     3664.5,
-    5800.0
+    6350.0
   ],
   "pivot": "root object origin (SM_SP_NullRig~exp)",
   "forward": "+X (authoring front +X rotated)",

@@ -1,7 +1,7 @@
 {
   "asset": "SM_SP_HollowRock",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_space\\SM_SP_HollowRock.fbx",
-  "tris": 7861,
+  "tris": 8271,
   "size_cm": [
     6956.3,
     7344.2,
@@ -11,6 +11,7 @@
   "forward": "+X (authoring front +X rotated)",
   "materials": [
     "M_Kit_Bore",
+    "M_Kit_BoreEnd",
     "M_Kit_Cut",
     "M_Kit_Dom",
     "M_Kit_Rock",
@@ -27,6 +28,23 @@
       ],
       "metallic": 0.0,
       "roughness": 0.9,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_BoreEnd",
+      "textured": false,
+      "base_color": [
+        0.005,
+        0.005,
+        0.006
+      ],
+      "metallic": 0.0,
+      "roughness": 0.95,
       "emission_color": [
         1.0,
         1.0,

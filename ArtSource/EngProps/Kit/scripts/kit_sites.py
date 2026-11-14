@@ -438,11 +438,11 @@ def space_sites():
     Props/Space/SetPieces/ for the space field; these classes show the intended grouping."""
     out = {}
     out["Space_PatrolWreck"] = {"site": "Space_PatrolWreck", "actor": SPS + "BP_SP_PatrolWreck",
-        "about": "The Watchline halo: the lost patrol's hull in four pieces drifting apart (about 55 m spread).",
+        "about": "The Watchline halo: the lost patrol's hull in four pieces drifting apart (about 90 m across).",
         "pieces": [piece("Mid", SPS + "SM_SP_Patrol_Mid", 0.0, 0.0, 0.0, 0.0, roll_deg=18.0),
-                   piece("Bow", SPS + "SM_SP_Patrol_Bow", 2100.0, 450.0, 350.0, 12.0, pitch_deg=-9.0, roll_deg=-25.0),
-                   piece("Aft", SPS + "SM_SP_Patrol_Aft", -2300.0, -500.0, -420.0, -14.0, pitch_deg=6.0, roll_deg=40.0),
-                   piece("Wing", SPS + "SM_SP_Patrol_Wing", 400.0, 1500.0, 900.0, 35.0, pitch_deg=20.0, roll_deg=55.0)]}
+                   piece("Bow", SPS + "SM_SP_Patrol_Bow", 3600.0, 900.0, 650.0, 12.0, pitch_deg=-9.0, roll_deg=-25.0),
+                   piece("Aft", SPS + "SM_SP_Patrol_Aft", -3900.0, -1000.0, -800.0, -14.0, pitch_deg=6.0, roll_deg=40.0),
+                   piece("Wing", SPS + "SM_SP_Patrol_Wing", 600.0, 2800.0, 1700.0, 35.0, pitch_deg=20.0, roll_deg=55.0)]}
     out["Space_ResearchA"] = {"site": "Space_ResearchA", "actor": SPS + "BP_SP_ResearchA", "about": "Quiet Graveyard hull A (158 m).",
                               "pieces": [piece("Hull", SPS + "SM_SP_Research_A", 0.0, 0.0, 0.0, 0.0, roll_deg=12.0)]}
     out["Space_ResearchB"] = {"site": "Space_ResearchB", "actor": SPS + "BP_SP_ResearchB", "about": "Quiet Graveyard hull B (108 m).",

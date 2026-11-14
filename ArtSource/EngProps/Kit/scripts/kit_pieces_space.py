@@ -65,12 +65,23 @@ def patrol_bow():
     for (y0, y1, z0, z1, back) in ((-W_ * 0.36, W_ * 0.36, H_ * 0.40, H_ * 0.47, -380.0), (-W_ / 2 - 10, -W_ * 0.42, -60, 150, -240.0),
                                    (W_ * 0.42, W_ / 2 + 10, -60, 150, -300.0), (-W_ * 0.28, W_ * 0.28, -H_ * 0.56, -H_ * 0.48, -120.0)):
         p.box((back, y0, z0), (0.0, y1, z1), reg="wall", mat="Scorch")
+    _band(p, 60.0, 800.0)
+    # the failing distress strobe on the nose spine (white-blue, carries to 1 km)
+    p.box((1050.0, -110.0, 150.0), (1270.0, 110.0, 370.0), mat="Strobe")
     _ribs(p, -300.0, 0.0, 150.0, hull_prof(W_ * 0.9, H_ * 0.9))
     # cold blue glow from the breached section, seen through the torn back
     p.poly([(-5.0, -W_ * 0.3, -H_ * 0.4), (-5.0, W_ * 0.3, -H_ * 0.4), (-5.0, W_ * 0.3, H_ * 0.3), (-5.0, -W_ * 0.3, H_ * 0.3)],
            mat="Breach", n=(-1, 0, 0))
     p.chull([(x, y, z) for x in (-380.0, 1500.0) for y, z in hull_prof(W_, H_, 1.0 if x < 0 else 0.1)])
     return p
+
+
+def _band(p, x0, x1, w=W_, h=H_):
+    """The squad's muted cyan band along both flanks (slot Stripe: the light trim tinted cyan) - it reads as ours."""
+    for s in (-1.0, 1.0):
+        y = s * (w / 2 + 6.0)
+        p.poly([(x0, y, -h * 0.1), (x1, y, -h * 0.1), (x1, y, h * 0.05), (x0, y, h * 0.05)], "frame", mat="Stripe", n=(0, s, 0),
+               uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
 
 
 def patrol_mid():
@@ -92,6 +103,11 @@ def patrol_mid():
     # the breach: a cold blue glow on the inner wall of the open side, and scorch round it
     p.poly([(-700.0, -2.0, -H_ * 0.4), (700.0, -2.0, -H_ * 0.4), (700.0, -2.0, H_ * 0.25), (-700.0, -2.0, H_ * 0.25)], mat="Breach", n=(0, -1, 0))
     p.box((-900.0, -W_ * 0.05, H_ * 0.3), (900.0, 0.0, H_ * 0.45), reg="wall", mat="Scorch")
+    # outward breach on the intact +Y flank: a torn hole glowing cold blue, scorch round it
+    p.poly([(-350.0, W_ / 2 + 4.0, -120.0), (350.0, W_ / 2 + 4.0, -120.0), (250.0, W_ / 2 + 4.0, 150.0), (-280.0, W_ / 2 + 4.0, 120.0)],
+           mat="Breach", n=(0, 1, 0))
+    p.poly([(-560.0, W_ / 2 + 2.0, -260.0), (560.0, W_ / 2 + 2.0, -260.0), (460.0, W_ / 2 + 2.0, 260.0), (-500.0, W_ / 2 + 2.0, 240.0)],
+           "wall", mat="Scorch", n=(0, 1, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
     p.chull([(x, y, z) for x in (-900.0, 900.0) for y, z in ((-W_ / 2, -H_ * 0.55), (W_ / 2, -H_ * 0.55), (W_ / 2, H_ * 0.45), (-W_ / 2, H_ * 0.45))])
     return p
 
@@ -101,6 +117,9 @@ def patrol_aft():
     p = Piece("SM_SP_Patrol_Aft", None)
     loft(p, -700.0, hull_prof(W_, H_, 0.9), 500.0, hull_prof(W_, H_), reg="wall", caps=(True, False))
     _ribs(p, 520.0, 700.0, 180.0, hull_prof(W_ * 0.95, H_ * 0.95))
+    _band(p, -650.0, 450.0, W_, H_)
+    p.poly([(505.0, -W_ * 0.3, -H_ * 0.4), (505.0, W_ * 0.3, -H_ * 0.4), (505.0, W_ * 0.3, H_ * 0.3), (505.0, -W_ * 0.3, H_ * 0.3)],
+           mat="Breach", n=(1, 0, 0))
     for s in (-1.0, 1.0):
         with p.at(Matrix.Translation((-150.0, s * (W_ / 2 + 70.0), 20.0)) @ Matrix.Rotation(math.radians(-90.0), 4, "Y")):
             p.lathe([(0.0, -600.0), (105.0, -560.0), (120.0, -300.0), (120.0, 300.0), (105.0, 520.0), (80.0, 600.0)], 12,
@@ -145,10 +164,25 @@ def research_a():
         p.box((x - 40, -350, -40), (x + 40, 350, 40), reg="sw_gun")
     # four modules
     for i, x in enumerate((-4200.0, -1400.0, 1400.0, 4200.0)):
+        if i == 2:
+            # the blown-out module: a third of its shell gone, the rest scorched, its debris drifting out of the hole
+            with p.at(Matrix.Translation((x - 1200.0, 0.0, 0.0)) @ Matrix.Rotation(math.radians(90.0), 4, "Y")):
+                pr = [(r, -a) for r, a in [(0.0, 0.0), (650.0, 120.0), (1100.0, 550.0), (1100.0, 1850.0), (650.0, 2280.0), (0.0, 2400.0)]][::-1]
+                p.lathe(pr, 16, regs=["sw_dark", "frame", "wallB", "frame", "sw_dark"], mat="Scorch", a0=120.0, a1=360.0)
+                p.lathe(pr[::-1], 16, regs="sw_black", mat="Scorch", a0=120.0, a1=360.0)     # the inside, dark
+            rnd = random.Random(19)
+            for k in range(26):                                   # the venting haze: shards drifting out of the hole
+                a = math.radians(40.0 + rnd.uniform(-35.0, 35.0))
+                r = 1300.0 + rnd.random() ** 1.5 * 3200.0
+                cx, cy, cz = x - 900.0 + rnd.uniform(0.0, 1800.0), math.cos(a) * r, math.sin(a) * r
+                sz = rnd.uniform(40.0, 220.0) * (1.0 - (r - 1300.0) / 4500.0)
+                with p.at(Matrix.Translation((cx, cy, cz)) @ Matrix.Rotation(rnd.uniform(0, 6.28), 4, (rnd.random(), rnd.random(), 1.0))):
+                    p.box((-sz, -sz * 0.5, -sz * 0.15), (sz, sz * 0.5, sz * 0.15), reg="wallB", mat="Scorch" if k % 3 else "Trim")
+            continue
         _lathe_x(p, x - 1200.0, 0.0, 0.0, [(0.0, 0.0), (650.0, 120.0), (1100.0, 550.0), (1100.0, 1850.0), (650.0, 2280.0), (0.0, 2400.0)],
                  16, regs=["sw_dark", "frame", "wall" if i % 2 else "wallB", "frame", "sw_dark"], mat="Trim2" if i % 2 else "Trim")
         # a window row round each module: lit (0), flickering (2), dark (1, 3: the dead sections)
-        if i in (0, 2):
+        if i == 0:
             for k in range(0, 16, 2):
                 a0, a1 = 2 * math.pi * k / 16 + 0.06, 2 * math.pi * (k + 1) / 16 - 0.06
                 for xx in (x - 900.0, x + 300.0):
@@ -170,9 +204,11 @@ def research_a():
         for s in (-1.0, 1.0):
             yy = s * 902.0
             p.poly([(x0, yy, z), (x1, yy, z), (x1, yy, z + 60), (x0, yy, z + 60)], mat="Light", n=(0, s, 0))
-    # running lights: bow, ring, stern
+    # running lights: bow, ring, stern; a dim amber nav light on the command block (carries to 1 km)
     for (x, y, z) in ((L / 2 + 5, 0.0, 0.0), (-2800.0, 0.0, 2215.0), (-2800.0, 0.0, -2215.0), (-L / 2 + 600, 0.0, 520.0)):
         p.box((x - 60, y - 60, z - 60), (x + 60, y + 60, z + 60), mat="Run")
+    p.box((L / 2 - 1300, -100, 800), (L / 2 - 1100, 100, 1000), reg="frame")
+    p.box((L / 2 - 1350, -150, 1000), (L / 2 - 1050, 150, 1300), mat="Nav")
     # engines: three bells on a thrust frame
     p.box((-L / 2 + 600, -900, -500), (-L / 2 + 1400, 900, 500), reg="frame")
     for (y, z) in ((-550.0, -150.0), (550.0, -150.0), (0.0, 380.0)):
@@ -190,12 +226,16 @@ def research_b():
     the stern, a broken dish on a mast, a bridge with a lit row. Older and blunter than A, so the line of wrecks varies."""
     p = Piece("SM_SP_Research_B", None)
     hull = {"Z": "roof", "z": "sw_dark", "x": "frame", "X": "frame", "y": "wall", "Y": "wallB"}
-    p.box((-5000, -800, -600), (-900, 800, 600), regs=hull)
-    p.box((200, -800, -600), (3800, 800, 600), regs=hull, mat="Trim2")
-    for x in (-800.0, -450.0, -100.0):                          # the torn gap: frames and a broken keel
+    # r3: intact and abandoned at the front, torn only at the back (the stern section hangs on by the keel)
+    p.box((-5000, -800, -600), (-3700, 800, 600), regs=hull)
+    p.box((-2800, -800, -600), (-400, 800, 600), regs=hull, mat="Trim2")
+    p.box((-400, -800, -600), (3800, 800, 600), regs=hull)
+    for x in (-3600.0, -3250.0, -2900.0):                       # the torn gap: frames and a broken keel
         p.box((x - 40, -800, -600), (x + 40, 800, -500), reg="frame", mat="Scorch")
-        p.box((x - 40, -820, -500), (x + 40, -740, 300 - (x + 800) * 0.3), reg="frame", mat="Scorch")
-        p.box((x - 40, 740, -500), (x + 40, 820, 450 + (x + 800) * 0.2), reg="frame", mat="Scorch")
+        p.box((x - 40, -820, -500), (x + 40, -740, 300 - (x + 3600) * 0.3), reg="frame", mat="Scorch")
+        p.box((x - 40, 740, -500), (x + 40, 820, 450 + (x + 3600) * 0.2), reg="frame", mat="Scorch")
+    p.box((3300, -100, 1100), (3500, 100, 1500), reg="frame")
+    p.box((3250, -150, 1500), (3550, 150, 1800), mat="Nav")
     loft(p, 3800, [(-800, -600), (800, -600), (800, 600), (-800, 600)], 5000, [(-450, -350), (450, -350), (450, 250), (-450, 250)],
          reg="wall", mat="Trim2")
     # truss spine over the hull (it spans the break) with cross members
@@ -210,7 +250,7 @@ def research_b():
     while x < 2600.0:
         w = 500.0 + rnd.random() * 700.0
         hgt = 300.0 + rnd.random() * 500.0
-        if not (-1100.0 < x < 300.0):
+        if not (-3900.0 < x < -2700.0):
             p.box((x, -600.0, 1350.0), (x + w, 600.0, 1350.0 + hgt), regs={"Z": "vent", "x": "frame", "X": "frame", "y": "wall", "Y": "wallB"},
                   mat="Trim2" if rnd.random() < 0.4 else "Trim")
         x += w + 200.0
@@ -266,7 +306,7 @@ def null_rig():
         p0 = (math.cos(a0) * 905.0, math.sin(a0) * 905.0)
         p1 = (math.cos(a1) * 905.0, math.sin(a1) * 905.0)
         am = (a0 + a1) * 0.5
-        p.poly([(p0[0], p0[1], H + 380.0), (p1[0], p1[1], H + 380.0), (p1[0], p1[1], H + 440.0), (p0[0], p0[1], H + 440.0)],
+        p.poly([(p0[0], p0[1], H + 340.0), (p1[0], p1[1], H + 340.0), (p1[0], p1[1], H + 560.0), (p0[0], p0[1], H + 560.0)],
                mat="Glow", n=(math.cos(am), math.sin(am), 0))
         ex, ey = math.cos(am) * 815.0, math.sin(am) * 815.0
         for d in (-120.0, 120.0):
@@ -275,7 +315,8 @@ def null_rig():
             p.poly([(cx - tx, cy - ty, H + 640.0), (cx + tx, cy + ty, H + 640.0), (cx + tx, cy + ty, H + 700.0), (cx - tx, cy - ty, H + 700.0)],
                    mat="Eye", n=(math.cos(am), math.sin(am), 0))
     # a slow red beacon on the crown
-    p.box((-120.0, -120.0, H + 1500.0), (120.0, 120.0, H + 1700.0), mat="Beacon")
+    p.box((-60.0, -60.0, H + 1500.0), (60.0, 60.0, H + 1800.0), reg="frame", mat="Dom")
+    p.box((-260.0, -260.0, H + 1800.0), (260.0, 260.0, H + 2250.0), mat="Beacon")
     # drill string: from the head down into the rock
     p.lathe([(260.0, -1200.0), (260.0, H), (0.0, H)], 12, regs=["frame", "sw_dark"], mat="Dom")
     p.lathe([(0.0, -1500.0), (260.0, -1200.0)], 12, regs="sw_gun", mat="Dom")
@@ -363,6 +404,15 @@ def hollow_rock():
         a = 2 * math.pi * k / 16
         cy, cz = 200.0 + (BR + 90.0) * math.cos(a), -300.0 + (BR + 90.0) * math.sin(a)
         p.box((XC, cy - 35.0, cz - 35.0), (XC + 25.0, cy + 35.0, cz + 35.0), mat="Work")
+    # depth cues inside the bore: two rails along its floor, a parked hauler-sized block, a darker far wall
+    XB = XC - 2600.0
+    for yy in (-80.0, 480.0):
+        p.box((XB + 50.0, yy - 30.0, -300.0 - BR + 40.0), (XC, yy + 30.0, -300.0 - BR + 110.0), reg="frame", mat="Dom")
+    p.box((XB + 500.0, -120.0, -300.0 - BR + 110.0), (XB + 1300.0, 520.0, -300.0 - BR + 520.0), regs={"X": "hatch", "Z": "roof"}, reg="wallB", mat="Dom")
+    p.box((XB + 1300.0, 0.0, -300.0 - BR + 450.0), (XB + 1330.0, 400.0, -300.0 - BR + 500.0), mat="Work")
+    p.poly([(XB + 5.0, 200.0 - BR * 0.8, -300.0 - BR * 0.8), (XB + 5.0, 200.0 + BR * 0.8, -300.0 - BR * 0.8),
+            (XB + 5.0, 200.0 + BR * 0.8, -300.0 + BR * 0.8), (XB + 5.0, 200.0 - BR * 0.8, -300.0 + BR * 0.8)], mat="BoreEnd", n=(1, 0, 0),
+           uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
     for z in (-420.0, -180.0):                                  # rail stubs from the bore toward the face edge
         p.box((XC, 200.0 + BR + 150.0, z - 30.0), (XC + 50.0, 200.0 + BR + 1900.0, z + 30.0), reg="frame", mat="Dom")
         for yy in range(int(200 + BR + 250), int(200 + BR + 1900), 300):
