@@ -509,10 +509,14 @@ def region_sites():
                         "pieces": [piece("Fore", KSP + "SM_KS_Hulk_Fore", 6500.0, 800.0, 400.0, 8.0, roll_deg=-12.0),
                                    piece("Mid", KSP + "SM_KS_Hulk_Mid", 0.0, 0.0, 0.0, 0.0, roll_deg=6.0),
                                    piece("Aft", KSP + "SM_KS_Hulk_Aft", -6200.0, -900.0, -600.0, -10.0, pitch_deg=5.0, roll_deg=25.0)]},
-            "KS_ScarRig": one("KS_ScarRig", "SM_KS_ScarRig", "Survey Scar: a Null survey rig clamped across a split asteroid (about 90 m)."),
+            # yaw -128: the canyon (local Y) lies along the capture camera's line at Cinder, so it can be seen into
+            "KS_ScarRig":
+            {"site": "KS_ScarRig", "actor": KSP + "BP_KS_ScarRig", "about": "Survey Scar: a Null survey rig clamped across a split asteroid (about 90 m); the canyon runs along local Y.",
+             "pieces": [piece("P", KSP + "SM_KS_ScarRig", 0.0, 0.0, 0.0, -128.0)]},
             "KS_MoonShards": {"site": "KS_MoonShards", "actor": KSP + "BP_KS_MoonShards", "about": "Shattered Moons: two shards of one moon (300 m and 180 m).",
-                              "pieces": [piece("A", KSP + "SM_KS_MoonShard_A", 0.0, 0.0, 0.0, 0.0),
-                                         piece("B", KSP + "SM_KS_MoonShard_B", 9000.0, 26000.0, 6000.0, 140.0, pitch_deg=20.0)]}}
+                              # r2: both fracture faces (+X) turned toward the capture camera at Belt (it looks along (0.89, 0.44))
+                              "pieces": [piece("A", KSP + "SM_KS_MoonShard_A", 0.0, 0.0, 0.0, 206.0),
+                                         piece("B", KSP + "SM_KS_MoonShard_B", 8000.0, -26000.0, 6000.0, 196.0, pitch_deg=10.0)]}}
 
 
 def main():

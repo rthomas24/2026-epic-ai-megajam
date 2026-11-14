@@ -1,37 +1,24 @@
 {
   "asset": "SM_KS_ScarRig",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_ScarRig.fbx",
-  "tris": 10494,
+  "tris": 15904,
   "size_cm": [
-    8555.0,
-    8159.3,
-    7873.0
+    8876.0,
+    8276.7,
+    8158.7
   ],
   "pivot": "root object origin (SM_KS_ScarRig~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
-    "M_Kit_Cut",
     "M_Kit_Dom",
-    "M_Kit_Rock"
+    "M_Kit_DomRaw",
+    "M_Kit_Eye",
+    "M_Kit_Glow",
+    "M_Kit_Rock",
+    "M_Kit_Strobe",
+    "M_Kit_Work"
   ],
   "material_params": [
-    {
-      "name": "M_Kit_Cut",
-      "textured": false,
-      "base_color": [
-        0.24,
-        0.23,
-        0.22
-      ],
-      "metallic": 0.0,
-      "roughness": 0.6,
-      "emission_color": [
-        1.0,
-        1.0,
-        1.0
-      ],
-      "emission_strength": 0.0
-    },
     {
       "name": "M_Kit_Dom",
       "textured": true,
@@ -44,6 +31,57 @@
         1.0
       ],
       "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_DomRaw",
+      "textured": false,
+      "base_color": [
+        0.03,
+        0.03,
+        0.035
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Eye",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 12.0
+    },
+    {
+      "name": "M_Kit_Glow",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.1,
+        0.03
+      ],
+      "emission_strength": 6.0
     },
     {
       "name": "M_Kit_Rock",
@@ -61,6 +99,40 @@
         1.0
       ],
       "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Strobe",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.6,
+        0.85,
+        1.0
+      ],
+      "emission_strength": 20.0
+    },
+    {
+      "name": "M_Kit_Work",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.9,
+        0.7
+      ],
+      "emission_strength": 8.0
     }
   ],
   "textures": [],

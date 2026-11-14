@@ -1,18 +1,23 @@
 {
   "asset": "SM_KS_PicketRing",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_PicketRing.fbx",
-  "tris": 5588,
+  "tris": 7626,
   "size_cm": [
-    7064.8,
-    12202.2,
-    1320.0
+    8983.5,
+    13290.0,
+    2366.9
   ],
   "pivot": "root object origin (SM_KS_PicketRing~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
     "M_Kit_Trim",
+    "M_Kit_Breach",
+    "M_Kit_CyanRun",
+    "M_Kit_Flicker",
+    "M_Kit_Light",
     "M_Kit_Nav",
     "M_Kit_Scorch",
+    "M_Kit_Stripe",
     "M_Kit_Trim2"
   ],
   "material_params": [
@@ -28,6 +33,74 @@
         1.0
       ],
       "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Breach",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.2,
+        0.5,
+        1.0
+      ],
+      "emission_strength": 6.0
+    },
+    {
+      "name": "M_Kit_CyanRun",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.0,
+        0.85,
+        1.0
+      ],
+      "emission_strength": 4.0
+    },
+    {
+      "name": "M_Kit_Flicker",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.72,
+        0.42
+      ],
+      "emission_strength": 4.0
+    },
+    {
+      "name": "M_Kit_Light",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.9,
+        0.95,
+        1.0
+      ],
+      "emission_strength": 8.0
     },
     {
       "name": "M_Kit_Nav",
@@ -48,6 +121,19 @@
     },
     {
       "name": "M_Kit_Scorch",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Stripe",
       "textured": true,
       "base_color": null,
       "metallic": null,
@@ -96,6 +182,8 @@
     },
     "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
   },
-  "warnings": [],
+  "warnings": [
+    "9 materials = 9 draw calls; consider merging"
+  ],
   "errors": []
 }

@@ -1,22 +1,43 @@
 {
   "asset": "SM_KS_MoonShard_A",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_MoonShard_A.fbx",
-  "tris": 4331,
+  "tris": 23012,
   "size_cm": [
-    26129.3,
-    32775.6,
-    21066.8
+    26065.5,
+    32948.7,
+    21071.8
   ],
   "pivot": "root object origin (SM_KS_MoonShard_A~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
-    "M_Kit_Glow",
+    "M_Kit_CrackDim",
+    "M_Kit_CrackHot",
+    "M_Kit_Rim",
     "M_Kit_Rock",
-    "M_Kit_Strata"
+    "M_Kit_Seam",
+    "M_Kit_Strata",
+    "M_Kit_Strata2"
   ],
   "material_params": [
     {
-      "name": "M_Kit_Glow",
+      "name": "M_Kit_CrackDim",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.6,
+        0.05,
+        0.02
+      ],
+      "emission_strength": 3.0
+    },
+    {
+      "name": "M_Kit_CrackHot",
       "textured": false,
       "base_color": [
         0.02,
@@ -27,10 +48,27 @@
       "roughness": 0.15,
       "emission_color": [
         1.0,
-        0.1,
-        0.03
+        0.75,
+        0.45
       ],
-      "emission_strength": 6.0
+      "emission_strength": 20.0
+    },
+    {
+      "name": "M_Kit_Rim",
+      "textured": false,
+      "base_color": [
+        0.7,
+        0.68,
+        0.62
+      ],
+      "metallic": 0.0,
+      "roughness": 0.9,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
     },
     {
       "name": "M_Kit_Rock",
@@ -50,12 +88,46 @@
       "emission_strength": 0.0
     },
     {
+      "name": "M_Kit_Seam",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.4,
+        0.08
+      ],
+      "emission_strength": 8.0
+    },
+    {
       "name": "M_Kit_Strata",
       "textured": false,
       "base_color": [
         0.35,
         0.3,
         0.27
+      ],
+      "metallic": 0.0,
+      "roughness": 0.9,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Strata2",
+      "textured": false,
+      "base_color": [
+        0.55,
+        0.5,
+        0.44
       ],
       "metallic": 0.0,
       "roughness": 0.9,
@@ -74,13 +146,13 @@
   "collision_source": "authored",
   "sockets": [],
   "welded_verts": 0,
-  "nanite_recommended": false,
+  "nanite_recommended": true,
   "unreal_import": {
     "uniform_scale": 1.0,
     "generate_lightmap_uvs": false,
     "normals": "Import Normals (keep the authored hard edges/custom normals)",
     "combine_meshes": true,
-    "nanite": false,
+    "nanite": true,
     "collision": "use UCX_ from file",
     "textures": {
       "_BC": "sRGB on, Default",

@@ -1,17 +1,19 @@
 {
   "asset": "SM_KS_Hulk_Fore",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_Hulk_Fore.fbx",
-  "tris": 1276,
+  "tris": 1466,
   "size_cm": [
     7200.0,
-    2400.0,
-    2066.0
+    2408.0,
+    2306.0
   ],
   "pivot": "root object origin (SM_KS_Hulk_Fore~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
     "M_Kit_Trim",
     "M_Kit_Cold",
+    "M_Kit_Light",
+    "M_Kit_Nav",
     "M_Kit_Scorch",
     "M_Kit_Trim2"
   ],
@@ -45,6 +47,40 @@
         1.0
       ],
       "emission_strength": 6.0
+    },
+    {
+      "name": "M_Kit_Light",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.9,
+        0.95,
+        1.0
+      ],
+      "emission_strength": 8.0
+    },
+    {
+      "name": "M_Kit_Nav",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        1.0,
+        0.55,
+        0.1
+      ],
+      "emission_strength": 10.0
     },
     {
       "name": "M_Kit_Scorch",
