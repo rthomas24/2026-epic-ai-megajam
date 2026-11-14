@@ -480,9 +480,11 @@ def story_sets():
             piece("BeaconA", ST + "SM_Kit_WarningBeacon", 650.0, -250.0, 0.0, 0.0),
             piece("BeaconB", ST + "SM_Kit_WarningBeacon", -550.0, -350.0, 0.0, 0.0),
             piece("Gantry", ST + "SM_Kit_GantryCollapsed", -950.0, -150.0, 0.0, 20.0),
-            piece("Scorch", ST + "SM_Kit_ScorchLines", -700.0, 450.0, 0.0, 150.0)]
+            piece("Scorch", ST + "SM_Kit_ScorchLines", -700.0, 450.0, 0.0, 150.0),
+            piece("LampPool", ST + "SM_Kit_LightPool", -640.0, -40.0, 0.0, 0.0),
+            piece("MarkerPole", ST + "SM_Kit_MarkerPole", 200.0, 750.0, 0.0, 0.0)]
     lm = {"Landmark_RelayMast": {"site": "Landmark_RelayMast", "actor": K + "Sites/BP_Landmark_RelayMast",
-                                 "about": "Verdance landmark: a leaning expedition relay mast (63 m) for the research site; collision on its pad only.",
+                                 "about": "Verdance landmark: a leaning expedition relay mast (about 100 m) for the research site; yaw it so its -X (the dish) faces the landing pad; collision on its pad only.",
                                  "pieces": [piece("Mast", ST + "SM_Kit_RelayMast", 0.0, 0.0, 0.0, 0.0)]},
           "Landmark_NullDerrick": {"site": "Landmark_NullDerrick", "actor": K + "Sites/BP_Landmark_NullDerrick",
                                    "about": "Cinder landmark: a Null excavation derrick (87 m) over the dig; cables run below its pivot into the pit; collision on its feet only.",
@@ -496,6 +498,23 @@ def story_sets():
                                     "pieces": mine}}
 
 
+KSP = K + "Space/"
+
+
+def region_sites():
+    """Capture / grouping classes for the region set pieces (one per region)."""
+    one = lambda n, mesh, about, **kw: {"site": n, "actor": KSP + "BP_" + n, "about": about, "pieces": [piece("P", KSP + mesh, 0.0, 0.0, 0.0, 0.0, **kw)]}
+    return {"KS_PicketRing": one("KS_PicketRing", "SM_KS_PicketRing", "Watchline: the broken picket-station ring segment (pivot = the ring centre, 60 m from the arc).", roll_deg=12.0),
+            "KS_Hulk": {"site": "KS_Hulk", "actor": KSP + "BP_KS_Hulk", "about": "Quiet Graveyard: the cut-up cruiser's three sections drifting apart (about 200 m).",
+                        "pieces": [piece("Fore", KSP + "SM_KS_Hulk_Fore", 6500.0, 800.0, 400.0, 8.0, roll_deg=-12.0),
+                                   piece("Mid", KSP + "SM_KS_Hulk_Mid", 0.0, 0.0, 0.0, 0.0, roll_deg=6.0),
+                                   piece("Aft", KSP + "SM_KS_Hulk_Aft", -6200.0, -900.0, -600.0, -10.0, pitch_deg=5.0, roll_deg=25.0)]},
+            "KS_ScarRig": one("KS_ScarRig", "SM_KS_ScarRig", "Survey Scar: a Null survey rig clamped across a split asteroid (about 90 m)."),
+            "KS_MoonShards": {"site": "KS_MoonShards", "actor": KSP + "BP_KS_MoonShards", "about": "Shattered Moons: two shards of one moon (300 m and 180 m).",
+                              "pieces": [piece("A", KSP + "SM_KS_MoonShard_A", 0.0, 0.0, 0.0, 0.0),
+                                         piece("B", KSP + "SM_KS_MoonShard_B", 9000.0, 26000.0, 6000.0, 140.0, pitch_deg=20.0)]}}
+
+
 def main():
     out = os.path.join(KIT, "sites")
     os.makedirs(out, exist_ok=True)
@@ -507,6 +526,7 @@ def main():
     sites.update(space_sites())
     sites.update(story_sets())
     sites.update(STORY_LM)
+    sites.update(region_sites())
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)
