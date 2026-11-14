@@ -83,6 +83,11 @@ void UTDDescentSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 	PreLoadHandle = FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UTDDescentSubsystem::HandlePreLoadMap);
 	PostLoadHandle = FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UTDDescentSubsystem::HandlePostLoadMap);
+	// A retake (CUT) in the same map ends a glide and gives the squad back to the zone.
+	if (UTDGameInstance* GI = Cast<UTDGameInstance>(GetGameInstance()))
+	{
+		GI->OnSceneRestart.AddWeakLambda(this, [this](FName, int32) { EndGlide(TEXT("retake")); });
+	}
 }
 
 void UTDDescentSubsystem::Deinitialize()

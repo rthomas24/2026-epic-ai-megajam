@@ -114,10 +114,12 @@ bool FTDT1GlideRetake::RunTest(const FString& Parameters)
 	Ship->SetPlayerControlled(true);
 	W.SpawnLocalPlayerController(Ship);
 	W.Advance(0.2f);
+	Ship->GetShipMovement()->SetBoundaryReleaseFor(UTDDescentSubsystem::GlideOverride, true); // as the arrival over the deck
 	TestTrue(TEXT("glide begins"), D->BeginGlide(Ship, 0.f));
 	for (int32 i = 0; i < 90; ++i) { W.Tick(1.f / 60.f); D->TickGlide(1.f / 60.f); }
 	TestTrue(TEXT("mid-glide"), D->IsGliding());
-	D->EndGlide(TEXT("retake"));
+	if (UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance())) { GI->OnSceneRestart.Broadcast(TEXT("Test"), 2); } // a CUT
+	TestFalse(TEXT("a retake: the squad is back under the zone"), Ship->GetShipMovement()->IsBoundaryReleased());
 	UTDShipMovementComponent* Move = Ship->GetShipMovement();
 	TestTrue(TEXT("a retake ends it: override, pitch hold and invulnerability gone"), !D->IsGliding() && !Move->HasSpeedOverrideFor(UTDDescentSubsystem::GlideOverride)
 		&& !Move->IsPitchHeld() && !Ship->GetHealth()->IsInvulnerable());
@@ -201,6 +203,36 @@ bool FTDT1ExposureRamp::RunTest(const FString& Parameters)
 	D->AbortCover(TEXT("test"));
 	for (int32 i = 0; i < 30; ++i) { D->Tick(1.f / 30.f); }
 	TestEqual(TEXT("cover gone: weight 0 again"), D->GetExposureRampWeight(), 0.f);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1GlideSwitchAndCeiling, "TriadDrift.Travel.Descent.GlideReleaseEndsOnASwitchAndTheCeilingWarns", TD_TEST_FLAGS)
+bool FTDT1GlideSwitchAndCeiling::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 145000.f));
+	ATDShip* Wing = W.Spawn<ATDShip>(FVector(2000.f, 2000.f, 145000.f));
+	UTDDescentSubsystem* D = UTDDescentSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("ships"), Ship) || !Wing || !TestNotNull(TEXT("descent"), D)) { return false; }
+	Ship->SetPlayerControlled(true);
+	W.SpawnLocalPlayerController(Ship);
+	W.Advance(0.2f);
+	for (ATDShip* S : { Ship, Wing }) { S->GetShipMovement()->SetBoundaryReleaseFor(UTDDescentSubsystem::GlideOverride, true); }
+	TestTrue(TEXT("glide begins"), D->BeginGlide(Ship, 0.f));
+	for (int32 i = 0; i < 60; ++i) { W.Tick(1.f / 60.f); D->TickGlide(1.f / 60.f); }
+	// Switch mid-glide: the flown ship is no longer the player's.
+	Ship->SetPlayerControlled(false);
+	Wing->SetPlayerControlled(true);
+	W.Tick(1.f / 60.f); D->TickGlide(1.f / 60.f);
+	TestFalse(TEXT("a switch ends the glide"), D->IsGliding());
+	TestTrue(TEXT("... and every squad ship is back under the zone"), !Ship->GetShipMovement()->IsBoundaryReleased() && !Wing->GetShipMovement()->IsBoundaryReleased());
+	// After the hand-back, the normal ceiling warns (not a silent wall): above a 1 km ceiling, the warning shows.
+	UTDShipMovementComponent* Move = Wing->GetShipMovement();
+	Move->SetBoxBoundary(FBox(FVector(-500000.f, -500000.f, 0.f), FVector(500000.f, 500000.f, 100000.f)), 100000.f);
+	Wing->TeleportSpacecraft(FVector(0.f, 0.f, 120000.f), FRotator(30.f, 0.f, 0.f), false);
+	for (int32 i = 0; i < 10; ++i) { W.Tick(1.f / 60.f); }
+	TestTrue(TEXT("above the ceiling after the hand-back: the normal ceiling warning"), !Move->GetBoundaryWarningText().IsEmpty() || Move->IsOutOfBounds());
+	TestFalse(TEXT("... no hold left over"), Move->IsBoundaryWarningHeld());
 	return true;
 }
 
