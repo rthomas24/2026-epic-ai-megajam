@@ -54,7 +54,7 @@ namespace
 	struct FTDScatterRanges
 	{
 		int32 Trees = INDEX_NONE;	// 18 = 6 species x 3 stages (Verdance)
-		TArray<int32> Canopy, Rocks, CliffRocks, Grove, GroveGlow, Ground, GroundGlow, GroundForest, Columns, CharTrees, Spires, Crystals, Rubble;
+		TArray<int32> Canopy, CanopyAccent, Rocks, CliffRocks, Grove, GroveGlow, Ground, GroundGlow, GroundForest, Columns, CharTrees, Spires, Crystals, Rubble;
 	};
 	FTDScatterRanges GTDRanges[2];	// [0] Verdance, [1] Cinder (filled once, read-only after)
 	FCriticalSection GTDRangesLock;
@@ -107,11 +107,14 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 				Add(TDScatter_Path(TEXT("Trees"), Name), 0.85f, 1.15f, 150.f, Stage == 2 ? 60000.f : 180000.f, Stage == 2 ? 90000.f : 240000.f, 400.f, Stage != 2, false, true);
 			}
 		}
-		// Far-tier canopy clumps (their material dithers them out nearer than ~0.8 km, where the trees take over).
+		// Far-tier canopy clumps (their material dithers them out nearer than ~0.8 km, where the trees take over): green
+		// forest stands (MI_Scatter_Canopy_Forest), with the bioluminescent pink / cyan clumps kept as accents (~12 %).
+		const FString ForestMat = FString::Printf(TEXT("%s/Scatter/MI_Scatter_Canopy_Forest.MI_Scatter_Canopy_Forest"), GProps);
 		for (int32 i = 1; i <= 3; ++i)
 		{
-			R.Canopy.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Verd_Canopy_%02d"), i)), 0.8f, 1.3f, 300.f, 420000.f, 460000.f, 4000.f, false, false, false));
+			R.Canopy.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Verd_Canopy_%02d"), i)), 1.2f, 2.0f, 400.f, 420000.f, 460000.f, 5000.f, false, false, false, ForestMat));
 		}
+		R.CanopyAccent.Add(Add(TDScatter_Path(TEXT("Scatter"), TEXT("SM_Scatter_Verd_Canopy_02")), 1.0f, 1.5f, 400.f, 420000.f, 460000.f, 4000.f, false, false, false));
 		for (int32 i = 1; i <= 3; ++i)
 		{
 			R.Rocks.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Rock_%02d"), i)), 1.5f, 4.5f, 60.f, 100000.f, 140000.f, 500.f, true, true, true));
@@ -234,7 +237,7 @@ bool FTDScatterPlan::IsPatch(const FTDTerrainSample& Sm) const
 		: (Sm.BroadMask < GroveBroadMax && Sm.FineMask > GroveFineMin);
 }
 
-int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM, float Rnd) const
+int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM, float Rnd, float Stand) const
 {
 	const FTDScatterRanges& R = TDScatter_Ranges(Planet);
 	const bool bPatch = IsPatch(Sm);
@@ -251,7 +254,9 @@ int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM
 			if (Sm.Slope > 0.55f || HeightM > 1500.f || bPatch || R.Trees == INDEX_NONE) { return INDEX_NONE; }
 			const float Base = Mode == ModeDense ? (Moist > RainforestBroad ? 0.92f : (Moist > MixedBroad ? 0.45f : 0.08f))
 				: (Moist > RainforestBroad ? 0.9f : (Moist > MixedBroad ? 0.5f : 0.2f));
-			const float Density = Base * FMath::Clamp(1.f - (Sm.Slope - 0.2f) * 2.5f, 0.f, 1.f) * FMath::Clamp(1.f - (HeightM - 800.f) / 700.f, 0.f, 1.f);
+			// The far tier follows the canopy stands: thicker along a stand's edge (the trees that frame it), thinner in the gaps.
+			const float StandMul = Mode == ModeFar ? (FMath::Abs(Stand - 0.1f) < 0.15f ? 1.6f : (Stand > 0.1f ? 1.f : 0.6f)) : 1.f;
+			const float Density = FMath::Min(1.f, Base * StandMul) * FMath::Clamp(1.f - (Sm.Slope - 0.2f) * 2.5f, 0.f, 1.f) * FMath::Clamp(1.f - (HeightM - 800.f) / 700.f, 0.f, 1.f);
 			if (Rnd > Density) { return INDEX_NONE; }
 			const float Pk = Rnd / FMath::Max(Density, 0.01f);
 			int32 Species;
@@ -263,9 +268,13 @@ int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM
 		}
 		case ModeCanopy:
 		{
-			const float Density = (Moist > RainforestBroad ? 0.75f : (Moist > MixedBroad ? 0.35f : 0.f)) * FMath::Clamp(1.f - (Sm.Slope - 0.25f) * 3.f, 0.f, 1.f)
+			// Stands with gaps: only where the stand noise is up (about 45 % of the forest), denser in rainforest.
+			if (Stand < 0.1f) { return INDEX_NONE; }
+			const float Density = (Moist > RainforestBroad ? 0.9f : (Moist > MixedBroad ? 0.5f : 0.f)) * FMath::Clamp(1.f - (Sm.Slope - 0.25f) * 3.f, 0.f, 1.f)
 				* FMath::Clamp(1.f - (HeightM - 900.f) / 500.f, 0.f, 1.f);
-			return Rnd < Density ? TDScatter_OneOf(R.Canopy, Rnd / FMath::Max(Density, 0.01f)) : INDEX_NONE;
+			if (Rnd >= Density) { return INDEX_NONE; }
+			const float Pk = Rnd / FMath::Max(Density, 0.01f);
+			return Pk < 0.12f ? TDScatter_OneOf(R.CanopyAccent, Pk / 0.12f) : TDScatter_OneOf(R.Canopy, (Pk - 0.12f) / 0.88f);
 		}
 		case ModeRock:
 		{
@@ -368,7 +377,8 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 			if (Mode == ModeDense && (Salt == 301) != bNearCourse) { continue; }
 			const FTDTerrainSample Sm = Field.Sample(X, Y, FMath::Max(Spacing * 0.25f, 200.f));
 			if (Sm.Height < S.SeaLevel + 1000.f) { continue; }	// the sea and its shore
-			const int32 Kind = Pick(Mode, Sm, (Sm.Height - Floor) / 100.f, TDScatter_Hash01(Seed, ix, iy, Salt + 3));
+			const float Stand = FTDTerrainField::Noise2D(X / 45000.f, Y / 45000.f, S.Seed + 913) * 0.7f + FTDTerrainField::Noise2D(X / 17000.f, Y / 17000.f, S.Seed + 917) * 0.3f;
+			const int32 Kind = Pick(Mode, Sm, (Sm.Height - Floor) / 100.f, TDScatter_Hash01(Seed, ix, iy, Salt + 3), Stand);
 			if (!Kinds.IsValidIndex(Kind)) { continue; }
 			const FTDScatterKind& K = Kinds[Kind];
 			if (!IsCourseClear(X, Y, K.ClearRadiusCm * K.MaxScale)) { continue; }
@@ -603,7 +613,7 @@ void ATDPlanetScatter::Apply(FTDScatterResult&& Result, double Ms)
 			UHierarchicalInstancedStaticMeshComponent* H = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
 			H->SetStaticMesh(Mesh);
 			SetupComponent(H, k, Pass == 0 && Plan.Kinds[k].bBlocksOnFoot);
-			if (Pass == 1 && !Plan.Kinds[k].bTumble) { H->SetCastShadow(false); }	// the far forest skips dynamic shadow
+			if (Pass == 1) { H->SetCastShadow(false); }	// beyond the course's surroundings nothing casts dynamic shadow (render thread)
 			H->RegisterComponent();
 			H->AddInstances(Xfs, /*bShouldReturnIndices*/ false, /*bWorldSpace*/ false);
 			AddInstanceComponent(H);

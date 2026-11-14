@@ -106,7 +106,7 @@ struct UNREALGAMEJAM_API FTDScatterPlan
 private:
 	void RunLayer(const FTDTerrainField& Field, float Spacing, int32 Salt, const FBox2D& Rect, int32 Mode, bool bParallel,
 		TArray<TArray<FTransform>>& OutNear, TArray<TArray<FTransform>>& OutFar) const;
-	int32 Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM, float Rnd) const;
+	int32 Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM, float Rnd, float Stand) const;
 	float ZoneWeight(float X, float Y) const;
 };
 

@@ -43,7 +43,7 @@ SCALARS = {
     "UplandStartM": (420.0, 500.0), "UplandRangeM": (520.0, 500.0), "UplandAmount": (0.8, 0.55),
     "LowlandTopM": (60.0, 40.0), "LowlandFadeM": (160.0, 120.0), "LowlandAmount": (0.75, 0.5),
     "JungleBroad": (0.475, 2.0), "JungleSoft": (0.08, 0.1), "JungleAmount": (0.85, 0.0),
-    "StrataScaleM": (90.0, 70.0), "StrataAlongM": (700.0, 600.0), "StrataContrast": (1.15, 1.3),
+    "StrataScaleM": (90.0, 70.0), "StrataAlongM": (700.0, 600.0), "StrataContrast": (0.75, 1.1), "TriTop": (1.5, 1.5),
     "HueKeep": (0.12, 0.45),               # R3: the moss mean has almost no blue, so its blue-ish pixels turned into cyan cells near the pad                # how much of the texture's own hue variation survives the retint
     "DetailContrast": (1.0, 1.0),
     "NoiseS": (3700.0, 3700.0), "NoiseM": (23000.0, 23000.0), "NoiseL": (190000.0, 190000.0), "NoiseXL": (730000.0, 730000.0),
@@ -84,8 +84,8 @@ VECTORS = {
     "PatchTint": ((0.016, 0.060, 0.075), (0.008, 0.008, 0.012)),
     "PatchGlowColor": ((0.10, 0.85, 1.00), (0.0, 0.0, 0.0)),
     "LowTint": ((0.020, 0.019, 0.016), (0.018, 0.014, 0.013)),
-    "RockTintA": ((0.035, 0.040, 0.060), (0.024, 0.020, 0.020)),
-    "RockTintB": ((0.095, 0.105, 0.135), (0.085, 0.050, 0.032)),
+    "RockTintA": ((0.040, 0.046, 0.050), (0.024, 0.020, 0.020)),
+    "RockTintB": ((0.100, 0.110, 0.112), (0.085, 0.050, 0.032)),
     "PeakTint": ((0.200, 0.330, 0.310), (0.210, 0.180, 0.160)),
     "ValleyCoreColor": ((0.25, 1.0, 0.9), (1.0, 0.36, 0.04)),
     "ValleyEdgeColor": ((0.05, 0.45, 0.6), (0.80, 0.05, 0.008)),
@@ -282,8 +282,15 @@ def build_graph(b, t, means):
     rfar = mul(rtile, S("RockFarScale"))
     uvf_x, uvf_y = div(app(wy, nz), rfar), div(app(wx, nz), rfar)
     rbc, rnr = "T_Terr_%s_BC" % LAYERS["Rock"][0], "T_Terr_%s_N" % LAYERS["Rock"][0]
-    r_near = lerp(rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uv_y)), rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uv_x)), wsel)
-    r_far = lerp(rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uvf_y)), rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uvf_x)), wsel)
+    # R3 pass 3: triplanar - the top projection joins the two side ones by the squared normal, so the 25-45 degree
+    # slopes (between "flat" and "cliff") no longer show the side projections stretched into streaks
+    nz2 = mul(mask(nv, bl=True), mask(nv, bl=True))
+    wtop = sat(div(mul(nz2, S("TriTop")), add(add(nx2, ny2), add(mul(nz2, S("TriTop")), 0.0001))))
+    uv_z, uvf_z = div(xy, rtile), div(xy, rfar)
+    r_near = lerp(lerp(rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uv_y)), rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uv_x)), wsel),
+                  rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uv_z)), wtop)
+    r_far = lerp(lerp(rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uvf_y)), rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uvf_x)), wsel),
+                 rgb(tex("RockBC", rbc, ST.SAMPLERTYPE_COLOR, uvf_z)), wtop)
     r_nrm = lerp(rgb(tex("RockN", rnr, ST.SAMPLERTYPE_NORMAL, uv_y)), rgb(tex("RockN", rnr, ST.SAMPLERTYPE_NORMAL, uv_x)), wsel)
     rock_d = detail(r_near, r_far, "Rock")
     # R3: cliff colour from horizontal strata (a noise stretched along the ground, squeezed in height) instead of the
@@ -291,7 +298,7 @@ def build_graph(b, t, means):
     along = mul(add(wx, wy), 0.7071)
     uv_st = app(div(along, mul(S("StrataAlongM"), 100.0)), div(wz, mul(S("StrataScaleM"), 100.0)))
     strata = tex("MacroNoiseTex", "T_Ground_MacroNoise", ST.SAMPLERTYPE_MASKS, uv_st)
-    rsel = sat(add(mul(sub(add(mul(c(strata, "R"), 0.7), mul(c(nL, "G"), 0.3)), 0.5), S("StrataContrast")), 0.5))
+    rsel = sat(add(mul(sub(add(mul(c(strata, "R"), 0.7), mul(c(nL, "G"), 0.3)), 0.5), mul(S("StrataContrast"), inv(wtop))), 0.5))
     rock_c = mul(lerp(Vp("RockTintA"), Vp("RockTintB"), rsel), rock_d)
 
     # ---------------------------------------------------------------- river / pool band: flow, heat
@@ -321,7 +328,7 @@ def build_graph(b, t, means):
     top_n = lerp(lerp(lerp(flat_n, patch_n_, patch_w), low_n, low_w), peak_n, peak_w)
     keep = mul(mul(lerp(1.0, 0.35, fa), inv(fm)), inv(molten))
     p_top = mul(app(mask(top_n, r=True, g=True), 0.0), mul(S("NormalStrength"), keep))
-    rs = mul(S("RockNormalStrength"), mul(lerp(1.0, 0.35, fa), inv(fm)))
+    rs = mul(mul(S("RockNormalStrength"), mul(lerp(1.0, 0.35, fa), inv(fm))), inv(wtop))
     rx = mul(mask(r_nrm, r=True), rs)
     p_rock = app(app(mul(rx, inv(wsel)), mul(rx, wsel)), mul(mask(r_nrm, g=True), mul(rs, -1.0)))
     b.out(b.norm(add(nv, lerp(p_top, p_rock, rock_w))), "", MP.MP_NORMAL)

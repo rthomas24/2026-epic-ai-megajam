@@ -281,10 +281,10 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 		// (0.0035, 0.02, 0.03), Mie 0.0015, fill 3, sky light 2, exposure 0. r1 (too lilac, black slopes): -15, 7.5, (1, 0.76, 0.8).
 		Sun->SetWorldRotation(FRotator(-20.f, 200.f, 0.f));
 		Sun->SetIntensity(8.f);
-		Sun->SetLightColor(FLinearColor(1.f, 0.86f, 0.82f));
-		Atmosphere->SetRayleighScattering(FLinearColor(0.0025f, 0.022f, 0.032f));	// r3: red 0.0038 -> 0.0025, upper sky teal-grey, not lilac
+		Sun->SetLightColor(FLinearColor(1.f, 0.9f, 0.88f));	// r4: less rose (the 900 m haze read pink-white)
+		Atmosphere->SetRayleighScattering(FLinearColor(0.002f, 0.024f, 0.034f));	// r4 (r3 0.0025 / 0.022 / 0.032): teal sky, ridges readable
 		Atmosphere->SetAerialPespectiveViewDistanceScale(1.f);
-		Atmosphere->SetMieScatteringScale(0.0025f);
+		Atmosphere->SetMieScatteringScale(0.0015f);	// r4: back to 0.0015 (the rose sun scattered into a pink-white haze)
 		if (Fill) { Fill->SetWorldRotation(FRotator(-35.f, 20.f, 0.f)); Fill->SetLightColor(FLinearColor(0.30f, 0.80f, 0.90f)); Fill->SetIntensity(5.f); }
 		SkyLight->SetIntensity(5.f);
 		FPostProcessSettings& S = Exposure->Settings;
@@ -293,7 +293,7 @@ void ATDPlaceholderSky::ApplyStyle(ETDPlaceholderSkyStyle Style)
 		S.bOverride_AutoExposureApplyPhysicalCameraExposure = true;
 		S.AutoExposureApplyPhysicalCameraExposure = false;
 		S.bOverride_AutoExposureBias = true;
-		S.AutoExposureBias = -0.15f;
+		S.AutoExposureBias = -0.05f;
 		S.bOverride_BloomIntensity = true;
 		S.BloomIntensity = 0.9f;
 		S.bOverride_BloomThreshold = true;
@@ -476,8 +476,8 @@ void ATDPlaceholderSky::ApplyHorizon(ETDPlaceholderSkyStyle Style)
 		HorizonFog->SetStartDistance(bVerdance ? 150000.f : 120000.f);
 		HorizonFog->SetFogMaxOpacity(1.f);
 		// ART-13 (Nov 14, r2): Verdance haze teal with violet toward the sun (was 0.04/0.20/0.22 and 0.10/0.20/0.18), Cinder a touch less orange (was 0.16/0.05/0.025).
-		HorizonFog->SetFogInscatteringColor(bVerdance ? FLinearColor(0.025f, 0.17f, 0.20f) : FLinearColor(0.14f, 0.045f, 0.025f));
-		HorizonFog->SetDirectionalInscatteringColor(bVerdance ? FLinearColor(0.16f, 0.10f, 0.20f) : FLinearColor(0.35f, 0.13f, 0.05f));
+		HorizonFog->SetFogInscatteringColor(bVerdance ? FLinearColor(0.02f, 0.16f, 0.20f) : FLinearColor(0.14f, 0.045f, 0.025f));
+		HorizonFog->SetDirectionalInscatteringColor(bVerdance ? FLinearColor(0.08f, 0.12f, 0.16f) : FLinearColor(0.35f, 0.13f, 0.05f));
 		{
 			// Environment pass: the first layer is the valley mist (thins out ~125 m up); the second is the aerial haze
 			// that reaches flight altitude (thins out ~3 km up), so from 5 km the horizon fades instead of ending.
