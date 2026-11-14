@@ -1,0 +1,188 @@
+{
+ "site": "SurveyStation_Verdance",
+ "origin": [
+  2500.0,
+  -2500.0,
+  2.0
+ ],
+ "steps": [
+  {
+   "teleport": [
+    850.0,
+    0.0,
+    0.0
+   ],
+   "feet": [
+    850,
+    0,
+    0,
+    180
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\SurveyStation_Verdance\\01_foot.png"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    573,
+    0,
+    13,
+    180
+   ],
+   "at": "up 0"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    297,
+    0,
+    55,
+    180
+   ],
+   "at": "up 1"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    21,
+    0,
+    55,
+    180
+   ],
+   "at": "up 2"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    -257,
+    0,
+    55,
+    180
+   ],
+   "at": "up 3"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    -366,
+    0,
+    55,
+    180
+   ],
+   "at": "up 4"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    -366,
+    0,
+    55,
+    180
+   ],
+   "at": "up 5"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    -366,
+    0,
+    55,
+    180
+   ],
+   "at": "up 6"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    -366,
+    0,
+    55,
+    180
+   ],
+   "at": "up 7"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    -366,
+    0,
+    55,
+    180
+   ],
+   "at": "up 8"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    -366,
+    0,
+    55,
+    180
+   ],
+   "at": "up 9"
+  },
+  {
+   "teleport": [
+    -190,
+    -150,
+    53
+   ],
+   "feet": [
+    -190,
+    -150,
+    55,
+    180
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\SurveyStation_Verdance\\02_console.png"
+  },
+  {
+   "teleport": [
+    1500.0,
+    -700.0,
+    0.0
+   ],
+   "feet": [
+    1500,
+    -700,
+    0,
+    150
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\SurveyStation_Verdance\\03_10m.png"
+  }
+ ]
+}

@@ -7,6 +7,9 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
+#include "Algo/Reverse.h"
+#include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "GameFramework/PlayerController.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "Engine/Engine.h"
@@ -217,14 +220,93 @@ void UTDObjectiveSubsystem::GetActiveObjectives(TArray<ATDObjective*>& Out) cons
 
 void UTDObjectiveSubsystem::GetActiveWaypoints(TArray<AActor*>& Out) const
 {
+	// The pilot: the player's pawn, else (tests and played runs drive it by AI) the first live on-foot pilot.
+	const UWorld* World = GetWorld();
+	const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+	const APawn* Pilot = PC ? PC->GetPawn() : nullptr;
+	if (!Pilot && World && Crossings.Num() > 0)
+	{
+		for (TActorIterator<ATDFirstPersonCharacter> It(World); It && !Pilot; ++It)
+		{
+			if (!It->IsDead()) { Pilot = *It; }
+		}
+	}
 	for (const TWeakObjectPtr<ATDObjective>& O : Active)
 	{
 		if (const ATDObjective* Obj = O.Get())
 		{
 			if (AActor* W = Obj->GetCurrentWaypoint())
 			{
-				Out.Add(W);
+				Out.AddUnique(Pilot ? RouteWaypoint(Pilot->GetActorLocation(), Obj, W) : W);
 			}
 		}
 	}
+}
+
+void UTDObjectiveSubsystem::AddCrossing(const FBox& Hazard, ATDObjective* Objective, int32 Step, const TArray<AActor*>& Chain)
+{
+	FCrossing& C = Crossings.AddDefaulted_GetRef();
+	C.Hazard = Hazard;
+	C.Objective = Objective;
+	C.Step = Step;
+	for (AActor* A : Chain) { if (A) { C.Chain.Add(A); } }
+}
+
+bool UTDObjectiveSubsystem::SegmentCrosses(const FBox& Hazard, const FVector& A, const FVector& B, float Margin)
+{
+	if (!Hazard.IsValid)
+	{
+		return false;
+	}
+	const FBox Flat(FVector(Hazard.Min.X - Margin, Hazard.Min.Y - Margin, -1.f), FVector(Hazard.Max.X + Margin, Hazard.Max.Y + Margin, 1.f));
+	const FVector A0(A.X, A.Y, 0.f), B0(B.X, B.Y, 0.f);
+	if (Flat.IsInside(A0) || Flat.IsInside(B0))
+	{
+		return true;
+	}
+	return (B0 - A0).SizeSquared() > 1.f && FMath::LineBoxIntersection(Flat, A0, B0, B0 - A0);
+}
+
+AActor* UTDObjectiveSubsystem::RouteWaypoint(const FVector& From, const ATDObjective* Objective, AActor* Target) const
+{
+	return Objective ? RouteWaypointForStep(From, Objective, Objective->GetCurrentStepIndex(), Target) : Target;
+}
+
+AActor* UTDObjectiveSubsystem::RouteWaypointForStep(const FVector& From, const ATDObjective* Objective, int32 Step, AActor* Target) const
+{
+	if (!Objective || !Target)
+	{
+		return Target;
+	}
+	for (const FCrossing& C : Crossings)
+	{
+		if (C.Objective.Get() != Objective || (C.Step != INDEX_NONE && C.Step != Step)
+			|| !SegmentCrosses(C.Hazard, From, Target->GetActorLocation()))
+		{
+			continue;
+		}
+		TArray<AActor*> Chain;
+		for (const TWeakObjectPtr<AActor>& W : C.Chain) { if (AActor* A = W.Get()) { Chain.Add(A); } }
+		if (Chain.Num() == 0)
+		{
+			continue;
+		}
+		// Walk it toward the target: the end nearer the target last (fixed for the whole crossing, wherever the pilot is on it).
+		const FVector To = Target->GetActorLocation();
+		if (FVector::DistSquared2D(To, Chain[0]->GetActorLocation()) < FVector::DistSquared2D(To, Chain.Last()->GetActorLocation()))
+		{
+			Algo::Reverse(Chain);
+		}
+		int32 Near = 0;
+		for (int32 i = 1; i < Chain.Num(); ++i)
+		{
+			if (FVector::DistSquared2D(From, Chain[i]->GetActorLocation()) < FVector::DistSquared2D(From, Chain[Near]->GetActorLocation())) { Near = i; }
+		}
+		if (FVector::Dist2D(From, Chain[Near]->GetActorLocation()) < CrossingReach)
+		{
+			return Chain.IsValidIndex(Near + 1) ? Chain[Near + 1] : Target;
+		}
+		return Chain[Near];
+	}
+	return Target;
 }

@@ -1,5 +1,6 @@
 // Triad Drift - World (Teammate 4). ENG-29 docking bay: approach cone, tractor-beam assist, hand-off to the interior.
 #include "TriadDrift/World/TDDockingBay.h"
+#include "NiagaraComponent.h"
 #include "TriadDrift/World/TDWorldBarks.h"
 
 #include "TriadDrift/World/TDDominion.h"
@@ -160,6 +161,30 @@ void ATDDockingBay::ReleaseShip()
 	}
 	Held.Reset();
 	CurrentPull = 0.f;
+	bBeamOn = false;
+	if (BeamFX) { BeamFX->Deactivate(); }
+}
+
+void ATDDockingBay::UpdateBeam(const ATDShip* Ship, float Pull)
+{
+	// ENG-37: the beam loop from the mouth to the held ship; parameters every frame. Null-safe without the art.
+	bBeamOn = true;
+	const ATDDominion* D = Dominion.Get();
+	if (!BeamFX && D && D->Visuals && !D->Visuals->TractorBeam.IsEmpty())
+	{
+		BeamFX = UTDStatics::PlayCueAttached(D->Visuals->TractorBeam, GetRootComponent());
+	}
+	if (BeamFX)
+	{
+		if (!BeamFX->IsActive()) { BeamFX->Activate(true); }
+		BeamFX->SetVariableFloat(TEXT("User.Length"), Ship ? (float)FVector::Dist(Ship->GetActorLocation(), GetMouth()) : 0.f);
+		BeamFX->SetVariableFloat(TEXT("User.Intensity"), FMath::Clamp(Pull, 0.f, 1.f));
+	}
+}
+
+bool ATDDockingBay::IsBeamActive() const
+{
+	return bBeamOn;	// the cue's state (its Niagara component exists only where something renders)
 }
 
 void ATDDockingBay::ShowApproachMarker(bool bShow)
@@ -201,7 +226,8 @@ void ATDDockingBay::BeginGlide(ATDShip* Ship)
 	Ship->ClearSpeedOverrideFor(TractorOverride);
 	Ship->SetFlightParked(true);	// controls locked: the bay has the ship now
 	ShowApproachMarker(false);
-	UTDStorySubsystem::Fire(this, TEXT("G6_Wren_CoverTheBay"));	// the docking commit (once per run)
+	if (BeamFX) { BeamFX->SetVariableFloat(TEXT("User.Intensity"), 1.f); }	// the glide: full beam until the travel
+	UTDStorySubsystem::PlaySequence(this, TEXT("Docking"));	// G6_Wren_CoverTheBay, then C7_Moss_WayOut (storyline 26)	// the docking commit (once per run)
 	if (UTDHealthComponent* H = UTDStatics::GetHealth(Ship)) { H->SetInvulnerable(true); }
 	Held = Ship;
 	HoldWingmen(Ship);
@@ -353,6 +379,7 @@ void ATDDockingBay::Tick(float DeltaSeconds)
 		FTDWorldBarks::Say(this, TDWorldBarkIds::DomTractor, ETDBarkPriority::High, FTDWorldBarks::EWho::FlownPilot, 0.f, Ship);
 	}
 	Held = Ship;
+	UpdateBeam(Ship, Pull);
 	const FVector Loc = Ship->GetActorLocation();
 	const FVector D = Loc - GetMouth();
 	const float Along = FVector::DotProduct(D, GetOutward());

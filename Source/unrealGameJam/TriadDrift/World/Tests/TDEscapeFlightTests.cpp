@@ -162,7 +162,39 @@ bool FTDEscapeBarks::RunTest(const FString&)
 	TestEqual(TEXT("Bark_Dom_EscapeFlight once"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomEscapeFlight), 1);
 	S.Ship->SetActorLocation(S.Dominion->GetActorLocation() + S.Dominion->GetActorForwardVector() * (S.Dominion->GetEscapeExitRadius() + 5000.f));
 	W.Advance(0.5f);
-	TestEqual(TEXT("Bark_Dom_Clear once"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomClear), 1);
+	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	TestTrue(TEXT("the ClearSpace roll call starts (C9_Kato_Clear) in place of Bark_Dom_Clear"), Story && Story->HasPlayed(TEXT("C9_Kato_Clear")));
+	return true;
+}
+
+
+// The structures builder's debris art in the escape, and the run still clears inside the clock at the squad's
+// boost-limited ~80 m/s (the largest piece is capped so the corridor stays flyable).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEscapeDebrisArt, "TriadDrift.World.Escape.DebrisArtAndClearsInTime", TD_TEST_FLAGS)
+bool FTDEscapeDebrisArt::RunTest(const FString&)
+{
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	TDEscapeTest::FSetup S = TDEscapeTest::Start(W);
+	if (!TestNotNull(TEXT("ship"), S.Ship)) { return false; }
+	const FVector Out = (S.Ship->GetActorLocation() - S.Dominion->GetActorLocation()).GetSafeNormal();
+	float T = 0.f;
+	int32 Art = 0, Pieces = 0;
+	float Biggest = 0.f;
+	while (!S.Dominion->IsEscapeClear() && T < 70.f)
+	{
+		S.Ship->SetActorLocation(S.Ship->GetActorLocation() + Out * 8000.f * 0.1f);	// ~80 m/s
+		W.Advance(0.1f);
+		T += 0.1f;
+		for (TActorIterator<ATDEscapeDebris> It(W.GetWorld()); It; ++It)
+		{
+			++Pieces;
+			if (It->IsArtPiece()) { ++Art; Biggest = FMath::Max(Biggest, (float)It->GetComponentsBoundingBox().GetSize().GetMax()); }
+		}
+	}
+	AddInfo(FString::Printf(TEXT("clear after %.1f s; %d of %d debris samples were art pieces, biggest %.0f m"), T, Art, Pieces, Biggest / 100.f));
+	TestTrue(*FString::Printf(TEXT("clears in under 60 s at 80 m/s (%.1f s)"), T), S.Dominion->IsEscapeClear() && T < 60.f);
+	TestTrue(TEXT("the debris uses the structures builder's art"), Art > 0);
+	TestTrue(*FString::Printf(TEXT("no piece bigger than the cap (%.0f m)"), Biggest / 100.f), Biggest <= 2800.f * 1.75f);
 	return true;
 }
 

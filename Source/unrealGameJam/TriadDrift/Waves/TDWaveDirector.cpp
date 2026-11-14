@@ -451,6 +451,9 @@ void ATDWaveDirector::RestartCurrentWave()
 
 void ATDWaveDirector::BeginWave(int32 Index)
 {
+	// ENG-42, storyline 19: the interception's openers (once per run each).
+	if (Index == 2) { UTDStorySubsystem::Fire(this, TEXT("G4_Command_FollowCoordinates")); }
+	if (Index == 3) { UTDStorySubsystem::Fire(this, TEXT("G4_Moss_NotShooting")); }
 	const FTDWaveDef& Wave = Waves[Index];
 	CurrentWave = Index;
 	ResetTutorial();	// a new wave or a retake starts the tutorial ending over
@@ -1037,6 +1040,7 @@ void ATDWaveDirector::FinishWave()
 	{
 		return;
 	}
+	if (CurrentWave == 3) { UTDStorySubsystem::Fire(this, TEXT("G4_Wren_StartThere")); }	// ENG-42: wave 4 cleared, before the jump to Cinder
 	// dialogs.md Bark_WaveCleared: a wave ends (a pilot, rotating). The tutorial wave ends on Command's withdrawal instead.
 	if (!IsTutorialWithdrawalWave())
 	{
@@ -1238,6 +1242,8 @@ void ATDWaveDirector::ResetTutorial()
 	ClearJumpPoint();
 	TutorialPhase = ETDTutorialPhase::Battle;
 	bIncomingSaid = false;
+	WaveStoryClock = 0.f;
+	bWaveStoryFired = false;
 	PickedSpawnPoints.Reset();
 	TutorialClock = 0.f;
 	WithdrawalWait = 0.f;
@@ -1515,6 +1521,13 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 	if (CurrentWave == 0 && (State == ETDWaveState::WarpingIn || State == ETDWaveState::Active))
 	{
 		UpdateTeachPressure();
+	}
+	if (State == ETDWaveState::WarpingIn || State == ETDWaveState::Active)
+	{
+		// ENG-42, storyline 19 (waves 3-4 are the interception on the Cinder route).
+		WaveStoryClock += DeltaSeconds;
+		if (!bWaveStoryFired && CurrentWave == 2 && WaveStoryClock >= 10.f) { bWaveStoryFired = true; UTDStorySubsystem::Fire(this, TEXT("G4_Kato_Transports")); }
+		if (!bWaveStoryFired && CurrentWave == 3 && WaveStoryClock >= 6.f) { bWaveStoryFired = true; UTDStorySubsystem::Fire(this, TEXT("G4_Kato_Cargo")); }
 	}
 	if (State == ETDWaveState::Active || State == ETDWaveState::WarpingIn)
 	{

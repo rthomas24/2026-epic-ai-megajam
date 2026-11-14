@@ -385,6 +385,8 @@ protected:
 	TSet<FName> SeenTypes;
 	bool bIncomingSaid = false;
 	float MineCheckTimer = 0.f;
+	float WaveStoryClock = 0.f;
+	bool bWaveStoryFired = false;
 	int32 SpawnPointRetries = 0;
 	int32 SpawnPointsPushedOut = 0;
 	TArray<FVector> PickedSpawnPoints;
