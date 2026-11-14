@@ -1,16 +1,17 @@
 {
   "asset": "SM_Kit_RelayMast",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_story\\SM_Kit_RelayMast.fbx",
-  "tris": 10032,
+  "tris": 19092,
   "size_cm": [
-    5080.0,
-    5080.0,
-    6277.2
+    8120.0,
+    8120.0,
+    10395.9
   ],
   "pivot": "root object origin (SM_Kit_RelayMast~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
     "M_Kit_Trim",
+    "M_Kit_Band",
     "M_Kit_Nav"
   ],
   "material_params": [
@@ -26,6 +27,23 @@
         1.0
       ],
       "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_Band",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.55,
+        0.9,
+        0.15
+      ],
+      "emission_strength": 6.0
     },
     {
       "name": "M_Kit_Nav",

@@ -693,7 +693,7 @@ def rock_break(n_chunks, n_dust, n_grit, fl=1800):
     # 9k: flash about 2x and a soft glow under it so a break reads at 80 m from the chase camera; both under 0.2 s
     # 9n, seen from a side camera at 80 m: at Scale 2.2 / 4.5 the M and L flashes (40 / 81 m) swallowed the frame; the flash
     # base now shrinks with the class so the flash is about the rock's size (S 18 m, M 22 m, L 30 m), 0.12 s
-    return [flash('Flash', 'M_TD_VFX_Flare', fl, 0.12, 1.8, growth='0.5 + Particles.NormalizedAge*0.9'),
+    return [spin(flash('Flash', 'M_TD_VFX_IceBurst', fl, 0.12, 1.8, growth='0.5 + Particles.NormalizedAge*0.9')),   # 9p: uneven ice burst (was the 8-point flare)
             flash('Glow', 'M_TD_VFX_Glow', fl * 1.1, 0.14, 0.9, growth='0.6 + Particles.NormalizedAge*0.6', power=1.6),
             # 9i: the mist is gone (a pale 0.30 puff still read grey over dark space in play); flash, chunks and shards carry it
             chunks('Chunks', 'SM_TD_VFX_Shard_C', n_chunks, (0.8, 1.6), (0.35, 0.9), (500, 2000), drag=0.6, radius=90.0, dur=1.8, spin=(0.8, 3.0)),

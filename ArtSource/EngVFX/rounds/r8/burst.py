@@ -27,8 +27,7 @@ def burst(name, cam, fov=40, n=12, w=960, h=540):
     o = os.path.join(OUT, '%s_%s.png' % (tag_, name))
     sel = files[0:12:2]   # 6 of the 12 in the strip, labelled by frame
     args = ['ffmpeg', '-y', '-loglevel', 'error'] + sum([['-i', x] for x in sel], [])
-    fc = ''.join('[%d]drawtext=fontfile=C\\:/Windows/Fonts/arial.ttf:text=\'%s f%d\':x=10:y=10:fontsize=28:fontcolor=white:box=1:boxcolor=black@0.6[v%d];' % (k, name, k * 2, k) for k in range(len(sel)))
-    fc += ''.join('[v%d]' % k for k in range(len(sel))) + 'xstack=inputs=%d:grid=3x2' % len(sel)
+    fc = ''.join('[%d]' % k for k in range(len(sel))) + 'xstack=inputs=%d:grid=3x2' % len(sel)   # frames 0, 2, 4, 6, 8, 10, left to right
     subprocess.check_call(args + ['-filter_complex', fc, o])
     print(o)
 
@@ -63,6 +62,30 @@ tag(NFL.spawn_system_at_location(world, unreal.load_asset(SYS + 'NS_TD_Reactor_E
 "exposed"''')
     burst('exposed_%dm' % arg, cam, n=12)
     con('slomo 1'); py('clear()\n"ok"')
+elif mode == 'reactor_up':   # 9p: above the trench, up and back along the ship->reactor line, looking down at the reactor
+    cam = py(SETUP + '''
+o, e = r.get_actor_bounds(True)
+d = pawn.get_actor_location() - o; d.z = 0; d = d / max(d.length(), 1.0)
+json.dumps(look(o + d * (%r * 0.6) + unreal.Vector(0, 0, %r * 0.8), o))''' % (arg * 100.0, arg * 100.0))
+    con('slomo 0.1')
+    py(SETUP + '''
+clear()
+o, e = r.get_actor_bounds(True)
+d = pawn.get_actor_location() - o; d = d / max(d.length(), 1.0)
+up = unreal.Vector(0, 0, 1)
+for i in range(3):
+    p = o + (d * 0.4 + up * 0.9) * max(e.x, e.y, e.z) * 0.8 + unreal.Vector(0, (i - 1) * 400, 0)
+    tag(NFL.spawn_system_at_location(world, unreal.load_asset(SYS + 'NS_TD_Reactor_Hit'), p, ML.make_rot_from_x(up), unreal.Vector(1, 1, 1), True, True, unreal.NCPoolMethod.NONE, True))
+"hits"''')
+    burst('hitup_%dm' % arg, cam)
+    con('slomo 1'); time.sleep(1.5); con('slomo 0.1')
+    py(SETUP + '''
+clear()
+o, e = r.get_actor_bounds(True)
+tag(NFL.spawn_system_at_location(world, unreal.load_asset(SYS + 'NS_TD_Reactor_Exposed'), o, r.get_actor_rotation(), unreal.Vector(1, 1, 1), True, True, unreal.NCPoolMethod.NONE, True))
+"exposed"''')
+    burst('exposedup_%dm' % arg, cam)
+    con('slomo 1'); py('clear()\n"ok"')
 elif mode == 'rocks':
     cam = py(SETUP + '''
 o = pawn.get_actor_location() + pawn.get_actor_forward_vector() * 30000
@@ -78,9 +101,10 @@ for i, n in enumerate(['NS_TD_Asteroid_Break_S', 'NS_TD_Asteroid_Break_M', 'NS_T
 "rocks"''')
     burst('rocks_%dm' % arg, cam, fov=50)
     con('slomo 1'); py('clear()\n"ok"')
-elif mode == 'hyper':
-    cam = py(SETUP + '''
-o = pawn.get_actor_location() + pawn.get_actor_forward_vector() * 6000
-json.dumps(look(o + pawn.get_actor_right_vector() * 20000 + unreal.Vector(0, 0, 3000), o))''')
-    con('TD.Input.Key H 1.6'); time.sleep(0.6)
-    burst('hyper_side', cam, fov=60)
+elif mode == 'hyper':   # 9p: two fixed cameras: 200 m to the side of the spool point, and 300 m ahead on the jump line looking back
+    cams = py(SETUP + '''
+o = pawn.get_actor_location(); f = pawn.get_actor_forward_vector(); rt = pawn.get_actor_right_vector()
+json.dumps({'side': look(o + rt * 20000 + unreal.Vector(0, 0, 2000), o + f * 3000), 'ahead': look(o + f * 30000 + rt * 2500 + unreal.Vector(0, 0, 1500), o)})''')
+    con('TD.Input.Key H 1.6'); time.sleep(0.3)
+    burst('hyper_side', cams['side'], fov=60, n=8)
+    burst('hyper_ahead', cams['ahead'], fov=60, n=8)

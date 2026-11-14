@@ -246,3 +246,13 @@ isolated views. Hull art cannot fix type and facing at range: that needs HUD or 
 - **Bastion still lags on one point** (review): its cockpit is an opaque dark windscreen with no glass depth, seat or
   pilot, where the Rift and Lancer have them. Its hard surfaces are the crispest of the three. A designed canopy was not
   attempted: the windscreen is faceted and flush with the armour, and a bubble like the Lancer's would change the design.
+
+- **Rift v14** (crescent wings): see `docs/eng/ART-HISTORY.md`; fixed-spot and on-foot pairs in
+  `Builds/for-ryan/ships/rift_v14_before_after.png`. Self-checked only.
+- **Bastion glass cockpit, tried as v03 and stopped in Blender** (kept: v02). The Rodin "windscreen" is not a flush
+  pane: it is a raised cab block standing in a recess with dark sloped sides. `_canopy_facets` (in `rh_closeparts.py`,
+  unused) cut the dark faces into a glass part over a tub; the cab block stayed standing inside brown panes
+  (`Builds/for-ryan/ships/bastion_v03_cockpit_attempt_blender.png`). A real cockpit means redesigning that block.
+- **Hauler and Dominion turrets on the rebuilt master:** the convoy (`TD.World.ApproachView 1`) renders textured and lit
+  (`hauler_convoy_check.png`, at a distance); the Dominion's eight turrets use `SM_NullTurret` / `MI_NullTurret`
+  (`TD.World.DominionParts`), the same mesh and instance as on the carrier; they were not captured close.
