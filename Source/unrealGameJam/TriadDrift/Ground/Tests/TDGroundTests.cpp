@@ -176,6 +176,23 @@ bool FTDGroundMantle::RunTest(const FString& Parameters)
 		TestFalse(TEXT("no mantle on a 250 cm wall"), bSawMantle);
 		TestEqual(TEXT("still on the floor"), float(C->GetActorLocation().Z - 90.0), 0.f, 15.f);
 	}
+	{
+		// A console (no step-up) at a mantleable 130 cm: never a ledge (Lead, Nov 13).
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		AActor* Console = TDGroundTest::SpawnBox(W, FVector(200.f, 0.f, 65.f), FVector(200.f, 400.f, 130.f));
+		if (AStaticMeshActor* SM = Cast<AStaticMeshActor>(Console)) { SM->GetStaticMeshComponent()->CanCharacterStepUpOn = ECB_No; }
+		ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
+		if (!TestNotNull(TEXT("character"), C)) { return false; }
+		C->SetMoveInput(FVector2D(0.f, 1.f));
+		bool bSawMantle = false;
+		for (int32 i = 0; i < 60; ++i)
+		{
+			W.Tick();
+			bSawMantle |= C->IsMantling();
+		}
+		TestFalse(TEXT("no mantle onto a console"), bSawMantle);
+	}
 	return true;
 }
 

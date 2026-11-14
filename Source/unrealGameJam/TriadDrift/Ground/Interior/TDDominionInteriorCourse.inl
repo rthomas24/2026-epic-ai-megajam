@@ -225,19 +225,50 @@ void ATDPlanetCourse::BuildInterior()
 	// The ship the player docked with stands on the pad (the boarding pilot's own; the escape run returns to it).
 	if (const UTDShipVisuals* ShipArt = UTDShipLibrary::LoadVisuals(UTDShipLibrary::Get(ATDFirstPersonCharacter::GetOnFootPilotShip(this))))
 	{
-		if (UStaticMesh* ShipMesh = ShipArt->Mesh.LoadSynchronous())
+		// As ATDShip::RebuildVisuals builds it: the hull mesh (or, parts only, the first part as the fuselage) plus every
+		// visual part on its socket (the Rift's portal ring is a part: Ryan saw the empty ring, Nov 13).
+		auto MakePart = [this](UStaticMesh* Mesh, const TArray<TSoftObjectPtr<UMaterialInterface>>& Mats, USceneComponent* Parent, FName Socket, const FTransform& Rel, bool bCollide)
 		{
-			const FBox B = ShipMesh->GetBoundingBox();
-			if (UStaticMeshComponent* Parked = NewObject<UStaticMeshComponent>(Dressing))
+			UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(Dressing);
+			C->SetMobility(EComponentMobility::Movable);
+			C->SetStaticMesh(Mesh);
+			C->SetupAttachment(Parent, Socket);
+			C->SetRelativeTransform(Rel);
+			for (int32 i = 0; i < Mats.Num(); ++i)
 			{
-				Parked->SetMobility(EComponentMobility::Movable);
-				Parked->SetStaticMesh(ShipMesh);
-				Parked->SetupAttachment(Dressing->GetRootComponent());
-				Parked->SetRelativeLocationAndRotation(FVector(-200.f, 0.f, 1.f - B.Min.Z), FRotator(0.f, 180.f, 0.f)); // nose to the bay
-				Parked->SetCollisionProfileName(TEXT("BlockAll"));
-				Parked->RegisterComponent();
-				Dressing->AddInstanceComponent(Parked);
-				ParkedShip = Parked;
+				if (UMaterialInterface* M = Mats[i].LoadSynchronous()) { C->SetMaterial(i, M); }
+			}
+			if (bCollide) { C->SetCollisionProfileName(TEXT("BlockAll")); }
+			else { C->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
+			C->CanCharacterStepUpOn = ECB_No;
+			C->RegisterComponent();
+			Dressing->AddInstanceComponent(C);
+			return C;
+		};
+		UStaticMesh* HullArt = ShipArt->Mesh.IsNull() ? nullptr : ShipArt->Mesh.LoadSynchronous();
+		UStaticMesh* FirstPart = nullptr;
+		for (const FTDShipVisualPart& Spec : ShipArt->Parts) { if (!FirstPart && !Spec.Mesh.IsNull()) { FirstPart = Spec.Mesh.LoadSynchronous(); } }
+		if (UStaticMesh* Base = HullArt ? HullArt : FirstPart)
+		{
+			// A pivot on the pad, nose to the bay; the base mesh's bottom rests on the pad.
+			USceneComponent* Pivot = NewObject<USceneComponent>(Dressing);
+			Pivot->SetMobility(EComponentMobility::Movable);
+			Pivot->SetupAttachment(Dressing->GetRootComponent());
+			Pivot->SetRelativeLocationAndRotation(FVector(-200.f, 0.f, 1.f - Base->GetBoundingBox().Min.Z), FRotator(0.f, 180.f, 0.f));
+			Pivot->RegisterComponent();
+			Dressing->AddInstanceComponent(Pivot);
+			UStaticMeshComponent* Primary = HullArt ? MakePart(HullArt, ShipArt->MaterialOverrides, Pivot, NAME_None, FTransform::Identity, true) : nullptr;
+			ParkedShip = Primary;
+			ParkedParts.Reset();
+			for (const FTDShipVisualPart& Spec : ShipArt->Parts)
+			{
+				UStaticMesh* PartMesh = Spec.Mesh.IsNull() ? nullptr : Spec.Mesh.LoadSynchronous();
+				if (!PartMesh) { continue; }
+				const bool bSocket = Spec.ParentSocket != NAME_None && Primary && Primary->DoesSocketExist(Spec.ParentSocket);
+				UStaticMeshComponent* Part = MakePart(PartMesh, Spec.MaterialOverrides, bSocket ? Primary : Pivot, bSocket ? Spec.ParentSocket : NAME_None,
+					Spec.RelativeTransform, !Primary); // parts only: the fuselage part collides
+				ParkedParts.Add(Part);
+				if (!Primary) { Primary = Part; ParkedShip = Part; }
 			}
 		}
 	}
@@ -595,11 +626,11 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 	}
 	const FName Id = Objective->ObjectiveId;
 	auto Beat = [this](const TCHAR* Beat) { UTDStorySubsystem::Fire(this, FName(Beat)); };
-	// Verdance, the survey archive (storyline.md section 16, reduced form): the transfer starts, the disruption, data secured.
-	if (Id == TEXT("Obj_WreckCore") && StepIndex == 3) { Beat(TEXT("G3_TransferStart")); }
-	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 4) { Beat(TEXT("G3_Disruption")); }
-	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 5) { Beat(TEXT("G3_DataSecured")); }
-	else if (Id == TEXT("Obj_WreckCore") && StepIndex == 6) { Beat(TEXT("G3_Command_Extraction")); }
+	// Verdance, the survey archive (storyline.md section 16, reduced form; at the relay since decision 2): the transfer
+	// starts, the disruption, data secured and the way home.
+	if (Id == TEXT("Obj_Relay") && StepIndex == 2) { Beat(TEXT("G3_TransferStart")); }
+	else if (Id == TEXT("Obj_Relay") && StepIndex == 3) { Beat(TEXT("G3_Disruption")); }
+	else if (Id == TEXT("Obj_Relay") && StepIndex == 4) { Beat(TEXT("G3_DataSecured")); Beat(TEXT("G3_Command_Extraction")); }
 	// Cinder (T3's ids): no echo on the route (story alignment a5 / a7); the only echo is in Cinematic 05 at the terminal.
 	else if (Id == TEXT("Obj_Survey") && StepIndex == 1) { Beat(TEXT("G4_Kato_TerminalAhead")); }
 	else if (Id == TEXT("Obj_Outpost") && StepIndex == 0) { Beat(TEXT("G5_Wren_ClearRoute")); }
