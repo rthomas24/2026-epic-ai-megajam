@@ -42,7 +42,7 @@ agent commit to this same repo at the same time.**
 
 | Human | GitHub | Role (features.md §1) | AI assistant |
 |---|---|---|---|
-| Ryan T | [`rthomas24`](https://github.com/rthomas24) | **Gameplay & Engineering Lead**: systems, C++, AI, combat, game loop, levels' gameplay, packaging (`ENG-xx`) | Claude Code |
+| Ryan Thomas | [`rthomas24`](https://github.com/rthomas24) | **Gameplay & Engineering Lead**: systems, C++, AI, combat, game loop, levels' gameplay, packaging (`ENG-xx`) | Claude Code |
 | Nicholas Tosti | [`nicholastosti-tech`](https://github.com/nicholastosti-tech) | **Player Experience Lead** (since Nov 13 afternoon): UI and menus, audio and music, voice and the story's words, Director's Cut presentation design, submission (`ART-01, 09, 10, 11, 12, 14`). Environment, VFX and asset management moved to Ryan's side | OpenAI Codex |
 
 **Delegation (Nov 12).** Both humans have told their Lead agent to decide routine things without asking:

@@ -61,7 +61,7 @@ separate-branch/M01-only notes above describe historical checkpoints.
 - HeroM02: original deterministic nebula/star textures and isolated benchmark source by Codex Environment & VFX Agent, existing Python/NumPy/Unreal5.9 toolchain. Branch nick/environment-vfx fc4db83. NASA images were visual references only, not sampled or redistributed. Native build/capture/presentation remain pending.
 - Audio PrototypeV1: existing licensed-cache selections from PlaceHolder Inc's [50 Free Game Sounds Pack](https://www.fab.com/listings/b8cc7270-5e0c-4ef7-a277-6a1d4b69358d), Hove Audio's [Terminal UI LITE](https://www.fab.com/listings/183a6ec7-cbc3-451a-8fa7-08da97c07fcf), and Marika Schanz's [Atmoshpheric Worlds](https://www.fab.com/listings/c9e03a63-9359-4929-9c8a-a680309dbd3f). Exact names/hashes, provenance and outstanding acquisition-license checks: ArtSource/Audio/PrototypeV1/{sources.json,CREDITS_PROTOTYPE.md} on nick/audio-prototype-v1 at0717d9f. All raw/prepared licensed WAV and native audio assets remain local ignored files; these source commits publish only implementation/manifests/QA and review graphs. Nick authorizes prototype audition use, not final in-game quality or media redistribution. No purchases, downloads or AI-audio services. Existing Python/NumPy, Shotcut ffmpeg/ffprobe8.0.1, UE5.9 CL60351404 and Ryan's ue-game-audio skill4096f47 were used; native authoring has not passed.
 
-## Engineering side (Ryan T with Claude Code) - tools and project-authored assets
+## Engineering side (Ryan Thomas with Claude Code) - tools and project-authored assets
 
 - Tools: Claude Code (Anthropic) as lead and five teammate sessions plus review and build sub-agents: all gameplay C++, tests, tools and docs under `Source/`, `Tools/`, `docs/eng/`; Unreal Engine 5.9 built-in MCP server and engine toolsets for agent playtests; Unreal headless Python (`Tools/td-python.ps1`); Blender 5.2 headless with this repo's Blender skills; ffmpeg / ffprobe for the audio skill's measuring scripts. 2026-11-12.
 - `Content/TriadDrift/Gameplay/Materials/M_TD_PlaceholderGlow`: original unlit placeholder material built by script (`Tools/td-make-materials.py`); project-authored, no third-party source. Added by Ryan / Lead (Claude Code).
@@ -132,7 +132,7 @@ Nicholas Tosti supplied his original AI-generated composition **Ethereal Pulse (
 
 ### Dominion interior kit (boarding finale) - November 13, 2026
 
-`SM_DI_*` (22 meshes), `T_DI_Atlas_*`, `MI_DI_*`, `M_DI_Shield` in `Content/TriadDrift/Gameplay/Props/DominionInterior/`: original, code-built in Blender 5.2 (bmesh + a numpy procedural atlas) by Claude Code for Ryan T; no third-party assets. Sources, scripts and review sheets: `ArtSource/EngProps/DominionInterior/`.
+`SM_DI_*` (22 meshes), `T_DI_Atlas_*`, `MI_DI_*`, `M_DI_Shield` in `Content/TriadDrift/Gameplay/Props/DominionInterior/`: original, code-built in Blender 5.2 (bmesh + a numpy procedural atlas) by Claude Code for Ryan Thomas; no third-party assets. Sources, scripts and review sheets: `ArtSource/EngProps/DominionInterior/`.
 
 ### Squad ships and Null Armada fighter / gunship (Rodin models) - November 13, 2026
 
@@ -263,7 +263,7 @@ Tools on Nicholas's side (OpenAI Codex, Suno, Meshy AI, OpenAI image generation 
 
 ### Engineering originals not credited before (asset ledger pass, ART-02) - November 13, 2026
 
-All original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan T: code-built in Blender 5.2 (headless Python) or built in Unreal Engine 5.9 by script. No AI mesh, image or texture generator and no third-party model, texture or scan, except where the row says so.
+All original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan Thomas: code-built in Blender 5.2 (headless Python) or built in Unreal Engine 5.9 by script. No AI mesh, image or texture generator and no third-party model, texture or scan, except where the row says so.
 
 | Asset | Tool | Licence / provenance | Added by |
 |---|---|---|---|
@@ -301,7 +301,7 @@ Submission trailer rough cut 01: OpenAI Codex used FFmpeg to select three excerp
 
 ### Engineering originals added in batch M (asset ledger pass) - November 14, 2026
 
-Original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan T, in Blender 5.2 (headless Python) or in Unreal Engine 5.9 by script. No AI mesh, image or texture generator and no third-party asset, except the Hyper3D Rodin hulls they are built onto (credited above).
+Original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan Thomas, in Blender 5.2 (headless Python) or in Unreal Engine 5.9 by script. No AI mesh, image or texture generator and no third-party asset, except the Hyper3D Rodin hulls they are built onto (credited above).
 
 | Asset | Tool | Licence / provenance | Added by |
 |---|---|---|---|
@@ -313,7 +313,7 @@ Original work made during the jam by Claude Code (Anthropic) sub-agents for Ryan
 
 ### Engineering originals: space set pieces, story kit, Null ship parts (batches N and O) - November 14, 2026
 
-Made during the jam by Claude Code (Anthropic) sub-agents for Ryan T. Read from the builders' own notes: `ArtSource/EngProps/Kit/brief_space.md` and the headers of `scripts/kit_pieces_space.py`, `kit_pieces_region.py`, `kit_pieces_story.py`, `kit_story_decals.py`, `ue_import_space.py`, `ue_import_story.py` (on `eng/struct` 12a8ec67); `ArtSource/EngShips/RiftHero/scripts/rh_ships.py` and `ArtSource/EngShips/Rodin/scripts/ue_import_rodin_ships.py` (on `lead/int` 2699c13c). "Code-built" means the mesh is written as Blender Python (route C) with no AI mesh, image or texture generator.
+Made during the jam by Claude Code (Anthropic) sub-agents for Ryan Thomas. Read from the builders' own notes: `ArtSource/EngProps/Kit/brief_space.md` and the headers of `scripts/kit_pieces_space.py`, `kit_pieces_region.py`, `kit_pieces_story.py`, `kit_story_decals.py`, `ue_import_space.py`, `ue_import_story.py` (on `eng/struct` 12a8ec67); `ArtSource/EngShips/RiftHero/scripts/rh_ships.py` and `ArtSource/EngShips/Rodin/scripts/ue_import_rodin_ships.py` (on `lead/int` 2699c13c). "Code-built" means the mesh is written as Blender Python (route C) with no AI mesh, image or texture generator.
 
 | Asset | Tool | Licence / provenance | Added by |
 |---|---|---|---|
@@ -347,7 +347,7 @@ Tools used (add to the submission's "Tools you used"): xAI Text to Speech via fa
 
 ### Engineering assets added in batches U to AG, not credited before (ART-02 pass by Teammate 6) - November 14, 2026
 
-Found by listing every file added to `Content/` and `ArtSource/` on `main` since Nov 14 00:00 (`git log --diff-filter=A`) and checking each name against this file. Made during the jam by Claude Code (Anthropic) sub-agents for Ryan T unless a row says otherwise; read from each commit's message and the builders' notes.
+Found by listing every file added to `Content/` and `ArtSource/` on `main` since Nov 14 00:00 (`git log --diff-filter=A`) and checking each name against this file. Made during the jam by Claude Code (Anthropic) sub-agents for Ryan Thomas unless a row says otherwise; read from each commit's message and the builders' notes.
 
 | Asset | Tool | Licence / provenance | Added by |
 |---|---|---|---|
