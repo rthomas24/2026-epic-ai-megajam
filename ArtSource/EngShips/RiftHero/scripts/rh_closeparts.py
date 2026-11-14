@@ -294,6 +294,108 @@ def build_spine(mats, body, bvh):
     return parts
 
 
+# ---------------------------------------------------------------------------------------------------- side plates
+# v10 (Lead GO, Nov 13 night): the fuselage sides are the last thing that reads "melted" at 3 m. Denoise and paint
+# passes could not fix them (the lumps are the Rodin shape itself), so clean armour plates go over them, built on
+# the measured side surface (rays from inside the body outwards: the skin, not the wings or pods), smoothed and laid a
+# few millimetres outside, with real gaps over a dark backing (inset seams), varied sizes, access panels, vents and
+# bolts. Bands: UPPER (under the canopy sill and spine, the whole length) and MID (the side pods ahead of the wing).
+UPPER = dict(x=[-0.60, -0.31, -0.03, 0.29, 0.56, 0.87, 1.08], z=(-0.29, -0.02), split={2: -0.12, 4: -0.10})
+MID = dict(x=[0.22, 0.51, 0.79, 1.05, 1.29, 1.52], z=(-0.62, -0.29), split={1: -0.47, 3: -0.45})
+GAP = 0.006
+
+
+def _side_field(bvh, xs, zs, sy):
+    Y = np.full((len(xs), len(zs)), np.nan)
+    for i, x in enumerate(xs):
+        for j, z in enumerate(zs):
+            h = bvh.ray_cast(Vector((x, 0.0, z)), Vector((0, sy, 0)), 1.2)
+            if h[0] is not None and abs(h[0].y) < 0.62:
+                Y[i, j] = abs(h[0].y)
+    for i in range(len(xs)):                                    # per station: outliers (holes, pods poking in) -> median
+        col = Y[i]
+        med = np.nanmedian(col) if np.isfinite(col).any() else 0.35
+        bad = ~np.isfinite(col) | (np.abs(col - med) > 0.10)
+        col[bad] = med
+    lift = np.maximum.reduce([np.roll(Y, k, a) for a in (0, 1) for k in (-1, 0, 1)])   # cover the lumps
+    sm = lift.copy()
+    for _ in range(6):                                          # then smooth: clean, continuous panels
+        p = np.pad(sm, 1, mode="edge")
+        sm = (p[1:-1, 1:-1] * 4 + p[:-2, 1:-1] + p[2:, 1:-1] + p[1:-1, :-2] + p[1:-1, 2:]) / 8.0
+    return sm
+
+
+def _plates_band(mats, bvh, band, sy, name, mat_of, extras):
+    xs = np.linspace(band["x"][0] - 0.02, band["x"][-1] + 0.02, 48)
+    zs = np.linspace(band["z"][0] - 0.02, band["z"][1] + 0.02, 18)
+    field = _side_field(bvh, xs, zs, sy)
+
+    def yat(x, z, off):
+        fi = float(np.interp(x, xs, np.arange(len(xs))))
+        fj = float(np.interp(z, zs, np.arange(len(zs))))
+        i0, j0 = int(min(fi, len(xs) - 2)), int(min(fj, len(zs) - 2))
+        a, b = fi - i0, fj - j0
+        v = (field[i0, j0] * (1 - a) * (1 - b) + field[i0 + 1, j0] * a * (1 - b) + field[i0, j0 + 1] * (1 - a) * b
+             + field[i0 + 1, j0 + 1] * a * b)
+        return sy * (v + off)
+
+    def box_out(nm, cx, cz, w, h, depth, mat):
+        y = yat(cx, cz, 0.027)
+        return G.box(nm, (cx - w / 2, min(y, y + sy * depth), cz - h / 2), (cx + w / 2, max(y, y + sy * depth), cz + h / 2), mats, mat)
+
+    out = []
+
+    def back_f(u, v):                                           # dark backing: the gaps read as inset seams
+        z = band["z"][0] + u * (band["z"][1] - band["z"][0])
+        return (v, yat(v, z, 0.004), z)
+    out.append(G.grid_surface("%s_Back" % name, back_f, list(np.linspace(0, 1, 8)), list(np.linspace(band["x"][0], band["x"][-1], 30)),
+                              mats, closed_u=False, cap0="none", cap1="none", mat_fn=lambda u, v: GUN, flip=(sy < 0)))
+    for k in range(len(band["x"]) - 1):
+        x0, x1 = band["x"][k] + GAP / 2, band["x"][k + 1] - GAP / 2
+        rows = [(band["z"][0], band["split"][k]), (band["split"][k], band["z"][1])] if k in band["split"] else [band["z"]]
+        for r, (z0, z1) in enumerate(rows):
+            z0, z1 = z0 + GAP / 2, z1 - GAP / 2
+            m = mat_of(k, r)
+
+            def f(u, v, z0=z0, z1=z1):
+                z = z0 + u * (z1 - z0)
+                return (v, yat(v, z, 0.016), z)
+            pl = G.grid_surface("%s_P%d%d" % (name, k, r), f, list(np.linspace(0, 1, 7)), list(np.linspace(x0, x1, 9)), mats,
+                                closed_u=False, cap0="none", cap1="none", mat_fn=lambda u, v, m=m: m, flip=(sy < 0), smooth_deg=40.0)
+            sol = pl.modifiers.new("Thick", "SOLIDIFY")
+            sol.thickness = 0.011
+            sol.offset = -1.0
+            G.bevel(pl, width=0.0025, segments=2, angle_deg=40.0)
+            out.append(pl)
+            for kind, fx, fz, w, h in extras.get((k, r), ()):     # details on this plate, in plate-local fractions
+                cx, cz = x0 + fx * (x1 - x0), z0 + fz * (z1 - z0)
+                if kind == "access":                             # raised access panel
+                    out.append(box_out("%s_A%d%d" % (name, k, r), cx, cz, w, h, -0.010, GUN))
+                elif kind == "vent":                             # louvre: dark slots
+                    for q in range(5):
+                        qz = cz - h / 2 + (q + 0.5) * h / 5
+                        out.append(box_out("%s_V%d%d_%d" % (name, k, r, q), cx, qz, w, h / 7, -0.009, BLACK))
+                elif kind == "bolts":
+                    for bx in (-0.5, 0.5):
+                        for bz in (-0.5, 0.5):
+                            out.append(box_out("%s_B%d%d" % (name, k, r), cx + bx * w, cz + bz * h, 0.014, 0.014, -0.007, STEEL))
+    return out
+
+
+def build_side_plates(mats, body, bvh):
+    parts = []
+    for sy in (1, -1):
+        up_mat = lambda k, r: WHITE                                  # v10b: white armour; colour stays in the hull livery
+        mid_mat = lambda k, r: WHITE
+        up_x = {(1, 0): (("access", 0.45, 0.5, 0.12, 0.08),), (3, 0): (("vent", 0.3, 0.5, 0.07, 0.12), ("bolts", 0.5, 0.5, 0.20, 0.14)),
+                (5, 0): (("access", 0.6, 0.45, 0.10, 0.06),)}
+        mid_x = {(0, 0): (("vent", 0.5, 0.5, 0.12, 0.10),), (1, 1): (("access", 0.5, 0.5, 0.14, 0.07),),
+                 (3, 0): (("vent", 0.4, 0.5, 0.09, 0.09),), (4, 0): (("bolts", 0.5, 0.5, 0.14, 0.18),)}
+        parts += _plates_band(mats, bvh, UPPER, sy, "SPU%+d" % sy, up_mat, up_x)
+        parts += _plates_band(mats, bvh, MID, sy, "SPM%+d" % sy, mid_mat, mid_x)
+    return parts
+
+
 def denoise_sides(body):
     """v08: the cracks left on the fuselage sides are carved into the Rodin geometry. A mild, masked feature-preserving
     denoise (rh_denoise.py) on the side panels only (the full-hull v06 pass smeared steps and showed facets)."""
@@ -318,9 +420,10 @@ def build(mats, body):
     guns, res["cut_guns"] = build_guns(mats, body)
     nose, res["cut_nose"] = build_nose(mats, body, bvh)
     spine = build_spine(mats, body, bvh)
-    res["side_denoise"] = denoise_sides(body)
-    res["parts"] = len(canopy) + len(guns) + len(nose) + len(spine)
-    return canopy + guns + nose + spine, glass, res
+    plates = build_side_plates(mats, body, bvh)             # v10: replaces the side denoise (no visible effect at 3 m)
+    res["side_plates"] = len(plates)
+    res["parts"] = len(canopy) + len(guns) + len(nose) + len(spine) + len(plates)
+    return canopy + guns + nose + spine + plates, glass, res
 
 
 # ---------------------------------------------------------------------------------------------------- livery
