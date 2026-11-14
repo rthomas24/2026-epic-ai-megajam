@@ -1726,6 +1726,7 @@ void ATDDominion::BeginBreakupCamera()
 	BreakupCamera->SetActorLocationAndRotation(Loc, (Centre - Loc).Rotation());
 	PC->SetViewTarget(BreakupCamera);	// a hard cut, like the director's
 	UTDUIHostSubsystem::PushHUDFocus(this, TDBreakupCamera::HUDHold, 0.f, /*bHideCombat*/ true);
+	UTDDirectorSubsystem::HoldShotLetterbox(this, TDBreakupCamera::HUDHold);	// T3's bars, held over the cut (Lead: yes, no skip)
 	bBreakupCameraOn = true;
 	UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: breakup camera on, %.0f m off the hull"), Dist / 100.f);
 }
@@ -1746,6 +1747,7 @@ void ATDDominion::EndBreakupCamera()
 		}
 	}
 	UTDUIHostSubsystem::PopHUDFocus(this, TDBreakupCamera::HUDHold);
+	UTDDirectorSubsystem::ReleaseShotLetterbox(this, TDBreakupCamera::HUDHold);
 	UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: breakup camera off"));
 }
 
