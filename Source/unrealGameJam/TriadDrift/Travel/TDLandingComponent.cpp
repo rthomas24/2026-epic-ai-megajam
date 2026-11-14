@@ -11,6 +11,7 @@
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 
 #if __has_include("TriadDrift/Squad/TDSquadManager.h")
@@ -409,6 +410,7 @@ bool UTDLandingComponent::SnapLanded(ATDLandingPad* InPad)
 	PauseFlight(true);
 	if (UTDShipMovementComponent* Move = Ship->GetShipMovement()) { Move->SetMoveAnnounced(true); }
 	Ship->SetActorLocationAndRotation(TouchPoint(), PadFacing(), false, nullptr, ETeleportType::TeleportPhysics);
+	SetParkedBlock(true);
 	if (UTDShipMovementComponent* Move = Ship->GetShipMovement()) { Move->SetMoveAnnounced(false); }
 	bGearDown = true;
 	bEnginesOn = false;
@@ -419,6 +421,7 @@ bool UTDLandingComponent::SnapLanded(ATDLandingPad* InPad)
 
 void UTDLandingComponent::AbortToFlying()
 {
+	SetParkedBlock(false);
 	StopApproachAssist(); // a retake mid-approach hands the ship straight back
 	if (State == ETDLandingState::Flying)
 	{
@@ -530,6 +533,58 @@ void UTDLandingComponent::PauseFlight(bool bPause)
 	}
 }
 
+FBox UTDLandingComponent::VisibleHullBoxLocal(const ATDShip* Ship)
+{
+	FBox Box(ForceInit);
+	if (!Ship) { return Box; }
+	TArray<const UStaticMeshComponent*> Meshes;
+	if (const UStaticMeshComponent* Hull = Ship->GetHullMesh()) { Meshes.Add(Hull); }
+	for (const UStaticMeshComponent* Part : Ship->GetVisualParts()) { Meshes.AddUnique(Part); }
+	const FTransform ActorXf = Ship->GetActorTransform();
+	for (const UStaticMeshComponent* M : Meshes)
+	{
+		if (!M || !M->GetStaticMesh() || !M->IsVisible() || M == Ship->GetEngineGlow()) { continue; }
+		Box += M->CalcBounds(M->GetComponentTransform().GetRelativeTransform(ActorXf)).GetBox();
+	}
+	return Box;
+}
+
+bool UTDLandingComponent::IsParkedBlockOn() const
+{
+	return ParkedBlock && ParkedBlock->GetCollisionEnabled() != ECollisionEnabled::NoCollision;
+}
+
+void UTDLandingComponent::SetParkedBlock(bool bOn)
+{
+	ATDShip* Ship = GetShip();
+	if (!Ship) { return; }
+	if (bOn)
+	{
+		const FBox Local = VisibleHullBoxLocal(Ship);
+		if (!Local.IsValid) { return; }
+		if (!ParkedBlock)
+		{
+			ParkedBlock = NewObject<UBoxComponent>(Ship, TEXT("ParkedBlock"));
+			ParkedBlock->SetupAttachment(Ship->GetRootComponent());
+			ParkedBlock->SetCollisionObjectType(ECC_WorldStatic);
+			ParkedBlock->SetCollisionResponseToAllChannels(ECR_Ignore);
+			ParkedBlock->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block); // the pilot on foot, nothing else
+			ParkedBlock->SetGenerateOverlapEvents(false);
+			ParkedBlock->SetCanEverAffectNavigation(false);
+			ParkedBlock->CanCharacterStepUpOn = ECB_No;
+			ParkedBlock->RegisterComponent();
+		}
+		ParkedBlock->SetRelativeLocation(Local.GetCenter());
+		ParkedBlock->SetRelativeRotation(FRotator::ZeroRotator);
+		ParkedBlock->SetBoxExtent(Local.GetExtent() * ParkedBlockShrink);
+		ParkedBlock->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+	else if (ParkedBlock)
+	{
+		ParkedBlock->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+}
+
 float UTDLandingComponent::HullBottomBelowOrigin(const ATDShip* Ship)
 {
 	// Parked ships sat on their flight collision sphere, ~1 m over the pad (Ryan's screenshot, Nov 13). Park on the
@@ -591,7 +646,10 @@ FTransform UTDLandingComponent::GetExitTransform() const
 	}
 	const FRotator Facing(0.f, Ship->GetActorRotation().Yaw, 0.f);
 	const FVector Right = FRotationMatrix(Facing).GetUnitAxis(EAxis::Y);
-	FVector Location = Ship->GetActorLocation() + Right * Tuning.ExitSideOffset;
+	// Beside the hull, clear of the parked block (the pilot's capsule is ~40 cm wide; 60 cm more for comfort).
+	const FBox Hull = VisibleHullBoxLocal(Ship);
+	const float Side = Hull.IsValid ? FMath::Max(Tuning.ExitSideOffset, Hull.Max.Y * ParkedBlockShrink + 220.f) : Tuning.ExitSideOffset;
+	FVector Location = Ship->GetActorLocation() + Right * Side;
 	if (const ATDLandingPad* P = Pad.Get())
 	{
 		Location.Z = P->GetBeaconLocation().Z + Tuning.ExitHeightAboveDeck;
@@ -664,9 +722,9 @@ void UTDLandingComponent::SetState(ETDLandingState NewState)
 			UTDStatics::PlayCue(this, TravelFX->LandingDust, Pad.IsValid() ? Pad->GetBeaconLocation() : SegmentStart);
 		}
 		break;
-	case ETDLandingState::EnginesOff: bEnginesOn = false; break;
+	case ETDLandingState::EnginesOff: bEnginesOn = false; SetParkedBlock(true); break; // parked: the pilot can't walk through it
 	case ETDLandingState::CanopyOpening: bCanopyOpen = true; break;
-	case ETDLandingState::CanopyClosing: bCanopyOpen = false; break;
+	case ETDLandingState::CanopyClosing: bCanopyOpen = false; SetParkedBlock(false); break; // taking off: flight collision only
 	case ETDLandingState::EnginesOn: bEnginesOn = true; break;
 	case ETDLandingState::Ascending:
 		if (TravelFX)
