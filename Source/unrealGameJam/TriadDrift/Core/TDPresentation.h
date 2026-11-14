@@ -585,6 +585,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FTDFXCue SwingHeavy;
 
+	/** A trail on the blade for every swing, light or heavy, attached to the blade (the animation builder, Nov 14). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
+	FTDFXCue SwingTrail;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FTDFXCue Hit;
 

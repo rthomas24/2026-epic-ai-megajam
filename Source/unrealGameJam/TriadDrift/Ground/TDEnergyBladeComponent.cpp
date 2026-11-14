@@ -285,7 +285,28 @@ void UTDEnergyBladeComponent::StartSwing(int32 Index)
 	bLightQueued = false;
 	OnSwing.Broadcast(State);
 	PlayBladeCue(TEXT("SwingLight"), BladeFX ? &BladeFX->SwingLight : nullptr, true, FVector::ZeroVector);
-	HitArc(Swing.Range, Swing.ArcDegrees, Swing.Damage, Swing.Knockback);
+	PlaySwingTrail();
+	// The hit lands with the hand, not on the press (the pilot clips reach the target 0.10-0.13 s in).
+	if (HitDelay > 0.f)
+	{
+		PendingHitLeft = HitDelay;
+		PendingRange = Swing.Range; PendingArc = Swing.ArcDegrees; PendingDamage = Swing.Damage; PendingKnockback = Swing.Knockback;
+	}
+	else
+	{
+		HitArc(Swing.Range, Swing.ArcDegrees, Swing.Damage, Swing.Knockback);
+	}
+}
+
+void UTDEnergyBladeComponent::PlaySwingTrail()
+{
+	OnCueRequested.Broadcast(TEXT("SwingTrail"));
+	const ATDFirstPersonCharacter* Pilot = Cast<ATDFirstPersonCharacter>(GetOwner());
+	USceneComponent* On = Pilot && Pilot->GetBladeMesh() ? static_cast<USceneComponent*>(Pilot->GetBladeMesh()) : (GetOwner() ? GetOwner()->GetRootComponent() : nullptr);
+	if (BladeFX && !BladeFX->SwingTrail.IsEmpty() && On)
+	{
+		UTDStatics::PlayCueAttached(BladeFX->SwingTrail, On);
+	}
 }
 
 bool UTDEnergyBladeComponent::HeavyLunge()
@@ -314,6 +335,7 @@ bool UTDEnergyBladeComponent::HeavyLunge()
 	ComboTimeLeft = 0.f;
 	OnSwing.Broadcast(State);
 	PlayBladeCue(TEXT("SwingHeavy"), BladeFX ? &BladeFX->SwingHeavy : nullptr, true, FVector::ZeroVector);
+	PlaySwingTrail();
 
 	// Stab the first hostile along the lunge path.
 	const FVector Start = Owner->GetActorLocation();
@@ -747,6 +769,7 @@ void UTDEnergyBladeComponent::CancelAll()
 	bLightQueued = false;
 	bAttackHeld = false;
 	bBlockHeld = false;
+	PendingHitLeft = -1.f;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -762,6 +785,16 @@ void UTDEnergyBladeComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	}
 
 	HeavyCooldownLeft = FMath::Max(0.f, HeavyCooldownLeft - DeltaTime);
+	if (PendingHitLeft >= 0.f)
+	{
+		PendingHitLeft -= DeltaTime;
+		if (PendingHitLeft < 0.f)
+		{
+			PendingHitLeft = -1.f;
+			const bool bStillSwinging = State == ETDBladeState::Light1 || State == ETDBladeState::Light2 || State == ETDBladeState::Light3;
+			if (bStillSwinging && !bRetracted) { HitArc(PendingRange, PendingArc, PendingDamage, PendingKnockback); }
+		}
+	}
 
 	// Hold-to-heavy.
 	if (bAttackHeld && !bHeavyFiredThisPress)

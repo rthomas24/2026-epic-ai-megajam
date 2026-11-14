@@ -383,8 +383,10 @@ void ATDCrewCharacter::StopDroneThrusters()
 
 void ATDCrewCharacter::FellOutOfWorld(const UDamageType& DmgType)
 {
-	// Knocked or walked off the map: that's a death (encounters must see it), then clean up.
-	if (Health && Health->IsAlive())
+	// Knocked or walked off the map: that's a death (encounters must see it), then clean up. A boss is not killed by the
+	// map: it leaves alive, and its room puts it back (T3, Nov 14: a Warden through the kill-Z counted as killed, its
+	// room cleared and the scene completed without the fight).
+	if (Health && Health->IsAlive() && Spec.Type != ETDCrewType::Warden)
 	{
 		Health->Kill(nullptr, ETDDamageKind::Environmental);
 	}

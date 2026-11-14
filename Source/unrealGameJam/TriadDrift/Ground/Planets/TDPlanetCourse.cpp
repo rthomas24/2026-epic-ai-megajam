@@ -1717,8 +1717,10 @@ void ATDPlanetCourse::BuildCinder()
 		TDCourseImpl::FinishProp(C);
 		Conduits->WatchDestructible(C);
 	}
-	ATDEncounterVolume* GateGuards = Encounter(Outpost, INDEX_NONE, FVector(XGate - 1400.f, Y0, 200.f), FVector(1600.f, 1800.f, 600.f),
-		{ ETDCrewType::Grunt, ETDCrewType::Trooper, ETDCrewType::Grunt }, true, 700.f);
+	// The gate's guards start 12 m+ past the bridge's far ramp foot (6751, 5417): the structures builder's walk (Nov 14)
+	// had crew 2-3 m from the bridge end killing the pilot stepping off. Trigger box x 8200..9600, crew on a 5 m ring.
+	ATDEncounterVolume* GateGuards = Encounter(Outpost, INDEX_NONE, FVector(XGate - 700.f, Y0, 200.f), FVector(700.f, 1800.f, 600.f),
+		{ ETDCrewType::Grunt, ETDCrewType::Trooper, ETDCrewType::Grunt }, true, 500.f);
 	StepDoors.Add({ Outpost, 1, Gate });
 
 	// Cover crates inside each room.
@@ -1918,6 +1920,7 @@ void ATDPlanetCourse::BuildCinder()
 		// old 520 cm ring at 60 cm sat inside its plinth.
 		FVector SiteAt(FMath::Cos(A) * 520.f, FMath::Sin(A) * 520.f, 60.f);
 		if (AnchorTowerArt) { TDPlanetCourse_AnchorSocket(AnchorTowerArt, *FString::Printf(TEXT("Charge_%d"), i), SiteAt); }
+		float FaceGap = 45.f; // how far the charge point stands out from the tower's face
 		// The sockets (r 587-601) sit inside the tower's plinth collision (UCX_00, a 13.8 m square box 5.7 m tall: Played.Cinder
 		// could never reach one, and the interact trace hits the box first). Each charge point goes just outside whatever
 		// collision the tower has (its lowest hull), along its port's heading, at a standing pilot's reach; it follows a better
@@ -1940,7 +1943,7 @@ void ATDPlanetCourse::BuildCinder()
 			// The refitted octagon (import a78930a4) leaves each socket 10 cm outside: then the socket is the charge point.
 			FVector Closest, Normal;
 			const bool bSocketOutside = PlinthHull && PlinthHull->GetClosestPointAndNormal(SiteAt, FTransform::Identity, Closest, Normal) > 1.f;
-			if (bSocketOutside) { Plinth = FBox(ForceInit); }
+			if (bSocketOutside) { Plinth = FBox(ForceInit); FaceGap = 10.f; }
 			const FVector D = FVector(SiteAt.X, SiteAt.Y, 0.f).GetSafeNormal();
 			if (Plinth.IsValid && !D.IsNearlyZero())
 			{
@@ -1958,10 +1961,25 @@ void ATDPlanetCourse::BuildCinder()
 		Site->bCompleteLinkedStep = false;
 		TDCourseImpl::FinishProp(Site);
 		UTDStatics::TintPlaceholder(Site->Mesh, FLinearColor(1.f, 0.85f, 0.1f), 2.f);
-		// The structures builder's charge (Kit/Story/SM_Kit_AnchorCharge) on the tinted box when it is in the build.
+		// The structures builder's charge (Kit/Story/SM_Kit_AnchorCharge, 30 x 60 x 54 cm) at scale 1: its back plate on the
+		// tower face at the charge point, +X away from the tower. The 4.2 m box stays as the interact volume only (the
+		// builder's check, Nov 14: fitted to the box it stood as a 4 m post 2.1 m up).
 		if (UStaticMesh* ChargeArt = TDPlanetCourse_KitStory(TEXT("SM_Kit_AnchorCharge")))
 		{
-			TDPropArt::Dress(Site->Mesh, ChargeArt);
+			const FVector Away = FVector(SiteAt.X, SiteAt.Y, 0.f).GetSafeNormal();
+			UStaticMeshComponent* Charge = NewObject<UStaticMeshComponent>(Site, TEXT("ChargeArt"));
+			Charge->SetStaticMesh(ChargeArt);
+			Charge->SetMobility(EComponentMobility::Movable);
+			Charge->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			Charge->SetupAttachment(Site->GetRootComponent());
+			Charge->SetUsingAbsoluteScale(true);
+			Charge->SetUsingAbsoluteRotation(true);
+			Charge->RegisterComponent();
+			Site->AddInstanceComponent(Charge);
+			Charge->SetWorldScale3D(FVector(1.f));
+			Charge->SetWorldRotation(GetActorRotation() + FRotator(0.f, Away.Rotation().Yaw, 0.f));
+			Charge->SetWorldLocation(W(Tower + SiteAt - Away * FaceGap)); // on the face
+			Site->Mesh->SetHiddenInGame(true); // the box: the interact volume only
 		}
 		Charges->WatchInteractable(Site);
 	}
