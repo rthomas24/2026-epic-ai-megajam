@@ -166,6 +166,36 @@ def hue_tag(obj, value=None):
         d.value = v
 
 
+def add_underside(obj):
+    """#158 (B2-05): seen from below near the Verdance pad, the puff clusters left sky between the crowns (fragmented
+    undersides). A shallow dome cap over the clump's footprint (2D convex hull, inset 8 %) at the crowns' lower fifth,
+    sagging a little toward the middle, closes the underside; the bake gives it the dark under-leaf value."""
+    import bmesh
+    from mathutils import Vector, geometry
+    me = obj.data
+    pts = [v.co.copy() for v in me.vertices]
+    if len(pts) < 8:
+        return
+    zs = sorted(p.z for p in pts)
+    z = zs[int(len(zs) * 0.2)]
+    hull = geometry.convex_hull_2d([(p.x, p.y) for p in pts])
+    ring = [Vector((pts[i].x, pts[i].y, z)) for i in hull]
+    c = sum(ring, Vector()) / len(ring)
+    ring = [c + (r - c) * 0.92 for r in ring]
+    bm = bmesh.new()
+    bm.from_mesh(me)
+    centre = bm.verts.new(c - Vector((0, 0, (zs[-1] - zs[0]) * 0.05)))
+    rv = [bm.verts.new(r) for r in ring]
+    for i in range(len(rv)):
+        try:
+            bm.faces.new((centre, rv[(i + 1) % len(rv)], rv[i]))   # facing down
+        except ValueError:
+            pass
+    bm.to_mesh(me)
+    bm.free()
+    me.update()
+
+
 def bake_light(obj):
     mesh = obj.data
     while mesh.color_attributes:
@@ -231,6 +261,7 @@ def build(name, seed, keys, radius):
     if t > MAX_TRIS:
         decimate(obj, MAX_TRIS)
         t = tris(obj)
+    add_underside(obj)
     bake_light(obj)
     for p in obj.data.polygons:
         p.use_smooth = True
