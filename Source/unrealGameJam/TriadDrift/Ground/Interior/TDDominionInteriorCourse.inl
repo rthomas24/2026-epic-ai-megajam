@@ -441,6 +441,25 @@ void ATDPlanetCourse::BuildInterior()
 	Entry(NAME_None, HangarStart, 0.f);
 	// Kato on arrival in the hangar (first visit: the story fires once per run).
 	GetWorldTimerManager().SetTimerForNextTick([this]() { UTDStorySubsystem::PlaySequence(this, TEXT("HangarArrival")); });
+	// Nicholas's recoloured Fab props (batch BJ; environment builder): dressing at 1.0 against the hangar walls, clear of the
+	// pad (-800..400 x -600..600), the start beside the ship and the door lane; the corridors are 3.4 m clear with no
+	// alcoves, so their power cores sit in the room corners at the corridor mouths. One blocking hull each.
+	{
+		const TCHAR* Crate = TEXT("Fab/CrateStack");
+		const TCHAR* Barrel = TEXT("Fab/OilBarrel");
+		const TCHAR* PCore = TEXT("Fab/PowerCore");
+		Dress({
+			{ Crate, TEXT("SM_Fab_CrateStack"), FVector(-1050.f, -1220.f, 0.f), 5.f, 1.f, true },
+			{ Crate, TEXT("SM_Fab_CrateStack"), FVector(250.f, 1220.f, 0.f), -6.f, 1.f, true },
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(600.f, 1250.f, 0.f), 0.f, 1.f, true },
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(700.f, 1200.f, 0.f), 50.f, 1.f, true },
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(660.f, 1110.f, 0.f), 20.f, 1.f, true },
+			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-1100.f, -950.f, 0.f), 70.f, 1.f, true },
+			{ PCore, TEXT("SM_Fab_PowerCore"), FVector(-1140.f, 350.f, 0.f), 90.f, 1.f, true },
+			{ PCore, TEXT("SM_Fab_PowerCore"), FVector(CX1 + 250.f, AY - 250.f, 0.f), 0.f, 1.f, true },	// arena corner, corridor mouth
+			{ PCore, TEXT("SM_Fab_PowerCore"), FVector(L1X1 + 250.f, -WY + 250.f, 0.f), 0.f, 1.f, true },	// Warden room corner
+		}, FVector::ZeroVector, 0.f, TEXT("InteriorFab"));
+	}
 
 	// 1. The deflect lesson: two troopers at the corridor's far end, behind low cover, firing down the lane.
 	ATDObjective* Lesson = MakeObjective(Corridor, LOCTEXT("DICorridorTitle", "Reach the Command Archive"), ETDAbilityId::None, ETDShipId::Rift, 2);
