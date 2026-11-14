@@ -216,8 +216,17 @@ void UTDWarmupSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	WaitLeft = StartDelaySeconds;
 }
 
+static int32 GTDWarmupKeepForRun = 1;
+static FAutoConsoleVariableRef CVarTDWarmupKeepForRun(TEXT("td.Warmup.KeepForRun"), GTDWarmupKeepForRun,
+	TEXT("#89: 1 = what the warm-up loads stays in memory for the whole run (a return to the galaxy finds it resident); 0 = released with each level, as before (and what was kept is let go)."));
+
 void UTDWarmupKeep::Keep(const TArray<TObjectPtr<UObject>>& Assets)
 {
+	if (GTDWarmupKeepForRun == 0)
+	{
+		Kept.Reset();
+		return;
+	}
 	for (UObject* Asset : Assets)
 	{
 		if (Asset) { Kept.Add(Asset); }
@@ -350,8 +359,13 @@ void UTDWarmupSubsystem::OnContentLoaded()
 	{
 		if (UGameInstance* GI = World->GetGameInstance())
 		{
-			if (UTDWarmupKeep* KeepSub = GI->GetSubsystem<UTDWarmupKeep>())
+			// Only the galaxy's set: that is what a return from a planet needs. A planet's own assets are let go when the
+			// player is back in the galaxy (the full loop with every level kept cost 337 MB of private memory, Lead's cap
+			// about 300 MB; galaxy-only measured below it).
+			UTDWarmupKeep* KeepSub = GI->GetSubsystem<UTDWarmupKeep>();
+			if (KeepSub && World->GetMapName().EndsWith(TEXT("L_Galaxy")))
 			{
+				KeepSub->Reset();
 				KeepSub->Keep(Held);
 				UE_LOG(LogTriadDrift, Log, TEXT("TD warmup: %d assets kept for the run"), KeepSub->GetKeptCount());
 			}
