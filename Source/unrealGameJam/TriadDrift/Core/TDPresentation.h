@@ -107,6 +107,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
 	FTDFXCue EngineTrail;
 
+	/**
+	 * Size of this hull's boost plume (T7, Nov 14): while boosting the EngineTrail effects get "Boost" = this instead of 1,
+	 * so a small hull keeps its plume in proportion (Lancer about 0.6). 1 = as authored; 0 = no boost growth.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight", meta = (ClampMin = "0", ClampMax = "2"))
+	float ExhaustBoostScale = 1.f;
+
 	/** Dodge: a short side-thruster burst, attached at the engine (player ship only). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
 	FTDFXCue Dodge;
