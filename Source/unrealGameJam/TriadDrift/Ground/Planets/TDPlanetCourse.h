@@ -244,6 +244,13 @@ public:
 	class ATDEncounterVolume* GetReactorDefenders() const { return ReactorDefenders; }
 	UPROPERTY(Transient) TObjectPtr<class ATDFutureSelf> FutureSelf;
 	UPROPERTY(Transient) TObjectPtr<class ATDEncounterVolume> ReactorDefenders;
+	/** The interior's doorways, in order along +X: the marker leads through the next one square-on (T7, Nov 14: the
+	 *  walker wedged on the arena's far door frame heading straight for the Warden's trailhead). */
+	TArray<TWeakObjectPtr<AActor>> InteriorDoorways;
+	/** Each doorway's approach points on its centre line, 2.5 m before and after it (same order as InteriorDoorways). */
+	TArray<TPair<TWeakObjectPtr<AActor>, TWeakObjectPtr<AActor>>> DoorApproaches;
+	/** Target, or the centre of the first doorway between the pilot and it (interior, along +X). */
+	AActor* RouteThroughDoors(const FVector& Pilot, AActor* Target) const;
 	/** The course's objectives in story order (the order they were made). */
 	const TArray<TObjectPtr<ATDObjective>>& GetObjectives() const { return Objectives; }
 	/** Where a magma rescue puts the pilot, per magma volume (tests). */

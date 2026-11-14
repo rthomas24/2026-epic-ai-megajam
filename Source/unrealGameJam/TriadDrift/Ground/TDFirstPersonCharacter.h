@@ -113,9 +113,9 @@ public:
 
 	/** Ground speeds the walk and run loops were authored for: playback rate follows the real speed (less foot sliding). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm/s"))
-	float BodyWalkSpeed = 300.f;
+	float BodyWalkSpeed = 130.f; // measured from the planted foot (animation builder, Nov 14): Walk_v2 130, Run 487
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm/s"))
-	float BodyRunSpeed = 650.f;
+	float BodyRunSpeed = 487.f;
 
 	/** Applies PilotVisuals (loads the default when empty). Public for tests. */
 	void ApplyPilotVisuals();

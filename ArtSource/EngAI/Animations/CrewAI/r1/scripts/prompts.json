@@ -1,0 +1,212 @@
+{
+  "jobs": [
+    {
+      "index": 0,
+      "name": "tstrafeL-s7101",
+      "clip": "tstrafeL",
+      "submission_key": "r042-tstrafeL-s7101",
+      "input": {
+        "prompt": "A soldier aiming an assault rifle in both hands at the shoulder, looking down the sights, the rifle pointed straight forward, sidesteps repeatedly to his left in a combat strafe. The body and the rifle stay facing forward the whole time, the aim never drops. The feet step cleanly sideways to the left, one foot then the other, without crossing, in a steady repeating side-step walk. The knees stay bent in a combat crouch. The motion is a continuous loop.",
+        "seed": 7101,
+        "duration": 3.0,
+        "guidance_scale": 6,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 1,
+      "name": "tstrafeL-s7102",
+      "clip": "tstrafeL",
+      "submission_key": "r042-tstrafeL-s7102",
+      "input": {
+        "prompt": "A soldier aiming an assault rifle in both hands at the shoulder, looking down the sights, the rifle pointed straight forward, sidesteps repeatedly to his left in a combat strafe. The body and the rifle stay facing forward the whole time, the aim never drops. The feet step cleanly sideways to the left, one foot then the other, without crossing, in a steady repeating side-step walk. The knees stay bent in a combat crouch. The motion is a continuous loop.",
+        "seed": 7102,
+        "duration": 3.0,
+        "guidance_scale": 6,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 2,
+      "name": "tstrafeL-s7103",
+      "clip": "tstrafeL",
+      "submission_key": "r042-tstrafeL-s7103",
+      "input": {
+        "prompt": "A soldier in a low combat crouch keeps an assault rifle welded to his shoulder and aimed straight ahead while he shuffles sideways to his left. He never turns his hips or the rifle away from the front. Left foot, then right foot, clean uncrossed side steps, repeating in a military combat strafe loop.",
+        "seed": 7103,
+        "duration": 3.0,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 3,
+      "name": "tstrafeR-s7201",
+      "clip": "tstrafeR",
+      "submission_key": "r042-tstrafeR-s7201",
+      "input": {
+        "prompt": "A soldier aiming an assault rifle in both hands at the shoulder, looking down the sights, the rifle pointed straight forward, sidesteps repeatedly to his right in a combat strafe. The body and the rifle stay facing forward the whole time, the aim never drops. The feet step cleanly sideways to the right, one foot then the other, without crossing, in a steady repeating side-step walk. The knees stay bent in a combat crouch. The motion is a continuous loop.",
+        "seed": 7201,
+        "duration": 3.0,
+        "guidance_scale": 6,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 4,
+      "name": "tstrafeR-s7202",
+      "clip": "tstrafeR",
+      "submission_key": "r042-tstrafeR-s7202",
+      "input": {
+        "prompt": "A soldier aiming an assault rifle in both hands at the shoulder, looking down the sights, the rifle pointed straight forward, sidesteps repeatedly to his right in a combat strafe. The body and the rifle stay facing forward the whole time, the aim never drops. The feet step cleanly sideways to the right, one foot then the other, without crossing, in a steady repeating side-step walk. The knees stay bent in a combat crouch. The motion is a continuous loop.",
+        "seed": 7202,
+        "duration": 3.0,
+        "guidance_scale": 6,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 5,
+      "name": "tstrafeR-s7203",
+      "clip": "tstrafeR",
+      "submission_key": "r042-tstrafeR-s7203",
+      "input": {
+        "prompt": "A soldier in a low combat crouch keeps an assault rifle welded to his shoulder and aimed straight ahead while he shuffles sideways to his right. He never turns his hips or the rifle away from the front. Right foot, then left foot, clean uncrossed side steps, repeating in a military combat strafe loop.",
+        "seed": 7203,
+        "duration": 3.0,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 6,
+      "name": "tback-s7301",
+      "clip": "tback",
+      "submission_key": "r042-tback-s7301",
+      "input": {
+        "prompt": "A soldier aiming an assault rifle in both hands at the shoulder, looking down the sights, the rifle pointed straight forward, walks backward in a combat backpedal. The body and the rifle stay facing forward the whole time, the aim never drops. The feet step backward one after the other in a steady repeating walk, the knees stay bent in a combat crouch. The motion is a continuous loop.",
+        "seed": 7301,
+        "duration": 3.0,
+        "guidance_scale": 6,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 7,
+      "name": "tback-s7302",
+      "clip": "tback",
+      "submission_key": "r042-tback-s7302",
+      "input": {
+        "prompt": "A soldier aiming an assault rifle in both hands at the shoulder, looking down the sights, the rifle pointed straight forward, walks backward in a combat backpedal. The body and the rifle stay facing forward the whole time, the aim never drops. The feet step backward one after the other in a steady repeating walk, the knees stay bent in a combat crouch. The motion is a continuous loop.",
+        "seed": 7302,
+        "duration": 3.0,
+        "guidance_scale": 6,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 8,
+      "name": "tback-s7303",
+      "clip": "tback",
+      "submission_key": "r042-tback-s7303",
+      "input": {
+        "prompt": "A soldier in a low combat crouch keeps an assault rifle welded to his shoulder and aimed straight ahead while he carefully walks backward, stepping heel then toe, never turning away from the front. The rifle stays on target. A steady repeating combat backpedal loop.",
+        "seed": 7303,
+        "duration": 3.0,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 9,
+      "name": "gcombo-s7401",
+      "clip": "gcombo",
+      "submission_key": "r042-gcombo-s7401",
+      "input": {
+        "prompt": "A stocky armored brawler standing in a fighting stance with both fists raised throws a two-hit melee combo at a target standing directly in front of him: first a hard left hook that fully extends and snaps at the hit, then immediately a powerful right cross that fully extends and snaps at the hit, then he pulls both arms back and returns to the fighting stance with fists up, still facing forward, and holds still.",
+        "seed": 7401,
+        "duration": 2.0,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 10,
+      "name": "gcombo-s7402",
+      "clip": "gcombo",
+      "submission_key": "r042-gcombo-s7402",
+      "input": {
+        "prompt": "A stocky armored brawler standing in a fighting stance with both fists raised throws a two-hit melee combo at a target standing directly in front of him: first a hard left hook that fully extends and snaps at the hit, then immediately a powerful right cross that fully extends and snaps at the hit, then he pulls both arms back and returns to the fighting stance with fists up, still facing forward, and holds still.",
+        "seed": 7402,
+        "duration": 2.0,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 11,
+      "name": "gcombo-s7403",
+      "clip": "gcombo",
+      "submission_key": "r042-gcombo-s7403",
+      "input": {
+        "prompt": "A stocky armored brawler in a boxing stance throws a two-punch combo at someone in front of him: a short left jab that snaps at the hit, then a heavy right hook that swings across and snaps at the hit, then he resets both fists up in the fighting stance and holds still, still facing forward.",
+        "seed": 7403,
+        "duration": 2.0,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 12,
+      "name": "hstagger-s7501",
+      "clip": "hstagger",
+      "submission_key": "r042-hstagger-s7501",
+      "input": {
+        "prompt": "A huge, heavily armored soldier in thick, heavy plate armor, standing braced with a big shield held on his left forearm in front of him, has his guard broken by a heavy blow from the front. He staggers backward but does not fall: the shield dips, his upper body jerks backward, he takes two heavy stumbling steps back to catch his balance, then steadies himself and brings the shield back up in front of him, still standing and facing forward.",
+        "seed": 7501,
+        "duration": 1.5,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 13,
+      "name": "hstagger-s7502",
+      "clip": "hstagger",
+      "submission_key": "r042-hstagger-s7502",
+      "input": {
+        "prompt": "A huge, heavily armored soldier in thick, heavy plate armor, standing braced with a big shield held on his left forearm in front of him, has his guard broken by a heavy blow from the front. He staggers backward but does not fall: the shield dips, his upper body jerks backward, he takes two heavy stumbling steps back to catch his balance, then steadies himself and brings the shield back up in front of him, still standing and facing forward.",
+        "seed": 7502,
+        "duration": 1.5,
+        "guidance_scale": 7,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 14,
+      "name": "hwalk-s7601",
+      "clip": "hwalk",
+      "submission_key": "r042-hwalk-s7601",
+      "input": {
+        "prompt": "A huge, heavily armored soldier in thick, heavy plate armor walks slowly and heavily forward in a weighty tread, a big shield held up on his left forearm in front of his chest the whole time, the right arm hanging at his side, the body facing forward. Each step is planted and slow. The motion is a continuous repeating walk cycle, shield always up.",
+        "seed": 7601,
+        "duration": 3.0,
+        "guidance_scale": 6,
+        "output_format": "fbx"
+      }
+    },
+    {
+      "index": 15,
+      "name": "hwalk-s7602",
+      "clip": "hwalk",
+      "submission_key": "r042-hwalk-s7602",
+      "input": {
+        "prompt": "A huge, heavily armored soldier in thick, heavy plate armor walks slowly and heavily forward in a weighty tread, a big shield held up on his left forearm in front of his chest the whole time, the right arm hanging at his side, the body facing forward. Each step is planted and slow. The motion is a continuous repeating walk cycle, shield always up.",
+        "seed": 7602,
+        "duration": 3.0,
+        "guidance_scale": 6,
+        "output_format": "fbx"
+      }
+    }
+  ]
+}

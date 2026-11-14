@@ -199,6 +199,7 @@ FText UTDHyperdriveComponent::GetBlockReasonText() const
 		if (const UTDAtmosphereEntryComponent* Entry = Ship->GetAtmosphereEntry())
 		{
 			if (Entry->IsHoldingForStory()) { return NSLOCTEXT("TDTravel", "AwaitingOrders", "AWAITING ORDERS"); }
+			if (Entry->IsPlanetClosedWarning() && Ship->IsPlayerFlown()) { return Entry->GetPlanetClosedText(); } // #161
 		}
 	}
 	const ETDHyperdriveBlock Block = ComputeBlockReason(true);

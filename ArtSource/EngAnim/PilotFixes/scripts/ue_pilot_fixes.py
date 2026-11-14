@@ -292,6 +292,9 @@ for sw in CFG.get("swing", []):
         for child, parent in (("spine_01", "pelvis"), ("upperarm_r", "clavicle_r"), ("lowerarm_r", "upperarm_r"), ("hand_r", "lowerarm_r")):
             loc, _ = fr[child]
             fr[child] = (loc, unreal.Quat(*local(child, parent)))
+        if sw.get("pelvis_shift"):  # (x, y) cm in component space: a source whose whole body stands off the root
+            loc, prot_ = fr["pelvis"]
+            fr["pelvis"] = (unreal.Vector(loc.x + sw["pelvis_shift"][0], loc.y + sw["pelvis_shift"][1], loc.z), prot_)
         frs.append(fr)
         if i % 3 == 0:
             log_lines.append("t%.2f yaw%+.0f hand(F%.0f R%.0f U%.0f) wrist%.0f" % (t, cur_yaw + dyaw, hp[0], hp[1], hp[2], ang))

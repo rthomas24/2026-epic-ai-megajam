@@ -1038,6 +1038,8 @@ namespace TDSquad
 
 	void RequestBark(const UObject* WorldContext, FName BarkId, FName Speaker)
 	{
+		// Lead (Nov 14, #122): played sessions read the log for which squad bark was asked for (T4; one line).
+		UE_LOG(LogTriadDrift, Log, TEXT("TD squad bark: %s (%s)"), *BarkId.ToString(), *Speaker.ToString());
 		if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(WorldContext))
 		{
 			Flow->RequestBark(BarkId, Speaker);

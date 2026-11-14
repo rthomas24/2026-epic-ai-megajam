@@ -22,6 +22,10 @@
 #include "TriadDrift/World/TDDockingBay.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
+#if __has_include("TriadDrift/UI/TDHUDRadarPaint.h")
+#include "TriadDrift/UI/TDHUDRadarPaint.h"
+#endif
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
@@ -261,6 +265,7 @@ void UTDFlightHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 	if (MyGeometry.GetLocalSize().X > 1.f && MyGeometry.GetLocalSize().Y > 1.f)
 	{
 		ViewportSize = MyGeometry.GetLocalSize();
+		PixelScale = FMath::Max(.01f, MyGeometry.GetAccumulatedLayoutTransform().GetScale());
 	}
 	Sample(InDeltaTime);
 }
@@ -1176,6 +1181,10 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 			Flown = Card;
 		}
 	}
+	FrameMarkers = Data->GetTargetMarkers();
+	FrameObjectives = Data->GetObjectiveMarkers();
+	HUDModel.Update(GetWorld(), Cards, FrameMarkers, FrameObjectives, Dt);
+	UpdateSquadCards(Dt);
 	LayoutChips();
 
 	// Reticle cluster: the flown ship.
@@ -1238,10 +1247,7 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 			}
 		}
 	}
-	FrameMarkers = Data->GetTargetMarkers();
-	FrameObjectives = Data->GetObjectiveMarkers();
 	SampleCombat(*Data, Flown, Dt);
-	HUDModel.Update(GetWorld(), Cards, FrameMarkers, FrameObjectives, Dt);
 	ArcAwake = FMath::Max(0.f, ArcAwake - Dt);
 	View.ArcOpacity = (View.Hull < .999f || View.Shield < .999f || ArcAwake > 0.f) ? 1.f : ArcRestOpacity;
 	PulseLeft = FMath::Max(0.f, PulseLeft - Dt);
@@ -1251,6 +1257,7 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 	// Objective line: the text in caps, the wave's enemies left as the counter; expanded for 3 s when the text changes.
 	// Upper-cased and split only when the source text or wave changes (review m8), not every frame.
 	const FTDWaveInfo Wave = Data->GetWaveInfo();
+	FrameWave = Wave;
 	const FString RawObjective = Data->GetObjectiveText().ToString();
 	const bool bWaveShown = Wave.WaveNumber > 0 && (Wave.bWaveActive || Wave.bInBreather);
 	if (RawObjective != LastObjective || Wave.WaveNumber != LastWaveNumber)
@@ -1303,6 +1310,21 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 			View.Counter.Reset();
 		}
 	}
+	// One count, once: the generator pips and the escape clock carry the number, so the objective line's own trailing
+	// "n / 4" (generators) or "· 54" (escape seconds) is cut. Only when the text ends in a digit (no work otherwise).
+	if ((View.GeneratorsTotal > 0 || View.bEscapeFlight) && View.Objective.Len() > 0 && FChar::IsDigit(View.Objective[View.Objective.Len() - 1]))
+	{
+		int32 End = View.Objective.Len();
+		auto Skip = [&](TFunctionRef<bool(TCHAR)> Is) { while (End > 0 && Is(View.Objective[End - 1])) { --End; } };
+		Skip([](TCHAR C) { return FChar::IsDigit(C); });
+		Skip([](TCHAR C) { return C == TEXT(' ') || C == TEXT('/') || C == TEXT('·') || C == TEXT(':'); });
+		if (View.GeneratorsTotal > 0)
+		{
+			Skip([](TCHAR C) { return FChar::IsDigit(C); });
+			Skip([](TCHAR C) { return C == TEXT(' '); });
+		}
+		View.Objective.LeftInline(End, EAllowShrinking::No);
+	}
 	// The wave line only while a wave is on or about to start (review m11).
 	View.ObjectiveDetail = !bWaveShown ? FString()
 		: Wave.WaveCount > 0 ? FString::Printf(TEXT("WAVE %d OF %d"), Wave.WaveNumber, Wave.WaveCount)
@@ -1320,11 +1342,398 @@ void UTDFlightHUDWidget::LayoutChips()
 {
 	float X = SafeX;
 	const float Y = 1080.f - SafeY - ChipHeight;
+	if (View.bSquadPanel)
+	{
+		// #160: cards in the fixed order 1-2-3, bottom-aligned on the safe frame; the flown one is larger (eased on a switch).
+		const float K = View.PanelK, Bottom = 1080.f - SafeY;
+		for (FChip& Chip : View.Chips)
+		{
+			FSquadCard& Card = View.Cards[static_cast<int32>(Chip.Ship)];
+			const float G = FMath::InterpEaseOut(0.f, 1.f, Card.Grow, 2.f);
+			Card.Size = FVector2D(FMath::Lerp(WingCardW, FlownCardW, G), FMath::Lerp(WingCardH, FlownCardH, G)) * K;
+			Card.Pos = FVector2D(X, Bottom - Card.Size.Y);
+			Chip.Pos = Card.Pos;
+			Chip.Size = Card.Size;
+			X += Card.Size.X + CardGap * K;
+		}
+		return;
+	}
 	for (FChip& Chip : View.Chips)
 	{
 		Chip.Pos = FVector2D(X, Y);
 		Chip.Size = FVector2D(Chip.bActive ? ActiveChipWidth : WingChipWidth, ChipHeight);
 		X += Chip.Size.X + ChipGap;
+	}
+}
+
+// ------------------------------------------------------------------------------------------ squad panel (#160)
+
+static TAutoConsoleVariable<int32> CVarTDUIMinimalHUD(
+	TEXT("TD.UI.MinimalHUD"), 0, TEXT("1 = the ENG-36 flight HUD (small squad chips, no squad panel or radar); 0 = the #160 HUD."));
+
+static TAutoConsoleVariable<float> CVarTDUISubtitleScale(
+	TEXT("TD.UI.SubtitleScale"), 0.f, TEXT("Dev, captures: force the flight subtitle scale (0.8 Small, 1 Medium, 1.3 Large); 0 = the player's setting."));
+
+void UTDFlightHUDWidget::UpdateSquadCards(float Dt)
+{
+	View.bSquadPanel = CVarTDUIMinimalHUD.GetValueOnGameThread() == 0;
+	const float ForcedScale = CVarTDUISubtitleScale.GetValueOnGameThread();
+	View.SubtitleScale = FMath::Clamp(ForcedScale > 0.f ? ForcedScale : UTDSettingsSubsystem::GetSubtitleScale(this), .5f, 2.f);
+	// Below 900 px of height the design frame would shrink the text under its 1080 size: the cards go to 85% and the
+	// text keeps its 1080 pixels instead (Lead's rule for #160).
+	// Real pixels per design unit: the design frame's fit times UMG's DPI scale (T7's 720p frame: the DPI scale, not the
+	// frame, was shrinking the cards and their text to 67%).
+	const float Scale = FMath::Min(ViewportSize.X / 1920.f, ViewportSize.Y / 1080.f) * PixelScale;
+	const bool bSmall = Scale > 0.f && Scale < 900.f / 1080.f;
+	View.PanelK = bSmall ? .85f / Scale : 1.f;
+	View.PanelFont = bSmall ? 1.f / Scale : 1.f;
+	for (int32 Index = 0; Index < 3; ++Index)
+	{
+		const FTDSquadStatus& S = HUDModel.Squad[Index];
+		FSquadCard& Card = View.Cards[Index];
+		Card.bValid = S.bValid;
+		if (!S.bValid)
+		{
+			LastCardHull[Index] = -1.f;
+			continue;
+		}
+		Card.Ship = S.Ship;
+		Card.bFlown = S.bFlown;
+		Card.bAlive = S.bAlive;
+		Card.Hull = S.Hull;
+		Card.Shield = S.Shield;
+		Card.Power01 = S.Power01;
+		Card.bPowerActive = S.bPowerActive;
+		Card.Ability = S.Ability;
+		Card.Ability01 = S.Ability01;
+		Card.bAbilityActive = S.bAbilityActive;
+		Card.bTrouble = S.bTrouble && !S.bFlown;
+		Card.UnderFire01 = S.UnderFire01;
+		// Switch: the old flown card shrinks and the new one grows over 120 ms (the first sample snaps).
+		const float Target = S.bFlown ? 1.f : 0.f;
+		Card.Grow = LastCardHull[Index] < 0.f ? Target : FMath::FInterpConstantTo(Card.Grow, Target, Dt, 1.f / CardGrowSeconds);
+		// Damage ghost: the hull just lost stays white and drains over 400 ms.
+		if (LastCardHull[Index] >= 0.f && S.Hull < LastCardHull[Index] - 1e-3f)
+		{
+			Card.GhostHull = FMath::Max(Card.GhostHull, LastCardHull[Index]);
+			GhostRate[Index] = (Card.GhostHull - S.Hull) / .4f;
+		}
+		Card.GhostHull = FMath::Max(S.Hull, Card.GhostHull - GhostRate[Index] * Dt);
+		LastCardHull[Index] = S.Hull;
+		// Texts only when their number changes.
+		const int32 HullN = FMath::RoundToInt(S.Hull * 100.f), ShieldN = FMath::RoundToInt(S.Shield * 100.f);
+		if (HullN != CardHullShown[Index]) { CardHullShown[Index] = HullN; Card.HullText = FString::FromInt(HullN); }
+		if (ShieldN != CardShieldShown[Index]) { CardShieldShown[Index] = ShieldN; Card.ShieldText = FString::FromInt(ShieldN); }
+		const int32 DownN = S.bAlive ? -1 : FMath::CeilToInt(S.RespawnSeconds);
+		if (DownN != CardDownShown[Index])
+		{
+			CardDownShown[Index] = DownN;
+			Card.DownText = DownN < 0 ? FString() : FString::Printf(TEXT("DOWN  ·  BACK IN 0:%02d"), FMath::Min(DownN, 59));
+		}
+		const int32 AbSec = S.Ability01 >= .999f ? 0 : FMath::Max(1, FMath::CeilToInt(S.AbilitySeconds));
+		if (AbSec != CardAbilitySecShown[Index])
+		{
+			CardAbilitySecShown[Index] = AbSec;
+			Card.AbilitySecondsText = AbSec > 0 ? FString::FromInt(AbSec) : FString();
+		}
+		// Status flags. Cloak is Rift's ability, the dome Bastion's hold-Q, the afterburner Lancer's ram.
+		Card.bCloaked = S.bAlive && S.bAbilityActive && S.Ability == ETDAbilityId::Cloak;
+		Card.bDomeUp = S.bAlive && S.bPower2Active;
+		Card.bAfterburn = S.bAlive && S.Ship == ETDShipId::Lancer && S.bPowerActive;
+		Card.bOvercharge = S.bAlive && S.bFlown && S.OverchargeSeconds > 0.f;
+		const int32 OverN = Card.bOvercharge ? FMath::RoundToInt(S.OverchargeSeconds * 10.f) : -1;
+		if (OverN != CardOverShown[Index])
+		{
+			CardOverShown[Index] = OverN;
+			Card.OverchargeText = OverN < 0 ? FString() : FString::Printf(TEXT("OVERCHARGE %d.%d"), OverN / 10, OverN % 10);
+		}
+		const int32 KeyN = View.bUsingGamepad ? 0 : Index + 1;
+		if ((KeyN == 0) != Card.Key.IsEmpty() || (KeyN > 0 && Card.Key.IsEmpty()))
+		{
+			Card.Key = KeyN > 0 ? FString::FromInt(KeyN) : FString();
+		}
+	}
+	// The subtitle slot ends above the panel's flag row (Concept A: y 858..890 at 1080p).
+	View.SubtitleBottom = View.bSquadPanel ? 1080.f - SafeY - FlownCardH * View.PanelK - 28.f * View.PanelK - 8.f : SubtitleY + 64.f;
+	// A prompt, a hint card or the hyperdrive block is in the lower lane (y 830..890): the subtitle block (up to three
+	// Large lines) sits above it, never over it, the squad panel or the radar.
+	if (View.bSquadPanel && View.Lane != ELane::None)
+	{
+		View.SubtitleBottom = FMath::Min(View.SubtitleBottom, 822.f);
+	}
+}
+
+namespace TDFlightHUD
+{
+	static const TCHAR* PowerShortName(ETDShipId Ship)
+	{
+		return Ship == ETDShipId::Rift ? TEXT("PORTAL") : Ship == ETDShipId::Lancer ? TEXT("RAM") : TEXT("SWARM");
+	}
+	/** Nick's FTDHUDStyle squad colours (board R-049: the new panel uses the plugin's values, copied in FTDUIPalette). */
+	static FLinearColor PanelShip(ETDShipId Ship)
+	{
+		return Ship == ETDShipId::Rift ? FTDUIPalette::Rift() : Ship == ETDShipId::Lancer ? FTDUIPalette::Lancer() : FTDUIPalette::Bastion();
+	}
+
+	/** Ten segments with 2 px gaps: a dim track, the value, and (hull) the white ghost of what was just lost. */
+	static void SegmentBar(const FPaint& P, float X, float Y, float W, float H, float Value, float Ghost, FLinearColor C)
+	{
+		const float Gap = 2.f, SegW = (W - Gap * 9.f) / 10.f;
+		for (int32 I = 0; I < 10; ++I)
+		{
+			const float SX = X + I * (SegW + Gap);
+			const float Fill = FMath::Clamp(Value * 10.f - I, 0.f, 1.f);
+			const float GhostFill = FMath::Clamp(Ghost * 10.f - I, 0.f, 1.f);
+			P.Box(SX, Y, SegW, H, FTDUIPalette::Muted().CopyWithNewOpacity(.22f));
+			if (GhostFill > Fill)
+			{
+				P.Box(SX + SegW * Fill, Y, SegW * (GhostFill - Fill), H, FLinearColor::White.CopyWithNewOpacity(.9f));
+			}
+			if (Fill > 0.f)
+			{
+				P.Box(SX, Y, SegW * Fill, H, C);
+			}
+		}
+	}
+
+	/** Signature power: ready = a full ring in the ship colour with a soft fill; cooling = a grey track refilling clockwise. */
+	static void PowerRing(const FPaint& P, FVector2D At, float R, float Value, bool bActive, FLinearColor Ship, const FString& Glyph, int32 GlyphSize, float O)
+	{
+		const bool bReady = Value >= .999f;
+		P.Plate(At.X - R, At.Y - R, 2 * R, 2 * R, R, bReady ? Ship.CopyWithNewOpacity(.18f * O) : FTDUIPalette::Panel().CopyWithNewOpacity(.6f * O));
+		if (bReady || bActive)
+		{
+			P.Arc(At, R + 2.f, 1.f, Ship.CopyWithNewOpacity(.25f * O), 4.f); // the glow: a wider, faint stroke
+			P.Arc(At, R, 1.f, Ship.CopyWithNewOpacity(O), 2.5f);
+		}
+		else
+		{
+			P.Arc(At, R, 1.f, FTDUIPalette::Muted().CopyWithNewOpacity(.3f * O), 2.5f);
+			P.Arc(At, R, Value, Ship.CopyWithNewOpacity(O), 2.5f, -PI * .5f);
+		}
+		if (!Glyph.IsEmpty())
+		{
+			P.Words(At.X, At.Y - GlyphSize * .68f, Glyph, GlyphSize, FTDUIPalette::Ink().CopyWithNewOpacity((bReady ? 1.f : .5f) * O), "Bold", .5f, 0);
+		}
+	}
+
+	/** Unlocked ability: locked = dashed dim ring + padlock; ready = white ring with its key (or a dot); cooling = an arc. */
+	static void AbilityRing(const FPaint& P, FVector2D At, float R, bool bLocked, float Value, bool bActive, const FString& Glyph, int32 GlyphSize, float O, float Time)
+	{
+		if (bLocked)
+		{
+			for (int32 I = 0; I < 8; ++I)
+			{
+				P.ArcSpan(At, R, I * PI * .25f, PI * .14f, FTDUIPalette::Muted().CopyWithNewOpacity(.7f * O), 1.5f);
+			}
+			// Padlock: a body and a shackle.
+			const float B = R * .42f;
+			P.Box(At.X - B, At.Y - B * .2f, 2 * B, B * 1.3f, FTDUIPalette::Muted().CopyWithNewOpacity(.85f * O));
+			P.ArcSpan(At + FVector2D(0, -B * .2f), B * .65f, PI, PI, FTDUIPalette::Muted().CopyWithNewOpacity(.85f * O), 1.5f);
+			return;
+		}
+		// ACTIVE: a filled disc with a second ring pulsing outward. READY: a filled, lit disc with its key in dark ink.
+		// COOLING: an open ring refilling clockwise with the seconds inside (Glyph is then the seconds).
+		const bool bReady = Value >= .999f;
+		if (bActive)
+		{
+			const float Pulse = FMath::Fmod(Time * 2.f, 1.f);
+			P.Plate(At.X - R, At.Y - R, 2 * R, 2 * R, R, FTDUIPalette::Ink().CopyWithNewOpacity(O));
+			P.Arc(At, R + 2.f + 5.f * Pulse, 1.f, FTDUIPalette::Ink().CopyWithNewOpacity((1.f - Pulse) * O), 2.f);
+		}
+		else if (bReady)
+		{
+			P.Plate(At.X - R - 2.f, At.Y - R - 2.f, 2 * R + 4.f, 2 * R + 4.f, R + 2.f, FTDUIPalette::Ink().CopyWithNewOpacity(.25f * O)); // glow
+			P.Plate(At.X - R, At.Y - R, 2 * R, 2 * R, R, FTDUIPalette::Ink().CopyWithNewOpacity(O));
+		}
+		else
+		{
+			P.Arc(At, R, 1.f, FTDUIPalette::Muted().CopyWithNewOpacity(.35f * O), 2.f);
+			P.Arc(At, R, Value, FTDUIPalette::Ink().CopyWithNewOpacity(.9f * O), 2.f, -PI * .5f);
+		}
+		if (!Glyph.IsEmpty())
+		{
+			const FLinearColor GlyphC = (bReady || bActive) ? FTDUIPalette::PlateInk() : FTDUIPalette::Ink();
+			P.Words(At.X, At.Y - GlyphSize * .68f, Glyph, GlyphSize, GlyphC.CopyWithNewOpacity(O), (bReady || bActive) ? "Bold" : "Mono", .5f, 0);
+		}
+	}
+
+	/** One card. All sizes are the 1080p design values times K (cards) or F (text). */
+	static void SquadCard(const FPaint& P, const UTDFlightHUDWidget::FSquadCard& Card, float K, float F, float Time, const FString& PowerGlyph, const FString& AbilityGlyph)
+	{
+		const float X = Card.Pos.X, Y = Card.Pos.Y, W = Card.Size.X, H = Card.Size.Y;
+		const bool bBig = Card.Grow > .5f;
+		const FLinearColor Ship = PanelShip(Card.Ship);
+		const FLinearColor Ink = FTDUIPalette::Ink(), Muted = FTDUIPalette::Muted();
+		const float O = Card.bAlive ? 1.f : .8f;
+		auto Sz = [F](float Px) { return FMath::RoundToInt(Px * F); };
+
+		// Plate (dark red when down), the cut top-right corner, the border and the ship-colour top bar.
+		const float Cut = 14.f * K;
+		FLinearColor Plate = FTDUIPalette::Panel();
+		if (!Card.bAlive)
+		{
+			Plate = FMath::Lerp(Plate, FLinearColor(.25f, .02f, .02f, Plate.A), .6f);
+		}
+		P.Box(X, Y, W, H, Plate);
+		const float Pulse1Hz = .65f + .35f * FMath::Sin(Time * 2.f * PI);
+		const FLinearColor Border = !Card.bAlive ? T::Danger().CopyWithNewOpacity(.7f)
+			: Card.bTrouble ? T::Warning().CopyWithNewOpacity(Pulse1Hz)
+			: bBig ? Ship.CopyWithNewOpacity(.95f) : Ink.CopyWithNewOpacity(.22f);
+		P.Poly(FVector2D(X, Y), { { 0, 0 }, { W - Cut, 0 }, { W, Cut }, { W, H }, { 0, H }, { 0, 0 } }, Border, bBig || Card.bTrouble ? 1.5f : 1.f);
+		if (bBig)
+		{
+			P.Box(X, Y - 2.f, W - Cut, 7.f, Ship.CopyWithNewOpacity(.22f)); // glow
+		}
+		P.Box(X, Y, W - Cut, bBig ? 3.f : 2.f, Ship.CopyWithNewOpacity(bBig ? 1.f : .7f));
+
+		// Keycap, ship glyph, names.
+		const float Pad = (bBig ? 12.f : 10.f) * K;
+		const float Key = (bBig ? 24.f : 20.f) * K;
+		float PenX = X + Pad;
+		const float RowY = Y + Pad;
+		if (!Card.Key.IsEmpty())
+		{
+			P.Outline(PenX, RowY, Key, Key, 4.f * K, 1.2f, Ink.CopyWithNewOpacity(.7f * O));
+			P.Words(PenX + Key * .5f, RowY + Key * .5f - Sz(bBig ? 15 : 13) * .68f, Card.Key, Sz(bBig ? 15 : 13), Ink.CopyWithNewOpacity(O), "Bold", .5f, 0);
+			PenX += Key + 8.f * K;
+		}
+		const float Icon = (bBig ? 22.f : 18.f) * K;
+		const FVector2D IconC(PenX + Icon * .5f, RowY + Key * .5f);
+		P.ShipIcon(Card.Ship, IconC, Icon, (Card.bAlive ? Ship : Muted).CopyWithNewOpacity(O));
+		if (!Card.bAlive)
+		{
+			P.Line(IconC + FVector2D(-Icon, -Icon) * .5f, IconC + FVector2D(Icon, Icon) * .5f, T::Danger(), 2.f);
+			P.Line(IconC + FVector2D(-Icon, Icon) * .5f, IconC + FVector2D(Icon, -Icon) * .5f, T::Danger(), 2.f);
+		}
+		PenX += Icon + 10.f * K;
+		static const FString Pilots[3] = { PilotName(ETDShipId::Rift), PilotName(ETDShipId::Lancer), PilotName(ETDShipId::Bastion) };
+		static const FString Powers[3] = { PowerShortName(ETDShipId::Rift), PowerShortName(ETDShipId::Lancer), PowerShortName(ETDShipId::Bastion) };
+		const int32 ShipIndex = FMath::Clamp(static_cast<int32>(Card.Ship), 0, 2);
+		float NameEndX = PenX;
+		if (bBig)
+		{
+			P.Words(PenX, Y + 8.f * K, Pilots[ShipIndex], Sz(19), Ink.CopyWithNewOpacity(O), "Bold", 0.f, 80);
+			// The ship name alone (ship + role ran under the Q ring at 720p, T7's frame).
+			static const FString BigShips[3] = { ShipName(ETDShipId::Rift), ShipName(ETDShipId::Lancer), ShipName(ETDShipId::Bastion) };
+			P.Words(PenX, Y + 8.f * K + Sz(19) * 1.3f, BigShips[ShipIndex], Sz(12), Ship.CopyWithNewOpacity(.9f * O), "Bold", 0.f, 80);
+			NameEndX = PenX + Sz(19) * 3.6f;
+		}
+		else
+		{
+			// Pilot and, under it, the ship (the player switches ships: Nick's Lead, #160).
+			static const FString Ships[3] = { ShipName(ETDShipId::Rift), ShipName(ETDShipId::Lancer), ShipName(ETDShipId::Bastion) };
+			P.Words(PenX, RowY - 3.f * K, Pilots[ShipIndex], Sz(14), Ink.CopyWithNewOpacity(O), "Bold", 0.f, 80);
+			P.Words(PenX, RowY - 3.f * K + Sz(14) * 1.22f, Ships[ShipIndex], Sz(10), Ship.CopyWithNewOpacity(.9f * O), "Bold", 0.f, 80);
+			NameEndX = PenX + Sz(14) * 3.6f;
+		}
+		// Trouble badge after the name: a "!" triangle (the border pulses amber too).
+		if (Card.bTrouble)
+		{
+			const FVector2D B(NameEndX + 12.f * K, RowY + Key * .5f);
+			P.Poly(B, { { 0, -8 }, { 8, 6 }, { -8, 6 }, { 0, -8 } }, T::Warning(), 2.f, K);
+			P.Words(B.X, B.Y - Sz(11) * .55f, TEXT("!"), Sz(11), T::Warning(), "Bold", .5f, 0);
+		}
+
+		// Signature power and ability, right side.
+		if (bBig)
+		{
+			const FVector2D PowerAt(X + W - 34.f * K, Y + 28.f * K);
+			PowerRing(P, PowerAt, 16.f * K, Card.Power01, Card.bPowerActive, Ship, PowerGlyph, Sz(13), O);
+			P.Words(PowerAt.X, PowerAt.Y + 18.f * K, Powers[ShipIndex], Sz(10), Ship.CopyWithNewOpacity(O), "Bold", .5f, 60);
+			AbilityRing(P, FVector2D(X + W - 34.f * K, Y + H - 19.f * K), 12.f * K, Card.Ability == ETDAbilityId::None, Card.Ability01, Card.bAbilityActive,
+				Card.AbilitySecondsText.IsEmpty() || Card.bAbilityActive ? AbilityGlyph : Card.AbilitySecondsText, Sz(11), O, Time);
+		}
+		else
+		{
+			const FVector2D PowerAt(X + W - 50.f * K, RowY + Key * .5f);
+			if (Card.Power01 >= .999f)
+			{
+				P.Plate(PowerAt.X - 10.f * K, PowerAt.Y - 10.f * K, 20.f * K, 20.f * K, 10.f * K, Ship.CopyWithNewOpacity(.25f * O)); // glow
+				P.Plate(PowerAt.X - 8.f * K, PowerAt.Y - 8.f * K, 16.f * K, 16.f * K, 8.f * K, Ship.CopyWithNewOpacity(O));
+			}
+			else
+			{
+				P.Arc(PowerAt, 7.f * K, 1.f, Muted.CopyWithNewOpacity(.3f * O), 2.f);
+				P.Arc(PowerAt, 7.f * K, Card.Power01, Ship.CopyWithNewOpacity(O), 2.f, -PI * .5f);
+			}
+			// The ability on a wingman card: the same four shapes at 9 px radius (padlock, filled, ring + seconds, pulse).
+			AbilityRing(P, FVector2D(X + W - 20.f * K, RowY + Key * .5f), 9.f * K, Card.Ability == ETDAbilityId::None, Card.Ability01, Card.bAbilityActive,
+				Card.bAbilityActive ? AbilityGlyph : Card.AbilitySecondsText.IsEmpty() ? AbilityGlyph : Card.AbilitySecondsText, Sz(10), O, Time);
+		}
+
+		// Status flags above the card: icon + word, left to right by priority (3 on the flown card, 2 on a wingman).
+		{
+			static const FString UnderFire(TEXT("UNDER FIRE")), Cloaked(TEXT("CLOAKED")), Dome(TEXT("DOME UP")), Afterburn(TEXT("AFTERBURN"));
+			const float TagH = 20.f * K, TagY = Y - TagH - 6.f * K;
+			float TagX = X;
+			int32 Left = bBig ? 3 : 2;
+			// Icon: 0 triangle, 1 eye with a slash, 2 half circle, 3 turned square, 4 double chevron.
+			auto Flag = [&](const FString& Word, FLinearColor C, int32 IconKind, bool bFilled)
+			{
+				if (Left-- <= 0)
+				{
+					return;
+				}
+				const int32 Px = Sz(11);
+				float TextW = P.Measure(Word, P.Font("Bold", Px, 60));
+				if (TextW <= 0.f)
+				{
+					TextW = Word.Len() * Px * .72f;
+				}
+				const float TW = TextW + 30.f * K + 8.f;
+				P.Box(TagX, TagY, TW, TagH, bFilled ? FMath::Lerp(FTDUIPalette::Panel(), C, .28f).CopyWithNewOpacity(.92f) : FTDUIPalette::Panel());
+				P.Poly(FVector2D(TagX, TagY), { { 0, 0 }, { TW, 0 }, { TW, TagH }, { 0, TagH }, { 0, 0 } }, C.CopyWithNewOpacity(.9f), 1.2f);
+				const FVector2D I(TagX + 13.f * K, TagY + TagH * .5f);
+				switch (IconKind)
+				{
+				case 0: P.Poly(I, { { 0, -6 }, { 6, 5 }, { -6, 5 }, { 0, -6 } }, C, 1.6f, K); break;
+				case 1: P.ArcSpan(I, 6.f * K, PI * 1.15f, PI * .7f, C, 1.5f); P.ArcSpan(I, 6.f * K, PI * .15f, PI * .7f, C, 1.5f);
+					P.Line(I + FVector2D(-6, 6) * K, I + FVector2D(6, -6) * K, C, 1.5f); break;
+				case 2: P.ArcSpan(I + FVector2D(0, 4.f * K), 7.f * K, PI, PI, C, 1.8f); P.Line(I + FVector2D(-7, 4) * K, I + FVector2D(7, 4) * K, C, 1.5f); break;
+				case 3: P.Poly(I, { { 0, -6 }, { 6, 0 }, { 0, 6 }, { -6, 0 }, { 0, -6 } }, C, 1.6f, K); break;
+				default: P.Poly(I + FVector2D(-3.f * K, 0), { { -3, -5 }, { 2, 0 }, { -3, 5 } }, C, 1.6f, K);
+					P.Poly(I + FVector2D(3.f * K, 0), { { -3, -5 }, { 2, 0 }, { -3, 5 } }, C, 1.6f, K); break;
+				}
+				P.Words(TagX + 26.f * K, TagY + TagH * .5f - Px * .68f, Word, Px, C, "Bold", 0.f, 60);
+				TagX += TW + 6.f * K;
+			};
+			if (Card.bAlive && Card.UnderFire01 > 0.f) { Flag(UnderFire, FTDUIPalette::Hostile(), 0, true); }
+			if (Card.bCloaked) { Flag(Cloaked, FTDUIPalette::Rift(), 1, false); }
+			if (Card.bDomeUp) { Flag(Dome, FTDUIPalette::Bastion(), 2, false); }
+			if (Card.bOvercharge) { Flag(Card.OverchargeText, FLinearColor::FromSRGBColor(FColor(0xFF, 0xE7, 0xA0)), 3, false); }
+			if (Card.bAfterburn) { Flag(Afterburn, Ship, 4, false); }
+		}
+
+		// Bars with numbers, or the DOWN line.
+		if (!Card.bAlive)
+		{
+			P.Words(X + Pad, Y + H - (bBig ? 36.f : 28.f) * K, Card.DownText, Sz(bBig ? 15 : 13), T::Danger(), "Bold", 0.f, 60);
+			return;
+		}
+		static const FString Shd(TEXT("SHD")), Hul(TEXT("HUL"));
+		const float TagW = bBig ? Sz(11) * 3.2f : 0.f;
+		const float NumW = bBig ? Sz(14) * 2.3f : 0.f;
+		const float BarX = X + Pad + TagW;
+		const float BarRight = (bBig ? X + W - 60.f * K : X + W - Pad) - NumW;
+		const float BarW = FMath::Max(20.f, BarRight - BarX);
+		const float ShH = (bBig ? 6.f : 4.f) * K, HuH = (bBig ? 12.f : 10.f) * K;
+		const float HuY = Y + H - Pad - HuH, ShY = HuY - (bBig ? 12.f : 6.f) * K - ShH;
+		const FLinearColor HullC = T::Hull(Card.Hull);
+		if (bBig)
+		{
+			P.Words(X + Pad, ShY + ShH * .5f - Sz(11) * .68f, Shd, Sz(11), Muted, "Medium", 0.f, 80);
+			P.Words(X + Pad, HuY + HuH * .5f - Sz(11) * .68f, Hul, Sz(11), Muted, "Medium", 0.f, 80);
+		}
+		SegmentBar(P, BarX, ShY, BarW, ShH, Card.Shield, Card.Shield, T::Shield());
+		SegmentBar(P, BarX, HuY, BarW, HuH, Card.Hull, Card.GhostHull, HullC);
+		// Numbers on the flown card only, beside their SHD / HUL tags; wingman cards keep the two bars (thin = shield).
+		if (bBig)
+		{
+			const float NumX = BarRight + NumW;
+			P.Words(NumX, ShY + ShH * .5f - Sz(14) * .68f, Card.ShieldText, Sz(14), T::Shield(), "Mono", 1.f, 0);
+			P.Words(NumX, HuY + HuH * .5f - Sz(14) * .68f, Card.HullText, Sz(14), HullC, "Mono", 1.f, 0);
+		}
 	}
 }
 
@@ -1702,7 +2111,40 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	}
 
 	// ---- the collect toast, just above the squad strip: the pickup's word in its colour, rising a little, then fading
-	if (!View.PickupToast.IsEmpty() && View.Chips.Num() > 0)
+	if (!View.PickupToast.IsEmpty() && View.bSquadPanel)
+	{
+		// #160 step 3: a plate right of the reticle cluster: a bar and a turned square in the pickup's colour, its word
+		// (and the seconds for Overcharge); after 70% of its time it slides toward the squad panel and fades, where a timed
+		// one lands as a flag on the flown card.
+		const float A = View.PickupToast01;
+		const float Out = FMath::Clamp((A - .7f) / .3f, 0.f, 1.f);
+		const float Fade = 1.f - Out;
+		const float K = View.PanelK, F = View.PanelFont;
+		const bool bOver = View.PickupToast == TEXT("OVERCHARGE");
+		const float W = 214.f * K, H = (bOver ? 44.f : 32.f) * K;
+		const float X = C.X + 102.f - 28.f * Out, Y = C.Y - H * .5f + 28.f * Out;
+		const FLinearColor Col = View.PickupToastColor;
+		P.Box(X, Y, W, H, FTDUIPalette::Panel().CopyWithNewOpacity(.9f * Fade));
+		P.Box(X, Y, 3.f, H, Col.CopyWithNewOpacity(Fade));
+		P.Poly(FVector2D(X + 20.f * K, Y + H * .5f), { { 0, -8 }, { 8, 0 }, { 0, 8 }, { -8, 0 }, { 0, -8 } }, Col.CopyWithNewOpacity(Fade), 2.f, K);
+		const int32 Px = FMath::RoundToInt(16 * F);
+		P.Words(X + 38.f * K, Y + (bOver ? 5.f * K : H * .5f - Px * .68f), View.PickupToast, Px, Col.CopyWithNewOpacity(Fade), "Bold", 0.f, 80);
+		if (bOver)
+		{
+			static FString Detail;
+			static int32 DetailSeconds = -1;
+			const int32 Seconds = FMath::CeilToInt(View.OverchargeSeconds);
+			if (Seconds != DetailSeconds)
+			{
+				DetailSeconds = Seconds;
+				Detail = FString::Printf(TEXT("Damage up  ·  %d s"), Seconds);
+			}
+			P.Words(X + 38.f * K, Y + 5.f * K + Px * 1.25f, Detail, FMath::RoundToInt(12 * F), FTDUIPalette::Ink().CopyWithNewOpacity(.9f * Fade), "Medium", 0.f, 20);
+		}
+		Rec(TEXT("pickup_toast"), X, Y, W, H);
+		Area += W * H;
+	}
+	else if (!View.PickupToast.IsEmpty() && View.Chips.Num() > 0)
 	{
 		const float A = View.PickupToast01;
 		const float Fade = FMath::Clamp((1.f - A) / .3f, 0.f, 1.f);
@@ -1956,7 +2398,31 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	}
 
 	// ---- boost (with the dodge notch) and hyperdrive bars, under the ship
-	if (View.bShowBoost)
+	if (View.bShowBoost && View.bSquadPanel)
+	{
+		// #160 step 3: the boost meter is an arc under the reticle (r 70, the bottom 56 degrees), read where the eye is;
+		// it fills left to right, the dodge notch is a tick at its right end, "+BOOST" ticks beside it on a top-up.
+		const float ArcHalf = FMath::DegreesToRadians(28.f), R = 70.f;
+		const float ArcLeft = PI * .5f + ArcHalf;
+		P.ArcSpan(C, R, ArcLeft, -2.f * ArcHalf, T::Dim().CopyWithNewOpacity(.35f), 5.f);
+		if (View.Boost > .01f)
+		{
+			P.ArcSpan(C, R, ArcLeft, -2.f * ArcHalf * View.Boost, Accent.CopyWithNewOpacity(.95f), 5.f);
+		}
+		const float NotchA = PI * .5f - ArcHalf - .07f;
+		const FVector2D N(FMath::Cos(NotchA), FMath::Sin(NotchA));
+		P.Line(C + N * (R - 5.f), C + N * (R + 5.f), (View.bDodgeReady ? T::Neutral() : T::Dim()).CopyWithNewOpacity(View.bDodgeReady ? .95f : .4f), 2.5f);
+		Rec(TEXT("boost"), C.X - 40.f, C.Y + 56.f, 84.f, 20.f);
+		if (View.BreakBoostAge < .9f)
+		{
+			const float Fade = FMath::Clamp((.9f - View.BreakBoostAge) / .4f, 0.f, 1.f);
+			static const FString Plus(TEXT("+BOOST"));
+			P.ArcSpan(C, R, ArcLeft, -2.f * ArcHalf * View.Boost, T::Neutral().CopyWithNewOpacity(.5f * Fade), 5.f);
+			P.Words(C.X + 46.f, C.Y + 58.f, Plus, FMath::RoundToInt(12 * View.PanelFont), Accent.CopyWithNewOpacity(.9f * Fade), "Bold", 0.f, 60);
+			Rec(TEXT("break_boost"), C.X + 46.f, C.Y + 58.f, 60.f, 16.f);
+		}
+	}
+	else if (View.bShowBoost)
 	{
 		P.Bar(CenterX - 80.f, 792.f, 160.f, 6.f, View.Boost, Accent, .9f);
 		Rec(TEXT("boost"), CenterX - 80.f, 791.f, 168.f, 8.f);
@@ -2043,72 +2509,123 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		const bool bEcho = Sub.Style == ETransmissionStyle::Echo;
 		const float Flicker = bStatic ? .65f + .35f * FMath::Abs(FMath::Sin(Now * 37.f) * FMath::Cos(Now * 23.f)) : 1.f;
 		const float Jitter = bStatic ? FMath::Sin(Now * 61.f) * 2.f : 0.f;
-		// Two lines at most: split at the space nearest the middle when the line is long (78 chars fit at 22 px).
-		FString Line1 = Sub.Text, Line2;
-		const float FullW = P.Measure(Sub.Text, P.Font("Medium", 22, 10));
-		if ((FullW > SubtitleMaxWidth - 160.f) || (FullW <= 0.f && Sub.Text.Len() > 64))
+		// #155: the size follows UTDSettingsSubsystem::GetSubtitleScale (Small / Medium / Large), read every tick.
+		const float Sc = View.SubtitleScale;
+		const int32 BodyPx = FMath::RoundToInt(22.f * Sc), TagPx = FMath::RoundToInt(16.f * Sc);
+		// #154: wrapped by the measured width of each line at word breaks, up to three lines; the plate fits the text and
+		// grows upward, at most 80% of the frame wide and clear of the radar when the #160 HUD is on. The wrap is cached
+		// per line / size (no per-frame measuring of the whole text).
+		const float TagW = Who.IsEmpty() ? 0.f : FMath::Max(P.Measure(Who, P.Font("Bold", TagPx, 80)), Who.Len() * 11.5f * Sc) + 20.f;
+		const float MaxPlateW = View.bSquadPanel ? 1140.f : 1536.f;
+		const float MaxTextW = MaxPlateW - 44.f - TagW;
+		auto LineW = [&P, BodyPx, Sc](const FString& S)
 		{
-			int32 Split = INDEX_NONE;
-			for (int32 D = 0; D < Sub.Text.Len() / 2 && Split == INDEX_NONE; ++D)
+			if (S.IsEmpty()) { return 0.f; }
+			const float M = P.Measure(S, P.Font("Medium", BodyPx, 10));
+			return M > 0.f ? M + 4.f : S.Len() * 10.5f * Sc; // headless: no font measure, an estimate
+		};
+		if (SubWrapText != Sub.Text || SubWrapPx != BodyPx || !FMath::IsNearlyEqual(SubWrapMax, MaxTextW, 1.f))
+		{
+			SubWrapText = Sub.Text;
+			SubWrapPx = BodyPx;
+			SubWrapMax = MaxTextW;
+			SubWrapLines.Reset();
+			SubWrapWidth = 0.f;
+			FString Line;
+			TArray<FString> WordList;
+			Sub.Text.ParseIntoArray(WordList, TEXT(" "), true);
+			for (const FString& Word : WordList)
 			{
-				for (const int32 I : { Sub.Text.Len() / 2 + D, Sub.Text.Len() / 2 - D })
+				const FString Try = Line.IsEmpty() ? Word : Line + TEXT(" ") + Word;
+				if (!Line.IsEmpty() && SubWrapLines.Num() < 2 && LineW(Try) > MaxTextW)
 				{
-					if (Sub.Text.IsValidIndex(I) && Sub.Text[I] == TEXT(' '))
-					{
-						Split = I;
-						break;
-					}
+					SubWrapWidth = FMath::Max(SubWrapWidth, LineW(Line));
+					SubWrapLines.Add(MoveTemp(Line));
+					Line = Word;
+				}
+				else
+				{
+					Line = Try;
 				}
 			}
-			if (Split != INDEX_NONE)
+			if (!Line.IsEmpty())
 			{
-				Line1 = Sub.Text.Left(Split);
-				Line2 = Sub.Text.Mid(Split + 1);
+				SubWrapWidth = FMath::Max(SubWrapWidth, LineW(Line));
+				SubWrapLines.Add(MoveTemp(Line));
 			}
 		}
-		const float H = Line2.IsEmpty() ? 38.f : 64.f;
-		// After the tag's own width ("UNKNOWN SIGNAL" ran into the line at a fixed 120 px, live capture).
-		const float TagW = Who.IsEmpty() ? 0.f : FMath::Max(P.Measure(Who, P.Font("Bold", 16, 80)), Who.Len() * 11.5f) + 20.f;
-		// The plate fits the line (a short bark sat alone in an 880 px plate, live capture), centred, never wider than the slot.
-		auto LineW = [&P](const FString& S) { return S.IsEmpty() ? 0.f : FMath::Max(P.Measure(S, P.Font("Medium", 22, 10)), S.Len() * 10.5f); };
-		const float PlateW = FMath::Clamp(44.f + TagW + FMath::Max(LineW(Line1), LineW(Line2)), 240.f, SubtitleMaxWidth);
+		const int32 Lines = FMath::Max(1, SubWrapLines.Num());
+		const float LineH = 26.f * Sc;
+		const float H = 12.f * Sc + Lines * LineH;
+		// Above the squad panel and its flag row (#160), growing upward.
+		const float SubY = View.SubtitleBottom - H;
+		// The plate fits the text, centred, inside the safe frame (a third line that is still too long widens it to 80%).
+		const float PlateW = FMath::Clamp(44.f + TagW + SubWrapWidth, 240.f, FMath::Min(1536.f, 1920.f - 2.f * SafeX));
 		const float X = CenterX - PlateW * .5f;
-		P.Plate(X, SubtitleY, PlateW, H, 8.f, T::Plate().CopyWithNewOpacity(.6f * Fade));
-		Rec(TEXT("subtitle"), X, SubtitleY, PlateW, H);
+		P.Plate(X, SubY, PlateW, H, 8.f, T::Plate().CopyWithNewOpacity(.6f * Fade));
+		Rec(TEXT("subtitle"), X, SubY, PlateW, H);
 		Area += PlateW * H;
 		if (bStatic)
 		{
 			for (int32 S = 0; S < 3; ++S) // scan lines drifting through the plate
 			{
-				const float Y = SubtitleY + FMath::Fmod(Now * 40.f + S * 21.f, H);
+				const float Y = SubY + FMath::Fmod(Now * 40.f + S * 21.f, H);
 				P.Box(X + 6.f, Y, PlateW - 12.f, 1.f, T::Neutral().CopyWithNewOpacity(.08f * Fade));
 			}
 		}
 		const float TextX = X + 22.f + Jitter;
 		if (!Who.IsEmpty())
 		{
-			P.Words(TextX, SubtitleY + 8.f, Who, 16, Tag.CopyWithNewOpacity(Fade * Flicker), "Bold", 0.f, 80);
+			P.Words(TextX, SubY + 8.f * Sc, Who, TagPx, Tag.CopyWithNewOpacity(Fade * Flicker), "Bold", 0.f, 80);
 		}
 		const float BodyX = TextX + TagW;
 		const FLinearColor Body = T::Neutral().CopyWithNewOpacity(Fade * Flicker);
-		if (bEcho)
+		for (int32 L = 0; L < SubWrapLines.Num(); ++L)
 		{
-			P.Words(BodyX + 4.f, SubtitleY + 9.f, Line1, 22, T::Shield().CopyWithNewOpacity(.28f * Fade), "Medium", 0.f, 10);
-		}
-		P.Words(BodyX, SubtitleY + 6.f, Line1, 22, Body, "Medium", 0.f, 10);
-		if (!Line2.IsEmpty())
-		{
+			const float LY = SubY + 6.f * Sc + L * LineH;
 			if (bEcho)
 			{
-				P.Words(BodyX + 4.f, SubtitleY + 35.f, Line2, 22, T::Shield().CopyWithNewOpacity(.28f * Fade), "Medium", 0.f, 10);
+				P.Words(BodyX + 4.f, LY + 3.f * Sc, SubWrapLines[L], BodyPx, T::Shield().CopyWithNewOpacity(.28f * Fade), "Medium", 0.f, 10);
 			}
-			P.Words(BodyX, SubtitleY + 32.f, Line2, 22, Body, "Medium", 0.f, 10);
+			P.Words(BodyX, LY, SubWrapLines[L], BodyPx, Body, "Medium", 0.f, 10);
 		}
 	}
 
 	// ---- squad strip, bottom-left of the safe frame, order 1 2 3
 	const float Pulse1Hz = .75f + .25f * FMath::Sin(Time * 2.f * PI);
-	for (const FChip& Chip : View.Chips)
+	if (View.bSquadPanel)
+	{
+		float Left = 1e9f, Top = 1e9f, Right = 0.f;
+		const FString AbilityKey = View.bUsingGamepad ? TEXT("Y") : TEXT("E");
+		for (const FChip& Chip : View.Chips)
+		{
+			const FSquadCard& Card = View.Cards[static_cast<int32>(Chip.Ship)];
+			if (Card.bValid)
+			{
+				SquadCard(P, Card, View.PanelK, View.PanelFont, Time, View.PowerGlyph, AbilityKey);
+				Rec(TEXT("chip"), Card.Pos.X, Card.Pos.Y, Card.Size.X, Card.Size.Y);
+				Area += Card.Size.X * Card.Size.Y;
+				Left = FMath::Min(Left, float(Card.Pos.X));
+				Top = FMath::Min(Top, float(Card.Pos.Y));
+				Right = FMath::Max(Right, float(Card.Pos.X + Card.Size.X));
+			}
+		}
+		if (Right > Left)
+		{
+			Rec(TEXT("squad"), Left, Top, Right - Left, 1080.f - SafeY - Top);
+		}
+	}
+#if __has_include("TriadDrift/UI/TDHUDRadarPaint.h")
+	// T6's radar (#160): bottom-right, from the HUD model.
+	if (View.bSquadPanel)
+	{
+		TDPaintHUDRadar(P, HUDModel, FTDHUDRadarInput{ View.Flown, View.bHasFlown, FrameWave, Time });
+		const FBox2D RadarBox = TDHUDRadarBox(P);
+		Rec(TEXT("radar"), RadarBox.Min.X, RadarBox.Min.Y, RadarBox.GetSize().X, RadarBox.GetSize().Y);
+	}
+#endif
+	static const TArray<FChip> NoChips;
+	for (const FChip& Chip : View.bSquadPanel ? NoChips : View.Chips)
 	{
 		const FLinearColor Ship = T::Ship(Chip.Ship);
 		const float O = Chip.bActive ? 1.f : .72f;
@@ -2258,9 +2775,12 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			}
 			P.Poly(PC, { { 0, -7 }, { 6, -3.5f }, { 6, 3.5f }, { 0, 7 }, { -6, 3.5f }, { -6, -3.5f }, { 0, -7 } }, Col.CopyWithNewOpacity(bDown ? 1.f : .7f), 2.f);
 		}
-		const FString Label = View.GeneratorFlash01 > 0.f ? FString(TEXT("GENERATOR DOWN"))
-			: FString::Printf(TEXT("%d / %d"), View.GeneratorsDown, View.GeneratorsTotal);
-		P.Words(PX + RowW + 14.f, PY - 1.f, Label, 13, (View.GeneratorFlash01 > 0.f ? T::Warning() : T::Neutral()).CopyWithNewOpacity(.9f), "Bold", 0.f, 80);
+		// The pips are the count (the objective line's own "n / 4" is stripped in Sample): only the flash has words.
+		if (View.GeneratorFlash01 > 0.f)
+		{
+			static const FString Down(TEXT("GENERATOR DOWN"));
+			P.Words(PX + RowW + 14.f, PY - 1.f, Down, 13, T::Warning().CopyWithNewOpacity(.9f), "Bold", 0.f, 80);
+		}
 		Rec(TEXT("generators"), PX, PY, RowW + 120.f, Pip);
 		Area += (RowW + 120.f) * Pip;
 	}

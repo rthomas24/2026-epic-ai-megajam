@@ -1,0 +1,2182 @@
+[
+  {
+    "stem": "VO_G2_Wren_Geology_01",
+    "line_id": "G2_Wren_Geology",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "They brought all this just to dig?",
+    "sent_text": "They brought all this just to dig?",
+    "transcript": "They brought all this just to dig.",
+    "words": [
+      {
+        "word": "They",
+        "start": 0.0,
+        "end": 0.14
+      },
+      {
+        "word": "brought",
+        "start": 0.14,
+        "end": 0.34
+      },
+      {
+        "word": "all",
+        "start": 0.34,
+        "end": 0.58
+      },
+      {
+        "word": "this",
+        "start": 0.58,
+        "end": 0.8
+      },
+      {
+        "word": "just",
+        "start": 0.8,
+        "end": 1.06
+      },
+      {
+        "word": "to",
+        "start": 1.06,
+        "end": 1.18
+      },
+      {
+        "word": "dig.",
+        "start": 1.18,
+        "end": 1.42
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 179,
+    "f0_p10_hz": 153,
+    "f0_p90_hz": 207,
+    "dry_duration_s": 1.616,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.8,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "f87c7344df8f2add6bb0c4ec96a9d23e58d1db5a479bfc4c26880f66487d2f62",
+      "radio": "3e74c93f2461afba7e940dcdafea7d3604749304fdf945623ab57f962b55e65f",
+      "raw": "6570e6a9eebdb5a45f555357325660da4c7d54eb4ccd1ff5bf55da048d657566"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G2_Wren_Geology_02",
+    "line_id": "G2_Wren_Geology",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "They brought all this just to dig?",
+    "sent_text": "They brought all this just to dig?",
+    "transcript": "they brought all this just to dig.",
+    "words": [
+      {
+        "word": "they",
+        "start": 0.0,
+        "end": 0.26
+      },
+      {
+        "word": "brought",
+        "start": 0.26,
+        "end": 0.48
+      },
+      {
+        "word": "all",
+        "start": 0.48,
+        "end": 0.74
+      },
+      {
+        "word": "this",
+        "start": 0.74,
+        "end": 0.96
+      },
+      {
+        "word": "just",
+        "start": 0.96,
+        "end": 1.18
+      },
+      {
+        "word": "to",
+        "start": 1.18,
+        "end": 1.4
+      },
+      {
+        "word": "dig.",
+        "start": 1.4,
+        "end": 1.62
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 185,
+    "f0_p10_hz": 99,
+    "f0_p90_hz": 220,
+    "dry_duration_s": 1.848,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.3,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "9252dc4d5212bbbbc4dfc54a11cc7a38ffce61ec51a9d15f19036df0d1109d1f",
+      "radio": "95347b089d85a2c374302df4ddf3689d28928492f27a5a59eb00628356f610f6",
+      "raw": "a797a87113ab71a675c88e657d51272d55fd4a905cc4f3cbd50dd96e88a92bda"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G2_Wren_Geology_03",
+    "line_id": "G2_Wren_Geology",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "They brought all this just to dig?",
+    "sent_text": "They brought all this just to dig?",
+    "transcript": "They brought all this just to dig.",
+    "words": [
+      {
+        "word": "They",
+        "start": 0.0,
+        "end": 0.22
+      },
+      {
+        "word": "brought",
+        "start": 0.22,
+        "end": 0.42
+      },
+      {
+        "word": "all",
+        "start": 0.42,
+        "end": 0.66
+      },
+      {
+        "word": "this",
+        "start": 0.66,
+        "end": 0.86
+      },
+      {
+        "word": "just",
+        "start": 0.86,
+        "end": 1.08
+      },
+      {
+        "word": "to",
+        "start": 1.08,
+        "end": 1.28
+      },
+      {
+        "word": "dig.",
+        "start": 1.28,
+        "end": 1.52
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 183,
+    "f0_p10_hz": 81,
+    "f0_p90_hz": 198,
+    "dry_duration_s": 1.756,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.4,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "7d1b98c7886483b24b97b88f0dae65f4c1417cfa8da27e7f183fa2dfc362b73f",
+      "radio": "8295695be7328208a4187a65298f14b7effe98b87f8e58ff5638f8cb2ea3f8bb",
+      "raw": "f5744f40d41ce0af16152989aae05ed6572b0e90c61477ec88a039f342b4b0fb"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C3_Wren_Survey_01",
+    "line_id": "C3_Wren_Survey",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry",
+    "expected": "Kato. Tell me what we've got.",
+    "sent_text": "Kato. Tell me what we've got.",
+    "transcript": "Kato, tell me what we've got.",
+    "words": [
+      {
+        "word": "Kato,",
+        "start": 0.0,
+        "end": 0.48
+      },
+      {
+        "word": "tell",
+        "start": 0.96,
+        "end": 1.22
+      },
+      {
+        "word": "me",
+        "start": 1.22,
+        "end": 1.34
+      },
+      {
+        "word": "what",
+        "start": 1.34,
+        "end": 1.5
+      },
+      {
+        "word": "we've",
+        "start": 1.5,
+        "end": 1.7
+      },
+      {
+        "word": "got.",
+        "start": 1.7,
+        "end": 1.92
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 195,
+    "f0_p10_hz": 83,
+    "f0_p90_hz": 250,
+    "dry_duration_s": 2.046,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.6,
+    "mid_pause_ms": 438.0,
+    "sha256": {
+      "dry": "762fd286485646f831163fac0dc4eb69f334b5e3ed9bc4bf9cf2e568f50e0d39",
+      "raw": "ee82cb1ba2daf1e8210b1503f83c4a5a9c27af4513d2d7856a090a3c6600c164"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C3_Wren_Survey_02",
+    "line_id": "C3_Wren_Survey",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry",
+    "expected": "Kato. Tell me what we've got.",
+    "sent_text": "Kato. Tell me what we've got.",
+    "transcript": "Kato, tell me what we've got.",
+    "words": [
+      {
+        "word": "Kato,",
+        "start": 0.0,
+        "end": 0.48
+      },
+      {
+        "word": "tell",
+        "start": 1.02,
+        "end": 1.3
+      },
+      {
+        "word": "me",
+        "start": 1.3,
+        "end": 1.42
+      },
+      {
+        "word": "what",
+        "start": 1.42,
+        "end": 1.58
+      },
+      {
+        "word": "we've",
+        "start": 1.58,
+        "end": 1.78
+      },
+      {
+        "word": "got.",
+        "start": 1.78,
+        "end": 1.96
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 211,
+    "f0_p10_hz": 173,
+    "f0_p90_hz": 278,
+    "dry_duration_s": 2.13,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.1,
+    "mid_pause_ms": 598.0,
+    "sha256": {
+      "dry": "42909b58158ae93c8625c46f32c91d1e856328c4084e021acb55dac362475d60",
+      "raw": "d2134e21a34572e8086894be22ad71b56cb9913b8ed25f6867050d179be02e83"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C3_Wren_Survey_03",
+    "line_id": "C3_Wren_Survey",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry",
+    "expected": "Kato. Tell me what we've got.",
+    "sent_text": "Kato. [pause] Tell me what we've got.",
+    "transcript": "Tell Tell me what we've got.",
+    "words": [
+      {
+        "word": "Tell",
+        "start": 0.0,
+        "end": 2.14
+      },
+      {
+        "word": "Tell",
+        "start": 2.14,
+        "end": 2.14
+      },
+      {
+        "word": "me",
+        "start": 2.14,
+        "end": 2.28
+      },
+      {
+        "word": "what",
+        "start": 2.28,
+        "end": 2.42
+      },
+      {
+        "word": "we've",
+        "start": 2.42,
+        "end": 2.64
+      },
+      {
+        "word": "got.",
+        "start": 2.64,
+        "end": 2.8
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 173,
+    "f0_p10_hz": 81,
+    "f0_p90_hz": 202,
+    "dry_duration_s": 2.962,
+    "dry_loudness_lufs": -19.75,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 1434.0,
+    "sha256": {
+      "dry": "0035dff3d6c7345768c149a2d598e448518a57dd9ba920783bea3724905ad076",
+      "raw": "19433ea66f5cef3d20cd42cbc17dba87df57c0a322e0dc28192f65bfee66ba5b"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C3_Wren_NotThePlanet_01",
+    "line_id": "C3_Wren_NotThePlanet",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry",
+    "expected": "They're digging for that?",
+    "sent_text": "They're digging for that?",
+    "transcript": "Thank you for that.",
+    "words": [
+      {
+        "word": "Thank",
+        "start": 0.0,
+        "end": 0.26
+      },
+      {
+        "word": "you",
+        "start": 0.26,
+        "end": 0.52
+      },
+      {
+        "word": "for",
+        "start": 0.52,
+        "end": 0.72
+      },
+      {
+        "word": "that.",
+        "start": 0.72,
+        "end": 0.98
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 173,
+    "f0_p10_hz": 156,
+    "f0_p90_hz": 223,
+    "dry_duration_s": 1.178,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.6,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "526e68acd21cabc9b60042158dd2ba35c9237238885209b3675bc045c9739b93",
+      "raw": "b9a9c11a6a3d782f3190a62a0bed88c1b9e8f3812e8e0ebef15532eaf032424d"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C3_Wren_NotThePlanet_02",
+    "line_id": "C3_Wren_NotThePlanet",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry",
+    "expected": "They're digging for that?",
+    "sent_text": "They're digging for that?",
+    "transcript": "They're digging for that.",
+    "words": [
+      {
+        "word": "They're",
+        "start": 0.0,
+        "end": 0.28
+      },
+      {
+        "word": "digging",
+        "start": 0.28,
+        "end": 0.48
+      },
+      {
+        "word": "for",
+        "start": 0.48,
+        "end": 0.78
+      },
+      {
+        "word": "that.",
+        "start": 0.78,
+        "end": 1.02
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 176,
+    "f0_p10_hz": 164,
+    "f0_p90_hz": 205,
+    "dry_duration_s": 1.182,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.6,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "0547774cd586d3fb03fcbba75f2c42c8a3979cd993efd54749f82b39a71f9fa5",
+      "raw": "fbbef7675010d5469530cfd49d33000a657834a7980035b6ef744af2bcb382a5"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C3_Wren_NotThePlanet_03",
+    "line_id": "C3_Wren_NotThePlanet",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry",
+    "expected": "They're digging for that?",
+    "sent_text": "They're digging for that?",
+    "transcript": "They're digging for that.",
+    "words": [
+      {
+        "word": "They're",
+        "start": 0.0,
+        "end": 0.24
+      },
+      {
+        "word": "digging",
+        "start": 0.24,
+        "end": 0.42
+      },
+      {
+        "word": "for",
+        "start": 0.42,
+        "end": 0.7
+      },
+      {
+        "word": "that.",
+        "start": 0.7,
+        "end": 0.94
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 176,
+    "f0_p10_hz": 162,
+    "f0_p90_hz": 233,
+    "dry_duration_s": 1.116,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -4.5,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "571ff929cf659d255090380c76b51e5f80fd6bb8c572fce9f236a143a90709d0",
+      "raw": "39626ee1d967e3b7c239b03d81eb9db37113e769a4ace51c0749a383e90d0274"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C3_Wren_Answered_01",
+    "line_id": "C3_Wren_Answered",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry",
+    "expected": "That was our radio. What did you send?",
+    "sent_text": "That was our radio. What did you send?",
+    "transcript": "That was our radio. What, did you send?",
+    "words": [
+      {
+        "word": "That",
+        "start": 0.0,
+        "end": 0.22
+      },
+      {
+        "word": "was",
+        "start": 0.22,
+        "end": 0.38
+      },
+      {
+        "word": "our",
+        "start": 0.38,
+        "end": 0.54
+      },
+      {
+        "word": "radio.",
+        "start": 0.54,
+        "end": 0.94
+      },
+      {
+        "word": "What,",
+        "start": 1.48,
+        "end": 1.5
+      },
+      {
+        "word": "did",
+        "start": 1.64,
+        "end": 1.64
+      },
+      {
+        "word": "you",
+        "start": 1.64,
+        "end": 1.8
+      },
+      {
+        "word": "send?",
+        "start": 1.8,
+        "end": 2.04
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 178,
+    "f0_p10_hz": 78,
+    "f0_p90_hz": 203,
+    "dry_duration_s": 2.312,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.0,
+    "mid_pause_ms": 212.0,
+    "sha256": {
+      "dry": "7fcf9918d38507dfec0518dab8ebb1622abc15e2e739b041b43f7a3edfcf223a",
+      "raw": "d2970958adbb4fd06a6c116e4d1d973f82b65b5b80670f48737291331c43026a"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C3_Wren_Answered_02",
+    "line_id": "C3_Wren_Answered",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry",
+    "expected": "That was our radio. What did you send?",
+    "sent_text": "That was our radio. What did you send?",
+    "transcript": "That was our radio. What did you send?",
+    "words": [
+      {
+        "word": "That",
+        "start": 0.0,
+        "end": 0.22
+      },
+      {
+        "word": "was",
+        "start": 0.22,
+        "end": 0.36
+      },
+      {
+        "word": "our",
+        "start": 0.36,
+        "end": 0.5
+      },
+      {
+        "word": "radio.",
+        "start": 0.5,
+        "end": 0.86
+      },
+      {
+        "word": "What",
+        "start": 1.52,
+        "end": 1.6
+      },
+      {
+        "word": "did",
+        "start": 1.6,
+        "end": 1.74
+      },
+      {
+        "word": "you",
+        "start": 1.74,
+        "end": 1.86
+      },
+      {
+        "word": "send?",
+        "start": 1.86,
+        "end": 2.06
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 184,
+    "f0_p10_hz": 87,
+    "f0_p90_hz": 210,
+    "dry_duration_s": 2.374,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.0,
+    "mid_pause_ms": 472.0,
+    "sha256": {
+      "dry": "8ad3c25f0a0ea930b83ee0dcf3be85237969285a958fe3ffabf403ed51835f95",
+      "raw": "053c30882a4cd19ec2de5056f2f5d6a86a4807e1a61d00b8025ab8bd980445e1"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C3_Wren_Answered_03",
+    "line_id": "C3_Wren_Answered",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry",
+    "expected": "That was our radio. What did you send?",
+    "sent_text": "That was our radio. [pause] What did you send?",
+    "transcript": "That was our radio. What did you send?",
+    "words": [
+      {
+        "word": "That",
+        "start": 0.0,
+        "end": 0.2
+      },
+      {
+        "word": "was",
+        "start": 0.2,
+        "end": 0.32
+      },
+      {
+        "word": "our",
+        "start": 0.32,
+        "end": 0.48
+      },
+      {
+        "word": "radio.",
+        "start": 0.48,
+        "end": 0.84
+      },
+      {
+        "word": "What",
+        "start": 1.98,
+        "end": 2.22
+      },
+      {
+        "word": "did",
+        "start": 2.22,
+        "end": 2.34
+      },
+      {
+        "word": "you",
+        "start": 2.34,
+        "end": 2.48
+      },
+      {
+        "word": "send?",
+        "start": 2.48,
+        "end": 2.7
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 179,
+    "f0_p10_hz": 79,
+    "f0_p90_hz": 234,
+    "dry_duration_s": 2.964,
+    "dry_loudness_lufs": -19.18,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 1056.0,
+    "sha256": {
+      "dry": "4b8e67782637c070a7bc07c1edf9c1dc67d56db93b920441aa963d37ebff8a4e",
+      "raw": "404eac35030a6b89f6217875f00a357e79ad84f3e7e863f848c35dea1eddd7d0"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C3_Wren_HoldThem_01",
+    "line_id": "C3_Wren_HoldThem",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Keep copying. We'll cover the station.",
+    "sent_text": "Keep copying. We'll cover the station.",
+    "transcript": "We'll cover the station.",
+    "words": [
+      {
+        "word": "We'll",
+        "start": 0.6,
+        "end": 1.16
+      },
+      {
+        "word": "cover",
+        "start": 1.16,
+        "end": 1.42
+      },
+      {
+        "word": "the",
+        "start": 1.42,
+        "end": 1.62
+      },
+      {
+        "word": "station.",
+        "start": 1.62,
+        "end": 1.96
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 183,
+    "f0_p10_hz": 82,
+    "f0_p90_hz": 225,
+    "dry_duration_s": 2.316,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.7,
+    "mid_pause_ms": 156.0,
+    "sha256": {
+      "dry": "2a3a35018b36a6651a8225966a645ddae1d1c58cce4ffd0d1387429d0c0843d1",
+      "radio": "f0bd12046d7a564d89290c00f38c403184c3ee23fd733049b61f5b98ec34dc22",
+      "raw": "32016a467ded041fe91f5004481506a55d84f6da27ef80fab8573459b73e86b0"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C3_Wren_HoldThem_02",
+    "line_id": "C3_Wren_HoldThem",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Keep copying. We'll cover the station.",
+    "sent_text": "Keep copying. We'll cover the station.",
+    "transcript": "Keep copying, we'll cover the station.",
+    "words": [
+      {
+        "word": "Keep",
+        "start": 0.0,
+        "end": 0.24
+      },
+      {
+        "word": "copying,",
+        "start": 0.24,
+        "end": 0.7
+      },
+      {
+        "word": "we'll",
+        "start": 0.96,
+        "end": 1.2
+      },
+      {
+        "word": "cover",
+        "start": 1.2,
+        "end": 1.38
+      },
+      {
+        "word": "the",
+        "start": 1.38,
+        "end": 1.6
+      },
+      {
+        "word": "station.",
+        "start": 1.6,
+        "end": 1.9
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 175,
+    "f0_p10_hz": 80,
+    "f0_p90_hz": 205,
+    "dry_duration_s": 2.24,
+    "dry_loudness_lufs": -19.8,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 182.0,
+    "sha256": {
+      "dry": "08893f00a8d9dd68c130383f51b1409c0f324a18728555b7f9fca93608da9607",
+      "radio": "ff16622bf35f860ea0e41a0d71556e2dda12275fe376661ac3da1826f4e2348c",
+      "raw": "d3311cb23276d1f237fca1c50117deb7bb89b0b4ff66eed987fb154e243041b1"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C3_Wren_HoldThem_03",
+    "line_id": "C3_Wren_HoldThem",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Keep copying. We'll cover the station.",
+    "sent_text": "Keep copying. [pause] We'll cover the station.",
+    "transcript": "Keep copying. We'll cover the station.",
+    "words": [
+      {
+        "word": "Keep",
+        "start": 0.0,
+        "end": 0.24
+      },
+      {
+        "word": "copying.",
+        "start": 0.24,
+        "end": 0.78
+      },
+      {
+        "word": "We'll",
+        "start": 3.06,
+        "end": 3.64
+      },
+      {
+        "word": "cover",
+        "start": 3.64,
+        "end": 3.82
+      },
+      {
+        "word": "the",
+        "start": 3.82,
+        "end": 4.04
+      },
+      {
+        "word": "station.",
+        "start": 4.04,
+        "end": 4.32
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 176,
+    "f0_p10_hz": 83,
+    "f0_p90_hz": 236,
+    "dry_duration_s": 4.69,
+    "dry_loudness_lufs": -19.4,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 2594.0,
+    "sha256": {
+      "dry": "d64a6cd054b89161ba779feeefd90fc30a1d50f5d9e129377a4946c179731aff",
+      "radio": "287dd182b5891fd3a74e6a73d93143da3848ddb591606fe52df24f5dbb1f4dfa",
+      "raw": "a809c77c79ebc5e2f91fc2fd42ac2fc43a5e83bc6705114b456cfa59f9e0af2b"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G3_Wren_LeftApproach_01",
+    "line_id": "G3_Wren_LeftApproach",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Left side! They're going for the console.",
+    "sent_text": "Left side! They're going for the console.",
+    "transcript": "They're going to the console.",
+    "words": [
+      {
+        "word": "They're",
+        "start": 0.6,
+        "end": 1.2
+      },
+      {
+        "word": "going",
+        "start": 1.2,
+        "end": 1.34
+      },
+      {
+        "word": "to",
+        "start": 1.34,
+        "end": 1.66
+      },
+      {
+        "word": "the",
+        "start": 1.66,
+        "end": 1.68
+      },
+      {
+        "word": "console.",
+        "start": 1.68,
+        "end": 2.08
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 199,
+    "f0_p10_hz": 89,
+    "f0_p90_hz": 240,
+    "dry_duration_s": 2.39,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.2,
+    "mid_pause_ms": 366.0,
+    "sha256": {
+      "dry": "a31acdf7f36dab511f84868340dabbfb6f4a2ff78ae1b6d9e47d11a00d14296e",
+      "radio": "058a2bec64caaf32e72c816f13b5942f796104c97ca059f0a9b5ef33f2a65371",
+      "raw": "9d36d8718eadee8bed4d03e220783be14b5c82a0c54a9be34632941cb0994861"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G3_Wren_LeftApproach_02",
+    "line_id": "G3_Wren_LeftApproach",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Left side! They're going for the console.",
+    "sent_text": "Left side! They're going for the console.",
+    "transcript": "Left side, they're going for the console.",
+    "words": [
+      {
+        "word": "Left",
+        "start": 0.0,
+        "end": 0.22
+      },
+      {
+        "word": "side,",
+        "start": 0.22,
+        "end": 0.6
+      },
+      {
+        "word": "they're",
+        "start": 1.08,
+        "end": 1.2
+      },
+      {
+        "word": "going",
+        "start": 1.2,
+        "end": 1.36
+      },
+      {
+        "word": "for",
+        "start": 1.36,
+        "end": 1.56
+      },
+      {
+        "word": "the",
+        "start": 1.56,
+        "end": 1.66
+      },
+      {
+        "word": "console.",
+        "start": 1.66,
+        "end": 2.02
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 197,
+    "f0_p10_hz": 164,
+    "f0_p90_hz": 236,
+    "dry_duration_s": 2.356,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.4,
+    "mid_pause_ms": 328.0,
+    "sha256": {
+      "dry": "3672f7670c8914ebf7675dfa95b19a94c23966553be1806f0e0fee566e4399aa",
+      "radio": "1d5c4e4be66c8d49a2f643242445b584b8d21db514255b506542005a72fb3208",
+      "raw": "b17b4963d44ad6df5ac3e5b1174b94827ef60d587f39056e33ae36625eea4ce0"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G3_Wren_LeftApproach_03",
+    "line_id": "G3_Wren_LeftApproach",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Left side! They're going for the console.",
+    "sent_text": "Left side! [pause] They're going for the console.",
+    "transcript": "the left side. They're going for the console.",
+    "words": [
+      {
+        "word": "the",
+        "start": 0.0,
+        "end": 0.22
+      },
+      {
+        "word": "left",
+        "start": 0.22,
+        "end": 0.24
+      },
+      {
+        "word": "side.",
+        "start": 0.24,
+        "end": 0.66
+      },
+      {
+        "word": "They're",
+        "start": 1.58,
+        "end": 1.8
+      },
+      {
+        "word": "going",
+        "start": 1.8,
+        "end": 1.96
+      },
+      {
+        "word": "for",
+        "start": 1.96,
+        "end": 2.16
+      },
+      {
+        "word": "the",
+        "start": 2.16,
+        "end": 2.28
+      },
+      {
+        "word": "console.",
+        "start": 2.28,
+        "end": 2.58
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 181,
+    "f0_p10_hz": 81,
+    "f0_p90_hz": 236,
+    "dry_duration_s": 2.914,
+    "dry_loudness_lufs": -20.52,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 910.0,
+    "sha256": {
+      "dry": "b385f7390c59ff46fb58dffaadcdac801a9bf68c220694353b1a827a73103304",
+      "radio": "b423832dd30f7acd352edd97bd0bddae760f3f05c053f30c71df26a36d6a1601",
+      "raw": "026faa68ab0ec3382a94f9c5b545f7e6b13b0db781d4c1487bf53efab7c0edad"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C4_Wren_Badly_01",
+    "line_id": "C4_Wren_Badly",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry",
+    "expected": "They wanted that device and its records. We need to know why.",
+    "sent_text": "They wanted that device and its records. We need to know why.",
+    "transcript": "They wanted that device in its records. We need to know why",
+    "words": [
+      {
+        "word": "They",
+        "start": 0.0,
+        "end": 0.16
+      },
+      {
+        "word": "wanted",
+        "start": 0.16,
+        "end": 0.4
+      },
+      {
+        "word": "that",
+        "start": 0.4,
+        "end": 0.66
+      },
+      {
+        "word": "device",
+        "start": 0.66,
+        "end": 1.0
+      },
+      {
+        "word": "in",
+        "start": 1.0,
+        "end": 1.26
+      },
+      {
+        "word": "its",
+        "start": 1.26,
+        "end": 1.38
+      },
+      {
+        "word": "records.",
+        "start": 1.38,
+        "end": 1.74
+      },
+      {
+        "word": "We",
+        "start": 2.26,
+        "end": 2.3
+      },
+      {
+        "word": "need",
+        "start": 2.3,
+        "end": 2.44
+      },
+      {
+        "word": "to",
+        "start": 2.44,
+        "end": 2.58
+      },
+      {
+        "word": "know",
+        "start": 2.58,
+        "end": 2.72
+      },
+      {
+        "word": "why",
+        "start": 2.72,
+        "end": 2.98
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 175,
+    "f0_p10_hz": 78,
+    "f0_p90_hz": 198,
+    "dry_duration_s": 3.214,
+    "dry_loudness_lufs": -19.4,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 192.0,
+    "sha256": {
+      "dry": "cf6fb3cd0ee90ba32e296d05aae2252c563eb4aa9726c0fe4c5c262db10d5600",
+      "raw": "2c1401197a711ecabaf7b88fa8ba39058c00f1dd40092ee9e32f92759cd2c62b"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C4_Wren_Badly_02",
+    "line_id": "C4_Wren_Badly",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry",
+    "expected": "They wanted that device and its records. We need to know why.",
+    "sent_text": "They wanted that device and its records. We need to know why.",
+    "transcript": "They wanted that in its records. We need to know why.",
+    "words": [
+      {
+        "word": "They",
+        "start": 0.0,
+        "end": 0.2
+      },
+      {
+        "word": "wanted",
+        "start": 0.2,
+        "end": 0.44
+      },
+      {
+        "word": "that",
+        "start": 0.44,
+        "end": 0.64
+      },
+      {
+        "word": "in",
+        "start": 0.64,
+        "end": 1.04
+      },
+      {
+        "word": "its",
+        "start": 1.04,
+        "end": 1.4
+      },
+      {
+        "word": "records.",
+        "start": 1.4,
+        "end": 1.66
+      },
+      {
+        "word": "We",
+        "start": 2.02,
+        "end": 2.16
+      },
+      {
+        "word": "need",
+        "start": 2.16,
+        "end": 2.3
+      },
+      {
+        "word": "to",
+        "start": 2.3,
+        "end": 2.44
+      },
+      {
+        "word": "know",
+        "start": 2.44,
+        "end": 2.58
+      },
+      {
+        "word": "why.",
+        "start": 2.58,
+        "end": 2.84
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 177,
+    "f0_p10_hz": 83,
+    "f0_p90_hz": 215,
+    "dry_duration_s": 3.054,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.6,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "af5a75901bf983f41a192725b6fea463edebd9b0e104b57a86b010f21fc1d6a4",
+      "raw": "f7b7a8c613b1733bc4d9dfdfc221814a11a92e7377eea582148ed42e6590a773"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C4_Wren_Badly_03",
+    "line_id": "C4_Wren_Badly",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry",
+    "expected": "They wanted that device and its records. We need to know why.",
+    "sent_text": "They wanted that device and its records. [pause] We need to know why.",
+    "transcript": "They wanted that device and its records. We need to know why.",
+    "words": [
+      {
+        "word": "They",
+        "start": 0.0,
+        "end": 0.2
+      },
+      {
+        "word": "wanted",
+        "start": 0.2,
+        "end": 0.42
+      },
+      {
+        "word": "that",
+        "start": 0.42,
+        "end": 0.66
+      },
+      {
+        "word": "device",
+        "start": 0.66,
+        "end": 1.02
+      },
+      {
+        "word": "and",
+        "start": 1.02,
+        "end": 1.26
+      },
+      {
+        "word": "its",
+        "start": 1.26,
+        "end": 1.4
+      },
+      {
+        "word": "records.",
+        "start": 1.4,
+        "end": 1.78
+      },
+      {
+        "word": "We",
+        "start": 2.74,
+        "end": 2.86
+      },
+      {
+        "word": "need",
+        "start": 2.86,
+        "end": 3.04
+      },
+      {
+        "word": "to",
+        "start": 3.04,
+        "end": 3.2
+      },
+      {
+        "word": "know",
+        "start": 3.2,
+        "end": 3.36
+      },
+      {
+        "word": "why.",
+        "start": 3.36,
+        "end": 3.64
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 185,
+    "f0_p10_hz": 155,
+    "f0_p90_hz": 232,
+    "dry_duration_s": 3.87,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.2,
+    "mid_pause_ms": 708.0,
+    "sha256": {
+      "dry": "c0a8c509b2235baa152013f21097b45b98cb12ae7a6bf16f60a197d919168f43",
+      "raw": "a72ccdb89183ad7708b71f557ae3da284d940fbbb5140d00e6ad902ffc309cf3"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G4_Wren_StartThere_01",
+    "line_id": "G4_Wren_StartThere",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Then we follow them down.",
+    "sent_text": "Then we follow them down.",
+    "transcript": "then we follow them down.",
+    "words": [
+      {
+        "word": "then",
+        "start": 0.0,
+        "end": 0.26
+      },
+      {
+        "word": "we",
+        "start": 0.26,
+        "end": 0.44
+      },
+      {
+        "word": "follow",
+        "start": 0.44,
+        "end": 0.7
+      },
+      {
+        "word": "them",
+        "start": 0.7,
+        "end": 0.96
+      },
+      {
+        "word": "down.",
+        "start": 0.96,
+        "end": 1.26
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 90,
+    "f0_p10_hz": 74,
+    "f0_p90_hz": 171,
+    "dry_duration_s": 1.534,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.6,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "66a6432c1febe267846467f54a9ad656a6f4884d934ea042a06eb9c859f441ce",
+      "radio": "274462e27a3ced915690fe872734d9a96fece29068252d8aa926c34ed7ad8368",
+      "raw": "f2b1ee8ea6e032122189a167997a850aecc63dabd3d5902851451fdd2145d6d5"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G4_Wren_StartThere_02",
+    "line_id": "G4_Wren_StartThere",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Then we follow them down.",
+    "sent_text": "Then we follow them down.",
+    "transcript": "then we follow them down.",
+    "words": [
+      {
+        "word": "then",
+        "start": 0.0,
+        "end": 0.26
+      },
+      {
+        "word": "we",
+        "start": 0.26,
+        "end": 0.42
+      },
+      {
+        "word": "follow",
+        "start": 0.42,
+        "end": 0.68
+      },
+      {
+        "word": "them",
+        "start": 0.68,
+        "end": 0.96
+      },
+      {
+        "word": "down.",
+        "start": 0.96,
+        "end": 1.24
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 171,
+    "f0_p10_hz": 77,
+    "f0_p90_hz": 202,
+    "dry_duration_s": 1.518,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.9,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "c0adc1875f05b7f2ef6c73f413a06789970ecb0c4f8bccc02322d9a2261d9a0b",
+      "radio": "969e78838f3d920e36f60991b91eeea31abe54b5db859d5a5f3941ac46a93979",
+      "raw": "a98317171fe139a92496d1258d42d4be278c885037bfa1a2606c055626a25846"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G4_Wren_StartThere_03",
+    "line_id": "G4_Wren_StartThere",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Then we follow them down.",
+    "sent_text": "Then we follow them down.",
+    "transcript": "then we follow them down.",
+    "words": [
+      {
+        "word": "then",
+        "start": 0.0,
+        "end": 0.2
+      },
+      {
+        "word": "we",
+        "start": 0.2,
+        "end": 0.36
+      },
+      {
+        "word": "follow",
+        "start": 0.36,
+        "end": 0.6
+      },
+      {
+        "word": "them",
+        "start": 0.6,
+        "end": 0.84
+      },
+      {
+        "word": "down.",
+        "start": 0.84,
+        "end": 1.12
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 158,
+    "f0_p10_hz": 76,
+    "f0_p90_hz": 174,
+    "dry_duration_s": 1.362,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.2,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "301a974fa9871246dbe7599197025528a2d44e34dcfa7824a2ef82d13f8676c1",
+      "radio": "a237b690bd926a3e6f3dfac7f05e83644592c540e088165a6d1cfa28c7260395",
+      "raw": "c78ac69ccf3a78f47a0f6b6b04d60941b27755196f6de2b43200025772e32b6e"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C5_Wren_Guarding_01",
+    "line_id": "C5_Wren_Guarding",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry",
+    "expected": "Let's get past the thing guarding it first.",
+    "sent_text": "Let's get past the thing guarding it first.",
+    "transcript": "Let's get past the thing guarding it first.",
+    "words": [
+      {
+        "word": "Let's",
+        "start": 0.0,
+        "end": 0.34
+      },
+      {
+        "word": "get",
+        "start": 0.34,
+        "end": 0.48
+      },
+      {
+        "word": "past",
+        "start": 0.48,
+        "end": 0.78
+      },
+      {
+        "word": "the",
+        "start": 0.78,
+        "end": 0.96
+      },
+      {
+        "word": "thing",
+        "start": 0.96,
+        "end": 1.16
+      },
+      {
+        "word": "guarding",
+        "start": 1.16,
+        "end": 1.46
+      },
+      {
+        "word": "it",
+        "start": 1.46,
+        "end": 1.7
+      },
+      {
+        "word": "first.",
+        "start": 1.7,
+        "end": 1.96
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 177,
+    "f0_p10_hz": 155,
+    "f0_p90_hz": 242,
+    "dry_duration_s": 2.3,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.6,
+    "mid_pause_ms": 84.0,
+    "sha256": {
+      "dry": "1839d342a24debf9de4aa2676c5639b8c1dbdacf9aacb3e0cfb377567cdb0b3e",
+      "raw": "6830a48b08b6d61a4261a1022604e5edc9415e5506972dcbdbf318ff9064d219"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C5_Wren_Guarding_02",
+    "line_id": "C5_Wren_Guarding",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry",
+    "expected": "Let's get past the thing guarding it first.",
+    "sent_text": "Let's get past the thing guarding it first.",
+    "transcript": "Let's get past the thing guarding it first.",
+    "words": [
+      {
+        "word": "Let's",
+        "start": 0.0,
+        "end": 0.34
+      },
+      {
+        "word": "get",
+        "start": 0.34,
+        "end": 0.46
+      },
+      {
+        "word": "past",
+        "start": 0.46,
+        "end": 0.78
+      },
+      {
+        "word": "the",
+        "start": 0.78,
+        "end": 0.96
+      },
+      {
+        "word": "thing",
+        "start": 0.96,
+        "end": 1.16
+      },
+      {
+        "word": "guarding",
+        "start": 1.16,
+        "end": 1.5
+      },
+      {
+        "word": "it",
+        "start": 1.5,
+        "end": 1.72
+      },
+      {
+        "word": "first.",
+        "start": 1.72,
+        "end": 1.9
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 179,
+    "f0_p10_hz": 155,
+    "f0_p90_hz": 249,
+    "dry_duration_s": 2.314,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.9,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "1495411897c502028aaf52d942f39f9b37c4f20e2382b89550d35d0c3fc780cd",
+      "raw": "632c4e2e1db3f2894765c1bd1b68a4e6bc83a874cce37503eb977d793fce371a"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C5_Wren_Guarding_03",
+    "line_id": "C5_Wren_Guarding",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry",
+    "expected": "Let's get past the thing guarding it first.",
+    "sent_text": "Let's get past the thing guarding it first.",
+    "transcript": "Let's get past the thing guarding it first.",
+    "words": [
+      {
+        "word": "Let's",
+        "start": 0.0,
+        "end": 0.34
+      },
+      {
+        "word": "get",
+        "start": 0.34,
+        "end": 0.46
+      },
+      {
+        "word": "past",
+        "start": 0.46,
+        "end": 0.78
+      },
+      {
+        "word": "the",
+        "start": 0.78,
+        "end": 0.98
+      },
+      {
+        "word": "thing",
+        "start": 0.98,
+        "end": 1.2
+      },
+      {
+        "word": "guarding",
+        "start": 1.2,
+        "end": 1.48
+      },
+      {
+        "word": "it",
+        "start": 1.48,
+        "end": 1.72
+      },
+      {
+        "word": "first.",
+        "start": 1.72,
+        "end": 2.02
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 176,
+    "f0_p10_hz": 154,
+    "f0_p90_hz": 223,
+    "dry_duration_s": 2.376,
+    "dry_loudness_lufs": -19.4,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 102.0,
+    "sha256": {
+      "dry": "0fde7223757975bcc18465932ba93c0400ef66d4b43d8be98abc7f8a3010f98a",
+      "raw": "4ede84ebe9682cbea1d9a6a591eb8a41812dd54393d1ffb5d75725048ff90f51"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C5_Wren_Route_01",
+    "line_id": "C5_Wren_Route",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry",
+    "expected": "Fine. We start with the cache.",
+    "sent_text": "Fine. We start with the cache.",
+    "transcript": "Fine, we start with the cache.",
+    "words": [
+      {
+        "word": "Fine,",
+        "start": 0.0,
+        "end": 0.36
+      },
+      {
+        "word": "we",
+        "start": 0.9,
+        "end": 1.08
+      },
+      {
+        "word": "start",
+        "start": 1.08,
+        "end": 1.32
+      },
+      {
+        "word": "with",
+        "start": 1.32,
+        "end": 1.52
+      },
+      {
+        "word": "the",
+        "start": 1.52,
+        "end": 1.66
+      },
+      {
+        "word": "cache.",
+        "start": 1.66,
+        "end": 1.94
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 167,
+    "f0_p10_hz": 77,
+    "f0_p90_hz": 203,
+    "dry_duration_s": 2.252,
+    "dry_loudness_lufs": -20.17,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 482.0,
+    "sha256": {
+      "dry": "8dacc482965b6f785d9d0efce870bc76239b2abc608acef6ba3066818c5a82ce",
+      "raw": "83c8189dbd732cf6399c9183cf8553a57534ba657a5145cb830f8f34c90f4e13"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C5_Wren_Route_02",
+    "line_id": "C5_Wren_Route",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry",
+    "expected": "Fine. We start with the cache.",
+    "sent_text": "Fine. We start with the cache.",
+    "transcript": "Fine, we start with the cash.",
+    "words": [
+      {
+        "word": "Fine,",
+        "start": 0.0,
+        "end": 0.38
+      },
+      {
+        "word": "we",
+        "start": 0.72,
+        "end": 0.86
+      },
+      {
+        "word": "start",
+        "start": 0.86,
+        "end": 1.08
+      },
+      {
+        "word": "with",
+        "start": 1.08,
+        "end": 1.26
+      },
+      {
+        "word": "the",
+        "start": 1.26,
+        "end": 1.4
+      },
+      {
+        "word": "cash.",
+        "start": 1.4,
+        "end": 1.68
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 171,
+    "f0_p10_hz": 81,
+    "f0_p90_hz": 188,
+    "dry_duration_s": 1.992,
+    "dry_loudness_lufs": -20.64,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 200.0,
+    "sha256": {
+      "dry": "afac72b56554a347fb44ccd9747bdf61245a2de252a3489d2471025092542b51",
+      "raw": "6da101e2927eea77b58cb1f93bd7de33d86042737b117da9f7f0c0ff7328c219"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C5_Wren_Route_03",
+    "line_id": "C5_Wren_Route",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry",
+    "expected": "Fine. We start with the cache.",
+    "sent_text": "Fine. [pause] We start with the cache.",
+    "transcript": "Fine, we start with the cash.",
+    "words": [
+      {
+        "word": "Fine,",
+        "start": 0.0,
+        "end": 0.42
+      },
+      {
+        "word": "we",
+        "start": 1.84,
+        "end": 1.9
+      },
+      {
+        "word": "start",
+        "start": 1.9,
+        "end": 2.14
+      },
+      {
+        "word": "with",
+        "start": 2.14,
+        "end": 2.3
+      },
+      {
+        "word": "the",
+        "start": 2.3,
+        "end": 2.42
+      },
+      {
+        "word": "cash.",
+        "start": 2.42,
+        "end": 2.7
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 167,
+    "f0_p10_hz": 79,
+    "f0_p90_hz": 182,
+    "dry_duration_s": 2.976,
+    "dry_loudness_lufs": -22.66,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 1270.0,
+    "sha256": {
+      "dry": "31de96d24c355535b73b03ed8ecf74efdabbbc4fa55c14c9630abd0eb445a819",
+      "raw": "2366bb9b856f660722ae87a01e3437f59da3a0d997bf70799b0945bbc0196a47"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G5_Wren_ClearRoute_01",
+    "line_id": "G5_Wren_ClearRoute",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Cache is behind it. Stay out of its reach.",
+    "sent_text": "Cache is behind it. Stay out of its reach.",
+    "transcript": "Cash is, behind it, stay out of its reach.",
+    "words": [
+      {
+        "word": "Cash",
+        "start": 0.0,
+        "end": 0.28
+      },
+      {
+        "word": "is,",
+        "start": 0.28,
+        "end": 0.54
+      },
+      {
+        "word": "behind",
+        "start": 0.62,
+        "end": 0.86
+      },
+      {
+        "word": "it,",
+        "start": 0.86,
+        "end": 1.16
+      },
+      {
+        "word": "stay",
+        "start": 1.48,
+        "end": 1.58
+      },
+      {
+        "word": "out",
+        "start": 1.58,
+        "end": 1.74
+      },
+      {
+        "word": "of",
+        "start": 1.74,
+        "end": 1.84
+      },
+      {
+        "word": "its",
+        "start": 1.84,
+        "end": 1.96
+      },
+      {
+        "word": "reach.",
+        "start": 1.96,
+        "end": 2.22
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 182,
+    "f0_p10_hz": 80,
+    "f0_p90_hz": 226,
+    "dry_duration_s": 2.552,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.6,
+    "mid_pause_ms": 246.0,
+    "sha256": {
+      "dry": "23d38f666f6bca958cc855927a701d66ae76d6152840e02f97cfebc0cc924982",
+      "radio": "b6f3ded9658155bed75ec4aa26c7c91578fda7b970ac7aedd4e2446d0311fe3f",
+      "raw": "5030f385db2a82d0161a61ad6c65d41ab2f6be0988fa1e49a08066afd6ba6ecf"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G5_Wren_ClearRoute_02",
+    "line_id": "G5_Wren_ClearRoute",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Cache is behind it. Stay out of its reach.",
+    "sent_text": "Cache is behind it. Stay out of its reach.",
+    "transcript": "Cash is behind it.",
+    "words": [
+      {
+        "word": "Cash",
+        "start": 0.0,
+        "end": 0.28
+      },
+      {
+        "word": "is",
+        "start": 0.28,
+        "end": 0.52
+      },
+      {
+        "word": "behind",
+        "start": 0.52,
+        "end": 0.84
+      },
+      {
+        "word": "it.",
+        "start": 0.84,
+        "end": 1.22
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 169,
+    "f0_p10_hz": 78,
+    "f0_p90_hz": 196,
+    "dry_duration_s": 2.788,
+    "dry_loudness_lufs": -20.57,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 436.0,
+    "sha256": {
+      "dry": "613df73b4307226a0b532084a46296707e3bf0879d81c838b63b7b2eee0d1764",
+      "radio": "88f5184f86f6c6d5310744abc88ff809b9eb0ed15dc480b8b773569224501cfd",
+      "raw": "423dd087131f013d45ee8e18f94aa2d14f384b9c044af47d705052a148c1c049"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G5_Wren_ClearRoute_03",
+    "line_id": "G5_Wren_ClearRoute",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Cache is behind it. Stay out of its reach.",
+    "sent_text": "Cache is behind it. [pause] Stay out of its reach.",
+    "transcript": "Cash is Cash is is is",
+    "words": [
+      {
+        "word": "Cash",
+        "start": 0.0,
+        "end": 0.28
+      },
+      {
+        "word": "is",
+        "start": 0.28,
+        "end": 0.54
+      },
+      {
+        "word": "Cash",
+        "start": 0.54,
+        "end": 1.12
+      },
+      {
+        "word": "is",
+        "start": 1.12,
+        "end": 2.6
+      },
+      {
+        "word": "is",
+        "start": 2.6,
+        "end": 2.62
+      },
+      {
+        "word": "is",
+        "start": 2.62,
+        "end": 2.64
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 167,
+    "f0_p10_hz": 80,
+    "f0_p90_hz": 197,
+    "dry_duration_s": 3.312,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 992.0,
+    "sha256": {
+      "dry": "465a2fb1032fbdb58e8bd3c4b9ad4ea52146641d52e10479667a77805fb991c9",
+      "radio": "94fc77fb8b4b8564f2d88aedd945d78ff8a1e7d624eb5d31ef81cf3307e03220",
+      "raw": "7f7350dfe7d88839be487c7431632d520e53bae6b5afadbba07359f5d10912a4"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G5_Wren_BackToShips_01",
+    "line_id": "G5_Wren_BackToShips",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "We've got what we came for. Back to the ships.",
+    "sent_text": "We've got what we came for. Back to the ships.",
+    "transcript": "We came for. R. R. a I. the.",
+    "words": [
+      {
+        "word": "We",
+        "start": 0.0,
+        "end": 0.62
+      },
+      {
+        "word": "came",
+        "start": 0.62,
+        "end": 0.9
+      },
+      {
+        "word": "for.",
+        "start": 0.9,
+        "end": 1.26
+      },
+      {
+        "word": "R.",
+        "start": 1.64,
+        "end": 1.82
+      },
+      {
+        "word": "R.",
+        "start": 1.9,
+        "end": 1.92
+      },
+      {
+        "word": "a",
+        "start": 1.92,
+        "end": 1.92
+      },
+      {
+        "word": "I.",
+        "start": 1.92,
+        "end": 1.92
+      },
+      {
+        "word": "the.",
+        "start": 1.94,
+        "end": 1.94
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 172,
+    "f0_p10_hz": 78,
+    "f0_p90_hz": 187,
+    "dry_duration_s": 2.708,
+    "dry_loudness_lufs": -19.81,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 336.0,
+    "sha256": {
+      "dry": "3d92cdfc4b7f975e258f9a305c246230d315bc5e0ef126891a92027393813f4a",
+      "radio": "63a72df8237cf95b9f420e7ee9856c337d6243f8d7aac28e04ae55489e65e997",
+      "raw": "45a7e6d98ef4816c3be8486ea77d677ce6ff6e53428a75572fc1700790311091"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G5_Wren_BackToShips_02",
+    "line_id": "G5_Wren_BackToShips",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "We've got what we came for. Back to the ships.",
+    "sent_text": "We've got what we came for. Back to the ships.",
+    "transcript": "we came for,. Back to the ships.",
+    "words": [
+      {
+        "word": "we",
+        "start": 0.0,
+        "end": 0.64
+      },
+      {
+        "word": "came",
+        "start": 0.64,
+        "end": 0.94
+      },
+      {
+        "word": "for,.",
+        "start": 0.94,
+        "end": 1.3
+      },
+      {
+        "word": "Back",
+        "start": 2.02,
+        "end": 2.04
+      },
+      {
+        "word": "to",
+        "start": 2.04,
+        "end": 2.22
+      },
+      {
+        "word": "the",
+        "start": 2.22,
+        "end": 2.34
+      },
+      {
+        "word": "ships.",
+        "start": 2.34,
+        "end": 2.52
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 178,
+    "f0_p10_hz": 77,
+    "f0_p90_hz": 213,
+    "dry_duration_s": 2.9,
+    "dry_loudness_lufs": -20.08,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 496.0,
+    "sha256": {
+      "dry": "7144e59a102eeddb14cf1f59581e4ca25ea4496c726e873ce4213cf1f04002f5",
+      "radio": "15f580684e74918b12a987cf4540d97e5b0934743ae104c3c4220c8b9d42183e",
+      "raw": "6a2f878cc490814a21123e73fd1e9618a6f5d6383de4364a02a1b84f8ff31583"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G5_Wren_BackToShips_03",
+    "line_id": "G5_Wren_BackToShips",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "We've got what we came for. Back to the ships.",
+    "sent_text": "We've got what we came for. [pause] Back to the ships.",
+    "transcript": "-",
+    "words": [
+      {
+        "word": "-",
+        "start": 0.0,
+        "end": 0.98
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 172,
+    "f0_p10_hz": 77,
+    "f0_p90_hz": 194,
+    "dry_duration_s": 3.058,
+    "dry_loudness_lufs": -19.3,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 852.0,
+    "sha256": {
+      "dry": "dc8ffc6c8f7bb557bf5f179efaf4251789a70aa77ee704f5c4d38e881d903e57",
+      "radio": "590e397586af98af271cfcf004365a5363661d695fb95eddfa6b2c0387cd4e9b",
+      "raw": "14aa40a2dba5646d262c21d3eb7846d0abbd7fb6687a75dffe6ffe5415161471"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  }
+]

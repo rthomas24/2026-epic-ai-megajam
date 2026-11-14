@@ -56,6 +56,51 @@ FTransform ATDPlanetCourse::GetInteriorStart() const
 	return (Hangar ? *Hangar : FTransform(FVector(-600.f, 0.f, 100.f))) * GetActorTransform();
 }
 
+AActor* ATDPlanetCourse::RouteThroughDoors(const FVector& Pilot, AActor* Target) const
+{
+	if (!Target || !IsInterior())
+	{
+		return Target;
+	}
+	const FTransform& Xf = GetActorTransform();
+	const float PX = Xf.InverseTransformPosition(Pilot).X;
+	const float TX = Xf.InverseTransformPosition(Target->GetActorLocation()).X;
+	AActor* Best = nullptr;
+	float BestX = 0.f;
+	for (const TWeakObjectPtr<AActor>& W : InteriorDoorways)
+	{
+		AActor* D = W.Get();
+		if (!D) { continue; }
+		const float DX = Xf.InverseTransformPosition(D->GetActorLocation()).X;
+		// A door ahead of the pilot (more than 1.5 m) and before the target, either way along the rooms.
+		const bool bForward = TX > PX && DX > PX + 150.f && DX < TX;
+		const bool bBack = TX < PX && DX < PX - 150.f && DX > TX;
+		if ((bForward || bBack) && (!Best || FMath::Abs(DX - PX) < FMath::Abs(BestX - PX)))
+		{
+			Best = D;
+			BestX = DX;
+		}
+	}
+	if (!Best)
+	{
+		return Target;
+	}
+	// Close to the door but off its centre line (T7: wedged at (10318, -246) coming from the final record console):
+	// first the approach point on the centre line on this side, then the door.
+	const int32 Index = InteriorDoorways.IndexOfByKey(Best);
+	const float PY = Xf.InverseTransformPosition(Pilot).Y;
+	const float DY = Xf.InverseTransformPosition(Best->GetActorLocation()).Y;
+	if (DoorApproaches.IsValidIndex(Index) && FMath::Abs(PX - BestX) < 600.f && FMath::Abs(PY - DY) > 100.f)
+	{
+		AActor* Approach = (TX > PX ? DoorApproaches[Index].Key : DoorApproaches[Index].Value).Get();
+		if (Approach && FVector::Dist2D(Pilot, Approach->GetActorLocation()) > 80.f)
+		{
+			return Approach;
+		}
+	}
+	return Best;
+}
+
 FTransform ATDPlanetCourse::GetInteriorRetakeSpot(FName SceneId) const
 {
 	if (const ATDObjective* Obj = SceneId.IsNone() ? nullptr : FindObjective(SceneId))
@@ -179,6 +224,8 @@ void ATDPlanetCourse::BuildInterior()
 		ATDDoor* D = SpawnProp<ATDDoor>(FVector(X, 0.f, 0.f));
 		if (D)
 		{
+			InteriorDoorways.Add(D);
+			DoorApproaches.Add({ Marker(FVector(X - 250.f, 0.f, 0.f)), Marker(FVector(X + 250.f, 0.f, 0.f)) });
 			D->OpenHeight = 400.f;
 			D->bRecognisesPilot = bRecognise;
 			D->DoorMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Door"))
