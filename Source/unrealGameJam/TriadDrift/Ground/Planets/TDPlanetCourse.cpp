@@ -953,7 +953,19 @@ void ATDPlanetCourse::HandleObjectiveCompleted(ATDObjective* Objective)
 		HandleInteriorObjectiveCompleted(Objective);
 		return;
 	}
-	// The relay wakes: a pulse ring grows over its deck (the reward screen is Nick's).
+	// The relay wakes: the kit relay's power (its Relay component's slot 0: RelayPower 0.15 -> 1), and a pulse ring over its deck
+	if (Objective && Objective->ObjectiveId == TEXT("Obj_Relay") && RelayWake)
+	{
+		TInlineComponentArray<UMeshComponent*> Meshes(RelayWake.Get());
+		for (UMeshComponent* M : Meshes)
+		{
+			if (M && M->GetName().Contains(TEXT("Relay")))
+			{
+				if (UMaterialInstanceDynamic* MID = M->CreateDynamicMaterialInstance(0)) { MID->SetScalarParameterValue(TEXT("RelayPower"), 1.f); }
+			}
+		}
+	}
+	// (pulse ring) (the reward screen is Nick's).
 	if (Objective && Objective->ObjectiveId == TEXT("Obj_Relay"))
 	{
 		for (int32 i = 0; i < 3; ++i)
@@ -1116,7 +1128,29 @@ void ATDPlanetCourse::BuildVerdance()
 	Trailheads.Last().After = Wreck; // the fixed order: the relay waits for the device
 	Route({ FVector(900.f, -900.f, 0.f), RelayHead, FVector(5200.f, -5000.f, 0.f), RelaySite + FVector(-1900.f, 0.f, 0.f) }, Magenta);
 
-	const float DeckTop = 40.f;
+	// The structures builder's BP_Relay built to the brief (eng/struct 8ce5c3fb, Relay_Site.manifest.json): a 2800 x 2800
+	// deck at 50, ramps W (2) / N / S, five 110 cm covers, the relay on a 2.5 m plinth (X 200..1400, Y -800..800) with a
+	// 16 m mast, the console at (-1000, 0, 50) with the pilot at (-890, 0, 50) facing 180. The earlier 1600 deck
+	// (22f47909) doesn't fit the defence: only a BP at least 26 m across is used, else the placeholder below.
+	AActor* RelayArt = nullptr;
+	if (UClass* RelayClass = LoadClass<AActor>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Relay/BP_Relay.BP_Relay_C"), nullptr, LOAD_Quiet | LOAD_NoWarn))
+	{
+		FActorSpawnParameters RelayParams;
+		RelayParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		RelayArt = GetWorld()->SpawnActor<AActor>(RelayClass, FTransform(GetActorRotation(), W(RelaySite)), RelayParams);
+		FVector O = FVector::ZeroVector, E = FVector::ZeroVector;
+		if (RelayArt) { RelayArt->GetActorBounds(true, O, E); }
+		if (RelayArt && FMath::Min(E.X, E.Y) < 1300.f)
+		{
+			UE_LOG(LogTriadDrift, Log, TEXT("Verdance: BP_Relay is %.0f x %.0f cm, not the 28 m defence deck yet; the placeholder stands in."), E.X * 2.f, E.Y * 2.f);
+			RelayArt->Destroy();
+			RelayArt = nullptr;
+		}
+		if (RelayArt) { Spawned.Add(RelayArt); RelayWake = RelayArt; }
+	}
+	const float DeckTop = RelayArt ? 50.f : 40.f;
+	if (!RelayArt)
+	{
 	Platform(RelaySite, DeckTop, FVector(2800.f, 2800.f, DeckTop), RelayStone, 0.2f, TEXT("SM_Verd_RelayDeck"));
 	for (const FVector& R : { FVector(-1550.f, 0.f, 0.f), FVector(0.f, 1550.f, 0.f), FVector(0.f, -1550.f, 0.f) }) // ramps on the west, north and south sides
 	{
@@ -1132,9 +1166,10 @@ void ATDPlanetCourse::BuildVerdance()
 	// The relay: a tall stone spire at the east side with a glowing core (collides; not a perch).
 	Block(EShape::Cylinder, RelaySite + FVector(1150.f, 0.f, DeckTop + 900.f), FVector(220.f, 220.f, 1800.f), RelayStone, 0.6f, FRotator::ZeroRotator, true, TEXT("SM_Verd_RelaySpire"));
 	Block(EShape::Cylinder, RelaySite + FVector(1150.f, 0.f, DeckTop + 1400.f), FVector(90.f, 90.f, 1800.f), RelayStone, 2.f, FRotator::ZeroRotator, false);
+	}
 
-	// The dormant drone (Cinematic 03 wakes it, T3): on the deck by the spire, in view from the console (about 20 m).
-	DormantDrone = Block(EShape::Sphere, RelaySite + FVector(800.f, 700.f, DeckTop + 90.f), FVector(120.f, 120.f, 90.f), FLinearColor(0.32f, 0.36f, 0.4f), 0.f,
+	// The dormant drone (Cinematic 03 wakes it, T3): on the deck north of the plinth, in view from the console.
+	DormantDrone = Block(EShape::Sphere, RelaySite + FVector(700.f, 1100.f, DeckTop + 90.f), FVector(120.f, 120.f, 90.f), FLinearColor(0.32f, 0.36f, 0.4f), 0.f,
 		FRotator(0.f, -135.f, 0.f), false, TEXT("SM_Verd_Station_DormantDrone"));
 
 	ClearSite(RelaySite, 2400.f); // the deck's corners plus a margin; the 29 m keep-out below keeps the open ground
@@ -1148,15 +1183,25 @@ void ATDPlanetCourse::BuildVerdance()
 	// The relay console: 4 m in from the west edge, facing the pad; the tap connects the device (Cinematic 03, T3's hook,
 	// fires on the transfer's start).
 	const FVector ConsoleAt = RelaySite + FVector(-1000.f, 0.f, 0.f);
-	ATDInteractableActor* RelayConsole = SpawnProp<ATDInteractableActor>(ConsoleAt + FVector(0.f, 0.f, DeckTop + 65.f), FRotator(0.f, 180.f, 0.f));
+	ATDInteractableActor* RelayConsole = RelayArt
+		? SpawnProp<ATDInteractableActor>(ConsoleAt + OutpostConsoleCentre + FVector(360.f, 0.f, DeckTop), FRotator(0.f, 180.f, 0.f)) // the kit console's box, as in the outposts
+		: SpawnProp<ATDInteractableActor>(ConsoleAt + FVector(0.f, 0.f, DeckTop + 65.f), FRotator(0.f, 180.f, 0.f));
 	RelayConsole->Prompt = LOCTEXT("RelayConsole", "Connect the device");
 	RelayConsole->HoldTime = 0.f;
 	RelayConsole->LinkedObjective = Relay;
 	RelayConsole->LinkedStep = 1;
 	RelayConsole->ConsoleMesh = TDPropArt::Default(TEXT("SM_Verd_RelayConsole"));
 	TDCourseImpl::FinishProp(RelayConsole);
-	RelayConsole->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f));
-	UTDStatics::TintPlaceholder(RelayConsole->Mesh, Magenta, 1.5f);
+	if (RelayArt)
+	{
+		RelayConsole->SetActorScale3D(OutpostConsoleScale);
+		RelayConsole->Mesh->SetHiddenInGame(true); // the kit console is what the player sees; this is its interact box
+	}
+	else
+	{
+		RelayConsole->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f));
+		UTDStatics::TintPlaceholder(RelayConsole->Mesh, Magenta, 1.5f);
+	}
 
 	// Three waves dropping in at the deck's north, south and east edges (never the west, the pilot's side), the third with
 	// the Heavy (the disruption). Spawn points are relative to the volume, which sits 9 m up: they fall in.
@@ -1164,9 +1209,10 @@ void ATDPlanetCourse::BuildVerdance()
 	{
 		return Encounter(Relay, INDEX_NONE, RelaySite + FVector(0.f, 0.f, 900.f), FVector(10.f), Mix, false, 1700.f, Points);
 	};
-	ATDEncounterVolume* Wave1 = Wave({ ETDCrewType::Grunt, ETDCrewType::Grunt }, { FVector(0.f, 1800.f, 0.f), FVector(0.f, -1800.f, 0.f) });
-	ATDEncounterVolume* Wave2 = Wave({ ETDCrewType::Trooper, ETDCrewType::Drone }, { FVector(1300.f, 1300.f, 0.f), FVector(1300.f, -1300.f, 0.f) });
-	ATDEncounterVolume* Wave3 = Wave({ ETDCrewType::Heavy, ETDCrewType::Grunt }, { FVector(1800.f, 500.f, 0.f), FVector(200.f, 1800.f, 0.f) });
+	// Into the deck's edge band (13-14 m from its centre, the manifest's drop ring), off the plinth (X 200..1400, Y +-800).
+	ATDEncounterVolume* Wave1 = Wave({ ETDCrewType::Grunt, ETDCrewType::Grunt }, { FVector(-300.f, 1300.f, 0.f), FVector(-300.f, -1300.f, 0.f) });
+	ATDEncounterVolume* Wave2 = Wave({ ETDCrewType::Trooper, ETDCrewType::Drone }, { FVector(900.f, 1200.f, 0.f), FVector(900.f, -1200.f, 0.f) });
+	ATDEncounterVolume* Wave3 = Wave({ ETDCrewType::Heavy, ETDCrewType::Grunt }, { FVector(500.f, 1250.f, 0.f), FVector(-800.f, -1250.f, 0.f) });
 	FTDRetakeMercyTier TransferMercy3; TransferMercy3.FromTake = 3; TransferMercy3.DropCrew = 1;
 	Wave3->MercyTiers = { TransferMercy3 };
 	// The pause zone is centred on the console.
@@ -1184,8 +1230,8 @@ void ATDPlanetCourse::BuildVerdance()
 	TDCourseImpl::FinishProp(Ship);
 	Ship->Box->SetBoxExtent(FVector(1400.f, 1400.f, 400.f));
 
-	Checkpoint(Relay, 2, ConsoleAt + FVector(-600.f, 0.f, DeckTop), 0.f); // the transfer's start: back at the console
-	Checkpoint(Relay, 3, ConsoleAt + FVector(-600.f, 0.f, DeckTop), 0.f); // the midpoint
+	Checkpoint(Relay, 2, RelaySite + FVector(-500.f, 300.f, DeckTop), 180.f); // the transfer's start: on the deck behind the console point
+	Checkpoint(Relay, 3, RelaySite + FVector(-500.f, 300.f, DeckTop), 180.f); // the midpoint
 	FinishObjective(Relay,
 		{ LOCTEXT("R0", "FOLLOW THE SIGNAL TO THE RELAY"), LOCTEXT("R1", "CONNECT THE DEVICE TO THE RELAY · [E]"),
 		  LOCTEXT("R2", "PROTECT THE DATA TRANSFER"), LOCTEXT("R3", "PROTECT THE DATA TRANSFER"), LOCTEXT("R4", "GET BACK TO YOUR SHIP") },
