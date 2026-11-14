@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/UI/TDHUDModel.h"
 #include "TDFlightHUDWidget.generated.h"
 
 /** ENG-36 colour tokens (spec section 5). Mirrored into UTDUIStyle once that has slots for them, so Nicholas can restyle. */
@@ -171,8 +172,45 @@ public:
 	enum class ELane : uint8 { None, Prompt, HyperdriveBlocked, Hint };
 
 	/** Snapshot of what the widget draws. Updated every tick from the data source. */
+	/** Issue #160, Concept A: one squad card (flown 320x100, wingman 232x76; the order is always 1-2-3). */
+	struct FSquadCard
+	{
+		bool bValid = false;
+		ETDShipId Ship = ETDShipId::Rift;
+		bool bFlown = false;
+		bool bAlive = true;
+		float Hull = 1.f;
+		float Shield = 1.f;
+		/** The hull just lost, draining to Hull over 400 ms (the white ghost segment). */
+		float GhostHull = 1.f;
+		float Power01 = 1.f;
+		bool bPowerActive = false;
+		/** None = locked (dashed ring + padlock). */
+		ETDAbilityId Ability = ETDAbilityId::None;
+		float Ability01 = 1.f;
+		bool bAbilityActive = false;
+		bool bTrouble = false;
+		float UnderFire01 = 0.f;
+		/** 0 = wingman size, 1 = flown size (eased over 120 ms on a switch; the input is never blocked). */
+		float Grow = 0.f;
+		FVector2D Pos = FVector2D::ZeroVector;
+		FVector2D Size = FVector2D::ZeroVector;
+		/** Cached texts, rebuilt only when their number changes (no per-frame formatting). */
+		FString HullText, ShieldText, DownText, Key;
+	};
+
 	struct FView
 	{
+		/** #160: the squad panel is on (off = the Minimal HUD setting: today's chips). */
+		bool bSquadPanel = false;
+		FSquadCard Cards[3];
+		/** Cards' size factor in design units and the text factor (below 900 px: cards 85%, text at its 1080 size). */
+		float PanelK = 1.f;
+		float PanelFont = 1.f;
+		/** ENG-45 / #155: UTDSettingsSubsystem::GetSubtitleScale. */
+		float SubtitleScale = 1.f;
+		/** Bottom of the subtitle slot (above the squad panel's flag row when the panel is on). */
+		float SubtitleBottom = 964.f;
 		/** Navigation pulse: 0..1 through it (0 = none), and the corridor's ends in the design frame. */
 		float NavPulse = 0.f;
 		FVector2D NavFrom = FVector2D::ZeroVector;
@@ -321,6 +359,12 @@ public:
 		 * (ITDHUDData::GetAltitude), a hull-temperature bar (UTDDescentSubsystem::GetEntryHeat01) and "ATMOSPHERE";
 		 * "ORBIT" for OrbitCueSeconds after the climb-out's galaxy reveal. Hidden otherwise.
 		 */
+		/**
+		 * ENG-29 docking (T4's ATDDockingBay): while its tractor pulls the flown ship "TRACTOR BEAM · CONTROLS LIMITED" with
+		 * the pull 0..1; once it glides in (controls locked) "DOCKING · CONTROLS LOCKED". 0 = none, 1 = pulled, 2 = gliding.
+		 */
+		uint8 Docking = 0;
+		float TractorPull01 = 0.f;
 		bool bDescent = false;
 		float Heat01 = 0.f;
 		float Descent01 = -1.f;
@@ -481,6 +525,13 @@ public:
 	static constexpr float ActiveChipWidth = 148.f * StripScale;
 	static constexpr float WingChipWidth = 100.f * StripScale;
 	static constexpr float ChipGap = 6.f * StripScale;
+	/** #160 squad panel (Concept A), design px at 1080p. */
+	static constexpr float FlownCardW = 320.f;
+	static constexpr float FlownCardH = 100.f;
+	static constexpr float WingCardW = 232.f;
+	static constexpr float WingCardH = 76.f;
+	static constexpr float CardGap = 12.f;
+	static constexpr float CardGrowSeconds = .12f;
 	static constexpr float ObjectiveWidth = 480.f;
 	static constexpr float ObjectiveHeight = 28.f;
 	static constexpr float ObjectiveExpandedWidth = 720.f;
@@ -528,6 +579,25 @@ private:
 	int32 GeneratorsDownSeen = -1;
 	/** The ORBIT cue's clock; the descent cover seen last sample (its end on the galaxy map is the climb-out reveal). */
 	float OrbitCueLeft = 0.f;
+	FTDHUDModel HUDModel;
+	void UpdateSquadCards(float Dt);
+	float GhostRate[3] = { 0.f, 0.f, 0.f };
+	float LastCardHull[3] = { -1.f, -1.f, -1.f };
+	int32 CardHullShown[3] = { -1, -1, -1 };
+	int32 CardShieldShown[3] = { -1, -1, -1 };
+	int32 CardDownShown[3] = { -2, -2, -2 };
+	FTDWaveInfo FrameWave;
+	/** #154: the subtitle's wrap, cached per text / size / width (NativePaint is const). */
+	mutable FString SubWrapText;
+	mutable TArray<FString> SubWrapLines;
+	mutable int32 SubWrapPx = 0;
+	mutable float SubWrapMax = 0.f;
+	mutable float SubWrapWidth = 0.f;
+	/** This frame's target / objective markers from the source (read once, shared by the marks and the radar model). */
+	TArray<FTDTargetMarker> FrameMarkers;
+	TArray<AActor*> FrameObjectives;
+	TWeakObjectPtr<AActor> DockingBay;
+	float DockingScanLeft = 0.f;
 	bool bSubtitlesOn = true;
 	double OrbitRevealSeen = -1.0;
 	bool bCoverSeen = false;
@@ -549,6 +619,11 @@ public:
 	int32 ForceGeneratorsDown = 0;
 	/** Tests: >= 0 forces the descent readings (heat 0..1, glide 0..1 or -1); bForceOrbitCue starts the ORBIT cue. */
 	float ForceHeat01 = -1.f;
+	/** Issue #160: the squad panel and radar data (layout-free; drawn once the concept is picked). */
+	const FTDHUDModel& GetHUDModel() const { return HUDModel; }
+	/** Tests: >= 0 forces the docking state (0 none, 1 pulled, 2 gliding) and ForceTractorPull01 its pull. */
+	int32 ForceDocking = -1;
+	float ForceTractorPull01 = 0.f;
 	float ForceDescent01 = -2.f;
 	void StartOrbitCue() { OrbitCueLeft = OrbitCueSeconds; }
 	static constexpr float OrbitCueSeconds = 3.f;

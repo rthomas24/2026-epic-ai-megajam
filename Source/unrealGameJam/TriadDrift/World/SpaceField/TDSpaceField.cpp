@@ -1,6 +1,7 @@
 // Triad Drift - the space field, galaxy layer. Owner: Teammate 5 (T4 reviews).
 
 #include "TriadDrift/World/SpaceField/TDSpaceField.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "TriadDrift/World/SpaceField/TDSpaceFieldFX.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
@@ -339,7 +340,7 @@ float ATDSpaceField::NormFor(UStaticMesh* Mesh) const
 UHierarchicalInstancedStaticMeshComponent* ATDSpaceField::ComponentFor(UStaticMesh* Mesh, float Size)
 {
 	const int32 Tier = Size < 1000.f ? 0 : Size < 4000.f ? 1 : 2;
-	const FString Key = FString::Printf(TEXT("%s_%d"), *GetNameSafe(Mesh), Tier);
+	const FString Key = FString::Printf(TEXT("%s_%d%s"), *GetNameSafe(Mesh), Tier, bIceDriftPlacement ? TEXT("_IceDrift") : TEXT(""));
 	if (TObjectPtr<UHierarchicalInstancedStaticMeshComponent>* Found = Components.Find(Key))
 	{
 		return *Found;
@@ -354,6 +355,21 @@ UHierarchicalInstancedStaticMeshComponent* ATDSpaceField::ComponentFor(UStaticMe
 	C->SetCastShadow(Tier == 2);
 	C->bAffectDistanceFieldLighting = false;
 	C->SetCullDistances(0, CullEnd[Tier]);
+	if (bIceDriftPlacement)
+	{
+		// The Ice Drift (Lead, Nov 14: it read as the belt): the ice kit's own material, its glacial glow raised, on this
+		// region's rocks only (their own components). No new material.
+		for (int32 i = 0; i < C->GetNumMaterials(); ++i)
+		{
+			if (UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(C->GetMaterial(i), C))
+			{
+				float Glow = 1.f;
+				MID->GetScalarParameterValue(FName(TEXT("EmissiveStrength")), Glow);
+				MID->SetScalarParameterValue(FName(TEXT("EmissiveStrength")), FMath::Max(Glow, 0.5f) * IceDriftGlowScale);
+				C->SetMaterial(i, MID);
+			}
+		}
+	}
 	C->RegisterComponent();
 	Components.Add(Key, C);
 	return C;

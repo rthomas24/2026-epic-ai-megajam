@@ -97,4 +97,36 @@ bool FTDAssetCacheAnswersOnce::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWarmupHasCombatList, "TriadDrift.Perf.Warmup.CombatListRegistered", TD_TEST_FLAGS)
+bool FTDWarmupHasCombatList::RunTest(const FString& Parameters)
+{
+	// T2's combat list feeds the warm pass: registered, and it names something for the galaxy.
+	TestTrue(TEXT("Combat provider registered"), UTDWarmupSubsystem::Providers().Contains(TEXT("Combat")));
+	FTDTestWorld W;
+	TArray<FSoftObjectPath> Paths;
+	if (const UTDWarmupSubsystem::FProvider* P = UTDWarmupSubsystem::Providers().Find(TEXT("Combat")))
+	{
+		(*P)(*W.GetWorld(), Paths);
+	}
+	AddInfo(FString::Printf(TEXT("combat list: %d paths for a test world"), Paths.Num()));
+	TestTrue(TEXT("the list names assets"), Paths.Num() > 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWarmupPerMap, "TriadDrift.Perf.Warmup.PerMapLists", TD_TEST_FLAGS)
+bool FTDWarmupPerMap::RunTest(const FString& Parameters)
+{
+	// #89: the galaxy warms no one on foot; the planets and the interior warm no fleet; shared folders everywhere.
+	const FString C = TEXT("/Game/TriadDrift/Gameplay/Characters");
+	TestFalse(TEXT("galaxy: no pilot anims"), UTDWarmupSubsystem::IsWantedForMap(C + TEXT("/Pilot/Anims"), TEXT("L_Galaxy")));
+	TestFalse(TEXT("galaxy: no crew"), UTDWarmupSubsystem::IsWantedForMap(C + TEXT("/Crew"), TEXT("L_Galaxy")));
+	TestTrue(TEXT("galaxy: the fleet"), UTDWarmupSubsystem::IsWantedForMap(C + TEXT("/NullFleet"), TEXT("L_Galaxy")));
+	TestTrue(TEXT("galaxy: shared FX"), UTDWarmupSubsystem::IsWantedForMap(C + TEXT("/FX"), TEXT("L_Galaxy")));
+	TestFalse(TEXT("planet: no fleet"), UTDWarmupSubsystem::IsWantedForMap(C + TEXT("/NullFleet"), TEXT("L_Planet_Verdance")));
+	TestFalse(TEXT("interior: no Dominion hull"), UTDWarmupSubsystem::IsWantedForMap(C + TEXT("/Dominion"), TEXT("L_Dominion_Interior")));
+	TestTrue(TEXT("planet: the crew"), UTDWarmupSubsystem::IsWantedForMap(C + TEXT("/Crew/Anims"), TEXT("L_Planet_Cinder")));
+	TestTrue(TEXT("presentation everywhere"), UTDWarmupSubsystem::IsWantedForMap(TEXT("/Game/TriadDrift/Presentation"), TEXT("L_Galaxy")));
+	return true;
+}
+
 #endif

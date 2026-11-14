@@ -204,6 +204,14 @@ public:
 		TFunction<FTransform(float Alpha01)> CameraFromShipLocal);
 	static void EndAtmosphereShot(const UObject* WorldContext, bool bCut = true);
 	static bool IsAtmosphereShotActive(const UObject* WorldContext);
+
+	/**
+	 * Another system's own camera cut (T4's Dominion breakup camera): hold the money shot's thin letterbox bars while
+	 * any key is held; they ease in and out as a money shot's do. No slow motion, no card, no camera. Every Hold needs
+	 * its Release (the holds also end with the world). Safe with no director (does nothing).
+	 */
+	static void HoldShotLetterbox(const UObject* WorldContext, FName Key);
+	static void ReleaseShotLetterbox(const UObject* WorldContext, FName Key);
 	class ACameraActor* GetAtmosphereCamera() const { return AtmosphereCamera; }
 
 	/** True while the camera is away from the player and the flown ship is held safe (a23). */
@@ -257,6 +265,8 @@ public:
 
 	/** Tests: use this class instead of DA_UI_Style.DirectorWidgetClass (null = the style's). */
 	TSubclassOf<UUserWidget> DirectorWidgetClassOverride;
+	/** Review only (TD.Director.Widget): swap the card renderer now; null goes back to the style's (or the fallback). */
+	void SetDirectorWidgetForReview(TSubclassOf<UUserWidget> Class);
 
 	/** The fallback cut / CUT! / slate presentation (C-03 #1, #3) and its state for tests. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Director")

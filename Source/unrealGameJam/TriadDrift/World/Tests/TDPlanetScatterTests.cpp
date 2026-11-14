@@ -6,6 +6,7 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/World/TDPlanetScatter.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/World/TDTerrainField.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
@@ -138,6 +139,45 @@ bool FTDScatterCanopyCover::RunTest(const FString&)
 		Crowns.Num(), Share * 100.f, Land, ScarCovered, Scar));
 	TestTrue(*FString::Printf(TEXT("canopy covers 30-50 %% of the vegetated lowland (%.0f %%)"), Share * 100.f), Share > 0.3f && Share < 0.5f);
 	TestTrue(TEXT("the wreck scar is open ground"), Scar > 0 && ScarCovered * 10 <= Scar);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDScatterCourseGround, "TriadDrift.World.Scatter.CourseGroundDetailSparseOnTheRoutesAndNeverColliding", TD_TEST_FLAGS)
+bool FTDScatterCourseGround::RunTest(const FString&)
+{
+	// s20: ground detail inside the course: present, sparse on the walked routes (trodden), no collision.
+	for (const ETDDestination P : { ETDDestination::Verdance, ETDDestination::Cinder })
+	{
+		const FTDTerrainField F(FTDTerrainStyle::ForPlanet(P));
+		FTDScatterPlan Plan = FTDScatterPlan::ForPlanet(P);
+		FTDCourseKeepOut Route;
+		Route.Kind = TEXT("Route");
+		Route.HalfWidth = 700.f;
+		Route.Points = { FVector(0.f, 0.f, 0.f), FVector(9000.f, 6000.f, 0.f) };
+		Plan.KeepOuts.Add(Route);
+		FTDScatterResult A;
+		Plan.Generate(F, A);
+		const FTDTerrainStyle& S = F.GetStyle();
+		int32 Inside = 0, OnRoute = 0, Beside = 0, Blocking = 0;
+		for (int32 k = 0; k < Plan.Kinds.Num(); ++k)
+		{
+			for (const FTransform& X : A.Near[k])
+			{
+				const FVector L = X.GetLocation();
+				if (FMath::Abs(L.X - S.BasinCentre.X) > S.BasinHalfExtent.X || FMath::Abs(L.Y - S.BasinCentre.Y) > S.BasinHalfExtent.Y) { continue; }
+				++Inside;
+				Blocking += Plan.Kinds[k].bBlocksOnFoot ? 1 : 0;
+				const FVector C = FMath::ClosestPointOnSegment(FVector(L.X, L.Y, 0.f), Route.Points[0], Route.Points[1]);
+				const float D = FVector2D::Distance(FVector2D(C.X, C.Y), FVector2D(L.X, L.Y));
+				OnRoute += D < 700.f ? 1 : 0;
+				Beside += D < 1300.f ? 1 : 0;
+			}
+		}
+		AddInfo(FString::Printf(TEXT("planet %d: %d course detail instances, %d within 6 m of the route's edge"), (int32)P, Inside, Beside - OnRoute));
+		TestTrue(TEXT("the course gets ground detail"), Inside > 300);
+		TestTrue(*FString::Printf(TEXT("sparse on the route (%d of %d)"), OnRoute, Inside), OnRoute * 8 < Inside);
+		TestEqual(TEXT("nothing that blocks the pilot"), Blocking, 0);
+	}
 	return true;
 }
 

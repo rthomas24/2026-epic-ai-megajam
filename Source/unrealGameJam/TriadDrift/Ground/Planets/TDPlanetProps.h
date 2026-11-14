@@ -266,6 +266,11 @@ public:
 
 	UPROPERTY(VisibleAnywhere, Category = "Planet") TObjectPtr<UStaticMeshComponent> Mesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> CrystalMesh;
+	/** Shown at the actor's own transform (pivot on the ground, scale 1) once it breaks, instead of nothing (the
+	 *  structures builder's SM_Kit_NullConduitBroken for Cinder's gate conduits). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> BrokenMesh;
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> Broken;
+	void ShowBroken(bool bShow);
 	UPROPERTY(VisibleAnywhere, Category = "Planet") TObjectPtr<UTDHealthComponent> Health;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FLinearColor Color = FLinearColor(1.f, 0.45f, 0.1f);
@@ -325,6 +330,11 @@ class UNREALGAMEJAM_API ATDCollapseRun : public ATDPlanetProp
 public:
 	/** Art for the falling debris (fitted to each 100-220 cm rock). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> DebrisMesh;
+	/** Debris art picked at random per piece (the structures builder's AnchorDebris_A/B/C); empty = DebrisMesh. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TArray<TSoftObjectPtr<UStaticMesh>> DebrisMeshes;
+	/** The tower's sections (AnchorSection_A/B/C), each breaking off the tower in turn as it comes down. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TArray<TSoftObjectPtr<UStaticMesh>> SectionMeshes;
+	int32 GetSectionsDropped() const { return SectionsDropped; }
 
 	ATDCollapseRun();
 
@@ -346,9 +356,16 @@ protected:
 private:
 	UFUNCTION() void HandleStepStarted(ATDObjective* Objective, int32 StepIndex);
 	void DropDebris();
+	AActor* DropPiece(const FVector& WorldAt, UStaticMesh* Art, float Scale, const FVector& Velocity);
+	int32 SectionsDropped = 0;
 
 	float TimeLeft = -1.f;
 	float DebrisTimer = 0.f;
+	float StartDelayLeft = 0.f;
+public:
+	/** A beat between the step's start (the "3 / 3" line) and the clock (T7: the run felt tight). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s")) float StartDelay = 1.5f;
+private:
 	int32 LastShownSecond = -1;
 	FVector TowerHome = FVector::ZeroVector;
 	TArray<TWeakObjectPtr<AActor>> Debris;

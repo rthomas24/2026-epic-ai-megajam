@@ -194,6 +194,8 @@ private:
 	int32 ShownPlaybackSecond = -1;
 	bool bFinalRecordSequence = false;
 	UFUNCTION() void HandleConduitDown(class UTDHealthComponent* Health, const struct FTDDamageInfo& Info);
+	/** N-052: the reactor room's defenders overcome: T3's Face to Face "overcome" sequence for the boarding pilot. */
+	UFUNCTION() void HandleReactorDefendersCleared(AActor* Encounter);
 	UFUNCTION() void HandleHeartHit(class UTDHealthComponent* Health, const struct FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
 	/** DA_ReactorCore_FX (UTDReactorCoreFX): play a slot (logged by name, even when empty: tests, the effects builder). */
 	void PlayReactorFX(FName Slot, const FVector& At, USceneComponent* AttachTo = nullptr, bool bLoop = false);
@@ -233,6 +235,24 @@ public:
 	 *  magma, the far side of it instead. True when it moved the spot. */
 	bool ResolveRespawn(FTransform& InOutWhere);
 	static constexpr int32 MagmaRescueAfterDeaths = 2;
+	/** Where a CUT in the interior picks up: the scene's checkpoint, else the next room's door (a death between rooms,
+	 *  scene None: T7 came back at the hangar, 104 m from the reactor). */
+	FTransform GetInteriorRetakeSpot(FName SceneId) const;
+	/** The reactor room (N-052 / N-060): the boarder's own future self (staged, never fights), and the fight of the other
+	 *  two future pilots (or the two drones when td.Interior.Defenders is 0). */
+	class ATDFutureSelf* GetFutureSelf() const { return FutureSelf; }
+	class ATDEncounterVolume* GetReactorDefenders() const { return ReactorDefenders; }
+	UPROPERTY(Transient) TObjectPtr<class ATDFutureSelf> FutureSelf;
+	UPROPERTY(Transient) TObjectPtr<class ATDEncounterVolume> ReactorDefenders;
+	/** The interior's doorways, in order along +X: the marker leads through the next one square-on (T7, Nov 14: the
+	 *  walker wedged on the arena's far door frame heading straight for the Warden's trailhead). */
+	TArray<TWeakObjectPtr<AActor>> InteriorDoorways;
+	/** Each doorway's approach points on its centre line, 2.5 m before and after it (same order as InteriorDoorways). */
+	TArray<TPair<TWeakObjectPtr<AActor>, TWeakObjectPtr<AActor>>> DoorApproaches;
+	/** Target, or the centre of the first doorway between the pilot and it (interior, along +X). */
+	AActor* RouteThroughDoors(const FVector& Pilot, AActor* Target) const;
+	/** The course's objectives in story order (the order they were made). */
+	const TArray<TObjectPtr<ATDObjective>>& GetObjectives() const { return Objectives; }
 	/** Where a magma rescue puts the pilot, per magma volume (tests). */
 	bool GetMagmaRescue(const AActor* Magma, FTransform& Out) const;
 	/** Every DA_ReactorCore_FX slot played, in order (CoreIdle, ConduitBreak, ShieldDrop, HeartHit, CoreDestroyed,
@@ -295,6 +315,13 @@ public:
 	 *  and wave 5 cleared); this never says it is open. */
 	static bool IsFieldAnchorDisabled(const UObject* WorldContextObject);
 	UStaticMeshComponent* GetDormantDrone() const { return DormantDrone; }
+	/** Cinematic 03's drone (features.md row "drone wakes blue, three pulses"): its optic, dark until C3_Wren_Answered,
+	 *  then three blue blinks in step with T3's light and steady blue; the drone lifts off the deck as it wakes. */
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> DroneOptic;
+	FVector DroneHome = FVector::ZeroVector;
+	double DroneWakeStart = -1.0;
+	UFUNCTION() void HandleStoryLine(const struct FTDTransmissionView& Line);
+	void TickDroneWake();
 private:
 	float InteriorTime = 0.f;
 	/** Story beats on objective moments (T3's transmissions, storyline.md §5): planets and interior. */
@@ -365,8 +392,16 @@ private:
 	TWeakObjectPtr<const AActor> LastMagmaDeath;
 	int32 MagmaDeathsInRow = 0;
 	/** The reactor's four conduits and their step counter: the marker points at the nearest one still standing. */
-	TArray<TWeakObjectPtr<AActor>> ReactorConduits;
-	TWeakObjectPtr<AActor> ReactorConduitCounter;
+	/** A step whose targets are several things to break (the reactor's conduits, Cinder's gate conduits): its marker is
+	 *  the nearest one still standing, the step's own waypoint (the counter) once none is. */
+	struct FMarkerGroup
+	{
+		TWeakObjectPtr<ATDObjective> Objective;
+		int32 Step = 0;
+		TWeakObjectPtr<AActor> Counter;
+		TArray<TWeakObjectPtr<AActor>> Targets;
+	};
+	TArray<FMarkerGroup> MarkerGroups;
 	void UpdateConduitMarker();
 	/** A magma the marker routes around (chain of local points, safe way across) and its rescue spot (local, yaw). */
 	void AddMagmaCrossing(const AActor* Magma, ATDObjective* Objective, int32 Step, const TArray<FVector>& Chain, const FVector& RescueAt, float RescueYaw);

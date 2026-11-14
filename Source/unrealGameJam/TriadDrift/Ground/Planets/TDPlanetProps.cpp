@@ -597,11 +597,35 @@ void ATDShatterCrystal::BeginPlay()
 	TDPropArt::Dress(Mesh, TDPropArt::Load(CrystalMesh));
 }
 
+void ATDShatterCrystal::ShowBroken(bool bShow)
+{
+	UStaticMesh* Art = bShow && !Broken ? TDPropArt::Load(BrokenMesh) : nullptr;
+	if (Art)
+	{
+		Broken = NewObject<UStaticMeshComponent>(this, TEXT("Broken"));
+		Broken->SetStaticMesh(Art);
+		Broken->SetMobility(EComponentMobility::Movable);
+		Broken->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+		Broken->SetupAttachment(GetRootComponent());
+		Broken->SetUsingAbsoluteScale(true);
+		Broken->RegisterComponent();
+		AddInstanceComponent(Broken);
+		Broken->SetWorldLocationAndRotation(GetActorLocation(), GetActorRotation());
+		Broken->SetWorldScale3D(FVector(1.f));
+	}
+	if (Broken)
+	{
+		Broken->SetVisibility(bShow);
+		Broken->SetCollisionEnabled(bShow ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
+	}
+}
+
 void ATDShatterCrystal::HandleDeath(UTDHealthComponent*, const FTDDamageInfo&)
 {
 	bShattered = true;
 	Mesh->SetVisibility(false, true);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ShowBroken(true);
 }
 
 void ATDShatterCrystal::ApplyCompleted()
@@ -609,6 +633,7 @@ void ATDShatterCrystal::ApplyCompleted()
 	bShattered = true;
 	Mesh->SetVisibility(false, true);
 	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ShowBroken(true);
 }
 
 void ATDShatterCrystal::ResetProp()
@@ -622,6 +647,7 @@ void ATDShatterCrystal::ResetProp()
 	Health->InitMaxValues(MaxHealth, 0.f, true);
 	Mesh->SetVisibility(true, true);
 	Mesh->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	ShowBroken(false);
 }
 
 // ================================================================================================
@@ -733,6 +759,8 @@ void ATDCollapseRun::HandleStepStarted(ATDObjective* Objective, int32 StepIndex)
 		TimeLeft = Seconds;
 		DebrisTimer = 0.f;
 		LastShownSecond = -1;
+		SectionsDropped = 0;
+		StartDelayLeft = StartDelay;
 	}
 }
 
@@ -748,6 +776,11 @@ void ATDCollapseRun::Tick(float DeltaSeconds)
 		TimeLeft = -1.f; // made it (or the objective reset)
 		return;
 	}
+	if (StartDelayLeft > 0.f)
+	{
+		StartDelayLeft -= DeltaSeconds; // the "3 / 3" line first, then the clock
+		return;
+	}
 	TimeLeft -= DeltaSeconds;
 	// The tower sinks and leans as it comes down.
 	if (Tower)
@@ -755,6 +788,16 @@ void ATDCollapseRun::Tick(float DeltaSeconds)
 		const float A = 1.f - FMath::Clamp(TimeLeft / Seconds, 0.f, 1.f);
 		Tower->SetActorLocation(TowerHome + FVector(0.f, 0.f, -A * 2500.f));
 		Tower->SetActorRotation(FRotator(A * 12.f, 0.f, A * 6.f));
+		// Its sections break off in turn (the structures builder's AnchorSection_A/B/C): out and down from its top.
+		const int32 Sections = SectionMeshes.Num();
+		if (Sections > 0 && SectionsDropped < Sections && A >= float(SectionsDropped + 1) / float(Sections + 1))
+		{
+			const float Side = SectionsDropped % 2 ? 1.f : -1.f;
+			const FVector Out = FRotator(0.f, 60.f * SectionsDropped, 0.f).Vector();
+			DropPiece(TowerHome + Out * 400.f + FVector(0.f, 0.f, 2200.f - SectionsDropped * 500.f), TDPropArt::Load(SectionMeshes[SectionsDropped]), 1.f,
+				Out * 500.f + FVector(0.f, Side * 150.f, -600.f));
+			++SectionsDropped;
+		}
 	}
 	const int32 Shown = FMath::CeilToInt(FMath::Max(TimeLeft, 0.f));
 	if (Shown != LastShownSecond)
@@ -785,32 +828,40 @@ void ATDCollapseRun::Tick(float DeltaSeconds)
 void ATDCollapseRun::DropDebris()
 {
 	const FVector Local(FMath::FRandRange(-DebrisExtent.X, DebrisExtent.X), FMath::FRandRange(-DebrisExtent.Y, DebrisExtent.Y), 2500.f);
+	const TSoftObjectPtr<UStaticMesh>& Art = DebrisMeshes.Num() > 0 ? DebrisMeshes[FMath::RandRange(0, DebrisMeshes.Num() - 1)] : DebrisMesh;
+	DropPiece(GetActorTransform().TransformPosition(Local), TDPropArt::Load(Art), FMath::FRandRange(1.f, 2.2f), FVector(0.f, 0.f, -1500.f));
+}
+
+AActor* ATDCollapseRun::DropPiece(const FVector& WorldAt, UStaticMesh* Art, float Scale, const FVector& Velocity)
+{
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	AActor* Rock = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform(GetActorTransform().TransformPosition(Local)), Params);
+	AActor* Rock = GetWorld()->SpawnActor<AActor>(AActor::StaticClass(), FTransform(WorldAt), Params);
 	if (!Rock)
 	{
-		return;
+		return nullptr;
 	}
 	UStaticMeshComponent* M = NewObject<UStaticMeshComponent>(Rock, TEXT("Rock"));
 	M->SetStaticMesh(TDPlanetPropsImpl::Shape(TDPlanetPropsImpl::CubePath));
 	M->SetMobility(EComponentMobility::Movable);
-	M->SetWorldScale3D(FVector(FMath::FRandRange(1.f, 2.2f)));
+	M->SetWorldScale3D(FVector(Scale));
 	M->SetCollisionProfileName(TEXT("PhysicsActor"));
 	M->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore); // falling rocks are scenery, never a trap
 	Rock->SetRootComponent(M);
 	M->RegisterComponent();
 	M->SetSimulatePhysics(true);
-	M->SetPhysicsLinearVelocity(FVector(0.f, 0.f, -1500.f));
+	M->SetPhysicsLinearVelocity(Velocity);
 	UTDStatics::TintPlaceholder(M, FLinearColor(0.5f, 0.2f, 0.9f), 0.8f);
-	TDPropArt::Dress(M, TDPropArt::Load(DebrisMesh));
+	TDPropArt::Dress(M, Art);
 	Rock->SetLifeSpan(6.f);
 	Debris.Add(Rock);
+	return Rock;
 }
 
 void ATDCollapseRun::ResetProp()
 {
 	TimeLeft = -1.f;
+	SectionsDropped = 0;
 	if (Tower)
 	{
 		Tower->SetActorLocation(TowerHome);

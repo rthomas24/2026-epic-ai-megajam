@@ -372,6 +372,8 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 		State.Rotation = R.Quaternion();
 	}
 
+	ApplyKeepOut(DeltaTime);
+
 	const FVector Delta = State.Location - StartLocation;
 	State.Location = StartLocation;
 	bInOwnMove = true;
@@ -388,6 +390,51 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	UpdateComponentVelocity();
 
 	BroadcastStateChanges(Before);
+}
+
+void UTDShipMovementComponent::ApplyKeepOut(float DeltaTime)
+{
+	bKeepOutContact = false;
+	if (KeepOutRadius <= 0.f)
+	{
+		KeepOut01 = 0.f;
+		return;
+	}
+	const FVector Offset = State.Location - KeepOutCenter;
+	const float Dist = Offset.Size();
+	const FVector Out = Dist > KINDA_SMALL_NUMBER ? Offset / Dist : FVector::UpVector;
+	KeepOut01 = FMath::Clamp((KeepOutRadius + KeepOutBand - Dist) / KeepOutBand, 0.f, 1.f);
+	if (KeepOut01 <= 0.f)
+	{
+		return;
+	}
+	// Turn the nose away: toward the surface normal until the ship is clearly heading out, faster the deeper it is.
+	const FVector Forward = State.Rotation.GetForwardVector();
+	if (FVector::DotProduct(Forward, Out) < 0.45f)
+	{
+		FVector Axis = FVector::CrossProduct(Forward, Out);
+		if (!Axis.Normalize()) { Axis = State.Rotation.GetUpVector(); }
+		const float Angle = FMath::Acos(FMath::Clamp(FVector::DotProduct(Forward, Out), -1.f, 1.f));
+		const float Step = FMath::DegreesToRadians(FMath::Lerp(45.f, 220.f, KeepOut01)) * DeltaTime;
+		State.Rotation = (FQuat(Axis, FMath::Min(Angle, Step)) * State.Rotation).GetNormalized();
+	}
+	// Slow toward a firm crawl as it goes deeper (the sim re-accelerates outside the band).
+	const float Slow = Tuning.CruiseSpeed * 0.45f;
+	if (State.ForwardSpeed > Slow)
+	{
+		State.ForwardSpeed = FMath::FInterpTo(State.ForwardSpeed, Slow, DeltaTime, 5.f * KeepOut01);
+	}
+	// Never inside: hold the ship out along the normal and drop the inward part of its travel.
+	if (Dist < KeepOutRadius)
+	{
+		State.Location = KeepOutCenter + Out * KeepOutRadius;
+		bKeepOutContact = true;
+	}
+	const float Inward = FVector::DotProduct(State.Velocity, Out);
+	if (Inward < 0.f)
+	{
+		State.Velocity -= Out * Inward * (Dist < KeepOutRadius ? 1.f : KeepOut01);
+	}
 }
 
 void UTDShipMovementComponent::HandleTransformUpdated(USceneComponent* Component, EUpdateTransformFlags Flags, ETeleportType Teleport)

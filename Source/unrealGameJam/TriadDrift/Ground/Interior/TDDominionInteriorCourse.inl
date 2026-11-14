@@ -14,6 +14,8 @@ ATDPlanetCourse::FTDOnInteriorMoment ATDPlanetCourse::OnInteriorMoment;
 
 namespace TDInteriorImpl
 {
+	static TAutoConsoleVariable<int32> CVarDefenders(TEXT("td.Interior.Defenders"), 1,
+		TEXT("The reactor room's defenders: 1 the two future pilots (N-052), 0 the two drones (the fallback). Read when the interior is built."));
 	static const FLinearColor Hull(0.018f, 0.018f, 0.022f);     // gloss black
 	static const FLinearColor Strip(1.f, 0.08f, 0.04f);         // red light strips
 	static const FLinearColor Deck(0.04f, 0.04f, 0.05f);
@@ -52,6 +54,63 @@ FTransform ATDPlanetCourse::GetInteriorStart() const
 	}
 	const FTransform* Hangar = InteriorEntries.Find(NAME_None);
 	return (Hangar ? *Hangar : FTransform(FVector(-600.f, 0.f, 100.f))) * GetActorTransform();
+}
+
+AActor* ATDPlanetCourse::RouteThroughDoors(const FVector& Pilot, AActor* Target) const
+{
+	if (!Target || !IsInterior())
+	{
+		return Target;
+	}
+	const FTransform& Xf = GetActorTransform();
+	const float PX = Xf.InverseTransformPosition(Pilot).X;
+	const float TX = Xf.InverseTransformPosition(Target->GetActorLocation()).X;
+	AActor* Best = nullptr;
+	float BestX = 0.f;
+	for (const TWeakObjectPtr<AActor>& W : InteriorDoorways)
+	{
+		AActor* D = W.Get();
+		if (!D) { continue; }
+		const float DX = Xf.InverseTransformPosition(D->GetActorLocation()).X;
+		// A door ahead of the pilot (more than 1.5 m) and before the target, either way along the rooms.
+		const bool bForward = TX > PX && DX > PX + 150.f && DX < TX;
+		const bool bBack = TX < PX && DX < PX - 150.f && DX > TX;
+		if ((bForward || bBack) && (!Best || FMath::Abs(DX - PX) < FMath::Abs(BestX - PX)))
+		{
+			Best = D;
+			BestX = DX;
+		}
+	}
+	if (!Best)
+	{
+		return Target;
+	}
+	// Close to the door but off its centre line (T7: wedged at (10318, -246) coming from the final record console):
+	// first the approach point on the centre line on this side, then the door.
+	const int32 Index = InteriorDoorways.IndexOfByKey(Best);
+	const float PY = Xf.InverseTransformPosition(Pilot).Y;
+	const float DY = Xf.InverseTransformPosition(Best->GetActorLocation()).Y;
+	if (DoorApproaches.IsValidIndex(Index) && FMath::Abs(PX - BestX) < 600.f && FMath::Abs(PY - DY) > 100.f)
+	{
+		AActor* Approach = (TX > PX ? DoorApproaches[Index].Key : DoorApproaches[Index].Value).Get();
+		if (Approach && FVector::Dist2D(Pilot, Approach->GetActorLocation()) > 80.f)
+		{
+			return Approach;
+		}
+	}
+	return Best;
+}
+
+FTransform ATDPlanetCourse::GetInteriorRetakeSpot(FName SceneId) const
+{
+	if (const ATDObjective* Obj = SceneId.IsNone() ? nullptr : FindObjective(SceneId))
+	{
+		if (const AActor* Spot = Obj->GetCheckpointRespawn())
+		{
+			return Spot->GetActorTransform();
+		}
+	}
+	return GetInteriorStart();
 }
 
 void ATDPlanetCourse::BuildInterior()
@@ -165,6 +224,8 @@ void ATDPlanetCourse::BuildInterior()
 		ATDDoor* D = SpawnProp<ATDDoor>(FVector(X, 0.f, 0.f));
 		if (D)
 		{
+			InteriorDoorways.Add(D);
+			DoorApproaches.Add({ Marker(FVector(X - 250.f, 0.f, 0.f)), Marker(FVector(X + 250.f, 0.f, 0.f)) });
 			D->OpenHeight = 400.f;
 			D->bRecognisesPilot = bRecognise;
 			D->DoorMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Door"))
@@ -354,18 +415,25 @@ void ATDPlanetCourse::BuildInterior()
 	// --- Objectives, in order -------------------------------------------------------------------------
 	// The hangar start (T4's docking travels to "Hangar"): beside the parked ship, facing the door with nothing in the
 	// way (T7, Nov 14: at (-484, 0) the pilot stood behind the Rift with the hull between them and the door).
-	FVector HangarStart(-600.f, 0.f, 40.f);
+	// Measured from each part's own bounds now (CalcBounds), never the cached ones; when there is no ship to measure, a
+	// fixed spot on the pad's -Y side clear of any hull (T7, Nov 14: the staged start still stood behind the tail at
+	// (-484, 0) - the old fallback (-600, 0) pushed out of the ship).
+	FVector HangarStart(-200.f, -1050.f, 40.f);
 	{
 		FBox ShipBox(ForceInit);
+		const FTransform ToLocal = GetActorTransform().Inverse();
 		for (const TObjectPtr<UStaticMeshComponent>& Part : ParkedParts)
 		{
-			if (Part) { ShipBox += Part->Bounds.GetBox().TransformBy(GetActorTransform().Inverse()); }
+			if (Part && Part->GetStaticMesh()) { ShipBox += Part->CalcBounds(Part->GetComponentTransform()).GetBox().TransformBy(ToLocal); }
 		}
-		if (ParkedShip) { ShipBox += ParkedShip->Bounds.GetBox().TransformBy(GetActorTransform().Inverse()); }
+		if (ParkedShip && ParkedShip->GetStaticMesh()) { ShipBox += ParkedShip->CalcBounds(ParkedShip->GetComponentTransform()).GetBox().TransformBy(ToLocal); }
 		if (ShipBox.IsValid)
 		{
-			HangarStart = FVector(ShipBox.GetCenter().X, FMath::Max(ShipBox.Min.Y - 250.f, -HY + 200.f), 40.f);
+			// 2.5 m past the hull's -Y side and never closer than 5 m to the pad's line (the Lead: |y| >= 500 for every ship).
+			HangarStart = FVector(ShipBox.GetCenter().X, FMath::Clamp(ShipBox.Min.Y - 250.f, -HY + 200.f, -500.f), 40.f);
 		}
+		UE_LOG(LogTriadDrift, Display, TEXT("Dominion interior: hangar start %s (%s)"), *HangarStart.ToCompactString(),
+			ShipBox.IsValid ? *FString::Printf(TEXT("beside the parked ship, its box %s"), *ShipBox.ToString()) : TEXT("no ship to measure: the fixed spot"));
 	}
 	Entry(NAME_None, HangarStart, 0.f);
 	// Kato on arrival in the hangar (first visit: the story fires once per run).
@@ -400,9 +468,21 @@ void ATDPlanetCourse::BuildInterior()
 	Trailheads.Last().After = Lesson;
 	const FVector ArenaMid((CX1 + AX1) * 0.5f, 0.f, 200.f);
 	const FVector ArenaExtent((AX1 - CX1) * 0.5f, AY, 500.f);
-	ATDEncounterVolume* Wave1 = Encounter(Fight, 0, ArenaMid, ArenaExtent, { ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 800.f);
-	ATDEncounterVolume* Wave2 = Encounter(Fight, 1, ArenaMid, ArenaExtent, { ETDCrewType::Trooper, ETDCrewType::Trooper, ETDCrewType::Heavy }, false, 900.f);
-	ATDEncounterVolume* Wave3 = Encounter(Fight, 2, ArenaMid, ArenaExtent, { ETDCrewType::Drone, ETDCrewType::Drone, ETDCrewType::Grunt }, false, 900.f);
+	// Every wave comes in at the deck's far end (T7, Nov 14: on the 8-9 m ring round the deck's middle a ring point sat
+	// 1 m from the retake spot and two more 3.5-4 m from it in the open; the scripted pilot died to Trooper bolts every
+	// 6-7 s after each retake, 38 takes). The retake spot is the deck's door, 15 m or more from any of them.
+	auto FarEnd = [&](std::initializer_list<FVector2D> Points)
+	{
+		TArray<FVector> Out;
+		for (const FVector2D& P : Points) { Out.Add(FVector(P.X, P.Y, 0.f) - FVector(ArenaMid.X, ArenaMid.Y, 0.f)); }
+		return Out;
+	};
+	ATDEncounterVolume* Wave1 = Encounter(Fight, 0, ArenaMid, ArenaExtent, { ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 800.f,
+		FarEnd({ FVector2D(AX1 - 600.f, -800.f), FVector2D(AX1 - 400.f, 0.f), FVector2D(AX1 - 600.f, 800.f) }));
+	ATDEncounterVolume* Wave2 = Encounter(Fight, 1, ArenaMid, ArenaExtent, { ETDCrewType::Trooper, ETDCrewType::Trooper, ETDCrewType::Heavy }, false, 900.f,
+		FarEnd({ FVector2D(AX1 - 400.f, -700.f), FVector2D(AX1 - 400.f, 700.f), FVector2D(AX1 - 700.f, 0.f) }));
+	ATDEncounterVolume* Wave3 = Encounter(Fight, 2, ArenaMid, ArenaExtent, { ETDCrewType::Drone, ETDCrewType::Drone, ETDCrewType::Grunt }, false, 900.f,
+		FarEnd({ FVector2D(AX1 - 500.f, -600.f), FVector2D(AX1 - 500.f, 600.f), FVector2D(AX1 - 400.f, 0.f) }));
 	// Director's mercy on the deck too (T7, Nov 14: 17-18 takes here with no easing at all): take 2 the crew at 75 %
 	// health, take 3 one fewer (the last listed: wave 2's Heavy), take 5 two fewer.
 	for (ATDEncounterVolume* E : { Wave1, Wave2, Wave3 })
@@ -422,8 +502,8 @@ void ATDPlanetCourse::BuildInterior()
 		Kit(TEXT("SM_DI_Cover_Low"), At - FVector(0.f, 0.f, 55.f), 90.f * (i % 2), CoverBox);
 	}
 	CompletionDoors.Add({ Fight, 0, ArenaOut });
-	Checkpoint(Fight, 1, FVector(CX1 + 400.f, 0.f, 0.f), 0.f);
-	Checkpoint(Fight, 2, FVector(CX1 + 400.f, 0.f, 0.f), 0.f);
+	Checkpoint(Fight, 1, FVector(CX1 + 200.f, 0.f, 0.f), 0.f); // the deck's door: 15 m from the nearest spawn
+	Checkpoint(Fight, 2, FVector(CX1 + 200.f, 0.f, 0.f), 0.f);
 	FinishObjective(Fight, { LOCTEXT("DIA0", "CLEAR THE DECK"), LOCTEXT("DIA1", "THEY'RE SENDING MORE"), LOCTEXT("DIA2", "LAST WAVE") }, {});
 	Entry(Arena, FVector(CX1 + 400.f, 0.f, 0.f), 0.f);
 	StoryConsole(FVector(AX1 - 300.f, AY - 300.f, 0.f), 0.f, TEXT("Barracks")); // T3's id for this room
@@ -455,13 +535,58 @@ void ATDPlanetCourse::BuildInterior()
 	Trailheads.Last().After = Gate;
 	ReactorDoor = CoreIn; // opens when the final record has played (TickFinalRecord), not on the fight's start
 	{
-		ATDEncounterVolume* Drones = Encounter(Reactor, INDEX_NONE, CoreAt + FVector(0.f, 0.f, 700.f), FVector(10.f),
-			{ ETDCrewType::Drone, ETDCrewType::Drone }, false, 1400.f);
-		if (Drones)
+		// The future crew (Nicholas, N-052 / N-060, #29): all three future pilots are here whichever pilot boarded. The
+		// boarder's own future self stands apart behind the reactor and never fights; the other two defend the room with
+		// blades. td.Interior.Defenders 0 brings back the two drones (the fallback). Beating the defenders plays Face to
+		// Face's "overcome" half (T3's G8 sequences).
+		const FName Boarder = ATDFirstPersonCharacter::GetOnFootPilotName(this);
+		ATDEncounterVolume* Defenders = nullptr;
+		if (TDInteriorImpl::CVarDefenders.GetValueOnGameThread() != 0)
 		{
-			FTDRetakeMercyTier DroneMercy3; DroneMercy3.FromTake = 3; DroneMercy3.DropCrew = 1;
-			Drones->MercyTiers = { DroneMercy3 };
-			StepEncounters.Add({ Reactor, 0, Drones });
+			Defenders = Encounter(Reactor, INDEX_NONE, CoreAt + FVector(0.f, 0.f, 120.f), FVector(10.f),
+				{ ETDCrewType::FutureCrew, ETDCrewType::FutureCrew }, false, 1300.f, { FVector(1300.f, 520.f, 0.f), FVector(1300.f, -520.f, 0.f) });
+			if (Defenders)
+			{
+				Defenders->MemberNames = TDFutureCrew::OthersThan(Boarder);
+				Defenders->OpeningGraceSeconds = 1.6f; // they turn from the reactor to the pilot before they come
+				FTDRetakeMercyTier M3; M3.FromTake = 3; M3.HealthScale = 0.75f;
+				FTDRetakeMercyTier M5; M5.FromTake = 5; M5.HealthScale = 0.6f; M5.DropCrew = 1;
+				Defenders->MercyTiers = { M3, M5 };
+			}
+		}
+		if (!Defenders)
+		{
+			Defenders = Encounter(Reactor, INDEX_NONE, CoreAt + FVector(0.f, 0.f, 700.f), FVector(10.f),
+				{ ETDCrewType::Drone, ETDCrewType::Drone }, false, 1400.f);
+			if (Defenders)
+			{
+				FTDRetakeMercyTier DroneMercy3; DroneMercy3.FromTake = 3; DroneMercy3.DropCrew = 1;
+				Defenders->MercyTiers = { DroneMercy3 };
+			}
+		}
+		if (Defenders)
+		{
+			StepEncounters.Add({ Reactor, 0, Defenders });
+			Defenders->OnCleared.AddUniqueDynamic(this, &ATDPlanetCourse::HandleReactorDefendersCleared);
+			ReactorDefenders = Defenders;
+		}
+		// The boarder's own future self: on the far side of the reactor, facing the door the pilot comes through.
+		if (TDInteriorImpl::CVarDefenders.GetValueOnGameThread() != 0)
+		{
+			FActorSpawnParameters SelfParams;
+			SelfParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+			SelfParams.bDeferConstruction = true;
+			const FTransform SelfAt(GetActorRotation() + FRotator(0.f, 180.f, 0.f), W(CoreAt + FVector(1550.f, 0.f, 92.f)));
+			if (ATDFutureSelf* Self = GetWorld()->SpawnActor<ATDFutureSelf>(ATDFutureSelf::StaticClass(), SelfAt, SelfParams))
+			{
+				Self->SetPilot(Boarder);
+				Self->ExchangeRadius = 2400.f;
+				Self->FinishSpawning(SelfAt);
+				Spawned.Add(Self);
+				FutureSelf = Self;
+				UE_LOG(LogTriadDrift, Display, TEXT("Reactor room: %s's future self at %s; defenders %s"), *Boarder.ToString(), *Self->GetActorLocation().ToCompactString(),
+					*FString::JoinBy(TDFutureCrew::OthersThan(Boarder), TEXT(", "), [](const FName& N) { return N.ToString(); }));
+			}
 		}
 	}
 	ATDStepCounter* Conduits = SpawnProp<ATDStepCounter>(CoreAt);
@@ -484,7 +609,8 @@ void ATDPlanetCourse::BuildInterior()
 		C->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
 		TDCourseImpl::FinishProp(C);
 		Conduits->WatchDestructible(C);
-		ReactorConduits.Add(C);
+		if (MarkerGroups.Num() == 0 || MarkerGroups.Last().Objective.Get() != Reactor) { MarkerGroups.AddDefaulted_GetRef().Objective = Reactor; }
+		MarkerGroups.Last().Targets.Add(C);
 		if (UTDHealthComponent* H = UTDStatics::GetHealth(C))
 		{
 			H->OnDeath.AddUniqueDynamic(this, &ATDPlanetCourse::HandleConduitDown);
@@ -517,7 +643,7 @@ void ATDPlanetCourse::BuildInterior()
 	HeartDone->WatchDestructible(Heart);
 	Checkpoint(Reactor, 0, FVector(L2X1 + 300.f, 0.f, 0.f), 0.f);
 	FinishObjective(Reactor, { LOCTEXT("DIK0", "BREAK THE REACTOR CONDUITS  0 / 4"), LOCTEXT("DIK1", "DESTROY THE REACTOR HEART") }, { Conduits, Heart });
-	ReactorConduitCounter = Conduits;
+	for (FMarkerGroup& G : MarkerGroups) { if (G.Objective.Get() == Reactor) { G.Counter = Conduits; } }
 	Entry(Core, FVector(L2X1 - 300.f, 0.f, 0.f), 0.f);
 	FinalRecordConsole = StoryConsole(FVector(WX1 - 350.f, -WY + 350.f, 0.f), 0.f, TEXT("Core")); // mandatory: on the main route, after the Warden
 	if (ATDInteractableActor* Rec = Cast<ATDInteractableActor>(FinalRecordConsole))
@@ -740,7 +866,13 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 		UTDStorySubsystem::PlaySequence(this, TEXT("FirstDoor")); // A4_DoorsKnowUs, C7_Kato_Archive, C7_Wren_Record (T3)
 	}
 	else if (Id == Warden && StepIndex == 0) { Beat(TEXT("G7_Kato_Authorisations")); } // the Warden door opens
-	else if (Id == Core && StepIndex == 0) { Beat(TEXT("G8_Wren_ConduitsFirst")); OnInteriorMoment.Broadcast(TEXT("ReactorFightStarted"), this); }
+	else if (Id == Core && StepIndex == 0)
+	{
+		// N-052: Face to Face for the pilot who boarded, as the reactor room starts (T3's G8_Self_<Pilot> lines).
+		UTDStorySubsystem::PlaySequence(this, UTDStorySubsystem::FaceToFaceSequence(ATDFirstPersonCharacter::GetOnFootPilotShip(this), false));
+		Beat(TEXT("G8_Wren_ConduitsFirst"));
+		OnInteriorMoment.Broadcast(TEXT("ReactorFightStarted"), this);
+	}
 	else if (Id == Core && StepIndex == 1)
 	{
 		Beat(TEXT("G8_Kato_HeartExposed"));
@@ -804,37 +936,49 @@ float ATDPlanetCourse::GetEscapeSecondsLeft() const
 	return EscapeCollapse && EscapeCollapse->IsRunning() ? EscapeCollapse->GetTimeLeft() : -1.f;
 }
 
+void ATDPlanetCourse::HandleReactorDefendersCleared(AActor* Encounter)
+{
+	UTDStorySubsystem::PlaySequence(this, UTDStorySubsystem::FaceToFaceSequence(ATDFirstPersonCharacter::GetOnFootPilotShip(this), true));
+}
+
 void ATDPlanetCourse::UpdateConduitMarker()
 {
-	// T7 (Nov 14): the conduits carried no marker, only the step counter at the heart. While the conduits are the step,
-	// the marker is the nearest one still standing (the counter once none is).
-	ATDObjective* Reactor = FindObjective(TDInteriorImpl::Core);
-	if (!Reactor || !Reactor->IsActive() || Reactor->GetCurrentStepIndex() != 0 || !Reactor->Steps.IsValidIndex(0))
-	{
-		return;
-	}
+	// T7 (Nov 14): the conduits carried no marker, only the step counter (the reactor's at the heart, Cinder's at the
+	// gate). While they are the step, the marker is the nearest one still standing (the counter once none is).
 	FVector Pilot = GetActorLocation();
 	for (TActorIterator<ATDFirstPersonCharacter> It(GetWorld()); It; ++It) { if (!It->IsDead()) { Pilot = It->GetActorLocation(); break; } }
-	AActor* Best = nullptr;
-	for (const TWeakObjectPtr<AActor>& W : ReactorConduits)
+	for (const FMarkerGroup& G : MarkerGroups)
 	{
-		AActor* C = W.Get();
-		const UTDHealthComponent* H = C && !C->IsActorBeingDestroyed() ? UTDStatics::GetHealth(C) : nullptr;
-		if (H && H->IsAlive() && (!Best || FVector::DistSquared(Pilot, C->GetActorLocation()) < FVector::DistSquared(Pilot, Best->GetActorLocation())))
+		ATDObjective* O = G.Objective.Get();
+		if (!O || !O->IsActive() || O->GetCurrentStepIndex() != G.Step || !O->Steps.IsValidIndex(G.Step))
 		{
-			Best = C;
+			continue;
 		}
+		AActor* Best = nullptr;
+		for (const TWeakObjectPtr<AActor>& W : G.Targets)
+		{
+			AActor* C = W.Get();
+			if (!C || C->IsActorBeingDestroyed()) { continue; }
+			// Still to do: a target standing (health), or a point not used yet (the anchor's charges).
+			const UTDHealthComponent* H = UTDStatics::GetHealth(C);
+			const ATDInteractableActor* Use = Cast<ATDInteractableActor>(C);
+			const bool bRemaining = Use ? !Use->WasUsed() : (H && H->IsAlive());
+			if (bRemaining && (!Best || FVector::DistSquared(Pilot, C->GetActorLocation()) < FVector::DistSquared(Pilot, Best->GetActorLocation())))
+			{
+				Best = C;
+			}
+		}
+		O->Steps[G.Step].Waypoint = Best ? Best : G.Counter.Get();
 	}
-	Reactor->Steps[0].Waypoint = Best ? Best : ReactorConduitCounter.Get();
 }
 
 void ATDPlanetCourse::TickCoreChamber()
 {
+	UpdateConduitMarker(); // the interior's and the planets' (Cinder's gate conduits)
 	if (!IsInterior() || !CoreChamberBox.IsValid)
 	{
 		return;
 	}
-	UpdateConduitMarker();
 	bool bInside = false;
 	for (TActorIterator<ATDFirstPersonCharacter> It(GetWorld()); It && !bInside; ++It)
 	{

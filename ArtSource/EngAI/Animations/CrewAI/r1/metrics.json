@@ -1,0 +1,573 @@
+{
+  "A_CrewTrooper_StrafeAim_Left": {
+    "name": "A_CrewTrooper_StrafeAim_Left",
+    "frames": 90,
+    "seconds": 2.967,
+    "scale_k": 1.098,
+    "contacts_l": [
+      [
+        0,
+        11
+      ],
+      [
+        31,
+        35
+      ],
+      [
+        56,
+        61
+      ]
+    ],
+    "contacts_r": [
+      [
+        6,
+        11
+      ],
+      [
+        14,
+        33
+      ],
+      [
+        60,
+        65
+      ]
+    ],
+    "slide_in_contact_cm": {
+      "l": 0.0,
+      "r": 0.0
+    },
+    "minz_cm": [
+      -1.2,
+      7.4
+    ],
+    "down_frame": 91,
+    "minz_down_cm": null,
+    "last_half_s_max_joint_speed_cms": 716.5,
+    "root_end_cm": [
+      0.0,
+      0.0
+    ],
+    "pelvis_end_z_cm": 67.2,
+    "loop_seam_max_bone_cm": 1.801,
+    "final_analyse": {
+      "reimport_frames": "2-91",
+      "pelvis_z_cm": [
+        65.4,
+        67.2,
+        65.4
+      ],
+      "root_end_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "loop_seam_rel_cm": 1.56,
+      "l_hand_peaks": [
+        {
+          "frame": 85,
+          "cm_s": 574.4
+        },
+        {
+          "frame": 49,
+          "cm_s": 174.1
+        },
+        {
+          "frame": 35,
+          "cm_s": 144.5
+        },
+        {
+          "frame": 44,
+          "cm_s": 108.0
+        },
+        {
+          "frame": 54,
+          "cm_s": 107.5
+        }
+      ],
+      "r_hand_peaks": [
+        {
+          "frame": 85,
+          "cm_s": 573.9
+        },
+        {
+          "frame": 49,
+          "cm_s": 177.8
+        },
+        {
+          "frame": 35,
+          "cm_s": 136.6
+        },
+        {
+          "frame": 54,
+          "cm_s": 111.1
+        },
+        {
+          "frame": 44,
+          "cm_s": 110.8
+        }
+      ],
+      "n_bones": 88,
+      "foot_z_min_cm": 9.8
+    }
+  },
+  "A_CrewTrooper_StrafeAim_Right": {
+    "name": "A_CrewTrooper_StrafeAim_Right",
+    "frames": 90,
+    "seconds": 2.967,
+    "scale_k": 1.098,
+    "contacts_l": [
+      [
+        0,
+        4
+      ],
+      [
+        25,
+        48
+      ]
+    ],
+    "contacts_r": [
+      [
+        0,
+        7
+      ],
+      [
+        13,
+        23
+      ],
+      [
+        42,
+        48
+      ]
+    ],
+    "slide_in_contact_cm": {
+      "l": 0.0,
+      "r": 0.0
+    },
+    "minz_cm": [
+      -1.2,
+      1.0
+    ],
+    "down_frame": 91,
+    "minz_down_cm": null,
+    "last_half_s_max_joint_speed_cms": 282.8,
+    "root_end_cm": [
+      0.0,
+      0.0
+    ],
+    "pelvis_end_z_cm": 67.2,
+    "loop_seam_max_bone_cm": 2.987,
+    "final_analyse": {
+      "reimport_frames": "2-91",
+      "pelvis_z_cm": [
+        67.0,
+        67.2,
+        67.0
+      ],
+      "root_end_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "loop_seam_rel_cm": 2.96,
+      "l_hand_peaks": [
+        {
+          "frame": 85,
+          "cm_s": 210.6
+        },
+        {
+          "frame": 8,
+          "cm_s": 94.8
+        }
+      ],
+      "r_hand_peaks": [
+        {
+          "frame": 85,
+          "cm_s": 213.4
+        },
+        {
+          "frame": 8,
+          "cm_s": 96.9
+        }
+      ],
+      "n_bones": 88,
+      "foot_z_min_cm": 9.9
+    }
+  },
+  "A_CrewTrooper_BackpedalAim": {
+    "name": "A_CrewTrooper_BackpedalAim",
+    "frames": 90,
+    "seconds": 2.967,
+    "scale_k": 1.098,
+    "contacts_l": [
+      [
+        26,
+        42
+      ],
+      [
+        65,
+        72
+      ]
+    ],
+    "contacts_r": [
+      [
+        0,
+        22
+      ],
+      [
+        44,
+        46
+      ]
+    ],
+    "slide_in_contact_cm": {
+      "l": 0.0,
+      "r": 0.0
+    },
+    "minz_cm": [
+      -1.2,
+      3.7
+    ],
+    "down_frame": 91,
+    "minz_down_cm": null,
+    "last_half_s_max_joint_speed_cms": 250.4,
+    "root_end_cm": [
+      0.0,
+      0.0
+    ],
+    "pelvis_end_z_cm": 72.9,
+    "loop_seam_max_bone_cm": 4.761,
+    "final_analyse": {
+      "reimport_frames": "2-91",
+      "pelvis_z_cm": [
+        72.2,
+        72.9,
+        69.9
+      ],
+      "root_end_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "loop_seam_rel_cm": 4.59,
+      "l_hand_peaks": [
+        {
+          "frame": 85,
+          "cm_s": 249.9
+        }
+      ],
+      "r_hand_peaks": [
+        {
+          "frame": 85,
+          "cm_s": 245.9
+        }
+      ],
+      "n_bones": 88,
+      "foot_z_min_cm": 11.2
+    }
+  },
+  "A_NullGrunt_MeleeCombo": {
+    "name": "A_NullGrunt_MeleeCombo",
+    "frames": 60,
+    "seconds": 1.967,
+    "scale_k": 1.098,
+    "contacts_l": [
+      [
+        0,
+        6
+      ],
+      [
+        8,
+        13
+      ],
+      [
+        17,
+        44
+      ],
+      [
+        48,
+        59
+      ]
+    ],
+    "contacts_r": [
+      [
+        0,
+        4
+      ],
+      [
+        10,
+        15
+      ],
+      [
+        54,
+        59
+      ]
+    ],
+    "slide_in_contact_cm": {
+      "l": 0.0,
+      "r": 0.0
+    },
+    "minz_cm": [
+      -0.5,
+      1.4
+    ],
+    "down_frame": 61,
+    "minz_down_cm": null,
+    "last_half_s_max_joint_speed_cms": 250.4,
+    "root_end_cm": [
+      0.0,
+      0.0
+    ],
+    "pelvis_end_z_cm": 91.6,
+    "final_analyse": {
+      "reimport_frames": "2-61",
+      "pelvis_z_cm": [
+        90.7,
+        91.6,
+        87.5
+      ],
+      "root_end_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "loop_seam_rel_cm": 3.11,
+      "l_hand_peaks": [
+        {
+          "frame": 21,
+          "cm_s": 860.0
+        },
+        {
+          "frame": 13,
+          "cm_s": 564.7
+        },
+        {
+          "frame": 29,
+          "cm_s": 468.9
+        },
+        {
+          "frame": 48,
+          "cm_s": 214.8
+        },
+        {
+          "frame": 42,
+          "cm_s": 172.1
+        }
+      ],
+      "r_hand_peaks": [
+        {
+          "frame": 31,
+          "cm_s": 911.6
+        },
+        {
+          "frame": 20,
+          "cm_s": 253.1
+        },
+        {
+          "frame": 48,
+          "cm_s": 250.4
+        },
+        {
+          "frame": 43,
+          "cm_s": 196.5
+        },
+        {
+          "frame": 40,
+          "cm_s": 179.6
+        }
+      ],
+      "n_bones": 88,
+      "foot_z_min_cm": 9.9
+    }
+  },
+  "A_NullHeavy_GuardBreakStagger": {
+    "name": "A_NullHeavy_GuardBreakStagger",
+    "frames": 45,
+    "seconds": 1.467,
+    "scale_k": 1.098,
+    "contacts_l": [],
+    "contacts_r": [
+      [
+        42,
+        44
+      ]
+    ],
+    "slide_in_contact_cm": {
+      "l": 0.0,
+      "r": 0.0
+    },
+    "minz_cm": [
+      -1.2,
+      1.6
+    ],
+    "down_frame": 46,
+    "minz_down_cm": null,
+    "last_half_s_max_joint_speed_cms": 296.1,
+    "root_end_cm": [
+      -54.0,
+      85.7
+    ],
+    "pelvis_end_z_cm": 94.5,
+    "final_analyse": {
+      "reimport_frames": "2-46",
+      "pelvis_z_cm": [
+        95.4,
+        94.5,
+        89.5
+      ],
+      "root_end_cm": [
+        -54.0,
+        85.7,
+        0.0
+      ],
+      "loop_seam_rel_cm": 5.52,
+      "l_hand_peaks": [
+        {
+          "frame": 4,
+          "cm_s": 560.6
+        },
+        {
+          "frame": 32,
+          "cm_s": 214.7
+        },
+        {
+          "frame": 24,
+          "cm_s": 205.6
+        },
+        {
+          "frame": 21,
+          "cm_s": 182.2
+        },
+        {
+          "frame": 15,
+          "cm_s": 147.7
+        }
+      ],
+      "r_hand_peaks": [
+        {
+          "frame": 29,
+          "cm_s": 302.9
+        },
+        {
+          "frame": 20,
+          "cm_s": 178.4
+        },
+        {
+          "frame": 38,
+          "cm_s": 170.0
+        },
+        {
+          "frame": 15,
+          "cm_s": 125.0
+        },
+        {
+          "frame": 12,
+          "cm_s": 123.7
+        }
+      ],
+      "n_bones": 88,
+      "foot_z_min_cm": 10.1
+    }
+  },
+  "A_NullHeavy_ShieldWalk": {
+    "name": "A_NullHeavy_ShieldWalk",
+    "frames": 90,
+    "seconds": 2.967,
+    "scale_k": 1.098,
+    "contacts_l": [
+      [
+        17,
+        31
+      ],
+      [
+        64,
+        76
+      ]
+    ],
+    "contacts_r": [
+      [
+        2,
+        8
+      ],
+      [
+        39,
+        61
+      ]
+    ],
+    "slide_in_contact_cm": {
+      "l": 0.0,
+      "r": 0.0
+    },
+    "minz_cm": [
+      -1.2,
+      1.4
+    ],
+    "down_frame": 91,
+    "minz_down_cm": null,
+    "last_half_s_max_joint_speed_cms": 1145.9,
+    "root_end_cm": [
+      0.0,
+      0.0
+    ],
+    "pelvis_end_z_cm": 90.6,
+    "loop_seam_max_bone_cm": 2.859,
+    "final_analyse": {
+      "reimport_frames": "2-91",
+      "pelvis_z_cm": [
+        90.4,
+        90.6,
+        83.6
+      ],
+      "root_end_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "loop_seam_rel_cm": 2.85,
+      "l_hand_peaks": [
+        {
+          "frame": 85,
+          "cm_s": 1032.5
+        },
+        {
+          "frame": 16,
+          "cm_s": 152.5
+        },
+        {
+          "frame": 39,
+          "cm_s": 128.5
+        },
+        {
+          "frame": 78,
+          "cm_s": 125.9
+        },
+        {
+          "frame": 67,
+          "cm_s": 119.1
+        }
+      ],
+      "r_hand_peaks": [
+        {
+          "frame": 85,
+          "cm_s": 1029.1
+        },
+        {
+          "frame": 15,
+          "cm_s": 165.9
+        },
+        {
+          "frame": 67,
+          "cm_s": 161.7
+        },
+        {
+          "frame": 35,
+          "cm_s": 123.7
+        },
+        {
+          "frame": 43,
+          "cm_s": 114.6
+        }
+      ],
+      "n_bones": 88,
+      "foot_z_min_cm": 10.1
+    }
+  }
+}

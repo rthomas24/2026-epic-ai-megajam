@@ -51,6 +51,7 @@ struct FTDWorldBarks
 		if (L.World.Get() == World && Now - L.Time < CooldownSeconds) { return false; }
 		L.World = World;
 		L.Time = Now;
+		UE_LOG(LogTemp, Log, TEXT("TD world bark: %s"), *BarkId.ToString());	// played sessions read the log for the trigger
 		switch (Who)
 		{
 		case EWho::Kato: return FTDCombatBarks::Say(WorldContext, ETDShipId::Lancer, BarkId, Priority);

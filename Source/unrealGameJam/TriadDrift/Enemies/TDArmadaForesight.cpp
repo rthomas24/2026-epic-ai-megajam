@@ -1,5 +1,6 @@
 // Triad Drift - Enemies (Teammate 4). Story clue: the Armada now and then pre-empts a switch or a dodge.
 #include "TriadDrift/Enemies/TDArmadaForesight.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
 
 #include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/Enemies/TDEnemyAIController.h"
@@ -73,15 +74,16 @@ void UTDArmadaForesight::Tick(float DeltaSeconds)
 void UTDArmadaForesight::HandleWaveStarted(int32 WaveNumber, float /*Intensity01*/)
 {
 	Wave = WaveNumber;
+	TellsThisWave = 0;
 }
 
 bool UTDArmadaForesight::Roll()
 {
 	const UWorld* World = GetWorld();
 	const double Now = World ? World->GetTimeSeconds() : 0.0;
-	if (Wave < MinWave || Now - LastTellTime < CooldownSeconds)
+	if (Wave < MinWave || Now - LastTellTime < CooldownSeconds || (bOncePerWave && TellsThisWave > 0))
 	{
-		return false;
+		return false;	// rare and deniable: at most one tell in a wave
 	}
 	return Rng.FRand() < Chance;
 }
@@ -124,6 +126,19 @@ void UTDArmadaForesight::Tell(ATDEnemyShip* Enemy, const FVector& AimPoint, AAct
 	const UWorld* World = GetWorld();
 	LastTellTime = World ? World->GetTimeSeconds() : 0.0;
 	++Tells;
+	++TellsThisWave;
+	// The tell the player can see: the enemy's white "eyes" flare for a moment as it turns (a small pale flash at its
+	// nose; placeholder until the effects builder has a cue for it).
+	if (TellFlashRadius > 0.f)
+	{
+		if (UTDProjectileSubsystem* Fx = UTDProjectileSubsystem::Get(World))
+		{
+			FVector Origin, Extent;
+			Enemy->GetActorBounds(true, Origin, Extent);
+			const FVector Dir = (AimPoint - Enemy->GetActorLocation()).GetSafeNormal();
+			Fx->PlayPlaceholderExplosion(Origin + Dir * (float)Extent.GetMax(), TellFlashRadius, FLinearColor(0.85f, 0.95f, 1.f), 1);
+		}
+	}
 	// No reaction time: the nose is already there and the guns are already on.
 	Enemy->SetActorRotation((AimPoint - Enemy->GetActorLocation()).Rotation());
 	if (ATDEnemyAIController* AI = Cast<ATDEnemyAIController>(Enemy->GetController()))
@@ -132,7 +147,7 @@ void UTDArmadaForesight::Tell(ATDEnemyShip* Enemy, const FVector& AimPoint, AAct
 	}
 	Enemy->SetGunsFiring(true, Target);
 	OnAnticipated.Broadcast(Enemy, Kind);
-	UE_LOG(LogTriadDrift, Verbose, TEXT("Armada foresight: %s pre-empted a %s"), *Enemy->GetName(), *Kind.ToString());
+	UE_LOG(LogTriadDrift, Log, TEXT("Armada foresight: %s pre-empted a %s (wave %d, tell %d)"), *Enemy->GetName(), *Kind.ToString(), Wave, Tells);
 }
 
 void UTDArmadaForesight::HandleShipSwitched(ETDShipId NewShip, ETDShipId /*OldShip*/)

@@ -20,7 +20,8 @@ K.TEX_DEST = DEST + "/Textures"
 K.PIPELINE = DEST + "/Pipelines/PL_Story_StaticMesh"
 eas, mel, tools = unreal.EditorAssetLibrary, unreal.MaterialEditingLibrary, unreal.AssetToolsHelpers.get_asset_tools()
 KT = "/Game/TriadDrift/Gameplay/Props/Kit/"
-NO_COL = ("SM_Kit_SurveyStakeFlag", "SM_Kit_DragMark", "SM_Kit_ScorchLines", "SM_Kit_LightPool", "SM_Kit_InsigniaHull", "SM_Kit_InsigniaPanel")
+NO_COL = ("SM_Kit_SurveyStakeFlag", "SM_Kit_DragMark", "SM_Kit_ScorchLines", "SM_Kit_LightPool", "SM_Kit_InsigniaHull", "SM_Kit_InsigniaPanel",
+          "SM_Kit_BayMouthFrame", "SM_Kit_BayGuideLight")
 
 
 def log(m):
@@ -91,7 +92,9 @@ def main():
            "Nav": glow("MI_Kit_RelayNav", (0.55, 0.9, 0.15), 40.0, pulse=1.0, rate=0.5),
            "Band": glow("MI_Kit_RelayBand", (0.55, 0.9, 0.15), 12.0),
            "Pool": decal_mi("MI_Kit_LightPool", "T_Kit_LightPool", notes),
-           "Insignia": decal_mi("MI_Kit_InsigniaScorched", "T_Kit_InsigniaScorched", notes)}
+           "Insignia": decal_mi("MI_Kit_InsigniaScorched", "T_Kit_InsigniaScorched", notes),
+           # batch AD (#126): the bay mouth's ember strips and the guide light lenses, emissive 3 (was 4 and 12)
+           "Ember": glow("MI_Kit_BayStrip", (1.0, 0.3, 0.05), 3.0), "Work": glow("MI_Kit_BayLens", (1.0, 0.88, 0.72), 3.0)}
     mel.set_material_instance_scalar_parameter_value(mis["Insignia"], "DecalEmissive", 0.6)
     eas.save_loaded_asset(mis["Insignia"])
     mel.set_material_instance_scalar_parameter_value(mis["Pool"], "DecalEmissive", 1.5)
@@ -105,6 +108,8 @@ def main():
     for man_path in sorted(glob.glob(os.path.join(KIT, "export_story", "SM_Kit_*.manifest.json"))):
         with open(man_path, encoding="utf-8") as fh:
             asset = json.load(fh)["asset"]
+        if os.environ.get("TD_STORY_ONLY") and asset not in os.environ["TD_STORY_ONLY"].split(","):
+            continue
         params = unreal.ImportAssetParameters()
         params.is_automated = True
         params.replace_existing = True

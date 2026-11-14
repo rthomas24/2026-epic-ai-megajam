@@ -58,6 +58,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Heavy")
 	float HeavyDamage = 70.f;
 
+	/** A light swing's hit lands this long after the press, with the hand (the pilot clips reach the target 0.10-0.13 s
+	 *  in; the animation audit). 0 = on the press. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Light", meta = (Units = "s", ClampMin = "0"))
+	float HitDelay = 0.1f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Heavy", meta = (Units = "cm"))
 	float HeavyLungeDistance = 600.f;
 
@@ -286,6 +291,10 @@ private:
 	float SwingTimeLeft = 0.f;      // lockout of the current move
 	float ComboTimeLeft = 0.f;      // window to continue the combo after a swing
 	bool bLightQueued = false;
+	// A light swing's hit, waiting for its active frame (HitDelay).
+	float PendingHitLeft = -1.f;
+	float PendingRange = 0.f, PendingArc = 0.f, PendingDamage = 0.f, PendingKnockback = 0.f;
+	void PlaySwingTrail();
 	bool bAttackHeld = false;
 	float AttackHeldTime = 0.f;
 	bool bHeavyFiredThisPress = false;

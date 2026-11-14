@@ -619,6 +619,25 @@ def magma_bridge():
                                 "The piers (x +-400, down to -150) stand in the magma; nothing else under the deck."]}}
 
 
+def anchor_check():
+    """Capture only (batch Z): the anchor collapse pieces resting as the course drops them, to check pivots, scale,
+    ground contact and that the escape run's pilot cannot get trapped among them. Not for placement."""
+    pcs = [piece("SectionA", ST + "SM_Kit_AnchorSection_A", 300.0, -500.0, 0.0, 10.0),
+           piece("SectionB", ST + "SM_Kit_AnchorSection_B", 300.0, 0.0, 0.0, -15.0),
+           piece("SectionC", ST + "SM_Kit_AnchorSection_C", 250.0, 450.0, 0.0, 30.0)]
+    for i, (x, y, yaw) in enumerate(((-400.0, -400.0, 20.0), (-500.0, 150.0, 70.0), (-350.0, 550.0, 130.0))):
+        pcs.append(piece("Debris%s" % "ABC"[i], ST + "SM_Kit_AnchorDebris_%s" % "ABC"[i], x, y, 0.0, yaw))
+    pcs.append(piece("ChargeOnBlock", ST + "SM_Kit_AnchorCharge", -900.0, 0.0, 110.0, 180.0))
+    return {"AnchorCheck": {"site": "AnchorCheck", "actor": K + "Sites/BP_AnchorCheck", "about": "Capture only: the anchor collapse pieces at rest.", "pieces": pcs}}
+
+
+def conduit_check():
+    """Capture only (batch AC): the Null conduit intact and broken, 2.5 m apart."""
+    return {"ConduitCheck": {"site": "ConduitCheck", "actor": K + "Sites/BP_ConduitCheck", "about": "Capture only: SM_Kit_NullConduit and its stump.",
+            "pieces": [piece("Intact", ST + "SM_Kit_NullConduit", 0.0, -125.0, 0.0, 0.0),
+                       piece("Broken", ST + "SM_Kit_NullConduitBroken", 0.0, 125.0, 0.0, 30.0)]}}
+
+
 def main():
     out = os.path.join(KIT, "sites")
     os.makedirs(out, exist_ok=True)
@@ -634,6 +653,8 @@ def main():
     sites.update(survey_stations())
     sites.update(ship_gear())
     sites.update(magma_bridge())
+    sites.update(anchor_check())
+    sites.update(conduit_check())
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)

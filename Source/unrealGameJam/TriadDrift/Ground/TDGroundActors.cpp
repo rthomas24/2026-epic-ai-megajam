@@ -686,12 +686,19 @@ bool ATDEncounterVolume::ReturnLostBoss(AActor* Member)
 	const ATDCrewCharacter* Lost = Cast<ATDCrewCharacter>(Member);
 	const UTDHealthComponent* H = Member ? UTDStatics::GetHealth(Member) : nullptr;
 	const FTransform* At = SpawnedAt.Find(Member);
-	if (!bActivated || bCleared || !Lost || Lost->Spec.Type != ETDCrewType::Warden || !H || !H->IsAlive() || !At || BossReturns >= MaxBossReturns || !GetWorld())
+	// Never capped: a room whose boss keeps falling out must not count as won (T3's edge case: after 3 returns the room
+	// cleared); from the second return it comes back at the room's middle.
+	if (!bActivated || bCleared || !Lost || Lost->Spec.Type != ETDCrewType::Warden || !H || !H->IsAlive() || !At || !GetWorld())
 	{
 		return false;
 	}
 	++BossReturns;
-	const FTransform Xf = *At;
+	// The first time where it was spawned; if it is lost again, the room's middle (its spawn spot may be over a gap).
+	FTransform Xf = *At;
+	if (BossReturns > 1)
+	{
+		Xf.SetLocation(FVector(GetActorLocation().X, GetActorLocation().Y, At->GetLocation().Z + 50.f));
+	}
 	AActor* Fresh = GetWorld()->SpawnActorDeferred<AActor>(Member->GetClass(), Xf, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
 	ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Fresh);
 	if (!Crew)
@@ -702,8 +709,8 @@ bool ATDEncounterVolume::ReturnLostBoss(AActor* Member)
 	Crew->FinishSpawning(Xf);
 	if (const FTDRetakeMercyTier* Mercy = GetActiveMercy()) { Crew->ApplyMercy(Mercy->HealthScale, Mercy->MaxSummons); }
 	Crew->SetOpeningGrace(OpeningGraceSeconds);
-	UE_LOG(LogTriadDrift, Warning, TEXT("%s: the Warden %s left the world alive (at %s); %s put back at %s (%d / %d)"), *GetName(), *Member->GetName(),
-		*Member->GetActorLocation().ToCompactString(), *Crew->GetName(), *Xf.GetLocation().ToCompactString(), BossReturns, MaxBossReturns);
+	UE_LOG(LogTriadDrift, Warning, TEXT("%s: the Warden %s left the world alive (at %s); %s put back at %s (return %d)"), *GetName(), *Member->GetName(),
+		*Member->GetActorLocation().ToCompactString(), *Crew->GetName(), *Xf.GetLocation().ToCompactString(), BossReturns);
 	SpawnedAt.Add(Crew, Xf);
 	AdoptMember(Crew);
 	return true;
@@ -774,7 +781,7 @@ void ATDEncounterVolume::Activate()
 	}
 	// ENG-45: the difficulty's crew count, as the Armada's pack sizes (a lone boss stays alone; named crews, the
 	// reactor's future pilots, will be exempt when they land).
-	if (Points.Num() > 1)
+	if (Points.Num() > 1 && MemberNames.Num() == 0) // named crews (the reactor's future pilots) are exactly who they are
 	{
 		const int32 Want = UTDDifficultySettings::ScaleCount(Points.Num(), UTDDifficultySettings::GetScale().WaveSize);
 		const int32 Base = Points.Num();
@@ -790,6 +797,34 @@ void ATDEncounterVolume::Activate()
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	const FVector Center = GetActorLocation();
+	// Never on top of the pilot (T7's Cinder play, Nov 14: crew 1.2 m from the retake spot, 24 CUTs in 8 minutes): a
+	// point closer than MinSpawnDistance moves straight away from the pilot, kept inside the volume; if the volume is too
+	// small for that, its corner farthest from the pilot.
+	if (Player && MinSpawnDistance > 0.f && Box)
+	{
+		const FVector Ext = Box->GetScaledBoxExtent();
+		const FVector PL = GetActorTransform().InverseTransformPosition(Player->GetActorLocation());
+		for (FVector& P : Points)
+		{
+			const FVector2D D(P.X - PL.X, P.Y - PL.Y);
+			if (D.Size() >= MinSpawnDistance)
+			{
+				continue;
+			}
+			const FVector2D Dir = D.IsNearlyZero() ? FVector2D(1.f, 0.f) : D.GetSafeNormal();
+			FVector2D Want(PL.X + Dir.X * MinSpawnDistance, PL.Y + Dir.Y * MinSpawnDistance);
+			Want.X = FMath::Clamp(Want.X, -Ext.X + 100.f, Ext.X - 100.f);
+			Want.Y = FMath::Clamp(Want.Y, -Ext.Y + 100.f, Ext.Y - 100.f);
+			if (FVector2D::Distance(Want, FVector2D(PL.X, PL.Y)) < MinSpawnDistance * 0.7f)
+			{
+				Want = FVector2D(PL.X > 0.f ? -Ext.X + 100.f : Ext.X - 100.f, PL.Y > 0.f ? -Ext.Y + 100.f : Ext.Y - 100.f);
+			}
+			P.X = Want.X;
+			P.Y = Want.Y;
+		}
+	}
+	// A retake gives the pilot a longer beat before the first shot.
+	const float Grace = Take >= 2 ? FMath::Max(OpeningGraceSeconds, RetakeGraceSeconds) : OpeningGraceSeconds;
 	for (int32 i = 0; i < Points.Num(); ++i)
 	{
 		const FVector Loc = GetActorTransform().TransformPosition(Points[i]);
@@ -802,6 +837,10 @@ void ATDEncounterVolume::Activate()
 		if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member))
 		{
 			Crew->CrewType = CrewMix.Num() > 0 ? CrewMix[i % CrewMix.Num()] : ETDCrewType::Grunt;
+			if (MemberNames.Num() > 0)
+			{
+				Crew->FuturePilot = MemberNames[i % MemberNames.Num()];
+			}
 		}
 		Member->FinishSpawning(Xf);
 		if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member))
@@ -810,7 +849,7 @@ void ATDEncounterVolume::Activate()
 			{
 				Crew->ApplyMercy(Mercy->HealthScale, Mercy->MaxSummons);
 			}
-			Crew->SetOpeningGrace(OpeningGraceSeconds);
+			Crew->SetOpeningGrace(Grace);
 		}
 		// The fight starts now: everyone already knows where the player is.
 		if (ATDCrewAIController* AI = Cast<ATDCrewAIController>(Cast<APawn>(Member) ? Cast<APawn>(Member)->GetController() : nullptr))

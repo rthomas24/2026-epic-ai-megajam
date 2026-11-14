@@ -57,6 +57,7 @@ namespace
 	{
 		int32 Trees = INDEX_NONE;	// 18 = 6 species x 3 stages (Verdance)
 		TArray<int32> Canopy, CanopyAccent, Rocks, CliffRocks, Grove, GroveGlow, Ground, GroundGlow, GroundForest, Columns, CharTrees, Spires, Crystals, Rubble;
+		TArray<int32> CourseCover, CourseAccent, CoursePebbles;	// s20: ground detail inside the course (never collides)
 	};
 	FTDScatterRanges GTDRanges[2];	// [0] Verdance, [1] Cinder (filled once, read-only after)
 	FCriticalSection GTDRangesLock;
@@ -135,13 +136,13 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		// walls); same numbers as the terrain material's Scar*
 		P.ScarA = FVector2D(-5800.f, 17200.f);
 		P.ScarB = FVector2D(-49100.f, 42200.f);
-		P.ScarHalfA = 5000.f;	// s15: 50-140 m half width (thin line from 340 m up)
-		P.ScarHalfB = 14000.f;
+		P.ScarHalfA = 7000.f;	// s19: 70-160 m half width (s15's 50-140 m was weak from the approach)
+		P.ScarHalfB = 16000.f;
 		for (int32 i = 1; i <= 2; ++i)
 		{
 			// s11: snapped charred stumps, not whole glowing trunks (from above their ember material read as a grid of
 			// yellow dots): a quarter of the height, with the dark basalt-column material (no glow, ash on top)
-			const int32 Ck = Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.0f, 1.6f, 30.f, 180000.f, 240000.f, 300.f, true, false, true,
+			const int32 Ck = Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.5f, 2.4f, 30.f, 180000.f, 240000.f, 300.f, true, false, true,
 				FString::Printf(TEXT("%s/Scatter/MI_Scatter_Column_Cinder.MI_Scatter_Column_Cinder"), GProps));
 			P.Kinds[Ck].ZScale = 0.28f;
 			R.CharTrees.Add(Ck);
@@ -218,6 +219,24 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 	}
 	{
 		FScopeLock Lock(&GTDRangesLock);
+		// s20: ground detail inside the course (walking distance): cover, a few accents, small stones. No collision at all:
+		// nothing may block or snag the pilot (bBlocksOnFoot false, and the course layer never sets collision).
+		if (Planet == ETDDestination::Verdance)
+		{
+			R.CourseCover = { R.Ground[0], R.Ground[1], R.Ground[2], R.GroundForest[0], R.GroundForest[1] };
+			R.CourseAccent = { R.GroundGlow[0], R.GroundGlow[1] };
+			for (int32 i = 1; i <= 3; ++i)
+			{
+				R.CoursePebbles.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Rock_%02d"), i)), 0.12f, 0.35f, 5.f, 9000.f, 12000.f, 50.f, false, true, false));
+			}
+		}
+		else
+		{
+			R.CourseCover = R.Rubble;
+			R.CourseAccent = { R.GroundGlow[0], R.GroundGlow[1] };
+			R.CoursePebbles.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_01")), 0.25f, 0.6f, 5.f, 9000.f, 12000.f, 50.f, false, true, false));
+			R.CoursePebbles.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_02")), 0.25f, 0.55f, 5.f, 9000.f, 12000.f, 50.f, false, true, false));
+		}
 		GTDRanges[Planet == ETDDestination::Cinder ? 1 : 0] = R;
 	}
 	return P;
@@ -264,6 +283,70 @@ bool FTDScatterPlan::IsCourseClear(float X, float Y, float Radius) const
 		}
 	}
 	return true;
+}
+
+void FTDScatterPlan::RunCourseGround(const FTDTerrainField& Field, FTDScatterResult& Out) const
+{
+	// s20: inside the course's ground box the zone layer placed nothing; the walked areas read bare at walking distance.
+	// A fine jittered grid of cover, accents and small stones, kept off every course keep-out (T5's routes, sites,
+	// encounters, spawn rings, structures, the pad), thinning toward the routes so the walked lines read as trodden.
+	const FTDScatterRanges& R = TDScatter_Ranges(Planet);
+	if (R.CourseCover.Num() == 0 || KeepOuts.Num() == 0)
+	{
+		return;	// no course (tests and the galaxy): nothing to dress
+	}
+	const FTDTerrainStyle& S = Field.GetStyle();
+	const int32 Seed = S.Seed * 3571 + 29;
+	const float Spacing = CourseGroundSpacing;
+	const FVector2D Lo = FVector2D(S.BasinCentre) - FVector2D(S.BasinHalfExtent), Hi = FVector2D(S.BasinCentre) + FVector2D(S.BasinHalfExtent);
+	auto RouteDistance = [this](float X, float Y)
+	{
+		float Best = 1e9f;
+		for (const FTDCourseKeepOut& K : KeepOuts)
+		{
+			if (K.Kind != TEXT("Route")) { continue; }
+			for (int32 i = 0; i + 1 < K.Points.Num(); ++i)
+			{
+				const FVector C = FMath::ClosestPointOnSegment(FVector(X, Y, 0.f), FVector(K.Points[i].X, K.Points[i].Y, 0.f), FVector(K.Points[i + 1].X, K.Points[i + 1].Y, 0.f));
+				Best = FMath::Min(Best, FVector2D::Distance(FVector2D(C.X, C.Y), FVector2D(X, Y)) - K.HalfWidth);
+			}
+		}
+		return Best;	// beyond the route's walking half width
+	};
+	const float Base = Planet == ETDDestination::Verdance ? 0.85f : 0.5f;
+	for (int32 iy = FMath::FloorToInt(Lo.Y / Spacing); iy <= FMath::CeilToInt(Hi.Y / Spacing); ++iy)
+	{
+		for (int32 ix = FMath::FloorToInt(Lo.X / Spacing); ix <= FMath::CeilToInt(Hi.X / Spacing); ++ix)
+		{
+			const float X = (ix + TDScatter_Hash01(Seed, ix, iy, 1)) * Spacing;
+			const float Y = (iy + TDScatter_Hash01(Seed, ix, iy, 2)) * Spacing;
+			if (X < Lo.X || X > Hi.X || Y < Lo.Y || Y > Hi.Y) { continue; }
+			// every keep-out except the routes (sites, encounters, spawn rings, triggers, structures, the bridge, the pad);
+			// the routes themselves get sparse non-colliding cover so the walked line reads trodden, not bare
+			bool bClear = true;
+			for (const FTDCourseKeepOut& K : KeepOuts)
+			{
+				if (K.Kind == TEXT("Route") || !K.Box.IsValid) { continue; }
+				if (X > K.Box.Min.X - 150.f && X < K.Box.Max.X + 150.f && Y > K.Box.Min.Y - 150.f && Y < K.Box.Max.Y + 150.f) { bClear = false; break; }
+			}
+			if (!bClear) { continue; }
+			// trodden: 15 % on the walked centre line (distance -700), rising to full ~4 m beyond the route's edge
+			const float Trodden = FMath::Lerp(0.15f, 1.f, FMath::SmoothStep(-500.f, 400.f, RouteDistance(X, Y)));
+			// clumps, not an even carpet: the 30 m noise gathers the cover into patches with bare ground between
+			const float Patch = FMath::Clamp(0.55f + 0.8f * FTDTerrainField::Noise2D(X / 3000.f, Y / 3000.f, S.Seed + 777), 0.f, 1.f);
+			const float Roll = TDScatter_Hash01(Seed, ix, iy, 3);
+			if (Roll > Base * Trodden * Patch + 0.06f) { continue; }	// a few stones even on the trodden edges
+			const float Pk = TDScatter_Hash01(Seed, ix, iy, 4);
+			const int32 Kind = Pk < 0.14f ? TDScatter_OneOf(R.CoursePebbles, Pk / 0.14f)
+				: (Pk < 0.2f ? TDScatter_OneOf(R.CourseAccent, (Pk - 0.14f) / 0.06f) : TDScatter_OneOf(R.CourseCover, (Pk - 0.2f) / 0.8f));
+			if (!Kinds.IsValidIndex(Kind)) { continue; }
+			const FTDScatterKind& K = Kinds[Kind];
+			const float Sc = FMath::Lerp(K.MinScale, K.MaxScale, TDScatter_Hash01(Seed, ix, iy, 5));
+			const float Yaw = TDScatter_Hash01(Seed, ix, iy, 6) * 360.f;
+			const FRotator Rot = K.bTumble ? FRotator(TDScatter_Hash01(Seed, ix, iy, 7) * 30.f - 15.f, Yaw, TDScatter_Hash01(Seed, ix, iy, 8) * 30.f - 15.f) : FRotator(0.f, Yaw, 0.f);
+			Out.Near[Kind].Add(FTransform(Rot, FVector(X, Y, Field.Height(X, Y) - K.SinkCm * Sc), FVector(Sc)));
+		}
+	}
 }
 
 float FTDScatterPlan::ScarWeight(float X, float Y, float Margin) const
@@ -520,6 +603,7 @@ void FTDScatterPlan::Generate(const FTDTerrainField& Field, FTDScatterResult& Ou
 		RunLayer(Field, DenseTreeSpacing, 301, Around, ModeDense, true, Out.Near, Out.Far);
 	}
 	RunLayer(Field, CanopySpacing, 401, Zone, ModeCanopy, true, Out.Near, Out.Far);
+	RunCourseGround(Field, Out);
 	if (ScorchKind != INDEX_NONE && ScarHalfB > 0.f)
 	{
 		// Scorch marks down the scar's centre line every ~22 m, jittered across it and laid on the slope.

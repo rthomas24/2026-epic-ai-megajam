@@ -1,0 +1,80 @@
+[
+ {
+  "asset": "SM_Kit_BayMouthFrame",
+  "min_cm": [
+   -1200.0,
+   -3300.0,
+   -2450.0
+  ],
+  "max_cm": [
+   302.0,
+   3300.0,
+   2450.0
+  ],
+  "size_cm": [
+   1502.0,
+   6600.0,
+   4900.0
+  ],
+  "expected": [
+   [
+    -1200.0,
+    -3300.0,
+    -2450.0
+   ],
+   [
+    302.0,
+    3300.0,
+    2450.0
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 4988,
+  "materials": [
+   "M_Kit_Dom",
+   "M_Kit_Ember"
+  ],
+  "collision_hulls": 0,
+  "bevel_verts_clamped": 16,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_BayGuideLight",
+  "min_cm": [
+   -300.0,
+   -300.0,
+   -200.0
+  ],
+  "max_cm": [
+   300.0,
+   300.0,
+   200.0
+  ],
+  "size_cm": [
+   600.0,
+   600.0,
+   400.0
+  ],
+  "expected": [
+   [
+    -300.0,
+    -300.0,
+    -200.0
+   ],
+   [
+    300.0,
+    300.0,
+    200.0
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 532,
+  "materials": [
+   "M_Kit_Dom",
+   "M_Kit_Work"
+  ],
+  "collision_hulls": 0,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ }
+]

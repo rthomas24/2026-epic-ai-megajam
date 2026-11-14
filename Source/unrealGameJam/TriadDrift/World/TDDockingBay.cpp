@@ -31,6 +31,8 @@ ATDDockingBay::ATDDockingBay()
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
 	UStaticMesh* CubeMesh = Cube.Succeeded() ? Cube.Object : nullptr;
+	FallbackCube = CubeMesh;
+	FallbackSphere = Sphere.Succeeded() ? Sphere.Object : nullptr;
 	auto Part = [this, CubeMesh](const TCHAR* Name)
 	{
 		UStaticMeshComponent* C = CreateDefaultSubobject<UStaticMeshComponent>(Name);
@@ -58,36 +60,67 @@ ATDDockingBay::ATDDockingBay()
 
 void ATDDockingBay::BuildPlaceholder()
 {
-	// Doors on the bow face (+X out): two dark slabs that slide apart, a red-orange frame, white guide lights.
+	// Doors on the bow face (+X out): two dark slabs that slide apart behind the mouth frame.
 	const float H = DoorHalfWidth * 0.7f;
 	DoorLeft->SetRelativeScale3D(FVector(300.f, DoorHalfWidth, H * 2.f) / 100.f);
 	DoorRight->SetRelativeScale3D(FVector(300.f, DoorHalfWidth, H * 2.f) / 100.f);
 	DoorLeft->SetRelativeLocation(FVector(0.f, -DoorHalfWidth * 0.5f, 0.f));
 	DoorRight->SetRelativeLocation(FVector(0.f, DoorHalfWidth * 0.5f, 0.f));
-	// T1 (Nov 14, docking2/H2_10): the frame was one solid lit slab across the mouth, and the glide flew the camera through
-	// it (a frame of solid yellow). Now it is four edge bars (Frame is the top one) that leave the opening clear.
-	const float BarT = DoorHalfWidth * 0.3f;
-	const FVector Outer(150.f, DoorHalfWidth * 2.6f, H * 2.6f);
-	Frame->SetRelativeScale3D(FVector(Outer.X, Outer.Y, BarT) / 100.f);
-	Frame->SetRelativeLocation(FVector(-200.f, 0.f, (Outer.Z - BarT) * 0.5f));
-	FrameBars->ClearInstances();
-	FrameBars->AddInstance(FTransform(FRotator::ZeroRotator, FVector(-200.f, 0.f, -(Outer.Z - BarT) * 0.5f), FVector(Outer.X, Outer.Y, BarT) / 100.f));
-	for (const float Side : { -1.f, 1.f })
-	{
-		FrameBars->AddInstance(FTransform(FRotator::ZeroRotator, FVector(-200.f, Side * (Outer.Y - BarT) * 0.5f, 0.f), FVector(Outer.X, BarT, Outer.Z) / 100.f));
-	}
 	UTDStatics::TintPlaceholder(DoorLeft, FLinearColor(0.02f, 0.02f, 0.025f), 0.f);
 	UTDStatics::TintPlaceholder(DoorRight, FLinearColor(0.02f, 0.02f, 0.025f), 0.f);
-	UTDStatics::TintPlaceholder(Frame, FLinearColor(1.f, 0.3f, 0.05f), 4.f);
-	UTDStatics::TintPlaceholder(FrameBars, FLinearColor(1.f, 0.3f, 0.05f), 4.f);
-	UTDStatics::TintPlaceholder(GuideLights, FLinearColor(1.f, 1.f, 1.f), 12.f);
+
+	// Lead (Nov 14, #126 step 2): the structures builder's mouth frame (dark trim, thin ember strips, a dark door recess;
+	// pivot = the mouth centre, +X out, opening clear at |y| <= 2500, |z| <= 1750) and guide-light housing, by soft path
+	// (Gameplay/Props: always cooked). Missing meshes fall back to the dimmed cubes and spheres.
+	UStaticMesh* FrameArt = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_BayMouthFrame.SM_Kit_BayMouthFrame"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+	UStaticMesh* GuideArt = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_BayGuideLight.SM_Kit_BayGuideLight"), nullptr, LOAD_NoWarn | LOAD_Quiet);
+	bArtFrame = FrameArt != nullptr;
+	FrameBars->ClearInstances();
+	if (FrameArt)
+	{
+		Frame->SetStaticMesh(FrameArt);
+		Frame->EmptyOverrideMaterials();
+		Frame->SetRelativeTransform(FTransform::Identity);
+		FrameBars->SetVisibility(false);
+	}
+	else
+	{
+		// The fallback: four edge bars that leave the opening clear (T1, docking2/H2_10: one solid lit slab across the
+		// mouth filled a frame with yellow). Frame is the top bar. Emissive x1.5 (x4 washed the bay out with bloom).
+		if (FallbackCube) { Frame->SetStaticMesh(FallbackCube); }
+		const float BarT = DoorHalfWidth * 0.3f;
+		const FVector Outer(150.f, DoorHalfWidth * 2.6f, H * 2.6f);
+		Frame->SetRelativeScale3D(FVector(Outer.X, Outer.Y, BarT) / 100.f);
+		Frame->SetRelativeLocation(FVector(-200.f, 0.f, (Outer.Z - BarT) * 0.5f));
+		FrameBars->SetVisibility(true);
+		FrameBars->AddInstance(FTransform(FRotator::ZeroRotator, FVector(-200.f, 0.f, -(Outer.Z - BarT) * 0.5f), FVector(Outer.X, Outer.Y, BarT) / 100.f));
+		for (const float Side : { -1.f, 1.f })
+		{
+			FrameBars->AddInstance(FTransform(FRotator::ZeroRotator, FVector(-200.f, Side * (Outer.Y - BarT) * 0.5f, 0.f), FVector(Outer.X, BarT, Outer.Z) / 100.f));
+		}
+		UTDStatics::TintPlaceholder(Frame, FLinearColor(1.f, 0.3f, 0.05f), 1.5f);
+		UTDStatics::TintPlaceholder(FrameBars, FLinearColor(1.f, 0.3f, 0.05f), 1.5f);
+	}
+
+	// Guide lights down the approach axis: the housing mesh at scale 1 with its own material, else dim white spheres.
+	if (GuideArt)
+	{
+		GuideLights->SetStaticMesh(GuideArt);
+		GuideLights->EmptyOverrideMaterials();
+	}
+	else
+	{
+		if (FallbackSphere) { GuideLights->SetStaticMesh(FallbackSphere); }
+		UTDStatics::TintPlaceholder(GuideLights, FLinearColor(1.f, 1.f, 1.f), 3.f);
+	}
 	GuideLights->ClearInstances();
+	const FVector GuideScale(GuideArt ? 1.f : 2.f);
 	for (int32 i = 1; i <= 12; ++i)
 	{
 		const float X = i * (ConeDepth / 13.f);
 		for (const float Side : { -1.f, 1.f })
 		{
-			GuideLights->AddInstance(FTransform(FRotator::ZeroRotator, FVector(X, Side * (DoorHalfWidth + X * 0.08f), -H), FVector(6.f)));
+			GuideLights->AddInstance(FTransform(FRotator::ZeroRotator, FVector(X, Side * (DoorHalfWidth + X * 0.08f), -H), GuideScale));
 		}
 	}
 }
@@ -243,6 +276,7 @@ void ATDDockingBay::BeginGlide(ATDShip* Ship)
 	DockingState = ETDDockingState::Gliding;
 	GlideTime = 0.f;
 	HoldTime = 0.f;
+	bGlideLocSet = false;
 	GlideFrom = Ship->GetActorLocation();
 	GlideFromRot = Ship->GetActorQuat();
 	// The glide carries on at the arrival speed and settles over the pad, never faster than the ship's boost (T1, live: a
@@ -371,6 +405,18 @@ void ATDDockingBay::Tick(float DeltaSeconds)
 			DockingState = ETDDockingState::Open;
 			return;
 		}
+		// T2 (played, Nov 14): a dev teleport during the glide (TD.Travel.ToDock) was undone by the next tick. A ship that
+		// was moved by something else lets go of the glide: the bay stays open and the approach starts again.
+		if (bGlideLocSet && FVector::DistSquared(Ship->GetActorLocation(), LastGlideLoc) > FMath::Square(2000.f))
+		{
+			ReleaseShip();
+			ReleaseWingmen();
+			DockingState = ETDDockingState::Open;
+			GlideTime = 0.f;
+			bGlideLocSet = false;
+			ShowApproachMarker(true);
+			return;
+		}
 		GlideTime += DeltaSeconds;
 		TickWingmen(DeltaSeconds);
 		const float T = FMath::Clamp(GlideTime / FMath::Max(GlideDuration, 0.1f), 0.f, 1.f);
@@ -378,6 +424,8 @@ void ATDDockingBay::Tick(float DeltaSeconds)
 		const float E = (T * T * T - 2.f * T * T + T) * GlideStartSlope + (3.f * T * T - 2.f * T * T * T);
 		const FVector To = GetMouth() - GetOutward() * GlideDepth;
 		Ship->SetActorLocationAndRotation(FMath::Lerp(GlideFrom, To, E), FQuat::Slerp(GlideFromRot, (-GetOutward()).ToOrientationQuat(), E));
+		LastGlideLoc = Ship->GetActorLocation();
+		bGlideLocSet = true;
 		if (T >= 1.f)
 		{
 			// T1 (live, Nov 14): commit to load is now ~5 s, which cut the Docking lines (G6 cover-the-bay, C7 way-out).
@@ -472,6 +520,7 @@ void ATDDockingBay::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 bool ATDDockingBay::IsMouthClear(float HalfClearance) const
 {
+	if (bArtFrame) { return HalfClearance <= 1750.f; }	// the art frame's opening: |y| <= 2500, |z| <= 1750 (its builder's contract)
 	// The glide's path through the frame's depth, in the bay's space (+X out of the mouth).
 	const FBox Path(FVector(-1000.f, -HalfClearance, -HalfClearance), FVector(1000.f, HalfClearance, HalfClearance));
 	const FBox Unit(FVector(-50.f), FVector(50.f));	// /Engine/BasicShapes/Cube

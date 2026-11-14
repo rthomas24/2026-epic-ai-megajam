@@ -1,5 +1,7 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
+#include "TriadDrift/Director/Intro/TDIntroDirector.h"
+#include "TriadDrift/Director/Menu/TDMenuBackdrop.h"
 
 #include "Misc/PackageName.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
@@ -95,6 +97,9 @@ void ATDPlanetAtmosphere::ApplyLook()
 	Set(AtmosphereLook, bArtLook ? Load(Look.Atmosphere) : nullptr, Mat(Look.AtmosphereMaterial));
 	Set(RingLook, bArtLook ? Load(Look.Ring) : nullptr, Mat(Look.RingMaterial));
 	if (RingPivot) { RingPivot->SetRelativeRotation(FRotator(0.f, 0.f, Look.RingTiltDeg)); }
+	// Issue #90 item 5: where the ring crosses the planet the additive atmosphere shell drew over it (same sort centre)
+	// and smeared it into a blurry teal patch: the ring sorts after the atmosphere, crisp over the haze.
+	if (RingLook) { RingLook->SetTranslucentSortPriority(1); }
 	// The sphere stays for collision; it only draws when there is no art.
 	PlanetMesh->SetVisibility(!bArtLook);
 }
@@ -303,6 +308,14 @@ void ATDPlanetAtmosphere::UpdateBeacon(const FVector& ViewLocation)
 {
 	if (!PadBeacon || !bGlobeBaked)
 	{
+		return;
+	}
+	// Issue #90 (Nicholas, items 1 and 7): on the main menu's planet and in the intro's eclipse shot the landing-site
+	// light read as a white object on the planet's top. It is a gameplay marker: never in the menu or the intro.
+	const UTDIntroDirector* Intro = UTDIntroDirector::Get(this);
+	if (Cast<ATDMenuBackdrop>(GetOwner()) || (Intro && Intro->IsPlaying()))
+	{
+		PadBeacon->SetVisibility(false);
 		return;
 	}
 	const FVector Centre = GetPlanetCenter();

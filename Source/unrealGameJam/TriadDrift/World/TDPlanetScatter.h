@@ -69,6 +69,7 @@ struct UNREALGAMEJAM_API FTDScatterPlan
 	float RockSpacing = 4000.f;
 	float GroveSpacing = 1600.f;
 	float GroundSpacing = 650.f;		// near ring
+	float CourseGroundSpacing = 380.f;	// s20: ground detail inside the course's ground box
 	float KeepOutMargin = 3000.f;	// around the course's ground box
 	float CollisionRadius = 40000.f;	// instances this close to the ground box collide on foot (zone layer: full forest)
 	float MidCell = 20000.f, MidRadius = 80000.f;
@@ -115,6 +116,7 @@ struct UNREALGAMEJAM_API FTDScatterPlan
 	TArray<int32> RingKinds(ETDScatterRing Ring) const;
 
 private:
+	void RunCourseGround(const FTDTerrainField& Field, FTDScatterResult& Out) const;
 	void RunLayer(const FTDTerrainField& Field, float Spacing, int32 Salt, const FBox2D& Rect, int32 Mode, bool bParallel,
 		TArray<TArray<FTransform>>& OutNear, TArray<TArray<FTransform>>& OutFar) const;
 	int32 Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM, float Rnd, float Stand) const;

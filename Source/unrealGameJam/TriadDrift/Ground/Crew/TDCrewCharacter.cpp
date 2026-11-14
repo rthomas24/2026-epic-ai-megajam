@@ -31,6 +31,7 @@
 #include "GameFramework/WorldSettings.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Ground/Crew/TDFutureCrew.h"
 #include "Animation/AnimSequenceBase.h"
 #include "Materials/MaterialInterface.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
@@ -138,6 +139,20 @@ void ATDCrewCharacter::UpdateFallbackLoop()
 		return;
 	}
 	const float Speed = (float)GetVelocity().Size2D();
+	if (bPilotLook)
+	{
+		// The future pilots move like the player's own body: the blade idle, then the pilot's walk and run.
+		const UTDPilotVisuals* V = Cast<UTDPilotVisuals>(FindLookAsset(TEXT("DA_Pilot_Visuals"), UTDPilotVisuals::StaticClass()));
+		const int32 Want = Speed < 40.f ? 0 : Speed < 300.f ? 1 : 2;
+		UAnimSequenceBase* Loop = Want == 0 ? TDFutureCrew::PilotAnim(TEXT("A_Pilot_Blade_Idle")) : nullptr;
+		if (!Loop && V) { Loop = Want == 1 ? V->Walk.LoadSynchronous() : Want == 2 ? V->Run.LoadSynchronous() : V->Idle.LoadSynchronous(); }
+		if (Loop)
+		{
+			const float Ref = Want == 1 ? 200.f : Want == 2 ? 450.f : 0.f;
+			Loops->SetLoop(Loop, Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.5f) : 1.f);
+		}
+		return;
+	}
 	if (Loops->bProcedural)
 	{
 		const float Dt = GetWorld() ? GetWorld()->GetDeltaSeconds() : 0.f;
@@ -383,8 +398,10 @@ void ATDCrewCharacter::StopDroneThrusters()
 
 void ATDCrewCharacter::FellOutOfWorld(const UDamageType& DmgType)
 {
-	// Knocked or walked off the map: that's a death (encounters must see it), then clean up.
-	if (Health && Health->IsAlive())
+	// Knocked or walked off the map: that's a death (encounters must see it), then clean up. A boss is not killed by the
+	// map: it leaves alive, and its room puts it back (T3, Nov 14: a Warden through the kill-Z counted as killed, its
+	// room cleared and the scene completed without the fight).
+	if (Health && Health->IsAlive() && Spec.Type != ETDCrewType::Warden)
 	{
 		Health->Kill(nullptr, ETDDamageKind::Environmental);
 	}
@@ -570,6 +587,14 @@ void ATDCrewCharacter::PlayFallbackAnim(const TCHAR* AssetPath, float Rate)
 		return;
 	}
 	UTDLoopBlendAnimInstance* Loops = Cast<UTDLoopBlendAnimInstance>(GetMesh()->GetAnimInstance());
+	if (bPilotLook)
+	{
+		if (UAnimSequenceBase* Clip = TDFutureCrew::PilotAnim(PilotClipFor(AssetPath)); Loops && Clip)
+		{
+			Loops->PlayOneShot(Clip, Rate);
+		}
+		return;
+	}
 	const FString Own = CrewAnimPath(AssetPath);
 	UAnimSequenceBase* Seq = Own.IsEmpty() ? nullptr : TDAssetCache::Find<UAnimSequenceBase>(Own);
 	if (Loops && Seq)
@@ -595,8 +620,36 @@ const TCHAR* ATDCrewCharacter::FallbackDeathAnim(const FVector& HitDirection) co
 	return Right >= 0.f ? TDCrewAnims::DeathRight : TDCrewAnims::DeathLeft;
 }
 
+const TCHAR* ATDCrewCharacter::PilotClipFor(const TCHAR* TemplatePath)
+{
+	using namespace TDCrewAnims;
+	return TemplatePath == Melee ? TEXT("A_Pilot_Blade_Light1") : TemplatePath == Slam ? TEXT("A_Pilot_Blade_HeavyLunge")
+		: TemplatePath == Hit ? TEXT("A_Pilot_Blade_HitFront") : TemplatePath == DeathFront ? TEXT("A_Pilot_Death_Front")
+		: TemplatePath == DeathBack ? TEXT("A_Pilot_Death_Back") : TemplatePath == DeathLeft ? TEXT("A_Pilot_Death_Left")
+		: TemplatePath == DeathRight ? TEXT("A_Pilot_Death_Right") : nullptr; // no rifle on a pilot
+}
+
 void ATDCrewCharacter::ApplyVisuals()
 {
+	// The future crew (N-052): the pilot rig with a blade in the pilot's colour, unless a crew look of its own exists.
+	if (Spec.Type == ETDCrewType::FutureCrew && (!Visuals || Visuals->SkeletalMesh.IsNull()))
+	{
+		if (TDFutureCrew::ApplyPilotLook(GetMesh(), Spec.CapsuleHalfHeight))
+		{
+			bFallbackAnim = true;
+			bPilotLook = true;
+			RefHeadHeight = 0.f; // the pilot clips are retargeted for this rig: no collapse guard
+			if (!PilotBlade)
+			{
+				PilotBlade = TDFutureCrew::AttachBlade(this, GetMesh(), TDFutureCrew::ColorOf(FuturePilot));
+			}
+			Body->SetVisibility(false);
+			Eyes->SetVisibility(false);
+			UpdateFallbackLoop();
+			return;
+		}
+	}
+	bPilotLook = false;
 	if (Visuals && !Visuals->SkeletalMesh.IsNull())
 	{
 		if (USkeletalMesh* SK = Visuals->SkeletalMesh.LoadSynchronous())
@@ -1077,7 +1130,8 @@ bool ATDCrewCharacter::IsInShieldArc(const FVector& WorldLocation) const
 
 float ATDCrewCharacter::FilterDamage(const FTDDamageInfo& Info)
 {
-	if (!Spec.bFrontalShield || IsGuardBroken() || Info.Kind != ETDDamageKind::Melee)
+	// A stagger (a parried swing, a perfect deflect) opens the guard too, while it lasts.
+	if (!Spec.bFrontalShield || IsGuardBroken() || IsStaggered() || Info.Kind != ETDDamageKind::Melee)
 	{
 		return Info.Amount;
 	}

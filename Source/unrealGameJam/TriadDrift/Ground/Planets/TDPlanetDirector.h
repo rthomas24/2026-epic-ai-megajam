@@ -83,6 +83,11 @@ public:
 	/** Hand control from the landed ship to the first-person character. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Planet")
 	bool HandOverToFoot(ATDShip* Ship);
+	/** The board prompt: the pilot's climb into the ship (A_Pilot_Board_Ship), then Reboard. */
+	bool BeginReboard();
+	bool IsReboardPending() const { return bReboardPending; }
+	bool bReboardPending = false;
+	FTimerHandle ReboardTimer;
 
 	/** Back into the ship and take off. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Planet")

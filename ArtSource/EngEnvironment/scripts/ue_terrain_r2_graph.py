@@ -88,7 +88,7 @@ SCALARS = {
     # s17: re-aimed at bearing 150 from the research site (61 % gentle ground, mean slope 0.09; the old line ran down the
     # Rift canyon, all walls): 200-700 m out, toward the site, left of the landing approach
     "ScarAX": (-5800.0, 0.0), "ScarAY": (17200.0, 0.0), "ScarBX": (-49100.0, 0.0), "ScarBY": (42200.0, 0.0),
-    "ScarHalfA": (5000.0, 0.0), "ScarHalfB": (14000.0, 0.0), "ScarEmber": (4.0, 0.0),   # s15: from 340 m up it read as a thin line
+    "ScarHalfA": (7000.0, 0.0), "ScarHalfB": (16000.0, 0.0), "ScarEmber": (5.0, 0.0),   # s19: 70-160 m, read from the 450 m approach
 }
 VECTORS = {
     # R3 (Verdance): A = teal moss, B = bright yellow-green moss (open meadow side), C = blue-teal glade
@@ -280,7 +280,14 @@ def build_graph(b, t, means):
         bc, nr = "T_Terr_%s_BC" % LAYERS[slot][0], "T_Terr_%s_N" % LAYERS[slot][0]
         d = detail(tex(slot + "BC", bc, ST.SAMPLERTYPE_COLOR, uvn), tex(slot + "BC", bc, ST.SAMPLERTYPE_COLOR, uvf), slot)
         return d, rgb(tex(slot + "N", nr, ST.SAMPLERTYPE_NORMAL, uvn))
-    flat_d, flat_n = top("Flat")
+    # s19 (walking distance): the 4 m flat tile repeated visibly around the paths. A second copy of the set, rotated 37 deg
+    # at 1.37x, is blended in by the 37 m noise, so within ~10 m of the pilot no two tiles match; colour and normal both.
+    fbc0, fnr0 = "T_Terr_%s_BC" % LAYERS["Flat"][0], "T_Terr_%s_N" % LAYERS["Flat"][0]
+    uvn2 = rot_uv(37.0, mul(tile, 1.37), (0.31, 0.57))
+    anti = sat(mul(sub(add(mul(c(nS, "R"), 0.7), mul(c(nM, "G"), 0.3)), 0.5), 3.0))
+    flat_near = lerp(rgb(tex("FlatBC", fbc0, ST.SAMPLERTYPE_COLOR, uvn)), rgb(tex("FlatBC", fbc0, ST.SAMPLERTYPE_COLOR, uvn2)), anti)
+    flat_d = detail(flat_near, tex("FlatBC", fbc0, ST.SAMPLERTYPE_COLOR, uvf), "Flat")
+    flat_n = lerp(rgb(tex("FlatN", fnr0, ST.SAMPLERTYPE_NORMAL, uvn)), rgb(tex("FlatN", fnr0, ST.SAMPLERTYPE_NORMAL, uvn2)), anti)
     # R3 pass 4 (flight distances): where the near / far texture tiles have faded to the plain mean (beyond ~0.5 km), the
     # flat layer gets a macro tile instead: the same moss set at two big rotated scales (60 m and 240 m) cross-faded by
     # camera distance, luminance only, so the ground keeps crisp structure from 120 m to ~2 km; gone by MacroFarEnd.
@@ -377,8 +384,10 @@ def build_graph(b, t, means):
     # s11: burnt ground, not a slab: black char and grey ash patches by two noises, the char strongest on the centre line
     ash = ramp(add(mul(c(nM, "B"), 0.6), mul(c(nS, "G"), 0.4)), 0.55, 0.15)
     # s15: mostly grey-brown ash with black char streaks (black alone vanished against the dark forest floor)
-    burnt = lerp(mul(b.const3(0.012, 0.010, 0.009), add(0.5, mul(c(nS, "B"), 1.0))), b.const3(0.085, 0.075, 0.065), sat(add(mul(ash, 0.8), 0.45)))
-    base = lerp(base, burnt, mul(un(E.MaterialExpressionSquareRoot, scar_w), 0.95))
+    # s19: near-black char core, a pale ash rim against the green (the contrast that reads from the approach)
+    rim = mul(sat(mul(scar_w, 4.0)), inv(ramp(scar_w, 0.35, 0.25)))
+    burnt = lerp(mul(b.const3(0.006, 0.005, 0.005), add(0.6, mul(c(nS, "B"), 0.8))), b.const3(0.2, 0.19, 0.17), sat(add(rim, mul(ash, 0.25))))
+    base = lerp(base, burnt, sat(mul(scar_w, 4.0)))
     rough = lerp(lerp(S("FlatRoughness"), S("PatchRoughness"), patch_w), S("LowRoughness"), low_w)
     rough = lerp(rough, S("WetRoughness"), mul(wet, c(nS, "R")))
     rough = lerp(lerp(rough, S("RockRoughness"), rock_w), S("PeakRoughness"), peak_w)
@@ -418,7 +427,8 @@ def build_graph(b, t, means):
     e_pk = mul(peak_c, mul(peak_w, S("PeakGlow")))
     e_amb = mul(mul(base, Vp("AmbientTint")), mul(S("AmbientFloor"), inv(molten)))
     # s11: irregular embers: two noises at different scales, sparse at the edges (scar_w squared), none in the ash
-    ember = mul(sat(mul(sub(add(mul(c(nS, "B"), 0.55), mul(c(nM, "R"), 0.45)), 0.74), 9.0)), mul(mul(mul(scar_w, scar_w), inv(ash)), S("ScarEmber")))
+    # s19: fewer, larger ember patches (the 230 m noise thresholded high), only in the char core
+    ember = mul(sat(mul(sub(add(mul(c(nM, "R"), 0.7), mul(c(nS, "B"), 0.3)), 0.8), 8.0)), mul(ramp(scar_w, 0.5, 0.3), S("ScarEmber")))
     ember = mul(ember, inv(ramp(nslope, 0.2, 0.15)))   # s14: embers only on the flatter ground (on the hillside they stacked into a glowing column)
     e_amb = add(e_amb, mul(b.const3(1.0, 0.28, 0.04), ember))
     b.out(add(add(add(e_vein, e_patch), add(e_val, e_pk)), e_amb), "", MP.MP_EMISSIVE_COLOR)

@@ -52,6 +52,9 @@ public:
 	/** Every soft reference reachable from Object's properties (structs, arrays, maps and sets included). Music and
 	 *  ambience slots are left out: they stream on their own and would cost memory for the whole session. */
 	static void CollectSoftPaths(const UObject* Object, TArray<FSoftObjectPath>& Out);
+	/** Whether a warm folder's asset is warmed on this map (the galaxy skips the on-foot characters, the planets and the
+	 *  interior skip the fleet and the Dominion). */
+	static bool IsWantedForMap(const FString& PackagePath, const FString& MapName);
 
 	/** Another system's own list of what to warm (#89: T2's combat cues, classes, meshes). Called once per map start
 	 *  with the world (decide by map / phase); add object or class paths (FSoftClassPath is an FSoftObjectPath).
@@ -66,6 +69,7 @@ public:
 
 private:
 	void StartDataLoad();
+	bool IsWantedOnThisMap(const FString& PackagePath) const;
 	void OnDataLoaded();
 	void OnContentLoaded();
 	void FinishActivations(bool bAll);

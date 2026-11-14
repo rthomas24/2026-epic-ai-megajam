@@ -15,6 +15,8 @@
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Pawn.h"
 
 #define LOCTEXT_NAMESPACE "TDObjectiveText"
 
@@ -130,7 +132,7 @@ namespace TDObjectiveTextImpl
 			{
 				FName PromptId;
 				FText Prompt;
-				if (UTDTutorialPhases::GetPrompt(World, PromptId, Prompt))
+				if (Info.WaveNumber <= 2 && UTDTutorialPhases::GetPrompt(World, PromptId, Prompt)) // never past the tutorial (TD.Stage Wave3 showed it)
 				{
 					Out.Id = Scene; // the scene stays the wave (slates, takes); only the line changes
 					Out.Step = Info.WaveNumber;
@@ -141,7 +143,8 @@ namespace TDObjectiveTextImpl
 			Out.Id = Scene;
 			Out.Step = Info.WaveNumber;
 			// storyline.md section 13: nobody names the enemy (and Nicholas has no approved wave line yet).
-			Out.Text = FText::Format(LOCTEXT("Wave", "WAVE {0} · CLEAR THE AREA"), Info.WaveNumber);
+			// T4's per-wave objective (126b238d: wave 5 "BREAK THE DOMINION GUARD"), else the generic line.
+			Out.Text = !Info.ObjectiveText.IsEmpty() ? Info.ObjectiveText : FText::Format(LOCTEXT("Wave", "WAVE {0} · CLEAR THE AREA"), Info.WaveNumber);
 			return true;
 		}
 		const int32 Next = FMath::Max(Info.WaveNumber, P.WavesCleared) + 1;
@@ -313,6 +316,13 @@ void FTDObjectiveText::ComputeMarkers(UWorld* World, const FTDProgress& Progress
 		{
 			FText Unused;
 			Interior->GetIdleLine(Unused, Out); // the next room's door
+		}
+		// Through each doorway square-on: the marker is the next door between the pilot and the target.
+		const APlayerController* PC = World->GetFirstPlayerController();
+		const APawn* Pilot = PC ? PC->GetPawn() : nullptr;
+		if (Interior && Interior->IsInterior() && Pilot)
+		{
+			for (AActor*& M : Out) { M = Interior->RouteThroughDoors(Pilot->GetActorLocation(), M); }
 		}
 	}
 }
