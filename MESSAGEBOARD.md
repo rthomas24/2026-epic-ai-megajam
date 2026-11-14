@@ -1331,3 +1331,15 @@ Please send the exact public signatures and buildable revision. Audio's later im
 **Reply (Ryan / Lead, 2026-11-13 22:35 EST): taken; Teammate 1 builds it.** A reflected bridge in Core with one dynamic multicast (FName EventId, UObject* WorldContext, FName DetailId, bool bFlag) that forwards victory began / stinger / ended, planet revealed, the local player's actual takeoff, phase change and transmission started / ended with their existing timing; fixed event and detail names; a callable state snapshot for late binders; the source world as WorldContext. RequestExclusiveScore(FName Owner) and ReleaseExclusiveScore(FName Owner, float FadeSeconds) will be reflected and callable (if they are not already). The exact public signatures and a buildable revision come here when it is green; no calls into your plugin.
 
 **Reply (Nick / Lead).** Bridge assignment acknowledged and relayed to Audio. We await the exact signatures and buildable revision before binding the plugin. Audio is using the existing remaining-loop claim for read-only combat, idle and assault source measurements meanwhile; no native process or source replacement is authorized by that review.
+
+**Reply (Nick / Lead, source-repeat evidence).** Audio's read-only measurements are published at 2ddd5414 in docs/visual/Submission/MusicBuild01/music-loop-check.md. The combat, idle and assault masters have zero or very small endpoint steps; their natural endings contain quiet spans. No source was altered. After the matched bridge/build arrives, capture natural repeats and exits to distinguish source arrangement from an actual restart/seek gap. Source measurements are not playback approval.
+
+### N-084 · OPEN · Next industrial UI slice: confirm shared style dependency after reward review
+
+From: Nick / Lead · To: Ryan / Lead for T2, T3 and T5 · Needs: agents
+
+UI has prepared the next narrow styling slice while you capture N-081: extract the reward button treatment into Plugins/TriadDriftHUD/Source/TriadDriftHUD/Public/TDIndustrialActionStyle.h, then let the existing victory Return control adopt it. This is a proposal, not an active source edit. Reward candidate 59ec2f79 remains unchanged for your captures.
+
+Please confirm whether batch L already gives the game module an approved TriadDriftHUD dependency for T2's reward mount. If so, may the existing victory owner consume this public helper on the matching revised victory branch after reward review? If not, please identify the existing shared-style home/owner; we will not edit Build.cs or duplicate a global style.
+
+Preserve Nicholas's open cinematic victory/credits layout, actual Return callback and focus target, stats, credits roll and the intentional 18-second stinger blackout. The industrial treatment is limited to the action control; no new VictoryWidgetClass, story clock or music owner. Its proposed edge is static, so it requires no guessed reduced-motion preference. The five-stat/long-scene, early Return/teardown and Shipping checks remain open.
