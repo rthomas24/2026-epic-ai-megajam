@@ -172,6 +172,30 @@ bool FTDT1LateWaveMusic::RunTest(const FString& Parameters)
 		if (Music) { AddInfo(FString::Printf(TEXT("Waves1to2 -> %s (style CombatMusic)"), *Music->GetName())); }
 		TestTrue(TEXT("waves 1-2: not the waves 3-5 track"), !Music || Music->GetPathName() != UTDMusicDirectorSubsystem::LateWaveFallbackPath().ToString());
 	}
+	{
+		// #139: a warm cache, then the switch goes off - the engineering fallback is no longer the track; on again, it is back.
+		TDT1Fallback::FRig R;
+		UTDGameInstance* GI = Cast<UTDGameInstance>(R.W.GetGameInstance());
+		IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Music.Fallback"));
+		if (!R.D || !GI || !CVar) { return false; }
+		ON_SCOPE_EXIT { CVar->Set(1, ECVF_SetByCode); };
+		GI->GetMutableProgress().Phase = ETDGamePhase::Waves3to4;
+		USoundBase* Music = nullptr;
+		for (int32 i = 0; i < 50 && !Music; ++i) { FlushAsyncLoading(); Music = R.D->GetResolvedCombatMusic(); R.W.Advance(0.05f); }
+		if (Music && R.D->IsLateWaveFallback())
+		{
+			CVar->Set(0, ECVF_SetByCode);
+			TestNull(TEXT("warm cache, fallback off: no engineering waves 3-5 track"), R.D->GetResolvedCombatMusic());
+			CVar->Set(1, ECVF_SetByCode);
+			TestTrue(TEXT("on again: back"), R.D->GetResolvedCombatMusic() == Music);
+		}
+		else if (Music)
+		{
+			// The control: an explicit CombatMusicLate style track is not a fallback - the switch does not touch it.
+			CVar->Set(0, ECVF_SetByCode);
+			TestTrue(TEXT("explicit style track: unaffected by the fallback switch"), R.D->GetResolvedCombatMusic() == Music);
+		}
+	}
 	return true;
 }
 

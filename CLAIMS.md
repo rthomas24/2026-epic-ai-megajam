@@ -18,6 +18,15 @@ AGENTS.md lifecycle conditions; branch publication alone does not release it.
 
 ## Nick-side current ownership and reservations
 
+**Lead team attribution reconciliation — completed in this commit, November 14:** Nicholas Lead claims `ArtSource/UI/TriadHUD/Unreal/Credits01/sections.json`, `docs/visual/Submission/itch-page.md`, `docs/visual/Submission/Trailer01/README.md`, this claim lifecycle and a dated `DEVLOG.md` entry. Synchronize source with Ryan Lead native credit correction94ea8edc and carry the requested full names/roles into submission text and final-video requirements. No binary edits or changes to historical readback evidence. Existing native credit asset and engineering rows remain untouched. Branch nick/lead-playtest-feedback-1114 fromdd139312; specialists remain paused.
+Source JSON and submission wording reconciled; no native asset edit. Claim releases after publication to main; packaged-roll verification and final video remain open.
+
+**Lead credits reconciliation — completed in this commit, November 14:** Nicholas Lead claims only the original Nicholas-authored historical source/audio rows and a separately qualified package-snapshot note in `CREDITS.md`, plus this claim lifecycle and a dated `DEVLOG.md` entry, on nick/lead-playtest-feedback-1114 from87815c4e. Applied the already-reviewed Issue Coordinator Submission137 ProposedPatch and qualified later package note; Ryan engineering/source rows and all other claims preserved. Diff and patch checks passed; no owned editing remains. Claim releases after this commit is published to main. Read-only evidence: historical ddc50a2f report and packaging owner scoped Shipping f40a39c3 inventory (#137 comment6882860191). No binary/native work, new inventory audit, final-package or listening/appearance acceptance. #181 name/role asset work remains separate. Specialists remain paused.
+
+**Lead bounded credits correction completed in this commit, November 14:** Nicholas Lead owns only the historical-package scope note and menu-music heading/status in CREDITS.md, plus this claim lifecycle and a dated DEVLOG entry, on nick/lead-playtest-feedback-1114 from91a70782. Reuse Auditor ResumeCredits01 and Issue Coordinator Submission137; no new inventory audit, binary/source asset changes, current-package inclusion claim or appearance/audio approval. Snapshot scope and menu-history wording corrected and diff-checked; no owned operation remains on these files. Other proposed credits corrections remain pending; Auditor and all specialists stay paused.
+
+
+
 **Lead lane update, November 14, 13:00 EST:** Continuing only the authorized systematic playtest/report lane and routine editorial coordination. Batch 3 and original media are delivered on #140. Runtime b5d1549c reached Dominion assault after natural Wave 5; private saves and all preserved source remain intact. The next private runtime rebuild is 8dce9161; builds/captures are bounded and do not update the human checkout. Earlier "no owned Unreal processes" statements describe their completed sessions, not a perpetual resource grant. Current process/state lives with Lead's local session receipts. No gameplay, binary or shared-source edit is claimed.
 
 **Issue Coordinator exception:** Nicholas separately authorized existing chat 01a1db03-716b-7920-bd0e-075a9cb95b08 to resolve eligible issues and conduct bounded source reviews. Writable review outputs are private Artifacts/IssueCoordinator/**; production remains read-only. #139's exact carry finding was source-reviewed, accepted by Ryan, fixed in 886ee784 / AY d1ae9b18 and source-rechecked; runtime proof stays with T3. Music138 is only a delta/disposition comparison of preserved Audio findings at 5e6ef16f, not an Audio production restart. Existing Story/UI/Audio/Auditor and their schedules stay paused.
@@ -297,7 +306,7 @@ Current resource checkpoint: Nick stopped the general campaign and revoked all p
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-14 12:30 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-14 14:35 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -321,6 +330,95 @@ Paths are under `Source/unrealGameJam/TriadDrift/` unless they start with `/` (r
 
 Workers commit only on their own branch and never pull, merge or push; the Lead integrates in
 `.wt/int`, builds, runs the headless suite, then fast-forwards and pushes `main`.
+
+### Current board, Nov 14 14:35 EST (supersedes the in-progress and queued rows of the 13:30 board below)
+
+**Main is d9f5ba70** (batch BM: animation round 2 275f5436, the blade's walking-streak fix 010ca3f6, the turret lock telegraph and switch-grace effects, built and seen in sheets, not yet wired) on top of BL dd139312, BK 87815c4e and BJ 043c4517 (compile-only gate). **Newest package:** Shipping TriadDrift_f40a39c3 (0.88 GB), played from the menu by T7 through wave 2 (on foot not reached in Shipping); next cook 14:30. Render turns as at 13:25 (three slots, `Builds/render-slot/can_launch.sh`). Nicholas told his Lead to make the call on anything pending his approval unless critical (#133, #136).
+
+| Owner | Now (in progress) | Next (queued, in order) | Items | Shared paths |
+|---|---|---|---|---|
+| Lead | Boards; hourly features.md alignment; the next batch | Ask Ryan to play the newest package; the #96 decision recorded (reactor door gated on the final record); Nicholas's Lead's calls (#133, #136, #171) | ENG-28 (integration), ENG-46 | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
+| T1 | **Main menu native styling, issue #142 (Nick's Lead accepted our offer), in progress since 14:35**; #159 the hint cards with T2 | The #138 check cases (bffd905a) to main; flight-feel leftovers | ART-09 (menu, by offer), ENG-36 (hints) | `Source/unrealGameJam/TriadDrift/Flow/TDFrontEndGameModes.*`; `DA_UI_Style` read-only |
+| T2 | #102 the Cloak hull swap compiled and seen; the 1.5 s grace after an auto-switch on death, wired to the switch-grace effect (ENG-18) | #100 a missile returned through a portal; #103 leftovers; #159; #133 the reward candidate captures | ENG-12, ENG-18 (grace), ENG-09, ENG-36 | `Combat/`, `Powers/`, HUD |
+| T3 | #96 the story state that gates the reactor door on the final record (Cinematic 08); #110 the docking lines | #139 the carry played check; Face to Face after Cinematic 08 in order and the skip; `Bark_Wipe` | ENG-42, ENG-29, ENG-43 | `Squad/`, `Director/`, `Story/` |
+| T4 | ENG-18 assault rebalance (generator hull 400 -> 250, turret damage and the lock telegraph wired, a fighter cap), then the four generators by real fire without god mode | #122 the pre-empt tell; #96 the Verdance and Cinder take-offs with their lines; the tractor beam and mine hooks for the effects builder (#105, #110) | ENG-18, ENG-42, ENG-43, ENG-29, ENG-37 | `Enemies/`, `Waves/`, `World/` |
+| T5 | #119 the anchor collapse's dropped sections showing; #96 the reactor door gate | The crew and Warden clips in fights (#164, #124); the hit-window log; the defenders frame; enemy separation from the pilot | ART-18, ENG-42, ART-08 | `Flow/` (except `TDFrontEndGameModes.*`, T1's now), `Ground/` |
+| T6 | #103 radar leftovers (the galaxy load fix 2cb0c27e is on main) | Performance on each new package | ENG-36, ENG-28 | `World/SpaceField/**`, HUD radar files agreed with T2 |
+| T7 | The 14:30 package played past wave 2 to on foot | #152 a package start to end once ENG-18 is rebalanced; Cloak in a fight (#102); #131 | ENG-46, ENG-28, ENG-12 | `docs/eng/PLAYTEST-*` |
+| Effects builder | The tractor beam v2 and the mine effect wired and seen (waiting on T4's hooks) | The hull-scale explosions on the breakup (#111); the Cloak look with T2 (#102) | ENG-37, ART-07, ART-16, ENG-12 (effect), ENG-29 | `Gameplay/VFX/**`, `DA_*_FX` |
+| Blade effects builder | #163 the walking-streak fix on main d9f5ba70, to be played | One sheet proving deflect, perfect deflect and the ignite flash | ART-08 (blade) | see the #163 row of 13:30 |
+| Animation builder | #164 round 2 on main d9f5ba70, to be played | The crew and Warden clips in fights with T5 (#124) | ART-08 (animation) | see the #164 row of 13:30 |
+| Environment builder | Placing Nicholas's three Fab props in the levels from code (imported 7dc8d2bf) | Polish (AAA list) | ART-13 follow-up (ART-13 done) | planet and sky materials; Fab prop placement code |
+| Structures builder (eng/struct) | **Intro cockpit canopies, issue #149 (Nick's Lead chose tinted glazing), in progress since 14:35**; #119 the collapse re-filmed after T5's fix | The story console look (#96) | B1-9 polish, ART-18 | ship canopy material instances under `Content/TriadDrift/Gameplay/**` |
+| Intake builder (`.wt/imp`, eng/import) | - | #178 the vehicles once their source is verified; #179 THE EARTH 3D and #180 the PipeBeam kit once their licence evidence is in | asset intake | `Content/TriadDrift/Gameplay/Props/Fab/**`, `ArtSource/EngProps/Fab/**`, `CREDITS.md` |
+| Packaging agent | The 14:30 cook from the newest main | A package every 30 minutes, launch-checked and handed to T7 | ENG-28 | isolated `.wt/pkg` |
+| Ship builder | Stopped (usage limit) | Restart only on the Lead's dispatch | - | squad and fleet visuals |
+| Character builder (not started) | - | Game-ready pilot meshes (#149, beyond the canopies; waits on an approved look) | polish (B1-9) | `ArtSource/EngCharacters/**` |
+| Grok Bot | No asks open (R-042) | Ask 5 (instanced set pieces) once its brief is posted | - | `ArtSource/EngAI/**` |
+
+Rows opened or closed Nov 14 14:35 (they supersede the same items' rows of 13:30 below):
+
+| Item | Owner | State | Paths |
+|---|---|---|---|
+| **Integration batches BI to BM** (BJ 043c4517, BK 87815c4e, BL dd139312, BM d9f5ba70) | Lead | done: on main by 14:35 EST (compile-only gate) | none |
+| #97 C-03 Director's Cut theme | T3 | done: played GOOD and closed; C-03 ✅ | none |
+| #95 ENG-44 ending and credits | T3 | done: played GOOD and closed; ENG-44 ✅ | none |
+| #94 ENG-32 on-foot camera and Settings | T3, T1 | done: played GOOD and closed; ENG-32 ✅ | none |
+| #125 ART-13 lighting and post-process (with #145, #148) | Environment builder | done: seen GOOD and closed; ART-13 ✅ (collapse lighting 1cea37ed) | none |
+| #156 pause bleed-through | T1 | done: closed GOOD | none |
+| #181 credits name (Ryan Thomas) | Lead (on Ryan's direct instruction) | done: c5f2fa0d (`DA_Credits`); Nick's side synced the credits source and itch draft at 94c4f12b | none |
+| #175 to #177 Fab props from Nicholas | Intake builder | done: imported 7dc8d2bf; placement is the environment builder's | none |
+| Galaxy load frame (ENG-28) | T6 | done: space field build 2,800 -> 165 ms (2cb0c27e) | none |
+| ENG-18 assault survivability (#152) | T4, T2 | in progress: NOT GOOD without god mode (22 deaths in 8 min, no generator down); rebalance and the 1.5 s grace | `Enemies/`, `Waves/`, `Combat/` |
+| #96 reactor reachable without the final record | T3, T5 | in progress: decision, the reactor door gated on it | `Story/`, `Ground/` |
+| **Main menu native styling (#142)** | T1 | in progress since 14:35 (Nick's Lead accepted our offer) | `Source/unrealGameJam/TriadDrift/Flow/TDFrontEndGameModes.*`; `DA_UI_Style` read-only |
+| **Intro cockpit canopies (#149, tinted glazing)** | Structures builder (eng/struct) | in progress since 14:35 (Nick's Lead's choice) | ship canopy material instances under `Content/TriadDrift/Gameplay/**` |
+
+### Current board, Nov 14 13:30 EST (supersedes the in-progress and queued rows of the 12:30 board below)
+
+**Main is 2a7ff74f** (the render-slot rule) on top of BH b8066135 (the new energy blade and the on-foot HUD card), BG f9574191, BF de4e53bf, BE 98c96926, BD 26bda51a, BC 8dce9161, BB 6c7521b8, BA 5e6ef16f, AZ 618921ef, AY d1ae9b18, AX b5d1549c, AW 7c7af25d and AV a14bf410 (compile-only gate). **Batch BI is compiling** (not on main). **Newest packages:** Shipping 4bbdd282 (0.879 GB, launch-checked) and adc75bc5 (played 6.5 min by T7). **Since 13:25 (Ryan):** three render slots behind a measured launch guard (`bash Builds/render-slot/can_launch.sh`; AGENTS.md §11, `Builds/render-slot/README.txt`), render turns of about 5 minutes (cap 10), a package every 30 minutes. Every Ryan-side item that is 🟨, 🟢 or 🐞 in features.md has a row here (C-03, ENG-09, 12, 18, 28, 29, 32, 36, 37, 42, 43, 44, 46, 47, ART-07, 08, 13, 16, 18).
+
+| Owner | Now (in progress) | Next (queued, in order) | Items | Shared paths |
+|---|---|---|---|---|
+| Lead | Gate and push batch BI; boards; hourly features.md alignment | Ask Ryan to play the newest package; relay Nicholas's answers (#171, #134, #136); review the intake builder's licence rows (#175 to #177) | ENG-28 (integration), ENG-46, ENG-47 | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
+| T1 | #138 the three bridge check cases (another instance's backdrop rejected, no callbacks after Deinitialize, late-bind snapshot) | Settings rows: the #156 frame of Settings over the pause screen; the Subtitle size row cut by the Back bar | ART-19 support, ENG-45 polish | `Travel/`, `Flight/`, `Input/`, `Core/TDMusicEventBridge.*` (N-082) |
+| T2 | HUD turns A-C: #159 hint cards (three ships, keyboard and pad, a switch); #100 a missile returned through a portal; #103 tractor plate, boost arc, toast, Large subtitle, CLOAKED flag (#102); #116 the VERIFIED flicker; #156; the HUD cost | #133 / #85 the reward candidate captures for Nicholas (1280x720, 1920x1080, 2560x1080; nothing activated) | ENG-36, ENG-09, ENG-12 (flag) | `Combat/`, `Powers/`, HUD |
+| T3 | #97 the slow-motion log line on a money shot; #94 subtitles off in combat and on foot | #95 the credits roll, RETURN TO MENU, no CONTINUE after victory; #139 the carry played check (quit to menu with a recording queued, New Game at once); Cinematic 08 order and skip (#96); `Bark_Wipe` | C-03, ENG-32, ENG-44, ENG-42, ENG-43 | `Squad/`, `Director/`, `Story/` |
+| T4 | #112 / #113: the four generators by real fire and the cut back to VICTORY (playing now) | #96 the Verdance and Cinder take-offs flown with their lines; #122 the pre-empt flash and the Anticipated bark; #110 the tractor beam in docking once the cone lands | ENG-18, ENG-47, ENG-42, ENG-43, ENG-29, ENG-37 | `Enemies/`, `Waves/`, `World/` |
+| T5 | #119 the collapse drop point moved 12-15 m out, checked at 10-15 s | The blade hit-window log; the story console frame; the defenders frame; enemy separation from the pilot (#164) | ART-18, ENG-42, ART-08 (separation) | `Flow/`, `Ground/` |
+| T6 | #103 radar leftovers (the post-wave header in BI, rings off the centre, pips after the text at 720p) | The 4.9 s galaxy load frame at climb-out (#121 finding) | ENG-36, ENG-28 | `World/SpaceField/**`, HUD radar files agreed with T2 |
+| T7 | On-foot blade and animation play (#163, #164) | Cloak in a fight (#102); a portal return; each new package played (#152); a start-to-end run (#131) | ENG-46, ENG-28, ENG-12, ART-08 | `docs/eng/PLAYTEST-*` |
+| Effects builder | The Cloak shell (#102) | The breakup explosions at hull scale (#111); the tractor beam cone and motes, the mines (#105) | ENG-12 (effect), ART-16, ART-07, ENG-37 | `Gameplay/VFX/**`, `DA_*_FX` |
+| Blade effects builder | #163 one more sheet: deflect, perfect deflect, the ignite flash (the blade is on main BH) | The sheet smaller and less flat at its widest (taste) | ART-08 (blade) | see the #163 row below |
+| Animation builder | #164 the out-of-combat idle blade stub; round 2 (idle v3, block v3, jump / fall / dash, foot IK) to main | The crew and Warden clips from Grok Bot's PRs #165 and #166 (#124) | ART-08 (animation) | see the #164 row below |
+| Environment builder | #145 the teal patch | #148 the opening shot; #158 canopy undersides; #125 per-level before / after | ART-13 | planet and sky materials |
+| Structures builder | #119 the collapse re-filmed from the shore after T5's move | The story console look (#96) | ART-18 | `Gameplay/Props/**` |
+| Intake builder (`.wt/imp`, eng/import) | #175 to #177: Nicholas's three Fab props (Free Crates, the power core, the oil barrel): contents checked, Fab listing, seller and licence in `CREDITS.md` (pages mark them AI-generated), import (Ryan approved the download) | #178 the vehicles once their source is verified; the Oodle RDO trial | ART-02 follow-up (asset intake) | `Content/TriadDrift/Gameplay/Props/Fab/**`, `ArtSource/EngProps/Fab/**`, `CREDITS.md` |
+| Packaging agent | A package every 30 minutes from the newest main, each launch-checked | Publish each as a private prerelease | ENG-28 | isolated `.wt/pkg` |
+| Ship builder | Stopped (usage limit) | Restart only on the Lead's dispatch | - | squad and fleet visuals |
+| Character builder (to be started by the Lead) | - | Game-ready pilot meshes (#149; waits on an approved look from Nicholas) | polish (B1-9) | `ArtSource/EngCharacters/**` |
+| Grok Bot | No asks open (R-042) | The next ask is posted on R-042 when there is one | - | `ArtSource/EngAI/**` |
+
+Rows opened or closed Nov 14 13:30 (they supersede the same items' rows of 12:30 below):
+
+| Item | Owner | State | Paths |
+|---|---|---|---|
+| **Integration batches AW to BH** (AW 7c7af25d, AX b5d1549c, AY d1ae9b18, AZ 618921ef, BA 5e6ef16f, BB 6c7521b8, BC 8dce9161, BD 26bda51a, BE 98c96926, BF de4e53bf, BG f9574191, BH b8066135) and the render-slot rule 2a7ff74f | Lead | done: on main 12:33 to 13:26 EST (compile-only gate) | none |
+| Integration batch BI (radar header, blade spark fix 3e3e7e70, music fallback switch ecb6776c) | Lead | in progress: compiling | none |
+| #161 ship stuck against a planet (ENG-38) | T1, T4 | done: played GOOD on main 98c96926, closed 13:21 EST; ENG-38 ✅ | none |
+| #160 flight HUD redesign (ENG-36) | T2, T6 | done: played GOOD, closed 12:52 EST (main through AU); leftovers on #103 (T2, T6) | none |
+| #153 performance, frame budget in the package (ENG-28) | T6 | done: measured GOOD, closed 12:55 EST; the dev stack dump behind `td.Debug.TeleportStack` (58036bc9, main BD) | none |
+| #127 ENG-45 settings and accessibility | T1, T5, T3 | done: measured GOOD, closed 13:06 EST; ENG-45 ✅ (Settings frame and Subtitle row to polish) | none |
+| #126 ART-15 Dominion bay mouth, interior and guide lights | T4, structures and environment builders | done: seen GOOD, closed 13:13 EST; ART-15 ✅ | none |
+| #121 ENG-35 fallback sound set | T1 | done: confirmed in play by log, closed 13:28 EST; ENG-35 ✅ | none |
+| #154 / #155 subtitle overflow and size (Nick's side's findings) | T2, T3 | done: closed by Nick's side 12:30 EST on main c58285f5 | none |
+| Story carry MAJOR (#139) | T3, T1 | in review: fixed on main d1ae9b18 (886ee784, 12:44 EST), source re-read OK by Nick's side; the played check is T3's | `Story/` |
+| Music fallback switch MINOR (#139) | T1 | in review: ecb6776c in batch BI | `Input/TDMusicDirectorSubsystem.*` |
+| Music bridge fixes (#138) | T1 | in review: fca00389 on main 98c96926 (13:09 EST), re-read OK by Nick's side; three check cases in progress | `Core/TDMusicEventBridge.*` |
+| #119 anchor collapse | T5, structures builder | in progress: 68607c8c on main BA, re-filmed NOT GOOD; the drop point moves | `Ground/`, `Gameplay/Props/**` |
+| **#163 energy blade remake** (Ryan's focus; under ART-08) | Blade effects builder (`.wt/blade`, eng/blade); T5 hooks code | in review: on main b8066135 (BH, 13:18 EST); beam, sheet, sparks, heavy fan, hit burst seen; deflect, perfect deflect and ignite to prove | `Content/TriadDrift/Gameplay/Props/Blade/**`, `Content/TriadDrift/Gameplay/VFX/**`, the blade files in `Source/unrealGameJam/TriadDrift/Ground/` (`TDEnergyBladeComponent.*`) |
+| **#164 pilot animation** (Ryan's focus; under ART-08) | Animation builder (`.wt/anim`, eng/anim) | in progress: round 1 on main a14bf410 (12:28 EST), played twice by T7 (idle stub and a Grunt inside the pilot NOT GOOD); round 2 on eng/anim | `Content/TriadDrift/Gameplay/Characters/Pilot/Anims/**`, `Source/unrealGameJam/TriadDrift/Ground/TDFirstPersonCharacter.*`, `Source/unrealGameJam/TriadDrift/Ground/TDPilotAnim.*` |
+| **#175 to #177 Fab props from Nicholas** (asset intake) | Intake builder (`.wt/imp`, eng/import) | in progress: Ryan approved the download; listing URLs supplied by Nick's side | `Content/TriadDrift/Gameplay/Props/Fab/**`, `ArtSource/EngProps/Fab/**`, `CREDITS.md` |
 
 ### Current board, Nov 14 12:30 EST (supersedes the in-progress and queued rows of the 11:30 board below)
 

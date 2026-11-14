@@ -45,7 +45,11 @@ public:
 	/** At most one tell in a wave (the clue stays rare and deniable). */
 	bool bOncePerWave = true;
 	/** The visible tell: a small pale flash at the enemy's nose as it turns (cm; 0 = none). */
-	float TellFlashRadius = 500.f;
+	float TellFlashRadius = 900.f;
+	/** The flash is held this long (s). */
+	float TellFlashSeconds = 0.4f;
+	/** An enemy within this angle of the camera's forward counts as in view (deg). */
+	float ViewConeHalfAngleDeg = 30.f;
 	int32 GetTellsThisWave() const { return TellsThisWave; }
 
 	int32 GetTellCount() const { return Tells; }
@@ -76,6 +80,9 @@ protected:
 	int32 Wave = 0;
 	int32 Tells = 0;
 	int32 TellsThisWave = 0;
+	TWeakObjectPtr<ATDEnemyShip> FlashEnemy;
+	float FlashLeft = 0.f;
+	float FlashTimer = 0.f;
 	double LastTellTime = -1e9;
 	float BindTimer = 0.f;
 	FRandomStream Rng{ 0x5EED };

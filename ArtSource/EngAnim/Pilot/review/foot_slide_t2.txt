@@ -1,0 +1,12 @@
+trace 0: 1.63 s, 64 frames, speed 0..650 cm/s, loops ['A_Pilot_Idle3_v3', 'A_Pilot_Run_v3', 'A_Pilot_Walk_v3'], legs ['None'], shots ['None']
+  foot L: planted 0.48 s, slid 34.9 cm (72 cm/s average while planted); worst 135 cm/s at t=16.37 loop=A_Pilot_Idle3_v3 legs=None shot=None
+  foot R: planted 0.44 s, slid 36.0 cm (83 cm/s average while planted); worst 135 cm/s at t=16.37 loop=A_Pilot_Idle3_v3 legs=None shot=None
+trace 1: 2.62 s, 150 frames, speed 0..950 cm/s, loops ['A_Pilot_Idle3_v3', 'A_Pilot_Run_v3'], legs ['None'], shots ['None']
+  foot L: planted 0.48 s, slid 19.4 cm (41 cm/s average while planted); worst 6871 cm/s at t=20.13 loop=A_Pilot_Run_v3 legs=None shot=None
+  foot R: planted 0.51 s, slid 22.2 cm (44 cm/s average while planted); worst 6871 cm/s at t=20.13 loop=A_Pilot_Run_v3 legs=None shot=None
+trace 2: 3.21 s, 167 frames, speed 0..650 cm/s, loops ['A_Pilot_Idle3_v3', 'A_Pilot_Run_v3', 'A_Pilot_Walk_v3'], legs ['None'], shots ['A_Pilot_Light1_v3', 'A_Pilot_Light2_v3', 'A_Pilot_Light3_v3', 'None']
+  foot L: planted 0.74 s, slid 44.7 cm (61 cm/s average while planted); worst 7434 cm/s at t=24.83 loop=A_Pilot_Run_v3 legs=None shot=None
+  foot R: planted 0.71 s, slid 18.4 cm (26 cm/s average while planted); worst 7434 cm/s at t=24.83 loop=A_Pilot_Run_v3 legs=None shot=None
+trace 3: 2.61 s, 125 frames, speed 0..300 cm/s, loops ['A_Pilot_Blade_Idle_v3', 'A_Pilot_Idle3_v3', 'A_Pilot_Run_v3'], legs ['A_Pilot_Jog_Left', 'A_Pilot_Walk_Left', 'A_Pilot_Walk_Right', 'None'], shots ['None']
+  foot L: planted 0.63 s, slid 8.9 cm (14 cm/s average while planted); worst 161 cm/s at t=33.07 loop=A_Pilot_Idle3_v3 legs=None shot=None
+  foot R: planted 0.53 s, slid 2.5 cm (5 cm/s average while planted); worst 436 cm/s at t=32.12 loop=A_Pilot_Run_v3 legs=A_Pilot_Jog_Left shot=None
