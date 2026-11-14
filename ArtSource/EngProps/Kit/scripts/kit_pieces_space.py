@@ -82,6 +82,9 @@ def _band(p, x0, x1, w=W_, h=H_):
         y = s * (w / 2 + 6.0)
         p.poly([(x0, y, -h * 0.1), (x1, y, -h * 0.1), (x1, y, h * 0.05), (x0, y, h * 0.05)], "frame", mat="Stripe", n=(0, s, 0),
                uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+        # r5: a steady dim cyan running glow under the band (the strobe alone is dark half the time)
+        p.poly([(x0, y + s * 1.0, -h * 0.16), (x1, y + s * 1.0, -h * 0.16), (x1, y + s * 1.0, -h * 0.12), (x0, y + s * 1.0, -h * 0.12)],
+               mat="CyanRun", n=(0, s, 0))
 
 
 def patrol_mid():
@@ -103,6 +106,7 @@ def patrol_mid():
     # the breach: a cold blue glow on the inner wall of the open side, and scorch round it
     p.poly([(-700.0, -2.0, -H_ * 0.4), (700.0, -2.0, -H_ * 0.4), (700.0, -2.0, H_ * 0.25), (-700.0, -2.0, H_ * 0.25)], mat="Breach", n=(0, -1, 0))
     p.box((-900.0, -W_ * 0.05, H_ * 0.3), (900.0, 0.0, H_ * 0.45), reg="wall", mat="Scorch")
+    _band(p, -880.0, 880.0)
     # outward breach on the intact +Y flank: a torn hole glowing cold blue, scorch round it
     p.poly([(-350.0, W_ / 2 + 4.0, -120.0), (350.0, W_ / 2 + 4.0, -120.0), (250.0, W_ / 2 + 4.0, 150.0), (-280.0, W_ / 2 + 4.0, 120.0)],
            mat="Breach", n=(0, 1, 0))
@@ -333,7 +337,7 @@ def null_rig():
     return p
 
 
-def _rock(p, R, seed, XC=None, BR=950.0, BD=2600.0, ZT=None, NU=48, NV=26):
+def _rock(p, R, seed, XC=None, BR=950.0, BD=2600.0, ZT=None, NU=48, NV=26, rim=False):
     """A lumpy asteroid on a lat / long grid. XC: a face cut flat at x = XC (slot Cut) with a bore of radius BR and depth
     BD into it (slot Bore). ZT: the top levelled at z = ZT (slot Cut: a pad the rigs flattened). Rock UVs tile 4 x 2 so
     the asteroid material's normal map keeps its scale."""
@@ -354,8 +358,9 @@ def _rock(p, R, seed, XC=None, BR=950.0, BD=2600.0, ZT=None, NU=48, NV=26):
             y = R[1] * k * math.sin(v) * math.sin(u)
             z = R[2] * k * math.cos(v)
             t = "rock"
-            if XC is not None and x > XC:
-                x, t = XC, "cut"
+            xc = XC(y, z) if callable(XC) else XC           # a callable XC gives a stepped (multi-plate) break
+            if XC is not None and x > xc:
+                x, t = xc, "cut"
                 if math.hypot(y - 200.0, z + 300.0) < BR:
                     x, t = XC - BD, "bore"
             if ZT is not None and z > ZT:
@@ -366,9 +371,9 @@ def _rock(p, R, seed, XC=None, BR=950.0, BD=2600.0, ZT=None, NU=48, NV=26):
             q = [pts[i, j], pts[(i + 1) % NU, j], pts[(i + 1) % NU, j + 1], pts[i, j + 1]]
             ks = {kind[i, j], kind[(i + 1) % NU, j], kind[(i + 1) % NU, j + 1], kind[i, j + 1]}
             pad = ks == {"pad"}
-            mat = "Bore" if "bore" in ks else ("Cut" if ks == {"cut"} or pad else "Rock")
+            mat = "Bore" if "bore" in ks else ("Cut" if ks == {"cut"} or pad else ("Rim" if rim and "cut" in ks else "Rock"))
             uvq = [(4.0 * i / NU, 2.0 * j / NV), (4.0 * (i + 1) / NU, 2.0 * j / NV), (4.0 * (i + 1) / NU, 2.0 * (j + 1) / NV), (4.0 * i / NU, 2.0 * (j + 1) / NV)]
-            if mat != "Rock":
+            if mat not in ("Rock", "Rim"):
                 uvq = [((q_[0] if pad else q_[1]) / 2000.0, (q_[1] if pad else q_[2]) / 2000.0) for q_ in q]
             if j == 0:
                 q, uvq = [q[0], q[2], q[3]], [uvq[0], uvq[2], uvq[3]]
@@ -377,7 +382,7 @@ def _rock(p, R, seed, XC=None, BR=950.0, BD=2600.0, ZT=None, NU=48, NV=26):
             cx = sum(a[0] for a in q) / len(q)
             cy = sum(a[1] for a in q) / len(q)
             cz = sum(a[2] for a in q) / len(q)
-            if mat == "Rock":
+            if mat in ("Rock", "Rim"):
                 nrm = (cx, cy, cz)
             elif pad:
                 nrm = (0.0, 0.0, 1.0)

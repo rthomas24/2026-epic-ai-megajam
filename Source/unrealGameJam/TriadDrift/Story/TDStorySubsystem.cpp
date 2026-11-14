@@ -95,7 +95,7 @@ namespace TDStory
 			E(TEXT("O_Command_Evade"), S::Command, LOCTEXT("O_Command_Evade", "Pilot, incoming fire! Evade now!")),
 			// Gameplay Sequence 01, the tutorial battle (storyline.md §13): the calls per phase. Drafts.
 			E(TEXT("TB_Kato_Marking"), S::Kato, LOCTEXT("TB_Kato_Marking", "Keep moving. I've marked one for you.")),
-			E(TEXT("TB_Moss_ThreeShips"), S::Moss, LOCTEXT("TB_Moss_ThreeShips", "We've still got three ships. Use them.")),
+			E(TEXT("TB_Moss_ThreeShips"), S::Moss, LOCTEXT("TB_Moss_ThreeShips", "You don't have to take them all yourself.") /* R011: the SWITCH / POWER prompt stays the instruction */),
 			E(TEXT("TB_Wren_Bigger"), S::Wren, LOCTEXT("TB_Wren_Bigger", "Gunship. Don't sit in front of it!")),
 			E(TEXT("TB_Command_FallBack"), S::Command, LOCTEXT("TB_Command_FallBack", "Triad, withdraw. Take the marked corridor.")),
 			E(TEXT("TB_Kato_BreakingOff"), S::Kato, LOCTEXT("TB_Kato_BreakingOff", "They're breaking off.")),
@@ -107,7 +107,7 @@ namespace TDStory
 			E(TEXT("S2_Kato_NotPursuing"), S::Kato, LOCTEXT("S2_Kato_NotPursuing", "Wait. Look behind us.")),
 			E(TEXT("S2_Kato_Vectors"), S::Kato, LOCTEXT("S2_Kato_Vectors", "Most of their fleet never even joined the fight.")),
 			E(TEXT("S2_Wren_WhatDoing"), S::Wren, LOCTEXT("S2_Wren_WhatDoing", "Would you rather they had?")),
-			E(TEXT("S2_Kato_Planetside"), S::Kato, LOCTEXT("S2_Kato_Planetside", "Heading planetside. Every group. Same destination.") /* R020 held: the draft's "it's us" trips the no-early-twist guard (Lead) */),
+			E(TEXT("S2_Kato_Planetside"), S::Kato, LOCTEXT("S2_Kato_Planetside", "They're after something. Doesn't look like it's us.") /* R020: Story Director's decision; guard exception for this exact line */),
 			E(TEXT("S2_Moss_InTheWay"), S::Moss, LOCTEXT("S2_Moss_InTheWay", "So we got in the way.")),
 			E(TEXT("S2_Command_Report"), S::Command, LOCTEXT("S2_Command_Report", "Triad, answer me. We lost you near that ship."), St::Static),
 			E(TEXT("S2_Wren_Hostile"), S::Wren, LOCTEXT("S2_Wren_Hostile", "Fighters. A lot of them. All three of us got out.")),
@@ -282,7 +282,7 @@ namespace TDStory
 			E(TEXT("C9_Kato_Decades"), S::Kato, LOCTEXT("C9_Kato_Decades", "It's dated decades ahead.")),
 			// Act 5: Reactor and Escape, the Choice.
 			E(TEXT("A5_Choice"), S::Moss, LOCTEXT("A5_Choice", "We can't trust them, and we can't let them finish. We end it here.")),
-			E(TEXT("A5_Escape"), S::Control, LOCTEXT("A5_Escape", "The ship is coming apart. Ninety seconds. Move!")),
+			E(TEXT("A5_Escape"), S::Command, LOCTEXT("A5_Escape", "Triad, you've got ninety seconds. Get to the hangar.")),
 			E(TEXT("A5_DistressSignal"), S::Unknown, LOCTEXT("A5_DistressSignal", "DISTRESS SIGNAL  ·  TRIAD: WREN, KATO, MOSS  ·  DATED DECADES AHEAD"), St::Static),
 		};
 		return Table;

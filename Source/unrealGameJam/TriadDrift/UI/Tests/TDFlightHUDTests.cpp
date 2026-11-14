@@ -29,6 +29,8 @@
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
+#include "TriadDrift/Enemies/TDEnemyLibrary.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
 #include "TriadDrift/UI/TDTacticalDisplayWidget.h"
 #include "TriadDrift/UI/TDScanMonitorWidget.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
@@ -339,6 +341,50 @@ bool FTDFlightHUDObjective::RunTest(const FString& Parameters)
 
 // P2: hostiles. A current target gets the bracket (48..160) and distance; others ticks; off screen = chevron on the
 // safe frame along the marker's direction; missiles flagged; locked and current carried through.
+// Enemy readability (the ship builder via the Lead): each enemy type has its own marker outline, on and off screen;
+// the heading class reads toward / away / crossing; the marker count is unchanged.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDKinds, "TriadDrift.UI.FlightHUD.EnemyMarkerShapesPerType", TD_TEST_FLAGS)
+bool FTDFlightHUDKinds::RunTest(const FString& Parameters)
+{
+	FTDFlightHUDFixture F;
+	struct FCase { FName Id; uint8 Kind; };
+	const FCase Cases[] = {
+		{ TDEnemyIds::ShardFighter, UTDFlightHUDWidget::KindFighter }, { TDEnemyIds::HookInterceptor, UTDFlightHUDWidget::KindInterceptor },
+		{ TDEnemyIds::MaulBomber, UTDFlightHUDWidget::KindBomber }, { TDEnemyIds::WallGunship, UTDFlightHUDWidget::KindGunship },
+		{ TDEnemyIds::HiveCarrier, UTDFlightHUDWidget::KindCarrier } };
+	TArray<ATDEnemyShip*> Ships;
+	for (int32 I = 0; I < UE_ARRAY_COUNT(Cases); ++I)
+	{
+		// In front of the view (origin), facing: toward, away, then crossing.
+		const FVector At(20000.f + I * 3000.f, (I - 2) * 2000.f, 0.f);
+		const FRotator Facing = I == 0 ? FRotator(0.f, 180.f, 0.f) : I == 1 ? FRotator::ZeroRotator : FRotator(0.f, 90.f, 0.f);
+		ATDEnemyShip* E = F.W.Spawn<ATDEnemyShip>(At, Facing);
+		if (AController* C = E->GetController()) { C->UnPossess(); C->Destroy(); }
+		E->InitFromSpec(Cases[I].Id);
+		E->SetActorRotation(Facing);
+		Ships.Add(E);
+		TestEqual(*FString::Printf(TEXT("%s -> %s"), *Cases[I].Id.ToString(), UTDFlightHUDWidget::KindName(Cases[I].Kind)), UTDFlightHUDWidget::KindOf(E), Cases[I].Kind);
+		F.Src->AddMarker(true, FVector2D(.2f + .15f * I, .4f), FVector2D(1.f, 0.f), 20000.f).Actor = E;
+	}
+	F.Src->AddMarker(false, FVector2D::ZeroVector, FVector2D(-1.f, 0.f), 30000.f).Actor = Ships[3]; // the gunship off left
+	TestEqual(TEXT("not an enemy ship: the plain marker"), UTDFlightHUDWidget::KindOf(nullptr), UTDFlightHUDWidget::KindOther);
+	F.HUD->Sample(.016f);
+	const auto& Marks = F.V().Marks;
+	if (!TestEqual(TEXT("one mark per marker (no extra)"), Marks.Num(), 6))
+	{
+		return false;
+	}
+	for (int32 I = 0; I < UE_ARRAY_COUNT(Cases); ++I)
+	{
+		TestEqual(*FString::Printf(TEXT("mark %d kind"), I), Marks[I].Kind, Cases[I].Kind);
+	}
+	TestEqual(TEXT("fighter faces the view: toward"), Marks[0].Heading, (uint8)1);
+	TestEqual(TEXT("interceptor faces away: away"), Marks[1].Heading, (uint8)2);
+	TestEqual(TEXT("bomber side-on: crossing"), Marks[2].Heading, (uint8)0);
+	TestTrue(TEXT("off-screen gunship keeps its kind"), !Marks[5].bOnScreen && Marks[5].Kind == UTDFlightHUDWidget::KindGunship);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDFlightHUDMarks, "TriadDrift.UI.FlightHUD.P2.TargetsAndEdgeArrows", TD_TEST_FLAGS)
 bool FTDFlightHUDMarks::RunTest(const FString& Parameters)
 {

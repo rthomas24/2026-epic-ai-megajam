@@ -1,6 +1,7 @@
 // Triad Drift - engineering space HUD (ENG-36, Teammate 2). Spec: docs/eng/hud-redesign.md.
 
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "GameFramework/PlayerController.h"
@@ -18,6 +19,9 @@
 #include "TriadDrift/UI/TDUIPaint.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDVerdanceApproach.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
+#include "TriadDrift/Enemies/TDEnemyLibrary.h"
+#include "TriadDrift/Enemies/TDEnemyAIController.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
 #include "TriadDrift/Combat/TDFieldDamageable.h"
@@ -416,6 +420,57 @@ void UTDFlightHUDWidget::SampleStory()
 	Sub.Age = Sub.Seconds * T.Progress01;
 }
 
+uint8 UTDFlightHUDWidget::KindOf(const AActor* Actor)
+{
+	const ATDEnemyShip* Ship = Cast<ATDEnemyShip>(Actor);
+	if (!Ship)
+	{
+		return KindOther;
+	}
+	const FName Id = Ship->GetEnemyId();
+	return Id == TDEnemyIds::ShardFighter ? KindFighter : Id == TDEnemyIds::HookInterceptor ? KindInterceptor
+		: Id == TDEnemyIds::MaulBomber ? KindBomber : Id == TDEnemyIds::WallGunship ? KindGunship
+		: Id == TDEnemyIds::HiveCarrier ? KindCarrier : KindOther;
+}
+
+const TCHAR* UTDFlightHUDWidget::KindName(uint8 Kind)
+{
+	switch (Kind)
+	{
+	case KindFighter: return TEXT("fighter");
+	case KindInterceptor: return TEXT("interceptor");
+	case KindBomber: return TEXT("bomber");
+	case KindGunship: return TEXT("gunship");
+	case KindCarrier: return TEXT("carrier");
+	default: return TEXT("other");
+	}
+}
+
+namespace TDFlightHUDShapes
+{
+	/** The outline for a kind, pointing down (+Y): the end that points at the ship under it, or outward off screen. */
+	void Points(uint8 Kind, TArray<FVector2D>& Out, float& Width)
+	{
+		Width = 2.f;
+		switch (Kind)
+		{
+		case UTDFlightHUDWidget::KindFighter: Out = { { -7, -5 }, { 0, 5 }, { 7, -5 } }; break;
+		case UTDFlightHUDWidget::KindInterceptor: Out = { { -3, -9 }, { 0, 8 }, { 3, -9 }, { -3, -9 } }; break;
+		case UTDFlightHUDWidget::KindBomber: Out = { { -12, -4 }, { 0, 5 }, { 12, -4 }, { -12, -4 } }; break;
+		case UTDFlightHUDWidget::KindGunship: Out = { { 0, -8 }, { 8, 0 }, { 0, 8 }, { -8, 0 }, { 0, -8 } }; Width = 3.f; break;
+		case UTDFlightHUDWidget::KindCarrier:
+			for (int32 I = 0; I <= 6; ++I)
+			{
+				const float A = PI / 2.f + I * PI / 3.f;
+				Out.Add(FVector2D(FMath::Cos(A), FMath::Sin(A)) * 11.f);
+			}
+			Width = 2.5f;
+			break;
+		default: Out = { { -7, -6 }, { 7, -6 }, { 0, 6 }, { -7, -6 } }; break;
+		}
+	}
+}
+
 void UTDFlightHUDWidget::ShowNavigationPulse(const FVector& From, const FVector& To, float Seconds)
 {
 	NavWorldFrom = From;
@@ -626,6 +681,24 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 		Mark.bFocus = Focus && M.Actor.Get() == Focus;
 		Mark.Distance = M.Distance / 100.f;
 		Mark.bOnScreen = M.bOnScreen;
+		if (const AActor* A = M.Actor.Get(); A && !M.bIncomingMissile)
+		{
+			Mark.Kind = KindOf(A);
+			// Toward / away / crossing, from its nose against the line to the player (the view).
+			const FVector Fwd = A->GetActorForwardVector();
+			const FVector ToMe = (ViewLoc - A->GetActorLocation()).GetSafeNormal();
+			const float Dot = FVector::DotProduct(Fwd, ToMe);
+			Mark.Heading = Dot > .6f ? 1 : (Dot < -.6f ? 2 : 0);
+			FVector2D From2, Ahead2, Dir2;
+			if (Project(A->GetActorLocation(), From2, Dir2) && Project(A->GetActorLocation() + Fwd * 3000.f, Ahead2, Dir2) && !(Ahead2 - From2).IsNearlyZero())
+			{
+				Mark.HeadingAngle = FMath::Atan2(Ahead2.Y - From2.Y, Ahead2.X - From2.X);
+			}
+			const APawn* Mine = PC ? PC->GetPawn() : nullptr;
+			const APawn* EnemyPawn = Cast<APawn>(A);
+			const ATDEnemyAIController* AI = EnemyPawn ? Cast<ATDEnemyAIController>(EnemyPawn->GetController()) : nullptr;
+			Mark.bThreat = Mine && AI && AI->GetTarget() == Mine;
+		}
 		if (M.bOnScreen)
 		{
 			Mark.Pos = ToDesign(M.ScreenPosition01 * ViewportSize);
@@ -981,6 +1054,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 
 void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 {
+	TD_COMBAT_PERF(FlightHUD);
 	const float Dt = FMath::Max(0.f, DeltaSeconds);
 	Time += Dt;
 	const ITDHUDData* Data = Cast<ITDHUDData>(Source.Get());
@@ -1257,9 +1331,36 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	const float Pulse25 = .55f + .45f * FMath::Sin(Now * 2.5f * 2.f * PI); // under 3 Hz
 	for (const FMark& M : View.Marks)
 	{
+		// A kind's outline at At, rotated (0 = pointing down), brighter and heavier on a threat to the flown ship.
+		auto Shape = [&P, &Enemy](const FMark& Mk, FVector2D At, float Rot, float Alpha)
+		{
+			TArray<FVector2D> Pts;
+			float Width = 2.f;
+			TDFlightHUDShapes::Points(Mk.Kind, Pts, Width);
+			const FLinearColor C = (Mk.bThreat ? FMath::Lerp(Enemy, FLinearColor::White, .35f) : Enemy).CopyWithNewOpacity(Alpha);
+			const float W = Width + (Mk.bThreat ? 1.f : 0.f);
+			const float Cs = FMath::Cos(Rot), Sn = FMath::Sin(Rot);
+			for (int32 I = 0; I + 1 < Pts.Num(); ++I)
+			{
+				const FVector2D A(Pts[I].X * Cs - Pts[I].Y * Sn, Pts[I].X * Sn + Pts[I].Y * Cs);
+				const FVector2D B(Pts[I + 1].X * Cs - Pts[I + 1].Y * Sn, Pts[I + 1].X * Sn + Pts[I + 1].Y * Cs);
+				P.Line(At + A, At + B, C, W);
+			}
+			if (Mk.Kind == UTDFlightHUDWidget::KindCarrier)
+			{
+				P.Brackets(At, 15.f, C, 5.f);
+			}
+		};
 		if (!M.bOnScreen)
 		{
-			P.Chevron(M.Pos, M.Angle, 18.f, Enemy.CopyWithNewOpacity(M.bMissile ? Pulse25 : .9f), true);
+			if (M.bMissile || M.Kind == KindOther)
+			{
+				P.Chevron(M.Pos, M.Angle, 18.f, Enemy.CopyWithNewOpacity(M.bMissile ? Pulse25 : .9f), true);
+			}
+			else
+			{
+				Shape(M, M.Pos, M.Angle - PI * .5f, .9f); // its point outward, toward where it is
+			}
 			Rec(M.bMissile ? TEXT("missile_edge") : TEXT("edge"), M.Pos.X - 9.f, M.Pos.Y - 9.f, 18.f, 18.f);
 			continue;
 		}
@@ -1301,7 +1402,18 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		// Other hostiles: a 14 px hollow triangle, point down, above the ship; a locked one gets a 20 px amber diamond.
 		const FVector2D Tick(M.Pos.X, M.Pos.Y - 18.f);
 		Rec(TEXT("tick"), Tick.X - 7.f, Tick.Y - 6.f, 14.f, 12.f);
-		P.Poly(Tick, { { -7, -6 }, { 7, -6 }, { 0, 6 }, { -7, -6 } }, Enemy.CopyWithNewOpacity(.9f), 2.f);
+		Shape(M, Tick, 0.f, .9f);
+		Rec(*FString::Printf(TEXT("kind_%s"), KindName(M.Kind)), Tick.X - 12.f, Tick.Y - 12.f, 24.f, 24.f);
+		// Heading: toward = a filled dot in the outline, otherwise a short tick on the ship along its nose (crossing or away).
+		if (M.Heading == 1)
+		{
+			P.Box(Tick.X - 2.f, Tick.Y - 2.f, 4.f, 4.f, Enemy);
+		}
+		else
+		{
+			const FVector2D Nose(FMath::Cos(M.HeadingAngle), FMath::Sin(M.HeadingAngle));
+			P.Line(M.Pos + Nose * 6.f, M.Pos + Nose * (M.Heading == 2 ? 11.f : 15.f), Enemy.CopyWithNewOpacity(.75f), 2.f);
+		}
 		if (M.bLocked)
 		{
 			P.Poly(M.Pos, { { 0, -6 }, { 6, 0 }, { 0, 6 }, { -6, 0 }, { 0, -6 } }, T::Warning().CopyWithNewOpacity(.5f), 1.5f);

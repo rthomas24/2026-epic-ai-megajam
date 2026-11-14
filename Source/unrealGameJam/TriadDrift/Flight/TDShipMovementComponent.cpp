@@ -362,6 +362,13 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	{
 		TDFlightSim::Advance(State, Input, Tuning, Context, DeltaTime);
 	}
+	if (bPitchHold)
+	{
+		// ENG-38 glide: the nose's pitch is held (the path), yaw and roll stay the pilot's; the next step flies along it.
+		FRotator R = State.Rotation.Rotator();
+		R.Pitch = FMath::FInterpConstantTo(R.Pitch, PitchHoldDeg, DeltaTime, PitchHoldRate);
+		State.Rotation = R.Quaternion();
+	}
 
 	const FVector Delta = State.Location - StartLocation;
 	State.Location = StartLocation;
@@ -742,7 +749,7 @@ void UTDShipMovementComponent::SetBoundaryReleaseFor(FName Owner, bool bRelease)
 bool UTDShipMovementComponent::IsBoundaryWarningHeld() const
 {
 	if (BoundaryWarningHolds.Num() > 0 || BoundaryReleases.Num() > 0) { return true; }
-	static const FName SequenceOwners[] = { FName(TEXT("AtmosphereEntry")), FName(TEXT("TDExitClimb")), FName(TEXT("Hyperdrive")), FName(TEXT("LandingAssist")) };
+	static const FName SequenceOwners[] = { FName(TEXT("AtmosphereEntry")), FName(TEXT("TDExitClimb")), FName(TEXT("Hyperdrive")), FName(TEXT("LandingAssist")), FName(TEXT("DescentGlide")) };
 	for (const FSpeedOverrideRequest& R : OverrideStack)
 	{
 		for (const FName& N : SequenceOwners) { if (R.Owner == N) { return true; } }

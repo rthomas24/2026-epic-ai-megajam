@@ -112,31 +112,35 @@ SHIPS = {
                    parts=(("Canopy", "SM_Lancer_Canopy", "Cockpit"),),
                    # (review: on the planet pad the glass went milky white: lit translucency picks up the bright fogged sky as a
                    # metallic mirror. Non-metal, a weak sheen, more opaque and darker: the pilot reads on foot too)
-                   glass={"Tint": (0.008, 0.05, 0.085), "SheenColor": (0.45, 0.75, 0.85), "Opacity": 0.91, "SheenStrength": 0.12,
-                          "Metallic": 0.0, "Specular": 0.3, "Roughness": 0.08, "TintGlow": 0.12},
+                   # (Nov 14, two reviews: still milky on the bright pad. Rougher, almost no specular or sheen, near opaque: the sky
+                   # no longer lies on the pane as a white film; the tint glow keeps it cyan in the dark)
+                   glass={"Tint": (0.006, 0.045, 0.075), "SheenColor": (0.45, 0.75, 0.85), "Opacity": 0.95, "SheenStrength": 0.04,
+                          "Metallic": 0.0, "Specular": 0.08, "Roughness": 0.3, "TintGlow": 0.25},
                    # Lead, Nov 14 (batch M): the ram streak of the effects builder on PowerActive (sound kept), and the boost
                    # plume at 0.6 (T7's UTDShipVisuals::ExhaustBoostScale: the boost plumes swamped this small hull)
                    power_vfx="/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Ram_Streak.NS_TD_Ram_Streak", exhaust_boost=0.6,
                    plain=dict(rough=1.45, tex_r2=("BC", "E"), kit=None, parts=())),
     "Bastion": dict(da=(SQUAD, "DA_Bastion_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Bastion", old_mi=None, squad=True, glow=SQUAD_GLOW["Bastion"],
-                    emissive=6.0, base_tint=(1.5, 1.5, 1.5), rough=1.25, self_light=0.12, detail=0.55, trail_scale=0.7,
+                    base_tint=(1.5, 1.5, 1.5), rough=1.25, self_light=0.12, detail=0.55, trail_scale=0.7,
                     glow_strength=0.55,
                     # close-range pass: 193 texels per metre at 2K, UV 0..1 spans about 10.6 m: tiling 13 = 0.8 m tiles
                     # the shield dome (effects builder, eng/vfx 037c17c6): replaces the code's placeholder lattice
                     power2_vfx="/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_ShieldDome.NS_TD_ShieldDome",
-                    squad_detail=True, tex_r2=("BC", "E"), mi_params={"MetallicScale": 0.3, "RoughnessMin": 0.36, "DetailTiling": 13.0,
+                    squad_detail=True, mi_params={"MetallicScale": 0.3, "RoughnessMin": 0.36, "DetailTiling": 13.0,
                                                   "DetailStrength": 0.5, "DetailAO": 0.6, "DetailRough": 0.25},
                     # The HYBRID (second ship builder, Nov 13 night; rh_hybrid.py --ship Bastion, ArtSource/EngShips/BastionHero):
                     # the Rodin hull as it was (welded, same UVs, same maps) with clean lathed muzzles in a second slot
                     # M_Bastion_Parts. The hull's base colour and emissive in the game are Grok Bot's textures_r2 (not in this
                     # checkout as files): keep_tex leaves those two imported textures alone when no r2 file is found.
                     # TD_RODIN_PLAIN=Bastion imports the plain Rodin Bastion of ArtSource/EngShips/Bastion again.
-                    kit=os.path.join("BastionHero", "export"), keep_tex=("BC", "E"), parts_emissive=2.2,
+                    # v02: emissive from the kit (textures_r2 with the windscreen squiggle cleared); strength 6 -> 4 so the
+                    # slits and launcher tubes hold amber, they bloomed to pale yellow-white (review, Nov 14)
+                    kit=os.path.join("BastionHero", "export"), keep_tex=("BC",), tex_r2=("BC",), emissive=4.0, parts_emissive=2.2,
                     # (the muzzles sit beside the Rodin gun housings, which are near black: tint 0.5, little metal, or they
                     # read as pale grey plastic under the planet's sky)
                     parts_rough=1.1, parts_tint=(0.5, 0.5, 0.5), parts_floor=0.0, parts_metal=0.25, parts_self_light=0.0,
                     parts_params={"MetallicScale": 0.25, "RoughnessMin": 0.3, "DetailTiling": 8.0, "DetailStrength": 0.35},
-                    plain=dict(kit=None, keep_tex=())),
+                    plain=dict(kit=None, keep_tex=(), tex_r2=("BC", "E"), emissive=6.0)),
     # range_boost / eye_mul (Nov 13 evening, Lead: the fleet were specks at 1 km): the emissive map is multiplied by
     # range_boost at distance (M_TD_Ship RangeBoost, 60 m -> 600 m) and the white eyes by eye_mul everywhere.
     # Null Armada: the Rodin albedo came out light silver; the brief is near-black armour, red-orange glow,

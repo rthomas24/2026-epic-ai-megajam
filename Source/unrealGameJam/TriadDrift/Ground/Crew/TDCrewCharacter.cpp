@@ -1,6 +1,7 @@
 // Triad Drift - on-foot Armada crew (ENG-23). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "TriadDrift/Perf/TDAssetCache.h" // T7 perf: path lookups answered once per session
 #include "TriadDrift/Ground/Crew/TDCrewAIController.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -166,11 +167,11 @@ void ATDCrewCharacter::UpdateFallbackLoop()
 		}
 	}
 	const FString Path = CrewAnimPath(Spec.Type, Want);
-	UAnimSequenceBase* Loop = Path.IsEmpty() ? nullptr : LoadObject<UAnimSequenceBase>(nullptr, *Path, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UAnimSequenceBase* Loop = Path.IsEmpty() ? nullptr : TDAssetCache::Find<UAnimSequenceBase>(Path);
 	if (!Loop && Want != 0)
 	{
 		const FString IdlePath = CrewAnimPath(Spec.Type, 0);
-		Loop = IdlePath.IsEmpty() ? nullptr : LoadObject<UAnimSequenceBase>(nullptr, *IdlePath, nullptr, LOAD_Quiet | LOAD_NoWarn);
+		Loop = IdlePath.IsEmpty() ? nullptr : TDAssetCache::Find<UAnimSequenceBase>(IdlePath);
 	}
 	if (!Loop)
 	{
@@ -558,7 +559,7 @@ void ATDCrewCharacter::PlayFallbackAnim(const TCHAR* AssetPath, float Rate)
 	}
 	UTDLoopBlendAnimInstance* Loops = Cast<UTDLoopBlendAnimInstance>(GetMesh()->GetAnimInstance());
 	const FString Own = CrewAnimPath(AssetPath);
-	UAnimSequenceBase* Seq = Own.IsEmpty() ? nullptr : LoadObject<UAnimSequenceBase>(nullptr, *Own, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	UAnimSequenceBase* Seq = Own.IsEmpty() ? nullptr : TDAssetCache::Find<UAnimSequenceBase>(Own);
 	if (Loops && Seq)
 	{
 		Loops->PlayOneShot(Seq, Rate);
@@ -1259,8 +1260,7 @@ UAnimSequenceBase* ATDCrewCharacter::ChooseDeathClip(const FVector& HitDirection
 	auto Load = [](const FString& Name) -> UAnimSequenceBase*
 	{
 		const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/%s"), *Name);
-		if (!FindPackage(nullptr, *Package) && !FPackageName::DoesPackageExist(Package)) { return nullptr; }
-		return LoadObject<UAnimSequenceBase>(nullptr, *(Package + TEXT(".") + Name), nullptr, LOAD_Quiet | LOAD_NoWarn);
+		return TDAssetCache::Find<UAnimSequenceBase>(Package + TEXT(".") + Name); // T7 perf: one look per name per session
 	};
 	const bool bFromBehind = !HitDirection.IsNearlyZero() && FVector::DotProduct(-HitDirection.GetSafeNormal2D(), GetActorForwardVector()) < 0.f;
 	const FString Type = Spec.VisualsId.ToString();
@@ -1288,7 +1288,7 @@ UAnimSequenceBase* ATDCrewCharacter::ChooseDeathClip(const FVector& HitDirection
 	}
 	// The template set (root travel and a held crouch: only when nothing else fits; the ragdoll ends it anyway).
 	const FString Path = bFallbackAnim ? CrewAnimPath(FallbackDeathAnim(HitDirection)) : FString();
-	return Path.IsEmpty() ? nullptr : Fits(TDMakePlayable(LoadObject<UAnimSequenceBase>(nullptr, *Path, nullptr, LOAD_Quiet | LOAD_NoWarn)));
+	return Path.IsEmpty() ? nullptr : Fits(TDMakePlayable(TDAssetCache::Find<UAnimSequenceBase>(Path)));
 }
 
 UAnimSequenceBase* ATDCrewCharacter::TypeClip(const TCHAR* Action) const
