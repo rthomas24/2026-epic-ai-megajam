@@ -355,7 +355,7 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 			if (UAnimSequenceBase* Sprint = LoadPilotAnim(TEXT("A_Pilot_Sprint")))
 			{
 				Loop = Sprint;
-				Ref = 657.f * BodyScale;
+				Ref = 680.f * BodyScale; // 657 measured in the clip; 680 from the in-game trace (the planted foot slid back 33 cm/s at 657)
 			}
 		}
 		const float Rate = Fall ? 1.f : bAir ? 0.4f : (Ref > 0.f ? (Want == 1 ? FMath::Clamp(Speed / Ref, 0.25f, 2.f) : FMath::Clamp(Speed / Ref, 0.5f, 1.9f)) : 1.f);

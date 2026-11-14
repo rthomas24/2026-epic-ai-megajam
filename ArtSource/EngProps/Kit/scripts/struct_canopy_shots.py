@@ -25,8 +25,12 @@ time.sleep(8.0)
 G.cmd("TD.Intro.Play")
 time.sleep(3.0)
 ONLY = os.environ.get("TD_CAN_ONLY", "")
-for t, who in ((10.7, "wren"), (13.3, "kato"), (16.0, "moss")):
-    if ONLY and who not in ONLY:
+SHOTS = [(10.7, "wren"), (13.3, "kato"), (16.0, "moss")]
+if os.environ.get("TD_CAN_TIMES"):          # e.g. "moss:14.8,15.4,16.0,16.6": several holds of one shot (its pose varies)
+    who_, ts = os.environ["TD_CAN_TIMES"].split(":")
+    SHOTS = [(float(t_), "%s_%s" % (who_, t_.replace(".", "p"))) for t_ in ts.split(",")]
+for t, who in SHOTS:
+    if ONLY and who.split("_")[0] not in ONLY:
         continue
     G.cmd("TD.Intro.At %.1f 1" % t)
     time.sleep(2.5)

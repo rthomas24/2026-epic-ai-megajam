@@ -162,4 +162,41 @@ void FTDGlobeBake::Bake(ETDDestination Planet, int32 W, int32 H, TArray<FColor>&
 			OutEmissive[j * W + i] = E.ToFColor(true);
 		}
 	});
+	if (bCalibrationMarks)
+	{
+		return;
+	}
+	// Played (Nov 14, 1.6 radii over the landing zone): the texture has one mip, and near a pole a whole row of W texels
+	// wraps a small circle, so per-texel differences along longitude alias into radial streaks. Each row is box-blurred
+	// along longitude over the span that one equator texel covers there (1 / cos(lat) texels, up to a quarter turn): the
+	// cap keeps its rings and patches and loses the streaks.
+	ParallelFor(H, [&](int32 j)
+	{
+		const float Lat = 90.f - (j + 0.5f) / H * 180.f;
+		const float Cos = FMath::Max(FMath::Cos(FMath::DegreesToRadians(Lat)), 1e-3f);
+		const int32 R = FMath::Clamp(FMath::RoundToInt32((1.f / Cos - 1.f) * 0.5f), 0, W / 8);
+		if (R <= 0)
+		{
+			return;
+		}
+		for (TArray<FColor>* Tex : { &OutBase, &OutEmissive })
+		{
+			TArray<FColor> Row;
+			Row.Append(Tex->GetData() + j * W, W);
+			int32 SumR = 0, SumG = 0, SumB = 0;
+			for (int32 k = -R; k <= R; ++k)
+			{
+				const FColor& C = Row[((k % W) + W) % W];
+				SumR += C.R; SumG += C.G; SumB += C.B;
+			}
+			const int32 N = 2 * R + 1;
+			for (int32 i = 0; i < W; ++i)
+			{
+				(*Tex)[j * W + i] = FColor((uint8)(SumR / N), (uint8)(SumG / N), (uint8)(SumB / N), Row[i].A);
+				const FColor& Out = Row[(((i - R) % W) + W) % W];
+				const FColor& In = Row[(i + R + 1) % W];
+				SumR += In.R - Out.R; SumG += In.G - Out.G; SumB += In.B - Out.B;
+			}
+		}
+	});
 }

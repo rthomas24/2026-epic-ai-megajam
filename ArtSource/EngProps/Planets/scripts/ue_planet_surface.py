@@ -34,6 +34,31 @@ INSTANCE_VALUES = {
 ATMO_VALUES = dict(SunMaskAmount=0.92)
 
 
+def _local_dir(b):
+    """The surface point's direction in the globe's own space (spins with it; no UV, so no pinch at the poles)."""
+    wp = b.e(unreal.MaterialExpressionWorldPosition)
+    tp = b.e(unreal.MaterialExpressionTransformPosition)
+    tp.set_editor_property("transform_source_type", unreal.MaterialPositionTransformSource.TRANSFORMPOSSOURCE_WORLD)
+    tp.set_editor_property("transform_type", unreal.MaterialPositionTransformSource.TRANSFORMPOSSOURCE_LOCAL)
+    b.c(wp, "", tp, "")
+    return b.norm(tp)
+
+
+def _triplanar(b, name, tex, d, tile, off):
+    """Noise sampled on the three axis planes of direction d and blended by |d|^4 (shared wrap sampler: no slot cost)."""
+    dx, dy, dz = b.mask(d, True), b.mask(d, False, True), b.mask(d, False, False, True)
+    outs = []
+    for i, (u, v) in enumerate(((dy, dz), (dx, dz), (dx, dy))):
+        uv = b.add(b.mul(b.append(u, v), tile), b.const2(off + 0.13 * i, off * 1.7 + 0.29 * i))
+        n = b.tex(name, tex, ST.SAMPLERTYPE_MASKS, uv)
+        n.set_editor_property("sampler_source", unreal.SamplerSourceMode.SSM_WRAP_WORLD_GROUP_SETTINGS)
+        outs.append(n)
+    a = b.unary(unreal.MaterialExpressionAbs, d)
+    a4 = b.mul(b.mul(a, a), b.mul(a, a))
+    w = b.div(a4, b.add(b.add(b.mask(a4, True), b.mask(a4, False, True)), b.mask(a4, False, False, True)))
+    return b.add(b.add(b.mul(outs[0], b.mask(w, True)), b.mul(outs[1], b.mask(w, False, True))), b.mul(outs[2], b.mask(w, False, False, True)))
+
+
 def build_surface_graph(b, t):
     """b: ue_mat_builder.MB on an empty material; t: dict of the Verdance textures (sampler defaults)."""
     m = b.m
@@ -41,6 +66,7 @@ def build_surface_graph(b, t):
     m.set_editor_property("blend_mode", unreal.BlendMode.BLEND_OPAQUE)
     uv = b.e(unreal.MaterialExpressionTextureCoordinate)
     bc = b.tex("BaseColorTex", t["T_Planet_Verdance_BC"], ST.SAMPLERTYPE_COLOR, uv)
+    bc_pin = "RGB"
     nn = b.tex("NormalTex", t["T_Planet_Verdance_N"], ST.SAMPLERTYPE_NORMAL, uv)
     orm = b.tex("ORMTex", t["T_Planet_Verdance_ORM"], ST.SAMPLERTYPE_MASKS, uv)
     em = b.tex("EmissiveTex", t["T_Planet_Verdance_E"], ST.SAMPLERTYPE_COLOR, uv)
@@ -63,18 +89,35 @@ def build_surface_graph(b, t):
         dr0 = b.div(dist0, b.e(unreal.MaterialExpressionObjectRadius))
         near_c = b.mul(b.one_minus(b.sat(b.div(b.sub(dr0, b.scalar("CloudNearR", 1.02)), b.scalar("CloudRangeR", 0.3)))),
                        b.scalar("CloudTopStrength", 1.0))
-        ctile = b.scalar("CloudTopTile", 32.0)
-        cuv1 = b.mul(cuv, b.append(b.mul(ctile, b.const(2.0)), ctile))
-        cuv2 = b.add(b.mul(cuv1, b.const(3.7)), b.const2(0.21, 0.43))
-        c1 = b.tex("CloudTopNoiseTex", t["T_Ground_MacroNoise"], ST.SAMPLERTYPE_MASKS, cuv1)
-        c2 = b.tex("CloudTopNoiseTex", t["T_Ground_MacroNoise"], ST.SAMPLERTYPE_MASKS, cuv2)
+        # (T4, Nov 14: noise in the globe's equirect UV pinched into radial streaks at the pole, the landing zone) in the
+        # globe's own space instead, triplanar
+        ldir = _local_dir(b)
+        ctile = b.scalar("CloudTopTile3D", 10.0)
+        c1 = _triplanar(b, "CloudTopNoiseTex", t["T_Ground_MacroNoise"], ldir, ctile, 0.0)
+        c2 = _triplanar(b, "CloudTopNoiseTex", t["T_Ground_MacroNoise"], ldir, b.mul(ctile, b.const(3.7)), 0.21)
         billow = b.add(b.mul(b.sub(b.mask(c1, True), b.const(0.5)), b.const(0.8)), b.mul(b.sub(b.mask(c2, False, True), b.const(0.5)), b.const(0.3)))
         # the edge: the cloud mask pushed through a soft threshold that the noise moves (no texel blocks, no hard sheet)
         ca_near = b.sat(b.add(b.mul(b.sub(b.mask(cl, True), b.const(0.45)), b.const(2.4)), b.add(b.const(0.5), b.mul(billow, b.const(1.3)))))
         ca = b.lerp(ca, b.mul(ca_near, b.scalar("CloudOpacity", 0.9)), near_c)
         relief = b.add(b.const(0.78), b.mul(billow, b.const(0.9)))
         cloud_rgb = b.lerp(cloud_rgb, b.mul(cloud_rgb, b.append(b.append(relief, relief), b.mul(relief, b.const(1.04)))), near_c)
-    albedo = b.lerp(bc, cloud_rgb, ca, "RGB")
+        # The landing cap (env, Nov 14, T4's frames at 1.6 / 2.2 radii): the globe bake maps the 2.5 km landing zone onto the
+        # 60 degree cap round +Z (ENG-38's descent mapping), so from 1.2-2.5 radii that cap read as one flat, radially
+        # streaked teal disc. Cloud cover over the cap from there (soft, triplanar, two scales), thinning away below
+        # 1.1 radii so the dive still lands on the baked ground.
+        capw = b.sat(b.div(b.sub(b.mask(ldir, False, False, True), b.const(0.4)), b.const(0.25)))
+        capfar = b.sat(b.div(b.sub(dr0, b.scalar("CapCloudNearR", 1.1)), b.const(0.15)))
+        k1 = _triplanar(b, "CapCloudNoiseTex", t["T_Ground_MacroNoise"], ldir, b.scalar("CapCloudTile", 2.6), 0.53)
+        k2 = _triplanar(b, "CapCloudNoiseTex", t["T_Ground_MacroNoise"], ldir, b.scalar("CapCloudTile2", 8.5), 0.71)
+        kn = b.add(b.mul(b.mask(k1, True), b.const(0.7)), b.mul(b.mask(k2, False, True), b.const(0.3)))
+        cover = b.mul(b.mul(b.sat(b.mul(b.sub(kn, b.const(0.4)), b.const(1.7))), b.mul(capw, capfar)), b.scalar("CapCloudStrength", 0.55))
+        ca = b.sat(b.add(ca, cover))
+        # ...and from there the cap shows the planet's painted art (ArtBaseTex, never replaced by the bake) instead of the
+        # magnified landing zone; the bake takes over again below 1.1 radii for the dive.
+        art = b.tex("ArtBaseTex", t["T_Planet_Verdance_BC"], ST.SAMPLERTYPE_COLOR, uv)
+        bc = b.lerp(bc, art, b.mul(capw, capfar), "RGB", "RGB")
+        bc_pin = ""
+    albedo = b.lerp(bc, cloud_rgb, ca, bc_pin)
     # Close-range detail (environment builder, Nov 13): diving in, the globe fills the frame and the 2K bake reads as one
     # flat colour. Two noise octaves in the globe's own UV (2:1 equirect) break up value and hue, faded in only when
     # the camera is within ~2 radii (d = camera distance / object radius) and kept off the clouds.
@@ -86,11 +129,10 @@ def build_surface_graph(b, t):
         b.c(obj, "", dist, "B")
         dr = b.div(dist, b.e(unreal.MaterialExpressionObjectRadius))
         close = b.one_minus(b.sat(b.div(b.sub(dr, b.scalar("DetailNearR", 1.05)), b.scalar("DetailRangeR", 1.2))))
-        tile = b.scalar("DetailTile", 24.0)
-        uva = b.mul(uv, b.append(b.mul(tile, b.const(2.0)), tile))
-        uvb = b.add(b.mul(uva, b.const(4.3)), b.const2(0.37, 0.61))
-        na = b.tex("DetailNoiseTex", t["T_Ground_MacroNoise"], ST.SAMPLERTYPE_MASKS, uva)
-        nb = b.tex("DetailNoiseTex", t["T_Ground_MacroNoise"], ST.SAMPLERTYPE_MASKS, uvb)
+        tile = b.scalar("DetailTile3D", 7.6)	# 48 repeats round the equator, as the old UV tiling; no pole pinch
+        ddir = _local_dir(b)
+        na = _triplanar(b, "DetailNoiseTex", t["T_Ground_MacroNoise"], ddir, tile, 0.0)
+        nb = _triplanar(b, "DetailNoiseTex", t["T_Ground_MacroNoise"], ddir, b.mul(tile, b.const(4.3)), 0.37)
         dv = b.add(b.mul(b.sub(b.mask(na, True), b.const(0.5)), b.const(0.9)), b.mul(b.sub(b.mask(nb, False, True), b.const(0.5)), b.const(0.6)))
         k = b.mul(b.mul(close, b.one_minus(ca)), b.scalar("DetailStrength", 0.8))
         albedo = b.mul(albedo, b.add(b.const(1.0), b.mul(dv, k)))
