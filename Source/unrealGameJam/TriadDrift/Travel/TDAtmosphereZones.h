@@ -154,7 +154,7 @@ public:
 	FText GetPlanetClosedText() const { return ClosedPlanetText; }
 	/** The band outside the atmosphere where the turn-away works (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "cm"))
-	float ClosedPlanetBand = 35000.f;
+	float ClosedPlanetBand = 15000.f; // 150 m: the orbit return point sits about 200 m off the atmosphere (1.3x its radius) and must stay outside the band
 	/** Hull damage of one bounce off a closed planet (fraction of max hull), at most once per ClosedPlanetHitCooldown. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", ClampMax = "1"))
 	float ClosedPlanetHitHull = 0.04f;
