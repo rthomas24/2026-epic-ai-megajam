@@ -18,6 +18,7 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/UI/TDUIPaint.h"
 #include "TriadDrift/World/TDDominion.h"
+#include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/World/TDVerdanceApproach.h"
 #include "TriadDrift/World/TDDockingBay.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
@@ -1350,6 +1351,12 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 		GeneratorFlashLeft = FMath::Max(0.f, GeneratorFlashLeft - DeltaSeconds);
 		View.GeneratorsTotal = Total;
 		View.GeneratorsDown = Down;
+		// The radar header's assault state (T6): the reactor exposed (the space ending) and its phase.
+		const ATDDominion* HeaderDom = ForceGeneratorsTotal >= 0 ? nullptr : ATDDominion::Get(this);
+		const ATDDominionReactor* Reactor = HeaderDom ? HeaderDom->GetReactor() : nullptr;
+		View.bReactorExposed = HeaderDom && HeaderDom->GetState() == ETDDominionState::ReactorExposed;
+		View.ReactorPhase = Reactor ? Reactor->GetPhase() : 0;
+		View.ReactorPhases = Reactor ? Reactor->PhaseCount : 0;
 		View.GeneratorFlash01 = GeneratorFlashLeft / 1.2f;
 		if (Total > 0)
 		{
@@ -2774,7 +2781,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	// T6's radar (#160): bottom-right, from the HUD model.
 	if (bPanelShown)
 	{
-		TDPaintHUDRadar(PanelP, HUDModel, FTDHUDRadarInput{ View.Flown, View.bHasFlown, FrameWave, Time });
+		TDPaintHUDRadar(PanelP, HUDModel, FTDHUDRadarInput{ View.Flown, View.bHasFlown, FrameWave, Time,
+			View.GeneratorsTotal, View.GeneratorsDown, View.bReactorExposed, View.ReactorPhase, View.ReactorPhases });
 		const FBox2D RadarBox = TDHUDRadarBox(PanelP);
 		Rec(TEXT("radar"), RadarBox.Min.X, RadarBox.Min.Y, RadarBox.GetSize().X, RadarBox.GetSize().Y);
 	}

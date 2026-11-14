@@ -399,6 +399,10 @@ public:
 		uint8 Docking = 0;
 		/** T4's reactor hold has the flown ship: "REACTOR IN RANGE · HOLD FIRE ON THE CORE". */
 		bool bReactorHold = false;
+		/** For the radar header in the assault: the reactor is exposed, its phase (1..N) and N. */
+		bool bReactorExposed = false;
+		int32 ReactorPhase = 0;
+		int32 ReactorPhases = 0;
 		float TractorPull01 = 0.f;
 		bool bDescent = false;
 		float Heat01 = 0.f;
