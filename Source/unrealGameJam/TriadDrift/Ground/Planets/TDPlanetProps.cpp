@@ -778,9 +778,9 @@ void ATDCollapseRun::ApplyCollapse(float A)
 	while (Sections > 0 && SectionsDropped < Sections && A >= float(SectionsDropped + 1) / float(Sections + 1))
 	{
 		const float Side = SectionsDropped % 2 ? 1.f : -1.f;
-		const FVector Out = FRotator(0.f, 60.f * SectionsDropped, 0.f).Vector();
+		const FVector Out = FRotator(0.f, SectionYaw + 50.f * SectionsDropped, 0.f).Vector(); // toward the escape route, in view
 		bDroppingSection = true;
-		DropPiece(TowerHome + Out * 400.f + FVector(0.f, 0.f, 2200.f - SectionsDropped * 500.f), TDPropArt::Load(SectionMeshes[SectionsDropped]), 1.f,
+		DropPiece(TowerHome + Out * 1300.f + FVector(0.f, 0.f, 2200.f - SectionsDropped * 500.f), TDPropArt::Load(SectionMeshes[SectionsDropped]), 1.f,
 			Out * 500.f + FVector(0.f, Side * 150.f, -600.f));
 		bDroppingSection = false;
 		++SectionsDropped;
