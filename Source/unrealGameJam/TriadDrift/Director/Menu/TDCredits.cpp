@@ -122,7 +122,8 @@ const TArray<FTDCreditsSection>& FTDCredits::Fallback()
 	static const TArray<FTDCreditsSection> Sections = {
 		S(LOCTEXT("H_Title", "TRIAD DRIFT"), { LOCTEXT("L_Made", "Made in four days for the 2026 Epic AI MegaJam") }),
 		S(LOCTEXT("H_Team", "TEAM"), {
-			LOCTEXT("L_Ryan", "Ryan T  ·  Gameplay & Engineering Lead"),
+			LOCTEXT("L_Ryan", "Ryan Thomas  ·  Gameplay & Engineering Lead"),
+			LOCTEXT("L_RyanDid", "game design, flight and three-ship switching, combat and enemy AI, worlds, VFX and animation direction"),
 			LOCTEXT("L_Nick", "Nicholas Tosti  ·  Player Experience Lead") }),
 		S(LOCTEXT("H_Story", "STORY"), { LOCTEXT("L_Story", "Story by Nicholas Tosti") /* StoryFidelity01: the subtitle reveals the twist; credits are reachable before it */ }),
 		S(LOCTEXT("H_AI", "BUILT WITH AI AGENTS"), {
