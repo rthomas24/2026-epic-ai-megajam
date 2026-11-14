@@ -1565,7 +1565,8 @@ namespace TDFlightHUD
 		const bool bBig = Card.Grow > .5f;
 		const FLinearColor Ship = PanelShip(Card.Ship);
 		const FLinearColor Ink = FTDUIPalette::Ink(), Muted = FTDUIPalette::Muted();
-		const float O = Card.bAlive ? 1.f : .8f;
+		// Cloaked: the card's contents drop to 60% (the concept), with the CLOAKED flag above it.
+		const float O = (Card.bAlive ? 1.f : .8f) * (Card.bCloaked ? .6f : 1.f);
 		auto Sz = [F](float Px) { return FMath::RoundToInt(Px * F); };
 
 		// Plate (dark red when down), the cut top-right corner, the border and the ship-colour top bar.
@@ -1713,7 +1714,7 @@ namespace TDFlightHUD
 		}
 		static const FString Shd(TEXT("SHD")), Hul(TEXT("HUL"));
 		const float TagW = bBig ? Sz(11) * 3.2f : 0.f;
-		const float NumW = bBig ? Sz(14) * 2.3f : 0.f;
+		const float NumW = bBig ? Sz(14) * 3.f : 0.f;
 		const float BarX = X + Pad + TagW;
 		const float BarRight = (bBig ? X + W - 60.f * K : X + W - Pad) - NumW;
 		const float BarW = FMath::Max(20.f, BarRight - BarX);
@@ -2555,7 +2556,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			}
 		}
 		const int32 Lines = FMath::Max(1, SubWrapLines.Num());
-		const float LineH = 26.f * Sc;
+		// Slate font sizes are points (a 29 pt Large line is about 39 px tall): the line step follows the font, not a fixed 26.
+		const float LineH = BodyPx * 1.45f;
 		const float H = 12.f * Sc + Lines * LineH;
 		// Above the squad panel and its flag row (#160), growing upward.
 		const float SubY = View.SubtitleBottom - H;
