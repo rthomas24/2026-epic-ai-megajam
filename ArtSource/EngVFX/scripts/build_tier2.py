@@ -277,7 +277,7 @@ S2('NS_TD_Ambient_Verdance', U((0.75, 1.0, 0.55, 1.0), 1.0, Fade=1.0), [
     shed('Spores', 'M_TD_VFX_Glow', 0, (3.0, 6.0), (28, 60), (10, 50), k=1.6, radius=900.0, drag=0.3, curl=90.0, rgb=(0.35, 1.0, 0.85), alpha=1.0,
          rate_expr='27.0*' + AMB, power=1.2, fade_in=4.0, gpu=True)])
 S2('NS_TD_Ambient_Cinder', U((1.0, 0.45, 0.12, 1.0), 1.0, Fade=1.0), [
-    shed('Ash', 'M_TD_VFX_Smoke', 0, (3.0, 6.0), (18, 36), (60, 160), radius=1000.0, drag=0.2, curl=40.0, rgb=(0.20, 0.19, 0.19), alpha=0.85,
+    shed('Ash', 'M_TD_VFX_Smoke', 0, (3.0, 6.0), (11, 22), (60, 160), radius=1000.0, drag=0.2, curl=40.0, rgb=(0.20, 0.19, 0.19), alpha=0.55,   # 9d: -40%, fainter (Lead: grey blobs near the camera)
          cone=((0.0, 0.0, -1.0), 25.0), rate_expr='180.0*' + AMB, power=0.6, fade_in=3.0, gpu=True),
     shed('Embers', 'M_TD_VFX_Glow', 0, (2.0, 4.0), (14, 30), (80, 240), k=1.8, radius=900.0, drag=0.3, curl=120.0, rgb=(1.0, 0.45, 0.10),
          cone=((0.0, 0.0, 1.0), 30.0), rate_expr='48.0*' + AMB, power=1.4, fade_in=4.0, gpu=True)])
