@@ -110,6 +110,14 @@ public:
 	FTDWaveInfo GetWaveInfo() const;
 
 	/**
+	 * Issue #160 (the radar shows what is coming): every group still to warp in, soonest first. While a wave runs: its
+	 * pending groups (the location is set once the warp-in is announced). In a breather: the next wave's groups, with
+	 * the breather added to their time and no location yet. Returns the number written.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Waves")
+	int32 GetPendingGroups(TArray<FTDIncomingGroup>& OutGroups) const;
+
+	/**
 	 * Second review MAJOR B (ENG-14/16/17): waves 3-5 are fought in the combat zone, not at a planet's orbit return
 	 * point. StartFromProgress holds such a wave (Idle) until the player's ship is inside the layout's CombatZoneRadius;
 	 * the flow shows "RETURN TO THE COMBAT ZONE" with a marker on GetCombatZoneMarker() meanwhile.
@@ -299,6 +307,15 @@ public:
 	/** The corridor marker (tags TD.Objective.Marker and TD.Tutorial.Escape) while the withdrawal is on. */
 	AActor* GetEscapeMarker() const { return EscapeMarker.Get(); }
 	AActor* GetHeavyContact() const { return HeavyContact.Get(); }
+	AActor* GetJumpPoint() const { return JumpPointMarker.Get(); }
+	/** The JUMP POINT sits this far (cm) past the escape line, on its bearing. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float JumpPointPastLine = 30000.f;
+	/** Spawn points re-picked because they fell inside an obstacle, and those pushed out as a last resort (tests). */
+	int32 GetSpawnPointRetries() const { return SpawnPointRetries; }
+	int32 GetSpawnPointsPushedOut() const { return SpawnPointsPushedOut; }
+	/** The warp-in points picked this wave (tests). */
+	const TArray<FVector>& GetPickedSpawnPoints() const { return PickedSpawnPoints; }
 	bool IsTutorialWithdrawalWave() const;
 	/** Pursuers holding at the perimeter right now (tests). */
 	int32 GetHoldingPursuers() const { return HeldPursuers.Num(); }
@@ -339,6 +356,49 @@ protected:
 	/** T5's game instance announces retakes on the bus: a higher take of our scene restarts the wave. */
 	UFUNCTION()
 	void HandleTakeStarted(FName SceneId, int32 TakeNumber);
+
+	UFUNCTION()
+	void HandleGamePhaseChanged(ETDGamePhase Phase);
+
+	UFUNCTION()
+	void HandleHyperdriveState(ETDHyperdriveState NewState);
+	void ClearJumpPoint();
+	/** The tutorial's JUMP POINT waypoint (TD.Objective.Marker, TD.Tutorial.JumpPoint) after the crossing. */
+	TWeakObjectPtr<AActor> JumpPointMarker;
+
+public:
+	// ENG-40 with T3's UTDTutorialPhases (agreed Nov 14): the lessons gate the pressure.
+	/** Wave-1 enemies' outgoing damage while the player is taught to evade. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0", ClampMax = "1"))
+	float EvadeDamageScale = 0.3f;
+	/** Gate the heavy contact and Command's withdrawal on T3's squad lesson (tests of the withdrawal itself turn it off). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial")
+	bool bWaitForLessons = true;
+	/** Wave 2's heavy contact waits for the squad lesson (Done), at most this long after the wave starts (never locks). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float GunshipHoldCapSeconds = 60.f;
+	/** Command's withdrawal waits for the squad lesson (Done), at most this long after it was due (never locks). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float WithdrawalWaitCapSeconds = 45.f;
+protected:
+	void RequestWithdrawal();
+	void UpdateTeachPressure();
+	bool IsTeachingSquad() const;
+	void SetSquadBoundaryRelease(bool bRelease);
+	float TutorialClock = 0.f;
+	float WithdrawalWait = 0.f;
+	bool bWithdrawalRequested = false;
+	bool bBoundaryReleased = false;
+	// ENG-43 barks (TDWorldBarks).
+	TSet<FName> SeenTypes;
+	bool bIncomingSaid = false;
+	float MineCheckTimer = 0.f;
+	float WaveStoryClock = 0.f;
+	bool bWaveStoryFired = false;
+	int32 SpawnPointRetries = 0;
+	int32 SpawnPointsPushedOut = 0;
+	TArray<FVector> PickedSpawnPoints;
+	void CheckMinesAhead();
 
 	UFUNCTION()
 	void HandleEnemyDeath(UTDHealthComponent* Health, const FTDDamageInfo& KillingBlow);

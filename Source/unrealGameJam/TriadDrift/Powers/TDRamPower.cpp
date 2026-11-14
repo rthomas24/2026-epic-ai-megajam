@@ -1,6 +1,7 @@
 // Triad Drift - Powers (Teammate 2). Lancer: Afterburner Ram.
 
 #include "TriadDrift/Powers/TDRamPower.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 #include "TriadDrift/Combat/TDFieldDamageable.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -550,6 +551,7 @@ void UTDRamPower::OnEnd(bool bInterrupted)
 
 void UTDRamPower::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
+	TD_COMBAT_PERF(Powers);
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	if (!IsPowerActive() && PostDashGrace > 0.f)
 	{

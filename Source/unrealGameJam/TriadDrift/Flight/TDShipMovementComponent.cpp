@@ -1,6 +1,9 @@
 // Triad Drift - ship movement component (ENG-01). Owner: Teammate 1 (Flight & Input).
 
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Travel/TDTravelBarks.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipImpactReceiver.h"
@@ -362,6 +365,15 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	{
 		TDFlightSim::Advance(State, Input, Tuning, Context, DeltaTime);
 	}
+	if (bPitchHold)
+	{
+		// ENG-38 glide: the nose's pitch is held (the path), yaw and roll stay the pilot's; the next step flies along it.
+		FRotator R = State.Rotation.Rotator();
+		R.Pitch = FMath::FInterpConstantTo(R.Pitch, PitchHoldDeg, DeltaTime, PitchHoldRate);
+		State.Rotation = R.Quaternion();
+	}
+
+	ApplyKeepOut(DeltaTime);
 
 	const FVector Delta = State.Location - StartLocation;
 	State.Location = StartLocation;
@@ -379,6 +391,51 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	UpdateComponentVelocity();
 
 	BroadcastStateChanges(Before);
+}
+
+void UTDShipMovementComponent::ApplyKeepOut(float DeltaTime)
+{
+	bKeepOutContact = false;
+	if (KeepOutRadius <= 0.f)
+	{
+		KeepOut01 = 0.f;
+		return;
+	}
+	const FVector Offset = State.Location - KeepOutCenter;
+	const float Dist = Offset.Size();
+	const FVector Out = Dist > KINDA_SMALL_NUMBER ? Offset / Dist : FVector::UpVector;
+	KeepOut01 = FMath::Clamp((KeepOutRadius + KeepOutBand - Dist) / KeepOutBand, 0.f, 1.f);
+	if (KeepOut01 <= 0.f)
+	{
+		return;
+	}
+	// Turn the nose away: toward the surface normal until the ship is clearly heading out, faster the deeper it is.
+	const FVector Forward = State.Rotation.GetForwardVector();
+	if (FVector::DotProduct(Forward, Out) < 0.6f) // until the nose is clearly away (about 53 deg off the normal): the planet leaves the view
+	{
+		FVector Axis = FVector::CrossProduct(Forward, Out);
+		if (!Axis.Normalize()) { Axis = State.Rotation.GetUpVector(); }
+		const float Angle = FMath::Acos(FMath::Clamp(FVector::DotProduct(Forward, Out), -1.f, 1.f));
+		const float Step = FMath::DegreesToRadians(FMath::Lerp(18.f, 240.f, KeepOut01 * KeepOut01)) * DeltaTime;
+		State.Rotation = (FQuat(Axis, FMath::Min(Angle, Step)) * State.Rotation).GetNormalized();
+	}
+	// Slow toward a firm crawl as it goes deeper (the sim re-accelerates outside the band).
+	const float Slow = Tuning.CruiseSpeed * 0.45f;
+	if (State.ForwardSpeed > Slow)
+	{
+		State.ForwardSpeed = FMath::FInterpTo(State.ForwardSpeed, Slow, DeltaTime, 5.f * KeepOut01);
+	}
+	// Never inside: hold the ship out along the normal and drop the inward part of its travel.
+	if (Dist < KeepOutRadius)
+	{
+		State.Location = KeepOutCenter + Out * KeepOutRadius;
+		bKeepOutContact = true;
+	}
+	const float Inward = FVector::DotProduct(State.Velocity, Out);
+	if (Inward < 0.f)
+	{
+		State.Velocity -= Out * Inward * (Dist < KeepOutRadius ? 1.f : KeepOut01);
+	}
 }
 
 void UTDShipMovementComponent::HandleTransformUpdated(USceneComponent* Component, EUpdateTransformFlags Flags, ETeleportType Teleport)
@@ -403,7 +460,7 @@ void UTDShipMovementComponent::HandleTransformUpdated(USceneComponent* Component
 	{
 		UE_LOG(LogTriadDrift, Warning, TEXT("TD silent move: %s moved %.0f m in one step, outside flight and without TeleportSpacecraft (%s -> %s). Mover's callstack:"),
 			*GetNameSafe(GetOwner()), Moved / 100.f, *From.ToCompactString(), *Now.ToCompactString());
-		if (!GIsAutomationTesting) { FDebug::DumpStackTraceToLog(ELogVerbosity::Warning); } // tests: the line is enough, a stack per move is noise
+		if (!GIsAutomationTesting && TDTeleportStackEnabled()) { FDebug::DumpStackTraceToLog(ELogVerbosity::Warning); } // tests: the line is enough, a stack per move is noise
 	}
 #endif
 }
@@ -691,6 +748,11 @@ void UTDShipMovementComponent::BroadcastStateChanges(const FTDFlightState& Befor
 	{
 		State.bBoosting ? OnBoostStarted.Broadcast() : OnBoostEnded.Broadcast();
 	}
+	// ENG-43 Bark_BoostEmpty: the meter ran dry with boost held (once per lock-out).
+	if (State.bBoostLockout && !Before.bBoostLockout)
+	{
+		FTDCombatBarks::SayAsPilot(GetOwner(), TDBarkIdsT1::BoostEmpty, ETDBarkPriority::Flavour);
+	}
 	if (State.bDrifting && !Before.bDrifting)
 	{
 		OnDriftStarted.Broadcast();
@@ -742,7 +804,7 @@ void UTDShipMovementComponent::SetBoundaryReleaseFor(FName Owner, bool bRelease)
 bool UTDShipMovementComponent::IsBoundaryWarningHeld() const
 {
 	if (BoundaryWarningHolds.Num() > 0 || BoundaryReleases.Num() > 0) { return true; }
-	static const FName SequenceOwners[] = { FName(TEXT("AtmosphereEntry")), FName(TEXT("TDExitClimb")), FName(TEXT("Hyperdrive")), FName(TEXT("LandingAssist")) };
+	static const FName SequenceOwners[] = { FName(TEXT("AtmosphereEntry")), FName(TEXT("TDExitClimb")), FName(TEXT("Hyperdrive")), FName(TEXT("LandingAssist")), FName(TEXT("DescentGlide")) };
 	for (const FSpeedOverrideRequest& R : OverrideStack)
 	{
 		for (const FName& N : SequenceOwners) { if (R.Owner == N) { return true; } }

@@ -3,6 +3,7 @@
 #include "TriadDrift/Input/TDMusicDirectorSubsystem.h"
 #include "TriadDrift/Input/TDMusicSettings.h"
 #include "TriadDrift/Input/TDTutorialMusicSubsystem.h"
+#include "TriadDrift/Input/TDMusicFallbackSubsystem.h"
 #include "TriadDrift/Core/TDAudioState.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -18,6 +19,8 @@
 #include "GameFramework/WorldSettings.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
+#include "Engine/AssetManager.h"
+#include "Engine/StreamableManager.h"
 #include "UObject/UnrealType.h"
 
 bool UTDMusicDirectorSubsystem::ShouldCreateSubsystem(UObject* Outer) const
@@ -46,6 +49,49 @@ void UTDMusicDirectorSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		Bus->OnSceneCut.AddUniqueDynamic(this, &UTDMusicDirectorSubsystem::OnSceneCut);
 		Bus->OnTakeStarted.AddUniqueDynamic(this, &UTDMusicDirectorSubsystem::OnTakeStarted);
 	}
+	PrimeScoreSlots();
+}
+
+// T7 perf (#89): every score slot is streamed in the background at map start and held; the director never loads a sound
+// on the game thread (a synchronous load of a two-minute music asset on the assault's first frame was a hitch).
+USoundBase* UTDMusicDirectorSubsystem::AsyncSound(const FSoftObjectPtr& Soft) const
+{
+	if (Soft.IsNull())
+	{
+		return nullptr;
+	}
+	if (USoundBase* Loaded = Cast<USoundBase>(Soft.Get()))
+	{
+		HeldScores.AddUnique(Loaded);
+		return Loaded;
+	}
+	const FSoftObjectPath Path = Soft.ToSoftObjectPath();
+	if (!PendingScores.Contains(Path))
+	{
+		PendingScores.Add(Path, UAssetManager::GetStreamableManager().RequestAsyncLoad(Path, FStreamableDelegate(), FStreamableManager::AsyncLoadHighPriority));
+	}
+	return nullptr;
+}
+
+void UTDMusicDirectorSubsystem::PrimeScoreSlots()
+{
+	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+	if (!Style)
+	{
+		return;
+	}
+	const UWorld* World = GetWorld();
+	const FName Slots[] = { TEXT("CombatMusic"), World ? AmbienceSlotForMap(World->GetMapName()) : NAME_None };
+	for (const FName& Slot : Slots)
+	{
+		if (const FSoftObjectProperty* Prop = Slot.IsNone() ? nullptr : CastField<FSoftObjectProperty>(Style->GetClass()->FindPropertyByName(Slot)))
+		{
+			AsyncSound(Prop->GetPropertyValue_InContainer(Style));
+		}
+	}
+	AsyncSound(FSoftObjectPtr(Style->IdleSpaceMusic.ToSoftObjectPath()));
+	if (IsLateWavePhase()) { ResolveLateMusic(); } // stream the waves 3-5 track in ahead of the first wave
+	AsyncSound(FSoftObjectPtr(Style->AssaultMusic.ToSoftObjectPath()));
 }
 
 void UTDMusicDirectorSubsystem::Deinitialize()
@@ -70,11 +116,53 @@ void UTDMusicDirectorSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
+const FSoftObjectPath& UTDMusicDirectorSubsystem::LateWaveFallbackPath()
+{
+	static const FSoftObjectPath Path(TEXT("/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.MUS_Combat_EtherealPulseRemix_01"));
+	return Path;
+}
+
+bool UTDMusicDirectorSubsystem::IsLateWavePhase() const
+{
+	const UWorld* World = GetWorld();
+	const UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr;
+	const ETDGamePhase Phase = GI ? GI->GetProgressRef().Phase : ETDGamePhase::Waves1to2;
+	return Phase == ETDGamePhase::Waves3to4 || Phase == ETDGamePhase::Wave5;
+}
+
+USoundBase* UTDMusicDirectorSubsystem::ResolveLateMusic() const
+{
+	if (CachedLateMusic)
+	{
+		return CachedLateMusic;
+	}
+	// The style's own waves 3-5 slot (by name: optional, Nick's to add); empty or absent, Nick's handed-off waves 3-5
+	// track (N-074) as the engineering fallback - marked as one until Nicholas approves it by ear.
+	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+	const FSoftObjectProperty* Prop = Style ? CastField<FSoftObjectProperty>(Style->GetClass()->FindPropertyByName(TEXT("CombatMusicLate"))) : nullptr;
+	const bool bSlot = Prop && !Prop->GetPropertyValue_InContainer(Style).IsNull();
+	if (!bSlot && !UTDMusicFallbackSubsystem::IsEnabled())
+	{
+		return nullptr;
+	}
+	USoundBase* Sound = bSlot ? AsyncSound(Prop->GetPropertyValue_InContainer(Style)) : AsyncSound(FSoftObjectPtr(LateWaveFallbackPath()));
+	if (Sound)
+	{
+		CachedLateMusic = Sound;
+		bLateFallback = !bSlot;
+	}
+	return Sound;
+}
+
 USoundBase* UTDMusicDirectorSubsystem::ResolveMusic() const
 {
 	if (bUseOverride)
 	{
 		return MusicOverride;
+	}
+	if (IsLateWavePhase())
+	{
+		return ResolveLateMusic(); // null while it streams in: the music waits for it rather than starting the wrong track
 	}
 	// Review M10: found once and held (UPROPERTY); while missing, looked up again every 2 s, never every frame.
 	if (CachedMusic || MusicRetry > 0.f)
@@ -91,7 +179,7 @@ USoundBase* UTDMusicDirectorSubsystem::ResolveMusic() const
 		return nullptr;
 	}
 	const FSoftObjectPtr& Soft = Prop->GetPropertyValue_InContainer(Style);
-	CachedMusic = Soft.IsNull() ? nullptr : Cast<USoundBase>(Soft.LoadSynchronous());
+	CachedMusic = AsyncSound(Soft);
 	return CachedMusic;
 }
 
@@ -118,7 +206,7 @@ USoundBase* UTDMusicDirectorSubsystem::ResolveAmbience() const
 		return nullptr;
 	}
 	const FSoftObjectPtr& Soft = Prop->GetPropertyValue_InContainer(Style);
-	return Soft.IsNull() ? nullptr : Cast<USoundBase>(Soft.LoadSynchronous());
+	return AsyncSound(Soft);
 }
 
 void UTDMusicDirectorSubsystem::TickAmbience(float Dt, bool bStop)
@@ -218,7 +306,8 @@ void UTDMusicDirectorSubsystem::StartPlayback()
 	++StartCount;
 	MusicState = ETDCombatMusicState::FadingIn;
 	StateTime = 0.f;
-	UE_LOG(LogTriadDrift, Log, TEXT("TD music: combat music starts (%s)"), *GetNameSafe(Music));
+	UE_LOG(LogTriadDrift, Log, TEXT("TD music: combat music starts (%s)%s"), *GetNameSafe(Music),
+		(Music == CachedLateMusic && bLateFallback) ? TEXT(" - waves 3-5 FALLBACK (N-074; style slot CombatMusicLate empty)") : TEXT(""));
 }
 
 void UTDMusicDirectorSubsystem::BeginStop(const TCHAR* Why)
@@ -274,7 +363,10 @@ USoundBase* UTDMusicDirectorSubsystem::ResolveAssaultMusic() const
 {
 	if (bAssaultOverride) { return AssaultOverride; }
 	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
-	return Style && !Style->AssaultMusic.IsNull() ? Style->AssaultMusic.LoadSynchronous() : nullptr;
+	if (Style && !Style->AssaultMusic.IsNull()) { return AsyncSound(FSoftObjectPtr(Style->AssaultMusic.ToSoftObjectPath())); }
+	// R-047 fallback: Nicholas's assigned assault score (DominionAssault02 Push The Attack) while the style slot is empty.
+	static const FSoftObjectPath Fallback(TEXT("/Game/TriadDrift/Audio/DominionAssault02/MUS_DominionAssault_PushTheAttack_Full_01.MUS_DominionAssault_PushTheAttack_Full_01"));
+	return UTDMusicFallbackSubsystem::IsEnabled() ? AsyncSound(FSoftObjectPtr(Fallback)) : nullptr;
 }
 
 void UTDMusicDirectorSubsystem::TickAssault(UWorld* World, bool bWanted)
@@ -311,12 +403,21 @@ void UTDMusicDirectorSubsystem::ReleaseExclusiveScore(FName Owner, float FadeSec
 	}
 }
 
+bool UTDMusicDirectorSubsystem::IsFallbackScorePlaying() const
+{
+	const UTDMusicFallbackSubsystem* Fallback = UTDMusicFallbackSubsystem::Get(GetWorld());
+	return Fallback && Fallback->IsFallbackScorePlaying();
+}
+
 USoundBase* UTDMusicDirectorSubsystem::ResolveIdleMusic(float& OutDelay) const
 {
 	if (bIdleOverride) { OutDelay = IdleDelayOverride; return IdleOverride; }
 	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
 	OutDelay = Style ? Style->IdleMusicDelaySeconds : 6.f;
-	return Style && !Style->IdleSpaceMusic.IsNull() ? Style->IdleSpaceMusic.LoadSynchronous() : nullptr;
+	if (Style && !Style->IdleSpaceMusic.IsNull()) { return AsyncSound(FSoftObjectPtr(Style->IdleSpaceMusic.ToSoftObjectPath())); }
+	// R-047 fallback: Nicholas's assigned quiet-flight bed (IdleAmbient01) while the style slot is empty.
+	static const FSoftObjectPath Fallback(TEXT("/Game/TriadDrift/Audio/IdleAmbient01/MUS_SpaceIdle_Ambient1_Full_01.MUS_SpaceIdle_Ambient1_Full_01"));
+	return UTDMusicFallbackSubsystem::IsEnabled() ? AsyncSound(FSoftObjectPtr(Fallback)) : nullptr;
 }
 
 void UTDMusicDirectorSubsystem::TickIdle(UWorld* World, bool bQuiet, float Dt)
@@ -382,14 +483,15 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 	{
 		bAssaultPhase = GI->GetProgressRef().Phase == ETDGamePhase::DominionAssault;
 	}
-	TickAssault(World, bAssaultPhase && !bTravelling && !bVictory && !bMenuMap && ResolveAssaultMusic() != nullptr);
-	const bool bAssaultHolds = IsAssaultMusicPlaying();
 	// N-074: claims from other score owners; a released claim holds through its fade, then goes.
 	for (auto It = ExclusiveClaims.CreateIterator(); It; ++It)
 	{
 		if (It.Value() >= 0.f) { It.Value() -= Dt; if (It.Value() <= 0.f) { It.RemoveCurrent(); } }
 	}
-	const bool bExclusiveHolds = IsExclusiveScoreHeld();
+	// R-047: a claim stands the assault score down too (Nick's player takes over); the fallback's own track holds the beds.
+	const bool bExclusiveHolds = IsExclusiveScoreHeld() || IsFallbackScorePlaying();
+	TickAssault(World, bAssaultPhase && !bTravelling && !bVictory && !bMenuMap && !bExclusiveHolds && ResolveAssaultMusic() != nullptr);
+	const bool bAssaultHolds = IsAssaultMusicPlaying();
 	const bool bBlocked = bTravelling || bVictory || bMenuMap || bTutorialHolds || bAssaultHolds || bExclusiveHolds || (MusicState == ETDCombatMusicState::Silent && !ResolveMusic());
 	bool bCombat = !bBlocked && IsCombatNow();
 	if (bWaitForTake && !bCombat)

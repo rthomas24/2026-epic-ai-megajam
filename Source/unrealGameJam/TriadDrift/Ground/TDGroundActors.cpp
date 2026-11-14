@@ -1,6 +1,8 @@
 // Triad Drift - ground gameplay actors (ENG-24). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/TDGroundActors.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
+#include "TriadDrift/Ground/TDGroundBarks.h"
 #include "Misc/PackageName.h"
 #include "Engine/StaticMesh.h"
 #include "TriadDrift/Ground/TDObjective.h"
@@ -24,6 +26,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "EngineUtils.h"
 #include "UObject/ConstructorHelpers.h"
 
 namespace TDGroundShapes
@@ -607,6 +610,7 @@ void ATDEncounterVolume::MarkClearedOnLoad()
 
 void ATDEncounterVolume::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
+	GetWorldTimerManager().ClearTimer(StragglerTimer);
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
 		Scene->Unregister(this);
@@ -674,8 +678,47 @@ void ATDEncounterVolume::AdoptMember(AActor* Member)
 	}
 }
 
+bool ATDEncounterVolume::ReturnLostBoss(AActor* Member)
+{
+	// T7 (Nov 14): after a CUT the Warden's room came back cleared with no Warden, completing the scene. A member that
+	// is destroyed while still alive left the world (fell through a gap, kill-Z); for a boss that must never clear the
+	// room, so a fresh one is put back where the first was spawned.
+	const ATDCrewCharacter* Lost = Cast<ATDCrewCharacter>(Member);
+	const UTDHealthComponent* H = Member ? UTDStatics::GetHealth(Member) : nullptr;
+	const FTransform* At = SpawnedAt.Find(Member);
+	// Never capped: a room whose boss keeps falling out must not count as won (T3's edge case: after 3 returns the room
+	// cleared); from the second return it comes back at the room's middle.
+	if (!bActivated || bCleared || !Lost || Lost->Spec.Type != ETDCrewType::Warden || !H || !H->IsAlive() || !At || !GetWorld())
+	{
+		return false;
+	}
+	++BossReturns;
+	// The first time where it was spawned; if it is lost again, the room's middle (its spawn spot may be over a gap).
+	FTransform Xf = *At;
+	if (BossReturns > 1)
+	{
+		Xf.SetLocation(FVector(GetActorLocation().X, GetActorLocation().Y, At->GetLocation().Z + 50.f));
+	}
+	AActor* Fresh = GetWorld()->SpawnActorDeferred<AActor>(Member->GetClass(), Xf, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+	ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Fresh);
+	if (!Crew)
+	{
+		return false;
+	}
+	Crew->CrewType = ETDCrewType::Warden;
+	Crew->FinishSpawning(Xf);
+	if (const FTDRetakeMercyTier* Mercy = GetActiveMercy()) { Crew->ApplyMercy(Mercy->HealthScale, Mercy->MaxSummons); }
+	Crew->SetOpeningGrace(OpeningGraceSeconds);
+	UE_LOG(LogTriadDrift, Warning, TEXT("%s: the Warden %s left the world alive (at %s); %s put back at %s (return %d)"), *GetName(), *Member->GetName(),
+		*Member->GetActorLocation().ToCompactString(), *Crew->GetName(), *Xf.GetLocation().ToCompactString(), BossReturns);
+	SpawnedAt.Add(Crew, Xf);
+	AdoptMember(Crew);
+	return true;
+}
+
 void ATDEncounterVolume::HandleMemberDestroyed(AActor* Member)
 {
+	ReturnLostBoss(Member);
 	Spawned.RemoveAll([Member](const TWeakObjectPtr<AActor>& M) { return !M.IsValid() || M.Get() == Member; });
 	// Still "alive" by its health component while it is being destroyed: it counts as gone.
 	if (bActivated && !bCleared && GetAliveCount() == 0)
@@ -696,6 +739,10 @@ void ATDEncounterVolume::Activate()
 		return;
 	}
 	bActivated = true;
+	Stragglers.Reset();
+	SpawnedAt.Reset();
+	BossReturns = 0;
+	GetWorldTimerManager().SetTimer(StragglerTimer, FTimerDelegate::CreateWeakLambda(this, [this]() { SweepStragglers(1.f); }), 1.f, true);
 	bCleared = false;
 	++Take;
 	const FTDRetakeMercyTier* Mercy = GetActiveMercy();
@@ -732,9 +779,52 @@ void ATDEncounterVolume::Activate()
 	{
 		Points.SetNum(FMath::Max(1, Points.Num() - Mercy->DropCrew));
 	}
+	// ENG-45: the difficulty's crew count, as the Armada's pack sizes (a lone boss stays alone; named crews, the
+	// reactor's future pilots, will be exempt when they land).
+	if (Points.Num() > 1 && MemberNames.Num() == 0) // named crews (the reactor's future pilots) are exactly who they are
+	{
+		const int32 Want = UTDDifficultySettings::ScaleCount(Points.Num(), UTDDifficultySettings::GetScale().WaveSize);
+		const int32 Base = Points.Num();
+		for (int32 i = Base; i < Want; ++i)
+		{
+			// Inside the fight, never outward: a point pushed out of a room spawned crew behind its wall (Played.Cinder on Ace).
+			const FVector& From = Points[i % Base];
+			const FVector Inward = From.Size2D() > 200.f ? From * 0.7f : From + FVector(0.f, 150.f, 0.f);
+			Points.Add(FVector(Inward.X, Inward.Y, From.Z));
+		}
+		Points.SetNum(FMath::Min(Points.Num(), Want));
+	}
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	const FVector Center = GetActorLocation();
+	// Never on top of the pilot (T7's Cinder play, Nov 14: crew 1.2 m from the retake spot, 24 CUTs in 8 minutes): a
+	// point closer than MinSpawnDistance moves straight away from the pilot, kept inside the volume; if the volume is too
+	// small for that, its corner farthest from the pilot.
+	if (Player && MinSpawnDistance > 0.f && Box)
+	{
+		const FVector Ext = Box->GetScaledBoxExtent();
+		const FVector PL = GetActorTransform().InverseTransformPosition(Player->GetActorLocation());
+		for (FVector& P : Points)
+		{
+			const FVector2D D(P.X - PL.X, P.Y - PL.Y);
+			if (D.Size() >= MinSpawnDistance)
+			{
+				continue;
+			}
+			const FVector2D Dir = D.IsNearlyZero() ? FVector2D(1.f, 0.f) : D.GetSafeNormal();
+			FVector2D Want(PL.X + Dir.X * MinSpawnDistance, PL.Y + Dir.Y * MinSpawnDistance);
+			Want.X = FMath::Clamp(Want.X, -Ext.X + 100.f, Ext.X - 100.f);
+			Want.Y = FMath::Clamp(Want.Y, -Ext.Y + 100.f, Ext.Y - 100.f);
+			if (FVector2D::Distance(Want, FVector2D(PL.X, PL.Y)) < MinSpawnDistance * 0.7f)
+			{
+				Want = FVector2D(PL.X > 0.f ? -Ext.X + 100.f : Ext.X - 100.f, PL.Y > 0.f ? -Ext.Y + 100.f : Ext.Y - 100.f);
+			}
+			P.X = Want.X;
+			P.Y = Want.Y;
+		}
+	}
+	// A retake gives the pilot a longer beat before the first shot.
+	const float Grace = Take >= 2 ? FMath::Max(OpeningGraceSeconds, RetakeGraceSeconds) : OpeningGraceSeconds;
 	for (int32 i = 0; i < Points.Num(); ++i)
 	{
 		const FVector Loc = GetActorTransform().TransformPosition(Points[i]);
@@ -747,6 +837,10 @@ void ATDEncounterVolume::Activate()
 		if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member))
 		{
 			Crew->CrewType = CrewMix.Num() > 0 ? CrewMix[i % CrewMix.Num()] : ETDCrewType::Grunt;
+			if (MemberNames.Num() > 0)
+			{
+				Crew->FuturePilot = MemberNames[i % MemberNames.Num()];
+			}
 		}
 		Member->FinishSpawning(Xf);
 		if (ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Member))
@@ -755,16 +849,17 @@ void ATDEncounterVolume::Activate()
 			{
 				Crew->ApplyMercy(Mercy->HealthScale, Mercy->MaxSummons);
 			}
-			Crew->SetOpeningGrace(OpeningGraceSeconds);
+			Crew->SetOpeningGrace(Grace);
 		}
 		// The fight starts now: everyone already knows where the player is.
 		if (ATDCrewAIController* AI = Cast<ATDCrewAIController>(Cast<APawn>(Member) ? Cast<APawn>(Member)->GetController() : nullptr))
 		{
 			AI->SetTarget(Player);
 		}
+		SpawnedAt.Add(Member, Xf);
 		AdoptMember(Member);
-
 	}
+	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->NotifyEncounterStarted(this); } // contact, a new crew type (ENG-43)
 	CheckCleared(); // nothing spawned (bad class) still opens the way rather than soft-locking
 }
 
@@ -801,6 +896,63 @@ void ATDEncounterVolume::HandleMemberDeath(UTDHealthComponent* InHealth, const F
 	CheckCleared();
 }
 
+void ATDEncounterVolume::SweepStragglers(float Seconds)
+{
+	if (!bActivated || bCleared || StragglerSeconds <= 0.f)
+	{
+		GetWorldTimerManager().ClearTimer(StragglerTimer);
+		return;
+	}
+	const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+	const APawn* Pilot = PC ? PC->GetPawn() : nullptr;
+	for (TActorIterator<ATDFirstPersonCharacter> It(GetWorld()); It && !Pilot; ++It) // tests and played runs drive the pilot by AI
+	{
+		if (!It->IsDead()) { Pilot = *It; }
+	}
+	if (!Pilot)
+	{
+		return;
+	}
+	const FVector Eye = Pilot->GetPawnViewLocation();
+	TArray<AActor*> Remove;
+	for (const TWeakObjectPtr<AActor>& M : Spawned)
+	{
+		AActor* A = M.Get();
+		const UTDHealthComponent* H = A && !A->IsActorBeingDestroyed() ? UTDStatics::GetHealth(A) : nullptr;
+		const ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(A);
+		if (!H || !H->IsAlive() || (Crew && Crew->Spec.Type == ETDCrewType::Warden))
+		{
+			continue;
+		}
+		FStraggler& S = Stragglers.FindOrAdd(M);
+		FHitResult Hit;
+		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDStraggler), false, A);
+		Params.AddIgnoredActor(Pilot);
+		const bool bSeen = !GetWorld()->LineTraceSingleByChannel(Hit, A->GetActorLocation() + FVector(0.f, 0.f, 60.f), Eye, ECC_Visibility, Params);
+		const float Health = H->GetHull() + H->GetShield();
+		if (bSeen || (S.LastHealth >= 0.f && Health < S.LastHealth))
+		{
+			S.Unseen = 0.f;
+		}
+		else
+		{
+			S.Unseen += Seconds;
+		}
+		S.LastHealth = Health;
+		if (S.Unseen >= StragglerSeconds)
+		{
+			Remove.Add(A);
+		}
+	}
+	for (AActor* A : Remove)
+	{
+		UE_LOG(LogTriadDrift, Display, TEXT("%s: %s removed, out of the pilot's sight and untouched for %.0f s (%.0f m away)"), *GetName(), *A->GetName(),
+			StragglerSeconds, FVector::Dist(A->GetActorLocation(), Pilot->GetActorLocation()) / 100.f);
+		Stragglers.Remove(A);
+		A->Destroy(); // OnDestroyed: counts as gone, and the room clears when it was the last
+	}
+}
+
 void ATDEncounterVolume::CheckCleared()
 {
 	if (!bActivated || bCleared || GetAliveCount() > 0)
@@ -808,6 +960,8 @@ void ATDEncounterVolume::CheckCleared()
 		return;
 	}
 	bCleared = true;
+	UE_LOG(LogTriadDrift, Display, TEXT("%s cleared (take %d, %d spawned this take)%s"), *GetName(), Take, Spawned.Num(),
+		LinkedObjective && LinkedStep != INDEX_NONE ? *FString::Printf(TEXT(": completes %s step %d"), *LinkedObjective->ObjectiveId.ToString(), LinkedStep) : TEXT(""));
 	for (ATDDoor* Door : DoorsToOpen)
 	{
 		if (Door) { Door->Open(); }
@@ -817,6 +971,7 @@ void ATDEncounterVolume::CheckCleared()
 		if (Door) { Door->Open(); }
 	}
 	OnCleared.Broadcast(this);
+	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->NotifyEncounterCleared(this); } // "that's the lot"
 	if (LinkedObjective && LinkedStep != INDEX_NONE)
 	{
 		LinkedObjective->CompleteStep(LinkedStep);

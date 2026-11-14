@@ -438,6 +438,21 @@ public:
 	/** Stretch: the docking bay opening (ENG-29). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
 	FTDFXCue DockingBayOpen;
+
+	/**
+	 * ENG-37: the tractor beam. A loop attached at the bay mouth, +X out of the bay toward the ship, while the tractor
+	 * holds the flown ship. Gameplay sets User.Length (cm, bay to ship) and User.Intensity (0..1, the pull) each frame.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
+	FTDFXCue TractorBeam;
+
+	/**
+	 * ART-18: the Aftermath light row (NS_TD_Dominion_LightRow: 12 lights about 400 m along +Y, facing +X). Attached
+	 * to the Dominion at the hull point nearest the escape line (or the player start on a tutorial skip), +X along
+	 * the outward hull normal, from OnAftermathBegins until the hyperdrive jump (then deactivated: it fades in 1 s).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Finale")
+	FTDFXCue AftermathLightRow;
 };
 
 UCLASS(BlueprintType)
@@ -460,6 +475,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FTDFXCue AffectedTarget;
+
+	/**
+	 * Optional overlay material laid over every hull mesh of the ship while the ability runs (Cloak: the hull shimmer).
+	 * Gameplay drives its scalar "Cloak" 0 -> 1 over 0.25 s on activate and 1 -> 0 on end, then removes it. Empty: none.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
+	TSoftObjectPtr<UMaterialInterface> HullOverlay;
 };
 
 UCLASS(BlueprintType)
@@ -478,6 +500,17 @@ public:
 	 *  tunnel, stopped at the drop-out. User.JumpSpeed (cm/s) and User.TunnelSeconds as on the tunnel. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hyperdrive")
 	FTDFXCue HyperdriveStreaks;
+
+	/** ENG-38 exposure ramp (M_TD_PP_DescentWhite, the effects builder): a post-process material on the flown ship's camera
+	 *  whose scalar "Weight" follows the white cover, entry and exit, so the frame brightens into the white and out of it.
+	 *  Not applied (no cost) while the cover is off. Halved under reduced motion. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Descent")
+	TSoftObjectPtr<class UMaterialInterface> DescentWhitePP;
+
+	/** ENG-38 glide wind (SW_Travel_GlideWind_01, the effects builder): a 2D loop through the post-reveal glide, in as the
+	 *  roar fades, out over the level-off. Only the Sound is used. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Descent")
+	FTDFXCue GlideWind;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hyperdrive")
 	FTDFXCue HyperdriveDropOut;
@@ -558,6 +591,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FTDFXCue SwingHeavy;
+
+	/** A trail on the blade for every swing, light or heavy, attached to the blade (the animation builder, Nov 14). */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
+	FTDFXCue SwingTrail;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FTDFXCue Hit;

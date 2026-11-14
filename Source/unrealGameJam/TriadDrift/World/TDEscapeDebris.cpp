@@ -26,10 +26,47 @@ void ATDEscapeDebris::Launch(float SizeCm, const FVector& InVelocity, const FRot
 {
 	Velocity = InVelocity;
 	Spin = InSpin;
+	// The structures builder's Dominion debris set (Gameplay/Props/Kit/Space, always cooked), a random piece scaled so
+	// its longest side is SizeCm (capped so the largest still leaves the corridor flyable); the orange block without it.
+	static const TCHAR* Pieces[] = {
+		TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomDebris_PlateA.SM_KS_DomDebris_PlateA"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomDebris_PlateB.SM_KS_DomDebris_PlateB"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomDebris_PlateC.SM_KS_DomDebris_PlateC"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomDebris_Truss.SM_KS_DomDebris_Truss"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomDebris_Turret.SM_KS_DomDebris_Turret"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomDebris_Shroud.SM_KS_DomDebris_Shroud") };
+	const float Size = FMath::Min(SizeCm, MaxArtSizeCm);
+	UStaticMesh* Art = LoadObject<UStaticMesh>(nullptr, Pieces[FMath::RandRange(0, UE_ARRAY_COUNT(Pieces) - 1)], nullptr, LOAD_NoWarn | LOAD_Quiet);
+	if (Art)
+	{
+		Mesh->SetStaticMesh(Art);
+		Mesh->EmptyOverrideMaterials();
+		const float Longest = FMath::Max(1.f, (float)Art->GetBoundingBox().GetSize().GetMax());
+		Mesh->SetRelativeScale3D(FVector(Size / Longest));
+		Radius = Size * 0.5f;
+		bArtPiece = true;
+		return;
+	}
 	Radius = SizeCm * 0.6f;
 	Mesh->SetRelativeScale3D(FVector(SizeCm, SizeCm * 0.6f, SizeCm * 0.35f) / 100.f);
 	// Dark armour with a burning edge: reads against the bright breakup.
 	UTDStatics::TintPlaceholder(Mesh, FLinearColor(0.15f, 0.04f, 0.01f), 3.f);
+}
+
+void ATDEscapeDebris::LaunchArt(UStaticMesh* Art, float Scale, const FVector& InVelocity, const FRotator& InSpin)
+{
+	if (!Art)
+	{
+		Launch(5000.f, InVelocity, InSpin);
+		return;
+	}
+	Velocity = InVelocity;
+	Spin = InSpin;
+	Mesh->SetStaticMesh(Art);
+	Mesh->EmptyOverrideMaterials();
+	Mesh->SetRelativeScale3D(FVector(Scale));
+	Radius = (float)Art->GetBoundingBox().GetSize().GetMax() * Scale * 0.5f;
+	bArtPiece = true;
 }
 
 void ATDEscapeDebris::Burst()
@@ -52,9 +89,9 @@ void ATDEscapeDebris::Tick(float DeltaSeconds)
 	}
 	AddActorWorldOffset(Velocity * DeltaSeconds);
 	AddActorLocalRotation(Spin * DeltaSeconds);
-	if (bHit)
+	if (bHit || Damage <= 0.f)
 	{
-		return;
+		return;	// already hit, or a harmless piece (the Dominion's breakup chunks): it never bursts on a ship
 	}
 	const UTDCombatRegistry* Registry = UTDCombatRegistry::Get(this);
 	if (!Registry)

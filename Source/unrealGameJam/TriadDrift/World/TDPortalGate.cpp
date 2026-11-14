@@ -1,5 +1,6 @@
 // Triad Drift - World (Teammate 4).
 #include "TriadDrift/World/TDPortalGate.h"
+#include "TriadDrift/World/TDWorldBarks.h"
 
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "Misc/PackageName.h"
@@ -89,11 +90,18 @@ void ATDPortalGate::LayoutParts()
 		if (UStaticMesh* Art = FrameMeshOverride.LoadSynchronous())
 		{
 			Frame[0]->SetStaticMesh(Art);
-			Frame[0]->SetRelativeLocation(FVector::ZeroVector);
 			Frame[0]->SetRelativeRotation(FRotator::ZeroRotator);
 			// One round frame: scale its opening to the transit disc (the disc stays the gameplay truth).
 			const float RingScale = FrameMeshInnerDiameter > 0.f ? (Radius * 2.f) / FrameMeshInnerDiameter : 1.f;
 			Frame[0]->SetRelativeScale3D(FVector(RingScale));
+			// T1 (Nov 14, played): the ring art's pivot is not its centre, so the ring stood beside the transit disc and
+			// flying through the ring did nothing. Centre the ring's bounds on the gate: the ring you see is the gate.
+			const FVector ArtCentre = Art->GetBounds().Origin;
+			Frame[0]->SetRelativeLocation(-ArtCentre * RingScale);
+			if (!ArtCentre.IsNearlyZero(1.f))
+			{
+				UE_LOG(LogTriadDrift, Verbose, TEXT("ATDPortalGate %s: ring art centred (pivot offset %s cm at scale 1, x%.2f)"), *GateId.ToString(), *ArtCentre.ToCompactString(), RingScale);
+			}
 			Frame[0]->EmptyOverrideMaterials();
 			for (int32 i = 1; i < Frame.Num(); ++i)
 			{
@@ -294,6 +302,10 @@ bool ATDPortalGate::TryTransit(AActor* Traveller, float DeltaSeconds)
 		UTDStatics::PlayCue(this, TravelFX->PortalTransit, Traveller->GetActorLocation(), Exit.Rotator());
 	}
 	OnTransit.Broadcast(this, Traveller);
+	if (FTDCombatBarks::IsPlayerFlown(Traveller) && FMath::RandRange(0, 2) == 0)
+	{
+		FTDWorldBarks::Say(this, TDWorldBarkIds::GateEnter, ETDBarkPriority::Flavour, FTDWorldBarks::EWho::FlownPilot, 0.f, Traveller);	// dialogs.md Bark_Gate_Enter, 1 in 3
+	}
 	return true;
 }
 

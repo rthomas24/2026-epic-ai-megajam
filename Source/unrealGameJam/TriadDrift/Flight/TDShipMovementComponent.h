@@ -310,6 +310,23 @@ public:
 	bool IsBoundaryReleased() const { return BoundaryReleases.Num() > 0; }
 
 	/**
+	 * #161 (Ryan, Nov 14: the Lancer stuck against closed Cinder): a sphere the ship can never enter. Inside
+	 * Radius + Band the nose is turned away and the ship slows; at Radius the ship is held out along the surface normal
+	 * (it slides, it never rests on or passes the sphere), at any speed and under any speed override. Radius <= 0 clears.
+	 */
+	void SetKeepOutSphere(const FVector& Center, float Radius, float Band) { KeepOutCenter = Center; KeepOutRadius = Radius; KeepOutBand = FMath::Max(Band, 1.f); }
+	void ClearKeepOutSphere() { KeepOutRadius = 0.f; KeepOut01 = 0.f; }
+	/** 0 outside the band .. 1 at the sphere (heat, HUD line). */
+	float GetKeepOut01() const { return KeepOut01; }
+	/** The ship was held out at the sphere this step (a bounce: flash, small hull damage). */
+	bool WasKeepOutContact() const { return bKeepOutContact; }
+
+	/** ENG-38 glide: hold the nose's pitch at PitchDeg (eased at RateDegPerSec; yaw and roll stay the pilot's). */
+	void SetPitchHold(float PitchDeg, float RateDegPerSec = 30.f) { bPitchHold = true; PitchHoldDeg = PitchDeg; PitchHoldRate = RateDegPerSec; }
+	void ClearPitchHold() { bPitchHold = false; }
+	bool IsPitchHeld() const { return bPitchHold; }
+
+	/**
 	 * Terrain for the ground floor, terrain look-ahead and landing paths: anything static, plus large movable
 	 * geometry (a planet course built from movable BlockAll meshes is WorldDynamic). Small movers (projectiles,
 	 * debris) and pawns never count.
@@ -372,6 +389,15 @@ private:
 	TArray<FSpeedOverrideRequest> OverrideStack;
 	TSet<FName> BoundaryWarningHolds;
 	TSet<FName> BoundaryReleases;
+	FVector KeepOutCenter = FVector::ZeroVector;
+	float KeepOutRadius = 0.f;
+	float KeepOutBand = 1.f;
+	float KeepOut01 = 0.f;
+	bool bKeepOutContact = false;
+	void ApplyKeepOut(float DeltaTime);
+	bool bPitchHold = false;
+	float PitchHoldDeg = 0.f;
+	float PitchHoldRate = 30.f;
 	bool bBoundaryHeldLastStep = false;
 	float LegacyOverrideAcceleration = -1.f;
 	void ApplyOverrideStack();

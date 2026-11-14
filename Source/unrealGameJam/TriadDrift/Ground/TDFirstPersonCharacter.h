@@ -113,9 +113,9 @@ public:
 
 	/** Ground speeds the walk and run loops were authored for: playback rate follows the real speed (less foot sliding). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm/s"))
-	float BodyWalkSpeed = 300.f;
+	float BodyWalkSpeed = 130.f; // measured from the planted foot (animation builder, Nov 14): Walk_v2 130, Run 487
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm/s"))
-	float BodyRunSpeed = 650.f;
+	float BodyRunSpeed = 487.f;
 
 	/** Applies PilotVisuals (loads the default when empty). Public for tests. */
 	void ApplyPilotVisuals();
@@ -223,11 +223,21 @@ public:
 	UTDHealthComponent* GetHealth() const { return Health; }
 	UTDEnergyBladeComponent* GetBlade() const { return Blade; }
 	UStaticMeshComponent* GetBladeMesh() const { return BladePlaceholder; }
+	/** Climb into the ship toward Hatch (true) or step down out of it where the pilot stands (false): plays the clip,
+	 *  puts the blade away and moves the capsule; input waits until it ends. Returns the clip's length (0: none). */
+	float StartShipTransition(bool bBoarding, const FVector& Hatch);
+	bool IsInShipTransition() const { return bShipTransition; }
 	USceneComponent* GetBladeGrip() const { return BladeGrip; }
 
 	/** Applies the blade's UTDBladeFX: BladeMesh if set, otherwise the placeholder tinted with BladeColor. */
 	void ApplyBladeVisuals();
 	bool IsBladeMeshFromArt() const { return bBladeMeshFromArt; }
+	/** #163: the blade's colour, the squad colour of the pilot on foot (Wren magenta, Kato cyan, Moss amber). */
+	FLinearColor GetBladeColor() const;
+	/** #163: the beam the player sees now (the hand blade in third person, the camera blade in first), or null. */
+	UStaticMeshComponent* GetVisibleBladeBeam() const;
+	/** #163: the always-on blade effect (embers, arcs, light, swing sheet, sparks thrown by the tip), when lit. */
+	class UNiagaraComponent* GetBladeAura() const { return BladeAura; }
 
 	FTDOnInteractCompleted OnInteractCompleted;
 
@@ -308,6 +318,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "TriadDrift|Body")
 	TObjectPtr<UStaticMeshComponent> HandBladeBeam;
 
+	/** #163: NS_TD_Blade_Aura on the visible beam's emitter. It reads User.Color, User.Length (cm),
+	 *  User.TipVelocity (world cm/s) and User.TipSpeed, set here each frame. */
+	UPROPERTY(Transient)
+	TObjectPtr<class UNiagaraComponent> BladeAura;
+	void UpdateBladeAura(float DeltaSeconds);
+	FVector BladeAuraPrevTip = FVector::ZeroVector;
+	bool bBladeAuraPrevTip = false;
+	float BladeAuraSpeed = 0.f;
+
 private:
 	FText Tip;
 	float TipLeft = 0.f;
@@ -334,7 +353,23 @@ private:
 	void UpdateHandBlade(float DeltaSeconds);
 	void UpdateBodyActions();
 	void PlayBodyAction(FName Anim, float Rate = 1.f, bool bUpperOnly = false);
+	/** The first of these clips that exists (a newer version before its older one); true when one played. */
+	bool PlayFirstBodyAction(std::initializer_list<const TCHAR*> Anims, float Rate = 1.f, bool bUpperOnly = false);
 	UAnimSequenceBase* LoadPilotAnim(FName Anim) const;
+	void HandleBladeDeflect(AActor* Projectile, bool bPerfect);
+	void StartDeathRagdoll();
+	FTimerHandle DeathRagdollTimer;
+	// Climbing into / out of the ship (A_Pilot_Board_Ship 1.10 s, A_Pilot_Exit_Ship 0.63 s, in place: the capsule moves).
+	bool bShipTransition = false;
+	bool bShipBoarding = false;
+	float ShipTransitionTime = 0.f;
+	float ShipTransitionDuration = 0.f;
+	FVector ShipTransitionFrom = FVector::ZeroVector;
+	FVector ShipTransitionTo = FVector::ZeroVector;
+	FVector ShipTransitionLast = FVector::ZeroVector;
+	void TickShipTransition(float DeltaSeconds);
+	/** The blade is put away while an interaction clip plays (it sweeps through the body), drawn again after. */
+	float InteractRetractLeft = 0.f;
 	float HandBladeExtend = 1.f;
 	/** Standing still, the camera went > 60 deg off: keep turning until the body faces it (not just back under 60). */
 	bool bIdleTurnToCamera = false;
@@ -356,6 +391,8 @@ private:
 	/** Body, head, blades and turning for the current view (Tick, and at once on a mode change, even paused). */
 	void ApplyViewState();
 	ETDBladeState LastBodyBladeState = ETDBladeState::Idle;
+	/** The heavy wind-up is showing for the press being held (A_Pilot_Blade_HeavyWindup). */
+	bool bHeavyWindupShown = false;
 	bool bLastBodyDashing = false;
 	bool bLastBodySliding = false;
 	bool bLastBodyMantling = false;

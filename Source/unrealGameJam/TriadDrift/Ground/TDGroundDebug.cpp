@@ -29,8 +29,11 @@
 #include "Animation/AnimInstance.h"
 #include "Animation/AnimMontage.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "TriadDrift/Ground/TDEnergyBladeComponent.h"
 #include "TriadDrift/Ground/TDPilotAnim.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "TriadDrift/Ground/TDObjective.h"
+#include "TriadDrift/Ground/TDGroundActors.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInterface.h"
@@ -183,6 +186,149 @@ namespace TDGroundDebug
 		}
 	}
 
+	/** TD.Ground.BreakGuard: break every live Heavy's guard (the animation builder's frontal-death captures). */
+	static void BreakGuard(const TArray<FString>& Args, UWorld* World)
+	{
+		int32 N = 0;
+		for (TActorIterator<ATDCrewCharacter> It(World); World && It; ++It)
+		{
+			if (!It->IsDead() && It->Spec.bFrontalShield) { It->BreakGuard(nullptr); ++N; }
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.BreakGuard: %d guards broken"), N);
+	}
+
+	/** TD.Ground.CrewHit <damage> [behind]: damage the nearest crew without killing it, from the player's side of it or
+	 *  from behind, so its hit react (front / back) and stagger play (the animation builder's live checks). */
+	static void CrewHit(const TArray<FString>& Args, UWorld* World)
+	{
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		APawn* P = PC ? PC->GetPawn() : nullptr;
+		float Dist = 0.f;
+		ATDCrewCharacter* C = P ? Cast<ATDCrewCharacter>(NearestEnemy(World, P->GetActorLocation(), Dist)) : nullptr;
+		if (!C || !C->GetHealth())
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.CrewHit: no crew"));
+			return;
+		}
+		const bool bBehind = Args.Num() > 1 && Args[1].Equals(TEXT("behind"), ESearchCase::IgnoreCase);
+		const float Want = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 10.f;
+		const float Amount = FMath::Clamp(Want, 0.f, FMath::Max(0.f, C->GetHealth()->GetHull() - 1.f)); // never the kill
+		// Travelling into its back, or from the pilot at its front (the guard: a frontal hit on a Heavy is blocked; use behind).
+		const FVector Dir = bBehind ? C->GetActorForwardVector() : -C->GetActorForwardVector();
+		const FVector At = C->GetActorLocation() - Dir * C->Spec.CapsuleRadius;
+		UTDStatics::ApplyTDDamage(C, Amount, ETDDamageKind::Energy, P, P, At, Dir);
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.CrewHit: %s %.0f from the %s (hull %.0f)"), *C->GetName(), Amount, bBehind ? TEXT("back") : TEXT("front"), C->GetHealth()->GetHull());
+	}
+
+	/** TD.Ground.WardenSummon: the nearest Warden summons now (its clip and its grunts). */
+	static void WardenSummon(const TArray<FString>& Args, UWorld* World)
+	{
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		APawn* P = PC ? PC->GetPawn() : nullptr;
+		for (TActorIterator<ATDCrewCharacter> It(World); World && It; ++It)
+		{
+			if (!It->IsDead() && It->CrewType == ETDCrewType::Warden)
+			{
+				It->CancelAttack();
+				It->SetOpeningGrace(0.f);
+				const bool bOk = It->StartAttack(ETDCrewAttack::Summon, P);
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.WardenSummon: %s %s"), *It->GetName(), bOk ? TEXT("summons") : TEXT("cannot summon now (cooldown, cap or none left)"));
+				return;
+			}
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.WardenSummon: no Warden"));
+	}
+
+	/** TD.Ground.SkipTo <objective> [step]: finish every objective of this course before it (as if played), start it at
+	 *  that step and put the pilot at its door (interior) or its checkpoint / waypoint (planets). Interior: Warden, Arena,
+	 *  Core, Escape; Cinder: Jammer 1 (the charges), Jammer 2 (the collapse run); any id or its suffix works. */
+	static void SkipTo(const TArray<FString>& Args, UWorld* World)
+	{
+		ATDPlanetCourse* Course = World ? ATDPlanetCourse::Get(World) : nullptr;
+		if (!Course || Args.Num() == 0)
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.SkipTo <objective> [step]: needs a course (on foot)"));
+			return;
+		}
+		TArray<ATDObjective*> Order;
+		if (Course->IsInterior())
+		{
+			for (const FName& Id : ATDPlanetCourse::InteriorObjectiveIds()) { if (ATDObjective* O = Course->FindObjective(Id)) { Order.Add(O); } }
+		}
+		else
+		{
+			for (const TObjectPtr<ATDObjective>& O : Course->GetObjectives()) { if (O) { Order.Add(O); } }
+		}
+		int32 Target = INDEX_NONE;
+		for (int32 i = 0; i < Order.Num(); ++i)
+		{
+			const FString Id = Order[i]->ObjectiveId.ToString();
+			if (Id.Equals(Args[0], ESearchCase::IgnoreCase) || Id.EndsWith(TEXT("_") + Args[0], ESearchCase::IgnoreCase)) { Target = i; }
+		}
+		if (Target == INDEX_NONE)
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.SkipTo: no objective '%s' on this course"), *Args[0]);
+			return;
+		}
+		for (int32 i = 0; i < Target; ++i)
+		{
+			ATDObjective* O = Order[i];
+			if (O->IsComplete()) { continue; }
+			if (!O->IsActive()) { Course->StartObjectiveAt(O->ObjectiveId); }
+			if (!O->IsActive()) { O->StartObjective(); }
+			for (int32 Step = 0; Step < 12 && O->IsActive(); ++Step) { O->AdvanceStep(); }
+		}
+		ATDObjective* Goal = Order[Target];
+		const int32 Step = Args.Num() > 1 ? FMath::Max(0, FCString::Atoi(*Args[1])) : 0;
+		if (!Goal->IsActive() && !Goal->IsComplete()) { Course->StartObjectiveAt(Goal->ObjectiveId); }
+		if (!Goal->IsActive() && !Goal->IsComplete()) { Goal->StartObjective(); }
+		for (int32 i = 0; i < 12 && Goal->IsActive() && Goal->GetCurrentStepIndex() < Step; ++i) { Goal->AdvanceStep(); }
+		// Skipped steps were "played": their fights are over (the structures builder: at Jammer 2 the anchor's defence
+		// still stood on the pilot). Fights of the earlier objectives too.
+		if (Step > 0 || Target > 0)
+		{
+			int32 Killed = 0;
+			for (TActorIterator<ATDEncounterVolume> It(World); It; ++It)
+			{
+				const ATDObjective* Of = It->LinkedObjective;
+				const bool bEarlier = Of && Order.IndexOfByKey(Of) != INDEX_NONE && Order.IndexOfByKey(Of) < Target;
+				if (!It->IsActive() || !(bEarlier || (Of == Goal && Step > 0))) { continue; }
+				for (const TWeakObjectPtr<AActor>& M : It->GetSpawned())
+				{
+					if (UTDHealthComponent* H = M.IsValid() ? UTDStatics::GetHealth(M.Get()) : nullptr; H && H->IsAlive()) { H->Kill(nullptr, ETDDamageKind::Environmental); ++Killed; }
+				}
+			}
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.SkipTo: %d crew of the skipped fights put down"), Killed);
+		}
+		const APlayerController* PC = World->GetFirstPlayerController();
+		ATDFirstPersonCharacter* P = PC ? Cast<ATDFirstPersonCharacter>(PC->GetPawn()) : nullptr;
+		if (P)
+		{
+			if (Course->IsInterior())
+			{
+				P->RespawnAt(Course->GetInteriorStart());
+			}
+			else if (const AActor* Spot = Goal->GetCheckpointRespawn())
+			{
+				P->RespawnAt(Spot->GetActorTransform());
+			}
+			else if (const AActor* Way = Goal->GetCurrentWaypoint())
+			{
+				P->RespawnAt(FTransform(Way->GetActorLocation() + FVector(-400.f, 0.f, 150.f)));
+			}
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.SkipTo: %s at step %d (%d objectives before it done); pilot at %s"), *Goal->ObjectiveId.ToString(),
+			Goal->GetCurrentStepIndex(), Target, P ? *P->GetActorLocation().ToCompactString() : TEXT("-"));
+	}
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdSkipTo(TEXT("TD.Ground.SkipTo"), TEXT("TD.Ground.SkipTo <objective> [step]: finish the objectives before it, start it at that step, stand at its spot (dev). Interior: Warden|Arena|Core|Escape; Cinder: Jammer 1 (charges), Jammer 2 (collapse)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&SkipTo));
+	static FAutoConsoleCommandWithWorldAndArgs CmdCrewHit(TEXT("TD.Ground.CrewHit"), TEXT("TD.Ground.CrewHit <damage> [behind]: hurt the nearest crew (never a kill)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&CrewHit));
+	static FAutoConsoleCommandWithWorldAndArgs CmdWardenSummon(TEXT("TD.Ground.WardenSummon"), TEXT("The nearest Warden summons now (dev)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&WardenSummon));
+	static FAutoConsoleCommandWithWorldAndArgs CmdBreakGuard(TEXT("TD.Ground.BreakGuard"), TEXT("Break every live Heavy's guard (dev)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&BreakGuard));
 	static FAutoConsoleCommandWithWorldAndArgs CmdWhere(TEXT("TD.Ground.Where"), TEXT("Log the player position, objective line and nearest enemy."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Where));
 	static FAutoConsoleCommandWithWorldAndArgs CmdFace(TEXT("TD.Ground.FaceNearest"), TEXT("Aim at the nearest live enemy."),
@@ -238,6 +384,28 @@ namespace TDGroundDebug
 			P->SetThirdPerson(bWant);
 			UE_LOG(LogTriadDrift, Display, TEXT("TD.ThirdPerson want=%d"), bWant);
 		}
+	}
+	// TD.Ground.Blade <light|heavy|slam|block|unblock|retract|ignite>: drive the pilot's blade from the console (#163:
+	// agent captures of the blade effects in a -game session, which has no Python). Calls the same entry points as input.
+	static void BladeDo(const TArray<FString>& Args, UWorld* World)
+	{
+		ATDFirstPersonCharacter* P = Pilot(World);
+		UTDEnergyBladeComponent* B = P ? P->GetBlade() : nullptr;
+		if (!B || Args.Num() == 0)
+		{
+			return;
+		}
+		const FString& A = Args[0];
+		bool bOk = true;
+		if (A == TEXT("light")) { bOk = B->LightAttack(); }
+		else if (A == TEXT("heavy")) { bOk = B->HeavyLunge(); }
+		else if (A == TEXT("slam")) { bOk = B->AirSlam(); }
+		else if (A == TEXT("block")) { B->SetBlockHeld(true); }
+		else if (A == TEXT("unblock")) { B->SetBlockHeld(false); }
+		else if (A == TEXT("retract")) { B->Retract(); }
+		else if (A == TEXT("ignite")) { B->Ignite(); }
+		else if (A == TEXT("jump")) { P->Jump(); }
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.Blade %s ok=%d state=%d retracted=%d"), *A, bOk ? 1 : 0, (int32)B->GetBladeState(), B->IsRetracted() ? 1 : 0);
 	}
 	// TD.Ground.HandBlade X Y Z Pitch Yaw Roll: place the hand blade on hand_r live (to set HandBladeOffset by eye).
 	static void HandBlade(const TArray<FString>& Args, UWorld* World)
@@ -371,6 +539,8 @@ namespace TDGroundDebug
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Art));
 	static FAutoConsoleCommandWithWorldAndArgs CmdThird(TEXT("TD.Ground.ThirdPerson"), TEXT("TD.Ground.ThirdPerson [0|1]: switch the on-foot camera (not saved)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&ThirdPerson));
+	static FAutoConsoleCommandWithWorldAndArgs CmdBladeDo(TEXT("TD.Ground.Blade"), TEXT("TD.Ground.Blade <light|heavy|slam|block|unblock|retract|ignite|jump>: drive the pilot's blade (dev, agent captures)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&BladeDo));
 	static FAutoConsoleCommandWithWorldAndArgs CmdHandBlade(TEXT("TD.Ground.HandBlade"), TEXT("TD.Ground.HandBlade [X Y Z Pitch Yaw Roll]: place / report the hand blade."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&HandBlade));
 }

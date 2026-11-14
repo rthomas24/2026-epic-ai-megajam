@@ -1,0 +1,164 @@
+[
+ {
+  "shot": "Cinder_approach_00",
+  "pos": [
+   -50284.0,
+   0.0,
+   25296.0
+  ],
+  "dist_m": 743
+ },
+ {
+  "shot": "Cinder_approach_01",
+  "pos": [
+   -39931.0,
+   0.0,
+   20246.0
+  ],
+  "dist_m": 629
+ },
+ {
+  "shot": "Cinder_approach_02",
+  "pos": [
+   -29622.0,
+   0.0,
+   15217.0
+  ],
+  "dist_m": 516
+ },
+ {
+  "shot": "Cinder_approach_03",
+  "pos": [
+   -19291.0,
+   0.0,
+   10179.0
+  ],
+  "dist_m": 404
+ },
+ {
+  "shot": "Cinder_approach_04",
+  "pos": [
+   -8932.0,
+   0.0,
+   5127.0
+  ],
+  "dist_m": 293
+ },
+ {
+  "shot": "Cinder_approach_05",
+  "pos": [
+   2049.0,
+   0.0,
+   1927.0
+  ],
+  "dist_m": 184
+ },
+ {
+  "shot": "Cinder_approach_06",
+  "pos": [
+   13487.0,
+   0.0,
+   1720.0
+  ],
+  "dist_m": 85
+ },
+ {
+  "shot": "Cinder_approach_07",
+  "pos": [
+   24770.0,
+   0.0,
+   1720.0
+  ],
+  "dist_m": 83
+ },
+ {
+  "shot": "Cinder_approach_08",
+  "pos": [
+   36305.0,
+   0.0,
+   1747.0
+  ],
+  "dist_m": 181
+ },
+ {
+  "shot": "Cinder_approach_09",
+  "pos": [
+   48211.0,
+   0.0,
+   1925.0
+  ],
+  "dist_m": 296
+ },
+ {
+  "shot": "Cinder_approach_10",
+  "pos": [
+   59828.0,
+   0.0,
+   2133.0
+  ],
+  "dist_m": 410
+ },
+ {
+  "shot": "Cinder_approach_11",
+  "pos": [
+   71324.0,
+   0.0,
+   2808.0
+  ],
+  "dist_m": 524
+ },
+ {
+  "shot": "Cinder_approach_12",
+  "pos": [
+   82676.0,
+   0.0,
+   4116.0
+  ],
+  "dist_m": 638
+ },
+ {
+  "shot": "Cinder_approach_13",
+  "pos": [
+   94273.0,
+   0.0,
+   6552.0
+  ],
+  "dist_m": 755
+ },
+ {
+  "shot": "Cinder_approach_14",
+  "pos": [
+   105623.0,
+   0.0,
+   10467.0
+  ],
+  "dist_m": 872
+ },
+ {
+  "shot": "Cinder_approach_15",
+  "pos": [
+   116995.0,
+   0.0,
+   16433.0
+  ],
+  "dist_m": 992
+ },
+ {
+  "shot": "Cinder_ground_from_pad",
+  "pos": [
+   0.0,
+   397.0,
+   132.0
+  ],
+  "dist_m": 201
+ },
+ {
+  "shot": "Cinder_ground_150m",
+  "pos": [
+   0.0,
+   397.0,
+   132.0
+  ],
+  "dist_m": 150
+ }
+]

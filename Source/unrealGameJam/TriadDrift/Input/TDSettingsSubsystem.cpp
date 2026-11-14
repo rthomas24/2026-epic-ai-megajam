@@ -116,6 +116,11 @@ void UTDSettingsSubsystem::Load()
 	// versions share, new fields take their defaults, and everything is clamped to today's ranges. Never drop a
 	// player's options because the layout grew.
 	Settings = TDSettings::Clamped(SaveObj->Settings);
+	if (SaveObj->Version < 2)
+	{
+		// Version 1 saved the old first-person default with every slot, so it says nothing about a choice: third person.
+		Settings.OnFootCameraMode = ETDOnFootCamera::ThirdPerson;
+	}
 	if (SaveObj->Version != UTDSettingsSave::CurrentVersion)
 	{
 		UE_LOG(LogTriadDrift, Log, TEXT("TD settings: migrated options from save version %d to %d"), SaveObj->Version, UTDSettingsSave::CurrentVersion);
@@ -307,6 +312,23 @@ TArray<FIntPoint> UTDSettingsSubsystem::GetSupportedResolutions() const
 
 void UTDSettingsSubsystem::SetSubtitleSize(ETDSubtitleSize Size) { Settings.SubtitleSize = Size; Changed(); }
 
+void UTDSettingsSubsystem::SetSubtitlesEnabled(bool bEnabled) { Settings.bSubtitles = bEnabled; Changed(); }
+void UTDSettingsSubsystem::SetMinimalHUD(bool bMinimal) { Settings.bMinimalHUD = bMinimal; Changed(); }
+
+bool UTDSettingsSubsystem::IsMinimalHUD(const UObject* WorldContextObject)
+{
+	const UTDSettingsSubsystem* S = GetTDSettings(WorldContextObject);
+	return S && S->Settings.bMinimalHUD;
+}
+
+bool UTDSettingsSubsystem::AreSubtitlesOn(const UObject* WorldContext)
+{
+	const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+	const UGameInstance* GI = World ? World->GetGameInstance() : nullptr;
+	const UTDSettingsSubsystem* S = GI ? GI->GetSubsystem<UTDSettingsSubsystem>() : nullptr;
+	return !S || S->Settings.bSubtitles;
+}
+
 float UTDSettingsSubsystem::SubtitleScaleFor(ETDSubtitleSize Size)
 {
 	switch (Size)
@@ -489,6 +511,7 @@ namespace TDSettings
 				else if (K == TEXT("PadDeadzone")) { S->SetGamepadDeadzone(V); }
 				else if (K == TEXT("InvertPad")) { S->SetInvertGamepadY(B); }
 				else if (K == TEXT("Hints")) { S->SetHintsEnabled(B); }
+				else if (K == TEXT("MinimalHUD")) { S->SetMinimalHUD(B); }
 				else if (K == TEXT("Master")) { S->SetMasterVolume(V); }
 				else if (K == TEXT("CameraShake")) { S->SetCameraShake(V); }
 				else if (K == TEXT("SpeedFOV")) { S->SetSpeedFOV(V); }

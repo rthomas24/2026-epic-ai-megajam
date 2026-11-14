@@ -18,6 +18,7 @@
 #include "GameFramework/Actor.h"
 #include "TriadDrift/Combat/TDFieldDamageable.h"
 #include "TriadDrift/Flight/TDShipImpactReceiver.h"
+#include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TDSpaceField.generated.h"
 
 class ATDGalaxyLayout;
@@ -78,6 +79,41 @@ public:
 	/** Clusters per shell; three shells (ClusterShells: inner and outer distance pairs, cm) so every bearing has one near and one far. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 Clusters = 30;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") TArray<FVector2D> ClusterShells = { FVector2D(220000.f, 420000.f), FVector2D(420000.f, 620000.f), FVector2D(620000.f, 820000.f) };
+	// ---- The Shepherd Belt (region 2): one thin ring round the zone ----
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltInner = 200000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltOuter = 260000.f;
+	/** Standard deviation across the plane (cm): about +-60 m. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltThickness = 3000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltTiltDeg = 8.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") int32 ShepherdRocks = 1800;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") int32 BeltLandmarks = 40;
+	/** Half width of the gap where a route crosses (cm); the Verdance gap is wider (T4: the tutorial escape crosses it). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltGapHalf = 25000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float BeltVerdanceGapHalf = 50000.f;
+	// ---- The Watchline halo (region 1) and the Quiet Graveyard (region 4) ----
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 HaloWrecks = 3;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 HaloDebris = 220;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 GraveyardHulls = 5;
+	/** Region 7, the Outer Dark: lone rocks with gravel from this distance (cm) to the play bounds. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 OuterDarkRocks = 500;
+	/** The Outer Dark's watch: big lone rocks on the Dominion run-in, before the Shattered Moons (Lead, Nov 14). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 OuterWatchRocks = 12;
+	/** The Ice Drift's ice glow: the ice material's EmissiveStrength times this, on that region's rocks only. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float IceDriftGlowScale = 12.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 IceDriftRocks = 900;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRocks = 500;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRubble = 400;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 MoonShards = 14;
+	/** The Shattered Moons sit closer than the 3.5 km Dominion sphere, beside the route, with T4's finer keep-outs:
+	 *  this far from the Dominion (its 720 m field, the generators, the turrets), clear of the bow tube and the stage start. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float MoonDominionClear = 180000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float GraveyardFragments = 220;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float OuterDarkInner = 600000.f;
+
+	/** Shepherd moonlets at the Verdance and Dominion gap edges (bounding diameter, cm). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float MoonletMinSize = 25000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Belt") float MoonletMaxSize = 40000.f;
+
 	/** Big rocks per cluster (60-150 m, they collide) so a cluster reads from 2 km away, not only as specks. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 LandmarksPerCluster = 3;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 RocksPerCluster = 32;
@@ -112,8 +148,10 @@ public:
 	/** Health: small (1-2 cannon shots), medium (several), large (base + per metre of diameter), wrecks. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float SmallHealth = 12.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float MediumHealth = 60.f;
-	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float LargeHealthBase = 120.f;
-	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float LargeHealthPerMetre = 3.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float LargeHealthBase = 110.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float LargeHealthPerMetre = 1.f;
+	/** Arcade cap (Lead, Nov 14): a large rock breaks in about 15-20 primary bolts (8 each), one ram or one missile. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float LargeHealthMax = 160.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float WreckHealth = 900.f;
 	/** A broken medium / large splits into this many pieces of the next class down. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") int32 SplitMin = 2;
@@ -195,7 +233,45 @@ protected:
 private:
 	void Build();
 	void BuildBelts(FRandomStream& Rng);
-	void BuildClusters(FRandomStream& Rng);
+	void BuildClusters(FRandomStream& Rng, int32 FirstShell = 0);
+	// Composed regions (TDSpaceFieldCompose.cpp; docs/eng/SPACE-DESIGN.md).
+	bool UseComposedRegions() const;
+	void BuildShepherdBelt(FRandomStream& Rng);
+	void BuildWatchlineHalo(FRandomStream& Rng);
+	void BuildQuietGraveyard(FRandomStream& Rng);
+	void BuildOuterDark(FRandomStream& Rng);
+	void BuildIceDrift(FRandomStream& Rng);
+	void BuildSurveyScar(FRandomStream& Rng);
+	void BuildShatteredMoons(FRandomStream& Rng);
+	void PlaceRegionCentrepieces(FRandomStream& Rng);
+	bool AddStructure(UStaticMesh* Mesh, const FTransform& T, int32 BeaconRegion = 0);
+	// Region dressing (TDSpaceFieldDressing.cpp): the effects builder's beacons and haze, soft and null-safe.
+	struct FBeaconPoint { FVector Location; int32 Region; };
+	TArray<FBeaconPoint> BeaconPoints;
+	UPROPERTY(Transient) TArray<TObjectPtr<class UNiagaraComponent>> RegionBeacons;
+	UPROPERTY(Transient) TArray<TObjectPtr<class UStaticMeshComponent>> RegionHazes;
+	bool bDressingShown = false;
+	bool bDressingBuilt = false;
+	void BuildRegionDressing();
+	static bool IsDressingWanted();
+public:
+	void SetRegionDressingVisible(bool bOn);
+	/** Builds the beacons and haze once (only when td.SpaceField.Dressing is 1: off by default, nothing loaded or spawned). */
+	void EnsureRegionDressing();
+	int32 GetRegionBeaconCount() const { return RegionBeacons.Num(); }
+	/** Beacon points placed (headless runs spawn no Niagara components, so tests count these). */
+	int32 GetRegionBeaconPointCount() const { return BeaconPoints.Num(); }
+	int32 GetRegionHazeCount() const { return RegionHazes.Num(); }
+	/** Haze density (the effects builder: start at 0.15 and measure). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Dressing") float HazeDensity = 0.15f;
+private:
+	/** T4: the Dominion docking bay's tractor cone and near-field capture (no set piece inside). */
+public:
+	bool IsInDockingCone(const FVector& WorldPoint, float Radius) const;
+private:
+	void ScatterDebris(const FVector& Centre, float Radius, int32 Count, float MaxSize, FRandomStream& Rng);
+	/** Indestructible set pieces placed (for tests and keep-out checks). */
+	TArray<FTDSpaceFieldPiece> Structures;
 	void BuildDebrisFields(FRandomStream& Rng);
 	void BuildBuoys();
 
@@ -226,7 +302,7 @@ private:
 
 	// Tumblers: movable instanced components (one per mesh), every instance rotates about its own axis.
 	UPROPERTY(Transient) TMap<TObjectPtr<UStaticMesh>, TObjectPtr<UInstancedStaticMeshComponent>> TumbleComponents;
-	struct FTumbler { TObjectPtr<UInstancedStaticMeshComponent> Comp; FTransform Home; FVector Axis; float RadPerSec; };
+	struct FTumbler { TObjectPtr<UInstancedStaticMeshComponent> Comp; FTransform Home; FVector Axis; float RadPerSec; int32 Instance = INDEX_NONE; };
 	TArray<FTumbler> Tumblers;
 	FRandomStream TumbleRng;
 	TArray<FTransform> TumbleScratch;
@@ -241,6 +317,25 @@ private:
 
 public:
 	int32 GetTumblerCount() const { return Tumblers.Num(); }
+	const TArray<FTDSpaceFieldPiece>& GetStructures() const { return Structures; }
+	/** Each built region's centre (world), by its number in docs/eng/SPACE-DESIGN.md (captures, tests). */
+	TMap<int32, FVector> RegionCentres;
+	/** Dev: each region's nearest approach from the player's routes (TD.SpaceField.RouteReport). */
+	void LogRouteReport() const;
+	/** Live check of T4's journey: for each keep-out and route, the field pieces (adopted included), set pieces and other
+	 *  obstacles (UTDWorldSubsystem) that sit inside it (TD.SpaceField.JourneyCheck). Returns the total inside. */
+	int32 LogJourneyCheck() const;
+	/** TD.SpaceField.FrameWatch: one frame (called from the core ticker, any map). */
+	static void NoteFrameWatch(float DeltaSeconds);
+	/** Layout rocks the adoption moved out of the journey (to its corridor edges). */
+	int32 GetAdoptedMovedOffJourney() const { return AdoptedMovedOffJourney; }
+	/** A pose along journey route Index (only Route points, in GetJourneyKeyPoints order) at fraction T, facing along it. */
+	bool JourneyPose(int32 Index, float T, FVector& OutFrom, FRotator& OutFacing, FName& OutId) const;
+	/** The routes the player flies (zone to each planet, the Dominion and each gate end), world space. */
+	TArray<TArray<FVector>> GetRouteLanes() const { TArray<TArray<FVector>> Out; for (int32 i = 0; i < BuoyLanes && i < Lanes.Num(); ++i) { Out.Add(Lanes[i]); } return Out; }
+	/** The Shepherd Belt's plane normal and centre (world), once built. */
+	FVector BeltNormal = FVector::UpVector;
+	FVector BeltCenter = FVector::ZeroVector;
 	TArray<UInstancedStaticMeshComponent*> GetTumbleComponents() const
 	{
 		TArray<UInstancedStaticMeshComponent*> Out;
@@ -285,7 +380,13 @@ private:
 	int32 RegisterPiece(UInstancedStaticMeshComponent* Visual, int32 Instance, UStaticMesh* Mesh, float Size, bool bSpecial, int32 Tumbler, int32 Wreck);
 	int32 AddCollider(const FVector& At, float Size);
 	void BreakPiece(int32 Piece, AActor* ByWhom);
+	void BreakPieceInner(int32 Piece, AActor* ByWhom);
 	void SpawnFragment(UStaticMesh* Mesh, const FVector& At, float Size);
+	UInstancedStaticMeshComponent* FragmentComponentFor(UStaticMesh* Mesh);
+	void PreloadBreakCues();
+	UPROPERTY(Transient) TMap<TObjectPtr<UStaticMesh>, TObjectPtr<UInstancedStaticMeshComponent>> FragmentComponents;
+	UPROPERTY(Transient) TArray<TObjectPtr<UObject>> PreloadedCueAssets;
+	TSet<UInstancedStaticMeshComponent*> DirtyVisuals;
 	void PlayBreakCue(const FVector& At, float Size, uint8 SizeClass, bool bSpecial);
 	uint8 SizeClassFor(float Size) const { return Size < MediumFromSize ? 0 : (Size < LargeFromSize ? 1 : 2); }
 	float HealthFor(float Size, bool bWreck) const;
@@ -298,10 +399,35 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInstancedStaticMeshComponent> LayoutCollision;
 	/** For the next RegisterPiece: an exact collision radius (> 0), and an obstacle handle to reuse (>= 0) or none (-2). */
 	float PendingColliderRadius = -1.f;
+	bool bMoonPlacement = false;
+	/** While true, new rock components are the Ice Drift's own (raised ice glow). */
+	bool bIceDriftPlacement = false;
+	/** T4's journey key points (ATDGalaxyLayout::GetJourneyKeyPoints), read at Build: keep-outs and routes stay clear. */
+	TArray<FTDJourneyKeyPoint> JourneyPoints;
+	int32 AdoptedMovedOffJourney = 0;
+public:
+	/** The first keep-out or route a piece of this size at P would sit on (NAME_None when clear). Pockets allow sparse cover. */
+	FName JourneyBlockerAt(const FVector& WorldPoint, float Size, bool bCollides) const;
+private:
 	/** Adopt during Build (false when td.SpaceField was 0 at load). */
 	bool bAdoptAtLoad = true;
 	bool bWarnedToggle = false;
 	int32 PendingObstacle = INDEX_NONE;
+
+	// Performance (Lead / Ryan, Nov 14: zero lag). TD.SpaceField.Perf prints them.
+	double AnimAccum = 0.0;
+	double PerfTickMsSum = 0.0, PerfTickMsMax = 0.0;
+	int64 PerfTickFrames = 0;
+	double PerfBreakMsSum = 0.0, PerfBreakMsMax = 0.0;
+	int64 PerfBreaks = 0;
+	double PerfFrameBreakMs = 0.0, PerfFrameBreakMsMax = 0.0;
+	int32 PerfBreakDepth = 0;
+	int32 PerfAnimated = 0;
+public:
+	void PerfReport(bool bReset);
+	/** Dev: break the Count live pieces nearest Where in one call (one frame); returns the ms it took. */
+	double BreakChain(const FVector& Where, int32 Count, AActor* ByWhom);
+private:
 
 	int32 ObstaclesAdded = 0;
 	bool bEnabled = true;

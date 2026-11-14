@@ -266,6 +266,11 @@ public:
 
 	UPROPERTY(VisibleAnywhere, Category = "Planet") TObjectPtr<UStaticMeshComponent> Mesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> CrystalMesh;
+	/** Shown at the actor's own transform (pivot on the ground, scale 1) once it breaks, instead of nothing (the
+	 *  structures builder's SM_Kit_NullConduitBroken for Cinder's gate conduits). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> BrokenMesh;
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> Broken;
+	void ShowBroken(bool bShow);
 	UPROPERTY(VisibleAnywhere, Category = "Planet") TObjectPtr<UTDHealthComponent> Health;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FLinearColor Color = FLinearColor(1.f, 0.45f, 0.1f);
@@ -325,6 +330,11 @@ class UNREALGAMEJAM_API ATDCollapseRun : public ATDPlanetProp
 public:
 	/** Art for the falling debris (fitted to each 100-220 cm rock). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TSoftObjectPtr<UStaticMesh> DebrisMesh;
+	/** Debris art picked at random per piece (the structures builder's AnchorDebris_A/B/C); empty = DebrisMesh. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TArray<TSoftObjectPtr<UStaticMesh>> DebrisMeshes;
+	/** The tower's sections (AnchorSection_A/B/C), each breaking off the tower in turn as it comes down. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Art") TArray<TSoftObjectPtr<UStaticMesh>> SectionMeshes;
+	int32 GetSectionsDropped() const { return SectionsDropped; }
 
 	ATDCollapseRun();
 
@@ -346,9 +356,25 @@ protected:
 private:
 	UFUNCTION() void HandleStepStarted(ATDObjective* Objective, int32 StepIndex);
 	void DropDebris();
+	AActor* DropPiece(const FVector& WorldAt, UStaticMesh* Art, float Scale, const FVector& Velocity);
+	/** Sinks and leans the tower to collapse amount A (0 standing, 1 fully down) and breaks off the sections due by then. */
+	void ApplyCollapse(float A);
+	int32 SectionsDropped = 0;
+	bool bDroppingSection = false;
+	/** After the escape succeeds the deadline is gone, but the tower falls on from FinishFromA to fully down. */
+	bool bFinishing = false;
+	float FinishFromA = 0.f;
+	float FinishElapsed = 0.f;
 
 	float TimeLeft = -1.f;
 	float DebrisTimer = 0.f;
+	float StartDelayLeft = 0.f;
+public:
+	/** A beat between the step's start (the "3 / 3" line) and the clock (T7: the run felt tight). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s")) float StartDelay = 1.5f;
+	/** Once the player has made it out, how long the rest of the fall takes (seen while running to the ship). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s", ClampMin = "0.5")) float FinishSeconds = 6.f;
+private:
 	int32 LastShownSecond = -1;
 	FVector TowerHome = FVector::ZeroVector;
 	TArray<TWeakObjectPtr<AActor>> Debris;
@@ -379,6 +405,13 @@ public:
 	/** The waves and the transfer fraction each drops in at (same order). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TArray<TObjectPtr<ATDEncounterVolume>> Waves;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") TArray<float> WaveAt;
+	/** T3's live walk (Nov 13): Cinematic 03 talks for ~45 s over the fight. The first half waits (no waves, no progress)
+	 *  until this line starts or has already played this run, the scene isn't playing (skipped, or none), or HoldMaxSeconds
+	 *  pass. None = no hold. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FName HoldUntilLine = TEXT("C3_Moss_Company");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s")) float HoldMaxSeconds = 60.f;
+	/** Held for the cinematic (the meter shows, nothing moves). */
+	bool IsHolding() const { return bHolding; }
 	/** The objective line; {0} = the whole percent. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FText RunningText;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet") FText PausedText;
@@ -412,6 +445,9 @@ private:
 	float Progress = 0.f;
 	bool bPaused = false;
 	bool bRunning = false;
+	bool bHolding = false;
+	float HoldElapsed = 0.f;
+	bool ShouldRelease() const;
 	int32 ShownPercent = -1;
 	bool bShownPaused = false;
 	TArray<bool> Fired;

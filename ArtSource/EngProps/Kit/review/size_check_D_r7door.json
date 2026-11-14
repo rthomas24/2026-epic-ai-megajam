@@ -1,0 +1,41 @@
+[
+ {
+  "asset": "SM_DI_Doorway",
+  "min_cm": [
+   -90.0,
+   -200.0,
+   0.0
+  ],
+  "max_cm": [
+   90.0,
+   200.0,
+   600.0
+  ],
+  "size_cm": [
+   180.0,
+   400.0,
+   600.0
+  ],
+  "expected": [
+   [
+    -90,
+    -200,
+    0
+   ],
+   [
+    90,
+    200,
+    600
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 1692,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 7,
+  "bevel_verts_clamped": 9,
+  "uv_notes": []
+ }
+]

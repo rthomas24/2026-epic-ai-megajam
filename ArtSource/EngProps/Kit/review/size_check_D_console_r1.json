@@ -1,0 +1,42 @@
+[
+ {
+  "asset": "SM_DI_StoryConsole",
+  "min_cm": [
+   -30.0,
+   -62.0,
+   0.0
+  ],
+  "max_cm": [
+   30.612,
+   62.0,
+   130.0
+  ],
+  "size_cm": [
+   60.61,
+   124.0,
+   130.0
+  ],
+  "expected": [
+   [
+    -30.0,
+    -62.0,
+    0.0
+   ],
+   [
+    30.612,
+    62.0,
+    130.0
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 3421,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow",
+   "M_Kit_Screen"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 11,
+  "uv_notes": []
+ }
+]

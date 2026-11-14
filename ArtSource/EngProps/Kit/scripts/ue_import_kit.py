@@ -48,6 +48,16 @@ def ensure_trim_grime(tex, notes):
     ensure_dir("/Game/TriadDrift/Gameplay/Props/Kit/Materials")
     folder, name = TRIMD_MASTER.rsplit("/", 1)
     mat = eas.load_asset(TRIMD_MASTER) if eas.does_asset_exist(TRIMD_MASTER) else tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
+    # the space region pieces (moon shards, hulks, picket ring...) and the debris are placed by T6 as instances in a
+    # HierarchicalInstancedStaticMeshComponent, the story kit by the planet scatter the same way: without this flag the
+    # engine draws the default checkerboard on every M_KitD_Trim instance in game
+    for usage in (unreal.MaterialUsage.MATUSAGE_INSTANCED_STATIC_MESHES, unreal.MaterialUsage.MATUSAGE_NANITE):
+        try:
+            mel.set_material_usage(mat, usage)
+        except Exception as error:
+            notes.append("M_KitD_Trim usage %s: %s" % (usage, error))
+    mat.set_editor_property("used_with_instanced_static_meshes", True)
+    mat.set_editor_property("used_with_nanite", True)
     mel.delete_all_material_expressions(mat)
 
     def node(cls, x, y):
@@ -77,6 +87,11 @@ def ensure_trim_grime(tex, notes):
     orm = tp("ORMTex", tex["ORM"], S.SAMPLERTYPE_MASKS, 0)
     n1, n2 = noise(0.0011, 300), noise(0.0065, 500)
     amt, rgh = sp("GrimeAmount", 0.45, 700), sp("GrimeRough", 0.2, 800)
+    # batch W: GrimeScale (default 1 = unchanged) scales the noise position, so a huge piece (the 261 m moon shards'
+    # strata) can take 100+ m value blotches that break the trim sheet's repeat at 1 km
+    wp = node(unreal.MaterialExpressionWorldPosition, -1500, 400)
+    gs = sp("GrimeScale", 1.0, 900)
+    wps = node(unreal.MaterialExpressionMultiply, -1350, 400)
     g = node(unreal.MaterialExpressionMultiply, -900, 400)           # 0..1 grime mask = n1 * n2
     inv = node(unreal.MaterialExpressionOneMinus, -750, 400)
     lerp = node(unreal.MaterialExpressionLinearInterpolate, -600, 400)   # value = lerp(1 - amt, 1, 1 - mask)
@@ -87,6 +102,10 @@ def ensure_trim_grime(tex, notes):
     gr = node(unreal.MaterialExpressionMultiply, -600, 800)           # roughness add = mask * GrimeRough
     ro = node(unreal.MaterialExpressionAdd, -400, 100)
     ok = True
+    ok &= mel.connect_material_expressions(wp, "", wps, "A")
+    ok &= mel.connect_material_expressions(gs, "", wps, "B")
+    ok &= mel.connect_material_expressions(wps, "", n1, "World Position")
+    ok &= mel.connect_material_expressions(wps, "", n2, "World Position")
     ok &= mel.connect_material_expressions(n1, "", g, "A")
     ok &= mel.connect_material_expressions(n2, "", g, "B")
     ok &= mel.connect_material_expressions(g, "", inv, "")
@@ -190,6 +209,13 @@ def ensure_decal(notes):
     folder, name = DECAL_MASTER.rsplit("/", 1)
     mat = eas.load_asset(DECAL_MASTER) if eas.does_asset_exist(DECAL_MASTER) else tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
     mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_MASKED)
+    # the decal meshes are also scattered as instances (the planet scatter: SM_Kit_ScorchLines on Verdance's wreck scar)
+    for usage in (unreal.MaterialUsage.MATUSAGE_INSTANCED_STATIC_MESHES, unreal.MaterialUsage.MATUSAGE_NANITE):
+        try:
+            mel.set_material_usage(mat, usage)
+        except Exception as error:
+            notes.append("M_Kit_Decal usage %s: %s" % (usage, error))
+    mat.set_editor_property("used_with_instanced_static_meshes", True)
     mel.delete_all_material_expressions(mat)
 
     def node(cls, x, y):
@@ -307,6 +333,11 @@ def ensure_pillar(notes):
     mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_ADDITIVE)
     mat.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_UNLIT)
     mat.set_editor_property("two_sided", True)
+    try:                                    # in case a scatter ever instances the pillar (default material otherwise)
+        mel.set_material_usage(mat, unreal.MaterialUsage.MATUSAGE_INSTANCED_STATIC_MESHES)
+    except Exception as error:
+        notes.append("M_Kit_LightPillar usage: %s" % error)
+    mat.set_editor_property("used_with_instanced_static_meshes", True)
     mel.delete_all_material_expressions(mat)
 
     def node(cls, x, y):
@@ -370,12 +401,23 @@ def configure_dominion():
     # review r1 fix 1: a deep red (renders red, not salmon) at half the strength
     GLOWS = {"MI_KitD_Glow": ("Glow", {"GlowStrength": 3.0, "PulseAmount": 0.0}, (1.0, 0.025, 0.006)),     # #FF2A10 (review r2)
              # r9 (review r4): the ceiling strips dimmed and warmed so the arena stops reading as a clean-room
-             "MI_KitD_Light": ("Light", {"GlowStrength": 1.4, "PulseAmount": 0.0}, (1.0, 0.62, 0.42))}
+             "MI_KitD_Light": ("Light", {"GlowStrength": 1.4, "PulseAmount": 0.0}, (1.0, 0.62, 0.42)),
+             # #96: the story console's screen (the course's readable-console cyan), soft enough to keep its bezel
+             "MI_KitD_Screen": ("Screen", {"GlowStrength": 2.0, "PulseAmount": 0.0}, (0.3, 0.78, 0.95))}
     NO_COLLISION = ()
     SCREEN_MI = None
     SET.update({"stem": "T_KitD_Trim", "trim_mi": "MI_KitD_Trim", "export": "export_dominion", "prefix": "SM_DI_", "extras": False,
                 "decals": True})
 NO_COLLISION = ("SM_Kit_LightStrip_200", "SM_Kit_LightPillar")
+
+
+def configure_bridge():
+    """Walkable crossings (export_bridge: SM_Kit_MagmaBridge): the planet trim in Props/Kit, no screen, no extras;
+    only the bridge's own manifest is imported, its report in review/ue_import_bridge.json."""
+    global SIZE_CHECK, SCREEN_MI
+    SIZE_CHECK = os.path.join(KIT, "review", "size_check_B_r1.json")
+    SCREEN_MI = None
+    SET.update({"export": "export_bridge", "extras": False, "report": "ue_import_bridge.json"})
 
 eas = unreal.EditorAssetLibrary
 tools = unreal.AssetToolsHelpers.get_asset_tools()
@@ -598,10 +640,13 @@ def main():
     sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
     mgr = unreal.InterchangeManager.get_interchange_manager_scripted()
     rows, bad = [], 0
+    only = [o for o in os.environ.get("TD_KIT_ONLY", "").split(",") if o]       # re-import just these meshes
     for man_path in sorted(glob.glob(os.path.join(KIT, SET["export"], SET["prefix"] + "*.manifest.json"))):
         with open(man_path, encoding="utf-8") as fh:
             man = json.load(fh)
         asset = man["asset"]
+        if only and asset not in only:
+            continue
         fbx = os.path.join(KIT, SET["export"], asset + ".fbx")
         n = []
         params = unreal.ImportAssetParameters()
@@ -680,7 +725,7 @@ def main():
                "hulls": hulls, "asymmetric_side": side, "notes": n}
         rows.append(row)
         log(json.dumps(row))
-    out = os.path.join(KIT, "review", "ue_import_report.json")
+    out = os.path.join(KIT, "review", SET.get("report", "ue_import_report.json"))
     with open(out, "w", encoding="utf-8") as fh:
         json.dump(rows, fh, indent=1)
     log("report: %s; notes %s" % (out, notes))
@@ -694,4 +739,6 @@ def main():
 if __name__ == "__main__":
     if os.environ.get("TD_KIT_SET") == "dominion":
         configure_dominion()
+    elif os.environ.get("TD_KIT_SET") == "bridge":
+        configure_bridge()
     main()

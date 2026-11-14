@@ -1,6 +1,8 @@
 // Triad Drift - Squad (Teammate 3). Cross-area calls, isolated here (see TDSquadIntegration.h).
 
 #include "TriadDrift/Squad/TDSquadIntegration.h"
+#include "TriadDrift/Enemies/TDArmadaForesight.h"
+#include "TriadDrift/Enemies/TDEnemyAIController.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Squad/TDWingmanAIController.h"
@@ -928,6 +930,13 @@ namespace TDSquad
 		return Move ? Move->GetBoundaryWarningText() : FText::GetEmpty();
 	}
 
+	AActor* GetEnemyTarget(const AActor* Enemy)
+	{
+		const APawn* Pawn = Cast<APawn>(Enemy);
+		const ATDEnemyAIController* AI = Pawn ? Cast<ATDEnemyAIController>(Pawn->GetController()) : nullptr;
+		return AI ? AI->GetTarget() : nullptr;
+	}
+
 	AActor* GetCurrentTarget(const ATDShip* Ship)
 	{
 		const UTDTargetingComponent* T = Ship ? Ship->FindComponentByClass<UTDTargetingComponent>() : nullptr;
@@ -1037,6 +1046,8 @@ namespace TDSquad
 
 	void RequestBark(const UObject* WorldContext, FName BarkId, FName Speaker)
 	{
+		// Lead (Nov 14, #122): played sessions read the log for which squad bark was asked for (T4; one line).
+		UE_LOG(LogTriadDrift, Log, TEXT("TD squad bark: %s (%s)"), *BarkId.ToString(), *Speaker.ToString());
 		if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(WorldContext))
 		{
 			Flow->RequestBark(BarkId, Speaker);
@@ -1115,6 +1126,10 @@ namespace TDSquad
 			Bus->OnAbilityUnlocked.AddUniqueDynamic(Squad, &ATDSquadManager::HandleAbilityUnlockedForBarks);
 			Bus->OnObjectiveUpdated.AddUniqueDynamic(Squad, &ATDSquadManager::HandleObjectiveForBarks);
 		}
+		if (UTDArmadaForesight* Foresight = UTDArmadaForesight::Get(Squad))
+		{
+			Foresight->OnAnticipated.AddUniqueDynamic(Squad, &ATDSquadManager::HandleAnticipatedForBarks);
+		}
 	}
 
 	void UnbindWaveEvents(ATDSquadManager* Squad)
@@ -1126,6 +1141,10 @@ namespace TDSquad
 			Bus->OnTakeStarted.RemoveDynamic(Squad, &ATDSquadManager::HandleTakeStartedForBarks);
 			Bus->OnAbilityUnlocked.RemoveDynamic(Squad, &ATDSquadManager::HandleAbilityUnlockedForBarks);
 			Bus->OnObjectiveUpdated.RemoveDynamic(Squad, &ATDSquadManager::HandleObjectiveForBarks);
+		}
+		if (UTDArmadaForesight* Foresight = UTDArmadaForesight::Get(Squad))
+		{
+			Foresight->OnAnticipated.RemoveDynamic(Squad, &ATDSquadManager::HandleAnticipatedForBarks);
 		}
 	}
 

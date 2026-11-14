@@ -1,7 +1,10 @@
 // Triad Drift - atmosphere entry and atmosphere flight zone (ENG-20). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Travel/TDTravelBarks.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
+#include "TriadDrift/Travel/TDPlanetTravelRig.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "Sound/SoundBase.h"
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
@@ -14,6 +17,7 @@
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
@@ -88,6 +92,12 @@ float UTDAtmosphereEntryComponent::GetEntry01() const
 bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName InReturnPoint, FVector PlanetCenter, float PlanetSurfaceRadius)
 {
 	ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner());
+	// T7's live play: during the hold the planet re-arms and asks again as a boosting ship grazes back in; answering "busy"
+	// (false) made it run its own fallback travel a second later, mid-Aftermath. The hold still owns it: taken.
+	if (Craft && EntryState == ETDAtmosphereEntryState::Holding)
+	{
+		return true;
+	}
 	if (!Craft || EntryState != ETDAtmosphereEntryState::Idle)
 	{
 		return false;
@@ -121,13 +131,18 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 		HeldPlanetCenter = PlanetCenter;
 		HeldSurfaceRadius = PlanetSurfaceRadius;
 		HeldStartDistance = (float)FVector::Dist(Craft->GetActorLocation(), PlanetCenter);
+		StoryEndedAt = -1.0;
+		bLoggedTailWait = false;
 		UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: held - a story sequence is playing (awaiting orders)"));
+		// Stopped at the edge, not a silent wall: the ship slows to a crawl (still steerable) and the HUD says AWAITING ORDERS.
+		if (UTDShipMovementComponent* Move = Craft->GetShipMovement()) { Move->SetSpeedOverrideFor(StoryHoldOverride, StoryHoldSpeed, 1.f, 30000.f); }
 		return true; // taken (not committed): the planet must not run its own fallback travel; it re-arms on the next pass
 	}
 	EntryState = ETDAtmosphereEntryState::Entering;
 	EntryTime = 0.f;
 	Destination = InDestination;
 	ReturnPoint = InReturnPoint;
+	FTDCombatBarks::SayAsPilot(Craft, TDBarkIdsT1::AtmoEntry, ETDBarkPriority::Normal); // ENG-43 Bark_Atmo_Entry
 
 	if (ATDShip* Ship = Cast<ATDShip>(Craft))
 	{
@@ -223,6 +238,123 @@ void UTDAtmosphereEntryComponent::FinishEntry()
 	}
 }
 
+bool UTDAtmosphereEntryComponent::IsPlanetClosedWarning() const
+{
+	const UWorld* World = GetWorld();
+	return ClosedPlanet01 > 0.02f || (World && World->GetTimeSeconds() < ClosedLineUntil);
+}
+
+void UTDAtmosphereEntryComponent::TickClosedPlanetGuard(float DeltaTime)
+{
+	ATDShip* Ship = Cast<ATDShip>(GetOwner());
+	UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr;
+	UWorld* World = GetWorld();
+	if (!Move || !World)
+	{
+		return;
+	}
+	const bool bPlayer = Ship->IsPlayerFlown();
+	UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this);
+	auto StandDown = [&]()
+	{
+		Move->ClearKeepOutSphere();
+		ClosedPlanet01 = 0.f;
+		bGuardLogged = false;
+		if (bGuardRoar) { bGuardRoar = false; if (Descent) { Descent->StopRoar(0.6f); } }
+	};
+	if (EntryState != ETDAtmosphereEntryState::Idle || Move->IsInAtmosphere())
+	{
+		StandDown(); // this ship's own entry is under way (or it is on a planet): nothing to keep out of
+		return;
+	}
+	GuardRefresh -= DeltaTime;
+	if (GuardRefresh <= 0.f)
+	{
+		GuardRefresh = 1.f;
+		GuardPlanets.Reset();
+		for (TActorIterator<ATDPlanetAtmosphere> It(World); It; ++It) { GuardPlanets.Add(*It); }
+	}
+	// The nearest planet that does not take this ship: a closed one for the flown ship, any for a wingman.
+	const ATDPlanetAtmosphere* Planet = nullptr;
+	float Best = TNumericLimits<float>::Max();
+	const FVector At = Ship->GetActorLocation();
+	for (const TWeakObjectPtr<ATDPlanetAtmosphere>& W : GuardPlanets)
+	{
+		const ATDPlanetAtmosphere* P = W.Get();
+		if (!P || (bPlayer && P->IsOpen())) { continue; }
+		const float D = (float)FVector::Dist(At, P->GetPlanetCenter()) - P->GetAtmosphereRadius();
+		if (D < Best) { Best = D; Planet = P; }
+	}
+	if (!Planet || Best > ClosedPlanetBand * 3.f)
+	{
+		StandDown();
+		return;
+	}
+	Move->SetKeepOutSphere(Planet->GetPlanetCenter(), Planet->GetAtmosphereRadius() * 1.02f, ClosedPlanetBand);
+	ClosedPlanet01 = Move->GetKeepOut01(); // last step's depth
+	if (ClosedPlanet01 > 0.f && bPlayer)
+	{
+		const UTDGameInstance* GI = Cast<UTDGameInstance>(World->GetGameInstance());
+		const ETDGamePhase Phase = GI ? GI->GetProgressRef().Phase : ETDGamePhase::Waves1to2;
+		const bool bDone = (int32)Phase > (int32)ATDPlanetAtmosphere::PhaseFor(Planet->GetDestination());
+		const ATDWaveDirector* Waves = ATDWaveDirector::Get(this);
+		// Why: a fight is on; or this world's work is done; or it is not time for it yet.
+		ClosedPlanetText = (Waves && Waves->IsWaveRunning()) ? NSLOCTEXT("TDTravel", "PlanetFight", "PLANET CLOSED  ·  FINISH THE FIGHT FIRST")
+			: bDone ? NSLOCTEXT("TDTravel", "PlanetDone", "PLANET CLOSED  ·  NOTHING LEFT HERE")
+			: NSLOCTEXT("TDTravel", "PlanetNotYet", "PLANET CLOSED  ·  CLEAR THE AREA FIRST");
+		ClosedLineUntil = World->GetTimeSeconds() + ClosedPlanetLineSeconds;
+		if (Descent)
+		{
+			Descent->SetBurnIsExit(false);
+			Descent->SetEntryHeat(FMath::Clamp(0.3f + ClosedPlanet01 * 1.2f, 0.f, ClosedPlanetMaxHeat)); // the hull burn and the HUD's heat bar: seen from the band's edge
+			if (ClosedPlanet01 > 0.25f && !bGuardFlashed)
+			{
+				// Skipping off the atmosphere: the flash, once per approach (a real contact also costs hull, below).
+				bGuardFlashed = true;
+				const FVector N = (At - Planet->GetPlanetCenter()).GetSafeNormal();
+				if (TravelFX) { UTDStatics::PlayCue(this, TravelFX->ExitBreakaway, At - N * 300.f, N.Rotation()); }
+				UE_LOG(LogTriadDrift, Log, TEXT("Closed planet: %s skips off the atmosphere (flash, heat %.2f)"), *Ship->GetName(), FMath::Clamp(0.3f + ClosedPlanet01 * 1.2f, 0.f, ClosedPlanetMaxHeat));
+			}
+			if (ClosedPlanet01 > 0.2f && !bGuardRoar)
+			{
+				if (USoundBase* Roar = UTDDescentSubsystem::ResolveRoar(TravelFX, false)) { Descent->StartRoar(Roar); bGuardRoar = true; }
+			}
+		}
+		if (!bGuardLogged)
+		{
+			bGuardLogged = true;
+			UE_LOG(LogTriadDrift, Log, TEXT("Closed planet: %s turned away from %s (%s), %.0f m from its atmosphere, %.0f m/s"), *Ship->GetName(),
+				*UEnum::GetValueAsString(Planet->GetDestination()), *ClosedPlanetText.ToString(), Best / 100.f, Ship->GetVelocity().Size() / 100.f);
+		}
+	}
+	if (ClosedPlanet01 <= 0.f)
+	{
+		bGuardLogged = false;
+		bGuardFlashed = false;
+		if (bGuardRoar) { bGuardRoar = false; if (Descent) { Descent->StopRoar(0.6f); } }
+	}
+	// Contact: a bounce. Flash (the entry cue's effect at the nose) and a small hull hit, not more than once per cooldown.
+	if (Move->WasKeepOutContact() && World->GetTimeSeconds() - LastClosedHit >= ClosedPlanetHitCooldown)
+	{
+		LastClosedHit = World->GetTimeSeconds();
+		const FVector Out = (At - Planet->GetPlanetCenter()).GetSafeNormal();
+		if (TravelFX) { UTDStatics::PlayCue(this, TravelFX->ExitBreakaway, At - Out * 300.f, Out.Rotation()); }
+		if (UTDHealthComponent* Health = Ship->GetHealth())
+		{
+			if (!Health->IsDead() && !Health->IsInvulnerable() && ClosedPlanetHitHull > 0.f)
+			{
+				FTDDamageInfo Info;
+				Info.Amount = Health->MaxHull * ClosedPlanetHitHull;
+				Info.Kind = ETDDamageKind::Environmental;
+				Info.HitLocation = At;
+				Info.HitDirection = -Out;
+				Health->ApplyDamage(Info);
+			}
+		}
+		UE_LOG(LogTriadDrift, Log, TEXT("Closed planet: %s bounced off %s's atmosphere (held out along the normal)"), *Ship->GetName(), *UEnum::GetValueAsString(Planet->GetDestination()));
+	}
+}
+
 void UTDAtmosphereEntryComponent::StopEntryCue()
 {
 	if (UNiagaraComponent* FX = EntryFX.Get()) { FX->Deactivate(); }
@@ -269,8 +401,37 @@ void UTDAtmosphereEntryComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 	Super::EndPlay(EndPlayReason);
 }
 
+const FName UTDAtmosphereEntryComponent::StoryHoldOverride(TEXT("StoryHold"));
+
+bool UTDAtmosphereEntryComponent::WaitsForLineOnAir()
+{
+	const UWorld* World = GetWorld();
+	const double Now = World ? World->GetTimeSeconds() : 0.0;
+	if (StoryEndedAt < 0.0) { StoryEndedAt = Now; }
+	if (Now - StoryEndedAt >= StoryTailCapSeconds) { return false; } // the cap: never hang
+	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
+	// On air, or queued to air next (the story's short gap between lines): A1_TrailToVerdance right after the sequence.
+	const bool bOnAir = Story && (Story->GetCurrentTransmission().bActive || Story->GetQueueLength() > 0);
+	if (bOnAir && !bLoggedTailWait)
+	{
+		bLoggedTailWait = true;
+		UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: the sequence ended - waiting for the line on air (%s, at most %.0f s)"),
+			Story->GetCurrentTransmission().bActive ? *Story->GetCurrentTransmission().Id.ToString() : TEXT("queued"), StoryTailCapSeconds);
+	}
+	return bOnAir;
+}
+
+void UTDAtmosphereEntryComponent::EndStoryHold()
+{
+	if (const ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner()))
+	{
+		if (UTDShipMovementComponent* Move = Craft->GetShipMovement()) { Move->ClearSpeedOverrideFor(StoryHoldOverride); }
+	}
+}
+
 bool UTDAtmosphereEntryComponent::IsStoryHoldingEntry() const
 {
+	if (UTDStorySubsystem::IsMustHearSequencePlaying(this)) { return true; } // T3's rule (Aftermath and any later must-hear)
 	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
 	if (!Story) { return false; }
 	for (const FName& Id : HoldEntryForSequences)
@@ -285,6 +446,7 @@ void UTDAtmosphereEntryComponent::AbortEntry()
 	if (EntryState == ETDAtmosphereEntryState::Holding)
 	{
 		EntryState = ETDAtmosphereEntryState::Idle;
+		EndStoryHold();
 		return;
 	}
 	if (EntryState == ETDAtmosphereEntryState::Entering)
@@ -303,6 +465,7 @@ void UTDAtmosphereEntryComponent::HandleOwnerDeath(UTDHealthComponent* HealthCom
 void UTDAtmosphereEntryComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	TickClosedPlanetGuard(DeltaTime);
 	if (EntryState == ETDAtmosphereEntryState::Entering)
 	{
 		EntryTime += DeltaTime;
@@ -336,11 +499,22 @@ void UTDAtmosphereEntryComponent::TickComponent(float DeltaTime, ELevelTick Tick
 		if (!Ship || !Ship->IsPlayerFlown() || Dist > HeldStartDistance + HoldLeaveMargin)
 		{
 			EntryState = ETDAtmosphereEntryState::Idle; // flew out (or switched): the planet takes it on the next pass
+			EndStoryHold();
 			UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: hold dropped (left the atmosphere or not flown)"));
 		}
-		else if (!IsStoryHoldingEntry())
+		else if (IsStoryHoldingEntry())
+		{
+			StoryEndedAt = -1.0; // still in the sequence
+		}
+		else if (WaitsForLineOnAir())
+		{
+			// T7's play: the sequence ended 2 s into A1_TrailToVerdance (4.8 s), which then played over the white. Let the line
+			// on air finish first, at most StoryTailCapSeconds after the sequence's end, so the entry can never hang.
+		}
+		else
 		{
 			EntryState = ETDAtmosphereEntryState::Idle;
+			EndStoryHold();
 			UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: the sequence ended - committing"));
 			BeginEntry(Destination, ReturnPoint, HeldPlanetCenter, HeldSurfaceRadius);
 		}
@@ -628,12 +802,28 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 		// ENG-38 climb out (the mirror of the entry). Reaching the exit height triggers the exit at once (the return point
 		// and the travel are recorded now, Lead's option b); the level change waits ExitClimbSeconds of forced climb with
 		// the exit burn and hull heat rising and the cover ramping in at the end, then the breakaway.
+		// ENG-38: a ship arriving over the cloud deck (above the normal ceiling) is released from the zone until its glide
+		// ends: no exit, no ceiling tip (the ceiling and the exit height stay as they were for normal flight; the Lead, Nov 14).
+		const UTDShipMovementComponent* ShipMove = Ship->GetShipMovement();
+		const bool bArriving = ShipMove && ShipMove->IsBoundaryReleased();
+		if (bArriving) { continue; }
 		if (bExitOpen && !bLanding && Z >= ExitZ)
 		{
 			// Latched only on a successful request (review minor 6); a refused request retries next frame.
 			UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
 			UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this);
 			if (Descent) { Descent->RecordSquad(GetWorld()); Descent->SetClimbHold(ExitClimbSeconds); } // and back up
+			// The mirrored take-off: where on the ground the squad leaves decides where it comes out on the globe.
+			if (Descent && UTDDescentSubsystem::IsGlideEnabled())
+			{
+				for (TActorIterator<ATDPlanetTravelRig> It(GetWorld()); It; ++It)
+				{
+					if (It->PlanetId != PlanetId) { continue; }
+					Descent->RecordDeparture(PlanetId == TEXT("Cinder") ? ETDDestination::Cinder : ETDDestination::Verdance,
+						Ship->GetActorTransform().GetRelativeTransform(It->GetActorTransform()));
+					break;
+				}
+			}
 			const bool bRequested = Travel && Travel->RequestLevelTravel(ETDDestination::Galaxy, FName(*FString::Printf(TEXT("%s_Orbit"), *PlanetId.ToString())));
 			// No game flow (tests, sandbox): still report the exit, as the entry does.
 			if (bRequested || !Travel || !UTDStatics::GetGameFlow(this))

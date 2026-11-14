@@ -1015,6 +1015,12 @@ void ATDGalaxyLayout::BuildPlanets()
 		Planet->Look = P.Look;	// optional art; collision stays the sphere
 		Planet->FinishSpawning(T);
 		Planets.Add(Planet);
+		// Issue #161 (Ryan stuck against Cinder in wave 5): the planet's solid sphere was unknown to avoidance, so
+		// wingmen, enemies and warp-in points treated it as open space and fights drifted onto its surface.
+		if (UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this))
+		{
+			WorldSys->AddObstacle(T.GetLocation(), P.PlanetRadius * 1.05f);
+		}
 	}
 }
 

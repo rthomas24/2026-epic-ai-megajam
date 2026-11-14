@@ -163,7 +163,7 @@ void ATDCrewAIController::TickPatrol(ATDCrewCharacter* Crew, float DeltaSeconds)
 
 void ATDCrewAIController::ChooseAttack(ATDCrewCharacter* Crew, float Distance)
 {
-	if (Crew->IsAttacking() || Crew->IsStaggered())
+	if (Crew->IsAttacking() || Crew->IsStaggered() || Crew->IsReacting())
 	{
 		return;
 	}
@@ -173,6 +173,7 @@ void ATDCrewAIController::ChooseAttack(ATDCrewCharacter* Crew, float Distance)
 	switch (S.Type)
 	{
 	case ETDCrewType::Grunt:
+	case ETDCrewType::FutureCrew:
 		if (Distance <= S.MeleeRange + TargetR && Crew->GetCooldownLeft(ETDCrewAttack::Melee) <= 0.f)
 		{
 			UTDCrewTokenSubsystem* Tokens = UTDCrewTokenSubsystem::Get(this);
@@ -484,7 +485,7 @@ void ATDCrewAIController::Tick(float DeltaSeconds)
 		SenseTimer = SenseInterval;
 		Sense();
 	}
-	if (Crew->IsStaggered())
+	if (Crew->IsStaggered() || Crew->IsReacting()) // a react stands it still like a stagger
 	{
 		State = ETDCrewState::Stagger;
 		return;

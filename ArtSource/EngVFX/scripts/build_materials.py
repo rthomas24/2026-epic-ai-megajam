@@ -154,6 +154,23 @@ float s = spikes*pow(m, 1.4); float core = pow(m, 5);
 float3 c = PC.rgb*(s*1.2 + core*1.4 + pow(m, 2.5)*0.3) + lerp(PC.rgb, float3(1,1,1), 0.85)*pow(m, 10)*2.0*max(lum, 0.25);
 return float4(c*Intensity, PC.a);''', {}),
 
+    # round 9r: a NEW asset name - rebuilding M_TD_VFX_IceBurst in place crashed the editor twice
+    # (DeleteAllMaterialExpressions, Assertion failed: !IsRooted()); the old asset stays, unused.
+    # round 9p (Lead: the break flare read like a lens flare): an ice burst - 9 rays of uneven length and width from a hash
+    # of the ray index and the particle's random, a soft core; only the asteroid breaks use it.
+    'M_TD_VFX_IceShatter': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''
+float ang = atan2(p.y, p.x) + Rnd*6.283;
+float seg = ang/6.2831853*9.0; float id = floor(seg); float f = frac(seg) - 0.5;
+float h = frac(sin(id*12.9898 + Rnd*78.233)*43758.5453);
+float h2 = frac(sin(id*39.346 + Rnd*11.135)*24634.6345);
+float len = lerp(0.18, 0.42, h);   // 9q: rays under half (Lead: still read as a lens-flare star)
+float wid = lerp(0.06, 0.16, h2);
+float ray = exp(-(f*f)/(wid*wid*0.08))*saturate(1.0 - r/len)*smoothstep(0.0, 0.08, r);
+float core = exp(-r*r/0.05);
+float3 cc = float3(0.80, 0.95, 1.0);   // pale cyan-white core
+float3 c = PC.rgb*(ray*1.0 + pow(m, 2.0)*0.15) + cc*core*1.1;
+return float4(c*Intensity*m, PC.a);''', {}),
+
     'M_TD_VFX_Shield': ('additive', True, 1.6, 2.4, (0.01, 0.02), (-0.02, 0.03), 0.05, PRE + '''
 float w = sin(r*24 - Age*17)*0.5 + 0.5;
 float front = smoothstep(Age*1.05 + 0.08, Age*1.05 - 0.12, r);
@@ -396,6 +413,64 @@ float4 t = lerp(FA, FB, frac({FP}));
 float l = dot(t.rgb, float3(0.33,0.33,0.33));
 float a = saturate(t.a*1.5)*smoothstep(1.0, 0.7, r)*smoothstep(0.0, 0.15, Age)*saturate((1-Age)*3.0);
 return float4(PC.rgb*(0.75 + 0.5*l)*Intensity, saturate(a*PC.a));''', {}),
+
+    # Lead (cloud pass v2): the soft, nearly uniform veil of being INSIDE a cloud. A huge, low-contrast round blob with a
+    # gentle slow noise (no curls), translucent, fading in and out over the particle's life; overlapping sprites make a veil.
+    'M_TD_VFX_CloudVeil': ('translucent', True, 0.35, 0.6, (0.01, 0.02), (-0.015, 0.01), 0.0, PRE + '''
+float n = N.r*0.5 + N.g*0.5;
+float g = m*m*(3-2*m);
+float a = pow(g, 0.8)*(0.85 + 0.30*(n-0.5))*smoothstep(0.0, 0.25, Age)*saturate((1-Age)*2.5);
+return float4(PC.rgb*(0.92 + 0.10*n)*Intensity, saturate(a*PC.a));''', {}),
+
+    # 10b: the approach field's barrier lattice, readable FACE-ON (DomeHex shows it only near the rim): hex edges at 35%
+    # across the whole face, a slow bright band sweeping pole to pole, the rim as DomeHex. Additive, for the 1 km shell.
+    'M_TD_VFX_FieldHex': ('additive', False, 1, 1, (0, 0), (0, 0), 0, """
+float f = saturate(Fres);
+float2 q = UV*float2(64.0, 32.0); float2 s = float2(1.0, 1.7320508);
+float2 a2 = fmod(q, s) - s*0.5; float2 b2 = fmod(q + s*0.5, s) - s*0.5;
+float2 g = abs(dot(a2, a2) < dot(b2, b2) ? a2 : b2);
+float d = max(dot(g, s*0.5), g.x);
+float edge = smoothstep(0.40, 0.48, d);
+float sweep = pow(saturate(1.0 - abs(frac(UV.y*1.0 - Tm*0.05) - 0.5)*6.0), 2.0);
+float rim = pow(f, 5.0)*smoothstep(1.0, 0.975, f)*1.4;
+float a = edge*(0.35 + 0.65*pow(f, 2.0) + 1.2*sweep) + rim*1.4;
+float3 c = PC.rgb*a + lerp(PC.rgb, float3(1,1,1), 0.6)*(rim*0.6 + edge*sweep*0.5);
+return float4(c*Intensity, PC.a);""", {}),
+
+    # 10c (Lead: the wall reads but is too heavy): a new asset (rebuilding a loaded material in place can assert): thinner
+    # hex lines (edge band 0.45-0.48 instead of 0.40-0.48) and about 40% less light, so the nebula and ships behind read.
+    'M_TD_VFX_FieldHex2': ('additive', False, 1, 1, (0, 0), (0, 0), 0, """
+float f = saturate(Fres);
+float2 q = UV*float2(64.0, 32.0); float2 s = float2(1.0, 1.7320508);
+float2 a2 = fmod(q, s) - s*0.5; float2 b2 = fmod(q + s*0.5, s) - s*0.5;
+float2 g = abs(dot(a2, a2) < dot(b2, b2) ? a2 : b2);
+float d = max(dot(g, s*0.5), g.x);
+float edge = smoothstep(0.45, 0.48, d)*smoothstep(0.50, 0.485, d);
+float sweep = pow(saturate(1.0 - abs(frac(UV.y*1.0 - Tm*0.05) - 0.5)*6.0), 2.0);
+float rim = pow(f, 5.0)*smoothstep(1.0, 0.975, f)*1.4;
+float a = (edge*(0.35 + 0.65*pow(f, 2.0) + 1.2*sweep) + rim*1.4)*0.6;
+float3 c = PC.rgb*a + lerp(PC.rgb, float3(1,1,1), 0.6)*(rim*0.6 + edge*sweep*0.5)*0.6;
+return float4(c*Intensity, PC.a);""", {}),
+
+    # 10f (T2's play): the cloaked Rift. An OVERLAY material for the ship's meshes (UMeshComponent::SetOverlayMaterial while
+    # cloaked): the hull darkens to a deep translucent magenta, its silhouette glows magenta, and shimmer bands crawl
+    # over it like refraction. Translucent; Tint is a vector parameter (Rift magenta), Cloak 0..1 fades it in and out.
+    'M_TD_VFX_CloakOverlay': ('translucent', False, 1, 1, (0, 0), (0, 0), 0, """
+float f = saturate(Fres);
+float rim = pow(f, 2.2);
+float bands = pow(0.5 + 0.5*sin(Tm*7.0 + (UV.x*37.0 + UV.y*23.0)), 6.0);
+float a = saturate((0.50 + 0.45*rim + 0.15*bands)*Cloak);
+float3 c = Tint.rgb*(0.06 + rim*2.6 + bands*0.9*(0.3 + rim)) + float3(1,1,1)*pow(rim, 6.0)*0.6;
+return float4(c*Intensity, a);""", {'Tint': (1.0, 0.10, 0.85), 'Cloak': 1.0}),
+
+    # round 10: a set piece's range beacon (NS_TD_Region_Beacon): soft round core, a short thin horizontal streak, a white
+    # pin-point centre. Camera-facing sprite, additive.
+    'M_TD_VFX_Beacon': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + '''
+float core = pow(m, 2.6);
+float streak = pow(saturate(1.0 - abs(p.x)), 1.5)*exp(-abs(p.y)*22.0);
+float pin = pow(m, 12.0);
+float3 c = PC.rgb*(core*0.9 + streak*0.8) + lerp(PC.rgb, float3(1,1,1), 0.75)*pin*1.4;
+return float4(c*Intensity, PC.a);''', {}),
 
     # Blade swing: a crescent swept left to right across the top half of a camera-facing sprite over the particle's life.
     'M_TD_VFX_Slash': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
@@ -649,7 +724,9 @@ MICS = {'M_TD_VFX_Ribbon_Clean': ('M_TD_VFX_Ribbon', {'Wisp': 0.12}),
         'M_TD_VFX_Flame_Boost': ('M_TD_VFX_Flame', {'Diamonds': 1.0}),
         # round 8: the vortex for the Rift's portal disc as a plain mesh material (for the ship builder to assign to the
         # disc's slot; T1's SetShipMaterialScalar drives PortalPower). Rift magenta.
-        'MI_TD_VFX_RiftPortalVortex': ('M_TD_VFX_PortalVortex', {'Tint': (1.0, 0.10, 0.85), 'PortalPower': 0.5})}
+        'MI_TD_VFX_RiftPortalVortex': ('M_TD_VFX_PortalVortex', {'Tint': (1.0, 0.10, 0.85), 'PortalPower': 0.5}),
+        # 10c: review only (NS_TD_Debug_HazeSphere): the haze at Density 0.6 to judge its shape; T6 sets its own Density
+        'MI_TD_RegionHaze_Review': ('M_TD_RegionHaze', {'Density': 0.6})}
 mic_log = []
 for _n, (_parent, _params) in MICS.items():
     if ONLY_MATS and _n not in ONLY_MATS:   # round 8: no incidental re-saves of the instances

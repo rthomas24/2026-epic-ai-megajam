@@ -9,6 +9,8 @@
 // (UTDSpaceFieldFX, or a placeholder burst) and broadcasts OnFieldObjectDestroyed on the Core bus (T2: score, drops).
 
 #include "TriadDrift/World/SpaceField/TDSpaceField.h"
+#include "EngineUtils.h"
+#include "Containers/Ticker.h"
 #include "TriadDrift/World/SpaceField/TDSpaceFieldFX.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -18,6 +20,7 @@
 #include "Engine/StaticMesh.h"
 #include "NiagaraComponent.h"
 #include "Engine/Engine.h"
+#include "TimerManager.h"
 #include "GameFramework/Pawn.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -26,6 +29,7 @@
 #include "NiagaraSystem.h"
 #include "TriadDrift/Combat/TDFieldDamageable.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
+#include "TriadDrift/Perf/TDWarmupSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Combat/TDProjectile.h"
@@ -68,7 +72,7 @@ float ATDSpaceField::HealthFor(float Size, bool bWreck) const
 	{
 	case 0: return SmallHealth;
 	case 1: return MediumHealth;
-	default: return LargeHealthBase + LargeHealthPerMetre * Size / 100.f;
+	default: return FMath::Min(LargeHealthBase + LargeHealthPerMetre * Size / 100.f, LargeHealthMax);	// 14-20 bolts
 	}
 }
 
@@ -147,9 +151,38 @@ bool ATDSpaceField::DamagePiece(int32 Piece, float Damage, AActor* ByWhom)
 	return true;
 }
 
+static int32 GTDLogBreaks = 0;
+static FAutoConsoleVariableRef CVarTDLogBreaks(TEXT("td.SpaceField.LogBreaks"), GTDLogBreaks,
+	TEXT("1: log every field break (piece, class, size, special, who broke it). Live captures and playtests."));
+
 void ATDSpaceField::BreakPiece(int32 Piece, AActor* ByWhom)
 {
+	if (GTDLogBreaks != 0 && Pieces.IsValidIndex(Piece))
+	{
+		const FTDSpaceFieldPiece& P = Pieces[Piece];
+		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.Break: piece %d %s %.0f m%s by %s"), Piece,
+			P.Size < 1000.f ? TEXT("small") : P.Size < 4000.f ? TEXT("medium") : TEXT("large"), P.Size / 100.f,
+			States.IsValidIndex(Piece) && States[Piece].bSpecial ? TEXT(" special") : TEXT(""), *GetNameSafe(ByWhom));
+	}
+	// Timed at the outermost break only (a ram can break several in one call; each is counted inside).
+	const double Start = FPlatformTime::Seconds();
+	++PerfBreakDepth;
+	BreakPieceInner(Piece, ByWhom);
+	--PerfBreakDepth;
+	const double Ms = (FPlatformTime::Seconds() - Start) * 1000.0;
+	if (PerfBreakDepth == 0)
+	{
+		PerfFrameBreakMs += Ms;
+	}
+	PerfBreakMsSum += Ms;
+	PerfBreakMsMax = FMath::Max(PerfBreakMsMax, Ms);
+	++PerfBreaks;
+}
+
+void ATDSpaceField::BreakPieceInner(int32 Piece, AActor* ByWhom)
+{
 	using namespace TDSpaceFieldBreak;
+	const double T0 = FPlatformTime::Seconds();
 	FPieceState& S = States[Piece];
 	const FTDSpaceFieldPiece P = Pieces[Piece];
 	S.bAlive = false;
@@ -178,7 +211,8 @@ void ATDSpaceField::BreakPiece(int32 Piece, AActor* ByWhom)
 		FTransform T;
 		S.Visual->GetInstanceTransform(S.Instance, T, true);
 		T.SetScale3D(FVector(0.001f));
-		S.Visual->UpdateInstanceTransform(S.Instance, T, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ true, /*bTeleport*/ true);
+		S.Visual->UpdateInstanceTransform(S.Instance, T, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ false, /*bTeleport*/ true);
+		DirtyVisuals.Add(S.Visual);	// one render-state update per component per frame (Tick), not per break
 		FreeVisuals.FindOrAdd(S.Visual).Add(S.Instance);
 	}
 	if (TArray<int32>* Cell = Grid.Find(CellOf(P.Location)))
@@ -191,6 +225,7 @@ void ATDSpaceField::BreakPiece(int32 Piece, AActor* ByWhom)
 		S.Obstacle = INDEX_NONE;
 	}
 
+	const double T1 = FPlatformTime::Seconds();
 	// Split: a medium into smalls, a large or a wreck into mediums.
 	if (S.SizeClass > 0)
 	{
@@ -215,10 +250,19 @@ void ATDSpaceField::BreakPiece(int32 Piece, AActor* ByWhom)
 		}
 	}
 
+	const double T2 = FPlatformTime::Seconds();
 	PlayBreakCue(P.Location, P.Size, S.SizeClass, S.bSpecial);
+	const double T3 = FPlatformTime::Seconds();
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
-		Bus->BroadcastFieldObjectDestroyed(P.Location, S.SizeClass, S.bSpecial, ByWhom);
+		Bus->BroadcastFieldObjectDestroyed(P.Location, S.SizeClass, S.bSpecial, ByWhom);	// T2's drops, stat, boost; the HUD's notice
+	}
+	const double T4 = FPlatformTime::Seconds();
+	// Zero-lag budget (3 ms a break): any slow break says which phase took the time.
+	if ((T4 - T0) * 1000.0 > 3.0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TDSpaceField: slow break %.2f ms (class %d special %d): collision+look %.2f, fragments %.2f, effect+sound %.2f, bus listeners %.2f"),
+			(T4 - T0) * 1000.0, S.SizeClass, S.bSpecial, (T1 - T0) * 1000.0, (T2 - T1) * 1000.0, (T3 - T2) * 1000.0, (T4 - T3) * 1000.0);
 	}
 }
 
@@ -230,7 +274,7 @@ void ATDSpaceField::SpawnFragment(UStaticMesh* Mesh, const FVector& At, float Si
 	}
 	const FTransform T(FRotator(BreakRng.FRandRange(-180.f, 180.f), BreakRng.FRandRange(-180.f, 180.f), BreakRng.FRandRange(-180.f, 180.f)), At,
 		FVector(Size * NormFor(Mesh)));
-	UInstancedStaticMeshComponent* Visual = ComponentFor(Mesh, Size);
+	UInstancedStaticMeshComponent* Visual = FragmentComponentFor(Mesh);
 	int32 Instance = INDEX_NONE;
 	if (TArray<int32>* Free = FreeVisuals.Find(Visual); Free && Free->Num() > 0)
 	{
@@ -279,9 +323,22 @@ void ATDSpaceField::PlayBreakCue(const FVector& At, float Size, uint8 SizeClass,
 		UNiagaraSystem* Default = DefaultBreakVFX.IsValidIndex(Slot) ? DefaultBreakVFX[Slot].Get() : nullptr;
 		Cue.VFX = Default ? TSoftObjectPtr<UNiagaraSystem>(Default) : TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(DefaultVFX[Slot]));
 	}
-	UNiagaraComponent* Played = UTDStatics::PlayCue(this, Cue, At, FRotator::ZeroRotator);
-	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: break class %d special %d size %.0f m at %s: %s %s"), SizeClass, bSpecial, Size / 100.f, *At.ToCompactString(),
-		*GetNameSafe(Cue.VFX.Get()), Played ? TEXT("playing") : TEXT("NOT PLAYED (placeholder burst)"));
+	// Effect and sound timed apart (the zero-lag budget: which one costs on a first play).
+	FTDFXCue VfxOnly = Cue; VfxOnly.Sound.Reset(); VfxOnly.Shake.Reset();
+	FTDFXCue Rest = Cue; Rest.VFX.Reset();
+	const double C0 = FPlatformTime::Seconds();
+	UNiagaraComponent* Played = UTDStatics::PlayCue(this, VfxOnly, At, FRotator::ZeroRotator);
+	const double C1 = FPlatformTime::Seconds();
+	if (!Rest.IsEmpty()) { UTDStatics::PlayCue(this, Rest, At, FRotator::ZeroRotator); }
+	const double C2 = FPlatformTime::Seconds();
+	if ((C2 - C0) * 1000.0 > 2.0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TDSpaceField: slow cue %.2f ms: effect %s %.2f ms, sound %s %.2f ms"), (C2 - C0) * 1000.0, *GetNameSafe(VfxOnly.VFX.Get()),
+			(C1 - C0) * 1000.0, Cue.Sound.IsNull() ? TEXT("none") : *Cue.Sound.ToSoftObjectPath().GetAssetName(), (C2 - C1) * 1000.0);
+	}
+	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: break class %d special %d size %.0f m at %s: %s %s, sound %s (%s)"), SizeClass, bSpecial, Size / 100.f, *At.ToCompactString(),
+		*GetNameSafe(Cue.VFX.Get()), Played ? TEXT("playing") : TEXT("NOT PLAYED (placeholder burst)"), Cue.Sound.IsNull() ? TEXT("none") : *Cue.Sound.ToSoftObjectPath().GetAssetName(),
+		bAuthored ? TEXT("DA_SpaceField_FX") : TEXT("defaults"));
 	if (UNiagaraComponent* NC = Played)
 	{
 		if (!bAuthored)
@@ -433,13 +490,35 @@ void ATDSpaceField::ReceiveSplash(const FVector& Center, float Radius, float Dam
 bool ATDSpaceField::ReceiveShipImpact(UPrimitiveComponent* HitComponent, int32 Item, const FVector& ImpactPoint, float NormalSpeed, float HeadOn01, ATDShip* Ship)
 {
 	const UTDRamPower* Ram = Ship ? Ship->FindComponentByClass<UTDRamPower>() : nullptr;
-	return ShipImpact(HitComponent, Item, NormalSpeed, HeadOn01, Ship, Ram && Ram->IsPowerActive());
+	const bool bBroken = ShipImpact(HitComponent, Item, NormalSpeed, HeadOn01, Ship, Ram && Ram->IsPowerActive());
+	if (GTDLogBreaks != 0 && Ship)
+	{
+		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.Impact: %s (%s) at %.0f m/s normal, head-on %.2f -> %s"), *GetNameSafe(Ship),
+			Ship->IsPlayerControlled() ? TEXT("flown") : TEXT("wingman"), NormalSpeed / 100.f, HeadOn01, bBroken ? TEXT("rock broke") : TEXT("bounced"));
+	}
+	return bBroken;
 }
 
 // ------------------------------------------------------------------------------------------- dev commands
 
 namespace TDSpaceFieldDev
 {
+	static FAutoConsoleCommandWithWorldAndArgs CmdWingCheck(TEXT("TD.SpaceField.WingCheck"),
+		TEXT("Log each squad ship's speed and its distance to the nearest obstacle surface (wingman rock avoidance watch)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const UTDWorldSubsystem* WS = UTDWorldSubsystem::Get(World);
+			for (TActorIterator<ATDShip> It(World); It; ++It)
+			{
+				ATDShip* Ship = *It;
+				FSphere Near(ForceInit);
+				const bool bNear = WS && WS->FindNearestObstacle(Ship->GetActorLocation(), 50000.f, Near);
+				const float Gap = bNear ? (float)FVector::Dist(Ship->GetActorLocation(), Near.Center) - Near.W : 50000.f;
+				UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.WingCheck: %s (%s) speed %.0f m/s, nearest rock surface %.0f m%s"), *GetNameSafe(Ship),
+					Ship->IsPlayerControlled() ? TEXT("flown") : TEXT("wingman"), Ship->GetVelocity().Size() / 100.f, Gap / 100.f, bNear ? TEXT("") : TEXT(" (none within 500 m)"));
+			}
+		}));
+
 	static FAutoConsoleCommandWithWorldAndArgs CmdAim(TEXT("TD.SpaceField.Aim"),
 		TEXT("Turn the flown ship (real input) toward the nearest live field piece: TD.SpaceField.Aim <class 0 small | 1 medium | 2 large | 3 special> [MinMetres=0]"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
@@ -549,6 +628,47 @@ namespace TDSpaceFieldDev
 
 namespace TDSpaceFieldDev
 {
+	/** TD.SpaceField.FrameWatch: every frame's time while on (the field ticks each frame), the worst ten kept. */
+	struct FFrameWatch
+	{
+		bool bOn = false;
+		int32 Frames = 0, Over16 = 0, Over33 = 0;
+		double Sum = 0.0, StartTime = 0.0;
+		TArray<TPair<float, double>> Worst;	// ms, seconds since start
+	};
+	static FFrameWatch GFrameWatch;
+	static FTSTicker::FDelegateHandle GFrameWatchTicker;
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdFrameWatch(TEXT("TD.SpaceField.FrameWatch"),
+		TEXT("Live: TD.SpaceField.FrameWatch 1 starts (resets) recording every frame's time; 0 stops and logs frames, mean, frames over 16.6 and 33.3 ms and the ten worst (with seconds since start)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const bool bStart = Args.Num() == 0 || Args[0] != TEXT("0");
+			if (bStart)
+			{
+				GFrameWatch = FFrameWatch();
+				GFrameWatch.bOn = true;
+				GFrameWatch.StartTime = FPlatformTime::Seconds();
+				// The engine's core ticker (once per frame, any map, the field or not; travel included).
+				if (!GFrameWatchTicker.IsValid())
+				{
+					GFrameWatchTicker = FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([](float DeltaTime)
+					{
+						ATDSpaceField::NoteFrameWatch(DeltaTime);
+						return true;
+					}));
+				}
+				UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.FrameWatch: started"));
+				return;
+			}
+			GFrameWatch.bOn = false;
+			if (GFrameWatchTicker.IsValid()) { FTSTicker::GetCoreTicker().RemoveTicker(GFrameWatchTicker); GFrameWatchTicker.Reset(); }
+			FString W;
+			for (const TPair<float, double>& P : GFrameWatch.Worst) { W += FString::Printf(TEXT(" %.1f ms @%.1fs"), P.Key, P.Value); }
+			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.FrameWatch: %d frames, mean %.2f ms, over 16.6 ms %d, over 33.3 ms %d, worst:%s"), GFrameWatch.Frames,
+				GFrameWatch.Frames ? GFrameWatch.Sum / GFrameWatch.Frames : 0.0, GFrameWatch.Over16, GFrameWatch.Over33, *W);
+		}));
+
 	static FAutoConsoleCommandWithWorldAndArgs CmdTestShot(TEXT("TD.SpaceField.TestShot"),
 		TEXT("Captures: put the flown ship 80 m from the nearest lone live piece of a class, facing it, and in the same frame launch <Shots> real player laser bolts from its nose at it: TD.SpaceField.TestShot <class 0|1|2|3 special> [Shots=10]"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
@@ -591,4 +711,158 @@ namespace TDSpaceFieldDev
 			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.TestShot: piece %d class %d special %d size %.0f m health %.0f, %d bolts of %.0f from 80 m"), Best,
 				Field->GetPieceSizeClass(Best), Field->IsPieceSpecial(Best), P[Best].Size / 100.f, Field->GetPieceHealth(Best), Shots, Spec.Damage);
 		}));
+}
+
+double ATDSpaceField::BreakChain(const FVector& Where, int32 Count, AActor* ByWhom)
+{
+	TArray<int32> Order;
+	for (int32 i = 0; i < Pieces.Num(); ++i) { if (IsPieceAlive(i) && Pieces[i].Kind != ETDSpaceFieldKind::Wreck) { Order.Add(i); } }
+	Order.Sort([this, &Where](int32 A, int32 B) { return FVector::DistSquared(Pieces[A].Location, Where) < FVector::DistSquared(Pieces[B].Location, Where); });
+	const double Start = FPlatformTime::Seconds();
+	for (int32 k = 0; k < FMath::Min(Count, Order.Num()); ++k) { DamagePiece(Order[k], 1.0e7f, ByWhom); }
+	return (FPlatformTime::Seconds() - Start) * 1000.0;
+}
+
+namespace TDSpaceFieldDev
+{
+	static FAutoConsoleCommandWithWorldAndArgs CmdPerf(TEXT("TD.SpaceField.Perf"), TEXT("Log the field's tick and break costs: TD.SpaceField.Perf [reset]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (ATDSpaceField* Field = ATDSpaceField::Get(World)) { Field->PerfReport(Args.Num() > 0 && Args[0].Equals(TEXT("reset"), ESearchCase::IgnoreCase)); }
+		}));
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdChain(TEXT("TD.SpaceField.BreakChain"),
+		TEXT("Perf: break the N live pieces nearest the flown ship in one frame and log the cost: TD.SpaceField.BreakChain [N=5]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDSpaceField* Field = ATDSpaceField::Get(World);
+			APawn* Pawn = World ? UGameplayStatics::GetPlayerPawn(World, 0) : nullptr;
+			if (!Field || !Pawn) { return; }
+			const int32 N = Args.Num() > 0 ? FMath::Max(1, FCString::Atoi(*Args[0])) : 5;
+			const double Ms = Field->BreakChain(Pawn->GetActorLocation(), N, Pawn);
+			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.BreakChain: %d breaks in one frame took %.3f ms"), N, Ms);
+		}));
+}
+
+namespace TDSpaceFieldDev
+{
+	static FAutoConsoleCommandWithWorldAndArgs CmdStageBreak(TEXT("TD.SpaceField.StageBreak"),
+		TEXT("Effects review: park the flown ship <Metres> from a piece of the class (clear space preferred), facing it, then break it after <Delay> s and log the system and sound: TD.SpaceField.StageBreak <class 0|1|2|3 special> [Metres=150] [Delay=1.5]"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDSpaceField* Field = ATDSpaceField::Get(World);
+			ATDSpacecraft* Ship = World ? Cast<ATDSpacecraft>(UGameplayStatics::GetPlayerPawn(World, 0)) : nullptr;
+			if (!Field || !Ship) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.StageBreak: no field or no flown ship")); return; }
+			const int32 Want = Args.Num() > 0 ? FCString::Atoi(*Args[0]) : 2;
+			const float Standoff = (Args.Num() > 1 ? FCString::Atof(*Args[1]) : 150.f) * 100.f;
+			const float Delay = Args.Num() > 2 ? FMath::Max(0.1f, FCString::Atof(*Args[2])) : 1.5f;
+			const TArray<FTDSpaceFieldPiece>& P = Field->GetPieces();
+			const FVector From = Ship->GetActorLocation();
+			// The nearest match with the most clear space around it within 2 km of the best candidates (any match as a fallback).
+			int32 Best = INDEX_NONE;
+			float BestScore = -TNumericLimits<float>::Max();
+			for (int32 i = 0; i < P.Num(); ++i)
+			{
+				if (!Field->IsPieceAlive(i) || P[i].Kind == ETDSpaceFieldKind::Wreck) { continue; }
+				const bool bMatch = Want == 3 ? Field->IsPieceSpecial(i) : (Field->GetPieceSizeClass(i) == Want && !Field->IsPieceSpecial(i));
+				if (!bMatch) { continue; }
+				float Clear = 20000.f;	// up to 200 m of clearance counts
+				for (int32 j = 0; j < P.Num(); ++j)
+				{
+					if (j == i || !Field->IsPieceAlive(j)) { continue; }
+					const float D = (float)FVector::Dist(P[i].Location, P[j].Location) - P[j].Size * 0.5f - P[i].Size * 0.5f;
+					if (D < Clear) { Clear = D; if (Clear <= 0.f) { break; } }
+				}
+				const float Score = Clear * 10.f - (float)FVector::Dist(From, P[i].Location) * 0.01f;
+				if (Score > BestScore) { BestScore = Score; Best = i; }
+			}
+			if (Best == INDEX_NONE) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.StageBreak: no live piece of class %d"), Want); return; }
+			const FVector Target = P[Best].Location;
+			const FVector Stand = Target + (From - Target).GetSafeNormal() * (P[Best].Size * 0.5f + Standoff);
+			const FRotator Facing = (Target - Stand).Rotation();
+			Ship->TeleportSpacecraft(Stand, Facing, /*bKeepSpeed*/ false);
+			GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f %.1f"), Facing.Yaw, Facing.Pitch, Delay + 0.5f));
+			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.StageBreak: piece %d class %d special %d size %.0f m, ship %.0f m from its surface, breaking in %.1f s"), Best,
+				Field->GetPieceSizeClass(Best), Field->IsPieceSpecial(Best), P[Best].Size / 100.f, Standoff / 100.f, Delay);
+			TWeakObjectPtr<ATDSpaceField> WeakField(Field);
+			TWeakObjectPtr<ATDSpacecraft> WeakShip(Ship);
+			FTimerHandle Handle;
+			World->GetTimerManager().SetTimer(Handle, FTimerDelegate::CreateLambda([WeakField, WeakShip, Best]()
+			{
+				if (ATDSpaceField* F = WeakField.Get()) { F->DamagePiece(Best, 1.0e7f, WeakShip.Get()); }
+			}), Delay, false);
+		}));
+}
+
+UInstancedStaticMeshComponent* ATDSpaceField::FragmentComponentFor(UStaticMesh* Mesh)
+{
+	// Fragments of broken rocks: a plain (non-hierarchical) instanced component per mesh, so adding or recycling one never
+	// rebuilds a cluster tree. Few instances, near the camera: no shadows, 4 km cull.
+	TObjectPtr<UInstancedStaticMeshComponent>& C = FragmentComponents.FindOrAdd(Mesh);
+	if (!C)
+	{
+		C = NewObject<UInstancedStaticMeshComponent>(this, *FString::Printf(TEXT("Frag_%s"), *GetNameSafe(Mesh)));
+		C->SetupAttachment(RootComponent);
+		C->SetStaticMesh(Mesh);
+		C->SetMobility(EComponentMobility::Movable);
+		C->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		C->SetCanEverAffectNavigation(false);
+		C->SetCastShadow(false);
+		C->bAffectDistanceFieldLighting = false;
+		C->SetCullDistances(0, 400000);
+		C->RegisterComponent();
+	}
+	return C;
+}
+
+void ATDSpaceField::PreloadBreakCues()
+{
+	// Load every break effect and sound now, so no break ever loads one synchronously in its frame (the first breaks of
+	// each kind cost 10-20 ms before this).
+	if (!FX)
+	{
+		FX = UTDStatics::LoadPresentation<UTDSpaceFieldFX>(TEXT("DA_SpaceField_FX"));
+	}
+	bFXLoaded = true;
+	if (FX)
+	{
+		for (const FTDFXCue* Cue : { &FX->BreakSmall, &FX->BreakMedium, &FX->BreakLarge, &FX->BreakSpecial })
+		{
+			if (!Cue->VFX.IsNull()) { PreloadedCueAssets.Add(Cue->VFX.LoadSynchronous()); }
+			if (!Cue->Sound.IsNull()) { PreloadedCueAssets.Add(Cue->Sound.LoadSynchronous()); }
+		}
+	}
+}
+
+namespace TDSpaceFieldWarm
+{
+	// T7's warm-up (#89) streams DA_SpaceField_FX and everything it names; the field's own default break systems are
+	// hard references on the class defaults (loaded) but would otherwise first activate on the first break.
+	static struct FRegister
+	{
+		FRegister()
+		{
+			UTDWarmupSubsystem::RegisterProvider(TEXT("SpaceField"), [](const UWorld& World, TArray<FSoftObjectPath>& Out)
+			{
+				Out.Add(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_S.NS_TD_Asteroid_Break_S")));
+				Out.Add(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_M.NS_TD_Asteroid_Break_M")));
+				Out.Add(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_L.NS_TD_Asteroid_Break_L")));
+				Out.Add(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_Crystal.NS_TD_Asteroid_Break_Crystal")));
+			});
+		}
+	} GRegister;
+}
+
+void ATDSpaceField::NoteFrameWatch(float DeltaSeconds)
+{
+	using namespace TDSpaceFieldDev;
+	if (!GFrameWatch.bOn) { return; }
+	const float Ms = DeltaSeconds * 1000.f;
+	++GFrameWatch.Frames;
+	GFrameWatch.Sum += Ms;
+	GFrameWatch.Over16 += Ms > 16.67f ? 1 : 0;
+	GFrameWatch.Over33 += Ms > 33.33f ? 1 : 0;
+	GFrameWatch.Worst.Add({ Ms, FPlatformTime::Seconds() - GFrameWatch.StartTime });
+	GFrameWatch.Worst.Sort([](const TPair<float, double>& A, const TPair<float, double>& B) { return A.Key > B.Key; });
+	if (GFrameWatch.Worst.Num() > 10) { GFrameWatch.Worst.SetNum(10); }
 }

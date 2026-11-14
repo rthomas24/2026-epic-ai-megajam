@@ -44,6 +44,9 @@ public:
 	/** True if Point is inside (or within Margin of) any obstacle. */
 	bool IsInsideObstacle(const FVector& Point, float Margin = 0.f) const;
 
+	/** The obstacle whose surface is nearest Point within Range (T3, wingman close-range push). False if none. */
+	bool FindNearestObstacle(const FVector& Point, float Range, FSphere& OutObstacle) const;
+
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|World")
 	void SetPlayBounds(const FVector& Center, float Radius);
 

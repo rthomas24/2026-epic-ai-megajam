@@ -201,6 +201,53 @@ def artefact_site():
     shot("03_back", 200, 6)
 
 
+def story_set():
+    """Story sets: 5 m and 30 m from the set, first person from the pilot's eye height, looking at it."""
+    G.cmd("TD.Ground.ThirdPerson 0")
+    tp(-700.0, -650.0, 0.0, 40.0, settle=2.0)
+    shot("01_5m", 40.0, -6.0)
+    tp(-950.0, -880.0, 0.0, 40.0, settle=2.0)
+    shot("01b_8m", 40.0, -5.0)
+    tp(-2600.0, -1900.0, 0.0, 37.0, settle=2.0)
+    shot("02_30m", 37.0, -2.0)
+    G.cmd("TD.Ground.ThirdPerson 1")
+
+
+def bridge():
+    """Cinder magma bridge: from 2 m before the -X ramp foot, walk the whole span with real key presses (feet logged:
+    the deck must read 50, the ramps 0..50), push into each rail, then frames at the foot, mid-deck and 15 m."""
+    G.cmd("TD.Ground.ThirdPerson 1")
+    tp(-1600.0, 0.0, 0.0, 0.0, settle=2.0)
+    shot("01_ramp_foot", 0.0, -8.0)
+    for i in range(14):
+        walk(0.0, 0.6, "span %d" % i)
+    tp(0.0, 0.0, 50.0, 90.0, settle=1.5)
+    for i in range(2):
+        walk(90.0, 0.6, "into the +Y rail %d (must stay on the deck)" % i)
+    tp(0.0, 0.0, 50.0, 270.0, settle=1.5)
+    for i in range(2):
+        walk(270.0, 0.6, "into the -Y rail %d (must stay on the deck)" % i)
+    tp(0.0, 0.0, 50.0, 0.0, settle=1.5)
+    shot("02_mid_deck", 0.0, -10.0)
+    tp(-1500.0, -1100.0, 0.0, 36.0, settle=2.0)
+    shot("03_15m", 36.0, -4.0)
+
+
+def station():
+    """ART-17 survey station: up the ramp(s) from the foot to the console, real key presses, feet logged."""
+    foot = MAN["stair_foot_site_cm"]
+    stand = MAN["console_stand_site_cm"][0]
+    G.cmd("TD.Ground.ThirdPerson 1")
+    tp(foot[0] + 250.0, 0.0, 0.0, 180.0, settle=2.0)
+    shot("01_foot", 180.0, -6.0)
+    for i in range(10):
+        walk(180.0, 0.45, "up %d" % i)
+    tp(stand[0], stand[1], stand[2], stand[3], settle=2.0)
+    shot("02_console", stand[3], -10.0)
+    tp(foot[0] + 900.0, -700.0, 0.0, 150.0, settle=2.0)
+    shot("03_10m", 150.0, -4.0)
+
+
 def main():
     G.cmd("TD.Ground.ThirdPerson 1")
     G.cmd("TD.God 1")
@@ -210,7 +257,9 @@ def main():
     print(G.log_tail("TDDevSpawn", 1))
     {"DockingBay_Interior": dock, "DominionInterior_Preview": dominion, "Relay_Site": relay, "Relay_Site_Awake": relay, "Wreck_Site": wreck, "Outpost_Site_Verdance": outpost,
      "Outpost_Site_Cinder": outpost, "DigSite_Cabin": digsite,
-     "SurveyLine_Verdance": survey, "Artefact": artefact_site}[SITE]()
+     "SurveyLine_Verdance": survey, "Artefact": artefact_site,
+     "StorySet_VerdanceCamp": story_set, "StorySet_CinderMine": story_set,
+     "SurveyStation_Verdance": station, "SurveyStation_Cinder": station, "Bridge_Magma": bridge}[SITE]()
     G.cmd("TD.Input.ReleaseAll")
     with open(os.path.join(OUT, "walk.json"), "w", encoding="utf-8") as fh:
         json.dump({"site": SITE, "origin": O, "steps": log}, fh, indent=1)

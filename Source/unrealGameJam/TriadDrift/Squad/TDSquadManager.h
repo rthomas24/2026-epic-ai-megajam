@@ -413,6 +413,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Barks", meta = (ClampMin = "0", Units = "s"))
 	float ShipDownBarkGapSeconds = 10.f;
 	double LastShipDownBarkTime = -1000.0;
+	/** Bark_Swarm_Saved (dialogs.md): Moss, when a swarm missile kills an enemy that was on a hurt wingman. */
+	double LastSwarmSavedBarkTime = -1000.0;
 
 	/** A wingman just entered a fight: it calls where it is, seen from the player's camera. */
 	void NotifyWingmanEngaged(ETDShipId Ship);
@@ -446,6 +448,9 @@ public:
 	void HandleAbilityUnlockedForBarks(ETDAbilityId Ability, ETDShipId Ship);
 	UFUNCTION()
 	void HandleObjectiveForBarks(FName ObjectiveId, int32 Step, FText Text);
+	/** T4's UTDArmadaForesight::OnAnticipated: a wingman notices (the paradox clue). */
+	UFUNCTION()
+	void HandleAnticipatedForBarks(class ATDEnemyShip* Enemy, FName Kind);
 	/** Chances (tests set 1): a wingman reacting to the player's kill; Command's line on a retake. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Squad|Barks", meta = (ClampMin = "0", ClampMax = "1"))
 	float PlayerKillBarkChance = 1.f / 3.f;

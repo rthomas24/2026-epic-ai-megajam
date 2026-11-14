@@ -1,6 +1,7 @@
 // Triad Drift - story transmissions (see header and storyline.md). Owner: Teammate 3.
 
 #include "TriadDrift/Story/TDStorySubsystem.h"
+#include "Misc/PackageName.h"
 #include "GameFramework/PlayerController.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/Profile/TDProfileSubsystem.h"
@@ -19,6 +20,7 @@
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/UI/TDUIHostSettings.h"
+#include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "Components/AudioComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/GameViewportClient.h"
@@ -35,6 +37,7 @@
 #include "NiagaraComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
+#include "TriadDrift/Core/TDDebugHUD.h"
 #include "TriadDrift/Story/TDStoryFX.h"
 
 #define LOCTEXT_NAMESPACE "TDStory"
@@ -67,6 +70,7 @@ namespace TDStory
 		using St = ETDTransmissionStyle;
 		static const TArray<FTDTransmission> Table = {
 			// Opening: the intro's narration (read by UTDIntroDirector, not fired as transmissions).
+			// Intro_N0-N4: retired (Lead, Nov 14): the opening speaks the O_* lines; td.Intro.Lines 0 brings these back to compare.
 			E(TEXT("Intro_N0"), S::Control, LOCTEXT("Intro_N0", "A ship appeared without warning. It answers nothing.")),
 			E(TEXT("Intro_N1"), S::Control, LOCTEXT("Intro_N1", "Its machines descend on our worlds, searching for something.")),
 			E(TEXT("Intro_N2"), S::Control, LOCTEXT("Intro_N2", "Triad is deployed. Wren. Kato. Moss.")),
@@ -95,7 +99,7 @@ namespace TDStory
 			E(TEXT("O_Command_Evade"), S::Command, LOCTEXT("O_Command_Evade", "Pilot, incoming fire! Evade now!")),
 			// Gameplay Sequence 01, the tutorial battle (storyline.md §13): the calls per phase. Drafts.
 			E(TEXT("TB_Kato_Marking"), S::Kato, LOCTEXT("TB_Kato_Marking", "Keep moving. I've marked one for you.")),
-			E(TEXT("TB_Moss_ThreeShips"), S::Moss, LOCTEXT("TB_Moss_ThreeShips", "We've still got three ships. Use them.")),
+			E(TEXT("TB_Moss_ThreeShips"), S::Moss, LOCTEXT("TB_Moss_ThreeShips", "You don't have to take them all yourself.") /* R011: the SWITCH / POWER prompt stays the instruction */),
 			E(TEXT("TB_Wren_Bigger"), S::Wren, LOCTEXT("TB_Wren_Bigger", "Gunship. Don't sit in front of it!")),
 			E(TEXT("TB_Command_FallBack"), S::Command, LOCTEXT("TB_Command_FallBack", "Triad, withdraw. Take the marked corridor.")),
 			E(TEXT("TB_Kato_BreakingOff"), S::Kato, LOCTEXT("TB_Kato_BreakingOff", "They're breaking off.")),
@@ -107,7 +111,7 @@ namespace TDStory
 			E(TEXT("S2_Kato_NotPursuing"), S::Kato, LOCTEXT("S2_Kato_NotPursuing", "Wait. Look behind us.")),
 			E(TEXT("S2_Kato_Vectors"), S::Kato, LOCTEXT("S2_Kato_Vectors", "Most of their fleet never even joined the fight.")),
 			E(TEXT("S2_Wren_WhatDoing"), S::Wren, LOCTEXT("S2_Wren_WhatDoing", "Would you rather they had?")),
-			E(TEXT("S2_Kato_Planetside"), S::Kato, LOCTEXT("S2_Kato_Planetside", "Heading planetside. Every group. Same destination.") /* R020 held: the draft's "it's us" trips the no-early-twist guard (Lead) */),
+			E(TEXT("S2_Kato_Planetside"), S::Kato, LOCTEXT("S2_Kato_Planetside", "They're after something. Doesn't look like it's us.") /* R020: Story Director's decision; guard exception for this exact line */),
 			E(TEXT("S2_Moss_InTheWay"), S::Moss, LOCTEXT("S2_Moss_InTheWay", "So we got in the way.")),
 			E(TEXT("S2_Command_Report"), S::Command, LOCTEXT("S2_Command_Report", "Triad, answer me. We lost you near that ship."), St::Static),
 			E(TEXT("S2_Wren_Hostile"), S::Wren, LOCTEXT("S2_Wren_Hostile", "Fighters. A lot of them. All three of us got out.")),
@@ -204,6 +208,8 @@ namespace TDStory
 			E(TEXT("G6_Kato_ShieldWeakening"), S::Kato, LOCTEXT("G6_Kato_ShieldWeakening", "Generator down. Shield's weakening.")),
 			E(TEXT("G6_Command_ShieldCollapsed"), S::Command, LOCTEXT("G6_Command_ShieldCollapsed", "Shield's down. Docking route marked.")),
 			E(TEXT("G6_Wren_CoverTheBay"), S::Boarder, LOCTEXT("G6_Wren_CoverTheBay", "Keep that bay covered. We need a way back out.")),
+			// Lead (T1's docking review): when Moss boards, Kato asks for the bay (Moss answers with C7_Moss_WayOut).
+			E(TEXT("G6_Kato_CoverTheBay"), S::Kato, LOCTEXT("G6_Kato_CoverTheBay", "Keep that bay covered. We need a way back out.")),
 			// Clue fragments as generators fall: less distorted each time, no identified speaker (placeholders for Nicholas).
 			E(TEXT("G6_Clue1"), S::Unknown, LOCTEXT("G6_Clue1", "…hold formation… vector two…"), St::Static),
 			E(TEXT("G6_Clue2"), S::Unknown, LOCTEXT("G6_Clue2", "…Triad… wait for authentication…"), St::Echo),
@@ -282,7 +288,7 @@ namespace TDStory
 			E(TEXT("C9_Kato_Decades"), S::Kato, LOCTEXT("C9_Kato_Decades", "It's dated decades ahead.")),
 			// Act 5: Reactor and Escape, the Choice.
 			E(TEXT("A5_Choice"), S::Moss, LOCTEXT("A5_Choice", "We can't trust them, and we can't let them finish. We end it here.")),
-			E(TEXT("A5_Escape"), S::Control, LOCTEXT("A5_Escape", "The ship is coming apart. Ninety seconds. Move!")),
+			E(TEXT("A5_Escape"), S::Command, LOCTEXT("A5_Escape", "Triad, you've got ninety seconds. Get to the hangar.")),
 			E(TEXT("A5_DistressSignal"), S::Unknown, LOCTEXT("A5_DistressSignal", "DISTRESS SIGNAL  ·  TRIAD: WREN, KATO, MOSS  ·  DATED DECADES AHEAD"), St::Static),
 		};
 		return Table;
@@ -333,31 +339,68 @@ namespace TDStory
 			{
 				return Layer;
 			}
-			const FTDTransmissionView V = S->GetCurrentTransmission();
-			if (!V.bActive || V.Alpha <= 0.f)
+			FTDTransmissionView V = S->GetCurrentTransmission();
+			if (!V.bActive)
+			{
+				V = S->GetBarkCaption(); // a bark, when no story line holds the strip
+			}
+			if (!V.bActive || V.Alpha <= 0.f || !V.bShowSubtitle)
 			{
 				return Layer;
 			}
 			const FVector2D Size = Geo.GetLocalSize();
+			// The layout's scale follows the viewport; the text also follows the player's subtitle size (T1's setting:
+			// Small 0.8, Medium 1, Large 1.3). Agent Feedback Batch 2, B2-02: the size setting changed nothing here.
 			const float Scale = Size.Y / 1080.f;
-			const FSlateFontInfo TagFont = FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), FMath::RoundToInt(17.f * Scale));
-			const FSlateFontInfo LineFont = FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), FMath::RoundToInt(22.f * Scale));
+			const float TextScale = Scale * UTDSettingsSubsystem::GetSubtitleScale(S);
+			const FSlateFontInfo TagFont = FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), FMath::Max(8, FMath::RoundToInt(17.f * TextScale)));
+			const FSlateFontInfo LineFont = FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), FMath::Max(9, FMath::RoundToInt(22.f * TextScale)));
 			const FText TagText = FText::Format(LOCTEXT("TagFmt", "{0}  "), V.SpeakerTag);
-			auto Measure = [](const FText& T, const FSlateFontInfo& F) -> FVector2D
+			auto Measure = [](const FString& T, const FSlateFontInfo& F) -> FVector2D
 			{
 				if (FSlateApplication::IsInitialized())
 				{
 					return FVector2D(FSlateApplication::Get().GetRenderer()->GetFontMeasureService()->Measure(T, F));
 				}
-				return FVector2D(F.Size * 0.6f * T.ToString().Len(), F.Size * 1.3f);
+				return FVector2D(F.Size * 0.6f * T.Len(), F.Size * 1.3f);
 			};
-			const FVector2D TagSize = Measure(TagText, TagFont);
-			const FVector2D LineSize = Measure(V.Text, LineFont);
-			const float W = TagSize.X + LineSize.X;
+			const FVector2D TagSize = Measure(TagText.ToString(), TagFont);
+			// B2-01: a long line ran past both screen edges at 720p. The block (speaker tag + text) stays inside a safe
+			// width of 80% of the screen: the text wraps at word breaks under itself (a hanging indent after the tag).
+			const FVector2D Pad(14.f * Scale, 6.f * Scale);
+			const float SafeW = Size.X * 0.8f - Pad.X * 2.f;
+			const float TextW = FMath::Max(SafeW - TagSize.X, Size.X * 0.3f);
+			TArray<FString> Lines;
+			{
+				TArray<FString> Words;
+				V.Text.ToString().ParseIntoArray(Words, TEXT(" "), true);
+				FString Current;
+				for (const FString& Word : Words)
+				{
+					const FString Try = Current.IsEmpty() ? Word : Current + TEXT(" ") + Word;
+					if (!Current.IsEmpty() && Measure(Try, LineFont).X > TextW)
+					{
+						Lines.Add(Current);
+						Current = Word;
+					}
+					else
+					{
+						Current = Try;
+					}
+				}
+				if (!Current.IsEmpty() || Lines.Num() == 0) { Lines.Add(Current); }
+			}
+			float LinesW = 0.f;
+			const float LineH = Measure(TEXT("Ag"), LineFont).Y;
+			for (const FString& L : Lines) { LinesW = FMath::Max(LinesW, static_cast<float>(Measure(L, LineFont).X)); }
+			const float W = TagSize.X + LinesW;
+			const float H = LineH * Lines.Num();
 			// T2's subtitle spot, under its lower lane (83%, y 900 at 1080p); Nick's HUD fills the bottom with panels, so
-			// under his the line goes just below his objective block at the top.
+			// under his the line goes just below his objective block at the top. A wrapped block grows away from the
+			// screen edge: up from the lower lane's line, down from the upper one's.
 			const bool bNickHUD = UTDUIHostSettings::GetSpaceHUDChoice() == ETDSpaceHUDChoice::Nick;
-			FVector2D Pos(Size.X * 0.5f - W * 0.5f, Size.Y * (bNickHUD ? 0.17f : 0.83f) - LineSize.Y * 0.5f);
+			const float AnchorY = Size.Y * (bNickHUD ? 0.17f : 0.83f);
+			FVector2D Pos(Size.X * 0.5f - W * 0.5f, bNickHUD ? AnchorY - LineH * 0.5f : AnchorY + LineH * 0.5f - H);
 			float A = V.Alpha;
 			if (V.Style == ETDTransmissionStyle::Static)
 			{
@@ -367,23 +410,26 @@ namespace TDStory
 				Pos.X += (Noise - 0.5f) * 3.f * Scale;
 			}
 			const FSlateBrush* White = FCoreStyle::Get().GetBrush(TEXT("WhiteBrush"));
-			const FVector2D Pad(14.f * Scale, 6.f * Scale);
-			FSlateDrawElement::MakeBox(Out, Layer, Geo.ToPaintGeometry(FVector2D(W, LineSize.Y) + Pad * 2.f, FSlateLayoutTransform(Pos - Pad)),
+			FSlateDrawElement::MakeBox(Out, Layer, Geo.ToPaintGeometry(FVector2D(W, H) + Pad * 2.f, FSlateLayoutTransform(Pos - Pad)),
 				White, ESlateDrawEffect::None, FLinearColor(0.f, 0.f, 0.f, 0.55f * A));
 			FLinearColor TagColor = V.Color;
 			TagColor.A = A;
-			const float TagY = Pos.Y + (LineSize.Y - TagSize.Y) * 0.5f;
+			const float TagY = Pos.Y + (LineH - TagSize.Y) * 0.5f;
 			FSlateDrawElement::MakeText(Out, Layer + 1, Geo.ToPaintGeometry(TagSize, FSlateLayoutTransform(FVector2D(Pos.X, TagY))), TagText, TagFont,
 				ESlateDrawEffect::None, TagColor);
-			const FVector2D LinePos(Pos.X + TagSize.X, Pos.Y);
-			if (V.Style == ETDTransmissionStyle::Echo)
+			for (int32 i = 0; i < Lines.Num(); ++i)
 			{
-				// A voice that should not be there: a faint double a few pixels behind.
-				FSlateDrawElement::MakeText(Out, Layer + 1, Geo.ToPaintGeometry(LineSize, FSlateLayoutTransform(LinePos + FVector2D(4.f, 2.f) * Scale)),
-					V.Text, LineFont, ESlateDrawEffect::None, FLinearColor(0.7f, 0.85f, 1.f, 0.35f * A));
+				const FVector2D LinePos(Pos.X + TagSize.X, Pos.Y + LineH * i);
+				const FVector2D LineSize(LinesW, LineH);
+				if (V.Style == ETDTransmissionStyle::Echo)
+				{
+					// A voice that should not be there: a faint double a few pixels behind.
+					FSlateDrawElement::MakeText(Out, Layer + 1, Geo.ToPaintGeometry(LineSize, FSlateLayoutTransform(LinePos + FVector2D(4.f, 2.f) * Scale)),
+						Lines[i], LineFont, ESlateDrawEffect::None, FLinearColor(0.7f, 0.85f, 1.f, 0.35f * A));
+				}
+				FSlateDrawElement::MakeText(Out, Layer + 2, Geo.ToPaintGeometry(LineSize, FSlateLayoutTransform(LinePos)), Lines[i], LineFont,
+					ESlateDrawEffect::None, FLinearColor(1.f, 1.f, 1.f, A));
 			}
-			FSlateDrawElement::MakeText(Out, Layer + 2, Geo.ToPaintGeometry(LineSize, FSlateLayoutTransform(LinePos)), V.Text, LineFont,
-				ESlateDrawEffect::None, FLinearColor(1.f, 1.f, 1.f, A));
 			return Layer + 3;
 		}
 
@@ -435,6 +481,11 @@ bool UTDStorySubsystem::FindEntry(FName Id, FTDTransmission& Out)
 				Out.Sound = *Shared;
 			}
 		}
+		// N-097: Nicholas's chosen master, imported by engineering (Tools/td-import-vo-dont.py), when his table has none.
+		if (Out.Sound.IsNull())
+		{
+			Out.Sound = TSoftObjectPtr<USoundBase>(EngineeringSharedSound(Out.SharedSound));
+		}
 	}
 	return bFound;
 }
@@ -480,6 +531,15 @@ FText UTDStorySubsystem::PilotTrait(ETDShipId Ship)
 void UTDStorySubsystem::OnWorldBeginPlay(UWorld& InWorld)
 {
 	Super::OnWorldBeginPlay(InWorld);
+	CarryResumeAt = InWorld.GetRealTimeSeconds() + CarryResumeDelaySeconds;
+	bCarryTaken = false;
+	if (InWorld.GetAuthGameMode<ATDMenuGameMode>())
+	{
+		// #139: at once on arriving at the menu, not at the delayed tick: a New Game started inside those 2.5 s on the
+		// same game instance must find nothing waiting.
+		ClearCarriedLines();
+		bCarryTaken = true;
+	}
 	if (UTDEventBus* Bus = UTDEventBus::Get(&InWorld))
 	{
 		Bus->OnWaveStarted.AddUniqueDynamic(this, &UTDStorySubsystem::HandleWaveStarted);
@@ -566,6 +626,11 @@ void UTDStorySubsystem::HandleLineOnAir(FName Id)
 				UTDUIHostSubsystem::ShowNavigationPulse(this, From, Galaxy->GetActorTransform().TransformPosition(V->Location), 1.5f);
 			}
 		}
+	}
+	// Verdance's orbital clue (storyline §14 phase 1): Wren answers Kato's convoy scan.
+	if (Id == TEXT("A2_ConvoyScanned"))
+	{
+		FireTransmission(TEXT("G2_Wren_Geology"));
 	}
 	if (Id == TEXT("C3_Kato_Artificial")) { Stage = 1; }
 	else if (Id == TEXT("C3_Kato_Beneath")) { Stage = 2; }
@@ -659,6 +724,14 @@ void UTDStorySubsystem::UpdateDepartures(double Now)
 		return;
 	}
 	bDeparturesChecked = true;
+	// T4/T5 (Nov 14): a take-off's radio belongs to that take-off. From the Dominion assault on (a stage cheat, a save that
+	// skipped the galaxy after Cinder, the escape reloading the galaxy), no planet's departure airs late.
+	const ETDGamePhase Phase = GI->GetProgressRef().Phase;
+	if (Phase == ETDGamePhase::DominionAssault || Phase == ETDGamePhase::DominionInterior || Phase == ETDGamePhase::Escape
+		|| Phase == ETDGamePhase::Victory)
+	{
+		return;
+	}
 	const UTDFlowSettings* Flow = UTDFlowSettings::Get();
 	const TSet<FName>& Done = GI->GetProgressRef().CompletedObjectives;
 	auto AllDone = [&Done](const TArray<FName>& Ids)
@@ -800,6 +873,48 @@ bool UTDStorySubsystem::Fire(const UObject* WorldContextObject, FName Id)
 	return S && S->FireTransmission(Id);
 }
 
+bool UTDStorySubsystem::ShowBarkCaption(const UObject* WorldContext, FName Speaker, const FString& Line, float Seconds)
+{
+	UTDStorySubsystem* S = Get(WorldContext);
+	const UWorld* World = S ? S->GetWorld() : nullptr;
+	if (!S || !World || S->bDrawnExternally || Line.IsEmpty())
+	{
+		return false;
+	}
+	const FString Who = Speaker.ToString();
+	const ETDSpeaker Pilot = Who.Equals(TEXT("Wren"), ESearchCase::IgnoreCase) || Who.Equals(TEXT("Rift"), ESearchCase::IgnoreCase) ? ETDSpeaker::Wren
+		: (Who.Equals(TEXT("Kato"), ESearchCase::IgnoreCase) || Who.Equals(TEXT("Lancer"), ESearchCase::IgnoreCase) ? ETDSpeaker::Kato
+		: (Who.Equals(TEXT("Moss"), ESearchCase::IgnoreCase) || Who.Equals(TEXT("Bastion"), ESearchCase::IgnoreCase) ? ETDSpeaker::Moss : ETDSpeaker::Control));
+	FTDTransmissionView V;
+	V.bActive = true;
+	V.Text = FText::FromString(Line);
+	V.SpeakerTag = Pilot == ETDSpeaker::Control ? FText::FromString(Who.ToUpper()) : SpeakerTag(Pilot);
+	V.Color = SpeakerColor(Pilot);
+	V.Alpha = 1.f;
+	V.bShowSubtitle = true;
+	S->BarkCaption = V;
+	S->BarkCaptionStart = World->GetRealTimeSeconds();
+	S->BarkCaptionEnd = S->BarkCaptionStart + FMath::Max(Seconds, 0.5f);
+	S->EnsureOverlay();
+	return true;
+}
+
+FTDTransmissionView UTDStorySubsystem::GetBarkCaption() const
+{
+	FTDTransmissionView V;
+	const UWorld* World = GetWorld();
+	const double Now = World ? World->GetRealTimeSeconds() : 0.0;
+	if (!BarkCaption.bActive || Now >= BarkCaptionEnd || Current.bActive)
+	{
+		return V;
+	}
+	V = BarkCaption;
+	// In over 0.12 s, out over the last 0.25 s.
+	V.Alpha = FMath::Clamp(FMath::Min(static_cast<float>(Now - BarkCaptionStart) / 0.12f, static_cast<float>(BarkCaptionEnd - Now) / 0.25f), 0.f, 1.f);
+	V.bShowSubtitle = AreSubtitlesShown(this);
+	return V;
+}
+
 FTDTransmissionView UTDStorySubsystem::GetCurrentTransmissionFor(const UObject* WorldContextObject)
 {
 	const UTDStorySubsystem* S = Get(WorldContextObject);
@@ -834,12 +949,24 @@ void UTDStorySubsystem::ResetPlayed()
 	}
 }
 
+TArray<FName> UTDStorySubsystem::RouteForBoarderAll(FName Id)
+{
+	if (Id == TEXT("G9_Moss_HoldingWayOut")) { return { TEXT("G9_Wren_HoldingWayOut") }; }
+	if (Id == TEXT("G6_Wren_CoverTheBay")) { return { TEXT("G6_Kato_CoverTheBay") }; }
+	return {};
+}
+
 FName UTDStorySubsystem::RouteForBoarder(const UObject* WorldContext, FName Id)
 {
 	// N-087: the escape radio is Moss's, unless Moss boarded; then Wren holds the way out.
 	if (Id == TEXT("G9_Moss_HoldingWayOut") && ResolveSpeaker(WorldContext, ETDSpeaker::Boarder) == ETDSpeaker::Moss)
 	{
 		return TEXT("G9_Wren_HoldingWayOut");
+	}
+	// The docking call is the boarder's; when that is Moss, Kato makes it (Moss answers with C7_Moss_WayOut).
+	if (Id == TEXT("G6_Wren_CoverTheBay") && ResolveSpeaker(WorldContext, ETDSpeaker::Boarder) == ETDSpeaker::Moss)
+	{
+		return TEXT("G6_Kato_CoverTheBay");
 	}
 	return Id;
 }
@@ -849,7 +976,8 @@ bool UTDStorySubsystem::IsRetired(FName Id)
 	// Kept in the table for the record (N-087, #29), never aired. A caller that still fires one is swallowed quietly.
 	static const TSet<FName> Retired = { TEXT("TB_Escaped"), TEXT("C4_Moss_Volcanoes"), TEXT("C4_Wren_SetCourse"),
 		TEXT("C4_Wren_WhatConnects"), TEXT("C4_Kato_SameSignature"), TEXT("C4_Moss_Trouble"), TEXT("C6_Moss_SamplesAboard"),
-		TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Wren_Understood") };
+		TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Wren_Understood"),
+		TEXT("A4_GeneratorDown1") }; // Nov 14 (T4): the first generator is the screenplay's G6_Kato_ShieldWeakening
 	return Retired.Contains(Id);
 }
 
@@ -1078,8 +1206,15 @@ void UTDStorySubsystem::UpdateSequence()
 		return;
 	}
 	const TArray<FName>& Ids = SequenceIds(ActiveSequence);
-	const bool bOnAir = Current.bActive && Ids.Contains(Current.Id);
-	const bool bQueued = Queue.ContainsByPredicate([&Ids](const FTDTransmission& T) { return Ids.Contains(T.Id); });
+	// A line routed for the boarder (RouteForBoarder) still belongs to its sequence.
+	auto InSequence = [&Ids](FName Id)
+	{
+		if (Ids.Contains(Id)) { return true; }
+		for (const FName& S : Ids) { if (RouteForBoarderAll(S).Contains(Id)) { return true; } }
+		return false;
+	};
+	const bool bOnAir = Current.bActive && InSequence(Current.Id);
+	const bool bQueued = Queue.ContainsByPredicate([&InSequence](const FTDTransmission& T) { return InSequence(T.Id); });
 	if (!bOnAir && !bQueued)
 	{
 		FinishSequence(false);
@@ -1102,6 +1237,7 @@ void UTDStorySubsystem::StartNext()
 	{
 		OnAirSeconds = SecondsFor(OnAir);
 		Voice = UGameplayStatics::SpawnSound2D(this, Sound);
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: voice %s plays %s"), *OnAir.Id.ToString(), *Sound->GetPathName());
 	}
 	if (SoundOnly.Contains(OnAir.Id))
 	{
@@ -1133,6 +1269,26 @@ void UTDStorySubsystem::StartNext()
 	OnTransmission.Broadcast(Current);
 	PlayStaticTear(Current.Id);
 	HandleLineOnAir(Current.Id);
+}
+
+bool UTDStorySubsystem::AreSubtitlesShown(const UObject* WorldContext)
+{
+	// ENG-45: T1's setting, the one place every story path reads it (transmissions, recordings, the opening's lines).
+	return UTDSettingsSubsystem::AreSubtitlesOn(WorldContext);
+}
+
+FSoftObjectPath UTDStorySubsystem::EngineeringSharedSound(FName Key)
+{
+	// Only an asset that exists: before the import the line stays subtitle-only, with no load warning.
+	static const TMap<FName, FString> Paths = {
+		{ TEXT("Dont"), TEXT("/Game/TriadDrift/Gameplay/Audio/VO/SW_VO_FutureWren_Dont_04.SW_VO_FutureWren_Dont_04") },
+	};
+	const FString* P = Paths.Find(Key);
+	if (!P || !FPackageName::DoesPackageExist(FSoftObjectPath(*P).GetLongPackageName()))
+	{
+		return FSoftObjectPath();
+	}
+	return FSoftObjectPath(*P);
 }
 
 bool UTDStorySubsystem::HasStaticDelivery(FName Id)
@@ -1200,6 +1356,12 @@ void UTDStorySubsystem::Tick(float DeltaTime)
 		}
 	}
 	UpdateSequence();
+	Current.bShowSubtitle = AreSubtitlesShown(this); // live: the setting can change mid-line
+	if (!bCarryTaken && Now >= CarryResumeAt)
+	{
+		bCarryTaken = true; // the arrival has settled (descent, docking, retake): the carried radio resumes
+		TakeCarriedLines();
+	}
 	UpdateDronePulses(Now);
 	if (!bAftermathChecked)
 	{
@@ -1253,6 +1415,102 @@ void UTDStorySubsystem::RemoveOverlay()
 	Overlay.Reset();
 }
 
+// The dev HUD's plain bark caption goes to the styled strip instead (Lead, T7's on-foot frame).
+static FDelayedAutoRegisterHelper GTDStoryBarkCaptionSink(EDelayedRegisterRunPhase::EndOfEngineInit, []()
+{
+	ATDDebugHUD::BarkCaptionSink = &UTDStorySubsystem::ShowBarkCaption;
+});
+
+namespace TDStoryCarry
+{
+	// Lines a map travel cut off, waiting for the next gameplay world (process-wide: the story subsystem is per world).
+	static TArray<FName> Pending;
+	static TWeakObjectPtr<const UGameInstance> Owner;
+	// The run they belong to (UTDGameInstance::GetRunSerial): New Game, Continue and a run reset change it, so a
+	// recording left unheard in one run never queues into the next on the same game instance (#139).
+	static uint32 RunSerial = 0;
+}
+
+void UTDStorySubsystem::ClearCarriedLines()
+{
+	if (TDStoryCarry::Pending.Num() > 0)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %d carried line(s) dropped (the menu, or another run)"), TDStoryCarry::Pending.Num());
+	}
+	TDStoryCarry::Pending.Reset();
+	TDStoryCarry::Owner.Reset();
+}
+
+int32 UTDStorySubsystem::NumCarriedLines()
+{
+	return TDStoryCarry::Pending.Num();
+}
+
+void UTDStorySubsystem::CarryAcrossTravel()
+{
+	// Lead (T7's end-to-end play): a travel mid-queue lost every line and left ambient ones marked played without airing.
+	// Now must-hear lines (IsRequiredLine) carry to the far side in order; ordinary ones are dropped and unclaimed, so
+	// nothing counts as aired that did not air (HasLineAired gates rely on it). A line cut off on air counts as unheard.
+	TArray<FName> Lines;
+	if (Current.bActive && !Current.Id.IsNone())
+	{
+		Lines.Add(Current.Id);
+	}
+	for (const FTDTransmission& T : Queue)
+	{
+		Lines.Add(T.Id);
+	}
+	UTDGameInstance* GI = UTDGameInstance::Get(this);
+	TArray<FName> Carry;
+	for (const FName& Id : Lines)
+	{
+		if (IsRequiredLine(Id))
+		{
+			if (!HasPlayed(Id)) { Carry.AddUnique(Id); }
+		}
+		else if (GI && !Aired.Contains(Id))
+		{
+			FTDTransmission E;
+			if (FindEntry(Id, E) && !E.bRepeatable) { GI->ForgetTransmission(Id); }
+		}
+	}
+	if (Carry.Num() > 0)
+	{
+		TDStoryCarry::Pending = Carry;
+		TDStoryCarry::Owner = GetWorld() ? GetWorld()->GetGameInstance() : nullptr;
+		TDStoryCarry::RunSerial = GI ? GI->GetRunSerial() : 0;
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %d must-hear line(s) carried across the travel"), Carry.Num());
+	}
+	Queue.Reset();
+	Current = FTDTransmissionView();
+}
+
+void UTDStorySubsystem::TakeCarriedLines()
+{
+	if (TDStoryCarry::Pending.Num() == 0)
+	{
+		return;
+	}
+	const UWorld* World = GetWorld();
+	const UGameInstance* GI = World ? World->GetGameInstance() : nullptr;
+	const UTDGameInstance* TDGI = Cast<UTDGameInstance>(GI);
+	// The same run: the same game instance and the same run serial (the test bypass lets a carry cross test worlds, each
+	// with its own instance and serial).
+	const bool bSameRun = bCarryAcrossInstancesForTests
+		|| (TDStoryCarry::Owner.Get() == GI && TDGI && TDGI->GetRunSerial() == TDStoryCarry::RunSerial);
+	if (!bSameRun || (World && World->GetAuthGameMode<ATDMenuGameMode>()))
+	{
+		ClearCarriedLines(); // a menu, or another run: never replay the last run's radio
+		return;
+	}
+	for (const FName& Id : TDStoryCarry::Pending)
+	{
+		FireTransmission(Id);
+	}
+	UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %d carried line(s) resume after the arrival"), TDStoryCarry::Pending.Num());
+	TDStoryCarry::Pending.Reset();
+}
+
 void UTDStorySubsystem::Deinitialize()
 {
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
@@ -1260,6 +1518,7 @@ void UTDStorySubsystem::Deinitialize()
 		Bus->OnWaveStarted.RemoveDynamic(this, &UTDStorySubsystem::HandleWaveStarted);
 		Bus->OnWaveCleared.RemoveDynamic(this, &UTDStorySubsystem::HandleWaveCleared);
 	}
+	CarryAcrossTravel();
 	RemoveOverlay();
 	ATDArchiveTransfer::OnAnyTerminalActivated.Remove(RelayHandle);
 	ATDSurveyTerminal::OnAnySurveyRecordsAccessed.Remove(SurveyHandle);

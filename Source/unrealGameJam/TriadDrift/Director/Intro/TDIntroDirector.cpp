@@ -75,6 +75,9 @@ static TAutoConsoleVariable<int32> CVarTDIntroSunFromLight(
 	TEXT("Intro eclipse: 0 = the sky's sun (yaw 35, pitch 18), 1 = the brightest directional light in the level."),
 	ECVF_Default);
 
+static TAutoConsoleVariable<float> CVarTDIntroFlybyBlur(TEXT("td.Intro.FlybyMotionBlur"), 0.12f,
+	TEXT("Motion blur amount in the intro's two squad fly-by shots (Belt, Gate). The other moving shots keep 0.6."));
+
 namespace TDIntro
 {
 	/** The intro poses squad ships on purpose: tell T1's silent-move watchdog before each pose (something else, e.g. a
@@ -201,7 +204,7 @@ namespace TDIntro
 		return Dart;
 	}
 
-	static void WarpFlash(UWorld* World, const FVector& Where, float Size)
+	static void WarpFlash(UWorld* World, const FVector& Where, float Size, bool bSound = true)
 	{
 		// Nick's EnemyWarpIn cue through T4's hook once it has visual art. Until then T4's placeholder marker is a
 		// gameplay readability ring (big, long-lived, camera-facing) that would veil the Dominion in a 135 mm shot:
@@ -213,6 +216,13 @@ namespace TDIntro
 			return;
 		}
 		Flash(World, Where, Size, FLinearColor(1.f, 0.12f, 0.05f), 0.3f);
+		// Nicholas #90 (11): the cue's sound exists and was never heard here (the flash stands in for its missing effect).
+		if (FX && bSound && !FX->EnemyWarpIn.Sound.IsNull())
+		{
+			FTDFXCue SoundOnly = FX->EnemyWarpIn;
+			SoundOnly.VFX.Reset();
+			UTDStatics::PlayCue(World, SoundOnly, Where);
+		}
 	}
 
 	static void GateFlare(AActor* Gate, const FVector& Where)
@@ -292,10 +302,30 @@ namespace TDIntro
 				const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle(TEXT("Italic"), FMath::RoundToInt(39.f * Scale));
 				const float Y = Size.Y - FMath::Max(Bar * 0.5f, 70.f * Scale);
 				// A soft dark backing so the line reads over bright space and planets.
-				const FVector2D TS = Measure->Measure(S.Subtitle, Font);
 				const FVector2D Pad(28.f * Scale, 10.f * Scale);
-				Box(FVector2D(Size.X * 0.5f, Y) - TS * 0.5f - Pad, TS + Pad * 2.f, FLinearColor(0.f, 0.f, 0.f, 0.45f * S.SubtitleAlpha), 2);
-				Text(S.Subtitle, Font, FVector2D(Size.X * 0.5f, Y), FLinearColor(0.97f, 0.96f, 0.92f, S.SubtitleAlpha), 3);
+				if (!S.SubtitleSpeaker.IsEmpty())
+				{
+					// The opening's lines: "KATO  No engine readings..." in the speaker's colour, like the in-game radio.
+					const FSlateFontInfo LineFont = FCoreStyle::GetDefaultFontStyle(TEXT("Regular"), FMath::RoundToInt(36.f * Scale));
+					const FSlateFontInfo TagFont = FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), FMath::RoundToInt(26.f * Scale));
+					const FVector2D TagS = Measure->Measure(S.SubtitleSpeaker, TagFont);
+					const FVector2D LineS = Measure->Measure(S.Subtitle, LineFont);
+					const float Gap = 18.f * Scale;
+					const float W = TagS.X + Gap + LineS.X;
+					const float H = FMath::Max(TagS.Y, LineS.Y);
+					const float X0 = Size.X * 0.5f - W * 0.5f;
+					Box(FVector2D(X0, Y - H * 0.5f) - Pad, FVector2D(W, H) + Pad * 2.f, FLinearColor(0.f, 0.f, 0.f, 0.45f * S.SubtitleAlpha), 2);
+					FLinearColor TagC = S.SubtitleSpeakerColor;
+					TagC.A = S.SubtitleAlpha;
+					Text(S.SubtitleSpeaker, TagFont, FVector2D(X0 + TagS.X * 0.5f, Y), TagC, 3);
+					Text(S.Subtitle, LineFont, FVector2D(X0 + TagS.X + Gap + LineS.X * 0.5f, Y), FLinearColor(0.97f, 0.96f, 0.92f, S.SubtitleAlpha), 3);
+				}
+				else
+				{
+					const FVector2D TS = Measure->Measure(S.Subtitle, Font);
+					Box(FVector2D(Size.X * 0.5f, Y) - TS * 0.5f - Pad, TS + Pad * 2.f, FLinearColor(0.f, 0.f, 0.f, 0.45f * S.SubtitleAlpha), 2);
+					Text(S.Subtitle, Font, FVector2D(Size.X * 0.5f, Y), FLinearColor(0.97f, 0.96f, 0.92f, S.SubtitleAlpha), 3);
+				}
 			}
 			// Title.
 			if (S.TitleAlpha > 0.f)
@@ -436,6 +466,69 @@ namespace TDIntroSkip
 {
 	static TAutoConsoleVariable<float> CVarSkipLock(TEXT("td.Intro.SkipLockSeconds"), -1.f,
 		TEXT("Seconds before the intro can be skipped. -1: 10 s (N-060), or 1 s inside automation tests."));
+}
+
+namespace TDIntroLines
+{
+	static TAutoConsoleVariable<int32> CVarLines(TEXT("td.Intro.Lines"), 1,
+		TEXT("1: the opening speaks the approved First Contact lines (O_*); 0: the old narrator captions (Intro_N*)."));
+}
+
+namespace TDIntroWarm
+{
+	static TAutoConsoleVariable<float> CVarWarm(TEXT("td.Intro.WarmUpSeconds"), -1.f,
+		TEXT("Black hold before the intro's first shot (s; capped at 1). -1: 0.35 in the game, 0 under automation."));
+}
+
+float UTDIntroDirector::GetWarmUpSeconds()
+{
+	const float V = TDIntroWarm::CVarWarm.GetValueOnGameThread();
+	return V >= 0.f ? FMath::Min(V, 1.f) : (GIsAutomationTesting ? 0.f : 0.35f);
+}
+
+bool UTDIntroDirector::UseOpeningLines()
+{
+	return TDIntroLines::CVarLines.GetValueOnGameThread() != 0;
+}
+
+const TArray<UTDIntroDirector::FTimedLine>& UTDIntroDirector::OpeningLines()
+{
+	// Lead (Nov 14): the approved O_* lines in story order over the eight shots (Nebula 0-6, Eclipse 6-12, Squad 12-20,
+	// Belt 20-26, Gate 26-32, ThreatFar 32-37.5, ThreatClose 37.5-42, Title 42-48). Words unchanged (Nicholas's).
+	static const TArray<FTimedLine> Lines = {
+		{ 0.8f, TEXT("O_PatrolSeven") },
+		{ 3.6f, TEXT("O_Command_Orders") },
+		{ 8.4f, TEXT("O_Wren_HowBad") },
+		{ 13.2f, TEXT("O_Kato_StopSaying") },
+		{ 16.0f, TEXT("O_Moss_Especially") },
+		{ 21.0f, TEXT("O_Wren_BigShip") },
+		{ 27.0f, TEXT("O_Kato_NoSignature") },
+		{ 32.4f, TEXT("O_Moss_Message") },
+		{ 34.2f, TEXT("O_Kato_Handshake") },
+		{ 37.8f, TEXT("O_Wren_WhyNotFiring") },
+		{ 40.4f, TEXT("O_Kato_Contacts") },
+	};
+	return Lines;
+}
+
+const TArray<FName>& UTDIntroDirector::HandOffLines()
+{
+	// At the hand-off, as radio: "Evade now!" leads straight into the first lesson (ENG-40: EVASIVE MANEUVERS).
+	static const TArray<FName> Lines = { TEXT("O_Command_Disengage"), TEXT("O_Unknown_Dont"), TEXT("O_Wren_Break"), TEXT("O_Command_Evade") };
+	return Lines;
+}
+
+void UTDIntroDirector::FireHandOffLines()
+{
+	if (bHandOffLinesFired || !UseOpeningLines())
+	{
+		return;
+	}
+	bHandOffLinesFired = true;
+	for (const FName& Id : HandOffLines())
+	{
+		UTDStorySubsystem::Fire(this, Id); // the story queue plays them once the intro lets go (shared "Dont" sound included)
+	}
 }
 
 float UTDIntroDirector::GetSkipLockSeconds()
@@ -628,6 +721,13 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	SkipHeldFor = 0.f;
 	Elapsed = 0.f;
 	HandOffElapsed = 0.f;
+	bWarmingUp = GetWarmUpSeconds() > 0.f;
+	WarmUpTime = 0.f;
+	WarmUpFrames = 0;
+	PendingMusic.Reset();
+	LastOpeningLine = -1;
+	bHandOffLinesFired = false;
+	bDominionStingPlayed = false;
 	ShotIndex = -1;
 	LastNarrationVoice = -1;
 	bFleetSpawned = false;
@@ -686,7 +786,14 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	{
 		if (USoundBase* Sound = Style->IntroMusic.LoadSynchronous())
 		{
-			Music = UGameplayStatics::SpawnSound2D(this, Sound);
+			if (bWarmingUp)
+			{
+				PendingMusic = Sound; // starts with the clock, after the black hold
+			}
+			else
+			{
+				Music = UGameplayStatics::SpawnSound2D(this, Sound);
+			}
 		}
 	}
 
@@ -1037,6 +1144,16 @@ void UTDIntroDirector::BeginShot(int32 Index)
 	if (S.Id == TEXT("ThreatFar") || S.Id == TEXT("ThreatClose"))
 	{
 		bDominionShown = bDominionShown || TDIntro::ShowDominion(World, true, nullptr);
+		if (S.Id == TEXT("ThreatFar") && !bDominionStingPlayed)
+		{
+			// Nicholas #90 (11): the Dominion's own arrival sound at its reveal (32.0 s), once, at the lens.
+			bDominionStingPlayed = true;
+			const UTDDominionVisuals* DV = UTDStatics::LoadPresentation<UTDDominionVisuals>(TEXT("DA_Dominion_Visuals"));
+			if (USoundBase* Sting = DV ? DV->WarpIn.Sound.LoadSynchronous() : nullptr)
+			{
+				UGameplayStatics::PlaySound2D(this, Sting);
+			}
+		}
 		if (!bDominionShown && !DominionStandIn)
 		{
 			const ATDGalaxyLayout* Galaxy = ATDGalaxyLayout::Get(this);
@@ -1113,7 +1230,8 @@ void UTDIntroDirector::BeginShot(int32 Index)
 		PP.LensFlareIntensity = bEclipse ? 0.f : 1.6f;
 		// N-071: the three hero frames are locked to their ship; motion blur only smeared the hull's edges and lights (the
 		// ship drifts and banks a little inside the frame). Off there, on everywhere else.
-		PP.MotionBlurAmount = S.Id == TEXT("Squad") ? 0.f : 0.6f;
+		// Nicholas #90 (10): the ships are the subject of the two fly-bys too; at 0.6 they smeared as they crossed the frame.
+		PP.MotionBlurAmount = S.Id == TEXT("Squad") ? 0.f : ((S.Id == TEXT("Belt") || S.Id == TEXT("Gate")) ? CVarTDIntroFlybyBlur.GetValueOnGameThread() : 0.6f);
 		PP.AutoExposureBias = S.Id == TEXT("Title") ? 1.5f : (S.Id.ToString().StartsWith(TEXT("Threat")) ? 0.7f : (bEclipse ? EclipseExposureEV100() : 0.f));
 	}
 	if (S.Id == TEXT("Title"))
@@ -1168,6 +1286,7 @@ void UTDIntroDirector::DebugJumpToShot(int32 Index)
 
 void UTDIntroDirector::DebugSetTime(float T, bool bFreeze)
 {
+	bWarmingUp = false; // a debug jump is past the black hold
 	if (!bPlaying || Shots.IsEmpty())
 	{
 		return;
@@ -1438,7 +1557,7 @@ void UTDIntroDirector::SpawnShowcase()
 	for (int32 k = 0; k < 10; ++k)
 	{
 		const FVector At = Base + Side * ((k - 4.5f) * 2600.f) + FVector::UpVector * FMath::Sin(k * 1.7f) * 2200.f + Toward * (k % 3) * 2500.f;
-		TDIntro::WarpFlash(World, At, 5000.f);
+		TDIntro::WarpFlash(World, At, 5000.f, k < 2); // ten at once: two voices, not ten
 		if (AActor* F = TDIntro::SpawnFighter(World, FTransform(Toward.Rotation(), At, FVector(3.5f))))
 		{
 			Showcase.Add(F);
@@ -1641,8 +1760,46 @@ void UTDIntroDirector::UpdateOverlay(float T)
 	}
 	Overlay.Black = Black;
 
+	// The opening's lines (td.Intro.Lines 1): the O_* line whose window holds the intro clock.
+	Overlay.SubtitleSpeaker = FText::GetEmpty();
+	Overlay.SubtitleLineId = NAME_None;
+	if (UseOpeningLines())
+	{
+		const TArray<FTimedLine>& Lines = OpeningLines();
+		Overlay.SubtitleAlpha = 0.f;
+		for (int32 i = 0; i < Lines.Num(); ++i)
+		{
+			FTDTransmission E;
+			if (!UTDStorySubsystem::FindEntry(FName(Lines[i].Id), E))
+			{
+				continue;
+			}
+			const int32 Words = E.Text.ToString().Len() / 6 + 1;
+			const float Next = Lines.IsValidIndex(i + 1) ? Lines[i + 1].Start : Lines[i].Start + 4.5f;
+			const float End = FMath::Min(Lines[i].Start + FMath::Clamp(1.2f + 0.36f * Words, 1.8f, 4.6f), Next - 0.25f);
+			if (Elapsed >= Lines[i].Start && Elapsed < End)
+			{
+				Overlay.SubtitleLineId = E.Id;
+				Overlay.Subtitle = E.Text;
+				Overlay.SubtitleSpeaker = UTDStorySubsystem::SpeakerTag(E.Speaker);
+				Overlay.SubtitleSpeakerColor = UTDStorySubsystem::SpeakerColor(E.Speaker);
+				const float Fade = 0.25f;
+				Overlay.SubtitleAlpha = UTDStorySubsystem::AreSubtitlesShown(this)
+					? FMath::Clamp(FMath::Min((Elapsed - Lines[i].Start) / Fade, (End - Elapsed) / Fade), 0.f, 1.f) : 0.f;
+				if (LastOpeningLine != i)
+				{
+					LastOpeningLine = i;
+					if (USoundBase* Voice = E.Sound.LoadSynchronous()) // Nicholas's voice when it exists (DA_Story_Transmissions); none of ours
+					{
+						UGameplayStatics::PlaySound2D(this, Voice);
+					}
+				}
+				break;
+			}
+		}
+	}
 	// Narration.
-	if (S.Narration >= 0 && Narration.IsValidIndex(S.Narration))
+	else if (S.Narration >= 0 && Narration.IsValidIndex(S.Narration))
 	{
 		Overlay.Subtitle = Narration[S.Narration];
 		const float Start = S.Id == TEXT("Nebula") ? 0.8f : 0.4f;
@@ -1676,7 +1833,17 @@ void UTDIntroDirector::UpdateOverlay(float T)
 				Overlay.NameCard = FText::Format(LOCTEXT("PilotCard", "{0}"), Spec.PilotName);
 				const FText Trait = UTDStorySubsystem::PilotTrait(Id);
 				Overlay.NameCardRole = FText::FromString(FText::Format(LOCTEXT("PilotRole", "{0}  \u00b7  {1}"), Spec.ShipName, Spec.RoleName).ToString().ToUpper());
-				Overlay.NameCardTrait = Trait;
+				// #49 re-check: the role line already says "INTERCEPTOR"; the trait line opened with it too. Drop the repeat here
+				// only (the switch card has no role line above its trait).
+				FString TraitText = Trait.ToString();
+				const FString Role = Spec.RoleName.ToString().ToUpper();
+				if (!Role.IsEmpty() && TraitText.ToUpper().StartsWith(Role))
+				{
+					TraitText = TraitText.Mid(Role.Len()).TrimStart();
+					TraitText.RemoveFromStart(TEXT("·"));
+					TraitText = TraitText.TrimStart();
+				}
+				Overlay.NameCardTrait = TraitText.IsEmpty() ? Trait : FText::FromString(TraitText);
 				Overlay.NameCardShip = i;
 				Overlay.NameCardColor = UTDIntroDirector::CardColor(i);
 				Overlay.NameCardAlpha = Alpha;
@@ -1751,7 +1918,11 @@ void UTDIntroDirector::UpdateSkip(float RealDelta)
 	else
 	{
 		Overlay.SkipProgress = 0.f;
-		Overlay.SkipHintAlpha = FMath::Max(0.f, Overlay.SkipHintAlpha - RealDelta * 0.8f);
+		// Lead (Shipping check): say it before anyone presses. For 4 s once skipping is allowed, the prompt shows faintly.
+		const float Lock = GetSkipLockSeconds();
+		const bool bAnnounce = !bWarmingUp && Elapsed >= Lock && Elapsed < Lock + 4.f;
+		Overlay.SkipHintAlpha = bAnnounce ? FMath::Min(0.6f, Overlay.SkipHintAlpha + RealDelta * 2.f)
+			: FMath::Max(0.f, Overlay.SkipHintAlpha - RealDelta * 0.8f);
 	}
 }
 
@@ -1821,7 +1992,7 @@ void UTDIntroDirector::Tick(float DeltaTime)
 		HandOffElapsed += RealDt;
 		Overlay.Black = 0.f;
 		Overlay.SubtitleAlpha = 0.f;
-		Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
+		Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(FMath::Clamp(HandOffElapsed / BarsOutSeconds, 0.f, 1.f)); // T7: gone as control returns
 		if (HandOffElapsed >= HandOffSeconds)
 		{
 			Finish();
@@ -1832,6 +2003,24 @@ void UTDIntroDirector::Tick(float DeltaTime)
 	{
 		LastDt = 0.f;
 		UpdateShot(Elapsed - ShotStart); // hold the frame (captures)
+		return;
+	}
+	if (bWarmingUp)
+	{
+		// Black until a few frames have rendered (the post-load hitch lands here, unseen), then the clock starts.
+		Overlay.Black = 1.f;
+		Overlay.SubtitleAlpha = 0.f;
+		WarmUpTime += RealDt;
+		++WarmUpFrames;
+		if ((WarmUpFrames >= 3 && WarmUpTime >= GetWarmUpSeconds()) || WarmUpTime >= 1.f)
+		{
+			bWarmingUp = false;
+			if (USoundBase* Sound = PendingMusic.Get())
+			{
+				Music = UGameplayStatics::SpawnSound2D(this, Sound);
+			}
+			PendingMusic.Reset();
+		}
 		return;
 	}
 	Elapsed += RealDt;
@@ -1881,7 +2070,7 @@ void UTDIntroDirector::Tick(float DeltaTime)
 			Elapsed = GetTotalDuration();
 			Overlay.Black = 0.f;
 			Overlay.SubtitleAlpha = 0.f;
-			Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(HandOffElapsed / HandOffSeconds);
+			Overlay.Bars = bSequenceMode ? 0.f : 1.f - TDIntro::Smooth(FMath::Clamp(HandOffElapsed / BarsOutSeconds, 0.f, 1.f)); // T7: gone as control returns
 			if (bPlaying && HandOffElapsed >= HandOffSeconds)
 			{
 				Finish(); // once: Finish ends play, and a later Tick returns at !bPlaying
@@ -1962,6 +2151,7 @@ void UTDIntroDirector::Finish()
 	{
 		return;
 	}
+	FireHandOffLines(); // watched or skipped, the radio picks up as control returns
 	ClearShowcase();
 	RestoreShotHidden();
 	if (SequencePlayer)

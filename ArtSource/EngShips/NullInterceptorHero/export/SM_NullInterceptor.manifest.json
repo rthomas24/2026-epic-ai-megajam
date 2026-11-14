@@ -1,0 +1,142 @@
+{
+  "asset": "SM_NullInterceptor",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\NullInterceptorHero\\export\\SM_NullInterceptor.fbx",
+  "tris": 9085,
+  "size_cm": [
+    890.0,
+    632.9,
+    305.8
+  ],
+  "pivot": "root object origin (SM_NullInterceptor~exp)",
+  "forward": "+X (authoring front +X rotated)",
+  "materials": [
+    "M_NullInterceptor",
+    "M_NullInterceptor_Parts"
+  ],
+  "material_params": [
+    {
+      "name": "M_NullInterceptor",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 2.0
+    },
+    {
+      "name": "M_NullInterceptor_Parts",
+      "textured": true,
+      "base_color": null,
+      "metallic": null,
+      "roughness": null,
+      "emission_color": null,
+      "emission_strength": 3.0
+    }
+  ],
+  "textures": [
+    "T_NullInterceptor_BC.png",
+    "T_NullInterceptor_E.png",
+    "T_NullInterceptor_N.png",
+    "T_NullInterceptor_ORM.png",
+    "T_NullInterceptor_Parts_BC.png",
+    "T_NullInterceptor_Parts_E.png",
+    "T_NullInterceptor_Parts_N.png",
+    "T_NullInterceptor_Parts_ORM.png"
+  ],
+  "collision": [
+    "UCX_SM_NullInterceptor_00",
+    "UCX_SM_NullInterceptor_01"
+  ],
+  "collision_source": "auto convex hulls",
+  "sockets": [
+    "SOCKET_Engine_0",
+    "SOCKET_Engine_1",
+    "SOCKET_Engine_2",
+    "SOCKET_Missile_0",
+    "SOCKET_Missile_1",
+    "SOCKET_Muzzle_0",
+    "SOCKET_Muzzle_1"
+  ],
+  "welded_verts": 7187,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "use UCX_ from file",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": [],
+  "ue_sockets": [
+    {
+      "name": "Muzzle_0",
+      "ue_cm": [
+        324,
+        -74,
+        -55
+      ]
+    },
+    {
+      "name": "Muzzle_1",
+      "ue_cm": [
+        324,
+        74,
+        -55
+      ]
+    },
+    {
+      "name": "Missile_0",
+      "ue_cm": [
+        40,
+        -150,
+        -95
+      ]
+    },
+    {
+      "name": "Missile_1",
+      "ue_cm": [
+        40,
+        150,
+        -95
+      ]
+    },
+    {
+      "name": "Engine_0",
+      "ue_cm": [
+        -332,
+        -80,
+        -13
+      ]
+    },
+    {
+      "name": "Engine_1",
+      "ue_cm": [
+        -332,
+        80,
+        -13
+      ]
+    },
+    {
+      "name": "Engine_2",
+      "ue_cm": [
+        -332,
+        0,
+        -15
+      ]
+    }
+  ],
+  "max_texture_size": 1024,
+  "slots": {
+    "M_NullInterceptor": "kept Rodin hull, corrected set T_NullInterceptor_BC/N/ORM/E + T_NullInterceptor_HeatMask",
+    "M_NullInterceptor_Parts": "new canopy interior and frame / guns / nose / spine, baked set T_NullInterceptor_Parts_BC/N/ORM/E + T_NullInterceptor_Parts_HeatMask"
+  }
+}

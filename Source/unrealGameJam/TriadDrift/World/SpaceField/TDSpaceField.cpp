@@ -1,6 +1,9 @@
 // Triad Drift - the space field, galaxy layer. Owner: Teammate 5 (T4 reviews).
 
 #include "TriadDrift/World/SpaceField/TDSpaceField.h"
+#include "Materials/MaterialInstanceDynamic.h"
+#include "TriadDrift/World/SpaceField/TDSpaceFieldFX.h"
+#include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
@@ -10,6 +13,9 @@
 #include "EngineUtils.h"
 #include "HAL/IConsoleManager.h"
 #include "Engine/Engine.h"
+#include "Misc/ScopeExit.h"
+#include "GameFramework/PlayerController.h"
+#include "Camera/PlayerCameraManager.h"
 #include "UObject/ConstructorHelpers.h"
 #include "NiagaraSystem.h"
 #include "Kismet/GameplayStatics.h"
@@ -20,6 +26,12 @@
 namespace TDSpaceFieldImpl
 {
 	static int32 GEnabled = 1;
+	static float GAnimHz = 30.f;
+	static FAutoConsoleVariableRef CVarAnimHz(TEXT("td.SpaceField.AnimHz"), GAnimHz,
+		TEXT("Tumbling rocks and drifting wrecks update this often (Hz; 0 = every frame)."));
+	static float GAnimRange = 400000.f;
+	static FAutoConsoleVariableRef CVarAnimRange(TEXT("td.SpaceField.AnimRange"), GAnimRange,
+		TEXT("Only tumblers and wrecks within this distance of the player's camera move (cm; 0 = all). Slow turns farther away are invisible."));
 	static FAutoConsoleVariableRef CVarSpaceField(TEXT("td.SpaceField"), GEnabled,
 		TEXT("Space field (belts, clusters, debris fields, wrecks, buoys, and the layout's rocks made breakable): 1 on (default), 0 = the galaxy exactly as before the field. Read at level load."));
 
@@ -100,7 +112,10 @@ void ATDSpaceField::BeginPlay()
 	// td.SpaceField 0 at load: never take over the layout's rocks, so the galaxy is exactly today's by construction.
 	bAdoptAtLoad = bAdoptLayoutRocks && TDSpaceFieldImpl::GEnabled != 0;
 	Build();
-	FTDFieldDamage::Register(this);	// Lancer's ram and explosions find the field without searching the world
+	FTDFieldDamage::Register(this);	// (DA_SpaceField_FX is warmed by T7's UTDWarmupSubsystem; the defaults register below)
+	// Look the effects asset up now (T7's warm-up has streamed it): on the first break the lookup cost 26 ms.
+	if (!FX) { FX = UTDStatics::LoadPresentation<UTDSpaceFieldFX>(TEXT("DA_SpaceField_FX")); }
+	bFXLoaded = true;	// Lancer's ram and explosions find the field without searching the world
 	// Caches: four per debris field, the types in turn (one use each per run).
 	Caches.Reset();
 	const TArray<FVector> Spots = GetCacheSpots(this);
@@ -121,6 +136,7 @@ void ATDSpaceField::Build()
 	{
 		return;
 	}
+	Layout->GetJourneyKeyPoints(JourneyPoints);	// T4: the journey's keep-outs and routes
 	// The kit: the classic rocks and the space dressing (all real-scale meshes, normalised by their bounds).
 	Families.SetNum(6);
 	auto Fill = [this](int32 F, std::initializer_list<const TCHAR*> Paths)
@@ -202,8 +218,24 @@ void ATDSpaceField::Build()
 	}
 
 	FRandomStream Rng(Seed * 7919 + Layout->GetLayout().AsteroidFields.Num());
-	BuildBelts(Rng);
-	BuildClusters(Rng);
+	if (UseComposedRegions())
+	{
+		// The seven regions of docs/eng/SPACE-DESIGN.md.
+		BuildShepherdBelt(Rng);
+		BuildWatchlineHalo(Rng);
+		BuildQuietGraveyard(Rng);
+		BuildIceDrift(Rng);
+		BuildSurveyScar(Rng);
+		BuildShatteredMoons(Rng);
+		BuildOuterDark(Rng);
+		PlaceRegionCentrepieces(Rng);
+		if (IsDressingWanted()) { BuildRegionDressing(); }	// off by default: built the first time td.SpaceField.Dressing turns 1
+	}
+	else
+	{
+		BuildBelts(Rng);	// the Nov 13 composition (td.SpaceField.Compose 0)
+		BuildClusters(Rng);
+	}
 	BuildDebrisFields(Rng);
 	BuildBuoys();
 	if (bAdoptAtLoad) { AdoptLayoutRocks(); }
@@ -270,18 +302,33 @@ bool ATDSpaceField::IsPlacementAllowed(const FVector& P, float Size, bool bColli
 			return false;
 		}
 	}
-	if (FVector::Dist(P, Xf.TransformPosition(L.Dominion.GetLocation())) < DominionKeepOut + Half)
+	if (FVector::Dist(P, Xf.TransformPosition(L.Dominion.GetLocation())) < (bMoonPlacement ? MoonDominionClear : DominionKeepOut) + Half)
+	{
+		return false;
+	}
+	// T4's journey key points: nothing on a keep-out or a route (a hittable piece keeps 50 m more clear).
+	if (!JourneyBlockerAt(P, Size, bCollides).IsNone())
 	{
 		return false;
 	}
 	if (const FTransform* Exit = L.ReturnPoints.Find(TDReturnPoints::DominionHangarExit))
 	{
-		if (FVector::Dist(P, Xf.TransformPosition(Exit->GetLocation())) < DominionKeepOut + Half)
+		if (FVector::Dist(P, Xf.TransformPosition(Exit->GetLocation())) < (bMoonPlacement ? MoonDominionClear : DominionKeepOut) + Half)
 		{
 			return false;
 		}
 	}
 	return true;
+}
+
+FName ATDSpaceField::JourneyBlockerAt(const FVector& P, float Size, bool bCollides) const
+{
+	const float Need = Size * 0.5f + (bCollides ? 5000.f : 0.f);	// its own radius clear, 50 m more when it can be hit
+	for (const FTDJourneyKeyPoint& K : JourneyPoints)
+	{
+		if (K.Kind != ETDJourneyPointKind::Pocket && K.DistanceTo(P) < Need) { return K.Id; }
+	}
+	return NAME_None;
 }
 
 float ATDSpaceField::NormFor(UStaticMesh* Mesh) const
@@ -293,7 +340,7 @@ float ATDSpaceField::NormFor(UStaticMesh* Mesh) const
 UHierarchicalInstancedStaticMeshComponent* ATDSpaceField::ComponentFor(UStaticMesh* Mesh, float Size)
 {
 	const int32 Tier = Size < 1000.f ? 0 : Size < 4000.f ? 1 : 2;
-	const FString Key = FString::Printf(TEXT("%s_%d"), *GetNameSafe(Mesh), Tier);
+	const FString Key = FString::Printf(TEXT("%s_%d%s"), *GetNameSafe(Mesh), Tier, bIceDriftPlacement ? TEXT("_IceDrift") : TEXT(""));
 	if (TObjectPtr<UHierarchicalInstancedStaticMeshComponent>* Found = Components.Find(Key))
 	{
 		return *Found;
@@ -308,6 +355,21 @@ UHierarchicalInstancedStaticMeshComponent* ATDSpaceField::ComponentFor(UStaticMe
 	C->SetCastShadow(Tier == 2);
 	C->bAffectDistanceFieldLighting = false;
 	C->SetCullDistances(0, CullEnd[Tier]);
+	if (bIceDriftPlacement)
+	{
+		// The Ice Drift (Lead, Nov 14: it read as the belt): the ice kit's own material, its glacial glow raised, on this
+		// region's rocks only (their own components). No new material.
+		for (int32 i = 0; i < C->GetNumMaterials(); ++i)
+		{
+			if (UMaterialInstanceDynamic* MID = UMaterialInstanceDynamic::Create(C->GetMaterial(i), C))
+			{
+				float Glow = 1.f;
+				MID->GetScalarParameterValue(FName(TEXT("EmissiveStrength")), Glow);
+				MID->SetScalarParameterValue(FName(TEXT("EmissiveStrength")), FMath::Max(Glow, 0.5f) * IceDriftGlowScale);
+				C->SetMaterial(i, MID);
+			}
+		}
+	}
 	C->RegisterComponent();
 	Components.Add(Key, C);
 	return C;
@@ -343,6 +405,7 @@ bool ATDSpaceField::AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotato
 		VisualInstance = T->AddInstance(PieceXf, true);
 		TumblerIndex = Tumblers.Num();
 		FTumbler Tu;
+		Tu.Instance = VisualInstance;
 		Tu.Comp = T;
 		Tu.Home = PieceXf;
 		Tu.Axis = FVector(TumbleRng.GetUnitVector());
@@ -410,7 +473,7 @@ void ATDSpaceField::BuildBelts(FRandomStream& Rng)
 	}
 }
 
-void ATDSpaceField::BuildClusters(FRandomStream& Rng)
+void ATDSpaceField::BuildClusters(FRandomStream& Rng, int32 FirstShell)
 {
 	using namespace TDSpaceFieldImpl;
 	const FTransform Xf = Layout->GetActorTransform();
@@ -419,7 +482,7 @@ void ATDSpaceField::BuildClusters(FRandomStream& Rng)
 	// Even directions (a Fibonacci sphere of exactly the count) so every bearing, up and down too, has something; a
 	// direction blocked at one distance tries others.
 	const int32 N = Clusters;
-	for (int32 Shell = 0; Shell < ClusterShells.Num(); ++Shell)
+	for (int32 Shell = FirstShell; Shell < ClusterShells.Num(); ++Shell)
 	{
 	// The outer shell's directions are turned half a step, so its clusters sit between the inner shell's.
 	const FQuat ShellTurn(FVector::UpVector, Shell * PI * (3.f - FMath::Sqrt(5.f)) * 0.5f);
@@ -623,19 +686,46 @@ void ATDSpaceField::Tick(float DeltaSeconds)
 		UE_LOG(LogTemp, Warning, TEXT("td.SpaceField %d: applies at the next level load (the field stays %s until then)"), TDSpaceFieldImpl::GEnabled, bEnabled ? TEXT("on") : TEXT("off"));
 		if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 4.f, FColor::Yellow, TEXT("td.SpaceField applies at the next level load")); }
 	}
+	PerfFrameBreakMsMax = FMath::Max(PerfFrameBreakMsMax, PerfFrameBreakMs);
+	PerfFrameBreakMs = 0.0;
+	for (UInstancedStaticMeshComponent* C : DirtyVisuals) { if (IsValid(C)) { C->MarkRenderStateDirty(); } }
+	DirtyVisuals.Reset();
 	if (!bEnabled)
 	{
 		return;
 	}
-	UpdateTumblers();
+	const double TickStart = FPlatformTime::Seconds();
+	ON_SCOPE_EXIT
+	{
+		const double Ms = (FPlatformTime::Seconds() - TickStart) * 1000.0;
+		PerfTickMsSum += Ms;
+		PerfTickMsMax = FMath::Max(PerfTickMsMax, Ms);
+		++PerfTickFrames;
+	};
+	Clock += DeltaSeconds;
 	// Every frame (about 20 distance checks): the magnet pulls a taken cache off its spot within a few frames.
 	UpdateCaches();
+	if (IsDressingWanted() && !bDressingBuilt && BeaconPoints.Num() > 0) { BuildRegionDressing(); }
+	else if (bDressingBuilt && IsDressingWanted() != bDressingShown) { SetRegionDressingVisible(IsDressingWanted()); }
+	// Tumblers and wrecks: slow motion, so a throttled update near the camera only (nothing per frame for far rocks).
+	AnimAccum += DeltaSeconds;
+	const float Hz = TDSpaceFieldImpl::GAnimHz;
+	if (Hz > 0.f && AnimAccum < 1.0 / Hz)
+	{
+		return;
+	}
+	AnimAccum = 0.0;
+	UpdateTumblers();
+	const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+	const bool bHaveEye = PC && PC->PlayerCameraManager;
+	const FVector Eye = bHaveEye ? PC->PlayerCameraManager->GetCameraLocation() : FVector::ZeroVector;
+	const float Range = TDSpaceFieldImpl::GAnimRange;
 	// The wrecks drift round a 30 m loop (about 1.6 m/s) and turn slowly: they never leave their keep-out-checked spot.
-	Clock += DeltaSeconds;
 	for (int32 i = 0; i < WreckComponents.Num(); ++i)
 	{
 		UInstancedStaticMeshComponent* W = WreckComponents[i];
 		if (!W || !WreckHomes.IsValidIndex(i)) { continue; }
+		if (bHaveEye && Range > 0.f && FVector::Dist(Eye, WreckHomes[i].GetLocation()) > Range) { continue; }
 		const float Phase = Clock * (2.f * PI / 120.f) + i * 1.3f;
 		FTransform T = WreckHomes[i];
 		T.AddToTranslation(FVector(FMath::Cos(Phase), FMath::Sin(Phase), 0.f) * 3000.f);
@@ -646,28 +736,27 @@ void ATDSpaceField::Tick(float DeltaSeconds)
 
 void ATDSpaceField::UpdateTumblers()
 {
+	PerfAnimated = 0;
 	if (Tumblers.Num() == 0)
 	{
 		return;
 	}
-	// One batch per component; instances were added in tumbler order, so a component's tumblers are its instances 0..N.
-	for (const TPair<TObjectPtr<UStaticMesh>, TObjectPtr<UInstancedStaticMeshComponent>>& Pair : TumbleComponents)
+	const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+	const bool bHaveEye = PC && PC->PlayerCameraManager;
+	const FVector Eye = bHaveEye ? PC->PlayerCameraManager->GetCameraLocation() : FVector::ZeroVector;
+	const float Range = TDSpaceFieldImpl::GAnimRange;
+	TSet<UInstancedStaticMeshComponent*, DefaultKeyFuncs<UInstancedStaticMeshComponent*>, TInlineSetAllocator<16>> Touched;
+	for (const FTumbler& T : Tumblers)
 	{
-		UInstancedStaticMeshComponent* Comp = Pair.Value;
-		if (!Comp) { continue; }
-		TumbleScratch.Reset();
-		for (const FTumbler& T : Tumblers)
-		{
-			if (T.Comp != Comp) { continue; }
-			FTransform X = T.Home;
-			X.SetRotation(FQuat(T.Axis, Clock * T.RadPerSec) * T.Home.GetRotation());
-			TumbleScratch.Add(X);
-		}
-		if (TumbleScratch.Num() == Comp->GetInstanceCount())
-		{
-			Comp->BatchUpdateInstancesTransforms(0, TumbleScratch, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ true, /*bTeleport*/ true);
-		}
+		if (!T.Comp || T.Instance == INDEX_NONE) { continue; }
+		if (bHaveEye && Range > 0.f && FVector::DistSquared(Eye, T.Home.GetLocation()) > FMath::Square(Range)) { continue; }
+		FTransform X = T.Home;
+		X.SetRotation(FQuat(T.Axis, Clock * T.RadPerSec) * T.Home.GetRotation());
+		T.Comp->UpdateInstanceTransform(T.Instance, X, /*bWorldSpace*/ true, /*bMarkRenderStateDirty*/ false, /*bTeleport*/ true);
+		Touched.Add(T.Comp);
+		++PerfAnimated;
 	}
+	for (UInstancedStaticMeshComponent* C : Touched) { C->MarkRenderStateDirty(); }
 }
 
 void ATDSpaceField::UpdateCaches()
@@ -732,4 +821,18 @@ void ATDSpaceField::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	FTDFieldDamage::Unregister(this);
 	Super::EndPlay(EndPlayReason);
+}
+
+void ATDSpaceField::PerfReport(bool bReset)
+{
+	const double TickAvg = PerfTickFrames > 0 ? PerfTickMsSum / PerfTickFrames : 0.0;
+	const double BreakAvg = PerfBreaks > 0 ? PerfBreakMsSum / PerfBreaks : 0.0;
+	UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.Perf: tick avg %.3f ms max %.3f ms over %lld frames (animated %d of %d tumblers) | breaks %lld, avg %.3f ms, max %.3f ms, worst frame of breaks %.3f ms | pieces %d alive %d"),
+		TickAvg, PerfTickMsMax, PerfTickFrames, PerfAnimated, Tumblers.Num(), PerfBreaks, BreakAvg, PerfBreakMsMax, PerfFrameBreakMsMax, Pieces.Num(), GetAliveCount());
+	if (bReset)
+	{
+		PerfTickMsSum = PerfTickMsMax = 0.0; PerfTickFrames = 0;
+		PerfBreakMsSum = PerfBreakMsMax = 0.0; PerfBreaks = 0;
+		PerfFrameBreakMsMax = 0.0;
+	}
 }

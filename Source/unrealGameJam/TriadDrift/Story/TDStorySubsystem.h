@@ -136,6 +136,10 @@ public:
 	static bool IsRetired(FName Id);
 	/** A line delivered as static: plays UTDStoryFX::TransmissionStatic when it goes on air. */
 	static bool HasStaticDelivery(FName Id);
+	/** N-097: engineering's import for a shared voice key ("Dont"), if it exists; empty otherwise. */
+	static FSoftObjectPath EngineeringSharedSound(FName Key);
+	/** ENG-45: the player's subtitles setting (T1's UTDSettingsSubsystem::AreSubtitlesOn once it lands); true without one. */
+	static bool AreSubtitlesShown(const UObject* WorldContext);
 	/** Seconds a sequence must have run before it can be skipped (Nicholas, N-060: ten). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Story")
 	float SkipAllowedAfterSeconds = 10.f;
@@ -151,6 +155,8 @@ public:
 	static TFunction<ETDShipId(const UObject*)> BoardingShipResolver;
 	/** N-087: a line whose speaker depends on who boarded (G9 escape radio: Wren when Moss boarded, else Moss). */
 	static FName RouteForBoarder(const UObject* WorldContext, FName Id);
+	/** Every id RouteForBoarder can turn Id into (sequences, the audit). */
+	static TArray<FName> RouteForBoarderAll(FName Id);
 
 	/** Cinematic 04 (Verdance done) and Cinematic 06 (Cinder done): the transmission sets, in order. */
 	static const TArray<FName>& DepartureSet(ETDDestination Planet);
@@ -180,6 +186,39 @@ private:
 	bool bAftermathChecked = false;
 	bool bAftermathResumeChecked = false;
 	void PlayStaticTear(FName Id);
+	/** A map travel: must-hear lines carry to the next gameplay world, the rest are dropped and unclaimed. */
+	void CarryAcrossTravel();
+	void TakeCarriedLines();
+	double CarryResumeAt = 0.0;
+	FTDTransmissionView BarkCaption;
+	double BarkCaptionStart = 0.0;
+	double BarkCaptionEnd = 0.0;
+	bool bCarryTaken = false;
+public:
+	/**
+	 * A bark's line in the story subtitle strip (on foot, where no flight HUD draws barks): the pilot's tag in their
+	 * colour, the same plate and wrap, the subtitle size setting. A story transmission on air wins the strip. False when
+	 * the flight HUD is drawing (it has its own bark lane) or there is no story subsystem; true with nothing drawn when
+	 * subtitles are off.
+	 */
+	static bool ShowBarkCaption(const UObject* WorldContext, FName Speaker, const FString& Line, float Seconds);
+	/** The caption to draw now (bActive false when none, or a transmission is on air). */
+	FTDTransmissionView GetBarkCaption() const;
+	/** Drop every line waiting to cross a travel (the menu; a run boundary). */
+	static void ClearCarriedLines();
+	static int32 NumCarriedLines();
+	/** Seconds after a world begins before carried lines resume (the arrival settles first). */
+	float CarryResumeDelaySeconds = 2.5f;
+#if WITH_DEV_AUTOMATION_TESTS
+	/** Test worlds each have their own game instance: let a carry cross them. */
+	static inline bool bCarryAcrossInstancesForTests = false;
+	void SimulateTravelForTests() { CarryAcrossTravel(); }
+	/** A new world's arrival: the delayed resume is armed again. */
+	void SimulateArrivalForTests() { bCarryTaken = false; CarryResumeAt = 0.0; }
+#else
+	static constexpr bool bCarryAcrossInstancesForTests = false;
+#endif
+private:
 	/** A run marker (never a line): this run's Aftermath has begun. */
 	static constexpr const TCHAR* AftermathStartedId = TEXT("Seq_AftermathStarted");
 	void HandleSurveyRecords(AActor* Terminal);

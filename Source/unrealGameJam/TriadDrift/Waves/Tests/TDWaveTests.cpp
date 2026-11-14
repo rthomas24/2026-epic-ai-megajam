@@ -1,10 +1,18 @@
 // Automation tests for the wave director (ENG-14). Run: .\Tools\td-test.ps1 -Filter TriadDrift.Waves
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/World/TDWorldSubsystem.h"
+#include "TriadDrift/Combat/TDWeaponLibrary.h"
+#include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
+#include "TriadDrift/World/TDWorldBarks.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Story/TDTutorialPhases.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Waves/Tests/TDWaveTestTypes.h"
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
@@ -306,6 +314,7 @@ bool FTDWavesFieldRule::RunTest(const FString& Parameters)
 	GI->Progress.WavesCleared = 4;
 	TestFalse(TEXT("Cinder not finished"), ATDWaveDirector::IsCinderFinished(GI->Progress));
 	D->StartWave(4);	// wave 5 reached without Cinder (a stage, a cheat, an old save)
+	TestEqual(TEXT("wave 5's objective line hook (FTDWaveInfo::ObjectiveText)"), D->GetWaveInfo().ObjectiveText.ToString(), FString(TEXT("BREAK THE DOMINION GUARD")));
 	TDWaveTest_SpawnEverything(W, D);
 	TDWaveTest_KillAll(D);
 	W.Tick();
@@ -313,6 +322,11 @@ bool FTDWavesFieldRule::RunTest(const FString& Parameters)
 	TestFalse(TEXT("the field stays up: Cinder is not finished"), GI->Progress.bDominionRevealed);
 	for (const FName& Id : UTDFlowSettings::Get()->CinderObjectives) { GI->Progress.CompletedObjectives.Add(Id); }
 	TestTrue(TEXT("Cinder finished"), ATDWaveDirector::IsCinderFinished(GI->Progress));
+	TestFalse(TEXT("finishing Cinder alone does not open it mid-flight"), GI->Progress.bDominionRevealed);
+	// Back in the galaxy with both done (the other order), the field opens: neither half alone, both in either order.
+	D->StopAndClear();
+	D->StartFromProgress();
+	TestTrue(TEXT("the field opens once both are done (wave 5 first, then Cinder)"), GI->Progress.bDominionRevealed && !GI->Progress.bDominionDefensesDown);
 	return true;
 }
 
@@ -409,10 +423,40 @@ namespace TDWaveTutorialTest
 		OutPlayer = TDWaveTest_SpawnPlayer(W);
 		ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, OutPlayer);
 		D->TutorialMode = ETDTutorialMode::ForceOn;
+		D->bWaitForLessons = false;	// these tests are about the withdrawal itself; the lesson gate has its own test
 		D->StartWave(1);
 		TDWaveTest_SpawnEverything(W, D, 60.f);
 		return D;
 	}
+}
+
+// ENG-40 with T3's lessons (agreed Nov 14): while the squad lesson is still being taught, wave 2's heavy contact waits; at
+// GunshipHoldCapSeconds it comes anyway, so a player who never switches ships is never locked out.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWavesTutorialLessonGate, "TriadDrift.Waves.Tutorial.TheHeavyContactWaitsForTheLessonsButNeverLocks", TD_TEST_FLAGS)
+bool FTDWavesTutorialLessonGate::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.Phase = ETDGamePhase::Waves1to2;
+	if (UTDTutorialPhases* Lessons = UTDTutorialPhases::Get(W.GetWorld())) { Lessons->bForceTutorialForTests = true; }
+	AActor* Player = TDWaveTest_SpawnPlayer(W);
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, Player);
+	D->TutorialMode = ETDTutorialMode::ForceOn;
+	D->StartWave(0);
+	W.Advance(1.f);
+	const ETDTeachPhase Teach = UTDTutorialPhases::GetTeachPhase(W.GetWorld());
+	AddInfo(FString::Printf(TEXT("lesson phase at wave 1: %d"), (int32)Teach));
+	if (Teach == ETDTeachPhase::None || Teach == ETDTeachPhase::Done)
+	{
+		AddWarning(TEXT("the lessons did not start in this test world: nothing to gate"));
+		return true;
+	}
+	D->StartWave(1);
+	W.Advance(35.f, 1.f / 20.f);
+	TestNull(TEXT("35 s into wave 2, lessons still running: no heavy contact yet (it was due at 20 s)"), D->GetHeavyContact());
+	W.Advance(30.f, 1.f / 20.f);
+	TestNotNull(TEXT("past the 60 s cap: the heavy contact arrives anyway"), D->GetHeavyContact());
+	return true;
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWavesTutorialKillsDoNotEnd, "TriadDrift.Waves.Tutorial.KillingEverythingOrdersTheWithdrawalNotTheEnd", TD_TEST_FLAGS)
@@ -427,6 +471,12 @@ bool FTDWavesTutorialKillsDoNotEnd::RunTest(const FString& Parameters)
 	W.Tick();
 	TestTrue(TEXT("the wave is still running"), D->GetState() == ETDWaveState::Active || D->GetState() == ETDWaveState::WarpingIn);
 	TestEqual(TEXT("withdrawal ordered"), (int32)D->GetTutorialPhase(), (int32)ETDTutorialPhase::Withdrawal);
+	// T2's bark sweep (Nov 14): the order is Command's story line TB_Command_FallBack; Bark_Cmd_Retreat is retired.
+	{
+		const UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		TestTrue(TEXT("Command orders the withdrawal (TB_Command_FallBack)"), Story && Story->HasPlayed(TEXT("TB_Command_FallBack")));
+		TestEqual(TEXT("Bark_Cmd_Retreat retired (no request)"), FTDCombatBarks::GetRequestCount(TEXT("Bark_Cmd_Retreat")), 0);
+	}
 	TestFalse(TEXT("wave 2 not reported"), GI->ReportedWaves.Contains(2));
 	AActor* M = D->GetEscapeMarker();
 	TestTrue(TEXT("the corridor marker is an objective marker"), M && M->ActorHasTag(TDTags::ObjectiveMarker));
@@ -474,6 +524,16 @@ bool FTDWavesTutorialGunshipAlive::RunTest(const FString& Parameters)
 	TestEqual(TEXT("escaped with the gunship alive"), (int32)D->GetTutorialPhase(), (int32)ETDTutorialPhase::Escaped);
 	TestTrue(TEXT("wave 2 cleared"), GI->ReportedWaves.Contains(2));
 	TestEqual(TEXT("the rest stood down"), D->GetEnemiesAlive(), 0);
+	// The JUMP POINT: 300 m past the line on its bearing, an objective marker, until the hyperdrive jump.
+	const AActor* Jump = D->GetJumpPoint();
+	if (TestNotNull(TEXT("a JUMP POINT waypoint after the crossing"), Jump))
+	{
+		TestTrue(TEXT("an objective marker tagged TD.Tutorial.JumpPoint"), Jump->ActorHasTag(TDTags::ObjectiveMarker) && Jump->ActorHasTag(TEXT("TD.Tutorial.JumpPoint")));
+		TestTrue(*FString::Printf(TEXT("300 m past the line (%.0f m)"), FVector::DotProduct(Jump->GetActorLocation() - P, N) / 100.f),
+			FMath::IsNearlyEqual((float)FVector::DotProduct(Jump->GetActorLocation() - P, N), D->JumpPointPastLine, 100.f));
+	}
+	if (UTDEventBus* Bus = UTDEventBus::Get(W.GetWorld())) { Bus->OnHyperdriveState.Broadcast(ETDHyperdriveState::Jumping); }
+	TestNull(TEXT("gone at the hyperdrive jump"), D->GetJumpPoint());
 	return true;
 }
 
@@ -503,6 +563,109 @@ bool FTDWavesTutorialRetake::RunTest(const FString& Parameters)
 		W.Tick();
 		TestTrue(TEXT("Auto in a test world: cleared by kills"), GI->ReportedWaves.Contains(2));
 	}
+	return true;
+}
+
+
+// ENG-43: dialogs.md Bark_WaveIncoming (from wave 2, once per wave), Bark_NewEnemy_Interceptor (first of the type, once
+// per run) and Bark_WaveCleared (a wave ends).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWaveBarks, "TriadDrift.Waves.Barks.IncomingNewTypeAndCleared", TD_TEST_FLAGS)
+bool FTDWaveBarks::RunTest(const FString& Parameters)
+{
+	FTDCombatBarks::ResetRequestCounts();
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.Phase = ETDGamePhase::Waves1to2;
+	AActor* Player = TDWaveTest_SpawnPlayer(W);
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, Player);
+	D->StartWave(0);
+	TDWaveTest_SpawnEverything(W, D, 30.f);
+	TestEqual(TEXT("wave 1: no Bark_WaveIncoming"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::WaveIncoming), 0);
+	TDWaveTest_KillAll(D);
+	W.Advance(3.f);
+	AddInfo(FString::Printf(TEXT("after wave 1's kills: state %d, living %d"), (int32)D->GetState(), D->GetLivingEnemies().Num()));
+	TestEqual(TEXT("Bark_WaveCleared after wave 1"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::WaveCleared), 1);
+	D->StartWave(1);
+	TDWaveTest_SpawnEverything(W, D, 40.f);
+	TestEqual(TEXT("wave 2: Bark_WaveIncoming once"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::WaveIncoming), 1);
+	TestEqual(TEXT("first interceptors: Bark_NewEnemy_Interceptor once"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::NewEnemyInterceptor), 1);
+	D->StartWave(1);	// a retake of the same wave
+	TDWaveTest_SpawnEverything(W, D, 40.f);
+	TestEqual(TEXT("a type seen before is not announced again"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::NewEnemyInterceptor), 1);
+	return true;
+}
+
+// ENG-43: dialogs.md Bark_MinesAhead: two or more slow, fused enemy charges ahead of the flown ship.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWaveMineBark, "TriadDrift.Waves.Barks.MinesAhead", TD_TEST_FLAGS)
+bool FTDWaveMineBark::RunTest(const FString& Parameters)
+{
+	FTDCombatBarks::ResetRequestCounts();
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.Phase = ETDGamePhase::Waves1to2;
+	AActor* Player = TDWaveTest_SpawnPlayer(W);
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, Player);
+	D->StartWave(0);
+	W.Advance(1.f);
+	const FTDProjectileSpec Mine = UTDWeaponLibrary::Get(TDWeaponIds::EnemyPlasmaMines).Projectile;
+	const FVector Fwd = Player->GetActorForwardVector();
+	for (int32 i = 0; i < 3; ++i)
+	{
+		ATDProjectile::Spawn(W.GetWorld(), Mine, FTransform(FRotator::ZeroRotator, Player->GetActorLocation() + Fwd * (20000.f + i * 3000.f)), nullptr, ETDTeam::Enemy);
+	}
+	W.Advance(1.f);
+	if (const UTDProjectileSubsystem* PS = UTDProjectileSubsystem::Get(W.GetWorld()))
+	{
+		for (const ATDProjectile* P : PS->GetLiveProjectiles())
+		{
+			if (P) { AddInfo(FString::Printf(TEXT("live projectile team %d speed %.0f fuse %.0f at %.0f m"), (int32)P->GetTeam(), P->GetSpec().Speed, P->GetSpec().ProximityFuseRadius, FVector::Dist(P->GetActorLocation(), Player->GetActorLocation()) / 100.f)); }
+		}
+	}
+	AddInfo(FString::Printf(TEXT("wave state %d, anchor %s"), (int32)D->GetState(), Player ? *Player->GetName() : TEXT("none")));
+	TestEqual(TEXT("Bark_MinesAhead"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::MinesAhead), 1);
+	W.Advance(2.f);
+	TestEqual(TEXT("not every half second"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::MinesAhead), 1);
+	return true;
+}
+
+
+// T6's regions put solid set pieces and rocks near every route: a wave never warps a ship in inside an obstacle.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWaveSpawnClear, "TriadDrift.Waves.Spawn.NeverInsideAnObstacle", TD_TEST_FLAGS)
+bool FTDWaveSpawnClear::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.Phase = ETDGamePhase::Waves1to2;
+	AActor* Player = TDWaveTest_SpawnPlayer(W);
+	ATDWaveDirector* D = TDWaveTest_SpawnDirector(W, Player);
+	UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("world subsystem"), WorldSys)) { return false; }
+	// A ring of 30 m rocks right on the spawn distance, every 20 degrees, plus one big set piece behind the player.
+	const FVector P = Player->GetActorLocation();
+	for (int32 a = 0; a < 18; ++a)
+	{
+		const float R = FMath::DegreesToRadians(a * 20.f);
+		WorldSys->AddObstacle(P + FVector(FMath::Cos(R), FMath::Sin(R), 0.f) * D->SpawnDistance, 3000.f);
+	}
+	WorldSys->AddObstacle(P - Player->GetActorForwardVector() * D->SpawnDistance, 9000.f);
+	D->StartWave(1);
+	TDWaveTest_SpawnEverything(W, D, 40.f);
+	// The warp-in points themselves (the ships then fly: these test spheres have no collision, so where they end up
+	// 40 s later says nothing about the spawn).
+	int32 Inside = 0;
+	const TArray<AActor*> Enemies = D->GetLivingEnemies();
+	for (const FVector& At : D->GetPickedSpawnPoints())
+	{
+		for (const FSphere& O : WorldSys->GetObstacles())
+		{
+			if (O.W > 0.f && FVector::Dist(At, O.Center) < O.W) { ++Inside; break; }
+		}
+	}
+	AddInfo(FString::Printf(TEXT("%d warp-in points checked"), D->GetPickedSpawnPoints().Num()));
+	AddInfo(FString::Printf(TEXT("%d enemies, %d retries, %d pushed out"), Enemies.Num(), D->GetSpawnPointRetries(), D->GetSpawnPointsPushedOut()));
+	TestTrue(TEXT("enemies spawned"), Enemies.Num() > 0);
+	TestEqual(TEXT("no enemy warped in inside an obstacle"), Inside, 0);
+	TestTrue(TEXT("the obstacles were in the way and were avoided"), D->GetSpawnPointRetries() > 0);
 	return true;
 }
 

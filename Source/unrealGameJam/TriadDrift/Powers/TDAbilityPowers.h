@@ -12,6 +12,9 @@
 
 class UTDAbilityFX;
 class UNiagaraComponent;
+class UMeshComponent;
+class UMaterialInterface;
+class UMaterialInstanceDynamic;
 class ATDSpacecraft;
 
 /** The Gravity Well orb / vortex. Spawned by UTDGravityWellPower. */
@@ -153,7 +156,23 @@ protected:
 	virtual FName GetActivateBark(uint8& OutPriority) const override { OutPriority = static_cast<uint8>(ETDBarkPriority::Normal); return TDBarkIdsT2::CloakOn; }
 	virtual void OnEnd(bool bInterrupted) override;
 
+public:
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	/** UTDAbilityFX::HullOverlay on the hull: 0 none, 1 fully cloaked (fades 0.25 s each way). Tests read it. */
+	float GetHullOverlay01() const { return OverlayAlpha; }
+	/** Hull meshes currently carrying the cloak overlay. */
+	int32 GetOverlaidMeshCount() const { return OverlaidMeshes.Num(); }
+	UMaterialInstanceDynamic* GetHullOverlayMID() const { return OverlayMID; }
+
+	/** Fade time each way (s). */
+	static constexpr float OverlayFadeSeconds = .25f;
+
 private:
+	void ApplyHullOverlay();
+	void ClearHullOverlay();
+
 	UFUNCTION()
 	void HandleWeaponFired(ETDWeaponSlot WeaponSlot, FName WeaponId);
 
@@ -169,6 +188,13 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UNiagaraComponent> LoopFX;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UMaterialInstanceDynamic> OverlayMID;
+	/** The meshes we overlaid and the overlay each had before (restored on clear). */
+	TArray<TPair<TWeakObjectPtr<UMeshComponent>, TWeakObjectPtr<UMaterialInterface>>> OverlaidMeshes;
+	float OverlayAlpha = 0.f;
+	float OverlayTarget = 0.f;
 };
 
 /** Lancer (Cinder Obj 3): 6000 cm pulse; stun 3 s, gunship shields down 5 s, missiles fizzle. 14 s. */

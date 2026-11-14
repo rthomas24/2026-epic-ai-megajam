@@ -1,0 +1,47 @@
+[
+ {
+  "take": "01",
+  "source": "b2_1_ara_E.wav",
+  "onset_s": 0.0175,
+  "cut_s": 0.33,
+  "src_start_s": 0.0,
+  "dry_gain_db": 0.27,
+  "radio_gain_db": -7.62
+ },
+ {
+  "take": "02",
+  "source": "b2_3_iris_E.wav",
+  "onset_s": 0.0375,
+  "cut_s": 0.2787,
+  "src_start_s": 0.0,
+  "dry_gain_db": -2.21,
+  "radio_gain_db": -7.4
+ },
+ {
+  "take": "03",
+  "source": "b2_6_eve_E.wav",
+  "onset_s": 0.075,
+  "cut_s": 0.3475,
+  "src_start_s": 0.03,
+  "dry_gain_db": -3.69,
+  "radio_gain_db": -8.49
+ },
+ {
+  "take": "04",
+  "source": "b1_6_liora.wav",
+  "onset_s": 0.0525,
+  "cut_s": 0.3588,
+  "src_start_s": 0.0075,
+  "dry_gain_db": -1.98,
+  "radio_gain_db": -7.82
+ },
+ {
+  "take": "05",
+  "source": "b1_0_ara.wav",
+  "onset_s": 0.095,
+  "cut_s": 0.3425,
+  "src_start_s": 0.05,
+  "dry_gain_db": 0.14,
+  "radio_gain_db": -7.12
+ }
+]

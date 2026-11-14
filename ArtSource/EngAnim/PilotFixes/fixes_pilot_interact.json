@@ -1,0 +1,16 @@
+{
+ "_note": "Pilot interact r4, step 1: the idle pose held for 1.13 s (A_Pilot_Interact_Pre); body_pilot_interact.json adds the left-hand press.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims",
+ "skeleton": "/Game/TriadDrift/Gameplay/Characters/Pilot/SKEL_Pilot",
+ "clips": [
+  {
+   "src": "A_Pilot_Idle3_v2",
+   "dst": "A_Pilot_Interact_Pre",
+   "trim": [
+    0.0,
+    0.04
+   ],
+   "rate": 0.0353
+  }
+ ]
+}

@@ -22,6 +22,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Director/TDCutPresentation.h"
 #include "TriadDrift/Core/TDEventBus.h"
@@ -466,6 +467,17 @@ bool FTDIntroSkip::RunTest(const FString& Parameters)
 	{
 		return false;
 	}
+	// Once skipping is allowed the prompt shows by itself (nobody has to discover it).
+	{
+		TDIntroTest::FIntroWorld G;
+		if (TestTrue(TEXT("a second intro"), G.Init() && G.Play()))
+		{
+			G.Run(UTDIntroDirector::GetSkipLockSeconds() + 0.8f);
+			TestTrue(TEXT("HOLD TO SKIP announced without a press"), G.Intro->GetOverlay().SkipHintAlpha > 0.3f);
+			G.Run(5.f);
+			TestTrue(TEXT("then it fades"), G.Intro->GetOverlay().SkipHintAlpha < 0.1f);
+		}
+	}
 	// In the first second nothing skips, however long it is held.
 	F.Hold(EKeys::SpaceBar, 0.8f);
 	TestTrue(TEXT("first second: no skip"), F.Intro->IsPlaying());
@@ -486,7 +498,7 @@ bool FTDIntroSkip::RunTest(const FString& Parameters)
 	F.CheckRestored(*this, TEXT("skipped"));
 
 	// ...and from the mouse and the pad (fresh intros).
-	for (const FKey& Key : { EKeys::LeftMouseButton, EKeys::Gamepad_FaceButton_Bottom })
+	for (const FKey& Key : { EKeys::LeftMouseButton, EKeys::Gamepad_FaceButton_Bottom, EKeys::Escape })
 	{
 		const int32 Before = F.Finished;
 		F.Before = F.Snapshot(); // this intro starts from where the squad is now
@@ -659,6 +671,141 @@ bool FTDIntroSlate::RunTest(const FString& Parameters)
 	Bus->BroadcastTakeStarted(UTDGameInstance::WaveSceneId(1), 1);
 	F.Run(0.3f);
 	TestEqual(TEXT("not repeated by the real first take"), Cut->GetState().SlateAlpha, 0.f);
+	return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroOpeningLines, "TriadDrift.Director.Intro.OpeningSpeaksTheFirstContactLines", TD_TEST_FLAGS)
+bool FTDIntroOpeningLines::RunTest(const FString& Parameters)
+{
+	// Lead (Nov 14): the approved O_* lines replace the narrator captions; story order over the shots, the last four at the
+	// hand-off as radio (watched or skipped), words untouched, td.Intro.Lines 0 brings the captions back.
+	TArray<FName> All;
+	for (const UTDIntroDirector::FTimedLine& L : UTDIntroDirector::OpeningLines()) { All.Add(FName(L.Id)); }
+	All.Append(UTDIntroDirector::HandOffLines());
+	TArray<FName> Table;
+	for (const FTDTransmission& E : UTDStorySubsystem::GetAllEntries())
+	{
+		if (E.Id.ToString().StartsWith(TEXT("O_"))) { Table.Add(E.Id); }
+	}
+	TestTrue(TEXT("all fifteen O_* lines, in the table's story order"), All == Table && All.Num() == 15);
+	float Prev = -1.f;
+	for (const UTDIntroDirector::FTimedLine& L : UTDIntroDirector::OpeningLines())
+	{
+		TestTrue(FString::Printf(TEXT("%s starts after the one before"), L.Id), L.Start > Prev);
+		Prev = L.Start;
+	}
+	TestEqual(TEXT("\"Evade now!\" is the very last"), UTDIntroDirector::HandOffLines().Last(), FName(TEXT("O_Command_Evade")));
+	{
+		TDIntroTest::FIntroWorld F;
+		if (!TestTrue(TEXT("squad and player"), F.Init()) || !TestTrue(TEXT("plays"), F.Play()))
+		{
+			return false;
+		}
+		for (const UTDIntroDirector::FTimedLine& L : UTDIntroDirector::OpeningLines())
+		{
+			F.Intro->DebugSetTime(L.Start + 0.6f, true);
+			const FTDIntroOverlayState& O = F.Intro->GetOverlay();
+			FTDTransmission E;
+			UTDStorySubsystem::FindEntry(FName(L.Id), E);
+			TestTrue(FString::Printf(TEXT("%s on screen at %.1f s"), L.Id, L.Start + 0.6f), O.SubtitleLineId == FName(L.Id) && O.SubtitleAlpha > 0.5f
+				&& O.Subtitle.EqualTo(E.Text));
+			TestTrue(FString::Printf(TEXT("%s: its speaker named"), L.Id), O.SubtitleSpeaker.EqualTo(UTDStorySubsystem::SpeakerTag(E.Speaker)));
+		}
+	}
+	{
+		// Skipped: the hand-off radio still plays, in order, as control returns.
+		TDIntroTest::FIntroWorld F;
+		if (!TestTrue(TEXT("plays again"), F.Init() && F.Play()))
+		{
+			return false;
+		}
+		F.Run(UTDIntroDirector::GetSkipLockSeconds() + 0.5f);
+		TestTrue(TEXT("skip"), F.Intro->Skip());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(F.W.GetWorld());
+		TArray<FName> Heard;
+		for (int32 i = 0; i < 30 * 20 && Story; ++i)
+		{
+			const FTDTransmissionView V = Story->GetCurrentTransmission();
+			if (V.bActive && (Heard.Num() == 0 || Heard.Last() != V.Id)) { Heard.Add(V.Id); }
+			F.W.Tick(1.f / 30.f);
+		}
+		TestTrue(TEXT("Disengage, Don't-, Break, Evade at the hand-off"), Heard == UTDIntroDirector::HandOffLines());
+	}
+	{
+		// td.Intro.Lines 0: the narrator captions, no speaker.
+		IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Intro.Lines"));
+		if (!TestNotNull(TEXT("td.Intro.Lines"), CVar))
+		{
+			return false;
+		}
+		CVar->Set(0, ECVF_SetByCode);
+		ON_SCOPE_EXIT { CVar->Set(1, ECVF_SetByCode); };
+		TDIntroTest::FIntroWorld F;
+		if (!TestTrue(TEXT("plays with captions"), F.Init() && F.Play()))
+		{
+			return false;
+		}
+		F.Intro->DebugSetTime(14.f, true);
+		TestTrue(TEXT("a narrator caption, no speaker"), F.Intro->GetOverlay().SubtitleSpeaker.IsEmpty() && !F.Intro->GetOverlay().Subtitle.IsEmpty());
+	}
+	return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroWarmUp, "TriadDrift.Director.Intro.BlackHoldCoversTheFirstFramesThenDrops", TD_TEST_FLAGS)
+bool FTDIntroWarmUp::RunTest(const FString& Parameters)
+{
+	// T7's 140 ms hitch on the galaxy's first frames: the intro holds black for a few rendered frames, then its clock runs;
+	// never longer than 1 s whatever the setting.
+	IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Intro.WarmUpSeconds"));
+	if (!TestNotNull(TEXT("td.Intro.WarmUpSeconds"), CVar))
+	{
+		return false;
+	}
+	ON_SCOPE_EXIT { CVar->Set(-1.f, ECVF_SetByCode); };
+	for (const float Setting : { 0.4f, 5.f })
+	{
+		CVar->Set(Setting, ECVF_SetByCode);
+		TDIntroTest::FIntroWorld F;
+		if (!TestTrue(TEXT("plays"), F.Init() && F.Play()))
+		{
+			return false;
+		}
+		F.W.Tick(1.f / 60.f);
+		F.W.Tick(1.f / 60.f);
+		TestTrue(TEXT("black while the first frames render"), F.Intro->IsWarmingUp() && F.Intro->GetOverlay().Black >= 1.f && F.Intro->GetElapsed() == 0.f);
+		F.Run(1.1f, 1.f / 60.f);
+		TestFalse(FString::Printf(TEXT("setting %.1f: the cover dropped within 1 s"), Setting), F.Intro->IsWarmingUp());
+		TestTrue(TEXT("the clock runs"), F.Intro->GetElapsed() > 0.f);
+	}
+	return true;
+}
+
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroSubtitlesOff, "TriadDrift.Director.Intro.SubtitlesOffHidesTheOpeningLines", TD_TEST_FLAGS)
+bool FTDIntroSubtitlesOff::RunTest(const FString& Parameters)
+{
+	// ENG-45: the opening's O_* lines obey T1's subtitles setting (the line still runs: a voice would still play).
+	TDIntroTest::FIntroWorld F;
+	if (!TestTrue(TEXT("squad and player"), F.Init()))
+	{
+		return false;
+	}
+	UTDSettingsSubsystem* Settings = F.W.GetGameInstance() ? F.W.GetGameInstance()->GetSubsystem<UTDSettingsSubsystem>() : nullptr;
+	if (!TestNotNull(TEXT("settings"), Settings) || !TestTrue(TEXT("plays"), F.Play()))
+	{
+		return false;
+	}
+	Settings->UseSlotForTests(TEXT("TD_Settings_T3_Subtitles"));
+	ON_SCOPE_EXIT { Settings->SetSubtitlesEnabled(true); };
+	const UTDIntroDirector::FTimedLine& L = UTDIntroDirector::OpeningLines()[2];
+	F.Intro->DebugSetTime(L.Start + 0.8f, true);
+	TestTrue(TEXT("on: the line shows"), F.Intro->GetOverlay().SubtitleAlpha > 0.5f);
+	Settings->SetSubtitlesEnabled(false);
+	F.Intro->DebugSetTime(L.Start + 0.9f, true);
+	TestEqual(TEXT("off: no text"), F.Intro->GetOverlay().SubtitleAlpha, 0.f);
+	TestEqual(TEXT("off: the line still runs"), F.Intro->GetOverlay().SubtitleLineId, FName(L.Id));
 	return true;
 }
 

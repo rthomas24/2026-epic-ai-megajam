@@ -39,6 +39,8 @@ FTDTerrainStyle FTDTerrainStyle::ForPlanet(ETDDestination Planet)
 		S.RiverDepth = 9000.f;
 		S.Warp = 90000.f;
 		S.GullyAmount = 0.2f;
+		S.ErosionAmount = 0.05f;	// sharp ash-cut gullies on the cones and ranges
+		S.ErosionScale = 60000.f;
 		// The volcano: north-east of the course, tallest thing on the planet, glowing crater.
 		S.HeroCentre = FVector2D(560000.f, -420000.f);
 		S.HeroRadius = 330000.f;
@@ -61,6 +63,8 @@ FTDTerrainStyle FTDTerrainStyle::ForPlanet(ETDDestination Planet)
 		S.Sharpness = 0.85f;
 		S.Warp = 140000.f;
 		S.GullyAmount = 0.16f;
+		S.ErosionAmount = 0.045f;	// rain-cut drainage on every range
+		S.ErosionScale = 80000.f;
 		// The massif: a great ridged mountain east of the course.
 		S.HeroCentre = FVector2D(620000.f, 300000.f);
 		S.HeroRadius = 380000.f;
@@ -249,6 +253,24 @@ float FTDTerrainField::RawHeight(float X, float Y) const
 		}
 	}
 
+	if (Style.ErosionAmount > 0.f)
+	{
+		// Drainage: the gully pattern follows the downhill direction of the large forms (finite differences over 300 m);
+		// on the hero peak, straight down its flanks (away from the summit)
+		const float E = 30000.f;
+		FVector2D Grad((LargeForms(X + E, Y) - LargeForms(X - E, Y)) / (2.f * E), (LargeForms(X, Y + E) - LargeForms(X, Y - E)) / (2.f * E));
+		float Weight = RangeMask;
+		const FVector2D Rel = FVector2D(X, Y) - Style.HeroCentre;
+		const float HD = Rel.Size() / FMath::Max(1.f, Style.HeroRadius);
+		if (HD < 1.f && HD > 0.01f)
+		{
+			const float HeroW = FMath::SmoothStep(1.f, 0.6f, HD);
+			Grad = FMath::Lerp(Grad, -Rel / Rel.Size() * (Style.HeroHeight / Style.HeroRadius) * 1.4f, HeroW);
+			Weight = FMath::Lerp(Weight, 1.f, HeroW);
+		}
+		H += Erosion(X, Y, Grad) * Weight;
+	}
+
 	// Beyond the walkable core, the ground rises into ranges that close the horizon.
 	const float Edge = FMath::Max(FMath::Abs(X), FMath::Abs(Y));
 	const float Rise = FMath::Clamp((Edge - Style.CoreHalfSize) / FMath::Max(1.f, Style.FarHalfSize - Style.CoreHalfSize), 0.f, 1.f);
@@ -260,6 +282,56 @@ float FTDTerrainField::RawHeight(float X, float Y) const
 		H += (Near * 0.45f + FarWall) * Style.HorizonRise;
 	}
 	return H;
+}
+
+float FTDTerrainField::LargeForms(float X, float Y) const
+{
+	const int32 S = Style.Seed;
+	const float WX = X + Style.Warp * Noise2D(X / 500000.f, Y / 500000.f, S + 11);
+	const float WY = Y + Style.Warp * Noise2D(X / 500000.f + 31.7f, Y / 500000.f - 12.3f, S + 13);
+	const float Hills = Fbm(WX / Style.HillScale, WY / Style.HillScale, 2, S + 1) * 0.5f + 0.5f;
+	const float Mount = Ridged(WX / Style.MountainScale, WY / Style.MountainScale, 3, S + 5, Style.Sharpness);
+	return Hills * Style.HillHeight + Mount * Style.MountainHeight;
+}
+
+float FTDTerrainField::Erosion(float X, float Y, const FVector2D& Grad) const
+{
+	using namespace TDTerrainFieldImpl;
+	// "Phacelle" gullies: in each cell of a jittered grid a cosine wave whose crests run along the downhill direction;
+	// neighbouring cells blend by distance. The wave's zero crossings become sharp crests (1 - 2|w|) and its troughs the
+	// rounded channels between them. Strength follows the slope: none on flats, full on mountainsides.
+	const float Slope = Grad.Size();
+	const float SlopeW = FMath::SmoothStep(0.04f, 0.45f, Slope);
+	if (SlopeW <= 0.f) { return 0.f; }
+	const FVector2D Down = Grad / FMath::Max(Slope, 1e-4f);
+	const FVector2D Across(-Down.Y, Down.X);
+	float Sum = 0.f, Amp = 1.f, Norm = 0.f;
+	float Cell = Style.ErosionScale;
+	for (int32 Oct = 0; Oct < 2; ++Oct)
+	{
+		const float CX = FMath::FloorToFloat(X / Cell), CY = FMath::FloorToFloat(Y / Cell);
+		float Wave = 0.f, WSum = 0.f;
+		for (int32 j = -1; j <= 1; ++j)
+		{
+			for (int32 i = -1; i <= 1; ++i)
+			{
+				const int32 IX = (int32)CX + i, IY = (int32)CY + j;
+				const float PX = (IX + 0.5f + 0.4f * CellValue(IX, IY, Style.Seed + 701 + Oct)) * Cell;
+				const float PY = (IY + 0.5f + 0.4f * CellValue(IX, IY, Style.Seed + 709 + Oct)) * Cell;
+				const float DX = X - PX, DY = Y - PY;
+				const float W = FMath::Exp(-(DX * DX + DY * DY) / (Cell * Cell * 0.55f));
+				const float Phase = (DX * Across.X + DY * Across.Y) / Cell * 2.f * PI * 1.6f;
+				Wave += FMath::Cos(Phase) * W;
+				WSum += W;
+			}
+		}
+		const float Wn = Wave / FMath::Max(WSum, 1e-4f);	// -1..1, softened where cells disagree
+		Sum += (1.f - 2.f * FMath::Abs(Wn)) * Amp;
+		Norm += Amp;
+		Amp *= 0.45f;
+		Cell *= 0.4f;
+	}
+	return Sum / Norm * SlopeW * Style.ErosionAmount * Style.MountainHeight;
 }
 
 float FTDTerrainField::RiverNoise(float X, float Y) const

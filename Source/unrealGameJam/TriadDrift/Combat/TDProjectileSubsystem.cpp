@@ -35,6 +35,15 @@ ATDProjectile* UTDProjectileSubsystem::Acquire()
 		}
 	}
 
+	// Never used yet (prewarmed at world start): after the released ones, so reuse order is unchanged.
+	while (Reserve.Num() > 0)
+	{
+		ATDProjectile* P = Reserve.Pop(EAllowShrinking::No);
+		if (IsValid(P))
+		{
+			return P;
+		}
+	}
 	UWorld* World = GetWorld();
 	if (!World)
 	{
@@ -43,6 +52,7 @@ ATDProjectile* UTDProjectileSubsystem::Acquire()
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	Params.ObjectFlags |= RF_Transient;
+	++SpawnedProjectiles;
 	return World->SpawnActor<ATDProjectile>(ATDProjectile::StaticClass(), FTransform::Identity, Params);
 }
 
@@ -112,6 +122,17 @@ void UTDProjectileSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		Bus->OnSceneCut.AddUniqueDynamic(this, &UTDProjectileSubsystem::HandleSceneCut);
 		Bus->OnTakeStarted.AddUniqueDynamic(this, &UTDProjectileSubsystem::HandleTakeStarted);
 		Bus->OnActorKilled.AddUniqueDynamic(this, &UTDProjectileSubsystem::HandleActorKilled);
+	}
+	// Issue #89: the pool is filled before the first shot (each spawn is an actor plus components: a hitch mid-fight).
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Params.ObjectFlags |= RF_Transient;
+	for (int32 I = Reserve.Num(); I < FMath::Min(PrewarmProjectiles, MaxPooled); ++I)
+	{
+		if (ATDProjectile* P = InWorld.SpawnActor<ATDProjectile>(ATDProjectile::StaticClass(), FTransform::Identity, Params))
+		{
+			Reserve.Add(P);
+		}
 	}
 }
 
@@ -185,6 +206,7 @@ ATDCombatFlash* UTDProjectileSubsystem::AcquireFlash(const FVector& Location)
 		Params.ObjectFlags |= RF_Transient;
 		if (ATDCombatFlash* Flash = World->SpawnActor<ATDCombatFlash>(ATDCombatFlash::StaticClass(), Location, FRotator::ZeroRotator, Params))
 		{
+			++SpawnedFlashes;
 			Flashes.Add(Flash);
 			return Flash;
 		}

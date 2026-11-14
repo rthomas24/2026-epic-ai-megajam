@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Flight HUD concept A</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #05060f; }
+  .frame { position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background:
+      radial-gradient(ellipse 380px 200px at 300px 960px, rgba(120,230,255,.55), transparent 70%),
+      radial-gradient(ellipse 300px 220px at 1720px 900px, rgba(255,120,220,.45), transparent 70%),
+      radial-gradient(ellipse 620px 420px at 380px 300px, rgba(40,200,230,.42), transparent 70%),
+      radial-gradient(ellipse 520px 380px at 520px 420px, rgba(150,60,220,.40), transparent 72%),
+      radial-gradient(ellipse 700px 360px at 1500px 760px, rgba(220,60,190,.30), transparent 70%),
+      radial-gradient(ellipse 500px 300px at 1350px 220px, rgba(255,150,60,.16), transparent 70%),
+      radial-gradient(ellipse 900px 600px at 960px 540px, #120a2e, #05060f 80%);
+    font-family: "Roboto", "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
+  svg { position: absolute; left: 0; top: 0; }
+</style>
+</head>
+<body>
+<div class="frame">
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="3" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="glowBig" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="7" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="1.2"/></filter>
+  <pattern id="stipple" width="7" height="7" patternUnits="userSpaceOnUse">
+    <circle cx="2" cy="2" r="1" fill="#C9D3E6" opacity=".45"/>
+    <circle cx="5.5" cy="5" r=".7" fill="#C9D3E6" opacity=".3"/>
+  </pattern>
+  <pattern id="seg" width="14" height="20" patternUnits="userSpaceOnUse">
+    <rect x="12" y="0" width="2" height="20" fill="#0A0F1C"/>
+  </pattern>
+  <radialGradient id="scopeFill" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#0E1830" stop-opacity=".78"/>
+    <stop offset="1" stop-color="#070B16" stop-opacity=".86"/>
+  </radialGradient>
+  <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#0E1424" stop-opacity=".82"/>
+    <stop offset="1" stop-color="#070B16" stop-opacity=".88"/>
+  </linearGradient>
+  <clipPath id="scopeClip"><circle cx="1684" cy="886" r="140"/></clipPath>
+  <style>
+    .t { font-family: "Roboto","Segoe UI",Arial,sans-serif; fill: #E8EEF7; }
+    .m { font-family: "Roboto Mono","Consolas","Cascadia Mono",monospace; fill: #E8EEF7; font-variant-numeric: tabular-nums; }
+    .caps { letter-spacing: 1.5px; text-transform: uppercase; }
+    .dim { fill: #8A94A6; }
+    .rift { fill: #FF4FD8; } .lancer { fill: #2FE6FF; } .bastion { fill: #FFB13B; }
+    .outline { paint-order: stroke; stroke: #05070E; stroke-width: 3px; stroke-linejoin: round; }
+  </style>
+</defs>
+
+<!-- ======================= WORLD (placeholder) ======================= -->
+<g id="stars" fill="#fff">
+  <circle cx="120" cy="80" r="1.2" opacity=".8"/><circle cx="300" cy="640" r="1" opacity=".6"/>
+  <circle cx="610" cy="190" r="1.4" opacity=".9"/><circle cx="880" cy="120" r="1" opacity=".7"/>
+  <circle cx="1130" cy="90" r="1.3" opacity=".8"/><circle cx="1420" cy="430" r="1" opacity=".6"/>
+  <circle cx="1590" cy="140" r="1.6" opacity=".9"/><circle cx="1780" cy="560" r="1.1" opacity=".7"/>
+  <circle cx="1260" cy="690" r="1" opacity=".6"/><circle cx="700" cy="820" r="1.2" opacity=".6"/>
+  <circle cx="240" cy="360" r="1" opacity=".6"/><circle cx="1010" cy="300" r="1.1" opacity=".7"/>
+  <circle cx="1690" cy="330" r="1" opacity=".6"/><circle cx="430" cy="900" r="1" opacity=".5"/>
+</g>
+<!-- asteroid chunks -->
+<g fill="#33405e" stroke="#7fa6d8" stroke-width="1" opacity=".75">
+  <path d="M1400,610 l26,-10 l18,14 l-6,22 l-28,6 l-14,-16z"/>
+  <path d="M1480,660 l14,-6 l10,10 l-4,12 l-16,2z"/>
+  <path d="M1350,700 l18,-4 l8,12 l-10,10 l-16,-4z"/>
+</g>
+<!-- player ship (chase cam, placeholder silhouette) -->
+<g transform="translate(960,705)">
+  <ellipse cx="0" cy="34" rx="80" ry="10" fill="#FF4FD8" opacity=".18" filter="url(#glowBig)"/>
+  <path d="M0,-46 L18,-6 L70,18 L74,30 L22,24 L12,40 L-12,40 L-22,24 L-74,30 L-70,18 L-18,-6 Z" fill="#1d1730" stroke="#FF4FD8" stroke-width="2"/>
+  <path d="M0,-34 L9,-4 L0,6 L-9,-4 Z" fill="#FF8BE6" opacity=".8"/>
+  <circle cx="-9" cy="44" r="7" fill="#FFC3F3" filter="url(#glowBig)"/>
+  <circle cx="9" cy="44" r="7" fill="#FFC3F3" filter="url(#glowBig)"/>
+</g>
+<!-- enemy ships (placeholder) -->
+<g fill="#16110f" stroke="#FF5A36" stroke-width="1.6">
+  <g transform="translate(1240,392)"><path d="M-30,0 L-8,-14 L22,-10 L34,0 L22,10 L-8,14 Z"/><circle cx="20" cy="0" r="3" fill="#fff" stroke="none"/></g>
+  <g transform="translate(700,430) scale(.6)"><path d="M-22,0 L0,-12 L22,0 L0,12 Z"/><circle cx="6" cy="0" r="3" fill="#fff" stroke="none"/></g>
+  <g transform="translate(770,392) scale(.55)"><path d="M-22,0 L0,-12 L22,0 L0,12 Z"/><circle cx="6" cy="0" r="3" fill="#fff" stroke="none"/></g>
+  <g transform="translate(828,462) scale(.5)"><path d="M-22,0 L0,-12 L22,0 L0,12 Z"/><circle cx="6" cy="0" r="3" fill="#fff" stroke="none"/></g>
+</g>
+<!-- enemy bolts -->
+<g stroke="#FF6A3D" stroke-width="3" stroke-linecap="round" filter="url(#glow)" opacity=".9">
+  <line x1="1190" y1="420" x2="1150" y2="440"/><line x1="720" y1="452" x2="760" y2="476"/>
+</g>
+
+<!-- ======================= WORLD-ANCHORED MARKERS ======================= -->
+<!-- hostile type markers above on-screen enemies (existing shapes: fighter chevrons) -->
+<g fill="none" stroke="#FF4A3D" stroke-width="2" stroke-linejoin="round">
+  <path d="M692,404 L700,412 L708,404"/>
+  <path d="M762,368 L770,376 L778,368"/>
+  <path d="M820,440 L828,448 L836,440"/>
+</g>
+<!-- current target: gunship with bracket, health bar, label, lead ring -->
+<g stroke="#FF4A3D" stroke-width="2.5" fill="none">
+  <path d="M1192,356 v-12 h14"/><path d="M1274,344 h14 v12"/>
+  <path d="M1192,428 v12 h14"/><path d="M1274,440 h14 v-12"/>
+</g>
+<rect x="1196" y="332" width="88" height="5" fill="#0A0F1C" opacity=".8"/>
+<rect x="1196" y="332" width="56" height="5" fill="#FF4A3D"/>
+<g transform="translate(1240,322)"><path d="M-6,-8 L0,-14 L6,-8 L0,-2 Z" fill="none" stroke="#FFE14A" stroke-width="2"/></g>
+<text x="1240" y="460" text-anchor="middle" class="t caps outline" font-size="14" font-weight="600">Gunship <tspan class="m" font-size="14">412</tspan> m</text>
+<text x="1240" y="476" text-anchor="middle" class="t caps outline" font-size="12" fill="#FFE14A" style="fill:#FFE14A">Lock</text>
+<circle cx="1196" cy="404" r="7" fill="none" stroke="#E8EEF7" stroke-width="2" opacity=".9"/>
+
+<!-- objective waypoint -->
+<g transform="translate(1470,210)" filter="url(#glow)">
+  <path d="M0,-12 L12,0 L0,12 L-12,0 Z" fill="none" stroke="#E8EEF7" stroke-width="2.5"/>
+  <path d="M0,-5 L5,0 L0,5 L-5,0 Z" fill="#E8EEF7"/>
+</g>
+<text x="1470" y="246" text-anchor="middle" class="m outline" font-size="14">2.4 km</text>
+
+<!-- ======================= EDGE ARROWS ======================= -->
+<g filter="url(#glow)">
+  <path d="M112,520 L128,508 L128,532 Z" fill="#FF4A3D"/>
+  <path d="M1808,300 L1792,288 L1792,312 Z" fill="#FF4A3D"/>
+  <circle cx="1800" cy="300" r="16" fill="none" stroke="#FF4A3D" stroke-width="1.5" opacity=".6"/>
+  <path d="M112,740 L130,726 L130,754 Z" fill="none" stroke="#2FE6FF" stroke-width="2.5"/>
+</g>
+
+<!-- ======================= OBJECTIVE PILL (top centre) ======================= -->
+<g>
+  <path d="M720,54 h480 l-12,30 h-456 z" fill="url(#plate)" stroke="#E8EEF7" stroke-opacity=".18"/>
+  <path d="M742,62 L750,70 L742,78 L734,70 Z" fill="none" stroke="#E8EEF7" stroke-width="2"/>
+  <text x="762" y="76" class="t caps" font-size="17" font-weight="700">Clear the area</text>
+  <text x="1176" y="76" text-anchor="end" class="m" font-size="17" font-weight="700">7 <tspan class="t" font-size="15">LEFT</tspan></text>
+</g>
+
+<!-- ======================= RETICLE CLUSTER (centre) ======================= -->
+<g id="cluster">
+  <!-- reticle -->
+  <circle cx="960" cy="540" r="2" fill="#E8EEF7"/>
+  <g stroke="#E8EEF7" stroke-width="2">
+    <line x1="960" y1="524" x2="960" y2="532"/><line x1="960" y1="548" x2="960" y2="556"/>
+    <line x1="944" y1="540" x2="952" y2="540"/><line x1="968" y1="540" x2="976" y2="540"/>
+  </g>
+  <!-- hull tracks + fills (thick inner) -->
+  <g fill="none" stroke-linecap="butt">
+    <path d="M926.3,568.3 A44,44 0 0 1 926.3,511.7" stroke="#8A94A6" stroke-opacity=".28" stroke-width="5"/>
+    <path d="M993.7,568.3 A44,44 0 0 0 993.7,511.7" stroke="#8A94A6" stroke-opacity=".28" stroke-width="5"/>
+    <path d="M926.3,568.3 A44,44 0 0 1 922.1,517.7" stroke="#E8EEF7" stroke-width="5"/>
+    <path d="M993.7,568.3 A44,44 0 0 0 997.9,517.7" stroke="#E8EEF7" stroke-width="5"/>
+    <!-- shield (thin outer) -->
+    <path d="M919.4,574.1 A53,53 0 0 1 919.4,505.9" stroke="#9FD8FF" stroke-opacity=".25" stroke-width="3"/>
+    <path d="M1000.6,574.1 A53,53 0 0 0 1000.6,505.9" stroke="#9FD8FF" stroke-opacity=".25" stroke-width="3"/>
+    <path d="M919.4,574.1 A53,53 0 0 1 908.0,529.7" stroke="#9FD8FF" stroke-width="3"/>
+    <path d="M1000.6,574.1 A53,53 0 0 0 1012.0,529.7" stroke="#9FD8FF" stroke-width="3"/>
+    <!-- overcharge timer ring (gold, dashed, drains) -->
+    <path d="M960,478 A62,62 0 1 1 898,540" stroke="#FFE7A0" stroke-width="2" stroke-dasharray="6 4" opacity=".9"/>
+    <!-- boost arc (bottom), with dodge notch -->
+    <path d="M936.1,605.8 A70,70 0 0 0 983.9,605.8" stroke="#8A94A6" stroke-opacity=".3" stroke-width="4"/>
+    <path d="M936.1,605.8 A70,70 0 0 0 969.7,609.3" stroke="#E8EEF7" stroke-width="4"/>
+  </g>
+  <rect x="985" y="601" width="3" height="9" fill="#E8EEF7"/>
+  <!-- signature power pip (ready, flown colour) -->
+  <g filter="url(#glow)">
+    <circle cx="1024" cy="596" r="17" fill="#0A0F1C" fill-opacity=".6" stroke="#FF4FD8" stroke-width="3"/>
+  </g>
+  <text x="1024" y="601" text-anchor="middle" class="t" font-size="15" font-weight="700">Q</text>
+  <!-- ability pip (cloak, cooling 60%) -->
+  <circle cx="896" cy="596" r="14" fill="#0A0F1C" fill-opacity=".6" stroke="#8A94A6" stroke-opacity=".4" stroke-width="3"/>
+  <path d="M896,582 A14,14 0 1 1 882.7,600.3" fill="none" stroke="#E8EEF7" stroke-width="3"/>
+  <text x="896" y="601" text-anchor="middle" class="t" font-size="13" font-weight="700" opacity=".6">E</text>
+  <!-- missile warning -->
+  <g transform="translate(960,452)">
+    <rect x="-75" y="-14" width="150" height="28" rx="4" fill="#0A0F1C" fill-opacity=".7" stroke="#FF4A3D" stroke-width="1.5"/>
+    <path d="M-56,6 L-48,-8 L-40,6 Z" fill="none" stroke="#FF4A3D" stroke-width="2"/>
+    <text x="8" y="6" text-anchor="middle" class="t caps" font-size="16" font-weight="700" style="fill:#FF4A3D">Missile</text>
+  </g>
+  <!-- hit direction arc (left) -->
+  <path d="M818.6,503.6 A150,150 0 0 0 818.6,576.4" fill="none" stroke="#FF4A3D" stroke-width="8" opacity=".75"/>
+</g>
+
+<!-- pickup toast (announces, then folds into the flown card's status row) -->
+<g transform="translate(1062,520)">
+  <rect x="0" y="0" width="214" height="44" rx="4" fill="#0A0F1C" fill-opacity=".72" stroke="#FFE7A0" stroke-opacity=".6"/>
+  <rect x="0" y="0" width="4" height="44" fill="#FFE7A0"/>
+  <g transform="translate(24,22) rotate(45)"><rect x="-7" y="-7" width="14" height="14" fill="none" stroke="#FFE7A0" stroke-width="2"/></g>
+  <text x="44" y="20" class="t caps" font-size="16" font-weight="700" style="fill:#FFE7A0">Overcharge</text>
+  <text x="44" y="37" class="t" font-size="13" style="fill:#E8EEF7">Damage x1.5 · <tspan class="m" font-size="13">8 s</tspan></text>
+</g>
+
+<!-- ======================= SUBTITLE ======================= -->
+<g>
+  <rect x="560" y="858" width="800" height="44" rx="4" fill="#0A0F1C" fill-opacity=".62"/>
+  <text x="588" y="887" class="t caps" font-size="16" font-weight="700" style="fill:#FF4FD8">Wren</text>
+  <text x="652" y="887" class="t" font-size="22" font-weight="500">Gunship's on Kato. Swing round and cut it off.</text>
+</g>
+
+<!-- ======================= SQUAD PANEL (bottom-left) ======================= -->
+<!-- CARD 1: RIFT (flown) -->
+<g id="card-rift">
+  <!-- status row above the card: active power-ups and flags -->
+  <g transform="translate(96,898)">
+    <rect x="0" y="0" width="156" height="22" rx="3" fill="#0A0F1C" fill-opacity=".75" stroke="#FFE7A0" stroke-opacity=".7"/>
+    <g transform="translate(13,11) rotate(45)"><rect x="-4" y="-4" width="8" height="8" fill="#FFE7A0"/></g>
+    <text x="26" y="16" class="t caps" font-size="12" font-weight="700" style="fill:#FFE7A0">Overcharge</text>
+    <text x="148" y="16" text-anchor="end" class="m" font-size="12" style="fill:#FFE7A0">6.2</text>
+    <rect x="26" y="19" width="92" height="2" fill="#FFE7A0" opacity=".8"/>
+  </g>
+  <path d="M96,926 h306 l14,14 v86 h-320 z" fill="url(#plate)" stroke="#FF4FD8" stroke-width="1.5"/>
+  <rect x="96" y="926" width="306" height="3" fill="#FF4FD8" filter="url(#glow)"/>
+  <!-- keycap -->
+  <rect x="108" y="940" width="24" height="24" rx="4" fill="none" stroke="#E8EEF7" stroke-width="1.5"/>
+  <text x="120" y="957" text-anchor="middle" class="t" font-size="14" font-weight="700">1</text>
+  <!-- ship glyph: crescent -->
+  <g transform="translate(152,952)"><path d="M2,-11 A11,11 0 1 0 2,11 A8.5,8.5 0 1 1 2,-11 Z" fill="#FF4FD8" filter="url(#glow)"/></g>
+  <text x="172" y="952" class="t caps" font-size="19" font-weight="700">Wren</text>
+  <text x="172" y="968" class="t caps dim" font-size="12" font-weight="600">Rift · Trickster</text>
+  <!-- shield bar (segmented, thin) -->
+  <text x="108" y="990" class="t caps dim" font-size="11" font-weight="700">SHD</text>
+  <rect x="140" y="982" width="180" height="6" fill="#9FD8FF" opacity=".16"/>
+  <rect x="140" y="982" width="115" height="6" fill="#9FD8FF"/>
+  <rect x="140" y="982" width="180" height="6" fill="url(#seg)"/>
+  <text x="352" y="990" text-anchor="end" class="m" font-size="14" style="fill:#9FD8FF">64</text>
+  <!-- hull bar (thick) -->
+  <text x="108" y="1012" class="t caps dim" font-size="11" font-weight="700">HUL</text>
+  <rect x="140" y="1001" width="180" height="12" fill="#E8EEF7" opacity=".14"/>
+  <rect x="140" y="1001" width="158" height="12" fill="#E8EEF7"/>
+  <rect x="140" y="1001" width="180" height="12" fill="url(#seg)"/>
+  <text x="352" y="1012" text-anchor="end" class="m" font-size="14">88</text>
+  <!-- signature power: ready -->
+  <g filter="url(#glow)"><circle cx="384" cy="956" r="16" fill="#FF4FD8" fill-opacity=".18" stroke="#FF4FD8" stroke-width="3"/></g>
+  <text x="384" y="961" text-anchor="middle" class="t" font-size="14" font-weight="700">Q</text>
+  <text x="384" y="984" text-anchor="middle" class="t caps" font-size="10" font-weight="700" style="fill:#FF4FD8">Portal</text>
+  <!-- unlocked ability: cloak, cooling -->
+  <circle cx="384" cy="1006" r="12" fill="none" stroke="#8A94A6" stroke-opacity=".4" stroke-width="2.5"/>
+  <path d="M384,994 A12,12 0 1 1 372.6,1009.7" fill="none" stroke="#E8EEF7" stroke-width="2.5"/>
+  <text x="384" y="1010" text-anchor="middle" class="t" font-size="11" font-weight="700" opacity=".7">E</text>
+</g>
+
+<!-- CARD 2: LANCER (wingman, under fire, low hull) -->
+<g id="card-lancer">
+  <g transform="translate(428,926)">
+    <rect x="0" y="0" width="118" height="20" rx="3" fill="#3a0d0b" fill-opacity=".85" stroke="#FF4A3D"/>
+    <path d="M8,15 L14,4 L20,15 Z" fill="none" stroke="#FF4A3D" stroke-width="1.6"/>
+    <text x="26" y="15" class="t caps" font-size="11" font-weight="700" style="fill:#FF8070">Under fire</text>
+  </g>
+  <path d="M428,950 h220 l12,12 v64 h-232 z" fill="url(#plate)" stroke="#FFB13B" stroke-width="1.5" stroke-dasharray="0"/>
+  <rect x="428" y="950" width="220" height="2" fill="#2FE6FF" opacity=".7"/>
+  <rect x="438" y="960" width="20" height="20" rx="3" fill="none" stroke="#E8EEF7" stroke-opacity=".8" stroke-width="1.3"/>
+  <text x="448" y="975" text-anchor="middle" class="t" font-size="12" font-weight="700">2</text>
+  <g transform="translate(474,970)"><path d="M0,-9 L7,8 L0,4 L-7,8 Z" fill="#2FE6FF"/></g>
+  <text x="490" y="975" class="t caps" font-size="14" font-weight="700">Kato</text>
+  <!-- trouble badge -->
+  <path d="M542,977 L550,963 L558,977 Z" fill="#FFB13B"/><text x="550" y="976" text-anchor="middle" font-size="10" font-weight="900" fill="#0A0F1C" font-family="Arial">!</text>
+  <!-- power ready dot + ability dot (locked) -->
+  <circle cx="616" cy="970" r="8" fill="#2FE6FF" fill-opacity=".85" filter="url(#glow)"/>
+  <circle cx="640" cy="970" r="7" fill="none" stroke="#8A94A6" stroke-width="1.5" stroke-dasharray="2.5 2.5"/>
+  <rect x="637" y="968" width="6" height="5" fill="#8A94A6"/><path d="M638,968 v-2 a2,2 0 0 1 4,0 v2" fill="none" stroke="#8A94A6" stroke-width="1.2"/>
+  <!-- bars -->
+  <rect x="438" y="992" width="170" height="4" fill="#9FD8FF" opacity=".16"/>
+  <rect x="438" y="1002" width="170" height="10" fill="#E8EEF7" opacity=".14"/>
+  <rect x="438" y="1002" width="53" height="10" fill="#FFB13B"/>
+  <rect x="491" y="1002" width="14" height="10" fill="#fff" opacity=".55"/>
+  <rect x="438" y="1002" width="170" height="10" fill="url(#seg)"/>
+  <text x="648" y="999" text-anchor="end" class="m" font-size="12" style="fill:#9FD8FF">0</text>
+  <text x="648" y="1013" text-anchor="end" class="m" font-size="13" style="fill:#FFB13B">31</text>
+</g>
+
+<!-- CARD 3: BASTION (wingman, healthy, power ready, ability unlocked) -->
+<g id="card-bastion">
+  <path d="M672,950 h220 l12,12 v64 h-232 z" fill="url(#plate)" stroke="#E8EEF7" stroke-opacity=".22" stroke-width="1"/>
+  <rect x="672" y="950" width="220" height="2" fill="#FFB13B" opacity=".7"/>
+  <rect x="682" y="960" width="20" height="20" rx="3" fill="none" stroke="#E8EEF7" stroke-opacity=".8" stroke-width="1.3"/>
+  <text x="692" y="975" text-anchor="middle" class="t" font-size="12" font-weight="700">3</text>
+  <g transform="translate(718,970)"><polygon points="0,-9 7.8,-4.5 7.8,4.5 0,9 -7.8,4.5 -7.8,-4.5" fill="#FFB13B"/></g>
+  <text x="734" y="975" class="t caps" font-size="14" font-weight="700">Moss</text>
+  <circle cx="860" cy="970" r="8" fill="#FFB13B" fill-opacity=".85" filter="url(#glow)"/>
+  <circle cx="884" cy="970" r="7" fill="none" stroke="#E8EEF7" stroke-width="2"/>
+  <circle cx="884" cy="970" r="2.5" fill="#E8EEF7"/>
+  <rect x="682" y="992" width="170" height="4" fill="#9FD8FF" opacity=".16"/>
+  <rect x="682" y="992" width="170" height="4" fill="#9FD8FF"/>
+  <rect x="682" y="1002" width="170" height="10" fill="#E8EEF7"/>
+  <rect x="682" y="992" width="170" height="20" fill="url(#seg)"/>
+  <text x="892" y="999" text-anchor="end" class="m" font-size="12" style="fill:#9FD8FF">100</text>
+  <text x="892" y="1013" text-anchor="end" class="m" font-size="13">100</text>
+</g>
+
+<!-- ======================= RADAR (bottom-right) ======================= -->
+<g id="radar">
+  <!-- header: wave timeline and what is coming -->
+  <path d="M1544,700 h280 v34 h-280 z" fill="url(#plate)" stroke="#E8EEF7" stroke-opacity=".15"/>
+  <text x="1556" y="722" class="t caps" font-size="13" font-weight="700">Wave <tspan class="m" font-size="14">3</tspan><tspan class="dim"> / 5</tspan></text>
+  <!-- wave pips: 2 done, current, 2 to come -->
+  <g transform="translate(1660,717)">
+    <rect x="0" y="-4" width="16" height="8" fill="#E8EEF7"/>
+    <rect x="20" y="-4" width="16" height="8" fill="#E8EEF7"/>
+    <rect x="40" y="-4" width="16" height="8" fill="#FF4A3D"/>
+    <rect x="60" y="-4" width="16" height="8" fill="none" stroke="#8A94A6" stroke-width="1.3"/>
+    <rect x="80" y="-4" width="16" height="8" fill="none" stroke="#8A94A6" stroke-width="1.3"/>
+  </g>
+  <rect x="1760" y="708" width="58" height="18" rx="3" fill="#3a0d0b" fill-opacity=".9" stroke="#FF4A3D"/>
+  <text x="1789" y="721" text-anchor="middle" class="m" font-size="12" style="fill:#FF8070">+4 0:04</text>
+  <!-- scope -->
+  <circle cx="1684" cy="886" r="140" fill="url(#scopeFill)" stroke="#E8EEF7" stroke-opacity=".35" stroke-width="1.5"/>
+  <g clip-path="url(#scopeClip)">
+    <!-- asteroid field as texture -->
+    <ellipse cx="1756" cy="952" rx="48" ry="30" fill="url(#stipple)" transform="rotate(-20 1756 952)"/>
+    <!-- forward view cone -->
+    <path d="M1684,886 L1603.7,771.3 A140,140 0 0 1 1764.3,771.3 Z" fill="#E8EEF7" opacity=".06"/>
+    <line x1="1684" y1="886" x2="1603.7" y2="771.3" stroke="#E8EEF7" stroke-opacity=".18"/>
+    <line x1="1684" y1="886" x2="1764.3" y2="771.3" stroke="#E8EEF7" stroke-opacity=".18"/>
+  </g>
+  <circle cx="1684" cy="886" r="93" fill="none" stroke="#E8EEF7" stroke-opacity=".16"/>
+  <circle cx="1684" cy="886" r="47" fill="none" stroke="#E8EEF7" stroke-opacity=".16"/>
+  <line x1="1544" y1="886" x2="1824" y2="886" stroke="#E8EEF7" stroke-opacity=".08"/>
+  <line x1="1684" y1="746" x2="1684" y2="1026" stroke="#E8EEF7" stroke-opacity=".08"/>
+  <!-- tick marks on rim -->
+  <g stroke="#E8EEF7" stroke-opacity=".5" stroke-width="1.5">
+    <line x1="1684" y1="746" x2="1684" y2="754"/><line x1="1824" y1="886" x2="1816" y2="886"/>
+    <line x1="1684" y1="1026" x2="1684" y2="1018"/><line x1="1544" y1="886" x2="1552" y2="886"/>
+  </g>
+  <!-- range label -->
+  <rect x="1660" y="1012" width="48" height="16" rx="3" fill="#0A0F1C"/>
+  <text x="1684" y="1024" text-anchor="middle" class="m" font-size="12" style="fill:#C9D3E6">1.5 km</text>
+
+  <!-- incoming warp-in on the rim (red arc + inward arrow + timer) -->
+  <path d="M1805.2,816 A140,140 0 0 1 1824,886" fill="none" stroke="#FF4A3D" stroke-width="5" filter="url(#glow)"/>
+  <path d="M1800,846 L1786,842 L1794,856 Z" fill="#FF4A3D"/>
+  <!-- objective (off-scope, pinned to rim) -->
+  <g transform="translate(1750,772)"><path d="M0,-7 L7,0 L0,7 L-7,0 Z" fill="none" stroke="#E8EEF7" stroke-width="2"/><circle r="2" fill="#E8EEF7"/></g>
+  <!-- planet beacon (off-scope, pinned) -->
+  <g transform="translate(1570,952)"><circle r="7" fill="none" stroke="#7CFFB0" stroke-width="1.8"/><circle r="2.5" fill="#7CFFB0"/></g>
+  <!-- portal gate -->
+  <g transform="translate(1600,930)"><ellipse rx="9" ry="6" fill="none" stroke="#B48CFF" stroke-width="2"/><ellipse rx="4" ry="2.5" fill="#B48CFF" opacity=".6"/></g>
+  <!-- pickup (hull) -->
+  <g transform="translate(1706,934)"><rect x="-1.5" y="-6" width="3" height="12" fill="#7CFF7A"/><rect x="-6" y="-1.5" width="12" height="3" fill="#7CFF7A"/></g>
+
+  <!-- enemies: shape = type, stem = height (up = above you, down = below), bright = above, dim = below -->
+  <!-- Each contact: blip at its height, a stem dropping to a foot dot on your plane.
+       Above you = full bright, stem below the blip. Below you = 55% and stem above the blip. -->
+  <!-- fighters (small chevrons), above -->
+  <g transform="translate(1660,820)"><line x1="0" y1="4" x2="0" y2="16" stroke="#FF4A3D" stroke-width="1.3"/><circle cy="16" r="1.6" fill="#FF4A3D"/><path d="M-5,-3 L0,4 L5,-3 L0,-0.5 Z" fill="#FF4A3D"/></g>
+  <g transform="translate(1680,808)"><line x1="0" y1="4" x2="0" y2="12" stroke="#FF4A3D" stroke-width="1.3"/><circle cy="12" r="1.6" fill="#FF4A3D"/><path d="M-5,-3 L0,4 L5,-3 L0,-0.5 Z" fill="#FF4A3D"/></g>
+  <!-- fighter below -->
+  <g transform="translate(1700,834)" opacity=".55"><line x1="0" y1="-4" x2="0" y2="-14" stroke="#FF4A3D" stroke-width="1.3"/><circle cy="-14" r="1.6" fill="#FF4A3D"/><path d="M-5,-3 L0,4 L5,-3 L0,-0.5 Z" fill="#FF4A3D"/></g>
+  <!-- current target: gunship (diamond) with target ring, above -->
+  <g transform="translate(1748,836)"><line x1="0" y1="7" x2="0" y2="20" stroke="#FF5A36" stroke-width="1.3"/><circle cy="20" r="1.6" fill="#FF5A36"/><path d="M0,-7 L7,0 L0,7 L-7,0 Z" fill="#FF5A36"/><circle r="12" fill="none" stroke="#FFE14A" stroke-width="1.5"/></g>
+  <!-- interceptor (narrow dart), below -->
+  <g transform="translate(1618,858)" opacity=".55"><line x1="0" y1="-6" x2="0" y2="-18" stroke="#FF5A36" stroke-width="1.3"/><circle cy="-18" r="1.6" fill="#FF5A36"/><path d="M0,-6 L3.5,6 L0,3.5 L-3.5,6 Z" fill="#FF5A36"/></g>
+  <!-- bomber (wide wedge), level with you: no stem -->
+  <g transform="translate(1722,790)"><path d="M-8,-4 L8,-4 L0,5 Z" fill="#FF5A36"/></g>
+  <!-- carrier off-scope pinned on rim (hollow hex) -->
+  <g transform="translate(1618,772)"><polygon points="0,-8 7,-4 7,4 0,8 -7,4 -7,-4" fill="none" stroke="#FF5A36" stroke-width="2"/><polygon points="0,-3 2.6,-1.5 2.6,1.5 0,3 -2.6,1.5 -2.6,-1.5" fill="#FF5A36"/></g>
+  <!-- incoming missile: flashing dot with trail, heading at you -->
+  <line x1="1660" y1="926" x2="1676" y2="904" stroke="#FF4A3D" stroke-width="2" opacity=".5"/>
+  <circle cx="1676" cy="904" r="4" fill="#FFFFFF" stroke="#FF4A3D" stroke-width="2" filter="url(#glow)"/>
+
+  <!-- wingmen -->
+  <g transform="translate(1656,922)"><path d="M0,-7 L6,6 L0,3 L-6,6 Z" fill="none" stroke="#2FE6FF" stroke-width="2"/></g>
+  <circle cx="1656" cy="922" r="11" fill="none" stroke="#FFB13B" stroke-width="1.2" opacity=".8"/>
+  <g transform="translate(1720,902)"><path d="M0,-7 L6,6 L0,3 L-6,6 Z" fill="none" stroke="#FFB13B" stroke-width="2"/></g>
+  <!-- you -->
+  <g transform="translate(1684,886)" filter="url(#glow)"><path d="M0,-9 L7,7 L0,3 L-7,7 Z" fill="#FF4FD8"/></g>
+</g>
+
+<!-- legend tag for the reader of this mockup (not part of the HUD) -->
+<text x="1896" y="30" text-anchor="end" font-size="12" fill="#ffffff" opacity=".35" font-family="Segoe UI, Arial">Concept A: squad bottom-left, radar bottom-right (recommended)</text>
+</svg>
+</div>
+</body>
+</html>

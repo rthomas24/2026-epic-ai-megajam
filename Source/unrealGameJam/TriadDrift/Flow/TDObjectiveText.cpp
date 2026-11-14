@@ -14,6 +14,9 @@
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
+#include "GameFramework/PlayerController.h"
+#include "GameFramework/Pawn.h"
 
 #define LOCTEXT_NAMESPACE "TDObjectiveText"
 
@@ -104,6 +107,24 @@ namespace TDObjectiveTextImpl
 			return true;
 		}
 		const FTDWaveInfo Info = Director ? Director->GetWaveInfo() : FTDWaveInfo();
+		// The tutorial's end (T7's play, Nov 14: the line still read CLEAR THE AREA under Command's order to pull back):
+		// from the order, the withdrawal; past the line, the jump point (T4's waypoint TD.Tutorial.JumpPoint) until the jump.
+		// Placeholder words; the storyline's are Nicholas's.
+		if (Director && Director->GetTutorialPhase() == ETDTutorialPhase::Withdrawal)
+		{
+			Out = Line(TEXT("Tutorial_Withdraw"), Info.WaveNumber, LOCTEXT("Withdraw", "WITHDRAW · FOLLOW THE MARKER"));
+			return true;
+		}
+		if (Director && Director->GetTutorialPhase() == ETDTutorialPhase::Escaped && Info.WaveNumber <= 2)
+		{
+			bool bJumpPoint = false;
+			for (TActorIterator<AActor> It(World); It && !bJumpPoint; ++It) { bJumpPoint = It->ActorHasTag(TEXT("TD.Tutorial.JumpPoint")); }
+			if (bJumpPoint || !Info.bWaveActive)
+			{
+				Out = Line(TEXT("Tutorial_JumpPoint"), Info.WaveNumber, LOCTEXT("JumpPoint", "REACH THE JUMP POINT"));
+				return true;
+			}
+		}
 		if (Info.bWaveActive && Info.WaveNumber > 0)
 		{
 			const FName Scene = Info.SceneId.IsNone() ? FName(*FString::Printf(TEXT("Wave%d"), Info.WaveNumber)) : Info.SceneId;
@@ -111,7 +132,7 @@ namespace TDObjectiveTextImpl
 			{
 				FName PromptId;
 				FText Prompt;
-				if (UTDTutorialPhases::GetPrompt(World, PromptId, Prompt))
+				if (Info.WaveNumber <= 2 && UTDTutorialPhases::GetPrompt(World, PromptId, Prompt)) // never past the tutorial (TD.Stage Wave3 showed it)
 				{
 					Out.Id = Scene; // the scene stays the wave (slates, takes); only the line changes
 					Out.Step = Info.WaveNumber;
@@ -122,7 +143,8 @@ namespace TDObjectiveTextImpl
 			Out.Id = Scene;
 			Out.Step = Info.WaveNumber;
 			// storyline.md section 13: nobody names the enemy (and Nicholas has no approved wave line yet).
-			Out.Text = FText::Format(LOCTEXT("Wave", "WAVE {0} · CLEAR THE AREA"), Info.WaveNumber);
+			// T4's per-wave objective (126b238d: wave 5 "BREAK THE DOMINION GUARD"), else the generic line.
+			Out.Text = !Info.ObjectiveText.IsEmpty() ? Info.ObjectiveText : FText::Format(LOCTEXT("Wave", "WAVE {0} · CLEAR THE AREA"), Info.WaveNumber);
 			return true;
 		}
 		const int32 Next = FMath::Max(Info.WaveNumber, P.WavesCleared) + 1;
@@ -294,6 +316,13 @@ void FTDObjectiveText::ComputeMarkers(UWorld* World, const FTDProgress& Progress
 		{
 			FText Unused;
 			Interior->GetIdleLine(Unused, Out); // the next room's door
+		}
+		// Through each doorway square-on: the marker is the next door between the pilot and the target.
+		const APlayerController* PC = World->GetFirstPlayerController();
+		const APawn* Pilot = PC ? PC->GetPawn() : nullptr;
+		if (Interior && Interior->IsInterior() && Pilot)
+		{
+			for (AActor*& M : Out) { M = Interior->RouteThroughDoors(Pilot->GetActorLocation(), M); }
 		}
 	}
 }

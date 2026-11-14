@@ -18,10 +18,16 @@ class UNREALGAMEJAM_API ATDEscapeDebris : public AActor
 	GENERATED_BODY()
 
 public:
+	/** The largest a debris art piece is drawn (cm): big plates still leave the corridor flyable. */
+	float MaxArtSizeCm = 2800.f;
+	bool IsArtPiece() const { return bArtPiece; }
 	ATDEscapeDebris();
 
 	/** Size (cm across), drift velocity (cm/s) and spin (deg/s). */
 	void Launch(float SizeCm, const FVector& InVelocity, const FRotator& InSpin);
+
+	/** Launch as a given mesh at a uniform scale (the Dominion's hull-section chunks: the art's own size matters). */
+	void LaunchArt(class UStaticMesh* Art, float Scale, const FVector& InVelocity, const FRotator& InSpin);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Escape", meta = (ClampMin = "0"))
 	float Damage = 20.f;
@@ -45,4 +51,5 @@ protected:
 	float Age = 0.f;
 	float Radius = 1000.f;
 	bool bHit = false;
+	bool bArtPiece = false;
 };

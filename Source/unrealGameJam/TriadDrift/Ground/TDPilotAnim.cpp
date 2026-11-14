@@ -47,6 +47,13 @@ namespace TDLoopBlend
 		FVector ForwardCS = FVector(0.f, 1.f, 0.f);
 		double ShotTime = 0.0;
 		float ShotAlpha = 0.f;
+		const UAnimSequenceBase* Legs = nullptr;
+		double LegTime = 0.0;
+		float LegAlpha = 0.f;
+		const UAnimSequenceBase* PrevShot = nullptr;
+		double PrevShotTime = 0.0;
+		float PrevShotAlpha = 0.f;
+		bool bPrevShotUpper = false;
 		const UAnimSequenceBase* Grip = nullptr;
 		float GripAlpha = 0.f;
 		FName GripHand;
@@ -67,6 +74,13 @@ namespace TDLoopBlend
 			ShotTime = A->ShotTime;
 			ShotAlpha = A->ShotAlpha;
 			bShotUpper = A->bShotUpper;
+			Legs = A->Legs;
+			LegTime = A->LegTime;
+			LegAlpha = A->LegAlpha;
+			PrevShot = A->PrevShot;
+			PrevShotTime = A->PrevShotTime;
+			PrevShotAlpha = A->PrevShotAlpha;
+			bPrevShotUpper = A->bPrevShotUpper;
 			Upper = A->Upper;
 			UpperTime = A->UpperTime;
 			UpperAlpha = A->UpperAlpha;
@@ -192,6 +206,49 @@ namespace TDLoopBlend
 			}
 		}
 
+		/** Blend Over into Output by W on every bone OUTSIDE UpperRoot's subtree (root, pelvis, legs), local space. */
+		void BlendLower(FPoseContext& Output, const FPoseContext& Over, float W) const
+		{
+			const FBoneContainer& Bones = Output.Pose.GetBoneContainer();
+			const FReferenceSkeleton& Ref = Bones.GetReferenceSkeleton();
+			const int32 Root = UpperRoot.IsNone() ? INDEX_NONE : Ref.FindBoneIndex(UpperRoot);
+			if (Root == INDEX_NONE)
+			{
+				return;
+			}
+			// The rotation the upper body hangs from (UpperRoot's parent chain), before and after: the chest keeps its
+			// facing however the strafe clip turns the hips (an orientation-warp-like counter-twist).
+			const int32 Parent = Ref.GetParentIndex(Root);
+			auto ChainRot = [&Bones, &Ref, &Output](int32 MeshIndex)
+			{
+				FQuat Q = FQuat::Identity;
+				for (int32 I = MeshIndex; I != INDEX_NONE; I = Ref.GetParentIndex(I))
+				{
+					const FCompactPoseBoneIndex C = Bones.MakeCompactPoseIndex(FMeshPoseBoneIndex(I));
+					if (C.IsValid())
+					{
+						Q = Output.Pose[C].GetRotation() * Q;
+					}
+				}
+				return Q;
+			};
+			const FQuat Before = Parent != INDEX_NONE ? ChainRot(Parent) : FQuat::Identity;
+			for (const FCompactPoseBoneIndex B : Output.Pose.ForEachBoneIndex())
+			{
+				const int32 Mesh = Bones.MakeMeshPoseIndex(B).GetInt();
+				if (Mesh != Root && !Ref.BoneIsChildOf(Mesh, Root))
+				{
+					Output.Pose[B].BlendWith(Over.Pose[B], W);
+				}
+			}
+			const FCompactPoseBoneIndex RootC = Bones.MakeCompactPoseIndex(FMeshPoseBoneIndex(Root));
+			if (Parent != INDEX_NONE && RootC.IsValid())
+			{
+				const FQuat After = ChainRot(Parent);
+				Output.Pose[RootC].SetRotation((After.Inverse() * Before * Output.Pose[RootC].GetRotation()).GetNormalized());
+			}
+		}
+
 		virtual bool Evaluate(FPoseContext& Output) override
 		{
 			if (bProcedural)
@@ -212,12 +269,35 @@ namespace TDLoopBlend
 				Previous->GetAnimationPose(UnderData, FAnimExtractContext(PreviousTime, false, {}, true));
 				FAnimationRuntime::BlendTwoPosesTogetherInPlace(OutData, UnderData, Alpha);
 			}
+			if (Legs && LegAlpha > 0.f)
+			{
+				FPoseContext Step(this);
+				FAnimationPoseData StepData(Step);
+				Legs->GetAnimationPose(StepData, FAnimExtractContext(LegTime, false, {}, true));
+				BlendLower(Output, Step, LegAlpha);
+			}
 			if (Upper && UpperAlpha > 0.f)
 			{
 				FPoseContext Guard(this);
 				FAnimationPoseData GuardData(Guard);
 				Upper->GetAnimationPose(GuardData, FAnimExtractContext(UpperTime, false, {}, true));
 				BlendUpper(Output, Guard, UpperAlpha);
+			}
+			// The swing being replaced (a chained combo hit) fades out under the new one instead of snapping to its
+			// first frame: the hand carries on from where the last cut ended.
+			if (PrevShot && PrevShotAlpha > 0.f)
+			{
+				FPoseContext Out(this);
+				FAnimationPoseData OutShotData(Out);
+				PrevShot->GetAnimationPose(OutShotData, FAnimExtractContext(PrevShotTime, false, {}, false));
+				if (bPrevShotUpper)
+				{
+					BlendUpper(Output, Out, PrevShotAlpha);
+				}
+				else
+				{
+					FAnimationRuntime::BlendTwoPosesTogetherInPlace(OutData, OutShotData, 1.f - PrevShotAlpha);
+				}
 			}
 			if (Shot && ShotAlpha > 0.f)
 			{
@@ -268,6 +348,24 @@ void UTDLoopBlendAnimInstance::SetLoop(UAnimSequenceBase* Loop, float Rate)
 	Alpha = Previous ? 0.f : 1.f;
 }
 
+void UTDLoopBlendAnimInstance::SetLegLoop(UAnimSequenceBase* Loop, float Rate)
+{
+	bLegsWanted = Loop != nullptr;
+	if (Loop)
+	{
+		LegRate = Rate;
+		if (Loop != Legs)
+		{
+			// A new direction: start from the main loop's stride phase and fade in from the legs on screen.
+			const float MainLength = Current ? Current->GetPlayLength() : 0.f;
+			const double Phase = MainLength > 0.f ? FMath::Fmod(CurrentTime, (double)MainLength) / MainLength : 0.0;
+			Legs = TDMakePlayable(Loop);
+			LegTime = Phase * Legs->GetPlayLength();
+			LegAlpha = 0.f;
+		}
+	}
+}
+
 void UTDLoopBlendAnimInstance::SetUpperLoop(UAnimSequenceBase* Loop)
 {
 	bUpperWanted = Loop != nullptr;
@@ -278,7 +376,7 @@ void UTDLoopBlendAnimInstance::SetUpperLoop(UAnimSequenceBase* Loop)
 	}
 }
 
-void UTDLoopBlendAnimInstance::PlayOneShot(UAnimSequenceBase* InShot, float Rate, bool bUpperBodyOnly, bool bHold)
+void UTDLoopBlendAnimInstance::PlayOneShot(UAnimSequenceBase* InShot, float Rate, bool bUpperBodyOnly, bool bHold, float BlendIn)
 {
 	if (!InShot)
 	{
@@ -289,22 +387,45 @@ void UTDLoopBlendAnimInstance::PlayOneShot(UAnimSequenceBase* InShot, float Rate
 	{
 		return;
 	}
+	// A shot already showing (a combo hit chained on the last): keep its pose and fade it out under the new one
+	// over ChainBlendSeconds, so the new swing does not snap to its own first frame.
+	if (Shot && ShotAlpha > 0.f && TDPilotMeleePassOn())
+	{
+		PrevShot = Shot;
+		PrevShotTime = ShotTime;
+		PrevShotRate = ShotRate;
+		PrevShotAlpha = ShotAlpha;
+		bPrevShotUpper = bShotUpper;
+		ShotAlpha = 0.f;
+	}
 	Shot = TDMakePlayable(InShot);
 	ShotTime = 0.0;
 	ShotRate = Rate;
 	bShotUpper = bUpperBodyOnly;
 	bShotHold = bHold;
+	ShotBlendIn = BlendIn;
 	ShotAlpha = FMath::Max(ShotAlpha, 0.01f);
 }
 
 void UTDLoopBlendAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
+	if (PrevShot)
+	{
+		// The outgoing swing keeps playing (its follow-through) under the new one, at its own weight, until the new
+		// one is fully in (no dip toward the loop in between).
+		PrevShotTime = FMath::Min(PrevShotTime + DeltaSeconds * PrevShotRate, (double)FMath::Max(0.f, PrevShot->GetPlayLength() - 0.001f));
+		if (!Shot || ShotAlpha >= 1.f)
+		{
+			PrevShot = nullptr;
+			PrevShotAlpha = 0.f;
+		}
+	}
 	if (Shot)
 	{
 		const float Length = Shot->GetPlayLength();
 		ShotTime += DeltaSeconds * ShotRate;
-		const float Fade = 0.1f;
+		const float Fade = PrevShot ? ChainBlendSeconds : (ShotBlendIn > 0.f ? ShotBlendIn : 0.1f);
 		if (bShotHold)
 		{
 			ShotTime = FMath::Min(ShotTime, (double)FMath::Max(0.f, Length - 0.001f));
@@ -326,6 +447,16 @@ void UTDLoopBlendAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		}
 	};
 	Advance(Current, CurrentTime);
+	if (Legs)
+	{
+		const float Length = Legs->GetPlayLength();
+		LegTime = Length > 0.f ? FMath::Fmod(LegTime + DeltaSeconds * LegRate, (double)Length) : 0.0;
+		LegAlpha = FMath::Clamp(LegAlpha + (bLegsWanted ? 1.f : -1.f) * (LegBlendSeconds > 0.f ? DeltaSeconds / LegBlendSeconds : 1.f), 0.f, 1.f);
+		if (!bLegsWanted && LegAlpha <= 0.f)
+		{
+			Legs = nullptr;
+		}
+	}
 	if (Upper)
 	{
 		const float Length = Upper->GetPlayLength();

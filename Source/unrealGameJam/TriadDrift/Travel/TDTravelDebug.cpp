@@ -21,6 +21,10 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/World/TDDockingBay.h"
+#include "TriadDrift/World/TDPortalGate.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/StaticMesh.h"
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
 #include "TriadDrift/Travel/TDLandingPad.h"
@@ -75,11 +79,14 @@ namespace TDTravelDebug
 			const FVector Center = It->GetPlanetCenter();
 			FVector Out = (Ship->GetActorLocation() - Center).GetSafeNormal();
 			if (Out.IsNearlyZero()) { Out = FVector::BackwardVector; }
-			const FVector Start = Center + Out * (It->GetAtmosphereRadius() + 1500.f);
+			// [m outside the atmosphere = 15] [open 1|0 = 1]: "0" leaves the planet as the journey has it (#161: a closed planet).
+			const float OutM = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 15.f;
+			const bool bOpenIt = Args.Num() > 2 ? FCString::Atoi(*Args[2]) != 0 : true;
+			const FVector Start = Center + Out * (It->GetAtmosphereRadius() + OutM * 100.f);
 			if (UTDHyperdriveComponent* Hyper = Ship->GetHyperdrive()) { Hyper->ResetHyperdrive(); }
-			It->SetOpen(true); // the marker would be up by now in the real journey
+			if (bOpenIt) { It->SetOpen(true); } // the marker would be up by now in the real journey
 			Ship->TeleportSpacecraft(Start, (-Out).Rotation(), false);
-			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.ToPlanet: %s at %s, entering"), *Name, *Start.ToString());
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.ToPlanet: %s at %s, %.0f m outside the atmosphere, planet %s"), *Name, *Start.ToString(), OutM, It->IsOpen() ? TEXT("open: entering") : TEXT("CLOSED"));
 			return;
 		}
 		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.ToPlanet: no planet atmosphere named %s"), *Want);
@@ -263,6 +270,109 @@ static FAutoConsoleCommandWithWorldAndArgs GTDTravelJumpFromCmd(TEXT("TD.Travel.
 			return;
 		}
 		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.JumpFrom: no planet named %s"), *Want);
+#endif
+	}));
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelToDockCmd(TEXT("TD.Travel.ToDock"),
+	TEXT("Captures: put the flown ship <m> out on the Dominion bay's approach axis, <side m> off it, facing the mouth (then fly in by hand): TD.Travel.ToDock [m=1500] [side m=0] [aim 0 = the mouth | 1 = straight along the axis]"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		ATDShip* Ship = TDTravelDebug::GetPlayerShip(World);
+		ATDDockingBay* Bay = nullptr;
+		for (TActorIterator<ATDDockingBay> It(World); It; ++It) { Bay = *It; break; }
+		if (!Ship || !Bay) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.ToDock: %s"), !Ship ? TEXT("no player ship") : TEXT("no docking bay")); return; }
+		const float Out = (Args.Num() > 0 ? FCString::Atof(*Args[0]) : 1500.f) * 100.f;
+		const float Side = (Args.Num() > 1 ? FCString::Atof(*Args[1]) : 0.f) * 100.f;
+		const bool bAlongAxis = Args.Num() > 2 && FCString::Atoi(*Args[2]) == 1;
+		const FVector Axis = Bay->GetOutward();
+		const FVector Right = FVector::CrossProduct(FVector::UpVector, Axis).GetSafeNormal(UE_SMALL_NUMBER, FVector::RightVector);
+		const FVector At = Bay->GetMouth() + Axis * Out + Right * Side;
+		const FRotator Facing = bAlongAxis ? (-Axis).Rotation() : (Bay->GetMouth() - At).Rotation();
+		Ship->TeleportSpacecraft(At, Facing, false);
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.ToDock: %.0f m out, %.0f m off the axis, bay %s"), Out / 100.f, Side / 100.f,
+			*UEnum::GetValueAsString(Bay->GetDockingState()));
+	}));
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelAimPadCmd(TEXT("TD.Travel.AimPad"),
+	TEXT("Captures: steer the flown ship's nose at the player pad's beacon through the real input (TD.Input.TurnToward) and log the distance: TD.Travel.AimPad [seconds=1.5] [m above the beacon=60]"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		ATDShip* Ship = TDTravelDebug::GetPlayerShip(World);
+		ATDPlanetTravelRig* Rig = TDTravelDebug::FindFirst<ATDPlanetTravelRig>(World);
+		const ATDLandingPad* Pad = Rig ? Rig->GetPlayerPad() : nullptr;
+		if (!Ship || !Pad) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.AimPad: ship=%d pad=%d"), Ship != nullptr, Pad != nullptr); return; }
+		const float Secs = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 1.5f;
+		const float Above = (Args.Num() > 1 ? FCString::Atof(*Args[1]) : 60.f) * 100.f;
+		const FVector To = Pad->GetBeaconLocation() + FVector(0.f, 0.f, Above) - Ship->GetActorLocation();
+		const FRotator R = To.Rotation();
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.AimPad: %.0f m to the pad (%.0f m flat, %.0f m below), yaw %.1f pitch %.1f, speed %.0f m/s, prompt '%s'"),
+			FVector::Dist(Pad->GetBeaconLocation(), Ship->GetActorLocation()) / 100.f, FVector::Dist2D(Pad->GetBeaconLocation(), Ship->GetActorLocation()) / 100.f,
+			(Ship->GetActorLocation().Z - Pad->GetBeaconLocation().Z) / 100.f, R.Yaw, R.Pitch, Ship->GetVelocity().Size() / 100.f,
+			Ship->GetLanding() ? *Ship->GetLanding()->GetLandPrompt().ToString() : TEXT(""));
+		GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f %.2f"), R.Yaw, R.Pitch, FMath::Max(0.3f, Secs)));
+	}));
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelToGateCmd(TEXT("TD.Travel.ToGate"),
+	TEXT("Captures: put the flown ship <m> in front of a portal gate (name contains <id>, default the flank pair), nose on its centre: TD.Travel.ToGate [id=Flank_West] [m=600]"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		ATDShip* Ship = TDTravelDebug::GetPlayerShip(World);
+		const FString Want = Args.Num() > 0 ? Args[0] : TEXT("Flank_West");
+		const float Out = (Args.Num() > 1 ? FCString::Atof(*Args[1]) : 600.f) * 100.f;
+		for (TActorIterator<ATDPortalGate> It(World); It && Ship; ++It)
+		{
+			if (!It->GateId.ToString().Contains(Want)) { continue; }
+			const FVector At = It->GetActorLocation() + It->GetActorForwardVector() * Out;
+			Ship->TeleportSpacecraft(At, (It->GetActorLocation() - At).Rotation(), false);
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.ToGate: %s at %s, %.0f m out, active %d, radius %.0f m"), *It->GateId.ToString(), *It->GetActorLocation().ToCompactString(), Out / 100.f, It->IsGateActive() ? 1 : 0, It->Radius / 100.f);
+			return;
+		}
+		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.ToGate: no gate named like %s"), *Want);
+	}));
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelAimGateCmd(TEXT("TD.Travel.AimGate"),
+	TEXT("Captures: steer the flown ship's nose at the nearest portal gate (the ATDPortalGate actor's own centre) through the real input; logs its distance, active state and the nearest gate-ring dressing mesh's offset: TD.Travel.AimGate [seconds=1.0]"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		ATDShip* Ship = TDTravelDebug::GetPlayerShip(World);
+		if (!Ship) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.AimGate: no player ship")); return; }
+		const ATDPortalGate* Best = nullptr;
+		for (TActorIterator<ATDPortalGate> It(World); It; ++It)
+		{
+			if (!Best || FVector::DistSquared(It->GetActorLocation(), Ship->GetActorLocation()) < FVector::DistSquared(Best->GetActorLocation(), Ship->GetActorLocation())) { Best = *It; }
+		}
+		if (!Best) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.AimGate: no portal gate")); return; }
+		// The nearest static mesh named like a gate ring (environment dressing), to see whether the art sits on the gate.
+		float RingDist = -1.f;
+		FVector RingAt = FVector::ZeroVector;
+		for (TActorIterator<AActor> It(World); It; ++It)
+		{
+			TArray<UStaticMeshComponent*> Meshes;
+			It->GetComponents<UStaticMeshComponent>(Meshes);
+			for (const UStaticMeshComponent* M : Meshes)
+			{
+				if (!M || !M->GetStaticMesh() || !M->GetStaticMesh()->GetName().Contains(TEXT("GateRing"))) { continue; }
+				const float D = FVector::Dist(M->GetComponentLocation(), Best->GetActorLocation());
+				if (RingDist < 0.f || D < RingDist) { RingDist = D; RingAt = M->GetComponentLocation(); }
+			}
+		}
+		const FRotator R = (Best->GetActorLocation() - Ship->GetActorLocation()).Rotation();
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.AimGate: %s at %s, %.0f m from the ship, active %d | nearest GateRing mesh %.0f m from the gate centre (at %s) | yaw %.1f pitch %.1f"),
+			*Best->GetName(), *Best->GetActorLocation().ToCompactString(), FVector::Dist(Best->GetActorLocation(), Ship->GetActorLocation()) / 100.f, Best->IsGateActive() ? 1 : 0,
+			RingDist / 100.f, *RingAt.ToCompactString(), R.Yaw, R.Pitch);
+		const float Secs = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 1.f;
+		GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f %.2f"), R.Yaw, R.Pitch, FMath::Max(0.3f, Secs)));
+	}));
+static FAutoConsoleCommandWithWorldAndArgs GTDTravelOpenPlanetCmd(TEXT("TD.Travel.OpenPlanet"),
+	TEXT("Captures: open a planet's atmosphere trigger without moving the ship (a natural approach): TD.Travel.OpenPlanet Verdance|Cinder"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+#if TD_TRAVELDEBUG_HAS_PLANETS
+		const FString Want = Args.Num() > 0 ? Args[0] : TEXT("Verdance");
+		for (TActorIterator<ATDPlanetAtmosphere> It(World); It; ++It)
+		{
+			if (!StaticEnum<ETDDestination>()->GetNameStringByValue((int64)It->GetDestination()).Equals(Want, ESearchCase::IgnoreCase)) { continue; }
+			It->SetOpen(true);
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Travel.OpenPlanet: %s open"), *Want);
+			return;
+		}
+		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Travel.OpenPlanet: no planet named %s"), *Want);
 #endif
 	}));
 static FAutoConsoleCommandWithWorldAndArgs GTDTravelToPlanetCmd(TEXT("TD.Travel.ToPlanet"),

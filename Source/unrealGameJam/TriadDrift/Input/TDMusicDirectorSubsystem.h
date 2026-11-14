@@ -67,6 +67,13 @@ public:
 
 	/** How many times playback started from the top (tests: a hold or fade-out swell never restarts it). */
 	int32 GetStartCount() const { return StartCount; }
+
+	/** The combat track the director would play now (tests, the played check): waves 3-5 take the style's optional
+	 * CombatMusicLate slot, else Nick's handed-off waves 3-5 track as a marked fallback (N-074); other phases CombatMusic. */
+	USoundBase* GetResolvedCombatMusic() const { return ResolveMusic(); }
+	/** True while the waves 3-5 fallback (not a style slot) is the combat track. */
+	bool IsLateWaveFallback() const { return bLateFallback; }
+	static const FSoftObjectPath& LateWaveFallbackPath();
 	UAudioComponent* GetAudioComponent() const { return Audio; }
 
 	/** Tests: the track instead of the style slot (null = the slot is empty). */
@@ -92,6 +99,8 @@ public:
 	float GetAppliedVolume() const { return Envelope * IntensityGain; }
 	/** Tests (review M10): how many times the style slot was looked up (never per frame while silent). */
 	int32 GetMusicLookupsForTests() const { return MusicLookups; }
+	/** T7 perf: score slots requested in the background or already held (none is ever loaded on the game thread). */
+	int32 GetPrimedScoreCountForTests() const { return PendingScores.Num() + HeldScores.Num(); }
 	/** Tests: force the music intensity (otherwise UTDAudioStateSubsystem's smoothed MusicIntensity01). */
 	void SetIntensityForTests(TOptional<float> InIntensity) { IntensityOverride = InIntensity; }
 
@@ -117,6 +126,11 @@ public:
 	void ReleaseExclusiveScore(FName Owner, float FadeSeconds = 0.f);
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music")
 	bool IsExclusiveScoreHeld() const { return ExclusiveClaims.Num() > 0; }
+	/** R-047: the engineering fallback (UTDMusicFallbackSubsystem) is sounding a placement; the beds hold meanwhile. */
+	bool IsFallbackScorePlaying() const;
+	/** The menu music steps aside: another score claims the music, or a fallback placement (the credits) plays. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music")
+	bool ShouldMenuMusicYield() const { return IsExclusiveScoreHeld() || IsFallbackScorePlaying(); }
 
 	/** True while the quiet-flight score plays (UTDUIStyle::IdleSpaceMusic). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music")
@@ -162,6 +176,11 @@ private:
 	UPROPERTY(Transient) TObjectPtr<USoundBase> AmbienceBed;
 	/** The combat track, held once found (a packaged build would otherwise reload it after every GC). */
 	UPROPERTY(Transient) mutable TObjectPtr<USoundBase> CachedMusic;
+	/** Waves 3-5 (N-074): the style's CombatMusicLate slot or the marked fallback; held once found. */
+	UPROPERTY(Transient) mutable TObjectPtr<USoundBase> CachedLateMusic;
+	mutable bool bLateFallback = false;
+	bool IsLateWavePhase() const;
+	USoundBase* ResolveLateMusic() const;
 	mutable float MusicRetry = 0.f;
 	mutable int32 MusicLookups = 0;
 	bool bUseAmbienceOverride = false;
@@ -171,6 +190,11 @@ private:
 	float TargetIntensityGain() const;
 	float AmbienceRetry = 0.f;
 	USoundBase* ResolveAmbience() const;
+	/** The loaded sound, or null while it streams in (requested once, in the background; never a game-thread load). */
+	USoundBase* AsyncSound(const FSoftObjectPtr& Soft) const;
+	void PrimeScoreSlots();
+	UPROPERTY(Transient) mutable TArray<TObjectPtr<USoundBase>> HeldScores;
+	mutable TMap<FSoftObjectPath, TSharedPtr<struct FStreamableHandle>> PendingScores;
 	void TickAmbience(float Dt, bool bStop);
 	UPROPERTY(Transient) TObjectPtr<USoundBase> MusicOverride;
 	bool bUseOverride = false;

@@ -20,6 +20,8 @@
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 
 namespace TDStoryWalk
 {
@@ -97,6 +99,58 @@ namespace TDStoryWalk
 		UE_LOG(LogTriadDrift, Warning, TEXT("TD.Story.Goto: no active objective"));
 	}
 
+	// The menu's CONTINUE runs UTDGameInstance::ContinueRun (TDFrontEndGameModes.cpp); this calls the same function for
+	// agents, whose injected keys never reach the menu's Slate focus.
+	static FAutoConsoleCommandWithWorldAndArgs CmdConsole(TEXT("TD.Story.Console"),
+		TEXT("TD.Story.Console [n]: stand the pilot in front of the n-th recording console of the interior (0 = nearest the start), facing it; E plays it."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+			APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+			if (!Pawn) { return; }
+			TArray<ATDSurveyTerminal*> Consoles;
+			for (TActorIterator<ATDSurveyTerminal> It(World); It; ++It)
+			{
+				if (!It->bAnnounceRecords) { Consoles.Add(*It); } // the interior's recordings (T5's story consoles)
+			}
+			const FVector From = Pawn->GetActorLocation();
+			Consoles.Sort([&From](const ATDSurveyTerminal& A, const ATDSurveyTerminal& B) { return FVector::DistSquared(A.GetActorLocation(), From) < FVector::DistSquared(B.GetActorLocation(), From); });
+			const int32 N = Args.Num() > 0 ? FCString::Atoi(*Args[0]) : 0;
+			if (!Consoles.IsValidIndex(N))
+			{
+				UE_LOG(LogTriadDrift, Warning, TEXT("TD.Story.Console: %d recording consoles, no %d"), Consoles.Num(), N);
+				return;
+			}
+			const ATDSurveyTerminal* C = Consoles[N];
+			const FVector Front = C->GetActorForwardVector().GetSafeNormal2D();
+			const FVector At = C->GetActorLocation() + Front * 140.f + FVector(0.f, 0.f, 30.f);
+			Pawn->SetActorLocation(At, false, nullptr, ETeleportType::TeleportPhysics);
+			PC->SetControlRotation((C->GetActorLocation() - At).Rotation());
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Story.Console: at %s (%d of %d), in front of %s"), *At.ToCompactString(), N, Consoles.Num(), *C->GetName());
+		}));
+	static FAutoConsoleCommandWithWorldAndArgs CmdSubtitles(TEXT("TD.Story.Subtitles"),
+		TEXT("TD.Story.Subtitles 0|1: the player's subtitles setting (as the Options menu sets it)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (UTDSettingsSubsystem* S = UTDSettingsSubsystem::GetTDSettings(World))
+			{
+				S->SetSubtitlesEnabled(Args.Num() == 0 || FCString::Atoi(*Args[0]) != 0);
+				if (Args.Num() > 1) // TD.Story.Subtitles 1 Small|Medium|Large
+				{
+					S->SetSubtitleSize(Args[1].Equals(TEXT("Small"), ESearchCase::IgnoreCase) ? ETDSubtitleSize::Small
+						: (Args[1].Equals(TEXT("Large"), ESearchCase::IgnoreCase) ? ETDSubtitleSize::Large : ETDSubtitleSize::Medium));
+				}
+				UE_LOG(LogTriadDrift, Log, TEXT("TD.Story.Subtitles: %s"), S->AreSubtitlesEnabled() ? TEXT("on") : TEXT("off"));
+			}
+		}));
+	static FAutoConsoleCommandWithWorldAndArgs CmdContinue(TEXT("TD.Story.Continue"),
+		TEXT("TD.Story.Continue: what the main menu's CONTINUE does (UTDGameInstance::ContinueRun)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
+		{
+			UTDGameInstance* GI = UTDGameInstance::Get(World);
+			const bool bOk = GI && GI->ContinueRun();
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Story.Continue: %s"), bOk ? TEXT("continuing the saved run") : TEXT("nothing to continue"));
+		}));
 	static FAutoConsoleCommandWithWorldAndArgs CmdGoto(TEXT("TD.Story.Goto"),
 		TEXT("TD.Story.Goto Trailhead <ObjectiveId> | Step | Survey: stand the on-foot pilot at a real course step (then press E for real)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Goto));

@@ -1,226 +1,30 @@
 [
  {
-  "asset": "SM_DI_Corridor_Straight",
+  "asset": "SM_DI_StoryConsole",
   "ok": true,
   "min_cm": [
-   -200.0,
-   -200.0,
-   -20.0
+   -30.0,
+   -62.0,
+   -0.0
   ],
   "max_cm": [
-   200.0,
-   200.0,
-   620.0
+   30.61,
+   62.0,
+   130.0
   ],
   "size_cm": [
-   400.0,
-   400.0,
-   640.0
+   60.61,
+   124.0,
+   130.0
   ],
   "bounds_match": "same",
-  "tris": 1523,
+  "tris": 3421,
   "slots": [
    "0:Trim",
    "1:Glow",
-   "2:Light",
-   "3:Route"
-  ],
-  "hulls": 6,
-  "asymmetric_side": null,
-  "notes": []
- },
- {
-  "asset": "SM_DI_Cover_Low",
-  "ok": true,
-  "min_cm": [
-   -30.8,
-   -100.0,
-   -0.0
-  ],
-  "max_cm": [
-   30.8,
-   100.0,
-   110.0
-  ],
-  "size_cm": [
-   61.6,
-   200.0,
-   110.0
-  ],
-  "bounds_match": "same",
-  "tris": 408,
-  "slots": [
-   "0:Trim",
-   "1:Glow"
+   "2:Screen"
   ],
   "hulls": 1,
-  "asymmetric_side": null,
-  "notes": []
- },
- {
-  "asset": "SM_DI_Door",
-  "ok": true,
-  "min_cm": [
-   -16.3,
-   -150.0,
-   -0.0
-  ],
-  "max_cm": [
-   16.3,
-   150.0,
-   400.0
-  ],
-  "size_cm": [
-   32.6,
-   300.0,
-   400.0
-  ],
-  "bounds_match": "same",
-  "tris": 448,
-  "slots": [
-   "0:Trim",
-   "1:Glow",
-   "2:Decal"
-  ],
-  "hulls": 1,
-  "asymmetric_side": null,
-  "notes": []
- },
- {
-  "asset": "SM_DI_Doorway",
-  "ok": true,
-  "min_cm": [
-   -34.0,
-   -200.0,
-   -0.0
-  ],
-  "max_cm": [
-   34.0,
-   200.0,
-   600.0
-  ],
-  "size_cm": [
-   68.0,
-   400.0,
-   600.0
-  ],
-  "bounds_match": "same",
-  "tris": 1340,
-  "slots": [
-   "0:Trim",
-   "1:Glow"
-  ],
-  "hulls": 3,
-  "asymmetric_side": null,
-  "notes": []
- },
- {
-  "asset": "SM_DI_Hangar_Pad",
-  "ok": true,
-  "min_cm": [
-   -600.0,
-   -600.0,
-   -40.0
-  ],
-  "max_cm": [
-   600.0,
-   600.0,
-   0.3
-  ],
-  "size_cm": [
-   1200.0,
-   1200.0,
-   40.3
-  ],
-  "bounds_match": "same",
-  "tris": 444,
-  "slots": [
-   "0:Trim"
-  ],
-  "hulls": 1,
-  "asymmetric_side": null,
-  "notes": []
- },
- {
-  "asset": "SM_DI_Room_Ceiling",
-  "ok": true,
-  "min_cm": [
-   -200.0,
-   -200.0,
-   565.0
-  ],
-  "max_cm": [
-   200.0,
-   200.0,
-   620.0
-  ],
-  "size_cm": [
-   400.0,
-   400.0,
-   55.0
-  ],
-  "bounds_match": "same",
-  "tris": 424,
-  "slots": [
-   "0:Trim",
-   "1:Light"
-  ],
-  "hulls": 1,
-  "asymmetric_side": null,
-  "notes": []
- },
- {
-  "asset": "SM_DI_Room_Floor",
-  "ok": true,
-  "min_cm": [
-   -200.0,
-   -200.0,
-   -20.0
-  ],
-  "max_cm": [
-   200.0,
-   200.0,
-   0.0
-  ],
-  "size_cm": [
-   400.0,
-   400.0,
-   20.0
-  ],
-  "bounds_match": "same",
-  "tris": 108,
-  "slots": [
-   "0:Trim"
-  ],
-  "hulls": 1,
-  "asymmetric_side": null,
-  "notes": []
- },
- {
-  "asset": "SM_DI_Room_Wall",
-  "ok": true,
-  "min_cm": [
-   -60.0,
-   -200.0,
-   -0.0
-  ],
-  "max_cm": [
-   60.0,
-   200.0,
-   600.0
-  ],
-  "size_cm": [
-   120.0,
-   400.0,
-   600.0
-  ],
-  "bounds_match": "same",
-  "tris": 1782,
-  "slots": [
-   "0:Trim",
-   "1:Glow"
-  ],
-  "hulls": 9,
   "asymmetric_side": null,
   "notes": []
  }

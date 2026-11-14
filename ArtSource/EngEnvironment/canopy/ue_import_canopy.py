@@ -22,6 +22,8 @@ MP = unreal.MaterialProperty
 ST = unreal.MaterialSamplerType
 problems = []
 NAMES = ["SM_Scatter_Verd_CanopyStand_%02d" % i for i in (1, 2, 3)]
+# pass 4: the far-tier clumps merged from the PVE trees (build_tree_clumps.py); they take over from the mid ring at ~400 m
+CLUMPS = ["SM_Scatter_Verd_TreeClump_%02d" % i for i in (1, 2, 3, 4)]
 
 
 def log(m):
@@ -69,12 +71,20 @@ def build_material():
     mel.set_material_instance_parent(mi, mat)
     mel.update_material_instance(mi)
     eal.save_asset(ipath, only_if_is_dirty=False)
-    return mi
+    cpath = DEST + "/MI_TreeClump_Verdance"
+    mc = eal.load_asset(cpath) if eal.does_asset_exist(cpath) else tools.create_asset(
+        "MI_TreeClump_Verdance", DEST, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+    mel.set_material_instance_parent(mc, mat)
+    mel.set_material_instance_scalar_parameter_value(mc, "NearFadeStart", 36000.0)
+    mel.set_material_instance_scalar_parameter_value(mc, "NearFadeLength", 6000.0)
+    mel.update_material_instance(mc)
+    eal.save_asset(cpath, only_if_is_dirty=False)
+    return mi, mc
 
 
 def main():
-    mi = build_material()
-    for name in NAMES:
+    mi, mc = build_material()
+    for name in NAMES + CLUMPS:
         task = unreal.AssetImportTask()
         task.set_editor_property("filename", os.path.join(HERE, "export", name + ".fbx").replace("\\", "/"))
         task.set_editor_property("destination_path", DEST)
@@ -95,7 +105,7 @@ def main():
         if sm is None:
             problems.append("import " + name)
             continue
-        sm.set_material(0, mi)
+        sm.set_material(0, mc if name in CLUMPS else mi)
         b = sm.get_bounds()
         log("%s: %d tris, extent %s" % (name, sm.get_num_triangles(0), b.box_extent))
         eal.save_asset("%s/%s" % (DEST, name), only_if_is_dirty=False)

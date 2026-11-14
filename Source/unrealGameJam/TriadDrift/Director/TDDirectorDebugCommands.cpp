@@ -33,6 +33,7 @@
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Director/TDCutPresentation.h"
+#include "Blueprint/UserWidget.h"
 #include "TriadDrift/Director/TDDirectorCamera.h"
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
@@ -563,6 +564,39 @@ namespace TDDirectorDebug
 			}
 		}
 	}
+	// N-092 (Nick's Director card candidate, review only; production defaults untouched):
+	//   TD.Director.Widget /Script/TriadDriftHUD.TDDirectorCardsWidget   use that renderer now (no argument: back to the style's)
+	//   TD.Director.Claim 1 | 0 | -1                                     force the HUD's name-card claim true / false / real
+	static FAutoConsoleCommandWithWorldAndArgs CmdDirectorWidget(TEXT("TD.Director.Widget"),
+		TEXT("TD.Director.Widget [class path]: review a Director card renderer (no argument: back to DA_UI_Style's)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			UTDDirectorSubsystem* D = UTDDirectorSubsystem::Get(World);
+			if (!D) { return; }
+			UClass* Class = Args.Num() > 0 ? LoadClass<UUserWidget>(nullptr, *Args[0]) : nullptr;
+			D->SetDirectorWidgetForReview(Class);
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Director.Widget: %s"), Class ? *Class->GetPathName() : TEXT("the style's (or the fallback)"));
+		}));
+#if WITH_DEV_AUTOMATION_TESTS
+	static FAutoConsoleCommandWithWorldAndArgs CmdDirectorClaim(TEXT("TD.Director.Claim"),
+		TEXT("TD.Director.Claim 1|0|-1: force the hosted HUD's name-card claim (review); -1 reads the real HUD"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld*)
+		{
+			const int32 V = Args.Num() > 0 ? FCString::Atoi(*Args[0]) : -1;
+			if (V < 0) { UTDCutPresentation::NameCardClaimOverrideForTests.Reset(); }
+			else { UTDCutPresentation::NameCardClaimOverrideForTests = V != 0; }
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Director.Claim: %s"), V < 0 ? TEXT("the real HUD") : (V ? TEXT("claimed") : TEXT("not claimed")));
+		}));
+#endif
+	static FAutoConsoleCommandWithWorldAndArgs CmdMenuDifficulty(TEXT("TD.Menu.Difficulty"), TEXT("TD.Menu.Difficulty [Story|Standard|Ace|Back]: press NEW GAME (no argument: the difficulty page opens), or one of its choices"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			ATDMenuGameMode* M = World ? World->GetAuthGameMode<ATDMenuGameMode>() : nullptr;
+			if (!M) { return; }
+			if (Args.Num() == 0) { M->ChooseDifficulty(false); return; }
+			if (Args[0].Equals(TEXT("Back"), ESearchCase::IgnoreCase)) { M->CancelDifficultyChoice(); return; }
+			M->StartWithDifficulty(Args[0].Equals(TEXT("Story"), ESearchCase::IgnoreCase) ? 0 : (Args[0].Equals(TEXT("Ace"), ESearchCase::IgnoreCase) ? 2 : 1));
+		}));
 	static FAutoConsoleCommandWithWorldAndArgs CmdMenuReturn(TEXT("TD.Menu.Return"), TEXT("TD.Menu.Return: press RETURN TO MENU on the victory screen (captures, tests)"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
 		{

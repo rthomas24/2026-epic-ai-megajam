@@ -14,6 +14,7 @@
 class ACameraActor;
 class AGameModeBase;
 class UStaticMeshComponent;
+class UNiagaraComponent;
 
 /** Which scene: the main menu, or the victory screen (the Dominion breaking up, the squad flying home). */
 UENUM()
@@ -63,7 +64,7 @@ public:
 
 	/** Seconds between two squad fly-bys, and how long one takes to cross the frame. */
 	UPROPERTY(EditAnywhere, Category = "Menu Backdrop") float FlybyEverySeconds = 20.f;
-	UPROPERTY(EditAnywhere, Category = "Menu Backdrop") float FlybySeconds = 9.f;
+	UPROPERTY(EditAnywhere, Category = "Menu Backdrop") float FlybySeconds = 15.f;
 	/** The first fly-by comes this soon after the menu opens. */
 	UPROPERTY(EditAnywhere, Category = "Menu Backdrop") float FirstFlybySeconds = 4.f;
 
@@ -73,6 +74,7 @@ public:
 	bool IsFlybyActive() const { return FlybyT >= 0.f; }
 	int32 GetFlybyCount() const { return Flybys; }
 	const TArray<TObjectPtr<UStaticMeshComponent>>& GetSquadMeshes() const { return SquadMeshes; }
+	int32 GetSquadTrailCount() const { return SquadTrails.Num(); }
 	/** Captures: jump to a moment of the loop (seconds since the menu opened). */
 	void DebugSetTime(float Seconds);
 
@@ -94,6 +96,10 @@ private:
 	UPROPERTY(Transient) TObjectPtr<AActor> Dominion;
 	UPROPERTY(Transient) TArray<TObjectPtr<AActor>> Spawned;
 	UPROPERTY(Transient) TArray<TObjectPtr<UStaticMeshComponent>> SquadMeshes;
+	/** Nicholas #90 (4): each squad ship's own engine trail, one per nozzle socket, shown with its ship. */
+	UPROPERTY(Transient) TArray<TObjectPtr<UNiagaraComponent>> SquadTrails;
+	void ShowSquad(bool bShow);
+	bool bRestartTrails = false;
 
 	FVector PlanetAt = FVector::ZeroVector;
 	float PlanetRadius = 60000.f;

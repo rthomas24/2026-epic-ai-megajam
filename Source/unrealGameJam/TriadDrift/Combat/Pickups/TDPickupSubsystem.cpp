@@ -1,8 +1,11 @@
 // Triad Drift - space pickups (Teammate 2). See header.
 
 #include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 
 #include "Engine/World.h"
+#include "TimerManager.h"
+#include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Combat/TDCombatBarks.h"
 #include "TriadDrift/Combat/Pickups/TDPickupVisuals.h"
@@ -62,6 +65,61 @@ void UTDPickupSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 		B->OnTakeStarted.AddUniqueDynamic(this, &UTDPickupSubsystem::HandleTakeStarted);
 		B->OnFieldObjectDestroyed.AddUniqueDynamic(this, &UTDPickupSubsystem::HandleFieldObjectDestroyed);
 	}
+	WarmPickups(InWorld);
+}
+
+void UTDPickupSubsystem::WarmPickups(UWorld& InWorld)
+{
+	// Issue #89 (T6's live measurement): the first pickup of a session cost 25 ms (first actor of the class: components,
+	// material instances, registration, first proxy and pipeline states). One of each look is spawned now, outside the
+	// pickup list (inert: pickups neither tick nor collide on their own), drawn for a frame just ahead of the camera at
+	// 1% scale, then destroyed.
+	if (!InWorld.IsGameWorld())
+	{
+		return;
+	}
+	TArray<TWeakObjectPtr<ATDPickup>> Warm;
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	Params.ObjectFlags |= RF_Transient;
+	for (int32 I = 0; I < TDPickupTypeCount; ++I)
+	{
+		if (ATDPickup* P = InWorld.SpawnActor<ATDPickup>(ATDPickup::StaticClass(), FVector(0.f, 0.f, -1e7f), FRotator::ZeroRotator, Params))
+		{
+			P->Init(static_cast<ETDPickupType>(I), 1.f, 0.f);
+			P->SetActorScale3D(FVector(.01f));
+			Warm.Add(P);
+		}
+	}
+	WarmedPickups = Warm.Num();
+	TWeakObjectPtr<UWorld> WeakWorld(&InWorld);
+	InWorld.GetTimerManager().SetTimerForNextTick([WeakWorld, Warm]()
+	{
+		UWorld* W = WeakWorld.Get();
+		const APlayerController* PC = W ? W->GetFirstPlayerController() : nullptr;
+		FVector At(0.f, 0.f, -1e7f);
+		FRotator Rot;
+		if (PC)
+		{
+			PC->GetPlayerViewPoint(At, Rot);
+			At += Rot.Vector() * 3000.f - FVector(0.f, 0.f, 800.f);
+		}
+		for (const TWeakObjectPtr<ATDPickup>& P : Warm)
+		{
+			if (P.IsValid()) { P->SetActorLocation(At); }
+		}
+		if (W)
+		{
+			FTimerHandle Done;
+			W->GetTimerManager().SetTimer(Done, [Warm]()
+			{
+				for (const TWeakObjectPtr<ATDPickup>& P : Warm)
+				{
+					if (P.IsValid()) { P->Destroy(); }
+				}
+			}, .2f, false);
+		}
+	});
 }
 
 void UTDPickupSubsystem::Deinitialize()
@@ -118,10 +176,13 @@ ATDPickup* UTDPickupSubsystem::SpawnInternal(ETDPickupType Type, const FVector& 
 	}
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	const double T0 = FPlatformTime::Seconds();
 	ATDPickup* Pickup = World->SpawnActor<ATDPickup>(ATDPickup::StaticClass(), Location, FRotator::ZeroRotator, Params);
 	if (Pickup)
 	{
 		Pickup->Init(Type, Tuning.LifetimeSeconds, Tuning.BlinkSeconds);
+		const float Ms = static_cast<float>((FPlatformTime::Seconds() - T0) * 1000.0);
+		if (FirstSpawnMs < 0.f) { FirstSpawnMs = Ms; }
 		Pickups.Add(Pickup);
 		UE_LOG(LogTDPickups, Display, TEXT("TD pickup: %s at (%.0f, %.0f, %.0f)"), ATDPickup::WordOf(Type), Location.X, Location.Y, Location.Z);
 	}
@@ -478,6 +539,7 @@ bool UTDPickupSubsystem::Collect(ATDPickup* Pickup, ATDShip* Ship)
 
 void UTDPickupSubsystem::Tick(float DeltaTime)
 {
+	TD_COMBAT_PERF(Pickups);
 	Super::Tick(DeltaTime);
 	const bool bEnabled = IsEnabled();
 	if (!bEnabled)

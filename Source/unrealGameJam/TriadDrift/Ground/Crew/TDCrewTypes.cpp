@@ -7,7 +7,7 @@ namespace TDCrewSpecs
 	static TArray<FTDCrewSpec> MakeTable()
 	{
 		TArray<FTDCrewSpec> T;
-		T.SetNum(5);
+		T.SetNum(6);
 
 		// Grunt: 60 HP, telegraphed baton (15), groups of 3-5, flanks.
 		FTDCrewSpec& G = T[(int32)ETDCrewType::Grunt];
@@ -60,6 +60,18 @@ namespace TDCrewSpecs
 		W.BurstWindup = 0.5f;
 		W.BodyScale = FVector(1.5f, 1.5f, 2.6f);
 		W.TeamColor = FLinearColor(0.6f, 0.02f, 0.02f);
+
+		// Future crew (the reactor room's defenders, N-052 / N-060): a pilot of the squad with a blade. The Heavy's
+		// weight without its shield or shotgun: 150 HP, a telegraphed slash (20), no token (two of them, both swing),
+		// a little flank. Their look is the pilot rig (ATDCrewCharacter::ApplyVisuals), tinted by FuturePilot.
+		FTDCrewSpec& F = T[(int32)ETDCrewType::FutureCrew];
+		F.Type = ETDCrewType::FutureCrew; F.VisualsId = TEXT("FutureCrew");
+		F.MaxHealth = 200.f; F.MoveSpeed = 500.f; // the reveal's peak (Lead, Nov 14: they fell in one exchange at 150)
+		F.bFrontalShield = true; F.ShieldArcDeg = 120.f; // the Heavy's guard: a guard break (lunge, chips) or a parry opens it
+		F.SightRange = 5000.f; F.AlertSeconds = 0.8f;
+		F.PreferredRangeMin = 0.f; F.PreferredRangeMax = 170.f; F.FlankAngle = 25.f;
+		F.MeleeDamage = 20.f; F.MeleeRange = 200.f; F.MeleeWindup = 0.6f; F.MeleeCooldown = 1.5f; F.bNeedsAttackToken = false;
+		F.TeamColor = FLinearColor(0.85f, 0.85f, 0.9f);
 		return T;
 	}
 }

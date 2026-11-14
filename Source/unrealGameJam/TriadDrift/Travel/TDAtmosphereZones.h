@@ -73,6 +73,18 @@ public:
 	/** A must-hear sequence is playing now (the hold applies). */
 	bool IsStoryHoldingEntry() const;
 
+	/** While held the ship crawls at this speed (cm/s; steerable) so it stops at the atmosphere's edge, not inside the planet. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "cm/s"))
+	float StoryHoldSpeed = 1500.f;
+	static const FName StoryHoldOverride; // "StoryHold"
+	void EndStoryHold();
+	/** After the must-hear sequence ends, the entry also waits for the line on air to finish - at most this long (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "s"))
+	float StoryTailCapSeconds = 6.f;
+	bool WaitsForLineOnAir();
+	double StoryEndedAt = -1.0;
+	bool bLoggedTailWait = false;
+
 	/** How far past the hold point (further from the planet) the ship may stray and still commit when the hold ends (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "cm"))
 	float HoldLeaveMargin = 50000.f;
@@ -125,6 +137,30 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Atmosphere")
 	void AbortEntry();
 
+	/**
+	 * #161 (Ryan, Nov 14): a planet is never a wall. While a planet does not take this ship (closed: before it is
+	 * available, after its work is done; or the ship is a wingman), the ship is kept out of its atmosphere: entry heat
+	 * and roar at the edge, slowed, nose turned away, a HUD line saying why, a flash and a small hull hit on contact.
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
+	bool IsPlanetClosedWarning() const;
+	/** The HUD line stays up at least this long per approach (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "s"))
+	float ClosedPlanetLineSeconds = 2.5f;
+	/** The most entry heat the skip-off shows (a real entry reaches 1): the ship and the planet stay readable (Lead, Nov 14). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", ClampMax = "1"))
+	float ClosedPlanetMaxHeat = 0.62f;
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
+	FText GetPlanetClosedText() const { return ClosedPlanetText; }
+	/** The band outside the atmosphere where the turn-away works (cm). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "cm"))
+	float ClosedPlanetBand = 35000.f;
+	/** Hull damage of one bounce off a closed planet (fraction of max hull), at most once per ClosedPlanetHitCooldown. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", ClampMax = "1"))
+	float ClosedPlanetHitHull = 0.04f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "s"))
+	float ClosedPlanetHitCooldown = 2.f;
+
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 protected:
@@ -151,6 +187,17 @@ private:
 	FVector HeldPlanetCenter = FVector::ZeroVector;
 	float HeldSurfaceRadius = 0.f;
 	float HeldStartDistance = 0.f;
+
+	void TickClosedPlanetGuard(float DeltaTime);
+	TArray<TWeakObjectPtr<class ATDPlanetAtmosphere>> GuardPlanets;
+	float GuardRefresh = 0.f;
+	float ClosedPlanet01 = 0.f;
+	FText ClosedPlanetText;
+	double LastClosedHit = -100.0;
+	bool bGuardRoar = false;
+	bool bGuardLogged = false;
+	bool bGuardFlashed = false;
+	double ClosedLineUntil = -1.0;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnAtmosphereExit, ATDShip*, Ship);

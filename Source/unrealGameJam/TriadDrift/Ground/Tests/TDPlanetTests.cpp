@@ -20,8 +20,12 @@
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
+#include "TriadDrift/Flow/TDObjectiveText.h"
+#include "TriadDrift/Ground/TDGroundBarks.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
+#include "TriadDrift/Waves/Balance/TDDifficulty.h"
 #include "TriadDrift/Ground/Crew/TDCrewAIController.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
@@ -151,6 +155,7 @@ bool FTDPlanetReboard::RunTest(const FString& Parameters)
 	ATDBoardShipInteractable* Board = V.Director->GetBoardPoint();
 	if (!TestNotNull(TEXT("board point"), Board)) { return false; }
 	Board->Interact(FP); // the prompt the player uses
+	V.W.Advance(1.f); // the climb in (A_Pilot_Board_Ship): the ship is handed over inside 0.9 s
 	TestFalse(TEXT("off foot"), V.Director->IsOnFoot());
 	TestTrue(TEXT("player possesses the ship again"), V.PC->GetPawn() == (APawn*)Ship);
 	TestTrue(TEXT("player-controlled again"), Ship->IsPlayerFlown());
@@ -204,6 +209,19 @@ bool FTDPlanetLandedStart::RunTest(const FString& Parameters)
 	TestEqual(TEXT("both wingmen on their side pads"), WingmenLanded, 2);
 	TestTrue(TEXT("pilot on foot"), V.Director->IsOnFoot());
 	TestTrue(TEXT("player is the character"), V.PC->GetPawn() == (APawn*)V.Director->GetFirstPerson());
+	// T7 on TD.Stage VerdanceOnFoot (Nov 14): the wingmen stood on their pads but the flown ship's pad was empty. All
+	// three stay parked, visible and on their pads while the pilot is on foot.
+	V.W.Advance(8.f);
+	for (ATDShip* S : ATDSquadManager::Get(V.W.GetWorld())->GetLivingShips())
+	{
+		const ATDLandingPad* Pad = S->GetLanding() ? S->GetLanding()->GetPad() : nullptr;
+		const FString Name = S->GetName();
+		TestTrue(*FString::Printf(TEXT("%s still landed after 8 s"), *Name), S->GetLanding() && S->GetLanding()->IsLanded());
+		TestFalse(*FString::Printf(TEXT("%s visible"), *Name), S->IsHidden());
+		TestTrue(*FString::Printf(TEXT("%s on its pad (%.0f cm off)"), *Name, Pad ? FVector::Dist2D(S->GetActorLocation(), Pad->GetActorLocation()) : -1.f),
+			Pad && FVector::Dist2D(S->GetActorLocation(), Pad->GetActorLocation()) < 300.f);
+	}
+	TestEqual(TEXT("three ships"), ATDSquadManager::Get(V.W.GetWorld())->GetLivingShips().Num(), 3);
 	return true;
 }
 
@@ -367,10 +385,21 @@ namespace TDCourseTest
 			}
 		}
 		/** Verdance's relay: the device connected (step 1), its transfer halves (steps 2 and 3), then back to the ship (4). */
-		void ConnectAtRelay(const ATDObjective* Relay)
+		void ConnectAtRelay(const ATDObjective* Relay, bool bSkipCinematic = true)
 		{
 			TeleportTo(Props<ATDStepTrigger>(Relay, 0)[0], 60.f);
 			UseTerminal(Relay, 1);
+			if (bSkipCinematic) { SkipCinematic(); }
+		}
+		/** Skip Cinematic 03 (it holds the transfer's first wave until "company incoming"), as a player may. */
+		void SkipCinematic()
+		{
+			if (UTDStorySubsystem* Story = UTDStorySubsystem::Get(V.W.GetWorld()))
+			{
+				Story->SkipAllowedAfterSeconds = 0.f; // a player who waited the scene's first ten seconds (N-060)
+				for (int32 i = 0; i < 4 && Story->IsSequencePlaying(); ++i) { Story->SkipSequence(); Tick(0.1f); }
+			}
+			Tick(0.5f);
 		}
 		void RunTransfer(const ATDObjective* Obj, float MaxSeconds = 140.f)
 		{
@@ -471,6 +500,7 @@ bool FTDVerdanceEndToEnd::RunTest(const FString& Parameters)
 	const FDelegateHandle Hook = ATDArchiveTransfer::OnAnyTerminalActivated.AddLambda([&Hooked](AActor*) { ++Hooked; });
 	R.UseTerminal(Relay, 1);
 	ATDArchiveTransfer::OnAnyTerminalActivated.Remove(Hook);
+	R.SkipCinematic();
 	TestEqual(TEXT("Cinematic 03's hook fires once"), Hooked, 1);
 	TestEqual(TEXT("console -> the transfer"), R.Step(Relay), 2);
 	float P01 = -1.f; bool bPaused = true; FText Label;
@@ -558,6 +588,16 @@ bool FTDCinderEndToEnd::RunTest(const FString& Parameters)
 	R.Use(Cache, Cache->HoldTime);
 	TestTrue(TEXT("excavation secured"), Outpost->IsComplete());
 	TestEqual(TEXT("EMP on Lancer"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::EMPPulse), ETDShipId::Lancer);
+	// ENG-26 step 6: one door at the dig opened to the pilot's ID (storyline section 6), exactly once; no other door did.
+	int32 Knowing = 0, Greeted = 0;
+	for (TActorIterator<ATDDoor> It(V.W.GetWorld()); It; ++It)
+	{
+		Knowing += It->bRecognisesPilot ? 1 : 0;
+		Greeted += It->GetAccessGreetings();
+	}
+	TestEqual(TEXT("one dig door knows the pilot"), Knowing, 1);
+	TestEqual(TEXT("it greeted the pilot once"), Greeted, 1);
+	TestFalse(TEXT("no pending marker before the anchor"), ATDPlanetCourse::IsFieldAnchorDisabled(V.W.GetWorld()));
 
 	// The anchor, then the run to extraction.
 	int32 AnchorDown = 0;
@@ -577,6 +617,7 @@ bool FTDCinderEndToEnd::RunTest(const FString& Parameters)
 	ATDPlanetCourse::OnFieldAnchorDisabled.Remove(Anchor);
 	TestTrue(TEXT("anchor disabled"), Jammer->IsComplete());
 	TestEqual(TEXT("T2's pending-marker event once"), AnchorDown, 1);
+	TestTrue(TEXT("T2's pending-marker state (saved)"), ATDPlanetCourse::IsFieldAnchorDisabled(V.W.GetWorld()));
 
 	R.Tick(0.5f);
 	R.LeaveForOrbit(TEXT("Cinder"));
@@ -615,6 +656,39 @@ bool FTDCourseRetake::RunTest(const FString& Parameters)
 	R.FP->RespawnAt(FTransform(FVector(300.f, 0.f, 120.f)));
 	R.Tick(0.5f);
 	TestTrue(TEXT("finished on take 2"), Relay->IsComplete());
+	return true;
+}
+
+// T3's live walk (Nov 13): Cinematic 03 talked over the fight. The first wave waits for "company incoming"; the meter holds
+// still meanwhile; skipping the scene starts it at once; a retake (the line already heard) doesn't wait.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDArchiveTransferHold, "TriadDrift.Ground.Course.RelayTransferWaitsForCompanyIncoming", TD_TEST_FLAGS)
+bool FTDArchiveTransferHold::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDObjective* Relay = R.Course->FindObjective(TEXT("Obj_Relay"));
+	if (!R.StartAt(TEXT("Obj_Relay"))) { return false; }
+	R.ConnectAtRelay(Relay, false);
+	ATDArchiveTransfer* X = R.Transfer();
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(V.W.GetWorld());
+	if (!TestNotNull(TEXT("transfer"), X) || !TestNotNull(TEXT("story"), Story)) { return false; }
+	if (!Story->IsSequencePlaying())
+	{
+		AddInfo(TEXT("no Cinematic 03 in this checkout: the transfer starts at once"));
+		R.Tick(1.f);
+		TestFalse(TEXT("not held without a scene"), X->IsHolding());
+		return true;
+	}
+	R.Tick(5.f);
+	TestTrue(TEXT("held while the scene talks"), X->IsHolding());
+	TestEqual(TEXT("the meter holds still"), X->GetProgress01(), 0.f, 0.001f);
+	TestFalse(TEXT("no wave yet"), X->Waves[0] && (X->Waves[0]->IsActive() || X->Waves[0]->IsCleared()));
+	float P01 = -1.f; bool bPaused = false; FText Label;
+	TestTrue(TEXT("T2's meter still shows the transfer"), ATDArchiveTransfer::GetArchiveTransfer(V.W.GetWorld(), P01, bPaused, Label));
+	R.SkipCinematic();
+	TestFalse(TEXT("skipping starts it"), X->IsHolding());
+	TestTrue(TEXT("the first wave drops"), X->Waves[0] && X->Waves[0]->IsActive());
 	return true;
 }
 
@@ -669,6 +743,132 @@ bool FTDArchiveTransferPauseAndMidpoint::RunTest(const FString& Parameters)
 // T4's world scatter asks the course where it may place things (WORLD-DENSITY-PLAN): never on a route, the pad, a site, an
 // encounter or a spawn point; and the course's routes stay walkable (every route point is refused for scatter, and
 // open ground off the routes is allowed).
+// The Dress pass (the environment builder's table, Nov 14): story sets, landmarks, the kit wreck and the dig cabin, the
+// outposts' and the pads' props; each piece placed when its asset exists, nothing on the pad's take-off circle.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseDressed, "TriadDrift.Ground.Course.StorySetsAndSitePropsArePlaced", TD_TEST_FLAGS)
+bool FTDCourseDressed::RunTest(const FString& Parameters)
+{
+	struct FWant { const TCHAR* Planet; const TCHAR* Tag; const TCHAR* Package; int32 Count; };
+	const FWant Wants[] = {
+		{ TEXT("Verdance"), TEXT("Verdance:BP_StorySet_VerdanceCamp"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_StorySet_VerdanceCamp"), 1 },
+		{ TEXT("Verdance"), TEXT("Verdance:BP_Landmark_RelayMast"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_Landmark_RelayMast"), 1 },
+		{ TEXT("Verdance"), TEXT("Verdance:BP_Wreck"), TEXT("/Game/TriadDrift/Gameplay/Props/Wreck/BP_Wreck"), 1 },
+		{ TEXT("Verdance"), TEXT("Verdance:BP_SurveyLine_Verdance"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_SurveyLine_Verdance"), 1 },
+		{ TEXT("Verdance"), TEXT("Verdance:SM_Kit_SurveyStakeFlag"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_SurveyStakeFlag"), 3 },
+		{ TEXT("Verdance"), TEXT("VerdancePad:SM_Outpost_BollardLight"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_BollardLight"), 8 },
+		{ TEXT("Verdance"), TEXT("VerdanceOutpost:SM_Outpost_CargoCrate"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_CargoCrate"), 2 },
+		{ TEXT("Verdance"), TEXT("Relay:SM_Outpost_Generator"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_Generator"), 1 },
+		{ TEXT("Cinder"), TEXT("Cinder:BP_StorySet_CinderMine"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_StorySet_CinderMine"), 1 },
+		{ TEXT("Cinder"), TEXT("Cinder:BP_Landmark_NullDerrick"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_Landmark_NullDerrick"), 1 },
+		{ TEXT("Cinder"), TEXT("DigCabin:BP_DigSite_Cabin"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_DigSite_Cabin"), 1 },
+		{ TEXT("Cinder"), TEXT("Cinder:SM_Kit_WarningBeacon"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_WarningBeacon"), 4 },
+		{ TEXT("Cinder"), TEXT("CinderPad:SM_Outpost_BollardLight"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_BollardLight"), 8 },
+		{ TEXT("Cinder"), TEXT("CinderOutpost:SM_Outpost_Generator"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_Generator"), 1 },
+	};
+	for (const TCHAR* Planet : { TEXT("Verdance"), TEXT("Cinder") })
+	{
+		TDPlanetTest::FVisit V(NAME_None, Planet);
+		ATDPlanetCourse* Course = V.Director->GetCourse();
+		if (!TestNotNull(TEXT("course"), Course)) { return false; }
+		const TArray<FName>& Log = Course->GetDressLog();
+		AddInfo(FString::Printf(TEXT("%s: %d dressing pieces placed"), Planet, Log.Num()));
+		for (const FWant& Want : Wants)
+		{
+			if (FCString::Strcmp(Want.Planet, Planet) != 0) { continue; }
+			if (!FPackageName::DoesPackageExist(Want.Package)) { AddInfo(FString::Printf(TEXT("%s not in this checkout"), Want.Package)); continue; }
+			const int32 N = Log.FilterByPredicate([&Want](const FName& T) { return T == FName(Want.Tag); }).Num();
+			TestEqual(*FString::Printf(TEXT("%s placed"), Want.Tag), N, Want.Count);
+		}
+		// The take-off circle stays free of dressing: nothing that collides within 14 m of the pad but the parked squad.
+		const FVector Pad = Course->GetActorLocation();
+		int32 OnPad = 0;
+		if (AActor* Dressing = Course->GetDressingActor())
+		{
+			TInlineComponentArray<UStaticMeshComponent*> Meshes(Dressing);
+			for (const UStaticMeshComponent* M : Meshes)
+			{
+				const FString Mesh = M && M->GetStaticMesh() ? M->GetStaticMesh()->GetName() : FString();
+				if (Mesh.StartsWith(TEXT("SM_Outpost_")) || Mesh.StartsWith(TEXT("SM_Kit_")))
+				{
+					OnPad += FVector::Dist2D(M->GetComponentLocation(), Pad) < 1400.f ? 1 : 0;
+				}
+			}
+		}
+		TestEqual(*FString::Printf(TEXT("%s: nothing on the take-off circle"), Planet), OnPad, 0);
+	}
+	return true;
+}
+
+// ENG-45's extra crew (Lead, Nov 14: a Trooper spawned behind a room's wall on Ace and the room never cleared): on every
+// preset, every fight on both planets spawns each crewman on walkable floor, clear of walls, inside its room.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseSpawnsOnFloor, "TriadDrift.Ground.Course.EveryPresetSpawnsCrewOnTheFloorInsideTheRoom", TD_TEST_FLAGS)
+bool FTDCourseSpawnsOnFloor::RunTest(const FString& Parameters)
+{
+	const ETDDifficulty Was = UTDDifficultySettings::GetCurrent();
+	for (const ETDDifficulty D : { ETDDifficulty::Story, ETDDifficulty::Standard, ETDDifficulty::Ace })
+	{
+		UTDDifficultySettings::SetCurrent(D);
+		const UEnum* En = StaticEnum<ETDDifficulty>();
+		const FString Preset = En ? En->GetNameStringByValue((int64)D) : TEXT("?");
+		for (const TCHAR* Planet : { TEXT("Verdance"), TEXT("Cinder") })
+		{
+			TDPlanetTest::FVisit V(NAME_None, Planet);
+			UWorld* World = V.W.GetWorld();
+			int32 Fights = 0, Crew = 0, Bad = 0;
+			TArray<ATDEncounterVolume*> All;
+			for (TActorIterator<ATDEncounterVolume> It(World); It; ++It) { All.Add(*It); }
+			for (ATDEncounterVolume* E : All)
+			{
+				E->Activate();
+				++Fights;
+			}
+			// Checked where they spawn, before anyone moves (crew walk straight toward the pilot; the waves drop in from 9 m).
+			for (ATDEncounterVolume* E : All)
+			{
+				FVector BoxO = E->GetActorLocation(), BoxE = E->Box ? E->Box->GetScaledBoxExtent() : FVector::ZeroVector;
+				const bool bRoom = BoxE.X > 300.f && BoxE.Y > 300.f; // a room fight (the waves' boxes are 10 cm markers)
+				for (const TWeakObjectPtr<AActor>& M : E->GetSpawned())
+				{
+					ATDCrewCharacter* C = Cast<ATDCrewCharacter>(M.Get());
+					if (!C || C->Spec.bFlying || C->IsDead()) { continue; }
+					++Crew;
+					const FVector At = C->GetActorLocation();
+					FCollisionQueryParams Q(SCENE_QUERY_STAT(TDSpawnFloor), false, C);
+					FHitResult Floor;
+					const bool bFloor = World->LineTraceSingleByChannel(Floor, At, At - FVector(0.f, 0.f, 3000.f), ECC_Visibility, Q)
+						&& Floor.ImpactNormal.Z > 0.7f; // walkable floor straight below (a drop-in lands on it)
+					const bool bClear = !World->OverlapBlockingTestByChannel(At + FVector(0.f, 0.f, 5.f), FQuat::Identity, ECC_Pawn,
+						FCollisionShape::MakeCapsule(C->Spec.CapsuleRadius * 0.9f, C->Spec.CapsuleHalfHeight * 0.9f), Q);
+					const bool bInRoom = !bRoom || (FMath::Abs(At.X - BoxO.X) <= BoxE.X + 50.f && FMath::Abs(At.Y - BoxO.Y) <= BoxE.Y + 50.f);
+					// And not walled off from its own fight (behind a room's wall, the bug this test is for): a clear line to at
+					// least one other crewman of the same fight (a structure in the middle, the anchor's tower, is fine).
+					bool bSeesCentre = !bRoom || E->GetSpawned().Num() < 2; // room fights (a drop-in wave around the relay spire is open ground)
+					for (const TWeakObjectPtr<AActor>& O : E->GetSpawned())
+					{
+						const AActor* Other = O.Get();
+						if (bSeesCentre || !Other || Other == C) { continue; }
+						FCollisionQueryParams Q2(SCENE_QUERY_STAT(TDSpawnMate), false, C);
+						Q2.AddIgnoredActor(Other);
+						for (const TWeakObjectPtr<AActor>& X : E->GetSpawned()) { if (X.IsValid()) { Q2.AddIgnoredActor(X.Get()); } }
+						FHitResult Wall;
+						bSeesCentre = !World->LineTraceSingleByChannel(Wall, At, Other->GetActorLocation(), ECC_Visibility, Q2);
+					}
+					if (!bFloor || !bClear || !bInRoom || !bSeesCentre)
+					{
+						++Bad;
+						AddError(FString::Printf(TEXT("%s %s: %s of %s at %s: floor %d, clear of walls %d, inside its room %d"), *Preset, Planet,
+							*C->GetName(), *E->GetName(), *At.ToCompactString(), bFloor, bClear, bInRoom) + FString::Printf(TEXT(", sees the centre %d"), bSeesCentre));
+					}
+				}
+			}
+			AddInfo(FString::Printf(TEXT("%s %s: %d fights, %d walking crew checked, %d misplaced"), *Preset, Planet, Fights, Crew, Bad));
+			TestTrue(*FString::Printf(TEXT("%s %s: crew checked"), *Preset, Planet), Crew > 5);
+		}
+	}
+	UTDDifficultySettings::SetCurrent(Was);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseKeepOuts, "TriadDrift.Ground.Course.KeepOutsProtectRoutesSitesAndSpawns", TD_TEST_FLAGS)
 bool FTDCourseKeepOuts::RunTest(const FString& Parameters)
 {
@@ -992,6 +1192,21 @@ bool FTDCourseWardenMercy::RunTest(const FString& Parameters)
 // ================================================================================================
 namespace TDPlayedTest
 {
+	/** The difficulty a played test runs on: TD_TEST_DIFFICULTY (Story / Standard / Ace), else the current one; restored. */
+	struct FScopedTestDifficulty
+	{
+		ETDDifficulty Was;
+		explicit FScopedTestDifficulty(FAutomationTestBase& T) : Was(UTDDifficultySettings::GetCurrent())
+		{
+			const FString Want = FPlatformMisc::GetEnvironmentVariable(TEXT("TD_TEST_DIFFICULTY"));
+			const UEnum* E = StaticEnum<ETDDifficulty>();
+			const int64 V = E && !Want.IsEmpty() ? E->GetValueByNameString(Want) : INDEX_NONE;
+			if (V != INDEX_NONE) { UTDDifficultySettings::SetCurrent((ETDDifficulty)V); }
+			T.AddInfo(FString::Printf(TEXT("difficulty %s"), E ? *E->GetNameStringByValue((int64)UTDDifficultySettings::GetCurrent()) : TEXT("?")));
+		}
+		~FScopedTestDifficulty() { UTDDifficultySettings::SetCurrent(Was); }
+	};
+
 	struct FPlayer
 	{
 		TDPlanetTest::FVisit& V;
@@ -1322,6 +1537,7 @@ namespace TDPlayedTest
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDVerdancePlayed, "TriadDrift.Ground.Played.Verdance", TD_TEST_FLAGS)
 bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 {
+	TDPlayedTest::FScopedTestDifficulty Difficulty(*this); // TD_TEST_DIFFICULTY=Story|Standard|Ace (ENG-45: each preset played)
 	TDPlanetTest::FVisit V(NAME_None, TEXT("Verdance"), true, {}, /*bLocalController*/ true);
 	TDPlayedTest::FPlayer P(V, *this, 60.f);
 	if (!P.Land()) { return false; }
@@ -1351,6 +1567,13 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 		}
 	}
 	P.Report(Wreck->IsComplete(), TEXT("signal-analysis device recovered at the survey console"));
+	// The first on-foot fights are cleared in one or two takes on Standard (T7's play, Nov 14: 5-7 CUTs here; Lead).
+	const int32 WreckDeaths = P.Deaths;
+	AddInfo(FString::Printf(TEXT("wreck core: %d deaths"), WreckDeaths));
+	if (UTDDifficultySettings::GetCurrent() != ETDDifficulty::Ace)
+	{
+		TestTrue(*FString::Printf(TEXT("the wreck core in one or two takes (%d deaths)"), WreckDeaths), WreckDeaths <= 1);
+	}
 
 	// --- The relay: run there, connect the device, hold the deck through the transfer, back to the ship. ---
 	bOk = P.RunTo(P.Trailhead(TEXT("Obj_Relay")), 300.f, 60.f);
@@ -1398,6 +1621,7 @@ bool FTDVerdancePlayed::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCinderPlayed, "TriadDrift.Ground.Played.Cinder", TD_TEST_FLAGS)
 bool FTDCinderPlayed::RunTest(const FString& Parameters)
 {
+	TDPlayedTest::FScopedTestDifficulty Difficulty(*this); // TD_TEST_DIFFICULTY=Story|Standard|Ace (ENG-45: each preset played)
 	TDPlanetTest::FVisit V(NAME_None, TEXT("Cinder"), true, {}, /*bLocalController*/ true);
 	TDPlayedTest::FPlayer P(V, *this, 60.f);
 	if (!P.Land()) { return false; }
@@ -1560,6 +1784,267 @@ bool FTDCourseDressing::RunTest(const FString& Parameters)
 		}
 		TestTrue(FString::Printf(TEXT("%s: real props in use (%d kinds, %d instances)"), Planet, Kinds, Instances), Kinds >= 9 && Instances > 300);
 		TestEqual(FString::Printf(TEXT("%s: nothing that collides within 8 m of a route"), Planet), Blocking, 0);
+	}
+	return true;
+}
+
+// T7's Cinder play (Nov 14): from the respawn the conduit marker's straight line crossed the magma river (21 CUTs in
+// 4 minutes). From each step's respawn (its checkpoint, else the pad) the marker's first leg stays off every magma, the
+// chain over a crossing leads to the step's own target, and two magma deaths in a row respawn the pilot past it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCinderMarkersOffMagma, "TriadDrift.Ground.Course.CinderMarkersFromEveryRespawnStayOffTheMagma", TD_TEST_FLAGS)
+bool FTDCinderMarkersOffMagma::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V(NAME_None, TEXT("Cinder"));
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	const ATDFirstPersonCharacter* P = V.Director->GetFirstPerson();
+	UTDObjectiveSubsystem* Objectives = UTDObjectiveSubsystem::Get(V.W.GetWorld());
+	if (!TestNotNull(TEXT("pilot"), P) || !TestNotNull(TEXT("objectives"), Objectives)) { return false; }
+	const FVector Pad = P->GetActorLocation();
+	TArray<ATDMagmaVolume*> Magma;
+	for (TActorIterator<ATDMagmaVolume> It(V.W.GetWorld()); It; ++It) { Magma.Add(*It); }
+	TestTrue(TEXT("Cinder has magma"), Magma.Num() >= 2);
+	int32 Legs = 0;
+	for (const TCHAR* Id : { TEXT("Obj_Survey"), TEXT("Obj_Outpost"), TEXT("Obj_Jammer") })
+	{
+		const ATDObjective* Obj = R.Course->FindObjective(Id);
+		if (!TestNotNull(Id, Obj)) { continue; }
+		FVector Respawn = Pad;
+		for (int32 S = 0; S < Obj->Steps.Num(); ++S)
+		{
+			if (Obj->Steps[S].bCheckpoint && Obj->Steps[S].RespawnAt) { Respawn = Obj->Steps[S].RespawnAt->GetActorLocation(); }
+			AActor* Target = Obj->Steps[S].Waypoint;
+			if (!Target) { continue; }
+			AActor* First = Objectives->RouteWaypointForStep(Respawn, Obj, S, Target);
+			for (const ATDMagmaVolume* M : Magma)
+			{
+				TestFalse(*FString::Printf(TEXT("%s step %d: respawn (%.0f, %.0f) -> marker %s crosses %s"), Id, S, Respawn.X, Respawn.Y, *GetNameSafe(First), *M->GetName()),
+					UTDObjectiveSubsystem::SegmentCrosses(M->Box->Bounds.GetBox(), Respawn, First->GetActorLocation(), 0.f));
+			}
+			++Legs;
+			// Walking the markers reaches the step's own target.
+			FVector At = Respawn;
+			AActor* Next = First;
+			for (int32 Hop = 0; Hop < 12 && Next != Target; ++Hop)
+			{
+				At = Next->GetActorLocation();
+				Next = Objectives->RouteWaypointForStep(At, Obj, S, Target);
+			}
+			TestTrue(*FString::Printf(TEXT("%s step %d: the markers lead to its target"), Id, S), Next == Target);
+		}
+	}
+	AddInfo(FString::Printf(TEXT("%d respawn-to-marker legs checked"), Legs));
+
+	// No geyser within 8 m of either ramp foot of the river's bridge (pivot (5600, 4620), yaw 34.7, feet at +-1400).
+	{
+		const FVector Along = FRotator(0.f, 34.7f, 0.f).Vector();
+		const FVector Feet[] = { FVector(5600.f, 4620.f, 0.f) - Along * 1400.f, FVector(5600.f, 4620.f, 0.f) + Along * 1400.f };
+		int32 Geysers = 0;
+		for (TActorIterator<ATDGeyser> It(V.W.GetWorld()); It; ++It)
+		{
+			++Geysers;
+			for (const FVector& Foot : Feet)
+			{
+				const float D = FVector::Dist2D(It->GetActorLocation(), R.Course->GetActorTransform().TransformPosition(Foot));
+				TestTrue(*FString::Printf(TEXT("%s %.1f m from a ramp foot (>= 8)"), *It->GetName(), D / 100.f), D >= 800.f);
+			}
+		}
+		TestTrue(TEXT("the geysers are there"), Geysers >= 3);
+		// No fight starts within 12 m of the far ramp foot (the builder's walk: crew 2-3 m from the bridge end).
+		const FVector FarFoot = R.Course->GetActorTransform().TransformPosition(Feet[1]);
+		for (TActorIterator<ATDEncounterVolume> It(V.W.GetWorld()); It; ++It)
+		{
+			const FBox B = It->Box->Bounds.GetBox();
+			const float Dx = FMath::Max3(B.Min.X - FarFoot.X, 0.0, FarFoot.X - B.Max.X), Dy = FMath::Max3(B.Min.Y - FarFoot.Y, 0.0, FarFoot.Y - B.Max.Y);
+			const float D = FMath::Sqrt(Dx * Dx + Dy * Dy);
+			if (D < 3000.f)
+			{
+				TestTrue(*FString::Printf(TEXT("%s's trigger is %.1f m from the far ramp foot (>= 12)"), *It->GetName(), D / 100.f), D >= 1200.f);
+			}
+		}
+	}
+
+	// Two magma deaths in a row in the river: the far bank.
+	ATDMagmaVolume* River = nullptr;
+	for (ATDMagmaVolume* M : Magma) { if (!River || FVector::Dist2D(M->GetActorLocation(), FVector(5600.f, 4800.f, 0.f)) < FVector::Dist2D(River->GetActorLocation(), FVector(5600.f, 4800.f, 0.f))) { River = M; } }
+	FTransform Where(Pad);
+	R.Course->NoteMagmaDeath(River);
+	TestFalse(TEXT("one magma death: the usual respawn"), R.Course->ResolveRespawn(Where));
+	R.Course->NoteMagmaDeath(River);
+	TestTrue(TEXT("two in a row: rescued"), R.Course->ResolveRespawn(Where));
+	TestTrue(TEXT("on the far bank"), Where.GetLocation().X > River->Box->Bounds.GetBox().Max.X);
+	Where = FTransform(Pad);
+	R.Course->NoteMagmaDeath(River);
+	R.Course->ResolveRespawn(Where); // another cause between them starts the count over
+	TestFalse(TEXT("a non-magma death resets"), R.Course->ResolveRespawn(Where));
+	R.Course->NoteMagmaDeath(River);
+	TestFalse(TEXT("one again after the reset"), R.Course->ResolveRespawn(Where));
+	return true;
+}
+
+// T2's sweep (Nov 14): Bark_Planet_Arrive_Verdance plays once per run, on the first time on foot there; never again
+// on a retake or on a reload / staged start in the same run.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDVerdanceArriveBark, "TriadDrift.Ground.Barks.PlanetArrivalOncePerRun", TD_TEST_FLAGS)
+bool FTDVerdanceArriveBark::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	UTDGroundBarks* B = UTDGroundBarks::Get(V.W.GetWorld());
+	if (!TestNotNull(TEXT("barks"), B)) { return false; }
+	const FName Arrive(TEXT("Bark_Planet_Arrive_Verdance"));
+	auto Count = [B, Arrive]() { return B->GetSaid().FilterByPredicate([Arrive](const FName& N) { return N == Arrive; }).Num(); };
+	for (float T = 0.f; T < 40.f && Count() == 0; T += 0.5f) { V.W.Advance(0.5f); }
+	TestEqual(TEXT("said on the first time on foot"), Count(), 1);
+	TestEqual(TEXT("by the pilot on foot"), B->GetLastSpeaker(Arrive), ATDFirstPersonCharacter::GetOnFootPilotName(V.W.GetWorld()));
+	TestTrue(TEXT("claimed for the run"), V.GI->HasRunOnceBark(Arrive));
+	// A reload or a staged start in the same run: a fresh bark state, the run remembers.
+	B->ResetForTests();
+	V.W.Advance(10.f);
+	TestFalse(TEXT("not again in the same run"), B->GetSaid().Contains(Arrive));
+	// A new run plays it again.
+	V.GI->StartNewRun();
+	TestFalse(TEXT("a new run forgets it"), V.GI->HasRunOnceBark(Arrive));
+	return true;
+}
+
+// The animation builder's hooks (Nov 14): out of the ship (A_Pilot_Exit_Ship), back in (A_Pilot_Board_Ship) with the
+// capsule carried and the blade put away; the death clip before the ragdoll; the deflect flick; the v3 heavy lunge.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPilotAnimHooks, "TriadDrift.Ground.Pilot.ShipDeathDeflectAndHeavyClips", TD_TEST_FLAGS)
+bool FTDPilotAnimHooks::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDFirstPersonCharacter* P = V.Director->GetFirstPerson();
+	if (!TestNotNull(TEXT("pilot"), P)) { return false; }
+	const bool bBody = P->GetMesh() && P->GetMesh()->GetSkeletalMeshAsset() && P->GetMesh()->GetAnimInstance();
+	if (!bBody)
+	{
+		AddInfo(TEXT("no pilot body in this checkout: the clip hooks are not exercised"));
+		return true;
+	}
+	// Out of the ship: done by now (0.63 s), on the ground, blade drawn.
+	V.W.Advance(1.f);
+	TestFalse(TEXT("the exit clip has ended"), P->IsInShipTransition());
+	TestTrue(TEXT("walking after the exit"), P->GetCharacterMovement()->MovementMode == MOVE_Walking);
+	TestFalse(TEXT("the blade is drawn after the exit"), P->GetBlade()->IsRetracted());
+	// The heavy lunge plays v3.
+	P->GetBlade()->HeavyLunge();
+	V.W.Advance(0.1f);
+	TestEqual(TEXT("the heavy lunge plays v3"), P->GetBodyActionName(), FName(TEXT("A_Pilot_Heavy_v3")));
+	V.W.Advance(1.5f);
+	// A successful deflect flicks.
+	P->GetBlade()->OnDeflect.Broadcast(nullptr, false);
+	TestEqual(TEXT("a deflect flicks"), P->GetBodyActionName(), FName(TEXT("A_Pilot_Blade_DeflectFlick")));
+	V.W.Advance(1.5f);
+	// Back in: the climb plays, the capsule rises, the blade is away, the ship is taken over inside 1 s.
+	const float Z0 = P->GetActorLocation().Z;
+	if (ATDBoardShipInteractable* Board = V.Director->GetBoardPoint()) { Board->Interact(P); }
+	TestTrue(TEXT("climbing in"), P->IsInShipTransition());
+	TestEqual(TEXT("the board clip"), P->GetBodyActionName(), FName(TEXT("A_Pilot_Board_Ship")));
+	TestTrue(TEXT("the blade is away for the climb"), P->GetBlade()->IsRetracted());
+	V.W.Advance(0.5f);
+	TestTrue(*FString::Printf(TEXT("the capsule rises (%.0f cm)"), P->GetActorLocation().Z - Z0), P->GetActorLocation().Z > Z0 + 30.f);
+	V.W.Advance(0.6f);
+	TestFalse(TEXT("aboard"), V.Director->IsOnFoot());
+	return true;
+}
+
+// The death clip (Death1_v2 / Death2_v2) plays first, the ragdoll takes over 0.7 s later.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDPilotDeathClip, "TriadDrift.Ground.Pilot.DeathClipThenRagdoll", TD_TEST_FLAGS)
+bool FTDPilotDeathClip::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDFirstPersonCharacter* P = V.Director->GetFirstPerson();
+	if (!TestNotNull(TEXT("pilot"), P)) { return false; }
+	USkeletalMeshComponent* Body = P->GetMesh();
+	if (!Body || !Body->GetSkeletalMeshAsset() || !Body->GetPhysicsAsset())
+	{
+		AddInfo(TEXT("no pilot body with a physics asset here"));
+		return true;
+	}
+	V.W.Advance(1.f);
+	P->GetHealth()->Kill(nullptr, ETDDamageKind::Melee);
+	TestTrue(*FString::Printf(TEXT("a v2 death clip (%s)"), *P->GetBodyActionName().ToString()), P->GetBodyActionName().ToString().EndsWith(TEXT("_v2")));
+	TestFalse(TEXT("not a ragdoll yet"), Body->IsSimulatingPhysics());
+	V.W.Advance(0.9f);
+	TestTrue(TEXT("the ragdoll after 0.7 s"), Body->IsSimulatingPhysics());
+	return true;
+}
+
+// T2's play (Nov 14): no on-foot marker at all during "HEAD TO THE RESEARCH SITE" / "HEAD TO THE SURVEY STATION". On
+// both planets every objective line the pilot can see on foot has at least one live marker on the pilot's own list
+// (what the ground HUD draws): arriving, every step of every objective, and the way back to the ship.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEveryFootLineHasAMarker, "TriadDrift.Ground.Course.EveryOnFootLineHasAMarker", TD_TEST_FLAGS)
+bool FTDEveryFootLineHasAMarker::RunTest(const FString& Parameters)
+{
+	for (const TCHAR* Planet : { TEXT("Verdance"), TEXT("Cinder") })
+	{
+		TDPlanetTest::FVisit V(NAME_None, Planet);
+		TDCourseTest::FRun R(V, *this);
+		if (!R.Land()) { return false; }
+		ATDFirstPersonCharacter* P = V.Director->GetFirstPerson();
+		if (!TestNotNull(TEXT("pilot"), P)) { return false; }
+		auto Check = [&](const FString& Where)
+		{
+			FTDObjectiveLine Line;
+			const bool bLine = FTDObjectiveText::Compute(V.W.GetWorld(), V.GI->GetProgressRef(), V.GI->GetCurrentDestination(), Line);
+			const TArray<AActor*> M = P->GetObjectiveMarkers();
+			int32 Live = 0;
+			for (const AActor* A : M) { Live += IsValid(A) ? 1 : 0; }
+			TestTrue(*FString::Printf(TEXT("%s %s: '%s' has a marker"), Planet, *Where, bLine ? *Line.Text.ToString() : TEXT("(no line)")), !bLine || Live > 0);
+		};
+		V.W.Advance(1.f);
+		Check(TEXT("on arrival"));
+		for (const TObjectPtr<ATDObjective>& O : R.Course->GetObjectives())
+		{
+			if (!O || O->IsComplete()) { continue; }
+			if (!O->IsActive()) { R.Course->StartObjectiveAt(O->ObjectiveId); }
+			if (!O->IsActive()) { O->StartObjective(); }
+			for (int32 Step = 0; Step < 12 && O->IsActive(); ++Step)
+			{
+				V.W.Advance(0.3f);
+				Check(FString::Printf(TEXT("%s step %d"), *O->ObjectiveId.ToString(), O->GetCurrentStepIndex()));
+				O->AdvanceStep();
+			}
+			V.W.Advance(0.3f);
+			Check(FString::Printf(TEXT("after %s"), *O->ObjectiveId.ToString()));
+		}
+		Check(TEXT("all done"));
+	}
+	return true;
+}
+
+// T7 (Nov 14): Cinder's two gate conduits carried no markers, only the gate's step counter. While they are the step the
+// marker is the nearest one standing, then the other, as at the reactor.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCinderGateConduitMarkers, "TriadDrift.Ground.Course.CinderGateConduitMarkerIsTheNearestStanding", TD_TEST_FLAGS)
+bool FTDCinderGateConduitMarkers::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V(NAME_None, TEXT("Cinder"));
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDObjective* Survey = R.Course->FindObjective(TEXT("Obj_Survey"));
+	ATDObjective* Outpost = R.Course->FindObjective(TEXT("Obj_Outpost"));
+	if (!TestNotNull(TEXT("survey"), Survey) || !TestNotNull(TEXT("outpost"), Outpost)) { return false; }
+	R.Course->StartObjectiveAt(Survey->ObjectiveId);
+	for (int32 i = 0; i < 6 && Survey->IsActive(); ++i) { Survey->AdvanceStep(); }
+	TestTrue(TEXT("the excavation starts"), R.Course->StartObjectiveAt(Outpost->ObjectiveId));
+	ATDFirstPersonCharacter* P = V.Director->GetFirstPerson();
+	if (P) { P->SetActorLocation(R.Course->GetActorTransform().TransformPosition(FVector(8200.f, 6000.f, 150.f)), false, nullptr, ETeleportType::TeleportPhysics); } // the far bank: no crossing between
+	TArray<ATDShatterCrystal*> Conduits;
+	for (TActorIterator<ATDShatterCrystal> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Outpost && It->LinkedStep == 0) { Conduits.Add(*It); } }
+	TestEqual(TEXT("two gate conduits"), Conduits.Num(), 2);
+	for (int32 Down = 0; Down < 2; ++Down)
+	{
+		V.W.Advance(0.3f); // the course ticks every 0.2 s
+		ATDShatterCrystal* C = Cast<ATDShatterCrystal>(Outpost->GetCurrentWaypoint());
+		if (!TestNotNull(*FString::Printf(TEXT("with %d down the marker is a conduit (%s)"), Down, *GetNameSafe(Outpost->GetCurrentWaypoint())), C)) { return false; }
+		TestTrue(TEXT("a standing one"), UTDStatics::GetHealth(C) && UTDStatics::GetHealth(C)->IsAlive());
+		TestTrue(TEXT("on the pilot's markers"), P && P->GetObjectiveMarkers().Contains(C));
+		UTDStatics::GetHealth(C)->Kill(P, ETDDamageKind::Melee);
 	}
 	return true;
 }

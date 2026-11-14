@@ -68,15 +68,18 @@ bool FTDGroundRealKeys::RunTest(const FString& Parameters)
 	W.Advance(0.3f);
 	TestTrue(TEXT("dash carried us forward"), FVector::Dist2D(Before, C->GetActorLocation()) > 1000.f);
 
-	// LMB: the light hit lands on the press frame (M8), before the button is released.
+	// LMB: the light hit lands with the hand, the blade's HitDelay after the press (0.1 s; the animation audit), still
+	// before the button is released (M8).
 	ATDCrewDummy* D = TDGroundTest::SpawnDummy(W, C->GetActorLocation() + FVector(130.f, 0.f, 0.f));
 	W.Advance(0.2f);
+	const float HitDelay = C->GetBlade()->HitDelay;
 	FTDTestWorld::InjectKey(PC, EKeys::LeftMouseButton, true);
-	W.Tick();
-	TestEqual(TEXT("LMB press lands the light hit at once"), 1000.f - TDGroundTest::Hull(D), 25.f, 0.1f);
+	W.Advance(HitDelay + 0.05f);
+	TestEqual(TEXT("LMB press lands the light hit with the hand, button still down"), 1000.f - TDGroundTest::Hull(D), 25.f, 0.1f);
 	FTDTestWorld::InjectKey(PC, EKeys::LeftMouseButton, false);
 	W.Advance(0.6f);
 	TDInputTest::Tap(W, PC, EKeys::LeftMouseButton);
+	W.Advance(HitDelay + 0.05f);
 	TestEqual(TEXT("a second tap continues the combo"), 1000.f - TDGroundTest::Hull(D), 50.f, 0.1f);
 
 	// RMB: block while held.
@@ -93,6 +96,7 @@ bool FTDGroundRealKeys::RunTest(const FString& Parameters)
 	W.Advance(0.3f);
 	const float Hp = TDGroundTest::Hull(D);
 	TDInputTest::Tap(W, PC, EKeys::LeftMouseButton);
+	W.Advance(HitDelay + 0.05f);
 	TestTrue(TEXT("can swing out of a block"), TDGroundTest::Hull(D) < Hp);
 	W.Advance(0.6f);
 	TestTrue(TEXT("guard comes back while RMB is held"), C->GetBlade()->IsBlocking());

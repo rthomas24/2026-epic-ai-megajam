@@ -1,6 +1,9 @@
 // Triad Drift - hyperdrive (ENG-15). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Travel/TDTravelBarks.h"
+#include "HAL/IConsoleManager.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Travel/TDTravelSubsystem.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
@@ -17,6 +20,10 @@
 #include "TriadDrift/Core/TDCombatRegistry.h"
 
 const FName UTDHyperdriveComponent::OverrideOwner(TEXT("Hyperdrive"));
+
+// Dev / capture only (the effects builder couldn't film a jump through "ENEMIES IN RANGE"): the enemy lock is ignored.
+static TAutoConsoleVariable<int32> CVarTDHyperdriveIgnoreLock(TEXT("td.Hyperdrive.IgnoreLock"), 0,
+	TEXT("Dev: 1 = the hyperdrive ignores the enemies-in-range lock (other blocks stay: atmosphere, wells, damage, cooldown). For captures; never shipped on."));
 
 template <typename TFX>
 concept TDHyperdrive_HasRefusedCue = requires(TFX* FX) { FX->HyperdriveRefused; };
@@ -118,7 +125,7 @@ ETDHyperdriveBlock UTDHyperdriveComponent::ComputeBlockReason(bool bCachedSweep)
 	if (const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
 		FText LockReason;
-		if (Travel->IsHyperdriveLocked(LockReason))
+		if (Travel->IsHyperdriveLocked(LockReason) && CVarTDHyperdriveIgnoreLock.GetValueOnGameThread() == 0)
 		{
 			return ETDHyperdriveBlock::Locked;
 		}
@@ -192,6 +199,7 @@ FText UTDHyperdriveComponent::GetBlockReasonText() const
 		if (const UTDAtmosphereEntryComponent* Entry = Ship->GetAtmosphereEntry())
 		{
 			if (Entry->IsHoldingForStory()) { return NSLOCTEXT("TDTravel", "AwaitingOrders", "AWAITING ORDERS"); }
+			if (Entry->IsPlanetClosedWarning() && Ship->IsPlayerFlown()) { return Entry->GetPlanetClosedText(); } // #161
 		}
 	}
 	const ETDHyperdriveBlock Block = ComputeBlockReason(true);
@@ -248,9 +256,14 @@ bool UTDHyperdriveComponent::RequestSpoolFromPilot()
 		UE_LOG(LogTriadDrift, Log, TEXT("Hyperdrive refused: %s"), *Reason.ToString());
 		OnSpoolRefused.Broadcast(this, Block, Reason);
 		TDHyperdrive_PlayRefusedCue(TravelFX.Get(), GetCraft());
+		// ENG-43 Bark_Hyper_Blocked: refused in combat (the enemy lock), per refused press (the limiter spaces them).
+		if (Block == ETDHyperdriveBlock::Locked) { FTDCombatBarks::SayAsPilot(GetCraft(), TDBarkIdsT1::HyperBlocked, ETDBarkPriority::Normal); }
 		return false;
 	}
-	return StartSpool();
+	const bool bSpooling = StartSpool();
+	// ENG-43 Bark_Hyper_Spool: the pilot's own jump starts charging.
+	if (bSpooling) { FTDCombatBarks::SayAsPilot(GetCraft(), TDBarkIdsT1::HyperSpool, ETDBarkPriority::Normal); }
+	return bSpooling;
 }
 
 bool UTDHyperdriveComponent::StartSpool()

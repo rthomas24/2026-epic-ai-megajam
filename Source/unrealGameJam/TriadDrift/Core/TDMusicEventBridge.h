@@ -16,6 +16,7 @@
 //                       (the victory screen closed first). Always after VictoryStinger, always before VictoryEnded, once per stinger.
 //   GroundCombat        (Verdance | Cinder, false)   on foot on a planet: a crew encounter has started (ATDEncounterVolume active)
 //   GroundAllClear      (Verdance | Cinder, false)   ... and every active encounter is cleared again (exploration)
+//   CoreChamberEntered / ReactorFightStarted / ReactorFightEnded / EscapeStarted (None, false)  T5's ATDPlanetCourse::OnInteriorMoment
 //   RevealEnded         (None, bCompleted)  the final record (story sequence Cinematic08) has finished; bCompleted false = skipped
 // Order in a victory: VictoryBegan -> (C9_Moss_TakeThat) -> VictoryStinger -> TransmissionStarted/Ended A5 -> ... the three C9
 // lines ... -> VictoryStingerDone -> VictoryEnded (when the player leaves the victory screen).
@@ -81,6 +82,10 @@ public:
 	static const FName GroundCombat;
 	static const FName GroundAllClear;
 	static const FName RevealEnded;
+	static const FName CoreChamberEntered;
+	static const FName ReactorFightStarted;
+	static const FName ReactorFightEnded;
+	static const FName EscapeStarted;
 
 	/** The stinger's lines, in the order they air (ATDMenuBackdrop::PlayStinger). */
 	static const TArray<FName>& StingerLines();
@@ -121,6 +126,9 @@ private:
 	UFUNCTION() void HandleLandingState(UTDLandingComponent* Landing, ETDLandingState NewState);
 	UWorld* CurrentWorld() const;
 	void HandlePreLoadMap(const FString& MapName);
+	void HandleInteriorMoment(FName Moment, AActor* Source);
+	FDelegateHandle InteriorHandle;
+	bool IsOurBackdrop(const class ATDMenuBackdrop* Backdrop) const;
 	void FinishStinger(bool bCompleted);
 	void TickStinger(UWorld* World);
 	void TickGround(UWorld* World);

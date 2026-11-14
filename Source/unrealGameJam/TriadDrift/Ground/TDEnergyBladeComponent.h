@@ -53,16 +53,25 @@ public:
 
 	/** Holding attack this long turns it into a heavy lunge. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Heavy", meta = (Units = "s"))
-	float HeavyHoldSeconds = 0.35f;
+	float HeavyHoldSeconds = 0.25f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Heavy")
 	float HeavyDamage = 70.f;
+
+	/** A light swing's hit lands this long after the press, with the hand (the pilot clips reach the target 0.10-0.13 s
+	 *  in; the animation audit). 0 = on the press. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Light", meta = (Units = "s", ClampMin = "0"))
+	float HitDelay = 0.1f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Heavy", meta = (Units = "cm"))
 	float HeavyLungeDistance = 600.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Heavy", meta = (Units = "s"))
 	float HeavyLungeDuration = 0.2f;
+
+	/** The lunge's stab lands at the clip's thrust (A_Pilot_Heavy_v4: full extension 0.13 s at x1.4), not on its first frame. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Heavy", meta = (Units = "s", ClampMin = "0"))
+	float HeavyHitDelay = 0.13f;
 
 	/** Sweep radius of the lunge's stab. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Blade|Heavy", meta = (Units = "cm"))
@@ -207,6 +216,9 @@ public:
 	/** True during a swing, lunge or slam: the character shouldn't sprint or slide. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
 	bool IsAttacking() const;
+	/** How long a press from rest has been held toward the heavy (seconds), or -1 when no such press is charging. */
+	float GetHeavyChargeTime() const { return (bLightDeferred && bAttackHeld) ? AttackHeldTime : -1.f; }
+	float GetHeavyHoldSeconds() const { return HeavyHoldSeconds; }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
 	bool IsInPerfectWindow() const { return IsBlocking() && BlockTime <= PerfectWindow; }
@@ -286,9 +298,21 @@ private:
 	float SwingTimeLeft = 0.f;      // lockout of the current move
 	float ComboTimeLeft = 0.f;      // window to continue the combo after a swing
 	bool bLightQueued = false;
+	// A light swing's hit, waiting for its active frame (HitDelay).
+	float PendingHitLeft = -1.f;
+	float PendingRange = 0.f, PendingArc = 0.f, PendingDamage = 0.f, PendingKnockback = 0.f;
+	void PlaySwingTrail();
 	bool bAttackHeld = false;
 	float AttackHeldTime = 0.f;
 	bool bHeavyFiredThisPress = false;
+	/** A press from rest waits: released before HeavyHoldSeconds it is a light swing, held it goes straight to the heavy. */
+	bool bLightDeferred = false;
+	double SwingStartSeconds = 0.0;
+	/** The heavy's chosen victim, stabbed when HeavyHitDelay runs out (if the lunge is still on). */
+	TWeakObjectPtr<AActor> PendingHeavyTarget;
+	float PendingHeavyLeft = -1.f;
+	FVector PendingHeavyDir = FVector::ForwardVector;
+	void ApplyHeavyHit(AActor* Target, const FVector& Dir);
 	bool bBlockHeld = false;
 	float BlockTime = 0.f;
 	float Stamina = 3.f;

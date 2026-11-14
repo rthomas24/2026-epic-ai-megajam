@@ -88,8 +88,15 @@ public:
 	bool HasPlayedTransmission(FName Id) const { return Progress.StoryTransmissions.Contains(Id); }
 	void MarkTransmissionPlayed(FName Id);
 	void ForgetPlayedTransmissions();
+	/** T3: an ambient line claimed when queued but cut off by a map travel before it aired: unclaim it (run and checkpoint). */
+	void ForgetTransmission(FName Id);
 	/** This run was resumed with Continue (onboarding's control lessons stay off). A New Game clears it. */
 	bool IsRunFromContinue() const { return bRunFromContinue; }
+	/** A bark played once per run (the first view on a planet), kept across retakes, reloads and staged starts in
+	 *  this session; a new run clears it. True the first time it is claimed. */
+	bool ClaimRunOnceBark(FName BarkId) { bool bAlready = false; RunOnceBarks.Add(BarkId, &bAlready); return !bAlready; }
+	bool HasRunOnceBark(FName BarkId) const { return RunOnceBarks.Contains(BarkId); }
+	TSet<FName> RunOnceBarks;
 #if WITH_DEV_AUTOMATION_TESTS
 	void SetRunFromContinueForTests(bool b) { bRunFromContinue = b; }
 #endif
@@ -97,6 +104,10 @@ public:
 	/** Loads the save slot and travels to the saved destination. False if nothing valid or travel fails. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
 	bool ContinueRun();
+
+	/** Changes at every run boundary (New Game, Continue, a run reset): anything kept across a map travel is keyed to
+	 *  it, so one run's leftovers never reach another (T3's story carry, #139). */
+	uint32 GetRunSerial() const { return RunSerial; }
 
 	/** The run's difficulty: applied to the balance tables now and kept in the save slot (Continue restores it). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flow")
@@ -260,6 +271,7 @@ private:
 	enum class ETravelStage : uint8 { None, FadingOut, OnTransitionMap, Loading };
 
 	void ResetRunState();
+	uint32 RunSerial = 0;
 	void BindEventBus();
 	/** ENG-33: New Game plays the intro once (transient, never saved). */
 	bool bIntroPending = false;

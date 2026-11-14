@@ -14,6 +14,7 @@
 #include "TriadDrift/World/TDPlanetTerrain.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
+#include "TriadDrift/Ground/Crew/TDFutureCrew.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Ground/TDGroundScene.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
@@ -34,6 +35,12 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Misc/PackageName.h"
+#include "Kismet/GameplayStatics.h"
+#include "TriadDrift/Ground/TDGroundBarks.h"
+#include "TriadDrift/Ground/Interior/TDReactorCoreFX.h"
+#include "NiagaraComponent.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundBase.h"
 
 #define LOCTEXT_NAMESPACE "TDPlanetCourse"
 
@@ -62,6 +69,21 @@ namespace TDCourseColors
 
 /** A socket of a Grok Bot prop (anchor tower, crystal cradle) in the mesh's own space (Interchange may keep or strip
  *  the SOCKET_ prefix). */
+/** A structures-builder piece in Props/Kit/Story under either of its names, or null when it is not in the build. */
+static UStaticMesh* TDPlanetCourse_KitStory(const TCHAR* Name, const TCHAR* AltName = nullptr)
+{
+	for (const TCHAR* N : { Name, AltName })
+	{
+		if (!N) { continue; }
+		const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/%s"), N);
+		if (FindPackage(nullptr, *Package) || FPackageName::DoesPackageExist(Package))
+		{
+			if (UStaticMesh* M = TDPropArt::Load(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(TEXT("%s.%s"), *Package, N))))) { return M; }
+		}
+	}
+	return nullptr;
+}
+
 static bool TDPlanetCourse_AnchorSocket(const UStaticMesh* Mesh, const TCHAR* Name, FVector& OutLocal)
 {
 	if (!Mesh) { return false; }
@@ -362,9 +384,132 @@ bool ATDPlanetCourse::IsScatterAllowedAt(const UObject* WorldContextObject, cons
 // Grok Bot's survey outpost (the Verdance research site, the Cinder survey station)
 // ------------------------------------------------------------------------------------------------
 
-AActor* ATDPlanetCourse::PlaceOutpost(const FVector& Site, float Yaw, bool bCinder, UStaticMeshComponent*& OutConsole)
+float ATDPlanetCourse::GroundZAt(const FVector& Local) const
+{
+	const UWorld* World = GetWorld();
+	if (!World)
+	{
+		return 0.f;
+	}
+	FCollisionQueryParams Q(SCENE_QUERY_STAT(TDCourseGround), true);
+	for (const TObjectPtr<AActor>& A : Spawned) { if (A) { Q.AddIgnoredActor(A.Get()); } } // the course's own slab and props
+	Q.AddIgnoredActor(this);
+	FHitResult Hit;
+	const FVector P = W(FVector(Local.X, Local.Y, 0.f));
+	if (World->LineTraceSingleByChannel(Hit, P + FVector(0.f, 0.f, 20000.f), P - FVector(0.f, 0.f, 5000.f), ECC_WorldStatic, Q))
+	{
+		return FMath::Max(0.f, (float)GetActorTransform().InverseTransformPosition(Hit.ImpactPoint).Z);
+	}
+	return 0.f;
+}
+
+AActor* ATDPlanetCourse::SpawnKitBP(const TCHAR* Folder, const TCHAR* Name, const FVector& Local, float Yaw, float Scale)
+{
+	const FString Path = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Props/%s/%s.%s_C"), Folder, Name, Name);
+	UClass* Cls = LoadClass<AActor>(nullptr, *Path, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	if (!Cls || !GetWorld())
+	{
+		return nullptr;
+	}
+	FActorSpawnParameters Params;
+	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	AActor* A = GetWorld()->SpawnActor<AActor>(Cls, FTransform(GetActorRotation() + FRotator(0.f, Yaw, 0.f), W(Local), FVector(Scale)), Params);
+	if (A)
+	{
+		Spawned.Add(A);
+	}
+	return A;
+}
+
+int32 ATDPlanetCourse::Dress(const TArray<FDressItem>& Items, const FVector& Origin, float Yaw, FName Site)
+{
+	int32 Placed = 0;
+	const FRotator R(0.f, Yaw, 0.f);
+	for (const FDressItem& It : Items)
+	{
+		FVector L = Origin + R.RotateVector(FVector(It.Local.X, It.Local.Y, 0.f));
+		L.Z = GroundZAt(L) + It.Local.Z + 3.f; // on the ground (2-3 cm over it; decals carry their own small z)
+		const FName Tag(*FString::Printf(TEXT("%s:%s"), *Site.ToString(), It.Name));
+		if (FCString::Strncmp(It.Name, TEXT("BP_"), 3) == 0)
+		{
+			if (AActor* A = SpawnKitBP(It.Folder, It.Name, L, Yaw + It.Yaw, It.Scale))
+			{
+				FVector O, E;
+				A->GetActorBounds(true, O, E);
+				ClearSite(GetActorTransform().InverseTransformPosition(O), FMath::Min(FMath::Max(E.X, E.Y), 3000.f) + 200.f);
+				DressLog.Add(Tag);
+				++Placed;
+			}
+			continue;
+		}
+		const FString Path = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Props/%s/%s"), It.Folder, It.Name);
+		UStaticMesh* M = FPackageName::DoesPackageExist(Path) ? LoadObject<UStaticMesh>(nullptr, *(Path + TEXT(".") + It.Name), nullptr, LOAD_Quiet | LOAD_NoWarn) : nullptr;
+		if (!M || !Dressing)
+		{
+			continue;
+		}
+		UStaticMeshComponent* C = NewObject<UStaticMeshComponent>(Dressing);
+		C->SetMobility(EComponentMobility::Movable);
+		C->SetStaticMesh(M);
+		C->SetupAttachment(Dressing->GetRootComponent());
+		C->SetRelativeTransform(FTransform(FRotator(0.f, Yaw + It.Yaw, 0.f), L, FVector(It.Scale)));
+		if (It.bCollide) { C->SetCollisionProfileName(TEXT("BlockAll")); C->CanCharacterStepUpOn = ECB_No; }
+		else { C->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
+		C->SetCanEverAffectNavigation(false);
+		C->RegisterComponent();
+		Dressing->AddInstanceComponent(C);
+		ClearSite(L, FMath::Min(150.f + (float)M->GetBounds().SphereRadius * It.Scale, 1500.f));
+		DressLog.Add(Tag);
+		++Placed;
+	}
+	return Placed;
+}
+
+void ATDPlanetCourse::DressOutpost(const FVector& Site, float Yaw, FName Tag)
+{
+	const TCHAR* Out = TEXT("OutpostDressing");
+	Dress({
+		{ Out, TEXT("SM_Outpost_CargoCrate"), FVector(520.f, 320.f, 0.f), 12.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_CargoCrate"), FVector(560.f, 395.f, 0.f), -8.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_SupplyCrate"), FVector(470.f, 410.f, 0.f), 30.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_SupplyCrate"), FVector(610.f, 300.f, 0.f), 75.f, 0.9f, true },
+		{ Out, TEXT("SM_Outpost_FieldTerminal"), FVector(640.f, -330.f, 0.f), 90.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_Floodlight"), FVector(450.f, -440.f, 0.f), 150.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_CommAntenna"), FVector(-150.f, 470.f, 0.f), 0.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_CommsDish"), FVector(-320.f, 500.f, 0.f), 200.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_Generator"), FVector(-520.f, -260.f, 0.f), 90.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_PowerJunction"), FVector(-470.f, -400.f, 0.f), 0.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_BollardLight"), FVector(760.f, 260.f, 0.f), 0.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_BollardLight"), FVector(760.f, -260.f, 0.f), 0.f, 1.f, true },
+	}, Site, Yaw, Tag);
+}
+
+void ATDPlanetCourse::DressPad(FName Tag)
+{
+	const TCHAR* Out = TEXT("OutpostDressing");
+	TArray<FDressItem> Items;
+	for (int32 i = 0; i < 8; ++i)
+	{
+		const float A = 22.5f + i * 45.f;
+		Items.Add({ Out, TEXT("SM_Outpost_BollardLight"), FVector(FMath::Cos(FMath::DegreesToRadians(A)), FMath::Sin(FMath::DegreesToRadians(A)), 0.f) * 1550.f, A + 180.f, 1.f, true });
+	}
+	Items.Append({
+		{ Out, TEXT("SM_Outpost_Floodlight"), FVector(-1900.f, 1200.f, 0.f), -35.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_Floodlight"), FVector(-1900.f, -1200.f, 0.f), 35.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_CargoCrate"), FVector(300.f, -1900.f, 0.f), 15.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_SupplyCrate"), FVector(420.f, -2020.f, 0.f), -20.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_Generator"), FVector(-200.f, -2000.f, 0.f), 0.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_PowerJunction"), FVector(-380.f, -1880.f, 0.f), 90.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_CommsDish"), FVector(-1700.f, 1900.f, 0.f), 225.f, 1.f, true },
+		{ Out, TEXT("SM_Outpost_CommAntenna"), FVector(-1500.f, 2050.f, 0.f), 0.f, 1.f, true },
+	});
+	Dress(Items, FVector::ZeroVector, 0.f, Tag);
+}
+
+AActor* ATDPlanetCourse::PlaceOutpost(FVector& Site, float Yaw, bool bCinder, UStaticMeshComponent*& OutConsole)
 {
 	OutConsole = nullptr;
+	Site.Z = GroundZAt(Site) > 0.f ? GroundZAt(Site) + 3.f : Site.Z; // over T4's terrain, never under it (#42)
 	ClearSite(Site, TDCourseColors::OutpostClearRadius); // the room (or its placeholder) and its door, whichever is built
 	const TCHAR* Path = bCinder ? TEXT("/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_Cinder.BP_Outpost_Site_Cinder_C")
 		: TEXT("/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_Verdance.BP_Outpost_Site_Verdance_C");
@@ -746,6 +891,14 @@ ATDEncounterVolume* ATDPlanetCourse::Encounter(ATDObjective* Obj, int32 LinkedSt
 	E->LinkedObjective = Obj;
 	E->LinkedStep = LinkedStep;
 	E->bTriggerOnOverlap = bOnOverlap;
+	// Director's mercy on every course fight unless the build sets its own (T7's Cinder play, Nov 14: mercy never
+	// logged there): take 2 at 85 % health, take 3 one fewer at 75 %, take 5 two fewer at 60 %.
+	{
+		FTDRetakeMercyTier M2; M2.FromTake = 2; M2.HealthScale = 0.85f;
+		FTDRetakeMercyTier M3; M3.FromTake = 3; M3.HealthScale = 0.75f; M3.DropCrew = 1;
+		FTDRetakeMercyTier M5; M5.FromTake = 5; M5.HealthScale = 0.6f; M5.DropCrew = 2;
+		E->MercyTiers = { M2, M3, M5 };
+	}
 	TDCourseImpl::FinishProp(E);
 	if (E->Box)
 	{
@@ -766,6 +919,56 @@ AActor* ATDPlanetCourse::Marker(const FVector& At, float Yaw)
 		M->SetActorTransform(FTransform(GetActorRotation() + FRotator(0.f, Yaw, 0.f), W(At)));
 	}
 	return M;
+}
+
+void ATDPlanetCourse::AddMagmaCrossing(const AActor* MagmaActor, ATDObjective* Objective, int32 Step, const TArray<FVector>& Chain, const FVector& RescueAt, float RescueYaw)
+{
+	const ATDMagmaVolume* M = Cast<ATDMagmaVolume>(MagmaActor);
+	UTDObjectiveSubsystem* Markers = UTDObjectiveSubsystem::Get(this);
+	if (!M || !M->Box || !Markers)
+	{
+		return;
+	}
+	TArray<AActor*> Waypoints;
+	for (const FVector& L : Chain) { Waypoints.Add(Marker(L + FVector(0.f, 0.f, 100.f))); }
+	Markers->AddCrossing(M->Box->Bounds.GetBox(), Objective, Step, Waypoints);
+	if (!MagmaRescues.ContainsByPredicate([M](const FMagmaRescue& R) { return R.Magma.Get() == M; }))
+	{
+		MagmaRescues.Add({ M, FTransform(GetActorRotation() + FRotator(0.f, RescueYaw, 0.f), W(RescueAt + FVector(0.f, 0.f, 100.f))) });
+	}
+}
+
+void ATDPlanetCourse::NoteMagmaDeath(const AActor* Magma)
+{
+	PendingMagmaDeath = Magma;
+}
+
+bool ATDPlanetCourse::GetMagmaRescue(const AActor* Magma, FTransform& Out) const
+{
+	for (const FMagmaRescue& R : MagmaRescues)
+	{
+		if (R.Magma.Get() == Magma) { Out = R.Far; return true; }
+	}
+	return false;
+}
+
+bool ATDPlanetCourse::ResolveRespawn(FTransform& InOutWhere)
+{
+	// Count magma deaths in a row in the same magma; any other death starts over.
+	const AActor* Killer = PendingMagmaDeath.Get();
+	PendingMagmaDeath.Reset();
+	MagmaDeathsInRow = (Killer && Killer == LastMagmaDeath.Get()) ? MagmaDeathsInRow + 1 : (Killer ? 1 : 0);
+	LastMagmaDeath = Killer;
+	FTransform Far;
+	if (MagmaDeathsInRow >= MagmaRescueAfterDeaths && GetMagmaRescue(Killer, Far))
+	{
+		UE_LOG(LogTriadDrift, Display, TEXT("%s: %d magma deaths in a row in %s, respawning on the far side"), *GetName(), MagmaDeathsInRow, *GetNameSafe(Killer));
+		MagmaDeathsInRow = 0;
+		LastMagmaDeath.Reset();
+		InOutWhere = Far;
+		return true;
+	}
+	return false;
 }
 
 void ATDPlanetCourse::Checkpoint(ATDObjective* Obj, int32 Step, const FVector& At, float Yaw)
@@ -890,11 +1093,46 @@ bool ATDPlanetCourse::GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) c
 	return true;
 }
 
+void ATDPlanetCourse::HandleStoryLine(const FTDTransmissionView& Line)
+{
+	// The drone answers on T3's pulse line (the "three pulses" sound plays from DA_UI_Style there; Nick's slot).
+	if (Line.bActive && Line.Id == TEXT("C3_Wren_Answered") && DormantDrone && DroneWakeStart < 0.0)
+	{
+		DroneWakeStart = GetWorld() ? GetWorld()->GetRealTimeSeconds() : 0.0;
+		UE_LOG(LogTriadDrift, Display, TEXT("Cinematic 03: the relay drone wakes (three pulses, then steady blue)"));
+	}
+}
+
+void ATDPlanetCourse::TickDroneWake()
+{
+	if (DroneWakeStart < 0.0 || !DormantDrone || !GetWorld())
+	{
+		return;
+	}
+	// T3's light timing: three 0.25 s pulses 0.6 s apart, then steady.
+	const float T = (float)(GetWorld()->GetRealTimeSeconds() - DroneWakeStart);
+	const float Cycle = 0.6f;
+	const bool bSteady = T >= 3.f * Cycle;
+	const float Glow = bSteady ? 6.f : (FMath::Fmod(T, Cycle) < 0.25f ? 14.f : 0.4f);
+	if (UMaterialInstanceDynamic* MID = DroneOptic ? Cast<UMaterialInstanceDynamic>(DroneOptic->GetMaterial(0)) : nullptr)
+	{
+		const FLinearColor Blue(0.2f, 0.55f, 1.f);
+		MID->SetVectorParameterValue(TEXT("Color"), Blue * Glow);
+		MID->SetVectorParameterValue(TEXT("EmissiveColor"), Blue * Glow);
+	}
+	// Up off the deck, 40 cm over 2 s, then a slow bob.
+	const float Lift = 40.f * FMath::Clamp(T / 2.f, 0.f, 1.f) + (bSteady ? 6.f * FMath::Sin(T * 1.6f) : 0.f);
+	DormantDrone->SetWorldLocation(DroneHome + FVector(0.f, 0.f, Lift));
+}
+
 void ATDPlanetCourse::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	TickDroneWake();
 	InteriorTime += DeltaSeconds;
 	TickFinalRecord(DeltaSeconds);
+	TickCoreChamber();
+	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->TickBarks(DeltaSeconds); } // ENG-43's polled barks
 	for (const FCoreRing& R : CoreRings) // the reactor's rings turn (and rock a little, under 20 degrees: inside the shield)
 	{
 		if (UStaticMeshComponent* Ring = R.Ring.Get())
@@ -949,6 +1187,7 @@ void ATDPlanetCourse::HandleObjectiveCompleted(ATDObjective* Objective)
 		if (D.Objective == Objective && D.Door) { D.Door->Open(); }
 	}
 	FireCompletionBeats(Objective);
+	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->NotifyObjectiveDone(); } // ENG-43
 	if (IsInterior())
 	{
 		HandleInteriorObjectiveCompleted(Objective);
@@ -1038,11 +1277,12 @@ void ATDPlanetCourse::BuildVerdance()
 		Block(EShape::Cube, L + FVector(0.f, 0.f, 70.f), FVector(500.f, 110.f, 140.f), Trunk, 0.f, FRotator(0.f, 35.f, 0.f), true, TEXT("SM_Verd_Log"));
 	}
 	ATDEncounterVolume* AmbushFight = Encounter(Wreck, INDEX_NONE, Ambush + FVector(0.f, 0.f, 200.f), FVector(1500.f, 1500.f, 600.f),
-		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt }, true, 900.f); // the first fight: one shooter (playtest: 4 crew killed a non-blocker in ~4 s)
-	// Director's mercy (agent journey: 16 takes lost here): take 3 one grunt fewer, take 5 the trooper alone.
-	FTDRetakeMercyTier AmbushMercy3; AmbushMercy3.FromTake = 3; AmbushMercy3.DropCrew = 1;
-	FTDRetakeMercyTier AmbushMercy5; AmbushMercy5.FromTake = 5; AmbushMercy5.DropCrew = 2;
-	AmbushFight->MercyTiers = { AmbushMercy3, AmbushMercy5 };
+		{ ETDCrewType::Grunt, ETDCrewType::Grunt }, true, 900.f); // the first fight, melee only: the blade before the bolts
+	// (T7's Standard play, Nov 14: 5-7 CUTs at the wreck core with a shooter in each of its two fights; Lead's GO.)
+	// Director's mercy: take 2 one grunt, take 3 that grunt at 60 % health.
+	FTDRetakeMercyTier AmbushMercy2; AmbushMercy2.FromTake = 2; AmbushMercy2.DropCrew = 1;
+	FTDRetakeMercyTier AmbushMercy3; AmbushMercy3.FromTake = 3; AmbushMercy3.DropCrew = 1; AmbushMercy3.HealthScale = 0.6f;
+	AmbushFight->MercyTiers = { AmbushMercy2, AmbushMercy3 };
 
 	// The survey station (storyline.md section 18, reduced form): one open-sided station, intact and lit, nobody home. A
 	// roofed deck on four posts with two low equipment walls, the survey terminal in the middle and a dormant drone in a
@@ -1050,7 +1290,7 @@ void ATDPlanetCourse::BuildVerdance()
 	// Grok Bot's outpost when it exists (its bay and ramp turned to the beacon the pilot comes from); else the placeholder.
 	// At the fight's edge, not its middle (Played.Verdance: a solid cabin in the middle of the station fight walled the
 	// pilot off from the crew), clear of the spawn points and of the line from the checkpoint.
-	const FVector OutpostSite = WreckSite + FVector(900.f, -1700.f, 0.f);
+	FVector OutpostSite = WreckSite + FVector(900.f, -1700.f, 0.f);
 	const float SiteYaw = FMath::RadiansToDegrees(FMath::Atan2(6300.f - OutpostSite.Y, 9300.f - OutpostSite.X));
 	UStaticMeshComponent* VerdConsole = nullptr;
 	AActor* VerdOutpost = PlaceOutpost(OutpostSite, SiteYaw, false, VerdConsole);
@@ -1076,13 +1316,13 @@ void ATDPlanetCourse::BuildVerdance()
 
 	// Explicit spawn points clear of the hull (a ring point landed inside it: an unreachable, unkillable grunt).
 	ATDEncounterVolume* SiteFight = Encounter(Wreck, 1, WreckSite + FVector(0.f, 0.f, 200.f), FVector(2600.f, 2600.f, 700.f),
-		{ ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Heavy }, false, 1000.f, // take-1 tuning (journey run 2): 3 crew, about 18 dps standing still; the 4th grunt made it about 25
+		{ ETDCrewType::Grunt, ETDCrewType::Trooper }, false, 1000.f, // the first shooter; the Heavy waits for the relay's transfer (T7's play, Nov 14)
 		{ FVector(1300.f, 200.f, 0.f), FVector(-200.f, -1300.f, 0.f), FVector(1100.f, 1100.f, 0.f) });
 	StepEncounters.Add({ Wreck, 1, SiteFight });
-	// Director's mercy (agent journey: 15 takes lost here): from take 3 the heavy sits it out, from take 5 one grunt.
-	FTDRetakeMercyTier SiteMercy3; SiteMercy3.FromTake = 3; SiteMercy3.DropCrew = 1;
-	FTDRetakeMercyTier SiteMercy5; SiteMercy5.FromTake = 5; SiteMercy5.DropCrew = 2;
-	SiteFight->MercyTiers = { SiteMercy3, SiteMercy5 };
+	// Director's mercy: from take 2 the trooper sits it out, from take 3 the grunt at 60 % health.
+	FTDRetakeMercyTier SiteMercy2; SiteMercy2.FromTake = 2; SiteMercy2.DropCrew = 1;
+	FTDRetakeMercyTier SiteMercy3; SiteMercy3.FromTake = 3; SiteMercy3.DropCrew = 1; SiteMercy3.HealthScale = 0.6f;
+	SiteFight->MercyTiers = { SiteMercy2, SiteMercy3 };
 
 	// The survey console: the signal-analysis device is recovered here (a tap; Gravity Well). Decision 2 (Ryan, Nov 13): the
 	// transfer defence moved to the relay, so the station is the pick-up and nothing is carried.
@@ -1172,6 +1412,20 @@ void ATDPlanetCourse::BuildVerdance()
 	// The dormant drone (Cinematic 03 wakes it, T3): on the deck north of the plinth, in view from the console.
 	DormantDrone = Block(EShape::Sphere, RelaySite + FVector(700.f, 1100.f, DeckTop + 90.f), FVector(120.f, 120.f, 90.f), FLinearColor(0.32f, 0.36f, 0.4f), 0.f,
 		FRotator(0.f, -135.f, 0.f), false, TEXT("SM_Verd_Station_DormantDrone"));
+	if (DormantDrone)
+	{
+		// Its eye: dark until it wakes (TickDroneWake), facing the console.
+		const FVector Front = FRotator(0.f, -135.f, 0.f).Vector();
+		DroneOptic = Block(EShape::Sphere, RelaySite + FVector(700.f, 1100.f, DeckTop + 100.f) + Front * 62.f, FVector(26.f), FLinearColor(0.02f, 0.03f, 0.05f), 0.05f,
+			FRotator::ZeroRotator, false);
+		if (DroneOptic) { DroneOptic->AttachToComponent(DormantDrone, FAttachmentTransformRules::KeepWorldTransform); }
+		DroneHome = DormantDrone->GetComponentLocation();
+		DroneWakeStart = -1.0;
+		if (UTDStorySubsystem* Story = UTDStorySubsystem::Get(this))
+		{
+			Story->OnTransmission.AddUniqueDynamic(this, &ATDPlanetCourse::HandleStoryLine);
+		}
+	}
 
 	ClearSite(RelaySite, 2400.f); // the deck's corners plus a margin; the 29 m keep-out below keeps the open ground
 	ClearSite(WreckSite, 1500.f); // the research site's hull and walkway
@@ -1238,6 +1492,47 @@ void ATDPlanetCourse::BuildVerdance()
 		{ LOCTEXT("R0", "FOLLOW THE SIGNAL TO THE RELAY"), LOCTEXT("R1", "CONNECT THE DEVICE TO THE RELAY · [E]"),
 		  LOCTEXT("R2", "PROTECT THE DATA TRANSFER"), LOCTEXT("R3", "PROTECT THE DATA TRANSFER"), LOCTEXT("R4", "GET BACK TO YOUR SHIP") },
 		{ Reach, RelayConsole, Transfer, Transfer, Ship });
+
+	// Story dressing (the environment builder's table, Nov 14; Kit/Story meshes, Kit/Sites sets, OutpostDressing props):
+	// placed on the ground, each clearing its own footprint of flora.
+	{
+		const TCHAR* Story = TEXT("Kit/Story"); const TCHAR* Sites = TEXT("Kit/Sites"); const TCHAR* Out = TEXT("OutpostDressing");
+		Dress({
+			// A: the research site clearing, an abandoned field camp, and the relay mast pulling the eye from the pad.
+			{ Sites, TEXT("BP_StorySet_VerdanceCamp"), FVector(9400.f, 9000.f, 0.f), 200.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_DragMark"), FVector(10800.f, 9500.f, 2.f), 60.f, 1.5f, false },
+			{ Story, TEXT("SM_Kit_LampPostDead"), FVector(9700.f, 7050.f, 0.f), 0.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_LampPostDead"), FVector(10600.f, 6250.f, 0.f), 180.f, 1.f, true },
+			{ Sites, TEXT("BP_Landmark_RelayMast"), FVector(13200.f, 6800.f, 0.f), 215.f, 1.f, true },
+			// B: the wreck scar's head, and the kit wreck (the walkway through the hull) at the research site.
+			{ Story, TEXT("SM_Kit_AntennaToppled"), FVector(13300.f, 8600.f, 0.f), 35.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_SampleCases"), FVector(12900.f, 9200.f, 0.f), 80.f, 1.f, true },
+			// The kit wreck at the scar's end, just outside the site fight's box: on its 2 m walkway a pilot would be out of the
+			// melee crew's reach mid-fight (Course.CrewAttackAPilotStandingAtTheWreckCore).
+			{ TEXT("Wreck"), TEXT("BP_Wreck"), WreckSite + FVector(2900.f, 1700.f, 0.f), 36.f, 1.f, true },
+			// ART-18's clue, nothing points at it: a scorched Triad panel in the grass past the wreck's far ramp toe.
+			{ Story, TEXT("SM_Kit_InsigniaPanel"), WreckSite + FVector(2900.f, 1700.f, 0.f) + FRotator(0.f, 36.f, 0.f).RotateVector(FVector(-420.f, 1950.f, 0.f)), 196.f, 1.f, false },
+			// C: the relay's approach.
+			{ Story, TEXT("SM_Kit_SurveyStakeFlag"), FVector(4800.f, -6000.f, 0.f), 120.f, 1.f, false },
+			{ Story, TEXT("SM_Kit_SurveyStakeFlag"), FVector(5300.f, -6800.f, 0.f), 120.f, 1.f, false },
+			{ Story, TEXT("SM_Kit_SurveyStakeFlag"), FVector(5800.f, -7500.f, 0.f), 120.f, 1.f, false },
+			{ Story, TEXT("SM_Kit_ShelterFrame"), FVector(9900.f, -8600.f, 0.f), 300.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_SampleCases"), FVector(9700.f, -4700.f, 0.f), 20.f, 1.f, true },
+			// The survey line beside the pad-to-research-site route.
+			{ Sites, TEXT("BP_SurveyLine_Verdance"), FVector(1500.f, 1800.f, 0.f), 0.f, 1.f, true },
+		}, FVector::ZeroVector, 0.f, TEXT("Verdance"));
+		// The relay deck's service corner (relay frame: +X is the plinth side).
+		Dress({
+			{ Out, TEXT("SM_Outpost_Generator"), FVector(3200.f, 600.f, 0.f), 180.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_PowerJunction"), FVector(3150.f, 250.f, 0.f), 180.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_DataKiosk"), FVector(3300.f, -400.f, 0.f), 180.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_Floodlight"), FVector(3000.f, 1300.f, 0.f), 200.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_Floodlight"), FVector(3000.f, -1300.f, 0.f), 160.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_SupplyCrate"), FVector(3350.f, -900.f, 0.f), 40.f, 1.f, true },
+		}, RelaySite, 0.f, TEXT("Relay"));
+		DressOutpost(OutpostSite, SiteYaw, TEXT("VerdanceOutpost"));
+		DressPad(TEXT("VerdancePad"));
+	}
 
 	// Dressing: engineering's props and trees (the placeholder flora only if they are missing).
 	KeepOuts = {
@@ -1313,7 +1608,7 @@ void ATDPlanetCourse::BuildCinder()
 	// from the pad past one patrol to an open-sided survey station at the dig's rim (the Verdance station kit), whose
 	// terminal works once the patrol is dead or left behind; it is Cinematic 05's hook (T3). Then the excavation, then
 	// the anchor, in that order. ----
-	const FVector StationAt(3700.f, 0.f, 0.f);
+	FVector StationAt(3700.f, 0.f, 0.f);
 	ATDObjective* Survey = MakeObjective(TEXT("Obj_Survey"), LOCTEXT("SurveyTitle", "Access the Survey Records"), ETDAbilityId::None, ETDShipId::Rift, 2);
 	AddTrailhead(Survey, FVector(1300.f, 0.f, 0.f), Crystal, LOCTEXT("TheSurvey", "THE SURVEY STATION"));
 	Route({ FVector(700.f, 0.f, 0.f), FVector(2300.f, 0.f, 0.f), StationAt - FVector(900.f, 0.f, 0.f) }, Crystal);
@@ -1368,15 +1663,45 @@ void ATDPlanetCourse::BuildCinder()
 	Route({ FVector(900.f, 900.f, 0.f), OutHead, FVector(5000.f, 4200.f, 0.f), FVector(7600.f, 6000.f, 0.f), FVector(9200.f, 6000.f, 0.f) }, Ember);
 
 	// The magma river with basalt stepping stones (3 m gaps: a jump).
-	Magma(FVector(5600.f, 4800.f, 0.f), FVector(1600.f, 7000.f, 300.f));
+	const ATDMagmaVolume* River = Magma(FVector(5600.f, 4800.f, 0.f), FVector(1600.f, 7000.f, 300.f));
+	TArray<FVector> RiverChain = { FVector(4450.f, 4250.f, 0.f) }; // the near bank, each stone, the far bank
 	for (int32 i = 0; i < 3; ++i)
 	{
 		Platform(FVector(5050.f + i * 550.f, 4400.f + i * 300.f, 0.f), 60.f, FVector(280.f, 280.f, 160.f), Basalt, 0.f, TEXT("SM_Cind_SteppingStone"));
+		RiverChain.Add(FVector(5050.f + i * 550.f, 4400.f + i * 300.f, 220.f));
 	}
-	// A geyser row on the far bank, rippling.
+	RiverChain.Add(FVector(6750.f, 5100.f, 0.f));
+	// The structures builder's walk-tested magma bridge (eng/struct e76ce3bb): pivot on the bank at the span centre, +X
+	// along the span, ramps to the ground at x +-1400, deck top 50 cm (the burn trigger ends 10 cm over the surface).
+	// On the route (5000, 4200) -> (7600, 6000); both ramp feet on dry ground (x 4449 and 6751), the channel under the
+	// deck. It is the marker's way across when it is in the build; the stones otherwise.
+	{
+		const float BridgeYaw = 34.7f;
+		const FVector BridgeAt(5600.f, 4620.f, 0.f);
+		const FVector Along = FRotator(0.f, BridgeYaw, 0.f).Vector();
+		const FVector FootA = BridgeAt - Along * 1400.f, FootB = BridgeAt + Along * 1400.f;
+		const float BankZ = FMath::Max(GroundZAt(FootA), GroundZAt(FootB));
+		if (SpawnKitBP(TEXT("Kit/Sites"), TEXT("BP_MagmaBridge"), FVector(BridgeAt.X, BridgeAt.Y, BankZ), BridgeYaw, 1.f))
+		{
+			SiteClears.Add({ BridgeAt, 1500.f });
+			RiverChain = { FootA - Along * 150.f, FVector(BridgeAt.X, BridgeAt.Y, BankZ + 50.f), FootB + Along * 100.f };
+		}
+	}
+	// A 60 cm basalt lip along both banks (T7, Nov 14: two deaths stepping into the river's east edge at y 6000), open
+	// where the bridge and the stepping stones meet the banks (east y 4850..5500, west y 3750..4600). Jumpable on purpose.
+	for (const FVector4f& Seg : { FVector4f(6430.f, 1300.f, 4850.f, 0.f), FVector4f(6430.f, 5500.f, 8300.f, 0.f),
+		FVector4f(4770.f, 1300.f, 3750.f, 0.f), FVector4f(4770.f, 4600.f, 8300.f, 0.f) })
+	{
+		Block(EShape::Cube, FVector(Seg.X, (Seg.Y + Seg.Z) * 0.5f, 30.f), FVector(50.f, Seg.Z - Seg.Y, 60.f), Basalt, 0.f, FRotator::ZeroRotator, true);
+	}
+	// The marker crosses from wherever the pilot is (T7: the straight line from the respawn ran over the river); two
+	// magma deaths in a row put the pilot on the far bank (clear of the geyser row), facing the gate.
+	AddMagmaCrossing(River, Outpost, INDEX_NONE, RiverChain, FVector(6900.f, 4900.f, 0.f), 25.f);
+	// A geyser row on the far bank, rippling, at least 8 m clear of the bridge's ramp feet (the structures builder's
+	// walk, Nov 14: a geyser 3.1 m past the far foot threw the pilot 5-6 m; Course.CinderMarkers... checks it).
 	for (int32 i = 0; i < 3; ++i)
 	{
-		Geyser(FVector(7000.f + i * 450.f, 5600.f + i * 200.f, 0.f), i * 1.2f);
+		Geyser(FVector(7750.f + i * 450.f, 5600.f + i * 200.f, 0.f), i * 1.2f);
 	}
 
 	// The compound along +X: gate wall, yard, barracks, command deck, Warden arena.
@@ -1448,15 +1773,26 @@ void ATDPlanetCourse::BuildCinder()
 		C->LinkedStep = 0;
 		C->Color = FLinearColor(1.f, 0.1f, 0.05f);
 		C->MaxHealth = 60.f;
-		C->CrystalMesh = TDPropArt::Default(TEXT("SM_Cind_Conduit"));
+		// The structures builder's conduit (100 x 100 x 300 cm, pivot at the footing on the ground; it fits the placeholder
+		// cylinder at scale 1) and its broken stump in its place once it falls (eng/struct 4a5f5060). The old path
+		// (Props/Planet/SM_Cind_Conduit) never existed.
+		C->CrystalMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_NullConduit.SM_Kit_NullConduit")));
+		C->BrokenMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_NullConduitBroken.SM_Kit_NullConduitBroken")));
 		C->Mesh->SetStaticMesh(CylinderMesh); // before FinishSpawning: the art is fitted to this shape at BeginPlay
 		C->Mesh->SetRelativeScale3D(FVector(1.f, 1.f, 3.f));
 		C->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
 		TDCourseImpl::FinishProp(C);
 		Conduits->WatchDestructible(C);
+		if (MarkerGroups.Num() == 0 || MarkerGroups.Last().Objective.Get() != Outpost) { FMarkerGroup& G = MarkerGroups.AddDefaulted_GetRef(); G.Objective = Outpost; G.Step = 0; G.Counter = Conduits; }
+		MarkerGroups.Last().Targets.Add(C);
 	}
-	ATDEncounterVolume* GateGuards = Encounter(Outpost, INDEX_NONE, FVector(XGate - 1400.f, Y0, 200.f), FVector(1600.f, 1800.f, 600.f),
-		{ ETDCrewType::Grunt, ETDCrewType::Trooper, ETDCrewType::Grunt }, true, 700.f);
+	// The gate's guards start 12 m+ past the bridge's far ramp foot (6751, 5417): the structures builder's walk (Nov 14)
+	// had crew 2-3 m from the bridge end killing the pilot stepping off. Trigger box x 8200..9600, crew on a 5 m ring.
+	ATDEncounterVolume* GateGuards = Encounter(Outpost, INDEX_NONE, FVector(XGate - 700.f, Y0, 200.f), FVector(700.f, 1800.f, 600.f),
+		{ ETDCrewType::Grunt, ETDCrewType::Trooper, ETDCrewType::Grunt }, true, 500.f);
+	// They belong to the gate step for retakes: past the gate a CUT does not bring them back (T5's replay, Nov 14: the
+	// yard's retake spot is inside their trigger box and they re-armed on every yard retake).
+	if (GateGuards) { GateGuards->RetakeStep = 0; }
 	StepDoors.Add({ Outpost, 1, Gate });
 
 	// Cover crates inside each room.
@@ -1485,7 +1821,8 @@ void ATDPlanetCourse::BuildCinder()
 	// Escalating, one new threat per room (machine playtest: two troopers plus a heavy beat the pilot five times):
 	// grunts + a shooter, then the heavy, then shooters with a drone, then the Warden.
 	ATDEncounterVolume* Yard = RoomFight(XGate, XBarracks, 1, { ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Trooper }, DoorB);
-	ATDEncounterVolume* Barracks = RoomFight(XBarracks, XCommand, 2, { ETDCrewType::Heavy, ETDCrewType::Grunt, ETDCrewType::Grunt }, DoorC);
+	// The Heavy listed last: mercy's "one fewer" (take 3) takes it first (T5's replay: 8 CUTs to its bash while it stayed).
+	ATDEncounterVolume* Barracks = RoomFight(XBarracks, XCommand, 2, { ETDCrewType::Grunt, ETDCrewType::Grunt, ETDCrewType::Heavy }, DoorC);
 	ATDEncounterVolume* Command = RoomFight(XCommand, XArena, 3, { ETDCrewType::Trooper, ETDCrewType::Drone, ETDCrewType::Trooper }, DoorD);
 	ATDEncounterVolume* Arena = RoomFight(XArena, XEnd, 4, { ETDCrewType::Warden }, nullptr);
 	// Director's mercy (machine playtests lost the Warden up to 9 takes running with him nearly dead): from take 3
@@ -1531,6 +1868,9 @@ void ATDPlanetCourse::BuildCinder()
 
 	// Every room is a checkpoint: a death costs that room, not the whole compound (machine playtest: the
 	// barracks death sent the pilot back to the gate conduits every time). The Warden too (review N6).
+	// The gate: a CUT there comes back on the far bank, past the river, not at the pad (T5's play, Nov 14: every retake at
+	// the conduits re-walked the whole way over the bridge).
+	Checkpoint(Outpost, 0, FVector(7300.f, 4900.f, 0.f), 25.f);
 	Checkpoint(Outpost, 1, FVector(XGate - 500.f, Y0, 0.f), 0.f);
 	Checkpoint(Outpost, 2, FVector(XBarracks - 500.f, Y0, 0.f), 0.f);
 	Checkpoint(Outpost, 3, FVector(XCommand - 500.f, Y0, 0.f), 0.f);
@@ -1564,7 +1904,10 @@ void ATDPlanetCourse::BuildCinder()
 	// The magma lake and the collapsing crystal bridge: one continuous walkway of slabs (no jumps), each
 	// falling 1.1 s after you step on it: keep running.
 	const float LakeX0 = 7000.f, LakeX1 = 10400.f, LakeY = -5000.f;
-	Magma(FVector((LakeX0 + LakeX1) * 0.5f, LakeY, 0.f), FVector(LakeX1 - LakeX0, 5000.f, 300.f));
+	const ATDMagmaVolume* Lake = Magma(FVector((LakeX0 + LakeX1) * 0.5f, LakeY, 0.f), FVector(LakeX1 - LakeX0, 5000.f, 300.f));
+	// Out over the bridge (the near and far bank), back by the south shore once it has fallen (the return route).
+	AddMagmaCrossing(Lake, Jammer, 0, { FVector(LakeX0 - 350.f, LakeY, 0.f), FVector(LakeX1 + 350.f, LakeY, 0.f) }, FVector(LakeX1 + 250.f, LakeY, 0.f), 0.f);
+	AddMagmaCrossing(Lake, Jammer, 2, { FVector(LakeX1 + 800.f, LakeY - 3300.f, 0.f) }, FVector(LakeX1 + 250.f, LakeY, 0.f), 0.f);
 	const int32 Segments = 6;
 	for (int32 i = 0; i < Segments; ++i)
 	{
@@ -1653,6 +1996,7 @@ void ATDPlanetCourse::BuildCinder()
 		// old 520 cm ring at 60 cm sat inside its plinth.
 		FVector SiteAt(FMath::Cos(A) * 520.f, FMath::Sin(A) * 520.f, 60.f);
 		if (AnchorTowerArt) { TDPlanetCourse_AnchorSocket(AnchorTowerArt, *FString::Printf(TEXT("Charge_%d"), i), SiteAt); }
+		float FaceGap = 45.f; // how far the charge point stands out from the tower's face
 		// The sockets (r 587-601) sit inside the tower's plinth collision (UCX_00, a 13.8 m square box 5.7 m tall: Played.Cinder
 		// could never reach one, and the interact trace hits the box first). Each charge point goes just outside whatever
 		// collision the tower has (its lowest hull), along its port's heading, at a standing pilot's reach; it follows a better
@@ -1675,7 +2019,7 @@ void ATDPlanetCourse::BuildCinder()
 			// The refitted octagon (import a78930a4) leaves each socket 10 cm outside: then the socket is the charge point.
 			FVector Closest, Normal;
 			const bool bSocketOutside = PlinthHull && PlinthHull->GetClosestPointAndNormal(SiteAt, FTransform::Identity, Closest, Normal) > 1.f;
-			if (bSocketOutside) { Plinth = FBox(ForceInit); }
+			if (bSocketOutside) { Plinth = FBox(ForceInit); FaceGap = 10.f; }
 			const FVector D = FVector(SiteAt.X, SiteAt.Y, 0.f).GetSafeNormal();
 			if (Plinth.IsValid && !D.IsNearlyZero())
 			{
@@ -1693,7 +2037,44 @@ void ATDPlanetCourse::BuildCinder()
 		Site->bCompleteLinkedStep = false;
 		TDCourseImpl::FinishProp(Site);
 		UTDStatics::TintPlaceholder(Site->Mesh, FLinearColor(1.f, 0.85f, 0.1f), 2.f);
+		// The structures builder's charge (Kit/Story/SM_Kit_AnchorCharge, 30 x 60 x 54 cm) at scale 1: its back plate on the
+		// tower face at the charge point, +X away from the tower. The 4.2 m box stays as the interact volume only (the
+		// builder's check, Nov 14: fitted to the box it stood as a 4 m post 2.1 m up).
+		if (UStaticMesh* ChargeArt = TDPlanetCourse_KitStory(TEXT("SM_Kit_AnchorCharge")))
+		{
+			const FVector Away = FVector(SiteAt.X, SiteAt.Y, 0.f).GetSafeNormal();
+			UStaticMeshComponent* Charge = NewObject<UStaticMeshComponent>(Site, TEXT("ChargeArt"));
+			Charge->SetStaticMesh(ChargeArt);
+			Charge->SetMobility(EComponentMobility::Movable);
+			Charge->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			Charge->SetupAttachment(Site->GetRootComponent());
+			Charge->SetUsingAbsoluteScale(true);
+			Charge->SetUsingAbsoluteRotation(true);
+			Charge->RegisterComponent();
+			Site->AddInstanceComponent(Charge);
+			Charge->SetWorldScale3D(FVector(1.f));
+			Charge->SetWorldRotation(GetActorRotation() + FRotator(0.f, Away.Rotation().Yaw, 0.f));
+			Charge->SetWorldLocation(W(Tower + SiteAt - Away * FaceGap)); // on the face
+			// The box is the interact volume only. Its BeginPlay dressed it with the kit console and a top-cap column (the
+			// "box on a thin stalk" the structures builder saw): hide every mesh on the site but the charge.
+			auto HideAllButCharge = [](ATDInteractableActor* On, UStaticMeshComponent* Keep)
+			{
+				TInlineComponentArray<UStaticMeshComponent*> SiteMeshes(On);
+				for (UStaticMeshComponent* M : SiteMeshes)
+				{
+					if (M && M != Keep) { M->SetHiddenInGame(true); }
+				}
+			};
+			HideAllButCharge(Site, Charge);
+			// Again next tick, in case its BeginPlay (which dresses it) runs after this.
+			GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(Site, [Site, Charge, HideAllButCharge]() { HideAllButCharge(Site, Charge); }));
+		}
 		Charges->WatchInteractable(Site);
+		UE_LOG(LogTriadDrift, Display, TEXT("Cinder anchor: charge point %d at %s (stand about 1.4 m out from the tower face and look up at it)"), i,
+			*Site->GetActorLocation().ToCompactString());
+		// Each unplanted charge point carries the marker, nearest first (T7, Nov 14: only the counter at the tower had one).
+		if (MarkerGroups.Num() == 0 || MarkerGroups.Last().Objective.Get() != Jammer) { FMarkerGroup& G = MarkerGroups.AddDefaulted_GetRef(); G.Objective = Jammer; G.Step = 1; G.Counter = Charges; }
+		MarkerGroups.Last().Targets.Add(Site);
 	}
 	ATDEncounterVolume* Defence = Encounter(Jammer, INDEX_NONE, Tower + FVector(0.f, 0.f, 200.f), FVector(2000.f, 2000.f, 600.f),
 		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 900.f,
@@ -1716,16 +2097,74 @@ void ATDPlanetCourse::BuildCinder()
 	ATDCollapseRun* Run = SpawnProp<ATDCollapseRun>(FVector((LakeX0 + LakeX1) * 0.5f + 1500.f, LakeY - 2400.f, 0.f));
 	Run->LinkedObjective = Jammer;
 	Run->LinkedStep = 2;
-	Run->Seconds = 22.f;
+	Run->Seconds = 25.f; // T7 (Nov 14): 20 s was tight from the north charge (the straight line clips the plinth)
 	Run->Tower = TowerActor;
 	Run->DebrisExtent = FVector(3500.f, 1200.f, 0.f);
+	// The anchor's own collapse pieces (structures builder, Kit/Story), each optional.
+	for (const TCHAR* L : { TEXT("A"), TEXT("B"), TEXT("C") })
+	{
+		if (TDPlanetCourse_KitStory(*FString::Printf(TEXT("SM_Kit_AnchorDebris_%s"), L), *FString::Printf(TEXT("AnchorDebris_%s"), L)))
+		{
+			Run->DebrisMeshes.Add(TSoftObjectPtr<UStaticMesh>(TDPlanetCourse_KitStory(*FString::Printf(TEXT("SM_Kit_AnchorDebris_%s"), L), *FString::Printf(TEXT("AnchorDebris_%s"), L))));
+		}
+		if (UStaticMesh* Section = TDPlanetCourse_KitStory(*FString::Printf(TEXT("SM_Kit_AnchorSection_%s"), L), *FString::Printf(TEXT("AnchorSection_%s"), L)))
+		{
+			Run->SectionMeshes.Add(TSoftObjectPtr<UStaticMesh>(Section));
+		}
+	}
 	TDCourseImpl::FinishProp(Run);
 	Routes.Add({ Tower, FVector(LakeX1 + 800.f, LakeY - 3300.f, 0.f), Exit });
 
 	Checkpoint(Jammer, 1, FVector(LakeX1 + 250.f, LakeY, 0.f), 0.f); // the charges: from the far bank, out of the defence's drop
+	// The collapse run: a CUT keeps the charges planted and the defence down, and the run restarts south of the tower,
+	// on the way out (T7: a CUT reset the charges to 0 / 3).
+	Checkpoint(Jammer, 2, FVector(LakeX1 + 1000.f, LakeY - 1600.f, 0.f), 200.f);
+	if (Defence) { Defence->RetakeStep = 1; }
 	FinishObjective(Jammer,
 		{ LOCTEXT("J0", "CROSS THE CRYSTAL BRIDGE"), LOCTEXT("J1", "PLANT THE CHARGES  0 / 3"), LOCTEXT("J2", "RETURN TO EXTRACTION") },
 		{ FarBank, Charges, Clear });
+
+	// Story dressing (the environment builder's table, Nov 14).
+	{
+		const TCHAR* Story = TEXT("Kit/Story"); const TCHAR* Sites = TEXT("Kit/Sites");
+		Dress({
+			// A: the excavation (the mine set, the derrick beyond it on the walking line).
+			{ Sites, TEXT("BP_StorySet_CinderMine"), FVector(13500.f, 2400.f, 0.f), 0.f, 1.f, true },
+			{ Sites, TEXT("BP_Landmark_NullDerrick"), FVector(19300.f, 6000.f, 0.f), 270.f, 1.f, true },
+			// ART-18's clue: a destroyed hull plate with Triad's chevrons, behind the mine set, off every route.
+			{ Story, TEXT("SM_Kit_InsigniaHull"), FVector(15300.f, 1200.f, 0.f), 115.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_ScorchLines"), FVector(8600.f, 8400.f, 2.f), 30.f, 1.3f, false },
+			{ Story, TEXT("SM_Kit_WarningBeacon"), FVector(4300.f, 2400.f, 0.f), 0.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_WarningBeacon"), FVector(4400.f, 5800.f, 0.f), 0.f, 1.f, true },
+			// B: the anchor tower's approach.
+			{ Story, TEXT("SM_Kit_WarningBeacon"), FVector(6600.f, -2800.f, 0.f), 0.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_WarningBeacon"), FVector(6600.f, -7200.f, 0.f), 0.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_ScorchLines"), FVector(13800.f, -3600.f, 2.f), 50.f, 1.4f, false },
+			{ Story, TEXT("SM_Kit_ScorchLines"), FVector(11600.f, -6600.f, 2.f), 230.f, 1.2f, false },
+			{ Story, TEXT("SM_Kit_CableReel"), FVector(14200.f, -6200.f, 0.f), 10.f, 1.f, true },
+			// C: the survey station.
+			{ Story, TEXT("SM_Kit_HeatShieldCracked"), FVector(3700.f, 1500.f, 0.f), 0.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_CableReel"), FVector(4900.f, -1300.f, 0.f), 60.f, 1.f, true },
+			{ Story, TEXT("SM_Kit_SurveyStakeFlag"), FVector(5400.f, -300.f, 0.f), 90.f, 1.f, false },
+			{ Story, TEXT("SM_Kit_SurveyStakeFlag"), FVector(6200.f, -200.f, 0.f), 90.f, 1.f, false },
+			{ Story, TEXT("SM_Kit_SurveyStakeFlag"), FVector(7000.f, -100.f, 0.f), 90.f, 1.f, false },
+		}, FVector::ZeroVector, 0.f, TEXT("Cinder"));
+		// The dig-site cabin (ART-17): beside the mine set on cleared ground, its stairs to the pad side (-X), off the
+		// excavation compound's keep-out; its own dressing in its frame.
+		const FVector CabinAt(11800.f, 2200.f, 0.f);
+		Dress({ { Sites, TEXT("BP_DigSite_Cabin"), FVector::ZeroVector, 0.f, 1.f, true } }, CabinAt, 180.f, TEXT("DigCabin"));
+		const TCHAR* Out = TEXT("OutpostDressing");
+		Dress({
+			{ Out, TEXT("SM_Outpost_CargoCrate"), FVector(520.f, 320.f, 0.f), 12.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_SupplyCrate"), FVector(480.f, 410.f, 0.f), 30.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_Floodlight"), FVector(450.f, -440.f, 0.f), 150.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_Generator"), FVector(-520.f, -260.f, 0.f), 90.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_PowerJunction"), FVector(-470.f, -400.f, 0.f), 0.f, 1.f, true },
+			{ Out, TEXT("SM_Outpost_CommAntenna"), FVector(-200.f, 470.f, 0.f), 0.f, 1.f, true },
+		}, CabinAt, 180.f, TEXT("DigCabin"));
+		DressOutpost(StationAt, 180.f, TEXT("CinderOutpost"));
+		DressPad(TEXT("CinderPad"));
+	}
 
 	KeepOuts = {
 		{ FVector(5600.f, 4800.f, 0.f), FVector(1100.f, 3700.f, 0.f) },   // the magma river and stones

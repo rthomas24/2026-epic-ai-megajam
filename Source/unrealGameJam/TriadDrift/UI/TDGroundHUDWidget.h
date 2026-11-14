@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "TriadDrift/Core/TDTypes.h"
 #include "TDGroundHUDWidget.generated.h"
 
 class UTDHealthComponent;
@@ -35,6 +36,12 @@ public:
 	{
 		float Health = 1.f;
 		float Block = 1.f;
+		/** The pilot card (#160 on foot): who is on foot, the blade's state (ETDBladeState), the health number, and 1..0
+		 *  for 1.5 s after a hit. */
+		ETDShipId Pilot = ETDShipId::Rift;
+		uint8 Blade = 0;
+		FString HealthText;
+		float UnderFire01 = 0.f;
 		int32 Dash = 0;
 		int32 DashMax = 2;
 		FString Objective;
@@ -75,6 +82,11 @@ public:
 		bool bSensorVerified = false;
 		FVector2D SensorPos = FVector2D::ZeroVector;
 		bool bSensorOnScreen = false;
+		/**
+		 * ENG-26, Cinder (storyline.md §22): after the field anchor is down (T5's ATDPlanetCourse::IsFieldAnchorDisabled,
+		 * saved) and until the Dominion passage opens: "APPROACH PREPARED · PASSAGE STILL BLOCKED". Never says open.
+		 */
+		bool bApproachPending = false;
 	};
 	const FView& GetView() const { return View; }
 	/** The boss bar's damage ghost (tests). */
@@ -89,15 +101,23 @@ public:
 	float ForceBoss01 = -1.f;
 	/** Tests: >= 0 forces a counted step (count, required) / a running escape (left, total) / an exit marker spot. */
 	int32 ForceStepRequired = -1;
+	/** Tests: >= 0 forces the pending approach line (1 on, 0 off). */
+	int32 ForceApproachPending = -1;
 	int32 ForceStepCount = 0;
 	FString ForceStepNoun;
 	float ForceEscapeLeft = -1.f;
 	float ForceEscapeTotal = 90.f;
 	TOptional<FVector> ForceExitAt;
+	/** Tests: a marker actor standing in for the objective's first waypoint (destroy it: the marker must go). */
+	TWeakObjectPtr<AActor> ForceMarkerActor;
 	/** Where the bar marks the phase change (T5: Phase2HealthFraction 0.5). */
 	static constexpr float BossPhase2At = .5f;
 	/** The objective panel grows to fit its line up to this width (design px), then wraps to two lines. */
 	static constexpr float ObjectiveMaxWidth = 1000.f;
+	/** The flight-style objective pill: at least this wide, one line / two lines tall. */
+	static constexpr float ObjectiveMinWidth = 300.f;
+	static constexpr float ObjectiveHeight = 40.f;
+	static constexpr float ObjectiveHeight2 = 64.f;
 
 	/** Named boxes painted last frame (tests: "transfer" for the meter plate). */
 	mutable TArray<TPair<FName, FBox2D>> LastBoxes;
@@ -118,6 +138,8 @@ public:
 	bool bCoversDamageIndicators = true;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
 	bool bCoversInteractPrompt = true;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD")
+	bool bCoversObjectiveMarkers = true;
 
 protected:
 	virtual void NativeConstruct() override;
@@ -138,6 +160,8 @@ private:
 	float SmoothHealth = 1.f;
 	float SmoothBlock = 1.f;
 	float DamageFlash = 0.f;
+	float UnderFireLeft = 0.f;
+	int32 HealthShown = -1;
 	float SmoothTransfer = 0.f;
 	/** Boss bar: the fill eases to the hull; the ghost holds where it was for a moment, then drains (recent damage). */
 	float SmoothBoss = 0.f;

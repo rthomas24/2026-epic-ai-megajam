@@ -26,6 +26,7 @@
 #include "TriadDrift/UI/TDTacticalDisplayWidget.h"
 #include "TriadDrift/UI/TDScanMonitorWidget.h"
 #include "TriadDrift/UI/TDRewardAnnouncementWidget.h"
+#include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "Components/MeshComponent.h"
 #include "Engine/Texture2D.h"
@@ -78,8 +79,30 @@ bool UTDUIHostSubsystem::ShouldCreateSubsystem(UObject* Outer) const
 	return World && World->IsGameWorld();
 }
 
+double UTDUIHostSubsystem::LastGalaxyReveal = -1.0;
+
+void UTDUIHostSubsystem::Initialize(FSubsystemCollectionBase& Collection)
+{
+	Super::Initialize(Collection);
+	// The descent cover clears on the galaxy before this world's flight HUD exists: remember the reveal here.
+	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(GetWorld()))
+	{
+		RevealHandle = Descent->OnRevealed.AddLambda([](ETDDestination Destination)
+		{
+			if (Destination == ETDDestination::Galaxy)
+			{
+				LastGalaxyReveal = FPlatformTime::Seconds();
+			}
+		});
+	}
+}
+
 void UTDUIHostSubsystem::Deinitialize()
 {
+	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(GetWorld()))
+	{
+		Descent->OnRevealed.Remove(RevealHandle);
+	}
 	Hide();
 	HideGround();
 	HidePause();
@@ -113,6 +136,26 @@ TStatId UTDUIHostSubsystem::GetStatId() const
 void UTDUIHostSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	// The Aftermath tactical panel belongs to the phase it was shown in: any phase change closes it (live: it stayed
+	// over the reticle into the next wave after a stage jump).
+	if (TacticalWidget)
+	{
+		const ITDGameFlow* Flow = UTDStatics::GetGameFlow(this);
+		const int32 Phase = Flow ? static_cast<int32>(Flow->GetProgress().Phase) : -1;
+		if (TacticalPhase < 0)
+		{
+			TacticalPhase = Phase;
+		}
+		else if (Phase != TacticalPhase)
+		{
+			TacticalWidget->RemoveFromParent();
+			TacticalWidget = nullptr;
+		}
+	}
+	if (!TacticalWidget)
+	{
+		TacticalPhase = -1;
+	}
 	if (const UTDTacticalDisplayWidget* Display = Cast<UTDTacticalDisplayWidget>(TacticalWidget); Display && Display->IsFinished())
 	{
 		TacticalWidget->RemoveFromParent();
@@ -454,6 +497,13 @@ bool UTDUIHostSubsystem::ShowNavigationPulse(const UObject* WorldContext, FVecto
 	}
 	Flight->ShowNavigationPulse(From, To, Seconds);
 	return true;
+}
+
+float UTDUIHostSubsystem::GetNavigationPulse01(const UObject* WorldContext)
+{
+	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	const UTDFlightHUDWidget* Flight = Host ? Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD()) : nullptr;
+	return Flight ? Flight->GetNavigationPulseEnvelope() : 0.f;
 }
 
 bool UTDUIHostSubsystem::ShowTransmission(const UObject* WorldContext, FName Speaker, FText Line, uint8 Style, float Seconds)

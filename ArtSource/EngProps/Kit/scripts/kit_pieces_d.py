@@ -5,6 +5,8 @@
 # DominionInterior/README.md), so T5's course (TDDominionInteriorCourse.inl) places them unchanged: they import to
 # /Game/TriadDrift/Gameplay/Props/Kit/Dominion/ and the course switches by its folder string only.
 # Slots: Trim (MI_KitD_Trim), Glow (red strips, MI_KitD_Glow), Light (white work lights, MI_KitD_Light).
+import math
+
 from kit_lib import Piece
 
 H = 600.0          # one storey
@@ -148,7 +150,7 @@ def _eye(p, s, zc, r_lens=35.0, r_bezel=45.0, yc=0.0, x_face=30.0, ring=True, le
 
 def doorway():
     """60 deep frame on the seam between two cells, 400 x 600; clear opening exactly 300 x 400 (Y +-150, Z 0..400)."""
-    p = Piece("SM_DI_Doorway", ((-34, -200, 0), (34, 200, 600)))
+    p = Piece("SM_DI_Doorway", ((-90, -200, 0), (90, 200, 600)))
     for s in (-1.0, 1.0):
         ya, yb = sorted((s * 150, s * 200))
         inner = "y" if s > 0 else "Y"
@@ -163,6 +165,16 @@ def doorway():
         p.box((xa, 184, 520), (xb, 192, 560), mat="Glow")
         # r9 (review r4): a 1.7 m black eye with a 44 cm red pupil instead of the white disc (read as a debug lamp)
         _eye(p, s, 500.0, r_lens=22.0, r_bezel=84.0, ring=False, lens_mat="Glow")
+    # batch X (T7's play: a walker in the 3.4 m corridor caught the 20 cm lip of the jamb beside the 3 m opening):
+    # a 60 cm lead-in chamfer on each jamb, both faces, from the corridor wall line (|y| 170) to the opening (|y| 150),
+    # so a capsule sliding along the wall is turned into the opening instead of stopping on the frame edge
+    for sx in (-1.0, 1.0):
+        for sy in (-1.0, 1.0):
+            prof = [(sx * 30.0, sy * 150.0), (sx * 30.0, sy * 170.0), (sx * 90.0, sy * 170.0)]
+            if sx * sy < 0:
+                prof = prof[::-1]
+            p.prism(prof, "xy", 0.0, 400.0, regs="hazard", cap_reg="frame", fitu=True)
+            p.chull([(x, y, z) for (x, y) in prof for z in (0.0, 400.0)])
     p.cbox((-30, -200, 0), (30, -150, 600))
     p.cbox((-30, 150, 0), (30, 200, 600))
     p.cbox((-30, -150, 400), (30, 150, 600))
@@ -216,6 +228,50 @@ def hangar_pad():
     return p
 
 
-BUILDERS = [room_floor, room_ceiling, room_wall, corridor_straight, doorway, door, cover_low, hangar_pad]
+def story_console():
+    """#96 (T3: the hangar console read as a plain black box from 1.4 m): the interior's story console, sized to the
+    course's 60 x 120 x 130 cm interact box (it fits the art to that box). +X = the operator's side: a sloped screen
+    (Screen slot) in a raised bezel, a key ledge with two lit keys, a crimson glow strip across the front and down each
+    side, a recessed kick plate. Pivot on the floor at the box centre."""
+    p = Piece("SM_DI_StoryConsole", ((-30.0, -62.0, 0.0), (30.612, 62.0, 130.0)))
+    p.box((-28.0, -57.0, 0.0), (26.0, 57.0, 8.0), reg="sw_dark")
+    prof = [(-30.0, 8.0), (28.0, 8.0), (28.0, 78.0), (2.0, 124.0), (-30.0, 124.0)]
+    p.prism(prof, "xz", -60.0, 60.0, regs=["sw_dark", "wall", "frame", "frame", "sw_dark"], cap_reg="frame", fitu=True)
+    p.box((-30.0, -60.0, 124.0), (4.0, 60.0, 130.0), regs={"Z": "frame"}, reg="sw_dark")
+    # the screen on the slope, 1 cm proud, in a 4 cm bezel
+    a, b = (28.0, 78.0), (2.0, 124.0)
+    L = math.hypot(b[0] - a[0], b[1] - a[1])
+    u = ((b[0] - a[0]) / L, (b[1] - a[1]) / L)
+    nrm = (abs(u[1]), abs(u[0]))
+    q0 = (a[0] + u[0] * 6.0 + nrm[0] * 1.0, a[1] + u[1] * 6.0 + nrm[1] * 1.0)
+    q1 = (b[0] - u[0] * 6.0 + nrm[0] * 1.0, b[1] - u[1] * 6.0 + nrm[1] * 1.0)
+    p.poly([(q0[0], -48.0, q0[1]), (q0[0], 48.0, q0[1]), (q1[0], 48.0, q1[1]), (q1[0], -48.0, q1[1])], mat="Screen", n=(nrm[0], 0.0, nrm[1]),
+           uv=[(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)])
+    for t0, t1 in ((0.0, 5.0), (L - 5.0, L)):
+        r0 = (a[0] + u[0] * t0, a[1] + u[1] * t0)
+        r1 = (a[0] + u[0] * t1, a[1] + u[1] * t1)
+        p.prism([r0, r1, (r1[0] + nrm[0] * 3.0, r1[1] + nrm[1] * 3.0), (r0[0] + nrm[0] * 3.0, r0[1] + nrm[1] * 3.0)], "xz", -53.0, 53.0,
+                regs="frame", cap_reg="frame", fitu=True)
+    for y in (-53.0, 48.0):
+        p.prism([a, b, (b[0] + nrm[0] * 3.0, b[1] + nrm[1] * 3.0), (a[0] + nrm[0] * 3.0, a[1] + nrm[1] * 3.0)], "xz", y, y + 5.0,
+                regs="frame", cap_reg="frame", fitu=True)
+    # the key ledge under the screen: a 3 x 9 key grid, two keys lit
+    p.box((16.0, -46.0, 72.0), (30.0, 46.0, 78.0), regs={"Z": "sw_gun"}, reg="frame")
+    for i in range(9):
+        for j in range(3):
+            y0 = -42.0 + i * 9.5
+            x0 = 18.0 + j * 4.0
+            lit = (i, j) in ((2, 1), (6, 2))
+            p.box((x0, y0, 78.0), (x0 + 3.0, y0 + 7.5, 79.5), mat="Glow" if lit else "Trim", reg="sw_dark")
+    # the crimson strip across the front and down both sides, 2 cm proud
+    p.box((28.0, -50.0, 60.0), (30.0, 50.0, 64.0), mat="Glow")
+    for s in (-1.0, 1.0):
+        y0, y1 = sorted((s * 60.0, s * 62.0))
+        p.box((-20.0, y0, 20.0), (-16.0, y1, 118.0), mat="Glow")
+    p.cbox((-30.0, -60.0, 0.0), (28.0, 60.0, 130.0))
+    return p
+
+
+BUILDERS = [room_floor, room_ceiling, room_wall, corridor_straight, doorway, door, cover_low, hangar_pad, story_console]
 NO_COLLISION = ()
 NO_CLAMP = ("SM_DI_Corridor_Straight",)    # bevel without the global clamp (see kit_lib.finish)

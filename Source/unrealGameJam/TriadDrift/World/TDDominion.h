@@ -217,10 +217,10 @@ public:
 	float EscapeVictoryDelay = 3.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
-	float BreakupSeconds = 8.f;
+	float BreakupSeconds = 9.2f;	// the final blast at BreakupSeconds - BreakupAfterBlastSeconds; the outside camera holds to the end
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "1"))
-	float GeneratorHull = 800.f;
+	float GeneratorHull = 400.f;	// Lead (Nov 14): about 15 s of focused fire from the flown ship alone at Normal (800 took ~30 s)
 
 	/** Turrets guarding each generator (2 x 4 = 8) plus ExtraTurrets on the hull: 8-12 total. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
@@ -437,6 +437,83 @@ protected:
 	int32 EscapeDebrisSpawned = 0;
 	bool bEscapeClear = false;
 	bool bEscapeFailReported = false;
+	bool bEscapeBarkSaid = false;
+	// ART-18: the Aftermath light row.
+	UPROPERTY(Transient)
+	TObjectPtr<class UNiagaraComponent> LightRowFX;
+	UPROPERTY(Transient)
+	TObjectPtr<USceneComponent> LightRowAnchor;
+	bool bLightRowOn = false;
+	void HandleAftermathBegins(bool bSkippedTutorial);
+	UFUNCTION()
+	void HandleHyperdriveForLightRow(ETDHyperdriveState NewState);
+public:
+	/** ART-18: start the light row at the hull point nearest WorldPoint (the escape line, or the start on a skip). */
+	void StartAftermathLightRow(const FVector& WorldPoint);
+	void StopAftermathLightRow();
+	bool IsAftermathLightRowActive() const;
+
+	// Lead (Nov 14, M6 played): from the trench start a ship holding forward rammed the reactor in ~6 s, long before a
+	// run kills it. Near an exposed reactor the flown ship's forward speed eases down and holds on station; steering,
+	// strafing and fire stay the player's; turning away or boost releases it at once; wingmen and boarding are untouched.
+	/** Within this distance (cm) of the reactor's surface the hold eases in. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Reactor hold", meta = (ClampMin = "0"))
+	float ReactorHoldRadius = 20000.f;
+	/** The forward speed (cm/s) through most of the hold. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Reactor hold", meta = (ClampMin = "0"))
+	float ReactorHoldSpeed = 2000.f;
+	/** The ship stops closing this far (cm) from the reactor's surface. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Reactor hold", meta = (ClampMin = "0"))
+	float ReactorStandOff = 5000.f;
+	/** The hold applies only while the nose points at least this much at the reactor (cos of the angle). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Reactor hold", meta = (ClampMin = "0", ClampMax = "1"))
+	float ReactorHoldMinClosing = 0.5f;
+	/** True while the hold has the flown ship (T2's HUD cue: "REACTOR IN RANGE · HOLD FIRE ON THE CORE"). */
+	bool IsReactorHoldActive() const { return ReactorHeld.IsValid(); }
+	/** Tests: the ship the hold treats as flown (else the squad's active ship). */
+	void SetFlownShipOverride(class ATDShip* Ship);
+	/** Distance (cm) from WorldPoint to the reactor's surface (its bounds sphere); a large value without a reactor. */
+	float GetReactorSurfaceDistance(const FVector& WorldPoint) const;
+protected:
+	void TickReactorHold(float DeltaSeconds);
+	/** The hull, its turrets, generators, reactor and bay leave the fight: hidden, no collision, not targetable. */
+	void RetireDefenses();
+
+	// Lead (Nov 14, #112 / #113): the breakup happened behind the camera (the flown ship faces away within ~3 s of the
+	// kill). After the slow-motion kill shot the view cuts to a fixed camera off the hull's flank, looking at the
+	// Dominion with the squad flying clear, holds for the explosions and the final blast, then cuts back for VICTORY.
+	void BeginBreakupCamera();
+	void EndBreakupCamera();
+	UPROPERTY(Transient)
+	TObjectPtr<class ACameraActor> BreakupCamera;
+	bool bBreakupCameraOn = false;
+	void SpawnBreakupChunks();
+	TArray<TWeakObjectPtr<class ATDEscapeDebris>> BreakupChunkActors;
+	float ChunkFireTimer = 0.f;
+	bool bBreakupCameraUsed = false;
+public:
+	/** Distance (cm) of the breakup camera from the hull's centre, off its flank (at least 2.2 hull radii). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Breakup", meta = (ClampMin = "0"))
+	float BreakupCameraDistance = 180000.f;
+	/** The breakup camera is used (off for a showcase or a test that wants the chase camera). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Breakup")
+	bool bUseBreakupCamera = true;
+	bool IsBreakupCameraActive() const { return bBreakupCameraOn; }
+	/** Seconds the breakup runs on after the final blast (the hull is gone; its chunks drift apart on camera). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Breakup", meta = (ClampMin = "0"))
+	float BreakupAfterBlastSeconds = 2.2f;
+	/** Large hull chunks thrown out at the final blast (Lead, Nov 14: the hull must be seen to come apart). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Breakup", meta = (ClampMin = "0", ClampMax = "24"))
+	int32 BreakupChunks = 11;
+	int32 GetBreakupChunksAlive() const;
+protected:
+	void ReleaseReactorHold();
+	TWeakObjectPtr<class ATDShip> ReactorHeld;
+	TWeakObjectPtr<class ATDShip> FlownShipOverride;
+public:
+	/** Where the row sits (hull-local) and faces, for tests. */
+	FTransform GetAftermathLightRowTransform() const;
+protected:
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AActor>> EscapeDebris;
 	bool bPlaceholderBreakup = false;

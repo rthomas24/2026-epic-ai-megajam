@@ -74,8 +74,11 @@ public:
 	static UTDUIHostSubsystem* Get(const UObject* WorldContext);
 
 	virtual bool ShouldCreateSubsystem(UObject* Outer) const override;
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 	virtual void Tick(float DeltaTime) override;
+	/** ENG-38: platform seconds of the last climb-out reveal into the galaxy (the ORBIT cue), or < 0. */
+	static double GetLastGalaxyReveal() { return LastGalaxyReveal; }
 	virtual TStatId GetStatId() const override;
 
 	/** Re-check the conditions now and create, re-target or remove the widget. Ticked every 0.2 s. */
@@ -163,6 +166,14 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
 	static bool ShowNavigationPulse(const UObject* WorldContext, FVector From, FVector To, float Seconds = 1.5f);
+
+	/**
+	 * The navigation pulse as it shows right now, 0..1 (0 when none): the same envelope the HUD's corridor draws with
+	 * (up in the first 10%, held, gone over the last 35%). storyline.md §12: the Dominion's light row "changes in the same
+	 * rhythm as the pulse on the HUD" - T4 / the effects builder read this each frame and drive the row's material by it.
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static float GetNavigationPulse01(const UObject* WorldContext);
 
 	/**
 	 * storyline.md §18, the Verdance traverse: a sensor marker on a squad transponder at At reads "UNKNOWN", then
@@ -286,9 +297,13 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> TacticalWidget;
+	/** The game phase the tactical panel was shown in (-1 = not up). */
+	int32 TacticalPhase = -1;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> ScanWidget;
+	static double LastGalaxyReveal;
+	FDelegateHandle RevealHandle;
 	FVector SensorAt = FVector::ZeroVector;
 	double SensorStart = -1e9;
 	float SensorSeconds = 0.f;

@@ -751,6 +751,12 @@ void UTDGameInstance::MarkTransmissionPlayed(FName Id)
 	}
 }
 
+void UTDGameInstance::ForgetTransmission(FName Id)
+{
+	Progress.StoryTransmissions.Remove(Id);
+	LastCheckpoint.Progress.StoryTransmissions.Remove(Id);
+}
+
 void UTDGameInstance::ForgetPlayedTransmissions()
 {
 	Progress.StoryTransmissions.Reset();
@@ -759,9 +765,11 @@ void UTDGameInstance::ForgetPlayedTransmissions()
 
 void UTDGameInstance::ResetRunState()
 {
+	++RunSerial; // a new run: nothing carried from the last one may reach it
 	Progress = FTDProgress();
 	LastCheckpoint = FTDCheckpoint();
 	SceneOrder.Reset();
+	RunOnceBarks.Reset();
 	LastObjective = FTDObjectiveLine();
 	VictoryTravelLeft = -1.f;
 	CurrentSceneId = NAME_None;
@@ -823,6 +831,7 @@ bool UTDGameInstance::ContinueRun()
 {
 	bIntroPending = false; // Continue never plays the intro
 	bRunFromContinue = true; // nor the control lessons (onboarding)
+	++RunSerial; // the saved run is not the run that was in memory
 	UTDSaveGame* Save = nullptr;
 	if (!ReadSaveSlot(Save) || (Save && Save->Checkpoint.Progress.Phase == ETDGamePhase::Victory) || !ApplySave(*Save))
 	{

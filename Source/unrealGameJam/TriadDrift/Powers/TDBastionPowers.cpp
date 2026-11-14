@@ -1,6 +1,7 @@
 // Triad Drift - Powers (Teammate 2). Bastion: Missile Swarm and Shield Dome.
 
 #include "TriadDrift/Powers/TDBastionPowers.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Powers/TDShieldDome.h"
 #include "TriadDrift/Powers/TDPowerPresentation.h"
@@ -51,6 +52,7 @@ UTDTargetingComponent* UTDMissileSwarmPower::GetTargeting() const
 
 void UTDMissileSwarmPower::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
+	TD_COMBAT_PERF(Powers);
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	if (!bAutoPaint)
 	{

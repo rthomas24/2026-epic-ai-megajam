@@ -811,4 +811,70 @@ bool FTDDoorRecognisesPilot::RunTest(const FString& Parameters)
 	return true;
 }
 
+// T7's play (Nov 14): two crew stood behind the relay's terminal wall for 2 minutes and the fight never ended. A member
+// out of the pilot's sight and untouched for StragglerSeconds is removed and the room clears; one in sight stays.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDEncounterStragglers, "TriadDrift.Ground.Encounter.StragglersBehindAWallAreRemoved", TD_TEST_FLAGS)
+bool FTDEncounterStragglers::RunTest(const FString& Parameters)
+{
+	for (const bool bWall : { true, false })
+	{
+		FTDTestWorld W;
+		TDGroundTest::SpawnFloor(W);
+		ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(W, FVector(-1500.f, 0.f, 95.f));
+		if (bWall) { TDGroundTest::SpawnBox(W, FVector(0.f, 0.f, 300.f), FVector(100.f, 4000.f, 600.f)); }
+		ATDEncounterVolume* E = W.Spawn<ATDEncounterVolume>(FVector(1000.f, 0.f, 150.f));
+		if (!TestNotNull(TEXT("encounter"), E) || !P) { return false; }
+		E->CrewClass = ATDCrewDummy::StaticClass();
+		E->CrewMix.Reset();
+		E->SpawnPoints = { FVector(0.f, -200.f, 0.f), FVector(0.f, 200.f, 0.f) };
+		E->Count = 2;
+		E->bTriggerOnOverlap = false;
+		E->Activate();
+		TestEqual(TEXT("two crew"), E->GetAliveCount(), 2);
+		E->SweepStragglers(E->StragglerSeconds * 0.5f);
+		TestEqual(TEXT("not yet"), E->GetAliveCount(), 2);
+		E->SweepStragglers(E->StragglerSeconds * 0.6f);
+		W.Advance(0.1f);
+		if (bWall)
+		{
+			TestEqual(TEXT("behind the wall: removed"), E->GetAliveCount(), 0);
+			TestTrue(TEXT("the room clears"), E->IsCleared());
+		}
+		else
+		{
+			TestEqual(TEXT("in sight: kept"), E->GetAliveCount(), 2);
+			TestFalse(TEXT("still on"), E->IsCleared());
+		}
+	}
+	return true;
+}
+
+// The animation audit (Nov 13): the pilot clips reach the target 0.10-0.13 s in, so a light swing's hit lands 0.1 s
+// after the press, with the hand; a swing cancelled before then lands nothing.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBladeHitDelay, "TriadDrift.Ground.Blade.LightHitLandsWithTheHand", TD_TEST_FLAGS)
+bool FTDBladeHitDelay::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	TDGroundTest::SpawnFloor(W);
+	ATDFirstPersonCharacter* C = TDGroundTest::SpawnPlayer(W);
+	ATDCrewDummy* Front = TDGroundTest::SpawnDummy(W, FVector(130.f, 0.f, 95.f));
+	W.Advance(0.2f);
+	UTDEnergyBladeComponent* B = C ? C->GetBlade() : nullptr;
+	if (!TestNotNull(TEXT("blade"), B)) { return false; }
+	B->HitDelay = 0.1f;
+	TestTrue(TEXT("swing"), B->LightAttack());
+	TestEqual(TEXT("nothing on the press"), TDGroundTest::Hull(Front), 1000.f);
+	W.Advance(0.05f);
+	TestEqual(TEXT("nothing at 0.05 s"), TDGroundTest::Hull(Front), 1000.f);
+	W.Advance(0.08f);
+	TestTrue(TEXT("the hit by 0.13 s"), TDGroundTest::Hull(Front) < 1000.f);
+	W.Advance(1.f);
+	const float Before = TDGroundTest::Hull(Front);
+	B->LightAttack();
+	B->CancelAll();
+	W.Advance(0.2f);
+	TestEqual(TEXT("a cancelled swing lands nothing"), TDGroundTest::Hull(Front), Before);
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

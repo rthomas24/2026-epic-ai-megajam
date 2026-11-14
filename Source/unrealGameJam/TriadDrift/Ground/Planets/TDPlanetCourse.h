@@ -187,15 +187,77 @@ private:
 	float FinalRecordQuiet = 0.f;
 	bool bFinalRecordDone = false;
 	void TickFinalRecord(float DeltaSeconds);
+	void TickCoreChamber();
+	FBox CoreChamberBox = FBox(ForceInit);
+	bool bPlayerInCoreChamber = false;
 	UFUNCTION() void HandleStorySequenceFinished(FName SequenceId, bool bSkipped);
 	int32 ShownPlaybackSecond = -1;
 	bool bFinalRecordSequence = false;
 	UFUNCTION() void HandleConduitDown(class UTDHealthComponent* Health, const struct FTDDamageInfo& Info);
+	/** N-052: the reactor room's defenders overcome: T3's Face to Face "overcome" sequence for the boarding pilot. */
+	UFUNCTION() void HandleReactorDefendersCleared(AActor* Encounter);
+	UFUNCTION() void HandleHeartHit(class UTDHealthComponent* Health, const struct FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
+	/** DA_ReactorCore_FX (UTDReactorCoreFX): play a slot (logged by name, even when empty: tests, the effects builder). */
+	void PlayReactorFX(FName Slot, const FVector& At, USceneComponent* AttachTo = nullptr, bool bLoop = false);
+	void StopReactorLoop(FName Slot);
+	UPROPERTY(Transient) TMap<FName, TObjectPtr<class UNiagaraComponent>> ReactorLoopFX;
+	UPROPERTY(Transient) TMap<FName, TObjectPtr<class UAudioComponent>> ReactorLoopAudio;
+	UPROPERTY(Transient) TObjectPtr<AActor> ReactorHeart;
+	UPROPERTY(Transient) TObjectPtr<class ATDCollapseRun> EscapeCollapse;
+	TArray<FName> ReactorFXLog;
 	void OpenReactorDoor();
 public:
 	/** The final record started (T3 drives the F_* lines from here; the reactor door waits for the queue to end). */
 	DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnFinalRecord, AActor*);
 	static FTDOnFinalRecord OnFinalRecordStarted;
+	/** The interior's music moments (T1's bridge for Nick's score, N-089), each once when it happens: CoreChamberEntered
+	 *  (the on-foot pilot crosses into the core chamber; again after a retake that restarts outside it),
+	 *  ReactorFightStarted (the conduit phase begins), ReactorFightEnded (the heart is destroyed), EscapeStarted (the
+	 *  escape run's hand-off). Source = the course. */
+	DECLARE_MULTICAST_DELEGATE_TwoParams(FTDOnInteriorMoment, FName /*Moment*/, AActor* /*Source*/);
+	static FTDOnInteriorMoment OnInteriorMoment;
+	/** The core chamber's floor box (world), for the CoreChamberEntered crossing (tests). */
+	FBox GetCoreChamberBox() const { return CoreChamberBox; }
+	/** Every dressing piece placed, as "<Site>:<Name>" (tests, captures). */
+	const TArray<FName>& GetDressLog() const { return DressLog; }
+	/** The one actor holding the course's static blocks and dressing meshes (tests). */
+	AActor* GetDressingActor() const { return Dressing; }
+	/** The interior's escape run: seconds left while it runs, else -1 (the environment builder's last-30-seconds state). */
+	float GetEscapeSecondsLeft() const;
+	/** The interior's room lights: point lights on the dressing actor tagged TD.InteriorLight. */
+	static constexpr const TCHAR* InteriorLightTag = TEXT("TD.InteriorLight");
+	/** Component tag on the interior kit pieces that carry the red strip glow (their strip slot has its own instance). */
+	static constexpr const TCHAR* EmergencyStripTag = TEXT("TD.EmergencyStrip");
+
+	/** Cinder's magma (T7's play, Nov 14): the magma volume that just killed the pilot (ATDMagmaVolume calls it). */
+	void NoteMagmaDeath(const AActor* Magma);
+	/** The director's respawn spot for a CUT on foot: after MagmaRescueAfterDeaths magma deaths in a row in the same
+	 *  magma, the far side of it instead. True when it moved the spot. */
+	bool ResolveRespawn(FTransform& InOutWhere);
+	static constexpr int32 MagmaRescueAfterDeaths = 2;
+	/** Where a CUT in the interior picks up: the scene's checkpoint, else the next room's door (a death between rooms,
+	 *  scene None: T7 came back at the hangar, 104 m from the reactor). */
+	FTransform GetInteriorRetakeSpot(FName SceneId) const;
+	/** The reactor room (N-052 / N-060): the boarder's own future self (staged, never fights), and the fight of the other
+	 *  two future pilots (or the two drones when td.Interior.Defenders is 0). */
+	class ATDFutureSelf* GetFutureSelf() const { return FutureSelf; }
+	class ATDEncounterVolume* GetReactorDefenders() const { return ReactorDefenders; }
+	UPROPERTY(Transient) TObjectPtr<class ATDFutureSelf> FutureSelf;
+	UPROPERTY(Transient) TObjectPtr<class ATDEncounterVolume> ReactorDefenders;
+	/** The interior's doorways, in order along +X: the marker leads through the next one square-on (T7, Nov 14: the
+	 *  walker wedged on the arena's far door frame heading straight for the Warden's trailhead). */
+	TArray<TWeakObjectPtr<AActor>> InteriorDoorways;
+	/** Each doorway's approach points on its centre line, 2.5 m before and after it (same order as InteriorDoorways). */
+	TArray<TPair<TWeakObjectPtr<AActor>, TWeakObjectPtr<AActor>>> DoorApproaches;
+	/** Target, or the centre of the first doorway between the pilot and it (interior, along +X). */
+	AActor* RouteThroughDoors(const FVector& Pilot, AActor* Target) const;
+	/** The course's objectives in story order (the order they were made). */
+	const TArray<TObjectPtr<ATDObjective>>& GetObjectives() const { return Objectives; }
+	/** Where a magma rescue puts the pilot, per magma volume (tests). */
+	bool GetMagmaRescue(const AActor* Magma, FTransform& Out) const;
+	/** Every DA_ReactorCore_FX slot played, in order (CoreIdle, ConduitBreak, ShieldDrop, HeartHit, CoreDestroyed,
+	 *  EscapeRunLoop), for tests and the effects builder. */
+	const TArray<FName>& GetReactorFXLog() const { return ReactorFXLog; }
 	bool IsFinalRecordDone() const { return bFinalRecordDone; }
 	/** The interior: the boarding pilot's ship on the hangar pad (null when its art is missing). */
 	UStaticMeshComponent* GetParkedShip() const { return ParkedShip; }
@@ -213,7 +275,24 @@ private:
 	 * Outpost_Site.manifest.json): spawned at Site (course-local, on the ground), +X (its bay and ramp) turned to Yaw.
 	 * Returns null when the asset is missing (the caller keeps its placeholder pieces). OutConsole: its console mesh.
 	 */
-	AActor* PlaceOutpost(const FVector& Site, float Yaw, bool bCinder, UStaticMeshComponent*& OutConsole);
+	/** Places the kit outpost; Site.Z is raised onto the ground under it (T4's terrain, 3 cm over: #42, the room showed
+	 *  the terrain through its floor). */
+	AActor* PlaceOutpost(FVector& Site, float Yaw, bool bCinder, UStaticMeshComponent*& OutConsole);
+	/** The ground's height under a course-local point: the highest world-static surface that is not the course's own
+	 *  (T4's terrain), else 0 (the course slab). */
+	float GroundZAt(const FVector& Local) const;
+	/** One dressing piece in a site's frame: a static mesh ("SM_...", on the course's dressing actor) or a blueprint
+	 *  ("BP_..."). Folder is under /Game/TriadDrift/Gameplay/Props/. */
+	struct FDressItem { const TCHAR* Folder; const TCHAR* Name; FVector Local; float Yaw; float Scale; bool bCollide; };
+	/** Places Items in the frame (Origin, Yaw) on the ground, clear of flora (a site-clear circle each); returns how many
+	 *  were placed (missing assets are skipped and logged). */
+	int32 Dress(const TArray<FDressItem>& Items, const FVector& Origin, float Yaw, FName Site);
+	AActor* SpawnKitBP(const TCHAR* Folder, const TCHAR* Name, const FVector& Local, float Yaw, float Scale = 1.f);
+	/** The outpost's exterior props in its frame (+X = the door side), clear of the door apron and the room. */
+	void DressOutpost(const FVector& Site, float Yaw, FName Tag);
+	/** The pad's ring of bollard lights and its service corner, outside the 14 m take-off circle (+X = take-off). */
+	void DressPad(FName Tag);
+	TArray<FName> DressLog;
 	/** An invisible interact box over the outpost console, at its 87 x 260 x 150 cm, facing Yaw. */
 	template <class T> T* OutpostTerminal(const FVector& Site, float Yaw);
 	/** Terminal -> its outpost console screen and planet (the scan on the screen when used, T2's ShowScanOnScreen). */
@@ -231,7 +310,18 @@ public:
 	/** Cinder: the field anchor is disabled (T2's pending approach marker toward the Dominion). */
 	DECLARE_MULTICAST_DELEGATE(FTDOnFieldAnchorDisabled);
 	static FTDOnFieldAnchorDisabled OnFieldAnchorDisabled;
+	/** T2's pending approach marker (ENG-26 step 5: "approach prepared; passage still blocked"): the Cinder field anchor
+	 *  is down this run (saved, so true after a reload or Continue). The passage itself opens elsewhere (T4: Cinder done
+	 *  and wave 5 cleared); this never says it is open. */
+	static bool IsFieldAnchorDisabled(const UObject* WorldContextObject);
 	UStaticMeshComponent* GetDormantDrone() const { return DormantDrone; }
+	/** Cinematic 03's drone (features.md row "drone wakes blue, three pulses"): its optic, dark until C3_Wren_Answered,
+	 *  then three blue blinks in step with T3's light and steady blue; the drone lifts off the deck as it wakes. */
+	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> DroneOptic;
+	FVector DroneHome = FVector::ZeroVector;
+	double DroneWakeStart = -1.0;
+	UFUNCTION() void HandleStoryLine(const struct FTDTransmissionView& Line);
+	void TickDroneWake();
 private:
 	float InteriorTime = 0.f;
 	/** Story beats on objective moments (T3's transmissions, storyline.md §5): planets and interior. */
@@ -296,6 +386,25 @@ private:
 	void Checkpoint(ATDObjective* Obj, int32 Step, const FVector& At, float Yaw = 0.f);
 	AActor* Marker(const FVector& At, float Yaw = 0.f);
 	FVector W(const FVector& Local) const { return GetActorTransform().TransformPosition(Local); }
+	struct FMagmaRescue { TWeakObjectPtr<const AActor> Magma; FTransform Far; };
+	TArray<FMagmaRescue> MagmaRescues;
+	TWeakObjectPtr<const AActor> PendingMagmaDeath;
+	TWeakObjectPtr<const AActor> LastMagmaDeath;
+	int32 MagmaDeathsInRow = 0;
+	/** The reactor's four conduits and their step counter: the marker points at the nearest one still standing. */
+	/** A step whose targets are several things to break (the reactor's conduits, Cinder's gate conduits): its marker is
+	 *  the nearest one still standing, the step's own waypoint (the counter) once none is. */
+	struct FMarkerGroup
+	{
+		TWeakObjectPtr<ATDObjective> Objective;
+		int32 Step = 0;
+		TWeakObjectPtr<AActor> Counter;
+		TArray<TWeakObjectPtr<AActor>> Targets;
+	};
+	TArray<FMarkerGroup> MarkerGroups;
+	void UpdateConduitMarker();
+	/** A magma the marker routes around (chain of local points, safe way across) and its rescue spot (local, yaw). */
+	void AddMagmaCrossing(const AActor* Magma, ATDObjective* Objective, int32 Step, const TArray<FVector>& Chain, const FVector& RescueAt, float RescueYaw);
 
 	bool IsOnRoute(const FVector& Local, float Clearance) const;
 

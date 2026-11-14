@@ -23,6 +23,7 @@
 #include "InputCoreTypes.h"
 #include "TDIntroDirector.generated.h"
 
+class USoundBase;
 class ACameraActor;
 class APlayerController;
 class AActor;
@@ -99,6 +100,10 @@ struct FTDIntroOverlayState
 	float Bars = 1.f;
 	FText Subtitle;
 	float SubtitleAlpha = 0.f;
+	/** Lines mode (td.Intro.Lines 1): who speaks ("KATO") and their squad colour; empty for the narrator. */
+	FText SubtitleSpeaker;
+	FLinearColor SubtitleSpeakerColor = FLinearColor::White;
+	FName SubtitleLineId;
 	float TitleAlpha = 0.f;
 	FText NameCard;
 	FText NameCardRole;   // "RIFT  ·  TRICKSTER"
@@ -208,8 +213,16 @@ public:
 	/** Seconds before the intro can be skipped (Nicholas, N-060: ten for every cutscene). td.Intro.SkipLockSeconds;
 	 *  automation runs use 1 s unless a test sets the cvar (other suites skip early). */
 	static float GetSkipLockSeconds();
+	/** The opening's First Contact lines (O_*, storyline.md §11) shown over the shots: (start second, id), in story order.
+	 *  The four after them play as radio at the hand-off (HandOffLines). td.Intro.Lines 0 restores the narrator captions. */
+	struct FTimedLine { float Start; const TCHAR* Id; };
+	static const TArray<FTimedLine>& OpeningLines();
+	static const TArray<FName>& HandOffLines();
+	static bool UseOpeningLines();
 	static constexpr float SkipHoldSeconds = 0.5f;
 	static constexpr float HandOffSeconds = 1.f;
+	/** The bars leave in the first part of the hand-off: the ship is already flyable then (T7, Shipping play). */
+	static constexpr float BarsOutSeconds = 0.3f;
 
 	// UTickableWorldSubsystem
 	virtual void Tick(float DeltaTime) override;
@@ -248,6 +261,10 @@ private:
 	static float EclipseExposureEV100();
 	void ApplyLens(float FocalMm, float FStop, float FocusDistance);
 	void PlayNarrationVoice(int32 Line);
+	int32 LastOpeningLine = -1;
+	bool bHandOffLinesFired = false;
+	bool bDominionStingPlayed = false;
+	void FireHandOffLines();
 	void EnsureWidget();
 	void RemoveWidget();
 	void HandleSkipPressed(FKey Key);
@@ -301,6 +318,16 @@ private:
 	float SkipHeldFor = 0.f;
 	float Elapsed = 0.f;
 	float HandOffElapsed = 0.f;
+	/** T7's measurement: the galaxy's first frames hitch (new pipeline states). The intro holds on black for a few rendered
+	 *  frames (td.Intro.WarmUpSeconds, never past 1 s) before its clock and music start. */
+	bool bWarmingUp = false;
+	float WarmUpTime = 0.f;
+	int32 WarmUpFrames = 0;
+	TWeakObjectPtr<USoundBase> PendingMusic;
+public:
+	bool IsWarmingUp() const { return bWarmingUp; }
+	static float GetWarmUpSeconds();
+private:
 	int32 ShotIndex = -1;
 	float ShotStart = 0.f;
 	int32 LastNarrationVoice = -1;

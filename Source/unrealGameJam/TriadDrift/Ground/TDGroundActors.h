@@ -340,6 +340,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	TArray<ETDCrewType> CrewMix;
 
+	/** Optional names cycled across the spawned crew like CrewMix (the reactor room's future pilots: FuturePilot). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
+	TArray<FName> MemberNames;
+
 	/** Spawn points relative to the volume. If empty, Count crew are placed in a ring. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (MakeEditWidget))
 	TArray<FVector> SpawnPoints;
@@ -365,6 +369,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	TObjectPtr<ATDObjective> LinkedObjective;
 
+	/** For retakes only: the objective step this fight belongs to when it completes no step itself (LinkedStep is
+	 *  INDEX_NONE). A retake from a later checkpoint leaves it down (the anchor's defence during the collapse run). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
+	int32 RetakeStep = INDEX_NONE;
+
 	/** Step completed on clear (INDEX_NONE = none). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	int32 LinkedStep = INDEX_NONE;
@@ -376,6 +385,22 @@ public:
 	 *  burst landed 0.5 s after the crew appeared, and a pilot who didn't react was dead in 5 s). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (Units = "s", ClampMin = "0"))
 	float OpeningGraceSeconds = 1.2f;
+
+	/** A member (never the Warden) that has had no line of sight to the pilot and lost no health for this long is
+	 *  removed, so a fight cannot stall on crew stuck behind a wall (T7's play, Nov 14: a Trooper and a Heavy stood
+	 *  23 m away behind the relay's terminal wall for 2 minutes). 0 = never. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (Units = "s", ClampMin = "0"))
+	float StragglerSeconds = 30.f;
+
+	/** One straggler pass (the encounter runs it every second while the fight is on); public for tests. */
+	void SweepStragglers(float Seconds);
+
+	/** No crew spawns closer than this to the pilot when the fight starts (pushed away inside the volume). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (Units = "cm", ClampMin = "0"))
+	float MinSpawnDistance = 1000.f;
+	/** On a retake (take 2+) the crew hold fire at least this long. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (Units = "s", ClampMin = "0"))
+	float RetakeGraceSeconds = 2.f;
 
 	/** Director's mercy: easing per take of this fight (empty = always the same fight). Sorted by FromTake. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
@@ -433,6 +458,17 @@ private:
 	bool IsPlayerPawn(const AActor* Actor) const;
 
 	TArray<TWeakObjectPtr<AActor>> Spawned;
+public:
+	/** A boss that leaves the world without dying (kill-Z, a fall) is put back this many times before the room may clear. */
+	static constexpr int32 MaxBossReturns = 3;
+private:
+	struct FStraggler { float Unseen = 0.f; float LastHealth = -1.f; };
+	/** Where each member was spawned (a boss that leaves the world without dying is put back there). */
+	TMap<TWeakObjectPtr<AActor>, FTransform> SpawnedAt;
+	int32 BossReturns = 0;
+	bool ReturnLostBoss(AActor* Member);
+	TMap<TWeakObjectPtr<AActor>, FStraggler> Stragglers;
+	FTimerHandle StragglerTimer;
 	bool bActivated = false;
 	bool bCleared = false;
 	int32 Take = 0;

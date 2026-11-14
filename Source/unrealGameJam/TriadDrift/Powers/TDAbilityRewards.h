@@ -59,6 +59,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Abilities")
 	void MarkAbilityFlightHintShown(ETDAbilityId Ability);
 
+	/** The hint was taken off before it could be read (the player switched away from the owning ship): due again. */
+	void ReopenFlightHint(ETDAbilityId Ability);
+	/** The ship an award belongs to (false when it was never awarded this session). */
+	bool GetAbilityShip(ETDAbilityId Ability, ETDShipId& OutShip) const;
+
 	const TArray<FTDAbilityReward>& GetRewards() const { return Rewards; }
 	/** Tests and a new run: forget every award. */
 	void ResetRewards() { Rewards.Reset(); }

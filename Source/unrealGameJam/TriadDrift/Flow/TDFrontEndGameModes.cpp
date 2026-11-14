@@ -138,7 +138,7 @@ void ATDMenuGameMode::TickMusicYield()
 	// rather than playing underneath, and comes back when the claim is released (T1, approved by T5).
 	if (!Music || bMusicFading) { return; }
 	const UTDMusicDirectorSubsystem* Director = UTDMusicDirectorSubsystem::GetMusicDirector(this);
-	const bool bHeld = Director && Director->IsExclusiveScoreHeld();
+	const bool bHeld = Director && Director->ShouldMenuMusicYield(); // a claim, or the fallback's credits (R-047)
 	if (bHeld && !bMusicYielded)
 	{
 		bMusicYielded = true;
@@ -253,6 +253,7 @@ void ATDMenuGameMode::StartMusic()
 	Music->OnAudioFinished.AddUniqueDynamic(this, &ATDMenuGameMode::HandleMusicFinished);
 	Music->Play();
 	bMusicStarted = true;
+	UE_LOG(LogTriadDrift, Log, TEXT("Menu music: playing %s"), *Sound->GetPathName());
 }
 
 void ATDMenuGameMode::HandleMusicFinished()
@@ -293,6 +294,34 @@ bool ATDMenuGameMode::NewGame()
 	GI->StartNewRun();
 	FadeOutMusic();
 	return GI->TravelTo(ETDDestination::Galaxy, NAME_None);
+}
+
+void ATDMenuGameMode::ChooseDifficulty(bool bSkipTutorial)
+{
+	bChoosingDifficulty = true;
+	bDifficultyThenSkipTutorial = bSkipTutorial;
+	HidePlaceholder();
+	ShowPlaceholder();
+}
+
+void ATDMenuGameMode::CancelDifficultyChoice()
+{
+	bChoosingDifficulty = false;
+	HidePlaceholder();
+	ShowPlaceholder();
+}
+
+bool ATDMenuGameMode::StartWithDifficulty(uint8 Difficulty)
+{
+	// The preference is saved and written to the run; StartNewRun applies the preferred difficulty (T5), so it stands.
+	if (UTDSettingsSubsystem* Settings = GetGameInstance() ? GetGameInstance()->GetSubsystem<UTDSettingsSubsystem>() : nullptr)
+	{
+		Settings->SetDifficulty(static_cast<ETDDifficulty>(Difficulty));
+	}
+	UE_LOG(LogTriadDrift, Log, TEXT("Menu: new game on %s%s"), *UTDSettingsSubsystem::DifficultyName(static_cast<ETDDifficulty>(Difficulty)).ToString(),
+		bDifficultyThenSkipTutorial ? TEXT(" (tutorial skipped)") : TEXT(""));
+	bChoosingDifficulty = false;
+	return bDifficultyThenSkipTutorial ? NewGameSkipTutorial() : NewGame();
 }
 
 bool ATDMenuGameMode::NewGameSkipTutorial()
@@ -384,7 +413,8 @@ void ATDMenuGameMode::ShowPlaceholder()
 	}
 	TWeakObjectPtr<ATDMenuGameMode> Weak(this);
 	TSharedPtr<SButton> FirstButton; // keyboard / gamepad focus starts here (Enter or pad A presses it)
-	auto Button = [Weak, &FirstButton](const FString& Label, TFunction<void(ATDMenuGameMode*)> Action, bool bEnabled) -> TSharedRef<SWidget>
+	TSharedPtr<SButton> LastMade;
+	auto Button = [Weak, &FirstButton, &LastMade](const FString& Label, TFunction<void(ATDMenuGameMode*)> Action, bool bEnabled) -> TSharedRef<SWidget>
 	{
 		TSharedPtr<SButton> Made;
 		SAssignNew(Made, SButton).IsEnabled(bEnabled).HAlign(HAlign_Center)
@@ -401,6 +431,7 @@ void ATDMenuGameMode::ShowPlaceholder()
 		{
 			FirstButton = Made;
 		}
+		LastMade = Made;
 		return Out;
 	};
 	TSharedRef<SVerticalBox> Box = SNew(SVerticalBox);
@@ -489,16 +520,40 @@ void ATDMenuGameMode::ShowPlaceholder()
 		KeepMenuFocus();
 		return; // the normal menu's card, focus, Settings and music path stay untouched
 	}
+	else if (bChoosingDifficulty)
+	{
+		// ENG-45: New Game's one question. Three choices with the Settings page's own lines; the difficulty in play is
+		// where the focus starts, so Enter / pad A keeps a returning player's last choice.
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 0.f, 0.f, 20.f)
+		[
+			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "ChooseDifficulty", "CHOOSE DIFFICULTY")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 40)).ColorAndOpacity(FLinearColor(0.4f, 0.9f, 1.f))
+		];
+		const ETDDifficulty InPlay = UTDSettingsSubsystem::GetDifficultyInPlay();
+		TSharedPtr<SButton> Preselected;
+		for (ETDDifficulty D : { ETDDifficulty::Story, ETDDifficulty::Standard, ETDDifficulty::Ace })
+		{
+			const uint8 Raw = static_cast<uint8>(D);
+			Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(UTDSettingsSubsystem::DifficultyName(D).ToString().ToUpper(), [Raw](ATDMenuGameMode* M) { M->StartWithDifficulty(Raw); }, true)];
+			if (D == InPlay) { Preselected = LastMade; }
+			Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 0.f, 0.f, 10.f)
+			[
+				SNew(STextBlock).Text(UTDSettingsSubsystem::DifficultyDescription(D)).WrapTextAt(520.f).Justification(ETextJustify::Center)
+				.Font(FCoreStyle::GetDefaultFontStyle("Regular", 14)).ColorAndOpacity(FLinearColor(0.88f, 0.95f, 1.f, 0.85f))
+			];
+		}
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 8.f, 0.f, 0.f)[Button(TEXT("BACK"), [](ATDMenuGameMode* M) { M->CancelDifficultyChoice(); }, true)];
+		if (Preselected.IsValid()) { FirstButton = Preselected; }
+	}
 	else
 	{
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 0.f, 0.f, 24.f)
 		[
 			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "Title", "TRIAD DRIFT")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 64)).ColorAndOpacity(FLinearColor(0.4f, 0.9f, 1.f))
 		];
-		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("NEW GAME"), [](ATDMenuGameMode* M) { M->NewGame(); }, true)];
+		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("NEW GAME"), [](ATDMenuGameMode* M) { M->ChooseDifficulty(false); }, true)];
 		if (CanSkipTutorial()) // T7: only after the tutorial was completed once on this profile
 		{
-			Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("SKIP THE TUTORIAL"), [](ATDMenuGameMode* M) { M->NewGameSkipTutorial(); }, true)];
+			Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("SKIP THE TUTORIAL"), [](ATDMenuGameMode* M) { M->ChooseDifficulty(true); }, true)];
 		}
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("CONTINUE"), [](ATDMenuGameMode* M) { M->ContinueGame(); }, CanContinue())];
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("SETTINGS"), [](ATDMenuGameMode* M) { UTDSettingsSubsystem::OpenSettingsPage(M); }, true)];
