@@ -3,6 +3,7 @@
 #include "TriadDrift/Flow/TDObjectiveText.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Story/TDTutorialPhases.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDDockingBay.h"
 #include "TriadDrift/Ground/Planets/TDPlanetDirector.h"
@@ -106,6 +107,18 @@ namespace TDObjectiveTextImpl
 		if (Info.bWaveActive && Info.WaveNumber > 0)
 		{
 			const FName Scene = Info.SceneId.IsNone() ? FName(*FString::Printf(TEXT("Wave%d"), Info.WaveNumber)) : Info.SceneId;
+			// ENG-40 (T3): the tutorial's taught phase prompt over waves 1-2, while one is up (PromptId is for HUDs that want it).
+			{
+				FName PromptId;
+				FText Prompt;
+				if (UTDTutorialPhases::GetPrompt(World, PromptId, Prompt))
+				{
+					Out.Id = Scene; // the scene stays the wave (slates, takes); only the line changes
+					Out.Step = Info.WaveNumber;
+					Out.Text = Prompt;
+					return true;
+				}
+			}
 			Out.Id = Scene;
 			Out.Step = Info.WaveNumber;
 			// storyline.md section 13: nobody names the enemy (and Nicholas has no approved wave line yet).

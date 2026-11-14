@@ -183,6 +183,19 @@ namespace TDGroundDebug
 		}
 	}
 
+	/** TD.Ground.BreakGuard: break every live Heavy's guard (the animation builder's frontal-death captures). */
+	static void BreakGuard(const TArray<FString>& Args, UWorld* World)
+	{
+		int32 N = 0;
+		for (TActorIterator<ATDCrewCharacter> It(World); World && It; ++It)
+		{
+			if (!It->IsDead() && It->Spec.bFrontalShield) { It->BreakGuard(nullptr); ++N; }
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Ground.BreakGuard: %d guards broken"), N);
+	}
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdBreakGuard(TEXT("TD.Ground.BreakGuard"), TEXT("Break every live Heavy's guard (dev)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&BreakGuard));
 	static FAutoConsoleCommandWithWorldAndArgs CmdWhere(TEXT("TD.Ground.Where"), TEXT("Log the player position, objective line and nearest enemy."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Where));
 	static FAutoConsoleCommandWithWorldAndArgs CmdFace(TEXT("TD.Ground.FaceNearest"), TEXT("Aim at the nearest live enemy."),
