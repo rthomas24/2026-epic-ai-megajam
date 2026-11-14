@@ -1,6 +1,7 @@
 // Triad Drift - engineering space HUD (ENG-36, Teammate 2). Spec: docs/eng/hud-redesign.md.
 
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 
 #include "Brushes/SlateRoundedBoxBrush.h"
 #include "GameFramework/PlayerController.h"
@@ -981,6 +982,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 
 void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 {
+	TD_COMBAT_PERF(FlightHUD);
 	const float Dt = FMath::Max(0.f, DeltaSeconds);
 	Time += Dt;
 	const ITDHUDData* Data = Cast<ITDHUDData>(Source.Get());

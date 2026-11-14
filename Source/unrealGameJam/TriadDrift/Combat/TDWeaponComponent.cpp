@@ -1,6 +1,7 @@
 // Triad Drift - Combat (Teammate 2). Weapon slots: fire rate, heat, ammo, charge, salvos, spread, aim assist.
 
 #include "TriadDrift/Combat/TDWeaponComponent.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 #include "TriadDrift/Combat/TDCombatCueLog.h"
 #include "TriadDrift/Combat/TDCombatBarks.h"
 #include "GameFramework/MovementComponent.h"
@@ -346,6 +347,7 @@ void UTDWeaponComponent::ResetWeapons()
 
 void UTDWeaponComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
+	TD_COMBAT_PERF(Weapons);
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	TickSlot(ETDWeaponSlot::Primary, DeltaTime);
 	TickSlot(ETDWeaponSlot::Secondary, DeltaTime);
