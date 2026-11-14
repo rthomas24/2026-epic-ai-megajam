@@ -99,7 +99,7 @@ public:
 	/** The Outer Dark's watch: big lone rocks on the Dominion run-in, before the Shattered Moons (Lead, Nov 14). */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 OuterWatchRocks = 12;
 	/** The Ice Drift's ice glow: the ice material's EmissiveStrength times this, on that region's rocks only. */
-	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float IceDriftGlowScale = 4.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") float IceDriftGlowScale = 12.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 IceDriftRocks = 900;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRocks = 500;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Regions") int32 ScarRubble = 400;
@@ -148,8 +148,10 @@ public:
 	/** Health: small (1-2 cannon shots), medium (several), large (base + per metre of diameter), wrecks. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float SmallHealth = 12.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float MediumHealth = 60.f;
-	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float LargeHealthBase = 120.f;
-	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float LargeHealthPerMetre = 3.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float LargeHealthBase = 110.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float LargeHealthPerMetre = 1.f;
+	/** Arcade cap (Lead, Nov 14): a large rock breaks in about 15-20 primary bolts (8 each), one ram or one missile. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float LargeHealthMax = 160.f;
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float WreckHealth = 900.f;
 	/** A broken medium / large splits into this many pieces of the next class down. */
 	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") int32 SplitMin = 2;
