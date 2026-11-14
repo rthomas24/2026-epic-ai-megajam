@@ -77,6 +77,15 @@ static TAutoConsoleVariable<int32> CVarTDIntroSunFromLight(
 
 namespace TDIntro
 {
+	/** The intro poses squad ships on purpose: tell T1's silent-move watchdog before each pose (something else, e.g. a
+	 *  retake teleport, may have cleared the flag the hold set). */
+	static void AnnounceMove(ATDShip* Ship)
+	{
+		if (UTDShipMovementComponent* Move = Ship ? Ship->GetShipMovement() : nullptr)
+		{
+			Move->SetMoveAnnounced(true);
+		}
+	}
 	/** Super 35 width: the focal lengths in the shot list mean what they mean on a cinema camera. */
 	static constexpr float SensorWidthMm = 24.89f;
 	static constexpr float CinemaAspect = 2.39f;
@@ -1099,6 +1108,7 @@ void UTDIntroDirector::BeginShot(int32 Index)
 		{
 			if (ATDShip* Ship = H.Ship.Get())
 			{
+				TDIntro::AnnounceMove(Ship);
 				Ship->SetActorTransform(H.Transform, false, nullptr, ETeleportType::TeleportPhysics);
 				if (UTDShipMovementComponent* Move = Ship->GetShipMovement())
 				{
@@ -1199,6 +1209,7 @@ void UTDIntroDirector::PlaceSquad(const FVector& Centre, const FRotator& Facing,
 		// A little life: each ship breathes on its own slow curve.
 		const FVector Drift(0.f, FMath::Sin(Time * 0.9f + i * 2.1f) * 40.f, FMath::Sin(Time * 1.3f + i) * 30.f);
 		const FRotator Bank(0.f, 0.f, FMath::Sin(Time * 0.8f + i * 1.7f) * 6.f);
+		TDIntro::AnnounceMove(Ship); // a pose, not a silent move (T1's watchdog; T7 saw three in BeginShot)
 		Ship->SetActorLocationAndRotation(Centre + Offset + Facing.RotateVector(Drift), (Facing.Quaternion() * Bank.Quaternion()), false, nullptr, ETeleportType::TeleportPhysics);
 		if (UTDShipMovementComponent* Move = Ship->GetShipMovement())
 		{
@@ -1233,6 +1244,7 @@ void UTDIntroDirector::UpdateShot(float T)
 		{
 			if (ATDShip* Ship = H.Ship.Get())
 			{
+				TDIntro::AnnounceMove(Ship); // a pose, not a silent move (T1's watchdog; T7 saw three in BeginShot)
 				Ship->SetActorLocation(H.Transform.GetLocation() - FVector(0.f, 0.f, 2.0e6f), false, nullptr, ETeleportType::TeleportPhysics);
 			}
 		}
@@ -1895,6 +1907,7 @@ void UTDIntroDirector::HoldSquad(bool bHold)
 		{
 			continue;
 		}
+		TDIntro::AnnounceMove(Ship);
 		Ship->SetActorTransform(H.Transform, false, nullptr, ETeleportType::TeleportPhysics);
 		Ship->SetActorEnableCollision(H.bCollision);
 		if (UTDShipMovementComponent* Move = Ship->GetShipMovement())
