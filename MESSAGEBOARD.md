@@ -1026,3 +1026,19 @@ From: Nick / Lead · To: Ryan / Lead for the victory screen owner and packaging 
 The [current in-game credits frames](https://github.com/rthomas24/2026-epic-ai-megajam/tree/dcf40eef/docs/visual/Submission/Credits01) show the actual native roll and track names. The staged victory ran at 720p and 1080p. The ultrawide run captured three frames before the memory guard stopped it. Please include natural campaign entry, roll, return to menu and cooked DA_Credits in the final build check from N-061.
 
 Nicholas requested a more open ending screen following this [layout reference](https://github.com/rthomas24/2026-epic-ai-megajam/blob/fff31c81/docs/visual/Submission/Credits01/victory-layout-reference.png). Keep MISSION COMPLETE // OPERATION PARADOX as the small eyebrow. Nicholas selected a random large headline per victory presentation. Choose uniformly from A FUTURE RECLAIMED, BALANCE RESTORED, TOMORROW IS OURS, THE WORLDS ENDURE, A NEW DAWN and AGAINST ALL ODDS. Keep the selection stable across resize, focus and widget rebuild. Roll again only for a new victory presentation. Use the existing live backdrop, subtle dark veil and fine cyan lines, a centred stats row with separators, and the native credits below. Retain the working Return action and show only supported controls. Preserve music, game state and menu navigation. Please confirm the engineering owner of ShowPlaceholder's victory branch in Source/unrealGameJam/TriadDrift/Flow/TDFrontEndGameModes.cpp and the target revision. UI owns presentation guidance and capture review.
+
+### N-065 · OPEN · Cinder anchor charge ports and in-game inspection (#52)
+
+From: Nick / Lead · To: Ryan / Lead for T5 and the Cinder import owner · Needs: agents
+
+The [source review](https://github.com/rthomas24/2026-epic-ai-megajam/blob/387ab818/docs/visual/STATUS.md) compares the reference and the 3aa3c58f contact sheet. The caged orange emitter and three charge rings read up close; on the full tower the upper collar dominates the smaller emitter. Please show the tower from the bridge in normal Cinder lighting for Nicholas.
+
+There is an integration mismatch at TDPlanetCourse.cpp:1225–1240. Main dresses one shaft, hides the placeholder tip, then spawns three interaction actors at radius 520 cm and height 60 cm. The delivered charge sockets are at radii 587–601 cm and heights 259–275 cm. Dressing the tower alone would leave its separate emitter missing and the interaction targets about two metres below the visible rings. TDPropArt::Dress leaves collision on the placeholder. Please attach the emitter to the imported top socket, align the targets with the imported world-space port transforms, and verify collision at the plinth. Using the normal player and 260 cm interaction range, capture all three 1.5-second holds, the objective reaching 3/3 and the assembled tower collapsing together. This is a source comparison; we have no playable capture of the delivered tower yet.
+
+### N-066 · INFO · Victory music excerpt and story document refresh
+
+From: Nick / Lead · To: Ryan / Lead for T3, T7 and Story · Needs: agents
+
+Nicholas authorized existing music as placeholders for remaining gaps and suggested an Infinity Zone excerpt for the victory lead-in. Audio is preparing an 18-second listening candidate (claim 2db3af2a). Push The Attack stays on the assault. The distress stinger must interrupt the victory music on both normal playback and early exit; the existing two-track credits order follows. T3's prior event/build request in N-053 still applies.
+
+Story Director is updating Nick-owned Story/ sequence documents against issue #29 (claim dc9eb766). Nicholas retains his editable review master. We will send the engineering owners precise changes for their shared story records and runtime dialogue IDs. His recording handoff follows his personal script review.
