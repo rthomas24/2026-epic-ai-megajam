@@ -99,7 +99,8 @@ S2('NS_TD_Dominion_FieldCollapse', U(FIELD), [
 # so the barrier reads as a wall, not weather. Outside only (from inside, the old lesson: no violet sky).
 S2('NS_TD_Dominion_ApproachField', U(FIELD), [
     outside_only(shell('Shell', 100000, 0.40, pulse='float3(1,1,1)*(1.0 + 0.012*sin(Engine.Time*1.7))')),
-    outside_only(shell('Lattice', 100400, 0.85, mat='M_TD_VFX_DomeHex', pulse='float3(1,1,1)*(1.0 + 0.006*sin(Engine.Time*2.3 + 1.0))')),
+    # 10b: FieldHex, not DomeHex (DomeHex shows its lattice only at the rim)
+    outside_only(shell('Lattice', 100400, 0.85, mat='M_TD_VFX_FieldHex', pulse='float3(1,1,1)*(1.0 + 0.006*sin(Engine.Time*2.3 + 1.0))')),
     outside_only(single('Halo', 'M_TD_VFX_Glow', 330000, 0.10, 3.1)),
     arcs('Arcs', 34.0, (20000, 42000), 100000, life=(0.25, 0.6), k=1.0)])
 # Slot: UTDDominionVisuals.ShieldCollapse (the 4th generator dies; one shot at the centre). Authored at 1 km radius
@@ -118,7 +119,7 @@ S2('NS_TD_Dominion_ShieldDrop', U(FIELD), [
 # below 0 (never set) an internal three-pulse cycle runs (0 / 0.45 / 0.9 s, the third held, every 3 s). The ripple along
 # the row is 30 ms per light. Every light is re-spawned 20 times a second (no persistent sprite), so Deactivate fades it
 # in 0.1 s. Sizes grow with the camera distance (x1 at 1 km, x4 at 4 km and beyond).
-ROWD = 'clamp(Engine.Owner.LODDistance/100000.0, 1.0, 4.0)'
+ROWD = 'clamp(Engine.Owner.LODDistance/60000.0, 1.0, 5.0)'   # 10b: unseen at 1.5 km at /100000
 
 
 def row_pulse(lag):
@@ -130,21 +131,25 @@ def row_pulse(lag):
 def row_light(i, n=12, length=40000.0):
     y = -length / 2 + length * i / (n - 1)
     p = row_pulse(0.03 * i)
-    return offset(shed('Light%02d' % i, 'M_TD_VFX_Glow', 0, (0.08, 0.08), ('(900.0 + 2600.0*%s)*%s' % (p, ROWD), '(900.0 + 2600.0*%s)*%s' % (p, ROWD)), (0, 0),
-                       k=1.6, radius=0.0, drag=0.0, local=True, power=0.5, rate_expr='20.0'), 300.0, y)
+    return offset(shed('Light%02d' % i, 'M_TD_VFX_Glow', 0, (0.08, 0.08), ('(1800.0 + 4200.0*%s)*%s' % (p, ROWD), '(1800.0 + 4200.0*%s)*%s' % (p, ROWD)), (0, 0),
+                       k=2.4, radius=0.0, drag=0.0, local=True, power=0.5, rate_expr='20.0'), 300.0, y)
 
 
 # Slot: UTDDominionVisuals.TractorBeam (T4: a loop at the bay mouth, +X out of the bay toward the ship; User.Length cm
 # each frame, User.Intensity 0..1). A pale-blue cone from a 60 m mouth narrowing toward the ship, motes pulled in from
 # the ship's end toward the bay, and a soft glow in the mouth.
 S2('NS_TD_Dominion_TractorBeam', U((0.75, 0.88, 1.0, 1.0), 1.0, Length=20000.0, Intensity=1.0), [
-    mesh_single('Beam', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '1.0, 30.0, 30.0', 0.55, None,
+    mesh_single('Beam', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '1.0, 30.0, 30.0', 0.22, None,   # 10b: 0.55 read as a white jet
                 live_scale='float3(User.Length/(100.0*User.Scale), 1.0, 1.0)*User.Intensity*(0.97 + 0.03*sin(Engine.Time*3.1))'),
-    mesh_single('Core', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '1.0, 10.0, 10.0', 0.9, None,
+    mesh_single('Core', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '1.0, 10.0, 10.0', 0.35, None,
                 live_scale='float3(User.Length/(100.0*User.Scale), 1.0, 1.0)*User.Intensity*(0.95 + 0.05*sin(Engine.Time*5.3))'),
     offset(shed('Motes', 'M_TD_VFX_Glow', 0, (1.2, 2.4), (60, 140), (4000, 7000), k=1.4, radius=900.0, drag=0.0, local=True, stretch=None,
                 cone=((-1.0, 0.0, 0.0), 6.0), rate_expr='70.0*User.Intensity', power=0.8, fade_in=4.0), 'User.Length/User.Scale'),
     shed('Mouth', 'M_TD_VFX_Glow', 0, (0.3, 0.3), (5000, 6000), (0, 0), k=0.5, radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='12.0*User.Intensity')])
+
+# Review only (not for gameplay): M_TD_RegionHaze on a 600 m engine sphere as a mesh particle, so the haze can be
+# photographed in PIE (Python cannot add a mesh component there). T6 uses a plain sphere actor.
+S2('NS_TD_Debug_HazeSphere', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='M_TD_RegionHaze')])
 
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
@@ -157,7 +162,7 @@ BPULSE = '(0.80 + 0.20*sin(Engine.Time*2.5133))'
 BSIZE = '(0.028*clamp(Engine.Owner.LODDistance, 30000.0, 300000.0)*%s)' % BPULSE
 S2('NS_TD_Region_Beacon', U((1.0, 0.62, 0.18, 1.0), 1.0), [
     shed('Beacon', 'M_TD_VFX_Beacon', 0, (0.1, 0.1), (BSIZE, BSIZE), (0, 0), radius=0.0, drag=0.0, local=True, power=0.01,
-         rgb=('User.Color.r*%s' % BPULSE, 'User.Color.g*%s' % BPULSE, 'User.Color.b*%s' % BPULSE), rate_expr='10.0')])
+         k=1.2, rate_expr='10.0')])   # 10b: User.Color via the standard colour (the per-channel expression did not render)
 
 # Slot: none yet (code hook wanted: T3's transmissions, the escape sequence, a hit of "static"). A one-shot, camera-facing
 # tear of chromatic bars, 0.3 s; spawn it attached in front of the camera (authored 12 m wide) or at a world point.
@@ -485,8 +490,8 @@ S2('NS_TD_Entry_CloudPunch', U(WHITE4, 1.0, Intensity=1.0), [
 S2('NS_TD_Entry_CloudWisps', U((0.78, 0.92, 0.92, 1.0), 1.0, Intensity=1.0, Embers=0.0), [
     # v2 (Lead): the base is a soft, nearly uniform veil over 70-80% of the frame (big low-contrast blobs, no curl), slow so
     # it lingers around the chase camera; Cinder (User.Embers 1) gets fewer of them, so the same veil at lower opacity.
-    offset(shed('Veil', 'M_TD_VFX_CloudVeil', 0, (0.9, 1.4), (5000, 9000), (2500, 5000), radius=2200.0, drag=0.0, local=True, alpha=0.30,
-                cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='34.0*(1.0 - 0.45*User.Embers)*' + RAMP, power=0.8, fade_in=8.0, sort=True), 900),
+    offset(shed('Veil', 'M_TD_VFX_CloudVeil', 0, (0.9, 1.4), (5000, 9000), (2500, 5000), radius=2200.0, drag=0.0, local=True, alpha=0.24,
+                cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='19.0*(1.0 - 0.25*User.Embers)*' + RAMP, power=0.8, fade_in=8.0, sort=True), 900),
     # the streaking wisps ride on top for speed: fewer and fainter than v1 so they read as motion, not as smoke
     offset(spin(shed('Wisps', 'M_TD_VFX_CloudWisp', 0, (0.4, 0.7), (1400, 3200), (11000, 17000), radius=3800.0, drag=0.0, local=True, alpha=0.40,
                      cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='45.0*' + RAMP, power=0.9, fade_in=6.0, sort=True)), 2500),

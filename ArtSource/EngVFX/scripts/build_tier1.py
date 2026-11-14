@@ -414,8 +414,12 @@ PDIST = 'clamp(Engine.Owner.LODDistance/5000.0, 1.0, 6.0)'   # 1 up to 50 m, 6 a
 
 
 def plume_beacon(name, size, k, rate=40.0, life=(0.08, 0.12), flicker=True, pulse=None, y=0.0, z=0.0, rgb=None):
-    """Camera-facing glow, re-spawned all the time; size in cm at 50 m, grows with distance up to 6x at 300 m."""
-    s = '%s*%s' % (size, PDIST) + ('*%s' % pulse if pulse else '')
+    """Camera-facing glow, re-spawned all the time. 10b (captured from behind: at 60-300 m the plumes were a few pixels):
+    an ABSOLUTE size, 1.5 m + 2% of the camera distance up to 800 m (about 1.4 degrees at 300 m), times the type factor
+    `size`; the cue's VFXScale is cancelled, so a carrier's beacon is not five times a fighter's. The type reads at range
+    by count, flicker and pulse (fighter 1 flickering, interceptor 2 steady, gunship 1 big, bomber 1 throbbing,
+    carrier 4 steady)."""
+    s = '(150.0 + 0.02*clamp(Engine.Owner.LODDistance, 0.0, 80000.0))*%s/max(%s, 0.05)' % (size, SCL) + ('*%s' % pulse if pulse else '')
     lo, hi = ('(%s)*0.85' % s, '(%s)*1.10' % s) if flicker else ('(%s)' % s, '(%s)' % s)
     return offset(shed(name, 'M_TD_VFX_Glow', 0, life, (lo, hi), (0, 0), k=k, radius=0.0, drag=0.0, local=True, power=0.6,
                        rate_expr='%s*(0.5 + 0.5*User.Throttle + User.Boost)' % rate, rgb=rgb), -20.0, y, z)
@@ -436,31 +440,31 @@ PULSE = '(0.70 + 0.30*sin(Engine.Time*4.2))'   # the bomber's slow throb (0.67 s
 S('NS_TD_Plume_Enemy_Fighter', U((1.0, 0.10, 0.02, 1.0), 1.0, Throttle=0.6, Boost=0.0), [
     plume_flame('Flame', 1.7, 0.42, 0.75, 71.9), plume_flame('Inner', 0.9, 0.22, 1.1, 113.3),
     plume_streak('Streak', (9, 14), (2600, 4200), 34, 70.0, (0.10, 0.16), rgb=(1.0, 0.16, 0.03)),
-    plume_beacon('Beacon', 55, 0.75, rgb=(1.0, 0.12, 0.02))])
+    plume_beacon('Beacon', 1.0, 0.9, rgb=(1.0, 0.12, 0.02))])
 # interceptor: long twin needles (two flames side by side), hot orange-yellow, fast and steady
 TWIN = 55.0
 S('NS_TD_Plume_Enemy_Interceptor', U((1.0, 0.50, 0.10, 1.0), 1.0, Throttle=0.6, Boost=0.0),
   [plume_flame('Needle' + s, 3.0, 0.26, 0.95, 41.7 + i, y=TWIN * (1 if s == 'L' else -1)) for i, s in enumerate('LR')] +
   [plume_streak('Streak' + s, (6, 9), (6000, 9000), 60, 60.0, (0.10, 0.14), y=TWIN * (1 if s == 'L' else -1), rgb=(1.0, 0.55, 0.12)) for s in 'LR'] +
-  [plume_beacon('Beacon' + s, 38, 0.8, rate=30.0, flicker=False, y=TWIN * (1 if s == 'L' else -1), rgb=(1.0, 0.45, 0.08)) for s in 'LR'])
+  [plume_beacon('Beacon' + s, 0.7, 0.9, rate=30.0, flicker=False, y=TWIN * (1 if s == 'L' else -1), rgb=(1.0, 0.45, 0.08)) for s in 'LR'])
 # gunship: a short, wide bloom (fat flame, big soft glow, fire puffs), red-orange
 S('NS_TD_Plume_Enemy_Gunship', U((1.0, 0.28, 0.05, 1.0), 1.0, Throttle=0.6, Boost=0.0), [
     plume_flame('Flame', 0.55, 2.2, 0.8, 37.1), plume_flame('Inner', 0.35, 1.3, 1.2, 53.9),
     offset(shed('Bloom', 'M_TD_VFX_Fire', 0, (0.12, 0.22), (90, 150), (300, 700), k=0.7, radius=40.0, drag=1.5, local=True,
                 cone=((-1.0, 0.0, 0.0), 30.0), growth='1.0 + Particles.NormalizedAge', rate_expr='60.0*(0.4 + 0.6*User.Throttle + User.Boost)'), -40.0),
-    plume_beacon('Beacon', 120, 0.7, rgb=(1.0, 0.25, 0.04))])
+    plume_beacon('Beacon', 1.6, 0.8, rgb=(1.0, 0.25, 0.04))])
 # bomber: a slow smoky pulse (the flame and glow throb at 1.5 Hz over a dark red smoke trail)
 S('NS_TD_Plume_Enemy_Bomber', U((0.95, 0.12, 0.03, 1.0), 1.0, Throttle=0.6, Boost=0.0), [
     plume_flame('Flame', 1.1, 1.0, 0.8, live='float3(%s*%s, %s*%s, %s*%s)' % (LEN, PULSE, THR, PULSE, THR, PULSE)),
     offset(shed('Smoke', 'M_TD_VFX_Smoke', 0, (0.6, 1.0), (80, 140), (500, 900), radius=30.0, drag=1.0, curl=300.0, local=False,
                 rgb=(0.22, 0.05, 0.03), alpha=0.55, cone=((-1.0, 0.0, 0.0), 8.0), growth='1.0 + 1.5*Particles.NormalizedAge', power=0.7,
                 rate_expr='26.0*(0.4 + 0.6*User.Throttle)'), -60.0),
-    plume_beacon('Beacon', 80, 0.75, rate=30.0, flicker=False, pulse=PULSE, rgb=(1.0, 0.14, 0.03))])
+    plume_beacon('Beacon', 1.3, 0.85, rate=30.0, flicker=False, pulse=PULSE, rgb=(1.0, 0.14, 0.03))])
 # carrier: four steady pads (a 2 x 2 block of short flames and glows; no flicker: it is a building)
 PADS = [(y, z) for y in (-90.0, 90.0) for z in (-70.0, 70.0)]
 S('NS_TD_Plume_Enemy_Carrier', U((1.0, 0.36, 0.07, 1.0), 1.0, Throttle=0.6, Boost=0.0),
   [plume_flame('Pad%d' % i, 0.45, 0.9, 0.85, live='float3(%s, %s, %s)' % (LEN, THR, THR), y=y, z=z) for i, (y, z) in enumerate(PADS)] +
-  [plume_beacon('Beacon%d' % i, 60, 0.7, rate=20.0, life=(0.14, 0.14), flicker=False, y=y, z=z, rgb=(1.0, 0.34, 0.06)) for i, (y, z) in enumerate(PADS)])
+  [plume_beacon('Beacon%d' % i, 0.6, 0.8, rate=20.0, life=(0.14, 0.14), flicker=False, y=y, z=z, rgb=(1.0, 0.34, 0.06)) for i, (y, z) in enumerate(PADS)])
 
 # --------------------------------------------------------------------------------------------- impacts
 # +X of the system is the surface normal (gameplay passes ImpactNormal.Rotation()).

@@ -15,5 +15,5 @@ $SC ${T}_beacon_300  NS_TD_Region_Beacon 300 chase 1.0 0 '{"Color": [1.0, 0.62, 
 $SC ${T}_beacon_1500 NS_TD_Region_Beacon 1500 chase 1.0 0 '{"Color": [1.0, 0.62, 0.18]}'
 $SC ${T}_breakL NS_TD_Asteroid_Break_L 200 side 4.5 0 '{}' 6 0.25 50
 bash $G "('clear',)" >/dev/null
-python $R/haze.py $T
+python $R/haze.py $T 2>&1 | tail -2
 bash $G "('pie_stop',)" >/dev/null
