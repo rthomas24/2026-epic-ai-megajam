@@ -34,6 +34,8 @@ case $1 in
      [ -f Saved/EngVFX/STOP ] && { echo "STOP file present: not locking"; exit 1; }
      for d in LOCK LOCK2 LOCK3; do grep -q '^vfx ' "$RS/$d/owner.txt" 2>/dev/null && { echo "vfx $(date +%H:%M) ${2:-effects capture}" > "$RS/$d/owner.txt"; echo "$d" > Saved/EngVFX/myslot; echo "SLOT $d already ours"; exit 0; }; done
      pos=$(grep -v '^[[:space:]]*$' "$RS/NEXT.txt" 2>/dev/null | grep -n '^vfx' | head -1 | cut -d: -f1)
+     if [ -z "$pos" ] && [ -f "$RS/NEXT.txt" ]; then printf 'vfx %s
+' "${2:-effects capture}" >> "$RS/NEXT.txt"; echo "queued at the bottom of NEXT.txt"; sleep 10; continue; fi
      if [ -z "$pos" ] || [ "$pos" -le 3 ]; then
        for d in LOCK LOCK2 LOCK3; do
          if mkdir "$RS/$d" 2>/dev/null; then
