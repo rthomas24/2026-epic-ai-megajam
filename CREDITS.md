@@ -167,3 +167,5 @@ Nicholas Tosti supplied and selected **Push The Attack** for the Dominion space 
 The Verdance buried-structure scan and the Cinder comparison overlay were created during the jam by Nicholas Tosti’s UI team using OpenAI image generation. The Cinder scan used the Verdance original as its only image reference. No third-party stock images or fonts were used. [Originals, prompts and preparation](https://github.com/rthomas24/2026-epic-ai-megajam/tree/b4086108/ArtSource/UI/TriadHUD/Unreal/SurveyTerminals01).
 
 Nicholas Tosti supplied Ambient1 for quiet space flight. Audio used FFmpeg to decode the full stereo track and the Unreal Engine 5.9 editor Python API to import and reload its SoundWave. [Source and tool record](ArtSource/Audio/IdleAmbient01/source_manifest.json).
+
+Credits playlist implementation and verification: Nicholas Tosti supplied the music; the presentation team used OpenAI Codex, Unreal Engine 5.9, Windows WASAPI process capture, FFmpeg and Python for playback, lossless excerpting and source comparison. [Listen to the game recording](docs/visual/Submission/MusicBuild01/credits-playback.md).
