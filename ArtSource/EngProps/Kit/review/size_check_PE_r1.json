@@ -1,0 +1,228 @@
+[
+ {
+  "asset": "SM_Hut_Verdance_WallLow",
+  "min_cm": [
+   -200.0,
+   -30.0,
+   0.0
+  ],
+  "max_cm": [
+   200.0,
+   30.0,
+   122.0
+  ],
+  "size_cm": [
+   400.0,
+   60.0,
+   122.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 732,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Hut_Verdance_Gate",
+  "min_cm": [
+   -32.0,
+   -262.0,
+   0.0
+  ],
+  "max_cm": [
+   36.0,
+   262.0,
+   430.0
+  ],
+  "size_cm": [
+   68.0,
+   524.0,
+   430.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 948,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow",
+   "M_Kit_Light"
+  ],
+  "collision_hulls": 3,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Hut_Verdance_LampPost",
+  "min_cm": [
+   -30.0,
+   -30.0,
+   0.0
+  ],
+  "max_cm": [
+   62.0,
+   30.0,
+   318.0
+  ],
+  "size_cm": [
+   92.0,
+   60.0,
+   318.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 532,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Light"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Hut_Verdance_LightStrip",
+  "min_cm": [
+   -200.0,
+   -15.0,
+   0.0
+  ],
+  "max_cm": [
+   200.0,
+   15.0,
+   8.0
+  ],
+  "size_cm": [
+   400.0,
+   30.0,
+   8.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 528,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Beacon"
+  ],
+  "collision_hulls": 0,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Hut_Cinder_WallLow",
+  "min_cm": [
+   -200.0,
+   -30.0,
+   0.0
+  ],
+  "max_cm": [
+   200.0,
+   30.0,
+   122.0
+  ],
+  "size_cm": [
+   400.0,
+   60.0,
+   122.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 732,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Hut_Cinder_Gate",
+  "min_cm": [
+   -32.0,
+   -262.0,
+   0.0
+  ],
+  "max_cm": [
+   36.0,
+   262.0,
+   430.0
+  ],
+  "size_cm": [
+   68.0,
+   524.0,
+   430.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 948,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow",
+   "M_Kit_Light"
+  ],
+  "collision_hulls": 3,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Hut_Cinder_LampPost",
+  "min_cm": [
+   -30.0,
+   -30.0,
+   0.0
+  ],
+  "max_cm": [
+   62.0,
+   30.0,
+   318.0
+  ],
+  "size_cm": [
+   92.0,
+   60.0,
+   318.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 532,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Light"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Hut_Cinder_LightStrip",
+  "min_cm": [
+   -200.0,
+   -15.0,
+   0.0
+  ],
+  "max_cm": [
+   200.0,
+   15.0,
+   8.0
+  ],
+  "size_cm": [
+   400.0,
+   30.0,
+   8.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 528,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Beacon"
+  ],
+  "collision_hulls": 0,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ }
+]
