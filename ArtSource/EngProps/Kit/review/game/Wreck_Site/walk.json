@@ -1,0 +1,220 @@
+{
+ "site": "Wreck_Site",
+ "origin": [
+  4000.0,
+  -2500.0,
+  2.0
+ ],
+ "steps": [
+  {
+   "teleport": [
+    75,
+    -1800,
+    0
+   ],
+   "feet": [
+    75,
+    -1800,
+    0,
+    90
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Wreck_Site\\01_ramp_foot.png"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    75,
+    -1526,
+    22,
+    90
+   ],
+   "at": "through 0"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    75,
+    -1249,
+    91,
+    90
+   ],
+   "at": "through 1"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    75,
+    -971,
+    160,
+    90
+   ],
+   "at": "through 2"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    75,
+    -693,
+    202,
+    90
+   ],
+   "at": "through 3"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    75,
+    -424,
+    202,
+    90
+   ],
+   "at": "through 4"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    75,
+    -141,
+    202,
+    90
+   ],
+   "at": "through 5"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    75,
+    132,
+    202,
+    90
+   ],
+   "at": "through 6"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    75,
+    417,
+    202,
+    90
+   ],
+   "at": "through 7"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    75,
+    701,
+    202,
+    90
+   ],
+   "at": "through 8"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    75,
+    976,
+    159,
+    90
+   ],
+   "at": "through 9"
+  },
+  {
+   "teleport": [
+    75,
+    -600,
+    200
+   ],
+   "feet": [
+    75,
+    -600,
+    202,
+    90
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Wreck_Site\\02_walkway_into_hull.png"
+  },
+  {
+   "teleport": [
+    0,
+    0,
+    200
+   ],
+   "feet": [
+    0,
+    0,
+    202,
+    0
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Wreck_Site\\03_inside_console.png"
+  },
+  {
+   "teleport": [
+    75,
+    150,
+    200
+   ],
+   "feet": [
+    75,
+    150,
+    202,
+    270
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Wreck_Site\\04_inside_back.png"
+  },
+  {
+   "teleport": [
+    1700,
+    -2100,
+    0
+   ],
+   "feet": [
+    1700,
+    -2100,
+    0,
+    128
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Wreck_Site\\05_15m.png"
+  }
+ ]
+}
