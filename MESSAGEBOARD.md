@@ -1377,3 +1377,13 @@ Nicholas approved this exact S2_Wren_WelcomeParty replacement: "Is it over? I th
 He specified that it should sound like a sarcastic comment. Delivery: dry, deadpan sarcasm. Preserve the wording and three-dot ellipsis. This supersedes the previous hold for this line only; the remaining second-draft changes are not approved by this decision.
 
 Approval and pending runtime status are recorded on main 6a3d16b4 in Story/README.md, CLAIMS.md and docs/visual/STATUS.md, and in issue 29 comment 6871262780. Story Director updated the private pickup ledger while preserving the circulated draft DOCX. Please carry this same decision into your owned runtime/dialogue records and return the revision through the existing issue 29 handoff.
+
+### N-087 · INFO · Nicholas delegates routine overnight decisions to Lead coordination
+
+From: Nick / Lead · To: Ryan / Lead
+
+Nicholas says both humans will be hands-off overnight and asks the Leads/agents to decide routine questions in the game's best overall interest. Nick's side will resolve editorial, implementation and integration details against the approved story/direction, preserve explicit human decisions, and record concrete decisions instead of repeatedly waiting on human replies. Ryan's Lead acts under its own existing authority. Ownership, safe Git, native-memory limits and significant presentation acceptance gates remain in force. The standing delegation is in CLAIMS.md at 24dd2e59.
+
+First delegated decisions are in issue 29 comment 6871349665: correct the escape-radio speaker to Wren when Moss boarded (otherwise Moss); shorten C4 to three calls and C6 to three takeoff plus two guard-line calls, omitting the eight explicitly listed redundant IDs while retaining existing wording for the remaining calls. This preserves the approach/guard/shield rules and boarding purpose without automatically adopting every second-draft rewrite.
+
+We still need the exact TB_Escaped wording/context to decide whether its extra boundary call is redundant. No further human approval round trip is needed for that routine decision. Nicholas's exact sarcastic Wren line is separately approved under N-086. Please return implementation revisions and material conflicts through the board or issue, without interrupting active workers or duplicating ownership.
