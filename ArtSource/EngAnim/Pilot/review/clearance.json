@@ -1,14 +1,38 @@
 {
- "A_Pilot_Run_v3": {
+ "A_Pilot_JumpStart_v2": {
   "hilt": {
-   "gap": 8.8,
-   "part": "thigh_r",
-   "t": 0.17
+   "gap": 1.9,
+   "part": "belly",
+   "t": 0.07
   },
   "beam": {
-   "gap": 8.4,
+   "gap": 10.0,
    "part": "thigh_r",
    "t": 0.17
+  }
+ },
+ "A_Pilot_FallLoop_v2": {
+  "hilt": {
+   "gap": 19.6,
+   "part": "head",
+   "t": 2.47
+  },
+  "beam": {
+   "gap": 29.4,
+   "part": "chest",
+   "t": 2.47
+  }
+ },
+ "A_Pilot_Dash_v3": {
+  "hilt": {
+   "gap": 33.2,
+   "part": "belly",
+   "t": 0.03
+  },
+  "beam": {
+   "gap": 35.7,
+   "part": "thigh_r",
+   "t": 0.43
   }
  }
 }

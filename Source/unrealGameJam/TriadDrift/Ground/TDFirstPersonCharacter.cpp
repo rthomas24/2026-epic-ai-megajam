@@ -284,7 +284,8 @@ void ATDFirstPersonCharacter::UpdateBody(float DeltaSeconds)
 		const UCharacterMovementComponent* Move = GetCharacterMovement();
 		const bool bAir = Move && Move->IsFalling();
 		const int32 Want = bAir && Loops->GetLoop() ? -1 : ChooseBodyLoop((float)GetVelocity().Size2D());
-		UAnimSequenceBase* Fall = bAir && !bMantling ? LoadPilotAnim(TEXT("A_Pilot_FallLoop")) : nullptr;
+		UAnimSequenceBase* Fall = bAir && !bMantling ? LoadPilotAnim(TEXT("A_Pilot_FallLoop_v2")) : nullptr; // v2: blade clear of the chest
+		Fall = Fall || !bAir || bMantling ? Fall : LoadPilotAnim(TEXT("A_Pilot_FallLoop"));
 		UAnimSequenceBase* Loop = Fall ? Fall : Want == 0 ? V->Idle.LoadSynchronous() : Want == 1 ? V->Walk.LoadSynchronous() : Want == 2 ? V->Run.LoadSynchronous() : Loops->GetLoop();
 		if (!Loop)
 		{
@@ -715,7 +716,8 @@ UAnimSequenceBase* ATDFirstPersonCharacter::LoadPilotAnim(FName Anim) const
 	{
 		static const FName NewMoves[] = { TEXT("A_Pilot_Light1_v3"), TEXT("A_Pilot_Light2_v3"), TEXT("A_Pilot_Light3_v3"), TEXT("A_Pilot_Heavy_v4"),
 			TEXT("A_Pilot_AirSlam_Fall_v2"), TEXT("A_Pilot_AirSlam_Land_v3"), TEXT("A_Pilot_AirSlam_Land_v2"), TEXT("A_Pilot_Block_v2"), TEXT("A_Pilot_Blade_DeflectFlick_v2"),
-			TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_Blade_Idle_v2"), TEXT("A_Pilot_Run_v2"), TEXT("A_Pilot_Run_v3") };
+			TEXT("A_Pilot_HitReact_Front_v3"), TEXT("A_Pilot_HitReact_Back_v3"), TEXT("A_Pilot_Blade_Idle_v2"), TEXT("A_Pilot_Run_v2"), TEXT("A_Pilot_Run_v3"),
+			TEXT("A_Pilot_FallLoop_v2"), TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_JumpStart_v2") };
 		for (const FName& N : NewMoves)
 		{
 			if (Anim == N)
@@ -927,15 +929,15 @@ void ATDFirstPersonCharacter::UpdateBodyActions()
 	Loops->SetUpperLoop(State == ETDBladeState::Blocking ? (Guard ? Guard : LoadPilotAnim(TEXT("A_Pilot_Block"))) : nullptr);
 	if (bDashing && !bLastBodyDashing && !Blade->IsAttacking())
 	{
-		PlayBodyAction(TEXT("A_Pilot_Dash"), 1.8f, false);
+		PlayFirstBodyAction({ TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_Dash") }, 1.8f, false); // v3: blade trailing, clear of the legs
 	}
 	if (bSliding && !bLastBodySliding)
 	{
-		PlayBodyAction(TEXT("A_Pilot_Dash"), 0.8f, false);
+		PlayFirstBodyAction({ TEXT("A_Pilot_Dash_v3"), TEXT("A_Pilot_Dash") }, 0.8f, false);
 	}
 	if (bMantling && !bLastBodyMantling)
 	{
-		PlayBodyAction(TEXT("A_Pilot_JumpStart"), 1.4f, false);
+		PlayFirstBodyAction({ TEXT("A_Pilot_JumpStart_v2"), TEXT("A_Pilot_JumpStart") }, 1.4f, false);
 	}
 	bLastBodyDashing = bDashing;
 	bLastBodySliding = bSliding;

@@ -51,6 +51,11 @@ MOVES = {
     "slide":   (0.25, 4.0, [(0.0, "TD.Key LeftShift 1.0"), (0.0, "TD.Key W 1.0"), (0.5, "TD.Key LeftControl")], []),
     "slope_ik_on": (1.0, 2.0, [], [("TD.Pilot.FootIK 1", 0.5)]),
     "slope_ik_off": (1.0, 2.0, [], [("TD.Pilot.FootIK 0", 0.5)]),
+    "slope_a": (1.0, 1.0, [], [("TD.Ground.Teleport 4500 2500 2500", 4.0), ("TD.Pilot.FootIK 1", 0.3)]),
+    "slope_a_off": (1.0, 1.0, [], [("TD.Pilot.FootIK 0", 0.6)]),
+    "slope_b": (1.0, 1.0, [], [("TD.Ground.Teleport -3500 5000 2500", 4.0), ("TD.Pilot.FootIK 1", 0.3)]),
+    "slope_b_off": (1.0, 1.0, [], [("TD.Pilot.FootIK 0", 0.6), ("TD.Pilot.FootIK 1", 0.1)]),
+    "home": (1.0, 0.1, [], [("TD.Ground.Teleport 0 397 300", 3.0)]),
 }
 
 
