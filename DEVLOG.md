@@ -341,3 +341,17 @@ Nicholas assigned Cinder World to exploration and Cinder Fall to combat. Audio p
 ### 2026-11-14 — Cinder music native data verification
 
 The complete World (150.0 s) and Fall (148.8 s) masters imported and reopened in separate guarded Unreal processes. Both exited cleanly; exported PCM matched across runs and the masters within one 16-bit step. Protected files remained unchanged. Verified packages transferred to the integration checkout; reports under ArtSource/Audio/CinderMusic01/native-checks. No loop, offset or gameplay binding was guessed. Next: T1/T5 event contract, Audio hookup, cook and in-game listening. No Unreal processes left.
+
+## 2026-11-14 00:10 EST: overnight run begins (Ryan asleep; decisions by Ryan's Lead)
+
+- **Batch L on main, 6fe3e90f** (full suite 870 of 870 with Nick's menu plugin and audio merged). First engineering batch since 16:10 on Nov 13. The gate caught three real problems on the way: Cinder could not be finished (the anchor tower's collision box swallowed the charge points and blocked the walk back), a profile test that assumed no story listener, and the relay transfer's first wave arriving in 3 s. All fixed by their owners before the push. Shipping package cooking from this revision.
+- **Playtest of batch L (Teammate 7, agent-driven over MCP, some stages by labelled debug moves):** front end to victory with no blocker. Findings sent to owners: silent ability awards, crew dying in a standing crouch, the Heavy's guard with no lunge hint, unmarked reactor conduits, an escape that says ninety seconds and takes six.
+- **Decisions made for Ryan tonight** (he can overrule any of them):
+  1. Every destroyed rock or junk piece pays a small boost top-up (3 / 6 / 12% by size, capped at 15% per second); specials keep their pickup drop. From his instruction that destroying asteroids should be rewarded.
+  2. The Aftermath sequence may not be lost: atmosphere entry is held while it plays (T1) and a cut Aftermath replays on the next galaxy load (T3).
+  3. The relay's first wave waits until "Company incoming" airs, so Cinematic 03 does not play over a fight (T5).
+  4. Dominion interior: hangar, arena and corridor keep their value (enemy contrast over black gunmetal); the reactor room lost its red floor wash; crew read at 30 m through their materials.
+  5. Asset overlaps between our own builders in batch M: the r2 Dominion data asset and the refitted anchor tower from the import builder; DA_Travel_FX from the effects builder.
+  6. Nick's side has eight pieces of light work for the night (board R-045, issue #88).
+- **What worked:** asking every builder for a fixed-camera before/after sheet and looking at it before accepting; the asset trace that found 31 of 54 new effects wired to nothing.
+- **What didn't:** one build at a time across a dozen worktrees. The final gate for batch L sat in the queue three times; each run is ten minutes once it starts.
