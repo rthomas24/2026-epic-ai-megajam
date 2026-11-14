@@ -6,7 +6,7 @@
    25.6,
    19.9
   ],
-  "tris_lod0": 2060,
+  "tris_lod0": 2172,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -15,7 +15,8 @@
    "2:Scorch",
    "3:Trim2",
    "4:Light",
-   "5:Nav"
+   "5:Nav",
+   "6:RimLight"
   ]
  },
  {
@@ -23,9 +24,9 @@
   "size_m": [
    72.0,
    24.1,
-   23.1
+   24.2
   ],
-  "tris_lod0": 1466,
+  "tris_lod0": 1578,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -34,7 +35,8 @@
    "2:Scorch",
    "3:Trim2",
    "4:Light",
-   "5:Nav"
+   "5:Nav",
+   "6:RimLight"
   ]
  },
  {
@@ -42,9 +44,9 @@
   "size_m": [
    58.0,
    25.6,
-   21.6
+   22.7
   ],
-  "tris_lod0": 2868,
+  "tris_lod0": 2980,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -54,7 +56,8 @@
    "3:Trim2",
    "4:Breach",
    "5:Light",
-   "6:Nav"
+   "6:Nav",
+   "7:RimLight"
   ]
  },
  {
@@ -104,7 +107,7 @@
    132.9,
    23.7
   ],
-  "tris_lod0": 7626,
+  "tris_lod0": 7842,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -124,9 +127,9 @@
   "size_m": [
    88.8,
    82.8,
-   81.6
+   92.1
   ],
-  "tris_lod0": 15904,
+  "tris_lod0": 16120,
   "lods": 3,
   "hulls": 1,
   "slots": [
@@ -136,7 +139,8 @@
    "3:Strobe",
    "4:Work",
    "5:Eye",
-   "6:Glow"
+   "6:Glow",
+   "7:Beacon"
   ]
  }
 ]

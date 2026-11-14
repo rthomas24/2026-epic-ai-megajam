@@ -1,7 +1,7 @@
 {
  "site": "KS_PicketRing",
  "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Space/BP_KS_PicketRing",
- "about": "Watchline: the broken picket-station ring segment (pivot = the ring centre, 60 m from the arc).",
+ "about": "Watchline: the broken picket-station ring segment at 2x (pivot = the ring centre, 132 m from the arc at 2x).",
  "pieces": [
   {
    "name": "P",
@@ -12,7 +12,12 @@
     0.0
    ],
    "yaw_deg": 0.0,
-   "roll_deg": 12.0
+   "roll_deg": 12.0,
+   "scale": [
+    2.0,
+    2.0,
+    2.0
+   ]
   }
  ]
 }

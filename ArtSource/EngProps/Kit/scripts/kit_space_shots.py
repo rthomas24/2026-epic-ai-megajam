@@ -30,9 +30,9 @@ PIECES = [("BP_SP_PatrolWreck", os.environ.get("TD_SPACE_PATROL", "Gate"), 15000
 if os.environ.get("TD_SPACE_SET") == "region":          # the region set pieces: (class, place, near distance, dz)
     SPS = "/Game/TriadDrift/Gameplay/Props/Kit/Space/"
     # r3: the near shot stands off so the whole piece is in frame (the 261 m shard at 600 m)
-    PIECES = [("BP_KS_PicketRing", "Gate", 30000, 0), ("BP_KS_Hulk", "Start", 35000, 0), ("BP_KS_ScarRig", "Cinder", 30000, 0),
+    PIECES = [("BP_KS_PicketRing", "Gate", 50000, 0), ("BP_KS_Hulk", "Verdance", 45000, 0), ("BP_KS_ScarRig", "Cinder", 40000, 0),
               ("BP_KS_MoonShards", "Belt", 60000, 0)]
-AIM = {"BP_KS_PicketRing": (6600.0, 0.0)}
+AIM = {"BP_KS_PicketRing": (13200.0, 0.0)}
 PLACE = os.environ.get("TD_SPACE_PLACE")          # one place for every piece (a run per piece: a fresh session each)
 ONLY = os.environ.get("TD_SPACE_ONLY")
 

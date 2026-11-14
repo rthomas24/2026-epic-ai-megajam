@@ -201,6 +201,7 @@ private:
 	UPROPERTY(Transient) TMap<FName, TObjectPtr<class UNiagaraComponent>> ReactorLoopFX;
 	UPROPERTY(Transient) TMap<FName, TObjectPtr<class UAudioComponent>> ReactorLoopAudio;
 	UPROPERTY(Transient) TObjectPtr<AActor> ReactorHeart;
+	UPROPERTY(Transient) TObjectPtr<class ATDCollapseRun> EscapeCollapse;
 	TArray<FName> ReactorFXLog;
 	void OpenReactorDoor();
 public:
@@ -215,6 +216,14 @@ public:
 	static FTDOnInteriorMoment OnInteriorMoment;
 	/** The core chamber's floor box (world), for the CoreChamberEntered crossing (tests). */
 	FBox GetCoreChamberBox() const { return CoreChamberBox; }
+	/** Every dressing piece placed, as "<Site>:<Name>" (tests, captures). */
+	const TArray<FName>& GetDressLog() const { return DressLog; }
+	/** The one actor holding the course's static blocks and dressing meshes (tests). */
+	AActor* GetDressingActor() const { return Dressing; }
+	/** The interior's escape run: seconds left while it runs, else -1 (the environment builder's last-30-seconds state). */
+	float GetEscapeSecondsLeft() const;
+	/** The interior's room lights: point lights on the dressing actor tagged TD.InteriorLight. */
+	static constexpr const TCHAR* InteriorLightTag = TEXT("TD.InteriorLight");
 	/** Every DA_ReactorCore_FX slot played, in order (CoreIdle, ConduitBreak, ShieldDrop, HeartHit, CoreDestroyed,
 	 *  EscapeRunLoop), for tests and the effects builder. */
 	const TArray<FName>& GetReactorFXLog() const { return ReactorFXLog; }
@@ -235,7 +244,24 @@ private:
 	 * Outpost_Site.manifest.json): spawned at Site (course-local, on the ground), +X (its bay and ramp) turned to Yaw.
 	 * Returns null when the asset is missing (the caller keeps its placeholder pieces). OutConsole: its console mesh.
 	 */
-	AActor* PlaceOutpost(const FVector& Site, float Yaw, bool bCinder, UStaticMeshComponent*& OutConsole);
+	/** Places the kit outpost; Site.Z is raised onto the ground under it (T4's terrain, 3 cm over: #42, the room showed
+	 *  the terrain through its floor). */
+	AActor* PlaceOutpost(FVector& Site, float Yaw, bool bCinder, UStaticMeshComponent*& OutConsole);
+	/** The ground's height under a course-local point: the highest world-static surface that is not the course's own
+	 *  (T4's terrain), else 0 (the course slab). */
+	float GroundZAt(const FVector& Local) const;
+	/** One dressing piece in a site's frame: a static mesh ("SM_...", on the course's dressing actor) or a blueprint
+	 *  ("BP_..."). Folder is under /Game/TriadDrift/Gameplay/Props/. */
+	struct FDressItem { const TCHAR* Folder; const TCHAR* Name; FVector Local; float Yaw; float Scale; bool bCollide; };
+	/** Places Items in the frame (Origin, Yaw) on the ground, clear of flora (a site-clear circle each); returns how many
+	 *  were placed (missing assets are skipped and logged). */
+	int32 Dress(const TArray<FDressItem>& Items, const FVector& Origin, float Yaw, FName Site);
+	AActor* SpawnKitBP(const TCHAR* Folder, const TCHAR* Name, const FVector& Local, float Yaw, float Scale = 1.f);
+	/** The outpost's exterior props in its frame (+X = the door side), clear of the door apron and the room. */
+	void DressOutpost(const FVector& Site, float Yaw, FName Tag);
+	/** The pad's ring of bollard lights and its service corner, outside the 14 m take-off circle (+X = take-off). */
+	void DressPad(FName Tag);
+	TArray<FName> DressLog;
 	/** An invisible interact box over the outpost console, at its 87 x 260 x 150 cm, facing Yaw. */
 	template <class T> T* OutpostTerminal(const FVector& Site, float Yaw);
 	/** Terminal -> its outpost console screen and planet (the scan on the screen when used, T2's ShowScanOnScreen). */
