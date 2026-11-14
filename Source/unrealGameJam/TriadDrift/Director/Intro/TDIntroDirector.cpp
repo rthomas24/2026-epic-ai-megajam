@@ -1265,7 +1265,21 @@ void UTDIntroDirector::UpdateShot(float T)
 		const float U = FMath::Clamp((T - K * Seg) / Seg, 0.f, 1.f);
 		const ATDShip* Ship = Held.IsValidIndex(K) ? Held[K].Ship.Get() : nullptr;
 		const FVector At = Ship ? Ship->GetActorLocation() : SquadCentre;
-		const float R = Ship ? FMath::Clamp(Ship->GetComponentsBoundingBox(true).GetExtent().Size(), 300.f, 3000.f) : 900.f;
+		// The hull's own size (the largest mesh on the ship; trails, rings of light and FX bounds are ignored), so the ship
+		// fills about 45 % of the frame width at 35 mm whatever its class (issue #49 / N-050: large, whole and sharp).
+		float R = 0.f;
+		if (Ship)
+		{
+			TInlineComponentArray<UStaticMeshComponent*> Meshes(const_cast<ATDShip*>(Ship));
+			for (const UStaticMeshComponent* M : Meshes)
+			{
+				if (M && M->GetStaticMesh() && M->IsVisible() && M->Bounds.SphereRadius < 6000.f)
+				{
+					R = FMath::Max(R, M->Bounds.SphereRadius);
+				}
+			}
+		}
+		R = R > 0.f ? FMath::Clamp(R, 200.f, 4000.f) : 900.f;
 		const FRotator Facing = (S.SquadTo - S.SquadFrom).Rotation();
 		const FVector Fwd = Facing.Vector();
 		const FVector Right = FRotationMatrix(Facing).GetUnitAxis(EAxis::Y);
@@ -1273,10 +1287,12 @@ void UTDIntroDirector::UpdateShot(float T)
 		// Wren from ahead and below, Kato in profile, Moss low and heroic.
 		const FVector Local[3] = { FVector(2.1f, -1.5f, -0.35f), FVector(1.0f, -2.2f, 0.2f), FVector(2.2f, -1.35f, -0.5f) };
 		const float Push = FMath::Lerp(1.f, 0.9f, TDIntro::Smooth(U));
-		Cam = At + (Fwd * Local[K].X + Right * Local[K].Y + UpV * Local[K].Z) * R * 1.35f * Push;
+		// 2R across 45 % of a 35 mm frame (39 deg): distance = 2R / (0.45 * 2 tan 19.5 deg), about 6.3 R.
+		const float Dist = 6.3f * R * Push;
+		Cam = At + (Fwd * Local[K].X + Right * Local[K].Y + UpV * Local[K].Z).GetSafeNormal() * Dist;
 		const FVector Dir = (At - Cam).GetSafeNormal();
 		const FVector CamRight = FVector::CrossProduct(UpV, Dir).GetSafeNormal();
-		Look = At - CamRight * 0.5f * R - UpV * 0.15f * R; // the ship sits right of frame and a little high
+		Look = At - CamRight * 0.45f * R - UpV * 0.12f * R; // the ship sits right of frame (about 60 %), a little high
 		Focus = FVector::Dist(Cam, At);
 		LastLook = (Look - Cam).GetSafeNormal();
 	}
