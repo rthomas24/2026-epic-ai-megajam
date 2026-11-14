@@ -136,13 +136,14 @@ namespace TDSpaceFieldCompose
 	/** Fixed vantage points per region, so before / after captures share the view. Region 2 = the Shepherd Belt. */
 	static bool RegionView(const ATDSpaceField* Field, int32 Region, int32 Range, FVector& OutFrom, FVector& OutAt)
 	{
-		if (Region == 1 || Region == 4)
+		if (Region == 1 || Region == 4 || Region == 7)
 		{
 			// Around the region's centre: 5 km and 1 km out on the side away from the zone, 25 degrees up; inside = 150 m.
 			const FVector* Found = Field->RegionCentres.Find(Region);
-			const FVector C = Found ? *Found : (Region == 1 ? FVector(170000.f, 0.f, 0.f) : FVector(300000.f, 150000.f, 20000.f));
+			const FVector C = Found ? *Found : (Region == 1 ? FVector(170000.f, 0.f, 0.f) : (Region == 4 ? FVector(300000.f, 150000.f, 20000.f) : FVector(600000.f, 0.f, 0.f)));
 			FVector Out = C.GetSafeNormal2D();
 			if (Out.IsNearlyZero()) { Out = FVector::ForwardVector; }
+			if (Region == 7) { Out = -Out; }	// the Outer Dark is seen from the zone side, looking out (5 km beyond it is outside the play bounds)
 			const FVector Dir = (Out * FMath::Cos(FMath::DegreesToRadians(25.f)) + FVector::UpVector * FMath::Sin(FMath::DegreesToRadians(25.f))).GetSafeNormal();
 			const float D = Range == 0 ? 500000.f : (Range == 1 ? 100000.f : 15000.f);
 			OutAt = C;
