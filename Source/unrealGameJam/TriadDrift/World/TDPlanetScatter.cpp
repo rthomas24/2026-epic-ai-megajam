@@ -135,13 +135,13 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		// walls); same numbers as the terrain material's Scar*
 		P.ScarA = FVector2D(-5800.f, 17200.f);
 		P.ScarB = FVector2D(-49100.f, 42200.f);
-		P.ScarHalfA = 5000.f;	// s15: 50-140 m half width (thin line from 340 m up)
-		P.ScarHalfB = 14000.f;
+		P.ScarHalfA = 7000.f;	// s19: 70-160 m half width (s15's 50-140 m was weak from the approach)
+		P.ScarHalfB = 16000.f;
 		for (int32 i = 1; i <= 2; ++i)
 		{
 			// s11: snapped charred stumps, not whole glowing trunks (from above their ember material read as a grid of
 			// yellow dots): a quarter of the height, with the dark basalt-column material (no glow, ash on top)
-			const int32 Ck = Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.0f, 1.6f, 30.f, 180000.f, 240000.f, 300.f, true, false, true,
+			const int32 Ck = Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.5f, 2.4f, 30.f, 180000.f, 240000.f, 300.f, true, false, true,
 				FString::Printf(TEXT("%s/Scatter/MI_Scatter_Column_Cinder.MI_Scatter_Column_Cinder"), GProps));
 			P.Kinds[Ck].ZScale = 0.28f;
 			R.CharTrees.Add(Ck);
