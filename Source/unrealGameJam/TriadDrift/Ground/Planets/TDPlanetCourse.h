@@ -194,6 +194,8 @@ private:
 	int32 ShownPlaybackSecond = -1;
 	bool bFinalRecordSequence = false;
 	UFUNCTION() void HandleConduitDown(class UTDHealthComponent* Health, const struct FTDDamageInfo& Info);
+	/** N-052: the reactor room's defenders overcome: T3's Face to Face "overcome" sequence for the boarding pilot. */
+	UFUNCTION() void HandleReactorDefendersCleared(AActor* Encounter);
 	UFUNCTION() void HandleHeartHit(class UTDHealthComponent* Health, const struct FTDDamageInfo& Info, float ShieldDamage, float HullDamage);
 	/** DA_ReactorCore_FX (UTDReactorCoreFX): play a slot (logged by name, even when empty: tests, the effects builder). */
 	void PlayReactorFX(FName Slot, const FVector& At, USceneComponent* AttachTo = nullptr, bool bLoop = false);

@@ -474,6 +474,9 @@ void ATDPlanetCourse::BuildInterior()
 			FTDRetakeMercyTier DroneMercy3; DroneMercy3.FromTake = 3; DroneMercy3.DropCrew = 1;
 			Drones->MercyTiers = { DroneMercy3 };
 			StepEncounters.Add({ Reactor, 0, Drones });
+			// N-052 (T3's G8 sequences): beating the room's defenders plays Face to Face's "overcome" half. Today they are
+			// the two drones; the future-pilot defenders replace them when they land.
+			Drones->OnCleared.AddUniqueDynamic(this, &ATDPlanetCourse::HandleReactorDefendersCleared);
 		}
 	}
 	ATDStepCounter* Conduits = SpawnProp<ATDStepCounter>(CoreAt);
@@ -752,7 +755,13 @@ void ATDPlanetCourse::FireStepBeats(ATDObjective* Objective, int32 StepIndex)
 		UTDStorySubsystem::PlaySequence(this, TEXT("FirstDoor")); // A4_DoorsKnowUs, C7_Kato_Archive, C7_Wren_Record (T3)
 	}
 	else if (Id == Warden && StepIndex == 0) { Beat(TEXT("G7_Kato_Authorisations")); } // the Warden door opens
-	else if (Id == Core && StepIndex == 0) { Beat(TEXT("G8_Wren_ConduitsFirst")); OnInteriorMoment.Broadcast(TEXT("ReactorFightStarted"), this); }
+	else if (Id == Core && StepIndex == 0)
+	{
+		// N-052: Face to Face for the pilot who boarded, as the reactor room starts (T3's G8_Self_<Pilot> lines).
+		UTDStorySubsystem::PlaySequence(this, UTDStorySubsystem::FaceToFaceSequence(ATDFirstPersonCharacter::GetOnFootPilotShip(this), false));
+		Beat(TEXT("G8_Wren_ConduitsFirst"));
+		OnInteriorMoment.Broadcast(TEXT("ReactorFightStarted"), this);
+	}
 	else if (Id == Core && StepIndex == 1)
 	{
 		Beat(TEXT("G8_Kato_HeartExposed"));
@@ -814,6 +823,11 @@ bool ATDPlanetCourse::IsFieldAnchorDisabled(const UObject* WorldContextObject)
 float ATDPlanetCourse::GetEscapeSecondsLeft() const
 {
 	return EscapeCollapse && EscapeCollapse->IsRunning() ? EscapeCollapse->GetTimeLeft() : -1.f;
+}
+
+void ATDPlanetCourse::HandleReactorDefendersCleared(AActor* Encounter)
+{
+	UTDStorySubsystem::PlaySequence(this, UTDStorySubsystem::FaceToFaceSequence(ATDFirstPersonCharacter::GetOnFootPilotShip(this), true));
 }
 
 void ATDPlanetCourse::UpdateConduitMarker()
