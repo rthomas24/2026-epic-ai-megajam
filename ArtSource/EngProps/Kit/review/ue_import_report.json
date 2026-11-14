@@ -108,8 +108,7 @@
   "tris": 1340,
   "slots": [
    "0:Trim",
-   "1:Glow",
-   "2:Light"
+   "1:Glow"
   ],
   "hulls": 3,
   "asymmetric_side": null,
@@ -201,26 +200,25 @@
   "asset": "SM_DI_Room_Wall",
   "ok": true,
   "min_cm": [
-   -64.0,
+   -60.0,
    -200.0,
    -0.0
   ],
   "max_cm": [
-   64.0,
+   60.0,
    200.0,
    600.0
   ],
   "size_cm": [
-   128.0,
+   120.0,
    400.0,
    600.0
   ],
   "bounds_match": "same",
-  "tris": 2838,
+  "tris": 1782,
   "slots": [
    "0:Trim",
-   "1:Glow",
-   "2:Light"
+   "1:Glow"
   ],
   "hulls": 9,
   "asymmetric_side": null,

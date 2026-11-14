@@ -210,11 +210,15 @@ def ensure_decal(notes):
         notes.append("M_Kit_Decal compiles on first load")
     eas.save_asset(DECAL_MASTER, only_if_is_dirty=False)
     mi = instance("MI_KitD_Decal", mat)
+    # r9 (review r4): the trident in a darker crimson, less emissive, so it reads as inlaid armour and not an icon
+    mel.set_material_instance_vector_parameter_value(mi, "DecalTint", unreal.LinearColor(0.55, 0.012, 0.008, 1.0))
+    mel.set_material_instance_scalar_parameter_value(mi, "TintAmount", 0.85)
+    mel.set_material_instance_scalar_parameter_value(mi, "DecalEmissive", 1.5)
     eas.save_loaded_asset(mi)
     route = instance("MI_KitD_Decal_Route", mat)          # r8: the route chevrons in Dominion crimson (review r3)
-    mel.set_material_instance_vector_parameter_value(route, "DecalTint", unreal.LinearColor(2.0, 0.05, 0.02, 1.0))
+    mel.set_material_instance_vector_parameter_value(route, "DecalTint", unreal.LinearColor(1.2, 0.015, 0.008, 1.0))
     mel.set_material_instance_scalar_parameter_value(route, "TintAmount", 1.0)
-    mel.set_material_instance_scalar_parameter_value(route, "DecalEmissive", 6.0)
+    mel.set_material_instance_scalar_parameter_value(route, "DecalEmissive", 4.0)
     eas.save_loaded_asset(route)
     ROUTE_MI[0] = route
     return mi
@@ -323,10 +327,11 @@ def configure_dominion():
     DEST = "/Game/TriadDrift/Gameplay/Props/Kit/Dominion"
     TEX_DEST = DEST + "/Textures"
     PIPELINE = DEST + "/Pipelines/PL_KitD_StaticMesh"
-    SIZE_CHECK = os.path.join(KIT, "review", "size_check_D_r5.json")
+    SIZE_CHECK = os.path.join(KIT, "review", "size_check_D_r6.json")
     # review r1 fix 1: a deep red (renders red, not salmon) at half the strength
     GLOWS = {"MI_KitD_Glow": ("Glow", {"GlowStrength": 3.0, "PulseAmount": 0.0}, (1.0, 0.025, 0.006)),     # #FF2A10 (review r2)
-             "MI_KitD_Light": ("Light", {"GlowStrength": 12.0, "PulseAmount": 0.0}, (0.9, 0.95, 1.0))}
+             # r9 (review r4): the ceiling strips dimmed and warmed so the arena stops reading as a clean-room
+             "MI_KitD_Light": ("Light", {"GlowStrength": 1.4, "PulseAmount": 0.0}, (1.0, 0.62, 0.42))}
     NO_COLLISION = ()
     SCREEN_MI = None
     SET.update({"stem": "T_KitD_Trim", "trim_mi": "MI_KitD_Trim", "export": "export_dominion", "prefix": "SM_DI_", "extras": False,

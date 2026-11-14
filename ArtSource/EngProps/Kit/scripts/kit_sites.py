@@ -282,13 +282,13 @@ def dominion_interior():
         lt["intensity"] = round(lt["intensity"] * 0.35, 1)
         lt["color"] = [1.0, 0.9, 0.78]
     core_x = (L2X1 + KX1) * 0.5
-    lights.append({"name": "L%03d_Reactor" % len(lights), "location_cm": [core_x, 0.0, 1500.0], "intensity": 6000.0, "radius": 2600.0,
-                   "color": [1.0, 0.55, 0.3]})
+    lights.append({"name": "L%03d_Reactor" % len(lights), "location_cm": [core_x, 0.0, 1500.0], "intensity": 3600.0, "radius": 2600.0,
+                   "color": [1.0, 0.32, 0.16]})          # r9: -40 %, deeper
     for yy in (-900.0, 900.0):
-        lights.append({"name": "L%03d_ReactorFill" % len(lights), "location_cm": [core_x, yy, 300.0], "intensity": 1500.0,
-                       "radius": 1400.0, "color": [1.0, 0.12, 0.05]})
-    lights.append({"name": "L%03d_Bulkhead" % len(lights), "location_cm": [KX1 - 64 - 180.0, 0.0, 470.0], "intensity": 900.0,
-                   "radius": 700.0, "color": [1.0, 0.05, 0.03]})
+        lights.append({"name": "L%03d_ReactorFill" % len(lights), "location_cm": [core_x, yy, 300.0], "intensity": 900.0,
+                       "radius": 1400.0, "color": [0.75, 0.03, 0.015]})
+    lights.append({"name": "L%03d_Bulkhead" % len(lights), "location_cm": [KX1 - 64 - 180.0, 0.0, 470.0], "intensity": 350.0,
+                   "radius": 700.0, "color": [1.0, 0.05, 0.03]})   # r9: lower so the door shape reads
     return {"site": "DominionInterior_Preview", "lights": lights, "actor": KD + "BP_KitD_InteriorPreview",
             "about": "Walk-test preview of T5's interior shell in the Dominion set (not used by the game).",
             "pieces": ps,
