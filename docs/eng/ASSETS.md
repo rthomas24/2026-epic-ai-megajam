@@ -317,6 +317,38 @@ of these is wired again. Kept in the cook on purpose (waiting on a slot): `Core_
    it is not a test class: the structures builder or T4 should say whether it is still wanted.
 3. Credits: the Lancer and Bastion parts, canopies and the planet sea now have lines (`77268612`).
 
+### 2.10 Update: batches N and O (`f39a8372`, `lead/int-o` `364aabb3`; Nov 14 04:15, import builder)
+
+**How this was taken.** Files added under `Content/TriadDrift` from `fd6ed5bc` to `f39a8372` (batch N) and from
+`f39a8372` to `lead/int-o` `364aabb3` (batch O, not on `main` yet), by folder and name prefix; references by the
+path-string scan, for batch O read from the branch's objects. Text only. Tools and licences are as each builder's
+earlier sets unless the row says otherwise; rows marked "not read" were not checked against a README.
+
+| Set | Batch | What it is | Source and tool | Files | State | In `CREDITS.md` |
+|---|---|---|---|---|---|---|
+| Space set pieces | N (+1 in O) | Five landmark classes for the space field: `BP_SP_HollowRock`, `_NullRig`, `_PatrolWreck`, `_ResearchA`, `_ResearchB` | Engineering (Claude Code builder), Blender code-built: not read | `Gameplay/Props/Space/SetPieces` (5 BP, 9 SM, 17 MI, 1 PL) | cooked by the `Gameplay/Props` rule; which code places them was not traced | **no line found** |
+| Crew clips, second set | N | 31 more `A_Crew_*` (grunt charge from the Grok set, root-motion deaths and more) | Animation builder on the HY-Motion set and the template clips | `Gameplay/Characters/Crew/Anims` | per clip in `animations.md` | covered by the animation lines |
+| Crew blaster cues | N | `DA_CrewBlaster_FX` | Engineering | `Gameplay/Characters/FX` | data asset, found by name | - |
+| Enemy ship parts | N | `MI_NullFighter_Parts`, `MI_NullGunship_Parts` with `T_*_Parts_BC/N/ORM/E` | Ship builder, Blender on the Rodin hulls | `Gameplay/Ships/{NullFighter,NullGunship}` (2 MI, 8 T) | in game through the enemy visuals (changed in the batch) | **no line found** (same kind as the Lancer / Bastion parts line) |
+| Corridor look | N | `MI_KitD_Glow_Corridor`, `MI_KitD_Trim_Corridor` | Structures builder | `Gameplay/Props/Kit/Dominion` | - | covered by the site kit line |
+| Cinder music | N | `MUS_Cinder_Combat_Fall_Full_01`, `MUS_Cinder_Exploration_World_Full_01` | **Nicholas's** (his folder, his record) | `Content/TriadDrift/Audio/CinderMusic01` | always-cook line added on `main` | his entry |
+| Story sets and landmarks | O | `BP_StorySet_VerdanceCamp`, `BP_StorySet_CinderMine`, `BP_Landmark_RelayMast`, `BP_Landmark_NullDerrick` and the Story kit pieces (canopy, flag, drag marks, scorch lines, relay nav, derrick beacon) | Structures builder, Blender code-built: not read | `Gameplay/Props/Kit/Sites` (4 BP), `Kit/Story` (15 SM, 7 MI, 8 T, 1 PL) | new; cooked by the `Gameplay/Props` rule; loaded by T5's course by path | **no line found** |
+| Scatter additions | O | `SM_Scatter_Verd_TreeClump_01..04`, `M_TD_ScatterColumn`, 2 MI | Environment builder | `Gameplay/Props/Scatter` | not traced | covered by the scatter kit line |
+
+Changed, not added: 75 `Gameplay` files in batch N and 64 in batch O (ships, kit pieces, site classes, terrain
+material, effects), not listed one by one.
+
+**Cook rules as of this update** (details in `docs/eng/BUILD-SIZE.md` 6.1, 6.8, 6.9): 175 never-cook lines on
+`eng/import` (the 35 + 2 + 13 of 2.9, plus 134 packages of old ships, unplaced planet-kit pieces, old Dominion
+pieces, two flipbooks and unused scatter meshes), all waiting for the packaging agent's trial cook. The Rodin wreck
+set is **not** on the list any more (`ee3437f3`): T5 places `BP_Wreck`, which uses `SM_Wreck` as sunk dressing. The
+`PL_Space_StaticMesh` and `PL_Story_StaticMesh` pipelines are new and not on the list.
+
+**Findings.**
+1. No `CREDITS.md` line found for the space set pieces, the Story kit and the enemy ship part sets. Engineering
+   originals by their paths and commits; a line each is paperwork for their builders' Lead.
+2. Two new `PL_*` pipeline assets sit in always-cooked folders, like the 13 before them.
+
 ## 3. Nicholas's supplied models: review for use
 Done on Nov 13: **`docs/eng/ASSET-INTAKE-REVIEW.md`** has one row for each of the 14 imported assets, the 5 weapons
 and the 36 sources, with measured triangle counts, the fit to the story, the proposed use, the cost and a decision,
