@@ -35,6 +35,15 @@ ATDProjectile* UTDProjectileSubsystem::Acquire()
 		}
 	}
 
+	// Never used yet (prewarmed at world start): after the released ones, so reuse order is unchanged.
+	while (Reserve.Num() > 0)
+	{
+		ATDProjectile* P = Reserve.Pop(EAllowShrinking::No);
+		if (IsValid(P))
+		{
+			return P;
+		}
+	}
 	UWorld* World = GetWorld();
 	if (!World)
 	{
@@ -118,11 +127,11 @@ void UTDProjectileSubsystem::OnWorldBeginPlay(UWorld& InWorld)
 	FActorSpawnParameters Params;
 	Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	Params.ObjectFlags |= RF_Transient;
-	for (int32 I = Pool.Num(); I < FMath::Min(PrewarmProjectiles, MaxPooled); ++I)
+	for (int32 I = Reserve.Num(); I < FMath::Min(PrewarmProjectiles, MaxPooled); ++I)
 	{
 		if (ATDProjectile* P = InWorld.SpawnActor<ATDProjectile>(ATDProjectile::StaticClass(), FTransform::Identity, Params))
 		{
-			Pool.Add(P);
+			Reserve.Add(P);
 		}
 	}
 }
