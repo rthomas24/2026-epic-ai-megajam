@@ -524,6 +524,6 @@ SCL = _SCL_STD
 
 fx = tdvfx.Builder(call_tool)
 for _name, _user, _emitters in SYSTEMS:
-    await fx.system(_name, _emitters, user=_user)
+    await fx.system(_name, _emitters, user=_user, chunk=globals().get('CHUNK1'))   # CHUNK1 = (start, end): see tdvfx.system
     await asyncio.sleep(0)
 fx.report()
