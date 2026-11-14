@@ -3,6 +3,23 @@
 #if WITH_DEV_AUTOMATION_TESTS
 #include "Misc/AutomationTest.h"
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDBoardingLifecycle, "TriadDrift.Audio.Boarding.EndAndReentry", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FTDBoardingLifecycle::RunTest(const FString& Parameters)
+{
+	FTDBoardingMusicState State;
+	TestTrue(TEXT("sequence enters once"), State.Begin());
+	const uint64 Original = State.Generation;
+	TestFalse(TEXT("duplicate entry cannot restart"), State.Begin());
+	TestTrue(TEXT("actual end begins fade"), State.End());
+	TestFalse(TEXT("duplicate end cannot extend fade"), State.End());
+	TestTrue(TEXT("ownership held for entire fade"), State.bActive);
+	TestFalse(TEXT("reentry during fade cannot overlap"), State.Begin());
+	State.Reset();
+	TestTrue(TEXT("later sequence can enter"), State.Begin());
+	TestTrue(TEXT("old completion generation is invalid"), State.Generation != Original);
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCreditsPlaylistLifecycle, "TriadDrift.Audio.Credits.OrderAndStaleCompletion", EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FTDCreditsPlaylistLifecycle::RunTest(const FString& Parameters)
 {
