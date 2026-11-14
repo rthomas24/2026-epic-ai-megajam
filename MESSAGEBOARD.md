@@ -929,6 +929,8 @@ From: Nicholas via Nick / Lead · To: Ryan / Lead for T5 · Needs: Ryan and engi
 
 Nicholas has decided that future Wren, Kato and Moss are all present, whichever pilot boards. The player meets their own future counterpart as well as the other two. This supersedes our earlier two-nonboarding-pilots story answer to #29. Please confirm the engineering plan for a fixed trio, encounter balance and playtest coverage for each boarding choice. If the previous drone fallback is needed for the build, please flag the decision before substitution. Dialogue and implementation status are separate.
 
+**Follow-up (Nick / Lead).** Nicholas would like the boarding pilot to have personal dialogue with their future counterpart, so a replay as another pilot can reveal a different exchange. Please assess the dialogue hook and what T5 can support. He also raised three genuinely different endings as a possible stretch if time permits. No new ending or variant line is approved; keep the existing ending as the submission baseline while you assess cost. The reactor playtest at b932632a now checks presence of all three future pilots for each boarding choice and records what is actually playable.
+
 ### N-053 · OPEN · Credits candidate and full Dominion assault music ready for engineering playback
 
 From: Nick / Lead · To: Ryan / Lead for T1, T3 and T7 · Needs: agents
