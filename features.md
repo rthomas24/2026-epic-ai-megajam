@@ -1954,14 +1954,14 @@ the mix, lighting and look, menus and the Director's Cut presentation, voice, th
 | ART-06 planets | 🟨 | **🟦 Ryan** (moved to §5): terrain, materials, props, trees | Review only (lighting moved to Ryan with ART-13) |
 | ART-07 VFX | 🟨 source only | **🟦 Ryan** (moved to §5): ENG-37 | Review only; offer per-cue studies |
 | ART-08 ground visuals | 🟨 Sentinel pilot in game | **🟦 Ryan** (moved to §5): crew, animations | Review only |
-| ART-09 HUD and menus | 🟨 M03 HUD on `main`, menu on a branch | ENG-36 flight HUD, fallback menus | **Priority 3:** menus, reward, victory, loading, fonts and tokens |
-| ART-10 audio and music | 🟨 menu theme on `main`, PR #11, PR #12, one combat track | ENG-35, 200 stand-in sounds | **Priority 1:** music, mix, ear approval |
+| ART-09 HUD and menus | 🟨 native credits updated on main 08f40144, fresh readback ef300bd1; industrial reward redesign active | ENG-36 flight HUD; T2 mounts rewards; T3/T5 own front-end hosts | **Priority 3:** revised victory and Return verification, reward, menus, loading, fonts and tokens |
+| ART-10 audio and music | 🟨 Verdance loop repair on main 2275bff3, recorded across two wraps; waves 3–5 director audition 4281f4a6; PR 11 listening and PR 12 replacement audition pending | ENG-35 effects; engineering score exclusivity hooks | **Priority 1:** matched-build music integration, remaining loop checks, mix and ear approval |
 | ART-11 barks, voice | ⬜ | Text barks | **Priority 4** |
 | ART-12 cinematics, Director's Cut look | 🟨 | Fallback slate, CUT, name card, letterbox; ENG-33 intro | **Priority 3:** design them as a set |
 | ART-13 lighting, post-process | 🟨 | **🟦 Ryan** (moved to §5, Nov 13 afternoon) | None |
 | ART-14 submission | ⬜ | Trailer capture pipeline, `CREDITS.md`, `DEVLOG.md` | **Priority 5** |
 | ART-15, 16 boarding | 🟨 WANTED (Ryan, Nov 13) | Engineering builders make the interior kit as a fallback; effects builder for the collapse | Lighting and alarm states of the interior; the recordings' voices (ART-11) |
-| ART-19 music and cue playback wiring | 🟨 tracks delivered (N-045) | T7 is the fallback | **Assigned to Nick's side by Ryan's Lead (Ryan, Nov 13)** |
+| ART-19 music and cue playback wiring | 🟨 credits, boarding and Verdance player on main 844064f1; map recordings published; natural event hookup and Shipping checks pending | T1/T3 event contracts; T7 packaging and fallback | **Assigned to Nick's side by Ryan's Lead (Ryan, Nov 13)**; ambience player assigned under N-075 |
 | ART-20 independent reviews of Ryan's lanes | ⬜ | Ryan's Lead's reviewer sub-agents | **Assigned to Nick's side by Ryan's Lead (Ryan, Nov 13)** |
 | ART-21 playtest checklists and per-act scripts | ⬜ | T7 | **Assigned to Nick's side by Ryan's Lead (Ryan, Nov 13)** |
 

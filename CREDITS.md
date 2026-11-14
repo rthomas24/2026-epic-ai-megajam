@@ -197,3 +197,5 @@ Nicholas Tosti supplied the Suno track Ethereal Pulse (Remix) for combat. Audio 
 | `SM_CinderDrillRig`, `T_CinderDrillRig_BC/N/ORM/E`, `MI_CinderDrillRig` in `Content/TriadDrift/Gameplay/Props/CinderDigSite/`, placed in `BP_DigSite_Cabin` (PR #69) | **Hyper3D Rodin Gen-2.5** image-to-3D from a cleaned fal concept of Nicholas's dig-site board, Blender 4.5.3 clean-up (`ArtSource/EngAI/Props/CinderDigSite/mesh_r1/SOURCE.md`) | Hyper3D terms, paid Business plan, commercial use | same |
 
 Tools used: **Hyper3D Rodin** (list it in the submission for the Rodin prize pool), fal.ai, Blender 4.5.3, Claude Code.
+
+Nicholas Tosti supplied the Verdance theme. For the loop revision, the Lead used Python to smooth its stereo endpoints, Unreal Engine 5.9 for native loop playback, and NumPy and FFmpeg to check and extract the original game recording. The earlier full-length source and asset remain available in project history.
