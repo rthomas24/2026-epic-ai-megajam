@@ -1,0 +1,59 @@
+--- a/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDMainMenuWidget.cpp
++++ b/Plugins/TriadDriftHUD/Source/TriadDriftHUD/Private/TDMainMenuWidget.cpp
+@@ -5,6 +5,9 @@
+ #include "UObject/UnrealType.h"
+ #include "Rendering/DrawElements.h"
+ #include "Styling/CoreStyle.h"
++#include "Brushes/SlateRoundedBoxBrush.h"
++#include "Misc/CommandLine.h"
++#include "Misc/Parse.h"
+ #include "Widgets/SLeafWidget.h"
+ #include "Widgets/SOverlay.h"
+ #include "Widgets/SBoxPanel.h"
+@@ -140,19 +143,36 @@
+       .IsEnabled_Lambda([Weak=TWeakObjectPtr<UTDMainMenuWidget>(this),bEnabled]() { return Weak.IsValid() && bEnabled && !Weak->bTransitionPending && !Weak->bExternalSettingsOpen; })
+       .OnClicked_Lambda([Weak=TWeakObjectPtr<UTDMainMenuWidget>(this),Action]() { return Weak.IsValid()?Weak->Activate(Action):FReply::Unhandled(); })
+       [ SNew(STextBlock).Text(Label).Font(FCoreStyle::GetDefaultFontStyle("Bold",22)).ColorAndOpacity(TDMenu::Ink) ];
++    // Texture-free, stable-lifetime outline; never depends on a cooked engine focus texture.
++    static const FSlateRoundedBoxBrush FocusOutline(FLinearColor::Transparent,0.0f,TDMenu::Cyan,3.0f);
++    TSharedRef<SBorder> FocusLayer=SNew(SBorder).Visibility(EVisibility::HitTestInvisible)
++      .BorderImage_Lambda([WeakButton=TWeakPtr<SButton>(Button),Action,LastState=-1]() mutable -> const FSlateBrush*
++      {
++          const TSharedPtr<SButton> Focused=WeakButton.Pin();
++          const bool bEnabled=Focused.IsValid() && Focused->IsEnabled();
++          const TOptional<EFocusCause> Cause=Focused.IsValid()?Focused->HasUserFocus(0):TOptional<EFocusCause>();
++          const bool bShow=bEnabled && Cause.IsSet();
++#if !UE_BUILD_SHIPPING
++          // Opt-in, state changes only: distinguish focus routing from drawing failures.
++          const int32 State=(bEnabled?1:0)|(Cause.IsSet()?2:0);
++          if(State!=LastState && FParse::Param(FCommandLine::Get(),TEXT("TDMenuFocusDiagnostics")))
++          {
++              const TSharedPtr<SWidget> UserFocus=FSlateApplication::IsInitialized()
++                  ? FSlateApplication::Get().GetUserFocusedWidget(0):nullptr;
++              UE_LOG(LogTDMenuSettings,Log,TEXT("TD_MENU_FOCUS action=%s button=%p user0=%p type=%s enabled=%d focused=%d cause=%d outline=%d brush=RoundedBox resource=None width=3"),
++                  *Action.ToString(),Focused.Get(),UserFocus.Get(),UserFocus.IsValid()?*UserFocus->GetTypeAsString():TEXT("None"),
++                  bEnabled,Cause.IsSet(),Cause.IsSet()?static_cast<int32>(Cause.GetValue()):-1,bShow);
++          }
++          LastState=State;
++#endif
++          return bShow?&FocusOutline:FCoreStyle::Get().GetBrush("NoBrush");
++      });
++    // Only the small input-transparent outline redraws; no timers or focus requests.
++    FocusLayer->ForceVolatile(true);
+     TSharedRef<SWidget> Out=SNew(SBox).HeightOverride(68).Padding(FMargin(0,5))
+     [ SNew(SOverlay)
+       +SOverlay::Slot()[Button.ToSharedRef()]
+-      // Direct focus restoration does not trigger Slate's navigation-only focus rectangle.
+-      // Follow actual user focus instead; this layer never receives input or steals focus.
+-      +SOverlay::Slot()[SNew(SBorder).Visibility(EVisibility::HitTestInvisible)
+-        .BorderImage(FCoreStyle::Get().GetBrush("FocusRectangle"))
+-        .BorderBackgroundColor_Lambda([WeakButton=TWeakPtr<SButton>(Button)]()
+-        {
+-            const TSharedPtr<SButton> Focused=WeakButton.Pin();
+-            return Focused.IsValid() && Focused->IsEnabled() && Focused->HasUserFocus(0).IsSet()
+-                ? TDMenu::Cyan : FLinearColor::Transparent;
+-        })]
++      +SOverlay::Slot()[FocusLayer]
+     ];
+     if(bEnabled && !FirstButton) FirstButton=Button;
+     if(Action==TEXT("Settings")) SettingsButton=Button;
