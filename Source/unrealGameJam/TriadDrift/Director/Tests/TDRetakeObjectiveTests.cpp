@@ -14,6 +14,7 @@
 #include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 #include "EngineUtils.h"
+#include "GameFramework/DamageType.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRetakeKeepsTheObjective, "TriadDrift.Director.Takes.ARetakeNeverAdvancesTheObjective", TD_TEST_FLAGS)
 bool FTDRetakeKeepsTheObjective::RunTest(const FString& Parameters)
@@ -91,6 +92,68 @@ bool FTDRetakeKeepsTheObjective::RunTest(const FString& Parameters)
 		for (TActorIterator<ATDCrewCharacter> It(W.GetWorld()); It; ++It) { BossesAfter += (!It->IsDead() && It->CrewType == ETDCrewType::Warden) ? 1 : 0; }
 		TestTrue(Name + TEXT(": a boss that was alive is alive again (or waits for the room)"), BossesAfter >= BossesBefore || BossesBefore == 0);
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDRetakeWardenLeavesAlive, "TriadDrift.Director.Takes.AWardenLostAliveAfterTheCutNeverClearsItsScene", TD_TEST_FLAGS)
+bool FTDRetakeWardenLeavesAlive::RunTest(const FString& Parameters)
+{
+	// T7's Warden skip, T5's cause: a Warden that leaves the world alive just after the CUT read as "room cleared" and
+	// completed the scene. Now the scene stays the Warden's and a Warden stands again.
+	const TArray<FName>& Ids = ATDPlanetCourse::InteriorObjectiveIds();
+	const int32 Index = Ids.IndexOfByKey(FName(TEXT("Obj_DI_Warden")));
+	if (!TestTrue(TEXT("the Warden scene exists"), Index != INDEX_NONE))
+	{
+		return false;
+	}
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	if (!TestNotNull(TEXT("GI"), GI)) { return false; }
+	GI->OpenLevelOverride = [](const FString&) {};
+	GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationTest"));
+	GI->NotifyLevelEntered(ETDDestination::DominionInterior);
+	GI->GetMutableProgress().Phase = ETDGamePhase::DominionInterior;
+	for (int32 i = 0; i < Index; ++i) { GI->GetMutableProgress().CompletedObjectives.Add(Ids[i]); }
+	TDGroundTest::SpawnFloor(W);
+	FActorSpawnParameters Params;
+	Params.bDeferConstruction = true;
+	ATDPlanetCourse* Course = W.GetWorld()->SpawnActor<ATDPlanetCourse>(ATDPlanetCourse::StaticClass(), FTransform::Identity, Params);
+	if (!TestNotNull(TEXT("course"), Course)) { return false; }
+	Course->PlanetId = TEXT("DominionInterior");
+	Course->bInteriorTravel = false;
+	Course->FinishSpawning(FTransform::Identity);
+	W.Advance(0.2f);
+	ATDObjective* Obj = Course->FindObjective(Ids[Index]);
+	if (!TestNotNull(TEXT("Warden objective"), Obj) || !TestTrue(TEXT("starts"), Course->StartObjectiveAt(Ids[Index]))) { return false; }
+	ATDFirstPersonCharacter* Player = TDGroundTest::SpawnPlayer(W, Course->GetInteriorStart().GetLocation() + FVector(0.f, 0.f, 95.f));
+	for (TActorIterator<ATDEncounterVolume> It(W.GetWorld()); It && Player; ++It)
+	{
+		if (It->LinkedObjective == Obj)
+		{
+			Player->SetActorLocation(It->GetActorLocation() + FVector(0.f, 0.f, 95.f - It->GetActorLocation().Z), false, nullptr, ETeleportType::TeleportPhysics);
+			break;
+		}
+	}
+	W.Advance(3.f);
+	if (!TestNotNull(TEXT("player"), Player)) { return false; }
+	Player->GetHealth()->Kill(nullptr, ETDDamageKind::Environmental);
+	GI->TickFlow(UTDFlowSettings::Get()->RetakeDelaySeconds + 0.1f);
+	W.Advance(0.5f);
+	// The take-2 Warden leaves the world alive (a fall, a bad spawn spot).
+	int32 Lost = 0;
+	for (TActorIterator<ATDCrewCharacter> It(W.GetWorld()); It; ++It)
+	{
+		if (!It->IsDead() && It->CrewType == ETDCrewType::Warden) { It->FellOutOfWorld(*GetDefault<UDamageType>()); ++Lost; } // kill-Z, as on a real map
+	}
+	AddInfo(FString::Printf(TEXT("Wardens removed alive after the CUT: %d"), Lost));
+	W.Advance(2.f);
+	TestEqual(TEXT("still the Warden's scene"), GI->GetCurrentScene(), FName(TEXT("Obj_DI_Warden")));
+	TestFalse(TEXT("the Warden objective is not complete"), Obj->IsComplete());
+	const ATDObjective* Core = Course->FindObjective(TEXT("Obj_DI_Core"));
+	TestFalse(TEXT("the reactor has not started"), Core && (Core->IsActive() || Core->IsComplete()));
+	int32 Alive = 0;
+	for (TActorIterator<ATDCrewCharacter> It(W.GetWorld()); It; ++It) { Alive += (!It->IsDead() && It->CrewType == ETDCrewType::Warden) ? 1 : 0; }
+	TestTrue(TEXT("a Warden stands again"), Alive >= 1);
 	return true;
 }
 
