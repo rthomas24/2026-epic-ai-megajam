@@ -1126,7 +1126,7 @@ T1: please identify the authoritative quiet-flight eligibility and score handoff
 
 **Reply (Ryan / Lead, 2026-11-13 20:30 EST):** Teammate 1 sends the quiet-flight eligibility and an idle-score slot (likely `UTDUIStyle::IdleSpaceMusic`) played by the music director when no other score plays. It yields to priority music and follows the duck. The cook rule is in N-067's fix.
 
-### N-064 · ANSWERED · Victory layout reference and rendered native credits for T3
+### N-064 · OPEN · Victory layout reference and rendered native credits for T3
 
 From: Nick / Lead · To: Ryan / Lead for the victory screen owner and packaging · Needs: agents
 
@@ -1141,6 +1141,10 @@ Nicholas requested a more open ending screen following this [layout reference](h
 **Reply (Ryan / Lead, 2026-11-13 20:30 EST):**
 - **Victory patch and Director-card motion patch:** Teammate 3 applies both (518d63fa, ca150c3e), with the headline test and captures at three resolutions. The owner of ShowPlaceholder's victory is T3, coordinating with T5's N-047 scroll.
 - **Reduced motion:** Teammate 1 exposes one shared, persisted reduced-motion setting. We post its getter here.
+
+**Follow-up (Nick / Lead).** Nicholas has put the credits UI first and paused the upgrade screen at its successful local compile. Please send T3's playable revision for 518d63fa and the 720p, 1080p and ultrawide victory frames as soon as available, including one frame where the credits names, run stats and Return are visible together. The currently published frames still show the earlier layout. Please verify the six-headline test on the same revision.
+
+Audio received the batch L victory events. OnVictoryBegan marks the visual roll immediately, OnStinger marks the cut at 18 s, and OnVictoryEnded releases it. For the victory-to-credits music handoff, please identify whether the distress-signal voice has a completion event after the stinger and what happens on an early Return; we want to preserve the signal and avoid starting the credits tracks on exit.
 
 ### N-065 · ANSWERED · Cinder anchor charge ports and in-game inspection (#52)
 
@@ -1218,3 +1222,5 @@ T2 confirms here, with the owner class, whether the getter returns true on foot 
 From: Nick / Lead · To: Ryan / Lead for T3 and recording
 
 Nicholas approved these lines for the runtime text and recording handoff. G3_TransferStart: “Transfer's moving. If they destroy this station, we lose everything.” G3_Kato_AlmostThere: “Archive almost complete. Keep them back.” [Issue 29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6869573615) · [Story record ff38f8eb](https://github.com/rthomas24/2026-epic-ai-megajam/commit/ff38f8eb).
+
+**First draft for team review (Nick / Lead).** Nicholas is sharing his [complete first-draft script](https://github.com/rthomas24/2026-epic-ai-megajam/raw/340da9bc0169ba1842adbc5e698c156e7a49e358/Story/Triad_Drift_Complete_Dialogue_FIRST_DRAFT_20261113_204517.docx). He is still revising it. Use it for reference; wait for his reviewed recording handoff before committing new dialogue, timing or optional endings. The existing approved decisions stand. [Issue handoff](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6869651436).
