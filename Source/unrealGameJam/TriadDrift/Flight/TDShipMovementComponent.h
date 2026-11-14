@@ -299,6 +299,17 @@ public:
 	bool IsBoundaryWarningHeld() const;
 
 	/**
+	 * Releases the play-area containment for a scripted corridor that runs past the edge (T4's ordered withdrawal in wave 2,
+	 * T7's playtest): while any owner holds it, no push-back, no steer-back and no warning. Set it on every squad ship for
+	 * the window; release it when the window ends (the edge applies again from the next step).
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	void SetBoundaryReleaseFor(FName Owner, bool bRelease);
+
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
+	bool IsBoundaryReleased() const { return BoundaryReleases.Num() > 0; }
+
+	/**
 	 * Terrain for the ground floor, terrain look-ahead and landing paths: anything static, plus large movable
 	 * geometry (a planet course built from movable BlockAll meshes is WorldDynamic). Small movers (projectiles,
 	 * debris) and pawns never count.
@@ -360,6 +371,7 @@ private:
 	/** Override requests, oldest first; the last one is flown. */
 	TArray<FSpeedOverrideRequest> OverrideStack;
 	TSet<FName> BoundaryWarningHolds;
+	TSet<FName> BoundaryReleases;
 	bool bBoundaryHeldLastStep = false;
 	float LegacyOverrideAcceleration = -1.f;
 	void ApplyOverrideStack();

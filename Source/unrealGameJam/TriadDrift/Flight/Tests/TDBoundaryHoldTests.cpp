@@ -57,4 +57,26 @@ bool FTDT1BoundaryHold::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1BoundaryRelease, "TriadDrift.Flight.BoundaryHold.ReleaseLetsACorridorRunPastTheEdge", TD_TEST_FLAGS)
+bool FTDT1BoundaryRelease::RunTest(const FString& Parameters)
+{
+	// T4's ordered withdrawal (T7's playtest): the escape line runs past the combat zone's edge.
+	FTDTestWorld W;
+	ATDShip* Ship = W.Spawn<ATDShip>(FVector(0.f, 0.f, 20000.f));
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	Ship->TeleportSpacecraft(FVector(0.f, 0.f, 20000.f), FRotator::ZeroRotator, false); // flying +X, out of the box
+	Move->SetBoxBoundary(FBox(FVector(-90000.f, -90000.f, 0.f), FVector(-5000.f, 90000.f, 100000.f)), 100000.f);
+	Move->SetBoundaryReleaseFor(TEXT("Withdrawal"), true);
+	for (int32 i = 0; i < 60; ++i) { W.Tick(1.f / 60.f); }
+	TestTrue(TEXT("released: no warning"), Move->GetBoundaryWarningText().IsEmpty() && Move->IsBoundaryWarningHeld());
+	TestFalse(TEXT("released: not out of bounds"), Move->IsOutOfBounds());
+	TestTrue(TEXT("released: the nose is not turned back"), Ship->GetActorForwardVector().X > 0.99f);
+	Move->SetBoundaryReleaseFor(TEXT("Withdrawal"), false);
+	for (int32 i = 0; i < 60; ++i) { W.Tick(1.f / 60.f); }
+	TestTrue(TEXT("released no more: out of bounds again, with the warning"), Move->IsOutOfBounds() && !Move->GetBoundaryWarningText().IsEmpty());
+	TestTrue(TEXT("... and the nose turns back"), Ship->GetActorForwardVector().X < 0.99f);
+	return true;
+}
+
 #endif

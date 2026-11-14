@@ -16,6 +16,7 @@
 //                       (the victory screen closed first). Always after VictoryStinger, always before VictoryEnded, once per stinger.
 //   GroundCombat        (Verdance | Cinder, false)   on foot on a planet: a crew encounter has started (ATDEncounterVolume active)
 //   GroundAllClear      (Verdance | Cinder, false)   ... and every active encounter is cleared again (exploration)
+//   RevealEnded         (None, bCompleted)  the final record (story sequence Cinematic08) has finished; bCompleted false = skipped
 // Order in a victory: VictoryBegan -> (C9_Moss_TakeThat) -> VictoryStinger -> TransmissionStarted/Ended A5 -> ... the three C9
 // lines ... -> VictoryStingerDone -> VictoryEnded (when the player leaves the victory screen).
 // WorldContext is the world the event came from: reject events whose world isn't the one you are playing in.
@@ -79,6 +80,7 @@ public:
 	static const FName VictoryStingerDone;
 	static const FName GroundCombat;
 	static const FName GroundAllClear;
+	static const FName RevealEnded;
 
 	/** The stinger's lines, in the order they air (ATDMenuBackdrop::PlayStinger). */
 	static const TArray<FName>& StingerLines();
@@ -115,6 +117,7 @@ private:
 	UFUNCTION() void HandlePhase(ETDGamePhase Phase);
 	UFUNCTION() void HandleTransmission(const FTDTransmissionView& Transmission);
 	UFUNCTION() void HandleTransmissionEnded(FName Id, bool bCompleted);
+	UFUNCTION() void HandleSequenceFinished(FName SequenceId, bool bSkipped);
 	UFUNCTION() void HandleLandingState(UTDLandingComponent* Landing, ETDLandingState NewState);
 	UWorld* CurrentWorld() const;
 	void HandlePreLoadMap(const FString& MapName);

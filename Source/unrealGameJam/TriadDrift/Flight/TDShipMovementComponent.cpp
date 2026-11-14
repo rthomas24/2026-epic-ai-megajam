@@ -352,7 +352,16 @@ void UTDShipMovementComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 	const FVector StartLocation = State.Location;
 
 	MeasureGroundClearance();
-	TDFlightSim::Advance(State, Input, Tuning, Context, DeltaTime);
+	if (BoundaryReleases.Num() > 0)
+	{
+		FTDFlightContext Released = Context; // a scripted corridor past the edge (SetBoundaryReleaseFor): no containment
+		Released.bBoundaryEnabled = false;
+		TDFlightSim::Advance(State, Input, Tuning, Released, DeltaTime);
+	}
+	else
+	{
+		TDFlightSim::Advance(State, Input, Tuning, Context, DeltaTime);
+	}
 
 	const FVector Delta = State.Location - StartLocation;
 	State.Location = StartLocation;
@@ -724,9 +733,15 @@ void UTDShipMovementComponent::SetBoundaryWarningHoldFor(FName Owner, bool bHold
 	else { BoundaryWarningHolds.Remove(Owner); }
 }
 
+void UTDShipMovementComponent::SetBoundaryReleaseFor(FName Owner, bool bRelease)
+{
+	if (bRelease) { BoundaryReleases.Add(Owner); }
+	else { BoundaryReleases.Remove(Owner); }
+}
+
 bool UTDShipMovementComponent::IsBoundaryWarningHeld() const
 {
-	if (BoundaryWarningHolds.Num() > 0) { return true; }
+	if (BoundaryWarningHolds.Num() > 0 || BoundaryReleases.Num() > 0) { return true; }
 	static const FName SequenceOwners[] = { FName(TEXT("AtmosphereEntry")), FName(TEXT("TDExitClimb")), FName(TEXT("Hyperdrive")), FName(TEXT("LandingAssist")) };
 	for (const FSpeedOverrideRequest& R : OverrideStack)
 	{

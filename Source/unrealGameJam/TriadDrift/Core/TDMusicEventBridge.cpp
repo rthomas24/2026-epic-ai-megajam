@@ -28,6 +28,7 @@ const FName UTDMusicEventBridge::TransmissionEnded(TEXT("TransmissionEnded"));
 const FName UTDMusicEventBridge::VictoryStingerDone(TEXT("VictoryStingerDone"));
 const FName UTDMusicEventBridge::GroundCombat(TEXT("GroundCombat"));
 const FName UTDMusicEventBridge::GroundAllClear(TEXT("GroundAllClear"));
+const FName UTDMusicEventBridge::RevealEnded(TEXT("RevealEnded"));
 
 const TArray<FName>& UTDMusicEventBridge::StingerLines()
 {
@@ -208,6 +209,11 @@ void UTDMusicEventBridge::HandleTransmissionEnded(FName Id, bool bCompleted)
 	Emit(TransmissionEnded, BoundWorld.Get(), Id, bCompleted);
 }
 
+void UTDMusicEventBridge::HandleSequenceFinished(FName SequenceId, bool bSkipped)
+{
+	if (SequenceId == FName(TEXT("Cinematic08"))) { Emit(RevealEnded, BoundWorld.Get(), NAME_None, !bSkipped); }
+}
+
 void UTDMusicEventBridge::HandleLandingState(UTDLandingComponent* Landing, ETDLandingState NewState)
 {
 	if (!Landing) { return; }
@@ -230,6 +236,7 @@ void UTDMusicEventBridge::Tick(float DeltaTime)
 		{
 			Old->OnTransmission.RemoveDynamic(this, &UTDMusicEventBridge::HandleTransmission);
 			Old->OnTransmissionEnded.RemoveDynamic(this, &UTDMusicEventBridge::HandleTransmissionEnded);
+			Old->OnSequenceFinished.RemoveDynamic(this, &UTDMusicEventBridge::HandleSequenceFinished);
 		}
 		BoundStory.Reset();
 		BoundWorld = World;
@@ -242,6 +249,7 @@ void UTDMusicEventBridge::Tick(float DeltaTime)
 		{
 			Story->OnTransmission.AddUniqueDynamic(this, &UTDMusicEventBridge::HandleTransmission);
 			Story->OnTransmissionEnded.AddUniqueDynamic(this, &UTDMusicEventBridge::HandleTransmissionEnded);
+			Story->OnSequenceFinished.AddUniqueDynamic(this, &UTDMusicEventBridge::HandleSequenceFinished);
 			BoundStory = Story;
 		}
 	}

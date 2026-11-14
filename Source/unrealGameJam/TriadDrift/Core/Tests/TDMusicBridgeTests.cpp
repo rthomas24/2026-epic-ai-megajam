@@ -240,4 +240,38 @@ bool FTDMusicBridgeGround::RunTest(const FString& Parameters)
 	return true;
 }
 
+// N-089: the reveal (the final record, Cinematic 08) ends: Cathedral Pulse hands over.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDMusicBridgeReveal, "TriadDrift.Core.MusicBridge.RevealEndedWhenCinematic08Finishes", TD_TEST_FLAGS)
+bool FTDMusicBridgeReveal::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDMusicEventBridge* B = UTDMusicEventBridge::GetMusicEventBridge(W.GetWorld());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("bridge"), B) || !TestNotNull(TEXT("story"), Story)) { return false; }
+	UTDMusicBridgeTestListener* L = NewObject<UTDMusicBridgeTestListener>();
+	L->AddToRoot();
+	ON_SCOPE_EXIT { L->RemoveFromRoot(); };
+	B->OnMusicEvent.AddDynamic(L, &UTDMusicBridgeTestListener::Handle);
+	B->Tick(0.016f); // binds the world's story
+	Story->ResetPlayed();
+	TestTrue(TEXT("Cinematic08 plays"), UTDStorySubsystem::PlaySequence(W.GetWorld(), TEXT("Cinematic08")));
+	TestNull(TEXT("not while it plays"), L->Last(UTDMusicEventBridge::RevealEnded));
+	float Waited = 0.f;
+	for (; Waited < 300.f && Story->IsSequencePlaying(TEXT("Cinematic08")); Waited += 0.25f) { W.Advance(0.25f, 1.f / 20.f); }
+	AddInfo(FString::Printf(TEXT("Cinematic08 ran %.1f s"), Waited));
+	const auto* R = L->Last(UTDMusicEventBridge::RevealEnded);
+	TestTrue(TEXT("RevealEnded when it finishes (completed), from this world"), R && R->bFlag && R->World.Get() == W.GetWorld());
+	// Another sequence finishing is not the reveal.
+	const int32 N = L->Events.Num();
+	Story->OnSequenceFinished.Broadcast(TEXT("Docking"), false);
+	bool bAny = false;
+	for (int32 i = N; i < L->Events.Num(); ++i) { bAny |= L->Events[i].Id == UTDMusicEventBridge::RevealEnded; }
+	TestFalse(TEXT("another sequence: no RevealEnded"), bAny);
+	// Skipped: RevealEnded(false).
+	Story->OnSequenceFinished.Broadcast(TEXT("Cinematic08"), true);
+	const auto* S = L->Last(UTDMusicEventBridge::RevealEnded);
+	TestTrue(TEXT("skipped: RevealEnded(false)"), S && !S->bFlag);
+	return true;
+}
+
 #endif
