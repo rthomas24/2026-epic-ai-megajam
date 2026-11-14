@@ -1,7 +1,7 @@
 # 10s: put the flown ship 150 m from the nearest live Dominion hull turret, facing it (turrets fire inside 250 m).
 world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_game_world()
 pawn = unreal.GameplayStatics.get_player_pawn(world, 0)
-ts = [t for t in unreal.GameplayStatics.get_all_actors_of_class(world, unreal.TDEnemyTurret) if not t.is_hidden()]
+ts = [t for t in unreal.GameplayStatics.get_all_actors_of_class(world, unreal.TDEnemyTurret) if not t.get_editor_property('hidden')]
 if not ts:
     r = 'no turret'
 else:
