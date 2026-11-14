@@ -6,6 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "Engine/World.h"
 
@@ -54,7 +55,10 @@ struct FTDWorldBarks
 		{
 		case EWho::Kato: return FTDCombatBarks::Say(WorldContext, ETDShipId::Lancer, BarkId, Priority);
 		case EWho::FlownPilot: return Ship ? FTDCombatBarks::SayAsPilot(Ship, BarkId, Priority) : FTDCombatBarks::SayAsWingman(WorldContext, BarkId, Priority);
-		default: return FTDCombatBarks::SayAsWingman(WorldContext, BarkId, Priority);
+		default:
+			// No squad (a test world, a cutscene map): Kato says it, so the request is never lost.
+			return ATDSquadManager::Get(WorldContext) ? FTDCombatBarks::SayAsWingman(WorldContext, BarkId, Priority)
+				: FTDCombatBarks::Say(WorldContext, ETDShipId::Lancer, BarkId, Priority);
 		}
 	}
 };

@@ -3,6 +3,7 @@
 #include "Misc/AutomationTest.h"
 #include "TriadDrift/Combat/TDWeaponLibrary.h"
 #include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/Combat/TDProjectileSubsystem.h"
 #include "TriadDrift/World/TDWorldBarks.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
@@ -556,7 +557,8 @@ bool FTDWaveBarks::RunTest(const FString& Parameters)
 	TDWaveTest_SpawnEverything(W, D, 30.f);
 	TestEqual(TEXT("wave 1: no Bark_WaveIncoming"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::WaveIncoming), 0);
 	TDWaveTest_KillAll(D);
-	W.Advance(0.5f);
+	W.Advance(3.f);
+	AddInfo(FString::Printf(TEXT("after wave 1's kills: state %d, living %d"), (int32)D->GetState(), D->GetLivingEnemies().Num()));
 	TestEqual(TEXT("Bark_WaveCleared after wave 1"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::WaveCleared), 1);
 	D->StartWave(1);
 	TDWaveTest_SpawnEverything(W, D, 40.f);
@@ -587,6 +589,14 @@ bool FTDWaveMineBark::RunTest(const FString& Parameters)
 		ATDProjectile::Spawn(W.GetWorld(), Mine, FTransform(FRotator::ZeroRotator, Player->GetActorLocation() + Fwd * (20000.f + i * 3000.f)), nullptr, ETDTeam::Enemy);
 	}
 	W.Advance(1.f);
+	if (const UTDProjectileSubsystem* PS = UTDProjectileSubsystem::Get(W.GetWorld()))
+	{
+		for (const ATDProjectile* P : PS->GetLiveProjectiles())
+		{
+			if (P) { AddInfo(FString::Printf(TEXT("live projectile team %d speed %.0f fuse %.0f at %.0f m"), (int32)P->GetTeam(), P->GetSpec().Speed, P->GetSpec().ProximityFuseRadius, FVector::Dist(P->GetActorLocation(), Player->GetActorLocation()) / 100.f)); }
+		}
+	}
+	AddInfo(FString::Printf(TEXT("wave state %d, anchor %s"), (int32)D->GetState(), Player ? *Player->GetName() : TEXT("none")));
 	TestEqual(TEXT("Bark_MinesAhead"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::MinesAhead), 1);
 	W.Advance(2.f);
 	TestEqual(TEXT("not every half second"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::MinesAhead), 1);
