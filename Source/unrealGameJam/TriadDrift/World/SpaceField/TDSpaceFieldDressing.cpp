@@ -14,9 +14,9 @@
 
 namespace TDSpaceFieldDressing
 {
-	static int32 GDressing = 1;
+	static int32 GDressing = 0;
 	static FAutoConsoleVariableRef CVarDressing(TEXT("td.SpaceField.Dressing"), GDressing,
-		TEXT("Region beacons and haze (the effects builder's NS_TD_Region_Beacon and M_TD_RegionHaze): 1 on (default), 0 off. Live."));
+		TEXT("Region beacons and haze (the effects builder's NS_TD_Region_Beacon and M_TD_RegionHaze): 0 off (default: the Lead has not accepted the assets yet), 1 on (built the first time it turns on). Live."));
 
 	/** The effects builder's colours per region (docs/eng/SPACE-DESIGN.md numbers). */
 	static FLinearColor BeaconColor(int32 Region)
@@ -40,6 +40,8 @@ bool ATDSpaceField::IsDressingWanted()
 void ATDSpaceField::BuildRegionDressing()
 {
 	using namespace TDSpaceFieldDressing;
+	if (bDressingBuilt) { return; }
+	bDressingBuilt = true;
 	UNiagaraSystem* Beacon = LoadObject<UNiagaraSystem>(nullptr, TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Region_Beacon.NS_TD_Region_Beacon"), nullptr, LOAD_Quiet | LOAD_NoWarn);
 	UMaterialInterface* Haze = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/TriadDrift/Gameplay/VFX/Materials/M_TD_RegionHaze.M_TD_RegionHaze"), nullptr, LOAD_Quiet | LOAD_NoWarn);
 	UStaticMesh* Sphere = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Sphere.Sphere"), nullptr, LOAD_Quiet | LOAD_NoWarn);
@@ -95,6 +97,11 @@ void ATDSpaceField::BuildRegionDressing()
 	SetRegionDressingVisible(IsDressingWanted());
 	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: region dressing %d beacons (%s), %d haze volumes (%s)"), RegionBeacons.Num(), Beacon ? TEXT("loaded") : TEXT("missing"),
 		RegionHazes.Num(), Haze ? TEXT("loaded") : TEXT("missing"));
+}
+
+void ATDSpaceField::EnsureRegionDressing()
+{
+	BuildRegionDressing();
 }
 
 void ATDSpaceField::SetRegionDressingVisible(bool bOn)

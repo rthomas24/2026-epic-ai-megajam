@@ -244,10 +244,13 @@ private:
 	UPROPERTY(Transient) TArray<TObjectPtr<class UNiagaraComponent>> RegionBeacons;
 	UPROPERTY(Transient) TArray<TObjectPtr<class UStaticMeshComponent>> RegionHazes;
 	bool bDressingShown = false;
+	bool bDressingBuilt = false;
 	void BuildRegionDressing();
 	static bool IsDressingWanted();
 public:
 	void SetRegionDressingVisible(bool bOn);
+	/** Builds the beacons and haze once (only when td.SpaceField.Dressing is 1: off by default, nothing loaded or spawned). */
+	void EnsureRegionDressing();
 	int32 GetRegionBeaconCount() const { return RegionBeacons.Num(); }
 	/** Beacon points placed (headless runs spawn no Niagara components, so tests count these). */
 	int32 GetRegionBeaconPointCount() const { return BeaconPoints.Num(); }

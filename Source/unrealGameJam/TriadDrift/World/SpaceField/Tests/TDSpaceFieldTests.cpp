@@ -9,6 +9,7 @@
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "HAL/PlatformTime.h"
+#include "HAL/IConsoleManager.h"
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/Combat/Pickups/TDPickup.h"
 #include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
@@ -335,7 +336,22 @@ bool FTDSpaceFieldStructuresKeepOut::RunTest(const FString& Parameters)
 	// The region dressing (the effects builder's beacon and haze): one beacon per region set piece, a haze per region.
 	AddInfo(FString::Printf(TEXT("region dressing: %d beacon points, %d haze volumes"), Fd->GetRegionBeaconPointCount(), Fd->GetRegionHazeCount()));
 	TestTrue(TEXT("a beacon point on each region set piece (ring, 3 hulk sections, rig, 10+ shards)"), Fd->GetRegionBeaconPointCount() >= 15);	// headless: no Niagara components
-	TestEqual(TEXT("a haze per hazed region (Graveyard, Scar, Ice Drift, Outer Dark)"), Fd->GetRegionHazeCount(), 4);
+	TestEqual(TEXT("dressing off by default: no haze built"), Fd->GetRegionHazeCount(), 0);
+	TestEqual(TEXT("dressing off by default: no beacon spawned"), Fd->GetRegionBeaconCount(), 0);
+	{
+		IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("td.SpaceField.Dressing"));
+		TestNotNull(TEXT("td.SpaceField.Dressing exists"), CVar);
+		if (CVar)
+		{
+			const int32 Was = CVar->GetInt();
+			CVar->Set(1, ECVF_SetByCode);
+			Fd->EnsureRegionDressing();
+			TestEqual(TEXT("dressing on: a haze per hazed region (Graveyard, Scar, Ice Drift, Outer Dark)"), Fd->GetRegionHazeCount(), 4);
+			Fd->EnsureRegionDressing();
+			TestEqual(TEXT("dressing builds once"), Fd->GetRegionHazeCount(), 4);
+			CVar->Set(Was, ECVF_SetByCode);
+		}
+	}
 	TestEqual(*FString::Printf(TEXT("no set piece in a route, the Dominion sphere or the escape corridor (first: %s)"), *First), Bad, 0);
 	return true;
 }
