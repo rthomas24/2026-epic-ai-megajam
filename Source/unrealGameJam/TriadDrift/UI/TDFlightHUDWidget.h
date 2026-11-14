@@ -84,6 +84,8 @@ public:
 		FLinearColor TagColor = FLinearColor(.54f, .58f, .65f);
 		/** A story transmission (from T3's subsystem), not a squad bark. */
 		bool bStory = false;
+		/** A story line whose transmission says bShowSubtitle false (T3, ENG-45): its text and tag are not drawn. */
+		bool bStoryHidden = false;
 	};
 
 	/** P2: one hostile or missile as drawn: a bracket / tick on screen, an edge chevron off screen. */
@@ -368,6 +370,12 @@ public:
 	/** A faint corridor From -> To (world) for Seconds; it must read as sensor noise (nobody comments on it). */
 	void ShowNavigationPulse(const FVector& From, const FVector& To, float Seconds = 1.5f);
 	static constexpr float NavPulseSeconds = 1.5f;
+	/** The pulse's envelope now, 0..1 (what the corridor draws with; UTDUIHostSubsystem::GetNavigationPulse01). */
+	float GetNavigationPulseEnvelope() const
+	{
+		const float T01 = NavLeft > 0.f && NavSeconds > 0.f ? 1.f - NavLeft / NavSeconds : 0.f;
+		return T01 <= 0.f ? 0.f : FMath::Clamp(FMath::Min(T01 / .1f, (1.f - T01) / .35f), 0.f, 1.f);
+	}
 
 	// ---- subtitles and story transmissions (T3's transmission system calls UTDUIHostSubsystem::ShowTransmission)
 	/** Shows Line in the subtitle slot for Seconds: speaker tag in the pilot's colour, style per voice. */
@@ -390,6 +398,10 @@ public:
 	void HandleSceneCut(FName SceneId, int32 NextTakeNumber, float DelaySeconds);
 	/** Tests: force the money-shot / paused state (-1 = read the feel subsystem / world). */
 	int32 ForceMoneyShot = -1;
+	/** Tests: >= 0 forces the subtitles setting (ENG-45: UTDSettingsSubsystem::AreSubtitlesOn); -1 reads it. */
+	int32 ForceSubtitlesOn = -1;
+	/** ENG-45: subtitles drawn at all (the setting; voices and timing are unchanged either way). */
+	bool AreSubtitlesShown() const { return bSubtitlesOn; }
 	int32 ForcePaused = -1;
 	/**
 	 * Set every tick by UTDUIHostSubsystem from its focus holds (PushHUDFocus): the whole HUD eases to at most FocusOpacity,
@@ -516,6 +528,7 @@ private:
 	int32 GeneratorsDownSeen = -1;
 	/** The ORBIT cue's clock; the descent cover seen last sample (its end on the galaxy map is the climb-out reveal). */
 	float OrbitCueLeft = 0.f;
+	bool bSubtitlesOn = true;
 	double OrbitRevealSeen = -1.0;
 	bool bCoverSeen = false;
 	FDelegateHandle RevealHandle;

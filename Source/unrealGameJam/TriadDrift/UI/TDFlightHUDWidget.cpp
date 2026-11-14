@@ -418,6 +418,9 @@ void UTDFlightHUDWidget::SampleStory()
 	}
 	Sub.bStory = true;
 	Sub.TagColor = T.Color;
+	// ENG-45 (T3): FTDTransmissionView::bShowSubtitle, read by name (on when the field is not there yet).
+	static const FBoolProperty* ShowProp = FindFProperty<FBoolProperty>(FTDTransmissionView::StaticStruct(), TEXT("bShowSubtitle"));
+	Sub.bStoryHidden = ShowProp && !ShowProp->GetPropertyValue_InContainer(&T);
 	// Drive the fade from the subsystem's own clock (one line at a time, never overlapping).
 	const float Remaining01 = FMath::Max(1.f - T.Progress01, .01f);
 	Sub.Seconds = FMath::Max(.5f, T.TimeLeft / Remaining01);
@@ -1184,6 +1187,31 @@ void UTDFlightHUDWidget::Sample(float DeltaSeconds)
 	BindBus();
 	SampleDirector(Dt);
 	SampleStory();
+	// ENG-45 (T1's setting): UTDSettingsSubsystem::AreSubtitlesOn(World), by name (on without it).
+	if (ForceSubtitlesOn >= 0)
+	{
+		bSubtitlesOn = ForceSubtitlesOn > 0;
+	}
+	else
+	{
+		static UClass* Settings = FindObject<UClass>(nullptr, TEXT("/Script/unrealGameJam.TDSettingsSubsystem"));
+		UFunction* F = Settings ? Settings->FindFunctionByName(TEXT("AreSubtitlesOn")) : nullptr;
+		bSubtitlesOn = true;
+		if (F && F->ParmsSize > 0)
+		{
+			uint8* Buf = static_cast<uint8*>(FMemory_Alloca(F->ParmsSize));
+			FMemory::Memzero(Buf, F->ParmsSize);
+			if (const FObjectPropertyBase* Ctx = CastField<FObjectPropertyBase>(F->PropertyLink); Ctx && !Ctx->HasAnyPropertyFlags(CPF_ReturnParm))
+			{
+				Ctx->SetObjectPropertyValue_InContainer(Buf, this);
+			}
+			Settings->GetDefaultObject()->ProcessEvent(F, Buf);
+			if (const FBoolProperty* Ret = CastField<FBoolProperty>(F->GetReturnProperty()))
+			{
+				bSubtitlesOn = Ret->GetPropertyValue_InContainer(Buf);
+			}
+		}
+	}
 	SampleCombat(*Data, Flown, Dt);
 	ArcAwake = FMath::Max(0.f, ArcAwake - Dt);
 	View.ArcOpacity = (View.Hull < .999f || View.Shield < .999f || ArcAwake > 0.f) ? 1.f : ArcRestOpacity;
@@ -1803,7 +1831,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			D.Alpha = FMath::Max(D.Alpha, .8f);
 		}
 		const float TX = C.X + 190.f, TY = C.Y - 100.f, TH = 200.f;
-		D.Plate(TX - 96.f, TY - 34.f, 196.f, TH + 84.f, 12.f, T::Plate().CopyWithNewOpacity(.78f));
+		// Wide enough for the reading box on the left (the Lead: it hung half off the plate's edge).
+		D.Plate(TX - 116.f, TY - 34.f, 216.f, TH + 84.f, 12.f, T::Plate().CopyWithNewOpacity(.78f));
 		D.Layer = P.Layer + 2; // everything else above its plate (same-layer boxes batch under rounded brushes)
 		const float Alt = FMath::Max(0.f, View.Altitude);
 		D.Words(TX - 4.f, TY - 26.f, TEXT("ATMOSPHERE"), 13, T::Shield(), "Bold", 0.f, 160);
@@ -1825,7 +1854,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 				}
 			}
 			const float BY = TY + TH * .5f;
-			D.Plate(TX - 84.f, BY - 13.f, 76.f, 26.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
+			D.Plate(TX - 100.f, BY - 13.f, 92.f, 26.f, 6.f, FLinearColor(.02f, .03f, .05f, .95f));
 			D.Words(TX - 14.f, BY - 9.f, FString::Printf(TEXT("%.0f m"), Alt), 15, Alt < 60.f ? T::Bastion() : T::Neutral(), "Bold", 1.f, 20);
 			Rec(TEXT("altimeter"), TX - 84.f, TY, 130.f, TH);
 		}
@@ -1942,8 +1971,9 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		P.Words(CenterX + (View.Lane == ELane::HyperdriveBlocked ? 10.f : 0.f), 845.f, View.LaneText, 17, LaneC, "Bold", .5f, 50);
 	}
 
-	// ---- subtitles / story transmissions: centred under the lower lane, speaker tag in the pilot's colour, 2 lines max
-	if (!View.Subtitle.Text.IsEmpty())
+	// ---- subtitles / story transmissions: centred under the lower lane, speaker tag in the pilot's colour, 2 lines max.
+	// ENG-45: nothing when subtitles are off (barks) or the transmission says so (story lines); the voices still play.
+	if (!View.Subtitle.Text.IsEmpty() && bSubtitlesOn && !(View.Subtitle.bStory && View.Subtitle.bStoryHidden))
 	{
 		const FSubtitle& Sub = View.Subtitle;
 		const FString& Who = Sub.Speaker;
