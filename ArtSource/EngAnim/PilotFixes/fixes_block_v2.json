@@ -1,0 +1,22 @@
+{
+ "_note": "Block guard v2 and deflect flick v2 (Nov 14, melee pass). Guard: hand forward at chest height, the blade held diagonally across the front of the body (tip up and to the left), so from the chase camera it reads as a bar between the pilot and the shots; torso turned 10 deg right (blade side forward). Flick: from the guard, out and up to the right in 0.08 s (the rebound), back to the guard by 0.25 s. Same key format as fixes_swing.json (rate 1).",
+ "swing": [
+  {
+   "src": "A_Pilot_Block", "dst": "A_Pilot_Block_v2", "rate": 1.0, "max_yaw": 30,
+   "keys": [
+    {"t": 0.0,  "hand": [40, -6, -8], "blade": [0.25, -0.55, 0.8], "yaw": 10},
+    {"t": 0.5,  "hand": [40, -6, -7], "blade": [0.25, -0.55, 0.8], "yaw": 11},
+    {"t": "end", "hand": [40, -6, -8], "blade": [0.25, -0.55, 0.8], "yaw": 10}
+   ]
+  },
+  {
+   "src": "A_Pilot_Blade_DeflectFlick", "dst": "A_Pilot_Blade_DeflectFlick_v2", "rate": 1.0, "max_yaw": 45,
+   "keys": [
+    {"t": 0.0,  "hand": [40, -6, -8], "blade": [0.25, -0.55, 0.8], "yaw": 10},
+    {"t": 0.08, "hand": [42, 30, 4],  "blade": [0.45, 0.6, 0.65],  "yaw": 28},
+    {"t": 0.25, "hand": [40, -4, -8], "blade": [0.25, -0.5, 0.82], "yaw": 10},
+    {"t": "end", "hand": [40, -6, -8], "blade": [0.25, -0.55, 0.8], "yaw": 10}
+   ]
+  }
+ ]
+}
