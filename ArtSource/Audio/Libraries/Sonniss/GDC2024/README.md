@@ -113,3 +113,9 @@ The source recordings predate this jam and remain third-party licensed assets. S
 - Bundle02 / Nick McMahan - Cascadia Flowing Water (3 WAV files)
 - Bundle02 / Nick McMahan - Cascadia Shore Waves (3 WAV files)
 - Bundle02 / Orbital Emitter - Cinematic Transitions for Editors Volume 2 (4 WAV files)
+
+## Windows checkout note
+
+Original publisher filenames can exceed Windows' traditional path limit inside a deep worktree. Use a short checkout root or Git's long-path support (`git -c core.longpaths=true checkout ...`); this intake used command-scoped long-path support and did not change other checkouts' configuration. Git LFS can fetch selected library paths instead of the whole 6.71 GiB collection. Preserve original names when maintaining provenance.
+
+Publication verification: all 304 audio LFS objects were confirmed available from GitHub after upload. The committed object hashes and sizes match catalog.csv for every WAV.
