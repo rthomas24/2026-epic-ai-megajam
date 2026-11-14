@@ -52,6 +52,8 @@ public:
 	float EvadeSubstituteSeconds = 30.f;
 	int32 KillsToTeach = 2;
 	float SquadSubstituteSeconds = 60.f;
+	/** Time counts only while the player flies a ship (tests with a bare pawn turn this off). */
+	bool bRequireFlyingShip = true;
 
 	// UTickableWorldSubsystem
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;

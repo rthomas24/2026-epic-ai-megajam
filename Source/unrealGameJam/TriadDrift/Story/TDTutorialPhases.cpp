@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Core/TDEventBus.h"
+#include "TriadDrift/Director/Intro/TDIntroDirector.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
@@ -215,6 +216,15 @@ void UTDTutorialPhases::Tick(float DeltaTime)
 	if (const ATDWaveDirector* D = ATDWaveDirector::Get(this); D && D->GetTutorialPhase() != ETDTutorialPhase::Battle)
 	{
 		SetPhase(ETDTeachPhase::Done);
+		return;
+	}
+	// Live walk: nothing counts while the intro holds the screen or the player isn't flying (no control, no lesson).
+	if (const UTDIntroDirector* Intro = UTDIntroDirector::Get(this); Intro && Intro->IsPlaying())
+	{
+		return;
+	}
+	if (bRequireFlyingShip && !Cast<ATDShip>(GetPlayerPawn()))
+	{
 		return;
 	}
 	const float Dt = GetWorld() ? GetWorld()->GetDeltaSeconds() : DeltaTime;
