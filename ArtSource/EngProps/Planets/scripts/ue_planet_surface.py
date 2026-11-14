@@ -50,7 +50,31 @@ def build_surface_graph(b, t):
     cuv = b.add(uv, b.append(pan, b.const(0.0)))
     cl = b.tex("CloudTex", t["T_Planet_Verdance_Clouds"], ST.SAMPLERTYPE_MASKS, cuv)
     ca = b.mul(cl, b.scalar("CloudOpacity", 0.9), "R")
-    albedo = b.lerp(bc, b.vector("CloudColor", (1, 1, 1)), ca, "RGB")
+    cloud_rgb = b.mask(b.vector("CloudColor", (1, 1, 1)), True, True, True)
+    if t.get("T_Ground_MacroNoise") is not None:
+        # Cloud tops up close (environment builder, Nov 14; the Aftermath opened against the cloud layer as a flat white
+        # and yellow sheet): within ~1.3 radii the 2K cloud mask is broken up by two octaves of the macro noise into
+        # billowy edges, and the cloud colour gets relief (lit tops, grey troughs). Far away nothing changes.
+        cam0 = b.e(unreal.MaterialExpressionCameraPositionWS)
+        obj0 = b.e(unreal.MaterialExpressionObjectPositionWS)
+        dist0 = b.e(unreal.MaterialExpressionDistance)
+        b.c(cam0, "", dist0, "A")
+        b.c(obj0, "", dist0, "B")
+        dr0 = b.div(dist0, b.e(unreal.MaterialExpressionObjectRadius))
+        near_c = b.mul(b.one_minus(b.sat(b.div(b.sub(dr0, b.scalar("CloudNearR", 1.02)), b.scalar("CloudRangeR", 0.3)))),
+                       b.scalar("CloudTopStrength", 1.0))
+        ctile = b.scalar("CloudTopTile", 32.0)
+        cuv1 = b.mul(cuv, b.append(b.mul(ctile, b.const(2.0)), ctile))
+        cuv2 = b.add(b.mul(cuv1, b.const(3.7)), b.const2(0.21, 0.43))
+        c1 = b.tex("CloudTopNoiseTex", t["T_Ground_MacroNoise"], ST.SAMPLERTYPE_MASKS, cuv1)
+        c2 = b.tex("CloudTopNoiseTex", t["T_Ground_MacroNoise"], ST.SAMPLERTYPE_MASKS, cuv2)
+        billow = b.add(b.mul(b.sub(b.mask(c1, True), b.const(0.5)), b.const(0.8)), b.mul(b.sub(b.mask(c2, False, True), b.const(0.5)), b.const(0.3)))
+        # the edge: the cloud mask pushed through a soft threshold that the noise moves (no texel blocks, no hard sheet)
+        ca_near = b.sat(b.add(b.mul(b.sub(b.mask(cl, True), b.const(0.45)), b.const(2.4)), b.add(b.const(0.5), b.mul(billow, b.const(1.3)))))
+        ca = b.lerp(ca, b.mul(ca_near, b.scalar("CloudOpacity", 0.9)), near_c)
+        relief = b.add(b.const(0.78), b.mul(billow, b.const(0.9)))
+        cloud_rgb = b.lerp(cloud_rgb, b.mul(cloud_rgb, b.append(b.append(relief, relief), b.mul(relief, b.const(1.04)))), near_c)
+    albedo = b.lerp(bc, cloud_rgb, ca, "RGB")
     # Close-range detail (environment builder, Nov 13): diving in, the globe fills the frame and the 2K bake reads as one
     # flat colour. Two noise octaves in the globe's own UV (2:1 equirect) break up value and hue, faded in only when
     # the camera is within ~2 radii (d = camera distance / object radius) and kept off the clouds.
