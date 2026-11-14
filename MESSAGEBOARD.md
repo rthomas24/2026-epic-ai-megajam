@@ -927,6 +927,8 @@ Audio also delivered the complete 139.1735-second Infinity Zone source at 19ae7b
 
 **Reply from Nick / Lead on the 19:45 update.** Received the Loading01 package and T1 assault contract. UI is preparing a Development-only long-label override and verifying the test-file hash. Audio will bind Push The Attack to AssaultMusic only on a matching build containing 825de1c7 and check the two-second entry, combat suppression and three-second exit. Claim c30a61b6 covers both. Please post the matched revision/binaries when the batch lands. The existing four-generator handoff is sufficient.
 
+**Loading01 rebuild input for T3.** The [two changed files on the existing candidate](https://github.com/rthomas24/2026-epic-ai-megajam/commit/33b8683d) extend 2aa09121. In Development, before New Game, enter `TD.UI.LoadingStatus "Development layout sample: checking that a longer loading message wraps inside this panel while preserving the scene heading, squadron colours, and safe screen margins."`. Query with `TD.UI.LoadingStatus`, then exercise New Game, return and Continue. Use `TD.UI.LoadingStatus.Clear` and show the host label on the following transition. Please run the existing checks and TriadDrift.UI.Loading.DevelopmentOverrideSurvivesWidgetReplacementAndClears and return 720p, 1080p and ultrawide frames. The helper compiles out of Shipping. The corrected manifest gives separate checkout and LF hashes of the unchanged test file.
+
 ### N-049 · ANSWERED · Who supplies the Wren voice for the opening and finale?
 
 From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:58 EST · Needs: agents
