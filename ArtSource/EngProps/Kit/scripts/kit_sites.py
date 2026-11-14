@@ -631,6 +631,13 @@ def anchor_check():
     return {"AnchorCheck": {"site": "AnchorCheck", "actor": K + "Sites/BP_AnchorCheck", "about": "Capture only: the anchor collapse pieces at rest.", "pieces": pcs}}
 
 
+def conduit_check():
+    """Capture only (batch AC): the Null conduit intact and broken, 2.5 m apart."""
+    return {"ConduitCheck": {"site": "ConduitCheck", "actor": K + "Sites/BP_ConduitCheck", "about": "Capture only: SM_Kit_NullConduit and its stump.",
+            "pieces": [piece("Intact", ST + "SM_Kit_NullConduit", 0.0, -125.0, 0.0, 0.0),
+                       piece("Broken", ST + "SM_Kit_NullConduitBroken", 0.0, 125.0, 0.0, 30.0)]}}
+
+
 def main():
     out = os.path.join(KIT, "sites")
     os.makedirs(out, exist_ok=True)
@@ -647,6 +654,7 @@ def main():
     sites.update(ship_gear())
     sites.update(magma_bridge())
     sites.update(anchor_check())
+    sites.update(conduit_check())
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)
