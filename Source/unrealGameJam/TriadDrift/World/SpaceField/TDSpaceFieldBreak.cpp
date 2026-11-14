@@ -276,9 +276,13 @@ void ATDSpaceField::PlayBreakCue(const FVector& At, float Size, uint8 SizeClass,
 	const bool bAuthored = !Cue.VFX.IsNull();
 	if (!bAuthored)
 	{
-		Cue.VFX = TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(DefaultVFX[Slot]));
+		UNiagaraSystem* Default = DefaultBreakVFX.IsValidIndex(Slot) ? DefaultBreakVFX[Slot].Get() : nullptr;
+		Cue.VFX = Default ? TSoftObjectPtr<UNiagaraSystem>(Default) : TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(DefaultVFX[Slot]));
 	}
-	if (UNiagaraComponent* NC = UTDStatics::PlayCue(this, Cue, At, FRotator::ZeroRotator))
+	UNiagaraComponent* Played = UTDStatics::PlayCue(this, Cue, At, FRotator::ZeroRotator);
+	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: break class %d special %d size %.0f m at %s: %s %s"), SizeClass, bSpecial, Size / 100.f, *At.ToCompactString(),
+		*GetNameSafe(Cue.VFX.Get()), Played ? TEXT("playing") : TEXT("NOT PLAYED (placeholder burst)"));
+	if (UNiagaraComponent* NC = Played)
 	{
 		if (!bAuthored)
 		{

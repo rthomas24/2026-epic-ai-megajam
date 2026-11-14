@@ -9,6 +9,9 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "HAL/IConsoleManager.h"
+#include "Engine/Engine.h"
+#include "UObject/ConstructorHelpers.h"
+#include "NiagaraSystem.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Pawn.h"
 #include "TriadDrift/Combat/Pickups/TDPickup.h"
@@ -18,7 +21,7 @@ namespace TDSpaceFieldImpl
 {
 	static int32 GEnabled = 1;
 	static FAutoConsoleVariableRef CVarSpaceField(TEXT("td.SpaceField"), GEnabled,
-		TEXT("Space field (belts, clusters, debris fields, wrecks, buoys): 1 on (default), 0 hidden with no collision."));
+		TEXT("Space field (belts, clusters, debris fields, wrecks, buoys, and the layout's rocks made breakable): 1 on (default), 0 = the galaxy exactly as before the field. Read at level load."));
 
 	static UStaticMesh* Load(const TCHAR* Path)
 	{
@@ -44,6 +47,18 @@ ATDSpaceField::ATDSpaceField()
 	PrimaryActorTick.bCanEverTick = true;
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	RootComponent->SetMobility(EComponentMobility::Static);
+	// The effects builder's break systems, hard-referenced from the class defaults so the cook and asset traces see them
+	// (they also sit in the always-cooked Gameplay/VFX folder). A DA_SpaceField_FX cue with a VFX still wins.
+	static const TCHAR* BreakPaths[] = {
+		TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_S.NS_TD_Asteroid_Break_S"),
+		TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_M.NS_TD_Asteroid_Break_M"),
+		TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_L.NS_TD_Asteroid_Break_L"),
+		TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Asteroid_Break_Crystal.NS_TD_Asteroid_Break_Crystal") };
+	for (const TCHAR* Path : BreakPaths)
+	{
+		ConstructorHelpers::FObjectFinderOptional<UNiagaraSystem> Found(Path);
+		DefaultBreakVFX.Add(Found.Get());
+	}
 }
 
 ATDSpaceField* ATDSpaceField::SpawnFor(ATDGalaxyLayout* InLayout)
@@ -600,9 +615,13 @@ void ATDSpaceField::SetFieldEnabled(bool bOn)
 void ATDSpaceField::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	if ((TDSpaceFieldImpl::GEnabled != 0) != bEnabled)
+	// td.SpaceField is read at level load only (Lead, Nov 14: a provable fallback). A change mid-game is reported, not
+	// applied: 0 at load is the galaxy exactly as it was before the field, never a half-restored layout.
+	if ((TDSpaceFieldImpl::GEnabled != 0) != bEnabled && !bWarnedToggle)
 	{
-		SetFieldEnabled(TDSpaceFieldImpl::GEnabled != 0);
+		bWarnedToggle = true;
+		UE_LOG(LogTemp, Warning, TEXT("td.SpaceField %d: applies at the next level load (the field stays %s until then)"), TDSpaceFieldImpl::GEnabled, bEnabled ? TEXT("on") : TEXT("off"));
+		if (GEngine) { GEngine->AddOnScreenDebugMessage(-1, 4.f, FColor::Yellow, TEXT("td.SpaceField applies at the next level load")); }
 	}
 	if (!bEnabled)
 	{
