@@ -515,6 +515,9 @@ void ATDAtmosphereFlightZone::FitToTerrain(const ATDPlanetTerrain* Terrain)
 		Box.Max.Y = FMath::Max(Box.Max.Y, O.Y + Half);
 		Box.Max.Z = FMath::Max(Box.Max.Z, MaxZ + TerrainCeilingClearance);
 	}
+	// ENG-38 glide-lite (agreed with T4): the arrival sits 300 m over the cloud deck, so the ceiling clears the deck by 500 m.
+	const float DeckZ = UTDDescentSubsystem::FindDeckZ(GetWorld());
+	if (DeckZ > 0.f && UTDDescentSubsystem::IsGlideEnabled()) { Box.Max.Z = FMath::Max(Box.Max.Z, DeckZ + 50000.f); }
 	SetActorLocation(Box.GetCenter());
 	SetZoneExtent(Box.GetExtent());
 	bFittedToTerrain = true;
