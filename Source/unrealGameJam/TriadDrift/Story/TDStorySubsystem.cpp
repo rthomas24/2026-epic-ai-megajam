@@ -941,6 +941,16 @@ void UTDStorySubsystem::MarkPlayed(FName Id)
 	if (UTDGameInstance* GI = UTDGameInstance::Get(this))
 	{
 		GI->MarkTransmissionPlayed(Id);
+		// #96 (Nick's Lead's cold-Continue run): the played set reached the disk only with the next checkpoint, so a quit
+		// after Face to Face replayed it on Continue. A once-per-run claim (sequence started / done) and a must-hear line
+		// heard are written to the run's save now. WriteSaveSlot writes the existing checkpoint: Continue still resumes
+		// where it did; only its played set is newer. The save-safety rules still apply (no write for a menu or a pristine run).
+		const FString S = Id.ToString();
+		if (S.StartsWith(TEXT("Seq_Started_")) || S.StartsWith(TEXT("Seq_Done_")) || IsRequiredLine(Id))
+		{
+			const bool bWritten = GI->WriteSaveSlot();
+			UE_LOG(LogTriadDrift, Log, TEXT("TD.Story: %s claimed; run save %s"), *S, bWritten ? TEXT("written") : TEXT("not written (no committed checkpoint)"));
+		}
 		return;
 	}
 	LocalPlayed.Add(Id);
