@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "Engine/StreamableManager.h"
 #include "TDPlanetScatter.generated.h"
 
 class FTDTerrainField;
@@ -138,6 +139,10 @@ public:
 	 * entry), near tier first. True once every near-tier piece is in: whoever lifts the entry cover can wait for it.
 	 */
 	bool IsNearApplied() const { return bNearApplied; }
+	/** Every kind's mesh and material is in memory (requested async with Generate; apply waits for it). */
+	bool AreKindsLoaded() const { return bKindsLoaded; }
+	/** Loads that happened on the game thread while applying (0 on the async path; T7's 330 ms first entry). */
+	int32 GetSyncKindLoads() const { return SyncKindLoads; }
 	/** ENG-38: stream the rings round this world point instead of the camera, until the camera comes within 1 km of it. */
 	void SetFocusOverride(const FVector& WorldPoint);
 	/** The mid ring is centred on, and complete round, this world point. */
@@ -197,6 +202,11 @@ protected:
 	bool bBuilt = false;
 	bool bBuilding = false;
 	bool bFocusOverride = false;
+	bool bKindsLoaded = false;
+	mutable int32 SyncKindLoads = 0;
+	TSharedPtr<FStreamableHandle> KindLoadHandle;
+	UMaterialInterface* ResolveKindMaterial(int32 Kind) const;
+	void RequestKindLoads();
 	FVector FocusLocal = FVector::ZeroVector;
 	struct FApplyJob
 	{

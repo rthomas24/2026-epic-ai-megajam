@@ -42,12 +42,14 @@ bool FTDCloudDeckOnPlanetsOnly::RunTest(const FString&)
 		TestTrue(*(Name + TEXT(": visual only (no collision)")), M && M->GetCollisionEnabled() == ECollisionEnabled::NoCollision);
 		TestFalse(*(Name + TEXT(": no shadow")), M && M->CastShadow);
 		TestTrue(*(Name + TEXT(": has its material")), M && M->GetMaterial(0) && M->GetMaterial(0)->GetName().Contains(TEXT("CloudDeck_") + Name));
-		// Below the 1.6 km ceiling and above the pad.
+		// ENG-38 (agreed with T1, Nov 14): the deck clears the flight zone's highest ground by DeckClearance (T1 raises
+		// the zone ceiling to deck + 500 m and arrives at deck + 300 m).
 		ATDPlanetTerrain* T = nullptr;
 		for (TActorIterator<ATDPlanetTerrain> It(W.GetWorld()); It; ++It) { T = *It; }
 		const float PadZ = T ? T->GetActorLocation().Z : 0.f;
 		const float Up = D[0]->GetActorLocation().Z - PadZ;
-		TestTrue(*FString::Printf(TEXT("%s: deck %.0f m over the pad, between 0.5 and 1.6 km"), *Name, Up / 100.f), Up > 50000.f && Up < 160000.f);
+		TestTrue(*FString::Printf(TEXT("%s: deck %.0f m over the pad, at the zone's highest ground + clearance"), *Name, Up / 100.f),
+			T && FMath::IsNearlyEqual(D[0]->GetActorLocation().Z, T->GetCloudDeckZ(), 1.f) && Up > 50000.f);
 		// The edge bends down with the terrain's far ring (never a visible lip over the horizon).
 		if (M && M->GetNumSections() == 1)
 		{

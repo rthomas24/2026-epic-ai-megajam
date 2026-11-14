@@ -13,6 +13,8 @@
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/StreamableManager.h"
+#include "Engine/AssetManager.h"
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -518,6 +520,29 @@ void ATDPlanetScatter::CaptureKeepOuts()
 	}
 }
 
+void ATDPlanetScatter::RequestKindLoads()
+{
+	// Every kind's mesh and material, loaded off the game thread while Generate runs (T7, issue #89: the old apply did
+	// DoesPackageExist + TryLoad per kind on the game thread, ~330 ms on the first entry).
+	TArray<FSoftObjectPath> Paths;
+	for (const FTDScatterKind& K : Plan.Kinds)
+	{
+		for (const FString& S : { K.MeshPath, K.MaterialPath })
+		{
+			if (S.IsEmpty()) { continue; }
+			const FSoftObjectPath P(S);
+			if (FPackageName::DoesPackageExist(P.GetLongPackageName())) { Paths.AddUnique(P); }
+		}
+	}
+	if (Paths.Num() == 0) { bKindsLoaded = true; return; }
+	TWeakObjectPtr<ATDPlanetScatter> Weak(this);
+	KindLoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(Paths, FStreamableDelegate::CreateLambda([Weak]()
+	{
+		if (ATDPlanetScatter* Self = Weak.Get()) { Self->bKindsLoaded = true; }
+	}));
+	if (!KindLoadHandle.IsValid() || KindLoadHandle->HasLoadCompleted()) { bKindsLoaded = true; }
+}
+
 void ATDPlanetScatter::StartAsync()
 {
 	if (bBuilt || bBuilding)
@@ -525,6 +550,7 @@ void ATDPlanetScatter::StartAsync()
 		return;
 	}
 	bBuilding = true;
+	RequestKindLoads();
 	TWeakObjectPtr<ATDPlanetScatter> Weak(this);
 	const ETDDestination P = Planet;
 	const FTDScatterPlan PlanCopy = Plan;
@@ -552,6 +578,7 @@ void ATDPlanetScatter::BuildNow()
 	const FTDTerrainField Field(FTDTerrainStyle::ForPlanet(Planet));
 	FTDScatterResult R;
 	Plan.Generate(Field, R);
+	bKindsLoaded = true;	// tests and dev: loads happen synchronously here, by design
 	Apply(MoveTemp(R), (FPlatformTime::Seconds() - Start) * 1000.0);
 	ApplyQueued(0.0);	// tests and dev: everything now
 }
@@ -559,7 +586,21 @@ void ATDPlanetScatter::BuildNow()
 UStaticMesh* ATDPlanetScatter::LoadKindMesh(int32 Kind) const
 {
 	const FSoftObjectPath Path(Plan.Kinds[Kind].MeshPath);
-	return FPackageName::DoesPackageExist(Path.GetLongPackageName()) ? Cast<UStaticMesh>(Path.TryLoad()) : nullptr;
+	if (UStaticMesh* Loaded = Cast<UStaticMesh>(Path.ResolveObject())) { return Loaded; }	// the async load's result
+	if (!FPackageName::DoesPackageExist(Path.GetLongPackageName())) { return nullptr; }
+	++SyncKindLoads;	// BuildNow (tests, dev) or a kind the async request missed
+	return Cast<UStaticMesh>(Path.TryLoad());
+}
+
+UMaterialInterface* ATDPlanetScatter::ResolveKindMaterial(int32 Kind) const
+{
+	const FString& S = Plan.Kinds[Kind].MaterialPath;
+	if (S.IsEmpty()) { return nullptr; }
+	const FSoftObjectPath MP(S);
+	if (UMaterialInterface* Loaded = Cast<UMaterialInterface>(MP.ResolveObject())) { return Loaded; }
+	if (!FPackageName::DoesPackageExist(MP.GetLongPackageName())) { return nullptr; }
+	++SyncKindLoads;
+	return Cast<UMaterialInterface>(MP.TryLoad());
 }
 
 void ATDPlanetScatter::SetupComponent(UInstancedStaticMeshComponent* H, int32 Kind, bool bCollide) const
@@ -571,14 +612,7 @@ void ATDPlanetScatter::SetupComponent(UInstancedStaticMeshComponent* H, int32 Ki
 	H->SetMobility(EComponentMobility::Movable);
 	H->SetCullDistances(int32(K.CullStartCm), int32(K.CullEndCm));
 	H->SetCastShadow(K.bShadow);
-	if (!K.MaterialPath.IsEmpty())
-	{
-		const FSoftObjectPath MP(K.MaterialPath);
-		if (FPackageName::DoesPackageExist(MP.GetLongPackageName()))
-		{
-			if (UMaterialInterface* M = Cast<UMaterialInterface>(MP.TryLoad())) { H->SetMaterial(0, M); }
-		}
-	}
+	if (UMaterialInterface* M = ResolveKindMaterial(Kind)) { H->SetMaterial(0, M); }
 	if (bCollide)
 	{
 		// On foot near the course: trunks and boulders block the pilot. Ships and shots fly through.
@@ -624,9 +658,10 @@ void ATDPlanetScatter::Apply(FTDScatterResult&& Result, double Ms)
 
 void ATDPlanetScatter::ApplyQueued(double BudgetMs)
 {
-	if (ApplyJobHead >= ApplyJobs.Num())
+	if (!bKindsLoaded && KindLoadHandle.IsValid() && KindLoadHandle->HasLoadCompleted()) { bKindsLoaded = true; }
+	if (ApplyJobHead >= ApplyJobs.Num() || !bKindsLoaded)
 	{
-		return;
+		return;	// nothing queued, or the kinds are still loading off the game thread
 	}
 	const double Start = FPlatformTime::Seconds();
 	int32 Done = 0;

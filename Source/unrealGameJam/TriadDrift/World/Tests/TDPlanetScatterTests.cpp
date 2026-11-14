@@ -1,6 +1,7 @@
 // World density: the planet scatter (v1 T4, v2 environment builder). Run: .\Tools\td-test.ps1 -Filter TriadDrift.World.Scatter
 
 #include "Misc/AutomationTest.h"
+#include "UObject/UObjectGlobals.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -231,6 +232,7 @@ bool FTDScatterSpread::RunTest(const FString&)
 	bool bNearBeforeBuilt = false;
 	for (int32 i = 0; i < 60 * 30 && !S->IsBuilt(); ++i)
 	{
+		if (S->GetPendingApplyJobs() > 0 && !S->AreKindsLoaded()) { FlushAsyncLoading(); }	// a test world ticks no async loader
 		W.Tick(1.f / 60.f);
 		if (S->IsNearApplied() && !S->IsBuilt() && S->GetPendingApplyJobs() > 0) { bNearBeforeBuilt = true; }
 	}
@@ -239,6 +241,8 @@ bool FTDScatterSpread::RunTest(const FString&)
 	TestTrue(TEXT("instances"), S->GetInstanceCount() > 1000);
 	TestTrue(*FString::Printf(TEXT("no frame spends more than 8 ms applying (%.1f ms)"), S->GetMaxApplyFrameMs()), S->GetMaxApplyFrameMs() <= 8.0);
 	TestTrue(TEXT("the near tier is in before the far tier finishes"), bNearBeforeBuilt || S->IsNearApplied());
+	TestTrue(TEXT("the kinds were loaded off the game thread before any component was made"), S->AreKindsLoaded());
+	TestEqual(TEXT("no synchronous mesh or material load while applying (T7: ~330 ms on the first entry)"), S->GetSyncKindLoads(), 0);
 	return true;
 }
 
@@ -268,7 +272,12 @@ bool FTDArrivalReady::RunTest(const FString&)
 		const FVector GlideEnd(EndXY.X, EndXY.Y, T->GetGroundZAt(EndXY) + 90000.f);
 		T->PrepareArrival(GlideEnd);
 		bool bReady = false;
-		for (int32 i = 0; i < 60 * 20 && !bReady; ++i) { W.Tick(1.f / 60.f); bReady = T->IsArrivalReady(GlideEnd); }
+		for (int32 i = 0; i < 60 * 20 && !bReady; ++i)
+		{
+			if (T->GetScatter() && T->GetScatter()->GetPendingApplyJobs() > 0 && !T->GetScatter()->AreKindsLoaded()) { FlushAsyncLoading(); }	// no async loader in a test world
+			W.Tick(1.f / 60.f);
+			bReady = T->IsArrivalReady(GlideEnd);
+		}
 		TestTrue(*(Name + TEXT(": the glide end is ready within 20 s of PrepareArrival")), bReady);
 		TestTrue(*(Name + TEXT(": the zone layer's near tier is in")), T->GetScatter() && T->GetScatter()->IsNearApplied());
 	}
