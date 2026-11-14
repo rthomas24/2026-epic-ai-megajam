@@ -453,11 +453,19 @@ def dc_debris():
                     cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='50.0*' + RAMP, power=0.6, fade_in=6.0), 2600)]
 
 
-S2('NS_TD_Entry', U(ENTRY, 1.0, Intensity=1.0), entry_cone()[:1] + entry_cone()[2:] + dc_bow() + dc_sheath() + entry_streaks()[:2] + dc_debris())
+# Trimmed to 18 emitters (Lead: each must earn its place on screen): no contact flash (a 14 m glow whites out the director
+# shot), no second bow layer, no belly ribbon (the belly fire carries it), no nose glow (the cap and the shock do),
+# no hull sparks or ice flecks, one ember emitter.
+def _pick(es, drop):
+    return [e for e in es if e['name'] not in drop]
+
+
+ENTRY_DROP = ('Flash', 'Bow2', 'WakeU', 'Nose', 'HullSparks', 'Ice', 'Embers')
+S2('NS_TD_Entry', U(ENTRY, 1.0, Intensity=1.0), _pick(entry_cone()[:1] + dc_bow() + dc_sheath() + entry_streaks()[:2] + dc_debris(), ENTRY_DROP))
 _RAMP_IN = RAMP
 RAMP = '(User.Intensity*saturate(1.0 - Emitter.Age/3.0))'
 # Exit: the same burn, thinning out over 3 s on its own or driven down by User.Intensity (T1: AtmosphericExit).
-S2('NS_TD_Exit', U(ENTRY, 1.0, Intensity=1.0), dc_bow() + dc_sheath()[1:] + entry_streaks()[:2] + dc_debris())
+S2('NS_TD_Exit', U(ENTRY, 1.0, Intensity=1.0), _pick(dc_bow() + dc_sheath()[1:] + entry_streaks()[:2] + dc_debris(), ENTRY_DROP))
 RAMP = _RAMP_IN
 
 # ============================================================================================= Rift's dorsal ring (round 7)
@@ -574,6 +582,43 @@ S2('NS_TD_Pickup_Overcharge_Collect', U(PK_OVER), pk_collect([
     flash('Star', 'M_TD_VFX_Flare', 620, 0.16, 1.5, growth='0.4 + Particles.NormalizedAge*0.8'),
     shed('Burst', 'M_TD_VFX_Spark', 0, (0.25, 0.6), (3.0, 6.5), (1200, 3600), k=1.9, radius=10.0, drag=2.2, stretch=16, burst=40, dur=0.7)]))
 
+# ============================================================================================= asteroids (round 8, for T6 / T1)
+# Space rocks and junk are destructible (Ryan). Cheap and small: at most 4 emitters, bounded bursts, no loops. One-shots
+# at the rock's centre; +X does not matter (everything is radial). Sizes: S ~ 4 m, M ~ 9 m, L ~ 20 m rocks (User.Scale
+# 1 / 2.2 / 4.5); VFXScale scales on top. Slots: whatever T6 names them (a Break cue per size, a crystal-veined variant).
+ROCK = (0.55, 0.50, 0.46, 1.0)
+CRYSTAL = (0.45, 0.55, 1.0, 1.0)   # the belt's blue-violet crystals: clear of the squad's cyan and magenta
+
+
+def rock_break(n_chunks, n_dust, n_grit):
+    return [flash('Flash', 'M_TD_VFX_Glow', 650, 0.12, 0.7, growth='0.5 + Particles.NormalizedAge*0.8', power=1.4),
+            spin(shed('Dust', 'M_TD_VFX_FlipSmoke', 0, (1.0, 1.8), (260, 480), (150, 800), radius=120.0, drag=2.0, rgb=(0.50, 0.46, 0.42), alpha=0.75,
+                      burst=n_dust, dur=2.0, power=0.7, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.3', sort=True)),
+            chunks('Chunks', 'SM_TD_VFX_Shard_C', n_chunks, (0.8, 1.6), (0.35, 0.9), (500, 2000), drag=0.6, radius=90.0, dur=1.8, spin=(0.8, 3.0)),
+            shed('Grit', 'M_TD_VFX_Spark', 0, (0.25, 0.6), (6, 12), (1500, 4500), k=1.2, radius=60.0, drag=2.2, stretch=10, rgb=(1.0, 0.80, 0.55),
+                 burst=n_grit, dur=0.7, power=1.4)]
+
+
+S2('NS_TD_Asteroid_Break_S', U(ROCK, 1.0), rock_break(5, 3, 14))
+S2('NS_TD_Asteroid_Break_M', U(ROCK, 2.2), rock_break(7, 4, 18))
+S2('NS_TD_Asteroid_Break_L', U(ROCK, 4.5), rock_break(9, 6, 24))
+# Crystal-veined rock: the crystals shatter in light. A flare, glowing shards streaking out, slow glints, a few rock chunks.
+S2('NS_TD_Asteroid_Break_Crystal', U(CRYSTAL, 2.2), [
+    flash('Flash', 'M_TD_VFX_Flare', 900, 0.16, 1.4, growth='0.4 + Particles.NormalizedAge*0.9'),
+    shed('Shards', 'M_TD_VFX_Spark', 0, (0.35, 0.8), (10, 22), (1800, 5200), k=2.0, radius=80.0, drag=1.8, stretch=8, burst=26, dur=1.0, power=1.2),
+    shed('Glints', 'M_TD_VFX_Glow', 0, (0.9, 1.8), (14, 30), (200, 1200), k=1.6, radius=150.0, drag=1.2, curl=300.0, burst=20, dur=2.0, power=1.6),
+    chunks('Chunks', 'SM_TD_VFX_Shard_A', 6, (0.8, 1.5), (0.3, 0.8), (500, 1800), drag=0.6, radius=90.0, dur=1.7, spin=(0.8, 3.0))])
+# A ship scraping or hitting a rock (T1 fires it at the contact point, +X along the contact normal, with User.Strength 0..1):
+# a spray of sparks off the surface, grinding grit, a hot flash; everything grows with the strength.
+S2('NS_TD_Ship_ImpactScrape', U((1.0, 0.72, 0.42, 1.0), 1.0, Strength=0.5), [
+    flash('Flash', 'M_TD_VFX_Glow', '(160.0 + 520.0*User.Strength)', 0.10, 1.0, growth='0.6 + Particles.NormalizedAge*0.6', power=1.4),
+    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.2, 0.55), (4, 9), (1200, 4200), k=1.8, radius=20.0, drag=2.4, stretch=16, cone=((1.0, 0.0, 0.0), 70.0),
+         burst='8.0 + 46.0*User.Strength', dur=0.6, power=1.3),
+    spin(shed('Grit', 'M_TD_VFX_FlipSmoke', 0, (0.5, 1.0), (60, 140), (100, 500), radius=30.0, drag=2.5, rgb=(0.42, 0.38, 0.34), alpha=0.7, cone=((1.0, 0.0, 0.0), 60.0),
+              burst='1.0 + 4.0*User.Strength', dur=1.0, power=0.8, growth='0.6 + Particles.NormalizedAge*1.2', sort=True)),
+    shed('Embers', 'M_TD_VFX_Glow', 0, (0.3, 0.8), (5, 12), (300, 1500), k=1.4, radius=20.0, drag=1.5, cone=((1.0, 0.0, 0.0), 80.0),
+         burst='4.0 + 14.0*User.Strength', dur=0.8, power=1.6)])
+
 # Slots: UTDBladeFX.SwingLight / SwingHeavy. The code plays these ATTACHED TO THE CHARACTER ROOT (not the blade tip), so
 # a ribbon would trail the body: this is a self-contained crescent in front of the chest instead (camera-facing).
 def swing(size, k):
@@ -587,8 +632,9 @@ S2('NS_TD_Blade_SwingArc', U(BLADE), swing(230, 1.4))
 S2('NS_TD_Blade_SwingArc_Heavy', U(BLADE), swing(320, 1.9))
 
 fx2 = tdvfx.Builder(call_tool)
+CHUNK = globals().get('CHUNK')   # (start, end): build only those emitters of each selected system (see tdvfx.system)
 for _name, _user, _emitters in SYSTEMS2:
-    _sys = await fx2.system(_name, _emitters, user=_user)
+    _sys = await fx2.system(_name, _emitters, user=_user, chunk=CHUNK)
     for _e in _emitters:
         if _e.get('verbose_dump'):
             try:
