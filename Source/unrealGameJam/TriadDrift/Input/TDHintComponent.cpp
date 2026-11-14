@@ -488,10 +488,44 @@ void UTDHintComponent::GetEssentialsProgressFor(const UObject* WorldContextObjec
 	}
 }
 
+namespace TDHints
+{
+	/** B2-06 (Nick's playtest): the power hint names the flown ship's own actions (placeholder words for Nick's review).
+	 *  Part 0 = the whole line, 1 = the key, 2 = the action. Empty = not a squad ship: the generic text stays. */
+	FText PowerFor(const APlayerController* PC, bool bGamepad, int32 Part)
+	{
+		const ATDShip* Ship = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
+		if (!Ship) { return FText::GetEmpty(); }
+		const bool P = bGamepad;
+		switch (Ship->GetShipId())
+		{
+		case ETDShipId::Rift:
+			return Part == 1 ? (P ? LOCTEXT("RiftKeyP", "X") : LOCTEXT("RiftKeyK", "Q"))
+				: Part == 2 ? LOCTEXT("RiftAct", "PORTAL  ·  AGAIN FOR THE EXIT")
+				: (P ? LOCTEXT("RiftLineP", "X  PORTAL   ·   X AGAIN  EXIT PORTAL") : LOCTEXT("RiftLineK", "Q  PORTAL   ·   Q AGAIN  EXIT PORTAL"));
+		case ETDShipId::Lancer:
+			return Part == 1 ? (P ? LOCTEXT("LancerKeyP", "X") : LOCTEXT("LancerKeyK", "Q"))
+				: Part == 2 ? LOCTEXT("LancerAct", "AFTERBURNER RAM")
+				: (P ? LOCTEXT("LancerLineP", "X  AFTERBURNER RAM") : LOCTEXT("LancerLineK", "Q  AFTERBURNER RAM"));
+		case ETDShipId::Bastion:
+			return Part == 1 ? (P ? LOCTEXT("BastionKeyP", "X  ·  HOLD X") : LOCTEXT("BastionKeyK", "Q  ·  HOLD Q"))
+				: Part == 2 ? LOCTEXT("BastionAct", "MISSILE SWARM  ·  HOLD: SHIELD DOME")
+				: (P ? LOCTEXT("BastionLineP", "X  MISSILE SWARM   ·   HOLD X  SHIELD DOME") : LOCTEXT("BastionLineK", "Q  MISSILE SWARM   ·   HOLD Q  SHIELD DOME"));
+		default:
+			return FText::GetEmpty();
+		}
+	}
+}
+
 FText UTDHintComponent::GetCurrentText() const
 {
 	const ETDHint H = GetCurrentHint();
 	const ATDSpacePlayerController* PC = GetPC();
+	if (H == ETDHint::Power)
+	{
+		const FText Own = TDHints::PowerFor(PC, PC && PC->IsUsingGamepad(), 0);
+		if (!Own.IsEmpty()) { return Own; }
+	}
 	return H == ETDHint::None ? FText::GetEmpty() : TextFor(H, PC && PC->IsUsingGamepad(), LastAbility);
 }
 
@@ -594,12 +628,23 @@ FText UTDHintComponent::GetHintKey(const UObject* WorldContextObject)
 {
 	const UTDHintComponent* H = TDHints::FindFor(WorldContextObject);
 	const ATDSpacePlayerController* PC = H ? H->GetPC() : nullptr;
+	if (H && H->GetCurrentHint() == ETDHint::Power)
+	{
+		const FText Own = TDHints::PowerFor(PC, PC && PC->IsUsingGamepad(), 1);
+		if (!Own.IsEmpty()) { return Own; }
+	}
 	return H ? KeyFor(H->GetCurrentHint(), PC && PC->IsUsingGamepad()) : FText::GetEmpty();
 }
 
 FText UTDHintComponent::GetHintAction(const UObject* WorldContextObject)
 {
 	const UTDHintComponent* H = TDHints::FindFor(WorldContextObject);
+	if (H && H->GetCurrentHint() == ETDHint::Power)
+	{
+		const ATDSpacePlayerController* PC = H->GetPC();
+		const FText Own = TDHints::PowerFor(PC, PC && PC->IsUsingGamepad(), 2);
+		if (!Own.IsEmpty()) { return Own; }
+	}
 	return H ? ActionFor(H->GetCurrentHint(), H->LastAbility) : FText::GetEmpty();
 }
 
