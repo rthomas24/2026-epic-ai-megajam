@@ -269,7 +269,10 @@ void ATDPlanetCourse::BuildInterior()
 		C->Prompt = LOCTEXT("StoryConsole", "Play the recording");
 		C->HoldTime = 0.f;
 		C->bSingleUse = true;
-		C->ConsoleMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Console.SM_DI_Console")));
+		// #96: the structures builder's story console (60.6 x 124 x 130 cm, +X the operator's side); the kit console until it lands.
+		static const TCHAR* StoryArt = TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_StoryConsole.SM_DI_StoryConsole");
+		C->ConsoleMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_StoryConsole"))
+			? StoryArt : TEXT("/Game/TriadDrift/Gameplay/Props/DominionInterior/SM_DI_Console.SM_DI_Console")));
 		TDCourseImpl::FinishProp(C);
 		C->SetActorScale3D(FVector(1.f, 2.f, 130.f / 120.f)); // the kit console's 60 x 120 x 130 box (the cube is 60 x 60 x 120)
 		UTDStatics::TintPlaceholder(C->Mesh, FLinearColor(0.3f, 0.85f, 1.f), 1.5f);
