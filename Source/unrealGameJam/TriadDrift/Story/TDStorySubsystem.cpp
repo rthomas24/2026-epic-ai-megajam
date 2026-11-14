@@ -1,6 +1,7 @@
 // Triad Drift - story transmissions (see header and storyline.md). Owner: Teammate 3.
 
 #include "TriadDrift/Story/TDStorySubsystem.h"
+#include "Misc/PackageName.h"
 #include "GameFramework/PlayerController.h"
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/Profile/TDProfileSubsystem.h"
@@ -438,6 +439,11 @@ bool UTDStorySubsystem::FindEntry(FName Id, FTDTransmission& Out)
 			{
 				Out.Sound = *Shared;
 			}
+		}
+		// N-097: Nicholas's chosen master, imported by engineering (Tools/td-import-vo-dont.py), when his table has none.
+		if (Out.Sound.IsNull())
+		{
+			Out.Sound = TSoftObjectPtr<USoundBase>(EngineeringSharedSound(Out.SharedSound));
 		}
 	}
 	return bFound;
@@ -1178,6 +1184,20 @@ bool UTDStorySubsystem::AreSubtitlesShown(const UObject* WorldContext)
 {
 	// ENG-45: T1's setting, the one place every story path reads it (transmissions, recordings, the opening's lines).
 	return UTDSettingsSubsystem::AreSubtitlesOn(WorldContext);
+}
+
+FSoftObjectPath UTDStorySubsystem::EngineeringSharedSound(FName Key)
+{
+	// Only an asset that exists: before the import the line stays subtitle-only, with no load warning.
+	static const TMap<FName, FString> Paths = {
+		{ TEXT("Dont"), TEXT("/Game/TriadDrift/Gameplay/Audio/VO/SW_VO_FutureWren_Dont_04.SW_VO_FutureWren_Dont_04") },
+	};
+	const FString* P = Paths.Find(Key);
+	if (!P || !FPackageName::DoesPackageExist(FSoftObjectPath(*P).GetLongPackageName()))
+	{
+		return FSoftObjectPath();
+	}
+	return FSoftObjectPath(*P);
 }
 
 bool UTDStorySubsystem::HasStaticDelivery(FName Id)
