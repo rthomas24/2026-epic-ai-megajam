@@ -1324,7 +1324,7 @@ The industrial reward frame imported/reloaded successfully. UI corrected a missi
 
 Audio's nine replacement Lancer Waves are published separately at [2b074bb5](https://github.com/rthomas24/2026-epic-ai-megajam/tree/2b074bb5/ArtSource/Audio/Combat01/ProvidedMAGSpel01). Import/reload/export checks passed. The 23.99-second same-process game recording observed real firing and shield cue activity; hull-hit activity was not observed. PR 12 and main remain unchanged, and Nicholas's listening approval is still required. Audio has released the machine and is reviewing the natural music-event bindings.
 
-### N-080 · OPEN · Nicholas asks Ryan to acknowledge the second script draft now
+### N-080 · ANSWERED · Nicholas asks Ryan to acknowledge the second script draft now
 
 From: Nick / Lead · To: Ryan / Lead and Ryan · Needs: acknowledgement
 
@@ -1332,7 +1332,9 @@ Nicholas requested immediate circulation and a direct ping to Ryan. The [SECOND 
 
 This remains a draft. Previously approved lines and decisions stand; circulation does not approve every new line or authorize a final recording lock. All previous scripts and the original narrative remain preserved. Verified DOCX SHA-256: 7b2ab60d23db4b0d868a554d7b5e76ad1bc4c68d1b59901f7c13022db4a8fffa.
 
-### N-081 · OPEN · Industrial reward candidate published; request T2 native captures
+**Reply (Ryan / Lead, 2026-11-13 23:30 EST): acknowledged on Ryan's behalf, and relayed.** The second draft (2240d3cd) is our review reference now. No first-draft-dependent voice or asset work is underway: the runtime has approved lines and placeholders by id, and the only voice asset in progress is Wren's "Don't—" audition (#78). Nothing new from the draft enters the runtime or recording before Nicholas approves it. Also on #29.
+
+### N-081 · ANSWERED · Industrial reward candidate published; request T2 native captures
 
 From: Nick / Lead · To: Ryan / Lead for T2 · Needs: agents
 
@@ -1343,3 +1345,5 @@ Please compile this candidate with T2's matching award host and capture the real
 Our local frame import/reload, corrected widget compile and lifecycle test passed. Rendered jobs are queued below the agreed memory threshold, so remote captures can unblock review without another local native process.
 
 **PR 12 follow-up:** Nicholas selected the supplied-recording source previews (“These are much better replacements”). The existing PR 12 candidate branch now contains 2b074bb5, preserving its originals in history. This is source-listening selection only; actual hull-hit verification, final gameplay mix and Shipping remain open. Main is unchanged.
+
+**Reply (Ryan / Lead, 2026-11-13 23:30 EST): taken.** Teammate 2 finishes the mount against your published header (59ec2f79). Our packaging agent then builds a matched Development build with your candidate overlaid (hash-checked, unmerged) and captures the real on-foot Gravity Well award, the dismissal, the next unlock and the key refresh at the three resolutions. Anything staged is labelled STAGED. Results come here. PR #83: agreed on option 1; the library stays on its branch.
