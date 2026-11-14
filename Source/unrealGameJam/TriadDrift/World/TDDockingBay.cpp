@@ -243,6 +243,7 @@ void ATDDockingBay::BeginGlide(ATDShip* Ship)
 	DockingState = ETDDockingState::Gliding;
 	GlideTime = 0.f;
 	HoldTime = 0.f;
+	bGlideLocSet = false;
 	GlideFrom = Ship->GetActorLocation();
 	GlideFromRot = Ship->GetActorQuat();
 	// The glide carries on at the arrival speed and settles over the pad, never faster than the ship's boost (T1, live: a
@@ -371,6 +372,18 @@ void ATDDockingBay::Tick(float DeltaSeconds)
 			DockingState = ETDDockingState::Open;
 			return;
 		}
+		// T2 (played, Nov 14): a dev teleport during the glide (TD.Travel.ToDock) was undone by the next tick. A ship that
+		// was moved by something else lets go of the glide: the bay stays open and the approach starts again.
+		if (bGlideLocSet && FVector::DistSquared(Ship->GetActorLocation(), LastGlideLoc) > FMath::Square(2000.f))
+		{
+			ReleaseShip();
+			ReleaseWingmen();
+			DockingState = ETDDockingState::Open;
+			GlideTime = 0.f;
+			bGlideLocSet = false;
+			ShowApproachMarker(true);
+			return;
+		}
 		GlideTime += DeltaSeconds;
 		TickWingmen(DeltaSeconds);
 		const float T = FMath::Clamp(GlideTime / FMath::Max(GlideDuration, 0.1f), 0.f, 1.f);
@@ -378,6 +391,8 @@ void ATDDockingBay::Tick(float DeltaSeconds)
 		const float E = (T * T * T - 2.f * T * T + T) * GlideStartSlope + (3.f * T * T - 2.f * T * T * T);
 		const FVector To = GetMouth() - GetOutward() * GlideDepth;
 		Ship->SetActorLocationAndRotation(FMath::Lerp(GlideFrom, To, E), FQuat::Slerp(GlideFromRot, (-GetOutward()).ToOrientationQuat(), E));
+		LastGlideLoc = Ship->GetActorLocation();
+		bGlideLocSet = true;
 		if (T >= 1.f)
 		{
 			// T1 (live, Nov 14): commit to load is now ~5 s, which cut the Docking lines (G6 cover-the-bay, C7 way-out).
