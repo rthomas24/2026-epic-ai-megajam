@@ -666,6 +666,14 @@ void UTDDescentSubsystem::HideCover()
 	}
 }
 
+USoundBase* UTDDescentSubsystem::ResolveRoar(const UTDTravelFX* FX, bool bExit)
+{
+	if (!FX) { return nullptr; }
+	if (bExit && !FX->AtmosphericExit.Sound.IsNull()) { return FX->AtmosphericExit.Sound.LoadSynchronous(); }
+	if (!FX->DescentRoar.Sound.IsNull()) { return FX->DescentRoar.Sound.LoadSynchronous(); }
+	return FX->AtmosphericEntry.Sound.IsNull() ? nullptr : FX->AtmosphericEntry.Sound.LoadSynchronous();
+}
+
 void UTDDescentSubsystem::StartRoar(USoundBase* Sound)
 {
 	StopRoar(0.f);

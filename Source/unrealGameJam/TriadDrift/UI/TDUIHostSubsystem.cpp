@@ -629,6 +629,33 @@ namespace TDRewardMount
 	}
 }
 
+bool UTDUIHostSubsystem::ShowSensorFlicker(const UObject* WorldContext, FVector At, float Seconds)
+{
+	UTDUIHostSubsystem* Host = Get(WorldContext);
+	const UWorld* World = Host ? Host->GetWorld() : nullptr;
+	if (!World)
+	{
+		return false;
+	}
+	Host->SensorAt = At;
+	Host->SensorStart = World->GetTimeSeconds();
+	Host->SensorSeconds = FMath::Max(Seconds, SensorVerifiedAt + 1.f);
+	return true;
+}
+
+bool UTDUIHostSubsystem::GetSensorFlicker(FVector& OutAt, float& OutAge) const
+{
+	const UWorld* World = GetWorld();
+	const float Age = World ? static_cast<float>(World->GetTimeSeconds() - SensorStart) : -1.f;
+	if (Age < 0.f || Age > SensorSeconds)
+	{
+		return false;
+	}
+	OutAt = SensorAt;
+	OutAge = Age;
+	return true;
+}
+
 UClass* UTDUIHostSubsystem::ResolveRewardWidgetClass() const
 {
 	if (RewardWidgetClassOverride && RewardWidgetClassOverride->IsChildOf(UUserWidget::StaticClass()))

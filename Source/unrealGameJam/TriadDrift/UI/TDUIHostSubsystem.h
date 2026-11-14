@@ -165,6 +165,17 @@ public:
 	static bool ShowNavigationPulse(const UObject* WorldContext, FVector From, FVector To, float Seconds = 1.5f);
 
 	/**
+	 * storyline.md §18, the Verdance traverse: a sensor marker on a squad transponder at At reads "UNKNOWN", then
+	 * "VERIFIED" for a moment (SensorVerifiedAt s in), then "UNKNOWN" again; shown for Seconds on the on-foot HUD. Nobody
+	 * explains it. T5 calls it at the trigger point on the route.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static bool ShowSensorFlicker(const UObject* WorldContext, FVector At, float Seconds = 6.f);
+	/** The sensor marker while it shows: where, and seconds since it started. */
+	bool GetSensorFlicker(FVector& OutAt, float& OutAge) const;
+	static constexpr float SensorVerifiedAt = 1.4f;
+
+	/**
 	 * A focus hold on the flight HUD, by reason (T1's atmosphere entry: e.g. Reason "Entry", Opacity 0.35, bHideCombat true).
 	 * While any hold is up the whole HUD eases to the lowest Opacity, and with bHideCombat the objective pill and waypoints
 	 * leave the screen. Pushing the same Reason again replaces it; PopHUDFocus ends it. Holds survive a widget re-creation
@@ -278,6 +289,9 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> ScanWidget;
+	FVector SensorAt = FVector::ZeroVector;
+	double SensorStart = -1e9;
+	float SensorSeconds = 0.f;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> RewardWidget;

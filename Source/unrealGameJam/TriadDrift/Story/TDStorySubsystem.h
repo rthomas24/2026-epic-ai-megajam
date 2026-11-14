@@ -134,6 +134,8 @@ public:
 	static bool IsRequiredLine(FName Id);
 	/** Lines kept in the table but never aired (N-087, #29: TB_Escaped and the cut C4/C6 calls). */
 	static bool IsRetired(FName Id);
+	/** A line delivered as static: plays UTDStoryFX::TransmissionStatic when it goes on air. */
+	static bool HasStaticDelivery(FName Id);
 	/** Seconds a sequence must have run before it can be skipped (Nicholas, N-060: ten). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Story")
 	float SkipAllowedAfterSeconds = 10.f;
@@ -177,6 +179,7 @@ private:
 	FDelegateHandle AftermathHandle;
 	bool bAftermathChecked = false;
 	bool bAftermathResumeChecked = false;
+	void PlayStaticTear(FName Id);
 	/** A run marker (never a line): this run's Aftermath has begun. */
 	static constexpr const TCHAR* AftermathStartedId = TEXT("Seq_AftermathStarted");
 	void HandleSurveyRecords(AActor* Terminal);

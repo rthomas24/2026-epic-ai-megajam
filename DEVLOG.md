@@ -359,3 +359,25 @@ The complete World (150.0 s) and Fall (148.8 s) masters imported and reopened in
 ### 2026-11-14 — Story fidelity handoff
 
 Story Director reconciled all 150 screenplay entries, 259 barks and staging records into StoryFidelity01, preserving the historical baseline while adding current batch-L source evidence. Existing console-log, Wren-order and final-caption fixes are resolved at source stage; queued owner work is separated from new findings. Lead verified the frozen three-file hashes and matrix coverage. The approved Cinder temporal-device line was reconfirmed to Ryan in issue29 comment6872047241. No new voice performance or gameplay acceptance is implied; no Unreal processes launched.
+
+### 2026-11-14 — Actual Shipping demonstration, including a failed capture method
+
+The verified 6fe3e90f package ran locally with game audio. HWND-only GDI recording misleadingly retained the menu surface while the game progressed, so that take was rejected. A second bounded run captured the foreground game client rectangle and same-PID WASAPI audio, yielding 200 seconds of opening and early combat. The review copy preserves the actual soundtrack; no music was replaced. Raw evidence and the 70 ms packet-timestamp limitation are recorded in docs/visual/Submission/LatestGameplayDemo01. Full tutorial-loop/fade and later campaign checks remain open. The isolated game/profile were closed after capture; protected build files were unchanged. No Unreal processes left.
+
+### November 14 — submission drafts and an opening-route finding
+
+The itch draft now names the actual Windows launcher and includes the boarding route without revealing the ending. Glass Box distinguishes engineering traversal, package launch checks and the actual 200-second recording, including the failed capture method. Story's bounded video review confirmed that five legacy Intro_N captions still play in the opening; the timestamped finding went to T3 through N-088 at 091ac013. No new story wording, final trailer, public page or human acceptance is claimed. Native music import evidence remains separate from the pending scene-event hookups and listening checks.
+
+## 2026-11-14 01:00 EST: the machine crashed, and what we changed
+
+- At 00:30 Ryan's machine blue-screened (bugcheck 0x119, VIDEO_SCHEDULER_INTERNAL_ERROR) with seven teammates, six builders, a cook and a test run all using the GPU. It rebooted; git was intact; every agent's uncommitted work survived except one document that came back zero-filled (restored from its last commit). All lanes were running again by 00:50.
+- New rule (AGENTS.md section 11, board R-046): at most three rendering Unreal processes on the machine at a time; count before launching. Commit work in progress often.
+- Earlier the same hour the one-at-a-time compile queue had nine builds waiting; binaries for a commit are now copied from whichever worktree built it first instead of being compiled again in each.
+
+### November 14 — gameplay-first trailer rough cut
+
+The existing Shipping recording yielded a 50-second edit that starts directly in Rift combat, shows the actual Lancer switch and then later Lancer/Bastion action. The matching recorded game audio was retained, with only brief fades at edit edges. Full audio/video decode passed; reviewed interval frames show gameplay from the first frame. The exact three source intervals, hashes and checks are in docs/visual/Submission/Trailer01. This is a review draft of 6fe3e90f, not the final submission or proof of the tutorial's full fade. No native game/editor process or new build was needed; final-build planet/on-foot/finale footage and Nicholas's acceptance remain open.
+
+### November 14, 01:16 EST — Nicholas's Codex team stops safely
+
+Nicholas requested shutdown at safe checkpoints. Lead paused its goal; Story, UI/HUD, Audio and Auditor preserved their existing files and reported no owned operations. The recurring issue check was paused. Normal01 tutorial capture failed its recorder-duration bound; Normal02 stopped before recording when the game was not foreground, followed by physical Escape. Neither proves tutorial timing; both preserved package hashes and closed the owned processes. Story's three held-line review and Auditor's exact-opacity review finished without production edits. CLAIMS.md and docs/visual/STATUS.md record unfinished files and restart conditions; N-090 notifies Ryan. Ryan's agents remain unaffected. No automatic restart is authorized.

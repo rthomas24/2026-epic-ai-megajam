@@ -32,6 +32,7 @@
 #include "TriadDrift/Ground/TDPilotAnim.h"
 #include "TriadDrift/Ground/TDGroundAudio.h"
 #include "Components/AudioComponent.h"
+#include "NiagaraComponent.h"
 #include "AnimationRuntime.h"
 
 // The crew set (Gameplay/Characters/Crew/Anims, retargeted onto SKEL_NullCrew with ACL, Nov 13): what a crew look with a
@@ -313,7 +314,54 @@ void ATDCrewCharacter::BeginPlay()
 	if (Spec.Type == ETDCrewType::Drone)
 	{
 		DroneHum = TDGroundAudio::PlayAttached(DroneHumSound, GetRootComponent(), SoundEvents, TEXT("DroneHum"));
+		StartDroneThrusters();
 	}
+}
+
+void ATDCrewCharacter::StartDroneThrusters()
+{
+	// The drone's EngineTrail (DA_Crew_Drone_Visuals; the effects builder sets NS_TD_Drone_Thruster): one per thruster
+	// socket on the art mesh, or one at the hull's origin. Throttle follows the speed (Tick).
+	StopDroneThrusters();
+	if (!Visuals || Visuals->EngineTrail.IsEmpty() || !Body)
+	{
+		return;
+	}
+	TArray<FName> Sockets;
+	for (const TCHAR* Name : { TEXT("Engine_0"), TEXT("Engine_1") })
+	{
+		if (Body->DoesSocketExist(Name)) { Sockets.Add(Name); }
+	}
+	if (Sockets.Num() == 0)
+	{
+		Sockets.Add(NAME_None);
+	}
+	for (const FName Socket : Sockets)
+	{
+		UAudioComponent* Audio = nullptr;
+		if (UNiagaraComponent* FX = UTDStatics::PlayCueAttachedLoop(Visuals->EngineTrail, Body, Socket, Audio))
+		{
+			DroneThrusters.Add(FX);
+		}
+		if (Audio)
+		{
+			DroneThrusterAudio.Add(Audio);
+		}
+	}
+}
+
+void ATDCrewCharacter::StopDroneThrusters()
+{
+	for (UNiagaraComponent* FX : DroneThrusters)
+	{
+		if (FX) { FX->Deactivate(); }
+	}
+	for (UAudioComponent* Audio : DroneThrusterAudio)
+	{
+		if (Audio) { Audio->FadeOut(.3f, 0.f); }
+	}
+	DroneThrusters.Reset();
+	DroneThrusterAudio.Reset();
 }
 
 void ATDCrewCharacter::FellOutOfWorld(const UDamageType& DmgType)
@@ -1135,6 +1183,7 @@ void ATDCrewCharacter::HandleDeath(UTDHealthComponent* InHealth, const FTDDamage
 			DroneHum->FadeOut(0.3f, 0.f);
 			DroneHum = nullptr;
 		}
+		StopDroneThrusters();
 	}
 	if (UTDCrewTokenSubsystem* Tokens = UTDCrewTokenSubsystem::Get(this))
 	{
@@ -1348,6 +1397,16 @@ void ATDCrewCharacter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	TickTopple(DeltaSeconds);
 	OpeningGraceLeft = FMath::Max(0.f, OpeningGraceLeft - DeltaSeconds);
+	if (DroneThrusters.Num() > 0)
+	{
+		// "Throttle" 0..1 from the drone's speed (a hover idles at a low flame).
+		const float MaxSpeed = GetCharacterMovement() ? FMath::Max(GetCharacterMovement()->GetMaxSpeed(), 1.f) : 600.f;
+		const float Throttle = FMath::Clamp(.2f + .8f * GetVelocity().Size() / MaxSpeed, 0.f, 1.f);
+		for (UNiagaraComponent* FX : DroneThrusters)
+		{
+			if (FX) { FX->SetVariableFloat(TEXT("Throttle"), Throttle); }
+		}
+	}
 	UpdateTell();
 	if (!IsDead())
 	{
