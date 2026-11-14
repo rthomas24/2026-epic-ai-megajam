@@ -446,7 +446,7 @@ void ATDSpaceField::BuildIceDrift(FRandomStream& Rng)
 		const FVector At = On + N1 * Gauss(Rng) * W + N2 * Gauss(Rng) * H;
 		const float Size = Power(Rng, 300.f, FMath::Lerp(7000.f, 1200.f, T), 3.f);
 		const int32 Fam = Rng.FRand() < 0.8f ? 1 : 3;	// ice, a few teal crystal (the specials keep their own look)
-		Placed += AddRock(At, Size, ETDSpaceFieldKind::Belt, Rng, Fam == 3 ? 1 : Fam) ? 1 : 0;
+		Placed += AddRock(At, Size, ETDSpaceFieldKind::Cluster, Rng, Fam == 3 ? 1 : Fam) ? 1 : 0;	// a stream, not the belt
 	}
 	RegionCentres.Add(3, Bezier(Head, Ctrl, Tail, 0.5f));
 	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: Ice Drift %d rocks (side %+.0f)"), Placed, S);
@@ -469,7 +469,8 @@ void ATDSpaceField::BuildSurveyScar(FRandomStream& Rng)
 	const FVector Centre = Zone + CDir * 360000.f + Side * 75000.f + FVector(0.f, 0.f, 15000.f);
 	RegionCentres.Add(5, Centre);
 	// The centrepiece: the split-rock survey rig.
-	AddStructure(LoadKitPiece(TEXT("SM_KS_ScarRig")), FTransform(FRotator(Rng.FRandRange(-10.f, 10.f), (Zone - Centre).Rotation().Yaw, 0.f), Centre));
+	// Scales from the structures builder (Lead, Nov 14): each piece subtends 3+ degrees at 1.5 km.
+	AddStructure(LoadKitPiece(TEXT("SM_KS_ScarRig")), FTransform(FRotator(Rng.FRandRange(-10.f, 10.f), (Zone - Centre).Rotation().Yaw, 0.f), Centre, FVector(2.f)));
 	// Two Null rigs, each on an anchored host rock (the structures builder pairs SM_Asteroid_03 at scale 80 with the rig).
 	UStaticMesh* Host = Families[0].Num() > 2 ? Families[0][2].Get() : (Families[0].Num() > 0 ? Families[0][0].Get() : nullptr);
 	UStaticMesh* Rig = LoadSetPiece(TEXT("SM_SP_NullRig"));
@@ -558,7 +559,7 @@ void ATDSpaceField::PlaceRegionCentrepieces(FRandomStream& Rng)
 		// Beside the first patrol wreck, a little further out, its arc facing the zone.
 		const FVector Out = (*Halo - Zone).GetSafeNormal();
 		const FVector At = *Halo + Out * 12000.f + FVector::CrossProduct(FVector::UpVector, Out).GetSafeNormal() * 15000.f;
-		AddStructure(LoadKitPiece(TEXT("SM_KS_PicketRing")), FTransform(FRotator(Rng.FRandRange(-15.f, 15.f), (Zone - At).Rotation().Yaw, Rng.FRandRange(-20.f, 20.f)), At));
+		AddStructure(LoadKitPiece(TEXT("SM_KS_PicketRing")), FTransform(FRotator(Rng.FRandRange(-15.f, 15.f), (Zone - At).Rotation().Yaw, Rng.FRandRange(-20.f, 20.f)), At, FVector(2.f)));
 	}
 	if (const FVector* Grave = RegionCentres.Find(4))
 	{
@@ -569,8 +570,8 @@ void ATDSpaceField::PlaceRegionCentrepieces(FRandomStream& Rng)
 		const TCHAR* Parts[] = { TEXT("SM_KS_Hulk_Fore"), TEXT("SM_KS_Hulk_Mid"), TEXT("SM_KS_Hulk_Aft") };
 		for (int32 i = 0; i < 3; ++i)
 		{
-			const FVector At = Base + Along * (i - 1) * 20000.f + FVector(Rng.GetUnitVector()) * 2500.f;
-			AddStructure(LoadKitPiece(Parts[i]), FTransform(FRotator(Rng.FRandRange(-12.f, 12.f), Along.Rotation().Yaw + Rng.FRandRange(-15.f, 15.f), Rng.FRandRange(-35.f, 35.f)), At));
+			const FVector At = Base + Along * (i - 1) * 30000.f + FVector(Rng.GetUnitVector()) * 3500.f;	// 1.5x: sections and spacing
+			AddStructure(LoadKitPiece(Parts[i]), FTransform(FRotator(Rng.FRandRange(-12.f, 12.f), Along.Rotation().Yaw + Rng.FRandRange(-15.f, 15.f), Rng.FRandRange(-35.f, 35.f)), At, FVector(1.5f)));
 		}
 	}
 }

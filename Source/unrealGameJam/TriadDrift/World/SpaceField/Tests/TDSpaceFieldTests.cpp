@@ -9,6 +9,7 @@
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "HAL/PlatformTime.h"
+#include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/Combat/Pickups/TDPickup.h"
 #include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -287,6 +288,39 @@ bool FTDSpaceFieldShepherdBelt::RunTest(const FString& Parameters)
 	TestTrue(TEXT("on the ring (98%)"), InRing * 100 >= Belt * 98);
 	TestEqual(TEXT("nothing in the 900 m Verdance gap"), InGap, 0);
 	TestTrue(TEXT("bigger rocks on the inner edge than the outer"), Inner > 0 && Outer > 0 && float(InnerBig) / Inner > 2.f * float(OuterBig) / Outer);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSpaceFieldStructuresKeepOut, "TriadDrift.World.SpaceField.RegionsAndSetPiecesKeepOut", TD_TEST_FLAGS)
+bool FTDSpaceFieldStructuresKeepOut::RunTest(const FString& Parameters)
+{
+	TDSpaceFieldTest::FField F;
+	if (!TestNotNull(TEXT("field"), F.Field)) { return false; }
+	const ATDSpaceField* Fd = F.Field;
+	for (int32 R = 1; R <= 7; ++R) { TestTrue(*FString::Printf(TEXT("region %d built"), R), Fd->RegionCentres.Contains(R)); }
+	const FTransform Xf = F.Layout->GetActorTransform();
+	const FTDGalaxyLayoutData& L = F.Layout->GetLayout();
+	const FVector Zone = Xf.TransformPosition(L.CombatZoneCenter);
+	const ATDDominion* Dom = ATDDominion::Get(F.W.GetWorld());
+	const FVector DLoc = Dom ? Dom->GetActorLocation() : Xf.TransformPosition(L.Dominion.GetLocation());
+	const FVector Bow = Dom ? Dom->GetActorForwardVector() : (Zone - DLoc).GetSafeNormal();
+	TArray<FVector> Ends;
+	for (const FTDPlanetSpec& Pl : L.Planets) { Ends.Add(Xf.TransformPosition(Pl.Location)); }
+	Ends.Add(DLoc);
+	int32 Bad = 0;
+	FString First;
+	for (const FTDSpaceFieldPiece& S : Fd->GetStructures())
+	{
+		const float Half = S.Size * 0.5f;
+		bool bOk = FVector::Dist(S.Location, Zone) >= 150000.f;
+		bOk &= FVector::Dist(S.Location, DLoc) >= 350000.f;
+		for (const FVector& E : Ends) { bOk &= FVector::Dist(S.Location, FMath::ClosestPointOnSegment(S.Location, Zone, E)) > 15000.f + Half * 0.5f; }
+		bOk &= FVector::Dist(S.Location, FMath::ClosestPointOnSegment(S.Location, DLoc, DLoc + Bow * 500000.f)) > 40000.f;	// T4: the escape corridor
+		if (!bOk) { ++Bad; if (First.IsEmpty()) { First = FString::Printf(TEXT("%s size %.0f m"), *S.Location.ToCompactString(), S.Size / 100.f); } }
+	}
+	AddInfo(FString::Printf(TEXT("%d set pieces placed"), Fd->GetStructures().Num()));
+	TestTrue(TEXT("set pieces placed in the regions"), Fd->GetStructures().Num() >= 20);
+	TestEqual(*FString::Printf(TEXT("no set piece in a route, the Dominion sphere or the escape corridor (first: %s)"), *First), Bad, 0);
 	return true;
 }
 
