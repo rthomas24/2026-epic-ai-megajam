@@ -73,6 +73,12 @@ public:
 	/** A must-hear sequence is playing now (the hold applies). */
 	bool IsStoryHoldingEntry() const;
 
+	/** While held the ship crawls at this speed (cm/s; steerable) so it stops at the atmosphere's edge, not inside the planet. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "cm/s"))
+	float StoryHoldSpeed = 1500.f;
+	static const FName StoryHoldOverride; // "StoryHold"
+	void EndStoryHold();
+
 	/** How far past the hold point (further from the planet) the ship may stray and still commit when the hold ends (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "cm"))
 	float HoldLeaveMargin = 50000.f;

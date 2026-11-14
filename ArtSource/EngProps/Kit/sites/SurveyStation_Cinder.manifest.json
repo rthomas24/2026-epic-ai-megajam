@@ -1,0 +1,176 @@
+{
+ "site": "SurveyStation_Cinder",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_SurveyStation_Cinder",
+ "about": "ART-17 Cinder survey station: heat-shielded deck (8 x 4 m, top 103) reached by a landing (top 53) and two low ramps from +X; sample rack, console, warning beacon, a shield wall on -Y.",
+ "pieces": [
+  {
+   "name": "Deck_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    -200.0,
+    0.0,
+    3.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    200.0,
+    0.0,
+    3.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Landing",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x50",
+   "location_cm": [
+    600.0,
+    0.0,
+    3.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "RampLow",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_RampLow_400",
+   "location_cm": [
+    900.0,
+    0.0,
+    3.0
+   ],
+   "yaw_deg": 180.0
+  },
+  {
+   "name": "RampHigh",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_RampLow_400",
+   "location_cm": [
+    500.0,
+    0.0,
+    53.0
+   ],
+   "yaw_deg": 180.0
+  },
+  {
+   "name": "Shield_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_HeatShieldCracked",
+   "location_cm": [
+    -200.0,
+    -230.0,
+    103.0
+   ],
+   "yaw_deg": 0.0,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Rail_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -200.0,
+    200.0,
+    103.0
+   ],
+   "yaw_deg": 180.0
+  },
+  {
+   "name": "Shield_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_HeatShieldCracked",
+   "location_cm": [
+    200.0,
+    -230.0,
+    103.0
+   ],
+   "yaw_deg": 0.0,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Rail_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    200.0,
+    200.0,
+    103.0
+   ],
+   "yaw_deg": 180.0
+  },
+  {
+   "name": "Rail_back",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -400.0,
+    0.0,
+    103.0
+   ],
+   "yaw_deg": 90.0
+  },
+  {
+   "name": "Rack",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_SampleCases",
+   "location_cm": [
+    -300.0,
+    120.0,
+    103.0
+   ],
+   "yaw_deg": 90.0
+  },
+  {
+   "name": "Console",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Console",
+   "location_cm": [
+    -330.0,
+    -80.0,
+    103.0
+   ],
+   "yaw_deg": 0.0,
+   "slots": {
+    "Screen": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Screen"
+   }
+  },
+  {
+   "name": "Beacon",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_WarningBeacon",
+   "location_cm": [
+    150.0,
+    -170.0,
+    103.0
+   ],
+   "yaw_deg": 0.0,
+   "slots": {
+    "Beacon": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Beacon_Cinder"
+   }
+  }
+ ],
+ "footprint_cm": {
+  "x": [
+   -400,
+   1000
+  ],
+  "y": [
+   -280,
+   200
+  ]
+ },
+ "deck_top_z": 103,
+ "stair_foot_site_cm": [
+  1000,
+  0,
+  3
+ ],
+ "console_stand_site_cm": [
+  [
+   -220,
+   -80,
+   103,
+   180
+  ]
+ ],
+ "placement_rules": [
+  "Pivot on flat ground; the shield wall (-Y) faces the lava; keep 3 m clear past the ramp foot (+X)."
+ ]
+}

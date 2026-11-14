@@ -428,6 +428,10 @@ def build_canopy(mats, body, bvh):
                                          (0.14 * hk, 0.055 * hk), (0.16 * hk, 0.0)],
                            (0.49 + ox, 0.0, zd + 0.18), mats, segments=24, mat_idx=[WHITE] * 6))
     parts.append(G.box("CP_Visor", (0.49 + ox + 0.115, -0.035, zd + 0.17), (0.49 + ox + 0.13, 0.035, zd + 0.20), mats, ca.get("visor_mat", GLOW)))
+    if ca.get("soft"):           # v08 (review: a blocky mannequin): the seat, headrest and shoulders get wide round bevels
+        for p in parts:
+            if p.name.startswith(("CP_Seat", "CP_Shoulders")):
+                G.bevel(p, width=ca["soft"], segments=4, angle_deg=30.0)
     if ca.get("instr"):          # a thin instrument glow on the dash's top edge and two side consoles: the interior reads
         parts.append(G.box("CP_Instr", (0.975 + ox, -0.11 * ky, deck_z(1.0 + ox) + 0.085), (0.983 + ox, 0.11 * ky, deck_z(1.0 + ox) + 0.10), mats, GLOW))
         for sy in (1, -1):

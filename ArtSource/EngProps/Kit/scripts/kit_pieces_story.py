@@ -32,27 +32,53 @@ def shelter_frame():
     """A field shelter (400 long, 300 wide, 240 high): four tube hoops on ground plates, a ridge bar, and what is left of
     its canopy - two torn panels hanging on one side, the rest gone. Seen against the pilot it is a tent you could stand in."""
     p = Piece("SM_Kit_ShelterFrame", None)
+    # camp r2 (T5's placed capture: bare hoops read as spider legs): three hoops stand, the fourth (+X end) has
+    # collapsed outward onto the ground, bare; a torn, sagging canopy covers the two standing bays (two thirds of the
+    # frame), faded research-team teal-grey with one Triad cyan stripe down each side.
+    ca, sa = math.cos(math.radians(78.0)), math.sin(math.radians(78.0))
     for x in (-200.0, -67.0, 67.0, 200.0):
         pts = [(x, 150.0 * math.cos(math.radians(a)), 240.0 * math.sin(math.radians(a))) for a in range(0, 181, 30)]
+        if x > 100.0:                      # collapsed: tipped 78 degrees about its foot line, top resting near the ground
+            pts = [(x + z * sa, y, z * ca + 4.0 * (1.0 - abs(y) / 150.0)) for (_, y, z) in pts]
         for i in range(len(pts) - 1):
             _tube(p, pts[i], pts[i + 1], 4.0)
         for y in (-150.0, 150.0):
             p.box((x - 15, y - 15, 0.0), (x + 15, y + 15, 3.0), reg="sw_dark")
-    _tube(p, (-205.0, 0.0, 240.0), (205.0, 0.0, 240.0), 4.0)
-    # torn canopy: two panels between hoops on the +Y slope, ragged lower edges, both faces
+    _tube(p, (-205.0, 0.0, 240.0), (72.0, 0.0, 240.0), 4.0)
+    _tube(p, (72.0, 0.0, 240.0), (128.0, 6.0, 168.0), 4.0)        # the ridge bar snapped and hanging into the bare bay
     rnd = random.Random(5)
-    for x0, x1 in ((-200.0, -67.0), (67.0, 200.0)):
-        top = [(x0, 75.0, 207.0), (x1, 75.0, 207.0)]
-        n = 6
-        for k in range(n):
-            xa, xb = x0 + (x1 - x0) * k / n, x0 + (x1 - x0) * (k + 1) / n
-            ha = 60.0 + rnd.random() * 120.0
-            hb = 60.0 + rnd.random() * 120.0
-            ya, za = 75.0 + 75.0 * min(1.0, ha / 180.0), 207.0 - ha
-            yb, zb = 75.0 + 75.0 * min(1.0, hb / 180.0), 207.0 - hb
-            q = [(xa, 75.0, 207.0), (xb, 75.0, 207.0), (xb, yb, zb), (xa, ya, za)]
-            p.poly(q, "wall", mat="Canopy", n=(0, 1, 0.5), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
-            p.poly(q[::-1], "wall", mat="Canopy", n=(0, -1, -0.5), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+    NX, NA, R0, H0 = 12, 15, 157.0, 247.0
+    x0, x1 = -200.0, 67.0
+    lo = [rnd.uniform(0.0, 3.0) for _ in range(NX)]                 # +Y side: ragged torn hem
+    hi = [rnd.uniform(10.5, 14.5) for _ in range(NX)]               # -Y side: torn shorter
+    holes = {(rnd.randrange(NX), rnd.randrange(2, NA - 2)) for _ in range(9)}
+
+    def cloth(i, j):
+        t = i / NX
+        x = x0 + (x1 - x0) * t
+        bay = (t * 2.0) % 1.0
+        sag = math.sin(math.pi * bay)
+        a = math.radians(180.0 * j / NA)
+        f = 1.0 - 0.07 * sag * (0.4 + 0.6 * math.sin(a))
+        return (x, R0 * f * math.cos(a), H0 * f * math.sin(a) - 10.0 * sag * math.sin(a))
+
+    for i in range(NX):
+        for j in range(NA):
+            if j < lo[i] or j + 1 > hi[i] or (i, j) in holes:
+                continue
+            q = [cloth(i, j), cloth(i + 1, j), cloth(i + 1, j + 1), cloth(i, j + 1)]
+            a = math.radians(180.0 * (j + 0.5) / NA)
+            out = (0.0, math.cos(a), math.sin(a))
+            mat = "CanopyStripe" if j in (3, 11) else "Canopy"
+            p.poly(q, "wall", mat=mat, n=out, uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+            p.poly(q[::-1], "wall", mat=mat, n=(0.0, -out[1], -out[2]), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+    # a loose flap still tied at the last standing hoop, hanging into the bare bay
+    for k in range(4):
+        za, zb = 236.0 - 30.0 * k, 236.0 - 30.0 * (k + 1)
+        w = 46.0 - 7.0 * k
+        q = [(70.0 + 3 * k, 20.0 + 4 * k, za), (70.0 + 3 * k, 20.0 + 4 * k + w, za), (73.0 + 3 * k, 24.0 + 4 * k + w - 7.0, zb), (73.0 + 3 * k, 24.0 + 4 * k, zb)]
+        p.poly(q, "wall", mat="Canopy", n=(1, 0, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
+        p.poly(q[::-1], "wall", mat="Canopy", n=(-1, 0, 0), uv=[(0, 0), (1, 0), (1, 1), (0, 1)])
     p.chull([(x, y, z) for x in (-205.0, 205.0) for y in (-150.0, 150.0) for z in (0.0, 30.0)] +
             [(x, y, 240.0) for x in (-205.0, 205.0) for y in (-20.0, 20.0)])
     return p

@@ -1,17 +1,18 @@
 {
   "asset": "SM_Kit_ShelterFrame",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_story\\SM_Kit_ShelterFrame.fbx",
-  "tris": 3396,
+  "tris": 3731,
   "size_cm": [
-    430.0,
+    653.0,
     330.0,
-    244.4
+    249.2
   ],
   "pivot": "root object origin (SM_Kit_ShelterFrame~exp)",
   "forward": "+X (authoring front +X rotated)",
   "materials": [
     "M_Kit_Trim",
-    "M_Kit_Canopy"
+    "M_Kit_Canopy",
+    "M_Kit_CanopyStripe"
   ],
   "material_params": [
     {
@@ -32,8 +33,25 @@
       "textured": false,
       "base_color": [
         0.42,
-        0.38,
-        0.28
+        0.5,
+        0.5
+      ],
+      "metallic": 0.0,
+      "roughness": 0.85,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    },
+    {
+      "name": "M_Kit_CanopyStripe",
+      "textured": false,
+      "base_color": [
+        0.1,
+        0.7,
+        0.85
       ],
       "metallic": 0.0,
       "roughness": 0.85,

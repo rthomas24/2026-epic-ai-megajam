@@ -89,6 +89,12 @@ float UTDAtmosphereEntryComponent::GetEntry01() const
 bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName InReturnPoint, FVector PlanetCenter, float PlanetSurfaceRadius)
 {
 	ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner());
+	// T7's live play: during the hold the planet re-arms and asks again as a boosting ship grazes back in; answering "busy"
+	// (false) made it run its own fallback travel a second later, mid-Aftermath. The hold still owns it: taken.
+	if (Craft && EntryState == ETDAtmosphereEntryState::Holding)
+	{
+		return true;
+	}
 	if (!Craft || EntryState != ETDAtmosphereEntryState::Idle)
 	{
 		return false;
@@ -123,6 +129,8 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 		HeldSurfaceRadius = PlanetSurfaceRadius;
 		HeldStartDistance = (float)FVector::Dist(Craft->GetActorLocation(), PlanetCenter);
 		UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: held - a story sequence is playing (awaiting orders)"));
+		// Stopped at the edge, not a silent wall: the ship slows to a crawl (still steerable) and the HUD says AWAITING ORDERS.
+		if (UTDShipMovementComponent* Move = Craft->GetShipMovement()) { Move->SetSpeedOverrideFor(StoryHoldOverride, StoryHoldSpeed, 1.f, 30000.f); }
 		return true; // taken (not committed): the planet must not run its own fallback travel; it re-arms on the next pass
 	}
 	EntryState = ETDAtmosphereEntryState::Entering;
@@ -270,6 +278,16 @@ void UTDAtmosphereEntryComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 	Super::EndPlay(EndPlayReason);
 }
 
+const FName UTDAtmosphereEntryComponent::StoryHoldOverride(TEXT("StoryHold"));
+
+void UTDAtmosphereEntryComponent::EndStoryHold()
+{
+	if (const ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner()))
+	{
+		if (UTDShipMovementComponent* Move = Craft->GetShipMovement()) { Move->ClearSpeedOverrideFor(StoryHoldOverride); }
+	}
+}
+
 bool UTDAtmosphereEntryComponent::IsStoryHoldingEntry() const
 {
 	if (UTDStorySubsystem::IsMustHearSequencePlaying(this)) { return true; } // T3's rule (Aftermath and any later must-hear)
@@ -287,6 +305,7 @@ void UTDAtmosphereEntryComponent::AbortEntry()
 	if (EntryState == ETDAtmosphereEntryState::Holding)
 	{
 		EntryState = ETDAtmosphereEntryState::Idle;
+		EndStoryHold();
 		return;
 	}
 	if (EntryState == ETDAtmosphereEntryState::Entering)
@@ -338,11 +357,13 @@ void UTDAtmosphereEntryComponent::TickComponent(float DeltaTime, ELevelTick Tick
 		if (!Ship || !Ship->IsPlayerFlown() || Dist > HeldStartDistance + HoldLeaveMargin)
 		{
 			EntryState = ETDAtmosphereEntryState::Idle; // flew out (or switched): the planet takes it on the next pass
+			EndStoryHold();
 			UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: hold dropped (left the atmosphere or not flown)"));
 		}
 		else if (!IsStoryHoldingEntry())
 		{
 			EntryState = ETDAtmosphereEntryState::Idle;
+			EndStoryHold();
 			UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: the sequence ended - committing"));
 			BeginEntry(Destination, ReturnPoint, HeldPlanetCenter, HeldSurfaceRadius);
 		}

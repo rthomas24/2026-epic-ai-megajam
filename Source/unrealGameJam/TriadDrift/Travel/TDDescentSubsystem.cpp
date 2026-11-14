@@ -416,8 +416,11 @@ void UTDDescentSubsystem::TickCover(float Dt)
 					}
 				}
 				const float Top = DeckZ > 0.f ? Zone->GetZoneBox().Max.Z : Zone->GetZoneBox().Max.Z - CeilingClearanceCm;
+				// Over the deck the squad is released and glides down together: no lowering (a wingman lowered 588 m in the
+				// live run of Nov 14 broke the formation).
 				for (TActorIterator<ATDShip> It(World); It; ++It)
 				{
+					if (bArrivedOverDeck) { break; }
 					FVector L = It->GetActorLocation();
 					if (L.Z <= Top) { continue; }
 					const float Ground = Terrain ? Terrain->GetHeightAt(L) : L.Z - ArrivalAltitudeCm;
@@ -427,7 +430,7 @@ void UTDDescentSubsystem::TickCover(float Dt)
 					It->TeleportSpacecraft(L, It->GetActorRotation(), /*bKeepSpeed*/ true);
 				}
 				FVector A = ArrivalWorldXf.GetLocation();
-				if (A.Z > Top) { A.Z = FMath::Max(Top, (Terrain ? Terrain->GetHeightAt(A) : A.Z) + 30000.f); ArrivalWorldXf.SetLocation(A); } // retakes too
+				if (!bArrivedOverDeck && A.Z > Top) { A.Z = FMath::Max(Top, (Terrain ? Terrain->GetHeightAt(A) : A.Z) + 30000.f); ArrivalWorldXf.SetLocation(A); } // retakes too
 			}
 			const double Held = Now - DestFirstFrameAt;
 			if (bTerrainReady && bGlideEndPredicted && Terrain && !Terrain->IsArrivalReady(GlideEndPredicted)) { bTerrainReady = false; } // T4's scatter
