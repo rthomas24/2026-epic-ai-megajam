@@ -361,6 +361,11 @@ private:
 
 	float TimeLeft = -1.f;
 	float DebrisTimer = 0.f;
+	float StartDelayLeft = 0.f;
+public:
+	/** A beat between the step's start (the "3 / 3" line) and the clock (T7: the run felt tight). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s")) float StartDelay = 1.5f;
+private:
 	int32 LastShownSecond = -1;
 	FVector TowerHome = FVector::ZeroVector;
 	TArray<TWeakObjectPtr<AActor>> Debris;

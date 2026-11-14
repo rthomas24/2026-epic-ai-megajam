@@ -760,6 +760,7 @@ void ATDCollapseRun::HandleStepStarted(ATDObjective* Objective, int32 StepIndex)
 		DebrisTimer = 0.f;
 		LastShownSecond = -1;
 		SectionsDropped = 0;
+		StartDelayLeft = StartDelay;
 	}
 }
 
@@ -773,6 +774,11 @@ void ATDCollapseRun::Tick(float DeltaSeconds)
 	if (!IsLinkedStepCurrent())
 	{
 		TimeLeft = -1.f; // made it (or the objective reset)
+		return;
+	}
+	if (StartDelayLeft > 0.f)
+	{
+		StartDelayLeft -= DeltaSeconds; // the "3 / 3" line first, then the clock
 		return;
 	}
 	TimeLeft -= DeltaSeconds;

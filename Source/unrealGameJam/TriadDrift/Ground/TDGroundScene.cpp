@@ -99,7 +99,8 @@ void UTDGroundSceneSubsystem::ResetUnfinished(FName CurrentScene)
 		}
 		const bool bObjectiveDone = Enc->LinkedObjective && Enc->LinkedObjective->IsComplete();
 		// A room of a step before the objective's checkpoint stays as it was (cleared, doors open).
-		const bool bBeforeCheckpoint = Enc->LinkedObjective && Enc->LinkedStep != INDEX_NONE && Enc->LinkedStep < Enc->LinkedObjective->GetCheckpointStep();
+		const int32 OwnStep = Enc->LinkedStep != INDEX_NONE ? Enc->LinkedStep : Enc->RetakeStep;
+		const bool bBeforeCheckpoint = Enc->LinkedObjective && OwnStep != INDEX_NONE && OwnStep < Enc->LinkedObjective->GetCheckpointStep();
 		if (!bObjectiveDone && !bBeforeCheckpoint)
 		{
 			Enc->ResetEncounter();

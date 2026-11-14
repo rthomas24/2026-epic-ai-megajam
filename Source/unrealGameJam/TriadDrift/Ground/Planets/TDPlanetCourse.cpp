@@ -1849,6 +1849,9 @@ void ATDPlanetCourse::BuildCinder()
 
 	// Every room is a checkpoint: a death costs that room, not the whole compound (machine playtest: the
 	// barracks death sent the pilot back to the gate conduits every time). The Warden too (review N6).
+	// The gate: a CUT there comes back on the far bank, past the river, not at the pad (T5's play, Nov 14: every retake at
+	// the conduits re-walked the whole way over the bridge).
+	Checkpoint(Outpost, 0, FVector(7300.f, 4900.f, 0.f), 25.f);
 	Checkpoint(Outpost, 1, FVector(XGate - 500.f, Y0, 0.f), 0.f);
 	Checkpoint(Outpost, 2, FVector(XBarracks - 500.f, Y0, 0.f), 0.f);
 	Checkpoint(Outpost, 3, FVector(XCommand - 500.f, Y0, 0.f), 0.f);
@@ -2075,7 +2078,7 @@ void ATDPlanetCourse::BuildCinder()
 	ATDCollapseRun* Run = SpawnProp<ATDCollapseRun>(FVector((LakeX0 + LakeX1) * 0.5f + 1500.f, LakeY - 2400.f, 0.f));
 	Run->LinkedObjective = Jammer;
 	Run->LinkedStep = 2;
-	Run->Seconds = 22.f;
+	Run->Seconds = 25.f; // T7 (Nov 14): 20 s was tight from the north charge (the straight line clips the plinth)
 	Run->Tower = TowerActor;
 	Run->DebrisExtent = FVector(3500.f, 1200.f, 0.f);
 	// The anchor's own collapse pieces (structures builder, Kit/Story), each optional.
@@ -2094,6 +2097,10 @@ void ATDPlanetCourse::BuildCinder()
 	Routes.Add({ Tower, FVector(LakeX1 + 800.f, LakeY - 3300.f, 0.f), Exit });
 
 	Checkpoint(Jammer, 1, FVector(LakeX1 + 250.f, LakeY, 0.f), 0.f); // the charges: from the far bank, out of the defence's drop
+	// The collapse run: a CUT keeps the charges planted and the defence down, and the run restarts south of the tower,
+	// on the way out (T7: a CUT reset the charges to 0 / 3).
+	Checkpoint(Jammer, 2, FVector(LakeX1 + 1000.f, LakeY - 1600.f, 0.f), 200.f);
+	if (Defence) { Defence->RetakeStep = 1; }
 	FinishObjective(Jammer,
 		{ LOCTEXT("J0", "CROSS THE CRYSTAL BRIDGE"), LOCTEXT("J1", "PLANT THE CHARGES  0 / 3"), LOCTEXT("J2", "RETURN TO EXTRACTION") },
 		{ FarBank, Charges, Clear });
