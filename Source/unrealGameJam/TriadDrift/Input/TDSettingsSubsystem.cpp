@@ -72,6 +72,7 @@ void UTDSettingsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 		ApplyPreferredDifficulty(); // the run that starts from the menu uses the player's choice (Continue restores its own)
 	}
 	ApplyVideo(true);
+	ApplyGraphics(true); // ENG-45 (T7)
 	ApplyAudio();
 	ApplyControls();
 	// A level travel (menu -> galaxy, planet trips) never carries the page into the next map.
@@ -255,6 +256,7 @@ void UTDSettingsSubsystem::ApplyAll(const FTDPlayerSettings& NewSettings)
 	const bool bDifficulty = NewSettings.Difficulty != GetDifficultyInPlay() || NewSettings.Difficulty != Settings.Difficulty;
 	Settings = NewSettings;
 	Changed(true, true);
+	ApplyGraphics(); // ENG-45 (T7)
 	BroadcastCameraIfChanged(Before);
 	if (bDifficulty)
 	{
@@ -289,6 +291,77 @@ TArray<FIntPoint> UTDSettingsSubsystem::GetSupportedResolutions() const
 	TArray<FIntPoint> Out;
 	UKismetSystemLibrary::GetSupportedFullscreenResolutions(Out);
 	return Out;
+}
+
+// ---- Accessibility and graphics (ENG-45, T7)
+
+void UTDSettingsSubsystem::SetSubtitleSize(ETDSubtitleSize Size) { Settings.SubtitleSize = Size; Changed(); }
+
+float UTDSettingsSubsystem::SubtitleScaleFor(ETDSubtitleSize Size)
+{
+	switch (Size)
+	{
+	case ETDSubtitleSize::Small: return 0.8f;
+	case ETDSubtitleSize::Large: return 1.3f;
+	default: return 1.f;
+	}
+}
+
+float UTDSettingsSubsystem::GetSubtitleScale(const UObject* WorldContextObject)
+{
+	const UTDSettingsSubsystem* S = GetTDSettings(WorldContextObject);
+	return S ? SubtitleScaleFor(S->Settings.SubtitleSize) : 1.f;
+}
+
+int32 UTDSettingsSubsystem::ScalabilityLevelFor(ETDGraphicsPreset Preset)
+{
+	return FMath::Clamp((int32)Preset, 0, 3);
+}
+
+ETDGraphicsPreset UTDSettingsSubsystem::PresetForLevel(int32 Level)
+{
+	return (Level >= 0 && Level <= 3) ? (ETDGraphicsPreset)Level : ETDGraphicsPreset::High; // -1 = a custom mix
+}
+
+void UTDSettingsSubsystem::SetGraphicsPreset(ETDGraphicsPreset Preset)
+{
+	Settings.GraphicsPreset = Preset;
+	Settings.bGraphicsChosen = true;
+	ApplyGraphics();
+	Changed();
+}
+
+void UTDSettingsSubsystem::ApplyGraphics(bool bStartup)
+{
+	const bool bTouchEngine = bApplyVideo && !GIsEditor && !IsRunningCommandlet() && GEngine;
+	UGameUserSettings* GUS = bTouchEngine ? GEngine->GetGameUserSettings() : nullptr;
+	if (!Settings.bGraphicsChosen)
+	{
+		// No choice yet: the engine's own detection decides (a benchmark on the first start of the shipped game), and the
+		// menu shows what it picked. Nothing is saved as the player's choice.
+		if (GUS && bStartup)
+		{
+			if (GUS->GetLastCPUBenchmarkResult() < 0.f)
+			{
+				GUS->RunHardwareBenchmark();
+				GUS->ApplyHardwareBenchmarkResults();
+				GUS->SaveSettings();
+				UE_LOG(LogTriadDrift, Log, TEXT("TD settings: graphics benchmark -> overall scalability %d"), GUS->GetOverallScalabilityLevel());
+			}
+			Settings.GraphicsPreset = PresetForLevel(GUS->GetOverallScalabilityLevel());
+			AppliedScalability = GUS->GetOverallScalabilityLevel();
+		}
+		return;
+	}
+	AppliedScalability = ScalabilityLevelFor(Settings.GraphicsPreset); // tests read the request even when the engine is left alone
+	if (!GUS)
+	{
+		return; // the editor, a commandlet or a test: never change the machine's settings
+	}
+	GUS->SetOverallScalabilityLevel(AppliedScalability);
+	GUS->ApplyNonResolutionSettings();
+	GUS->SaveSettings();
+	UE_LOG(LogTriadDrift, Log, TEXT("TD settings: graphics %s (overall scalability %d)"), *UEnum::GetValueAsString(Settings.GraphicsPreset), AppliedScalability);
 }
 
 // ---- Applying
