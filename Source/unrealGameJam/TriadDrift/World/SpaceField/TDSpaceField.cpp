@@ -678,7 +678,6 @@ void ATDSpaceField::SetFieldEnabled(bool bOn)
 void ATDSpaceField::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	NoteFrame(DeltaSeconds);	// TD.SpaceField.FrameWatch
 	// td.SpaceField is read at level load only (Lead, Nov 14: a provable fallback). A change mid-game is reported, not
 	// applied: 0 at load is the galaxy exactly as it was before the field, never a half-restored layout.
 	if ((TDSpaceFieldImpl::GEnabled != 0) != bEnabled && !bWarnedToggle)
