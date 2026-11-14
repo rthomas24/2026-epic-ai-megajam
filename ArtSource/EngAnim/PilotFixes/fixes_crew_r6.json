@@ -1,0 +1,23 @@
+{
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "_note": "Grunt charge r2: jump arc cut to 35 %, upper body leaned 15 deg into the charge.",
+ "clips": [
+  {
+   "src": "A_Crew_Grunt_Lunge",
+   "dst": "A_Crew_Grunt_Charge",
+   "arc_scale": 0.35,
+   "twist": [
+    {
+     "bone": "spine_01",
+     "parent": "pelvis",
+     "axis": [
+      -1,
+      0,
+      0
+     ],
+     "deg": 15
+    }
+   ]
+  }
+ ]
+}
