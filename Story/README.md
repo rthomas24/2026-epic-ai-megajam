@@ -2,19 +2,25 @@
 
 This folder contains the official narrative development documents for Triad Drift, created for the 2026 Epic AI MegaJam.
 
+## Current review script — SECOND DRAFT
+
+[Download Nicholas's complete second draft](Triad_Drift_Complete_Script_Second_Draft.docx). Nicholas requested immediate circulation on November 13 so Ryan's team uses this draft for ongoing script review instead of the first draft. The exact reviewed file is preserved: SHA-256 7b2ab60d23db4b0d868a554d7b5e76ad1bc4c68d1b59901f7c13022db4a8fffa.
+
+This is the current **review draft**, not a final recording lock. Previously approved lines and decisions remain in force; circulation does not approve every revised line. Flag any voice or asset work already underway from the first draft to both Leads. The original narrative, previous scripts and Nicholas's editable working copy are preserved.
+
 ## Narrative overview
 
-[Nicholas’s first draft for Ryan’s team, November 13 at 8:45 p.m. Eastern](Triad_Drift_Complete_Dialogue_FIRST_DRAFT_20261113_204517.docx) is a snapshot of the script he is still editing. Use it for reference and review. Dialogue, timing and proposed additions can change. Previously approved decisions stand; new wording and optional ending variations await approval before recording or implementation.
+[Nicholas’s first draft for Ryan’s team, November 13 at 8:45 p.m. Eastern](Triad_Drift_Complete_Dialogue_FIRST_DRAFT_20261113_204517.docx) is preserved as the earlier review snapshot. Use the second draft above for current script review. Dialogue, timing and proposed additions can change. Previously approved decisions stand; new wording and optional ending variations await approval before recording or implementation.
 
 [The Paradox Narrative](Triad_Drift_The_Paradox_Narrative.docx) covers the main storyline, the pilots, the Dominion mystery, and the future-self reveal.
 
 Use that original narrative and Nicholas's explicitly approved decisions as the reference for every new or revised sequence. Check characterisation, discovery order, carried evidence, ability progression and reveal timing before publication; proposed additions must not silently become established lore.
 
-## Current script and approval status
+## Earlier review material and approval status
 
-[Complete dialogue review script — DRAFT](Triad_Drift_Complete_Dialogue_Review_Script_DRAFT.docx) contains the chronological campaign script, gameplay barks, approval references and missing voice/integration work. It is a separate repository review copy; Nicholas's existing editable local master is preserved. **This is not an approved recording handoff.** Approved lines stay marked approved; new encounter speech, pilot-specific replies, shortened cuts and other unapproved wording remain drafts. The runtime reference appendix preserves superseded text for comparison, not performance.
+[Complete dialogue review script — DRAFT](Triad_Drift_Complete_Dialogue_Review_Script_DRAFT.docx) is preserved as earlier technical review material containing campaign dialogue, gameplay barks, approval references and missing voice/integration work. It is a separate repository review copy; Nicholas's existing editable local master is preserved. **This is not an approved recording handoff.** Approved lines stay marked approved; new encounter speech, pilot-specific replies, shortened cuts and other unapproved wording remain drafts. The runtime reference appendix preserves superseded text for comparison, not performance.
 
-The sequence documents below were synchronized with the approved decisions on 13 November 2026. The original narrative is unchanged. For story direction use the original plus explicit approvals; use the marked master script for line review and the sequence documents for staging and dependencies. A published document does not prove a line has been voiced or implemented. Ryan's team owns realistic voice creation; final performance approval remains with Nicholas.
+The sequence documents below were synchronized with the approved decisions on 13 November 2026. The original narrative is unchanged. For story direction use the original plus explicit approvals; use the second draft above for current line review and the sequence documents for staging and dependencies. A published document does not prove a line has been voiced or implemented. Ryan's team owns realistic voice creation; final performance approval remains with Nicholas.
 
 ## Cinematic and gameplay sequences
 
