@@ -1,6 +1,7 @@
 // World density: the planet scatter (v1 T4, v2 environment builder). Run: .\Tools\td-test.ps1 -Filter TriadDrift.World.Scatter
 
 #include "Misc/AutomationTest.h"
+#include "UObject/UObjectGlobals.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -74,11 +75,69 @@ bool FTDScatterOnTheTerrain::RunTest(const FString&)
 			H->GetInstanceTransform(i, X, /*bWorldSpace*/ true);
 			const float Ground = T->GetHeightAt(X.GetLocation());
 			++Checked;
-			Off += (FVector2D(X.GetLocation() - Origin).Size() > 500000.f || FMath::Abs(X.GetLocation().Z - Ground) > 3000.f) ? 1 : 0;
+			// the far canopy clumps are sunk ~18 m per unit of height scale and seated on the lowest ground under them (s6)
+			const float Tol = H->GetStaticMesh() && H->GetStaticMesh()->GetName().Contains(TEXT("TreeClump")) ? 8000.f : 3000.f;
+			Off += (FVector2D(X.GetLocation() - Origin).Size() > 500000.f || FMath::Abs(X.GetLocation().Z - Ground) > Tol) ? 1 : 0;
 		}
 	}
 	TestTrue(TEXT("checked some"), Checked > 10);
 	TestEqual(TEXT("every checked instance stands on the terrain around the course"), Off, 0);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDScatterCanopyCover, "TriadDrift.World.Scatter.VerdanceCanopyCoversALargeShareOfTheLowland", TD_TEST_FLAGS)
+bool FTDScatterCanopyCover::RunTest(const FString&)
+{
+	// s8 (environment builder): continuous forest from the air means the merged canopy clumps cover roughly 35-45 % of the
+	// vegetated lowland (below 900 m over the pad, gentler than the rock slope, not sea), and none of the wreck scar.
+	const FTDTerrainField F(FTDTerrainStyle::ForPlanet(ETDDestination::Verdance));
+	const FTDScatterPlan P = FTDScatterPlan::ForPlanet(ETDDestination::Verdance);
+	FTDScatterResult R;
+	P.Generate(F, R);
+	TArray<FVector4> Crowns;	// x, y, radius
+	for (int32 k = 0; k < P.Kinds.Num(); ++k)
+	{
+		if (!P.Kinds[k].MeshPath.Contains(TEXT("TreeClump"))) { continue; }
+		for (const TArray<FTransform>* L : { &R.Near[k], &R.Far[k] })
+		{
+			for (const FTransform& X : *L) { Crowns.Add(FVector4(X.GetLocation().X, X.GetLocation().Y, 2400.f * X.GetScale3D().X, 0.f)); }
+		}
+	}
+	const float Cell = 20000.f;
+	TMap<FIntPoint, TArray<int32>> Grid;
+	for (int32 i = 0; i < Crowns.Num(); ++i) { Grid.FindOrAdd(FIntPoint(FMath::FloorToInt(Crowns[i].X / Cell), FMath::FloorToInt(Crowns[i].Y / Cell))).Add(i); }
+	int32 Land = 0, Covered = 0, Scar = 0, ScarCovered = 0;
+	const FTDTerrainStyle& S = F.GetStyle();
+	for (float Y = -300000.f; Y <= 300000.f; Y += 5000.f)
+	{
+		for (float X = -300000.f; X <= 300000.f; X += 5000.f)
+		{
+			if (P.IsKeptOut(F, X, Y)) { continue; }
+			const FTDTerrainSample Sm = F.Sample(X, Y, 1750.f);
+			const bool bScar = P.ScarWeight(X, Y) > 0.5f;
+			if (!bScar && (Sm.Height < S.SeaLevel + 1000.f || (Sm.Height - S.BasinFloor) > 90000.f || Sm.Slope > 0.17f || P.IsPatch(Sm))) { continue; }
+			bool bIn = false;
+			const FIntPoint C(FMath::FloorToInt(X / Cell), FMath::FloorToInt(Y / Cell));
+			for (int32 dy = -1; dy <= 1 && !bIn; ++dy)
+			{
+				for (int32 dx = -1; dx <= 1 && !bIn; ++dx)
+				{
+					if (const TArray<int32>* L = Grid.Find(C + FIntPoint(dx, dy)))
+					{
+						for (int32 i : *L) { if (FVector2D::Distance(FVector2D(X, Y), FVector2D(Crowns[i].X, Crowns[i].Y)) < Crowns[i].Z) { bIn = true; break; } }
+					}
+				}
+			}
+			if (bScar) { ++Scar; ScarCovered += bIn ? 1 : 0; continue; }
+			++Land;
+			Covered += bIn ? 1 : 0;
+		}
+	}
+	const float Share = Land > 0 ? float(Covered) / Land : 0.f;
+	AddInfo(FString::Printf(TEXT("Verdance canopy: %d clumps cover %.0f %% of %d lowland samples (50 m grid, 3 km); wreck scar %d / %d covered"),
+		Crowns.Num(), Share * 100.f, Land, ScarCovered, Scar));
+	TestTrue(*FString::Printf(TEXT("canopy covers 30-50 %% of the vegetated lowland (%.0f %%)"), Share * 100.f), Share > 0.3f && Share < 0.5f);
+	TestTrue(TEXT("the wreck scar is open ground"), Scar > 0 && ScarCovered * 10 <= Scar);
 	return true;
 }
 
@@ -214,6 +273,73 @@ bool FTDScatterV2Rings::RunTest(const FString&)
 	for (UInstancedStaticMeshComponent* C : Comps)
 	{
 		TestTrue(TEXT("every instanced component is Movable"), C->Mobility == EComponentMobility::Movable);
+	}
+	return true;
+}
+
+
+// Issue #89 (T7's profile): the zone layer arrived in one 109-330 ms frame at the atmosphere entry. Now it is applied a few
+// components per frame, near tier first: no frame spends more than 8 ms on it, and the near tier lands before the far one.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDScatterSpread, "TriadDrift.World.Scatter.ZoneLayerAppliesWithoutAHitch", TD_TEST_FLAGS)
+bool FTDScatterSpread::RunTest(const FString&)
+{
+	FTDTestWorld W;
+	ATDPlanetTerrain* T = ATDPlanetTerrain::SpawnForPlanet(W.GetWorld(), ETDDestination::Verdance, FTransform(FVector(1900000.f, 1700000.f, 2500.f)), nullptr);
+	ATDPlanetScatter* S = T ? T->GetScatter() : nullptr;
+	if (!TestNotNull(TEXT("scatter"), S)) { return false; }
+	bool bNearBeforeBuilt = false;
+	// Real time, generously: generation runs on the thread pool, and a loaded gate machine can take a while. The per-frame
+	// budget is what this test is about, not how long the machine took (batch U: flaky at 30 s under load).
+	const double Until = FPlatformTime::Seconds() + 120.0;
+	while (!S->IsBuilt() && FPlatformTime::Seconds() < Until)
+	{
+		if (S->GetPendingApplyJobs() > 0 && !S->AreKindsLoaded()) { FlushAsyncLoading(); }	// a test world ticks no async loader
+		W.Tick(1.f / 60.f);
+		if (S->IsNearApplied() && !S->IsBuilt() && S->GetPendingApplyJobs() > 0) { bNearBeforeBuilt = true; }
+	}
+	AddInfo(FString::Printf(TEXT("zone layer %d instances, worst apply frame %.1f ms"), S->GetInstanceCount(), S->GetMaxApplyFrameMs()));
+	TestTrue(TEXT("built (within a generous 120 s of real time)"), S->IsBuilt());
+	TestTrue(TEXT("instances"), S->GetInstanceCount() > 1000);
+	TestTrue(*FString::Printf(TEXT("no frame spends more than 8 ms applying (%.1f ms)"), S->GetMaxApplyFrameMs()), S->GetMaxApplyFrameMs() <= 8.0);
+	TestTrue(TEXT("the near tier is in before the far tier finishes"), bNearBeforeBuilt || S->IsNearApplied());
+	TestTrue(TEXT("the kinds were loaded off the game thread before any component was made"), S->AreKindsLoaded());
+	TestEqual(TEXT("no synchronous mesh or material load while applying (T7: ~330 ms on the first entry)"), S->GetSyncKindLoads(), 0);
+	return true;
+}
+
+
+// ENG-38 arrival (agreed with T1, Nov 14): the deck clears the flight zone's highest ground by DeckClearance, the deck actor
+// sits there, and after PrepareArrival(glide end) the scatter round that point is ready before the camera gets near it.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDArrivalReady, "TriadDrift.World.Arrival.DeckClearsTheZoneAndTheGlideEndIsReadyFirst", TD_TEST_FLAGS)
+bool FTDArrivalReady::RunTest(const FString&)
+{
+	for (const ETDDestination Planet : { ETDDestination::Verdance, ETDDestination::Cinder })
+	{
+		const FString Name = Planet == ETDDestination::Verdance ? TEXT("Verdance") : TEXT("Cinder");
+		FTDTestWorld W;
+		const FVector Origin(1900000.f, 1700000.f, 2500.f);
+		ATDPlanetTerrain* T = ATDPlanetTerrain::SpawnForPlanet(W.GetWorld(), Planet, FTransform(Origin), nullptr);
+		if (!TestNotNull(*(Name + TEXT(": terrain")), T)) { continue; }
+		// The glide: from over the pad to 1 km out, ending 900 m over the ground.
+		const FVector EndXY = Origin + FVector(100000.f, 0.f, 0.f);
+		const float Corridor = T->GetCorridorMaxGroundZ(Origin, EndXY);
+		const float Deck = T->GetCloudDeckZFor(Origin, EndXY);
+		AddInfo(FString::Printf(TEXT("%s: highest ground in the glide corridor %.0f m, deck %.0f m (above the pad)"), *Name, (Corridor - Origin.Z) / 100.f, (Deck - Origin.Z) / 100.f));
+		TestTrue(*(Name + TEXT(": the deck is inside 1.1-1.6 km over the pad")), Deck - Origin.Z >= T->DeckMinAbovePad - 1.f && Deck - Origin.Z <= T->DeckMaxAbovePad + 1.f);
+		TestTrue(*(Name + TEXT(": the deck clears the corridor's ground by the clearance (or sits at the clamp)")),
+			Deck >= FMath::Min(Corridor + T->DeckClearance, Origin.Z + T->DeckMaxAbovePad) - 1.f);
+		const FVector GlideEnd(EndXY.X, EndXY.Y, T->GetGroundZAt(EndXY) + 90000.f);
+		T->PrepareArrival(FVector(Origin.X, Origin.Y, Deck + 30000.f), GlideEnd);
+		bool bReady = false;
+		const double Until = FPlatformTime::Seconds() + 120.0;	// real time, generous: the gate machine is loaded
+		while (!bReady && FPlatformTime::Seconds() < Until)
+		{
+			if (T->GetScatter() && T->GetScatter()->GetPendingApplyJobs() > 0 && !T->GetScatter()->AreKindsLoaded()) { FlushAsyncLoading(); }	// no async loader in a test world
+			W.Tick(1.f / 60.f);
+			bReady = T->IsArrivalReady(GlideEnd);
+		}
+		TestTrue(*(Name + TEXT(": the glide end becomes ready after PrepareArrival")), bReady);
+		TestTrue(*(Name + TEXT(": the zone layer's near tier is in")), T->GetScatter() && T->GetScatter()->IsNearApplied());
 	}
 	return true;
 }

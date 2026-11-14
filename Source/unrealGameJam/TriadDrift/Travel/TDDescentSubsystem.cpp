@@ -1,6 +1,7 @@
 // Triad Drift - planetary descent (ENG-38 stage 1). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
+#include "Camera/CameraComponent.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Input/TDSettingsSubsystem.h"
 #include "TriadDrift/Travel/TDLandingComponent.h"
@@ -82,6 +83,11 @@ void UTDDescentSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 	PreLoadHandle = FCoreUObjectDelegates::PreLoadMap.AddUObject(this, &UTDDescentSubsystem::HandlePreLoadMap);
 	PostLoadHandle = FCoreUObjectDelegates::PostLoadMapWithWorld.AddUObject(this, &UTDDescentSubsystem::HandlePostLoadMap);
+	// A retake (CUT) in the same map ends a glide and gives the squad back to the zone.
+	if (UTDGameInstance* GI = Cast<UTDGameInstance>(GetGameInstance()))
+	{
+		GI->OnSceneRestart.AddWeakLambda(this, [this](FName, int32) { EndGlide(TEXT("retake")); });
+	}
 }
 
 void UTDDescentSubsystem::Deinitialize()
@@ -125,6 +131,7 @@ void UTDDescentSubsystem::HandlePreLoadMap(const FString& MapName)
 {
 	EndBurnShot(); // the cover is full white here: the cut back to the chase camera is hidden
 	EndGlide(TEXT("level change"));
+	bArrivedOverDeck = false;
 	if (CoverPhase == ETDDescentCover::RampIn || CoverPhase == ETDDescentCover::Held)
 	{
 		SetCoverAlpha(1.f); // the last galaxy frame is full white
@@ -147,6 +154,8 @@ void UTDDescentSubsystem::HandlePostLoadMap(UWorld* World)
 		bDestFirstFrameSeen = false;
 		bFirstViewBuilt = false;
 		bArrivalSettled = false;
+		bArrivedOverDeck = false;
+		bGlideEndPredicted = false;
 	}
 	if (!IsTiming() || !World || World->GetGameInstance() != GetGameInstance()) { return; }
 	PostLoadTime = FPlatformTime::Seconds() - TimingStart;
@@ -168,6 +177,9 @@ void UTDDescentSubsystem::Tick(float DeltaTime)
 	TickHeat(FMath::Min(DeltaTime, 0.1f));
 	TickCloudDeck();
 	TickGlide(FMath::Min(DeltaTime, 0.1f));
+	TickExposureRamp();
+	TickGlideWind(FMath::Min(DeltaTime, 0.1f));
+	TickArrivalFloor();
 	if (!IsTiming()) { return; }
 	const double Now = FPlatformTime::Seconds();
 	LongestFrame = FMath::Max(LongestFrame, Now - LastTickTime);
@@ -353,34 +365,62 @@ void UTDDescentSubsystem::TickCover(float Dt)
 			for (TActorIterator<ATDAtmosphereFlightZone> It(World); It; ++It) { Zone = *It; break; }
 			if (Terrain && Zone && !Zone->IsFittedToTerrain()) { bTerrainReady = false; }
 			if (bDepartPending && CoverDestination == ETDDestination::Galaxy) { PlaceDeparture(World); }
-			if (bTerrainReady && !bArrivalSettled && ArrivalWorld.Get() == World && Zone)
+			// Every covered arrival on a planet settles (a recorded entry, or any other travel in: the cheat, a stage, a flow
+			// travel with no entry point - T2's live finding: those glided from the spawn height).
+			if (bTerrainReady && !bArrivalSettled && Zone && (ArrivalWorld.Get() == World || (IsGlideEnabled() && CoverDestination != ETDDestination::Galaxy)))
 			{
 				bArrivalSettled = true;
-				const float DeckZ = IsGlideEnabled() && CoverDestination != ETDDestination::Galaxy ? FindDeckZ(World) : 0.f;
+				float DeckZ = IsGlideEnabled() && CoverDestination != ETDDestination::Galaxy ? FindDeckZ(World) : 0.f;
 				if (DeckZ > 0.f)
 				{
-					// The glide-lite: the arrival over the cloud tops (inside the ceiling), the squad kept in formation.
+					// The glide-lite: the arrival over the cloud tops, the squad kept in formation and released from the zone
+					// (even above the normal ceiling) until the glide ends.
 					APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0);
 					ATDShip* Flown = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
-					const float Ceiling = Zone->GetZoneBox().Max.Z - 5000.f;
 					if (Flown)
 					{
-						const float Ground = Terrain ? Terrain->GetHeightAt(Flown->GetActorLocation()) : 0.f;
-						const float Want = FMath::Min(Ceiling, FMath::Max(DeckZ + GlideAboveDeckCm, Ground + 30000.f));
-						const float Shift = Want - Flown->GetActorLocation().Z;
+						const FVector From = Flown->GetActorLocation();
+						const float Ground = Terrain ? Terrain->GetHeightAt(From) : 0.f;
+						const FVector Fwd = FVector(Flown->GetActorForwardVector().X, Flown->GetActorForwardVector().Y, 0.f).GetSafeNormal();
+						// The glide end, predicted from a provisional plan; T4's deck for that corridor; the plan again on it.
+						auto PredictEnd = [&](float StartZ)
+						{
+							float Dur = 0.f, Speed = 0.f;
+							PlanGlide(StartZ, Ground + GlideEndAboveGroundCm, Dur, Speed);
+							FVector E = From + Fwd * Speed * Dur * 0.85f;
+							E.Z = (Terrain ? Terrain->GetGroundZAt(E) : 0.f) + GlideEndAboveGroundCm;
+							return E;
+						};
+						FVector End = PredictEnd(DeckZ + GlideAboveDeckCm);
+						if (Terrain)
+						{
+							const float Corridor = Terrain->GetCloudDeckZFor(FVector(From.X, From.Y, DeckZ + GlideAboveDeckCm), End);
+							if (Corridor > 0.f) { DeckZ = Corridor; End = PredictEnd(DeckZ + GlideAboveDeckCm); }
+						}
+						const float Want = FMath::Max(DeckZ + GlideAboveDeckCm, Ground + 30000.f);
+						const float Shift = Want - From.Z;
 						for (TActorIterator<ATDShip> It(World); It; ++It)
 						{
 							FVector L = It->GetActorLocation();
-							L.Z = FMath::Min(Ceiling, L.Z + Shift);
+							L.Z += Shift;
 							It->TeleportSpacecraft(L, It->GetActorRotation(), /*bKeepSpeed*/ true);
+							if (UTDShipMovementComponent* M = It->GetShipMovement()) { M->SetBoundaryReleaseFor(GlideOverride, true); }
 						}
-						Mark(*FString::Printf(TEXT("arrival over the cloud deck (%.0f m above it, shift %.0f m)"), (Want - DeckZ) / 100.f, Shift / 100.f));
-						FVector A = ArrivalWorldXf.GetLocation(); A.Z = Want; ArrivalWorldXf.SetLocation(A); // retakes too
+						Mark(*FString::Printf(TEXT("arrival over the cloud deck (deck %.0f m, %.0f m above it, shift %.0f m)"), DeckZ / 100.f, (Want - DeckZ) / 100.f, Shift / 100.f));
+						GlideEndPredicted = End;
+						bGlideEndPredicted = Terrain != nullptr;
+						// T4: the deck actor moves to the corridor's deck, and the scatter round the glide end is built first.
+						if (Terrain) { Terrain->PrepareArrival(FVector(From.X, From.Y, Want), End); }
+						if (ArrivalWorld.Get() == World) { FVector A = ArrivalWorldXf.GetLocation(); A.Z = Want; ArrivalWorldXf.SetLocation(A); } // retakes too
+						bArrivedOverDeck = true;
 					}
 				}
 				const float Top = DeckZ > 0.f ? Zone->GetZoneBox().Max.Z : Zone->GetZoneBox().Max.Z - CeilingClearanceCm;
+				// Over the deck the squad is released and glides down together: no lowering (a wingman lowered 588 m in the
+				// live run of Nov 14 broke the formation).
 				for (TActorIterator<ATDShip> It(World); It; ++It)
 				{
+					if (bArrivedOverDeck) { break; }
 					FVector L = It->GetActorLocation();
 					if (L.Z <= Top) { continue; }
 					const float Ground = Terrain ? Terrain->GetHeightAt(L) : L.Z - ArrivalAltitudeCm;
@@ -390,9 +430,10 @@ void UTDDescentSubsystem::TickCover(float Dt)
 					It->TeleportSpacecraft(L, It->GetActorRotation(), /*bKeepSpeed*/ true);
 				}
 				FVector A = ArrivalWorldXf.GetLocation();
-				if (A.Z > Top) { A.Z = FMath::Max(Top, (Terrain ? Terrain->GetHeightAt(A) : A.Z) + 30000.f); ArrivalWorldXf.SetLocation(A); } // retakes too
+				if (!bArrivedOverDeck && A.Z > Top) { A.Z = FMath::Max(Top, (Terrain ? Terrain->GetHeightAt(A) : A.Z) + 30000.f); ArrivalWorldXf.SetLocation(A); } // retakes too
 			}
 			const double Held = Now - DestFirstFrameAt;
+			if (bTerrainReady && bGlideEndPredicted && Terrain && !Terrain->IsArrivalReady(GlideEndPredicted)) { bTerrainReady = false; } // T4's scatter
 			if (bTerrainReady && Held >= RevealMinHoldSeconds) { bReveal = true; Why = Terrain ? TEXT("terrain built") : TEXT("no terrain"); }
 			else if (Held >= RevealMaxHoldSeconds) { bReveal = true; Why = TEXT("4 s hold limit"); }
 		}
@@ -403,7 +444,7 @@ void UTDDescentSubsystem::TickCover(float Dt)
 			UE_LOG(LogTriadDrift, Log, TEXT("TD descent: reveal (%s)"), Why);
 			CoverPhase = ETDDescentCover::Revealing;
 			StopRoar(1.f);
-			if (IsGlideEnabled() && CoverDestination != ETDDestination::Galaxy && World)
+			if (IsGlideEnabled() && CoverDestination != ETDDestination::Galaxy && World && bArrivedOverDeck) // never from a spawn height
 			{
 				APlayerController* GlidePC = UGameplayStatics::GetPlayerController(World, 0);
 				if (ATDShip* Flown = GlidePC ? Cast<ATDShip>(GlidePC->GetPawn()) : nullptr) { BeginGlide(Flown); }
@@ -480,25 +521,50 @@ void UTDDescentSubsystem::TickCloudDeck()
 	const UTDTravelFX* FX = UTDTravelSubsystem::GetDefaultTravelFX(World);
 	const float Rel = Ship->GetActorLocation().Z - Deck->GetActorLocation().Z;
 	const float Side = FMath::Sign(Rel);
-	// Through the deck, either way (entry glide, climb out, or just flying through it): one punch.
+	const bool bGlidePass = IsGliding() && GlideShip.Get() == Ship;
+	// Through the deck, either way: one punch. During the glide only its sound (the in-cloud layer replaces the puffs).
 	if (LastDeckShip.Get() == Ship && LastShipDeckSide != 0.f && Side != 0.f && Side != LastShipDeckSide && FX)
 	{
 		++CloudPunches;
-		UTDStatics::PlayCue(World, FX->CloudPunch, Ship->GetActorLocation(), Ship->GetActorRotation());
+		FTDFXCue Punch = FX->CloudPunch;
+		if (bGlidePass) { Punch.VFX.Reset(); }
+		UTDStatics::PlayCue(World, Punch, Ship->GetActorLocation(), Ship->GetActorRotation());
 	}
 	LastShipDeckSide = Side;
 	LastDeckShip = Ship;
-	const bool bNear = FMath::Abs(Rel) < CloudDeckBand;
-	if (bNear && !CloudWisps.IsValid() && FX)
+	// The in-cloud layer (NS_TD_Entry_CloudWisps, the effects builder's contract): attached to the flown ship; User.Intensity
+	// 0 -> 1 -> 0 across the deck, peaking at its height, over about 1.5-2 s of the glide (the band follows the ship's
+	// vertical speed); User.Color / User.Embers per planet; capped at 0.5 under reduced motion; deactivated outside the band.
+	float Band = CloudDeckBand;
+	if (bGlidePass)
+	{
+		const float Vz = FMath::Abs((float)Ship->GetVelocity().Z);
+		Band = FMath::Clamp(Vz * 0.9f, 1500.f, GlideDeckPassBand * 2.f); // +-0.9 s of vertical travel
+	}
+	const bool bNear = FMath::Abs(Rel) < Band;
+	if (bGlidePass && bNear && !bInGlideDeckPass) { ++GlideDeckPasses; } // entering the deck's band during the glide
+	bInGlideDeckPass = bGlidePass && bNear;
+	if (!bNear)
+	{
+		if (UNiagaraComponent* W = CloudWisps.Get()) { W->Deactivate(); }
+		CloudWisps.Reset();
+		CloudIntensity = 0.f;
+		return;
+	}
+	if (!CloudWisps.IsValid() && FX)
 	{
 		UAudioComponent* NoAudio = nullptr;
 		CloudWisps = UTDStatics::PlayCueAttachedLoop(FX->CloudWisps, Ship->GetRootComponent(), NAME_None, NoAudio);
+		if (UNiagaraComponent* W = CloudWisps.Get())
+		{
+			const bool bCinder = Deck->GetPlanet() == ETDDestination::Cinder;
+			W->SetVariableLinearColor(TEXT("User.Color"), bCinder ? FLinearColor(0.45f, 0.36f, 0.30f, 1.f) : FLinearColor(0.78f, 0.92f, 0.92f, 1.f));
+			W->SetVariableFloat(TEXT("User.Embers"), bCinder ? 1.f : 0.f);
+		}
 	}
-	else if (!bNear && CloudWisps.IsValid())
-	{
-		CloudWisps->Deactivate();
-		CloudWisps.Reset();
-	}
+	CloudIntensity = FMath::Clamp(1.f - FMath::Abs(Rel) / Band, 0.f, 1.f);
+	if (UTDSettingsSubsystem::IsReduceMotion(Ship)) { CloudIntensity = FMath::Min(CloudIntensity, 0.5f); }
+	if (UNiagaraComponent* W = CloudWisps.Get()) { W->SetVariableFloat(TEXT("User.Intensity"), CloudIntensity); }
 }
 
 void UTDDescentSubsystem::SetEntryHeat(float Heat01)
@@ -607,7 +673,9 @@ bool UTDDescentSubsystem::IsGlideEnabled() { return CVarTDDescentGlide.GetValueO
 float UTDDescentSubsystem::FindDeckZ(UWorld* World)
 {
 	if (!World) { return 0.f; }
-	for (TActorIterator<ATDCloudDeck> It(World); It; ++It) { return It->GetActorLocation().Z; }
+	// The built deck actor (T4 moves it to the corridor's deck at PrepareArrival); else T4's zone-wide deck.
+	for (TActorIterator<ATDCloudDeck> It(World); It; ++It) { if (It->IsBuilt()) { return It->GetActorLocation().Z; } }
+	for (TActorIterator<ATDPlanetTerrain> It(World); It; ++It) { const float Z = It->GetCloudDeckZ(); if (Z > 0.f) { return Z; } break; }
 	return 0.f;
 }
 
@@ -615,6 +683,13 @@ float UTDDescentSubsystem::GetDescent01(const UObject* WorldContext)
 {
 	const UTDDescentSubsystem* D = Get(WorldContext);
 	return D && D->IsGliding() ? D->GlideProgress : -1.f;
+}
+
+void UTDDescentSubsystem::PlanGlide(float StartZ, float EndZ, float& OutSeconds, float& OutSpeed)
+{
+	const float Drop = FMath::Max(StartZ - EndZ, 0.f);
+	OutSeconds = FMath::Clamp(Drop / 8500.f, GlideSeconds, GlideMaxSeconds); // ~9-10 s for T4's 1.1-1.6 km decks (the Lead)
+	OutSpeed = FMath::Clamp(Drop / (OutSeconds * 0.7f) * 1.1f, GlideSpeed, GlideMaxSpeed);
 }
 
 bool UTDDescentSubsystem::BeginGlide(ATDShip* Ship, float GroundZFallback)
@@ -630,17 +705,27 @@ bool UTDDescentSubsystem::BeginGlide(ATDShip* Ship, float GroundZFallback)
 	GlideStartZ = Ship->GetActorLocation().Z;
 	GlideEndZ = GlideStartZ;
 	GlideProgress = 0.f;
-	Move->SetSpeedOverrideFor(GlideOverride, GlideSpeed, GlideSteering);
-	Move->SetForwardSpeedImmediate(GlideSpeed);
+	{
+		float Ground = GroundZFallback;
+		for (TActorIterator<ATDPlanetTerrain> It(Ship->GetWorld()); It; ++It) { Ground = It->GetGroundZAt(Ship->GetActorLocation()); break; }
+		PlanGlide(GlideStartZ, Ground + GlideEndAboveGroundCm, GlideDur, GlideSpeedNow);
+	}
+	Move->SetSpeedOverrideFor(GlideOverride, GlideSpeedNow, GlideSteering);
+	Move->SetForwardSpeedImmediate(GlideSpeedNow);
 	if (UTDHealthComponent* Health = Ship->GetHealth()) { Health->SetInvulnerable(true); }
 	Mark(TEXT("glide begins"));
-	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: glide begins at %.0f m (deck at %.0f m)"), GlideStartZ / 100.f, GlideDeckZ / 100.f);
+	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: glide begins at %.0f m (deck at %.0f m): %.1f s at %.0f m/s"), GlideStartZ / 100.f, GlideDeckZ / 100.f, GlideDur, GlideSpeedNow / 100.f);
 	return true;
 }
 
 void UTDDescentSubsystem::EndGlide(const TCHAR* Why)
 {
 	ATDShip* Ship = GlideShip.Get();
+	// The zone takes the squad back (released since the arrival over the deck), whether or not a glide ran.
+	if (UWorld* W = Ship ? Ship->GetWorld() : (GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr))
+	{
+		for (TActorIterator<ATDShip> It(W); It; ++It) { if (UTDShipMovementComponent* M = It->GetShipMovement()) { M->SetBoundaryReleaseFor(GlideOverride, false); } }
+	}
 	if (Ship && GlideTime >= 0.f)
 	{
 		if (UTDShipMovementComponent* Move = Ship->GetShipMovement())
@@ -652,6 +737,7 @@ void UTDDescentSubsystem::EndGlide(const TCHAR* Why)
 		UE_LOG(LogTriadDrift, Log, TEXT("TD descent: glide ends (%s) at %.0f m"), Why, Ship->GetActorLocation().Z / 100.f);
 	}
 	GlideShip.Reset();
+	bGlideEndPredicted = false;
 	GlideTime = -1.f;
 	GlideProgress = -1.f;
 	bGlideLevelling = false;
@@ -675,11 +761,11 @@ void UTDDescentSubsystem::TickGlide(float Dt)
 	GlideProgress = GlideStartZ > GlideEndZ ? FMath::Clamp((GlideStartZ - L.Z) / (GlideStartZ - GlideEndZ), 0.f, 1.f) : 1.f;
 	if (!bGlideLevelling)
 	{
-		const float Left = FMath::Max(GlideSeconds - GlideTime, 0.5f);
+		const float Left = FMath::Max(GlideDur - GlideTime, 0.5f);
 		const float Rate = (L.Z - GlideEndZ) / Left; // cm/s down wanted
-		const float Pitch = -FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(Rate / GlideSpeed, 0.f, 0.7f)));
+		const float Pitch = -FMath::RadiansToDegrees(FMath::Asin(FMath::Clamp(Rate / GlideSpeedNow, 0.f, 0.7f)));
 		Move->SetPitchHold(Pitch, 40.f);
-		if (GlideTime >= GlideSeconds || L.Z <= GlideEndZ + 2000.f)
+		if (GlideTime >= GlideDur || L.Z <= GlideEndZ + 2000.f)
 		{
 			bGlideLevelling = true; // level off, then hand back
 			GlideLevelTime = 0.f;
@@ -690,6 +776,9 @@ void UTDDescentSubsystem::TickGlide(float Dt)
 	{
 		GlideLevelTime += Dt;
 		Move->SetPitchHold(0.f, 60.f);
+		// The speed eases from the glide's to cruise over the level-off (no drop when the override goes).
+		const float A = FMath::Clamp(GlideLevelTime / GlideHandBackSeconds, 0.f, 1.f);
+		Move->SetSpeedOverrideFor(GlideOverride, FMath::Lerp(GlideSpeedNow, Move->GetFlightTuning().CruiseSpeed, A * A * (3.f - 2.f * A)), GlideSteering);
 		if (GlideLevelTime >= GlideHandBackSeconds) { EndGlide(TEXT("handed back")); }
 	}
 }
@@ -727,6 +816,101 @@ bool UTDDescentSubsystem::PlaceDeparture(UWorld* World)
 	bDepartPending = false;
 	Mark(*FString::Printf(TEXT("departure placed at lat %.1f lon %.1f, %.0f m from the planet"), DepartPoint.LatDeg, DepartPoint.LonDeg, (At - Centre).Size() / 100.f));
 	return true;
+}
+
+void UTDDescentSubsystem::TickArrivalFloor()
+{
+	UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
+	if (!World || FloorCheckedWorld.Get() == World || !World->HasBegunPlay()) { return; }
+	ATDPlanetTerrain* Terrain = nullptr;
+	for (TActorIterator<ATDPlanetTerrain> It(World); It; ++It) { Terrain = *It; break; }
+	if (!Terrain) { FloorCheckedWorld = World; return; } // not a planet
+	if (CoverPhase != ETDDescentCover::Off) { return; } // a covered arrival settles itself (over the deck); look after the reveal
+	APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0);
+	ATDShip* Flown = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
+	if (!Flown) { return; } // on foot or not up yet: nothing to lift (checked again next frame)
+	FloorCheckedWorld = World;
+	if (IsGliding() || bArrivedOverDeck) { return; }
+	const UTDLandingComponent* Landing = Flown->GetLanding();
+	if (Landing && Landing->IsBusy()) { return; } // parked or landing: the pad holds it
+	const float Ground = Terrain->GetHeightAt(Flown->GetActorLocation());
+	const float Under = Ground + ArrivalFloorCm - Flown->GetActorLocation().Z;
+	if (Under <= 0.f) { return; }
+	for (TActorIterator<ATDShip> It(World); It; ++It)
+	{
+		const UTDLandingComponent* L = It->GetLanding();
+		if (L && L->IsBusy()) { continue; }
+		It->TeleportSpacecraft(It->GetActorLocation() + FVector(0.f, 0.f, Under), It->GetActorRotation(), /*bKeepSpeed*/ true);
+	}
+	++ArrivalFloorLifts;
+	UE_LOG(LogTriadDrift, Log, TEXT("TD descent: arrival lifted %.0f m to %.0f m above the ground (uncovered arrival below the floor)"), Under / 100.f, ArrivalFloorCm / 100.f);
+}
+
+void UTDDescentSubsystem::TickGlideWind(float Dt)
+{
+	// In over 1 s as the roar fades at the reveal (the roar's own 1 s fade), out over the level-off: the two hand over.
+	const float Want = IsGliding() ? (bGlideLevelling ? 1.f - FMath::Clamp(GlideLevelTime / GlideHandBackSeconds, 0.f, 1.f) : FMath::Clamp(GlideTime / 1.f, 0.f, 1.f)) : 0.f;
+	GlideWindVolume = Want;
+	if (Want <= 0.f)
+	{
+		if (GlideWind) { GlideWind->FadeOut(0.3f, 0.f); GlideWind = nullptr; }
+		return;
+	}
+	if (!GlideWind)
+	{
+		UWorld* World = GlideShip.IsValid() ? GlideShip->GetWorld() : nullptr;
+		const UTDTravelFX* FX = UTDTravelSubsystem::GetDefaultTravelFX(World);
+		USoundBase* Sound = FX && !FX->GlideWind.Sound.IsNull() ? FX->GlideWind.Sound.LoadSynchronous() : nullptr;
+		if (!Sound)
+		{
+			// The effects builder's loop while DA_Travel_FX leaves the slot empty; null-safe.
+			static const FSoftObjectPath Default(TEXT("/Game/TriadDrift/Gameplay/Audio/Travel/SW_Travel_GlideWind_01.SW_Travel_GlideWind_01"));
+			Sound = Cast<USoundBase>(Default.TryLoad());
+		}
+		if (!Sound || !World) { return; }
+		GlideWind = UGameplayStatics::CreateSound2D(World, Sound, 1.f, 1.f, 0.f, nullptr, false, false);
+		if (GlideWind) { GlideWind->Play(); }
+	}
+	if (GlideWind) { GlideWind->SetVolumeMultiplier(FMath::Max(Want, 0.001f)); }
+}
+
+void UTDDescentSubsystem::TickExposureRamp()
+{
+	UWorld* World = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
+	APlayerController* PC = World ? UGameplayStatics::GetPlayerController(World, 0) : nullptr;
+	ATDShip* Ship = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
+	UCameraComponent* Cam = Ship ? Ship->FindComponentByClass<UCameraComponent>() : nullptr;
+	float Want = FMath::Clamp(CoverAlpha, 0.f, 1.f);
+	if (Ship && UTDSettingsSubsystem::IsReduceMotion(Ship)) { Want *= 0.5f; } // a gentler flash
+	// Off: take the blendable away (no cost).
+	if (Want <= 0.f || !Cam)
+	{
+		if (UCameraComponent* Old = ExposureCamera.Get()) { if (ExposureMID) { Old->PostProcessSettings.RemoveBlendable(ExposureMID); } }
+		ExposureCamera.Reset();
+		ExposureWeight = 0.f;
+		return;
+	}
+	const UTDTravelFX* FX = UTDTravelSubsystem::GetDefaultTravelFX(World);
+	if (!ExposureMID)
+	{
+		UMaterialInterface* Mat = FX && !FX->DescentWhitePP.IsNull() ? FX->DescentWhitePP.LoadSynchronous() : nullptr;
+		if (!Mat)
+		{
+			// The effects builder's material (eng/vfx 71e34a27) while DA_Travel_FX leaves the slot empty; null-safe.
+			static const FSoftObjectPath Default(TEXT("/Game/TriadDrift/Gameplay/VFX/Materials/M_TD_PP_DescentWhite.M_TD_PP_DescentWhite"));
+			Mat = Cast<UMaterialInterface>(Default.TryLoad());
+		}
+		if (!Mat) { ExposureWeight = Want; return; } // no material yet: the weight is still reported (tests, the log)
+		ExposureMID = UMaterialInstanceDynamic::Create(Mat, this);
+	}
+	if (ExposureCamera.Get() != Cam)
+	{
+		if (UCameraComponent* Old = ExposureCamera.Get()) { Old->PostProcessSettings.RemoveBlendable(ExposureMID); }
+		Cam->PostProcessSettings.AddBlendable(ExposureMID, 1.f);
+		ExposureCamera = Cam;
+	}
+	ExposureMID->SetScalarParameterValue(TEXT("Weight"), Want);
+	ExposureWeight = Want;
 }
 
 bool UTDDescentSubsystem::IsDirectorShotEnabled() { return CVarTDDescentDirectorShot.GetValueOnGameThread() != 0; }

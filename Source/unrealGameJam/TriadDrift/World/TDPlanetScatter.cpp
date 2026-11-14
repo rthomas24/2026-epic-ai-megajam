@@ -13,6 +13,8 @@
 #include "Components/HierarchicalInstancedStaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/StreamableManager.h"
+#include "Engine/AssetManager.h"
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -95,7 +97,7 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 	};
 	if (Planet == ETDDestination::Verdance)
 	{
-		P.CanopySpacing = 5000.f;	// pass 3: ~2-3x the clumps inside a stand (none in the gaps), so a stand reads as forest
+		P.CanopySpacing = 7000.f;	// s6: larger clumps on a wider grid (same instance count), overlapping inside a stand
 		R.Trees = P.Kinds.Num();
 		for (const FTDScatterSpecies& S : GTDScatterTrees)
 		{
@@ -112,11 +114,32 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		// forest stands (MI_Scatter_Canopy_Forest), with the bioluminescent pink / cyan clumps kept as accents (~12 %).
 		// pass 3: the forest stands are SM_Scatter_Verd_CanopyStand_01..03 (environment builder, Blender: lumpy crown masses,
 		// dark concave underside in vertex colour, 60-80 tris, 30-42 m; M_TD_CanopyStand dithers them out nearer ~0.75 km).
-		for (int32 i = 1; i <= 3; ++i)
+		// pass 4: the stands are SM_Scatter_Verd_TreeClump_01..04 instead: 5-9 of the real PVE trees (Kapok, Brazil nut)
+		// merged per clump, trunks dropped, each crown reduced to its lumpy hull (558-578 tris, 35-65 m wide);
+		// MI_TreeClump_Verdance fades them in from ~0.4 km, where the mid ring's real trees end. Sunk so the crown undersides
+		// (the trunks are gone) meet the forest floor: 18 m per unit of scale (s5: at 9 m they floated over the ridges seen
+		// from the pad); 1.3-2.0x so neighbouring clumps close into one canopy at 300-900 m with the same instance count.
+		for (int32 i = 1; i <= 4; ++i)
 		{
-			R.Canopy.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Verd_CanopyStand_%02d"), i)), 1.4f, 2.2f, 300.f, 420000.f, 460000.f, 2200.f, false, false, false));
+			// s6: 1.9-2.7x across but 0.6 of that in height (a clump spans ~70-170 m, crowns ~25-60 m high), sunk 18 m per
+			// unit of height scale and seated on the lowest ground under its footprint (25 m x scale)
+			const int32 Ci = Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Verd_TreeClump_%02d"), i)), 2.6f, 3.6f, 1800.f, 420000.f, 460000.f, 2200.f, false, false, false);
+			P.Kinds[Ci].ZScale = 0.45f;	// s8: 2.6-3.6x across (150-250 m), crowns still 30-60 m high
+			P.Kinds[Ci].ContactRadiusCm = 2000.f;
+			R.Canopy.Add(Ci);
 		}
 		R.CanopyAccent.Add(Add(TDScatter_Path(TEXT("Scatter"), TEXT("SM_Scatter_Verd_Canopy_02")), 1.0f, 1.5f, 400.f, 420000.f, 460000.f, 4000.f, false, false, false));
+		// s6 story: the wreck scar. Something came down on the research site from the north-east: a 550 m strip of burned
+		// forest, narrow at the site and widening outward, readable from the landing approach (charred trunks, scorch).
+		P.ScarA = FVector2D(13000.f, 8200.f);
+		P.ScarB = FVector2D(57000.f, 41000.f);
+		P.ScarHalfA = 1500.f;
+		P.ScarHalfB = 6000.f;
+		for (int32 i = 1; i <= 2; ++i)
+		{
+			R.CharTrees.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.0f, 1.6f, 30.f, 180000.f, 240000.f, 300.f, true, false, true));
+		}
+		P.ScorchKind = Add(TDScatter_Path(TEXT("Kit/Story"), TEXT("SM_Kit_ScorchLines")), 4.f, 6.5f, 0.f, 180000.f, 240000.f, 1200.f, false, false, false);
 		for (int32 i = 1; i <= 3; ++i)
 		{
 			R.Rocks.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Rock_%02d"), i)), 1.5f, 4.5f, 60.f, 100000.f, 140000.f, 500.f, true, true, true));
@@ -155,9 +178,11 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		P.GroveSpacing = 3500.f;	// crystal clusters: the obsidian patches cover a larger share of Cinder than groves do of Verdance
 		P.CanopySpacing = 6000.f;	// spires
 		const FString RockMat = FString::Printf(TEXT("%s/Scatter/MI_Scatter_Rock_Cinder.MI_Scatter_Rock_Cinder"), GProps);
+		const FString ColumnMat = FString::Printf(TEXT("%s/Scatter/MI_Scatter_Column_Cinder.MI_Scatter_Column_Cinder"), GProps);
 		for (int32 i = 1; i <= 2; ++i)
 		{
-			R.Columns.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_BasaltColumn_%02d"), i)), 3.f, 7.f, 80.f, 260000.f, 320000.f, 900.f, true, false, true));
+			// pass 4: M_TD_ScatterColumn (near-black base, weathered grey up the shaft, pale ash tops) so they read from the air
+			R.Columns.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_BasaltColumn_%02d"), i)), 3.f, 7.f, 80.f, 260000.f, 320000.f, 900.f, true, false, true, ColumnMat));
 		}
 		for (int32 i = 1; i <= 2; ++i)
 		{
@@ -233,6 +258,20 @@ bool FTDScatterPlan::IsCourseClear(float X, float Y, float Radius) const
 	return true;
 }
 
+float FTDScatterPlan::ScarWeight(float X, float Y, float Margin) const
+{
+	if (ScarHalfB <= 0.f) { return 0.f; }
+	const FVector2D P(X, Y), D = ScarB - ScarA;
+	const float Len2 = FMath::Max(D.SizeSquared(), 1.f);
+	const float T = FVector2D::DotProduct(P - ScarA, D) / Len2;
+	if (T < 0.f || T > 1.f) { return 0.f; }
+	const float Half = FMath::Lerp(ScarHalfA, ScarHalfB, T);
+	// a ragged edge: the half width breathes with a slow noise along the strip
+	const float Edge = Half * (0.8f + 0.4f * (FTDTerrainField::Noise2D(T * 18.f, 3.1f, 4411) * 0.5f + 0.5f)) + Margin;
+	const float Dist = FVector2D::Distance(P, ScarA + D * T);
+	return FMath::Clamp(1.f - Dist / FMath::Max(Edge, 1.f), 0.f, 1.f) * FMath::Clamp(T * 20.f, 0.f, 1.f);
+}
+
 bool FTDScatterPlan::IsPatch(const FTDTerrainSample& Sm) const
 {
 	return Planet == ETDDestination::Cinder ? Sm.FineMask > ObsidianFineMin
@@ -270,9 +309,15 @@ int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM
 		}
 		case ModeCanopy:
 		{
-			// Stands with gaps: only where the stand noise is up (about 45 % of the forest), denser in rainforest.
-			if (Stand < 0.1f) { return INDEX_NONE; }
-			const float Density = (Moist > RainforestBroad ? 0.9f : (Moist > MixedBroad ? 0.5f : 0.f)) * FMath::Clamp(1.f - (Sm.Slope - 0.25f) * 3.f, 0.f, 1.f)
+			// s6: continuous stands over ~35-45 % of the vegetated lowland, with clearings: the stand noise against a threshold
+			// that drops with moisture (rainforest ~50 %, open meadow ~30 %) and in the low ground (valleys and drainage, the
+			// bottom 300 m over the pad), full density inside a stand so crowns overlap; none on slopes over ~25 degrees
+			// (s6 sheet: that left the hills bare; now ~34 degrees, Slope 0.17) nor on the heights; RunLayer's contact check
+			// drops any clump whose footprint spans a ridge edge, so no crown overhangs a cliff top.
+			const float Valley = FMath::Clamp(1.f - HeightM / 300.f, 0.f, 1.f);
+			const float Threshold = 0.24f - 0.3f * Moist - 0.15f * Valley;	// s8: coverage test 58 % at 0.04, 54 % at 0.09, 51 % at 0.13, 40 % at 0.24 (1475 clumps)
+			if (Stand < Threshold) { return INDEX_NONE; }
+			const float Density = FMath::Clamp((Stand - Threshold) * 12.f, 0.f, 1.f) * FMath::Clamp((0.17f - Sm.Slope) / 0.04f, 0.f, 1.f)
 				* FMath::Clamp(1.f - (HeightM - 900.f) / 500.f, 0.f, 1.f);
 			if (Rnd >= Density) { return INDEX_NONE; }
 			const float Pk = Rnd / FMath::Max(Density, 0.01f);
@@ -282,10 +327,13 @@ int32 FTDScatterPlan::Pick(int32 Mode, const FTDTerrainSample& Sm, float HeightM
 		{
 			// Boulders sparse everywhere; big boulders at cliff feet (moderate slopes under steep ones) and on the heights.
 			const float Cliff = FMath::Clamp((Sm.Slope - 0.28f) * 4.f, 0.f, 1.f) * FMath::Clamp((0.65f - Sm.Slope) * 6.f, 0.f, 1.f);
-			const float Density = 0.05f + 0.45f * Cliff + 0.12f * FMath::Clamp((HeightM - 700.f) / 600.f, 0.f, 1.f);
+			// s6: a scree skirt where the meadow meets a cliff (the 15-35 degree band under the walls), so the cliff no
+			// longer meets the grass at a hard seam
+			const float Foot = FMath::Clamp((Sm.Slope - 0.035f) * 20.f, 0.f, 1.f) * FMath::Clamp((0.2f - Sm.Slope) * 10.f, 0.f, 1.f);
+			const float Density = 0.05f + 0.45f * Cliff + 0.22f * Foot + 0.12f * FMath::Clamp((HeightM - 700.f) / 600.f, 0.f, 1.f);
 			if (Rnd > Density) { return INDEX_NONE; }
 			const float Pk = Rnd / FMath::Max(Density, 0.01f);
-			return Cliff > 0.3f ? TDScatter_OneOf(R.CliffRocks, Pk) : TDScatter_OneOf(R.Rocks, Pk);
+			return (Cliff > 0.3f || Foot > 0.5f) ? TDScatter_OneOf(R.CliffRocks, Pk) : TDScatter_OneOf(R.Rocks, Pk);
 		}
 		case ModeGrove:
 		{
@@ -375,6 +423,26 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 			if (X < Rect.Min.X || X >= Rect.Max.X || Y < Rect.Min.Y || Y >= Rect.Max.Y) { continue; }
 			const float Zone = ZoneWeight(X, Y);
 			if (Zone <= 0.f || TDScatter_Hash01(Seed, ix, iy, Salt + 2) > Zone || IsKeptOut(Field, X, Y)) { continue; }
+			if (ScarHalfB > 0.f && (Mode == ModeFar || Mode == ModeDense || Mode == ModeCanopy))
+			{
+				// a canopy clump is kept out by its whole footprint (its centre can sit 90 m from the scar and still cover it)
+				const float Scar = ScarWeight(X, Y, Mode == ModeCanopy ? 9000.f : 0.f);
+				if (Scar > 0.f)
+				{
+					// Inside the scar: no living forest; on the far-tree grid, a charred trunk now and then
+					const TArray<int32>& Char = TDScatter_Ranges(Planet).CharTrees;
+					// (none in the course's surroundings: by the research site a glowing trunk read as a strange pillar, s8 walk)
+					if (Mode == ModeDense || Char.Num() == 0 || TDScatter_Hash01(Seed, ix, iy, Salt + 9) > 0.9f * Scar || IsNearCourse(Field, X, Y)) { continue; }
+					const int32 Ck = TDScatter_OneOf(Char, TDScatter_Hash01(Seed, ix, iy, Salt + 10));
+					const FTDScatterKind& K = Kinds[Ck];
+					if (!IsCourseClear(X, Y, K.ClearRadiusCm * K.MaxScale)) { continue; }
+					const float Sc = FMath::Lerp(K.MinScale, K.MaxScale, TDScatter_Hash01(Seed, ix, iy, Salt + 4));
+					const FTransform Xf(FRotator(TDScatter_Hash01(Seed, ix, iy, Salt + 6) * 16.f - 8.f, TDScatter_Hash01(Seed, ix, iy, Salt + 5) * 360.f, 0.f),
+						FVector(X, Y, Field.Height(X, Y) - K.SinkCm * Sc), FVector(Sc));
+					Row.Far[Ck].Add(Xf);
+					continue;
+				}
+			}
 			const bool bNearCourse = IsNearCourse(Field, X, Y);
 			// The dense forest: the zone layer carries it around the course, the mid ring everywhere else.
 			if (Mode == ModeDense && (Salt == 301) != bNearCourse) { continue; }
@@ -389,7 +457,21 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 			const float Yaw = TDScatter_Hash01(Seed, ix, iy, Salt + 5) * 360.f;
 			const FRotator Rot = K.bTumble ? FRotator(TDScatter_Hash01(Seed, ix, iy, Salt + 6) * 40.f - 20.f, Yaw, TDScatter_Hash01(Seed, ix, iy, Salt + 7) * 40.f - 20.f)
 				: FRotator(Sm.Normal.Y * 8.f, Yaw, -Sm.Normal.X * 8.f);
-			const FTransform Xf(Rot, FVector(X, Y, Sm.Height - K.SinkCm * Scale), FVector(Scale));
+			float Ground = Sm.Height;
+			if (K.ContactRadiusCm > 0.f)
+			{
+				// Seat it on the lowest ground under its footprint (four points around the centre)
+				const float Rr = K.ContactRadiusCm * Scale;
+				float High = Sm.Height;
+				for (const FVector2D& D : { FVector2D(Rr, 0.f), FVector2D(-Rr, 0.f), FVector2D(0.f, Rr), FVector2D(0.f, -Rr) })
+				{
+					const float H = Field.Height(X + D.X, Y + D.Y);
+					Ground = FMath::Min(Ground, H);
+					High = FMath::Max(High, H);
+				}
+				if (High - Ground > 1.0f * Rr) { continue; }	// its footprint spans a ridge or a cliff edge: it would overhang
+			}
+			const FTransform Xf(Rot, FVector(X, Y, Ground - K.SinkCm * Scale * K.ZScale), FVector(Scale, Scale, Scale * K.ZScale));
 			(bNearCourse ? Row.Near : Row.Far)[Kind].Add(Xf);
 		}
 	};
@@ -425,6 +507,27 @@ void FTDScatterPlan::Generate(const FTDTerrainField& Field, FTDScatterResult& Ou
 		RunLayer(Field, DenseTreeSpacing, 301, Around, ModeDense, true, Out.Near, Out.Far);
 	}
 	RunLayer(Field, CanopySpacing, 401, Zone, ModeCanopy, true, Out.Near, Out.Far);
+	if (ScorchKind != INDEX_NONE && ScarHalfB > 0.f)
+	{
+		// Scorch marks down the scar's centre line every ~22 m, jittered across it and laid on the slope.
+		const FVector2D Dir = (ScarB - ScarA).GetSafeNormal();
+		const FVector2D Side(-Dir.Y, Dir.X);
+		const float Len = FVector2D::Distance(ScarA, ScarB);
+		const FTDScatterKind& K = Kinds[ScorchKind];
+		int32 i = 0;
+		for (float T = 0.f; T < Len; T += 1400.f, ++i)
+		{
+			const float A = T / Len;
+			const float Half = FMath::Lerp(ScarHalfA, ScarHalfB, A);
+			const FVector2D P = ScarA + Dir * T + Side * ((TDScatter_Hash01(977, i, 0, 3) - 0.5f) * Half);
+			if (IsKeptOut(Field, P.X, P.Y) || !IsCourseClear(P.X, P.Y, K.ClearRadiusCm)) { continue; }
+			const FTDTerrainSample Sm = Field.Sample(P.X, P.Y, 800.f);
+			const float Sc = FMath::Lerp(K.MinScale, K.MaxScale, TDScatter_Hash01(977, i, 0, 4)) * FMath::Lerp(0.8f, 1.4f, A);
+			const FVector Fwd = FVector(FVector2D(Dir.X, Dir.Y).GetRotated((TDScatter_Hash01(977, i, 0, 5) - 0.5f) * 30.f), 0.f);
+			const FRotator Rot = FRotationMatrix::MakeFromZX(Sm.Normal, Fwd).Rotator();
+			Out.Far[ScorchKind].Add(FTransform(Rot, FVector(P.X, P.Y, Sm.Height + 15.f), FVector(Sc, Sc, 1.f)));
+		}
+	}
 	RunLayer(Field, RockSpacing, 211, Zone, ModeRock, true, Out.Near, Out.Far);
 	RunLayer(Field, GroveSpacing, 501, Zone, ModeGrove, true, Out.Near, Out.Far);
 }
@@ -518,6 +621,44 @@ void ATDPlanetScatter::CaptureKeepOuts()
 	}
 }
 
+void ATDPlanetScatter::RequestKindLoads()
+{
+	// Every kind's mesh and material, loaded off the game thread while Generate runs (T7, issue #89: the old apply did
+	// DoesPackageExist + TryLoad per kind on the game thread, ~330 ms on the first entry).
+	TArray<FSoftObjectPath> Paths;
+	for (const FTDScatterKind& K : Plan.Kinds)
+	{
+		for (const FString& S : { K.MeshPath, K.MaterialPath })
+		{
+			if (S.IsEmpty()) { continue; }
+			const FSoftObjectPath P(S);
+			if (FPackageName::DoesPackageExist(P.GetLongPackageName())) { Paths.AddUnique(P); }
+		}
+	}
+	if (Paths.Num() == 0) { bKindsLoaded = true; return; }
+	TWeakObjectPtr<ATDPlanetScatter> Weak(this);
+	KindLoadHandle = UAssetManager::GetStreamableManager().RequestAsyncLoad(Paths, FStreamableDelegate::CreateLambda([Weak]()
+	{
+		if (ATDPlanetScatter* Self = Weak.Get()) { Self->bKindsLoaded = true; }
+	}));
+	if (!KindLoadHandle.IsValid() || KindLoadHandle->HasLoadCompleted()) { bKindsLoaded = true; }
+}
+
+bool ATDPlanetScatter::AreKindPathsResolved() const
+{
+	// Every existing kind mesh / material is in memory (the async request finished, or something else loaded them).
+	for (const FTDScatterKind& K : Plan.Kinds)
+	{
+		for (const FString& S : { K.MeshPath, K.MaterialPath })
+		{
+			if (S.IsEmpty()) { continue; }
+			const FSoftObjectPath P(S);
+			if (!P.ResolveObject() && FPackageName::DoesPackageExist(P.GetLongPackageName())) { return false; }
+		}
+	}
+	return true;
+}
+
 void ATDPlanetScatter::StartAsync()
 {
 	if (bBuilt || bBuilding)
@@ -525,6 +666,7 @@ void ATDPlanetScatter::StartAsync()
 		return;
 	}
 	bBuilding = true;
+	RequestKindLoads();
 	TWeakObjectPtr<ATDPlanetScatter> Weak(this);
 	const ETDDestination P = Planet;
 	const FTDScatterPlan PlanCopy = Plan;
@@ -552,13 +694,29 @@ void ATDPlanetScatter::BuildNow()
 	const FTDTerrainField Field(FTDTerrainStyle::ForPlanet(Planet));
 	FTDScatterResult R;
 	Plan.Generate(Field, R);
+	bKindsLoaded = true;	// tests and dev: loads happen synchronously here, by design
 	Apply(MoveTemp(R), (FPlatformTime::Seconds() - Start) * 1000.0);
+	ApplyQueued(0.0);	// tests and dev: everything now
 }
 
 UStaticMesh* ATDPlanetScatter::LoadKindMesh(int32 Kind) const
 {
 	const FSoftObjectPath Path(Plan.Kinds[Kind].MeshPath);
-	return FPackageName::DoesPackageExist(Path.GetLongPackageName()) ? Cast<UStaticMesh>(Path.TryLoad()) : nullptr;
+	if (UStaticMesh* Loaded = Cast<UStaticMesh>(Path.ResolveObject())) { return Loaded; }	// the async load's result
+	if (!FPackageName::DoesPackageExist(Path.GetLongPackageName())) { return nullptr; }
+	++SyncKindLoads;	// BuildNow (tests, dev) or a kind the async request missed
+	return Cast<UStaticMesh>(Path.TryLoad());
+}
+
+UMaterialInterface* ATDPlanetScatter::ResolveKindMaterial(int32 Kind) const
+{
+	const FString& S = Plan.Kinds[Kind].MaterialPath;
+	if (S.IsEmpty()) { return nullptr; }
+	const FSoftObjectPath MP(S);
+	if (UMaterialInterface* Loaded = Cast<UMaterialInterface>(MP.ResolveObject())) { return Loaded; }
+	if (!FPackageName::DoesPackageExist(MP.GetLongPackageName())) { return nullptr; }
+	++SyncKindLoads;
+	return Cast<UMaterialInterface>(MP.TryLoad());
 }
 
 void ATDPlanetScatter::SetupComponent(UInstancedStaticMeshComponent* H, int32 Kind, bool bCollide) const
@@ -570,14 +728,7 @@ void ATDPlanetScatter::SetupComponent(UInstancedStaticMeshComponent* H, int32 Ki
 	H->SetMobility(EComponentMobility::Movable);
 	H->SetCullDistances(int32(K.CullStartCm), int32(K.CullEndCm));
 	H->SetCastShadow(K.bShadow);
-	if (!K.MaterialPath.IsEmpty())
-	{
-		const FSoftObjectPath MP(K.MaterialPath);
-		if (FPackageName::DoesPackageExist(MP.GetLongPackageName()))
-		{
-			if (UMaterialInterface* M = Cast<UMaterialInterface>(MP.TryLoad())) { H->SetMaterial(0, M); }
-		}
-	}
+	if (UMaterialInterface* M = ResolveKindMaterial(Kind)) { H->SetMaterial(0, M); }
 	if (bCollide)
 	{
 		// On foot near the course: trunks and boulders block the pilot. Ships and shots fly through.
@@ -595,39 +746,77 @@ void ATDPlanetScatter::SetupComponent(UInstancedStaticMeshComponent* H, int32 Ki
 void ATDPlanetScatter::Apply(FTDScatterResult&& Result, double Ms)
 {
 	bBuilding = false;
-	if (bBuilt)
+	if (bBuilt || ApplyJobs.Num() > 0)
 	{
 		return;
 	}
-	bBuilt = true;
 	GenerateMs = Ms;
-	const double ApplyStart = FPlatformTime::Seconds();
-	for (int32 k = 0; k < Plan.Kinds.Num(); ++k)
+	// Queue, near tier first, big kinds split: the actor's tick adds a few components per frame (issue #89).
+	for (int32 Pass = 0; Pass < 2; ++Pass)
 	{
-		UStaticMesh* Mesh = LoadKindMesh(k);
-		if (!Mesh)
+		for (int32 k = 0; k < Plan.Kinds.Num(); ++k)
 		{
-			continue;
-		}
-		for (int32 Pass = 0; Pass < 2; ++Pass)
-		{
-			const TArray<FTransform>& Xfs = Pass == 0 ? Result.Near[k] : Result.Far[k];
-			if (Xfs.Num() == 0) { continue; }
-			UHierarchicalInstancedStaticMeshComponent* H = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
-			H->SetStaticMesh(Mesh);
-			SetupComponent(H, k, Pass == 0 && Plan.Kinds[k].bBlocksOnFoot);
-			if (Pass == 1) { H->SetCastShadow(false); }	// beyond the course's surroundings nothing casts dynamic shadow (render thread)
-			H->RegisterComponent();
-			H->AddInstances(Xfs, /*bShouldReturnIndices*/ false, /*bWorldSpace*/ false);
-			AddInstanceComponent(H);
-			Hisms.Add(H);
-			InstanceCount += Xfs.Num();
-			UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: %s x%d (%s, cull %d-%d, mat %s)"), *Mesh->GetName(), Xfs.Num(), Pass == 0 ? TEXT("near") : TEXT("far"),
-				H->InstanceStartCullDistance, H->InstanceEndCullDistance, H->GetMaterial(0) ? *H->GetMaterial(0)->GetName() : TEXT("none"));
+			TArray<FTransform>& Xfs = Pass == 0 ? Result.Near[k] : Result.Far[k];
+			for (int32 From = 0; From < Xfs.Num(); From += FMath::Max(1, ApplyChunk))
+			{
+				FApplyJob J;
+				J.Kind = k;
+				J.bNear = Pass == 0;
+				J.Xfs.Append(Xfs.GetData() + From, FMath::Min(FMath::Max(1, ApplyChunk), Xfs.Num() - From));
+				ApplyJobs.Add(MoveTemp(J));
+			}
 		}
 	}
-	UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: zone layer %d instances in %d HISMs (generate %.0f ms off-thread, apply %.0f ms)"),
-		InstanceCount, Hisms.Num(), GenerateMs, (FPlatformTime::Seconds() - ApplyStart) * 1000.0);
+	ApplyJobHead = 0;
+	bNearApplied = ApplyJobs.Num() == 0 || !ApplyJobs[0].bNear;
+	if (ApplyJobs.Num() == 0) { bBuilt = true; }
+}
+
+void ATDPlanetScatter::ApplyQueued(double BudgetMs)
+{
+	if (!bKindsLoaded && ((KindLoadHandle.IsValid() && KindLoadHandle->HasLoadCompleted()) || AreKindPathsResolved())) { bKindsLoaded = true; }
+	if (ApplyJobHead >= ApplyJobs.Num() || !bKindsLoaded)
+	{
+		return;	// nothing queued, or the kinds are still loading off the game thread
+	}
+	const double Start = FPlatformTime::Seconds();
+	int32 Done = 0;
+	while (ApplyJobHead < ApplyJobs.Num())
+	{
+		if (Done > 0 && BudgetMs > 0.0 && (FPlatformTime::Seconds() - Start) * 1000.0 >= BudgetMs) { break; }
+		FApplyJob& J = ApplyJobs[ApplyJobHead++];
+		++Done;
+		UStaticMesh* Mesh = LoadKindMesh(J.Kind);
+		if (Mesh && J.Xfs.Num() > 0)
+		{
+			UHierarchicalInstancedStaticMeshComponent* H = NewObject<UHierarchicalInstancedStaticMeshComponent>(this);
+			H->SetStaticMesh(Mesh);
+			SetupComponent(H, J.Kind, J.bNear && Plan.Kinds[J.Kind].bBlocksOnFoot);
+			if (!J.bNear) { H->SetCastShadow(false); }	// beyond the course's surroundings nothing casts dynamic shadow (render thread)
+			H->RegisterComponent();
+			H->AddInstances(J.Xfs, /*bShouldReturnIndices*/ false, /*bWorldSpace*/ false);
+			AddInstanceComponent(H);
+			Hisms.Add(H);
+			InstanceCount += J.Xfs.Num();
+		}
+		J.Xfs.Empty();
+		if (!bNearApplied && (ApplyJobHead >= ApplyJobs.Num() || !ApplyJobs[ApplyJobHead].bNear))
+		{
+			bNearApplied = true;
+			UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: near tier in (%d instances)"), InstanceCount);
+		}
+	}
+	const double FrameMs = (FPlatformTime::Seconds() - Start) * 1000.0;
+	if (BudgetMs > 0.0) { MaxApplyFrameMs = FMath::Max(MaxApplyFrameMs, FrameMs); }
+	ApplyTotalMs += FrameMs;
+	if (ApplyJobHead >= ApplyJobs.Num())
+	{
+		ApplyJobs.Reset();
+		ApplyJobHead = 0;
+		bBuilt = true;
+		UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetScatter: zone layer %d instances in %d HISMs (generate %.0f ms off-thread, apply %.0f ms spread, worst frame %.1f ms)"),
+			InstanceCount, Hisms.Num(), GenerateMs, ApplyTotalMs, MaxApplyFrameMs);
+	}
 }
 
 // ------------------------------------------------------------------------------------------------ rings
@@ -646,15 +835,30 @@ bool ATDPlanetScatter::GetViewLocal(FVector& OutLocal) const
 void ATDPlanetScatter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (ApplyJobs.Num() > 0)
+	{
+		if (!bKindsLoaded)
+		{
+			KindWaitSeconds += DeltaSeconds;
+			if (KindWaitSeconds >= KindLoadTimeoutSeconds)
+			{
+				// A kind that never finishes loading must not hold the zone layer (or the arrival's reveal) forever.
+				bKindsLoaded = true;
+				UE_LOG(LogTriadDrift, Warning, TEXT("ATDPlanetScatter: kind loads not done after %.0f s - applying anyway (missing kinds load on the game thread)"), KindLoadTimeoutSeconds);
+			}
+		}
+		ApplyQueued(ApplyBudgetMs);
+	}
 	if (!bBuilt)
 	{
 		return;
 	}
 	FVector Local;
-	if (!GetViewLocal(Local))
-	{
-		return;
-	}
+	const bool bView = GetViewLocal(Local);
+	// ENG-38: the arrival's glide end is ready before the camera gets there; hand back once a real camera is within 1 km.
+	if (bFocusOverride && bView && FVector2D::Distance(FVector2D(Local), FVector2D(FocusLocal)) < 100000.f) { bFocusOverride = false; }
+	if (bFocusOverride) { Local = FocusLocal; }
+	else if (!bView) { return; }
 	UpdateRing(ETDScatterRing::Mid, Local, false);
 	// The near ring (ground cover, culled at ~150 m) only while the camera is low over the ground.
 	const ATDPlanetTerrain* Terrain = Cast<ATDPlanetTerrain>(GetOwner());
@@ -670,6 +874,22 @@ void ATDPlanetScatter::Tick(float DeltaSeconds)
 	{
 		UpdateRing(ETDScatterRing::Near, Local, false);
 	}
+}
+
+void ATDPlanetScatter::SetFocusOverride(const FVector& WorldPoint)
+{
+	bFocusOverride = true;
+	FocusLocal = GetActorTransform().InverseTransformPosition(WorldPoint);
+}
+
+bool ATDPlanetScatter::IsReadyAround(const FVector& WorldPoint) const
+{
+	if (!bBuilt) { return false; }
+	const FRingState& St = Rings[int32(ETDScatterRing::Mid)];
+	if (Plan.RingKinds(ETDScatterRing::Mid).Num() == 0) { return true; }
+	const FVector L = GetActorTransform().InverseTransformPosition(WorldPoint);
+	const FIntPoint Want(FMath::FloorToInt(L.X / Plan.MidCell), FMath::FloorToInt(L.Y / Plan.MidCell));
+	return St.Centre == Want && St.Pending.Num() == 0 && !St.bDirty;
 }
 
 void ATDPlanetScatter::BuildRingsNowAt(const FVector& CourseLocal)

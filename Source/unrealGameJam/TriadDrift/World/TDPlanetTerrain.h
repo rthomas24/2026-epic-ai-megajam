@@ -71,6 +71,38 @@ public:
 	/** Tests: the point the LOD follows (otherwise the camera / pawn). */
 	void SetViewOverride(const FVector& WorldPoint) { bViewOverride = true; ViewOverride = WorldPoint; ReplanTimer = 0.f; }
 	bool IsBuilt() const { return Field.IsValid(); }
+
+	// ENG-38 arrival (agreed with T1, Nov 14). T1 places the arrival at GetCloudDeckZ() + 300 m, glides to
+	// GetGroundZAt(under the ship) + 900 m, calls PrepareArrival(glide end) under the cover, and the reveal waits on
+	// IsArrivalReady(glide end).
+	/**
+	 * Lead's decision (Nov 14): the deck is the highest ground along the glide corridor (DeckCorridorRadius round the
+	 * line from the arrival to the glide end) + DeckClearance, clamped to DeckMinAbovePad..DeckMaxAbovePad over the pad.
+	 * Peaks outside the corridor may stand above the cloud. (Was the zone's highest ground + 600 m: 2.4 km, a 12 s glide.)
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Arrival", meta = (ClampMin = "0"))
+	float DeckClearance = 30000.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Arrival", meta = (ClampMin = "0"))
+	float DeckCorridorRadius = 200000.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Arrival", meta = (ClampMin = "0"))
+	float DeckMinAbovePad = 110000.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Arrival", meta = (ClampMin = "0"))
+	float DeckMaxAbovePad = 160000.f;
+	/** World Z of the cloud deck over the pad's corridor (the default before an arrival is known; cached). */
+	float GetCloudDeckZ() const;
+	/** World Z of the deck for an arrival: the corridor from ArrivalWorld to GlideEndWorld (XY used). */
+	float GetCloudDeckZFor(const FVector& ArrivalWorld, const FVector& GlideEndWorld) const;
+	/** World Z of the highest ground within DeckCorridorRadius of the segment A-B (XY, world). */
+	float GetCorridorMaxGroundZ(const FVector& A, const FVector& B) const;
+	/** World Z of the ground under a world point (GetHeightAt). */
+	float GetGroundZAt(const FVector& WorldPoint) const { return GetHeightAt(WorldPoint); }
+	/** Point the scatter's streamed rings at the glide's end now, before the cover lifts. */
+	void PrepareArrival(const FVector& GlideEndWorld);
+	/** The same, and the deck actor moves to GetCloudDeckZFor(arrival, glide end). */
+	void PrepareArrival(const FVector& ArrivalWorld, const FVector& GlideEndWorld);
+	/** Terrain built, the zone layer's near tier in, and the scatter around the glide end complete. */
+	bool IsArrivalReady(const FVector& GlideEndWorld) const;
+	mutable float CachedZoneMaxZ = TNumericLimits<float>::Lowest();
 	int32 GetChunkLodAt(const FVector& WorldPoint) const;
 
 	/**

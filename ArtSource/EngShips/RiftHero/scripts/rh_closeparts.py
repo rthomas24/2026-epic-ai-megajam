@@ -417,7 +417,7 @@ def build_canopy(mats, body, bvh):
         parts.append(sweep_rect("CP_Bow_%.2f" % xb, pts, wbar, 0.016, mats, GUN, up=(1, 0, 0)))
     # seat, pilot and dash, seen through the tinted glass
     zd = deck_z(0.60 + ox)
-    parts.append(G.box("CP_SeatBack", (0.40 + ox, -0.09 * ky, zd), (0.47 + ox, 0.09 * ky, zd + 0.21), mats, BLACK))
+    parts.append(G.box("CP_SeatBack", (0.40 + ox, -0.09 * ky, zd), (0.47 + ox, 0.09 * ky, zd + 0.21), mats, ca.get("seat_mat", BLACK)))
     parts.append(G.box("CP_SeatHead", (0.41 + ox, -0.06 * ky, zd + 0.21), (0.46 + ox, 0.06 * ky, zd + 0.27), mats,
                        ca.get("seat_head", ACCENT)))
     parts.append(G.box("CP_Shoulders", (0.47 + ox, -0.105 * ky, zd + 0.06), (0.60 + ox, 0.105 * ky, zd + 0.15), mats, WHITE))
@@ -427,7 +427,16 @@ def build_canopy(mats, body, bvh):
     parts.append(G.lathe_x("CP_Helmet", [(0.0, 0.0), (0.012 * hk, 0.042 * hk), (0.045 * hk, 0.066 * hk), (0.095 * hk, 0.068 * hk),
                                          (0.14 * hk, 0.055 * hk), (0.16 * hk, 0.0)],
                            (0.49 + ox, 0.0, zd + 0.18), mats, segments=24, mat_idx=[WHITE] * 6))
-    parts.append(G.box("CP_Visor", (0.49 + ox + 0.115, -0.035, zd + 0.17), (0.49 + ox + 0.13, 0.035, zd + 0.20), mats, GLOW))
+    parts.append(G.box("CP_Visor", (0.49 + ox + 0.115, -0.035, zd + 0.17), (0.49 + ox + 0.13, 0.035, zd + 0.20), mats, ca.get("visor_mat", GLOW)))
+    if ca.get("soft"):           # v08 (review: a blocky mannequin): the seat, headrest and shoulders get wide round bevels
+        for p in parts:
+            if p.name.startswith(("CP_Seat", "CP_Shoulders")):
+                G.bevel(p, width=ca["soft"], segments=4, angle_deg=30.0)
+    if ca.get("instr"):          # a thin instrument glow on the dash's top edge and two side consoles: the interior reads
+        parts.append(G.box("CP_Instr", (0.975 + ox, -0.11 * ky, deck_z(1.0 + ox) + 0.085), (0.983 + ox, 0.11 * ky, deck_z(1.0 + ox) + 0.10), mats, GLOW))
+        for sy in (1, -1):
+            ya, yb = sorted((sy * 0.115 * ky, sy * 0.16 * ky))
+            parts.append(G.box("CP_Console_%d" % sy, (0.50 + ox, ya, zd), (0.86 + ox, yb, zd + 0.10), mats, STEEL))
     return parts, glass, cut
 
 
@@ -454,6 +463,46 @@ def _guns_barrels(mats, body):
     for p in parts:
         G.bevel(p, width=0.008, segments=2, angle_deg=30.0)
     return parts, cut
+
+
+def _plate(name, prof, y, thick, cant, mats, mat_idx):
+    """A flat plate: the (x, z) outline `prof` extruded `thick` across Y at y, leaning outwards by `cant` (m of Y per
+    m of Z). Tail fins."""
+    sy = 1.0 if y >= 0 else -1.0
+    bm = bmesh.new()
+    uvl = bm.loops.layers.uv.new("UVMap")
+    rings = []
+    for off in (-thick / 2, thick / 2):
+        rings.append([bm.verts.new((x, y + off + sy * cant * (z - prof[0][1]), z)) for x, z in prof])
+    n = len(prof)
+    faces = [bm.faces.new(rings[0]), bm.faces.new(list(reversed(rings[1])))]
+    for k in range(n):
+        faces.append(bm.faces.new((rings[0][k], rings[1][k], rings[1][(k + 1) % n], rings[0][(k + 1) % n])))
+    for f in faces:
+        f.material_index = mat_idx
+        for j, l in enumerate(f.loops):
+            l[uvl].uv = ((0, 0), (1, 0), (1, 1), (0, 1))[j % 4]
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    return G._finish(name, bm, mats, 30.0)
+
+
+def build_fins(mats, body):
+    """Silhouette parts (Null interceptor, Lead, Nov 14: at 150 m it read exactly like the fighter): a long lance
+    forward from each wing tip with a glow line on top, and twin canted tail fins. No
+    Rodin geometry is cut: the parts start inside the hull."""
+    f = K["fins"]
+    parts = []
+    for sy in (1, -1):
+        for i, (x0, x1, y, z, w, h) in enumerate(f.get("lances", ())):
+            yy = sy * y
+            parts.append(G.box("FN_Lance_%d_%d" % (sy, i), (x0, yy - w / 2, z - h / 2), (x1, yy + w / 2, z + h / 2), mats, GUN, taper=(0.12, 0.12)))
+            parts.append(G.box("FN_LanceGlow_%d_%d" % (sy, i), (x0 + 0.3, yy - w * 0.16, z + h * 0.42), (x0 + (x1 - x0) * 0.62, yy + w * 0.16, z + h * 0.55),
+                               mats, GLOW, taper=(0.5, 1.0)))
+        for i, (prof, y, thick, cant) in enumerate(f.get("fins", ())):
+            parts.append(_plate("FN_Fin_%d_%d" % (sy, i), prof, sy * y, thick, cant, mats, GUN))
+    for p in parts:
+        G.bevel(p, width=0.006, segments=2, angle_deg=30.0)
+    return parts
 
 
 def build_engines(mats, body):
@@ -853,6 +902,8 @@ def build(mats, body):
     if K.get("engines"):
         eng, res["cut_engines"] = build_engines(mats, body)
         guns = guns + eng
+    if K.get("fins"):
+        guns = guns + build_fins(mats, body)
     # v10's side plates failed the toy-like gate (Lead, decision A): built only with TD_RIFT_PLATES=1; v11 = v09 sides
     if os.environ.get("TD_RIFT_PLATES"):
         plates = build_side_plates(mats, body, bvh)

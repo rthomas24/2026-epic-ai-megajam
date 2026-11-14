@@ -179,7 +179,19 @@ public:
 	float GetDescentDeckZ() const { return GlideDeckZ; }
 	/** The cloud deck's world Z in a world (0 = no deck). */
 	static float FindDeckZ(UWorld* World);
+	/** The glide for a drop (the Lead, Nov 14, T4's higher deck): duration = drop / 85 m/s within 9-12 s; speed raised so the
+	 *  dive never needs more than ~44 deg of pitch (vertical <= 0.7 x speed). */
+	static void PlanGlide(float StartZ, float EndZ, float& OutSeconds, float& OutSpeed);
+	static constexpr float GlideMaxSeconds = 12.f;
+	static constexpr float GlideMaxSpeed = 30000.f;
+	float GetGlideSeconds() const { return GlideDur; }
+	float GetGlideSpeedNow() const { return GlideSpeedNow; }
 	void TickGlide(float Dt);
+	/** The glide's pass through the deck: the CloudWisps layer on the camera while within this of the deck (cm). */
+	static constexpr float GlideDeckPassBand = 4000.f;
+	/** ENG-38 exposure ramp: the DescentWhitePP blendable's weight now (0 = not applied). */
+	float GetExposureRampWeight() const { return ExposureWeight; }
+	void TickExposureRamp();
 
 	// ---- ENG-38 stage 2, the mirrored take-off (the Lead, Nov 14): where the squad leaves the planet's ground decides where
 	// it comes out on the galaxy globe (T4's FTDPlanetEntry::GlobeFromDeparture / WorldFromGlobe), not a fixed <Planet>_Orbit.
@@ -286,7 +298,41 @@ private:
 	float GlideGroundFallback = 0.f;
 	float GlideProgress = -1.f;
 	bool bGlideLevelling = false;
+	float ExposureWeight = 0.f;
+public:
+	int32 GlideDeckPasses = 0; // tests and the timing log
+	float GetCloudIntensity() const { return CloudIntensity; }
+	float GetGlideWindVolume() const { return GlideWindVolume; }
+	bool bInGlideDeckPass = false;
+	/** The in-cloud layer's User.Intensity now (0 outside the deck's band). */
+	float CloudIntensity = 0.f;
+	/** The glide's wind loop (DA_Travel_FX.GlideWind): its volume now (0 when not gliding). */
+	float GlideWindVolume = 0.f;
+private:
+	TWeakObjectPtr<class UCameraComponent> ExposureCamera;
+	UPROPERTY(Transient) TObjectPtr<class UAudioComponent> GlideWind;
+	void TickGlideWind(float Dt);
+	UPROPERTY(Transient) TObjectPtr<class UMaterialInstanceDynamic> ExposureMID;
 	float GlideLevelTime = 0.f;
+	float GlideDur = 9.f;
+	float GlideSpeedNow = 12000.f;
+	FVector GlideEndPredicted = FVector::ZeroVector;
+	bool bGlideEndPredicted = false;
+public:
+	/** This visit's arrival was placed over the cloud deck (the glide may start at the reveal). */
+	bool HasArrivedOverDeck() const { return bArrivedOverDeck; }
+	/** Tests: the destination map has loaded (what PostLoadMapWithWorld does in the game). */
+	void NotifyPostLoadForTests(UWorld* World) { HandlePostLoadMap(World); }
+private:
+	bool bArrivedOverDeck = false;
+	TWeakObjectPtr<UWorld> FloorCheckedWorld;
+public:
+	/** No flying arrival on a planet starts below this above the ground (staged and uncovered arrivals; the Lead, Nov 14). */
+	static constexpr float ArrivalFloorCm = 30000.f;
+	/** Once per planet map: a flown ship first seen below the floor (not landing, not landed) is lifted to it. */
+	void TickArrivalFloor();
+	int32 ArrivalFloorLifts = 0;
+private:
 
 	bool bArrivalPending = false;
 	ETDDestination ArrivalPlanet = ETDDestination::Verdance;

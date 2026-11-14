@@ -256,3 +256,29 @@ isolated views. Hull art cannot fix type and facing at range: that needs HUD or 
 - **Hauler and Dominion turrets on the rebuilt master:** the convoy (`TD.World.ApproachView 1`) renders textured and lit
   (`hauler_convoy_check.png`, at a distance); the Dominion's eight turrets use `SM_NullTurret` / `MI_NullTurret`
   (`TD.World.DominionParts`), the same mesh and instance as on the carrier; they were not captured close.
+
+## Fleet silhouettes at fight range (Nov 14)
+
+`Builds/for-ryan/ships/fleet_silhouettes_60m_150m.png`: the five types held 100 m ahead of the player, a free camera 60 m
+and 150 m off each (same lens), and 150 m from behind. Fighter and interceptor were the same crescent with three
+engines. The interceptor now carries a lance forward from each wing tip and twin canted tail fins
+(`build_fins` in `rh_closeparts.py`, plain dark plates, no Rodin geometry cut): from the side it is clearly longer
+with a tall tail; from behind the twin fins stand up as a V over the engines. Its bounds grew (890 cm long, 306 tall);
+gameplay collision is the code's own sphere, the auto convex hulls follow the new bounds.
+Review of the first capture: side view solved; from behind not solved (before the last recapture; the V of the fins
+is visible in the zoom sheet since); fighter / interceptor / bomber read washed copper at 150 m, hence the lower
+RangeBoost and GlowSpread (self-checked after the change: black hulls with orange seams again at 60 and 150 m).
+Still open: bomber vs fighter from behind (the bomber is only wider); the fins are flat untextured plates up close.
+The hauler at 100 m shows flat purple / white blocks and a striped end cap: that is its own Rodin texture set
+(`ArtSource/EngAI/Ships/NullHauler`), not the master; it needs a texture pass or a regenerated source.
+
+**Rear views (Nov 14, later).** Review of all five from behind at 60 m and 150 m (`fleet_rear_views_zoom.png`): fighter /
+interceptor DISTINCT (the twin fins), interceptor / bomber DISTINCT, gunship / carrier DISTINCT; fighter / bomber AT RISK
+(same flat wedge with three engines; only size differed) and the fighter washed copper. Then: the bomber got a
+twin-boom tail (`build_fins`, booms aft of the engines with a fin each) and the fighter's EmissiveStrength went 12 -> 7.
+Self-checked in a recapture: the booms and fins stand clear of the bomber's engines at both distances. The booms are
+plain dark rods and fins; up close they are simple. Lancer cockpit v08: see ART-HISTORY.
+**Correction:** the "hauler" judged FIX in an earlier note was a striped cargo container of the level dressing. Grok Bot's
+contact sheet shows `SM_NullHauler` already black with orange thrusters and white cockpit slits, on `M_TD_Ship`. Two
+attempts to frame a live hauler (`TD.World.ApproachEscort`) and a Dominion turret from the assault start did not put
+either in frame; neither is verified in a capture.

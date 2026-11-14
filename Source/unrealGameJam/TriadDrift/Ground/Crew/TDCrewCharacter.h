@@ -50,6 +50,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew", meta = (Units = "s"))
 	float CorpseSeconds = 10.f; // the falls run 2.6-3.9 s: the body lies, then sinks out (CorpseSinkSeconds), never pops
 
+	/** The Warden staggers for its Stagger clip's length on a heavy blade hit (a pilot melee hit of at least this much:
+	 *  the heavy lunge is 70, a crit finisher 90) or on its own bolt sent back by a perfect deflect; then not again for
+	 *  WardenStaggerCooldown seconds (Lead, Nov 14). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew")
+	float WardenHeavyHitDamage = 60.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew", meta = (Units = "s"))
+	float WardenStaggerCooldown = 6.f;
+
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Crew")
 	void InitFromType(ETDCrewType Type);
 
@@ -64,6 +72,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsTelegraphing() const { return CurrentAttack != ETDCrewAttack::None && WindupLeft > 0.f; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsAttacking() const { return CurrentAttack != ETDCrewAttack::None; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsStaggered() const { return StaggerLeft > 0.f; }
+	/** A Trooper's hit react is playing: no attack starts and it stands while the react runs (a front hit stops the burst). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsReacting() const { return HitReactLeft > 0.f; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsGuardBroken() const { return GuardBrokenLeft > 0.f; }
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") bool IsDead() const;
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Crew") int32 GetBossPhase() const { return BossPhase; }
@@ -156,6 +166,9 @@ public:
 	static constexpr int32 GuardChipsToBreak = 9;
 	static constexpr float GuardChipWindow = 4.f;
 	int32 GetGuardChips() const { return GuardChips; }
+	/** World time the last melee hit landed (tests: the contact timing), or -1. */
+	double GetLastMeleeLandedAt() const { return LastMeleeLandedAt; }
+	void ClearLastMeleeLanded() { LastMeleeLandedAt = -1.0; }
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Audio") TSoftObjectPtr<class USoundBase> DroneHumSound;
 	/** The last sound events (RifleShot, DroneHum, DroneHumStop): tests and debugging. */
 	const TArray<FName>& GetSoundEvents() const { return SoundEvents; }
@@ -231,10 +244,13 @@ private:
 	int32 ShotsLeft = 0;
 	float ShotTimer = 0.f;
 	float StaggerLeft = 0.f;
+	float HitReactLeft = 0.f;
+	float WardenStaggerCooldownLeft = 0.f;
 	float GuardBrokenLeft = 0.f;
 	int32 GuardChips = 0;
 	float GuardChipAge = 0.f;
 	float GuardFlashLeft = 0.f;
+	double LastMeleeLandedAt = -1.0;
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> GuardFlash;
 	void PlayGuardClang(const FVector& At);
 	float ChargeTimeLeft = 0.f;
@@ -261,6 +277,7 @@ private:
 	FName LastTypeClip;
 	float LastTypeClipStart = 0.f;
 	float LastTypeClipRate = 1.f;
+	double AttackStartedAt = 0.0;
 	/** td.Crew.LogHits: one line per enemy damage instant (type, action, clip, clip time) for the animation builder. */
 	void LogHitInstant(const TCHAR* What) const;
 	int32 MeleeSwings = 0;

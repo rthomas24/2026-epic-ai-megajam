@@ -741,7 +741,10 @@ void ATDEncounterVolume::Activate()
 		const int32 Base = Points.Num();
 		for (int32 i = Base; i < Want; ++i)
 		{
-			Points.Add(Points[i % Base] + FVector(180.f, 180.f, 0.f) * (1 + i / Base)); // beside an existing point
+			// Inside the fight, never outward: a point pushed out of a room spawned crew behind its wall (Played.Cinder on Ace).
+			const FVector& From = Points[i % Base];
+			const FVector Inward = From.Size2D() > 200.f ? From * 0.7f : From + FVector(0.f, 150.f, 0.f);
+			Points.Add(FVector(Inward.X, Inward.Y, From.Z));
 		}
 		Points.SetNum(FMath::Min(Points.Num(), Want));
 	}

@@ -1,0 +1,43 @@
+{
+ "site": "KS_DomDebris",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Space/BP_KS_DomDebris",
+ "about": "Capture group: three of the Dominion escape debris pieces tumbling apart (T4 swaps the meshes in for its blocks).",
+ "pieces": [
+  {
+   "name": "PlateB",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomDebris_PlateB",
+   "location_cm": [
+    0.0,
+    -2600.0,
+    0.0
+   ],
+   "yaw_deg": 20.0,
+   "pitch_deg": 35.0,
+   "roll_deg": -20.0
+  },
+  {
+   "name": "Truss",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomDebris_Truss",
+   "location_cm": [
+    600.0,
+    1200.0,
+    900.0
+   ],
+   "yaw_deg": -40.0,
+   "pitch_deg": -25.0,
+   "roll_deg": 50.0
+  },
+  {
+   "name": "Shroud",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Space/SM_KS_DomDebris_Shroud",
+   "location_cm": [
+    -500.0,
+    2800.0,
+    -700.0
+   ],
+   "yaw_deg": 120.0,
+   "pitch_deg": 15.0,
+   "roll_deg": 70.0
+  }
+ ]
+}

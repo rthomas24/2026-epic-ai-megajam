@@ -411,11 +411,19 @@ S2('NS_TD_Entry_CloudPunch', U(WHITE4, 1.0, Intensity=1.0), [
     spin(shed('Shreds', 'M_TD_VFX_CloudWisp', 0, (0.4, 0.9), (500, 1100), (3000, 9000), radius=900.0, drag=0.5, rgb=(1.0, 1.0, 1.0), alpha=0.7,
               cone=((-1.0, 0.0, 0.0), 25.0), burst=26, dur=1.0, power=0.8, sort=True))])
 # Slot wanted (T1): a loop attached to the ship while it descends under the deck: vapour streaming back past the camera.
-S2('NS_TD_Entry_CloudWisps', U(WHITE4, 1.0, Intensity=1.0), [
-    offset(spin(shed('Wisps', 'M_TD_VFX_CloudWisp', 0, (0.5, 0.9), (900, 2200), (9000, 16000), radius=2600.0, drag=0.0, local=True, rgb=(1.0, 1.0, 1.0), alpha=0.55,
-                     cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='26.0*' + RAMP, power=0.8, fade_in=5.0, sort=True)), 6000),
-    offset(shed('Mist', 'M_TD_VFX_Spark', 0, (0.25, 0.45), (5, 10), (14000, 24000), k=0.5, radius=1800.0, drag=0.0, local=True, stretch=40,
-                cone=((-1.0, 0.0, 0.0), 2.0), rate_expr='90.0*' + RAMP, fade_in=6.0), 5000)])
+# Round 9s (Lead / T1: mid-glide the few grey puffs ahead read as explosion smoke): a full-screen cloud layer the ship flies
+# INSIDE for 1-2 s, then breaks out of. Attached to the ship, +X forward; wisps born in a 40 m ball around the chase camera
+# and ahead of the ship, streaking back past it. User.Color = the cloud tint (default pale teal-white, Verdance; Cinder:
+# ash-brown (0.45, 0.36, 0.30)); User.Embers 0..1 adds glowing embers (Cinder); User.Intensity 0..1 fades it all.
+S2('NS_TD_Entry_CloudWisps', U((0.78, 0.92, 0.92, 1.0), 1.0, Intensity=1.0, Embers=0.0), [
+    offset(spin(shed('Wisps', 'M_TD_VFX_CloudWisp', 0, (0.45, 0.8), (1400, 3200), (9000, 15000), radius=3800.0, drag=0.0, local=True, alpha=0.6,
+                     cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='70.0*' + RAMP, power=0.9, fade_in=6.0, sort=True)), 2500),
+    offset(spin(shed('Veil', 'M_TD_VFX_CloudWisp', 0, (0.6, 1.0), (4000, 7000), (6000, 9000), radius=2600.0, drag=0.0, local=True, alpha=0.35,
+                     cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='12.0*' + RAMP, power=0.8, fade_in=5.0, sort=True)), 1500),
+    offset(shed('Streaks', 'M_TD_VFX_Spark', 0, (0.25, 0.45), (8, 16), (14000, 24000), k=0.6, radius=3000.0, drag=0.0, local=True, stretch=40,
+                cone=((-1.0, 0.0, 0.0), 2.0), rate_expr='120.0*' + RAMP, fade_in=6.0), 3000),
+    offset(shed('Embers', 'M_TD_VFX_Glow', 0, (0.4, 0.8), (14, 34), (8000, 14000), k=1.8, radius=3000.0, drag=0.0, curl=800.0, local=True, rgb=(1.0, 0.45, 0.10),
+                cone=((-1.0, 0.0, 0.0), 6.0), rate_expr='80.0*User.Embers*' + RAMP, power=1.4), 2500)])
 
 # ---- round 6, item 1b (Ryan): debris streaking past during the burn, and the same look for the EXIT (take-off to space).
 # Everything is ship-local (+X = the nose), so one set of systems serves both directions as long as the nose points along
@@ -688,15 +696,15 @@ CRYSTAL = (0.45, 0.55, 1.0, 1.0)   # the belt's blue-violet crystals: clear of t
 
 
 def rock_break(n_chunks, n_dust, n_grit, fl=1800):
-    # Round 9g (T6's live capture: a dull dark-grey puff against bright ice rocks): a short bright white-blue flash, ice
-    # shards and glints thrown out, the rock chunks, and only a faint pale mist instead of grey smoke.
-    # 9k: flash about 2x and a soft glow under it so a break reads at 80 m from the chase camera; both under 0.2 s
-    # 9n, seen from a side camera at 80 m: at Scale 2.2 / 4.5 the M and L flashes (40 / 81 m) swallowed the frame; the flash
-    # base now shrinks with the class so the flash is about the rock's size (S 18 m, M 22 m, L 30 m), 0.12 s
-    return [spin(flash('Flash', 'M_TD_VFX_IceBurst', fl, 0.12, 1.8, growth='0.5 + Particles.NormalizedAge*0.9')),   # 9p: uneven ice burst (was the 8-point flare)
-            flash('Glow', 'M_TD_VFX_Glow', fl * 1.1, 0.14, 0.9, growth='0.6 + Particles.NormalizedAge*0.6', power=1.6),
-            # 9i: the mist is gone (a pale 0.30 puff still read grey over dark space in play); flash, chunks and shards carry it
+    # 9q (Lead: still a light switching on): a smaller burst with short rays and a pale cyan-white core, and the read moved
+    # into 8 tumbling ice shards and a quick pale dust puff flying outward, so a break looks like something shattering.
+    return [spin(flash('Flash', 'M_TD_VFX_IceShatter', fl * 0.6, 0.10, 1.4, growth='0.5 + Particles.NormalizedAge*0.9')),
+            chunks('Ice', 'SM_TD_VFX_Shard_A', 8, (0.7, 1.3), (0.25, 0.6), (900, 2600), drag=0.7, radius=60.0, dur=1.4, spin=(1.5, 5.0)),
             chunks('Chunks', 'SM_TD_VFX_Shard_C', n_chunks, (0.8, 1.6), (0.35, 0.9), (500, 2000), drag=0.6, radius=90.0, dur=1.8, spin=(0.8, 3.0)),
+            # 9r (Lead: the puffs read as grey cotton wool): dust, not smoke - additive pale cyan-white, half size, alpha 0.2,
+            # expanding fast and thinning, gone within 0.25 s
+            shed('Dust', 'M_TD_VFX_Glow', 0, (0.15, 0.25), (60, 110), (1500, 3000), k=0.2, radius=60.0, drag=4.0, rgb=(0.75, 0.92, 1.0), alpha=1.0,
+                 burst=8, dur=0.4, power=1.6, growth='0.5 + Particles.NormalizedAge*2.0'),
             shed('Shards', 'M_TD_VFX_Spark', 0, (0.3, 0.8), (7, 14), (1500, 4800), k=1.8, radius=60.0, drag=1.8, stretch=9, rgb=(0.80, 0.93, 1.0),
                  burst=n_grit, dur=0.9, power=1.2)]
 

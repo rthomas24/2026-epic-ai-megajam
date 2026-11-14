@@ -9,6 +9,7 @@
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "HAL/PlatformTime.h"
+#include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/Combat/Pickups/TDPickup.h"
 #include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
 #include "Components/InstancedStaticMeshComponent.h"
@@ -68,7 +69,7 @@ bool FTDSpaceFieldFills::RunTest(const FString& Parameters)
 			bOk &= FVector::Dist(P.Location, Zone) >= 150000.f + Half * 0.f;
 			bOk &= !F.Layout->IsInKeepOut(Xf.InverseTransformPosition(P.Location), 20000.f);
 			for (const FTDPlanetSpec& Pl : L.Planets) { bOk &= FVector::Dist(P.Location, Xf.TransformPosition(Pl.Location)) > Pl.AtmosphereRadius * 1.3f; }
-			bOk &= FVector::Dist(P.Location, Xf.TransformPosition(L.Dominion.GetLocation())) > 350000.f; // T4: Dominion, field, generators, docking cone, escape
+			bOk &= FVector::Dist(P.Location, Xf.TransformPosition(L.Dominion.GetLocation())) > 180000.f; // T4: the Dominion core (the Moons sit closer; the rest keep 3.5 km)
 				for (const FTDPlanetSpec& Pl : L.Planets)
 				{
 					// The Verdance convoys (Dominion -> Verdance, offsets up to 900 m).
@@ -94,7 +95,7 @@ bool FTDSpaceFieldFills::RunTest(const FString& Parameters)
 	}
 	TestEqual(*FString::Printf(TEXT("nothing in a keep-out (first: %s)"), *FirstBad), Bad, 0);
 
-	// Something in every direction: 26 points on a 4 km sphere round the zone, at least 20 pieces within 1.5 km of each.
+	// Something in every direction: 26 points on a 7.2 km sphere round the zone, at least 20 pieces within 1.5 km of each.
 	int32 Thin = 0;
 	FString ThinList;
 	for (int32 i = 0; i < 26; ++i)
@@ -102,12 +103,13 @@ bool FTDSpaceFieldFills::RunTest(const FString& Parameters)
 		const float Y = 1.f - 2.f * (i + 0.5f) / 26.f;
 		const float R = FMath::Sqrt(1.f - Y * Y);
 		const float Phi = i * PI * (3.f - FMath::Sqrt(5.f));
-		const FVector S = Zone + FVector(FMath::Cos(Phi) * R, FMath::Sin(Phi) * R, Y) * 400000.f;
+		// 7.2 km: the outer regions (the belt sits at 2.0-2.6 km in one plane, tested on its own).
+		const FVector S = Zone + FVector(FMath::Cos(Phi) * R, FMath::Sin(Phi) * R, Y) * 650000.f;
 		// The Dominion's 3.5 km sphere and the planets' approaches are empty by design.
 		if (FVector::Dist(S, Xf.TransformPosition(L.Dominion.GetLocation())) < 350000.f + 100000.f) { continue; }
 		int32 Near = 0;
-		for (const FTDSpaceFieldPiece& P : Pieces) { Near += FVector::DistSquared(P.Location, S) < FMath::Square(150000.f) ? 1 : 0; }
-		if (Near < 20) { ++Thin; ThinList += FString::Printf(TEXT("%d(%d) "), i, Near); }
+		for (const FTDSpaceFieldPiece& P : Pieces) { Near += P.Size >= 2000.f && FVector::DistSquared(P.Location, S) < FMath::Square(200000.f) ? 1 : 0; /* rocks of 20 m+ within 2 km (the Outer Dark: lone giants, not piles) */ }
+		if (Near < 3) { ++Thin; ThinList += FString::Printf(TEXT("%d(%d) "), i, Near); }
 	}
 	TestTrue(*FString::Printf(TEXT("at most 6 of 26 bearings thin (thin: %s)"), *ThinList), Thin <= 6);
 	return true;
@@ -247,6 +249,90 @@ bool FTDSpaceFieldCaches::RunTest(const FString& Parameters)
 	F.Field->UpdateCachesAt(Spots[1]);
 	TestEqual(TEXT("off: none spawn"), F.Field->GetCachesAlive(), 0);
 	F.Field->SetFieldEnabled(true);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSpaceFieldShepherdBelt, "TriadDrift.World.SpaceField.ShepherdBeltIsOneThinRingWithAClearVerdanceGap", TD_TEST_FLAGS)
+bool FTDSpaceFieldShepherdBelt::RunTest(const FString& Parameters)
+{
+	TDSpaceFieldTest::FField F;
+	if (!TestNotNull(TEXT("field"), F.Field)) { return false; }
+	const ATDSpaceField* Fd = F.Field;
+	const FTDGalaxyLayoutData& L = F.Layout->GetLayout();
+	const FTransform Xf = F.Layout->GetActorTransform();
+	FVector VDir = FVector::ZeroVector;
+	for (const FTDPlanetSpec& Pl : L.Planets) { if (Pl.Destination == ETDDestination::Verdance) { VDir = Xf.TransformPosition(Pl.Location) - Fd->BeltCenter; } }
+	VDir -= Fd->BeltNormal * FVector::DotProduct(VDir, Fd->BeltNormal);
+	VDir = VDir.GetSafeNormal();
+	int32 Belt = 0, InPlane = 0, InRing = 0, InGap = 0, InnerBig = 0, Inner = 0, OuterBig = 0, Outer = 0;
+	for (const FTDSpaceFieldPiece& P : Fd->GetPieces())
+	{
+		if (P.bAdopted || P.Kind != ETDSpaceFieldKind::Belt) { continue; }
+		const FVector Local = P.Location - Fd->BeltCenter;
+		const float H = FMath::Abs((float)FVector::DotProduct(Local, Fd->BeltNormal));
+		const FVector Flat = Local - Fd->BeltNormal * FVector::DotProduct(Local, Fd->BeltNormal);
+		const float R = (float)Flat.Size();
+		if (P.Size > 20000.f) { continue; }	// the moonlets sit on the gap edges, by design
+		++Belt;
+		InPlane += H < 20000.f ? 1 : 0;
+		InRing += R > Fd->BeltInner - 10000.f && R < Fd->BeltOuter + 10000.f ? 1 : 0;
+		const float Along = (float)FVector::DotProduct(Flat, VDir);
+		if (Along > 0.f && (Flat - VDir * Along).Size() < 45000.f) { ++InGap; }
+		const float T = (R - Fd->BeltInner) / (Fd->BeltOuter - Fd->BeltInner);
+		if (T < 0.3f) { ++Inner; InnerBig += P.Size > 2500.f ? 1 : 0; }
+		if (T > 0.7f) { ++Outer; OuterBig += P.Size > 2500.f ? 1 : 0; }
+	}
+	AddInfo(FString::Printf(TEXT("belt %d: in plane %d, in ring %d, in the Verdance gap %d; >25 m inner %d/%d, outer %d/%d"), Belt, InPlane, InRing, InGap, InnerBig, Inner, OuterBig, Outer));
+	TestTrue(TEXT("a full belt"), Belt > 1200);
+	TestTrue(TEXT("one thin plane (98% within 200 m)"), InPlane * 100 >= Belt * 98);
+	TestTrue(TEXT("on the ring (98%)"), InRing * 100 >= Belt * 98);
+	TestEqual(TEXT("nothing in the 900 m Verdance gap"), InGap, 0);
+	TestTrue(TEXT("bigger rocks on the inner edge than the outer"), Inner > 0 && Outer > 0 && float(InnerBig) / Inner > 2.f * float(OuterBig) / Outer);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSpaceFieldStructuresKeepOut, "TriadDrift.World.SpaceField.RegionsAndSetPiecesKeepOut", TD_TEST_FLAGS)
+bool FTDSpaceFieldStructuresKeepOut::RunTest(const FString& Parameters)
+{
+	TDSpaceFieldTest::FField F;
+	if (!TestNotNull(TEXT("field"), F.Field)) { return false; }
+	const ATDSpaceField* Fd = F.Field;
+	for (int32 R = 1; R <= 7; ++R) { TestTrue(*FString::Printf(TEXT("region %d built"), R), Fd->RegionCentres.Contains(R)); }
+	const FTransform Xf = F.Layout->GetActorTransform();
+	const FTDGalaxyLayoutData& L = F.Layout->GetLayout();
+	const FVector Zone = Xf.TransformPosition(L.CombatZoneCenter);
+	const ATDDominion* Dom = ATDDominion::Get(F.W.GetWorld());
+	const FVector DLoc = Dom ? Dom->GetActorLocation() : Xf.TransformPosition(L.Dominion.GetLocation());
+	const FVector Bow = Dom ? Dom->GetActorForwardVector() : (Zone - DLoc).GetSafeNormal();
+	TArray<FVector> Ends;
+	for (const FTDPlanetSpec& Pl : L.Planets) { Ends.Add(Xf.TransformPosition(Pl.Location)); }
+	Ends.Add(DLoc);
+	int32 Bad = 0;
+	FString First;
+	for (const FTDSpaceFieldPiece& S : Fd->GetStructures())
+	{
+		const float Half = S.Size * 0.5f;
+		bool bOk = FVector::Dist(S.Location, Zone) >= 150000.f;
+		bOk &= FVector::Dist(S.Location, DLoc) >= 180000.f;	// the Moons: T4 finer keep-outs (core, bow tube, stage start)
+		for (const FVector& E : Ends) { bOk &= FVector::Dist(S.Location, FMath::ClosestPointOnSegment(S.Location, Zone, E)) > 15000.f + Half * 0.5f; }
+		bOk &= FVector::Dist(S.Location, FMath::ClosestPointOnSegment(S.Location, DLoc, DLoc + Bow * 500000.f)) > 40000.f;	// T4: the escape corridor
+		bOk &= !Fd->IsInDockingCone(S.Location, S.Size * 0.5f);	// T4: the tractor cone and near-field capture
+		if (!bOk) { ++Bad; if (First.IsEmpty()) { First = FString::Printf(TEXT("%s size %.0f m"), *S.Location.ToCompactString(), S.Size / 100.f); } }
+	}
+	AddInfo(FString::Printf(TEXT("%d set pieces placed"), Fd->GetStructures().Num()));
+	TestTrue(TEXT("set pieces placed in the regions"), Fd->GetStructures().Num() >= 20);
+	auto CountNear = [Fd](int32 Region, float Radius, float MinSize)
+	{
+		const FVector* C = Fd->RegionCentres.Find(Region);
+		int32 N = 0;
+		for (const FTDSpaceFieldPiece& S : Fd->GetStructures()) { N += C && S.Size >= MinSize && FVector::Dist(S.Location, *C) < Radius ? 1 : 0; }
+		return N;
+	};
+	const int32 Shards = CountNear(6, 200000.f, 20000.f), Hulls = CountNear(4, 120000.f, 10000.f);
+	AddInfo(FString::Printf(TEXT("Shattered Moons shards %d, Quiet Graveyard hulls %d"), Shards, Hulls));
+	TestTrue(TEXT("the Shattered Moons line the Dominion route (10+ shards)"), Shards >= 10);
+	TestTrue(TEXT("the Quiet Graveyard has its hulls (4+)"), Hulls >= 4);
+	TestEqual(*FString::Printf(TEXT("no set piece in a route, the Dominion sphere or the escape corridor (first: %s)"), *First), Bad, 0);
 	return true;
 }
 

@@ -1,11 +1,35 @@
 {
- "_note": "Heavy bash: the source clip ends 41 cm ahead of where it starts (in place: a pop when the one-shot ends). The body returns over 1.30-1.80 s and each foot takes the drift while it is in the air (left 1.30-1.50, right 1.50-1.80), so no planted foot slides.",
+ "_note": "Heavy bash: the source clip ends 41 cm ahead of where it starts (in place: a pop when the one-shot ends). The body returns over 1.30-1.80 s and each foot takes the drift while it is in the air (left 1.30-1.50, right 1.50-1.80), so no planted foot slides. r2 (Lead): at the hit the torso is raised 28 deg and the hips 2 cm (0.62-0.82 s) so the shield leads at chest height; contact stays 0.70 s, feet stay planted (leg IK).",
  "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
  "clips": [
   {
    "src": "A_Crew_Heavy_ShieldBash_Pre",
    "dst": "A_Crew_Heavy_ShieldBash",
    "shift": [
+    [
+     0.45,
+     0,
+     0,
+     0
+    ],
+    [
+     0.62,
+     0,
+     0,
+     2
+    ],
+    [
+     0.82,
+     0,
+     0,
+     2
+    ],
+    [
+     1.05,
+     0,
+     0,
+     0
+    ],
     [
      1.3,
      0,
@@ -48,7 +72,25 @@
       0
      ]
     ]
-   }
+   },
+   "chest_pitch": [
+    [
+     0.45,
+     0
+    ],
+    [
+     0.62,
+     -28
+    ],
+    [
+     0.82,
+     -28
+    ],
+    [
+     1.05,
+     0
+    ]
+   ]
   }
  ]
 }

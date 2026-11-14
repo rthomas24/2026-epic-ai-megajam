@@ -2,146 +2,146 @@
  {
   "shot": "Cinder_approach_00",
   "pos": [
-   -49778.0,
+   -50284.0,
    0.0,
-   25051.0
+   25296.0
   ],
-  "dist_m": 612
+  "dist_m": 743
  },
  {
   "shot": "Cinder_approach_01",
   "pos": [
-   -39298.0,
+   -39931.0,
    0.0,
-   19940.0
+   20246.0
   ],
-  "dist_m": 496
+  "dist_m": 629
  },
  {
   "shot": "Cinder_approach_02",
   "pos": [
-   -28554.0,
+   -29622.0,
    0.0,
-   14699.0
+   15217.0
   ],
-  "dist_m": 377
+  "dist_m": 516
  },
  {
   "shot": "Cinder_approach_03",
   "pos": [
-   -18062.0,
+   -19291.0,
    0.0,
-   9582.0
+   10179.0
   ],
-  "dist_m": 261
+  "dist_m": 404
  },
  {
   "shot": "Cinder_approach_04",
   "pos": [
-   -7802.0,
+   -8932.0,
    0.0,
-   4578.0
+   5127.0
   ],
-  "dist_m": 148
+  "dist_m": 293
  },
  {
   "shot": "Cinder_approach_05",
   "pos": [
-   3268.0,
+   2049.0,
    0.0,
-   1885.0
+   1927.0
   ],
-  "dist_m": 45
+  "dist_m": 184
  },
  {
   "shot": "Cinder_approach_06",
   "pos": [
-   14524.0,
+   13487.0,
    0.0,
    1720.0
   ],
-  "dist_m": 92
+  "dist_m": 85
  },
  {
   "shot": "Cinder_approach_07",
   "pos": [
-   25750.0,
+   24770.0,
    0.0,
-   1721.0
+   1720.0
   ],
-  "dist_m": 201
+  "dist_m": 83
  },
  {
   "shot": "Cinder_approach_08",
   "pos": [
-   37404.0,
+   36305.0,
    0.0,
-   1753.0
+   1747.0
   ],
-  "dist_m": 316
+  "dist_m": 181
  },
  {
   "shot": "Cinder_approach_09",
   "pos": [
-   49079.0,
+   48211.0,
    0.0,
-   1877.0
+   1925.0
   ],
-  "dist_m": 432
+  "dist_m": 296
  },
  {
   "shot": "Cinder_approach_10",
   "pos": [
-   60438.0,
+   59828.0,
    0.0,
-   2157.0
+   2133.0
   ],
-  "dist_m": 546
+  "dist_m": 410
  },
  {
   "shot": "Cinder_approach_11",
   "pos": [
-   71722.0,
+   71324.0,
    0.0,
-   2841.0
+   2808.0
   ],
-  "dist_m": 659
+  "dist_m": 524
  },
  {
   "shot": "Cinder_approach_12",
   "pos": [
-   83869.0,
+   82676.0,
    0.0,
-   4310.0
+   4116.0
   ],
-  "dist_m": 780
+  "dist_m": 638
  },
  {
   "shot": "Cinder_approach_13",
   "pos": [
-   95389.0,
+   94273.0,
    0.0,
-   6871.0
+   6552.0
   ],
-  "dist_m": 897
+  "dist_m": 755
  },
  {
   "shot": "Cinder_approach_14",
   "pos": [
-   106544.0,
+   105623.0,
    0.0,
-   10876.0
+   10467.0
   ],
-  "dist_m": 1012
+  "dist_m": 872
  },
  {
   "shot": "Cinder_approach_15",
   "pos": [
-   118066.0,
+   116995.0,
    0.0,
-   16987.0
+   16433.0
   ],
-  "dist_m": 1134
+  "dist_m": 992
  },
  {
   "shot": "Cinder_ground_from_pad",
@@ -150,14 +150,14 @@
    397.0,
    132.0
   ],
-  "dist_m": 65
+  "dist_m": 201
  },
  {
   "shot": "Cinder_ground_150m",
   "pos": [
-   -7761.0,
-   -2970.0,
-   92.0
+   0.0,
+   397.0,
+   132.0
   ],
   "dist_m": 150
  }
