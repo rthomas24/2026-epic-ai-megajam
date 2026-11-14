@@ -25,7 +25,7 @@ except SystemExit:
 SPS = "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/"
 # (class, place, extra distance for the near shot so the whole piece is in frame, height offset)
 # r2 (Lead): the patrol wreck away from the station ruins; every piece at 1 km, 400 m and 100 m
-PIECES = [("BP_SP_PatrolWreck", "Gate", 10000, 0), ("BP_SP_ResearchA", "Belt", 16000, 0), ("BP_SP_ResearchB", "Verdance", 13000, 0),
+PIECES = [("BP_SP_PatrolWreck", os.environ.get("TD_SPACE_PATROL", "Gate"), 9000, 0), ("BP_SP_ResearchA", os.environ.get("TD_SPACE_RA", "Belt"), 16000, 0), ("BP_SP_ResearchB", "Verdance", 13000, 0),
           ("BP_SP_NullRig", "Cinder", 11000, -1500), ("BP_SP_HollowRock", "Reactor", 12000, 0)]
 PLACE = os.environ.get("TD_SPACE_PLACE")          # one place for every piece (a run per piece: a fresh session each)
 ONLY = os.environ.get("TD_SPACE_ONLY")
@@ -59,7 +59,10 @@ for cls, place, near, dz in PIECES:
     time.sleep(0.5)
     x, y, z, _ = where()
     for d, tag in [(int(t), "%sm" % (int(t) // 100)) for t in os.environ.get("TD_SPACE_D", "").split(",") if t] or ((100000, "1km"), (40000, "400m"), (near, "100m")):
-        G.cmd("TD.Dev.SpawnClass %s%s Space %.0f %.0f %.0f" % (SPS, cls, x + f[0] * d, y + f[1] * d, z + f[2] * d + dz))
+        # beside and above the ship, so the player's own hull does not hide the piece (about 14 deg right, 7 up)
+        rx, ry = -f[1], f[0]
+        G.cmd("TD.Dev.SpawnClass %s%s Space %.0f %.0f %.0f" % (SPS, cls, x + f[0] * d + rx * d * 0.25, y + f[1] * d + ry * d * 0.25,
+                                                                 z + f[2] * d + dz + d * 0.12))
         time.sleep(3.0)
         print(G.shot("%s_%s" % (cls.replace("BP_SP_", ""), tag)))
     G.cmd("slomo 1")
