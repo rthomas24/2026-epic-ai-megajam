@@ -3,7 +3,7 @@
 #   A_Fab_Hack -> A_Pilot_Fab_Hack (pilot); A_Fab_FightingIdle -> A_Crew_Grunt_FightingIdle_Fab;
 #   A_Fab_TakesOutGun -> A_Crew_Trooper_TakesOutGun_Fab. Logs both hands' paths for trimming.
 #   .\Tools\td-python.ps1 -Script ArtSource\EngAnim\Pilot\scripts\ue_fab_retarget.py
-# Animation builder (eng/anim), Nov 14.
+# Hack and TakesOutGun were evaluated and not used (copies removed; FAB-SOURCE.md). Animation builder (eng/anim), Nov 14.
 import unreal
 
 EAL = unreal.EditorAssetLibrary
