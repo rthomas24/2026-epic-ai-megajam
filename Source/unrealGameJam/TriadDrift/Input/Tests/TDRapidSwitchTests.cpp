@@ -32,6 +32,8 @@ bool FTDT1RapidSwitch::RunTest(const FString& Parameters)
 		int32 Accepted = 0;
 		float T = 0.f, NextPress = 0.f;
 		int32 Press = 0;
+		int32 Changes = 0;
+		ETDShipId Last = Squad->GetActiveShipId();
 		for (; T < 2.f; T += Step)
 		{
 			if (T >= NextPress && Press < 20)
@@ -51,11 +53,12 @@ bool FTDT1RapidSwitch::RunTest(const FString& Parameters)
 				NextPress += 0.1f;
 			}
 			W.Tick(Step);
+			if (Squad->GetActiveShipId() != Last) { ++Changes; Last = Squad->GetActiveShipId(); }
 		}
 		W.Advance(0.6f, Step); // a buffered press lands
-		AddInfo(FString::Printf(TEXT("%d presses, %d accepted at once%s"), Press, Accepted, *Fps));
+		AddInfo(FString::Printf(TEXT("%d presses, %d accepted at once, %d ship changes (the rest buffered by the cooldown)%s"), Press, Accepted, Changes, *Fps));
 		TestEqual(TEXT("20 presses in 2 s") + Fps, Press, 20);
-		TestTrue(TEXT("switches happened (the cooldown spaces them)") + Fps, Accepted >= 3);
+		TestTrue(TEXT("switches happened (the cooldown spaces them, presses buffer)") + Fps, Changes >= 3);
 
 		ATDShip* Active = Squad->GetActiveShip();
 		int32 Possessed = 0, Flown = 0;
