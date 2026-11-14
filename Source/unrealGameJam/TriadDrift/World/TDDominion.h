@@ -452,6 +452,34 @@ public:
 	void StartAftermathLightRow(const FVector& WorldPoint);
 	void StopAftermathLightRow();
 	bool IsAftermathLightRowActive() const;
+
+	// Lead (Nov 14, M6 played): from the trench start a ship holding forward rammed the reactor in ~6 s, long before a
+	// run kills it. Near an exposed reactor the flown ship's forward speed eases down and holds on station; steering,
+	// strafing and fire stay the player's; turning away or boost releases it at once; wingmen and boarding are untouched.
+	/** Within this distance (cm) of the reactor's surface the hold eases in. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Reactor hold", meta = (ClampMin = "0"))
+	float ReactorHoldRadius = 20000.f;
+	/** The forward speed (cm/s) through most of the hold. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Reactor hold", meta = (ClampMin = "0"))
+	float ReactorHoldSpeed = 2000.f;
+	/** The ship stops closing this far (cm) from the reactor's surface. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Reactor hold", meta = (ClampMin = "0"))
+	float ReactorStandOff = 5000.f;
+	/** The hold applies only while the nose points at least this much at the reactor (cos of the angle). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Reactor hold", meta = (ClampMin = "0", ClampMax = "1"))
+	float ReactorHoldMinClosing = 0.5f;
+	/** True while the hold has the flown ship (T2's HUD cue: "REACTOR IN RANGE · HOLD FIRE ON THE CORE"). */
+	bool IsReactorHoldActive() const { return ReactorHeld.IsValid(); }
+	/** Tests: the ship the hold treats as flown (else the squad's active ship). */
+	void SetFlownShipOverride(class ATDShip* Ship);
+	/** Distance (cm) from WorldPoint to the reactor's surface (its bounds sphere); a large value without a reactor. */
+	float GetReactorSurfaceDistance(const FVector& WorldPoint) const;
+protected:
+	void TickReactorHold(float DeltaSeconds);
+	void ReleaseReactorHold();
+	TWeakObjectPtr<class ATDShip> ReactorHeld;
+	TWeakObjectPtr<class ATDShip> FlownShipOverride;
+public:
 	/** Where the row sits (hull-local) and faces, for tests. */
 	FTransform GetAftermathLightRowTransform() const;
 protected:
