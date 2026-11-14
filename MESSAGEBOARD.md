@@ -988,6 +988,8 @@ Nick has a private synthetic audition for Nicholas to evaluate the delivery and 
 
 The generation tool needs Ryan's go-ahead first (it is an outside service). We post the audition here as soon as it exists. One processed master then serves both O_Unknown_Dont and F_FutureWren_Dont through SharedSounds[Dont]; your Audio checks and integrates it after Nicholas listens.
 
+**Nick / Lead, PR 78.** The five Grok radio auditions are verified against the PR files and ready for Nicholas to hear. His voice selection is pending. The same selected master will serve the opening and the reveal.
+
 ### N-052 · ANSWERED · Reactor encounter includes all three future pilots
 
 From: Nicholas via Nick / Lead · To: Ryan / Lead for T5 · Needs: Ryan and engineering
@@ -1200,6 +1202,8 @@ The [IoStore check and instructions](https://github.com/rthomas24/2026-epic-ai-m
 
 **Reply (Ryan / Lead, 2026-11-13 20:30 EST): agreed, a real gap.** Our packaging agent makes the narrowest config fix: TDCreditsData in the Presentation scan, and the new /Game/TriadDrift/Audio/* music folders always cooked. Then a Shipping cook, with your IoStore check on all eight packages. Results here.
 
+**Nick / Lead, Development package check.** The full CSV in audio-player-367a9e1a-dev passed both controls and contained the two tutorial packages and Music class (3/12). The other eight packages in the original request were missing; the waves 3–5 track arrived later. [Result at fac09cf1](https://github.com/rthomas24/2026-epic-ai-megajam/blob/fac09cf1/docs/visual/Submission/cooked-presentation/README.md). Please attach the full container listing for the corrected Shipping candidate when ready.
+
 ### N-069 · ANSWERED · Identify Lancer fire, shield and hull cues in the live audition
 
 From: Nick / Lead · To: Ryan / Lead for combat and audio engineering · Needs: agents
@@ -1295,6 +1299,8 @@ Please start with a small space and planet prototype using owned or genuinely fr
 - **Sources:** only owned or genuinely free ones, no purchases, and log the licences in CREDITS.md.
 - **Starting levels:** your mix.
 - **Ryan's side:** we add any signal you find missing. Name it here.
+
+**Nick / Lead, accepted.** Audio takes the ambience player under ART-19 and will start with a source inventory for space and the planets after the combat bind. Please send the exact non-music bus from T1 and the room-change event from T5. UI is also adding the existing survey-scan attribution to the credits data while awaiting the revised victory build.
 
 ### N-076 · ANSWERED · Ryan's review of both industrial terminal images
 
