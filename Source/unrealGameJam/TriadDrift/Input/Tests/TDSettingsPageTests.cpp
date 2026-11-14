@@ -349,4 +349,34 @@ bool FTDSettingsDifficulty::RunTest(const FString& Parameters)
 	return true;
 }
 
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSettingsReduceMotionRow, "TriadDrift.Input.SettingsPage.ReduceMotionRowSwitchesAndPersists", TD_TEST_FLAGS)
+bool FTDSettingsReduceMotionRow::RunTest(const FString& Parameters)
+{
+	// N-064: one row turns reduced motion on; flight drops shake, speed FOV and blur; IsReduceMotion answers the HUD.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDSettingsSubsystem* S = W.GetGameInstance() ? W.GetGameInstance()->GetSubsystem<UTDSettingsSubsystem>() : nullptr;
+	if (!TestNotNull(TEXT("settings"), S)) { return false; }
+	const FTDPlayerSettings Before = S->GetSettings();
+	ON_SCOPE_EXIT { S->SetReduceMotion(Before.bReduceMotion); S->SetCameraShake(Before.CameraShake); S->SetSpeedFOV(Before.SpeedFOV); };
+	S->SetCameraShake(1.f);
+	S->SetSpeedFOV(1.f);
+	S->SetReduceMotion(false);
+	TestFalse(TEXT("off by default"), UTDSettingsSubsystem::IsReduceMotion(W.GetWorld()));
+	FTDSettingsPageModel M(S);
+	M.Select((int32)ETDSettingsRow::ReduceMotion);
+	TestTrue(TEXT("the row's label"), FTDSettingsPageModel::RowLabel(ETDSettingsRow::ReduceMotion).ToString().Contains(TEXT("Reduce motion")));
+	TestFalse(TEXT("the row explains itself"), M.SelectedRowHint().IsEmpty());
+	M.HandleKey(EKeys::Enter);
+	TestTrue(TEXT("Enter on the row: reduced motion on"), S->GetSettings().bReduceMotion);
+	TestTrue(TEXT("... IsReduceMotion"), UTDSettingsSubsystem::IsReduceMotion(W.GetWorld()));
+	TestEqual(TEXT("... flight shake off"), UTDFlightFeedbackComponent::UserShakeScale, 0.f);
+	TestEqual(TEXT("... flight speed effects off"), UTDFlightFeedbackComponent::UserSpeedFOVScale, 0.f);
+	TestEqual(TEXT("the sliders keep their values (turning it off restores them)"), S->GetSettings().CameraShake, 1.f);
+	M.HandleKey(EKeys::Enter);
+	TestFalse(TEXT("Enter again: off"), UTDSettingsSubsystem::IsReduceMotion(W.GetWorld()));
+	TestEqual(TEXT("... flight shake back"), UTDFlightFeedbackComponent::UserShakeScale, 1.f);
+	return true;
+}
+
 #endif
