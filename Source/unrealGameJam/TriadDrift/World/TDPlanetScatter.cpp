@@ -135,7 +135,7 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		P.ScarHalfB = 6000.f;
 		for (int32 i = 1; i <= 2; ++i)
 		{
-			R.CharTrees.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.4f, 2.4f, 30.f, 180000.f, 240000.f, 300.f, true, false, true));
+			R.CharTrees.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Cind_CharTree_%02d"), i)), 1.0f, 1.6f, 30.f, 180000.f, 240000.f, 300.f, true, false, true));
 		}
 		P.ScorchKind = Add(TDScatter_Path(TEXT("Kit/Story"), TEXT("SM_Kit_ScorchLines")), 4.f, 6.5f, 0.f, 180000.f, 240000.f, 1200.f, false, false, false);
 		for (int32 i = 1; i <= 3; ++i)
@@ -429,14 +429,15 @@ void FTDScatterPlan::RunLayer(const FTDTerrainField& Field, float Spacing, int32
 				{
 					// Inside the scar: no living forest; on the far-tree grid, a charred trunk now and then
 					const TArray<int32>& Char = TDScatter_Ranges(Planet).CharTrees;
-					if (Mode == ModeDense || Char.Num() == 0 || TDScatter_Hash01(Seed, ix, iy, Salt + 9) > 0.9f * Scar) { continue; }
+					// (none in the course's surroundings: by the research site a glowing trunk read as a strange pillar, s8 walk)
+					if (Mode == ModeDense || Char.Num() == 0 || TDScatter_Hash01(Seed, ix, iy, Salt + 9) > 0.9f * Scar || IsNearCourse(Field, X, Y)) { continue; }
 					const int32 Ck = TDScatter_OneOf(Char, TDScatter_Hash01(Seed, ix, iy, Salt + 10));
 					const FTDScatterKind& K = Kinds[Ck];
 					if (!IsCourseClear(X, Y, K.ClearRadiusCm * K.MaxScale)) { continue; }
 					const float Sc = FMath::Lerp(K.MinScale, K.MaxScale, TDScatter_Hash01(Seed, ix, iy, Salt + 4));
 					const FTransform Xf(FRotator(TDScatter_Hash01(Seed, ix, iy, Salt + 6) * 16.f - 8.f, TDScatter_Hash01(Seed, ix, iy, Salt + 5) * 360.f, 0.f),
 						FVector(X, Y, Field.Height(X, Y) - K.SinkCm * Sc), FVector(Sc));
-					(IsNearCourse(Field, X, Y) ? Row.Near : Row.Far)[Ck].Add(Xf);
+					Row.Far[Ck].Add(Xf);
 					continue;
 				}
 			}
