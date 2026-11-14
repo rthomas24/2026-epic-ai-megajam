@@ -23,11 +23,15 @@ def _tube(p, a, b, r=5.0, reg="frame", mat="Trim"):
         p.box((0.0, -r, -r), (L, r, r), reg=reg, mat=mat)
 
 
-def _shell(p, x0, x1, y0, y1, h, plinth=30.0):
-    """A prefab shell: a dark plinth, wall panels with a frame band, a frame at the top edge."""
+def _shell(p, x0, x1, y0, y1, h, plinth=30.0, edge_glow=False):
+    """A prefab shell: a dark plinth, wall panels with a frame band, a frame at the top edge; edge_glow (Cinder) runs a
+    thin emissive strip under the roof edge all round."""
     p.box((x0 - 10, y0 - 10, 0.0), (x1 + 10, y1 + 10, plinth), reg="sw_dark")
     p.box((x0, y0, plinth), (x1, y1, h), regs={"x": "wall", "X": "wall", "y": "wall", "Y": "wall", "Z": "roof", "z": "sw_dark"})
     p.box((x0 - 4, y0 - 4, h - 20.0), (x1 + 4, y1 + 4, h), reg="frame")
+    if edge_glow:
+        for (a, b) in (((x0 - 6, y0 - 6), (x1 + 6, y0 - 4)), ((x0 - 6, y1 + 4), (x1 + 6, y1 + 6)), ((x0 - 6, y0 - 4), (x0 - 4, y1 + 4)), ((x1 + 4, y0 - 4), (x1 + 6, y1 + 4))):
+            p.box((a[0], a[1], h - 26.0), (b[0], b[1], h - 22.0), mat="Glow")
 
 
 def _window(p, side, c, z0, z1, w, depth_axis="y"):
@@ -60,9 +64,15 @@ def _window(p, side, c, z0, z1, w, depth_axis="y"):
         p.box((m0, u - w / 2, (z0 + z1) / 2 - 2.5), (m1, u + w / 2, (z0 + z1) / 2 + 2.5), reg="frame")
 
 
-def _door(p, xwall, z0, w=100.0, h=210.0, shutter=False):
-    """A shut door on the +X wall at x = xwall: a hazard-edged frame, the leaf (ribbed when a blast shutter), a lamp."""
+def _door(p, xwall, z0, w=100.0, h=210.0, shutter=False, frame_glow=False):
+    """A shut door on the +X wall at x = xwall: a hazard-edged frame, the leaf (ribbed when a blast shutter), a hooded
+    warm lamp over it (the Light slot, no light actor); frame_glow (Cinder) runs thin emissive strips up the frame."""
     p.box((xwall, -w / 2 - 12, z0), (xwall + 8, w / 2 + 12, z0 + h + 12), reg="hazard")
+    p.box((xwall + 8, -22.0, z0 + h + 30.0), (xwall + 34, 22.0, z0 + h + 46.0), reg="sw_dark")          # lamp hood
+    p.box((xwall + 10, -18.0, z0 + h + 27.0), (xwall + 32, 18.0, z0 + h + 30.0), mat="Light")
+    if frame_glow:
+        for y in (-w / 2 - 12, w / 2 + 10):
+            p.box((xwall + 8, y, z0), (xwall + 10, y + 2, z0 + h + 12), mat="Glow")
     if shutter:
         for k in range(int(h // 20)):
             p.box((xwall + 2, -w / 2, z0 + k * 20.0), (xwall + 12, w / 2, z0 + k * 20.0 + 16.0), reg="sw_gun")
@@ -198,12 +208,12 @@ def c_shack():
     """A low armoured shack, 3.5 x 3.5 m, 2.4 m: thick walls, sloped armour skirts, a ribbed blast shutter on the door,
     slit windows, a roof hatch."""
     p = Piece("SM_Hut_Cinder_Shack", None)
-    _shell(p, -175, 175, -175, 175, 240, plinth=20.0)
+    _shell(p, -175, 175, -175, 175, 240, plinth=20.0, edge_glow=True)
     for s in (-1.0, 1.0):
         p.prism([(s * 175.0, 20.0), (s * 205.0, 20.0), (s * 175.0, 110.0)], "yz", -175.0, 175.0, regs="hazard", cap_reg="sw_dark", fitu=True)
         p.prism([(s * 175.0, 20.0), (s * 205.0, 20.0), (s * 175.0, 110.0)], "xz", -175.0, 175.0, regs="sw_dark", cap_reg="sw_dark", fitu=True)
         _window(p, s, (0.0, s * 175.0), 170.0, 195.0, 120.0, "y")
-    _door(p, 175.0, 20.0, w=110.0, h=190.0, shutter=True)
+    _door(p, 175.0, 20.0, w=110.0, h=190.0, shutter=True, frame_glow=True)
     p.box((-70.0, -70.0, 240.0), (70.0, 70.0, 262.0), regs={"Z": "hatch"}, reg="frame")
     p.cbox((-205, -205, 0), (205, 205, 262))
     return p
@@ -212,11 +222,14 @@ def c_shack():
 def c_workshop():
     """A 4 x 6 m workshop: a roll door on +X in a hazard frame, roof vents, side windows, a lamp over the door."""
     p = Piece("SM_Hut_Cinder_Workshop", None)
-    _shell(p, -300, 300, -200, 200, 350, plinth=20.0)
+    _shell(p, -300, 300, -200, 200, 350, plinth=20.0, edge_glow=True)
     p.box((300.0, -150.0, 20.0), (312.0, 150.0, 300.0), reg="hazard")
     for k in range(14):
         p.box((304.0, -135.0, 22.0 + k * 19.0), (316.0, 135.0, 22.0 + k * 19.0 + 16.0), reg="sw_gun")
-    p.box((312.0, -30.0, 310.0), (322.0, 30.0, 320.0), mat="Glow")
+    p.box((312.0, -30.0, 318.0), (340.0, 30.0, 334.0), reg="sw_dark")
+    p.box((314.0, -26.0, 315.0), (338.0, 26.0, 318.0), mat="Light")
+    for y in (-152.0, 150.0):
+        p.box((312.0, y, 20.0), (314.0, y + 2, 300.0), mat="Glow")
     for s in (-1.0, 1.0):
         for u in (-180.0, 0.0, 180.0):
             _window(p, s, (u, s * 200.0), 200.0, 260.0, 100.0, "y")
@@ -229,8 +242,8 @@ def c_workshop():
 def c_pump_house():
     """A pump house, 3 x 3 m: a box with a pipe gallery, two pipes out of each side with valve wheels, a tank."""
     p = Piece("SM_Hut_Cinder_PumpHouse", None)
-    _shell(p, -150, 150, -150, 150, 260, plinth=20.0)
-    _door(p, 150.0, 20.0, w=90.0, h=190.0)
+    _shell(p, -150, 150, -150, 150, 260, plinth=20.0, edge_glow=True)
+    _door(p, 150.0, 20.0, w=90.0, h=190.0, frame_glow=True)
     for s in (-1.0, 1.0):
         for z in (80.0, 150.0):
             _tube(p, (0.0, s * 150.0, z), (0.0, s * 320.0, z), 14.0, reg="pillar")

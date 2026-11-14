@@ -1,0 +1,229 @@
+[
+ {
+  "asset": "SM_Site_Verdance_RootArch",
+  "min_cm": [
+   -440.221,
+   -139.533,
+   -36.453
+  ],
+  "max_cm": [
+   448.742,
+   130.841,
+   477.626
+  ],
+  "size_cm": [
+   888.96,
+   270.37,
+   514.08
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 2160,
+  "materials": [
+   "M_Kit_Bark",
+   "M_Kit_Glow",
+   "M_Kit_Stone"
+  ],
+  "collision_hulls": 3,
+  "bevel_verts_clamped": 4,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Site_Verdance_FallenTrunk",
+  "min_cm": [
+   -470.0,
+   -138.582,
+   -28.037
+  ],
+  "max_cm": [
+   550.197,
+   138.582,
+   368.582
+  ],
+  "size_cm": [
+   1020.2,
+   277.16,
+   396.62
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 1610,
+  "materials": [
+   "M_Kit_Bark",
+   "M_Kit_Glow",
+   "M_Kit_Stone"
+  ],
+  "collision_hulls": 3,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Site_Verdance_StoneRing",
+  "min_cm": [
+   -372.388,
+   -361.434,
+   -3.403
+  ],
+  "max_cm": [
+   367.439,
+   367.469,
+   261.261
+  ],
+  "size_cm": [
+   739.83,
+   728.9,
+   264.66
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 1948,
+  "materials": [
+   "M_Kit_Glow",
+   "M_Kit_Stone"
+  ],
+  "collision_hulls": 10,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Site_Verdance_OvergrownPylon",
+  "min_cm": [
+   -129.631,
+   -79.078,
+   -35.169
+  ],
+  "max_cm": [
+   154.054,
+   89.591,
+   680.341
+  ],
+  "size_cm": [
+   283.69,
+   168.67,
+   715.51
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 2687,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Bark",
+   "M_Kit_Glow",
+   "M_Kit_Stone"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 6,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Site_Cinder_BasaltArch",
+  "min_cm": [
+   -380.0,
+   -132.923,
+   0.0
+  ],
+  "max_cm": [
+   400.347,
+   118.853,
+   500.631
+  ],
+  "size_cm": [
+   780.35,
+   251.78,
+   500.63
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 2956,
+  "materials": [
+   "M_Kit_Ember",
+   "M_Kit_Stone"
+  ],
+  "collision_hulls": 3,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Site_Cinder_CollapsedGantry",
+  "min_cm": [
+   -541.328,
+   -110.0,
+   0.0
+  ],
+  "max_cm": [
+   461.086,
+   110.0,
+   463.686
+  ],
+  "size_cm": [
+   1002.41,
+   220.0,
+   463.69
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 3672,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 2,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Site_Cinder_VentChimney",
+  "min_cm": [
+   -190.0,
+   -180.701,
+   -15.434
+  ],
+  "max_cm": [
+   254.158,
+   195.767,
+   480.0
+  ],
+  "size_cm": [
+   444.16,
+   376.47,
+   495.43
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 1190,
+  "materials": [
+   "M_Kit_Ember",
+   "M_Kit_Stone"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 5,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Site_Cinder_SlagHeap",
+  "min_cm": [
+   -432.46,
+   -295.258,
+   -63.989
+  ],
+  "max_cm": [
+   458.801,
+   323.442,
+   219.916
+  ],
+  "size_cm": [
+   891.26,
+   618.7,
+   283.9
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 2121,
+  "materials": [
+   "M_Kit_Ember",
+   "M_Kit_Stone"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 2,
+  "uv_notes": []
+ }
+]
