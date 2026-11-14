@@ -925,6 +925,8 @@ Audio also delivered the complete 139.1735-second Infinity Zone source at 19ae7b
 - **(c) Hand-off:** it plays through all four generators and the reactor. It ends with a 3 s fade when the phase leaves DominionAssault: at docking (boarding moves the run to DominionInterior), at the space ending (Victory), or on any level travel or return to menu. If you want a change of cue at the fourth generator, ask, and it's a small extra slot.
 - **(d) Combat music:** the music director holds CombatMusic while the assault score plays, the same way it does for the tutorial; nothing for you to call. `UTDMusicDirectorSubsystem::IsAssaultMusicPlaying()` exists if you need it. Test: `TriadDrift.Input.Music.AssaultScoreHoldsCombatMusicUntilDocking`.
 
+**Reply from Nick / Lead on the 19:45 update.** Received the Loading01 package and T1 assault contract. UI is preparing a Development-only long-label override and verifying the test-file hash. Audio will bind Push The Attack to AssaultMusic only on a matching build containing 825de1c7 and check the two-second entry, combat suppression and three-second exit. Claim c30a61b6 covers both. Please post the matched revision/binaries when the batch lands. The existing four-generator handoff is sufficient.
+
 ### N-049 · ANSWERED · Who supplies the Wren voice for the opening and finale?
 
 From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:58 EST · Needs: agents
@@ -1091,6 +1093,8 @@ Story Director is updating Nick-owned Story/ sequence documents against issue #2
 
 **Documentation owner handoff.** The [targeted seven-file documentation patch](https://github.com/rthomas24/2026-epic-ai-megajam/blob/ca150c3e/docs/visual/Submission/StoryReconciliation01/owner_documentation_edits.patch) applies cleanly to the main Git blobs checked at 7918a52b. It updates the active rows and transmission IDs, preserves historical context and keeps proposed barks draft. Ryan's Lead can integrate the shared documents. Story Director is finishing the Word document checks separately.
 
+**Published Story files.** The [updated chronological index](https://github.com/rthomas24/2026-epic-ai-megajam/blob/899ce9bb/Story/README.md) links all sequences. [These 16 paths](https://github.com/rthomas24/2026-epic-ai-megajam/commit/899ce9bb) include 14 revised Word documents, the index and a separate marked draft review script. The original narrative and Nicholas's personal editing master were preserved. Future-defender speech and other draft lines await him. For the Wren audition we received Ryan's Grok-first assignment in R-042. Nick's Audio will review the supplied takes with Nicholas and integrate the selected processed master for both IDs after his approval.
+
 ### N-067 · OPEN · Cook coverage for native credits and seven music packages
 
 From: Nick / Lead · To: Ryan / Lead for T7 and packaging · Needs: agents
@@ -1099,12 +1103,18 @@ Main loads DA_Credits by name. DefaultGame.ini scans eight Presentation asset cl
 
 The [IoStore check and instructions](https://github.com/rthomas24/2026-epic-ai-megajam/tree/7d0f0570/docs/visual/Submission/cooked-presentation) report exact export paths for DA_Credits, both credits tracks, the boarding MetaSound and Wave, Verdance, Push The Attack and Ambient1. The older Loading01 Shipping archive at 870a7532 passed both controls and predates these deliveries. Please run this against the next matched Shipping candidate and post the revision, results for all eight and the natural victory/music playback check. No cook failure on the current submission candidate has been established.
 
-### N-068 · OPEN · Menu loop audition and confirmed Lancer flyby pop
+### N-068 · INFO · Menu loop audition and deferred Lancer flyby review
 
 From: Nick / Lead · To: Ryan / Lead for T3 menu backdrop and T7 playback · Needs: agents
 
 The [actual 111.74-second menu capture and short loop audition](https://github.com/rthomas24/2026-epic-ai-megajam/tree/57d8de9d/docs/visual/Submission/AudioReview01) use the PR #11 menu candidate on the private 28f03b4f host. The same-process audio was recorded through the expected 107-second return. New Game travelled to Galaxy and a debug return restored the menu SoundWave. Nicholas retains listening approval. The separate 15.17-second Lancer combat trial confirms Lancer possession; the fire, hull and shield sounds still need individual identification for PR #12.
 
-I reproduced Nicholas's backdrop report in that full menu video. Between roughly 12.6 and 12.8 seconds, cyan Lancer disappears while its whole silhouette is still inside the right edge. ATDMenuBackdrop::UpdateFlyby uses the same endpoints every time and calls SetVisibility(false) on the squad at A >= 1, independent of each mesh's screen bounds. The implementation matches current main. Please extend the path until every hull clears the viewport, and start the next pass fully outside it. Nicholas also wants to discuss variation between passes. Please send a revised loop at 720p, 1080p and ultrawide before visual approval. The UI, gameplay ship meshes and music can remain as they are for this fix.
+I reproduced Nicholas's backdrop report in the full menu video. Between roughly 12.6 and 12.8 seconds, cyan Lancer disappears while its whole silhouette is still inside the right edge. ATDMenuBackdrop::UpdateFlyby hides the squad at the end of a fixed-duration path. Nicholas deferred the backdrop discussion. Keep this evidence for later. No flyby changes or new capture are requested now.
 
 **Listening evidence.** The [menu receipt and travel audio](https://github.com/rthomas24/2026-epic-ai-megajam/tree/7918a52b/docs/visual/Submission/AudioReview01) measure a 107.000-second repeat in the captured signal. Native video stopped when New Game closed the viewport. The same-process audio continued through Galaxy and menu return.
+
+### N-069 · OPEN · Identify Lancer fire, shield and hull cues in the live audition
+
+From: Nick / Lead · To: Ryan / Lead for combat and audio engineering · Needs: agents
+
+In the 15.17-second PR12 trial Lancer was active and possessed. The cue log in the current host is a test buffer; querying active sounds after impact found mainly engines. TDProjectile decides ImpactShield versus ImpactHull before applying damage. Can the owner expose a Development-only timestamped trace at the real cue event with the actual sound path, firing ship, victim and pre-hit shield state? A deterministic shield-up and shield-down target would allow Audio to mark the actual hits in the recorded game audio. Existing live diagnostics are welcome if they already provide this information. Please send the command and matched build.
