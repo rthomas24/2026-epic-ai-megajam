@@ -27,8 +27,8 @@ bool FTDMagmaLookGlow::RunTest(const FString&)
 		if (!L->ComponentHasTag(UTDMagmaLookSubsystem::GlowTag)) { continue; }
 		++Glows;
 		TestTrue(TEXT("orange"), L->GetLightColor().R > L->GetLightColor().B * 5.f);
-		TestTrue(*FString::Printf(TEXT("reaches past the footprint (%.0f cm)"), L->AttenuationRadius), L->AttenuationRadius > 3500.f);
-		TestTrue(TEXT("bright"), L->Intensity > 400.f);
+		TestTrue(*FString::Printf(TEXT("reaches past the footprint (%.0f cm)"), L->AttenuationRadius), L->AttenuationRadius > 3600.f);
+		TestTrue(TEXT("lit, not floodlit"), L->Intensity > 150.f && L->Intensity <= 1200.f);
 	}
 	TestEqual(TEXT("one glow per volume"), Glows, 1);
 	return true;

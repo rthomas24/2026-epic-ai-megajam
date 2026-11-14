@@ -18,8 +18,8 @@ class UNREALGAMEJAM_API UTDMagmaLookSubsystem : public UWorldSubsystem
 public:
 	static const FName GlowTag;	// TD.MagmaGlow (on the added light)
 	FLinearColor GlowColor = FLinearColor(1.f, 0.32f, 0.06f);
-	float CandelasPerSquareMetre = 9.f;	// the glow's intensity per m^2 of pool (capped)
-	float MaxCandelas = 9000.f;
+	float CandelasPerSquareMetre = 1.5f;	// the glow's intensity per m^2 of pool (capped); s12: 9 lit the whole basalt gold
+	float MaxCandelas = 1200.f;
 
 	virtual void OnWorldBeginPlay(UWorld& InWorld) override;
 	virtual void Deinitialize() override;

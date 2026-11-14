@@ -371,7 +371,7 @@ def build_graph(b, t, means):
     shalf = mul(lerp(S("ScarHalfA"), S("ScarHalfB"), st), add(0.75, mul(add(mul(c(nS, "R"), 0.4), mul(c(nM, "G"), 0.6)), 0.5)))
     scar_w = mul(sat(div(sub(shalf, sdist), mul(shalf, 0.6))), mul(ramp(st, 0.0, 0.06), inv(ramp(st, 0.9, 0.1))))   # s11: soft edges into the forest
     # s10: only on the ground, never up a wall (on the basin wall behind the research site it stood up as a glowing pillar)
-    scar_w = mul(scar_w, inv(ramp(sj, 0.24, 0.12)))
+    scar_w = mul(scar_w, inv(ramp(sj, 0.4, 0.15)))   # s12: 0.24 erased it from Verdance's rolling ground; walls are > 0.55
     # s11: burnt ground, not a slab: black char and grey ash patches by two noises, the char strongest on the centre line
     ash = ramp(add(mul(c(nM, "B"), 0.6), mul(c(nS, "G"), 0.4)), 0.55, 0.15)
     burnt = lerp(mul(b.const3(0.012, 0.010, 0.009), add(0.5, mul(c(nS, "B"), 1.0))), b.const3(0.09, 0.085, 0.08), mul(ash, 0.7))

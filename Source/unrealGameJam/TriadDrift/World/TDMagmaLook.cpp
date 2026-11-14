@@ -53,9 +53,9 @@ void UTDMagmaLookSubsystem::Dress(ATDMagmaVolume* Volume) const
 	// low over the surface, so the banks and anyone walking up are lit orange from below
 	L->SetRelativeLocation(FVector(0.f, 0.f, 220.f));
 	L->SetIntensityUnits(ELightUnits::Candelas);
-	L->SetIntensity(FMath::Min(MaxCandelas, 400.f + AreaM2 * CandelasPerSquareMetre));
+	L->SetIntensity(FMath::Min(MaxCandelas, 150.f + AreaM2 * CandelasPerSquareMetre));
 	L->SetLightColor(GlowColor);
-	L->SetAttenuationRadius(FMath::Max(Ext.X, Ext.Y) + 1500.f);
+	L->SetAttenuationRadius(FMath::Max(Ext.X, Ext.Y) + 600.f);	// the banks, not the whole plain
 	L->SetSourceRadius(FMath::Min(Ext.X, Ext.Y) * 0.5f);
 	L->SetCastShadows(false);
 	L->RegisterComponent();
