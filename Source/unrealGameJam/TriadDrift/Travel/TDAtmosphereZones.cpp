@@ -290,7 +290,10 @@ void UTDAtmosphereEntryComponent::TickClosedPlanetGuard(float DeltaTime)
 		StandDown();
 		return;
 	}
-	Move->SetKeepOutSphere(Planet->GetPlanetCenter(), Planet->GetAtmosphereRadius() * 1.02f, ClosedPlanetBand);
+	// A scripted corridor (the tutorial withdrawal's marker sits about 150 m off Verdance's atmosphere): the turn-away band
+	// shrinks to a thin skin so the ship can reach the marker; the hold at the edge itself stays (never a wall, never inside).
+	const float Band = Move->IsBoundaryReleased() ? FMath::Min(ClosedPlanetBand, 4000.f) : ClosedPlanetBand;
+	Move->SetKeepOutSphere(Planet->GetPlanetCenter(), Planet->GetAtmosphereRadius() * 1.02f, Band);
 	ClosedPlanet01 = Move->GetKeepOut01(); // last step's depth
 	if (ClosedPlanet01 > 0.f && bPlayer)
 	{
