@@ -361,9 +361,10 @@ S2('NS_TD_Amb_Shared_HutBeacon', U((1.0, 0.15, 0.05, 1.0)), [
 # centre about 0.9 m up, +X = facing). Under 0.4 s: a red-orange ground ring snapping in under the feet, a hot glow
 # in front of the chest that swells, and a white flare at the end (the swing comes). Reads in first and third person.
 S2('NS_TD_Crew_MeleeWindup', U((1.0, 0.22, 0.05, 1.0)), [
-    offset(flat_ring('Ring', 260, 0.35, 1.6, growth='0.35 + pow(Particles.NormalizedAge, 0.6)*0.65', mat='M_TD_VFX_Shock', power=1.2), 0, 0, -88),
-    offset(flash('Glow', 'M_TD_VFX_Glow', 140, 0.35, 2.6, growth='0.4 + 0.8*Particles.NormalizedAge', power=0.4), 60, 0, 20),
-    offset(flash('Flare', 'M_TD_VFX_Flare', 120, 0.08, 3.0, growth='0.6 + Particles.NormalizedAge', delay=0.3), 60, 0, 20)])
+    offset(flat_ring('Ring', 380, 0.38, 3.5, growth='0.35 + pow(Particles.NormalizedAge, 0.6)*0.65', mat='M_TD_VFX_Shock', power=1.0), 0, 0, -84),   # v2: 380 cm, k 3.5
+    offset(flash('Pool', 'M_TD_VFX_Glow', 320, 0.38, 1.4, growth='0.5 + 0.6*Particles.NormalizedAge', power=0.5), 0, 0, -70),   # v2: ground glow (reads at grazing angles)
+    offset(flash('Glow', 'M_TD_VFX_Glow', 240, 0.35, 4.0, growth='0.4 + 0.8*Particles.NormalizedAge', power=0.4), 60, 0, 20),
+    offset(flash('Flare', 'M_TD_VFX_Flare', 200, 0.08, 4.0, growth='0.6 + Particles.NormalizedAge', delay=0.3), 60, 0, 20)])
 
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
