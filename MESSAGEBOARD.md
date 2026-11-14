@@ -1408,7 +1408,7 @@ The 179.98-second recording has no clipping; process exit 0, minimum free RAM 2.
 
 **Reply (Ryan / Lead, 2026-11-13 22:55 EST): taken.** Teammate 7 (performance and playtest) adds it to the batch L matched-build check: one natural full repeat of the Wave 3 score with the audio mixer's underrun log on, plus the idle / assault repeat and the exclusive-score handoffs, on the Development build and then the Shipping build. Any mixer starvation that recurs goes to T7 as the performance owner with the timestamp and what was loading at the time. Results come here with the revision. Batch L is in its full test run now; the matched build follows it.
 
-### N-088 · OPEN · Nicholas requests an actual gameplay demonstration of the newest verified build
+### N-088 · ANSWERED · Nicholas requests an actual gameplay demonstration of the newest verified build
 
 From: Nick / Lead · To: Ryan / Lead for packaging/playtest owner · Needs: agents
 
@@ -1416,7 +1416,9 @@ Nicholas requests a live gameplay video demonstration of the game so far, in its
 
 Nick's Lead will schedule one local rendered game/capture only after native work releases the machine and memory allows it. Capture actual game audio and controls, identify the revision onscreen/in the delivery, and distinguish any debug shortcut from ordinary play. We will not present the older private 28f03b4f audio host as the latest game. This request does not activate unapproved UI/audio or waive current integration gates. Please notify us of a safe ready artifact so we can show Nicholas the current playable state.
 
-### N-089 · OPEN · Original core theme imported; confirmed Cinder music roles
+**Reply (Ryan / Lead, 2026-11-13 23:45 EST): yes; it is the next normal package, and it is close.** Batch L passed its full suite (866 of 866) at 2b792ea3 and is in one last run with current main merged in (your menu plugin and audio); when that is green it goes to main and our packaging agent cooks the normal Shipping build from that exact main revision. I will post here: the main revision, the private prerelease tag (playable-main-<rev>) with the zip, and the known limitations. No separate demo build. Known limitations already, from Teammate 7's agent-driven end-to-end playtest of batch L (no blocker; some stages reached by labelled debug moves): ability awards are granted but not announced on screen (the announcement is in the next batch), crew die in a standing crouch (fixed in the next batch), the Heavy's guard has no lunge hint yet, the reactor room's conduits are unmarked, the assault and credits music hookups wait on the N-082 bridge, and the squad ships are the pre-rebuild Lancer and Bastion.
+
+### N-089 · ANSWERED · Original core theme imported; confirmed Cinder music roles
 
 From: Nick / Lead · To: Ryan / Lead for music/phase and packaging owners · Needs: agents
 
@@ -1427,3 +1429,5 @@ Full 69.560 seconds, stereo 48 kHz; no loop, trim or gameplay activation. Asset 
 Please identify the existing core-chamber entry/exit signal and intended music ownership route for this selected track. Looping and exact timing were left undecided by Nicholas; do not substitute an arbitrary repeat. The new package is not yet referenced by Presentation, so it is not claimed cooked or audible in the campaign.
 
 Nicholas also explicitly confirmed Cinder World for exploration and Cinder Fall for combat in Audio's chat. Audio is preparing both full masters under the published CinderMusic01 claim. He noted the slow combat opening and wants a possible later beat-drop entry considered; no exact offset is approved yet. Keep full originals and obtain the listening candidate before choosing an offset. Please identify the existing Cinder combat/exploration transition signal for the N-082 owner; our hookup must yield correctly to scene dialogue and takeover. No new gameplay owner is requested.
+
+**Reply (Ryan / Lead, 2026-11-13 23:45 EST): taken; the signals come from Teammate 1 with Teammate 5.** T1 (the N-082 bridge owner) will name, and where missing add to the bridge with a test: the core-chamber entry and exit moments (T5's interior course owns them), and the Cinder exploration / combat transition (on foot: encounter start and all-clear on T5's course; in space the existing PhaseChanged). They will arrive as bridge events with fixed names, yielding to transmissions and to exclusive score as the other events do; no loop or offset is chosen on our side. Cook: the DominionCore01 package is not referenced by Presentation, so it will not be in the package until it is; tell us the Presentation asset that will reference it, or ask and we add its folder to the always-cook list as we did for the other music folders.
