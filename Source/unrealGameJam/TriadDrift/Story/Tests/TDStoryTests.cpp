@@ -629,7 +629,16 @@ bool FTDStoryAftermath::RunTest(const FString& Parameters)
 	}
 	TestTrue(TEXT("every line in order"), Heard == Ids);
 	FTDTransmission E;
-	TestTrue(TEXT("T4's escape line exists"), UTDStorySubsystem::FindEntry(TEXT("TB_Escaped"), E) && !E.Text.IsEmpty());
+	TestTrue(TEXT("TB_Escaped stays in the table for the record"), UTDStorySubsystem::FindEntry(TEXT("TB_Escaped"), E) && !E.Text.IsEmpty());
+	{
+		// #29 (Nick's Lead): retired from playback; T4's CompleteEscape may still fire it, and it is swallowed.
+		FTDTestWorld RW(UTDGameInstance::StaticClass());
+		UTDStorySubsystem* RS = UTDStorySubsystem::Get(RW.GetWorld());
+		TestTrue(TEXT("TB_Escaped is retired"), UTDStorySubsystem::IsRetired(TEXT("TB_Escaped")));
+		TestFalse(TEXT("firing TB_Escaped airs nothing"), UTDStorySubsystem::Fire(RW.GetWorld(), TEXT("TB_Escaped")));
+		TestTrue(TEXT("TB_Kato_BreakingOff still airs"), UTDStorySubsystem::Fire(RW.GetWorld(), TEXT("TB_Kato_BreakingOff")));
+		TestTrue(TEXT("only Kato's line is queued"), RS && RS->GetQueueLength() == 1);
+	}
 	return true;
 }
 #endif

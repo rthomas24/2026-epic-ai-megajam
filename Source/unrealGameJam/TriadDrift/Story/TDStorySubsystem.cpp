@@ -94,7 +94,7 @@ namespace TDStory
 			E(TEXT("TB_Wren_Bigger"), S::Wren, LOCTEXT("TB_Wren_Bigger", "That one's bigger. Focus it together!")),
 			E(TEXT("TB_Command_FallBack"), S::Command, LOCTEXT("TB_Command_FallBack", "Triad, disengage. Fall back to the marked corridor.")),
 			E(TEXT("TB_Kato_BreakingOff"), S::Kato, LOCTEXT("TB_Kato_BreakingOff", "They're breaking off.")),
-			E(TEXT("TB_Escaped"), S::Command, LOCTEXT("TB_Escaped", "You're clear, Triad. Hold at the rally point.")), // T4 fires it at the escape line; draft
+			E(TEXT("TB_Escaped"), S::Command, LOCTEXT("TB_Escaped", "You're clear, Triad. Hold at the rally point.")), // retired (Nick's Lead, #29): T4 still fires it at the escape line; swallowed, never aired
 			// Sequence 02, Aftermath (Story/Triad_Drift_Sequence_02_Aftermath.docx, storyline.md §12). Drafts. No "Don't-" here.
 			E(TEXT("S2_Moss_Accounted"), S::Moss, LOCTEXT("S2_Moss_Accounted", "All three ships accounted for. I'm calling that a win.")),
 			// Approved by Nicholas (issue #29). Delivery: sarcastic, dry, deadpan.
@@ -799,9 +799,23 @@ FName UTDStorySubsystem::RouteForBoarder(const UObject* WorldContext, FName Id)
 	return Id;
 }
 
+bool UTDStorySubsystem::IsRetired(FName Id)
+{
+	// Kept in the table for the record (N-087, #29), never aired. A caller that still fires one is swallowed quietly.
+	static const TSet<FName> Retired = { TEXT("TB_Escaped"), TEXT("C4_Moss_Volcanoes"), TEXT("C4_Wren_SetCourse"),
+		TEXT("C4_Wren_WhatConnects"), TEXT("C4_Kato_SameSignature"), TEXT("C4_Moss_Trouble"), TEXT("C6_Moss_SamplesAboard"),
+		TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Wren_Understood") };
+	return Retired.Contains(Id);
+}
+
 bool UTDStorySubsystem::FireTransmission(FName Id)
 {
 	Id = RouteForBoarder(this, Id);
+	if (IsRetired(Id))
+	{
+		UE_LOG(LogTriadDrift, Verbose, TEXT("TD.Story: %s is retired, not aired"), *Id.ToString());
+		return false;
+	}
 	FTDTransmission Entry;
 	if (Id.IsNone() || !FindEntry(Id, Entry))
 	{

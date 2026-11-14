@@ -125,6 +125,8 @@ public:
 	 * when fired, as before (ambient once-only).
 	 */
 	static bool IsRequiredLine(FName Id);
+	/** Lines kept in the table but never aired (N-087, #29: TB_Escaped and the cut C4/C6 calls). */
+	static bool IsRetired(FName Id);
 	/** Seconds a sequence must have run before it can be skipped (Nicholas, N-060: ten). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Story")
 	float SkipAllowedAfterSeconds = 10.f;
