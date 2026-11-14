@@ -153,6 +153,20 @@ private:
 	UFUNCTION() void HandleWaveCleared(int32 WaveNumber);
 	void UpdateDepartures(double Now);
 	void UpdateSequence();
+	// ENG-42: Cinematics 03 and 05 as voice over the room, on T5's terminal hooks, with T2's scan monitor.
+	void HandleRelayConnected(AActor* Terminal);
+	// ENG-42 Aftermath (Cinematic 02): T7's UTDProfileSubsystem::OnAftermathBegins (the tutorial's escape, or a skipped tutorial).
+	void HandleAftermathBegins(bool bSkippedTutorial);
+	FDelegateHandle AftermathHandle;
+	bool bAftermathChecked = false;
+	void HandleSurveyRecords(AActor* Terminal);
+	void HandleLineOnAir(FName Id);
+	void UpdateDronePulses(double Now);
+	FDelegateHandle RelayHandle, SurveyHandle;
+	TWeakObjectPtr<class UStaticMeshComponent> PulseDrone;
+	TWeakObjectPtr<class UPointLightComponent> PulseLight;
+	double PulseStart = -1.0;
+	bool bMonitorUp = false;
 	void FinishSequence(bool bSkipped);
 	FName ActiveSequence = NAME_None;
 	double SequenceStart = 0.0;

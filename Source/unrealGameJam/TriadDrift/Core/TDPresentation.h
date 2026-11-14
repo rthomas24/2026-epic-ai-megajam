@@ -715,6 +715,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
 	FTDFXCue SlateClap;
 
+	/** Cinematic 03: the dormant drone's three pulses as it wakes blue (the motif; Nicholas's sound). Played at the drone. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue ThreePulse;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
 	FTDFXCue CutSting;
 
