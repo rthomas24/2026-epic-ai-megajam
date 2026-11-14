@@ -161,6 +161,17 @@ private:
 	void EndTiming(const TCHAR* Why);
 	void TickCover(float RealDt);
 	void TickHeat(float RealDt);
+	/** The cloud deck (ATDCloudDeck): CloudPunch when the flown ship crosses it, CloudWisps while within DeckBand of it. */
+	void TickCloudDeck();
+public:
+	static constexpr float CloudDeckBand = 15000.f;
+	int32 GetCloudPunches() const { return CloudPunches; }
+	bool AreCloudWispsOn() const { return CloudWisps.IsValid(); }
+private:
+	int32 CloudPunches = 0;
+	float LastShipDeckSide = 0.f; // sign of (ship Z - deck Z) last frame, 0 = unknown
+	TWeakObjectPtr<class AActor> LastDeckShip;
+	TWeakObjectPtr<class UNiagaraComponent> CloudWisps;
 	void SetCoverAlpha(float Alpha);
 
 	double TimingStart = -1.0;

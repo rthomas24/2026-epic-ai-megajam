@@ -1,0 +1,130 @@
+{
+  "assets": [
+    "SM_CinderAnchorTower",
+    "SM_CinderAnchorEmitter"
+  ],
+  "issue": 52,
+  "assembled_height_cm": 4000.0,
+  "units": "cm in Unreal via FBX UnitScaleFactor 100; Blender sources are metres",
+  "pivot": "ground-base centre (min Z = 0, XY centred)",
+  "forward": "+X",
+  "up": "+Z",
+  "prefer": "FBX (UnitScaleFactor 100, Unreal uniform scale 1.0). GLB is glTF in metres, +Z up; Blender's glTF importer remaps Y-up on reimport.",
+  "blender": "4.5.3 LTS",
+  "modifiers_unapplied": [
+    "WeightedNormal (keep_sharp=True, weight=50, mode=FACE_AREA)"
+  ],
+  "src_hidden": [
+    "SRC_CinderAnchorTower",
+    "SRC_CinderAnchorEmitter"
+  ],
+  "tower": {
+    "fbx": "SM_CinderAnchorTower.fbx",
+    "blend": "SM_CinderAnchorTower.blend",
+    "tris": 49652,
+    "size_cm": [
+      1419.5,
+      1427.0,
+      3578.2
+    ],
+    "base_r_cm": 751.7,
+    "sockets": [
+      {
+        "name": "SOCKET_TopEmitter",
+        "pos_cm": [
+          0.0,
+          0.0,
+          3402.82
+        ],
+        "note": "Floor of the top well. Seat SM_CinderAnchorEmitter here (1 cm radial clearance)."
+      },
+      {
+        "name": "SOCKET_Charge_0",
+        "pos_cm": [
+          -406.84,
+          427.43,
+          270.9
+        ],
+        "r_cm": 590.1,
+        "ang_deg": 133.59,
+        "cpp_ang_deg": 128.43,
+        "cpp_r_cm": 520.0
+      },
+      {
+        "name": "SOCKET_Charge_1",
+        "pos_cm": [
+          -601.27,
+          3.82,
+          259.12
+        ],
+        "r_cm": 601.28,
+        "ang_deg": 179.64,
+        "cpp_ang_deg": 180.0,
+        "cpp_r_cm": 520.0
+      },
+      {
+        "name": "SOCKET_Charge_2",
+        "pos_cm": [
+          -423.87,
+          -406.29,
+          275.45
+        ],
+        "r_cm": 587.14,
+        "ang_deg": -136.21,
+        "cpp_ang_deg": 231.57,
+        "cpp_r_cm": 520.0
+      }
+    ],
+    "collision": [
+      "UCX_SM_CinderAnchorTower_00",
+      "UCX_SM_CinderAnchorTower_01",
+      "UCX_SM_CinderAnchorTower_02"
+    ],
+    "textures": [
+      "T_CinderAnchorTower_BC.png",
+      "T_CinderAnchorTower_N.png",
+      "T_CinderAnchorTower_ORM.png",
+      "T_CinderAnchorTower_E.png"
+    ]
+  },
+  "emitter": {
+    "fbx": "SM_CinderAnchorEmitter.fbx",
+    "blend": "SM_CinderAnchorEmitter.blend",
+    "tris": 49976,
+    "size_cm": [
+      410.9,
+      417.6,
+      597.2
+    ],
+    "base_r_cm": 210.1,
+    "sockets": [],
+    "collision": [
+      "UCX_SM_CinderAnchorEmitter_00",
+      "UCX_SM_CinderAnchorEmitter_01"
+    ],
+    "textures": [
+      "T_CinderAnchorEmitter_BC.png",
+      "T_CinderAnchorEmitter_N.png",
+      "T_CinderAnchorEmitter_ORM.png",
+      "T_CinderAnchorEmitter_E.png"
+    ]
+  },
+  "cpp_charge_note": "charge_sockets sit at radius 587-601 cm because the tower's base plinth (r ~ 752 cm) buries C++'s 520 cm ring (TDPlanetCourse.cpp, Cos/Sin * 520, z=60). Keep SOCKET_TopEmitter and SOCKET_Charge_0..2; builders should spawn the interactables on the sockets, not the 520 cm ring.",
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored Weighted Normal / hard edges)",
+    "combine_meshes": true,
+    "nanite": true,
+    "collision": "Use the UCX_ boxes in the FBX",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX \u2014 do NOT flip green)",
+      "_ORM": "sRGB off, Masks (R=AO, G=Roughness, B=Metallic)",
+      "_E": "sRGB on, Default"
+    }
+  },
+  "walkable": false,
+  "r043": "Distant non-walkable landmark. Not a walkable interior.",
+  "texture_size": 2048
+}

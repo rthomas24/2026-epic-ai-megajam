@@ -24,6 +24,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
 #include "Engine/StaticMesh.h"
+#include "Engine/StaticMeshSocket.h"
+#include "Engine/CollisionProfile.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/PlayerController.h"
@@ -55,6 +57,22 @@ namespace TDCourseColors
 	static const FLinearColor Crystal(0.7f, 0.3f, 1.f);
 	static const FLinearColor ArmadaRed(0.55f, 0.06f, 0.04f);
 	static const FLinearColor Steel(0.2f, 0.2f, 0.23f);
+}
+
+/** A socket of a Grok Bot prop (anchor tower, crystal cradle) in the mesh's own space (Interchange may keep or strip
+ *  the SOCKET_ prefix). */
+static bool TDPlanetCourse_AnchorSocket(const UStaticMesh* Mesh, const TCHAR* Name, FVector& OutLocal)
+{
+	if (!Mesh) { return false; }
+	for (const FString& Candidate : { FString(Name), FString(TEXT("SOCKET_")) + Name })
+	{
+		if (const UStaticMeshSocket* S = Mesh->FindSocket(FName(*Candidate)))
+		{
+			OutLocal = S->RelativeLocation;
+			return true;
+		}
+	}
+	return false;
 }
 
 ATDPlanetCourse::ATDPlanetCourse()
@@ -94,7 +112,13 @@ ATDPlanetCourse::ATDPlanetCourse()
 		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_Basalt_02"),
 		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_Basalt_03"),
 		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_BasaltColumn_01"),
-		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_BasaltColumn_02")
+		TEXT("/Game/TriadDrift/Gameplay/Props/Cinder/SM_Cind_BasaltColumn_02"),
+		// Grok Bot's Cinder field anchor (PR #73), imported by ArtSource/EngImport/scripts/ue_import_engai.py
+		TEXT("/Game/TriadDrift/Gameplay/Props/CinderAnchor/SM_CinderAnchorTower"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/CinderAnchor/SM_CinderAnchorEmitter"),
+		// Grok Bot's crystal cache (PR #75), the EMP Pulse objective's last step
+		TEXT("/Game/TriadDrift/Gameplay/Props/CrystalCache/SM_CrystalCacheCradle"),
+		TEXT("/Game/TriadDrift/Gameplay/Props/CrystalCache/SM_CrystalCacheCrystal")
 	};
 	for (const TCHAR* Path : PropPaths)
 	{
@@ -1469,15 +1493,39 @@ void ATDPlanetCourse::BuildCinder()
 	Arena->MercyTiers = { Mercy3, Mercy5 };
 
 	// Screen toward the way the pilot comes in (the kit console's screen faces its +X).
-	ATDInteractableActor* Prototype = SpawnProp<ATDInteractableActor>(FVector(XEnd - 700.f, Y0 + 700.f, 70.f), FRotator(0.f, 180.f, 0.f)); // off the arena line (the Warden fight crosses it)
-	Prototype->ConsoleMesh = TDPropArt::Default(TEXT("SM_Cind_PrototypeConsole")); // 160 x 160 x 140, the scale below
+	// Grok Bot's crystal cache (PR #75: a 200 x 360 x 180 cm cradle, the hero crystal on its Crystal socket) when
+	// imported, at true size (the cube is its box, base on the ground); else the kit's prototype console.
+	UStaticMesh* CacheArt = ArtFor(TEXT("SM_CrystalCacheCradle"));
+	const FVector CacheSize = CacheArt ? FVector(200.f, 360.f, 180.f) : FVector(160.f, 160.f, 140.f);
+	ATDInteractableActor* Prototype = SpawnProp<ATDInteractableActor>(FVector(XEnd - 700.f, Y0 + 700.f, CacheSize.Z * 0.5f), FRotator(0.f, 180.f, 0.f)); // off the arena line (the Warden fight crosses it)
+	Prototype->ConsoleMesh = CacheArt ? TSoftObjectPtr<UStaticMesh>(CacheArt) : TDPropArt::Default(TEXT("SM_Cind_PrototypeConsole")); // fitted to the cube at the scale below
 	Prototype->Prompt = LOCTEXT("ClaimEmp", "Recover the crystals and the EMP prototype");
 	Prototype->HoldTime = 1.5f;
 	Prototype->LinkedObjective = Outpost;
 	Prototype->LinkedStep = 5;
 	TDCourseImpl::FinishProp(Prototype);
-	Prototype->SetActorScale3D(FVector(1.6f, 1.6f, 1.4f));
+	Prototype->SetActorScale3D(CacheSize / 100.f);
 	UTDStatics::TintPlaceholder(Prototype->Mesh, FLinearColor(0.3f, 0.8f, 1.f), 2.5f);
+	UStaticMesh* CrystalArt = CacheArt ? ArtFor(TEXT("SM_CrystalCacheCrystal")) : nullptr;
+	TArray<USceneComponent*> CacheParts;
+	if (CrystalArt) { Prototype->Mesh->GetChildrenComponents(false, CacheParts); }
+	for (USceneComponent* Child : CacheParts)
+	{
+		UStaticMeshComponent* Cradle = Cast<UStaticMeshComponent>(Child);
+		if (!Cradle || Cradle->GetStaticMesh() != CacheArt) { continue; }
+		FVector CrystalAt(0.f, 0.f, 30.05f);	// the cradle floor
+		TDPlanetCourse_AnchorSocket(CacheArt, TEXT("Crystal"), CrystalAt);
+		UStaticMeshComponent* CrystalPart = NewObject<UStaticMeshComponent>(Prototype);
+		CrystalPart->SetMobility(EComponentMobility::Movable);
+		CrystalPart->SetStaticMesh(CrystalArt);
+		CrystalPart->SetupAttachment(Cradle);
+		CrystalPart->SetRelativeLocation(CrystalAt);
+		CrystalPart->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName); // the cube is the hold-E target
+		CrystalPart->SetCanEverAffectNavigation(false);
+		CrystalPart->RegisterComponent();
+		Prototype->AddInstanceComponent(CrystalPart);
+		break;
+	}
 
 	// Every room is a checkpoint: a death costs that room, not the whole compound (machine playtest: the
 	// barracks death sent the pilot back to the gate conduits every time). The Warden too (review N6).
@@ -1558,11 +1606,36 @@ void ATDPlanetCourse::BuildCinder()
 		UStaticMeshComponent* Tip = Part(EShape::Cone, FVector(0.f, 0.f, 3400.f), FVector(400.f, 400.f, 800.f), TDCourseColors::ArmadaRed, 1.5f);
 		UStaticMeshComponent* BarX = Part(EShape::Cube, FVector(0.f, 0.f, 2600.f), FVector(1600.f, 80.f, 80.f), TDCourseColors::ArmadaRed, 2.5f);
 		UStaticMeshComponent* BarY = Part(EShape::Cube, FVector(0.f, 0.f, 2200.f), FVector(80.f, 1400.f, 80.f), TDCourseColors::ArmadaRed, 2.5f);
-		if (TDPropArt::Dress(Shaft, ArtFor(TEXT("SM_Cind_JammerTower")), false)) // one rigid mesh on the shaft's base; it sinks with the tower actor
+		// Grok Bot's anchor tower (PR #73, 35.8 m, plinth r 7.5 m) when imported, else the planet kit's jammer tower.
+		UStaticMesh* AnchorArt = ArtFor(TEXT("SM_CinderAnchorTower"));
+		if (UStaticMeshComponent* Dressed = TDPropArt::Dress(Shaft, AnchorArt ? AnchorArt : ArtFor(TEXT("SM_Cind_JammerTower")), false)) // one rigid mesh on the shaft's base; it sinks with the tower actor
 		{
 			for (UStaticMeshComponent* Other : { Tip, BarX, BarY }) { if (Other) { Other->SetHiddenInGame(true); } }
+			if (AnchorArt)
+			{
+				// Its own UCX boxes (plinth, shaft, collar) are the collision now: the 5 m placeholder shaft stood inside
+				// the 15 m plinth, so the pilot walked into the visible base.
+				Dressed->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
+				Shaft->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+				// The emitter crown seats in the top well.
+				FVector EmitterAt(0.f, 0.f, 3402.8f);
+				TDPlanetCourse_AnchorSocket(AnchorArt, TEXT("TopEmitter"), EmitterAt);
+				if (UStaticMesh* EmitterArt = ArtFor(TEXT("SM_CinderAnchorEmitter")))
+				{
+					UStaticMeshComponent* Emitter = NewObject<UStaticMeshComponent>(TowerActor);
+					Emitter->SetMobility(EComponentMobility::Movable);
+					Emitter->SetStaticMesh(EmitterArt);
+					Emitter->SetupAttachment(Dressed);
+					Emitter->SetRelativeLocation(EmitterAt);
+					Emitter->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
+					Emitter->SetCanEverAffectNavigation(false);
+					Emitter->RegisterComponent();
+					TowerActor->AddInstanceComponent(Emitter);
+				}
+			}
 		}
 	}
+	UStaticMesh* const AnchorTowerArt = ArtFor(TEXT("SM_CinderAnchorTower"));
 	ATDStepCounter* Charges = SpawnProp<ATDStepCounter>(Tower);
 	Charges->LinkedObjective = Jammer;
 	Charges->LinkedStep = 1;
@@ -1572,7 +1645,11 @@ void ATDPlanetCourse::BuildCinder()
 	for (int32 i = 0; i < 3; ++i)
 	{
 		const float A = PI + (i - 1) * 0.9f;
-		ATDInteractableActor* Site = SpawnProp<ATDInteractableActor>(Tower + FVector(FMath::Cos(A) * 520.f, FMath::Sin(A) * 520.f, 60.f));
+		// On the tower's charge ports (r 587-601 cm, 2.6-2.75 m up the plinth faces) when the anchor art is in; the
+		// old 520 cm ring at 60 cm sat inside its plinth.
+		FVector SiteAt(FMath::Cos(A) * 520.f, FMath::Sin(A) * 520.f, 60.f);
+		if (AnchorTowerArt) { TDPlanetCourse_AnchorSocket(AnchorTowerArt, *FString::Printf(TEXT("Charge_%d"), i), SiteAt); }
+		ATDInteractableActor* Site = SpawnProp<ATDInteractableActor>(Tower + SiteAt);
 		Site->Prompt = LOCTEXT("Plant", "Plant a charge");
 		Site->HoldTime = 1.5f;
 		Site->LinkedObjective = Jammer;

@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDCombatCueLog.h"
+#include "TriadDrift/Combat/TDAudioHitTrace.h"
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDCombatBarks.h"
 #include "TriadDrift/Combat/TDFieldDamageable.h"
@@ -1024,6 +1025,13 @@ void ATDProjectile::HandleImpact(const FHitResult& Hit)
 
 	const UTDHealthComponent* VictimHealth = Victim ? UTDStatics::GetHealth(Victim) : nullptr;
 	bool bImpactArt = false;
+	if (VictimHealth && FTDAudioHitTrace::IsOn() && !Victim->Implements<UTDFieldDamageable>() && CanDamage(Victim))
+	{
+		// Board N-069: mark the real hit for recorded audio, at the cue choice and before the damage.
+		const bool bShield = VictimHealth->IsShieldUp();
+		FTDAudioHitTrace::Trace(this, Spec.FX ? (bShield ? &Spec.FX->ImpactShield : &Spec.FX->ImpactHull) : nullptr,
+			bShield ? ETDCombatCueKind::ImpactShield : ETDCombatCueKind::ImpactHull, Shooter.Get(), Victim, VictimHealth);
+	}
 	if (Spec.FX)
 	{
 		const FTDFXCue& Cue = !VictimHealth ? Spec.FX->ImpactWorld : (VictimHealth->IsShieldUp() ? Spec.FX->ImpactShield : Spec.FX->ImpactHull);

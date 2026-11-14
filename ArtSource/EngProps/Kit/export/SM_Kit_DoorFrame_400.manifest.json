@@ -1,7 +1,7 @@
 {
   "asset": "SM_Kit_DoorFrame_400",
-  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\export\\SM_Kit_DoorFrame_400.fbx",
-  "tris": 2222,
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export\\SM_Kit_DoorFrame_400.fbx",
+  "tris": 2218,
   "size_cm": [
     39.0,
     400.0,
@@ -55,7 +55,7 @@
   ],
   "collision_source": "authored",
   "sockets": [],
-  "welded_verts": 27,
+  "welded_verts": 0,
   "nanite_recommended": false,
   "unreal_import": {
     "uniform_scale": 1.0,

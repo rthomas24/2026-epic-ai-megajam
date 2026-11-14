@@ -15,6 +15,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "HAL/IConsoleManager.h"
 #include "Misc/CoreMisc.h"
+#include "TriadDrift/Powers/TDAbilityRewards.h"
 
 #define LOCTEXT_NAMESPACE "TDHints"
 
@@ -260,8 +261,8 @@ void UTDHintComponent::HandleShipSwitched(ETDShipId NewShip, ETDShipId OldShip) 
 
 void UTDHintComponent::HandleAbilityUnlocked(ETDAbilityId Ability, ETDShipId Ship)
 {
-	LastAbility = Ability;
-	Offer(ETDHint::Ability);
+	// Board N-070 (T2): the unlock itself shows nothing here (on foot, the UI's reward screen has it). The flight hint
+	// comes from UTDAbilityRewardSubsystem the next time the player flies the owning ship, one per award (TickComponent).
 }
 
 void UTDHintComponent::HandleTip(FName TipId)
@@ -362,6 +363,19 @@ void UTDHintComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	if (IsSuppressed())
 	{
 		return; // the clock stops: a hint never runs out behind a landing prompt or a pause
+	}
+	// An award's own flight hint (board N-070): due while its owning ship is flown; each award has its own flag there, so
+	// the shared Done entry for ETDHint::Ability never suppresses a later unlock.
+	if (Current != ETDHint::Ability && !Queue.Contains(ETDHint::Ability))
+	{
+		ETDAbilityId Due = ETDAbilityId::None;
+		if (UTDAbilityRewardSubsystem* Rewards = UTDAbilityRewardSubsystem::Get(this); Rewards && Rewards->GetAbilityFlightHint(Due, this))
+		{
+			LastAbility = Due;
+			Done.Remove(ETDHint::Ability);
+			Offer(ETDHint::Ability);
+			Rewards->MarkAbilityFlightHintShown(Due);
+		}
 	}
 	if (JustDoneLeft > 0.f)
 	{

@@ -1,0 +1,46 @@
+{
+  "host": "28f03b4f",
+  "candidate": "78caa422",
+  "engine_changelist": 60351404,
+  "build": "Development Editor, Win64, single worker, no shared PCH or unity",
+  "plugin_sha256": "26b4cdd59ae6140acde50083c362ed5133d21a0bbffbc63198b0644bc25a4cba",
+  "game_sha256": "3c034cf024ac91d9e7546fd1935decbe26e9401706be02227ac05b2c6a676c24",
+  "report_created": "2026.11.14-01.22.19",
+  "tests": [
+    {
+      "fullTestPath": "TriadDrift.Audio.Boarding.EndAndReentry",
+      "state": "Success",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "fullTestPath": "TriadDrift.Audio.Credits.OrderAndStaleCompletion",
+      "state": "Success",
+      "errors": 0,
+      "warnings": 0
+    },
+    {
+      "fullTestPath": "TriadDrift.Audio.Verdance.OverlappingDuckReasons",
+      "state": "Success",
+      "errors": 0,
+      "warnings": 0
+    }
+  ],
+  "build_result": {
+    "pid": 28204,
+    "exit": 0,
+    "reason": "",
+    "free_start": 4.849338531494141,
+    "free_min": 3.685291290283203,
+    "duration": 12.8167583
+  },
+  "test_result": {
+    "pid": 16008,
+    "exit": 0,
+    "reason": "",
+    "free_start": 4.489971160888672,
+    "free_min": 1.8700027465820312,
+    "duration": 39.0413583
+  },
+  "coverage": "Compiled module and three state tests, null renderer and no sound. Actual component playback, event ownership and cooked Shipping remain to be verified."
+}

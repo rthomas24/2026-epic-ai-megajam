@@ -63,19 +63,50 @@ namespace TDRamPartTest
 			}
 			Carrier->InitFromSpec(TDEnemyIds::HiveCarrier);
 			Carrier->MaxLaunchedAlive = 0;
-			if (Which == EPart::Bay && Carrier->GetBays().Num() > 1)
+			// Socket-mounted parts (an art hull with Bay_N / Turret_N) face their socket's +X: ram along it. Sphere-mounted
+			// parts face radially out of the carrier (T4, agreed with T2).
+			auto OutOf = [Carrier](const AActor* P)
 			{
-				Part = Carrier->GetBays()[1];
+				return Carrier->HasSocketMountedParts() ? P->GetActorForwardVector() : (P->GetActorLocation() - Carrier->GetActorLocation()).GetSafeNormal();
+			};
+			TArray<AActor*> Candidates, Others;
+			for (ATDCarrierBay* B : Carrier->GetBays()) { (Which == EPart::Bay ? Candidates : Others).Add(B); }
+			for (ATDEnemyTurret* T : Carrier->GetTurrets()) { (Which == EPart::Turret ? Candidates : Others).Add(T); }
+			if (Which == EPart::Bay && Candidates.Num() > 1)
+			{
+				Candidates.Swap(0, 1); // bay 1 first, as before
 			}
-			else if (Which == EPart::Turret && Carrier->GetTurrets().Num() > 0)
+			// A clear run: since the ship builder's hull-surface sockets (2d333749), Bay_0 stands on Turret_0's outward line,
+			// and the dash rightly stops on the bay first. Ram a part nothing else covers.
+			for (AActor* C : Candidates)
 			{
-				Part = Carrier->GetTurrets()[0];
+				if (!IsValid(C) || FMath::Abs(OutOf(C).Z) > .7f) { continue; } // a level run (a near-vertical dive is not this test)
+				const FVector From = C->GetActorLocation() + OutOf(C) * 2500.f;
+				bool bClear = true;
+				for (const AActor* O : Others)
+				{
+					FVector OC, OE;
+					O->GetActorBounds(true, OC, OE);
+					bClear &= !IsValid(O) || FMath::PointDistToSegment(OC, From, C->GetActorLocation()) > OE.Size() + 800.f;
+				}
+				for (const AActor* O : Candidates)
+				{
+					if (O == C || !IsValid(O)) { continue; }
+					FVector OC, OE;
+					O->GetActorBounds(true, OC, OE);
+					bClear &= FMath::PointDistToSegment(OC, From, C->GetActorLocation()) > OE.Size() + 800.f;
+				}
+				if (bClear) { Part = C; break; }
+			}
+			if (!Part && Candidates.Num() > 0)
+			{
+				Part = Candidates[0];
+				Test.AddWarning(Label + TEXT(": no part with a clear approach; ramming the first"));
 			}
 			if (Part)
 			{
-				// Socket-mounted parts (an art hull with Bay_N / Turret_N) face their socket's +X: ram along it. Sphere-mounted
-				// parts face radially out of the carrier (T4, agreed with T2).
-				Out = Carrier->HasSocketMountedParts() ? Part->GetActorForwardVector() : (Part->GetActorLocation() - Carrier->GetActorLocation()).GetSafeNormal();
+				Out = OutOf(Part);
+				Test.AddInfo(Label + TEXT(": ramming ") + Part->GetName() + TEXT(" along ") + (-Out).ToCompactString());
 			}
 		}
 		if (!Test.TestNotNull(Label + TEXT(": part spawned"), Part))
@@ -98,11 +129,19 @@ namespace TDRamPartTest
 		W.Tick(Step);
 		UTDPowerComponent::RoutePowerInput(Lancer, ETDPowerInput::Signature1, false);
 		bool bHit = false;
+		float MinDist = TNumericLimits<float>::Max();
+		int32 DashFrames = 0;
+		FString Track;
 		for (float T = 0.f; T < 3.f && !bHit; T += Step)
 		{
 			W.Tick(Step);
+			const float D = FVector::Dist(Lancer->GetActorLocation(), Part->GetActorLocation());
+			MinDist = FMath::Min(MinDist, D);
+			DashFrames += Ram->IsDashing() ? 1 : 0;
+			if (T < .5f) { Track += FString::Printf(TEXT("%.0f%s "), D, Ram->IsDashing() ? TEXT("d") : TEXT("")); }
 			bHit = Ram->GetHitThisDash().ContainsByPredicate([Part](const TWeakObjectPtr<AActor>& A) { return A.Get() == Part; });
 		}
+		Test.AddInfo(Label + FString::Printf(TEXT(": closest %.0f cm, %d dash frames; first 0.5 s: %s"), MinDist, DashFrames, *Track));
 		{
 			FString Hits;
 			for (const TWeakObjectPtr<AActor>& A : Ram->GetHitThisDash())

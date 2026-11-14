@@ -1,7 +1,7 @@
 {
   "asset": "SM_Kit_Catwalk_400",
-  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\export\\SM_Kit_Catwalk_400.fbx",
-  "tris": 2412,
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export\\SM_Kit_Catwalk_400.fbx",
+  "tris": 2413,
   "size_cm": [
     400.0,
     200.0,
@@ -35,7 +35,7 @@
   ],
   "collision_source": "authored",
   "sockets": [],
-  "welded_verts": 10,
+  "welded_verts": 0,
   "nanite_recommended": false,
   "unreal_import": {
     "uniform_scale": 1.0,

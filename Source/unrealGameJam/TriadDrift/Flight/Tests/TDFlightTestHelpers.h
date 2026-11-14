@@ -9,7 +9,36 @@
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Powers/TDPowerComponent.h"
+#include "TriadDrift/Flight/TDShipImpactReceiver.h"
+#include "GameFramework/Actor.h"
+#include "Components/SphereComponent.h"
 #include "TDFlightTestHelpers.generated.h"
+
+/** A solid ball standing in for a space-field rock (T6's ATDSpaceField implements the same receiver). */
+UCLASS(Transient, NotBlueprintable, HideDropdown)
+class UNREALGAMEJAM_API ATDTestRock : public AActor, public ITDShipImpactReceiver
+{
+	GENERATED_BODY()
+
+public:
+	ATDTestRock()
+	{
+		Ball = CreateDefaultSubobject<USphereComponent>(TEXT("Ball"));
+		Ball->SetCollisionProfileName(TEXT("BlockAll"));
+		RootComponent = Ball;
+	}
+	UPROPERTY() TObjectPtr<USphereComponent> Ball;
+	bool bBreaks = false;
+	int32 Received = 0;
+	float LastSpeed = 0.f;
+	virtual bool ReceiveShipImpact(UPrimitiveComponent* HitComponent, int32 Item, const FVector& ImpactPoint, float NormalSpeed, float HeadOn01, class ATDShip* Ship) override
+	{
+		++Received;
+		LastSpeed = FMath::Max(LastSpeed, NormalSpeed); // the hardest contact (a bounce can touch again, slower)
+		if (bBreaks) { Ball->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
+		return bBreaks;
+	}
+};
 
 class UTDShipMovementComponent;
 

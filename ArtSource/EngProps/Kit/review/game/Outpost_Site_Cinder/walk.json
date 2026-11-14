@@ -1,0 +1,126 @@
+{
+ "site": "Outpost_Site_Cinder",
+ "origin": [
+  3000.0,
+  2700.0,
+  2.0
+ ],
+ "steps": [
+  {
+   "teleport": [
+    800,
+    0,
+    0
+   ],
+   "feet": [
+    0,
+    500,
+    0,
+    0
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Outpost_Site_Cinder\\01_door.png"
+  },
+  {
+   "walk": [
+    180,
+    0.45
+   ],
+   "feet": [
+    521,
+    0,
+    0,
+    180
+   ],
+   "at": "in 0"
+  },
+  {
+   "walk": [
+    180,
+    0.45
+   ],
+   "feet": [
+    521,
+    0,
+    0,
+    180
+   ],
+   "at": "in 1"
+  },
+  {
+   "walk": [
+    180,
+    0.45
+   ],
+   "feet": [
+    -25,
+    0,
+    2,
+    180
+   ],
+   "at": "in 2"
+  },
+  {
+   "walk": [
+    180,
+    0.45
+   ],
+   "feet": [
+    -25,
+    0,
+    2,
+    180
+   ],
+   "at": "in 3"
+  },
+  {
+   "teleport": [
+    -250,
+    0,
+    0
+   ],
+   "feet": [
+    -296,
+    0,
+    40,
+    180
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Outpost_Site_Cinder\\02_console.png"
+  },
+  {
+   "teleport": [
+    300,
+    120,
+    0
+   ],
+   "feet": [
+    300,
+    120,
+    2,
+    200
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Outpost_Site_Cinder\\03_room.png"
+  },
+  {
+   "teleport": [
+    1500,
+    -900,
+    0
+   ],
+   "feet": [
+    1500,
+    -900,
+    0,
+    148
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Outpost_Site_Cinder\\04_15m.png"
+  }
+ ]
+}

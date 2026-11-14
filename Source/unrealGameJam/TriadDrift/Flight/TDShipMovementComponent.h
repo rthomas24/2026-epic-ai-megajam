@@ -322,7 +322,8 @@ private:
 	int32 SilentMoveCount = 0;
 	float LargestSilentMove = 0.f;
 	void ResolveMove(const FVector& Delta, float DeltaTime);
-	void HandleShipImpact(const FHitResult& Hit, float DeltaTime);
+	/** Returns true when the hit thing broke (ITDShipImpactReceiver): the move carries on through it. */
+	bool HandleShipImpact(const FHitResult& Hit, float DeltaTime);
 	/** Resting contact: swing the nose along the surface and keep a minimum slide speed (never stuck at 0 m/s). */
 	void SlideOffSurface(const FVector& Normal, float DeltaTime);
 	void SyncStateFromComponent();

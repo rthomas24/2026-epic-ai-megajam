@@ -37,6 +37,14 @@ POSES = [
 ]
 
 
+if os.environ.get("TD_POSES"):
+    # name:clip:time01[:upper], comma separated; clip "-" = no clip (the loop the body is playing)
+    POSES = []
+    for item in os.environ["TD_POSES"].split(","):
+        f = item.split(":")
+        POSES.append((f[0], None if f[1] == "-" else f[1], float(f[2]), len(f) > 3 and f[3] == "upper"))
+
+
 def v(s):
     return tuple(float(x) for x in s.split(","))
 

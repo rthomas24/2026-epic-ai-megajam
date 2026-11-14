@@ -1,0 +1,58 @@
+{
+ "site": "DockingBay_Interior",
+ "origin": [
+  6000.0,
+  -2600.0,
+  1752.0
+ ],
+ "steps": [
+  {
+   "teleport": [
+    1800,
+    0,
+    -1750
+   ],
+   "feet": [
+    6736,
+    11600,
+    -1750,
+    180
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DockingBay_Interior\\01_mouth_from_outside.png"
+  },
+  {
+   "teleport": [
+    -1000,
+    0,
+    -1750
+   ],
+   "feet": [
+    -1000,
+    0,
+    -1748,
+    180
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DockingBay_Interior\\02_inside_to_the_back.png"
+  },
+  {
+   "teleport": [
+    -5200,
+    1500,
+    -1750
+   ],
+   "feet": [
+    -5200,
+    1500,
+    -1748,
+    15
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\DockingBay_Interior\\03_inside_to_the_mouth.png"
+  }
+ ]
+}
