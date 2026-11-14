@@ -50,6 +50,10 @@ bool FTDT1AtmoHoldCommitsAfter::RunTest(const FString& Parameters)
 		TestEqual(TEXT("the HUD's travel line says AWAITING ORDERS"), Ship->GetHyperdrive()->GetBlockReasonText().ToString(), FString(TEXT("AWAITING ORDERS")));
 		W.Advance(1.f);
 		TestTrue(TEXT("still held a second later"), Entry->IsHoldingForStory() && !Entry->IsEntering());
+		// T7's live play: the planet asks again as the ship grazes back in; still taken (no fallback travel), still held.
+		TestTrue(TEXT("a second request during the hold is taken"), Entry->BeginEntry(ETDDestination::Verdance, TEXT("Verdance_Orbit"), FVector(-200000.f, 0.f, 0.f)));
+		TestTrue(TEXT("... and stays a hold, not an entry"), Entry->IsHoldingForStory() && !Entry->IsEntering());
+		TestTrue(TEXT("held: the ship crawls at the edge (not a silent wall, not into the planet)"), Ship->GetShipMovement()->HasSpeedOverrideFor(UTDAtmosphereEntryComponent::StoryHoldOverride));
 
 		float Waited = 0.f;
 		for (; Waited < 60.f && Story->IsSequencePlaying(Seq); Waited += 0.1f) { W.Advance(0.1f, 1.f / 30.f); }
@@ -58,6 +62,7 @@ bool FTDT1AtmoHoldCommitsAfter::RunTest(const FString& Parameters)
 		AddInfo(FString::Printf(TEXT("sequence ran %.1f s"), Waited));
 		TestTrue(TEXT("the sequence over: entry commits"), Entry->IsEntering());
 		TestFalse(TEXT("... and the hold is gone"), Entry->IsHoldingForStory());
+		TestFalse(TEXT("... with its crawl"), Ship->GetShipMovement()->HasSpeedOverrideFor(UTDAtmosphereEntryComponent::StoryHoldOverride));
 	}
 	{
 		// Flying back out of the atmosphere during the hold drops it: nothing commits later.
@@ -72,6 +77,7 @@ bool FTDT1AtmoHoldCommitsAfter::RunTest(const FString& Parameters)
 		Ship->TeleportSpacecraft(FVector(Entry->HoldLeaveMargin + 20000.f, 0.f, 0.f), FRotator::ZeroRotator, false);
 		W.Advance(0.2f);
 		TestFalse(TEXT("left the atmosphere: hold dropped"), Entry->IsHoldingForStory());
+		TestFalse(TEXT("... the crawl released"), Ship->GetShipMovement()->HasSpeedOverrideFor(UTDAtmosphereEntryComponent::StoryHoldOverride));
 		for (int32 i = 0; i < 600 && Story->IsSequencePlaying(Seq); ++i) { W.Advance(0.1f, 1.f / 30.f); }
 		W.Advance(0.2f);
 		TestFalse(TEXT("no entry after the sequence"), Entry->IsEntering());

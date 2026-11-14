@@ -169,6 +169,7 @@ void ATDSpaceField::BreakPiece(int32 Piece, AActor* ByWhom)
 void ATDSpaceField::BreakPieceInner(int32 Piece, AActor* ByWhom)
 {
 	using namespace TDSpaceFieldBreak;
+	const double T0 = FPlatformTime::Seconds();
 	FPieceState& S = States[Piece];
 	const FTDSpaceFieldPiece P = Pieces[Piece];
 	S.bAlive = false;
@@ -211,6 +212,7 @@ void ATDSpaceField::BreakPieceInner(int32 Piece, AActor* ByWhom)
 		S.Obstacle = INDEX_NONE;
 	}
 
+	const double T1 = FPlatformTime::Seconds();
 	// Split: a medium into smalls, a large or a wreck into mediums.
 	if (S.SizeClass > 0)
 	{
@@ -235,10 +237,19 @@ void ATDSpaceField::BreakPieceInner(int32 Piece, AActor* ByWhom)
 		}
 	}
 
+	const double T2 = FPlatformTime::Seconds();
 	PlayBreakCue(P.Location, P.Size, S.SizeClass, S.bSpecial);
+	const double T3 = FPlatformTime::Seconds();
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
-		Bus->BroadcastFieldObjectDestroyed(P.Location, S.SizeClass, S.bSpecial, ByWhom);
+		Bus->BroadcastFieldObjectDestroyed(P.Location, S.SizeClass, S.bSpecial, ByWhom);	// T2's drops, stat, boost; the HUD's notice
+	}
+	const double T4 = FPlatformTime::Seconds();
+	// Zero-lag budget (3 ms a break): any slow break says which phase took the time.
+	if ((T4 - T0) * 1000.0 > 3.0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TDSpaceField: slow break %.2f ms (class %d special %d): collision+look %.2f, fragments %.2f, effect+sound %.2f, bus listeners %.2f"),
+			(T4 - T0) * 1000.0, S.SizeClass, S.bSpecial, (T1 - T0) * 1000.0, (T2 - T1) * 1000.0, (T3 - T2) * 1000.0, (T4 - T3) * 1000.0);
 	}
 }
 
@@ -299,7 +310,19 @@ void ATDSpaceField::PlayBreakCue(const FVector& At, float Size, uint8 SizeClass,
 		UNiagaraSystem* Default = DefaultBreakVFX.IsValidIndex(Slot) ? DefaultBreakVFX[Slot].Get() : nullptr;
 		Cue.VFX = Default ? TSoftObjectPtr<UNiagaraSystem>(Default) : TSoftObjectPtr<UNiagaraSystem>(FSoftObjectPath(DefaultVFX[Slot]));
 	}
-	UNiagaraComponent* Played = UTDStatics::PlayCue(this, Cue, At, FRotator::ZeroRotator);
+	// Effect and sound timed apart (the zero-lag budget: which one costs on a first play).
+	FTDFXCue VfxOnly = Cue; VfxOnly.Sound.Reset(); VfxOnly.Shake.Reset();
+	FTDFXCue Rest = Cue; Rest.VFX.Reset();
+	const double C0 = FPlatformTime::Seconds();
+	UNiagaraComponent* Played = UTDStatics::PlayCue(this, VfxOnly, At, FRotator::ZeroRotator);
+	const double C1 = FPlatformTime::Seconds();
+	if (!Rest.IsEmpty()) { UTDStatics::PlayCue(this, Rest, At, FRotator::ZeroRotator); }
+	const double C2 = FPlatformTime::Seconds();
+	if ((C2 - C0) * 1000.0 > 2.0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TDSpaceField: slow cue %.2f ms: effect %s %.2f ms, sound %s %.2f ms"), (C2 - C0) * 1000.0, *GetNameSafe(VfxOnly.VFX.Get()),
+			(C1 - C0) * 1000.0, Cue.Sound.IsNull() ? TEXT("none") : *Cue.Sound.ToSoftObjectPath().GetAssetName(), (C2 - C1) * 1000.0);
+	}
 	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: break class %d special %d size %.0f m at %s: %s %s, sound %s (%s)"), SizeClass, bSpecial, Size / 100.f, *At.ToCompactString(),
 		*GetNameSafe(Cue.VFX.Get()), Played ? TEXT("playing") : TEXT("NOT PLAYED (placeholder burst)"), Cue.Sound.IsNull() ? TEXT("none") : *Cue.Sound.ToSoftObjectPath().GetAssetName(),
 		bAuthored ? TEXT("DA_SpaceField_FX") : TEXT("defaults"));

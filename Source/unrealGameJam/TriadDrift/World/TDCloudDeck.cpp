@@ -76,7 +76,8 @@ void ATDCloudDeck::Build()
 	const ATDPlanetTerrain* Terrain = nullptr;
 	for (TActorIterator<ATDPlanetTerrain> It(GetWorld()); It; ++It) { if (It->IsBuilt()) { Terrain = *It; } break; }
 	const float Alt = GetAltitude();
-	SetActorLocation((Terrain ? Terrain->GetActorLocation() : FVector::ZeroVector) + FVector(0.f, 0.f, Alt));
+	// ENG-38: the deck clears the zone's highest ground (T1 arrives 300 m above it); the per-planet altitude is the fallback.
+	SetActorLocation(Terrain ? FVector(Terrain->GetActorLocation().X, Terrain->GetActorLocation().Y, Terrain->GetCloudDeckZ()) : FVector(0.f, 0.f, Alt));
 
 	using namespace TDCloudDeckImpl;
 	const int32 Rings = UE_ARRAY_COUNT(RingFractions);

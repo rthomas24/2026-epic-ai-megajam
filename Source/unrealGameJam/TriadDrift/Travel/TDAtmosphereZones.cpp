@@ -89,6 +89,12 @@ float UTDAtmosphereEntryComponent::GetEntry01() const
 bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName InReturnPoint, FVector PlanetCenter, float PlanetSurfaceRadius)
 {
 	ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner());
+	// T7's live play: during the hold the planet re-arms and asks again as a boosting ship grazes back in; answering "busy"
+	// (false) made it run its own fallback travel a second later, mid-Aftermath. The hold still owns it: taken.
+	if (Craft && EntryState == ETDAtmosphereEntryState::Holding)
+	{
+		return true;
+	}
 	if (!Craft || EntryState != ETDAtmosphereEntryState::Idle)
 	{
 		return false;
@@ -123,6 +129,8 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 		HeldSurfaceRadius = PlanetSurfaceRadius;
 		HeldStartDistance = (float)FVector::Dist(Craft->GetActorLocation(), PlanetCenter);
 		UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: held - a story sequence is playing (awaiting orders)"));
+		// Stopped at the edge, not a silent wall: the ship slows to a crawl (still steerable) and the HUD says AWAITING ORDERS.
+		if (UTDShipMovementComponent* Move = Craft->GetShipMovement()) { Move->SetSpeedOverrideFor(StoryHoldOverride, StoryHoldSpeed, 1.f, 30000.f); }
 		return true; // taken (not committed): the planet must not run its own fallback travel; it re-arms on the next pass
 	}
 	EntryState = ETDAtmosphereEntryState::Entering;
@@ -270,8 +278,19 @@ void UTDAtmosphereEntryComponent::EndPlay(const EEndPlayReason::Type EndPlayReas
 	Super::EndPlay(EndPlayReason);
 }
 
+const FName UTDAtmosphereEntryComponent::StoryHoldOverride(TEXT("StoryHold"));
+
+void UTDAtmosphereEntryComponent::EndStoryHold()
+{
+	if (const ATDSpacecraft* Craft = Cast<ATDSpacecraft>(GetOwner()))
+	{
+		if (UTDShipMovementComponent* Move = Craft->GetShipMovement()) { Move->ClearSpeedOverrideFor(StoryHoldOverride); }
+	}
+}
+
 bool UTDAtmosphereEntryComponent::IsStoryHoldingEntry() const
 {
+	if (UTDStorySubsystem::IsMustHearSequencePlaying(this)) { return true; } // T3's rule (Aftermath and any later must-hear)
 	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
 	if (!Story) { return false; }
 	for (const FName& Id : HoldEntryForSequences)
@@ -286,6 +305,7 @@ void UTDAtmosphereEntryComponent::AbortEntry()
 	if (EntryState == ETDAtmosphereEntryState::Holding)
 	{
 		EntryState = ETDAtmosphereEntryState::Idle;
+		EndStoryHold();
 		return;
 	}
 	if (EntryState == ETDAtmosphereEntryState::Entering)
@@ -337,11 +357,13 @@ void UTDAtmosphereEntryComponent::TickComponent(float DeltaTime, ELevelTick Tick
 		if (!Ship || !Ship->IsPlayerFlown() || Dist > HeldStartDistance + HoldLeaveMargin)
 		{
 			EntryState = ETDAtmosphereEntryState::Idle; // flew out (or switched): the planet takes it on the next pass
+			EndStoryHold();
 			UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: hold dropped (left the atmosphere or not flown)"));
 		}
 		else if (!IsStoryHoldingEntry())
 		{
 			EntryState = ETDAtmosphereEntryState::Idle;
+			EndStoryHold();
 			UE_LOG(LogTriadDrift, Log, TEXT("Atmosphere entry: the sequence ended - committing"));
 			BeginEntry(Destination, ReturnPoint, HeldPlanetCenter, HeldSurfaceRadius);
 		}
@@ -516,9 +538,6 @@ void ATDAtmosphereFlightZone::FitToTerrain(const ATDPlanetTerrain* Terrain)
 		Box.Max.Y = FMath::Max(Box.Max.Y, O.Y + Half);
 		Box.Max.Z = FMath::Max(Box.Max.Z, MaxZ + TerrainCeilingClearance);
 	}
-	// ENG-38 glide-lite (agreed with T4): the arrival sits 300 m over the cloud deck, so the ceiling clears the deck by 500 m.
-	const float DeckZ = UTDDescentSubsystem::FindDeckZ(GetWorld());
-	if (DeckZ > 0.f && UTDDescentSubsystem::IsGlideEnabled()) { Box.Max.Z = FMath::Max(Box.Max.Z, DeckZ + 50000.f); }
 	SetActorLocation(Box.GetCenter());
 	SetZoneExtent(Box.GetExtent());
 	bFittedToTerrain = true;
@@ -632,6 +651,11 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 		// ENG-38 climb out (the mirror of the entry). Reaching the exit height triggers the exit at once (the return point
 		// and the travel are recorded now, Lead's option b); the level change waits ExitClimbSeconds of forced climb with
 		// the exit burn and hull heat rising and the cover ramping in at the end, then the breakaway.
+		// ENG-38: a ship arriving over the cloud deck (above the normal ceiling) is released from the zone until its glide
+		// ends: no exit, no ceiling tip (the ceiling and the exit height stay as they were for normal flight; the Lead, Nov 14).
+		const UTDShipMovementComponent* ShipMove = Ship->GetShipMovement();
+		const bool bArriving = ShipMove && ShipMove->IsBoundaryReleased();
+		if (bArriving) { continue; }
 		if (bExitOpen && !bLanding && Z >= ExitZ)
 		{
 			// Latched only on a successful request (review minor 6); a refused request retries next frame.

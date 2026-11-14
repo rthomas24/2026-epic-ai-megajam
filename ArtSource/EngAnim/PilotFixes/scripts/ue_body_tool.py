@@ -4,7 +4,10 @@
 #   ik         [t0, t1]  when the legs are solved to the foot targets (default: the whole clip)
 #   chest_yaw  [[t, deg], ...]  the upper body turns about spine_01 (+ = left shoulder forward), on top of the clip
 #   chest_pitch [[t, deg], ...]  the upper body folds forward about spine_01
+#   retime     [[out s, source s], ...]  piecewise-linear time map (the clip keeps its length unless the last key says otherwise)
 #   time_warp  {"until": s, "power": p}  the source clip eases in over its first seconds
+#   foot_cap   {"above_hip": cm, "from": s}  from that time a foot is pulled down (leg IK) so it never rises more than this above its hip
+#   reach      {"l" | "r": [[t, x, y, z, weight], ...]}  that hand goes (two-bone IK) to pelvis XY + (x, y) at height z, by weight
 #   arm_drop   {"l" | "r": [[t, deg], ...]}  that arm swings down from the shoulder by deg
 # Keys are eased (smoothstep) between neighbours. TD_BODY = config json. Animation builder (eng/anim), Nov 14.
 import json
@@ -43,6 +46,13 @@ for cl in CFG["clips"]:
     for i in range(n):
         t = i / float(FPS)
         ts = t * rate
+        rt = cl.get("retime")   # [[out s, source s], ...] piecewise linear: compress or stretch parts of the source
+        if rt:
+            ts = rt[-1][1]
+            for a_, b_ in zip(rt, rt[1:]):
+                if t <= b_[0]:
+                    ts = a_[1] + (b_[1] - a_[1]) * (t - a_[0]) / max(1e-6, b_[0] - a_[0])
+                    break
         tw = cl.get("time_warp")   # {"until": s, "power": p}: the source eases in over the first seconds (no step off frame 0)
         if tw and ts < tw["until"]:
             ts = tw["until"] * (ts / tw["until"]) ** tw["power"]
@@ -69,9 +79,11 @@ for cl in CFG["clips"]:
         if abs(pitch) > 1e-4:
             piv = W["spine_01"][0]
             axis = norm(sub(W["upperarm_r"][0], W["upperarm_l"][0]))
-            q = qaxis(axis, pitch)
-            if rot(q, sub(W["head"][0], piv))[1] < sub(W["head"][0], piv)[1]:
-                q = qaxis(axis, -pitch)
+            q = qaxis(axis, abs(pitch))                      # folding forward lowers the head
+            if rot(q, sub(W["head"][0], piv))[2] > sub(W["head"][0], piv)[2]:
+                q = qaxis(axis, -abs(pitch))
+            if pitch < 0:                                    # negative: the torso is raised
+                q = qinv(q)
             for b in upper:
                 W[b][0] = add(piv, rot(q, sub(W[b][0], piv)))
                 W[b][1] = qmul(q, W[b][1])
@@ -87,13 +99,39 @@ for cl in CFG["clips"]:
                         if b.endswith("_" + s) and b.startswith(ARM):
                             W[b][0] = add(piv, rot(q, sub(W[b][0], piv)))
                             W[b][1] = qmul(q, W[b][1])
+        for s, keys in cl.get("reach", {}).items():   # [[t, x, y, z, weight], ...]: the hand goes to pelvis XY + (x, y), height z (mesh space, cm)
+            x_, y_, z_, w_ = keyed(keys, t, 4)
+            if w_ > 1e-4:
+                up_, lo_, ha_ = "upperarm_" + s, "lowerarm_" + s, "hand_" + s
+                S = W[up_][0]
+                L1, L2 = length(sub(W[lo_][0], S)), length(sub(W[ha_][0], W[lo_][0]))
+                goal = (W["pelvis"][0][0] + x_, W["pelvis"][0][1] + y_, z_)
+                tgt = add(W[ha_][0], mul(sub(goal, W[ha_][0]), w_))
+                pole = add(sub(W[lo_][0], S), (0.0, 0.0, -0.4 * (L1 + L2)))
+                K, Tg = two_bone(S, tgt, L1, L2, pole)
+                tree = [b for b in ALL if b.endswith("_" + s) and b.startswith(ARM)]
+                qa = from_to(sub(W[lo_][0], S), sub(K, S))
+                for b in tree:
+                    W[b][0] = add(S, rot(qa, sub(W[b][0], S)))
+                    W[b][1] = qmul(qa, W[b][1])
+                qb = from_to(sub(W[ha_][0], W[lo_][0]), sub(Tg, K))
+                for b in tree:
+                    if not b.startswith("upperarm"):
+                        W[b][0] = add(K, rot(qb, sub(W[b][0], K)))
+                        W[b][1] = qmul(qb, W[b][1])
         solve = ik0 - 1e-6 <= t <= ik1 + 1e-6
         for s in "lr":
             th, ca, fo = "thigh_" + s, "calf_" + s, "foot_" + s
-            if solve:
+            cap = cl.get("foot_cap")   # {"above_hip": cm, "from": s}: a foot never rises more than this above its hip (no leg kick in a fall)
+            capped = bool(cap) and t >= cap["from"] and W[fo][0][2] > W[th][0][2] + cap["above_hip"]
+            if solve or capped:
                 Hp = W[th][0]
                 L1, L2 = length(sub(W[ca][0], W[th][0])), length(sub(W[fo][0], W[ca][0]))
-                tgt = add(foot0[s], keyed(cl.get("feet", {}).get(s), t, 3))
+                tgt = add(foot0[s], keyed(cl.get("feet", {}).get(s), t, 3)) if solve else W[fo][0]
+                if capped:
+                    over = W[fo][0][2] - (Hp[2] + cap["above_hip"])
+                    w_ = min(1.0, (t - cap["from"]) / 0.15)
+                    tgt = (tgt[0], tgt[1], tgt[2] - over * w_)
                 pole = add(sub(W[ca][0], Hp), (0.0, 0.3 * (L1 + L2), 0.0))
                 K, Tg = two_bone(Hp, tgt, L1, L2, pole)
                 qt = from_to(sub(W[ca][0], Hp), sub(K, Hp))
@@ -114,6 +152,8 @@ for cl in CFG["clips"]:
             track.setdefault(s, []).append(W[fo][0])
         par = {"spine_01": "pelvis"}
         for sd in "lr":
+            if sd in cl.get("reach", {}):
+                par.update({"lowerarm_" + sd: "upperarm_" + sd, "hand_" + sd: "lowerarm_" + sd})
             par.update({"upperarm_" + sd: "clavicle_" + sd, "thigh_" + sd: "pelvis", "calf_" + sd: "thigh_" + sd, "foot_" + sd: "calf_" + sd})
         out = {}
         for b in ALL:

@@ -1,0 +1,47 @@
+{
+ "_note": "Pilot interact r5 (Lead, Nov 14): on the held idle pose (facing and blade arm never change) the LEFT hand presses forward by arm IK: 38 cm ahead of the hips, 14 cm to the left, 115 cm high with a bent elbow, out by 0.37 s, held 0.33 s, back at rest over 0.35 s (by 1.05 s). 1.13 s.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims",
+ "skeleton": "/Game/TriadDrift/Gameplay/Characters/Pilot/SKEL_Pilot",
+ "clips": [
+  {
+   "src": "A_Pilot_Interact_Pre",
+   "dst": "A_Pilot_Interact",
+   "ik": [
+    9.0,
+    9.0
+   ],
+   "reach": {
+    "l": [
+     [
+      0.0,
+      14,
+      38,
+      115,
+      0.0
+     ],
+     [
+      0.37,
+      14,
+      38,
+      115,
+      1.0
+     ],
+     [
+      0.7,
+      14,
+      38,
+      115,
+      1.0
+     ],
+     [
+      1.05,
+      14,
+      38,
+      115,
+      0.0
+     ]
+    ]
+   }
+  }
+ ]
+}

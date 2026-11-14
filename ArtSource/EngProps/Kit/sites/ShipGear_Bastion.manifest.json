@@ -1,0 +1,27 @@
+{
+ "site": "ShipGear_Bastion",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_ShipGear_Bastion",
+ "about": "Capture only: SM_Bastion parked on SM_Bastion_Gear.",
+ "pieces": [
+  {
+   "name": "Hull",
+   "mesh": "/Game/TriadDrift/Gameplay/Ships/Bastion/SM_Bastion",
+   "location_cm": [
+    0.0,
+    0.0,
+    125.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Gear",
+   "mesh": "/Game/TriadDrift/Gameplay/Ships/Bastion/SM_Bastion_Gear",
+   "location_cm": [
+    0.0,
+    0.0,
+    75.0
+   ],
+   "yaw_deg": 0.0
+  }
+ ]
+}

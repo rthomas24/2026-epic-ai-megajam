@@ -69,7 +69,7 @@ bool FTDSpaceFieldFills::RunTest(const FString& Parameters)
 			bOk &= FVector::Dist(P.Location, Zone) >= 150000.f + Half * 0.f;
 			bOk &= !F.Layout->IsInKeepOut(Xf.InverseTransformPosition(P.Location), 20000.f);
 			for (const FTDPlanetSpec& Pl : L.Planets) { bOk &= FVector::Dist(P.Location, Xf.TransformPosition(Pl.Location)) > Pl.AtmosphereRadius * 1.3f; }
-			bOk &= FVector::Dist(P.Location, Xf.TransformPosition(L.Dominion.GetLocation())) > 350000.f; // T4: Dominion, field, generators, docking cone, escape
+			bOk &= FVector::Dist(P.Location, Xf.TransformPosition(L.Dominion.GetLocation())) > 180000.f; // T4: the Dominion core (the Moons sit closer; the rest keep 3.5 km)
 				for (const FTDPlanetSpec& Pl : L.Planets)
 				{
 					// The Verdance convoys (Dominion -> Verdance, offsets up to 900 m).
@@ -313,13 +313,25 @@ bool FTDSpaceFieldStructuresKeepOut::RunTest(const FString& Parameters)
 	{
 		const float Half = S.Size * 0.5f;
 		bool bOk = FVector::Dist(S.Location, Zone) >= 150000.f;
-		bOk &= FVector::Dist(S.Location, DLoc) >= 350000.f;
+		bOk &= FVector::Dist(S.Location, DLoc) >= 180000.f;	// the Moons: T4 finer keep-outs (core, bow tube, stage start)
 		for (const FVector& E : Ends) { bOk &= FVector::Dist(S.Location, FMath::ClosestPointOnSegment(S.Location, Zone, E)) > 15000.f + Half * 0.5f; }
 		bOk &= FVector::Dist(S.Location, FMath::ClosestPointOnSegment(S.Location, DLoc, DLoc + Bow * 500000.f)) > 40000.f;	// T4: the escape corridor
+		bOk &= !Fd->IsInDockingCone(S.Location, S.Size * 0.5f);	// T4: the tractor cone and near-field capture
 		if (!bOk) { ++Bad; if (First.IsEmpty()) { First = FString::Printf(TEXT("%s size %.0f m"), *S.Location.ToCompactString(), S.Size / 100.f); } }
 	}
 	AddInfo(FString::Printf(TEXT("%d set pieces placed"), Fd->GetStructures().Num()));
 	TestTrue(TEXT("set pieces placed in the regions"), Fd->GetStructures().Num() >= 20);
+	auto CountNear = [Fd](int32 Region, float Radius, float MinSize)
+	{
+		const FVector* C = Fd->RegionCentres.Find(Region);
+		int32 N = 0;
+		for (const FTDSpaceFieldPiece& S : Fd->GetStructures()) { N += C && S.Size >= MinSize && FVector::Dist(S.Location, *C) < Radius ? 1 : 0; }
+		return N;
+	};
+	const int32 Shards = CountNear(6, 200000.f, 20000.f), Hulls = CountNear(4, 120000.f, 10000.f);
+	AddInfo(FString::Printf(TEXT("Shattered Moons shards %d, Quiet Graveyard hulls %d"), Shards, Hulls));
+	TestTrue(TEXT("the Shattered Moons line the Dominion route (10+ shards)"), Shards >= 10);
+	TestTrue(TEXT("the Quiet Graveyard has its hulls (4+)"), Hulls >= 4);
 	TestEqual(*FString::Printf(TEXT("no set piece in a route, the Dominion sphere or the escape corridor (first: %s)"), *First), Bad, 0);
 	return true;
 }
