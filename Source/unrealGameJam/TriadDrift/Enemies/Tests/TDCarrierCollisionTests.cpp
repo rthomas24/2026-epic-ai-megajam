@@ -2,6 +2,7 @@
 // Run: .\Tools\td-test.ps1 -Filter TriadDrift.Enemies.Carrier
 
 #include "Misc/AutomationTest.h"
+#include "Components/SphereComponent.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -71,9 +72,24 @@ bool FTDCarrierRealShot::RunTest(const FString& Parameters)
 	if (!TestEqual(TEXT("3 bays"), Bays.Num(), 3)) { return false; }
 	ATDCarrierBay* Bay = Bays[0];
 
-	const FVector Out = (Bay->GetActorLocation() - C->GetActorLocation()).GetSafeNormal();
-	TestTrue(TEXT("bay mounted outside the hull sphere"), FVector::Dist(Bay->GetActorLocation(), C->GetActorLocation()) > C->GetSpec().Radius + Bay->GetHalfExtent());
-	TestTrue(TEXT("bay faces outward (no double rotation)"), FVector::DotProduct(Bay->GetActorForwardVector(), Out) > 0.95f);
+	// Sphere-mounted parts sit outside the blocking sphere, facing radially out. Socket-mounted parts (an art hull with
+	// Bay_N / Turret_N) sit on the hull where the art says, facing the socket's +X: there "outside" means the part's
+	// line of fire is clear of the hull's own collision.
+	const bool bSockets = C->HasSocketMountedParts();
+	const FVector Radial = (Bay->GetActorLocation() - C->GetActorLocation()).GetSafeNormal();
+	const FVector Out = bSockets ? Bay->GetActorForwardVector() : Radial;
+	if (bSockets)
+	{
+		FHitResult Block;
+		TestFalse(TEXT("bay on the hull's surface, its line of fire clear of the hull"),
+			C->GetHullMesh()->LineTraceComponent(Block, Bay->GetActorLocation() + Out * 6000.f, Bay->GetActorLocation(), FCollisionQueryParams(SCENE_QUERY_STAT(TDTestBayClear), false)));
+		TestTrue(TEXT("bay faces away from the hull centre"), FVector::DotProduct(Bay->GetActorForwardVector(), Radial) > 0.f);
+	}
+	else
+	{
+		TestTrue(TEXT("bay mounted outside the hull sphere"), FVector::Dist(Bay->GetActorLocation(), C->GetActorLocation()) > C->GetSpec().Radius + Bay->GetHalfExtent());
+		TestTrue(TEXT("bay faces outward (no double rotation)"), FVector::DotProduct(Bay->GetActorForwardVector(), Out) > 0.95f);
+	}
 
 	// Two real 200-damage bolts fired from outside straight at the bay.
 	TDCarrierTest_FireAt(W, Bay->GetActorLocation() + Out * 6000.f, Bay, 200.f);
@@ -87,7 +103,7 @@ bool FTDCarrierRealShot::RunTest(const FString& Parameters)
 
 	// Turrets are reachable too.
 	ATDEnemyTurret* T = C->GetTurrets()[0];
-	const FVector TOut = (T->GetActorLocation() - C->GetActorLocation()).GetSafeNormal();
+	const FVector TOut = bSockets ? T->GetActorForwardVector() : (T->GetActorLocation() - C->GetActorLocation()).GetSafeNormal();
 	TDCarrierTest_FireAt(W, T->GetActorLocation() + TOut * 5000.f, T, 500.f);
 	W.Advance(0.5f);
 	TestFalse(TEXT("real shot destroyed a point-defense turret"), T->IsAlive());
@@ -134,7 +150,18 @@ bool FTDCarrierMoves::RunTest(const FString& Parameters)
 	const float End = FVector::Dist(C->GetActorLocation(), Target->GetActorLocation());
 	TestTrue(*FString::Printf(TEXT("carrier closes distance (%.0f -> %.0f)"), Start, End), End < Start - 5000.f);
 	TestEqual(TEXT("parts came along"), C->GetBays().Num(), 3);
-	TestTrue(TEXT("bays still outside the hull after moving"), FVector::Dist(C->GetBays()[0]->GetActorLocation(), C->GetActorLocation()) > C->GetSpec().Radius);
+	if (C->HasSocketMountedParts())
+	{
+		// On the hull: a bay rides its socket (same offset from the hull after the move) and its line of fire stays clear.
+		const ATDCarrierBay* Bay = C->GetBays()[0];
+		FHitResult Block;
+		TestFalse(TEXT("bays still on the hull's surface after moving"),
+			C->GetHullMesh()->LineTraceComponent(Block, Bay->GetActorLocation() + Bay->GetActorForwardVector() * 6000.f, Bay->GetActorLocation(), FCollisionQueryParams(SCENE_QUERY_STAT(TDTestBayClear), false)));
+	}
+	else
+	{
+		TestTrue(TEXT("bays still outside the hull after moving"), FVector::Dist(C->GetBays()[0]->GetActorLocation(), C->GetActorLocation()) > C->GetSpec().Radius);
+	}
 	return true;
 }
 

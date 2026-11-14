@@ -60,10 +60,29 @@ WHITE4 = (1.0, 1.0, 1.0, 1.0)
 # ============================================================================================= story
 # Slot: UTDDominionVisuals.ShieldIdle (looping, attached at the Dominion's centre). Authored as a 1 km radius shell at
 # Scale 1: set the cue's VFXScale to (field radius in km). Cheap: two sphere meshes, one sprite, about 14 arc sprites.
+# Round 8: the shell, the inner shell and the halo fade out when the camera is INSIDE the field (seen in play: from inside
+# the field overlaid the whole sky with violet marbling). OUTSIDE = 0 well inside, 1 from the shell outwards; the cue's
+# VFXScale scales the radius (Engine.Owner.Scale) and Engine.Owner.LODDistance is the camera's distance to the centre.
+OUTSIDE = 'saturate((Engine.Owner.LODDistance - 0.85*100000.0*User.Scale*Engine.Owner.Scale.x)/(0.15*100000.0*User.Scale*Engine.Owner.Scale.x))'
+
+
+def alpha_by(e, expr):
+    """Scale a persistent emitter's particle alpha every frame by expr (keeps an existing flicker on Scale RGB)."""
+    if not any(a[1].endswith('ScaleColor') for a in e['add']):   # the flickering halo already has one (Scale RGB)
+        e['add'].append((PU, 'Update/Color/ScaleColor'))
+        e['set'].append((PU, 'ScaleColor', 'ScaleRGB', False))
+    e['set'] = [x for x in e['set'] if x[2] != 'ScaleA'] + [(PU, 'ScaleColor', 'ScaleA', True), (PU, 'ScaleColor', 'Scale Alpha', X(expr))]
+    return e
+
+
+def outside_only(e):
+    return alpha_by(e, OUTSIDE)
+
+
 S2('NS_TD_Dominion_Field', U(FIELD), [
-    shell('Shell', 100000, 0.45, pulse='float3(1,1,1)*(1.0 + 0.012*sin(Engine.Time*1.7))'),
-    shell('Inner', 97000, 0.15, pulse='float3(1,1,1)*(1.0 + 0.015*sin(Engine.Time*1.1 + 2.0))'),
-    single('Halo', 'M_TD_VFX_Glow', 330000, 0.10, 3.1),
+    outside_only(shell('Shell', 100000, 0.45, pulse='float3(1,1,1)*(1.0 + 0.012*sin(Engine.Time*1.7))')),
+    outside_only(shell('Inner', 97000, 0.15, pulse='float3(1,1,1)*(1.0 + 0.015*sin(Engine.Time*1.1 + 2.0))')),
+    outside_only(single('Halo', 'M_TD_VFX_Glow', 330000, 0.10, 3.1)),
     arcs('Arcs', 26.0, (20000, 42000), 100000, life=(0.25, 0.6), k=0.9)])
 # Slot: UTDDominionVisuals.ShieldCollapse (one shot at the centre when the last generator dies). 1 km radius at Scale 1.
 S2('NS_TD_Dominion_FieldCollapse', U(FIELD), [
@@ -126,13 +145,19 @@ S2('NS_TD_ShieldDome', U(BASTION), [
     shed('Motes', 'M_TD_VFX_Glow', 40.0, (0.6, 1.4), (12, 30), (0, 120), k=1.0, radius=3000.0, drag=0.5, curl=400.0, local=True, power=1.5, fade_in=5.0)])
 # Slot: UTDAbilityFX.Loop of DA_Ability_Cloak_FX (looping, attached; the ship itself is faded by code). 6 m shimmer.
 S2('NS_TD_Cloak_Shimmer', U((0.55, 0.85, 1.0, 1.0)), [
-    shell('Shimmer', 600, 0.16, pulse='float3(1.25, 1.0, 0.45)*(1.0 + 0.03*sin(Engine.Time*5.0))'),
+    shell('Shimmer', 600, 0.035, pulse='float3(1.25, 1.0, 0.45)*(1.0 + 0.03*sin(Engine.Time*5.0))'),   # 0.16 and 0.09 read as a frosted grey saucer in play
     shed('Motes', 'M_TD_VFX_Glow', 26.0, (0.4, 0.9), (5, 12), (0, 160), k=0.8, radius=420.0, drag=1.0, curl=500.0, local=True, power=1.5, fade_in=5.0)])
 # Slot: UTDAbilityFX.Loop of DA_Ability_GravityWell_FX (looping, at the well). Authored for a 40 m pull radius.
+# Round 8, seen in play: the Bastion drops the well about 9 m away, so from the chase camera (26 m from it) the 70 m swirl
+# sprites covered the whole screen in violet. The swirls and the core now fade as the camera comes inside 50 m.
+# Second look: at 0.42 alpha the 70 m sprites still filled the view, so they are also capped to about 1.1x the camera
+# distance (an angle, not a size) and fade to 0.1 inside 30 m.
+WELL_NEAR = 'saturate((Engine.Owner.LODDistance - 3000.0*User.Scale)/(3000.0*User.Scale))*0.9 + 0.1'
+WCAP = 'min(1.0, 1.1*Engine.Owner.LODDistance/(%s*User.Scale))'
 S2('NS_TD_GravityWell', U((0.60, 0.30, 1.0, 1.0)), [
-    looping(single('Swirl', 'M_TD_VFX_Swirl', 7000, 1.1, None), 2.4),
-    looping(single('SwirlB', 'M_TD_VFX_Swirl', 4200, 0.9, None), 1.5),
-    single('Core', 'M_TD_VFX_Glow', 900, 1.3, 23.1),
+    alpha_by(looping(single('Swirl', 'M_TD_VFX_Swirl', '(7000*%s)' % (WCAP % 7000), 1.1, None), 2.4), WELL_NEAR),
+    alpha_by(looping(single('SwirlB', 'M_TD_VFX_Swirl', '(4200*%s)' % (WCAP % 4200), 0.9, None), 1.5), WELL_NEAR),
+    alpha_by(single('Core', 'M_TD_VFX_Glow', 900, 1.3, 23.1), WELL_NEAR),
     shed('Infall', 'M_TD_VFX_Spark', 120.0, (0.5, 0.9), (8, 16), (-5200, -3000), k=1.4, radius=4000.0, drag=0.0, local=True, stretch=16, power=0.6, fade_in=4.0),
     arcs('Arcs', 8.0, (500, 1100), 500, life=(0.1, 0.25), k=1.2)])
 # Slot: UTDTravelFX.HyperdriveTunnel (looping, attached to the ship, +X forward).
@@ -160,13 +185,21 @@ S2('NS_TD_Blade_PerfectDeflect', U((0.85, 0.95, 1.0, 1.0)), [
     shed('Sparks', 'M_TD_VFX_Spark', 0, (0.18, 0.5), (1.5, 3.2), (400, 2200), k=1.9, radius=2.0, drag=2.6, stretch=14, cone=((1.0, 0.0, 0.0), 70.0), burst=46, dur=0.6),
     light('Light', 600, 0.2, k=4.0, rgb=(0.6, 0.85, 1.0))])
 # Slot: UTDBladeFX.AirSlam. Local XY plane, pivot at the ground contact, +Z up, 6 m across.
+# Round 8 (Nicholas, issue #31): "keep the effect as is, just increase transparency by 25%": the rings', shards' and
+# dust's particle alpha x 0.75 (every VFX material multiplies by it); nothing else changed.
+def opacity(e, f):
+    e['set'] = [x if not (x[1] == INIT and x[2] == 'Color' and isinstance(x[3], X)) else (x[0], x[1], x[2], X('(%s)*float4(1.0, 1.0, 1.0, %s)' % (x[3].hlsl, f)))
+                for x in e['set']]
+    return e
+
+
 S2('NS_TD_Blade_AirSlam', U(BLADE), [
-    flat_ring('Ring', 600, 0.38, 1.4),
-    flat_ring('Ring2', 460, 0.55, 0.6, mat='M_TD_VFX_Ring', growth='0.15 + pow(Particles.NormalizedAge, 0.7)*0.85'),
+    opacity(flat_ring('Ring', 600, 0.38, 1.4), 0.75),
+    opacity(flat_ring('Ring2', 460, 0.55, 0.6, mat='M_TD_VFX_Ring', growth='0.15 + pow(Particles.NormalizedAge, 0.7)*0.85'), 0.75),
     flash('Flash', 'M_TD_VFX_Glow', 260, 0.12, 0.8),
-    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.2, 0.55), (1.6, 3.4), (350, 1300), k=1.7, radius=30.0, drag=2.4, stretch=12, cone=((0.0, 0.0, 1.0), 82.0), burst=40, dur=0.7),
-    spin(shed('Dust', 'M_TD_VFX_Smoke', 0, (0.6, 1.1), (60, 110), (200, 520), radius=60.0, drag=2.6, rgb=(0.45, 0.50, 0.55), alpha=0.5, cone=((0.0, 0.0, 1.0), 88.0),
-              burst=16, dur=1.2, power=0.9, growth='0.6 + Particles.NormalizedAge*1.4', sort=True))])
+    opacity(shed('Sparks', 'M_TD_VFX_Spark', 0, (0.2, 0.55), (1.6, 3.4), (350, 1300), k=1.7, radius=30.0, drag=2.4, stretch=12, cone=((0.0, 0.0, 1.0), 82.0), burst=40, dur=0.7), 0.75),
+    opacity(spin(shed('Dust', 'M_TD_VFX_Smoke', 0, (0.6, 1.1), (60, 110), (200, 520), radius=60.0, drag=2.6, rgb=(0.45, 0.50, 0.55), alpha=0.5, cone=((0.0, 0.0, 1.0), 88.0),
+                      burst=16, dur=1.2, power=0.9, growth='0.6 + Particles.NormalizedAge*1.4', sort=True)), 0.75)])
 # Slots: the crew blaster's UTDWeaponFX.Tracer and ImpactHull / ImpactWorld (on-foot scale).
 S2('NS_TD_Crew_Bolt', U(ENEMY), tracer(70, 9, sheath=3.2, rib_life=0.06, spark_rate=14.0, flick=47.1, hot=0.8, needle_core=False))
 S2('NS_TD_Crew_BoltImpact', U(ENEMY), [
@@ -365,26 +398,235 @@ def entry_sheath():   # replaces the round 6 version: the same fire, larger and 
 
 S2('NS_TD_Entry_BowShock', U(ENTRY, 1.0, Intensity=1.0), entry_bow())
 S2('NS_TD_Entry_PlasmaSheath', U(ENTRY, 1.0, Intensity=1.0), entry_sheath())
-S2('NS_TD_Entry', U(ENTRY, 1.0, Intensity=1.0), entry_cone()[:1] + entry_cone()[2:] + entry_bow() + entry_sheath() + entry_streaks()[:2] + entry_debris())
+
+
+# ---- round 8: the entry for T1's Director's Cut shot (Lead, Nov 13). A director camera about 25 m ahead of the ship, 18 m
+# to the side and 6 m below, looking back at it in three-quarter front profile, the planet's dark limb behind; then a cut
+# to the chase camera inside the white cover. From there the round 7 entry buried the ship: the flame cap (5 m long,
+# 3.4 m wide round the nose) and the 19 m halo covered the hull from every side. Now:
+#   - the bow shock reads side-on as one clean standing arc off the nose (the second, squashed layer is dimmer);
+#   - the hull stays visible and is LIT by the burn: an orange point light over the back, a white-blue one at the shock;
+#     no fire is born on the hull's sides (only a small hot cap ahead of the nose);
+#   - plasma leaves the belly, the tail and the wing tips in long streamers (world-space ribbons, 2 s = ~70 m of wake);
+#   - embers and debris cross the whole frame (born in a wide volume ahead of the ship, not only round it).
+def plight(name, radius, rgb, k, off=None):
+    """A persistent point light (particle light renderer), faded with the entry strength."""
+    e = ramped(single(name, 'M_TD_VFX_Glow', 1, 1.0, None, offset=off))
+    e['rclass'] = '/Script/Niagara.NiagaraLightRendererProperties'
+    e['rend'] = {'RadiusScale': radius / 100.0, 'bAlphaScalesBrightness': True, 'bAffectsTranslucency': False}
+    e.pop('mat', None)
+    return tint(e, rgb, k)
+
+
+def dc_bow():
+    grow_ = 'float3(0.80 + 0.20*%s, (0.55 + 0.45*%s)*%s, (0.55 + 0.45*%s)*%s)*%s'
+    wake = []
+    for nm, y, z, w in (('Wake', 0, 0, 90), ('WakeL', -330, 0, 52), ('WakeR', 330, 0, 52), ('WakeU', 0, -110, 70)):
+        e = trail(nm, w, 2.0, 1.0, rate=80.0, taper=0.45, power=1.1)
+        e['set'] = [x for x in e['set'] if x[2] != 'Ribbon Width'] + [(PS, INIT, 'Ribbon Width', X('%s*%s*%s' % (w, SCL, RAMP)))]
+        wake.append(offset(e, -150 if y == 0 and z == 0 else -40, y, z))
+    return [ramped(mesh_single('Bow', 'SM_TD_VFX_BowArc', 'M_TD_VFX_BowArc', '1.0, 1.0, 1.0', 1.1, None,
+                               live_scale=grow_ % (RAMP, RAMP, '1.0', RAMP, '1.0', EFLK % 53.1))),
+            ramped(mesh_single('Bow2', 'SM_TD_VFX_BowArc', 'M_TD_VFX_BowArc', '1.12, 1.0, 1.0', 0.32, None,
+                               live_scale=grow_ % (RAMP, RAMP, '1.30', RAMP, '0.62', EFLK % 87.7))),
+            tint(ramped(single('Shock', 'M_TD_VFX_Glow', 420, 1.0, 97.3, offset=(430, 0, 0))), (0.70, 0.88, 1.0), 1.2)] + wake
+
+
+def dc_sheath():
+    grow_ = 'float3(0.75 + 0.25*%s, 0.80 + 0.20*%s, 0.80 + 0.20*%s)*%s'
+    return [ramped(mesh_single('Cap', 'SM_TD_VFX_Flame', 'M_TD_VFX_Sheath', '2.4, 1.5, 1.5', 1.2, None, offset=(170, 0, 0),
+                               live_scale=grow_ % (RAMP, RAMP, RAMP, EFLK % 87.7))),
+            ramped(single('Nose', 'M_TD_VFX_Glow', 200, 0.8, 71.3, offset=(330, 0, 0))),
+            plight('HullLight', 1400, (1.0, 0.45, 0.16), 9.0, off=(-60, 0, 260)),
+            plight('ShockLight', 900, (0.65, 0.85, 1.0), 7.0, off=(520, 0, 0)),
+            # fire only behind the tail, under the belly and off the wing tips, streaming away
+            offset(spin(shed('Flames', 'M_TD_VFX_Fireball', 0, (0.45, 0.90), (170, 320), (2400, 5400), radius=140.0, drag=0.5, curl=2000.0, local=True, rgb=(1.0, 0.60, 0.34),
+                             cone=((-1.0, 0.0, 0.0), 9.0), growth='0.6 + Particles.NormalizedAge*1.9', rate_expr='110.0*' + RAMP)), -330),
+            offset(spin(shed('Belly', 'M_TD_VFX_Fireball', 0, (0.35, 0.70), (110, 210), (2400, 5000), radius=120.0, drag=0.5, curl=1600.0, local=True, rgb=(1.0, 0.60, 0.34),
+                             cone=((-1.0, 0.0, 0.0), 6.0), growth='0.6 + Particles.NormalizedAge*1.6', rate_expr='70.0*' + RAMP)), -60, 0, -150),
+            offset(spin(shed('TipL', 'M_TD_VFX_Fireball', 0, (0.30, 0.60), (70, 150), (2400, 4800), radius=60.0, drag=0.5, curl=1400.0, local=True, rgb=(1.0, 0.60, 0.34),
+                             cone=((-1.0, 0.0, 0.0), 5.0), growth='0.6 + Particles.NormalizedAge*1.7', rate_expr='45.0*' + RAMP)), -120, -340, 0),
+            offset(spin(shed('TipR', 'M_TD_VFX_Fireball', 0, (0.30, 0.60), (70, 150), (2400, 4800), radius=60.0, drag=0.5, curl=1400.0, local=True, rgb=(1.0, 0.60, 0.34),
+                             cone=((-1.0, 0.0, 0.0), 5.0), growth='0.6 + Particles.NormalizedAge*1.7', rate_expr='45.0*' + RAMP)), -120, 340, 0)]
+
+
+def dc_debris():
+    near = entry_debris()
+    # across the frame: embers and ash born in a wide volume ahead of the ship, streaking back past it (and past the
+    # director camera 25 m ahead)
+    return near + [
+        offset(shed('FarEmbers', 'M_TD_VFX_Spark', 0, (0.30, 0.55), (8, 16), (9000, 16000), k=1.6, radius=2600.0, drag=0.0, local=True, stretch=14,
+                    cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='90.0*' + RAMP, fade_in=6.0), 2600),
+        offset(shed('FarAsh', 'M_TD_VFX_Smoke', 0, (0.30, 0.55), (14, 30), (8000, 14000), radius=2600.0, drag=0.0, local=True, stretch=6, rgb=(0.05, 0.04, 0.04), alpha=0.85,
+                    cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='50.0*' + RAMP, power=0.6, fade_in=6.0), 2600)]
+
+
+# Trimmed to 18 emitters (Lead: each must earn its place on screen): no contact flash (a 14 m glow whites out the director
+# shot), no second bow layer, no belly ribbon (the belly fire carries it), no nose glow (the cap and the shock do),
+# no hull sparks or ice flecks, one ember emitter.
+def _pick(es, drop):
+    return [e for e in es if e['name'] not in drop]
+
+
+ENTRY_DROP = ('Flash', 'Bow2', 'WakeU', 'Nose', 'HullSparks', 'Ice', 'Embers')
+S2('NS_TD_Entry', U(ENTRY, 1.0, Intensity=1.0), _pick(entry_cone()[:1] + dc_bow() + dc_sheath() + entry_streaks()[:2] + dc_debris(), ENTRY_DROP))
 _RAMP_IN = RAMP
 RAMP = '(User.Intensity*saturate(1.0 - Emitter.Age/3.0))'
-S2('NS_TD_Exit', U(ENTRY, 1.0, Intensity=1.0), entry_bow() + entry_sheath()[1:] + entry_streaks()[:2] + entry_debris())
+# Exit: the same burn, thinning out over 3 s on its own or driven down by User.Intensity (T1: AtmosphericExit).
+S2('NS_TD_Exit', U(ENTRY, 1.0, Intensity=1.0), _pick(dc_bow() + dc_sheath()[1:] + entry_streaks()[:2] + dc_debris(), ENTRY_DROP))
 RAMP = _RAMP_IN
 
 # ============================================================================================= Rift's dorsal ring (round 7)
 # Slot wanted: a looped attached cue on UTDShipVisuals at the socket "Portal" (ring centre, +X along the ring's axis),
 # with the floats User.Power (0.5 idle, 1 while the portal blaster is open) and User.Radius (cm, the ring's inner radius).
 RPOW = '(0.35 + 0.65*User.Power)'
-S2('NS_TD_Rift_RingIdle', U(RIFT, 1.0, Power=0.5, Radius=60.0), [
-    looping(mesh_single('Swirl', 'SM_TD_VFX_Disc', 'M_TD_VFX_Swirl', '1.0, User.Radius/50.0, User.Radius/50.0', '(0.30 + 0.60*User.Power)', None), 1.6),   # brighter washed the magenta out to white
-    tint(looping(mesh_single('SwirlV', 'SM_TD_VFX_Disc', 'M_TD_VFX_Swirl', '1.0, User.Radius/72.0, User.Radius/72.0', 1.0, None), 1.1), (0.50, 0.20, 1.0), 0.6),
-    single('Core', 'M_TD_VFX_Glow', '(User.Radius*(0.55 + 0.75*User.Power)*(0.90 + 0.10*sin(Engine.Time*4.0)))', 1.1, 31.7),
-    shed('Motes', 'M_TD_VFX_Glow', 0, (0.45, 0.85), (1.6, 4.2), ('-1.7*User.Radius', '-0.9*User.Radius'), k=1.3, radius='User.Radius', drag=0.0, curl=60.0, local=True,
-         rate_expr='(18.0 + 70.0*User.Power)', power=0.7, fade_in=5.0),
-    shed('Streaks', 'M_TD_VFX_Spark', 0, (0.30, 0.55), (0.8, 1.6), ('-2.6*User.Radius', '-1.6*User.Radius'), k=1.5, radius='(User.Radius*1.05)', drag=0.0, local=True, stretch=14,
-         rate_expr='(10.0 + 50.0*User.Power)', power=0.6, fade_in=5.0, rgb=(0.65, 0.35, 1.0)),
-    spin(shed('Arcs', 'M_TD_VFX_FlipArc', 0, (0.08, 0.2), ('User.Radius*0.9', 'User.Radius*1.5'), (0, 0), k=1.3, radius='(User.Radius*0.3)', drag=0.0, power=0.6, local=True,
-              rate_expr='(2.0 + 12.0*User.Power)'))])
+def in_plane(e):
+    """Spawn on a ring in the plane across the system's +X (the ring's own plane) instead of on a sphere."""
+    e['set'] = [(PS, 'ShapeLocation', 'Shape Primitive', E('Ring'))] + [x for x in e['set'] if x[2] != 'Sphere Radius'] + [(PS, 'ShapeLocation', 'Ring Radius', X('User.Radius*User.Scale'))]
+    e['verbose_dump'] = True
+    return e
+
+
+# Round 8 (Lead, after Ryan saw the Rift up close in the Dominion hangar: the fill read as a static, cloudy purple texture;
+# and the machine is over its video memory budget): ONE emitter, one particle. A disc mesh with M_TD_VFX_PortalVortex
+# (the animated vortex: swirl, glow falling off into a dark centre, white-hot rim, sparks spiralling in, all in the
+# shader), sized to User.Radius (cm, default 44: the new portal disc), 3 cm behind the socket so it sits over the
+# ship's own fill as seen from the chase camera. User.Power (0.5 idle, 1 with the blaster open) drives its strength
+# through the particle alpha every frame. The round 7 version (two swirls, core, motes, streaks, arcs) was hidden behind
+# the hull's opaque disc in play.
+# The same material works straight on the ship's disc (MI_TD_VFX_RiftPortalVortex, PortalPower from T1's
+# SetShipMaterialScalar): then it shows from both sides and costs no particles at all.
+_ring = mesh_single('Vortex', 'SM_TD_VFX_Disc', 'M_TD_VFX_PortalVortex', '1.0, User.Radius/50.0, User.Radius/50.0', 1.0, None, offset=(-3, 0, 0))
+_ring['add'].append((PU, 'Update/Color/ScaleColor'))
+_ring['set'] += [(PU, 'ScaleColor', 'ScaleRGB', False), (PU, 'ScaleColor', 'ScaleA', True), (PU, 'ScaleColor', 'Scale Alpha', X('(0.35 + 0.65*User.Power)'))]
+# A system of persistent emitters only never activates (round 5), so a handful of sparks falls into the ring too
+# (4 to 10 a second, alive 0.4 s: at most four on screen).
+_glints = offset(shed('Glints', 'M_TD_VFX_Spark', 0, (0.30, 0.45), (0.8, 1.4), ('-2.4*User.Radius', '-1.8*User.Radius'), k=1.4, radius='(User.Radius*0.95)', drag=0.0,
+                      local=True, stretch=10, rate_expr='(4.0 + 6.0*User.Power)', power=0.8, fade_in=5.0), -4)
+S2('NS_TD_Rift_RingIdle', U(RIFT, 1.0, Power=0.5, Radius=44.0), [_ring, _glints])
+
+# ============================================================================================= pickups (round 8, for T2)
+# Four looping idles and a collect burst each, Z up, sized to T2's 3.4 m pickup (ATDPickup::Size). Colours are T2's
+# (ATDPickup::ColorOf), clear of the squad's magenta / cyan / amber and the enemy's red / orange; each has its own
+# silhouette so it reads without colour:
+#   Hull (green)  a crisp plus           Shield (white-blue)  a hexagon ripple in a rim, bright core
+#   Power (violet) an upright crystal in a swirl              Overcharge (gold-white)  a spiked star throwing sparks
+# Round 8b, seen in play (PIE, Waves1to2): at 1 m core sizes the idles were dots at 45 m and gone at 200 m. Every sprite
+# now also grows with the distance to the camera (PKD: 1x inside 40 m, up to 4x at 160 m and beyond), like the tracers,
+# so a pickup stays a readable beacon at 200 m and is its real size when the player is about to take it.
+# Slots wanted (T2): a looped cue attached to the pickup actor per type, and a one-shot cue at the pickup on collect.
+PK_HULL = (0.25, 1.0, 0.35, 1.0)
+PK_SHIELD = (0.42, 0.70, 1.0, 1.0)
+PK_POWER = (0.55, 0.22, 1.0, 1.0)
+PK_OVER = (1.0, 0.92, 0.62, 1.0)
+PULSE = '(0.85 + 0.15*sin(Engine.Time*%s))'
+PKD = 'clamp(Engine.Owner.LODDistance/4000.0, 1.0, 4.0)'
+_SCL_STD = SCL
+SCL = '(User.Scale*Engine.Owner.Scale.x*%s)' % PKD   # the idles only; restored below
+
+
+def upright(e):
+    """Turn a persistent mesh emitter's +X to the system's +Z (mesh renderer Velocity facing, a token velocity straight up)."""
+    e['add'] = [(PS, 'Spawn/Velocity/AddVelocity')] + e['add']
+    e['set'] += [(PS, 'AddVelocity', 'Velocity', (0.0, 0.0, 2.0))]
+    e['rend']['FacingMode'] = 'Velocity'
+    return e
+
+
+def pk_common(halo=420):
+    back = single('Back', 'M_TD_VFX_Backdrop', 380, 1.0, None)   # seen in play: over the nebula green / blue / violet added up to white
+    back['rend']['SortOrderHint'] = -10
+    return [back, single('Halo', 'M_TD_VFX_Glow', '(%s*%s)' % (halo, PULSE % 2.6), 0.45, None),
+            shed('Motes', 'M_TD_VFX_Glow', 14.0, (0.8, 1.6), (4.0, 9.0), (10, 60), k=1.2, radius=120.0, drag=0.5, curl=120.0, local=True, power=1.2, fade_in=4.0)]
+
+
+# Hull repair: a green plus (camera-facing, so it reads from every side), a hot centre, sparks rising.
+S2('NS_TD_Pickup_Hull', U(PK_HULL), pk_common() + [
+    single('Plus', 'M_TD_VFX_Plus', '(300*%s)' % (PULSE % 3.1), 1.3, None),
+    single('Core', 'M_TD_VFX_Glow', 70, 1.2, 23.7),
+    shed('Rise', 'M_TD_VFX_Spark', 10.0, (0.6, 1.1), (3.0, 6.0), (60, 150), k=1.4, radius=90.0, drag=0.0, local=True, stretch=7, cone=((0.0, 0.0, 1.0), 6.0), power=1.0, fade_in=5.0)])
+# Shield cell: a hexagon ripple that keeps spreading inside a rim, a bright core.
+S2('NS_TD_Pickup_Shield', U(PK_SHIELD), pk_common(400) + [
+    looping(single('Hex', 'M_TD_VFX_Hex', 270, 1.3, None), 1.3),
+    tint(single('Rim', 'M_TD_VFX_Ring', 320, 1.0, None), (0.20, 0.50, 1.0), 1.0),   # the ring material's white rim washed the first build white
+    tint(single('Core', 'M_TD_VFX_Glow', 110, 1.0, 19.3), (0.30, 0.60, 1.0), 1.1),
+    shed('Glints', 'M_TD_VFX_Glow', 10.0, (0.3, 0.6), (5.0, 11.0), (0, 10), k=1.4, radius=110.0, drag=0.0, local=True, power=1.0, fade_in=4.0)])   # first build (a sphere shell and a Shock rim) never activated
+# Power cell: an upright violet crystal (the bolt spindle stood on end) inside a turning swirl, small arcs.
+S2('NS_TD_Pickup_Power', U(PK_POWER), pk_common(400) + [
+    upright(mesh_single('Crystal', 'SM_TD_VFX_Bolt', 'M_TD_VFX_Bolt', '3.2, 1.2, 1.2', 3.0, 41.3)),
+    tint(looping(single('Swirl', 'M_TD_VFX_Swirl', 320, 1.0, None), 2.2), (0.45, 0.12, 1.0), 1.0),
+    single('Core', 'M_TD_VFX_Glow', 90, 1.0, 41.3),
+    arcs('Arcs', 6.0, (70, 140), 60, life=(0.08, 0.2), k=1.2)])
+# Overcharge: a spiked gold-white star that throws sparks outward all the time.
+S2('NS_TD_Pickup_Overcharge', U(PK_OVER), pk_common(440) + [
+    looping(single('Star', 'M_TD_VFX_Flare', '(470*%s)' % (PULSE % 6.3), 1.2, None), 0.5),   # 330 / 210 / 100 read as a dot at 200 m beside the others
+    looping(single('Star2', 'M_TD_VFX_Flare', 300, 1.4, None), 0.33),
+    single('Core', 'M_TD_VFX_Glow', 160, 1.5, 67.1),
+    shed('Sparks', 'M_TD_VFX_Spark', 34.0, (0.25, 0.5), (3.0, 6.5), (200, 520), k=1.6, radius=20.0, drag=1.0, local=True, stretch=11, power=1.0)])
+SCL = _SCL_STD
+
+
+def pk_collect(extra=()):
+    # Played attached to the collecting ship (T2), seen from the chase camera 17 m behind: in play the first build was a thin
+    # white ring round the ship with no colour. Now a coloured bloom and a coloured noise ring around the white shock ring.
+    return [flash('Flash', 'M_TD_VFX_Flare', 520, 0.10, 1.3, growth='0.5 + Particles.NormalizedAge'),
+            flash('Glow', 'M_TD_VFX_Glow', 950, 0.26, 0.95, growth='0.5 + Particles.NormalizedAge*0.8'),
+            flash('Ring', 'M_TD_VFX_Shock', 620, 0.32, 0.9, growth='0.10 + pow(Particles.NormalizedAge, 0.5)*0.90', power=1.3),
+            flash('ColorRing', 'M_TD_VFX_Ring', 900, 0.40, 1.6, growth='0.15 + pow(Particles.NormalizedAge, 0.6)*0.85', power=1.1),
+            shed('Sparks', 'M_TD_VFX_Spark', 0, (0.20, 0.50), (2.5, 5.5), (500, 2200), k=1.7, radius=20.0, drag=2.6, stretch=12, burst=30, dur=0.6),
+            shed('Motes', 'M_TD_VFX_Glow', 0, (0.5, 1.1), (4, 10), (80, 520), k=1.2, radius=40.0, drag=1.8, curl=500.0, burst=22, dur=1.2, power=1.6)] + list(extra)
+
+
+# Collect bursts (a one-shot at the pickup, short: flash, ring, sparks, the type's own shape thrown out).
+S2('NS_TD_Pickup_Hull_Collect', U(PK_HULL), pk_collect([
+    flash('Plus', 'M_TD_VFX_Plus', 420, 0.35, 1.5, growth='0.5 + Particles.NormalizedAge*0.9', power=1.0)]))
+S2('NS_TD_Pickup_Shield_Collect', U(PK_SHIELD), pk_collect([
+    flash('Hex', 'M_TD_VFX_Hex', 420, 0.35, 1.2, growth='0.35 + Particles.NormalizedAge*0.65', power=0.8),
+    shell_flash('Bubble', 60, 0.35, 'float3(1,1,1)*(1.0 + 2.2*pow(Particles.NormalizedAge, 0.6))', k=0.9, power=1.2)]))
+S2('NS_TD_Pickup_Power_Collect', U(PK_POWER), pk_collect([
+    arcs('Arcs', 0, (70, 150), 50, life=(0.1, 0.3), k=1.0, burst=10, dur=0.5, local=False),
+    spin(flash('Swirl', 'M_TD_VFX_Swirl', 460, 0.4, 1.0, growth='0.3 + Particles.NormalizedAge*0.7', power=0.8))]))
+S2('NS_TD_Pickup_Overcharge_Collect', U(PK_OVER), pk_collect([
+    flash('Star', 'M_TD_VFX_Flare', 620, 0.16, 1.5, growth='0.4 + Particles.NormalizedAge*0.8'),
+    shed('Burst', 'M_TD_VFX_Spark', 0, (0.25, 0.6), (3.0, 6.5), (1200, 3600), k=1.9, radius=10.0, drag=2.2, stretch=16, burst=40, dur=0.7)]))
+
+# ============================================================================================= asteroids (round 8, for T6 / T1)
+# Space rocks and junk are destructible (Ryan). Cheap and small: at most 4 emitters, bounded bursts, no loops. One-shots
+# at the rock's centre; +X does not matter (everything is radial). Sizes: S ~ 4 m, M ~ 9 m, L ~ 20 m rocks (User.Scale
+# 1 / 2.2 / 4.5); VFXScale scales on top. Slots: whatever T6 names them (a Break cue per size, a crystal-veined variant).
+ROCK = (0.55, 0.50, 0.46, 1.0)
+CRYSTAL = (0.45, 0.55, 1.0, 1.0)   # the belt's blue-violet crystals: clear of the squad's cyan and magenta
+
+
+def rock_break(n_chunks, n_dust, n_grit):
+    # seen in play: over the magenta nebula at 60 m the first dust (0.50 grey, 0.75 alpha) and the 0.12 s flash barely read
+    return [flash('Flash', 'M_TD_VFX_Glow', 750, 0.22, 1.0, growth='0.5 + Particles.NormalizedAge*0.8', power=1.4),
+            spin(shed('Dust', 'M_TD_VFX_FlipSmoke', 0, (1.0, 1.8), (300, 540), (150, 800), radius=120.0, drag=2.0, rgb=(0.66, 0.60, 0.54), alpha=0.92,
+                      burst=n_dust, dur=2.0, power=0.7, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.3', sort=True)),
+            chunks('Chunks', 'SM_TD_VFX_Shard_C', n_chunks, (0.8, 1.6), (0.35, 0.9), (500, 2000), drag=0.6, radius=90.0, dur=1.8, spin=(0.8, 3.0)),
+            shed('Grit', 'M_TD_VFX_Spark', 0, (0.25, 0.6), (6, 12), (1500, 4500), k=1.2, radius=60.0, drag=2.2, stretch=10, rgb=(1.0, 0.80, 0.55),
+                 burst=n_grit, dur=0.7, power=1.4)]
+
+
+S2('NS_TD_Asteroid_Break_S', U(ROCK, 1.0), rock_break(5, 3, 14))
+S2('NS_TD_Asteroid_Break_M', U(ROCK, 2.2), rock_break(7, 4, 18))
+S2('NS_TD_Asteroid_Break_L', U(ROCK, 4.5), rock_break(9, 6, 24))
+# Crystal-veined rock: the crystals shatter in light. A flare, glowing shards streaking out, slow glints, a few rock chunks.
+S2('NS_TD_Asteroid_Break_Crystal', U(CRYSTAL, 2.2), [
+    flash('Flash', 'M_TD_VFX_Flare', 900, 0.16, 1.4, growth='0.4 + Particles.NormalizedAge*0.9'),
+    shed('Shards', 'M_TD_VFX_Spark', 0, (0.35, 0.8), (10, 22), (1800, 5200), k=2.0, radius=80.0, drag=1.8, stretch=8, burst=26, dur=1.0, power=1.2),
+    shed('Glints', 'M_TD_VFX_Glow', 0, (0.9, 1.8), (14, 30), (200, 1200), k=1.6, radius=150.0, drag=1.2, curl=300.0, burst=20, dur=2.0, power=1.6),
+    chunks('Chunks', 'SM_TD_VFX_Shard_A', 6, (0.8, 1.5), (0.3, 0.8), (500, 1800), drag=0.6, radius=90.0, dur=1.7, spin=(0.8, 3.0))])
+# A ship scraping or hitting a rock (T1 fires it at the contact point, +X along the contact normal, with User.Strength 0..1):
+# a spray of sparks off the surface, grinding grit, a hot flash; everything grows with the strength.
+S2('NS_TD_Ship_ImpactScrape', U((1.0, 0.72, 0.42, 1.0), 1.0, Strength=0.5), [
+    flash('Flash', 'M_TD_VFX_Glow', '(160.0 + 520.0*User.Strength)', 0.10, 1.0, growth='0.6 + Particles.NormalizedAge*0.6', power=1.4),
+    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.2, 0.55), (4, 9), (1200, 4200), k=1.8, radius=20.0, drag=2.4, stretch=16, cone=((1.0, 0.0, 0.0), 70.0),
+         burst='8.0 + 46.0*User.Strength', dur=0.6, power=1.3),
+    spin(shed('Grit', 'M_TD_VFX_FlipSmoke', 0, (0.5, 1.0), (60, 140), (100, 500), radius=30.0, drag=2.5, rgb=(0.42, 0.38, 0.34), alpha=0.7, cone=((1.0, 0.0, 0.0), 60.0),
+              burst='1.0 + 4.0*User.Strength', dur=1.0, power=0.8, growth='0.6 + Particles.NormalizedAge*1.2', sort=True)),
+    shed('Embers', 'M_TD_VFX_Glow', 0, (0.3, 0.8), (5, 12), (300, 1500), k=1.4, radius=20.0, drag=1.5, cone=((1.0, 0.0, 0.0), 80.0),
+         burst='4.0 + 14.0*User.Strength', dur=0.8, power=1.6)])
 
 # Slots: UTDBladeFX.SwingLight / SwingHeavy. The code plays these ATTACHED TO THE CHARACTER ROOT (not the blade tip), so
 # a ribbon would trail the body: this is a self-contained crescent in front of the chest instead (camera-facing).
@@ -399,7 +641,14 @@ S2('NS_TD_Blade_SwingArc', U(BLADE), swing(230, 1.4))
 S2('NS_TD_Blade_SwingArc_Heavy', U(BLADE), swing(320, 1.9))
 
 fx2 = tdvfx.Builder(call_tool)
+CHUNK = globals().get('CHUNK')   # (start, end): build only those emitters of each selected system (see tdvfx.system)
 for _name, _user, _emitters in SYSTEMS2:
-    await fx2.system(_name, _emitters, user=_user)
+    _sys = await fx2.system(_name, _emitters, user=_user, chunk=CHUNK)
+    for _e in _emitters:
+        if _e.get('verbose_dump'):
+            try:
+                fx2.log.append(await fx2.dump(_sys, _e['name'], ['ShapeLocation']))
+            except Exception as _ex:
+                fx2.log.append('dump failed ' + str(_ex)[:200])
     await asyncio.sleep(0)
 fx2.report()

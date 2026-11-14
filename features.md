@@ -48,13 +48,130 @@ Story: [`storyline.md`](storyline.md). Gameplay dialogue: [`dialogs.md`](dialogs
 `docs/visual/STATUS.md` (presentation). Live ownership: `CLAIMS.md`.
 
 ### Contents
-[Nov 13 realignment](#nov-13-realignment-status-and-plan) · 0. [The game](#0-the-game) · 1. [The split](#1-the-split) · 2. [Folder & file ownership](#2-folder--file-ownership) ·
+[Complete-game checklist](#complete-game-checklist-nov-13-evening) · [Who is doing what next](#who-is-doing-what-next-from-claimsmd-nov-13-evening) · [Nov 13 realignment](#nov-13-realignment-status-and-plan) · 0. [The game](#0-the-game) · 1. [The split](#1-the-split) · 2. [Folder & file ownership](#2-folder--file-ownership) ·
 3. [Shared contracts](#3-shared-contracts) · 4. [Shared setup](#4-shared-setup-c-xx) ·
 5. [🟦 Ryan: Gameplay & Engineering](#5--ryan-gameplay--engineering) ·
 6. [🟩 Nick: Art, Visuals & Player Experience](#6--nick-art-visuals--player-experience) ·
 7. [Landing: full sequence](#7-landing-full-sequence-core) · 8. [Boarding: full sequence](#8-boarding-full-sequence-stretch) ·
 9. [Integration points](#9-integration-points) · 10. [Dependency order](#10-dependency-order-no-dates) ·
 11. [Bugs & requests](#11-bugs--requests-append-only)
+
+---
+
+## Complete-game checklist (Nov 13 evening)
+
+Written by Ryan's Lead's docs agent at Ryan's request: "when every item in features.md is ✅, the game is complete end
+to end; only overall polish is left". One row per beat of [`storyline.md`](storyline.md) in play order (reduced forms of
+§18, §22, §25 and the reconciliation of `fbc7240`, which win over older text), with the items that deliver it. State is
+the weakest state among the row's items, from `docs/eng/STATUS.md`, `CLAIMS.md` and the board; **no row is ✅ yet,
+because no item is**. Pure polish is in the [AAA polish list](#the-aaa-polish-list-both-days-in-priority-order) and its
+"final polish (after freeze)" group, not here.
+
+| Act | Beat (storyline.md) | Delivered by | State | What still stands between today and done |
+|---|---|---|---|---|
+| Front end | Boot to main menu: New Game, Continue, Settings, Quit; menu music | ENG-19, ART-09, ART-10 | 🟨 | Nick's styled menu on `main` (#71 handoff); a human pass with pad and mouse |
+| Front end | New Game: difficulty, first play forces the tutorial, a later New Game offers "Skip the tutorial" | ENG-41, ENG-45, ART-09 | 🟨 | T7's flag and offer; skip lands in Aftermath with the tutorial state applied |
+| Opening | Intro, 49 s (Nicholas kept 49 s, reconciliation 17:15), skippable, hands off to the tutorial | ENG-33, ART-11, ART-12, ART-19 | 🟢 | Re-shoot once with the final ships and effects; intro score and narration voice |
+| 1 First Contact | Tutorial battle phases 01-04 (evade, return fire, fight as Triad, heavy contact) over waves 1-2, in a destructible, solid field | ENG-40, ENG-13, ENG-14, ENG-36, ENG-42, ENG-48 | ⬜ | Phases as one mission, `TB_*` lines fired, three checkpoints, the gunship optional |
+| 1 First Contact | Withdrawal: Command orders it, pursuers stop at a boundary; crossing it ends the tutorial | ENG-40 | ⬜ | Boundary, pursuer stop, one completion event, tutorial music fade (T1, #24) |
+| 1 First Contact | *Aftermath* (`S2_*`), tactical lanes, navigation pulse, Dominion light row in rhythm | ENG-42, ENG-36, ART-18 | ⬜ | Fired on the withdrawal event; nothing fought between it and Verdance |
+| 1 to 2 | Jump to Verdance in one hyperdrive jump; convoys that ignore the squad; Dominion visible behind its field; asteroids and junk shootable and solid | ENG-15, ENG-39, ENG-18, ENG-48 | 🟨 | One-jump fix (T7 playtest: 11.4 km short); convoy line on proximity, not a hold |
+| 2 Verdance | Descent with no loading screen, arrival from the entry point; landing; step out | ENG-38, ENG-20, ART-13 | 🟨 | Stage 1 then stage 2 of ENG-38; atmosphere look per planet |
+| 2 Verdance | Short route: instruments on one buried line, transponder "verified / unknown" flicker, a patrol | ENG-25, ENG-39, ENG-36, ART-17, ART-18 | 🟨 | Dressed play zone; flicker on the HUD; walkable survey station from the kit (R-043) |
+| 2 Verdance | Recover the signal-analysis device → **Gravity Well**; reward screen | ENG-25, ENG-12, ART-09 | 🟨 | Pickup before Cinematic 03 (§25.1 order); Nick's reward screen |
+| 2 Verdance | Cinematic 03 *Beneath the Surface*, 40-60 s voice-over: monitor graphic, voices ("Maintain the sequence"), drone wakes blue, three pulses | ENG-42, ART-18, ART-11, ART-19 | ⬜ | Monitor graphic (Nick's #44 PNG or T2), drone prop with blue optic, the three-pulse sound |
+| 2 Verdance | Protect the data transfer, 60-90 s, three waves, Heavy disruption → **Cloak**; extraction with the device | ENG-25 | 🟨 | Reconcile with the built relay climb (contradiction 1 below) |
+| 2 Verdance | Take-off; Cinematic 04 as transmissions (`C4_*`); Verdance theme fades | ENG-42, ENG-38, ART-19 | ⬜ | Lines fired on take-off; theme wiring (N-045) |
+| Between | Waves 3-4 as the interception on the Cinder route (lines only); clue: an enemy pre-empts a manoeuvre; destructible field with special-asteroid boost drops | ENG-14, ENG-42, ENG-43, ENG-48 | 🟨 | Interception lines; the anticipation clue and its bark (storyline §6) |
+| 3 Cinder | Descent, short route past one patrol, survey station on the dig's rim | ENG-26, ENG-38, ART-17, ART-18 | 🟨 | Walkable station and dig cabin from the kit; fixed order terminal → excavation → anchor |
+| 3 Cinder | Cinematic 05 *The Pattern*, 40-50 s: the one Kato echo, "Origin Core", "temporal device" | ENG-42, ART-11 | ⬜ | Approved lines (§25.2) as one queued scene with Cinder overlay |
+| 3 Cinder | Secure the excavation: gate, areas, Warden (mercy tiers), crystal cache → **EMP Pulse** + crystals | ENG-26, ENG-23, ART-04, ART-08, ART-18 | 🟨 | Renames; cache prop (#53); Warden animation set; Warden capsule fix |
+| 3 Cinder | Disable the field anchor: bridges, three charges, run from the collapsing tower; HUD "approach prepared, passage pending" | ENG-26, ENG-36, ART-18 | 🟨 | Anchor tower (#52) and its collapse; pending marker |
+| 3 Cinder | Take-off; Cinematic 06 as transmissions (`C6_*`), objective "Break the Dominion guard" | ENG-42, ENG-18 | ⬜ | Six-plus-two lines; objective line on wave 5 |
+| 4 Assault | Wave 5; the approach field opens only when Cinder is done **and** wave 5 is cleared; debris and junk destructible and solid | ENG-14, ENG-18, ENG-48 | 🟨 | Check the rule really needs both; field-opening effect |
+| 4 Assault | Four generators 0/4, "shield" wording, two Unknown clue fragments, one friendly-status flicker; docking marker | ENG-18, ENG-36, ENG-42 | 🟨 | Generator count on the HUD; wording; flicker; Dominion hull r2 and generator meshes |
+| 4 Docking | Bay opens, tractor assist, wingmen hold outside, pressure off; Cinematic 07 as six lines | ENG-29, ENG-42, ART-16, ART-18 | 🟨 | `C7_*` lines; bay mouth (#54); docking shot |
+| 4 Interior | Hangar (access granted), deflect corridor, arena, Warden, consoles climbing from Unknown to the plain statement | ENG-30, ART-15, ART-17 | 🟨 | Kit rebuilt walkable (R-043); console order and speakers; arena consoles quiet in combat |
+| 4 Interior | **The reveal:** mandatory final record at the reactor threshold → Cinematic 08 (five `F_*` lines, full warning, the case, the decision), door sealed, skippable | ENG-30, ENG-42, ART-11, ART-19 | ⬜ | The gate (T5), the queue and skip (T3), the readout line; nothing fires `F_*` today |
+| 5 The Choice | Reactor fight: "Break the reactor conduits" 0/4, "Destroy the reactor heart", one source of pressure | ENG-30 | 🟨 | Renames away from "core"; `G8_*` lines; pressure in the room |
+| 5 The Choice | Escape run 90 s (2.5 s after the heart), debris, "time failing" in sound; reboard | ENG-31, ART-16, ART-19 | 🟨 | `G9_*` lines; alarm and hull sounds; escape music on the run's start |
+| 5 The Choice | Escape flight 60 s through debris to the radius; three "clear" reports; breakup; debris solid, impact damage by speed | ENG-31, ENG-44, ART-07, ENG-48 | 🟨 | Breakup effects at trailer quality; regroup lines |
+| Ending | Victory panel (takes per scene), stinger at 18 s "DATED DECADES AHEAD", signal lines, credits roll, back to menu | ENG-44, ART-09, ART-11, ART-19 | 🟨 | Caption fix; forced stinger on early exit; credits text and music |
+| Always | Death → "CUT!" → next take in every scene, never replaying a cutscene | C-03, ENG-19, ENG-46 | 🟢 | Retake checked in every scene of the new beats |
+| Always | Save and Continue at every act boundary, including interior and escape; no Continue after victory | ENG-19, ENG-46 | 🟢 | Continue from the interior and the escape played once |
+| Always | Fallback ending (`td.Finale.Boarding 0`) still finishable | ENG-47, ENG-18 | 🟢 | Kept green by a test until the finale mode is fixed |
+| Always | Barks per `dialogs.md`, subtitles, voices | ENG-43, ART-11 | 🟨 | Bark table from the file; ~53 new triggers; voice pickup |
+| Always | Sound for every action; music per act (menu, tutorial, combat rising, Verdance, Cinder, assault, interior, escape, victory, credits) | ENG-35, ART-10, ART-19 | 🟨 | Wiring the delivered tracks; Cinder and assault cues; ear approval |
+| Always | HUD in every state; Settings and accessibility | ENG-36, ENG-32, ENG-45, ART-09 | 🟨 | On-foot HUD in the new style; subtitles and shake options |
+| Always | Ships, fleet, Dominion, crew, props, effects, environment, animation at gameplay distance | ART-03, 04, 05, 06, 07, 08, 13, 17, 18, ENG-34, 37, 39 | 🟨 | Per item below |
+| Ship it | Packaged Shipping build under 1 GB, 60 fps at 1080p, played start to end | ENG-28, ENG-46 | 🟨 | Size trims (`docs/eng/BUILD-SIZE.md`); daily packaged playthrough |
+| Ship it | Independent review of every lane, human playthroughs, submission page, video, dev log, credits | ART-20, ART-21, ENG-46, ART-14 | ⬜ | Reviews by Nick's side; itch page; trailer re-cut |
+
+### Contradictions that need a human (Ryan or Nicholas)
+1. **Resolved (Ryan, Nov 13 evening): the transfer defence gives Cloak; the relay climb is dropped** (T5, ENG-25; the structures builder rebuilds the relay as a defence platform). Was: **Verdance objective 2.** The build has a separate relay climb with resonance nodes (→ Cloak); the story (§25.1, §25.2
+   18-2) makes the relay the station's relay and the transfer defence its objective (→ Cloak); §18 had put the transfer on
+   objective 1. **Ryan:** keep the climb, or make the transfer the Cloak objective and drop the climb.
+2. **Opening length.** ENG-33 says "redo to the 2:20 *First Contact* brief"; the reconciliation (17:15, #29, #24) says
+   "the opening stays 49 seconds". **Ryan:** confirm the redo is a re-shoot of the 49 s with First Contact's content.
+3. **Field and shield.** §0, §5 act 4, ENG-18 and the `A3_PassageOpen` line still treat the generators as the field and
+   the anchor as opening it; §25.2 splits them (approach field opens on Cinder + wave 5; four generators hold a separate
+   shield). Nicholas's documents decided it; corrected below in §0 and ENG-18.
+4. **COMMAND or Control** as the authority's name; **who boards** (lines written for Wren); the **three-pulse** definition;
+   the ending **caption** wording. **Nicholas.**
+5. ~~**AGENTS.md**~~ **Resolved (Ryan's Lead, Nov 13):** AGENTS.md §1, §2 and §11 aligned in the same push: the boarding
+   finale is the wanted ending, and Cinder's anchor opens the approach ("passage pending").
+6. **ART-15 / ART-16** sat in Nick's section marked STRETCH; §1 lists them as Ryan's since Nov 13. Corrected below.
+7. **Music hookups** were T7's (CLAIMS, N-045); Ryan's Lead moved them to Nick's side on Nov 13 evening (ART-19), T7
+   as fallback. **Nicholas** to accept on the board.
+8. **Escape "changed route"** and the interior's shaft, security and archive rooms are assumed by Nicholas's documents and
+   not built; reduced forms proposed in `docs/story/story-0708-actions.md` (b1, b17). **Nicholas** to accept.
+9. **Resolved (Ryan, Nov 13 evening): voices over a sealed threshold (no camera takeover); the reactor fight adds only a telegraphed sweeping laser, with no perfect-deflect gate; future-crew defenders approved (T5; the drones stay as the fallback; #29).** Was: **Cinematic 08 form** (voices over a sealed threshold, or a control-away scene) and **ENG-30's extras** (ring timing,
+   sweeping laser, acceleration; the documents forbid a perfect-deflect gate). **Ryan.**
+10. ~~**Power-ups in space**~~ **Resolved (Ryan, Nov 13):** Ryan approved pickups ("yes ... just go now"; T2's
+    `UTDPickupSubsystem` is built) and asked for rewards from destroying asteroids (ENG-48). The galaxy map (ART-09,
+    ENG-02) is not required (decided by Ryan's Lead under Ryan's delegation); no web build.
+
+## Who is doing what next (from CLAIMS.md, Nov 13 evening)
+
+**Ryan (Nov 13 evening): "You are the lead of everything"; Nick's agents may be given more work, not art-heavy** (his
+machine is lighter). Everything heavy (Niagara, Blender, cooks, terrain, big builds) stays on Ryan's side.
+
+| Owner | Now | Next (in order) |
+|---|---|---|
+| **Lead** (Ryan's) | Batch I/J gate (waiting on T4's carrier fix and T1's planet-exit test fix); hourly features.md alignment | Push batch I/J with T6's space field v1; Shipping package and size (ENG-28); fresh review of ENG-34-39; finale-mode decision (ENG-47); hand Ryan a build |
+| **T1** flight, input, travel | ENG-38 stage 1 (hidden load, arrival from entry); tutorial music fixes (#24) | Hyperdrive one jump (ENG-15); ENG-40 escape vector and music fade; camera feel and gamepad pass; ENG-38 stage 2 |
+| **T2** combat, powers, HUD | HUD contrast; hit feel | ENG-36 states for the story (generator count, archive meter, pending marker, transponder flicker, nav pulse); on-foot HUD; every power with its real effect |
+| **T3** squad, director, story | Onboarding; Director widget hook (N-038) | ENG-42 seed ~28 new ids and fire every sequence; ENG-44 ending fixes; ENG-43 bark table; trailer re-capture |
+| **T4** enemies, waves, world | Terrain materials, slab fit, arrival corridor | ENG-40 withdrawal; ENG-18 assault story pass; ENG-39 planet play zones; enemy readability; Dominion breakup; frame rate |
+| **T5** flow, ground, interior | Boarding interior step 1 | ENG-30 reveal gate and Cinematic 08 hold; ENG-25 / 26 reduced forms and renames; reactor pressure; Warden capsule and animation slots (ART-08) |
+| **T6** space field | ENG-39 space field (belts, debris, wrecks, streaming ring) | ENG-48 destructible, solid field (lead, with T1 impacts, T2 drops); convoy lanes; keep-outs; pickup proposal to Ryan |
+| **T7** profile, playtest | ENG-41 first-play flag; playtest lane (ENG-46) | Hyperdrive rift look (ENG-37, effects builder plugs it in); ART-19 fallback only if Nick's side has not wired the music by Nov 14 noon |
+| **Ship builder** | Rift hybrid, detail layers | Import hauler #68 and Dominion hull r1 #70; close-range pass on all three ships (ART-03) |
+| **Effects builder** | ENG-37 wiring round 3 | Tier 2 powers and travel; distortion field and its opening; generator and breakup blasts; descent plasma (ENG-38) |
+| **Environment builder** | queued | Lighting, fog, grade on every level (ART-05, ART-13); interior alarm and collapse states (ART-15) |
+| **Structures builder** | Cinder dig site #69 import | ART-17 walkable kit: survey station, relay, wreck, Dominion interior, bay interior |
+| **Animation builder** | Audit; 116 clips | ART-08 must-haves: deflect flick, death clip, interact / board / exit, Warden set, crew sets |
+| **Asset builder** | queued | `docs/eng/ASSETS.md` ledger; picks from Nick's intake (R-037); `CREDITS.md` third-party rows |
+| **Audio builder** | fallback fills | ENG-35 gaps: descent roar, three-pulse fallback, escape alarms, assault cues |
+| **Grok Bot** | R-042 queue | #52 anchor tower, #53 crystal cache, Dominion hull r2, #40 set dressing, shield generator, #54 bay plans; R-043 measured plans and trim sheets; Warden fire and summon clips; air slam r2 |
+| **Nick: Lead** | ART-10 cue pickup (DominionInterior01, CreditsMusic01, VerdanceTheme01); #71 menu handoff | ART-14 page, dev log, credits audit; ART-20 review dispatch |
+| **Nick: Audio** | ART-10 mix and listening; tutorial music | ART-19 wiring; Cinder, assault, escape and victory cues; three-pulse and "Don't-" asset |
+| **Nick: UI** | Victory, reward and credits read; Settings focus; loading | ART-09 screen list below; ENG-36 fonts and tokens |
+| **Nick: Story Director** | Voice pickup sheet (C08 first) | ART-11 words for every new id; answers to contradictions 4 and 8 |
+
+**Nick's side: queue** (assigned by Ryan's Lead, Ryan, Nov 13; ordered by what unblocks the game soonest; Nicholas
+decides his own art, audio and story direction within each):
+1. **Story answers and words** (ART-11): COMMAND or Control, who boards, the three-pulse definition, the caption; then
+   approved text for the ~28 new ids of 07-09 and the `C4_`, `C6_`, `G6_` sets. T3 seeds drafts; his rows replace them.
+2. **Music and cue playback wiring** (ART-19): credits, Dominion interior loop, Verdance theme, tutorial, then descent,
+   Cinder, assault, escape and victory cues, on the events Ryan's side fires. T7 is the fallback.
+3. **Independent code reviews** (ART-20) of every lane that lands, so items can reach 🟢.
+4. **UI screens** (ART-09): pause, reward, victory with takes, credits roll, loading, skip-tutorial prompt, subtitle and
+   accessibility options, objective panel.
+5. **Submission** (ART-14): itch page text, dev log write-up, `CREDITS.md` and tools audit, trailer shot list and edit.
+   Also the asteroid and junk break and impact sounds (ENG-48).
+6. **Playtest checklists and per-act test scripts** (ART-21).
+7. **Voice** (ART-11): the approved pickup sheet, then barks.
 
 ---
 
@@ -78,6 +195,8 @@ The whole journey runs on `main`: main menu → intro → waves 1-2 → Verdance
 Dominion assault → reactor → victory, with an automated end-to-end test, Settings, save and Continue, a
 packaged Shipping build of about 800 MB zipped, and about 630 automated tests. Agents have played every part
 through the engine's MCP server. **No human has played it yet; that is the largest open risk in the project.**
+**(Nov 13 evening)** Ryan has since played it (a guided tour, a free session, the ship and walkability findings of R-041
+and R-043); Nicholas has not. No full human run start to end exists yet: ENG-46 holds the gates.
 
 | Area | Items | State | What is still missing |
 |---|---|---|---|
@@ -356,6 +475,19 @@ Each line names the owner; a line is done when it is seen (or heard) in the runn
 19. Packaged build played start to end every day; zip under 1 GB (Lead).
 20. Video, page, credits, tools list, dev log (Nick, T3, Lead).
 
+**Final polish (after freeze) and optional extras** (added Nov 13 evening; none of these is needed for the game to be
+complete, so none is a build item; do them only when every row of the complete-game checklist is 🟢):
+21. Banter exchanges (`dialogs.md` §9) and second and third line variants per bark id (T3, Nick).
+22. "Time failing" visuals on the escape (afterimages); sound alone is the build item (ENG-31; Nick, effects builder).
+23. A picture on the Cinematic 08 console (the opening's three ships) or a letterbox while the `F_*` lines play (T3).
+24. Hangar "familiar architecture" dressing: route stencil, equipment rack, Triad-like unit markings (environment builder).
+25. ENG-38 stretch: land anywhere, volumetric clouds, airbrake animation, bigger globes (T1, T4, effects builder).
+26. A changed escape route, a service shaft, and separate security and archive rooms in the interior (T5, structures builder).
+27. A replayable ending and a recording replay log (T3).
+28. The galaxy map screen (ART-09, ENG-02; its key is hidden today).
+29. Persistent battle damage on the ships after Verdance (Gameplay 03 asks "if possible").
+30. Second skins and damage variants beyond the insignia clue (ART-18).
+
 ---
 
 ## 0. The game
@@ -402,6 +534,17 @@ Main Menu ─► Intro: the silent Dominion appears, machines descend on worlds,
 ```
 Target length: 20–30 minutes.
 
+**(Nov 13 evening, from storyline.md §25.2, §32 and the `fbc7240` reconciliation; these win over the diagram above):**
+- Act 1 is **one tutorial mission** over waves 1-2 that ends when the squad crosses the withdrawal boundary (the gunship
+  may live), then *Aftermath*; nothing is fought between *Aftermath* and Verdance (ENG-40, ENG-42).
+- Verdance order: arrival → recover the device (**Gravity Well**) → Cinematic 03 → protect the transfer / relay copy
+  (**Cloak**) → extraction → Cinematic 04 as transmissions. Cinder order is fixed: survey terminal (Cinematic 05) →
+  excavation, Warden and crystal cache (**EMP Pulse**) → field anchor → extraction.
+- The anchor only **prepares** the approach. The **approach distortion field opens when Cinder is complete and wave 5 is
+  cleared**; the four generators hold the Dominion's **separate shield**, and all four down open the docking bay.
+- Inside, the reveal is the **mandatory final record** after the Warden, then Cinematic 08 at the reactor threshold;
+  the thing destroyed is the **reactor** (the Origin Core is what the machines seek and is never shown aboard).
+
 ---
 
 ## 1. The split
@@ -412,6 +555,7 @@ Target length: 20–30 minutes.
 | **Mission** | Own the playable game systems, engineering integration and technical reliability, so the game stays fun, responsive and shippable | Own the visual identity, presentation quality and player-facing feel, compatible with the gameplay foundation and the 4-day window |
 | **Owns** | Flight and controls; three-ship switching and wingman AI; weapons, damage, shields, enemy AI, waves, targeting, balance, signature and unlockable power *mechanics*; objectives, encounter pacing, hyperdrive and level transitions, mission flow, win/lose and restart; first-person gameplay on the planets (character, blade combat, crew AI, objectives); C++ architecture and interfaces; profiling, testing, packaging, critical bugs | Visual direction; ships, enemies, Dominion and prop *visuals*; space and planet environments, lighting, atmosphere, materials; all VFX (Niagara); HUD, UI/UX, menus, onboarding, ship-switch feedback, targeting clarity; all audio and music; character and ship animation polish; cinematics and the Director's Cut presentation; performance-minded art; trailer and store page |
 | **Feature IDs** | `ENG-xx`, and since Nov 13 `ART-02, 03, 04, 05, 06, 07, 08, 13, 15, 16` (all of Environment, VFX and Asset Management) | `ART-01, 09, 10, 11, 12, 14` |
+| **Added Nov 13 evening** | `ENG-39` to `ENG-48`, `ART-17` (walkable kit), `ART-18` (story set pieces) | `ART-19` (music wiring), `ART-20` (independent reviews), `ART-21` (playtest scripts), assigned by Ryan's Lead (Ryan, Nov 13) |
 
 **A third lane since Nov 13: Grok Bot (Ryan's asset-generation agent).** It makes concepts, raw 3D models,
 textures, animations and key art with fal, Hyper3D Rodin and PBRgen, as source files only, in
@@ -882,6 +1026,9 @@ drift, hyperdrive.
   damage, aim error and wave size. Target on Standard: the five waves take 8-10 minutes in total.
 - **Hyperdrive lock:** the hyperdrive is locked while a wave is active and during the Dominion
   assault, and free in the breather between waves and in the planet phases.
+- **Still missing (Nov 13 evening, T7's playtest):** a jump toward a planet dropped out 11.4 km short of Verdance. Done
+  when one held jump from the combat zone reaches each planet's orbit and the Dominion's well with no second jump, for
+  all three ships (T1, queued in `CLAIMS.md`). The rift look of the jump is in ENG-37 (T7, effects builder).
 
 #### ENG-16 · Portal gates (galaxy shortcuts) · `🟢`
 Three permanent `ATDPortalGate` pairs: combat zone ↔ Verdance orbit, combat zone ↔ Cinder orbit, and
@@ -913,6 +1060,50 @@ through a gate unchanged: only Rift's own portals return enemy missiles.
   already passed stay passed, and the current phase restarts. The hyperdrive is locked only inside the
   Dominion's gravity well, so the first approach can jump and drops out at the well. Victory cancels a pending
   retake, and a won save does not continue into the fight.
+- **(Nov 13 evening) Correction and story pass, Gameplay 06 and Cinematic 06 (`storyline.md` §23-25, §25.2).** The
+  "distortion field" and the "shield" are two things: the **approach field** opens when Cinder is complete **and** wave 5
+  is cleared (today the code opens it on wave 5's clear alone: check both are required); the four generators hold the
+  Dominion's **separate shield**. With boarding on (the default now, ENG-47), the shield's fall opens the bay; it never
+  exposes the reactor, starts a countdown or wins. Still missing, each checkable in a played run:
+  - wave 5 objective line "Break the Dominion guard"; then "Destroy the shield generators 0 / 4" counting live on the
+    HUD, destroyed markers removed; then "Dock with the Dominion" with a docking marker (T4, T2; Nicholas may reword);
+  - "shield", never "field", in `A4_GeneratorDown1-4`, the all-down line and `Bark_Dom_FieldDown`; `A3_PassageOpen`
+    reworded to "approach prepared" (T3, T4; Nicholas's words);
+  - the `G6_*` radio lines and the two Unknown clue fragments `G6_Clue1` / `G6_Clue2` that clear up as generators fall;
+    one friendly-status flicker on one hostile marker after the second generator (T3, T2); all pass the story test;
+  - wave 5 starts outside unavoidable fire with the Dominion in view; attack pressure off from docking commitment to
+    the travel (T4);
+  - the generator money shot returns control before a turret volley and never covers the next marker (T3);
+  - answer on the board whether EMP and the ram affect generators and turrets (T4; neither is a gate);
+  - the assault timed on Standard (target 5-7 min including wave 5) and reported to Ryan (T4).
+  Art for the beat: Dominion hull r2, the shield generator mesh, the field-opening and shield-drop effects (ART-04,
+  ART-18, ART-07).
+
+#### ENG-48 · Destructible, solid space field (CORE, added Nov 13 evening by Ryan) · `⬜`
+Ryan: "all things in space, like asteroids and junk, should be destructible ... shoot it and it will explode, and maybe
+you get some type of points, or more on your boost if you destroy a certain asteroid ... rewards people for destroying
+asteroids. And if you hit an asteroid, the harder you hit it, the more it will do damage to your ship ... you shouldn't be
+able to go through them." Applies to everything ENG-39's space field and ENG-17's layout place.
+1. **Everything breaks.** Every asteroid, debris piece and junk object is shootable, with health by size tier: **small**
+   1-2 shots, then gone; **medium** several shots, then splits into 2-3 smalls; **large** many shots, then splits into
+   mediums. Drifting wrecks and buoys break the same way. Each break has a break effect and a sound.
+2. **Rewards.** Every kill adds a small score and a scene stat (`AddStat`, shown on the victory panel). About 1 in 15
+   asteroids is visibly special (glowing crystal veins) and drops a boost refill and / or a pickup through T2's pickup
+   subsystem (ENG-39). Lancer's afterburner ram smashes small and medium asteroids.
+3. **Solid.** No ship ever passes through an asteroid or wreck at any speed: swept collision, no tunnelling at boost speed
+   or at 30 fps.
+4. **Impact damage scales with impact speed.** Below about 15 m/s a scrape does nothing; above it, damage grows with the
+   square of the normal speed; a full-boost head-on into a large asteroid takes most of the hull. The ship bounces off
+   with a camera shake and a hit sound. Wingmen avoid asteroids (ENG-08).
+5. **Performance.** Frame time holds with the field's instance counts (wave 5 with the field on, inside the ENG-28
+   budget); breaks are pooled and cheap.
+- **Tests:** each tier breaks in its shot count and splits as stated; the special drop fires; no pass-through at boost
+  speed at 30 / 60 / 120 fps; damage at 10, 20 and full-boost speeds matches the curve; a played wave with a ram through a
+  cluster.
+- **Owners:** T6 (space field; lead), T1 (collision response and impact damage in the flight model), T2 (drops, score and
+  stat, hit feedback), effects builder (break effects, cheap and pooled), **Nick's side (break and impact sounds,
+  assigned by Ryan's Lead, Ryan, Nov 13**; ENG-35 fallbacks until then).
+- Depends on ENG-39 (the field and the pickup subsystem), ENG-01 (collisions), ENG-37.
 
 ### Game loop & progression
 
@@ -1009,6 +1200,22 @@ Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its do
   each starts at its trailhead as its own scene, with route posts, objective lines and markers. Boarding is
   allowed at any time; the way back to space opens when both are done. A required objective with no actor in
   the world is completed with an error in the log, so a content mistake never traps the player.
+- **(Nov 13 evening) Still missing for the reduced form** (`storyline.md` §18, §25.1, reconciliation `fbc7240` e4-e10;
+  about 8-10 min from atmosphere to take-off). Done when a played run shows, in this order:
+  1. arrival through ENG-38 into the dressed play zone (ENG-39); Kato's convoy line fires on **proximity** to the lead
+     hauler (no hold, no prompt, no marker); no interception force over the landing zone (T4);
+  2. a short route with the instruments over one buried line and the transponder "verified / unknown" flicker on the
+     HUD (T5, T2), to the **open-sided survey station** built from the walkable kit (ART-17), with the console and the
+     dormant drone (ART-18);
+  3. objective "Recover the signal-analysis device": the pickup awards **Gravity Well** and checkpoints (T5);
+  4. connecting the device at the console plays Cinematic 03 (ENG-42), never replayed on a retake;
+  5. objective "Protect the data transfer": 60-90 s, a progress meter on the HUD (T2), three fixed waves, the transfer
+     pauses while an enemy stands at the terminal, the third wave brings a Heavy, a checkpoint at the midpoint, tuned for
+     one player (T5); completing the relay copy awards **Cloak** (§25.1);
+  6. collect the device and archive, return to the pad, take off; Cinematic 04 as transmissions (ENG-42).
+  **Decision needed (Ryan):** the built objective 2 is a separate relay climb (resonance nodes, → Cloak). Either it is
+  replaced by step 5, or it stays as the route to the relay console and the transfer defence follows it. Until Ryan
+  decides, both objectives keep working and keep their rewards.
 
 #### ENG-26 · Cinder: gameplay layout, hazards & objectives (CORE) · `🟨`
 **Story (act 3, The Pattern):** the outpost is the **mining complex** (objective 3 "Stop the Excavation", which also yields the stabilising crystals); the jammer is the dig's **field anchor** (objective 4 "Destroy the Field Anchor"): destroying it opens the passage through the distortion field instead of "revealing" the Dominion. Transmissions begin to echo the pilots' own voices. One door at the dig opens to the pilot's ID.
@@ -1024,6 +1231,22 @@ Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its do
   notch at a time (Cinder Warden: from take 3, 75% health and one summon; from take 5, 50% and none); a player who
   wins first time never sees it. Any on-foot fight can opt in (`ATDEncounterVolume::MercyTiers`). Engineering-made props dress both planets
   (`Content/TriadDrift/Gameplay/Props`, trees in `Gameplay/Vegetation`) until Nick's art replaces them.
+- **(Nov 13 evening) Still missing for the reduced form** (`storyline.md` §22, §25.1-25.2; about 6-8 min from
+  atmosphere to take-off). Done when a played run shows:
+  1. the dig's glow visible from orbit; ENG-38 descent; a short marked route past one patrol (no echo on the route,
+     §25.1) to the survey station on the dig's rim (ART-17), usable once the patrol is dead or left behind (T5);
+  2. objective "Access the survey records": the terminal plays Cinematic 05 with the one approved echo and the words
+     "Origin Core" (ENG-42), once;
+  3. the **fixed order** terminal → "Secure the excavation" → "Recover the stabilising crystals" → "Disable the field
+     anchor" → "Return to extraction" (today the two objectives can be done in either order) (T5);
+  4. the excavation is today's outpost renamed; the Warden guards the dig with its mercy tiers; one cache interaction
+     gives the crystals **and** the EMP prototype, awards **EMP Pulse** and saves both, with Kato's approved line (T5);
+  5. the anchor is today's jammer renamed; its shutdown shows a **pending** approach marker on the HUD ("approach
+     prepared; passage still blocked"), never "passage open" (T5, T2);
+  6. one door at the dig opens to the pilot's ID (storyline §6) (T5);
+  7. take-off; Cinematic 06 as transmissions (ENG-42).
+  Art: dig site #69 (walkable through ART-17), anchor tower #52 and its collapse, crystal cache #53 (ART-18), lava and
+  ash effects (ART-07).
 
 #### ENG-27 · Balance & tuning · `🟢`
 Play the full run at least twice. Tune enemy counts, HP and cooldowns toward 20–30 minutes. Add a
@@ -1043,6 +1266,18 @@ Play the full run at least twice. Tune enemy counts, HP and cooldowns toward 20�
   start → finish.
 - **Final zip:** `TeamName_GameName`, < 1 GB (otherwise use butler). Upload the build and fill in the
   submission form with Nick (ART-14).
+- **(Nov 13 evening) Still missing** (`docs/eng/BUILD-SIZE.md`, R-040). Done when, on the freeze commit:
+  - the Shipping zip is **under 1,000,000,000 bytes** with the interior, the Rodin fleet and every effect in it (today's
+    estimate without trims is about 987-1,020 MB): trims 1-6 applied (denoiser plugin off, MegaLights and path tracer
+    shaders off, compression 9, no ARM64 installer); trims 7-9 (texture RDO, 4K sky, ray tracing) only after a human look;
+  - `L_Dominion_Interior` is in the cook list and every asset reached only by a path string is cooked (AGENTS.md §11
+    "What ships"); the debug menu and dev cheats are stripped;
+  - 60 fps at 1080p on the mid-spec target (and no hitch over 50 ms; none over 100 ms across the hidden descent load)
+    measured in the packaged build in: wave 5, the assault, both planets' play zones, the descent, the interior arena,
+    the escape flight; numbers logged in `DEVLOG.md`;
+  - the packaged build is played start to end once a day (ENG-46) and the final zip is named, uploaded and its SHA-256
+    recorded (with ART-14).
+  Owner: Lead (packaging builder), T4 (frame rate in space and on the planets), T5 (interior).
 
 #### ENG-32 · On-foot third-person camera & the Settings page (CORE, added Nov 12 by Ryan) · `🟢`
 Ryan, Nov 12 (late): "a settings page, and you should be able to switch between first and third person ...
@@ -1090,6 +1325,10 @@ restart, and tests cover the toggle, persistence, camera collision, facing rule 
 #### ENG-33 · Cinematic intro (CORE, added Nov 12 by Ryan) · `🟢`
 **Redo queued (Ryan, Nov 13): the opening is rebuilt to Nicholas's *First Contact* brief** (about 2:20: missing patrol, Triad arrives, the impossible vessel, the first launch with the drone that goes blue and holds fire, the cut-off "Don't-", then straight into the tutorial battle; `storyline.md` §11, `docs/story/First-Contact-Cinematic-Brief.md`). **Done once, after the art it shows is on `main`** (Rodin player ships, the fleet with a space drone, the Dominion with opening hangars, round-4 effects, the new HUD). Until then T3 prepares the shot plan, the dialogue hooks and the drone beat only. Today's 49 s intro stays in the game meanwhile.
 **Story (opening):** the intro shows the premise: the silent Dominion, machines descending on worlds, Triad deployed to identify it and report back. No hint of the truth. Text and narration are Nicholas's through the existing slots.
+**(Nov 13, 17:15, Nicholas's approved opening decision, #29 / #24):** "The opening stays 49 seconds." So the redo is a
+re-shoot of the 49 s with *First Contact*'s content (the silent ship, Triad's arrival, the drone that goes blue and holds
+fire, the shared "Don't-" asset), not a 2:20 film; Ryan to confirm (complete-game contradiction 2). Still missing: the
+re-shoot once ART-03, ART-04 and ENG-37 are on `main`; the `O_*` lines fired; the intro score bound (ART-19).
 Ryan, Nov 12 (late): the intro should be "really high definition cinematic views of space and the spacecraft going
 by and worlds". **Reference for the cinematic language only** (pacing, scale, framing, grade), not its content, world
 or style, which belong to another IP: the *Warhammer 40,000: Darktide* intro cutscene
@@ -1172,6 +1411,12 @@ Nick's sounds exist, engineering supplies an original, cohesive fallback set, an
 - Wired only through the existing cue slots, in engineering folders, as fallbacks: a sound of Nick's in the same slot
   always wins, and nothing of his is overwritten. An agent reaches "technically verified"; a person approves by ear.
 - Owner: Lead (builder sub-agents) for the sounds, each lane's owner for any missing cue slot.
+- **(Nov 13 evening) Still missing for the complete game** (fallbacks only; Nick's sound in the slot wins): the descent
+  roar, burn-through and boom (ENG-38); the field opening and the shield dropping; the docking clamp; interior doors, the
+  access-granted chime and a fallback three-pulse tone (its real definition is Nicholas's); conduit breaks and the heart's
+  death hit; escape alarms and hull groans on the run's events ("time failing" in sound, ENG-31); the stinger's radio
+  noise bed. Done when each has a cue in its slot, is levelled with `audio_report.py`, and is heard in a played run
+  (`-Audio` dump) by the owning teammate.
 
 #### ENG-36 · HUD redesign: modern, sleek, minimal (CORE, added Nov 13 by Ryan) · `🟨`
 Ryan, Nov 13: "The HUD currently is kind of bulky and it needs to be more modern and sleek, and not taking up as much
@@ -1196,6 +1441,15 @@ it's easy to utilize, and even the beginner gamer can understand it."
 - **Acceptance:** before / after captures in every state above; the coverage measured; a fresh reviewer playing the
   "first five minutes" checklist can name each element's meaning; tests for every data binding.
 - Owner: T2 (build), Lead (research, design, review).
+- **(Nov 13 evening) Still missing for the complete game:** the flight HUD is the default (batch B). Still to build and
+  capture: the **on-foot HUD** in the same style (health, block stamina, dash charges, interact ring, damage direction,
+  objective); the story states: tutorial phase prompts and the withdrawal waypoint (ENG-40), *Aftermath*'s drone-lane
+  display and the navigation pulse (ENG-42, reused on Verdance departure), the transponder "verified / unknown" flicker,
+  the transfer progress meter, the Cinder "approach prepared, passage pending" marker, the generator count 0 / 4 and
+  docking marker, the reactor conduit count, the escape clock and first direction marker, the friendly-status flicker; the
+  subtitle line for transmissions and barks with the speaker's colour and a size option (ENG-45). Nick's fonts and colour
+  tokens adopted once ART-09 publishes them.
+  **Done when** each state is captured live at 1080p and 21:9 and named correctly by a fresh reviewer (ART-20).
 
 #### ENG-37 · Projectiles, engines and particle effects at AAA quality (CORE, added Nov 13 by Ryan) · `🟨`
 Ryan, Nov 13: "really focus on projectiles across the entire game, from the blast of the engine to shooting.
@@ -1227,6 +1481,13 @@ coming out and there's movement ... a bunch of particles, and everything that ma
   scores effects at 4 of 5 or better; frame-time measured in a wave-5 fight.
 - Owner: Lead (effects builder sub-agents), T2 (combat cues and placeholders), T1 (engines and trails), T4 (enemy,
   Dominion and world cues), T5 (on-foot cues).
+- **(Nov 13 evening) Still missing for the complete game** (beyond tiers 1-3 above): the **hyperdrive rift** (a tear at the
+  end of the spool, a tunnel of stretched streaks and rings in the squad colour, an exit rift and flash; T7 builds new
+  systems, the effects builder plugs them into `DA_Travel_FX`, queued in `CLAIMS.md`); the Dominion's **approach field**
+  shimmer and its opening (ENG-18); the shield sections dropping per generator; the tractor beam (ENG-29); the
+  anchor tower collapse (ENG-26); conduit breaks and the reactor heart's death; interior collapse sparks and falling debris
+  (ENG-31); the Dominion breakup at trailer quality, multi-stage (ENG-31, ENG-44); the dormant drone's blue optic and three
+  light pulses (ART-18). Same quality bar and frame budget as above.
 
 #### ENG-38 · Planetary descent: fly from space into a world, anywhere on the globe (CORE, added Nov 13 by Ryan) · `🟨`
 **Ryan, Nov 13:** flying down into a world must be "super realistic, super high quality, AAA quality, make it almost
@@ -1296,6 +1557,141 @@ and the on-foot hand-over of ENG-20 stay.
   hidden load (measured in a rendered run); descent completes for each ship at 30 / 60 / 120 fps; retake and Continue
   mid-descent; take-off reverses it. **Only a person can judge** whether it feels like piercing an atmosphere.
 
+### Complete-game items (added Nov 13 evening, at Ryan's request)
+Ryan: "make sure it has all the information in order to pretty much complete the entire storyline and the entire game".
+Each item below closes a gap found by walking `storyline.md` beat by beat against this file, `dialogs.md`,
+`animations.md`, `CLAIMS.md`, the board and `docs/story/`. Ids continue the sequence (ENG-39 was named in the
+realignment without an item; it gets one here).
+
+#### ENG-39 · Worlds that read as real places: planet play zones, the space field, pickups (CORE, Ryan Nov 13) · `🟨`
+Spec: the realignment section "Worlds that read as real places" and `docs/eng/WORLD-DENSITY-PLAN.md`.
+- **Planets (T4, environment builder, T5):** every atmosphere entry, from any side of the globe, routes into the one
+  dressed play zone around the pad and objectives, with its own approach corridor and first view per side. Inside the zone:
+  at least three ground materials, trees, rocks, buildings and points of interest in every direction; outside it, haze,
+  the cloud deck, the curvature bend, ring terrain and the flight-zone turn-back hide the edge; keep-out areas on foot.
+- **Space (T6, T4 reviews):** belts, clusters, debris fields, wrecks, buoy chains and convoy lanes across the flyable
+  space, then a streaming ring around the ship, deterministic from a seed (`td.SpaceField`); keep-outs around the combat
+  zone, gates, planets and the Dominion; combat lanes stay readable (T6, in progress).
+- **Pickups:** new gameplay; the smallest version is proposed to Ryan on the board **before** it is built (not started).
+- **Done when:** from five entry points per planet the arrival reads as a place in captures; a 60 s flight in any
+  direction in space passes dressing; wave 5 stays inside the ENG-28 frame budget with the field on.
+- Depends on ENG-34, ENG-38, ART-05, ART-06, ART-13.
+
+#### ENG-40 · Act 1: the tutorial battle and the withdrawal (CORE) · `⬜`
+`storyline.md` §13 and the reconciliation correction of 17:15 (Nicholas, #29, #24): **one uninterrupted first mission over
+waves 1-2**, entered from the intro with no fade.
+| Phase | Done when (played) | Owner |
+|---|---|---|
+| 01 Break formation | A readable first volley arrives before any enemy is targetable; prompt "EVASIVE MANEUVERS"; `TB_*` call | T4, T2, T3 |
+| 02 Return fire | A small marked group; prompt "TARGET AND FIRE"; the existing onboarding hints, one at a time | T4, T3 |
+| 03 Fight as Triad | Switching, then each ship's **signature** power (portal, ram, swarm / dome; abilities stay earned on the planets), each with a timed hint or substitute, never a hard lock | T3, T2 |
+| 04 Heavy contact | Wave 2's gunship arrives; prompt "HEAVY CONTACT"; killing it is **optional**, no gate, no reward | T4 |
+| 05 Withdraw | Command orders the retreat after phase 03's tools are taught; a marked corridor and boundary; pursuers stop at it; crossing it fires one completion event that ends the tutorial (with the gunship alive or dead) and starts *Aftermath* (ENG-42); the tutorial music fades on it (#24) | T4, T1, T2, T3 |
+- Checkpoints at the engagement, the heavy contact and the withdrawal; a death never replays the intro. Most of the
+  Dominion's craft stream past toward Verdance in the background; the drone that hesitated in the intro is never a target.
+- Nothing is fought between *Aftermath* and Verdance; waves 3-5 are unchanged.
+- **Tests:** the completion event fires on the boundary with the gunship alive and dead; no gate on the gunship; a retake
+  in each phase; the five `TB_*` lines fire once.
+
+#### ENG-41 · First-play tutorial flag and "Skip the tutorial" (Nicholas, #29) · `🟨`
+- A profile flag (not the run save; a New Game never clears it) is set by ENG-40's completion event.
+- With the flag set, New Game offers "Play the tutorial" or "Skip"; Skip starts in the state the tutorial leaves: waves
+  1-2 done, their lines marked played, hints off, *Aftermath* next. With the flag clear there is no offer.
+- The intro's own hold-to-skip is unchanged. Nick's UI styles the prompt (ART-09).
+- **Done when:** first run forces the tutorial; second New Game shows the offer; Skip gives an identical game state to a
+  played tutorial (tested); Continue is unaffected. Owner: T7 (in progress), with T3, T5, T1 for their lines.
+
+#### ENG-42 · Story sequences as played: transmissions, voice-over scenes, skips (CORE) · `🟨`
+The transmission system exists (ids, speakers, queue, once per run, saved, the story test; `docs/story/transmissions.md`).
+Many sequences have lines in the table that **nothing fires**. Each row is done when a played run shows the lines in
+order, subtitled, once, never replayed on a retake, with a skip that applies the same state, and the story test passes.
+| Sequence (storyline.md) | Form (reduced) | Fired by | Still missing |
+|---|---|---|---|
+| Intro `O_*` | Over the 49 s intro | T3 | Lines fired; shared `Dont` asset |
+| Tutorial `TB_*` | Radio over phases 01-05 | T4 events, T3 | Not fired today |
+| *Aftermath* `S2_*` (§12) | 75-100 s of radio over regroup and the jump; drone-lane display; navigation pulse; Dominion light row in the same rhythm | ENG-40 event; T3, T2, T4 / effects | Not fired today; display and pulse new |
+| Cinematic 03 `C3_*` (§15, §25.1) | 40-60 s voice-over at the survey console: monitor graphic, the voices fragment, drone wakes blue, three pulses, "comms responded" HUD beat | T5 console, T3, T2 | All new; monitor graphic from Nick's #44 PNG or T2 |
+| Cinematic 04 `C4_*` (§17, §25.1) | Transmissions over the Verdance take-off | T5 extraction, T3 | New ids |
+| Waves 3-4 interception | Two or three lines naming the interception on the Cinder route | T4, T3 | New ids |
+| Cinematic 05 `C5_*` (§20, §25.1-25.2) | 40-50 s voice-over at the Cinder terminal: the one echo, the Origin Core lead | T5 terminal, T3, T2 (Cinder overlay) | Approved lines; replaces the three `A3_Echo*` placeholders |
+| Cinematic 06 `C6_*` (§23) | Six lines at take-off, two as wave 5 forms | T5, T4, T3 | New ids; Nicholas picks the lines |
+| Gameplay 06 `G6_*` (§24) | Radio and two Unknown clue fragments during the generators | T4, T3 | See ENG-18 |
+| Cinematic 07 `C7_*` (§26) | Six lines over docking and arrival (no camera scene) | T4, T5, T3 | Four new ids; `G6_Wren_CoverTheBay` duplicate resolved by Nicholas |
+| Gameplay 07 `G7_*` (§27) | Four console recordings in route order, Unknown speaker first, then three squad reactions | T5, T3 | Speaker of `A4_Recording_Hangar` to Unknown; see ENG-30 |
+| Cinematic 08 `F_*`, `C8_*` (§28) | About 70 s of voices over the sealed reactor threshold: five callback lines, the full warning (own id, **not** the `Dont` asset), the case, the decision; readout "REACTOR · NO VERIFIED SAFE SHUTDOWN" (placeholder) | T5 gate, T3 queue and skip | Nothing fires `F_*` today |
+| Gameplay 08 `G8_*`, 09 `G9_*` (§29-30) | Conduit, heart, "Reactor lost", hangar and pull-away calls | T5, T4, T3 | New ids and fire calls |
+| Cinematic 09 `C9_*` (§31) | Three "clear" reports at the escape radius, Moss at 10 s, three signal lines at 18 s under the held caption | T4, T3 | See ENG-44 |
+- **Story test changes** (`docs/story/story-0708-actions.md` (e)): `G7_`, `C8_`, `G8_`, `G9_`, `C9_` join the after-reveal
+  set, `C7_` stays out; `A4_Recording_Hangar` checked; the full warning and the stinger never use the `Dont` asset; no
+  entry contains "forty-one".
+- About 28 new ids for 07-09 plus the `C3_`-`C6_` sets; T3 seeds them with the documents' draft lines; Nicholas's
+  `DA_Story_Transmissions` rows replace text, speaker and sound by id (ART-11).
+- Owner: T3 (system, ids, skip, test), with the firing lanes named per row.
+
+#### ENG-43 · Gameplay barks from `dialogs.md` (CORE) · `⬜`
+- A `Tools/` script turns `dialogs.md`'s tables into `DT_BarksFallback` under `Gameplay/`; Nicholas's `DT_Barks` wins row
+  by row (T3).
+- Per-id rotation (never the same line twice in a row, not within 60 s), the four priorities with `Flavour` only in calm
+  stretches, nothing but `Critical` during a money shot, the slate or "CUT!", transmissions always win (T3).
+- Every **(new)** row gets its trigger from its owner with a test that it fires once per held condition (about 53 ids; 22
+  fire today): T1 travel and landing, T2 combat and powers, T4 enemies and the Dominion, T5 on foot, T3 squad and switch.
+- Includes storyline §6's clue bark: an enemy now and then pre-empts a switch or a dodge from wave 3 on, and a pilot
+  notices (T4 AI, T3 line).
+- **Done when:** a played 10-minute session logs no line spammed or cut, every speaker in character, subtitles in colour.
+  Banter (§9) is final polish.
+
+#### ENG-44 · Ending: regroup, victory, stinger, credits, back to the menu (CORE) · `🟨`
+Exists: the victory backdrop with flybys, the panel with takes per scene, `StingerSeconds = 18`, the 0.35 s fade, the
+credits, a won save with no Continue. Still missing (`storyline.md` §31, `story-0708-actions.md` b18-b23):
+- the caption reads "DISTRESS SIGNAL · TRIAD: WREN, KATO, MOSS · DATED DECADES AHEAD" (Nicholas may reword); no text says
+  the future is safe, the Origin Core destroyed, or the older crew dead or escaped (T3);
+- the three "clear" reports fire as the ship crosses the escape radius (T4); the signal lines at 18 s with the caption
+  held on screen as its own element (T3);
+- leaving the panel before 18 s plays the stinger first (T3);
+- the credits roll lists the team, every third-party asset and licence and the tools used, from `CREDITS.md` (text by
+  Nick's side, ART-14; roll by T3 or Nick's UI); credits music bound (ART-19);
+- after the credits the game returns to the main menu; Continue is hidden; a New Game works (T5);
+- the same ending plays after the space-only fallback (ENG-47).
+- **Done when:** played twice (watching and skipping early) with the stinger seen both times.
+
+#### ENG-45 · Settings and accessibility completion (CORE) · `🟨`
+Exists (ENG-32): camera, sensitivity, invert, dead zone, hints, three volumes, window mode, resolution, reset; the
+difficulty row (in review). Still missing, each saved and applied at once:
+- **Subtitles** on / off (default on) and size (normal / large) for barks and transmissions (T3 reads it);
+- **Camera shake and speed-FOV** intensity sliders (T1's camera pass already reads "the Settings sliders");
+- **Graphics quality** preset wired to scalability (Low / Medium / High / Epic), so the mid-spec target holds 60 fps (ART-13);
+- difficulty chosen on **New Game** as well as in Settings (T5, T1);
+- every screen navigable by pad, glyphs following the last device used (T1's gamepad pass);
+- colour-blind check: the squad colours, enemy red and the HUD warnings stay distinct under a protanopia / deuteranopia
+  simulation, with shapes as well as colours (ENG-36).
+Owner: T1 (settings backend), T3 (subtitles), T5 (New Game difficulty); Nick's styled page through
+`UTDUIStyle::SettingsWidgetClass` (ART-09). **Done when** each row is changed in a played run and survives a restart.
+
+#### ENG-46 · The whole game, played: end-to-end tests and playtest gates (CORE) · `🟨`
+- **Automated:** one end-to-end test per route, real input where it matters, in a Development build: (a) New Game →
+  tutorial → Verdance → Cinder → assault → docking → interior → reactor → escape → victory → credits → menu; (b) the same
+  with Skip the tutorial; (c) the space-only fallback; (d) Continue from each act boundary, the interior and the escape;
+  (e) a death and retake in every scene. Extends `TriadDrift.Flow.E2E.*` (T7 with T5).
+- **Gates (people):**
+  | Gate | When (EST) | Who | Passes when |
+  |---|---|---|---|
+  | G1 | Nov 14 morning | Ryan, packaged build | Plays start to end; every problem logged in `DEVLOG.md` and routed |
+  | G2 | Nov 14 evening | Ryan and Nicholas | Same on the post-fix build; Nicholas listens to every cue (ART-10) |
+  | G3 | Nov 15 before 12:00 | Ryan's Lead + T7 | Freeze candidate played start to end packaged, all three routes |
+  | G4 | Nov 15 before upload | Ryan | The exact zip to be uploaded, played from download |
+- **Timings:** each act timed in the T7 playtest log (`docs/eng/PLAYTEST-*.md`); the whole run on Standard lands in 20-30
+  minutes or the over-long beat is reported to Ryan.
+- Owner: T7 (playtest lane, in progress), Lead (gates and packaging), Nick's side (scripts, ART-21).
+
+#### ENG-47 · Finale mode decision and the fallback ending (CORE) · `⬜`
+- Boarding is the documented ending (`Story/README.md`: "The confirmed ending boards the Dominion; the existing space-only
+  route is an emergency fallback"). `td.Finale.Boarding` defaults to 1 on the freeze build once ENG-29-31 pass G2.
+- **Decision point: Nov 14, 20:00 EST (Ryan).** If the boarding route has an open BLOCKER then, the freeze build ships with
+  `td.Finale.Boarding 0`; the reveal is then carried only by the assault transmissions and placeholders (no fallback
+  writing is requested from Nicholas).
+- The fallback stays finishable until the freeze: covered by ENG-46 route (c).
+- Owner: Lead (decision record, cvar default), T4 and T5 (both routes green).
+
 ### Art and assets made on Ryan's side (moved from Nick's section, Nov 13)
 
 Ryan's rule (Nov 13): what Claude or Grok Bot makes is under Ryan's name. These five items keep their `ART-xx`
@@ -1317,6 +1713,12 @@ sign-off, and an asset of his at the Presentation name replaces ours.
 - Delivered as `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lancer_Visuals`, `DA_Bastion_Visuals`; exact
   names in `docs/visual/Presentation-Asset-Paths.md`, a differently named asset is silently ignored) (§3.5), with animations driven by the exposed state. **Readable as
   black silhouettes at 64 px.**
+- **(Nov 13 evening, `docs/eng/SHIP-QUALITY.md`, R-041, R-042 PR #67)** In game: Rodin r1 hulls; Rift is engineering's
+  hybrid (Rodin hull, rebuilt ring, engines and back plate, animated portal membrane) and stays the in-game Rift;
+  SquadDetail r1 detail layers and Lancer / Bastion textures r2 approved. Still missing: the close-range pass on all three
+  (R-043: Blender rebuilds of nose, cockpit frame and wing edges, a re-packed 4K bake shipped at 2K, painted panels instead
+  of chrome) for the hangar and the pads; landing gear and canopy motion (ART-08). Owner: ship builder. Done when Ryan
+  approves each ship at 3-10 m on a pad and in the chase camera.
 
 #### ART-04 · Enemy & Dominion visuals · `🟨`
 **🟦 Ryan since Nov 13.** Enemy ships, turret, Warden, drone, generator and reactor by Grok Bot (R-027 #2, #5, #6); Dominion exterior and crew by engineering, already in the game; T4 and T5 wire them.
@@ -1325,9 +1727,15 @@ sign-off, and an asset of his at the Presentation name replaces ours.
 - **Dominion exterior:** a modular Nanite hull with rotating rings, shield generators, turrets, the
   reactor trench (core ending) and the hangar mouth (stretch).
 - **Look:** angular, red/black/white-eye shape language. Telegraph glows tied to the gameplay states.
+- **(Nov 13 evening, R-042)** On `main` or merged: the fleet (fighter, interceptor r2, gunship, bomber, carrier, turret),
+  the hauler (#68), the Warden and the drone, Dominion hull r1 (#70, approved for gameplay). Still missing: the carrier
+  wired and checked; the ship builder's import of #68 and #70 with T4 switching the Dominion to the hull's 12 sockets;
+  Dominion hull r2 (stepped superstructure, crimson bands, window rows; same sockets); the shield generator mesh; the
+  bay mouth #54; enemy readability at range (scale, glow, silhouette light, T4). Done when each is seen at gameplay
+  distance in a played wave or the assault.
 
 #### ART-06 · Planet environments: Verdance & Cinder (CORE) · `🟨`
-**🟦 Ryan since Nov 13.** Terrain, mountains, materials, rocks, trees and set pieces: engineering (ENG-34) with Grok Bot's texture sets and set pieces (R-027 #3, #8). **Lighting, fog, sky and grade on the planets stay with Nick (ART-13).**
+**🟦 Ryan since Nov 13.** Terrain, mountains, materials, rocks, trees and set pieces: engineering (ENG-34) with Grok Bot's texture sets and set pieces (R-027 #3, #8). **Lighting, fog, sky and grade on the planets stay with Nick (ART-13).** **(Correction, Nov 13 afternoon, R-036: ART-13 moved to Ryan's side too, so the planets' lighting, fog, sky and grade are the Lead's environment builder's.)** Still missing for the complete game: the dressed play zones (ENG-39), the walkable survey stations and dig cabin (ART-17), the story set pieces (ART-18), and the lighting pass per planet (ART-13).
 - **Verdance:** bioluminescent jungle, giant mushrooms and ferns, waterfalls, mist, ringed moon,
   pollen, critters, wreck-site and relay-spire art.
 - **Cinder:** basalt, magma rivers, cyan and amber crystal spires (crystal kits), falling ash, an
@@ -1361,6 +1769,21 @@ sign-off, and an asset of his at the Presentation name replaces ours.
   stays with Nick.
 - **Crew models and animations:** idle, locomotion, telegraphed attacks, hit-reacts, stagger,
   deaths, ragdoll-ready; Fab or Mixamo retargets, credited. A visor glow shows alert state.
+- **(Nov 13 evening) Must-haves for the complete game, from `animations.md` §5** (build items; the rest of the ledger is
+  polish). Each is done when it plays in a running game from both cameras with no T-pose or slide:
+  | Move | Today | Owner |
+  |---|---|---|
+  | Deflect flick and perfect-deflect flourish | retargeted, no code slot | T5 slot, animation builder |
+  | Death clip then ragdoll (pilot and crew) | ragdoll only | T5 slot, builder (drop the lying pose to the floor) |
+  | Interact (console, pickup, charge), board and exit the ship | cut to camera | builder (route A or B), T5 |
+  | Air slam fall and land | stand-in | Grok Bot r2, T5 slots |
+  | Combat idle with the blade lit | retargeted, no slot | T5 slot |
+  | Hit react rate-limited on bursts | restarts every bolt | T5 |
+  | Warden set: slam, fire, summon, stagger, phase roar; **capsule fix** (`//` in `TDCrewTypes.cpp`) | crew clips borrowed; hits land on a 40 / 90 capsule | Grok Bot clips, builder, T5 |
+  | Trooper rifle set, grunt melee, heavy shield stagger | template set | builder (Epic Animation Sample for locomotion), T5 |
+  | Foot IK on the terrain slopes | none | builder (route C), T5 |
+  | Landing gear and settle; generator petals; bay doors; reactor rings | placeholder / code | builder (route B), T1, T4, T5 |
+  The Epic Game Animation Sample's licence is confirmed and logged in `CREDITS.md` before first use (asset builder).
 
 #### ART-02 · Visual asset inventory & sourcing plan · `🟨`
 **🟦 Ryan since Nov 13 (asset management moved to Ryan's side).** The inventory of every asset, where it comes from, its licence and its state is kept by Ryan's Lead: `docs/eng/ASSETS.md` (ledger), `CREDITS.md`, `docs/eng/ART-HISTORY.md`. Sourcing is Grok Bot (generation) and engineering builders (code-built, imports). Nick's supplied-model intake (N-041, N-042) is a library Ryan's side selects from.
@@ -1370,6 +1793,10 @@ sign-off, and an asset of his at the Presentation name replaces ours.
   the template.
 - **Status and credits:** track each asset's status here or in `ArtSource/inventory.md`, and log
   licences in `CREDITS.md`.
+- **(Nov 13 evening) Still missing:** the ledger `docs/eng/ASSETS.md` complete for every asset in the cook (source, tool,
+  licence, state, who added it); the eight picks from Nick's intake (R-037, `docs/eng/ASSET-INTAKE-REVIEW.md`) imported or
+  dropped; every Grok Bot delivery's `SOURCE.md` carried into `CREDITS.md`; Epic's Animation Sample licence logged. Done
+  when the asset builder's diff of the cook against `CREDITS.md` finds no unlisted third-party or AI asset (feeds ART-14).
 
 #### ART-05 · Space environment & galaxy dressing · `🟨`
 **🟦 Ryan since Nov 13 (environment moved to Ryan's side).** The space sky, nebulae, galaxy dressing, lighting and post-process of `L_Galaxy` are built by engineering builders with Grok Bot's panoramas and textures, under the Lead. Today: the 8K sky and code-placed dressing are in the game. Nick's Hero sky work is a reference we may adopt, not a dependency.
@@ -1386,6 +1813,45 @@ sign-off, and an asset of his at the Presentation name replaces ours.
   foliage culling.
 - Hold the art budgets in `art-direction.md` and keep VFX and environment complexity within a steady
   60 fps on mid hardware. Profile with Ryan before the freeze.
+- **(Nov 13 evening) Still missing:** the lighting, fog, sky and grade pass is queued in `CLAIMS.md` (environment builder,
+  map World Settings claimed first). Done when each of `L_MainMenu`, `L_Galaxy`, both planets (orbit, descent, play zone)
+  and `L_Dominion_Interior` (normal, alarm and collapse states) has a before / after capture at gameplay distance, the
+  squad / enemy colour code still reads, and the frame rate holds (ENG-28). The scalability preset is wired with ENG-45.
+
+#### ART-17 · Walkable hard-surface structure kit (R-043, Ryan Nov 13 evening) · `⬜`
+**🟦 Ryan.** "Nothing the player walks on, into or through is an AI-generated mesh." Owner: the Lead's **structures
+builder** (Blender, `blender-game-asset` corridor kit), Grok Bot for measured plans, trim sheets and decals; T5 fits each
+site.
+- A modular kit on a 50 cm grid with bevelled edges, one trim-sheet material (2K, normal and roughness; Verdance-teal and
+  Cinder-ember emissive strips), collision equal to the visual floor; doorways at least 140 x 240 cm, ceilings at least
+  280 cm, ramps at most 20°, 150 cm clear in front of a console.
+- Sites, each keeping its `BP_` name so gameplay is unchanged: the Verdance survey station (re-dressed research site) and
+  console; the relay climb (if ENG-25 keeps it); the Verdance wreck interior; the Cinder survey station and dig cabin (#69
+  re-made or given a ramp proxy); the Dominion hangar, corridors, arena, Warden room, reactor chamber and the docking bay
+  interior (ART-15).
+- AI meshes become concept reference, exterior shells out of reach or distant dressing; replaced versions are listed in
+  `docs/eng/ART-HISTORY.md`. The on-foot pawn collides with parked ships (T1, done per R-043).
+- **Done when:** each site is walk-tested with the real pawn in both cameras (no sinking, no snagging, no walking through
+  walls), captured, and Ryan has seen it.
+
+#### ART-18 · Story set pieces and clue props (CORE) · `🟨`
+**🟦 Ryan.** Grok Bot (distant and non-walkable meshes, R-042 queue), ship / structures / effects builders (import,
+sockets, effects), T4 and T5 (placement). Each is done when it is seen in a played run at the beat it serves.
+| Piece | Beat | State (R-042) |
+|---|---|---|
+| Null transport / hauler, convoys on the lanes | Verdance and Cinder approaches | mesh #68 merged; import and convoy wiring next |
+| Verdance survey station, console, dormant drone with a blue optic and three light pulses | Cinematic 03 | outpost and console #50 merged; drone prop and its light beat new |
+| Ancient relay | Verdance | #64 merged (walkability per ART-17) |
+| Survey instruments on one buried line | Verdance route | new (small props) |
+| Cinder dig site and drill rig | Cinder | #69 merged; import by the structures builder |
+| Field anchor tower #52 with a separate emitter and a charge base | Cinder objective 4 | queued (next) |
+| Crystal cache and hero crystal #53 | Cinder objective 3 | queued |
+| One ancient-technology artefact, the same on both planets and in the reactor chamber | storyline §6 clue | new |
+| Triad's insignia shape under damaged enemy armour (ships and troopers) | storyline §6 clue | new (decal or damage variant) |
+| Shield generator (base ring stays as wreckage) | Assault | queued |
+| Dominion hull r2, docking bay mouth #54 | Assault, docking | hull r1 #70 merged; r2 and #54 queued |
+| *Aftermath*'s Dominion light row pulsing in the navigation rhythm | Act 1 | new (material parameter, T4 / effects builder) |
+| Outpost and pad set dressing #40 | Both planets | queued |
 
 ### Boarding finale (WANTED since Nov 13, Ryan; story acts 4 and 5; was stretch)
 
@@ -1393,6 +1859,10 @@ sign-off, and an asset of his at the Presentation name replaces ours.
 **Story (act 4):** the squad breaks through the field and boards. Plan (T4, Nov 13): docking bay opens when the defences are down, an approach cone with a tractor assist that never fully locks before the mouth, one travel into the interior, wingmen hold outside.
 `ATDDockingBay` approach cone with a tractor-beam assist that reduces control, then
 `TravelTo(DominionInterior)`; the hangar landing hands off to first person (§8).
+- **(Nov 13 evening)** Built by T4 (docking and the escape flight are done on `lead/int`, `CLAIMS.md`). Still missing
+  (Cinematic 07, §26): the `C7_*` pair fired on docking commitment; attack pressure off from commitment to the travel;
+  confirm the ship docked in is the ship flown out and that the wingmen rejoin (T4, T5); the tractor beam effect and the
+  docking shot (ART-16); the bay mouth matching hull r1 (ART-18). Done when docking is played from each of the three ships.
 
 #### ENG-30 · Dominion interior encounters & core fight · `🟨` WANTED (Nov 13)
 **Story (act 4, The Truth):** familiar military architecture, doors and consoles keyed to the pilots' identities, and an interactable console with a recording of their older selves in each room (hook with a placeholder line; Nicholas's words and voices). The core fight is the choice of act 5.
@@ -1402,12 +1872,40 @@ sign-off, and an asset of his at the Presentation name replaces ours.
 - **Core fight, phase 2:** a sweeping laser; the heart is vulnerable whenever the rings align, every
   6 s.
 - **Core fight, phase 3:** at 25% health, everything speeds up.
+- **(Nov 13 evening) As built and still missing** (`storyline.md` §27-29, `docs/story/story-0708-actions.md` b1-b14).
+  Built from code (`Ground/Interior/TDDominionInteriorCourse.inl`, T5) and played end to end: hangar → deflect corridor →
+  flight-deck arena (three waves) → Warden's gate → reactor chamber (four conduits, then the heart; 150 health). The
+  phase 2 and 3 beats above (sweeping laser, ring timing, acceleration) are **not built**, and Nicholas's documents forbid
+  a mandatory perfect-deflect gate: Ryan decides whether any is built (complete-game contradiction 9). Still missing:
+  1. rooms fold the documents' route: the arena plays the barracks, the Warden-room door is the security checkpoint
+     ("ACCESS GRANTED · WREN · KATO · MOSS" and the three-pulse sound), the arena-exit console is the command archive (T5);
+  2. the four consoles take the four recordings in route order, the first with an **Unknown** speaker; arena consoles
+     answer only once the room is clear (T5, T3);
+  3. **the reveal gate:** the core console moves to the threshold before the reactor door; the door stays shut until it
+     is used; using it saves the evidence, holds combat and plays Cinematic 08 (ENG-42); then the door opens, the
+     checkpoint saves and "Break the reactor conduits" starts (T5 about 2 h, T3 about 1.5 h);
+  4. player-facing words: "THE REACTOR" (not "THE CORE"), "BREAK THE REACTOR CONDUITS 0 / 4", "DESTROY THE REACTOR HEART";
+     the first objective "Reach the command archive" (T5);
+  5. one source of pressure in the reactor room (a few drones or two troopers per conduit), telegraphed (T5);
+  6. the `G8_*` lines on the conduit, heart and completion events (T5, T3);
+  7. the interior built walkable from the kit (ART-17), lit with alarm states (ART-13, ART-15);
+  8. a retake in the fight restarts it from 0 / 4 with the shield up, never repeats the Warden (told to Nicholas).
+  Done when the interior is played start to finish from Continue and from a fresh dock, the reveal heard in full once.
 
 #### ENG-31 · Escape run & escape flight · `🟨` WANTED (Nov 13)
 **Story (act 5, The Choice):** the escape plays with time visibly failing (echoes, repeats); after the breakup the victory screen receives the distress signal with the squad's own identifiers.
 - **Escape run:** a 90 s run back to the hangar on a changed route.
 - **Escape flight:** a 60 s flight out through the falling debris, then the breakup sequence and
   victory. Failing either restarts it as the next take.
+- **(Nov 13 evening) As built and still missing** (`storyline.md` §29-31). Built: the run (`Obj_DI_Escape`, 90 s,
+  starting 2.5 s after the heart dies, debris down the route, all doors open, a retake at the reactor exit with the full
+  clock); the flight as its own scene (checkpoint at the hangar mouth, debris and quickening explosions, done beyond the
+  exit radius, then victory). There is **no changed route** (same rooms, doors open): accepted in reduced form unless
+  Nicholas objects. Still missing: the first direction marker visible at the run's start (T5, T2); `G9_*` lines at the
+  run's start, the hangar trigger and regained flight control (T5, T4, T3); "time failing" as repeated alarms and hull
+  sounds on the run's events (Nick's audio, ENG-35 fallback; visuals are polish); the escape music keyed to the run's start
+  (ART-19); the 60 s flight limit and its retake values confirmed in a played run and told to Nicholas (T4); the breakup at
+  trailer quality (ENG-37). Done when both halves are played, failed once each and retaken.
 
 ---
 
@@ -1435,6 +1933,15 @@ the mix, lighting and look, menus and the Director's Cut presentation, voice, th
 | ART-13 lighting, post-process | 🟨 | **🟦 Ryan** (moved to §5, Nov 13 afternoon) | None |
 | ART-14 submission | ⬜ | Trailer capture pipeline, `CREDITS.md`, `DEVLOG.md` | **Priority 5** |
 | ART-15, 16 boarding | 🟨 WANTED (Ryan, Nov 13) | Engineering builders make the interior kit as a fallback; effects builder for the collapse | Lighting and alarm states of the interior; the recordings' voices (ART-11) |
+| ART-19 music and cue playback wiring | 🟨 tracks delivered (N-045) | T7 is the fallback | **Assigned to Nick's side by Ryan's Lead (Ryan, Nov 13)** |
+| ART-20 independent reviews of Ryan's lanes | ⬜ | Ryan's Lead's reviewer sub-agents | **Assigned to Nick's side by Ryan's Lead (Ryan, Nov 13)** |
+| ART-21 playtest checklists and per-act scripts | ⬜ | T7 | **Assigned to Nick's side by Ryan's Lead (Ryan, Nov 13)** |
+
+**(Nov 13 evening) Ryan: "feel free to give Nick's agents more work. Probably not art related because his computer is
+not as strong as mine ... You are the lead of everything."** So Ryan's Lead assigns Nick's side light work by default:
+audio and music playback wiring, UI and menus, story words and barks, independent code reviews, the submission, and docs.
+Nothing heavy (Niagara, Blender, cooks, terrain, big builds) goes to Nick's side. Nicholas still decides his own art,
+audio and story direction within these items, and may hand any of them back on the board.
 
 **Start here (role brief, Day 1 focus):** establish the art direction and the visual asset inventory,
 make the ships readable, and do a minimal combat presentation pass alongside Ryan's playable
@@ -1479,6 +1986,23 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
   between keyboard/mouse and gamepad.
 - **Director's Cut UI:** pilot name cards on switch (C-03 #1); scene slate cards and the "CUT!" /
   next-take restart (C-03 #3); takes per scene on the victory screen.
+- **(Nov 13 evening) The screens the complete game needs, assigned to Nick's side by Ryan's Lead (Ryan, Nov 13).** The
+  flight HUD itself is ENG-36. Each screen has an engineering fallback today and is done when Nick's version is on `main`
+  through its `UTDUIStyle` class, works by keyboard, mouse and pad, and is captured in a packaged build:
+  | Screen | Fallback today | Nick's side delivers | Hook |
+  |---|---|---|---|
+  | Main menu | code-built (New Game, Continue, Settings, Quit) | MenuM01 (#71 handoff), focus fix | `MainMenuWidgetClass` |
+  | "Skip the tutorial" prompt | none (ENG-41) | a two-button prompt in the menu style | ENG-41 exposes the call |
+  | Pause (Resume, Settings, Restart scene, Quit to menu) | code-built | styled page | `PauseWidgetClass` |
+  | Settings and accessibility (ENG-32, ENG-45 rows) | code-built | styled page, N-038 focus fixes | `SettingsWidgetClass` |
+  | Loading (still used for the interior travel and any fallback travel) | code-built | Loading01 | `LoadingWidgetClass` |
+  | Ability unlocked (Gravity Well, Cloak, EMP) | fallback card | `WBP_AbilityUnlocked` | `OnAbilityUnlocked` |
+  | Subtitle line (barks and transmissions; speaker colour; size option) | dev HUD line | styled line | `OnBarkRequested`, transmission slot |
+  | Objective panel polish (objective line, step counts, timers) | ENG-36 | fonts and tokens for T2 | `GetObjectiveText` |
+  | Director cards (slate, CUT!, name card, letterbox; a take number that glitches from Cinder on) | fallback set | the designed set (ART-12) | `DirectorWidgetClass` (N-038) |
+  | Victory (takes per scene, run stats, the stinger caption held) | code-built | styled panel | ENG-44 |
+  | Credits roll | code-built | styled roll; text from `CREDITS.md` | ENG-44 |
+  The galaxy map is not required for the complete game (final polish, item 28).
 
 #### ART-10 · Audio & music · `⬜`
 - **Space SFX:** engine loops per ship that rise in pitch with throttle, drift screech, every
@@ -1494,6 +2018,13 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
 - **Mix:** sound classes and submixes (Master, Music, SFX, VO, UI) wired to Settings; music ducks
   under VO.
 - **Sources:** licensed only (e.g. the WeLoveIndies jam pack: non-commercial), logged in CREDITS.md.
+- **(Nov 13 evening) Music the complete game needs, per beat** (from N-044's ranked list and the story; Nicholas decides
+  every track; wiring is ART-19; engineering's beds in ENG-35 fill any gap): menu (on `main`); intro score; tutorial
+  prelude and loop with the 20 s exit on the withdrawal (#24, in progress); combat rising with `MusicIntensity01` for waves
+  3-5 (CombatMusic01); Verdance theme (delivered); a Cinder on-foot cue; the descent arrival swell; the Dominion assault
+  (Infinity Zone proposed); the interior loop (delivered); a reactor-fight loop; the 90 s escape cue on the hit 2.5 s after
+  the heart dies; victory warmth interrupted at the 18 s stinger; credits (delivered). Quiet by design: Cinematics 03 and
+  05 and the console recordings. Done when each is heard in its beat in a played build and Nicholas approves the mix by ear.
 
 #### ART-11 · Narrative presentation: barks, VO, intro · `⬜`
 **Story (Nov 13):** this item is now the voice of *The Paradox*: pilot barks in character (Wren bold, Kato analytical, Moss steady), the transmissions (static, then human voices, then the pilots' own voices), the recordings inside the Dominion, intro narration and the ending distress signal. Engineering fires the events with placeholder lines; your text and audio replace them (`storyline.md` §5, §10).
@@ -1503,6 +2034,18 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
 - **Intro sequence (30–45 s, skippable):** the squad over Verdance's ring, then the Armada warps in.
   **(Nov 12, Ryan)** Engineering builds the intro as real-time shots in code (ENG-33); presentation supplies
   narration voice, music, the grade and optionally its own Level Sequence (`UTDUIStyle::IntroSequence`).
+- **(Nov 13 evening) Words the complete game needs, assigned to Nick's side by Ryan's Lead (Ryan, Nov 13)** (Nicholas
+  owns the wording; T3 seeds drafts so nothing is mute). Done when each has an approved row by id in `DT_Barks` /
+  `DA_Story_Transmissions`, or Nicholas accepts the draft:
+  1. **Answers first** (they block engineering): COMMAND or Control; who boards (neutral lines, a variant per pilot, or
+     always Wren); the three-pulse definition (interval and tone, shared by the intro, Cinematic 03, the checkpoint door and
+     Cinematic 08); the stinger caption; the Cinematic 08 readout; `G6_Wren_CoverTheBay` against Cinematic 07's first line;
+     `A5_Choice` and `A5_Escape` kept, reworded or replaced; tags for the Future voices after the reveal.
+  2. The lines of every sequence in ENG-42 (about 28 new ids for 07-09, plus `C3_`-`C6_`, `G6_`, waves 3-4).
+  3. Every `dialogs.md` id (ENG-43), in character.
+  4. Victory, credits and on-screen texts (door access texts, objective titles if he rewords them).
+- **Voice:** the approved pickup sheet first (the Story Director's C08 exchange is in progress), then the intro and
+  mission lines, then barks; the one shared "Don't-" asset (Audio, `ArtSource/Audio/FirstContact01/`); radio filter.
 
 #### ART-12 · Cinematics & the Director's Cut presentation · `⬜`
 **Story (Nov 13):** slate, "CUT!" and name cards can lean into the paradox (a take number that glitches from Cinder onward; `storyline.md` §7).
@@ -1513,12 +2056,62 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
   - director-cam rigs, framing and grade for the slow-motion highlight moments
   - scene slate cards and the "CUT!" restart
 - **Trailer capture:** Movie Render Queue shots for ART-14.
+- **(Nov 13 evening)** The sequences above are now played as voice-over scenes and transmissions (ENG-42); none needs a
+  Level Sequence for the game to be complete. Still Nick's: the designed card set (slate, CUT!, name card, letterbox) on
+  `DirectorWidgetClass` (N-038), the take number that glitches from Cinder on (storyline §7), and the shot choices for the
+  trailer re-capture. Heavy capture and rendering stay on Ryan's side (T3's `Tools/td-trailer.ps1`).
 
 #### ART-14 · Submission presentation · `⬜`
 - **Gameplay video (30–60 s):** gameplay in the first 5 seconds. Dogfight → switch "cut" → portal
   missile return → ram → planet landing → blade deflect → Dominion reactor.
 - **itch.io page:** cover art, 5+ screenshots and a GIF, the description, controls, credits and
   "Tools you used". Compile the **dev log** (Glass Box prize) from `DEVLOG.md` with Ryan.
+- **(Nov 13 evening) The submission package, assigned to Nick's side by Ryan's Lead (Ryan, Nov 13)** except where a row
+  says otherwise. Target: submitted by Nov 15 about 15:00 EST, re-uploads until 19:00 at the latest. Each row is done when
+  it is on the itch page or in the jam form and both humans have read it:
+  | Deliverable | Done when | Owner | State |
+  |---|---|---|---|
+  | Packaged Windows build `TeamName_GameName.zip`, under 1 GB, uploaded (butler if needed) | ENG-28 size gate; G4 played from download | Lead (Ryan's side) | 🟨 |
+  | Gameplay video, 30-60 s, gameplay in the first 5 s | Shot list (`docs/visual/Submission/trailer-45s.json`) updated to the final beats; footage re-captured after the final ships and effects (T3); the edit with music by Nick's editor | Nick's side (edit, shot list), T3 (capture) | 🟨 |
+  | itch page text: description, controls (KB / M and pad), screenshots (5+), a GIF, cover and banner | `docs/visual/Submission/itch-page.md` complete; images from the final build | Nick's side | 🟨 |
+  | Dev log write-up for the Glass Box prize | A readable story of the jam from `DEVLOG.md` and both sides' boards, with AI workflows that worked and failed | Nick's side, Ryan's Lead supplies facts | ⬜ |
+  | `CREDITS.md` audit: every third-party and AI asset with source, tool, licence and who added it; "Tools used" (Claude Code, OpenAI Codex, Hyper3D Rodin, fal, PBRgen, Grok, Meshy, Tripo, Unreal MCP, Blender); pre-jam declarations (skills and scripts set up before Nov 12) | Checked against the asset builder's cook diff (ART-02) | Nick's side | 🟨 |
+  | Team name, members' names and Epic-account emails, game name in the form | Entered by the humans themselves | Ryan and Nicholas | ⬜ |
+  | Optional web build | Not in any plan so far; Ryan decides (default: none) | Ryan | ⬜ |
+
+#### ART-19 · Music and cue playback wiring (assigned to Nick's side by Ryan's Lead, Ryan, Nov 13) · `🟨`
+Moved from T7 (`CLAIMS.md` "Music hookups", N-045) to Nick's side; **T7 is the fallback** if it is not on `main` by Nov 14
+noon. Light work: no cooks of the whole game, no Niagara, no Blender.
+- Nick's side binds its delivered tracks and cues in `Plugins/TriadDriftHUD` and its `DA_*` presentation assets, listening
+  to the gameplay events of §3.4 and the story events (`OnPhaseChanged`, `OnWaveStarted(Intensity01)`, `OnTakeStarted`,
+  transmissions, the objective and completion events, `UTDAudioStateSubsystem`). Ryan's side only exposes any missing
+  event or `UTDUIStyle` slot, on request on the board, within the hour.
+- In this order: credits (CreditsMusic01, from the roll); Dominion interior loop (from the hangar, yielding to combat);
+  Verdance theme (from arrival after the descent reveal, ducking at the terminal, fading on take-off); tutorial prelude
+  and loop (#24); then the descent arrival, Cinder, assault, reactor, escape and victory cues as Nicholas delivers them
+  (ART-10 list).
+- **Done when:** each cue is heard at its beat in a played Development build from `main` (Audio's own `-Audio` capture is
+  fine), loops and fades as stated, and the Shipping cook has it (Ryan's Lead checks the packaged build).
+- Depends on ART-10 (the tracks), ENG-42 and ENG-44 (the events).
+
+#### ART-20 · Independent code reviews of Ryan's lanes (assigned to Nick's side by Ryan's Lead, Ryan, Nov 13) · `⬜`
+AGENTS.md §11 "Independent review": every lane is reviewed by an agent that did not write it before its item can be 🟢.
+Reading diffs is light work, and Codex is a reviewer that did not write the code.
+- Per review: the item's text here is the spec; findings as BLOCKER / MAJOR / MINOR, each with a concrete failure (input,
+  expected, actual, file and line); posted on the board as `Review: ENG-xx`; Ryan's Lead routes fixes and asks for the
+  re-check.
+- Queue, by what unblocks 🟢 soonest: ENG-41 and ENG-40 (tutorial), ENG-42 (sequences and the story test), ENG-30 (reveal
+  gate), ENG-44 (ending), ENG-29 and ENG-31, ENG-36 (HUD states), ENG-45, ENG-38 stage 1, ENG-39, ENG-34, ENG-35 code side.
+- Read-only: Nick's agents review from `main` or a published branch and edit nothing of Ryan's.
+- **Done when:** every item in the complete-game checklist has one closed review on record.
+
+#### ART-21 · Playtest checklists and per-act test scripts (assigned to Nick's side by Ryan's Lead, Ryan, Nov 13) · `⬜`
+- One script per act (front end and Act 1, Verdance, waves 3-4 and Cinder, assault and docking, interior and reveal,
+  reactor, escape and ending) in `docs/visual/` (Nick's docs folder): the steps a tester performs, what must be seen and
+  heard at each beat (lines by id, music, HUD state), the retake and Continue checks, the expected time.
+- Plus the presentation checklist of AGENTS.md §11 per act (silhouettes, colour code, clipping, sound in context).
+- T7 runs them in the playtest lane (ENG-46); the humans use them at gates G1-G4.
+- **Done when:** T7 has run every script once on `main` and logged the result in `docs/eng/PLAYTEST-*.md`.
 
 ### STRETCH: boarding finale visuals
 
@@ -1527,10 +2120,18 @@ making, cleaning up and exporting 3D assets. The palettes and budgets are in
   catwalk, door) in gloss black with red strips; giant eye lenses that track the player.
 - **Core chamber:** the white-light reactor with rotating rings, plus the collapse and alarm states
   for the escape run.
+- **(Nov 13 evening) Correction:** WANTED, not stretch (Ryan, Nov 13), and **🟦 Ryan's** since the afternoon of Nov 13 (§1:
+  Environment and VFX moved). The kit is built walkable per ART-17 (50 cm grid, trim sheet; the 400 cm module above becomes
+  eight grid cells); lighting and alarm and collapse states by the environment builder (ART-13); the reactor rings turn
+  (ART-08). State: interior played end to end on the engineering kit; walkable rebuild not started (`🟨`).
 
 #### ART-16 · Boarding & escape cinematics/VFX · `⬜` STRETCH
 Tractor-beam docking shot, hangar landing, core-destroyed sequence, escape debris and explosion
 VFX, and the squad's launch from the hangar.
+- **(Nov 13 evening) Correction:** WANTED and **🟦 Ryan's** (effects builder, T3 for camera beats). For the complete game:
+  the tractor beam, the reactor heart's death, interior collapse and debris, the hangar-mouth launch, and the breakup
+  (ENG-37). The docking and core sequences play as the travel plus lines (ENG-42), so no Level Sequence is required.
+  State: debris and explosions exist in the escape flight (T4); the rest not started (`🟨`).
 
 ---
 
@@ -1610,6 +2211,15 @@ Effects builder (tracers, explosions ─► engines, shields ─► powers) ─�
 T2 HUD second pass ─► default HUD ─► Nick's fonts / tokens ─► on-foot HUD
 Fallback sounds on main ─► ear pass (Ryan / Nicholas) ─► Nick's music + mix
 Everything ─► human playthrough ─► fixes ─► packaged build ─► video + page ─► submit
+```
+
+**Complete-game order (Nov 13 evening):**
+```
+Nicholas's answers (ART-11 #1) ─► T3 seeds ids (ENG-42) ─► each lane fires its lines ─► story test ─► ART-20 review
+ENG-40 withdrawal ─► ENG-41 skip ─► ENG-42 Aftermath          ENG-30 reveal gate ─► Cinematic 08 queue ─► reactor fight
+ENG-25 / 26 reduced forms ─► ART-17 walkable sites ─► ART-18 props ─► ART-13 lighting ─► planets replayed
+ENG-18 assault pass ─► ENG-29 docking lines ─► ENG-31 escape lines ─► ENG-44 ending ─► ART-19 music on every beat
+ENG-47 decision (Nov 14 20:00) ─► ENG-28 size + perf ─► ENG-46 gates G1-G4 ─► ART-14 submit (Nov 15 ~15:00)
 ```
 
 **Biggest risks (start early):**

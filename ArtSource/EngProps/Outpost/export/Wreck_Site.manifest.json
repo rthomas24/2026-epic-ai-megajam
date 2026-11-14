@@ -1,0 +1,45 @@
+{
+  "site": "Wreck_Site",
+  "about": "The Verdance crashed transport (Grok Bot's Rodin mesh, 32 m) with two fallen-deck-plate ramps up to its ruptured midsection, failing lights and collision. Unreal cm, site-relative; the site pivot is the mesh pivot: on the ground at the centre of the hull. +X is the nose. The ruptured opening goes right through the ship along Y; a ramp on each side.",
+  "ready_made_actor": "/Game/TriadDrift/Gameplay/Props/Wreck/BP_Wreck",
+  "pieces": [
+    {
+      "name": "Wreck",
+      "mesh": "/Game/TriadDrift/Gameplay/Props/Wreck/SM_Wreck",
+      "location_cm": [0.0, 0.0, 0.0],
+      "rotation_deg": [0.0, 0.0, 0.0],
+      "scale": 1.0,
+      "material": "/Game/TriadDrift/Gameplay/Props/Wreck/MI_Wreck",
+      "bounds_cm": {"min": [-1600.0, -1006.4, -40.0], "max": [1600.0, 1006.4, 1171.7]},
+      "collision_hulls": 15,
+      "note": "Everything below Z = 0 is the ramp props (40 cm). Material slot 0: the three failing lights under the opening's ceiling are scalar LightPower (0 off, 1 on) x GlowStrength (14) x GlowColor (warm orange). Flicker them by animating LightPower on a dynamic instance."
+    }
+  ],
+  "core_interact": {
+    "stand_at_site_cm": [75.0, 0.0, 252.0],
+    "pilot_faces_yaw_deg": 0.0,
+    "note": "There is no modelled core in the mesh: the objective's core pickup goes on the deck at the centre of the opening (deck top Z 252). The pilot faces the nose (+X); the ceiling lights are at site (40, 140, 562), (190, -120, 564) and (-90, -60, 570)."
+  },
+  "walk_path_site_cm": [
+    {"at": [75.0, -1150.0, 0.0], "what": "ground in front of the -Y ramp (toe at Y = -992)"},
+    {"at": [75.0, -650.0, 130.0], "what": "on the -Y ramp (20 degrees, 206 cm between the rails)"},
+    {"at": [75.0, -300.0, 252.0], "what": "the -Y deck lip"},
+    {"at": [75.0, 0.0, 252.0], "what": "the deck in the opening (core point)"},
+    {"at": [75.0, 300.0, 252.0], "what": "the +Y deck lip"},
+    {"at": [75.0, 1150.0, 0.0], "what": "ground beyond the +Y ramp (toe at Y = +992)"}
+  ],
+  "walkability_cm": {
+    "deck_top_z": 252.0,
+    "deck_extent": {"x": [-225.0, 375.0], "y": [-300.0, 300.0]},
+    "visual_floor_z_in_opening": [242.0, 258.0],
+    "ceiling": {"collision_underside_z": 548.0, "visual_z": [535.0, 583.0], "clear_height_over_deck": 283.0},
+    "opening_clear_width_along_x": {"collision": 600.0, "visual_clear": "X -75..350 at Z 400 (425); Grok Bot's largest clear rectangle X -56..304 (360)"},
+    "ramps": {"x": [-40.0, 190.0], "width": 230.0, "clear_between_rails": 206.0, "slope_deg": 20.0, "run": 692.4, "rise": 252.0, "y_minus_side": [-992.4, -288.0], "y_plus_side": [288.0, 992.4], "rail_guard_height_above_ramp": 48.0},
+    "deck_lip_as_delivered": "252 at the ramps (Grok Bot measured 276.9 as the lowest edge of the largest clear rectangle); the hanging stairs as delivered drop at 42 degrees to 97 cm above the ground and are covered by the ramps"
+  },
+  "placement_rules": [
+    "Put the site pivot ON the ground. Keep 3 m of flat ground beyond each ramp toe (site X -40 to 190, Y -1300 to -992 and 992 to 1300).",
+    "Nothing under the hull: it rests on the ground along its length; on slopes sink it up to 40 cm rather than leave the belly floating.",
+    "Yaw it freely; never scale it (the opening and the ramps are sized for the 180 cm pilot)."
+  ]
+}

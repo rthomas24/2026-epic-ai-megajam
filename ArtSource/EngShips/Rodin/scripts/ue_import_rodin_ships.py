@@ -62,15 +62,33 @@ SHIPS = {
                  # slot M_Rift_Parts with its own maps, and a separate portal disc attached at the Portal socket.
                  # Remove "kit" (and "parts") to go back to the plain Rodin Rift in ArtSource/EngShips/Rift
                  # (then rough=1.9, and rs_extras adds the ring band, a masked portal and the glow cores).
-                 kit=os.path.join("RiftHero", "export"), parts_emissive=8.0,
-                 # the parts' maps are dark, glossy and partly metallic (mean roughness 0.29, metallic 0.42): in the
-                 # engine the ring and engine block read as black chrome, so they are roughened and lifted a little
-                 parts_rough=1.7, parts_tint=(1.5, 1.5, 1.5),
+                 kit=os.path.join("RiftHero", "export"), parts_emissive=2.2,
+                 # the parts' maps are dark, glossy and partly metallic (median albedo 0.17 sRGB, mean roughness 0.29,
+                 # metallic 0.42): in the engine the ring and engine block read as black chrome. A plain BaseTint gain
+                 # (2.6) only blew out the white panels, so the darks are lifted to a grey floor instead
+                 # (BaseFloor), metal is cut and the gloss calmed.
+                 parts_rough=1.8, parts_tint=(1.3, 1.3, 1.3), parts_floor=0.07, parts_metal=0.3, parts_self_light=0.1,
+                 trail_scale=0.6, portal_brightness=1.0, portal_max=2.5,
+                 portal_fill="/Game/TriadDrift/Gameplay/VFX/Materials/MI_TD_VFX_RiftPortalVortex",
+                 # Close-range pass (Ryan in the Dominion hangar at 3-4 m, Nov 13): no chrome on the paint (metal cut,
+                 # roughness floor), the per-ship detail set tiled at about 0.8 m (UV 0..1 spans about 7.9 m of this
+                 # hull at its measured 258 texels per metre), faded out from 15 to 30 m.
+                 squad_detail=True,
+                 mi_params={"MetallicScale": 0.2, "RoughnessMin": 0.36, "DetailTiling": 10.0, "DetailStrength": 0.5,
+                            "DetailAO": 0.6, "DetailRough": 0.25},
+                 parts_params={"MetallicScale": 0.3, "RoughnessMin": 0.3, "DetailTiling": 8.0, "DetailStrength": 0.35},
                  parts=(("Portal", "SM_Rift_PortalDisc", "Portal"),)),
     "Lancer": dict(da=(SQUAD, "DA_Lancer_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Lancer", old_mi=None, squad=True, glow=SQUAD_GLOW["Lancer"],
-                   emissive=6.0, base_tint=(1.0, 1.0, 1.0), rough=1.45, self_light=0.08, detail=0.55),
+                   emissive=6.0, base_tint=(1.0, 1.0, 1.0), rough=1.45, self_light=0.08, detail=0.55, trail_scale=0.7, glow_strength=1.0,
+                   # close-range pass: 370 texels per metre at 2K, UV 0..1 spans about 5.5 m: tiling 7 = 0.8 m tiles
+                   squad_detail=True, tex_r2=("BC", "E"), mi_params={"MetallicScale": 0.25, "RoughnessMin": 0.36, "DetailTiling": 7.0,
+                                                 "DetailStrength": 0.5, "DetailAO": 0.6, "DetailRough": 0.25}),
     "Bastion": dict(da=(SQUAD, "DA_Bastion_Visuals", "TDShipVisuals"), old=SQUAD + "/SM_Squad_Bastion", old_mi=None, squad=True, glow=SQUAD_GLOW["Bastion"],
-                    emissive=6.0, base_tint=(1.5, 1.5, 1.5), rough=1.25, self_light=0.12, detail=0.55),
+                    emissive=6.0, base_tint=(1.5, 1.5, 1.5), rough=1.25, self_light=0.12, detail=0.55, trail_scale=0.7,
+                    glow_strength=0.55,
+                    # close-range pass: 193 texels per metre at 2K, UV 0..1 spans about 10.6 m: tiling 13 = 0.8 m tiles
+                    squad_detail=True, tex_r2=("BC", "E"), mi_params={"MetallicScale": 0.3, "RoughnessMin": 0.36, "DetailTiling": 13.0,
+                                                  "DetailStrength": 0.5, "DetailAO": 0.6, "DetailRough": 0.25}),
     # Null Armada: the Rodin albedo came out light silver; the brief is near-black armour, red-orange glow,
     # white eyes. BaseTint multiplies the albedo down; the emissive map keeps its own colours.
     "NullFighter": dict(da=(FLEET, "DA_Enemy_Fighter_Visuals", "TDEnemyVisuals"), old=FLEET + "/SM_Null_Fighter",
@@ -108,6 +126,32 @@ SUFFIX_PARAM = (("BaseColorTex", "BC"), ("ORMTex", "ORM"), ("NormalTex", "N"), (
                 ("HeatMaskTex", "HeatMask"))
 
 eas = unreal.EditorAssetLibrary
+SAVE_FAILURES = []
+
+
+class _CheckedSaves:
+    """EditorAssetLibrary with save_asset / save_loaded_asset checked: a package another process holds open (a
+    running game of this checkout, Windows error 32) fails to save silently otherwise, and the run looked OK."""
+
+    def __getattr__(self, name):
+        return getattr(unreal.EditorAssetLibrary, name)
+
+    @staticmethod
+    def save_asset(path, only_if_is_dirty=True):
+        ok = unreal.EditorAssetLibrary.save_asset(path, only_if_is_dirty)
+        if not ok:
+            SAVE_FAILURES.append(str(path))
+        return ok
+
+    @staticmethod
+    def save_loaded_asset(asset, only_if_is_dirty=True):
+        ok = unreal.EditorAssetLibrary.save_loaded_asset(asset, only_if_is_dirty)
+        if not ok:
+            SAVE_FAILURES.append(asset.get_path_name() if asset else "None")
+        return ok
+
+
+eas = _CheckedSaves()
 tools = unreal.AssetToolsHelpers.get_asset_tools()
 mel = unreal.MaterialEditingLibrary
 
@@ -151,11 +195,11 @@ def import_textures(files, dest, max_size, notes):
         if tex is None:
             notes.append("texture not imported: " + name)
             continue
-        if suffix == "N":
+        if suffix in ("N", "DetailN"):
             _set(tex, "compression_settings", tcs.TC_NORMALMAP, notes)
             _set(tex, "srgb", False, notes)
             _set(tex, "flip_green_channel", False, notes)      # Grok Bot's T_*_N are already DirectX
-        elif suffix == "ORM":
+        elif suffix in ("ORM", "DetailRM"):
             _set(tex, "compression_settings", tcs.TC_MASKS, notes)
             _set(tex, "srgb", False, notes)
         elif suffix == "HeatMask":
@@ -168,6 +212,28 @@ def import_textures(files, dest, max_size, notes):
         eas.save_loaded_asset(tex)
         out[suffix] = tex
     return out
+
+
+# Grok Bot's SquadDetail_r1 (PR #67): a seamless 1K detail normal + roughness / cavity map per ship, in that ship's
+# panel language. TD_SQUAD_DETAIL_DIR overrides the folder (a copy taken from origin/main before it is merged here).
+SQUAD_DETAIL = os.environ.get("TD_SQUAD_DETAIL_DIR") or os.path.join(REPO, "ArtSource", "EngAI", "Ships", "SquadDetail_r1")
+
+
+def detail_set(ship, dest, notes, mi_only):
+    files = {}
+    for suffix, tag in (("DetailN", "N"), ("DetailRM", "RM")):
+        p = os.path.join(SQUAD_DETAIL, "T_%s_Detail_%s.png" % (ship, tag))
+        if os.path.isfile(p):
+            files[suffix] = p
+    if not files:
+        return {}
+    if mi_only and all(eas.does_asset_exist("%s/T_%s_Detail_%s" % (dest, ship, t)) for t in ("N", "RM")):
+        return {s_: eas.load_asset("%s/T_%s_Detail_%s" % (dest, ship, s_[6:])) for s_ in ("DetailN", "DetailRM")}
+    got = import_textures(files, dest, 1024, notes)
+    for t in got.values():
+        _set(t, "never_stream", True, notes)
+        eas.save_loaded_asset(t)
+    return got
 
 
 def ensure_pipeline(notes):
@@ -218,9 +284,27 @@ def _node(mat, cls, x, y, props=None, **inputs):
     return n, good
 
 
-def _new_material(path, unlit=False, masked=False, two_sided=False, translucent=False):
+# TD_RODIN_REBUILD=Portal,Glow,Master rebuilds those graphs IN PLACE (the asset is kept and its graph emptied, so
+# every material instance keeps its parent: no delete, no re-parenting). Without it an existing graph is kept.
+REBUILD = set(s.strip() for s in os.environ.get("TD_RODIN_REBUILD", "").split(",") if s.strip())
+
+
+def _keep_or_clear(path, key):
+    """None = build it; an asset = an existing graph that must be kept (key not in REBUILD) is returned as
+    ("keep", mat); an existing graph to rebuild comes back emptied as ("clear", mat)."""
+    if not eas.does_asset_exist(path):
+        return None
+    mat = eas.load_asset(path)
+    if key not in REBUILD:
+        return ("keep", mat)
+    mel.delete_all_material_expressions(mat)
+    log("rebuilding %s in place" % path)
+    return ("clear", mat)
+
+
+def _new_material(path, unlit=False, masked=False, two_sided=False, translucent=False, existing=None):
     folder, name = path.rsplit("/", 1)
-    mat = tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
+    mat = existing or tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
     for flag in ("used_with_nanite", "used_with_instanced_static_meshes"):
         try:
             mat.set_editor_property(flag, True)
@@ -262,17 +346,75 @@ def _radius(mat, x, y):
     return uv, r, k1 and k2 and k3
 
 
+def _custom(mat, x, y, code, inputs, out_type, extra_outputs=(), desc=""):
+    """A Custom (HLSL) expression with named inputs {name: (node, output)}; extra_outputs = ((name, type), ...)."""
+    n = mel.create_material_expression(mat, unreal.MaterialExpressionCustom, x, y)
+    n.set_editor_property("code", code)
+    n.set_editor_property("output_type", out_type)
+    n.set_editor_property("description", desc)
+    ins = []
+    for name in inputs:
+        ci = unreal.CustomInput()
+        ci.set_editor_property("input_name", name)
+        ins.append(ci)
+    n.set_editor_property("inputs", ins)
+    outs = []
+    for name, t in extra_outputs:
+        co = unreal.CustomOutput()
+        co.set_editor_property("output_name", name)
+        co.set_editor_property("output_type", t)
+        outs.append(co)
+    if outs:
+        n.set_editor_property("additional_outputs", outs)
+    good = True
+    for name, (src, out) in inputs.items():
+        good &= mel.connect_material_expressions(src, out, n, name)
+    return n, good
+
+
+# The portal: three log-spiral arms turning around a dark, deep centre, broken up by noise sampled in polar space
+# (seamless in angle), a thin bright rim at the ring's inner edge. Emissive is limited by its brightest channel
+# (MaxEmissive), so bloom on the bright planets cannot flatten it into a pale disc and the hue survives the clamp.
+PORTAL_HLSL = r"""
+float2 p = UV - 0.5;
+float r = saturate(length(p) * 2.0);
+float a = atan2(p.y, p.x);
+float lr = log(max(r, 0.03));
+float t = T;
+float s1 = 0.5 + 0.5 * sin(Arms * a - Twist * lr + t * Speed);
+float s2 = 0.5 + 0.5 * sin(Arms * 2.0 * a - Twist * 1.55 * lr - t * Speed * 0.6 + 1.7);
+float2 q1 = float2(a * 0.4774648 + t * 0.035 - lr * 0.10, r * 1.3 - t * 0.11);
+float2 q2 = float2(a * 0.7957747 - t * 0.050, r * 2.2 - t * 0.19);
+float n1 = Texture2DSampleLevel(Tex, TexSampler, q1, 0).r;
+float n2 = Texture2DSampleLevel(Tex, TexSampler, q2, 0).r;
+float arms = pow(s1, Sharp) * 0.8 + pow(s2, Sharp * 1.5) * 0.35;
+float grain = saturate(n1 * 1.25 + n2 * 0.55 - 0.40);
+float env = smoothstep(Core, Core + 0.45, r) * (1.0 - smoothstep(0.84, 0.96, r));
+float energy = saturate(arms * (0.55 + 0.8 * grain)) * env;
+float rim = exp(-pow((r - RimPos) / RimWidth, 2.0)) * step(r, 0.999);
+float3 col = lerp(ColorCore, ColorHot, saturate(energy * 1.5));
+float3 e = col * energy * 1.7 + RimColor * rim * RimBoost + ColorCore * Deep;
+e *= (0.35 + 1.65 * Power) * Brightness;
+float peak = max(max(e.r, e.g), max(e.b, 1e-4));
+e *= min(1.0, MaxE / peak);
+Opacity = saturate(OpBase + CoreOpacity * (1.0 - smoothstep(0.0, 0.7, r)) + energy * 0.9 + rim) * step(r, 0.995);
+return e;
+"""
+
+
 def ensure_portal(noise):
     """M_TD_RiftPortal: unlit, translucent, two-sided (for a separate, non-Nanite disc mesh; UV centre 0.5 0.5,
-    radius 0.5). Swirling energy: two noise layers rotating at different speeds and twisted towards the centre, a
-    bright rim, a fresnel edge, a soft see-through centre and a depth fade where the disc meets the ring.
-    PortalPower 0..1 (default 0.5 = idle) drives the brightness. With TD_PORTAL_MASKED=1 in the environment it is
-    built masked + dithered instead, for a disc that is a slot of a Nanite ship mesh."""
-    if eas.does_asset_exist(PORTAL):
-        return eas.load_asset(PORTAL)
+    radius 0.5). PORTAL_HLSL: spiral arms over a dark centre, polar noise, a thin rim, emissive limited by
+    MaxEmissive, a depth fade where the disc meets the ring. PortalPower 0..1 (default 0.5 = idle) drives the
+    brightness. With TD_PORTAL_MASKED=1 in the environment it is built masked + dithered instead, for a disc that
+    is a slot of a Nanite ship mesh."""
+    have = _keep_or_clear(PORTAL, "Portal")
+    if have and have[0] == "keep":
+        return have[1]
     E = unreal
     as_masked = bool(os.environ.get("TD_PORTAL_MASKED"))
-    mat = _new_material(PORTAL, unlit=True, masked=as_masked, two_sided=True, translucent=not as_masked)
+    mat = _new_material(PORTAL, unlit=True, masked=as_masked, two_sided=True, translucent=not as_masked,
+                        existing=have[1] if have else None)
     ok = True
 
     def P(name, value, x, y):
@@ -284,87 +426,74 @@ def ensure_portal(noise):
                      {"parameter_name": name, "default_value": unreal.LinearColor(rgb[0], rgb[1], rgb[2], 1.0)})
         return n
 
-    uv, r, k = _radius(mat, -2400, 0); ok &= k
-    inv, k = _node(mat, E.MaterialExpressionOneMinus, -1800, 100, In=(r, "")); ok &= k
-    time, _ = _node(mat, E.MaterialExpressionTime, -2400, 400)
-    speed_a, speed_b = P("SwirlSpeedA", 0.35, -2400, 500), P("SwirlSpeedB", -0.22, -2400, 600)
-    twist = P("Twist", 2.5, -2400, 700)
-
-    def layer(speed, twist_scale, tiling, centre, y):
-        good = True
-        t1, k = _node(mat, E.MaterialExpressionMultiply, -2100, y, A=(time, ""), B=(speed, "")); good &= k
-        tw, k = _node(mat, E.MaterialExpressionMultiply, -2100, y + 100, {"const_b": twist_scale}, A=(inv, "")); good &= k
-        tw2, k = _node(mat, E.MaterialExpressionMultiply, -1950, y + 100, A=(tw, ""), B=(twist, "")); good &= k
-        tt, k = _node(mat, E.MaterialExpressionAdd, -1800, y, A=(t1, ""), B=(tw2, "")); good &= k
-        suv, k = _node(mat, E.MaterialExpressionMultiply, -1950, y - 100, {"const_b": tiling}, A=(uv, "")); good &= k
-        rot, k = _node(mat, E.MaterialExpressionRotator, -1650, y, {"center_x": centre, "center_y": centre, "speed": 1.0},
-                       Coordinate=(suv, ""), Time=(tt, "")); good &= k
-        tex, k = _node(mat, E.MaterialExpressionTextureSampleParameter2D, -1450, y,
-                       {"parameter_name": "NoiseTex", "texture": noise,
-                        "sampler_type": unreal.MaterialSamplerType.SAMPLERTYPE_LINEAR_GRAYSCALE}, UVs=(rot, "")); good &= k
-        return tex, good
-
-    n1, k = layer(speed_a, 1.0, 1.0, 0.5, 900); ok &= k
-    n2, k = layer(speed_b, -0.64, 1.9, 0.95, 1300); ok &= k
-    prod, k = _node(mat, E.MaterialExpressionMultiply, -1150, 1000, A=(n1, "R"), B=(n2, "R")); ok &= k
-    prod2, k = _node(mat, E.MaterialExpressionMultiply, -1000, 1000, {"const_b": 2.6}, A=(prod, "")); ok &= k
-    base, k = _node(mat, E.MaterialExpressionMultiply, -1150, 1150, {"const_b": 0.25}, A=(n1, "R")); ok &= k
-    esum, k = _node(mat, E.MaterialExpressionAdd, -850, 1050, A=(prod2, ""), B=(base, "")); ok &= k
-    energy, k = _node(mat, E.MaterialExpressionSaturate, -700, 1050, In=(esum, "")); ok &= k
-    rim_p = P("RimPower", 5.0, -1800, 250)
-    rim, k = _node(mat, E.MaterialExpressionPower, -1550, 150, Base=(r, ""), Exponent=(rim_p, "")); ok &= k
-    col_a, col_b = V("ColorCore", (0.30, 0.04, 1.0), -900, 300), V("ColorHot", (1.0, 0.12, 0.78), -900, 500)
-    col, k = _node(mat, E.MaterialExpressionLinearInterpolate, -550, 400, A=(col_a, ""), B=(col_b, ""), Alpha=(energy, "")); ok &= k
-    fres, _ = _node(mat, E.MaterialExpressionFresnel, -900, 750, {"exponent": 2.5, "base_reflect_fraction": 0.04})
-    rim_b = P("RimBoost", 3.0, -1550, 300)
-    i1, k = _node(mat, E.MaterialExpressionMultiply, -550, 1050, {"const_b": 1.6}, A=(energy, "")); ok &= k
-    i2, k = _node(mat, E.MaterialExpressionMultiply, -1350, 200, A=(rim, ""), B=(rim_b, "")); ok &= k
-    i3, k = _node(mat, E.MaterialExpressionMultiply, -700, 750, {"const_b": 0.6}, A=(fres, "")); ok &= k
-    s1, k = _node(mat, E.MaterialExpressionAdd, -400, 1000, A=(i1, ""), B=(i2, "")); ok &= k
-    s2, k = _node(mat, E.MaterialExpressionAdd, -250, 950, A=(s1, ""), B=(i3, "")); ok &= k
-    s3, k = _node(mat, E.MaterialExpressionAdd, -100, 950, {"const_b": 0.08}, A=(s2, "")); ok &= k
-    power = P("PortalPower", 0.5, -550, 1300)
-    pw, k = _node(mat, E.MaterialExpressionMultiply, -350, 1300, {"const_b": 1.65}, A=(power, "")); ok &= k
-    pw2, k = _node(mat, E.MaterialExpressionAdd, -200, 1300, {"const_b": 0.35}, A=(pw, "")); ok &= k
-    bright = P("Brightness", 6.0, -550, 1450)
-    gain, k = _node(mat, E.MaterialExpressionMultiply, -50, 1350, A=(pw2, ""), B=(bright, "")); ok &= k
-    e1, k = _node(mat, E.MaterialExpressionMultiply, 50, 700, A=(col, ""), B=(s3, "")); ok &= k
-    e2, k = _node(mat, E.MaterialExpressionMultiply, 200, 800, A=(e1, ""), B=(gain, "")); ok &= k
-    core = P("CoreOpacity", 0.3, -550, 1600)
-    o1, k = _node(mat, E.MaterialExpressionMultiply, -400, 1650, {"const_b": 0.9}, A=(energy, "")); ok &= k
-    o2, k = _node(mat, E.MaterialExpressionMultiply, -400, 1750, {"const_b": 1.5}, A=(rim, "")); ok &= k
-    o3, k = _node(mat, E.MaterialExpressionAdd, -250, 1650, A=(o1, ""), B=(o2, "")); ok &= k
-    o4, k = _node(mat, E.MaterialExpressionAdd, -100, 1650, A=(o3, ""), B=(core, "")); ok &= k
-    o5, k = _node(mat, E.MaterialExpressionSaturate, 50, 1650, In=(o4, "")); ok &= k
+    uv, _ = _node(mat, E.MaterialExpressionTextureCoordinate, -1200, -300)
+    time, _ = _node(mat, E.MaterialExpressionTime, -1200, -200)
+    tex, _ = _node(mat, E.MaterialExpressionTextureObjectParameter, -1200, -100, {"parameter_name": "NoiseTex", "texture": noise})
+    inputs = {
+        "UV": (uv, ""), "T": (time, ""), "Tex": (tex, ""),
+        "Arms": (P("SpiralArms", 3.0, -1200, 0), ""), "Twist": (P("Twist", 2.2, -1200, 60), ""),
+        "Speed": (P("SwirlSpeed", 1.6, -1200, 120), ""), "Sharp": (P("ArmSharpness", 2.5, -1200, 180), ""),
+        "Core": (P("CoreRadius", 0.08, -1200, 240), ""), "Deep": (P("CoreGlow", 0.08, -1200, 300), ""),
+        "RimPos": (P("RimPosition", 0.95, -1200, 360), ""), "RimWidth": (P("RimWidth", 0.035, -1200, 420), ""),
+        "RimBoost": (P("RimBoost", 1.6, -1200, 480), ""),
+        "ColorCore": (V("ColorCore", (0.22, 0.03, 0.85), -1200, 560), "RGB"),
+        "ColorHot": (V("ColorHot", (1.0, 0.12, 0.78), -1200, 700), "RGB"),
+        "RimColor": (V("RimColor", (1.0, 0.42, 0.92), -1200, 840), "RGB"),
+        "Power": (P("PortalPower", 0.5, -1200, 980), ""), "Brightness": (P("Brightness", 1.0, -1200, 1040), ""),
+        "MaxE": (P("MaxEmissive", 2.5, -1200, 1100), ""), "CoreOpacity": (P("CoreOpacity", 0.5, -1200, 1160), ""),
+        "OpBase": (P("OpacityBase", 0.3, -1200, 1220), ""),
+    }
+    cust, k = _custom(mat, -600, 300, PORTAL_HLSL, inputs, unreal.CustomMaterialOutputType.CMOT_FLOAT3,
+                      (("Opacity", unreal.CustomMaterialOutputType.CMOT_FLOAT1),), "TD portal swirl"); ok &= k
     mp = unreal.MaterialProperty
-    ok &= mel.connect_material_property(e2, "", mp.MP_EMISSIVE_COLOR)
+    ok &= mel.connect_material_property(cust, "", mp.MP_EMISSIVE_COLOR)
     if as_masked:
-        ok &= mel.connect_material_property(o5, "", mp.MP_OPACITY_MASK)
+        ok &= mel.connect_material_property(cust, "Opacity", mp.MP_OPACITY_MASK)
     else:
-        fade, k = _node(mat, E.MaterialExpressionDepthFade, 200, 1650, {"fade_distance_default": 6.0}, Opacity=(o5, "")); ok &= k
+        fade, k = _node(mat, E.MaterialExpressionDepthFade, -200, 500, {"fade_distance_default": 6.0}); ok &= k
+        ok &= mel.connect_material_expressions(cust, "Opacity", fade, "Opacity")
         ok &= mel.connect_material_property(fade, "", mp.MP_OPACITY)
     return _finish(mat, PORTAL, ok)
 
 
+# Nozzle back wall (idle): a dark injector hub, radial vanes and one groove, brighter towards the middle and faint
+# at the wall: reads as structure inside the nozzle, not as a solid disc or a target.
+GLOW_HLSL = r"""
+float2 p = UV - 0.5;
+float r = saturate(length(p) * 2.0);
+float a = atan2(p.y, p.x);
+float hub = smoothstep(HubRadius, HubRadius + 0.07, r);
+float vanes = 1.0 - VaneDepth * pow(abs(cos(a * Vanes * 0.5)), 6.0) * smoothstep(HubRadius, HubRadius + 0.2, r);
+float groove = 1.0 - 0.55 * exp(-pow((r - 0.6) / 0.045, 2.0));
+float core = pow(saturate(1.0 - r), Falloff) + 0.18;
+float edge = 1.0 - smoothstep(0.88, 1.0, r);
+return GlowColor * (core * vanes * groove * edge * (0.22 + 0.78 * hub) * GlowStrength);
+"""
+
+
 def ensure_glow():
-    """M_TD_ShipGlow: unlit disc glow for the back wall of an engine nozzle (lit nozzles when landed). GlowColor,
-    GlowStrength (the idle level; a dynamic instance can raise it with thrust)."""
-    if eas.does_asset_exist(GLOWM):
-        return eas.load_asset(GLOWM)
+    """M_TD_ShipGlow: unlit glow for the back wall of an engine nozzle (lit nozzles when landed), GLOW_HLSL.
+    GlowColor, GlowStrength (the idle level; a dynamic instance can raise it with thrust), Falloff, Vanes,
+    VaneDepth, HubRadius."""
+    have = _keep_or_clear(GLOWM, "Glow")
+    if have and have[0] == "keep":
+        return have[1]
     E = unreal
-    mat = _new_material(GLOWM, unlit=True)
+    mat = _new_material(GLOWM, unlit=True, existing=have[1] if have else None)
     ok = True
-    _, r, k = _radius(mat, -1400, 0); ok &= k
-    inv, k = _node(mat, E.MaterialExpressionOneMinus, -800, 0, In=(r, "")); ok &= k
-    fall, _ = _node(mat, E.MaterialExpressionScalarParameter, -800, 150, {"parameter_name": "Falloff", "default_value": 1.4})
-    core, k = _node(mat, E.MaterialExpressionPower, -600, 50, Base=(inv, ""), Exponent=(fall, "")); ok &= k
-    lift, k = _node(mat, E.MaterialExpressionAdd, -450, 50, {"const_b": 0.12}, A=(core, "")); ok &= k
-    col, _ = _node(mat, E.MaterialExpressionVectorParameter, -600, 250,
+
+    def P(name, value, x, y):
+        n, _ = _node(mat, E.MaterialExpressionScalarParameter, x, y, {"parameter_name": name, "default_value": value})
+        return n
+
+    uv, _ = _node(mat, E.MaterialExpressionTextureCoordinate, -1000, -200)
+    col, _ = _node(mat, E.MaterialExpressionVectorParameter, -1000, -100,
                    {"parameter_name": "GlowColor", "default_value": unreal.LinearColor(1.0, 0.5, 0.2, 1.0)})
-    strength, _ = _node(mat, E.MaterialExpressionScalarParameter, -600, 450, {"parameter_name": "GlowStrength", "default_value": 8.0})
-    e1, k = _node(mat, E.MaterialExpressionMultiply, -300, 150, A=(col, ""), B=(lift, "")); ok &= k
-    e2, k = _node(mat, E.MaterialExpressionMultiply, -150, 250, A=(e1, ""), B=(strength, "")); ok &= k
-    ok &= mel.connect_material_property(e2, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    inputs = {"UV": (uv, ""), "GlowColor": (col, "RGB"), "GlowStrength": (P("GlowStrength", 1.0, -1000, 50), ""),
+              "Falloff": (P("Falloff", 1.6, -1000, 110), ""), "Vanes": (P("Vanes", 12.0, -1000, 170), ""),
+              "VaneDepth": (P("VaneDepth", 0.6, -1000, 230), ""), "HubRadius": (P("HubRadius", 0.16, -1000, 290), "")}
+    cust, k = _custom(mat, -500, 0, GLOW_HLSL, inputs, unreal.CustomMaterialOutputType.CMOT_FLOAT3, (), "TD nozzle glow"); ok &= k
+    ok &= mel.connect_material_property(cust, "", unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     return _finish(mat, GLOWM, ok)
 
 
@@ -401,8 +530,10 @@ def shared_textures(notes):
     """The two generated textures every ship material can use."""
     ensure_dir(SHARED)
     out = {}
+    # T_TD_ShipDetail_RM is an 8 px neutral roughness / cavity map (R 1, G 0.5): the master's DetailRMTex default
     for name, comp in (("T_TD_PortalNoise", unreal.TextureCompressionSettings.TC_GRAYSCALE),
-                       ("T_TD_ShipDetail_N", unreal.TextureCompressionSettings.TC_NORMALMAP)):
+                       ("T_TD_ShipDetail_N", unreal.TextureCompressionSettings.TC_NORMALMAP),
+                       ("T_TD_ShipDetail_RM", unreal.TextureCompressionSettings.TC_MASKS)):
         path = "%s/%s" % (SHARED, name)
         src = os.path.join(TEX_SRC, name + ".png")
         if os.path.isfile(src):
@@ -426,10 +557,11 @@ def shared_textures(notes):
 
 def ensure_master(defaults):
     ensure_dir(ROOT + "/Materials")
-    if eas.does_asset_exist(MASTER):
-        return eas.load_asset(MASTER)
+    have = _keep_or_clear(MASTER, "Master")
+    if have and have[0] == "keep":
+        return have[1]
     folder, name = MASTER.rsplit("/", 1)
-    mat = tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
+    mat = have[1] if have else tools.create_asset(name, folder, unreal.Material, unreal.MaterialFactoryNew())
     for flag in ("used_with_nanite", "used_with_instanced_static_meshes"):
         try:
             mat.set_editor_property(flag, True)
@@ -468,6 +600,7 @@ def ensure_master(defaults):
     tint = vector("BaseTint", (1.0, 1.0, 1.0), -1200, -250)
     orm = tex_param("ORMTex", defaults["ORM"], st.SAMPLERTYPE_MASKS, -1200, -50)
     rough = scalar("RoughnessScale", 1.0, -1200, 200)
+    metal = scalar("MetallicScale", 1.0, -1200, 260)
     normal = tex_param("NormalTex", eas.load_asset("/Engine/EngineMaterials/DefaultNormal"), st.SAMPLERTYPE_NORMAL, -1200, 320)
     emis = tex_param("EmissiveTex", defaults["E"], st.SAMPLERTYPE_COLOR, -1200, 600)
     etint = vector("EmissiveTint", (1.0, 1.0, 1.0), -1200, 850)
@@ -480,9 +613,25 @@ def ensure_master(defaults):
     hglow = scalar("HeatGlow", 0.0, -1200, 1750)
     selfl = scalar("SelfLight", 0.0, -1200, 1900)
 
+    # BaseFloor (linear albedo, default 0 = unchanged): lifts the darkest texels towards a grey floor and leaves
+    # the whites where they are, (Floor + (1 - Floor) x albedo) x tint: dark gunmetal parts stop reading as black
+    # chrome without blowing out the white livery the way a plain BaseTint gain does.
+    floor_p = scalar("BaseFloor", 0.0, -1200, -150)
+    # Per-ship detail roughness / cavity (SquadDetail_r1 _RM: R = cavity AO, G = roughness variation around 0.5),
+    # tiled with the detail normal. DetailAO and DetailRough 0 (default) leave the surface as it was.
+    dao = scalar("DetailAO", 0.0, -1200, 2700)
+    drough = scalar("DetailRough", 0.0, -1200, 2750)
+
     ok = True
-    bc, k = mul(base, "RGB", tint, "RGB", -800, -400); ok &= k
-    rg, k = mul(orm, "G", rough, "", -800, 100); ok &= k
+    flo_inv = mel.create_material_expression(mat, E.MaterialExpressionOneMinus, -1050, -150)
+    ok &= mel.connect_material_expressions(floor_p, "", flo_inv, "")
+    flo_mul, k = mul(base, "RGB", flo_inv, "", -950, -450); ok &= k
+    flo_add = mel.create_material_expression(mat, E.MaterialExpressionAdd, -870, -450)
+    ok &= mel.connect_material_expressions(flo_mul, "", flo_add, "A")
+    ok &= mel.connect_material_expressions(floor_p, "", flo_add, "B")
+    bc, k = mul(flo_add, "", tint, "RGB", -800, -400); ok &= k
+    rg0, k = mul(orm, "G", rough, "", -800, 100); ok &= k
+    mt, k = mul(orm, "B", metal, "", -800, 220); ok &= k
     # whiteness of an emissive texel = 1 - saturation x WhiteSharpness: white eyes are not tinted, they get EyeBoost
     def node(cls, x, y, **inputs):
         n = mel.create_material_expression(mat, cls, x, y)
@@ -515,10 +664,6 @@ def ensure_master(defaults):
     ok &= mel.connect_material_expressions(add0, "", add, "A")
     ok &= mel.connect_material_expressions(sl, "", add, "B")
     mp = unreal.MaterialProperty
-    ok &= mel.connect_material_property(bc, "", mp.MP_BASE_COLOR)
-    ok &= mel.connect_material_property(orm, "R", mp.MP_AMBIENT_OCCLUSION)
-    ok &= mel.connect_material_property(rg, "", mp.MP_ROUGHNESS)
-    ok &= mel.connect_material_property(orm, "B", mp.MP_METALLIC)
     # Close-up detail (the player walks around the landed ships at 3-10 m): a tiling detail normal over the
     # unique 2K normal map. DetailStrength 0 (default) leaves the surface as it was.
     dtile = scalar("DetailTiling", 22.0, -1200, 2500)
@@ -527,11 +672,47 @@ def ensure_master(defaults):
     duv, k = mul(duv0, "", dtile, "", -1050, 2450); ok &= k
     dtex = tex_param("DetailNormalTex", defaults["Detail"], st.SAMPLERTYPE_NORMAL, -850, 2450)
     ok &= mel.connect_material_expressions(duv, "", dtex, "UVs")
+    # detail RM: AO x lerp(1, cavity, DetailAO); roughness + (variation - 0.5) x DetailRough
+    drm = tex_param("DetailRMTex", defaults["DetailRM"], st.SAMPLERTYPE_MASKS, -850, 2800)
+    ok &= mel.connect_material_expressions(duv, "", drm, "UVs")
+    # the detail layer fades out with distance (DetailFadeStart .. + DetailFadeRange, cm): no shimmer at range
+    fstart = scalar("DetailFadeStart", 1500.0, -1200, 3150)
+    frange = scalar("DetailFadeRange", 1500.0, -1200, 3200)
+    pdepth = mel.create_material_expression(mat, E.MaterialExpressionPixelDepth, -1200, 3300)
+    fd0, k = node(E.MaterialExpressionSubtract, -1000, 3250, A=(pdepth, ""), B=(fstart, "")); ok &= k
+    fd1, k = node(E.MaterialExpressionDivide, -900, 3250, A=(fd0, ""), B=(frange, "")); ok &= k
+    fd2 = mel.create_material_expression(mat, E.MaterialExpressionSaturate, -800, 3250)
+    ok &= mel.connect_material_expressions(fd1, "", fd2, "")
+    fade = mel.create_material_expression(mat, E.MaterialExpressionOneMinus, -700, 3250)
+    ok &= mel.connect_material_expressions(fd2, "", fade, "")
+    dao_f, k = mul(dao, "", fade, "", -700, 2750); ok &= k
+    drough_f, k = mul(drough, "", fade, "", -700, 2780); ok &= k
+    dstr_f, k = mul(dstr, "", fade, "", -700, 2600); ok &= k
+    one = mel.create_material_expression(mat, E.MaterialExpressionConstant, -700, 2900)
+    one.set_editor_property("r", 1.0)
+    ao_l, k = node(E.MaterialExpressionLinearInterpolate, -600, 2850, A=(one, ""), B=(drm, "R"), Alpha=(dao_f, "")); ok &= k
+    ao, k = mul(orm, "R", ao_l, "", -450, 2850); ok &= k
+    rv = mel.create_material_expression(mat, E.MaterialExpressionAdd, -700, 3000)
+    rv.set_editor_property("const_b", -0.5)
+    ok &= mel.connect_material_expressions(drm, "G", rv, "A")
+    rv2, k = mul(rv, "", drough_f, "", -600, 3000); ok &= k
+    rg1 = mel.create_material_expression(mat, E.MaterialExpressionAdd, -450, 3000)
+    ok &= mel.connect_material_expressions(rg0, "", rg1, "A")
+    ok &= mel.connect_material_expressions(rv2, "", rg1, "B")
+    # RoughnessMin (default 0): no mirror-like paint; the AI maps' glossy areas reflected the hangar like chrome
+    rmin = scalar("RoughnessMin", 0.0, -1200, 3050)
+    rg2, k = node(E.MaterialExpressionMax, -400, 3050, A=(rg1, ""), B=(rmin, "")); ok &= k
+    rg = mel.create_material_expression(mat, E.MaterialExpressionSaturate, -350, 3000)
+    ok &= mel.connect_material_expressions(rg2, "", rg, "")
+    ok &= mel.connect_material_property(bc, "", mp.MP_BASE_COLOR)
+    ok &= mel.connect_material_property(ao, "", mp.MP_AMBIENT_OCCLUSION)
+    ok &= mel.connect_material_property(rg, "", mp.MP_ROUGHNESS)
+    ok &= mel.connect_material_property(mt, "", mp.MP_METALLIC)
     drg = mel.create_material_expression(mat, E.MaterialExpressionComponentMask, -600, 2450)
     for chan, on in (("r", True), ("g", True), ("b", False), ("a", False)):
         drg.set_editor_property(chan, on)
     ok &= mel.connect_material_expressions(dtex, "RGB", drg, "")
-    dsc, k = mul(drg, "", dstr, "", -450, 2500); ok &= k
+    dsc, k = mul(drg, "", dstr_f, "", -450, 2500); ok &= k
     dz = mel.create_material_expression(mat, E.MaterialExpressionConstant, -450, 2650)
     dz.set_editor_property("r", 0.0)
     dv = mel.create_material_expression(mat, E.MaterialExpressionAppendVector, -300, 2550)
@@ -616,15 +797,19 @@ def set_slots(cfg, mesh, notes):
 def main():
     revert = [s.strip() for s in os.environ.get("TD_RODIN_REVERT", "").split(",") if s.strip()]
     only = [s.strip() for s in os.environ.get("TD_RODIN_ONLY", "").split(",") if s.strip()]
-    mi_only = bool(os.environ.get("TD_RODIN_MI_ONLY"))      # retune material instances and visuals only
+    # retune material instances and visuals only: "1" for every ship, or a list of ships (Lancer,Bastion)
+    mi_env = os.environ.get("TD_RODIN_MI_ONLY", "").strip()
+    mi_list = [s.strip() for s in mi_env.split(",") if s.strip()]
     ensure_dir(ROOT)
     shared_notes = []
     shared = shared_textures(shared_notes)
-    if len(shared) < 2:
+    if len(shared) < 3:
         log("FAILED: shared textures missing (run rs_textures.py + rs_textures_png.py) %s" % shared_notes)
         return
-    portal_m, glow_m, trim_m = ensure_portal(shared["T_TD_PortalNoise"]), ensure_glow(), ensure_trim()
-    if not (portal_m and glow_m and trim_m):
+    # M_TD_ShipTrim (and MI_<Ship>_Ring / _Glow on the hull) only exist for a plain Rodin ship with code-built extras
+    # (rs_extras.py): built on demand when a mesh has such a slot. Deleted Nov 13 with the Rift hybrid (git: 759b34e).
+    portal_m, glow_m = ensure_portal(shared["T_TD_PortalNoise"]), ensure_glow()
+    if not (portal_m and glow_m):
         return
     rows, good, bad = [], 0, 0
     sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
@@ -633,6 +818,7 @@ def main():
     for ship in order:
         cfg = SHIPS[ship]
         notes = []
+        mi_only = mi_env == "1" or ship in mi_list
         if ship in revert:
             old = eas.load_asset(cfg["old"])
             old_mi = eas.load_asset(cfg["old_mi"]) if cfg.get("old_mi") else None
@@ -673,12 +859,24 @@ def main():
             pp = os.path.join(folder, "T_%s_Parts_%s.png" % (ship, suffix))
             if os.path.isfile(pp):
                 parts_files[suffix] = pp
+        # Grok Bot's cleaned base colour and emissive (textures_r2, PR #67, same UVs) replace BC and E when present.
+        # TD_TEX_R2_ROOT overrides the ArtSource/EngAI/Ships root (a copy taken from origin/main before the merge).
+        r2 = {}
+        for suffix in cfg.get("tex_r2", ()):
+            rp = os.path.join(os.environ.get("TD_TEX_R2_ROOT") or os.path.join(REPO, "ArtSource", "EngAI", "Ships"),
+                              ship, "textures_r2", "T_%s_%s.png" % (ship, suffix))
+            if os.path.isfile(rp):
+                files[suffix] = r2[suffix] = rp
+        if r2:
+            notes.append("textures_r2: %s" % sorted(r2))
         if mi_only:
             tex = {}
             for suffix, p in files.items():
                 t = eas.load_asset("%s/%s" % (dest, os.path.splitext(os.path.basename(p))[0]))
                 if t is not None:
                     tex[suffix] = t
+            if r2:
+                tex.update(import_textures(r2, dest, man.get("max_texture_size", 2048), notes))
         else:
             tex = import_textures(files, dest, man.get("max_texture_size", 2048), notes)
         # Texture streaming was the intermittent "blotchy ship" (issue #63, T3's intro captures: sharp in one
@@ -696,7 +894,7 @@ def main():
             if not eas.does_asset_exist(MASTER) and not all(k in tex for k in ("BC", "ORM", "E", "HeatMask")):
                 log("FAILED: the master needs a ship with all five maps first (Rift)")
                 return
-            master = ensure_master(dict(tex, Detail=shared["T_TD_ShipDetail_N"]))
+            master = ensure_master(dict(tex, Detail=shared["T_TD_ShipDetail_N"], DetailRM=shared["T_TD_ShipDetail_RM"]))
             if master is None:
                 return
         how = "kept (TD_RODIN_MI_ONLY)" if mi_only else import_mesh(fbx, dest, notes)
@@ -731,6 +929,13 @@ def main():
         mel.set_material_instance_scalar_parameter_value(mi, "EyeBoost", cfg.get("eye_boost", 1.0))
         mel.set_material_instance_scalar_parameter_value(mi, "DetailStrength", cfg.get("detail", 0.0))
         mel.set_material_instance_scalar_parameter_value(mi, "WhiteSharpness", cfg.get("white_sharp", 4.0))
+        mel.set_material_instance_scalar_parameter_value(mi, "BaseFloor", cfg.get("base_floor", 0.0))
+        dset = detail_set(ship, dest, notes, mi_only) if cfg.get("squad_detail") else {}
+        for pname, suffix in (("DetailNormalTex", "DetailN"), ("DetailRMTex", "DetailRM")):
+            if suffix in dset:
+                mel.set_material_instance_texture_parameter_value(mi, pname, dset[suffix])
+        for pname, value in cfg.get("mi_params", {}).items():      # close-range pass: RoughnessMin, MetallicScale, Detail*
+            mel.set_material_instance_scalar_parameter_value(mi, pname, value)
         et = cfg.get("emissive_tint", (1.0, 1.0, 1.0))
         mel.set_material_instance_vector_parameter_value(mi, "EmissiveTint", unreal.LinearColor(et[0], et[1], et[2], 1.0))
         bt = cfg["base_tint"]
@@ -756,8 +961,14 @@ def main():
                 if suffix in ptex:
                     mel.set_material_instance_texture_parameter_value(parts_mi, pname, ptex[suffix])
             for pname, value in (("EmissiveStrength", cfg.get("parts_emissive", cfg["emissive"])), ("RoughnessScale", cfg.get("parts_rough", 1.0)),
-                                 ("HeatGlow", 0.0), ("SelfLight", cfg.get("self_light", 0.0)), ("EyeBoost", 1.0),
+                                 ("HeatGlow", 0.0), ("SelfLight", cfg.get("parts_self_light", cfg.get("self_light", 0.0))), ("EyeBoost", 1.0),
+                                 ("MetallicScale", cfg.get("parts_metal", 1.0)), ("BaseFloor", cfg.get("parts_floor", 0.0)),
                                  ("DetailStrength", cfg.get("detail", 0.0))):
+                mel.set_material_instance_scalar_parameter_value(parts_mi, pname, value)
+            for pname, suffix in (("DetailNormalTex", "DetailN"), ("DetailRMTex", "DetailRM")):
+                if suffix in dset:
+                    mel.set_material_instance_texture_parameter_value(parts_mi, pname, dset[suffix])
+            for pname, value in dict(cfg.get("mi_params", {}), **cfg.get("parts_params", {})).items():
                 mel.set_material_instance_scalar_parameter_value(parts_mi, pname, value)
             pt = cfg.get("parts_tint", (1.0, 1.0, 1.0))
             mel.set_material_instance_vector_parameter_value(parts_mi, "BaseTint", unreal.LinearColor(pt[0], pt[1], pt[2], 1.0))
@@ -770,7 +981,7 @@ def main():
                 use = parts_mi
             elif "_Portal" in slot or "_Ring" in slot or "_Glow" in slot:
                 kind = "Portal" if "_Portal" in slot else ("Ring" if "_Ring" in slot else "Glow")
-                parent = {"Portal": portal_m, "Ring": trim_m, "Glow": glow_m}[kind]
+                parent = {"Portal": portal_m, "Ring": ensure_trim() if kind == "Ring" else None, "Glow": glow_m}[kind]
                 xp = "%s/MI_%s_%s" % (dest, ship, kind)
                 use = eas.load_asset(xp) if eas.does_asset_exist(xp) else tools.create_asset(
                     "MI_%s_%s" % (ship, kind), dest, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
@@ -778,7 +989,7 @@ def main():
                 g = cfg.get("glow", (1.0, 0.5, 0.2))
                 if kind == "Glow":
                     mel.set_material_instance_vector_parameter_value(use, "GlowColor", unreal.LinearColor(g[0], g[1], g[2], 1.0))
-                    mel.set_material_instance_scalar_parameter_value(use, "GlowStrength", 1.0)     # a faint idle glow (2.2 bloomed white on Verdance)
+                    mel.set_material_instance_scalar_parameter_value(use, "GlowStrength", cfg.get("glow_strength", 1.2))     # a faint idle glow (2.2 bloomed white on Verdance)
                 elif kind == "Ring":
                     mel.set_material_instance_vector_parameter_value(use, "SeamColor", unreal.LinearColor(g[0], g[1], g[2], 1.0))
                 else:
@@ -816,10 +1027,15 @@ def main():
                 "MI_%s_%s" % (ship, part_name), dest, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
             mel.set_material_instance_parent(pmi, portal_m)
             mel.set_material_instance_scalar_parameter_value(pmi, "PortalPower", 0.5)
-            mel.set_material_instance_scalar_parameter_value(pmi, "Brightness", 1.4)
+            for pname, value in (("Brightness", cfg.get("portal_brightness", 1.0)), ("MaxEmissive", cfg.get("portal_max", 2.5))):
+                mel.set_material_instance_scalar_parameter_value(pmi, pname, value)
             eas.save_loaded_asset(pmi)
+            # The effects builder's vortex (eng/vfx c9153bfb, MI_TD_VFX_RiftPortalVortex: two-sided, PortalPower like
+            # ours) wins once it is in this checkout; MI_<Ship>_Portal stays as the fallback.
+            fill = eas.load_asset(cfg["portal_fill"]) if cfg.get("portal_fill") and eas.does_asset_exist(cfg["portal_fill"]) else pmi
+            notes.append("portal fill %s" % fill.get_name())
             for i in range(len(pmesh.static_materials)):
-                pmesh.set_material(i, pmi)
+                pmesh.set_material(i, fill)
             eas.save_loaded_asset(pmesh)
             spec = unreal.TDShipVisualPart()
             spec.set_editor_property("part_name", part_name)
@@ -830,6 +1046,15 @@ def main():
             da0 = eas.load_asset("%s/%s" % (cfg["da"][0], cfg["da"][1]))
             if da0 is not None:
                 _set(da0, "parts", part_specs, notes)      # empty for ships without attached parts
+                if "trail_scale" in cfg:
+                    cue = da0.get_editor_property("engine_trail")
+                    snd = str(cue.get_editor_property("sound"))
+                    k = cfg["trail_scale"]
+                    cue.set_editor_property("vfx_scale", unreal.Vector(k, k, k))
+                    da0.set_editor_property("engine_trail", cue)
+                    c2 = da0.get_editor_property("engine_trail")
+                    notes.append("EngineTrail VFXScale %.2f (sound %s)" % (
+                        c2.get_editor_property("vfx_scale").x, "SAME" if str(c2.get_editor_property("sound")) == snd else "CHANGED"))
                 eas.save_loaded_asset(da0)
                 notes.append("visuals parts: %s" % [str(sp.get_editor_property("part_name")) for sp in part_specs])
         if not cfg.get("wire", True):
@@ -860,6 +1085,9 @@ def main():
     except Exception as error:
         log("note: could not write report (%s)" % error)
     log("done: %d ok, %d failed" % (good, bad))
+    if SAVE_FAILURES:
+        log("FAILED: %d asset(s) could not be saved (is a game of this checkout running?): %s" % (len(SAVE_FAILURES), SAVE_FAILURES))
+        return
     log("OK" if good and not bad else "FAILED: see the lines above")
 
 

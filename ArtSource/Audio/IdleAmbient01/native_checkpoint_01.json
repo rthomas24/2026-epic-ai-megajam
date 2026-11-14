@@ -1,0 +1,50 @@
+{
+  "stage": "Native import/fresh reload verified, runtime hookup and audible idle ownership pending",
+  "utc": "2026-11-14T00:50:43.124489+00:00",
+  "import": {
+    "pid": 26932,
+    "exit_code": 0,
+    "reason": "completed",
+    "error": null,
+    "duration_s": 33.14099999999962,
+    "minimum_free_gib": 2.4488601684570312,
+    "protected_count": 2058,
+    "changed_protected": [],
+    "new_content": {
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-dominion-interior-ecc2dc9\\Content\\TriadDrift\\Audio\\IdleAmbient01\\MUS_SpaceIdle_Ambient1_Full_01.uasset": "085ab8503b72b27a100e48fe91c8b7bfd3df964e337e84eb64c879885347d26f"
+    }
+  },
+  "reload": {
+    "pid": 18084,
+    "exit_code": 0,
+    "reason": "completed",
+    "error": null,
+    "duration_s": 13.96900000000096,
+    "minimum_free_gib": 2.4793777465820312,
+    "protected_count": 2059,
+    "changed_protected": [],
+    "new_content": {}
+  },
+  "readback": {
+    "stage": "Full Ambient1 Wave verified; runtime space-idle hook pending",
+    "mode": "reload",
+    "ordered_assets": [
+      {
+        "order": 1,
+        "asset": "/Game/TriadDrift/Audio/IdleAmbient01/MUS_SpaceIdle_Ambient1_Full_01.MUS_SpaceIdle_Ambient1_Full_01",
+        "sha256": "085ab8503b72b27a100e48fe91c8b7bfd3df964e337e84eb64c879885347d26f",
+        "bytes": 14939390,
+        "decoded_duration_s": 144.8,
+        "looping": true,
+        "volume": 0.5,
+        "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music"
+      }
+    ],
+    "source_order_preserved": true,
+    "crossfade_or_repeat": "Full-track native loop only while space idle owns score",
+    "runtime_binding_performed": false
+  },
+  "scope": "All SPACE idle states only; no concurrent score with tutorial/combat/assault",
+  "native_loop_true": true,
+  "slot_released": true
+}

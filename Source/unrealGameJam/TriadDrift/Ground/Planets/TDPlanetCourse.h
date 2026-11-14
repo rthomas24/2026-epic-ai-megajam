@@ -186,6 +186,9 @@ private:
 	float FinalRecordQuiet = 0.f;
 	bool bFinalRecordDone = false;
 	void TickFinalRecord(float DeltaSeconds);
+	UFUNCTION() void HandleStorySequenceFinished(FName SequenceId, bool bSkipped);
+	int32 ShownPlaybackSecond = -1;
+	bool bFinalRecordSequence = false;
 	UFUNCTION() void HandleConduitDown(class UTDHealthComponent* Health, const struct FTDDamageInfo& Info);
 	void OpenReactorDoor();
 public:

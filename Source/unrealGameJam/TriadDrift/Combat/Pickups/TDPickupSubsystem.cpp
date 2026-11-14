@@ -5,6 +5,8 @@
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Combat/Pickups/TDPickupVisuals.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
@@ -23,6 +25,8 @@ namespace TDPickups
 		TEXT("Space pickups (hull repair, shield cell, power cell, overcharge): 1 on, 0 off (today's game exactly)."), ECVF_Default);
 	static const FName OverchargeKey(TEXT("Overcharge"));
 	static TAutoConsoleVariable<int32> CVarLog(TEXT("td.Pickups.Log"), 0, TEXT("1: log each kill's drop decision."), ECVF_Default);
+	static TAutoConsoleVariable<int32> CVarNoPower(TEXT("td.Pickups.NoPower"), 0,
+		TEXT("Balance runs: 1 = power cells never drop (the W5 investigation)."), ECVF_Default);
 	static TAutoConsoleVariable<float> CVarDevChance(TEXT("td.Pickups.DevChance"), -1.f,
 		TEXT("Dev / captures: >= 0 replaces every kill's drop chance (1 = every kill drops, caps still apply). -1 = the tuning."), ECVF_Default);
 }
@@ -67,6 +71,7 @@ void UTDPickupSubsystem::Deinitialize()
 		B->OnSceneCut.RemoveDynamic(this, &UTDPickupSubsystem::HandleSceneCut);
 		B->OnTakeStarted.RemoveDynamic(this, &UTDPickupSubsystem::HandleTakeStarted);
 	}
+	LogWaveSummary();
 	ClearAll();
 	Super::Deinitialize();
 }
@@ -130,7 +135,8 @@ bool UTDPickupSubsystem::PickDropType(ETDPickupType& Out)
 	float Total = 0.f;
 	for (int32 I = 0; I < 4; ++I)
 	{
-		if (DropsThisWave[I] >= Tuning.CapPerTypePerWave)
+		if (DropsThisWave[I] >= Tuning.CapPerTypePerWave
+			|| (I == static_cast<int32>(ETDPickupType::Power) && TDPickups::CVarNoPower.GetValueOnGameThread() != 0))
 		{
 			Weights[I] = 0.f;
 		}
@@ -219,9 +225,23 @@ void UTDPickupSubsystem::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDa
 
 void UTDPickupSubsystem::HandleWaveStarted(int32 WaveNumber, float Intensity01)
 {
-	for (int32& N : DropsThisWave)
+	LogWaveSummary();
+	CurrentWave = WaveNumber;
+	for (int32 I = 0; I < 4; ++I)
 	{
-		N = 0;
+		DropsThisWave[I] = 0;
+		CollectedThisWave[I] = 0;
+	}
+}
+
+void UTDPickupSubsystem::LogWaveSummary() const
+{
+	if (CurrentWave > 0)
+	{
+		// Balance runs read these: what each wave handed the player (drops / collected per type: hull shield power over).
+		UE_LOG(LogTDPickups, Display, TEXT("TD pickup wave %d: dropped %d %d %d %d, collected %d %d %d %d"), CurrentWave,
+			DropsThisWave[0], DropsThisWave[1], DropsThisWave[2], DropsThisWave[3],
+			CollectedThisWave[0], CollectedThisWave[1], CollectedThisWave[2], CollectedThisWave[3]);
 	}
 }
 
@@ -330,6 +350,16 @@ bool UTDPickupSubsystem::Collect(ATDPickup* Pickup, ATDShip* Ship)
 	}
 	const ETDPickupType Type = Pickup->GetType();
 	++Collected[static_cast<int32>(Type)];
+	++CollectedThisWave[static_cast<int32>(Type)];
+	// The collect burst and sound (DA_Pickup_Visuals; nothing when unset).
+	if (const UTDPickupVisuals* Visuals = UTDPickupVisuals::Get())
+	{
+		const FTDFXCue& Burst = Visuals->LookOf(static_cast<uint8>(Type)).Collect;
+		if (FTDPowerPresentation::HasArt(Burst))
+		{
+			FTDPowerPresentation::RequestCueAttached(TEXT("Pickup.Collect"), Burst, Ship->GetRootComponent());
+		}
+	}
 	Pickups.Remove(Pickup);
 	Pickup->Destroy();
 	UE_LOG(LogTDPickups, Display, TEXT("TD pickup: collected %s by %s"), ATDPickup::WordOf(Type), *GetNameSafe(Ship));

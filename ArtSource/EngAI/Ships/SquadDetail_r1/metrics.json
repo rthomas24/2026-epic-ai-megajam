@@ -1,0 +1,80 @@
+{
+ "Rift": {
+  "N": {
+   "mean_rgb": [
+    127.51,
+    127.5,
+    247.78
+   ],
+   "wrap_step_mean": 9.476,
+   "interior_step_mean": 9.683,
+   "wrap_step_p99": 72,
+   "interior_step_p99": 71,
+   "periodic_canvas_tile_diff_max": 0
+  },
+  "RM": {
+   "mean_rgb": [
+    251.15,
+    129.65,
+    0.0
+   ],
+   "wrap_step_mean": 1.577,
+   "interior_step_mean": 1.591,
+   "wrap_step_p99": 11,
+   "interior_step_p99": 12,
+   "periodic_canvas_tile_diff_max": 0
+  }
+ },
+ "Lancer": {
+  "N": {
+   "mean_rgb": [
+    127.5,
+    127.45,
+    243.13
+   ],
+   "wrap_step_mean": 11.583,
+   "interior_step_mean": 12.125,
+   "wrap_step_p99": 92,
+   "interior_step_p99": 96,
+   "periodic_canvas_tile_diff_max": 0
+  },
+  "RM": {
+   "mean_rgb": [
+    252.16,
+    129.22,
+    0.0
+   ],
+   "wrap_step_mean": 1.317,
+   "interior_step_mean": 1.434,
+   "wrap_step_p99": 10,
+   "interior_step_p99": 11,
+   "periodic_canvas_tile_diff_max": 0
+  }
+ },
+ "Bastion": {
+  "N": {
+   "mean_rgb": [
+    127.48,
+    127.48,
+    239.51
+   ],
+   "wrap_step_mean": 15.009,
+   "interior_step_mean": 15.053,
+   "wrap_step_p99": 63,
+   "interior_step_p99": 69,
+   "periodic_canvas_tile_diff_max": 0
+  },
+  "RM": {
+   "mean_rgb": [
+    249.4,
+    130.4,
+    0.0
+   ],
+   "wrap_step_mean": 1.528,
+   "interior_step_mean": 1.56,
+   "wrap_step_p99": 9,
+   "interior_step_p99": 11,
+   "periodic_canvas_tile_diff_max": 0
+  }
+ }
+}

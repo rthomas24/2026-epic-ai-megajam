@@ -1,0 +1,54 @@
+{
+  "stage": "Native import and fresh reload verified; actual playback/binding/cook pending",
+  "utc": "2026-11-14T00:12:43.712499+00:00",
+  "import": {
+    "pid": 29268,
+    "exit_code": 0,
+    "reason": "completed",
+    "error": null,
+    "duration_s": 32.06299999999828,
+    "minimum_free_gib": 2.243114471435547,
+    "protected_count": 2057,
+    "changed_protected": [],
+    "new_content": {
+      "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-dominion-interior-ecc2dc9\\Content\\TriadDrift\\Audio\\DominionAssault02\\MUS_DominionAssault_PushTheAttack_Full_01.uasset": "3ad79b49812036077b4e4bfa372f6ec86c45536e120ec2630e8caa0e7f357dfb"
+    }
+  },
+  "first_reload_failure": {
+    "cause": "Downloads original disappeared after verified import; native package unchanged",
+    "evidence": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-dominion-interior-ecc2dc9\\Saved\\DominionAssault02\\ReloadGuard01",
+    "source_original_present_now": false
+  },
+  "successful_reload": {
+    "pid": 26748,
+    "exit_code": 0,
+    "reason": "completed",
+    "error": null,
+    "duration_s": 13.96900000000096,
+    "minimum_free_gib": 2.213573455810547,
+    "protected_count": 2058,
+    "changed_protected": [],
+    "new_content": {}
+  },
+  "native_readback": {
+    "stage": "Full Push The Attack Wave verified; runtime assault hook pending",
+    "mode": "reload",
+    "ordered_assets": [
+      {
+        "order": 1,
+        "asset": "/Game/TriadDrift/Audio/DominionAssault02/MUS_DominionAssault_PushTheAttack_Full_01.MUS_DominionAssault_PushTheAttack_Full_01",
+        "sha256": "3ad79b49812036077b4e4bfa372f6ec86c45536e120ec2630e8caa0e7f357dfb",
+        "bytes": 19399286,
+        "decoded_duration_s": 144.68,
+        "looping": true,
+        "volume": 0.5,
+        "music_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music"
+      }
+    ],
+    "source_order_preserved": true,
+    "crossfade_or_repeat": "Full-track native loop until explicit assault-end stop",
+    "runtime_binding_performed": false
+  },
+  "loop_requirement": "Wholetrack repeat until actual assault sequence-end",
+  "heavy_slot_released": true
+}
