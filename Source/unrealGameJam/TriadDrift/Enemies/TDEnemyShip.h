@@ -193,6 +193,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Enemy", meta = (ClampMin = "0"))
 	int32 MaxLaunchedAlive = 8;
 
+	// Lead (Nov 14, wave 5 played without god mode: 40 alive at 131 s and growing): a carrier's stream is finite and
+	// pauses while the screen is full, so killing fighters always makes progress and killing a carrier ends it.
+	/** Fighters one carrier launches in all (3 flights of 4); then it fights with its own guns. 0 = no limit. */
+	int32 MaxTotalLaunched = 12;
+	int32 GetTotalLaunched() const { return TotalLaunched; }
+	bool IsLaunchSpent() const { return MaxTotalLaunched > 0 && TotalLaunched >= MaxTotalLaunched; }
+	int32 GetLaunchedAliveCount() const;
+	/** Carrier-launched fighters alive in the whole world (every carrier's). */
+	static int32 CountCarrierFightersAlive(const UObject* WorldContext);
+
 	// --- Death --------------------------------------------------------------------------------
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Enemy")
@@ -464,6 +474,7 @@ protected:
 	TArray<TObjectPtr<ATDEnemyTurret>> Turrets;
 
 	TArray<TWeakObjectPtr<ATDEnemyShip>> LaunchedAlive;
+	int32 TotalLaunched = 0;
 
 	TWeakObjectPtr<AActor> TelegraphTarget;
 	TWeakObjectPtr<AActor> GunTarget;

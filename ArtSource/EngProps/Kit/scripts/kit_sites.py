@@ -638,6 +638,21 @@ def conduit_check():
                        piece("Broken", ST + "SM_Kit_NullConduitBroken", 0.0, 125.0, 0.0, 30.0)]}}
 
 
+def huts_check():
+    """Capture only (#194): each planet's camp pieces in a loose row, for one look beside the pilot."""
+    H = "/Game/TriadDrift/Gameplay/Props/Huts/"
+    out = {}
+    for planet, names in (("Verdance", ("Prefab", "Lab", "Dome", "WaterTank", "Mast", "Fence", "Walkway", "Supplies", "Generator")),
+                          ("Cinder", ("Shack", "Workshop", "PumpHouse", "OreHopper", "DrillRig", "PipeRun", "FloodMast", "Supplies", "Generator"))):
+        pcs, x = [], 0.0
+        for n in names:
+            pcs.append(piece(n, H + "%s/SM_Hut_%s_%s" % (planet, planet, n), x, 0.0 if n not in ("Fence", "Walkway", "PipeRun", "Generator") else 600.0, 0.0, 200.0))
+            x += 900.0
+        out["HutsCheck_" + planet] = {"site": "HutsCheck_" + planet, "actor": K + "Sites/BP_HutsCheck_" + planet,
+                                      "about": "Capture only: the %s camp pieces in a row." % planet, "pieces": pcs}
+    return out
+
+
 def main():
     out = os.path.join(KIT, "sites")
     os.makedirs(out, exist_ok=True)
@@ -655,6 +670,7 @@ def main():
     sites.update(magma_bridge())
     sites.update(anchor_check())
     sites.update(conduit_check())
+    sites.update(huts_check())
     for k, v in sites.items():
         with open(os.path.join(out, k + ".manifest.json"), "w", encoding="utf-8") as fh:
             json.dump(v, fh, indent=1)

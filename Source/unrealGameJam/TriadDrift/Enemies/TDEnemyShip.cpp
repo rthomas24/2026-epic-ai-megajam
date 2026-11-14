@@ -7,6 +7,7 @@
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Enemies/TDEnemyAIController.h"
 #include "TriadDrift/Enemies/TDCarrierBay.h"
+#include "EngineUtils.h"
 #include "TriadDrift/Enemies/TDEnemyTurret.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
 #include "TriadDrift/Waves/Balance/TDDifficulty.h"
@@ -1049,7 +1050,7 @@ void ATDEnemyShip::LaunchFightersFromBay(ATDCarrierBay* Bay, int32 Count)
 	ATDEnemyShip* Leader = nullptr;
 	for (int32 i = 0; i < Count; ++i)
 	{
-		if (MaxLaunchedAlive > 0 && LaunchedAlive.Num() >= MaxLaunchedAlive)
+		if ((MaxLaunchedAlive > 0 && LaunchedAlive.Num() >= MaxLaunchedAlive) || IsLaunchSpent())
 		{
 			break;
 		}
@@ -1059,6 +1060,7 @@ void ATDEnemyShip::LaunchFightersFromBay(ATDCarrierBay* Bay, int32 Count)
 		Ship->InitFromSpec(Spec.LaunchedEnemyId);
 		Ship->OnEnemyDied.AddUniqueDynamic(this, &ATDEnemyShip::HandleLaunchedDied);
 		LaunchedAlive.Add(Ship);
+		++TotalLaunched;
 
 		if (!Leader)
 		{
@@ -1074,6 +1076,25 @@ void ATDEnemyShip::LaunchFightersFromBay(ATDCarrierBay* Bay, int32 Count)
 		}
 		OnEnemyLaunched.Broadcast(this, Ship);
 	}
+}
+
+int32 ATDEnemyShip::GetLaunchedAliveCount() const
+{
+	int32 N = 0;
+	for (const TWeakObjectPtr<ATDEnemyShip>& S : LaunchedAlive) { if (S.IsValid() && !S->IsDying()) { ++N; } }
+	return N;
+}
+
+int32 ATDEnemyShip::CountCarrierFightersAlive(const UObject* WorldContext)
+{
+	const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+	if (!World) { return 0; }
+	int32 N = 0;
+	for (TActorIterator<ATDEnemyShip> It(World); It; ++It)
+	{
+		if (!It->GetSpec().LaunchedEnemyId.IsNone()) { N += It->GetLaunchedAliveCount(); }
+	}
+	return N;
 }
 
 void ATDEnemyShip::HandleLaunchedDied(ATDEnemyShip* Ship, AActor* /*Killer*/)

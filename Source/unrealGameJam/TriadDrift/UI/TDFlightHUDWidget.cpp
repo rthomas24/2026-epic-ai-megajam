@@ -928,6 +928,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 			}
 		}
 		bPlanetClosed = bClosed && !PlanetClosedLine.IsEmpty();
+		bPlanetClosedDone = bPlanetClosed && AsShip->GetAtmosphereEntry()->IsPlanetClosedComplete();
 		// ORBIT: the descent cover ending on the galaxy map is the climb-out's reveal (the HUD is rebuilt after the travel,
 		// so the edge is watched here rather than only through OnRevealed).
 		const bool bCovered = Descent && Descent->GetCoverPhase() != ETDDescentCover::Off;
@@ -2806,7 +2807,9 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	// ---- the lower lane: one message
 	else if (View.Lane != ELane::None && !View.LaneText.IsEmpty())
 	{
-		const FLinearColor LaneC = View.Lane == ELane::HyperdriveBlocked ? T::Warning() : T::Neutral();
+		// A finished planet's line ("VERDANCE · COMPLETE", T1) is news, not a lock: neutral words, no padlock.
+		const bool bPadlock = View.Lane == ELane::HyperdriveBlocked && !(bPlanetClosed && bPlanetClosedDone);
+		const FLinearColor LaneC = bPadlock ? T::Warning() : T::Neutral();
 		// #161: the closed-planet warning is the one large line (24 px on a taller plate, at full strength).
 		const bool bBigLane = bPlanetClosed && View.Lane == ELane::HyperdriveBlocked;
 		const int32 LanePx = bBigLane ? 24 : 17;
@@ -2815,14 +2818,14 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 		Area += LaneW * LaneH;
 		P.Plate(CenterX - LaneW * .5f, LaneY, LaneW, LaneH, 8.f, T::Plate().CopyWithNewOpacity(View.Lane == ELane::Hint ? .5f : bBigLane ? .85f : .65f));
 		Rec(TEXT("lane"), CenterX - LaneW * .5f, LaneY, LaneW, LaneH);
-		if (View.Lane == ELane::HyperdriveBlocked)
+		if (bPadlock)
 		{
 			// A padlock: shackle arc + body.
 			const FVector2D L(CenterX - LaneW * .5f + 20.f, LaneY + LaneH * .5f + 2.f);
 			P.ArcSpan(L + FVector2D(0, -4), 5.f, PI, PI, LaneC, 2.f);
 			P.Outline(L.X - 7.f, L.Y - 4.f, 14.f, 10.f, 2.f, 1.5f, LaneC);
 		}
-		P.Words(CenterX + (View.Lane == ELane::HyperdriveBlocked ? 10.f : 0.f), LaneY + LaneH * .5f - LanePx * .66f, View.LaneText, LanePx, LaneC, "Bold", .5f, 50);
+		P.Words(CenterX + (bPadlock ? 10.f : 0.f), LaneY + LaneH * .5f - LanePx * .66f, View.LaneText, LanePx, LaneC, "Bold", .5f, 50);
 	}
 
 	// ---- subtitles / story transmissions: centred under the lower lane, speaker tag in the pilot's colour, 2 lines max.

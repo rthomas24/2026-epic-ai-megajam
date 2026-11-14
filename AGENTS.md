@@ -83,13 +83,15 @@ blade to end the war.
 4. **Board.** Break the mothership's shield generators, dock, fight corridor by corridor in first
    person to the reactor core, destroy it, run back to your ship and escape as it breaks apart.
 
-### The squad (switch with one button; wingmen use basic attacks only)
+### The squad (switch with one button; wingmen fight on their own and use their powers; shadow mode, Ryan Nov 14, issue #201)
 
-| Ship | Role | Pilot | Signature power (only when the player flies it) | Unlockable ability |
+| Ship | Role | Pilot | Signature power | Unlockable ability |
 |---|---|---|---|---|
 | **Rift** | Trickster | Wren | **Portal blaster:** open two portals, fly through to reappear elsewhere, and send enemy missiles back through them | **Cloak** |
 | **Lancer** | Interceptor, fastest | Kato | Rapid cannons + **afterburner ram** that smashes straight through ships | **EMP Pulse** |
 | **Bastion** | Heavy | Moss | **Missile swarm** + **shield dome** that protects nearby wingmen | **Gravity Well** |
+
+**Shadow mode (Ryan, Nov 14, #201):** on by default, the two wingmen shadow the player's ship within a leash and help it fight; toggled off (G, pad View), they range farther as independent fighters and hit harder, but no longer cover the player. In both modes wingmen use their ship's powers and unlocked abilities when ready.
 
 ### World, enemies and finale
 - **Galaxy:** one big space level with a central combat zone, two landable planets, portal gates, and

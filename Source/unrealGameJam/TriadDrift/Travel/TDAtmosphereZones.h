@@ -152,9 +152,12 @@ public:
 	float ClosedPlanetMaxHeat = 0.62f;
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
 	FText GetPlanetClosedText() const { return ClosedPlanetText; }
+	/** The closed planet the line names is a finished one ("VERDANCE · COMPLETE"): the HUD draws it with no padlock. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
+	bool IsPlanetClosedComplete() const { return bClosedPlanetDone; }
 	/** The band outside the atmosphere where the turn-away works (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "cm"))
-	float ClosedPlanetBand = 35000.f;
+	float ClosedPlanetBand = 15000.f; // 150 m: the orbit return point sits about 200 m off the atmosphere (1.3x its radius) and must stay outside the band
 	/** Hull damage of one bounce off a closed planet (fraction of max hull), at most once per ClosedPlanetHitCooldown. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", ClampMax = "1"))
 	float ClosedPlanetHitHull = 0.04f;
@@ -193,6 +196,7 @@ private:
 	float GuardRefresh = 0.f;
 	float ClosedPlanet01 = 0.f;
 	FText ClosedPlanetText;
+	bool bClosedPlanetDone = false;
 	double LastClosedHit = -100.0;
 	bool bGuardRoar = false;
 	bool bGuardLogged = false;

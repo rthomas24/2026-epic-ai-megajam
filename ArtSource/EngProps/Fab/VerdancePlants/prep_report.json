@@ -1,0 +1,37 @@
+{
+ "normal": "OpenGL, flipped (-0.882)",
+ "green_share": 0.845,
+ "detected_islands": 9,
+ "islands": {
+  "fern": 2,
+  "long": 4,
+  "broad": 3
+ },
+ "SM_Fab_VerdancePlant_Fern": {
+  "cards": 7,
+  "tris": 28,
+  "size_cm": [
+   88,
+   95,
+   46
+  ]
+ },
+ "SM_Fab_VerdancePlant_Broad": {
+  "cards": 6,
+  "tris": 24,
+  "size_cm": [
+   98,
+   111,
+   47
+  ]
+ },
+ "SM_Fab_VerdancePlant_Long": {
+  "cards": 8,
+  "tris": 32,
+  "size_cm": [
+   89,
+   102,
+   85
+  ]
+ }
+}

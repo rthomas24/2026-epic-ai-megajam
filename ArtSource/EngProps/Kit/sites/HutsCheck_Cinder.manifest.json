@@ -1,0 +1,97 @@
+{
+ "site": "HutsCheck_Cinder",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_HutsCheck_Cinder",
+ "about": "Capture only: the Cinder camp pieces in a row.",
+ "pieces": [
+  {
+   "name": "Shack",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Cinder/SM_Hut_Cinder_Shack",
+   "location_cm": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "Workshop",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Cinder/SM_Hut_Cinder_Workshop",
+   "location_cm": [
+    900.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "PumpHouse",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Cinder/SM_Hut_Cinder_PumpHouse",
+   "location_cm": [
+    1800.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "OreHopper",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Cinder/SM_Hut_Cinder_OreHopper",
+   "location_cm": [
+    2700.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "DrillRig",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Cinder/SM_Hut_Cinder_DrillRig",
+   "location_cm": [
+    3600.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "PipeRun",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Cinder/SM_Hut_Cinder_PipeRun",
+   "location_cm": [
+    4500.0,
+    600.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "FloodMast",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Cinder/SM_Hut_Cinder_FloodMast",
+   "location_cm": [
+    5400.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "Supplies",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Cinder/SM_Hut_Cinder_Supplies",
+   "location_cm": [
+    6300.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  },
+  {
+   "name": "Generator",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Huts/Cinder/SM_Hut_Cinder_Generator",
+   "location_cm": [
+    7200.0,
+    600.0,
+    0.0
+   ],
+   "yaw_deg": 200.0
+  }
+ ]
+}

@@ -646,6 +646,7 @@ private:
 	float MinimalReadLeft = 0.f;
 	/** #161: T1's "PLANET CLOSED" warning (UTDAtmosphereEntryComponent), upper-cased once. */
 	bool bPlanetClosed = false;
+	bool bPlanetClosedDone = false; // the closed planet is a finished one: its line has no padlock (T1)
 	FString PlanetClosedRaw, PlanetClosedLine;
 	/** #154: the subtitle's wrap, cached per text / size / width (NativePaint is const). */
 	mutable FString SubWrapText;
