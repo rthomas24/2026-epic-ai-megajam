@@ -1710,7 +1710,15 @@ FTDWaveInfo ATDWaveDirector::GetWaveInfo() const
 	Info.bWaveActive = State == ETDWaveState::WarpingIn || State == ETDWaveState::Active;
 	Info.bInBreather = State == ETDWaveState::Breather;
 	Info.BreatherRemaining = GetBreatherRemaining();
-	if (State == ETDWaveState::AllComplete)
+	// A staged assault (TD.Stage DominionAssault and later) stops the director without finishing a wave: it is Idle on
+	// its last index, and the radar read "WAVE 1 / 5" over the Dominion. All waves cleared in the progress counts too.
+	bool bAllCleared = State == ETDWaveState::AllComplete;
+	if (!bAllCleared && !Info.bWaveActive && !Info.bInBreather)
+	{
+		const ITDGameFlow* Flow = UTDStatics::GetGameFlow(this);
+		bAllCleared = Flow && Waves.Num() > 0 && Flow->GetProgress().WavesCleared >= Waves.Num();
+	}
+	if (bAllCleared)
 	{
 		// All waves done (the Dominion assault and after): no wave number, nothing to count. The objective
 		// line (T5) carries the finale; a HUD shows its wave block only while bWaveActive or bInBreather.

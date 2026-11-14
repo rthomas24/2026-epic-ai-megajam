@@ -1,0 +1,8 @@
+{"_note": "Heavy: Grok's shield walk (#165) becomes the live Walk_Fwd and Grok's guard-break stagger the live Stagger; the old ones are kept (Walk_Fwd_Template, Stagger_Authored). Run in this order (copies first).",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims", "skeleton": "/Game/TriadDrift/Gameplay/Characters/Crew/SKEL_NullCrew",
+ "compose": [
+  {"dst": "A_Crew_Heavy_Walk_Fwd_Template", "segments": [["A_Crew_Heavy_Walk_Fwd", 0.0, 99.0]], "blend": 0.0},
+  {"dst": "A_Crew_Heavy_Stagger_Authored", "segments": [["A_Crew_Heavy_Stagger", 0.0, 99.0]], "blend": 0.0},
+  {"dst": "A_Crew_Heavy_Walk_Fwd", "segments": [["A_Crew_Heavy_ShieldWalk", 0.0, 2.967]], "blend": 0.0},
+  {"dst": "A_Crew_Heavy_Stagger", "segments": [["A_Crew_Heavy_Stagger_Grok", 0.0, 1.467]], "blend": 0.0}
+ ]}

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "TriadDrift/Core/TDTypes.h"
 #include "TDGroundHUDWidget.generated.h"
 
 class UTDHealthComponent;
@@ -35,6 +36,12 @@ public:
 	{
 		float Health = 1.f;
 		float Block = 1.f;
+		/** The pilot card (#160 on foot): who is on foot, the blade's state (ETDBladeState), the health number, and 1..0
+		 *  for 1.5 s after a hit. */
+		ETDShipId Pilot = ETDShipId::Rift;
+		uint8 Blade = 0;
+		FString HealthText;
+		float UnderFire01 = 0.f;
 		int32 Dash = 0;
 		int32 DashMax = 2;
 		FString Objective;
@@ -153,6 +160,8 @@ private:
 	float SmoothHealth = 1.f;
 	float SmoothBlock = 1.f;
 	float DamageFlash = 0.f;
+	float UnderFireLeft = 0.f;
+	int32 HealthShown = -1;
 	float SmoothTransfer = 0.f;
 	/** Boss bar: the fill eases to the hull; the ghost holds where it was for a moment, then drains (recent damage). */
 	float SmoothBoss = 0.f;

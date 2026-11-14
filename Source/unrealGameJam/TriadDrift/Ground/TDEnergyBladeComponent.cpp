@@ -16,6 +16,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Engine/World.h"
 #include "Misc/PackageName.h"
+#include "NiagaraComponent.h"
 #include "HAL/IConsoleManager.h"
 
 static TAutoConsoleVariable<int32> CVarBladeLogHits(TEXT("td.Blade.LogHits"), 0,
@@ -100,13 +101,41 @@ void UTDEnergyBladeComponent::PlayBladeCue(FName Name, const FTDFXCue* Cue, bool
 	{
 		return;
 	}
+	// #163: ignite and retract play at the blade's emitter (+X up the blade): on the hand hilt's BladeEmitter socket in
+	// third person, on the camera blade in first. Never on the hand BEAM: during the crawl its length scale is near zero,
+	// and a degenerate parent transform made the ignite flash bloom into a white screen (r5 capture).
+	const ATDFirstPersonCharacter* Pilot = Cast<ATDFirstPersonCharacter>(GetOwner());
+	USceneComponent* AtBlade = nullptr;
+	FName Socket = NAME_None;
+	if (Pilot && (Name == TEXT("Ignite") || Name == TEXT("Retract")))
+	{
+		UStaticMeshComponent* Hilt = Pilot->GetHandBladeHilt();
+		if (Pilot->IsThirdPersonView() && Hilt && Hilt->GetStaticMesh())
+		{
+			AtBlade = Hilt;
+			Socket = Hilt->DoesSocketExist(TEXT("BladeEmitter")) ? FName(TEXT("BladeEmitter")) : NAME_None;
+		}
+		else if (!Pilot->IsThirdPersonView())
+		{
+			AtBlade = Pilot->GetBladeMesh();
+		}
+	}
+	UNiagaraComponent* FX = nullptr;
 	if (bAttached)
 	{
-		UTDStatics::PlayCueAttached(*Cue, GetOwner()->GetRootComponent());
+		FX = UTDStatics::PlayCueAttached(*Cue, AtBlade ? AtBlade : GetOwner()->GetRootComponent(), Socket);
+		if (FX && AtBlade)
+		{
+			FX->SetUsingAbsoluteScale(true); // the camera blade is scaled along X
+		}
 	}
 	else
 	{
-		UTDStatics::PlayCue(this, *Cue, Location, Rotation ? *Rotation : GetOwner()->GetActorRotation());
+		FX = UTDStatics::PlayCue(this, *Cue, Location, Rotation ? *Rotation : GetOwner()->GetActorRotation());
+	}
+	if (FX && Pilot)
+	{
+		FX->SetVariableLinearColor(TEXT("Color"), Pilot->GetBladeColor()); // the pilot's squad colour (#163)
 	}
 }
 
@@ -219,12 +248,14 @@ void UTDEnergyBladeComponent::PressAttack()
 		bHeavyFiredThisPress = true; // a slam never turns into a lunge
 		return;
 	}
-	if (IsBlocking())
+	const bool bOutOfBlock = IsBlocking();
+	if (bOutOfBlock)
 	{
 		SetBlockHeld(false); // attacking out of a block (after a parry) is allowed
 		bBlockHeld = true;   // still held: the guard comes back up after the swing
 	}
-	if (!IsAttacking() && !bRetracted && State != ETDBladeState::GuardBroken)
+	// Out of a held block the riposte comes at once (the guard would come back up under a waiting press).
+	if (!bOutOfBlock && !IsAttacking() && !bRetracted && State != ETDBladeState::GuardBroken)
 	{
 		// From rest the press waits for its release (a light swing) or the hold threshold (straight into the heavy
 		// wind-up), so a held heavy never throws a light first. Mid-combo presses still queue the next light at once.
@@ -252,6 +283,12 @@ void UTDEnergyBladeComponent::SetBlockHeld(bool bHeld)
 	bBlockHeld = bHeld;
 	if (bHeld)
 	{
+		if (bLightDeferred)
+		{
+			// Raising the guard cancels a heavy being wound up, at any moment of the hold (T7: died to bolts mid wind-up).
+			bLightDeferred = false;
+			bHeavyFiredThisPress = true;
+		}
 		if (!bRetracted && !IsAttacking() && State != ETDBladeState::GuardBroken && Stamina > 0.f && State != ETDBladeState::Blocking)
 		{
 			State = ETDBladeState::Blocking;

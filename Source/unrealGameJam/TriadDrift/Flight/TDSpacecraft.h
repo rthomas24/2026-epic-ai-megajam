@@ -9,6 +9,9 @@
 #include "TriadDrift/Flight/TDFlightTypes.h"
 #include "TDSpacecraft.generated.h"
 
+/** td.Debug.TeleportStack (default 0): dev stack dumps on long teleports / silent moves. */
+UNREALGAMEJAM_API bool TDTeleportStackEnabled();
+
 class USphereComponent;
 class UStaticMeshComponent;
 class UTDShipMovementComponent;

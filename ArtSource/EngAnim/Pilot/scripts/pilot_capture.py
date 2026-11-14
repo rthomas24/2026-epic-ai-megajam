@@ -36,6 +36,43 @@ MOVES = {
     "block":   (0.2, 4.0, [(0.0, "TD.Key RightMouseButton 0.7")], []),
     "block_move": (0.3, 4.0, [(0.0, "TD.Key RightMouseButton 1.1"), (0.1, "TD.Key A 1.0")], []),
     "hitreact": (0.3, 8.0, [], [("TD.Ground.Spawn Trooper 900", 2.0)]),
+    # round 2 (Nov 14): analog speeds through TD.Pilot.Drive, a Trooper at sword range for the guard, its bolts for the
+    # flick and (god mode off for 2 s) the flinch; "heavy_follow" re-aims the cameras at the pilot every frame.
+    "walk_slow": (0.4, 3.0, [(0.0, "TD.Pilot.Drive 150 1.4")], []),
+    "start":   (0.25, 2.5, [(0.3, "TD.Key W 0.6")], []),
+    "stop2":   (0.25, 3.0, [(0.0, "TD.Key W 0.15")], [("TD.Key W 1.2", 1.0)]),
+    "guard_strafe": (0.3, 4.0, [(0.0, "TD.Key RightMouseButton 1.2"), (0.05, "TD.Pilot.Drive 0 1.1 -300")], []),
+    "guard_back": (0.3, 4.0, [(0.0, "TD.Key RightMouseButton 1.2"), (0.05, "TD.Pilot.Drive -300 1.1")], []),
+    "heavy_follow": (0.06, 9.0, [(0.0, "TD.Key LeftMouseButton 0.45")], []),
+    "combat_idle": (0.5, 3.0, [], [("TD.Ground.Spawn Trooper 380", 2.5)]),
+    "deflect": (0.25, 7.0, [(0.0, "TD.Pilot.FootTrace 1.8"), (0.0, "TD.Key RightMouseButton 1.6")], []),
+    "seq_start": (0.6, 3.5, [(0.0, "TD.Pilot.FootTrace 1.6"), (0.3, "TD.Key W 1.0")], []),
+    "slope_find": (1.0, 2.0, [], [("TD.Pilot.FootIK 1", 0.2), ("TD.Pilot.FindSlope 12000 10 25 2500", 3.0)]),
+    "slope_find_off": (1.0, 2.0, [(0.0, "TD.Pilot.FootTrace 0.3")], [("TD.Pilot.FootIK 0", 0.8)]),
+    "slope_find_on": (1.0, 2.0, [(0.0, "TD.Pilot.FootTrace 0.3")], [("TD.Pilot.FootIK 1", 0.8)]),
+    "deflect_trooper": (0.35, 9.0, [(0.0, "TD.Pilot.FootTrace 3.0"), (0.0, "TD.Key RightMouseButton 2.8")], [("TD.Ground.Spawn Trooper 900", 3.0)]),
+    "seq_start_stop": (0.6, 5.0, [(0.0, "TD.Pilot.FootTrace 2.8"), (0.3, "TD.Pilot.Drive 150 1.0"), (2.4, "TD.Key W 0.6")], []),
+    "flinch":  (0.3, 5.0, [(0.0, "TD.God"), (4.0, "TD.God")], []),
+    "dash":    (0.2, 3.0, [(0.0, "TD.Key Q")], []),
+    "jump":    (0.3, 3.0, [(0.0, "TD.Key SpaceBar")], []),
+    "walk_follow": (0.5, 3.0, [(0.0, "TD.Pilot.Drive 150 1.4")], []),
+    "run_follow": (0.4, 3.0, [(0.0, "TD.Key W 1.1")], []),
+    "dash_follow": (0.15, 3.0, [(0.0, "TD.Pilot.FootTrace 0.6"), (0.0, "TD.Key Q")], []),
+    "crew_heavy": (0.5, 6.0, [(0.3, "TD.Ground.BreakGuard")], [("TD.Ground.Spawn Heavy 450", 2.5)]),
+    "crew_warden": (0.5, 6.0, [(0.3, "TD.Ground.CrewHit 80")], [("TD.Dev.DestroySpawned", 0.5), ("TD.Ground.Spawn Warden 700", 3.0)]),
+    # sequences at about 10 game fps (2 views) with every-frame foot positions in the log (TD.Pilot.FootTrace)
+    "seq_walk_run_stop": (0.6, 6.5, [(0.0, "TD.Pilot.FootTrace 3.8"), (0.0, "TD.Pilot.Drive 150 1.2"), (2.0, "TD.Key W 1.2")], []),
+    "seq_light_moving": (0.6, 5.5, [(0.0, "TD.Pilot.FootTrace 3.2"), (0.0, "TD.Key W 2.8"), (0.6, "TD.Key LeftMouseButton"), (1.2, "TD.Key LeftMouseButton"), (1.8, "TD.Key LeftMouseButton")], []),
+    "seq_sprint": (0.6, 4.5, [(0.0, "TD.Pilot.FootTrace 2.6"), (0.0, "TD.Key W 2.0"), (0.0, "TD.Key LeftShift 2.0")], []),
+    "seq_guard_strafe": (0.6, 4.5, [(0.0, "TD.Pilot.FootTrace 2.6"), (0.0, "TD.Key RightMouseButton 2.2"), (0.05, "TD.Pilot.Drive 0 2.0 -300")], []),
+    "slide":   (0.25, 4.0, [(0.0, "TD.Key LeftShift 1.0"), (0.0, "TD.Key W 1.0"), (0.5, "TD.Key LeftControl")], []),
+    "slope_ik_on": (1.0, 2.0, [], [("TD.Pilot.FootIK 1", 0.5)]),
+    "slope_ik_off": (1.0, 2.0, [], [("TD.Pilot.FootIK 0", 0.5)]),
+    "slope_a": (1.0, 1.0, [], [("TD.Ground.Teleport 4500 2500 2500", 4.0), ("TD.Pilot.FootIK 1", 0.3)]),
+    "slope_a_off": (1.0, 1.0, [], [("TD.Pilot.FootIK 0", 0.6)]),
+    "slope_b": (1.0, 1.0, [], [("TD.Ground.Teleport -3500 5000 2500", 4.0), ("TD.Pilot.FootIK 1", 0.3)]),
+    "slope_b_off": (1.0, 1.0, [], [("TD.Pilot.FootIK 0", 0.6), ("TD.Pilot.FootIK 1", 0.1)]),
+    "home": (1.0, 0.1, [], [("TD.Ground.Teleport 0 397 300", 3.0)]),
 }
 
 
@@ -95,7 +132,9 @@ def main():
     for name in names:
         slomo, secs, todo, pre = MOVES[name]
         cmd("slomo 1")
-        cmd("TD.Look 0 -10")
+        keep_yaw = name.startswith("slope_find")   # the slope moves keep the facing FindSlope chose
+        if not keep_yaw:
+            cmd("TD.Look 0 -10")
         time.sleep(0.6)
         for pc, wait in pre:
             cmd(pc)
@@ -104,7 +143,7 @@ def main():
         if not p:
             print("no pilot")
             return 1
-        cams = {v: camera(p, 0.0, v) for v in views}
+        cams = {v: camera(p, p[3] if keep_yaw else 0.0, v) for v in views}
         cmd("slomo %.3f" % slomo)
         todo = sorted(todo)
         t0 = time.time()
@@ -112,6 +151,10 @@ def main():
         while time.time() - t0 < secs:
             while todo and time.time() - t0 >= todo[0][0]:
                 cmd(todo.pop(0)[1])
+            if name.endswith("_follow"):
+                q = where()
+                if q:
+                    cams = {v: camera(q, 0.0, v) for v in views}
             for v in views:
                 r = call("SceneCaptureToolset.SceneCaptureToolset", "Capture", {"world": {"refPath": world}, "camera": cams[v], "mode": "Lit",
                          "options": {"width": W, "height": H, "screenPercentage": 1.0, "visualizationSubMode": ""}})
