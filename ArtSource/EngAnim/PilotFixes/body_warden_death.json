@@ -1,5 +1,5 @@
 {
- "_note": "Warden death r6: knees, then hips, then the torso over the first 0.5 s (hips dip 7 cm at 0.2 s, 16 cm at 0.38 s, the torso folds 14 deg by 0.5 s), feet held by leg IK to 0.8 s; the dip fades into the fall by 1.0 s.",
+ "_note": "Warden death r6: knees, then hips, then the torso over the first 0.5 s (hips dip 7 cm at 0.2 s, 16 cm at 0.38 s, the torso folds 14 deg by 0.5 s), feet held by leg IK to 0.8 s; the dip fades into the fall by 1.0 s. The base kicks its legs up to 75 cm above the hips as it lands (1.5-1.9 s); from 1.0 s the feet are held to at most 10 cm above the hips (leg IK), so the legs land with the body.",
  "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
  "skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
  "clips": [
@@ -59,7 +59,11 @@
      0.95,
      0
     ]
-   ]
+   ],
+   "foot_cap": {
+    "above_hip": 10,
+    "from": 1.0
+   }
   },
   {
    "src": "A_Crew_Warden_DeathPre_Back",
@@ -117,7 +121,11 @@
      0.95,
      0
     ]
-   ]
+   ],
+   "foot_cap": {
+    "above_hip": 10,
+    "from": 1.0
+   }
   },
   {
    "src": "A_Crew_Warden_DeathPre_Left",
@@ -175,7 +183,11 @@
      0.95,
      0
     ]
-   ]
+   ],
+   "foot_cap": {
+    "above_hip": 10,
+    "from": 1.0
+   }
   },
   {
    "src": "A_Crew_Warden_DeathPre_Right",
@@ -233,7 +245,11 @@
      0.95,
      0
     ]
-   ]
+   ],
+   "foot_cap": {
+    "above_hip": 10,
+    "from": 1.0
+   }
   }
  ]
 }

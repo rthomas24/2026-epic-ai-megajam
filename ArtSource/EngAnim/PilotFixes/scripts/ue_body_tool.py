@@ -5,6 +5,7 @@
 #   chest_yaw  [[t, deg], ...]  the upper body turns about spine_01 (+ = left shoulder forward), on top of the clip
 #   chest_pitch [[t, deg], ...]  the upper body folds forward about spine_01
 #   time_warp  {"until": s, "power": p}  the source clip eases in over its first seconds
+#   foot_cap   {"above_hip": cm, "from": s}  from that time a foot is pulled down (leg IK) so it never rises more than this above its hip
 #   arm_drop   {"l" | "r": [[t, deg], ...]}  that arm swings down from the shoulder by deg
 # Keys are eased (smoothstep) between neighbours. TD_BODY = config json. Animation builder (eng/anim), Nov 14.
 import json
@@ -90,10 +91,16 @@ for cl in CFG["clips"]:
         solve = ik0 - 1e-6 <= t <= ik1 + 1e-6
         for s in "lr":
             th, ca, fo = "thigh_" + s, "calf_" + s, "foot_" + s
-            if solve:
+            cap = cl.get("foot_cap")   # {"above_hip": cm, "from": s}: a foot never rises more than this above its hip (no leg kick in a fall)
+            capped = bool(cap) and t >= cap["from"] and W[fo][0][2] > W[th][0][2] + cap["above_hip"]
+            if solve or capped:
                 Hp = W[th][0]
                 L1, L2 = length(sub(W[ca][0], W[th][0])), length(sub(W[fo][0], W[ca][0]))
-                tgt = add(foot0[s], keyed(cl.get("feet", {}).get(s), t, 3))
+                tgt = add(foot0[s], keyed(cl.get("feet", {}).get(s), t, 3)) if solve else W[fo][0]
+                if capped:
+                    over = W[fo][0][2] - (Hp[2] + cap["above_hip"])
+                    w_ = min(1.0, (t - cap["from"]) / 0.15)
+                    tgt = (tgt[0], tgt[1], tgt[2] - over * w_)
                 pole = add(sub(W[ca][0], Hp), (0.0, 0.3 * (L1 + L2), 0.0))
                 K, Tg = two_bone(Hp, tgt, L1, L2, pole)
                 qt = from_to(sub(W[ca][0], Hp), sub(K, Hp))
