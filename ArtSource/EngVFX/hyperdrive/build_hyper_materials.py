@@ -54,7 +54,7 @@ float2 p = UV*2-1; float r = length(p);
 float3 col = PC.rgb*Tint.rgb;
 float core = exp(-pow((r - 0.90)/0.010, 2.0));
 float glow = exp(-pow((r - 0.90)/0.045, 2.0));
-float3 c = float3(1,1,1)*core*2.5 + col*glow*1.2;
+float3 c = float3(1,1,1)*core*3.5 + col*glow*1.7;   // r7: brighter (the outer ring was faint at the frame edge)
 float mask = 1.0 - smoothstep(0.97, 1.0, r);
 return float4(c*Intensity*mask*PC.a, PC.a);""", {'Tint': (1.25, 0.55, 1.0)}),
 }

@@ -48,10 +48,12 @@ def H(name, user, emitters):
 OPEN = '(saturate(Emitter.Age/1.1)*saturate(Emitter.Age/1.1)*(3.0 - 2.0*saturate(Emitter.Age/1.1)))'   # smoothstep (the function failed to compile in a Niagara expression)
 H('NS_TD_Hyperdrive_Spool', U(HYPER), [
     # r3: bigger (r2 was about 90 px wide at 1600 x 900 from the chase camera)
-    rifted(mesh_single('Tear', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 17.0, 26.0', 1.0, offset=(3600, 0, 0),
+    # r7 (review MINOR: small, on the nose, clipped by the ship glow): 70 m ahead, so from the chase camera it projects up
+    # by the crosshair instead of onto the hull, and big enough to read there; a dimmer nose charge.
+    rifted(mesh_single('Tear', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 44.0, 66.0', 1.0, offset=(7000, 0, 0),
                        live_scale='float3(1.0, 0.15 + 0.85*%s, 0.05 + 0.95*%s)' % (OPEN, OPEN))),
-    offset(single('TearGlow', 'M_TD_VFX_Glow', 3600, 0.55, 13.7), 3650),   # r2: the first capture read as a dark fan: light behind it
-    offset(single('Charge', 'M_TD_VFX_Glow', 420, 1.3, 71.3), 320),
+    offset(single('TearGlow', 'M_TD_VFX_Glow', 7500, 0.40, 13.7), 7050),   # r2: the first capture read as a dark fan: light behind it
+    offset(single('Charge', 'M_TD_VFX_Glow', 420, 0.7, 71.3), 320),
     shed('Inflow', 'M_TD_VFX_Spark', 0, (0.18, 0.32), (4, 9), (7000, 14000), k=1.8, radius=700.0, drag=0.0, local=True, stretch=22,
          cone=((1.0, 0.0, 0.0), 12.0), rate_expr='220.0*%s' % OPEN, fade_in=6.0),
     offset(shed('RimSparks', 'M_TD_VFX_Spark', 0, (0.10, 0.25), (3, 7), (1500, 5000), k=2.0, radius=500.0, drag=2.5, local=True, stretch=12,
@@ -69,7 +71,7 @@ H('NS_TD_Hyperdrive_Tunnel', U(HYPER), [
     offset(shed('WhiteCore', 'M_TD_VFX_Spark', 140.0, (0.10, 0.20), (3, 6), (90000, 150000), radius=1600.0, drag=0.0, local=True, stretch=90,
                 cone=((-1.0, 0.0, 0.0), 1.0), rgb=(1.4, 1.4, 1.6), fade_in=10.0), 12000),
     # r2: camera-facing ring sprites (r1's mesh-disc rings on the rate template left the whole system inactive)
-    offset(shed('Rings', RING_MAT, 7.0, (0.42, 0.42), (4200, 4200), (50000, 50000), k=1.0, radius=10.0, drag=0.0, local=True,
+    offset(shed('Rings', RING_MAT, 7.0, (0.42, 0.42), (4200, 4200), (50000, 50000), k=1.7, radius=10.0, drag=0.0, local=True,   # r7: brighter (faint at the frame edge)
                 cone=((-1.0, 0.0, 0.0), 0.5), power=0.8), 18000),
     rifted(mesh_single('Destination', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 70.0, 70.0', 0.7, offset=(30000, 0, 0))),
     offset(single('Sheath', 'M_TD_VFX_Glow', 1700, 0.22, 13.7), 200)])
@@ -88,8 +90,10 @@ H('NS_TD_Hyperdrive_DropOut', U(HYPER), [
     flash('Glow', 'M_TD_VFX_Glow', 2400, 0.20, 0.22, growth='0.6 + Particles.NormalizedAge*0.6'),
     shed('Spray', 'M_TD_VFX_Spark', 0, (0.30, 0.70), (5, 12), (8000, 26000), k=1.9, radius=300.0, drag=2.0, stretch=30,
          cone=((1.0, 0.0, 0.0), 28.0), burst=130, dur=0.9, power=1.3),
-    shed('Wake', 'M_TD_VFX_Spark', 0, (0.20, 0.45), (4, 9), (12000, 30000), k=1.6, radius=400.0, drag=1.0, stretch=45,
-         cone=((-1.0, 0.0, 0.0), 6.0), burst=60, dur=0.6, power=1.2)])
+    # r7 (review MINOR: a white bloom wedge bottom-centre in the first frame): the wake streaks were born at the ship and
+    # crossed the chase camera within a few frames; now fewer, dimmer, and born 10 m further forward.
+    offset(shed('Wake', 'M_TD_VFX_Spark', 0, (0.20, 0.40), (3, 7), (10000, 22000), k=0.7, radius=400.0, drag=1.5, stretch=40,
+                cone=((-1.0, 0.0, 0.0), 6.0), burst=30, dur=0.6, power=1.4), 1000)])
 
 hx = tdvfx.Builder(call_tool)
 ONLY_H = globals().get('ONLY_H')
