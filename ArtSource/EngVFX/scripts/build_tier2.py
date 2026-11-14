@@ -139,17 +139,30 @@ def row_light(i, n=12, length=40000.0):
 # each frame, User.Intensity 0..1). A pale-blue cone from a 60 m mouth narrowing toward the ship, motes pulled in from
 # the ship's end toward the bay, and a soft glow in the mouth.
 S2('NS_TD_Dominion_TractorBeam', U((0.35, 0.65, 1.0, 1.0), 1.0, Length=20000.0, Intensity=1.0), [
-    mesh_single('Beam', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '1.0, 30.0, 30.0', 0.10, None,   # 10b: 0.55 read as a white jet
-                live_scale='float3(User.Length/(100.0*User.Scale), 1.0, 1.0)*User.Intensity*(0.97 + 0.03*sin(Engine.Time*3.1))'),
-    mesh_single('Core', 'SM_TD_VFX_Flame', 'M_TD_VFX_Flame', '1.0, 10.0, 10.0', 0.16, None,
-                live_scale='float3(User.Length/(100.0*User.Scale), 1.0, 1.0)*User.Intensity*(0.95 + 0.05*sin(Engine.Time*5.3))'),
+    # 10d: the flame-mesh cone read as a white exhaust jet; the beam is now a column of big soft blue glows streaming from
+    # the ship's end into the bay (reads as a pull), the motes, and the glow in the mouth.
+    offset(shed('Stream', 'M_TD_VFX_Glow', 0, (2.5, 4.0), (1400, 2600), (3500, 5000), k=1.6, radius=600.0, drag=0.0, local=True,
+                cone=((-1.0, 0.0, 0.0), 2.0), rate_expr='40.0*User.Intensity', power=0.7, fade_in=5.0), 'User.Length/User.Scale'),
     offset(shed('Motes', 'M_TD_VFX_Glow', 0, (1.2, 2.4), (60, 140), (4000, 7000), k=1.4, radius=900.0, drag=0.0, local=True, stretch=None,
                 cone=((-1.0, 0.0, 0.0), 6.0), rate_expr='70.0*User.Intensity', power=0.8, fade_in=4.0), 'User.Length/User.Scale'),
     shed('Mouth', 'M_TD_VFX_Glow', 0, (0.3, 0.3), (5000, 6000), (0, 0), k=0.5, radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='12.0*User.Intensity')])
 
 # Review only (not for gameplay): M_TD_RegionHaze on a 600 m engine sphere as a mesh particle, so the haze can be
 # photographed in PIE (Python cannot add a mesh component there). T6 uses a plain sphere actor.
-S2('NS_TD_Debug_HazeSphere', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='MI_TD_RegionHaze_Review')])
+# 10d: a system of persistent emitters only never activates (round 3's trap, seen again: active=False); a token spawner keeps it alive
+def keepalive():
+    return shed('KeepAlive', 'M_TD_VFX_Glow', 0, (0.1, 0.1), (1, 1), (0, 0), k=0.0, radius=0.0, drag=0.0, local=True, rate_expr='2.0')
+S2('NS_TD_Debug_HazeSphere', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='MI_TD_RegionHaze_Review'), keepalive()])
+
+# 10d debug (review only): why the region beacon and the haze never show. Same emitter with (A) a fixed 8.4 m size,
+# (B) the size straight from Engine.Owner.LODDistance (0 if the engine does not fill it); the haze sphere with the
+# known-good field material, and with the haze base material (not the instance).
+def dbg_beacon(size_expr):
+    return [shed('Beacon', 'M_TD_VFX_Glow', 0, (0.1, 0.1), (size_expr, size_expr), (0, 0), radius=0.0, drag=0.0, local=True, power=0.01, k=2.5, rate_expr='20.0')]
+S2('NS_TD_Debug_BeaconFixed', U((1.0, 0.62, 0.18, 1.0), 1.0), dbg_beacon('840.0'))
+S2('NS_TD_Debug_BeaconLOD', U((1.0, 0.62, 0.18, 1.0), 1.0), dbg_beacon('(0.028*Engine.Owner.LODDistance)'))
+S2('NS_TD_Debug_HazeField', U((0.70, 0.85, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0)])
+S2('NS_TD_Debug_HazeBase', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='M_TD_RegionHaze'), keepalive()])
 
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
@@ -173,10 +186,11 @@ def with_gravity(e, g=-980.0):
 
 
 S2('NS_TD_Magma_Heat', U((1.0, 0.42, 0.08, 1.0), 1.0, SizeX=800.0, SizeY=800.0, Intensity=1.0), [
-    shed('Embers', 'M_TD_VFX_Glow', 0, (1.2, 2.6), (5, 12), (60, 220), k=2.2, radius=MRAD, drag=0.4, curl=90.0, local=True,
-         rgb=(1.0, 0.45, 0.08), cone=((0.0, 0.0, 1.0), 25.0), rate_expr=magma_rate(0.25, 6.0, 70.0), power=1.4, fade_in=6.0),
-    with_gravity(shed('Spatter', 'M_TD_VFX_Glow', 0, (0.5, 0.9), (14, 30), (300, 650), k=2.6, radius=MRAD, drag=0.1, local=True,
-                      rgb=(1.0, 0.55, 0.12), cone=((0.0, 0.0, 1.0), 30.0), rate_expr=magma_rate(0.03, 1.0, 10.0), power=0.8)),
+    # 10d (captured on foot at 5 and 20 m: off and on looked identical against the bright lava): 3-4x larger, HDR-bright
+    shed('Embers', 'M_TD_VFX_Glow', 0, (1.2, 2.6), (20, 45), (80, 260), k=2.2, radius=MRAD, drag=0.4, curl=90.0, local=True,
+         rgb=(9.0, 3.6, 0.6), cone=((0.0, 0.0, 1.0), 25.0), rate_expr=magma_rate(0.25, 6.0, 70.0), power=1.4, fade_in=6.0),
+    with_gravity(shed('Spatter', 'M_TD_VFX_Spark', 0, (0.6, 1.0), (40, 80), (450, 900), k=2.6, radius=MRAD, drag=0.1, local=True, stretch=4,
+                      rgb=(12.0, 5.0, 0.8), cone=((0.0, 0.0, 1.0), 30.0), rate_expr=magma_rate(0.06, 3.0, 24.0), power=0.8)),
     shed('Shimmer', 'M_TD_VFX_Fire', 0, (0.8, 1.4), (90, 180), (60, 140), k=0.35, radius=MRAD, drag=0.6, local=True,
          cone=((0.0, 0.0, 1.0), 10.0), growth='0.6 + Particles.NormalizedAge*0.8', rate_expr=magma_rate(0.02, 2.0, 12.0), power=1.0, fade_in=4.0)])
 
@@ -189,7 +203,7 @@ BPULSE = '(0.80 + 0.20*sin(Engine.Time*2.5133))'
 BSIZE = '(0.028*clamp(Engine.Owner.LODDistance, 30000.0, 300000.0)*%s)' % BPULSE
 S2('NS_TD_Region_Beacon', U((1.0, 0.62, 0.18, 1.0), 1.0), [
     shed('Beacon', 'M_TD_VFX_Glow', 0, (0.1, 0.1), (BSIZE, BSIZE), (0, 0), radius=0.0, drag=0.0, local=True, power=0.01,   # 10c: Glow (M_TD_VFX_Beacon never showed)
-         k=2.5, rate_expr='10.0')])   # 10b: User.Color via the standard colour (the per-channel expression did not render)
+         k=12.0, rate_expr='20.0')])   # 10d: k 12 (an additive glow at k 2.5 vanished against the nebula), rate 20   # 10b: User.Color via the standard colour (the per-channel expression did not render)
 
 # Slot: none yet (code hook wanted: T3's transmissions, the escape sequence, a hit of "static"). A one-shot, camera-facing
 # tear of chromatic bars, 0.3 s; spawn it attached in front of the camera (authored 12 m wide) or at a world point.

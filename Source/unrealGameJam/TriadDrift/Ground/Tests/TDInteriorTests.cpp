@@ -494,4 +494,79 @@ bool FTDInteriorWardenRetake::RunTest(const FString& Parameters)
 	return true;
 }
 
+// T7 (Nov 14): 17-18 takes in the arena with no easing. Every arena wave eases from take 2.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorArenaMercy, "TriadDrift.Ground.Interior.ArenaWavesHaveDirectorsMercy", TD_TEST_FLAGS)
+bool FTDInteriorArenaMercy::RunTest(const FString& Parameters)
+{
+	TDInteriorTest::FInterior I;
+	ATDObjective* Arena = I.Obj(1);
+	if (!TestNotNull(TEXT("arena"), Arena)) { return false; }
+	int32 Waves = 0;
+	for (TActorIterator<ATDEncounterVolume> It(I.W.GetWorld()); It; ++It)
+	{
+		if (It->LinkedObjective != Arena) { continue; }
+		++Waves;
+		int32 First = MAX_int32;
+		for (const FTDRetakeMercyTier& T : It->MercyTiers) { First = FMath::Min(First, T.FromTake); }
+		TestEqual(*FString::Printf(TEXT("%s eases from take 2"), *It->GetName()), First, 2);
+	}
+	TestEqual(TEXT("three waves"), Waves, 3);
+	return true;
+}
+
+// T7 (Nov 14): the reactor's conduits carried no marker. While they are the step the marker is the nearest one standing.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorConduitMarkers, "TriadDrift.Ground.Interior.ConduitMarkerIsTheNearestStanding", TD_TEST_FLAGS)
+bool FTDInteriorConduitMarkers::RunTest(const FString& Parameters)
+{
+	const TArray<FName>& Ids = ATDPlanetCourse::InteriorObjectiveIds();
+	TDInteriorTest::FInterior I({ Ids[0], Ids[1], Ids[2] });
+	if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
+	ATDFirstPersonCharacter* P = TDGroundTest::SpawnPlayer(I.W, I.Course->GetInteriorStart().GetLocation() + FVector(0.f, 0.f, 95.f));
+	ATDObjective* Reactor = I.Obj(3);
+	if (!TestNotNull(TEXT("pilot"), P) || !TestNotNull(TEXT("reactor"), Reactor)) { return false; }
+	I.Course->StartObjectiveAt(Ids[3]);
+	if (!TestTrue(TEXT("the reactor is on"), Reactor->IsActive())) { return false; }
+	TArray<ATDShatterCrystal*> Conduits;
+	for (TActorIterator<ATDShatterCrystal> It(I.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Reactor && It->LinkedStep == 0) { Conduits.Add(*It); } }
+	TestEqual(TEXT("four conduits"), Conduits.Num(), 4);
+	for (int32 Down = 0; Down < 3; ++Down)
+	{
+		I.W.Advance(0.3f); // the course ticks every 0.2 s
+		AActor* M = Reactor->GetCurrentWaypoint();
+		ATDShatterCrystal* C = Cast<ATDShatterCrystal>(M);
+		if (!TestNotNull(*FString::Printf(TEXT("with %d down the marker is a conduit (%s)"), Down, *GetNameSafe(M)), C)) { return false; }
+		TestTrue(TEXT("a standing one"), UTDStatics::GetHealth(C) && UTDStatics::GetHealth(C)->IsAlive());
+		for (const ATDShatterCrystal* O : Conduits)
+		{
+			const UTDHealthComponent* H = UTDStatics::GetHealth(O);
+			if (H && H->IsAlive()) { TestTrue(TEXT("the nearest"), FVector::Dist(P->GetActorLocation(), C->GetActorLocation()) <= FVector::Dist(P->GetActorLocation(), O->GetActorLocation()) + 1.f); }
+		}
+		UTDStatics::GetHealth(C)->Kill(P, ETDDamageKind::Melee);
+	}
+	return true;
+}
+
+// T7 (Nov 14): the hangar start stood behind the parked Rift, facing the door with the hull in the way. From the
+// start, the first 6 m toward the door are clear of every parked part.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorHangarStartClear, "TriadDrift.Ground.Interior.HangarStartHasAClearWayToTheDoor", TD_TEST_FLAGS)
+bool FTDInteriorHangarStartClear::RunTest(const FString& Parameters)
+{
+	TDInteriorTest::FInterior I;
+	if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
+	const FTransform Start = I.Course->GetInteriorStart();
+	const FVector A = Start.GetLocation() + FVector(0.f, 0.f, 90.f);
+	const FVector B = A + Start.GetRotation().GetForwardVector() * 600.f;
+	int32 Parts = 0;
+	for (const TObjectPtr<UStaticMeshComponent>& Part : I.Course->GetParkedParts())
+	{
+		if (!Part) { continue; }
+		++Parts;
+		const FBox Box = Part->Bounds.GetBox().ExpandBy(50.f);
+		TestFalse(*FString::Printf(TEXT("%s clear of the start's first 6 m (start %s)"), *Part->GetName(), *A.ToCompactString()),
+			Box.IsInside(A) || FMath::LineBoxIntersection(Box, A, B, B - A));
+	}
+	AddInfo(FString::Printf(TEXT("%d parked parts checked"), Parts));
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS

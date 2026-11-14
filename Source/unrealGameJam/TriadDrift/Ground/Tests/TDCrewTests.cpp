@@ -234,7 +234,7 @@ bool FTDCrewDeflect::RunTest(const FString& Parameters)
 
 // ------------------------------------------------------------------------------------------------
 // T7's Verdance playtest (Nov 13): ~32 quick slashes at the Heavy's guard did nothing, nothing taught the lunge, and the
-// transfer drained through three retakes. A blocked slash clangs, the first one (and every 5th after) shows the lunge tip,
+// transfer drained through three retakes. A blocked slash clangs, the first one (and every 3rd after) shows the lunge tip,
 // and GuardChipsToBreak quick slashes in a row stagger the guard open.
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCrewHeavyGuardChip, "TriadDrift.Ground.Crew.HeavyGuardClangsTeachesTheLungeAndChipsOpen", TD_TEST_FLAGS)
 bool FTDCrewHeavyGuardChip::RunTest(const FString& Parameters)
@@ -256,16 +256,16 @@ bool FTDCrewHeavyGuardChip::RunTest(const FString& Parameters)
 	TestTrue(*FString::Printf(TEXT("the lunge tip shows ('%s')"), *P->GetInteractPrompt().ToString()), P->GetInteractPrompt().ToString().Contains(TEXT("LUNGE")));
 	W.Advance(4.5f);
 	TestTrue(TEXT("the tip goes after 4 s"), P->GetTip().IsEmpty());
-	// Quick slashes, one every 0.45 s (a player's light chain), the hint returning on the 6th.
+	// Quick slashes, one every 0.45 s (a player's light chain), the hint returning on the 4th blocked hit (Lead, Nov 14).
 	int32 Slashes = 1;
 	bool bTipAgain = false;
 	for (; Slashes < 12 && !H->IsGuardBroken(); ++Slashes)
 	{
 		B->LightAttack();
-		bTipAgain |= Slashes == 5 && P->GetInteractPrompt().ToString().Contains(TEXT("LUNGE"));
+		bTipAgain |= Slashes == 3 && P->GetInteractPrompt().ToString().Contains(TEXT("LUNGE"));
 		W.Advance(0.45f);
 	}
-	TestTrue(TEXT("the tip again after 5 more blocked hits"), bTipAgain);
+	TestTrue(TEXT("the tip again after 3 more blocked hits"), bTipAgain);
 	TestTrue(*FString::Printf(TEXT("quick slashes chip the guard open (after %d)"), Slashes), H->IsGuardBroken() && Slashes <= ATDCrewCharacter::GuardChipsToBreak + 1);
 	const float Before = TDGroundTest::Hull(H);
 	B->LightAttack();
