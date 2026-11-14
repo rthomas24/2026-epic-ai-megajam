@@ -1,0 +1,496 @@
+{
+ "site": "DigSite_Cabin",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_DigSite_Cabin",
+ "about": "Cinder dig-site cabin from the kit: raised deck (top Z 200) 1200 x 1200, cabin 400 x 800 at the back (X -600..-200), walkway round it, front stairs X 600..1400.",
+ "pieces": [
+  {
+   "name": "Deck_-400_-400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x200",
+   "location_cm": [
+    -400,
+    -400,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_-400_0",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x200",
+   "location_cm": [
+    -400,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_-400_400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x200",
+   "location_cm": [
+    -400,
+    400,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_0_-400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x200",
+   "location_cm": [
+    0,
+    -400,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_0_0",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x200",
+   "location_cm": [
+    0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_0_400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x200",
+   "location_cm": [
+    0,
+    400,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_400_-400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x200",
+   "location_cm": [
+    400,
+    -400,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_400_0",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x200",
+   "location_cm": [
+    400,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_400_400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x200",
+   "location_cm": [
+    400,
+    400,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Wall_Back_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400",
+   "location_cm": [
+    -600,
+    -200,
+    200
+   ],
+   "yaw_deg": 0,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Roof_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Roof_400",
+   "location_cm": [
+    -400,
+    -200,
+    200
+   ],
+   "yaw_deg": 0,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Wall_Back_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400",
+   "location_cm": [
+    -600,
+    200,
+    200
+   ],
+   "yaw_deg": 0,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Roof_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Roof_400",
+   "location_cm": [
+    -400,
+    200,
+    200
+   ],
+   "yaw_deg": 0,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Wall_Side_S",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400_Window",
+   "location_cm": [
+    -400,
+    -400,
+    200
+   ],
+   "yaw_deg": 90,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Wall_Side_N",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400_Window",
+   "location_cm": [
+    -400,
+    400,
+    200
+   ],
+   "yaw_deg": 270,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Door",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_DoorFrame_400",
+   "location_cm": [
+    -200,
+    -200,
+    200
+   ],
+   "yaw_deg": 180,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Wall_Front",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400_Window",
+   "location_cm": [
+    -200,
+    200,
+    200
+   ],
+   "yaw_deg": 180,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Corner_-200_400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Corner",
+   "location_cm": [
+    -200,
+    400,
+    200
+   ],
+   "yaw_deg": 0,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Corner_-200_-400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Corner",
+   "location_cm": [
+    -200,
+    -400,
+    200
+   ],
+   "yaw_deg": 270,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Corner_-600_-400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Corner",
+   "location_cm": [
+    -600,
+    -400,
+    200
+   ],
+   "yaw_deg": 180,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Corner_-600_400",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Corner",
+   "location_cm": [
+    -600,
+    400,
+    200
+   ],
+   "yaw_deg": 90,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Console",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Console",
+   "location_cm": [
+    -560,
+    0,
+    200
+   ],
+   "yaw_deg": 0,
+   "slots": {
+    "Screen": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Screen"
+   }
+  },
+  {
+   "name": "Lamp_Door",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_LightStrip_200",
+   "location_cm": [
+    -175,
+    -200,
+    496
+   ],
+   "yaw_deg": 90,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Cinder"
+   }
+  },
+  {
+   "name": "Rail_00",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    600,
+    -400,
+    200
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "Rail_01",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    600,
+    400,
+    200
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "Rail_02",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -400,
+    600,
+    200
+   ],
+   "yaw_deg": 180
+  },
+  {
+   "name": "Rail_03",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -400,
+    -600,
+    200
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "Rail_04",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    0,
+    600,
+    200
+   ],
+   "yaw_deg": 180
+  },
+  {
+   "name": "Rail_05",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    0,
+    -600,
+    200
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "Rail_06",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    400,
+    600,
+    200
+   ],
+   "yaw_deg": 180
+  },
+  {
+   "name": "Rail_07",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    400,
+    -600,
+    200
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "Rail_08",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -600,
+    -400,
+    200
+   ],
+   "yaw_deg": 270
+  },
+  {
+   "name": "Rail_09",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -600,
+    400,
+    200
+   ],
+   "yaw_deg": 270
+  },
+  {
+   "name": "Stair_Base",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    800,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Stairs_Upper",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Stairs_400",
+   "location_cm": [
+    800,
+    0,
+    100
+   ],
+   "yaw_deg": 180
+  },
+  {
+   "name": "Stairs_Lower",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Stairs_400",
+   "location_cm": [
+    1200,
+    0,
+    0
+   ],
+   "yaw_deg": 180
+  }
+ ],
+ "console_interact": {
+  "stand_at_site_cm": [
+   -430.0,
+   0.0,
+   200.0
+  ],
+  "pilot_faces_yaw_deg": 180.0,
+  "console_site_cm": [
+   -560.0,
+   0.0,
+   200.0
+  ],
+  "clear_in_front_cm": 300.0
+ },
+ "walk_path_site_cm": [
+  [
+   1550,
+   0,
+   0,
+   "ground in front of the stairs"
+  ],
+  [
+   1200,
+   0,
+   50,
+   "lower flight"
+  ],
+  [
+   800,
+   0,
+   150,
+   "upper flight"
+  ],
+  [
+   300,
+   0,
+   200,
+   "front deck"
+  ],
+  [
+   -200,
+   -200,
+   200,
+   "cabin doorway (Y -280..-120)"
+  ],
+  [
+   -430,
+   0,
+   200,
+   "console point"
+  ],
+  [
+   0,
+   500,
+   200,
+   "side walkway"
+  ]
+ ],
+ "walkability_cm": {
+  "deck_top_z": 200,
+  "cabin": {
+   "x": [
+    -585,
+    -215
+   ],
+   "y": [
+    -385,
+    385
+   ]
+  },
+  "door": {
+   "y": [
+    -280,
+    -120
+   ],
+   "z": [
+    200,
+    460
+   ]
+  },
+  "stairs": "two Stairs_400 in one flight, 14 deg, Y -100..100, X 600..1400",
+  "railings": "every deck edge but the stairs opening (Y -200..200)"
+ },
+ "placement_rules": [
+  "Pivot on flat ground.",
+  "Keep 3 m clear in front of the stairs (X 1400..1700)."
+ ]
+}

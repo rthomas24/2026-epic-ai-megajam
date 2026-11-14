@@ -130,19 +130,27 @@ bool FTDCarrierSocketMounts::RunTest(const FString&)
 	if (!TestNotNull(TEXT("socket carrier"), New)) { return false; }
 	TestTrue(TEXT("socket placement"), New->HasSocketMountedParts());
 	const UStaticMeshComponent* Hull = New->GetHullMesh();
+	// Each part stands on its socket's outward +X line, its half-extent plus the clearance out (this test mesh has no
+	// collision, so no socket counts as buried), facing out along the socket.
+	auto OnSocket = [&](const AActor* Part, FName Name, float Half) -> bool
+	{
+		const FTransform S = Hull->GetSocketTransform(Name);
+		const FVector Want = S.GetLocation() + S.GetUnitAxis(EAxis::X) * (Half + New->CarrierPartClearance);
+		return Part->GetActorLocation().Equals(Want, 1.f) && FVector::DotProduct(Part->GetActorForwardVector(), S.GetUnitAxis(EAxis::X)) > 0.999f;
+	};
 	for (int32 i = 0; i < New->GetBays().Num(); ++i)
 	{
 		const FName Name(*FString::Printf(TEXT("Bay_%d"), i));
-		TestTrue(*FString::Printf(TEXT("bay %d on its socket"), i), New->GetBays()[i]->GetActorLocation().Equals(Hull->GetSocketLocation(Name), 1.f));
+		TestTrue(*FString::Printf(TEXT("bay %d on its socket"), i), OnSocket(New->GetBays()[i], Name, New->GetBays()[i]->GetHalfExtent()));
 	}
 	for (int32 i = 0; i < New->GetTurrets().Num(); ++i)
 	{
 		const FName Name(*FString::Printf(TEXT("Turret_%d"), i));
-		TestTrue(*FString::Printf(TEXT("turret %d on its socket"), i), New->GetTurrets()[i]->GetActorLocation().Equals(Hull->GetSocketLocation(Name), 1.f));
+		TestTrue(*FString::Printf(TEXT("turret %d on its socket"), i), OnSocket(New->GetTurrets()[i], Name, 120.f));
 	}
 	// The parts move with the hull.
 	New->SetActorLocation(New->GetActorLocation() + FVector(5000.f, 0.f, 0.f));
-	TestTrue(TEXT("parts ride along"), New->GetBays().Num() == 0 || New->GetBays()[0]->GetActorLocation().Equals(Hull->GetSocketLocation(TEXT("Bay_0")), 1.f));
+	TestTrue(TEXT("parts ride along"), New->GetBays().Num() == 0 || OnSocket(New->GetBays()[0], TEXT("Bay_0"), New->GetBays()[0]->GetHalfExtent()));
 	return true;
 }
 

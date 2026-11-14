@@ -1326,6 +1326,7 @@ bool FTDTravelExitAltitude::RunTest(const FString& Parameters)
 	W.Tick();
 	W.Tick();
 	TestTrue(TEXT("past the old height above the ground: the exit fires (no climb to the peak ceiling)"), Zone->IsExitTriggered());
+	TestTrue(TEXT("... and the climb out runs (ENG-38)"), Zone->IsClimbingOut());
 	return true;
 }
 

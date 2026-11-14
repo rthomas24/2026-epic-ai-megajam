@@ -101,8 +101,15 @@ public:
 	static constexpr float StopSeconds = 1.f;
 	static constexpr float AmbienceFadeSeconds = 2.f;
 
+	/** True while the Dominion assault's own score plays (UTDUIStyle::AssaultMusic; combat music held). */
+	bool IsAssaultMusicPlaying() const { return AssaultVoice != nullptr || bAssaultLogical; }
+	/** Tests: this sound as AssaultMusic (null = the style's). */
+	void SetAssaultMusicForTests(USoundBase* Sound) { AssaultOverride = Sound; bAssaultOverride = true; }
+
 private:
 	USoundBase* ResolveMusic() const;
+	USoundBase* ResolveAssaultMusic() const;
+	void TickAssault(UWorld* World, bool bWanted);
 	void StartPlayback();
 	void BeginStop(const TCHAR* Why);
 	void ApplyEnvelope();
@@ -114,6 +121,10 @@ private:
 
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> Audio;
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> AmbienceAudio;
+	UPROPERTY(Transient) TObjectPtr<UAudioComponent> AssaultVoice;
+	UPROPERTY(Transient) TObjectPtr<USoundBase> AssaultOverride;
+	bool bAssaultOverride = false;
+	bool bAssaultLogical = false; // tests / no audio device: the assault score "plays"
 	UPROPERTY(Transient) TObjectPtr<USoundBase> AmbienceOverride;
 	UPROPERTY(Transient) TObjectPtr<USoundBase> AmbienceBed;
 	/** The combat track, held once found (a packaged build would otherwise reload it after every GC). */

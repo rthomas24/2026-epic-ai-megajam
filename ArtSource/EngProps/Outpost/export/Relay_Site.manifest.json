@@ -1,0 +1,52 @@
+{
+  "site": "Relay_Site",
+  "about": "The Ancient Relay (Grok Bot's Rodin mesh, stairs re-sloped to 20 degrees, collision added). Unreal cm, site-relative; the site pivot is the mesh pivot: on the ground at the centre of the base. +X is the front (stairs, and the ring's face). One actor, no separate pieces.",
+  "ready_made_actor": {
+    "dormant": "/Game/TriadDrift/Gameplay/Props/Relay/BP_Relay",
+    "awake": "/Game/TriadDrift/Gameplay/Props/Relay/BP_Relay_Awake"
+  },
+  "pieces": [
+    {
+      "name": "Relay",
+      "mesh": "/Game/TriadDrift/Gameplay/Props/Relay/SM_Relay",
+      "location_cm": [0.0, 0.0, 0.0],
+      "rotation_deg": [0.0, 0.0, 0.0],
+      "scale": 1.0,
+      "materials": {
+        "dormant": "/Game/TriadDrift/Gameplay/Props/Relay/MI_Relay",
+        "awake": "/Game/TriadDrift/Gameplay/Props/Relay/MI_Relay_Awake"
+      },
+      "bounds_cm": {"min": [-562.0, -610.5, 0.0], "max": [749.4, 610.5, 1000.0]},
+      "collision_hulls": 23,
+      "note": "Material slot 0: scalar RelayPower scales the emissive (core, beams, runes). Dormant 0.15 (MI_Relay), awake 1.0 (MI_Relay_Awake). To wake it in play: CreateDynamicMaterialInstance(0) on the mesh component, then SetScalarParameterValue(\"RelayPower\", 0.15 -> 1.0) over the wake beat. GlowStrength 10 and GlowColor white are the other emissive knobs."
+    }
+  ],
+  "wake_interact": {
+    "stand_at_site_cm": [150.0, -2.0, 135.0],
+    "pilot_faces_yaw_deg": 180.0,
+    "look_at_core_site_cm": [-190.0, -2.0, 493.0],
+    "clear_in_front_cm": 217.0,
+    "note": "The pilot stands on the court in front of the ring, looking along -X at the core (core about 340 cm away and 360 cm up). The ring and its lower cross arm start at X = -67 / -78: 217 cm of clear court in front of the wake point. No socket: use the numbers."
+  },
+  "walk_path_site_cm": [
+    {"at": [900.0, -95.0, 0.0], "what": "ground in front of the stairs (collision toe at X = 773, visual toe at X = 728)"},
+    {"at": [600.0, -95.0, 60.0], "what": "on the flight (nosings at 19.3 degrees; collision over the treads)"},
+    {"at": [380.0, -95.0, 128.0], "what": "on the carved 20 degree slope that was the 46 cm top riser"},
+    {"at": [275.0, -95.0, 146.0], "what": "the landing (11 cm step down to the court behind it)"},
+    {"at": [150.0, -2.0, 135.0], "what": "wake point on the court"}
+  ],
+  "walkability_cm": {
+    "court_top_z": 135.0,
+    "court_radius_from_site": "380..430 around (-75, -45)",
+    "lower_tier_top_z": 90.0,
+    "landing": {"x": [236.0, 314.0], "y": [-195.0, 5.0], "z": 146.0},
+    "stairs": {"y": [-195.0, 5.0], "tread_clear_width": 120.0, "collision_profile_x_z": [[314.0, 146.0], [486.9, 100.0], [724.4, 17.0], [773.0, 0.0]], "segment_slopes_deg": [14.9, 19.3, 19.3], "slope_as_delivered_deg": 32.0, "riser_as_delivered": "46 cm at the top (a capsule snag), then 9 cm risers at 23.6 degrees"},
+    "feet_float_max": {"over_first_tread": 11.3, "over_flight_treads": 9.0, "ground_wedge_beyond_visual_toe": 44.9},
+    "clear_beside_stairs_to_pylons": 147.0
+  },
+  "placement_rules": [
+    "Put the site pivot ON the ground. There are no piles: the plinth bottom is flat at Z = 0, so place it on ground flat within about 20 cm across its 11 m footprint.",
+    "Keep 3 m of flat ground in front of the stair toe (site X 773 to 1073, Y -195 to 5).",
+    "Yaw it freely; never scale it (the stairs are sized for the 180 cm pilot)."
+  ]
+}

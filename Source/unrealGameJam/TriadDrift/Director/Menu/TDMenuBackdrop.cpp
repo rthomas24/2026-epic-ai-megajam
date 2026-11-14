@@ -36,6 +36,21 @@ static TAutoConsoleVariable<int32> CVarTDMenuBackdrop(
 	ECVF_Default);
 
 const FName ATDMenuBackdrop::MenuSceneTag(TEXT("TD.Menu.Scene"));
+ATDMenuBackdrop::FTDOnVictoryBackdrop ATDMenuBackdrop::OnVictoryBegan;
+ATDMenuBackdrop::FTDOnVictoryBackdrop ATDMenuBackdrop::OnStinger;
+ATDMenuBackdrop::FTDOnVictoryBackdrop ATDMenuBackdrop::OnVictoryEnded;
+
+void ATDMenuBackdrop::FadeStingerCaption()
+{
+	if (CaptionFadeStart <= 0.0)
+	{
+		CaptionFadeStart = FPlatformTime::Seconds();
+		if (Scene == ETDBackdropScene::Victory)
+		{
+			OnVictoryEnded.Broadcast(this); // the menu is up (T7 fades the credits music)
+		}
+	}
+}
 
 namespace TDMenuBackdrop
 {
@@ -200,6 +215,10 @@ void ATDMenuBackdrop::Build()
 	UE_LOG(LogTriadDrift, Log, TEXT("Menu backdrop (%s): sky, Verdance, camera and %d squad ships%s"),
 		Scene == ETDBackdropScene::Victory ? TEXT("victory") : TEXT("menu"), SquadMeshes.Num(),
 		Dominion ? TEXT(", the Dominion breaking up") : TEXT(""));
+	if (Scene == ETDBackdropScene::Victory)
+	{
+		OnVictoryBegan.Broadcast(this); // the victory screen and its credits roll are up (T7's credits music)
+	}
 }
 
 void ATDMenuBackdrop::BuildVictory(UWorld* World)
@@ -286,7 +305,12 @@ float ATDMenuBackdrop::PlayStinger()
 		return 0.f;
 	}
 	bStingerPlayed = true;
+	OnStinger.Broadcast(this);
 
+	if (UTDStorySubsystem* Story = UTDStorySubsystem::Get(this))
+	{
+		Story->SetSubtitleSuppressed(TEXT("A5_DistressSignal"), true); // the caption carries its words: once on screen
+	}
 	UTDStorySubsystem::Fire(this, TEXT("A5_DistressSignal"));
 	// Cut to black: a black layer over the scene, under the victory panel (z 10) and the transmission line (905).
 	StingerStart = FPlatformTime::Seconds();
@@ -311,7 +335,13 @@ float ATDMenuBackdrop::PlayStinger()
 				SNew(STextBlock)
 				.Text(Caption)
 				.Font(FCoreStyle::GetDefaultFontStyle(TEXT("Bold"), 20))
-				.ColorAndOpacity(FSlateColor(FLinearColor(1.f, 0.55f, 0.5f)))
+				.ColorAndOpacity_Lambda([Weak]()
+				{
+					// Fades over 1 s once the menu comes back (FadeStingerCaption), so the menu comes up clean.
+					const ATDMenuBackdrop* B = Weak.Get();
+					const float A = (B && B->CaptionFadeStart > 0.0) ? 1.f - FMath::Clamp(static_cast<float>(FPlatformTime::Seconds() - B->CaptionFadeStart), 0.f, 1.f) : 1.f;
+					return FSlateColor(FLinearColor(1.f, 0.55f, 0.5f, A));
+				})
 				.Justification(ETextJustify::Center)
 				.AutoWrapText(true)
 			];

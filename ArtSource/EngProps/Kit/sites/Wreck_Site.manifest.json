@@ -1,0 +1,291 @@
+{
+ "site": "Wreck_Site",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Wreck/BP_Wreck",
+ "about": "The Verdance wreck walk-through: a kit walkway (top Z 200, 400 wide, X -125..275) through the ruptured midsection along Y, ramps down both sides to Y +-1600.",
+ "pieces": [
+  {
+   "name": "Wreck",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Wreck/SM_Wreck",
+   "location_cm": [
+    0,
+    0,
+    -60
+   ],
+   "yaw_deg": 0,
+   "materials": {
+    "0": "/Game/TriadDrift/Gameplay/Props/Wreck/MI_Wreck"
+   },
+   "note": "Grok Bot's Rodin wreck as the exterior, sunk 60 cm (its belly rests in the ground). Its deck (now 182..198) and the r2 Rodin ramps are under the kit walkway; the hull section hulls still block the pawn outside."
+  },
+  {
+   "name": "Walk_-600",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x200",
+   "location_cm": [
+    75.0,
+    -600,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Walk_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x200",
+   "location_cm": [
+    75.0,
+    -200,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Walk_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x200",
+   "location_cm": [
+    75.0,
+    200,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Walk_600",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400x200",
+   "location_cm": [
+    75.0,
+    600,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "WallAft_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400",
+   "location_cm": [
+    -125.0,
+    -200,
+    200
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "WallFwd_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400",
+   "location_cm": [
+    275.0,
+    -200,
+    200
+   ],
+   "yaw_deg": 180
+  },
+  {
+   "name": "WallAft_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400",
+   "location_cm": [
+    -125.0,
+    200,
+    200
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "WallFwd_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400_Window",
+   "location_cm": [
+    275.0,
+    200,
+    200
+   ],
+   "yaw_deg": 180
+  },
+  {
+   "name": "Rail_Aft_-1",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -125.0,
+    -600,
+    200
+   ],
+   "yaw_deg": 270
+  },
+  {
+   "name": "Rail_Fwd_-1",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    275.0,
+    -600,
+    200
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "Step_-1",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    75.0,
+    -1000,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "RampHigh_-1",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Ramp_400",
+   "location_cm": [
+    75.0,
+    -1000,
+    100
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "RampLow_-1",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Ramp_400",
+   "location_cm": [
+    75.0,
+    -1400,
+    0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "Rail_Aft_1",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -125.0,
+    600,
+    200
+   ],
+   "yaw_deg": 270
+  },
+  {
+   "name": "Rail_Fwd_1",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    275.0,
+    600,
+    200
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "Step_1",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    75.0,
+    1000,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "RampHigh_1",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Ramp_400",
+   "location_cm": [
+    75.0,
+    1000,
+    100
+   ],
+   "yaw_deg": 270
+  },
+  {
+   "name": "RampLow_1",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Ramp_400",
+   "location_cm": [
+    75.0,
+    1400,
+    0
+   ],
+   "yaw_deg": 270
+  },
+  {
+   "name": "Console",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Console",
+   "location_cm": [
+    220.0,
+    0,
+    200
+   ],
+   "yaw_deg": 180,
+   "note": "the wreck's core / log console on the walkway, screen facing -X"
+  }
+ ],
+ "core_interact": {
+  "stand_at_site_cm": [
+   0.0,
+   0.0,
+   200.0
+  ],
+  "pilot_faces_yaw_deg": 0.0,
+  "console_site_cm": [
+   220.0,
+   0.0,
+   200.0
+  ],
+  "moved_from": "(75, 0, 252) on the Rodin deck: now on the kit walkway, facing the console on the forward wall"
+ },
+ "walk_path_site_cm": [
+  [
+   75.0,
+   -1750,
+   0,
+   "ground off the -Y ramp toe (Y -1600)"
+  ],
+  [
+   75.0,
+   -1400,
+   50,
+   "low ramp"
+  ],
+  [
+   75.0,
+   -1000,
+   150,
+   "high ramp"
+  ],
+  [
+   75.0,
+   -600,
+   200,
+   "walkway outside the hull"
+  ],
+  [
+   75.0,
+   0,
+   200,
+   "inside the hull"
+  ],
+  [
+   75.0,
+   600,
+   200,
+   "walkway, +Y side"
+  ],
+  [
+   75.0,
+   1750,
+   0,
+   "ground off the +Y ramp toe"
+  ]
+ ],
+ "walkability_cm": {
+  "walkway_top_z": 200,
+  "walkway": {
+   "x": [
+    -125,
+    275
+   ],
+   "y": [
+    -800,
+    800
+   ]
+  },
+  "inside_walls": "X -115 and 265 inner faces, Y -400..400",
+  "headroom": "hull roof collision at Z 488 (288 over the walkway); visual ceiling 475..523",
+  "ramps": "200 wide, 14 deg, Y 800..1600 each side, on a 100 platform at Y 800..1200"
+ },
+ "placement_rules": [
+  "Pivot on the ground; the hull rests 60 cm into it.",
+  "Keep 3 m clear past each ramp toe (Y beyond +-1600, X -25..175).",
+  "Never scale it."
+ ]
+}

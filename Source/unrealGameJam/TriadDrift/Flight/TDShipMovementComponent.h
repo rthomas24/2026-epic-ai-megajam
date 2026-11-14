@@ -199,6 +199,10 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	float GetBoost01() const { return State.Boost01; }
+	/** Pickups (T2: Boost from special rocks): add to the boost meter, clamped 0..1. Returns the amount actually added.
+	 *  The caller decides who gets it (the flown, living ship). */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Flight")
+	float AddBoost01(float Amount) { const float Before = State.Boost01; State.Boost01 = FMath::Clamp(State.Boost01 + Amount, 0.f, 1.f); return State.Boost01 - Before; }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Flight")
 	bool IsBoosting() const { return State.bBoosting; }

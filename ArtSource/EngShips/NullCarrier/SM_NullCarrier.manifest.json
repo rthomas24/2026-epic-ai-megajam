@@ -34,7 +34,11 @@
     "UCX_SM_NullCarrier_06",
     "UCX_SM_NullCarrier_07",
     "UCX_SM_NullCarrier_08",
-    "UCX_SM_NullCarrier_09"
+    "UCX_SM_NullCarrier_09",
+    "UCX_SM_NullCarrier_10",
+    "UCX_SM_NullCarrier_11",
+    "UCX_SM_NullCarrier_12",
+    "UCX_SM_NullCarrier_13"
   ],
   "collision_source": "authored",
   "sockets": [
@@ -106,8 +110,8 @@
       "name": "Bay_0",
       "ue_cm": [
         940,
-        -430,
-        -230
+        -326,
+        -280
       ],
       "ue_x": [
         0,
@@ -124,8 +128,8 @@
       "name": "Bay_1",
       "ue_cm": [
         940,
-        430,
-        -230
+        326,
+        -280
       ],
       "ue_x": [
         0,
@@ -143,7 +147,7 @@
       "ue_cm": [
         0,
         0,
-        61
+        -99
       ],
       "ue_x": [
         0,
@@ -161,7 +165,7 @@
       "ue_cm": [
         1100,
         -170,
-        -79
+        -137
       ],
       "ue_x": [
         0,
@@ -179,7 +183,7 @@
       "ue_cm": [
         1100,
         170,
-        -79
+        -137
       ],
       "ue_x": [
         0,
@@ -197,7 +201,7 @@
       "ue_cm": [
         -1300,
         -805,
-        202
+        146
       ],
       "ue_x": [
         0,
@@ -215,7 +219,7 @@
       "ue_cm": [
         -1300,
         805,
-        202
+        146
       ],
       "ue_x": [
         0,

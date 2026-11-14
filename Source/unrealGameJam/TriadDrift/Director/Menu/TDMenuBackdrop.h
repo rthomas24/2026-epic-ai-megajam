@@ -46,7 +46,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Menu Backdrop") float TakeThatSeconds = 10.f;
 	/** The caption held on screen under the signal's three lines (A5_DistressSignal's text). */
 	FText GetStingerCaption() const;
+	/** The menu is back: the held caption fades out over 1 s. */
+	void FadeStingerCaption();
+	double CaptionFadeStart = 0.0;
 	int32 GetFireCount() const { return Fires; }
+
+	/** T7's credits music: the victory screen (and its credits roll) appears; the ending stinger starts (18 s, or at once
+	 *  on an early leave); RETURN TO MENU has taken effect. Static: bind once. */
+	DECLARE_MULTICAST_DELEGATE_OneParam(FTDOnVictoryBackdrop, ATDMenuBackdrop*);
+	static FTDOnVictoryBackdrop OnVictoryBegan;
+	static FTDOnVictoryBackdrop OnStinger;
+	static FTDOnVictoryBackdrop OnVictoryEnded;
 
 	/** Tag on any actor of the menu map that is Nick's own menu scene: the backdrop stays off. */
 	static const FName MenuSceneTag; // "TD.Menu.Scene"

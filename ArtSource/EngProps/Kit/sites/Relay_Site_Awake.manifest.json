@@ -1,0 +1,565 @@
+{
+ "site": "Relay_Site",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Relay/BP_Relay_Awake",
+ "about": "Verdance relay defence arena: kit deck 1600 x 1600, top Z 100, over the sunk Rodin relay (ring faces +X); ramps +X, +Y, -Y.",
+ "pieces": [
+  {
+   "name": "Relay",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Relay/SM_Relay",
+   "location_cm": [
+    0,
+    0,
+    -50
+   ],
+   "yaw_deg": 0,
+   "materials": {
+    "0": "/Game/TriadDrift/Gameplay/Props/Relay/MI_Relay_Awake"
+   },
+   "note": "Grok Bot's Rodin relay as dressing, sunk 50 cm so its own plinth, court, landing and stairs (tops 85..96 after the sink) sit under the kit floor at 100. Its ring, cross and pylon hulls still block the pawn."
+  },
+  {
+   "name": "Deck_-600_-600",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    -600,
+    -600,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_-600_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    -600,
+    -200,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_-600_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    -600,
+    200,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_-600_600",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    -600,
+    600,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_-200_-600",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    -200,
+    -600,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_-200_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    -200,
+    -200,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_-200_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    -200,
+    200,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_-200_600",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    -200,
+    600,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_200_-600",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    200,
+    -600,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_200_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    200,
+    -200,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_200_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    200,
+    200,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_200_600",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    200,
+    600,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_600_-600",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    600,
+    -600,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_600_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    600,
+    -200,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_600_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    600,
+    200,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Deck_600_600",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Platform_400",
+   "location_cm": [
+    600,
+    600,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Ramp_Front",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Ramp_400",
+   "location_cm": [
+    1000,
+    0,
+    0
+   ],
+   "yaw_deg": 180
+  },
+  {
+   "name": "Ramp_North",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Ramp_400",
+   "location_cm": [
+    200,
+    1000,
+    0
+   ],
+   "yaw_deg": 270
+  },
+  {
+   "name": "Ramp_South",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Ramp_400",
+   "location_cm": [
+    200,
+    -1000,
+    0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "Rail_00",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    800,
+    -600,
+    100
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "Rail_01",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    800,
+    600,
+    100
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "Rail_02",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -800,
+    -600,
+    100
+   ],
+   "yaw_deg": 270
+  },
+  {
+   "name": "Rail_03",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -800,
+    -200,
+    100
+   ],
+   "yaw_deg": 270
+  },
+  {
+   "name": "Rail_04",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -800,
+    200,
+    100
+   ],
+   "yaw_deg": 270
+  },
+  {
+   "name": "Rail_05",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -800,
+    600,
+    100
+   ],
+   "yaw_deg": 270
+  },
+  {
+   "name": "Rail_06",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -600,
+    800,
+    100
+   ],
+   "yaw_deg": 180
+  },
+  {
+   "name": "Rail_07",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -200,
+    800,
+    100
+   ],
+   "yaw_deg": 180
+  },
+  {
+   "name": "Rail_08",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    600,
+    800,
+    100
+   ],
+   "yaw_deg": 180
+  },
+  {
+   "name": "Rail_09",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -600,
+    -800,
+    100
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "Rail_10",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    -200,
+    -800,
+    100
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "Rail_11",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Railing_400",
+   "location_cm": [
+    600,
+    -800,
+    100
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "Device_Console",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Console",
+   "location_cm": [
+    80,
+    0,
+    100
+   ],
+   "yaw_deg": 0,
+   "slots": {
+    "Screen": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Screen"
+   },
+   "note": "the transfer device sits on this console; the pilot works it from +X"
+  },
+  {
+   "name": "Cover_0",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Cover_200",
+   "location_cm": [
+    420,
+    -320,
+    100
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "Cover_1",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Cover_200",
+   "location_cm": [
+    420,
+    320,
+    100
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "Cover_2",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Cover_200",
+   "location_cm": [
+    560,
+    -250,
+    100
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "Cover_3",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Cover_200",
+   "location_cm": [
+    560,
+    250,
+    100
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "Cover_4",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Cover_200",
+   "location_cm": [
+    -300,
+    -560,
+    100
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "Cover_5",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Cover_200",
+   "location_cm": [
+    -300,
+    560,
+    100
+   ],
+   "yaw_deg": 0
+  }
+ ],
+ "device_interact": {
+  "stand_at_site_cm": [
+   190.0,
+   0.0,
+   100.0
+  ],
+  "pilot_faces_yaw_deg": 180.0,
+  "console_site_cm": [
+   80.0,
+   0.0,
+   100.0
+  ],
+  "device_on_console_site_cm": [
+   95.0,
+   0.0,
+   206.0
+  ],
+  "clear_in_front_cm": 300.0
+ },
+ "wake_interact": {
+  "stand_at_site_cm": [
+   190.0,
+   0.0,
+   100.0
+  ],
+  "pilot_faces_yaw_deg": 180.0,
+  "look_at_core_site_cm": [
+   -190.0,
+   -2.0,
+   443.0
+  ],
+  "moved_from": "(150, -2, 135) on the r2 Rodin court"
+ },
+ "arena_cm": {
+  "deck": {
+   "x": [
+    -800,
+    800
+   ],
+   "y": [
+    -800,
+    800
+   ],
+   "z": 100
+  },
+  "ramps": {
+   "front": "X 800..1200, Y -100..100",
+   "north": "X 100..300, Y 800..1200",
+   "south": "X 100..300, Y -1200..-800"
+  },
+  "cover_low_100_high": [
+   [
+    420,
+    -320,
+    100,
+    0
+   ],
+   [
+    420,
+    320,
+    100,
+    0
+   ],
+   [
+    560,
+    -250,
+    100,
+    90
+   ],
+   [
+    560,
+    250,
+    100,
+    90
+   ],
+   [
+    -300,
+    -560,
+    100,
+    0
+   ],
+   [
+    -300,
+    560,
+    100,
+    0
+   ]
+  ],
+  "suggested_enemy_spawns_ground": [
+   [
+    2200,
+    0,
+    0
+   ],
+   [
+    1600,
+    1800,
+    0
+   ],
+   [
+    1600,
+    -1800,
+    0
+   ],
+   [
+    -1800,
+    1600,
+    0
+   ],
+   [
+    -1800,
+    -1600,
+    0
+   ]
+  ],
+  "blocked_on_deck": "the ring and its lower cross arm (X -316..-67), three pylons (X 190..309 Y 152..266; X 190..305 Y -395..-286; X -451..-318 Y 87..278)"
+ },
+ "walk_path_site_cm": [
+  [
+   1350,
+   0,
+   0,
+   "ground in front of the front ramp"
+  ],
+  [
+   1000,
+   0,
+   50,
+   "front ramp"
+  ],
+  [
+   500,
+   0,
+   100,
+   "deck"
+  ],
+  [
+   190,
+   0,
+   100,
+   "device point"
+  ],
+  [
+   200,
+   1350,
+   0,
+   "foot of the north ramp"
+  ],
+  [
+   200,
+   -1350,
+   0,
+   "foot of the south ramp"
+  ]
+ ],
+ "placement_rules": [
+  "Pivot on flat ground (the deck is flat 0..100, no piles).",
+  "Keep 3 m clear beyond each ramp toe.",
+  "Wake it with a dynamic instance of the Relay component's slot 0: RelayPower 0.15 -> 1 (emissive follows RelayPower squared)."
+ ]
+}

@@ -1144,4 +1144,47 @@ bool FTDTravelParkedOnThePad::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTravelParkedBlocksPawn, "TriadDrift.Travel.Landing.ParkedShipBlocksThePilotOnFoot", TD_TEST_FLAGS)
+bool FTDTravelParkedBlocksPawn::RunTest(const FString& Parameters)
+{
+	// Ryan (Nov 13): on foot the pilot walked through parked ships. A pawn capsule (the first-person character's size)
+	// moving at the parked hull from four sides is stopped at the hull, clear of the middle; the exit point is outside it;
+	// after take-off the hull no longer blocks (flight collision only).
+	for (const ETDShipId Id : UTDShipLibrary::AllShips())
+	{
+		FTDTestWorld W;
+		ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector::ZeroVector);
+		ATDShip* Ship = TDTravelTest::SpawnShip(W, FVector(0.f, 0.f, 1500.f));
+		if (!TestNotNull(TEXT("ship"), Ship) || !Pad) { return false; }
+		TDSquad::ApplySpec(Ship, UTDShipLibrary::Get(Id));
+		W.Tick();
+		const FString Name = UEnum::GetValueAsString(Id);
+		if (!TestTrue(*(Name + TEXT(": parked")), Ship->GetLanding()->SnapLanded(Pad))) { continue; }
+		TestTrue(*(Name + TEXT(": the parked block is on")), Ship->GetLanding()->IsParkedBlockOn());
+		const FBox Hull = UTDLandingComponent::VisibleHullBoxLocal(Ship);
+		const FVector C = Ship->GetActorLocation();
+		const FCollisionShape Capsule = FCollisionShape::MakeCapsule(34.f, 90.f);
+		const float FarOut = Hull.GetExtent().Size() + 800.f;
+		for (const FVector Dir : { FVector::ForwardVector, -FVector::ForwardVector, FVector::RightVector, -FVector::RightVector })
+		{
+			const FVector D = Ship->GetActorQuat().RotateVector(Dir);
+			const FVector Start(C.X + D.X * FarOut, C.Y + D.Y * FarOut, Pad->GetBeaconLocation().Z + 100.f);
+			const FVector End(C.X, C.Y, Start.Z);
+			FHitResult Hit;
+			FCollisionQueryParams Q(SCENE_QUERY_STAT(TDParkedBlockTest), false);
+			const bool bHit = W.GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECC_Pawn, Capsule, Q) && Hit.bBlockingHit && Hit.GetActor() == Ship;
+			const float Reach = FVector::Dist2D(Hit.Location, C);
+			const float HalfAlong = FMath::Abs(FVector::DotProduct(Dir, Hull.GetExtent()));
+			TestTrue(*FString::Printf(TEXT("%s from %s: the pilot is stopped by the hull (%.0f cm from the middle; the hull reaches %.0f)"), *Name, *Dir.ToCompactString(), Reach, HalfAlong),
+				bHit && Reach >= HalfAlong * UTDLandingComponent::ParkedBlockShrink * 0.9f);
+		}
+		// The exit point (where the pilot climbs out) is outside the block, so the pilot never spawns inside it.
+		const FVector Exit = Ship->GetLanding()->GetExitTransform().GetLocation();
+		TestFalse(*(Name + TEXT(": the exit point is clear of the hull")), W.GetWorld()->OverlapAnyTestByChannel(Exit, FQuat::Identity, ECC_Pawn, Capsule, FCollisionQueryParams(SCENE_QUERY_STAT(TDParkedExit), false, nullptr)));
+		Ship->GetLanding()->AbortToFlying();
+		TestFalse(*(Name + TEXT(": flying again: the parked block is off")), Ship->GetLanding()->IsParkedBlockOn());
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
