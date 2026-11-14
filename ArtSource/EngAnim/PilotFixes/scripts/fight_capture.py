@@ -92,7 +92,12 @@ def main():
                   "projectionMode": "Perspective", "fOV": 50.0, "orthoWidth": 512}
         t0 = time.time()
         k = 0
+        # TD_CMDS_<Type> = "2.0:TD.Ground.CrewHit 5;4.0:TD.Ground.CrewHit 5 behind": console commands at those seconds
+        todo = sorted((float(x.split(":", 1)[0]), x.split(":", 1)[1]) for x in os.environ.get("TD_CMDS_" + typ, "").split(";") if x.strip())
         while time.time() - t0 < secs:
+            while todo and time.time() - t0 >= todo[0][0]:
+                print("%s %.2f s: %s" % (typ, time.time() - t0, todo[0][1]))
+                cmd(todo.pop(0)[1])
             r = call("SceneCaptureToolset.SceneCaptureToolset", "Capture", {"world": {"refPath": world}, "camera": camera, "mode": "Lit",
                      "options": {"width": 960, "height": 540, "screenPercentage": 1.0, "visualizationSubMode": ""}})
             for blk in r.get("content", []) or []:
