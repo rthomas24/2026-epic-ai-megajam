@@ -205,6 +205,14 @@ public:
 	/** What the exhaust effects are fed each frame as Niagara user parameters "Throttle" (0..1) and "Boost" (0/1). */
 	float GetExhaustThrottle01() const { return ExhaustThrottle01; }
 	bool GetExhaustBoost() const { return bExhaustBoost; }
+	/** T7: the "Boost" value the exhaust is fed: 0, or UTDShipVisuals::ExhaustBoostScale while boosting (1 without visuals). */
+	float GetExhaustBoostValue() const;
+	/** The first exhaust effect (tests read its parameters). */
+	class UNiagaraComponent* GetEngineTrailEffect() const { return EngineTrailFX.Get(); }
+#if WITH_DEV_AUTOMATION_TESTS
+	/** Tests: a headless run spawns no Niagara (it cannot render); hand the ship an exhaust component to feed. */
+	void SetEngineTrailEffectForTests(class UNiagaraComponent* FX);
+#endif
 	/** Exhaust effect components running now (0 without art or with no EngineTrail VFX). */
 	int32 GetExhaustEffectCount() const;
 

@@ -95,6 +95,8 @@ void FTDSettingsPageModel::AdjustRow(ETDSettingsRow Row, int32 Direction)
 	case ETDSettingsRow::MasterVolume: S->SetMasterVolume(TDSettingsPage::Step(P.MasterVolume, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::MusicVolume: S->SetMusicVolume(TDSettingsPage::Step(P.MusicVolume, 0.1f * D, 0.f, 1.f)); break;
 	case ETDSettingsRow::EffectsVolume: S->SetEffectsVolume(TDSettingsPage::Step(P.EffectsVolume, 0.1f * D, 0.f, 1.f)); break;
+	case ETDSettingsRow::SubtitleSize: S->SetSubtitleSize((ETDSubtitleSize)FMath::Clamp((int32)P.SubtitleSize + (Direction > 0 ? 1 : -1), 0, (int32)ETDSubtitleSize::Large)); break;
+	case ETDSettingsRow::GraphicsPreset: S->SetGraphicsPreset((ETDGraphicsPreset)FMath::Clamp((int32)P.GraphicsPreset + (Direction > 0 ? 1 : -1), 0, (int32)ETDGraphicsPreset::Epic)); break;
 	case ETDSettingsRow::WindowMode:
 	{
 		const int32 M = (((int32)P.WindowMode + (Direction > 0 ? 1 : -1)) % 3 + 3) % 3;
@@ -176,6 +178,8 @@ FText FTDSettingsPageModel::RowLabel(ETDSettingsRow Row)
 	case ETDSettingsRow::MasterVolume: return LOCTEXT("Master", "Master volume");
 	case ETDSettingsRow::MusicVolume: return LOCTEXT("Music", "Music volume");
 	case ETDSettingsRow::EffectsVolume: return LOCTEXT("Effects", "Effects volume");
+	case ETDSettingsRow::SubtitleSize: return LOCTEXT("SubtitleSize", "Subtitle size");
+	case ETDSettingsRow::GraphicsPreset: return LOCTEXT("Graphics", "Graphics quality");
 	case ETDSettingsRow::WindowMode: return LOCTEXT("Window", "Window mode");
 	case ETDSettingsRow::Resolution: return LOCTEXT("Resolution", "Resolution");
 	case ETDSettingsRow::Reset: return LOCTEXT("Reset", "Reset to defaults");
@@ -219,6 +223,13 @@ FText FTDSettingsPageModel::RowValue(ETDSettingsRow Row) const
 	case ETDSettingsRow::MasterVolume: return TDSettingsPage::Percent(P.MasterVolume);
 	case ETDSettingsRow::MusicVolume: return TDSettingsPage::Percent(P.MusicVolume);
 	case ETDSettingsRow::EffectsVolume: return TDSettingsPage::Percent(P.EffectsVolume);
+	case ETDSettingsRow::SubtitleSize:
+		return P.SubtitleSize == ETDSubtitleSize::Small ? LOCTEXT("SubSmall", "Small") : P.SubtitleSize == ETDSubtitleSize::Large ? LOCTEXT("SubLarge", "Large") : LOCTEXT("SubMedium", "Medium");
+	case ETDSettingsRow::GraphicsPreset:
+	{
+		static const FText Names[] = { LOCTEXT("GfxLow", "Low"), LOCTEXT("GfxMedium", "Medium"), LOCTEXT("GfxHigh", "High"), LOCTEXT("GfxEpic", "Epic") };
+		return Names[FMath::Clamp((int32)P.GraphicsPreset, 0, 3)]; // before a choice: the preset the engine detected
+	}
 	case ETDSettingsRow::WindowMode:
 		return P.WindowMode == ETDWindowMode::Fullscreen ? LOCTEXT("Full", "Fullscreen")
 			: P.WindowMode == ETDWindowMode::Windowed ? LOCTEXT("Windowed", "Windowed") : LOCTEXT("Borderless", "Windowed fullscreen");

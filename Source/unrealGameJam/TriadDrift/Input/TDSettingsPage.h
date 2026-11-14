@@ -31,6 +31,8 @@ enum class ETDSettingsRow : uint8
 	MasterVolume,
 	MusicVolume,
 	EffectsVolume,
+	SubtitleSize,   // ENG-45 (T7)
+	GraphicsPreset, // ENG-45 (T7)
 	WindowMode,
 	Resolution,
 	Reset,
