@@ -1,0 +1,88 @@
+# Triad Drift: hyperdrive look (Ryan, Nov 13: "a really nice animation with really sharp Niagara particles ... a portal
+# that boosts you throughout the map"). T7. Original design: a jagged energy tear opens ahead of the nose while the drive
+# spools, the ship punches through it into a tunnel of hair-thin light streaks and energy rings rushing past, with the
+# destination rift glowing far ahead, and drops out through an exit tear with a shock ring and a spray of sparks.
+#
+# Run (the wrapper puts the effects builder's helpers in front of this file, building none of its systems):
+#   bash ArtSource/EngVFX/hyperdrive/run.sh <port> build
+#
+# Slots (UTDTravelFX on DA_Travel_FX; the hyperdrive component plays them, +X is the nose):
+#   HyperdriveSpool   NS_TD_Hyperdrive_Spool    attached loop on the ship root for the 1.2 s spool
+#   HyperdriveTunnel  NS_TD_Hyperdrive_Tunnel   attached loop on the ship root for the whole jump
+#   HyperdriveDropOut NS_TD_Hyperdrive_DropOut  one shot at the ship's location and rotation at the drop-out
+# User parameters on all three: Color (linear, default electric blue-violet, away from the three squad colours so the
+# jump reads as the drive, not as a weapon) and Scale (1 = authored for a ship of about 10 m, chase camera 10-15 m back).
+# Particle budget: Spool about 60 live, Tunnel about 170 live, DropOut 150 in one burst. All CPU sprites/meshes.
+
+HYPER_DIR = '/Game/TriadDrift/Gameplay/VFX/Hyperdrive'
+HYPER = (0.42, 0.52, 1.0, 1.0)
+RIFT_MAT = HYPER_DIR + '/Materials/M_TD_VFX_HyperRift'
+
+
+def rifted(e):
+    """Point a meshed disc emitter at the hyperdrive rift material (outside the shared Materials folder)."""
+    e['rend']['OverrideMaterials'] = [{'explicitMat': ref(RIFT_MAT)}]
+    return e
+
+
+def mesh_scaled(e, scale):
+    e['set'] += [(PS, INIT, 'Mesh Scale Mode', E('Non-Uniform')), (PS, INIT, 'Mesh Scale', X('float3(%s)*User.Scale' % scale))]
+    return e
+
+
+HSYS = []
+
+
+def H(name, user, emitters):
+    HSYS.append((name, user, emitters))
+
+
+# ---- Spool: the tear opens 26 m ahead (0 -> full over 1.1 s), energy is pulled from the hull into it, the nose charges.
+OPEN = '(saturate(Emitter.Age/1.1)*saturate(Emitter.Age/1.1)*(3.0 - 2.0*saturate(Emitter.Age/1.1)))'   # smoothstep (the function failed to compile in a Niagara expression)
+H('NS_TD_Hyperdrive_Spool', U(HYPER), [
+    rifted(mesh_single('Tear', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 8.0, 13.0', 1.0, offset=(2600, 0, 0),
+                       live_scale='float3(1.0, 0.15 + 0.85*%s, 0.05 + 0.95*%s)' % (OPEN, OPEN))),
+    offset(single('Charge', 'M_TD_VFX_Glow', 420, 1.3, 71.3), 320),
+    shed('Inflow', 'M_TD_VFX_Spark', 0, (0.18, 0.32), (4, 9), (7000, 14000), k=1.8, radius=700.0, drag=0.0, local=True, stretch=22,
+         cone=((1.0, 0.0, 0.0), 12.0), rate_expr='220.0*%s' % OPEN, fade_in=6.0),
+    offset(shed('RimSparks', 'M_TD_VFX_Spark', 0, (0.10, 0.25), (3, 7), (1500, 5000), k=2.0, radius=500.0, drag=2.5, local=True, stretch=12,
+                rate_expr='90.0*%s' % OPEN), 2600)])
+
+# ---- Tunnel: the punch-through (the tear sweeps over the camera in 0.35 s), hair-thin streaks rushing back from 120 m
+# ahead, rings of light flying past, the destination rift glowing 300 m ahead, a faint sheath round the hull.
+H('NS_TD_Hyperdrive_Tunnel', U(HYPER), [
+    rifted(mesh_flash('Punch', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 8.0, 13.0', 0.35, 1.0, power=1.2,
+                      growth='float3(1,1,1)*(1.0 + pow(Particles.NormalizedAge, 0.7)*3.5)')),
+    flash('PunchFlash', 'M_TD_VFX_Glow', 3200, 0.30, 0.9, growth='0.6 + Particles.NormalizedAge*0.8'),
+    offset(shed('Streaks', 'M_TD_VFX_Spark', 480.0, (0.12, 0.26), (5, 12), (60000, 120000), k=1.8, radius=2600.0, drag=0.0, local=True, stretch=70,
+                cone=((-1.0, 0.0, 0.0), 1.5), fade_in=10.0), 12000),
+    offset(shed('WhiteCore', 'M_TD_VFX_Spark', 140.0, (0.10, 0.20), (3, 6), (90000, 150000), radius=1600.0, drag=0.0, local=True, stretch=90,
+                cone=((-1.0, 0.0, 0.0), 1.0), rgb=(1.4, 1.4, 1.6), fade_in=10.0), 12000),
+    offset(mesh_scaled(meshed(shed('Rings', 'M_TD_VFX_Ring', 6.0, (0.42, 0.42), (1, 1), (50000, 50000), k=0.8, radius=0.0, drag=0.0, local=True,
+                                   cone=((-1.0, 0.0, 0.0), 0.0), power=0.8),
+                              'SM_TD_VFX_Disc', 'M_TD_VFX_Ring'), '1.0, 34.0, 34.0'), 18000),
+    rifted(mesh_single('Destination', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 70.0, 70.0', 0.7, offset=(30000, 0, 0))),
+    offset(single('Sheath', 'M_TD_VFX_Glow', 1700, 0.22, 13.7), 200)])
+
+# ---- Drop-out: the ship bursts out of an exit tear (behind it, closing in 0.7 s), a shock ring, a flare, sparks thrown
+# forward with the ship and streaks left behind.
+H('NS_TD_Hyperdrive_DropOut', U(HYPER), [
+    rifted(offset(mesh_flash('ExitTear', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 9.0, 14.0', 0.7, 1.0, power=1.4,
+                             growth='float3(1.0, 1.0 - pow(Particles.NormalizedAge, 1.5), 1.0 - pow(Particles.NormalizedAge, 2.5))'), -1400)),
+    mesh_flash('Shock', 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring', '1.0, 10.0, 10.0', 0.5, 1.2, power=1.3,
+               growth='float3(1,1,1)*(0.2 + pow(Particles.NormalizedAge, 0.5)*4.0)'),
+    flash('Flare', 'M_TD_VFX_Flare', 2600, 0.16, 1.2, growth='0.5 + Particles.NormalizedAge'),
+    flash('Glow', 'M_TD_VFX_Glow', 3000, 0.35, 0.6, growth='0.6 + Particles.NormalizedAge*0.6'),
+    shed('Spray', 'M_TD_VFX_Spark', 0, (0.30, 0.70), (5, 12), (8000, 26000), k=1.9, radius=300.0, drag=2.0, stretch=30,
+         cone=((1.0, 0.0, 0.0), 28.0), burst=90, dur=0.9, power=1.3),
+    shed('Wake', 'M_TD_VFX_Spark', 0, (0.20, 0.45), (4, 9), (12000, 30000), k=1.6, radius=400.0, drag=1.0, stretch=45,
+         cone=((-1.0, 0.0, 0.0), 6.0), burst=60, dur=0.6, power=1.2)])
+
+hx = tdvfx.Builder(call_tool)
+ONLY_H = globals().get('ONLY_H')
+for _name, _user, _emitters in HSYS:
+    if ONLY_H and _name not in ONLY_H:
+        continue
+    await hx.system(_name, _emitters, user=_user, folder=HYPER_DIR)
+    await asyncio.sleep(0)
+hx.report()
