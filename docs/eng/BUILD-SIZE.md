@@ -377,7 +377,7 @@ ARM64 installer, compression level) are already in; the growth since is content:
 
 | # | Lever | Est. zip MB | Risk | Exact change | State |
 |---:|---|---:|---|---|---|
-| 1 | Never-cook 142 engineering packages that nothing reaches: the old Null fleet (42.1), old squad ships (16.3), Verdance planet-kit pieces no longer placed (51.1), the Rodin wreck set (7.8), old Dominion exterior pieces (5.1), two flipbooks with their materials and two scatter canopies (6.0) | **128** | None to the picture if the scan is right. If kept content does reference one, the cook fails ("Content is missing from cook"): loud, not silent. Nothing is deleted | `Config/DefaultGame.ini`, one `+DirectoriesToNeverCook` line per package, one commit per family: `48899d94`, `587802f1`, `713f9b0d`, `f7ed0a59`, `afc63afd`, `9a526f32` | **committed, unproven** |
+| 1 | (Nov 14 04:10: the wreck family, 8 packages and 7.8 MB, was taken back out with `ee3437f3`; 134 packages and about 120 MB remain.) Never-cook 142 engineering packages that nothing reaches: the old Null fleet (42.1), old squad ships (16.3), Verdance planet-kit pieces no longer placed (51.1), the Rodin wreck set (7.8), old Dominion exterior pieces (5.1), two flipbooks with their materials and two scatter canopies (6.0) | **128** | None to the picture if the scan is right. If kept content does reference one, the cook fails ("Content is missing from cook"): loud, not silent. Nothing is deleted | `Config/DefaultGame.ini`, one `+DirectoriesToNeverCook` line per package, one commit per family: `48899d94`, `587802f1`, `713f9b0d`, `f7ed0a59`, `afc63afd`, `9a526f32` | **committed, unproven** |
 | 2 | The earlier never-cook list (35 superseded packages, 2 walk-test classes, 13 pipelines) | **11** (cooked: 10.5 + 0.2, measured) | Same | `2229c130`, `17855ca5`, `d49ced2b` | committed, in the packaging agent's proving cook |
 | 3 | Drop the DirectX 11 (SM5) shader set | **10** | The game no longer starts on a machine without DirectX 12 / SM6. It could not run Nanite or Lumen there anyway. Lead decides | `Config/DefaultEngine.ini`: the `+D3D11TargetedShaderFormats=PCD3D_SM5` line removed. `36fd0fac` | committed, optional |
 | 4 | Leave `d3d12SDKLayers.dll` out of the package | **2** | None: the debug layer loads only with `-d3ddebug` | `Tools/td-package.ps1`. `8471b9b5` | committed |
@@ -509,3 +509,76 @@ about 3 MB zipped, but engine modules load both at start: not without a boot tes
 The drill rig set (7.6 MB) and `BP_DigSite_Cabin`, the ten outpost set-dressing props (1.1), unwired effects waiting
 on a slot, about 2.3 MB of crew and pilot clips no code names. `BP_Wreck` is in item 1's wreck family: no code or
 asset names it on `f39a8372`; if T5 means to place the wreck site again, drop commit `f7ed0a59`.
+
+### 6.8 Oodle Texture RDO: prepared, not in any build (its own trial cook, after the never-cook one)
+
+Two commits on `eng/import`, config only, nothing in any source asset changes:
+
+| Commit | File | What |
+|---|---|---|
+| `75b5098c` | `Config/DefaultEngine.ini` | `[/Script/Engine.TextureEncodingProjectSettings]` `bFinalUsesRDO=True`, `FinalRDOLambda=10`. The cook already uses the Final encoder (`CookUsesSpeed=Final` in `BaseEngine.ini`). Lambda runs 1 (best) to 40 (smallest); the engine default when RDO is on is 30; 10 is the conservative end |
+| `5dd3f80c` | `Config/DefaultDeviceProfiles.ini` (new) | The `Skybox` and `UI` texture groups keep exact encoding: `LossyCompressionAmount=TLCA_None` on their `TextureLODGroups` entries under `[GlobalDefaults DeviceProfile]` |
+
+How the exclusion works (read in the engine source, not guessed; not yet seen working in a cook):
+`FTextureLODGroup` has a `LossyCompressionAmount` field (`Engine/Classes/Engine/TextureLODSettings.h`); a texture
+whose own "Lossy Compression Amount" is Default takes its group's (`TextureDerivedData.cpp`, "if LossyCompressionAmount
+is Default, inherit from LODGroup"); `TLCA_None` sets the Oodle RDO lambda to 0 for that texture, and Default uses the
+project lambda. Device-profile `TextureLODGroups` entries are keyed by `Group` (`*TextureLODGroups=Group` in
+`BaseDeviceProfiles.ini`), so each line replaces the engine's entry for that group; the other fields repeat the
+engine's values.
+
+Which textures are in those groups (group name read from each `.uasset` on `f39a8372`): `Skybox`: `T_TD_NebulaSky`,
+`T_TD_Nebula_BC`, `T_TD_Stars_BC`. `UI`: Nicholas's two survey scans (`T_Survey_Verdance_Discovery`,
+`T_Survey_Cinder_Match`). Everything else (375 `World`, 140 `WorldNormalMap`, 15 `Effects`, the template's character
+and weapon textures) gets RDO. HUD, menu or card images that are left in the `World` group would get RDO (which of Nicholas's images those
+are was not listed here): if one shows steps, set that texture's own Lossy Compression Amount to None
+(Nicholas's side for his assets).
+
+Estimated saving at lambda 10: 40 to 70 MB of the roughly 470 MB of engineering textures left after the never-cook
+commits (the BC5 normal maps, 238 MB, gain most). Lambda 20 or 30 saves more (section 4 item 7: 80 to 130 MB) and is a
+one-number change once lambda 10 has been looked at. Cost: every texture is re-encoded on that cook.
+
+**Captures to compare, same camera, RDO off against RDO on, at 100 % zoom.** Block steps are 4 x 4 pixel squares in
+what should be a smooth ramp; look in the dark, slowly changing areas first.
+
+1. **Nebula sky** (main menu backdrop, and open space looking away from the planets): must be pixel-identical in the
+   sky, since the Skybox group is excluded. If it differs, the exclusion did not take: stop and check the group lines.
+2. **HUD and cards** in flight (ship cards, objective line, slate card, the "CUT!" card) and Nicholas's survey scan
+   screens on both planets: the two scans must be identical (UI group); look at any other image with a gradient.
+3. **Ship close-ups**: each squad ship in the Dominion hangar at 3 to 4 m and on a landing pad; the painted panels
+   (base colour gradients) and the smooth normal-mapped curves of the Rift's ring and the canopies.
+4. **Planet globes from orbit**, Verdance and Cinder, day side and the terminator: the globe maps are large smooth
+   gradients (atmosphere tint, night glow).
+5. **Effects with soft falloff**: an engine glow, a shield dome, the hyperdrive tunnel, an explosion flipbook mid-frame,
+   the descent cloud deck.
+6. **On foot**: the Verdance ground at 2 m, a kit wall with the trim sheet, the interior corridor floor (glossy: normal
+   map errors show in reflections).
+7. **The Dominion hull** at 2 km and in the trench (large flat dark panels with a detail normal).
+
+If only one family shows steps, exclude that family (its texture group, or per texture) and keep RDO for the rest; if
+steps show widely at lambda 10, drop both commits.
+
+### 6.9 Cook rules check for the path-loaded ground and space sets (Nov 14 04:10)
+
+T5's course loads its site classes by path string, so they cook only through a directory rule or a reference. Checked
+on `lead/int-o` (`364aabb3`) against `Config/DefaultGame.ini` on `eng/import` and the `eb1bf334` container listing.
+Every one of them is under `/Game/TriadDrift/Gameplay/Props`, which is an always-cook directory: **cooked by rule, none
+by luck, so no `DirectoriesToAlwaysCook` line was added.**
+
+| Path (under `Gameplay/Props/`) | In the `eb1bf334` package | Cooked by | Never-cook rule touches it or what it references |
+|---|---|---|---|
+| `Outpost/BP_Outpost_Site_Verdance`, `BP_Outpost_Site_Cinder` | yes | always-cook `Gameplay/Props` | no |
+| `Relay/BP_Relay`, `BP_Relay_Awake` | yes | same | no |
+| `Wreck/BP_Wreck` | yes | same | no, since the wreck rule was reverted (`ee3437f3`) |
+| `Kit/Sites/BP_DigSite_Cabin`, `BP_Kit_Artefact`, `BP_SurveyLine_Verdance` | yes | same | no |
+| `Kit/Sites/BP_StorySet_VerdanceCamp`, `BP_StorySet_CinderMine`, `BP_Landmark_RelayMast`, `BP_Landmark_NullDerrick` | not yet (new in batch O) | same | no |
+| `Kit/Story/**` (15 meshes, 7 instances, 8 textures) | not yet (new in batch O) | same | no |
+| `Space/SetPieces/BP_SP_HollowRock`, `_NullRig`, `_PatrolWreck`, `_ResearchA`, `_ResearchB` and their meshes | not yet (new in batch N, after that package) | same | no |
+| `OutpostDressing/SM_Outpost_*` (10) | yes | same | no |
+| `Kit/Dominion/SM_DI_*` (8), `BP_DockingBay_Interior`, `BP_DockingBay_Course` | yes | same | no |
+| `Kit/Dominion/BP_KitD_InteriorPreview`, `BP_DockingBay_GalaxyTest` | yes | same | **yes, on purpose** (`17855ca5`: walk-test classes) |
+
+The only never-cooked packages that anything kept still names are the `PL_*` import pipelines (11 of the 13 are named
+by the import data of the meshes made through them; editor-only data). On `lead/int-o` no kept package and no file in
+`Source/` or `Plugins/` (tests aside) names any other never-cooked package. There is no `BP_KS_*` class in the tree;
+the Story set's classes are the four `BP_StorySet_*` / `BP_Landmark_*` above.
