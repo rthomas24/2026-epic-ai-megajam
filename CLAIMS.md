@@ -18,6 +18,10 @@ AGENTS.md lifecycle conditions; branch publication alone does not release it.
 
 ## Nick-side current ownership and reservations
 
+**Lead bounded credits correction completed in this commit, November 14:** Nicholas Lead owns only the historical-package scope note and menu-music heading/status in CREDITS.md, plus this claim lifecycle and a dated DEVLOG entry, on nick/lead-playtest-feedback-1114 from91a70782. Reuse Auditor ResumeCredits01 and Issue Coordinator Submission137; no new inventory audit, binary/source asset changes, current-package inclusion claim or appearance/audio approval. Snapshot scope and menu-history wording corrected and diff-checked; no owned operation remains on these files. Other proposed credits corrections remain pending; Auditor and all specialists stay paused.
+
+
+
 **Lead lane update, November 14, 13:00 EST:** Continuing only the authorized systematic playtest/report lane and routine editorial coordination. Batch 3 and original media are delivered on #140. Runtime b5d1549c reached Dominion assault after natural Wave 5; private saves and all preserved source remain intact. The next private runtime rebuild is 8dce9161; builds/captures are bounded and do not update the human checkout. Earlier "no owned Unreal processes" statements describe their completed sessions, not a perpetual resource grant. Current process/state lives with Lead's local session receipts. No gameplay, binary or shared-source edit is claimed.
 
 **Issue Coordinator exception:** Nicholas separately authorized existing chat 01a1db03-716b-7920-bd0e-075a9cb95b08 to resolve eligible issues and conduct bounded source reviews. Writable review outputs are private Artifacts/IssueCoordinator/**; production remains read-only. #139's exact carry finding was source-reviewed, accepted by Ryan, fixed in 886ee784 / AY d1ae9b18 and source-rechecked; runtime proof stays with T3. Music138 is only a delta/disposition comparison of preserved Audio findings at 5e6ef16f, not an Audio production restart. Existing Story/UI/Audio/Auditor and their schedules stay paused.
