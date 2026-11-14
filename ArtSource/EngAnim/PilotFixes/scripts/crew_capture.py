@@ -39,12 +39,17 @@ def main():
                 if w.get("worldType") == "Game":
                     world = w["world"]["refPath"]
     spawned = None
+    seen = []
+    SPOTS = [(900, 900), (900, 3400), (3400, 900), (3400, 3400), (-1600, 900), (900, -1600)]
     for item in items:
         typ, clip, t01 = item.split(":")
         if typ != spawned:
             cmd("TD.Dev.DestroySpawned")
             cmd("TD.KillAll")
             time.sleep(0.5)
+            spot = SPOTS[len(seen) % len(SPOTS)]; seen.append(typ)
+            cmd("TD.Ground.Teleport %d %d 300" % spot)
+            time.sleep(1.0)
             cmd("TD.Ground.Spawn %s 600" % typ)
             spawned = typ
             time.sleep(1.5)

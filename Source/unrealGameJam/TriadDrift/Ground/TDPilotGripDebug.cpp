@@ -16,6 +16,8 @@
 #include "HAL/IConsoleManager.h"
 #include "Misc/PackageName.h"
 #include "Animation/Skeleton.h"
+#include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "EngineUtils.h"
 #include "Engine/SkeletalMeshSocket.h"
 
 namespace TDPilotGripDebug
@@ -176,6 +178,66 @@ namespace TDPilotGripDebug
 		TEXT("Editor: TD.Ground.GripWriteSocket <SkeletonPath> X Y Z Pitch Yaw Roll - BladeSocket on hand_r."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&GripWriteSocket));
 #endif
+
+	// TD.Ground.CrewHold <Clip>|off [Time01]: the nearest live crew member holds a crew clip (Crew/Anims) at a fraction
+	// and freezes there (actor time dilation ~0, so its AI and animation stop); logs where it stands, for captures.
+	static void CrewHold(const TArray<FString>& Args, UWorld* World)
+	{
+		ATDFirstPersonCharacter* P = GripPilot(World);
+		if (!P || Args.Num() < 1)
+		{
+			return;
+		}
+		ATDCrewCharacter* Best = nullptr;
+		double BestD = TNumericLimits<double>::Max();
+		for (TActorIterator<ATDCrewCharacter> It(World); It; ++It)
+		{
+			const double D = FVector::DistSquared(It->GetActorLocation(), P->GetActorLocation());
+			if (!It->IsDead() && D < BestD)
+			{
+				Best = *It;
+				BestD = D;
+			}
+		}
+		UTDLoopBlendAnimInstance* L = Best && Best->GetMesh() ? Cast<UTDLoopBlendAnimInstance>(Best->GetMesh()->GetAnimInstance()) : nullptr;
+		if (!L)
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.CrewHold: no crew with the C++ loop player nearby"));
+			return;
+		}
+		if (Args[0] == TEXT("off"))
+		{
+			L->StopOneShot();
+			Best->CustomTimeDilation = 1.f;
+			return;
+		}
+		const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/%s"), *Args[0]);
+		UAnimSequenceBase* Seq = FPackageName::DoesPackageExist(Package) ? TDLoadPlayableAnim(FSoftObjectPath(Package + TEXT(".") + Args[0])) : nullptr;
+		if (!Seq)
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.CrewHold: no clip %s"), *Package);
+			return;
+		}
+		const float T01 = Args.Num() > 1 ? FMath::Clamp(FCString::Atof(*Args[1]), 0.f, 1.f) : 0.5f;
+		Best->CustomTimeDilation = 1.f;
+		// An offscreen capture does not count as "rendered": evaluate and refresh the bones regardless, every frame.
+		Best->GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
+		Best->GetMesh()->bEnableUpdateRateOptimizations = false;
+		L->StopOneShot();
+		L->PlayOneShot(Seq, 0.f, false, true);
+		L->ShotTime = FMath::Min(T01 * Seq->GetPlayLength(), FMath::Max(0.f, Seq->GetPlayLength() - 0.001f));
+		L->ShotAlpha = 1.f;
+		Best->GetMesh()->TickAnimation(0.f, false);
+		Best->GetMesh()->RefreshBoneTransforms();
+		Best->CustomTimeDilation = 0.001f; // ~frozen: its AI and timers wait, the pose still evaluates each frame
+		const FVector Loc = Best->GetActorLocation();
+		const FVector X = Best->GetActorForwardVector(), Y = Best->GetActorRightVector();
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.CrewWhere %s loc=%.2f,%.2f,%.2f x=%.3f,%.3f,%.3f y=%.3f,%.3f,%.3f h=%.1f clip=%s t=%.3f"),
+			*UEnum::GetValueAsString(Best->CrewType), Loc.X, Loc.Y, Loc.Z, X.X, X.Y, X.Z, Y.X, Y.Y, Y.Z,
+			(float)Best->GetSimpleCollisionHalfHeight(), *Args[0], L->ShotTime);
+	}
+	static FAutoConsoleCommandWithWorldAndArgs CmdCrewHold(TEXT("TD.Ground.CrewHold"), TEXT("TD.Ground.CrewHold <Clip>|off [Time01]: nearest crew holds a crew clip, frozen."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&CrewHold));
 
 	static FAutoConsoleCommandWithWorldAndArgs CmdGrip(TEXT("TD.Ground.Grip"), TEXT("TD.Ground.Grip [0|1]: the pilot's right-hand grip layer off / on."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Grip));
