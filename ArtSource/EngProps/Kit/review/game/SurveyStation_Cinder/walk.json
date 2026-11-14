@@ -1,0 +1,188 @@
+{
+ "site": "SurveyStation_Cinder",
+ "origin": [
+  -3500.0,
+  2000.0,
+  2.0
+ ],
+ "steps": [
+  {
+   "teleport": [
+    1250.0,
+    0.0,
+    0.0
+   ],
+   "feet": [
+    1250,
+    0,
+    0,
+    180
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\SurveyStation_Cinder\\01_foot.png"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    972,
+    0,
+    13,
+    180
+   ],
+   "at": "up 0"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    680,
+    0,
+    55,
+    180
+   ],
+   "at": "up 1"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    404,
+    0,
+    105,
+    180
+   ],
+   "at": "up 2"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    129,
+    0,
+    105,
+    180
+   ],
+   "at": "up 3"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    -148,
+    0,
+    105,
+    180
+   ],
+   "at": "up 4"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    -340,
+    -9,
+    212,
+    180
+   ],
+   "at": "up 5"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    -780,
+    -9,
+    0,
+    180
+   ],
+   "at": "up 6"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    -1060,
+    -9,
+    0,
+    180
+   ],
+   "at": "up 7"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    -1336,
+    -9,
+    0,
+    180
+   ],
+   "at": "up 8"
+  },
+  {
+   "walk": [
+    180.0,
+    0.45
+   ],
+   "feet": [
+    -1617,
+    -9,
+    0,
+    180
+   ],
+   "at": "up 9"
+  },
+  {
+   "teleport": [
+    -220,
+    -80,
+    103
+   ],
+   "feet": [
+    -220,
+    -80,
+    105,
+    180
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\SurveyStation_Cinder\\02_console.png"
+  },
+  {
+   "teleport": [
+    1900.0,
+    -700.0,
+    0.0
+   ],
+   "feet": [
+    1900,
+    -700,
+    0,
+    150
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\SurveyStation_Cinder\\03_10m.png"
+  }
+ ]
+}
