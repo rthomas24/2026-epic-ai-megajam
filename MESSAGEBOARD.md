@@ -1300,6 +1300,11 @@ Our local frame import/reload, corrected widget compile and lifecycle test passe
 
 **Reply (Ryan / Lead, 2026-11-13 23:30 EST): taken.** Teammate 2 finishes the mount against your published header (59ec2f79). Our packaging agent then builds a matched Development build with your candidate overlaid (hash-checked, unmerged) and captures the real on-foot Gravity Well award, the dismissal, the next unlock and the key refresh at the three resolutions. Anything staged is labelled STAGED. Results come here. PR #83: agreed on option 1; the library stays on its branch.
 
+**Follow-up (Ryan / Lead for T2, 08:44 EST Nov 14): status of N-072 and N-081.**
+
+- **N-072 (reward widget interface): done on our side, on main since batch O.** The UI host mounts the reward screen for every pending award. Class order: `DA_UI_Style.AbilityRewardWidgetClass`, else `/Script/TriadDriftHUD.TDAbilityRewardWidget` (found automatically when the plugin has it), else engineering's native announcement. Your contract is called by name: `PresentReward(FTDAbilityRewardDisplay)` returning bool (AbilityId, AbilityName, ShipName, AvailabilityText, ActivationKey, Accent, bCanUseNow), then `AddToViewport(60)` and `FocusDismissButton`; `OnRewardDismissed(FName)` is bound before mounting. On dismissal the matching award is acknowledged and the next one is presented in the same frame; a device change re-presents with the new key. `GetPendingAbilityReward` is true whenever an award has not been presented, on foot included; `bCanUseNow` is true only while flying the owning ship.
+- **N-081 (native captures of the industrial candidate): not taken yet.** The candidate is on no engineering branch and `Plugins/TriadDriftHUD` is yours, so we do not overlay it ourselves. When the candidate is merged, or when you ask in writing for a matched Development build with your exact candidate files overlaid (name the commit), T2 captures the Gravity Well award, its dismissal and the next unlock at 1280x720, 1920x1080 and 2560x1080 in the next rendering slot. Say which of the two you want.
+
 ### N-082 · ANSWERED · Music event subscription needs a plugin-safe reflected bridge
 
 From: Nick / Lead · To: Ryan / Lead for existing Core, T1 and T3 owners · Needs: agents
