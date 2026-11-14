@@ -78,6 +78,37 @@ void ATDWingmanAIController::NotifyShadowModeChanged()
 	bRegroupCommitted = false;
 }
 
+void ATDWingmanAIController::LogPick(const AActor* Picked, const TCHAR* Reason) const
+{
+	LastPickReason = Reason;
+	if (Picked && Picked != LastLoggedTarget.Get() && TDShadow::LogTargets())
+	{
+		UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD wingman %s target = %s: %s (%s)"), *TDWingShadow::ShipName(ShipId), *Picked->GetName(), Reason,
+			IsShadowMode() ? TEXT("shadow") : TEXT("solo"));
+	}
+	LastLoggedTarget = const_cast<AActor*>(Picked);
+}
+
+bool ATDWingmanAIController::IsPlayersFight(const AActor* Enemy, const ATDShip* Leader) const
+{
+	if (!Enemy || !Leader)
+	{
+		return false;
+	}
+	const ATDSquadManager* S = Squad.Get();
+	if (Enemy == TDSquad::GetCurrentTarget(Leader) || (S && Enemy == S->GetFocusTarget()) || TDSquad::GetEnemyTarget(Enemy) == Leader)
+	{
+		return true;
+	}
+	return TDSquad::GetTimeSinceLastDamage(Leader) <= ThreatMemorySeconds && Enemy == TDSquad::GetLastAttacker(Leader);
+}
+
+bool ATDWingmanAIController::MayAttackWithPower(const AActor* Enemy, const ATDShip* Leader) const
+{
+	// Hunting alone: everything. Shadowing: offensive powers are for the player's fight only (the player must matter).
+	return !IsShadowMode() || TDShadow::ShadowOffensivePowersAnywhere() || IsPlayersFight(Enemy, Leader);
+}
+
 AActor* ATDWingmanAIController::PickTargetSolo(ATDShip* Ship, ATDShip* Leader) const
 {
 	bDefendingPlayer = false; // on its own: nobody covers the player
@@ -142,6 +173,7 @@ AActor* ATDWingmanAIController::PickTargetSolo(ATDShip* Ship, ATDShip* Leader) c
 			Best = H;
 		}
 	}
+	LogPick(Best, Best && TDSquad::GetEnemyTarget(Best) == Ship ? TEXT("its own choice: it is hunting this wingman") : TEXT("its own choice: nearest / weakest"));
 	return Best;
 }
 
@@ -170,6 +202,10 @@ bool ATDWingmanAIController::UsePower(ATDShip* Ship, int32 Slot, const AActor* T
 	const double T = Now();
 	LastPowerUseTime[Slot] = T;
 	LastAnyPowerTime = T;
+	if (ATDSquadManager* SquadForGap = Squad.Get())
+	{
+		SquadForGap->LastWingmanPowerTime = T;
+	}
 	++PowerUseCount[Slot];
 	UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD wingman %s used %s on %s because %s (%s)"), *TDWingShadow::ShipName(ShipId), *P.Name.ToString(),
 		Target ? *Target->GetName() : TEXT("no target"), *Reason, IsShadowMode() ? TEXT("shadow") : TEXT("solo"));
@@ -197,6 +233,13 @@ void ATDWingmanAIController::UpdatePowers(ATDShip* Ship, ATDShip* Leader)
 		}
 		else if (TDSquad::IsRamDashing(Ship))
 		{
+			if (ATDSquadManager* SquadDebug = Squad.Get(); SquadDebug && SquadDebug->bDebugSwitchOnWingmanRam)
+			{
+				SquadDebug->bDebugSwitchOnWingmanRam = false;
+				UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD playtest: Lancer's wingman is dashing at %.0f cm/s; switching the player into it now"), TDSquad::GetSpeed(Ship));
+				SquadDebug->RequestSwitchTo(ETDShipId::Lancer); // unpossesses this controller
+				return;
+			}
 			const AActor* RT = RamTarget.Get();
 			const FVector Loc = Ship->GetActorLocation();
 			const bool bPast = !RT || TDSquad::IsDead(RT)
@@ -216,7 +259,9 @@ void ATDWingmanAIController::UpdatePowers(ATDShip* Ship, ATDShip* Leader)
 		return;
 	}
 	NextPowerThinkTime = T + 0.25;
-	if (!TDShadow::PowersEnabled() || bHyperdriveFormUp || T - LastAnyPowerTime < TDShadow::PowerGlobalGap()
+	const ATDSquadManager* SquadForGap = Squad.Get();
+	const double LastSquadPower = SquadForGap ? FMath::Max(LastAnyPowerTime, SquadForGap->LastWingmanPowerTime) : LastAnyPowerTime;
+	if (!TDShadow::PowersEnabled() || bHyperdriveFormUp || T - LastSquadPower < TDShadow::PowerGlobalGap()
 		|| !TDSquad::WingmanPowersAllowed(this) || TDSquad::GetHyperdriveState(Ship) != ETDHyperdriveState::Idle)
 	{
 		return;
@@ -243,7 +288,14 @@ void ATDWingmanAIController::ThinkLancerPowers(ATDShip* Ship, ATDShip* Leader)
 			TDSquad::GetPlayerHostiles(GetWorld(), ScratchHostiles);
 			const int32 InReach = TDWingShadow::CountWithin(ScratchHostiles, Loc, Radius);
 			const bool bMissile = TDSquad::IsMissileIncoming(Ship);
-			if (InReach >= TDShadow::ClusterCount() || (bMissile && InReach >= 1))
+			// Shadowing: a crowd is not enough, one of them must be the player's business (a missile on us is self-defence).
+			bool bAllowed = !IsShadowMode() || TDShadow::ShadowOffensivePowersAnywhere();
+			for (int32 I = 0; I < ScratchHostiles.Num() && !bAllowed; ++I)
+			{
+				const AActor* H = ScratchHostiles[I];
+				bAllowed = IsValid(H) && FVector::DistSquared(H->GetActorLocation(), Loc) <= FMath::Square(Radius) && IsPlayersFight(H, Leader);
+			}
+			if ((bAllowed && InReach >= TDShadow::ClusterCount()) || (bMissile && InReach >= 1))
 			{
 				const FString Reason = InReach >= TDShadow::ClusterCount()
 					? FString::Printf(TEXT("%d enemies within %.0f m"), InReach, Radius / 100.f)
@@ -258,7 +310,8 @@ void ATDWingmanAIController::ThinkLancerPowers(ATDShip* Ship, ATDShip* Leader)
 
 	// Afterburner ram: only at a target that is lined up, with a clear line, and that keeps the dash inside the leash.
 	AActor* Target = CurrentTarget.Get();
-	if (State != ETDWingmanState::Engage || !Target || TDSquad::IsDead(Target) || !IsPowerReadyForAI(Ship, TDWingShadow::SlotSignature))
+	if (State != ETDWingmanState::Engage || !Target || TDSquad::IsDead(Target) || !IsPowerReadyForAI(Ship, TDWingShadow::SlotSignature)
+		|| !MayAttackWithPower(Target, Leader))
 	{
 		return;
 	}
@@ -291,7 +344,8 @@ void ATDWingmanAIController::ThinkLancerPowers(ATDShip* Ship, ATDShip* Leader)
 		return; // a rock or a hull in the way
 	}
 	if (UsePower(Ship, TDWingShadow::SlotSignature, Target,
-		FString::Printf(TEXT("it is lined up %.0f m ahead, %.0f deg off the nose"), Dist / 100.f, Angle), TDBarkIdsT2::RamGo))
+		FString::Printf(TEXT("it is lined up %.0f m ahead, %.0f deg off the nose%s"), Dist / 100.f, Angle,
+			IsPlayersFight(Target, Leader) ? TEXT(", and it is the player's target / attacker") : TEXT("")), TDBarkIdsT2::RamGo))
 	{
 		bAIRamming = true;
 		RamTarget = Target;
@@ -338,10 +392,11 @@ void ATDWingmanAIController::ThinkBastionPowers(ATDShip* Ship, ATDShip* Leader)
 	}
 
 	AActor* Target = CurrentTarget.Get();
-	if (State != ETDWingmanState::Engage || !Target || TDSquad::IsDead(Target))
+	if (State != ETDWingmanState::Engage || !Target || TDSquad::IsDead(Target) || !MayAttackWithPower(Target, Leader))
 	{
-		return;
+		return; // shadowing: the well and the swarm are for the player's target or the player's attackers
 	}
+	const TCHAR* PlayersFight = IsPlayersFight(Target, Leader) ? TEXT(", and it is the player's target / attacker") : TEXT("");
 	TDSquad::GetPlayerHostiles(GetWorld(), ScratchHostiles);
 	const FVector Fwd = Ship->GetActorForwardVector();
 
@@ -355,7 +410,7 @@ void ATDWingmanAIController::ThinkBastionPowers(ATDShip* Ship, ATDShip* Leader)
 			const FVector Opens = Loc + TDSquad::GetAimDirection(Ship) * Flight;
 			const int32 Caught = TDWingShadow::CountWithin(ScratchHostiles, Opens, Radius * 0.8f);
 			if (Caught >= TDShadow::ClusterCount()
-				&& UsePower(Ship, TDWingShadow::SlotAbility, Target, FString::Printf(TEXT("%d enemies within %.0f m of where the well opens"), Caught, Radius * 0.8f / 100.f), TDBarkIdsT2::GravityFire))
+				&& UsePower(Ship, TDWingShadow::SlotAbility, Target, FString::Printf(TEXT("%d enemies within %.0f m of where the well opens%s"), Caught, Radius * 0.8f / 100.f, PlayersFight), TDBarkIdsT2::GravityFire))
 			{
 				return;
 			}
@@ -407,8 +462,8 @@ void ATDWingmanAIController::ThinkBastionPowers(ATDShip* Ship, ATDShip* Leader)
 		}
 		TDSquad::SetSwarmTargets(Ship, Picks);
 		UsePower(Ship, TDWingShadow::SlotSignature, Target, bCluster
-			? FString::Printf(TEXT("a cluster of %d ahead"), Picks.Num())
-			: FString::Printf(TEXT("it is a tough target (%.0f hull, %.0f%% left)"), TDSquad::GetMaxHull(Target), TDSquad::GetHealth01(Target) * 100.f),
+			? FString::Printf(TEXT("a cluster of %d ahead%s"), Picks.Num(), PlayersFight)
+			: FString::Printf(TEXT("it is a tough target (%.0f hull, %.0f%% left)%s"), TDSquad::GetMaxHull(Target), TDSquad::GetHealth01(Target) * 100.f, PlayersFight),
 			TDBarkIdsT2::SwarmFire);
 	}
 }

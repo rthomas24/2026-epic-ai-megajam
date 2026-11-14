@@ -207,6 +207,11 @@ public:
 	/** Weapon-component multiplier key for the solo (shadow off) damage buff. */
 	static const FName ShadowSoloKey;
 
+	/** #201: world time of the last power any wingman used (the squad-wide gap, td.Squad.Powers.Gap). */
+	double LastWingmanPowerTime = -1000.0;
+	/** #201 playtest (TD.Squad.SwitchOnRam): switch into Lancer the moment its wingman's ram dash starts. One shot. */
+	bool bDebugSwitchOnWingmanRam = false;
+
 	/** TD.Squad.Dump: one line per ship (mode, state, target, distance to the player, power states). */
 	void DumpSquad(TArray<FString>& OutLines) const;
 

@@ -32,12 +32,16 @@ namespace TDShadow
 	UNREALGAMEJAM_API bool PowersEnabled();
 	/** A wingman waits cooldown x this before using the same power again. */
 	UNREALGAMEJAM_API float PowerCooldownPad();
-	/** Seconds between two power uses of the same wingman (any power). */
+	/** Seconds between any two wingman power uses, across the squad. */
 	UNREALGAMEJAM_API float PowerGlobalGap();
 	/** Enemies needed in reach for an EMP, a missile swarm at a cluster, or a gravity well. */
 	UNREALGAMEJAM_API int32 ClusterCount();
 	/** A single target with at least this much max hull is "tough": worth a missile swarm on its own. */
 	UNREALGAMEJAM_API float ToughHull();
+	/** Shadow ON: false (default) = offensive wingman powers only on the player's target or the player's attackers. */
+	UNREALGAMEJAM_API bool ShadowOffensivePowersAnywhere();
+	/** td.Squad.LogTargets: log wingman target changes with their reason, and leash breaks. */
+	UNREALGAMEJAM_API bool LogTargets();
 	/** Rift's wingman may place a portal pair in front of a missile that is homing on it (td.Squad.Powers.Portals). */
 	UNREALGAMEJAM_API bool PortalsEnabled();
 }

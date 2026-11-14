@@ -493,6 +493,12 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 	if ((Leader && FVector::Dist(Ship->GetActorLocation(), Leader->GetActorLocation()) > GetLeash())
 		|| (!IsShadowMode() && TDSquad::IsOutOfBounds(Ship)))
 	{
+		if (TDShadow::LogTargets())
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD wingman %s broke off at %.0f m from the player (leash %.0f m, %s)"),
+				*UEnum::GetDisplayValueAsText(ShipId).ToString(), Leader ? FVector::Dist(Ship->GetActorLocation(), Leader->GetActorLocation()) / 100.f : 0.f,
+				GetLeash() / 100.f, IsShadowMode() ? TEXT("shadow") : TEXT("solo"));
+		}
 		CurrentTarget.Reset();
 		SetState(ETDWingmanState::Regroup);
 		bRegroupCommitted = true;
@@ -689,6 +695,7 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 			// m9: a focus target beyond the leash would flip Engage/Regroup; ignore it until it's in reach.
 			if (!Leader || FVector::Dist(Focus->GetActorLocation(), Leader->GetActorLocation()) <= GetLeash())
 			{
+				LogPick(Focus, TEXT("the player's focus order"));
 				return Focus;
 			}
 		}
@@ -819,6 +826,7 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 	if (CVarTDWingmenInView.GetValueOnGameThread() == 0)
 	{
 		bDefendingPlayer = false;
+		LogPick(BestThreat ? BestThreat : Best, BestThreat ? TEXT("attacker of / threat to the player") : TEXT("nearest"));
 		return BestThreat ? BestThreat : Best; // classic: threats to the player first, then nearest
 	}
 	// Defending the player comes first, but one wingman off-screen on defence is enough: the other
@@ -826,12 +834,15 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 	if (BestThreat && (!bOtherDefending || bBestThreatInView))
 	{
 		bDefendingPlayer = !bBestThreatInView;
+		LogPick(BestThreat, BestThreat == PlayerAttacker ? TEXT("attacker of the player") : TEXT("threat to the player (close and pointed at it)"));
 		return BestThreat;
 	}
 	bDefendingPlayer = false;
 	// In view wins only when it isn't much worse than the best overall (balance guard rail: wingmen
 	// must keep killing at their old rate, so no long flights to a far target just because it's on screen).
-	return (BestInView && BestInViewScore <= BestScore + InViewMaxExtraBands) ? BestInView : Best;
+	AActor* Picked = (BestInView && BestInViewScore <= BestScore + InViewMaxExtraBands) ? BestInView : Best;
+	LogPick(Picked, Picked == PlayerTarget ? TEXT("the player's own target") : (Picked == BestInView ? TEXT("in the player's view") : TEXT("nearest")));
+	return Picked;
 }
 
 // ---------------------------------------------------------------------------------------------

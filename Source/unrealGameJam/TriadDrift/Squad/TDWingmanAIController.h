@@ -291,6 +291,14 @@ protected:
 	void ThinkLancerPowers(ATDShip* Ship, ATDShip* Leader);
 	void ThinkBastionPowers(ATDShip* Ship, ATDShip* Leader);
 	void ThinkRiftPowers(ATDShip* Ship, ATDShip* Leader);
+	/** Shadow ON: Enemy is the player's business: the player's target, a focus order, or someone attacking the player. */
+	bool IsPlayersFight(const AActor* Enemy, const ATDShip* Leader) const;
+	/** May this wingman use an OFFENSIVE power on Enemy right now? Always when hunting alone. */
+	bool MayAttackWithPower(const AActor* Enemy, const ATDShip* Leader) const;
+	/** td.Squad.LogTargets: why the last PickTarget chose what it chose. */
+	mutable const TCHAR* LastPickReason = TEXT("");
+	mutable TWeakObjectPtr<AActor> LastLoggedTarget;
+	void LogPick(const AActor* Picked, const TCHAR* Reason) const;
 	/** Ready, and the padded AI cooldown has passed. */
 	bool IsPowerReadyForAI(const ATDShip* Ship, int32 Slot) const;
 	/** Start the power; logs "wingman <ship> used <power> on <target> because <reason>" and asks for the pilot's line. */

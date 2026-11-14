@@ -238,6 +238,8 @@ void UTDPowerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	else if (bPowerActive && bStartedByAI && !bWasPlayerControlled && bPlayerNow)
 	{
 		OnGainedPlayerControl(); // #201: the player took the ship mid-power
+		UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD power %s (started by the wingman AI) %s: the player took the ship %.2f s into it"), *PowerName.ToString(),
+			bPowerActive ? TEXT("keeps running") : TEXT("ended at once"), ActiveElapsed);
 	}
 	bWasPlayerControlled = bPlayerNow;
 	if (bPowerActive)

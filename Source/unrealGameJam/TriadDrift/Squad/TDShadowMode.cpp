@@ -38,12 +38,16 @@ namespace TDShadowPrivate
 	// --- Wingman powers (both modes) ---
 	static TAutoConsoleVariable<int32> CVarPowers(TEXT("td.Squad.Powers"), 1,
 		TEXT("1: wingmen use their signature powers and unlocked abilities (default). 0: basic attacks only."), ECVF_Default);
-	static TAutoConsoleVariable<float> CVarPowerPad(TEXT("td.Squad.Powers.CooldownPad"), 1.3f,
-		TEXT("A wingman waits the power's cooldown times this before using it again. Default 1.3."), ECVF_Default);
-	static TAutoConsoleVariable<float> CVarPowerGap(TEXT("td.Squad.Powers.Gap"), 1.5f,
-		TEXT("Seconds between two power uses of the same wingman. Default 1.5."), ECVF_Default);
-	static TAutoConsoleVariable<int32> CVarCluster(TEXT("td.Squad.Powers.Cluster"), 3,
-		TEXT("Enemies needed in reach for a wingman's EMP, cluster swarm or gravity well. Default 3."), ECVF_Default);
+	static TAutoConsoleVariable<float> CVarPowerPad(TEXT("td.Squad.Powers.CooldownPad"), 2.2f,
+		TEXT("A wingman waits the power's cooldown times this before using it again. Default 2.2."), ECVF_Default);
+	static TAutoConsoleVariable<float> CVarPowerGap(TEXT("td.Squad.Powers.Gap"), 4.f,
+		TEXT("Seconds between any two wingman power uses, across the whole squad. Default 4."), ECVF_Default);
+	static TAutoConsoleVariable<int32> CVarCluster(TEXT("td.Squad.Powers.Cluster"), 4,
+		TEXT("Enemies needed in reach for a wingman's EMP, cluster swarm or gravity well. Default 4."), ECVF_Default);
+	static TAutoConsoleVariable<int32> CVarShadowOffence(TEXT("td.Squad.Shadow.OffensivePowers"), 0,
+		TEXT("Shadow ON: 0 (default) = a wingman uses an offensive power only on the player's target or on an enemy attacking the player; 1 = on anything, as in shadow OFF. Dome and cloak are always allowed."), ECVF_Default);
+	static TAutoConsoleVariable<int32> CVarLogTargets(TEXT("td.Squad.LogTargets"), 0,
+		TEXT("1: log each wingman target change with its reason, and each leash break (TDSQUAD lines)."), ECVF_Default);
 	static TAutoConsoleVariable<float> CVarTough(TEXT("td.Squad.Powers.ToughHull"), 250.f,
 		TEXT("A single enemy with at least this much max hull is worth a wingman's missile swarm. Default 250."), ECVF_Default);
 	static TAutoConsoleVariable<int32> CVarPortals(TEXT("td.Squad.Powers.Portals"), 0,
@@ -89,6 +93,21 @@ namespace TDShadowPrivate
 			SayOnScreen(FString::Printf(TEXT("TD.Squad.Shadow: shadow mode %s"), S->IsShadowMode() ? TEXT("ON") : TEXT("OFF")), FColor::Cyan);
 		}));
 
+	static FAutoConsoleCommandWithWorldAndArgs CmdSwitchOnRam(TEXT("TD.Squad.SwitchOnRam"),
+		TEXT("TD.Squad.SwitchOnRam: playtest: the next time Lancer's wingman starts a ram dash, switch the player into Lancer mid-dash."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
+		{
+			if (ATDSquadManager* S = ATDSquadManager::Get(World))
+			{
+				S->bDebugSwitchOnWingmanRam = true;
+				SayOnScreen(TEXT("TD.Squad.SwitchOnRam: armed"), FColor::Cyan);
+			}
+			else
+			{
+				SayOnScreen(TEXT("TD.Squad.SwitchOnRam: no squad in this world"), FColor::Red);
+			}
+		}));
+
 	static FAutoConsoleCommandWithWorldAndArgs CmdDump(TEXT("TD.Squad.Dump"),
 		TEXT("TD.Squad.Dump: log each wingman's mode, state, target, distance to the player and power states."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
@@ -130,5 +149,7 @@ namespace TDShadow
 	float PowerGlobalGap() { return FMath::Max(0.f, TDShadowPrivate::CVarPowerGap.GetValueOnGameThread()); }
 	int32 ClusterCount() { return FMath::Max(1, TDShadowPrivate::CVarCluster.GetValueOnGameThread()); }
 	float ToughHull() { return FMath::Max(1.f, TDShadowPrivate::CVarTough.GetValueOnGameThread()); }
+	bool ShadowOffensivePowersAnywhere() { return TDShadowPrivate::CVarShadowOffence.GetValueOnGameThread() != 0; }
+	bool LogTargets() { return TDShadowPrivate::CVarLogTargets.GetValueOnGameThread() != 0; }
 	bool PortalsEnabled() { return TDShadowPrivate::CVarPortals.GetValueOnGameThread() != 0; }
 }
