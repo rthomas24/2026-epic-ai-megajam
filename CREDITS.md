@@ -199,3 +199,10 @@ Nicholas Tosti supplied the Suno track Ethereal Pulse (Remix) for combat. Audio 
 Tools used: **Hyper3D Rodin** (list it in the submission for the Rodin prize pool), fal.ai, Blender 4.5.3, Claude Code.
 
 Nicholas Tosti supplied the Verdance theme. For the loop revision, the Lead used Python to smooth its stereo endpoints, Unreal Engine 5.9 for native loop playback, and NumPy and FFmpeg to check and extract the original game recording. The earlier full-length source and asset remain available in project history.
+
+### Grok Bot deliveries imported by the import builder, second batch (outpost set dressing, crystal cluster r2) - November 13, 2026
+
+| Asset | Tool | Licence / plan | Added by |
+|---|---|---|---|
+| `SM_Outpost_{CargoCrate,SupplyCrate,FieldTerminal,DataKiosk,CommAntenna,CommsDish,Floodlight,BollardLight,Generator,PowerJunction}`, `T_OutpostProps_BC/N/ORM/E`, `MI_OutpostProps` in `Content/TriadDrift/Gameplay/Props/OutpostDressing/` (PR #79) | Blender 4.5.3, procedural hard-surface by Grok Bot after Nicholas's landing-pad board (`ArtSource/EngAI/Props/OutpostSetDressing/mesh_r1/SOURCE.md`); no AI 3D generator | project-authored | Grok Bot; import by Claude Code (Ryan's side) |
+| `SM_CrystalCacheCrystal` r2, `T_CrystalCacheCrystal_*` in `Content/TriadDrift/Gameplay/Props/CrystalCache/` (PR #80) | Blender 4.5.3, procedural bmesh by Grok Bot (`ArtSource/EngAI/Props/CrystalCache/mesh_r2/SOURCE.md`); no AI 3D generator | project-authored | same |
