@@ -1,6 +1,10 @@
 // Triad Drift - Director (Teammate 3). C-03 #2 "Director cam money shots".
 
 #include "TriadDrift/Director/TDDirectorSubsystem.h"
+#include "GameFramework/PlayerController.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
+#include "Camera/CameraComponent.h"
+#include "Camera/CameraActor.h"
 #include "TriadDrift/Director/TDDirectorSounds.h"
 #include "TriadDrift/Director/TDDirectorCamera.h"
 #include "TriadDrift/Director/TDCutPresentation.h"
@@ -87,6 +91,7 @@ void UTDDirectorSubsystem::Tick(float DeltaTime)
 		bSlowMoSounding = false;
 		FTDDirectorSounds::Play(GetWorld(), ETDDirectorSound::SlowMoOut);
 	}
+	UpdateAtmosphereShot(Now);
 	UpdatePlayerProtection();
 	if (!CameraRig)
 	{
@@ -110,7 +115,7 @@ namespace TDDirectorProtect
 void UTDDirectorSubsystem::UpdatePlayerProtection()
 {
 	// The camera is away for a shot (cut, hold, blend back), never for the death cam (the player is already dead).
-	const bool bAway = CameraRig && CameraRig->IsActive() && !CameraRig->IsDeathCam();
+	const bool bAway = (CameraRig && CameraRig->IsActive() && !CameraRig->IsDeathCam()) || Atmosphere.bActive;
 	const ATDSquadManager* Squad = ATDSquadManager::Get(this);
 	UTDHealthComponent* Health = Squad ? UTDStatics::GetHealth(Squad->GetActiveShip()) : nullptr;
 	if (!bAway || !Health)
@@ -131,6 +136,114 @@ void UTDDirectorSubsystem::UpdatePlayerProtection()
 		// Refreshed every frame while away; once the camera is back it runs out over ReturnGraceSeconds of game time.
 		Health->SetInvulnerableFor(Tuning.ReturnGraceSeconds);
 		bProtectingPlayer = true;
+	}
+}
+
+namespace TDAtmosphereShot
+{
+	static const FName HUDHold(TEXT("DirectorAtmosphere"));
+}
+
+bool UTDDirectorSubsystem::RequestAtmosphereShot(const UObject* WorldContext, ATDShip* Ship, bool bExit, float Seconds,
+	TFunction<FTransform(float Alpha01)> CameraFromShipLocal)
+{
+	UTDDirectorSubsystem* D = Get(WorldContext);
+	UWorld* World = D ? D->GetWorld() : nullptr;
+	APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+	if (!D || !World || !PC || !Ship || !CameraFromShipLocal || UTDDirectorSettings::GetEffectiveMode() == ETDDirectorCameraMode::Off)
+	{
+		return false;
+	}
+	if (D->CameraRig && D->CameraRig->IsActive() && !D->CameraRig->IsDeathCam())
+	{
+		D->CameraRig->Cancel(ETDDirectorCameraCancel::ViewTakenOver); // a money shot gives way to the entry
+	}
+	if (!D->AtmosphereCamera)
+	{
+		FActorSpawnParameters P;
+		P.ObjectFlags |= RF_Transient;
+		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		D->AtmosphereCamera = World->SpawnActor<ATDDirectorCameraActor>(ATDDirectorCameraActor::StaticClass(), FTransform::Identity, P); // tick and collision off, like the rig's
+		if (D->AtmosphereCamera)
+		{
+			D->AtmosphereCamera->GetCameraComponent()->bConstrainAspectRatio = false;
+			D->AtmosphereCamera->GetCameraComponent()->SetFieldOfView(70.f);
+		}
+	}
+	if (!D->AtmosphereCamera)
+	{
+		return false;
+	}
+	D->Atmosphere.bActive = true;
+	D->Atmosphere.bExit = bExit;
+	D->Atmosphere.Ship = Ship;
+	D->Atmosphere.Place = MoveTemp(CameraFromShipLocal);
+	D->Atmosphere.Start = World->GetRealTimeSeconds();
+	D->Atmosphere.Seconds = FMath::Max(0.1f, Seconds);
+	// No engine view blend (an engine blend into this camera and a later SetViewTarget back overflowed the stack): cut to
+	// the camera and ease it in from the chase camera's pose over BlendIn, in real time, as the money-shot rig does.
+	D->Atmosphere.From = PC->PlayerCameraManager ? FTransform(PC->PlayerCameraManager->GetCameraRotation(), PC->PlayerCameraManager->GetCameraLocation())
+		: D->Atmosphere.Place(0.f) * Ship->GetActorTransform();
+	D->AtmosphereCamera->SetActorTransform(D->Atmosphere.From);
+	PC->SetViewTarget(D->AtmosphereCamera);
+	UTDUIHostSubsystem::PushHUDFocus(World, TDAtmosphereShot::HUDHold, 0.f, /*bHideCombat*/ true);
+	UE_LOG(LogTriadDrift, Log, TEXT("Director: atmosphere %s shot, %.1f s"), bExit ? TEXT("exit") : TEXT("entry"), Seconds);
+	return true;
+}
+
+void UTDDirectorSubsystem::EndAtmosphereShot(const UObject* WorldContext, bool bCut)
+{
+	UTDDirectorSubsystem* D = Get(WorldContext);
+	if (!D || !D->Atmosphere.bActive)
+	{
+		return;
+	}
+	D->Atmosphere = FAtmosphereShot();
+	UWorld* World = D->GetWorld();
+	if (APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr)
+	{
+		if (APawn* Pawn = PC->GetPawn(); Pawn && PC->GetViewTarget() == D->AtmosphereCamera)
+		{
+			PC->SetViewTarget(Pawn); // a cut either way (bCut false is reserved for a later eased return)
+		}
+	}
+	UTDUIHostSubsystem::PopHUDFocus(World, TDAtmosphereShot::HUDHold);
+}
+
+bool UTDDirectorSubsystem::IsAtmosphereShotActive(const UObject* WorldContext)
+{
+	const UTDDirectorSubsystem* D = Get(WorldContext);
+	return D && D->Atmosphere.bActive;
+}
+
+void UTDDirectorSubsystem::UpdateAtmosphereShot(double)
+{
+	if (!Atmosphere.bActive)
+	{
+		return;
+	}
+	UWorld* World = GetWorld();
+	const ATDShip* Ship = Atmosphere.Ship.Get();
+	const UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr;
+	const double Now = World ? World->GetRealTimeSeconds() : 0.0;
+	if (!Ship || !AtmosphereCamera || (GI && GI->IsTravelPending()) || Now - Atmosphere.Start > Atmosphere.Seconds + 1.0)
+	{
+		EndAtmosphereShot(this, true); // the ship went, travel, or T1 never ended it
+		return;
+	}
+	const float Alpha = FMath::Clamp(static_cast<float>((Now - Atmosphere.Start) / Atmosphere.Seconds), 0.f, 1.f);
+	const FTransform Want = Atmosphere.Place(Alpha) * Ship->GetActorTransform();
+	const float In = FMath::Clamp(static_cast<float>((Now - Atmosphere.Start) / 0.3), 0.f, 1.f);
+	if (In < 1.f)
+	{
+		const float E = FMath::InterpEaseInOut(0.f, 1.f, In, 2.f);
+		FTransform T;
+		T.Blend(Atmosphere.From, Want, E);
+		AtmosphereCamera->SetActorTransform(T);
+	}
+	else
+	{
+		AtmosphereCamera->SetActorTransform(Want);
 	}
 }
 
@@ -294,6 +407,10 @@ bool UTDDirectorSubsystem::ReportHighlight(ETDHighlightKind Kind, AActor* Subjec
 	if (!World || !Subject || !CanTriggerHighlights())
 	{
 		return false; // m12: no subject = nothing to frame
+	}
+	if (Atmosphere.bActive)
+	{
+		return false; // T1's entry owns the camera
 	}
 	const float Importance = FMath::Clamp(Importance01 < 0.f ? GetBaseImportance(Kind) : Importance01, 0.f, 1.f);
 	if (Importance < Tuning.MinImportance)

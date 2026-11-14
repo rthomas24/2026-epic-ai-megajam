@@ -1,15 +1,63 @@
 {
-  "_about": "45-second first edit for the Nov 13 footage request (N-037). Source names and planned switch cues follow Tools/td_trailer.py. Trim points are provisional until the actual raw clips are reviewed. Review at normal speed before publishing.",
+  "_about": "45-second submission recapture plan for T3 and the editor. Times are target selects for the new raw takes. Adjust the source in/out points after reviewing the actual frames. The previous edit and footage remain available in the trailer-v2-footage release.",
   "shots": [
-    { "clip": "dogfight", "in": 1.0, "out": 8.0 },
-    { "clip": "dogfight", "in": 10.5, "out": 15.0 },
-    { "clip": "ram", "in": 0.5, "out": 4.5 },
-    { "clip": "bastion", "in": 0.3, "out": 4.8 },
-    { "clip": "approach", "in": 1.0, "out": 7.0 },
-    { "clip": "onfoot", "in": 0.5, "out": 7.5 },
-    { "clip": "dominion", "in": 0.0, "out": 4.0 },
-    { "clip": "reactor", "in": 1.0, "out": 4.0 },
-    { "clip": "victory", "in": 1.0, "out": 4.0 },
-    { "card": [{ "text": "TRIAD DRIFT", "size": 140 }], "seconds": 2.0, "fade": 0.25 }
+    {
+      "clip": "dogfight",
+      "in": 1,
+      "out": 7,
+      "beat": "Open in playable flight with the target, weapons and HUD readable on the first frame."
+    },
+    {
+      "clip": "switch",
+      "in": 1,
+      "out": 5,
+      "beat": "Stay on the same target through a player-driven ship switch and its pilot card."
+    },
+    {
+      "clip": "portal_return",
+      "in": 1,
+      "out": 6,
+      "beat": "Keep the incoming missile, portal transit and hit on the attacker in the shot."
+    },
+    {
+      "clip": "ram",
+      "in": 0.5,
+      "out": 4.5,
+      "beat": "Show Lancer accelerating into a target and the result."
+    },
+    {
+      "clip": "planet_landing",
+      "in": 1,
+      "out": 7,
+      "beat": "Follow the approach through touchdown, with a landmark visible on the ground."
+    },
+    {
+      "clip": "blade_deflect",
+      "in": 1,
+      "out": 6,
+      "beat": "Show the enemy bolt, the on-foot blade deflection and its return."
+    },
+    {
+      "clip": "dominion",
+      "in": 1,
+      "out": 6,
+      "beat": "Show one shield generator against the hull, then the open docking approach."
+    },
+    {
+      "clip": "reactor_final",
+      "in": 1,
+      "out": 9,
+      "beat": "Capture the playable reactor kill and escape payoff from the selected submission route. Keep the final story reveal out of the trailer."
+    },
+    {
+      "card": [
+        {
+          "text": "TRIAD DRIFT",
+          "size": 140
+        }
+      ],
+      "seconds": 2,
+      "fade": 0.25
+    }
   ]
 }

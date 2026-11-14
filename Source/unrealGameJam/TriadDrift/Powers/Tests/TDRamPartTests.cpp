@@ -73,7 +73,9 @@ namespace TDRamPartTest
 			}
 			if (Part)
 			{
-				Out = (Part->GetActorLocation() - Carrier->GetActorLocation()).GetSafeNormal();
+				// Socket-mounted parts (an art hull with Bay_N / Turret_N) face their socket's +X: ram along it. Sphere-mounted
+				// parts face radially out of the carrier (T4, agreed with T2).
+				Out = Carrier->HasSocketMountedParts() ? Part->GetActorForwardVector() : (Part->GetActorLocation() - Carrier->GetActorLocation()).GetSafeNormal();
 			}
 		}
 		if (!Test.TestNotNull(Label + TEXT(": part spawned"), Part))

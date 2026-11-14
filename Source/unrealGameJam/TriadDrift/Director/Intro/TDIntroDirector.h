@@ -77,12 +77,15 @@ struct FTDIntroCardLayout
 {
 	FBox2D Name = FBox2D(ForceInit);
 	FBox2D Role = FBox2D(ForceInit);
-	FBox2D Bar = FBox2D(ForceInit);
+	FBox2D Trait = FBox2D(ForceInit);
+	FBox2D Insignia = FBox2D(ForceInit);
+	FBox2D Bar = FBox2D(ForceInit);          // the thin accent between the insignia and the text
 	FBox2D SubtitleBand = FBox2D(ForceInit); // reserved for the narration line (full width)
 	FBox2D Skip = FBox2D(ForceInit);         // HOLD TO SKIP and its fill bar
 	FBox2D Picture = FBox2D(ForceInit);      // the frame inside the 2.39:1 bars
 	int32 NameFontSize = 0;
 	int32 RoleFontSize = 0;
+	int32 TraitFontSize = 0;
 };
 
 /** What the overlay draws this frame (tests read it). */
@@ -98,7 +101,9 @@ struct FTDIntroOverlayState
 	float SubtitleAlpha = 0.f;
 	float TitleAlpha = 0.f;
 	FText NameCard;
-	FText NameCardRole;
+	FText NameCardRole;   // "RIFT  ·  TRICKSTER"
+	FText NameCardTrait;  // "BOLD · INSTINCTIVE" (Trait_*)
+	int32 NameCardShip = -1; // ETDShipId: which insignia
 	FLinearColor NameCardColor = FLinearColor::White;
 	float NameCardAlpha = 0.f;
 	float SkipHintAlpha = 0.f;
@@ -185,8 +190,12 @@ public:
 
 	/** Lays out the pilot card for a viewport (issue #49). Measure returns a text's size in a font (the Slate font
 	 *  service in the game; tests may pass an estimate when Slate has no renderer). */
-	static FTDIntroCardLayout LayoutNameCard(const FVector2D& ViewportSize, const FText& Name, const FText& Role,
+	static FTDIntroCardLayout LayoutNameCard(const FVector2D& ViewportSize, const FText& Name, const FText& Role, const FText& Trait,
 		TFunctionRef<FVector2D(const FText&, const struct FSlateFontInfo&)> Measure);
+	/** Concept A's squad colours (the HUD palette, sRGB): Rift #F18CFA, Lancer #79E5FF, Bastion #FFCE77. */
+	static FLinearColor CardColor(int32 Ship);
+	/** The opening's Squad shot is three steady frames, one per ship (issue #49): which one at T, and its window. */
+	static int32 SquadSegment(float T, float ShotDuration);
 	/** This play's narration (story table Intro_N*, else NarrationLines()). */
 	TArray<FText> Narration;
 	/** Jump to a shot (captures, debug): restarts that shot from its first frame. */

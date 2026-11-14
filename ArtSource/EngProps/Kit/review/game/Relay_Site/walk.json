@@ -1,0 +1,314 @@
+{
+ "site": "Relay_Site",
+ "origin": [
+  4000.0,
+  -2500.0,
+  2.0
+ ],
+ "steps": [
+  {
+   "teleport": [
+    1450,
+    0,
+    0
+   ],
+   "feet": [
+    1450,
+    0,
+    0,
+    180
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\01_front_ramp_foot.png"
+  },
+  {
+   "walk": [
+    180,
+    0.45
+   ],
+   "feet": [
+    1172,
+    0,
+    10,
+    180
+   ],
+   "at": "front ramp / deck 0"
+  },
+  {
+   "walk": [
+    180,
+    0.45
+   ],
+   "feet": [
+    890,
+    0,
+    81,
+    180
+   ],
+   "at": "front ramp / deck 1"
+  },
+  {
+   "walk": [
+    180,
+    0.45
+   ],
+   "feet": [
+    610,
+    0,
+    102,
+    180
+   ],
+   "at": "front ramp / deck 2"
+  },
+  {
+   "walk": [
+    180,
+    0.45
+   ],
+   "feet": [
+    328,
+    0,
+    102,
+    180
+   ],
+   "at": "front ramp / deck 3"
+  },
+  {
+   "walk": [
+    180,
+    0.45
+   ],
+   "feet": [
+    70,
+    0,
+    207,
+    180
+   ],
+   "at": "front ramp / deck 4"
+  },
+  {
+   "teleport": [
+    190,
+    0,
+    100
+   ],
+   "feet": [
+    190,
+    0,
+    102,
+    180
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\02_device_point.png"
+  },
+  {
+   "teleport": [
+    200,
+    1450,
+    0
+   ],
+   "feet": [
+    200,
+    1450,
+    0,
+    270
+   ]
+  },
+  {
+   "walk": [
+    270,
+    0.45
+   ],
+   "feet": [
+    200,
+    1170,
+    11,
+    270
+   ],
+   "at": "north ramp 0"
+  },
+  {
+   "walk": [
+    270,
+    0.45
+   ],
+   "feet": [
+    200,
+    892,
+    80,
+    270
+   ],
+   "at": "north ramp 1"
+  },
+  {
+   "walk": [
+    270,
+    0.45
+   ],
+   "feet": [
+    200,
+    612,
+    102,
+    270
+   ],
+   "at": "north ramp 2"
+  },
+  {
+   "walk": [
+    270,
+    0.45
+   ],
+   "feet": [
+    200,
+    336,
+    102,
+    270
+   ],
+   "at": "north ramp 3"
+  },
+  {
+   "teleport": [
+    200,
+    -1450,
+    0
+   ],
+   "feet": [
+    200,
+    -1450,
+    0,
+    90
+   ]
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    200,
+    -1168,
+    11,
+    90
+   ],
+   "at": "south ramp 0"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    200,
+    -896,
+    79,
+    90
+   ],
+   "at": "south ramp 1"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    200,
+    -621,
+    102,
+    90
+   ],
+   "at": "south ramp 2"
+  },
+  {
+   "walk": [
+    90,
+    0.45
+   ],
+   "feet": [
+    179,
+    -358,
+    102,
+    90
+   ],
+   "at": "south ramp 3"
+  },
+  {
+   "teleport": [
+    700,
+    700,
+    100
+   ],
+   "feet": [
+    700,
+    700,
+    102,
+    225
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\03_deck_covers.png"
+  },
+  {
+   "teleport": [
+    420,
+    -460,
+    100
+   ],
+   "feet": [
+    420,
+    -460,
+    102,
+    90
+   ]
+  },
+  {
+   "walk": [
+    90,
+    0.4
+   ],
+   "feet": [
+    420,
+    -374,
+    102,
+    90
+   ],
+   "at": "into cover (blocked)"
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\04_behind_cover.png"
+  },
+  {
+   "teleport": [
+    2000,
+    -1400,
+    0
+   ],
+   "feet": [
+    2000,
+    -1400,
+    0,
+    145
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\05_15m.png"
+  },
+  {
+   "teleport": [
+    29000,
+    0,
+    5800
+   ],
+   "feet": [
+    29000,
+    0,
+    5702,
+    180
+   ]
+  },
+  {
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Relay_Site\\06_300m.png"
+  }
+ ]
+}

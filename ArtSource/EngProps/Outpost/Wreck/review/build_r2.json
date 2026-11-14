@@ -1,0 +1,103 @@
+{
+ "glow_uv": [
+  0.29102,
+  0.11133
+ ],
+ "glow_block_uv": 0.01953125,
+ "ramp": {
+  "slope_deg": 20.0,
+  "run_cm": 692.4,
+  "rise_cm": 252.0,
+  "x": [
+   -40.0,
+   190.0
+  ],
+  "y_blender": [
+   288.0,
+   992.4
+  ],
+  "width_cm": 230.0,
+  "clear_between_rails_cm": 206.0,
+  "sides_blender_y": [
+   "+",
+   "-"
+  ]
+ },
+ "lights_blender_cm": [
+  [
+   40.0,
+   -140.0,
+   562.0
+  ],
+  [
+   190.0,
+   120.0,
+   564.2
+  ],
+  [
+   -90.0,
+   60.0,
+   569.8
+  ]
+ ],
+ "hull_sections_x": [
+  [
+   -1600,
+   -1200
+  ],
+  [
+   -1200,
+   -800
+  ],
+  [
+   -800,
+   -400
+  ],
+  [
+   -400,
+   -225.0
+  ],
+  [
+   375.0,
+   800
+  ],
+  [
+   800,
+   1200
+  ],
+  [
+   1200,
+   1600.01
+  ]
+ ],
+ "walk": {
+  "deck_z": 252.0,
+  "deck_x": [
+   -225.0,
+   375.0
+  ],
+  "deck_y_blender": [
+   -300.0,
+   300.0
+  ],
+  "ceiling_z": [
+   535,
+   583
+  ],
+  "clear_height_cm": 283,
+  "opening_width_along_x_cm": 600.0
+ },
+ "export": {
+  "status": "ok (read back from the manifest)",
+  "tris": 27212,
+  "size_cm": [
+   3200.0,
+   2012.7,
+   1211.7
+  ],
+  "welded_verts": 19,
+  "warnings": [],
+  "errors": [],
+  "hulls": 15
+ }
+}

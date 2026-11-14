@@ -1,0 +1,441 @@
+[
+ {
+  "asset": "SM_Kit_Catwalk_400",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -100.0,
+   -45.0
+  ],
+  "max_cm": [
+   200.0,
+   100.0,
+   110.0
+  ],
+  "size_cm": [
+   400.0,
+   200.0,
+   155.0
+  ],
+  "bounds_match": "same",
+  "tris": 2412,
+  "slots": [
+   "0:Trim"
+  ],
+  "hulls": 3,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_Console",
+  "ok": true,
+  "min_cm": [
+   -30.0,
+   -83.0,
+   -0.0
+  ],
+  "max_cm": [
+   44.0,
+   83.0,
+   106.56
+  ],
+  "size_cm": [
+   74.0,
+   166.0,
+   106.56
+  ],
+  "bounds_match": "same",
+  "tris": 916,
+  "slots": [
+   "0:Trim",
+   "1:Screen"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_Corner",
+  "ok": true,
+  "min_cm": [
+   -20.0,
+   -20.0,
+   -0.0
+  ],
+  "max_cm": [
+   20.0,
+   20.0,
+   300.0
+  ],
+  "size_cm": [
+   40.0,
+   40.0,
+   300.0
+  ],
+  "bounds_match": "same",
+  "tris": 438,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_Cover_200",
+  "ok": true,
+  "min_cm": [
+   -100.0,
+   -21.0,
+   -0.0
+  ],
+  "max_cm": [
+   100.0,
+   21.0,
+   100.0
+  ],
+  "size_cm": [
+   200.0,
+   42.0,
+   100.0
+  ],
+  "bounds_match": "same",
+  "tris": 248,
+  "slots": [
+   "0:Trim"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_DoorFrame_400",
+  "ok": true,
+  "min_cm": [
+   -19.5,
+   -200.0,
+   -0.0
+  ],
+  "max_cm": [
+   19.5,
+   200.0,
+   300.0
+  ],
+  "size_cm": [
+   39.0,
+   400.0,
+   300.0
+  ],
+  "bounds_match": "same",
+  "tris": 2222,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ],
+  "hulls": 5,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_Floor_400",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   0.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   20.0
+  ],
+  "bounds_match": "same",
+  "tris": 108,
+  "slots": [
+   "0:Trim"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_LightStrip_200",
+  "ok": true,
+  "min_cm": [
+   -100.0,
+   -5.0,
+   -0.0
+  ],
+  "max_cm": [
+   100.0,
+   5.0,
+   6.0
+  ],
+  "size_cm": [
+   200.0,
+   10.0,
+   6.0
+  ],
+  "bounds_match": "same",
+  "tris": 174,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ],
+  "hulls": 0,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_Pillar",
+  "ok": true,
+  "min_cm": [
+   -25.0,
+   -25.0,
+   -0.0
+  ],
+  "max_cm": [
+   25.0,
+   25.0,
+   300.0
+  ],
+  "size_cm": [
+   50.0,
+   50.0,
+   300.0
+  ],
+  "bounds_match": "same",
+  "tris": 348,
+  "slots": [
+   "0:Trim"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_Platform_400",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -0.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   100.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   100.0
+  ],
+  "bounds_match": "same",
+  "tris": 236,
+  "slots": [
+   "0:Trim"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_Platform_400x200",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -0.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   200.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   200.0
+  ],
+  "bounds_match": "same",
+  "tris": 236,
+  "slots": [
+   "0:Trim"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_Railing_400",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -0.0,
+   0.0
+  ],
+  "max_cm": [
+   200.0,
+   6.0,
+   110.0
+  ],
+  "size_cm": [
+   400.0,
+   6.0,
+   110.0
+  ],
+  "bounds_match": "same",
+  "tris": 864,
+  "slots": [
+   "0:Trim"
+  ],
+  "hulls": 1,
+  "asymmetric_side": "+Y",
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_Ramp_400",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -100.0,
+   -0.0
+  ],
+  "max_cm": [
+   200.0,
+   100.0,
+   209.64
+  ],
+  "size_cm": [
+   400.0,
+   200.0,
+   209.64
+  ],
+  "bounds_match": "same",
+  "tris": 1604,
+  "slots": [
+   "0:Trim"
+  ],
+  "hulls": 3,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_Roof_400",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -200.0,
+   296.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   320.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   24.0
+  ],
+  "bounds_match": "same",
+  "tris": 316,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_Stairs_400",
+  "ok": true,
+  "min_cm": [
+   -200.0,
+   -108.0,
+   -0.0
+  ],
+  "max_cm": [
+   200.0,
+   108.0,
+   220.14
+  ],
+  "size_cm": [
+   400.0,
+   216.0,
+   220.14
+  ],
+  "bounds_match": "same",
+  "tris": 2720,
+  "slots": [
+   "0:Trim"
+  ],
+  "hulls": 3,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_Wall_400",
+  "ok": true,
+  "min_cm": [
+   -15.0,
+   -200.0,
+   -0.0
+  ],
+  "max_cm": [
+   15.0,
+   200.0,
+   300.0
+  ],
+  "size_cm": [
+   30.0,
+   400.0,
+   300.0
+  ],
+  "bounds_match": "same",
+  "tris": 800,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ },
+ {
+  "asset": "SM_Kit_Wall_400_Window",
+  "ok": true,
+  "min_cm": [
+   -16.0,
+   -200.0,
+   -0.0
+  ],
+  "max_cm": [
+   16.0,
+   200.0,
+   300.0
+  ],
+  "size_cm": [
+   32.0,
+   400.0,
+   300.0
+  ],
+  "bounds_match": "same",
+  "tris": 1384,
+  "slots": [
+   "0:Trim",
+   "1:Glow"
+  ],
+  "hulls": 1,
+  "asymmetric_side": null,
+  "notes": []
+ }
+]

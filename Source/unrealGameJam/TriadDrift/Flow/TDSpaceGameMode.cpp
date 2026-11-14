@@ -3,6 +3,7 @@
 #include "TriadDrift/Flow/TDSpaceGameMode.h"
 #include "TriadDrift/World/SpaceField/TDSpaceField.h"
 #include "TriadDrift/Flow/TDJourney.h"
+#include "TriadDrift/Profile/TDProfileSubsystem.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "UObject/ConstructorHelpers.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
@@ -152,7 +153,7 @@ void ATDSpaceGameMode::EnterLevel()
 	{
 		if (!bIntroPlaying && GI->GetProgress().Phase == ETDGamePhase::Intro)
 		{
-			GI->SetPhase(ETDGamePhase::Waves1to2);
+			UTDProfileSubsystem::LeaveIntro(GI); // Waves1to2, or Aftermath when the menu skipped the tutorial (T7)
 		}
 		GI->NotifyLevelEntered(Destination);
 		GI->OnSceneRestart.Remove(SceneRestartHandle);
@@ -185,7 +186,7 @@ void ATDSpaceGameMode::BeginFirstWaves()
 	{
 		if (GI->GetProgress().Phase == ETDGamePhase::Intro)
 		{
-			GI->SetPhase(ETDGamePhase::Waves1to2);
+			UTDProfileSubsystem::LeaveIntro(GI); // Waves1to2, or Aftermath when the menu skipped the tutorial (T7)
 		}
 		GI->SetRunTimerPaused(bRunTimerPausedBeforeIntro); // the run time starts now, exactly as without the intro
 	}

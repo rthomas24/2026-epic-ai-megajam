@@ -62,6 +62,14 @@ public:
 	/** Text for an id, or Fallback when the id is unknown (the intro reads its narration this way). */
 	static FText GetText(FName Id, const FText& Fallback);
 	static FText SpeakerTag(ETDSpeaker Speaker);
+	/**
+	 * The tag a recorded (future) voice reads with at this point of the run (issue #29): UNKNOWN until the Dominion's
+	 * evidence has identified that voice, then "MOSS (RECORDED)" etc. Moss is identified by his own reaction to the
+	 * corridor recording (G7_Moss_MyVoice), Wren and Kato by the security authorisations (G7_Kato_Authorisations) or the
+	 * final record (A4_Recording_Core). Present-day radio keeps the plain names. Only lines that have aired count.
+	 */
+	FText SpeakerTagNow(ETDSpeaker Speaker) const;
+	bool HasAired(FName Id) const;
 	/** A pilot's trait line for the name cards (Trait_Wren / _Kato / _Moss): "BOLD · INSTINCTIVE". */
 	static FText PilotTrait(ETDShipId Ship);
 	static FLinearColor SpeakerColor(ETDSpeaker Speaker);
@@ -69,6 +77,9 @@ public:
 	static float SecondsFor(const FTDTransmission& Entry);
 
 	bool HasPlayed(FName Id) const;
+	/** Lines whose words are already on screen (the victory caption holds A5_DistressSignal's): their sound plays and
+	 *  they take their time in the queue, but no subtitle is shown. */
+	void SetSubtitleSuppressed(FName Id, bool bSuppressed) { if (bSuppressed) { SoundOnly.Add(Id); } else { SoundOnly.Remove(Id); } }
 	int32 GetQueueLength() const { return Queue.Num(); }
 	/** Forget what played this run (TD.Story.Reset; a new run resets with the progress anyway). */
 	void ResetPlayed();
@@ -141,6 +152,8 @@ private:
 	double NextAllowed = 0.0;
 	/** Played this run when there is no TD game instance (tests, bare worlds). */
 	TSet<FName> LocalPlayed;
+	TSet<FName> SoundOnly;
+	TSet<FName> Aired; // lines that went on air in this world (a queued line is "played" but not yet heard)
 	/** Cinematics 04 and 06 (transmissions over the take-off): checked once per galaxy world, after the arrival settles. */
 	bool bDeparturesChecked = false;
 	double DeparturesAt = -1.0;

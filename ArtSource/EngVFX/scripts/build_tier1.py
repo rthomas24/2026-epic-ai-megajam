@@ -447,7 +447,8 @@ def spark_trails(count, speed, life=0.9, size=(15, 26), trail_life=0.45, bounds=
                     (PU, 'GravityForce', 'Gravity', (0.0, 0.0, 0.0)), (PU, 'Drag', 'Drag', 1.7)]}
     follow = {'name': 'Followers', 'base': 'followers', 'props': dict(fb), 'mat': 'M_TD_VFX_Glow',
               'set': [(EU, 'EmitterState', 'Life Cycle Mode', E('Self')), (EU, 'EmitterState', 'Loop Behavior', E('Once')), (EU, 'EmitterState', 'Loop Duration', float(life + 0.2)),
-                      (EU, 'SpawnParticlesFromOtherEmitter', 'Spawn Rate', 420.0),
+                      # round 8: trails of a scaled-up explosion fly further: more followers a second so they stay continuous
+                      (EU, 'SpawnParticlesFromOtherEmitter', 'Spawn Rate', X('420.0*clamp(%s, 1.0, 8.0)' % SCL)),
                       (PS, INIT, 'Lifetime', float(trail_life)), (PS, INIT, 'Color Mode', E('Direct Set')), (PS, INIT, 'Color', col(1.3)),
                       (PS, INIT, 'Sprite Size Mode', E('Uniform')), (PS, INIT, 'Uniform Sprite Size', X('%s*%s' % (size[0] * 0.8, SCL))),
                       (PU, 'ScaleSpriteSize', 'Scale Factor', X('float2(1.0, 1.0)*pow(1.0 - Particles.NormalizedAge, 1.5)'))]}
@@ -514,10 +515,15 @@ def explosion_cheap(final=False):
 # Dominion break-up (fields arrive with T4's commit): HullSectionExplosion is authored for a 50 m radius (gameplay scales
 # 0.5x-1.7x, about 20 in a chain); BreakupFinalBlast for a 500 m radius. At Scale 1 the blast sprite has a 9 m radius.
 S('NS_TD_Explosion_HullSection', U(FIRE, 5.5), explosion_cheap())
+# Round 8: the final blast's screen contribution is capped: closer to the camera than about 1.2x its authored size, every
+# sprite (and speed) shrinks with the distance, so the 1 km blast never fills the whole view with white.
+_SCL_STD = SCL
+SCL = '(User.Scale*Engine.Owner.Scale.x*min(1.0, Engine.Owner.LODDistance/(1200.0*User.Scale*Engine.Owner.Scale.x + 1.0)))'
 S('NS_TD_Explosion_FinalBlast', U(FIRE, 55.0), explosion_cheap(True))
+SCL = _SCL_STD
 
 fx = tdvfx.Builder(call_tool)
 for _name, _user, _emitters in SYSTEMS:
-    await fx.system(_name, _emitters, user=_user)
+    await fx.system(_name, _emitters, user=_user, chunk=globals().get('CHUNK1'))   # CHUNK1 = (start, end): see tdvfx.system
     await asyncio.sleep(0)
 fx.report()

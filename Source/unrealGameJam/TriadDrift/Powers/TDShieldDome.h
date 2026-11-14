@@ -92,6 +92,12 @@ private:
 	bool bCoveredByArt = false;
 	/** Bark_Dome_Saved said for this dome. */
 	bool bSaidSaved = false;
+	/** The placeholder ring lattice (when no art covers the dome); hidden while the camera is inside. */
+	TWeakObjectPtr<USceneComponent> Lattice;
+public:
+	/** Tests: the placeholder lattice is currently drawn. */
+	bool IsLatticeVisible() const { return Lattice.IsValid() && Lattice->IsVisible(); }
+private:
 public:
 	/** The spawning power has art for this moment: build no placeholder lattice. */
 	void SetCoveredByArt(bool bCovered) { bCoveredByArt = bCovered; }

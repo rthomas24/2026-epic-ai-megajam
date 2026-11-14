@@ -60,6 +60,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Menu")
 	bool NewGame();
 
+	/**
+	 * T7: a New Game that skips the tutorial battle (only after it was completed once on this profile): the opening
+	 * cinematic plays (or is skipped) as today, then the run starts at Aftermath. False, and nothing happens, otherwise.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Menu")
+	bool NewGameSkipTutorial();
+
+	/** T7: offer "Skip the tutorial" (the profile finished it before). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Menu")
+	bool CanSkipTutorial() const;
+
 	/** Resume the saved run (false when there is none, or it is a won run). */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Menu")
 	bool ContinueGame();

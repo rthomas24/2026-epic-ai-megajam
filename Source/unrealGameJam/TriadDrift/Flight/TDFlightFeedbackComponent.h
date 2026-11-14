@@ -169,6 +169,10 @@ struct UNREALGAMEJAM_API FTDFlightFeedbackTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Audition") float AuditionBlurBoost = 0.04f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Audition") float AuditionBlurHyper = 0.12f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Audition") float AuditionBlurMax = 0.35f;
+	/** ENG-38 burn feel at full intensity (entry / exit): sustained shake (deg), FOV push (deg), motion blur amount. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Descent") float DescentShake = 0.8f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Descent") float DescentFOV = 6.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Descent") float DescentBlur = 0.35f;
 	/** Caps on the composed camera motion (every kick, shake and tilt together), any profile: deg. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Caps") float ComposedRollCap = 8.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Caps") float ComposedPitchCap = 3.f;
@@ -236,6 +240,8 @@ public:
 	/** What a new game starts with (Nicholas's pick, issue #23). */
 	static constexpr ECamProfile PlayerDefaultProfile = ECamProfile::Audition;
 	static ECamProfile CamProfile;
+	/** ENG-38: the burn's 0..1 (UTDDescentSubsystem sets it each frame from the heat curve). */
+	static float DescentIntensity;
 	static bool IsFixedCameraPath() { return CamProfile != ECamProfile::Default; }
 	static const TCHAR* CamProfileName() { return CamProfile == ECamProfile::Audition ? TEXT("Audition") : CamProfile == ECamProfile::Tuned ? TEXT("Tuned") : TEXT("Default"); }
 

@@ -153,6 +153,8 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 	if (TravelFX)
 	{
 		FTDFXCue Cue = TravelFX->AtmosphericEntry;
+		Cue.VFX.Reset(); // the burn is UTDDescentSubsystem's (every squad ship, both sides of the load, User.Intensity)
+		if (Descent) { Descent->SetBurnIsExit(false); }
 		if (bCoveredEntry)
 		{
 			USoundBase* RoarSound = !TravelFX->DescentRoar.Sound.IsNull() ? TravelFX->DescentRoar.Sound.LoadSynchronous() : Cue.Sound.LoadSynchronous();
@@ -494,6 +496,15 @@ void ATDAtmosphereFlightZone::KeepAboveFarGround(ATDShip* Ship) const
 	}
 }
 
+void ATDAtmosphereFlightZone::PlayBreakaway(ATDShip* Ship)
+{
+	bBreakawayPlayed = true; // the breakaway: one shot at the ship as it leaves the atmosphere
+	if (const UTDTravelFX* FX = Ship ? UTDTravelSubsystem::GetDefaultTravelFX(this) : nullptr)
+	{
+		UTDStatics::PlayCue(this, FX->ExitBreakaway, Ship->GetActorLocation(), Ship->GetActorRotation());
+	}
+}
+
 void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
@@ -517,6 +528,15 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 		if (Travel && !Travel->HasRequestedLevelTravel() && Travel->GetWorld() && Cast<UTDGameInstance>(Travel->GetWorld()->GetGameInstance()))
 		{
 			bExitTriggered = false;
+			// The climb out ends with the travel; a travel that fell through gives the ship back for another climb.
+			if (ATDShip* S = ExitClimbShip.Get())
+			{
+				if (UTDShipMovementComponent* Move = S->GetShipMovement()) { Move->ClearSpeedOverrideFor(TEXT("TDExitClimb")); }
+				if (UTDHealthComponent* Health = S->GetHealth()) { Health->SetInvulnerable(false); }
+			}
+			if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->ClearHeat(); Descent->AbortCover(TEXT("climb out fell through")); }
+			ExitClimbTime = -1.f;
+			ExitClimbShip.Reset();
 		}
 	}
 
@@ -531,6 +551,17 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 		ApplyToShip(Ship, bExitOpen);
 		KeepAboveFarGround(Ship);
 
+		if (ExitClimbTime >= 0.f && ExitClimbShip.Get() == Ship)
+		{
+			ExitClimbTime += DeltaSeconds;
+			const float T = FMath::Clamp(ExitClimbTime / ExitClimbSeconds, 0.f, 1.f);
+			if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this))
+			{
+				Descent->SetEntryHeat(T * T * (3.f - 2.f * T));
+				Descent->SetEntryCover(FMath::Clamp((ExitClimbTime - (ExitClimbSeconds - 0.6f)) / 0.6f, 0.f, 1.f));
+			}
+			if (T >= 1.f && !bBreakawayPlayed) { PlayBreakaway(Ship); }
+		}
 		if (!Ship->IsPlayerFlown() || bExitTriggered)
 		{
 			continue;
@@ -547,17 +578,38 @@ void ATDAtmosphereFlightZone::Tick(float DeltaSeconds)
 				ExitZ = FMath::Min(ExitZ, Terrain->GetHeightAt(Ship->GetActorLocation()) + ExitAltitudeAboveGround + ExitHeightAboveCeiling);
 			}
 		}
+		// ENG-38 climb out (the mirror of the entry). Reaching the exit height triggers the exit at once (the return point
+		// and the travel are recorded now, Lead's option b); the level change waits ExitClimbSeconds of forced climb with
+		// the exit burn and hull heat rising and the cover ramping in at the end, then the breakaway.
 		if (bExitOpen && !bLanding && Z >= ExitZ)
 		{
 			// Latched only on a successful request (review minor 6); a refused request retries next frame.
 			UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this);
-			if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this)) { Descent->RecordSquad(GetWorld()); } // and back up
+			UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(this);
+			if (Descent) { Descent->RecordSquad(GetWorld()); Descent->SetClimbHold(ExitClimbSeconds); } // and back up
 			const bool bRequested = Travel && Travel->RequestLevelTravel(ETDDestination::Galaxy, FName(*FString::Printf(TEXT("%s_Orbit"), *PlanetId.ToString())));
 			// No game flow (tests, sandbox): still report the exit, as the entry does.
 			if (bRequested || !Travel || !UTDStatics::GetGameFlow(this))
 			{
 				bExitTriggered = true;
 				OnExitTriggered.Broadcast(Ship);
+				bBreakawayPlayed = false;
+				if (ExitClimbSeconds > 0.f)
+				{
+					ExitClimbTime = 0.f;
+					ExitClimbShip = Ship;
+					if (UTDShipMovementComponent* Move = Ship->GetShipMovement()) { Move->SetSpeedOverrideFor(TEXT("TDExitClimb"), ExitClimbSpeed, 0.35f); }
+					if (UTDHealthComponent* Health = Ship->GetHealth()) { Health->SetInvulnerable(true); }
+					if (Descent) { Descent->SetBurnIsExit(true); Descent->BeginTiming(TEXT("climb out")); }
+				}
+				else
+				{
+					PlayBreakaway(Ship);
+				}
+			}
+			else if (Descent)
+			{
+				Descent->SetClimbHold(0.f);
 			}
 		}
 		else if (!bExitOpen && Z >= Box.Max.Z - 500.f)

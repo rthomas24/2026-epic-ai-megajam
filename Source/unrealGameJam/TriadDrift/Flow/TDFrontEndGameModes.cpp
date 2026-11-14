@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "TimerManager.h"
+#include "TriadDrift/Profile/TDProfileSubsystem.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Director/Menu/TDMenuBackdrop.h"
 #include "TriadDrift/Director/Menu/TDCredits.h"
@@ -228,6 +229,24 @@ bool ATDMenuGameMode::NewGame()
 	return GI->TravelTo(ETDDestination::Galaxy, NAME_None);
 }
 
+bool ATDMenuGameMode::NewGameSkipTutorial()
+{
+	UTDGameInstance* GI = UTDGameInstance::Get(this);
+	UTDProfileSubsystem* Profile = UTDProfileSubsystem::Get(this);
+	if (!GI || !Profile || !Profile->StartNewRunSkippingTutorial())
+	{
+		return false;
+	}
+	FadeOutMusic();
+	return GI->TravelTo(ETDDestination::Galaxy, NAME_None);
+}
+
+bool ATDMenuGameMode::CanSkipTutorial() const
+{
+	const UTDProfileSubsystem* Profile = UTDProfileSubsystem::Get(this);
+	return Profile && Profile->CanSkipTutorial();
+}
+
 bool ATDMenuGameMode::ContinueGame()
 {
 	UTDGameInstance* GI = UTDGameInstance::Get(this);
@@ -271,6 +290,10 @@ void ATDMenuGameMode::ReturnToMenu()
 	}
 	bReturnPending = false;
 	bShowingVictory = false;
+	for (TActorIterator<ATDMenuBackdrop> It(GetWorld()); It; ++It)
+	{
+		It->FadeStingerCaption(); // the menu comes up clean
+	}
 	// Re-resolve, as at start-up: Nick's main-menu widget comes back after the victory screen (N-033), or the
 	// code-built menu when none is assigned.
 	ShowMenuUI();
@@ -368,6 +391,10 @@ void ATDMenuGameMode::ShowPlaceholder()
 			SNew(STextBlock).Text(NSLOCTEXT("TDMenu", "Title", "TRIAD DRIFT")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 64)).ColorAndOpacity(FLinearColor(0.4f, 0.9f, 1.f))
 		];
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("NEW GAME"), [](ATDMenuGameMode* M) { M->NewGame(); }, true)];
+		if (CanSkipTutorial()) // T7: only after the tutorial was completed once on this profile
+		{
+			Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("SKIP THE TUTORIAL"), [](ATDMenuGameMode* M) { M->NewGameSkipTutorial(); }, true)];
+		}
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("CONTINUE"), [](ATDMenuGameMode* M) { M->ContinueGame(); }, CanContinue())];
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("SETTINGS"), [](ATDMenuGameMode* M) { UTDSettingsSubsystem::OpenSettingsPage(M); }, true)];
 		Box->AddSlot().AutoHeight().HAlign(HAlign_Center)[Button(TEXT("QUIT"), [](ATDMenuGameMode* M) { M->QuitGame(); }, true)];

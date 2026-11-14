@@ -9,6 +9,9 @@
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "HAL/PlatformTime.h"
+#include "TriadDrift/Combat/Pickups/TDPickup.h"
+#include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
+#include "Components/InstancedStaticMeshComponent.h"
 
 #ifndef TD_TEST_FLAGS
 #define TD_TEST_FLAGS (EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
@@ -64,7 +67,17 @@ bool FTDSpaceFieldFills::RunTest(const FString& Parameters)
 			bOk &= FVector::Dist(P.Location, Zone) >= 150000.f + Half * 0.f;
 			bOk &= !F.Layout->IsInKeepOut(Xf.InverseTransformPosition(P.Location), 20000.f);
 			for (const FTDPlanetSpec& Pl : L.Planets) { bOk &= FVector::Dist(P.Location, Xf.TransformPosition(Pl.Location)) > Pl.AtmosphereRadius * 1.3f; }
-			bOk &= FVector::Dist(P.Location, Xf.TransformPosition(L.Dominion.GetLocation())) > 120000.f;
+			bOk &= FVector::Dist(P.Location, Xf.TransformPosition(L.Dominion.GetLocation())) > 350000.f; // T4: Dominion, field, generators, docking cone, escape
+				for (const FTDPlanetSpec& Pl : L.Planets)
+				{
+					// The Verdance convoys (Dominion -> Verdance, offsets up to 900 m).
+					if (Pl.Destination == ETDDestination::Verdance)
+					{
+						const FVector A = Xf.TransformPosition(L.Dominion.GetLocation()), B = Xf.TransformPosition(Pl.Location);
+						bOk &= FVector::Dist(P.Location, FMath::ClosestPointOnSegment(P.Location, A, B)) > 120000.f;
+					}
+				}
+				for (const TPair<FName, FTransform>& RP : L.ReturnPoints) { bOk &= FVector::Dist(P.Location, Xf.TransformPosition(RP.Value.GetLocation())) > 50000.f; }
 			// Lane cores: the line from the zone to each planet, the Dominion and each gate.
 			TArray<FVector> Ends;
 			for (const FTDPlanetSpec& Pl : L.Planets) { Ends.Add(Xf.TransformPosition(Pl.Location)); }
@@ -89,6 +102,8 @@ bool FTDSpaceFieldFills::RunTest(const FString& Parameters)
 		const float R = FMath::Sqrt(1.f - Y * Y);
 		const float Phi = i * PI * (3.f - FMath::Sqrt(5.f));
 		const FVector S = Zone + FVector(FMath::Cos(Phi) * R, FMath::Sin(Phi) * R, Y) * 400000.f;
+		// The Dominion's 3.5 km sphere and the planets' approaches are empty by design.
+		if (FVector::Dist(S, Xf.TransformPosition(L.Dominion.GetLocation())) < 350000.f + 100000.f) { continue; }
 		int32 Near = 0;
 		for (const FTDSpaceFieldPiece& P : Pieces) { Near += FVector::DistSquared(P.Location, S) < FMath::Square(150000.f) ? 1 : 0; }
 		if (Near < 20) { ++Thin; ThinList += FString::Printf(TEXT("%d(%d) "), i, Near); }
@@ -148,6 +163,89 @@ bool FTDSpaceFieldAvoidanceCost::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the field added obstacles"), Field && S->GetObstacleCount() > Before);
 	// 30 AI ships calling it every frame must stay well under a millisecond.
 	TestTrue(*FString::Printf(TEXT("30 calls a frame under 0.5 ms (%.3f ms)"), UsAfter * 30.0 / 1000.0), UsAfter * 30.0 / 1000.0 < 0.5);
+	// Wave 5: about 40 enemies plus 2 wingmen, one call each per think (T4's limit: 0.2 ms a frame).
+	AddInfo(FString::Printf(TEXT("42 calls a frame: %.3f ms (before the field %.3f ms)"), UsAfter * 42.0 / 1000.0, UsBefore * 42.0 / 1000.0));
+	TestTrue(*FString::Printf(TEXT("42 calls a frame under 0.2 ms (%.3f ms)"), UsAfter * 42.0 / 1000.0), UsAfter * 42.0 / 1000.0 < 0.2);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSpaceFieldTumblers, "TriadDrift.World.SpaceField.BigRocksTumbleInPlace", TD_TEST_FLAGS)
+bool FTDSpaceFieldTumblers::RunTest(const FString& Parameters)
+{
+	TDSpaceFieldTest::FField F;
+	if (!TestNotNull(TEXT("field"), F.Field)) { return false; }
+	const int32 N = F.Field->GetTumblerCount();
+	AddInfo(FString::Printf(TEXT("%d tumblers"), N));
+	TestTrue(TEXT("some big rocks tumble"), N >= 20);
+	TestTrue(TEXT("at most MaxTumblers"), N <= F.Field->MaxTumblers);
+	int32 Instances = 0;
+	for (UInstancedStaticMeshComponent* C : F.Field->GetTumbleComponents())
+	{
+		Instances += C->GetInstanceCount();
+		TestFalse(TEXT("tumblers are visual only (their collision sphere does not move)"), C->IsCollisionEnabled());
+	}
+	TestEqual(TEXT("one instance per tumbler"), Instances, N);
+	const TArray<UInstancedStaticMeshComponent*> Comps = F.Field->GetTumbleComponents();
+	if (Comps.Num() == 0) { return true; }
+	FTransform A, B;
+	Comps[0]->GetInstanceTransform(0, A, true);
+	F.W.Advance(3.f);
+	Comps[0]->GetInstanceTransform(0, B, true);
+	TestTrue(TEXT("it stays in place"), A.GetLocation().Equals(B.GetLocation(), 1.f));
+	TestTrue(*FString::Printf(TEXT("it turned (%.2f deg)"), FMath::RadiansToDegrees(A.GetRotation().AngularDistance(B.GetRotation()))),
+		A.GetRotation().AngularDistance(B.GetRotation()) > FMath::DegreesToRadians(2.f));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSpaceFieldCaches, "TriadDrift.World.SpaceField.CachesSpawnNearAndAreTakenOnce", TD_TEST_FLAGS)
+bool FTDSpaceFieldCaches::RunTest(const FString& Parameters)
+{
+	TDSpaceFieldTest::FField F;
+	if (!TestNotNull(TEXT("field"), F.Field)) { return false; }
+	if (!UTDPickupSubsystem::IsEnabled()) { AddInfo(TEXT("td.Pickups 0: skipped")); return true; }
+	const TArray<FVector> Spots = ATDSpaceField::GetCacheSpots(F.W.GetWorld());
+	if (!TestTrue(TEXT("cache spots"), Spots.Num() >= 8)) { return false; }
+	const FVector Spot = Spots[0];
+	const FVector Near = Spot + FVector(60000.f, 0.f, 0.f);	// 600 m off
+	int32 Expect = 0;
+	for (const FVector& S : Spots) { Expect += FVector::Dist(S, Near) < F.Field->CacheSpawnDistance ? 1 : 0; }
+	UTDPickupSubsystem* Pk = UTDPickupSubsystem::Get(F.W.GetWorld());
+	auto FindAt = [Pk](const FVector& At) -> ATDPickup*
+	{
+		for (ATDPickup* P : Pk->GetPickups()) { if (IsValid(P) && FVector::Dist(P->GetActorLocation(), At) < 10.f) { return P; } }
+		return nullptr;
+	};
+	// Far away: nothing.
+	F.Field->UpdateCachesAt(Spot + FVector(0.f, 0.f, 500000.f));
+	TestEqual(TEXT("nothing spawns from far away"), F.Field->GetCachesAlive(), 0);
+	// Coming close (600 m): the caches of that debris field appear, once each.
+	F.Field->UpdateCachesAt(Near);
+	TestEqual(TEXT("the near caches appear"), F.Field->GetCachesAlive(), Expect);
+	F.Field->UpdateCachesAt(Near);
+	TestEqual(TEXT("not twice"), F.Field->GetCachesAlive(), Expect);
+	// One times out (or a CUT clears it) without moving: it comes back.
+	if (ATDPickup* P = FindAt(Spot)) { P->Destroy(); }
+	F.Field->UpdateCachesAt(Near);
+	TestEqual(TEXT("not taken"), F.Field->GetCachesCollected(), 0);
+	F.Field->UpdateCachesAt(Near);
+	TestEqual(TEXT("it comes back"), F.Field->GetCachesAlive(), Expect);
+	// Taken: the magnet pulls it off its spot, then it is collected.
+	ATDPickup* P = FindAt(Spot);
+	if (!TestNotNull(TEXT("cache at its spot"), P)) { return false; }
+	P->SetActorLocation(Spot + FVector(4000.f, 0.f, 0.f));
+	F.Field->UpdateCachesAt(Near);
+	P->Destroy();
+	F.Field->UpdateCachesAt(Near);
+	TestEqual(TEXT("taken once (and only that one)"), F.Field->GetCachesCollected(), 1);
+	F.Field->UpdateCachesAt(Near);
+	TestEqual(TEXT("never again this run"), F.Field->GetCachesAlive(), Expect - 1);
+	// Field off: no cache in space.
+	F.Field->UpdateCachesAt(Spots[1]);
+	F.Field->SetFieldEnabled(false);
+	TestEqual(TEXT("off: caches removed"), F.Field->GetCachesAlive(), 0);
+	F.Field->UpdateCachesAt(Spots[1]);
+	TestEqual(TEXT("off: none spawn"), F.Field->GetCachesAlive(), 0);
+	F.Field->SetFieldEnabled(true);
 	return true;
 }
 

@@ -1,0 +1,278 @@
+{
+ "site": "Outpost_Site",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Outpost/BP_Outpost_Site_Verdance",
+ "about": "Survey outpost rebuilt from the kit: one 800 x 400 room, 300 to the roof, floor flush with the ground, doorway (160 x 260) on +X.",
+ "pieces": [
+  {
+   "name": "Floor_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Floor_400",
+   "location_cm": [
+    -200,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Roof_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Roof_400",
+   "location_cm": [
+    -200,
+    0,
+    0
+   ],
+   "yaw_deg": 0,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  },
+  {
+   "name": "Floor_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Floor_400",
+   "location_cm": [
+    200,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "Roof_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Roof_400",
+   "location_cm": [
+    200,
+    0,
+    0
+   ],
+   "yaw_deg": 0,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  },
+  {
+   "name": "Wall_S_A",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400",
+   "location_cm": [
+    -200,
+    -200,
+    0
+   ],
+   "yaw_deg": 90,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  },
+  {
+   "name": "Wall_S_B",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400_Window",
+   "location_cm": [
+    200,
+    -200,
+    0
+   ],
+   "yaw_deg": 90,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  },
+  {
+   "name": "Wall_N_A",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400_Window",
+   "location_cm": [
+    -200,
+    200,
+    0
+   ],
+   "yaw_deg": 270,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  },
+  {
+   "name": "Wall_N_B",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400",
+   "location_cm": [
+    200,
+    200,
+    0
+   ],
+   "yaw_deg": 270,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  },
+  {
+   "name": "Wall_Back",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Wall_400",
+   "location_cm": [
+    -400,
+    0,
+    0
+   ],
+   "yaw_deg": 0,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  },
+  {
+   "name": "Door",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_DoorFrame_400",
+   "location_cm": [
+    400,
+    0,
+    0
+   ],
+   "yaw_deg": 180,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  },
+  {
+   "name": "Corner_400_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Corner",
+   "location_cm": [
+    400,
+    200,
+    0
+   ],
+   "yaw_deg": 0,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  },
+  {
+   "name": "Corner_400_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Corner",
+   "location_cm": [
+    400,
+    -200,
+    0
+   ],
+   "yaw_deg": 270,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  },
+  {
+   "name": "Corner_-400_-200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Corner",
+   "location_cm": [
+    -400,
+    -200,
+    0
+   ],
+   "yaw_deg": 180,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  },
+  {
+   "name": "Corner_-400_200",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Corner",
+   "location_cm": [
+    -400,
+    200,
+    0
+   ],
+   "yaw_deg": 90,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  },
+  {
+   "name": "Console",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_Console",
+   "location_cm": [
+    -360,
+    0,
+    0
+   ],
+   "yaw_deg": 0,
+   "slots": {
+    "Screen": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Screen"
+   }
+  },
+  {
+   "name": "Lamp_Door",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/SM_Kit_LightStrip_200",
+   "location_cm": [
+    425,
+    0,
+    296
+   ],
+   "yaw_deg": 90,
+   "slots": {
+    "Glow": "/Game/TriadDrift/Gameplay/Props/Kit/MI_Kit_Glow_Verdance"
+   }
+  }
+ ],
+ "console_interact": {
+  "stand_at_site_cm": [
+   -250.0,
+   0.0,
+   0.0
+  ],
+  "pilot_faces_yaw_deg": 180.0,
+  "console_site_cm": [
+   -360.0,
+   0.0,
+   0.0
+  ],
+  "clear_in_front_cm": 316.0,
+  "moved_from": "(76, 81.5, 153) yaw 180 on the Rodin cabin's bay floor"
+ },
+ "walk_path_site_cm": [
+  [
+   700,
+   0,
+   0,
+   "ground in front of the door"
+  ],
+  [
+   400,
+   0,
+   0,
+   "doorway, 160 x 260 clear"
+  ],
+  [
+   0,
+   0,
+   0,
+   "room centre"
+  ],
+  [
+   -250,
+   0,
+   0,
+   "console point"
+  ]
+ ],
+ "walkability_cm": {
+  "floor_top_z": 0,
+  "room": {
+   "x": [
+    -390,
+    390
+   ],
+   "y": [
+    -190,
+    190
+   ]
+  },
+  "door": {
+   "y": [
+    -80,
+    80
+   ],
+   "z": [
+    0,
+    260
+   ]
+  },
+  "roof_underside_z": 296
+ },
+ "placement_rules": [
+  "Put the pivot on flat ground: the floor top IS the ground (the 20 cm slab is buried).",
+  "Keep 3 m clear in front of the door (X 400..700)."
+ ]
+}
