@@ -3,6 +3,7 @@
 #include "TriadDrift/Input/TDMusicDirectorSubsystem.h"
 #include "TriadDrift/Input/TDMusicSettings.h"
 #include "TriadDrift/Input/TDTutorialMusicSubsystem.h"
+#include "TriadDrift/Input/TDMusicFallbackSubsystem.h"
 #include "TriadDrift/Core/TDAudioState.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -318,7 +319,10 @@ USoundBase* UTDMusicDirectorSubsystem::ResolveAssaultMusic() const
 {
 	if (bAssaultOverride) { return AssaultOverride; }
 	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
-	return Style ? AsyncSound(FSoftObjectPtr(Style->AssaultMusic.ToSoftObjectPath())) : nullptr;
+	if (Style && !Style->AssaultMusic.IsNull()) { return AsyncSound(FSoftObjectPtr(Style->AssaultMusic.ToSoftObjectPath())); }
+	// R-047 fallback: Nicholas's assigned assault score (DominionAssault02 Push The Attack) while the style slot is empty.
+	static const FSoftObjectPath Fallback(TEXT("/Game/TriadDrift/Audio/DominionAssault02/MUS_DominionAssault_PushTheAttack_Full_01.MUS_DominionAssault_PushTheAttack_Full_01"));
+	return UTDMusicFallbackSubsystem::IsEnabled() ? AsyncSound(FSoftObjectPtr(Fallback)) : nullptr;
 }
 
 void UTDMusicDirectorSubsystem::TickAssault(UWorld* World, bool bWanted)
@@ -355,12 +359,21 @@ void UTDMusicDirectorSubsystem::ReleaseExclusiveScore(FName Owner, float FadeSec
 	}
 }
 
+bool UTDMusicDirectorSubsystem::IsFallbackScorePlaying() const
+{
+	const UTDMusicFallbackSubsystem* Fallback = UTDMusicFallbackSubsystem::Get(GetWorld());
+	return Fallback && Fallback->IsFallbackScorePlaying();
+}
+
 USoundBase* UTDMusicDirectorSubsystem::ResolveIdleMusic(float& OutDelay) const
 {
 	if (bIdleOverride) { OutDelay = IdleDelayOverride; return IdleOverride; }
 	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
 	OutDelay = Style ? Style->IdleMusicDelaySeconds : 6.f;
-	return Style ? AsyncSound(FSoftObjectPtr(Style->IdleSpaceMusic.ToSoftObjectPath())) : nullptr;
+	if (Style && !Style->IdleSpaceMusic.IsNull()) { return AsyncSound(FSoftObjectPtr(Style->IdleSpaceMusic.ToSoftObjectPath())); }
+	// R-047 fallback: Nicholas's assigned quiet-flight bed (IdleAmbient01) while the style slot is empty.
+	static const FSoftObjectPath Fallback(TEXT("/Game/TriadDrift/Audio/IdleAmbient01/MUS_SpaceIdle_Ambient1_Full_01.MUS_SpaceIdle_Ambient1_Full_01"));
+	return UTDMusicFallbackSubsystem::IsEnabled() ? AsyncSound(FSoftObjectPtr(Fallback)) : nullptr;
 }
 
 void UTDMusicDirectorSubsystem::TickIdle(UWorld* World, bool bQuiet, float Dt)
@@ -426,14 +439,15 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 	{
 		bAssaultPhase = GI->GetProgressRef().Phase == ETDGamePhase::DominionAssault;
 	}
-	TickAssault(World, bAssaultPhase && !bTravelling && !bVictory && !bMenuMap && ResolveAssaultMusic() != nullptr);
-	const bool bAssaultHolds = IsAssaultMusicPlaying();
 	// N-074: claims from other score owners; a released claim holds through its fade, then goes.
 	for (auto It = ExclusiveClaims.CreateIterator(); It; ++It)
 	{
 		if (It.Value() >= 0.f) { It.Value() -= Dt; if (It.Value() <= 0.f) { It.RemoveCurrent(); } }
 	}
-	const bool bExclusiveHolds = IsExclusiveScoreHeld();
+	// R-047: a claim stands the assault score down too (Nick's player takes over); the fallback's own track holds the beds.
+	const bool bExclusiveHolds = IsExclusiveScoreHeld() || IsFallbackScorePlaying();
+	TickAssault(World, bAssaultPhase && !bTravelling && !bVictory && !bMenuMap && !bExclusiveHolds && ResolveAssaultMusic() != nullptr);
+	const bool bAssaultHolds = IsAssaultMusicPlaying();
 	const bool bBlocked = bTravelling || bVictory || bMenuMap || bTutorialHolds || bAssaultHolds || bExclusiveHolds || (MusicState == ETDCombatMusicState::Silent && !ResolveMusic());
 	bool bCombat = !bBlocked && IsCombatNow();
 	if (bWaitForTake && !bCombat)

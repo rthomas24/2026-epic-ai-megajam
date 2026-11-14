@@ -119,6 +119,11 @@ public:
 	void ReleaseExclusiveScore(FName Owner, float FadeSeconds = 0.f);
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music")
 	bool IsExclusiveScoreHeld() const { return ExclusiveClaims.Num() > 0; }
+	/** R-047: the engineering fallback (UTDMusicFallbackSubsystem) is sounding a placement; the beds hold meanwhile. */
+	bool IsFallbackScorePlaying() const;
+	/** The menu music steps aside: another score claims the music, or a fallback placement (the credits) plays. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music")
+	bool ShouldMenuMusicYield() const { return IsExclusiveScoreHeld() || IsFallbackScorePlaying(); }
 
 	/** True while the quiet-flight score plays (UTDUIStyle::IdleSpaceMusic). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music")
