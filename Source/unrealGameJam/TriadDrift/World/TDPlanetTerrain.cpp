@@ -1,6 +1,7 @@
 // Triad Drift - World (Teammate 4). ENG-34 planet terrain (see TDPlanetTerrain.h).
 
 #include "TriadDrift/World/TDPlanetTerrain.h"
+#include "TriadDrift/World/TDCloudDeck.h"
 #include "ProceduralMeshComponent.h"
 #include "Camera/PlayerCameraManager.h"
 #include "GameFramework/PlayerController.h"
@@ -476,34 +477,57 @@ void ATDPlanetTerrain::Tick(float DeltaSeconds)
 	}
 }
 
-float ATDPlanetTerrain::GetZoneMaxGroundZ() const
+float ATDPlanetTerrain::GetCorridorMaxGroundZ(const FVector& A, const FVector& B) const
 {
 	if (!Field) { return GetActorLocation().Z; }
-	if (CachedZoneMaxZ == TNumericLimits<float>::Lowest())
+	// A 100 m grid over the corridor's bounding box, kept to points within the radius of the segment.
+	const FVector LA = GetActorTransform().InverseTransformPosition(A);
+	const FVector LB = GetActorTransform().InverseTransformPosition(B);
+	const FVector2D A2(LA), B2(LB);
+	const float R = DeckCorridorRadius, Step = 10000.f;
+	const float X0 = FMath::Min(A2.X, B2.X) - R, X1 = FMath::Max(A2.X, B2.X) + R;
+	const float Y0 = FMath::Min(A2.Y, B2.Y) - R, Y1 = FMath::Max(A2.Y, B2.Y) + R;
+	float Max = -FLT_MAX;
+	for (float Y = Y0; Y <= Y1; Y += Step)
 	{
-		// A 100 m grid over the flight zone (10,000 field samples, once): the deck clears every summit in it.
-		float Max = -FLT_MAX;
-		const float Step = 10000.f;
-		for (float Y = -DeckSampleHalfSize; Y <= DeckSampleHalfSize; Y += Step)
+		for (float X = X0; X <= X1; X += Step)
 		{
-			for (float X = -DeckSampleHalfSize; X <= DeckSampleHalfSize; X += Step)
-			{
-				Max = FMath::Max(Max, Field->Height(X, Y));
-			}
+			const FVector P(X, Y, 0.f);
+			if (FMath::PointDistToSegment(P, FVector(A2, 0.f), FVector(B2, 0.f)) > R) { continue; }
+			Max = FMath::Max(Max, Field->Height(X, Y));
 		}
-		CachedZoneMaxZ = GetActorLocation().Z + Max;
 	}
-	return CachedZoneMaxZ;
+	return GetActorLocation().Z + (Max == -FLT_MAX ? 0.f : Max);
+}
+
+float ATDPlanetTerrain::GetCloudDeckZFor(const FVector& ArrivalWorld, const FVector& GlideEndWorld) const
+{
+	const float Pad = GetActorLocation().Z;
+	return FMath::Clamp(GetCorridorMaxGroundZ(ArrivalWorld, GlideEndWorld) + DeckClearance, Pad + DeckMinAbovePad, Pad + DeckMaxAbovePad);
 }
 
 float ATDPlanetTerrain::GetCloudDeckZ() const
 {
-	return GetZoneMaxGroundZ() + DeckClearance;
+	if (CachedZoneMaxZ == TNumericLimits<float>::Lowest() && Field)
+	{
+		CachedZoneMaxZ = GetCloudDeckZFor(GetActorLocation(), GetActorLocation());	// the pad's corridor
+	}
+	return Field ? CachedZoneMaxZ : GetActorLocation().Z + DeckMinAbovePad;
 }
 
 void ATDPlanetTerrain::PrepareArrival(const FVector& GlideEndWorld)
 {
 	if (Scatter) { Scatter->SetFocusOverride(GlideEndWorld); }
+}
+
+void ATDPlanetTerrain::PrepareArrival(const FVector& ArrivalWorld, const FVector& GlideEndWorld)
+{
+	PrepareArrival(GlideEndWorld);
+	const float Z = GetCloudDeckZFor(ArrivalWorld, GlideEndWorld);
+	for (TActorIterator<ATDCloudDeck> It(GetWorld()); It; ++It)
+	{
+		It->SetActorLocation(FVector(It->GetActorLocation().X, It->GetActorLocation().Y, Z));
+	}
 }
 
 bool ATDPlanetTerrain::IsArrivalReady(const FVector& GlideEndWorld) const

@@ -262,20 +262,19 @@ bool FTDArrivalReady::RunTest(const FString&)
 		const FVector Origin(1900000.f, 1700000.f, 2500.f);
 		ATDPlanetTerrain* T = ATDPlanetTerrain::SpawnForPlanet(W.GetWorld(), Planet, FTransform(Origin), nullptr);
 		if (!TestNotNull(*(Name + TEXT(": terrain")), T)) { continue; }
-		const float MaxZ = T->GetZoneMaxGroundZ();
-		const float Deck = T->GetCloudDeckZ();
-		AddInfo(FString::Printf(TEXT("%s: highest ground %.0f m, deck %.0f m (above the course origin)"), *Name, (MaxZ - Origin.Z) / 100.f, (Deck - Origin.Z) / 100.f));
-		TestTrue(*(Name + TEXT(": the deck clears the highest ground by DeckClearance")), FMath::IsNearlyEqual(Deck - MaxZ, T->DeckClearance, 1.f));
-		for (const FVector& P : { Origin, Origin + FVector(300000.f, -200000.f, 0.f), Origin + FVector(-450000.f, 450000.f, 0.f) })
-		{
-			TestTrue(*FString::Printf(TEXT("%s: ground under the deck at %s"), *Name, *P.ToCompactString()), T->GetGroundZAt(P) <= Deck - T->DeckClearance + 1.f);
-		}
-		// The glide end 900 m over the ground 2 km from the pad; the camera stays far away (as under the cover).
-		const FVector EndXY = Origin + FVector(200000.f, 0.f, 0.f);
+		// The glide: from over the pad to 1 km out, ending 900 m over the ground.
+		const FVector EndXY = Origin + FVector(100000.f, 0.f, 0.f);
+		const float Corridor = T->GetCorridorMaxGroundZ(Origin, EndXY);
+		const float Deck = T->GetCloudDeckZFor(Origin, EndXY);
+		AddInfo(FString::Printf(TEXT("%s: highest ground in the glide corridor %.0f m, deck %.0f m (above the pad)"), *Name, (Corridor - Origin.Z) / 100.f, (Deck - Origin.Z) / 100.f));
+		TestTrue(*(Name + TEXT(": the deck is inside 1.1-1.6 km over the pad")), Deck - Origin.Z >= T->DeckMinAbovePad - 1.f && Deck - Origin.Z <= T->DeckMaxAbovePad + 1.f);
+		TestTrue(*(Name + TEXT(": the deck clears the corridor's ground by the clearance (or sits at the clamp)")),
+			Deck >= FMath::Min(Corridor + T->DeckClearance, Origin.Z + T->DeckMaxAbovePad) - 1.f);
 		const FVector GlideEnd(EndXY.X, EndXY.Y, T->GetGroundZAt(EndXY) + 90000.f);
-		T->PrepareArrival(GlideEnd);
+		T->PrepareArrival(FVector(Origin.X, Origin.Y, Deck + 30000.f), GlideEnd);
 		bool bReady = false;
-		for (int32 i = 0; i < 60 * 20 && !bReady; ++i)
+		const double Until = FPlatformTime::Seconds() + 30.0;	// real time: generation runs on the thread pool
+		while (!bReady && FPlatformTime::Seconds() < Until)
 		{
 			if (T->GetScatter() && T->GetScatter()->GetPendingApplyJobs() > 0 && !T->GetScatter()->AreKindsLoaded()) { FlushAsyncLoading(); }	// no async loader in a test world
 			W.Tick(1.f / 60.f);

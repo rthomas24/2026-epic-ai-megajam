@@ -162,6 +162,8 @@ public:
 	double GetMaxApplyFrameMs() const { return MaxApplyFrameMs; }
 	/** Game-thread budget per frame for applying the zone layer (ms); at least one job runs per frame. */
 	float ApplyBudgetMs = 4.f;
+	/** Never wait longer than this (s) for the kinds' async load once the apply is queued: then load what is missing. */
+	float KindLoadTimeoutSeconds = 5.f;
 	/** Instances per component job (a big kind is split so no single job blows the frame). */
 	int32 ApplyChunk = 1000;
 	/** Tests: run queued apply jobs now within BudgetMs (<= 0: all of them). */
@@ -213,6 +215,7 @@ protected:
 	bool bBuilding = false;
 	bool bFocusOverride = false;
 	bool bKindsLoaded = false;
+	float KindWaitSeconds = 0.f;
 	mutable int32 SyncKindLoads = 0;
 	TSharedPtr<FStreamableHandle> KindLoadHandle;
 	UMaterialInterface* ResolveKindMaterial(int32 Kind) const;

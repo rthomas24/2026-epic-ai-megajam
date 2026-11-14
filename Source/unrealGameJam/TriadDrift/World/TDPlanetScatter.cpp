@@ -835,6 +835,16 @@ void ATDPlanetScatter::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	if (ApplyJobs.Num() > 0)
 	{
+		if (!bKindsLoaded)
+		{
+			KindWaitSeconds += DeltaSeconds;
+			if (KindWaitSeconds >= KindLoadTimeoutSeconds)
+			{
+				// A kind that never finishes loading must not hold the zone layer (or the arrival's reveal) forever.
+				bKindsLoaded = true;
+				UE_LOG(LogTriadDrift, Warning, TEXT("ATDPlanetScatter: kind loads not done after %.0f s - applying anyway (missing kinds load on the game thread)"), KindLoadTimeoutSeconds);
+			}
+		}
 		ApplyQueued(ApplyBudgetMs);
 	}
 	if (!bBuilt)
