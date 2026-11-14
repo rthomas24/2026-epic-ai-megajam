@@ -537,7 +537,18 @@ bool ATDSquadManager::CycleSwitch(int32 Direction)
 bool ATDSquadManager::SwitchWithCause(ETDShipId Ship, bool bForced, ETDSwitchCause Cause)
 {
 	TGuardValue<ETDSwitchCause> Guard(CurrentSwitchCause, Cause);
-	return SwitchToInternal(Ship, bForced);
+	const bool bSwitched = SwitchToInternal(Ship, bForced);
+	// T7's assault run (22 deaths in 8 minutes): a ship the player is dropped into after a death or a respawn rescue
+	// could be shot in its first second. It takes no damage for 1.5 s. A manual switch is unchanged: instant, no grace.
+	if (bSwitched && (Cause == ETDSwitchCause::AutoOnDeath || Cause == ETDSwitchCause::RespawnRescue))
+	{
+		if (UTDHealthComponent* Health = UTDStatics::GetHealth(GetShip(Ship)))
+		{
+			Health->SetInvulnerableFor(AutoSwitchGraceSeconds);
+			UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD auto-switch grace: %s takes no damage for %.1f s"), *UEnum::GetDisplayValueAsText(Ship).ToString(), AutoSwitchGraceSeconds);
+		}
+	}
+	return bSwitched;
 }
 
 void ATDSquadManager::LogSwitch(ETDShipId From, ETDShipId To, ETDSwitchCause Cause) const
@@ -1322,7 +1333,14 @@ bool ATDSquadManager::FindHealthiestLivingShip(ETDShipId Except, ETDShipId& OutS
 		{
 			continue;
 		}
-		const float H = TDSquad::GetHealth01(GetShip(Id));
+		// The most hull among the ships that are not under fire (no hit in the last 1.5 s); a ship under fire is taken
+		// only when every survivor is (T7's assault run: the cut kept landing in the ship being shot).
+		float H = TDSquad::GetHealth01(GetShip(Id));
+		const UTDHealthComponent* Health = UTDStatics::GetHealth(GetShip(Id));
+		if (!Health || Health->GetTimeSinceLastDamage() > 1.5f)
+		{
+			H += 2.f;
+		}
 		if (H > BestHealth)
 		{
 			BestHealth = H;

@@ -357,6 +357,10 @@ public:
 	/** The player's own ship: seconds the camera holds on its explosion before the auto-switch cut. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Squad|Death", meta = (ClampMin = "0", Units = "s"))
 	float DeathExplosionHoldSeconds = 0.35f;
+
+	/** After an auto-switch on death or a respawn rescue the newly flown ship takes no damage for this long (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Squad", meta = (ClampMin = "0"))
+	float AutoSwitchGraceSeconds = 1.5f;
 	double PendingAutoSwitchAt = -1.0;
 	void RunPendingAutoSwitch();
 
