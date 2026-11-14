@@ -948,6 +948,65 @@ bool FTDStoryCarry::RunTest(const FString& Parameters)
 #endif
 
 #if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryCarryRun, "TriadDrift.Story.Transmissions.ACarryNeverCrossesIntoANewRun", TD_TEST_FLAGS)
+bool FTDStoryCarryRun::RunTest(const FString& Parameters)
+{
+	// #139 (the source review by Nick's Lead): quit with a required recording unheard, then New Game on the same game
+	// instance: the old run's line must not queue into the new run, whether New Game comes before or after the delayed
+	// resume. The test bypass is off: this is the real same-instance check. Ordinary same-run travel still carries.
+	const FName Line(TEXT("A4_Recording_Hangar"));
+	auto OnAirWithin = [](FTDTestWorld& W, UTDStorySubsystem* Story, FName Id, float Seconds)
+	{
+		for (int32 i = 0; i < FMath::RoundToInt(Seconds * 30.f); ++i)
+		{
+			if (Story->GetCurrentTransmission().bActive && Story->GetCurrentTransmission().Id == Id) { return true; }
+			W.Tick(1.f / 30.f);
+		}
+		return false;
+	};
+	for (int32 Case = 0; Case < 3; ++Case)
+	{
+		UTDStorySubsystem::ClearCarriedLines();
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("story"), Story)) { return false; }
+		GI->OpenLevelOverride = [](const FString&) {};
+		GI->SetSaveSlotOverride(TEXT("TriadDrift_AutomationTest"));
+		TestTrue(TEXT("fires"), UTDStorySubsystem::Fire(W.GetWorld(), Line));
+		TestTrue(TEXT("on air"), OnAirWithin(W, Story, Line, 5.f));
+		Story->SimulateTravelForTests(); // the travel cuts it off: carried
+		TestEqual(TEXT("one line carried"), UTDStorySubsystem::NumCarriedLines(), 1);
+		if (Case == 0)
+		{
+			// The same run arrives somewhere: the line resumes.
+			Story->SimulateArrivalForTests();
+			TestTrue(TEXT("same run: the recording resumes after the arrival"), OnAirWithin(W, Story, Line, 6.f));
+		}
+		else if (Case == 1)
+		{
+			// New Game before the delayed resume.
+			GI->StartNewRun();
+			Story->SimulateArrivalForTests();
+			TestFalse(TEXT("New Game first: the old recording never airs"), OnAirWithin(W, Story, Line, 6.f));
+			TestEqual(TEXT("and nothing is left waiting"), UTDStorySubsystem::NumCarriedLines(), 0);
+			TestFalse(TEXT("nor counted as heard in the new run"), GI->HasPlayedTransmission(Line));
+		}
+		else
+		{
+			// The menu arrival clears at once; New Game after it finds nothing.
+			UTDStorySubsystem::ClearCarriedLines(); // what OnWorldBeginPlay does on the menu map
+			GI->StartNewRun();
+			Story->SimulateArrivalForTests();
+			TestFalse(TEXT("menu, then New Game: the old recording never airs"), OnAirWithin(W, Story, Line, 6.f));
+		}
+	}
+	UTDStorySubsystem::ClearCarriedLines();
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStorySubtitlesOff, "TriadDrift.Story.Transmissions.SubtitlesOffHidesEveryStoryLine", TD_TEST_FLAGS)
 bool FTDStorySubtitlesOff::RunTest(const FString& Parameters)
 {

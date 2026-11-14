@@ -761,19 +761,70 @@ void ATDCollapseRun::HandleStepStarted(ATDObjective* Objective, int32 StepIndex)
 		LastShownSecond = -1;
 		SectionsDropped = 0;
 		StartDelayLeft = StartDelay;
+		bFinishing = false;
+	}
+}
+
+void ATDCollapseRun::ApplyCollapse(float A)
+{
+	if (!Tower)
+	{
+		return;
+	}
+	Tower->SetActorLocation(TowerHome + FVector(0.f, 0.f, -A * 2500.f));
+	Tower->SetActorRotation(FRotator(A * 12.f, 0.f, A * 6.f));
+	// Its sections break off in turn (the structures builder's AnchorSection_A/B/C): out and down from its top.
+	const int32 Sections = SectionMeshes.Num();
+	while (Sections > 0 && SectionsDropped < Sections && A >= float(SectionsDropped + 1) / float(Sections + 1))
+	{
+		const float Side = SectionsDropped % 2 ? 1.f : -1.f;
+		const FVector Out = FRotator(0.f, 60.f * SectionsDropped, 0.f).Vector();
+		bDroppingSection = true;
+		DropPiece(TowerHome + Out * 400.f + FVector(0.f, 0.f, 2200.f - SectionsDropped * 500.f), TDPropArt::Load(SectionMeshes[SectionsDropped]), 1.f,
+			Out * 500.f + FVector(0.f, Side * 150.f, -600.f));
+		bDroppingSection = false;
+		++SectionsDropped;
 	}
 }
 
 void ATDCollapseRun::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (bFinishing)
+	{
+		// Made it: no deadline, no countdown, but the anchor keeps coming down to its fully destroyed end state.
+		FinishElapsed += DeltaSeconds;
+		const float T = FMath::Clamp(FinishElapsed / FMath::Max(FinishSeconds, 0.5f), 0.f, 1.f);
+		ApplyCollapse(FMath::Lerp(FinishFromA, 1.f, FMath::InterpEaseIn(0.f, 1.f, T, 1.6f)));
+		DebrisTimer -= DeltaSeconds;
+		if (DebrisTimer <= 0.f && T < 0.85f)
+		{
+			DebrisTimer = 0.6f;
+			DropDebris();
+		}
+		if (T >= 1.f)
+		{
+			bFinishing = false;
+		}
+		return;
+	}
 	if (TimeLeft < 0.f)
 	{
 		return;
 	}
 	if (!IsLinkedStepCurrent())
 	{
-		TimeLeft = -1.f; // made it (or the objective reset)
+		// Success (the objective moved past this step) only cancels the lethal deadline; a reset (retake) goes
+		// through ResetProp, which stands the tower back up.
+		const bool bAdvanced = LinkedObjective && (LinkedObjective->IsComplete() || LinkedObjective->GetCurrentStepIndex() > LinkedStep);
+		if (bAdvanced && Tower)
+		{
+			bFinishing = true;
+			FinishElapsed = 0.f;
+			FinishFromA = StartDelayLeft > 0.f ? 0.f : 1.f - FMath::Clamp(TimeLeft / Seconds, 0.f, 1.f);
+			DebrisTimer = 0.f;
+		}
+		TimeLeft = -1.f;
 		return;
 	}
 	if (StartDelayLeft > 0.f)
@@ -783,22 +834,7 @@ void ATDCollapseRun::Tick(float DeltaSeconds)
 	}
 	TimeLeft -= DeltaSeconds;
 	// The tower sinks and leans as it comes down.
-	if (Tower)
-	{
-		const float A = 1.f - FMath::Clamp(TimeLeft / Seconds, 0.f, 1.f);
-		Tower->SetActorLocation(TowerHome + FVector(0.f, 0.f, -A * 2500.f));
-		Tower->SetActorRotation(FRotator(A * 12.f, 0.f, A * 6.f));
-		// Its sections break off in turn (the structures builder's AnchorSection_A/B/C): out and down from its top.
-		const int32 Sections = SectionMeshes.Num();
-		if (Sections > 0 && SectionsDropped < Sections && A >= float(SectionsDropped + 1) / float(Sections + 1))
-		{
-			const float Side = SectionsDropped % 2 ? 1.f : -1.f;
-			const FVector Out = FRotator(0.f, 60.f * SectionsDropped, 0.f).Vector();
-			DropPiece(TowerHome + Out * 400.f + FVector(0.f, 0.f, 2200.f - SectionsDropped * 500.f), TDPropArt::Load(SectionMeshes[SectionsDropped]), 1.f,
-				Out * 500.f + FVector(0.f, Side * 150.f, -600.f));
-			++SectionsDropped;
-		}
-	}
+	ApplyCollapse(1.f - FMath::Clamp(TimeLeft / Seconds, 0.f, 1.f));
 	const int32 Shown = FMath::CeilToInt(FMath::Max(TimeLeft, 0.f));
 	if (Shown != LastShownSecond)
 	{
@@ -829,7 +865,7 @@ void ATDCollapseRun::DropDebris()
 {
 	const FVector Local(FMath::FRandRange(-DebrisExtent.X, DebrisExtent.X), FMath::FRandRange(-DebrisExtent.Y, DebrisExtent.Y), 2500.f);
 	const TSoftObjectPtr<UStaticMesh>& Art = DebrisMeshes.Num() > 0 ? DebrisMeshes[FMath::RandRange(0, DebrisMeshes.Num() - 1)] : DebrisMesh;
-	DropPiece(GetActorTransform().TransformPosition(Local), TDPropArt::Load(Art), FMath::FRandRange(1.f, 2.2f), FVector(0.f, 0.f, -1500.f));
+	DropPiece(GetActorTransform().TransformPosition(Local), TDPropArt::Load(Art), (DebrisMeshes.Num() > 0 || !DebrisMesh.IsNull()) ? FMath::FRandRange(0.85f, 1.15f) : FMath::FRandRange(1.f, 2.2f), FVector(0.f, 0.f, -1500.f));
 }
 
 AActor* ATDCollapseRun::DropPiece(const FVector& WorldAt, UStaticMesh* Art, float Scale, const FVector& Velocity)
@@ -841,19 +877,43 @@ AActor* ATDCollapseRun::DropPiece(const FVector& WorldAt, UStaticMesh* Art, floa
 	{
 		return nullptr;
 	}
+	// The physics body is the engine cube sized to the art's bounds; the art rides on it at its native size (a 7 m
+	// anchor section stays 7 m: fitting it inside the 1 m cube made it a pebble).
+	const FBox Bounds = Art ? Art->GetBoundingBox() : FBox(FVector(-50.f), FVector(50.f));
+	const FVector Size = Bounds.GetSize().ComponentMax(FVector(20.f)) * Scale;
 	UStaticMeshComponent* M = NewObject<UStaticMeshComponent>(Rock, TEXT("Rock"));
 	M->SetStaticMesh(TDPlanetPropsImpl::Shape(TDPlanetPropsImpl::CubePath));
 	M->SetMobility(EComponentMobility::Movable);
-	M->SetWorldScale3D(FVector(Scale));
+	M->SetWorldScale3D(Size / 100.f);
 	M->SetCollisionProfileName(TEXT("PhysicsActor"));
-	M->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore); // falling rocks are scenery, never a trap
+	M->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);   // falling pieces are scenery, never a trap or a wall on the run
+	M->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore); // nor something the chase camera bumps into
 	Rock->SetRootComponent(M);
 	M->RegisterComponent();
 	M->SetSimulatePhysics(true);
 	M->SetPhysicsLinearVelocity(Velocity);
-	UTDStatics::TintPlaceholder(M, FLinearColor(0.5f, 0.2f, 0.9f), 0.8f);
-	TDPropArt::Dress(M, Art);
-	Rock->SetLifeSpan(6.f);
+	if (Art)
+	{
+		M->SetVisibility(false);
+		UStaticMeshComponent* Look = NewObject<UStaticMeshComponent>(Rock, TEXT("Art"));
+		Look->SetStaticMesh(Art);
+		Look->SetMobility(EComponentMobility::Movable);
+		Look->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Look->SetupAttachment(M);
+		Look->SetAbsolute(false, false, true);
+		Look->SetWorldScale3D(FVector(Scale));
+		Look->SetRelativeLocation(-Bounds.GetCenter() * Scale / (Size / 100.f)); // the art's centre on the box's
+		Look->RegisterComponent();
+	}
+	else
+	{
+		UTDStatics::TintPlaceholder(M, FLinearColor(0.5f, 0.2f, 0.9f), 0.8f);
+	}
+	// Sections lie on as wreckage until a retake (ResetProp clears them); small debris clears after a while.
+	if (!bDroppingSection)
+	{
+		Rock->SetLifeSpan(12.f);
+	}
 	Debris.Add(Rock);
 	return Rock;
 }
@@ -862,6 +922,7 @@ void ATDCollapseRun::ResetProp()
 {
 	TimeLeft = -1.f;
 	SectionsDropped = 0;
+	bFinishing = false;
 	if (Tower)
 	{
 		Tower->SetActorLocation(TowerHome);

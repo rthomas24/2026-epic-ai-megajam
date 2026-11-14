@@ -24,6 +24,7 @@ enum class ETDSettingsRow : uint8
 	GamepadDeadzone,
 	InvertGamepadY,
 	Hints,
+	MinimalHUD, // #160
 	Difficulty,
 	CameraShake,
 	SpeedFOV,

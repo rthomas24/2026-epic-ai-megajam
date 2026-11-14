@@ -1,0 +1,13 @@
+{
+ "_note": "Combat idle v2 (Nov 14, melee pass): Grok Bot's mid-guard loop (legs, breathing, weight shift kept) with the blade arm held in the ready guard the swings start and end on: hand in front of the right hip, blade forward and up at about 50 deg, torso turned 8 deg right; a slow 2 cm breath in the hand. Loop closed (first key = last key). Played while an enemy is within close-combat range. Same key format as fixes_swing.json (rate 1).",
+ "swing": [
+  {
+   "src": "A_Pilot_Blade_Idle", "dst": "A_Pilot_Blade_Idle_v2", "rate": 1.0, "max_yaw": 30,
+   "keys": [
+    {"t": 0.0,  "hand": [30, 8, -22], "blade": [0.6, 0.05, 0.75], "yaw": 8},
+    {"t": 1.5,  "hand": [31, 8, -20], "blade": [0.62, 0.05, 0.74], "yaw": 9},
+    {"t": "end", "hand": [30, 8, -22], "blade": [0.6, 0.05, 0.75], "yaw": 8}
+   ]
+  }
+ ]
+}

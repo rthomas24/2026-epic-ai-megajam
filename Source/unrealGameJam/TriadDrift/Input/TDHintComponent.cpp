@@ -544,9 +544,9 @@ namespace TDHints
 				: Part == 2 ? LOCTEXT("LancerAct", "AFTERBURNER RAM")
 				: (P ? LOCTEXT("LancerLineP", "X  AFTERBURNER RAM") : LOCTEXT("LancerLineK", "Q  AFTERBURNER RAM"));
 		case ETDShipId::Bastion:
-			return Part == 1 ? (P ? LOCTEXT("BastionKeyP", "X  ·  HOLD X") : LOCTEXT("BastionKeyK", "Q  ·  HOLD Q"))
-				: Part == 2 ? LOCTEXT("BastionAct", "MISSILE SWARM  ·  HOLD: SHIELD DOME")
-				: (P ? LOCTEXT("BastionLineP", "X  MISSILE SWARM   ·   HOLD X  SHIELD DOME") : LOCTEXT("BastionLineK", "Q  MISSILE SWARM   ·   HOLD Q  SHIELD DOME"));
+			return Part == 1 ? (P ? LOCTEXT("BastionKeyP", "TAP X  ·  HOLD X") : LOCTEXT("BastionKeyK", "TAP Q  ·  HOLD Q"))
+				: Part == 2 ? LOCTEXT("BastionAct", "MISSILE SWARM  ·  SHIELD DOME")
+				: (P ? LOCTEXT("BastionLineP", "TAP X: MISSILE SWARM   ·   HOLD X: SHIELD DOME") : LOCTEXT("BastionLineK", "TAP Q: MISSILE SWARM   ·   HOLD Q: SHIELD DOME"));
 		default:
 			return FText::GetEmpty();
 		}

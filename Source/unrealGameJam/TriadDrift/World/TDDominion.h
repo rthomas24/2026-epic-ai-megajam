@@ -217,10 +217,10 @@ public:
 	float EscapeVictoryDelay = 3.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
-	float BreakupSeconds = 8.f;
+	float BreakupSeconds = 9.2f;	// the final blast at BreakupSeconds - BreakupAfterBlastSeconds; the outside camera holds to the end
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "1"))
-	float GeneratorHull = 800.f;
+	float GeneratorHull = 400.f;	// Lead (Nov 14): about 15 s of focused fire from the flown ship alone at Normal (800 took ~30 s)
 
 	/** Turrets guarding each generator (2 x 4 = 8) plus ExtraTurrets on the hull: 8-12 total. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion", meta = (ClampMin = "0"))
@@ -487,6 +487,9 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<class ACameraActor> BreakupCamera;
 	bool bBreakupCameraOn = false;
+	void SpawnBreakupChunks();
+	TArray<TWeakObjectPtr<class ATDEscapeDebris>> BreakupChunkActors;
+	float ChunkFireTimer = 0.f;
 	bool bBreakupCameraUsed = false;
 public:
 	/** Distance (cm) of the breakup camera from the hull's centre, off its flank (at least 2.2 hull radii). */
@@ -496,6 +499,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Breakup")
 	bool bUseBreakupCamera = true;
 	bool IsBreakupCameraActive() const { return bBreakupCameraOn; }
+	/** Seconds the breakup runs on after the final blast (the hull is gone; its chunks drift apart on camera). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Breakup", meta = (ClampMin = "0"))
+	float BreakupAfterBlastSeconds = 2.2f;
+	/** Large hull chunks thrown out at the final blast (Lead, Nov 14: the hull must be seen to come apart). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Breakup", meta = (ClampMin = "0", ClampMax = "24"))
+	int32 BreakupChunks = 11;
+	int32 GetBreakupChunksAlive() const;
 protected:
 	void ReleaseReactorHold();
 	TWeakObjectPtr<class ATDShip> ReactorHeld;
