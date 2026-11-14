@@ -22,6 +22,7 @@
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
+#include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Ground/Crew/TDCrewAIController.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
@@ -367,10 +368,21 @@ namespace TDCourseTest
 			}
 		}
 		/** Verdance's relay: the device connected (step 1), its transfer halves (steps 2 and 3), then back to the ship (4). */
-		void ConnectAtRelay(const ATDObjective* Relay)
+		void ConnectAtRelay(const ATDObjective* Relay, bool bSkipCinematic = true)
 		{
 			TeleportTo(Props<ATDStepTrigger>(Relay, 0)[0], 60.f);
 			UseTerminal(Relay, 1);
+			if (bSkipCinematic) { SkipCinematic(); }
+		}
+		/** Skip Cinematic 03 (it holds the transfer's first wave until "company incoming"), as a player may. */
+		void SkipCinematic()
+		{
+			if (UTDStorySubsystem* Story = UTDStorySubsystem::Get(V.W.GetWorld()))
+			{
+				Story->SkipAllowedAfterSeconds = 0.f; // a player who waited the scene's first ten seconds (N-060)
+				for (int32 i = 0; i < 4 && Story->IsSequencePlaying(); ++i) { Story->SkipSequence(); Tick(0.1f); }
+			}
+			Tick(0.5f);
 		}
 		void RunTransfer(const ATDObjective* Obj, float MaxSeconds = 140.f)
 		{
@@ -471,6 +483,7 @@ bool FTDVerdanceEndToEnd::RunTest(const FString& Parameters)
 	const FDelegateHandle Hook = ATDArchiveTransfer::OnAnyTerminalActivated.AddLambda([&Hooked](AActor*) { ++Hooked; });
 	R.UseTerminal(Relay, 1);
 	ATDArchiveTransfer::OnAnyTerminalActivated.Remove(Hook);
+	R.SkipCinematic();
 	TestEqual(TEXT("Cinematic 03's hook fires once"), Hooked, 1);
 	TestEqual(TEXT("console -> the transfer"), R.Step(Relay), 2);
 	float P01 = -1.f; bool bPaused = true; FText Label;
@@ -558,6 +571,16 @@ bool FTDCinderEndToEnd::RunTest(const FString& Parameters)
 	R.Use(Cache, Cache->HoldTime);
 	TestTrue(TEXT("excavation secured"), Outpost->IsComplete());
 	TestEqual(TEXT("EMP on Lancer"), V.GI->GetProgressRef().UnlockedAbilities.FindRef(ETDAbilityId::EMPPulse), ETDShipId::Lancer);
+	// ENG-26 step 6: one door at the dig opened to the pilot's ID (storyline section 6), exactly once; no other door did.
+	int32 Knowing = 0, Greeted = 0;
+	for (TActorIterator<ATDDoor> It(V.W.GetWorld()); It; ++It)
+	{
+		Knowing += It->bRecognisesPilot ? 1 : 0;
+		Greeted += It->GetAccessGreetings();
+	}
+	TestEqual(TEXT("one dig door knows the pilot"), Knowing, 1);
+	TestEqual(TEXT("it greeted the pilot once"), Greeted, 1);
+	TestFalse(TEXT("no pending marker before the anchor"), ATDPlanetCourse::IsFieldAnchorDisabled(V.W.GetWorld()));
 
 	// The anchor, then the run to extraction.
 	int32 AnchorDown = 0;
@@ -577,6 +600,7 @@ bool FTDCinderEndToEnd::RunTest(const FString& Parameters)
 	ATDPlanetCourse::OnFieldAnchorDisabled.Remove(Anchor);
 	TestTrue(TEXT("anchor disabled"), Jammer->IsComplete());
 	TestEqual(TEXT("T2's pending-marker event once"), AnchorDown, 1);
+	TestTrue(TEXT("T2's pending-marker state (saved)"), ATDPlanetCourse::IsFieldAnchorDisabled(V.W.GetWorld()));
 
 	R.Tick(0.5f);
 	R.LeaveForOrbit(TEXT("Cinder"));
@@ -615,6 +639,39 @@ bool FTDCourseRetake::RunTest(const FString& Parameters)
 	R.FP->RespawnAt(FTransform(FVector(300.f, 0.f, 120.f)));
 	R.Tick(0.5f);
 	TestTrue(TEXT("finished on take 2"), Relay->IsComplete());
+	return true;
+}
+
+// T3's live walk (Nov 13): Cinematic 03 talked over the fight. The first wave waits for "company incoming"; the meter holds
+// still meanwhile; skipping the scene starts it at once; a retake (the line already heard) doesn't wait.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDArchiveTransferHold, "TriadDrift.Ground.Course.RelayTransferWaitsForCompanyIncoming", TD_TEST_FLAGS)
+bool FTDArchiveTransferHold::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V;
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDObjective* Relay = R.Course->FindObjective(TEXT("Obj_Relay"));
+	if (!R.StartAt(TEXT("Obj_Relay"))) { return false; }
+	R.ConnectAtRelay(Relay, false);
+	ATDArchiveTransfer* X = R.Transfer();
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(V.W.GetWorld());
+	if (!TestNotNull(TEXT("transfer"), X) || !TestNotNull(TEXT("story"), Story)) { return false; }
+	if (!Story->IsSequencePlaying())
+	{
+		AddInfo(TEXT("no Cinematic 03 in this checkout: the transfer starts at once"));
+		R.Tick(1.f);
+		TestFalse(TEXT("not held without a scene"), X->IsHolding());
+		return true;
+	}
+	R.Tick(5.f);
+	TestTrue(TEXT("held while the scene talks"), X->IsHolding());
+	TestEqual(TEXT("the meter holds still"), X->GetProgress01(), 0.f, 0.001f);
+	TestFalse(TEXT("no wave yet"), X->Waves[0] && (X->Waves[0]->IsActive() || X->Waves[0]->IsCleared()));
+	float P01 = -1.f; bool bPaused = false; FText Label;
+	TestTrue(TEXT("T2's meter still shows the transfer"), ATDArchiveTransfer::GetArchiveTransfer(V.W.GetWorld(), P01, bPaused, Label));
+	R.SkipCinematic();
+	TestFalse(TEXT("skipping starts it"), X->IsHolding());
+	TestTrue(TEXT("the first wave drops"), X->Waves[0] && X->Waves[0]->IsActive());
 	return true;
 }
 
@@ -669,6 +726,62 @@ bool FTDArchiveTransferPauseAndMidpoint::RunTest(const FString& Parameters)
 // T4's world scatter asks the course where it may place things (WORLD-DENSITY-PLAN): never on a route, the pad, a site, an
 // encounter or a spawn point; and the course's routes stay walkable (every route point is refused for scatter, and
 // open ground off the routes is allowed).
+// The Dress pass (the environment builder's table, Nov 14): story sets, landmarks, the kit wreck and the dig cabin, the
+// outposts' and the pads' props; each piece placed when its asset exists, nothing on the pad's take-off circle.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseDressed, "TriadDrift.Ground.Course.StorySetsAndSitePropsArePlaced", TD_TEST_FLAGS)
+bool FTDCourseDressed::RunTest(const FString& Parameters)
+{
+	struct FWant { const TCHAR* Planet; const TCHAR* Tag; const TCHAR* Package; int32 Count; };
+	const FWant Wants[] = {
+		{ TEXT("Verdance"), TEXT("Verdance:BP_StorySet_VerdanceCamp"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_StorySet_VerdanceCamp"), 1 },
+		{ TEXT("Verdance"), TEXT("Verdance:BP_Landmark_RelayMast"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_Landmark_RelayMast"), 1 },
+		{ TEXT("Verdance"), TEXT("Verdance:BP_Wreck"), TEXT("/Game/TriadDrift/Gameplay/Props/Wreck/BP_Wreck"), 1 },
+		{ TEXT("Verdance"), TEXT("Verdance:BP_SurveyLine_Verdance"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_SurveyLine_Verdance"), 1 },
+		{ TEXT("Verdance"), TEXT("Verdance:SM_Kit_SurveyStakeFlag"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_SurveyStakeFlag"), 3 },
+		{ TEXT("Verdance"), TEXT("VerdancePad:SM_Outpost_BollardLight"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_BollardLight"), 8 },
+		{ TEXT("Verdance"), TEXT("VerdanceOutpost:SM_Outpost_CargoCrate"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_CargoCrate"), 2 },
+		{ TEXT("Verdance"), TEXT("Relay:SM_Outpost_Generator"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_Generator"), 1 },
+		{ TEXT("Cinder"), TEXT("Cinder:BP_StorySet_CinderMine"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_StorySet_CinderMine"), 1 },
+		{ TEXT("Cinder"), TEXT("Cinder:BP_Landmark_NullDerrick"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_Landmark_NullDerrick"), 1 },
+		{ TEXT("Cinder"), TEXT("DigCabin:BP_DigSite_Cabin"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_DigSite_Cabin"), 1 },
+		{ TEXT("Cinder"), TEXT("Cinder:SM_Kit_WarningBeacon"), TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_WarningBeacon"), 4 },
+		{ TEXT("Cinder"), TEXT("CinderPad:SM_Outpost_BollardLight"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_BollardLight"), 8 },
+		{ TEXT("Cinder"), TEXT("CinderOutpost:SM_Outpost_Generator"), TEXT("/Game/TriadDrift/Gameplay/Props/OutpostDressing/SM_Outpost_Generator"), 1 },
+	};
+	for (const TCHAR* Planet : { TEXT("Verdance"), TEXT("Cinder") })
+	{
+		TDPlanetTest::FVisit V(NAME_None, Planet);
+		ATDPlanetCourse* Course = V.Director->GetCourse();
+		if (!TestNotNull(TEXT("course"), Course)) { return false; }
+		const TArray<FName>& Log = Course->GetDressLog();
+		AddInfo(FString::Printf(TEXT("%s: %d dressing pieces placed"), Planet, Log.Num()));
+		for (const FWant& Want : Wants)
+		{
+			if (FCString::Strcmp(Want.Planet, Planet) != 0) { continue; }
+			if (!FPackageName::DoesPackageExist(Want.Package)) { AddInfo(FString::Printf(TEXT("%s not in this checkout"), Want.Package)); continue; }
+			const int32 N = Log.FilterByPredicate([&Want](const FName& T) { return T == FName(Want.Tag); }).Num();
+			TestEqual(*FString::Printf(TEXT("%s placed"), Want.Tag), N, Want.Count);
+		}
+		// The take-off circle stays free of dressing: nothing that collides within 14 m of the pad but the parked squad.
+		const FVector Pad = Course->GetActorLocation();
+		int32 OnPad = 0;
+		if (AActor* Dressing = Course->GetDressingActor())
+		{
+			TInlineComponentArray<UStaticMeshComponent*> Meshes(Dressing);
+			for (const UStaticMeshComponent* M : Meshes)
+			{
+				const FString Mesh = M && M->GetStaticMesh() ? M->GetStaticMesh()->GetName() : FString();
+				if (Mesh.StartsWith(TEXT("SM_Outpost_")) || Mesh.StartsWith(TEXT("SM_Kit_")))
+				{
+					OnPad += FVector::Dist2D(M->GetComponentLocation(), Pad) < 1400.f ? 1 : 0;
+				}
+			}
+		}
+		TestEqual(*FString::Printf(TEXT("%s: nothing on the take-off circle"), Planet), OnPad, 0);
+	}
+	return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCourseKeepOuts, "TriadDrift.Ground.Course.KeepOutsProtectRoutesSitesAndSpawns", TD_TEST_FLAGS)
 bool FTDCourseKeepOuts::RunTest(const FString& Parameters)
 {

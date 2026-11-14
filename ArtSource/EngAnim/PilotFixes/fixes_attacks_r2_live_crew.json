@@ -1,0 +1,17 @@
+{
+ "_note": "Live Heavy shield bash = Grok's (impact 0.70 s), starting from and returning to the authored guard pose facing the target. r3: only the upper body blends to the guard pose (the pelvis of both already faces the same way, 58 vs 53 deg); the legs keep their steps. ue_body_tool.py (body_heavy_bash.json) then closes the 41 cm drift back to the start by stepping the feet.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "clips": [
+  {
+   "src": "A_Crew_Heavy_ShieldBash_Grok",
+   "dst": "A_Crew_Heavy_ShieldBash_Pre",
+   "blend_ends": {
+    "src": "A_Crew_Heavy_ShieldBash_Authored",
+    "in": 0.4,
+    "out": 0.3,
+    "upper": true
+   },
+   "report_feet": true
+  }
+ ]
+}
