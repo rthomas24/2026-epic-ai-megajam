@@ -25,6 +25,17 @@ namespace TDBarkIds
 	inline const FName WingmanKill(TEXT("Bark_SquadWingmanKill"));  // speaker = the wingman who scored
 	inline const FName LowHull(TEXT("Bark_SquadLowHull"));          // speaker = the pilot in trouble
 	inline const FName SquadWipe(TEXT("Bark_SquadWipe"));           // speaker = the last pilot down
+	// ENG-43, dialogs.md's (new, T3) rows.
+	inline const FName PlayerKill(TEXT("Bark_PlayerKill"));   // a wingman reacts to the player's kill, 1 in 3 (Flavour)
+	inline const FName MultiKill(TEXT("Bark_MultiKill"));     // 3 player kills within 4 s (High)
+	inline const FName ShieldDown(TEXT("Bark_ShieldDown"));   // that pilot's shield breaks (High)
+	inline const FName ShieldBack(TEXT("Bark_ShieldBack"));   // full again after a break (Flavour)
+	inline const FName Breather(TEXT("Bark_Breather"));       // 4 s into the gap between waves (Flavour)
+	inline const FName OnMySix(TEXT("Bark_OnMySix"));         // an enemy holds behind the flown ship for 3 s (High)
+	inline const FName CmdRetake(TEXT("Bark_Cmd_Retake"));    // Command, first line of a retake, 1 in 2
+	inline const FName AbilityUnlocked(TEXT("Bark_AbilityUnlocked_<Ability>")); // that ship's pilot (the row per pilot holds their ability's line)
+	inline const FName CmdObjectiveNew(TEXT("Bark_Cmd_ObjectiveNew"));   // Command, a new objective in space
+	inline const FName CmdObjectiveDone(TEXT("Bark_Cmd_ObjectiveDone")); // Command, an objective in space completes
 
 	UNREALGAMEJAM_API FName ShipDownFor(ETDShipId Ship);
 

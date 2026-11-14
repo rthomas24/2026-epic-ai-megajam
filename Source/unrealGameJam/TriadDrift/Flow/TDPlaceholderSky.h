@@ -79,6 +79,9 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<USkyLightComponent> SkyLight;
 	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<USkyAtmosphereComponent> Atmosphere;
 	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<UPostProcessComponent> Exposure;
+	/** ART-13: the colour grade per style (environment builder). Its own unbound component above the levels' own post (the
+	 *  interior's exposure volume is priority 10), carrying only grading fields, so it survives a level that brings exposure. */
+	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<UPostProcessComponent> Grade;
 	/** Planet styles: the ground carried to the horizon (a 200 km plane just under the course slab, same material). */
 	UPROPERTY(VisibleAnywhere, Category = "Placeholder") TObjectPtr<UStaticMeshComponent> FarGround;
 	/** Planet styles: planet-tinted height fog so the distance blends into the sky. */
@@ -98,6 +101,7 @@ public:
 	/** The multiplier applied last frame (tests). */
 	float GetDescentFogScale() const { return DescentFogScale; }
 	float GetBaseFogDensity() const { return BaseFogDensity; }
+	ETDPlaceholderSkyStyle GetAppliedStyle() const { return AppliedStyle; }
 	void TickDescentFog();
 
 protected:

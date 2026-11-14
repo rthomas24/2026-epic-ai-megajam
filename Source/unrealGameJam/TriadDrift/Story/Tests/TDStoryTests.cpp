@@ -16,6 +16,8 @@
 #include "TriadDrift/Flow/TDFrontEndGameModes.h"
 #include "EngineUtils.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Profile/TDProfileSubsystem.h"
+#include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Flow/TDFlowSettings.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryTable, "TriadDrift.Story.Transmissions.EveryBeatHasAPlaceholderAndNoEarlyTwist", TD_TEST_FLAGS)
@@ -425,6 +427,8 @@ bool FTDStorySequence::RunTest(const FString& Parameters)
 		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
 		UTDStorySubsystem::PlaySequence(W.GetWorld(), TEXT("Cinematic08"));
 		W.Advance(1.f, 1.f / 30.f);
+		TestFalse(TEXT("N-060: no skip in the first ten seconds"), Story->SkipSequence());
+		W.Advance(Story->SkipAllowedAfterSeconds, 1.f / 30.f);
 		TestTrue(TEXT("skip"), Story->SkipSequence());
 		TestFalse(TEXT("skipped: over at once"), Story->IsSequencePlaying());
 		TestEqual(TEXT("nothing left queued"), Story->GetQueueLength(), 0);
@@ -482,6 +486,127 @@ bool FTDStoryRecordedLabels::RunTest(const FString& Parameters)
 	TestEqual(TEXT("Cinematic 08: recorded Moss"), Play(TEXT("C8_RecMoss_SaveYou")), FString(TEXT("MOSS (RECORDED)")));
 	TestEqual(TEXT("present-day Moss's answer: live label"), Play(TEXT("C8_Moss_CantLetThem")), FString(TEXT("MOSS")));
 	TestEqual(TEXT("then Wren's order (N-046), live"), Play(TEXT("C8_Wren_Order")), FString(TEXT("WREN")));
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryRequiredSaved, "TriadDrift.Story.Transmissions.RequiredLinesSavedOnlyWhenHeard", TD_TEST_FLAGS)
+bool FTDStoryRequiredSaved::RunTest(const FString& Parameters)
+{
+	// N-062 (Nick's review): a required console recording queued behind another line, or cut off mid-air, must not be
+	// saved as played; a Continue must hear it. Once heard in full it is saved and never replays. Ambient lines keep
+	// their old rule (saved when fired).
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("GI"), GI) || !TestNotNull(TEXT("story"), Story))
+	{
+		return false;
+	}
+	TestTrue(TEXT("a recording is required"), UTDStorySubsystem::IsRequiredLine(TEXT("A4_Recording_Barracks")));
+	TestFalse(TEXT("a radio line is ambient"), UTDStorySubsystem::IsRequiredLine(TEXT("A1_TheySearch")));
+	// 1. Queued behind another line: not saved yet, and never queued twice.
+	UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A1_TheySearch"));
+	TestTrue(TEXT("the recording queues"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A4_Recording_Barracks")));
+	TestTrue(TEXT("the ambient line is saved at once (unchanged)"), GI->HasPlayedTransmission(TEXT("A1_TheySearch")));
+	TestFalse(TEXT("the queued recording is NOT saved (a Continue now would hear it)"), GI->HasPlayedTransmission(TEXT("A4_Recording_Barracks")));
+	TestFalse(TEXT("no duplicate while queued"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A4_Recording_Barracks")));
+	// 2. On air, interrupted: still not saved.
+	for (int32 i = 0; i < 900 && Story->GetCurrentTransmission().Id != FName(TEXT("A4_Recording_Barracks")); ++i) { W.Tick(1.f / 30.f); }
+	TestTrue(TEXT("on air"), Story->GetCurrentTransmission().Id == FName(TEXT("A4_Recording_Barracks")));
+	TestFalse(TEXT("on air, not yet saved (leaving now loses nothing)"), GI->HasPlayedTransmission(TEXT("A4_Recording_Barracks")));
+	TestFalse(TEXT("no duplicate while on air"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A4_Recording_Barracks")));
+	// 3. Heard in full: saved, and it never replays.
+	for (int32 i = 0; i < 900 && Story->GetCurrentTransmission().bActive; ++i) { W.Tick(1.f / 30.f); }
+	TestTrue(TEXT("heard in full: saved"), GI->HasPlayedTransmission(TEXT("A4_Recording_Barracks")));
+	TestFalse(TEXT("never replays"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("A4_Recording_Barracks")));
+	// 4. A fresh run (Continue) that never heard the final record plays it; the sealed door's sequence still finishes.
+	TestFalse(TEXT("the final record is not saved before it plays"), GI->HasPlayedTransmission(TEXT("A4_Recording_Core")));
+	UTDStorySubsystem::PlaySequence(W.GetWorld(), TEXT("Cinematic08"));
+	for (int32 i = 0; i < 900 && Story->GetCurrentTransmission().Id != FName(TEXT("A4_Recording_Core")); ++i) { W.Tick(1.f / 30.f); }
+	TestTrue(TEXT("the threshold opens with the final record"), Story->GetCurrentTransmission().Id == FName(TEXT("A4_Recording_Core")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStorySkipSaves, "TriadDrift.Story.Transmissions.SkipAfterTenSecondsKeepsTheReveal", TD_TEST_FLAGS)
+bool FTDStorySkipSaves::RunTest(const FString& Parameters)
+{
+	// N-060: an eligible skip (after 10 s) keeps the reveal (every line saved) and finishes the sequence (the door).
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDGameInstance* GI = Cast<UTDGameInstance>(W.GetGameInstance());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	UTDStorySubsystem::PlaySequence(W.GetWorld(), TEXT("Cinematic08"));
+	W.Advance(Story->SkipAllowedAfterSeconds + 0.5f, 1.f / 30.f);
+	TestTrue(TEXT("skips after ten seconds"), Story->SkipSequence());
+	TestFalse(TEXT("the door's sequence is finished"), Story->IsSequencePlaying());
+	bool bAll = true;
+	for (const FName& Id : UTDStorySubsystem::SequenceIds(TEXT("Cinematic08"))) { bAll &= GI->HasPlayedTransmission(Id); }
+	TestTrue(TEXT("the reveal is kept: every line of it saved"), bAll);
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryC3C5, "TriadDrift.Story.Transmissions.Cinematics03And05OnTheTerminals", TD_TEST_FLAGS)
+bool FTDStoryC3C5::RunTest(const FString& Parameters)
+{
+	// ENG-42: T5's relay console plays Cinematic 03 and the Cinder survey terminal Cinematic 05, as voice over the
+	// room, in order (the monitor and the drone's pulses are presentation on top).
+	struct FCase { const TCHAR* Seq; TFunction<void(AActor*)> Fire; };
+	const FCase Cases[] = {
+		{ TEXT("Cinematic03"), [](AActor* A) { ATDArchiveTransfer::OnAnyTerminalActivated.Broadcast(A); } },
+		{ TEXT("Cinematic05"), [](AActor* A) { ATDSurveyTerminal::OnAnySurveyRecordsAccessed.Broadcast(A); } } };
+	for (const FCase& C : Cases)
+	{
+		FTDTestWorld W(UTDGameInstance::StaticClass());
+		UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		AActor* Terminal = W.Spawn<AActor>(FVector::ZeroVector);
+		C.Fire(Terminal);
+		W.Tick();
+		const TArray<FName>& Ids = UTDStorySubsystem::SequenceIds(C.Seq);
+		TestTrue(FString::Printf(TEXT("%s plays from its terminal"), C.Seq), Story->IsSequencePlaying(C.Seq) && Story->GetCurrentTransmission().Id == Ids[0]);
+		TArray<FName> Heard;
+		for (int32 i = 0; i < 20 * 120 && Story->IsSequencePlaying(); ++i)
+		{
+			const FName Now = Story->GetCurrentTransmission().Id;
+			if (Story->GetCurrentTransmission().bActive && (Heard.Num() == 0 || Heard.Last() != Now)) { Heard.Add(Now); }
+			W.Tick(1.f / 20.f);
+		}
+		TestTrue(FString::Printf(TEXT("%s: every line in order"), C.Seq), Heard == Ids);
+	}
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryAftermath, "TriadDrift.Story.Transmissions.AftermathOnTheTutorialsEnd", TD_TEST_FLAGS)
+bool FTDStoryAftermath::RunTest(const FString& Parameters)
+{
+	// ENG-42: T7's OnAftermathBegins (the real escape, or a skipped tutorial) plays Aftermath's S2 lines in order; a
+	// story subsystem that starts after it was armed takes it from ConsumeAftermathPending.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	UTDProfileSubsystem* Profile = UTDProfileSubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("story"), Story) || !TestNotNull(TEXT("profile"), Profile))
+	{
+		return false;
+	}
+	Profile->OnAftermathBegins.Broadcast(false);
+	W.Tick();
+	const TArray<FName>& Ids = UTDStorySubsystem::SequenceIds(TEXT("Aftermath"));
+	TestEqual(TEXT("fifteen lines"), Ids.Num(), 15);
+	TestTrue(TEXT("Aftermath plays"), Story->IsSequencePlaying(TEXT("Aftermath")) && Story->GetCurrentTransmission().Id == Ids[0]);
+	TArray<FName> Heard;
+	for (int32 i = 0; i < 20 * 200 && Story->IsSequencePlaying(); ++i)
+	{
+		const FName Now = Story->GetCurrentTransmission().Id;
+		if (Story->GetCurrentTransmission().bActive && (Heard.Num() == 0 || Heard.Last() != Now)) { Heard.Add(Now); }
+		W.Tick(1.f / 20.f);
+	}
+	TestTrue(TEXT("every line in order"), Heard == Ids);
+	FTDTransmission E;
+	TestTrue(TEXT("T4's escape line exists"), UTDStorySubsystem::FindEntry(TEXT("TB_Escaped"), E) && !E.Text.IsEmpty());
 	return true;
 }
 #endif

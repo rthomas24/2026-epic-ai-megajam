@@ -27,9 +27,12 @@ enum class ETDSettingsRow : uint8
 	Difficulty,
 	CameraShake,
 	SpeedFOV,
+	ReduceMotion, // N-064
 	MasterVolume,
 	MusicVolume,
 	EffectsVolume,
+	SubtitleSize,   // ENG-45 (T7)
+	GraphicsPreset, // ENG-45 (T7)
 	WindowMode,
 	Resolution,
 	Reset,

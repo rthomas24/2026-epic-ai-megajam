@@ -96,6 +96,9 @@ def main():
                     time.sleep(float(st[1]))
                 elif kind == "shot":
                     print("shot", d.shot(st[1]), flush=True)
+                elif kind == "perf":
+                    r = d.call("PerfToolset.StatsToolset", "GetFrameTimings", {})
+                    print("perf", st[1] if len(st) > 1 else "", " ".join(b.get("text", "") for b in r.get("content", []) if b.get("type") == "text")[:400], flush=True)
                 elif kind == "reconnect":
                     d = Drive(args.port)
             except McpError as e:

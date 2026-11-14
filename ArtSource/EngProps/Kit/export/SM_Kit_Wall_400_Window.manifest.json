@@ -1,6 +1,6 @@
 {
   "asset": "SM_Kit_Wall_400_Window",
-  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\export\\SM_Kit_Wall_400_Window.fbx",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export\\SM_Kit_Wall_400_Window.fbx",
   "tris": 1384,
   "size_cm": [
     32.0,
@@ -51,7 +51,7 @@
   ],
   "collision_source": "authored",
   "sockets": [],
-  "welded_verts": 30,
+  "welded_verts": 0,
   "nanite_recommended": false,
   "unreal_import": {
     "uniform_scale": 1.0,

@@ -180,6 +180,7 @@ private:
 	/** The final record (story 07-09): the reactor door opens only once it has played (or was skipped). */
 	UPROPERTY(Transient) TObjectPtr<class ATDDoor> ReactorDoor;
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> ParkedShip;
+	UPROPERTY(Transient) TArray<TObjectPtr<UStaticMeshComponent>> ParkedParts;
 	int32 ConduitsDown = 0;
 	UPROPERTY(Transient) TObjectPtr<AActor> FinalRecordConsole;
 	float FinalRecordElapsed = -1.f;
@@ -198,6 +199,8 @@ public:
 	bool IsFinalRecordDone() const { return bFinalRecordDone; }
 	/** The interior: the boarding pilot's ship on the hangar pad (null when its art is missing). */
 	UStaticMeshComponent* GetParkedShip() const { return ParkedShip; }
+	/** The parked ship's visual parts (DA_<Ship>_Visuals Parts: the Rift's portal ring), as the flying ship has them. */
+	const TArray<TObjectPtr<UStaticMeshComponent>>& GetParkedParts() const { return ParkedParts; }
 	AActor* GetFinalRecordConsole() const { return FinalRecordConsole; }
 	/** Seconds the reactor door waits at most for the record (the queue can be long; a skip ends it early). */
 	float FinalRecordMaxSeconds = 90.f;
@@ -205,6 +208,23 @@ private:
 	UPROPERTY(Transient) TObjectPtr<class ATDArchiveTransfer> ArchiveTransfer;
 	UPROPERTY(Transient) TObjectPtr<class ATDSurveyTerminal> SurveyTerminal;
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> DormantDrone;
+	/**
+	 * Grok Bot's survey outpost (BP_Outpost_Site_Verdance / _Cinder; ArtSource/EngProps/Outpost/export/
+	 * Outpost_Site.manifest.json): spawned at Site (course-local, on the ground), +X (its bay and ramp) turned to Yaw.
+	 * Returns null when the asset is missing (the caller keeps its placeholder pieces). OutConsole: its console mesh.
+	 */
+	AActor* PlaceOutpost(const FVector& Site, float Yaw, bool bCinder, UStaticMeshComponent*& OutConsole);
+	/** An invisible interact box over the outpost console, at its 87 x 260 x 150 cm, facing Yaw. */
+	template <class T> T* OutpostTerminal(const FVector& Site, float Yaw);
+	/** Terminal -> its outpost console screen and planet (the scan on the screen when used, T2's ShowScanOnScreen). */
+	UPROPERTY(Transient) TMap<TObjectPtr<AActor>, TObjectPtr<UStaticMeshComponent>> TerminalScreens;
+	UFUNCTION() void HandleTerminalScreen(AActor* Interactable, AActor* Interactor);
+public:
+	AActor* GetOutpost() const { return SiteOutpost; }
+private:
+	UPROPERTY(Transient) TObjectPtr<AActor> SiteOutpost;
+	/** The kit relay (BP_Relay) when placed: woken (RelayPower) when Obj_Relay completes. */
+	UPROPERTY(Transient) TObjectPtr<AActor> RelayWake;
 public:
 	class ATDArchiveTransfer* GetArchiveTransfer() const { return ArchiveTransfer; }
 	class ATDSurveyTerminal* GetSurveyTerminal() const { return SurveyTerminal; }
@@ -262,6 +282,10 @@ private:
 	bool IsKeptClear(const FVector& Local, float Clearance) const;
 	struct FKeepOut { FVector Center; FVector Extent; };
 	TArray<FKeepOut> KeepOuts;
+	/** A walkable kit site's scatter-clear circle (course-local): no flora or rock within Radius plus its own clearance. */
+	struct FSiteClear { FVector Center; float Radius; };
+	TArray<FSiteClear> SiteClears;
+	void ClearSite(const FVector& Local, float Radius) { SiteClears.Add({ Local, Radius }); }
 	UStaticMesh* Prop(FName Name) const { const TObjectPtr<UStaticMesh>* M = PropMeshes.Find(Name); return M ? M->Get() : nullptr; }
 	ATDObjective* MakeObjective(FName Id, const FText& Title, ETDAbilityId Reward, ETDShipId Ship, int32 StepCount);
 	void FinishObjective(ATDObjective* Obj, const TArray<FText>& StepTexts, const TArray<AActor*>& Waypoints);

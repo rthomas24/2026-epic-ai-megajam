@@ -296,3 +296,44 @@ Nov 13, credits. Imported the first eight-section credits roll through the exist
 Nov 13, space idle music. The full 144.8-second Ambient1 track reopened as a looping Music SoundWave in a fresh Unreal process. The import added one asset and the reload changed none. Quiet-flight playback, giving way to the tutorial, combat and assault, and the cooked build still need a gameplay check.
 
 Nov 13, lower-memory audio review. Audio recorded the live Rift in L_Galaxy at 1280x720 with audio from the same game process. The eight-second capture had no dropped video frames or reported audio discontinuities. It demonstrates the capture method. The menu loop, Lancer damage sounds and full tutorial timing still need separate played evidence. Tools: Unreal Engine GameViewport capture, Windows process-loopback audio and FFmpeg. [Clip and receipts](docs/visual/Submission/AudioReview01/).
+
+November 13, menu and Lancer audio auditions. The isolated 28f03b4f editor host with the PR review Waves recorded its own game audio and viewport. The full menu capture lasts 111.74 seconds and includes the expected 107-second return. The source fingerprint places the return near 107.09 seconds; the same menu Wave was resolved again after New Game and a debug return from Galaxy. Separate 15.17-second combat footage verifies Lancer possession, with the active pawn and view confirmed before and after the trials. Individual fire, hull and shield cues still require identification. Both recordings completed without dropped video frames or reported audio discontinuities. [Review clips](docs/visual/Submission/AudioReview01/).
+
+November 13, presentation music. A private UE 5.9 Windows Editor build compiled the 78caa422 credits, boarding and Verdance plugin using a single worker. Disabling shared precompiled headers kept RAM within the guard and exposed a missing Pawn header in the existing HUD file. The corrected module passed all three state tests. The first test launch on a sparse host failed at editor startup; the successful run used the full project content and headless agent mode. Actual sound and event timing are the next checks. [Build and test receipt](docs/visual/Submission/MusicBuild01/results.json).
+
+November 13, credits playback. The Windows game played Cathedral Pulse (1) through its natural end and started Ethereal Pulse (Remix) on the next audio component. A repeat start left the first track running. An early stop and restart returned to track one. The published 13-second excerpt preserves the captured samples across the change. The tested presentation player also exposes the Dominion boarding and Verdance controls for the gameplay owners. The victory entry, stinger, shaped screen and Shipping playback still need a matched build.
+
+November 13, combat music. The full Ethereal Pulse (Remix) SoundWave from f5d9cf9d is available beside the tutorial assets for waves 3–5. The current presentation style serializes the tutorial reference. Connecting the independent combat field and hearing its intensity changes in a live wave remain pending.
+
+November 13, victory credits. The authored roll now credits Nicholas Tosti’s UI team and OpenAI image generation for the Verdance and Cinder survey scans. A fresh Unreal Editor process read back eight sections and 31 lines, including the 28 existing lines. The revised victory screen and Shipping roll still require a gameplay check.
+
+November 13, music loop repair. Nicholas noticed a click when music restarted. A Verdance map recording revealed a 32 ms restart gap. The revised SoundWave loops in the audio renderer with smoothed endpoints. Both recorded repeats aligned at the same sample on either side of the join, including one during the takeoff fade. [Listen to both loops](docs/visual/Submission/MusicBuild01/music-loop-check.md).
+
+
+### Nov 13 — Settings focus correction verified in packaged candidate
+
+Nick's Lead reviewed Ryan''s i71-focus-662b8c04-dev contact sheets at 1280x720, 1920x1080 and 2560x1080, the outline report and the raw 14/14 passing tests. The selected Settings outline returns immediately after Esc or simulated pad B, stays visible without navigation, skips disabled Continue and clears behind Settings. Volume remains 90% after reopening. This is technical verification of the released candidate, not a main integration or human approval claim. Main pickup requested in #71. No local Unreal process was launched for this review.
+
+
+### Nov 13 — reward build checkpoint and Lancer replacement audition
+
+The industrial reward frame passed import and reload. The first widget build exposed a missing Slate bracket; UI corrected it and Lead rebuilt successfully, then passed the existing dismissal/next-unlock lifecycle test with 2,434 protected files unchanged. Actual rendered appearance remains queued for memory. Audio published the nine supplied-recording replacements on its isolated branch at 2b074bb5; its actual game capture observed fire and shield cues, but not a hull-hit event. Neither result is a final appearance/listening approval or a main asset integration.
+
+
+### Nov 13 — second script circulated and reward review unblocked remotely
+
+At Nicholas's request, Lead published the exact reviewed second script draft at 2240d3cd, preserved all earlier documents, and directly tagged Ryan in issue 29 with an acknowledgement request (N-080). Current script review now uses draft two; prior explicit approvals stand and final recording remains unlocked. The industrial reward candidate is published at 59ec2f79 / draft PR 85. N-081 requests matching T2 captures while local rendered work is memory-queued. Nicholas selected Audio's supplied-recording previews; the existing PR 12 candidate was fast-forwarded to 2b074bb5 without merging to main or claiming final in-game mix approval.
+
+### November 13 — separating a loop seam from a runtime interruption
+
+Nick's Audio recorded a natural 139.2-second combat-track return on the actual Galaxy music director in the preserved 28f03b4f test host. Comparing late-first-cycle and second-cycle source matches found no added loop delay at 0.25 ms resolution. A separate 42.75 ms timing shift occurred earlier, near a logged mixer underrun; the recorder itself reported zero discontinuities. We kept the master unchanged and routed the runtime finding separately. The process exited normally with all 2,457 protected files unchanged; debug menu travel left only menu music active. This is an older-host audio check, not a current campaign or Shipping pass. The actual excerpt and measurements are in docs/visual/Submission/MusicBuild01/music-loop-check.md.
+
+### November 13 — preserve the separate core theme while native work queues
+
+Audio continued the reflected gameplay-event subscriptions while Lead prepared Nicholas's original Cathedral Pulse for the core chamber. We preserved the MP3 and all 3,338,880 decoded frames, producing a 69.560-second stereo master with Python and FFmpeg. The music file check passed at -14.7 LUFS and -2.7 dBTP without clipping. This prevents confusing the core selection with Cathedral Pulse (1), already used for credits. Looping, native import, real scene timing and listening approval remain open; no Unreal process was launched for this preparation. Sources, reproducible preparation and measurements are in ArtSource/Audio/DominionCore01.
+
+Follow-up: the scoped core SoundWave import and independent fresh-process reload both exited 0. Native exports matched one another exactly and differed from the master by at most one 16-bit rounding step, with all 3,338,880 frames preserved. All 2,458 pre-existing protected files stayed unchanged during import; reload protected the new asset as well. No style, map, gameplay trigger or looping behavior was changed. Both Unreal processes exited; native data is verified, while actual gameplay and Shipping remain pending.
+
+### November 13 — two confirmed Cinder music roles
+
+Nicholas assigned Cinder World to exploration and Cinder Fall to combat. Audio preserved both originals and prepared complete 150.000-second and 148.800-second stereo masters with Python and FFmpeg. Both passed the music-category file checks without gain changes: World -14.4 LUFS/-2.2 dBTP; Fall -15.0 LUFS/-2.3 dBTP. Lead verified all original/master hashes for publication. A later combat beat-drop entry is being auditioned separately; the full masters are untrimmed, and no offset, loop or native gameplay integration is claimed here.

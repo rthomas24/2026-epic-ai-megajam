@@ -238,6 +238,18 @@ struct UNREALGAMEJAM_API FTDFlightTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0"))
 	float ScrapeBounceSpeed = 400.f;
 
+	// ---- Hitting the world (asteroids, wrecks, debris, walls; Ryan, Nov 13): the harder the hit, the more it hurts.
+	/** Below this speed into the surface (cm/s) a hit on the world is a scrape: the normal response, no damage. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0"))
+	float WorldScrapeSpeed = 1500.f;
+	/** Fraction of the ship's max hull a hit at BoostSpeed straight into the world takes. Damage grows with the square
+	 *  of the speed into the surface between WorldScrapeSpeed (0) and BoostSpeed (this). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0", ClampMax = "1"))
+	float WorldImpactHullAtBoost = 0.8f;
+	/** Never more than this fraction of the max hull from one hit on the world. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0", ClampMax = "1"))
+	float WorldImpactMaxHull = 0.9f;
+
 	/** No single collision deals more than this (cm/s above BoostSpeed count as BoostSpeed too). Never one-shots a ship. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Flight|Collision", meta = (ClampMin = "0"))
 	float MaxImpactDamage = 60.f;
@@ -309,4 +321,13 @@ struct UNREALGAMEJAM_API FTDFlightImpact
 	/** Damage the flight model wants applied to its own ship (0 while on cooldown). */
 	UPROPERTY(BlueprintReadOnly, Category = "Flight")
 	float Damage = 0.f;
+
+	/** How hard it was, 0..1 (the impact effect's User.Strength and the camera shake): the hit's share of the max hull for
+	 *  a hit on the world, scaled up so a damaging hit reads; a scrape's speed share below that. */
+	UPROPERTY(BlueprintReadOnly, Category = "Flight")
+	float Strength01 = 0.f;
+
+	/** A hit on the world (not another ship). */
+	UPROPERTY(BlueprintReadOnly, Category = "Flight")
+	bool bWorld = false;
 };

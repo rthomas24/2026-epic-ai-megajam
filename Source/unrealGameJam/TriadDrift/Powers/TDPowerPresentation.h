@@ -51,6 +51,10 @@ struct UNREALGAMEJAM_API FTDPowerPresentation
 	/** True when the cue has art (so the placeholder should stay hidden). */
 	static bool HasArt(const FTDFXCue& Cue);
 
+	/** Tests: treat every cue as having no art (HasArt false, requests counted but nothing spawned): the placeholder path. */
+	static void SetIgnoreArtForTests(bool bIgnore);
+	static bool IsIgnoringArtForTests();
+
 	enum class EShape : uint8 { Sphere, Cylinder, Cone, Cube };
 
 	/** Engine basic shape, no collision or shadows, tinted (emissive) in Color. Shipping-safe. */

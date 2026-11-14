@@ -1,0 +1,14 @@
+{
+  "mode": "import",
+  "pid": 14420,
+  "exit_code": 0,
+  "reason": "completed",
+  "duration_s": 63.234000000004016,
+  "minimum_free_gib": 2.8834457397460938,
+  "protected_count": 2458,
+  "changed_protected": [],
+  "new_content": [
+    "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\lead-music-build-1113\\Content\\TriadDrift\\Audio\\DominionCore01\\MUS_DominionCore_CathedralPulse_Full_01.uasset"
+  ],
+  "unexpected_content": []
+}

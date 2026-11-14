@@ -107,6 +107,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
 	FTDFXCue EngineTrail;
 
+	/**
+	 * Size of this hull's boost plume (T7, Nov 14): while boosting the EngineTrail effects get "Boost" = this instead of 1,
+	 * so a small hull keeps its plume in proportion (Lancer about 0.6). 1 = as authored; 0 = no boost growth.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight", meta = (ClampMin = "0", ClampMax = "2"))
+	float ExhaustBoostScale = 1.f;
+
 	/** Dodge: a short side-thruster burst, attached at the engine (player ship only). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Flight")
 	FTDFXCue Dodge;
@@ -505,6 +512,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue CloudWisps;
 
+	/** Planet ambience (the effects builder's; ATDPlaceholderSky spawns it attached to the camera and drives User.Fade).
+	 *  No gameplay code plays these. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue PlanetAmbientVerdance;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
+	FTDFXCue PlanetAmbientCinder;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Atmosphere")
 	FTDFXCue LandingDust;
 
@@ -643,6 +657,18 @@ public:
 	TSoftObjectPtr<USoundBase> AssaultMusic;
 
 	/**
+	 * Quiet flight in the galaxy (N-063), optional: plays when no other score does (out of the tutorial, not in a fight,
+	 * not in the Dominion assault, no travel, not the menu) after IdleMusicDelaySeconds of quiet, fading in over 4 s and
+	 * out over 2 s the moment a fight (combat music) or any other score starts. The asset's own class, looping and the
+	 * dialogue duck of its sound class apply.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Music")
+	TSoftObjectPtr<USoundBase> IdleSpaceMusic;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Music", meta = (ClampMin = "0", Units = "s"))
+	float IdleMusicDelaySeconds = 6.f;
+
+	/**
 	 * Combat feedback sounds (optional): played as 2D UI sounds by the HUD host when a squad shot lands
 	 * (OnHitConfirmed) and when it kills. The sound's own class, volume and concurrency apply; silent when unset.
 	 */
@@ -695,6 +721,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
 	FTDFXCue SlateClap;
+
+	/** Cinematic 03: the dormant drone's three pulses as it wakes blue (the motif; Nicholas's sound). Played at the drone. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
+	FTDFXCue ThreePulse;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Director Sounds")
 	FTDFXCue CutSting;

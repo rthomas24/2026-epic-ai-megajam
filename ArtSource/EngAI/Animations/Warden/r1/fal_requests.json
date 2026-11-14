@@ -1,0 +1,162 @@
+[
+ {
+  "file": "fireA_s2101.fbx",
+  "request_id": "01a1d817-5e67-7e31-90de-69ed5cf5dc49",
+  "started_utc": "2026-11-14T03:26:40.911Z",
+  "seed": 2101,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A huge, heavy armored soldier stands with his feet planted wide apart. He slowly raises his right arm straight forward at shoulder height as if aiming a heavy cannon built into his forearm, and his left hand grabs his right forearm to brace it. He sinks his weight and leans into the shot, then fires one powerful blast: the right arm and shoulders kick up and back with heavy recoil and his torso rocks back onto the rear leg. Then he slowly lowers the arm and settles back into a heavy ready stance. His feet stay planted the whole time, no stepping, no walking."
+ },
+ {
+  "file": "fireA_s2102.fbx",
+  "request_id": "01a1d817-5e29-72d0-a622-6890529ff9cb",
+  "started_utc": "2026-11-14T03:26:36.754Z",
+  "seed": 2102,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A huge, heavy armored soldier stands with his feet planted wide apart. He slowly raises his right arm straight forward at shoulder height as if aiming a heavy cannon built into his forearm, and his left hand grabs his right forearm to brace it. He sinks his weight and leans into the shot, then fires one powerful blast: the right arm and shoulders kick up and back with heavy recoil and his torso rocks back onto the rear leg. Then he slowly lowers the arm and settles back into a heavy ready stance. His feet stay planted the whole time, no stepping, no walking."
+ },
+ {
+  "file": "fireB_s2201.fbx",
+  "request_id": "01a1d817-5eac-7cd0-a7f1-51a15460141a",
+  "started_utc": "2026-11-14T03:26:41.045Z",
+  "seed": 2201,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A massive armored brute in a wide, low stance braces his legs, pulls his right arm back to his hip, then thrusts the right arm forward, pointing it at a target like a heavy arm cannon, left fist clenched at his chest. He fires a single huge shot and the recoil shoves his right arm and whole upper body back, his knees bend to absorb the kick. He holds a moment, then slowly brings the right arm down and stands back up heavily. Feet stay planted on the ground, he does not step or move his feet."
+ },
+ {
+  "file": "fireB_s2202.fbx",
+  "request_id": "01a1d817-5eaa-7333-9944-75e3802ce56b",
+  "started_utc": "2026-11-14T03:26:55.419Z",
+  "seed": 2202,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A massive armored brute in a wide, low stance braces his legs, pulls his right arm back to his hip, then thrusts the right arm forward, pointing it at a target like a heavy arm cannon, left fist clenched at his chest. He fires a single huge shot and the recoil shoves his right arm and whole upper body back, his knees bend to absorb the kick. He holds a moment, then slowly brings the right arm down and stands back up heavily. Feet stay planted on the ground, he does not step or move his feet."
+ },
+ {
+  "file": "fireC_s2301.fbx",
+  "request_id": "01a1d81b-2f1d-7641-bf82-131a3398cdba",
+  "started_utc": "2026-11-14T03:30:46.983Z",
+  "seed": 2301,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A big heavy man stands facing forward with feet planted shoulder-width apart. He raises his right arm straight out in front of him at shoulder height, pointing forward as if aiming a heavy handgun, and his left hand grips his right wrist to steady it. He fires: his right arm jerks upward and his shoulders and chest jolt backward from the strong recoil, then he brings the arm back down to aim again and slowly lowers it to his side. He keeps facing forward and does not move his feet."
+ },
+ {
+  "file": "fireC_s2302.fbx",
+  "request_id": "01a1d81b-2e88-79a0-9331-35f950ec1455",
+  "started_utc": "2026-11-14T03:30:28.997Z",
+  "seed": 2302,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A big heavy man stands facing forward with feet planted shoulder-width apart. He raises his right arm straight out in front of him at shoulder height, pointing forward as if aiming a heavy handgun, and his left hand grips his right wrist to steady it. He fires: his right arm jerks upward and his shoulders and chest jolt backward from the strong recoil, then he brings the arm back down to aim again and slowly lowers it to his side. He keeps facing forward and does not move his feet."
+ },
+ {
+  "file": "fireD_s2401.fbx",
+  "request_id": "01a1d81b-2f02-7710-abf6-82f32aeeeeef",
+  "started_utc": "2026-11-14T03:30:36.190Z",
+  "seed": 2401,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A big heavy man stands facing forward with knees bent and feet planted wide. He pulls his right fist back beside his chest, then shoves his right arm straight forward and holds it out, pointing at a target in front of him, like firing a cannon from his forearm. The force of the shot knocks his arm and upper body back a little, and he leans back on his rear foot. Then he recovers to a ready stance facing forward. He does not turn and does not move his feet."
+ },
+ {
+  "file": "fireD_s2402.fbx",
+  "request_id": "01a1d81b-2e83-7e93-9c03-4fc18631dc3d",
+  "started_utc": "2026-11-14T03:30:24.112Z",
+  "seed": 2402,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A big heavy man stands facing forward with knees bent and feet planted wide. He pulls his right fist back beside his chest, then shoves his right arm straight forward and holds it out, pointing at a target in front of him, like firing a cannon from his forearm. The force of the shot knocks his arm and upper body back a little, and he leans back on his rear foot. Then he recovers to a ready stance facing forward. He does not turn and does not move his feet."
+ },
+ {
+  "file": "fireE_s2501.fbx",
+  "request_id": "01a1d81f-cef9-7c42-a519-7a795df7bae6",
+  "started_utc": "2026-11-14T03:35:34.636Z",
+  "seed": 2501,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A big heavy man starts standing upright facing forward with both arms relaxed at his sides and feet planted apart. He lifts his right arm up and points it straight forward at shoulder height, left hand grabbing his right forearm to brace it, as if aiming a heavy gun. He fires one big shot: the right arm kicks up sharply with recoil and his upper body jolts back. Then he lowers both arms back down to his sides and stands still, facing forward, in the same pose he started in. His feet never move."
+ },
+ {
+  "file": "fireE_s2502.fbx",
+  "request_id": "01a1d81f-cea6-7cd1-bd3d-2bcce7590122",
+  "started_utc": "2026-11-14T03:35:25.785Z",
+  "seed": 2502,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A big heavy man starts standing upright facing forward with both arms relaxed at his sides and feet planted apart. He lifts his right arm up and points it straight forward at shoulder height, left hand grabbing his right forearm to brace it, as if aiming a heavy gun. He fires one big shot: the right arm kicks up sharply with recoil and his upper body jolts back. Then he lowers both arms back down to his sides and stands still, facing forward, in the same pose he started in. His feet never move."
+ },
+ {
+  "file": "fireE_s2503.fbx",
+  "request_id": "01a1d81f-cefb-7932-8a08-398f8168e2f2",
+  "started_utc": "2026-11-14T03:35:37.575Z",
+  "seed": 2503,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A big heavy man starts standing upright facing forward with both arms relaxed at his sides and feet planted apart. He lifts his right arm up and points it straight forward at shoulder height, left hand grabbing his right forearm to brace it, as if aiming a heavy gun. He fires one big shot: the right arm kicks up sharply with recoil and his upper body jolts back. Then he lowers both arms back down to his sides and stands still, facing forward, in the same pose he started in. His feet never move."
+ },
+ {
+  "file": "fireE_s2504.fbx",
+  "request_id": "01a1d81f-cef1-7e53-a830-4320f6b6a17c",
+  "started_utc": "2026-11-14T03:35:25.751Z",
+  "seed": 2504,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A big heavy man starts standing upright facing forward with both arms relaxed at his sides and feet planted apart. He lifts his right arm up and points it straight forward at shoulder height, left hand grabbing his right forearm to brace it, as if aiming a heavy gun. He fires one big shot: the right arm kicks up sharply with recoil and his upper body jolts back. Then he lowers both arms back down to his sides and stands still, facing forward, in the same pose he started in. His feet never move."
+ },
+ {
+  "file": "sumA_s3101.fbx",
+  "request_id": "01a1d817-5ea7-78c2-bb56-84e3b099a843",
+  "started_utc": "2026-11-14T03:26:54.641Z",
+  "seed": 3101,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A huge, heavy armored warlord stands with his feet planted wide. He rears back and raises his left fist high above his head, chest pushed out as if roaring a command, then swings the clenched left fist forcefully down and punches it toward the ground in front of him, bending his knees into a heavy crouch, calling his troops. Then he slowly rises back up to a tall, menacing standing stance. His right arm stays bent at his side. Feet stay planted, no stepping, no jumping."
+ },
+ {
+  "file": "sumA_s3102.fbx",
+  "request_id": "01a1d817-5ea9-71c3-8d3a-c70a460a53d3",
+  "started_utc": "2026-11-14T03:26:45.695Z",
+  "seed": 3102,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A huge, heavy armored warlord stands with his feet planted wide. He rears back and raises his left fist high above his head, chest pushed out as if roaring a command, then swings the clenched left fist forcefully down and punches it toward the ground in front of him, bending his knees into a heavy crouch, calling his troops. Then he slowly rises back up to a tall, menacing standing stance. His right arm stays bent at his side. Feet stay planted, no stepping, no jumping."
+ },
+ {
+  "file": "sumB_s3201.fbx",
+  "request_id": "01a1d817-5ea6-77b0-9ba3-f713291d79dd",
+  "started_utc": "2026-11-14T03:26:50.768Z",
+  "seed": 3201,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A huge, heavy armored commander stands with feet planted wide. He draws both fists in to his chest and hunches forward, gathering himself, then throws both arms out wide and up to the sides with fists clenched, chest thrust forward, head back, roaring a battle cry to summon his soldiers. He holds the wide powerful pose for a moment, then slowly lowers his arms and settles back into a heavy ready stance. Feet stay planted the whole time, no stepping."
+ },
+ {
+  "file": "sumB_s3202.fbx",
+  "request_id": "01a1d817-5eae-7420-8771-57398cda7543",
+  "started_utc": "2026-11-14T03:26:50.408Z",
+  "seed": 3202,
+  "duration": 2,
+  "guidance_scale": 7,
+  "output_format": "fbx",
+  "prompt": "A huge, heavy armored commander stands with feet planted wide. He draws both fists in to his chest and hunches forward, gathering himself, then throws both arms out wide and up to the sides with fists clenched, chest thrust forward, head back, roaring a battle cry to summon his soldiers. He holds the wide powerful pose for a moment, then slowly lowers his arms and settles back into a heavy ready stance. Feet stay planted the whole time, no stepping."
+ }
+]
