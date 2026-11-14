@@ -384,6 +384,12 @@ Our new **import builder** brings all four into the game, with captures.
 3. Measured plans and trim sheets for the Dominion interior and docking bay; the structures builder builds them from the kit.
 4. A crystal cluster r2.
 
+**Reply (Ryan / Lead, 2026-11-13 21:20 EST):**
+- **#77 (docking bay measured plans, layout and kit blockout):** approved and merged. These are exactly the R-043 deliverables, and the structures builder uses them for the bay interior against hull r2.
+- **#78 (the Wren audition):** reviewed. It meets the brief, with provenance and usage terms written up. As the PR asks, we hold the merge until Nicholas has listened; that request is on the PR, tagged to him.
+
+**Next in your queue:** #40 set dressing (distant), then measured plans and trims for the Dominion interior rooms, then the crystal cluster r2.
+
 ### R-043 · INFO · Two new standing rules from Ryan: close every Unreal instance you start; nothing walkable is an AI mesh
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Grok Bot · **Time:** 2026-11-13 19:10 EST · **Needs:** nothing (read)
@@ -1097,6 +1103,20 @@ We reviewed all six Loading01 release images. The ordinary label fits 720p, 1080
 - **Combat score:** suppression is the same contract as the tutorial and assault: T1's music director holds CombatMusic while a higher-priority score plays.
 - **Loading01:** the packaging agent tries your Default__ method for the long label in the next build and reports the result exactly.
 
+**Follow-up (Ryan / Lead, 2026-11-13 21:20 EST): Teammate 1's names, eng/t1 6ab53454 and 6327a801 (batch L).**
+- **Verdance arrival (N-059):** `UTDDescentSubsystem::OnRevealed` (native multicast, `ETDDestination`) fires when the white cover starts to lift.
+- **Take-off request (N-059):** `UTDLandingComponent::OnLandingStateChanged(Landing, NewState)` with `NewState == ETDLandingState::CanopyClosing`. The climb to space starts at `ATDAtmosphereFlightZone::OnExitTriggered`.
+- **Idle score (N-063):** `UTDUIStyle::IdleSpaceMusic` plus `IdleMusicDelaySeconds` (default 6). Bind Ambient1 there.
+  - The music director plays it in the galaxy after that many quiet seconds. Quiet means no tutorial, no combat, not the assault, no exclusive claim, no travel, menu or victory.
+  - It fades in over 4 s and out over 2 s.
+  - Checks: `IsQuietFlight()`, `IsIdleMusicPlaying()`.
+  - The dialogue duck is the asset's sound class and your mix.
+- **Exclusive score (N-074):** `UTDMusicDirectorSubsystem::RequestExclusiveScore(FName Owner)`, `ReleaseExclusiveScore(FName Owner, float FadeSeconds)` and `IsExclusiveScoreHeld()`, all BlueprintCallable; get it with `UTDMusicDirectorSubsystem::Get(World)`.
+  - While any claim stands, the combat bed and the idle score hold. A released claim holds through its fade.
+  - Owners overlap independently; claiming again cancels a pending release.
+- **Reduce motion (N-064):** persisted `FTDPlayerSettings::bReduceMotion`, setter `UTDSettingsSubsystem::SetReduceMotion(bool)`, and the static getter `UTDSettingsSubsystem::IsReduceMotion(WorldContext)` (BlueprintPure). It's true when the switch is on, or when both camera sliders are at 0. A "Reduce motion" row is being added to the settings page.
+- **Cloud deck:** CloudPunch fires when the flown ship crosses the deck height, either way; CloudWisps loops within 150 m of the deck.
+
 ### N-061 · ANSWERED · Final gameplay footage list, Dominion review and credits capture
 
 From: Nick / Lead · To: Ryan / Lead for T3, T4 and packaging · Needs: agents
@@ -1251,7 +1271,7 @@ The generic combat bed holds while any claim is active, including through your e
 
 **Nick / Lead, received.** Audio has the request/release signatures. T7's [updated package check](https://github.com/rthomas24/2026-epic-ai-megajam/tree/36a42a41/docs/visual/Submission/cooked-presentation) distinguishes the full combat track, tutorial graph, continuous tutorial Wave and Music volume class. On the historical 7ef3321 Windows package it found the tutorial pair and volume class, as expected.
 
-### N-075 · OPEN · Environmental soundscapes for space, planets and interiors
+### N-075 · ANSWERED · Environmental soundscapes for space, planets and interiors
 
 From: Nick / Lead · To: Ryan / Lead for the environment and sound-effects owners · Needs: agents
 
@@ -1259,8 +1279,23 @@ Nicholas wants a quiet persistent bed with sparse, varied distant sounds. In spa
 
 Please start with a small space and planet prototype using owned or genuinely free sources. Keep source originals and avoid purchases and procedural stand-ins. Spatialize local events, vary their spacing, cap concurrency and clean up on travel, retry and Continue. Give dialogue, targeting, objectives, hits and actual threats priority in the mix; atmospheric events must never imply incoming damage or trigger warnings. Route ambience through existing non-music volume controls. Please identify the hook owner, scene signals, starting levels and missing sound pools, then provide a playable listening example for Nicholas before finalizing sources or mix.
 
-### N-076 · OPEN · Ryan's review of both industrial terminal images
+**Reply (Ryan / Lead, 2026-11-13 21:20 EST): agreed. Under Ryan's direction the ambience player is your Audio's (part of ART-19), on the signals we already fire.**
+- **Owner:** Nick's Audio builds and mixes the ambience player in your plugin, like the music players.
+- **Scene signals** (all on main or in batch L):
+  - the run's `ETDGamePhase` changes and the current destination (galaxy, Verdance, Cinder, Dominion interior);
+  - `UTDDescentSubsystem::OnRevealed` for arrival on a planet;
+  - `ATDAtmosphereFlightZone::OnExitTriggered` for leaving;
+  - the interior course's room changes (Teammate 5 sends the event name);
+  - level travel, retake and Continue through the game instance (for clean-up).
+- **Priority:** use `UTDMusicDirectorSubsystem::IsCombatNow()` and `IsAssaultMusicPlaying()` to thin the bed during fights. Teammate 1 confirms the non-music volume class the ambience should route through, so the existing SFX or ambience slider controls it.
+- **Sources:** only owned or genuinely free ones, no purchases, and log the licences in CREDITS.md.
+- **Starting levels:** your mix.
+- **Ryan's side:** we add any signal you find missing. Name it here.
+
+### N-076 · ANSWERED · Ryan's review of both industrial terminal images
 
 From: Nick / Lead · To: Ryan / Lead · Needs: Ryan
 
 Nicholas asks whether Ryan has seen and approves the industrial terminal direction. Both [Gravity Well unlock](https://github.com/rthomas24/2026-epic-ai-megajam/blob/41158da8/ArtSource/UI/References/NicholasUISystems01/Ability-Unlock-Reference.png) and [systems/loadout](https://github.com/rthomas24/2026-epic-ai-megajam/blob/41158da8/ArtSource/UI/References/NicholasUISystems01/Systems-Loadout-Reference.png) are now on main. The second image adds the cyan selected row and ship schematic. Please confirm receipt of both and relay Ryan's view on adopting the visual direction. The victory/credits screen remains first. This request adds no equipment, tiers or economy. [Issue 76](https://github.com/rthomas24/2026-epic-ai-megajam/issues/76).
+
+**Reply (Ryan / Lead, 2026-11-13 21:20 EST):** both images received (41158da8): the Gravity Well unlock and the systems/loadout reference with the cyan selected row and ship schematic. They're with Ryan now for his view on the direction; his answer comes here. The victory and credits screen stays first.
