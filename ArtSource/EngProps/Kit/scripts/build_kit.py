@@ -26,6 +26,7 @@ import kit_lib  # noqa: E402
 import kit_pieces  # noqa: E402
 import kit_pieces_bridge  # noqa: E402
 import kit_pieces_huts  # noqa: E402
+import kit_pieces_ground  # noqa: E402
 import kit_pieces_d  # noqa: E402
 import kit_pieces_space  # noqa: E402
 import kit_pieces_story  # noqa: E402
@@ -140,7 +141,21 @@ def make_materials(glow=GLOW_TEAL):
                 nd.image = bpy.data.images.load(os.path.join(TEX, nd.image.name.replace("T_Kit_Trim", "T_KitS_Trim")), check_existing=True)
                 nd.image.colorspace_settings.name = "sRGB" if "_BC" in nd.image.name else "Non-Color"
         mats["Stone"] = st
-    for key, col, strength in (("Glow", glow, 6.0), ("Screen", (0.06, 0.4, 0.45), 1.5), ("Light", (1.0, 0.72, 0.42) if SET == "huts" else (0.9, 0.95, 1.0), 8.0),
+    if SET == "ground":                          # #194 Verdance wood (dark bark on the stone sheet's regions)
+        bk = st.copy()
+        bk.name = "M_Kit_Bark"
+        b_ = next(n for n in bk.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+        mix = bk.node_tree.nodes.new("ShaderNodeMix")
+        mix.data_type = "RGBA"
+        mix.blend_type = "MULTIPLY"
+        mix.inputs["Factor"].default_value = 1.0
+        mix.inputs[7].default_value = (0.35, 0.24, 0.16, 1.0)
+        src = b_.inputs["Base Color"].links[0].from_socket if b_.inputs["Base Color"].links else None
+        if src is not None:
+            bk.node_tree.links.new(src, mix.inputs[6])
+            bk.node_tree.links.new(mix.outputs[2], b_.inputs["Base Color"])
+        mats["Bark"] = bk
+    for key, col, strength in (("Glow", glow, 6.0), ("Screen", (0.06, 0.4, 0.45), 1.5), ("Light", (1.0, 0.72, 0.42) if SET in ("huts", "perimeter") else (0.9, 0.95, 1.0), 8.0),
                                ("Beacon", glow, 20.0), ("Pillar", glow, 3.0), ("Decal", (1.0, 0.45, 0.1), 0.5), ("Route", (1.0, 0.05, 0.03), 0.5),
                                ("Eye", (1.0, 1.0, 1.0), 12.0), ("Breach", (0.2, 0.5, 1.0), 6.0), ("Run", (1.0, 0.2, 0.15), 6.0),
                                ("Flicker", (1.0, 0.72, 0.42), 4.0), ("Work", (1.0, 0.9, 0.7), 8.0),
@@ -167,7 +182,7 @@ def build_all():
     rows, objs, pieces = [], {}, {}
     for fn in {"dominion": kit_pieces_d.BUILDERS, "space": kit_pieces_space.BUILDERS, "story": kit_pieces_story.BUILDERS,
                 "region": kit_pieces_region.BUILDERS,
-                "gear": kit_pieces_gear.BUILDERS, "bridge": kit_pieces_bridge.BUILDERS, "huts": kit_pieces_huts.BUILDERS}.get(SET, kit_pieces.BUILDERS):
+                "gear": kit_pieces_gear.BUILDERS, "bridge": kit_pieces_bridge.BUILDERS, "huts": kit_pieces_huts.BUILDERS, "ground": kit_pieces_ground.GROUND, "perimeter": kit_pieces_ground.PERIMETER}.get(SET, kit_pieces.BUILDERS):
         p = fn()
         if ONLY and p.name not in ONLY:
             continue
@@ -513,7 +528,7 @@ def main():
     ap.add_argument("--tag", default="r0")
     ap.add_argument("--render", action="store_true")
     ap.add_argument("--export", action="store_true")
-    ap.add_argument("--set", default="planet", choices=("planet", "dominion", "space", "story", "region", "gear", "bridge", "huts"))
+    ap.add_argument("--set", default="planet", choices=("planet", "dominion", "space", "story", "region", "gear", "bridge", "huts", "ground", "perimeter"))
     ap.add_argument("--only", default="")
     a = ap.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     global SET, EXPORT, ONLY
@@ -525,6 +540,9 @@ def main():
     elif SET == "region":
         EXPORT = os.path.join(KIT, "export_region")
         a.tag = "R_" + a.tag
+    elif SET in ("ground", "perimeter"):        # #194 ground-break and camp perimeter pieces, their own exports
+        EXPORT = os.path.join(KIT, "export_" + SET)
+        a.tag = {"ground": "GR_", "perimeter": "PE_"}[SET] + a.tag
     elif SET == "huts":                          # #194 camp buildings (planet trim), their own export
         EXPORT = os.path.join(KIT, "export_huts")
         a.tag = "H_" + a.tag
@@ -561,7 +579,7 @@ def main():
         os.makedirs(EXPORT, exist_ok=True)
         for name in objs:
             try:
-                r = ex(root=name, out_dir=EXPORT, front_axis="+X", collision="auto" if name not in kit_pieces.NO_COLLISION + kit_pieces_story.NO_COLLISION + kit_pieces_gear.NO_COLLISION else "none")
+                r = ex(root=name, out_dir=EXPORT, front_axis="+X", collision="auto" if name not in kit_pieces.NO_COLLISION + kit_pieces_story.NO_COLLISION + kit_pieces_gear.NO_COLLISION + kit_pieces_ground.NO_COLLISION else "none")
             except AttributeError:
                 with open(os.path.join(EXPORT, name + ".manifest.json")) as fh:
                     r = json.load(fh)
@@ -572,7 +590,7 @@ def main():
             o.location = (0, x + w / 2, 0)
             x += w + 1.0
         if not ONLY:
-            bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, {"dominion": "KitDominion.blend", "space": "KitSpace.blend", "story": "KitStory.blend", "region": "KitRegion.blend", "gear": "KitGear.blend", "bridge": "KitBridge.blend", "huts": "KitHuts.blend"}.get(SET, "Kit.blend")), compress=True)
+            bpy.ops.wm.save_as_mainfile(filepath=os.path.join(KIT, {"dominion": "KitDominion.blend", "space": "KitSpace.blend", "story": "KitStory.blend", "region": "KitRegion.blend", "gear": "KitGear.blend", "bridge": "KitBridge.blend", "huts": "KitHuts.blend", "ground": "KitGround.blend", "perimeter": "KitPerimeter.blend"}.get(SET, "Kit.blend")), compress=True)
     print("__RESULT__ done")
 
 
