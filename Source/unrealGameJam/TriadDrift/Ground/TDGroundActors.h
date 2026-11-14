@@ -395,6 +395,13 @@ public:
 	/** One straggler pass (the encounter runs it every second while the fight is on); public for tests. */
 	void SweepStragglers(float Seconds);
 
+	/** No crew spawns closer than this to the pilot when the fight starts (pushed away inside the volume). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (Units = "cm", ClampMin = "0"))
+	float MinSpawnDistance = 1000.f;
+	/** On a retake (take 2+) the crew hold fire at least this long. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (Units = "s", ClampMin = "0"))
+	float RetakeGraceSeconds = 2.f;
+
 	/** Director's mercy: easing per take of this fight (empty = always the same fight). Sorted by FromTake. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	TArray<FTDRetakeMercyTier> MercyTiers;
