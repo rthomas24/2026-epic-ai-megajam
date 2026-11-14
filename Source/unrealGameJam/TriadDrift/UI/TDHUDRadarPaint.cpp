@@ -174,7 +174,8 @@ namespace TDHUDRadar
 	{
 		int32 Wave = -1, Count = -1, Next = -1, NextIn = -1, Breather = -1;
 		float Range = -1.f;
-		FString WaveText, NextText, BreatherText, RangeText;
+		FString WaveText, NextText, BreatherText, RangeText, GenText;
+		int32 GenDown = -1, GenTotal = -1;
 	};
 	static FCache& Cache()
 	{
@@ -328,7 +329,35 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 	}
 
 	// ---- wave header above the radar: WAVE n / N, a pip per wave, the next group (+count, seconds) or NEXT WAVE
-	if (In.Wave.WaveCount > 0)
+	// Only during a wave or its breather (after wave 5 the director reports wave 0: it read "WAVE 1 / 5", #103).
+	const bool bWaves = In.Wave.WaveCount > 0 && In.Wave.WaveNumber > 0 && (In.Wave.bWaveActive || In.Wave.bInBreather);
+	if (!bWaves && In.GeneratorsTotal > 0)
+	{
+		// The Dominion assault: GENERATORS n / N with a pip each (down = filled), then REACTOR.
+		const float HH = HeaderH * D.FontK;
+		const float HX = C.X - R, HY = C.Y - R - HeaderGap - HH, HW = 2.f * R;
+		P.Box(HX, HY, HW, HH, Pal::Panel().CopyWithNewOpacity(.88f));
+		D.Seg(FVector2D(HX, HY + HH), FVector2D(HX + HW * .4f, HY + HH), Pal::Hostile().CopyWithNewOpacity(.55f), 1.5f);
+		const bool bReactor = In.GeneratorsDown >= In.GeneratorsTotal;
+		if (K.GenDown != In.GeneratorsDown || K.GenTotal != In.GeneratorsTotal)
+		{
+			K.GenDown = In.GeneratorsDown;
+			K.GenTotal = In.GeneratorsTotal;
+			K.GenText = bReactor ? FString(TEXT("REACTOR")) : FString::Printf(TEXT("GENERATORS %d / %d"), K.GenDown, K.GenTotal);
+		}
+		D.Text(HX + 10.f, HY + 7.f * D.FontK, K.GenText, 14, bReactor ? Pal::Hostile() : Pal::Ink(), "Bold", 0.f);
+		if (!bReactor)
+		{
+			const int32 Pips = FMath::Min(In.GeneratorsTotal, 8);
+			for (int32 I = 0; I < Pips; ++I)
+			{
+				const FVector2D Pip(HX + HW - 14.f * S - (Pips - 1 - I) * 13.f * S, HY + HH * .5f);
+				if (I < In.GeneratorsDown) { D.Dot(Pip, 7.f * S, Pal::Ink().CopyWithNewOpacity(.85f)); }
+				else { D.Shape(Pip, { { 0, -4.5f * S }, { 4.5f * S, 0 }, { 0, 4.5f * S }, { -4.5f * S, 0 } }, Pal::Hostile(), 1.4f, true); }	// still up: a hollow diamond
+			}
+		}
+	}
+	if (bWaves)
 	{
 		const float HH = HeaderH * D.FontK;	// the header grows with its text
 		const float HX = C.X - R, HY = C.Y - R - HeaderGap - HH, HW = 2.f * R;
