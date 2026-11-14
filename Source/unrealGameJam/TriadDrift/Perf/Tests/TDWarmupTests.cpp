@@ -97,4 +97,20 @@ bool FTDAssetCacheAnswersOnce::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWarmupHasCombatList, "TriadDrift.Perf.Warmup.CombatListRegistered", TD_TEST_FLAGS)
+bool FTDWarmupHasCombatList::RunTest(const FString& Parameters)
+{
+	// T2's combat list feeds the warm pass: registered, and it names something for the galaxy.
+	TestTrue(TEXT("Combat provider registered"), UTDWarmupSubsystem::Providers().Contains(TEXT("Combat")));
+	FTDTestWorld W;
+	TArray<FSoftObjectPath> Paths;
+	if (const UTDWarmupSubsystem::FProvider* P = UTDWarmupSubsystem::Providers().Find(TEXT("Combat")))
+	{
+		(*P)(*W.GetWorld(), Paths);
+	}
+	AddInfo(FString::Printf(TEXT("combat list: %d paths for a test world"), Paths.Num()));
+	TestTrue(TEXT("the list names assets"), Paths.Num() > 0);
+	return true;
+}
+
 #endif

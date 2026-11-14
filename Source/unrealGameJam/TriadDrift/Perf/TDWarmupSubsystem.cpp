@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Triad Drift team. Epic AI MegaJam entry.
 #include "TriadDrift/Perf/TDWarmupSubsystem.h"
 
+#include "TriadDrift/Combat/TDCombatAssetList.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDTypes.h"
 #include "AssetRegistry/AssetRegistryModule.h"
@@ -100,6 +101,20 @@ namespace
 			}
 		}
 	}
+}
+
+namespace
+{
+	// T2's combat list (#89): the combat classes and the assets combat code loads by path, per map (Galaxy: space
+	// combat and the Dominion; elsewhere: on foot). Registered here so the Combat module needs no warm-up code.
+	struct FTDRegisterCombatWarmup
+	{
+		FTDRegisterCombatWarmup()
+		{
+			UTDWarmupSubsystem::RegisterProvider(TEXT("Combat"),
+				[](const UWorld& W, TArray<FSoftObjectPath>& Out) { FTDCombatAssetList::Collect(W, Out); });
+		}
+	} GTDRegisterCombatWarmup;
 }
 
 TMap<FName, UTDWarmupSubsystem::FProvider>& UTDWarmupSubsystem::Providers()
