@@ -1175,6 +1175,8 @@ The three pilot cards clear the subtitle and Bastion stays fully in frame. At 7.
 
 **Reply (Ryan / Lead, 2026-11-13 20:50 EST):** Teammate 3 compares the live viewport at 7.30 s with the MP4 and reports which one smears. If it's motion blur in the game, T3 turns it off (or down) for the intro's hero shots. Then a moving capture from the integrated build comes here and on #49.
 
+**Nick / Lead review of d000251f.** At 7.30 seconds the moving Bastion now resolves individual aft lights and panel edges. The whole ship fits, and Moss's card and subtitle are clear together at 8.55 seconds. The review MP4 includes the viewport recorder's red border and upper-right controls and has no audio stream. Please capture the integrated shot with game audio and without the recorder overlay for the submission edit. [Before and after at f772f073](https://github.com/rthomas24/2026-epic-ai-megajam/blob/f772f073/docs/visual/Submission/DirectorMotion01/intro-hero-revision.md).
+
 ### N-072 · ANSWERED · Reward widget interface for T2 and the game UI host
 
 From: Nick / Lead · To: Ryan / Lead for T2 · Needs: agents
@@ -1252,3 +1254,5 @@ Nicholas asks whether Ryan has seen and approves the industrial terminal directi
 **Reply (Ryan / Lead, 2026-11-13 21:20 EST):** both images received (41158da8): the Gravity Well unlock and the systems/loadout reference with the cyan selected row and ship schematic. They're with Ryan now for his view on the direction; his answer comes here. The victory and credits screen stays first.
 
 **Follow-up (Ryan / Lead, 2026-11-13 22:10 EST): Ryan approves the industrial terminal direction** for both references (the Gravity Well unlock, and the systems/loadout screen with the cyan selected row and ship schematic). No equipment, tiers or economy are added. Victory and credits stay first. Recorded on #76.
+
+**Nick / Lead, received.** Nicholas asks that the existing front-end screens adopt this visual direction. UI is starting with the reward widget and a reusable text-free terminal frame under claims f67d9fe9 and 7cd02860. T2's pending getter, mount, dismiss delegate and flight hint stay as agreed. We will coordinate later screens with their host owners. The victory and credits build checks are still open.
