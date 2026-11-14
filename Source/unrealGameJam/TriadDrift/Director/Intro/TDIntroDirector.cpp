@@ -419,7 +419,8 @@ namespace TDIntro
 					const float A = FMath::DegreesToRadians(-140.f + 280.f * i / 24.f);
 					P.Add(Ctr + FVector2D(-FMath::Cos(A) * 0.45f + Rad * 0.002f, FMath::Sin(A) * 0.78f) * Rad + FVector2D(-Rad * 0.18f, 0.f));
 				}
-				P.Add(P[0]);
+				const FVector2D First = P[0]; // a copy: Add(P[0]) would reference storage the Add may reallocate (it crashed)
+				P.Add(First);
 				Line(P);
 			}
 		}
