@@ -344,6 +344,14 @@ S2('NS_TD_Amb_Shared_HutBeacon', U((1.0, 0.15, 0.05, 1.0)), [
     shed('Halo', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(260.0*%s)' % AMB_BLINK,) * 2, (0, 0), k=0.8, radius=0.0, drag=0.0, local=True, power=0.6,
          rate_expr='20.0')])
 
+# ---- round 12 (T5): the crew Grunt's melee wind-up (DA_Crew_Grunt_Visuals.Telegraph; attached at the root, the capsule
+# centre about 0.9 m up, +X = facing). Under 0.4 s: a red-orange ground ring snapping in under the feet, a hot glow
+# in front of the chest that swells, and a white flare at the end (the swing comes). Reads in first and third person.
+S2('NS_TD_Crew_MeleeWindup', U((1.0, 0.22, 0.05, 1.0)), [
+    offset(flat_ring('Ring', 260, 0.35, 1.6, growth='0.35 + pow(Particles.NormalizedAge, 0.6)*0.65', mat='M_TD_VFX_Shock', power=1.2), 0, 0, -88),
+    offset(flash('Glow', 'M_TD_VFX_Glow', 140, 0.35, 2.6, growth='0.4 + 0.8*Particles.NormalizedAge', power=0.4), 60, 0, 20),
+    offset(flash('Flare', 'M_TD_VFX_Flare', 120, 0.08, 3.0, growth='0.6 + Particles.NormalizedAge', delay=0.3), 60, 0, 20)])
+
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
 # ---- round 10 MAJOR (T7's play): Cinder magma kills but does not read as dangerous on foot. A looping hazard layer for
