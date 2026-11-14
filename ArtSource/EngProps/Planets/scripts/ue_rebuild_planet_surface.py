@@ -29,6 +29,7 @@ def main():
         return
     t = {n: eal.load_asset("%s/%s" % (DEST, n)) for n in
          ("T_Planet_Verdance_BC", "T_Planet_Verdance_N", "T_Planet_Verdance_ORM", "T_Planet_Verdance_E", "T_Planet_Verdance_Clouds")}
+    t["T_Ground_MacroNoise"] = eal.load_asset(DEST + "/T_Ground_MacroNoise")   # close-range detail (optional)
     if any(v is None for v in t.values()):
         log("FAILED: textures missing %s" % [k for k, v in t.items() if v is None])
         return

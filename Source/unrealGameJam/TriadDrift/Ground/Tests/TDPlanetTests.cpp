@@ -231,7 +231,8 @@ bool FTDPlanetExit::RunTest(const FString& Parameters)
 	TestTrue(TEXT("exit triggered"), Zone->IsExitTriggered());
 	TestTrue(TEXT("travel to the galaxy started"), V.GI->IsTravelPending());
 	TestEqual(TEXT("return point is the planet's orbit"), V.GI->GetProgressRef().ReturnPoint, FName(TEXT("Verdance_Orbit")));
-	V.GI->TickFlow(UTDFlowSettings::Get()->TravelFadeSeconds + 0.1f);
+	// T1 (ENG-38): the level change waits for the climb out (the exit and the return point are set at once).
+	V.GI->TickFlow(Zone->ExitClimbSeconds + UTDFlowSettings::Get()->TravelFadeSeconds + 0.1f);
 	TestEqual(TEXT("opens the galaxy map"), Opened, FString(TEXT("/Engine/Maps/Entry")));
 	V.GI->OpenLevelOverride = nullptr;
 	return true;
@@ -410,7 +411,7 @@ namespace TDCourseTest
 			for (int32 i = 0; i < 90 && !Zone->IsExitTriggered(); ++i) { V.W.Tick(1.f / 30.f); }
 			T.TestTrue(TEXT("travel to the galaxy"), V.GI->IsTravelPending());
 			T.TestEqual(TEXT("at the planet's orbit"), V.GI->GetProgressRef().ReturnPoint, FName(*FString::Printf(TEXT("%s_Orbit"), Planet)));
-			V.GI->TickFlow(UTDFlowSettings::Get()->TravelFadeSeconds + 0.1f);
+			V.GI->TickFlow(Zone->ExitClimbSeconds + UTDFlowSettings::Get()->TravelFadeSeconds + 0.1f); // T1: the climb out first
 			V.GI->OpenLevelOverride = nullptr;
 		}
 	};
@@ -1443,8 +1444,30 @@ bool FTDCinderPlayed::RunTest(const FString& Parameters)
 	}
 	P.Report(Jammer->IsComplete(), TEXT("jammer destroyed and outrun"));
 
-	if (ATDBoardShipInteractable* Board = V.Director->GetBoardPoint()) { P.RunTo(FVector(0.f, 0.f, 0.f), 600.f, 60.f); P.Use(Board, Board->HoldTime); }
+	if (ATDBoardShipInteractable* Board = V.Director->GetBoardPoint())
+	{
+		// T1: the parked ship is solid now (Ryan, Nov 13). Walk round its nose to the prompt's side, as a player would.
+		if (ATDShip* Parked = V.Ship())
+		{
+			const FBox Hull = UTDLandingComponent::VisibleHullBoxLocal(Parked);
+			const FVector C = Parked->GetActorLocation(), Fwd = Parked->GetActorForwardVector().GetSafeNormal2D();
+			const FVector Out = (Board->GetActorLocation() - C).GetSafeNormal2D();
+			const float Reach = (Hull.IsValid ? Hull.GetExtent().Size2D() : 500.f) + 400.f;
+			P.RunTo(C + Fwd * Reach - Out * Reach, 250.f, 30.f);   // the far side's front corner
+			P.RunTo(C + Fwd * Reach + Out * Reach, 250.f, 30.f);   // across in front of the nose
+		}
+		P.RunTo(Board->GetActorLocation(), 250.f, 30.f);
+		P.Use(Board, Board->HoldTime);
+	}
 	P.Tick(1.f);
+	{
+		ATDBoardShipInteractable* B = V.Director->GetBoardPoint();
+		ATDShip* S = V.Ship();
+		AddInfo(FString::Printf(TEXT("re-board: failed '%s'; player %s; board %s (enabled %d, can %d); ship %s landed %d block %d"), *P.Failed,
+			*P.FP->GetActorLocation().ToCompactString(), B ? *B->GetActorLocation().ToCompactString() : TEXT("-"), B ? (int32)B->bEnabled : -1,
+			B ? (int32)B->CanInteract(P.FP) : -1, S ? *S->GetActorLocation().ToCompactString() : TEXT("-"),
+			S && S->GetLanding() ? (int32)S->GetLanding()->IsLanded() : -1, S && S->GetLanding() ? (int32)S->GetLanding()->IsParkedBlockOn() : -1));
+	}
 	TestFalse(TEXT("played: re-boarded"), V.Director->IsOnFoot());
 	AddInfo(FString::Printf(TEXT("Cinder played in %.0f s of game time with %d deaths (hull at start %.2f)"), V.W.GetWorld()->GetTimeSeconds() - Start, P.Deaths, HullAtStart));
 	return true;

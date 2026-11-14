@@ -60,10 +60,14 @@ public:
 	/** Tests: >= 0 forces a running transfer at this progress (no ATDArchiveTransfer needed); -1 reads the world. */
 	float ForceTransfer01 = -1.f;
 	bool bForceTransferPaused = false;
+	/** Tests: a non-empty value replaces the pawn's objective line. */
+	FString ForceObjective;
 	/** Tests: >= 0 forces a Warden at this hull (phase 2 below BossPhase2At); -1 reads the world. */
 	float ForceBoss01 = -1.f;
 	/** Where the bar marks the phase change (T5: Phase2HealthFraction 0.5). */
 	static constexpr float BossPhase2At = .5f;
+	/** The objective panel grows to fit its line up to this width (design px), then wraps to two lines. */
+	static constexpr float ObjectiveMaxWidth = 1000.f;
 
 	/** Named boxes painted last frame (tests: "transfer" for the meter plate). */
 	mutable TArray<TPair<FName, FBox2D>> LastBoxes;

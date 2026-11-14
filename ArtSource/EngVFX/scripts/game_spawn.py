@@ -67,6 +67,27 @@ elif kind == 'engine':
         if len(CMD) > 4:
             c.set_variable_float('Scale', float(CMD[4]))
     out.append('engine %s' % ('ok' if c else 'FAILED'))
+elif kind == 'attach_set':   # ('attach_set', name, (x, y, z), {'Power': 1.0, ...}): attach to the player ship and set user floats
+    c = tag(NFL.spawn_system_attached(load(CMD[1]), pawn.root_component, 'None', unreal.Vector(*CMD[2]), unreal.Rotator(0, 0, 0),
+                                      unreal.AttachLocation.KEEP_RELATIVE_OFFSET, True, True, unreal.NCPoolMethod.NONE, True))
+    for k, v in (CMD[3] if len(CMD) > 3 else {}).items():
+        c.set_variable_float(k, float(v))
+    out.append('%s %s' % (CMD[1], 'ok' if c else 'FAILED'))
+elif kind == 'pickups':   # ('pickups', dist, gap[, names]): the four pickup idles in a row in front of the ship, world space
+    # (T2's ATDPickup is not on this branch, and Python cannot spawn an actor into the PIE world to rebuild its shapes)
+    dist, gap = CMD[1], CMD[2]
+    names = CMD[3] if len(CMD) > 3 else ['NS_TD_Pickup_Hull', 'NS_TD_Pickup_Shield', 'NS_TD_Pickup_Power', 'NS_TD_Pickup_Overcharge']
+    xf = pawn.get_actor_transform()
+    for i in range(len(names)):
+        loc = unreal.MathLibrary.transform_location(xf, unreal.Vector(dist, (i - (len(names) - 1) / 2.0) * gap, 0.0))
+        c = tag(NFL.spawn_system_at_location(world, load(names[i]), loc, unreal.Rotator(0, 0, 0), unreal.Vector(1, 1, 1), True, True, unreal.NCPoolMethod.NONE, True))
+        out.append('%s %s' % (names[i], 'ok' if c and c.is_active() else 'NOT ACTIVE'))
+elif kind == 'spread_pickups':   # ('spread_pickups', gap): line T2's live pickups up across the view, in spawn order
+    ps = sorted(unreal.GameplayStatics.get_all_actors_of_class(world, unreal.TDPickup), key=lambda a: a.get_name())
+    right = pawn.get_actor_right_vector()
+    for i, a in enumerate(ps):
+        a.set_actor_location(a.get_actor_location() + right * ((i - (len(ps) - 1) / 2.0) * CMD[1]), False, True)
+    out.append('spread %d pickups' % len(ps))
 elif kind == 'at_enemies':
     n = 0
     for a in unreal.GameplayStatics.get_all_actors_of_class(world, unreal.TDEnemyShip):

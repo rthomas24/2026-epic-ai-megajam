@@ -3,11 +3,31 @@ Nicholas resumed the features.md presentation assignments. Current owners and ne
 
 # Visual production and acceptance status
 
+## Opening pilot cards in the Concept A gameplay capture (#49)
+
+T3's 1080p clip from eng/t3 `9fe5d373` shows Wren, Kato and Moss in sequence. The insignia and pilot names remain distinct and clear of the narration subtitle. All of Bastion stays in frame until Moss's card fades. The earlier framing concern is resolved in this capture.
+
+At **7.30 seconds** in the MP4, Bastion's hull edges and yellow engine lights streak sideways. Moss's card and the planet below remain distinct. The comparison sheet shows separated lights and sharper hull detail. Rift and Lancer also smear in the clip. Compare the live viewport and recording at the same instant. If only the recording smears, recapture it. If the live view smears too, inspect motion blur and relative camera/ship movement. Preserve the framing and subtitle gap. The clip contains video only. Main-build verification and Nicholas's visual approval are pending. [Original clip and three-resolution sheet](https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/issue49-conceptA-r1)
+
 Nick-side checkpoint updated 2026-11-13 after resumed production/R028 review; verified branch/evidence stages are named below. Engineering-owned facts remain tied to their cited reports, not a new Lead certification. This is an acceptance ledger, not a dispatch. Current [CLAIMS.md](../../CLAIMS.md) controls owners, exact paths, pauses and resource grants.
 
 [features.md](../../features.md) controls scope, including ENG-32 Settings/third-person and ENG-33 intro. [AGENTS.md](../../AGENTS.md) controls coordination; [AAA.md](../../AAA.md) controls quality. No scope is cut by this cleanup. The earlier ledger and checkpoint history are [archived verbatim](archive/2026-11-13-cdea6df/STATUS.md).
 
-## Current acceptance ledger
+## November 13 evening acceptance checks
+
+| Item | Verified | Next gameplay check |
+|---|---|---|
+| Survey terminals | Both approved 1920×1080 Unreal textures reopened in a fresh editor and reached main at 8ce307c5. | T2 binds them to the correct terminal scenes. Read the buried structure on Verdance and the comparison overlay on Cinder in the packaged build. |
+| Victory credits | Main 945281be contains eight sections and 28 lines verified after reload. The staged editor-game victory panel displayed the music credits at [720p](Submission/Credits01/720p-shot_03_22.0s.png), [1080p](Submission/Credits01/1080p-shot_03_22.0s.png) and [ultrawide](Submission/Credits01/ultrawide-shot_03_22.0s.png). Compare the [earlier 1080p frame](Submission/Credits01/1080p-shot_02_18.0s.png) for scrolling. | The 720p and 1080p runs exited cleanly. The ultrawide run captured three frames before the memory guard stopped it. Check the full roll, long-run stats and Return to Menu from a natural victory on the Shipping build. Audio playback and final cooked-asset credits still need verification. |
+| Loading screen | Six release images cover the ordinary label at 720p, 1080p and ultrawide across New Game, Continue and a console-driven menu return on the isolated 2aa09121 candidate. | Capture a long wrapped label through the same transitions. |
+| Settings focus | The 234117fe packaged candidate kept Master at 90% across close/reopen, but the selected action lacked a visible outline. | Compile the 662b8c04 correction, return all 14 test results and capture Esc/B close at 0.3 and 3.5 seconds before further navigation. |
+| Space idle music | Ambient1 on main c1fb5032 reopened in a fresh Unreal process as a looping 144.8-second stereo Music SoundWave. The original and PCM fingerprints match the preparation record. | T1 handoff requested in N-063. Listen through the loop in quiet flight and the transition into combat; verify the cooked reference and exclusive ownership. |
+| Menu and Lancer auditions | Actual private 28f03b4f host, review media on main 57d8de9d. The menu wave repeats after 107.000 s (captured signal correlation 0.999999). Following New Game, process audio continues across travel and logs resolve one menu voice on debug return. Lancer possession and camera agree through the 15.17 s trial. | Nicholas reviews the menu loop. The viewport recording ends at first travel. Confirm each Lancer fire, shield and hull cue independently. Tutorial withdrawal and its complete fade still await the matching build in #24. |
+| Music | Push The Attack reopened with full-track looping on main 12a5149f. Credits, boarding and Verdance playback code is on the review branch at 78caa422. | Bind actual gameplay events, play and capture the cues, and verify the Shipping cook. Nicholas still needs the in-game PR #11 menu return and PR #12 Lancer fire, hull and shield sounds. |
+| Cinder field anchor (#52) | On source sheet 3aa3c58f the orange charge rings and caged emitter read in close-up. The full tower has a broad collar and a smaller-looking emitter than the reference. At main dc9eb766 the tower dressing uses one static mesh. The three interactables are at radius 520 cm, z 60 cm. The delivered port sockets are at radii 587–601 cm and z 259–275 cm. | T5 should attach the separate emitter and align all three gameplay targets with the sockets. Play from the bridge through 3/3 and collapse, checking each prompt with the normal 260 cm interaction range. Nicholas reviews the distant silhouette and glow in Cinder lighting. |
+| Dominion exterior | Source sheet 56d9a3ac shows the three crimson flank bands, stepped bridge and illuminated bow bay. Its front view is much wider than the approved concept because the four generator platforms extend beyond the hull. | Ryan's team checks the silhouette from normal approach distance and shows each live generator and the bay during docking. The annotated domes and close-up bay on the source sheet do not establish in-game readability. |
+
+## Earlier acceptance ledger
 
 | Feature | Verified repository or branch state | Remaining gate / responsible lane |
 |---|---|---|

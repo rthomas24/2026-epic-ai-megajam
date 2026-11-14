@@ -265,8 +265,19 @@ private:
 	void SetState(ETDLandingState NewState);
 	float StateDuration(ETDLandingState S) const;
 	void PauseFlight(bool bPause);
+	void SetParkedBlock(bool bOn);
+	UPROPERTY(Transient) TObjectPtr<class UBoxComponent> ParkedBlock;
 	FVector TouchPoint() const;
 public:
+	/**
+	 * Ryan's bug (Nov 13): on foot the pilot walked through parked ships (the 2.2 m flight sphere is far smaller than the
+	 * hull). While parked a box fitted to the visible hull (shrunk by ParkedBlockShrink) blocks the Pawn channel only;
+	 * it goes at take-off. True while it is on.
+	 */
+	bool IsParkedBlockOn() const;
+	static constexpr float ParkedBlockShrink = 0.85f;
+	/** The visible meshes' bounds in the ship's own frame (empty when it has none). */
+	static FBox VisibleHullBoxLocal(const ATDShip* Ship);
 	/** How far the visible hull reaches below the ship's origin (a "Skid" socket, else the meshes' bounds; else the
 	 *  collision sphere's radius). Parked ships rest on this, ParkClearance over the pad. */
 	static float HullBottomBelowOrigin(const ATDShip* Ship);

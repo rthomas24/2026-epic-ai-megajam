@@ -270,6 +270,31 @@ void UTDMusicDirectorSubsystem::HandleTakeStarted()
 	bWaitForTake = false;
 }
 
+USoundBase* UTDMusicDirectorSubsystem::ResolveAssaultMusic() const
+{
+	if (bAssaultOverride) { return AssaultOverride; }
+	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+	return Style && !Style->AssaultMusic.IsNull() ? Style->AssaultMusic.LoadSynchronous() : nullptr;
+}
+
+void UTDMusicDirectorSubsystem::TickAssault(UWorld* World, bool bWanted)
+{
+	if (bWanted && !AssaultVoice && !bAssaultLogical)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD music: the Dominion assault score starts"));
+		AssaultVoice = UGameplayStatics::SpawnSound2D(World, ResolveAssaultMusic(), 1.f, 1.f, 0.f, nullptr, false, false);
+		if (AssaultVoice) { AssaultVoice->FadeIn(2.f, 1.f); }
+		else { bAssaultLogical = true; } // no audio device (tests): still hold the combat music
+	}
+	else if (!bWanted && (AssaultVoice || bAssaultLogical))
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD music: the Dominion assault score ends"));
+		if (AssaultVoice) { AssaultVoice->FadeOut(3.f, 0.f); }
+		AssaultVoice = nullptr;
+		bAssaultLogical = false;
+	}
+}
+
 void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -305,7 +330,15 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 		Tutorial->Step(World, FMath::Max(Dt, World->DeltaRealTimeSeconds), bMenuMap);
 	}
 	const bool bTutorialHolds = Tutorial && Tutorial->IsHoldingCombatMusic();
-	const bool bBlocked = bTravelling || bVictory || bMenuMap || bTutorialHolds || (MusicState == ETDCombatMusicState::Silent && !ResolveMusic());
+	// N-048: the Dominion assault's own score, from wave 5's clear to docking or the reactor's end; combat music waits.
+	bool bAssaultPhase = false;
+	if (const UTDGameInstance* GI = Cast<UTDGameInstance>(World->GetGameInstance()))
+	{
+		bAssaultPhase = GI->GetProgressRef().Phase == ETDGamePhase::DominionAssault;
+	}
+	TickAssault(World, bAssaultPhase && !bTravelling && !bVictory && !bMenuMap && ResolveAssaultMusic() != nullptr);
+	const bool bAssaultHolds = IsAssaultMusicPlaying();
+	const bool bBlocked = bTravelling || bVictory || bMenuMap || bTutorialHolds || bAssaultHolds || (MusicState == ETDCombatMusicState::Silent && !ResolveMusic());
 	bool bCombat = !bBlocked && IsCombatNow();
 	if (bWaitForTake && !bCombat)
 	{
@@ -314,7 +347,7 @@ void UTDMusicDirectorSubsystem::Tick(float DeltaTime)
 	bCombat = bCombat && !bWaitForTake;
 	if (bBlocked)
 	{
-		BeginStop(bTravelling ? TEXT("travel") : bVictory ? TEXT("victory") : bTutorialHolds ? TEXT("tutorial music") : TEXT("menu"));
+		BeginStop(bTravelling ? TEXT("travel") : bVictory ? TEXT("victory") : bTutorialHolds ? TEXT("tutorial music") : bAssaultHolds ? TEXT("assault music") : TEXT("menu"));
 	}
 	TickAmbience(Dt, bTravelling || bVictory || bMenuMap);
 

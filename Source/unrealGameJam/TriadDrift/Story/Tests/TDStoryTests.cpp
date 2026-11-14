@@ -268,7 +268,12 @@ bool FTDStoryTriggers::RunTest(const FString& Parameters)
 		W.SpawnLocalPlayerController();
 		for (TActorIterator<ATDMenuBackdrop> It(W.GetWorld()); It; ++It) { It->Destroy(); }
 		W.Tick();
+		int32 Began = 0, Stung = 0;
+		const FDelegateHandle H1 = ATDMenuBackdrop::OnVictoryBegan.AddLambda([&Began](ATDMenuBackdrop*) { ++Began; });
+		const FDelegateHandle H2 = ATDMenuBackdrop::OnStinger.AddLambda([&Stung](ATDMenuBackdrop*) { ++Stung; });
+		ON_SCOPE_EXIT { ATDMenuBackdrop::OnVictoryBegan.Remove(H1); ATDMenuBackdrop::OnStinger.Remove(H2); };
 		ATDMenuBackdrop* B = ATDMenuBackdrop::SpawnFor(W.GetWorld()->GetAuthGameMode(), ETDBackdropScene::Victory);
+		TestEqual(TEXT("T7's hook: the victory screen began"), Began, 1);
 		if (!TestNotNull(TEXT("backdrop"), B))
 		{
 			return false;
@@ -286,6 +291,8 @@ bool FTDStoryTriggers::RunTest(const FString& Parameters)
 				&& Story->HasPlayed(TEXT("C9_Wren_Source")) && Story->HasPlayed(TEXT("C9_Kato_Decades")));
 			TestTrue(TEXT("the caption held on the black says decades ahead"), B->GetStingerCaption().ToString().Contains(TEXT("DECADES")));
 			TestEqual(TEXT("once"), B->PlayStinger(), 0.f);
+			TestEqual(TEXT("T7's hook: the stinger, once"), Stung, 1);
+			TestFalse(TEXT("the signal's words appear once: no subtitle for A5 under the caption"), Story && Story->GetCurrentTransmission().Id == FName(TEXT("A5_DistressSignal")));
 		}
 		else
 		{
@@ -379,9 +386,9 @@ bool FTDStoryBoarder::RunTest(const FString& Parameters)
 	FTDTestWorld W(UTDGameInstance::StaticClass());
 	UTDStorySubsystem::BoardingShipResolver = [](const UObject*) { return ETDShipId::Bastion; };
 	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
-	TestTrue(TEXT("fires"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("C8_Wren_Order")));
+	TestTrue(TEXT("fires"), UTDStorySubsystem::Fire(W.GetWorld(), TEXT("G8_Wren_ConduitsFirst")));
 	W.Tick();
-	TestTrue(TEXT("Moss gives the order when Moss boarded"), Story && Story->GetCurrentTransmission().Speaker == ETDSpeaker::Moss
+	TestTrue(TEXT("Moss calls the conduits when Moss boarded"), Story && Story->GetCurrentTransmission().Speaker == ETDSpeaker::Moss
 		&& Story->GetCurrentTransmission().SpeakerTag.ToString() == TEXT("MOSS"));
 	return true;
 }
@@ -392,7 +399,7 @@ bool FTDStorySequence::RunTest(const FString& Parameters)
 	// T5's threshold console plays Cinematic 08 and opens the reactor door when it ends or is skipped. The five command
 	// deck lines (the "Dont" payoff) finally play in the game, in order, then the full warning and the case.
 	const TArray<FName>& Ids = UTDStorySubsystem::SequenceIds(TEXT("Cinematic08"));
-	TestTrue(TEXT("starts with the command deck and ends with the order"), Ids.Num() >= 10 && Ids[0] == FName(TEXT("F_FutureKato_Signatures"))
+	TestTrue(TEXT("starts with the final record, then the command deck; ends with the order"), Ids.Num() >= 12 && Ids[0] == FName(TEXT("A4_Recording_Core")) && Ids[2] == FName(TEXT("F_FutureKato_Signatures"))
 		&& Ids.Contains(FName(TEXT("F_FutureWren_Dont"))) && Ids.Contains(FName(TEXT("F_FutureWren_FullWarning"))));
 	{
 		FTDTestWorld W(UTDGameInstance::StaticClass());
@@ -430,6 +437,51 @@ bool FTDStorySequence::RunTest(const FString& Parameters)
 		W.Tick();
 		TestFalse(TEXT("a retake finishes at once"), Story->IsSequencePlaying());
 	}
+	return true;
+}
+#endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStoryRecordedLabels, "TriadDrift.Story.Transmissions.RecordedVoicesNamedOnlyAfterTheEvidence", TD_TEST_FLAGS)
+bool FTDStoryRecordedLabels::RunTest(const FString& Parameters)
+{
+	// Issue #29: walk the Dominion's recordings in order; no label names a pilot before the evidence that identifies them.
+	FTDTestWorld W(UTDGameInstance::StaticClass());
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("story"), Story))
+	{
+		return false;
+	}
+	auto Play = [&](const TCHAR* Id) -> FString
+	{
+		UTDStorySubsystem::Fire(W.GetWorld(), Id);
+		FString Tag;
+		for (int32 i = 0; i < 900; ++i)
+		{
+			W.Tick(1.f / 30.f);
+			if (Story->GetCurrentTransmission().bActive && Story->GetCurrentTransmission().Id == FName(Id))
+			{
+				Tag = Story->GetCurrentTransmission().SpeakerTag.ToString();
+				break;
+			}
+		}
+		for (int32 i = 0; i < 900 && (Story->GetCurrentTransmission().bActive || Story->GetQueueLength() > 0); ++i)
+		{
+			W.Tick(1.f / 30.f);
+		}
+		return Tag;
+	};
+	auto NamesAPilot = [](const FString& Tag) { return Tag.Contains(TEXT("WREN")) || Tag.Contains(TEXT("KATO")) || Tag.Contains(TEXT("MOSS")); };
+	TestFalse(TEXT("1. the hangar's filtered log: unknown"), NamesAPilot(Play(TEXT("A4_Recording_Hangar"))));
+	TestFalse(TEXT("2. the corridor's older Moss, before he hears himself: unknown"), NamesAPilot(Play(TEXT("A4_Recording_Corridor"))));
+	TestEqual(TEXT("present-day Moss keeps his plain name"), Play(TEXT("G7_Moss_MyVoice")), FString(TEXT("MOSS")));
+	TestFalse(TEXT("3. the barracks' older Wren, before the authorisations: unknown"), NamesAPilot(Play(TEXT("A4_Recording_Barracks"))));
+	TestEqual(TEXT("present-day Kato: plain"), Play(TEXT("G7_Kato_Authorisations")), FString(TEXT("KATO")));
+	TestEqual(TEXT("4. the final record: Kato, recorded"), Play(TEXT("A4_Recording_Core")), FString(TEXT("KATO (RECORDED)")));
+	TestEqual(TEXT("Cinematic 08: recorded Wren"), Play(TEXT("C8_RecWren_LastChance")), FString(TEXT("WREN (RECORDED)")));
+	TestEqual(TEXT("Cinematic 08: recorded Moss"), Play(TEXT("C8_RecMoss_SaveYou")), FString(TEXT("MOSS (RECORDED)")));
+	TestEqual(TEXT("present-day Moss's answer: live label"), Play(TEXT("C8_Moss_CantLetThem")), FString(TEXT("MOSS")));
+	TestEqual(TEXT("then Wren's order (N-046), live"), Play(TEXT("C8_Wren_Order")), FString(TEXT("WREN")));
 	return true;
 }
 #endif

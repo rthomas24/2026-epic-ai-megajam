@@ -1,0 +1,6 @@
+kept faces 33550, duplicate src ids 0, max UV delta vs r1 0.000e+00, max position delta 0.0267 cm (weld)
+2048: kept px 1963061, new px 402376, overlap px 0, min gap new->kept 11.0px, new out of 0-1: 0
+4096: kept px 7792167, new px 1517850, overlap px 0, min gap new->kept 22.0px, new out of 0-1: 0
+heatmask (2048, 2048) uint8
+heatmask lit px under new-part UVs: 136257 of 2571426
+texel density px/cm: kept 2.58 new 1.18

@@ -1,0 +1,36 @@
+{
+  "stage": "Full source decoded for Unreal; native import/runtime binding not performed",
+  "assignment": "Approved post-wave5 Dominion space assault; keep separate from tutorial/globalcombat music",
+  "assignment_reference": "https://github.com/rthomas24/2026-epic-ai-megajam/issues/46#issuecomment-6864925387",
+  "claim": "5fcb3254",
+  "source_path": "C:\\Users\\nicho\\Downloads\\Push The Attack.mp3",
+  "source_sha256": "c8e48648443243fd78916f5d9f2642e0b454dda4bc89f6df756131f80292ecde",
+  "source_bytes": 3358394,
+  "source_metadata": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "mp3",
+        "sample_rate": "48000",
+        "channels": 2
+      }
+    ],
+    "format": {
+      "duration": "144.680000"
+    }
+  },
+  "source_unchanged": true,
+  "output": "C:\\Users\\nicho\\OneDrive\\Desktop\\GameJam\\Worktrees\\audio-prototype-v1\\ArtSource\\Audio\\DominionAssault02\\export\\MUS_DominionAssault_PushTheAttack_Full_01.wav",
+  "output_sha256": "aebd45f1302afbe2069936a35f95160797f87e66ae72147753e2f15ae378bcdd",
+  "sample_rate": 48000,
+  "channels": 2,
+  "bits": 16,
+  "decoded_frames": 6944640,
+  "decoded_duration_s": 144.68,
+  "processing": "Full audio decode/channel-map only. No trim, fade, normalization, crossfade, looping, pitch or tempo edit. Full decoded sample count retained.",
+  "proposed_native_path": "/Game/TriadDrift/Audio/DominionAssault02/MUS_DominionAssault_PushTheAttack_Full_01",
+  "runtime_behavior": "Loop the complete track until actual assault sequence-end; exact event owned by T1. Natural original ending and restart retained; no musical rearrangement.",
+  "cook_exclusivity_gate": "Bind through cooked Presentation reference or explicit cooker rule; suppress competing general combat music while assault cue owns scene",
+  "utc": "2026-11-14T00:09:51.426823+00:00"
+}

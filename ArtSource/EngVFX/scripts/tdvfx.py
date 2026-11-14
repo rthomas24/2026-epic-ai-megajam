@@ -184,7 +184,11 @@ class Builder(object):
         if add:
             await self.call(T + 'AddUserVariables', system=system, variablesToAdd=add)
 
-    async def system(self, name, emitters, user=None, folder=None, props=None):
+    async def system(self, name, emitters, user=None, folder=None, props=None, chunk=None):
+        """chunk = (start, end): round 8, build a big system across editor sessions (the Niagara toolset keeps about 1 GB
+        per emitter it builds until the editor quits). Only emitters[start:end] are (re)built; the other emitters of the
+        spec that are already in the saved system are kept; emitters that are not in the spec at all are removed.
+        Re-running a chunk is idempotent."""
         folder = folder or ROOT + '/Systems'
         path = folder + '/' + name
         if unreal.EditorAssetLibrary.does_asset_exist(path):
@@ -194,10 +198,16 @@ class Builder(object):
             await self.call(T + 'CreateNiagaraSystem', assetName=name, assetPath=folder, templateSystem=base)
             system = unreal.load_asset(path)
         summ = await self.call(T + 'GetSystemSummary', system=system)
+        todo = emitters if not chunk else emitters[chunk[0]:chunk[1]]
+        names_all = set(sp['name'] for sp in emitters)
+        names_todo = set(sp['name'] for sp in todo)
         for e in summ['emitters']:
-            await self.call(T + 'RemoveEmitter', emitterRef={'system': system, 'emitterName': e['emitterName']})
+            if not chunk or e['emitterName'] in names_todo or e['emitterName'] not in names_all:
+                await self.call(T + 'RemoveEmitter', emitterRef={'system': system, 'emitterName': e['emitterName']})
         await self.user_vars(system, user or {})
-        for spec in emitters:
+        if chunk:
+            self.log.append('%s: chunk %s of %d emitters: %s' % (name, chunk, len(emitters), ', '.join(sp['name'] for sp in todo)))
+        for spec in todo:
             try:
                 await self.emitter(system, spec)
             except Exception as ex:

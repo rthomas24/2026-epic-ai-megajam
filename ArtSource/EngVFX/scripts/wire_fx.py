@@ -14,7 +14,16 @@ PLAN_R7 = {   # round 7: per-type enemy exhaust. EngineTrail VFX only; the VFXSc
     'NullFleet/DA_Enemy_Fighter_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy_Fighter'},
     'NullFleet/DA_Enemy_Interceptor_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy_Interceptor'},
 }
-PLAN = globals().get('PLAN') or PLAN_R7
+PLAN_R8 = {   # round 8: the round-6 leftovers whose slots exist (hyperdrive is Teammate 7's look; its slots wait for T7's systems)
+    'FX/DA_Travel_FX': {'portal_open': 'NS_TD_Portal_Open', 'portal_close': 'NS_TD_Portal_Close'},
+    'FX/DA_Ability_EMPPulse_FX': {'activate': 'NS_TD_EMP_Pulse'},
+    'FX/DA_Ability_Cloak_FX': {'loop': 'NS_TD_Cloak_Shimmer'},
+    'FX/DA_Ability_GravityWell_FX': {'loop': 'NS_TD_GravityWell'},
+    # the Act 1 distortion field (TDDistortionField scales VFXScale by its radius / 1 km itself, so 1 here)
+    'Dominion/DA_Dominion_Visuals': {'distortion_field_idle': ('NS_TD_Dominion_Field', 1.0), 'distortion_field_collapse': ('NS_TD_Dominion_FieldCollapse', 1.0),
+                                     'distortion_field_contact': ('NS_TD_Impact_Shield', 3.0)},
+}
+PLAN = globals().get('PLAN') or PLAN_R8
 PLAN_R5 = {
     'NullFleet/DA_Enemy_Fighter_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},
     'NullFleet/DA_Enemy_Interceptor_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},

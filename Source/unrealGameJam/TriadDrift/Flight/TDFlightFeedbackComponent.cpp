@@ -72,6 +72,7 @@ bool UTDFlightFeedbackComponent::WantsCameraPlaceholder(const FTDFXCue* Cue)
 }
 
 float UTDFlightFeedbackComponent::UserShakeScale = 1.f;
+float UTDFlightFeedbackComponent::DescentIntensity = 0.f;
 UTDFlightFeedbackComponent::ECamProfile UTDFlightFeedbackComponent::CamProfile = UTDFlightFeedbackComponent::PlayerDefaultProfile;
 UTDFlightFeedbackComponent::FComposedPeaks UTDFlightFeedbackComponent::ComposedPeaks;
 float UTDFlightFeedbackComponent::UserSpeedFOVScale = 1.f;
@@ -411,8 +412,7 @@ void UTDFlightFeedbackComponent::PollMoments(float DeltaTime)
 	if (bPlayer && Entry && Entry->IsEntering() && WantsCameraPlaceholder(FX ? &FX->AtmosphericEntry : nullptr))
 	{
 		const float Heat = TDFlightFeedback::Bell(Entry->GetEntry01());
-		Shake += 0.9f * Heat;
-		FOV += 4.f * Heat;
+		// Camera: the descent block below (DescentIntensity), for entry and exit, on both sides of the load.
 		if (WantsVisualPlaceholder(FX ? &FX->AtmosphericEntry : nullptr) && GetActiveBurstCount() == 0 && Heat > 0.2f)
 		{
 			// Re-entry glow on the nose, re-lit as each flash fades.
@@ -456,6 +456,14 @@ void UTDFlightFeedbackComponent::PollMoments(float DeltaTime)
 		const bool bHyper = HyperState == ETDHyperdriveState::Jumping;
 		Shake += bHyper ? Tuning.AuditionShakeHyper : Move->IsBoosting() ? Tuning.AuditionShakeBoost : Tuning.AuditionShakeCruise;
 		BlurTarget = bHyper ? Tuning.AuditionBlurHyper : Move->IsBoosting() ? Tuning.AuditionBlurBoost : 0.f;
+	}
+	// ENG-38 burn feel (entry and exit, both sides of the load): shake, FOV push and speed blur on the descent curve.
+	// The user sliders scale all three (reduced motion: none of them).
+	if (bChase && DescentIntensity > 0.f)
+	{
+		Shake += Tuning.DescentShake * DescentIntensity;
+		FOV += Tuning.DescentFOV * DescentIntensity;
+		BlurTarget = FMath::Max(BlurTarget, Tuning.DescentBlur * DescentIntensity);
 	}
 	AuditionTilt = FMath::Vector2DInterpTo(AuditionTilt, TiltTarget, DeltaTime, Tuning.AuditionSettleRate);
 	BlurAmount = FMath::FInterpTo(BlurAmount, BlurTarget * FMath::Clamp(UserSpeedFOVScale, 0.f, 1.f), DeltaTime, 6.f);
