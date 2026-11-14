@@ -229,7 +229,9 @@ void UTDCutPresentation::EnsureViewportWidget()
 
 FVector2D UTDCutPresentation::NameCardCentre(const FVector2D& Size)
 {
-	return FVector2D(Size.X * 0.245f, Size.Y * 0.48f);
+	// 90 px further left and a little higher at 1080p than before (T1's switching-under-fire play: the card ran into the
+	// reticle and the lock box when the ship sat left of centre). T2, with the Lead's leave for this one value.
+	return FVector2D(Size.X * 0.198f, Size.Y * 0.45f);
 }
 
 #if WITH_DEV_AUTOMATION_TESTS

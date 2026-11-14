@@ -304,9 +304,12 @@ void UTDAtmosphereEntryComponent::TickClosedPlanetGuard(float DeltaTime)
 		// Why: a fight is on; or this world's work is done; or it is not time for it yet.
 		// A scripted corridor is up (the tutorial withdrawal runs toward Verdance): the fight is being left on orders, so
 		// "finish the fight" would contradict the objective on screen (T1's first-ten-minutes play).
-		ClosedPlanetText = Move->IsBoundaryReleased() ? NSLOCTEXT("TDTravel", "PlanetOrders", "PLANET CLOSED  ·  AWAIT ORDERS")
+		// A finished world says what is true (its work is done), whatever else is going on; never a reason to come back later.
+		const bool bCinder = Planet->GetDestination() == ETDDestination::Cinder;
+		bClosedPlanetDone = bDone;
+		ClosedPlanetText = bDone ? (bCinder ? NSLOCTEXT("TDTravel", "CinderDone", "CINDER  ·  COMPLETE") : NSLOCTEXT("TDTravel", "VerdanceDone", "VERDANCE  ·  COMPLETE"))
+			: Move->IsBoundaryReleased() ? NSLOCTEXT("TDTravel", "PlanetOrders", "PLANET CLOSED  ·  AWAIT ORDERS")
 			: (Waves && Waves->IsWaveRunning()) ? NSLOCTEXT("TDTravel", "PlanetFight", "PLANET CLOSED  ·  FINISH THE FIGHT FIRST")
-			: bDone ? NSLOCTEXT("TDTravel", "PlanetDone", "PLANET CLOSED  ·  NOTHING LEFT HERE")
 			: NSLOCTEXT("TDTravel", "PlanetNotYet", "PLANET CLOSED  ·  CLEAR THE AREA FIRST");
 		ClosedLineUntil = World->GetTimeSeconds() + ClosedPlanetLineSeconds;
 		if (Descent)

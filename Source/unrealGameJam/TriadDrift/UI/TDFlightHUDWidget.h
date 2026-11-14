@@ -214,6 +214,8 @@ public:
 		float Ability01 = 1.f;
 		bool bAbilityActive = false;
 		bool bTrouble = false;
+		/** Hull under 25%: red-orange pulsing edge and hull bar (any card). */
+		bool bCritical = false;
 		float UnderFire01 = 0.f;
 		/** 0 = wingman size, 1 = flown size (eased over 120 ms on a switch; the input is never blocked). */
 		float Grow = 0.f;
@@ -638,6 +640,7 @@ private:
 	float MinimalReadLeft = 0.f;
 	/** #161: T1's "PLANET CLOSED" warning (UTDAtmosphereEntryComponent), upper-cased once. */
 	bool bPlanetClosed = false;
+	bool bPlanetClosedDone = false; // the closed planet is a finished one: its line has no padlock (T1)
 	FString PlanetClosedRaw, PlanetClosedLine;
 	/** #154: the subtitle's wrap, cached per text / size / width (NativePaint is const). */
 	mutable FString SubWrapText;
