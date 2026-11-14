@@ -25,6 +25,7 @@
 #include "AssetRegistry/IAssetRegistry.h"
 #include "Animation/AnimInstance.h"
 #include "PhysicsEngine/PhysicsAsset.h"
+#include "HAL/IConsoleManager.h"
 #include "Animation/AnimSingleNodeInstance.h"
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "Animation/AnimSequenceBase.h"
@@ -179,6 +180,9 @@ void ATDCrewCharacter::UpdateFallbackLoop()
 	const float Ref = Want == 1 ? 200.f : Want == 2 ? 450.f : 0.f;
 	Loops->SetLoop(Loop, Ref > 0.f ? FMath::Clamp(Speed / Ref, 0.6f, 1.5f) : 1.f);
 }
+static TAutoConsoleVariable<int32> CVarCrewLogHits(TEXT("td.Crew.LogHits"), 0,
+	TEXT("1: log every enemy damage instant (type, action, the playing per-type clip and its time) to check contact frames."));
+
 namespace TDCrewAnims
 {
 	static const TCHAR* Melee = TEXT("/Game/TriadDrift/Gameplay/Characters/Crew/Anims/MM_Attack_01.MM_Attack_01");
@@ -803,11 +807,12 @@ bool ATDCrewCharacter::StartAttack(ETDCrewAttack Attack, AActor* Target)
 	{
 	case ETDCrewAttack::Melee:
 		bOwn = Spec.Type == ETDCrewType::Heavy ? PlayTypeClip(TEXT("ShieldBash"), 0.70f, WindupLeft) // Grok's: impact 0.70 s, the 0.7 s wind-up
-			: Spec.Type == ETDCrewType::Grunt ? PlayTypeClip((MeleeSwings++ % 2) ? TEXT("Melee_03") : TEXT("Melee_02")) : false;
+			: Spec.Type == ETDCrewType::Grunt ? ((MeleeSwings++ % 2) ? PlayTypeClip(TEXT("Melee_03"), 0.48f, WindupLeft) : PlayTypeClip(TEXT("Melee_02"), 0.45f, WindupLeft)) : false; // contacts measured at 30 fps
 		break;
 	case ETDCrewAttack::Burst: bOwn = Spec.Type == ETDCrewType::Trooper && PlayTypeClip(TEXT("Fire_Burst"), 0.40f, WindupLeft); break;
 	case ETDCrewAttack::BoltFan: bOwn = PlayTypeClip(TEXT("Fire_01"), 0.50f, WindupLeft); break;
-	case ETDCrewAttack::ChargeSlam: bOwn = PlayTypeClip(TEXT("GroundSlam"), 1.10f, WindupLeft) || PlayTypeClip(TEXT("Slam"), 1.10f, WindupLeft); break;
+	// The slam lands after the wind-up AND the charge (damage at ChargeWindup + ChargeDuration); the live blend's contact is 1.30 s.
+	case ETDCrewAttack::ChargeSlam: bOwn = PlayTypeClip(TEXT("GroundSlam"), 1.30f, WindupLeft + Spec.ChargeDuration) || PlayTypeClip(TEXT("Slam"), 1.30f, WindupLeft + Spec.ChargeDuration); break;
 	case ETDCrewAttack::Summon: bOwn = PlayTypeClip(TEXT("Summon_01"), 0.50f, WindupLeft); break;
 	default: break;
 	}
@@ -910,6 +915,7 @@ void ATDCrewCharacter::DoMelee()
 	if (To.Size() <= Reach && bInFront)
 	{
 		const FVector Dir = To.GetSafeNormal();
+		LogHitInstant(TEXT("Melee"));
 		UTDStatics::ApplyTDDamage(T, Spec.MeleeDamage, ETDDamageKind::Melee, this, this, T->GetActorLocation() - Dir * 40.f, Dir);
 	}
 }
@@ -1032,6 +1038,7 @@ void ATDCrewCharacter::EndCharge()
 {
 	ChargeTimeLeft = 0.f;
 	PlayCrewCue(TEXT("SlamImpact"), Visuals ? Visuals->Explosion : FTDFXCue(), false, GetActorLocation());
+	LogHitInstant(TEXT("ChargeSlam"));
 	UTDStatics::ApplyTDRadialDamage(this, GetActorLocation(), Spec.ChargeSlamRadius, Spec.ChargeSlamDamage, ETDDamageKind::Explosive,
 		ETDTeam::Enemy, this, this);
 	RecoverLeft = 0.6f;
@@ -1313,7 +1320,20 @@ bool ATDCrewCharacter::PlayTypeClip(const TCHAR* Action, float Contact, float Wi
 	const float Rate = (Contact > 0.f && Windup > 0.f) ? FMath::Clamp(Contact / Windup, 0.5f, 2.f) : 1.f;
 	Loops->PlayOneShot(Clip, Rate);
 	LastTypeClip = Clip->GetFName();
+	LastTypeClipStart = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	LastTypeClipRate = Rate;
 	return true;
+}
+
+void ATDCrewCharacter::LogHitInstant(const TCHAR* What) const
+{
+	if (CVarCrewLogHits.GetValueOnGameThread() == 0)
+	{
+		return;
+	}
+	const float Now = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.f;
+	UE_LOG(LogTriadDrift, Display, TEXT("td.Crew.LogHits: %s %s %s, clip %s at %.3f s (rate %.2f)"), *GetName(), *FTDCrewLibrary::TypeName(Spec.Type).ToString(), What,
+		LastTypeClip.IsNone() ? TEXT("(template)") : *LastTypeClip.ToString(), (Now - LastTypeClipStart) * LastTypeClipRate, LastTypeClipRate);
 }
 
 bool ATDCrewCharacter::IsRagdolling() const
