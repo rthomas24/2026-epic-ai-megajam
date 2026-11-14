@@ -437,6 +437,10 @@ for cl in CFG.get("clips", []):
         for ti, fr in enumerate(frs):
             frac = ti / float(max(1, n - 1))
             w = 1.0 if b_ <= a else min(1.0, max(0.0, (frac - a) / (b_ - a)))
+            if cp.get("hold"):   # [t0, t1] seconds: the borrowed pose is held to t0 and let go by t1
+                h0, h1 = cp["hold"]
+                u = min(1.0, max(0.0, (ti / float(FPS) - h0) / (h1 - h0)))
+                w = 1.0 - u * u * (3 - 2 * u)
             for bn in names:
                 fr[bn] = (fr[bn][0], nlerp(fr[bn][1], ref[bn][1], w))
         log("%s: %d bones posed from %s: %s" % (cl["dst"], len(names), cp["src"], names[:6]))

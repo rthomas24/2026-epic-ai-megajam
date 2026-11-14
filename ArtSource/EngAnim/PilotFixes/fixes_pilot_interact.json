@@ -1,0 +1,32 @@
+{
+ "_note": "Pilot interact (ART-08, Nov 14): one clip for console / relay / device, 1.33 s, from A_Pilot_Interact_Shoulder at rate 1.25: the LEFT hand reaches about 50 cm forward at chest height at about 1.04 s, so the blade hand is not involved. r2 (Lead): the right (blade) arm is locked to the idle pose for the whole clip, the clip starts from the idle pose and the left arm returns to rest over the last 0.3 s.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Pilot/Anims",
+ "skeleton": "/Game/TriadDrift/Gameplay/Characters/Pilot/SKEL_Pilot",
+ "clips": [
+  {
+   "src": "A_Pilot_Interact_Shoulder",
+   "dst": "A_Pilot_Interact",
+   "rate": 1.25,
+   "blend_ends": {
+    "src": "A_Pilot_Idle3_v2",
+    "in": 0.15,
+    "out": 0.3
+   },
+   "copy_pose": {
+    "src": "A_Pilot_Idle3_v2",
+    "t": 0.0,
+    "bones": [
+     "clavicle",
+     "upperarm",
+     "lowerarm",
+     "hand"
+    ],
+    "side": "_r",
+    "ramp": [
+     0.0,
+     0.0
+    ]
+   }
+  }
+ ]
+}
