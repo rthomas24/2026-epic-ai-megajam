@@ -752,6 +752,33 @@ static FAutoConsoleCommandWithWorldAndArgs GTDUISlateKey(TEXT("TD.UI.Key"), TEXT
 		App.ProcessKeyDownEvent(Event);
 		App.ProcessKeyUpEvent(Event);
 		const TSharedPtr<SWidget> Focus = App.GetUserFocusedWidget(0);
-		UE_LOG(LogTemp, Log, TEXT("TD.UI.Key %s (focus now %s)"), *Key.ToString(), Focus.IsValid() ? *Focus->GetTypeAsString() : TEXT("none"));
+		UE_LOG(LogTemp, Log, TEXT("TD.UI.Key %s (focus now %s %p)"), *Key.ToString(), Focus.IsValid() ? *Focus->GetTypeAsString() : TEXT("none"), Focus.Get());
+	}));
+
+// Dev: move the Slate mouse to a point of the game viewport (fractions 0..1 of its size) - hover checks over MCP.
+//   TD.UI.MouseAt 0.5 0.62
+static FAutoConsoleCommandWithWorldAndArgs GTDUIMouseAt(TEXT("TD.UI.MouseAt"), TEXT("TD.UI.MouseAt <x 0..1> <y 0..1>: move the Slate mouse over the game viewport (menus)."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld*)
+	{
+		if (Args.Num() < 2 || !FSlateApplication::IsInitialized() || !GEngine || !GEngine->GameViewport)
+		{
+			return;
+		}
+		const TSharedPtr<SWidget> View = GEngine->GameViewport->GetGameViewportWidget();
+		if (!View.IsValid())
+		{
+			return;
+		}
+		const FGeometry& G = View->GetCachedGeometry();
+		const FVector2D Local(G.GetLocalSize().X * FCString::Atof(*Args[0]), G.GetLocalSize().Y * FCString::Atof(*Args[1]));
+		const FVector2D Screen = G.LocalToAbsolute(Local);
+		FSlateApplication& App = FSlateApplication::Get();
+		const FVector2D Last = App.GetCursorPos();
+		App.SetCursorPos(Screen);
+		FPointerEvent Move(App.GetUserIndexForMouse(), FSlateApplicationBase::CursorPointerIndex, Screen, Last, TSet<FKey>(), EKeys::Invalid, 0.f, App.GetModifierKeys());
+		App.ProcessMouseMoveEvent(Move, true);
+		const TSharedPtr<SWidget> Focus = App.GetUserFocusedWidget(0);
+		UE_LOG(LogTemp, Log, TEXT("TD.UI.MouseAt %.2f %.2f -> screen %.0f,%.0f (focus now %s %p)"), FCString::Atof(*Args[0]), FCString::Atof(*Args[1]), Screen.X, Screen.Y,
+			Focus.IsValid() ? *Focus->GetTypeAsString() : TEXT("none"), Focus.Get());
 	}));
 #endif
