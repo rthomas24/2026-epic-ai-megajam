@@ -21,6 +21,7 @@
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Input/TDSettingsSubsystem.h"
 
 namespace TDStoryWalk
 {
@@ -100,6 +101,16 @@ namespace TDStoryWalk
 
 	// The menu's CONTINUE runs UTDGameInstance::ContinueRun (TDFrontEndGameModes.cpp); this calls the same function for
 	// agents, whose injected keys never reach the menu's Slate focus.
+	static FAutoConsoleCommandWithWorldAndArgs CmdSubtitles(TEXT("TD.Story.Subtitles"),
+		TEXT("TD.Story.Subtitles 0|1: the player's subtitles setting (as the Options menu sets it)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (UTDSettingsSubsystem* S = UTDSettingsSubsystem::GetTDSettings(World))
+			{
+				S->SetSubtitlesEnabled(Args.Num() == 0 || FCString::Atoi(*Args[0]) != 0);
+				UE_LOG(LogTriadDrift, Log, TEXT("TD.Story.Subtitles: %s"), S->AreSubtitlesEnabled() ? TEXT("on") : TEXT("off"));
+			}
+		}));
 	static FAutoConsoleCommandWithWorldAndArgs CmdContinue(TEXT("TD.Story.Continue"),
 		TEXT("TD.Story.Continue: what the main menu's CONTINUE does (UTDGameInstance::ContinueRun)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
