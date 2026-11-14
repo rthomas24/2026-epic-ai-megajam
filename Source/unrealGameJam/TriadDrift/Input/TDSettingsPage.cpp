@@ -17,6 +17,7 @@
 #include "TriadDrift/Flow/TDFrontEndStyle.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
+#include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Text/STextBlock.h"
 
@@ -252,9 +253,25 @@ void STDSettingsPage::Construct(const FArguments& InArgs)
 	[
 		SNew(STextBlock).Text(LOCTEXT("Title", "SETTINGS")).Font(FCoreStyle::GetDefaultFontStyle("Bold", 40)).ColorAndOpacity(FLinearColor(0.4f, 0.9f, 1.f))
 	];
+	// T7: every option row scrolls inside the space the screen has; Back stays below the list, always visible.
+	RowScroll = SNew(SScrollBox).ScrollBarAlwaysVisible(false).AnimateWheelScrolling(true);
+	RowWidgets.SetNum(Model->NumRows());
+	TSharedPtr<SWidget> BackRow;
 	for (int32 i = 0; i < Model->NumRows(); ++i)
 	{
-		Rows->AddSlot().AutoHeight().Padding(0.f, 2.f)[ MakeRow((ETDSettingsRow)i) ];
+		const TSharedRef<SWidget> W = MakeRow((ETDSettingsRow)i);
+		RowWidgets[i] = W;
+		if ((ETDSettingsRow)i == ETDSettingsRow::Back)
+		{
+			BackRow = W;
+			continue;
+		}
+		RowScroll->AddSlot().Padding(0.f, 2.f)[ W ];
+	}
+	Rows->AddSlot().AutoHeight().MaxHeight(TAttribute<float>::CreateSP(this, &STDSettingsPage::GetRowListMaxHeight))[ RowScroll.ToSharedRef() ];
+	if (BackRow.IsValid())
+	{
+		Rows->AddSlot().AutoHeight().Padding(0.f, 6.f, 0.f, 0.f)[ BackRow.ToSharedRef() ];
 	}
 	// What the selected row does, when it needs saying (difficulty: what each preset changes, and when it applies).
 	Rows->AddSlot().AutoHeight().HAlign(HAlign_Center).Padding(0.f, 10.f, 0.f, 0.f)
@@ -378,9 +395,30 @@ void STDSettingsPage::FocusPage()
 	}
 }
 
+float STDSettingsPage::GetRowListMaxHeight() const
+{
+	// Before the first layout (no height yet) the list may take its full size.
+	return PageHeight > 0.f ? FMath::Max(120.f, PageHeight - FixedPartsHeight) : 100000.f;
+}
+
+bool STDSettingsPage::IsRowInScrollList(ETDSettingsRow Row) const
+{
+	return Row != ETDSettingsRow::Back && RowWidgets.IsValidIndex((int32)Row) && RowWidgets[(int32)Row].IsValid();
+}
+
 void STDSettingsPage::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
 {
 	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+	PageHeight = AllottedGeometry.GetLocalSize().Y;
+	// T7: the list follows the selection (keys, pad, mouse) so the selected row is never off screen.
+	if (Model && RowScroll.IsValid() && Model->GetSelected() != LastScrolledRow)
+	{
+		LastScrolledRow = Model->GetSelected();
+		if (IsRowInScrollList(Model->GetSelectedRow()))
+		{
+			RowScroll->ScrollDescendantIntoView(RowWidgets[LastScrolledRow], /*bInAnimateScroll*/ true, EDescendantScrollDestination::IntoView, 8.f);
+		}
+	}
 	if (!FSlateApplication::IsInitialized())
 	{
 		return;
