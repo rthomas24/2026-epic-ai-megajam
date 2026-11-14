@@ -415,8 +415,13 @@ void UTDHyperdriveComponent::BeginJump()
 	{
 		StartLoopFX(TravelFX->HyperdriveTunnel);
 		// For T7's tunnel: how long and how fast (Niagara user floats; ignored when the system lacks them).
-		if (UNiagaraComponent* FX = LoopFX.Get())
+		UAudioComponent* NoAudio = nullptr;
+		FTDFXCue Streaks = TravelFX->HyperdriveStreaks;
+		Streaks.Sound.Reset(); // the tunnel cue carries the jump's sound
+		StreaksFX = UTDStatics::PlayCueAttachedLoop(Streaks, Craft->GetRootComponent(), NAME_None, NoAudio);
+		for (UNiagaraComponent* FX : { LoopFX.Get(), StreaksFX.Get() })
 		{
+			if (!FX) { continue; }
 			FX->SetVariableFloat(TEXT("User.TunnelSeconds"), bDest ? DestinationTunnelSeconds : Tuning.MaxJumpSeconds);
 			FX->SetVariableFloat(TEXT("User.JumpSpeed"), bDest ? DestinationJumpSpeed : Tuning.JumpSpeed);
 		}
@@ -480,6 +485,8 @@ void UTDHyperdriveComponent::StartLoopFX(const FTDFXCue& Cue)
 
 void UTDHyperdriveComponent::StopLoopFX()
 {
+	if (UNiagaraComponent* S = StreaksFX.Get()) { S->Deactivate(); }
+	StreaksFX.Reset();
 	if (UNiagaraComponent* FX = LoopFX.Get())
 	{
 		FX->Deactivate();

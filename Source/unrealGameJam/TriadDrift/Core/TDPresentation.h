@@ -467,6 +467,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hyperdrive")
 	FTDFXCue HyperdriveTunnel;
 
+	/** The jump's speed streaks (NS_TD_Hyperdrive_Streaks): an attached loop on the ship for the whole jump, beside the
+	 *  tunnel, stopped at the drop-out. User.JumpSpeed (cm/s) and User.TunnelSeconds as on the tunnel. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hyperdrive")
+	FTDFXCue HyperdriveStreaks;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Hyperdrive")
 	FTDFXCue HyperdriveDropOut;
 
