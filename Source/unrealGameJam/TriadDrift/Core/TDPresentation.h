@@ -475,6 +475,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
 	FTDFXCue AffectedTarget;
+
+	/**
+	 * Optional overlay material laid over every hull mesh of the ship while the ability runs (Cloak: the hull shimmer).
+	 * Gameplay drives its scalar "Cloak" 0 -> 1 over 0.25 s on activate and 1 -> 0 on end, then removes it. Empty: none.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "FX")
+	TSoftObjectPtr<UMaterialInterface> HullOverlay;
 };
 
 UCLASS(BlueprintType)
