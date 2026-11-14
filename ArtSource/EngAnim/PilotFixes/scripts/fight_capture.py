@@ -89,7 +89,7 @@ def main():
         fwd = [mid[0] - cam[0], mid[1] - cam[1], (e["floor"] + 90) - cam[2]]
         camera = {"location": {"x": cam[0], "y": cam[1], "z": cam[2]},
                   "rotation": {"pitch": math.degrees(math.atan2(fwd[2], math.hypot(fwd[0], fwd[1]))), "yaw": math.degrees(math.atan2(fwd[1], fwd[0])), "roll": 0.0},
-                  "projectionMode": "Perspective", "fOV": 50.0, "orthoWidth": 512}
+                  "projectionMode": "Perspective", "fOV": float(os.environ.get("TD_FOV", "50")), "orthoWidth": 512}
         t0 = time.time()
         k = 0
         # TD_CMDS_<Type> = "2.0:TD.Ground.CrewHit 5;4.0:TD.Ground.CrewHit 5 behind": console commands at those seconds
