@@ -4,6 +4,11 @@
 cd /c/Users/ryant/Documents/myRepos/game-jam/.wt/vfx; export MSYS_NO_PATHCONV=1; export TD_PORT=${TD_PORT:-21031}; unset NULLRHI
 R=ArtSource/EngVFX/rounds/r8; G=$R/gpy.sh; P="python ArtSource/EngVFX/scripts/play.py $TD_PORT Saved/EngVFX/r8"; T=${1:-x}; SC="python $R/spawncap.py"
 echo "== start $(date +%H:%M)"; bash $R/ed.sh start || exit 1
+# materials need a renderer (-nullrhi cannot compile them): FieldHex2, then the approach field that uses it, in this editor
+(echo "ONLY_MATS = ['M_TD_VFX_FieldHex2']"; cat ArtSource/EngVFX/scripts/build_materials.py) > Saved/EngVFX/_mats.py
+python ArtSource/EngVFX/scripts/run_editor_py.py $TD_PORT Saved/EngVFX/_mats.py 2>&1 | tail -1 | cut -c1-200
+(echo "ONLY = ['__none__']"; cat ArtSource/EngVFX/scripts/build_tier1.py; echo; echo "ONLY2 = ['=NS_TD_Dominion_ApproachField']"; echo "CHUNK = (0, 4)"; cat ArtSource/EngVFX/scripts/build_tier2.py) > Saved/EngVFX/_chunk.py
+python ArtSource/EngVFX/scripts/run_editor_py.py $TD_PORT Saved/EngVFX/_chunk.py 2>&1 | grep "NS_TD_Dominion_ApproachField" | cut -c1-200
 bash $G "('pie_start',)" >/dev/null; sleep 25
 $P con:"TD.Stage Waves1to2" sleep:12 con:"god" con:"TD.KillAll" sleep:2 con:"TD.World.Hold 900 0" >/dev/null
 for d in 60 300 800; do python $R/burst.py $T plumes $d 2>&1 | tail -1; $P cap:${T}_plumes_chase_${d}m >/dev/null; bash $G "('clear',)" >/dev/null; done
