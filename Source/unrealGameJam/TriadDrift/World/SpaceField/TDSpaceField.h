@@ -237,7 +237,22 @@ private:
 	void BuildSurveyScar(FRandomStream& Rng);
 	void BuildShatteredMoons(FRandomStream& Rng);
 	void PlaceRegionCentrepieces(FRandomStream& Rng);
-	bool AddStructure(UStaticMesh* Mesh, const FTransform& T);
+	bool AddStructure(UStaticMesh* Mesh, const FTransform& T, int32 BeaconRegion = 0);
+	// Region dressing (TDSpaceFieldDressing.cpp): the effects builder's beacons and haze, soft and null-safe.
+	struct FBeaconPoint { FVector Location; int32 Region; };
+	TArray<FBeaconPoint> BeaconPoints;
+	UPROPERTY(Transient) TArray<TObjectPtr<class UNiagaraComponent>> RegionBeacons;
+	UPROPERTY(Transient) TArray<TObjectPtr<class UStaticMeshComponent>> RegionHazes;
+	bool bDressingShown = false;
+	void BuildRegionDressing();
+	static bool IsDressingWanted();
+public:
+	void SetRegionDressingVisible(bool bOn);
+	int32 GetRegionBeaconCount() const { return RegionBeacons.Num(); }
+	int32 GetRegionHazeCount() const { return RegionHazes.Num(); }
+	/** Haze density (the effects builder: start at 0.15 and measure). */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Dressing") float HazeDensity = 0.15f;
+private:
 	/** T4: the Dominion docking bay's tractor cone and near-field capture (no set piece inside). */
 public:
 	bool IsInDockingCone(const FVector& WorldPoint, float Radius) const;

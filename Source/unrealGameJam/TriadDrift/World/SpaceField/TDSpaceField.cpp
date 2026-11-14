@@ -227,6 +227,7 @@ void ATDSpaceField::Build()
 		BuildShatteredMoons(Rng);
 		BuildOuterDark(Rng);
 		PlaceRegionCentrepieces(Rng);
+		BuildRegionDressing();
 	}
 	else
 	{
@@ -672,6 +673,7 @@ void ATDSpaceField::Tick(float DeltaSeconds)
 	Clock += DeltaSeconds;
 	// Every frame (about 20 distance checks): the magnet pulls a taken cache off its spot within a few frames.
 	UpdateCaches();
+	if (IsDressingWanted() != bDressingShown && (RegionBeacons.Num() > 0 || RegionHazes.Num() > 0)) { SetRegionDressingVisible(IsDressingWanted()); }
 	// Tumblers and wrecks: slow motion, so a throttled update near the camera only (nothing per frame for far rocks).
 	AnimAccum += DeltaSeconds;
 	const float Hz = TDSpaceFieldImpl::GAnimHz;
