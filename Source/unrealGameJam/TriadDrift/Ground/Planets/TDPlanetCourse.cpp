@@ -546,7 +546,10 @@ void ATDPlanetCourse::DressAmbient(bool bCinder)
 		{
 			const float A = (i * 72.f + c * 31.f) * PI / 180.f;
 			const FVector L = Centres[c] + FVector(FMath::Cos(A), FMath::Sin(A), 0.f) * (900.f + 250.f * (i % 3));
-			if (!IsScatterAllowed(W(FVector(L.X, L.Y, GroundZAt(L))), 200.f)) { continue; }
+			// decals are flat and walkable: only kept off the route lines (not the site boxes they are meant to mark)
+			bool bOnRoute = false;
+			for (const TArray<FVector>& Rt : Routes) { for (int32 q = 0; q + 1 < Rt.Num(); ++q) { if (FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), FVector(Rt[q].X, Rt[q].Y, 0.f), FVector(Rt[q + 1].X, Rt[q + 1].Y, 0.f)) < 400.f) { bOnRoute = true; } } }
+			if (bOnRoute) { continue; }
 			d += SpawnScorch(L, 400.f + 100.f * ((i + c) % 5), i * 67.f, bCinder);
 		}
 	}
@@ -619,6 +622,16 @@ int32 ATDPlanetCourse::DressCamp(const FVector& Around, float MinR, float MaxR, 
 			{
 				const FVector L = C + FVector(It.Local.X, It.Local.Y, 0.f);
 				if (!IsScatterAllowed(W(FVector(L.X, L.Y, GroundZAt(L))), Radius(It) + 60.f)) { bOk = false; break; }
+				// Lead (#194): the player walks straight at the marker, so nothing of a camp within 6 m of the line from the pad
+				// to any objective (each route's end)
+				if (It.bCollide)
+				{
+					for (const TArray<FVector>& Rt : Routes)
+					{
+						if (Rt.Num() && FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), FVector::ZeroVector, FVector(Rt.Last().X, Rt.Last().Y, 0.f)) < 600.f + Radius(It)) { bOk = false; break; }
+					}
+					if (!bOk) { break; }
+				}
 				// T4's relief (Nov 14): a hut needs a flat-enough spot: its footprint's corners within 70 cm of each other
 				if (It.bCollide && Radius(It) >= 300.f)
 				{

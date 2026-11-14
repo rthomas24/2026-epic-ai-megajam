@@ -453,7 +453,7 @@ void FTDScatterPlan::RunCourseFill(const FTDTerrainField& Field, FTDScatterResul
 			{
 				const FVector2D Ce(KO.Box.GetCenter()), Ex(KO.Box.GetExtent());
 				const float Ux = FMath::Abs(X - Ce.X) / FMath::Max(Ex.X, 1.f), Uy = FMath::Abs(Y - Ce.Y) / FMath::Max(Ex.Y, 1.f);
-				if (Ux < 0.85f && Uy < 0.85f) { return; }	// the open middle of a fight
+				if (Ux < 0.7f && Uy < 0.7f) { return; }	// the open middle of a fight (Lead: colliding pieces in the outer 30 %)
 				continue;	// the outer ring, or outside: fine
 			}
 			if (X > KO.Box.Min.X - Rc && X < KO.Box.Max.X + Rc && Y > KO.Box.Min.Y - Rc && Y < KO.Box.Max.Y + Rc) { return; }
