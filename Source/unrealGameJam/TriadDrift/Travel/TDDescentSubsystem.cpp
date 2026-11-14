@@ -454,6 +454,8 @@ void UTDDescentSubsystem::TickCover(float Dt)
 			{
 				UTDWarmupSubsystem* Warm = UTDWarmupSubsystem::Get(World);
 				if (Warm && Warm->IsLoading()) { Warm->HurryUnderCover(); bTerrainReady = Warm->IsLoading() ? false : bTerrainReady; }
+				// T4's planet globes: bake under the cover too (cached for the run after the first, so this only waits once).
+				if (ATDPlanetAtmosphere::AreGlobeBakesRunning(World)) { bTerrainReady = false; }
 			}
 			if (bTerrainReady && Held >= RevealMinHoldSeconds) { bReveal = true; Why = Terrain ? TEXT("terrain built") : TEXT("no terrain"); }
 			else if (Held >= RevealMaxHoldSeconds) { bReveal = true; Why = TEXT("4 s hold limit"); }

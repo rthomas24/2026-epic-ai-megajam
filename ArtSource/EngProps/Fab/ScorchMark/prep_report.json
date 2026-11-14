@@ -1,0 +1,52 @@
+{
+ "looks": {
+  "Cinder": {
+   "CharColor": [
+    0.055,
+    0.05,
+    0.046
+   ],
+   "CharRoughness": 0.95,
+   "Opacity": 0.8,
+   "Bias": 0.05,
+   "Contrast": 1.2,
+   "EmberColor": [
+    1.0,
+    0.28,
+    0.05
+   ],
+   "EmberStrength": 3.0,
+   "EmberPower": 10.0
+  },
+  "Verdance": {
+   "CharColor": [
+    0.012,
+    0.013,
+    0.015
+   ],
+   "CharRoughness": 0.9,
+   "Opacity": 0.85,
+   "Bias": 0.05,
+   "Contrast": 1.2,
+   "EmberColor": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "EmberStrength": 0.0,
+   "EmberPower": 10.0
+  }
+ },
+ "report": {
+  "noise_floor_cut": 0.0,
+  "mask_mean": 0.154,
+  "Cinder": {
+   "ground_mean": 0.164,
+   "core_contrast": 0.097
+  },
+  "Verdance": {
+   "ground_mean": 0.267,
+   "core_contrast": 0.091
+  }
+ }
+}
