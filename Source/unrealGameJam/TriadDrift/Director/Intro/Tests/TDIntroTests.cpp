@@ -740,4 +740,34 @@ bool FTDIntroOpeningLines::RunTest(const FString& Parameters)
 	return true;
 }
 
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDIntroWarmUp, "TriadDrift.Director.Intro.BlackHoldCoversTheFirstFramesThenDrops", TD_TEST_FLAGS)
+bool FTDIntroWarmUp::RunTest(const FString& Parameters)
+{
+	// T7's 140 ms hitch on the galaxy's first frames: the intro holds black for a few rendered frames, then its clock runs;
+	// never longer than 1 s whatever the setting.
+	IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Intro.WarmUpSeconds"));
+	if (!TestNotNull(TEXT("td.Intro.WarmUpSeconds"), CVar))
+	{
+		return false;
+	}
+	ON_SCOPE_EXIT { CVar->Set(-1.f, ECVF_SetByCode); };
+	for (const float Setting : { 0.4f, 5.f })
+	{
+		CVar->Set(Setting, ECVF_SetByCode);
+		TDIntroTest::FIntroWorld F;
+		if (!TestTrue(TEXT("plays"), F.Init() && F.Play()))
+		{
+			return false;
+		}
+		F.W.Tick(1.f / 60.f);
+		F.W.Tick(1.f / 60.f);
+		TestTrue(TEXT("black while the first frames render"), F.Intro->IsWarmingUp() && F.Intro->GetOverlay().Black >= 1.f && F.Intro->GetElapsed() == 0.f);
+		F.Run(1.1f, 1.f / 60.f);
+		TestFalse(FString::Printf(TEXT("setting %.1f: the cover dropped within 1 s"), Setting), F.Intro->IsWarmingUp());
+		TestTrue(TEXT("the clock runs"), F.Intro->GetElapsed() > 0.f);
+	}
+	return true;
+}
+
 #endif

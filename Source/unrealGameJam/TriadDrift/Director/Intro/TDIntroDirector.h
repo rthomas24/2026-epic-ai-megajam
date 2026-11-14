@@ -23,6 +23,7 @@
 #include "InputCoreTypes.h"
 #include "TDIntroDirector.generated.h"
 
+class USoundBase;
 class ACameraActor;
 class APlayerController;
 class AActor;
@@ -314,6 +315,16 @@ private:
 	float SkipHeldFor = 0.f;
 	float Elapsed = 0.f;
 	float HandOffElapsed = 0.f;
+	/** T7's measurement: the galaxy's first frames hitch (new pipeline states). The intro holds on black for a few rendered
+	 *  frames (td.Intro.WarmUpSeconds, never past 1 s) before its clock and music start. */
+	bool bWarmingUp = false;
+	float WarmUpTime = 0.f;
+	int32 WarmUpFrames = 0;
+	TWeakObjectPtr<USoundBase> PendingMusic;
+public:
+	bool IsWarmingUp() const { return bWarmingUp; }
+	static float GetWarmUpSeconds();
+private:
 	int32 ShotIndex = -1;
 	float ShotStart = 0.f;
 	int32 LastNarrationVoice = -1;

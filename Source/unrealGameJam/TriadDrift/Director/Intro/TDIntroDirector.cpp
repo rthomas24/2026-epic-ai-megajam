@@ -464,6 +464,18 @@ namespace TDIntroLines
 		TEXT("1: the opening speaks the approved First Contact lines (O_*); 0: the old narrator captions (Intro_N*)."));
 }
 
+namespace TDIntroWarm
+{
+	static TAutoConsoleVariable<float> CVarWarm(TEXT("td.Intro.WarmUpSeconds"), -1.f,
+		TEXT("Black hold before the intro's first shot (s; capped at 1). -1: 0.35 in the game, 0 under automation."));
+}
+
+float UTDIntroDirector::GetWarmUpSeconds()
+{
+	const float V = TDIntroWarm::CVarWarm.GetValueOnGameThread();
+	return V >= 0.f ? FMath::Min(V, 1.f) : (GIsAutomationTesting ? 0.f : 0.35f);
+}
+
 bool UTDIntroDirector::UseOpeningLines()
 {
 	return TDIntroLines::CVarLines.GetValueOnGameThread() != 0;
@@ -699,6 +711,10 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	SkipHeldFor = 0.f;
 	Elapsed = 0.f;
 	HandOffElapsed = 0.f;
+	bWarmingUp = GetWarmUpSeconds() > 0.f;
+	WarmUpTime = 0.f;
+	WarmUpFrames = 0;
+	PendingMusic.Reset();
 	LastOpeningLine = -1;
 	bHandOffLinesFired = false;
 	ShotIndex = -1;
@@ -759,7 +775,14 @@ bool UTDIntroDirector::Play(FSimpleDelegate OnFinished)
 	{
 		if (USoundBase* Sound = Style->IntroMusic.LoadSynchronous())
 		{
-			Music = UGameplayStatics::SpawnSound2D(this, Sound);
+			if (bWarmingUp)
+			{
+				PendingMusic = Sound; // starts with the clock, after the black hold
+			}
+			else
+			{
+				Music = UGameplayStatics::SpawnSound2D(this, Sound);
+			}
 		}
 	}
 
@@ -1241,6 +1264,7 @@ void UTDIntroDirector::DebugJumpToShot(int32 Index)
 
 void UTDIntroDirector::DebugSetTime(float T, bool bFreeze)
 {
+	bWarmingUp = false; // a debug jump is past the black hold
 	if (!bPlaying || Shots.IsEmpty())
 	{
 		return;
@@ -1953,6 +1977,24 @@ void UTDIntroDirector::Tick(float DeltaTime)
 	{
 		LastDt = 0.f;
 		UpdateShot(Elapsed - ShotStart); // hold the frame (captures)
+		return;
+	}
+	if (bWarmingUp)
+	{
+		// Black until a few frames have rendered (the post-load hitch lands here, unseen), then the clock starts.
+		Overlay.Black = 1.f;
+		Overlay.SubtitleAlpha = 0.f;
+		WarmUpTime += RealDt;
+		++WarmUpFrames;
+		if ((WarmUpFrames >= 3 && WarmUpTime >= GetWarmUpSeconds()) || WarmUpTime >= 1.f)
+		{
+			bWarmingUp = false;
+			if (USoundBase* Sound = PendingMusic.Get())
+			{
+				Music = UGameplayStatics::SpawnSound2D(this, Sound);
+			}
+			PendingMusic.Reset();
+		}
 		return;
 	}
 	Elapsed += RealDt;
