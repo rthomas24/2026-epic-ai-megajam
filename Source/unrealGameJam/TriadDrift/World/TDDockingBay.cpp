@@ -242,6 +242,7 @@ void ATDDockingBay::BeginGlide(ATDShip* Ship)
 {
 	DockingState = ETDDockingState::Gliding;
 	GlideTime = 0.f;
+	HoldTime = 0.f;
 	GlideFrom = Ship->GetActorLocation();
 	GlideFromRot = Ship->GetActorQuat();
 	// The glide carries on at the arrival speed and settles over the pad, never faster than the ship's boost (T1, live: a
@@ -379,7 +380,15 @@ void ATDDockingBay::Tick(float DeltaSeconds)
 		Ship->SetActorLocationAndRotation(FMath::Lerp(GlideFrom, To, E), FQuat::Slerp(GlideFromRot, (-GetOutward()).ToOrientationQuat(), E));
 		if (T >= 1.f)
 		{
-			FinishDocking();
+			// T1 (live, Nov 14): commit to load is now ~5 s, which cut the Docking lines (G6 cover-the-bay, C7 way-out).
+			// The ship holds over the pad until the sequence has finished (or is skipped), at most DockingLinesHoldSeconds.
+			HoldTime += DeltaSeconds;
+			const UTDStorySubsystem* Story = UTDStorySubsystem::Get(this);
+			const bool bLinesPlaying = Story && Story->IsSequencePlaying(TEXT("Docking"));
+			if (!bLinesPlaying || HoldTime >= DockingLinesHoldSeconds)
+			{
+				FinishDocking();
+			}
 		}
 		return;
 	}

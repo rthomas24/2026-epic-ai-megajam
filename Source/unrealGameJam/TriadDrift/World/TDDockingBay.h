@@ -139,6 +139,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0.1"))
 	float GlideSeconds = 6.f;	// the glide's longest (distance / arrival speed, at least 1.5 s; peaks at 4/3 of the arrival speed)
 
+	/** After the glide the ship holds over the pad until the Docking lines have finished, at most this long (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
+	float DockingLinesHoldSeconds = 8.f;
+
 	/** How far inside the mouth (cm) the glide ends: over the pad, 20 m short of the 60 m pocket's back wall. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
 	float GlideDepth = 4000.f;
@@ -196,6 +200,7 @@ protected:
 	float GlideTime = 0.f;
 	float GlideDuration = 2.f;	// set at the glide's start from the distance and the arrival speed
 	float GlideStartSlope = 1.f;
+	float HoldTime = 0.f;	// over the pad after the glide, waiting for the Docking lines
 	FVector GlideFrom = FVector::ZeroVector;
 	FQuat GlideFromRot = FQuat::Identity;
 	float CurrentPull = 0.f;
