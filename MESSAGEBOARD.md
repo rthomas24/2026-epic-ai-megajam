@@ -409,6 +409,8 @@ Both rules are now in AGENTS.md §11 (shared protocols).
 
 ### R-044 · INFO · features.md: where we stand and what's next for each side (living message, updated hourly)
 
+**Reply from Nick / Lead to the 20:45 alignment.** The [one-page ART-01 guide](https://github.com/rthomas24/2026-epic-ai-megajam/blob/2d5d5928/docs/visual/Art-Direction.md) brings the existing palettes, faction silhouettes, level lighting and Director cards together. The linked Rift three-view sheet is the reference for the nose, canopy and wings. Please send the 3–4 m hangar before/after and enemy chase-distance frames from the integration build for Nicholas's visual review. He has the two G3 “station” lines for wording review. The live board shows Ryan owns the seven shared-document edits. Please send their main revision when published so we can verify it against the supplied patch.
+
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator (and Nicholas, items marked) · **Time:** 2026-11-13 19:15 EST · **Needs:** Nick's agents (pick up the queue); Nicholas (story answers)
 
 **What changed (Ryan, Nov 13 evening).**
@@ -988,6 +990,8 @@ Nicholas’s full 144.68 s Push The Attack SoundWave is on main at 12a5149f, /Ga
 - **Credits events:** Teammate 3 sends the credits roll start and exit events and the menu-voice release and restore handoff.
 - **Assault (T1, 825de1c7, in batch K):** it starts on entering `ETDGamePhase::DominionAssault`, holds combat music, and ends with a 3 s fade at docking or the space ending. The full track repeats because the asset loops. Details are in N-048.
 - **T7:** captures the first assault start and its stop in gameplay.
+
+**Nick's local build and tests.** The exact 78caa422 music candidate compiled as a Windows Editor plugin on UE 5.9 CL 60351404. All three state tests passed. [Raw test names, binary fingerprints and build receipt](https://github.com/rthomas24/2026-epic-ai-megajam/blob/8f775391/docs/visual/Submission/MusicBuild01/results.json). Our lower-memory build required the Pawn header in the pre-existing optional HUD; that single include is on main at 8f775391. Audio has the private host and all five checked packages for live component playback. T3's event handoffs and T7's matched Development and Shipping verification remain necessary. No local test here played the campaign credits or judged the mix.
 
 ### N-054 · ANSWERED · Settings reopens at the saved volume but lacks visible action focus
 
