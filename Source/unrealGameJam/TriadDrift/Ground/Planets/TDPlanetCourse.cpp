@@ -221,13 +221,23 @@ void ATDPlanetCourse::AdoptTerrainMaterial()
 	// slab only stands under it: hidden, collision kept, so what you see is what you stand on with no z-fight. The
 	// terrain material would read the slab's missing vertex colour as white (high, steep rock: review m7), so the slab
 	// never wears it. With no terrain the slab keeps MI_Ground_<Planet>.
+	bool bTerrain = false;
 	for (TActorIterator<ATDPlanetTerrain> It(World); It; ++It)
 	{
 		GroundSlab->SetHiddenInGame(true);
+		bTerrain = true;
+		break;
+	}
+	// #194: T4's relief patch (craters, mounds, gullies) is the ground once it has collision: the flat slab at z 0 goes
+	// entirely, or the pilot would stand on an invisible floor over every divot.
+	if (bTerrain && ATDPlanetTerrain::HasDetailGround(this))
+	{
+		GroundSlab->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		UE_LOG(LogTriadDrift, Display, TEXT("#194: relief ground has collision: the course's flat slab is off"));
 		return;
 	}
-	// The terrain may be spawned a moment after the course: look again for ~10 s.
-	if (++TerrainMaterialTries < 40)
+	// The terrain and its patch may come a moment after the course: look again for ~30 s.
+	if (++TerrainMaterialTries < 120)
 	{
 		World->GetTimerManager().SetTimer(TerrainMaterialTimer, this, &ATDPlanetCourse::AdoptTerrainMaterial, 0.25f, false);
 	}
@@ -401,7 +411,7 @@ float ATDPlanetCourse::GroundZAt(const FVector& Local) const
 	const FVector P = W(FVector(Local.X, Local.Y, 0.f));
 	if (World->LineTraceSingleByChannel(Hit, P + FVector(0.f, 0.f, 20000.f), P - FVector(0.f, 0.f, 5000.f), ECC_WorldStatic, Q))
 	{
-		return FMath::Max(0.f, (float)GetActorTransform().InverseTransformPosition(Hit.ImpactPoint).Z);
+		return (float)GetActorTransform().InverseTransformPosition(Hit.ImpactPoint).Z; // #194: relief can sit below the old flat
 	}
 	return 0.f;
 }
@@ -1315,6 +1325,10 @@ bool ATDPlanetCourse::StartObjectiveAt(FName ObjectiveId)
 		{
 			return false; // an ordered course (the interior): the rooms come one after the other
 		}
+		if (T.Objective == O && T.After && T.After == WardenGateObjective.Get() && !IsFinalRecordPlayed())
+		{
+			return false; // #96: the reactor waits for the final record, an old checkpoint's Warden completion included
+		}
 	}
 	O->StartObjective();
 	return O->IsActive();
@@ -1326,6 +1340,13 @@ bool ATDPlanetCourse::GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) c
 	if (IsAnyObjectiveRunning())
 	{
 		return false;
+	}
+	if (IsInterior() && WardenGateObjective.IsValid() && WardenGateObjective->IsComplete() && !IsFinalRecordPlayed() && FinalRecordConsole)
+	{
+		// #96, a checkpoint from before the gate: the Warden is done but the record was never played.
+		OutText = LOCTEXT("IdleRecord", "PLAY THE FINAL RECORD");
+		OutMarkers.Add(FinalRecordConsole);
+		return true;
 	}
 	TArray<FText> Names;
 	for (const FTDTrailhead& T : Trailheads)
@@ -1489,9 +1510,14 @@ void ATDPlanetCourse::MarkCompletedFromProgress()
 			}
 			for (const FTDStepDoor& D : CompletionDoors)
 			{
-				if (D.Objective == O && D.Door) { D.Door->Open(); }
+				if (D.Objective == O && D.Door && !(D.Door == WardenExitDoor && !IsFinalRecordPlayed())) { D.Door->Open(); }
 			}
 		}
+	}
+	if (IsInterior() && WardenExitDoor && WardenGateObjective.IsValid() && WardenGateObjective->IsComplete() && !IsFinalRecordPlayed())
+	{
+		WardenExitDoor->ShowStatusText(LOCTEXT("RecordFirstLoad", "PLAY THE FINAL RECORD FIRST"));
+		UE_LOG(LogTriadDrift, Display, TEXT("#96: checkpoint has the Warden done but no final record: exit shut, the record first"));
 	}
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
