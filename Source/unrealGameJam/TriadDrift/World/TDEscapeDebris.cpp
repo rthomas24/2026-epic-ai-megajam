@@ -53,6 +53,22 @@ void ATDEscapeDebris::Launch(float SizeCm, const FVector& InVelocity, const FRot
 	UTDStatics::TintPlaceholder(Mesh, FLinearColor(0.15f, 0.04f, 0.01f), 3.f);
 }
 
+void ATDEscapeDebris::LaunchArt(UStaticMesh* Art, float Scale, const FVector& InVelocity, const FRotator& InSpin)
+{
+	if (!Art)
+	{
+		Launch(5000.f, InVelocity, InSpin);
+		return;
+	}
+	Velocity = InVelocity;
+	Spin = InSpin;
+	Mesh->SetStaticMesh(Art);
+	Mesh->EmptyOverrideMaterials();
+	Mesh->SetRelativeScale3D(FVector(Scale));
+	Radius = (float)Art->GetBoundingBox().GetSize().GetMax() * Scale * 0.5f;
+	bArtPiece = true;
+}
+
 void ATDEscapeDebris::Burst()
 {
 	if (UTDProjectileSubsystem* Booms = UTDProjectileSubsystem::Get(this))
