@@ -70,7 +70,7 @@ float ATDSpaceField::HealthFor(float Size, bool bWreck) const
 	{
 	case 0: return SmallHealth;
 	case 1: return MediumHealth;
-	default: return LargeHealthBase + LargeHealthPerMetre * Size / 100.f;
+	default: return FMath::Min(LargeHealthBase + LargeHealthPerMetre * Size / 100.f, LargeHealthMax);	// 14-20 bolts
 	}
 }
 
@@ -149,8 +149,19 @@ bool ATDSpaceField::DamagePiece(int32 Piece, float Damage, AActor* ByWhom)
 	return true;
 }
 
+static int32 GTDLogBreaks = 0;
+static FAutoConsoleVariableRef CVarTDLogBreaks(TEXT("td.SpaceField.LogBreaks"), GTDLogBreaks,
+	TEXT("1: log every field break (piece, class, size, special, who broke it). Live captures and playtests."));
+
 void ATDSpaceField::BreakPiece(int32 Piece, AActor* ByWhom)
 {
+	if (GTDLogBreaks != 0 && Pieces.IsValidIndex(Piece))
+	{
+		const FTDSpaceFieldPiece& P = Pieces[Piece];
+		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.Break: piece %d %s %.0f m%s by %s"), Piece,
+			P.Size < 1000.f ? TEXT("small") : P.Size < 4000.f ? TEXT("medium") : TEXT("large"), P.Size / 100.f,
+			States.IsValidIndex(Piece) && States[Piece].bSpecial ? TEXT(" special") : TEXT(""), *GetNameSafe(ByWhom));
+	}
 	// Timed at the outermost break only (a ram can break several in one call; each is counted inside).
 	const double Start = FPlatformTime::Seconds();
 	++PerfBreakDepth;
@@ -593,6 +604,36 @@ namespace TDSpaceFieldDev
 
 namespace TDSpaceFieldDev
 {
+	/** TD.SpaceField.FrameWatch: every frame's time while on (the field ticks each frame), the worst ten kept. */
+	struct FFrameWatch
+	{
+		bool bOn = false;
+		int32 Frames = 0, Over16 = 0, Over33 = 0;
+		double Sum = 0.0, StartTime = 0.0;
+		TArray<TPair<float, double>> Worst;	// ms, seconds since start
+	};
+	static FFrameWatch GFrameWatch;
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdFrameWatch(TEXT("TD.SpaceField.FrameWatch"),
+		TEXT("Live: TD.SpaceField.FrameWatch 1 starts (resets) recording every frame's time; 0 stops and logs frames, mean, frames over 16.6 and 33.3 ms and the ten worst (with seconds since start)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const bool bStart = Args.Num() == 0 || Args[0] != TEXT("0");
+			if (bStart)
+			{
+				GFrameWatch = FFrameWatch();
+				GFrameWatch.bOn = true;
+				GFrameWatch.StartTime = FPlatformTime::Seconds();
+				UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.FrameWatch: started"));
+				return;
+			}
+			GFrameWatch.bOn = false;
+			FString W;
+			for (const TPair<float, double>& P : GFrameWatch.Worst) { W += FString::Printf(TEXT(" %.1f ms @%.1fs"), P.Key, P.Value); }
+			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.FrameWatch: %d frames, mean %.2f ms, over 16.6 ms %d, over 33.3 ms %d, worst:%s"), GFrameWatch.Frames,
+				GFrameWatch.Frames ? GFrameWatch.Sum / GFrameWatch.Frames : 0.0, GFrameWatch.Over16, GFrameWatch.Over33, *W);
+		}));
+
 	static FAutoConsoleCommandWithWorldAndArgs CmdTestShot(TEXT("TD.SpaceField.TestShot"),
 		TEXT("Captures: put the flown ship 80 m from the nearest lone live piece of a class, facing it, and in the same frame launch <Shots> real player laser bolts from its nose at it: TD.SpaceField.TestShot <class 0|1|2|3 special> [Shots=10]"),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
@@ -775,4 +816,19 @@ namespace TDSpaceFieldWarm
 			});
 		}
 	} GRegister;
+}
+
+void ATDSpaceField::NoteFrame(float DeltaSeconds)
+{
+	using namespace TDSpaceFieldDev;
+	if (!GFrameWatch.bOn || GFrameNoted == GFrameCounter) { return; }
+	GFrameNoted = GFrameCounter;
+	const float Ms = DeltaSeconds * 1000.f;
+	++GFrameWatch.Frames;
+	GFrameWatch.Sum += Ms;
+	GFrameWatch.Over16 += Ms > 16.67f ? 1 : 0;
+	GFrameWatch.Over33 += Ms > 33.33f ? 1 : 0;
+	GFrameWatch.Worst.Add({ Ms, FPlatformTime::Seconds() - GFrameWatch.StartTime });
+	GFrameWatch.Worst.Sort([](const TPair<float, double>& A, const TPair<float, double>& B) { return A.Key > B.Key; });
+	if (GFrameWatch.Worst.Num() > 10) { GFrameWatch.Worst.SetNum(10); }
 }

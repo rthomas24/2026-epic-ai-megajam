@@ -1,0 +1,74 @@
+[
+ {
+  "interactables": [
+   [
+    17500.0,
+    6700.0,
+    315.0
+   ],
+   [
+    12193.16,
+    -5427.43,
+    420.9
+   ],
+   [
+    11998.73,
+    -5003.82,
+    409.12
+   ],
+   [
+    12176.13,
+    -4593.71,
+    425.45
+   ]
+  ]
+ },
+ {
+  "teleport": [
+   11959.554278042555,
+   -4386.116751895415,
+   0.0
+  ],
+  "feet": [
+   11960,
+   -4386,
+   2,
+   316
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchZ\\charge_site_0.png"
+ },
+ {
+  "teleport": [
+   11986.326422425347,
+   -5644.7313372891895,
+   0.0
+  ],
+  "feet": [
+   11986,
+   -5645,
+   2,
+   46
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchZ\\charge_site_1.png"
+ },
+ {
+  "teleport": [
+   11698.736054325507,
+   -5005.725927241466,
+   0.0
+  ],
+  "feet": [
+   11699,
+   -5006,
+   2,
+   0
+  ]
+ },
+ {
+  "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\BatchZ\\charge_site_2.png"
+ }
+]

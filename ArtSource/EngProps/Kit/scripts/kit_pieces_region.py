@@ -269,6 +269,11 @@ def scar_rig():
 
 
 # ------------------------------------------------------------------------------------------------ Shattered Moons
+# per-plate strata UVs (degrees, scale, u offset, v offset): plate 0 is the impact core, 1-5 the stepped plates
+PLATE_UV = [(0.0, 1.6, 0.0, 0.0), (23.0, 2.1, 0.37, 0.11), (-31.0, 1.4, 0.71, 0.53), (58.0, 2.6, 0.19, 0.82),
+            (-12.0, 1.9, 0.53, 0.29), (41.0, 1.2, 0.88, 0.64)]
+
+
 def _shard(name, R, seed, seams, band=1100.0):
     """A moon shard: a hard-faceted rock broken by an uneven stepped fracture (+X): 5 offset plates 4-10 m apart round
     an impact point, so the break has shadow; subtle strata bands (Strata / Strata2, about 25 % apart); a pale rim band
@@ -296,7 +301,13 @@ def _shard(name, R, seed, seams, band=1100.0):
         if m == "Cut":
             zc = sum(q.z for q in v) / len(v)
             m = "Strata" if int((zc + 100000.0) // band) % 2 == 0 else "Strata2"
-            u = [(q.y / 3000.0, q.z / 1200.0) for q in v]
+            # batch AA (Lead: the strata's sheet read as a regular grid at 1 km): each stepped plate gets its own
+            # rotation, scale and offset, so the panel lines change direction and pitch from plate to plate
+            yc = sum(q.y for q in v) / len(v)
+            k = plate(yc, zc)
+            ang, sc, ou, ov = PLATE_UV[k % len(PLATE_UV)]
+            ca, sa = math.cos(math.radians(ang)), math.sin(math.radians(ang))
+            u = [((q.y * ca - q.z * sa) / (3000.0 * sc) + ou, (q.y * sa + q.z * ca) / (1200.0 * sc) + ov) for q in v]
         elif m in ("Rock", "Rim"):
             u = [(a_ * 4.0, b_ * 4.0) for a_, b_ in u]
         out.append((v, u, m))

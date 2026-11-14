@@ -1114,3 +1114,30 @@ bool FTDStoryDockingSpeakers::RunTest(const FString& Parameters)
 	return true;
 }
 #endif
+
+#if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDStorySharedDont, "TriadDrift.Story.Transmissions.OpeningAndFinaleDontAreOneSound", TD_TEST_FLAGS)
+bool FTDStorySharedDont::RunTest(const FString& Parameters)
+{
+	// N-097: Nicholas chose one master (Wren take 04, radio) for the opening's "Don't-" and the finale's. Both lines share
+	// the key, so they always resolve to the same asset: Nick's SharedSounds[Dont] if set, else engineering's import.
+	FTDTransmission Opening, Finale;
+	if (!TestTrue(TEXT("both lines exist"), UTDStorySubsystem::FindEntry(TEXT("O_Unknown_Dont"), Opening) && UTDStorySubsystem::FindEntry(TEXT("F_FutureWren_Dont"), Finale)))
+	{
+		return false;
+	}
+	TestEqual(TEXT("one shared key"), Opening.SharedSound, Finale.SharedSound);
+	TestEqual(TEXT("the key is Dont"), Opening.SharedSound, FName(TEXT("Dont")));
+	TestTrue(TEXT("the same asset (or both none before the import)"), Opening.Sound.ToSoftObjectPath() == Finale.Sound.ToSoftObjectPath());
+	if (Opening.Sound.IsNull())
+	{
+		AddInfo(TEXT("no Dont master imported yet: both lines are subtitle-only"));
+	}
+	else
+	{
+		TestNotNull(TEXT("the master loads"), Opening.Sound.LoadSynchronous());
+		AddInfo(FString::Printf(TEXT("Dont master: %s"), *Opening.Sound.ToString()));
+	}
+	return true;
+}
+#endif

@@ -435,4 +435,48 @@ bool FTDDockingWaitsForLines::RunTest(const FString&)
 	return true;
 }
 
+// Played on the space ending (Nov 14): Command said "Shield's down. Docking route marked." though the fallback never
+// opens a bay. The line belongs to the boarding finale only.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDockingRouteLineOnlyWhenBoarding, "TriadDrift.World.Dominion.DockingRouteLineOnlyWithBoarding", TD_TEST_FLAGS)
+bool FTDDockingRouteLineOnlyWhenBoarding::RunTest(const FString&)
+{
+	for (const ETDBoardingMode Mode : { ETDBoardingMode::ForceOff, ETDBoardingMode::ForceOn })
+	{
+		FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+		ATDDominion* D = TDDockingTest::DefensesDown(W, Mode);
+		const UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		if (!TestNotNull(TEXT("dominion"), D) || !TestNotNull(TEXT("story"), Story)) { return false; }
+		const bool bBoarding = Mode == ETDBoardingMode::ForceOn;
+		TestEqual(*FString::Printf(TEXT("%s: G6_Command_ShieldCollapsed (docking route marked)"), bBoarding ? TEXT("boarding") : TEXT("space ending")),
+			Story->HasPlayed(TEXT("G6_Command_ShieldCollapsed")), bBoarding);
+		TestTrue(TEXT("the last generator's own line still plays"), Story->HasPlayed(TEXT("A4_GeneratorDown4")));
+	}
+	return true;
+}
+
+// Lead (Nov 14): the effects builder's tractor beam (eng/vfx, accepted) fills DA_Dominion_Visuals.TractorBeam. It is a
+// Niagara system that takes the bay's User.Length (cm) and User.Intensity every frame (ATDDockingBay::UpdateBeam).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTractorBeamSlot, "TriadDrift.World.Docking.TractorBeamSlotHoldsTheAcceptedEffect", TD_TEST_FLAGS)
+bool FTDTractorBeamSlot::RunTest(const FString&)
+{
+	const UTDDominionVisuals* V = UTDStatics::LoadPresentation<UTDDominionVisuals>(TEXT("DA_Dominion_Visuals"));
+	if (!TestNotNull(TEXT("DA_Dominion_Visuals"), V)) { return false; }
+	TestFalse(TEXT("the TractorBeam slot is filled"), V->TractorBeam.IsEmpty());
+	UNiagaraSystem* Sys = V->TractorBeam.VFX.LoadSynchronous();
+	if (!TestNotNull(TEXT("the TractorBeam system loads"), Sys)) { return false; }
+	TestEqual(TEXT("the accepted system"), Sys->GetName(), FString(TEXT("NS_TD_Dominion_TractorBeam")));
+	bool bLength = false, bIntensity = false;
+	TArray<FNiagaraVariable> Params;
+	Sys->GetExposedParameters().GetUserParameters(Params);
+	for (const FNiagaraVariable& P : Params)
+	{
+		const FString N = P.GetName().ToString();
+		bLength |= N.EndsWith(TEXT("Length"));
+		bIntensity |= N.EndsWith(TEXT("Intensity"));
+	}
+	TestTrue(TEXT("it exposes User.Length (the bay sets it every frame)"), bLength);
+	TestTrue(TEXT("it exposes User.Intensity"), bIntensity);
+	return true;
+}
+
 #endif

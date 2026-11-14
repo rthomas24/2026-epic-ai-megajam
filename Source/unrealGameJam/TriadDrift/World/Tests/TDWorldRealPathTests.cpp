@@ -85,6 +85,16 @@ bool FTDWorldAssaultRealPath::RunTest(const FString& Parameters)
 		TestEqual(*(Fps + TEXT(": all generators destroyed by real shots")), D->GetGeneratorsRemaining(), 0);
 		TestTrue(*(Fps + TEXT(": reactor exposed")), D->GetState() == ETDDominionState::ReactorExposed);
 
+		// A real shot destroys a Dominion turret too (before the kill: the final blast retires the hull's guns).
+		if (D->GetTurrets().Num() > 0)
+		{
+			ATDEnemyTurret* T = D->GetTurrets()[0];
+			T->GetHealth()->SetInvulnerable(false);
+			const FVector Out = FVector(0.f, 0.f, 5000.f);
+			ShootUntilDead(W, T, Out, 500.f, Step, 4, [T]() { return T->IsAlive(); });
+			TestFalse(*(Fps + TEXT(": a real shot kills a Dominion turret")), T->IsAlive());
+		}
+
 		// A real shot down into the trench reaches the reactor.
 		const float Before = Reactor->GetTotalHealth01();
 		Shoot(W, Reactor->GetActorLocation() + Above, Reactor->GetActorLocation(), 200.f);
@@ -97,15 +107,6 @@ bool FTDWorldAssaultRealPath::RunTest(const FString& Parameters)
 		W.Advance(D->BreakupSeconds + 2.5f, Step);
 		TestTrue(*(Fps + TEXT(": Victory")), GI->Progress.Phase == ETDGamePhase::Victory);
 
-		// A real shot destroys a Dominion turret too.
-		if (D->GetTurrets().Num() > 0)
-		{
-			ATDEnemyTurret* T = D->GetTurrets()[0];
-			T->GetHealth()->SetInvulnerable(false);
-			const FVector Out = FVector(0.f, 0.f, 5000.f);
-			ShootUntilDead(W, T, Out, 500.f, Step, 4, [T]() { return T->IsAlive(); });
-			TestFalse(*(Fps + TEXT(": a real shot kills a Dominion turret")), T->IsAlive());
-		}
 	}
 	return true;
 }
@@ -285,6 +286,106 @@ bool FTDWorldTrenchSurvivable::RunTest(const FString& Parameters)
 		Took, Now == Lead ? TEXT("the same") : TEXT("switched / retaken"), H ? H->GetHull() : -1.f, H ? H->GetShield() : -1.f));
 	TestTrue(TEXT("the squad kills the reactor from the trench start inside 45 s, real weapons, no god mode"), bKilled);
 	TestTrue(TEXT("the flown ship survives the run (no switch or retake)"), Now == Lead && H && H->IsAlive());
+	return true;
+}
+
+// Lead (Nov 14, M6 played live): from the trench start, holding forward rammed the reactor after ~6 s at cruise and
+// threw the ship off it. The reactor hold eases the flown ship to rest short of the core; firing kills it from there.
+namespace TDReactorHoldTest
+{
+	ATDDominion* Exposed(FTDTestWorld& W)
+	{
+		UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+		GI->Progress.bDominionRevealed = true; GI->Progress.Phase = ETDGamePhase::DominionAssault;
+		ATDDominion* D = W.Spawn<ATDDominion>(FVector(150000.f, -40000.f, 20000.f), FRotator(0.f, -90.f, 0.f));
+		D->MaxLaunchedAlive = 0;
+		D->BoardingMode = ETDBoardingMode::ForceOff;
+		W.Advance(D->WarpInSeconds + 0.2f);
+		D->DebugDropShields();
+		W.Advance(0.2f);
+		return D;
+	}
+
+	ATDShip* FlownAtTrenchStart(FTDTestWorld& W, ATDDominion* D)
+	{
+		const FTransform Start = D->GetStageStart(true);
+		ATDShip* Ship = W.Spawn<ATDShip>(Start.GetLocation(), Start.Rotator());
+		if (!Ship) { return nullptr; }
+		Ship->SetPlayerControlled(true);
+		D->SetFlownShipOverride(Ship);
+		FTDFlightInput In;
+		In.Throttle = 1.f;	// holding forward
+		Ship->SetFlightInput(In);
+		return Ship;
+	}
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReactorHoldNoContact, "TriadDrift.World.Dominion.ReactorHoldStraightRunNeverContactsAndFireKills", TD_TEST_FLAGS)
+bool FTDReactorHoldNoContact::RunTest(const FString& Parameters)
+{
+	using namespace TDWorldRealPathTest;
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	ATDDominion* D = TDReactorHoldTest::Exposed(W);
+	if (!TestEqual(TEXT("reactor exposed"), (int32)D->GetState(), (int32)ETDDominionState::ReactorExposed)) { return false; }
+	ATDDominionReactor* Reactor = D->GetReactor();
+	ATDShip* Ship = TDReactorHoldTest::FlownAtTrenchStart(W, D);
+	if (!TestNotNull(TEXT("ship"), Ship) || !TestNotNull(TEXT("reactor"), Reactor)) { return false; }
+	// 1) Straight at cruise, no fire, for 30 s: the ship comes to rest short of the core.
+	float MinGap = BIG_NUMBER;
+	bool bHeld = false;
+	for (int32 i = 0; i < 30 * 60; ++i)
+	{
+		W.Tick(1.f / 60.f);
+		MinGap = FMath::Min(MinGap, D->GetReactorSurfaceDistance(Ship->GetActorLocation()));
+		bHeld |= D->IsReactorHoldActive();
+	}
+	const float Speed = (float)Ship->GetVelocity().Size();
+	AddInfo(FString::Printf(TEXT("closest %.0f m from the reactor's surface, speed after 30 s %.1f m/s"), MinGap / 100.f, Speed / 100.f));
+	TestTrue(TEXT("the hold took the flown ship"), bHeld);
+	TestTrue(*FString::Printf(TEXT("never contacts the reactor (closest %.0f m)"), MinGap / 100.f), MinGap > 1000.f);
+	TestTrue(*FString::Printf(TEXT("on station (%.1f m/s)"), Speed / 100.f), Speed < 300.f);
+	// 2) A competent run: holding fire along the nose from where it holds kills the reactor inside 45 s.
+	float T = 0.f;
+	while (Reactor->IsAlive() && T < 45.f)
+	{
+		const FVector From = Ship->GetActorLocation() + Ship->GetActorForwardVector() * 800.f;
+		Shoot(W, From, From + Ship->GetActorForwardVector() * 30000.f, 600.f);
+		W.Advance(0.4f);
+		T += 0.4f;
+	}
+	AddInfo(FString::Printf(TEXT("reactor %s after %.1f s of fire from the hold"), Reactor->IsAlive() ? TEXT("alive") : TEXT("destroyed"), T));
+	TestFalse(TEXT("firing from the hold kills the reactor inside 45 s"), Reactor->IsAlive());
+	TestFalse(TEXT("the hold lets go once the reactor is dead"), D->IsReactorHoldActive());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDReactorHoldRelease, "TriadDrift.World.Dominion.ReactorHoldReleasesOnTurnAwayAndBoost", TD_TEST_FLAGS)
+bool FTDReactorHoldRelease::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	ATDDominion* D = TDReactorHoldTest::Exposed(W);
+	ATDShip* Ship = TDReactorHoldTest::FlownAtTrenchStart(W, D);
+	if (!TestNotNull(TEXT("ship"), Ship) || !TestNotNull(TEXT("reactor"), D->GetReactor())) { return false; }
+	for (int32 i = 0; i < 20 * 60 && !D->IsReactorHoldActive(); ++i) { W.Tick(1.f / 60.f); }
+	if (!TestTrue(TEXT("held near the reactor"), D->IsReactorHoldActive())) { return false; }
+	const UTDShipMovementComponent* Move = Ship->GetShipMovement();
+	// Turn away: released on the next tick.
+	const FRotator Facing = Ship->GetActorRotation();
+	Ship->SetActorRotation(Facing + FRotator(0.f, 180.f, 0.f));
+	W.Tick(1.f / 60.f);
+	TestFalse(TEXT("turning away releases the hold at once"), D->IsReactorHoldActive());
+	TestFalse(TEXT("no speed override left on the ship"), Move && Move->HasSpeedOverrideFor(TEXT("ReactorHold")));
+	// Face it again: held again; boost: released.
+	Ship->SetActorRotation(Facing);
+	W.Tick(1.f / 60.f);
+	TestTrue(TEXT("facing it again re-engages"), D->IsReactorHoldActive());
+	FTDFlightInput In;
+	In.Throttle = 1.f;
+	In.bBoost = true;
+	Ship->SetFlightInput(In);
+	W.Tick(1.f / 60.f);
+	TestFalse(TEXT("boost releases the hold at once"), D->IsReactorHoldActive());
+	TestFalse(TEXT("no speed override left after boost"), Move && Move->HasSpeedOverrideFor(TEXT("ReactorHold")));
 	return true;
 }
 

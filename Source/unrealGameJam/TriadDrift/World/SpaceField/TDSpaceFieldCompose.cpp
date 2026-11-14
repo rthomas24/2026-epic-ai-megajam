@@ -12,6 +12,8 @@
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "Engine/StaticMesh.h"
 #include "HAL/IConsoleManager.h"
+#include "TriadDrift/World/TDDominion.h"
+#include "Components/PointLightComponent.h"
 
 namespace TDSpaceFieldCompose
 {
@@ -225,6 +227,28 @@ namespace TDSpaceFieldCompose
 			Ship->TeleportSpacecraft(From, Facing, /*bKeepSpeed*/ false);
 			GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f 2"), Facing.Yaw, Facing.Pitch));
 			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.ViewRegion %d %d: from %s facing %s"), Region, Range, *From.ToCompactString(), *Facing.ToCompactString());
+		}));
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdJourneyCheck(TEXT("TD.SpaceField.JourneyCheck"),
+		TEXT("Log, for each of T4's journey keep-outs and routes, the rocks, set pieces and other obstacles that sit inside it (live)"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			if (const ATDSpaceField* Field = ATDSpaceField::Get(World)) { Field->LogJourneyCheck(); }
+		}));
+
+	static FAutoConsoleCommandWithWorldAndArgs CmdJourneyStep(TEXT("TD.SpaceField.JourneyStep"),
+		TEXT("Captures: park the flown ship on journey route <index> at fraction <t 0-1>, facing along it: TD.SpaceField.JourneyStep <index> <t>"),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const ATDSpaceField* Field = ATDSpaceField::Get(World);
+			ATDSpacecraft* Ship = World ? Cast<ATDSpacecraft>(UGameplayStatics::GetPlayerPawn(World, 0)) : nullptr;
+			const int32 Index = Args.Num() > 0 ? FCString::Atoi(*Args[0]) : 0;
+			const float T = Args.Num() > 1 ? FCString::Atof(*Args[1]) : 0.f;
+			FVector From; FRotator Facing; FName Id;
+			if (!Field || !Ship || !Field->JourneyPose(Index, T, From, Facing, Id)) { UE_LOG(LogTemp, Warning, TEXT("TD.SpaceField.JourneyStep: no field / ship / route %d"), Index); return; }
+			Ship->TeleportSpacecraft(From, Facing, /*bKeepSpeed*/ false);
+			GEngine->Exec(World, *FString::Printf(TEXT("TD.Input.TurnToward %.2f %.2f 2"), Facing.Yaw, Facing.Pitch));
+			UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.JourneyStep %d (%s) %.2f: from %s facing %s"), Index, *Id.ToString(), T, *From.ToCompactString(), *Facing.ToCompactString());
 		}));
 }
 
@@ -445,8 +469,78 @@ void ATDSpaceField::BuildOuterDark(FRandomStream& Rng)
 			Gravel += AddRock(At + FVector(Rng.GetUnitVector()) * Rng.FRandRange(Size * 0.6f, Size * 0.6f + 8000.f), Power(Rng, 300.f, 1500.f, 2.f), ETDSpaceFieldKind::Cluster, Rng, Fam) ? 1 : 0;
 		}
 	}
-	RegionCentres.Add(7, Zone + FVector(OuterDarkInner, 0.f, 0.f));
 	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: Outer Dark %d lone rocks, %d gravel, %.1f-%.1f km"), Anchors, Gravel, OuterDarkInner / 100000.f, Outer / 100000.f);
+
+	// The watch (Lead, Nov 14: the Outer Dark read blank from the route). On the run in to the Dominion, before the Shattered
+	// Moons' outer flank: a dozen big lone rocks (50-150 m), far apart, high and low, 1.6-3.3 km along the run-in and 1.2-2 km
+	// off it (beyond the shards' band), and one Null rig anchored on the biggest, facing the route. Empty, and watched. They
+	// keep every keep-out (IsPlacementAllowed, the journey).
+	const FTDGalaxyLayoutData& L = Layout->GetLayout();
+	const ATDDominion* Dom = ATDDominion::Get(this);
+	const FVector DLoc = Dom ? Dom->GetActorLocation() : Xf.TransformPosition(L.Dominion.GetLocation());
+	const FVector Route = (DLoc - Zone).GetSafeNormal();
+	const float RouteLen = (float)FVector::Dist(Zone, DLoc);
+	const FVector Side = FVector::CrossProduct(FVector::UpVector, Route).GetSafeNormal();
+	const float AlongNear = FMath::Min(160000.f, RouteLen * 0.3f), AlongFar = FMath::Min(330000.f, RouteLen * 0.65f);
+	// T4's finer Dominion keep-outs, as for the Shattered Moons: MoonDominionClear from the Dominion, 400 m + the rock from
+	// the bow axis out to 5 km (the escape flight), 600 m from the approach stage start, out of the docking cone.
+	const FVector Bow = Dom ? Dom->GetActorForwardVector() : (Zone - DLoc).GetSafeNormal();
+	const FVector Stage = Dom ? Dom->GetStageStart(false).GetLocation() : DLoc + Bow * 200000.f;
+	TGuardValue<bool> WatchRules(bMoonPlacement, true);
+	int32 Watch = 0;
+	FVector Biggest = FVector::ZeroVector;
+	float BiggestSize = 0.f;
+	for (int32 Try = 0; Watch < OuterWatchRocks && Try < OuterWatchRocks * 30; ++Try)
+	{
+		const float Along = Rng.FRandRange(AlongNear, AlongFar);
+		const float Out = Rng.FRandRange(90000.f, 150000.f) * (Rng.FRand() < 0.5f ? -1.f : 1.f);
+		const FVector At = Zone + Route * Along + Side * Out + FVector(0.f, 0.f, Rng.FRandRange(-70000.f, 70000.f));
+		const float HalfMax = 11250.f;
+		if (FVector::Dist(At, FMath::ClosestPointOnSegment(At, DLoc, DLoc + Bow * 500000.f)) < 40000.f + HalfMax) { continue; }
+		if (FVector::Dist(At, Stage) < 60000.f + HalfMax) { continue; }
+		if (IsInDockingCone(At, HalfMax)) { continue; }
+		// Far apart: lone, not a cluster.
+		bool bLone = true;
+		for (const FTDSpaceFieldPiece& P : Pieces) { if (P.Size >= 5000.f && FVector::DistSquared(P.Location, At) < FMath::Square(45000.f)) { bLone = false; break; } }
+		if (!bLone) { continue; }
+		const float Size = Power(Rng, 7500.f, 22500.f, 1.6f);	// 1.5x (Lead, Nov 14)
+		if (!AddRock(At, Size, ETDSpaceFieldKind::Cluster, Rng, Rng.FRand() < 0.5f ? 0 : 2)) { continue; }
+		++Watch;
+		if (Size > BiggestSize) { BiggestSize = Size; Biggest = At; }
+	}
+	bool bWatcher = false;
+	if (BiggestSize > 0.f)
+	{
+		// The watcher: a Null rig on the biggest lone rock's top, turned to the route.
+		if (UStaticMesh* Rig = LoadSetPiece(TEXT("SM_SP_NullRig")))
+		{
+			const FVector OnRoute = FMath::ClosestPointOnSegment(Biggest, Zone, DLoc);
+			const FRotator Face(0.f, (OnRoute - Biggest).Rotation().Yaw, 0.f);
+			bWatcher = AddStructure(Rig, FTransform(Face, Biggest + FVector(0.f, 0.f, BiggestSize * 0.42f), FVector(1.5f)), 7);
+			// Its blinking beacon buoy beside it: the one light out here (the watch is watching).
+			if (BuoyMesh)
+			{
+				AddStructure(BuoyMesh, FTransform(Face, Biggest + FVector(0.f, 0.f, BiggestSize * 0.42f) + Face.RotateVector(FVector(0.f, 3000.f, 1500.f)), FVector(4.f)));
+			}
+			// A red light on the watcher (Lead, Nov 14): it lights its rock Null red, the one warm thing out here.
+			UPointLightComponent* Red = NewObject<UPointLightComponent>(this, TEXT("OuterDarkWatcherLight"));
+			Red->SetupAttachment(RootComponent);
+			Red->SetMobility(EComponentMobility::Movable);
+			Red->SetWorldLocation(Biggest + FVector(0.f, 0.f, BiggestSize * 0.42f + 2500.f) + Face.Vector() * 3000.f);
+			Red->SetLightColor(FLinearColor(1.f, 0.08f, 0.03f));
+			Red->SetIntensityUnits(ELightUnits::Candelas);
+			Red->SetIntensity(2.0e6f);
+			Red->SetAttenuationRadius(BiggestSize * 1.6f + 20000.f);
+			Red->SetCastShadows(false);
+			Red->RegisterComponent();
+		}
+		RegionCentres.Add(7, Biggest);
+	}
+	else
+	{
+		RegionCentres.Add(7, Zone + FVector(OuterDarkInner, 0.f, 0.f));
+	}
+	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: Outer Dark watch %d lone rocks 50-150 m on the Dominion run-in, watcher %s"), Watch, bWatcher ? TEXT("placed") : TEXT("missing"));
 }
 
 // ------------------------------------------------------------------------------ regions 3, 5, 6 and the region set pieces
@@ -485,9 +579,11 @@ void ATDSpaceField::BuildIceDrift(FRandomStream& Rng)
 	const FVector Side = FVector::CrossProduct(FVector::UpVector, VDir).GetSafeNormal();
 	const float GraveSign = RegionCentres.Contains(4) ? FMath::Sign((float)FVector::DotProduct(RegionCentres[4] - Zone, Side)) : 1.f;
 	const float S = -GraveSign;	// the other side
-	const FVector Head = Zone + VDir * (BeltOuter + 25000.f) + Side * S * 40000.f;
-	const FVector Tail = VLoc - VDir * (VAtmo * 1.5f + 30000.f) + Side * S * 50000.f + FVector(0.f, 0.f, -15000.f);
-	const FVector Ctrl = (Head + Tail) * 0.5f + Side * S * 40000.f;
+	// Lifted above the route plane and brought in (Lead, Nov 14: from the Verdance route it hid behind the ringed planet).
+	const FVector Head = Zone + VDir * (BeltOuter + 25000.f) + Side * S * 32000.f + FVector(0.f, 0.f, 22000.f);
+	const FVector Tail = VLoc - VDir * (VAtmo * 1.5f + 30000.f) + Side * S * 38000.f + FVector(0.f, 0.f, 26000.f);
+	const FVector Ctrl = (Head + Tail) * 0.5f + Side * S * 28000.f + FVector(0.f, 0.f, 18000.f);
+	TGuardValue<bool> IceLook(bIceDriftPlacement, true);	// its own components, the ice glow raised
 	int32 Placed = 0;
 	for (int32 Try = 0; Placed < IceDriftRocks && Try < IceDriftRocks * 6; ++Try)
 	{
@@ -684,6 +780,73 @@ void ATDSpaceField::LogRouteReport() const
 		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.RouteReport: %d %s, centre %.1f km from the zone, biggest piece %.0f m, nearest route %.1f km%s"), R, Names[R],
 			FVector::Dist(*C, BeltCenter) / 100000.f, Big / 100.f, Nearest / 100000.f, *Line);
 	}
+}
+
+int32 ATDSpaceField::LogJourneyCheck() const
+{
+	if (!Layout) { return 0; }
+	TArray<FTDJourneyKeyPoint> Journey;
+	Layout->GetJourneyKeyPoints(Journey);
+	const UTDWorldSubsystem* WS = UTDWorldSubsystem::Get(this);
+	int32 Total = 0, RouteIdx = 0;
+	for (const FTDJourneyKeyPoint& K : Journey)
+	{
+		if (K.Kind == ETDJourneyPointKind::Pocket) { continue; }
+		// A piece inside a pocket (the combat zone, the kill zone) is sparse cover by design: not counted.
+		auto InPocket = [&Journey](const FVector& P)
+		{
+			for (const FTDJourneyKeyPoint& Q : Journey) { if (Q.Kind == ETDJourneyPointKind::Pocket && Q.DistanceTo(P) < 0.f) { return true; } }
+			return false;
+		};
+		int32 Field = 0, Adopted = 0, Sets = 0, Other = 0;
+		FString First;
+		for (const FTDSpaceFieldPiece& P : Pieces)
+		{
+			if (K.DistanceTo(P.Location) < P.Size * 0.5f && !InPocket(P.Location))
+			{
+				++(P.bAdopted ? Adopted : Field);
+				if (First.IsEmpty()) { First = FString::Printf(TEXT("%s rock %.0f m at %s"), P.bAdopted ? TEXT("adopted") : TEXT("field"), P.Size / 100.f, *P.Location.ToCompactString()); }
+			}
+		}
+		for (const FTDSpaceFieldPiece& S : Structures)
+		{
+			if (K.DistanceTo(S.Location) < S.Size * 0.5f && !InPocket(S.Location)) { ++Sets; if (First.IsEmpty()) { First = FString::Printf(TEXT("set piece %.0f m at %s"), S.Size / 100.f, *S.Location.ToCompactString()); } }
+		}
+		if (WS)
+		{
+			// Every obstacle sphere in the galaxy (the field's own are counted above too; this catches ruins, wrecks, the layout's).
+			for (const FSphere& O : WS->GetObstacles())
+			{
+				if (O.W >= 0.f && K.DistanceTo(O.Center) < O.W && !InPocket(O.Center)) { ++Other; if (First.IsEmpty()) { First = FString::Printf(TEXT("obstacle r %.0f m at %s"), O.W / 100.f, *O.Center.ToCompactString()); } }
+			}
+		}
+		const bool bRoute = K.Kind == ETDJourneyPointKind::Route;
+		UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.JourneyCheck: %s%s %s (r %.0f m%s): field %d, adopted %d, set pieces %d, obstacles %d%s%s"),
+			bRoute ? *FString::Printf(TEXT("route %d "), RouteIdx) : TEXT(""), bRoute ? TEXT("") : TEXT("keep-out"), *K.Id.ToString(), K.Radius / 100.f,
+			bRoute ? *FString::Printf(TEXT(", %.1f km"), K.Length / 100000.f) : TEXT(""), Field, Adopted, Sets, Other, First.IsEmpty() ? TEXT("") : TEXT(" | first: "), *First);
+		Total += Field + Adopted + Sets;
+		RouteIdx += bRoute ? 1 : 0;
+	}
+	UE_LOG(LogTemp, Display, TEXT("TD.SpaceField.JourneyCheck: %d rocks and set pieces inside the journey outside its pockets"), Total);
+	return Total;
+}
+
+bool ATDSpaceField::JourneyPose(int32 Index, float T, FVector& OutFrom, FRotator& OutFacing, FName& OutId) const
+{
+	if (!Layout) { return false; }
+	TArray<FTDJourneyKeyPoint> Journey;
+	Layout->GetJourneyKeyPoints(Journey);
+	int32 N = 0;
+	for (const FTDJourneyKeyPoint& K : Journey)
+	{
+		if (K.Kind != ETDJourneyPointKind::Route) { continue; }
+		if (N++ != Index) { continue; }
+		OutFrom = K.Location + K.Direction * K.Length * FMath::Clamp(T, 0.f, 1.f);
+		OutFacing = K.Direction.Rotation();
+		OutId = K.Id;
+		return true;
+	}
+	return false;
 }
 
 bool ATDSpaceField::IsInDockingCone(const FVector& P, float Radius) const

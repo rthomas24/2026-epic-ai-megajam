@@ -68,6 +68,21 @@ namespace TDCourseColors
 
 /** A socket of a Grok Bot prop (anchor tower, crystal cradle) in the mesh's own space (Interchange may keep or strip
  *  the SOCKET_ prefix). */
+/** A structures-builder piece in Props/Kit/Story under either of its names, or null when it is not in the build. */
+static UStaticMesh* TDPlanetCourse_KitStory(const TCHAR* Name, const TCHAR* AltName = nullptr)
+{
+	for (const TCHAR* N : { Name, AltName })
+	{
+		if (!N) { continue; }
+		const FString Package = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/%s"), N);
+		if (FindPackage(nullptr, *Package) || FPackageName::DoesPackageExist(Package))
+		{
+			if (UStaticMesh* M = TDPropArt::Load(TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(FString::Printf(TEXT("%s.%s"), *Package, N))))) { return M; }
+		}
+	}
+	return nullptr;
+}
+
 static bool TDPlanetCourse_AnchorSocket(const UStaticMesh* Mesh, const TCHAR* Name, FVector& OutLocal)
 {
 	if (!Mesh) { return false; }
@@ -1435,7 +1450,6 @@ void ATDPlanetCourse::BuildVerdance()
 			{ Sites, TEXT("BP_Landmark_RelayMast"), FVector(13200.f, 6800.f, 0.f), 215.f, 1.f, true },
 			// B: the wreck scar's head, and the kit wreck (the walkway through the hull) at the research site.
 			{ Story, TEXT("SM_Kit_AntennaToppled"), FVector(13300.f, 8600.f, 0.f), 35.f, 1.f, true },
-			{ Story, TEXT("SM_Kit_ScorchLines"), FVector(13600.f, 8000.f, 2.f), 36.f, 1.5f, false },
 			{ Story, TEXT("SM_Kit_SampleCases"), FVector(12900.f, 9200.f, 0.f), 80.f, 1.f, true },
 			// The kit wreck at the scar's end, just outside the site fight's box: on its 2 m walkway a pilot would be out of the
 			// melee crew's reach mid-fight (Course.CrewAttackAPilotStandingAtTheWreckCore).
@@ -1620,10 +1634,11 @@ void ATDPlanetCourse::BuildCinder()
 	// The marker crosses from wherever the pilot is (T7: the straight line from the respawn ran over the river); two
 	// magma deaths in a row put the pilot on the far bank (clear of the geyser row), facing the gate.
 	AddMagmaCrossing(River, Outpost, INDEX_NONE, RiverChain, FVector(6900.f, 4900.f, 0.f), 25.f);
-	// A geyser row on the far bank, rippling: 4 m north-east of the bridge's far ramp foot (Lead, Nov 14).
+	// A geyser row on the far bank, rippling, at least 8 m clear of the bridge's ramp feet (the structures builder's
+	// walk, Nov 14: a geyser 3.1 m past the far foot threw the pilot 5-6 m; Course.CinderMarkers... checks it).
 	for (int32 i = 0; i < 3; ++i)
 	{
-		Geyser(FVector(7283.f + i * 450.f, 5883.f + i * 200.f, 0.f), i * 1.2f);
+		Geyser(FVector(7750.f + i * 450.f, 5600.f + i * 200.f, 0.f), i * 1.2f);
 	}
 
 	// The compound along +X: gate wall, yard, barracks, command deck, Warden arena.
@@ -1695,15 +1710,23 @@ void ATDPlanetCourse::BuildCinder()
 		C->LinkedStep = 0;
 		C->Color = FLinearColor(1.f, 0.1f, 0.05f);
 		C->MaxHealth = 60.f;
-		C->CrystalMesh = TDPropArt::Default(TEXT("SM_Cind_Conduit"));
+		// The structures builder's conduit (100 x 100 x 300 cm, pivot at the footing on the ground; it fits the placeholder
+		// cylinder at scale 1) and its broken stump in its place once it falls (eng/struct 4a5f5060). The old path
+		// (Props/Planet/SM_Cind_Conduit) never existed.
+		C->CrystalMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_NullConduit.SM_Kit_NullConduit")));
+		C->BrokenMesh = TSoftObjectPtr<UStaticMesh>(FSoftObjectPath(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Story/SM_Kit_NullConduitBroken.SM_Kit_NullConduitBroken")));
 		C->Mesh->SetStaticMesh(CylinderMesh); // before FinishSpawning: the art is fitted to this shape at BeginPlay
 		C->Mesh->SetRelativeScale3D(FVector(1.f, 1.f, 3.f));
 		C->Mesh->SetRelativeLocation(FVector(0.f, 0.f, 150.f));
 		TDCourseImpl::FinishProp(C);
 		Conduits->WatchDestructible(C);
+		if (MarkerGroups.Num() == 0 || MarkerGroups.Last().Objective.Get() != Outpost) { FMarkerGroup& G = MarkerGroups.AddDefaulted_GetRef(); G.Objective = Outpost; G.Step = 0; G.Counter = Conduits; }
+		MarkerGroups.Last().Targets.Add(C);
 	}
-	ATDEncounterVolume* GateGuards = Encounter(Outpost, INDEX_NONE, FVector(XGate - 1400.f, Y0, 200.f), FVector(1600.f, 1800.f, 600.f),
-		{ ETDCrewType::Grunt, ETDCrewType::Trooper, ETDCrewType::Grunt }, true, 700.f);
+	// The gate's guards start 12 m+ past the bridge's far ramp foot (6751, 5417): the structures builder's walk (Nov 14)
+	// had crew 2-3 m from the bridge end killing the pilot stepping off. Trigger box x 8200..9600, crew on a 5 m ring.
+	ATDEncounterVolume* GateGuards = Encounter(Outpost, INDEX_NONE, FVector(XGate - 700.f, Y0, 200.f), FVector(700.f, 1800.f, 600.f),
+		{ ETDCrewType::Grunt, ETDCrewType::Trooper, ETDCrewType::Grunt }, true, 500.f);
 	StepDoors.Add({ Outpost, 1, Gate });
 
 	// Cover crates inside each room.
@@ -1903,6 +1926,7 @@ void ATDPlanetCourse::BuildCinder()
 		// old 520 cm ring at 60 cm sat inside its plinth.
 		FVector SiteAt(FMath::Cos(A) * 520.f, FMath::Sin(A) * 520.f, 60.f);
 		if (AnchorTowerArt) { TDPlanetCourse_AnchorSocket(AnchorTowerArt, *FString::Printf(TEXT("Charge_%d"), i), SiteAt); }
+		float FaceGap = 45.f; // how far the charge point stands out from the tower's face
 		// The sockets (r 587-601) sit inside the tower's plinth collision (UCX_00, a 13.8 m square box 5.7 m tall: Played.Cinder
 		// could never reach one, and the interact trace hits the box first). Each charge point goes just outside whatever
 		// collision the tower has (its lowest hull), along its port's heading, at a standing pilot's reach; it follows a better
@@ -1925,7 +1949,7 @@ void ATDPlanetCourse::BuildCinder()
 			// The refitted octagon (import a78930a4) leaves each socket 10 cm outside: then the socket is the charge point.
 			FVector Closest, Normal;
 			const bool bSocketOutside = PlinthHull && PlinthHull->GetClosestPointAndNormal(SiteAt, FTransform::Identity, Closest, Normal) > 1.f;
-			if (bSocketOutside) { Plinth = FBox(ForceInit); }
+			if (bSocketOutside) { Plinth = FBox(ForceInit); FaceGap = 10.f; }
 			const FVector D = FVector(SiteAt.X, SiteAt.Y, 0.f).GetSafeNormal();
 			if (Plinth.IsValid && !D.IsNearlyZero())
 			{
@@ -1943,7 +1967,44 @@ void ATDPlanetCourse::BuildCinder()
 		Site->bCompleteLinkedStep = false;
 		TDCourseImpl::FinishProp(Site);
 		UTDStatics::TintPlaceholder(Site->Mesh, FLinearColor(1.f, 0.85f, 0.1f), 2.f);
+		// The structures builder's charge (Kit/Story/SM_Kit_AnchorCharge, 30 x 60 x 54 cm) at scale 1: its back plate on the
+		// tower face at the charge point, +X away from the tower. The 4.2 m box stays as the interact volume only (the
+		// builder's check, Nov 14: fitted to the box it stood as a 4 m post 2.1 m up).
+		if (UStaticMesh* ChargeArt = TDPlanetCourse_KitStory(TEXT("SM_Kit_AnchorCharge")))
+		{
+			const FVector Away = FVector(SiteAt.X, SiteAt.Y, 0.f).GetSafeNormal();
+			UStaticMeshComponent* Charge = NewObject<UStaticMeshComponent>(Site, TEXT("ChargeArt"));
+			Charge->SetStaticMesh(ChargeArt);
+			Charge->SetMobility(EComponentMobility::Movable);
+			Charge->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			Charge->SetupAttachment(Site->GetRootComponent());
+			Charge->SetUsingAbsoluteScale(true);
+			Charge->SetUsingAbsoluteRotation(true);
+			Charge->RegisterComponent();
+			Site->AddInstanceComponent(Charge);
+			Charge->SetWorldScale3D(FVector(1.f));
+			Charge->SetWorldRotation(GetActorRotation() + FRotator(0.f, Away.Rotation().Yaw, 0.f));
+			Charge->SetWorldLocation(W(Tower + SiteAt - Away * FaceGap)); // on the face
+			// The box is the interact volume only. Its BeginPlay dressed it with the kit console and a top-cap column (the
+			// "box on a thin stalk" the structures builder saw): hide every mesh on the site but the charge.
+			auto HideAllButCharge = [](ATDInteractableActor* On, UStaticMeshComponent* Keep)
+			{
+				TInlineComponentArray<UStaticMeshComponent*> SiteMeshes(On);
+				for (UStaticMeshComponent* M : SiteMeshes)
+				{
+					if (M && M != Keep) { M->SetHiddenInGame(true); }
+				}
+			};
+			HideAllButCharge(Site, Charge);
+			// Again next tick, in case its BeginPlay (which dresses it) runs after this.
+			GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(Site, [Site, Charge, HideAllButCharge]() { HideAllButCharge(Site, Charge); }));
+		}
 		Charges->WatchInteractable(Site);
+		UE_LOG(LogTriadDrift, Display, TEXT("Cinder anchor: charge point %d at %s (stand about 1.4 m out from the tower face and look up at it)"), i,
+			*Site->GetActorLocation().ToCompactString());
+		// Each unplanted charge point carries the marker, nearest first (T7, Nov 14: only the counter at the tower had one).
+		if (MarkerGroups.Num() == 0 || MarkerGroups.Last().Objective.Get() != Jammer) { FMarkerGroup& G = MarkerGroups.AddDefaulted_GetRef(); G.Objective = Jammer; G.Step = 1; G.Counter = Charges; }
+		MarkerGroups.Last().Targets.Add(Site);
 	}
 	ATDEncounterVolume* Defence = Encounter(Jammer, INDEX_NONE, Tower + FVector(0.f, 0.f, 200.f), FVector(2000.f, 2000.f, 600.f),
 		{ ETDCrewType::Trooper, ETDCrewType::Grunt, ETDCrewType::Grunt }, false, 900.f,
@@ -1969,6 +2030,18 @@ void ATDPlanetCourse::BuildCinder()
 	Run->Seconds = 22.f;
 	Run->Tower = TowerActor;
 	Run->DebrisExtent = FVector(3500.f, 1200.f, 0.f);
+	// The anchor's own collapse pieces (structures builder, Kit/Story), each optional.
+	for (const TCHAR* L : { TEXT("A"), TEXT("B"), TEXT("C") })
+	{
+		if (TDPlanetCourse_KitStory(*FString::Printf(TEXT("SM_Kit_AnchorDebris_%s"), L), *FString::Printf(TEXT("AnchorDebris_%s"), L)))
+		{
+			Run->DebrisMeshes.Add(TSoftObjectPtr<UStaticMesh>(TDPlanetCourse_KitStory(*FString::Printf(TEXT("SM_Kit_AnchorDebris_%s"), L), *FString::Printf(TEXT("AnchorDebris_%s"), L))));
+		}
+		if (UStaticMesh* Section = TDPlanetCourse_KitStory(*FString::Printf(TEXT("SM_Kit_AnchorSection_%s"), L), *FString::Printf(TEXT("AnchorSection_%s"), L)))
+		{
+			Run->SectionMeshes.Add(TSoftObjectPtr<UStaticMesh>(Section));
+		}
+	}
 	TDCourseImpl::FinishProp(Run);
 	Routes.Add({ Tower, FVector(LakeX1 + 800.f, LakeY - 3300.f, 0.f), Exit });
 

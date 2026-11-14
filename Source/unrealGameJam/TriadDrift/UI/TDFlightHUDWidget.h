@@ -321,6 +321,12 @@ public:
 		 * (ITDHUDData::GetAltitude), a hull-temperature bar (UTDDescentSubsystem::GetEntryHeat01) and "ATMOSPHERE";
 		 * "ORBIT" for OrbitCueSeconds after the climb-out's galaxy reveal. Hidden otherwise.
 		 */
+		/**
+		 * ENG-29 docking (T4's ATDDockingBay): while its tractor pulls the flown ship "TRACTOR BEAM · CONTROLS LIMITED" with
+		 * the pull 0..1; once it glides in (controls locked) "DOCKING · CONTROLS LOCKED". 0 = none, 1 = pulled, 2 = gliding.
+		 */
+		uint8 Docking = 0;
+		float TractorPull01 = 0.f;
 		bool bDescent = false;
 		float Heat01 = 0.f;
 		float Descent01 = -1.f;
@@ -528,6 +534,8 @@ private:
 	int32 GeneratorsDownSeen = -1;
 	/** The ORBIT cue's clock; the descent cover seen last sample (its end on the galaxy map is the climb-out reveal). */
 	float OrbitCueLeft = 0.f;
+	TWeakObjectPtr<AActor> DockingBay;
+	float DockingScanLeft = 0.f;
 	bool bSubtitlesOn = true;
 	double OrbitRevealSeen = -1.0;
 	bool bCoverSeen = false;
@@ -549,6 +557,9 @@ public:
 	int32 ForceGeneratorsDown = 0;
 	/** Tests: >= 0 forces the descent readings (heat 0..1, glide 0..1 or -1); bForceOrbitCue starts the ORBIT cue. */
 	float ForceHeat01 = -1.f;
+	/** Tests: >= 0 forces the docking state (0 none, 1 pulled, 2 gliding) and ForceTractorPull01 its pull. */
+	int32 ForceDocking = -1;
+	float ForceTractorPull01 = 0.f;
 	float ForceDescent01 = -2.f;
 	void StartOrbitCue() { OrbitCueLeft = OrbitCueSeconds; }
 	static constexpr float OrbitCueSeconds = 3.f;

@@ -290,6 +290,11 @@ bool FTDWorldVictorySafe::RunTest(const FString& Parameters)
 	R.W.Advance(R.D->BreakupSeconds + 2.5f);
 	TestTrue(TEXT("phase set to Victory"), R.GI->Progress.Phase == ETDGamePhase::Victory && R.D->IsVictoryAccepted());
 	TestTrue(TEXT("squad still protected at the victory screen"), UTDStatics::GetHealth(R.Player)->IsInvulnerable());
+	// M6 played (Nov 14): ~10 red markers stayed on the screen edges after VICTORY; the hull's guns go with the hull.
+	int32 Left = 0;
+	for (ATDEnemyTurret* T : R.D->GetTurrets()) { if (T && (!T->IsHidden() || T->GetActorEnableCollision())) { ++Left; } }
+	for (ATDShieldGenerator* G : R.D->GetGenerators()) { if (G && !G->IsHidden()) { ++Left; } }
+	TestEqual(TEXT("no turret or generator left in the fight after the final blast"), Left, 0);
 	return true;
 }
 

@@ -49,6 +49,24 @@ ATDSpacePlayerController* UTDHintComponent::GetPC() const
 	return Cast<ATDSpacePlayerController>(GetOwner());
 }
 
+namespace
+{
+	/** "EMPPulse" -> "EMP PULSE", "GravityWell" -> "GRAVITY WELL" (the enum's display name ran the acronym in, live). */
+	FString TDHintsAbilityName(ETDAbilityId Ability)
+	{
+		const FString N = StaticEnum<ETDAbilityId>()->GetNameStringByValue(static_cast<int64>(Ability));
+		FString Out;
+		for (int32 I = 0; I < N.Len(); ++I)
+		{
+			const bool bSplit = FChar::IsUpper(N[I]) && I > 0
+				&& (FChar::IsLower(N[I - 1]) || (FChar::IsUpper(N[I - 1]) && I + 1 < N.Len() && FChar::IsLower(N[I + 1])));
+			if (bSplit) { Out.AppendChar(TEXT(' ')); }
+			Out.AppendChar(N[I]);
+		}
+		return Out.ToUpper();
+	}
+}
+
 ATDShip* UTDHintComponent::GetFlownShip() const
 {
 	const ATDSpacePlayerController* PC = GetPC();
@@ -366,6 +384,24 @@ void UTDHintComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	}
 	// An award's own flight hint (board N-070): due while its owning ship is flown; each award has its own flag there, so
 	// the shared Done entry for ETDHint::Ability never suppresses a later unlock.
+	// Live (T2's play, Nov 14): the card "E CLOAK" stayed up after switching to Bastion. An ability's card belongs to its
+	// owning ship: switched away, it comes off and is due again the next time that ship is flown.
+	if ((Current == ETDHint::Ability || Queue.Contains(ETDHint::Ability)) && LastAbility != ETDAbilityId::None)
+	{
+		ETDShipId Owner;
+		const ATDShip* Flown = GetFlownShip();
+		UTDAbilityRewardSubsystem* Rewards = UTDAbilityRewardSubsystem::Get(this);
+		if (Flown && Rewards && Rewards->GetAbilityShip(LastAbility, Owner) && Owner != Flown->GetShipId())
+		{
+			Queue.Remove(ETDHint::Ability);
+			if (Current == ETDHint::Ability)
+			{
+				Current = ETDHint::None;
+				Gap = GapSeconds;
+			}
+			Rewards->ReopenFlightHint(LastAbility);
+		}
+	}
 	if (Current != ETDHint::Ability && !Queue.Contains(ETDHint::Ability))
 	{
 		ETDAbilityId Due = ETDAbilityId::None;
@@ -534,7 +570,7 @@ FText UTDHintComponent::TextFor(ETDHint Hint, bool bGamepad, ETDAbilityId Abilit
 	case ETDHint::Ability:
 	{
 		const FText Name = Ability == ETDAbilityId::None ? LOCTEXT("NewAbility", "NEW ABILITY")
-			: FText::FromString(StaticEnum<ETDAbilityId>()->GetDisplayNameTextByValue((int64)Ability).ToString().ToUpper());
+			: FText::FromString(TDHintsAbilityName(Ability));
 		return FText::Format(bGamepad ? LOCTEXT("AbilityPad", "Y  {0}") : LOCTEXT("AbilityKey", "E  {0}"), Name);
 	}
 	default:
@@ -575,7 +611,7 @@ FText UTDHintComponent::ActionFor(ETDHint Hint, ETDAbilityId Ability)
 	case ETDHint::Hyperdrive: return LOCTEXT("AHyper", "HOLD: HYPERDRIVE");
 	case ETDHint::Ability:
 		return Ability == ETDAbilityId::None ? LOCTEXT("AAbility", "NEW ABILITY")
-			: FText::FromString(StaticEnum<ETDAbilityId>()->GetDisplayNameTextByValue((int64)Ability).ToString().ToUpper());
+			: FText::FromString(TDHintsAbilityName(Ability));
 	default: return FText::GetEmpty();
 	}
 }

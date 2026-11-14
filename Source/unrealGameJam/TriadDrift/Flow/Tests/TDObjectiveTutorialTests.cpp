@@ -62,4 +62,52 @@ bool FTDObjectiveTutorialWithdrawal::RunTest(const FString& Parameters)
 	return true;
 }
 
+// T4's per-wave objective (126b238d): while wave 5 runs the line is its own ("BREAK THE DOMINION GUARD", placeholder
+// words), every other wave keeps "WAVE n · CLEAR THE AREA".
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDObjectiveWave5Text, "TriadDrift.Flow.Objective.Wave5UsesItsOwnObjectiveLine", TD_TEST_FLAGS)
+bool FTDObjectiveWave5Text::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	if (!TestNotNull(TEXT("game instance"), GI)) { return false; }
+	AActor* Player = W.Spawn<AActor>();
+	USceneComponent* Root = NewObject<USceneComponent>(Player, TEXT("Root"));
+	Player->SetRootComponent(Root);
+	Root->RegisterComponent();
+	UTDHealthComponent* Health = NewObject<UTDHealthComponent>(Player, TEXT("Health"));
+	Health->MaxHull = 100.f;
+	Health->DefaultTeam = ETDTeam::Player;
+	Health->RegisterComponent();
+	ATDWaveDirector* D = W.Spawn<ATDWaveDirector>();
+	D->SpawnAnchorOverride = Player;
+	D->SetSpawnFactory([](UWorld* World, FName, const FTransform& Transform) -> AActor*
+	{
+		FActorSpawnParameters Params;
+		Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		return World->SpawnActor<ATDWaveTestEnemy>(ATDWaveTestEnemy::StaticClass(), Transform, Params);
+	});
+	FTDObjectiveLine L;
+	for (const int32 Index : { 2, 4 })
+	{
+		GI->Progress.Phase = Index == 4 ? ETDGamePhase::Wave5 : ETDGamePhase::Waves3to4;
+		D->StartWave(Index);
+		for (float T = 0.f; D->GetPendingGroupCount() > 0 && T < 60.f; T += 1.f / 60.f) { W.Tick(1.f / 60.f); }
+		if (D->IsAwaitingCombatZone()) { AddInfo(TEXT("waiting for the combat zone; the line is the return line")); continue; }
+		TestTrue(*FString::Printf(TEXT("wave %d has a line"), Index + 1), FTDObjectiveText::Compute(W.GetWorld(), GI->Progress, ETDDestination::Galaxy, L));
+		const FText Own = D->GetWaveInfo().ObjectiveText;
+		if (Index == 4)
+		{
+			TestFalse(TEXT("wave 5 has its own objective"), Own.IsEmpty());
+			TestEqual(TEXT("wave 5's line is its own"), L.Text.ToString(), Own.ToString());
+		}
+		else
+		{
+			TestTrue(*FString::Printf(TEXT("wave %d: the generic line (%s)"), Index + 1, *L.Text.ToString()), L.Text.ToString().Contains(TEXT("CLEAR THE AREA")));
+		}
+		for (AActor* E : D->GetLivingEnemies()) { if (UTDHealthComponent* H = UTDStatics::GetHealth(E)) { H->Kill(); } }
+		W.Tick();
+	}
+	return true;
+}
+
 #endif

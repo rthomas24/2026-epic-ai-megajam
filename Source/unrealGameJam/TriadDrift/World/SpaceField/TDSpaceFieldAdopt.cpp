@@ -64,7 +64,37 @@ void ATDSpaceField::AdoptLayoutRocks()
 	for (UInstancedStaticMeshComponent* C : Layout->GetDebrisLooks()) { if (C) { Sources.Add({ C, false }); } }
 	for (UInstancedStaticMeshComponent* C : Layout->GetDressingComponents()) { if (C && C->GetName().StartsWith(TEXT("LaneRock"))) { Sources.Add({ C, false }); } }
 
-	int32 Adopted = 0, Cover = 0;
+	// T4's journey (Lead, Nov 14): a layout rock inside a route or keep-out, outside the pockets, moves sideways to just
+	// outside it (its radius + 50 m), so rocks line the corridor edges (speed and scale) and none sits inside. td.SpaceField 0
+	// keeps the layout's own positions.
+	auto InPocket = [this](const FVector& P)
+	{
+		for (const FTDJourneyKeyPoint& Q : JourneyPoints) { if (Q.Kind == ETDJourneyPointKind::Pocket && Q.DistanceTo(P) < 0.f) { return true; } }
+		return false;
+	};
+	auto ClearOfJourney = [this, &InPocket](FVector P, float Radius) -> FVector
+	{
+		for (int32 Pass = 0; Pass < 4; ++Pass)
+		{
+			if (InPocket(P)) { return P; }
+			const FTDJourneyKeyPoint* Hit = nullptr;
+			for (const FTDJourneyKeyPoint& K : JourneyPoints) { if (K.Kind != ETDJourneyPointKind::Pocket && K.DistanceTo(P) < Radius) { Hit = &K; break; } }
+			if (!Hit) { return P; }
+			const FVector C = Hit->Kind == ETDJourneyPointKind::Route
+				? FMath::ClosestPointOnSegment(P, Hit->Location, Hit->Location + Hit->Direction * Hit->Length) : Hit->Location;
+			FVector Out = P - C;
+			if (Hit->Kind == ETDJourneyPointKind::Route) { Out -= Hit->Direction * FVector::DotProduct(Out, Hit->Direction); }
+			if (Out.SizeSquared() < 1.f)
+			{
+				Out = FVector::CrossProduct(Hit->Kind == ETDJourneyPointKind::Route ? Hit->Direction : FVector::ForwardVector, FVector::UpVector);
+				if (Out.SizeSquared() < 1e-4f) { Out = FVector::RightVector; }
+			}
+			P = C + Out.GetSafeNormal() * (Hit->Radius + Radius + 5000.f);
+		}
+		return P;
+	};
+
+	int32 Adopted = 0, Cover = 0, Moved = 0;
 	for (const FSource& Src : Sources)
 	{
 		UStaticMesh* Mesh = Src.Comp->GetStaticMesh();
@@ -74,10 +104,13 @@ void ATDSpaceField::AdoptLayoutRocks()
 		{
 			FTransform T;
 			Src.Comp->GetInstanceTransform(i, T, /*bWorldSpace*/ true);
-			const FVector At = T.GetLocation();
-			const float* R = Src.bRock ? ColliderRadius.Find(Key(At)) : nullptr;
+			const FVector Orig = T.GetLocation();
+			const float* R = Src.bRock ? ColliderRadius.Find(Key(Orig)) : nullptr;
 			const float Radius = R ? *R : MeshR * T.GetMaximumAxisScale();	// the rock's own sphere, or the piece's bounds
 			const float Size = Radius * 2.f;
+			const FVector At = ClearOfJourney(Orig, Radius);
+			const bool bMoved = !At.Equals(Orig, 1.f);
+			if (bMoved) { T.SetLocation(At); ++Moved; }
 
 			UInstancedStaticMeshComponent* Visual = ComponentFor(Mesh, Size);
 			const int32 Instance = Visual->AddInstance(T, /*bWorldSpace*/ true);
@@ -90,7 +123,12 @@ void ATDSpaceField::AdoptLayoutRocks()
 			Pieces.Add(Piece);
 			// Exactly the layout's collision for its rocks (cover keeps its shape); its own obstacle, not a second one.
 			PendingColliderRadius = R ? *R : Radius * 0.8f;
-			const int32* Obstacle = Src.bRock ? ObstacleAt.Find(Key(At)) : nullptr;
+			const int32* Obstacle = Src.bRock ? ObstacleAt.Find(Key(Orig)) : nullptr;
+			if (Obstacle && bMoved && WorldSys)
+			{
+				WorldSys->RemoveObstacle(*Obstacle);	// the old spot; RegisterPiece files a new one where the rock now is
+				Obstacle = nullptr;
+			}
 			// Debris and lane rocks were visual only in the layout: solid now (every piece has a collision sphere), and those
 			// of 10 m and up get an obstacle like every field piece, so the AI steers round them (smalls shatter on contact).
 			PendingObstacle = Obstacle ? *Obstacle : INDEX_NONE;
@@ -106,7 +144,8 @@ void ATDSpaceField::AdoptLayoutRocks()
 		}
 		AdoptedLayoutComps.Add(Src.Comp);
 	}
-	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: adopted %d layout rocks and pieces (%d cover rocks at x%.0f health)"), Adopted, Cover, CoverHealthScale);
+	UE_LOG(LogTemp, Log, TEXT("TDSpaceField: adopted %d layout rocks and pieces (%d cover rocks at x%.0f health; %d moved out of the journey's routes and keep-outs)"), Adopted, Cover, CoverHealthScale, Moved);
+	AdoptedMovedOffJourney = Moved;
 }
 
 void ATDSpaceField::ShowLayoutRocks(bool bLayoutOwnsThem)

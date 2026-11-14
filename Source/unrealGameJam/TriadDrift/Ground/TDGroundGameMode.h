@@ -76,6 +76,7 @@ protected:
 	void SpawnTrainingGround();
 	void SpawnPlanetVisit();
 	void SpawnInterior();
+	void PlaceInteriorStart();
 	AActor* SpawnBlock(const FVector& Center, const FVector& SizeCm, const FLinearColor& Color, const TCHAR* Label);
 	void HandleSceneRestart(FName SceneId, int32 TakeNumber);
 

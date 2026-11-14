@@ -257,6 +257,8 @@ public:
 
 	/** Tests: use this class instead of DA_UI_Style.DirectorWidgetClass (null = the style's). */
 	TSubclassOf<UUserWidget> DirectorWidgetClassOverride;
+	/** Review only (TD.Director.Widget): swap the card renderer now; null goes back to the style's (or the fallback). */
+	void SetDirectorWidgetForReview(TSubclassOf<UUserWidget> Class);
 
 	/** The fallback cut / CUT! / slate presentation (C-03 #1, #3) and its state for tests. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Director")
