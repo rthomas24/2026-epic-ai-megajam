@@ -2018,4 +2018,35 @@ bool FTDEveryFootLineHasAMarker::RunTest(const FString& Parameters)
 	return true;
 }
 
+// T7 (Nov 14): Cinder's two gate conduits carried no markers, only the gate's step counter. While they are the step the
+// marker is the nearest one standing, then the other, as at the reactor.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDCinderGateConduitMarkers, "TriadDrift.Ground.Course.CinderGateConduitMarkerIsTheNearestStanding", TD_TEST_FLAGS)
+bool FTDCinderGateConduitMarkers::RunTest(const FString& Parameters)
+{
+	TDPlanetTest::FVisit V(NAME_None, TEXT("Cinder"));
+	TDCourseTest::FRun R(V, *this);
+	if (!R.Land()) { return false; }
+	ATDObjective* Survey = R.Course->FindObjective(TEXT("Obj_Survey"));
+	ATDObjective* Outpost = R.Course->FindObjective(TEXT("Obj_Outpost"));
+	if (!TestNotNull(TEXT("survey"), Survey) || !TestNotNull(TEXT("outpost"), Outpost)) { return false; }
+	R.Course->StartObjectiveAt(Survey->ObjectiveId);
+	for (int32 i = 0; i < 6 && Survey->IsActive(); ++i) { Survey->AdvanceStep(); }
+	TestTrue(TEXT("the excavation starts"), R.Course->StartObjectiveAt(Outpost->ObjectiveId));
+	ATDFirstPersonCharacter* P = V.Director->GetFirstPerson();
+	if (P) { P->SetActorLocation(R.Course->GetActorTransform().TransformPosition(FVector(8200.f, 6000.f, 150.f)), false, nullptr, ETeleportType::TeleportPhysics); } // the far bank: no crossing between
+	TArray<ATDShatterCrystal*> Conduits;
+	for (TActorIterator<ATDShatterCrystal> It(V.W.GetWorld()); It; ++It) { if (It->LinkedObjective == Outpost && It->LinkedStep == 0) { Conduits.Add(*It); } }
+	TestEqual(TEXT("two gate conduits"), Conduits.Num(), 2);
+	for (int32 Down = 0; Down < 2; ++Down)
+	{
+		V.W.Advance(0.3f); // the course ticks every 0.2 s
+		ATDShatterCrystal* C = Cast<ATDShatterCrystal>(Outpost->GetCurrentWaypoint());
+		if (!TestNotNull(*FString::Printf(TEXT("with %d down the marker is a conduit (%s)"), Down, *GetNameSafe(Outpost->GetCurrentWaypoint())), C)) { return false; }
+		TestTrue(TEXT("a standing one"), UTDStatics::GetHealth(C) && UTDStatics::GetHealth(C)->IsAlive());
+		TestTrue(TEXT("on the pilot's markers"), P && P->GetObjectiveMarkers().Contains(C));
+		UTDStatics::GetHealth(C)->Kill(P, ETDDamageKind::Melee);
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
