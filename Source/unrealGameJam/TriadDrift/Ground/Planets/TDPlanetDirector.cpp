@@ -18,6 +18,7 @@
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
+#include "TriadDrift/Ground/TDGroundBarks.h"
 #include "GameFramework/PlayerController.h"
 
 // ================================================================================================
@@ -391,6 +392,7 @@ bool ATDPlanetDirector::Reboard()
 		Squad->SetWingmenPassive(false);
 	}
 	Ship->GetLanding()->RequestTakeOff();
+	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->NotifyTakeOff(); } // "lifting off" (ENG-43)
 	if (UTDGameInstance* GI = UTDGameInstance::Get(this))
 	{
 		GI->GetMutableProgress().ReturnPoint = NAME_None; // airborne: a reload starts with a fresh descent

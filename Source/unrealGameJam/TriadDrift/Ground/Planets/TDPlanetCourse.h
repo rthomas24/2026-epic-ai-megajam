@@ -224,6 +224,8 @@ public:
 	float GetEscapeSecondsLeft() const;
 	/** The interior's room lights: point lights on the dressing actor tagged TD.InteriorLight. */
 	static constexpr const TCHAR* InteriorLightTag = TEXT("TD.InteriorLight");
+	/** Component tag on the interior kit pieces that carry the red strip glow (their strip slot has its own instance). */
+	static constexpr const TCHAR* EmergencyStripTag = TEXT("TD.EmergencyStrip");
 	/** Every DA_ReactorCore_FX slot played, in order (CoreIdle, ConduitBreak, ShieldDrop, HeartHit, CoreDestroyed,
 	 *  EscapeRunLoop), for tests and the effects builder. */
 	const TArray<FName>& GetReactorFXLog() const { return ReactorFXLog; }

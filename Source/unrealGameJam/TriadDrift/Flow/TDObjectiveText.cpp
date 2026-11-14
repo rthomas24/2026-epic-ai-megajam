@@ -14,6 +14,7 @@
 #include "TriadDrift/World/TDPlanetAtmosphere.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
 
 #define LOCTEXT_NAMESPACE "TDObjectiveText"
 
@@ -104,6 +105,24 @@ namespace TDObjectiveTextImpl
 			return true;
 		}
 		const FTDWaveInfo Info = Director ? Director->GetWaveInfo() : FTDWaveInfo();
+		// The tutorial's end (T7's play, Nov 14: the line still read CLEAR THE AREA under Command's order to pull back):
+		// from the order, the withdrawal; past the line, the jump point (T4's waypoint TD.Tutorial.JumpPoint) until the jump.
+		// Placeholder words; the storyline's are Nicholas's.
+		if (Director && Director->GetTutorialPhase() == ETDTutorialPhase::Withdrawal)
+		{
+			Out = Line(TEXT("Tutorial_Withdraw"), Info.WaveNumber, LOCTEXT("Withdraw", "WITHDRAW · FOLLOW THE MARKER"));
+			return true;
+		}
+		if (Director && Director->GetTutorialPhase() == ETDTutorialPhase::Escaped && Info.WaveNumber <= 2)
+		{
+			bool bJumpPoint = false;
+			for (TActorIterator<AActor> It(World); It && !bJumpPoint; ++It) { bJumpPoint = It->ActorHasTag(TEXT("TD.Tutorial.JumpPoint")); }
+			if (bJumpPoint || !Info.bWaveActive)
+			{
+				Out = Line(TEXT("Tutorial_JumpPoint"), Info.WaveNumber, LOCTEXT("JumpPoint", "REACH THE JUMP POINT"));
+				return true;
+			}
+		}
 		if (Info.bWaveActive && Info.WaveNumber > 0)
 		{
 			const FName Scene = Info.SceneId.IsNone() ? FName(*FString::Printf(TEXT("Wave%d"), Info.WaveNumber)) : Info.SceneId;
