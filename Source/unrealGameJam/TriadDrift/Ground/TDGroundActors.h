@@ -340,6 +340,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
 	TArray<ETDCrewType> CrewMix;
 
+	/** Optional names cycled across the spawned crew like CrewMix (the reactor room's future pilots: FuturePilot). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter")
+	TArray<FName> MemberNames;
+
 	/** Spawn points relative to the volume. If empty, Count crew are placed in a ring. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Encounter", meta = (MakeEditWidget))
 	TArray<FVector> SpawnPoints;

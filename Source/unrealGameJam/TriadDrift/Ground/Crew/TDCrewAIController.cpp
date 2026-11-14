@@ -173,6 +173,7 @@ void ATDCrewAIController::ChooseAttack(ATDCrewCharacter* Crew, float Distance)
 	switch (S.Type)
 	{
 	case ETDCrewType::Grunt:
+	case ETDCrewType::FutureCrew:
 		if (Distance <= S.MeleeRange + TargetR && Crew->GetCooldownLeft(ETDCrewAttack::Melee) <= 0.f)
 		{
 			UTDCrewTokenSubsystem* Tokens = UTDCrewTokenSubsystem::Get(this);
