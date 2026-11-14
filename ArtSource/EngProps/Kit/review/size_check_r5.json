@@ -1,0 +1,897 @@
+[
+ {
+  "asset": "SM_Kit_Floor_400",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   -20.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   0.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   20.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    -20
+   ],
+   [
+    200,
+    200,
+    0
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 108,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Platform_400",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   0.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   100.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   100.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    0
+   ],
+   [
+    200,
+    200,
+    100.0
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 236,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Platform_400x200",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   0.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   200.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   200.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    0
+   ],
+   [
+    200,
+    200,
+    200.0
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 236,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Platform_400x50",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   0.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   50.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   50.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    0
+   ],
+   [
+    200,
+    200,
+    50.0
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 142,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_RampLow_400",
+  "min_cm": [
+   -100.0,
+   -200.0,
+   0.0
+  ],
+  "max_cm": [
+   100.0,
+   200.0,
+   50.0
+  ],
+  "size_cm": [
+   200.0,
+   400.0,
+   50.0
+  ],
+  "expected": [
+   [
+    -100,
+    -200,
+    0
+   ],
+   [
+    100,
+    200,
+    50
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 80,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Wall_400",
+  "min_cm": [
+   -15.0,
+   -200.0,
+   0.0
+  ],
+  "max_cm": [
+   15.0,
+   200.0,
+   300.0
+  ],
+  "size_cm": [
+   30.0,
+   400.0,
+   300.0
+  ],
+  "expected": [
+   [
+    -15,
+    -200,
+    0
+   ],
+   [
+    15,
+    200,
+    300
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 800,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Wall_400_Window",
+  "min_cm": [
+   -16.0,
+   -200.0,
+   0.0
+  ],
+  "max_cm": [
+   16.0,
+   200.0,
+   300.0
+  ],
+  "size_cm": [
+   32.0,
+   400.0,
+   300.0
+  ],
+  "expected": [
+   [
+    -16,
+    -200,
+    0
+   ],
+   [
+    16,
+    200,
+    300
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 1384,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 16,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_DoorFrame_400",
+  "min_cm": [
+   -19.5,
+   -200.0,
+   0.0
+  ],
+  "max_cm": [
+   19.5,
+   200.0,
+   300.0
+  ],
+  "size_cm": [
+   39.0,
+   400.0,
+   300.0
+  ],
+  "expected": [
+   [
+    -19.5,
+    -200,
+    0
+   ],
+   [
+    19.5,
+    200,
+    300
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 2218,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 5,
+  "bevel_verts_clamped": 2,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Ramp_400",
+  "min_cm": [
+   -200.0,
+   -100.0,
+   0.0
+  ],
+  "max_cm": [
+   200.0,
+   100.0,
+   210.0
+  ],
+  "size_cm": [
+   400.0,
+   200.0,
+   210.0
+  ],
+  "expected": [
+   [
+    -200,
+    -100,
+    0
+   ],
+   [
+    200,
+    100,
+    210
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 1604,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 3,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Stairs_400",
+  "min_cm": [
+   -200.0,
+   -108.0,
+   0.0
+  ],
+  "max_cm": [
+   200.0,
+   108.0,
+   220.5
+  ],
+  "size_cm": [
+   400.0,
+   216.0,
+   220.5
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 2720,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 3,
+  "bevel_verts_clamped": 5,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Catwalk_400",
+  "min_cm": [
+   -200.0,
+   -100.0,
+   -45.0
+  ],
+  "max_cm": [
+   200.0,
+   100.0,
+   110.0
+  ],
+  "size_cm": [
+   400.0,
+   200.0,
+   155.0
+  ],
+  "expected": [
+   [
+    -200,
+    -100,
+    -45
+   ],
+   [
+    200,
+    100,
+    110
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 2413,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 3,
+  "bevel_verts_clamped": 14,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Railing_400",
+  "min_cm": [
+   -200.0,
+   0.0,
+   0.0
+  ],
+  "max_cm": [
+   200.0,
+   6.0,
+   110.0
+  ],
+  "size_cm": [
+   400.0,
+   6.0,
+   110.0
+  ],
+  "expected": [
+   [
+    -200,
+    0,
+    0
+   ],
+   [
+    200,
+    6,
+    110
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 864,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Cover_200",
+  "min_cm": [
+   -100.0,
+   -21.0,
+   0.0
+  ],
+  "max_cm": [
+   100.0,
+   21.0,
+   110.0
+  ],
+  "size_cm": [
+   200.0,
+   42.0,
+   110.0
+  ],
+  "expected": [
+   [
+    -100,
+    -21,
+    0
+   ],
+   [
+    100,
+    21,
+    110
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 248,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_BeaconMast",
+  "min_cm": [
+   -80.0,
+   -80.0,
+   0.0
+  ],
+  "max_cm": [
+   80.0,
+   80.0,
+   1730.0
+  ],
+  "size_cm": [
+   160.0,
+   160.0,
+   1730.0
+  ],
+  "expected": [
+   [
+    -80,
+    -80,
+    0
+   ],
+   [
+    80,
+    80,
+    1730.0
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 1576,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Beacon",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 3,
+  "bevel_verts_clamped": 28,
+  "uv_notes": [
+   "uv outside pillar: 0.000 7.700",
+   "uv outside pillar: 0.200 7.700"
+  ]
+ },
+ {
+  "asset": "SM_Kit_LightPillar",
+  "min_cm": [
+   -70.0,
+   -70.0,
+   0.0
+  ],
+  "max_cm": [
+   70.0,
+   70.0,
+   6000.0
+  ],
+  "size_cm": [
+   140.0,
+   140.0,
+   6000.0
+  ],
+  "expected": [
+   [
+    -70,
+    -70,
+    0
+   ],
+   [
+    70,
+    70,
+    6000
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 32,
+  "materials": [
+   "M_Kit_Pillar"
+  ],
+  "collision_hulls": 0,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Pillar",
+  "min_cm": [
+   -25.0,
+   -25.0,
+   0.0
+  ],
+  "max_cm": [
+   25.0,
+   25.0,
+   300.0
+  ],
+  "size_cm": [
+   50.0,
+   50.0,
+   300.0
+  ],
+  "expected": [
+   [
+    -25,
+    -25,
+    0
+   ],
+   [
+    25,
+    25,
+    300
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 348,
+  "materials": [
+   "M_Kit_Trim"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Corner",
+  "min_cm": [
+   -20.0,
+   -20.0,
+   0.0
+  ],
+  "max_cm": [
+   20.0,
+   20.0,
+   300.0
+  ],
+  "size_cm": [
+   40.0,
+   40.0,
+   300.0
+  ],
+  "expected": [
+   [
+    -20,
+    -20,
+    0
+   ],
+   [
+    20,
+    20,
+    300
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 438,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Roof_400",
+  "min_cm": [
+   -200.0,
+   -200.0,
+   296.0
+  ],
+  "max_cm": [
+   200.0,
+   200.0,
+   320.0
+  ],
+  "size_cm": [
+   400.0,
+   400.0,
+   24.0
+  ],
+  "expected": [
+   [
+    -200,
+    -200,
+    296
+   ],
+   [
+    200,
+    200,
+    320
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 316,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Console",
+  "min_cm": [
+   -30.0,
+   -83.0,
+   0.0
+  ],
+  "max_cm": [
+   44.0,
+   83.0,
+   106.562
+  ],
+  "size_cm": [
+   74.0,
+   166.0,
+   106.56
+  ],
+  "expected": [
+   [
+    -30,
+    -83,
+    0
+   ],
+   [
+    44,
+    83,
+    106.56
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 916,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Screen"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 4,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_LightStrip_200",
+  "min_cm": [
+   -100.0,
+   -5.0,
+   0.0
+  ],
+  "max_cm": [
+   100.0,
+   5.0,
+   6.0
+  ],
+  "size_cm": [
+   200.0,
+   10.0,
+   6.0
+  ],
+  "expected": [
+   [
+    -100,
+    -5,
+    0
+   ],
+   [
+    100,
+    5,
+    6
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 174,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 0,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_SurveyTripod",
+  "min_cm": [
+   -35.696,
+   -55.828,
+   0.0
+  ],
+  "max_cm": [
+   61.0,
+   55.828,
+   172.0
+  ],
+  "size_cm": [
+   96.7,
+   111.66,
+   172.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 990,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_SurveyProbe",
+  "min_cm": [
+   -12.0,
+   -14.0,
+   0.0
+  ],
+  "max_cm": [
+   12.0,
+   14.0,
+   110.0
+  ],
+  "size_cm": [
+   24.0,
+   28.0,
+   110.0
+  ],
+  "expected": [
+   [
+    -12,
+    -14,
+    0
+   ],
+   [
+    12,
+    14,
+    110
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 284,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_SeismicPod",
+  "min_cm": [
+   -30.0,
+   -30.0,
+   0.0
+  ],
+  "max_cm": [
+   30.0,
+   30.0,
+   90.0
+  ],
+  "size_cm": [
+   60.0,
+   60.0,
+   90.0
+  ],
+  "expected": [
+   [
+    -30,
+    -30,
+    0
+   ],
+   [
+    30,
+    30,
+    90
+   ]
+  ],
+  "check": "PASS",
+  "tris_beveled": 312,
+  "materials": [
+   "M_Kit_Trim",
+   "M_Kit_Glow"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 0,
+  "uv_notes": []
+ },
+ {
+  "asset": "SM_Kit_Artefact",
+  "min_cm": [
+   -92.0,
+   -79.674,
+   0.0
+  ],
+  "max_cm": [
+   92.0,
+   79.674,
+   262.0
+  ],
+  "size_cm": [
+   184.0,
+   159.35,
+   262.0
+  ],
+  "expected": "measured",
+  "check": "PASS",
+  "tris_beveled": 722,
+  "materials": [
+   "M_Kit_Glow",
+   "M_Kit_Stone"
+  ],
+  "collision_hulls": 1,
+  "bevel_verts_clamped": 8,
+  "uv_notes": []
+ }
+]

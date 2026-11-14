@@ -2,7 +2,7 @@
  "site": "Outpost_Site_Verdance",
  "origin": [
   4000.0,
-  -2500.0,
+  3000.0,
   2.0
  ],
  "steps": [
@@ -20,7 +20,7 @@
    ]
   },
   {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Outpost_Site_Verdance\\01_door.png"
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Outpost_Site_Verdance\\01_door.png"
   },
   {
    "walk": [
@@ -28,7 +28,7 @@
     0.45
    ],
    "feet": [
-    511,
+    525,
     0,
     0,
     180
@@ -41,7 +41,7 @@
     0.45
    ],
    "feet": [
-    230,
+    248,
     0,
     2,
     180
@@ -54,7 +54,7 @@
     0.45
    ],
    "feet": [
-    -53,
+    -30,
     0,
     2,
     180
@@ -67,7 +67,7 @@
     0.45
    ],
    "feet": [
-    -200,
+    -296,
     0,
     2,
     180
@@ -88,7 +88,7 @@
    ]
   },
   {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Outpost_Site_Verdance\\02_console.png"
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Outpost_Site_Verdance\\02_console.png"
   },
   {
    "teleport": [
@@ -104,7 +104,7 @@
    ]
   },
   {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Outpost_Site_Verdance\\03_room.png"
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Outpost_Site_Verdance\\03_room.png"
   },
   {
    "teleport": [
@@ -120,7 +120,7 @@
    ]
   },
   {
-   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngProps\\Kit\\review\\game\\Outpost_Site_Verdance\\04_15m.png"
+   "shot": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\review\\game\\Outpost_Site_Verdance\\04_15m.png"
   }
  ]
 }
