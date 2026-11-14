@@ -1,6 +1,7 @@
 // Triad Drift - Powers (Teammate 2). Power base.
 
 #include "TriadDrift/Powers/TDPowerComponent.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 #include "TriadDrift/Core/TDEventBus.h"
 #include "TriadDrift/Core/TDInterfaces.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -191,6 +192,7 @@ void UTDPowerComponent::HandleInputPressed()
 
 void UTDPowerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
+	TD_COMBAT_PERF(Powers);
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	const bool bCooldownFrozen = bPowerActive && bCooldownStartsWhenPowerEnds;

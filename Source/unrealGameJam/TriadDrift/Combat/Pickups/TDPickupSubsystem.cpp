@@ -1,6 +1,7 @@
 // Triad Drift - space pickups (Teammate 2). See header.
 
 #include "TriadDrift/Combat/Pickups/TDPickupSubsystem.h"
+#include "TriadDrift/Combat/TDCombatPerf.h"
 
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
@@ -478,6 +479,7 @@ bool UTDPickupSubsystem::Collect(ATDPickup* Pickup, ATDShip* Ship)
 
 void UTDPickupSubsystem::Tick(float DeltaTime)
 {
+	TD_COMBAT_PERF(Pickups);
 	Super::Tick(DeltaTime);
 	const bool bEnabled = IsEnabled();
 	if (!bEnabled)
