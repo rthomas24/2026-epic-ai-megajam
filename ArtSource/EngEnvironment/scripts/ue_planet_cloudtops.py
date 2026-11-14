@@ -36,8 +36,20 @@ else:
         eal.save_loaded_asset(mat, False)
         mi = eal.load_asset(D + "/MI_Planet_Verdance")
         mel.set_material_instance_vector_parameter_value(mi, "DetailTint", unreal.LinearColor(1.05, 1.2, 0.8, 1.0))
+        # T4 (Nov 14): close up, a teal wash swamped the baked ground: the #148 night values (glow 11, ambient 0.3) back
+        # toward c0ea8682 (7 / 0.2); the eclipse gets its lift from the shot's exposure instead (td.Intro.EclipseEV, T3)
+        mel.set_material_instance_scalar_parameter_value(mi, "EmissiveStrength", 7.0)
+        mel.set_material_instance_scalar_parameter_value(mi, "NightAmbient", 0.2)
         mel.update_material_instance(mi)
         eal.save_loaded_asset(mi, False)
+        # ArtBaseTex (the painted globe shown over the landing cap from afar) defaults to Verdance's: Cinder gets its own
+        cin = eal.load_asset(D + "/MI_Planet_Cinder")
+        ctex = eal.load_asset(D + "/T_Planet_Cinder_BC")
+        if cin and ctex:
+            mel.set_material_instance_texture_parameter_value(cin, "ArtBaseTex", ctex)
+            mel.update_material_instance(cin)
+            eal.save_loaded_asset(cin, False)
+        unreal.log("TDPY: Cinder ArtBaseTex %s" % ("set" if (cin and ctex) else "MISSING"))
         unreal.log("TDPY: OK")
     else:
         unreal.log("TDPY: FAILED (not saved)")
