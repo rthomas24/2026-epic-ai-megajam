@@ -38,6 +38,7 @@ bool FTDObjectiveTutorialWithdrawal::RunTest(const FString& Parameters)
 		return World->SpawnActor<ATDWaveTestEnemy>(ATDWaveTestEnemy::StaticClass(), Transform, Params);
 	});
 	D->TutorialMode = ETDTutorialMode::ForceOn;
+	D->bWaitForLessons = false;	// this test is about the objective text; the ENG-40 lesson gate has its own test
 	D->StartWave(1);
 	for (float T = 0.f; D->GetPendingGroupCount() > 0 && T < 60.f; T += 1.f / 60.f) { W.Tick(1.f / 60.f); }
 
