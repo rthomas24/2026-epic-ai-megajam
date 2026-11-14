@@ -85,6 +85,16 @@ bool FTDWorldAssaultRealPath::RunTest(const FString& Parameters)
 		TestEqual(*(Fps + TEXT(": all generators destroyed by real shots")), D->GetGeneratorsRemaining(), 0);
 		TestTrue(*(Fps + TEXT(": reactor exposed")), D->GetState() == ETDDominionState::ReactorExposed);
 
+		// A real shot destroys a Dominion turret too (before the kill: the final blast retires the hull's guns).
+		if (D->GetTurrets().Num() > 0)
+		{
+			ATDEnemyTurret* T = D->GetTurrets()[0];
+			T->GetHealth()->SetInvulnerable(false);
+			const FVector Out = FVector(0.f, 0.f, 5000.f);
+			ShootUntilDead(W, T, Out, 500.f, Step, 4, [T]() { return T->IsAlive(); });
+			TestFalse(*(Fps + TEXT(": a real shot kills a Dominion turret")), T->IsAlive());
+		}
+
 		// A real shot down into the trench reaches the reactor.
 		const float Before = Reactor->GetTotalHealth01();
 		Shoot(W, Reactor->GetActorLocation() + Above, Reactor->GetActorLocation(), 200.f);
@@ -97,15 +107,6 @@ bool FTDWorldAssaultRealPath::RunTest(const FString& Parameters)
 		W.Advance(D->BreakupSeconds + 2.5f, Step);
 		TestTrue(*(Fps + TEXT(": Victory")), GI->Progress.Phase == ETDGamePhase::Victory);
 
-		// A real shot destroys a Dominion turret too.
-		if (D->GetTurrets().Num() > 0)
-		{
-			ATDEnemyTurret* T = D->GetTurrets()[0];
-			T->GetHealth()->SetInvulnerable(false);
-			const FVector Out = FVector(0.f, 0.f, 5000.f);
-			ShootUntilDead(W, T, Out, 500.f, Step, 4, [T]() { return T->IsAlive(); });
-			TestFalse(*(Fps + TEXT(": a real shot kills a Dominion turret")), T->IsAlive());
-		}
 	}
 	return true;
 }

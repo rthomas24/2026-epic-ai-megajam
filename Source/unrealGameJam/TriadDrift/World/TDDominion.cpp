@@ -392,10 +392,9 @@ void ATDDominion::PlayFinalBlast()
 	{
 		Booms->PlayPlaceholderExplosion(Where, Radius, FLinearColor(1.f, 0.85f, 0.6f), 16);
 	}
-	if (Reactor) { Reactor->SetActorHiddenInGame(true); }
-	if (DockingBay) { DockingBay->SetActorHiddenInGame(true); }
-	if (DockingInterior) { DockingInterior->SetActorHiddenInGame(true); DockingInterior->SetActorEnableCollision(false); }
-	ShowHull(false);	// the ship is gone in the flash
+	// The ship is gone in the flash, and so is everything on it (M6 played, Nov 14: the hull turrets stayed targetable
+	// after VICTORY, ~10 red markers on the screen edges).
+	RetireDefenses();
 }
 
 FTransform ATDDominion::GetEscapeStart() const
@@ -826,6 +825,12 @@ void ATDDominion::FinishAfterVictory()
 		if (S.IsValid()) { S->Destroy(); }
 	}
 	Launched.Reset();
+	RetireDefenses();
+	SetState(ETDDominionState::Finished);
+}
+
+void ATDDominion::RetireDefenses()
+{
 	auto Retire = [](AActor* A)
 	{
 		if (!A) { return; }
@@ -841,7 +846,6 @@ void ATDDominion::FinishAfterVictory()
 	Retire(DockingBay);
 	if (DockingInterior) { DockingInterior->SetActorHiddenInGame(true); DockingInterior->SetActorEnableCollision(false); }
 	ShowHull(false);
-	SetState(ETDDominionState::Finished);
 }
 
 void ATDDominion::ShowHull(bool bVisible)
