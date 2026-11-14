@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "TriadDrift/UI/TDHUDModel.h"
 #include "TDFlightHUDWidget.generated.h"
 
 /** ENG-36 colour tokens (spec section 5). Mirrored into UTDUIStyle once that has slots for them, so Nicholas can restyle. */
@@ -534,6 +535,10 @@ private:
 	int32 GeneratorsDownSeen = -1;
 	/** The ORBIT cue's clock; the descent cover seen last sample (its end on the galaxy map is the climb-out reveal). */
 	float OrbitCueLeft = 0.f;
+	FTDHUDModel HUDModel;
+	/** This frame's target / objective markers from the source (read once, shared by the marks and the radar model). */
+	TArray<FTDTargetMarker> FrameMarkers;
+	TArray<AActor*> FrameObjectives;
 	TWeakObjectPtr<AActor> DockingBay;
 	float DockingScanLeft = 0.f;
 	bool bSubtitlesOn = true;
@@ -557,6 +562,8 @@ public:
 	int32 ForceGeneratorsDown = 0;
 	/** Tests: >= 0 forces the descent readings (heat 0..1, glide 0..1 or -1); bForceOrbitCue starts the ORBIT cue. */
 	float ForceHeat01 = -1.f;
+	/** Issue #160: the squad panel and radar data (layout-free; drawn once the concept is picked). */
+	const FTDHUDModel& GetHUDModel() const { return HUDModel; }
 	/** Tests: >= 0 forces the docking state (0 none, 1 pulled, 2 gliding) and ForceTractorPull01 its pull. */
 	int32 ForceDocking = -1;
 	float ForceTractorPull01 = 0.f;
