@@ -177,6 +177,55 @@ S2('NS_TD_Debug_GlowOffset', U((1.0, 0.62, 0.18, 1.0), 1.0), [offset(dbg_beacon(
 S2('NS_TD_Debug_RangeA', U((1.0, 0.62, 0.18, 1.0), 1.0), [fixed_bounds(shed('Beacon', 'MI_TD_VFX_RangeGlow_Plume', 0, (0.1, 0.1), (1520.0, 1520.0), (0, 0), radius=0.0, drag=0.0, local=True, power=0.01, k=8.0, rate_expr='20.0'))])
 S2('NS_TD_Debug_Haze2', U((1.0, 1.0, 1.0, 1.0), 1.0), [shell('Sphere', 30000, 1.0, mat='M_TD_RegionHaze2'), keepalive()])
 
+# ---- round 10j (T4's play, #105 / #111): the tractor beam seen from BEHIND the ship (the chase camera looks down the beam,
+# so v1 read as a faint ring at the bay mouth). v2, new asset (v1 kept): a wide cone opening toward the player (the tapered
+# mesh placed at the ship end, pointing back into the bay), bright motes and streaks spawned around the ship streaming past
+# the camera into the bay, rings travelling down the cone and shrinking with it, and a soft blue tint around the ship.
+# Same slot and parameters (UTDDominionVisuals.TractorBeam, +X out of the bay, User.Length cm, User.Intensity).
+TB2 = (0.40, 0.75, 1.0, 1.0)
+
+
+def tb_ring():
+    e = shed('Rings', 'M_TD_VFX_Ring', 0, (2.6, 2.6), (1, 1), (3800, 3800), k=1.6, radius=0.0, drag=0.0, local=True,
+             cone=((-1.0, 0.0, 0.0), 0.0), rate_expr='1.4*User.Intensity', power=0.8, fade_in=6.0)
+    meshed(e, 'SM_TD_VFX_Disc', 'M_TD_VFX_Ring')
+    e['set'] += [(PS, INIT, 'Mesh Scale Mode', E('Non-Uniform')), (PS, INIT, 'Mesh Scale', X('float3(1.0, 46.0, 46.0)*User.Scale')),
+                 (PU, 'ScaleMeshSize', 'Scale Factor', X('float3(1.0, 1.0, 1.0)*(1.0 - 0.75*Particles.NormalizedAge)'))]
+    e['add'] = e.get('add', []) + [(PU, 'Update/Size/ScaleMeshSize')]
+    return offset(e, 'User.Length/User.Scale')
+
+
+S2('NS_TD_Dominion_TractorBeam2', U(TB2, 1.0, Length=20000.0, Intensity=1.0), [
+    offset(mesh_single('Cone', 'SM_TD_VFX_Flame', 'M_TD_VFX_Field', '1.0, 55.0, 55.0', 0.9, None,
+                       live_scale='float3(-User.Length/(100.0*User.Scale), 1.0, 1.0)*User.Intensity'), 'User.Length/User.Scale'),
+    tb_ring(),
+    offset(shed('Streaks', 'M_TD_VFX_Spark', 0, (0.5, 0.9), (16, 30), (7000, 11000), k=2.4, radius=2200.0, drag=0.0, local=True, stretch=30,
+                rgb=(0.7, 0.9, 1.0), cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='60.0*User.Intensity', fade_in=6.0), 'User.Length/User.Scale + 1500.0'),
+    offset(shed('Motes', 'M_TD_VFX_Glow', 0, (1.2, 2.2), (80, 160), (4000, 7000), k=2.0, radius=2600.0, drag=0.0, local=True,
+                cone=((-1.0, 0.0, 0.0), 5.0), rate_expr='50.0*User.Intensity', power=0.8, fade_in=4.0), 'User.Length/User.Scale + 1000.0'),
+    offset(shed('Tint', 'M_TD_VFX_Glow', 0, (0.4, 0.4), (5500, 6500), (0, 0), k=0.25, radius=0.0, drag=0.0, local=True, power=0.5,
+                rate_expr='8.0*User.Intensity'), 'User.Length/User.Scale'),
+    shed('Mouth', 'M_TD_VFX_Glow', 0, (0.3, 0.3), (5000, 6000), (0, 0), k=0.6, radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='12.0*User.Intensity')])
+
+# ---- round 10j (T4's play): the Maul bomber's plasma mine (was the placeholder disc). Slot: the Tracer of
+# DA_Enemy_PlasmaMines_FX (a persistent system on each pooled mine; with a Tracer and no ProjectileMesh the placeholder hides).
+# A dark spiked core (six tumbling shards in the cooling-debris material, near black with red edges), a red light pulsing
+# with a double arming blink every 1.2 s, and a halo that grows with the camera distance so a mine reads at 300 m.
+MINE = (1.0, 0.12, 0.03, 1.0)
+MBLINK = '(0.25 + 0.75*saturate(1.0 - abs(frac(Engine.Time/1.2)*1.2 - 0.06)/0.05) + 0.75*saturate(1.0 - abs(frac(Engine.Time/1.2)*1.2 - 0.24)/0.05))'
+
+
+def mine_spike(i):
+    d = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)][i]
+    return mesh_single('Spike%d' % i, 'SM_TD_VFX_Shard_A', 'M_TD_VFX_Debris', '1.4, 0.7, 0.7', 1.0, None, offset=(70.0 * d[0], 70.0 * d[1], 70.0 * d[2]))
+
+
+S2('NS_TD_Mine_Plasma', U(MINE, 1.0), [
+    single('Core', 'M_TD_VFX_Glow', 260, 0.35, None),
+    shed('Light', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(240.0*%s)' % MBLINK,) * 2, (0, 0), k=3.0, radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='20.0'),
+    shed('Halo', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(500.0 + 0.03*clamp(Engine.Owner.LODDistance, 0.0, 60000.0))*%s' % MBLINK,) * 2, (0, 0), k=1.6,
+         radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='20.0')] + [mine_spike(i) for i in range(6)])
+
 S2('NS_TD_Dominion_LightRow', U((0.65, 0.92, 1.0, 1.0), 1.0, Pulse=-1.0), [row_light(i) for i in range(12)])
 
 # ---- round 10 MAJOR (T7's play): Cinder magma kills but does not read as dangerous on foot. A looping hazard layer for
