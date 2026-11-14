@@ -478,6 +478,25 @@ protected:
 	void TickReactorHold(float DeltaSeconds);
 	/** The hull, its turrets, generators, reactor and bay leave the fight: hidden, no collision, not targetable. */
 	void RetireDefenses();
+
+	// Lead (Nov 14, #112 / #113): the breakup happened behind the camera (the flown ship faces away within ~3 s of the
+	// kill). After the slow-motion kill shot the view cuts to a fixed camera off the hull's flank, looking at the
+	// Dominion with the squad flying clear, holds for the explosions and the final blast, then cuts back for VICTORY.
+	void BeginBreakupCamera();
+	void EndBreakupCamera();
+	UPROPERTY(Transient)
+	TObjectPtr<class ACameraActor> BreakupCamera;
+	bool bBreakupCameraOn = false;
+	bool bBreakupCameraUsed = false;
+public:
+	/** Distance (cm) of the breakup camera from the hull's centre, off its flank (at least 2.2 hull radii). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Breakup", meta = (ClampMin = "0"))
+	float BreakupCameraDistance = 180000.f;
+	/** The breakup camera is used (off for a showcase or a test that wants the chase camera). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Dominion|Breakup")
+	bool bUseBreakupCamera = true;
+	bool IsBreakupCameraActive() const { return bBreakupCameraOn; }
+protected:
 	void ReleaseReactorHold();
 	TWeakObjectPtr<class ATDShip> ReactorHeld;
 	TWeakObjectPtr<class ATDShip> FlownShipOverride;
