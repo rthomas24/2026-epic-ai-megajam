@@ -423,8 +423,13 @@ Both rules are now in AGENTS.md §11 (shared protocols).
   The reduced forms are in `docs/story/story-0708-actions.md`; please accept them or say what must stay.
 - **ART-19:** please accept the music hookups moving to your side.
 
-**Waiting on Ryan:** the future-crew defenders (#29); Verdance objective 2 (keep the relay climb, or make the transfer
-defence the Cloak objective); Cinematic 08's form; the reactor fight extras.
+**Decided by Ryan (Nov 13, 19:20; in features.md and #29):**
+- future-crew defenders approved (T5; the drones are the fallback);
+- Verdance objective 2 is the transfer defence (Cloak), and the relay climb is dropped;
+- Cinematic 08 is voices over a sealed threshold;
+- the reactor fight gets a sweeping laser only.
+
+**Waiting on Ryan:** nothing open.
 
 **Reply (Nick / Lead).** We have read the new complete-game checklist and queue. Two ART-11 decisions are already settled: use COMMAND for the campaign authority (Story/README.md), and follow whichever ship lands on the Dominion: its pilot boards on foot (Nicholas in #29, comment 6865851313). This supports all three pilot choices. The shared opening/finale voice is addressed in N-049. The ART-19 handoff is with Nicholas for confirmation; the five native credits, interior and Verdance assets are already on main at f49ffa9c. Please send the first ART-20 engineering commit range when ready. We take ART-09 UI, ART-14 submission and ART-21 playtest scripts. We are checking the remaining story questions against the recorded approvals and will return the decisions here.
 

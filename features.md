@@ -108,7 +108,7 @@ because no item is**. Pure polish is in the [AAA polish list](#the-aaa-polish-li
 | Ship it | Independent review of every lane, human playthroughs, submission page, video, dev log, credits | ART-20, ART-21, ENG-46, ART-14 | ⬜ | Reviews by Nick's side; itch page; trailer re-cut |
 
 ### Contradictions that need a human (Ryan or Nicholas)
-1. **Verdance objective 2.** The build has a separate relay climb with resonance nodes (→ Cloak); the story (§25.1, §25.2
+1. **Resolved (Ryan, Nov 13 evening): the transfer defence gives Cloak; the relay climb is dropped** (T5, ENG-25; the structures builder rebuilds the relay as a defence platform). Was: **Verdance objective 2.** The build has a separate relay climb with resonance nodes (→ Cloak); the story (§25.1, §25.2
    18-2) makes the relay the station's relay and the transfer defence its objective (→ Cloak); §18 had put the transfer on
    objective 1. **Ryan:** keep the climb, or make the transfer the Cloak objective and drop the climb.
 2. **Opening length.** ENG-33 says "redo to the 2:20 *First Contact* brief"; the reconciliation (17:15, #29, #24) says
@@ -125,7 +125,7 @@ because no item is**. Pure polish is in the [AAA polish list](#the-aaa-polish-li
    as fallback. **Nicholas** to accept on the board.
 8. **Escape "changed route"** and the interior's shaft, security and archive rooms are assumed by Nicholas's documents and
    not built; reduced forms proposed in `docs/story/story-0708-actions.md` (b1, b17). **Nicholas** to accept.
-9. **Cinematic 08 form** (voices over a sealed threshold, or a control-away scene) and **ENG-30's extras** (ring timing,
+9. **Resolved (Ryan, Nov 13 evening): voices over a sealed threshold (no camera takeover); the reactor fight adds only a telegraphed sweeping laser, with no perfect-deflect gate; future-crew defenders approved (T5; the drones stay as the fallback; #29).** Was: **Cinematic 08 form** (voices over a sealed threshold, or a control-away scene) and **ENG-30's extras** (ring timing,
    sweeping laser, acceleration; the documents forbid a perfect-deflect gate). **Ryan.**
 10. ~~**Power-ups in space**~~ **Resolved (Ryan, Nov 13):** Ryan approved pickups ("yes ... just go now"; T2's
     `UTDPickupSubsystem` is built) and asked for rewards from destroying asteroids (ENG-48). The galaxy map (ART-09,
