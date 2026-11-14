@@ -25,7 +25,7 @@ except SystemExit:
 SPS = "/Game/TriadDrift/Gameplay/Props/Space/SetPieces/"
 # (class, place, extra distance for the near shot so the whole piece is in frame, height offset)
 # r2 (Lead): the patrol wreck away from the station ruins; every piece at 1 km, 400 m and 100 m
-PIECES = [("BP_SP_PatrolWreck", os.environ.get("TD_SPACE_PATROL", "Gate"), 15000, 0), ("BP_SP_ResearchA", os.environ.get("TD_SPACE_RA", "Belt"), 16000, 0), ("BP_SP_ResearchB", "Verdance", 13000, 0),
+PIECES = [("BP_SP_PatrolWreck", os.environ.get("TD_SPACE_PATROL", "Gate"), 15000, 0), ("BP_SP_ResearchA", os.environ.get("TD_SPACE_RA", "Belt"), 16000, 0), ("BP_SP_ResearchB", os.environ.get("TD_SPACE_RB", "Verdance"), 13000, 0),
           ("BP_SP_NullRig", os.environ.get("TD_SPACE_RIG", "Cinder"), 11000, -1500), ("BP_SP_HollowRock", os.environ.get("TD_SPACE_ROCK", "Reactor"), 12000, 0)]
 PLACE = os.environ.get("TD_SPACE_PLACE")          # one place for every piece (a run per piece: a fresh session each)
 ONLY = os.environ.get("TD_SPACE_ONLY")
