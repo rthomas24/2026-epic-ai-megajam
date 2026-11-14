@@ -102,6 +102,22 @@ namespace
 	}
 }
 
+TMap<FName, UTDWarmupSubsystem::FProvider>& UTDWarmupSubsystem::Providers()
+{
+	static TMap<FName, FProvider> Map;
+	return Map;
+}
+
+void UTDWarmupSubsystem::RegisterProvider(FName Name, FProvider Provider)
+{
+	Providers().Add(Name, MoveTemp(Provider));
+}
+
+void UTDWarmupSubsystem::UnregisterProvider(FName Name)
+{
+	Providers().Remove(Name);
+}
+
 UTDWarmupSubsystem* UTDWarmupSubsystem::Get(const UObject* WorldContextObject)
 {
 	const UWorld* World = WorldContextObject ? WorldContextObject->GetWorld() : nullptr;
@@ -158,7 +174,11 @@ void UTDWarmupSubsystem::StartDataLoad()
 		Registry->GetAssetsByPath(Folder, Found, /*bRecursive*/ true);
 		for (const FAssetData& Data : Found)
 		{
-			if (Data.AssetName.ToString().StartsWith(TEXT("DA_")))
+			// Data assets, plus every animation: the pilot's and the crew's moves are looked up by path string the first
+			// time they play (first swing, first death), which was a synchronous load in the middle of a fight.
+			const FName Class = Data.AssetClassPath.GetAssetName();
+			if (Data.AssetName.ToString().StartsWith(TEXT("DA_")) || Class == TEXT("AnimSequence") || Class == TEXT("AnimMontage")
+				|| Class == TEXT("BlendSpace") || Class == TEXT("BlendSpace1D"))
 			{
 				DataPaths.AddUnique(Data.GetSoftObjectPath());
 			}
@@ -195,6 +215,20 @@ void UTDWarmupSubsystem::OnDataLoaded()
 	Stage = ETDWarmupStage::LoadingContent;
 	UE_LOG(LogTriadDrift, Log, TEXT("TD warmup: %d data assets in %.2f s; streaming %d referenced assets"),
 		Held.Num(), FPlatformTime::Seconds() - StartSeconds, ContentPaths.Num());
+	if (const UWorld* World = GetWorld())
+	{
+		for (const TPair<FName, FProvider>& P : Providers())
+		{
+			const int32 Before = ContentPaths.Num();
+			TArray<FSoftObjectPath> Extra;
+			P.Value(*World, Extra);
+			for (const FSoftObjectPath& Path : Extra)
+			{
+				if (Path.IsValid()) { ContentPaths.AddUnique(Path); }
+			}
+			UE_LOG(LogTriadDrift, Log, TEXT("TD warmup: provider %s added %d assets"), *P.Key.ToString(), ContentPaths.Num() - Before);
+		}
+	}
 	if (ContentPaths.Num() == 0)
 	{
 		OnContentLoaded();

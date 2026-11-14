@@ -350,7 +350,7 @@ bool FTDMusicPrimesScoresInBackground::RunTest(const FString& Parameters)
 	if (!TestNotNull(TEXT("director"), M)) { return false; }
 	const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
 	if (!Style) { AddInfo(TEXT("no DA_UI_Style in this build: nothing to prime")); return true; }
-	M->OnWorldBeginPlay(*W.GetWorld());
+	// FTDTestWorld has begun play: the director primed its slots then.
 	const int32 Wanted = (Style->IdleSpaceMusic.IsNull() ? 0 : 1) + (Style->AssaultMusic.IsNull() ? 0 : 1);
 	TestTrue(FString::Printf(TEXT("score slots primed (%d, at least %d)"), M->GetPrimedScoreCountForTests(), Wanted), M->GetPrimedScoreCountForTests() >= Wanted);
 	return true;

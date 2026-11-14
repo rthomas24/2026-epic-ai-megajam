@@ -53,7 +53,15 @@ public:
 	 *  ambience slots are left out: they stream on their own and would cost memory for the whole session. */
 	static void CollectSoftPaths(const UObject* Object, TArray<FSoftObjectPath>& Out);
 
-	/** Effects activated per frame in the warm pass (dev: TD.Warmup.PerFrame). */
+	/** Another system's own list of what to warm (#89: T2's combat cues, classes, meshes). Called once per map start
+	 *  with the world (decide by map / phase); add object or class paths (FSoftClassPath is an FSoftObjectPath).
+	 *  Register once, e.g. from a static initializer: UTDWarmupSubsystem::RegisterProvider(TEXT("Combat"), &Collect). */
+	using FProvider = TFunction<void(const UWorld& World, TArray<FSoftObjectPath>& OutPaths)>;
+	static void RegisterProvider(FName Name, FProvider Provider);
+	static void UnregisterProvider(FName Name);
+	static TMap<FName, FProvider>& Providers();
+
+		/** Effects activated per frame in the warm pass (dev: TD.Warmup.PerFrame). */
 	static int32 EffectsPerFrame;
 
 private:

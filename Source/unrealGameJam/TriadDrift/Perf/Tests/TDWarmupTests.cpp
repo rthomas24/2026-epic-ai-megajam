@@ -4,6 +4,8 @@
 #if WITH_DEV_AUTOMATION_TESTS
 
 #include "TriadDrift/Perf/TDWarmupSubsystem.h"
+#include "TriadDrift/Perf/TDAssetCache.h"
+#include "Engine/StaticMesh.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "AssetRegistry/IAssetRegistry.h"
@@ -71,6 +73,27 @@ bool FTDWarmupFindsTheGameData::RunTest(const FString& Parameters)
 	{
 		TestEqual(TEXT("idle under automation"), Warm->GetStage(), ETDWarmupStage::Idle);
 	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDAssetCacheAnswersOnce, "TriadDrift.Perf.AssetCache.AnswersEachPathOnce", TD_TEST_FLAGS)
+bool FTDAssetCacheAnswersOnce::RunTest(const FString& Parameters)
+{
+	// The crew's loop is chosen every frame by path: a found path and a missing one each reach LoadObject once.
+	TDAssetCache::Reset();
+	const int32 Before = TDAssetCache::GetLoadCount();
+	const FString Cube = TEXT("/Engine/BasicShapes/Cube.Cube");
+	const FString Missing = TEXT("/Game/T7Test/NoSuchAnim.NoSuchAnim");
+	UStaticMesh* First = TDAssetCache::Find<UStaticMesh>(Cube);
+	TestNotNull(TEXT("found"), First);
+	for (int32 i = 0; i < 100; ++i)
+	{
+		TestTrue(TEXT("same object every time"), TDAssetCache::Find<UStaticMesh>(Cube) == First);
+		TestNull(TEXT("missing stays missing"), TDAssetCache::Find<UStaticMesh>(Missing));
+	}
+	TestEqual(TEXT("two loads for 202 lookups"), TDAssetCache::GetLoadCount() - Before, 2);
+	TestNull(TEXT("an empty path is nothing"), TDAssetCache::Find<UStaticMesh>(FString()));
+	TDAssetCache::Reset();
 	return true;
 }
 
