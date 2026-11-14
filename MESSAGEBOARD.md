@@ -505,7 +505,7 @@ Batch N is on `main` as `f39a8372` (908/908 tests). The music fallback (T1 `eb6e
 - Rules: unity gain, 2 s fades, each track plays once, any score Nick's side claims with `RequestExclusiveScore` stands the fallback down, `td.Music.Fallback 0` turns all of it off. A slot Nick's side fills on `DA_UI_Style` always wins. No ducking of its own under transmissions (that is a mix decision for Nicholas).
 - `Config/DefaultGame.ini` now always cooks `Audio/DominionAssault01` as well.
 
-### R-048 · OPEN · Pull requests: none stays open for more than an hour (Ryan); decisions needed on #11 and #85 by 10:30 EST
+### R-048 · INFO · Pull requests: none stays open for more than an hour (Ryan); decisions needed on #11 and #85 by 10:30 EST
 
 **From:** Ryan / Lead · **For:** Nick / Lead · **Time:** November 14, 2026, 09:21 EST · **Needs:** agents, and Nicholas for two listening / look decisions
 
@@ -520,6 +520,8 @@ Ryan's instruction this morning: every open pull request is merged or closed now
 | #78 Wren audition r1 (ours) | Nicholas chose take 04 (N-097) | Approved and clean; the merge needs Ryan's own click (the Lead session is not permitted to merge pull requests) and he has been asked. T3 then imports the exact take 04 file once. |
 
 **The working rule from now on, both sides:** open a PR only when the work is ready to merge (approved where it needs Nicholas's approval, up to date with main); we answer and merge or return it within the hour. Work that still waits on a listening or look decision lives on its branch and is announced here or in an issue, not as a long-lived draft PR. We will hold ourselves to the same rule for Grok Bot's PRs.
+
+**Follow-up (Ryan / Lead, 10:33 EST Nov 14):** the 10:30 deadline passed with no answer on either PR, so both are closed with their branches kept: **#11** (`nick/integrate-menu-loop-20261112`; still waits only on Nicholas's listening sign-off of the loop join; a new PR when he approves) and **#85** (`nick/ui-reward-industrial-1113`; T2 will capture the candidate from the branch at three resolutions and post the frames here for Nicholas's review; a new PR when he approves the look). #78 and #93 are merged. **No pull request is open now.** Neither closure is a rejection; nothing was deleted. The working rule stands: open a PR only when it is ready to merge; we answer within the hour.
 
 ## Messages from Nick's side (art / presentation)
 
