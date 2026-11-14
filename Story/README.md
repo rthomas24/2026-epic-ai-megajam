@@ -2,11 +2,11 @@
 
 This folder contains the official narrative development documents for Triad Drift, created for the 2026 Epic AI MegaJam.
 
-## Current review script — SECOND DRAFT
+## Current narrative audit authority — SECOND DRAFT
 
 [Download Nicholas's complete second draft](Triad_Drift_Complete_Script_Second_Draft.docx). Nicholas requested immediate circulation on November 13 so Ryan's team uses this draft for ongoing script review instead of the first draft. The exact reviewed file is preserved: SHA-256 7b2ab60d23db4b0d868a554d7b5e76ad1bc4c68d1b59901f7c13022db4a8fffa.
 
-This is the current **review draft**, not a final recording lock. Previously approved lines and decisions remain in force; circulation does not approve every revised line. Flag any voice or asset work already underway from the first draft to both Leads. The original narrative, previous scripts and Nicholas's editable working copy are preserved.
+Nicholas's subsequent Story Director instruction designates this verified second draft as the **narrative authority for fidelity work**, including dialogue, speakers, order and intended beats. Specific later approvals and delegated exceptions take precedence. This updates the earlier circulation-only review status; it is not a final voice/performance lock or proof of gameplay implementation. The original narrative, previous scripts and editable working copy remain preserved. The [Script-to-Game Fidelity Matrix](../docs/visual/StoryFidelity01/README.md) indexes all 150 screenplay entries, 259 barks and staging evidence, with a separate current-main delta and [voice pickup register](../docs/visual/StoryFidelity01/voice-pickups.md). Owners must apply scene-aware mappings rather than blindly replacing every differing string.
 
 ## Approved update after the second draft
 
@@ -16,7 +16,7 @@ Nicholas approved this replacement for Wren's post-battle line, S2_Wren_WelcomeP
 
 **Delivery:** sarcastic; a dry, deadpan comment. Preserve the exact wording and trailing three-dot ellipsis.
 
-This supersedes the prior hold and the second draft's "Give me a second. My hands are still shaking." for this line only. Other proposed second-draft changes remain subject to Nicholas's review. Ryan's team owns runtime and shared dialogue-record implementation; this approval does not claim that it is already in the game. [Approval sent to Ryan in issue 29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6871262780). The circulated second-draft DOCX remains unchanged.
+This supersedes the prior hold and the second draft's "Give me a second. My hands are still shaking." for this line only. Other lines follow the current narrative authority and later exceptions above; new creative proposals and final performances retain their approval gates. Ryan's team owns runtime and shared dialogue-record implementation; this approval does not claim that it is already in the game. [Approval sent to Ryan in issue 29](https://github.com/rthomas24/2026-epic-ai-megajam/issues/29#issuecomment-6871262780). The circulated second-draft DOCX remains unchanged.
 
 ## Overnight Lead decisions after draft circulation
 
