@@ -395,6 +395,18 @@ for cl in CFG.get("clips", []):
             loc, rot = fr[tw["bone"]]
             fr[tw["bone"]] = (loc, qmul(unreal.Quat(*pmul(pmul(qinv(pw2), q), pw2)), rot))
             acc = pmul(q, acc)
+    # borrow part of the pose from another clip's frame (e.g. the arm that holds the Warden's chest-mounted shield)
+    if cl.get("copy_pose"):
+        cp = cl["copy_pose"]
+        ref, _ = sample(find(cp["src"]), cp.get("t", 0.0))
+        names = [b for b in ALL if any(b.startswith(k) or k in b for k in cp["bones"]) and b.endswith(cp.get("side", "_l"))]
+        a, b_ = cp.get("ramp", [0.0, 0.0])
+        for ti, fr in enumerate(frs):
+            frac = ti / float(max(1, n - 1))
+            w = 1.0 if b_ <= a else min(1.0, max(0.0, (frac - a) / (b_ - a)))
+            for bn in names:
+                fr[bn] = (fr[bn][0], nlerp(fr[bn][1], ref[bn][1], w))
+        log("%s: %d bones posed from %s: %s" % (cl["dst"], len(names), cp["src"], names[:6]))
     seam = 0.0
     if cl.get("loop"):
         k = max(1, int(round(cl.get("loop_s", 0.25) * FPS)))

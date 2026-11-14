@@ -62,7 +62,7 @@ def main():
         cmd("TD.Ground.Teleport %d %d 300" % spot)
         time.sleep(1.0)
         cmd("TD.Ground.Spawn %s 600" % typ)
-        time.sleep(1.2)
+        time.sleep(2.5)
         e = where((spot[0] + 600, spot[1]))
         if not e:
             print("no crew", typ)
@@ -75,10 +75,16 @@ def main():
         camera = {"location": {"x": cam[0], "y": cam[1], "z": cam[2]},
                   "rotation": {"pitch": math.degrees(math.atan2(fwd[2], math.hypot(fwd[0], fwd[1]))), "yaw": math.degrees(math.atan2(fwd[1], fwd[0])), "roll": 0.0},
                   "projectionMode": "Perspective", "fOV": 45.0, "orthoWidth": 512}
-        cmd("TD.Ground.CrewKill")
-        t0 = time.time()
+        for attempt in range(10):   # a shielded Heavy takes several hits (the first ones break its guard)
+            cmd("TD.Ground.CrewKill")
+            time.sleep(0.15)
+            chk = where(loc)
+            if chk and chk["dead"]:
+                break
+            time.sleep(0.4)
+        t0 = time.time() - 0.3
         shots = []
-        for want in (0.3, 0.8, 1.4, 2.4):
+        for want in (0.6, 1.0, 1.6, 2.6):
             time.sleep(max(0.0, want - (time.time() - t0)))
             t = time.time() - t0
             r = call("SceneCaptureToolset.SceneCaptureToolset", "Capture", {"world": {"refPath": world}, "camera": camera, "mode": "Lit",
