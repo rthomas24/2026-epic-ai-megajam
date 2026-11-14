@@ -185,13 +185,21 @@ S2('NS_TD_Blade_PerfectDeflect', U((0.85, 0.95, 1.0, 1.0)), [
     shed('Sparks', 'M_TD_VFX_Spark', 0, (0.18, 0.5), (1.5, 3.2), (400, 2200), k=1.9, radius=2.0, drag=2.6, stretch=14, cone=((1.0, 0.0, 0.0), 70.0), burst=46, dur=0.6),
     light('Light', 600, 0.2, k=4.0, rgb=(0.6, 0.85, 1.0))])
 # Slot: UTDBladeFX.AirSlam. Local XY plane, pivot at the ground contact, +Z up, 6 m across.
+# Round 8 (Nicholas, issue #31): "keep the effect as is, just increase transparency by 25%": the rings', shards' and
+# dust's particle alpha x 0.75 (every VFX material multiplies by it); nothing else changed.
+def opacity(e, f):
+    e['set'] = [x if not (x[1] == INIT and x[2] == 'Color' and isinstance(x[3], X)) else (x[0], x[1], x[2], X('(%s)*float4(1.0, 1.0, 1.0, %s)' % (x[3].hlsl, f)))
+                for x in e['set']]
+    return e
+
+
 S2('NS_TD_Blade_AirSlam', U(BLADE), [
-    flat_ring('Ring', 600, 0.38, 1.4),
-    flat_ring('Ring2', 460, 0.55, 0.6, mat='M_TD_VFX_Ring', growth='0.15 + pow(Particles.NormalizedAge, 0.7)*0.85'),
+    opacity(flat_ring('Ring', 600, 0.38, 1.4), 0.75),
+    opacity(flat_ring('Ring2', 460, 0.55, 0.6, mat='M_TD_VFX_Ring', growth='0.15 + pow(Particles.NormalizedAge, 0.7)*0.85'), 0.75),
     flash('Flash', 'M_TD_VFX_Glow', 260, 0.12, 0.8),
-    shed('Sparks', 'M_TD_VFX_Spark', 0, (0.2, 0.55), (1.6, 3.4), (350, 1300), k=1.7, radius=30.0, drag=2.4, stretch=12, cone=((0.0, 0.0, 1.0), 82.0), burst=40, dur=0.7),
-    spin(shed('Dust', 'M_TD_VFX_Smoke', 0, (0.6, 1.1), (60, 110), (200, 520), radius=60.0, drag=2.6, rgb=(0.45, 0.50, 0.55), alpha=0.5, cone=((0.0, 0.0, 1.0), 88.0),
-              burst=16, dur=1.2, power=0.9, growth='0.6 + Particles.NormalizedAge*1.4', sort=True))])
+    opacity(shed('Sparks', 'M_TD_VFX_Spark', 0, (0.2, 0.55), (1.6, 3.4), (350, 1300), k=1.7, radius=30.0, drag=2.4, stretch=12, cone=((0.0, 0.0, 1.0), 82.0), burst=40, dur=0.7), 0.75),
+    opacity(spin(shed('Dust', 'M_TD_VFX_Smoke', 0, (0.6, 1.1), (60, 110), (200, 520), radius=60.0, drag=2.6, rgb=(0.45, 0.50, 0.55), alpha=0.5, cone=((0.0, 0.0, 1.0), 88.0),
+                      burst=16, dur=1.2, power=0.9, growth='0.6 + Particles.NormalizedAge*1.4', sort=True)), 0.75)])
 # Slots: the crew blaster's UTDWeaponFX.Tracer and ImpactHull / ImpactWorld (on-foot scale).
 S2('NS_TD_Crew_Bolt', U(ENEMY), tracer(70, 9, sheath=3.2, rib_life=0.06, spark_rate=14.0, flick=47.1, hot=0.8, needle_core=False))
 S2('NS_TD_Crew_BoltImpact', U(ENEMY), [
