@@ -761,19 +761,68 @@ void ATDCollapseRun::HandleStepStarted(ATDObjective* Objective, int32 StepIndex)
 		LastShownSecond = -1;
 		SectionsDropped = 0;
 		StartDelayLeft = StartDelay;
+		bFinishing = false;
+	}
+}
+
+void ATDCollapseRun::ApplyCollapse(float A)
+{
+	if (!Tower)
+	{
+		return;
+	}
+	Tower->SetActorLocation(TowerHome + FVector(0.f, 0.f, -A * 2500.f));
+	Tower->SetActorRotation(FRotator(A * 12.f, 0.f, A * 6.f));
+	// Its sections break off in turn (the structures builder's AnchorSection_A/B/C): out and down from its top.
+	const int32 Sections = SectionMeshes.Num();
+	while (Sections > 0 && SectionsDropped < Sections && A >= float(SectionsDropped + 1) / float(Sections + 1))
+	{
+		const float Side = SectionsDropped % 2 ? 1.f : -1.f;
+		const FVector Out = FRotator(0.f, 60.f * SectionsDropped, 0.f).Vector();
+		DropPiece(TowerHome + Out * 400.f + FVector(0.f, 0.f, 2200.f - SectionsDropped * 500.f), TDPropArt::Load(SectionMeshes[SectionsDropped]), 1.f,
+			Out * 500.f + FVector(0.f, Side * 150.f, -600.f));
+		++SectionsDropped;
 	}
 }
 
 void ATDCollapseRun::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (bFinishing)
+	{
+		// Made it: no deadline, no countdown, but the anchor keeps coming down to its fully destroyed end state.
+		FinishElapsed += DeltaSeconds;
+		const float T = FMath::Clamp(FinishElapsed / FMath::Max(FinishSeconds, 0.5f), 0.f, 1.f);
+		ApplyCollapse(FMath::Lerp(FinishFromA, 1.f, FMath::InterpEaseIn(0.f, 1.f, T, 1.6f)));
+		DebrisTimer -= DeltaSeconds;
+		if (DebrisTimer <= 0.f && T < 0.85f)
+		{
+			DebrisTimer = 0.6f;
+			DropDebris();
+		}
+		if (T >= 1.f)
+		{
+			bFinishing = false;
+		}
+		return;
+	}
 	if (TimeLeft < 0.f)
 	{
 		return;
 	}
 	if (!IsLinkedStepCurrent())
 	{
-		TimeLeft = -1.f; // made it (or the objective reset)
+		// Success (the objective moved past this step) only cancels the lethal deadline; a reset (retake) goes
+		// through ResetProp, which stands the tower back up.
+		const bool bAdvanced = LinkedObjective && (LinkedObjective->IsComplete() || LinkedObjective->GetCurrentStepIndex() > LinkedStep);
+		if (bAdvanced && Tower)
+		{
+			bFinishing = true;
+			FinishElapsed = 0.f;
+			FinishFromA = StartDelayLeft > 0.f ? 0.f : 1.f - FMath::Clamp(TimeLeft / Seconds, 0.f, 1.f);
+			DebrisTimer = 0.f;
+		}
+		TimeLeft = -1.f;
 		return;
 	}
 	if (StartDelayLeft > 0.f)
@@ -783,22 +832,7 @@ void ATDCollapseRun::Tick(float DeltaSeconds)
 	}
 	TimeLeft -= DeltaSeconds;
 	// The tower sinks and leans as it comes down.
-	if (Tower)
-	{
-		const float A = 1.f - FMath::Clamp(TimeLeft / Seconds, 0.f, 1.f);
-		Tower->SetActorLocation(TowerHome + FVector(0.f, 0.f, -A * 2500.f));
-		Tower->SetActorRotation(FRotator(A * 12.f, 0.f, A * 6.f));
-		// Its sections break off in turn (the structures builder's AnchorSection_A/B/C): out and down from its top.
-		const int32 Sections = SectionMeshes.Num();
-		if (Sections > 0 && SectionsDropped < Sections && A >= float(SectionsDropped + 1) / float(Sections + 1))
-		{
-			const float Side = SectionsDropped % 2 ? 1.f : -1.f;
-			const FVector Out = FRotator(0.f, 60.f * SectionsDropped, 0.f).Vector();
-			DropPiece(TowerHome + Out * 400.f + FVector(0.f, 0.f, 2200.f - SectionsDropped * 500.f), TDPropArt::Load(SectionMeshes[SectionsDropped]), 1.f,
-				Out * 500.f + FVector(0.f, Side * 150.f, -600.f));
-			++SectionsDropped;
-		}
-	}
+	ApplyCollapse(1.f - FMath::Clamp(TimeLeft / Seconds, 0.f, 1.f));
 	const int32 Shown = FMath::CeilToInt(FMath::Max(TimeLeft, 0.f));
 	if (Shown != LastShownSecond)
 	{
@@ -862,6 +896,7 @@ void ATDCollapseRun::ResetProp()
 {
 	TimeLeft = -1.f;
 	SectionsDropped = 0;
+	bFinishing = false;
 	if (Tower)
 	{
 		Tower->SetActorLocation(TowerHome);
