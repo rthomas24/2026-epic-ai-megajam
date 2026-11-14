@@ -1211,7 +1211,8 @@ void ATDPlanetCourse::BuildVerdance()
 		return Encounter(Relay, INDEX_NONE, RelaySite + FVector(0.f, 0.f, 900.f), FVector(10.f), Mix, false, 1700.f, Points);
 	};
 	// Into the deck's edge band (13-14 m from its centre, the manifest's drop ring), off the plinth (X 200..1400, Y +-800).
-	ATDEncounterVolume* Wave1 = Wave({ ETDCrewType::Grunt, ETDCrewType::Grunt }, { FVector(-300.f, 1300.f, 0.f), FVector(-300.f, -1300.f, 0.f) });
+	// The first wave lands ~18 m from the console (at -300 it was 15 m: grunts paused the transfer within 3 s of the start).
+	ATDEncounterVolume* Wave1 = Wave({ ETDCrewType::Grunt, ETDCrewType::Grunt }, { FVector(300.f, 1300.f, 0.f), FVector(300.f, -1300.f, 0.f) });
 	ATDEncounterVolume* Wave2 = Wave({ ETDCrewType::Trooper, ETDCrewType::Drone }, { FVector(900.f, 1200.f, 0.f), FVector(900.f, -1200.f, 0.f) });
 	ATDEncounterVolume* Wave3 = Wave({ ETDCrewType::Heavy, ETDCrewType::Grunt }, { FVector(500.f, 1250.f, 0.f), FVector(-800.f, -1250.f, 0.f) });
 	FTDRetakeMercyTier TransferMercy3; TransferMercy3.FromTake = 3; TransferMercy3.DropCrew = 1;
