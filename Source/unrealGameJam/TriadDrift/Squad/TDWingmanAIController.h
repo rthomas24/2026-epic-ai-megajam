@@ -26,8 +26,9 @@ enum class ETDWingmanState : uint8
 };
 
 /**
- * Flies an ATDShip like a pilot: it only ever calls ATDSpacecraft::SetFlightInput and
- * UTDWeaponComponent (primary/secondary). It NEVER uses signature powers or abilities.
+ * Flies an ATDShip like a pilot: ATDSpacecraft::SetFlightInput, UTDWeaponComponent (primary/secondary) and,
+ * since #201, the ship's own signature powers and unlocked ability when they are ready (TDWingmanShadow.cpp).
+ * Shadow mode (ATDSquadManager::IsShadowMode) decides how far it ranges and whose targets it takes.
  * While the player flies a ship, that ship's wingman controller is unpossessed and dormant.
  */
 UCLASS(Blueprintable)
@@ -58,6 +59,18 @@ public:
 
 	/** Prioritise Target (from the squad's focus command) until it dies or the command expires. */
 	void SetFocusTarget(AActor* Target);
+
+	/** #201: shadow mode flipped: look for a target under the new rules now. */
+	void NotifyShadowModeChanged();
+
+	/** #201: the squad's shadow mode (true without a squad). */
+	bool IsShadowMode() const;
+
+	/** #201: the leash in force (cm): shadow = min(LeashDistance, td.Squad.Shadow.Leash); solo = the capped solo leash. */
+	float GetLeash() const;
+
+	/** #201: powers this wingman has used since it was spawned, by slot (0 = signature, 1 = second signature, 2 = ability). */
+	int32 GetPowerUseCount(int32 Slot) const { return (Slot >= 0 && Slot < 3) ? PowerUseCount[Slot] : 0; }
 
 	/** Squad manager hooks. */
 	void NotifyShipDowned();
@@ -269,6 +282,28 @@ protected:
 	void FlyToPoint(ATDShip* Ship, const FVector& Point, const FVector& RefVelocity, const FVector& RefForward);
 
 	AActor* PickTarget(ATDShip* Ship, ATDShip* Leader) const;
+
+	// ---- #201 (TDWingmanShadow.cpp) ----
+	/** Shadow OFF: the wingman's own choice: nearest, weakest, and whoever is hunting IT, inside the solo leash. */
+	AActor* PickTargetSolo(ATDShip* Ship, ATDShip* Leader) const;
+	/** Use the ship's powers when they are ready and worth it (a few times a second). */
+	void UpdatePowers(ATDShip* Ship, ATDShip* Leader);
+	void ThinkLancerPowers(ATDShip* Ship, ATDShip* Leader);
+	void ThinkBastionPowers(ATDShip* Ship, ATDShip* Leader);
+	void ThinkRiftPowers(ATDShip* Ship, ATDShip* Leader);
+	/** Ready, and the padded AI cooldown has passed. */
+	bool IsPowerReadyForAI(const ATDShip* Ship, int32 Slot) const;
+	/** Start the power; logs "wingman <ship> used <power> on <target> because <reason>" and asks for the pilot's line. */
+	bool UsePower(ATDShip* Ship, int32 Slot, const AActor* Target, const FString& Reason, FName BarkId);
+	double NextPowerThinkTime = 0.0;
+	double LastAnyPowerTime = -1000.0;
+	double LastPowerUseTime[3] = { -1000.0, -1000.0, -1000.0 };
+	int32 PowerUseCount[3] = { 0, 0, 0 };
+	/** An AI ram is running: the dash is ended once past the target or over the leash. */
+	bool bAIRamming = false;
+	TWeakObjectPtr<AActor> RamTarget;
+	/** Rift: portal A is placed for a missile, B follows on the next think. */
+	bool bPortalBPending = false;
 
 	/** Formation slot, or the shield dome when hurt and a dome is up. */
 	FVector GetHomeLocation(ATDShip* Ship, ATDShip* Leader, bool& bOutIsDome) const;

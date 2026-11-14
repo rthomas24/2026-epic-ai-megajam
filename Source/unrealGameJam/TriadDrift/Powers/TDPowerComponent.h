@@ -38,6 +38,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Power")
 	bool TryActivate();
 
+	// --- #201 WINGMAN AI ENTRY (wingman builder): the squad's wingman AI calls this, nothing else does ---
+	/** TryActivate for an AI pilot: every rule of TryActivate except bRequirePlayerControl. */
+	bool TryActivateFromAI();
+	/** The current (or last) activation was started by a wingman's AI. */
+	bool WasStartedByAI() const { return bStartedByAI; }
+	// --- end #201 ---
+
 	/** 1 = ready, 0 = just used (stays 0 while active when the cooldown starts at the end). */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Power")
 	float GetCooldown01() const;
@@ -167,6 +174,9 @@ protected:
 	 * running on its own timer (cloak, dome, a portal pair, a well). Powers that must not run under AI end here.
 	 */
 	virtual void OnLostPlayerControl() {}
+	/** #201: the player switched INTO this ship while a power its wingman AI started was running. Default: keep
+	 *  running on its own timer (dome, cloak, a well, portals). Powers that would surprise the player end here. */
+	virtual void OnGainedPlayerControl() {}
 
 	bool IsOwnerPlayerControlled() const;
 	/** Owner's ship id; false if the owner is not a squad ship. */
@@ -191,4 +201,7 @@ protected:
 	/** Barks: Bark_PowerNotReady said this cooldown; Bark_PowerReady alternates (dialogs.md: 1 in 2). */
 	bool bSaidNotReady = false;
 	int32 ReadyCount = 0;
+	/** #201: inside TryActivateFromAI (CanActivate skips the player-control rule), and who started the activation. */
+	bool bAIActivating = false;
+	bool bStartedByAI = false;
 };
