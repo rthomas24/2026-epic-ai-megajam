@@ -5,6 +5,8 @@
 #include "AnimationRuntime.h"
 #include "BonePose.h"
 #include "Animation/AnimSequence.h"
+#include "TriadDrift/Ground/TDFirstPersonCharacter.h"
+#include "Components/StaticMeshComponent.h"
 
 UAnimSequenceBase* TDMakePlayable(UAnimSequenceBase* Anim)
 {
@@ -45,6 +47,9 @@ namespace TDLoopBlend
 		FVector ForwardCS = FVector(0.f, 1.f, 0.f);
 		double ShotTime = 0.0;
 		float ShotAlpha = 0.f;
+		const UAnimSequenceBase* Grip = nullptr;
+		float GripAlpha = 0.f;
+		FName GripHand;
 		double CurrentTime = 0.0;
 		double PreviousTime = 0.0;
 		float Alpha = 1.f;
@@ -75,6 +80,32 @@ namespace TDLoopBlend
 			SideSign = A->ProcSideSign;
 			ForwardSign = A->ProcForwardSign;
 			ForwardCS = A->ProcForwardCS;
+			Grip = A->GripPose;
+			GripAlpha = A->GripAlpha;
+			GripHand = A->GripHandBone;
+		}
+
+		/** The grip pose over the hand bone's children (fingers, thumb, metacarpals), local space, by GripAlpha. */
+		void ApplyGrip(FPoseContext& Output)
+		{
+			const FBoneContainer& Bones = Output.Pose.GetBoneContainer();
+			const FReferenceSkeleton& Ref = Bones.GetReferenceSkeleton();
+			const int32 Hand = GripHand.IsNone() ? INDEX_NONE : Ref.FindBoneIndex(GripHand);
+			if (Hand == INDEX_NONE)
+			{
+				return;
+			}
+			FPoseContext Fist(this);
+			FAnimationPoseData FistData(Fist);
+			Grip->GetAnimationPose(FistData, FAnimExtractContext(0.0, false, {}, false));
+			for (const FCompactPoseBoneIndex B : Output.Pose.ForEachBoneIndex())
+			{
+				const int32 Mesh = Bones.MakeMeshPoseIndex(B).GetInt();
+				if (Mesh != Hand && Ref.BoneIsChildOf(Mesh, Hand))
+				{
+					Output.Pose[B].BlendWith(Fist.Pose[B], GripAlpha);
+				}
+			}
 		}
 
 		/** Rotate a bone by Delta given in COMPONENT space (about its own pivot), using the reference pose's parent frame. */
@@ -202,6 +233,11 @@ namespace TDLoopBlend
 					FAnimationRuntime::BlendTwoPosesTogetherInPlace(OutData, OverData, 1.f - ShotAlpha);
 				}
 			}
+			// The hand closes round the hilt over whatever the clips did (none of them grip).
+			if (Grip && GripAlpha > 0.f)
+			{
+				ApplyGrip(Output);
+			}
 			// In place, always: a sequence that keeps root motion (the crew attacks travel 1.4-1.5 m) would walk the
 			// body out of its capsule. The capsule does the moving.
 			if (Output.Pose.GetNumBones() > 0)
@@ -302,6 +338,18 @@ void UTDLoopBlendAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 	Advance(Previous, PreviousTime);
 	Alpha = BlendSeconds > 0.f ? FMath::Min(1.f, Alpha + DeltaSeconds / BlendSeconds) : 1.f;
+	// The grip: the pilot with a blade in the hand (the hilt, or a presentation blade mesh that replaces it).
+	const ATDFirstPersonCharacter* Pilot = Cast<ATDFirstPersonCharacter>(GetOwningActor());
+	const UStaticMeshComponent* Hilt = Pilot ? Pilot->GetHandBladeHilt() : nullptr;
+	const UStaticMeshComponent* Beam = Pilot ? Pilot->GetHandBladeBeam() : nullptr;
+	const bool bHolding = Hilt && Hilt->GetAttachParent() == GetSkelMeshComponent() && (Hilt->GetStaticMesh() || (Beam && Beam->GetStaticMesh()));
+	const bool bGripWanted = bGripEnabled && bHolding && !Pilot->IsDead();
+	if (bGripWanted && !GripPose && !bGripPoseTried)
+	{
+		bGripPoseTried = true; // once: a missing pose leaves the hand as the clips have it
+		GripPose = GripPoseAsset.IsNull() ? nullptr : TDLoadPlayableAnim(GripPoseAsset.ToSoftObjectPath());
+	}
+	GripAlpha = FMath::Clamp(GripAlpha + (bGripWanted && GripPose ? 1.f : -1.f) * (GripBlendSeconds > 0.f ? DeltaSeconds / GripBlendSeconds : 1.f), 0.f, 1.f);
 	if (Alpha >= 1.f)
 	{
 		Previous = nullptr;
