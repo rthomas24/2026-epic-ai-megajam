@@ -183,6 +183,8 @@ for mv in CFG["moves"]:
         R = (-math.cos(yr), -math.sin(yr), 0.0)
         F = (-math.sin(yr), math.cos(yr), 0.0)
         U = (0.0, 0.0, 1.0)
+        if not mv.get("chest", True):   # a lying body: leave the chest as the clip has it
+            yaw, pitch = cur, 0.0
         q = qmul(qaxis(R, pitch), qaxis(U, yaw - cur))   # lean forward: up turns toward forward, about the right axis
         if dot(rot(qaxis(R, 10.0), U), F) < 0:
             q = qmul(qaxis(R, -pitch), qaxis(U, yaw - cur))
@@ -276,8 +278,8 @@ for mv in CFG["moves"]:
             out[b] = (tuple(fr[b][0]), qmul(qinv(W[p_][1]), W[b][1]) if p_ else tuple(fr[b][1]))
         out["pelvis"] = (add(fr["pelvis"][0], shift), out["pelvis"][1])
         frames.append(out)
-        if mv.get("probe") and i in (0, n // 2):
-            log("%s probe t%.2f: head %s hand_l %s hand_r %s lowerarm_r %s foot_r %s" % (mv["dst"], t, *[tuple(round(c) for c in W[b][0]) for b in ("head", "hand_l", "hand_r", "lowerarm_r", "foot_r")]))
+        if mv.get("probe") and i in (0, n // 2, n - 1):
+            log("%s probe t%.2f: head %s hand_l %s hand_r %s lowerarm_r %s foot_r %s" % (mv["dst"], t, *[tuple(round(c) for c in W[b][0]) for b in ("head", "hand_l", "hand_r", "lowerarm_r", "foot_r")]) + " | pelvis %s calf_l %s foot_l %s calf_r %s" % tuple(tuple(round(c) for c in W[b][0]) for b in ("pelvis", "calf_l", "foot_l", "calf_r")))
     log("%s -> %s%s" % (mv["src"], mv["dst"], (": " + " | ".join(notes)) if notes else ""))
     write(mv["dst"], frames)
 log("OK")

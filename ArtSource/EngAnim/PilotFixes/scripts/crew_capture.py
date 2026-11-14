@@ -69,11 +69,18 @@ def main():
         h = float(m.group(5))
         centre = [loc[0], loc[1], loc[2]]
         dist = max(480.0, h * 5.5)
-        for vname, d in (("front", [fx[k] * 0.85 + ry[k] * 0.5 for k in range(3)]), ("side", [ry[k] for k in range(3)]), ("top", [fx[0] * 0.35, fx[1] * 0.35, 1.0])):
+        want = (os.environ.get("TD_VIEWS") or "front,side,top").split(",")
+        allv = (("front", [fx[k] * 0.85 + ry[k] * 0.5 for k in range(3)]), ("side", [ry[k] for k in range(3)]), ("top", [fx[0] * 0.35, fx[1] * 0.35, 1.0]),
+                ("low", [ry[k] for k in range(3)]), ("lowfront", [fx[k] for k in range(3)]))
+        for vname, d in [v for v in allv if v[0] in want]:
             n = math.sqrt(sum(v * v for v in d)); d = [v / n for v in d]
             cam = [centre[k] + d[k] * dist for k in range(3)]
             cam[2] += h * 0.15
-            fwd = [centre[k] - cam[k] for k in range(3)]
+            aim = list(centre)
+            if vname.startswith("low"):   # a camera at ground level: is the body on the floor?
+                cam[2] = loc[2] - h + 18.0
+                aim[2] = loc[2] - h + 18.0
+            fwd = [aim[k] - cam[k] for k in range(3)]
             yaw = math.degrees(math.atan2(fwd[1], fwd[0])); pitch = math.degrees(math.atan2(fwd[2], math.hypot(fwd[0], fwd[1])))
             r = call("SceneCaptureToolset.SceneCaptureToolset", "Capture", {
                 "world": {"refPath": world},

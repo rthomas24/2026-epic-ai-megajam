@@ -412,6 +412,32 @@ for cl in CFG.get("clips", []):
         for fr in frs:
             loc, rot_ = fr["pelvis"]
             fr["pelvis"] = (unreal.Vector(loc.x, loc.y, z0 + (loc.z - z0) * (cl["arc_scale"] if loc.z > z0 else 1.0)), rot_)
+    if cl.get("settle"):
+        # a lying body whose hips and legs hang in the air: tip the whole body about a point that is already on the
+        # ground (a bone, e.g. the head), about the horizontal axis across head -> pelvis, so the hips come down
+        st = cl["settle"]
+        for ti, fr in enumerate(frs):
+            tt = ti / float(FPS)
+            a_, b_ = st["ramp"]
+            w = min(1.0, max(0.0, (tt - a_) / (b_ - a_)))
+            w = w * w * (3 - 2 * w)
+            if w <= 0.0:
+                continue
+            pose = unreal.AnimPoseExtensions.get_anim_pose_at_time(src, min(t1, t0 + ti * rate / float(FPS)), OPTS)
+            hp = tv(unreal.AnimPoseExtensions.get_bone_pose(pose, st["pivot_bone"], WORLD).translation)
+            rp = tv(unreal.AnimPoseExtensions.get_bone_pose(pose, "root", WORLD).translation)
+            pl, pr = fr["pelvis"]
+            pc = (pl.x, pl.y, pl.z)                       # pelvis in the root's frame (root has no rotation)
+            piv = (hp[0] - rp[0], hp[1] - rp[1], hp[2])
+            d = (pc[0] - piv[0], pc[1] - piv[1], 0.0)
+            axis = (-d[1], d[0], 0.0)
+            q = tq(qaxis(axis, st["deg"] * w))
+            if prot(q, d)[2] > 0:                          # the turn must lower the pelvis
+                q = tq(qaxis(axis, -st["deg"] * w))
+            rel = (pc[0] - piv[0], pc[1] - piv[1], pc[2] - piv[2])
+            nl = vadd(piv, prot(q, rel))
+            fr["pelvis"] = (unreal.Vector(*nl), qmul(unreal.Quat(*q), pr))
+        log("%s: settled %.0f deg about %s; pelvis ends at %.0f cm" % (cl["dst"], st["deg"], st["pivot_bone"], frs[-1]["pelvis"][0].z))
     seam = 0.0
     if cl.get("loop"):
         k = max(1, int(round(cl.get("loop_s", 0.25) * FPS)))
