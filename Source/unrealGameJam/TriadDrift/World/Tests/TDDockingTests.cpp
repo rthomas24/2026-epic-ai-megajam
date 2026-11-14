@@ -435,4 +435,23 @@ bool FTDDockingWaitsForLines::RunTest(const FString&)
 	return true;
 }
 
+// Played on the space ending (Nov 14): Command said "Shield's down. Docking route marked." though the fallback never
+// opens a bay. The line belongs to the boarding finale only.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDockingRouteLineOnlyWhenBoarding, "TriadDrift.World.Dominion.DockingRouteLineOnlyWithBoarding", TD_TEST_FLAGS)
+bool FTDDockingRouteLineOnlyWhenBoarding::RunTest(const FString&)
+{
+	for (const ETDBoardingMode Mode : { ETDBoardingMode::ForceOff, ETDBoardingMode::ForceOn })
+	{
+		FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+		ATDDominion* D = TDDockingTest::DefensesDown(W, Mode);
+		const UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+		if (!TestNotNull(TEXT("dominion"), D) || !TestNotNull(TEXT("story"), Story)) { return false; }
+		const bool bBoarding = Mode == ETDBoardingMode::ForceOn;
+		TestEqual(*FString::Printf(TEXT("%s: G6_Command_ShieldCollapsed (docking route marked)"), bBoarding ? TEXT("boarding") : TEXT("space ending")),
+			Story->HasPlayed(TEXT("G6_Command_ShieldCollapsed")), bBoarding);
+		TestTrue(TEXT("the last generator's own line still plays"), Story->HasPlayed(TEXT("A4_GeneratorDown4")));
+	}
+	return true;
+}
+
 #endif
