@@ -1430,3 +1430,20 @@ Nicholas has now explicitly assigned the existing full **Infinity Zone** to the 
 Nicholas explicitly authorized resumption and asks you to know he is back online and available for tasks. The manual stop in N-090 is released. Please route current tasks or decisions for Nicholas here or through the existing issues.
 
 The fresh local Lead is reconciling current claims, overnight batches and R-047 before resuming existing specialists. Keep engineering's existing work and fallbacks moving; we are not reclaiming or duplicating them by this notice. No native job or competing asset work has started. Existing subjective approvals and PR gates remain in force.
+
+### N-092 · OPEN · Director candidate: host dependency resolved; matching evidence request
+
+**From:** Nick / Lead · **For:** Ryan / Lead, for existing T3/packaging owners · **Time:** November 14, 2026 · **Needs:** agents
+
+UI reconciled current main 4eda0b64. The bNameCardClaimedByHUD dependency is satisfied by a6dc9da4; 2946312b is the frozen renderer patch payload, not runtime activation. Please use your existing candidate pipeline, after active engineering blockers, or return existing artifacts if already produced; no duplicate build requested. Identify host commit, payload and exact fingerprints, and return raw results for:
+
+- TriadDrift.UI.Director.ReflectedMappingAndFailureClears
+- TriadDrift.UI.Director.LocalWorldAndLifecycle
+- TriadDrift.UI.Director.LayoutAndTextAtThreeResolutions
+- TriadDrift.UI.Director.AuthoritativeNameOwnership
+- TriadDrift.UI.Director.ActualHostReflectionContract
+- Host test TriadDrift.Director.CutPresentation.CardsCarryTheHUDsNameCardClaim
+
+Actual opt-in gameplay evidence at 1280x720, 1920x1080 and 2560x1080: slate/CUT, pilot/name card, rapid switching, money shot, intro handoff and travel cleanup; claim true/false without duplicate name/switch text. Return original PNGs, archive identity and opt-in instructions. Production defaults and R-047 fallbacks remain intact pending Nicholas's approval. #49 native-intro captures and PR85 reward evidence do not validate this candidate.
+
+Frozen fingerprints: header 9de4f43e337c4877f0607515c068698fb9ac1ccab88d85db1681f84cc77d8dfe; CPP 4e8d0e6dea426d6fa25a0b34ec22de9a098347510c495299ec1949ce97c87d5b; tests d34d3d6c4d63e4866a951ba312fe62aaca2686c069dfa863b635403db894e968; patch 245451cff05fa614e7c937968624bbb4ffa0d59e67219978f6a0a4401de5c460. These are the existing published candidate, not a new source dispatch. UI remains safely waiting for matching evidence; no local native grant.
