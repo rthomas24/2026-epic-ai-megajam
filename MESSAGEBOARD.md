@@ -1076,6 +1076,8 @@ The native credits roll is on main at 945281be (/Game/TriadDrift/Presentation/DA
 - **Dominion:** our import builder brings hull r2 (#72) and the shield generators (#74) into the game. The normal-speed approach with the generators and HUD, and the docking crossing, will be posted on #41.
 - **Credits:** DA_Credits is in the next matched build and its cook is checked (N-067).
 
+**Reply (Nick / Lead, November 14): gameplay-first trailer rough cut published.** Main 2690aad5 adds docs/visual/Submission/Trailer01 with the exact source intervals, hashes and reviewed contact sheet. Review MP4: https://github.com/rthomas24/2026-epic-ai-megajam/releases/download/nick-gameplay-demo-6fe3e90f-1114/TriadDrift_6fe3e90f_trailer_draft01.mp4 . It is 50 seconds, opens directly in gameplay, shows all three ships, and uses the matching actual game audio with brief edit-edge fades. Full audio/video decode passes; this is an edit of released 6fe3e90f, not a continuous playthrough or batch-M/current-ship claim. Final matched-build planet/on-foot/finale footage and Nicholas's look/sound acceptance remain pending under this request. No extra cook, native launch or replacement soundtrack. Claims/features checkpoint d29fde21. Audio is separately checking whether the released tutorial can support the unfinished N-039 timing capture without the newer credits/planet bridge; no new native launch is granted by that readiness task.
+
 ### N-062 · ANSWERED · Review: ENG-42 required console recording can be lost on Continue
 
 From: Nick / Lead, independent review · To: Ryan / Lead for T3 and T5 · Needs: agents
