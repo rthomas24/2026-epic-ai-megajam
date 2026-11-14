@@ -826,6 +826,22 @@ bool FTDFlightHUDStoryStates::RunTest(const FString& Parameters)
 	TestTrue(TEXT("then UNKNOWN for good"), F.V().bTransponder && !F.V().bTransponderVerified);
 	F.HUD->ForceTransponderAt.Reset();
 	F.HUD->ForceTransponderAge = -1.f;
+
+	// The escape flight: T4's clock and the way out (straight away from the hull at the exit radius).
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("no escape: no clock"), F.V().bEscapeFlight);
+	F.HUD->ForceEscapeLeft = 42.f;
+	F.HUD->ForceEscapeTotal = 60.f;
+	F.HUD->ForceEscapeCentre = FVector(-200000.f, 0.f, 0.f);
+	F.HUD->ForceEscapeRadius = 300000.f;
+	F.HUD->Sample(.1f);
+	TestTrue(TEXT("escape: 42 s of 60 (T4's numbers)"), F.V().bEscapeFlight && FMath::IsNearlyEqual(F.V().EscapeLeft, 42.f) && FMath::IsNearlyEqual(F.V().EscapeTotal, 60.f));
+	TestTrue(FString::Printf(TEXT("still to fly (%.0f m)"), F.V().ClearMetres), F.V().ClearMetres > 0.f);
+	PaintBoxes();
+	TestTrue(TEXT("clock and CLEAR painted"), Has(TEXT("escape")) && Has(TEXT("clear")));
+	F.HUD->ForceEscapeLeft = -1.f;
+	F.HUD->Sample(.1f);
+	TestFalse(TEXT("off after"), F.V().bEscapeFlight);
 	return true;
 }
 

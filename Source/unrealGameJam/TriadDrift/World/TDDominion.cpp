@@ -122,9 +122,11 @@ ATDDominion::ATDDominion()
 	TurretGuns.TelegraphSeconds = 1.2f;
 
 	Stages.Add(TDDominion_MakeStage(15.f, 2.5f, 1.2f));	// shields up
-	Stages.Add(TDDominion_MakeStage(12.f, 2.0f, 1.0f));	// reactor phase 1
-	Stages.Add(TDDominion_MakeStage(9.f, 1.5f, 0.9f));		// phase 2
-	Stages.Add(TDDominion_MakeStage(6.f, 1.0f, 0.8f));		// phase 3
+	// The trench run is a 25-45 s fight for one flown ship (ENG-47 balance, Nov 14: the old 2.0 / 1.5 / 1.0 s bursts and
+	// 12 / 9 / 6 s launches killed a ship parked at the trench start in ~5 s). Still escalating, never a wall of fire.
+	Stages.Add(TDDominion_MakeStage(20.f, 3.5f, 1.5f));	// reactor phase 1
+	Stages.Add(TDDominion_MakeStage(16.f, 3.0f, 1.3f));	// phase 2
+	Stages.Add(TDDominion_MakeStage(12.f, 2.5f, 1.1f));	// phase 3
 
 	LaunchGroups.Add(TDDominion_MakeGroup(TDEnemyIds::ShardFighter, 4));
 	LaunchGroups.Add(TDDominion_MakeGroup(TDEnemyIds::HookInterceptor, 2));
@@ -153,6 +155,7 @@ void ATDDominion::BeginPlay()
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
 		Bus->OnTakeStarted.AddUniqueDynamic(this, &ATDDominion::HandleTakeStarted);
+		Bus->OnActorKilled.AddUniqueDynamic(this, &ATDDominion::HandleActorKilled);
 	}
 
 	// Nick's asset by convention when none is set (no gameplay BP edit needed).
@@ -397,7 +400,7 @@ FTransform ATDDominion::GetEscapeStart() const
 
 float ATDDominion::GetEscapeExitRadius() const
 {
-	return FMath::Max(GetLocalHullBounds().GetExtent().Size() * EscapeExitHullRadii, ShieldRadius * 2.f);
+	return FMath::Max3((float)GetLocalHullBounds().GetExtent().Size() * EscapeExitHullRadii, ShieldRadius * 2.f, EscapeExitDistance);
 }
 
 // ------------------------------------------------------------------------------------------ escape flight
@@ -427,7 +430,9 @@ void ATDDominion::BeginEscapeFlight()
 		GI->BeginScene(EscapeSceneId);
 		GI->SaveCheckpoint();
 	}
-	UTDStorySubsystem::Fire(this, TEXT("A5_Escape"));	// once per run: T5's escape run usually played it already
+	// A5_Escape ("Ninety seconds. Move!") is the ON-FOOT run's line and clock (storyline 29, T5's 90 s): the flight is
+	// its own beat with its own clock, so it never repeats that number (T7's playtest: "Ninety seconds" over a 60 s flight).
+	UTDStorySubsystem::Fire(this, TEXT("G9_Wren_PullAway"));	// "Triad, pull away. Follow the clear vector."
 	UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: escape flight - %.0f s to get %.0f m clear"), EscapeSeconds, GetEscapeExitRadius() / 100.f);
 }
 
@@ -636,6 +641,7 @@ void ATDDominion::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	if (UTDEventBus* Bus = UTDEventBus::Get(this))
 	{
 		Bus->OnTakeStarted.RemoveDynamic(this, &ATDDominion::HandleTakeStarted);
+		Bus->OnActorKilled.RemoveDynamic(this, &ATDDominion::HandleActorKilled);
 	}
 	if (UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
@@ -1213,6 +1219,26 @@ void ATDDominion::DebugDropShields()
 		{
 			G->GetHealth()->Kill();
 		}
+	}
+}
+
+void ATDDominion::HandleActorKilled(AActor* Victim, AActor* /*Killer*/, ETDDamageKind /*Kind*/)
+{
+	// The trench run is the player's own run: losing the flown ship there is "CUT!" and a retake at the trench start,
+	// not an auto-switch into a wingman a kilometre away facing out to space (effects builder and T4 live, Nov 14).
+	if (State != ETDDominionState::ReactorExposed)
+	{
+		return;
+	}
+	const ATDShip* Ship = Cast<ATDShip>(Victim);
+	if (!Ship || !Ship->IsPlayerFlown())
+	{
+		return;
+	}
+	if (ITDGameFlow* Flow = UTDStatics::GetGameFlow(this))
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("ATDDominion: the flown ship died in the trench run - CUT, retake at the trench start"));
+		Flow->ReportPlayerDefeated();
 	}
 }
 

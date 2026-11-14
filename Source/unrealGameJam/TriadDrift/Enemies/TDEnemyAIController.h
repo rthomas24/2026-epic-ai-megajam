@@ -3,6 +3,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "TriadDrift/Flight/TDFlightTypes.h"
 #include "TDEnemyAIController.generated.h"
 
 class ATDEnemyShip;
@@ -169,7 +170,21 @@ public:
 
 	/** Obstacle look-ahead (seconds of travel). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
-	float AvoidLookAheadSeconds = 1.2f;
+	float AvoidLookAheadSeconds = 1.6f;	// was 1.2: T6's field, Nov 14: ~20 enemy hits at 30-133 m/s in waves 1-2
+
+	/** Blocked: under StuckSpeed (cm/s) for StuckSeconds right after hitting something -> back off for BackOffSeconds. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float StuckSpeed = 300.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float StuckSeconds = 1.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|EnemyAI", meta = (ClampMin = "0"))
+	float BackOffSeconds = 1.2f;
+
+	/** True while backing off an obstacle it was stuck on. */
+	bool IsBackingOff() const { return BackOffLeft > 0.f; }
+	int32 GetBackOffCount() const { return BackOffCount; }
 
 	/** True while steering around an obstacle this frame. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|EnemyAI")
@@ -219,6 +234,17 @@ protected:
 
 	ETDEnemyAIState State = ETDEnemyAIState::Idle;
 	bool bAvoiding = false;
+
+	// Unsticking (Lead's rule, Nov 14: an enemy backs off and re-routes after 1 s of blocked movement).
+	UFUNCTION()
+	void HandleFlightImpact(const FTDFlightImpact& Impact);
+	TWeakObjectPtr<class UTDShipMovementComponent> ImpactSource;
+	double LastImpactTime = -100.0;
+	FVector LastImpactNormal = FVector::ZeroVector;
+	float StuckTime = 0.f;
+	float BackOffLeft = 0.f;
+	FVector BackOffDir = FVector::ZeroVector;
+	int32 BackOffCount = 0;
 	bool bPrefersPlayer = false;
 	bool bCatchingUp = false;
 	bool bRunReachedGunRange = false;

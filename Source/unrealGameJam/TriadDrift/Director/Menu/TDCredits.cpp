@@ -124,7 +124,7 @@ const TArray<FTDCreditsSection>& FTDCredits::Fallback()
 		S(LOCTEXT("H_Team", "TEAM"), {
 			LOCTEXT("L_Ryan", "Ryan T  ·  Gameplay & Engineering Lead"),
 			LOCTEXT("L_Nick", "Nicholas Tosti  ·  Player Experience Lead") }),
-		S(LOCTEXT("H_Story", "STORY"), { LOCTEXT("L_Story", "\"The Paradox\" by Nicholas Tosti") }),
+		S(LOCTEXT("H_Story", "STORY"), { LOCTEXT("L_Story", "Story by Nicholas Tosti") /* StoryFidelity01: the subtitle reveals the twist; credits are reachable before it */ }),
 		S(LOCTEXT("H_AI", "BUILT WITH AI AGENTS"), {
 			LOCTEXT("L_Claude", "Claude Code (Anthropic)  ·  engineering lead and teammate agents"),
 			LOCTEXT("L_Codex", "OpenAI Codex  ·  art, UI, audio and polish agents"),

@@ -20,6 +20,8 @@
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
+#include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/World/Tests/TDFinaleTestHelpers.h"
 
 #include "Components/InstancedStaticMeshComponent.h"
 
@@ -197,6 +199,92 @@ bool FTDWorldNoPopAfterReturn::RunTest(const FString& Parameters)
 		TestEqual(*FString::Printf(TEXT("%s: no silent teleport (T1's watchdog)"), *Return.ToString()), Ship->GetShipMovement()->GetSilentMoveCount(), 0);
 		TestTrue(*FString::Printf(TEXT("%s: still on its way home, not at the centre"), *Return.ToString()), FVector::Dist(Ship->GetActorLocation(), Orbit.GetLocation()) < 120000.f);
 	}
+	return true;
+}
+
+
+// The space ending as a player meets it (ENG-47; effects builder, Nov 14: no hit ever landed): from the trench stage start,
+// the reactor is ahead, the line to it is open, and real bolts fired from the start along the ship's nose kill it.
+// Both ways into the stage: generators shot down, and a resume / TD.Stage with the defenses already down.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldTrenchRun, "TriadDrift.World.Dominion.TrenchRunKillsTheReactor", TD_TEST_FLAGS)
+bool FTDWorldTrenchRun::RunTest(const FString& Parameters)
+{
+	using namespace TDWorldRealPathTest;
+	for (const bool bResume : { false, true })
+	{
+		const FString Way = bResume ? TEXT("resume") : TEXT("generators shot");
+		FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+		UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+		GI->Progress.bDominionRevealed = true; GI->Progress.Phase = ETDGamePhase::DominionAssault;
+		GI->Progress.bDominionDefensesDown = bResume;
+		ATDDominion* D = W.Spawn<ATDDominion>(FVector(150000.f, -40000.f, 20000.f), FRotator(0.f, -90.f, 0.f));
+		D->MaxLaunchedAlive = 0;
+		W.Advance(D->WarpInSeconds + 0.2f);
+		if (!bResume) { D->DebugDropShields(); W.Advance(0.2f); }
+		if (!TestEqual(*(Way + TEXT(": reactor exposed")), (int32)D->GetState(), (int32)ETDDominionState::ReactorExposed)) { continue; }
+		ATDDominionReactor* Reactor = D->GetReactor();
+		const FTransform Start = D->GetStageStart(true);
+		const FVector ToReactor = Reactor->GetActorLocation() - Start.GetLocation();
+		const float Dot = (float)FVector::DotProduct(Start.GetRotation().GetForwardVector(), ToReactor.GetSafeNormal());
+		TestTrue(*FString::Printf(TEXT("%s: the reactor is straight ahead of the stage start (dot %.3f, %.0f m)"), *Way, Dot, ToReactor.Size() / 100.f), Dot > 0.98f);
+		FHitResult Block;
+		FCollisionQueryParams Q(SCENE_QUERY_STAT(TDTrenchRunLine), false);
+		Q.AddIgnoredActor(Reactor);
+		const bool bBlocked = W.GetWorld()->LineTraceSingleByChannel(Block, Start.GetLocation(), Reactor->GetActorLocation(), ECC_Visibility, Q);
+		TestFalse(*FString::Printf(TEXT("%s: nothing between the start and the reactor (blocked by %s)"), *Way,
+			bBlocked && Block.GetComponent() ? *Block.GetComponent()->GetReadableName() : TEXT("-")), bBlocked);
+		// Fire along the nose from the start, as a player holding the trigger would.
+		const FVector Aim = Start.GetLocation() + Start.GetRotation().GetForwardVector() * ToReactor.Size();
+		const float Before = Reactor->GetTotalHealth01();
+		for (int32 i = 0; i < 40 && Reactor->IsAlive(); ++i)
+		{
+			Shoot(W, Start.GetLocation(), Aim, 600.f);
+			W.Advance(0.4f);
+			if (i == 2)
+			{
+				// ~370 m at 400 m/s: the first bolt lands after ~0.9 s.
+				TestTrue(*FString::Printf(TEXT("%s: the first bolts from the start hit the reactor (%.3f -> %.3f)"), *Way, Before, Reactor->GetTotalHealth01()), Reactor->GetTotalHealth01() < Before);
+			}
+		}
+		TestFalse(*(Way + TEXT(": the reactor dies to real bolts from the trench start")), Reactor->IsAlive());
+	}
+	return true;
+}
+
+
+// ENG-47 balance: the real squad, from the trench stage start, attacks the exposed reactor with its real weapons and NO
+// invulnerability. A competent run kills it inside 45 s, and the flown ship is still flying when it does.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldTrenchSurvivable, "TriadDrift.World.Dominion.TrenchRunIsSurvivable", TD_TEST_FLAGS)
+bool FTDWorldTrenchSurvivable::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W(UTDWaveTestGameInstance::StaticClass());
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
+	APlayerController* PC = W.SpawnPlayerController();
+	ATDSquadManager* Squad = W.Spawn<ATDSquadManager>();
+	Squad->SetSquadPlayerController(PC);
+	Squad->SpawnSquad(FTransform(FRotator::ZeroRotator, FVector(150000.f, 0.f, 3000.f)));
+	GI->Progress.bDominionRevealed = true;
+	GI->Progress.Phase = ETDGamePhase::DominionAssault;
+	W.Advance(D->ProgressPollSeconds + D->WarpInSeconds + 0.5f);
+	D->DebugDropShields();
+	W.Advance(0.2f);
+	if (!TestEqual(TEXT("reactor exposed"), (int32)D->GetState(), (int32)ETDDominionState::ReactorExposed)) { return false; }
+	ATDDominionReactor* Reactor = D->GetReactor();
+	const FTransform Start = D->GetStageStart(true);
+	Squad->SpawnSquad(Start);
+	ATDShip* Lead = TDFinaleCombat::ActiveShip(W);
+	if (!TestNotNull(TEXT("flown ship"), Lead)) { return false; }
+	const double T0 = W.GetWorld()->GetTimeSeconds();
+	const bool bKilled = TDFinaleCombat::Attack(W, Reactor, Start.GetLocation(), 30.f, 45.f, [Reactor] { return !Reactor->IsAlive(); }, /*bInvulnerable*/ false);
+	TDFinaleCombat::Release(W);
+	const float Took = (float)(W.GetWorld()->GetTimeSeconds() - T0);
+	ATDShip* Now = TDFinaleCombat::ActiveShip(W);
+	const UTDHealthComponent* H = Lead->GetHealth();
+	AddInfo(FString::Printf(TEXT("trench run: reactor %s after %.1f s; flown ship %s (hull %.0f, shield %.0f)"), bKilled ? TEXT("destroyed") : TEXT("alive"),
+		Took, Now == Lead ? TEXT("the same") : TEXT("switched / retaken"), H ? H->GetHull() : -1.f, H ? H->GetShield() : -1.f));
+	TestTrue(TEXT("the squad kills the reactor from the trench start inside 45 s, real weapons, no god mode"), bKilled);
+	TestTrue(TEXT("the flown ship survives the run (no switch or retake)"), Now == Lead && H && H->IsAlive());
 	return true;
 }
 

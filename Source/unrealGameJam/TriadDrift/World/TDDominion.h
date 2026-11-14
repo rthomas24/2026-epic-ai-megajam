@@ -193,13 +193,21 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Escape", meta = (ClampMin = "5"))
 	float EscapeSeconds = 60.f;
 
-	/** Clear = this many hull radii from the centre (at least twice the shield radius). */
+	/** Clear = this many hull radii from the centre (at least twice the shield radius, and EscapeExitDistance). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Escape", meta = (ClampMin = "1"))
 	float EscapeExitHullRadii = 2.5f;
 
+	/**
+	 * Clear is at least this far (cm) from the centre: a real run, not a 6 s boost (T7's playtest, Nov 14: 1068 m cleared in
+	 * ~6 s). With boost's duty cycle (3 s at 108 m/s, ~3.7 s at 60 m/s) a squad averages ~80 m/s, so 3.5 km from the bay
+	 * mouth takes ~40 of the 60 s, under falling debris.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Escape", meta = (ClampMin = "0"))
+	float EscapeExitDistance = 350000.f;
+
 	/** A debris chunk falls across the way out this often (s), faster near the end. 0 = no debris. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Escape", meta = (ClampMin = "0"))
-	float EscapeDebrisInterval = 0.6f;
+	float EscapeDebrisInterval = 0.4f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Escape", meta = (ClampMin = "0"))
 	float EscapeDebrisDamage = 20.f;
@@ -352,6 +360,9 @@ protected:
 	void SyncHyperdriveLock();
 	UFUNCTION()
 	void HandleTakeStarted(FName SceneId, int32 TakeNumber);
+
+	UFUNCTION()
+	void HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind);
 	/** A new take of the assault scene: see docs/eng/world.md (what stays, what restarts). */
 	void ResetForNewTake();
 	/** Victory phase reached without the breakup (won save, TD.Stage Victory): gone, silent, unlocked. */

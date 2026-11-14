@@ -356,4 +356,32 @@ bool FTDWorldLayoutDressing::RunTest(const FString& Parameters)
 	return true;
 }
 
+
+// Journey key points for space dressing (T6, Nov 14) and a clear player / skip start (T7's playtest: a girder on it).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDWorldLayoutJourney, "TriadDrift.World.Layout.JourneyKeyPointsAndAClearStart", TD_TEST_FLAGS)
+bool FTDWorldLayoutJourney::RunTest(const FString& Parameters)
+{
+	FTDTestWorld W;
+	ATDGalaxyLayout* L = ATDGalaxyLayout::SpawnDefaultGalaxy(W.GetWorld());
+	if (!TestNotNull(TEXT("layout"), L)) { return false; }
+	TArray<FTDJourneyKeyPoint> Points;
+	L->GetJourneyKeyPoints(Points);
+	TSet<FName> Ids;
+	for (const FTDJourneyKeyPoint& K : Points) { Ids.Add(K.Id); }
+	for (const TCHAR* Need : { TEXT("CombatZone"), TEXT("PlayerStart"), TEXT("Verdance"), TEXT("Cinder"), TEXT("Verdance_Approach"), TEXT("Cinder_Approach"), TEXT("TutorialEscape") })
+	{
+		TestTrue(*FString::Printf(TEXT("key point %s"), Need), Ids.Contains(FName(Need)));
+	}
+	TestTrue(TEXT("the player start is a keep-out"), !L->IsClearOfJourney(L->GetPlayerStart().GetLocation(), 0.f));
+	TestTrue(TEXT("deep space far from everything is clear"), L->IsClearOfJourney(L->GetActorLocation() + FVector(0.f, 0.f, 600000.f), 0.f));
+	const FVector Start = L->GetLayout().PlayerStart.GetLocation();
+	for (const FTDRuinSpec& R : L->GetPlacedRuins())
+	{
+		const float D = FVector::Dist(R.Location, Start);
+		TestTrue(*FString::Printf(TEXT("ruin %.0f m from the player start (needs %.0f m)"), D / 100.f, (R.Extent.Size() * 2.5f + L->AsteroidKeepOut * 2.f) / 100.f),
+			D >= R.Extent.Size() * 2.5f + L->AsteroidKeepOut * 2.f);
+	}
+	return true;
+}
+
 #endif // WITH_DEV_AUTOMATION_TESTS
