@@ -139,10 +139,14 @@ S2('NS_TD_EMP_Pulse', U(EMP), [
     arcs('Arcs', 0, (700, 1800), 2600, life=(0.15, 0.5), k=1.6, burst=44, dur=0.7, local=False),
     shed('Sparks', 'M_TD_VFX_Spark', 0, (0.3, 0.7), (8, 16), (4000, 11000), k=1.5, radius=100.0, drag=1.8, stretch=18, burst=70, dur=0.9)])
 # Slot: Bastion UTDShipVisuals.PowerActive (looping, attached). Authored for a 30 m radius dome.
+# Round 9 (T7's playtest, T2 traced it to Power2Active): from inside it must read as a faint amber hex shimmer, nearly clear
+# in the middle, a thin rim where the dome crosses the screen; from outside a readable dome. One fresnel-driven shell
+# (M_TD_VFX_DomeHex) and a few motes. Slot: Bastion UTDShipVisuals.Power2Active (played on the dome actor, DomeRadius 30 m).
 S2('NS_TD_ShieldDome', U(BASTION), [
-    shell('Dome', 3000, 0.50, pulse='float3(1,1,1)*(1.0 + 0.01*sin(Engine.Time*3.0))'),
-    shell('Hex', 2960, 0.16, mat='M_TD_VFX_Hex'),
-    shed('Motes', 'M_TD_VFX_Glow', 40.0, (0.6, 1.4), (12, 30), (0, 120), k=1.0, radius=3000.0, drag=0.5, curl=400.0, local=True, power=1.5, fade_in=5.0)])
+    # inside the dome (camera closer to the centre than the radius) the whole shell drops to 0.35
+    alpha_by(shell('Dome', 3000, 0.9, mat='M_TD_VFX_DomeHex', pulse='float3(1,1,1)*(1.0 + 0.008*sin(Engine.Time*3.0))'),
+             'lerp(0.35, 1.0, saturate((Engine.Owner.LODDistance - 2850.0*User.Scale*Engine.Owner.Scale.x)/(300.0*User.Scale*Engine.Owner.Scale.x)))'),
+    shed('Motes', 'M_TD_VFX_Glow', 14.0, (0.8, 1.6), (12, 26), (0, 90), k=0.8, radius=2900.0, drag=0.5, curl=300.0, local=True, power=1.5, fade_in=5.0)])
 # Slot: UTDAbilityFX.Loop of DA_Ability_Cloak_FX (looping, attached; the ship itself is faded by code). 6 m shimmer.
 S2('NS_TD_Cloak_Shimmer', U((0.55, 0.85, 1.0, 1.0)), [
     shell('Shimmer', 600, 0.035, pulse='float3(1.25, 1.0, 0.45)*(1.0 + 0.03*sin(Engine.Time*5.0))'),   # 0.16 and 0.09 read as a frosted grey saucer in play

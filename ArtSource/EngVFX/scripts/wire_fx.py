@@ -28,7 +28,11 @@ PLAN_R8B = {   # round 8: Teammate 7's hyperdrive look (eng/t7 b486768f); VFX on
     'FX/DA_Travel_FX': {'hyperdrive_spool': (HYP + 'NS_TD_Hyperdrive_Spool', 1.0), 'hyperdrive_tunnel': (HYP + 'NS_TD_Hyperdrive_Tunnel', 1.0),
                         'hyperdrive_drop_out': (HYP + 'NS_TD_Hyperdrive_DropOut', 1.0)},
 }
-PLAN = globals().get('PLAN') or PLAN_R8B
+PLAN_R9 = {   # round 9: T1's entry / exit set (lead/int-k b35bf640). CloudPunch / CloudWisps: the cloud deck at 1,150 m (Verdance) / 1,250 m (Cinder)
+    'FX/DA_Travel_FX': {'atmospheric_exit': ('NS_TD_Exit', 1.0), 'exit_breakaway': ('NS_TD_Exit_Breakaway', 1.0),
+                        'cloud_punch': ('NS_TD_Entry_CloudPunch', 1.0), 'cloud_wisps': ('NS_TD_Entry_CloudWisps', 1.0)},
+}
+PLAN = globals().get('PLAN') or PLAN_R9
 PLAN_R5 = {
     'NullFleet/DA_Enemy_Fighter_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},
     'NullFleet/DA_Enemy_Interceptor_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},
