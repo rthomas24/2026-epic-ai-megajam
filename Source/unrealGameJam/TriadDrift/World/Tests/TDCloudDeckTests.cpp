@@ -79,4 +79,27 @@ bool FTDCloudDeckOnPlanetsOnly::RunTest(const FString&)
 	return true;
 }
 
+
+// ENG-38 (agreed with T1): during the glide the haze follows T1's Descent01 - thick at the arrival over the deck, the planet's
+// normal fog at the glide end, easing (no step); with no glide (-1) the altitude ramp as before.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDescentFogRamp, "TriadDrift.World.CloudDeck.DescentHazeFollowsTheGlide", TD_TEST_FLAGS)
+bool FTDDescentFogRamp::RunTest(const FString&)
+{
+	const float Max = 12.f, Low = 150000.f, High = 500000.f;
+	TestEqual(TEXT("thick at the arrival"), ATDPlaceholderSky::ComputeDescentFogScale(0.f, 999999.f, Max, Low, High), Max, 0.01f);
+	TestEqual(TEXT("normal at the glide end"), ATDPlaceholderSky::ComputeDescentFogScale(1.f, 0.f, Max, Low, High), 1.f, 0.01f);
+	float Prev = Max + 1.f, BiggestStep = 0.f;
+	for (int32 i = 0; i <= 100; ++i)
+	{
+		const float S = ATDPlaceholderSky::ComputeDescentFogScale(i / 100.f, 0.f, Max, Low, High);
+		TestTrue(TEXT("never thickens as the glide goes on"), S <= Prev + KINDA_SMALL_NUMBER);
+		if (i > 0) { BiggestStep = FMath::Max(BiggestStep, Prev - S); }
+		Prev = S;
+	}
+	TestTrue(*FString::Printf(TEXT("no step: at most %.2f per 1%% of the glide"), BiggestStep), BiggestStep < (Max - 1.f) * 0.05f);
+	TestEqual(TEXT("no glide, low: the altitude ramp's normal"), ATDPlaceholderSky::ComputeDescentFogScale(-1.f, 0.f, Max, Low, High), 1.f, 0.01f);
+	TestEqual(TEXT("no glide, high: the altitude ramp's thick"), ATDPlaceholderSky::ComputeDescentFogScale(-1.f, 900000.f, Max, Low, High), Max, 0.01f);
+	return true;
+}
+
 #endif
