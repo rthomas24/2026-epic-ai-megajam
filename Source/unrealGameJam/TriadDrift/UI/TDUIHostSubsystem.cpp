@@ -479,6 +479,13 @@ bool UTDUIHostSubsystem::ShowNavigationPulse(const UObject* WorldContext, FVecto
 	return true;
 }
 
+float UTDUIHostSubsystem::GetNavigationPulse01(const UObject* WorldContext)
+{
+	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	const UTDFlightHUDWidget* Flight = Host ? Cast<UTDFlightHUDWidget>(Host->GetSpaceHUD()) : nullptr;
+	return Flight ? Flight->GetNavigationPulseEnvelope() : 0.f;
+}
+
 bool UTDUIHostSubsystem::ShowTransmission(const UObject* WorldContext, FName Speaker, FText Line, uint8 Style, float Seconds)
 {
 	const UTDUIHostSubsystem* Host = Get(WorldContext);

@@ -35,6 +35,7 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Misc/PackageName.h"
 #include "Kismet/GameplayStatics.h"
+#include "TriadDrift/Ground/TDGroundBarks.h"
 #include "TriadDrift/Ground/Interior/TDReactorCoreFX.h"
 #include "NiagaraComponent.h"
 #include "Components/AudioComponent.h"
@@ -1024,6 +1025,7 @@ void ATDPlanetCourse::Tick(float DeltaSeconds)
 	InteriorTime += DeltaSeconds;
 	TickFinalRecord(DeltaSeconds);
 	TickCoreChamber();
+	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->TickBarks(DeltaSeconds); } // ENG-43's polled barks
 	for (const FCoreRing& R : CoreRings) // the reactor's rings turn (and rock a little, under 20 degrees: inside the shield)
 	{
 		if (UStaticMeshComponent* Ring = R.Ring.Get())
@@ -1078,6 +1080,7 @@ void ATDPlanetCourse::HandleObjectiveCompleted(ATDObjective* Objective)
 		if (D.Objective == Objective && D.Door) { D.Door->Open(); }
 	}
 	FireCompletionBeats(Objective);
+	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->NotifyObjectiveDone(); } // ENG-43
 	if (IsInterior())
 	{
 		HandleInteriorObjectiveCompleted(Objective);

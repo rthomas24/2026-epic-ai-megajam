@@ -17,6 +17,7 @@
 #include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Ground/Crew/TDCrewCharacter.h"
 #include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceDynamic.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Squad/TDShipLibrary.h"
@@ -290,6 +291,53 @@ bool FTDInteriorParkedParts::RunTest(const FString& Parameters)
 		TestEqual(*FString::Printf(TEXT("ship %d: every visual part parked"), (int32)Ship), I.Course->GetParkedParts().Num(), Want);
 		AddInfo(FString::Printf(TEXT("ship %d: %d parts parked"), (int32)Ship, I.Course->GetParkedParts().Num()));
 	}
+	return true;
+}
+
+// The environment builder's alarm (Lead, Nov 14): every kit piece with a strip slot is tagged TD.EmergencyStrip and has
+// its own instance on that slot; nothing else carries the tag.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDInteriorStrips, "TriadDrift.Ground.Interior.EmergencyStripsAreTaggedWithTheirOwnInstance", TD_TEST_FLAGS)
+bool FTDInteriorStrips::RunTest(const FString& Parameters)
+{
+	TDInteriorTest::FInterior I;
+	if (!TestNotNull(TEXT("interior"), I.Course)) { return false; }
+	int32 Tagged = 0, StripSlots = 0;
+	for (TActorIterator<AActor> It(I.Course->GetWorld()); It; ++It)
+	{
+		TArray<UStaticMeshComponent*> Comps;
+		It->GetComponents(Comps);
+		for (UStaticMeshComponent* C : Comps)
+		{
+			bool bStrip = false, bOwn = true;
+			for (int32 i = 0; i < C->GetNumMaterials(); ++i)
+			{
+				UMaterialInterface* M = C->GetMaterial(i);
+				const UMaterialInstanceDynamic* D = Cast<UMaterialInstanceDynamic>(M);
+				const UMaterialInterface* Base = D ? D->Parent.Get() : M;
+				if (Base && Base->GetName().StartsWith(TEXT("MI_KitD_Glow")))
+				{
+					bStrip = true;
+					++StripSlots;
+					if (!D) { AddInfo(FString::Printf(TEXT("%s (%s) slot %d: %s %s"), *C->GetName(), *GetNameSafe(C->GetStaticMesh()), i, *M->GetClass()->GetName(), *M->GetPathName())); }
+					bOwn &= D != nullptr;
+				}
+			}
+			const bool bTag = C->ComponentHasTag(ATDPlanetCourse::EmergencyStripTag);
+			Tagged += bTag ? 1 : 0;
+			if (bStrip || bTag)
+			{
+				TestEqual(*FString::Printf(TEXT("%s: tagged exactly when it has a strip"), *C->GetName()), bTag, bStrip);
+				TestTrue(*FString::Printf(TEXT("%s: its strip slot has its own instance"), *C->GetName()), bOwn);
+			}
+		}
+	}
+	if (!FPackageName::DoesPackageExist(TEXT("/Game/TriadDrift/Gameplay/Props/Kit/Dominion/MI_KitD_Glow")))
+	{
+		AddInfo(TEXT("no kit strip material in this checkout"));
+		return true;
+	}
+	AddInfo(FString::Printf(TEXT("%d strip pieces, %d strip slots"), Tagged, StripSlots));
+	TestTrue(TEXT("the kit's strips are tagged"), Tagged > 0);
 	return true;
 }
 

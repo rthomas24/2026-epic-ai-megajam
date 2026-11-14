@@ -6,6 +6,7 @@
 #include "TriadDrift/World/TDShieldGenerator.h"
 #include "TriadDrift/World/TDDominionReactor.h"
 #include "TriadDrift/World/TDDockingBay.h"
+#include "TriadDrift/World/TDWorldBarks.h"
 #include "TriadDrift/World/TDDistortionField.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/World/TDEscapeDebris.h"
@@ -439,6 +440,7 @@ void ATDDominion::BeginEscapeFlight()
 void ATDDominion::ResetEscapeTake()
 {
 	StateTime = 0.f;
+	bEscapeBarkSaid = false;
 	EscapeBoomTimer = 0.f;
 	EscapeDebrisTimer = 1.5f;	// a breath before the first chunk
 	EscapeClearTime = 0.f;
@@ -500,6 +502,12 @@ void ATDDominion::TickEscapeFlight(float DeltaSeconds)
 		return;
 	}
 	const float T = FMath::Clamp(StateTime / FMath::Max(EscapeSeconds, 1.f), 0.f, 1.f);
+	if (!bEscapeBarkSaid && StateTime >= 4.5f)
+	{
+		// dialogs.md Bark_Dom_EscapeFlight ("Punch it!"), after Wren's G9_Wren_PullAway transmission has finished.
+		bEscapeBarkSaid = true;
+		FTDWorldBarks::Say(this, TDWorldBarkIds::DomEscapeFlight, ETDBarkPriority::Critical, FTDWorldBarks::EWho::Wingman, 0.f);
+	}
 	// The hull burns harder as the clock runs down.
 	EscapeBoomTimer -= DeltaSeconds;
 	if (EscapeBoomTimer <= 0.f)
@@ -522,6 +530,7 @@ void ATDDominion::TickEscapeFlight(float DeltaSeconds)
 	if (Ship && FVector::Dist(Ship->GetActorLocation(), GetActorLocation()) >= GetEscapeExitRadius())
 	{
 		bEscapeClear = true;
+		FTDWorldBarks::Say(this, TDWorldBarkIds::DomClear, ETDBarkPriority::High, FTDWorldBarks::EWho::Wingman, 0.f);	// dialogs.md Bark_Dom_Clear
 		EscapeClearTime = 0.f;
 		for (AActor* A : EscapeDebris) { if (IsValid(A)) { A->Destroy(); } }
 		EscapeDebris.Reset();
@@ -1196,6 +1205,10 @@ void ATDDominion::HandleGeneratorDestroyed(ATDShieldGenerator* Generator, AActor
 	// The GeneratorKill money shot comes from T3's UTDDirectorSubsystem (generator actors are tagged).
 
 	const int32 Remaining = GetGeneratorsRemaining();
+	if (Remaining > 0)
+	{
+		FTDWorldBarks::Say(this, TDWorldBarkIds::DomGeneratorDown, ETDBarkPriority::High, FTDWorldBarks::EWho::Wingman, 0.f);	// dialogs.md Bark_Dom_GeneratorDown
+	}
 	// Story (T3's transmissions): one per generator by count down, not by which one. Once per run, queued, held
 	// during money shots; a retake or a resumed save (generators silently destroyed) never replays them.
 	const int32 Down = FMath::Clamp(Generators.Num() - Remaining, 1, 4);
@@ -1252,6 +1265,10 @@ void ATDDominion::OnDefensesDown(bool bFromSave)
 		}
 	}
 	StopShieldIdle();
+	if (!bFromSave)
+	{
+		FTDWorldBarks::Say(this, TDWorldBarkIds::DomFieldDown, ETDBarkPriority::Critical, FTDWorldBarks::EWho::Kato, 0.f);	// dialogs.md Bark_Dom_FieldDown
+	}
 	if (Visuals && !bFromSave)
 	{
 		UTDStatics::PlayCue(this, Visuals->ShieldCollapse, GetActorLocation(), GetActorRotation());

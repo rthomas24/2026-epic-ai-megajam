@@ -3,6 +3,9 @@
 // the fallback. Run: .\Tools\td-test.ps1 -Filter TriadDrift.World.Docking
 
 #include "Misc/AutomationTest.h"
+#include "TriadDrift/Combat/TDWeaponLibrary.h"
+#include "TriadDrift/Combat/TDProjectile.h"
+#include "TriadDrift/World/TDWorldBarks.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
 
@@ -250,6 +253,65 @@ bool FTDDockingWingmen::RunTest(const FString&)
 		const ATDShip* S = Squad->GetShip(Id);
 		if (S && S != Lead) { TestFalse(TEXT("a released wingman flies"), S->IsFlightParked()); }
 	}
+	return true;
+}
+
+
+// ENG-43: dialogs.md Bark_Dom_GeneratorDown (each but the last, whose line is the field's), Bark_Dom_FieldDown (all four
+// down) and Bark_Dom_Tractor (the tractor takes hold, once per take).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDominionBarks, "TriadDrift.World.Barks.GeneratorsFieldAndTractor", TD_TEST_FLAGS)
+bool FTDDominionBarks::RunTest(const FString&)
+{
+	FTDCombatBarks::ResetRequestCounts();
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.bDominionRevealed = true; GI->Progress.Phase = ETDGamePhase::DominionAssault;
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
+	D->BoardingMode = ETDBoardingMode::ForceOn;
+	W.Advance(D->ProgressPollSeconds + D->WarpInSeconds + 0.5f);
+	for (ATDShieldGenerator* G : D->GetGenerators())	// one at a time, as in play
+	{
+		if (G && G->GetHealth()) { G->GetHealth()->Kill(); }
+		W.Advance(0.5f);
+	}
+	ATDDockingBay* Bay = D->GetDockingBay();
+	if (!TestNotNull(TEXT("bay"), Bay)) { return false; }
+	TestEqual(TEXT("Bark_Dom_GeneratorDown for generators 1-3"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomGeneratorDown), 3);
+	TestEqual(TEXT("Bark_Dom_FieldDown once"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomFieldDown), 1);
+	ATDShip* Ship = TDDockingTest::ShipInCone(W, Bay, 180000.f, 25000.f, 20.f);
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	W.Advance(1.f);
+	TestEqual(TEXT("Bark_Dom_Tractor once as the pull takes hold"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomTractor), 1);
+	W.Advance(1.f);
+	TestEqual(TEXT("not repeated while held"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomTractor), 1);
+	return true;
+}
+
+// ENG-43: dialogs.md Bark_Dom_GeneratorHit (a generator at half health, once each).
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDGeneratorHitBark, "TriadDrift.World.Barks.GeneratorAtHalf", TD_TEST_FLAGS)
+bool FTDGeneratorHitBark::RunTest(const FString&)
+{
+	FTDCombatBarks::ResetRequestCounts();
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	UTDWaveTestGameInstance* GI = Cast<UTDWaveTestGameInstance>(W.GetGameInstance());
+	GI->Progress.bDominionRevealed = true; GI->Progress.Phase = ETDGamePhase::DominionAssault;
+	ATDDominion* D = W.Spawn<ATDDominion>(FVector(200000.f, 0.f, 0.f));
+	W.Advance(D->ProgressPollSeconds + D->WarpInSeconds + 0.5f);
+	ATDShieldGenerator* G = D->GetGenerators().Num() > 0 ? D->GetGenerators()[0] : nullptr;
+	if (!TestNotNull(TEXT("generator"), G)) { return false; }
+	// Real player bolts from outside (the generators only take hits that reach them).
+	FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyHeavyBolt).Projectile;
+	Spec.SplashRadius = 0.f; Spec.ProximityFuseRadius = 0.f; Spec.bHoming = false; Spec.Speed = 40000.f; Spec.Range = 40000.f;
+	Spec.bInheritShooterVelocity = false; Spec.DamageKind = ETDDamageKind::Explosive;
+	const FVector Out = (G->GetActorLocation() - D->GetActorLocation()).GetSafeNormal() * 8000.f;
+	auto Shoot = [&](float Amount) { Spec.Damage = Amount; ATDProjectile::Spawn(W.GetWorld(), Spec, FTransform((-Out).Rotation(), G->GetActorLocation() + Out), nullptr, ETDTeam::Player); W.Advance(0.5f); };
+	Shoot(G->GetHealth()->MaxHull * 0.3f);
+	AddInfo(FString::Printf(TEXT("generator hull after one hit: %.2f"), G->GetHealth()->GetHull01()));
+	TestEqual(TEXT("not at 70 %"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomGeneratorHit), 0);
+	Shoot(G->GetHealth()->MaxHull * 0.3f);
+	TestEqual(TEXT("Bark_Dom_GeneratorHit at half health"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomGeneratorHit), 1);
+	Shoot(10.f);
+	TestEqual(TEXT("once per generator"), FTDCombatBarks::GetRequestCount(TDWorldBarkIds::DomGeneratorHit), 1);
 	return true;
 }
 

@@ -168,6 +168,14 @@ public:
 	static bool ShowNavigationPulse(const UObject* WorldContext, FVector From, FVector To, float Seconds = 1.5f);
 
 	/**
+	 * The navigation pulse as it shows right now, 0..1 (0 when none): the same envelope the HUD's corridor draws with
+	 * (up in the first 10%, held, gone over the last 35%). storyline.md §12: the Dominion's light row "changes in the same
+	 * rhythm as the pulse on the HUD" - T4 / the effects builder read this each frame and drive the row's material by it.
+	 */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static float GetNavigationPulse01(const UObject* WorldContext);
+
+	/**
 	 * storyline.md §18, the Verdance traverse: a sensor marker on a squad transponder at At reads "UNKNOWN", then
 	 * "VERIFIED" for a moment (SensorVerifiedAt s in), then "UNKNOWN" again; shown for Seconds on the on-foot HUD. Nobody
 	 * explains it. T5 calls it at the trigger point on the route.

@@ -1,5 +1,6 @@
 // Triad Drift - World (Teammate 4). ENG-29 docking bay: approach cone, tractor-beam assist, hand-off to the interior.
 #include "TriadDrift/World/TDDockingBay.h"
+#include "TriadDrift/World/TDWorldBarks.h"
 
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/Flight/TDShip.h"
@@ -95,6 +96,7 @@ void ATDDockingBay::Open(ATDDominion* InDominion, bool bPlayCues)
 
 void ATDDockingBay::ResetForNewTake()
 {
+	bTractorSaid = false;
 	if (DockingState == ETDDockingState::Docked)
 	{
 		return;	// the travel is already under way
@@ -344,6 +346,11 @@ void ATDDockingBay::Tick(float DeltaSeconds)
 	{
 		if (Held.IsValid()) { ReleaseShip(); }
 		return;
+	}
+	if (!Held.IsValid() && !bTractorSaid)
+	{
+		bTractorSaid = true;	// dialogs.md Bark_Dom_Tractor: the tractor assist takes hold (the flown pilot)
+		FTDWorldBarks::Say(this, TDWorldBarkIds::DomTractor, ETDBarkPriority::High, FTDWorldBarks::EWho::FlownPilot, 0.f, Ship);
 	}
 	Held = Ship;
 	const FVector Loc = Ship->GetActorLocation();

@@ -31,6 +31,9 @@
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "Kismet/GameplayStatics.h"
+#include "TriadDrift/World/TDWorldBarks.h"
+#include "TriadDrift/World/TDWorldSubsystem.h"
+#include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Story/TDTutorialPhases.h"
@@ -254,6 +257,7 @@ void ATDWaveDirector::BeginPlay()
 	{
 		Bus->OnTakeStarted.AddUniqueDynamic(this, &ATDWaveDirector::HandleTakeStarted);
 		Bus->OnPhaseChanged.AddUniqueDynamic(this, &ATDWaveDirector::HandleGamePhaseChanged);
+		Bus->OnHyperdriveState.AddUniqueDynamic(this, &ATDWaveDirector::HandleHyperdriveState);
 		Bus->OnSceneCut.AddUniqueDynamic(this, &ATDWaveDirector::HandleSceneCut);
 	}
 
@@ -270,6 +274,7 @@ void ATDWaveDirector::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		Bus->OnTakeStarted.RemoveDynamic(this, &ATDWaveDirector::HandleTakeStarted);
 		Bus->OnSceneCut.RemoveDynamic(this, &ATDWaveDirector::HandleSceneCut);
 		Bus->OnPhaseChanged.RemoveDynamic(this, &ATDWaveDirector::HandleGamePhaseChanged);
+		Bus->OnHyperdriveState.RemoveDynamic(this, &ATDWaveDirector::HandleHyperdriveState);
 	}
 	SetSquadBoundaryRelease(false);	// never leave the edge off
 	for (const TWeakObjectPtr<AActor>& Weak : Living)
@@ -773,9 +778,41 @@ void ATDWaveDirector::PickSpawnPoint(ETDSpawnZone Zone, bool bLarge, FVector& Ou
 	Dir = Dir.GetSafeNormal(UE_SMALL_NUMBER, -Fwd);
 
 	const float Distance = SpawnDistance * (bLarge ? LargeShipSpawnDistanceScale : 1.f);
-	const FVector Jitter = Rng.GetUnitVector() * (Rng.FRand() * SpawnJitter);
-	OutLocation = Origin + Dir * Distance + Jitter;
+	// Never warp a group in inside a rock, set piece or hull (T6's regions put solid obstacles near every route):
+	// retry with fresh jitter, turning the direction 30 degrees round the player each time; last resort, push out.
+	const float Clear = bLarge ? 3000.f : 1200.f;
+	const UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this);
+	auto Blocker = [WorldSys, Clear](const FVector& P, FSphere& Out) -> bool
+	{
+		if (!WorldSys) { return false; }
+		for (const FSphere& O : WorldSys->GetObstacles())
+		{
+			if (O.W > 0.f && FVector::DistSquared(P, O.Center) < FMath::Square(O.W + Clear)) { Out = O; return true; }
+		}
+		return false;
+	};
+	FSphere Hit(ForceInit);
+	for (int32 Try = 0; Try < 12; ++Try)
+	{
+		const FVector D = Try == 0 ? Dir : FQuat(Up, FMath::DegreesToRadians(30.f * ((Try + 1) / 2) * (Try % 2 ? 1.f : -1.f))).RotateVector(Dir);
+		static const float DistanceScale[12] = { 1.f, 1.f, 1.f, 1.f, 1.35f, 0.75f, 1.35f, 0.75f, 1.7f, 1.7f, 0.6f, 2.f };	// a ring of rocks at one distance
+		const FVector Jitter = Rng.GetUnitVector() * (Rng.FRand() * SpawnJitter);
+		OutLocation = Origin + D * Distance * DistanceScale[Try] + Jitter;
+		if (!Blocker(OutLocation, Hit)) { break; }
+		if (Try == 11)
+		{
+			// Last resort: step out of each blocker in turn until the point is clear (a few steps at most).
+			for (int32 Step = 0; Step < 8 && Blocker(OutLocation, Hit); ++Step)
+			{
+				const FVector Away = (OutLocation - Hit.Center).GetSafeNormal(UE_SMALL_NUMBER, Up);
+				OutLocation = Hit.Center + Away * (Hit.W + Clear + 100.f);
+			}
+			++SpawnPointsPushedOut;
+		}
+		++SpawnPointRetries;
+	}
 	OutFacing = (Origin - OutLocation).Rotation();
+	PickedSpawnPoints.Add(OutLocation);
 }
 
 AActor* ATDWaveDirector::SpawnEnemy(FName EnemyId, const FTransform& Transform)
@@ -860,6 +897,18 @@ void ATDWaveDirector::SpawnGroup(const FPendingGroup& P)
 				continue;
 			}
 			// The tutorial's heavy contact: the gunship of the withdrawal wave (by the group's id, so stand-ins count).
+			// dialogs.md Bark_NewEnemy_<Type>: the first of each type this run (Kato identifies it). The tutorial's heavy
+			// contact has its own line (TB_Wren_Bigger), so a gunship there does not also get this one.
+			if (!SeenTypes.Contains(G.EnemyId))
+			{
+				SeenTypes.Add(G.EnemyId);
+				const bool bTutorialHeavy = G.EnemyId == TDEnemyIds::WallGunship && IsTutorialWithdrawalWave();
+				const FName NewId = G.EnemyId == TDEnemyIds::HookInterceptor ? TDWorldBarkIds::NewEnemyInterceptor
+					: G.EnemyId == TDEnemyIds::WallGunship ? TDWorldBarkIds::NewEnemyGunship
+					: G.EnemyId == TDEnemyIds::MaulBomber ? TDWorldBarkIds::NewEnemyBomber
+					: G.EnemyId == TDEnemyIds::HiveCarrier ? TDWorldBarkIds::NewEnemyCarrier : NAME_None;
+				if (!NewId.IsNone() && !bTutorialHeavy) { FTDWorldBarks::Say(this, NewId, ETDBarkPriority::High, FTDWorldBarks::EWho::Kato, 0.f); }
+			}
 			if (G.EnemyId == TDEnemyIds::WallGunship && !bHeavySeen && IsTutorialWithdrawalWave())
 			{
 				HeavyContact = Enemy;
@@ -987,6 +1036,11 @@ void ATDWaveDirector::FinishWave()
 	if (!Waves.IsValidIndex(CurrentWave))
 	{
 		return;
+	}
+	// dialogs.md Bark_WaveCleared: a wave ends (a pilot, rotating). The tutorial wave ends on Command's withdrawal instead.
+	if (!IsTutorialWithdrawalWave())
+	{
+		FTDWorldBarks::Say(this, TDWorldBarkIds::WaveCleared, ETDBarkPriority::High, FTDWorldBarks::EWho::Wingman, 5.f);
 	}
 	const FTDWaveDef& Wave = Waves[CurrentWave];
 	const int32 WaveNumber = CurrentWave + 1;
@@ -1181,7 +1235,10 @@ void ATDWaveDirector::ResetTutorial()
 	HeldPursuers.Reset();
 	if (AActor* M = EscapeMarker.Get()) { M->Destroy(); }
 	EscapeMarker.Reset();
+	ClearJumpPoint();
 	TutorialPhase = ETDTutorialPhase::Battle;
+	bIncomingSaid = false;
+	PickedSpawnPoints.Reset();
 	TutorialClock = 0.f;
 	WithdrawalWait = 0.f;
 	bWithdrawalRequested = false;
@@ -1261,6 +1318,24 @@ void ATDWaveDirector::CompleteEscape()
 	if (AActor* M = EscapeMarker.Get()) { M->Destroy(); }
 	EscapeMarker.Reset();
 	HeldPursuers.Reset();
+	// The beat ends with the hyperdrive jump, not a flight into the planet (T7, Lead, Nov 14): a JUMP POINT waypoint
+	// 300 m past the line on the same bearing; Verdance's atmosphere is still 1.2-2.1 km beyond it.
+	if (UWorld* World = GetWorld())
+	{
+		FActorSpawnParameters P;
+		P.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		const FVector At = EscapePoint + EscapeNormal * JumpPointPastLine;
+		if (AActor* M = World->SpawnActor<AActor>(AActor::StaticClass(), FTransform(EscapeNormal.Rotation(), At), P))
+		{
+			USceneComponent* Root = NewObject<USceneComponent>(M, TEXT("Root"));
+			M->SetRootComponent(Root);
+			Root->RegisterComponent();
+			M->SetActorLocationAndRotation(At, EscapeNormal.Rotation());
+			M->Tags.Add(TDTags::ObjectiveMarker);
+			M->Tags.Add(TEXT("TD.Tutorial.JumpPoint"));
+			JumpPointMarker = M;
+		}
+	}
 	UTDStorySubsystem::Fire(this, TEXT("TB_Kato_BreakingOff"));
 	UTDStorySubsystem::Fire(this, TEXT("TB_Escaped"));
 	OnTutorialEscaped.Broadcast();
@@ -1279,6 +1354,31 @@ void ATDWaveDirector::CompleteEscape()
 	Pending.Reset();
 	ClearEnemies();
 	FinishWave();
+}
+
+void ATDWaveDirector::CheckMinesAhead()
+{
+	// dialogs.md Bark_MinesAhead: the flown ship heads at a mine cluster (slow, fused enemy charges) within ~6 s of travel.
+	const AActor* Flown = GetSpawnAnchor();
+	const UTDProjectileSubsystem* Projectiles = UTDProjectileSubsystem::Get(this);
+	if (!Flown || !Projectiles) { return; }
+	const FVector Me = Flown->GetActorLocation();
+	const FVector Fwd = Flown->GetVelocity().SizeSquared() > 1.f ? Flown->GetVelocity().GetSafeNormal() : Flown->GetActorForwardVector();
+	const float Reach = FMath::Max(60000.f, (float)Flown->GetVelocity().Size() * 6.f);
+	int32 Ahead = 0;
+	for (const ATDProjectile* P : Projectiles->GetLiveProjectiles())
+	{
+		if (!P || P->GetTeam() != ETDTeam::Enemy) { continue; }
+		const FTDProjectileSpec& S = P->GetSpec();
+		if (S.ProximityFuseRadius <= 0.f || S.Speed > 1000.f) { continue; }	// a mine: slow and fused
+		const FVector To = P->GetActorLocation() - Me;
+		const float D = To.Size();
+		if (D < Reach && FVector::DotProduct(To / FMath::Max(D, 1.f), Fwd) > 0.85f) { ++Ahead; }
+	}
+	if (Ahead >= 2)
+	{
+		FTDWorldBarks::Say(this, TDWorldBarkIds::MinesAhead, ETDBarkPriority::High, FTDWorldBarks::EWho::Wingman, 20.f);
+	}
 }
 
 bool ATDWaveDirector::IsTeachingSquad() const
@@ -1326,7 +1426,22 @@ void ATDWaveDirector::SetSquadBoundaryRelease(bool bRelease)
 
 void ATDWaveDirector::HandleGamePhaseChanged(ETDGamePhase Phase)
 {
-	if (Phase != ETDGamePhase::Waves1to2) { SetSquadBoundaryRelease(false); }	// the jump to Verdance ends the corridor
+	if (Phase != ETDGamePhase::Waves1to2)
+	{
+		SetSquadBoundaryRelease(false);	// the jump to Verdance ends the corridor
+		ClearJumpPoint();
+	}
+}
+
+void ATDWaveDirector::HandleHyperdriveState(ETDHyperdriveState NewState)
+{
+	if (NewState == ETDHyperdriveState::Jumping) { ClearJumpPoint(); }
+}
+
+void ATDWaveDirector::ClearJumpPoint()
+{
+	if (AActor* M = JumpPointMarker.Get()) { M->Destroy(); }
+	JumpPointMarker.Reset();
 }
 
 void ATDWaveDirector::TickTutorial(float DeltaSeconds)
@@ -1401,6 +1516,15 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 	{
 		UpdateTeachPressure();
 	}
+	if (State == ETDWaveState::Active || State == ETDWaveState::WarpingIn)
+	{
+		MineCheckTimer -= DeltaSeconds;
+		if (MineCheckTimer <= 0.f)
+		{
+			MineCheckTimer = 0.5f;
+			CheckMinesAhead();
+		}
+	}
 
 	if (bOpeningGrace)
 	{
@@ -1453,6 +1577,11 @@ void ATDWaveDirector::Tick(float DeltaSeconds)
 			if (!P.bWarpAnnounced && P.Remaining <= WarpInSeconds)
 			{
 				P.bWarpAnnounced = true;
+				if (CurrentWave >= 1 && !bIncomingSaid)
+				{
+					bIncomingSaid = true;	// dialogs.md Bark_WaveIncoming: the next wave warps in (Kato), once per wave
+					FTDWorldBarks::Say(this, TDWorldBarkIds::WaveIncoming, ETDBarkPriority::High, FTDWorldBarks::EWho::Kato, 10.f);
+				}
 				const FTDEnemySpec& Spec = UTDEnemyLibrary::Get(P.Group.EnemyId);
 				PickSpawnPoint(P.Group.Zone, Spec.IsValid() && Spec.Size >= ETDEnemySize::Large, P.Location, P.Facing);
 				OnWarpInStarted.Broadcast(P.Location, P.Group.EnemyId);

@@ -87,6 +87,9 @@ bool FTDDescentFogRamp::RunTest(const FString&)
 {
 	const float Max = 12.f, Low = 150000.f, High = 500000.f;
 	TestEqual(TEXT("thick at the arrival"), ATDPlaceholderSky::ComputeDescentFogScale(0.f, 999999.f, Max, Low, High), Max, 0.01f);
+	TestEqual(TEXT("a glide reported at 300 m over the ground (a staged arrival): normal fog, the ground readable"),
+		ATDPlaceholderSky::ComputeDescentFogScale(0.f, 30000.f, Max, Low, High), 1.f, 0.01f);
+	TestTrue(TEXT("at 1.2 km mid-glide: only part of the arrival haze"), ATDPlaceholderSky::ComputeDescentFogScale(0.3f, 120000.f, Max, Low, High) < Max * 0.8f);
 	TestEqual(TEXT("normal at the glide end"), ATDPlaceholderSky::ComputeDescentFogScale(1.f, 0.f, Max, Low, High), 1.f, 0.01f);
 	float Prev = Max + 1.f, BiggestStep = 0.f;
 	for (int32 i = 0; i <= 100; ++i)
