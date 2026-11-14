@@ -435,6 +435,49 @@ void ATDPlanetCourse::RetintDressing(const FVector& Local, float RadiusCm, const
 	}
 }
 
+void ATDPlanetCourse::DressRouteBreaks(bool bCinder)
+{
+	// #194 (environment builder): ground-break pieces from the structures builder's site set. A walk-under arch or fallen
+	// trunk straddling each route at about 40 % of its length (yawed along the path, so the passage lines up), and a
+	// landmark (stone ring / overgrown pylon, or gantry / vent chimney / slag heap) every ~40 m across the course box,
+	// each at the first spot that clears every keep-out (DressCamp).
+	const TCHAR* Folder = bCinder ? TEXT("Huts/Cinder") : TEXT("Huts/Verdance");
+	int32 r = 0;
+	for (const TArray<FVector>& R : Routes)
+	{
+		if (R.Num() < 2) { continue; }
+		float Total = 0.f;
+		for (int32 i = 0; i + 1 < R.Num(); ++i) { Total += FVector::Dist2D(R[i], R[i + 1]); }
+		float Want = Total * (0.38f + 0.1f * (r % 3)), Run = 0.f;
+		for (int32 i = 0; i + 1 < R.Num(); ++i)
+		{
+			const float Len = FVector::Dist2D(R[i], R[i + 1]);
+			if (Run + Len >= Want)
+			{
+				const FVector P = FMath::Lerp(R[i], R[i + 1], (Want - Run) / FMath::Max(Len, 1.f));
+				const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(R[i + 1].Y - R[i].Y, R[i + 1].X - R[i].X));
+				const TCHAR* Piece = bCinder ? TEXT("SM_Site_Cinder_BasaltArch") : (r % 2 == 0 ? TEXT("SM_Site_Verdance_RootArch") : TEXT("SM_Site_Verdance_FallenTrunk"));
+				Dress({ { Folder, Piece, FVector::ZeroVector, Yaw, 1.f, true } }, FVector(P.X, P.Y, 0.f), 0.f, FName(*FString::Printf(TEXT("RouteBreak%d"), r)));
+				break;
+			}
+			Run += Len;
+		}
+		++r;
+	}
+	const TCHAR* Marks[] = { TEXT("SM_Site_Verdance_StoneRing"), TEXT("SM_Site_Verdance_OvergrownPylon") };
+	const TCHAR* MarksC[] = { TEXT("SM_Site_Cinder_CollapsedGantry"), TEXT("SM_Site_Cinder_VentChimney"), TEXT("SM_Site_Cinder_SlagHeap") };
+	int32 m = 0;
+	for (float X = -2000.f; X <= 14000.f; X += 4000.f)
+	{
+		for (float Y = -9000.f; Y <= 9000.f; Y += 4000.f, ++m)
+		{
+			const TCHAR* Piece = bCinder ? MarksC[m % 3] : Marks[m % 2];
+			DressCamp(FVector(X + (m % 3) * 700.f, Y + (m % 2) * 900.f, 0.f), 0.f, 1800.f, { { Folder, Piece, FVector::ZeroVector, float((m * 47) % 360), 1.f, true } },
+				FName(*FString::Printf(TEXT("Landmark%d"), m)));
+		}
+	}
+}
+
 int32 ATDPlanetCourse::DressCamp(const FVector& Around, float MinR, float MaxR, const TArray<FDressItem>& Items, FName Tag)
 {
 	// #194 (environment builder): a group of huts and its yard, placed at the first spot round Around (rings MinR..MaxR,
@@ -443,7 +486,9 @@ int32 ATDPlanetCourse::DressCamp(const FVector& Around, float MinR, float MaxR, 
 	auto Radius = [](const FDressItem& It)
 	{
 		const FString N(It.Name);
-		return N.Contains(TEXT("Lab")) ? 520.f : (N.Contains(TEXT("Prefab")) || N.Contains(TEXT("Tank")) ? 400.f : (N.Contains(TEXT("Dome")) ? 260.f : 220.f));
+		if (N.Contains(TEXT("Lab")) || N.Contains(TEXT("Workshop")) || N.Contains(TEXT("DrillRig")) || N.Contains(TEXT("Gantry"))) { return 520.f; }
+		if (N.Contains(TEXT("Prefab")) || N.Contains(TEXT("Tank")) || N.Contains(TEXT("Shack")) || N.Contains(TEXT("PumpHouse")) || N.Contains(TEXT("Hopper")) || N.Contains(TEXT("StoneRing")) || N.Contains(TEXT("SlagHeap"))) { return 420.f; }
+		return N.Contains(TEXT("Dome")) || N.Contains(TEXT("Wall")) || N.Contains(TEXT("Gate")) ? 300.f : 220.f;
 	};
 	for (float R = MinR; R <= MaxR + 1.f; R += 600.f)
 	{
@@ -455,7 +500,7 @@ int32 ATDPlanetCourse::DressCamp(const FVector& Around, float MinR, float MaxR, 
 			for (const FDressItem& It : Items)
 			{
 				const FVector L = C + FVector(It.Local.X, It.Local.Y, 0.f);
-				if (!IsScatterAllowed(W(FVector(L.X, L.Y, GroundZAt(L))), Radius(It) + 150.f)) { bOk = false; break; }
+				if (!IsScatterAllowed(W(FVector(L.X, L.Y, GroundZAt(L))), Radius(It) + 60.f)) { bOk = false; break; }
 			}
 			if (!bOk) { continue; }
 			const int32 Placed = Dress(Items, C, 0.f, Tag);
@@ -1662,7 +1707,7 @@ void ATDPlanetCourse::BuildVerdance()
 		// along both routes; each placed where it clears every keep-out (DressCamp). Missing meshes are skipped by Dress().
 		{
 			const TCHAR* Hut = TEXT("Huts/Verdance");
-			DressCamp(OutpostSite, 2400.f, 6000.f, {
+			DressCamp(OutpostSite, 1500.f, 9600.f, {
 				{ Hut, TEXT("SM_Hut_Verdance_Lab"), FVector(-950.f, 0.f, 0.f), 0.f, 1.f, true },
 				{ Hut, TEXT("SM_Hut_Verdance_Prefab"), FVector(900.f, 0.f, 0.f), 180.f, 1.f, true },
 				{ Hut, TEXT("SM_Hut_Verdance_Prefab"), FVector(0.f, 950.f, 0.f), 270.f, 1.f, true },
@@ -1678,6 +1723,16 @@ void ATDPlanetCourse::BuildVerdance()
 				{ TEXT("Fab/CrateStack"), TEXT("SM_Fab_CrateStack"), FVector(-600.f, -1000.f, 0.f), 12.f, 1.f, true },
 				{ TEXT("Fab/OilBarrel"), TEXT("SM_Fab_OilBarrel"), FVector(-300.f, -1100.f, 0.f), 0.f, 1.f, true },
 				{ TEXT("Fab/MechanicBase/Mesh/SM/PROP/MACHINE"), TEXT("SM_ELEVATOR_CONSOLE_01"), FVector(500.f, 700.f, 87.f), 225.f, 1.f, true },
+				// perimeter (structures builder's set): low walls on two sides, the gate facing the yard's open side, lamps
+				{ Hut, TEXT("SM_Hut_Verdance_WallLow"), FVector(-1800.f, -1000.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_WallLow"), FVector(-1800.f, 1000.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_WallLow"), FVector(-200.f, 1800.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Gate"), FVector(1800.f, 0.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_LampPost"), FVector(1700.f, -500.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_LampPost"), FVector(1700.f, 500.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_LampPost"), FVector(-500.f, -1200.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Supplies"), FVector(600.f, -1150.f, 0.f), 20.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Generator"), FVector(-1250.f, -1100.f, 0.f), 90.f, 1.f, true },
 			}, TEXT("VerdanceResearchCamp"));
 			DressCamp(VerdanceRelaySite + FVector(-3000.f, 1200.f, 0.f), 1200.f, 4200.f, {
 				{ Hut, TEXT("SM_Hut_Verdance_Prefab"), FVector(-700.f, 0.f, 0.f), 0.f, 1.f, true },
@@ -1692,6 +1747,7 @@ void ATDPlanetCourse::BuildVerdance()
 				{ TEXT("Fab/OilBarrel"), TEXT("SM_Fab_OilBarrel"), FVector(0.f, 450.f, 0.f), 0.f, 1.f, true } }, TEXT("VerdanceSiteRouteHut"));
 			DressCamp(FVector(3300.f, -3300.f, 0.f), 1000.f, 3400.f, { { Hut, TEXT("SM_Hut_Verdance_Dome"), FVector::ZeroVector, 135.f, 1.f, true } }, TEXT("VerdanceRelayRouteHut"));
 		}
+		DressRouteBreaks(false);
 	}
 
 	// Dressing: engineering's props and trees (the placeholder flora only if they are missing).
@@ -2367,6 +2423,44 @@ void ATDPlanetCourse::BuildCinder()
 			}, FVector(5620.f, -4180.f, 0.f), -35.f, TEXT("AnchorRouteDressing"));
 		}
 		DressPad(TEXT("CinderPad"));
+		// #194: the Cinder mining camp by the survey outpost (workshop, two shacks, pump house, ore hopper, drill rig, pipe
+		// runs, flood masts, walls, gate and lamps), a smaller one by the jammer path, lone shacks by the routes, then the
+		// ground-break arches and landmarks. Each where it clears every keep-out (DressCamp).
+		{
+			const TCHAR* Hut = TEXT("Huts/Cinder");
+			DressCamp(StationAt, 2600.f, 6500.f, {
+				{ Hut, TEXT("SM_Hut_Cinder_Workshop"), FVector(-950.f, 0.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Shack"), FVector(900.f, 0.f, 0.f), 180.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Shack"), FVector(0.f, 950.f, 0.f), 270.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_PumpHouse"), FVector(0.f, -950.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_OreHopper"), FVector(-1050.f, 1050.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_DrillRig"), FVector(1150.f, -1150.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_PipeRun"), FVector(-450.f, -1050.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_PipeRun"), FVector(450.f, -1050.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_FloodMast"), FVector(-1400.f, -1400.f, 0.f), 45.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_FloodMast"), FVector(1400.f, 1400.f, 0.f), 225.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Supplies"), FVector(550.f, 650.f, 0.f), 15.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Generator"), FVector(-550.f, 650.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_WallLow"), FVector(-1900.f, -800.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_WallLow"), FVector(-1900.f, 800.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Gate"), FVector(1900.f, 0.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_LampPost"), FVector(1800.f, -500.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_LampPost"), FVector(1800.f, 500.f, 0.f), 0.f, 1.f, true },
+				{ TEXT("Fab/OilBarrel"), TEXT("SM_Fab_OilBarrel"), FVector(-300.f, 1250.f, 0.f), 0.f, 1.f, true },
+				{ TEXT("Fab/OilBarrel"), TEXT("SM_Fab_OilBarrel"), FVector(-220.f, 1330.f, 0.f), 40.f, 1.f, true },
+			}, TEXT("CinderMiningCamp"));
+			DressCamp(FVector(6000.f, -4300.f, 0.f), 1200.f, 4200.f, {
+				{ Hut, TEXT("SM_Hut_Cinder_Shack"), FVector(-700.f, 0.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Shack"), FVector(700.f, 0.f, 0.f), 180.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Generator"), FVector(0.f, 750.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_FloodMast"), FVector(0.f, -800.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Supplies"), FVector(-300.f, 700.f, 0.f), 0.f, 1.f, true },
+			}, TEXT("CinderJammerCamp"));
+			DressCamp(FVector(5000.f, 4200.f, 0.f), 1000.f, 3400.f, { { Hut, TEXT("SM_Hut_Cinder_Shack"), FVector::ZeroVector, 200.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_LampPost"), FVector(450.f, 0.f, 0.f), 0.f, 1.f, true } }, TEXT("CinderOutRouteShack"));
+			DressCamp(FVector(3500.f, -2800.f, 0.f), 1000.f, 3400.f, { { Hut, TEXT("SM_Hut_Cinder_Shack"), FVector::ZeroVector, 145.f, 1.f, true } }, TEXT("CinderJamRouteShack"));
+		}
+		DressRouteBreaks(true);
 	}
 
 	KeepOuts = {
