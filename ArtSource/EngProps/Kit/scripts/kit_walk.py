@@ -201,6 +201,14 @@ def artefact_site():
     shot("03_back", 200, 6)
 
 
+def story_set():
+    """Story sets: the pilot 5 m and 30 m from the set, third person, looking at it."""
+    tp(-700.0, -650.0, 0.0, 40.0, settle=2.0)
+    shot("01_5m", 40.0, -6.0)
+    tp(-2600.0, -1900.0, 0.0, 37.0, settle=2.0)
+    shot("02_30m", 37.0, -2.0)
+
+
 def main():
     G.cmd("TD.Ground.ThirdPerson 1")
     G.cmd("TD.God 1")
@@ -210,7 +218,8 @@ def main():
     print(G.log_tail("TDDevSpawn", 1))
     {"DockingBay_Interior": dock, "DominionInterior_Preview": dominion, "Relay_Site": relay, "Relay_Site_Awake": relay, "Wreck_Site": wreck, "Outpost_Site_Verdance": outpost,
      "Outpost_Site_Cinder": outpost, "DigSite_Cabin": digsite,
-     "SurveyLine_Verdance": survey, "Artefact": artefact_site}[SITE]()
+     "SurveyLine_Verdance": survey, "Artefact": artefact_site,
+     "StorySet_VerdanceCamp": story_set, "StorySet_CinderMine": story_set}[SITE]()
     G.cmd("TD.Input.ReleaseAll")
     with open(os.path.join(OUT, "walk.json"), "w", encoding="utf-8") as fh:
         json.dump({"site": SITE, "origin": O, "steps": log}, fh, indent=1)
