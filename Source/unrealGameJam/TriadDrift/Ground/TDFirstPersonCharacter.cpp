@@ -938,6 +938,15 @@ bool ATDFirstPersonCharacter::FindMantleTarget(FVector& OutTarget) const
 	{
 		return false;
 	}
+	// Not onto a console (decided by Ryan's Lead, Nov 13): anything marked "no step-up" or unwalkable is not a ledge.
+	// Low cover stays vaultable.
+	if (const UPrimitiveComponent* Ledge = Top.GetComponent())
+	{
+		if (Ledge->CanCharacterStepUpOn == ECB_No || Ledge->GetWalkableSlopeOverride().GetWalkableSlopeBehavior() == WalkableSlope_Unwalkable)
+		{
+			return false;
+		}
+	}
 	const float LedgeHeight = Top.ImpactPoint.Z - FeetZ;
 	if (LedgeHeight < Tuning.MantleMinHeight || LedgeHeight > Tuning.MantleMaxHeight)
 	{

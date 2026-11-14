@@ -74,6 +74,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Ram", meta = (Units = "cm"))
 	float HitPadding = 150.f;
 
+	/** A big hull that stops the dash: its own mounted parts this far ahead of the stop (and within reach) are rammed too. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Ram", meta = (ClampMin = "0"))
+	float MountedPartGrace = 600.f;
+
 	/** Enemies of this size or bigger stop the dash. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Ram")
 	ETDEnemySize StopOnSize = ETDEnemySize::Large;

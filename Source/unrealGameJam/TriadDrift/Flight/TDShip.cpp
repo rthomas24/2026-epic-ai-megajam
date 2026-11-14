@@ -598,11 +598,22 @@ void ATDShip::HandleFlightImpactCue(const FTDFlightImpact& Impact)
 {
 	const UWorld* World = GetWorld();
 	const double Now = World ? World->GetTimeSeconds() : 0.0;
-	if (Visuals && !Impact.bHeadOn && Now - LastScrapeCueTime >= ScrapeCueInterval)
+	// Every hit on the world (and scrapes on anything): the impact effect at the contact, +X along the surface normal,
+	// User.Strength = how hard (NS_TD_Ship_ImpactScrape); a hard hit always plays, a scrape at most every interval.
+	const bool bHard = Impact.bWorld && Impact.Damage > 0.f;
+	if (Visuals && (bHard || !Impact.bHeadOn) && (bHard || Now - LastScrapeCueTime >= ScrapeCueInterval))
 	{
 		LastScrapeCueTime = Now;
 		NoteCue(TEXT("CollisionScrape"));
-		UTDStatics::PlayCue(this, ForThisShip(Visuals->CollisionScrape), Impact.ImpactPoint, Impact.ImpactNormal.Rotation());
+		if (UNiagaraComponent* FX = UTDStatics::PlayCue(this, ForThisShip(Visuals->CollisionScrape), Impact.ImpactPoint, Impact.ImpactNormal.Rotation()))
+		{
+			FX->SetVariableFloat(TEXT("User.Strength"), Impact.Strength01);
+		}
+	}
+	// The camera takes the hit (scaled by the Camera shake slider in the feedback component).
+	if (bPlayerControlled && Impact.bWorld && FlightFeedback && Impact.Strength01 > 0.05f)
+	{
+		FlightFeedback->AddCameraKick(0.f, -1.5f * Impact.Strength01, 0.f, 1.2f * Impact.Strength01, 0.25f + 0.35f * Impact.Strength01);
 	}
 }
 

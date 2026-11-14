@@ -1,0 +1,6065 @@
+{
+ "site": "DominionInterior_Preview",
+ "actor": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/BP_KitD_InteriorPreview",
+ "about": "Walk-test preview of T5's interior shell in the Dominion set (not used by the game).",
+ "pieces": [
+  {
+   "name": "P0001_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -1000.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0002_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -1000.0,
+    -1200.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0003_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -1000.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0004_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -1000.0,
+    -800.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0005_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -1000.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0006_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -1000.0,
+    -400.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0007_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -1000.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0008_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -1000.0,
+    0.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0009_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -1000.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0010_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -1000.0,
+    400.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0011_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -1000.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0012_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -1000.0,
+    800.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0013_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -1000.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0014_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -1000.0,
+    1200.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0015_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -600.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0016_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -600.0,
+    -1200.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0017_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -600.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0018_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -600.0,
+    -800.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0019_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -600.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0020_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -600.0,
+    -400.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0021_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -600.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0022_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -600.0,
+    0.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0023_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -600.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0024_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -600.0,
+    400.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0025_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -600.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0026_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -600.0,
+    800.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0027_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -600.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0028_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -600.0,
+    1200.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0029_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -200.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0030_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -200.0,
+    -1200.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0031_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -200.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0032_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -200.0,
+    -800.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0033_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -200.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0034_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -200.0,
+    -400.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0035_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -200.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0036_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -200.0,
+    0.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0037_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -200.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0038_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -200.0,
+    400.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0039_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -200.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0040_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -200.0,
+    800.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0041_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    -200.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0042_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    -200.0,
+    1200.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0043_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    200.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0044_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    200.0,
+    -1200.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0045_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    200.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0046_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    200.0,
+    -800.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0047_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    200.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0048_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    200.0,
+    -400.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0049_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    200.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0050_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    200.0,
+    0.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0051_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    200.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0052_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    200.0,
+    400.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0053_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    200.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0054_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    200.0,
+    800.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0055_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    200.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0056_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    200.0,
+    1200.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0057_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    600.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0058_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    600.0,
+    -1200.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0059_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    600.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0060_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    600.0,
+    -800.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0061_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    600.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0062_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    600.0,
+    -400.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0063_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    600.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0064_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    600.0,
+    0.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0065_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    600.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0066_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    600.0,
+    400.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0067_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    600.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0068_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    600.0,
+    800.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0069_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    600.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0070_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    600.0,
+    1200.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0071_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    1000.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0072_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    1000.0,
+    -1200.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0073_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    1000.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0074_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    1000.0,
+    -800.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0075_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    1000.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0076_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    1000.0,
+    -400.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0077_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    1000.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0078_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    1000.0,
+    0.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0079_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    1000.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0080_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    1000.0,
+    400.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0081_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    1000.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0082_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    1000.0,
+    800.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0083_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    1000.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0084_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    1000.0,
+    1200.0,
+    600.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0085_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1000.0,
+    -1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0086_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1000.0,
+    1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0087_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -600.0,
+    -1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0088_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -600.0,
+    1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0089_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -200.0,
+    -1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0090_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -200.0,
+    1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0091_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    200.0,
+    -1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0092_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    200.0,
+    1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0093_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    600.0,
+    -1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0094_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    600.0,
+    1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0095_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1000.0,
+    -1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0096_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1000.0,
+    1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0097_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0098_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1200.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0099_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0100_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1200.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0101_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0102_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1200.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0103_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0104_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0105_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1200.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0106_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0107_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1200.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0108_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0109_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1200.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0110_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1000.0,
+    -1400.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0111_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1000.0,
+    1400.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0112_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -600.0,
+    -1400.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0113_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -600.0,
+    1400.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0114_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -200.0,
+    -1400.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0115_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -200.0,
+    1400.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0116_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    200.0,
+    -1400.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0117_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    200.0,
+    1400.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0118_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    600.0,
+    -1400.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0119_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    600.0,
+    1400.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0120_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1000.0,
+    -1400.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0121_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1000.0,
+    1400.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0122_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    -1200.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0123_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1200.0,
+    -1200.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0124_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    -800.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0125_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1200.0,
+    -800.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0126_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    -400.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0127_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1200.0,
+    -400.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0128_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    0.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0129_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1200.0,
+    0.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0130_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    400.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0131_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1200.0,
+    400.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0132_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    800.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0133_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1200.0,
+    800.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0134_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    -1200.0,
+    1200.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0135_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    1200.0,
+    1200.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0136_Hangar_Pad",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Hangar_Pad",
+   "location_cm": [
+    -200,
+    0,
+    0.5
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0137_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    1400.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0138_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    1800.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0139_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    2200.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0140_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    2600.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0141_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    3000.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0142_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    3400.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0143_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    3800.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0144_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    4200.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0145_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    4600.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0146_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    5000.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0147_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5400.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0148_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5400.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0149_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5400.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0150_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5400.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0151_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5400.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0152_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5400.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0153_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5400.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0154_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5400.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0155_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5400.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0156_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5400.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0157_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5400.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0158_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5400.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0159_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5400.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0160_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5400.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0161_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5800.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0162_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5800.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0163_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5800.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0164_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5800.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0165_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5800.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0166_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5800.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0167_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5800.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0168_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5800.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0169_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5800.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0170_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5800.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0171_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5800.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0172_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5800.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0173_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    5800.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0174_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    5800.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0175_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6200.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0176_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6200.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0177_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6200.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0178_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6200.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0179_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6200.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0180_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6200.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0181_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6200.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0182_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6200.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0183_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6200.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0184_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6200.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0185_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6200.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0186_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6200.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0187_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6200.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0188_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6200.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0189_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6600.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0190_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6600.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0191_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6600.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0192_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6600.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0193_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6600.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0194_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6600.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0195_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6600.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0196_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6600.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0197_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6600.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0198_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6600.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0199_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6600.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0200_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6600.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0201_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    6600.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0202_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    6600.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0203_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7000.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0204_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7000.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0205_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7000.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0206_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7000.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0207_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7000.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0208_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7000.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0209_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7000.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0210_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7000.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0211_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7000.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0212_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7000.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0213_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7000.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0214_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7000.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0215_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7000.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0216_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7000.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0217_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7400.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0218_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7400.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0219_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7400.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0220_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7400.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0221_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7400.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0222_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7400.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0223_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7400.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0224_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7400.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0225_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7400.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0226_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7400.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0227_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7400.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0228_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7400.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0229_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    7400.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0230_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    7400.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0231_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    5400.0,
+    -1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0232_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    5400.0,
+    1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0233_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    5800.0,
+    -1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0234_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    5800.0,
+    1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0235_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    6200.0,
+    -1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0236_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    6200.0,
+    1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0237_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    6600.0,
+    -1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0238_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    6600.0,
+    1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0239_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    7000.0,
+    -1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0240_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    7000.0,
+    1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0241_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    7400.0,
+    -1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0242_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    7400.0,
+    1400.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0243_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    5200.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0244_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    7600.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0245_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    5200.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0246_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    7600.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0247_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    5200.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0248_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    7600.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0249_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    5200.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0250_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    7600.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0251_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    5200.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0252_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    7600.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0253_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    5200.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0254_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    7600.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0255_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    7800.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0256_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    8200.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0257_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    8600.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0258_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    8600.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0259_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    8600.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0260_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    8600.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0261_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    8600.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0262_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    8600.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0263_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    8600.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0264_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    8600.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0265_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    8600.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0266_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    8600.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0267_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9000.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0268_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9000.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0269_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9000.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0270_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9000.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0271_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9000.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0272_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9000.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0273_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9000.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0274_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9000.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0275_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9000.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0276_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9000.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0277_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9400.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0278_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9400.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0279_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9400.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0280_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9400.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0281_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9400.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0282_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9400.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0283_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9400.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0284_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9400.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0285_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9400.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0286_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9400.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0287_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9800.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0288_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9800.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0289_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9800.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0290_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9800.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0291_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9800.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0292_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9800.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0293_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9800.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0294_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9800.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0295_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    9800.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0296_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    9800.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0297_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    10200.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0298_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    10200.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0299_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    10200.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0300_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    10200.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0301_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    10200.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0302_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    10200.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0303_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    10200.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0304_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    10200.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0305_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    10200.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0306_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    10200.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0307_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    8600.0,
+    -1000.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0308_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    8600.0,
+    1000.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0309_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    9000.0,
+    -1000.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0310_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    9000.0,
+    1000.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0311_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    9400.0,
+    -1000.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0312_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    9400.0,
+    1000.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0313_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    9800.0,
+    -1000.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0314_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    9800.0,
+    1000.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0315_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    10200.0,
+    -1000.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0316_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    10200.0,
+    1000.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0317_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    8400.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0318_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    10400.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0319_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    8400.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0320_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    10400.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0321_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    8400.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0322_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    10400.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0323_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    8400.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0324_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    10400.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0325_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    10600.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0326_Corridor_Straight",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Corridor_Straight",
+   "location_cm": [
+    11000.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0327_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11400.0,
+    -1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0328_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11400.0,
+    -1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0329_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11400.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0330_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11400.0,
+    -1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0331_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11400.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0332_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11400.0,
+    -800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0333_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11400.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0334_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11400.0,
+    -400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0335_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11400.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0336_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11400.0,
+    0.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0337_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11400.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0338_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11400.0,
+    400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0339_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11400.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0340_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11400.0,
+    800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0341_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11400.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0342_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11400.0,
+    1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0343_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11400.0,
+    1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0344_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11400.0,
+    1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0345_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11800.0,
+    -1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0346_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11800.0,
+    -1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0347_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11800.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0348_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11800.0,
+    -1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0349_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11800.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0350_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11800.0,
+    -800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0351_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11800.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0352_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11800.0,
+    -400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0353_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11800.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0354_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11800.0,
+    0.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0355_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11800.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0356_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11800.0,
+    400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0357_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11800.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0358_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11800.0,
+    800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0359_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11800.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0360_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11800.0,
+    1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0361_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    11800.0,
+    1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0362_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    11800.0,
+    1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0363_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12200.0,
+    -1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0364_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12200.0,
+    -1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0365_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12200.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0366_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12200.0,
+    -1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0367_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12200.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0368_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12200.0,
+    -800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0369_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12200.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0370_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12200.0,
+    -400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0371_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12200.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0372_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12200.0,
+    0.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0373_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12200.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0374_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12200.0,
+    400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0375_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12200.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0376_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12200.0,
+    800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0377_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12200.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0378_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12200.0,
+    1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0379_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12200.0,
+    1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0380_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12200.0,
+    1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0381_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12600.0,
+    -1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0382_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12600.0,
+    -1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0383_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12600.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0384_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12600.0,
+    -1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0385_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12600.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0386_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12600.0,
+    -800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0387_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12600.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0388_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12600.0,
+    -400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0389_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12600.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0390_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12600.0,
+    0.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0391_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12600.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0392_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12600.0,
+    400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0393_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12600.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0394_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12600.0,
+    800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0395_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12600.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0396_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12600.0,
+    1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0397_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    12600.0,
+    1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0398_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    12600.0,
+    1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0399_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13000.0,
+    -1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0400_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13000.0,
+    -1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0401_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13000.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0402_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13000.0,
+    -1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0403_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13000.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0404_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13000.0,
+    -800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0405_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13000.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0406_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13000.0,
+    -400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0407_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13000.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0408_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13000.0,
+    0.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0409_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13000.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0410_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13000.0,
+    400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0411_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13000.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0412_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13000.0,
+    800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0413_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13000.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0414_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13000.0,
+    1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0415_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13000.0,
+    1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0416_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13000.0,
+    1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0417_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13400.0,
+    -1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0418_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13400.0,
+    -1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0419_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13400.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0420_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13400.0,
+    -1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0421_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13400.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0422_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13400.0,
+    -800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0423_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13400.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0424_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13400.0,
+    -400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0425_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13400.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0426_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13400.0,
+    0.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0427_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13400.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0428_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13400.0,
+    400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0429_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13400.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0430_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13400.0,
+    800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0431_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13400.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0432_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13400.0,
+    1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0433_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13400.0,
+    1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0434_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13400.0,
+    1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0435_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13800.0,
+    -1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0436_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13800.0,
+    -1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0437_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13800.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0438_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13800.0,
+    -1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0439_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13800.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0440_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13800.0,
+    -800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0441_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13800.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0442_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13800.0,
+    -400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0443_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13800.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0444_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13800.0,
+    0.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0445_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13800.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0446_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13800.0,
+    400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0447_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13800.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0448_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13800.0,
+    800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0449_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13800.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0450_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13800.0,
+    1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0451_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    13800.0,
+    1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0452_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    13800.0,
+    1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0453_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14200.0,
+    -1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0454_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14200.0,
+    -1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0455_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14200.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0456_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14200.0,
+    -1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0457_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14200.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0458_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14200.0,
+    -800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0459_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14200.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0460_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14200.0,
+    -400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0461_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14200.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0462_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14200.0,
+    0.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0463_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14200.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0464_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14200.0,
+    400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0465_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14200.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0466_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14200.0,
+    800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0467_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14200.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0468_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14200.0,
+    1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0469_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14200.0,
+    1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0470_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14200.0,
+    1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0471_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14600.0,
+    -1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0472_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14600.0,
+    -1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0473_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14600.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0474_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14600.0,
+    -1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0475_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14600.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0476_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14600.0,
+    -800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0477_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14600.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0478_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14600.0,
+    -400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0479_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14600.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0480_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14600.0,
+    0.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0481_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14600.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0482_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14600.0,
+    400.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0483_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14600.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0484_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14600.0,
+    800.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0485_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14600.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0486_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14600.0,
+    1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0487_Room_Floor",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Floor",
+   "location_cm": [
+    14600.0,
+    1600.0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0488_Room_Ceiling",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Ceiling",
+   "location_cm": [
+    14600.0,
+    1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0489_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11400.0,
+    -1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0490_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11400.0,
+    1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0491_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11800.0,
+    -1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0492_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11800.0,
+    1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0493_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    12200.0,
+    -1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0494_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    12200.0,
+    1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0495_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    12600.0,
+    -1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0496_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    12600.0,
+    1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0497_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13000.0,
+    -1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0498_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13000.0,
+    1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0499_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13400.0,
+    -1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0500_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13400.0,
+    1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0501_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13800.0,
+    -1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0502_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13800.0,
+    1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0503_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14200.0,
+    -1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0504_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14200.0,
+    1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0505_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14600.0,
+    -1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0506_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14600.0,
+    1800.0,
+    0.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0507_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    -1600.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0508_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    -1600.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0509_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0510_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    -1200.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0511_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0512_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    -800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0513_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0514_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    -400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0515_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    0.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0516_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0517_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    400.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0518_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0519_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    800.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0520_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0521_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    1200.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0522_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    1600.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0523_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    1600.0,
+    0.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0524_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11400.0,
+    -1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0525_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11400.0,
+    1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0526_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11800.0,
+    -1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0527_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11800.0,
+    1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0528_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    12200.0,
+    -1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0529_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    12200.0,
+    1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0530_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    12600.0,
+    -1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0531_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    12600.0,
+    1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0532_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13000.0,
+    -1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0533_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13000.0,
+    1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0534_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13400.0,
+    -1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0535_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13400.0,
+    1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0536_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13800.0,
+    -1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0537_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13800.0,
+    1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0538_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14200.0,
+    -1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0539_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14200.0,
+    1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0540_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14600.0,
+    -1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0541_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14600.0,
+    1800.0,
+    600.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0542_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    -1600.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0543_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    -1600.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0544_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    -1200.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0545_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    -1200.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0546_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    -800.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0547_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    -800.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0548_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    -400.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0549_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    -400.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0550_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    0.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0551_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    0.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0552_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    400.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0553_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    400.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0554_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    800.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0555_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    800.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0556_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    1200.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0557_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    1200.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0558_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    1600.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0559_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    1600.0,
+    600.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0560_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11400.0,
+    -1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0561_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11400.0,
+    1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0562_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11800.0,
+    -1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0563_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11800.0,
+    1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0564_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    12200.0,
+    -1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0565_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    12200.0,
+    1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0566_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    12600.0,
+    -1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0567_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    12600.0,
+    1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0568_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13000.0,
+    -1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0569_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13000.0,
+    1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0570_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13400.0,
+    -1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0571_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13400.0,
+    1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0572_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13800.0,
+    -1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0573_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    13800.0,
+    1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0574_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14200.0,
+    -1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0575_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14200.0,
+    1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0576_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14600.0,
+    -1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0577_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14600.0,
+    1800.0,
+    1200.0
+   ],
+   "yaw_deg": 90
+  },
+  {
+   "name": "P0578_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    -1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0579_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    -1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0580_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    -1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0581_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    -1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0582_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    -800.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0583_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    -800.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0584_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    -400.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0585_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    -400.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0586_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    0.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0587_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    0.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0588_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    400.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0589_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    400.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0590_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    800.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0591_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    800.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0592_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0593_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    1200.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0594_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    11200.0,
+    1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0595_Room_Wall",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Room_Wall",
+   "location_cm": [
+    14800.0,
+    1600.0,
+    1200.0
+   ],
+   "yaw_deg": 0
+  },
+  {
+   "name": "P0596_Doorway",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Doorway",
+   "location_cm": [
+    1200.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0597_Doorway",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Doorway",
+   "location_cm": [
+    5200.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0598_Doorway",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Doorway",
+   "location_cm": [
+    7600.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0599_Doorway",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Doorway",
+   "location_cm": [
+    8400.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0600_Doorway",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Doorway",
+   "location_cm": [
+    10400.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0601_Doorway",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Doorway",
+   "location_cm": [
+    11200.0,
+    0,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  },
+  {
+   "name": "P0602_Cover_Low",
+   "mesh": "/Game/TriadDrift/Gameplay/Props/Kit/Dominion/SM_DI_Cover_Low",
+   "location_cm": [
+    4500.0,
+    -70,
+    0.0
+   ],
+   "yaw_deg": 0.0
+  }
+ ],
+ "walk_path_site_cm": [
+  [
+   -600,
+   0,
+   0,
+   "hangar start"
+  ],
+  [
+   1200,
+   0,
+   0,
+   "hangar doorway"
+  ],
+  [
+   3200,
+   0,
+   0,
+   "deflect corridor"
+  ],
+  [
+   6400,
+   0,
+   0,
+   "arena"
+  ],
+  [
+   9400,
+   0,
+   0,
+   "Warden room"
+  ],
+  [
+   13000,
+   0,
+   0,
+   "core chamber"
+  ]
+ ]
+}

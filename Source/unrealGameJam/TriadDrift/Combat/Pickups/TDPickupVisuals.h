@@ -37,6 +37,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pickups") FTDPickupLook Shield;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pickups") FTDPickupLook Power;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pickups") FTDPickupLook Overcharge;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pickups") FTDPickupLook Boost;
 
 	/** The asset's name (Presentation first, then the engineering fallback folder; merged field by field). */
 	static constexpr const TCHAR* AssetName = TEXT("DA_Pickup_Visuals");
@@ -46,6 +47,6 @@ public:
 
 	const FTDPickupLook& LookOf(uint8 Type) const
 	{
-		return Type == 0 ? Hull : Type == 1 ? Shield : Type == 2 ? Power : Overcharge;
+		return Type == 0 ? Hull : Type == 1 ? Shield : Type == 2 ? Power : Type == 3 ? Overcharge : Boost;
 	}
 };

@@ -151,6 +151,16 @@ void UTDSettingsSubsystem::SetInvertGamepadY(bool b) { Settings.bInvertGamepadY 
 void UTDSettingsSubsystem::SetHintsEnabled(bool b) { Settings.bHintsEnabled = b; Changed(); }
 void UTDSettingsSubsystem::SetCameraShake(float V) { Settings.CameraShake = V; Changed(); }
 void UTDSettingsSubsystem::SetSpeedFOV(float V) { Settings.SpeedFOV = V; Changed(); }
+void UTDSettingsSubsystem::SetReduceMotion(bool b) { Settings.bReduceMotion = b; Changed(); }
+
+bool UTDSettingsSubsystem::IsReduceMotion(const UObject* WorldContext)
+{
+	const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+	const UGameInstance* GI = World ? World->GetGameInstance() : nullptr;
+	const UTDSettingsSubsystem* S = GI ? GI->GetSubsystem<UTDSettingsSubsystem>() : nullptr;
+	if (!S) { return UTDFlightFeedbackComponent::UserShakeScale <= 0.f && UTDFlightFeedbackComponent::UserSpeedFOVScale <= 0.f; }
+	return S->Settings.bReduceMotion || (S->Settings.CameraShake <= 0.f && S->Settings.SpeedFOV <= 0.f);
+}
 
 void UTDSettingsSubsystem::SetDifficulty(ETDDifficulty Difficulty)
 {
@@ -369,8 +379,8 @@ void UTDSettingsSubsystem::ApplyGraphics(bool bStartup)
 void UTDSettingsSubsystem::ApplyControls()
 {
 	// Camera comfort options are global (every ship's camera, every presentation shake).
-	UTDFlightFeedbackComponent::UserShakeScale = Settings.CameraShake;
-	UTDFlightFeedbackComponent::UserSpeedFOVScale = Settings.SpeedFOV;
+	UTDFlightFeedbackComponent::UserShakeScale = Settings.bReduceMotion ? 0.f : Settings.CameraShake;
+	UTDFlightFeedbackComponent::UserSpeedFOVScale = Settings.bReduceMotion ? 0.f : Settings.SpeedFOV;
 	const UGameInstance* GI = GetGameInstance();
 	if (!GI)
 	{

@@ -88,17 +88,22 @@ namespace
 	}
 }
 
+namespace TDPresArtOverride
+{
+	bool bIgnoreArt = false;
+}
+
 UNiagaraComponent* FTDPowerPresentation::RequestCue(const UObject* WorldContext, FName Moment, const FTDFXCue& Cue, const FVector& Location,
 	const FRotator& Rotation)
 {
 	++TDPresCueRequests().FindOrAdd(Moment);
-	return UTDStatics::PlayCue(WorldContext, Cue, Location, Rotation);
+	return TDPresArtOverride::bIgnoreArt ? nullptr : UTDStatics::PlayCue(WorldContext, Cue, Location, Rotation);
 }
 
 UNiagaraComponent* FTDPowerPresentation::RequestCueAttached(FName Moment, const FTDFXCue& Cue, USceneComponent* AttachTo)
 {
 	++TDPresCueRequests().FindOrAdd(Moment);
-	return UTDStatics::PlayCueAttached(Cue, AttachTo);
+	return TDPresArtOverride::bIgnoreArt ? nullptr : UTDStatics::PlayCueAttached(Cue, AttachTo);
 }
 
 int32 FTDPowerPresentation::GetCueRequests(FName Moment)
@@ -117,9 +122,19 @@ UTDWeaponFX* FTDPowerPresentation::LoadMissileSwarmFX()
 	return TDPresLoadCached<UTDWeaponFX>(TEXT("DA_MissileSwarm_FX"));
 }
 
+void FTDPowerPresentation::SetIgnoreArtForTests(bool bIgnore)
+{
+	TDPresArtOverride::bIgnoreArt = bIgnore;
+}
+
+bool FTDPowerPresentation::IsIgnoringArtForTests()
+{
+	return TDPresArtOverride::bIgnoreArt;
+}
+
 bool FTDPowerPresentation::HasArt(const FTDFXCue& Cue)
 {
-	return !Cue.VFX.IsNull();
+	return !TDPresArtOverride::bIgnoreArt && !Cue.VFX.IsNull();
 }
 
 UStaticMeshComponent* FTDPowerPresentation::AddShape(AActor* Owner, USceneComponent* Parent, EShape Shape, const FVector& Scale,

@@ -432,6 +432,18 @@ namespace TDIntro
 	};
 }
 
+namespace TDIntroSkip
+{
+	static TAutoConsoleVariable<float> CVarSkipLock(TEXT("td.Intro.SkipLockSeconds"), -1.f,
+		TEXT("Seconds before the intro can be skipped. -1: 10 s (N-060), or 1 s inside automation tests."));
+}
+
+float UTDIntroDirector::GetSkipLockSeconds()
+{
+	const float V = TDIntroSkip::CVarSkipLock.GetValueOnGameThread();
+	return V >= 0.f ? V : (GIsAutomationTesting ? 1.f : 10.f);
+}
+
 UTDIntroDirector* UTDIntroDirector::Get(const UObject* WorldContext)
 {
 	const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
@@ -1099,6 +1111,9 @@ void UTDIntroDirector::BeginShot(int32 Index)
 		// well under it so the night side reads as a silhouette, with the lens flare down (its ghosts sat on the disc).
 		const bool bEclipse = S.Id == TEXT("Eclipse");
 		PP.LensFlareIntensity = bEclipse ? 0.f : 1.6f;
+		// N-071: the three hero frames are locked to their ship; motion blur only smeared the hull's edges and lights (the
+		// ship drifts and banks a little inside the frame). Off there, on everywhere else.
+		PP.MotionBlurAmount = S.Id == TEXT("Squad") ? 0.f : 0.6f;
 		PP.AutoExposureBias = S.Id == TEXT("Title") ? 1.5f : (S.Id.ToString().StartsWith(TEXT("Threat")) ? 0.7f : (bEclipse ? EclipseExposureEV100() : 0.f));
 	}
 	if (S.Id == TEXT("Title"))
@@ -1147,7 +1162,7 @@ void UTDIntroDirector::DebugJumpToShot(int32 Index)
 	{
 		Start += Shots[i].Duration;
 	}
-	Elapsed = FMath::Max(Start, SkipLockSeconds);
+	Elapsed = FMath::Max(Start, GetSkipLockSeconds());
 	BeginShot(Index);
 }
 
@@ -1723,7 +1738,7 @@ void UTDIntroDirector::UpdateSkip(float RealDelta)
 	if (bSkipHeld)
 	{
 		Overlay.SkipHintAlpha = FMath::Min(1.f, Overlay.SkipHintAlpha + RealDelta * 6.f);
-		if (Elapsed >= SkipLockSeconds)
+		if (Elapsed >= GetSkipLockSeconds())
 		{
 			SkipHeldFor += RealDelta;
 		}
@@ -1742,7 +1757,7 @@ void UTDIntroDirector::UpdateSkip(float RealDelta)
 
 bool UTDIntroDirector::Skip()
 {
-	if (!bPlaying || Elapsed < SkipLockSeconds)
+	if (!bPlaying || Elapsed < GetSkipLockSeconds())
 	{
 		return false;
 	}

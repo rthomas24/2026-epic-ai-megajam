@@ -5,6 +5,7 @@
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Core/TDInterfaces.h"
+#include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDTypes.h"
 
@@ -63,13 +64,28 @@ void ATDArmadaConvoy::SetupLane(const FVector& A, const FVector& B, int32 Count,
 	};
 	const FLinearColor Armour(0.0103f, 0.0109f, 0.0129f);
 	const FLinearColor Gear(0.75f, 0.85f, 0.9f);
+	// The hauler's art (Grok Bot's SM_NullHauler, 40 m long, its sensor domes on the mesh) when the visuals exist:
+	// it replaces the box and the two pods; the scanner ring stays code-built (the scan's only feedback).
+	const UTDEnemyVisuals* Art = UTDStatics::LoadPresentation<UTDEnemyVisuals>(TEXT("DA_Enemy_Hauler_Visuals"));
+	UStaticMesh* HullArt = (Art && !Art->Mesh.IsNull()) ? Art->Mesh.LoadSynchronous() : nullptr;
 	for (int32 i = 0; i < Count; ++i)
 	{
 		FHauler H;
 		// 40 x 13 x 11 m: a freighter, readable at 1-2 km (live look, Nov 13: 18 m read as specks at 600 m).
-		H.Body = Part(CubeMesh, FVector(40.f, 13.f, 11.f), Armour, 0.f);
-		H.PodL = Part(SphereMesh, FVector(7.f), Gear, 6.f);			// sensor pods: the gear it is ferrying, lit
-		H.PodR = Part(SphereMesh, FVector(7.f), Gear, 6.f);
+		H.Body = Part(HullArt ? HullArt : CubeMesh.Get(), HullArt ? FVector::OneVector : FVector(40.f, 13.f, 11.f), Armour, 0.f);
+		if (HullArt)
+		{
+			H.Body->EmptyOverrideMaterials();	// the art keeps its own slots (no placeholder tint)
+			for (int32 Slot = 0; Slot < Art->MaterialOverrides.Num(); ++Slot)
+			{
+				if (UMaterialInterface* M = Art->MaterialOverrides[Slot].LoadSynchronous()) { H.Body->SetMaterial(Slot, M); }
+			}
+		}
+		else
+		{
+			H.PodL = Part(SphereMesh, FVector(7.f), Gear, 6.f);			// sensor pods: the gear it is ferrying, lit
+			H.PodR = Part(SphereMesh, FVector(7.f), Gear, 6.f);
+		}
 		H.Ring = Part(CylinderMesh, FVector(16.f, 16.f, 0.6f), FLinearColor(1.f, 0.35f, 0.08f), 6.f);	// scanner ring, Armada orange
 		H.Along = -i * Spacing;
 		Haulers.Add(H);
@@ -113,8 +129,8 @@ void ATDArmadaConvoy::Tick(float DeltaSeconds)
 		const bool bOnLane = H.Along >= 0.f;
 		for (UStaticMeshComponent* C : { H.Body.Get(), H.PodL.Get(), H.PodR.Get(), H.Ring.Get() }) { if (C) { C->SetVisibility(bOnLane); } }
 		H.Body->SetWorldLocationAndRotation(P, Facing);
-		H.PodL->SetWorldLocation(P + Facing.RotateVector(FVector(-700.f, -1100.f, 700.f)));
-		H.PodR->SetWorldLocation(P + Facing.RotateVector(FVector(-700.f, 1100.f, 700.f)));
+		if (H.PodL) { H.PodL->SetWorldLocation(P + Facing.RotateVector(FVector(-700.f, -1100.f, 700.f))); }
+		if (H.PodR) { H.PodR->SetWorldLocation(P + Facing.RotateVector(FVector(-700.f, 1100.f, 700.f))); }
 		H.Ring->SetWorldLocationAndRotation(P + Facing.RotateVector(FVector(900.f, 0.f, 1000.f)), Facing * FQuat(FRotator(0.f, RingSpin, 0.f)));
 	}
 

@@ -45,6 +45,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu")
 	TSubclassOf<class UUserWidget> MenuWidgetClass;
 
+	/** The victory screen's scene list height cap (px, before DPI): about nine rows, then it scrolls (N-047). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Menu")
+	float SceneListMaxHeight = 180.f;
+
 	virtual void StartPlay() override;
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
@@ -84,6 +88,11 @@ public:
 	/** The run was just won: the map shows the victory screen first. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Menu")
 	bool IsShowingVictory() const { return bShowingVictory; }
+
+	/** Chosen once for this victory presentation; reads and UI rebuilds never reroll it (Nick's N-064). */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Menu")
+	FText GetVictoryHeadline() const { return VictoryHeadline; }
+	static const TArray<FText>& VictoryHeadlineChoices();
 
 	/** True while the code-built placeholder menu is up (no widget assigned in DA_UI_Style). */
 	bool IsPlaceholderShown() const { return Placeholder.IsValid(); }
@@ -128,6 +137,7 @@ public:
 	static TSharedPtr<class SWidget> ChooseRefocus(const TSharedPtr<class SWidget>& LastFocused, const TSharedPtr<class SWidget>& First);
 private:
 	bool bShowingVictory = false;
+	FText VictoryHeadline;
 	bool bReturnPending = false; // the stinger plays before the menu comes back
 	bool bMusicStarted = false;
 	bool bPlaceholderWanted = false;

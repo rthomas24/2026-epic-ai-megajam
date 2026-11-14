@@ -13,8 +13,9 @@ def main():
     rows = [a.split(":") for a in sys.argv[4:]] or [["idle", "front"], ["walk", "front"], ["light1_mid", "behind"], ["block", "front"]]
     tw, th = 640, 360
     pad, head = 6, 30
-    cols = [(before, "before", None, "BEFORE close-up"), (after, "after", None, "AFTER close-up"),
-            (before, "before", "chase", "BEFORE chase camera"), (after, "after", "chase", "AFTER chase camera")]
+    tb, ta = (os.environ.get("TD_TAGS") or "before,after").split(",")
+    cols = [(before, tb, None, "BEFORE close-up"), (after, ta, None, "AFTER close-up"),
+            (before, tb, "chase", "BEFORE chase camera"), (after, ta, "chase", "AFTER chase camera")]
     sheet = Image.new("RGB", (pad + len(cols) * (tw + pad), head + len(rows) * (th + pad) + pad), (18, 18, 22))
     d = ImageDraw.Draw(sheet)
     try:
@@ -22,7 +23,7 @@ def main():
     except OSError:
         font = ImageFont.load_default()
     for j, (_, tag, _, label) in enumerate(cols):
-        d.text((pad + j * (tw + pad), 5), label, fill=(255, 140, 120) if tag == "before" else (140, 255, 160), font=font)
+        d.text((pad + j * (tw + pad), 5), label, fill=(255, 140, 120) if j % 2 == 0 else (140, 255, 160), font=font)
     for i, (pose, view) in enumerate(rows):
         y = head + i * (th + pad)
         for j, (folder, tag, fixed, _) in enumerate(cols):

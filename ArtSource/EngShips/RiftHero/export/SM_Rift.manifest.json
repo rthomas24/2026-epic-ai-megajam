@@ -1,10 +1,10 @@
 {
   "asset": "SM_Rift",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\int\\ArtSource\\EngShips\\RiftHero\\export\\SM_Rift.fbx",
-  "tris": 62526,
+  "tris": 78279,
   "size_cm": [
     500.0,
-    417.4,
+    416.9,
     225.8
   ],
   "pivot": "root object origin (SM_Rift~exp)",
@@ -61,7 +61,7 @@
     "SOCKET_WingTip_L",
     "SOCKET_WingTip_R"
   ],
-  "welded_verts": 0,
+  "welded_verts": 229,
   "nanite_recommended": true,
   "unreal_import": {
     "uniform_scale": 1.0,
@@ -157,6 +157,12 @@
   "slots": {
     "M_Rift": "kept Rodin hull, corrected set T_Rift_BC/N/ORM/E + T_Rift_HeatMask",
     "M_Rift_Parts": "new ring / engines / tail, baked set T_Rift_Parts_BC/N/ORM/E + T_Rift_Parts_HeatMask"
+  },
+  "canopy": {
+    "fbx": "SM_Rift_Canopy.fbx",
+    "attach_socket": "Cockpit",
+    "slot": "M_Rift_Glass",
+    "note": "tinted canopy glass (translucent, not Nanite); seat, pilot, frame and deck are in SM_Rift_Parts"
   },
   "portal_disc": {
     "fbx": "SM_Rift_PortalDisc.fbx",

@@ -45,6 +45,8 @@ def floor_400():
 
 
 def platform_400(H=100.0, name="SM_Kit_Platform_400"):
+    if H < 60:
+        return _platform_low(H, name)
     """A 400 x 400 riser block, top at Z = H (100, or 200 for the x200 variant). Ramps and stairs climb 100 per 400."""
     p = Piece(name, ((-200, -200, 0), (200, 200, H)))
     B = 198.0      # the body is inset 2 cm so the dark plinth band at its foot sits flush with the 400 footprint
@@ -64,8 +66,32 @@ def platform_400(H=100.0, name="SM_Kit_Platform_400"):
     return p
 
 
+def _platform_low(H, name):
+    """A low deck tile (top H, e.g. 50): floor-trim top, a dark side band, a hazard nosing flush with the top."""
+    p = Piece(name, ((-200, -200, 0), (200, 200, H)))
+    p.box((-200, -200, 0), (200, 200, H - 8), reg="kick", faces="xXyYz",
+          uvo={f: (("y" if f in "xX" else "x", -200, 200), ("z", 0, H - 8)) for f in "xXyY"})
+    p.box((-200, -200, H - 8), (200, 200, H), reg="hazard", regs={"Z": "floor"},
+          uvo={**{f: (("y" if f in "xX" else "x", -200, 200), ("z", H - 8, H)) for f in "xXyY"}, "Z": (("x", -200, 200), ("y", -200, 200))})
+    p.cbox((-200, -200, 0), (200, 200, H))
+    return p
+
+
 def platform_400x200():
     return platform_400(200.0, "SM_Kit_Platform_400x200")
+
+
+def platform_400x50():
+    return platform_400(50.0, "SM_Kit_Platform_400x50")
+
+
+def ramp_low_400():
+    """A low approach onto a 50 cm deck: 400 wide (Y), 200 run (X), rising 50 toward +X (14.04 deg), no rails."""
+    p = Piece("SM_Kit_RampLow_400", ((-100, -200, 0), (100, 200, 50)))
+    prof = [(-100.0, 0.0), (100.0, 0.0), (100.0, 50.0)]
+    p.prism(prof, "xz", -200.0, 200.0, regs=["sw_dark", "kick", "floor"], cap_reg="pillar", fitu=True)
+    p.chull([(x, y, z) for y in (-200.0, 200.0) for (x, z) in ((-100, 0), (100, 0), (100, 50))])
+    return p
 
 
 def wall_400():
@@ -201,17 +227,51 @@ def railing_400():
 
 
 def cover_200():
-    """Low cover: 200 long (X), 40 deep, 100 high, chamfered top edges, hazard band. Hides a crouching pilot, a standing
-    pilot shoots over it."""
-    p = Piece("SM_Kit_Cover_200", ((-100, -21, 0), (100, 21, 100)))
-    prof = [(-20.0, 8.0), (20.0, 8.0), (20.0, 82.0), (12.0, 100.0), (-12.0, 100.0), (-20.0, 82.0)]
+    """Low cover: 200 long (X), 40 deep, 110 high (waist), chamfered top edges, hazard band."""
+    p = Piece("SM_Kit_Cover_200", ((-100, -21, 0), (100, 21, 110)))
+    prof = [(-20.0, 8.0), (20.0, 8.0), (20.0, 92.0), (12.0, 110.0), (-12.0, 110.0), (-20.0, 92.0)]
     p.prism(prof, "yz", -100.0, 100.0, regs=["sw_dark", "pillar", "frame", "frame", "frame", "pillar"], cap_reg="frame", fitu=True,
-            vr=[None, (0.08, 0.82), None, None, None, (0.08, 0.82)])
+            vr=[None, (0.08, 0.92), None, None, None, (0.08, 0.92)])
     p.box((-98, -18, 0), (98, 18, 8), reg="kick")
     for s_ in (-1.0, 1.0):
         ya, yb = sorted((s_ * 20.0, s_ * 21.0))
         p.box((-90, ya, 60), (90, yb, 70), reg="hazard", faces="yY", uvo={f: (("x", -100, 100), ("z", 60, 70)) for f in "yY"})
-    p.cbox((-100, -20, 0), (100, 20, 100))
+    p.cbox((-100, -20, 0), (100, 20, 110))
+    return p
+
+
+def beacon_mast():
+    """A 16 m light mast so a site reads from the approach: a 40 cm lattice-look pole on a 120 cm footing, glow strips
+    up two faces (Glow) and a lamp head (Beacon slot, much brighter). Collision: footing and pole."""
+    H = 1600.0
+    p = Piece("SM_Kit_BeaconMast", ((-80, -80, 0), (80, 80, H + 130)))
+    p.box((-60, -60, 0), (60, 60, 30), reg="frame")
+    p.box((-40, -40, 30), (40, 40, 60), reg="hazard", uvo={f: (("y" if f in "xX" else "x", -40, 40), ("z", 30, 60)) for f in "xXyY"})
+    p.box((-20, -20, 60), (20, 20, H), reg="pillar", faces="xXyY",
+          uvo={f: (("y" if f in "xX" else "x", -20, 20, 0.0, 0.2), ("z", 60, 260)) for f in "xXyY"})
+    for z in range(260, int(H), 300):          # collars every 3 m
+        p.box((-26, -26, z), (26, 26, z + 14), reg="frame")
+    for s_ in (-1.0, 1.0):
+        xa, xb = sorted((s_ * 20.0, s_ * 21.5))
+        p.box((xa, -5, 120), (xb, 5, H - 40), mat="Glow", faces="xXyY")
+    # lamp head (r4b: 1.4 m lantern, was 0.5 m): a gunmetal cradle, the lamp block, a cap
+    p.box((-80, -80, H), (80, 80, H + 14), reg="frame")
+    p.box((-70, -70, H + 14), (70, 70, H + 116), mat="Beacon")
+    p.box((-80, -80, H + 116), (80, 80, H + 130), reg="frame")
+    for (x, y) in ((-74, -74), (74, -74), (-74, 74), (74, 74)):
+        p.box((x - 6, y - 6, H + 14), (x + 6, y + 6, H + 116), reg="frame")
+    p.cbox((-60, -60, 0), (60, 60, 60))
+    p.cbox((-26, -26, 60), (26, 26, H))
+    p.cbox((-80, -80, H), (80, 80, H + 130))
+    return p
+
+
+def light_pillar():
+    """A soft beam of light for reading a site from far away (no Niagara): an open cylinder 140 wide, 60 m tall, slot
+    Pillar (M_Kit_LightPillar: additive, unlit, two-sided; brightest at the base, fading up, soft at the silhouette).
+    UV V runs along the height. No collision."""
+    p = Piece("SM_Kit_LightPillar", ((-70, -70, 0), (70, 70, 6000)))
+    p.lathe([(70.0, 0.0), (70.0, 6000.0)], 16, mat="Pillar")
     return p
 
 
@@ -275,7 +335,9 @@ def console_base():
     nrm = (abs(nrm[0]), abs(nrm[1]))
     p0 = (a[0] + u[0] * 4 + nrm[0] * 1.0, a[1] + u[1] * 4 + nrm[1] * 1.0)
     p1 = (b[0] - u[0] * 4 + nrm[0] * 1.0, b[1] - u[1] * 4 + nrm[1] * 1.0)
-    p.poly([(p0[0], -70, p0[1]), (p0[0], 70, p0[1]), (p1[0], 70, p1[1]), (p1[0], -70, p1[1])], mat="Screen", n=(nrm[0], 0, nrm[1]))
+    # UV 0..1 over the glass (U left -> right for the operator at +X, V bottom -> top): ScreenTexture shows whole
+    p.poly([(p0[0], -70, p0[1]), (p0[0], 70, p0[1]), (p1[0], 70, p1[1]), (p1[0], -70, p1[1])], mat="Screen", n=(nrm[0], 0, nrm[1]),
+           uv=[(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)])
     # bezel around the screen
     for t0, t1 in ((0.0, 4.0), (L - 4.0, L)):
         q0 = (a[0] + u[0] * t0, a[1] + u[1] * t0)
@@ -300,6 +362,6 @@ def light_strip_200():
     return p
 
 
-BUILDERS = [floor_400, platform_400, platform_400x200, wall_400, wall_400_window, doorframe_400, ramp_400, stairs_400, catwalk_400,
-            railing_400, cover_200, pillar, corner, roof_400, console_base, light_strip_200]
-NO_COLLISION = ("SM_Kit_LightStrip_200",)
+BUILDERS = [floor_400, platform_400, platform_400x200, platform_400x50, ramp_low_400, wall_400, wall_400_window, doorframe_400, ramp_400, stairs_400, catwalk_400,
+            railing_400, cover_200, beacon_mast, light_pillar, pillar, corner, roof_400, console_base, light_strip_200]
+NO_COLLISION = ("SM_Kit_LightStrip_200", "SM_Kit_LightPillar")
