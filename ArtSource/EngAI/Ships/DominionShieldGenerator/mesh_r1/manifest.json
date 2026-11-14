@@ -1,0 +1,212 @@
+{
+  "asset": [
+    "SM_DominionShieldGenerator",
+    "SM_DominionShieldGeneratorCore"
+  ],
+  "issue": 41,
+  "round": "mesh_r1",
+  "branch": "grok/assets-dominion-shield-gen-r1",
+  "design": "Route C hard-surface pylon + energy core for UTDDominionVisuals.GeneratorMesh / GeneratorCoreMesh. Palette and trident match ArtSource/EngAI/Ships/DominionMothership/concept_r1/source/sheet-DominionMothership-v3_PICK.png and mesh_r2 textures. Seats on the mothership r2 outrigger plinth (top Z = -50 cm, dome keep-clear r = 1800 cm, Z 0..4000 cm).",
+  "tool": "Blender 4.5.3 LTS headless, procedural hard-surface (source/build_shield_generator.py); live Bevel + WeightedNormal + smooth_by_angle(30) in the .blend files; no AI 3D generator",
+  "units": {
+    "fbx_UnitScaleFactor": 100.0,
+    "fbx_OriginalUnitScaleFactor": 100.0,
+    "unreal_import_uniform_scale": 1.0,
+    "axes": "+X forward, +Y starboard, +Z up, origin = SOCKET_Generator / actor root (Unreal local cm)",
+    "fbx_export": "apply_unit_scale=True, apply_scale_options=FBX_SCALE_UNITS, axis_forward=-Z, axis_up=Y, triangulated, tangents, mesh_smooth_type=OFF (custom/weighted normals). Same convention as Dominion hull r2 / Bastion / Lancer.",
+    "blender_reimport_note": "Blender's FBX importer displays metres. Unreal with UnitScaleFactor=100 and import scale 1.0 receives centimetres. import_object_scale is (1,1,1).",
+    "mapping": "Blender (x,y,z) m -> Unreal (100x, -100y, 100z) cm. Radially symmetric, so the Y sign flip does not affect seating."
+  },
+  "pylon": {
+    "object": "SM_DominionShieldGenerator",
+    "tris": 16512,
+    "verts_eval": 8642,
+    "verts_raw_unapplied": 3938,
+    "faces_raw_unapplied": 3600,
+    "bevel_weighted_edges": 1608,
+    "material": "M_DominionShieldGenerator",
+    "uv_channels": 1,
+    "custom_normals": true,
+    "nonmanifold": 0,
+    "degenerate": 0,
+    "bounds_cm": {
+      "min": [
+        -744.0,
+        -744.0,
+        -50.0
+      ],
+      "max": [
+        744.0,
+        744.0,
+        1918.0
+      ]
+    },
+    "size_cm": [
+      1488.0,
+      1488.0,
+      1968.0
+    ],
+    "max_radius_cm": 744.0,
+    "base_z_cm": -50.0,
+    "top_z_cm": 1918.0,
+    "shading": {
+      "smooth_by_angle_deg": 30,
+      "bevel": "WEIGHT, 2 segments, width 0.07 m, harden_normals, clamp_overlap; weights on edges length>=0.55 m, face area>=0.06 m2, dihedral>=35 deg",
+      "weighted_normal": "FACE_AREA, keep_sharp",
+      "mesh_report_edge_dihedral_pct": {
+        "flat_<1deg": 36.2,
+        "wobble_1_25deg": 36.2,
+        "hard_>25deg": 27.6
+      },
+      "wobble_note": "The 1-25 deg bucket is dominated by the 48-segment lathe and ring tubes (7.5 deg facet angle), which shade-smooth correctly under the 30 deg threshold."
+    }
+  },
+  "core": {
+    "object": "SM_DominionShieldGeneratorCore",
+    "tris": 6040,
+    "verts_eval": 3132,
+    "verts_raw_unapplied": 1180,
+    "faces_raw_unapplied": 1268,
+    "bevel_weighted_edges": 760,
+    "material": "M_DominionShieldGeneratorCore",
+    "uv_channels": 1,
+    "custom_normals": true,
+    "nonmanifold": 0,
+    "degenerate": 0,
+    "bounds_cm_local": {
+      "min": [
+        -327.6,
+        -298.0,
+        717.2
+      ],
+      "max": [
+        327.6,
+        298.0,
+        1362.8
+      ]
+    },
+    "authored_centre_z_cm": 1040.0,
+    "shading": {
+      "smooth_by_angle_deg": 30,
+      "bevel": "WEIGHT, 2 segments, width 0.04 m, harden_normals, clamp_overlap",
+      "weighted_normal": "FACE_AREA, keep_sharp",
+      "mesh_report_edge_dihedral_pct": {
+        "flat_<1deg": 37.7,
+        "wobble_1_25deg": 40.0,
+        "hard_>25deg": 22.3
+      }
+    }
+  },
+  "contract": {
+    "presentation": {
+      "GeneratorMesh": "SM_DominionShieldGenerator",
+      "GeneratorCoreMesh": "SM_DominionShieldGeneratorCore"
+    },
+    "cpp": {
+      "file": "Source/unrealGameJam/TriadDrift/World/TDShieldGenerator.cpp",
+      "mesh_is_root": true,
+      "core_relative_location_cm": [
+        0.0,
+        0.0,
+        60.0
+      ],
+      "init_does_not_reset_core_location": true,
+      "core_visual_centre_after_attach_cm": [
+        0.0,
+        0.0,
+        1100.0
+      ],
+      "show_destroyed": "hides Core; Mesh->SetRelativeScale3D(MeshScale * (1,1,0.4)) about Mesh origin",
+      "stump_z_cm": [
+        -50.0,
+        730.0
+      ],
+      "destroyed_base_z_cm": -20.0,
+      "destroyed_base_lift_cm": 30.0
+    },
+    "plinth": {
+      "socket": "SOCKET_Generator_0..3 at (\u00b127500, \u00b127500, 0) cm on SM_DominionMothership",
+      "plinth_radius_cm": 2400,
+      "plinth_top_z_cm": -50,
+      "dome_keep_clear": "r 1800, Z 0..4000 above each socket",
+      "generator_max_radius_cm": 744,
+      "fits": true
+    }
+  },
+  "socket_core": {
+    "ue_cm": [
+      0.0,
+      0.0,
+      1100.0
+    ],
+    "parent": "SM_DominionShieldGenerator",
+    "z_up": 1.0
+  },
+  "ucx": {
+    "count": 43,
+    "names": "UCX_SM_DominionShieldGenerator_00..42",
+    "parts": [
+      "base_ring",
+      "collar",
+      "stump_cap",
+      "buttress_foot_0",
+      "pylon_0_low",
+      "pylon_0_mid",
+      "pylon_0_up",
+      "prong_0_a",
+      "prong_0_b",
+      "buttress_foot_1",
+      "pylon_1_low",
+      "pylon_1_mid",
+      "pylon_1_up",
+      "prong_1_a",
+      "prong_1_b",
+      "buttress_foot_2",
+      "pylon_2_low",
+      "pylon_2_mid",
+      "pylon_2_up",
+      "prong_2_a",
+      "prong_2_b",
+      "buttress_foot_3",
+      "pylon_3_low",
+      "pylon_3_mid",
+      "pylon_3_up",
+      "prong_3_a",
+      "prong_3_b",
+      "buttress_foot_4",
+      "pylon_4_low",
+      "pylon_4_mid",
+      "pylon_4_up",
+      "prong_4_a",
+      "prong_4_b",
+      "buttress_foot_5",
+      "pylon_5_low",
+      "pylon_5_mid",
+      "pylon_5_up",
+      "prong_5_a",
+      "prong_5_b",
+      "ring_lower",
+      "ring_equator",
+      "ring_upper",
+      "ring_crown"
+    ]
+  },
+  "textures": {
+    "pylon_2k": [
+      "T_DominionShieldGenerator_BC.png",
+      "T_DominionShieldGenerator_N.png",
+      "T_DominionShieldGenerator_ORM.png",
+      "T_DominionShieldGenerator_E.png"
+    ],
+    "core_2k": [
+      "T_DominionShieldGeneratorCore_BC.png",
+      "T_DominionShieldGeneratorCore_N.png",
+      "T_DominionShieldGeneratorCore_ORM.png",
+      "T_DominionShieldGeneratorCore_E.png"
+    ],
+    "normal": "DirectX, 255-G. OpenGL copies used only in the .blend preview and glTF.",
+    "orm": "R=AO, G=Rough, B=Metallic",
+    "albedo_p50_sRGB_pylon": 77,
+    "masters_4k": "source/textures_4k/"
+  }
+}

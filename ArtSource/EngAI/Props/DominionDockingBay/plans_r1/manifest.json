@@ -1,0 +1,411 @@
+{
+ "asset": "DominionDockingBay",
+ "revision": "plans_r1",
+ "issue": 54,
+ "board": "R-043",
+ "route": "C procedural (Blender 4.5.3 + matplotlib), no AI mesh",
+ "units": "Unreal cm; FBX UnitScaleFactor 100, import scale 1.0",
+ "frame": "Unreal cm, T5 interior course-local (+X deeper in, floor z 0); hull = (22800 - x, -y, z - 3750)",
+ "grid_cm": 400.0,
+ "storey_cm": 600.0,
+ "hull": {
+  "revision": "r2 (merged PR #72)",
+  "socket_bay": [
+   30000,
+   0,
+   -2000
+  ],
+  "mouth_cm": [
+   5000,
+   3500
+  ],
+  "facing": "+X",
+  "pocket_hull": "X 24000..30000, |Y| 2500, Z -3750..-250"
+ },
+ "interior": {
+  "mouth": {
+   "centre": [
+    -7200.0,
+    0.0,
+    1750.0
+   ],
+   "width": 5000.0,
+   "height": 3500.0,
+   "hull_centre": [
+    30000.0,
+    -0.0,
+    -2000.0
+   ],
+   "facing": "-X here, +X hull"
+  },
+  "pocket": {
+   "x": [
+    -7200.0,
+    -1200.0
+   ],
+   "y": [
+    -2600.0,
+    2600.0
+   ],
+   "clear_height": 3600.0,
+   "storeys": 6,
+   "inner_wall_y": 2570.0,
+   "hull_pocket": "X 24000..30000, |Y| 2500, Z -3750..-250"
+  },
+  "hangar": {
+   "x": [
+    -1200.0,
+    1200.0
+   ],
+   "y": [
+    -1400.0,
+    1400.0
+   ],
+   "clear_height": 1200.0,
+   "storeys": 2,
+   "note": "T5 as built; only change: no X0 end wall (opens onto the pocket)"
+  },
+  "pads": {
+   "A": [
+    -200,
+    0
+   ],
+   "B": [
+    -2600,
+    -1600
+   ],
+   "C": [
+    -2600,
+    1600
+   ],
+   "size": 1200
+  },
+  "force_field": {
+   "x": -7180.0,
+   "y": [
+    -2600.0,
+    2600.0
+   ],
+   "z": [
+    0,
+    3600.0
+   ],
+   "note": "BlockingVolume (pawn only; ships and camera pass) just inside the mouth"
+  },
+  "threshold": {
+   "floor_band_x": [
+    -7200,
+    -6800
+   ],
+   "width": 5000,
+   "glow_strip_x": -6800,
+   "jambs_y": [
+    2460,
+    2500
+   ],
+   "header_z": [
+    3460,
+    3500
+   ],
+   "texture": "T_DominionBay_Trim_BC hazard band (px 640-896)",
+   "note": "Lead N-061"
+  },
+  "kit": "ArtSource/EngProps/DominionInterior",
+  "placements": 799,
+  "figure_cm": 180
+ },
+ "exterior_pieces": {
+  "SM_DominionBay_Door_L": {
+   "tris": 2376,
+   "ue_bounds_cm": {
+    "min": [
+     -320.0,
+     -1250.0,
+     -1750.0
+    ],
+    "max": [
+     -20.0,
+     1250.0,
+     1750.0
+    ]
+   },
+   "size_cm": [
+    300.0,
+    2500.0,
+    3500.0
+   ],
+   "bevel_edges": 264,
+   "bevel_width_cm": 5.0,
+   "ucx": [
+    "UCX_SM_DominionBay_Door_L_00"
+   ]
+  },
+  "SM_DominionBay_Door_R": {
+   "tris": 2376,
+   "ue_bounds_cm": {
+    "min": [
+     -320.0,
+     -1250.0,
+     -1750.0
+    ],
+    "max": [
+     -20.0,
+     1250.0,
+     1750.0
+    ]
+   },
+   "size_cm": [
+    300.0,
+    2500.0,
+    3500.0
+   ],
+   "bevel_edges": 264,
+   "bevel_width_cm": 5.0,
+   "ucx": [
+    "UCX_SM_DominionBay_Door_R_00"
+   ]
+  },
+  "SM_DominionBay_TractorEmitter": {
+   "tris": 4636,
+   "ue_bounds_cm": {
+    "min": [
+     0.0,
+     -450.0,
+     -450.0
+    ],
+    "max": [
+     186.0,
+     450.0,
+     450.0
+    ]
+   },
+   "size_cm": [
+    186.0,
+    900.0,
+    900.0
+   ],
+   "bevel_edges": 752,
+   "bevel_width_cm": 4.0,
+   "ucx": [
+    "UCX_SM_DominionBay_TractorEmitter_00",
+    "UCX_SM_DominionBay_TractorEmitter_01"
+   ]
+  }
+ },
+ "cpp": {
+  "DoorHalfWidth": 2500,
+  "door_height": 3500,
+  "door_depth": 300,
+  "ConeDepth": 300000,
+  "ConeHalfAngleDeg": 35,
+  "GlideDepth": 6000,
+  "GlideSeconds": 2,
+  "MouthDistance": 30000,
+  "MouthRadius": 6000
+ },
+ "mismatches": [
+  "ATDDominion::BeginDockingFinale spawns the bay at local (Bounds.Max.X, 0, lerp(Min.Z, Center.Z, 0.6)) = hull r2 (33400, 0, -2933): 34 m in front of SOCKET_Bay (30000, 0, -2000) and 9.3 m low; GetEscapeStart uses the same formula. Use SOCKET_Bay.",
+  "GlideDepth 6000 from SOCKET_Bay ends on the aft bulkhead (hull X 24000): ship nose in the wall. Recommend 5000.",
+  "Placeholder Frame (150 x 6500 x 4550) should be hidden with the art hull (hull r2 models the mouth frame).",
+  "Kit pocket 5200 x 3600 vs hull pocket 5000 x 3500 (grid rounding, hidden behind the hull frame).",
+  "DoorHalfWidth 2500 / door height 3500 / depth 300 / open travel |Y| 5000 agree with hull r2.",
+  "Reference board opening 28 x 12 m and module 36 x 18 x 20 m are overridden by hull r2 + C++ (50 x 35 m mouth)."
+ ],
+ "files": [
+  {
+   "path": "SOURCE.md",
+   "bytes": 12649,
+   "sha256": "e9687fe0501ce19b8a7aa258dc712405fd301ed476d0176802a3ba0c37ce8460"
+  },
+  {
+   "path": "blockout/DominionDockingBay_Blockout.blend",
+   "bytes": 270166,
+   "sha256": "b02cbc1a96f9c9741e1337e3216012237d1d2edaa8edd6f0dcaa5449df2c4fe8"
+  },
+  {
+   "path": "contact_sheet.png",
+   "bytes": 12388907,
+   "sha256": "bdc8e7f74de257370a3b60b368137db865a9e13bc8dbbdb18d1e89f5bd7b7a70"
+  },
+  {
+   "path": "dockbay_layout.json",
+   "bytes": 111921,
+   "sha256": "14ca2e04dbc9e9e86a2c9dc9342e9f090e7e60ec289d5a9a617f684fef83c46c"
+  },
+  {
+   "path": "mesh/DominionBay_Exterior.blend",
+   "bytes": 120963,
+   "sha256": "e521e93d7defb957c5e0ddcffdc4cd151d1ca973e774b74e01dd6c874c1b9d08"
+  },
+  {
+   "path": "mesh/SM_DominionBay_Door_L.fbx",
+   "bytes": 231484,
+   "sha256": "b04f5c76e4791feaa7577273062116e118d2d796d242aa681600a07df3e70af6"
+  },
+  {
+   "path": "mesh/SM_DominionBay_Door_R.fbx",
+   "bytes": 230844,
+   "sha256": "579f336217da0c03117e1bf41dbabe178706287ccf5a27d9459a3d87d50f43ed"
+  },
+  {
+   "path": "mesh/SM_DominionBay_TractorEmitter.fbx",
+   "bytes": 428892,
+   "sha256": "ef063e588a0cd8e36cce9b6138cffaf6c879f98439aab5c86129fab51a20a1b7"
+  },
+  {
+   "path": "mesh/exterior_report.json",
+   "bytes": 1030,
+   "sha256": "45e8a3f336bc32e10c28e7fb18ecfa1961b1221dcfcf4e482775d610188c3429"
+  },
+  {
+   "path": "plans/DB_Hull_Mouth_Cone.png",
+   "bytes": 246378,
+   "sha256": "b31e32519ae8fe49c8212fd28bfd74c8e3a47773662b12632c73d570832ef56f"
+  },
+  {
+   "path": "plans/DB_Plan_Top.png",
+   "bytes": 245111,
+   "sha256": "cf7389b4419f89cc406b2bf1b50c23588ada1e7a469b98cddc30c432c759e8e9"
+  },
+  {
+   "path": "plans/DB_Section_Front.png",
+   "bytes": 96339,
+   "sha256": "2f8eaccd4b0350bb4143c22a43e7f13967c70b740846303058fef96c1c2bfe50"
+  },
+  {
+   "path": "plans/DB_Section_Side.png",
+   "bytes": 125530,
+   "sha256": "07a438cd4b91cd2b3a8f1fb5bd9d2ab92fa0288dacaab9fa203f89b357560fde"
+  },
+  {
+   "path": "review/bo_cutaway.png",
+   "bytes": 1975443,
+   "sha256": "7d5362f21113cb5c0fec9d1c2754e664bb05cdda1d6cd90029c8efde6a3227be"
+  },
+  {
+   "path": "review/bo_cutaway_mouth.png",
+   "bytes": 2209118,
+   "sha256": "fb829c22495608c02f4a4c5d390b68d33f39e010befb7e73861524da1e4cee68"
+  },
+  {
+   "path": "review/bo_eye_mouth.png",
+   "bytes": 2422770,
+   "sha256": "16ae767153593d52f612bb882d0f46b21c443cf1c86e09afacaaf9285556cad7"
+  },
+  {
+   "path": "review/bo_eye_start.png",
+   "bytes": 2432728,
+   "sha256": "8380006b3b749f5d261777e4a425d7be40b6a60796995bb662505e39b09d78d4"
+  },
+  {
+   "path": "review/bo_top.png",
+   "bytes": 2154840,
+   "sha256": "90b00b274f20e8d0acd37feedd5e7d3f81602d4f5b7997fe43e3363bdf8a88aa"
+  },
+  {
+   "path": "review/ext_closed_34.png",
+   "bytes": 1821303,
+   "sha256": "d5a0ffc6ea7b35bc0e060fd56518a5ad01f28ec92816625cc7364dc2ae7e428b"
+  },
+  {
+   "path": "review/ext_closed_front.png",
+   "bytes": 1754655,
+   "sha256": "9c5e790fd60a8be6634889e5449fa0214972581ce6970c28dad6a64cebf8f112"
+  },
+  {
+   "path": "review/ext_emitter.png",
+   "bytes": 1712426,
+   "sha256": "428412b3fffd745b8fef0b9786f8af30909a54b98dbdc46e81af877008fccd73"
+  },
+  {
+   "path": "review/ext_open_34.png",
+   "bytes": 1858911,
+   "sha256": "4b7cce5eec6bdd0931978abac8945501999b24d11a1703e279583ae12b950dd6"
+  },
+  {
+   "path": "review/ext_open_front.png",
+   "bytes": 1794534,
+   "sha256": "b8f1080d3e426e17b2e994f9e0601877785590bc275b51303017c583693c14e1"
+  },
+  {
+   "path": "review/pc_door_detail.png",
+   "bytes": 1562358,
+   "sha256": "2592ed3d3da6a81894565b7ee3907f4f0bb6af9a2b0e07a6ec724eb1fa281869"
+  },
+  {
+   "path": "review/pc_emitter_detail.png",
+   "bytes": 1873044,
+   "sha256": "3ea52060d3ff8309d2a3fc51bfd142ce371b13b67e2578fbd3b4dafdc8563b28"
+  },
+  {
+   "path": "review/pc_pieces_34.png",
+   "bytes": 1625248,
+   "sha256": "2b0dbd90a90c3cce116963a02e879b6fe215a8b834c7e9233e11658bf6cb5bc1"
+  },
+  {
+   "path": "source/build_bay_exterior.py",
+   "bytes": 20416,
+   "sha256": "f154c268260b5f91635c78173dfe593e181aceec5443febdd87ff647c199e04b"
+  },
+  {
+   "path": "source/build_blockout.py",
+   "bytes": 12777,
+   "sha256": "26b5c34e33b3621aa666b98571febd65fd45fc67bf75fd6623bc00a934ec9b89"
+  },
+  {
+   "path": "source/dockbay_layout.py",
+   "bytes": 7087,
+   "sha256": "765bcfb214e595c5b607db502c4b43577c008286c1674416e5214d9eb15e6816"
+  },
+  {
+   "path": "source/make_contact_sheet.py",
+   "bytes": 6594,
+   "sha256": "e76c38dd13d5f892f0280b7588d243dd291967e5d4dd63e06b885cf748fb56cc"
+  },
+  {
+   "path": "source/make_manifest.py",
+   "bytes": 2801,
+   "sha256": "35c9613922508202c64fdf278c8342ca8dda87627e18b0590b97b015ff83a9a8"
+  },
+  {
+   "path": "source/make_plans.py",
+   "bytes": 23780,
+   "sha256": "53efda7689db4ceafeab1e416c61c2f7cbe6c62c172468b92be0620e9a70887d"
+  },
+  {
+   "path": "source/make_trim_textures.py",
+   "bytes": 6604,
+   "sha256": "efecb5263bf59626c74af4e7d5d758a3bb9d336e005b7ad93b37442b688a853e"
+  },
+  {
+   "path": "source/render_common.py",
+   "bytes": 2657,
+   "sha256": "cd51fefc17fbeaeb109c5585227df11758d0b3867a0b7f5b6998d7c23921eb0f"
+  },
+  {
+   "path": "source/render_views.py",
+   "bytes": 10061,
+   "sha256": "472b21492128a86afe8a14378f8d34836818d9333a8cf724375effd331afe211"
+  },
+  {
+   "path": "textures/T_DominionBay_Trim_BC.png",
+   "bytes": 1611383,
+   "sha256": "8d7f18e1647aa6383a8890fbe035db796092a842633fdefbd95df1fd4cf6a44e"
+  },
+  {
+   "path": "textures/T_DominionBay_Trim_E.png",
+   "bytes": 4208,
+   "sha256": "4304a37d5fe606b973dcdba1b5a5ddce2feefce43e5754603edcc8e971be84ad"
+  },
+  {
+   "path": "textures/T_DominionBay_Trim_N.png",
+   "bytes": 1805090,
+   "sha256": "daf8a4772b4ea836af009006b537c580d6fb6368601f6f91356004562d16e12c"
+  },
+  {
+   "path": "textures/T_DominionBay_Trim_ORM.png",
+   "bytes": 653521,
+   "sha256": "4dd21c8d528bb8e53106b85f6f9e7c1fae83e52d1df9f37a7681ffb217cd3307"
+  }
+ ]
+}
