@@ -6,6 +6,7 @@
 
 #include "CoreMinimal.h"
 #include "Widgets/Input/SButton.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Styling/CoreStyle.h"
 #include "Styling/SlateTypes.h"
@@ -18,10 +19,28 @@ namespace TDFrontEndStyle
 	/** The squad-colour accent of the focus frame (Lancer cyan, the title colour). */
 	inline FLinearColor FocusColor() { return FLinearColor(0.4f, 0.9f, 1.f, 1.f); }
 
-	/** True while the button has the keyboard / pad focus of any user, or the mouse is over it. */
+	/**
+	 * True while the button has the keyboard / pad focus of any user. The mouse does not light a button by itself: hovering
+	 * a menu button moves the focus to it (TakeFocusOnHover), and W / S take it back, so exactly one button is lit at a time
+	 * (T7's Shipping pass, Nov 14: a hovered button and the focused one were both lit).
+	 */
 	inline bool IsHighlighted(const TSharedPtr<SButton>& B)
 	{
-		return B.IsValid() && B->IsEnabled() && (B->HasAnyUserFocus().IsSet() || B->HasKeyboardFocus() || B->IsHovered());
+		return B.IsValid() && B->IsEnabled() && (B->HasAnyUserFocus().IsSet() || B->HasKeyboardFocus());
+	}
+
+	/** The mouse entering a menu button gives it the focus of every user (the keys then continue from where the mouse is). */
+	inline void TakeFocusOnHover(const TSharedRef<SButton>& Button)
+	{
+		const TWeakPtr<SButton> Weak = Button;
+		Button->SetOnHovered(FSimpleDelegate::CreateLambda([Weak]()
+		{
+			const TSharedPtr<SButton> B = Weak.Pin();
+			if (B.IsValid() && B->IsEnabled() && FSlateApplication::IsInitialized() && !B->HasAnyUserFocus().IsSet())
+			{
+				FSlateApplication::Get().SetAllUserFocus(B, EFocusCause::Mouse);
+			}
+		}));
 	}
 
 	/**
@@ -62,7 +81,9 @@ namespace TDFrontEndStyle
 			const FSlateBrush* White = FCoreStyle::Get().GetBrush("WhiteBrush");
 			auto Tint = [White](const FLinearColor& C) { FSlateBrush B = *White; B.TintColor = FSlateColor(C); return B; };
 			Style.SetNormal(Tint(FLinearColor(0.05f, 0.06f, 0.09f, 0.72f)));
-			Style.SetHovered(Tint(FLinearColor(0.10f, 0.24f, 0.32f, 0.92f)));
+			// Hovered = normal: hovering moves the focus, so the hover's look is the focus look (frame, grow, white label); a
+			// separate hover fill would light a second button once W / S moved the focus away.
+			Style.SetHovered(Tint(FLinearColor(0.05f, 0.06f, 0.09f, 0.72f)));
 			Style.SetPressed(Tint(FLinearColor(0.16f, 0.38f, 0.48f, 0.98f)));
 			Style.SetDisabled(Tint(FLinearColor(0.04f, 0.045f, 0.06f, 0.40f)));
 			Style.SetNormalPadding(FMargin(18.f, 9.f));

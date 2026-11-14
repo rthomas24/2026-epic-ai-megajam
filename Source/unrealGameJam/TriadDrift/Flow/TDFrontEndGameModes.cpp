@@ -493,6 +493,7 @@ void ATDMenuGameMode::ShowPlaceholder()
 			.ButtonStyle(&TDFrontEndStyle::MenuButtonStyle()) // #142: the menu's own states, no default grey
 			.OnClicked_Lambda([Weak, Action]() { if (ATDMenuGameMode* M = Weak.Get()) { Action(M); } return FReply::Handled(); });
 		const TWeakPtr<SButton> WeakButton = Made;
+		TDFrontEndStyle::TakeFocusOnHover(Made.ToSharedRef()); // one lit button at a time: the mouse moves the focus
 		Made->SetContent(
 			SNew(STextBlock).Text(FText::FromString(Label)).Font(FCoreStyle::GetDefaultFontStyle("Bold", 20))
 			.ColorAndOpacity_Lambda([WeakButton]() { return TDFrontEndStyle::MenuLabelColor(WeakButton); }));
