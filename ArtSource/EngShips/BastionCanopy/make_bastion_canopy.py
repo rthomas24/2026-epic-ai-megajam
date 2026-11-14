@@ -55,11 +55,17 @@ for i in range(NX + 1):
     zs = [z for z in zs if z is not None]
     base.append(max(zs) if zs else 0.3)
 # smooth the row bases so the dome line is fair
-# r3 (in game: r1 stepped into two lobes, r2 floated above the hull): every vertex sits on the hull at the shell's
-# edge and rises to a fair dome inside it, never below the hull surface under it, so the glazing closes onto the hull,
-# covers the seat well and keeps one smooth line: z = max(hull + 0.8 cm, mix(hull, dome, w)), w = 0 on the border.
-third = max(1, len(base) // 3)
-zf, zb = sorted(base[:third])[len(base[:third]) // 2], sorted(base[-third:])[len(base[-third:]) // 2]
+# r4 (the Lead on r3: a pale slab larger than the well it replaced): a pane set INTO the cockpit well only, narrower
+# than the region (x 1.28..2.24 m, |y| < 0.30 m), 4 cm below the frame tops around it so the hull's frame shows as a
+# lip, gently convex, never below the hull surface under it.
+X0, X1, YH = float(os.environ.get("TD_CAN_X0", "1.28")), float(os.environ.get("TD_CAN_X1", "2.24")), float(os.environ.get("TD_CAN_Y", "0.30"))
+rim = []
+for i in range(NX + 1):
+    x = X0 + (X1 - X0) * i / NX
+    zs = [top(x, s_ * 0.36) for s_ in (-1.0, 1.0)]
+    zs = [z for z in zs if z is not None]
+    rim.append(max(zs) if zs else 0.3)
+rim = [sum(rim[max(0, i - 3):i + 4]) / len(rim[max(0, i - 3):i + 4]) for i in range(len(rim))]
 out = bmesh.new()
 grid = {}
 for i in range(NX + 1):
@@ -69,10 +75,9 @@ for i in range(NX + 1):
         x = X0 + (X1 - X0) * t
         y = YH * s_
         h = top(x, y)
-        h = h if h is not None else zf
-        w = (math.sin(math.pi * t) ** 0.6) * ((1.0 - s_ * s_) ** 0.5)
-        dome = zf + (zb - zf) * t + 0.10 * w
-        z = max(h + 0.008, h + (dome - h) * w)
+        h = h if h is not None else rim[i] - 0.1
+        bulge = 0.03 * (1.0 - s_ * s_) * math.sin(math.pi * t) ** 0.5
+        z = max(h + 0.008, rim[i] - 0.04 + bulge)
         grid[(i, j)] = out.verts.new((x, y, z))
 for i in range(NX):
     for j in range(NY):
