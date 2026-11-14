@@ -1,11 +1,11 @@
 {
   "asset": "SM_KS_Hulk_Aft",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_Hulk_Aft.fbx",
-  "tris": 2060,
+  "tris": 3688,
   "size_cm": [
-    4300.0,
+    4494.6,
     2559.3,
-    1991.8
+    2092.8
   ],
   "pivot": "root object origin (SM_KS_Hulk_Aft~exp)",
   "forward": "+X (authoring front +X rotated)",
@@ -14,6 +14,7 @@
     "M_Kit_Cold",
     "M_Kit_Light",
     "M_Kit_Nav",
+    "M_Kit_RimLight",
     "M_Kit_Scorch",
     "M_Kit_Trim2"
   ],
@@ -81,6 +82,23 @@
         0.1
       ],
       "emission_strength": 10.0
+    },
+    {
+      "name": "M_Kit_RimLight",
+      "textured": false,
+      "base_color": [
+        0.02,
+        0.025,
+        0.03
+      ],
+      "metallic": 0.0,
+      "roughness": 0.15,
+      "emission_color": [
+        0.7,
+        0.85,
+        1.0
+      ],
+      "emission_strength": 3.0
     },
     {
       "name": "M_Kit_Scorch",

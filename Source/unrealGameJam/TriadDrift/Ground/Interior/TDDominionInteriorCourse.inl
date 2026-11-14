@@ -190,6 +190,7 @@ void ATDPlanetCourse::BuildInterior()
 		L->SetIntensityUnits(ELightUnits::Candelas);
 		L->SetIntensity(Intensity);
 		L->SetCastShadows(false); // many lights, cheap
+		L->ComponentTags.Add(TEXT("TD.InteriorLight")); // the environment builder's alarm and collapse lighting finds them (ART-13)
 		L->RegisterComponent();
 	};
 	// One story console per room (storyline.md act 4: a recording in each room, older and older-sounding voices).
@@ -502,7 +503,7 @@ void ATDPlanetCourse::BuildInterior()
 	Ship->LinkedStep = 0;
 	TDCourseImpl::FinishProp(Ship);
 	Ship->Box->SetBoxExtent(FVector(500.f, 500.f, 400.f));
-	ATDCollapseRun* Collapse = SpawnProp<ATDCollapseRun>(FVector((HX0 + KX1) * 0.5f, 0.f, 0.f));
+	ATDCollapseRun* Collapse = EscapeCollapse = SpawnProp<ATDCollapseRun>(FVector((HX0 + KX1) * 0.5f, 0.f, 0.f));
 	Collapse->LinkedObjective = Run;
 	Collapse->LinkedStep = 0;
 	Collapse->Seconds = EscapeSeconds;
@@ -713,6 +714,17 @@ void ATDPlanetCourse::FireCompletionBeats(ATDObjective* Objective)
 // ------------------------------------------------------------------------------------------------
 // The final record (story 07-09, b2): mandatory, at the reactor's threshold, combat held
 // ------------------------------------------------------------------------------------------------
+
+bool ATDPlanetCourse::IsFieldAnchorDisabled(const UObject* WorldContextObject)
+{
+	const UTDGameInstance* GI = UTDGameInstance::Get(WorldContextObject);
+	return GI && GI->GetProgressRef().CompletedObjectives.Contains(FName(TEXT("Obj_Jammer")));
+}
+
+float ATDPlanetCourse::GetEscapeSecondsLeft() const
+{
+	return EscapeCollapse && EscapeCollapse->IsRunning() ? EscapeCollapse->GetTimeLeft() : -1.f;
+}
 
 void ATDPlanetCourse::TickCoreChamber()
 {

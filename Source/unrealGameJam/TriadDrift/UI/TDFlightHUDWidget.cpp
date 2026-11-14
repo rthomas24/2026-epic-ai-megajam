@@ -20,6 +20,7 @@
 #include "TriadDrift/World/TDDominion.h"
 #include "TriadDrift/World/TDVerdanceApproach.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
+#include "TriadDrift/UI/TDUIHostSubsystem.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
 #include "TriadDrift/Enemies/TDEnemyShip.h"
@@ -701,6 +702,7 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 			const APawn* EnemyPawn = Cast<APawn>(A);
 			const ATDEnemyAIController* AI = EnemyPawn ? Cast<ATDEnemyAIController>(EnemyPawn->GetController()) : nullptr;
 			Mark.bThreat = Mine && AI && AI->GetTarget() == Mine;
+			Mark.ScreenRadius = FMath::Clamp(A->GetSimpleCollisionRadius() / FMath::Max(M.Distance, 1.f) * PxPerRadian, 0.f, 220.f);
 		}
 		if (M.bOnScreen)
 		{
@@ -899,6 +901,17 @@ void UTDFlightHUDWidget::SampleCombat(const ITDHUDData& Data, const FTDShipHUD* 
 			StartOrbitCue();
 		}
 		bCoverSeen = bCovered;
+		// The host's record of the reveal (this HUD may be built after it): ORBIT for what is left of its seconds.
+		const double Reveal = UTDUIHostSubsystem::GetLastGalaxyReveal();
+		if (Reveal > 0.0 && Reveal != OrbitRevealSeen)
+		{
+			OrbitRevealSeen = Reveal;
+			const float Since = static_cast<float>(FPlatformTime::Seconds() - Reveal);
+			if (Since < OrbitCueSeconds + 1.f)
+			{
+				OrbitCueLeft = FMath::Max(OrbitCueLeft, FMath::Max(OrbitCueSeconds - Since, 1.5f));
+			}
+		}
 		OrbitCueLeft = FMath::Max(0.f, OrbitCueLeft - Dt);
 		View.OrbitCue01 = OrbitCueLeft / OrbitCueSeconds;
 	}
@@ -1381,7 +1394,8 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			TDFlightHUDShapes::Points(Mk.Kind, Pts, Width);
 			const FLinearColor C = (Mk.bThreat ? FMath::Lerp(Enemy, FLinearColor::White, .35f) : Enemy).CopyWithNewOpacity(Alpha);
 			const float W = Width + (Mk.bThreat ? 1.f : 0.f);
-			const float Cs = FMath::Cos(Rot), Sn = FMath::Sin(Rot);
+			// 1.4x the first size: live at 1080p the 12 px outlines were hard to tell apart.
+			const float Cs = FMath::Cos(Rot) * 1.4f, Sn = FMath::Sin(Rot) * 1.4f;
 			for (int32 I = 0; I + 1 < Pts.Num(); ++I)
 			{
 				const FVector2D A(Pts[I].X * Cs - Pts[I].Y * Sn, Pts[I].X * Sn + Pts[I].Y * Cs);
@@ -1390,7 +1404,7 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			}
 			if (Mk.Kind == UTDFlightHUDWidget::KindCarrier)
 			{
-				P.Brackets(At, 15.f, C, 5.f);
+				P.Brackets(At, 21.f, C, 6.f);
 			}
 		};
 		if (!M.bOnScreen)
@@ -1442,9 +1456,10 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 			continue;
 		}
 		// Other hostiles: a 14 px hollow triangle, point down, above the ship; a locked one gets a 20 px amber diamond.
-		const FVector2D Tick(M.Pos.X, M.Pos.Y - 18.f);
+		// Just above the ship's outline (live: a fixed 18 px sat on the hull of a close ship).
+		const FVector2D Tick(M.Pos.X, M.Pos.Y - FMath::Max(18.f, M.ScreenRadius + 16.f));
 		Rec(TEXT("tick"), Tick.X - 7.f, Tick.Y - 6.f, 14.f, 12.f);
-		Shape(M, Tick, 0.f, .9f);
+		Shape(M, Tick, 0.f, .95f);
 		Rec(*FString::Printf(TEXT("kind_%s"), KindName(M.Kind)), Tick.X - 12.f, Tick.Y - 12.f, 24.f, 24.f);
 		// Heading: toward = a filled dot in the outline, otherwise a short tick on the ship along its nose (crossing or away).
 		if (M.Heading == 1)
@@ -1780,13 +1795,22 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	// box), a HULL TEMP bar under it (amber, red above 70%), "ATMOSPHERE" over it; squad-neutral tokens.
 	if (View.bDescent)
 	{
+		// Readable over a bright sky (the Lead, live at 720p): its own dark plate, full-white text, and never below 80%
+		// while the HUD is up (the director's exit shot fades the rest; a CUT still hides it).
+		FPaint D = P;
+		if (View.HUDOpacity > .05f && !View.bInCut)
+		{
+			D.Alpha = FMath::Max(D.Alpha, .8f);
+		}
 		const float TX = C.X + 190.f, TY = C.Y - 100.f, TH = 200.f;
+		D.Plate(TX - 96.f, TY - 34.f, 196.f, TH + 84.f, 12.f, T::Plate().CopyWithNewOpacity(.78f));
+		D.Layer = P.Layer + 2; // everything else above its plate (same-layer boxes batch under rounded brushes)
 		const float Alt = FMath::Max(0.f, View.Altitude);
-		P.Words(TX - 4.f, TY - 26.f, TEXT("ATMOSPHERE"), 12, T::Shield(), "Bold", 0.f, 160);
+		D.Words(TX - 4.f, TY - 26.f, TEXT("ATMOSPHERE"), 13, T::Shield(), "Bold", 0.f, 160);
 		if (View.Altitude >= 0.f)
 		{
 			// 200 px = 1000 m: 0.2 px per metre, centred on the current altitude.
-			P.Line({ TX, TY }, { TX, TY + TH }, T::Dim().CopyWithNewOpacity(.6f), 1.5f);
+			D.Line({ TX, TY }, { TX, TY + TH }, T::Neutral().CopyWithNewOpacity(.7f), 1.5f);
 			const int32 First = FMath::FloorToInt((Alt - 500.f) / 100.f) * 100;
 			for (int32 M = First; M <= Alt + 500.f; M += 100)
 			{
@@ -1794,22 +1818,22 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 				const float Y = TY + TH * .5f - (M - Alt) * .2f;
 				if (Y < TY || Y > TY + TH) { continue; }
 				const bool bMajor = M % 500 == 0;
-				P.Line({ TX, Y }, { TX + (bMajor ? 12.f : 6.f), Y }, T::Neutral().CopyWithNewOpacity(bMajor ? .8f : .45f), 1.5f);
+				D.Line({ TX, Y }, { TX + (bMajor ? 12.f : 6.f), Y }, T::Neutral().CopyWithNewOpacity(bMajor ? .8f : .45f), 1.5f);
 				if (bMajor)
 				{
-					P.Words(TX + 16.f, Y - 7.f, FString::Printf(TEXT("%d"), M), 11, T::Dim(), "Bold", 0.f, 20);
+					D.Words(TX + 16.f, Y - 7.f, FString::Printf(TEXT("%d"), M), 12, T::Neutral(), "Bold", 0.f, 20);
 				}
 			}
 			const float BY = TY + TH * .5f;
-			P.Plate(TX - 84.f, BY - 13.f, 76.f, 26.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
-			P.Words(TX - 14.f, BY - 9.f, FString::Printf(TEXT("%.0f m"), Alt), 15, Alt < 60.f ? T::Bastion() : T::Neutral(), "Bold", 1.f, 20);
+			D.Plate(TX - 84.f, BY - 13.f, 76.f, 26.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
+			D.Words(TX - 14.f, BY - 9.f, FString::Printf(TEXT("%.0f m"), Alt), 15, Alt < 60.f ? T::Bastion() : T::Neutral(), "Bold", 1.f, 20);
 			Rec(TEXT("altimeter"), TX - 84.f, TY, 130.f, TH);
 		}
 		const float HY = TY + TH + 16.f;
-		P.Words(TX - 4.f, HY, TEXT("HULL TEMP"), 11, T::Dim(), "Bold", 0.f, 140);
-		P.Box(TX - 4.f, HY + 18.f, 120.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
+		D.Words(TX - 4.f, HY, TEXT("HULL TEMP"), 12, T::Neutral(), "Bold", 0.f, 140);
+		D.Box(TX - 4.f, HY + 18.f, 120.f, 6.f, T::Plate().CopyWithNewOpacity(.85f));
 		const FLinearColor HeatC = View.Heat01 > .7f ? T::Danger() : T::Bastion();
-		P.Box(TX - 4.f, HY + 18.f, 120.f * View.Heat01, 6.f, HeatC);
+		D.Box(TX - 4.f, HY + 18.f, 120.f * View.Heat01, 6.f, HeatC);
 		Rec(TEXT("hull_temp"), TX - 4.f, HY, 120.f, 24.f);
 	}
 	if (View.OrbitCue01 > 0.f)

@@ -211,6 +211,21 @@ def story_set():
     G.cmd("TD.Ground.ThirdPerson 1")
 
 
+def station():
+    """ART-17 survey station: up the ramp(s) from the foot to the console, real key presses, feet logged."""
+    foot = MAN["stair_foot_site_cm"]
+    stand = MAN["console_stand_site_cm"][0]
+    G.cmd("TD.Ground.ThirdPerson 1")
+    tp(foot[0] + 250.0, 0.0, 0.0, 180.0, settle=2.0)
+    shot("01_foot", 180.0, -6.0)
+    for i in range(10):
+        walk(180.0, 0.45, "up %d" % i)
+    tp(stand[0], stand[1], stand[2], stand[3], settle=2.0)
+    shot("02_console", stand[3], -10.0)
+    tp(foot[0] + 900.0, -700.0, 0.0, 150.0, settle=2.0)
+    shot("03_10m", 150.0, -4.0)
+
+
 def main():
     G.cmd("TD.Ground.ThirdPerson 1")
     G.cmd("TD.God 1")
@@ -221,7 +236,8 @@ def main():
     {"DockingBay_Interior": dock, "DominionInterior_Preview": dominion, "Relay_Site": relay, "Relay_Site_Awake": relay, "Wreck_Site": wreck, "Outpost_Site_Verdance": outpost,
      "Outpost_Site_Cinder": outpost, "DigSite_Cabin": digsite,
      "SurveyLine_Verdance": survey, "Artefact": artefact_site,
-     "StorySet_VerdanceCamp": story_set, "StorySet_CinderMine": story_set}[SITE]()
+     "StorySet_VerdanceCamp": story_set, "StorySet_CinderMine": story_set,
+     "SurveyStation_Verdance": station, "SurveyStation_Cinder": station}[SITE]()
     G.cmd("TD.Input.ReleaseAll")
     with open(os.path.join(OUT, "walk.json"), "w", encoding="utf-8") as fh:
         json.dump({"site": SITE, "origin": O, "steps": log}, fh, indent=1)

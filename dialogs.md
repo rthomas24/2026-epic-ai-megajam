@@ -56,6 +56,7 @@ Ids marked **(exists)** are fired by the game today; the rest are **(new)**: the
 | `Bark_MissileIncoming` (new, T2 / T3) | A missile locks the flown ship | a wingman | Critical | "Missile on you, break!" | "Missile lock. Evade." | "Missile! Move, move." |
 | `Bark_MissileEvaded` (new) | That missile misses or is returned | flown pilot | Flavour | "Too slow." | "Evaded." | "That was close." |
 | `Bark_OnMySix` (new, T4 / T3) | An enemy holds behind the flown ship for 3 s | a wingman | High | "One on your tail!" | "Bandit behind you." | "Check your six." |
+| `Bark_Anticipated` (new, T4 / T3; storyline §6 clue) | An enemy pre-empts the player's switch or dodge (T4's UTDArmadaForesight::OnAnticipated, wave 3 on, rare) | a wingman | High | "It moved before I did. How?" | "It anticipated that. Noting it." | "Huh. That one saw it coming." |
 | `Bark_TargetShielded` (new, T2) | Player fires on a shielded gunship with no effect | Kato or a wingman | Normal | "It's shielded, hit it harder!" | "Shielded. Break it first." | "That one's armoured up." |
 | `Bark_NewEnemy_<Type>` (new, T4): `Interceptor`, `Gunship`, `Bomber`, `Carrier` | First time each type appears | Kato (he identifies) | High | - | "New type. Fast, carries missiles." / "Heavy contact. Shielded." / "That one is laying mines." / "Carrier. It will keep launching." | - |
 | `Bark_MinesAhead` (new, T4) | Player flies toward a mine cluster | a wingman | High | "Mines! Pull up!" | "Mines ahead. Avoid." | "Careful, mines." |

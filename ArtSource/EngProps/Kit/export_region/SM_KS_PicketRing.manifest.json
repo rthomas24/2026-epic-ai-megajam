@@ -1,7 +1,7 @@
 {
   "asset": "SM_KS_PicketRing",
   "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\struct\\ArtSource\\EngProps\\Kit\\export_region\\SM_KS_PicketRing.fbx",
-  "tris": 7626,
+  "tris": 7858,
   "size_cm": [
     8983.5,
     13290.0,
@@ -14,6 +14,7 @@
     "M_Kit_Breach",
     "M_Kit_CyanRun",
     "M_Kit_Flicker",
+    "M_Kit_Insignia",
     "M_Kit_Light",
     "M_Kit_Nav",
     "M_Kit_Scorch",
@@ -84,6 +85,23 @@
         0.42
       ],
       "emission_strength": 4.0
+    },
+    {
+      "name": "M_Kit_Insignia",
+      "textured": false,
+      "base_color": [
+        0.6,
+        0.6,
+        0.6
+      ],
+      "metallic": 0.0,
+      "roughness": 0.5,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
     },
     {
       "name": "M_Kit_Light",
@@ -183,7 +201,7 @@
     "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
   },
   "warnings": [
-    "9 materials = 9 draw calls; consider merging"
+    "10 materials = 10 draw calls; consider merging"
   ],
   "errors": []
 }
