@@ -225,6 +225,17 @@ if os.environ.get("TD_SQUAD_RIM", "1") != "0":
         SHIPS[_ship]["mi_vectors"] = {"RimColor": _col}
         if _glow:
             SHIPS[_ship]["glow_strength"] = _glow
+    # The Lancer's worst case (T1, Nov 14: the cyan rim vanished against the cyan lobe at sky Yaw 166 / Pitch -10, and the
+    # nozzles bloomed white into its core at boost): a dark edge instead of a cyan one, and a deep saturated blue nozzle
+    # core. The rim is added emissive, so a dark edge is a NEGATIVE RimColor (it takes light away at grazing angles).
+    # TD_LANCER_DARK=0 keeps the cyan rim above. Tuning: TD_LANCER_RIM="strength,r,g,b", TD_LANCER_GLOW="r,g,b,strength".
+    if os.environ.get("TD_LANCER_DARK", "1") != "0":
+        _r = [float(v) for v in os.environ.get("TD_LANCER_RIM", "0.6,-0.35,-0.35,-0.3").split(",")]
+        _g = [float(v) for v in os.environ.get("TD_LANCER_GLOW", "0.02,0.22,1.0,2.6").split(",")]
+        SHIPS["Lancer"]["mi_params"]["RimStrength"] = _r[0]
+        SHIPS["Lancer"]["mi_vectors"] = {"RimColor": tuple(_r[1:4])}
+        SHIPS["Lancer"]["glow"] = tuple(_g[0:3])
+        SHIPS["Lancer"]["glow_strength"] = _g[3]
 else:
     for _ship in ("Lancer", "Rift", "Bastion"):
         SHIPS[_ship]["mi_params"]["RimStrength"] = 0.0
