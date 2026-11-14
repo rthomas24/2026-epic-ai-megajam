@@ -311,6 +311,27 @@ public:
 	/** The JUMP POINT sits this far (cm) past the escape line, on its bearing. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
 	float JumpPointPastLine = 30000.f;
+
+	/** The corridor aims this many planet radii to one side of Verdance's centre (0 = straight at it). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float EscapeAimOffsetRadii = 2.5f;
+
+	// Lead (Nov 14, T1's first ten minutes): a player who did not turn to the withdrawal marker got nothing for minutes
+	// (the marker went from 2.7 km to 20.2 km). Command repeats the order, and past the leash the ship is turned back.
+	/** Command repeats the order when the distance to the marker has grown for this long (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float WithdrawNagGrowingSeconds = 12.f;
+	/** ... or when the player has not closed on the marker this long after the order (s). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float WithdrawNagNotClosingSeconds = 20.f;
+	/** At most one reminder per this many seconds. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "1"))
+	float WithdrawNagIntervalSeconds = 20.f;
+	/** Past this distance (cm) from the marker, a ship still flying away is turned back toward it. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Tutorial", meta = (ClampMin = "0"))
+	float WithdrawLeashDistance = 600000.f;
+	int32 GetWithdrawNagCount() const { return WithdrawNags; }
+	int32 GetWithdrawLeashTurns() const { return WithdrawLeashTurns; }
 	/** Spawn points re-picked because they fell inside an obstacle, and those pushed out as a last resort (tests). */
 	int32 GetSpawnPointRetries() const { return SpawnPointRetries; }
 	int32 GetSpawnPointsPushedOut() const { return SpawnPointsPushedOut; }
@@ -444,6 +465,15 @@ protected:
 	FVector EscapeNormal = FVector::ForwardVector;
 	TWeakObjectPtr<AActor> EscapeMarker;
 	TSet<TWeakObjectPtr<AActor>> HeldPursuers;
+	void TickWithdrawalReminder(const AActor* Flown, float DeltaSeconds);
+	float WithdrawTime = 0.f;
+	float WithdrawGrowingTime = 0.f;
+	float WithdrawLastDist = -1.f;
+	float WithdrawStartDist = -1.f;
+	float WithdrawSinceNag = 1e9f;
+	float WithdrawSinceTurn = 1e9f;
+	int32 WithdrawNags = 0;
+	int32 WithdrawLeashTurns = 0;
 	void EndOpeningGrace();
 	int32 PlayerShotsFired() const;
 	UFUNCTION()

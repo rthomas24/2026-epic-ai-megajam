@@ -27,6 +27,8 @@
 #include "TriadDrift/Flight/TDSpacecraft.h"
 #include "TriadDrift/Core/TDTypes.h"
 
+#include "TriadDrift/Combat/TDWeaponLibrary.h"
+#include "TriadDrift/Combat/TDProjectile.h"
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -395,6 +397,21 @@ namespace TDWorldDebug
 		}));
 	FAutoConsoleCommandWithWorldAndArgs CmdGoto(TEXT("TD.World.Goto"), TEXT("Teleport the player's ship to Dominion|Reactor|Verdance|Cinder|Gate|Belt|Start."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Goto));
 	FAutoConsoleCommandWithWorldAndArgs CmdSpawn(TEXT("TD.World.SpawnEnemy"), TEXT("Spawn an enemy in front of the player: <Id> [distance] [pilot 0/1]."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&SpawnEnemy));
+	// Effects builder (through the Lead, Nov 14): one bomber mine ahead of the flown ship, its fuse unarmed for 10 s, so
+	// the mine body can be captured.   TD.Dev.SpawnMine [metres ahead = 60]
+	FAutoConsoleCommandWithWorldAndArgs CmdSpawnMine(TEXT("TD.Dev.SpawnMine"), TEXT("Drop one bomber plasma mine ahead of the flown ship, unarmed for 10 s (captures): [metres ahead = 60]."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			APawn* Pawn = World ? UGameplayStatics::GetPlayerPawn(World, 0) : nullptr;
+			if (!Pawn) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.Dev.SpawnMine: no player pawn")); return; }
+			const float Metres = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 60.f;
+			FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyPlasmaMines).Projectile;
+			Spec.FuseArmDelay = FMath::Max(Spec.FuseArmDelay, 10.f);
+			Spec.bInheritShooterVelocity = false;
+			const FVector At = Pawn->GetActorLocation() + Pawn->GetActorForwardVector() * Metres * 100.f;
+			ATDProjectile* Mine = ATDProjectile::Spawn(World, Spec, FTransform(Pawn->GetActorRotation(), At), nullptr, ETDTeam::Enemy);
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Dev.SpawnMine: %s %.0f m ahead, fuse unarmed for %.0f s"), *GetNameSafe(Mine), Metres, Spec.FuseArmDelay);
+		}));
 	FAutoConsoleCommandWithWorldAndArgs CmdSpawnLive(TEXT("TD.Spawn"), TEXT("Spawn live, piloted enemies ahead of the player: <Id> [count=1] [distance cm=12000]. Ids: ShardFighter, HookInterceptor, WallGunship, MaulBomber, HiveCarrier."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&SpawnLive));
 	FAutoConsoleCommandWithWorldAndArgs CmdDominion(TEXT("TD.World.Dominion"), TEXT("Reveal | DropShields"), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Dominion));
 }
