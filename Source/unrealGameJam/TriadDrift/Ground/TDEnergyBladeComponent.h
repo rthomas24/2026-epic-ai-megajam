@@ -216,6 +216,9 @@ public:
 	/** True during a swing, lunge or slam: the character shouldn't sprint or slide. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
 	bool IsAttacking() const;
+	/** How long a press from rest has been held toward the heavy (seconds), or -1 when no such press is charging. */
+	float GetHeavyChargeTime() const { return (bLightDeferred && bAttackHeld) ? AttackHeldTime : -1.f; }
+	float GetHeavyHoldSeconds() const { return HeavyHoldSeconds; }
 
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Blade")
 	bool IsInPerfectWindow() const { return IsBlocking() && BlockTime <= PerfectWindow; }

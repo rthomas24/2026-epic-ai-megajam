@@ -878,6 +878,26 @@ void ATDFirstPersonCharacter::UpdateBodyActions()
 		}
 		LastBodyBladeState = State;
 	}
+	// Holding toward the heavy: the wind-up shows once the press is clearly a hold (a tap never shows it), held on its
+	// last frame; the heavy chains from it, and a release before the threshold cross-fades into the light instead.
+	const float Charge = Blade->GetHeavyChargeTime();
+	if (Charge >= 0.08f && !bHeavyWindupShown && State == ETDBladeState::Idle)
+	{
+		if (UAnimSequenceBase* Windup = LoadPilotAnim(TEXT("A_Pilot_Blade_HeavyWindup")))
+		{
+			Loops->PlayOneShot(Windup, 1.6f, bMoving, true, 0.06f);
+			BodyActionName = TEXT("A_Pilot_Blade_HeavyWindup");
+		}
+		bHeavyWindupShown = true;
+	}
+	else if (Charge < 0.f && bHeavyWindupShown)
+	{
+		bHeavyWindupShown = false;
+		if (State == ETDBladeState::Idle && BodyActionName == TEXT("A_Pilot_Blade_HeavyWindup"))
+		{
+			Loops->StopOneShot(); // released with no swing (e.g. the blade was put away)
+		}
+	}
 	// The guard is held on the upper body for as long as the block is.
 	// v2 (animation builder, Nov 14): the blade diagonal across the front of the chest, not tipped back over the shoulder.
 	UAnimSequenceBase* Guard = State == ETDBladeState::Blocking ? LoadPilotAnim(TEXT("A_Pilot_Block_v2")) : nullptr;
