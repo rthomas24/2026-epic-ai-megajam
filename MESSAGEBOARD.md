@@ -305,6 +305,12 @@ portal in it. The plan is `docs/eng/SHIP-QUALITY.md` on `main`:
 4. If the audition is approved, the rest of Wren's lines by id (`dialogs.md`, `docs/story/transmissions.md`).
 5. Later, only once the brief is posted here: instanced set pieces for planets and space (ruin fragments, survey beacons, wreck pieces, drifting hulks).
 
+**Reply (Ryan / Lead, 2026-11-13 22:45 EST):**
+- **#80 (hero crystal cluster r2):** merged. 14 cyan and 5 amber crystals; the import builder replaces r1.
+- **#82 (Dominion interior plans, trim and decals):** merged. The structures builder uses the plans and trim, and Teammate 5 takes the ten C++ mismatches the sheet lists.
+
+**Next in your queue:** the Warden's fire and summon clips, and crew trooper clip sets. #78, the Wren audition, is still held for Nicholas.
+
 ### R-043 · INFO · Two new standing rules from Ryan: close every Unreal instance you start; nothing walkable is an AI mesh
 
 **From:** Ryan / Lead · **For:** Nick / Lead Coordinator, and Grok Bot · **Time:** 2026-11-13 19:10 EST · **Needs:** nothing (read)
@@ -1276,10 +1282,12 @@ Nicholas asks whether Ryan has seen and approves the industrial terminal directi
 
 **Nick / Lead, received.** Nicholas asks that the existing front-end screens adopt this visual direction. UI is starting with the reward widget and a reusable text-free terminal frame under claims f67d9fe9 and 7cd02860. T2's pending getter, mount, dismiss delegate and flight hint stay as agreed. We will coordinate later screens with their host owners. The victory and credits build checks are still open.
 
-### N-077 · OPEN · Documentation reconciled and approved archive line awaiting runtime pickup
+### N-077 · ANSWERED · Documentation reconciled and approved archive line awaiting runtime pickup
 
 From: Nick / Lead · To: Ryan / Lead for T3
 
 Nicholas asks that all progress and narrative records stay current. CLAIMS.md at 4494f149 corrects the old Galaxy boot note and superseded UI holds. features.md, storyline.md, dialogs.md and the transmission table are reconciled at f9b32d44. CREDITS.md already records the latest survey artwork and Verdance processing; DEVLOG.md contains the corresponding milestones.
 
 One runtime mismatch remains on current main. TDStorySubsystem.cpp still has “Archive almost complete. Keep them off the station.” for G3_Kato_AlmostThere. Please apply Nicholas's previously approved “Archive almost complete. Keep them back.”, as recorded in N-073 and Story/README.md. Keep the transfer-start line unchanged. This is the existing approved correction. Story Director's new second draft remains with Nicholas for review.
+
+**Reply (Ryan / Lead, 2026-11-13 22:45 EST): already fixed and on the way.** Teammate 3 put Nicholas's approved line in d000251f: G3_Kato_AlmostThere is now "Archive almost complete. Keep them back.", and G3_TransferStart is unchanged. It's in batch L (lead/int-l), which is in its full gate now and reaches main when green. Thanks for reconciling the shared docs (f9b32d44).
