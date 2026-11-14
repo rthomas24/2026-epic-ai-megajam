@@ -22,6 +22,8 @@ class ATDGalaxyLayout;
 class UHierarchicalInstancedStaticMeshComponent;
 class UInstancedStaticMeshComponent;
 class UStaticMesh;
+class UPrimitiveComponent;
+class UTDSpaceFieldFX;
 
 /** What a placed piece is (tests and the cache spots). */
 UENUM()
@@ -96,6 +98,47 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SpaceField") int32 MaxTumblers = 60;
 	UPROPERTY(EditAnywhere, Category = "SpaceField") float TumbleFromSize = 3000.f;
 
+	// ---- Destructible (Ryan, Nov 13: shoot it and it breaks, ram it, hit it and it hurts, never fly through it) ----
+	/** Size classes by bounding diameter (cm): small below MediumFromSize, large from LargeFromSize. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float MediumFromSize = 1000.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float LargeFromSize = 4000.f;
+	/** Health: small (1-2 cannon shots), medium (several), large (base + per metre of diameter), wrecks. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float SmallHealth = 12.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float MediumHealth = 60.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float LargeHealthBase = 120.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float LargeHealthPerMetre = 3.f;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float WreckHealth = 900.f;
+	/** A broken medium / large splits into this many pieces of the next class down. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") int32 SplitMin = 2;
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") int32 SplitMax = 3;
+	/** About one asteroid in this many (belts and clusters, medium and up) is special: crystal-veined, drops a reward. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") int32 SpecialOneIn = 15;
+	/** Damage to the rock from a ship hitting it: Scale x (normal speed in m/s)^2 x head-on. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") float ShipImpactDamageScale = 0.02f;
+	/** Break cues (effects builder): /Game/TriadDrift/Presentation/DA_SpaceField_FX. Empty = engineering placeholder burst. */
+	UPROPERTY(EditAnywhere, Category = "SpaceField|Break") TObjectPtr<UTDSpaceFieldFX> FX;
+
+	/** The piece behind a hit (the hidden collision component and the hit's Item), or INDEX_NONE. */
+	int32 PieceForHit(const UPrimitiveComponent* Component, int32 Item) const;
+	/** Damage one piece; breaks it at zero (split, cue, bus event). Returns true if it broke. */
+	bool DamagePiece(int32 Piece, float Damage, AActor* ByWhom);
+	/** Lancer's ram dash segment: breaks small and medium pieces along it; a large piece stops it (true, OutBlock). */
+	bool RamSweep(const FVector& From, const FVector& To, float Radius, AActor* ByWhom, FVector& OutBlock);
+	/** An explosion: every piece inside Radius takes Damage with a linear falloff (at least a quarter). */
+	void Splash(const FVector& Center, float Radius, float Damage, AActor* ByWhom);
+	/** A ship hit a piece at NormalSpeed (cm/s). Returns true if the piece broke (its collision is gone already). */
+	bool ShipImpact(const UPrimitiveComponent* Component, int32 Item, float NormalSpeed, float HeadOn01, AActor* Ship, bool bRamming);
+
+	bool IsPieceAlive(int32 Piece) const { return States.IsValidIndex(Piece) && States[Piece].bAlive; }
+	float GetPieceHealth(int32 Piece) const { return States.IsValidIndex(Piece) ? States[Piece].Health : 0.f; }
+	uint8 GetPieceSizeClass(int32 Piece) const { return States.IsValidIndex(Piece) ? States[Piece].SizeClass : 0; }
+	bool IsPieceSpecial(int32 Piece) const { return States.IsValidIndex(Piece) && States[Piece].bSpecial; }
+	int32 GetBrokenCount() const { return Broken; }
+	int32 GetAliveCount() const;
+	const UInstancedStaticMeshComponent* GetCollision() const { return Collision; }
+	/** The world transform of a piece's hidden collision sphere (tests). */
+	bool GetColliderTransform(int32 Piece, FTransform& Out) const;
+
 	/** Pickup caches: spawned when the flown ship comes this close, once per run each (collected = gone). */
 	UPROPERTY(EditAnywhere, Category = "SpaceField") float CacheSpawnDistance = 80000.f;
 
@@ -132,7 +175,7 @@ private:
 
 	/** Add one visual instance of a rock family mesh, sized (bounding diameter, cm). Returns false if not allowed. */
 	bool AddRock(const FVector& At, float Size, ETDSpaceFieldKind Kind, FRandomStream& Rng, int32 Family);
-	bool AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotator& Rot, float Size, ETDSpaceFieldKind Kind, bool bCollides, bool bTumble = false);
+	bool AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotator& Rot, float Size, ETDSpaceFieldKind Kind, bool bCollides, bool bTumble = false, bool bSpecial = false);
 	UHierarchicalInstancedStaticMeshComponent* ComponentFor(UStaticMesh* Mesh, float Size);
 	float NormFor(UStaticMesh* Mesh) const;
 
@@ -184,6 +227,43 @@ public:
 	void UpdateCachesAt(const FVector& ShipLocation);
 
 private:
+	// Per piece (parallel to Pieces).
+	struct FPieceState
+	{
+		UInstancedStaticMeshComponent* Visual = nullptr;	// owned by Components / TumbleComponents / WreckComponents
+		int32 Instance = INDEX_NONE;
+		int32 Collider = INDEX_NONE;
+		int32 Tumbler = INDEX_NONE;
+		int32 Wreck = INDEX_NONE;
+		UStaticMesh* Mesh = nullptr;
+		float Health = 1.f;
+		uint8 SizeClass = 0;
+		bool bSpecial = false;
+		bool bAlive = true;
+	};
+	TArray<FPieceState> States;
+	TArray<int32> ColliderToPiece;
+	/** Recycled slots: dead collision instances and dead visual instances per component. */
+	TArray<int32> FreeColliders;
+	TMap<UInstancedStaticMeshComponent*, TArray<int32>> FreeVisuals;
+	/** A coarse grid of piece indices (ram and splash queries). */
+	TMap<FIntVector, TArray<int32>> Grid;
+	static FIntVector CellOf(const FVector& P) { return FIntVector(FMath::FloorToInt(P.X / 20000.f), FMath::FloorToInt(P.Y / 20000.f), FMath::FloorToInt(P.Z / 20000.f)); }
+	FRandomStream SpecialRng;
+	FRandomStream BreakRng;
+	int32 Broken = 0;
+	bool bFXLoaded = false;
+
+	/** Register the piece just added to Pieces (collider, state, grid). */
+	int32 RegisterPiece(UInstancedStaticMeshComponent* Visual, int32 Instance, UStaticMesh* Mesh, float Size, bool bSpecial, int32 Tumbler, int32 Wreck);
+	int32 AddCollider(const FVector& At, float Size);
+	void BreakPiece(int32 Piece, AActor* ByWhom);
+	void SpawnFragment(UStaticMesh* Mesh, const FVector& At, float Size);
+	void PlayBreakCue(const FVector& At, float Size, uint8 SizeClass, bool bSpecial);
+	uint8 SizeClassFor(float Size) const { return Size < MediumFromSize ? 0 : (Size < LargeFromSize ? 1 : 2); }
+	float HealthFor(float Size, bool bWreck) const;
+	void GatherNear(const FVector& Min, const FVector& Max, TArray<int32>& Out) const;
+
 	int32 ObstaclesAdded = 0;
 	bool bEnabled = true;
 	float Clock = 0.f;

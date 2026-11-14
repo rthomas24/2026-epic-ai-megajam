@@ -162,8 +162,16 @@ void ATDSpaceField::Build()
 	}
 	TumbleRng.Initialize(Seed * 977 + 5);
 	Tumblers.Reset();
+	SpecialRng.Initialize(Seed * 613 + 11);
+	BreakRng.Initialize(Seed * 389 + 17);
+	States.Reset();
+	ColliderToPiece.Reset();
+	FreeColliders.Reset();
+	FreeVisuals.Reset();
+	Grid.Reset();
+	Broken = 0;
 
-	// Hidden collision spheres for the big pieces (the visuals never collide).
+	// Hidden collision spheres for every piece (the visuals never collide): ships, shots and hyperdrive all hit them.
 	if (SphereMesh)
 	{
 		Collision = NewObject<UInstancedStaticMeshComponent>(this, TEXT("FieldCollision"));
@@ -286,13 +294,16 @@ UHierarchicalInstancedStaticMeshComponent* ATDSpaceField::ComponentFor(UStaticMe
 	return C;
 }
 
-bool ATDSpaceField::AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotator& Rot, float Size, ETDSpaceFieldKind Kind, bool bCollides, bool bTumble)
+bool ATDSpaceField::AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotator& Rot, float Size, ETDSpaceFieldKind Kind, bool bCollides, bool bTumble, bool bSpecial)
 {
 	if (!Mesh || !IsPlacementAllowed(At, Size, bCollides))
 	{
 		return false;
 	}
 	const FTransform PieceXf(Rot, At, FVector(Size * NormFor(Mesh)));
+	UInstancedStaticMeshComponent* VisualComp = nullptr;
+	int32 VisualInstance = INDEX_NONE;
+	int32 TumblerIndex = INDEX_NONE;
 	if (bTumble)
 	{
 		TObjectPtr<UInstancedStaticMeshComponent>& T = TumbleComponents.FindOrAdd(Mesh);
@@ -309,7 +320,9 @@ bool ATDSpaceField::AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotato
 			T->SetCullDistances(0, 900000);
 			T->RegisterComponent();
 		}
-		T->AddInstance(PieceXf, true);
+		VisualComp = T;
+		VisualInstance = T->AddInstance(PieceXf, true);
+		TumblerIndex = Tumblers.Num();
 		FTumbler Tu;
 		Tu.Comp = T;
 		Tu.Home = PieceXf;
@@ -319,7 +332,8 @@ bool ATDSpaceField::AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotato
 	}
 	else
 	{
-		ComponentFor(Mesh, Size)->AddInstance(PieceXf, true);
+		VisualComp = ComponentFor(Mesh, Size);
+		VisualInstance = VisualComp->AddInstance(PieceXf, true);
 	}
 	FTDSpaceFieldPiece Piece;
 	Piece.Location = At;
@@ -327,10 +341,10 @@ bool ATDSpaceField::AddPiece(UStaticMesh* Mesh, const FVector& At, const FRotato
 	Piece.bCollides = bCollides;
 	Piece.Kind = Kind;
 	Pieces.Add(Piece);
-	if (bCollides && Collision)
+	RegisterPiece(VisualComp, VisualInstance, Mesh, Size, bSpecial, TumblerIndex, INDEX_NONE);
+	if (bCollides)
 	{
-		// A sphere a little inside the rock (the silhouette reads bigger than the hit), and an avoidance obstacle.
-		Collision->AddInstance(FTransform(FRotator::ZeroRotator, At, FVector(Size * 0.4f / 50.f)), true);
+		// Big pieces are also avoidance obstacles (the small ones only collide).
 		if (UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this))
 		{
 			WorldSys->AddObstacle(At, Size * 0.5f);
@@ -349,9 +363,16 @@ bool ATDSpaceField::AddRock(const FVector& At, float Size, ETDSpaceFieldKind Kin
 	}
 	UStaticMesh* Mesh = Pool[Rng.RandRange(0, Pool.Num() - 1)];
 	const FRotator Rot(Rng.FRandRange(-180.f, 180.f), Rng.FRandRange(-180.f, 180.f), Rng.FRandRange(-180.f, 180.f));
-	// A separate stream picks the tumblers, so placement never changes with MaxTumblers.
+	// Separate streams pick the tumblers and the specials, so placement never changes with either.
 	const bool bTumble = Size >= TumbleFromSize && Tumblers.Num() < MaxTumblers && TumbleRng.FRand() < 0.35f;
-	return AddPiece(Mesh, At, Rot, Size, Kind, Size >= CollideFromSize, bTumble);
+	// Specials: the crystal-veined, glowing family is kept for them alone (plain rocks are classic, ice or metal).
+	const bool bSpecial = (Kind == ETDSpaceFieldKind::Belt || Kind == ETDSpaceFieldKind::Cluster) && Size >= MediumFromSize && SpecialOneIn > 0
+		&& SpecialRng.RandRange(1, SpecialOneIn) == 1 && Families.IsValidIndex(3) && Families[3].Num() > 0;
+	if (bSpecial)
+	{
+		Mesh = Families[3][SpecialRng.RandRange(0, Families[3].Num() - 1)];
+	}
+	return AddPiece(Mesh, At, Rot, Size, Kind, Size >= CollideFromSize, bTumble, bSpecial);
 }
 
 void ATDSpaceField::BuildBelts(FRandomStream& Rng)
@@ -364,7 +385,7 @@ void ATDSpaceField::BuildBelts(FRandomStream& Rng)
 		// A tilted ring: tilt about X, then a seeded turn about Z.
 		const FQuat Tilt = FQuat(FRotator(0.f, Rng.FRandRange(0.f, 360.f), 0.f)) * FQuat(FRotator(0.f, 0.f, BeltTilts.IsValidIndex(B) ? BeltTilts[B] : 10.f));
 		// Families: the inner belt rock and ice, the outer metal and crystal, in long arcs (a band of one kind).
-		const int32 FamA = B == 0 ? 0 : 2, FamB = B == 0 ? 1 : 3;
+		const int32 FamA = B == 0 ? 0 : 2, FamB = B == 0 ? 1 : 0;	// crystal (3) is for the specials
 		int32 Placed = 0;
 		for (int32 Try = 0; Placed < BeltRocks && Try < BeltRocks * 3; ++Try)
 		{
@@ -419,7 +440,7 @@ void ATDSpaceField::BuildClusters(FRandomStream& Rng)
 			continue;
 		}
 		++Made;
-		const int32 Fam = Rng.RandRange(0, 3);
+		const int32 Fam = Rng.RandRange(0, 2);
 		// Landmarks first: a few big rocks near the cluster's heart (they collide and steer the AI).
 		for (int32 Lm = 0, Try = 0; Lm < LandmarksPerCluster && Try < LandmarksPerCluster * 4; ++Try)
 		{
@@ -430,7 +451,7 @@ void ATDSpaceField::BuildClusters(FRandomStream& Rng)
 		for (int32 Try = 0; Placed < RocksPerCluster && Try < RocksPerCluster * 3; ++Try)
 		{
 			const FVector Off = FVector(Rng.GetUnitVector()) * Rng.FRandRange(0.f, 1.f) * Rng.FRandRange(0.3f, 1.f) * 25000.f;
-			Placed += AddRock(C + Off, PowerSize(Rng, 500.f, 12000.f, 8.f), ETDSpaceFieldKind::Cluster, Rng, Rng.FRand() < 0.7f ? Fam : Rng.RandRange(0, 3)) ? 1 : 0;
+			Placed += AddRock(C + Off, PowerSize(Rng, 500.f, 12000.f, 8.f), ETDSpaceFieldKind::Cluster, Rng, Rng.FRand() < 0.7f ? Fam : Rng.RandRange(0, 2)) ? 1 : 0;
 		}
 	}
 	}
@@ -477,10 +498,7 @@ void ATDSpaceField::BuildDebrisFields(FRandomStream& Rng)
 			Piece.bCollides = true;
 			Piece.Kind = ETDSpaceFieldKind::Wreck;
 			Pieces.Add(Piece);
-			if (Collision)
-			{
-				Collision->AddInstance(FTransform(FRotator::ZeroRotator, C, FVector(WreckSize * 0.4f / 50.f)), true);
-			}
+			RegisterPiece(W, 0, Hull, WreckSize, false, INDEX_NONE, WreckComponents.Num() - 1);
 			if (UTDWorldSubsystem* WorldSys = UTDWorldSubsystem::Get(this))
 			{
 				WorldSys->AddObstacle(C, WreckSize * 0.5f + 3000.f);
