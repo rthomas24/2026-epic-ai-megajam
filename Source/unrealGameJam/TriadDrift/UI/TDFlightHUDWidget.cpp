@@ -265,6 +265,7 @@ void UTDFlightHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 	if (MyGeometry.GetLocalSize().X > 1.f && MyGeometry.GetLocalSize().Y > 1.f)
 	{
 		ViewportSize = MyGeometry.GetLocalSize();
+		PixelScale = FMath::Max(.01f, MyGeometry.GetAccumulatedLayoutTransform().GetScale());
 	}
 	Sample(InDeltaTime);
 }
@@ -1380,8 +1381,10 @@ void UTDFlightHUDWidget::UpdateSquadCards(float Dt)
 	View.SubtitleScale = FMath::Clamp(ForcedScale > 0.f ? ForcedScale : UTDSettingsSubsystem::GetSubtitleScale(this), .5f, 2.f);
 	// Below 900 px of height the design frame would shrink the text under its 1080 size: the cards go to 85% and the
 	// text keeps its 1080 pixels instead (Lead's rule for #160).
-	const float Scale = FMath::Min(ViewportSize.X / 1920.f, ViewportSize.Y / 1080.f);
-	const bool bSmall = Scale > 0.f && ViewportSize.Y < 900.f;
+	// Real pixels per design unit: the design frame's fit times UMG's DPI scale (T7's 720p frame: the DPI scale, not the
+	// frame, was shrinking the cards and their text to 67%).
+	const float Scale = FMath::Min(ViewportSize.X / 1920.f, ViewportSize.Y / 1080.f) * PixelScale;
+	const bool bSmall = Scale > 0.f && Scale < 900.f / 1080.f;
 	View.PanelK = bSmall ? .85f / Scale : 1.f;
 	View.PanelFont = bSmall ? 1.f / Scale : 1.f;
 	for (int32 Index = 0; Index < 3; ++Index)
@@ -1465,10 +1468,6 @@ namespace TDFlightHUD
 	static const TCHAR* PowerShortName(ETDShipId Ship)
 	{
 		return Ship == ETDShipId::Rift ? TEXT("PORTAL") : Ship == ETDShipId::Lancer ? TEXT("RAM") : TEXT("SWARM");
-	}
-	static const TCHAR* RoleName(ETDShipId Ship)
-	{
-		return Ship == ETDShipId::Rift ? TEXT("RIFT  ·  TRICKSTER") : Ship == ETDShipId::Lancer ? TEXT("LANCER  ·  INTERCEPTOR") : TEXT("BASTION  ·  HEAVY");
 	}
 	/** Nick's FTDHUDStyle squad colours (board R-049: the new panel uses the plugin's values, copied in FTDUIPalette). */
 	static FLinearColor PanelShip(ETDShipId Ship)
@@ -1609,14 +1608,15 @@ namespace TDFlightHUD
 		}
 		PenX += Icon + 10.f * K;
 		static const FString Pilots[3] = { PilotName(ETDShipId::Rift), PilotName(ETDShipId::Lancer), PilotName(ETDShipId::Bastion) };
-		static const FString Roles[3] = { RoleName(ETDShipId::Rift), RoleName(ETDShipId::Lancer), RoleName(ETDShipId::Bastion) };
 		static const FString Powers[3] = { PowerShortName(ETDShipId::Rift), PowerShortName(ETDShipId::Lancer), PowerShortName(ETDShipId::Bastion) };
 		const int32 ShipIndex = FMath::Clamp(static_cast<int32>(Card.Ship), 0, 2);
 		float NameEndX = PenX;
 		if (bBig)
 		{
 			P.Words(PenX, Y + 8.f * K, Pilots[ShipIndex], Sz(19), Ink.CopyWithNewOpacity(O), "Bold", 0.f, 80);
-			P.Words(PenX, Y + 8.f * K + Sz(19) * 1.3f, Roles[ShipIndex], Sz(12), Muted.CopyWithNewOpacity(O), "Medium", 0.f, 60);
+			// The ship name alone (ship + role ran under the Q ring at 720p, T7's frame).
+			static const FString BigShips[3] = { ShipName(ETDShipId::Rift), ShipName(ETDShipId::Lancer), ShipName(ETDShipId::Bastion) };
+			P.Words(PenX, Y + 8.f * K + Sz(19) * 1.3f, BigShips[ShipIndex], Sz(12), Ship.CopyWithNewOpacity(.9f * O), "Bold", 0.f, 80);
 			NameEndX = PenX + Sz(19) * 3.6f;
 		}
 		else
@@ -1713,7 +1713,7 @@ namespace TDFlightHUD
 		}
 		static const FString Shd(TEXT("SHD")), Hul(TEXT("HUL"));
 		const float TagW = bBig ? Sz(11) * 3.2f : 0.f;
-		const float NumW = Sz(14) * 2.3f;
+		const float NumW = bBig ? Sz(14) * 2.3f : 0.f;
 		const float BarX = X + Pad + TagW;
 		const float BarRight = (bBig ? X + W - 60.f * K : X + W - Pad) - NumW;
 		const float BarW = FMath::Max(20.f, BarRight - BarX);
@@ -1727,9 +1727,13 @@ namespace TDFlightHUD
 		}
 		SegmentBar(P, BarX, ShY, BarW, ShH, Card.Shield, Card.Shield, T::Shield());
 		SegmentBar(P, BarX, HuY, BarW, HuH, Card.Hull, Card.GhostHull, HullC);
-		const float NumX = BarRight + NumW;
-		P.Words(NumX, ShY + ShH * .5f - Sz(bBig ? 14 : 12) * .68f, Card.ShieldText, Sz(bBig ? 14 : 12), T::Shield(), "Mono", 1.f, 0);
-		P.Words(NumX, HuY + HuH * .5f - Sz(bBig ? 14 : 13) * .68f, Card.HullText, Sz(bBig ? 14 : 13), HullC, "Mono", 1.f, 0);
+		// Numbers on the flown card only, beside their SHD / HUL tags; wingman cards keep the two bars (thin = shield).
+		if (bBig)
+		{
+			const float NumX = BarRight + NumW;
+			P.Words(NumX, ShY + ShH * .5f - Sz(14) * .68f, Card.ShieldText, Sz(14), T::Shield(), "Mono", 1.f, 0);
+			P.Words(NumX, HuY + HuH * .5f - Sz(14) * .68f, Card.HullText, Sz(14), HullC, "Mono", 1.f, 0);
+		}
 	}
 }
 
