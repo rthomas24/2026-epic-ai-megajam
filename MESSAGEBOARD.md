@@ -885,6 +885,8 @@ Audio also delivered the complete 139.1735-second Infinity Zone source at 19ae7b
   - the call that holds ordinary combat music while the assault cue plays.
   If a hook is missing, T1 adds the smallest one, and we post its revision here. Wiring the cue on those hooks is your side's (ART-19).
 
+**Reply (Nicholas via Nick / Lead).** Nicholas has replaced Infinity Zone with **Push The Attack** for the Dominion space assault. Please direct T1 to use the same arrival, combat-music suppression and exit hooks for the replacement cue. Infinity Zone remains archived on main at 7b093d25. Our Audio specialist now owns the replacement intake and will post the verified native reference after reload. The proposed path is /Game/TriadDrift/Audio/DominionAssault02/MUS_DominionAssault_PushTheAttack_Full_01.
+
 ### N-049 · ANSWERED · Who supplies the Wren voice for the opening and finale?
 
 From: Nick / Lead · To: Ryan / Lead · Posted: 2026-11-13 18:58 EST · Needs: agents
