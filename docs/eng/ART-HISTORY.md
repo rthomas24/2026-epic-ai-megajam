@@ -37,6 +37,7 @@ Restore a whole snapshot in a separate checkout: `git worktree add ../old art/mo
 | Space dressing off | `TD.World.Dressing 0`. |
 | Menu backdrop off | `td.MenuBackdrop 0`. |
 | Intro off | `td.Intro 0`. |
+| Pilot moves before the Nov 14 melee pass (old light combo, heavy v3, block, flick, hit reacts, run; no strafe legs, no chained-swing blend, no combat idle) | `TD.Pilot.MeleePass 0`. Every old clip is still in `Characters/Pilot/Anims` under its old name; the new ones are `*_v3` / `_v4` / `Block_v2` / `Flick_v2` / `Run_v2` / `Blade_Idle_v2` / `AirSlam_*_v2/_v3`. |
 
 ## Versions by asset (each row's commit contains that version; the row above it is the newer one)
 

@@ -1,0 +1,23 @@
+{
+ "_note": "Hit reacts v3 (Nov 14, melee pass): Grok Bot's flinches (body kept) with the blade arm thrown out and up to the side by the hit and back to the guard, so the beam never crosses the head or chest (the live Front put it 13 cm into the head at 0.07 s). Code rate 1.2. Same key format as fixes_swing.json.",
+ "swing": [
+  {
+   "src": "A_Pilot_HitReact_Front", "dst": "A_Pilot_HitReact_Front_v3", "rate": 1.2, "max_yaw": 40,
+   "keys": [
+    {"t": 0.0,  "hand": [30, 8, -22],  "blade": [0.6, 0.05, 0.75], "yaw": 0},
+    {"t": 0.1,  "hand": [16, 26, -14], "blade": [0.35, 0.6, 0.72], "yaw": 14},
+    {"t": 0.45, "hand": [26, 12, -20], "blade": [0.55, 0.15, 0.8], "yaw": 4},
+    {"t": "end", "hand": [30, 8, -22], "blade": [0.6, 0.05, 0.75], "yaw": 0}
+   ]
+  },
+  {
+   "src": "A_Pilot_HitReact_Back", "dst": "A_Pilot_HitReact_Back_v3", "rate": 1.2, "max_yaw": 40,
+   "keys": [
+    {"t": 0.0,  "hand": [30, 8, -22],  "blade": [0.6, 0.05, 0.75], "yaw": 0},
+    {"t": 0.1,  "hand": [40, 20, -12], "blade": [0.75, 0.4, 0.5],  "yaw": -10},
+    {"t": 0.45, "hand": [32, 10, -20], "blade": [0.62, 0.1, 0.75], "yaw": -2},
+    {"t": "end", "hand": [30, 8, -22], "blade": [0.6, 0.05, 0.75], "yaw": 0}
+   ]
+  }
+ ]
+}

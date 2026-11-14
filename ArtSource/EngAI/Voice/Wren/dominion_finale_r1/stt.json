@@ -1,0 +1,2579 @@
+[
+  {
+    "stem": "VO_C6_Wren_StayTogether_01",
+    "line_id": "C6_Wren_StayTogether",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Stay together. Clear the guard line, then the generators.",
+    "sent_text": "Stay together. Clear the guard line, then the generators.",
+    "transcript": "Stay together, clear the guard line, then the generators.",
+    "words": [
+      {
+        "word": "Stay",
+        "start": 0.0,
+        "end": 0.3
+      },
+      {
+        "word": "together,",
+        "start": 0.3,
+        "end": 0.68
+      },
+      {
+        "word": "clear",
+        "start": 1.2,
+        "end": 1.28
+      },
+      {
+        "word": "the",
+        "start": 1.28,
+        "end": 1.44
+      },
+      {
+        "word": "guard",
+        "start": 1.44,
+        "end": 1.66
+      },
+      {
+        "word": "line,",
+        "start": 1.66,
+        "end": 2.02
+      },
+      {
+        "word": "then",
+        "start": 2.42,
+        "end": 2.46
+      },
+      {
+        "word": "the",
+        "start": 2.46,
+        "end": 2.62
+      },
+      {
+        "word": "generators.",
+        "start": 2.62,
+        "end": 2.98
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 167,
+    "f0_p10_hz": 81,
+    "f0_p90_hz": 216,
+    "dry_duration_s": 3.43,
+    "dry_loudness_lufs": -19.2,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 258.0,
+    "sha256": {
+      "dry": "89f650290aa8ee31548d0cd91de4410808d547d9e2efce97c99afa1dda8e37c3",
+      "radio": "92e6220f8a1fe935521cec0239277e95061492392a8d0efae3a41a02a2c0e802",
+      "raw": "82962eb9f849ff99300b4fe41df3685de17ccb4ba439bbe32693a3d0bf7181d3"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C6_Wren_StayTogether_02",
+    "line_id": "C6_Wren_StayTogether",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Stay together. Clear the guard line, then the generators.",
+    "sent_text": "Stay together. Clear the guard line, then the generators.",
+    "transcript": "together, then the generators.",
+    "words": [
+      {
+        "word": "together,",
+        "start": 0.0,
+        "end": 0.74
+      },
+      {
+        "word": "then",
+        "start": 2.38,
+        "end": 2.38
+      },
+      {
+        "word": "the",
+        "start": 2.38,
+        "end": 3.0
+      },
+      {
+        "word": "generators.",
+        "start": 3.0,
+        "end": 3.38
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 161,
+    "f0_p10_hz": 77,
+    "f0_p90_hz": 185,
+    "dry_duration_s": 3.868,
+    "dry_loudness_lufs": -19.6,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 472.0,
+    "sha256": {
+      "dry": "dde6833cd77767cc29e340474c71c8fcaa31fa2760e5f6b625bbdab80261f4f8",
+      "radio": "88fac2ffbe6eb54c7192aac1bad63b3aae4534997e177dcf2b3a91c407455ccc",
+      "raw": "2036679e292e5e4d72d28d508c0171790b46d8c13bde7c92da301b788449302a"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C6_Wren_StayTogether_03",
+    "line_id": "C6_Wren_StayTogether",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Stay together. Clear the guard line, then the generators.",
+    "sent_text": "Stay together. [pause] Clear the guard line, then the generators.",
+    "transcript": "",
+    "words": [],
+    "match": false,
+    "median_f0_hz": 158,
+    "f0_p10_hz": 75,
+    "f0_p90_hz": 185,
+    "dry_duration_s": 4.394,
+    "dry_loudness_lufs": -20.2,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 1350.0,
+    "sha256": {
+      "dry": "3efe43e6ed09343ea899be83a4b4f9391a3bb59ec9f52a9b5219b286bd0b4934",
+      "radio": "ef95b219d0628b5469b694b6a686487c1ae0b85c3197dc0194cca203f0816e36",
+      "raw": "0f9c0bbfcc0621b84f9ed7fa19f01e0cd39d03d6e49bcc5537bd6b1a9d2508b1"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G6_Wren_ClearCarriers_01",
+    "line_id": "G6_Wren_ClearCarriers",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Take the carriers. Don't let them keep launching.",
+    "sent_text": "Take the carriers. Don't let them keep launching.",
+    "transcript": "carriers don't let them think",
+    "words": [
+      {
+        "word": "carriers",
+        "start": 1.2,
+        "end": 1.44
+      },
+      {
+        "word": "don't",
+        "start": 1.44,
+        "end": 1.68
+      },
+      {
+        "word": "let",
+        "start": 1.68,
+        "end": 1.8
+      },
+      {
+        "word": "them",
+        "start": 1.8,
+        "end": 1.92
+      },
+      {
+        "word": "think",
+        "start": 1.92,
+        "end": 2.04
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 176,
+    "f0_p10_hz": 79,
+    "f0_p90_hz": 209,
+    "dry_duration_s": 2.896,
+    "dry_loudness_lufs": -20.18,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 358.0,
+    "sha256": {
+      "dry": "29b07e4b08a44af2684759e2f3894a1d58fd2f0b23cc49d1e369048324fbef01",
+      "radio": "20b51d9193d8569ceacdde0f33c82eb151378eed3d8257175bc53811003bfc0e",
+      "raw": "2317c22495df9b68fe627762326635491dbe5a2207077cdda416b9be55805cda"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G6_Wren_ClearCarriers_02",
+    "line_id": "G6_Wren_ClearCarriers",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Take the carriers. Don't let them keep launching.",
+    "sent_text": "Take the carriers. Don't let them keep launching.",
+    "transcript": "Take the carriers, don't let them keep launching.",
+    "words": [
+      {
+        "word": "Take",
+        "start": 0.0,
+        "end": 0.22
+      },
+      {
+        "word": "the",
+        "start": 0.22,
+        "end": 0.38
+      },
+      {
+        "word": "carriers,",
+        "start": 0.38,
+        "end": 0.8
+      },
+      {
+        "word": "don't",
+        "start": 1.32,
+        "end": 1.62
+      },
+      {
+        "word": "let",
+        "start": 1.62,
+        "end": 1.76
+      },
+      {
+        "word": "them",
+        "start": 1.76,
+        "end": 1.94
+      },
+      {
+        "word": "keep",
+        "start": 1.94,
+        "end": 2.14
+      },
+      {
+        "word": "launching.",
+        "start": 2.14,
+        "end": 2.44
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 175,
+    "f0_p10_hz": 80,
+    "f0_p90_hz": 210,
+    "dry_duration_s": 2.86,
+    "dry_loudness_lufs": -19.48,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 384.0,
+    "sha256": {
+      "dry": "a52e858cdf5ea7a0f0f2ca42a95d252ec2199dde59de92d72e2b088f3518120a",
+      "radio": "b078f011a643f7a6f58dea1246f812e5788e5d92ab67698818c1f57aee9018f3",
+      "raw": "f099710bfbfac26c93b989fe3dac9567f396d86e6f38d6ec40ebc35236d10a5b"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G6_Wren_ClearCarriers_03",
+    "line_id": "G6_Wren_ClearCarriers",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Take the carriers. Don't let them keep launching.",
+    "sent_text": "Take the carriers. [pause] Don't let them keep launching.",
+    "transcript": "Take the Take the",
+    "words": [
+      {
+        "word": "Take",
+        "start": 0.0,
+        "end": 0.2
+      },
+      {
+        "word": "the",
+        "start": 0.2,
+        "end": 0.38
+      },
+      {
+        "word": "Take",
+        "start": 0.38,
+        "end": 0.66
+      },
+      {
+        "word": "the",
+        "start": 0.66,
+        "end": 1.0
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 172,
+    "f0_p10_hz": 82,
+    "f0_p90_hz": 209,
+    "dry_duration_s": 2.686,
+    "dry_loudness_lufs": -20.9,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 308.0,
+    "sha256": {
+      "dry": "be9198f1caff62a12481177aa9883bd3ca216067f9b2faed128fbce69cd7ba82",
+      "radio": "bd5836fb36e88a8737717da95976773613b6b548cb638e57338e43c7441b5f2e",
+      "raw": "944de81aabc17e29cad166bef850e6d839b43fd93398971f5e947100888f57e1"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G6_Wren_CoverTheBay_01",
+    "line_id": "G6_Wren_CoverTheBay",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry",
+    "expected": "Keep that bay covered. We need a way back out.",
+    "sent_text": "Keep that bay covered. We need a way back out.",
+    "transcript": "covered, we need a way back out.",
+    "words": [
+      {
+        "word": "covered,",
+        "start": 0.72,
+        "end": 0.96
+      },
+      {
+        "word": "we",
+        "start": 1.22,
+        "end": 1.34
+      },
+      {
+        "word": "need",
+        "start": 1.34,
+        "end": 1.44
+      },
+      {
+        "word": "a",
+        "start": 1.44,
+        "end": 1.56
+      },
+      {
+        "word": "way",
+        "start": 1.56,
+        "end": 1.66
+      },
+      {
+        "word": "back",
+        "start": 1.66,
+        "end": 1.88
+      },
+      {
+        "word": "out.",
+        "start": 1.88,
+        "end": 2.16
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 175,
+    "f0_p10_hz": 79,
+    "f0_p90_hz": 219,
+    "dry_duration_s": 2.278,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.3,
+    "mid_pause_ms": 114.0,
+    "sha256": {
+      "dry": "9ca9ed96792175a5945d5fa30c50c133409afe6fd2e91817899ed3e56bb2319b",
+      "raw": "3efdc7e90c98efd0823d2c5604a05bf6cadc476f7ef1d23e4c28ce923a3a5c70"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G6_Wren_CoverTheBay_02",
+    "line_id": "G6_Wren_CoverTheBay",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry",
+    "expected": "Keep that bay covered. We need a way back out.",
+    "sent_text": "Keep that bay covered. We need a way back out.",
+    "transcript": "Keep that bay covered R",
+    "words": [
+      {
+        "word": "Keep",
+        "start": 0.0,
+        "end": 0.22
+      },
+      {
+        "word": "that",
+        "start": 0.22,
+        "end": 0.44
+      },
+      {
+        "word": "bay",
+        "start": 0.44,
+        "end": 0.66
+      },
+      {
+        "word": "covered",
+        "start": 0.66,
+        "end": 1.02
+      },
+      {
+        "word": "R",
+        "start": 1.02,
+        "end": 1.38
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 173,
+    "f0_p10_hz": 72,
+    "f0_p90_hz": 220,
+    "dry_duration_s": 2.468,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.9,
+    "mid_pause_ms": 180.0,
+    "sha256": {
+      "dry": "8d064d3f57aae104c25168e20a508f870a54e9b59b16e8e622b4d97b03211a82",
+      "raw": "83e42fcfb601218c1bc83a13c20a4edcee48e3bc5ee1c7ee13dd83559c63abc8"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G6_Wren_CoverTheBay_03",
+    "line_id": "G6_Wren_CoverTheBay",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry",
+    "expected": "Keep that bay covered. We need a way back out.",
+    "sent_text": "Keep that bay covered. [pause] We need a way back out.",
+    "transcript": "covered. We need a way back out.",
+    "words": [
+      {
+        "word": "covered.",
+        "start": 0.0,
+        "end": 0.66
+      },
+      {
+        "word": "We",
+        "start": 2.24,
+        "end": 2.24
+      },
+      {
+        "word": "need",
+        "start": 2.24,
+        "end": 2.42
+      },
+      {
+        "word": "a",
+        "start": 2.42,
+        "end": 2.54
+      },
+      {
+        "word": "way",
+        "start": 2.54,
+        "end": 2.66
+      },
+      {
+        "word": "back",
+        "start": 2.66,
+        "end": 2.88
+      },
+      {
+        "word": "out.",
+        "start": 2.88,
+        "end": 3.14
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 178,
+    "f0_p10_hz": 155,
+    "f0_p90_hz": 229,
+    "dry_duration_s": 3.266,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.8,
+    "mid_pause_ms": 1026.0,
+    "sha256": {
+      "dry": "60df0490347ab87a242b59f0e8534ade1efbbfc137f2750c01c85c0a073dd231",
+      "raw": "0de7575537232e892d4e7d832734b78fea9c321f27a4d9e03055f76bdc49cbef"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C7_Wren_Record_01",
+    "line_id": "C7_Wren_Record",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry",
+    "expected": "Record everything. Find who's giving the orders.",
+    "sent_text": "Record everything. Find who's giving the orders.",
+    "transcript": "record everything find who's giving the orders",
+    "words": [
+      {
+        "word": "record",
+        "start": 0.0,
+        "end": 0.36
+      },
+      {
+        "word": "everything",
+        "start": 0.36,
+        "end": 0.9
+      },
+      {
+        "word": "find",
+        "start": 0.9,
+        "end": 1.72
+      },
+      {
+        "word": "who's",
+        "start": 1.72,
+        "end": 2.04
+      },
+      {
+        "word": "giving",
+        "start": 2.04,
+        "end": 2.22
+      },
+      {
+        "word": "the",
+        "start": 2.22,
+        "end": 2.4
+      },
+      {
+        "word": "orders",
+        "start": 2.4,
+        "end": 2.72
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 174,
+    "f0_p10_hz": 157,
+    "f0_p90_hz": 205,
+    "dry_duration_s": 3.064,
+    "dry_loudness_lufs": -19.1,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 470.0,
+    "sha256": {
+      "dry": "3462fd1de445be7c1a304d5a1f848ee43f150dff2b54b4d24ac7be4cd5a25258",
+      "raw": "5ad4596f588305914bfa2e1d0e99988077d5432f4679a102dabb5db1f5109a00"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C7_Wren_Record_02",
+    "line_id": "C7_Wren_Record",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry",
+    "expected": "Record everything. Find who's giving the orders.",
+    "sent_text": "Record everything. Find who's giving the orders.",
+    "transcript": "Find who's-",
+    "words": [
+      {
+        "word": "Find",
+        "start": 0.0,
+        "end": 1.56
+      },
+      {
+        "word": "who's",
+        "start": 1.56,
+        "end": 1.88
+      },
+      {
+        "word": "-",
+        "start": 1.88,
+        "end": 2.9
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 171,
+    "f0_p10_hz": 80,
+    "f0_p90_hz": 203,
+    "dry_duration_s": 2.93,
+    "dry_loudness_lufs": -19.71,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 230.0,
+    "sha256": {
+      "dry": "e4fd66159c71d6e679391a0c31320e038993b9de0536e637cb4157f47e861845",
+      "raw": "f2982ef344cb89210d2ab29af238d9ff1ae78997bd64835e0446db14460ca2d4"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C7_Wren_Record_03",
+    "line_id": "C7_Wren_Record",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry",
+    "expected": "Record everything. Find who's giving the orders.",
+    "sent_text": "Record everything. [pause] Find who's giving the orders.",
+    "transcript": "record find who",
+    "words": [
+      {
+        "word": "record",
+        "start": 0.0,
+        "end": 0.44
+      },
+      {
+        "word": "find",
+        "start": 0.44,
+        "end": 2.06
+      },
+      {
+        "word": "who",
+        "start": 2.06,
+        "end": 2.86
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 175,
+    "f0_p10_hz": 77,
+    "f0_p90_hz": 209,
+    "dry_duration_s": 3.944,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.0,
+    "mid_pause_ms": 1426.0,
+    "sha256": {
+      "dry": "10c5725143933cb2767d94b80b18aa17dc4fdf1ff76ab30a51d2a0729115d8ae",
+      "raw": "65f2af64a3e6f7603d0decd1d7a02a2f10fe37d87af105de44e35b17f0796044"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G7_Wren_FullRecord_01",
+    "line_id": "G7_Wren_FullRecord",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry",
+    "expected": "We hear the full record before we touch that reactor.",
+    "sent_text": "We hear the full record before we touch that reactor.",
+    "transcript": "We hear",
+    "words": [
+      {
+        "word": "We",
+        "start": 0.0,
+        "end": 0.2
+      },
+      {
+        "word": "hear",
+        "start": 0.2,
+        "end": 0.4
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 162,
+    "f0_p10_hz": 77,
+    "f0_p90_hz": 199,
+    "dry_duration_s": 2.842,
+    "dry_loudness_lufs": -19.51,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 112.0,
+    "sha256": {
+      "dry": "a56fd51c9427b851abffa3d36f1a1421c456abcb60171a9646def6b8c2e85323",
+      "raw": "4073b0a2f374e3c0d81c77c693dc09f8eaf76ff1637833f5caac70ad48ccbfb4"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G7_Wren_FullRecord_02",
+    "line_id": "G7_Wren_FullRecord",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry",
+    "expected": "We hear the full record before we touch that reactor.",
+    "sent_text": "We hear the full record before we touch that reactor.",
+    "transcript": "We hear the full record before we touch that reactor.",
+    "words": [
+      {
+        "word": "We",
+        "start": 0.0,
+        "end": 0.2
+      },
+      {
+        "word": "hear",
+        "start": 0.2,
+        "end": 0.4
+      },
+      {
+        "word": "the",
+        "start": 0.4,
+        "end": 0.54
+      },
+      {
+        "word": "full",
+        "start": 0.54,
+        "end": 0.76
+      },
+      {
+        "word": "record",
+        "start": 0.76,
+        "end": 1.12
+      },
+      {
+        "word": "before",
+        "start": 1.12,
+        "end": 1.5
+      },
+      {
+        "word": "we",
+        "start": 1.5,
+        "end": 1.68
+      },
+      {
+        "word": "touch",
+        "start": 1.68,
+        "end": 1.88
+      },
+      {
+        "word": "that",
+        "start": 1.88,
+        "end": 2.12
+      },
+      {
+        "word": "reactor.",
+        "start": 2.12,
+        "end": 2.44
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 171,
+    "f0_p10_hz": 78,
+    "f0_p90_hz": 243,
+    "dry_duration_s": 2.85,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.1,
+    "mid_pause_ms": 104.0,
+    "sha256": {
+      "dry": "4f9ebb3098ff2bb3f481c7445f3a1ea5f904cf8d57c232441dd316570e758a6c",
+      "raw": "bcc32d82a029fd99f2e553839b999e6ce94f0b360bc259a5388836b91b0cc915"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G7_Wren_FullRecord_03",
+    "line_id": "G7_Wren_FullRecord",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry",
+    "expected": "We hear the full record before we touch that reactor.",
+    "sent_text": "We hear the full record before we touch that reactor.",
+    "transcript": "We hear the full record before we touch that reactor",
+    "words": [
+      {
+        "word": "We",
+        "start": 0.0,
+        "end": 0.2
+      },
+      {
+        "word": "hear",
+        "start": 0.2,
+        "end": 0.38
+      },
+      {
+        "word": "the",
+        "start": 0.38,
+        "end": 0.54
+      },
+      {
+        "word": "full",
+        "start": 0.54,
+        "end": 0.82
+      },
+      {
+        "word": "record",
+        "start": 0.82,
+        "end": 1.16
+      },
+      {
+        "word": "before",
+        "start": 1.16,
+        "end": 1.52
+      },
+      {
+        "word": "we",
+        "start": 1.52,
+        "end": 1.7
+      },
+      {
+        "word": "touch",
+        "start": 1.7,
+        "end": 1.88
+      },
+      {
+        "word": "that",
+        "start": 1.88,
+        "end": 2.14
+      },
+      {
+        "word": "reactor",
+        "start": 2.14,
+        "end": 2.46
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 168,
+    "f0_p10_hz": 80,
+    "f0_p90_hz": 186,
+    "dry_duration_s": 2.886,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.2,
+    "mid_pause_ms": 116.0,
+    "sha256": {
+      "dry": "3b262b84bc5d1d27c93d30609d2c4ab4406ef222a3f429e8df2f869e15df4afc",
+      "raw": "b2b2a9dcbc920e338d65dc7eec7922fb5a2f57a0950121f356ef394095ed14b2"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_F_FutureWren_FullWarning_01",
+    "line_id": "F_FutureWren_FullWarning",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Don't engage the Dominion. You don't understand what happens if you do.",
+    "sent_text": "Don't engage the Dominion. You don't understand what happens if you do.",
+    "transcript": "Don't engage the Dominion. You don't understand what happens if you do.",
+    "words": [
+      {
+        "word": "Don't",
+        "start": 0.0,
+        "end": 0.64
+      },
+      {
+        "word": "engage",
+        "start": 0.64,
+        "end": 0.64
+      },
+      {
+        "word": "the",
+        "start": 0.64,
+        "end": 0.84
+      },
+      {
+        "word": "Dominion.",
+        "start": 0.84,
+        "end": 1.18
+      },
+      {
+        "word": "You",
+        "start": 1.68,
+        "end": 1.76
+      },
+      {
+        "word": "don't",
+        "start": 1.76,
+        "end": 2.28
+      },
+      {
+        "word": "understand",
+        "start": 2.28,
+        "end": 2.36
+      },
+      {
+        "word": "what",
+        "start": 2.36,
+        "end": 2.56
+      },
+      {
+        "word": "happens",
+        "start": 2.56,
+        "end": 2.88
+      },
+      {
+        "word": "if",
+        "start": 2.88,
+        "end": 3.08
+      },
+      {
+        "word": "you",
+        "start": 3.08,
+        "end": 3.22
+      },
+      {
+        "word": "do.",
+        "start": 3.22,
+        "end": 3.4
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 170,
+    "f0_p10_hz": 144,
+    "f0_p90_hz": 211,
+    "dry_duration_s": 3.628,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.9,
+    "mid_pause_ms": 206.0,
+    "sha256": {
+      "dry": "9b81587455259072d2a9208ab6fbdab5e36280e7aa56b9301fa6268a5ea86562",
+      "radio": "38edc903afcbb6cdfe0419546785bbc0b80782b2f32304340d888ca8d2538b3c",
+      "raw": "94e3f5706eef9f27e0b064e8ca6f26a8e776b26f3862b52c74403c153311ae96"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_F_FutureWren_FullWarning_02",
+    "line_id": "F_FutureWren_FullWarning",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Don't engage the Dominion. You don't understand what happens if you do.",
+    "sent_text": "Don't engage the Dominion. You don't understand what happens if you do.",
+    "transcript": "Don't engage the Dominion, you don't understand what happens if you do.",
+    "words": [
+      {
+        "word": "Don't",
+        "start": 0.0,
+        "end": 0.44
+      },
+      {
+        "word": "engage",
+        "start": 0.44,
+        "end": 0.6
+      },
+      {
+        "word": "the",
+        "start": 0.6,
+        "end": 0.84
+      },
+      {
+        "word": "Dominion,",
+        "start": 0.84,
+        "end": 1.14
+      },
+      {
+        "word": "you",
+        "start": 1.66,
+        "end": 1.8
+      },
+      {
+        "word": "don't",
+        "start": 1.8,
+        "end": 2.02
+      },
+      {
+        "word": "understand",
+        "start": 2.02,
+        "end": 2.4
+      },
+      {
+        "word": "what",
+        "start": 2.4,
+        "end": 2.6
+      },
+      {
+        "word": "happens",
+        "start": 2.6,
+        "end": 2.94
+      },
+      {
+        "word": "if",
+        "start": 2.94,
+        "end": 3.16
+      },
+      {
+        "word": "you",
+        "start": 3.16,
+        "end": 3.3
+      },
+      {
+        "word": "do.",
+        "start": 3.3,
+        "end": 3.5
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 173,
+    "f0_p10_hz": 79,
+    "f0_p90_hz": 234,
+    "dry_duration_s": 3.718,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.3,
+    "mid_pause_ms": 204.0,
+    "sha256": {
+      "dry": "5f18bbd91132ec8220e654da2d4829af6831600f0b1c41aebb4481c3740947bc",
+      "radio": "e4486a361dc4a00008aa39e8318a36986395e7fc9f44da0bbf6e075c6ab6a5e3",
+      "raw": "592568b8a57860f64d2c7f87208e2c1f068e05da1c837c1bd1b9bbdab2985240"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_F_FutureWren_FullWarning_03",
+    "line_id": "F_FutureWren_FullWarning",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Don't engage the Dominion. You don't understand what happens if you do.",
+    "sent_text": "Don't engage the Dominion. [pause] You don't understand what happens if you do.",
+    "transcript": "the Dominion you don't understand what happens if you do",
+    "words": [
+      {
+        "word": "the",
+        "start": 0.0,
+        "end": 0.84
+      },
+      {
+        "word": "Dominion",
+        "start": 0.84,
+        "end": 1.14
+      },
+      {
+        "word": "you",
+        "start": 1.14,
+        "end": 2.3
+      },
+      {
+        "word": "don't",
+        "start": 2.3,
+        "end": 2.5
+      },
+      {
+        "word": "understand",
+        "start": 2.5,
+        "end": 2.88
+      },
+      {
+        "word": "what",
+        "start": 2.88,
+        "end": 3.06
+      },
+      {
+        "word": "happens",
+        "start": 3.06,
+        "end": 3.4
+      },
+      {
+        "word": "if",
+        "start": 3.4,
+        "end": 3.58
+      },
+      {
+        "word": "you",
+        "start": 3.58,
+        "end": 3.7
+      },
+      {
+        "word": "do",
+        "start": 3.7,
+        "end": 3.9
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 178,
+    "f0_p10_hz": 150,
+    "f0_p90_hz": 218,
+    "dry_duration_s": 4.09,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.3,
+    "mid_pause_ms": 776.0,
+    "sha256": {
+      "dry": "9c662ac9f23d5e7a6adf54a220316e1ac8272d2e6227858dfc508b8667495fa1",
+      "radio": "1a0524d5b4d9e338c1e7b6bb744641eea3447a0a4c08b685618affa06c002721",
+      "raw": "d264747c9ee48d9b12cff101ebfc4fd4a835a24898fe2fa94c1aaaecd61d16a4"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C8_RecWren_LastChance_01",
+    "line_id": "C8_RecWren_LastChance",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_echo",
+    "expected": "We believe recovering it can prevent the catastrophe. It's the last chance we have.",
+    "sent_text": "We believe recovering it can prevent the catastrophe. It's the last chance we have.",
+    "transcript": "covering it can prevent the catastrophe it's the last chance we have",
+    "words": [
+      {
+        "word": "covering",
+        "start": 0.0,
+        "end": 0.98
+      },
+      {
+        "word": "it",
+        "start": 0.98,
+        "end": 1.2
+      },
+      {
+        "word": "can",
+        "start": 1.2,
+        "end": 1.38
+      },
+      {
+        "word": "prevent",
+        "start": 1.38,
+        "end": 1.76
+      },
+      {
+        "word": "the",
+        "start": 1.76,
+        "end": 2.04
+      },
+      {
+        "word": "catastrophe",
+        "start": 2.04,
+        "end": 2.52
+      },
+      {
+        "word": "it's",
+        "start": 2.52,
+        "end": 3.48
+      },
+      {
+        "word": "the",
+        "start": 3.48,
+        "end": 3.6
+      },
+      {
+        "word": "last",
+        "start": 3.6,
+        "end": 3.84
+      },
+      {
+        "word": "chance",
+        "start": 3.84,
+        "end": 4.12
+      },
+      {
+        "word": "we",
+        "start": 4.12,
+        "end": 4.32
+      },
+      {
+        "word": "have",
+        "start": 4.32,
+        "end": 4.64
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 169,
+    "f0_p10_hz": 99,
+    "f0_p90_hz": 208,
+    "dry_duration_s": 4.75,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.8,
+    "mid_pause_ms": 478.0,
+    "sha256": {
+      "dry": "8f7011721c203ff1b8dfc5ef74eb28971b4db8ef2790987b9b1c3abe60b57ff6",
+      "echo": "1cce8550d927685b6dd1f25ef7f462cb85f0b997bf4d89ad31e705267699ebad",
+      "raw": "ded5f20a15f14c0141af059a27216b4d0b7fbaa68df971b02d83d2749a4a39e5"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": true
+  },
+  {
+    "stem": "VO_C8_RecWren_LastChance_02",
+    "line_id": "C8_RecWren_LastChance",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_echo",
+    "expected": "We believe recovering it can prevent the catastrophe. It's the last chance we have.",
+    "sent_text": "We believe recovering it can prevent the catastrophe. It's the last chance we have.",
+    "transcript": "and",
+    "words": [
+      {
+        "word": "and",
+        "start": 3.28,
+        "end": 4.68
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 175,
+    "f0_p10_hz": 158,
+    "f0_p90_hz": 230,
+    "dry_duration_s": 4.708,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.2,
+    "mid_pause_ms": 472.0,
+    "sha256": {
+      "dry": "83ef26f7bf66f18a5170b1715c3b3b37a3c6eaa944a623da10293b1838ca0a26",
+      "echo": "474138cf1a3acbb607c68737c979609956e0c25480ab25e9123deafce403670c",
+      "raw": "61dfb2e237a3d1d260eae32c6b5dbdbbc436583b2a62a171e01596d4c45b595b"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": true
+  },
+  {
+    "stem": "VO_C8_RecWren_LastChance_03",
+    "line_id": "C8_RecWren_LastChance",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_echo",
+    "expected": "We believe recovering it can prevent the catastrophe. It's the last chance we have.",
+    "sent_text": "We believe recovering it can prevent the catastrophe. [pause] It's the last chance we have.",
+    "transcript": "We believe recovering it can prevent the catastrophe. It's the last chance we have.",
+    "words": [
+      {
+        "word": "We",
+        "start": 0.0,
+        "end": 0.24
+      },
+      {
+        "word": "believe",
+        "start": 0.24,
+        "end": 0.84
+      },
+      {
+        "word": "recovering",
+        "start": 0.84,
+        "end": 1.02
+      },
+      {
+        "word": "it",
+        "start": 1.02,
+        "end": 1.24
+      },
+      {
+        "word": "can",
+        "start": 1.24,
+        "end": 1.46
+      },
+      {
+        "word": "prevent",
+        "start": 1.46,
+        "end": 2.42
+      },
+      {
+        "word": "the",
+        "start": 2.42,
+        "end": 4.62
+      },
+      {
+        "word": "catastrophe.",
+        "start": 4.62,
+        "end": 4.62
+      },
+      {
+        "word": "It's",
+        "start": 4.62,
+        "end": 4.62
+      },
+      {
+        "word": "the",
+        "start": 4.62,
+        "end": 4.62
+      },
+      {
+        "word": "last",
+        "start": 4.62,
+        "end": 4.62
+      },
+      {
+        "word": "chance",
+        "start": 4.62,
+        "end": 4.62
+      },
+      {
+        "word": "we",
+        "start": 4.62,
+        "end": 4.66
+      },
+      {
+        "word": "have.",
+        "start": 4.66,
+        "end": 4.9
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 175,
+    "f0_p10_hz": 159,
+    "f0_p90_hz": 235,
+    "dry_duration_s": 5.074,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.4,
+    "mid_pause_ms": 820.0,
+    "sha256": {
+      "dry": "1596d7e4dd09ec6ca839e045551340db0291b5980e5b0b4670d024cedff3730c",
+      "echo": "1f12373fbcd9700a339b8cdc0d12652621c9e926141038ae6ebfec89873a8e9f",
+      "raw": "68717647fd4a78553d93608047e3f220504de64587876b9e0c08e6671fa919e0"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": true
+  },
+  {
+    "stem": "VO_G8_Wren_ConduitsFirst_01",
+    "line_id": "G8_Wren_ConduitsFirst",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry",
+    "expected": "Conduits first. Then the heart.",
+    "sent_text": "Conduits first. Then the heart.",
+    "transcript": "conduits first, then the heart.",
+    "words": [
+      {
+        "word": "conduits",
+        "start": 0.0,
+        "end": 0.56
+      },
+      {
+        "word": "first,",
+        "start": 0.56,
+        "end": 0.82
+      },
+      {
+        "word": "then",
+        "start": 1.44,
+        "end": 1.58
+      },
+      {
+        "word": "the",
+        "start": 1.58,
+        "end": 1.74
+      },
+      {
+        "word": "heart.",
+        "start": 1.74,
+        "end": 1.94
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 166,
+    "f0_p10_hz": 84,
+    "f0_p90_hz": 177,
+    "dry_duration_s": 2.096,
+    "dry_loudness_lufs": -20.84,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 324.0,
+    "sha256": {
+      "dry": "5384e08b0b00bb0053177b87ebd10fb8d44a0f0f1e239a7595c427812c435b8f",
+      "raw": "d7d8ed500d6f361b6071582529050d1a62fba89a519d9596d5344e8476cd8a11"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G8_Wren_ConduitsFirst_02",
+    "line_id": "G8_Wren_ConduitsFirst",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry",
+    "expected": "Conduits first. Then the heart.",
+    "sent_text": "Conduits first. Then the heart.",
+    "transcript": "conduits first, then the heart.",
+    "words": [
+      {
+        "word": "conduits",
+        "start": 0.0,
+        "end": 0.58
+      },
+      {
+        "word": "first,",
+        "start": 0.58,
+        "end": 0.92
+      },
+      {
+        "word": "then",
+        "start": 1.54,
+        "end": 1.66
+      },
+      {
+        "word": "the",
+        "start": 1.66,
+        "end": 1.78
+      },
+      {
+        "word": "heart.",
+        "start": 1.78,
+        "end": 1.98
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 176,
+    "f0_p10_hz": 76,
+    "f0_p90_hz": 187,
+    "dry_duration_s": 2.136,
+    "dry_loudness_lufs": -20.43,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 454.0,
+    "sha256": {
+      "dry": "2f31d3ee46dd1cbe0a81dbafef91439f39ea4c18964bf3bb5318c2bed9fcdaf7",
+      "raw": "cbe02c18c95132a80d41cb69fd4643a319b313035ea2cc1fff2c686ded682760"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G8_Wren_ConduitsFirst_03",
+    "line_id": "G8_Wren_ConduitsFirst",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry",
+    "expected": "Conduits first. Then the heart.",
+    "sent_text": "Conduits first. [pause] Then the heart.",
+    "transcript": "conduits first, then the heart.",
+    "words": [
+      {
+        "word": "conduits",
+        "start": 0.0,
+        "end": 0.64
+      },
+      {
+        "word": "first,",
+        "start": 0.64,
+        "end": 0.94
+      },
+      {
+        "word": "then",
+        "start": 1.88,
+        "end": 2.02
+      },
+      {
+        "word": "the",
+        "start": 2.02,
+        "end": 2.18
+      },
+      {
+        "word": "heart.",
+        "start": 2.18,
+        "end": 2.38
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 180,
+    "f0_p10_hz": 153,
+    "f0_p90_hz": 227,
+    "dry_duration_s": 2.562,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.7,
+    "mid_pause_ms": 640.0,
+    "sha256": {
+      "dry": "3d50136ff74e95bc7181de47f1f8f0446d81c538a0818900ba3a8b2a96fee23e",
+      "raw": "63483bf142b63b0714537e89cdc095cfe0d753ee87cab282164c170e6c2fbb6f"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G9_Wren_HoldingWayOut_01",
+    "line_id": "G9_Wren_HoldingWayOut",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Keep moving. We're holding the way out.",
+    "sent_text": "Keep moving. We're holding the way out.",
+    "transcript": "Keep moving, we're holding the way out.",
+    "words": [
+      {
+        "word": "Keep",
+        "start": 0.0,
+        "end": 0.24
+      },
+      {
+        "word": "moving,",
+        "start": 0.24,
+        "end": 0.62
+      },
+      {
+        "word": "we're",
+        "start": 1.02,
+        "end": 1.16
+      },
+      {
+        "word": "holding",
+        "start": 1.16,
+        "end": 1.4
+      },
+      {
+        "word": "the",
+        "start": 1.4,
+        "end": 1.54
+      },
+      {
+        "word": "way",
+        "start": 1.54,
+        "end": 1.68
+      },
+      {
+        "word": "out.",
+        "start": 1.68,
+        "end": 1.92
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 189,
+    "f0_p10_hz": 89,
+    "f0_p90_hz": 213,
+    "dry_duration_s": 2.066,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.8,
+    "mid_pause_ms": 196.0,
+    "sha256": {
+      "dry": "e08136306df9489ffb69b27f01582ab2f5c6d78ae5b5ad6e08e734ae94ccdef6",
+      "radio": "7a73b98d40ac04772fd6d5b14b96c89bdfbdf54bec3c42bb1c2f56a9ef2cbe50",
+      "raw": "1fcb7e2883fa6ee619d3d3d03b3548f1876545ab41b32127fd5acab77c7116bc"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G9_Wren_HoldingWayOut_02",
+    "line_id": "G9_Wren_HoldingWayOut",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Keep moving. We're holding the way out.",
+    "sent_text": "Keep moving. We're holding the way out.",
+    "transcript": "Keep moving, we're holding",
+    "words": [
+      {
+        "word": "Keep",
+        "start": 0.0,
+        "end": 0.22
+      },
+      {
+        "word": "moving,",
+        "start": 0.22,
+        "end": 0.62
+      },
+      {
+        "word": "we're",
+        "start": 1.02,
+        "end": 1.16
+      },
+      {
+        "word": "holding",
+        "start": 1.16,
+        "end": 1.38
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 177,
+    "f0_p10_hz": 78,
+    "f0_p90_hz": 199,
+    "dry_duration_s": 2.076,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -4.2,
+    "mid_pause_ms": 152.0,
+    "sha256": {
+      "dry": "5a4472154674f33e79e7eb22ebd570d4dd2640084b287d338c85d41924ebc18c",
+      "radio": "7a2e8531cc9a13c1c88b0c6b1c3ea3ead770747487a8217621a4531416a47656",
+      "raw": "3b88af019716158561a7139be7a9d6a9216ad160572b7b28be24d317c8056238"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G9_Wren_HoldingWayOut_03",
+    "line_id": "G9_Wren_HoldingWayOut",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Keep moving. We're holding the way out.",
+    "sent_text": "Keep moving. [pause] We're holding the way out.",
+    "transcript": "Keep moving. We're holding the way out.",
+    "words": [
+      {
+        "word": "Keep",
+        "start": 0.0,
+        "end": 0.22
+      },
+      {
+        "word": "moving.",
+        "start": 0.22,
+        "end": 0.66
+      },
+      {
+        "word": "We're",
+        "start": 2.8,
+        "end": 3.28
+      },
+      {
+        "word": "holding",
+        "start": 3.28,
+        "end": 3.54
+      },
+      {
+        "word": "the",
+        "start": 3.54,
+        "end": 3.72
+      },
+      {
+        "word": "way",
+        "start": 3.72,
+        "end": 3.88
+      },
+      {
+        "word": "out.",
+        "start": 3.88,
+        "end": 4.12
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 183,
+    "f0_p10_hz": 84,
+    "f0_p90_hz": 204,
+    "dry_duration_s": 4.266,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -5.7,
+    "mid_pause_ms": 2386.0,
+    "sha256": {
+      "dry": "4a8b4fd715746b00d4043ee8a40041a080cc6ccbe383fcf6aaf3552905e703ba",
+      "radio": "cd73e41fcc9f6af4804bfad2b1c11ed5e95150176b6a90fb6ece705e27be272e",
+      "raw": "cdc1f6b711bcf3df4e14ebe74204050ef1639771dbf5820c9ac592262a893d2f"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G9_Wren_PullAway_01",
+    "line_id": "G9_Wren_PullAway",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Triad, pull away. Follow the clear vector.",
+    "sent_text": "Triad, pull away. Follow the clear vector.",
+    "transcript": "triad, follow the clear vector.",
+    "words": [
+      {
+        "word": "triad,",
+        "start": 0.0,
+        "end": 0.56
+      },
+      {
+        "word": "follow",
+        "start": 1.6,
+        "end": 1.82
+      },
+      {
+        "word": "the",
+        "start": 1.82,
+        "end": 2.16
+      },
+      {
+        "word": "clear",
+        "start": 2.16,
+        "end": 2.42
+      },
+      {
+        "word": "vector.",
+        "start": 2.42,
+        "end": 2.78
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 162,
+    "f0_p10_hz": 77,
+    "f0_p90_hz": 173,
+    "dry_duration_s": 3.07,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.8,
+    "mid_pause_ms": 446.0,
+    "sha256": {
+      "dry": "47cd0f5d3a4725da11f9d2992c97d0765959ec5592eefc0728672087833abc20",
+      "radio": "d4aa5ff18e66b37b23d2afe6a382444c4f427db0bcd0b93080b1bc09777917af",
+      "raw": "af9d1794dd80cfcb7b750e6c533a3b3b3f758f0f632d9d540ed63a165c9c6d21"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G9_Wren_PullAway_02",
+    "line_id": "G9_Wren_PullAway",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Triad, pull away. Follow the clear vector.",
+    "sent_text": "Triad, pull away. Follow the clear vector.",
+    "transcript": "pull away. Follow the clear vector.",
+    "words": [
+      {
+        "word": "pull",
+        "start": 0.0,
+        "end": 0.78
+      },
+      {
+        "word": "away.",
+        "start": 0.78,
+        "end": 1.08
+      },
+      {
+        "word": "Follow",
+        "start": 1.7,
+        "end": 1.98
+      },
+      {
+        "word": "the",
+        "start": 1.98,
+        "end": 2.18
+      },
+      {
+        "word": "clear",
+        "start": 2.18,
+        "end": 2.4
+      },
+      {
+        "word": "vector.",
+        "start": 2.4,
+        "end": 2.76
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 188,
+    "f0_p10_hz": 158,
+    "f0_p90_hz": 203,
+    "dry_duration_s": 3.06,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.8,
+    "mid_pause_ms": 524.0,
+    "sha256": {
+      "dry": "406b0fda7e8a267d314ddbffc1b784a36e2fbcaf71204eb35a71a481ad6a5acc",
+      "radio": "29f24acd65c069c146db25ce46ab09c8911f7f4ac9cca47d8b7b0e802e087d05",
+      "raw": "36dc3725ebaa96368b994d307d8dbc2251c68450cee1faba63f35303d33cbab5"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_G9_Wren_PullAway_03",
+    "line_id": "G9_Wren_PullAway",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Triad, pull away. Follow the clear vector.",
+    "sent_text": "Triad, pull away. [pause] Follow the clear vector.",
+    "transcript": "tri Follow the clear vector.",
+    "words": [
+      {
+        "word": "tri",
+        "start": 0.0,
+        "end": 0.32
+      },
+      {
+        "word": "Follow",
+        "start": 1.74,
+        "end": 2.3
+      },
+      {
+        "word": "the",
+        "start": 2.3,
+        "end": 2.58
+      },
+      {
+        "word": "clear",
+        "start": 2.58,
+        "end": 2.82
+      },
+      {
+        "word": "vector.",
+        "start": 2.82,
+        "end": 3.18
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 181,
+    "f0_p10_hz": 88,
+    "f0_p90_hz": 203,
+    "dry_duration_s": 3.482,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.9,
+    "mid_pause_ms": 886.0,
+    "sha256": {
+      "dry": "a6cc016ed1164cbdb01143fc27fa4d5c2e930fc286f7d068aa6c9dd759f2dd73",
+      "radio": "28462f868f9e6eec779556b2aee5af9c5467569b621ed98ac524f67c3795c874",
+      "raw": "d91fae0ebdb098a320eb227a7986d5da5b87bb37c17e351fa10705f718ac3f95"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C9_Wren_Clear_01",
+    "line_id": "C9_Wren_Clear",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Rift clear. All three accounted for.",
+    "sent_text": "Rift clear. All three accounted for.",
+    "transcript": "Rift Clear, all three accounted for.",
+    "words": [
+      {
+        "word": "Rift",
+        "start": 0.0,
+        "end": 0.34
+      },
+      {
+        "word": "Clear,",
+        "start": 0.34,
+        "end": 0.68
+      },
+      {
+        "word": "all",
+        "start": 1.18,
+        "end": 1.3
+      },
+      {
+        "word": "three",
+        "start": 1.3,
+        "end": 1.52
+      },
+      {
+        "word": "accounted",
+        "start": 1.52,
+        "end": 1.86
+      },
+      {
+        "word": "for.",
+        "start": 1.86,
+        "end": 2.2
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 172,
+    "f0_p10_hz": 77,
+    "f0_p90_hz": 182,
+    "dry_duration_s": 2.392,
+    "dry_loudness_lufs": -19.11,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 282.0,
+    "sha256": {
+      "dry": "049f05f3fc7956f20cb0169582ca53815233f023973fd55d8e29ace9338a1a77",
+      "radio": "91378819805ae195d8019ded25e64d7e25a2a73fca909a55caffe54af1f95502",
+      "raw": "5fd4a31a5d53c186cf2eda3ada165b1b20b82794a278781bdcda6d7207d7aa58"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C9_Wren_Clear_02",
+    "line_id": "C9_Wren_Clear",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Rift clear. All three accounted for.",
+    "sent_text": "Rift clear. All three accounted for.",
+    "transcript": "Rift Clear, all three accounted for.",
+    "words": [
+      {
+        "word": "Rift",
+        "start": 0.0,
+        "end": 0.32
+      },
+      {
+        "word": "Clear,",
+        "start": 0.32,
+        "end": 0.68
+      },
+      {
+        "word": "all",
+        "start": 1.3,
+        "end": 1.46
+      },
+      {
+        "word": "three",
+        "start": 1.46,
+        "end": 1.7
+      },
+      {
+        "word": "accounted",
+        "start": 1.7,
+        "end": 2.06
+      },
+      {
+        "word": "for.",
+        "start": 2.06,
+        "end": 2.42
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 175,
+    "f0_p10_hz": 80,
+    "f0_p90_hz": 204,
+    "dry_duration_s": 2.63,
+    "dry_loudness_lufs": -20.09,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 420.0,
+    "sha256": {
+      "dry": "4d8cbbccc10753ddb52cf2ffa022e1cab79e2e33021337e24d5f3d5b56757ec0",
+      "radio": "9b3565a0b83f1327b00bda3f23fe105a9be3dec7f8fe4e8514fe87080334474d",
+      "raw": "bbc4c499675cd5e0a1cd2869c8f6515a9b7d027d97109ab26f0b9f70e75ab445"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C9_Wren_Clear_03",
+    "line_id": "C9_Wren_Clear",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Rift clear. All three accounted for.",
+    "sent_text": "Rift clear. [pause] All three accounted for.",
+    "transcript": "Rift Clear, accounted for.",
+    "words": [
+      {
+        "word": "Rift",
+        "start": 0.0,
+        "end": 0.36
+      },
+      {
+        "word": "Clear,",
+        "start": 0.36,
+        "end": 0.76
+      },
+      {
+        "word": "accounted",
+        "start": 1.94,
+        "end": 2.12
+      },
+      {
+        "word": "for.",
+        "start": 2.12,
+        "end": 2.54
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 171,
+    "f0_p10_hz": 74,
+    "f0_p90_hz": 193,
+    "dry_duration_s": 2.724,
+    "dry_loudness_lufs": -20.93,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 490.0,
+    "sha256": {
+      "dry": "3613874b40b1948fb714cc9ad52bd6d0cbe9856fd9b58cd92453f7f237829c7f",
+      "radio": "0289873397e330b2e7ad863ffa929032c6d768c883d12be7cd90ff0bf263395e",
+      "raw": "39d91b639dbfc6bb4e3352343fc878601aca2fae214e354ee2bcb6249fcca65e"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C9_Wren_Source_01",
+    "line_id": "C9_Wren_Source",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "The source?",
+    "sent_text": "The source?",
+    "transcript": "The Source?",
+    "words": [
+      {
+        "word": "The",
+        "start": 0.0,
+        "end": 0.18
+      },
+      {
+        "word": "Source?",
+        "start": 0.18,
+        "end": 0.44
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 189,
+    "f0_p10_hz": 168,
+    "f0_p90_hz": 294,
+    "dry_duration_s": 0.782,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.2,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "0f812c40e7b9d44142a347cc4129e0cd1f1fac887d900a07b619d0bc56d39504",
+      "radio": "476bad783a5e6dd647e95b4b6ac00324318258458a290ec40e8b8d94eb68aa91",
+      "raw": "ca7d82dba7884f4579a2b1c23b823c735d0550c0b3b9bb0eca4127fc4205db73"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C9_Wren_Source_02",
+    "line_id": "C9_Wren_Source",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "The source?",
+    "sent_text": "The source?",
+    "transcript": "the source.",
+    "words": [
+      {
+        "word": "the",
+        "start": 0.0,
+        "end": 0.16
+      },
+      {
+        "word": "source.",
+        "start": 0.16,
+        "end": 0.46
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 168,
+    "f0_p10_hz": 160,
+    "f0_p90_hz": 286,
+    "dry_duration_s": 0.856,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -3.1,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "66c84bfb4459b490370c0fe12ea2864c4425ce1f7bb0a830cf6777dc75cc0c86",
+      "radio": "131abb4bb81c10355e12f1fa5b442fe4160fbcf750dd42456977ac50c34063a8",
+      "raw": "cfccc1842736cbbc6eec1bad4c1769ed31dd4ed95ebfdca5b245844feeff6796"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_C9_Wren_Source_03",
+    "line_id": "C9_Wren_Source",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "The source?",
+    "sent_text": "The source?",
+    "transcript": "The Source?",
+    "words": [
+      {
+        "word": "The",
+        "start": 0.0,
+        "end": 0.2
+      },
+      {
+        "word": "Source?",
+        "start": 0.2,
+        "end": 0.48
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 178,
+    "f0_p10_hz": 85,
+    "f0_p90_hz": 251,
+    "dry_duration_s": 0.87,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.4,
+    "mid_pause_ms": 0.0,
+    "sha256": {
+      "dry": "2016d4cd1522b0b46e7c7be48f81b44544cbb8fed05537e8b266811d26c4698b",
+      "radio": "6f9452efba54c2f1c39978a44dedcf948630af5b96a6436218e06fb453cec64b",
+      "raw": "79df030473385ff67503665839ae92165d25f2066f3984c7453e2217206ecfa1"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_A4_GeneratorDown3_01",
+    "line_id": "A4_GeneratorDown3",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Three! One more and it's open.",
+    "sent_text": "Three! One more and it's open.",
+    "transcript": "Three! One more and it's open.",
+    "words": [
+      {
+        "word": "Three!",
+        "start": 0.0,
+        "end": 0.38
+      },
+      {
+        "word": "One",
+        "start": 0.72,
+        "end": 0.9
+      },
+      {
+        "word": "more",
+        "start": 0.9,
+        "end": 1.12
+      },
+      {
+        "word": "and",
+        "start": 1.12,
+        "end": 1.34
+      },
+      {
+        "word": "it's",
+        "start": 1.34,
+        "end": 1.5
+      },
+      {
+        "word": "open.",
+        "start": 1.5,
+        "end": 1.72
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 208,
+    "f0_p10_hz": 161,
+    "f0_p90_hz": 317,
+    "dry_duration_s": 2.024,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -5.6,
+    "mid_pause_ms": 188.0,
+    "sha256": {
+      "dry": "6791927c2719332ab538a03fdcf5388bbcad3b8b7097b8a4c4263dba6a450276",
+      "radio": "e7ae3e829c4c9e126ac9552a35b5d42649189256154481cc961254b542a8b360",
+      "raw": "fb8a423605cce85f270cab0f7525442f19573e3306749a3bc81e7c1ee66f7e50"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_A4_GeneratorDown3_02",
+    "line_id": "A4_GeneratorDown3",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Three! One more and it's open.",
+    "sent_text": "Three! One more and it's open.",
+    "transcript": "Three, one more and it's",
+    "words": [
+      {
+        "word": "Three,",
+        "start": 0.0,
+        "end": 0.32
+      },
+      {
+        "word": "one",
+        "start": 0.64,
+        "end": 0.86
+      },
+      {
+        "word": "more",
+        "start": 0.86,
+        "end": 1.1
+      },
+      {
+        "word": "and",
+        "start": 1.1,
+        "end": 1.26
+      },
+      {
+        "word": "it's",
+        "start": 1.26,
+        "end": 1.28
+      }
+    ],
+    "match": false,
+    "median_f0_hz": 216,
+    "f0_p10_hz": 170,
+    "f0_p90_hz": 255,
+    "dry_duration_s": 1.958,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -5.6,
+    "mid_pause_ms": 216.0,
+    "sha256": {
+      "dry": "0513c8ffeb6431c95f7ce2e03adebdb971ce2c04a93f0bdc3548b11602927af4",
+      "radio": "8df421e2c1550b497088f841a4418ebb039957f72e5c0f5178885d76721d91c2",
+      "raw": "b62768e101eccc57544a9197864b5f0659e8e9508c85f96d2ded81e51cd62c58"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_A4_GeneratorDown3_03",
+    "line_id": "A4_GeneratorDown3",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Three! One more and it's open.",
+    "sent_text": "Three! [pause] One more and it's open.",
+    "transcript": "Three. One more and it's open.",
+    "words": [
+      {
+        "word": "Three.",
+        "start": 0.0,
+        "end": 0.42
+      },
+      {
+        "word": "One",
+        "start": 1.94,
+        "end": 2.44
+      },
+      {
+        "word": "more",
+        "start": 2.44,
+        "end": 2.62
+      },
+      {
+        "word": "and",
+        "start": 2.62,
+        "end": 2.8
+      },
+      {
+        "word": "it's",
+        "start": 2.8,
+        "end": 2.94
+      },
+      {
+        "word": "open.",
+        "start": 2.94,
+        "end": 3.18
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 210,
+    "f0_p10_hz": 168,
+    "f0_p90_hz": 254,
+    "dry_duration_s": 3.478,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -4.9,
+    "mid_pause_ms": 1672.0,
+    "sha256": {
+      "dry": "fb766150cae7e26e47bfedaf87facca57c6f74403ec18f1c38ca6b8af05f3ff9",
+      "radio": "ed5dcaf0f2afe994bf2daf616b6b948ea38f926e5825a6f0753ac9a5eb0b79bc",
+      "raw": "18d01d0b4f984a7917a4e1ada8026503d264d675546874965d631bad3251e0e4"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_A4_Recording_Barracks_01",
+    "line_id": "A4_Recording_Barracks",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_echo",
+    "expected": "Recover the Core. Protect the younger Triad.",
+    "sent_text": "Recover the Core. Protect the younger Triad.",
+    "transcript": "Recover the core. Protect the younger triad.",
+    "words": [
+      {
+        "word": "Recover",
+        "start": 0.0,
+        "end": 0.36
+      },
+      {
+        "word": "the",
+        "start": 0.36,
+        "end": 0.6
+      },
+      {
+        "word": "core.",
+        "start": 0.6,
+        "end": 0.92
+      },
+      {
+        "word": "Protect",
+        "start": 1.82,
+        "end": 1.82
+      },
+      {
+        "word": "the",
+        "start": 1.82,
+        "end": 2.02
+      },
+      {
+        "word": "younger",
+        "start": 2.02,
+        "end": 2.32
+      },
+      {
+        "word": "triad.",
+        "start": 2.32,
+        "end": 2.84
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 172,
+    "f0_p10_hz": 78,
+    "f0_p90_hz": 192,
+    "dry_duration_s": 3.022,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -1.6,
+    "mid_pause_ms": 530.0,
+    "sha256": {
+      "dry": "32346c45fec35c439673d500a70b8e7522a25510c0207396400bef7213956455",
+      "echo": "e4402ca9b06d81c26f72479bf698f185327922f447bdf08dd416a7b5646c6386",
+      "raw": "aed27731bbf8c7d23409231d1efa22e0b6e2df94a955c51c1f0801cf06db09f3"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": true
+  },
+  {
+    "stem": "VO_A4_Recording_Barracks_02",
+    "line_id": "A4_Recording_Barracks",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_echo",
+    "expected": "Recover the Core. Protect the younger Triad.",
+    "sent_text": "Recover the Core. Protect the younger Triad.",
+    "transcript": "Recover the core. Protect the younger triad.",
+    "words": [
+      {
+        "word": "Recover",
+        "start": 0.0,
+        "end": 0.4
+      },
+      {
+        "word": "the",
+        "start": 0.4,
+        "end": 0.66
+      },
+      {
+        "word": "core.",
+        "start": 0.66,
+        "end": 0.98
+      },
+      {
+        "word": "Protect",
+        "start": 1.82,
+        "end": 1.82
+      },
+      {
+        "word": "the",
+        "start": 1.82,
+        "end": 2.08
+      },
+      {
+        "word": "younger",
+        "start": 2.08,
+        "end": 2.34
+      },
+      {
+        "word": "triad.",
+        "start": 2.34,
+        "end": 2.92
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 175,
+    "f0_p10_hz": 79,
+    "f0_p90_hz": 191,
+    "dry_duration_s": 3.07,
+    "dry_loudness_lufs": -19.3,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 376.0,
+    "sha256": {
+      "dry": "178f49b197803766dad6cc2aaae2818a7fbcc40aebc6d0856053403e1fb4b4fa",
+      "echo": "3e564eed21eb3d4b4775c156427f666ecef7eca07d56a4139b6e52061dda8b4f",
+      "raw": "8d646ac0fce62ed0f02eae14546d301173c45aca4b61ff79c4b25334a4f2adce"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": true
+  },
+  {
+    "stem": "VO_A4_Recording_Barracks_03",
+    "line_id": "A4_Recording_Barracks",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_echo",
+    "expected": "Recover the Core. Protect the younger Triad.",
+    "sent_text": "Recover the Core. [pause] Protect the younger Triad.",
+    "transcript": "Recover the core. Protect the younger triad.",
+    "words": [
+      {
+        "word": "Recover",
+        "start": 0.0,
+        "end": 0.38
+      },
+      {
+        "word": "the",
+        "start": 0.38,
+        "end": 0.64
+      },
+      {
+        "word": "core.",
+        "start": 0.64,
+        "end": 0.98
+      },
+      {
+        "word": "Protect",
+        "start": 2.1,
+        "end": 2.12
+      },
+      {
+        "word": "the",
+        "start": 2.12,
+        "end": 2.38
+      },
+      {
+        "word": "younger",
+        "start": 2.38,
+        "end": 2.7
+      },
+      {
+        "word": "triad.",
+        "start": 2.7,
+        "end": 3.28
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 181,
+    "f0_p10_hz": 81,
+    "f0_p90_hz": 205,
+    "dry_duration_s": 3.434,
+    "dry_loudness_lufs": -19.5,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 714.0,
+    "sha256": {
+      "dry": "ba1aa66e8f509b0d29f4d61b51bab5b90494cf256c68859bbbd36cdf5cefc729",
+      "echo": "b863ad00b4fc170b272c7ff4798a5d0c8a2cee6482acad6a89b8fe5ce5e97f4c",
+      "raw": "19d76e03f141ec868972a4f3044055119626214f2b255d7255996339ba6dba56"
+    },
+    "dry_exists": true,
+    "radio_exists": false,
+    "echo_exists": true
+  },
+  {
+    "stem": "VO_F_FutureWren_Channel_01",
+    "line_id": "F_FutureWren_Channel",
+    "variant": null,
+    "take": 1,
+    "treatment": "dry_radio",
+    "expected": "Open a channel. Now.",
+    "sent_text": "Open a channel. Now.",
+    "transcript": "Open a channel now.",
+    "words": [
+      {
+        "word": "Open",
+        "start": 0.0,
+        "end": 0.28
+      },
+      {
+        "word": "a",
+        "start": 0.28,
+        "end": 0.42
+      },
+      {
+        "word": "channel",
+        "start": 0.42,
+        "end": 0.74
+      },
+      {
+        "word": "now.",
+        "start": 0.74,
+        "end": 1.3
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 165,
+    "f0_p10_hz": 76,
+    "f0_p90_hz": 216,
+    "dry_duration_s": 1.592,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.3,
+    "mid_pause_ms": 184.0,
+    "sha256": {
+      "dry": "cd9affc3abaf71d547a69b0022bcedbd00b38c56561c8e48a2385645a8d4b6ab",
+      "radio": "53b3751101590e09695807a9baf2ee943caec014a585c7bc3c84ecc1b3a69a78",
+      "raw": "d4a8ddbc9c6d6eef9380e1a68029388ca5065eda5db667ffe7c564798c80f9a9"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_F_FutureWren_Channel_02",
+    "line_id": "F_FutureWren_Channel",
+    "variant": null,
+    "take": 2,
+    "treatment": "dry_radio",
+    "expected": "Open a channel. Now.",
+    "sent_text": "Open a channel. Now.",
+    "transcript": "Open a channel now.",
+    "words": [
+      {
+        "word": "Open",
+        "start": 0.0,
+        "end": 0.28
+      },
+      {
+        "word": "a",
+        "start": 0.28,
+        "end": 0.42
+      },
+      {
+        "word": "channel",
+        "start": 0.42,
+        "end": 0.74
+      },
+      {
+        "word": "now.",
+        "start": 0.74,
+        "end": 1.28
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 166,
+    "f0_p10_hz": 148,
+    "f0_p90_hz": 196,
+    "dry_duration_s": 1.58,
+    "dry_loudness_lufs": -19.0,
+    "dry_true_peak_dbtp": -2.6,
+    "mid_pause_ms": 194.0,
+    "sha256": {
+      "dry": "13c4bc95042c34b77f6d2a1b7a3762315c50ddbab6f0643c176f1fe36138afc0",
+      "radio": "58931bc6e7c049ea05a2788f5465143549af6ba21f98df075ae483ad6ba95f22",
+      "raw": "69ef2a92d21566d02e7988e865480247db80d6cc4af0588edf88ff8ba1df1b80"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  },
+  {
+    "stem": "VO_F_FutureWren_Channel_03",
+    "line_id": "F_FutureWren_Channel",
+    "variant": null,
+    "take": 3,
+    "treatment": "dry_radio",
+    "expected": "Open a channel. Now.",
+    "sent_text": "Open a channel. [pause] Now.",
+    "transcript": "Open a channel now.",
+    "words": [
+      {
+        "word": "Open",
+        "start": 0.0,
+        "end": 0.3
+      },
+      {
+        "word": "a",
+        "start": 0.3,
+        "end": 0.44
+      },
+      {
+        "word": "channel",
+        "start": 0.44,
+        "end": 0.78
+      },
+      {
+        "word": "now.",
+        "start": 0.78,
+        "end": 1.6
+      }
+    ],
+    "match": true,
+    "median_f0_hz": 162,
+    "f0_p10_hz": 80,
+    "f0_p90_hz": 223,
+    "dry_duration_s": 1.916,
+    "dry_loudness_lufs": -19.11,
+    "dry_true_peak_dbtp": -1.5,
+    "mid_pause_ms": 478.0,
+    "sha256": {
+      "dry": "63813daa0f3c0093f57b9b96f0fb8c8c5d632cd7f4428c9400dd73ecc683347f",
+      "radio": "86ff478fb70e02134f27b9cd8d396c1f0257fa97b126a4847440c806b242ad37",
+      "raw": "1bdcddef0f1ba98ac42a78f151b39dcbc476c030d57fa65592be963f106c434f"
+    },
+    "dry_exists": true,
+    "radio_exists": true,
+    "echo_exists": false
+  }
+]

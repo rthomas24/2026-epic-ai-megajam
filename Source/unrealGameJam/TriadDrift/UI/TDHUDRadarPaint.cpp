@@ -49,7 +49,7 @@ namespace TDHUDRadar
 		{
 			TArray<FVector2D>& Pts = Scratch();
 			for (const FVector2D& Q : Local) { Pts.Add(Px(At + Q)); }
-			if (bClose && Pts.Num() > 0) { Pts.Add(Pts[0]); }
+			if (bClose && Pts.Num() > 0) { const FVector2D First = Pts[0]; Pts.Add(First); } // never Add an element of the array itself by reference (asserts, or reads freed memory in Shipping)
 			Lines(Pts, Col, Width);
 		}
 		void Circle(const FVector2D& At, float Rad, FLinearColor Col, float Width, int32 Segments = 40) const
@@ -191,8 +191,13 @@ void TDPaintHUDRadar(const FTDUIPainter& P, const FTDHUDModel& Model, const FTDH
 	const float Range = FMath::Max(Model.RadarRange, 1.f);
 
 	// ---- plate: a dark disc (Panel), a soft rim, rings at 1/3 and 2/3, cardinal ticks, the camera's 70 degree view cone
-	static FSlateRoundedBoxBrush Disc(FLinearColor::White, 0.f);
-	Disc.OutlineSettings.RoundingType = ESlateBrushRoundingType::HalfHeightRadius;
+	// Built once and never written again: the render thread reads this brush after the paint returns.
+	static const FSlateRoundedBoxBrush Disc = []()
+	{
+		FSlateRoundedBoxBrush B(FLinearColor::White, 0.f);
+		B.OutlineSettings.RoundingType = ESlateBrushRoundingType::HalfHeightRadius;
+		return B;
+	}();
 	FSlateDrawElement::MakeBox(P.List, P.Layer, P.Geo({ C.X - R, C.Y - R }, { 2 * R, 2 * R }), &Disc, ESlateDrawEffect::None,
 		P.Faded(Pal::Panel().CopyWithNewOpacity(.82f)));
 	const float ConeHalf = FMath::DegreesToRadians(35.f);

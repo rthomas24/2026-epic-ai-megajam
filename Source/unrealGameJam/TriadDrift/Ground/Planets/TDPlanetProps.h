@@ -357,7 +357,14 @@ private:
 	UFUNCTION() void HandleStepStarted(ATDObjective* Objective, int32 StepIndex);
 	void DropDebris();
 	AActor* DropPiece(const FVector& WorldAt, UStaticMesh* Art, float Scale, const FVector& Velocity);
+	/** Sinks and leans the tower to collapse amount A (0 standing, 1 fully down) and breaks off the sections due by then. */
+	void ApplyCollapse(float A);
 	int32 SectionsDropped = 0;
+	bool bDroppingSection = false;
+	/** After the escape succeeds the deadline is gone, but the tower falls on from FinishFromA to fully down. */
+	bool bFinishing = false;
+	float FinishFromA = 0.f;
+	float FinishElapsed = 0.f;
 
 	float TimeLeft = -1.f;
 	float DebrisTimer = 0.f;
@@ -365,6 +372,8 @@ private:
 public:
 	/** A beat between the step's start (the "3 / 3" line) and the clock (T7: the run felt tight). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s")) float StartDelay = 1.5f;
+	/** Once the player has made it out, how long the rest of the fall takes (seen while running to the ship). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Planet", meta = (Units = "s", ClampMin = "0.5")) float FinishSeconds = 6.f;
 private:
 	int32 LastShownSecond = -1;
 	FVector TowerHome = FVector::ZeroVector;

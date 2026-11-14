@@ -1,0 +1,39 @@
+{
+ "_note": "Light combo v3 (Nov 14, melee pass). Three distinct arcs that hand off: L1 forehand diagonal (high right to low left), L2 back-hand flat (left to right, starts where L1 ends), L3 overhead finisher (starts where L2 ends). Coil 0.05 s (torso turned against the cut), contact at 0.10 s (the code's HitDelay), follow-through 30-40 deg past centre by 0.18 s, recovery held to the lockout (0.28 / 0.28 / 0.36 s) so a chained press starts from the same pose, then back to the guard. hand = (forward, right, up) cm from the right shoulder in the chest frame; blade = direction in that frame; yaw = torso turn (deg, + = to the right); t = game seconds at the code's rate. Light2 is authored on Light1's legs (square stance): Light2's own legs stand side-on and turned the whole body 90 deg between the first and second hit in game (r1).",
+ "swing": [
+  {
+   "src": "A_Pilot_Light1", "dst": "A_Pilot_Light1_v3", "rate": 1.6, "max_yaw": 90,
+   "keys": [
+    {"t": 0.0,  "hand": [30, 8, -22],  "blade": [0.6, 0.05, 0.75],  "yaw": 0},
+    {"t": 0.05, "hand": [8, 30, 16],   "blade": [-0.25, 0.45, 0.85], "yaw": 28},
+    {"t": 0.10, "hand": [50, 0, -6],   "blade": [0.85, -0.42, -0.2], "yaw": 0},
+    {"t": 0.18, "hand": [32, -44, -30], "blade": [0.3, -0.78, -0.52], "yaw": -32},
+    {"t": 0.28, "hand": [30, -42, -30], "blade": [0.32, -0.76, -0.52], "yaw": -30},
+    {"t": "end", "hand": [30, 8, -22], "blade": [0.6, 0.05, 0.75],  "yaw": 0}
+   ]
+  },
+  {
+   "src": "A_Pilot_Light1", "dst": "A_Pilot_Light2_v3", "rate": 1.6, "max_yaw": 90,
+   "keys": [
+    {"t": 0.0,  "hand": [30, -42, -30], "blade": [0.32, -0.76, -0.52], "yaw": -30},
+    {"t": 0.05, "hand": [18, -48, -8],  "blade": [-0.35, -0.9, 0.15],  "yaw": -42},
+    {"t": 0.10, "hand": [52, 4, -8],    "blade": [0.85, 0.48, -0.05],  "yaw": 0},
+    {"t": 0.18, "hand": [26, 46, -12],  "blade": [0.3, 0.92, 0.0],     "yaw": 36},
+    {"t": 0.28, "hand": [25, 44, -12],  "blade": [0.3, 0.9, 0.05],     "yaw": 34},
+    {"t": "end", "hand": [30, 8, -22],  "blade": [0.6, 0.05, 0.75],    "yaw": 0}
+   ]
+  },
+  {
+   "src": "A_Pilot_Light3", "dst": "A_Pilot_Light3_v3", "rate": 1.5, "max_yaw": 90,
+   "keys": [
+    {"t": 0.0,  "hand": [25, 44, -12], "blade": [0.3, 0.9, 0.05],    "yaw": 34},
+    {"t": 0.06, "hand": [8, 10, 38],   "blade": [-0.45, 0.05, 0.9],  "yaw": 12},
+    {"t": 0.10, "hand": [52, -2, 2],   "blade": [0.9, 0.0, -0.35],   "yaw": 0},
+    {"t": 0.18, "hand": [42, -8, -42], "blade": [0.45, -0.08, -0.88], "yaw": -10},
+    {"t": 0.36, "hand": [40, -8, -42], "blade": [0.45, -0.08, -0.88], "yaw": -8},
+    {"t": "end", "hand": [30, 8, -22], "blade": [0.6, 0.05, 0.75],   "yaw": 0}
+   ]
+  }
+ ]
+}
+

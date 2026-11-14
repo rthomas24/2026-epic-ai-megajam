@@ -113,9 +113,9 @@ public:
 
 	/** Ground speeds the walk and run loops were authored for: playback rate follows the real speed (less foot sliding). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm/s"))
-	float BodyWalkSpeed = 300.f;
+	float BodyWalkSpeed = 130.f; // measured from the planted foot (animation builder, Nov 14): Walk_v2 130, Run 487
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Body", meta = (Units = "cm/s"))
-	float BodyRunSpeed = 650.f;
+	float BodyRunSpeed = 487.f;
 
 	/** Applies PilotVisuals (loads the default when empty). Public for tests. */
 	void ApplyPilotVisuals();
@@ -376,6 +376,8 @@ private:
 	/** Body, head, blades and turning for the current view (Tick, and at once on a mode change, even paused). */
 	void ApplyViewState();
 	ETDBladeState LastBodyBladeState = ETDBladeState::Idle;
+	/** The heavy wind-up is showing for the press being held (A_Pilot_Blade_HeavyWindup). */
+	bool bHeavyWindupShown = false;
 	bool bLastBodyDashing = false;
 	bool bLastBodySliding = false;
 	bool bLastBodyMantling = false;
