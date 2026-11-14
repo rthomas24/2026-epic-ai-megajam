@@ -638,10 +638,13 @@ def main():
     sme = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
     mgr = unreal.InterchangeManager.get_interchange_manager_scripted()
     rows, bad = [], 0
+    only = [o for o in os.environ.get("TD_KIT_ONLY", "").split(",") if o]       # re-import just these meshes
     for man_path in sorted(glob.glob(os.path.join(KIT, SET["export"], SET["prefix"] + "*.manifest.json"))):
         with open(man_path, encoding="utf-8") as fh:
             man = json.load(fh)
         asset = man["asset"]
+        if only and asset not in only:
+            continue
         fbx = os.path.join(KIT, SET["export"], asset + ".fbx")
         n = []
         params = unreal.ImportAssetParameters()

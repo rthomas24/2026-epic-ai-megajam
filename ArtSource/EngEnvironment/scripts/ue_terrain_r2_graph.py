@@ -72,27 +72,30 @@ SCALARS = {
     "ValleyHeatGain": (3.0, 2.2), "ValleyCrust": (0.0, 1.15), "ValleyBaseBlend": (1.0, 1.0), "ValleyRoughness": (0.05, 0.35),
     "FlowTile": (9000.0, 6000.0), "FlowX": (0.0, 35.0), "FlowY": (12.0, 60.0),
     # veins and glows
-    "VeinSharpNear": (40.0, 34.0), "VeinSharpFar": (9.0, 14.0), "VeinStrength": (0.45, 1.6), "VeinFarBoost": (0.55, 1.8),
-    "VeinTopM": (500.0, 250.0), "VeinFadeM": (400.0, 200.0), "PatchGlow": (0.10, 0.0), "PeakGlow": (0.04, 0.0),
+    "VeinSharpNear": (40.0, 34.0), "VeinSharpFar": (9.0, 16.0), "VeinStrength": (0.45, 1.6), "VeinFarBoost": (0.55, 3.0),   # Cinder s9: a crack network read from 900 m; s10 sharper (9 smeared into orange blobs at 120-300 m)
+    "VeinTopM": (500.0, 600.0), "VeinFadeM": (400.0, 300.0), "PatchGlow": (0.10, 0.0), "PeakGlow": (0.04, 0.0),   # Cinder s9: veins over more ground
     "VeinPatchiness": (1.0, 1.0),
     # pass 4: a minimum ambient (emissive = albedo x floor x the sky's colour) so Cinder's self-shadowed basalt slopes
     # never go to black under the low sun; proportional to the albedo, so nothing lights up on its own. Off on Verdance.
     "AmbientFloor": (0.0, 0.45),
     # s7: biome patches at 200-500 m (meadow / moss / dark forest floor) so the ground from the air is not one green noise
-    "MacroBiomeScale": (42000.0, 42000.0), "MacroBiomeAmount": (0.85, 0.35),
+    "MacroBiomeScale": (42000.0, 42000.0), "MacroBiomeAmount": (0.85, 0.85),   # s9: Cinder was flat dark ground from the air
     # s7: a dark wet-rock band where the rock meets the ground (cliff feet, seeps)
     "WetRockDark": (0.45, 0.7),
     # s7 story: Verdance's wreck scar (the same segment as FTDScatterPlan::ScarA/B, course-local = world on the planet
     # maps): charred black ground with ember specks, narrow at the research site, wide outward. Off on Cinder.
-    "ScarAX": (13000.0, 0.0), "ScarAY": (8200.0, 0.0), "ScarBX": (57000.0, 0.0), "ScarBY": (41000.0, 0.0),
-    "ScarHalfA": (1500.0, 0.0), "ScarHalfB": (6000.0, 0.0), "ScarEmber": (6.0, 0.0),
+    # s9: it starts beyond the basin wall (on the wall behind the research site it stood up as a glowing pillar), wider
+    # s17: re-aimed at bearing 150 from the research site (61 % gentle ground, mean slope 0.09; the old line ran down the
+    # Rift canyon, all walls): 200-700 m out, toward the site, left of the landing approach
+    "ScarAX": (-5800.0, 0.0), "ScarAY": (17200.0, 0.0), "ScarBX": (-49100.0, 0.0), "ScarBY": (42200.0, 0.0),
+    "ScarHalfA": (5000.0, 0.0), "ScarHalfB": (14000.0, 0.0), "ScarEmber": (4.0, 0.0),   # s15: from 340 m up it read as a thin line
 }
 VECTORS = {
     # R3 (Verdance): A = teal moss, B = bright yellow-green moss (open meadow side), C = blue-teal glade
     "FlatTintA": ((0.014, 0.085, 0.060), (0.012, 0.012, 0.015)),
-    "FlatTintB": ((0.050, 0.150, 0.030), (0.030, 0.027, 0.028)),
-    "FlatTintC": ((0.012, 0.060, 0.090), (0.050, 0.022, 0.014)),
-    "JungleTint": ((0.008, 0.042, 0.026), (0.020, 0.020, 0.022)),     # under the rainforest canopy: dark, rich
+    "FlatTintB": ((0.050, 0.150, 0.030), (0.080, 0.072, 0.066)),     # Cinder s9: pale ash flats
+    "FlatTintC": ((0.012, 0.060, 0.090), (0.075, 0.032, 0.016)),     # Cinder s9: rust-stained ground
+    "JungleTint": ((0.008, 0.042, 0.026), (0.007, 0.0065, 0.0075)),   # Verdance: under the canopy; Cinder s9: black flows
     "UplandTint": ((0.075, 0.110, 0.070), (0.060, 0.045, 0.040)),     # paler sage / ash-brown uplands
     "LowlandTint": ((0.012, 0.035, 0.032), (0.016, 0.013, 0.012)),    # wet dark lowlands
     "PatchTint": ((0.016, 0.060, 0.075), (0.008, 0.008, 0.012)),
@@ -242,7 +245,10 @@ def build_graph(b, t, means):
     # ---------------------------------------------------------------- layer weights
     j = add(mul(sub(fine, 0.5), 0.6), mul(mul(sub(c(nS, "G"), 0.5), 0.4), sn))   # -0.5 .. 0.5 breakup
     hj = add(add(hm, mul(j, S("HeightBreakM"))), mul(sub(broad, 0.5), S("BiomeBreakM")))
-    sj = add(slope, mul(j, S("SlopeBreak")))
+    # s8: the vertex colour's slope comes from the field at the chunk's step, so the basin's steep walls read as gentle
+    # and got the flat (top-projected) moss stretched down them: take the steeper of it and the mesh normal's slope
+    nslope = inv(mask(nv, bl=True))
+    sj = add(vmax(slope, nslope), mul(j, S("SlopeBreak")))
     rock_w = ramp(sj, S("RockSlopeStart"), S("RockSlopeRange"))
     peak_w = mul(ramp(hj, S("PeakStartM"), S("PeakRangeM")), inv(ramp(slope, S("PeakSlopeMax"), S("PeakSlopeRange"))))
     low_w = mul(inv(ramp(hj, S("LowTopM"), S("LowFadeM"))), S("LowAmount"))
@@ -365,8 +371,14 @@ def build_graph(b, t, means):
     sv = sub(lxy, add(sa, mul(sd, st)))
     sdist = un(E.MaterialExpressionSquareRoot, dot(sv, sv))
     shalf = mul(lerp(S("ScarHalfA"), S("ScarHalfB"), st), add(0.75, mul(add(mul(c(nS, "R"), 0.4), mul(c(nM, "G"), 0.6)), 0.5)))
-    scar_w = mul(sat(div(sub(shalf, sdist), mul(shalf, 0.35))), mul(ramp(st, 0.0, 0.03), inv(ramp(st, 0.97, 0.03))))
-    base = lerp(base, mul(b.const3(0.014, 0.011, 0.009), add(0.6, mul(c(nS, "B"), 0.8))), mul(scar_w, 0.92))
+    scar_w = mul(sat(div(sub(shalf, sdist), mul(shalf, 0.6))), mul(ramp(st, 0.0, 0.06), inv(ramp(st, 0.9, 0.1))))   # s11: soft edges into the forest
+    # s10: only on the ground, never up a wall (on the basin wall behind the research site it stood up as a glowing pillar)
+    scar_w = mul(scar_w, inv(ramp(nslope, 0.35, 0.12)))   # s15: off the steep hillside too (from the pad it stood up as a column)
+    # s11: burnt ground, not a slab: black char and grey ash patches by two noises, the char strongest on the centre line
+    ash = ramp(add(mul(c(nM, "B"), 0.6), mul(c(nS, "G"), 0.4)), 0.55, 0.15)
+    # s15: mostly grey-brown ash with black char streaks (black alone vanished against the dark forest floor)
+    burnt = lerp(mul(b.const3(0.012, 0.010, 0.009), add(0.5, mul(c(nS, "B"), 1.0))), b.const3(0.085, 0.075, 0.065), sat(add(mul(ash, 0.8), 0.45)))
+    base = lerp(base, burnt, mul(un(E.MaterialExpressionSquareRoot, scar_w), 0.95))
     rough = lerp(lerp(S("FlatRoughness"), S("PatchRoughness"), patch_w), S("LowRoughness"), low_w)
     rough = lerp(rough, S("WetRoughness"), mul(wet, c(nS, "R")))
     rough = lerp(lerp(rough, S("RockRoughness"), rock_w), S("PeakRoughness"), peak_w)
@@ -396,6 +408,7 @@ def build_graph(b, t, means):
     # only in some regions (the 230 m and 1.9 km noise), never on rock, peaks, water or high ground
     region = lerp(1.0, sat(mul(sub(add(mul(c(nL, "G"), 0.6), mul(lerp(c(nXL, "R"), c(nM, "R"), sn), 0.4)), 0.42), 5.0)), S("VeinPatchiness"))
     vmask = mul(mul(mul(inv(rock_w), inv(peak_w)), mul(inv(molten), region)), inv(ramp(hj, S("VeinTopM"), S("VeinFadeM"))))
+    vmask = mul(vmask, inv(ramp(sj, 0.08, 0.08)))   # s11: no glowing veins on slopes (they read as orange blobs on the hillsides)
     vcol = lerp(Vp("VeinColorA"), Vp("VeinColorB"), sat(mul(sub(c(nXL, "B"), 0.45), 4.0)))
     e_vein = mul(vcol, mul(mul(vein, vmask), mul(S("VeinStrength"), add(0.55, mul(c(nS, "R"), 0.9)))))
     plum = mul(dot(patch_d, lumw), add(0.4, mul(c(nS, "R"), 1.2)))   # the texture near, the 37 m noise far: never a flat glow
@@ -404,6 +417,8 @@ def build_graph(b, t, means):
                 mul(add(0.6, mul(c(flow, "R"), 0.8)), S("ValleyEmissive")))
     e_pk = mul(peak_c, mul(peak_w, S("PeakGlow")))
     e_amb = mul(mul(base, Vp("AmbientTint")), mul(S("AmbientFloor"), inv(molten)))
-    ember = mul(sat(mul(sub(c(nS, "B"), 0.83), 12.0)), mul(scar_w, S("ScarEmber")))
+    # s11: irregular embers: two noises at different scales, sparse at the edges (scar_w squared), none in the ash
+    ember = mul(sat(mul(sub(add(mul(c(nS, "B"), 0.55), mul(c(nM, "R"), 0.45)), 0.74), 9.0)), mul(mul(mul(scar_w, scar_w), inv(ash)), S("ScarEmber")))
+    ember = mul(ember, inv(ramp(nslope, 0.2, 0.15)))   # s14: embers only on the flatter ground (on the hillside they stacked into a glowing column)
     e_amb = add(e_amb, mul(b.const3(1.0, 0.28, 0.04), ember))
     b.out(add(add(add(e_vein, e_patch), add(e_val, e_pk)), e_amb), "", MP.MP_EMISSIVE_COLOR)

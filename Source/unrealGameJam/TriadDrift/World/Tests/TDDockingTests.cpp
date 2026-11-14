@@ -178,7 +178,7 @@ bool FTDDockingHandOff::RunTest(const FString&)
 	TestTrue(TEXT("controls locked for the glide"), Ship->IsFlightParked());
 	const UTDHealthComponent* H = UTDStatics::GetHealth(Ship);
 	TestTrue(TEXT("invulnerable in the glide"), H && H->IsInvulnerable());
-	W.Advance(Bay->GlideSeconds + 1.f);
+	W.Advance(Bay->GlideSeconds + Bay->DockingLinesHoldSeconds + 1.f);
 	TestEqual(TEXT("docked"), (int32)Bay->GetDockingState(), (int32)ETDDockingState::Docked);
 	TestEqual(TEXT("exactly one travel request"), Bay->GetTravelRequests(), 1);
 	TestTrue(TEXT("travels to the interior"), GI->Travels.Num() == 1 && GI->Travels[0] == ETDDestination::DominionInterior);
@@ -214,7 +214,10 @@ bool FTDDominionStoryBeats::RunTest(const FString&)
 	ATDDominion* D = TDDockingTest::DefensesDown(W, ETDBoardingMode::ForceOff);
 	const UTDStorySubsystem* Story = UTDStorySubsystem::Get(D);
 	if (!TestNotNull(TEXT("story subsystem"), Story)) { return false; }
-	for (int32 i = 1; i <= 4; ++i)
+	// Nov 14 (T3 / T4): the first generator speaks the screenplay's G6_Kato_ShieldWeakening; A4_GeneratorDown1 is retired.
+	TestTrue(TEXT("G6_Kato_ShieldWeakening played (first generator)"), Story->HasPlayed(TEXT("G6_Kato_ShieldWeakening")));
+	TestFalse(TEXT("A4_GeneratorDown1 retired"), Story->HasPlayed(TEXT("A4_GeneratorDown1")));
+	for (int32 i = 2; i <= 4; ++i)
 	{
 		const FName Id(*FString::Printf(TEXT("A4_GeneratorDown%d"), i));
 		TestTrue(*FString::Printf(TEXT("%s played"), *Id.ToString()), Story->HasPlayed(Id));
@@ -399,6 +402,36 @@ bool FTDDockingPace::RunTest(const FString&)
 	TestTrue(TEXT("docked"), Bay->GetDockingState() == ETDDockingState::Docked);
 	TestTrue(*FString::Printf(TEXT("the glide never goes faster than the ship's boost (peak %.0f m/s, arrival %.0f m/s)"), PeakGlide / 100.f, Arrive / 100.f),
 		Ship->GetShipMovement() && PeakGlide <= Ship->GetShipMovement()->GetFlightTuning().BoostSpeed * 1.05f);
+	return true;
+}
+
+
+// T1 (live, Nov 14): commit to load is ~5 s now, and the load cut the Docking lines. The ship holds over the pad until
+// the sequence has finished (or is skipped), at most DockingLinesHoldSeconds, then travels. Story lines run on real time,
+// which a headless tick loop outruns, so the test holds through the glide, then skips the sequence.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDDockingWaitsForLines, "TriadDrift.World.Docking.TravelWaitsForTheDockingLines", TD_TEST_FLAGS)
+bool FTDDockingWaitsForLines::RunTest(const FString&)
+{
+	FTDTestWorld W{ UTDWaveTestGameInstance::StaticClass() };
+	ATDDominion* D = TDDockingTest::DefensesDown(W, ETDBoardingMode::ForceOn);
+	ATDDockingBay* Bay = D ? D->GetDockingBay() : nullptr;
+	if (!TestNotNull(TEXT("bay"), Bay)) { return false; }
+	UTDStorySubsystem* Story = UTDStorySubsystem::Get(W.GetWorld());
+	if (!TestNotNull(TEXT("story"), Story)) { return false; }
+	ATDShip* Ship = TDDockingTest::ShipInCone(W, Bay, 20000.f, 1000.f, 0.f);
+	if (!TestNotNull(TEXT("ship"), Ship)) { return false; }
+	W.Advance(0.2f);
+	TestEqual(TEXT("gliding"), (int32)Bay->GetDockingState(), (int32)ETDDockingState::Gliding);
+	TestTrue(TEXT("the Docking lines start at the commit"), Story->IsSequencePlaying(TEXT("Docking")));
+	W.Advance(Bay->GlideSeconds + 0.5f);	// past the glide, inside the hold
+	TestTrue(TEXT("still on air"), Story->IsSequencePlaying(TEXT("Docking")));
+	TestEqual(TEXT("no travel while the Docking lines are on air"), Bay->GetTravelRequests(), 0);
+	TestEqual(TEXT("held over the pad"), (int32)Bay->GetDockingState(), (int32)ETDDockingState::Gliding);
+	Story->SkipAllowedAfterSeconds = 0.f;	// the ten-second skip guard runs on real time too
+	TestTrue(TEXT("skipped"), Story->SkipSequence());
+	W.Advance(0.2f);
+	TestEqual(TEXT("travels once the lines are done (skipped)"), Bay->GetTravelRequests(), 1);
+	TestEqual(TEXT("docked"), (int32)Bay->GetDockingState(), (int32)ETDDockingState::Docked);
 	return true;
 }
 

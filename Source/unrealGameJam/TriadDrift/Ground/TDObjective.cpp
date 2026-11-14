@@ -134,6 +134,10 @@ bool ATDObjective::AdvanceStep()
 
 void ATDObjective::Finish()
 {
+	// Who completed it, and when (T7's Warden retake, Nov 14: the objective was done after a CUT with no log of why).
+	const UTDGameInstance* LogGI = UTDGameInstance::Get(this);
+	UE_LOG(LogTriadDrift, Display, TEXT("Objective %s complete (%d steps%s)"), *ObjectiveId.ToString(), Steps.Num(),
+		LogGI && LogGI->IsRetakePending() ? TEXT(", during a CUT") : TEXT(""));
 	bActive = false;
 	bComplete = true;
 	if (UTDObjectiveSubsystem* Sub = UTDObjectiveSubsystem::Get(this))

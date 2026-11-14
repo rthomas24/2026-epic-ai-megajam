@@ -48,7 +48,7 @@ public:
 
 	/** Seconds the body stays after death (placeholder ragdoll). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Crew", meta = (Units = "s"))
-	float CorpseSeconds = 10.f; // the falls run 2.6-3.9 s: the body lies, then sinks out (CorpseSinkSeconds), never pops
+	float CorpseSeconds = 30.f; // the falls run 2.6-3.9 s: the body lies, then sinks out (CorpseSinkSeconds), never pops (Lead, Nov 14: 30 s)
 
 	/** The Warden staggers for its Stagger clip's length on a heavy blade hit (a pilot melee hit of at least this much:
 	 *  the heavy lunge is 70, a crit finisher 90) or on its own bolt sent back by a perfect deflect; then not again for
@@ -163,7 +163,7 @@ public:
 
 	/** The Heavy's guard (T7's playtest, Nov 13: ~32 quick slashes did nothing and nothing taught the lunge): blocked quick
 	 *  slashes chip it, and this many in a row (each within GuardChipWindow s of the last) stagger it open. */
-	static constexpr int32 GuardChipsToBreak = 9;
+	static constexpr int32 GuardChipsToBreak = 6; // 9 never broke in T7's arena play (Nov 14)
 	static constexpr float GuardChipWindow = 4.f;
 	int32 GetGuardChips() const { return GuardChips; }
 	/** World time the last melee hit landed (tests: the contact timing), or -1. */

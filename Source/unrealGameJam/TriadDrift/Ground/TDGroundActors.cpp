@@ -678,8 +678,40 @@ void ATDEncounterVolume::AdoptMember(AActor* Member)
 	}
 }
 
+bool ATDEncounterVolume::ReturnLostBoss(AActor* Member)
+{
+	// T7 (Nov 14): after a CUT the Warden's room came back cleared with no Warden, completing the scene. A member that
+	// is destroyed while still alive left the world (fell through a gap, kill-Z); for a boss that must never clear the
+	// room, so a fresh one is put back where the first was spawned.
+	const ATDCrewCharacter* Lost = Cast<ATDCrewCharacter>(Member);
+	const UTDHealthComponent* H = Member ? UTDStatics::GetHealth(Member) : nullptr;
+	const FTransform* At = SpawnedAt.Find(Member);
+	if (!bActivated || bCleared || !Lost || Lost->Spec.Type != ETDCrewType::Warden || !H || !H->IsAlive() || !At || BossReturns >= MaxBossReturns || !GetWorld())
+	{
+		return false;
+	}
+	++BossReturns;
+	const FTransform Xf = *At;
+	AActor* Fresh = GetWorld()->SpawnActorDeferred<AActor>(Member->GetClass(), Xf, nullptr, nullptr, ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn);
+	ATDCrewCharacter* Crew = Cast<ATDCrewCharacter>(Fresh);
+	if (!Crew)
+	{
+		return false;
+	}
+	Crew->CrewType = ETDCrewType::Warden;
+	Crew->FinishSpawning(Xf);
+	if (const FTDRetakeMercyTier* Mercy = GetActiveMercy()) { Crew->ApplyMercy(Mercy->HealthScale, Mercy->MaxSummons); }
+	Crew->SetOpeningGrace(OpeningGraceSeconds);
+	UE_LOG(LogTriadDrift, Warning, TEXT("%s: the Warden %s left the world alive (at %s); %s put back at %s (%d / %d)"), *GetName(), *Member->GetName(),
+		*Member->GetActorLocation().ToCompactString(), *Crew->GetName(), *Xf.GetLocation().ToCompactString(), BossReturns, MaxBossReturns);
+	SpawnedAt.Add(Crew, Xf);
+	AdoptMember(Crew);
+	return true;
+}
+
 void ATDEncounterVolume::HandleMemberDestroyed(AActor* Member)
 {
+	ReturnLostBoss(Member);
 	Spawned.RemoveAll([Member](const TWeakObjectPtr<AActor>& M) { return !M.IsValid() || M.Get() == Member; });
 	// Still "alive" by its health component while it is being destroyed: it counts as gone.
 	if (bActivated && !bCleared && GetAliveCount() == 0)
@@ -701,6 +733,8 @@ void ATDEncounterVolume::Activate()
 	}
 	bActivated = true;
 	Stragglers.Reset();
+	SpawnedAt.Reset();
+	BossReturns = 0;
 	GetWorldTimerManager().SetTimer(StragglerTimer, FTimerDelegate::CreateWeakLambda(this, [this]() { SweepStragglers(1.f); }), 1.f, true);
 	bCleared = false;
 	++Take;
@@ -783,8 +817,8 @@ void ATDEncounterVolume::Activate()
 		{
 			AI->SetTarget(Player);
 		}
+		SpawnedAt.Add(Member, Xf);
 		AdoptMember(Member);
-
 	}
 	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->NotifyEncounterStarted(this); } // contact, a new crew type (ENG-43)
 	CheckCleared(); // nothing spawned (bad class) still opens the way rather than soft-locking
@@ -887,6 +921,8 @@ void ATDEncounterVolume::CheckCleared()
 		return;
 	}
 	bCleared = true;
+	UE_LOG(LogTriadDrift, Display, TEXT("%s cleared (take %d, %d spawned this take)%s"), *GetName(), Take, Spawned.Num(),
+		LinkedObjective && LinkedStep != INDEX_NONE ? *FString::Printf(TEXT(": completes %s step %d"), *LinkedObjective->ObjectiveId.ToString(), LinkedStep) : TEXT(""));
 	for (ATDDoor* Door : DoorsToOpen)
 	{
 		if (Door) { Door->Open(); }

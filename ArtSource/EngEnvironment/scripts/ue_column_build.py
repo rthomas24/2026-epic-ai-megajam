@@ -79,7 +79,10 @@ def build():
     eal.save_asset(ipath, only_if_is_dirty=False)
     for p in problems:
         log("PROBLEM: " + p)
-    log("instructions: %s" % mel.get_statistics(mat).get_editor_property("num_pixel_shader_instructions"))
+    try:  # needs a renderer
+        log("instructions: %s" % mel.get_statistics(mat).get_editor_property("num_pixel_shader_instructions"))
+    except Exception as e:  # noqa: BLE001
+        log("stats unavailable: %s" % e)
 
 
 build()

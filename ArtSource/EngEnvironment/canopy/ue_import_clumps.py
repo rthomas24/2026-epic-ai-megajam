@@ -92,8 +92,10 @@ def build_material():
     mel.set_material_instance_parent(mi, mat)
     mel.update_material_instance(mi)
     eal.save_asset(ipath, only_if_is_dirty=False)
-    st = mel.get_statistics(mat)
-    log("M_TD_TreeClump instructions %s" % st.get_editor_property("num_pixel_shader_instructions"))
+    try:  # needs a renderer (td-python.ps1 runs -nullrhi: the graph is saved, the stats are skipped)
+        log("M_TD_TreeClump instructions %s" % mel.get_statistics(mat).get_editor_property("num_pixel_shader_instructions"))
+    except Exception as e:  # noqa: BLE001
+        log("stats unavailable: %s" % e)
     return mi
 
 

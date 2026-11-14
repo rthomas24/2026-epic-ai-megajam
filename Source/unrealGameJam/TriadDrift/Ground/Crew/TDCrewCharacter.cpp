@@ -1090,13 +1090,17 @@ float ATDCrewCharacter::FilterDamage(const FTDDamageInfo& Info)
 	// Quick slashes chip the guard: GuardChipsToBreak in a row stagger it open (the held lunge still breaks it at once).
 	GuardChips = GuardChipAge <= GuardChipWindow ? GuardChips + 1 : 1;
 	GuardChipAge = 0.f;
-	// Teach the lunge: on the first blocked hit, and again every 5 more (the on-foot prompt line, 4 s).
-	if (ATDFirstPersonCharacter* Pilot = Cast<ATDFirstPersonCharacter>(Info.Instigator))
+	// Teach the lunge: on the first blocked hit, and again every 3 more (the on-foot prompt line, 4 s). (T7, Nov 14:
+	// quick swings in the arena never saw it; Lead: first block, then after 3 more.)
+	ATDFirstPersonCharacter* Pilot = Cast<ATDFirstPersonCharacter>(Info.Instigator);
+	if (!Pilot && Info.Causer) { Pilot = Cast<ATDFirstPersonCharacter>(Info.Causer->GetOwner()); }
+	if (Pilot)
 	{
 		const int32 Blocked = Pilot->CountGuardedHit();
-		if (Blocked == 1 || (Blocked - 1) % 5 == 0)
+		if (Blocked == 1 || (Blocked - 1) % 3 == 0)
 		{
 			Pilot->ShowTip(NSLOCTEXT("TriadDrift", "GuardTip", "HOLD ATTACK: LUNGE BREAKS GUARDS"), 4.f);
+			UE_LOG(LogTriadDrift, Display, TEXT("%s: guard blocked the pilot's swing %d: lunge hint shown"), *GetName(), Blocked);
 		}
 	}
 	if (GuardChips >= GuardChipsToBreak)

@@ -7,17 +7,20 @@ import unreal
 
 PATH = "/Game/TriadDrift/Gameplay/Props/Planet/MI_Cind_MagmaSurface"
 SCALARS = {
-    "ChannelMin": 0.34, "ChannelMax": 0.82, "ChannelPower": 1.4,     # was 0.18 / 0.65 / 2.0: thin dark-crust field
-    "EmissiveStrength": 6.0,                                         # was 2.5
-    "CrackGlow": 0.55, "CrackWidth": 0.11,                           # was 0.18 / 0.08
-    "CrackFadeStart": 3000.0, "CrackFadeRange": 6000.0,              # was 600 / 1500: cracks went dark beyond ~20 m
-    "FlickerSpeed": 3.5, "RimWidth": 30.0,
+    # s11 (T7: 21 deaths at the conduit route, "thin cracks on foot"): mostly molten with drifting crust islands,
+    # a dark crusted bank at the edge, bright enough to read from 20 m on foot
+    "ChannelMin": 0.62, "ChannelMax": 0.95, "ChannelPower": 1.1,     # s6 0.34 / 0.82 / 1.4; original 0.18 / 0.65 / 2.0
+    "EmissiveStrength": 8.0,                                         # s6 6.0; original 2.5
+    "CrackGlow": 0.7, "CrackWidth": 0.14,
+    "CrackFadeStart": 3000.0, "CrackFadeRange": 6000.0,
+    "FlickerSpeed": 3.5, "RimWidth": 70.0, "RimSoft": 90.0,          # a crusted bank you can see the edge by
 }
 VECTORS = {
-    "HotCore": (1.0, 0.5, 0.08),                                     # was (1.0, 0.32, 0.03)
-    "HotEdge": (0.95, 0.12, 0.012),
-    "CrackColor": (1.0, 0.2, 0.02),
-    "MoltenBase": (0.2, 0.05, 0.008),
+    "HotCore": (1.0, 0.55, 0.1),
+    "HotEdge": (1.0, 0.16, 0.015),
+    "CrackColor": (1.0, 0.22, 0.02),
+    "MoltenBase": (0.25, 0.06, 0.01),
+    "RimAsh": (0.012, 0.009, 0.008),                                 # near-black crust on the banks
 }
 eal = unreal.EditorAssetLibrary
 mel = unreal.MaterialEditingLibrary

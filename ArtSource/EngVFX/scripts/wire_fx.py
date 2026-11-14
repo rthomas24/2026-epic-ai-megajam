@@ -36,7 +36,14 @@ PLAN_R9B = {   # round 9 (ART-16, T4's answer): one-shots at world points; Break
     'Dominion/DA_Dominion_Visuals': {'reactor_exposed': ('NS_TD_Reactor_Exposed', 1.0), 'reactor_hit': ('NS_TD_Reactor_Hit', 1.0),
                                      'docking_bay_open': ('NS_TD_Dominion_DockOpen', 1.0)},
 }
-PLAN = globals().get('PLAN') or PLAN_R9B
+PLAN_R10 = {   # round 10 (Lead accepted r10_shielddrop): the 4th generator's shield drop
+    'Dominion/DA_Dominion_Visuals': {'shield_collapse': ('NS_TD_Dominion_ShieldDrop', 0.46),
+                                     'distortion_field_idle': ('NS_TD_Dominion_ApproachField', 1.0)},   # 10c: Lead accepted the wall
+}
+PLAN_R10_PLUMES = {   # round 10, only once the Lead accepts the plume sheets: EngineTrail VFX; VFXScale left as it is
+    'NullFleet/DA_Enemy_%s_Visuals' % t: {'engine_trail': 'NS_TD_Plume_Enemy_%s' % t} for t in ('Fighter', 'Interceptor', 'Gunship', 'Bomber', 'Carrier')
+}
+PLAN = globals().get('PLAN') or PLAN_R10
 PLAN_R5 = {
     'NullFleet/DA_Enemy_Fighter_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},
     'NullFleet/DA_Enemy_Interceptor_Visuals': {'engine_trail': 'NS_TD_Engine_Enemy'},
