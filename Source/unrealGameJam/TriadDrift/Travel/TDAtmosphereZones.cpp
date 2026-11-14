@@ -1,6 +1,8 @@
 // Triad Drift - atmosphere entry and atmosphere flight zone (ENG-20). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDAtmosphereZones.h"
+#include "TriadDrift/Combat/TDCombatBarks.h"
+#include "TriadDrift/Travel/TDTravelBarks.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/Travel/TDPlanetTravelRig.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
@@ -137,6 +139,7 @@ bool UTDAtmosphereEntryComponent::BeginEntry(ETDDestination InDestination, FName
 	EntryTime = 0.f;
 	Destination = InDestination;
 	ReturnPoint = InReturnPoint;
+	FTDCombatBarks::SayAsPilot(Craft, TDBarkIdsT1::AtmoEntry, ETDBarkPriority::Normal); // ENG-43 Bark_Atmo_Entry
 
 	if (ATDShip* Ship = Cast<ATDShip>(Craft))
 	{

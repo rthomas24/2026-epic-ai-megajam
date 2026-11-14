@@ -414,6 +414,14 @@ float l = dot(t.rgb, float3(0.33,0.33,0.33));
 float a = saturate(t.a*1.5)*smoothstep(1.0, 0.7, r)*smoothstep(0.0, 0.15, Age)*saturate((1-Age)*3.0);
 return float4(PC.rgb*(0.75 + 0.5*l)*Intensity, saturate(a*PC.a));''', {}),
 
+    # Lead (cloud pass v2): the soft, nearly uniform veil of being INSIDE a cloud. A huge, low-contrast round blob with a
+    # gentle slow noise (no curls), translucent, fading in and out over the particle's life; overlapping sprites make a veil.
+    'M_TD_VFX_CloudVeil': ('translucent', True, 0.35, 0.6, (0.01, 0.02), (-0.015, 0.01), 0.0, PRE + '''
+float n = N.r*0.5 + N.g*0.5;
+float g = m*m*(3-2*m);
+float a = pow(g, 0.8)*(0.85 + 0.30*(n-0.5))*smoothstep(0.0, 0.25, Age)*saturate((1-Age)*2.5);
+return float4(PC.rgb*(0.92 + 0.10*n)*Intensity, saturate(a*PC.a));''', {}),
+
     # Blade swing: a crescent swept left to right across the top half of a camera-facing sprite over the particle's life.
     'M_TD_VFX_Slash': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
 float ang = atan2(p.x, -p.y);
