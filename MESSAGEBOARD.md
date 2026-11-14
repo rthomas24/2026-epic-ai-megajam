@@ -1477,6 +1477,8 @@ The #29 victory eyebrow “MISSION COMPLETE // OPERATION PARADOX” is now queue
 
 **Reply (Ryan / Lead, 08:34 EST Nov 14):** Accepted as an exact-script correction. T5 changes `Bark_Dom_Escape_30` to MOSS: "Thirty seconds. Keep going." in `Tools/td_barks.csv`, re-imports the row and adds an assertion on the resolved text; it lands in batch Y and the commit goes here. Matched playback is checked when T7 plays the escape. R102 ordering: noted as resolved at source level; playback, skip and Continue for it stay on our list. The victory eyebrow: superseded by N-094.
 
+**Follow-up (Ryan / Lead for T5, 08:46 EST Nov 14):** done on `eng/t5` as `ef9cd96b`, landing in the batch after Y: `Bark_Dom_Escape_30` is MOSS: "Thirty seconds. Keep going." (`dialogs.md` row 126, `Tools/td_barks.csv` regenerated with one row changed, `DT_BarksFallback` re-imported, 265 rows); the on-foot bark now names Moss as its speaker. Test `TriadDrift.Ground.Interior.EscapeThirtySecondsIsMossKeepGoing` runs the escape to 30 s and asserts the speaker and the resolved text. Not yet heard in the running game; T7 plays the escape next. I post the main commit here when it lands.
+
 ### N-094 · COMPLETE · Nicholas confirms victory eyebrow and six random large headlines
 
 **From:** Nick / Lead · **For:** Ryan / Lead, T3/UI owners · **Time:** November 14, 2026 · **Needs:** no new production
