@@ -78,16 +78,18 @@ void ATDDockingBay::BuildPlaceholder()
 	}
 	UTDStatics::TintPlaceholder(DoorLeft, FLinearColor(0.02f, 0.02f, 0.025f), 0.f);
 	UTDStatics::TintPlaceholder(DoorRight, FLinearColor(0.02f, 0.02f, 0.025f), 0.f);
-	UTDStatics::TintPlaceholder(Frame, FLinearColor(1.f, 0.3f, 0.05f), 4.f);
-	UTDStatics::TintPlaceholder(FrameBars, FLinearColor(1.f, 0.3f, 0.05f), 4.f);
-	UTDStatics::TintPlaceholder(GuideLights, FLinearColor(1.f, 1.f, 1.f), 12.f);
+	// Lead (Nov 14, #126 / #110): at gameplay distance with bloom the frame at x4 and the guide spheres at x12 washed the
+	// bay out near-white. Frame x1.5; guide lights x3 and a third of their size.
+	UTDStatics::TintPlaceholder(Frame, FLinearColor(1.f, 0.3f, 0.05f), 1.5f);
+	UTDStatics::TintPlaceholder(FrameBars, FLinearColor(1.f, 0.3f, 0.05f), 1.5f);
+	UTDStatics::TintPlaceholder(GuideLights, FLinearColor(1.f, 1.f, 1.f), 3.f);
 	GuideLights->ClearInstances();
 	for (int32 i = 1; i <= 12; ++i)
 	{
 		const float X = i * (ConeDepth / 13.f);
 		for (const float Side : { -1.f, 1.f })
 		{
-			GuideLights->AddInstance(FTransform(FRotator::ZeroRotator, FVector(X, Side * (DoorHalfWidth + X * 0.08f), -H), FVector(6.f)));
+			GuideLights->AddInstance(FTransform(FRotator::ZeroRotator, FVector(X, Side * (DoorHalfWidth + X * 0.08f), -H), FVector(2.f)));
 		}
 	}
 }
@@ -243,6 +245,7 @@ void ATDDockingBay::BeginGlide(ATDShip* Ship)
 	DockingState = ETDDockingState::Gliding;
 	GlideTime = 0.f;
 	HoldTime = 0.f;
+	bGlideLocSet = false;
 	GlideFrom = Ship->GetActorLocation();
 	GlideFromRot = Ship->GetActorQuat();
 	// The glide carries on at the arrival speed and settles over the pad, never faster than the ship's boost (T1, live: a
@@ -371,6 +374,18 @@ void ATDDockingBay::Tick(float DeltaSeconds)
 			DockingState = ETDDockingState::Open;
 			return;
 		}
+		// T2 (played, Nov 14): a dev teleport during the glide (TD.Travel.ToDock) was undone by the next tick. A ship that
+		// was moved by something else lets go of the glide: the bay stays open and the approach starts again.
+		if (bGlideLocSet && FVector::DistSquared(Ship->GetActorLocation(), LastGlideLoc) > FMath::Square(2000.f))
+		{
+			ReleaseShip();
+			ReleaseWingmen();
+			DockingState = ETDDockingState::Open;
+			GlideTime = 0.f;
+			bGlideLocSet = false;
+			ShowApproachMarker(true);
+			return;
+		}
 		GlideTime += DeltaSeconds;
 		TickWingmen(DeltaSeconds);
 		const float T = FMath::Clamp(GlideTime / FMath::Max(GlideDuration, 0.1f), 0.f, 1.f);
@@ -378,6 +393,8 @@ void ATDDockingBay::Tick(float DeltaSeconds)
 		const float E = (T * T * T - 2.f * T * T + T) * GlideStartSlope + (3.f * T * T - 2.f * T * T * T);
 		const FVector To = GetMouth() - GetOutward() * GlideDepth;
 		Ship->SetActorLocationAndRotation(FMath::Lerp(GlideFrom, To, E), FQuat::Slerp(GlideFromRot, (-GetOutward()).ToOrientationQuat(), E));
+		LastGlideLoc = Ship->GetActorLocation();
+		bGlideLocSet = true;
 		if (T >= 1.f)
 		{
 			// T1 (live, Nov 14): commit to load is now ~5 s, which cut the Docking lines (G6 cover-the-bay, C7 way-out).

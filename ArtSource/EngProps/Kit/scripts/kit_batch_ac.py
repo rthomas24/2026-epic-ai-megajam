@@ -3,8 +3,7 @@
 #   1. The Null conduit intact and broken (BP_ConduitCheck, capture only) at 4 m.
 #   2. The anchor collapse watched whole: TD.Ground.SkipTo Jammer 2, the pilot at the far bank facing the tower,
 #      frames every 3.5 s while the tower sinks and the kit sections / debris fall; the run times out (a CUT is expected).
-#   3. The escape run walked along T5's shore route (11200, -8300) -> exit (6400, -8400) after a second SkipTo,
-#      re-aiming every step; stalls and the pilot's state logged; a frame looking back at the fallen pieces.
+#   3. The charge at scale 1 on the tower face; 4. the docking bay mouth on the approach (DominionDocking stage).
 #   python kit_batch_ac.py <port>
 import importlib.util
 import json
@@ -72,41 +71,55 @@ G.cmd("DisableAllScreenMessages")
 G.cmd("TD.Stage CinderOnFoot")
 time.sleep(28.0)
 G.cmd("TD.Ground.ThirdPerson 1")
-# 1. the conduit
-G.cmd("TD.Dev.SpawnClass /Game/TriadDrift/Gameplay/Props/Kit/Sites/BP_ConduitCheck ConduitCheck -3000 -3000 0")
+import re
+
+
+def items(pattern):
+    G.cmd("TD.Ground.CourseBounds")
+    time.sleep(1.5)
+    out = []
+    for line in G.log_tail(r"TD\.CourseItem", 4000):
+        if re.search(pattern, line):
+            m = re.search(r"world=V\(X=([-\d.]+), Y=([-\d.]+), Z=([-\d.]+)\)", line)
+            if m:
+                out.append([float(v) for v in m.groups()])
+    return out
+
+
+# 1. the conduits at the excavation gate (#118, #117): the gate's two shatter actors, frames from 5 m
+con = [c for c in items(r"TDShatterCrystal") if c[1] > 3000.0]
+log.append({"gate_conduits": con})
+print("gate conduits", con)
+if len(con) >= 2:
+    mx, my = (con[0][0] + con[1][0]) * 0.5, (con[0][1] + con[1][1]) * 0.5
+    tp(mx - 700.0, my, 0.0, 0.0)
+    shot("gate_conduits_7m", 0.0, -4.0)
+    tp(con[0][0] - 450.0, con[0][1], 0.0, 0.0)
+    shot("gate_conduit_4m", 0.0, -6.0)
+# 2. the charge at scale 1 on the tower face (#117)
+G.cmd("TD.Ground.SkipTo Jammer 1")
 time.sleep(3.0)
-tp(-3400.0, -3000.0, 0.0, 0.0)
-shot("conduit_intact_broken_4m", 0.0, -6.0)
-# 2. the collapse, watched
+sites = sorted(items(r"TDInteractableActor"), key=lambda s_: math.hypot(s_[0] - TOWER[0], s_[1] - TOWER[1]))[:3]
+log.append({"charge_sites": sites})
+if sites:
+    s0 = sites[0]
+    d = math.atan2(s0[1] - TOWER[1], s0[0] - TOWER[0])
+    tp(s0[0] + math.cos(d) * 300.0, s0[1] + math.sin(d) * 300.0, 0.0, math.degrees(d) + 180.0)
+    shot("charge_on_face_3m", math.degrees(d) + 180.0, 4.0)
+# 3. the collapse watched from the far bank (#119)
 G.cmd("TD.Ground.SkipTo Jammer 2")
 time.sleep(0.5)
 print(G.log_tail(r"TD\.Ground\.SkipTo", 1))
-f = feet()
-log.append({"run_start": f})
 for i in range(7):
-    shot("collapse_%02ds" % int(1 + i * 3.5), to_tower(feet()), 6.0)
+    shot("collapse_%02ds" % int(1 + i * 3.5), to_tower(feet()), 8.0)
     time.sleep(2.6)
 print(G.log_tail(r"Pilot down|CUT!", 2))
-time.sleep(4.0)
-# 3. the run, walked along the shore route
-G.cmd("TD.Ground.SkipTo Jammer 2")
-time.sleep(1.0)
-route = [(11200.0, -8300.0), (6400.0, -8400.0)]
-leg = 0
-for i in range(30):
-    f = feet()
-    if not f:
-        break
-    tx, ty = route[leg]
-    if math.hypot(tx - f[0], ty - f[1]) < 500.0:
-        leg += 1
-        if leg >= len(route):
-            break
-        tx, ty = route[leg]
-    walk(math.degrees(math.atan2(ty - f[1], tx - f[0])), 0.8, "run leg %d step %d" % (leg, i))
-print(G.log_tail(r"Pilot down|CUT!|Jammer", 3))
-f = feet()
-shot("run_end_looking_back", to_tower(f), 2.0)
+# 4. the docking bay mouth (#126): the docking stage, frames on the approach
+G.cmd("TD.Stage DominionDocking")
+time.sleep(20.0)
+for i, wait in enumerate((0.0, 4.0, 4.0, 4.0)):
+    time.sleep(wait)
+    shot("bay_mouth_%d" % i)
 with open(os.path.join(OUT, "walk.json"), "w", encoding="utf-8") as fh:
     json.dump(log, fh, indent=1)
 G.cmd("TD.Input.ReleaseAll")

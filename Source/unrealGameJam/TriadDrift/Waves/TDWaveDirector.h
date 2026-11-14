@@ -110,6 +110,14 @@ public:
 	FTDWaveInfo GetWaveInfo() const;
 
 	/**
+	 * Issue #160 (the radar shows what is coming): every group still to warp in, soonest first. While a wave runs: its
+	 * pending groups (the location is set once the warp-in is announced). In a breather: the next wave's groups, with
+	 * the breather added to their time and no location yet. Returns the number written.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Waves")
+	int32 GetPendingGroups(TArray<FTDIncomingGroup>& OutGroups) const;
+
+	/**
 	 * Second review MAJOR B (ENG-14/16/17): waves 3-5 are fought in the combat zone, not at a planet's orbit return
 	 * point. StartFromProgress holds such a wave (Idle) until the player's ship is inside the layout's CombatZoneRadius;
 	 * the flow shows "RETURN TO THE COMBAT ZONE" with a marker on GetCombatZoneMarker() meanwhile.

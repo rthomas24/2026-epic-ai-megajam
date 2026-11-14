@@ -201,6 +201,8 @@ protected:
 	float GlideDuration = 2.f;	// set at the glide's start from the distance and the arrival speed
 	float GlideStartSlope = 1.f;
 	float HoldTime = 0.f;	// over the pad after the glide, waiting for the Docking lines
+	FVector LastGlideLoc = FVector::ZeroVector;	// where the glide last put the ship (a move by anything else lets go)
+	bool bGlideLocSet = false;
 	FVector GlideFrom = FVector::ZeroVector;
 	FQuat GlideFromRot = FQuat::Identity;
 	float CurrentPull = 0.f;
