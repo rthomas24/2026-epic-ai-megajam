@@ -411,11 +411,19 @@ S2('NS_TD_Entry_CloudPunch', U(WHITE4, 1.0, Intensity=1.0), [
     spin(shed('Shreds', 'M_TD_VFX_CloudWisp', 0, (0.4, 0.9), (500, 1100), (3000, 9000), radius=900.0, drag=0.5, rgb=(1.0, 1.0, 1.0), alpha=0.7,
               cone=((-1.0, 0.0, 0.0), 25.0), burst=26, dur=1.0, power=0.8, sort=True))])
 # Slot wanted (T1): a loop attached to the ship while it descends under the deck: vapour streaming back past the camera.
-S2('NS_TD_Entry_CloudWisps', U(WHITE4, 1.0, Intensity=1.0), [
-    offset(spin(shed('Wisps', 'M_TD_VFX_CloudWisp', 0, (0.5, 0.9), (900, 2200), (9000, 16000), radius=2600.0, drag=0.0, local=True, rgb=(1.0, 1.0, 1.0), alpha=0.55,
-                     cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='26.0*' + RAMP, power=0.8, fade_in=5.0, sort=True)), 6000),
-    offset(shed('Mist', 'M_TD_VFX_Spark', 0, (0.25, 0.45), (5, 10), (14000, 24000), k=0.5, radius=1800.0, drag=0.0, local=True, stretch=40,
-                cone=((-1.0, 0.0, 0.0), 2.0), rate_expr='90.0*' + RAMP, fade_in=6.0), 5000)])
+# Round 9s (Lead / T1: mid-glide the few grey puffs ahead read as explosion smoke): a full-screen cloud layer the ship flies
+# INSIDE for 1-2 s, then breaks out of. Attached to the ship, +X forward; wisps born in a 40 m ball around the chase camera
+# and ahead of the ship, streaking back past it. User.Color = the cloud tint (default pale teal-white, Verdance; Cinder:
+# ash-brown (0.45, 0.36, 0.30)); User.Embers 0..1 adds glowing embers (Cinder); User.Intensity 0..1 fades it all.
+S2('NS_TD_Entry_CloudWisps', U((0.78, 0.92, 0.92, 1.0), 1.0, Intensity=1.0, Embers=0.0), [
+    offset(spin(shed('Wisps', 'M_TD_VFX_CloudWisp', 0, (0.45, 0.8), (1400, 3200), (9000, 15000), radius=3800.0, drag=0.0, local=True, alpha=0.6,
+                     cone=((-1.0, 0.0, 0.0), 4.0), rate_expr='70.0*' + RAMP, power=0.9, fade_in=6.0, sort=True)), 2500),
+    offset(spin(shed('Veil', 'M_TD_VFX_CloudWisp', 0, (0.6, 1.0), (4000, 7000), (6000, 9000), radius=2600.0, drag=0.0, local=True, alpha=0.35,
+                     cone=((-1.0, 0.0, 0.0), 3.0), rate_expr='12.0*' + RAMP, power=0.8, fade_in=5.0, sort=True)), 1500),
+    offset(shed('Streaks', 'M_TD_VFX_Spark', 0, (0.25, 0.45), (8, 16), (14000, 24000), k=0.6, radius=3000.0, drag=0.0, local=True, stretch=40,
+                cone=((-1.0, 0.0, 0.0), 2.0), rate_expr='120.0*' + RAMP, fade_in=6.0), 3000),
+    offset(shed('Embers', 'M_TD_VFX_Glow', 0, (0.4, 0.8), (14, 34), (8000, 14000), k=1.8, radius=3000.0, drag=0.0, curl=800.0, local=True, rgb=(1.0, 0.45, 0.10),
+                cone=((-1.0, 0.0, 0.0), 6.0), rate_expr='80.0*User.Embers*' + RAMP, power=1.4), 2500)])
 
 # ---- round 6, item 1b (Ryan): debris streaking past during the burn, and the same look for the EXIT (take-off to space).
 # Everything is ship-local (+X = the nose), so one set of systems serves both directions as long as the nose points along
