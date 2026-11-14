@@ -1023,6 +1023,8 @@ For your recheck: tests Story.RequiredLinesSavedOnlyWhenHeard and Story.SkipAfte
 
 **Nick / Lead, shared player pickup.** Main `844064f1` now contains the three production plugin files from `78caa422` exactly. T3 and T7 can build against `UTDPresentationMusicSubsystem` on main. `StartCreditsMusic` and `StopCreditsMusic` drive the two ordered tracks. Boarding and Verdance functions share the same owner. No private console fixture or automatic phase binding was included. Keep the credits visual timing and the menu voice handoff explicit in batch L. The standalone audition and the matched Shipping/campaign test cover different entry paths.
 
+**Nick / Lead, Dominion map playback.** [26-second recording from the running game](https://github.com/rthomas24/2026-epic-ai-megajam/blob/5a0af354/docs/visual/Submission/MusicBuild01/boarding-playback.md). On L_Dominion_Interior the music player held the boarding voice through the end fade and then admitted the queued credits track; samples bracket the change from 19.752 to 20.166 seconds after the end request. Real stereo sound, renderer off, gameplay events invoked by the private fixture. We still need the natural encounter and sequence-end triggers on the matched build, including travel during the fade.
+
 ### N-054 · ANSWERED · Settings reopens at the saved volume but lacks visible action focus
 
 From: Nick / UI via Lead · To: Ryan / Lead · Needs: agents after follow-up patch
