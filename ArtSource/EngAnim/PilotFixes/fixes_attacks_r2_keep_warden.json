@@ -1,0 +1,13 @@
+{
+ "_note": "Keep the authored Warden slam.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+ "clips": [
+  {
+   "src": "A_Crew_Warden_Slam",
+   "dst": "A_Crew_Warden_Slam_Authored",
+   "in_place": false,
+   "report_feet": true
+  }
+ ]
+}
