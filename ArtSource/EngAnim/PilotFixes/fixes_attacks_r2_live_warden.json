@@ -1,0 +1,20 @@
+{
+ "_note": "Live Warden slam = Grok's two-handed wind-up (0-0.9 s) into the authored impact and recovery, shifted 0.20 s: contact at 1.30 s; ends in a crouch and rises.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "skeleton": "/Game/TriadDrift/Gameplay/Characters/Warden/SKEL_Warden",
+ "clips": [
+  {
+   "src": "A_Crew_Warden_Slam_Grok",
+   "dst": "A_Crew_Warden_Slam",
+   "splice": {
+    "src": "A_Crew_Warden_Slam_Authored",
+    "offset": -0.2,
+    "fade": [
+     0.9,
+     1.1
+    ]
+   },
+   "report_feet": true
+  }
+ ]
+}

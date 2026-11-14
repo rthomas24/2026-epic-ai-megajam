@@ -1,0 +1,16 @@
+{
+ "_note": "Live Heavy shield bash = Grok's (impact 0.70 s), starting from and returning to the authored guard pose facing the target.",
+ "folder": "/Game/TriadDrift/Gameplay/Characters/Crew/Anims",
+ "clips": [
+  {
+   "src": "A_Crew_Heavy_ShieldBash_Grok",
+   "dst": "A_Crew_Heavy_ShieldBash",
+   "blend_ends": {
+    "src": "A_Crew_Heavy_ShieldBash_Authored",
+    "in": 0.4,
+    "out": 0.3
+   },
+   "report_feet": true
+  }
+ ]
+}

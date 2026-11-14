@@ -355,7 +355,36 @@ for cl in CFG.get("clips", []):
     t1 = min(t1, L)
     rate = cl.get("rate", 1.0)
     n = max(2, int(round((t1 - t0) / rate * FPS)) + 1)
+    sp = cl.get("splice")   # this clip first, then another: {"src", "offset" (other clip's time = t + offset), "fade": [t0, t1]}
+    if sp:
+        other = find(sp["src"])
+        n = max(2, int(round((other.get_play_length() - sp["offset"]) * FPS)) + 1)
     frs = [sample(src, min(t1, t0 + i * rate / float(FPS)))[0] for i in range(n)]
+    if sp:
+        for i in range(n):
+            tt = i / float(FPS)
+            a_, b_ = sp["fade"]
+            w = min(1.0, max(0.0, (tt - a_) / (b_ - a_)))
+            w = w * w * (3 - 2 * w)
+            if w > 0.0:
+                o = sample(other, min(other.get_play_length(), max(0.0, tt + sp["offset"])))[0]
+                frs[i] = {b: (lerpv(frs[i][b][0], o[b][0], w), nlerp(frs[i][b][1], o[b][1], w)) for b in ALL}
+        log("%s: spliced into %s from %.2f-%.2f s (offset %.2f); %.2f s long" % (cl["src"], sp["src"], sp["fade"][0], sp["fade"][1], sp["offset"], (n - 1) / float(FPS)))
+    be = cl.get("blend_ends")   # start from / return to another clip's first frame: {"src", "in": seconds, "out": seconds}
+    if be:
+        g = sample(find(be["src"]), be.get("t", 0.0))[0]
+        for i in range(n):
+            tt = i / float(FPS)
+            end = (n - 1) / float(FPS)
+            w = 1.0
+            if be.get("in", 0) > 0:
+                w = min(w, tt / be["in"])
+            if be.get("out", 0) > 0:
+                w = min(w, (end - tt) / be["out"])
+            w = max(0.0, min(1.0, w)); w = w * w * (3 - 2 * w)
+            if w < 1.0:
+                frs[i] = {b: (lerpv(g[b][0], frs[i][b][0], w), nlerp(g[b][1], frs[i][b][1], w)) for b in ALL}
+        log("%s: starts from / returns to %s frame 0 (in %.2f s, out %.2f s)" % (cl["dst"], be["src"], be.get("in", 0), be.get("out", 0)))
     travel = 0.0
     root0 = frs[0]["root"][0]
     for fr in frs:
@@ -465,6 +494,18 @@ for cl in CFG.get("clips", []):
                    for b in ALL)
     log("%s -> %s: %.2f s, root travel removed %.0f cm, loop %s (last step %.1f deg)" % (cl["src"], cl["dst"], (n - 1) / float(FPS), travel, bool(cl.get("loop")), seam))
     write(cl["dst"], frs, unreal.load_asset(cl["dst_skeleton"]) if cl.get("dst_skeleton") else None)
+    if cl.get("report_feet"):
+        made = find(cl["dst"])
+        for foot in ("foot_l", "foot_r"):
+            pts = []
+            for i in range(n):
+                pose = unreal.AnimPoseExtensions.get_anim_pose_at_time(made, i / float(FPS), OPTS)
+                v = unreal.AnimPoseExtensions.get_bone_pose(pose, foot, WORLD).translation
+                pts.append((v.x, v.y, v.z))
+            zmin = min(p[2] for p in pts)
+            slide = sum(math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]) for i in range(n - 1) if pts[i][2] < zmin + 2.0 and pts[i + 1][2] < zmin + 2.0)
+            log("%s %s: planted slide %.1f cm in total; XY range %.0f x %.0f cm; height %.1f..%.1f cm" % (cl["dst"], foot, slide,
+                max(p[0] for p in pts) - min(p[0] for p in pts), max(p[1] for p in pts) - min(p[1] for p in pts), zmin, max(p[2] for p in pts)))
 
 for v in CFG.get("visuals", []):
     da = unreal.load_asset(PILOT + "/DA_Pilot_Visuals")
