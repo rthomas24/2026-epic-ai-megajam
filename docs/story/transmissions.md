@@ -106,9 +106,9 @@ are spoken by whoever flew the docked ship (issue #29). `F_FutureWren_FullWarnin
 | `G3_Command_Extraction` | Command | Triad, extraction corridor is open. Return with the archive intact. |
 | `C4_Moss_Trouble` (retired, N-087) | Moss | All that for a recorder full of voices. None of them answering. |
 | `C4_Wren_Badly` | Wren | They wanted that device and its records. We need to know why. |
-| `C4_Kato_SameSignature` | Kato | They weren't searching at random. These two sites have the same geometric signature. |
+| `C4_Kato_SameSignature` (retired, N-087) | Kato | They weren't searching at random. These two sites have the same geometric signature. |
 | `C4_Wren_WhatConnects` (retired, N-087) | Wren | Verdance and Cinder. What connects them? |
-| `C4_Kato_SurveyStation` (retired, N-087) | Kato | I don't know. Cinder's mining complex has matching readings. They're extracting stabilising crystals there. |
+| `C4_Kato_SurveyStation` | Kato | I don't know. Cinder's mining complex has matching readings. They're extracting stabilising crystals there. |
 | `C4_Command_Proceed` | Command | Proceed to Cinder. Investigate the mining complex and recover the stabilising crystals. Compare them with the signal-analysis records. Maintain reconnaissance priority. |
 | `C4_Moss_Volcanoes` (retired, N-087) | Moss | Volcanoes. Great. I was getting tired of the jungle. |
 | `C4_Wren_SetCourse` (retired, N-087) | Wren | Triad, set course for Cinder. |

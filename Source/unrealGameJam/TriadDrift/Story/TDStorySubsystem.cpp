@@ -151,9 +151,9 @@ namespace TDStory
 			// Cinematic 04, Verdance Departure (§17, §25: transmissions over the take-off; no shielding).
 			E(TEXT("C4_Moss_Trouble"), S::Moss, LOCTEXT("C4_Moss_Trouble", "All that for a recorder full of voices. None of them answering.")), // retired (N-087: kept for the record, never fired)
 			E(TEXT("C4_Wren_Badly"), S::Wren, LOCTEXT("C4_Wren_Badly", "They wanted that device and its records. We need to know why.")),
-			E(TEXT("C4_Kato_SameSignature"), S::Kato, LOCTEXT("C4_Kato_SameSignature", "They weren't searching at random. These two sites have the same geometric signature.")),
+			E(TEXT("C4_Kato_SameSignature"), S::Kato, LOCTEXT("C4_Kato_SameSignature", "They weren't searching at random. These two sites have the same geometric signature.")), // retired (N-087: kept for the record, never fired)
 			E(TEXT("C4_Wren_WhatConnects"), S::Wren, LOCTEXT("C4_Wren_WhatConnects", "Verdance and Cinder. What connects them?")), // retired (N-087: kept for the record, never fired)
-			E(TEXT("C4_Kato_SurveyStation"), S::Kato, LOCTEXT("C4_Kato_SurveyStation", "I don't know. Cinder's mining complex has matching readings. They're extracting stabilising crystals there.")), // retired (N-087: kept for the record, never fired)
+			E(TEXT("C4_Kato_SurveyStation"), S::Kato, LOCTEXT("C4_Kato_SurveyStation", "I don't know. Cinder's mining complex has matching readings. They're extracting stabilising crystals there.")),
 			E(TEXT("C4_Command_Proceed"), S::Command, LOCTEXT("C4_Command_Proceed", "Proceed to Cinder. Investigate the mining complex and recover the stabilising crystals. Compare them with the signal-analysis records. Maintain reconnaissance priority.")),
 			E(TEXT("C4_Moss_Volcanoes"), S::Moss, LOCTEXT("C4_Moss_Volcanoes", "Volcanoes. Great. I was getting tired of the jungle.")), // retired (N-087: kept for the record, never fired)
 			E(TEXT("C4_Wren_SetCourse"), S::Wren, LOCTEXT("C4_Wren_SetCourse", "Triad, set course for Cinder.")), // retired (N-087: kept for the record, never fired)
@@ -611,7 +611,7 @@ const TArray<FName>& UTDStorySubsystem::DepartureSet(ETDDestination Planet)
 	// existing take-off, no cutscene (Story/README.md: "transmissions over existing take-off transitions").
 	// N-087 (Nick's Lead under Nicholas's delegation, issue #29): three calls each; the five C4 and three C6 lines cut are
 	// kept in the table, marked retired.
-	static const TArray<FName> Verdance = { TEXT("C4_Wren_Badly"), TEXT("C4_Kato_SameSignature"), TEXT("C4_Command_Proceed") };
+	static const TArray<FName> Verdance = { TEXT("C4_Wren_Badly"), TEXT("C4_Kato_SurveyStation"), TEXT("C4_Command_Proceed") };
 	static const TArray<FName> Cinder = { TEXT("C6_Kato_GuardLine"), TEXT("C6_Kato_FourGenerators"), TEXT("C6_Command_FindOutWhy") };
 	static const TArray<FName> None;
 	return Planet == ETDDestination::Verdance ? Verdance : (Planet == ETDDestination::Cinder ? Cinder : None);

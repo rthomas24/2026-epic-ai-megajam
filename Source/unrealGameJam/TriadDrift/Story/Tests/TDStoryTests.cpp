@@ -350,9 +350,13 @@ bool FTDStoryDepartures::RunTest(const FString& Parameters)
 			TestEqual(TEXT("wave 5 adds the guard-line pair"), Story->GetQueueLength(), Set.Num() - 1 + 2);
 		}
 		TestEqual(Case + TEXT(": N-087, three take-off calls"), Set.Num(), 3);
+		if (C.Expect == ETDDestination::Verdance)
+		{
+			TestTrue(TEXT("N-087: C4 is Badly, SurveyStation, Proceed"), Set == TArray<FName>({ TEXT("C4_Wren_Badly"), TEXT("C4_Kato_SurveyStation"), TEXT("C4_Command_Proceed") }));
+		}
 		for (const FName& Id : Set)
 		{
-			for (const TCHAR* Retired : { TEXT("C4_Moss_Volcanoes"), TEXT("C4_Wren_SetCourse"), TEXT("C4_Wren_WhatConnects"), TEXT("C4_Kato_SurveyStation"),
+			for (const TCHAR* Retired : { TEXT("C4_Moss_Volcanoes"), TEXT("C4_Wren_SetCourse"), TEXT("C4_Wren_WhatConnects"), TEXT("C4_Kato_SameSignature"),
 				TEXT("C4_Moss_Trouble"), TEXT("C6_Moss_SamplesAboard"), TEXT("C6_Wren_FindAWayInside"), TEXT("C6_Wren_Understood") })
 			{
 				TestNotEqual(TEXT("a retired id is never fired"), Id, FName(Retired));
