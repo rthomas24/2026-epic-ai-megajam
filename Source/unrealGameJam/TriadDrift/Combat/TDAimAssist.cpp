@@ -13,14 +13,14 @@ static TAutoConsoleVariable<float> CVarTDAimMouse(TEXT("td.Aim.MouseScale"), 1.f
 static TAutoConsoleVariable<float> CVarTDAimStory(TEXT("td.Aim.StoryScale"), 1.3f, TEXT("#201: assist strength on Story (easiest, strongest)."));
 static TAutoConsoleVariable<float> CVarTDAimStandard(TEXT("td.Aim.StandardScale"), 1.f, TEXT("#201: assist strength on Standard."));
 static TAutoConsoleVariable<float> CVarTDAimAce(TEXT("td.Aim.AceScale"), .75f, TEXT("#201: assist strength on Ace."));
-static TAutoConsoleVariable<float> CVarTDAimLockCone(TEXT("td.Aim.LockConeDeg"), 12.f, TEXT("#201: soft-lock cone half-angle (deg) before the strength scale."));
-static TAutoConsoleVariable<float> CVarTDAimLockConeMax(TEXT("td.Aim.MaxLockConeDeg"), 20.f, TEXT("#201: hard cap on the soft-lock cone (deg)."));
+static TAutoConsoleVariable<float> CVarTDAimLockCone(TEXT("td.Aim.LockConeDeg"), 16.f, TEXT("#201: soft-lock cone half-angle (deg) before the strength scale."));
+static TAutoConsoleVariable<float> CVarTDAimLockConeMax(TEXT("td.Aim.MaxLockConeDeg"), 24.f, TEXT("#201: hard cap on the soft-lock cone (deg)."));
 static TAutoConsoleVariable<float> CVarTDAimKeep(TEXT("td.Aim.LockKeepMarginDeg"), 6.f, TEXT("#201: the lock stays while within its cone plus this margin (deg)."));
 static TAutoConsoleVariable<float> CVarTDAimSticky(TEXT("td.Aim.StickySeconds"), .6f, TEXT("#201: seconds the lock holds after the reticle leaves it (no flicker)."));
-static TAutoConsoleVariable<float> CVarTDAimConverge(TEXT("td.Aim.ConvergeDeg"), 9.f, TEXT("#201: muzzle convergence cone (deg) before the strength scale: shots leave toward the lock's lead point."));
-static TAutoConsoleVariable<float> CVarTDAimConvergeMax(TEXT("td.Aim.MaxConvergeDeg"), 14.f, TEXT("#201: hard cap on the convergence cone (deg)."));
-static TAutoConsoleVariable<float> CVarTDAimTurn(TEXT("td.Aim.TurnScale"), 1.f, TEXT("#201: multiplier on the Rift's / Lancer's homing turn rate."));
-static TAutoConsoleVariable<float> CVarTDAimMaxTurn(TEXT("td.Aim.MaxTurnDeg"), 40.f, TEXT("#201: cap on a shot's total in-flight bend (deg): a hard-turning enemy can still shake it."));
+static TAutoConsoleVariable<float> CVarTDAimConverge(TEXT("td.Aim.ConvergeDeg"), 15.f, TEXT("#201: muzzle convergence cone (deg) before the strength scale: shots leave toward the lock's lead point."));
+static TAutoConsoleVariable<float> CVarTDAimConvergeMax(TEXT("td.Aim.MaxConvergeDeg"), 22.f, TEXT("#201: hard cap on the convergence cone (deg)."));
+static TAutoConsoleVariable<float> CVarTDAimTurn(TEXT("td.Aim.TurnScale"), 2.f, TEXT("#201: multiplier on the Rift's / Lancer's homing turn rate."));
+static TAutoConsoleVariable<float> CVarTDAimMaxTurn(TEXT("td.Aim.MaxTurnDeg"), 45.f, TEXT("#201: cap on a shot's total in-flight bend (deg): a hard-turning enemy can still shake it."));
 
 bool FTDAimAssist::IsEnabled()
 {
