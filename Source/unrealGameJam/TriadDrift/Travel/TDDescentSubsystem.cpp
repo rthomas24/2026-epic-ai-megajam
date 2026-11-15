@@ -38,6 +38,8 @@
 #include "Styling/CoreStyle.h"
 #include "UObject/UObjectGlobals.h"
 #include "Widgets/SLeafWidget.h"
+#include "ShaderCompiler.h"
+#include "ShaderPipelineCache.h"
 
 // ------------------------------------------------------------------------------------------------ cover widget
 
@@ -45,6 +47,12 @@ static int32 GTDCoverPaints = 0;
 
 static TAutoConsoleVariable<int32> CVarTDDescentWarmUnderCover(TEXT("td.Descent.WarmUnderCover"), 1,
 	TEXT("#89: 1 = on the way back to the galaxy the warm-up stream is finished under the white cover (the reveal waits, 4 s at most); 0 = as before."));
+static TAutoConsoleVariable<int32> CVarTDDescentWarmShaders(TEXT("td.Descent.WarmShaders"), 1,
+	TEXT("T6 (T1's checkerboard on a cold cache): 1 = the reveal also waits while shaders compile (Development: drawn with the grid material until done) or PSOs precompile (Shipping, first run), up to the 12 s hard limit; 0 = as before."));
+/** When the reveal began waiting on shaders (-1 = not waiting) and the queue then, for the log line at the reveal. */
+static double GTDShaderWaitStart = -1.0;
+static int32 GTDShaderJobsAtStart = 0;
+static uint32 GTDPsosAtStart = 0;
 static TAutoConsoleVariable<int32> CVarTDDescentGlide(TEXT("td.Descent.Glide"), 1,
 	TEXT("ENG-38 stage 2: 1 = the arrival sits over the cloud deck and a forced glide carries the ship down through it after the reveal; 0 = today's arrival under the ceiling."));
 
@@ -457,13 +465,40 @@ void UTDDescentSubsystem::TickCover(float Dt)
 				// T4's planet globes: bake under the cover too (cached for the run after the first, so this only waits once).
 				if (ATDPlanetAtmosphere::AreGlobeBakesRunning(World)) { bTerrainReady = false; }
 			}
+			// T6, with the Lead's leave (T1's checkerboard on a cold cache): the destination's relief, mountain ring, scatter
+			// kinds, hut kits and Fab props are loaded by now, but on a cold cache their shaders are still compiling
+			// (Development: drawn with the engine's grid material until done) or their PSOs precompiling (Shipping, first run).
+			// Keep the white up while that queue drains; the 12 s hard limit below still applies.
+			bool bShadersPending = false;
+			if (bTerrainReady && CVarTDDescentWarmShaders.GetValueOnGameThread() != 0)
+			{
+				const int32 Jobs = GShaderCompilingManager ? GShaderCompilingManager->GetNumRemainingJobs() : 0;
+				const uint32 Psos = FShaderPipelineCache::NumPrecompilesRemaining();
+				if (Jobs > 0 || Psos > 0)
+				{
+					bShadersPending = true;
+					bTerrainReady = false;
+					if (GTDShaderWaitStart < 0.0)
+					{
+						GTDShaderWaitStart = Now; GTDShaderJobsAtStart = Jobs; GTDPsosAtStart = Psos;
+						UE_LOG(LogTriadDrift, Log, TEXT("TD descent: holding the cover for %d shader jobs and %u PSO precompiles"), Jobs, Psos);
+					}
+				}
+			}
 			if (bTerrainReady && Held >= RevealMinHoldSeconds) { bReveal = true; Why = Terrain ? TEXT("terrain built") : TEXT("no terrain"); }
-			else if (Held >= RevealMaxHoldSeconds) { bReveal = true; Why = TEXT("4 s hold limit"); }
+			else if (Held >= RevealMaxHoldSeconds && !bShadersPending) { bReveal = true; Why = TEXT("4 s hold limit"); }
 		}
 		if (!bReveal && CoverFullAt >= 0.0 && Now - CoverFullAt > CoverHardLimitSeconds) { bReveal = true; Why = TEXT("12 s hard limit"); }
 		if (bReveal)
 		{
 			Mark(*FString::Printf(TEXT("reveal (%s)"), Why));
+			if (GTDShaderWaitStart >= 0.0)
+			{
+				UE_LOG(LogTriadDrift, Log, TEXT("TD descent: shaders under the cover: waited %.2f s (shader jobs %d -> %d, PSO precompiles %u -> %u)"),
+					Now - GTDShaderWaitStart, GTDShaderJobsAtStart, GShaderCompilingManager ? GShaderCompilingManager->GetNumRemainingJobs() : 0,
+					GTDPsosAtStart, FShaderPipelineCache::NumPrecompilesRemaining());
+				GTDShaderWaitStart = -1.0;
+			}
 			UE_LOG(LogTriadDrift, Log, TEXT("TD descent: reveal (%s)"), Why);
 			CoverPhase = ETDDescentCover::Revealing;
 			StopRoar(1.f);
