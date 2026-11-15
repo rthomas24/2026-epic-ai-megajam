@@ -415,7 +415,9 @@ private:
 	TArray<FMarkerGroup> MarkerGroups;
 	void UpdateConduitMarker();
 	/** A magma the marker routes around (chain of local points, safe way across) and its rescue spot (local, yaw). */
-	void AddMagmaCrossing(const AActor* Magma, ATDObjective* Objective, int32 Step, const TArray<FVector>& Chain, const FVector& RescueAt, float RescueYaw);
+	void AddMagmaCrossing(const AActor* Magma, ATDObjective* Objective, int32 Step, const TArray<FVector>& Chain, const FVector& RescueAt, float RescueYaw, const FText& Label = FText());
+	/** While a running objective's marker sits on a labelled crossing waypoint, its line reads the label (CROSS THE RIVER). */
+	void TickCrossingLabels();
 
 	bool IsOnRoute(const FVector& Local, float Clearance) const;
 

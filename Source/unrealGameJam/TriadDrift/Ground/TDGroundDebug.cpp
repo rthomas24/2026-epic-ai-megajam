@@ -492,6 +492,30 @@ namespace TDGroundDebug
 		UE_LOG(LogTriadDrift, Display, TEXT("TD.Art total=%d check=%d"), N, Bad);
 	}
 	// TD.Ground.Near X Y Z [Radius]: every rendered primitive whose bounds touch a sphere (what is that thing on screen?).
+	// TD.Ground.Floor: what the pilot stands on (#194): a trace straight down from the pilot, every blocking hit to 30 m.
+	static void Floor(const TArray<FString>& Args, UWorld* World)
+	{
+		const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		const APawn* P = PC ? PC->GetPawn() : nullptr;
+		if (!P)
+		{
+			return;
+		}
+		const FVector From = P->GetActorLocation();
+		FCollisionQueryParams Q(SCENE_QUERY_STAT(TDFloor), true, P);
+		TArray<FHitResult> Hits;
+		World->LineTraceMultiByChannel(Hits, From, From - FVector(0.f, 0.f, 3000.f), ECC_Pawn, Q);
+		FString Out;
+		for (const FHitResult& H : Hits)
+		{
+			Out += FString::Printf(TEXT(" | %s.%s z %.0f%s"), *GetNameSafe(H.GetActor()), *GetNameSafe(H.GetComponent()), H.ImpactPoint.Z, H.bBlockingHit ? TEXT("") : TEXT(" (overlap)"));
+		}
+		// The relief under it, by object type too (its sections may not block the pawn channel).
+		FHitResult Static;
+		const bool bStatic = World->LineTraceSingleByObjectType(Static, From, From - FVector(0.f, 0.f, 3000.f), FCollisionObjectQueryParams(ECC_WorldStatic), Q);
+		UE_LOG(LogTriadDrift, Display, TEXT("TD.Floor pilot=(%.0f %.0f %.0f) pawn-channel:%s || first WorldStatic: %s"), From.X, From.Y, From.Z,
+			Out.IsEmpty() ? TEXT(" none") : *Out, bStatic ? *FString::Printf(TEXT("%s.%s z %.0f"), *GetNameSafe(Static.GetActor()), *GetNameSafe(Static.GetComponent()), Static.ImpactPoint.Z) : TEXT("none"));
+	}
 	static void Near(const TArray<FString>& Args, UWorld* World)
 	{
 		if (Args.Num() < 3)
@@ -524,6 +548,8 @@ namespace TDGroundDebug
 	}
 	static FAutoConsoleCommandWithWorldAndArgs CmdCrew(TEXT("TD.Ground.Crew"), TEXT("TD.Ground.Crew: living crew, type, hull and distance."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Crew));
+	static FAutoConsoleCommandWithWorldAndArgs CmdFloor(TEXT("TD.Ground.Floor"), TEXT("TD.Ground.Floor: what the pilot stands on (trace down, #194)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Floor));
 	static FAutoConsoleCommandWithWorldAndArgs CmdNear(TEXT("TD.Ground.Near"), TEXT("TD.Ground.Near X Y Z [Radius]: list rendered primitives near a point."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Near));
 	// TD.Ground.CourseBounds: everything the course placed (its own shapes and every spawned actor), in world space and

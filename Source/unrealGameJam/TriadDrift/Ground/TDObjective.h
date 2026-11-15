@@ -85,6 +85,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Objective")
 	void UpdateStepText(const FText& Text);
 
+	/** While the marker leads over a crossing (Cinder's river), the line shows this instead (empty: the step's own line). */
+	void SetDetourText(const FText& Detour);
+
 	/** Already done in this run (loading a checkpoint): complete, inactive, never broadcasts or rewards again. */
 	void MarkAlreadyComplete() { bActive = false; bComplete = true; }
 
@@ -122,6 +125,8 @@ private:
 
 	bool bActive = false;
 	bool bComplete = false;
+	FText LastText;   // the step's line as last sent
+	FText DetourText; // shown instead while set
 	int32 CurrentStep = 0;
 	int32 CheckpointStep = 0;
 };
@@ -146,7 +151,9 @@ public:
 
 	/** A hazard the marker must route around while Objective is on Step (INDEX_NONE: any step): Chain is the safe way
 	 *  across, in order from either side (bank, stones, far bank). */
-	void AddCrossing(const FBox& Hazard, ATDObjective* Objective, int32 Step, const TArray<AActor*>& Chain);
+	void AddCrossing(const FBox& Hazard, ATDObjective* Objective, int32 Step, const TArray<AActor*>& Chain, const FText& Label = FText());
+	/** The label of the crossing whose safe chain holds Waypoint (for Objective), or empty. */
+	FText GetCrossingLabel(const ATDObjective* Objective, const AActor* Waypoint) const;
 	/** The marker for a pilot at From heading to Target on Objective's current step: Target, or a chain waypoint. */
 	AActor* RouteWaypoint(const FVector& From, const ATDObjective* Objective, AActor* Target) const;
 	/** The same for a given step (tests walk every step). */
@@ -164,6 +171,7 @@ private:
 		TWeakObjectPtr<ATDObjective> Objective;
 		int32 Step = INDEX_NONE;
 		TArray<TWeakObjectPtr<AActor>> Chain;
+		FText Label;
 	};
 	TArray<FCrossing> Crossings;
 };
