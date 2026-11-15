@@ -20,7 +20,7 @@ class UTDHealthComponent;
 struct FTDDamageInfo;
 
 /** Who says it (dialogs.md's speaker column). */
-enum class ETDFootSpeaker : uint8 { Pilot, Wingman, Kato, Command, Moss };
+enum class ETDFootSpeaker : uint8 { Pilot, Wingman, Kato, Command, Moss, Wren /* #209-allies: a follower speaks as itself */ };
 
 UCLASS()
 class UNREALGAMEJAM_API UTDGroundBarks : public UWorldSubsystem

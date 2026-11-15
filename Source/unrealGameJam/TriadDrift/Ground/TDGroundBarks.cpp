@@ -62,6 +62,7 @@ FName UTDGroundBarks::SpeakerName(ETDFootSpeaker Who) const
 	case ETDFootSpeaker::Pilot: return Pilot;
 	case ETDFootSpeaker::Kato: return TEXT("Kato");
 	case ETDFootSpeaker::Moss: return TEXT("Moss");
+	case ETDFootSpeaker::Wren: return TEXT("Wren"); // #209-allies
 	case ETDFootSpeaker::Command: return TEXT("Command");
 	default: break;
 	}
