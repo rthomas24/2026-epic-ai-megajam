@@ -501,9 +501,9 @@ const TArray<UTDIntroDirector::FTimedLine>& UTDIntroDirector::OpeningLines()
 	static const TArray<FTimedLine> Lines = {
 		{ 0.8f, TEXT("O_PatrolSeven") },
 		{ 3.6f, TEXT("O_Command_Orders") },
-		{ 8.4f, TEXT("O_Wren_HowBad") },
-		{ 13.2f, TEXT("O_Kato_StopSaying") },
-		{ 16.0f, TEXT("O_Moss_Especially") },
+		{ 12.4f, TEXT("O_Wren_HowBad") },   // T7 (#149): each pilot's line under their own card (cards at 12.35, 15.0, 17.7)
+		{ 15.05f, TEXT("O_Kato_StopSaying") },
+		{ 17.7f, TEXT("O_Moss_Especially") },
 		{ 21.0f, TEXT("O_Wren_BigShip") },
 		{ 27.0f, TEXT("O_Kato_NoSignature") },
 		{ 32.4f, TEXT("O_Moss_Message") },
@@ -968,7 +968,7 @@ void UTDIntroDirector::BuildShots()
 		S.LookTo = S.LookFrom;
 		S.FocalFrom = S.FocalTo = 35.f;
 		S.FStop = 11.f;
-		S.FadeIn = 2.5f;
+		S.FadeIn = 0.8f; // T7 (#149): the opening sat on black for seconds; the first picture comes up at once
 		S.FadeOut = 0.5f;
 		S.Narration = 0;
 		Shots.Add(S);
@@ -2278,6 +2278,8 @@ void UTDIntroDirector::StartOpeningBed(USoundBase* Sound)
 		return;
 	}
 	OpeningBed = UGameplayStatics::SpawnSound2D(this, Sound);
+	const UTDTutorialMusicSubsystem* Score = UTDTutorialMusicSubsystem::Get(this);
+	ScoreVoicesAtBedStart = Score ? Score->GetVoicesStarted() : 0; // the count lives for the session, not the run
 	UE_LOG(LogTriadDrift, Log, TEXT("Intro: opening bed %s starts at %.1f s"), *Sound->GetName(), Elapsed);
 }
 
@@ -2296,7 +2298,7 @@ void UTDIntroDirector::UpdateOpeningBed()
 {
 	// The tutorial score has started (its first voice): the bed gives way.
 	const UTDTutorialMusicSubsystem* Score = OpeningBed ? UTDTutorialMusicSubsystem::Get(this) : nullptr;
-	if (Score && Score->GetVoicesStarted() > 0)
+	if (Score && Score->GetVoicesStarted() > ScoreVoicesAtBedStart)
 	{
 		FadeOpeningBed(OpeningBedFadeSeconds, TEXT("the tutorial score started"));
 	}

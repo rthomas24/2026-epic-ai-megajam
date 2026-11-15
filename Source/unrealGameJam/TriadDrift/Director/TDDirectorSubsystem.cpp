@@ -673,13 +673,19 @@ void UTDDirectorSubsystem::HandleActorKilled(AActor* Victim, AActor* Killer, ETD
 	{
 		Consider(ETDHighlightKind::GeneratorKill, GetBaseImportance(ETDHighlightKind::GeneratorKill), Victim, Killer);
 	}
-	if (Victim->ActorHasTag(TDDirectorTags::Carrier))
+	// #201 (wingmen use their powers): a carrier kill and a ram kill are the player's moments; a wingman's never takes the
+	// camera. Generator and reactor kills stay the squad's, whoever lands them.
+	if (bPlayerKill && Victim->ActorHasTag(TDDirectorTags::Carrier))
 	{
 		Consider(ETDHighlightKind::CarrierKill, GetBaseImportance(ETDHighlightKind::CarrierKill), Victim, Killer);
 	}
-	if (Kind == ETDDamageKind::Ram)
+	if (Kind == ETDDamageKind::Ram && bPlayerKill)
 	{
 		Consider(ETDHighlightKind::RamKill, GetBaseImportance(ETDHighlightKind::RamKill), Killer, Victim);
+	}
+	else if (Kind == ETDDamageKind::Ram || Victim->ActorHasTag(TDDirectorTags::Carrier))
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("Director: %s kill not by the player (%s): no shot"), Kind == ETDDamageKind::Ram ? TEXT("ram") : TEXT("carrier"), *GetNameSafe(Killer));
 	}
 	const int32 Streak = RecentKillTimes.Num();
 	if (bPlayerKill && Streak >= Tuning.MultiKillCount)

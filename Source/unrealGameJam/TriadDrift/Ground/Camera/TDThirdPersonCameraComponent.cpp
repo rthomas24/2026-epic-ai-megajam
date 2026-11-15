@@ -494,6 +494,56 @@ void UTDThirdPersonCameraComponent::SetBodyHidden(bool bHide)
 	}
 }
 
+void UTDThirdPersonCameraComponent::RefreshCandidates(const FVector& Pivot)
+{
+	// Everything small and camera-transparent within reach of the chase arm. Static mesh components one by one; instanced
+	// meshes (foliage, scattered dressing) by their own sphere query, so a field of grass costs a tree lookup, not a loop.
+	Candidates.Reset();
+	const UWorld* World = GetWorld();
+	const AActor* Owner = GetOwner();
+	const float Reach = ArmLength + 400.f;
+	for (TObjectIterator<UStaticMeshComponent> It; It; ++It)
+	{
+		UStaticMeshComponent* C = *It;
+		if (!C || C->GetWorld() != World || C->GetOwner() == Owner || !C->IsVisible() || !C->GetStaticMesh()
+			|| Cast<APawn>(C->GetOwner()) || C->IsEditorOnly())
+		{
+			continue;
+		}
+		const bool bTransparent = C->GetCollisionEnabled() == ECollisionEnabled::NoCollision || C->GetCollisionResponseToChannel(ECC_Camera) != ECR_Block;
+		if (!bTransparent)
+		{
+			continue; // the arm pulls in for anything that blocks the Camera channel
+		}
+		const FBoxSphereBounds MeshBounds = C->GetStaticMesh()->GetBounds();
+		if (UInstancedStaticMeshComponent* ISM = Cast<UInstancedStaticMeshComponent>(C))
+		{
+			if (FVector::Dist(ISM->Bounds.Origin, Pivot) > ISM->Bounds.SphereRadius + Reach)
+			{
+				continue;
+			}
+			for (int32 Instance : ISM->GetInstancesOverlappingSphere(Pivot, Reach, /*bSphereInWorldSpace*/ true))
+			{
+				FTransform T;
+				if (!ISM->GetInstanceTransform(Instance, T, /*bWorldSpace*/ true))
+				{
+					continue;
+				}
+				const float R = MeshBounds.SphereRadius * T.GetScale3D().GetAbsMax();
+				if (R >= 40.f && R <= MaxOccluderRadius)
+				{
+					Candidates.Add({ C, Instance, T.TransformPosition(MeshBounds.Origin), R });
+				}
+			}
+		}
+		else if (C->Bounds.SphereRadius >= 40.f && C->Bounds.SphereRadius <= MaxOccluderRadius
+			&& FVector::Dist(C->Bounds.Origin, Pivot) <= C->Bounds.SphereRadius + Reach)
+		{
+			Candidates.Add({ C, INDEX_NONE, C->Bounds.Origin, static_cast<float>(C->Bounds.SphereRadius) });
+		}
+	}
+}
+
 static TAutoConsoleVariable<int32> CVarTDCameraHideDressing(TEXT("td.Camera.HideDressing"), 1,
 	TEXT("On foot, third person: hide small dressing between the lens and the pilot (1, default) or leave it (0, captures)."));
 
@@ -508,59 +558,49 @@ void UTDThirdPersonCameraComponent::UpdateOccluders()
 	const double Now = World->GetRealTimeSeconds();
 	if (bThirdPersonActive && !bBlendingOut && IsViewOurs() && CVarTDCameraHideDressing.GetValueOnGameThread() != 0)
 	{
-		// From the lens to the pilot's chest: everything static or dynamic on the way (a channel trace would stop at the
-		// first blocker; an object query returns them all).
 		const FVector Lens = ChaseLocation;
 		const FVector Chest = GetComponentLocation();
-		FCollisionObjectQueryParams Objects;
-		Objects.AddObjectTypesToQuery(ECC_WorldStatic);
-		Objects.AddObjectTypesToQuery(ECC_WorldDynamic);
-		FCollisionQueryParams Params(SCENE_QUERY_STAT(TDCameraOccluders), true, Owner);
-		TArray<FHitResult> Hits;
-		World->LineTraceMultiByObjectType(Hits, Lens, Chest, Objects, Params);
-		for (const FHitResult& Hit : Hits)
+		if (Now - CandidatesAt > 0.5)
 		{
-			UPrimitiveComponent* C = Hit.GetComponent();
-			// Only dressing: something that lets the camera through (a wall or rock blocks the Camera channel and the arm
-			// has already pulled in for it), that is not a pawn, and that is small.
-			if (!C || C->GetOwner() == Owner || Cast<APawn>(C->GetOwner()) || C->GetCollisionResponseToChannel(ECC_Camera) == ECR_Block)
+			CandidatesAt = Now;
+			RefreshCandidates(Chest);
+		}
+		// A stem or a cap covers the view when the lens-to-chest line passes through the core of its sphere (60 %: the
+		// bounds of a mushroom or a frond are mostly air at the rim).
+		for (const FOccluderCandidate& K : Candidates)
+		{
+			UPrimitiveComponent* C = K.Component.Get();
+			if (!C)
 			{
 				continue;
 			}
-			UInstancedStaticMeshComponent* ISM = Cast<UInstancedStaticMeshComponent>(C);
-			const int32 Instance = (ISM && ISM->IsValidInstance(Hit.Item)) ? Hit.Item : INDEX_NONE;
-			float Radius = C->Bounds.SphereRadius;
-			FTransform Was = FTransform::Identity;
-			if (ISM && Instance != INDEX_NONE)
-			{
-				ISM->GetInstanceTransform(Instance, Was, /*bWorldSpace*/ false);
-				const UStaticMesh* Mesh = ISM->GetStaticMesh();
-				Radius = (Mesh ? Mesh->GetBounds().SphereRadius : 100.f) * Was.GetScale3D().GetAbsMax() * ISM->GetComponentScale().GetAbsMax();
-			}
-			else if (ISM)
-			{
-				continue; // an instanced mesh with no instance index: never hide the whole field
-			}
-			if (Radius > MaxOccluderRadius)
+			const FVector Closest = FMath::ClosestPointOnSegment(K.Centre, Lens, Chest);
+			if (FVector::DistSquared(Closest, K.Centre) > FMath::Square(K.Radius * 0.6f))
 			{
 				continue;
 			}
-			FHiddenOccluder* Known = Occluders.FindByPredicate([C, Instance](const FHiddenOccluder& O) { return O.Component == C && O.Instance == Instance; });
+			FHiddenOccluder* Known = Occluders.FindByPredicate([C, &K](const FHiddenOccluder& O) { return O.Component == C && O.Instance == K.Instance; });
 			if (Known)
 			{
 				Known->LastHit = Now;
 				continue;
 			}
+			UInstancedStaticMeshComponent* ISM = Cast<UInstancedStaticMeshComponent>(C);
 			FHiddenOccluder O;
 			O.Component = C;
-			O.Instance = Instance;
-			O.InstanceWas = Was;
+			O.Instance = K.Instance;
 			O.LastHit = Now;
-			if (ISM && Instance != INDEX_NONE)
+			if (ISM && K.Instance != INDEX_NONE)
 			{
+				FTransform Was;
+				if (!ISM->GetInstanceTransform(K.Instance, Was, /*bWorldSpace*/ false))
+				{
+					continue;
+				}
+				O.InstanceWas = Was;
 				FTransform Gone = Was;
 				Gone.SetScale3D(FVector(KINDA_SMALL_NUMBER));
-				ISM->UpdateInstanceTransform(Instance, Gone, false, /*bMarkRenderStateDirty*/ true, /*bTeleport*/ true);
+				ISM->UpdateInstanceTransform(K.Instance, Gone, false, /*bMarkRenderStateDirty*/ true, /*bTeleport*/ true);
 			}
 			else
 			{
@@ -572,7 +612,7 @@ void UTDThirdPersonCameraComponent::UpdateOccluders()
 			}
 			Occluders.Add(O);
 			UE_LOG(LogTriadDrift, Log, TEXT("TD camera: hid %s%s (radius %.0f cm) between the lens and the pilot"), *GetNameSafe(C->GetOwner()),
-				Instance != INDEX_NONE ? *FString::Printf(TEXT(" instance %d"), Instance) : TEXT(""), Radius);
+				K.Instance != INDEX_NONE ? *FString::Printf(TEXT(" instance %d"), K.Instance) : TEXT(""), K.Radius);
 		}
 	}
 	RestoreOccluders(false);
@@ -619,4 +659,73 @@ static FAutoConsoleCommandWithWorldAndArgs GTDCameraTurnCmd(TEXT("TD.Camera.Turn
 		R.Yaw += FCString::Atof(*Args[0]);
 		if (Args.Num() > 1) { R.Pitch = FCString::Atof(*Args[1]); }
 		PC->SetControlRotation(R);
+	}));
+
+// Captures: stand the pilot just in front of the nearest small piece of dressing that does not block the Camera channel
+// (instanced foliage included), facing away from it, so it sits between the chase lens and the pilot.
+static FAutoConsoleCommandWithWorldAndArgs GTDCameraOccluderCmd(TEXT("TD.Camera.StandBeforeDressing"),
+	TEXT("TD.Camera.StandBeforeDressing [distance cm = 150]: the pilot in front of the nearest camera-transparent dressing, facing away (dev)."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+		if (!Pawn) { return; }
+		const float Gap = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 150.f;
+		const FVector From = Pawn->GetActorLocation();
+		float Best = TNumericLimits<float>::Max();
+		FVector BestAt = FVector::ZeroVector;
+		FString BestName;
+		for (TObjectIterator<UStaticMeshComponent> It; It; ++It)
+		{
+			UStaticMeshComponent* C = *It;
+			if (!C || C->GetWorld() != World || !C->IsVisible() || C->GetOwner() == Pawn || !C->GetStaticMesh()
+				|| (C->GetCollisionEnabled() != ECollisionEnabled::NoCollision && C->GetCollisionResponseToChannel(ECC_Camera) == ECR_Block))
+			{
+				continue;
+			}
+			const float MeshRadius = C->GetStaticMesh()->GetBounds().SphereRadius;
+			auto Consider = [&](const FTransform& T)
+			{
+				const float R = MeshRadius * T.GetScale3D().GetAbsMax();
+				if (R < 60.f || R > 600.f) { return; }
+				// Tall plant dressing only (a stem or a trunk that reaches the lens line), not low props.
+				const FString MeshName = C->GetStaticMesh()->GetName();
+				const bool bPlant = MeshName.Contains(TEXT("Mushroom")) || MeshName.Contains(TEXT("Tree")) || MeshName.Contains(TEXT("Fern"))
+					|| MeshName.Contains(TEXT("Frond")) || MeshName.Contains(TEXT("Stalk")) || MeshName.Contains(TEXT("Plant")) || MeshName.Contains(TEXT("Palm"));
+				const float Height = C->GetStaticMesh()->GetBounds().BoxExtent.Z * 2.f * T.GetScale3D().Z;
+				if (!bPlant || Height < 180.f) { return; }
+				const FVector At = T.GetLocation() + FVector(0.f, 0.f, R * 0.5f);
+				const float D = FVector::DistSquared(At, From);
+				if (D < Best) { Best = D; BestAt = At; BestName = C->GetStaticMesh()->GetName(); }
+			};
+			if (UInstancedStaticMeshComponent* ISM = Cast<UInstancedStaticMeshComponent>(C))
+			{
+				for (int32 i = 0; i < ISM->GetInstanceCount(); ++i)
+				{
+					FTransform T;
+					if (ISM->GetInstanceTransform(i, T, true)) { Consider(T); }
+				}
+			}
+			else
+			{
+				Consider(C->GetComponentTransform());
+			}
+		}
+		if (BestName.IsEmpty())
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.Camera.StandBeforeDressing: no camera-transparent dressing found"));
+			return;
+		}
+		FVector Dir = (From - BestAt).GetSafeNormal2D();
+		if (Dir.IsNearlyZero()) { Dir = FVector::ForwardVector; }
+		FVector P = BestAt + Dir * Gap;
+		FHitResult Floor;
+		FCollisionQueryParams Q(TEXT("TDStandBefore"), false, Pawn);
+		if (World->LineTraceSingleByChannel(Floor, P + FVector(0.f, 0.f, 400.f), P - FVector(0.f, 0.f, 3000.f), ECC_Visibility, Q))
+		{
+			P.Z = Floor.ImpactPoint.Z;
+		}
+		Pawn->SetActorLocation(P + FVector(0.f, 0.f, Pawn->GetSimpleCollisionHalfHeight() + 5.f), false, nullptr, ETeleportType::TeleportPhysics);
+		PC->SetControlRotation(FRotator(-10.f, Dir.Rotation().Yaw, 0.f)); // facing away: the dressing is behind the pilot
+		UE_LOG(LogTriadDrift, Log, TEXT("TD.Camera.StandBeforeDressing: %s at %s, pilot %.0f cm in front"), *BestName, *BestAt.ToCompactString(), Gap);
 	}));

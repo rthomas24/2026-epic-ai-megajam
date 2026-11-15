@@ -160,6 +160,18 @@ private:
 		double LastHit = 0.0;
 	};
 	TArray<FHiddenOccluder> Occluders;
+	/** Dressing near the pilot that the camera does not collide with (no collision at all, or not blocking the Camera
+	 *  channel): a sphere per piece, refreshed every half second; the lens-to-pilot line is tested against them. */
+	struct FOccluderCandidate
+	{
+		TWeakObjectPtr<UPrimitiveComponent> Component;
+		int32 Instance = INDEX_NONE;
+		FVector Centre = FVector::ZeroVector;
+		float Radius = 0.f;
+	};
+	TArray<FOccluderCandidate> Candidates;
+	double CandidatesAt = -1000.0;
+	void RefreshCandidates(const FVector& Pivot);
 	void UpdateOccluders();
 	void RestoreOccluders(bool bAll);
 public:
