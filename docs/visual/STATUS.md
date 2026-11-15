@@ -1,3 +1,8 @@
+## November 15 consolidated completion status
+
+Final requested package source: **54cfd78a**. See the bottom of [DEVLOG.md](../../DEVLOG.md) for Nicholas's complete daily change list: collision/approach safety, landing/scan/controller labels, supplied OST/restoration/continuity, opening voice, weapon bob, Cinder props, followers-off fallback, approved black future armor, and corrected camera tests. Natural Development campaign and original old-save regressions passed within the disclosed assisted/bounded scope; approved1080p showcase delivered to Ryan.
+
+**Not yet complete:** exact-SHA cooked package/inventory, Shipping acceptance, physical-controller/aim-assist/by-ear gates and public submission confirmation. No blanket feature completion. Nicholas's working submission deadline is18:00EST, with17:00 as the finish/testing buffer. Optional deferrals are listed in the daily DEVLOG and #210. Historical checkpoints below retain their original context.
 ## Nick Lead completion checkpoint — November 15, 10:20 EST
 
 Final `HANDOVER-TO-NICK.md` sections 9–10 and [#210](https://github.com/rthomas24/2026-epic-ai-megajam/issues/210) govern this checkpoint. Reviewed main `eb644671`; game source remains `f2237462`. Historical findings below remain evidence of their stated older builds, not fresh failures of this source.
