@@ -95,6 +95,14 @@ void UTDGameInstance::BindEventBus()
 	Bus->OnWaveStarted.AddUniqueDynamic(this, &UTDGameInstance::HandleWaveStarted);
 	Bus->OnWaveCleared.AddUniqueDynamic(this, &UTDGameInstance::HandleWaveCleared);
 	Bus->OnObjectiveUpdated.AddUniqueDynamic(this, &UTDGameInstance::HandleObjectiveUpdated);
+	Bus->OnShipSwitched.AddUniqueDynamic(this, &UTDGameInstance::HandleShipSwitched);
+}
+
+void UTDGameInstance::HandleShipSwitched(ETDShipId NewShip, ETDShipId /*OldShip*/)
+{
+	// #103: every switch is remembered, so a slot written later (quit to menu, no squad in that world) and a Continue
+	// resume in the ship the player last flew. T7: the slot held Rift after flying Kato through wave 2.
+	Progress.LastShip = NewShip;
 }
 
 void UTDGameInstance::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FText Text)
@@ -651,11 +659,13 @@ void UTDGameInstance::ExecuteRetake()
 	const TSet<FName> KeptTransmissions = Progress.StoryTransmissions; // a retake never replays a story line
 	const FTDRunStats KeptStats = Progress.Stats;
 	const float KeptRunTime = Progress.RunTimeSeconds;
+	const ETDShipId KeptShip = Progress.LastShip; // #103: a retake resumes in the ship flown, not the checkpoint's
 
 	if (LastCheckpoint.bValid)
 	{
 		Progress = LastCheckpoint.Progress;
 	}
+	Progress.LastShip = KeptShip;
 	Progress.Takes = KeptTakes;
 	Progress.StoryTransmissions = KeptTransmissions;
 	Progress.Stats = KeptStats;
