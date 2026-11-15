@@ -522,3 +522,11 @@ Published sessions47–52: bounded shadow assault evidence; remaining projected-
 **Decisions made on Ryan's behalf this evening:** Continue restores the last-flown ship; look-back shot on a successful escape (Nicholas may restyle); follower knock-down stays silent; visor may take the pilot colour; packaging may compile beside the two team slots; waypoint under the conduit objective reads CROSS THE RIVER; fire cannot dismiss the tactical panel in its first 2.5 s; wingmen do half damage and leave last hits in waves 1-2.
 
 **Needs Ryan's eyes first:** the Cinder walk once fixed; the loading card in the next package; whether mouse Y was inverted when he played. 28 issues open, no open PRs. Nicholas's Codex agents are stopped except small source reviews.
+
+## 2026-11-14/15 - T7 playtests (agent, real input in the running game; frames under .wt/t7/Saved/TDShots/)
+
+- **Verdance fill (#194), main 67021ade:** 14 baseline views re-shot; all but one now have scenery; the floor within 30 m of the path was still flat and bare before relief.
+- **96a66f7c relief:** a Verdance route walked with the real pawn: nothing floats or sinks; a pylon blocked the beacon path at (4280, 3505) (since fixed). Squad row at 1080p even, no movement on a switch.
+- **Shipping 96a66f7c, real OS input, throwaway profile:** menu keys, confirms and CONTINUE by click work; intro clean; GOOD through waves 1-2, the withdraw, the jump and landing on Verdance; Cinder not reached in Shipping. Findings: mouse-up pitched the nose down (T1); an unprompted switch to Kato behind the tactical panel (fixed in e2f6236f); Kato on foot with a pink blade (T5). Lesson: CopyFromScreen captures whatever window is on top; use PrintWindow for window-only frames.
+- **Cinder acceptance, b1eb44f7:** Continue restores Cinder and the pilot stays level for about 30 steps, but he wedged at the outpost doorway (3344, 156) and the conduits stayed 0/2 (the thing swung at was a river waypoint, and the bridge foot had a 60 cm lip: the ground sits 60 cm low). Bridge, anchor and shore not reached.
+- **e2f6236f from a real New Game:** the flown ship is kept after a CUT retake (GOOD); the tactical panel was not seen at all in the Aftermath; shadow ON wingmen stay close and rejoin but took every wave 1 kill; shadow OFF did not visibly range out in a short fight.
