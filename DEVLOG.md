@@ -506,3 +506,19 @@ Lead reconciled original evidence from sessions43–46: on-foot subtitle/card ov
 ## Nick Lead runtime checkpoint — November 14, 20:14 EST
 
 Published sessions47–52: bounded shadow assault evidence; remaining projected-marker overlap; actual-flight escape clear with unproven forward-view hull blast; exact720p subtitle/card and tactical cap/fire fixes; pause-menu ship-retention PASS; cold checkpoint identity clarification. Original-evidence links and all fixture limits are in docs/visual/STATUS.md.194/96 remain progression priorities. No native process, feature-marker change, production edit or broader acceptance. Human launch checkout and local work preserved.
+
+## 2026-11-14 20:25 EST - Ryan's Lead: status for Ryan (wrap-up of this session)
+
+**Main:** fdd449d2 (compiled). **Latest good package:** `Builds/for-ryan/TriadDrift_96a66f7c_Shipping.zip` (launch-checked, pinned). A cook of fdd449d2 is running; later packages are labelled "Cinder Continue blocker open" until that is proven fixed.
+
+**On main since 19:30 (compiled; agent-played unless noted):** shadow mode and wingman powers (b1eb44f7); swarm tunables, default off, and the planet shader warm-up on descent (0211599f); doubled Dominion breakup bursts; tactical panel docked upper-right with an 8 s limit and dismiss, on-foot subtitle above the pilot card, respawn keeps the flown ship (e2f6236f; Nick's Session49 passed the layout); boot loading card drawn from pixels (0e1684de; NOT yet seen in Shipping); per-pilot suit materials (fdd449d2; not yet used by anything).
+
+**In batch CT, compiling, not on main:** Cinder and Verdance dressing with the Cinder Nanite/cull/shadow cut (env c25f6538; Verdance about 9 ms, Cinder pad 14.5 ms, still slow), follower stance and swing variation (anim f47f2888), bridge ramp toes (struct 2f5a2ec5: bridge and outpost door walked with real keys while the ground is low).
+
+**Open blocker, Cinder on foot (#194):** the relief ground in the course basin sits 60 cm low (trace: hit z -60 where the field says 0); doorway, bridge foot and river lips were built for 0. T4 has the SiteCells fix and "no depressions in the basin" at 22c09b46 (not merged; its walk stuck at the old bridge foot) and is fixing the offset. Not accepted until a real-input walk goes pad, survey, door, bridge, gate and both conduits (the real ones at the gate) by blade, then Nick's original save. Lead's mistakes recorded earlier: took c9edb62a before its route walk; called the fix proven twice too early.
+
+**Not finished (owners):** aim assist, soft lock and Rift/Lancer homing (T2, #201/#192); easier mouse steering (T1); wingmen leaving the player's kills in waves 1-2 and ranging out with shadow off (wingman builder; T7 found wingmen took every wave 1 kill); the tactical panel never appeared in a natural Aftermath on e2f6236f (T2); objective diamonds over the subtitle (T2); on-foot followers (#209: ground squad builder, branch only); escape look-back blast shot (#111, T3: written, not built, left off); T3's branch tip (camera fade and intro timing played before the merge; #146 bed fix, Aftermath lines on a planet, player-only ram shots unplayed); turret telegraph ring (too large at 400 m, effects builder reworking); Cinder frame rate; full Shipping play start to end (#152).
+
+**Decisions made on Ryan's behalf this evening:** Continue restores the last-flown ship; look-back shot on a successful escape (Nicholas may restyle); follower knock-down stays silent; visor may take the pilot colour; packaging may compile beside the two team slots; waypoint under the conduit objective reads CROSS THE RIVER; fire cannot dismiss the tactical panel in its first 2.5 s; wingmen do half damage and leave last hits in waves 1-2.
+
+**Needs Ryan's eyes first:** the Cinder walk once fixed; the loading card in the next package; whether mouse Y was inverted when he played. 28 issues open, no open PRs. Nicholas's Codex agents are stopped except small source reviews.
