@@ -89,7 +89,7 @@ Story: [`storyline.md`](storyline.md). Gameplay dialogue: [`dialogs.md`](dialogs
 Written by Ryan's Lead's docs agent at Ryan's request: "when every item in features.md is ✅, the game is complete end
 to end; only overall polish is left". One row per beat of [`storyline.md`](storyline.md) in play order (reduced forms of
 §18, §22, §25 and the reconciliation of `fbc7240`, which win over older text), with the items that deliver it. State is
-the weakest state among the row's items, from `docs/eng/STATUS.md`, `CLAIMS.md` and the board; **20 rows are ✅ at 19:30** (the three Cinder rows are 🐞 for the route blocker; Ryan himself played the opening, waves 1-2, the jump and the Verdance landing at about 19:00; 20 at 18:30; 22 at 17:30, 22 at 16:30, 24 at 15:30, before Ryan's #194 put the two planet arrival rows back to 🟨; 19 at 14:30, 17 at 13:30, 16 at 12:30, 14 at 11:30, 9 at 10:30) under Ryan's rule of 10:15 (a row is ✅ when its named beats were played good, whatever its items' markers)
+the weakest state among the row's items, from `docs/eng/STATUS.md`, `CLAIMS.md` and the board; **20 rows are ✅ at 20:30** (unchanged since 19:30; the three Cinder rows are 🐞 for the route blocker; Ryan himself played the opening, waves 1-2, the jump and the Verdance landing at about 19:00; 20 at 18:30; 22 at 17:30, 22 at 16:30, 24 at 15:30, before Ryan's #194 put the two planet arrival rows back to 🟨; 19 at 14:30, 17 at 13:30, 16 at 12:30, 14 at 11:30, 9 at 10:30) under Ryan's rule of 10:15 (a row is ✅ when its named beats were played good, whatever its items' markers)
 (09:30: ENG-02 and ENG-07 are ✅ under Ryan's bar of 09:15, but every row still holds a weaker item). Pure polish is in the [AAA polish list](#the-aaa-polish-list-both-days-in-priority-order) and its
 "final polish (after freeze)" group, not here.
 
@@ -134,68 +134,35 @@ the weakest state among the row's items, from `docs/eng/STATUS.md`, `CLAIMS.md` 
 | Ship it | Independent review of every lane, human playthroughs, submission page, video, dev log, credits | ART-20, ART-21, ENG-46, ART-14 | 🟨 | Batch L range 825d8869..6fe3e90f sent to Nick's side for review (R-045, accepted on #88); T7 ran Nick's seven scripts on batch L; **no agent has played batches M to R end to end** (T7 plays main with script 08 after its performance window; not started at 03:35); eight evidence frames for Nick's asset issues are published as the prerelease `evidence-main-eb1bf334` and linked on #37, #40, #41, #42, #51, #54 and #63 with a request to close; Nick's side stopped at 01:16 (N-090), its reviews resume on restart; Glass Box draft on main (a980fa7f); itch page; trailer re-cut **(05:00)** **The first end-to-end agent play since batch L has started:** T7, 04:14-04:29, real keys through the engine's MCP server in a `-game` session, on the batch O tree (behind main by batches P-T): menu, intro skip, tutorial, switching, the Bastion dome, wingmen, the withdrawal and the Verdance entry played and working; the *Aftermath* beat broken (MAJOR). Not played: landing by hand, both planets' objectives, the assault, docking, interior, reactor, escape, victory (T7's next session is running). Evidence frames are now on all eleven asset issues (#37-#42, #51-#54, #63) with a close request; nothing closed (Nick's side is stopped) **(06:00)** T7's agent play now covers the opening through Verdance on foot and back to orbit, and Cinder on foot to the gate conduits (batch O tree); the assault, docking, the interior, the reactor, the escape and victory are unplayed by anyone since batch L; batch U's range for ART-20 is 29a15f21..50c4af7a; Nick's side is still stopped **(06:30)** T7's agent play on main 50c4af7a now also covers the *Aftermath* replay, the Dominion assault and the interior from the hangar to the Warden. **Still unplayed by anyone:** docking on main (T1 is playing it), the reactor conduits and heart, the escape run and flight, victory, credits, the space-reactor fallback. Batch W (main 6cc4f254) is tests only. ART-20 ranges added: 50c4af7a..94b56d11 (V) and 94b56d11..6cc4f254 (W); Nick's side is still stopped **(09:30)** Nicholas is running a human playtest in the editor on main 8b4eabae (his note on #90; findings pending, no approval inferred). Agent play since 06:30: T7 interior to the Warden (GOOD), T1, T2, T3, T4, T6 verdicts. Still unplayed: the reactor, reveal, escape run, reboard, credits, Cinder past the conduits, waves 3-5. The independent review of batches U to X is Nick's side's task (N-095)  **(10:30)** **To close:** Nick's side's review of batches U to AE (ART-20), Nicholas's playthrough batches (Batch 1 received, triaged on #90), the submission page and video (ART-14)  **(12:30)** From Nick's side (#139): a bounded file-range matrix of batches U to AE, then one source review of batch U's story carry across travel: **MAJOR (source only, not reproduced): a fast New Game after quitting with a required recording unheard can queue the old run's recording into the new run**; routed to T3 by Ryan's Lead. Nicholas approved the written art-direction guide (#132)  **(14:30)** Nick's side reconciled historical audio uses and the scoped package inventory in `CREDITS.md` (1e2fdba7). Nicholas told his Lead to decide anything pending his approval unless critical (#133, #136). **To close:** the reviews of the newest ranges, the submission page and video (ART-14, ART-20) |
 
 
-**Hourly alignment, Nov 14 19:30 EST (Ryan's Lead; replaces the 18:30 block):**
-- **Rules unchanged** (under the status key): 09:15 agent-played and judged good = ✅, and an item whose issue the Lead closed as
-  played GOOD is ✅; 10:15 every named player-facing part played good = ✅, polish moves to the AAA list; 10:25 compile-only gate.
-  Branch-only work is 🟨. Nick-side items move only on Nick's side's own reports (its 18:50 checkpoint changes no Nick marker).
-  **Nicholas's Codex agents are stopped on their weekly reserve** (#194, 00:12 UTC); his Lead's source review continues in small steps.
-- **Ryan, about 19:00:** played scenes 1-3 himself (the opening, waves 1-2, the jump, the landing on Verdance) and said they look
-  solid: human-played evidence on those rows only. His standing words: **"keep going, keep trying to wrap up all of the issues, close
-  them out, and try and complete all the features fully."**
-- **Ryan's new asks:** (a) the TACTICAL · CONTACT MOVEMENT panel stayed too long and could not be dismissed (T2: 8 s cap,
-  dismissable, docked; #103); (b) **#209 on-foot wingmen** (new item ENG-49: ground squad builder `.wt/gsq`, compiling; the
-  animation builder's per-pilot suit colours; T5, T2, T7); (c) under #201: easier mouse steering (T1, plan approved), strong aim
-  assist with lock-on and Rift / Lancer tracking shots per #192 with the Bastion straight (T2), more but weaker enemies (T4,
-  `td.Balance.Swarm`).
-- **THE CINDER BLOCKER IS STILL OPEN** (Nick's Lead's original save on 36bee71d, #194 comment 6886509588): after Continue the pilot
-  walks on the safety slab at z -168, 2.6 m below the course, dies in magma on the bridge approach, conduits unreachable; T4's site
-  corridors mostly unregistered (an inverted `TSet::Add` out-parameter). T4 and T5 reproducing on main with a stand-on trace.
-  **The Lead reported the fix as proven too early, the second time today on this item.** Packaging pinned at 96a66f7c.
-- **On main b1eb44f7** (since 18:30: 508edec6 T1's notch take-off and T6's asteroid-split MAJOR fix; 1e09640a T2's marker sweep and
-  on-foot card; ad1ea653 the boot loading card, the beam's ship end dimmed, ambient effects at their heights, the pad beacon;
-  36bee71d the Cinder fix pair, the walk-line keep-out and Cinder's mining camp, visible bomber mines; b1eb44f7 #201 shadow mode and
-  wingman powers after a rebalance, the crisp mine core). **Queued:** T4's swarm tunables (3d6f56e3, off by default), T6's planet
-  shader warm-up (18a3a37f).
-- **Played this hour:** T7's Shipping run on 96a66f7c with real OS input GOOD through the Verdance landing; the menu checks GOOD
-  (#142 asked to close) and the Continue click GOOD; not reached: the Verdance objectives onward. T6: Verdance frame rate GOOD;
-  Cinder on foot and the low climb NOT GOOD (render-thread bound). Nick's sessions 40-42: the escape re-entry suppression, the
-  intro-bed skip fade and the asteroid splits passed.
-- **Markers changed (19:30):**
-  - **✅ → 🟨:** ENG-01 (Ryan's easier mouse steering, #201).
-  - **New, 🟨:** ENG-49 on-foot wingmen (#209).
-  - **Unchanged:** ENG-26, ENG-39 and the three Cinder rows stay 🐞; ENG-05, ENG-08 and ENG-27 stay 🟨 for #201's new asks;
-    ENG-42 stays 🟨 (Nick's Lead now lists its old-save strand as a MAJOR; the Lead may make it 🐞). No checklist row changed;
-    Ryan's play adds human evidence to four rows that were already ✅ or held only by #194.
-- **Counts:** item headings 50 ✅, 0 🟢, 21 🟨, 2 🐞, 0 ⬜ (Ryan's side: 49 ✅, 13 🟨, 2 🐞; Nick's side: 1 ✅, 8 🟨);
-  the 37 checklist rows: 20 ✅, 14 🟨, 3 🐞.
-- **Issues:** 28 open; none closed since 18:30. New: #208 (Kat's Dominion wall panels: VentWall and PipeServiceWall offered as
-  non-colliding dressing at capped sizes, the other two reference only), #209.
-- **Decisions made by Ryan's Lead under delegation since 18:30 (Ryan may overrule any):** the Cinder pair merged before its conduits
-  walk (and reported proven too early); #192 resolved as Rift and Lancer homing on lock, the Bastion straight; shadow mode accepted
-  after the rebalance (a 180 m leash, a 540 m cap, +35% solo damage, offensive powers in shadow ON only on the player's target or
-  attacker); wingman ram kills no longer trigger the slow-motion shot (T3), the Carrier shot player-only, Generator and Reactor shots
-  for any squad kill; followers on foot cannot die and do not complete objectives; encounter scale 1.6x; the cheap death Pop parked;
-  no cold-cache shader test; the packaging pin on 96a66f7c; T7's full run moved from Shipping with OS input to Development with
-  injected input.
-- **Nick's Lead's decisions recorded:** #151 keeps the near-only enemy engine attenuation; #209's story contract (the possessed pilot
-  is the speaker; existing ids only; a follower down is never a death); #208 Kat is Nicholas's own AI agent. Nick's Lead's new MAJORs
-  on our side: the on-foot subtitle crosses the pilot card at 720p (#103, T2); the old save stranded behind the Warden exit (#96, T5).
-- **Open with Ryan (not blocking):** whether the mouse Y was inverted for him. Still his whenever he wants them: one real click on
-  CONTINUE, `MI_TD_DominionGlowRed`, the DirectX 11 shader set, pilot foot IK, a precompiled pipeline-state cache, T3's stash
-  "t3-failed-merge-lead-int-u-0921".
-- **If Nick's side is still stopped near the freeze**, the R-024 take-over candidates are listed in R-044 (not started).
-- **THE REMAINING LIST, most urgent first** (owners on `CLAIMS.md`):
-  1. **The Cinder route BLOCKER** (T4 corridors and relief, T5 slab, T7 walk with Nick's original save): ENG-26, ENG-39, three rows.
-  2. ENG-42 and the reveal row: T5's legacy-save recovery and Nick's same-save proof (#96).
-  3. ENG-36 and the HUD row: the TACTICAL panel, the on-foot subtitle at 720p, the pause hover, #159 (T2, T1).
-  4. ENG-01, ENG-05, ENG-08, ENG-27: #201's steering, aim assist and swarm, then T7's verdict (T1, T2, T4, wingman builder).
-  5. ENG-49: #209 on-foot wingmen (ground squad builder, T5, animation builder, T2, T7).
-  6. The take-off rows: both take-offs flown with their C4 and C6 lines (T4, #96).
-  7. ART-08: T5's hooks seen in a played fight (#124).
-  8. ENG-37, ART-07 and ART-16: the beam in a real docking, the mines in a played wave, the hull-scale explosions.
-  9. The escape flight row: the breakup seen at the escape clear (T4).
-  10. ENG-28, ENG-46 and the Ship-it rows: Cinder's frame rate, a package played start to end (T6, T7, #152).
-  11. Nick-side items ART-09, 10, 11, 12, 14, 19, 20, 21: next steps in R-044; the Ritual track closes the escape-run and sound rows.
+**Hourly alignment, Nov 14 20:30 EST (Ryan's Lead; replaces the 19:30 block; wrap-up phase):**
+- **Rules unchanged.** Nick's Codex agents are still stopped on their weekly reserve; their Lead's playtests continue (sessions 43-52).
+- **On main 7bf9491a** (since 19:30): 0211599f swarm tunables (off by default), the descent shader warm-up, doubled breakup bursts;
+  e2f6236f the tactical panel docked, 8 s, dismissable, the on-foot subtitle above the card, respawn keeps the flown ship (Nick's
+  session 49 passed the layout); 0e1684de the boot loading card from pixels (unseen in Shipping); fdd449d2 per-pilot suit materials;
+  7688b7dd dressing and the Cinder Nanite / cull cut, follower animation variation, the bridge ramp toes; ba6515b2 T4's SiteCells fix,
+  no basin depressions; 7bf9491a T3's intro #149 timing, the #146 bed fix, carried *Aftermath* lines on a planet, player-only ram
+  shots (unplayed), and the Shipping compile fix.
+- **The Shipping compile was broken on main from 0e1684de to ba6515b2** (the Lead's miss); fixed in 7bf9491a; packaging now
+  Shipping-checks every main. Latest good package: 96a66f7c.
+- **Cinder stays 🐞** (ENG-26, ENG-39, three rows): the relief collision sits 60 cm below its component (cause not found; T4 stopped;
+  probe 4726ce7d parked); the route relies on the ramp toes; T5's and T7's walks on 7688b7dd+ running, not accepted.
+- **Batch CW, compiling:** T2's aim assist, soft lock and Rift / Lancer homing (405f17f2), the tactical panel's 2.5 s minimum,
+  diamonds clear of the subtitle, LastShip on Continue. **Branch only:** #209 followers (eng/gsq 19ad1e7c), wingman kill-sharing,
+  T1's mouse steering and the controller coverage table (#152; a physical pad check needs a human), T5 ba4cd88b and ebed9e29.
+  **Not built:** the #111 escape look-back shot; the turret telegraph rework.
+- **Markers changed (20:30):** none. **Counts:** item headings 50 ✅, 0 🟢, 21 🟨, 2 🐞 (Ryan's side 49 ✅, 13 🟨, 2 🐞; Nick's
+  side 1 ✅, 8 🟨); the 37 checklist rows 20 ✅, 14 🟨, 3 🐞. 28 issues open.
+- **Decisions by Ryan's Lead under delegation (Ryan may overrule):** Continue restores the last-flown ship; the look-back shot (not
+  built); a follower's knock-down is silent; the visor takes the pilot colour; packaging compiles beside the two compile slots; a
+  CROSS THE RIVER waypoint line; fire cannot dismiss the tactical panel for 2.5 s; wingmen deal half damage and take no last hits in
+  waves 1-2. Earlier ones: R-044 and the 19:30 block in git history.
+- **Waits on Ryan:** nothing blocking; the mouse Y question; a physical pad check (#152, any human). **Waits on Nicholas (mostly his
+  Lead):** by-ear approvals (`C8_Wren_Order`, #146, #151), appearance reviews (#142, #103, #149), #171, #134, #136, the Ritual track.
+- **THE REMAINING LIST, most urgent first:** 1. the Cinder route (T4, T5, T7); 2. #96 the legacy-save recovery (T5); 3. batch CW to
+  main and #103's leftovers (T2); 4. #201 steering, aim assist and swarm with T7's verdict (T1, T2, T4, wingman builder); 5. #209
+  (ground squad builder, T5, T7); 6. the take-off rows with their lines (T4); 7. ART-08 hooks seen in a fight (T5); 8. the beam in a
+  real docking, mines in a wave, the look-back shot (effects builder, T4, T3); 9. a good Shipping package after 7bf9491a and a full
+  run (packaging agent, T7, #152); 10. Nick's items per R-044.
 
 ### Contradictions that need a human (Ryan or Nicholas)
 1. **Resolved (Ryan, Nov 13 evening): the transfer defence gives Cloak; the relay climb is dropped** (T5, ENG-25; the structures builder rebuilds the relay as a defence platform). Was: **Verdance objective 2.** The build has a separate relay climb with resonance nodes (→ Cloak); the story (§25.1, §25.2
@@ -294,7 +261,7 @@ through the engine's MCP server. **No human has played it yet; that is the large
 **(Nov 13 evening)** Ryan has since played it (a guided tour, a free session, the ship and walkability findings of R-041
 and R-043); Nicholas has not. No full human run start to end exists yet: ENG-46 holds the gates.
 
-**Cells refreshed Nov 14 19:30 EST** (main b1eb44f7: 508edec6, 1e09640a, ad1ea653, 36bee71d, b1eb44f7 since 18:30; the Cinder blocker still open; Ryan played scenes 1-3; at 18:30 main f85203b1: 2f07ab5c, 7fd85523, e0b9385d, 96a66f7c, 48a6fd97, f85203b1 since 17:30; the Cinder route BLOCKER from 48a6fd97 puts ENG-26 and ENG-39 at 🐞; at 17:30 main a7e35ba2: BV 28c2fb05, 0c986a7d, b8a55662, 6f0536ca, bb7a8ba5, 8ea0f5f1, 67021ade, 6e6c088b, a7e35ba2 since 16:30; T4's relief f6c1853f and T3's 77ad713e compiling; #201 puts the wingmen, aim assist and balance back in progress; at 16:30 main 685d8bea: batches BQ a9c635de, BR 99d489e7, BS c8eef9a5, 761877e2 and BU 685d8bea since 15:30, batch BV 28c2fb05 landed at 16:35; Ryan's #194 puts the two planets back in progress; at 15:30 main 8d62d14a: batches BM d9f5ba70, BN 9f20c5be, BO a71e3f73, BP 8d62d14a since 14:30, batch BQ compiling, not on main; at 14:30 main dd139312: batches BJ 043c4517, BK 87815c4e, BL dd139312 since 13:30, batch BM compiling; at 13:30 main 2a7ff74f; batches AV a14bf410, AW 7c7af25d, AX b5d1549c, AY d1ae9b18, AZ 618921ef, BA 5e6ef16f, BB 6c7521b8, BC 8dce9161, BD 26bda51a, BE 98c96926, BF de4e53bf, BG f9574191 and BH b8066135 landed since 12:30; batch BI compiling, not on main; Ryan's rule since 10:15: every named player-facing part played good = ✅, polish moves to the AAA list; compile-only gate since 10:25). The group states are the Nov 13 ones; an item can differ on its own heading. ✅ on the headings now: C-01, 02, 03, ENG-01, 02, 03, 04, 05, 06, 07, 08, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 38, 39, 40, 41, 43, 44, 45, 47, 48, ART-01, 02, 03, 04, 05, 06, 13, 15, 17, 18; 🐞: none.
+**Cells refreshed Nov 14 20:30 EST** (main 7bf9491a: 0211599f, e2f6236f, 0e1684de, fdd449d2, 7688b7dd, ba6515b2, 7bf9491a since 19:30; no marker change; at 19:30 main b1eb44f7: 508edec6, 1e09640a, ad1ea653, 36bee71d, b1eb44f7 since 18:30; the Cinder blocker still open; Ryan played scenes 1-3; at 18:30 main f85203b1: 2f07ab5c, 7fd85523, e0b9385d, 96a66f7c, 48a6fd97, f85203b1 since 17:30; the Cinder route BLOCKER from 48a6fd97 puts ENG-26 and ENG-39 at 🐞; at 17:30 main a7e35ba2: BV 28c2fb05, 0c986a7d, b8a55662, 6f0536ca, bb7a8ba5, 8ea0f5f1, 67021ade, 6e6c088b, a7e35ba2 since 16:30; T4's relief f6c1853f and T3's 77ad713e compiling; #201 puts the wingmen, aim assist and balance back in progress; at 16:30 main 685d8bea: batches BQ a9c635de, BR 99d489e7, BS c8eef9a5, 761877e2 and BU 685d8bea since 15:30, batch BV 28c2fb05 landed at 16:35; Ryan's #194 puts the two planets back in progress; at 15:30 main 8d62d14a: batches BM d9f5ba70, BN 9f20c5be, BO a71e3f73, BP 8d62d14a since 14:30, batch BQ compiling, not on main; at 14:30 main dd139312: batches BJ 043c4517, BK 87815c4e, BL dd139312 since 13:30, batch BM compiling; at 13:30 main 2a7ff74f; batches AV a14bf410, AW 7c7af25d, AX b5d1549c, AY d1ae9b18, AZ 618921ef, BA 5e6ef16f, BB 6c7521b8, BC 8dce9161, BD 26bda51a, BE 98c96926, BF de4e53bf, BG f9574191 and BH b8066135 landed since 12:30; batch BI compiling, not on main; Ryan's rule since 10:15: every named player-facing part played good = ✅, polish moves to the AAA list; compile-only gate since 10:25). The group states are the Nov 13 ones; an item can differ on its own heading. ✅ on the headings now: C-01, 02, 03, ENG-01, 02, 03, 04, 05, 06, 07, 08, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 29, 30, 31, 32, 33, 34, 35, 38, 39, 40, 41, 43, 44, 45, 47, 48, ART-01, 02, 03, 04, 05, 06, 13, 15, 17, 18; 🐞: none.
 
 | Area | Items | State | What is still missing |
 |---|---|---|---|
@@ -1022,6 +989,7 @@ shooting backwards feels great.
 - **(Nov 14 09:30)** **Agent verdict (T1):** flight and boost GOOD; **drift NOT PLAYED**. Stays 🟢 until drift is played and judged.
 - **(Nov 14 10:30)** **🟢 → ✅ (10:15 rule):** flight and boost GOOD (T1, 09:40), **drift GOOD** (T1 turn 1, 09:40-09:47, hand-flown). Nothing named is left.
 - **(Nov 14 19:30)** **✅ → 🟨 (Ryan, under #201):** easier mouse steering (T1, plan approved). Open with Ryan: whether the mouse Y was inverted for him (T7 saw mouse up = nose down; T1 says the default is not inverted). **To close:** the new steering played and judged good (T1, T7). Ryan played scenes 1-3 himself and said they look solid.
+- **(Nov 14 20:30)** **Stays 🟨.** T1's mouse steering and a controller coverage table on the branch (#152: Nicholas asked for full controller play; a physical pad check needs a human).
 
 #### ENG-02 · Space input map · `✅`
 `IMC_Space` (plus `IMC_Atmosphere`, which adds Land and removes Hyperdrive):
@@ -1102,6 +1070,7 @@ Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lanc
 - **(Nov 14 11:30)** **🟢 → ✅:** Rift and Bastion primaries played good by T2 in the running game (agent-played; #98 closed 10:51); Lancer weapons were already good.
 - **(Nov 14 17:30)** **✅ → 🟨 (Ryan, #201, 17:05):** good aim assist on all three ships (extends #192's mild tracking on the Rift and Lancer regular attacks; aim assist for all three decided by Ryan's Lead under delegation), with a HUD indicator (T2). **To close:** aim assist played in a wave on each ship and judged good (T2, T7; #201).
 - **(Nov 14 19:30)** **Stays 🟨 (#201, #192):** strong aim assist with lock-on; #192 resolved by the Lead as Rift and Lancer homing shots on lock, the Bastion straight (T2). **To close:** played on each ship in a wave (T2, T7).
+- **(Nov 14 20:30)** **Stays 🟨.** In batch CW (compiling, not on main): T2's aim assist, soft lock and Rift / Lancer homing (405f17f2; hit rate 6-23% to 24-34%, tuning toward 45-60%).
 
 #### ENG-06 · Targeting & lock-on · `✅`
 - Soft target = the enemy closest to screen centre within 25°, cycled by distance.
@@ -1172,6 +1141,7 @@ Each ship's look comes from its `DA_<Ship>_Visuals` (`DA_Rift_Visuals`, `DA_Lanc
 - **(Nov 14 17:30)** **✅ → 🟨 (Ryan, #201, 17:05):** shadow mode (on by default) and wingmen that use their powers and abilities replace "basic attacks only" (spec above). **To close:** played by an agent in a wave and in the assault with shadow on and off (wingman builder, T7; #201).
 - **(Nov 14 18:30)** **Stays 🟨.** Shadow mode and wingman powers on eng/wing (1a3025fa, d7d67f08), played offscreen by the builder, **not merged: sent back as too strong** (the wingmen cleared wave 3 alone in about 50 s); rebalance and proofs in work. AGENTS.md section 2 updated for shadow mode (a946ca93).
 - **(Nov 14 19:30)** **Stays 🟨.** Shadow mode and wingmen using their powers are on main b1eb44f7 after a rebalance (289890e0, 33c31799, 0227ff3f: a 180 m leash, a 540 m cap, +35% damage when solo, offensive powers in shadow ON only on the player's target or attacker; portals off; accepted by the Lead). Wingman ram kills no longer trigger the slow-motion shot; the Carrier shot is player-only; Generator and Reactor shots for any squad kill (T3). **To close:** T7's verdict in a wave and in the assault with shadow on and off; Ryan's further #201 asks with T1, T2 and T4.
+- **(Nov 14 20:30)** **Stays 🟨.** Wingman kill-sharing on the wingman builder's branch; player-only ram and carrier shots on main (c6fbbc26, unplayed); wingmen deal half damage and take no last hits in waves 1-2 (the Lead's decision).
 
 #### ENG-09 · Rift: Portal Blaster · `✅` ⚠️ highest risk
 - **Placement:** Fire 1 opens portal A where it hits or at max range (12 000 cm); Fire 2 opens B; a
@@ -1561,6 +1531,7 @@ Ryan, Nov 14 about 19:05 EST, after playing scenes 1-3: "when they leave the shi
   builder (per-pilot suit colours and clips), T2 (on-foot HUD), T7 (the played verdict).
 - **Done when:** played by an agent on both planets and in the interior.
 - **(Nov 14 19:30)** **⬜ → 🟨:** code written by the ground squad builder, compiling, not on main; the animation builder is adding per-pilot suit colours.
+- **(Nov 14 20:30)** **Stays 🟨.** On main: per-pilot suit materials (a29282b0, 018156b8; the visor takes the pilot colour) and follower animation variation (f47f2888). The followers themselves are on eng/gsq (19ad1e7c), one more play turn; a follower's knock-down is silent (the Lead's decision).
 
 #### ENG-24 · Objective framework · `✅`
 `ATDObjective` (Id, steps, waypoint, reward ability and ship) and interactables (tap or hold;
@@ -1659,6 +1630,7 @@ Nick's reward screen. Encounter volumes spawn crew; clearing a room opens its do
 - **(Nov 14 12:30)** **🟨 → ✅:** played good by T7 (agent, real keys with blocking) on main adc75bc5, from the far-bank checkpoint with nothing skipped inside: gate conduits 2 / 2 with the blade, yard, barracks, dig, the Warden on take 1, the crystals, EMP Pulse presented, on to the field anchor in about 6 minutes; takes per encounter: gate guards 2, yard 2, barracks 2, dig 3, Warden 1 (5 deaths, down from 24 at 11:50); the mercy logs on every retake (#117 closed 12:24). The fixes behind it: crew never spawn within 10 m of the pilot with a 2 s grace, mercy on every course fight, a lip on the river banks (24317963), the gate guards stay down after the gate and the barracks Heavy goes first under mercy (2f523bf3). The anchor was already good. Leftover on ART-18 (#119): the anchor collapse froze on a fast escape (found by Nick's side); T5's fix 5158b170 is on main AU, not seen.
 - **(Nov 14 18:30)** **✅ → 🐞 (BLOCKER on main 48a6fd97, #194):** on Cinder the pilot walks about 19 m under the course (Nick's session 39: the player near Z -1908 while the course and the conduits stay near Z 0), so the melee gate route cannot be played. Cause: the relief sits low there and c9edb62a turned the flat slab's collision off; it went to main before its route walk (the Lead's mistake). **To close:** T5's slab collision back wherever the relief is lower than the course, T4's relief heights, then the gate, yard, Warden and anchor route walked again on main (T7, Nick's session 39 recheck). Packaging held at 96a66f7c.
 - **(Nov 14 19:30)** **Stays 🐞.** The fix pair on main 36bee71d (T4 de75639b flat corridors only between sites; T5 f503568f the slab never stops colliding and drops 2.6 m to a safety floor; 2d30f5db) does NOT close it: Nick's Lead's original save on 36bee71d walks on the safety slab at z -168, 2.6 m below the course, dies in magma on the bridge approach and cannot reach the conduits (#194 comment 6886509588); T4's site corridors are mostly unregistered (an inverted `TSet::Add` out-parameter, found by Nick's review). **The Lead reported the fix as proven too early, the second time today on this item.** T4 and T5 reproducing on main with a stand-on trace. **To close:** the original save walked to the conduits and through the gate, yard, Warden and anchor (T7, Nick's recheck).
+- **(Nov 14 20:30)** **Stays 🐞.** On main: T4's SiteCells fix (22c09b46: site corridors were skipped; no relief depressions inside the course), the bridge ramps run on to 60 cm below the pivot (2f5a2ec5). The relief collision sits 60 cm below its component (cause not found; T4 stopped; probe 4726ce7d parked, not merged); the route now relies on the ramp toes. T5's and T7's walks on 7688b7dd and later running, not accepted. **To close:** the walks accepted and Nick's original save to the conduits.
 
 #### ENG-27 · Balance & tuning · `🟨`
 Play the full run at least twice. Tune enemy counts, HP and cooldowns toward 20–30 minutes. Add a
@@ -1717,6 +1689,7 @@ Play the full run at least twice. Tune enemy counts, HP and cooldowns toward 20�
 - **(Nov 14 17:30)** **Stays 🟨.** #89 at 17:20 (T6, measured): wave 5 with the field on GOOD (1 of 12,170 frames over 16.6 ms), field build 165-220 ms, galaxy return 0.27-1.0 s, climb-out longest frame 588 ms, the first 10 s after re-entry 2.1% slow frames, death and retake GOOD in Shipping; **NOT GOOD:** Verdance take-off and climb below 800 m (158 of 5,071 frames over 16.6 ms, render-thread bound; environment builder); boot to menu 30.9 s black on 685d8bea (the splash 8ea0f5f1 and no menu warm-up 235674b1 are on main, not yet measured in a package); not measured: Cinder take-off, on-foot frame rate on the filled planets (#194). The galaxy-only keep is on main a7e35ba2. **To close:** a package played start to end (T7, #152) and the open #89 rows.
 - **(Nov 14 18:30)** **Stays 🟨.** Boot in the a946ca93 package: the splash at 1.3 s, the menu at 13.4 s (was 30.9 s), about 10 s of black game window left (T6 adding a loading card). Packaging held at 96a66f7c, the last good build, for the Cinder blocker. Fab texture cook caps on main (03f78396). Compiling: T6's asteroid-split fix (0ed9cd18, #139's MAJOR on the space field's state reference, stress-tested in a game). **To close:** a package played start to end (T7, #152).
 - **(Nov 14 19:30)** **Stays 🟨.** The boot loading card (7dfa2d2f, MoviePlayer) on main ad1ea653, so the window is never black between the splash and the menu. Packages: 96a66f7c pinned as the latest good (912 MB); 36bee71d zipped (918 MB), labelled "Cinder Continue blocker open". T7's Shipping run on 96a66f7c with real OS input GOOD through landing on Verdance (menu checks and the Continue click GOOD); T7's full run moved to Development with injected input (Lead's decision). **To close:** a package played start to end (#152).
+- **(Nov 14 20:30)** **Stays 🟨.** **The Shipping compile was broken on main from 0e1684de to ba6515b2** (the Lead's miss: editor-only `IsNaniteEnabled` in a dev command); fixed in 7bf9491a, and packaging now Shipping-checks every main and compiles beside the two compile slots. The boot loading card is drawn from pixels (13969684), not yet seen in Shipping. Latest good package still 96a66f7c.
 
 #### ENG-32 · On-foot third-person camera & the Settings page (CORE, added Nov 12 by Ryan) · `✅`
 Ryan, Nov 12 (late): "a settings page, and you should be able to switch between first and third person ...
@@ -1953,6 +1926,7 @@ it's easy to utilize, and even the beginner gamer can understand it."
 - **(Nov 14 17:30)** **Stays 🟨.** On main 0c986a7d: the follow marker named by the objective's verb, no OVERCHARGE 0.0, the under-25% hull tint on every card, the switch pilot card clear of the reticle (d44efa8f, 52c410e0); the planet line without a padlock (e70b3bba). **Ryan's HUD review (17:00): the squad cards overlap and sit off-centre, and the Q ring.** **To close (#103):** T2's measured layout pass (top of its list), the pause-menu hover, three-resolution frames for Nick's side; #159 (T1, T2).
 - **(Nov 14 18:30)** **Stays 🟨.** T2's measured squad-row layout from Ryan's review is on main 7fd85523 (994d8965): played GOOD at 1080p in a wave (T7) and clean at 720p on a live switch (Nick's session 37). **To close (#103):** an edge marker and its distance text intrude into the UNDER FIRE tab (T2); the pause-menu hover; #159.
 - **(Nov 14 19:30)** **Stays 🟨.** On main 1e09640a: the marker sweep (07384269: edge markers kept 16 px clear of the squad row, the subtitle wrapping to 4 lines) and the on-foot card. **New:** Ryan: the TACTICAL · CONTACT MOVEMENT panel stayed too long and could not be dismissed (T2: an 8 s cap, dismissable, docked); Nick's Lead (MAJOR): the on-foot subtitle crosses the pilot card at 720p. **To close (#103):** both, the pause-menu hover, #159.
+- **(Nov 14 20:30)** **Stays 🟨.** On main e2f6236f: the tactical panel docked upper-right, 8 s, dismissable; the on-foot subtitle above the pilot card; respawn keeps the flown ship (Nick's sessions 47-52: the 720p overlap resolved, the 8 s cap and fire dismissal passed). In batch CW (compiling): the panel's 2.5 s minimum, diamonds clear of the subtitle. **To close:** CW on main, the pause hover, #159.
 
 #### ENG-37 · Projectiles, engines and particle effects at AAA quality (CORE, added Nov 13 by Ryan) · `🟨`
 Ryan, Nov 13: "really focus on projectiles across the entire game, from the blast of the engine to shooting.
@@ -2140,6 +2114,7 @@ Spec: the realignment section "Worlds that read as real places" and `docs/eng/WO
 - **(Nov 14 17:30)** **Stays 🟨 (#194).** On main: Verdance fill pass 2 (26124c44, 2cc9245a: the pad GOOD; some route views still open), hut camps partly placed, brighter hut bodies (208a8ffc), perimeter and ground-break site sets (b30488d3, 69f5be8d), 16 ambient planet systems built (b8fbd53c; assets only, not yet spawned in the levels), Nicholas's Quixel plants, rock cluster, stump, volcanic rock, scorch and ash decals. Compiling, not on main: T4's Verdance terrain relief and mountain ring (f6c1853f). Not started: Cinder fill and relief. **To close:** both planets filled and relieved, effects spawned, T7's after frames judged full, the on-foot frame rate measured (T6).
 - **(Nov 14 18:30)** **🟨 → 🐞 (the Cinder route BLOCKER above, ENG-26).** On main: terrain relief and the mountain ring on both planets (2f07ab5c), casting no shadow (96a66f7c: the shadow-map overflow at the pad gone); Verdance camps, whole-area fill, arches, landmarks and 49 ambient effects (e0b9385d). Played: T7 walked Verdance on 96a66f7c with the real pawn, PLAYABLE, one blocker (a pylon on the beacon path at 4280, 3505) and a camera-inside-a-hut-wall minor (environment builder); landing and leaving the ship GOOD; T6: Verdance on foot and the take-off climb GOOD on 2f07ab5c; T1: descent, landing and take-off on both planets. **To close:** the Cinder route fixed and walked; the Verdance pylon; Cinder's fill; T7's after frames judged full on both planets.
 - **(Nov 14 19:30)** **Stays 🐞 (Cinder, ENG-26).** On main: the walk-line keep-out (3a4c82dc), Cinder's fill and mining camp (4744cf1e: crystal stands, charred trees, outcrops, the jammer camp, shacks, landmarks, 41 ambient effects, decals), ambient effects at their proper heights (5924032f), the pad beacon. T6: Verdance frame rate GOOD; Cinder on foot and the low climb NOT GOOD (render-thread bound; cut list with the environment builder). Ryan played through the Verdance landing and said it looks solid. **To close:** the Cinder route, Cinder's frame rate, the Verdance pylon, T7's after frames.
+- **(Nov 14 20:30)** **Stays 🐞 (Cinder, ENG-26).** On main 7688b7dd: more dressing on both planets (c25f6538) and the Cinder Nanite / cull cut (frames and frame times after the cut, 7f53716d).
 
 #### ENG-40 · Act 1: the tutorial battle and the withdrawal (CORE) · `✅`
 `storyline.md` §13 and the reconciliation correction of 17:15 (Nicholas, #29, #24): **one uninterrupted first mission over
@@ -2977,6 +2952,7 @@ VFX, and the squad's launch from the hangar.
 - **(Nov 14 16:30)** **Stays 🟨.** The victory backdrop's wreckage is on main (a7789713). **To close:** the tractor beam v2 seen in docking (T4, effects builder) and the hull-scale explosions (#111).
 - **(Nov 14 17:30)** **Stays 🟨.** T4's beam fix is on main (51f45b35). **To close:** the tractor beam v2 seen in a real docking (effects builder, T4) and the hull-scale explosions (#111).
 - **(Nov 14 18:30)** **Stays 🟨.** Tractor beam v3 visible in a staged spawn. **To close:** seen in a real docking; the hull-scale explosions (#111).
+- **(Nov 14 20:30)** **Stays 🟨.** The breakup's hull-section bursts doubled for the escape flight (dae6faad, on main 0211599f). The escape look-back shot (#111, T3) is written, not compiled. The turret telegraph rework rendered nothing; main keeps the earlier small flare (eabdcd82, 55b674c0 unmerged).
 
 ## 7. Landing: full sequence (CORE)
 
