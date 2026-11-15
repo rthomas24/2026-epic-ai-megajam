@@ -2255,6 +2255,9 @@ void ATDPlanetCourse::BuildCinder()
 	ATDDoor* DoorC = Door(XCommand);
 	if (DoorC) { DoorC->bRecognisesPilot = true; } // the dig's inner door knows the pilot (storyline.md §6: a clue, never explained)
 	ATDDoor* DoorD = Door(XArena);
+	// The room doors open as each room's fight is won; once the excavation is secured they all stand open, so a skip or
+	// a Continue past those fights can never leave the pilot sealed in the compound (Nov 15: stopped at the arena door).
+	for (ATDDoor* D : { DoorB, DoorC, DoorD }) { if (D) { CompletionDoors.Add({ Outpost, 0, D }); } }
 
 	// Gate conduits: two glowing red pylons beside the gate, slash them down.
 	ATDStepCounter* Conduits = SpawnProp<ATDStepCounter>(FVector(XGate - 200.f, Y0, 0.f));
