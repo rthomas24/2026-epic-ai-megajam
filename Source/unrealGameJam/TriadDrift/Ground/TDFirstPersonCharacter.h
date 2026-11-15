@@ -233,6 +233,8 @@ public:
 	bool IsInShipTransition() const { return bShipTransition; }
 	/** Dev (TD.Pilot.Act, animation builder): play a body clip by name as the game would. */
 	void DebugPlayBodyAction(FName Anim, float Rate, bool bUpperOnly) { PlayBodyAction(Anim, Rate, bUpperOnly); }
+	/** Dev (TD.Pilot.Act ShowCameraBlade): the state T7 hit: the camera-rig blade meshes shown in third person. */
+	void DebugShowCameraBlade() { if (BladePlaceholder) { BladePlaceholder->SetVisibility(true); } if (BladeHilt) { BladeHilt->SetVisibility(true); } }
 	USceneComponent* GetBladeGrip() const { return BladeGrip; }
 
 	/** Applies the blade's UTDBladeFX: BladeMesh if set, otherwise the placeholder tinted with BladeColor. */
@@ -387,6 +389,8 @@ private:
 	/** The blade is put away while an interaction clip plays (it sweeps through the body), drawn again after. */
 	float InteractRetractLeft = 0.f;
 	float HandBladeExtend = 1.f;
+	/** How long the hand beam takes to draw back (the retract clip's length when it plays). */
+	float HandBladeRetractSeconds = 0.15f;
 	/** Standing still, the camera went > 60 deg off: keep turning until the body faces it (not just back under 60). */
 	bool bIdleTurnToCamera = false;
 	/** Attacking last frame (third person): a new attack snaps the body to the camera at once. */

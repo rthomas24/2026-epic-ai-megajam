@@ -1,5 +1,6 @@
 // Triad Drift - World (Teammate 4). ENG-29 docking bay: approach cone, tractor-beam assist, hand-off to the interior.
 #include "TriadDrift/World/TDDockingBay.h"
+#include "HAL/IConsoleManager.h"
 #include "NiagaraComponent.h"
 #include "TriadDrift/World/TDWorldBarks.h"
 
@@ -219,6 +220,8 @@ void ATDDockingBay::ReleaseShip()
 	}
 }
 
+static TAutoConsoleVariable<int32> CVarTDBeamLog(TEXT("td.Docking.BeamLog"), 0, TEXT("1 = log the tractor beam's state every tick (validity, length, intensity)."));
+
 void ATDDockingBay::UpdateBeam(const ATDShip* Ship, float Pull)
 {
 	// ENG-37: the beam loop from the mouth to the held ship; parameters every frame. Null-safe without the art.
@@ -232,11 +235,34 @@ void ATDDockingBay::UpdateBeam(const ATDShip* Ship, float Pull)
 			BeamFX ? TEXT("created") : TEXT("NOT created (no Niagara component)"), Pull,
 			Ship ? FVector::Dist(Ship->GetActorLocation(), GetMouth()) / 100.f : 0.f, (int32)DockingState);
 	}
+	// Effects builder / Lead (Nov 14): the beam was invisible in a real docking: the intensity followed the tractor's
+	// pull, near zero for most of the approach. From the moment the tractor has the ship it is at least BeamFloor; the
+	// glide passes its own fade (1 -> 0 over the last third) through Pull.
+	const float Intensity = DockingState == ETDDockingState::Gliding ? FMath::Clamp(Pull, 0.f, 1.f) : FMath::Max(BeamFloor, FMath::Clamp(Pull, 0.f, 1.f));
+	const float LengthCm = Ship ? (float)FVector::Dist(Ship->GetActorLocation(), GetMouth()) : 0.f;
 	if (BeamFX)
 	{
 		if (!BeamFX->IsActive()) { BeamFX->Activate(true); }
-		BeamFX->SetVariableFloat(TEXT("User.Length"), Ship ? (float)FVector::Dist(Ship->GetActorLocation(), GetMouth()) : 0.f);
-		BeamFX->SetVariableFloat(TEXT("User.Intensity"), FMath::Clamp(Pull, 0.f, 1.f));
+		// Played (turns 15 and 18): the cue was active at 0.6-0.96 but never on screen. The system draws its beam along
+		// its own +X for User.Length; attached to the bay's root that axis pointed into the hull. Aim it, every frame,
+		// from the mouth at the held ship.
+		if (Ship)
+		{
+			const FVector Mouth = GetMouth();
+			const FVector To = Ship->GetActorLocation() - Mouth;
+			if (!To.IsNearlyZero()) { BeamFX->SetWorldLocationAndRotation(Mouth, To.Rotation()); }
+		}
+		// Lead (Nov 14): the system divides by User.Scale and tints by User.Color; neither was ever set from code. Set both
+		// so the beam has a size and a colour whatever the asset's defaults are.
+		BeamFX->SetVariableFloat(TEXT("User.Scale"), 1.f);
+		BeamFX->SetVariableLinearColor(TEXT("User.Color"), FLinearColor(0.55f, 0.95f, 1.f, 1.f));	// cyan-white
+		BeamFX->SetVariableFloat(TEXT("User.Length"), LengthCm);
+		BeamFX->SetVariableFloat(TEXT("User.Intensity"), Intensity);
+	}
+	if (CVarTDBeamLog.GetValueOnGameThread() != 0)
+	{
+		UE_LOG(LogTriadDrift, Log, TEXT("TD beam: fx %d active %d length %.0f m intensity %.2f state %d | mouth %s"), BeamFX ? 1 : 0,
+			BeamFX && BeamFX->IsActive() ? 1 : 0, LengthCm / 100.f, Intensity, (int32)DockingState, *GetMouth().ToCompactString());
 	}
 }
 
@@ -435,8 +461,8 @@ void ATDDockingBay::Tick(float DeltaSeconds)
 		// never created (effects builder, Nov 14).
 		// Played (Nov 14): at intensity 1 all the way in, the camera sat inside the column and the screen went white in
 		// the bay. The beam fades from 1 at the commit to 0 at the mouth: it reads on the approach and is gone inside.
-		const float AlongMouth = (float)FVector::DotProduct(Ship->GetActorLocation() - GetMouth(), GetOutward());
-		UpdateBeam(Ship, FMath::Clamp(AlongMouth / FMath::Max(MouthDistance, 1.f), 0.f, 1.f));
+		// Full through the first two thirds of the glide, fading to 0 over the last third (the camera enters the column there).
+		UpdateBeam(Ship, FMath::Clamp((1.f - T) * 3.f, 0.f, 1.f));
 		if (T >= 1.f)
 		{
 			// T1 (live, Nov 14): commit to load is now ~5 s, which cut the Docking lines (G6 cover-the-bay, C7 way-out).

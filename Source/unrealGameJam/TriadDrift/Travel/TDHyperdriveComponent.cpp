@@ -25,6 +25,16 @@ const FName UTDHyperdriveComponent::OverrideOwner(TEXT("Hyperdrive"));
 static TAutoConsoleVariable<int32> CVarTDHyperdriveIgnoreLock(TEXT("td.Hyperdrive.IgnoreLock"), 0,
 	TEXT("Dev: 1 = the hyperdrive ignores the enemies-in-range lock (other blocks stay: atmosphere, wells, damage, cooldown). For captures; never shipped on."));
 
+namespace TDHyperdriveLock
+{
+	/** The travel lock holds for this hyperdrive: at the start of a spool and during the jump alike (#139, Nick's review: the
+	 *  override let a jump start under a standing lock, then the Jumping check still saw the lock and dropped out). */
+	static bool Holds(const UTDTravelSubsystem* Travel, FText& OutReason)
+	{
+		return Travel && Travel->IsHyperdriveLocked(OutReason) && CVarTDHyperdriveIgnoreLock.GetValueOnGameThread() == 0;
+	}
+}
+
 template <typename TFX>
 concept TDHyperdrive_HasRefusedCue = requires(TFX* FX) { FX->HyperdriveRefused; };
 
@@ -125,7 +135,7 @@ ETDHyperdriveBlock UTDHyperdriveComponent::ComputeBlockReason(bool bCachedSweep)
 	if (const UTDTravelSubsystem* Travel = UTDTravelSubsystem::Get(this))
 	{
 		FText LockReason;
-		if (Travel->IsHyperdriveLocked(LockReason) && CVarTDHyperdriveIgnoreLock.GetValueOnGameThread() == 0)
+		if (TDHyperdriveLock::Holds(Travel, LockReason))
 		{
 			return ETDHyperdriveBlock::Locked;
 		}
@@ -457,6 +467,7 @@ void UTDHyperdriveComponent::BeginDropOut(FName WellId, ETDHyperdriveEndCause Ca
 	LastDropOutWell = WellId;
 	LastDropOutTime = Now();
 	LastEndCause = Cause;
+	UE_LOG(LogTriadDrift, Log, TEXT("Hyperdrive drop-out: %s after %.1f s of jump"), *UEnum::GetValueAsString(Cause), StateTime);
 	if (Craft)
 	{
 		if (UTDShipMovementComponent* Move = Craft->GetShipMovement())
@@ -654,7 +665,7 @@ void UTDHyperdriveComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		{
 			BeginDropOut(NAME_None, ETDHyperdriveEndCause::Obstacle, false);
 		}
-		else if (Travel && Travel->IsHyperdriveLocked(LockReason))
+		else if (TDHyperdriveLock::Holds(Travel, LockReason))
 		{
 			BeginDropOut(NAME_None, ETDHyperdriveEndCause::Locked);
 		}

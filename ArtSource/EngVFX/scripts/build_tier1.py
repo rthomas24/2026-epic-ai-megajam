@@ -228,7 +228,13 @@ def spin(e):
 
 
 def offset(e, x, y=0.0, z=0.0):
-    e['set'] += [(PS, INIT, 'UsePositionOffset', True), (PS, INIT, 'Position Offset', X('float3(%s,%s,%s)*User.Scale' % (x, y, z)))]
+    # Nov 14 (12g/12l): on an emitter with ShapeLocation (every shed()) the InitializeParticle offset is overwritten by the
+    # shape's position, so the offset goes on the shape module instead (Offset Mode Default + Offset).
+    v = X('float3(%s,%s,%s)*User.Scale' % (x, y, z))
+    if any(len(t) > 1 and t[1] == 'ShapeLocation' for t in e['set']):
+        e['set'] += [(PS, 'ShapeLocation', 'Offset Mode', E('Default')), (PS, 'ShapeLocation', 'Offset', v)]
+    else:
+        e['set'] += [(PS, INIT, 'UsePositionOffset', True), (PS, INIT, 'Position Offset', v)]
     return e
 
 
@@ -592,6 +598,27 @@ def explosion(tier):
 S('NS_TD_Explosion_Small', U(FIRE, 0.45), explosion(1))
 S('NS_TD_Explosion_Medium', U(FIRE, 1.0), explosion(2))
 S('NS_TD_Explosion_Large', U(FIRE, 2.2), explosion(3))
+
+
+# Round 12s (Ryan via the Lead: many more kills per minute once enemies are easier to kill): a cheap, punchy death pop for
+# fighters and interceptors. 8 sprite emitters and about 36 particles, no light, no meshes, no GPU trails (the Small
+# explosion carries ~15 emitters, a light, mesh shards and GPU spark trails: fine once, heavy at 10 deaths in 2 s).
+# A big white flash and star, a fast ring, one flipbook blast, six fireballs, a spray of stretched sparks, embers, smoke.
+def explosion_pop():
+    return [flash('Flash', 'M_TD_VFX_Glow', 1900, 0.09, 1.3, growth='0.5 + Particles.NormalizedAge*0.8', power=1.2),
+            flash('Star', 'M_TD_VFX_Flare', 2200, 0.11, 1.0, growth='0.5 + Particles.NormalizedAge'),
+            flash('Shockwave', 'M_TD_VFX_FlipRing', 5600, 0.30, 1.2, growth='0.06 + pow(Particles.NormalizedAge, 0.5)*0.95', power=1.4),
+            spin(shed('Blast', 'M_TD_VFX_FlipExplosion', 0, (0.9, 1.1), (1600, 2000), (0, 60), radius=40.0, drag=3.0, rgb=(0.5, 0.5, 0.5),
+                      burst=1, dur=1.2, power=0.35, growth='0.62 + pow(Particles.NormalizedAge, 0.5)*0.55')),
+            spin(shed('Fireball', 'M_TD_VFX_Fireball', 0, (0.5, 1.0), (360, 640), (600, 2200), radius=150.0, drag=3.0, curl=900.0, rgb=(1.1, 1.1, 1.1),
+                      burst=6, dur=1.1, power=0.7, growth='0.45 + pow(Particles.NormalizedAge, 0.45)*1.25')),
+            shed('Sparks', 'M_TD_VFX_Spark', 0, (0.35, 0.9), (10, 22), (3000, 11000), k=2.2, radius=60.0, drag=2.2, stretch=26, burst=16, dur=1.0, power=1.4),
+            shed('Embers', 'M_TD_VFX_Glow', 0, (0.6, 1.3), (14, 30), (300, 1600), k=1.4, radius=120.0, drag=1.4, curl=1200.0, burst=8, dur=1.4, power=2.0),
+            spin(shed('Smoke', 'M_TD_VFX_FlipSmoke', 0, (1.4, 2.2), (520, 760), (150, 600), radius=150.0, drag=1.5, curl=300.0, rgb=(0.5, 0.44, 0.4),
+                      alpha=0.7, burst=2, dur=2.4, power=0.6, growth='0.6 + pow(Particles.NormalizedAge, 0.6)*1.3', sort=True))]
+
+
+S('NS_TD_Explosion_Pop', U(FIRE, 0.45), explosion_pop())
 
 
 def explosion_cheap(final=False):

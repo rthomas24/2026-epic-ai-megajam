@@ -18,6 +18,14 @@ AGENTS.md lifecycle conditions; branch publication alone does not release it.
 
 ## Nick-side current ownership and reservations
 
+**Nick Lead evidence refresh, November 14, 19:35 EST — done with this integration:** Lead owns only this Nick-side note, added Nick checkpoints in `features.md` and `docs/visual/STATUS.md`, and the appended `DEVLOG.md` entry on `nick/lead-playtest-feedback-1114` from `a4a0bd34`. Reconcile sessions43–46 and existing acceptance gates. No production edits, feature-marker changes or Ryan claim changes. No native job. This documentation claim releases when this commit reaches main; scoped playtesting remains authorized.
+
+**Nick Lead evidence refresh, November 14, 18:50 EST — done with this integration:** Lead owns only this Nick-side note, an added Nick checkpoint in `features.md` and `docs/visual/STATUS.md`, and an appended `DEVLOG.md` entry on `nick/lead-playtest-feedback-1114` from `1e09640a`. Reconcile sessions40–42 and retained progression blockers. No production edits, feature-marker changes or Ryan claim changes. No native job; Asset Handler has the local native slot for separately authorized isolated intake. This documentation claim releases when the commit reaches main; scoped playtesting remains authorized.
+
+**Nick Lead evidence refresh, November 14, 18:20 EST — done with this integration:** Lead claims only this Nick-side note, a new top Nick checkpoint in `features.md`, a new checkpoint in `docs/visual/STATUS.md`, and an appended Nick entry in `DEVLOG.md`, on `nick/lead-playtest-feedback-1114` from `48a6fd97`. Scope: reconcile sessions 34–39, delivered evidence and exact remaining regression gates. Ryan sections, feature completion markers, source/assets and all other claims remain untouched. No native job is part of this documentation task. The documentation claim releases once this commit is on main; ongoing scoped playtesting remains authorized.
+
+**Nick Lead checkpoint refresh, November 14, done with this integration:** Lead owns only this Nick claim note, the top Nick checkpoint in features.md, a new Nick checkpoint in docs/visual/STATUS.md and an appended Nick DEVLOG.md entry. Branch nick/lead-playtest-feedback-1114, base6e6c088b. Evidence through private Build14/sessions31-32 and Batch4 delivery; no feature markers, Ryan rows, source/assets or gameplay changes. Documentation claim released when this integration is on main; ongoing playtest lane remains active under Nicholas direct resumption.
+
 **Lead team attribution reconciliation — completed in this commit, November 14:** Nicholas Lead claims `ArtSource/UI/TriadHUD/Unreal/Credits01/sections.json`, `docs/visual/Submission/itch-page.md`, `docs/visual/Submission/Trailer01/README.md`, this claim lifecycle and a dated `DEVLOG.md` entry. Synchronize source with Ryan Lead native credit correction94ea8edc and carry the requested full names/roles into submission text and final-video requirements. No binary edits or changes to historical readback evidence. Existing native credit asset and engineering rows remain untouched. Branch nick/lead-playtest-feedback-1114 fromdd139312; specialists remain paused.
 Source JSON and submission wording reconciled; no native asset edit. Claim releases after publication to main; packaged-roll verification and final video remain open.
 
@@ -306,7 +314,7 @@ Current resource checkpoint: Nick stopped the general campaign and revoked all p
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-14 16:30 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-14 19:30 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -330,6 +338,130 @@ Paths are under `Source/unrealGameJam/TriadDrift/` unless they start with `/` (r
 
 Workers commit only on their own branch and never pull, merge or push; the Lead integrates in
 `.wt/int`, builds, runs the headless suite, then fast-forwards and pushes `main`.
+
+### Current board, Nov 14 19:30 EST (supersedes the in-progress and queued rows of the 18:30 board below)
+
+**Main is b1eb44f7** (since 18:30: 508edec6, 1e09640a, ad1ea653, 36bee71d, b1eb44f7; compile-only gate). **The Cinder BLOCKER is still open:** the fix pair on 36bee71d did not hold for Nick's Lead's original save (the pilot on the safety slab 2.6 m under the course, magma on the bridge approach, conduits unreachable; site corridors mostly unregistered); the Lead reported it proven too early, twice today. **Queued:** T4's swarm tunables 3d6f56e3 (off by default), T6's shader warm-up 18a3a37f. **Packaging pinned at 96a66f7c.** Nick's Codex agents are stopped on their weekly reserve. Every Ryan-side item that is 🟨 or 🐞 in features.md has an owner here: ENG-26 and ENG-39 🐞 (T4, T5, T7; environment builder), ENG-01 (T1), ENG-05 (T2), ENG-08 (wingman builder, T7), ENG-27 (T4, T7), ENG-28 (Lead, packaging agent, T6), ENG-36 (T2, T1), ENG-37 (effects builder, T4), ENG-42 (T5), ENG-46 (T7), ENG-49 (ground squad builder, T5, animation builder, T2, T7), ART-07 and ART-16 (effects builder, T4), ART-08 (T5, animation builder).
+
+| Owner | Now (in progress) | Next (queued, in order) | Items | Shared paths |
+|---|---|---|---|---|
+| Lead | The next batch (3d6f56e3, 18a3a37f); the packaging pin; boards | The Cinder fix to main only after Nick's original save reaches the conduits; #209 from `.wt/gsq` | ENG-28 (integration), ENG-46 | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
+| T1 | #201 easier mouse steering (plan approved) | The mouse Y question with Ryan; #159 with T2 | ENG-01, ENG-36 (hints) | `Flight/`, `Input/`, `Travel/` |
+| T2 | #103 the TACTICAL panel (8 s cap, dismissable, docked) and the on-foot subtitle over the pilot card at 720p | #201 / #192 aim assist with lock-on, Rift and Lancer homing, the Bastion straight; #209's on-foot HUD; the pause hover; #159 | ENG-36, ENG-05, ENG-49 (HUD) | `Combat/`, `Powers/`, HUD |
+| T3 | Director shots for squad kills (ram kills no shot; Carrier player-only; Generator and Reactor any squad kill) | `Bark_Wipe`; #209 follower lines from existing ids | ENG-08 (shots), ENG-49 (lines) | `Squad/`, `Director/`, `Story/` |
+| T4 | **Cinder BLOCKER:** the site corridors (the inverted `TSet::Add`) and the relief, with a stand-on trace | #201 more but weaker enemies (`td.Balance.Swarm`); the beam in a real docking and mines in a wave; the two take-offs with their lines; the breakup at the escape clear | ENG-26, ENG-39, ENG-27, ENG-37, ART-07, ART-16 | `Enemies/`, `Waves/`, `World/` |
+| T5 | **Cinder BLOCKER:** the safety slab under the course, with T4; #96 the legacy-save recovery | #209 encounters for three; the hooks seen in a fight (#124); drone tilt / look / tumble | ENG-26, ENG-39, ENG-42, ENG-49, ART-08 | `Flow/` (except `TDFrontEndGameModes.*`), `Ground/` |
+| T6 | Cinder on foot and the low climb (render-thread bound; cut list with the environment builder) | The on-foot frame rate with #209's followers | ENG-28, ENG-39 (perf) | `World/SpaceField/**`, HUD radar files agreed with T2 |
+| T7 | The full run in Development with injected input, past the Verdance objectives | The Cinder route once fixed (with Nick's original save); #201 and #209 verdicts; #152 | ENG-46, ENG-26, ENG-08, ENG-49 | `docs/eng/PLAYTEST-*` |
+| Wingman builder (`.wt/wing`, eng/wing) | #201 proofs for T7 (on main b1eb44f7 after the rebalance) | Tuning with T4's swarm | ENG-08 | `Squad/**` wingman files agreed with T3 |
+| Ground squad builder (`.wt/gsq`) | #209 the two other pilots on foot with their own blades; encounters for three (code written, compiling) | Tuning with T5; T7's verdict | ENG-49 | new files under `Ground/` agreed with T5 |
+| Effects builder | The mines judged in a played wave; the beam in a real docking | The hull-scale explosions (#111) | ENG-37, ART-07, ART-16 | `Gameplay/VFX/**`, `DA_*_FX` |
+| Environment builder | Cinder's render-thread cut list with T6; the Verdance pylon (4280, 3505) and the hut-wall camera | Cinder's fill after the route fix (#194) | ENG-39, ENG-28 (perf) | planet and sky materials; dressing code |
+| Structures builder (eng/struct) | #194 kit pieces as asked; #208's VentWall and PipeServiceWall as non-colliding dressing if Nick's side accepts | The story console look (#96) | ENG-39 | `ArtSource/EngProps/**`, `Content/TriadDrift/Gameplay/Props/**` |
+| Animation builder | #209 per-pilot suit colours | Clips for T5's hooks as asked | ENG-49, ART-08 | `ArtSource/EngAnim/**`, `Characters/*/Anims/**` |
+| Intake builder (`.wt/imp`, eng/import) | Idle | #208 Kat's panels at capped sizes if taken; Nicholas's next batch (at most eight) | asset intake | `Content/TriadDrift/Gameplay/Props/Fab/**`, `CREDITS.md` |
+| Packaging agent | 96a66f7c pinned as the latest good (912 MB); 36bee71d zipped (918 MB) labelled "Cinder Continue blocker open" | The next package after the Cinder route is walked; keep the newest three | ENG-28 | isolated `.wt/pkg` |
+| Blade effects builder | Idle | Polish, on the Lead's dispatch | - | `.wt/blade`, eng/blade |
+| Ship builder | Stopped (usage limit) | Restart only on the Lead's dispatch | - | squad and fleet visuals |
+| Character builder (not started) | - | Game-ready pilot meshes (#149; waits on an approved look) | polish (B1-9) | `ArtSource/EngCharacters/**` |
+| Grok Bot | No asks open (R-042) | Ask 5 once its brief is posted; #209 clip variants if the animation builder asks | - | `ArtSource/EngAI/**` |
+
+Rows opened or closed Nov 14 19:30 (they supersede the same items' rows of 18:30 below):
+
+| Item | Owner | State | Paths |
+|---|---|---|---|
+| **Integration since 18:30** (508edec6, 1e09640a, ad1ea653, 36bee71d, b1eb44f7) | Lead | done: on main by 19:25 EST (compile-only gate) | none |
+| **BLOCKER: Cinder route under the course** | T4, T5, T7 | in progress: the fix pair on 36bee71d did not hold (Nick's original save); reproducing with a stand-on trace | `Ground/`, `World/TDTerrainField.*`, `World/TDPlanetTerrain.*` |
+| #201 shadow mode and wingman powers | Wingman builder | done: on main b1eb44f7 after the rebalance; T7's verdict open | none |
+| #201 easier mouse steering | T1 | in progress (plan approved) | `Flight/`, `Input/` |
+| #201 / #192 aim assist, homing for Rift and Lancer | T2 | queued | `Combat/` |
+| #201 more but weaker enemies | T4 | in review: tunables 3d6f56e3 (off by default) queued for the next batch | `Waves/` |
+| **#209 on-foot wingmen** (Ryan, 19:05) | Ground squad builder; T5; animation builder; T2; T7 | in progress since 19:10 (compiling) | new files under `Ground/`; `Characters/*/Anims/**` |
+| #103 TACTICAL panel and the on-foot subtitle at 720p | T2 | in progress | HUD |
+| #139 asteroid-split MAJOR | T6 | done: on main 508edec6; passed by Nick's session 42 | none |
+| Boot loading card | T6 | done: on main ad1ea653 | none |
+| T1 take-off turn through the notch | T1 | done: on main 508edec6 | none |
+
+### Current board, Nov 14 18:30 EST (supersedes the in-progress and queued rows of the 17:30 board below)
+
+**Main is f85203b1** (since 17:30: 2f07ab5c, 7fd85523, e0b9385d, 96a66f7c, 48a6fd97, f85203b1; compile-only gate). **BLOCKER on main from 48a6fd97:** on Cinder the pilot walks about 19 m under the course (Nick's session 39, #194); T5 and T4 fixing; **packaging held at 96a66f7c**. **Compiling, not on main:** T1's notch turn (cd2ec8f2), T6's asteroid-split fix (0ed9cd18, #139 MAJOR). **On a branch, sent back:** #201 (eng/wing, too strong). Every Ryan-side item that is 🟨 or 🐞 in features.md has an owner here: ENG-26 and ENG-39 🐞 (T5, T4, T7; then the environment, structures and effects builders for #194), ENG-05 (T2), ENG-08 (wingman builder, T7), ENG-27 (T4, T7), ENG-28 (Lead, packaging agent, T6), ENG-36 (T2, T1), ENG-37 (effects builder, T4), ENG-42 (T5, T3), ENG-46 (T7), ART-07 and ART-16 (effects builder, T4), ART-08 (T5).
+
+| Owner | Now (in progress) | Next (queued, in order) | Items | Shared paths |
+|---|---|---|---|---|
+| Lead | The batch with cd2ec8f2 and 0ed9cd18; the packaging hold; boards | The Cinder fix to main only after its route walk; #201 once rebalanced | ENG-28 (integration), ENG-46 | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
+| T1 | The take-off turn through the notch (cd2ec8f2, compiling) | #159 the hint cards with T2; the #138 check cases to main | ENG-36 (hints), ENG-39 (descent) | `Flight/`, `Travel/`, `Flow/TDFrontEndGameModes.*` |
+| T2 | #103 the edge marker intruding into the UNDER FIRE tab | #201 / #192 aim assist on all three ships with a HUD indicator; the pause-menu hover; #159; #133 | ENG-36, ENG-05 | `Combat/`, `Powers/`, HUD |
+| T3 | #146 the opening bed's skip fade shown | `Bark_Wipe`; the victory recap names and camera fade | ENG-42, ART-10 (hand-off) | `Squad/`, `Director/`, `Story/` |
+| T4 | **Cinder BLOCKER:** relief heights under the course (#194) | #201 enemy balance; the beam v3 in a real docking and mines in a real wave; the two take-offs with their lines; the breakup at the escape clear | ENG-26, ENG-39, ENG-27, ENG-37, ENG-42, ART-07, ART-16 | `Enemies/`, `Waves/`, `World/` |
+| T5 | **Cinder BLOCKER:** slab collision back wherever the relief is lower than the course; #96 the legacy-save recovery (Nick's session 38) | The hooks seen in a fight (#124); drone tilt / look / tumble; the stray attack after CONTINUE; the orange disc near Grunts | ENG-26, ENG-39, ENG-42, ART-08 | `Flow/` (except `TDFrontEndGameModes.*`), `Ground/` |
+| T6 | The loading card over the last 10 s of black at boot (#89); 0ed9cd18 compiling | The on-foot frame rate on the filled planets; the Cinder take-off | ENG-28, ENG-48 | `World/SpaceField/**`, HUD radar files agreed with T2 |
+| T7 | The Cinder route walked once T5's and T4's fixes are built; #149 the real-speed intro check | #201 the verdict; #142 the menu checks; #152 a package start to end | ENG-46, ENG-26, ENG-39, ENG-08 | `docs/eng/PLAYTEST-*` |
+| Wingman builder (`.wt/wing`, eng/wing) | #201 rebalance (sent back: wave 3 cleared by the wingmen alone in about 50 s); proofs | Tuning with T4; T7's verdict | ENG-08 | `Squad/**` wingman files agreed with T3 |
+| Effects builder | Tractor beam v3 seen in a real docking; Cinder's ambient effects | The hull-scale explosions (#111) | ENG-37, ART-07, ART-16, ENG-39 | `Gameplay/VFX/**`, `DA_*_FX` |
+| Environment builder | The Verdance pylon on the beacon path (4280, 3505), the camera inside a hut wall; Cinder's pad crystals thinned by a third | Cinder's fill once the route is fixed (#194) | ENG-39 | planet and sky materials; dressing code |
+| Structures builder (eng/struct) | #194 kit pieces as the environment builder asks | The story console look (#96) | ENG-39 | `ArtSource/EngProps/{Kit,Outpost}/**`, `Content/TriadDrift/Gameplay/Props/{Huts,Kit}/**` |
+| Animation builder | Clips for T5's hooks as asked | - | ART-08 | `ArtSource/EngAnim/**`, `Characters/*/Anims/**` |
+| Intake builder (`.wt/imp`, eng/import) | Idle after #151 (on main) and #207 (seven taken) | Nicholas's next batch issue (at most eight assets) | asset intake | `Content/TriadDrift/Gameplay/Props/Fab/**`, `Content/TriadDrift/Gameplay/Audio/**`, `CREDITS.md` |
+| Packaging agent | Held at 96a66f7c, the last good build (cooking) | The next package after the Cinder fix is walked; keep the newest three | ENG-28 | isolated `.wt/pkg` |
+| Blade effects builder | Idle | Polish, on the Lead's dispatch | - | `.wt/blade`, eng/blade |
+| Ship builder | Stopped (usage limit) | Restart only on the Lead's dispatch | - | squad and fleet visuals |
+| Character builder (not started) | - | Game-ready pilot meshes (#149; waits on an approved look) | polish (B1-9) | `ArtSource/EngCharacters/**` |
+| Grok Bot | No asks open (R-042) | Ask 5 once its brief is posted | - | `ArtSource/EngAI/**` |
+
+Rows opened or closed Nov 14 18:30 (they supersede the same items' rows of 17:30 below):
+
+| Item | Owner | State | Paths |
+|---|---|---|---|
+| **Integration since 17:30** (2f07ab5c, 7fd85523, e0b9385d, 96a66f7c, 48a6fd97, f85203b1) | Lead | done: on main by 18:25 EST (compile-only gate); 48a6fd97 carries the Cinder blocker | none |
+| **BLOCKER: Cinder route about 19 m under the course** (48a6fd97, from c9edb62a; Nick's session 39, #194) | T5 (slab collision), T4 (relief heights), T7 (walk) | in progress since 18:20 | `Ground/`, `World/TDTerrainField.*`, `World/TDPlanetTerrain.*` |
+| **Packaging hold** | Packaging agent | in progress: held at 96a66f7c until the Cinder route is walked | isolated `.wt/pkg` |
+| #96 legacy-save recovery (Nick's session 38) | T5 | in progress | `Ground/`, `Flow/` |
+| #96 cold-Continue run save | T3 | done: on main 2f07ab5c (7a1e6598); Nick's sessions 34-35 PASS | none |
+| #103 squad-row layout pass | T2 | done: on main 7fd85523, GOOD at 1080p and 720p; the UNDER FIRE marker open | none |
+| #146 intro opening bed | T3 | done: on main f85203b1; skip fade unshown | none |
+| #151 enemy engine loops | Intake builder | done: on main 2f07ab5c, log-proven by T4; the audition is Nick's side's | none |
+| #201 shadow mode and wingman powers | Wingman builder | in progress: sent back as too strong | `Squad/**` wingman files |
+| #206, #207 asset batches | Intake builder | done: answered, seven taken | none |
+| Old packaged builds | Packaging agent | done: Ryan said keep three (36 GB freed; the loop prunes to three) | `Builds/**` (not in git) |
+
+### Current board, Nov 14 17:30 EST (supersedes the in-progress and queued rows of the 16:30 board below)
+
+**Main is a7e35ba2** (since 16:30: BV 28c2fb05, 0c986a7d, b8a55662, 6f0536ca, bb7a8ba5, 8ea0f5f1, 67021ade, 6e6c088b, a7e35ba2; compile-only gate). **Compiling, not on main:** T4's Verdance relief and mountain ring (f6c1853f), T3's #96 cold-Continue fix (77ad713e). **On a branch:** the wingman builder's shadow mode and wingman powers (eng/wing 1a3025fa; compiles, not yet played). **Top focus:** #194 the planets filled on foot; **new from Ryan (17:05):** #201 shadow mode, wingmen using their powers, aim assist on all three ships, enemies hard but fair. Every Ryan-side item that is 🟨 in features.md has an owner here: ENG-05 (T2), ENG-08 (wingman builder, T7), ENG-27 (T4, T7), ENG-28 (Lead, packaging agent, T6), ENG-36 (T2, T1), ENG-37 (effects builder, T4), ENG-39 (#194: T4, environment, structures and effects builders, T6, T7, T1), ENG-42 (T3, T5), ENG-46 (T7), ART-07 and ART-16 (effects builder, T4), ART-08 (T5).
+
+| Owner | Now (in progress) | Next (queued, in order) | Items | Shared paths |
+|---|---|---|---|---|
+| Lead | The batch with f6c1853f and 77ad713e; boards; hourly features.md alignment | The next batch; #201 from eng/wing when the wingman builder reports; AGENTS.md section 2 squad line | ENG-28 (integration), ENG-46 | `CLAIMS.md` (Ryan side), `MESSAGEBOARD.md`, `features.md`, `Config/**` |
+| T1 | #194 descent and take-off on the new terrain; #159 the hint cards with T2 | The #138 check cases (bffd905a) to main | ENG-39 (descent), ENG-36 (hints) | `Flight/`, `Travel/`, `Flow/TDFrontEndGameModes.*` |
+| T2 | The measured HUD layout pass from Ryan's review (squad cards overlapping and off-centre, the Q ring; #103) | #201 / #192 aim assist on all three ships with a HUD indicator; the pause-menu hover; #159; #133 the reward captures | ENG-36, ENG-05 | `Combat/`, `Powers/`, HUD |
+| T3 | #96 the cold-Continue fix (77ad713e, compiling); #146 the opening bed (skip fade) | `Bark_Wipe`; the victory recap names and camera fade seen | ENG-42, ART-10 (hand-off) | `Squad/`, `Director/`, `Story/`; the #146 paths in the row below |
+| T4 | #194 the Verdance relief and mountain ring (f6c1853f, compiling), then Cinder | #201 enemy balance once it lands; the beam v2 and mines seen with the effects builder; the two take-offs with their lines (#96); the breakup at the escape clear | ENG-39, ENG-27, ENG-37, ENG-42, ART-07, ART-16 | `Enemies/`, `Waves/`, `World/` |
+| T5 | The legacy final-record bypass (#96); #139's interior-light reset | The blade and crew hooks seen in a fight (#124); drone tilt / look / tumble; the stray attack after CONTINUE; the orange disc near Grunts | ENG-42, ART-08 | `Flow/` (except `TDFrontEndGameModes.*`), `Ground/` |
+| T6 | #89 the Verdance take-off below 800 m (with the environment builder); boot to menu in the next package | The on-foot frame rate on the filled planets (#194); the Cinder take-off | ENG-28, ENG-39 (perf) | `World/SpaceField/**`, HUD radar files agreed with T2 |
+| T7 | #194 frames; #149 the real-speed intro check | #201 the verdict with shadow on and off; #142 the menu checks in the next package; #152 a package start to end | ENG-46, ENG-28, ENG-39, ENG-08 (verdict) | `docs/eng/PLAYTEST-*` |
+| Wingman builder (`.wt/wing`, eng/wing) | #201 shadow mode and wingmen using their powers and abilities (1a3025fa compiles, not yet played) | Tuning with T4; T7's verdict | ENG-08 | `Squad/**` wingman files agreed with T3 |
+| Effects builder | #194 the 16 ambient systems spawned on both planets; the beam v2 and mines back in the data | The hull-scale explosions on the breakup (#111) | ENG-37, ART-07, ART-16, ENG-39 | `Gameplay/VFX/**`, `DA_*_FX` |
+| Environment builder | #194 Verdance route views and the rest of the camps; then Cinder's fill | The Verdance take-off frame rate with T6 (#89) | ENG-39, ENG-28 (perf) | planet and sky materials; dressing code |
+| Structures builder (eng/struct) | #194 kit pieces as the environment builder asks | The story console look (#96) | ENG-39 | `ArtSource/EngProps/{Kit,Outpost}/**`, `Content/TriadDrift/Gameplay/Props/{Huts,Kit}/**` |
+| Animation builder | Clips for T5's hooks as asked (the sprint frame is fixed by the camera-blade guard, 40184e39) | - | ART-08 | `ArtSource/EngAnim/**`, `Characters/*/Anims/**` |
+| Intake builder (`.wt/imp`, eng/import) | #151 enemy engine loops (row below) | Nicholas's next batch issue (at most eight assets, #206) | ART-10 (hand-off), asset intake | `Content/TriadDrift/Gameplay/Audio/Engines/**`, `Content/TriadDrift/Gameplay/Props/Fab/**`, `CREDITS.md` |
+| Packaging agent | The 17:30 package with the size check and boot to menu measured (#89) | A package every 30 minutes, launch-checked and handed to T7 | ENG-28 | isolated `.wt/pkg` |
+| Blade effects builder | Idle | Polish, on the Lead's dispatch | - | `.wt/blade`, eng/blade |
+| Ship builder | Stopped (usage limit) | Restart only on the Lead's dispatch | - | squad and fleet visuals |
+| Character builder (not started) | - | Game-ready pilot meshes (#149, beyond the canopies; waits on an approved look) | polish (B1-9) | `ArtSource/EngCharacters/**` |
+| Grok Bot | No asks open (R-042) | Ask 5 (instanced set pieces) once its brief is posted | - | `ArtSource/EngAI/**` |
+
+Rows opened or closed Nov 14 17:30 (they supersede the same items' rows of 16:30 below):
+
+| Item | Owner | State | Paths |
+|---|---|---|---|
+| **Integration since 16:30** (0c986a7d, b8a55662, 6f0536ca, bb7a8ba5, 8ea0f5f1, 67021ade, 6e6c088b, a7e35ba2) | Lead | done: on main by 17:25 EST (compile-only gate) | none |
+| **#201 shadow mode and wingman powers** (Ryan, 17:05) | Wingman builder; T2 aim assist; T4 balance; T7 verdict | in progress (eng/wing 1a3025fa, not yet played) | `Squad/**` wingman files; `Combat/` aim assist |
+| #100 portal missile return | T2 | done: played GOOD on 0c986a7d and closed; ENG-09 ✅ | none |
+| #96 Face to Face lines and once per run | T3 | done: on main 0c986a7d; #96 reopened by Nick's side for the cold-Continue replay (fix 77ad713e compiling) | `Story/` |
+| #96 legacy final-record bypass (Nick's session 28) | T5 | in progress | `Ground/`, `Flow/` |
+| Wave 5 carrier cap | T4 | done: played on main 6f0536ca | none |
+| T5's blade and crew hooks (#124) | T5 | in review: on main bb7a8ba5; seen in a fight pending | none |
+| Asset issues #180, #182, #185, #186, #189, #190, #193, #195 to #200, #202 to #206 | Intake builder | done: closed (used, skipped or answered); placement in #194; downloads deleted | none |
 
 ### Current board, Nov 14 16:30 EST (supersedes the in-progress and queued rows of the 15:30 board below)
 
@@ -361,6 +493,8 @@ Rows opened or closed Nov 14 16:30 (they supersede the same items' rows of 15:30
 | Item | Owner | State | Paths |
 |---|---|---|---|
 | **Integration batches BQ to BV** (BQ a9c635de, BR 99d489e7, BS c8eef9a5, 761877e2, BU 685d8bea, BV 28c2fb05) | Lead | done: on main by 16:35 EST (compile-only gate) | none |
+| **#146 intro opening bed** (hand-off from Nick's Lead on Nicholas's behalf, issue #146, Nov 14 16:53 EST) | T3 | in progress since 17:10 | NEW `Content/TriadDrift/Audio/IntroAmbient01/MUS_IntroAmbient_HerosWake_01.uasset`; `Content/TriadDrift/Presentation/DA_UI_Style.uasset` (the live style; ONLY the new `IntroOpeningBed` field is set, every other property read back unchanged or the save is refused); new C++ field `UTDUIStyle::IntroOpeningBed` in `Core/TDPresentation.h`; `Director/Intro/TDIntroDirector.*`; `CREDITS.md`; `Tools/td-import-intro-bed.py` |
+| **#151 enemy engine loops** (candidate chosen by Nick's Lead, issue #151, Nov 14 17:17 EST; import and binding by Ryan's side) | intake builder | in progress since 17:35 | NEW `Content/TriadDrift/Gameplay/Audio/Engines/EnemyEngines01/{SW_EnemyEngine_Fighter_Loop_01..03, SW_EnemyEngine_Interceptor_Loop_01..03, CUE_EnemyEngine_Fighter, CUE_EnemyEngine_Interceptor}` (our folder, not `Content/TriadDrift/Audio/`); `Content/TriadDrift/Gameplay/Characters/NullFleet/DA_Enemy_Fighter_Visuals` and `DA_Enemy_Interceptor_Visuals` (ONLY `EngineTrail.Sound`; every other field read back unchanged or the save is refused); the existing `ATT_TDE_Space_Near`, `SC_TDE_SFX`, `SCON_TDE_Loop` presets reused unedited; `CREDITS.md` |
 | **#194 the planets filled on foot** (Ryan's top focus, 16:15; ENG-39) | T4, environment, structures and effects builders, T6, T7, T1 | in progress since 16:15 | `World/TDTerrainField.*`, `World/TDPlanetTerrain.*`, planet materials and dressing, `Content/TriadDrift/Gameplay/Props/Huts/**`, `Gameplay/VFX/**` |
 | #96 Continue restoring the final-record step | T5 | done: on main c8eef9a5 (ccaaf4d4) | none |
 | #96 Face to Face lines and once per run | T3 | in review: on the branch, natural route played GOOD; next batch | `Story/` |

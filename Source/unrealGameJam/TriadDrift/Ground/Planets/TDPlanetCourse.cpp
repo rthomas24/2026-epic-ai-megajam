@@ -1,6 +1,9 @@
 // Triad Drift - planet layouts (ENG-25 Verdance, ENG-26 Cinder). Owner: Teammate 5.
 
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "Components/DecalComponent.h"
+#include "NiagaraSystem.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Components/MeshComponent.h"
 #include "TimerManager.h"
 #include "TriadDrift/UI/TDUIHostSubsystem.h"
@@ -218,13 +221,32 @@ void ATDPlanetCourse::AdoptTerrainMaterial()
 	// slab only stands under it: hidden, collision kept, so what you see is what you stand on with no z-fight. The
 	// terrain material would read the slab's missing vertex colour as white (high, steep rock: review m7), so the slab
 	// never wears it. With no terrain the slab keeps MI_Ground_<Planet>.
+	bool bTerrain = false;
 	for (TActorIterator<ATDPlanetTerrain> It(World); It; ++It)
 	{
 		GroundSlab->SetHiddenInGame(true);
+		bTerrain = true;
+		break;
+	}
+	// #194: T4's relief patch (craters, mounds, gullies) is the ground once it has collision: the flat slab at z 0 goes
+	// entirely, or the pilot would stand on an invisible floor over every divot.
+	if (bTerrain && ATDPlanetTerrain::HasDetailGround(this))
+	{
+		// BLOCKER fix (Nick's Lead, #194): with the slab's collision off, a Continue on Cinder dropped the pilot 19 m below
+		// the course where the relief was not (yet) under it. The slab never stops colliding: it drops to sit just under
+		// the relief (2.6 m down, under its 2.5 m deepest) as a safety floor, so the relief is walked wherever it exists and a gap in it
+		// costs a short step down, never a fall out of the course.
+		if (!bSlabLowered)
+		{
+			bSlabLowered = true;
+			GroundSlab->AddWorldOffset(FVector(0.f, 0.f, -260.f)); // just under T4's deepest relief (2.5 m clamp)
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("#194: relief ground has collision: the course's flat slab stays as a safety floor 2.6 m down (top z %.0f)"),
+			(float)GroundSlab->Bounds.GetBox().Max.Z);
 		return;
 	}
-	// The terrain may be spawned a moment after the course: look again for ~10 s.
-	if (++TerrainMaterialTries < 40)
+	// The terrain and its patch may come a moment after the course: look again for ~30 s.
+	if (++TerrainMaterialTries < 120)
 	{
 		World->GetTimerManager().SetTimer(TerrainMaterialTimer, this, &ATDPlanetCourse::AdoptTerrainMaterial, 0.25f, false);
 	}
@@ -398,7 +420,7 @@ float ATDPlanetCourse::GroundZAt(const FVector& Local) const
 	const FVector P = W(FVector(Local.X, Local.Y, 0.f));
 	if (World->LineTraceSingleByChannel(Hit, P + FVector(0.f, 0.f, 20000.f), P - FVector(0.f, 0.f, 5000.f), ECC_WorldStatic, Q))
 	{
-		return FMath::Max(0.f, (float)GetActorTransform().InverseTransformPosition(Hit.ImpactPoint).Z);
+		return (float)GetActorTransform().InverseTransformPosition(Hit.ImpactPoint).Z; // #194: relief can sit below the old flat
 	}
 	return 0.f;
 }
@@ -419,6 +441,260 @@ AActor* ATDPlanetCourse::SpawnKitBP(const TCHAR* Folder, const TCHAR* Name, cons
 		Spawned.Add(A);
 	}
 	return A;
+}
+
+void ATDPlanetCourse::RetintDressing(const FVector& Local, float RadiusCm, const TCHAR* MeshName, const TCHAR* MaterialPath)
+{
+	// Environment builder (Nov 14): give the dressing's copies of one mesh within a radius another material (the Fab
+	// intake's tiling sets on site debris), at runtime: no asset is changed.
+	UMaterialInterface* M = LoadObject<UMaterialInterface>(nullptr, MaterialPath, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	if (!M || !Dressing) { return; }
+	const FVector At = W(Local);
+	TInlineComponentArray<UStaticMeshComponent*> Parts(Dressing.Get());
+	for (UStaticMeshComponent* C : Parts)
+	{
+		if (C && C->GetStaticMesh() && C->GetStaticMesh()->GetName() == MeshName && FVector::Dist2D(C->GetComponentLocation(), At) <= RadiusCm) { C->SetMaterial(0, M); }
+	}
+}
+
+// #194 ambient life (environment builder): the effects builder's ambient systems and Fab scorch decals, spawned from the
+// dressing. The systems do not cull themselves: every component gets a 60 m draw distance and is deactivated beyond it
+// by its own significance (LD max draw distance). One component per spot; a coarse grid so the count stays ~100.
+static UNiagaraSystem* TDAmb_Load(const TCHAR* Name)
+{
+	const FString Path = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/Ambient/%s.%s"), Name, Name);
+	return FPackageName::DoesPackageExist(FString::Printf(TEXT("/Game/TriadDrift/Gameplay/VFX/Systems/Ambient/%s"), Name))
+		? LoadObject<UNiagaraSystem>(nullptr, *Path, nullptr, LOAD_Quiet | LOAD_NoWarn) : nullptr;
+}
+
+int32 ATDPlanetCourse::SpawnAmbient(const TCHAR* Name, const FVector& Local, float ZOffset)
+{
+	UNiagaraSystem* Sys = TDAmb_Load(Name);
+	if (!Sys || !Dressing) { return 0; }
+	const FVector At = W(FVector(Local.X, Local.Y, GroundZAt(Local) + ZOffset));
+	UNiagaraComponent* N = UNiagaraFunctionLibrary::SpawnSystemAttached(Sys, Dressing->GetRootComponent(), NAME_None, At, FRotator::ZeroRotator,
+		EAttachLocation::KeepWorldPosition, false, true, ENCPoolMethod::None, true);
+	if (!N) { return 0; }
+	N->SetCachedMaxDrawDistance(6000.f);
+	N->LDMaxDrawDistance = 6000.f;
+	return 1;
+}
+
+int32 ATDPlanetCourse::SpawnScorch(const FVector& Local, float SizeCm, float Yaw, bool bCinder)
+{
+	const TCHAR* Path = (bCinder && int32(Yaw) % 2 == 1) ? TEXT("/Game/TriadDrift/Gameplay/Props/Fab/AshDrift/MI_Fab_AshDrift_Cinder.MI_Fab_AshDrift_Cinder")	// every other Cinder mark: an ash drift
+		: bCinder ? TEXT("/Game/TriadDrift/Gameplay/Props/Fab/ScorchMark/MI_Fab_ScorchMark_Cinder.MI_Fab_ScorchMark_Cinder")
+		: TEXT("/Game/TriadDrift/Gameplay/Props/Fab/ScorchMark/MI_Fab_ScorchMark_Verdance.MI_Fab_ScorchMark_Verdance");
+	UMaterialInterface* M = LoadObject<UMaterialInterface>(nullptr, Path, nullptr, LOAD_Quiet | LOAD_NoWarn);
+	if (!M || !Dressing) { return 0; }
+	UDecalComponent* D = NewObject<UDecalComponent>(Dressing);
+	D->SetupAttachment(Dressing->GetRootComponent());
+	D->SetDecalMaterial(M);
+	D->DecalSize = FVector(300.f, SizeCm * 0.5f, SizeCm * 0.5f);	// projected along X: pitch -90 turns it straight down
+	D->SetWorldLocationAndRotation(W(FVector(Local.X, Local.Y, GroundZAt(Local) + 50.f)), FRotator(-90.f, Yaw, 0.f));
+	D->SetFadeScreenSize(0.002f);
+	D->RegisterComponent();
+	Dressing->AddInstanceComponent(D);
+	return 1;
+}
+
+void ATDPlanetCourse::DressAmbient(bool bCinder)
+{
+	int32 n = 0, k = 0;
+	// the pad
+	n += SpawnAmbient(TEXT("NS_TD_Amb_Shared_PadDust"), FVector(0.f, 0.f, 0.f), 10.f);
+	// a 22 m grid over the course box, each spot one effect by planet, kept off the paths and sites
+	for (float X = -2600.f; X <= 14000.f; X += 2200.f)
+	{
+		for (float Y = -10000.f; Y <= 10000.f; Y += 2200.f, ++k)
+		{
+			const uint32 H = GetTypeHash(FIntPoint(int32(X), int32(Y))) ^ 0x9E3779B9u;
+			const float Roll = (H % 1000) / 1000.f;
+			const FVector L(X + float((H >> 10) % 1200) - 600.f, Y + float((H >> 20) % 1200) - 600.f, 0.f);
+			if (!IsScatterAllowed(W(FVector(L.X, L.Y, GroundZAt(L))), 300.f)) { continue; }
+			const TCHAR* Fx = nullptr;
+			float Z = 30.f;
+			if (!bCinder)
+			{
+				Fx = Roll < 0.28f ? TEXT("NS_TD_Amb_Verdance_Fireflies") : Roll < 0.48f ? TEXT("NS_TD_Amb_Verdance_Spores") : Roll < 0.6f ? TEXT("NS_TD_Amb_Verdance_Insects")
+					: Roll < 0.72f ? TEXT("NS_TD_Amb_Verdance_MushroomPulse") : Roll < 0.78f ? TEXT("NS_TD_Amb_Verdance_GroundMist")
+					: Roll < 0.9f ? TEXT("NS_TD_Amb_Verdance_FallingLeaves") : TEXT("NS_TD_Amb_Verdance_GlowPollen");
+				if (FCString::Strstr(Fx, TEXT("Leaves"))) { Z = 900.f; }
+			}
+			else
+			{
+				Fx = Roll < 0.14f ? TEXT("NS_TD_Amb_Cinder_Vent_S") : Roll < 0.24f ? TEXT("NS_TD_Amb_Cinder_Vent_M") : Roll < 0.29f ? TEXT("NS_TD_Amb_Cinder_Vent_L")
+					: Roll < 0.47f ? TEXT("NS_TD_Amb_Cinder_EmberDrift") : Roll < 0.57f ? TEXT("NS_TD_Amb_Cinder_HeatShimmer") : Roll < 0.67f ? TEXT("NS_TD_Amb_Cinder_LavaPop")
+					: Roll < 0.84f ? TEXT("NS_TD_Amb_Cinder_FallingAsh") : TEXT("NS_TD_Amb_Cinder_SulfurFumes");
+				if (FCString::Strstr(Fx, TEXT("Ash"))) { Z = 1200.f; }
+			}
+			n += SpawnAmbient(Fx, L, Z);
+		}
+	}
+	// huts: a chimney on every shack / prefab / workshop, a beacon on every lab / mast / flood mast
+	if (Dressing)
+	{
+		TInlineComponentArray<UStaticMeshComponent*> Parts(Dressing.Get());
+		for (UStaticMeshComponent* C : Parts)
+		{
+			if (!C || !C->GetStaticMesh()) { continue; }
+			const FString N = C->GetStaticMesh()->GetName();
+			if (!N.StartsWith(TEXT("SM_Hut_"))) { continue; }
+			const bool bChimney = N.Contains(TEXT("Prefab")) || N.Contains(TEXT("Shack")) || N.Contains(TEXT("Workshop"));
+			const bool bBeacon = N.Contains(TEXT("Lab")) || N.Contains(TEXT("Mast"));
+			if (!bChimney && !bBeacon) { continue; }
+			const FBoxSphereBounds B = C->Bounds;
+			const FVector Top = GetActorTransform().InverseTransformPosition(B.Origin + FVector(0.f, 0.f, B.BoxExtent.Z));
+			UNiagaraSystem* Sys = TDAmb_Load(bChimney ? TEXT("NS_TD_Amb_Shared_HutChimney") : TEXT("NS_TD_Amb_Shared_HutBeacon"));
+			if (!Sys) { continue; }
+			if (UNiagaraComponent* Fx = UNiagaraFunctionLibrary::SpawnSystemAttached(Sys, C, NAME_None, W(Top), FRotator::ZeroRotator, EAttachLocation::KeepWorldPosition, false, true, ENCPoolMethod::None, true))
+			{
+				Fx->SetCachedMaxDrawDistance(6000.f);
+				Fx->LDMaxDrawDistance = 6000.f;
+				++n;
+			}
+		}
+	}
+	// scorch decals: round the outposts and the camps, and at the crash site (Verdance) / the dig (Cinder)
+	int32 d = 0;
+	const TArray<FVector> Centres = bCinder ? TArray<FVector>{ FVector(3700.f, 0.f, 0.f), FVector(11800.f, 2200.f, 0.f), FVector(6000.f, -4300.f, 0.f) }
+		: TArray<FVector>{ FVector(11500.f, 7200.f, 0.f), FVector(12400.f, 5500.f, 0.f), FVector(10800.f, 9500.f, 0.f) };
+	for (int32 c = 0; c < Centres.Num(); ++c)
+	{
+		for (int32 i = 0; i < 5; ++i)
+		{
+			const float A = (i * 72.f + c * 31.f) * PI / 180.f;
+			const FVector L = Centres[c] + FVector(FMath::Cos(A), FMath::Sin(A), 0.f) * (900.f + 250.f * (i % 3));
+			// decals are flat and walkable: only kept off the route lines (not the site boxes they are meant to mark)
+			bool bOnRoute = false;
+			for (const TArray<FVector>& Rt : Routes) { for (int32 q = 0; q + 1 < Rt.Num(); ++q) { if (FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), FVector(Rt[q].X, Rt[q].Y, 0.f), FVector(Rt[q + 1].X, Rt[q + 1].Y, 0.f)) < 400.f) { bOnRoute = true; } } }
+			if (bOnRoute) { continue; }
+			d += SpawnScorch(L, 400.f + 100.f * ((i + c) % 5), i * 67.f, bCinder);
+		}
+	}
+	UE_LOG(LogTriadDrift, Display, TEXT("Course: ambient %d effects, %d scorch decals (%s)"), n, d, bCinder ? TEXT("Cinder") : TEXT("Verdance"));
+}
+
+void ATDPlanetCourse::DressRouteBreaks(bool bCinder)
+{
+	// #194 (environment builder): ground-break pieces from the structures builder's site set. A walk-under arch or fallen
+	// trunk straddling each route at about 40 % of its length (yawed along the path, so the passage lines up), and a
+	// landmark (stone ring / overgrown pylon, or gantry / vent chimney / slag heap) every ~40 m across the course box,
+	// each at the first spot that clears every keep-out (DressCamp).
+	const TCHAR* Folder = bCinder ? TEXT("Huts/Cinder") : TEXT("Huts/Verdance");
+	int32 r = 0;
+	for (const TArray<FVector>& R : Routes)
+	{
+		if (R.Num() < 2) { continue; }
+		float Total = 0.f;
+		for (int32 i = 0; i + 1 < R.Num(); ++i) { Total += FVector::Dist2D(R[i], R[i + 1]); }
+		float Want = Total * (0.38f + 0.1f * (r % 3)), Run = 0.f;
+		for (int32 i = 0; i + 1 < R.Num(); ++i)
+		{
+			const float Len = FVector::Dist2D(R[i], R[i + 1]);
+			if (Run + Len >= Want)
+			{
+				const FVector P = FMath::Lerp(R[i], R[i + 1], (Want - Run) / FMath::Max(Len, 1.f));
+				const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(R[i + 1].Y - R[i].Y, R[i + 1].X - R[i].X));
+				const TCHAR* Piece = bCinder ? TEXT("SM_Site_Cinder_BasaltArch") : (r % 2 == 0 ? TEXT("SM_Site_Verdance_RootArch") : TEXT("SM_Site_Verdance_FallenTrunk"));
+				// T7 (relief1 walk): an arch's feet on the walk line jam the pilot: set it 8 m beside the route instead, a framing
+				// piece the player passes, not walks into
+				const FVector Side = FVector(-(R[i + 1].Y - R[i].Y), R[i + 1].X - R[i].X, 0.f).GetSafeNormal2D() * ((r % 2) ? 800.f : -800.f);
+				DressCamp(FVector(P.X, P.Y, 0.f) + Side, 0.f, 1200.f, { { Folder, Piece, FVector::ZeroVector, Yaw, 1.f, true } }, FName(*FString::Printf(TEXT("RouteBreak%d"), r)));
+				break;
+			}
+			Run += Len;
+		}
+		++r;
+	}
+	const TCHAR* Marks[] = { TEXT("SM_Site_Verdance_StoneRing"), TEXT("SM_Site_Verdance_OvergrownPylon") };
+	const TCHAR* MarksC[] = { TEXT("SM_Site_Cinder_CollapsedGantry"), TEXT("SM_Site_Cinder_VentChimney"), TEXT("SM_Site_Cinder_SlagHeap") };
+	int32 m = 0;
+	for (float X = -2000.f; X <= 14000.f; X += 4000.f)
+	{
+		for (float Y = -9000.f; Y <= 9000.f; Y += 4000.f, ++m)
+		{
+			const TCHAR* Piece = bCinder ? MarksC[m % 3] : Marks[m % 2];
+			DressCamp(FVector(X + (m % 3) * 700.f, Y + (m % 2) * 900.f, 0.f), 0.f, 1800.f, { { Folder, Piece, FVector::ZeroVector, float((m * 47) % 360), 1.f, true } },
+				FName(*FString::Printf(TEXT("Landmark%d"), m)));
+		}
+	}
+}
+
+int32 ATDPlanetCourse::DressCamp(const FVector& Around, float MinR, float MaxR, const TArray<FDressItem>& Items, FName Tag)
+{
+	// #194 (environment builder): a group of huts and its yard, placed at the first spot round Around (rings MinR..MaxR,
+	// 16 bearings) where every piece's footprint clears every course keep-out (routes, sites, encounters, the pad) with
+	// a margin, so nothing stands in a 4 m path corridor. Seated on the ground by Dress(). Returns the pieces placed.
+	auto Radius = [](const FDressItem& It)
+	{
+		const FString N(It.Name);
+		if (N.Contains(TEXT("Lab")) || N.Contains(TEXT("Workshop")) || N.Contains(TEXT("DrillRig")) || N.Contains(TEXT("Gantry"))) { return 520.f; }
+		if (N.Contains(TEXT("Prefab")) || N.Contains(TEXT("Tank")) || N.Contains(TEXT("Shack")) || N.Contains(TEXT("PumpHouse")) || N.Contains(TEXT("Hopper")) || N.Contains(TEXT("StoneRing")) || N.Contains(TEXT("SlagHeap"))) { return 420.f; }
+		return N.Contains(TEXT("Dome")) || N.Contains(TEXT("Wall")) || N.Contains(TEXT("Gate")) ? 300.f : 220.f;
+	};
+	for (float R = MinR; R <= MaxR + 1.f; R += 600.f)
+	{
+		for (int32 b = 0; b < 16; ++b)
+		{
+			const float A = FMath::DegreesToRadians(b * 22.5f + R * 0.01f);
+			const FVector C = Around + FVector(FMath::Cos(A), FMath::Sin(A), 0.f) * R;
+			bool bOk = true;
+			for (const FDressItem& It : Items)
+			{
+				const FVector L = C + FVector(It.Local.X, It.Local.Y, 0.f);
+				if (!IsScatterAllowed(W(FVector(L.X, L.Y, GroundZAt(L))), Radius(It) + 60.f)) { bOk = false; break; }
+				// Lead (#194): the player walks straight at the marker, so nothing of a camp within 6 m of the line from the pad
+				// to any objective (each route's end)
+				if (It.bCollide)
+				{
+					FVector Prev = FVector::ZeroVector;
+					for (const TArray<FVector>& Rt : Routes)
+					{
+						if (!Rt.Num()) { continue; }
+						const FVector End(Rt.Last().X, Rt.Last().Y, 0.f);
+						if (FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), FVector::ZeroVector, End) < 600.f + Radius(It)
+							|| FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), Prev, End) < 400.f + Radius(It)) { bOk = false; break; }
+						Prev = End;
+					}
+					// ...and 4 m + body off every route's own line (lamp-lit paths), checked directly
+					for (const TArray<FVector>& Rt : Routes)
+					{
+						for (int32 q = 0; q + 1 < Rt.Num() && bOk; ++q)
+						{
+							if (FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), FVector(Rt[q].X, Rt[q].Y, 0.f), FVector(Rt[q + 1].X, Rt[q + 1].Y, 0.f)) < 400.f + Radius(It)) { bOk = false; }
+						}
+						if (!bOk) { break; }
+					}
+					if (!bOk) { break; }
+					// T7: huts 5 m back from any interact point (the camera boom ended in a hut wall at the device)
+					for (const TObjectPtr<AActor>& Sp : Spawned)
+					{
+						if (Sp && Sp->IsA<ATDInteractableActor>() && FVector::Dist2D(GetActorTransform().InverseTransformPosition(Sp->GetActorLocation()), L) < 500.f + Radius(It)) { bOk = false; break; }
+					}
+					if (!bOk) { break; }
+				}
+				// T4's relief (Nov 14): a hut needs a flat-enough spot: its footprint's corners within 70 cm of each other
+				if (It.bCollide && Radius(It) >= 300.f)
+				{
+					const float Rr = Radius(It) * 0.7f;
+					float Lo = 1e9f, Hi = -1e9f;
+					for (const FVector& D : { FVector(Rr, Rr, 0.f), FVector(-Rr, Rr, 0.f), FVector(Rr, -Rr, 0.f), FVector(-Rr, -Rr, 0.f), FVector::ZeroVector })
+					{
+						const float Z = GroundZAt(L + D);
+						Lo = FMath::Min(Lo, Z); Hi = FMath::Max(Hi, Z);
+					}
+					if (Hi - Lo > 70.f) { bOk = false; break; }
+				}
+			}
+			if (!bOk) { continue; }
+			const int32 Placed = Dress(Items, C, 0.f, Tag);
+			UE_LOG(LogTriadDrift, Display, TEXT("Course: camp %s at %s (%d of %d pieces)"), *Tag.ToString(), *C.ToCompactString(), Placed, Items.Num());
+			return Placed;
+		}
+	}
+	UE_LOG(LogTriadDrift, Warning, TEXT("Course: camp %s found no clear spot round %s"), *Tag.ToString(), *Around.ToCompactString());
+	return 0;
 }
 
 int32 ATDPlanetCourse::Dress(const TArray<FDressItem>& Items, const FVector& Origin, float Yaw, FName Site)
@@ -498,13 +774,23 @@ void ATDPlanetCourse::DressOutpost(const FVector& Site, float Yaw, FName Tag)
 			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-610.f, -540.f, 0.f), 15.f, 1.f, true },
 			{ Barrel, TEXT("SM_Fab_OilBarrel"), FVector(-530.f, -600.f, 0.f), 60.f, 1.f, true },
 			{ Core, TEXT("SM_Fab_PowerCore"), FVector(-330.f, -540.f, 0.f), 90.f, 1.f, true },
+			// intake (Nov 14): a Mechanic Base generator beyond the barrels, a pillar console by the floodlight, a spare truss
+			// segment lying on the +Y side, and concrete rubble round the generators (retinted below)
+			{ TEXT("Fab/MechanicBase/Mesh/SM/PROP/MACHINE"), TEXT("SM_POWER_GENERATOR_01"), FVector(-950.f, -380.f, 0.f), 90.f, 1.f, true },
+			{ TEXT("Fab/MechanicBase/Mesh/SM/PROP/MACHINE"), TEXT("SM_ELEVATOR_CONSOLE_01"), FVector(560.f, -600.f, 87.f), 200.f, 1.f, true },
+			{ TEXT("Fab/PipeBeam"), TEXT("SM_Fab_PipeBeam"), FVector(-300.f, 950.f, 0.f), 90.f, 1.f, true },
+			{ TEXT("Planet"), TEXT("SM_Cind_DebrisChunk"), FVector(-820.f, -120.f, -10.f), 30.f, 0.9f, false },
+			{ TEXT("Planet"), TEXT("SM_Cind_DebrisChunk"), FVector(-760.f, -660.f, -10.f), 140.f, 0.8f, false },
+			{ TEXT("Planet"), TEXT("SM_Cind_DebrisChunk"), FVector(-430.f, -700.f, -10.f), 250.f, 0.7f, false },
 		}, Site, Yaw, Tag);
+		RetintDressing(Site, 1600.f, TEXT("SM_Cind_DebrisChunk"), TEXT("/Game/TriadDrift/Gameplay/Props/Fab/Textures/ConcreteRubble/MI_Fab_ConcreteRubble.MI_Fab_ConcreteRubble"));
 	}
 	else if (Tag == TEXT("VerdanceOutpost"))
 	{
 		Dress({
 			{ Crate, TEXT("SM_Fab_CrateStack"), FVector(300.f, 600.f, 0.f), 8.f, 1.f, true },
 			{ Core, TEXT("SM_Fab_PowerCore"), FVector(-660.f, -330.f, 0.f), 90.f, 1.f, true },
+			{ TEXT("Fab/MechanicBase/Mesh/SM/PROP/MACHINE"), TEXT("SM_ELEVATOR_CONSOLE_01"), FVector(-500.f, -540.f, 87.f), 160.f, 1.f, true },	// intake
 		}, Site, Yaw, Tag);
 	}
 }
@@ -1084,6 +1370,10 @@ bool ATDPlanetCourse::StartObjectiveAt(FName ObjectiveId)
 		{
 			return false; // an ordered course (the interior): the rooms come one after the other
 		}
+		if (T.Objective == O && T.After && T.After == WardenGateObjective.Get() && !IsFinalRecordPlayed())
+		{
+			return false; // #96: the reactor waits for the final record, an old checkpoint's Warden completion included
+		}
 	}
 	O->StartObjective();
 	return O->IsActive();
@@ -1095,6 +1385,13 @@ bool ATDPlanetCourse::GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) c
 	if (IsAnyObjectiveRunning())
 	{
 		return false;
+	}
+	if (IsInterior() && WardenGateObjective.IsValid() && WardenGateObjective->IsComplete() && !IsFinalRecordPlayed() && FinalRecordConsole)
+	{
+		// #96, a checkpoint from before the gate: the Warden is done but the record was never played.
+		OutText = LOCTEXT("IdleRecord", "PLAY THE FINAL RECORD");
+		OutMarkers.Add(FinalRecordConsole);
+		return true;
 	}
 	TArray<FText> Names;
 	for (const FTDTrailhead& T : Trailheads)
@@ -1258,9 +1555,14 @@ void ATDPlanetCourse::MarkCompletedFromProgress()
 			}
 			for (const FTDStepDoor& D : CompletionDoors)
 			{
-				if (D.Objective == O && D.Door) { D.Door->Open(); }
+				if (D.Objective == O && D.Door && !(D.Door == WardenExitDoor && !IsFinalRecordPlayed())) { D.Door->Open(); }
 			}
 		}
+	}
+	if (IsInterior() && WardenExitDoor && WardenGateObjective.IsValid() && WardenGateObjective->IsComplete() && !IsFinalRecordPlayed())
+	{
+		WardenExitDoor->ShowStatusText(LOCTEXT("RecordFirstLoad", "PLAY THE FINAL RECORD FIRST"));
+		UE_LOG(LogTriadDrift, Display, TEXT("#96: checkpoint has the Warden done but no final record: exit shut, the record first"));
 	}
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
@@ -1411,6 +1713,21 @@ void ATDPlanetCourse::BuildVerdance()
 		RelayArt = GetWorld()->SpawnActor<AActor>(RelayClass, FTransform(GetActorRotation(), W(RelaySite)), RelayParams);
 		FVector O = FVector::ZeroVector, E = FVector::ZeroVector;
 		if (RelayArt) { RelayArt->GetActorBounds(true, O, E); }
+		if (RelayArt)
+		{
+			// intake (Nov 14): the relay plaza in stone tile: the BP's largest flat mesh (its deck), at runtime only
+			UStaticMeshComponent* Best = nullptr;
+			float BestArea = 0.f;
+			TInlineComponentArray<UStaticMeshComponent*> Parts(RelayArt);
+			for (UStaticMeshComponent* C : Parts)
+			{
+				const FBoxSphereBounds B = C->Bounds;
+				const float Area = B.BoxExtent.X * B.BoxExtent.Y;
+				if (B.BoxExtent.Z < 120.f && Area > BestArea) { Best = C; BestArea = Area; }
+			}
+			UMaterialInterface* Tile = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Fab/Textures/StoneTileFloor/MI_Fab_StoneTileFloor.MI_Fab_StoneTileFloor"), nullptr, LOAD_Quiet | LOAD_NoWarn);
+			if (Best && Tile && BestArea > 1000.f * 1000.f) { Best->SetMaterial(0, Tile); UE_LOG(LogTriadDrift, Display, TEXT("Verdance: relay plaza %s in stone tile"), *Best->GetName()); }
+		}
 		if (RelayArt && FMath::Min(E.X, E.Y) < 1300.f)
 		{
 			UE_LOG(LogTriadDrift, Log, TEXT("Verdance: BP_Relay is %.0f x %.0f cm, not the 28 m defence deck yet; the placeholder stands in."), E.X * 2.f, E.Y * 2.f);
@@ -1422,7 +1739,11 @@ void ATDPlanetCourse::BuildVerdance()
 	const float DeckTop = RelayArt ? 50.f : 40.f;
 	if (!RelayArt)
 	{
-	Platform(RelaySite, DeckTop, FVector(2800.f, 2800.f, DeckTop), RelayStone, 0.2f, TEXT("SM_Verd_RelayDeck"));
+	if (UStaticMeshComponent* Deck = Platform(RelaySite, DeckTop, FVector(2800.f, 2800.f, DeckTop), RelayStone, 0.2f, TEXT("SM_Verd_RelayDeck")))
+	{
+		// intake (Nov 14): the relay plaza in stone tile (placeholder deck)
+		if (UMaterialInterface* Tile = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/TriadDrift/Gameplay/Props/Fab/Textures/StoneTileFloor/MI_Fab_StoneTileFloor.MI_Fab_StoneTileFloor"), nullptr, LOAD_Quiet | LOAD_NoWarn)) { Deck->SetMaterial(0, Tile); }
+	}
 	for (const FVector& R : { FVector(-1550.f, 0.f, 0.f), FVector(0.f, 1550.f, 0.f), FVector(0.f, -1550.f, 0.f) }) // ramps on the west, north and south sides
 	{
 		const bool bX = FMath::Abs(R.X) > 1.f;
@@ -1582,6 +1903,53 @@ void ATDPlanetCourse::BuildVerdance()
 			}, FVector(5060.f, -5380.f, 0.f), -47.f, TEXT("RelayRouteDressing"));
 		}
 		DressPad(TEXT("VerdancePad"));
+		// #194: the Verdance camp set (structures builder, batch BV): a research camp by the research site (doors on a shared
+		// yard, walkways between them, tank, mast and fences on the outside), a smaller camp by the relay path and lone huts
+		// along both routes; each placed where it clears every keep-out (DressCamp). Missing meshes are skipped by Dress().
+		{
+			const TCHAR* Hut = TEXT("Huts/Verdance");
+			DressCamp(OutpostSite, 1500.f, 9600.f, {
+				{ Hut, TEXT("SM_Hut_Verdance_Lab"), FVector(-950.f, 0.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Prefab"), FVector(900.f, 0.f, 0.f), 180.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Prefab"), FVector(0.f, 950.f, 0.f), 270.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Dome"), FVector(0.f, -800.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_WaterTank"), FVector(-1000.f, 1000.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Mast"), FVector(950.f, -950.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Walkway"), FVector(-450.f, 0.f, 0.f), 0.f, 1.f, false },
+				{ Hut, TEXT("SM_Hut_Verdance_Walkway"), FVector(420.f, 0.f, 0.f), 0.f, 1.f, false },
+				{ Hut, TEXT("SM_Hut_Verdance_Walkway"), FVector(0.f, 440.f, 0.f), 90.f, 1.f, false },
+				{ Hut, TEXT("SM_Hut_Verdance_Fence"), FVector(-1550.f, -300.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Fence"), FVector(-1550.f, -700.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Fence"), FVector(400.f, -1500.f, 0.f), 0.f, 1.f, true },
+				{ TEXT("Fab/CrateStack"), TEXT("SM_Fab_CrateStack"), FVector(-600.f, -1000.f, 0.f), 12.f, 1.f, true },
+				{ TEXT("Fab/OilBarrel"), TEXT("SM_Fab_OilBarrel"), FVector(-300.f, -1100.f, 0.f), 0.f, 1.f, true },
+				{ TEXT("Fab/MechanicBase/Mesh/SM/PROP/MACHINE"), TEXT("SM_ELEVATOR_CONSOLE_01"), FVector(500.f, 700.f, 87.f), 225.f, 1.f, true },
+				// perimeter (structures builder's set): low walls on two sides, the gate facing the yard's open side, lamps
+				{ Hut, TEXT("SM_Hut_Verdance_WallLow"), FVector(-1800.f, -1000.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_WallLow"), FVector(-1800.f, 1000.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_WallLow"), FVector(-200.f, 1800.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Gate"), FVector(1800.f, 0.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_LampPost"), FVector(1700.f, -500.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_LampPost"), FVector(1700.f, 500.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_LampPost"), FVector(-500.f, -1200.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Supplies"), FVector(600.f, -1150.f, 0.f), 20.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Generator"), FVector(-1250.f, -1100.f, 0.f), 90.f, 1.f, true },
+			}, TEXT("VerdanceResearchCamp"));
+			DressCamp(VerdanceRelaySite + FVector(-3000.f, 1200.f, 0.f), 1200.f, 4200.f, {
+				{ Hut, TEXT("SM_Hut_Verdance_Prefab"), FVector(-700.f, 0.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Dome"), FVector(650.f, 0.f, 0.f), 180.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Prefab"), FVector(0.f, 800.f, 0.f), 270.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Mast"), FVector(0.f, -750.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Verdance_Walkway"), FVector(-150.f, 0.f, 0.f), 0.f, 1.f, false },
+				{ TEXT("Fab/PowerCore"), TEXT("SM_Fab_PowerCore"), FVector(350.f, 450.f, 0.f), 30.f, 1.f, true },
+			}, TEXT("VerdanceRelayCamp"));
+			// lone huts: one beside each route, about halfway
+			DressCamp(FVector(5200.f, 3700.f, 0.f), 1000.f, 3400.f, { { Hut, TEXT("SM_Hut_Verdance_Prefab"), FVector::ZeroVector, 210.f, 1.f, true },
+				{ TEXT("Fab/OilBarrel"), TEXT("SM_Fab_OilBarrel"), FVector(0.f, 450.f, 0.f), 0.f, 1.f, true } }, TEXT("VerdanceSiteRouteHut"));
+			DressCamp(FVector(3300.f, -3300.f, 0.f), 1000.f, 3400.f, { { Hut, TEXT("SM_Hut_Verdance_Dome"), FVector::ZeroVector, 135.f, 1.f, true } }, TEXT("VerdanceRelayRouteHut"));
+		}
+		DressRouteBreaks(false);
+		DressAmbient(false);
 	}
 
 	// Dressing: engineering's props and trees (the placeholder flora only if they are missing).
@@ -2226,6 +2594,15 @@ void ATDPlanetCourse::BuildCinder()
 			{ Out, TEXT("SM_Outpost_PowerJunction"), FVector(-470.f, -400.f, 0.f), 0.f, 1.f, true },
 			{ Out, TEXT("SM_Outpost_CommAntenna"), FVector(-200.f, 470.f, 0.f), 0.f, 1.f, true },
 		}, CabinAt, 180.f, TEXT("DigCabin"));
+		// intake (Nov 14): two spare truss segments on the ground beside the dig cabin, concrete rubble round them
+		Dress({
+			{ TEXT("Fab/PipeBeam"), TEXT("SM_Fab_PipeBeam"), FVector(-700.f, 950.f, 0.f), 0.f, 1.f, true },
+			{ TEXT("Fab/PipeBeam"), TEXT("SM_Fab_PipeBeam"), FVector(-860.f, 1000.f, 0.f), 4.f, 1.f, true },
+			{ TEXT("Planet"), TEXT("SM_Cind_DebrisChunk"), FVector(-560.f, 600.f, -10.f), 60.f, 0.9f, false },
+			{ TEXT("Planet"), TEXT("SM_Cind_DebrisChunk"), FVector(-980.f, 1450.f, -10.f), 200.f, 0.8f, false },
+			{ TEXT("Planet"), TEXT("SM_Cind_DebrisChunk"), FVector(-620.f, 1500.f, -10.f), 320.f, 0.7f, false },
+		}, CabinAt, 180.f, TEXT("DigCabinIntake"));
+		RetintDressing(CabinAt, 1800.f, TEXT("SM_Cind_DebrisChunk"), TEXT("/Game/TriadDrift/Gameplay/Props/Fab/Textures/ConcreteRubble/MI_Fab_ConcreteRubble.MI_Fab_ConcreteRubble"));
 		DressOutpost(StationAt, 180.f, TEXT("CinderOutpost"));
 		// Route dressing (environment builder, Nov 14): the field anchor path's barest 30 m (an empty basalt flat before the
 		// anchor) gets a crystal outcrop, choke rocks, a burnt tree, debris and an abandoned survey cache (Fab barrels and a
@@ -2248,6 +2625,45 @@ void ATDPlanetCourse::BuildCinder()
 			}, FVector(5620.f, -4180.f, 0.f), -35.f, TEXT("AnchorRouteDressing"));
 		}
 		DressPad(TEXT("CinderPad"));
+		// #194: the Cinder mining camp by the survey outpost (workshop, two shacks, pump house, ore hopper, drill rig, pipe
+		// runs, flood masts, walls, gate and lamps), a smaller one by the jammer path, lone shacks by the routes, then the
+		// ground-break arches and landmarks. Each where it clears every keep-out (DressCamp).
+		{
+			const TCHAR* Hut = TEXT("Huts/Cinder");
+			DressCamp(StationAt, 2000.f, 9600.f, {
+				{ Hut, TEXT("SM_Hut_Cinder_Workshop"), FVector(-950.f, 0.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Shack"), FVector(900.f, 0.f, 0.f), 180.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Shack"), FVector(0.f, 950.f, 0.f), 270.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_PumpHouse"), FVector(0.f, -950.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_OreHopper"), FVector(-1050.f, 1050.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_DrillRig"), FVector(1150.f, -1150.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_PipeRun"), FVector(-450.f, -1050.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_PipeRun"), FVector(450.f, -1050.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_FloodMast"), FVector(-1400.f, -1400.f, 0.f), 45.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_FloodMast"), FVector(1400.f, 1400.f, 0.f), 225.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Supplies"), FVector(550.f, 650.f, 0.f), 15.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Generator"), FVector(-550.f, 650.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_WallLow"), FVector(-1900.f, -800.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_WallLow"), FVector(-1900.f, 800.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Gate"), FVector(1900.f, 0.f, 0.f), 90.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_LampPost"), FVector(1800.f, -500.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_LampPost"), FVector(1800.f, 500.f, 0.f), 0.f, 1.f, true },
+				{ TEXT("Fab/OilBarrel"), TEXT("SM_Fab_OilBarrel"), FVector(-300.f, 1250.f, 0.f), 0.f, 1.f, true },
+				{ TEXT("Fab/OilBarrel"), TEXT("SM_Fab_OilBarrel"), FVector(-220.f, 1330.f, 0.f), 40.f, 1.f, true },
+			}, TEXT("CinderMiningCamp"));
+			DressCamp(FVector(6000.f, -4300.f, 0.f), 1200.f, 4200.f, {
+				{ Hut, TEXT("SM_Hut_Cinder_Shack"), FVector(-700.f, 0.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Shack"), FVector(700.f, 0.f, 0.f), 180.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Generator"), FVector(0.f, 750.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_FloodMast"), FVector(0.f, -800.f, 0.f), 0.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_Supplies"), FVector(-300.f, 700.f, 0.f), 0.f, 1.f, true },
+			}, TEXT("CinderJammerCamp"));
+			DressCamp(FVector(5000.f, 4200.f, 0.f), 1000.f, 3400.f, { { Hut, TEXT("SM_Hut_Cinder_Shack"), FVector::ZeroVector, 200.f, 1.f, true },
+				{ Hut, TEXT("SM_Hut_Cinder_LampPost"), FVector(450.f, 0.f, 0.f), 0.f, 1.f, true } }, TEXT("CinderOutRouteShack"));
+			DressCamp(FVector(3500.f, -2800.f, 0.f), 1000.f, 3400.f, { { Hut, TEXT("SM_Hut_Cinder_Shack"), FVector::ZeroVector, 145.f, 1.f, true } }, TEXT("CinderJamRouteShack"));
+		}
+		DressRouteBreaks(true);
+		DressAmbient(true);
 	}
 
 	KeepOuts = {

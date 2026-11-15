@@ -404,6 +404,7 @@ namespace TDGroundDebug
 		else if (A == TEXT("block")) { B->SetBlockHeld(true); }
 		else if (A == TEXT("unblock")) { B->SetBlockHeld(false); }
 		else if (A == TEXT("retract")) { B->Retract(); }
+		else if (A == TEXT("perfect")) { B->OnDeflect.Broadcast(nullptr, true); } // the pilot's perfect-deflect reaction, no bolt (captures)
 		else if (A == TEXT("ignite")) { B->Ignite(); }
 		else if (A == TEXT("jump")) { P->Jump(); }
 		else if (A == TEXT("pilot") && Args.Num() > 1)

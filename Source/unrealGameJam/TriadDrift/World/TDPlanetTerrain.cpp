@@ -20,6 +20,9 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Misc/ScopeExit.h"
 #include "Async/ParallelFor.h"
+#include "TriadDrift/Ground/TDObjective.h"
+#include "GameFramework/Character.h"
+#include "Components/CapsuleComponent.h"
 
 const FName ATDPlanetTerrain::TerrainTag(TEXT("TD.Engineering.Terrain"));
 
@@ -74,6 +77,7 @@ ATDPlanetTerrain* ATDPlanetTerrain::SpawnForPlanet(UWorld* World, ETDDestination
 void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material)
 {
 	const double SetupStart = FPlatformTime::Seconds();
+	RegisterCourseFlats(Planet);	// #194: before the field is made, so it carries the relief
 	Field = MakeShared<const FTDTerrainField, ESPMode::ThreadSafe>(FTDTerrainStyle::ForPlanet(Planet));
 	// One dynamic instance per terrain: the material's height bands use this planet's real relief.
 	TerrainMaterial = Material;
@@ -101,6 +105,7 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 			M->bUseAsyncCooking = true;	// refreshed chunks cook off the game thread: no hitch
 			M->SetCollisionProfileName(TEXT("BlockAll"));
 			M->SetCastShadow(true);
+			M->ShadowCacheInvalidationBehavior = EShadowCacheInvalidationBehavior::Static;	// rebuilt in place, never moved
 			M->RegisterComponent();
 			AddInstanceComponent(M);
 			ChunkMeshes.Add(M);
@@ -184,6 +189,7 @@ void ATDPlanetTerrain::Setup(ETDDestination Planet, UMaterialInterface* Material
 	SetupMs = (FPlatformTime::Seconds() - SetupStart) * 1000.0;
 	UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetTerrain: world built in %.0f ms (%d chunks, far ring, sync collision within %.0f m of the pad)"),
 		SetupMs, Chunks.Num(), SyncCollisionRadius / 100.f);
+	BuildDetailGround();	// #194: the relief patch (no-op without the course's flats)
 }
 
 void ATDPlanetTerrain::BuildAround(const FVector& View)
@@ -257,7 +263,11 @@ void ATDPlanetTerrain::GenerateChunk(const FTDTerrainField& InField, FIntPoint C
 		{
 			const float X = X0 + i * Step, Y = Y0 + j * Step;
 			const FTDTerrainSample Sm = InField.Sample(X, Y, H);	// height + normal + masks: 5 height evaluations
-			Out.V.Add(FVector(X, Y, Sm.Height));
+			// #194: under the relief patch the coarse mesh sinks out of sight (one quad inside its edge, so no triangle
+			// that crosses the edge shows a notch beside the patch).
+			const FBox2D& Rg = InField.GetStyle().MicroRegion;
+			const bool bUnder = InField.GetStyle().HasMicroRelief() && X > Rg.Min.X + Step && X < Rg.Max.X - Step && Y > Rg.Min.Y + Step && Y < Rg.Max.Y - Step;
+			Out.V.Add(FVector(X, Y, Sm.Height - (bUnder ? 2000.f : 0.f)));
 			Out.Nrm.Add(Sm.Normal);
 			Out.UV0.Add(FVector2D(X, Y) / 1000.f);
 			Out.UV1.Add(FVector2D(Sm.Height / 100.f, Sm.Slope));
@@ -421,6 +431,7 @@ void ATDPlanetTerrain::Tick(float DeltaSeconds)
 		return;
 	}
 	if (!Field) { return; }
+	RescueUnderground(DeltaSeconds);
 	const FVector View = ViewLocal();
 	ReplanTimer -= DeltaSeconds;
 	if (ReplanTimer <= 0.f)
@@ -533,6 +544,9 @@ void ATDPlanetTerrain::PrepareArrival(const FVector& ArrivalWorld, const FVector
 bool ATDPlanetTerrain::IsArrivalReady(const FVector& GlideEndWorld) const
 {
 	if (!IsBuilt()) { return false; }
+	// Lead (Nov 14, Cinder blocker): the coarse ground under the relief patch sits 20 m down; nobody lands before the
+	// patch collides.
+	if (Field && Field->GetStyle().HasMicroRelief() && !bDetailReady) { return false; }
 	if (!Scatter) { return true; }
 	return Scatter->IsNearApplied() && Scatter->IsReadyAround(GlideEndWorld);
 }
@@ -542,4 +556,196 @@ float ATDPlanetTerrain::GetHeightAt(const FVector& WorldPoint) const
 	if (!Field) { return GetActorLocation().Z; }
 	const FVector L = GetActorTransform().InverseTransformPosition(WorldPoint);
 	return GetActorLocation().Z + Field->Height(L.X, L.Y);
+}
+
+// ------------------------------------------------------------------------------------------------ #194 relief patch
+
+void ATDPlanetTerrain::RegisterCourseFlats(ETDDestination Planet)
+{
+	// The course's walked ground (pad, routes at walking width, sites, structures, spawns), course-local, stays flat.
+	// Encounter volumes keep their relief (their spawn points are listed apart).
+	const ATDPlanetCourse* Course = ATDPlanetCourse::Get(this);
+	if (!Course) { FTDTerrainStyle::ClearCourseFlats(Planet); return; }
+	const FTransform Xf = Course->GetActorTransform();
+	FTDCourseFlats Flats;
+	for (const FTDCourseKeepOut& K : Course->GetKeepOuts())
+	{
+		if (K.Kind == TEXT("Encounter")) { continue; }
+		if (K.Points.Num() > 1)
+		{
+			for (int32 i = 0; i + 1 < K.Points.Num(); ++i)
+			{
+				const FVector A = Xf.InverseTransformPosition(K.Points[i]), B = Xf.InverseTransformPosition(K.Points[i + 1]);
+				Flats.Segs.Add({ FVector2D(A.X, A.Y), FVector2D(B.X, B.Y), K.HalfWidth });
+			}
+		}
+		else if (K.Points.Num() == 1)
+		{
+			const FVector A = Xf.InverseTransformPosition(K.Points[0]);
+			Flats.Segs.Add({ FVector2D(A.X, A.Y), FVector2D(A.X, A.Y), K.HalfWidth });
+		}
+		else if (K.Box.IsValid)
+		{
+			const FVector A = Xf.InverseTransformPosition(K.Box.Min), B = Xf.InverseTransformPosition(K.Box.Max);
+			Flats.Boxes.Add(FBox2D(FVector2D(FMath::Min(A.X, B.X), FMath::Min(A.Y, B.Y)), FVector2D(FMath::Max(A.X, B.X), FMath::Max(A.Y, B.Y))));
+		}
+	}
+	// Lead (Nov 14): the player walks straight at the marker, off the routes: straight corridors from the pad to every
+	// site and trailhead, and from each trailhead to its objective, are kept flat too.
+	{
+		const float Corridor = 500.f;
+		// Turn 22: lines between every pair of site boxes made 8143 segments on Cinder (every height sample walks them all).
+		// Pairs only between the few objective points (trailheads and objectives); site boxes get a line from the pad.
+		TArray<FVector2D> Points;
+		for (const FTDTrailhead& T : Course->GetTrailheads())
+		{
+			const FVector M = T.Marker ? Xf.InverseTransformPosition(T.Marker->GetActorLocation()) : FVector::ZeroVector;
+			if (T.Marker) { Points.Add(FVector2D(M.X, M.Y)); }
+			if (T.Objective)
+			{
+				const FVector O = Xf.InverseTransformPosition(T.Objective->GetActorLocation());
+				Points.Add(FVector2D(O.X, O.Y));
+			}
+		}
+		for (int32 i = 0; i < Points.Num(); ++i)
+		{
+			Flats.Segs.Add({ FVector2D::ZeroVector, Points[i], Corridor });
+			for (int32 j = i + 1; j < Points.Num(); ++j) { Flats.Segs.Add({ Points[i], Points[j], Corridor }); }
+		}
+		TSet<FIntPoint> SiteCells;	// one pad line per distinct site (boxes within 20 m share one)
+		for (const FTDCourseKeepOut& K : Course->GetKeepOuts())
+		{
+			if (K.Kind != TEXT("Site") || !K.Box.IsValid) { continue; }
+			const FVector C = Xf.InverseTransformPosition(K.Box.GetCenter());
+			bool bNew = false;
+			SiteCells.Add(FIntPoint(FMath::FloorToInt32(C.X / 2000.f), FMath::FloorToInt32(C.Y / 2000.f)), &bNew);
+			if (bNew) { Flats.Segs.Add({ FVector2D::ZeroVector, FVector2D(C.X, C.Y), Corridor }); }
+		}
+	}
+	// The pad is always flat, whatever the course lists.
+	Flats.Segs.Add({ FVector2D::ZeroVector, FVector2D::ZeroVector, ATDPlanetCourse::PadClearRadius });
+	FTDTerrainStyle::RegisterCourseFlats(Planet, Flats);
+	UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetTerrain: course ground registered flat (%d boxes, %d route / corridor / circle segments; %d trailheads)"), Flats.Boxes.Num(), Flats.Segs.Num(), Course->GetTrailheads().Num());
+}
+
+void ATDPlanetTerrain::BuildDetailGround()
+{
+	if (!Field.IsValid() || !Field->GetStyle().HasMicroRelief() || DetailGround) { return; }
+	DetailGround = NewObject<UProceduralMeshComponent>(this, TEXT("DetailGround"));
+	DetailGround->SetupAttachment(Root);
+	DetailGround->bUseAsyncCooking = false;	// built under the arrival cover; the ground must collide on the first frame
+	DetailGround->SetCollisionProfileName(TEXT("BlockAll"));	// the pawn and every Visibility trace (crew, pads)
+	// Turn 18: static caching alone left the VSM marking overflow on screen. The patch is one large non-Nanite mesh
+	// over ~500 m: it receives every shadow but casts none (its 2-6 m relief reads by its normals; the coarse chunks
+	// under it still cast for the land around).
+	DetailGround->SetCastShadow(false);
+	// Lead / T6 (Nov 14): with the relief on, the screen showed "VSM Non-Nanite Marking Job Queue overflow". The patch
+	// never moves once built: the virtual shadow map caches its pages instead of re-marking them every frame.
+	DetailGround->ShadowCacheInvalidationBehavior = EShadowCacheInvalidationBehavior::Static;
+	DetailGround->RegisterComponent();
+	AddInstanceComponent(DetailGround);
+	const FBox2D Rg = Field->GetStyle().MicroRegion;
+	const float Sp = DetailSpacing;
+	const int32 NX = FMath::CeilToInt32((float)Rg.GetSize().X / Sp), NY = FMath::CeilToInt32((float)Rg.GetSize().Y / Sp);
+	const int32 Tile = 64;	// quads per section side (128 m at 2 m)
+	TWeakObjectPtr<ATDPlanetTerrain> Weak(this);
+	const TSharedPtr<const FTDTerrainField, ESPMode::ThreadSafe> F = Field;
+	const double Start = FPlatformTime::Seconds();
+	Async(EAsyncExecution::ThreadPool, [Weak, F, Rg, Sp, NX, NY, Tile, Start]()
+	{
+		TSharedPtr<TArray<FChunkData>, ESPMode::ThreadSafe> Tiles = MakeShared<TArray<FChunkData>, ESPMode::ThreadSafe>();
+		const int32 TX = FMath::DivideAndRoundUp(NX, Tile), TY = FMath::DivideAndRoundUp(NY, Tile);
+		Tiles->SetNum(TX * TY);
+		ParallelFor(TX * TY, [&](int32 t)
+		{
+			FChunkData& D = (*Tiles)[t];
+			const int32 I0 = (t % TX) * Tile, J0 = (t / TX) * Tile;
+			const int32 QX = FMath::Min(Tile, NX - I0), QY = FMath::Min(Tile, NY - J0);
+			for (int32 j = 0; j <= QY; ++j)
+			{
+				for (int32 i = 0; i <= QX; ++i)
+				{
+					const float X = FMath::Min((float)Rg.Min.X + (I0 + i) * Sp, (float)Rg.Max.X), Y = FMath::Min((float)Rg.Min.Y + (J0 + j) * Sp, (float)Rg.Max.Y);
+					const FTDTerrainSample Sm = F->Sample(X, Y, Sp * 0.5f);
+					D.V.Add(FVector(X, Y, Sm.Height));
+					D.Nrm.Add(Sm.Normal);
+					D.UV0.Add(FVector2D(X, Y) / 1000.f);
+					D.UV1.Add(FVector2D(Sm.Height / 100.f, Sm.Slope));
+					D.Col.Add(FLinearColor(Sm.Height01, Sm.Slope, Sm.BroadMask, Sm.FineMask).ToFColor(false));
+				}
+			}
+			for (int32 j = 0; j < QY; ++j)
+			{
+				for (int32 i = 0; i < QX; ++i)
+				{
+					const int32 A = j * (QX + 1) + i, B = A + 1, Cc = A + QX + 1, Dd = Cc + 1;
+					D.Tri.Append({ A, Cc, B, B, Cc, Dd });
+				}
+			}
+		});
+		AsyncTask(ENamedThreads::GameThread, [Weak, Tiles, Start]()
+		{
+			ATDPlanetTerrain* Self = Weak.Get();
+			if (!Self || !Self->DetailGround) { return; }
+			for (int32 t = 0; t < Tiles->Num(); ++t)
+			{
+				FChunkData& D = (*Tiles)[t];
+				Self->DetailGround->CreateMeshSection(t, D.V, D.Tri, D.Nrm, D.UV0, D.UV1, TArray<FVector2D>(), TArray<FVector2D>(), D.Col,
+					TArray<FProcMeshTangent>(), /*bCreateCollision*/ true);
+				if (Self->TerrainMaterial) { Self->DetailGround->SetMaterial(t, Self->TerrainMaterial); }
+			}
+			Self->bDetailReady = true;
+			UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetTerrain: relief ground ready (%d sections, %.0f ms from start)"), Tiles->Num(), (FPlatformTime::Seconds() - Start) * 1000.0);
+		});
+	});
+}
+
+bool ATDPlanetTerrain::HasDetailGround(const UObject* WorldContext)
+{
+	const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+	if (!World) { return false; }
+	for (TActorIterator<ATDPlanetTerrain> It(World); It; ++It)
+	{
+		if (It->bDetailReady) { return true; }
+	}
+	return false;
+}
+
+void ATDPlanetTerrain::RescueUnderground(float DeltaSeconds)
+{
+	// Lead (Nov 14, Cinder blocker): a walker found under the relief patch (it can only be there by falling through
+	// before the patch collided) is put back on it. Never a valid place to be: the coarse ground there is 20 m down.
+	RescueTimer -= DeltaSeconds;
+	if (!bDetailReady || RescueTimer > 0.f) { return; }
+	RescueTimer = 0.25f;
+	const FBox2D& Rg = Field->GetStyle().MicroRegion;
+	for (TActorIterator<ACharacter> It(GetWorld()); It; ++It)
+	{
+		ACharacter* C = *It;
+		const FVector P = C->GetActorLocation();
+		const FVector L = GetActorTransform().InverseTransformPosition(P);
+		if (!Rg.IsInsideOrOn(FVector2D(L.X, L.Y))) { continue; }
+		const float Ground = GetHeightAt(P);
+		const float Half = C->GetCapsuleComponent() ? C->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() : 90.f;
+		if (P.Z - Half < Ground - 300.f)
+		{
+			C->SetActorLocation(FVector(P.X, P.Y, Ground + Half + 50.f), false, nullptr, ETeleportType::TeleportPhysics);
+			UE_LOG(LogTriadDrift, Warning, TEXT("ATDPlanetTerrain: %s was %.0f m under the relief at %s: put back on it"), *C->GetName(), (Ground - (P.Z - Half)) / 100.f, *P.ToCompactString());
+		}
+	}
+}
+
+bool ATDPlanetTerrain::HasDetailGroundAt(const UObject* WorldContext, const FVector& Location)
+{
+	const UWorld* World = WorldContext ? WorldContext->GetWorld() : nullptr;
+	if (!World) { return false; }
+	for (TActorIterator<ATDPlanetTerrain> It(World); It; ++It)
+	{
+		if (!It->Field.IsValid()) { continue; }
+		const FTDTerrainStyle& St = It->Field->GetStyle();
+		if (!St.HasMicroRelief()) { return true; }
+		const FVector L = It->GetActorTransform().InverseTransformPosition(Location);
+		return It->bDetailReady || !St.MicroRegion.IsInsideOrOn(FVector2D(L.X, L.Y));
+	}
+	return false;
 }

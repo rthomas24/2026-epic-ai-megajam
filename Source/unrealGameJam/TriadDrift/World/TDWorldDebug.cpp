@@ -30,6 +30,9 @@
 #include "TriadDrift/Combat/TDWeaponLibrary.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Waves/TDWaveDirector.h"
+#include "TriadDrift/Core/TDCombatRegistry.h"
+#include "TriadDrift/Powers/TDPowerPresentation.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
@@ -42,7 +45,12 @@ namespace TDWorldDebug
 	{
 		UE_LOG(LogTriadDrift, Display, TEXT("TD.World.Goto: %s -> %s"), Pawn ? *Pawn->GetName() : TEXT("none"), *Loc.ToString());
 		if (ATDSpacecraft* Craft = Cast<ATDSpacecraft>(Pawn)) { Craft->TeleportSpacecraft(Loc, Facing, false); }
-		else if (Pawn) { Pawn->SetActorLocationAndRotation(Loc, Facing); }
+		else if (Pawn)
+		{
+			Pawn->SetActorLocationAndRotation(Loc, Facing);
+			// On foot the camera follows the control rotation, not the actor's (turn 15: every pad view faced north).
+			if (AController* C = Pawn->GetController()) { C->SetControlRotation(Facing); }
+		}
 	}
 
 	void Place(APawn* Pawn, const FVector& Loc, const FVector& LookAt)
@@ -170,6 +178,19 @@ namespace TDWorldDebug
 			}
 			return nullptr;
 		}
+		// #201 balance pass: the "good driver" turns onto the nearest live enemy ship.
+		if (Args.Num() > 0 && Args[0].Equals(TEXT("Nearest"), ESearchCase::IgnoreCase))
+		{
+			const APawn* Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
+			AActor* Best = nullptr;
+			double BestD = TNumericLimits<double>::Max();
+			for (TActorIterator<ATDEnemyShip> It(World); It && Pawn; ++It)
+			{
+				const double Dist = FVector::DistSquared(It->GetActorLocation(), Pawn->GetActorLocation());
+				if (It->IsAliveEnemy() && Dist < BestD) { Best = *It; BestD = Dist; }
+			}
+			return Best;
+		}
 		ATDDominion* D = nullptr;
 		for (TActorIterator<ATDDominion> It(World); It && !D; ++It) { D = *It; }
 		if (!D || Args.Num() == 0) { return nullptr; }
@@ -290,6 +311,36 @@ namespace TDWorldDebug
 			PlaceFacing(Pawn, P, R);
 		}));
 
+	// #194: stand on a course route (the course's "Route" keep-outs): TD.World.RouteView <route index> <0..1 along> [m up] [look 0 along | 1 back]
+	FAutoConsoleCommandWithWorldAndArgs CmdRouteView(TEXT("TD.World.RouteView"), TEXT("On a planet: stand on route <i> at fraction <t> of its length, facing along it: <i> <t> [m above ground = 2] [1 = face back]."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			const ATDPlanetCourse* Course = ATDPlanetCourse::Get(World);
+			ATDPlanetTerrain* T = nullptr;
+			for (TActorIterator<ATDPlanetTerrain> It(World); It && !T; ++It) { T = *It; }
+			APawn* Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
+			if (!Course || !T || !Pawn || Args.Num() < 2) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.World.RouteView <i> <t>: needs a course, a terrain and a pawn")); return; }
+			TArray<const FTDCourseKeepOut*> Routes;
+			for (const FTDCourseKeepOut& K : Course->GetKeepOuts()) { if (K.Kind == TEXT("Route") && K.Points.Num() > 1) { Routes.Add(&K); } }
+			const int32 I = FCString::Atoi(*Args[0]);
+			if (!Routes.IsValidIndex(I)) { UE_LOG(LogTriadDrift, Warning, TEXT("TD.World.RouteView: %d routes"), Routes.Num()); return; }
+			const TArray<FVector>& P = Routes[I]->Points;
+			float Total = 0.f;
+			for (int32 k = 0; k + 1 < P.Num(); ++k) { Total += (float)FVector::Dist2D(P[k], P[k + 1]); }
+			float Want = FMath::Clamp(FCString::Atof(*Args[1]), 0.f, 1.f) * Total;
+			FVector At = P.Last(), Dir = (P.Last() - P[P.Num() - 2]).GetSafeNormal2D();
+			for (int32 k = 0; k + 1 < P.Num(); ++k)
+			{
+				const float L = (float)FVector::Dist2D(P[k], P[k + 1]);
+				if (Want <= L) { At = FMath::Lerp(P[k], P[k + 1], L > 0.f ? Want / L : 0.f); Dir = (P[k + 1] - P[k]).GetSafeNormal2D(); break; }
+				Want -= L;
+			}
+			if (Args.Num() > 3 && FCString::Atoi(*Args[3]) != 0) { Dir = -Dir; }
+			At.Z = T->GetHeightAt(At) + (Args.Num() > 2 ? FCString::Atof(*Args[2]) : 2.f) * 100.f;
+			PlaceFacing(Pawn, At, FRotator(0.f, Dir.Rotation().Yaw, 0.f));
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.World.RouteView: route %d of %d (%.0f m long) at %s, yaw %.0f"), I, Routes.Num(), Total / 100.f, *At.ToCompactString(), Dir.Rotation().Yaw);
+		}));
+
 	FAutoConsoleCommandWithWorldAndArgs CmdPlanetView(TEXT("TD.World.PlanetView"), TEXT("Look at a planet's globe: <Verdance|Cinder> <x> <y> <z> (direction in the planet's frame) [radii out = 3]."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{
@@ -398,6 +449,32 @@ namespace TDWorldDebug
 		}));
 	FAutoConsoleCommandWithWorldAndArgs CmdGoto(TEXT("TD.World.Goto"), TEXT("Teleport the player's ship to Dominion|Reactor|Verdance|Cinder|Gate|Belt|Start."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&Goto));
 	FAutoConsoleCommandWithWorldAndArgs CmdSpawn(TEXT("TD.World.SpawnEnemy"), TEXT("Spawn an enemy in front of the player: <Id> [distance] [pilot 0/1]."), FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&SpawnEnemy));
+	// Lead (Nov 14): enemy SHIPS alive, apart from carrier parts (turrets, bays) that the registry also counts.
+	//   TD.World.EnemyCount   logs "TD.World.EnemyCount: ships N (carrier fighters F) | parts P | by type ..."
+	FAutoConsoleCommandWithWorldAndArgs CmdEnemyCount(TEXT("TD.World.EnemyCount"), TEXT("Log enemy ships alive (by type, carrier fighters apart) and enemy parts (turrets, bays) separately."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
+		{
+			if (!World) { return; }
+			TMap<FName, int32> ByType;
+			int32 Ships = 0;
+			for (TActorIterator<ATDEnemyShip> It(World); It; ++It)
+			{
+				if (!It->IsAliveEnemy() || It->IsDying()) { continue; }
+				++Ships;
+				ByType.FindOrAdd(It->GetSpec().Id)++;
+			}
+			int32 Parts = 0;
+			if (UTDCombatRegistry* Registry = UTDCombatRegistry::Get(World))
+			{
+				TArray<AActor*> Enemies;
+				Registry->GetActorsOfTeam(ETDTeam::Enemy, Enemies, false);
+				for (const AActor* E : Enemies) { if (IsValid(E) && !Cast<ATDEnemyShip>(E)) { ++Parts; } }
+			}
+			FString Types;
+			for (const TPair<FName, int32>& P : ByType) { Types += FString::Printf(TEXT(" %s %d"), *P.Key.ToString(), P.Value); }
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.World.EnemyCount: ships %d (carrier fighters %d) | parts %d | by type%s"),
+				Ships, ATDEnemyShip::CountCarrierFightersAlive(World), Parts, *Types);
+		}));
 	// Play the withdrawal without waiting for the lessons and the heavy contact: TD.Waves.OrderWithdrawal (wave 2).
 	FAutoConsoleCommandWithWorldAndArgs CmdOrderWithdrawal(TEXT("TD.Waves.OrderWithdrawal"), TEXT("Tutorial wave 2: Command orders the withdrawal now (then fly it with TD.World.AimAt Escape)."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
@@ -416,6 +493,8 @@ namespace TDWorldDebug
 			const float Metres = Args.Num() > 0 ? FCString::Atof(*Args[0]) : 60.f;
 			FTDProjectileSpec Spec = UTDWeaponLibrary::Get(TDWeaponIds::EnemyPlasmaMines).Projectile;
 			Spec.FuseArmDelay = FMath::Max(Spec.FuseArmDelay, 10.f);
+			// The mine's real look (DA_<Weapon>_FX), as the bomber's weapon component equips it (effects builder, Nov 14).
+			if (!Spec.FX) { Spec.FX = FTDPowerPresentation::LoadWeaponFX(TDWeaponIds::EnemyPlasmaMines); }
 			Spec.bInheritShooterVelocity = false;
 			const FVector At = Pawn->GetActorLocation() + Pawn->GetActorForwardVector() * Metres * 100.f;
 			ATDProjectile* Mine = ATDProjectile::Spawn(World, Spec, FTransform(Pawn->GetActorRotation(), At), nullptr, ETDTeam::Enemy);

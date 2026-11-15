@@ -472,3 +472,32 @@ CREDITS.md now distinguishes the November 12 menu-music preparation checkpoint f
 - Measured, not assumed: a per-frame foot trace in the running game (TD.Pilot.FootTrace) showed planted feet sliding 72-83 cm/s at walk / run; the reference speeds ignored the body's 1.04 mesh scale and the walk / run switch sat too high. After the fix: 10-15 cm/s steady, 18-19 in the start, 29-32 at sprint.
 - The blade carry was re-posed three times from T7's chase-camera playtests (stub at idle, tip in the ground behind the walk, hidden in the run) until the whole beam reads from behind in idle, walk and run.
 - Deflect proven by the log (flick clip playing on a returned bolt); foot IK proven by numbers on a found 14 deg slope.
+
+
+## Nick Lead evidence and ownership checkpoint — November 14, 17:35 EST
+
+**Nick Lead checkpoint, November 14, 17:35 EST:** Lead headless playtesting explicitly resumed; original Story/UI/Audio/Auditor tasks and schedules remain held. Issue Coordinator and Asset Handler have separate direct authorizations. Batch 4 PDF and original evidence delivered on [#140](https://github.com/rthomas24/2026-epic-ai-megajam/issues/140#issuecomment-6884669972). Private Build14 b8a55662 compiled; sessions31-32 reproduced Face to Face replay after Quit to Menu, process exit and cold Continue; [original saves/logs/inputs delivered](https://github.com/rthomas24/2026-epic-ai-megajam/issues/96#issuecomment-6885161858), T3/T5 accepted the defect and fix is pending. This is separate from the legacy final-record bypass. Human main remains at8b4eabae with its local project change preserved; private test updates do not update Nicholas's launch project. No whole-game, audio, performance, package or AAA acceptance is implied. Historical checkpoints below remain preserved.
+
+- Campaign coverage: session19 on91a70782 reached victory through the natural route with disclosed input/camera assistance. This is historical evidence, not a current-main full-campaign pass.
+- Batch4: session26 Fire instruction carry and manual switch; session29 explicitly staged AutoOnDeath did not satisfy the manual-switch lesson; session30 Moss blade-light readability and light-versus-heavy input received narrow passes. Buffered/RespawnRescue, full combat balance and all-pilot presentation remain unverified by these sessions.
+- Story96: session28 original legacy save bypass remains unresolved; sessions31-32 independently found the once-per-run disk-persistence gap onb8a55662. Existing T3/T5 owners handle both. Next verification uses the supplied unchanged input save and two cold launches after an integrated fix SHA.
+- HUD103: Ryan's latest card/subtitle overlap report is assigned to T2; matched three-resolution/all-ship/power-state evidence remains pending. No competing Codex HUD implementation.
+- Audio146: Hero's Wake Candidate01 selected for in-game audition; T3 owns the optional opening-bed field and narrowly authorized asset import/binding. Audio151 engine Candidate01 selected for audition only; exact owner claims/settings still required. No by-ear/final mix or packaged acceptance.
+- Presentation142/149: prior scoped menu/canopy decisions stand; remaining owner runtime/package/motion checks are not replaced by static approval. Original specialists do not restart from these dependencies.
+- Asset Handler's separate Quixel collection authorization supplies optional source candidates; source QA and license receipts do not certify UE import, cook, gameplay or final appearance.
+- No Lead native operation remains at this checkpoint. Human saves and uncommitted specialist work are preserved. Current local operations and reserve gates remain in the Lead's local state/receipts.
+
+
+## Nick Lead runtime checkpoint — November 14, 18:20 EST
+
+Lead reconciled private Builds16–18 and sessions34–39 into the current Nick checkpoint in `docs/visual/STATUS.md` and `features.md`. Evidence delivered to existing #96, #103 and #194: cold-Continue persistence narrowly passed; legacy saved-position recovery and Cinder terrain/course alignment failed with reproducible progression blockers. Original saves, exact input transcripts, native logs/results, screenshots and the Cinder clip are preserved in verified private-release packets. All runs exited normally, with no owned Unreal process left. Source/assets, Ryan claims and feature completion markers were not edited; no human project update or whole-game acceptance is implied. Existing owners retain fixes and the next exact regressions.
+
+
+## Nick Lead runtime checkpoint — November 14, 18:50 EST
+
+Lead reconciled sessions40–42 into the Nick checkpoint: narrow active-escape re-entry, actual10.5s intro-bed skip, and forced-growth asteroid split checks. Verified original evidence packets are linked in docs/visual/STATUS.md and their existing issues. Resolved only the original asteroid dangling-reference finding against integrated d6a98bee/main508edec6 plus independent source/runtime proof. Cinder remains BLOCKER, legacy saved-position recovery MAJOR, and the newly integrated HUD changes await native regression. All sessions exited normally; local native resources released to separately authorized Asset Handler intake. No source/assets, Ryan claims, historical text or feature completion markers changed.
+
+
+## Nick Lead runtime checkpoint — November 14, 19:35 EST
+
+Lead reconciled original evidence from sessions43–46: on-foot subtitle/card overlap, pre-fix Verdance course-height failure, original-save Cinder recovery failure on36bee71d, and narrow shadow toggle/switch multiplier pass onb1eb44f7. Runtime limits and issue links are in docs/visual/STATUS.md. Existing owners retain all fixes; no unchanged Cinder retry or broader feature closure. All sessions exited0, no Lead native process remains. Private runtime builds preserve the human launch project. Only four owned documentation paths changed; no source/assets or Ryan claims.

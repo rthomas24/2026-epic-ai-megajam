@@ -60,6 +60,10 @@ public:
 	 */
 	static void OverrideSpec(const FTDEnemySpec& Spec);
 	static void ResetToDefaults();
+	/** #201: td.Balance.Swarm is on (more, lighter enemies). */
+	static bool IsSwarm();
+	/** #201: the swarm stat changes, applied at the end of BuildDefaults when IsSwarm(). */
+	static void ApplySwarm(TMap<FName, FTDEnemySpec>& Out);
 
 private:
 	static TMap<FName, FTDEnemySpec>& Table();

@@ -54,7 +54,7 @@ SCALARS = {
     "RoughVar": (0.12, 0.1),
     # thresholds (metres / slope) and their breakup
     "HeightBreakM": (140.0, 140.0), "BiomeBreakM": (260.0, 120.0), "SlopeBreak": (0.14, 0.07),
-    "RockSlopeStart": (0.21, 0.15), "RockSlopeRange": (0.2, 0.12),     # s6/s7: broken cliff foot; s7 moss up to ~38 deg (hills were bare brown cones)
+    "RockSlopeStart": (0.15, 0.12), "RockSlopeRange": (0.13, 0.1),     # s6/s7 broken cliff foot; #194 (T4 relief): rock (triplanar) from ~32 deg, full by ~45, so the top-projected moss no longer stretches down the new gully walls and ring faces
     "PeakStartM": (1450.0, 1300.0), "PeakRangeM": (550.0, 700.0), "PeakSlopeMax": (0.4, 0.36), "PeakSlopeRange": (0.3, 0.28),
     "LowTopM": (-260.0, 10.0), "LowFadeM": (130.0, 120.0), "LowAmount": (0.85, 0.7),
     # scatter v2: the patch (Verdance grove / Cinder obsidian) is a rule on the terrain's own masks, the same numbers as

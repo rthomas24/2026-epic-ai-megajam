@@ -113,6 +113,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
 	float ReelSpeed = 30000.f;
 
+	/** The tractor beam's intensity never falls below this while the tractor holds the ship (before the glide). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0", ClampMax = "1"))
+	float BeamFloor = 0.6f;
+
 	/** From this distance (cm) from the mouth the tractor takes over: it slows the ship to TractorSpeed and shields it. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Docking", meta = (ClampMin = "0"))
 	float TakeOverDistance = 60000.f;

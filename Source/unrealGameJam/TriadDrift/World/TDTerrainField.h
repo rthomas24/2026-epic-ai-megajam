@@ -5,6 +5,16 @@
 #include "CoreMinimal.h"
 #include "TriadDrift/Core/TDTypes.h"
 
+/** The course's walked ground, course-local (cm): kept flat by the micro-relief (issue #194). */
+struct UNREALGAMEJAM_API FTDCourseFlats
+{
+	TArray<FBox2D> Boxes;
+	struct FSeg { FVector2D A, B; float HalfWidth = 0.f; };
+	TArray<FSeg> Segs;
+	/** Distance (cm) from a point to the nearest flat shape (0 inside one). */
+	float DistanceTo(float X, float Y) const;
+};
+
 /** Per-planet character of the terrain (all lengths in cm). */
 struct UNREALGAMEJAM_API FTDTerrainStyle
 {
@@ -70,7 +80,26 @@ struct UNREALGAMEJAM_API FTDTerrainStyle
 	float SeaLevel = -15000.f;
 	bool bLavaSea = false;
 
+	/** Ryan (#194): ridgelines in a ring around the pad, framing every view (cm; 0 = off). */
+	float RingRidgeHeight = 0.f;
+	float RingInner = 25000.f;	// rising from (cm from the pad)
+	float RingPeak = 85000.f;	// tallest around
+	float RingOuter = 180000.f;	// gone by
+
+	/** Ryan (#194): ground relief over the course and MicroMargin around it (craters, divots, pits, mounds, gullies;
+	 *  Cinder cracks), off the course's flat shapes. Set by ForPlanet once the course registered its flats. */
+	TSharedPtr<const FTDCourseFlats, ESPMode::ThreadSafe> Flats;
+	FBox2D MicroRegion = FBox2D(ForceInit);
+	float MicroMargin = 15000.f;
+	float MicroAmount = 1.f;
+	float MaxMicroDepth = 250.f;	// cm: deepest the relief goes below the course ground inside the walkable region
+	bool bCinderGround = false;
+
 	static FTDTerrainStyle ForPlanet(ETDDestination Planet);
+	/** The course registers its walked ground once built (game thread); every field made after that has the relief. */
+	static void RegisterCourseFlats(ETDDestination Planet, const FTDCourseFlats& Flats);
+	static void ClearCourseFlats(ETDDestination Planet);
+	bool HasMicroRelief() const { return Flats.IsValid() && MicroRegion.bIsValid && MicroAmount > 0.f; }
 };
 
 /** Height and masks at a point (all world cm on the planet map). */
@@ -117,6 +146,11 @@ public:
 
 	/** Real relief of the walkable core (m): lowest sea / canyon floor to the hero summit (the material's HeightRangeM). */
 	float ReliefMeters() const;
+
+	/** The micro-relief alone (cm, 0 outside the region and on the course's flat shapes). */
+	float MicroRelief(float X, float Y, float* OutCrack = nullptr) const;
+	/** 0..1: how far a point is inside the micro region (1 well inside, 0 at its edge and beyond). */
+	float MicroWeight(float X, float Y) const;
 
 	/** Seeded value noise in -1..1 (smooth, 2D). */
 	static float Noise2D(float X, float Y, int32 Seed);

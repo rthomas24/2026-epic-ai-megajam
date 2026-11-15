@@ -132,3 +132,8 @@ Restore a whole snapshot in a separate checkout: `git worktree add ../old art/mo
 
 Earlier versions of anything: `git log --oneline -- <path>`. Local review renders and capture sets that are not in
 git (`Saved/TDShots/**`, `Saved/*/` builder scratch) are kept on Ryan's machine and are not cleaned up.
+| Nov 14 17:10 | DA_Crew_Grunt_Visuals.Telegraph (Gameplay/Characters/NullGrunt) | previous value at 5ce0870b (eng/vfx) | NS_TD_Crew_MeleeWindup (red-orange ground ring, chest glow, white flare, 0.38 s) | `git show 5ce0870b:Content/TriadDrift/Gameplay/Characters/NullGrunt/DA_Crew_Grunt_Visuals.uasset` |
+| Nov 14 17:10 | NS_TD_Amb_Verdance_Spores / Fireflies / GroundMist (12a look) | the 12a spec is in build_tier2.py at 5ce0870b | 12b: bigger slower spores with light shafts and bright ones, fireflies 3x with halo, mist denser, lower, teal | `git show 5ce0870b:Content/TriadDrift/Gameplay/VFX/Systems/Ambient/<name>.uasset` |
+| Nov 14 18:20 | DA_Dominion_Visuals.TractorBeam | NS_TD_Dominion_TractorBeam (v1, on main) / TractorBeam2 | NS_TD_Dominion_TractorBeam3 (string of 12 lights mouth to ship + flowing chain; only Length and Intensity needed) | v1 and v2 assets kept; `git show 4d17e58d:Content/TriadDrift/Gameplay/Characters/Dominion/DA_Dominion_Visuals.uasset` |
+| Nov 14 19:05 | DA_Enemy_PlasmaMines_FX.Tracer | empty (the placeholder sphere showed) | NS_TD_Mine_Plasma2 (white-hot centre, orange core, pulsing red halo, arming blink, expanding warning ring; distance-scaled) | NS_TD_Mine_Plasma (v1) kept |
+| Nov 14 19:36 | DA_Dominion_Visuals.HullSectionExplosion VFXScale | 1.0 | 2.0 (hull-section bursts fill the view from 1.5 km in the escape flight) | `git show 6b3f9508:Content/TriadDrift/Gameplay/Characters/Dominion/DA_Dominion_Visuals.uasset` |

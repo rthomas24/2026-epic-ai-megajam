@@ -97,6 +97,10 @@ struct UNREALGAMEJAM_API FTDLandingTuning
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0.01"))
 	float AscendSeconds = 1.6f;
 
+	/** #194: the ship turns on the lift to face out through the arrival notch (the low way through the mountain ring). */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing")
+	bool bTakeOffFacesNotch = true;
+
 	/** Climb above the hover height during take-off (cm). */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Landing", meta = (ClampMin = "0"))
 	float TakeOffClimb = 1500.f;
@@ -285,6 +289,8 @@ public:
 private:
 	FVector HoverPoint() const;
 	FQuat PadFacing() const;
+	/** Take-off: the way out through the arrival notch (the pad's facing turned round; the glide arrives along it). */
+	FQuat NotchFacing() const;
 	void LandWingmen(ATDLandingPad* PlayerPad);
 	void TakeOffWingmen();
 	void FinishTakeOff();

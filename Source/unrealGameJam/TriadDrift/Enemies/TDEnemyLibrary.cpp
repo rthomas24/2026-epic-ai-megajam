@@ -1,6 +1,7 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Enemies/TDEnemyLibrary.h"
 #include "TriadDrift/Core/TDTypes.h"
+#include "HAL/IConsoleManager.h"
 
 #define LOCTEXT_NAMESPACE "TDEnemyLibrary"
 
@@ -178,6 +179,7 @@ void UTDEnemyLibrary::BuildDefaults(TMap<FName, FTDEnemySpec>& Out)
 		S.PlaceholderColor = FLinearColor(0.6f, 0.05f, 0.02f);
 		Out.Add(S.Id, S);
 	}
+	ApplySwarm(Out);	// #201
 }
 
 const FTDEnemySpec& UTDEnemyLibrary::Get(FName EnemyId)
@@ -214,6 +216,34 @@ void UTDEnemyLibrary::OverrideSpec(const FTDEnemySpec& Spec)
 	if (Spec.IsValid())
 	{
 		Table().Add(Spec.Id, Spec);
+	}
+}
+
+namespace TDEnemyLibSwarm
+{
+	// #201 (Ryan, Nov 14): "more enemies to kill, but make it easier to kill them". 1 = the swarm tuning (more fighters and
+	// interceptors per wave, each lighter; modest gunship and bomber shields; enemy damage 10% down).
+	static TAutoConsoleVariable<int32> CVarSwarm(TEXT("td.Balance.Swarm"), 0,
+		TEXT("#201: 1 = swarm balance (more, lighter enemies), 0 = the tuning before it. Read when a wave table or the enemy table is built (TD.Stage rebuilds)."),
+		FConsoleVariableDelegate::CreateLambda([](IConsoleVariable*) { UTDEnemyLibrary::ResetToDefaults(); }), ECVF_Default);
+}
+
+bool UTDEnemyLibrary::IsSwarm()
+{
+	return TDEnemyLibSwarm::CVarSwarm.GetValueOnAnyThread() != 0;
+}
+
+void UTDEnemyLibrary::ApplySwarm(TMap<FName, FTDEnemySpec>& Out)
+{
+	if (!IsSwarm()) { return; }
+	for (TPair<FName, FTDEnemySpec>& P : Out)
+	{
+		FTDEnemySpec& S = P.Value;
+		if (S.Id == TDEnemyIds::ShardFighter) { S.Hull = 16.f; }							// Rift 2 hits, Lancer 4
+		else if (S.Id == TDEnemyIds::HookInterceptor) { S.Hull = 28.f; S.Shield = 0.f; }	// Rift 4 hits, Lancer 7
+		else if (S.Id == TDEnemyIds::WallGunship) { S.FrontalShield *= 0.5f; }
+		else if (S.Id == TDEnemyIds::MaulBomber) { S.Hull = 110.f; S.Shield = 25.f; }
+		for (FTDEnemyAttackSpec* A : { &S.Guns, &S.Heavy, &S.Heavy2 }) { A->Damage *= 0.9f; }
 	}
 }
 

@@ -185,6 +185,7 @@ void ATDSpacePlayerController::BuildInputObjects()
 	IA_TargetCycle = MakeAction(TEXT("IA_TargetCycle"), V::Boolean);
 	IA_Hyperdrive = MakeAction(TEXT("IA_Hyperdrive"), V::Boolean);
 	IA_SquadCommand = MakeAction(TEXT("IA_SquadCommand"), V::Boolean);
+	IA_ShadowMode = MakeAction(TEXT("IA_ShadowMode"), V::Boolean); // #201
 	IA_Land = MakeAction(TEXT("IA_Land"), V::Boolean);
 	IA_Pause = MakeAction(TEXT("IA_Pause"), V::Boolean);
 	IA_GalaxyMap = MakeAction(TEXT("IA_GalaxyMap"), V::Boolean);
@@ -314,6 +315,13 @@ void ATDSpacePlayerController::BuildInputObjects()
 	IMC_Space->MapKey(IA_Hyperdrive, EKeys::Gamepad_DPad_Down);
 	IMC_Space->MapKey(IA_SquadCommand, EKeys::F);
 	IMC_Space->MapKey(IA_SquadCommand, EKeys::Gamepad_FaceButton_Bottom);
+	// #201: shadow mode toggle. G is free (V is the camera); on the pad only View / Back is free, and only while
+	// the galaxy map has no key.
+	IMC_Space->MapKey(IA_ShadowMode, EKeys::G);
+	if (!bGalaxyMapEnabled)
+	{
+		IMC_Space->MapKey(IA_ShadowMode, EKeys::Gamepad_Special_Left);
+	}
 
 	// IMC_Atmosphere: Land replaces Hyperdrive; F / A lands.
 	IMC_Atmosphere->MapKey(IA_Land, EKeys::F);
@@ -539,6 +547,7 @@ void ATDSpacePlayerController::SetupInputComponent()
 	EIC->BindAction(IA_Hyperdrive, E::Started, this, &ThisClass::OnHyperdrivePressed);
 	EIC->BindAction(IA_Hyperdrive, E::Completed, this, &ThisClass::OnHyperdriveReleased);
 	EIC->BindAction(IA_SquadCommand, E::Started, this, &ThisClass::OnSquadCommand);
+	EIC->BindAction(IA_ShadowMode, E::Started, this, &ThisClass::OnShadowMode); // #201
 	EIC->BindAction(IA_Land, E::Started, this, &ThisClass::OnLand);
 	EIC->BindAction(IA_Land, E::Completed, this, &ThisClass::OnLandReleased);
 	EIC->BindAction(IA_CameraToggle, E::Started, this, &ThisClass::OnCameraToggle);
@@ -1174,6 +1183,16 @@ void ATDSpacePlayerController::OnTargetCycle(const FInputActionValue&) { RouteTa
 void ATDSpacePlayerController::OnHyperdrivePressed(const FInputActionValue&) { OnHyperdriveInput.Broadcast(true); RouteHyperdrive(true); }
 void ATDSpacePlayerController::OnHyperdriveReleased(const FInputActionValue&) { OnHyperdriveInput.Broadcast(false); RouteHyperdrive(false); }
 void ATDSpacePlayerController::OnSquadCommand(const FInputActionValue&) { RouteSquadCommand(); }
+// #201: G / pad View toggles the squad's shadow mode (wingmen shadow you / hunt alone).
+void ATDSpacePlayerController::OnShadowMode(const FInputActionValue&)
+{
+#if TD_HAS_SQUAD
+	if (ATDSquadManager* Squad = ATDSquadManager::Get(this))
+	{
+		Squad->ToggleShadowMode();
+	}
+#endif
+}
 void ATDSpacePlayerController::OnLand(const FInputActionValue&)
 {
 	OnLandInput.Broadcast();

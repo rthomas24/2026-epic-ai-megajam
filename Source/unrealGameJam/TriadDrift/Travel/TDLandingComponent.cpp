@@ -642,6 +642,12 @@ FQuat UTDLandingComponent::PadFacing() const
 	return P ? FRotator(0.f, P->GetActorRotation().Yaw, 0.f).Quaternion() : FQuat::Identity;
 }
 
+FQuat UTDLandingComponent::NotchFacing() const
+{
+	const ATDLandingPad* P = Pad.Get();
+	return P ? FRotator(0.f, P->GetActorRotation().Yaw + 180.f, 0.f).Quaternion() : (GetShip() ? GetShip()->GetActorQuat() : FQuat::Identity);
+}
+
 FTransform UTDLandingComponent::GetExitTransform() const
 {
 	const ATDShip* Ship = GetShip();
@@ -835,6 +841,13 @@ void UTDLandingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		break;
 	case ETDLandingState::Ascending:
 		Target = FMath::Lerp(SegmentStart, HoverPoint() + FVector(0.f, 0.f, Tuning.TakeOffClimb), A);
+		if (Tuning.bTakeOffFacesNotch)
+		{
+			// #194 (T4's mountain ring): the only low way out is the arrival notch behind the pad (the glide came in
+			// along the pad's facing). Landed, the ship faces the ring's far side, and a climb straight ahead scraped up a
+			// massif; it turns on the lift to face out through the notch.
+			TargetRot = FQuat::Slerp(SegmentStartRot, NotchFacing(), A);
+		}
 		break;
 	case ETDLandingState::GearUp:
 		// Keep climbing gently and start moving forward so the hand-back to flight is smooth.

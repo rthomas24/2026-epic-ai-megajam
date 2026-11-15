@@ -492,6 +492,33 @@ void ATDPlanetCourse::BuildInterior()
 			}
 		}
 		const int32 Placed = Dress(Items, FVector::ZeroVector, 0.f, TEXT("InteriorCorridors"));
+		// Fab intake (Nov 14, environment builder): the Null-black PipeBeam trusses under the hangar ceiling (above 9 m, out of
+		// the bay's take-off path and the chase camera), ceiling strip lamps between them, and Mechanic Base machines and
+		// consoles against the walls of the hangar, arena, Warden room and core chamber. Pivots from the measured bounds
+		// (consoles are centred, so they are raised by their lower half). Door frames skipped: the 4 x 3.5 m frame is lower
+		// than the 3 x 4 m doorways and the 7 x 4.5 m one could not be shown to clear them with margin.
+		const TCHAR* Truss = TEXT("Fab/PipeBeam");
+		const TCHAR* Mach = TEXT("Fab/MechanicBase/Mesh/SM/PROP/MACHINE");
+		const TCHAR* Comp = TEXT("Fab/MechanicBase/Mesh/SM/PROP/COMPUTER");
+		const TCHAR* Lamp = TEXT("Fab/MechanicBase/Mesh/SM/PROP/LAMP");
+		TArray<FDressItem> Fab;
+		for (const float TX : { -400.f, 400.f })
+		{
+			for (const float TY : { -900.f, 0.f, 900.f }) { Fab.Add({ Truss, TEXT("SM_Fab_PipeBeam"), FVector(TX, TY, 1000.f), 0.f, 1.f, false }); }
+		}
+		Fab.Append({
+			{ Lamp, TEXT("SM_LAMP_04"), FVector(0.f, -600.f, 1180.f), 90.f, 1.f, false },
+			{ Lamp, TEXT("SM_LAMP_04"), FVector(0.f, 600.f, 1180.f), 90.f, 1.f, false },
+			{ Mach, TEXT("SM_POWER_GENERATOR_01"), FVector(900.f, -1250.f, 0.f), 0.f, 1.f, true },
+			{ Comp, TEXT("SM_COMPUTER_02"), FVector(-1130.f, 1120.f, 41.f), 90.f, 1.f, true },
+			{ Mach, TEXT("SM_ELEVATOR_CONSOLE_01"), FVector(1110.f, 450.f, 87.f), 180.f, 1.f, true },
+			{ Comp, TEXT("SM_COMPUTER_01"), FVector(AX1 - 250.f, -AY + 250.f, 78.f), 0.f, 1.f, true },
+			{ Comp, TEXT("SM_COMPUTER_01"), FVector(L1X1 + 250.f, WY - 250.f, 78.f), 0.f, 1.f, true },
+			{ Mach, TEXT("SM_POWER_GENERATOR_01"), FVector(L2X1 + 450.f, KY - 250.f, 0.f), 0.f, 1.f, true },
+			{ Mach, TEXT("SM_POWER_GENERATOR_01"), FVector(L2X1 + 450.f, -KY + 250.f, 0.f), 0.f, 1.f, true },
+		});
+		const int32 FabPlaced = Dress(Fab, FVector::ZeroVector, 0.f, TEXT("InteriorIntake"));
+		UE_LOG(LogTriadDrift, Display, TEXT("Dominion interior: intake dressing %d of %d pieces"), FabPlaced, Fab.Num());
 		UE_LOG(LogTriadDrift, Display, TEXT("Dominion interior: corridor dressing %d of %d pieces"), Placed, Items.Num());
 	}
 
@@ -1059,9 +1086,20 @@ void ATDPlanetCourse::TickCoreChamber()
 	{
 		bInside = !It->IsDead() && CoreChamberBox.IsInsideXY(It->GetActorLocation()); // the on-foot pilot (crew are not first-person characters)
 	}
+	// #139: not during the escape. Walking back into the chamber with the reactor gone must not restore normal lights or
+	// the chamber's music; a retake to before the reactor resets the escape objective and the moment fires again.
+	const ATDObjective* Run = FindObjective(TDInteriorImpl::Escape);
+	const bool bEscaping = Run && (Run->IsActive() || Run->IsComplete());
 	if (bInside && !bPlayerInCoreChamber)
 	{
-		OnInteriorMoment.Broadcast(TEXT("CoreChamberEntered"), this); // once per crossing in; a retake outside re-arms it
+		if (bEscaping)
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("#139: back in the core chamber during the escape: no CoreChamberEntered"));
+		}
+		else
+		{
+			OnInteriorMoment.Broadcast(TEXT("CoreChamberEntered"), this); // once per crossing in; a retake outside re-arms it
+		}
 	}
 	bPlayerInCoreChamber = bInside;
 }
@@ -1122,12 +1160,21 @@ void ATDPlanetCourse::OpenReactorDoor()
 	CompleteFinalRecordStep();
 }
 
+bool ATDPlanetCourse::IsFinalRecordPlayed() const
+{
+	return bFinalRecordDone || UTDStorySubsystem::IsSequenceDoneOrSkipped(this, TEXT("Cinematic08"));
+}
+
 void ATDPlanetCourse::CompleteFinalRecordStep()
 {
 	if (WardenExitDoor) { WardenExitDoor->ClearStatusText(); }
 	if (ATDObjective* Gate = WardenGateObjective.Get(); Gate && Gate->GetCurrentStepIndex() == 1)
 	{
 		Gate->CompleteStep(1); // the exit opens, the Core objective and Face to Face start
+	}
+	else if (Gate && Gate->IsComplete() && WardenExitDoor)
+	{
+		WardenExitDoor->Open(); // an old checkpoint: the Warden was already done, the record opens the way on
 	}
 }
 

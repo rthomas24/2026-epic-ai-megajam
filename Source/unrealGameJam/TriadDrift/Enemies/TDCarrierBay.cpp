@@ -92,6 +92,12 @@ ETDTeam ATDCarrierBay::GetTeam() const
 	return ETDTeam::Enemy;
 }
 
+bool ATDCarrierBay::IsSpent() const
+{
+	const ATDEnemyShip* C = Carrier.Get();
+	return (MaxLaunches > 0 && LaunchCount >= MaxLaunches) || (C && C->IsLaunchSpent());
+}
+
 bool ATDCarrierBay::IsAlive() const
 {
 	return !bDestroyed && Health && Health->IsAlive();
@@ -153,6 +159,21 @@ void ATDCarrierBay::Tick(float DeltaSeconds)
 		if (bPaused) { bTelegraphing = false; }
 		return;
 	}
+	// The screen is full: hold (no telegraph, no countdown) until it thins out (hysteresis, checked 4 times a second).
+	ScreenCheckTimer -= DeltaSeconds;
+	if (ScreenCheckTimer <= 0.f && ScreenFullAt > 0)
+	{
+		ScreenCheckTimer = 0.25f;
+		const int32 Alive = ATDEnemyShip::CountCarrierFightersAlive(this);
+		const bool bWas = bScreenHeld;
+		bScreenHeld = bScreenHeld ? Alive >= ResumeBelow : Alive >= ScreenFullAt;
+		if (bScreenHeld != bWas) { UE_LOG(LogTriadDrift, Log, TEXT("TD carrier: launches %s (%d carrier fighters alive)"), bScreenHeld ? TEXT("held") : TEXT("resume"), Alive); }
+	}
+	if (bScreenHeld)
+	{
+		bTelegraphing = false;
+		return;
+	}
 
 	ATDEnemyShip* CarrierShip = Carrier.Get();
 	if (!CarrierShip || CarrierShip->IsDying())
@@ -174,14 +195,22 @@ void ATDCarrierBay::Tick(float DeltaSeconds)
 		bTelegraphing = false;
 		CarrierShip->LaunchFightersFromBay(this, FightersPerLaunch);
 		const UTDGameInstance* GI = UTDGameInstance::Get(this);
+		static TWeakObjectPtr<const UWorld> FirstLaunchWorld;
+		const bool bFirstThisRun = FirstLaunchWorld.Get() != GetWorld();
 		if (GI && GI->GetProgressRef().Phase == ETDGamePhase::DominionAssault && !UTDStorySubsystem::HasLineAired(this, TEXT("G6_Wren_ClearCarriers")))
 		{
 			UTDStorySubsystem::Fire(this, TEXT("G6_Wren_ClearCarriers"));	// storyline 24: the first carrier launch in the assault
+		}
+		else if (bFirstThisRun)
+		{
+			// Lead (Nov 14): the first launch says what to do about it. dialogs.md Bark_CarrierKillIt.
+			FTDWorldBarks::Say(this, TEXT("Bark_CarrierKillIt"), ETDBarkPriority::High, FTDWorldBarks::EWho::Wingman, 0.f);
 		}
 		else
 		{
 			FTDWorldBarks::Say(this, TDWorldBarkIds::CarrierLaunch, ETDBarkPriority::Normal, FTDWorldBarks::EWho::Wingman, 20.f);	// dialogs.md Bark_CarrierLaunch
 		}
+		FirstLaunchWorld = GetWorld();
 		++LaunchCount;
 		if (Visuals) { UTDStatics::PlayCue(this, Visuals->BayLaunch, GetActorLocation(), GetActorRotation()); }
 		OnLaunched.Broadcast(this);
