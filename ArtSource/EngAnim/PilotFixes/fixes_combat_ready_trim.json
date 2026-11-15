@@ -1,0 +1,2 @@
+{"_note": "Trim A_Pilot_Combat_Ready to its 0.5 s move (the swing tool keeps the base loop's length).",
+ "compose": [{"dst": "A_Pilot_Combat_Ready", "segments": [["A_Pilot_Combat_Ready", 0.0, 0.5]], "blend": 0.0}]}
