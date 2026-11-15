@@ -185,3 +185,19 @@ captures and logs under `.wt/<name>/Saved/` but their build caches are deleted (
 on the release and reports feel; (3) one offscreen New Game on main for the tactical panel, Continue ship and wave 1
 kills; (4) the follower corridor and boarding check, or `TD.Ground.Allies 0` as the shipped default if it misbehaves;
 (5) the mouse-steering gain, only if (2) says it is needed; (6) everything in 3.4; then "package please".
+
+## 8. Mouse steering: final finding (T1, 21:30 EST, played from main 58751acb)
+
+No existing setting makes mouse steering easier; do not spend time on cvars. Tested live on all three ships with
+`TD.Flight.MouseProbe` (turn 90 / turn 180 / acquire a target 30 degrees off): today's defaults (recentre 3,
+sensitivity 1) overshoot a 90 degree turn by 68-82 degrees and never settle; recentre 8, Settings sensitivity 0.6 and
+`TD.Flight.ShipFeel 1` were each as bad or worse (several make 180 degree turns never complete). The controller's
+`MouseSensitivity`, `MouseRecenterRate`, `MouseDeadzone` and `MouseResponseExponent` are plain properties (an ini
+cannot set them). The probe's hand is a proxy, so absolute numbers are pessimistic; the comparison holds.
+
+The fix is a change of model, in `ATDSpacePlayerController::PlayerTick`: the rate stick turns mouse position into turn
+rate, so an aiming hand overshoots. The parked patch (`docs/eng/patches/t1-mouse-follow-and-standby.patch.txt`) makes
+the reticle follow the ship: `VirtualStick -= ship angular rate * dt / ReticleFullDegrees` each frame. It needs
+debugging before it ships: in its one test the stick capped at 0.11-0.15 and the Lancer ran on for 3 s after the hand
+stopped, so clamp the stick and look at the run-on. Medium weight (C++ compile, then the probe offscreen). If there is
+no time, leave steering as it is: aim assist (on main) carries most of "easier to hit".
