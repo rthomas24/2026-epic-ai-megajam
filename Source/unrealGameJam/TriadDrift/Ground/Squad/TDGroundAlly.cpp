@@ -908,6 +908,13 @@ void ATDGroundAlly::DropCrewTargetsOnMe()
 void ATDGroundAlly::TickDown(float DeltaSeconds)
 {
 	DownLeft -= DeltaSeconds;
+	if (UTDLoopBlendAnimInstance* Loops = GetLoops())
+	{
+		if (Loops->GetOneShot() && Loops->ShotTime >= DownPoseTime)
+		{
+			Loops->ShotRate = 0.f; // down: the fall held where the body is on the floor and in view
+		}
+	}
 	if (DownLeft <= 0.f)
 	{
 		GetUp();
