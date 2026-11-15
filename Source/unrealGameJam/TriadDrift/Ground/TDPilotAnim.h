@@ -83,6 +83,26 @@ public:
 	float FootUpR = 0.f;
 	float PelvisDown = 0.f;
 
+	/**
+	 * Per-character variation (#209, the squad on foot): so two followers beside the player are not clones. RateScale
+	 * multiplies every loop and one-shot rate; PhaseOffset (0..1) shifts the stride / idle phase of every new loop;
+	 * StanceYaw / StancePitch (deg) turn and lean the upper body a little in every pose. All neutral by default.
+	 * Set automatically from the owner for a squad follower (class name contains "GroundAlly"), or by SetVariation.
+	 */
+	void SetVariation(float InRateScale, float InPhaseOffset, float InStanceYaw, float InStancePitch)
+	{
+		RateScale = InRateScale; PhaseOffset = InPhaseOffset; StanceYaw = InStanceYaw; StancePitch = InStancePitch; bVariationSet = true;
+	}
+	float RateScale = 1.f;
+	float PhaseOffset = 0.f;
+	float StanceYaw = 0.f;
+	float StancePitch = 0.f;
+	bool bVariationSet = false;
+	bool bVariationTried = false;
+	/** Run-to-fight: a move (walk, run, sprint) into the combat guard loop plays this on the upper body (followers by default). */
+	bool bRunToFight = false;
+	FName CombatReadyClip = TEXT("A_Pilot_Combat_Ready");
+
 	/** Loop on the upper body only (the block guard) over whatever the legs do; null fades it back out (0.12 s). */
 	void SetUpperLoop(UAnimSequenceBase* Loop);
 	UAnimSequenceBase* GetUpperLoop() const { return bUpperWanted ? Upper.Get() : nullptr; }

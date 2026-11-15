@@ -1,13 +1,13 @@
 {
- "A_Pilot_Blade_Flourish_v2": {
+ "A_Pilot_Combat_Ready": {
   "hilt": {
-   "gap": 7.5,
-   "part": "forearm_l",
+   "gap": 8.9,
+   "part": "thigh_r",
    "t": 0.0
   },
   "beam": {
-   "gap": 31.8,
-   "part": "forearm_l",
+   "gap": 22.9,
+   "part": "thigh_r",
    "t": 0.0
   }
  }
