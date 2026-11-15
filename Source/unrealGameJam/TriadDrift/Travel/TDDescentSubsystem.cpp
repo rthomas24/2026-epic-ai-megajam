@@ -1,6 +1,8 @@
 // Triad Drift - planetary descent (ENG-38 stage 1). Owner: Teammate 1.
 
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
+#include "TriadDrift/Flow/TDFrontEndGameModes.h"
+#include "GameFramework/GameModeBase.h"
 #include "TriadDrift/Perf/TDWarmupSubsystem.h"
 #include "Camera/CameraComponent.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
@@ -145,7 +147,12 @@ void UTDDescentSubsystem::HandlePreLoadMap(const FString& MapName)
 	bArrivedOverDeck = false;
 	// The pilot who goes on is the one flying now (docking with Lancer after landing Bastion parked Bastion in the hangar and
 	// put Moss on foot): whenever a level change starts with the player in a ship, that ship's pilot is the last ship.
-	if (UWorld* From = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr)
+	// Never from the main menu or a transition level: the menu's backdrop flies its own Rift, and a Continue leaves the menu
+	// right after ApplySave restored the saved ship (T7's cold Continue came back in Rift, slot=Bastion).
+	UWorld* FromWorld = GetGameInstance() ? GetGameInstance()->GetWorld() : nullptr;
+	const AGameModeBase* FromMode = FromWorld ? FromWorld->GetAuthGameMode() : nullptr;
+	const bool bFromMenu = FromMode && (FromMode->IsA<ATDMenuGameMode>() || FromMode->IsA<ATDTransitionGameMode>());
+	if (UWorld* From = bFromMenu ? nullptr : FromWorld)
 	{
 		APlayerController* PC = UGameplayStatics::GetPlayerController(From, 0);
 		const ATDShip* Flown = PC ? Cast<ATDShip>(PC->GetPawn()) : nullptr;
