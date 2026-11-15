@@ -302,7 +302,7 @@ S2('NS_TD_Mine_Plasma2', U(MINE, 1.0), [
 # the turret's telegraph cue, e.g. UTDEnemyVisuals.TurretTelegraph / T4's field). One shot at the muzzle, +X = the aim:
 # a red-orange glint that charges up over 1.0 s and snaps white at the end, with a dashed aim line racing out along +X.
 TLK = (1.0, 0.28, 0.06, 1.0)
-TDIST = 'clamp(Engine.Owner.LODDistance/6000.0, 1.0, 4.0)'   # 10o: the head-on read grows with distance (x4 by 240 m)
+TDIST = 'clamp(Engine.Owner.LODDistance/6000.0, 1.0, 4.0)'   # 10o: the head-on read grows with distance (x4 by 240 m); 12t: x8 tried, not yet seen, reverted
 
 
 def tele_line():
