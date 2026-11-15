@@ -12,7 +12,7 @@ namespace TDTactical
 	/** A point on lane L at progress P (0 = the Dominion, 1 = Verdance): gentle parallel arcs. */
 	FVector2D LanePoint(int32 L, float P)
 	{
-		const FBox2D Box = UTDTacticalDisplayWidget::PanelBox();
+		const FBox2D Box = UTDTacticalDisplayWidget::DrawBox();
 		const FVector2D From(Box.Min.X + 130.f, Box.GetCenter().Y);
 		const FVector2D To(Box.Max.X - 120.f, Box.GetCenter().Y - 20.f);
 		const float Spread = (L - (UTDTacticalDisplayWidget::Lanes - 1) * .5f) * 34.f;
@@ -25,7 +25,21 @@ namespace TDTactical
 void UTDTacticalDisplayWidget::Play(float Seconds)
 {
 	Age = 0.f;
-	Duration = FMath::Max(1.f, Seconds);
+	Duration = FMath::Clamp(Seconds, 1.f, MaxSeconds);
+	OutFade = FadeSeconds;
+	bDismissing = false;
+}
+
+void UTDTacticalDisplayWidget::Dismiss()
+{
+	if (bDismissing || Age >= Duration)
+	{
+		return;
+	}
+	bDismissing = true;
+	// Fade from wherever it is now: never pops back up, never lingers.
+	OutFade = DismissFadeSeconds;
+	Duration = Age + DismissFadeSeconds * FMath::Clamp(GetVisibility01(), 0.f, 1.f);
 }
 
 float UTDTacticalDisplayWidget::GetVisibility01() const
@@ -34,7 +48,7 @@ float UTDTacticalDisplayWidget::GetVisibility01() const
 	{
 		return 0.f;
 	}
-	return FMath::Min(FMath::Clamp(Age / FadeSeconds, 0.f, 1.f), FMath::Clamp((Duration - Age) / FadeSeconds, 0.f, 1.f));
+	return FMath::Min(FMath::Clamp(Age / FadeSeconds, 0.f, 1.f), FMath::Clamp((Duration - Age) / OutFade, 0.f, 1.f));
 }
 
 float UTDTacticalDisplayWidget::LaneProgress(int32 Lane, int32 Index, float T)
@@ -62,7 +76,13 @@ int32 UTDTacticalDisplayWidget::NativePaint(const FPaintArgs& Args, const FGeome
 	}
 	FTDUIPainter P(AllottedGeometry, OutDrawElements, Base + 1);
 	P.Alpha = Vis;
-	const FBox2D Box = PanelBox();
+	// Drawn in its own 800x500 frame, mapped into the docked box (60%) upper-right.
+	{
+		const FBox2D From = DrawBox(), To = PanelBox();
+		P.Origin += (To.Min - From.Min * DockScale) * P.Scale;
+		P.Scale *= DockScale;
+	}
+	const FBox2D Box = DrawBox();
 	const FVector2D Size = Box.GetSize();
 
 	// Panel: the HUD's plate, a faint grid, a thin frame.
@@ -76,7 +96,12 @@ int32 UTDTacticalDisplayWidget::NativePaint(const FPaintArgs& Args, const FGeome
 		P.Line({ Box.Min.X + 8.f, Y }, { Box.Max.X - 8.f, Y }, T::Dim().CopyWithNewOpacity(.07f), 1.f);
 	}
 	P.Frame(Box.Min.X, Box.Min.Y, Size.X, Size.Y, T::Neutral(), .25f);
-	P.Label(Box.Min.X + 18.f, Box.Min.Y + 10.f, TEXT("TACTICAL  ·  CONTACT MOVEMENT"), 14, T::Neutral().CopyWithNewOpacity(.85f), 120);
+	// "[key] DISMISS" at the header's right end.
+	{
+		const FString Hint = FString::Printf(TEXT("[%s] DISMISS"), *DismissKey);
+		P.Label(Box.Max.X - 18.f - Hint.Len() * 11.f, Box.Min.Y + 12.f, Hint, 18, T::Neutral().CopyWithNewOpacity(.7f), 120);
+	}
+	P.Label(Box.Min.X + 18.f, Box.Min.Y + 10.f, TEXT("TACTICAL  ·  CONTACT MOVEMENT"), 21, T::Neutral().CopyWithNewOpacity(.85f), 120);
 	// A scan line sweeping left to right (sensor display, not a cutscene card).
 	const float Sweep = FMath::Fmod(Age * .35f, 1.f);
 	const float SweepX = FMath::Lerp(Box.Min.X + 8.f, Box.Max.X - 8.f, Sweep);
@@ -96,13 +121,13 @@ int32 UTDTacticalDisplayWidget::NativePaint(const FPaintArgs& Args, const FGeome
 			P.Line(Hex[I], Hex[I + 1], T::Danger(), 2.5f);
 		}
 		P.Arc(Dom, 52.f, 1.f, T::Danger().CopyWithNewOpacity(.3f), 1.f);
-		P.Label(Dom.X - 40.f, Dom.Y + 60.f, TEXT("DOMINION"), 13, T::Danger(), 100);
+		P.Label(Dom.X - 62.f, Dom.Y + 58.f, TEXT("DOMINION"), 20, T::Danger(), 100);
 	}
 	// Verdance (right): a teal disc outline with a ring.
 	const FVector2D Ver = LanePoint(0, 1.f);
 	P.Arc(Ver, 30.f, 1.f, T::Lancer(), 2.5f);
 	P.Arc(Ver, 44.f, 1.f, T::Lancer().CopyWithNewOpacity(.35f), 1.f);
-	P.Label(Ver.X - 38.f, Ver.Y + 52.f, TEXT("VERDANCE"), 13, T::Lancer(), 100);
+	P.Label(Ver.X - 58.f, Ver.Y + 50.f, TEXT("VERDANCE"), 20, T::Lancer(), 100);
 
 	// Lanes: thin dashed paths, and contacts on them, evenly spaced, all moving the same way.
 	for (int32 L = 0; L < Lanes; ++L)
@@ -132,7 +157,7 @@ int32 UTDTacticalDisplayWidget::NativePaint(const FPaintArgs& Args, const FGeome
 		const FLinearColor Squad = I == 0 ? T::Rift() : I == 1 ? T::Lancer() : T::Bastion();
 		P.Box(Triad.X + I * 14.f - 3.f, Triad.Y - 3.f, 6.f, 6.f, Squad);
 	}
-	P.Label(Triad.X - 6.f, Triad.Y + 10.f, TEXT("TRIAD"), 12, T::Neutral().CopyWithNewOpacity(.8f), 120);
+	P.Label(Triad.X - 14.f, Triad.Y + 10.f, TEXT("TRIAD"), 19, T::Neutral().CopyWithNewOpacity(.8f), 120);
 	for (int32 I = 0; I < Idle; ++I)
 	{
 		const FVector2D Loiter = Triad + FVector2D(110.f + I * 46.f, -28.f + 14.f * FMath::Sin(Age * .8f + I * 1.7f));

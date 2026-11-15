@@ -121,6 +121,11 @@ public:
 
 	/** Named boxes painted last frame (tests: "transfer" for the meter plate). */
 	mutable TArray<TPair<FName, FBox2D>> LastBoxes;
+	/** Top of the pilot card's flag lane as a fraction of the widget's height (1 = none): the subtitle band ends 12 px
+	 *  above it (Nick's Lead, #103: at 720p a story line crossed Wren's on-foot card). */
+	mutable float SubtitleCeiling01 = 1.f;
+	/** The pilot card with its flag lane, as fractions of the widget's size (TD.UI.Layout); invalid when not drawn. */
+	mutable FBox2D CardBox01 = FBox2D(ForceInit);
 
 	/** Re-reads the pawn now (the tick does this every frame). */
 	void Sample(float DeltaSeconds);
