@@ -557,3 +557,8 @@ Swarm is explicitly decided not shipping enabled, retaining default 0; this is n
 ## Nick Lead submission-copy correction — November 15, 10:25 EST
 
 Removed the outdated claim that wingmen remain outside during Dominion boarding from the itch-page draft. The replacement describes the player corridor route without claiming follower verification. Added the existing G / View shadow-mode mapping, verified in TDSpacePlayerController on source-equivalent d6d62f96. Text only: no game-source changes, physical-controller pass, follower acceptance or public publication. Final package-matched page/credits/video and human submission approval remain pending under #137.
+
+### Nicholas Lead — November 15, 11:38 EST — Cinder collision blocker fix
+
+Source136082a4 splits the relief patch into independently cooked tile components, preserving geometry and the protected60cm offset. Six real collision queries failed before and passed after; Editor Build32 and Shipping compile33 passed. Session57 used the original Session45 save, actual Continue/W input and heading assistance only: crossed the previously fatal river approach, walked the bridge and reached Conduits0/2. Exit0/errors0. No teleport/progress/damage commands. Independent bounded source review found no concrete introduced defect. Full conduit/Warden/anchor/boarding route and package acceptance are still unplayed/pending; #194 remains open. Evidence: https://github.com/rthomas24/2026-epic-ai-megajam/issues/194#issuecomment-6897705499 . No local cook/package was run.
+
