@@ -44,6 +44,9 @@
 #include "TriadDrift/Powers/TDPortalBlasterPower.h"
 #include "TriadDrift/Powers/TDRamPower.h"
 #include "TriadDrift/Powers/TDBastionPowers.h"
+#include "TriadDrift/Powers/TDAbilityPowers.h"
+#include "TriadDrift/Story/TDTutorialPhases.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
 
 namespace TDSquadIntegrationPrivate
 {
@@ -1177,5 +1180,178 @@ namespace TDSquad
 		}
 		// T1: lag-free, valid even for an AI-flown ship whose spring arm doesn't tick (m10).
 		return Ship->GetChaseCameraTransformNow();
+	}
+}
+
+// ------------------------------------------------------------------------------------- wingman powers (#201)
+
+namespace TDSquad
+{
+	static UTDPowerComponent* FindWingPower(const ATDShip* Ship, int32 Slot)
+	{
+		if (!Ship || Slot < 0 || Slot > 2)
+		{
+			return nullptr;
+		}
+		const ETDPowerInput In = Slot == 0 ? ETDPowerInput::Signature1 : (Slot == 1 ? ETDPowerInput::Signature2 : ETDPowerInput::Ability);
+		return UTDPowerComponent::FindPower(Ship, In);
+	}
+
+	bool GetWingPower(const ATDShip* Ship, int32 Slot, FWingPower& Out)
+	{
+		Out = FWingPower();
+		const UTDPowerComponent* Power = FindWingPower(Ship, Slot);
+		if (!Power)
+		{
+			return false;
+		}
+		Out.Name = Power->GetPowerName();
+		Out.Ability = Power->GetAbilityId();
+		Out.bActive = Power->IsPowerActive();
+		Out.CooldownRemaining = Power->GetCooldownRemaining();
+		Out.bReady = !Out.bActive && Out.CooldownRemaining <= 0.f && !IsDead(Ship);
+		Out.CycleSeconds = Power->CooldownSeconds + (Power->bCooldownStartsWhenPowerEnds ? Power->ActiveSeconds : 0.f);
+		return true;
+	}
+
+	bool ActivateWingPower(ATDShip* Ship, int32 Slot)
+	{
+		UTDPowerComponent* Power = FindWingPower(Ship, Slot);
+		return Power && Power->TryActivateFromAI();
+	}
+
+	void PressWingPower(ATDShip* Ship, int32 Slot)
+	{
+		if (UTDPowerComponent* Power = FindWingPower(Ship, Slot))
+		{
+			Power->HandleInputPressed();
+		}
+	}
+
+	void EndWingPower(ATDShip* Ship, int32 Slot)
+	{
+		if (UTDPowerComponent* Power = FindWingPower(Ship, Slot))
+		{
+			Power->EndPower(true);
+		}
+	}
+
+	bool IsRamDashing(const ATDShip* Ship)
+	{
+		const UTDRamPower* Ram = Cast<UTDRamPower>(FindWingPower(Ship, 0));
+		return Ram && Ram->IsDashing();
+	}
+
+	void SetSwarmTargets(ATDShip* Ship, const TArray<AActor*>& Targets)
+	{
+		if (UTDMissileSwarmPower* Swarm = Cast<UTDMissileSwarmPower>(FindWingPower(Ship, 0)))
+		{
+			Swarm->SetAITargets(Targets);
+		}
+	}
+
+	float GetEMPRadius(const ATDShip* Ship)
+	{
+		const UTDEMPPower* EMP = Cast<UTDEMPPower>(FindWingPower(Ship, 2));
+		return EMP ? EMP->Radius : 0.f;
+	}
+
+	float GetDomeRadius(const ATDShip* Ship)
+	{
+		const UTDShieldDomePower* Dome = Cast<UTDShieldDomePower>(FindWingPower(Ship, 1));
+		return Dome ? Dome->DomeRadius : 0.f;
+	}
+
+	void GetGravityWellReach(const ATDShip* Ship, float& OutFlight, float& OutRadius)
+	{
+		const UTDGravityWellPower* Well = Cast<UTDGravityWellPower>(FindWingPower(Ship, 2));
+		OutFlight = Well ? 400.f + Well->OrbSpeed * Well->OrbSeconds : 0.f;
+		OutRadius = Well ? Well->Radius : 0.f;
+	}
+
+	float GetPortalRange(const ATDShip* Ship)
+	{
+		const UTDPortalBlasterPower* Portals = Cast<UTDPortalBlasterPower>(FindWingPower(Ship, 0));
+		return (Portals && !Portals->IsUsingBlink()) ? Portals->MaxRange : 0.f;
+	}
+
+	int32 GetOpenPortalCount(const ATDShip* Ship)
+	{
+		int32 Open = 0;
+		if (const UTDPortalBlasterPower* Portals = Cast<UTDPortalBlasterPower>(FindWingPower(Ship, 0)))
+		{
+			for (const TWeakObjectPtr<ATDPortal>& P : Portals->GetPortals())
+			{
+				Open += P.IsValid() ? 1 : 0;
+			}
+		}
+		return Open;
+	}
+
+	bool WingmanPowersAllowed(const UObject* WorldContext)
+	{
+		const ETDTeachPhase Phase = UTDTutorialPhases::GetTeachPhase(WorldContext);
+		return Phase == ETDTeachPhase::None || Phase == ETDTeachPhase::Done;
+	}
+
+	AActor* GetIncomingMissile(const ATDShip* Ship, float& OutDistance)
+	{
+		OutDistance = 0.f;
+		UTDProjectileSubsystem* Projectiles = Ship ? UTDProjectileSubsystem::Get(Ship) : nullptr;
+		if (!Projectiles)
+		{
+			return nullptr;
+		}
+		static TArray<ATDProjectile*> MissileScratch; // game thread only
+		Projectiles->FindMissilesHomingOn(Ship, MissileScratch);
+		ATDProjectile* Best = nullptr;
+		float BestSq = TNumericLimits<float>::Max();
+		for (ATDProjectile* P : MissileScratch)
+		{
+			if (P && UTDStatics::AreTeamsHostile(P->GetTeam(), ETDTeam::Player))
+			{
+				const float Sq = FVector::DistSquared(P->GetActorLocation(), Ship->GetActorLocation());
+				if (Sq < BestSq)
+				{
+					BestSq = Sq;
+					Best = P;
+				}
+			}
+		}
+		MissileScratch.Reset();
+		OutDistance = Best ? FMath::Sqrt(BestSq) : 0.f;
+		return Best;
+	}
+
+	bool IsBigEnemy(const AActor* Enemy)
+	{
+		const ATDEnemyShip* E = Cast<ATDEnemyShip>(Enemy);
+		return E && E->GetSize() >= ETDEnemySize::Large;
+	}
+
+	float GetWeaponDamageMultiplier(const ATDShip* Ship)
+	{
+		const UTDWeaponComponent* W = Ship ? Ship->FindComponentByClass<UTDWeaponComponent>() : nullptr;
+		return W ? W->GetOutgoingDamageMultiplier() : 1.f;
+	}
+
+	FString DescribePowers(const ATDShip* Ship)
+	{
+		FString Out;
+		for (int32 Slot = 0; Slot < 3; ++Slot)
+		{
+			FWingPower P;
+			if (!GetWingPower(Ship, Slot, P))
+			{
+				if (Slot == 2)
+				{
+					Out += TEXT(" ability=locked");
+				}
+				continue;
+			}
+			Out += FString::Printf(TEXT(" %s=%s"), *P.Name.ToString(),
+				P.bActive ? TEXT("ACTIVE") : (P.bReady ? TEXT("ready") : *FString::Printf(TEXT("%.1fs"), P.CooldownRemaining)));
+		}
+		return Out.TrimStart();
 	}
 }

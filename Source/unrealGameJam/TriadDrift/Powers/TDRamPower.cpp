@@ -396,7 +396,7 @@ void UTDRamPower::HitActor(AActor* Victim, const FVector& Direction)
 	// RamKill money shot: UTDDirectorSubsystem derives it from the Ram damage kind on OnActorKilled.
 	if (bWasAlive && Health && Health->IsDead())
 	{
-		if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this))
+		if (UTDFeelSubsystem* Feel = UTDFeelSubsystem::Get(this); Feel && !WasStartedByAI()) // #201: no hit-stop for a wingman's ram kill
 		{
 			Feel->RequestHitStop();
 		}
