@@ -280,11 +280,29 @@ S2('NS_TD_Mine_Plasma', U(MINE, 1.0), [
     shed('Halo', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(500.0 + 0.03*clamp(Engine.Owner.LODDistance, 0.0, 60000.0))*%s' % MBLINK,) * 2, (0, 0), k=1.6,
          radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='20.0')] + [mine_spike(i) for i in range(6)])
 
+# ---- round 12p (Lead: bombers' mines had no visible body): v2, new asset (v1 kept). Camera-facing sprites only (no meshes,
+# no offsets, no ribbons), all spawned continuously so the look survives pooling: a hot orange core, a red halo pulsing at
+# about 1 Hz, the double arming blink, and a faint red warning ring expanding every 0.8 s. Everything grows with the camera
+# distance (DM: 1 up to 40 m, 5 at 200 m) so a mine reads from 60 to 200 m.
+DM = 'clamp(Engine.Owner.LODDistance/4000.0, 1.0, 5.0)'
+MPULSE = '(0.65 + 0.35*sin(Engine.Time*6.2832))'
+S2('NS_TD_Mine_Plasma2', U(MINE, 1.0), [
+    shed('Hot', 'M_TD_VFX_Dot', 0, (0.1, 0.1), ('(330.0*%s*(0.85 + 0.15*%s))' % (DM, MPULSE),) * 2, (0, 0), k=3.0, radius=0.0, drag=0.0,
+         local=True, power=0.6, rate_expr='20.0', rgb=(1.0, 0.12, 0.03)),   # 12r: a crisp white-yellow disc with a thin dark-red rim (an object, not a glow)
+    shed('Core', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(320.0*%s)' % DM,) * 2, (0, 0), k=7.0, radius=0.0, drag=0.0, local=True, power=0.6,
+         rate_expr='20.0', rgb=(1.0, 0.38, 0.08)),
+    shed('Halo', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(1000.0*%s*%s)' % (DM, MPULSE),) * 2, (0, 0), k=2.6, radius=0.0, drag=0.0, local=True,
+         power=0.6, rate_expr='20.0', rgb=(1.0, 0.12, 0.03)),
+    shed('Warn', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(420.0*%s*%s)' % (DM, MBLINK),) * 2, (0, 0), k=3.0, radius=0.0, drag=0.0, local=True,
+         power=0.6, rate_expr='20.0', rgb=(1.0, 0.55, 0.4)),
+    shed('Ring', 'M_TD_VFX_Ring', 0, (0.8, 0.8), ('(1300.0*%s)' % DM,) * 2, (0, 0), k=2.4, radius=0.0, drag=0.0, local=True, power=1.2,
+         rate_expr='1.25', rgb=(1.0, 0.15, 0.04), growth='0.25 + 0.75*Particles.NormalizedAge')])
+
 # ---- round 10n (Lead): (a) the Dominion turret's 1.0 s lock telegraph before each burst (T4 adds the timing; slot:
 # the turret's telegraph cue, e.g. UTDEnemyVisuals.TurretTelegraph / T4's field). One shot at the muzzle, +X = the aim:
 # a red-orange glint that charges up over 1.0 s and snaps white at the end, with a dashed aim line racing out along +X.
 TLK = (1.0, 0.28, 0.06, 1.0)
-TDIST = 'clamp(Engine.Owner.LODDistance/6000.0, 1.0, 4.0)'   # 10o: the head-on read grows with distance (x4 by 240 m)
+TDIST = 'clamp(Engine.Owner.LODDistance/6000.0, 1.0, 4.0)'   # 10o: the head-on read grows with distance (x4 by 240 m); 12t: x8 tried, not yet seen, reverted
 
 
 def tele_line():

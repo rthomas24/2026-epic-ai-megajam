@@ -126,6 +126,13 @@ public:
 
 	/** The on-foot HUD while the local player walks (null in space, menus and with TD.UI.GroundHUD 0). */
 	UUserWidget* GetGroundHUD() const { return GroundWidget; }
+	/** Where a subtitle band must end (fraction of the screen height from the top; 1 = no limit): above the on-foot pilot
+	 *  card and its flags while the ground HUD is up. T3's transmission overlay clamps its anchor to this. */
+	static float GetSubtitleCeiling01(const UObject* WorldContext);
+	/** The fallback subtitle plate last drawn, as fractions of the screen (TD.UI.Layout); set by T3's overlay. */
+	static void NoteSubtitlePlate01(const FBox2D& Box01, double Now) { LastSubtitlePlate01 = Box01; LastSubtitlePlateTime = Now; }
+	static FBox2D LastSubtitlePlate01;
+	static double LastSubtitlePlateTime;
 
 	/** The pause screen while the player has paused (null otherwise). */
 	UUserWidget* GetPauseScreen() const { return PauseWidget; }
@@ -299,6 +306,11 @@ private:
 	TObjectPtr<UUserWidget> TacticalWidget;
 	/** The game phase the tactical panel was shown in (-1 = not up). */
 	int32 TacticalPhase = -1;
+	/** The objective line when the tactical panel was shown: a new objective closes it. */
+	FString TacticalObjective;
+	bool bTacticalObjectiveKnown = false;
+	/** Closes the tactical panel on an action key, a hyperdrive spool or a new objective (Ryan, Nov 14). */
+	void UpdateTacticalDismiss();
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> ScanWidget;

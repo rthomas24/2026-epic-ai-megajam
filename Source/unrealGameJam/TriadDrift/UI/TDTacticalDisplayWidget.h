@@ -26,16 +26,29 @@ public:
 	/** Seconds for a contact to travel the lane. */
 	static constexpr float LaneSeconds = 9.f;
 	static constexpr float FadeSeconds = .5f;
+	/** Ryan (Nov 14): it "stayed on the screen for too long, I couldn't remove it". At most 8 s however long a caller asks,
+	 *  and Dismiss() closes it with a 0.2 s fade. */
+	static constexpr float MaxSeconds = 8.f;
+	static constexpr float DismissFadeSeconds = .2f;
+	/** Docked upper-right under the objective line at 60% of its first size, clear of the reticle, radar and squad row. */
+	static constexpr float DockScale = .6f;
 
-	/** Starts (or restarts) the display for Seconds; it fades in and out by itself. */
+	/** Starts (or restarts) the display for Seconds (clamped to MaxSeconds); it fades in and out by itself. */
 	void Play(float Seconds);
+	/** Closes it now with a short fade (any action key, a hyperdrive spool, a new objective). */
+	void Dismiss();
+	bool IsDismissing() const { return bDismissing; }
+	/** The keycap shown in the "[key] DISMISS" hint. */
+	FString DismissKey = TEXT("X");
 	bool IsFinished() const { return Age >= Duration; }
 	/** 0..1 visibility (fade in / hold / fade out). */
 	float GetVisibility01() const;
 	/** Contact position along its lane at time T (0..1, wraps): what the paint and the tests use. */
 	static float LaneProgress(int32 Lane, int32 Index, float T);
-	/** Panel box in the design frame (tests). */
-	static FBox2D PanelBox() { return FBox2D(FVector2D(560.f, 250.f), FVector2D(1360.f, 750.f)); }
+	/** The panel as drawn, in the 1920x1080 design frame: docked upper-right (TD.UI.Layout, tests). */
+	static FBox2D PanelBox() { return FBox2D(FVector2D(1872.f - 800.f * DockScale, 112.f), FVector2D(1872.f, 112.f + 500.f * DockScale)); }
+	/** The schematic's own drawing frame (800x500), scaled into PanelBox when painted. */
+	static FBox2D DrawBox() { return FBox2D(FVector2D(560.f, 250.f), FVector2D(1360.f, 750.f)); }
 
 	/** Tests: advance without a tick. */
 	void Advance(float Dt) { Age += Dt; }
@@ -48,4 +61,6 @@ protected:
 private:
 	float Age = 0.f;
 	float Duration = 0.f;
+	float OutFade = FadeSeconds;
+	bool bDismissing = false;
 };

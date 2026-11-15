@@ -5,7 +5,7 @@ out = []
 for p in ('tracer', 'projectile_mesh'):
     try: out.append('%s before=%s' % (p, da.get_editor_property(p)))
     except Exception as ex: out.append('%s ? %s' % (p, ex))
-da.set_editor_property('tracer', unreal.load_asset('/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Mine_Plasma'))
+da.set_editor_property('tracer', unreal.load_asset('/Game/TriadDrift/Gameplay/VFX/Systems/NS_TD_Mine_Plasma2'))
 out.append('tracer after=%s' % da.get_editor_property('tracer'))
 out.append('saved' if unreal.EditorAssetLibrary.save_loaded_asset(da, False) else 'SAVE FAILED')
 "\n".join(out)

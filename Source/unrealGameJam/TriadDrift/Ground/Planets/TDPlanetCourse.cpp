@@ -232,8 +232,17 @@ void ATDPlanetCourse::AdoptTerrainMaterial()
 	// entirely, or the pilot would stand on an invisible floor over every divot.
 	if (bTerrain && ATDPlanetTerrain::HasDetailGround(this))
 	{
-		GroundSlab->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		UE_LOG(LogTriadDrift, Display, TEXT("#194: relief ground has collision: the course's flat slab is off"));
+		// BLOCKER fix (Nick's Lead, #194): with the slab's collision off, a Continue on Cinder dropped the pilot 19 m below
+		// the course where the relief was not (yet) under it. The slab never stops colliding: it drops to sit just under
+		// the relief (2.6 m down, under its 2.5 m deepest) as a safety floor, so the relief is walked wherever it exists and a gap in it
+		// costs a short step down, never a fall out of the course.
+		if (!bSlabLowered)
+		{
+			bSlabLowered = true;
+			GroundSlab->AddWorldOffset(FVector(0.f, 0.f, -260.f)); // just under T4's deepest relief (2.5 m clamp)
+		}
+		UE_LOG(LogTriadDrift, Display, TEXT("#194: relief ground has collision: the course's flat slab stays as a safety floor 2.6 m down (top z %.0f)"),
+			(float)GroundSlab->Bounds.GetBox().Max.Z);
 		return;
 	}
 	// The terrain and its patch may come a moment after the course: look again for ~30 s.
@@ -556,7 +565,10 @@ void ATDPlanetCourse::DressAmbient(bool bCinder)
 		{
 			const float A = (i * 72.f + c * 31.f) * PI / 180.f;
 			const FVector L = Centres[c] + FVector(FMath::Cos(A), FMath::Sin(A), 0.f) * (900.f + 250.f * (i % 3));
-			if (!IsScatterAllowed(W(FVector(L.X, L.Y, GroundZAt(L))), 200.f)) { continue; }
+			// decals are flat and walkable: only kept off the route lines (not the site boxes they are meant to mark)
+			bool bOnRoute = false;
+			for (const TArray<FVector>& Rt : Routes) { for (int32 q = 0; q + 1 < Rt.Num(); ++q) { if (FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), FVector(Rt[q].X, Rt[q].Y, 0.f), FVector(Rt[q + 1].X, Rt[q + 1].Y, 0.f)) < 400.f) { bOnRoute = true; } } }
+			if (bOnRoute) { continue; }
 			d += SpawnScorch(L, 400.f + 100.f * ((i + c) % 5), i * 67.f, bCinder);
 		}
 	}
@@ -585,7 +597,10 @@ void ATDPlanetCourse::DressRouteBreaks(bool bCinder)
 				const FVector P = FMath::Lerp(R[i], R[i + 1], (Want - Run) / FMath::Max(Len, 1.f));
 				const float Yaw = FMath::RadiansToDegrees(FMath::Atan2(R[i + 1].Y - R[i].Y, R[i + 1].X - R[i].X));
 				const TCHAR* Piece = bCinder ? TEXT("SM_Site_Cinder_BasaltArch") : (r % 2 == 0 ? TEXT("SM_Site_Verdance_RootArch") : TEXT("SM_Site_Verdance_FallenTrunk"));
-				Dress({ { Folder, Piece, FVector::ZeroVector, Yaw, 1.f, true } }, FVector(P.X, P.Y, 0.f), 0.f, FName(*FString::Printf(TEXT("RouteBreak%d"), r)));
+				// T7 (relief1 walk): an arch's feet on the walk line jam the pilot: set it 8 m beside the route instead, a framing
+				// piece the player passes, not walks into
+				const FVector Side = FVector(-(R[i + 1].Y - R[i].Y), R[i + 1].X - R[i].X, 0.f).GetSafeNormal2D() * ((r % 2) ? 800.f : -800.f);
+				DressCamp(FVector(P.X, P.Y, 0.f) + Side, 0.f, 1200.f, { { Folder, Piece, FVector::ZeroVector, Yaw, 1.f, true } }, FName(*FString::Printf(TEXT("RouteBreak%d"), r)));
 				break;
 			}
 			Run += Len;
@@ -629,6 +644,36 @@ int32 ATDPlanetCourse::DressCamp(const FVector& Around, float MinR, float MaxR, 
 			{
 				const FVector L = C + FVector(It.Local.X, It.Local.Y, 0.f);
 				if (!IsScatterAllowed(W(FVector(L.X, L.Y, GroundZAt(L))), Radius(It) + 60.f)) { bOk = false; break; }
+				// Lead (#194): the player walks straight at the marker, so nothing of a camp within 6 m of the line from the pad
+				// to any objective (each route's end)
+				if (It.bCollide)
+				{
+					FVector Prev = FVector::ZeroVector;
+					for (const TArray<FVector>& Rt : Routes)
+					{
+						if (!Rt.Num()) { continue; }
+						const FVector End(Rt.Last().X, Rt.Last().Y, 0.f);
+						if (FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), FVector::ZeroVector, End) < 600.f + Radius(It)
+							|| FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), Prev, End) < 400.f + Radius(It)) { bOk = false; break; }
+						Prev = End;
+					}
+					// ...and 4 m + body off every route's own line (lamp-lit paths), checked directly
+					for (const TArray<FVector>& Rt : Routes)
+					{
+						for (int32 q = 0; q + 1 < Rt.Num() && bOk; ++q)
+						{
+							if (FMath::PointDistToSegment(FVector(L.X, L.Y, 0.f), FVector(Rt[q].X, Rt[q].Y, 0.f), FVector(Rt[q + 1].X, Rt[q + 1].Y, 0.f)) < 400.f + Radius(It)) { bOk = false; }
+						}
+						if (!bOk) { break; }
+					}
+					if (!bOk) { break; }
+					// T7: huts 5 m back from any interact point (the camera boom ended in a hut wall at the device)
+					for (const TObjectPtr<AActor>& Sp : Spawned)
+					{
+						if (Sp && Sp->IsA<ATDInteractableActor>() && FVector::Dist2D(GetActorTransform().InverseTransformPosition(Sp->GetActorLocation()), L) < 500.f + Radius(It)) { bOk = false; break; }
+					}
+					if (!bOk) { break; }
+				}
 				// T4's relief (Nov 14): a hut needs a flat-enough spot: its footprint's corners within 70 cm of each other
 				if (It.bCollide && Radius(It) >= 300.f)
 				{
@@ -2585,7 +2630,7 @@ void ATDPlanetCourse::BuildCinder()
 		// ground-break arches and landmarks. Each where it clears every keep-out (DressCamp).
 		{
 			const TCHAR* Hut = TEXT("Huts/Cinder");
-			DressCamp(StationAt, 2600.f, 6500.f, {
+			DressCamp(StationAt, 2000.f, 9600.f, {
 				{ Hut, TEXT("SM_Hut_Cinder_Workshop"), FVector(-950.f, 0.f, 0.f), 0.f, 1.f, true },
 				{ Hut, TEXT("SM_Hut_Cinder_Shack"), FVector(900.f, 0.f, 0.f), 180.f, 1.f, true },
 				{ Hut, TEXT("SM_Hut_Cinder_Shack"), FVector(0.f, 950.f, 0.f), 270.f, 1.f, true },

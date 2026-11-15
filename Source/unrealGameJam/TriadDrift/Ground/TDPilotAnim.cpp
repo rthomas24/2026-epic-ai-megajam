@@ -49,6 +49,7 @@ namespace TDLoopBlend
 		float ShotAlpha = 0.f;
 		float FootUpL = 0.f, FootUpR = 0.f, PelvisDown = 0.f;
 		float GaitLean = 0.f;
+		float StanceYaw = 0.f, StancePitch = 0.f;
 		float GaitDrop = 0.f;
 		const UAnimSequenceBase* Legs = nullptr;
 		double LegTime = 0.0;
@@ -81,6 +82,8 @@ namespace TDLoopBlend
 			FootUpR = A->FootUpR;
 			PelvisDown = A->PelvisDown;
 			GaitLean = A->GaitLean;
+			StanceYaw = A->StanceYaw;
+			StancePitch = A->StancePitch;
 			GaitDrop = A->GaitDrop;
 			Legs = A->Legs;
 			LegTime = A->LegTime;
@@ -361,6 +364,12 @@ namespace TDLoopBlend
 			}
 			// Start / stop: lean into the first step, rock back and settle on a stop (spine_01 pitch about the body's
 			// right axis, mesh space: forward +Y, right -X), the pelvis dipping with it.
+			// Per-character stance (#209): a small turn and lean of the whole upper body.
+			if (!FMath::IsNearlyZero(StanceYaw) || !FMath::IsNearlyZero(StancePitch))
+			{
+				const FReferenceSkeleton& SRef = Output.Pose.GetBoneContainer().GetReferenceSkeleton();
+				RotateCS(Output.Pose, SRef, UpperRoot, FQuat(FVector(0.f, 0.f, 1.f), FMath::DegreesToRadians(StanceYaw)) * FQuat(FVector(-1.f, 0.f, 0.f), FMath::DegreesToRadians(StancePitch)));
+			}
 			if (!FMath::IsNearlyZero(GaitLean) || !FMath::IsNearlyZero(GaitDrop))
 			{
 				const FReferenceSkeleton& Ref = Output.Pose.GetBoneContainer().GetReferenceSkeleton();
@@ -429,19 +438,42 @@ namespace TDLoopBlend
 
 void UTDLoopBlendAnimInstance::SetLoop(UAnimSequenceBase* Loop, float Rate)
 {
-	PlayRate = Rate;
+	// Squad followers (#209): a fixed per-character variation, so they never move in step with the player or each other.
+	if (!bVariationSet && !bVariationTried)
+	{
+		bVariationTried = true;
+		const AActor* Owner = GetOwningActor();
+		if (Owner && Owner->GetClass()->GetName().Contains(TEXT("GroundAlly")))
+		{
+			const uint32 H = GetTypeHash(Owner->GetName());
+			auto U = [H](uint32 Salt) { return (float)((HashCombine(H, Salt) % 1000u)) / 999.f; };
+			SetVariation(0.93f + 0.12f * U(1), U(2), -7.f + 14.f * U(3), 2.f + 5.f * U(4));
+			bRunToFight = true;
+		}
+	}
+	PlayRate = Rate * RateScale;
 	if (Loop == Current)
 	{
 		return;
 	}
 	TDMakePlayable(Loop);
+	// Run-to-fight (#209): from a move straight into the combat guard, the blade is brought up into the guard.
+	if (bRunToFight && Loop && Current && Loop->GetName().Contains(TEXT("Blade_Idle")) && TDPilotMeleePassOn() && !Shot
+		&& (Current->GetName().Contains(TEXT("Run")) || Current->GetName().Contains(TEXT("Walk")) || Current->GetName().Contains(TEXT("Sprint"))))
+	{
+		const FString Path = FString::Printf(TEXT("/Game/TriadDrift/Gameplay/Characters/Pilot/Anims/%s.%s"), *CombatReadyClip.ToString(), *CombatReadyClip.ToString());
+		if (UAnimSequenceBase* Ready = TDLoadPlayableAnim(FSoftObjectPath(Path)))
+		{
+			PlayOneShot(Ready, 1.f, true);
+		}
+	}
 	Previous = Current;
 	PreviousTime = CurrentTime;
 	// Keep the stride phase across a walk/run swap so the feet don't skip.
 	const float OldLength = Previous ? Previous->GetPlayLength() : 0.f;
 	const double Phase = OldLength > 0.f ? FMath::Fmod(PreviousTime, (double)OldLength) / OldLength : 0.0;
 	Current = Loop;
-	CurrentTime = Current ? Phase * Current->GetPlayLength() : 0.0;
+	CurrentTime = Current ? FMath::Fmod(Phase + (Previous ? 0.0 : (double)PhaseOffset), 1.0) * Current->GetPlayLength() : 0.0;
 	Alpha = Previous ? 0.f : 1.f;
 }
 
@@ -519,7 +551,7 @@ void UTDLoopBlendAnimInstance::PlayOneShot(UAnimSequenceBase* InShot, float Rate
 	}
 	Shot = TDMakePlayable(InShot);
 	ShotTime = 0.0;
-	ShotRate = Rate;
+	ShotRate = Rate * RateScale;
 	bShotUpper = bUpperBodyOnly;
 	bShotHold = bHold;
 	ShotBlendIn = BlendIn;

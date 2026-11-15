@@ -427,6 +427,7 @@ private:
 	 */
 	FBox2D GroundBox = FBox2D(FVector2D(-300000.f, -300000.f), FVector2D(300000.f, 300000.f));
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> GroundSlab;
+	bool bSlabLowered = false;
 	/** Hide the slab (collision kept) under the procedural terrain, whose flat basin draws the floor; retries while it spawns. */
 	void AdoptTerrainMaterial();
 	int32 TerrainMaterialTries = 0;

@@ -1,6 +1,7 @@
 // Triad Drift - Squad (Teammate 3). ENG-07: squad manager & instant switching (PROTECT), ENG-03 respawn.
 
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Squad/TDShadowMode.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/Squad/TDBarkLines.h"
 #include "HAL/IConsoleManager.h"
@@ -27,6 +28,8 @@ namespace TDSquadManagerPrivate
 {
 	/** One manager per world. Weak, so a destroyed manager never dangles. */
 	static TArray<TWeakObjectPtr<ATDSquadManager>> GInstances;
+	/** #201: shadow mode for this session (level travel keeps it; a fresh process starts ON). */
+	static bool bSessionShadowMode = true;
 }
 
 ATDSquadManager::ATDSquadManager()
@@ -91,6 +94,7 @@ void ATDSquadManager::BeginPlay()
 	TDSquad::BindActorKilled(this);
 	// Arriving after the flow's last broadcast (level travel): start from its current line.
 	ObjectiveText = TDSquad::GetCurrentObjectiveText(this);
+	bShadowMode = TDSquadManagerPrivate::bSessionShadowMode; // #201: the player's choice survives level travel
 }
 
 void ATDSquadManager::EndPlay(const EEndPlayReason::Type Reason)
@@ -676,6 +680,7 @@ bool ATDSquadManager::SwitchToInternal(ETDShipId Ship, bool bForced)
 		TDSquad::SetVelocity(OldShip, OldVel);
 	}
 	TDSquad::SetVelocity(NewShip, NewVel);
+	RefreshShadowBuffs(); // #201: the ship you take loses the solo buff this frame, the one you leave gets it
 
 	if (const UTDShipVisuals* V = TDSquad::GetShipVisuals(NewShip))
 	{
@@ -896,13 +901,17 @@ void ATDSquadManager::HandleWaveStarted(int32 WaveNumber, float Intensity01)
 
 void ATDSquadManager::NotifyPowerUsed(ETDShipId Ship)
 {
-	// Only the player's ship uses powers, but record any use: the window is about the player's timing.
+	// The window is about the player's timing (callers pass the player's ship; see HandlePowerUsed).
 	LastPowerTime = RealNow();
 }
 
 void ATDSquadManager::HandlePowerUsed(ETDShipId Ship, FName PowerName)
 {
-	NotifyPowerUsed(Ship);
+	// #201: wingmen use powers too now. Only the PLAYER's power arms Switch Strike.
+	if (Ship == ActiveShipId)
+	{
+		NotifyPowerUsed(Ship);
+	}
 }
 
 void ATDSquadManager::StartSwitchStrike(ATDShip* OnShip)
@@ -1015,6 +1024,12 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 	}
 
 	RunPendingSwitch();
+
+	// #201: keep the solo buff on exactly the AI-flown ships (cheap; also covers respawns and retakes).
+	if (RealNow() >= NextShadowBuffRefresh)
+	{
+		RefreshShadowBuffs();
+	}
 
 	// Low hull line, once per dip (re-armed after a repair or respawn).
 	for (FTDSquadSlot& Slot : Slots)
@@ -1656,4 +1671,91 @@ float ATDSquadManager::GetAltitude() const
 bool ATDSquadManager::IsOutOfBounds() const
 {
 	return TDSquad::IsOutOfBounds(GetActiveShip());
+}
+
+// ---------------------------------------------------------------------------------------------
+// Shadow mode (#201)
+// ---------------------------------------------------------------------------------------------
+
+const FName ATDSquadManager::ShadowSoloKey(TEXT("ShadowSolo"));
+
+void ATDSquadManager::SetShadowMode(bool bOn)
+{
+	if (bShadowMode == bOn)
+	{
+		return;
+	}
+	bShadowMode = bOn;
+	TDSquadManagerPrivate::bSessionShadowMode = bOn;
+	RefreshShadowBuffs();
+	for (FTDSquadSlot& Slot : Slots)
+	{
+		if (Slot.Wingman && Slot.ShipId != ActiveShipId)
+		{
+			Slot.Wingman->NotifyShadowModeChanged();
+		}
+		// Placeholder feedback until the HUD indicator: the wingmen flash (white = back on your wing, their colour = solo).
+		if (Slot.Ship && Slot.ShipId != ActiveShipId && Slot.State == ETDSquadSlotState::Alive)
+		{
+			TDSquad::PlayPlaceholderPulse(Slot.Ship, 900.f, bOn ? FLinearColor::White : UTDStatics::ShipColor(Slot.ShipId), 0.5f);
+		}
+	}
+	UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD shadow mode %s (leash %.0f m, wingman damage x%.2f, aim error x%.2f)"), bOn ? TEXT("ON") : TEXT("OFF"),
+		GetWingmanLeash() / 100.f, bOn ? 1.f : TDShadow::SoloDamageMultiplier(), bOn ? 1.f : TDShadow::SoloAimErrorScale());
+	OnShadowModeChanged.Broadcast(bOn);
+}
+
+float ATDSquadManager::GetWingmanLeash() const
+{
+	return bShadowMode ? TDShadow::ShadowLeash() : TDShadow::SoloLeash();
+}
+
+void ATDSquadManager::RefreshShadowBuffs()
+{
+	NextShadowBuffRefresh = RealNow() + 0.5;
+	const float Mult = TDShadow::SoloDamageMultiplier();
+	for (const FTDSquadSlot& Slot : Slots)
+	{
+		if (!Slot.Ship)
+		{
+			continue;
+		}
+		const bool bSolo = !bShadowMode && Slot.ShipId != ActiveShipId && Slot.State == ETDSquadSlotState::Alive && Mult > 1.f;
+		if (bSolo)
+		{
+			TDSquad::SetOutgoingDamageMultiplier(Slot.Ship, ShadowSoloKey, Mult);
+		}
+		else
+		{
+			TDSquad::ClearOutgoingDamageMultiplier(Slot.Ship, ShadowSoloKey);
+		}
+	}
+}
+
+void ATDSquadManager::DumpSquad(TArray<FString>& OutLines) const
+{
+	const ATDShip* Leader = GetActiveShip();
+	OutLines.Add(FString::Printf(TEXT("TDSQUAD dump: shadow=%s leash=%.0f m active=%s wingmenPassive=%d powers=%d"), bShadowMode ? TEXT("ON") : TEXT("OFF"),
+		GetWingmanLeash() / 100.f, *UEnum::GetDisplayValueAsText(ActiveShipId).ToString(), bWingmenPassive ? 1 : 0, TDShadow::PowersEnabled() ? 1 : 0));
+	for (const FTDSquadSlot& Slot : Slots)
+	{
+		const ATDShip* Ship = Slot.Ship;
+		const FString Name = UEnum::GetDisplayValueAsText(Slot.ShipId).ToString();
+		if (!Ship)
+		{
+			OutLines.Add(FString::Printf(TEXT("TDSQUAD dump: %s not spawned"), *Name));
+			continue;
+		}
+		const float Dist = Leader ? FVector::Dist(Ship->GetActorLocation(), Leader->GetActorLocation()) : 0.f;
+		const bool bPlayer = Slot.ShipId == ActiveShipId;
+		const ATDWingmanAIController* Wing = (!bPlayer && Slot.Wingman && Slot.Wingman->GetPawn() == Ship) ? Slot.Wingman.Get() : nullptr;
+		const AActor* Target = Wing ? Wing->GetCurrentTarget() : nullptr;
+		const FString StateText = Slot.State != ETDSquadSlotState::Alive ? FString(TEXT("down"))
+			: (Wing ? UEnum::GetDisplayValueAsText(Wing->GetWingmanState()).ToString() : FString(TEXT("-")));
+		OutLines.Add(FString::Printf(TEXT("TDSQUAD dump: %s %s mode=%s state=%s target=%s dist=%.0f m hull=%.2f shield=%.2f weaponDamage=x%.2f | %s"),
+			*Name, bPlayer ? TEXT("PLAYER") : TEXT("wingman"),
+			bPlayer ? TEXT("-") : (bShadowMode ? TEXT("shadow") : TEXT("solo")),
+			*StateText, Target ? *Target->GetName() : TEXT("none"), Dist / 100.f, TDSquad::GetHull01(Ship), TDSquad::GetShield01(Ship),
+			TDSquad::GetWeaponDamageMultiplier(Ship), *TDSquad::DescribePowers(Ship)));
+	}
 }

@@ -419,7 +419,7 @@ void UTDPortalBlasterPower::HandleInputPressed()
 	{
 		// Portal B obeys CanActivate's owner rules too: a dead or AI-flown Rift places nothing (second review, ENG-09).
 		const UTDHealthComponent* Health = UTDStatics::GetHealth(GetOwner());
-		if ((Health && !Health->IsAlive()) || (bRequirePlayerControl && !IsOwnerPlayerControlled()))
+		if ((Health && !Health->IsAlive()) || (bRequirePlayerControl && !IsOwnerPlayerControlled() && !WasStartedByAI())) // #201: the wingman AI's own pair
 		{
 			return;
 		}

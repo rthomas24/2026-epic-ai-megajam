@@ -92,6 +92,7 @@ struct UNREALGAMEJAM_API FTDTerrainStyle
 	FBox2D MicroRegion = FBox2D(ForceInit);
 	float MicroMargin = 15000.f;
 	float MicroAmount = 1.f;
+	float MaxMicroDepth = 250.f;	// cm: deepest the relief goes below the course ground inside the walkable region
 	bool bCinderGround = false;
 
 	static FTDTerrainStyle ForPlanet(ETDDestination Planet);
@@ -147,6 +148,7 @@ public:
 	float ReliefMeters() const;
 
 	/** The micro-relief alone (cm, 0 outside the region and on the course's flat shapes). */
+	float MicroDepthLimit(float X, float Y) const;
 	float MicroRelief(float X, float Y, float* OutCrack = nullptr) const;
 	/** 0..1: how far a point is inside the micro region (1 well inside, 0 at its edge and beyond). */
 	float MicroWeight(float X, float Y) const;

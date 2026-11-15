@@ -96,6 +96,19 @@ bool UTDMissileSwarmPower::OnActivate()
 		}
 		Targeting->ClearLocks();
 	}
+	// #201: a wingman's swarm goes at the targets its AI chose.
+	if (bAIActivating)
+	{
+		Targets.Reset();
+		for (const TWeakObjectPtr<AActor>& T : AITargets)
+		{
+			if (T.IsValid())
+			{
+				Targets.Add(T.Get());
+			}
+		}
+	}
+	AITargets.Reset();
 	LastTargets.Reset();
 	for (AActor* T : Targets)
 	{

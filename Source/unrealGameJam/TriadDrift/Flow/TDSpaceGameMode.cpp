@@ -219,9 +219,16 @@ void ATDSpaceGameMode::ApplyStartingShip()
 {
 	// Resume (Continue / retake) in the ship the player was last flying.
 	ATDSquadManager* Squad = Cast<ATDSquadManager>(SquadManager);
-	const UTDGameInstance* GI = UTDGameInstance::Get(this);
+	UTDGameInstance* GI = UTDGameInstance::Get(this);
 	if (Squad && GI)
 	{
+		// A respawn inside this level (a scene restart, the Aftermath's re-stage) keeps the ship being flown now.
+		// T7's Shipping run: LastShip only changes on planet travel, so it was stale ("Kato") and the squad restarted
+		// in Kato at the wave-2 aftermath with no switch key and no death.
+		if (Squad->GetShip(Squad->GetActiveShipId()) != nullptr)
+		{
+			GI->SetLastShip(Squad->GetActiveShipId());
+		}
 		Squad->StartingShip = GI->GetProgressRef().LastShip;
 	}
 }

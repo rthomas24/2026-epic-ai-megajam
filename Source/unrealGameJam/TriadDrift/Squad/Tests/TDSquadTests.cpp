@@ -734,6 +734,15 @@ bool FTDSquadFormation::RunTest(const FString& Parameters)
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadEngage, "TriadDrift.Squad.Wingmen.EngageWithoutPowers", TD_TEST_FLAGS)
 bool FTDSquadEngage::RunTest(const FString& Parameters)
 {
+	// #201: wingmen use powers now; with td.Squad.Powers 0 they are the old basic-attack wingmen, which this test keeps proving.
+	IConsoleVariable* WingPowers = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Squad.Powers"));
+	if (!TestNotNull(TEXT("td.Squad.Powers exists"), WingPowers))
+	{
+		return false;
+	}
+	const int32 WingPowersBefore = WingPowers->GetInt();
+	WingPowers->Set(0);
+	ON_SCOPE_EXIT { WingPowers->Set(WingPowersBefore); };
 	for (const float Step : GFrameSteps)
 	{
 		FSquadFixture F;
@@ -769,6 +778,65 @@ bool FTDSquadEngage::RunTest(const FString& Parameters)
 			UTDPowerComponent::FindPower(F.Ship(ETDShipId::Lancer), ETDPowerInput::Signature1));
 		TestFalse(TEXT("no Switch Strike from wingmen"), F.Squad->IsSwitchStrikeActive());
 	}
+	return true;
+}
+
+// #201: shadow mode. Default ON; OFF puts the solo damage buff on exactly the two AI-flown ships, widens the leash
+// (capped), fires the change event once, and a switch moves the buff with the ships in the same frame.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadShadowMode, "TriadDrift.Squad.Shadow.ModeBuffAndLeash", TD_TEST_FLAGS)
+bool FTDSquadShadowMode::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	ON_SCOPE_EXIT { F.Squad->SetShadowMode(true); }; // the mode is kept for the session: never leak OFF into other tests
+	F.Squad->SetShadowMode(true);
+	TestTrue(TEXT("shadow mode is on"), F.Squad->IsShadowMode());
+	const float ShadowLeash = F.Squad->GetWingmanLeash();
+	F.W.Advance(0.2f);
+	TestEqual(TEXT("no buff while shadowing"), TDSquad::GetWeaponDamageMultiplier(F.Ship(ETDShipId::Lancer)), 1.f, 0.001f);
+
+	F.Squad->SetShadowMode(false);
+	TestFalse(TEXT("shadow mode is off"), F.Squad->IsShadowMode());
+	TestTrue(TEXT("the solo leash is longer"), F.Squad->GetWingmanLeash() > ShadowLeash * 1.5f);
+	TestTrue(TEXT("the solo leash is capped at 600 m"), F.Squad->GetWingmanLeash() <= 60000.f);
+	TestTrue(TEXT("wingman Lancer is buffed"), TDSquad::GetWeaponDamageMultiplier(F.Ship(ETDShipId::Lancer)) > 1.2f);
+	TestTrue(TEXT("wingman Bastion is buffed"), TDSquad::GetWeaponDamageMultiplier(F.Ship(ETDShipId::Bastion)) > 1.2f);
+	TestEqual(TEXT("the player's ship is not buffed"), TDSquad::GetWeaponDamageMultiplier(F.Ship(ETDShipId::Rift)), 1.f, 0.001f);
+
+	// Switching: the ship you take loses the buff at once, the ship you leave gets it at once.
+	F.W.Advance(0.6f); // past the switch cooldown
+	TestTrue(TEXT("switch to Lancer"), F.Squad->RequestSwitchTo(ETDShipId::Lancer));
+	TestEqual(TEXT("the taken ship is not buffed, same frame"), TDSquad::GetWeaponDamageMultiplier(F.Ship(ETDShipId::Lancer)), 1.f, 0.001f);
+	TestTrue(TEXT("the ship left behind is buffed, same frame"), TDSquad::GetWeaponDamageMultiplier(F.Ship(ETDShipId::Rift)) > 1.2f);
+
+	F.Squad->SetShadowMode(true);
+	TestEqual(TEXT("back on: no buff"), TDSquad::GetWeaponDamageMultiplier(F.Ship(ETDShipId::Rift)), 1.f, 0.001f);
+	return true;
+}
+
+// #201: a wingman hunting alone uses its ship's powers through the real power components, and that never arms
+// the player's Switch Strike.
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDSquadWingPowers, "TriadDrift.Squad.Shadow.WingmenUsePowersWhenAlone", TD_TEST_FLAGS)
+bool FTDSquadWingPowers::RunTest(const FString& Parameters)
+{
+	FSquadFixture F;
+	ON_SCOPE_EXIT { F.Squad->SetShadowMode(true); };
+	F.Squad->SetShadowMode(false);
+	AActor* Enemy = F.SpawnEnemy(FVector(9000.f, 0.f, 0.f), 100000.f);
+	F.W.Advance(12.f);
+	TestTrue(TEXT("a wingman used a power on the tough enemy"), F.Events->PowersUsed >= 1);
+	int32 Uses = 0;
+	for (const ETDShipId Id : { ETDShipId::Lancer, ETDShipId::Bastion })
+	{
+		if (const ATDWingmanAIController* Wing = F.Wing(Id))
+		{
+			Uses += Wing->GetPowerUseCount(0) + Wing->GetPowerUseCount(1) + Wing->GetPowerUseCount(2);
+		}
+	}
+	TestTrue(TEXT("the use is counted on the wingman that made it"), Uses >= 1);
+	TestFalse(TEXT("a wingman's power never arms Switch Strike"), F.Squad->IsSwitchStrikeActive());
+	F.W.Advance(0.6f);
+	F.Squad->RequestSwitchTo(ETDShipId::Bastion);
+	TestTrue(TEXT("(enemy exists)"), Enemy != nullptr);
 	return true;
 }
 
@@ -1308,7 +1376,10 @@ bool FTDSquadLowestHealth::RunTest(const FString& Parameters)
 	AActor* Hurt = F.SpawnEnemy(LancerLoc + FVector(9000.f, -2500.f, 0.f), 1000.f);
 	UTDStatics::ApplyTDDamage(Hurt, 600.f, ETDDamageKind::Energy, F.Ship(ETDShipId::Rift), F.Ship(ETDShipId::Rift));
 	F.W.Advance(0.6f);
-	TestTrue(TEXT("same distance band: the hurt enemy is picked"), F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == Hurt);
+	// #201: while shadowing, the player's own target outranks the tie-break; with no such claim the hurt one is picked.
+	const AActor* PlayersTarget = TDSquad::GetCurrentTarget(F.Ship(ETDShipId::Rift));
+	const AActor* Expected = PlayersTarget == Healthy ? Healthy : Hurt;
+	TestTrue(TEXT("same distance band: the hurt enemy is picked (unless the player is aiming at the other)"), F.Wing(ETDShipId::Lancer)->GetCurrentTarget() == Expected);
 	TestNotNull(TEXT("(healthy enemy exists)"), Healthy);
 	return true;
 }
