@@ -501,3 +501,8 @@ Lead reconciled sessions40–42 into the Nick checkpoint: narrow active-escape r
 ## Nick Lead runtime checkpoint — November 14, 19:35 EST
 
 Lead reconciled original evidence from sessions43–46: on-foot subtitle/card overlap, pre-fix Verdance course-height failure, original-save Cinder recovery failure on36bee71d, and narrow shadow toggle/switch multiplier pass onb1eb44f7. Runtime limits and issue links are in docs/visual/STATUS.md. Existing owners retain all fixes; no unchanged Cinder retry or broader feature closure. All sessions exited0, no Lead native process remains. Private runtime builds preserve the human launch project. Only four owned documentation paths changed; no source/assets or Ryan claims.
+
+
+## Nick Lead runtime checkpoint — November 14, 20:14 EST
+
+Published sessions47–52: bounded shadow assault evidence; remaining projected-marker overlap; actual-flight escape clear with unproven forward-view hull blast; exact720p subtitle/card and tactical cap/fire fixes; pause-menu ship-retention PASS; cold checkpoint identity clarification. Original-evidence links and all fixture limits are in docs/visual/STATUS.md.194/96 remain progression priorities. No native process, feature-marker change, production edit or broader acceptance. Human launch checkout and local work preserved.
