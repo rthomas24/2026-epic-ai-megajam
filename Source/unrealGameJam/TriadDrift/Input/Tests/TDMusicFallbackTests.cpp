@@ -9,13 +9,16 @@
 #include "TriadDrift/Core/TDMusicEventBridge.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Flow/TDGameInstance.h"
+#include "TriadDrift/Flow/TDSaveGame.h"
 #include "TriadDrift/Ground/TDGroundActors.h"
 #include "TriadDrift/Travel/TDDescentSubsystem.h"
 #include "TriadDrift/Tests/TDTestWorld.h"
 #include "HAL/IConsoleManager.h"
 #include "Misc/ScopeExit.h"
 #include "Sound/SoundBase.h"
+#include "Sound/SoundWave.h"
 #include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
 
 namespace TDT1Fallback
@@ -40,7 +43,7 @@ namespace TDT1Fallback
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1FallbackAssets, "TriadDrift.Input.MusicFallback.EveryAssignedTrackLoads", TD_TEST_FLAGS)
 bool FTDT1FallbackAssets::RunTest(const FString& Parameters)
 {
-	for (const ETDMusicPlacement P : { ETDMusicPlacement::Credits, ETDMusicPlacement::CinderExplore, ETDMusicPlacement::CinderCombat, ETDMusicPlacement::CoreChamber, ETDMusicPlacement::ReactorFight, ETDMusicPlacement::VerdanceExplore })
+	for (const ETDMusicPlacement P : { ETDMusicPlacement::Credits, ETDMusicPlacement::CinderExplore, ETDMusicPlacement::CinderCombat, ETDMusicPlacement::CoreChamber, ETDMusicPlacement::ReactorFight, ETDMusicPlacement::VerdanceExplore, ETDMusicPlacement::Escape })
 	{
 		const TArray<FSoftObjectPath>& Tracks = UTDMusicFallbackSubsystem::TracksFor(P);
 		TestTrue(*FString::Printf(TEXT("%s has a track"), *UEnum::GetValueAsString(P)), Tracks.Num() > 0);
@@ -51,7 +54,6 @@ bool FTDT1FallbackAssets::RunTest(const FString& Parameters)
 			if (S) { AddInfo(FString::Printf(TEXT("%s: %s, %.1f s%s"), *UEnum::GetValueAsString(P), *S->GetName(), S->GetDuration(), S->IsLooping() ? TEXT(", looping asset") : TEXT(", plays once"))); }
 		}
 	}
-	TestEqual(TEXT("the escape (Ritual) is not imported: empty, nothing plays"), UTDMusicFallbackSubsystem::TracksFor(ETDMusicPlacement::Escape).Num(), 0);
 	for (const TCHAR* Path : { TEXT("/Game/TriadDrift/Audio/DominionAssault02/MUS_DominionAssault_PushTheAttack_Full_01.MUS_DominionAssault_PushTheAttack_Full_01"),
 		TEXT("/Game/TriadDrift/Audio/IdleAmbient01/MUS_SpaceIdle_Ambient1_Full_01.MUS_SpaceIdle_Ambient1_Full_01"),
 		TEXT("/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.MUS_Combat_EtherealPulseRemix_01") })
@@ -170,7 +172,8 @@ bool FTDT1LateWaveMusic::RunTest(const FString& Parameters)
 		USoundBase* Music = nullptr;
 		for (int32 i = 0; i < 50 && !Music; ++i) { FlushAsyncLoading(); Music = R.D->GetResolvedCombatMusic(); R.W.Advance(0.05f); }
 		if (Music) { AddInfo(FString::Printf(TEXT("Waves1to2 -> %s (style CombatMusic)"), *Music->GetName())); }
-		TestTrue(TEXT("waves 1-2: not the waves 3-5 track"), !Music || Music->GetPathName() != UTDMusicDirectorSubsystem::LateWaveFallbackPath().ToString());
+		const UTDUIStyle* Style = UTDStatics::LoadPresentation<UTDUIStyle>(TEXT("DA_UI_Style"));
+		TestTrue(TEXT("waves 1-2 resolve the assigned supplied style music, even when reused later"), Style && Music && Music == Style->CombatMusic.LoadSynchronous());
 	}
 	{
 		// #139: a warm cache, then the switch goes off - the engineering fallback is no longer the track; on again, it is back.
@@ -221,7 +224,161 @@ bool FTDT1FallbackInterior::RunTest(const FString& Parameters)
 	ATDPlanetCourse::OnInteriorMoment.Broadcast(UTDMusicEventBridge::EscapeStarted, nullptr);
 	R.W.Advance(0.1f);
 	TestEqual(TEXT("the escape is wanted"), R.F->GetWantedPlacement(), ETDMusicPlacement::Escape);
-	TestEqual(TEXT("... but Ritual isn't imported: nothing plays (the beds carry on)"), R.F->GetPlayingPlacement(), ETDMusicPlacement::None);
+	TestEqual(TEXT("Ritual owns the escape"), R.F->GetPlayingPlacement(), ETDMusicPlacement::Escape);
+	TestTrue(TEXT("the supplied full Ritual master"), R.F->GetPlayingTrack().ToString().Contains(TEXT("MUS_DominionEscape_Ritual_Full_01")));
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1EscapeMusicRestore, "TriadDrift.Input.MusicFallback.EscapeRestoreReservesScoreBeforeTheFirstTick", TD_TEST_FLAGS)
+bool FTDT1EscapeMusicRestore::RunTest(const FString& Parameters)
+{
+	IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Music.Fallback"));
+	if (!TestNotNull(TEXT("fallback switch"), CVar)) { return false; }
+	const int32 Was = CVar->GetInt();
+	ON_SCOPE_EXIT { CVar->Set(Was, ECVF_SetByCode); };
+	CVar->Set(1, ECVF_SetByCode);
+	// Separate fresh worlds model late binding on a ground restore and the new galaxy after travel: neither emits
+	// EscapeStarted. This verifies routing/ownership, not disk Continue, seamless audio travel or listening.
+	for (const ETDDestination Destination : { ETDDestination::DominionInterior, ETDDestination::Galaxy })
+	{
+		TDT1Fallback::FRig R;
+		UTDGameInstance* GI = Cast<UTDGameInstance>(R.W.GetGameInstance());
+		if (!R.F || !R.D || !GI) { return false; }
+		GI->NotifyLevelEntered(Destination);
+		GI->GetMutableProgress().Phase = Destination == ETDDestination::Galaxy ? ETDGamePhase::Escape : ETDGamePhase::DominionInterior;
+		GI->GetMutableProgress().CompletedObjectives.Add(FName(TEXT("Obj_DI_Core")));
+		R.D->SetCombatOverrideForTests(true);
+		R.D->SetMusicForTests(NewObject<USoundWave>());
+		const int32 Before = R.D->GetStartCount();
+		TestTrue(TEXT("escape reserves the bed before its fallback tick"), R.F->IsFallbackScorePlaying());
+		R.D->Tick(0.05f); // deliberately tick the generic director first
+		TestEqual(TEXT("no generic combat start in the restore gap"), R.D->GetStartCount(), Before);
+		R.W.Advance(0.2f);
+		TestEqual(TEXT("restored escape wanted without replaying its event"), R.F->GetWantedPlacement(), ETDMusicPlacement::Escape);
+		TestEqual(TEXT("the imported Ritual route plays"), R.F->GetPlayingPlacement(), ETDMusicPlacement::Escape);
+		TestTrue(TEXT("the correct full master route"), R.F->GetPlayingTrack().ToString().Contains(TEXT("MUS_DominionEscape_Ritual_Full_01")));
+		R.Emit(TEXT("CoreChamberEntered"));
+		R.Emit(TEXT("ReactorFightStarted"));
+		TestEqual(TEXT("late earlier moments cannot downgrade restored escape"), R.F->GetWantedPlacement(), ETDMusicPlacement::Escape);
+		TestEqual(TEXT("the generic bed never restarted"), R.D->GetStartCount(), Before);
+	}
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1EscapeMusicOwnership, "TriadDrift.Input.MusicFallback.EscapeYieldsAndHandsOffToVictory", TD_TEST_FLAGS)
+bool FTDT1EscapeMusicOwnership::RunTest(const FString& Parameters)
+{
+	TDT1Fallback::FRig R;
+	UTDGameInstance* GI = Cast<UTDGameInstance>(R.W.GetGameInstance());
+	IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Music.Fallback"));
+	if (!R.F || !R.D || !GI || !CVar) { return false; }
+	const int32 Was = CVar->GetInt();
+	ON_SCOPE_EXIT { CVar->Set(Was, ECVF_SetByCode); };
+	CVar->Set(1, ECVF_SetByCode);
+	GI->GetMutableProgress().Phase = ETDGamePhase::Escape;
+	R.W.Advance(0.1f);
+	TestEqual(TEXT("escape starts"), R.F->GetPlayingPlacement(), ETDMusicPlacement::Escape);
+	R.D->RequestExclusiveScore(TEXT("EscapeOwnerControl"));
+	R.W.Advance(0.1f);
+	TestEqual(TEXT("exclusive score still wins"), R.F->GetPlayingPlacement(), ETDMusicPlacement::None);
+	R.D->ReleaseExclusiveScore(TEXT("EscapeOwnerControl"), 0.f);
+	R.W.Advance(0.2f);
+	TestEqual(TEXT("Ritual resumes after the owner releases"), R.F->GetPlayingPlacement(), ETDMusicPlacement::Escape);
+	CVar->Set(0, ECVF_SetByCode);
+	R.W.Advance(0.1f);
+	TestEqual(TEXT("fallback switch still stops the voice"), R.F->GetPlayingPlacement(), ETDMusicPlacement::None);
+	TestFalse(TEXT("disabled escape does not reserve the bed"), R.F->IsFallbackScorePlaying());
+	CVar->Set(1, ECVF_SetByCode);
+	R.W.Advance(0.1f);
+	TestEqual(TEXT("enabled escape returns"), R.F->GetPlayingPlacement(), ETDMusicPlacement::Escape);
+	R.Emit(TEXT("VictoryBegan")); // event can precede the phase snapshot
+	R.Emit(TEXT("EscapeStarted")); // a late old-world moment must not restart the score over the stinger
+	TestEqual(TEXT("no escape over the victory stinger"), R.F->GetPlayingPlacement(), ETDMusicPlacement::None);
+	GI->GetMutableProgress().Phase = ETDGamePhase::Victory;
+	R.Emit(TEXT("VictoryStingerDone"));
+	TestEqual(TEXT("the existing credits playlist follows"), R.F->GetPlayingPlacement(), ETDMusicPlacement::Credits);
+	R.Emit(TEXT("VictoryEnded"));
+	TestEqual(TEXT("credits and old escape both end"), R.F->GetPlayingPlacement(), ETDMusicPlacement::None);
+	TestFalse(TEXT("victory releases the escape bed reservation"), R.F->IsFallbackScorePlaying());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1CinderSavedPadMusic, "TriadDrift.Input.MusicFallback.CinderSavedPadRestoreWithoutReveal", TD_TEST_FLAGS)
+bool FTDT1CinderSavedPadMusic::RunTest(const FString& Parameters)
+{
+	IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(TEXT("td.Music.Fallback"));
+	if (!TestNotNull(TEXT("fallback switch"), CVar)) { return false; }
+	const int32 Was = CVar->GetInt();
+	ON_SCOPE_EXIT { CVar->Set(Was, ECVF_SetByCode); };
+	CVar->Set(1, ECVF_SetByCode);
+	TDT1Fallback::FRig R;
+	UTDGameInstance* GI = Cast<UTDGameInstance>(R.W.GetGameInstance());
+	if (!R.F || !R.B || !R.D || !GI) { return false; }
+	UTDSaveGame* Save = NewObject<UTDSaveGame>();
+	Save->Checkpoint.bValid = true;
+	Save->Checkpoint.Destination = ETDDestination::Cinder;
+	Save->Checkpoint.Progress.Phase = ETDGamePhase::Cinder;
+	Save->Checkpoint.Progress.ReturnPoint = TEXT("Cinder_Pad");
+	if (!TestTrue(TEXT("in-memory ground checkpoint applies"), GI->ApplySave(*Save))) { return false; }
+	TestFalse(TEXT("no reveal event was replayed"), R.B->GetMusicState().bPlanetRevealed);
+	R.W.Advance(0.2f);
+	TestEqual(TEXT("saved pad wants exploration without reveal"), R.F->GetWantedPlacement(), ETDMusicPlacement::CinderExplore);
+	TestEqual(TEXT("supplied Cinder exploration plays"), R.F->GetPlayingPlacement(), ETDMusicPlacement::CinderExplore);
+	R.Emit(TEXT("GroundCombat"));
+	TestEqual(TEXT("restored encounter takes combat score"), R.F->GetPlayingPlacement(), ETDMusicPlacement::CinderCombat);
+	R.Emit(TEXT("GroundAllClear"));
+	TestEqual(TEXT("all clear returns exploration"), R.F->GetPlayingPlacement(), ETDMusicPlacement::CinderExplore);
+	R.D->RequestExclusiveScore(TEXT("CinderRestoreOwner"));
+	R.W.Advance(0.1f);
+	TestEqual(TEXT("exclusive owner still stands fallback down"), R.F->GetPlayingPlacement(), ETDMusicPlacement::None);
+	TestEqual(TEXT("saved placement still wanted during claim"), R.F->GetWantedPlacement(), ETDMusicPlacement::CinderExplore);
+	R.D->ReleaseExclusiveScore(TEXT("CinderRestoreOwner"), 0.f);
+	R.W.Advance(0.2f);
+	TestEqual(TEXT("released owner returns restored score"), R.F->GetPlayingPlacement(), ETDMusicPlacement::CinderExplore);
+	CVar->Set(0, ECVF_SetByCode);
+	R.W.Advance(0.1f);
+	TestEqual(TEXT("switch still stops restored score"), R.F->GetPlayingPlacement(), ETDMusicPlacement::None);
+	CVar->Set(1, ECVF_SetByCode);
+	R.W.Advance(0.1f);
+	TestEqual(TEXT("reenabled restored score returns"), R.F->GetPlayingPlacement(), ETDMusicPlacement::CinderExplore);
+	TestFalse(TEXT("restore correction never changes global reveal state"), R.B->GetMusicState().bPlanetRevealed);
+	GI->GetMutableProgress().ReturnPoint = NAME_None; // the planet director clears this on reboarding
+	R.W.Advance(0.1f);
+	TestEqual(TEXT("cleared pad no longer bypasses reveal gate"), R.F->GetWantedPlacement(), ETDMusicPlacement::None);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDT1CinderSavedPadNegatives, "TriadDrift.Input.MusicFallback.CinderRestoreDoesNotBypassFreshArrivalGate", TD_TEST_FLAGS)
+bool FTDT1CinderSavedPadNegatives::RunTest(const FString& Parameters)
+{
+	struct FCase { const TCHAR* Name; ETDDestination Destination; ETDGamePhase Phase; FName Pad; };
+	const FCase Cases[] = {
+		{ TEXT("fresh arrival"), ETDDestination::Cinder, ETDGamePhase::Cinder, NAME_None },
+		{ TEXT("wrong pad"), ETDDestination::Cinder, ETDGamePhase::Cinder, TEXT("Verdance_Pad") },
+		{ TEXT("wrong phase"), ETDDestination::Cinder, ETDGamePhase::Wave5, TEXT("Cinder_Pad") },
+		{ TEXT("wrong destination"), ETDDestination::Galaxy, ETDGamePhase::Cinder, TEXT("Cinder_Pad") },
+	};
+	for (const FCase& C : Cases)
+	{
+		TDT1Fallback::FRig R;
+		UTDGameInstance* GI = Cast<UTDGameInstance>(R.W.GetGameInstance());
+		if (!R.F || !R.B || !GI) { return false; }
+		UTDSaveGame* Save = NewObject<UTDSaveGame>();
+		Save->Checkpoint.bValid = true;
+		Save->Checkpoint.Destination = C.Destination;
+		Save->Checkpoint.Progress.Phase = C.Phase;
+		Save->Checkpoint.Progress.ReturnPoint = C.Pad;
+		if (!TestTrue(FString(C.Name) + TEXT(": applies"), GI->ApplySave(*Save))) { return false; }
+		R.W.Advance(0.2f);
+		TestFalse(FString(C.Name) + TEXT(": no fabricated reveal"), R.B->GetMusicState().bPlanetRevealed);
+		TestEqual(FString(C.Name) + TEXT(": no Cinder placement"), R.F->GetWantedPlacement(), ETDMusicPlacement::None);
+		if (C.Pad.IsNone())
+		{
+			if (UTDDescentSubsystem* Desc = UTDDescentSubsystem::Get(R.W.GetWorld())) { Desc->OnRevealed.Broadcast(ETDDestination::Cinder); }
+			R.W.Advance(0.2f);
+			TestEqual(TEXT("fresh arrival still starts on its normal reveal"), R.F->GetWantedPlacement(), ETDMusicPlacement::CinderExplore);
+		}
+	}
 	return true;
 }
 

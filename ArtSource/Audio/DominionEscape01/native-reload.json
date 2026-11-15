@@ -1,0 +1,51 @@
+{
+  "status": "fresh-process reload passed",
+  "records": [
+    {
+      "path": "/Game/TriadDrift/Presentation/DA_UI_Style",
+      "properties": {
+        "combat_music": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.MUS_Combat_EtherealPulseRemix_01",
+        "intro_music": "/Game/TriadDrift/Audio/IntroAmbient01/MUS_IntroAmbient_HerosWake_01.MUS_IntroAmbient_HerosWake_01",
+        "tutorial_music": "/Game/TriadDrift/Audio/CombatMusic01/MS_TD_TutorialMusic.MS_TD_TutorialMusic",
+        "menu_music": null
+      }
+    },
+    {
+      "path": "/Game/TriadDrift/Gameplay/Characters/FX/DA_UI_Style",
+      "properties": {
+        "combat_music": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.MUS_Combat_EtherealPulseRemix_01",
+        "intro_music": "/Game/TriadDrift/Audio/IntroAmbient01/MUS_IntroAmbient_HerosWake_01.MUS_IntroAmbient_HerosWake_01",
+        "tutorial_music": null,
+        "menu_music": "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01.MUS_Menu_EtherialPulse_01"
+      }
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/DominionEscape01/MUS_DominionEscape_Ritual_Full_01.MUS_DominionEscape_Ritual_Full_01",
+      "duration": 127.5999984741211,
+      "looping": false,
+      "volume": 1.0,
+      "sound_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music"
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/CinderMusic01/MUS_Cinder_Exploration_World_Full_01.MUS_Cinder_Exploration_World_Full_01",
+      "duration": 150.0,
+      "looping": true,
+      "volume": 1.0,
+      "sound_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music"
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/CinderMusic01/MUS_Cinder_Combat_Fall_Full_01.MUS_Cinder_Combat_Fall_Full_01",
+      "duration": 148.8000030517578,
+      "looping": true,
+      "volume": 1.0,
+      "sound_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music"
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.MUS_Combat_EtherealPulseRemix_01",
+      "duration": 139.1999969482422,
+      "looping": true,
+      "volume": 0.5,
+      "sound_class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music"
+    }
+  ]
+}

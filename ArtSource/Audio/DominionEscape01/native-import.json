@@ -1,0 +1,54 @@
+{
+  "claim": "7da310e7",
+  "status": "saved",
+  "changes": [
+    {
+      "before": {
+        "path": "/Game/TriadDrift/Presentation/DA_UI_Style.DA_UI_Style",
+        "combat_music": null,
+        "intro_music": null,
+        "tutorial_music": "/Game/TriadDrift/Audio/CombatMusic01/MS_TD_TutorialMusic.MS_TD_TutorialMusic",
+        "menu_music": null
+      },
+      "after": {
+        "combat_music": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.MUS_Combat_EtherealPulseRemix_01",
+        "intro_music": "/Game/TriadDrift/Audio/IntroAmbient01/MUS_IntroAmbient_HerosWake_01.MUS_IntroAmbient_HerosWake_01",
+        "tutorial_music": "/Game/TriadDrift/Audio/CombatMusic01/MS_TD_TutorialMusic.MS_TD_TutorialMusic",
+        "menu_music": null
+      }
+    },
+    {
+      "before": {
+        "path": "/Game/TriadDrift/Gameplay/Characters/FX/DA_UI_Style.DA_UI_Style",
+        "combat_music": "/Game/TriadDrift/Gameplay/Audio/Music/SW_Music_Combat_01.SW_Music_Combat_01",
+        "intro_music": "/Game/TriadDrift/Gameplay/Audio/Music/SW_Music_Intro_01.SW_Music_Intro_01",
+        "tutorial_music": null,
+        "menu_music": "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01.MUS_Menu_EtherialPulse_01"
+      },
+      "after": {
+        "combat_music": "/Game/TriadDrift/Audio/CombatMusic01/MUS_Combat_EtherealPulseRemix_01.MUS_Combat_EtherealPulseRemix_01",
+        "intro_music": "/Game/TriadDrift/Audio/IntroAmbient01/MUS_IntroAmbient_HerosWake_01.MUS_IntroAmbient_HerosWake_01",
+        "tutorial_music": null,
+        "menu_music": "/Game/TriadDrift/Audio/MenuTheme01/MUS_Menu_EtherialPulse_01.MUS_Menu_EtherialPulse_01"
+      }
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/CinderMusic01/MUS_Cinder_Exploration_World_Full_01.MUS_Cinder_Exploration_World_Full_01",
+      "old_looping": false,
+      "looping": true,
+      "duration": 150.0
+    },
+    {
+      "path": "/Game/TriadDrift/Audio/CinderMusic01/MUS_Cinder_Combat_Fall_Full_01.MUS_Cinder_Combat_Fall_Full_01",
+      "old_looping": false,
+      "looping": true,
+      "duration": 148.8000030517578
+    }
+  ],
+  "ritual": {
+    "path": "/Game/TriadDrift/Audio/DominionEscape01/MUS_DominionEscape_Ritual_Full_01.MUS_DominionEscape_Ritual_Full_01",
+    "duration": 127.5999984741211,
+    "class": "/Game/TriadDrift/Audio/MenuTheme01/SC_MenuTheme_Music.SC_MenuTheme_Music",
+    "looping": false
+  }
+}

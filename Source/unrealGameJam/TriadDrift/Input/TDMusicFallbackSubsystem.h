@@ -8,7 +8,7 @@
 //                 GroundAllClear)
 //   Core chamber  CoreChamberEntered .. ReactorFightStarted: DominionCore01 Cathedral Pulse (the reveal plays inside it)
 //   Reactor fight ReactorFightStarted .. ReactorFightEnded: DominionAssault01 Infinity Zone
-//   Escape        EscapeStarted: Ritual - NOT IMPORTED: the slot is empty, nothing plays
+//   Escape        EscapeStarted / restored escape progress: Nicholas's full Ritual master (Lead imports separately)
 // (The assault score and the quiet-flight bed are the director's own slots; they fall back to DominionAssault02 Push The
 // Attack and IdleAmbient01 when DA_UI_Style leaves them empty: UTDMusicDirectorSubsystem::ResolveAssaultMusic / Idle.)
 //
@@ -65,8 +65,9 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music") ETDMusicPlacement GetPlayingPlacement() const { return Playing; }
 	/** The track sounding now (empty when none). */
 	FSoftObjectPath GetPlayingTrack() const;
-	/** True while a fallback track sounds (the director's beds and the menu music hold). */
-	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music") bool IsFallbackScorePlaying() const { return Playing != ETDMusicPlacement::None; }
+	/** A fallback owns the beds, including an enabled escape awaiting its track/first tick. Playback queries above
+	 *  still report None when no track sounds; a missing Ritual must not silently expose the generic combat bed. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Music") bool IsFallbackScorePlaying() const;
 
 	/** Tests: the current track ended (an audio component's OnAudioFinished does this in the game). */
 	void NotifyTrackFinishedForTests() { HandleFinished(); }
@@ -91,4 +92,5 @@ private:
 	bool bBound = false;
 	bool bTakenOff = false;	// the bridge's Takeoff: the planet theme fades as the ship lifts (a new world starts clear)
 	bool bGroundFight = false; // GroundCombat .. GroundAllClear (the snapshot's bGroundCombat for a late binder)
+	bool bVictory = false; // victory/stinger owns the transition even before the phase snapshot catches up
 };
