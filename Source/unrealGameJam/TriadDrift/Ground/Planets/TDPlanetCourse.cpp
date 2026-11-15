@@ -15,6 +15,7 @@
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "Components/PointLightComponent.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/Crew/TDFutureCrew.h"
@@ -1473,6 +1474,15 @@ void ATDPlanetCourse::Tick(float DeltaSeconds)
 	TickDroneWake();
 	InteriorTime += DeltaSeconds;
 	TickFinalRecord(DeltaSeconds);
+	// Planets: the pilot steps up to 70 cm (Lead, Nov 15: T4's relief sits 60 cm under the course's sills and ramp feet).
+	if (!IsInterior())
+	{
+		const APlayerController* StepPC = GetWorld()->GetFirstPlayerController();
+		if (ACharacter* StepPilot = StepPC ? Cast<ACharacter>(StepPC->GetPawn()) : nullptr; StepPilot && StepPilot->GetCharacterMovement() && StepPilot->GetCharacterMovement()->MaxStepHeight < 70.f)
+		{
+			StepPilot->GetCharacterMovement()->MaxStepHeight = 70.f;
+		}
+	}
 	TickCrossingLabels();
 	TickCoreChamber();
 	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->TickBarks(DeltaSeconds); } // ENG-43's polled barks
@@ -2094,6 +2104,19 @@ void ATDPlanetCourse::BuildCinder()
 	}
 	FinishObjective(Survey, { LOCTEXT("S0", "INVESTIGATE THE MINING COMPLEX"), LOCTEXT("S1", "ACCESS THE SURVEY RECORDS · [E]") }, { AtStation, Records });
 	SurveyTerminal = Records;
+	if (CindOutpost)
+	{
+		// The terminal is inside the kit room (800 x 400, the 160 cm doorway centred on the +X face, which faces the pad):
+		// T7 and T5 both walked the marker's straight line into the wall beside the opening (y 156). The marker leads to
+		// the doorway's centre first (outside, then just inside), then to the terminal.
+		if (UTDObjectiveSubsystem* DoorRoute = UTDObjectiveSubsystem::Get(this))
+		{
+			FBox Room(ForceInit);
+			Room += W(StationAt + FVector(-400.f, -200.f, -100.f));
+			Room += W(StationAt + FVector(400.f, 200.f, 400.f));
+			DoorRoute->AddCrossing(Room, Survey, 1, { Marker(StationAt + FVector(-650.f, 0.f, 100.f)), Marker(StationAt + FVector(-250.f, 0.f, 100.f)) });
+		}
+	}
 
 	// ---- Obj 3: the outpost (-> EMP Pulse on Lancer). North-east, over a magma river. ----
 	const FVector OutHead(2600.f, 2600.f, 0.f);
