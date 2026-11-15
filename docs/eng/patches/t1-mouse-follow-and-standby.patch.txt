@@ -1,0 +1,155 @@
+diff --git a/Source/unrealGameJam/TriadDrift/Input/TDSpacePlayerController.cpp b/Source/unrealGameJam/TriadDrift/Input/TDSpacePlayerController.cpp
+index a39b5073..c27ca63c 100644
+--- a/Source/unrealGameJam/TriadDrift/Input/TDSpacePlayerController.cpp
++++ b/Source/unrealGameJam/TriadDrift/Input/TDSpacePlayerController.cpp
+@@ -684,9 +684,26 @@ void ATDSpacePlayerController::PlayerTick(float DeltaTime)
+ 
+ 	const double Now = GetWorld() ? GetWorld()->GetRealTimeSeconds() : 0.0;
+ 
+-	// Virtual stick re-centring (optional).
+-	if (!bMouseMovedThisFrame && MouseRecenterRate > 0.f)
++	if (bMouseFollowsReticle && !bUsingGamepad)
+ 	{
++		// The nose follows the reticle (Ryan, Nov 14: "easier to control the ships with the mouse"): the reticle marks a
++		// direction in the world. Each frame the ship's own turn is taken off it (the turn moves that direction toward
++		// the screen centre), so the ship turns until its nose is where the reticle was put, then stops, and the reticle
++		// comes back to the centre by itself. No timed re-centring: a resting hand never fights a drift.
++		if (const ATDSpacecraft* Craft = GetSpacecraft())
++		{
++			if (const UTDShipMovementComponent* Move = Craft->GetShipMovement())
++			{
++				const FVector Rate = Move->GetAngularRate(); // deg/s: Y pitch, Z yaw (the sim's Aim.Y / Aim.X)
++				const float Full = FMath::Max(ReticleFullDegrees(), 1.f);
++				VirtualStick -= FVector2D(Rate.Z, Rate.Y) * (DeltaTime / Full);
++				if (VirtualStick.SizeSquared() > 1.f) { VirtualStick.Normalize(); }
++			}
++		}
++	}
++	else if (!bMouseMovedThisFrame && MouseRecenterRate > 0.f)
++	{
++		// Virtual stick re-centring (the old rate-stick model, bMouseFollowsReticle off).
+ 		VirtualStick = FMath::Vector2DInterpTo(VirtualStick, FVector2D::ZeroVector, DeltaTime, MouseRecenterRate);
+ 	}
+ 	bMouseMovedThisFrame = false;
+@@ -786,6 +803,24 @@ void ATDSpacePlayerController::PushFlightInput()
+ 	}
+ }
+ 
++float ATDSpacePlayerController::ReticleFullDegrees() const
++{
++	// The angle off the camera's centre that the reticle shows at full deflection (the same projection as
++	// GetAimWorldDirectionForViewport, horizontally).
++	int32 SizeX = 0, SizeY = 0;
++	GetViewportSize(SizeX, SizeY);
++	if (SizeX <= 0 || SizeY <= 0) { SizeX = 1920; SizeY = 1080; }
++	float FOV = 90.f;
++	if (const ATDShip* Ship = Cast<ATDShip>(GetSpacecraft()))
++	{
++		if (Ship->IsCockpitView() && Ship->GetCockpitCamera()) { FOV = Ship->GetCockpitCamera()->FieldOfView; }
++		else { FOV = (Ship->IsPlayerFlown() && Ship->GetChaseCamera()) ? Ship->GetChaseCamera()->FieldOfView : Ship->GetChaseCameraFOVNow(); }
++	}
++	const float HalfMin = 0.5f * FMath::Min(SizeX, SizeY);
++	const float Ndc = HalfMin * ReticleScreenScale / (0.5f * SizeX);
++	return FMath::RadiansToDegrees(FMath::Atan(Ndc * FMath::Tan(FMath::DegreesToRadians(FMath::Clamp(FOV, 5.f, 170.f) * 0.5f))));
++}
++
+ FVector ATDSpacePlayerController::GetAimWorldDirection() const
+ {
+ 	int32 SizeX = 0, SizeY = 0;
+diff --git a/Source/unrealGameJam/TriadDrift/Input/TDSpacePlayerController.h b/Source/unrealGameJam/TriadDrift/Input/TDSpacePlayerController.h
+index 2b211dd6..70bbc6de 100644
+--- a/Source/unrealGameJam/TriadDrift/Input/TDSpacePlayerController.h
++++ b/Source/unrealGameJam/TriadDrift/Input/TDSpacePlayerController.h
+@@ -105,6 +105,9 @@ public:
+ 	/** As GetAimWorldDirection for an explicit viewport size (tests, offscreen). Uses the ship's own camera. */
+ 	FVector GetAimWorldDirectionForViewport(int32 SizeX, int32 SizeY) const;
+ 
++	/** Degrees off the camera's centre the reticle shows at full virtual-stick deflection (FOV and viewport aware). */
++	float ReticleFullDegrees() const;
++
+ 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Input")
+ 	const FTDFlightInput& GetCurrentFlightInput() const { return CurrentFlightInput; }
+ 
+@@ -211,13 +214,21 @@ protected:
+ 	virtual void OnUnPossess() override;
+ 
+ 	// ---- Tuning ---------------------------------------------------------------------------------
+-	/** Mouse counts -> virtual stick units. */
++	/**
++	 * Mouse: the nose follows the reticle (Ryan, Nov 14). The reticle marks a world direction: the ship turns until its
++	 * nose is there and stops; the reticle returns to the centre as it does (no timed re-centring, no drift to fight).
++	 * Off = the old rate stick (MouseRecenterRate pulls the stick back over time).
++	 */
++	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Mouse")
++	bool bMouseFollowsReticle = true;
++
++	/** Mouse counts -> virtual stick units (Settings' mouse sensitivity multiplies it). 0.0035 -> 0.0049 (+40%, Nov 14). */
+ 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Mouse")
+-	float MouseSensitivity = 0.0035f;
++	float MouseSensitivity = 0.0049f;
+ 
+-	/** Virtual stick radius below which aim is zero. */
++	/** Virtual stick radius below which aim is zero. 0.06 -> 0.03 (Nov 14). */
+ 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Mouse", meta = (ClampMin = "0", ClampMax = "0.9"))
+-	float MouseDeadzone = 0.06f;
++	float MouseDeadzone = 0.03f;
+ 
+ 	/**
+ 	 * Virtual stick re-centres at this rate (1/s) when the mouse is still. 0 = stays put.
+@@ -227,9 +238,10 @@ protected:
+ 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Mouse", meta = (ClampMin = "0"))
+ 	float MouseRecenterRate = 3.f;
+ 
+-	/** Response exponent on the virtual stick (1 = linear, >1 = finer control near centre). */
++	/** Response exponent on the virtual stick (1 = linear, >1 = finer control near centre). 1.3 -> 1.0 (Nov 14): with the
++	 *  nose following the reticle, linear means the turn rate is proportional to how far the reticle is from the nose. */
+ 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Mouse", meta = (ClampMin = "0.5", ClampMax = "4"))
+-	float MouseResponseExponent = 1.3f;
++	float MouseResponseExponent = 1.0f;
+ 
+ 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Input|Mouse")
+ 	bool bInvertMousePitch = false;
+diff --git a/Source/unrealGameJam/TriadDrift/Travel/TDAtmosphereZones.cpp b/Source/unrealGameJam/TriadDrift/Travel/TDAtmosphereZones.cpp
+index a289dc5f..2400b653 100644
+--- a/Source/unrealGameJam/TriadDrift/Travel/TDAtmosphereZones.cpp
++++ b/Source/unrealGameJam/TriadDrift/Travel/TDAtmosphereZones.cpp
+@@ -241,7 +241,19 @@ void UTDAtmosphereEntryComponent::FinishEntry()
+ bool UTDAtmosphereEntryComponent::IsPlanetClosedWarning() const
+ {
+ 	const UWorld* World = GetWorld();
+-	return ClosedPlanet01 > 0.02f || (World && World->GetTimeSeconds() < ClosedLineUntil);
++	// T7's play (Nov 14): held at the edge by a must-hear transmission with nothing on screen to say why. The hold now
++	// shows the lane's large line too (GetPlanetClosedText: STAND BY), neutral, no padlock (IsPlanetClosedComplete).
++	return EntryState == ETDAtmosphereEntryState::Holding || ClosedPlanet01 > 0.02f || (World && World->GetTimeSeconds() < ClosedLineUntil);
++}
++
++FText UTDAtmosphereEntryComponent::GetPlanetClosedText() const
++{
++	return EntryState == ETDAtmosphereEntryState::Holding ? NSLOCTEXT("TDTravel", "StoryHoldLine", "STAND BY  ·  INCOMING TRANSMISSION") : ClosedPlanetText;
++}
++
++bool UTDAtmosphereEntryComponent::IsPlanetClosedComplete() const
++{
++	return EntryState == ETDAtmosphereEntryState::Holding || bClosedPlanetDone;
+ }
+ 
+ void UTDAtmosphereEntryComponent::TickClosedPlanetGuard(float DeltaTime)
+diff --git a/Source/unrealGameJam/TriadDrift/Travel/TDAtmosphereZones.h b/Source/unrealGameJam/TriadDrift/Travel/TDAtmosphereZones.h
+index 616ddd62..c5c2c71b 100644
+--- a/Source/unrealGameJam/TriadDrift/Travel/TDAtmosphereZones.h
++++ b/Source/unrealGameJam/TriadDrift/Travel/TDAtmosphereZones.h
+@@ -151,10 +151,11 @@ public:
+ 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", ClampMax = "1"))
+ 	float ClosedPlanetMaxHeat = 0.62f;
+ 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
+-	FText GetPlanetClosedText() const { return ClosedPlanetText; }
+-	/** The closed planet the line names is a finished one ("VERDANCE · COMPLETE"): the HUD draws it with no padlock. */
++	FText GetPlanetClosedText() const;
++	/** The line is news, not a lock: a finished planet ("VERDANCE · COMPLETE") or the story hold ("STAND BY"); the HUD
++	 *  draws it with no padlock. */
+ 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Atmosphere")
+-	bool IsPlanetClosedComplete() const { return bClosedPlanetDone; }
++	bool IsPlanetClosedComplete() const;
+ 	/** The band outside the atmosphere where the turn-away works (cm). */
+ 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|Atmosphere", meta = (ClampMin = "0", Units = "cm"))
+ 	float ClosedPlanetBand = 15000.f; // 150 m: the orbit return point sits about 200 m off the atmosphere (1.3x its radius) and must stay outside the band
