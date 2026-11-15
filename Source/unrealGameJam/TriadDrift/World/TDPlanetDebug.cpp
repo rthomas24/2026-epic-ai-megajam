@@ -101,6 +101,26 @@ static FAutoConsoleCommandWithWorldAndArgs GTDGroundAtCmd(
 		UE_LOG(LogTemp, Display, TEXT("TD.Env.GroundAt %s (hit %s)"), *P.ToCompactString(), *GetNameSafe(Hit.GetActor()));
 	}));
 
+// #194: count instanced dressing in the world (components, instances, shadow casters).   TD.Env.Instances
+static FAutoConsoleCommandWithWorldAndArgs GTDEnvInstancesCmd(
+	TEXT("TD.Env.Instances"),
+	TEXT("Dev: log instanced mesh components, instances and how many cast shadows."),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+	{
+		if (!World) { return; }
+		int32 Comps = 0, Inst = 0, ShadowInst = 0, Static = 0;
+		for (TActorIterator<AActor> It(World); It; ++It)
+		{
+			TInlineComponentArray<UStaticMeshComponent*> Cs(*It);
+			for (UStaticMeshComponent* C : Cs)
+			{
+				if (UInstancedStaticMeshComponent* I = Cast<UInstancedStaticMeshComponent>(C)) { ++Comps; Inst += I->GetInstanceCount(); if (I->CastShadow) { ShadowInst += I->GetInstanceCount(); } }
+				else if (C) { ++Static; }
+			}
+		}
+		UE_LOG(LogTemp, Display, TEXT("TD.Env.Instances: %d instanced components, %d instances (%d casting shadow), %d other static mesh components"), Comps, Inst, ShadowInst, Static);
+	}));
+
 // Issue #158 (B2-05): stand the player under the nearest canopy clump (Nth nearest with an argument), looking up at its
 // underside from eye height.   TD.Env.UnderClump [N] [Pitch]
 static FAutoConsoleCommandWithWorldAndArgs GTDUnderClumpCmd(
