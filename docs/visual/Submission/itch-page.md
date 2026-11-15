@@ -2,7 +2,7 @@
 
 A missile is on your tail. Switch to Rift and send it through a portal. Cut to Lancer, line up the enemy that fired it, and ram straight through. When the next wave closes in, take Bastion and throw a shield over your wingmen. The two ships you leave behind keep fighting.
 
-Fly between two worlds to give your squad new abilities. On Verdance, recover a signal-analysis device and protect the survey transfer in the glowing jungle. On Cinder, follow the survey records to an excavation, recover the crystals and disable the field anchor. Finish Cinder and clear the fifth wave to open the approach to the Dominion. Break its four shield generators, dock, and take the pilot of the ship you landed into the interior. Your wingmen hold outside while you find what the enemy has been searching for.
+Fly between two worlds to give your squad new abilities. On Verdance, recover a signal-analysis device and protect the survey transfer in the glowing jungle. On Cinder, follow the survey records to an excavation, recover the crystals and disable the field anchor. Finish Cinder and clear the fifth wave to open the approach to the Dominion. Break its four shield generators, dock, and take the pilot of the ship you landed into the interior. Fight through the corridors to discover what the enemy has been searching for.
 
 Every pilot switch is a camera cut. A clean ram or a missile turned back on its owner can earn a money shot. Lose the take and the director calls for another.
 
@@ -20,6 +20,7 @@ Extract the full Windows build to a folder and launch **unrealGameJam.exe** insi
 | Fire primary / secondary | Left / right mouse | Right / left bumper |
 | Use signature power / unlocked ability | Q / E | X / Y |
 | Cycle ships | Tab / Shift+Tab | D-pad right / left |
+| Toggle wingman shadow mode in flight | G | View / Select |
 | Strike / block on foot | Left / right mouse | Right / left trigger |
 | Interact on foot | E | X |
 

@@ -552,3 +552,8 @@ Reconciled the final Ryan handover against #210 and Nick acceptance lanes withou
 Private Build27 (`d6d62f96`, same game source) compiled successfully. Session54 preserved and hash-verified original input saves, then ended before gameplay to free the machine for Nicholas's Shipping playtest: normal exit 0, one HTTP socket-send error, no route verdict and no owned native process remaining. Native/build work waits for explicit confirmation that the human playtest is finished and the game closed. The owner launch-checked package is `playable-main-f2237462`.
 
 Swarm is explicitly decided not shipping enabled, retaining default 0; this is not a balance pass. One consolidated human-gates request is on #210, comment 6896694038. Lead priorities remain original Cinder save, complete New Game campaign, follower passage/boarding, then old-save final record. Shared changes here are coordination notes only, with all historical evidence and feature markers retained. No new production feature shipped, no final submission/package acceptance, and no change to human local work. Final shipped/omitted decisions will be appended after the remaining verification and package confirmation.
+
+
+## Nick Lead submission-copy correction — November 15, 10:25 EST
+
+Removed the outdated claim that wingmen remain outside during Dominion boarding from the itch-page draft. The replacement describes the player corridor route without claiming follower verification. Added the existing G / View shadow-mode mapping, verified in TDSpacePlayerController on source-equivalent d6d62f96. Text only: no game-source changes, physical-controller pass, follower acceptance or public publication. Final package-matched page/credits/video and human submission approval remain pending under #137.
