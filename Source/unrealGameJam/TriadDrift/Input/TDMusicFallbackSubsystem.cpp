@@ -123,12 +123,14 @@ ETDMusicPlacement UTDMusicFallbackSubsystem::ComputeWanted() const
 	const bool bSavedCinderGround = GI && GI->GetCurrentDestination() == ETDDestination::Cinder
 		&& GI->GetProgressRef().Phase == ETDGamePhase::Cinder
 		&& GI->GetProgressRef().ReturnPoint == FName(TEXT("Cinder_Pad"));
-	// Cinder: after the reveal or a landed restore, exploration; a crew encounter running, combat.
+	// Cinder: select a cue once after reveal/restore, then let its full asset play and loop. Routine encounters
+	// must not restart World/Fall every few seconds (#212). Wanted survives a temporary score claim or switch-off.
 	if (const UTDMusicEventBridge* Bridge = UTDMusicEventBridge::GetMusicEventBridge(GetWorld()))
 	{
 		const FTDMusicBridgeState S = Bridge->GetMusicState();
-		if (S.Destination == FName(TEXT("Cinder")) && (S.bPlanetRevealed || bSavedCinderGround))
+		if (S.Destination == FName(TEXT("Cinder")) && (S.bPlanetRevealed || bSavedCinderGround) && !bTakenOff)
 		{
+			if (Wanted == ETDMusicPlacement::CinderExplore || Wanted == ETDMusicPlacement::CinderCombat) { return Wanted; }
 			return (S.bGroundCombat || bGroundFight) ? ETDMusicPlacement::CinderCombat : ETDMusicPlacement::CinderExplore;
 		}
 		// Verdance, after the reveal: Nick's theme (N-059) as a fallback; his own Verdance player's claim stands it down.
@@ -199,10 +201,16 @@ void UTDMusicFallbackSubsystem::StartTrack(ETDMusicPlacement Placement, int32 In
 	StopVoice(0.f);
 	Playing = Placement;
 	TrackIndex = Index;
+#if WITH_DEV_AUTOMATION_TESTS
+	++TrackStartCountForTests;
+#endif
 	// Unity gain, the asset's own class and looping; a plain fade in.
 	Voice = UGameplayStatics::SpawnSound2D(GetWorld(), Sound, 1.f, 1.f, 0.f, nullptr, false, false);
 	if (Voice)
 	{
+#if WITH_DEV_AUTOMATION_TESTS
+		if (VoiceCreatedForTests) { VoiceCreatedForTests(Voice.Get()); }
+#endif
 		Voice->OnAudioFinished.AddUniqueDynamic(this, &UTDMusicFallbackSubsystem::HandleFinished);
 		Voice->FadeIn(Index == 0 ? FadeInSeconds : 0.f, 1.f);
 	}

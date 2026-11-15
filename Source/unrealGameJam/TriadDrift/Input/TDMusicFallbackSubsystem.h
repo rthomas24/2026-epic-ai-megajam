@@ -4,8 +4,8 @@
 //
 //   Credits       after VictoryStingerDone until VictoryEnded: CreditsMusic01 Cathedral Pulse (1), then Ethereal Pulse
 //                 (Remix) (the delivered order)
-//   Cinder        on foot on Cinder after the reveal: CinderMusic01 World (exploration), Fall (combat: GroundCombat ..
-//                 GroundAllClear)
+//   Cinder        after the reveal or a saved-pad restore: select World (exploration) or Fall (combat) once;
+//                 keep that full looping cue through routine encounters until departure or a critical scene change
 //   Core chamber  CoreChamberEntered .. ReactorFightStarted: DominionCore01 Cathedral Pulse (the reveal plays inside it)
 //   Reactor fight ReactorFightStarted .. ReactorFightEnded: DominionAssault01 Infinity Zone
 //   Escape        EscapeStarted / restored escape progress: Nicholas's full Ritual master (Lead imports separately)
@@ -71,6 +71,12 @@ public:
 
 	/** Tests: the current track ended (an audio component's OnAudioFinished does this in the game). */
 	void NotifyTrackFinishedForTests() { HandleFinished(); }
+#if WITH_DEV_AUTOMATION_TESTS
+	int32 GetTrackStartCountForTests() const { return TrackStartCountForTests; }
+	UAudioComponent* GetVoiceForTests() const { return Voice.Get(); }
+	/** Attach playback-position observation before FadeIn starts the voice (the engine samples bound delegates then). */
+	void SetVoiceCreatedForTests(TFunction<void(UAudioComponent*)> Observer) { VoiceCreatedForTests = MoveTemp(Observer); }
+#endif
 
 	static constexpr float FadeInSeconds = 2.f;
 	static constexpr float FadeOutSeconds = 2.f;
@@ -89,6 +95,10 @@ private:
 	ETDMusicPlacement Playing = ETDMusicPlacement::None;
 	ETDMusicPlacement FinishedPlacement = ETDMusicPlacement::None; // played once to its end: don't restart it
 	int32 TrackIndex = 0;
+#if WITH_DEV_AUTOMATION_TESTS
+	int32 TrackStartCountForTests = 0;
+	TFunction<void(UAudioComponent*)> VoiceCreatedForTests;
+#endif
 	bool bBound = false;
 	bool bTakenOff = false;	// the bridge's Takeoff: the planet theme fades as the ship lifts (a new world starts clear)
 	bool bGroundFight = false; // GroundCombat .. GroundAllClear (the snapshot's bGroundCombat for a late binder)
