@@ -53,8 +53,6 @@ Open Settings from the pause menu to adjust controls and sound.
 
 Built in Unreal Engine 5.9 for the 2026 Epic AI MegaJam theme **Director's Cut**. The project credits identify the team, tools and assets used. The development log follows the playable build through the jam.
 
-[Project credits](https://github.com/rthomas24/2026-epic-ai-megajam/blob/main/CREDITS.md) · [How we built Triad Drift](https://github.com/rthomas24/2026-epic-ai-megajam/blob/main/docs/visual/Submission/glass-box.md) · [Development log](https://github.com/rthomas24/2026-epic-ai-megajam/blob/main/DEVLOG.md)
-
 ## Submission disclosure draft — review before publishing
 
 This section is for the submission form. Reconcile it against the final packaged asset inventory; repository experiments and audition candidates are not automatically shipped assets. Team name, final download and trailer links, and team members' Epic-account emails still need the submitting humans. Do not publish private account emails in the repository.
