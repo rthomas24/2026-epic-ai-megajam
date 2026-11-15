@@ -2321,6 +2321,29 @@ void ATDPlanetCourse::BuildCinder()
 	Crates(XGate, XBarracks, 31);
 	Crates(XBarracks, XCommand, 32);
 	Crates(XCommand, XArena, 33);
+	// #213: the mission compound should read as occupied equipment rooms, rather than only walls and cover.
+	// Reuse the supplied outpost kit at the perimeter; keep the centre line, doors, Warden fight and cache clear.
+	// Dress seats each piece on the existing ground. No new light actors, materials or gameplay objects.
+	{
+		const int32 CompoundDressed = Dress({
+			// Barracks: supplies opposite the generator and its power junction.
+			{ TEXT("OutpostDressing"), TEXT("SM_Outpost_CargoCrate"), FVector(12400.f, 7400.f, 0.f), 270.f, 1.f, true },
+			{ TEXT("OutpostDressing"), TEXT("SM_Outpost_SupplyCrate"), FVector(12900.f, 7400.f, 0.f), 255.f, 1.f, true },
+			{ TEXT("OutpostDressing"), TEXT("SM_Outpost_Generator"), FVector(12500.f, 4600.f, 0.f), 90.f, 1.f, true },
+			{ TEXT("OutpostDressing"), TEXT("SM_Outpost_PowerJunction"), FVector(13100.f, 4600.f, 0.f), 90.f, 1.f, true },
+			// Command: a field workstation and power core, with spare cable and supplies opposite.
+			{ TEXT("OutpostDressing"), TEXT("SM_Outpost_FieldTerminal"), FVector(14400.f, 7400.f, 0.f), 270.f, 1.f, true },
+			{ TEXT("Fab/PowerCore"), TEXT("SM_Fab_PowerCore"), FVector(15000.f, 7400.f, 0.f), 270.f, 1.f, true },
+			{ TEXT("Kit/Story"), TEXT("SM_Kit_CableReel"), FVector(14500.f, 4600.f, 0.f), 90.f, 1.f, true },
+			{ TEXT("OutpostDressing"), TEXT("SM_Outpost_SupplyCrate"), FVector(15100.f, 4600.f, 0.f), 100.f, 1.f, true },
+			// Arena: perimeter equipment and old scorch marks leave the combat floor and prototype approach open.
+			{ TEXT("OutpostDressing"), TEXT("SM_Outpost_Floodlight"), FVector(16600.f, 7450.f, 0.f), 270.f, 1.f, true },
+			{ TEXT("OutpostDressing"), TEXT("SM_Outpost_Floodlight"), FVector(16600.f, 4550.f, 0.f), 90.f, 1.f, true },
+			{ TEXT("Kit/Story"), TEXT("SM_Kit_ScorchLines"), FVector(17400.f, 7450.f, 2.f), 15.f, 1.f, false },
+			{ TEXT("Kit/Story"), TEXT("SM_Kit_ScorchLines"), FVector(17400.f, 4550.f, 2.f), 195.f, 1.f, false },
+		}, FVector::ZeroVector, 0.f, TEXT("CinderWardenCompound"));
+		UE_LOG(LogTriadDrift, Display, TEXT("Course: CinderWardenCompound dressing %d/12 pieces"), CompoundDressed);
+	}
 
 	auto RoomFight = [&](float X0, float X1, int32 Step, const TArray<ETDCrewType>& Mix, ATDDoor* OpensDoor)
 	{
