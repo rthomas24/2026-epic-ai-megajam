@@ -1314,6 +1314,9 @@ void ATDPlanetCourse::AddTrailhead(ATDObjective* Obj, const FVector& At, const F
 		if (Column) { Column->SetHiddenInGame(true); }
 		if (Crown) { Crown->SetHiddenInGame(true); }
 	}
+	// The totem is a signpost on the marker's line, never a wall: the pilot walks through it (Nov 15: with the relief 60 cm
+	// under the course, its plinth stood 1 m proud on Cinder's pad -> station line and stopped a marker-following walk).
+	if (Plinth) { Plinth->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore); Plinth->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore); }
 	AActor* Marker = SpawnProp<AActor>(At + FVector(0.f, 0.f, 300.f));
 	if (Marker)
 	{
