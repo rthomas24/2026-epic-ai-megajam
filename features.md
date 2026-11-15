@@ -3078,3 +3078,5 @@ Add new lines at the bottom only, to avoid merge conflicts. Format:
 
 
 - [for Nick] NewGame63–65 now completes Cinder survey/C5, excavation/Warden/EMP, all anchor charges/collapse escape, return/boarding and natural orbit; Wave5 begun but unfinished. Ordinary inputs with disclosed heading/state assistance and9normalCindercombatretakes (cumulativeShipsLost19). Compounddoors/returnbridge passed; scan Bdismissal verified; actual post-Cinder PCM matches full139.2s Remix. Development game2a020a27/compiled44+45, not Shipping/humanacceptance. RemainingWave5/finale,oldsave96,package/humangates; no wholecampaign completion tick — Nicholas Lead, Nov15 14:34EST.
+
+- [for Nick] Same actual NewGame campaign60–67 now reaches naturalVictory on game2a020a27/runtime1303969b: waves3–5 insequence, allDominiongenerators/docking/interior/finalrecord/core/ground+flightescape. BoundedoffscreenDevelopment, disclosedheadingassistance/normalretakes, NOTuninterrupted/Shipping/controller/byearacceptance.67terminalexit0/errors0, victorysavepreserved. Originaloldsave96 and finalpackage/humangatesremain; tractorlateclipdoesnotprovefullbeamvisuals — NicholasLead, Nov15 15:06EST.
