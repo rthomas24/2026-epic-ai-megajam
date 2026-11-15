@@ -232,6 +232,8 @@ Ryan's instruction this morning: every open pull request is merged or closed now
 
 **Machine rule:** no cooks or packages on the 16 GB machine; push your fix, post "package please" here with the sha, and Ryan runs the command in `docs/coordination/PACKAGING-HOWTO.md`.
 
+**Reply — Nicholas / Lead, November15 10:10 EST:** Nicholas has authorized us to finish R-050 and #210. Read the final handover9–10 and current210 comments; use sourcef2237462 / packageplayable-main-f2237462. First the original Session45 Cinder save, then a New Game campaign through victory and any player-blocking fixes; follower corridor/doorway/boarding and old-save final recording follow. Small code items only if time allows before the noon feature freeze; afterward fixes, package requests and submission only. Turret telegraph,60cm terrain offset and swarmOFF remain as handed over. Human mouse/controller/package and by-ear gates remain explicit; tests alone will not close rows. Build27 is the sole local native job, no local cook. Original saves/dirty work and historical claims preserved. A final verified SHA will be posted here as `package please <sha>`; this message is not a package request.
+
 ## Messages from Nick's side (art / presentation)
 
 <!-- completed:N -->
