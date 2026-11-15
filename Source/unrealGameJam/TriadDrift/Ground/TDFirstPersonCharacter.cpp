@@ -683,6 +683,31 @@ void ATDFirstPersonCharacter::UpdateBladePose(float DeltaSeconds)
 	default:
 		break;
 	}
+	const UCharacterMovementComponent* Move = GetCharacterMovement();
+	const float Horizontal = GetVelocity().Size2D();
+	const float WalkSpeed = FMath::Max(Tuning.RunSpeed, 1.f);
+	const float RunBlend = FMath::Clamp((Horizontal - WalkSpeed) / FMath::Max(Tuning.SprintSpeed - WalkSpeed, 1.f), 0.f, 1.f);
+	const bool bCanBob = bWeaponBobEnabled && !IsThirdPersonView() && !IsDead() && Move && Move->IsMovingOnGround()
+		&& !bMantling && !bSliding && !bForcedMove && !bShipTransition && !Blade->IsRetracted()
+		&& Blade->GetBladeState() == ETDBladeState::Idle;
+	const float Moving = bCanBob && Horizontal > FMath::Max(0.f, WeaponBobStartSpeed)
+		? FMath::Clamp(Horizontal / WalkSpeed, 0.f, 1.f) : 0.f;
+	const float BlendAlpha = 1.f - FMath::Exp(-FMath::Max(.1f, WeaponBobBlendRate) * DeltaSeconds);
+	WeaponBobBlend = FMath::Lerp(WeaponBobBlend, Moving, BlendAlpha);
+	if (Moving > 0.f)
+	{
+		const float Frequency = FMath::Max(0.f, FMath::Lerp(WeaponBobWalkFrequency, WeaponBobRunFrequency, RunBlend)) * Moving;
+		WeaponBobPhase = FMath::Fmod(WeaponBobPhase + 2.f * PI * Frequency * DeltaSeconds, 2.f * PI);
+	}
+	WeaponBobOffset = FVector::ZeroVector;
+	if (bCanBob)
+	{
+		const FVector Amplitude = FMath::Lerp(WeaponBobWalkAmplitude, WeaponBobRunAmplitude, RunBlend);
+		WeaponBobOffset = FVector(Amplitude.X * FMath::Sin(2.f * WeaponBobPhase), Amplitude.Y * FMath::Sin(WeaponBobPhase),
+			Amplitude.Z * FMath::Cos(2.f * WeaponBobPhase)) * WeaponBobBlend;
+		Loc += WeaponBobOffset;
+	}
+	// The bob changes only the idle visual target; attack/block poses and gameplay blade queries are unchanged.
 	// Swings snap fast; everything else eases back so the blade never teleports.
 	const float Speed = Blade->IsAttacking() ? 40.f : 14.f;
 	const FVector NewLoc = FMath::VInterpTo(BladeGrip->GetRelativeLocation(), Loc, DeltaSeconds, Speed);
