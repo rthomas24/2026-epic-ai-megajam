@@ -44,6 +44,9 @@ public:
 	/** Down for this long, then up again at ReviveHealth01. */
 	UPROPERTY(EditAnywhere, Category = "Ally|Health", meta = (Units = "s")) float DownSeconds = 8.f;
 	UPROPERTY(EditAnywhere, Category = "Ally|Health") float ReviveHealth01 = 0.5f;
+	/** The fall is frozen this far into the death clip (the part the pilot's own death shows before its ragdoll; held to
+	 *  its end the clip took the body out of view, played Nov 14). */
+	UPROPERTY(EditAnywhere, Category = "Ally|Health", meta = (Units = "s")) float DownPoseTime = 0.7f;
 
 	/** Share of the player's light-combo damage (the blade component's LightCombo numbers). */
 	UPROPERTY(EditAnywhere, Category = "Ally|Fight") float DamageScale = 0.35f;

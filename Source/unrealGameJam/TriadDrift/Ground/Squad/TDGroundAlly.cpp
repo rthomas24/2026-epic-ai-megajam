@@ -414,7 +414,9 @@ void ATDGroundAlly::TickFollow(float DeltaSeconds, ATDFirstPersonCharacter* Lead
 	FVector Goal = Squad->GetFormationSlot(Slot);
 	const float ToSlot = (float)FVector::Dist2D(Goal, GetActorLocation());
 	// Hysteresis: stand until the slot has moved away, then walk until back on it.
-	if (bHolding && ToSlot > SlotLeave)
+	// While the pilot is on the move the ally goes with the first step, not once the slot has run away from it.
+	const bool bLeaderMoving = Leader->GetVelocity().Size2D() > 100.f;
+	if (bHolding && ToSlot > (bLeaderMoving ? SlotArrive + 15.f : SlotLeave))
 	{
 		bHolding = false;
 	}
@@ -431,7 +433,7 @@ void ATDGroundAlly::TickFollow(float DeltaSeconds, ATDFirstPersonCharacter* Lead
 	}
 	else if (!bHolding)
 	{
-		bWants = MoveToward(Goal, SlotArrive * 0.6f, ToSlot > SprintDistance, DeltaSeconds);
+		bWants = MoveToward(Goal, SlotArrive * 0.6f, ToSlot > (bLeaderMoving ? 260.f : SprintDistance), DeltaSeconds);
 	}
 	else if (GetVelocity().Size2D() < 20.f)
 	{
@@ -513,7 +515,7 @@ bool ATDGroundAlly::MoveToward(const FVector& Goal, float StopRadius, bool bSpri
 	// Keeps pace with the pilot (their speed, plus what closes the gap) rather than trailing and catching up.
 	const ATDFirstPersonCharacter* Pace = State == ETDGroundAllyState::Follow ? GetLeader() : nullptr;
 	const float PaceSpeed = Pace ? (float)Pace->GetVelocity().Size2D() : 0.f;
-	Move->MaxWalkSpeed = FMath::Clamp(PaceSpeed + (Dist - StopRadius) * 3.f + 160.f, 160.f, bSprint ? SprintSpeed : FMath::Max(RunSpeed, PaceSpeed + 60.f));
+	Move->MaxWalkSpeed = FMath::Clamp(PaceSpeed + (Dist - StopRadius) * 3.f + 160.f, 160.f, bSprint ? FMath::Max(SprintSpeed, PaceSpeed + 300.f) : FMath::Max(RunSpeed, PaceSpeed + 260.f));
 	FVector Dir = To / Dist;
 	// Feel the way: a wall ahead turns the ally along it; a low step ahead is jumped.
 	if (AvoidLeft <= 0.f)
@@ -908,6 +910,13 @@ void ATDGroundAlly::DropCrewTargetsOnMe()
 void ATDGroundAlly::TickDown(float DeltaSeconds)
 {
 	DownLeft -= DeltaSeconds;
+	if (UTDLoopBlendAnimInstance* Loops = GetLoops())
+	{
+		if (Loops->GetOneShot() && Loops->ShotTime >= DownPoseTime)
+		{
+			Loops->ShotRate = 0.f; // down: the fall held where the body is on the floor and in view
+		}
+	}
 	if (DownLeft <= 0.f)
 	{
 		GetUp();

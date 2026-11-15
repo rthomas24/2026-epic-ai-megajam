@@ -123,8 +123,8 @@ public:
 	float SlotSide = 215.f;
 	/** A wall within this of the player on either side (a corridor under about 4 m, a doorway): single file behind. */
 	float SingleFileHalfWidth = 200.f;
-	float SingleFileBack = 190.f;
-	float SingleFileGap = 150.f;
+	float SingleFileBack = 420.f; // behind the chase camera (it sits about 3 m back), never between it and the pilot
+	float SingleFileGap = 170.f;
 	/** How fast the formation frame follows the view (deg/s): slow, so a flick of the camera does not swing the squad round. */
 	float FormationTurnRate = 70.f;
 
