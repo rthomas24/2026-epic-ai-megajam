@@ -22,16 +22,20 @@ def _rails(p, z_at, x0, x1, y_in, y_out, posts):
         p.prism(prof, "xz", ya, yb, regs="rail", cap_reg="rail", fitu=True)
 
 L_DECK, L_RAMP, H, W = 1200.0, 200.0, 50.0, 150.0      # half deck, ramp run, deck top, half walk width
-X_END = L_DECK + L_RAMP
+# r2 (T7's walk on main: where the bank under a ramp foot sits lower than the bridge's seat, the foot's edge stood proud
+# and stopped the capsule): each ramp runs on at the same 14 degrees past ground level down to 60 cm below the pivot,
+# so it meets ground anywhere from +0 to -60 cm without an edge (buried where the ground is higher)
+TOE = 60.0
+X_END = L_DECK + L_RAMP * (H + TOE) / H                    # 1640
 
 
 def _z(x):
     ax = abs(x)
-    return H if ax <= L_DECK else max(0.0, H * (X_END - ax) / L_RAMP)
+    return H if ax <= L_DECK else H - (ax - L_DECK) * H / L_RAMP
 
 
 def magma_bridge():
-    p = Piece("SM_Kit_MagmaBridge", ((-X_END, -W - 35, -150), (X_END, W + 35, H + RAIL_H)))
+    p = Piece("SM_Kit_MagmaBridge", None)
     # deck: grating top, dark structural edge; the ends hazard-striped where the ramps meet it
     p.box((-L_DECK, -W, 30.0), (L_DECK, W, H), regs={"Z": "grate", "z": "sw_dark", "x": "frame", "X": "frame", "y": "frame", "Y": "frame"})
     for s in (-1.0, 1.0):
@@ -39,7 +43,7 @@ def magma_bridge():
         p.box((x0, -W, H), (x1, W, H + 0.5), reg="hazard", faces="Z")
     # ramps (solid wedges down to the bank) and abutment blocks under the deck ends
     for s in (-1.0, 1.0):
-        prof = [(s * X_END, 0.0), (s * L_DECK, 0.0), (s * L_DECK, H)]
+        prof = [(s * X_END, -TOE), (s * L_DECK, -TOE), (s * L_DECK, H)]
         if s < 0:
             prof = prof[::-1]
         p.prism(prof, "xz", -W, W, regs="grate", cap_reg="pillar", fitu=True)
@@ -60,14 +64,14 @@ def magma_bridge():
     # collision: walk tops exactly the visual tops (deck at 50, ramps at 14.04 degrees), rails as walls
     p.cbox((-L_DECK, -W, 30.0), (L_DECK, W, H))
     for s in (-1.0, 1.0):
-        p.chull([(x, y, z) for y in (-W, W) for (x, z) in ((s * X_END, 0.0), (s * L_DECK, 0.0), (s * L_DECK, H))])
+        p.chull([(x, y, z) for y in (-W, W) for (x, z) in ((s * X_END, -TOE), (s * L_DECK, -TOE), (s * L_DECK, H))])
         a0, a1 = sorted((s * L_DECK, s * (L_DECK - 200.0)))
         p.cbox((a0, -W - 25.0, -20.0), (a1, W + 25.0, 30.0))
     for (ya, yb), (ra, rb) in (((W - 6.0, W + 25.0), (W - 6.0, W)), ((-W - 25.0, -W + 6.0), (-W, -W + 6.0))):
         p.cbox((-L_DECK, ya, -40.0), (L_DECK, yb, H + RAIL_H))          # girder + deck rail as one wall
         for s in (-1.0, 1.0):
             xa, xb = s * X_END, s * L_DECK
-            p.chull([(x, y, z) for y in (ra, rb) for (x, z) in ((xa, 0.0), (xb, H), (xb, H + RAIL_H), (xa, RAIL_H))])
+            p.chull([(x, y, z) for y in (ra, rb) for (x, z) in ((xa, -TOE), (xb, H), (xb, H + RAIL_H), (xa, RAIL_H - TOE))])
     for x in (-400.0, 400.0):
         p.cbox((x - 60.0, -W - 35.0, -150.0), (x + 60.0, W + 35.0, -40.0))
     return p
