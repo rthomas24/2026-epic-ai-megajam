@@ -53,8 +53,8 @@ struct FTDIntroShot
 	float FocalTo = 35.f;
 	float FStop = 4.f;
 	/** Seconds of fade from / to black at the start and end. */
-	float FadeIn = 0.6f;
-	float FadeOut = 0.4f;
+	float FadeIn = 0.f;  // T7 (#149): hard cuts between shots (a 0.4 + 0.6 s dip to black read as dead air); a shot opts in
+	float FadeOut = 0.f;
 	/** Handheld noise amplitude (cm), close shots only. */
 	float Handheld = 0.f;
 	/** Narration line index shown during this shot, or -1. */
