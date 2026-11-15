@@ -18,6 +18,8 @@ AGENTS.md lifecycle conditions; branch publication alone does not release it.
 
 ## Nick-side current ownership and reservations
 
+**Nick Lead evidence refresh, November 14, 20:14 EST — in progress:** Lead owns only this Nick-side note, a new Nick checkpoint prepended to `features.md` and `docs/visual/STATUS.md`, and an appended Nick `DEVLOG.md` entry, on `nick/lead-playtest-feedback-1114` from `fdd449d2`. Reconcile delivered sessions47–52. No edits to Ryan rows, existing feature text or completion markers; no production/native job. Existing specialists remain held.
+
 **Nick Lead evidence refresh, November 14, 19:35 EST — done with this integration:** Lead owns only this Nick-side note, added Nick checkpoints in `features.md` and `docs/visual/STATUS.md`, and the appended `DEVLOG.md` entry on `nick/lead-playtest-feedback-1114` from `a4a0bd34`. Reconcile sessions43–46 and existing acceptance gates. No production edits, feature-marker changes or Ryan claim changes. No native job. This documentation claim releases when this commit reaches main; scoped playtesting remains authorized.
 
 **Nick Lead evidence refresh, November 14, 18:50 EST — done with this integration:** Lead owns only this Nick-side note, an added Nick checkpoint in `features.md` and `docs/visual/STATUS.md`, and an appended `DEVLOG.md` entry on `nick/lead-playtest-feedback-1114` from `1e09640a`. Reconcile sessions40–42 and retained progression blockers. No production edits, feature-marker changes or Ryan claim changes. No native job; Asset Handler has the local native slot for separately authorized isolated intake. This documentation claim releases when the commit reaches main; scoped playtesting remains authorized.
