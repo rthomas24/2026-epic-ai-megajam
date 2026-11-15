@@ -3071,3 +3071,4 @@ Add new lines at the bottom only, to avoid merge conflicts. Format:
 - _e.g. `[for Nick] WBP_SpaceHUD: shield bar doesn't update after respawn — Ryan, Nov 13 18:05`_
 
 - [for Nick] #194 collision fix136082a4: actual relief rays and original-save river/bridge crossing verified (Session57); Editor and Shipping compiled. Full remaining Cinder route and packaged acceptance remain open; no gameplay completion tick — Nicholas Lead, Nov15 11:38 EST.
+- [for Nick] Main2a020a27 integrates the compiled feedback corrections; Session58 original Cinder route reaches boarding, Session59 verifies follower default0 and compound room/cache/exit passage. N-100 requests package; full New Game, active-combat music, final-record and human/package acceptance remain open. Completion target17:00EST — Nicholas Lead, Nov15 12:58 EST.
