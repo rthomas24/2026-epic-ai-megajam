@@ -1572,17 +1572,19 @@ AActor* ATDFirstPersonCharacter::TraceInteractable() const
 		}
 	}
 	// Close up the view line passes over a low console (T7: no prompt within about 1 m of the survey terminal): the
-	// nearest interactable within 2.5 m in front of the pilot's body, by the same channel.
+	// nearest usable interactable within 3.5 m in front of the pilot's body, by the same channel (3.5: the field anchor's
+	// south-west charge sits on its plinth 3.3 m from where the pilot can stand below it, Nov 15).
 	TArray<FOverlapResult> Near;
 	const FVector Body = GetActorLocation();
 	const FVector Fwd = FVector(Rot.Vector().X, Rot.Vector().Y, 0.f).GetSafeNormal();
-	World->OverlapMultiByChannel(Near, Body, FQuat::Identity, TDCollision::Interactable, FCollisionShape::MakeSphere(250.f), Params);
+	World->OverlapMultiByChannel(Near, Body, FQuat::Identity, TDCollision::Interactable, FCollisionShape::MakeSphere(350.f), Params);
 	AActor* Best = nullptr;
 	float BestD = TNumericLimits<float>::Max();
 	for (const FOverlapResult& O : Near)
 	{
 		AActor* A = O.GetActor();
-		if (!A || !A->GetClass()->ImplementsInterface(UTDInteractable::StaticClass()))
+		const ITDInteractable* Usable = Cast<ITDInteractable>(A);
+		if (!A || !Usable || !Usable->CanInteract(const_cast<ATDFirstPersonCharacter*>(this)))
 		{
 			continue;
 		}
