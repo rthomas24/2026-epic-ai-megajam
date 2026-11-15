@@ -37,6 +37,9 @@ namespace TDShadowPrivate
 	static TAutoConsoleVariable<float> CVarEarlyDamage(TEXT("td.Squad.Shadow.EarlyDamageMult"), 0.5f,
 		TEXT("Shadow ON: wingman weapon damage multiplier during the early waves. Default 0.5."), ECVF_Default);
 
+	static TAutoConsoleVariable<float> CVarEarlyIdle(TEXT("td.Squad.Shadow.EarlyIdleSeconds"), 20.f,
+		TEXT("Shadow ON, early waves: wingmen may not out-kill the player, unless the player has hit nothing for this long (s). Default 20."), ECVF_Default);
+
 	// --- Shadow OFF ---
 	static TAutoConsoleVariable<float> CVarSoloSeparation(TEXT("td.Squad.Solo.MinSeparation"), 20000.f,
 		TEXT("Shadow OFF: a wingman prefers a target at least this far from the player's ship (cm), when one exists inside the leash. Default 20000 (200 m)."), ECVF_Default);
@@ -157,6 +160,7 @@ namespace TDShadow
 	float YourFightRetargetSeconds() { return FMath::Max(0.f, TDShadowPrivate::CVarYourFightRetarget.GetValueOnGameThread()); }
 	int32 EarlyWaves() { return FMath::Max(0, TDShadowPrivate::CVarEarlyWaves.GetValueOnGameThread()); }
 	float EarlyDamageMultiplier() { return FMath::Clamp(TDShadowPrivate::CVarEarlyDamage.GetValueOnGameThread(), 0.05f, 1.f); }
+	float EarlyIdleSeconds() { return FMath::Max(0.f, TDShadowPrivate::CVarEarlyIdle.GetValueOnGameThread()); }
 	float SoloMinSeparation() { return FMath::Max(0.f, TDShadowPrivate::CVarSoloSeparation.GetValueOnGameThread()); }
 
 	float ShadowBreakOffScale() { return FMath::Clamp(TDShadowPrivate::CVarBreakOff.GetValueOnGameThread(), 1.f, 2.f); }

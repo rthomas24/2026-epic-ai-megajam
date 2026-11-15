@@ -26,6 +26,8 @@ namespace TDShadow
 	/** Shadow ON: through wave EarlyWaves the wingmen do EarlyDamageMultiplier damage and prefer enemies the player is not on. */
 	UNREALGAMEJAM_API int32 EarlyWaves();
 	UNREALGAMEJAM_API float EarlyDamageMultiplier();
+	/** Early waves: the wingmen's kills never exceed the player's, unless the player has hit nothing for this long (s). */
+	UNREALGAMEJAM_API float EarlyIdleSeconds();
 	/** Shadow OFF: a wingman prefers targets at least this far from the player's ship (cm). */
 	UNREALGAMEJAM_API float SoloMinSeparation();
 	/** Shadow ON: a wingman in a chase drops its target and returns at ShadowLeash x this. */

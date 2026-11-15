@@ -591,6 +591,11 @@ protected:
 	/** #201 "your fight": enemy -> world time of the player's last hit, target or lock on it. */
 	TMap<TWeakObjectPtr<const AActor>, double> PlayerClaims;
 	void NotePlayerClaim(const AActor* Enemy);
+	/** A wingman must leave Enemy alive: it is the player's, or (early waves) the wingmen are not behind the player on kills. */
+	bool ShouldWingmenHoldKill(const AActor* Enemy) const;
+	int32 PlayerKillsThisWave = 0;
+	int32 WingmanKillsThisWave = 0;
+	double LastPlayerHitTime = -1000.0;
 	double NextClaimScan = 0.0;
 	mutable bool bEarlyWaveCached = false;
 	mutable double NextEarlyWaveCheck = -1.0;
