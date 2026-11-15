@@ -231,3 +231,18 @@ kills player/wingmen 1/0, wave 2 8/6. **Followers on foot:** walked and fought b
 
 **Issues:** closed today from Ryan's side: #209, #149, #130, #103. Every other open issue is assigned to
 @nicholastosti-tech with a handover comment that says what is on main, what is left and which section to read.
+
+## 10. Where the remaining work is tracked (Ryan's Lead, 23:40 EST)
+
+- **One issue holds every remaining engineering item, with its weight for a 16 GB machine: #210** ("Handover:
+  remaining engineering items from Ryan's side"). Ryan-side issues #201, #96, #111, #128, #105, #124, #131, #159 and
+  #152 were closed against it; #209, #149, #130 and #103 were closed as delivered.
+- **Cinder (#194) is closed as delivered.** T7's last run on `f2237462` crossed the anchor's crystal bridge in one
+  continuous run (slabs 0 to 5, about 12 s, no magma rescue) and planted all three charges from the ground. Together
+  with T5's walks, Cinder was walked from the pad to boarding the ship. Only the Session45 save retest is left (in
+  #210); reopen #194 if it fails. This supersedes the "still unproven" line in section 9.
+- **Open issues that are yours by nature:** ART-09/10/11/12/14/19/20/21 (#133-#140), Nicholas's sign-offs (#142, #146,
+  #151, #171), #208 (asset; a heavy import, not advised) and #192 (your balance issue: delivered on main, the
+  human-eye check is in #210; close it when you agree).
+- **Package to use:** `playable-main-f2237462` (918,588,548 bytes, SHA-256
+  `63cb317bf7890d72692737f49252445431080e942eae3c09de997ac2eb966cac`; launch check PASS).
