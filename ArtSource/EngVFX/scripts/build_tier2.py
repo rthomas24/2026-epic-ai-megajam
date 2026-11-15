@@ -247,7 +247,8 @@ def tb3_bead(i, n=12):
     size = '(1500.0*clamp(%s/30000.0, 0.6, 2.0)*%s)' % (TBL, TB3I)
     e = looping(single('Bead%02d' % i, 'M_TD_VFX_Glow', size, 1.0, None, offset=('(%s*%s/%s)' % (TBL, f, TBS), 0.0, 0.0)), 0.4)
     k = 3.2 if i % 2 else 4.0   # the colour is fixed here (User.Color is not read)
-    e['set'] = [x for x in e['set'] if x[2] != 'Color'] + [(PS, INIT, 'Color', X('float4(%s, %s, %s, 1.0)' % (0.55 * k, 0.88 * k, 1.0 * k)))]
+    near = 'saturate((%s*%s - 1000.0)/3000.0)' % (TBL, 1.0 - f)   # 12l: 0 within 10 m of the ship end, full from 40 m (the chase camera)
+    e['set'] = [x for x in e['set'] if x[2] != 'Color'] + [(PS, INIT, 'Color', X('float4(%s*%s, %s*%s, %s*%s, 1.0)' % (0.55 * k, near, 0.88 * k, near, 1.0 * k, near)))]
     return e
 
 
@@ -255,7 +256,7 @@ S2('NS_TD_Dominion_TractorBeam3', U(TB2, 1.0, Length=30000.0, Intensity=1.0), [t
     tb3_chain('Core', 3.0, (250, 450), 6.0, 60.0, TB3_CORE, 0.6, 60.0),
     tb3_chain('Sheath', 3.0, (1600, 2600), 1.4, 28.0, TB3_SHEATH, 0.6, 250.0),
     tb3_chain('Motes', 2.4, (160, 300), 4.0, 40.0, TB3_CORE, 0.8, 0.0),
-    tb3_at_ship(shed('ShipGlow', 'M_TD_VFX_Glow', 0, (0.3, 0.3), (2600, 3200), (0, 0), k=0.6, radius=0.0, drag=0.0, local=True, power=0.5,
+    tb3_at_ship(shed('ShipGlow', 'M_TD_VFX_Glow', 0, (0.3, 0.3), (1800, 2200), (0, 0), k=0.2,   # 12l: a third (washed the canopy) radius=0.0, drag=0.0, local=True, power=0.5,
                      rate_expr='10.0*' + TB3I, rgb=TB3_SHEATH)),
     shed('Mouth', 'M_TD_VFX_Glow', 0, (0.3, 0.3), (4500, 5500), (0, 0), k=1.6, radius=0.0, drag=0.0, local=True, power=0.6,
          rate_expr='12.0*' + TB3I, rgb=TB3_CORE)])
@@ -278,6 +279,24 @@ S2('NS_TD_Mine_Plasma', U(MINE, 1.0), [
     shed('Light', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(240.0*%s)' % MBLINK,) * 2, (0, 0), k=3.0, radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='20.0'),
     shed('Halo', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(500.0 + 0.03*clamp(Engine.Owner.LODDistance, 0.0, 60000.0))*%s' % MBLINK,) * 2, (0, 0), k=1.6,
          radius=0.0, drag=0.0, local=True, power=0.6, rate_expr='20.0')] + [mine_spike(i) for i in range(6)])
+
+# ---- round 12p (Lead: bombers' mines had no visible body): v2, new asset (v1 kept). Camera-facing sprites only (no meshes,
+# no offsets, no ribbons), all spawned continuously so the look survives pooling: a hot orange core, a red halo pulsing at
+# about 1 Hz, the double arming blink, and a faint red warning ring expanding every 0.8 s. Everything grows with the camera
+# distance (DM: 1 up to 40 m, 5 at 200 m) so a mine reads from 60 to 200 m.
+DM = 'clamp(Engine.Owner.LODDistance/4000.0, 1.0, 5.0)'
+MPULSE = '(0.65 + 0.35*sin(Engine.Time*6.2832))'
+S2('NS_TD_Mine_Plasma2', U(MINE, 1.0), [
+    shed('Hot', 'M_TD_VFX_Dot', 0, (0.1, 0.1), ('(330.0*%s*(0.85 + 0.15*%s))' % (DM, MPULSE),) * 2, (0, 0), k=3.0, radius=0.0, drag=0.0,
+         local=True, power=0.6, rate_expr='20.0', rgb=(1.0, 0.12, 0.03)),   # 12r: a crisp white-yellow disc with a thin dark-red rim (an object, not a glow)
+    shed('Core', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(320.0*%s)' % DM,) * 2, (0, 0), k=7.0, radius=0.0, drag=0.0, local=True, power=0.6,
+         rate_expr='20.0', rgb=(1.0, 0.38, 0.08)),
+    shed('Halo', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(1000.0*%s*%s)' % (DM, MPULSE),) * 2, (0, 0), k=2.6, radius=0.0, drag=0.0, local=True,
+         power=0.6, rate_expr='20.0', rgb=(1.0, 0.12, 0.03)),
+    shed('Warn', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(420.0*%s*%s)' % (DM, MBLINK),) * 2, (0, 0), k=3.0, radius=0.0, drag=0.0, local=True,
+         power=0.6, rate_expr='20.0', rgb=(1.0, 0.55, 0.4)),
+    shed('Ring', 'M_TD_VFX_Ring', 0, (0.8, 0.8), ('(1300.0*%s)' % DM,) * 2, (0, 0), k=2.4, radius=0.0, drag=0.0, local=True, power=1.2,
+         rate_expr='1.25', rgb=(1.0, 0.15, 0.04), growth='0.25 + 0.75*Particles.NormalizedAge')])
 
 # ---- round 10n (Lead): (a) the Dominion turret's 1.0 s lock telegraph before each burst (T4 adds the timing; slot:
 # the turret's telegraph cue, e.g. UTDEnemyVisuals.TurretTelegraph / T4's field). One shot at the muzzle, +X = the aim:
@@ -416,12 +435,12 @@ def _no_shape(e):   # 12g: ShapeLocation overwrites the offset() position on she
 
 
 S2('NS_TD_Amb_Shared_PadBeacon', U(PAD_RGB + (1.0,)), [
-    _no_shape(offset(shed('Top', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(420.0*%s)' % PAD_BLINK,) * 2, (0, 0), k=6.0, radius=0.0, drag=0.0,
-                local=True, power=0.6, rate_expr='20.0', rgb=PAD_RGB), 0, 0, 900)),
-    _no_shape(offset(shed('Halo', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(1500.0*%s)' % PAD_BLINK,) * 2, (0, 0), k=1.2, radius=0.0, drag=0.0,
-                local=True, power=0.6, rate_expr='20.0', rgb=PAD_RGB), 0, 0, 900)),
-    _no_shape(offset(shed('Pillar', 'M_TD_VFX_Glow', 0, (0.4, 0.4), (140, 140), (1, 1), k=2.6, radius=0.0, drag=0.0, local=True,
-                cone=((0.0, 0.0, 1.0), 0.0), stretch=12, power=0.6, rate_expr='12.0', rgb=PAD_RGB), 0, 0, 450)),
+    offset(shed('Top', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(420.0*clamp(Engine.Owner.LODDistance/9000.0, 1.0, 4.0)*%s)' % PAD_BLINK,) * 2, (0, 0), k=6.0, radius=0.0, drag=0.0,
+                local=True, power=0.6, rate_expr='20.0', rgb=PAD_RGB), 0, 0, 900),
+    offset(shed('Halo', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(1500.0*clamp(Engine.Owner.LODDistance/9000.0, 1.0, 3.0)*%s)' % PAD_BLINK,) * 2, (0, 0), k=1.2, radius=0.0, drag=0.0,
+                local=True, power=0.6, rate_expr='20.0', rgb=PAD_RGB), 0, 0, 900),
+    offset(shed('Pillar', 'M_TD_VFX_Glow', 0, (0.4, 0.4), (140, 140), (1, 1), k=2.6, radius=0.0, drag=0.0, local=True,
+                cone=((0.0, 0.0, 1.0), 0.0), stretch=12, power=0.6, rate_expr='12.0', rgb=PAD_RGB), 0, 0, 450),
     shed('Sweep', 'M_TD_VFX_Glow', 0, (1.4, 1.4), (110, 110), (650, 650), k=4.0, radius=0.0, drag=0.0, local=True,
          cone=((0.0, 0.0, 1.0), 0.0), stretch=3, power=1.0, rate_expr='2.0', rgb=PAD_RGB)])
 

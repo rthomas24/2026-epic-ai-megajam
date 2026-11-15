@@ -324,6 +324,7 @@ private:
 	void OnHyperdrivePressed(const FInputActionValue& Value);
 	void OnHyperdriveReleased(const FInputActionValue& Value);
 	void OnSquadCommand(const FInputActionValue& Value);
+	void OnShadowMode(const FInputActionValue& Value); // #201
 	void OnLand(const FInputActionValue& Value);
 	void OnLandReleased(const FInputActionValue& Value);
 	void OnCameraToggle(const FInputActionValue& Value);
@@ -377,6 +378,7 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_TargetCycle;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Hyperdrive;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_SquadCommand;
+	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_ShadowMode; // #201: G / pad View: toggle the squad's shadow mode
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Land;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_Pause;
 	UPROPERTY(Transient) TObjectPtr<UInputAction> IA_CameraToggleHold;

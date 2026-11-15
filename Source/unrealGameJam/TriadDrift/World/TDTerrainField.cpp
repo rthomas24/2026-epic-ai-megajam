@@ -488,6 +488,8 @@ float FTDTerrainField::Height(float X, float Y) const
 	if (Style.HasMicroRelief())
 	{
 		H += MicroRelief(X, Y);
+		// Lead (Nov 14): nowhere in the walkable region more than MaxMicroDepth below the course ground (BasinFloor).
+		if (MicroWeight(X, Y) > 0.f) { H = FMath::Max(H, Style.BasinFloor - Style.MaxMicroDepth); }
 	}
 	return H;
 }
@@ -594,5 +596,7 @@ float FTDTerrainField::MicroRelief(float X, float Y, float* OutCrack) const
 		H -= Crack * 110.f;
 		if (OutCrack) { *OutCrack = Crack * Flat * Edge; }
 	}
-	return H * Flat * Edge * Style.MicroAmount;
+	// Lead (Nov 14, Cinder blocker): inside the walkable region the relief never sinks more than 2.5 m below the course's
+	// ground; craters, pits and cracks keep their shape above that (mounds and ridges may still rise).
+	return FMath::Max(H * Flat * Edge * Style.MicroAmount, -Style.MaxMicroDepth);
 }

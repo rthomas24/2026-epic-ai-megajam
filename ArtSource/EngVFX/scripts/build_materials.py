@@ -583,6 +583,16 @@ return float4(c*Intensity, PC.a);""", {}),
 
     # round 9 (T7's colour-blind check: under deuteranopia the enemy's red-orange bolts and Bastion's amber shells match):
     # the enemy bolt reads by SHAPE - a hollow diamond, a hot rim round a dark core, a soft halo. Camera-facing sprite.
+    # round 12r (Lead: the mines read as soft hazes on the magenta nebula): a crisp object - a hard-edged white-yellow disc
+    # (radius 0.5 of the quad) inside a thin rim in the particle colour, dimmed (dark red for the mine), and a faint glow.
+    'M_TD_VFX_Dot': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
+float rr = length(p);
+float disc = 1.0 - smoothstep(0.48, 0.5, rr);
+float rim = smoothstep(0.49, 0.52, rr)*(1.0 - smoothstep(0.6, 0.64, rr));
+float glow = pow(saturate(1.0 - rr), 3.0)*0.25;
+float3 c = lerp(PC.rgb, float3(1.0, 0.95, 0.75), 0.85)*disc*1.8 + PC.rgb*rim*0.35 + PC.rgb*glow;
+return float4(c*Intensity, PC.a);""", {}),
+
     'M_TD_VFX_Diamond': ('additive', False, 1, 1, (0, 0), (0, 0), 0, PRE + """
 float2 q = abs(p);
 float d = (q.x + q.y)*0.92 - 0.62;            // < 0 inside the diamond

@@ -1,12 +1,14 @@
 // Triad Drift - Squad (Teammate 3). ENG-08: wingman AI (PROTECT).
 //
-// The wingman is a pilot, not a turret: it only ever moves the stick (SetFlightInput through
-// TDSquad::SendFlightInput) and pulls the primary/secondary triggers. It never touches powers.
+// The wingman is a pilot, not a turret: it moves the stick (SetFlightInput through
+// TDSquad::SendFlightInput) and pulls the primary/secondary triggers. Since #201 it also uses the ship's
+// powers when they are ready, and shadow mode sets its leash and targets (TDWingmanShadow.cpp).
 
 #include "TriadDrift/Squad/TDWingmanAIController.h"
 #include "TriadDrift/World/TDWorldSubsystem.h"
 #include "TriadDrift/Squad/TDSquadIntegration.h"
 #include "TriadDrift/Squad/TDSquadManager.h"
+#include "TriadDrift/Squad/TDShadowMode.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDStatics.h"
@@ -91,6 +93,10 @@ void ATDWingmanAIController::OnUnPossess()
 	TDSquad::ClearAim(GetShip());
 	bHyperdriveFormUp = false;
 	CurrentTarget.Reset();
+	// #201: the player takes this ship: the AI's power use stops here (a running AI ram is ended by the power itself).
+	bAIRamming = false;
+	bPortalBPending = false;
+	RamTarget.Reset();
 	Super::OnUnPossess();
 }
 
@@ -246,7 +252,8 @@ void ATDWingmanAIController::Tick(float DeltaSeconds)
 	// Aim error: a fresh 2-4 degree offset a few times a second, like a real hand on the stick.
 	if (T >= NextAimErrorTime)
 	{
-		AimError.Pitch = Random.FRandRange(AimErrorMinDeg, AimErrorMaxDeg); // magnitude
+		AimError.Pitch = Random.FRandRange(AimErrorMinDeg, AimErrorMaxDeg) // magnitude (#201: tighter when hunting alone)
+			* (IsShadowMode() ? 1.f : TDShadow::SoloAimErrorScale());
 		AimError.Yaw = Random.FRandRange(0.f, 360.f);                       // direction around the aim axis
 		NextAimErrorTime = T + Random.FRandRange(0.3f, 0.6f);
 	}
@@ -326,6 +333,9 @@ void ATDWingmanAIController::Tick(float DeltaSeconds)
 	default:
 		break;
 	}
+
+	// #201: powers, after the state update so the weapon aim is this frame's.
+	UpdatePowers(Ship, bHaveLeader ? Leader : nullptr);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -366,7 +376,11 @@ void ATDWingmanAIController::UpdateFormation(float DeltaSeconds, ATDShip* Ship, 
 	const double T = Now();
 
 	// Look for a fight, unless we're forming up for a hyperdrive jump.
-	if (T >= NextTargetEvalTime && !bHyperdriveFormUp)
+	// #201 (played: wingmen flipped Engage / break-off for minutes while outside the leash): a shadowing wingman that
+	// is still outside the leash comes back first and only then picks a fight (a focus order is still obeyed).
+	const bool bOutsideShadowLeash = IsShadowMode() && Leader && !(Squad.IsValid() && Squad->GetFocusTarget())
+		&& FVector::DistSquared(Ship->GetActorLocation(), Leader->GetActorLocation()) > FMath::Square(GetLeash());
+	if (T >= NextTargetEvalTime && !bHyperdriveFormUp && !bOutsideShadowLeash)
 	{
 		NextTargetEvalTime = T + TargetReevaluateInterval;
 		AActor* Target = PickTarget(Ship, Leader);
@@ -428,7 +442,9 @@ void ATDWingmanAIController::FlyToPoint(ATDShip* Ship, const FVector& Point, con
 	float TargetSpeed;
 	bool bBoost = false;
 
-	if (bLeaderMoving && (bAligned || Dist < FormationHoldRadius * 3.f))
+	// #201 (played: with a turning leader a wingman 300-500 m out never got back, because the parallel branch slows to
+	// minimum speed whenever the slot is "behind" along the leader's heading): far from the slot, fly straight at it.
+	if (bLeaderMoving && (bAligned || Dist < FormationHoldRadius * 3.f) && Dist < FarReturnDistance)
 	{
 		// Formation flight: fly parallel to the leader, steer out the lateral error and fix the
 		// along-track error with SPEED only. Overshooting the slot means easing off, never a U-turn.
@@ -478,9 +494,17 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 		return;
 	}
 
-	// Leash: never get dragged too far from the player.
-	if (Leader && FVector::Dist(Ship->GetActorLocation(), Leader->GetActorLocation()) > LeashDistance)
+	// Leash: never get dragged too far from the player (#201: the shadow leash, or the capped solo leash; a wingman
+	// hunting alone also turns back at the edge of the flight area).
+	if ((Leader && FVector::Dist(Ship->GetActorLocation(), Leader->GetActorLocation()) > GetLeash() * (IsShadowMode() ? TDShadow::ShadowBreakOffScale() : 1.f))
+		|| (!IsShadowMode() && TDSquad::IsOutOfBounds(Ship)))
 	{
+		if (TDShadow::LogTargets())
+		{
+			UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD wingman %s broke off at %.0f m from the player (leash %.0f m, %s)"),
+				*UEnum::GetDisplayValueAsText(ShipId).ToString(), Leader ? FVector::Dist(Ship->GetActorLocation(), Leader->GetActorLocation()) / 100.f : 0.f,
+				GetLeash() / 100.f, IsShadowMode() ? TEXT("shadow") : TEXT("solo"));
+		}
 		CurrentTarget.Reset();
 		SetState(ETDWingmanState::Regroup);
 		bRegroupCommitted = true;
@@ -536,7 +560,8 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 
 	// Stay in the shot (live-measured: wingmen fought behind the camera): unless off defending the
 	// player, get in front of the chase camera, and keep out of the player's aim line.
-	if (Leader && !bDefendingPlayer && CVarTDWingmenInView.GetValueOnGameThread() != 0)
+	if (Leader && !bDefendingPlayer && CVarTDWingmenInView.GetValueOnGameThread() != 0
+		&& (IsShadowMode() || FVector::DistSquared(Ship->GetActorLocation(), Leader->GetActorLocation()) < FMath::Square(15000.f)))
 	{
 		const FTransform Cam = Leader->GetChaseCameraTransformNow();
 		const FVector CamFwd = Cam.GetRotation().GetForwardVector();
@@ -612,7 +637,7 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 	{
 		bSecondary = true;
 		SecondaryReleaseTime = T + SecondaryHoldSeconds;
-		NextSecondaryTime = T + SecondaryInterval + Random.FRandRange(0.f, 1.5f);
+		NextSecondaryTime = T + (SecondaryInterval + Random.FRandRange(0.f, 1.5f)) * (IsShadowMode() ? 1.f : TDShadow::SoloSecondaryIntervalScale());
 	}
 	SetTriggers(bPrimary, bSecondary);
 }
@@ -674,12 +699,22 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 		if (AActor* Focus = S->GetFocusTarget())
 		{
 			// m9: a focus target beyond the leash would flip Engage/Regroup; ignore it until it's in reach.
-			if (!Leader || FVector::Dist(Focus->GetActorLocation(), Leader->GetActorLocation()) <= LeashDistance)
+			if (!Leader || FVector::Dist(Focus->GetActorLocation(), Leader->GetActorLocation()) <= GetLeash())
 			{
+				LogPick(Focus, TEXT("the player's focus order"));
 				return Focus;
 			}
 		}
 	}
+
+	// #201: shadow off: the wingman hunts for itself (a focus order above is still obeyed).
+	if (!IsShadowMode())
+	{
+		return PickTargetSolo(Ship, Leader);
+	}
+	const float ShadowEngage = FMath::Min3(EngageRange, TDShadow::ShadowEngageRange(), GetLeash());
+	// #201: shadowing: what the player is aiming at comes right after the player's attackers.
+	const AActor* PlayerTarget = Leader ? TDSquad::GetCurrentTarget(Leader) : nullptr;
 
 	TDSquad::GetPlayerHostiles(GetWorld(), ScratchHostiles);
 	if (ScratchHostiles.Num() == 0)
@@ -737,7 +772,7 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 		}
 		const FVector HLoc = H->GetActorLocation();
 		const float DistToAnchorSq = FVector::DistSquared(HLoc, Anchor);
-		if (DistToAnchorSq > FMath::Square(EngageRange))
+		if (DistToAnchorSq > FMath::Square(ShadowEngage))
 		{
 			continue;
 		}
@@ -777,6 +812,10 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 		{
 			Score -= 0.75f; // stickiness: don't flicker between equal targets
 		}
+		if (H == PlayerTarget)
+		{
+			Score -= 3.f; // #201: help with the player's own target
+		}
 		if (Score < BestScore)
 		{
 			BestScore = Score;
@@ -793,6 +832,7 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 	if (CVarTDWingmenInView.GetValueOnGameThread() == 0)
 	{
 		bDefendingPlayer = false;
+		LogPick(BestThreat ? BestThreat : Best, BestThreat ? TEXT("attacker of / threat to the player") : TEXT("nearest"));
 		return BestThreat ? BestThreat : Best; // classic: threats to the player first, then nearest
 	}
 	// Defending the player comes first, but one wingman off-screen on defence is enough: the other
@@ -800,12 +840,15 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 	if (BestThreat && (!bOtherDefending || bBestThreatInView))
 	{
 		bDefendingPlayer = !bBestThreatInView;
+		LogPick(BestThreat, BestThreat == PlayerAttacker ? TEXT("attacker of the player") : TEXT("threat to the player (close and pointed at it)"));
 		return BestThreat;
 	}
 	bDefendingPlayer = false;
 	// In view wins only when it isn't much worse than the best overall (balance guard rail: wingmen
 	// must keep killing at their old rate, so no long flights to a far target just because it's on screen).
-	return (BestInView && BestInViewScore <= BestScore + InViewMaxExtraBands) ? BestInView : Best;
+	AActor* Picked = (BestInView && BestInViewScore <= BestScore + InViewMaxExtraBands) ? BestInView : Best;
+	LogPick(Picked, Picked == PlayerTarget ? TEXT("the player's own target") : (Picked == BestInView ? TEXT("in the player's view") : TEXT("nearest")));
+	return Picked;
 }
 
 // ---------------------------------------------------------------------------------------------

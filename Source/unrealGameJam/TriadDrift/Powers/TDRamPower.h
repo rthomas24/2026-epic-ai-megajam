@@ -115,6 +115,8 @@ protected:
 		bEndingForControlLoss = false;
 		PostDashGrace = 0.f;
 	}
+	/** #201: the player switches INTO a Lancer its wingman is ramming with: the dash ends now (never handed over at dash speed). */
+	virtual void OnGainedPlayerControl() override { OnLostPlayerControl(); }
 
 
 private:

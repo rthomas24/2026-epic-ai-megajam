@@ -47,6 +47,9 @@ enum class ETDSwitchCause : uint8
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FTDOnSwitchRefused, ETDSwitchRefusal, Reason, ETDShipId, RequestedShip);
 
+/** #201: shadow mode changed (true = wingmen shadow the player; false = they hunt alone, stronger). */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FTDOnShadowModeChanged, bool, bShadowOn);
+
 /** Life state of one squad slot. */
 UENUM(BlueprintType)
 enum class ETDSquadSlotState : uint8
@@ -179,6 +182,38 @@ public:
 	/** "Focus my target" (IA_SquadCommand): wingmen prioritise Target for FocusCommandSeconds. Null = clear. */
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
 	void IssueFocusCommand(AActor* Target);
+
+	// ---------------- Shadow mode (#201; tunables: Squad/TDShadowMode.h, td.Squad.*) ----------------
+
+	/** True (default): the wingmen shadow the player's ship inside a leash and cover it. False: they hunt on their
+	 *  own, about three times further out (capped), hit harder and aim tighter, and no longer cover the player. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	bool IsShadowMode() const { return bShadowMode; }
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
+	void SetShadowMode(bool bOn);
+
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|Squad")
+	void ToggleShadowMode() { SetShadowMode(!bShadowMode); }
+
+	/** Fired on every real change of shadow mode (the HUD's SHADOW ON / OFF indicator). */
+	UPROPERTY(BlueprintAssignable, Category = "TriadDrift|Squad")
+	FTDOnShadowModeChanged OnShadowModeChanged;
+
+	/** The leash the wingmen are on right now (cm): the shadow leash, or the capped solo leash. */
+	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
+	float GetWingmanLeash() const;
+
+	/** Weapon-component multiplier key for the solo (shadow off) damage buff. */
+	static const FName ShadowSoloKey;
+
+	/** #201: world time of the last power any wingman used (the squad-wide gap, td.Squad.Powers.Gap). */
+	double LastWingmanPowerTime = -1000.0;
+	/** #201 playtest (TD.Squad.SwitchOnRam): switch into Lancer the moment its wingman's ram dash starts. One shot. */
+	bool bDebugSwitchOnWingmanRam = false;
+
+	/** TD.Squad.Dump: one line per ship (mode, state, target, distance to the player, power states). */
+	void DumpSquad(TArray<FString>& OutLines) const;
 
 	/** True while the Switch Strike damage buff is running. */
 	UFUNCTION(BlueprintPure, Category = "TriadDrift|Squad")
@@ -532,6 +567,11 @@ protected:
 	bool bSquadWiped = false;
 	bool bWingmenPassive = false;
 	bool bBetweenWaves = false;
+	/** #201. Kept for the session (level travel keeps the player's choice); a fresh process starts ON. */
+	bool bShadowMode = true;
+	/** The solo buff sits on exactly the AI-flown ships while shadow mode is off (re-applied on a short timer too). */
+	void RefreshShadowBuffs();
+	double NextShadowBuffRefresh = 0.0;
 	void NotePlayerKill();
 	void TickMoreBarks(double Now);
 	bool RequestBarkFromAWingman(FName BarkId, ETDBarkPriority Priority);
