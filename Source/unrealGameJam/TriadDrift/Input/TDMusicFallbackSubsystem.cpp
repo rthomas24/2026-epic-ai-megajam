@@ -34,7 +34,8 @@ const TArray<FSoftObjectPath>& UTDMusicFallbackSubsystem::TracksFor(ETDMusicPlac
 	static const TArray<FSoftObjectPath> Core = { P(TEXT("DominionCore01"), TEXT("MUS_DominionCore_CathedralPulse_Full_01")) };
 	static const TArray<FSoftObjectPath> Reactor = { P(TEXT("DominionAssault01"), TEXT("MUS_DominionAssault_InfinityZone_Full_01")) };
 	static const TArray<FSoftObjectPath> Verdance = { P(TEXT("VerdanceTheme01"), TEXT("MUS_Verdance_Main_Full_01")) };
-	static const TArray<FSoftObjectPath> None; // the escape's Ritual is not imported yet
+	static const TArray<FSoftObjectPath> Escape = { P(TEXT("DominionEscape01"), TEXT("MUS_DominionEscape_Ritual_Full_01")) };
+	static const TArray<FSoftObjectPath> None;
 	switch (Placement)
 	{
 	case ETDMusicPlacement::Credits: return Credits;
@@ -43,6 +44,7 @@ const TArray<FSoftObjectPath>& UTDMusicFallbackSubsystem::TracksFor(ETDMusicPlac
 	case ETDMusicPlacement::CoreChamber: return Core;
 	case ETDMusicPlacement::ReactorFight: return Reactor;
 	case ETDMusicPlacement::VerdanceExplore: return Verdance;
+	case ETDMusicPlacement::Escape: return Escape;
 	default: return None;
 	}
 }
@@ -86,9 +88,9 @@ void UTDMusicFallbackSubsystem::HandleBridgeEvent(FName EventId, UObject* WorldC
 {
 	const UWorld* From = WorldContext ? WorldContext->GetWorld() : nullptr;
 	if (From && From != GetWorld()) { return; } // another world's moment
-	if (EventId == UTDMusicEventBridge::VictoryBegan) { EventPlacement = ETDMusicPlacement::None; }
+	if (EventId == UTDMusicEventBridge::VictoryBegan) { bVictory = true; EventPlacement = ETDMusicPlacement::None; }
 	else if (EventId == UTDMusicEventBridge::VictoryStingerDone) { EventPlacement = ETDMusicPlacement::Credits; }
-	else if (EventId == UTDMusicEventBridge::VictoryEnded) { if (EventPlacement == ETDMusicPlacement::Credits) { EventPlacement = ETDMusicPlacement::None; } }
+	else if (EventId == UTDMusicEventBridge::VictoryEnded) { bVictory = false; if (EventPlacement == ETDMusicPlacement::Credits) { EventPlacement = ETDMusicPlacement::None; } }
 	else if (EventId == UTDMusicEventBridge::GroundCombat) { bGroundFight = true; }
 	else if (EventId == UTDMusicEventBridge::Takeoff) { bTakenOff = true; }
 	else if (EventId == UTDMusicEventBridge::GroundAllClear) { bGroundFight = false; }
@@ -100,13 +102,35 @@ void UTDMusicFallbackSubsystem::HandleBridgeEvent(FName EventId, UObject* WorldC
 
 ETDMusicPlacement UTDMusicFallbackSubsystem::ComputeWanted() const
 {
+	if (EventPlacement == ETDMusicPlacement::Credits) { return EventPlacement; }
+	const UWorld* World = GetWorld();
+	const UTDGameInstance* GI = World ? Cast<UTDGameInstance>(World->GetGameInstance()) : nullptr;
+	if (bVictory || (GI && GI->GetProgressRef().Phase == ETDGamePhase::Victory)) { return ETDMusicPlacement::None; }
+	if (GI)
+	{
+		const FTDProgress& Progress = GI->GetProgressRef();
+		// EscapeStarted occurs on foot, but the new galaxy world (and a cold Continue) never receives that old event.
+		// Ground restores after the reactor also need the score even if the moment fired before this subsystem bound.
+		const bool bGroundEscape = Progress.Phase == ETDGamePhase::DominionInterior
+			&& GI->GetCurrentDestination() == ETDDestination::DominionInterior
+			&& Progress.CompletedObjectives.Contains(FName(TEXT("Obj_DI_Core")))
+			&& !Progress.CompletedObjectives.Contains(FName(TEXT("Obj_DI_Escape")));
+		if (Progress.Phase == ETDGamePhase::Escape || bGroundEscape) { return ETDMusicPlacement::Escape; }
+	}
 	if (EventPlacement != ETDMusicPlacement::None) { return EventPlacement; }
-	// Cinder, from the bridge's snapshot: after the reveal, exploration; a crew encounter running, combat.
+	// A cold Continue onto the saved pad skips Galaxy->planet descent, so no PlanetRevealed is emitted.
+	// This is the same persisted landed-start predicate the planet director uses, constrained to Cinder here.
+	const bool bSavedCinderGround = GI && GI->GetCurrentDestination() == ETDDestination::Cinder
+		&& GI->GetProgressRef().Phase == ETDGamePhase::Cinder
+		&& GI->GetProgressRef().ReturnPoint == FName(TEXT("Cinder_Pad"));
+	// Cinder: select a cue once after reveal/restore, then let its full asset play and loop. Routine encounters
+	// must not restart World/Fall every few seconds (#212). Wanted survives a temporary score claim or switch-off.
 	if (const UTDMusicEventBridge* Bridge = UTDMusicEventBridge::GetMusicEventBridge(GetWorld()))
 	{
 		const FTDMusicBridgeState S = Bridge->GetMusicState();
-		if (S.Destination == FName(TEXT("Cinder")) && S.bPlanetRevealed)
+		if (S.Destination == FName(TEXT("Cinder")) && (S.bPlanetRevealed || bSavedCinderGround) && !bTakenOff)
 		{
+			if (Wanted == ETDMusicPlacement::CinderExplore || Wanted == ETDMusicPlacement::CinderCombat) { return Wanted; }
 			return (S.bGroundCombat || bGroundFight) ? ETDMusicPlacement::CinderCombat : ETDMusicPlacement::CinderExplore;
 		}
 		// Verdance, after the reveal: Nick's theme (N-059) as a fallback; his own Verdance player's claim stands it down.
@@ -116,6 +140,13 @@ ETDMusicPlacement UTDMusicFallbackSubsystem::ComputeWanted() const
 		}
 	}
 	return ETDMusicPlacement::None;
+}
+
+bool UTDMusicFallbackSubsystem::IsFallbackScorePlaying() const
+{
+	// Resolve the escape directly, not just cached Wanted: director tick order must not start its generic bed on the
+	// first frame of an escape map/restore, while Ritual loads, or after its full asset ends. Claims still take priority.
+	return Playing != ETDMusicPlacement::None || (IsEnabled() && ComputeWanted() == ETDMusicPlacement::Escape);
 }
 
 void UTDMusicFallbackSubsystem::Tick(float DeltaTime)
@@ -170,10 +201,16 @@ void UTDMusicFallbackSubsystem::StartTrack(ETDMusicPlacement Placement, int32 In
 	StopVoice(0.f);
 	Playing = Placement;
 	TrackIndex = Index;
+#if WITH_DEV_AUTOMATION_TESTS
+	++TrackStartCountForTests;
+#endif
 	// Unity gain, the asset's own class and looping; a plain fade in.
 	Voice = UGameplayStatics::SpawnSound2D(GetWorld(), Sound, 1.f, 1.f, 0.f, nullptr, false, false);
 	if (Voice)
 	{
+#if WITH_DEV_AUTOMATION_TESTS
+		if (VoiceCreatedForTests) { VoiceCreatedForTests(Voice.Get()); }
+#endif
 		Voice->OnAudioFinished.AddUniqueDynamic(this, &UTDMusicFallbackSubsystem::HandleFinished);
 		Voice->FadeIn(Index == 0 ? FadeInSeconds : 0.f, 1.f);
 	}

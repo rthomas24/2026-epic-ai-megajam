@@ -35,6 +35,7 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
+#include "UObject/UnrealType.h"
 #include "Components/BoxComponent.h"
 #include "Components/SphereComponent.h"
 
@@ -1327,6 +1328,67 @@ bool FTDTravelExitAltitude::RunTest(const FString& Parameters)
 	W.Tick();
 	TestTrue(TEXT("past the old height above the ground: the exit fires (no climb to the peak ceiling)"), Zone->IsExitTriggered());
 	TestTrue(TEXT("... and the climb out runs (ENG-38)"), Zone->IsClimbingOut());
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDLandingPromptDevice, "TriadDrift.Travel.Safety.LandingPromptFollowsDeviceAndPreservesCustomText", TD_TEST_FLAGS)
+bool FTDLandingPromptDevice::RunTest(const FString& Parameters)
+{
+	for (const float Fps : TDTravelSafetyTest::FrameRates)
+	{
+		FTDTestWorld W;
+		ATDLandingPad* Pad = W.Spawn<ATDLandingPad>(FVector::ZeroVector);
+		ATDShip* Ship = TDTravelSafetyTest::SpawnPlayerShip(W, FVector(-1500.f, 0.f, 1500.f));
+		if (!TestNotNull(TEXT("pad"), Pad) || !TestNotNull(TEXT("ship"), Ship)) { return false; }
+		ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(W.SpawnLocalPlayerController(Ship, ATDSpacePlayerController::StaticClass()));
+		if (!TestNotNull(TEXT("local controller"), PC)) { return false; }
+		PC->SetFlightContext(ETDFlightContext::Atmosphere); // exercise the real F/A landing mapping
+		// A zero target override still decelerates from the spawn cruise speed. Begin below the real landing cap.
+		Ship->GetShipMovement()->SetForwardSpeedImmediate(0.f);
+		Ship->GetShipMovement()->SetSpeedOverrideFor(TEXT("PromptFixture"), 0.f);
+		const float Dt = 1.f / Fps;
+		W.Tick(Dt);
+		W.Tick(Dt);
+		UTDLandingComponent* Land = Ship->GetLanding();
+		if (!TestTrue(*FString::Printf(TEXT("real pad in landing range @%.0f fps (speed %.0f, cap %.0f)"), Fps,
+			Ship->GetVelocity().Size(), Land->GetLandingSpeedLimit()), Land->CanLandNow())) { return false; }
+		TestEqual(TEXT("keyboard landing prompt"), Land->GetLandPrompt().ToString(), FString(TEXT("Hold F to land")));
+
+		FTDTestWorld::InjectAxis(PC, EKeys::Gamepad_LeftX, .8f);
+		W.Tick(Dt);
+		TestTrue(TEXT("actual stick input selects controller"), PC->IsUsingGamepad());
+		TestEqual(TEXT("same pad updates to controller landing prompt"), Land->GetLandPrompt().ToString(), FString(TEXT("Hold A to land")));
+		TestEqual(TEXT("pad's authored text is not mutated"), Pad->GetPromptText().ToString(), FString(TEXT("Hold F to land")));
+		FTDTestWorld::InjectAxis(PC, EKeys::Gamepad_LeftX, 0.f);
+		FTDTestWorld::InjectKey(PC, EKeys::W, true);
+		FTDTestWorld::InjectKey(PC, EKeys::W, false);
+		W.Tick(Dt);
+		TestFalse(TEXT("keyboard input selects keyboard again"), PC->IsUsingGamepad());
+		TestEqual(TEXT("same pad returns to F without an objective change"), Land->GetLandPrompt().ToString(), FString(TEXT("Hold F to land")));
+
+		FTDTestWorld::InjectAxis(PC, EKeys::Gamepad_LeftX, .8f);
+		W.Tick(Dt);
+		FTDTestWorld::InjectAxis(PC, EKeys::Gamepad_LeftX, 0.f);
+		TestEqual(TEXT("controller can take over again"), Land->GetLandPrompt().ToString(), FString(TEXT("Hold A to land")));
+		FTextProperty* PromptProperty = FindFProperty<FTextProperty>(ATDLandingPad::StaticClass(), TEXT("PromptText"));
+		if (!TestNotNull(TEXT("editable pad prompt"), PromptProperty)) { return false; }
+		const FText Custom = FText::FromString(TEXT("Hold F to inspect the custom dock"));
+		PromptProperty->SetPropertyValue_InContainer(Pad, Custom);
+		TestEqual(TEXT("custom text containing F is preserved"), Land->GetLandPrompt().ToString(), Custom.ToString());
+		PromptProperty->SetPropertyValue_InContainer(Pad, GetDefault<ATDLandingPad>()->GetPromptText());
+
+		// The label change must not turn hold-to-land into a tap or break the actual controller action.
+		FTDTestWorld::InjectKey(PC, EKeys::Gamepad_FaceButton_Bottom, true);
+		W.Advance(.1f, Dt);
+		FTDTestWorld::InjectKey(PC, EKeys::Gamepad_FaceButton_Bottom, false);
+		W.Tick(Dt);
+		TestFalse(TEXT("tap A does not land"), Land->IsBusy());
+		FTDTestWorld::InjectKey(PC, EKeys::Gamepad_FaceButton_Bottom, true);
+		W.Advance(.7f, Dt);
+		FTDTestWorld::InjectKey(PC, EKeys::Gamepad_FaceButton_Bottom, false);
+		W.Tick(Dt);
+		TestTrue(TEXT("hold A still starts landing through real input"), Land->IsBusy());
+	}
 	return true;
 }
 

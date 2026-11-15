@@ -127,4 +127,39 @@ bool FTDT1AtmoHoldTail::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDAtmoHoldSurfaceSafety, "TriadDrift.Travel.Atmosphere.HoldKeepsHullOutsideAndReleases", TD_TEST_FLAGS)
+bool FTDAtmoHoldSurfaceSafety::RunTest(const FString& Parameters)
+{
+	using namespace TDT1AtmoHold;
+	// Exercise the old crawl and a high-speed override, not only Setup's stationary fixture.
+	for (const float Speed : { 1500.f, 90000.f })
+	{
+		FTDTestWorld W;
+		UTDAtmosphereEntryComponent* Entry = nullptr;
+		ATDShip* Ship = Setup(W, Entry);
+		if (!Ship || !Entry) { return false; }
+		UTDShipMovementComponent* Move = Ship->GetShipMovement();
+		Entry->StoryHoldSpeed = Speed;
+		const FVector Center(-200000.f, 0.f, 0.f);
+		const float SurfaceRadius = 199500.f; // only five metres ahead of the test ship
+		const float SafeRadius = SurfaceRadius + Ship->GetRootComponent()->Bounds.SphereRadius + Entry->EntrySurfaceClearance;
+		UTDStorySubsystem::PlaySequence(W.GetWorld(), Seq);
+		TestTrue(TEXT("entry held"), Entry->BeginEntry(ETDDestination::Verdance, TEXT("Verdance_Orbit"), Center, SurfaceRadius));
+		float MinRadius = TNumericLimits<float>::Max();
+		for (int32 i = 0; i < 30 && Entry->IsHoldingForStory(); ++i)
+		{
+			W.Advance(0.1f, 1.f / 60.f);
+			MinRadius = FMath::Min(MinRadius, (float)FVector::Dist(Ship->GetActorLocation(), Center));
+		}
+		TestTrue(*FString::Printf(TEXT("hold speed %.0f: hull stays outside surface (%.0f >= %.0f)"), Speed, MinRadius, SafeRadius), MinRadius >= SafeRadius - 2.f);
+		Entry->AbortEntry();
+		TestFalse(TEXT("abort releases story speed override"), Move->HasSpeedOverrideFor(UTDAtmosphereEntryComponent::StoryHoldOverride));
+		// With no real planet in this fixture, the old hold must not push the ship out again after an abort.
+		Ship->TeleportSpacecraft(FVector::ZeroVector, FRotator::ZeroRotator, false);
+		W.Advance(0.1f);
+		TestTrue(TEXT("abort releases radial protection"), FVector::Dist(Ship->GetActorLocation(), Center) < SafeRadius - 100.f);
+	}
+	return true;
+}
+
 #endif

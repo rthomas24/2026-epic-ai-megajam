@@ -236,6 +236,23 @@ public:
 	/** Dev (TD.Pilot.Act ShowCameraBlade): the state T7 hit: the camera-rig blade meshes shown in third person. */
 	void DebugShowCameraBlade() { if (BladePlaceholder) { BladePlaceholder->SetVisibility(true); } if (BladeHilt) { BladeHilt->SetVisibility(true); } }
 	USceneComponent* GetBladeGrip() const { return BladeGrip; }
+	/** Cosmetic first-person locomotion only; combat poses, camera and hit queries keep their existing paths. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|WeaponBob")
+	bool bWeaponBobEnabled = true;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|WeaponBob", meta = (Units = "cm"))
+	FVector WeaponBobWalkAmplitude = FVector(.35f, .55f, .6f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|WeaponBob", meta = (Units = "cm"))
+	FVector WeaponBobRunAmplitude = FVector(.55f, .85f, 1.1f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|WeaponBob", meta = (ClampMin = "0", Units = "Hz"))
+	float WeaponBobWalkFrequency = 1.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|WeaponBob", meta = (ClampMin = "0", Units = "Hz"))
+	float WeaponBobRunFrequency = 2.2f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|WeaponBob", meta = (ClampMin = "0.1"))
+	float WeaponBobBlendRate = 10.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TriadDrift|WeaponBob", meta = (ClampMin = "0", Units = "cm/s"))
+	float WeaponBobStartSpeed = 10.f;
+	/** Current cosmetic target offset for diagnostics; applied through the existing blade-pose interpolation. */
+	FVector GetWeaponBobOffset() const { return WeaponBobOffset; }
 
 	/** Applies the blade's UTDBladeFX: BladeMesh if set, otherwise the placeholder tinted with BladeColor. */
 	void ApplyBladeVisuals();
@@ -365,6 +382,9 @@ private:
 	void BuildInput();
 	void HandleBladeRetract(bool bRetracted);
 	void UpdateBladePose(float DeltaSeconds);
+	float WeaponBobPhase = 0.f;
+	float WeaponBobBlend = 0.f;
+	FVector WeaponBobOffset = FVector::ZeroVector;
 	bool bBladeMeshFromArt = false;
 	// third person
 	UFUNCTION()

@@ -11,6 +11,10 @@
 class UUserWidget;
 class APlayerController;
 class UMeshComponent;
+class UEnhancedInputComponent;
+class UEnhancedInputLocalPlayerSubsystem;
+class UInputAction;
+class UInputMappingContext;
 
 /**
  * The HUD surfaces the fallback (dev) HUD can draw on top of the native space HUD until Nick's widget shows them.
@@ -221,6 +225,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
 	static void HideScanMonitor(const UObject* WorldContext);
 
+	/** Close only the scan, leaving dialogue/progression running. Later stages stay hidden until HideScanMonitor. */
+	UFUNCTION(BlueprintCallable, Category = "TriadDrift|UI", meta = (WorldContext = "WorldContext"))
+	static bool DismissScanMonitor(const UObject* WorldContext);
+
 	UUserWidget* GetScanMonitor() const { return ScanWidget; }
 
 	/**
@@ -314,6 +322,18 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UUserWidget> ScanWidget;
+	bool bScanManuallyDismissed = false;
+	void UpdateScanInput(APlayerController* PC);
+	void ReleaseScanInput();
+	void HandleScanDismiss();
+	UPROPERTY(Transient)
+	TObjectPtr<UEnhancedInputComponent> ScanInputComponent;
+	UPROPERTY(Transient)
+	TObjectPtr<UInputAction> ScanDismissAction;
+	UPROPERTY(Transient)
+	TObjectPtr<UInputMappingContext> ScanDismissContext;
+	TWeakObjectPtr<APlayerController> ScanInputController;
+	TWeakObjectPtr<UEnhancedInputLocalPlayerSubsystem> ScanInputSubsystem;
 	static double LastGalaxyReveal;
 	FDelegateHandle RevealHandle;
 	FVector SensorAt = FVector::ZeroVector;

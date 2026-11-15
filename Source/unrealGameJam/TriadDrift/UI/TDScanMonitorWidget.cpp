@@ -7,6 +7,7 @@
 #include "Engine/Texture2D.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
 
 namespace TDScanMonitor
 {
@@ -127,6 +128,12 @@ void UTDScanMonitorWidget::Hide()
 	}
 }
 
+FString UTDScanMonitorWidget::GetDismissKey() const
+{
+	const ATDSpacePlayerController* PC = Cast<ATDSpacePlayerController>(GetOwningPlayer());
+	return PC && PC->IsUsingGamepad() ? TEXT("B") : TEXT("X");
+}
+
 void UTDScanMonitorWidget::Advance(float Dt)
 {
 	Age += Dt;
@@ -193,6 +200,9 @@ int32 UTDScanMonitorWidget::NativePaint(const FPaintArgs& Args, const FGeometry&
 	const bool bOverlay = Stage >= 4;
 	P.Label(Box.Min.X + 20.f, Box.Min.Y + 12.f, bOverlay ? TEXT("SURVEY OVERLAY  ·  VERDANCE  +  CINDER") : TEXT("SUBSURFACE SCAN  ·  VERDANCE"),
 		14, T::Neutral().CopyWithNewOpacity(.85f), 120);
+	const FString CloseHint = GetDismissKey() + TEXT("  ·  CLOSE SCAN");
+	P.Label(Box.Max.X - 190.f, Box.Min.Y + 14.f, *CloseHint, 11, T::Neutral().CopyWithNewOpacity(.85f), 80);
+	Rec(TEXT("close_hint"), FBox2D(FVector2D(Box.Max.X - 190.f, Box.Min.Y + 10.f), FVector2D(Box.Max.X - 12.f, Box.Min.Y + 32.f)));
 
 	// Nicholas's scan art (issue #62): the image fills the panel (16:9, centred), revealed by a left-to-right wipe over
 	// the stage's first layer with a scan line on the wipe's edge, then a slow scan line drifting down. No code layers on
