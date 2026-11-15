@@ -1433,6 +1433,26 @@ bool ATDPlanetCourse::GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) c
 	{
 		return false;
 	}
+	// Inside the outpost compound the way out is back through its doorways (no opening in its side walls).
+	if (CompoundExit.Area.IsValid && CompoundExit.Chain.Num() > 0)
+	{
+		const APlayerController* ExitPC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+		const APawn* ExitPilot = ExitPC ? ExitPC->GetPawn() : nullptr;
+		if (ExitPilot && CompoundExit.Area.IsInsideXY(ExitPilot->GetActorLocation()))
+		{
+			const FVector P = GetActorTransform().InverseTransformPosition(ExitPilot->GetActorLocation());
+			for (const TObjectPtr<AActor>& C : CompoundExit.Chain)
+			{
+				// The first doorway west of the pilot (by more than 1.5 m), so each one is passed in turn.
+				if (C && GetActorTransform().InverseTransformPosition(C->GetActorLocation()).X < P.X - 150.f)
+				{
+					OutMarkers.Reset();
+					OutMarkers.Add(C.Get());
+					break;
+				}
+			}
+		}
+	}
 	OutText = Names.Num() == 1
 		? FText::Format(LOCTEXT("IdleOne", "HEAD TO {0}"), Names[0])
 		: FText::Format(LOCTEXT("IdleTwo", "HEAD TO A SIGNAL · {0} OR {1}"), Names[0], Names[1]);
@@ -2203,6 +2223,15 @@ void ATDPlanetCourse::BuildCinder()
 		Wall(X, 300.f);
 	}
 	Wall(XEnd, 0.f);
+	// Nov 15 (T5's close-out walk): after the crystals the idle marker pointed straight from the far end at the field anchor
+	// and the pilot walked into the south side wall at (15909,4309). Inside the compound, the idle marker leads back out
+	// through each wall's doorway (y = Y0) and the gate, deepest first.
+	CompoundExit.Area = FBox(W(FVector(XGate, Y0 - 1800.f, -500.f)), W(FVector(XEnd, Y0 + 1800.f, 1500.f)));
+	CompoundExit.Chain.Reset();
+	for (const float X : { XArena, XCommand, XBarracks, XGate, XGate - 450.f })
+	{
+		CompoundExit.Chain.Add(Marker(FVector(X, Y0, 100.f)));
+	}
 	// Side walls.
 	for (const float S : { -1.f, 1.f })
 	{

@@ -430,6 +430,9 @@ private:
 	FBox2D GroundBox = FBox2D(FVector2D(-300000.f, -300000.f), FVector2D(300000.f, 300000.f));
 	UPROPERTY(Transient) TObjectPtr<UStaticMeshComponent> GroundSlab;
 	bool bSlabLowered = false;
+	/** Cinder's outpost compound: the idle marker's way out (its doorways and gate, deepest first). */
+	struct FCompoundExit { FBox Area = FBox(ForceInit); TArray<TObjectPtr<AActor>> Chain; };
+	FCompoundExit CompoundExit;
 	/** Hide the slab (collision kept) under the procedural terrain, whose flat basin draws the floor; retries while it spawns. */
 	void AdoptTerrainMaterial();
 	int32 TerrainMaterialTries = 0;
