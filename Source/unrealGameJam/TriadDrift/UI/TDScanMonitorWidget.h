@@ -39,6 +39,9 @@ public:
 	/** Fade out now. */
 	void Hide();
 	bool IsFinished() const { return bHiding && HideAge >= FadeSeconds; }
+	bool IsHiding() const { return bHiding; }
+	/** Active-device label for the deliberate close action. */
+	FString GetDismissKey() const;
 	int32 GetStage() const { return Stage; }
 	float GetVisibility01() const;
 	/** 0..1 how far layer L (1..5) has drawn in. */

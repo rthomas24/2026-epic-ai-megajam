@@ -46,6 +46,10 @@
 #include "TriadDrift/Input/TDHintComponent.h"
 #include "TriadDrift/Powers/TDAbilityRewards.h"
 #include "Framework/Application/SlateApplication.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputAction.h"
+#include "InputMappingContext.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogTDUIHost, Log, All);
 
@@ -53,6 +57,7 @@ namespace TDUIHost
 {
 	const TCHAR* const NativeWidgetClassPath = TEXT("/Script/TriadDriftHUD.TDSpaceHUDWidget");
 	const float CheckInterval = 0.2f;
+	constexpr int32 ScanInputPriority = 1000; // above gameplay contexts; consumes only the deliberate close keys
 
 	float ReadUIShipNumber(const UStruct* Type, const void* Memory, const TCHAR* Name)
 	{
@@ -104,6 +109,7 @@ void UTDUIHostSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void UTDUIHostSubsystem::Deinitialize()
 {
+	ReleaseScanInput();
 	if (UTDDescentSubsystem* Descent = UTDDescentSubsystem::Get(GetWorld()))
 	{
 		Descent->OnRevealed.Remove(RevealHandle);
@@ -180,8 +186,13 @@ void UTDUIHostSubsystem::Tick(float DeltaTime)
 	}
 	if (const UTDScanMonitorWidget* Monitor = Cast<UTDScanMonitorWidget>(ScanWidget); Monitor && Monitor->IsFinished())
 	{
+		ReleaseScanInput();
 		ScanWidget->RemoveFromParent();
 		ScanWidget = nullptr;
+	}
+	else if (Monitor && !Monitor->IsHiding())
+	{
+		UpdateScanInput(FindLocalController());
 	}
 	ApplyFocus();
 	TimeUntilCheck -= DeltaTime;
@@ -534,6 +545,10 @@ bool UTDUIHostSubsystem::ShowTacticalDisplay(const UObject* WorldContext, float 
 bool UTDUIHostSubsystem::ShowScanMonitor(const UObject* WorldContext, int32 Stage, float Seconds)
 {
 	UTDUIHostSubsystem* Host = Get(WorldContext);
+	if (Host && Host->bScanManuallyDismissed)
+	{
+		return false; // a later spoken line may add a stage, but cannot undo the player's dismissal
+	}
 	APlayerController* PC = Host ? Host->FindLocalController() : nullptr;
 	if (!PC)
 	{
@@ -555,6 +570,72 @@ bool UTDUIHostSubsystem::ShowScanMonitor(const UObject* WorldContext, int32 Stag
 		}
 	}
 	Monitor->Show(Stage, Seconds);
+	Host->UpdateScanInput(PC);
+	return true;
+}
+
+void UTDUIHostSubsystem::UpdateScanInput(APlayerController* PC)
+{
+	if (PC && IsValid(ScanInputComponent) && ScanInputController.Get() == PC) { return; }
+	ReleaseScanInput();
+	ULocalPlayer* Player = PC ? PC->GetLocalPlayer() : nullptr;
+	UEnhancedInputLocalPlayerSubsystem* Input = Player ? Player->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>() : nullptr;
+	if (!Input) { return; }
+	ScanDismissAction = NewObject<UInputAction>(this);
+	ScanDismissAction->ValueType = EInputActionValueType::Boolean;
+	ScanDismissAction->bConsumeInput = true;
+	ScanDismissContext = NewObject<UInputMappingContext>(this);
+	for (const FKey& Key : { EKeys::X, EKeys::BackSpace, EKeys::Gamepad_FaceButton_Right })
+	{
+		ScanDismissContext->MapKey(ScanDismissAction, Key);
+	}
+	ScanInputComponent = NewObject<UEnhancedInputComponent>(PC);
+	ScanInputComponent->Priority = TDUIHost::ScanInputPriority;
+	ScanInputComponent->bBlockInput = false;
+	ScanInputComponent->RegisterComponent();
+	ScanInputComponent->BindAction(ScanDismissAction, ETriggerEvent::Started, this, &UTDUIHostSubsystem::HandleScanDismiss);
+	PC->PushInputComponent(ScanInputComponent);
+	ScanInputController = PC;
+	ScanInputSubsystem = Input;
+	FModifyContextOptions Options;
+	Options.bForceImmediately = true;
+	Options.bIgnoreAllPressedKeysUntilRelease = true;
+	Input->AddMappingContext(ScanDismissContext, TDUIHost::ScanInputPriority, Options);
+}
+
+void UTDUIHostSubsystem::ReleaseScanInput()
+{
+	if (UEnhancedInputLocalPlayerSubsystem* Input = ScanInputSubsystem.Get(); Input && ScanDismissContext)
+	{
+		FModifyContextOptions Options;
+		Options.bForceImmediately = true;
+		Input->RemoveMappingContext(ScanDismissContext, Options);
+	}
+	if (IsValid(ScanInputComponent))
+	{
+		if (APlayerController* PC = ScanInputController.Get()) { PC->PopInputComponent(ScanInputComponent); }
+		ScanInputComponent->DestroyComponent();
+	}
+	ScanInputComponent = nullptr;
+	ScanDismissAction = nullptr;
+	ScanDismissContext = nullptr;
+	ScanInputController.Reset();
+	ScanInputSubsystem.Reset();
+}
+
+void UTDUIHostSubsystem::HandleScanDismiss()
+{
+	DismissScanMonitor(this);
+}
+
+bool UTDUIHostSubsystem::DismissScanMonitor(const UObject* WorldContext)
+{
+	UTDUIHostSubsystem* Host = Get(WorldContext);
+	UTDScanMonitorWidget* Monitor = Host ? Cast<UTDScanMonitorWidget>(Host->ScanWidget) : nullptr;
+	if (!Monitor || Monitor->IsHiding() || Monitor->IsFinished()) { return false; }
+	Host->bScanManuallyDismissed = true;
+	Monitor->Hide(); // visual only: do not finish/skip the story or change its line queue
+	UE_LOG(LogTDUIHost, Log, TEXT("Scan monitor dismissed at stage %d; dialogue continues."), Monitor->GetStage());
 	return true;
 }
 
@@ -587,7 +668,8 @@ bool UTDUIHostSubsystem::ShowScanOnScreen(UMeshComponent* Mesh, FName ScreenSlot
 
 void UTDUIHostSubsystem::HideScanMonitor(const UObject* WorldContext)
 {
-	const UTDUIHostSubsystem* Host = Get(WorldContext);
+	UTDUIHostSubsystem* Host = Get(WorldContext);
+	if (Host) { Host->bScanManuallyDismissed = false; } // the existing story-sequence end resets the next scan
 	if (UTDScanMonitorWidget* Monitor = Host ? Cast<UTDScanMonitorWidget>(Host->ScanWidget) : nullptr)
 	{
 		Monitor->Hide();
