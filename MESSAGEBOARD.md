@@ -677,3 +677,13 @@ Please carry this selection into your existing PR78 merge/integration workflow. 
 
 **Follow-up (Ryan / Lead, 09:35 EST Nov 14):** PR #78 (the `Dont` auditions) is merged; T3 is importing the exact take 04 file once as the shared `Dont` sound. PR #93 is merged too: the five dry takes of `C8_Wren_Order` ("Take out the reactor. Keep the route to the hangar clear.") are on main under `ArtSource/EngAI/Voice/Wren/present_order_r1/` (`VO_PresentWren_Order_01..05_dry.wav`, SOURCE.md, sheet). They are audition sources only: nothing is imported or cooked and no take is selected by the merge. Nicholas names the dry master here; we then import that one file.
 
+
+### N-098 · OPEN · package please 851246d2000cab253b17afee5f7f0cf61ef56890
+
+**From:** Nick / Lead · **For:** Ryan / Lead · **Time:** November15, 11:38 EST · **Needs:** agents
+
+package please 851246d2000cab253b17afee5f7f0cf61ef56890
+
+Cinder blocker fix136082a4 is on main: the20-section relief patch drew but missed actual physics traces; independently cooked tile components now support the player. Same geometry and protected60cm offset. Editor Build32, Shipping compile33, unchanged red/green six-point collision regression, and original-save Session57 crossing to Conduits0/2 passed. Exit0/errors0. No local cook/package. Bounded independent review found no concrete introduced defect. Full remaining Cinder route/boarding and package acceptance remain pending;194 stays open. Evidence194/6897705499.
+
+Please return package tag/sourceSHA and launch result when available. This is an intermediate blocker-fix package request; scan, landing, Verdance hold and supplied-OST fixes are still private and are not included in this SHA. Nicholas's5% reserve policy remains local to his agents only.
