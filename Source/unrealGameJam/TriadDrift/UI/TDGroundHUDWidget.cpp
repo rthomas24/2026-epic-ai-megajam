@@ -448,6 +448,8 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 	// lines beyond that (T7's playtest: "HEAD TO A SIGNAL · THE RESEARCH SITE OR THE RELAY" ran past a fixed 506 px panel,
 	// and anything over 62 characters was cut).
 	LastBoxes.Reset();
+	SubtitleCeiling01 = 1.f;
+	CardBox01 = FBox2D(ForceInit);
 	float PanelBottom = 145.f;
 	if (!View.Objective.IsEmpty())
 	{
@@ -931,6 +933,18 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 			if (bLow) { Flag(Low); }
 		}
 		LastBoxes.Emplace(TEXT("vitals"), FBox2D(FVector2D(X, Y), FVector2D(X + W, Y + H)));
+		// The card's flag lane is reserved whether a flag shows or not, so the subtitle does not jump when one appears.
+		{
+			const float LaneTop = Y - FMath::Max(20.f * K, LineH(TagPx) + 6.f * K) - 6.f * K;
+			LastBoxes.Emplace(TEXT("vitals_flags"), FBox2D(FVector2D(X, LaneTop), FVector2D(X + W, Y)));
+			const float LocalH = G.GetLocalSize().Y;
+			SubtitleCeiling01 = LocalH > 0.f ? FMath::Clamp((LaneTop * P.Scale + P.Origin.Y - 12.f) / LocalH, 0.f, 1.f) : 1.f;
+			const FVector2D Local = G.GetLocalSize();
+			if (Local.X > 0.f && Local.Y > 0.f)
+			{
+				CardBox01 = FBox2D((FVector2D(X, LaneTop) * P.Scale + P.Origin) / Local, (FVector2D(X + W, Y + H) * P.Scale + P.Origin) / Local);
+			}
+		}
 	}
 	// (The centre "LOW HEALTH / BLOCK AND FALL BACK" line is gone: it sat across the pilot's legs in the chase view, and
 	// the card's LOW HEALTH tab and red hull bar say it.)
