@@ -125,6 +125,9 @@ def main():
         elif view == "side":  # the pilot's right side, chest height
             loc = (p[0] + r[0] * 380 + f[0] * 40, p[1] + r[1] * 380 + f[1] * 40, p[2] + 30)
             aim, fov = (p[0] + f[0] * 40, p[1] + f[1] * 40, p[2]), 55.0
+        elif view == "far":   # about 8 m behind-right, the third-person distance the suits must read at
+            loc = (p[0] - f[0] * 700 + r[0] * 380, p[1] - f[1] * 700 + r[1] * 380, p[2] + 150)
+            aim, fov = (p[0], p[1], p[2]), 50.0
         else:                 # front three-quarter
             loc = (p[0] + f[0] * 330 + r[0] * 200, p[1] + f[1] * 330 + r[1] * 200, p[2] + 40)
             aim, fov = (p[0], p[1], p[2]), 55.0
