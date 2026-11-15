@@ -2444,6 +2444,13 @@ void ATDPlanetCourse::BuildCinder()
 		TDCourseImpl::FinishProp(P);
 		P->SetSize(FVector((LakeX1 - LakeX0 - 500.f) / (Segments - 1) + 30.f, 320.f, 60.f)); // overlapping: no gaps
 	}
+	// Steps up to the first slab (its top at z 110): with the relief at -60 around the course it stood 1.7 m proud and the
+	// pilot could not get on (Nov 15, T5's last leg). Two basalt steps, 60 and 55 cm, on dry ground before the magma.
+	{
+		const float Slab0X0 = LakeX0 + 250.f - ((LakeX1 - LakeX0 - 500.f) / (Segments - 1) + 30.f) * 0.5f;
+		Block(EShape::Cube, FVector(Slab0X0 - 60.f, LakeY, -2.5f), FVector(120.f, 420.f, 115.f), Basalt, 0.f, FRotator::ZeroRotator, true);
+		Block(EShape::Cube, FVector(Slab0X0 - 180.f, LakeY, -30.f), FVector(120.f, 420.f, 60.f), Basalt, 0.f, FRotator::ZeroRotator, true);
+	}
 	ATDStepTrigger* FarBank = SpawnProp<ATDStepTrigger>(FVector(LakeX1 + 600.f, LakeY, 0.f));
 	FarBank->LinkedObjective = Jammer;
 	FarBank->LinkedStep = 0;
