@@ -489,7 +489,7 @@ float FTDTerrainField::Height(float X, float Y) const
 	{
 		H += MicroRelief(X, Y);
 		// Lead (Nov 14): nowhere in the walkable region more than MaxMicroDepth below the course ground (BasinFloor).
-		if (MicroWeight(X, Y) > 0.f) { H = FMath::Max(H, Style.BasinFloor - Style.MaxMicroDepth); }
+		if (MicroWeight(X, Y) > 0.f) { H = FMath::Max(H, Style.BasinFloor - MicroDepthLimit(X, Y)); }
 	}
 	return H;
 }
@@ -526,6 +526,16 @@ float FTDTerrainField::MicroWeight(float X, float Y) const
 	const FBox2D& R = Style.MicroRegion;
 	const float In = FMath::Min(FMath::Min(X - (float)R.Min.X, (float)R.Max.X - X), FMath::Min(Y - (float)R.Min.Y, (float)R.Max.Y - Y));
 	return FMath::SmoothStep(0.f, 4000.f, In);	// fades to 0 over the region's outer 40 m (meets the coarse chunks)
+}
+
+float FTDTerrainField::MicroDepthLimit(float X, float Y) const
+{
+	// Lead / Nick's Lead (Nov 14, Cinder blocker reopened): inside the course box the walked ground is never below the
+	// course (no depressions at all: mounds, ridges and terraces only rise); depressions start 30 m outside it, to
+	// MaxMicroDepth.
+	const float DX = FMath::Max(0.f, FMath::Abs(X - (float)Style.BasinCentre.X) - (float)Style.BasinHalfExtent.X);
+	const float DY = FMath::Max(0.f, FMath::Abs(Y - (float)Style.BasinCentre.Y) - (float)Style.BasinHalfExtent.Y);
+	return Style.MaxMicroDepth * FMath::SmoothStep(0.f, 3000.f, FMath::Sqrt(DX * DX + DY * DY));
 }
 
 float FTDTerrainField::MicroRelief(float X, float Y, float* OutCrack) const
@@ -598,5 +608,5 @@ float FTDTerrainField::MicroRelief(float X, float Y, float* OutCrack) const
 	}
 	// Lead (Nov 14, Cinder blocker): inside the walkable region the relief never sinks more than 2.5 m below the course's
 	// ground; craters, pits and cracks keep their shape above that (mounds and ridges may still rise).
-	return FMath::Max(H * Flat * Edge * Style.MicroAmount, -Style.MaxMicroDepth);
+	return FMath::Max(H * Flat * Edge * Style.MicroAmount, -MicroDepthLimit(X, Y));
 }

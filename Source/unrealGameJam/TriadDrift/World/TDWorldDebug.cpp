@@ -36,6 +36,9 @@
 #include "Engine/World.h"
 #include "HAL/IConsoleManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "TriadDrift/Ground/Planets/TDPlanetProps.h"
+#include "GameFramework/Character.h"
+#include "Components/CapsuleComponent.h"
 
 #if !UE_BUILD_SHIPPING
 
@@ -312,6 +315,35 @@ namespace TDWorldDebug
 		}));
 
 	// #194: stand on a course route (the course's "Route" keep-outs): TD.World.RouteView <route index> <0..1 along> [m up] [look 0 along | 1 back]
+	// #194 Cinder blocker: the pilot's z and what the pilot stands on (line trace down 60 m from the capsule's bottom).
+	FAutoConsoleCommandWithWorldAndArgs CmdUnder(TEXT("TD.World.Under"), TEXT("Log the player's position and what is under the player (actor, component, hit z, terrain height)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
+		{
+			APawn* Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
+			if (!Pawn) { return; }
+			const ACharacter* Ch = Cast<ACharacter>(Pawn);
+			const float Half = Ch && Ch->GetCapsuleComponent() ? Ch->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() : 0.f;
+			const FVector P = Pawn->GetActorLocation();
+			FHitResult Hit;
+			FCollisionQueryParams Q(TEXT("TDUnder"), true, Pawn);
+			const bool bHit = World->LineTraceSingleByChannel(Hit, P, P - FVector(0.f, 0.f, Half + 6000.f), ECC_Visibility, Q);
+			float Terrain = 0.f;
+			for (TActorIterator<ATDPlanetTerrain> It(World); It; ++It) { Terrain = It->GetHeightAt(P); }
+			UE_LOG(LogTriadDrift, Display, TEXT("TD.Under pos=(%.0f %.0f %.0f) feet %.0f on %s / %s hit z %.0f | relief height %.0f"), P.X, P.Y, P.Z, P.Z - Half,
+				bHit ? *GetNameSafe(Hit.GetActor()) : TEXT("nothing"), bHit ? *GetNameSafe(Hit.GetComponent()) : TEXT("-"), bHit ? Hit.ImpactPoint.Z : 0.f, Terrain);
+		}));
+
+	FAutoConsoleCommandWithWorldAndArgs CmdCrystals(TEXT("TD.World.Crystals"), TEXT("Log every shatter crystal / conduit: index, location, health, shattered."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>&, UWorld* World)
+		{
+			int32 I = 0;
+			for (TActorIterator<ATDShatterCrystal> It(World); It; ++It, ++I)
+			{
+				UE_LOG(LogTriadDrift, Display, TEXT("TD.Crystal %d %s at (%.0f %.0f %.0f) max %.0f shattered %d"), I, *It->GetName(),
+					It->GetActorLocation().X, It->GetActorLocation().Y, It->GetActorLocation().Z, It->MaxHealth, It->IsShattered() ? 1 : 0);
+			}
+		}));
+
 	FAutoConsoleCommandWithWorldAndArgs CmdRouteView(TEXT("TD.World.RouteView"), TEXT("On a planet: stand on route <i> at fraction <t> of its length, facing along it: <i> <t> [m above ground = 2] [1 = face back]."),
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{
