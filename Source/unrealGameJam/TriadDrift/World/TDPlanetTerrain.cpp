@@ -690,10 +690,24 @@ void ATDPlanetTerrain::BuildDetailGround()
 			if (!Self || !Self->DetailGround) { return; }
 			for (int32 t = 0; t < Tiles->Num(); ++t)
 			{
-				FChunkData& D = (*Tiles)[t];
-				Self->DetailGround->CreateMeshSection(t, D.V, D.Tri, D.Nrm, D.UV0, D.UV1, TArray<FVector2D>(), TArray<FVector2D>(), D.Col,
-					TArray<FProcMeshTangent>(), /*bCreateCollision*/ true);
-				if (Self->TerrainMaterial) { Self->DetailGround->SetMaterial(t, Self->TerrainMaterial); }
+                FChunkData& D = (*Tiles)[t];
+                // Bound each physics cook, as for the coarse chunks. Sections in one component still cook
+                // as a single growing triangle mesh; the full relief can otherwise draw without collision.
+                UProceduralMeshComponent* Mesh = Self->DetailGround;
+                if (t > 0)
+                {
+                    Mesh = NewObject<UProceduralMeshComponent>(Self, *FString::Printf(TEXT("DetailGround_%d"), t));
+                    Mesh->SetupAttachment(Self->Root);
+                    Mesh->bUseAsyncCooking = false;
+                    Mesh->SetCollisionProfileName(TEXT("BlockAll"));
+                    Mesh->SetCastShadow(false);
+                    Mesh->ShadowCacheInvalidationBehavior = EShadowCacheInvalidationBehavior::Static;
+                    Mesh->RegisterComponent();
+                    Self->AddInstanceComponent(Mesh);
+                }
+                Mesh->CreateMeshSection(0, D.V, D.Tri, D.Nrm, D.UV0, D.UV1, TArray<FVector2D>(), TArray<FVector2D>(), D.Col,
+                    TArray<FProcMeshTangent>(), /*bCreateCollision*/ true);
+                if (Self->TerrainMaterial) { Mesh->SetMaterial(0, Self->TerrainMaterial); }
 			}
 			Self->bDetailReady = true;
 			UE_LOG(LogTriadDrift, Log, TEXT("ATDPlanetTerrain: relief ground ready (%d sections, %.0f ms from start)"), Tiles->Num(), (FPlatformTime::Seconds() - Start) * 1000.0);

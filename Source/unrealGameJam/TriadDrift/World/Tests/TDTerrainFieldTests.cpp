@@ -13,6 +13,9 @@
 #include "TriadDrift/Flow/TDPlaceholderSky.h"
 #include "Engine/World.h"
 #include "PhysicsEngine/BodySetup.h"
+#include "TriadDrift/Ground/Planets/TDPlanetCourse.h"
+#include "Async/TaskGraphInterfaces.h"
+#include "HAL/PlatformProcess.h"
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTerrainDeterministic, "TriadDrift.World.Terrain.SeededAndDeterministic", TD_TEST_FLAGS)
 bool FTDTerrainDeterministic::RunTest(const FString&)
@@ -377,4 +380,44 @@ bool FTDTerrainFarRingMaterial::RunTest(const FString&)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FTDTerrainReliefCollision, "TriadDrift.World.Terrain.ReliefCollisionSupportsCourse", TD_TEST_FLAGS)
+bool FTDTerrainReliefCollision::RunTest(const FString&)
+{
+    FTDTestWorld W;
+    // A deferred course supplies the real pad footprint without loading encounter or dressing assets.
+    // The relief still uses the full production Cinder region, density, cooking and physics scene.
+    ATDPlanetCourse* Course = W.GetWorld()->SpawnActorDeferred<ATDPlanetCourse>(ATDPlanetCourse::StaticClass(), FTransform::Identity);
+    if (!TestNotNull(TEXT("course fixture"), Course)) { return false; }
+    ATDPlanetTerrain* T = ATDPlanetTerrain::SpawnForPlanet(W.GetWorld(), ETDDestination::Cinder, FTransform::Identity, UMaterial::GetDefaultMaterial(MD_Surface));
+    if (!TestNotNull(TEXT("terrain"), T)) { return false; }
+    const double Deadline = FPlatformTime::Seconds() + 30.0;
+    while (!T->IsDetailGroundReady() && FPlatformTime::Seconds() < Deadline)
+    {
+        FTaskGraphInterface::Get().ProcessThreadUntilIdle(ENamedThreads::GameThread);
+        W.Tick();
+        FPlatformProcess::Sleep(0.01f);
+    }
+    TestTrue(TEXT("full relief completed"), T->IsDetailGroundReady());
+    W.Advance(0.1f);
+    // Trace only the relief, excluding coarse terrain and course safety slabs: a readiness flag is not collision proof.
+    TArray<UProceduralMeshComponent*> Meshes;
+    T->GetComponents(Meshes);
+    for (UProceduralMeshComponent* M : Meshes)
+    {
+        if (!M->GetName().StartsWith(TEXT("DetailGround"))) { M->SetCollisionEnabled(ECollisionEnabled::NoCollision); }
+    }
+    const FVector2D Points[] = { {0,335}, {2191,2246}, {4043,3538}, {4772,4046}, {1000,-2000}, {15800,6000} };
+    for (const FVector2D& P : Points)
+    {
+        FHitResult Hit;
+        FCollisionQueryParams Q(TEXT("ReliefActualCollision"), true);
+        Q.AddIgnoredActor(Course);
+        const bool bHit = W.GetWorld()->LineTraceSingleByChannel(Hit, FVector(P.X,P.Y,2000), FVector(P.X,P.Y,-2000), ECC_WorldStatic, Q);
+        const float Expected = T->GetField()->Height(P.X,P.Y);
+        TestTrue(*FString::Printf(TEXT("relief supports (%.0f,%.0f): hit=%d z=%.1f expected=%.1f"), P.X,P.Y,bHit,Hit.ImpactPoint.Z,Expected),
+            bHit && FMath::Abs(Hit.ImpactPoint.Z - Expected) < 80.f);
+    }
+    FTDTerrainStyle::ClearCourseFlats(ETDDestination::Cinder);
+    return true;
+}
 #endif
