@@ -100,9 +100,15 @@ void UTDGameInstance::BindEventBus()
 
 void UTDGameInstance::HandleShipSwitched(ETDShipId NewShip, ETDShipId /*OldShip*/)
 {
-	// #103: every switch is remembered, so a slot written later (quit to menu, no squad in that world) and a Continue
-	// resume in the ship the player last flew. T7: the slot held Rift after flying Kato through wave 2.
-	Progress.LastShip = NewShip;
+	// #103: the player's own switches are remembered, so a slot written later (quit to menu, no squad in that world) and a
+	// Continue resume in the ship the player last flew. Only player causes count: a spawn, a retake or the menu backdrop's
+	// squad must never overwrite the restored ship (T7's cold Continue came back in Rift).
+	const ATDSquadManager* Squad = ATDSquadManager::Get(this);
+	const ETDSwitchCause Cause = Squad ? Squad->GetLastSwitchCause() : ETDSwitchCause::None;
+	if (Cause == ETDSwitchCause::Manual || Cause == ETDSwitchCause::Buffered || Cause == ETDSwitchCause::AutoOnDeath || Cause == ETDSwitchCause::RespawnRescue)
+	{
+		Progress.LastShip = NewShip;
+	}
 }
 
 void UTDGameInstance::HandleObjectiveUpdated(FName ObjectiveId, int32 Step, FText Text)
@@ -1035,10 +1041,8 @@ bool UTDGameInstance::WriteSaveSlot(bool bForce)
 	Save->Checkpoint.Progress.Stats = Progress.Stats;
 	Save->Checkpoint.Progress.RunTimeSeconds = Progress.RunTimeSeconds;
 	// #103: Continue resumes in the ship the player was last flying (phase, wave and progress still from the checkpoint).
-	if (const ATDSquadManager* Squad = ATDSquadManager::Get(this); Squad && Squad->GetShip(Squad->GetActiveShipId()))
-	{
-		Progress.LastShip = Squad->GetActiveShipId();
-	}
+	// Progress.LastShip follows player switches (HandleShipSwitched); the world's squad is not read here (a write from the
+	// menu world would record the backdrop's ship).
 	Save->Checkpoint.Progress.LastShip = Progress.LastShip;
 	Save->SceneOrder = SceneOrder;
 	Save->SavedAtUtc = FDateTime::UtcNow();
