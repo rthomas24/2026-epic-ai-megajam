@@ -42,6 +42,8 @@
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
 #include "TriadDrift/Flight/TDSpacecraft.h"
+#include "TriadDrift/Enemies/TDEnemyShip.h"
+#include "EngineUtils.h"
 
 /**
  * One frame of steering toward a world bearing, through the real mouse path (APlayerController::InputKey with
@@ -392,6 +394,152 @@ static FAutoConsoleCommandWithWorldAndArgs GTDInputTapCmd(TEXT("TD.Input.Tap"),
 static FAutoConsoleCommandWithWorldAndArgs GTDInputTurnTowardCmd(TEXT("TD.Input.TurnToward"),
 	TEXT("Steer the player's nose onto a world bearing with real mouse input: TD.Input.TurnToward <Yaw> <Pitch> [Seconds=3]"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDInputDebug::TurnToward));
+// ---- Mouse-flight probe (Ryan, Nov 14: "easier to control the ships with the mouse"): one fixed "hand" drives the
+// real mouse path (InputKey MouseX / MouseY) toward a target and logs the numbers, the same before and after a change.
+// The hand moves the mouse in proportion to the aim error (the reticle's world direction to the target), at most
+// MaxCountsPerSec; it never reads the virtual stick (a player sees the reticle and the target, not the stick).
+namespace TDMouseProbe
+{
+	struct FRun
+	{
+		TWeakObjectPtr<APlayerController> PC;
+		FString Test;
+		FVector TargetDir = FVector::ForwardVector;	// fixed world direction (turns, acquire)
+		TWeakObjectPtr<AActor> TargetActor;			// enemy: follows it
+		double Start = 0.0, Last = 0.0;
+		float Angle = 0.f;							// for turns: the yaw to reach
+		float StartYaw = 0.f;
+		float NoseReach = -1.f, AimSettleStart = -1.f, Settled = -1.f, MaxPast = 0.f, Counts = 0.f, PeakStick = 0.f;
+		float FirstErr = 0.f;
+		bool bCrossed = false;
+		FVector2D Carry = FVector2D::ZeroVector;
+	};
+	static TArray<FRun>& Runs() { static TArray<FRun> R; return R; }
+	static float Gain = 60.f;			// counts/s per degree of error
+	static float MaxCountsPerSec = 1500.f;	// a brisk sweep (about 2 in/s at 800 dpi)
+
+	static void Finish(FRun& R, const TCHAR* Why)
+	{
+		const APawn* Pawn = R.PC.IsValid() ? R.PC->GetPawn() : nullptr;
+		UE_LOG(LogTriadDrift, Display, TEXT("TDMOUSEPROBE %s ship=%s firstErr=%.1f noseReach=%.2f settled=%.2f overshoot=%.1f counts=%.0f peakStick=%.2f (%s)"),
+			*R.Test, Pawn ? *Pawn->GetName() : TEXT("?"), R.FirstErr, R.NoseReach, R.Settled, R.MaxPast, R.Counts, R.PeakStick, Why);
+	}
+
+	static bool Tick(float)
+	{
+		TArray<FRun>& All = Runs();
+		const double Now = FPlatformTime::Seconds();
+		for (int32 i = All.Num() - 1; i >= 0; --i)
+		{
+			FRun& R = All[i];
+			ATDSpacePlayerController* SPC = Cast<ATDSpacePlayerController>(R.PC.Get());
+			const APawn* Pawn = SPC ? SPC->GetPawn() : nullptr;
+			if (!SPC || !Pawn) { Finish(R, TEXT("no pawn")); All.RemoveAt(i); continue; }
+			const float Dt = (float)FMath::Clamp(Now - R.Last, 0.0, 0.1);
+			R.Last = Now;
+			const float T = (float)(Now - R.Start);
+			if (R.TargetActor.IsValid()) { R.TargetDir = (R.TargetActor->GetActorLocation() - Pawn->GetActorLocation()).GetSafeNormal(); }
+			else if (R.Test == TEXT("enemy")) { Finish(R, TEXT("target gone")); All.RemoveAt(i); continue; }
+			// Aim error in the ship's frame (yaw right +, pitch up +), from the reticle's world direction.
+			const FQuat Q = Pawn->GetActorQuat();
+			auto Angles = [&Q](const FVector& Dir) { const FVector L = Q.UnrotateVector(Dir); return FVector2D(FMath::RadiansToDegrees(FMath::Atan2(L.Y, L.X)), FMath::RadiansToDegrees(FMath::Atan2(L.Z, FVector2D(L.X, L.Y).Size()))); };
+			const FVector2D AimA = Angles(SPC->GetAimWorldDirection()), TgtA = Angles(R.TargetDir);
+			const FVector2D Err = TgtA - AimA;
+			const float AimErr = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(SPC->GetAimWorldDirection(), R.TargetDir), -1.f, 1.f)));
+			const float NoseErr = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(Pawn->GetActorForwardVector(), R.TargetDir), -1.f, 1.f)));
+			if (T < 0.05f) { R.FirstErr = AimErr; }
+			if (R.NoseReach < 0.f && NoseErr < 3.f) { R.NoseReach = T; }
+			if (R.Angle > 0.f)
+			{
+				// Turns: overshoot = how far the nose went past the target bearing (yaw).
+				const float Turned = FMath::FindDeltaAngleDegrees(R.StartYaw, Pawn->GetActorRotation().Yaw) * FMath::Sign(R.Angle);
+				const float TurnedAbs = Turned < -90.f ? Turned + 360.f : Turned;
+				if (R.NoseReach >= 0.f) { R.MaxPast = FMath::Max(R.MaxPast, TurnedAbs - FMath::Abs(R.Angle)); }
+			}
+			else if (R.NoseReach >= 0.f || AimErr < 1.5f)
+			{
+				// Acquire: overshoot = the aim error after the reticle first reached the target.
+				if (AimErr < 1.5f) { R.bCrossed = true; }
+				if (R.bCrossed) { R.MaxPast = FMath::Max(R.MaxPast, AimErr); }
+			}
+			R.PeakStick = FMath::Max(R.PeakStick, (float)SPC->GetVirtualStick().Size());
+			// Settled: the reticle within 1.5 deg of the target for 1 s.
+			if (AimErr < 1.5f) { if (R.AimSettleStart < 0.f) { R.AimSettleStart = T; } }
+			else { R.AimSettleStart = -1.f; }
+			if (R.AimSettleStart >= 0.f && T - R.AimSettleStart >= 1.f) { R.Settled = R.AimSettleStart; Finish(R, TEXT("held 1 s")); All.RemoveAt(i); continue; }
+			if (T > 10.f) { Finish(R, TEXT("timeout 10 s")); All.RemoveAt(i); continue; }
+			// The hand: counts toward the target, proportional to the error, capped.
+			FVector2D Want(Err.X * Gain, Err.Y * Gain);
+			if (Want.Size() > MaxCountsPerSec) { Want = Want.GetSafeNormal() * MaxCountsPerSec; }
+			const FVector2D Move = Want * Dt + R.Carry;
+			const FVector2D Whole(FMath::RoundToFloat(Move.X), FMath::RoundToFloat(Move.Y));
+			R.Carry = Move - Whole;
+			R.Counts += FMath::Abs(Whole.X) + FMath::Abs(Whole.Y);
+			APlayerController* Base = SPC; // InputKey is public on APlayerController (protected on ours)
+			auto SendAxis = [Base](const FKey& Key, float V)
+			{
+				FInputKeyEventArgs A = FInputKeyEventArgs::CreateSimulated(Key, IE_Axis, V, 1);
+				A.DeltaTime = Base->GetWorld() ? Base->GetWorld()->GetDeltaSeconds() : 1.f / 60.f;
+				Base->InputKey(A);
+			};
+			if (Whole.X != 0.f) { SendAxis(EKeys::MouseX, Whole.X); }
+			if (Whole.Y != 0.f) { SendAxis(EKeys::MouseY, SPC->IsMousePitchInverted() ? -Whole.Y : Whole.Y); }
+		}
+		return All.Num() > 0;
+	}
+
+	static void Start(const TArray<FString>& Args, UWorld* World)
+	{
+		APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+		const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+		if (!Pawn || Args.Num() < 1)
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.Flight.MouseProbe turn90|turn180|acquire30|enemy [Gain=60] [MaxCountsPerSec=1500]"));
+			return;
+		}
+		if (Args.IsValidIndex(1)) { Gain = FCString::Atof(*Args[1]); }
+		if (Args.IsValidIndex(2)) { MaxCountsPerSec = FCString::Atof(*Args[2]); }
+		FRun R;
+		R.PC = PC;
+		R.Test = Args[0].ToLower();
+		R.Start = R.Last = FPlatformTime::Seconds();
+		const FRotator Level(0.f, Pawn->GetActorRotation().Yaw, 0.f);
+		R.StartYaw = Level.Yaw;
+		if (R.Test == TEXT("turn90") || R.Test == TEXT("turn180"))
+		{
+			R.Angle = R.Test == TEXT("turn90") ? 90.f : 179.f;
+			R.TargetDir = (Level + FRotator(0.f, R.Angle, 0.f)).Vector();
+		}
+		else if (R.Test == TEXT("acquire30"))
+		{
+			R.TargetDir = Pawn->GetActorQuat().RotateVector(FRotator(15.f, 26.f, 0.f).Vector()); // 30 deg off the nose
+		}
+		else if (R.Test == TEXT("enemy"))
+		{
+			float Best = TNumericLimits<float>::Max();
+			for (TActorIterator<ATDEnemyShip> It(World); It; ++It)
+			{
+				const FVector To = It->GetActorLocation() - Pawn->GetActorLocation();
+				const float Off = FMath::RadiansToDegrees(FMath::Acos(FMath::Clamp(FVector::DotProduct(To.GetSafeNormal(), Pawn->GetActorForwardVector()), -1.f, 1.f)));
+				if (Off > 15.f && Off < 60.f && To.Size() < 150000.f && To.Size() < Best) { Best = To.Size(); R.TargetActor = *It; }
+			}
+			if (!R.TargetActor.IsValid()) { UE_LOG(LogTriadDrift, Warning, TEXT("TDMOUSEPROBE enemy: none 15-60 deg off the nose within 1.5 km")); return; }
+		}
+		else
+		{
+			UE_LOG(LogTriadDrift, Warning, TEXT("TD.Flight.MouseProbe: unknown test %s"), *Args[0]);
+			return;
+		}
+		const bool bStart = Runs().Num() == 0;
+		Runs().Reset();
+		Runs().Add(R);
+		if (bStart) { FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateStatic(&TDMouseProbe::Tick)); }
+	}
+}
+static FAutoConsoleCommandWithWorldAndArgs GTDMouseProbeCmd(TEXT("TD.Flight.MouseProbe"),
+	TEXT("Measure mouse flight through the real mouse path: TD.Flight.MouseProbe turn90|turn180|acquire30|enemy [Gain=60] [MaxCountsPerSec=1500] (logs TDMOUSEPROBE)"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDMouseProbe::Start));
+
 static FAutoConsoleCommandWithWorldAndArgs GTDInputReleaseCmd(TEXT("TD.Input.ReleaseAll"),
 	TEXT("Release every key / axis TD.Input pressed"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateStatic(&TDInputDebug::ReleaseAll));
