@@ -1519,14 +1519,15 @@ void ATDPlanetCourse::MarkCompletedFromProgress()
 			}
 			for (const FTDStepDoor& D : CompletionDoors)
 			{
-				if (D.Objective == O && D.Door && !(D.Door == WardenExitDoor && !IsFinalRecordPlayed())) { D.Door->Open(); }
+				if (D.Objective == O && D.Door) { D.Door->Open(); } // #96 old saves: the Warden's exit opens too (a Continue can stand the pilot past it)
 			}
 		}
 	}
 	if (IsInterior() && WardenExitDoor && WardenGateObjective.IsValid() && WardenGateObjective->IsComplete() && !IsFinalRecordPlayed())
 	{
-		WardenExitDoor->ShowStatusText(LOCTEXT("RecordFirstLoad", "PLAY THE FINAL RECORD FIRST"));
-		UE_LOG(LogTriadDrift, Display, TEXT("#96: checkpoint has the Warden done but no final record: exit shut, the record first"));
+		// The reactor door stays shut (only the record opens it) and the reactor objective cannot start: the line and the
+		// marker send the pilot back through the open Warden exit to the console.
+		UE_LOG(LogTriadDrift, Display, TEXT("#96: checkpoint has the Warden done but no final record: the record first (Warden exit open, reactor shut)"));
 	}
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{

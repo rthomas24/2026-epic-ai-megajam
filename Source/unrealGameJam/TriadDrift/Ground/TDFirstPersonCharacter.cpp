@@ -596,6 +596,7 @@ void ATDFirstPersonCharacter::UpdateBladeAura(float DeltaSeconds)
 
 void ATDFirstPersonCharacter::ApplyBladeVisuals()
 {
+	AppliedBladeShip = GetOnFootPilotShip(this);
 	ApplyHandBladeVisuals(); // the blade in the body's hand follows the same FX
 	const UTDBladeFX* FX = Blade ? Blade->BladeFX.Get() : nullptr;
 	if (FX && !FX->BladeMesh.IsNull())
@@ -1898,6 +1899,12 @@ void ATDFirstPersonCharacter::ReturnToSafeGround()
 void ATDFirstPersonCharacter::Tick(float DeltaSeconds)
 {
 	TipLeft = FMath::Max(0.f, TipLeft - DeltaSeconds);
+	// The blade wears the on-foot pilot's colour (Wren magenta, Kato cyan, Moss amber): the pilot is decided by the
+	// landed ship, which can be set after this pawn began play (T7's Shipping run: Kato with Wren's pink blade).
+	if (IsPlayerControlled() && GetOnFootPilotShip(this) != AppliedBladeShip)
+	{
+		ApplyBladeVisuals();
+	}
 	// A press whose release never arrived (paused, a menu over the game, focus lost) must not ripen into a heavy.
 	if (Blade && Blade->IsAttackHeld())
 	{

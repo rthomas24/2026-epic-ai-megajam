@@ -5,6 +5,7 @@
 
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Ground/TDEnergyBladeComponent.h"
+#include "TriadDrift/Ground/TDFirstPersonCharacter.h"
 #include "TriadDrift/Core/TDPresentation.h"
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Core/TDTypes.h"
@@ -93,6 +94,10 @@ bool FTDCombatPlaceholders::IsArmadaHue(const FLinearColor& Color)
 
 FLinearColor FTDCombatPlaceholders::BladeColorOf(const AActor* Shooter)
 {
+	if (const ATDFirstPersonCharacter* Pilot = Cast<ATDFirstPersonCharacter>(Shooter))
+	{
+		return Pilot->GetBladeColor(); // the on-foot pilot's squad colour (a returned bolt takes it)
+	}
 	const UTDEnergyBladeComponent* Blade = Shooter ? Shooter->FindComponentByClass<UTDEnergyBladeComponent>() : nullptr;
 	const UTDBladeFX* FX = Blade ? Blade->BladeFX.Get() : nullptr;
 	return FX ? FX->BladeColor : FLinearColor(0.1f, 0.65f, 1.f); // ATDFirstPersonCharacter::ApplyBladeVisuals' default

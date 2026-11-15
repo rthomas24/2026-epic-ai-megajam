@@ -727,7 +727,8 @@ int32 UTDGroundHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& G
 		const float Life = View.bPerfect ? PerfectSeconds : DeflectSeconds;
 		const float A = FMath::Clamp(View.Deflect / Life, 0.f, 1.f);
 		const float Grow = 1.f - A;
-		P.Arc(Center, 34 + 90 * Grow, 1, (View.bPerfect ? Ink : Accent).CopyWithNewOpacity(.8f * A), View.bPerfect ? 3.f : 1.5f);
+		const FLinearColor PilotTone = UTDStatics::ShipColor(ATDFirstPersonCharacter::GetOnFootPilotShip(this)); // the blade's own colour
+		P.Arc(Center, 34 + 90 * Grow, 1, (View.bPerfect ? Ink : PilotTone).CopyWithNewOpacity(.8f * A), View.bPerfect ? 3.f : 1.5f);
 		if (View.bPerfect)
 		{
 			P.Arc(Center, 30 + 50 * Grow, 1, Accent.CopyWithNewOpacity(.7f * A), 1.5f);
