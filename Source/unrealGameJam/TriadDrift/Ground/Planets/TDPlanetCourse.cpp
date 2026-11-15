@@ -2115,8 +2115,10 @@ void ATDPlanetCourse::BuildCinder()
 		if (UTDObjectiveSubsystem* DoorRoute = UTDObjectiveSubsystem::Get(this))
 		{
 			FBox Room(ForceInit);
-			Room += W(StationAt + FVector(-400.f, -200.f, -100.f));
-			Room += W(StationAt + FVector(400.f, 200.f, 400.f));
+			// The doorway wall only (the room's face toward the pad, x -400 in the station's frame): inside the room the way to
+			// the terminal no longer crosses it, so the marker goes straight to the terminal.
+			Room += W(StationAt + FVector(-430.f, -220.f, -100.f));
+			Room += W(StationAt + FVector(-370.f, 220.f, 400.f));
 			DoorRoute->AddCrossing(Room, Survey, 1, { Marker(StationAt + FVector(-650.f, 0.f, 100.f)), Marker(StationAt + FVector(-250.f, 0.f, 100.f)) });
 		}
 	}
