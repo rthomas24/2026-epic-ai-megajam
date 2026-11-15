@@ -617,9 +617,10 @@ void ATDPlanetTerrain::RegisterCourseFlats(ETDDestination Planet)
 		{
 			if (K.Kind != TEXT("Site") || !K.Box.IsValid) { continue; }
 			const FVector C = Xf.InverseTransformPosition(K.Box.GetCenter());
-			bool bNew = false;
-			SiteCells.Add(FIntPoint(FMath::FloorToInt32(C.X / 2000.f), FMath::FloorToInt32(C.Y / 2000.f)), &bNew);
-			if (bNew) { Flats.Segs.Add({ FVector2D::ZeroVector, FVector2D(C.X, C.Y), Corridor }); }
+			// Nick's Lead (#194): the out-parameter is bIsAlreadyInSet; first-time cells were being skipped.
+			bool bAlready = false;
+			SiteCells.Add(FIntPoint(FMath::FloorToInt32(C.X / 2000.f), FMath::FloorToInt32(C.Y / 2000.f)), &bAlready);
+			if (!bAlready) { Flats.Segs.Add({ FVector2D::ZeroVector, FVector2D(C.X, C.Y), Corridor }); }
 		}
 	}
 	// The pad is always flat, whatever the course lists.

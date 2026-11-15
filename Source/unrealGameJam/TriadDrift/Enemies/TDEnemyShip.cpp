@@ -1117,6 +1117,12 @@ void ATDEnemyShip::BeginDeath(AActor* Killer)
 	}
 	bDying = true;
 	LastKiller = Killer;
+	// #201 balance pass: who gets the kills (the player's ship or a wingman), one line per kill.
+	{
+		const APawn* KillerPawn = Cast<APawn>(Killer);
+		const bool bPlayer = KillerPawn && KillerPawn->IsPlayerControlled();
+		UE_LOG(LogTriadDrift, Log, TEXT("TDKILL %s by %s (%s)"), *Spec.Id.ToString(), *GetNameSafe(Killer), bPlayer ? TEXT("player") : (Killer ? TEXT("other") : TEXT("none")));
+	}
 	// Weapons first: a wreck launches nothing (a gunship killed after missile 1 of a salvo fired 2 and 3).
 	if (Weapons) { Weapons->SetWeaponsBlocked(TEXT("Death"), true); }
 	BurstShotsRemaining = 0;
