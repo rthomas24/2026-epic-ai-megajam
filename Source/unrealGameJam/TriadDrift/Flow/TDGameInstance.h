@@ -236,6 +236,9 @@ public:
 	void HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind);
 
 	UFUNCTION()
+	void HandleShipSwitched(ETDShipId NewShip, ETDShipId OldShip);
+
+	UFUNCTION()
 	void HandleWaveStarted(int32 WaveNumber, float Intensity01);
 
 	UFUNCTION()

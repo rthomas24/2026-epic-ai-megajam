@@ -24,6 +24,8 @@
 #include "TriadDrift/UI/TDGroundHUDWidget.h"
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
 #include "TriadDrift/UI/TDTacticalDisplayWidget.h"
+#include "TriadDrift/Flow/TDSaveGame.h"
+#include "TriadDrift/Flow/TDGameInstance.h"
 #include "TriadDrift/Story/TDStorySubsystem.h"
 #include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "InputCoreTypes.h"
@@ -151,8 +153,18 @@ void UTDUIHostSubsystem::Tick(float DeltaTime)
 		}
 		else if (Phase != TacticalPhase)
 		{
-			TacticalWidget->RemoveFromParent();
-			TacticalWidget = nullptr;
+			// The Aftermath shows it right as the phase flips: it stays its first 2.5 s (T7: gone at 0.25 s), then goes.
+			const UTDTacticalDisplayWidget* Shown = Cast<UTDTacticalDisplayWidget>(TacticalWidget);
+			if (Shown && Shown->GetAge() < UTDTacticalDisplayWidget::MinShownSeconds)
+			{
+				TacticalPhase = Phase;
+			}
+			else
+			{
+				UE_LOG(LogTDUIHost, Log, TEXT("Tactical display hidden at %.2f s: phase changed."), Shown ? Shown->GetAge() : -1.f);
+				TacticalWidget->RemoveFromParent();
+				TacticalWidget = nullptr;
+			}
 		}
 	}
 	if (!TacticalWidget)
@@ -162,6 +174,7 @@ void UTDUIHostSubsystem::Tick(float DeltaTime)
 	UpdateTacticalDismiss();
 	if (const UTDTacticalDisplayWidget* Display = Cast<UTDTacticalDisplayWidget>(TacticalWidget); Display && Display->IsFinished())
 	{
+		UE_LOG(LogTDUIHost, Log, TEXT("Tactical display gone at %.2f s (time up or faded out)."), Display->GetAge());
 		TacticalWidget->RemoveFromParent();
 		TacticalWidget = nullptr;
 	}
@@ -433,7 +446,8 @@ void UTDUIHostSubsystem::UpdateTacticalDismiss()
 	// Lead (T7's New Game: never seen; Nick's Session49: gone 0.41 s after a click): it must be seen first. The deliberate
 	// dismiss keys work at once; fire, boost, powers and switching only after 2.5 s.
 	static const FKey DeliberateKeys[] = { EKeys::X, EKeys::BackSpace, EKeys::Gamepad_FaceButton_Right };
-	const bool bActionsMayDismiss = Display->GetAge() >= 2.5f;
+	// Every automatic reason (actions, a new objective, a spool, a phase change) waits until it has been seen.
+	const bool bActionsMayDismiss = Display->GetAge() >= UTDTacticalDisplayWidget::MinShownSeconds;
 	bool bClose = false;
 	const TCHAR* Reason = TEXT("");
 	if (PC)
@@ -461,8 +475,9 @@ void UTDUIHostSubsystem::UpdateTacticalDismiss()
 	if (const ITDHUDData* Data = Cast<ITDHUDData>(DataSource.Get()))
 	{
 		const FString Objective = Data->GetObjectiveText().ToString();
-		if (!bTacticalObjectiveKnown)
+		if (!bTacticalObjectiveKnown || !bActionsMayDismiss)
 		{
+			// An objective that flips while it is first shown (the Aftermath's JUMP TO VERDANCE) becomes its baseline.
 			TacticalObjective = Objective;
 			bTacticalObjectiveKnown = true;
 		}
@@ -471,7 +486,7 @@ void UTDUIHostSubsystem::UpdateTacticalDismiss()
 			bClose = true;
 			Reason = TEXT("objective changed");
 		}
-		if (Data->GetHyperdriveCharge01() > .01f)
+		if (bActionsMayDismiss && Data->GetHyperdriveCharge01() > .01f)
 		{
 			bClose = true;
 			Reason = TEXT("hyperdrive spool");
@@ -1418,6 +1433,26 @@ namespace TDUIHost
 		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
 		{
 			UTDUIHostSubsystem::ShowTacticalDisplay(World, Args.Num() > 0 ? FCString::Atof(*Args[0]) : 20.f);
+		}));
+	FAutoConsoleCommandWithWorldAndArgs CmdTDFlowSlot(TEXT("TD.Flow.Slot"),
+		TEXT("TD.Flow.Slot [write]: log the flown ship, Progress.LastShip and the saved slot's LastShip; 'write' forces a slot write first (#103 proof)."),
+		FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World)
+		{
+			UTDGameInstance* GI = UTDGameInstance::Get(World);
+			if (!GI)
+			{
+				return;
+			}
+			const bool bWrite = Args.Num() > 0 && Args[0] == TEXT("write");
+			const bool bWrote = bWrite && GI->WriteSaveSlot(true);
+			const ATDSquadManager* Squad = ATDSquadManager::Get(World);
+			const ATDShip* Flown = Squad ? Squad->GetActiveShip() : nullptr;
+			UTDSaveGame* Save = nullptr;
+			const bool bRead = GI->ReadSaveSlot(Save) && Save;
+			auto Name = [](ETDShipId S) { return UEnum::GetValueAsString(S); };
+			UE_LOG(LogTDUIHost, Display, TEXT("TD.Flow.Slot: flown=%s progress.LastShip=%s slot=%s%s"),
+				Flown ? *Name(Flown->GetShipId()) : TEXT("none"), *Name(GI->GetProgressRef().LastShip),
+				bRead ? *Name(Save->Checkpoint.Progress.LastShip) : TEXT("(no slot)"), bWrite ? (bWrote ? TEXT(" [written]") : TEXT(" [write refused]")) : TEXT(""));
 		}));
 	FAutoConsoleCommandWithWorldAndArgs CmdTDUICaption(TEXT("TD.UI.Caption"),
 		TEXT("TD.UI.Caption <seconds> <text...>: show any line as a Command caption through the story's own subtitle path (dev: layout captures with long lines)."),

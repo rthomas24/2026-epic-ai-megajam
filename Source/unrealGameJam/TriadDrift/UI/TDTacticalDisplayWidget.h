@@ -30,6 +30,8 @@ public:
 	 *  and Dismiss() closes it with a 0.2 s fade. */
 	static constexpr float MaxSeconds = 8.f;
 	static constexpr float DismissFadeSeconds = .2f;
+	/** Nothing but the deliberate dismiss keys (X / Backspace / B) closes it before this (Lead, T7's New Game). */
+	static constexpr float MinShownSeconds = 2.5f;
 	/** Docked upper-right under the objective line at 60% of its first size, clear of the reticle, radar and squad row. */
 	static constexpr float DockScale = .6f;
 
