@@ -2,7 +2,7 @@
 
 A missile is on your tail. Switch to Rift and send it through a portal. Cut to Lancer, line up the enemy that fired it, and ram straight through. When the next wave closes in, take Bastion and throw a shield over your wingmen. The two ships you leave behind keep fighting.
 
-Fly between two worlds to give your squad new abilities. On Verdance, recover a signal-analysis device and protect the survey transfer in the glowing jungle. On Cinder, follow the survey records to an excavation, recover the crystals and disable the field anchor. Finish Cinder and clear the fifth wave to open the approach to the Dominion. Break its four shield generators, dock, and take the pilot of the ship you landed into the interior. Fight through the corridors to discover what the enemy has been searching for.
+Fly between two worlds to give your squad new abilities. On Verdance, recover a signal-analysis device and protect the survey transfer in the glowing jungle. On Cinder, follow the survey records to an excavation, recover the EMP prototype and disable the field anchor. Finish Cinder and clear the fifth wave to open the approach to the Dominion. Break its four shield generators, dock, and take the pilot of the ship you landed into the interior. Fight through the corridors to discover what the enemy has been searching for.
 
 Every pilot switch is a camera cut. A clean ram or a missile turned back on its owner can earn a money shot. Lose the take and the director calls for another.
 
@@ -10,19 +10,39 @@ Every pilot switch is a camera cut. A clean ram or a missile turned back on its 
 
 Extract the full Windows build to a folder and launch **unrealGameJam.exe** inside. Keep the accompanying folders beside it. Choose **New Game** to start the first scene. Once you have control, press **1** for Rift, **2** for Lancer or **3** for Bastion. On a gamepad, press left or right on the D-pad to cycle through the squad. Use **Settings** to adjust controls and sound.
 
-### Controls
+### Flight controls
 
 | Action | Keyboard and mouse | Gamepad |
 |---|---|---|
 | Increase / decrease throttle | W / S | Right / left trigger |
-| Steer | Mouse | Right stick |
-| Boost / drift | Left Shift / C | Click left stick / B |
+| Aim and turn | Mouse | Right stick |
+| Roll | A / D | Left stick left / right |
+| Boost | Left Shift | Click left stick |
+| Drift | C | B |
 | Fire primary / secondary | Left / right mouse | Right / left bumper |
-| Use signature power / unlocked ability | Q / E | X / Y |
+| Signature power / unlocked ability | Q / E | X / Y |
+| Select Rift / Lancer / Bastion | 1 / 2 / 3 | D-pad right / left to cycle |
 | Cycle ships | Tab / Shift+Tab | D-pad right / left |
-| Toggle wingman shadow mode in flight | G | View / Select |
-| Strike / block on foot | Left / right mouse | Right / left trigger |
-| Interact on foot | E | X |
+| Hyperdrive | H | D-pad down |
+| Toggle wingman shadow mode | G | View / Select |
+| Land near a pad | Hold F when prompted | Hold A when prompted |
+| Pause | Escape | Menu / Start |
+
+### On-foot controls
+
+| Action | Keyboard and mouse | Gamepad |
+|---|---|---|
+| Move / look | WASD / mouse | Left / right stick |
+| Strike / block | Left / right mouse | Right / left trigger |
+| Interact | E | X |
+| Close terminal scan; dialogue continues | X / Backspace | B while the scan is open |
+| Jump | Space | A |
+| Sprint | Hold Left Shift | Click left stick to toggle |
+| Dodge | Q | B |
+| Crouch | Left Ctrl | Click right stick |
+| Pause | Escape | Menu / Start |
+
+Open Settings from the pause menu to adjust controls and sound.
 
 ## Credits and development
 
@@ -54,3 +74,10 @@ This section is for the submission form. Reconcile it against the final packaged
 **Pre-jam declaration:** Nicholas confirmed that these eight supplied models were made before November 12, 2026: Coilgun Assault Rifle; Crimson Vanguard; Nebula Shadowfighter; Spaceship (white hull, cyan ring engines); Circular Bulkhead Wall; Gothic Stone Arch; Crimson Tempest; UnlabelledRifle01. Declare each that appears in the final submitted build. This does not assert that all eight were imported, that Gothic Stone Arch remains the chosen ancient-artifact design, or that the other supplied files share those dates. The Ancient Relay board superseded the earlier artifact proposal. Source: Nicholas's confirmation recorded under R-037 in MESSAGEBOARD.md.
 
 Outstanding disclosures are tracked under R-045 and the asset ledger's section 2.7. This is a review draft, not legal clearance or the final submitted declaration.
+
+
+## November 15 soundtrack addition
+
+Ritual of the Final Dance was supplied by Nicholas Tosti for the Dominion escape. The complete 127.6-second source was decoded with FFmpeg/Python to 48 kHz stereo 16-bit PCM; no new acquisition or generation took place in this completion pass. The source SHA256 is `097a7a13ff224084b33d8b2a862db4d1969d86c93de40b9251668c56a702de2e`; the master SHA256 is `535fa9783d4f2d545958613652ae5b56c4cf3c7c1f14ca1dee70ab5704d58eec`. Record any creation-tool or subscription attribution only from its actual source evidence; do not infer it from another track's Suno receipt.
+
+The companion CREDITS.md completion addendum records Ritual and the supplied-OST style replacements. Historical package-specific inclusion notes remain preserved. Final inclusion must be checked against the selected Shipping container inventory.

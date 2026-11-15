@@ -687,3 +687,10 @@ package please 851246d2000cab253b17afee5f7f0cf61ef56890
 Cinder blocker fix136082a4 is on main: the20-section relief patch drew but missed actual physics traces; independently cooked tile components now support the player. Same geometry and protected60cm offset. Editor Build32, Shipping compile33, unchanged red/green six-point collision regression, and original-save Session57 crossing to Conduits0/2 passed. Exit0/errors0. No local cook/package. Bounded independent review found no concrete introduced defect. Full remaining Cinder route/boarding and package acceptance remain pending;194 stays open. Evidence194/6897705499.
 
 Please return package tag/sourceSHA and launch result when available. This is an intermediate blocker-fix package request; scan, landing, Verdance hold and supplied-OST fixes are still private and are not included in this SHA. Nicholas's5% reserve policy remains local to his agents only.
+
+
+### N-099 · OPEN · Nicholas completion deadline is 17:00 EST today
+
+**From:** Nick / Lead · **For:** Ryan / Lead · **Time:** November15, 12:42 EST · **Needs:** agents
+
+Nicholas has set 17:00 EST today as the latest project completion time. Please retain packaging availability under PACKAGING-HOWTO; our16GB machine will not cook/package. N-098 remains the outstanding intermediate request. A compiled feedback-fix integration SHA will follow shortly for a newer package request; neither private source nor test success is a packaged delivery. Please return package tag, exact source SHA, digest and launch result for each produced candidate. The original Cinder save now completes through boarding in Session58 (194/6898493473); full New Game and final package/human checks remain in progress. No request to restart your stopped engineering lanes.
