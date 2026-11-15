@@ -222,6 +222,16 @@ void ATDStepCounter::HandleStepStarted(ATDObjective* Objective, int32 StepIndex)
 {
 	if (StepIndex == LinkedStep)
 	{
+		if (Count >= Required)
+		{
+			// T7 (Nov 15): the targets went down before the step was live (the gate's conduits broken on the way): the step
+			// is done on arrival, never stuck at 2 / 2. Next tick: not inside the step's own start broadcast.
+			GetWorldTimerManager().SetTimerForNextTick(FTimerDelegate::CreateWeakLambda(this, [this]()
+			{
+				if (IsLinkedStepCurrent() && Count >= Required) { LinkedObjective->CompleteStep(LinkedStep); }
+			}));
+			return;
+		}
 		Announce();
 	}
 }

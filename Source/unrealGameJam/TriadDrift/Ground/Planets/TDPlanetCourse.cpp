@@ -15,6 +15,7 @@
 #include "TriadDrift/World/TDGalaxyLayout.h"
 #include "Components/PointLightComponent.h"
 #include "TriadDrift/World/TDPlanetTerrain.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "TriadDrift/Ground/Planets/TDPlanetProps.h"
 #include "TriadDrift/Ground/TDObjective.h"
 #include "TriadDrift/Ground/Crew/TDFutureCrew.h"
@@ -1232,7 +1233,7 @@ AActor* ATDPlanetCourse::Marker(const FVector& At, float Yaw)
 	return M;
 }
 
-void ATDPlanetCourse::AddMagmaCrossing(const AActor* MagmaActor, ATDObjective* Objective, int32 Step, const TArray<FVector>& Chain, const FVector& RescueAt, float RescueYaw)
+void ATDPlanetCourse::AddMagmaCrossing(const AActor* MagmaActor, ATDObjective* Objective, int32 Step, const TArray<FVector>& Chain, const FVector& RescueAt, float RescueYaw, const FText& Label)
 {
 	const ATDMagmaVolume* M = Cast<ATDMagmaVolume>(MagmaActor);
 	UTDObjectiveSubsystem* Markers = UTDObjectiveSubsystem::Get(this);
@@ -1242,7 +1243,7 @@ void ATDPlanetCourse::AddMagmaCrossing(const AActor* MagmaActor, ATDObjective* O
 	}
 	TArray<AActor*> Waypoints;
 	for (const FVector& L : Chain) { Waypoints.Add(Marker(L + FVector(0.f, 0.f, 100.f))); }
-	Markers->AddCrossing(M->Box->Bounds.GetBox(), Objective, Step, Waypoints);
+	Markers->AddCrossing(M->Box->Bounds.GetBox(), Objective, Step, Waypoints, Label);
 	if (!MagmaRescues.ContainsByPredicate([M](const FMagmaRescue& R) { return R.Magma.Get() == M; }))
 	{
 		MagmaRescues.Add({ M, FTransform(GetActorRotation() + FRotator(0.f, RescueYaw, 0.f), W(RescueAt + FVector(0.f, 0.f, 100.f))) });
@@ -1313,6 +1314,9 @@ void ATDPlanetCourse::AddTrailhead(ATDObjective* Obj, const FVector& At, const F
 		if (Column) { Column->SetHiddenInGame(true); }
 		if (Crown) { Crown->SetHiddenInGame(true); }
 	}
+	// The totem is a signpost on the marker's line, never a wall: the pilot walks through it (Nov 15: with the relief 60 cm
+	// under the course, its plinth stood 1 m proud on Cinder's pad -> station line and stopped a marker-following walk).
+	if (Plinth) { Plinth->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore); Plinth->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore); }
 	AActor* Marker = SpawnProp<AActor>(At + FVector(0.f, 0.f, 300.f));
 	if (Marker)
 	{
@@ -1343,6 +1347,26 @@ ATDObjective* ATDPlanetCourse::FindObjective(FName ObjectiveId) const
 		}
 	}
 	return nullptr;
+}
+
+void ATDPlanetCourse::TickCrossingLabels()
+{
+	const UTDObjectiveSubsystem* Markers = UTDObjectiveSubsystem::Get(this);
+	const APlayerController* PC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+	const APawn* Pilot = PC ? PC->GetPawn() : nullptr;
+	if (!Markers || !Pilot)
+	{
+		return;
+	}
+	for (ATDObjective* O : Objectives)
+	{
+		if (O && O->IsActive())
+		{
+			AActor* W = O->GetCurrentWaypoint();
+			const AActor* Routed = W ? Markers->RouteWaypoint(Pilot->GetActorLocation(), O, W) : nullptr;
+			O->SetDetourText(Routed && Routed != W ? Markers->GetCrossingLabel(O, Routed) : FText::GetEmpty());
+		}
+	}
 }
 
 bool ATDPlanetCourse::IsAnyObjectiveRunning() const
@@ -1453,6 +1477,16 @@ void ATDPlanetCourse::Tick(float DeltaSeconds)
 	TickDroneWake();
 	InteriorTime += DeltaSeconds;
 	TickFinalRecord(DeltaSeconds);
+	// Planets: the pilot steps up to 70 cm (Lead, Nov 15: T4's relief sits 60 cm under the course's sills and ramp feet).
+	if (!IsInterior())
+	{
+		const APlayerController* StepPC = GetWorld()->GetFirstPlayerController();
+		if (ACharacter* StepPilot = StepPC ? Cast<ACharacter>(StepPC->GetPawn()) : nullptr; StepPilot && StepPilot->GetCharacterMovement() && StepPilot->GetCharacterMovement()->MaxStepHeight < 70.f)
+		{
+			StepPilot->GetCharacterMovement()->MaxStepHeight = 70.f;
+		}
+	}
+	TickCrossingLabels();
 	TickCoreChamber();
 	if (UTDGroundBarks* Barks = UTDGroundBarks::Get(this)) { Barks->TickBarks(DeltaSeconds); } // ENG-43's polled barks
 	for (const FCoreRing& R : CoreRings) // the reactor's rings turn (and rock a little, under 20 degrees: inside the shield)
@@ -1555,14 +1589,15 @@ void ATDPlanetCourse::MarkCompletedFromProgress()
 			}
 			for (const FTDStepDoor& D : CompletionDoors)
 			{
-				if (D.Objective == O && D.Door && !(D.Door == WardenExitDoor && !IsFinalRecordPlayed())) { D.Door->Open(); }
+				if (D.Objective == O && D.Door) { D.Door->Open(); } // #96 old saves: the Warden's exit opens too (a Continue can stand the pilot past it)
 			}
 		}
 	}
 	if (IsInterior() && WardenExitDoor && WardenGateObjective.IsValid() && WardenGateObjective->IsComplete() && !IsFinalRecordPlayed())
 	{
-		WardenExitDoor->ShowStatusText(LOCTEXT("RecordFirstLoad", "PLAY THE FINAL RECORD FIRST"));
-		UE_LOG(LogTriadDrift, Display, TEXT("#96: checkpoint has the Warden done but no final record: exit shut, the record first"));
+		// The reactor door stays shut (only the record opens it) and the reactor objective cannot start: the line and the
+		// marker send the pilot back through the open Warden exit to the console.
+		UE_LOG(LogTriadDrift, Display, TEXT("#96: checkpoint has the Warden done but no final record: the record first (Warden exit open, reactor shut)"));
 	}
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
 	{
@@ -2072,6 +2107,21 @@ void ATDPlanetCourse::BuildCinder()
 	}
 	FinishObjective(Survey, { LOCTEXT("S0", "INVESTIGATE THE MINING COMPLEX"), LOCTEXT("S1", "ACCESS THE SURVEY RECORDS · [E]") }, { AtStation, Records });
 	SurveyTerminal = Records;
+	if (CindOutpost)
+	{
+		// The terminal is inside the kit room (800 x 400, the 160 cm doorway centred on the +X face, which faces the pad):
+		// T7 and T5 both walked the marker's straight line into the wall beside the opening (y 156). The marker leads to
+		// the doorway's centre first (outside, then just inside), then to the terminal.
+		if (UTDObjectiveSubsystem* DoorRoute = UTDObjectiveSubsystem::Get(this))
+		{
+			FBox Room(ForceInit);
+			// The doorway wall only (the room's face toward the pad, x -400 in the station's frame): inside the room the way to
+			// the terminal no longer crosses it, so the marker goes straight to the terminal.
+			Room += W(StationAt + FVector(-430.f, -220.f, -100.f));
+			Room += W(StationAt + FVector(-370.f, 220.f, 400.f));
+			DoorRoute->AddCrossing(Room, Survey, 1, { Marker(StationAt + FVector(-650.f, 0.f, 100.f)), Marker(StationAt + FVector(-250.f, 0.f, 100.f)) });
+		}
+	}
 
 	// ---- Obj 3: the outpost (-> EMP Pulse on Lancer). North-east, over a magma river. ----
 	const FVector OutHead(2600.f, 2600.f, 0.f);
@@ -2114,7 +2164,7 @@ void ATDPlanetCourse::BuildCinder()
 	}
 	// The marker crosses from wherever the pilot is (T7: the straight line from the respawn ran over the river); two
 	// magma deaths in a row put the pilot on the far bank (clear of the geyser row), facing the gate.
-	AddMagmaCrossing(River, Outpost, INDEX_NONE, RiverChain, FVector(6900.f, 4900.f, 0.f), 25.f);
+	AddMagmaCrossing(River, Outpost, INDEX_NONE, RiverChain, FVector(6900.f, 4900.f, 0.f), 25.f, LOCTEXT("CrossRiver", "CROSS THE RIVER"));
 	// A geyser row on the far bank, rippling, at least 8 m clear of the bridge's ramp feet (the structures builder's
 	// walk, Nov 14: a geyser 3.1 m past the far foot threw the pilot 5-6 m; Course.CinderMarkers... checks it).
 	for (int32 i = 0; i < 3; ++i)

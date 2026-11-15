@@ -242,6 +242,10 @@ public:
 	bool IsBladeMeshFromArt() const { return bBladeMeshFromArt; }
 	/** #163: the blade's colour, the squad colour of the pilot on foot (Wren magenta, Kato cyan, Moss amber). */
 	FLinearColor GetBladeColor() const;
+private:
+	/** The pilot whose colour the blade was last dressed in (re-dressed when it changes). */
+	ETDShipId AppliedBladeShip = ETDShipId::Rift;
+public:
 	/** #163: the beam the player sees now (the hand blade in third person, the camera blade in first), or null. */
 	UStaticMeshComponent* GetVisibleBladeBeam() const;
 	/** #163: the always-on blade effect (embers, arcs, light, swing sheet, sparks thrown by the tip), when lit. */

@@ -82,6 +82,8 @@ void ATDObjective::StartObjective()
 	}
 	// A retake after a checkpoint step picks the scene up there.
 	CurrentStep = Steps.IsValidIndex(CheckpointStep) ? CheckpointStep : 0;
+	LastText = Steps[CurrentStep].Text;
+	DetourText = FText::GetEmpty();
 	Broadcast(CurrentStep, Steps[CurrentStep].Text);
 	OnStepStarted.Broadcast(this, CurrentStep);
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
@@ -118,6 +120,8 @@ bool ATDObjective::CompleteStep(int32 StepIndex)
 			H->Revive(1.f, 1.f);
 		}
 	}
+	LastText = Steps[CurrentStep].Text;
+	DetourText = FText::GetEmpty();
 	Broadcast(CurrentStep, Steps[CurrentStep].Text);
 	OnStepStarted.Broadcast(this, CurrentStep);
 	if (UTDGroundSceneSubsystem* Scene = UTDGroundSceneSubsystem::Get(this))
@@ -176,10 +180,22 @@ AActor* ATDObjective::GetCurrentWaypoint() const
 
 void ATDObjective::UpdateStepText(const FText& Text)
 {
-	if (bActive)
+	LastText = Text;
+	if (bActive && DetourText.IsEmpty())
 	{
 		Broadcast(CurrentStep, Text);
 	}
+}
+
+void ATDObjective::SetDetourText(const FText& Detour)
+{
+	if (!bActive || Detour.EqualTo(DetourText))
+	{
+		return;
+	}
+	DetourText = Detour;
+	const FText Shown = Detour.IsEmpty() ? (LastText.IsEmpty() ? GetCurrentStepText() : LastText) : Detour;
+	Broadcast(CurrentStep, Shown);
 }
 
 void ATDObjective::Broadcast(int32 Step, const FText& Text) const
@@ -247,9 +263,22 @@ void UTDObjectiveSubsystem::GetActiveWaypoints(TArray<AActor*>& Out) const
 	}
 }
 
-void UTDObjectiveSubsystem::AddCrossing(const FBox& Hazard, ATDObjective* Objective, int32 Step, const TArray<AActor*>& Chain)
+FText UTDObjectiveSubsystem::GetCrossingLabel(const ATDObjective* Objective, const AActor* Waypoint) const
+{
+	for (const FCrossing& C : Crossings)
+	{
+		if (C.Objective.Get() == Objective && !C.Label.IsEmpty() && Waypoint && C.Chain.Contains(Waypoint))
+		{
+			return C.Label;
+		}
+	}
+	return FText::GetEmpty();
+}
+
+void UTDObjectiveSubsystem::AddCrossing(const FBox& Hazard, ATDObjective* Objective, int32 Step, const TArray<AActor*>& Chain, const FText& Label)
 {
 	FCrossing& C = Crossings.AddDefaulted_GetRef();
+	C.Label = Label;
 	C.Hazard = Hazard;
 	C.Objective = Objective;
 	C.Step = Step;
