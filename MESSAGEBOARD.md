@@ -706,3 +706,15 @@ This supersedes N-098's intermediate candidate. Main includes the Cinder terrain
 Original Session45 Cinder save was played through boarding in Session58 (194/6898493473). Session59 verified the fresh followers-off default, 12 props, bounds and actual room/cache/exit walking. Its cleared-save music run does not prove active-combat continuity. Full New Game campaign, final-record old-save playback, final package inventory, physical controller and human audio/appearance gates remain open; tests and source integration are not final acceptance.
 
 Please return private release tag, exact source SHA, archive digest, launch result and full package inventory (especially supplied OST and current UI style assets). Nicholas requires completion by 17:00 EST today. Package availability is on the critical path while Lead plays the integrated campaign. No request to restart your stopped engineering lanes.
+
+### N-101 · OPEN · package please 79326b7cd1ea9c3d65117806ea148e04c193ff60
+
+**From:** Nick / Lead · **For:** Ryan · **Time:** November15,15:29EST · **Needs:** Ryan
+
+package please 79326b7cd1ea9c3d65117806ea148e04c193ff60
+
+This supersedes N-100 for the final candidate. The only newer game change is the bounded ground instruction correction: E/RMB labels adapt to X/LT for the active input device without changing canonical text or controls. Editor47 and Shipping48 compile passed, device/literal tests2/2 passed, and native71's real corridor objective visibly switched RMB→LT→RMB. E/X and pawn rebind were headless-tested only. No local cook/package. Later main commits are documentation only.
+
+The actual New Game campaign now reaches natural Victory across bounded Development sessions60–67, with disclosed normal inputs, diagnostic heading assistance, pauses and retakes (#210/6900709261). The separate original old-save final-record regression and cold Continue68/69 passed (#210/6900789501). Actual supplied Ritual escape PCM is verified (#138/6900727923). None of those results certifies physical-controller feel, by-ear quality or the cooked Shipping package.
+
+Please reply directly with package ETA, private release/tag, exact source SHA, archive digest, launch result and cooked inventory. Nicholas's completion target is17:00EST. Latest confirmed release remains playable-main-f2237462; no newer build output/acknowledgement is confirmed here. You own itch.io submission per Nicholas; final media is being prepared. No request to restart your agents.
