@@ -287,8 +287,8 @@ S2('NS_TD_Mine_Plasma', U(MINE, 1.0), [
 DM = 'clamp(Engine.Owner.LODDistance/4000.0, 1.0, 5.0)'
 MPULSE = '(0.65 + 0.35*sin(Engine.Time*6.2832))'
 S2('NS_TD_Mine_Plasma2', U(MINE, 1.0), [
-    shed('Hot', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(110.0*%s)' % DM,) * 2, (0, 0), k=10.0, radius=0.0, drag=0.0, local=True, power=0.6,
-         rate_expr='20.0', rgb=(1.0, 0.85, 0.7)),   # 12q: white-hot centre (orange alone was lost on the magenta nebula)
+    shed('Hot', 'M_TD_VFX_Dot', 0, (0.1, 0.1), ('(330.0*%s*(0.85 + 0.15*%s))' % (DM, MPULSE),) * 2, (0, 0), k=3.0, radius=0.0, drag=0.0,
+         local=True, power=0.6, rate_expr='20.0', rgb=(1.0, 0.12, 0.03)),   # 12r: a crisp white-yellow disc with a thin dark-red rim (an object, not a glow)
     shed('Core', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(320.0*%s)' % DM,) * 2, (0, 0), k=7.0, radius=0.0, drag=0.0, local=True, power=0.6,
          rate_expr='20.0', rgb=(1.0, 0.38, 0.08)),
     shed('Halo', 'M_TD_VFX_Glow', 0, (0.1, 0.1), ('(1000.0*%s*%s)' % (DM, MPULSE),) * 2, (0, 0), k=2.6, radius=0.0, drag=0.0, local=True,
