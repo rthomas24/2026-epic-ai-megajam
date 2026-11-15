@@ -486,3 +486,13 @@ CREDITS.md now distinguishes the November 12 menu-music preparation checkpoint f
 - Presentation142/149: prior scoped menu/canopy decisions stand; remaining owner runtime/package/motion checks are not replaced by static approval. Original specialists do not restart from these dependencies.
 - Asset Handler's separate Quixel collection authorization supplies optional source candidates; source QA and license receipts do not certify UE import, cook, gameplay or final appearance.
 - No Lead native operation remains at this checkpoint. Human saves and uncommitted specialist work are preserved. Current local operations and reserve gates remain in the Lead's local state/receipts.
+
+
+## Nick Lead runtime checkpoint — November 14, 18:20 EST
+
+Lead reconciled private Builds16–18 and sessions34–39 into the current Nick checkpoint in `docs/visual/STATUS.md` and `features.md`. Evidence delivered to existing #96, #103 and #194: cold-Continue persistence narrowly passed; legacy saved-position recovery and Cinder terrain/course alignment failed with reproducible progression blockers. Original saves, exact input transcripts, native logs/results, screenshots and the Cinder clip are preserved in verified private-release packets. All runs exited normally, with no owned Unreal process left. Source/assets, Ryan claims and feature completion markers were not edited; no human project update or whole-game acceptance is implied. Existing owners retain fixes and the next exact regressions.
+
+
+## Nick Lead runtime checkpoint — November 14, 18:50 EST
+
+Lead reconciled sessions40–42 into the Nick checkpoint: narrow active-escape re-entry, actual10.5s intro-bed skip, and forced-growth asteroid split checks. Verified original evidence packets are linked in docs/visual/STATUS.md and their existing issues. Resolved only the original asteroid dangling-reference finding against integrated d6a98bee/main508edec6 plus independent source/runtime proof. Cinder remains BLOCKER, legacy saved-position recovery MAJOR, and the newly integrated HUD changes await native regression. All sessions exited normally; local native resources released to separately authorized Asset Handler intake. No source/assets, Ryan claims, historical text or feature completion markers changed.

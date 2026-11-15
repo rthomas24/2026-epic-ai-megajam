@@ -178,6 +178,19 @@ namespace TDWorldDebug
 			}
 			return nullptr;
 		}
+		// #201 balance pass: the "good driver" turns onto the nearest live enemy ship.
+		if (Args.Num() > 0 && Args[0].Equals(TEXT("Nearest"), ESearchCase::IgnoreCase))
+		{
+			const APawn* Pawn = UGameplayStatics::GetPlayerPawn(World, 0);
+			AActor* Best = nullptr;
+			double BestD = TNumericLimits<double>::Max();
+			for (TActorIterator<ATDEnemyShip> It(World); It && Pawn; ++It)
+			{
+				const double Dist = FVector::DistSquared(It->GetActorLocation(), Pawn->GetActorLocation());
+				if (It->IsAliveEnemy() && Dist < BestD) { Best = *It; BestD = Dist; }
+			}
+			return Best;
+		}
 		ATDDominion* D = nullptr;
 		for (TActorIterator<ATDDominion> It(World); It && !D; ++It) { D = *It; }
 		if (!D || Args.Num() == 0) { return nullptr; }

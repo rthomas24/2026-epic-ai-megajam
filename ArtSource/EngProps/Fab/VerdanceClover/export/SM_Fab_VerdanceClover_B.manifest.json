@@ -1,0 +1,53 @@
+{
+  "asset": "SM_Fab_VerdanceClover_B",
+  "fbx": "C:\\Users\\ryant\\Documents\\myRepos\\game-jam\\.wt\\imp\\ArtSource\\EngProps\\Fab\\VerdanceClover\\export\\SM_Fab_VerdanceClover_B.fbx",
+  "tris": 937,
+  "size_cm": [
+    91.3,
+    142.8,
+    14.6
+  ],
+  "pivot": "root object origin (SM_Fab_VerdanceClover_B~exp)",
+  "forward": "+X (authoring front -Y rotated)",
+  "materials": [
+    "M_Fab_VerdanceClover"
+  ],
+  "material_params": [
+    {
+      "name": "M_Fab_VerdanceClover",
+      "textured": true,
+      "base_color": null,
+      "metallic": 0.0,
+      "roughness": 0.5,
+      "emission_color": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "emission_strength": 0.0
+    }
+  ],
+  "textures": [],
+  "collision": [],
+  "collision_source": "none",
+  "sockets": [],
+  "welded_verts": 0,
+  "nanite_recommended": false,
+  "unreal_import": {
+    "uniform_scale": 1.0,
+    "generate_lightmap_uvs": false,
+    "normals": "Import Normals (keep the authored hard edges/custom normals)",
+    "combine_meshes": true,
+    "nanite": false,
+    "collision": "none / add simple collision in UE",
+    "textures": {
+      "_BC": "sRGB on, Default",
+      "_N": "Normalmap (already DirectX - do NOT flip green)",
+      "_ORM": "sRGB off, Masks",
+      "_E": "sRGB on, Default"
+    },
+    "note": "Nanite only for opaque/masked materials; keep glass/translucent/emissive-blade parts as separate non-Nanite meshes."
+  },
+  "warnings": [],
+  "errors": []
+}

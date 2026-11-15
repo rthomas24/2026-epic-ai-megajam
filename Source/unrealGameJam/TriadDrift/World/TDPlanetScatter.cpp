@@ -156,7 +156,7 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		const FString VerdMoss = FString::Printf(TEXT("%s/Fab/Textures/ForestNordicMoss/MI_Fab_ForestNordicMoss.MI_Fab_ForestNordicMoss"), GProps);
 		for (int32 i = 1; i <= 3; ++i)
 		{
-			R.Rocks.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Rock_%02d"), i)), 1.5f, 4.5f, 60.f, 60000.f, 80000.f, 500.f, true, true, true, VerdMoss));
+			R.Rocks.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Rock_%02d"), i)), 1.5f, 4.5f, 60.f, 60000.f, 80000.f, 500.f, true, true, false, VerdMoss));	// T6/VSM: no dynamic shadow
 		}
 		for (int32 i = 1; i <= 4; ++i)
 		{
@@ -165,7 +165,7 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		// Glowing groves: giant mushrooms (3-8x) and big glow plants where the ground is painted as a grove.
 		for (int32 i = 1; i <= 3; ++i)
 		{
-			R.Grove.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Mushroom_%02d"), i)), i == 3 ? 3.f : 4.f, i == 3 ? 6.f : 8.f, 40.f, 80000.f, 100000.f, 1200.f, true, false, true));
+			R.Grove.Add(Add(TDScatter_Path(TEXT("Verdance"), FString::Printf(TEXT("SM_Verd_Mushroom_%02d"), i)), i == 3 ? 3.f : 4.f, i == 3 ? 6.f : 8.f, 40.f, 80000.f, 100000.f, 1200.f, true, false, false));	// T6/VSM: no dynamic shadow
 		}
 		for (int32 i = 1; i <= 2; ++i)
 		{
@@ -209,13 +209,13 @@ FTDScatterPlan FTDScatterPlan::ForPlanet(ETDDestination Planet)
 		{
 			R.CliffRocks.Add(Add(TDScatter_Path(TEXT("Scatter"), FString::Printf(TEXT("SM_Scatter_Any_Boulder_%02d"), i)), 0.8f, 1.8f, 80.f, 90000.f, 120000.f, 900.f, true, true, true, RockMat));
 		}
-		R.Rocks.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_03")), 1.5f, 3.5f, 30.f, 60000.f, 80000.f, 600.f, true, true, true));
+		R.Rocks.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_03")), 1.5f, 3.5f, 30.f, 60000.f, 80000.f, 600.f, true, true, false));	// T6/VSM: no dynamic shadow
 		R.Rocks.Add(Add(TDScatter_Path(TEXT("Planet"), TEXT("SM_Cind_ChokeRock_A")), 0.8f, 1.3f, 60.f, 180000.f, 240000.f, 1000.f, true, false, true));
 		R.Rocks.Add(Add(TDScatter_Path(TEXT("Planet"), TEXT("SM_Cind_ChokeRock_B")), 0.8f, 1.3f, 60.f, 180000.f, 240000.f, 1000.f, true, false, true));
 		for (int32 i = 1; i <= 4; ++i)
 		{
 			// s9: 2-4.5x and kept to ~2 km so the obsidian patches read from the air as crystal fields, not specks
-			R.Crystals.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_Crystal_%02d"), i)), 2.f, 4.5f, 20.f, 180000.f, 240000.f, 400.f, i >= 3, false, true));
+			R.Crystals.Add(Add(TDScatter_Path(TEXT("Cinder"), FString::Printf(TEXT("SM_Cind_Crystal_%02d"), i)), 2.f, 4.5f, 20.f, 180000.f, 240000.f, 400.f, i >= 3, false, false));	// T6/VSM: no dynamic shadow
 		}
 		const FString TundraV = FString::Printf(TEXT("%s/Fab/Textures/TundraVolcanic/MI_Fab_TundraVolcanic.MI_Fab_TundraVolcanic"), GProps);	// #194: Cinder ground debris in the Fab tundra basalt
 		R.Rubble.Add(Add(TDScatter_Path(TEXT("Cinder"), TEXT("SM_Cind_Basalt_01")), 0.6f, 1.6f, 10.f, 11000.f, 15000.f, 100.f, false, true, false, TundraV));
@@ -427,6 +427,16 @@ void FTDScatterPlan::RunCourseFill(const FTDTerrainField& Field, FTDScatterResul
 	const float Floor = S.BasinFloor;
 	auto Place = [&](int32 Kind, float X, float Y, int32 Seed, int32 ix, int32 iy, float ScaleMul)
 	{
+		// Lead (Cinder pad views were a wall of tall yellow crystals): within 60 m of the pad a third of the tall crystals and
+		// spires become dark shapes (basalt columns, CinderRock outcrops, charred trees) so the glow has gaps and the camp
+		// and landmarks stay visible
+		if (!bV && FVector2D(X, Y).Size() < 6000.f && (R.Spires.Contains(Kind) || (R.Crystals.Contains(Kind) && R.Crystals.IndexOfByKey(Kind) >= 2))
+			&& TDScatter_Hash01(Seed, ix, iy, 31) < 0.4f)
+		{
+			const float Sw = TDScatter_Hash01(Seed, ix, iy, 32);
+			Kind = Sw < 0.4f && R.FillOutcrops.Num() ? TDScatter_OneOf(R.FillOutcrops, Sw / 0.4f) : (Sw < 0.75f ? TDScatter_OneOf(R.Columns, (Sw - 0.4f) / 0.35f) : TDScatter_OneOf(R.CharTrees, (Sw - 0.75f) / 0.25f));
+			ScaleMul = FMath::Min(ScaleMul, 0.7f);
+		}
 		if (!Kinds.IsValidIndex(Kind)) { return; }
 		const FTDScatterKind& K = Kinds[Kind];
 		// Fill's own clearance (Lead, #194: "keep the 4 m path corridors clear"; trees within 6-8 m of a path): a route
@@ -437,6 +447,24 @@ void FTDScatterPlan::RunCourseFill(const FTDTerrainField& Field, FTDScatterResul
 		// spawn points stay clear.
 		const float Rc = FMath::Min(K.ClearRadiusCm * ScaleMul, 600.f);
 		const float Body = K.bBlocksOnFoot ? FMath::Min(Rc, 100.f) : 0.f;
+		// T7 (relief1 walk: the pilot jammed on a landmark walking straight at the marker): colliding pieces also stay
+		// 4 m + body off the straight walk lines, from the pad to each objective (each route's end) and from each objective
+		// to the next
+		if (K.bBlocksOnFoot)
+		{
+			FVector2D Prev(0.f, 0.f);
+			for (const FTDCourseKeepOut& KO : KeepOuts)
+			{
+				if (KO.Kind != TEXT("Route") || KO.Points.Num() < 2) { continue; }
+				const FVector2D End(KO.Points.Last());
+				for (const FVector2D& From : { FVector2D(0.f, 0.f), Prev })
+				{
+					const FVector C = FMath::ClosestPointOnSegment(FVector(X, Y, 0.f), FVector(From, 0.f), FVector(End, 0.f));
+					if (FVector2D::Distance(FVector2D(C.X, C.Y), FVector2D(X, Y)) < 400.f + Body) { return; }
+				}
+				Prev = End;
+			}
+		}
 		for (const FTDCourseKeepOut& KO : KeepOuts)
 		{
 			if (KO.Points.Num() > 1)
@@ -453,7 +481,7 @@ void FTDScatterPlan::RunCourseFill(const FTDTerrainField& Field, FTDScatterResul
 			{
 				const FVector2D Ce(KO.Box.GetCenter()), Ex(KO.Box.GetExtent());
 				const float Ux = FMath::Abs(X - Ce.X) / FMath::Max(Ex.X, 1.f), Uy = FMath::Abs(Y - Ce.Y) / FMath::Max(Ex.Y, 1.f);
-				if (Ux < 0.85f && Uy < 0.85f) { return; }	// the open middle of a fight
+				if (Ux < 0.7f && Uy < 0.7f) { return; }	// the open middle of a fight (Lead: colliding pieces in the outer 30 %)
 				continue;	// the outer ring, or outside: fine
 			}
 			if (X > KO.Box.Min.X - Rc && X < KO.Box.Max.X + Rc && Y > KO.Box.Min.Y - Rc && Y < KO.Box.Max.Y + Rc) { return; }

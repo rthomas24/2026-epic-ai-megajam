@@ -30,6 +30,7 @@ public class unrealGameJam : ModuleRules
 		PrivateDependencyModuleNames.Add("AudioMixer"); // T1: TD.Audio.Record (dev) records the real output for issue #24 checks
 		PrivateDependencyModuleNames.AddRange(new string[] { "LevelSequence", "MovieScene" }); // ENG-33: UTDUIStyle::IntroSequence
 		if (Target.bBuildEditor) { PrivateDependencyModuleNames.Add("UnrealEd"); } // T3 e2e PIE test
+		PrivateDependencyModuleNames.Add("MoviePlayer"); // T6: the boot loading screen (TDBootLoadingScreen)
 		PrivateDependencyModuleNames.Add("ProceduralMeshComponent"); // ENG-34: ATDPlanetTerrain chunk meshes (T4)
 
 		PublicIncludePaths.AddRange(new string[] {

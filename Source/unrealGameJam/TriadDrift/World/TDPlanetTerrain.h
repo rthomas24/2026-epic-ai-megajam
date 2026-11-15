@@ -178,6 +178,8 @@ protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UProceduralMeshComponent> DetailGround;
 	bool bDetailReady = false;
+	float RescueTimer = 0.f;
+	void RescueUnderground(float DeltaSeconds);
 	void BuildDetailGround();
 	void RegisterCourseFlats(ETDDestination Planet);
 public:
@@ -186,6 +188,10 @@ public:
 	float DetailSpacing = 200.f;
 	/** True once the relief patch has collision: T5's course then turns its flat GroundSlab's collision off. */
 	static bool HasDetailGround(const UObject* WorldContext);
+	/** True when the ground under Location collides at its real height: outside the relief region always (once built), inside
+	 *  it once the relief patch is ready. All relief sections get their collision in one game-thread step (synchronous
+	 *  cooking) before the patch reports ready, so ready means every section collides. */
+	static bool HasDetailGroundAt(const UObject* WorldContext, const FVector& Location);
 	bool IsDetailGroundReady() const { return bDetailReady; }
 protected:
 

@@ -840,6 +840,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tutorial Music", meta = (ClampMin = "0", Units = "s"))
 	float TutorialMusicSkipFadeInSeconds = 0.15f;
 
+	/**
+	 * #146: an optional bed under the watched intro's opening, the part before the tutorial score comes in (the score is
+	 * timed so its downbeat lands on control, so the first seconds of the intro have no music of their own). Starts with
+	 * the watched intro's clock; fades out over IntroOpeningBedFadeSeconds when the tutorial score starts, and over
+	 * 0.3 s when the intro is skipped, ends or is cut short. Empty = silence (as today). The asset carries its own class
+	 * and volume. Not used when IntroMusic plays (a run without the tutorial score).
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")
+	TSoftObjectPtr<USoundBase> IntroOpeningBed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro", meta = (ClampMin = "0", Units = "s"))
+	float IntroOpeningBedFadeSeconds = 2.f;
+
 	/** Music for the intro, swelling into wave 1 (optional; silence when empty). */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Intro")
 	TSoftObjectPtr<USoundBase> IntroMusic;

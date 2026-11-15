@@ -1,0 +1,29 @@
+{
+ "name": "CinderCliff",
+ "kind": "scan",
+ "basalt_scale": 0.683,
+ "dim": 0.55,
+ "normal": "no height map: flipped as OpenGL like the other Megascans glTF sets",
+ "meshes": [
+  {
+   "mesh": "SM_Fab_CinderCliff_A",
+   "source_tris": 1394,
+   "tris": 1394,
+   "size_cm": [
+    302.3,
+    204.3,
+    297.0
+   ]
+  },
+  {
+   "mesh": "SM_Fab_CinderCliff_B",
+   "source_tris": 3779,
+   "tris": 3779,
+   "size_cm": [
+    291.1,
+    308.8,
+    290.0
+   ]
+  }
+ ]
+}

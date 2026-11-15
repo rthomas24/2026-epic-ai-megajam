@@ -280,6 +280,17 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UInputComponent> SkipInput;
 	UPROPERTY(Transient) TArray<TObjectPtr<AActor>> Showcase;
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> Music;
+	/** #146: the opening bed (UTDUIStyle::IntroOpeningBed), until the tutorial score comes in. */
+	UPROPERTY(Transient) TObjectPtr<UAudioComponent> OpeningBed;
+	TWeakObjectPtr<USoundBase> PendingOpeningBed;
+	float OpeningBedFadeSeconds = 2.f;
+	void StartOpeningBed(USoundBase* Sound);
+	void FadeOpeningBed(float Seconds, const TCHAR* Why);
+	void UpdateOpeningBed();
+public:
+	/** The opening bed is playing (tests, captures). */
+	bool IsOpeningBedPlaying() const { return OpeningBed != nullptr; }
+private:
 	bool bIntroMusicSuppressed = false; // T1, issue #24: the tutorial music owns the opening
 	/** Shot 6: a red-orange key light on the fleet (it would read black against space otherwise). */
 	UPROPERTY(Transient) TObjectPtr<AActor> KeyLight;

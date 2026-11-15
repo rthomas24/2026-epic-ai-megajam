@@ -92,6 +92,7 @@ struct UNREALGAMEJAM_API FTDTerrainStyle
 	FBox2D MicroRegion = FBox2D(ForceInit);
 	float MicroMargin = 15000.f;
 	float MicroAmount = 1.f;
+	float MaxMicroDepth = 250.f;	// cm: deepest the relief goes below the course ground inside the walkable region
 	bool bCinderGround = false;
 
 	static FTDTerrainStyle ForPlanet(ETDDestination Planet);
