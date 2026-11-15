@@ -15,6 +15,7 @@
 #include "TriadDrift/Core/TDStatics.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDWeaponTypes.h"
+#include "TriadDrift/Ground/Squad/TDGroundSquadSubsystem.h" // #209-allies: the squad-of-three encounter scale
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
@@ -783,7 +784,8 @@ void ATDEncounterVolume::Activate()
 	// reactor's future pilots, will be exempt when they land).
 	if (Points.Num() > 1 && MemberNames.Num() == 0) // named crews (the reactor's future pilots) are exactly who they are
 	{
-		const int32 Want = UTDDifficultySettings::ScaleCount(Points.Num(), UTDDifficultySettings::GetScale().WaveSize);
+		const int32 Want = UTDDifficultySettings::ScaleCount(Points.Num(), UTDDifficultySettings::GetScale().WaveSize
+			* UTDGroundSquadSubsystem::GetEncounterScale()); // #209-allies: x1.6 (td.Ground.SquadScale) while the two allies are on; 1 otherwise and in tests
 		const int32 Base = Points.Num();
 		for (int32 i = Base; i < Want; ++i)
 		{
