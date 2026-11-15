@@ -31,6 +31,8 @@ namespace TDFutureCrew
 	UNREALGAMEJAM_API UAnimSequenceBase* PilotAnim(const TCHAR* Name);
 	/** Puts DA_Pilot_Visuals on Mesh (feet at -HalfHeight) with the C++ loop player. Null when there is no pilot look. */
 	UNREALGAMEJAM_API const UTDPilotVisuals* ApplyPilotLook(USkeletalMeshComponent* Mesh, float CapsuleHalfHeight);
+	/** Future selves only: private suit instances, black armor and the pilot's role-colored visor. */
+	UNREALGAMEJAM_API void ApplyFuturePalette(USkeletalMeshComponent* Mesh, FName Pilot);
 	/** A hilt and a lit beam on hand_r (or BladeSocket), tinted Color. Returns the beam (null without a look). */
 	UNREALGAMEJAM_API UStaticMeshComponent* AttachBlade(AActor* Owner, USkeletalMeshComponent* Mesh, const FLinearColor& Color);
 }

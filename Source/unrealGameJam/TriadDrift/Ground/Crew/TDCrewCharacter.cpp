@@ -651,6 +651,7 @@ void ATDCrewCharacter::ApplyVisuals()
 	{
 		if (TDFutureCrew::ApplyPilotLook(GetMesh(), Spec.CapsuleHalfHeight))
 		{
+			TDFutureCrew::ApplyFuturePalette(GetMesh(), FuturePilot);
 			bFallbackAnim = true;
 			bPilotLook = true;
 			RefHeadHeight = 0.f; // the pilot clips are retargeted for this rig: no collapse guard

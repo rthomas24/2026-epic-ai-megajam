@@ -91,6 +91,31 @@ namespace TDFutureCrew
 		return V;
 	}
 
+	void ApplyFuturePalette(USkeletalMeshComponent* Mesh, FName Pilot)
+	{
+		if (!Mesh) { return; }
+		for (int32 Slot = 0; Slot < Mesh->GetNumMaterials(); ++Slot)
+		{
+			UMaterialInterface* Source = Mesh->GetMaterial(Slot);
+			FLinearColor ExistingTint;
+			// Reuse the authored suit masks. Unrelated/custom materials are not replaced.
+			if (!Source || !Source->GetVectorParameterValue(FMaterialParameterInfo(TEXT("SuitTint")), ExistingTint)) { continue; }
+			// Always create an instance owned by this component; never mutate a shared material or ally MID.
+			if (UMaterialInstanceDynamic* Suit = UMaterialInstanceDynamic::Create(Source, Mesh))
+			{
+				Suit->SetVectorParameterValue(TEXT("SuitTint"), FLinearColor(0.025f, 0.025f, 0.03f));
+				Suit->SetVectorParameterValue(TEXT("SuitDark"), FLinearColor(0.018f, 0.018f, 0.022f));
+				Suit->SetScalarParameterValue(TEXT("SuitDarkAmount"), 1.f);
+				Suit->SetScalarParameterValue(TEXT("SuitDarkGlow"), 0.f);
+				Suit->SetVectorParameterValue(TEXT("SuitAccent"), ColorOf(Pilot));
+				Suit->SetScalarParameterValue(TEXT("SuitAccentGlow"), 1.f);
+				Mesh->SetMaterial(Slot, Suit);
+				UE_LOG(LogTemp, Display, TEXT("TD.FutureAppearance pilot=%s slot=%d armor=black visor=role source=%s"),
+					*Pilot.ToString(), Slot, *Source->GetPathName());
+			}
+		}
+	}
+
 	UStaticMeshComponent* AttachBlade(AActor* Owner, USkeletalMeshComponent* Mesh, const FLinearColor& Color)
 	{
 		if (!Owner || !Mesh || !Mesh->GetSkeletalMeshAsset())
@@ -199,6 +224,7 @@ void ATDFutureSelf::BeginPlay()
 	const FLinearColor Color = TDFutureCrew::ColorOf(Pilot);
 	if (TDFutureCrew::ApplyPilotLook(Look, Capsule->GetUnscaledCapsuleHalfHeight()))
 	{
+		TDFutureCrew::ApplyFuturePalette(Look, Pilot);
 		Placeholder->SetVisibility(false);
 		TDFutureCrew::AttachBlade(this, Look, Color);
 	}
