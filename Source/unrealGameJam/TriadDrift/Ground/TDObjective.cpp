@@ -307,13 +307,14 @@ AActor* UTDObjectiveSubsystem::RouteWaypoint(const FVector& From, const ATDObjec
 
 AActor* UTDObjectiveSubsystem::RouteWaypointForStep(const FVector& From, const ATDObjective* Objective, int32 Step, AActor* Target) const
 {
-	if (!Objective || !Target)
+	if (!Target)
 	{
 		return Target;
 	}
 	for (const FCrossing& C : Crossings)
 	{
-		if (C.Objective.Get() != Objective || (C.Step != INDEX_NONE && C.Step != Step)
+		// No objective (an idle trailhead marker): every hazard crossing applies.
+		if ((Objective && (C.Objective.Get() != Objective || (C.Step != INDEX_NONE && C.Step != Step)))
 			|| !SegmentCrosses(C.Hazard, From, Target->GetActorLocation()))
 		{
 			continue;
