@@ -494,6 +494,38 @@ void ATDWingmanAIController::UpdateEngage(float DeltaSeconds, ATDShip* Ship, ATD
 		return;
 	}
 
+	// #201 "your fight": this enemy is the player's and our fire has taken it as low as we may. After a moment, leave
+	// it to the player and find another.
+	if (const ATDSquadManager* FightSquad = Squad.Get(); FightSquad && !bFocusTarget && FightSquad->IsHeldAtFloorForPlayer(Target))
+	{
+		if (HeldAtFloorSince < 0.0)
+		{
+			HeldAtFloorSince = T;
+		}
+		else if (T - HeldAtFloorSince >= TDShadow::YourFightRetargetSeconds())
+		{
+			LeftForPlayer = Target;
+			LeftForPlayerUntil = T + 6.0;
+			HeldAtFloorSince = -1.0;
+			if (TDShadow::LogTargets())
+			{
+				UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD wingman %s leaves %s to the player (held at %.0f%% hull)"),
+					*UEnum::GetDisplayValueAsText(ShipId).ToString(), *Target->GetName(), TDSquad::GetHull01(Target) * 100.f);
+			}
+			CurrentTarget = PickTarget(Ship, Leader);
+			NextTargetEvalTime = T + TargetReevaluateInterval;
+			if (!CurrentTarget.IsValid())
+			{
+				SetState(ETDWingmanState::Regroup);
+			}
+			return;
+		}
+	}
+	else
+	{
+		HeldAtFloorSince = -1.0;
+	}
+
 	// Leash: never get dragged too far from the player (#201: the shadow leash, or the capped solo leash; a wingman
 	// hunting alone also turns back at the edge of the flight area).
 	if ((Leader && FVector::Dist(Ship->GetActorLocation(), Leader->GetActorLocation()) > GetLeash() * (IsShadowMode() ? TDShadow::ShadowBreakOffScale() : 1.f))
@@ -715,6 +747,9 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 	const float ShadowEngage = FMath::Min3(EngageRange, TDShadow::ShadowEngageRange(), GetLeash());
 	// #201: shadowing: what the player is aiming at comes right after the player's attackers.
 	const AActor* PlayerTarget = Leader ? TDSquad::GetCurrentTarget(Leader) : nullptr;
+	// #201: waves 1-2: the player's enemies are left to the player (no help on their target, no cover from their attackers).
+	const bool bEarlyWave = S && S->IsEarlyWaveForWingmen();
+	const AActor* SkipForPlayer = (LeftForPlayer.IsValid() && Now() < LeftForPlayerUntil) ? LeftForPlayer.Get() : nullptr;
 
 	TDSquad::GetPlayerHostiles(GetWorld(), ScratchHostiles);
 	if (ScratchHostiles.Num() == 0)
@@ -772,10 +807,11 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 		}
 		const FVector HLoc = H->GetActorLocation();
 		const float DistToAnchorSq = FVector::DistSquared(HLoc, Anchor);
-		if (DistToAnchorSq > FMath::Square(ShadowEngage))
+		if (DistToAnchorSq > FMath::Square(ShadowEngage) || H == SkipForPlayer)
 		{
 			continue;
 		}
+		const bool bPlayersEnemy = bEarlyWave && S->IsPlayerClaimed(H);
 
 		// 2) Whoever threatens the player: hit them recently, or close and pointed at them.
 		if (Leader)
@@ -784,7 +820,7 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 			const bool bCloseAndFacing = DistToAnchorSq < FMath::Square(ThreatRadius)
 				&& FVector::DotProduct(H->GetActorForwardVector(), (Anchor - HLoc).GetSafeNormal()) > 0.7f;
 			// m6: one wingman is enough on a threat; the other keeps its own priorities.
-			if ((bAttacker || bCloseAndFacing) && H != OtherWingTarget && DistToAnchorSq < BestThreatDistSq)
+			if ((bAttacker || bCloseAndFacing) && !bPlayersEnemy && H != OtherWingTarget && DistToAnchorSq < BestThreatDistSq)
 			{
 				BestThreatDistSq = DistToAnchorSq;
 				BestThreat = H;
@@ -812,7 +848,11 @@ AActor* ATDWingmanAIController::PickTarget(ATDShip* Ship, ATDShip* Leader) const
 		{
 			Score -= 0.75f; // stickiness: don't flicker between equal targets
 		}
-		if (H == PlayerTarget)
+		if (bPlayersEnemy)
+		{
+			Score += 8.f; // #201, waves 1-2: prefer anything the player is NOT attacking
+		}
+		else if (H == PlayerTarget && !bEarlyWave)
 		{
 			Score -= 3.f; // #201: help with the player's own target
 		}

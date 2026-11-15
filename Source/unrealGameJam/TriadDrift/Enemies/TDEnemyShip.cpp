@@ -1,5 +1,6 @@
 // Triad Drift - Enemies & Waves (Teammate 4).
 #include "TriadDrift/Enemies/TDEnemyShip.h"
+#include "TriadDrift/Squad/TDSquadManager.h" // #201
 
 #include "TriadDrift/Combat/TDCombatPlaceholders.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -811,7 +812,14 @@ void ATDEnemyShip::BreakFrontalShield()
 	OnFrontalShieldBroken.Broadcast(this);
 }
 
+// #201 (wingman builder): the squad notes the player's own hits and, in shadow mode, stops a wingman from landing the
+// killing blow on an enemy the player is fighting. Everything else passes through unchanged.
 float ATDEnemyShip::FilterIncomingDamage(const FTDDamageInfo& Info)
+{
+	return ATDSquadManager::FilterDamageForPlayersFight(this, Info, FilterIncomingDamageBase(Info));
+}
+
+float ATDEnemyShip::FilterIncomingDamageBase(const FTDDamageInfo& Info)
 {
 	if (bDying)
 	{

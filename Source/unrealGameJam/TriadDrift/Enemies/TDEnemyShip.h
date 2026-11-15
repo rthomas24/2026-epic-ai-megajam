@@ -405,6 +405,8 @@ protected:
 
 	/** Health pre-filter: frontal shield + stun vulnerability. */
 	float FilterIncomingDamage(const FTDDamageInfo& Info);
+	/** The filter itself; FilterIncomingDamage passes its result through the squad's "your fight" rule (#201). */
+	float FilterIncomingDamageBase(const FTDDamageInfo& Info);
 
 	UFUNCTION()
 	void HandleHealthDeath(UTDHealthComponent* InHealth, const FTDDamageInfo& KillingBlow);
