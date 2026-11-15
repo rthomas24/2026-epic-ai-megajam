@@ -316,7 +316,7 @@ Current resource checkpoint: Nick stopped the general campaign and revoked all p
 
 ## Ryan-side engineering board (Lead: Claude Code)
 
-**Last updated: 2026-11-14 19:30 EST** by Ryan's Lead. Updated on every task start and finish
+**Last updated: 2026-11-14 20:30 EST** by Ryan's Lead. Updated on every task start and finish
 (AGENTS.md §6.5 start / finish rule). Additive publication: every claim above is preserved unchanged.
 
 Ryan's side is C++ / text except the five maps and the one material claimed in the task table below. Detailed test and review status per item: `docs/eng/STATUS.md`. Code-ownership
@@ -340,6 +340,32 @@ Paths are under `Source/unrealGameJam/TriadDrift/` unless they start with `/` (r
 
 Workers commit only on their own branch and never pull, merge or push; the Lead integrates in
 `.wt/int`, builds, runs the headless suite, then fast-forwards and pushes `main`.
+
+### Current board, Nov 14 20:30 EST (supersedes the in-progress and queued rows of the 19:30 board below)
+
+**Main is 7bf9491a** (since 19:30: 0211599f, e2f6236f, 0e1684de, fdd449d2, 7688b7dd, ba6515b2, 7bf9491a). The Shipping compile was broken from 0e1684de to ba6515b2 (the Lead's miss), fixed in 7bf9491a; packaging Shipping-checks every main; latest good package 96a66f7c. **Batch CW compiling:** T2 405f17f2 (aim assist, soft lock, Rift / Lancer homing; tactical panel 2.5 s minimum; diamonds clear of the subtitle; LastShip on Continue). The Cinder BLOCKER is still open. Every Ryan-side 🟨 / 🐞 item keeps the owner of the 19:30 board; changes only:
+
+| Owner | Now (in progress) | Next (queued, in order) | Items |
+|---|---|---|---|
+| Lead | Batch CW; boards | Cinder only after the walks are accepted; #209 from eng/gsq after its play turn | ENG-28, ENG-46 |
+| T1 | Mouse steering and the controller coverage table on the branch (#152; a physical pad check needs a human) | The mouse Y question with Ryan; #159 | ENG-01, ENG-36 |
+| T2 | Batch CW's aim assist tuning toward a 45-60% hit rate | #103's leftovers (the pause hover); #209's on-foot HUD | ENG-05, ENG-36, ENG-49 |
+| T3 | #111 the escape look-back shot (written, not compiled) | `Bark_Wipe` | ART-16, ENG-42 |
+| T4 | Stopped on the relief collision 60 cm below its component (probe 4726ce7d parked, not merged) | #201 swarm balance; the beam in a real docking; the take-offs with their lines | ENG-26, ENG-39, ENG-27, ENG-37 |
+| T5 | The Cinder walk on 7688b7dd+ (ramp toes); #96 the legacy-save recovery; ba4cd88b, ebed9e29 on the branch | #209 encounters for three; the hooks seen in a fight (#124) | ENG-26, ENG-42, ENG-49, ART-08 |
+| T7 | The Cinder walk on 7688b7dd+ | #201 and #209 verdicts; #152 a full run | ENG-46, ENG-26, ENG-08, ENG-49 |
+| Wingman builder | Wingman kill-sharing (branch) | Tuning with T4 | ENG-08 |
+| Ground squad builder (`.wt/gsq`) | #209 followers (eng/gsq 19ad1e7c), one more play turn | T7's verdict | ENG-49 |
+| Effects builder | The turret telegraph rework rendered nothing (eabdcd82, 55b674c0 unmerged; main keeps the small flare) | The mines judged in a wave; the beam in a real docking | ENG-37, ART-07, ART-16 |
+| Packaging agent | A Shipping-checked package from 7bf9491a or later | Keep the newest three | ENG-28 |
+
+| Item | Owner | State | Paths |
+|---|---|---|---|
+| Integration since 19:30 (0211599f to 7bf9491a) | Lead | done: on main by 20:25 EST | none |
+| Shipping compile break (0e1684de to ba6515b2) | Lead | done: fixed in 7bf9491a | none |
+| #103 tactical panel and on-foot subtitle | T2 | done: on main e2f6236f (Nick's sessions passed the layout); CW follow-ups compiling | none |
+| #209 suit materials and follower animation variation | Animation builder | done: on main fdd449d2, 7688b7dd | none |
+| #146 bed fix, #149 intro timing | T3 | done: on main 7bf9491a (unplayed) | none |
 
 ### Current board, Nov 14 19:30 EST (supersedes the in-progress and queued rows of the 18:30 board below)
 
