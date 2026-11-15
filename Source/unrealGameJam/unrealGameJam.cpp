@@ -15,6 +15,12 @@ public:
 		FDefaultGameModuleImpl::StartupModule();
 		TDBootLoadingScreen::Start();
 	}
+
+	virtual void ShutdownModule() override
+	{
+		TDBootLoadingScreen::Shutdown();
+		FDefaultGameModuleImpl::ShutdownModule();
+	}
 };
 
 IMPLEMENT_PRIMARY_GAME_MODULE( FTDGameModule, unrealGameJam, "unrealGameJam" );
