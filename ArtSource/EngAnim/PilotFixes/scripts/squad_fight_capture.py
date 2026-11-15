@@ -64,12 +64,16 @@ def main():
     cmd("TD.Input.Key W 1.2")   # run in, so the followers run in with the player and stop into the fight
     time.sleep(1.6)
     n, gap = int(os.environ.get("TD_SHOTS", "10")), float(os.environ.get("TD_GAP", "0.35"))
+    # where the squad stands once it has run in: the log is flushed late, so read it once, then keep the camera fixed
+    size = os.path.getsize(LOG)
+    cmd("TD.Ground.AlliesDump")
+    found = log_after(size, r"loc=V?\(?X=([-\d.]+) Y=([-\d.]+) Z=([-\d.]+)", 1.5)
+    if not found and os.environ.get("TD_CENTER"):   # the game log can lag by seconds: a known fight centre instead
+        found = [tuple(os.environ["TD_CENTER"].split(","))]
+    print("squad at", found)
     for i in range(n):
         if i % 2 == 0:
             cmd("TD.Input.Key LeftMouseButton 0.05")
-        size = os.path.getsize(LOG)
-        cmd("TD.Ground.AlliesDump")
-        found = log_after(size, r"loc=\(?X=([-\d.]+) Y=([-\d.]+) Z=([-\d.]+)", 0.15)
         save(call("SceneCaptureToolset.SceneCaptureToolset", "CaptureGameViewport", {"world": {"refPath": world}, "maxResolution": 1280}),
              "%s_chase_%02d" % (tag, i))
         if found:
