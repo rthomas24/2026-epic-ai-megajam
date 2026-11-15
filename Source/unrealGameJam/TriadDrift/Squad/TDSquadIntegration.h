@@ -211,6 +211,47 @@ namespace TDSquad
 	const UTDShipVisuals* GetShipVisuals(const ATDShip* Ship);
 
 
+	// ---- Wingman powers (#201). Slot: 0 = signature (Q), 1 = second signature (Bastion's dome), 2 = ability (E) ----
+	struct FWingPower
+	{
+		FName Name;
+		ETDAbilityId Ability = ETDAbilityId::None;
+		/** Not running, off cooldown, ship alive. */
+		bool bReady = false;
+		bool bActive = false;
+		float CooldownRemaining = 0.f;
+		/** Seconds from one use to the next being possible (the cooldown, plus the active time when it counts from the end). */
+		float CycleSeconds = 0.f;
+	};
+	/** False when the ship has no power in that slot (an ability not yet unlocked, a ship without a second signature). */
+	bool GetWingPower(const ATDShip* Ship, int32 Slot, FWingPower& Out);
+	/** T2's UTDPowerComponent::TryActivateFromAI: the player's own entry point, minus "the player must fly it". */
+	bool ActivateWingPower(ATDShip* Ship, int32 Slot);
+	/** A second press on a running power (Rift's portal B). */
+	void PressWingPower(ATDShip* Ship, int32 Slot);
+	void EndWingPower(ATDShip* Ship, int32 Slot);
+	/** Lancer: the ram is past its wind-up and dashing. */
+	bool IsRamDashing(const ATDShip* Ship);
+	/** Bastion: the targets the next AI swarm is split across. */
+	void SetSwarmTargets(ATDShip* Ship, const TArray<AActor*>& Targets);
+	/** Reach of each power (cm), from the power's own tuning: EMP radius, dome radius, the well's flight and radius, Rift's portal range. */
+	float GetEMPRadius(const ATDShip* Ship);
+	float GetDomeRadius(const ATDShip* Ship);
+	void GetGravityWellReach(const ATDShip* Ship, float& OutFlight, float& OutRadius);
+	float GetPortalRange(const ATDShip* Ship);
+	/** Rift: how many portals of its pair are open. */
+	int32 GetOpenPortalCount(const ATDShip* Ship);
+	/** False while the tutorial is teaching the player to use a power (a wingman's use would complete the lesson). */
+	bool WingmanPowersAllowed(const UObject* WorldContext);
+	/** The nearest hostile missile homing on Ship, or null. */
+	AActor* GetIncomingMissile(const ATDShip* Ship, float& OutDistance);
+	/** True for enemies big enough to stop a ram (carriers, bosses). */
+	bool IsBigEnemy(const AActor* Enemy);
+	/** The ship's total outgoing weapon damage multiplier (Switch Strike, the solo buff...). */
+	float GetWeaponDamageMultiplier(const ATDShip* Ship);
+	/** "Ram ready, EMP 3.2s" for TD.Squad.Dump. */
+	FString DescribePowers(const ATDShip* Ship);
+
 	/** World transform of a ship's chase camera (actor transform if it has none). */
 	FTransform GetChaseCameraTransform(const ATDShip* Ship);
 }

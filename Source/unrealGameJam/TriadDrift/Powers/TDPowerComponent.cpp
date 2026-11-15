@@ -61,12 +61,23 @@ bool UTDPowerComponent::CanActivate() const
 	{
 		return false;
 	}
-	if (bRequirePlayerControl && !IsOwnerPlayerControlled())
+	if (bRequirePlayerControl && !bAIActivating && !IsOwnerPlayerControlled()) // #201: a wingman's AI may start it
 	{
 		return false;
 	}
 	const UTDHealthComponent* Health = UTDStatics::GetHealth(GetOwner());
 	return !Health || Health->IsAlive();
+}
+
+// #201 WINGMAN AI ENTRY: the same activation the player gets, for a ship its wingman flies.
+bool UTDPowerComponent::TryActivateFromAI()
+{
+	if (IsOwnerPlayerControlled())
+	{
+		return false; // the player flies it: the AI keeps its hands off
+	}
+	TGuardValue<bool> Guard(bAIActivating, true);
+	return TryActivate();
 }
 
 bool UTDPowerComponent::TryActivate()
@@ -76,6 +87,7 @@ bool UTDPowerComponent::TryActivate()
 		return false;
 	}
 	bPowerActive = ActiveSeconds > 0.f || bEndsManually;
+	bStartedByAI = bAIActivating; // #201
 	ActiveElapsed = 0.f;
 	// Sustained powers with an end-started cooldown get it in EndPower.
 	CooldownRemaining = (bCooldownStartsWhenPowerEnds && bPowerActive) ? 0.f : CooldownSeconds;
@@ -222,6 +234,12 @@ void UTDPowerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	if (bPowerActive && bWasPlayerControlled && !bPlayerNow)
 	{
 		OnLostPlayerControl();
+	}
+	else if (bPowerActive && bStartedByAI && !bWasPlayerControlled && bPlayerNow)
+	{
+		OnGainedPlayerControl(); // #201: the player took the ship mid-power
+		UE_LOG(LogTriadDrift, Display, TEXT("TDSQUAD power %s (started by the wingman AI) %s: the player took the ship %.2f s into it"), *PowerName.ToString(),
+			bPowerActive ? TEXT("keeps running") : TEXT("ended at once"), ActiveElapsed);
 	}
 	bWasPlayerControlled = bPlayerNow;
 	if (bPowerActive)
