@@ -69,7 +69,7 @@ struct UNREALGAMEJAM_API FTDScatterPlan
 	float RockSpacing = 4000.f;
 	float GroveSpacing = 1600.f;
 	float GroundSpacing = 650.f;		// near ring
-	float CourseGroundSpacing = 270.f;	// #194: ~2x the s20 cover	// s20: ground detail inside the course's ground box
+	float CourseGroundSpacing = 310.f;	// #194: ~1.5x the s20 cover (270 cost too much render time with the CJ ferns)	// s20: ground detail inside the course's ground box
 	float KeepOutMargin = 3000.f;	// around the course's ground box
 	float CollisionRadius = 40000.f;	// instances this close to the ground box collide on foot (zone layer: full forest)
 	float MidCell = 20000.f, MidRadius = 80000.f;
