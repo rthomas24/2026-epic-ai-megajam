@@ -1,6 +1,8 @@
 // Triad Drift - engineering space HUD (ENG-36, Teammate 2). Spec: docs/eng/hud-redesign.md.
 
 #include "TriadDrift/UI/TDFlightHUDWidget.h"
+#include "TriadDrift/UI/TDTacticalDisplayWidget.h"
+#include "TriadDrift/UI/TDGroundHUDWidget.h"
 #include "TriadDrift/Combat/TDCombatPerf.h"
 
 #include "Brushes/SlateRoundedBoxBrush.h"
@@ -1517,6 +1519,18 @@ static FAutoConsoleCommandWithWorld CmdTDUILayout(TEXT("TD.UI.Layout"), TEXT("TD
 				}
 				const bool bEdge = B.Key == TEXT("edge") || B.Key == TEXT("missile_edge") || B.Key == TEXT("waypoint_edge") || B.Key == TEXT("wing") || B.Key == TEXT("edge_label");
 				const FBox2D Test = bEdge ? B.Value.ExpandBy(16.f) : B.Value;
+				// Edge markers and their labels also keep 16 px clear of the radar and its WAVE header.
+				if (bEdge && B.Key != TEXT("waypoint_edge") && B.Key != TEXT("edge") && B.Key != TEXT("missile_edge") && B.Key != TEXT("wing"))
+				{
+					for (const TPair<FName, FBox2D>& Radar : HUD->LastBoxes)
+					{
+						if (Radar.Key == TEXT("radar") && Overlap(Test, Radar.Value))
+						{
+							++Problems;
+							UE_LOG(LogTemp, Warning, TEXT("TD.UI.Layout PROBLEM: %s %s overlaps the radar / wave header %s"), *B.Key.ToString(), *Str(B.Value), *Str(Radar.Value));
+						}
+					}
+				}
 				for (const TDFlightHUD::FCardRect& E : R)
 				{
 					if ((E.Name == TEXT("card") || E.Name == TEXT("flag")) && Overlap(Test, E.Box))
@@ -1524,6 +1538,43 @@ static FAutoConsoleCommandWithWorld CmdTDUILayout(TEXT("TD.UI.Layout"), TEXT("TD
 						++Problems;
 						UE_LOG(LogTemp, Warning, TEXT("TD.UI.Layout PROBLEM: %s %s overlaps card %d %s %s"), *B.Key.ToString(), *Str(B.Value), E.Card, *E.Name.ToString(), *Str(E.Box));
 					}
+				}
+			}
+		}
+		// On foot (#103): the story subtitle plate (drawn in the last half second) keeps clear of the pilot card and its flags.
+		if (const UTDGroundHUDWidget* Ground = Host ? Cast<UTDGroundHUDWidget>(Host->GetGroundHUD()) : nullptr; Ground && Ground->CardBox01.bIsValid)
+		{
+			const FBox2D Card01 = Ground->CardBox01;
+			const FBox2D Sub01 = UTDUIHostSubsystem::LastSubtitlePlate01;
+			const bool bFresh = Sub01.bIsValid && FPlatformTime::Seconds() - UTDUIHostSubsystem::LastSubtitlePlateTime < .5;
+			auto Pct = [](const FBox2D& B) { return FString::Printf(TEXT("(%.3f,%.3f - %.3f,%.3f)"), B.Min.X, B.Min.Y, B.Max.X, B.Max.Y); };
+			UE_LOG(LogTemp, Display, TEXT("TD.UI.Layout onfoot card %s subtitle %s"), *Pct(Card01), bFresh ? *Pct(Sub01) : TEXT("none"));
+			if (bFresh && Card01.Intersect(Sub01))
+			{
+				++Problems;
+				UE_LOG(LogTemp, Warning, TEXT("TD.UI.Layout PROBLEM: on-foot subtitle %s overlaps the pilot card %s"), *Pct(Sub01), *Pct(Card01));
+			}
+		}
+		// The docked tactical panel (Ryan, Nov 14): clear of the reticle, the objective line, the radar and the squad row.
+		if (const UTDTacticalDisplayWidget* Tactical = Host ? Cast<UTDTacticalDisplayWidget>(Host->GetTacticalDisplay()) : nullptr;
+			Tactical && Tactical->GetVisibility01() > 0.f)
+		{
+			const FBox2D Panel = UTDTacticalDisplayWidget::PanelBox();
+			UE_LOG(LogTemp, Display, TEXT("TD.UI.Layout tactical %s"), *Str(Panel));
+			for (const TDFlightHUD::FCardRect& E : R)
+			{
+				if ((E.Name == TEXT("card") || E.Name == TEXT("flag")) && Overlap(Panel, E.Box))
+				{
+					++Problems;
+					UE_LOG(LogTemp, Warning, TEXT("TD.UI.Layout PROBLEM: tactical %s overlaps card %d %s %s"), *Str(Panel), E.Card, *E.Name.ToString(), *Str(E.Box));
+				}
+			}
+			for (const TPair<FName, FBox2D>& B : HUD ? HUD->LastBoxes : TArray<TPair<FName, FBox2D>>())
+			{
+				if ((B.Key == TEXT("reticle") || B.Key == TEXT("objective") || B.Key == TEXT("radar") || B.Key == TEXT("subtitle") || B.Key == TEXT("lane")) && Overlap(Panel, B.Value))
+				{
+					++Problems;
+					UE_LOG(LogTemp, Warning, TEXT("TD.UI.Layout PROBLEM: tactical %s overlaps %s %s"), *Str(Panel), *B.Key.ToString(), *Str(B.Value));
 				}
 			}
 		}
@@ -2445,11 +2496,24 @@ int32 UTDFlightHUDWidget::NativePaint(const FPaintArgs& Args, const FGeometry& A
 	const TArray<FWaypoint>& ShownWaypoints = View.bCombatHeld ? NoWaypoints : View.Waypoints; // a focus hold: none
 	// Distance labels beside edge markers keep 16 px clear of the squad row and its flags (Nick's Lead, 720p: "2.8 km"
 	// ran into the UNDER FIRE tab): a label over the row's span is lifted above it. Recorded for TD.UI.Layout.
-	auto ClearOfRow = [this](FVector2D At, float HalfW, float Up, float Down)
+	// ... and of the radar with its WAVE n/5 header (T7's Shipping run: an objective label ran into the wave panel at the
+	// right edge): a label there moves left of it.
+	FBox2D RadarAvoid(ForceInit);
+#if __has_include("TriadDrift/UI/TDHUDRadarPaint.h")
+	if (View.bSquadPanel)
+	{
+		RadarAvoid = TDHUDRadarBox(P).ExpandBy(16.f);
+	}
+#endif
+	auto ClearOfRow = [this, RadarAvoid](FVector2D At, float HalfW, float Up, float Down)
 	{
 		if (View.RowRight > 0.f && At.X - HalfW <= View.RowRight + 16.f && At.Y + Down > View.RowFlagTop - 16.f)
 		{
 			At.Y = View.RowFlagTop - 16.f - Down;
+		}
+		if (RadarAvoid.bIsValid && At.X + HalfW > RadarAvoid.Min.X && At.Y + Down > RadarAvoid.Min.Y && At.Y - Up < RadarAvoid.Max.Y)
+		{
+			At.X = RadarAvoid.Min.X - HalfW;
 		}
 		return At;
 	};
