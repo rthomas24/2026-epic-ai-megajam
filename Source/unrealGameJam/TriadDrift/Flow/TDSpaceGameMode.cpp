@@ -222,13 +222,9 @@ void ATDSpaceGameMode::ApplyStartingShip()
 	UTDGameInstance* GI = UTDGameInstance::Get(this);
 	if (Squad && GI)
 	{
-		// A respawn inside this level (a scene restart, the Aftermath's re-stage) keeps the ship being flown now.
-		// T7's Shipping run: LastShip only changes on planet travel, so it was stale ("Kato") and the squad restarted
-		// in Kato at the wave-2 aftermath with no switch key and no death.
-		if (Squad->GetShip(Squad->GetActiveShipId()) != nullptr)
-		{
-			GI->SetLastShip(Squad->GetActiveShipId());
-		}
+		// LastShip is kept current by the game instance on every player switch (OnShipSwitched, player causes only), so a
+		// respawn in this level, a retake and a cold Continue all start in the ship last flown. Never adopt the squad's
+		// live ship here: on a Continue from the menu that is the menu backdrop's Rift (T7's cold run).
 		Squad->StartingShip = GI->GetProgressRef().LastShip;
 	}
 }
