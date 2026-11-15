@@ -17,6 +17,19 @@ namespace TDShadow
 	UNREALGAMEJAM_API float ShadowLeash();
 	/** Shadow ON: only enemies within this distance of the player's ship are picked (cm). */
 	UNREALGAMEJAM_API float ShadowEngageRange();
+	/** Shadow ON, "your fight": wingmen never finish an enemy the player hit, targeted or locked in the last YourFightSeconds;
+	 *  their damage leaves it YourFightFloor01 of its max hull, and after YourFightRetargetSeconds at that floor they pick another. */
+	UNREALGAMEJAM_API bool YourFightEnabled();
+	UNREALGAMEJAM_API float YourFightSeconds();
+	UNREALGAMEJAM_API float YourFightFloor01();
+	UNREALGAMEJAM_API float YourFightRetargetSeconds();
+	/** Shadow ON: through wave EarlyWaves the wingmen do EarlyDamageMultiplier damage and prefer enemies the player is not on. */
+	UNREALGAMEJAM_API int32 EarlyWaves();
+	UNREALGAMEJAM_API float EarlyDamageMultiplier();
+	/** Early waves: the wingmen's kills never exceed the player's, unless the player has hit nothing for this long (s). */
+	UNREALGAMEJAM_API float EarlyIdleSeconds();
+	/** Shadow OFF: a wingman prefers targets at least this far from the player's ship (cm). */
+	UNREALGAMEJAM_API float SoloMinSeparation();
 	/** Shadow ON: a wingman in a chase drops its target and returns at ShadowLeash x this. */
 	UNREALGAMEJAM_API float ShadowBreakOffScale();
 	/** Shadow OFF: the leash (cm): ShadowLeash x td.Squad.Solo.LeashScale, never above the hard cap or the radar's edge. */

@@ -23,7 +23,26 @@ namespace TDShadowPrivate
 	static TAutoConsoleVariable<float> CVarBreakOff(TEXT("td.Squad.Shadow.BreakOffScale"), 1.25f,
 		TEXT("Shadow ON: a wingman chasing a target drops it and returns at the leash times this (room to overshoot a pass). Default 1.25."), ECVF_Default);
 
+	// --- Shadow ON: "your fight" and the first waves (T7's New Game: the wingmen took every kill of wave 1) ---
+	static TAutoConsoleVariable<int32> CVarYourFight(TEXT("td.Squad.Shadow.YourFight"), 1,
+		TEXT("Shadow ON, 1 (default): a wingman never lands the killing blow on an enemy the player damaged or had as target / lock in the last few seconds. 0: off."), ECVF_Default);
+	static TAutoConsoleVariable<float> CVarYourFightSeconds(TEXT("td.Squad.Shadow.YourFightSeconds"), 4.f,
+		TEXT("How long an enemy stays the player's after the player's last hit, target or lock on it (s). Default 4."), ECVF_Default);
+	static TAutoConsoleVariable<float> CVarYourFightFloor(TEXT("td.Squad.Shadow.YourFightFloor"), 0.15f,
+		TEXT("A wingman's damage leaves the player's enemy at least this fraction of its max hull. Default 0.15."), ECVF_Default);
+	static TAutoConsoleVariable<float> CVarYourFightRetarget(TEXT("td.Squad.Shadow.YourFightRetarget"), 2.f,
+		TEXT("A wingman whose target has been held at that floor this long picks another (s). Default 2."), ECVF_Default);
+	static TAutoConsoleVariable<int32> CVarEarlyWaves(TEXT("td.Squad.Shadow.EarlyWaves"), 2,
+		TEXT("Shadow ON: up to this wave number the wingmen hit softer and leave the player's enemies alone. Default 2. 0: off."), ECVF_Default);
+	static TAutoConsoleVariable<float> CVarEarlyDamage(TEXT("td.Squad.Shadow.EarlyDamageMult"), 0.5f,
+		TEXT("Shadow ON: wingman weapon damage multiplier during the early waves. Default 0.5."), ECVF_Default);
+
+	static TAutoConsoleVariable<float> CVarEarlyIdle(TEXT("td.Squad.Shadow.EarlyIdleSeconds"), 20.f,
+		TEXT("Shadow ON, early waves: wingmen may not out-kill the player, unless the player has hit nothing for this long (s). Default 20."), ECVF_Default);
+
 	// --- Shadow OFF ---
+	static TAutoConsoleVariable<float> CVarSoloSeparation(TEXT("td.Squad.Solo.MinSeparation"), 20000.f,
+		TEXT("Shadow OFF: a wingman prefers a target at least this far from the player's ship (cm), when one exists inside the leash. Default 20000 (200 m)."), ECVF_Default);
 	static TAutoConsoleVariable<float> CVarSoloScale(TEXT("td.Squad.Solo.LeashScale"), 3.f,
 		TEXT("Shadow OFF: the leash is the shadow leash times this. Default 3."), ECVF_Default);
 	static TAutoConsoleVariable<float> CVarSoloCap(TEXT("td.Squad.Solo.LeashCap"), 60000.f,
@@ -134,6 +153,15 @@ namespace TDShadow
 {
 	float ShadowLeash() { return FMath::Max(2000.f, TDShadowPrivate::CVarLeash.GetValueOnGameThread()); }
 	float ShadowEngageRange() { return FMath::Max(2000.f, TDShadowPrivate::CVarEngage.GetValueOnGameThread()); }
+
+	bool YourFightEnabled() { return TDShadowPrivate::CVarYourFight.GetValueOnGameThread() != 0; }
+	float YourFightSeconds() { return FMath::Max(0.f, TDShadowPrivate::CVarYourFightSeconds.GetValueOnGameThread()); }
+	float YourFightFloor01() { return FMath::Clamp(TDShadowPrivate::CVarYourFightFloor.GetValueOnGameThread(), 0.f, 0.9f); }
+	float YourFightRetargetSeconds() { return FMath::Max(0.f, TDShadowPrivate::CVarYourFightRetarget.GetValueOnGameThread()); }
+	int32 EarlyWaves() { return FMath::Max(0, TDShadowPrivate::CVarEarlyWaves.GetValueOnGameThread()); }
+	float EarlyDamageMultiplier() { return FMath::Clamp(TDShadowPrivate::CVarEarlyDamage.GetValueOnGameThread(), 0.05f, 1.f); }
+	float EarlyIdleSeconds() { return FMath::Max(0.f, TDShadowPrivate::CVarEarlyIdle.GetValueOnGameThread()); }
+	float SoloMinSeparation() { return FMath::Max(0.f, TDShadowPrivate::CVarSoloSeparation.GetValueOnGameThread()); }
 
 	float ShadowBreakOffScale() { return FMath::Clamp(TDShadowPrivate::CVarBreakOff.GetValueOnGameThread(), 1.f, 2.f); }
 

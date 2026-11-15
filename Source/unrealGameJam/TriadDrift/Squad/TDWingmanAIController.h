@@ -307,6 +307,11 @@ protected:
 	bool IsPowerReadyForAI(const ATDShip* Ship, int32 Slot) const;
 	/** Start the power; logs "wingman <ship> used <power> on <target> because <reason>" and asks for the pilot's line. */
 	bool UsePower(ATDShip* Ship, int32 Slot, const AActor* Target, const FString& Reason, FName BarkId);
+	/** "Your fight": the target has been held at the player's floor since this time (-1 = it is not). */
+	double HeldAtFloorSince = -1.0;
+	/** ...and after td.Squad.Shadow.YourFightRetarget it is left alone until this time. */
+	TWeakObjectPtr<AActor> LeftForPlayer;
+	double LeftForPlayerUntil = -1.0;
 	double NextPowerThinkTime = 0.0;
 	double LastAnyPowerTime = -1000.0;
 	double LastPowerUseTime[3] = { -1000.0, -1000.0, -1000.0 };

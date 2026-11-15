@@ -789,6 +789,18 @@ bool ATDSquadManager::RequestSquadBark(FName BarkId, ETDShipId Speaker, ETDBarkP
 
 void ATDSquadManager::HandleActorKilled(AActor* Victim, AActor* Killer, ETDDamageKind Kind)
 {
+	// #201: who is ahead on kills this wave (early waves: the wingmen never out-kill the player).
+	if (Killer && UTDStatics::AreHostile(Killer, Victim))
+	{
+		if (Killer == GetActiveShip())
+		{
+			++PlayerKillsThisWave;
+		}
+		else if (Slots.ContainsByPredicate([Killer](const FTDSquadSlot& S) { return S.Ship == Killer; }))
+		{
+			++WingmanKillsThisWave;
+		}
+	}
 	if (TDSquadManagerPrivate::CVarLogEvents.GetValueOnGameThread() != 0 && UTDStatics::AreHostile(Killer, Victim))
 	{
 		const ATDShip* Player = GetActiveShip();
@@ -897,6 +909,9 @@ void ATDSquadManager::HandleWaveStarted(int32 WaveNumber, float Intensity01)
 {
 	bBetweenWaves = false;
 	BreatherAt = -1.0;
+	PlayerKillsThisWave = 0;
+	WingmanKillsThisWave = 0;
+	NextEarlyWaveCheck = -1.0;
 }
 
 void ATDSquadManager::NotifyPowerUsed(ETDShipId Ship)
@@ -1029,6 +1044,32 @@ void ATDSquadManager::Tick(float DeltaSeconds)
 	if (RealNow() >= NextShadowBuffRefresh)
 	{
 		RefreshShadowBuffs();
+	}
+	// #201 "your fight": what the player has under the reticle or locked is the player's, a few times a second.
+	if (T >= NextClaimScan)
+	{
+		NextClaimScan = T + 0.2;
+		// Only for a player who is fighting: with no hit landed for td.Squad.Shadow.EarlyIdleSeconds the reticle claims
+		// nothing, so an idle player's wingmen can still finish what drifts in front of the nose (no stalemate).
+		if (const ATDShip* Active = (T - LastPlayerHitTime <= TDShadow::EarlyIdleSeconds()) ? GetActiveShip() : nullptr)
+		{
+			NotePlayerClaim(TDSquad::GetCurrentTarget(Active));
+			static TArray<AActor*> LockScratch; // game thread only
+			TDSquad::GetLockedTargets(Active, LockScratch);
+			for (const AActor* Locked : LockScratch)
+			{
+				NotePlayerClaim(Locked);
+			}
+			LockScratch.Reset();
+		}
+		const double Keep = TDShadow::YourFightSeconds();
+		for (auto It = PlayerClaims.CreateIterator(); It; ++It)
+		{
+			if (!It.Key().IsValid() || T - It.Value() > Keep)
+			{
+				It.RemoveCurrent();
+			}
+		}
 	}
 
 	// Low hull line, once per dip (re-armed after a repair or respawn).
@@ -1729,14 +1770,25 @@ void ATDSquadManager::RefreshShadowBuffs()
 		{
 			TDSquad::ClearOutgoingDamageMultiplier(Slot.Ship, ShadowSoloKey);
 		}
+		// Shadow ON, waves 1-2: the wingmen hit softer, so the first kills are the player's.
+		const bool bEarly = IsEarlyWaveForWingmen() && Slot.ShipId != ActiveShipId && Slot.State == ETDSquadSlotState::Alive;
+		if (bEarly)
+		{
+			TDSquad::SetOutgoingDamageMultiplier(Slot.Ship, ShadowEarlyKey, TDShadow::EarlyDamageMultiplier());
+		}
+		else
+		{
+			TDSquad::ClearOutgoingDamageMultiplier(Slot.Ship, ShadowEarlyKey);
+		}
 	}
 }
 
 void ATDSquadManager::DumpSquad(TArray<FString>& OutLines) const
 {
 	const ATDShip* Leader = GetActiveShip();
-	OutLines.Add(FString::Printf(TEXT("TDSQUAD dump: shadow=%s leash=%.0f m active=%s wingmenPassive=%d powers=%d"), bShadowMode ? TEXT("ON") : TEXT("OFF"),
-		GetWingmanLeash() / 100.f, *UEnum::GetDisplayValueAsText(ActiveShipId).ToString(), bWingmenPassive ? 1 : 0, TDShadow::PowersEnabled() ? 1 : 0));
+	OutLines.Add(FString::Printf(TEXT("TDSQUAD dump: shadow=%s leash=%.0f m active=%s wingmenPassive=%d powers=%d wave=%d earlyWave=%d playersEnemies=%d kills player/wingmen=%d/%d"), bShadowMode ? TEXT("ON") : TEXT("OFF"),
+		GetWingmanLeash() / 100.f, *UEnum::GetDisplayValueAsText(ActiveShipId).ToString(), bWingmenPassive ? 1 : 0, TDShadow::PowersEnabled() ? 1 : 0,
+		GetWaveInfo().WaveNumber, IsEarlyWaveForWingmen() ? 1 : 0, PlayerClaims.Num(), PlayerKillsThisWave, WingmanKillsThisWave));
 	for (const FTDSquadSlot& Slot : Slots)
 	{
 		const ATDShip* Ship = Slot.Ship;
@@ -1758,4 +1810,96 @@ void ATDSquadManager::DumpSquad(TArray<FString>& OutLines) const
 			*StateText, Target ? *Target->GetName() : TEXT("none"), Dist / 100.f, TDSquad::GetHull01(Ship), TDSquad::GetShield01(Ship),
 			TDSquad::GetWeaponDamageMultiplier(Ship), *TDSquad::DescribePowers(Ship)));
 	}
+}
+
+// ---------------------------------------------------------------------------------------------
+// "Your fight" (#201, shadow ON): the player's enemies are the player's to finish
+// ---------------------------------------------------------------------------------------------
+
+const FName ATDSquadManager::ShadowEarlyKey(TEXT("ShadowEarly"));
+
+void ATDSquadManager::NotePlayerClaim(const AActor* Enemy)
+{
+	if (Enemy && !TDSquad::IsDead(Enemy))
+	{
+		PlayerClaims.Add(Enemy, Now());
+	}
+}
+
+bool ATDSquadManager::IsPlayerClaimed(const AActor* Enemy) const
+{
+	const double* When = Enemy ? PlayerClaims.Find(Enemy) : nullptr;
+	return When && Now() - *When <= TDShadow::YourFightSeconds();
+}
+
+bool ATDSquadManager::ShouldWingmenHoldKill(const AActor* Enemy) const
+{
+	if (!bShadowMode || !TDShadow::YourFightEnabled())
+	{
+		return false;
+	}
+	if (IsPlayerClaimed(Enemy))
+	{
+		return true;
+	}
+	// Waves 1-2: the wingmen never get ahead of a player who is fighting (an idle player is not waited for).
+	return IsEarlyWaveForWingmen() && WingmanKillsThisWave >= PlayerKillsThisWave && Now() - LastPlayerHitTime <= TDShadow::EarlyIdleSeconds();
+}
+
+bool ATDSquadManager::IsHeldAtFloorForPlayer(const AActor* Enemy) const
+{
+	if (!ShouldWingmenHoldKill(Enemy))
+	{
+		return false;
+	}
+	const UTDHealthComponent* Health = UTDStatics::GetHealth(Enemy);
+	return Health && Health->IsAlive() && Health->GetShield() <= 0.f
+		&& Health->GetHull() <= FMath::Max(1.f, TDSquad::GetMaxHull(Enemy) * TDShadow::YourFightFloor01()) + 1.f;
+}
+
+bool ATDSquadManager::IsEarlyWaveForWingmen() const
+{
+	if (!bShadowMode || TDShadow::EarlyWaves() <= 0)
+	{
+		return false;
+	}
+	// The wave lookup is cached; ask at most twice a second.
+	const double T = RealNow();
+	if (T >= NextEarlyWaveCheck)
+	{
+		NextEarlyWaveCheck = T + 0.5;
+		const FTDWaveInfo Info = GetWaveInfo();
+		bEarlyWaveCached = Info.WaveCount > 0 && Info.WaveNumber <= TDShadow::EarlyWaves();
+	}
+	return bEarlyWaveCached;
+}
+
+float ATDSquadManager::FilterDamageForPlayersFight(AActor* Victim, const FTDDamageInfo& Info, float Amount)
+{
+	ATDSquadManager* S = (Victim && Amount > 0.f) ? Get(Victim) : nullptr;
+	const AActor* Source = Info.Instigator.Get();
+	if (!S || !Source)
+	{
+		return Amount;
+	}
+	if (Source == S->GetActiveShip())
+	{
+		S->NotePlayerClaim(Victim); // the player's own hit: this one is theirs now
+		S->LastPlayerHitTime = S->Now();
+		return Amount;
+	}
+	if (!S->ShouldWingmenHoldKill(Victim))
+	{
+		return Amount;
+	}
+	const bool bWingman = S->Slots.ContainsByPredicate([Source, S](const FTDSquadSlot& Slot) { return Slot.Ship == Source && Slot.ShipId != S->ActiveShipId; });
+	const UTDHealthComponent* Health = UTDStatics::GetHealth(Victim);
+	if (!bWingman || !Health)
+	{
+		return Amount;
+	}
+	// The wingman may take it down to the floor, never through it.
+	const float Floor = FMath::Max(1.f, TDSquad::GetMaxHull(Victim) * TDShadow::YourFightFloor01());
+	const float Remaining = Health->GetHull() + (Info.bIgnoreShield ? 0.f : Health->GetShield());
+	return FMath::Min(Amount, FMath::Max(0.f, Remaining - Floor));
 }

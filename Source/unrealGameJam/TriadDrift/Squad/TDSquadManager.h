@@ -207,6 +207,22 @@ public:
 	/** Weapon-component multiplier key for the solo (shadow off) damage buff. */
 	static const FName ShadowSoloKey;
 
+	// ---- #201 "your fight" (shadow ON) ----
+	/**
+	 * Called from the enemy ship's damage pre-filter with the amount about to land. Notes the player's own hits (the
+	 * enemy becomes "the player's" for td.Squad.Shadow.YourFightSeconds) and, in shadow mode, cuts a WINGMAN's damage
+	 * so that enemy keeps td.Squad.Shadow.YourFightFloor of its max hull: the kill is the player's.
+	 */
+	static float FilterDamageForPlayersFight(AActor* Victim, const FTDDamageInfo& Info, float Amount);
+	/** The player hit, targeted or locked Enemy within the last YourFightSeconds. */
+	bool IsPlayerClaimed(const AActor* Enemy) const;
+	/** Enemy is the player's and already down at the floor the wingmen may not go below. */
+	bool IsHeldAtFloorForPlayer(const AActor* Enemy) const;
+	/** Shadow ON and the wave number is within td.Squad.Shadow.EarlyWaves: soft wingmen, the first kills are the player's. */
+	bool IsEarlyWaveForWingmen() const;
+	/** Weapon-component multiplier key for the early-wave wingman damage cut. */
+	static const FName ShadowEarlyKey;
+
 	/** #201: world time of the last power any wingman used (the squad-wide gap, td.Squad.Powers.Gap). */
 	double LastWingmanPowerTime = -1000.0;
 	/** #201 playtest (TD.Squad.SwitchOnRam): switch into Lancer the moment its wingman's ram dash starts. One shot. */
@@ -572,6 +588,17 @@ protected:
 	/** The solo buff sits on exactly the AI-flown ships while shadow mode is off (re-applied on a short timer too). */
 	void RefreshShadowBuffs();
 	double NextShadowBuffRefresh = 0.0;
+	/** #201 "your fight": enemy -> world time of the player's last hit, target or lock on it. */
+	TMap<TWeakObjectPtr<const AActor>, double> PlayerClaims;
+	void NotePlayerClaim(const AActor* Enemy);
+	/** A wingman must leave Enemy alive: it is the player's, or (early waves) the wingmen are not behind the player on kills. */
+	bool ShouldWingmenHoldKill(const AActor* Enemy) const;
+	int32 PlayerKillsThisWave = 0;
+	int32 WingmanKillsThisWave = 0;
+	double LastPlayerHitTime = -1000.0;
+	double NextClaimScan = 0.0;
+	mutable bool bEarlyWaveCached = false;
+	mutable double NextEarlyWaveCheck = -1.0;
 	void NotePlayerKill();
 	void TickMoreBarks(double Now);
 	bool RequestBarkFromAWingman(FName BarkId, ETDBarkPriority Priority);

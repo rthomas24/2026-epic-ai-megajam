@@ -140,6 +140,12 @@ AActor* ATDWingmanAIController::PickTargetSolo(ATDShip* Ship, ATDShip* Leader) c
 	const float LeashSq = FMath::Square(GetLeash() * 0.95f);
 	AActor* Best = nullptr;
 	float BestScore = TNumericLimits<float>::Max();
+	// Hunting alone should LOOK alone: a target well away from the player's ship, and not the player's own, wins
+	// whenever one exists inside the leash (td.Squad.Solo.MinSeparation).
+	AActor* BestFar = nullptr;
+	float BestFarScore = TNumericLimits<float>::Max();
+	const float FarSq = FMath::Square(TDShadow::SoloMinSeparation());
+	const AActor* PlayersTarget = Leader ? TDSquad::GetCurrentTarget(Leader) : nullptr;
 	for (AActor* H : ScratchHostiles)
 	{
 		if (!IsValid(H) || TDSquad::IsDead(H))
@@ -148,7 +154,10 @@ AActor* ATDWingmanAIController::PickTargetSolo(ATDShip* Ship, ATDShip* Leader) c
 		}
 		const FVector HLoc = H->GetActorLocation();
 		const float DistSq = FVector::DistSquared(SelfLoc, HLoc);
-		if (DistSq > HuntSq || (Leader && FVector::DistSquared(HLoc, Leader->GetActorLocation()) > LeashSq))
+		const float LeaderDistSq = Leader ? FVector::DistSquared(HLoc, Leader->GetActorLocation()) : 0.f;
+		// Far targets may be anywhere inside the leash; near ones only within the hunt range of the wingman itself.
+		const bool bFar = Leader && LeaderDistSq >= FarSq && H != PlayersTarget;
+		if ((Leader && LeaderDistSq > LeashSq) || (!bFar && DistSq > HuntSq))
 		{
 			continue;
 		}
@@ -172,6 +181,16 @@ AActor* ATDWingmanAIController::PickTargetSolo(ATDShip* Ship, ATDShip* Leader) c
 			BestScore = Score;
 			Best = H;
 		}
+		if (bFar && Score < BestFarScore)
+		{
+			BestFarScore = Score;
+			BestFar = H;
+		}
+	}
+	if (BestFar)
+	{
+		LogPick(BestFar, TEXT("its own choice: away from the player (200 m or more)"));
+		return BestFar;
 	}
 	LogPick(Best, Best && TDSquad::GetEnemyTarget(Best) == Ship ? TEXT("its own choice: it is hunting this wingman") : TEXT("its own choice: nearest / weakest"));
 	return Best;
