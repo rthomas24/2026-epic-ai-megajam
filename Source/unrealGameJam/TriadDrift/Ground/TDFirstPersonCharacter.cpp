@@ -18,6 +18,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/World.h"
+#include "Engine/OverlapResult.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
@@ -1570,7 +1571,31 @@ AActor* ATDFirstPersonCharacter::TraceInteractable() const
 			return A;
 		}
 	}
-	return nullptr;
+	// Close up the view line passes over a low console (T7: no prompt within about 1 m of the survey terminal): the
+	// nearest interactable within 2.5 m in front of the pilot's body, by the same channel.
+	TArray<FOverlapResult> Near;
+	const FVector Body = GetActorLocation();
+	const FVector Fwd = FVector(Rot.Vector().X, Rot.Vector().Y, 0.f).GetSafeNormal();
+	World->OverlapMultiByChannel(Near, Body, FQuat::Identity, TDCollision::Interactable, FCollisionShape::MakeSphere(250.f), Params);
+	AActor* Best = nullptr;
+	float BestD = TNumericLimits<float>::Max();
+	for (const FOverlapResult& O : Near)
+	{
+		AActor* A = O.GetActor();
+		if (!A || !A->GetClass()->ImplementsInterface(UTDInteractable::StaticClass()))
+		{
+			continue;
+		}
+		FVector To = A->GetActorLocation() - Body;
+		To.Z = 0.f;
+		const float D = To.Size();
+		if (D < BestD && (D < 60.f || FVector::DotProduct(Fwd, To / FMath::Max(D, 1.f)) > 0.35f))
+		{
+			BestD = D;
+			Best = A;
+		}
+	}
+	return Best;
 }
 
 void ATDFirstPersonCharacter::BeginInteract()
