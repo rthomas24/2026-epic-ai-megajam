@@ -2,6 +2,7 @@
 
 #include "TriadDrift/Combat/TDTargetingComponent.h"
 #include "TriadDrift/Combat/TDCombatPerf.h"
+#include "TriadDrift/Combat/TDAimAssist.h"
 #include "TriadDrift/Combat/TDWeaponComponent.h"
 #include "TriadDrift/Combat/TDProjectile.h"
 #include "TriadDrift/Combat/TDProjectileSubsystem.h"
@@ -316,8 +317,16 @@ void UTDTargetingComponent::UpdateSoftTarget()
 		bManualTarget = false;
 	}
 
+	// #201: the player's ship uses the aim-assist soft lock (td.Aim.LockConeDeg, scaled by pad / difficulty) with a time
+	// hold: the lock stays td.Aim.StickySeconds after the reticle leaves it, so it never flickers. Wingmen keep ENG-06's cone.
+	const bool bPlayerLock = FTDAimAssist::IsEnabled() && FTDAimAssist::IsPlayerShip(GetOwner());
+	const float Cone = bPlayerLock ? FTDAimAssist::LockConeDeg(GetOwner()) : SoftTargetConeDeg;
+	const float KeepCone = bPlayerLock ? Cone + FTDAimAssist::LockKeepMarginDeg() : SoftTargetKeepConeDeg;
+	const UWorld* World = GetWorld();
+	const double Now = World ? World->GetTimeSeconds() : 0.0;
+
 	AActor* Best = nullptr;
-	float BestAngle = SoftTargetConeDeg;
+	float BestAngle = Cone;
 	for (AActor* Hostile : Hostiles)
 	{
 		const float Angle = GetAngleFromView(Hostile->GetActorLocation());
@@ -331,11 +340,28 @@ void UTDTargetingComponent::UpdateSoftTarget()
 	if (bCurrentValid)
 	{
 		const float CurrentAngle = GetAngleFromView(Current->GetActorLocation());
-		if (CurrentAngle <= SoftTargetKeepConeDeg && (!Best || Best == Current || BestAngle + SoftTargetSwitchMarginDeg >= CurrentAngle))
+		if (CurrentAngle <= KeepCone)
 		{
-			return; // sticky: avoid flicker between two close candidates
+			LockLeftAt = -1.0;
+			if (!Best || Best == Current || BestAngle + SoftTargetSwitchMarginDeg >= CurrentAngle)
+			{
+				return; // sticky: avoid flicker between two close candidates
+			}
+		}
+		else if (bPlayerLock && !Best)
+		{
+			// Outside the keep cone with nothing better: hold the lock for a moment before letting go.
+			if (LockLeftAt < 0.0)
+			{
+				LockLeftAt = Now;
+			}
+			if (Now - LockLeftAt < FTDAimAssist::StickySeconds())
+			{
+				return;
+			}
 		}
 	}
+	LockLeftAt = -1.0;
 	SetCurrentTarget(Best);
 }
 

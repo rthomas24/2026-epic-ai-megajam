@@ -99,6 +99,20 @@ struct UNREALGAMEJAM_API FTDProjectileSpec
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Homing", meta = (Units = "s"))
 	float HomingDelay = 0.f;
 
+	// --- Aim assist (issue #192: the Rift's and the Lancer's regular attacks; not a guided missile) ---
+	/** > 0: at launch the shot picks the hostile nearest its initial line within this half-angle (and AssistRange), then
+	 *  turns toward it at AssistTurnRateDeg, never more than AssistMaxTurnDeg in all; it flies straight if the target dies
+	 *  or is lost (no re-acquire). Only the player's own ship; wingmen's shots are unchanged. 0 = off. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim assist", meta = (ClampMin = "0", ClampMax = "30"))
+	float AssistConeDeg = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim assist", meta = (ClampMin = "0"))
+	float AssistTurnRateDeg = 30.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim assist", meta = (ClampMin = "0", ClampMax = "90"))
+	float AssistMaxTurnDeg = 40.f;
+	/** Acquisition range (cm); 0 = the shot's own Range. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Aim assist", meta = (ClampMin = "0"))
+	float AssistRange = 0.f;
+
 	// --- Proximity fuse (flak, mines) ---
 	/** > 0: detonates when a hostile ship (or a hostile missile, if bShootsDownMissiles) comes this close. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fuse", meta = (Units = "cm"))

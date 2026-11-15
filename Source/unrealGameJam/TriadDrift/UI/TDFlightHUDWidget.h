@@ -304,6 +304,9 @@ public:
 		TArray<FWaypoint> Waypoints;
 		bool bHasLead = false;
 		FVector2D Lead = FVector2D::ZeroVector;
+		/** #201: the locked target on screen, for the lead marker's tie line. */
+		bool bLeadTargetOnScreen = false;
+		FVector2D LeadTarget = FVector2D::ZeroVector;
 		TArray<FWingArrow> Wings;
 		ETDMissileWarning Missile = ETDMissileWarning::None;
 		TArray<FHitArc> Hits;
@@ -614,6 +617,8 @@ public:
 	 * "missile", "boundary", "waypoint", "mark", ...): the layout tests check each one lies in the safe frame.
 	 */
 	mutable TArray<TPair<FName, FBox2D>> LastBoxes;
+	/** The subtitle plate last painted (design frame): projected markers fade inside it (#103). */
+	mutable FBox2D LastSubtitleBox = FBox2D(ForceInit);
 private:
 	float BlockedLeft = 0.f;
 	float HintDoneAge = 0.f;

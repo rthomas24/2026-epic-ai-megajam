@@ -223,6 +223,8 @@ private:
 
 	TWeakObjectPtr<AActor> CurrentTarget;
 	bool bManualTarget = false;
+	/** #201: when the player's lock left its keep cone (world seconds; -1 = inside). */
+	double LockLeftAt = -1.0;
 
 	/** UPROPERTY so GC nulls destroyed actors between refreshes. */
 	UPROPERTY(Transient)

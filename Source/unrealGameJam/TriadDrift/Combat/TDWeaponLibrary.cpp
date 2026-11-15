@@ -43,6 +43,10 @@ namespace
 			W.Projectile.CollisionRadius = 45.f;
 			W.Projectile.PlaceholderColor = TDWLRiftMagenta;
 			W.Projectile.PlaceholderScale = FVector(1.6f, 0.22f, 0.22f);
+			// #192: mild aim assist (Rift primary).
+			W.Projectile.AssistConeDeg = 9.f;
+			W.Projectile.AssistTurnRateDeg = 40.f;
+			W.Projectile.AssistMaxTurnDeg = 40.f;
 			T.Add(W.WeaponId, W);
 		}
 		{
@@ -69,6 +73,10 @@ namespace
 			W.Projectile.bDetonateOnExpire = true; // splits at max range too
 			W.Projectile.PlaceholderColor = TDWLRiftMagenta;
 			W.Projectile.PlaceholderScale = FVector(1.4f, 0.6f, 0.6f);
+			// #192: mild aim assist (Rift secondary; its shards fly straight).
+			W.Projectile.AssistConeDeg = 10.f;
+			W.Projectile.AssistTurnRateDeg = 45.f;
+			W.Projectile.AssistMaxTurnDeg = 40.f;
 			T.Add(W.WeaponId, W);
 		}
 
@@ -90,6 +98,10 @@ namespace
 			W.Projectile.CollisionRadius = 35.f;
 			W.Projectile.PlaceholderColor = TDWLLancerCyan;
 			W.Projectile.PlaceholderScale = FVector(2.0f, 0.12f, 0.12f);
+			// #192: mild aim assist (Lancer primary, fast cannons).
+			W.Projectile.AssistConeDeg = 8.f;
+			W.Projectile.AssistTurnRateDeg = 30.f;
+			W.Projectile.AssistMaxTurnDeg = 40.f;
 			T.Add(W.WeaponId, W);
 		}
 		{
@@ -114,6 +126,10 @@ namespace
 			W.Projectile.bDetonateOnExpire = true;
 			W.Projectile.PlaceholderColor = TDWLLancerCyan;
 			W.Projectile.PlaceholderScale = FVector(1.2f, 0.35f, 0.35f);
+			// #192: mild aim assist (Lancer secondary).
+			W.Projectile.AssistConeDeg = 9.f;
+			W.Projectile.AssistTurnRateDeg = 35.f;
+			W.Projectile.AssistMaxTurnDeg = 40.f;
 			T.Add(W.WeaponId, W);
 		}
 
