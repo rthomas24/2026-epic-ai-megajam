@@ -1453,6 +1453,19 @@ bool ATDPlanetCourse::GetIdleLine(FText& OutText, TArray<AActor*>& OutMarkers) c
 			}
 		}
 	}
+	// Over hazards by their safe way (Cinder's river by the bridge: the idle line from the gate to the field anchor ran
+	// diagonally over the river and left the pilot on the bridge's edge, Nov 15).
+	if (const UTDObjectiveSubsystem* IdleRoutes = UTDObjectiveSubsystem::Get(this))
+	{
+		const APlayerController* RoutePC = GetWorld() ? GetWorld()->GetFirstPlayerController() : nullptr;
+		if (const APawn* RoutePilot = RoutePC ? RoutePC->GetPawn() : nullptr)
+		{
+			for (AActor*& M : OutMarkers)
+			{
+				M = IdleRoutes->RouteWaypointAny(RoutePilot->GetActorLocation(), M);
+			}
+		}
+	}
 	OutText = Names.Num() == 1
 		? FText::Format(LOCTEXT("IdleOne", "HEAD TO {0}"), Names[0])
 		: FText::Format(LOCTEXT("IdleTwo", "HEAD TO A SIGNAL · {0} OR {1}"), Names[0], Names[1]);

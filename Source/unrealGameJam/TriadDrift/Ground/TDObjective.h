@@ -158,6 +158,8 @@ public:
 	AActor* RouteWaypoint(const FVector& From, const ATDObjective* Objective, AActor* Target) const;
 	/** The same for a given step (tests walk every step). */
 	AActor* RouteWaypointForStep(const FVector& From, const ATDObjective* Objective, int32 Step, AActor* Target) const;
+	/** An idle (trailhead) marker: routed over any registered crossing its straight line crosses. */
+	AActor* RouteWaypointAny(const FVector& From, AActor* Target) const { return RouteWaypointForStep(From, nullptr, INDEX_NONE, Target); }
 	/** The flat line A-B passes over the hazard's footprint (grown by Margin). */
 	static bool SegmentCrosses(const FBox& Hazard, const FVector& A, const FVector& B, float Margin = 50.f);
 	/** Within this of a chain waypoint, the marker moves on to the next one. */
