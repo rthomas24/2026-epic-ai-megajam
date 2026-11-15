@@ -142,5 +142,46 @@ Do not cook on the 16 GB machine. If a fix of yours must ship: push it to main, 
 "package please", and Ryan runs the command. If nothing new is proven by the freeze, submit `3f6d29ac` if the Cinder
 walk passed, otherwise `96a66f7c` is the fallback that was played in Shipping (it lacks tonight's features).
 
-## 7. Last results and the release link
-(Filled in by Ryan's Lead at the end of the session; see the bottom of this file.)
+## 7. Last results and the release link (Ryan's Lead, 21:35 EST)
+
+**Source on main:** `58751acb` = `6a33e972` plus a Shipping-safe dev probe (`TD.Flight.MouseProbe`) and the two patch
+files in `docs/eng/patches/`. Compiles for the editor; the Shipping target was checked at `3f6d29ac` (the probe is
+inside `#if !UE_BUILD_SHIPPING`).
+
+**Release (private, prerelease):** https://github.com/rthomas24/2026-epic-ai-megajam/releases/tag/playable-main-3f6d29ac
+`TriadDrift_3f6d29ac_Shipping.zip`, 918,583,703 bytes, SHA-256
+`a0cca31e557cd8cc9e9249de4f9f317dd17505a5631459f5d87e56e9a059a201`. Launch check PASS: splash 1.4 s, loading card at
+2.3 s, no white frame, never "Not Responding" (longest stall 4.8 s), menu at 11.2 s, wave 1-2 HUD, pause and Settings,
+New Game confirm with a save present. Earlier prereleases: `playable-main-cf4ed834`, `-7bf9491a`, `-36bee71d`.
+
+**T7's acceptance walk on `6a33e972`** (Development, offscreen, real walking input):
+- Cinder: Continue after a real survey GOOD; pad to trailhead GOOD (the totem no longer blocks); outpost doorway
+  through its centre GOOD both ways; survey console with the room cleared GOOD (E works at 1.1 m); CROSS THE RIVER and
+  the bridge GOOD (step flips to BREACH THE GATE 0/2 at the far foot); conduit A by blade from 1.3 m GOOD (1/2).
+- **Not proven:** conduit B (the walker stood 40 degrees off and missed; T5 broke both earlier on `7688b7dd`); the
+  yard, the anchor and the shore after the gate; the console refusing while hostiles are near; the early-conduits
+  case (the conduits did not break before their step started, and no stuck 2/2 state occurred).
+- So the Cinder blocker (#194) is **close but not closed**: one clean pass through both conduits to the end of Cinder,
+  then the Session45 save, closes it.
+- Not run on this main: the tactical panel in a natural Aftermath, the cold Continue ship, wave 1 kills with shadow on
+  (each is log-proven by its author only; T7's last data on these is from `27415ffc`, before the fixes).
+- Followers on foot were seen on Cinder: Kato cyan, Moss amber beside Wren magenta, in their suits; Moss fought crew
+  at the gate.
+
+**T2's notes (aim assist and HUD checks):** all aim cvars are in `Combat/TDAimAssist.cpp` (`td.Aim.Enabled`,
+`LockConeDeg` 16, `ConvergeDeg` 15, `TurnScale` 2, `MaxTurnDeg` 45, `PadScale` 1.35, `StoryScale` 1.3, `AceScale`
+0.75). Headless test, no graphics card, about 90 s: `.\Tools	d-test.ps1 -Filter TDCombat.AimAssist.HitRate -ShowLog`
+then search the log for `AIMRATE` (now Rift 7 to 56%, Lancer 3 to 51%, Bastion 23 to 33%). To try values without a
+rebuild put them under `[ConsoleVariables]` in `Saved/Config/WindowsEditor/Engine.ini`. `TD.Weapons.Accuracy [reset]`
+counts live accuracy. `TD.UI.Tactical [s]` shows the tactical panel, `TD.UI.Caption <s> <text>` any caption. Never
+seen in a frame: the lock bracket and lead marker, bolts curving onto a lock, the tactical panel in a natural
+Aftermath, a generator diamond fading under a subtitle.
+
+**Ryan's machine after cleanup:** only `Builds/for-ryan/TriadDrift_3f6d29ac_Shipping.zip`, the fallback
+`TriadDrift_96a66f7c_Shipping.zip` and the unpacked `Builds/playable-3f6d29ac` remain; agent worktrees keep their
+captures and logs under `.wt/<name>/Saved/` but their build caches are deleted (a rebuild takes about 20 minutes).
+
+**Suggested order for the hours left:** (1) the Cinder pass above; (2) a human flies with the mouse and a controller
+on the release and reports feel; (3) one offscreen New Game on main for the tactical panel, Continue ship and wave 1
+kills; (4) the follower corridor and boarding check, or `TD.Ground.Allies 0` as the shipped default if it misbehaves;
+(5) the mouse-steering gain, only if (2) says it is needed; (6) everything in 3.4; then "package please".
