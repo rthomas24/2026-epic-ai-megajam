@@ -8,6 +8,7 @@
 #include "TriadDrift/Travel/TDHyperdriveComponent.h"
 #include "TriadDrift/Flight/TDShip.h"
 #include "TriadDrift/Flight/TDShipMovementComponent.h"
+#include "TriadDrift/Input/TDSpacePlayerController.h"
 #include "TriadDrift/Core/TDCombatRegistry.h"
 #include "TriadDrift/Core/TDHealthComponent.h"
 #include "TriadDrift/Core/TDPresentation.h"
@@ -286,17 +287,32 @@ void UTDLandingComponent::UpdatePadMarker()
 
 FText UTDLandingComponent::GetLandPrompt() const
 {
+	const ATDShip* PromptShip = GetShip();
+	const ATDSpacePlayerController* PC = PromptShip ? Cast<ATDSpacePlayerController>(PromptShip->GetController()) : nullptr;
+	const bool bGamepad = PC && PC->IsUsingGamepad();
+	const auto PadPrompt = [bGamepad](const ATDLandingPad* Pad) -> FText
+	{
+		const FText& Text = Pad->GetPromptText();
+		// Existing pads serialize the keyboard default. Adapt only that default, never arbitrary designer text.
+		if (bGamepad && Text.EqualTo(GetDefault<ATDLandingPad>()->GetPromptText()))
+		{
+			return NSLOCTEXT("TDLanding", "HoldToLandGamepad", "Hold A to land");
+		}
+		return Text;
+	};
 	if (const ATDLandingPad* Available = GetAvailablePad())
 	{
-		return Available->GetPromptText();
+		return PadPrompt(Available);
 	}
 	if (AssistPad.IsValid())
 	{
-		return NSLOCTEXT("TDLanding", "AssistActive", "LANDING ASSIST - TAP F OR BOOST TO TAKE CONTROL");
+		return bGamepad
+			? NSLOCTEXT("TDLanding", "AssistActiveGamepad", "LANDING ASSIST - TAP A OR BOOST TO TAKE CONTROL")
+			: NSLOCTEXT("TDLanding", "AssistActive", "LANDING ASSIST - TAP F OR BOOST TO TAKE CONTROL");
 	}
 	if (const ATDLandingPad* Assist = GetAssistPad())
 	{
-		return Assist->GetPromptText();
+		return PadPrompt(Assist);
 	}
 	// Near a pad but too fast: say why there is no prompt (a player who never brakes would otherwise never know).
 	const ATDShip* Ship = GetShip();
