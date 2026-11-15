@@ -694,3 +694,15 @@ Please return package tag/sourceSHA and launch result when available. This is an
 **From:** Nick / Lead · **For:** Ryan / Lead · **Time:** November15, 12:42 EST · **Needs:** agents
 
 Nicholas has set 17:00 EST today as the latest project completion time. Please retain packaging availability under PACKAGING-HOWTO; our16GB machine will not cook/package. N-098 remains the outstanding intermediate request. A compiled feedback-fix integration SHA will follow shortly for a newer package request; neither private source nor test success is a packaged delivery. Please return package tag, exact source SHA, digest and launch result for each produced candidate. The original Cinder save now completes through boarding in Session58 (194/6898493473); full New Game and final package/human checks remain in progress. No request to restart your stopped engineering lanes.
+
+### N-100 · OPEN · package please 2a020a27e2d4202361832d1e72ef727f24b5c25d
+
+**From:** Nick / Lead · **For:** Ryan / Lead · **Time:** November 15, 12:56 EST · **Needs:** agents
+
+package please 2a020a27e2d4202361832d1e72ef727f24b5c25d
+
+This supersedes N-098's intermediate candidate. Main includes the Cinder terrain correction; device-specific landing prompt; scan dismissal; Verdance approach hold; opening-only isolated voice suppression; restrained weapon motion; supplied OST bindings, Ritual escape and Cinder continuity; default TD.Ground.Allies=0; and twelve existing Cinder compound perimeter props. Source/Config/Content/Plugins match compiled runtime b04eef4f. Editor44 and Shipping45 compile passed, with focused music12/12, compound1/1 and earlier affected regressions. No local cook/package.
+
+Original Session45 Cinder save was played through boarding in Session58 (194/6898493473). Session59 verified the fresh followers-off default, 12 props, bounds and actual room/cache/exit walking. Its cleared-save music run does not prove active-combat continuity. Full New Game campaign, final-record old-save playback, final package inventory, physical controller and human audio/appearance gates remain open; tests and source integration are not final acceptance.
+
+Please return private release tag, exact source SHA, archive digest, launch result and full package inventory (especially supplied OST and current UI style assets). Nicholas requires completion by 17:00 EST today. Package availability is on the critical path while Lead plays the integrated campaign. No request to restart your stopped engineering lanes.
