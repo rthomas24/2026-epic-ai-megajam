@@ -284,6 +284,8 @@ private:
 	UPROPERTY(Transient) TObjectPtr<UAudioComponent> OpeningBed;
 	TWeakObjectPtr<USoundBase> PendingOpeningBed;
 	float OpeningBedFadeSeconds = 2.f;
+	/** The tutorial score's voices already started when the bed began (a second New Game in the same session). */
+	int32 ScoreVoicesAtBedStart = 0;
 	void StartOpeningBed(USoundBase* Sound);
 	void FadeOpeningBed(float Seconds, const TCHAR* Why);
 	void UpdateOpeningBed();

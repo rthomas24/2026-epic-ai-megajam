@@ -2278,6 +2278,8 @@ void UTDIntroDirector::StartOpeningBed(USoundBase* Sound)
 		return;
 	}
 	OpeningBed = UGameplayStatics::SpawnSound2D(this, Sound);
+	const UTDTutorialMusicSubsystem* Score = UTDTutorialMusicSubsystem::Get(this);
+	ScoreVoicesAtBedStart = Score ? Score->GetVoicesStarted() : 0; // the count lives for the session, not the run
 	UE_LOG(LogTriadDrift, Log, TEXT("Intro: opening bed %s starts at %.1f s"), *Sound->GetName(), Elapsed);
 }
 
@@ -2296,7 +2298,7 @@ void UTDIntroDirector::UpdateOpeningBed()
 {
 	// The tutorial score has started (its first voice): the bed gives way.
 	const UTDTutorialMusicSubsystem* Score = OpeningBed ? UTDTutorialMusicSubsystem::Get(this) : nullptr;
-	if (Score && Score->GetVoicesStarted() > 0)
+	if (Score && Score->GetVoicesStarted() > ScoreVoicesAtBedStart)
 	{
 		FadeOpeningBed(OpeningBedFadeSeconds, TEXT("the tutorial score started"));
 	}
